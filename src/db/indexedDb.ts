@@ -177,6 +177,35 @@ export type PunyaKarmaSummaryRecord = {
   updatedAt: number;
 };
 
+export type NakshatraRecord = {
+  index: number;
+  canonicalEn: string;
+  nameKn: string;
+  nameEn: string;
+  nameHi: string;
+  nameTe: string;
+  nameTa: string;
+  nameMl: string;
+  deityKn: string;
+  deityEn: string;
+  rulingPlanet: string;
+  aliases: string[];
+};
+
+export type VaraRecord = {
+  index: number;
+  canonicalEn: string;
+  nameKn: string;
+  nameEn: string;
+  nameHi: string;
+  nameTe: string;
+  nameTa: string;
+  nameMl: string;
+  rulingPlanet: string;
+  tatva: string;
+  aliases: string[];
+};
+
 class AppDatabase extends Dexie {
   settings!: Table<SettingsRecord>;
   kundlis!: Table<KundliRecord>;
@@ -193,6 +222,8 @@ class AppDatabase extends Dexie {
   tokenMappings!: Table<TokenMappingRecord>;
   punyaKarmaLedger!: Table<PunyaKarmaLedgerRecord>;
   punyaKarmaSummary!: Table<PunyaKarmaSummaryRecord>;
+  nakshatras!: Table<NakshatraRecord, number>;
+  varas!: Table<VaraRecord, number>;
 
   constructor() {
     super("baggona-panchanga-db");
@@ -275,6 +306,25 @@ class AppDatabase extends Dexie {
       punyaKarmaLedger: "id,dateYmd,action,userId,devoteeToken,timestamp",
       punyaKarmaSummary: "id,totalPunya,totalKarma,updatedAt"
     });
+    this.version(13).stores({
+      settings: "++id,language,createdAt,consentChoice,analyticsEnabled,chartStyle",
+      kundlis: "id,userId,name,createdAt",
+      panchangCache: "id,date,location,cachedAt",
+      predictionCache: "id,kundliId,period,periodKey,cachedAt",
+      scheduledNotifications: "id,type,scheduledTime,fired",
+      analyticsEvents: "++id,eventName,timestamp",
+      geocodeCache: "placeName,cachedAt",
+      translationCache: "id,lang,cachedAt",
+      users: "id,username",
+      dailyHits: "date",
+      userSankalpas: "id,userId,category,isActive,createdAt",
+      devoteeTokens: "id,shortCode,devoteeName,priestName,expiresAt,status",
+      tokenMappings: "id,legacyToken,newTokenId,shortCode,expiresAt",
+      punyaKarmaLedger: "id,dateYmd,action,userId,devoteeToken,timestamp",
+      punyaKarmaSummary: "id,totalPunya,totalKarma,updatedAt",
+      nakshatras: "index,canonicalEn,nameKn,nameEn",
+      varas: "index,canonicalEn,nameKn,nameEn"
+    });
   }
 }
 
@@ -283,11 +333,20 @@ export const db = new AppDatabase();
 export const initDatabase = async (): Promise<void> => {
   try {
     await db.open();
+    // Dynamically seed authentic Baggona Nakshatras and Varas
+    import("../services/nakshatraDbService").then((service) => {
+      service.seedNakshatrasAndVarasToDb().catch((err) => {
+        console.warn("Autoseed Baggona Nakshatras/Varas notice:", err);
+      });
+    });
   } catch (error) {
     const name = (error as { name?: string })?.name;
     if (name === "UpgradeError") {
       await db.delete();
       await db.open();
+      import("../services/nakshatraDbService").then((service) => {
+        service.seedNakshatrasAndVarasToDb().catch(console.warn);
+      });
       return;
     }
     throw error;

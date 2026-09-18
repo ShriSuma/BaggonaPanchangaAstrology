@@ -3,9 +3,84 @@ import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { degreeToRashi } from "../../core/AstroMath";
-import { generateAstrologicalPrescriptions } from "../../core/PanchangaAngaSynthesisEngine";
+import {
+  generateAstrologicalPrescriptions,
+  YOGA_RULES,
+  KARANA_RULES
+} from "../../core/PanchangaAngaSynthesisEngine";
 
 export type SupportedLanguage = "kn" | "en" | "hi" | "te" | "ta";
+
+export interface PanchangaRemedies {
+  nakshatraRemedy: {
+    nakshatraName: Record<string, string>;
+    pada: number;
+    rulingDeity: Record<string, string>;
+    sacredTree: {
+      botanicalName: string;
+      kannada: string;
+      english: string;
+      hindi: string;
+      telugu: string;
+      tamil: string;
+      worshipMethod: Record<string, string>;
+    };
+    beejaMantra: {
+      sanskrit: string;
+      kannada: string;
+      meaning: Record<string, string>;
+    };
+    aradhana: Record<string, string>;
+  };
+  tithiRemedy: {
+    tithiName: Record<string, string>;
+    paksha: "Shukla" | "Krishna";
+    rulingDeity: Record<string, string>;
+    vrataAndRemedy: Record<string, string>;
+  };
+  varaRemedy: {
+    dayName: Record<string, string>;
+    rulingGraha: PlanetName;
+    dailyColor: Record<string, string>;
+    dailySadhana: Record<string, string>;
+  };
+  yogaRemedy: {
+    yogaName: Record<string, string>;
+    isAuspicious: boolean;
+    deity: string;
+    shantiPractice: Record<string, string>;
+  };
+  karanaRemedy: {
+    karanaName: Record<string, string>;
+    tatva: string;
+    deity: string;
+    karyaShanti: Record<string, string>;
+  };
+}
+
+export interface PlanetaryStrengthRemedies {
+  debilitatedPlanets: Array<{
+    graha: PlanetName;
+    grahaName: Record<string, string>;
+    debilitationSign: Record<string, string>;
+    hasNeechaBhanga: boolean;
+    neechaBhangaReason?: Record<string, string>;
+    shantiRemedy: Record<string, string>;
+    gemstoneCaution: Record<string, string>;
+  }>;
+  exaltedPlanets: Array<{
+    graha: PlanetName;
+    grahaName: Record<string, string>;
+    exaltationSign: Record<string, string>;
+    activationRemedy: Record<string, string>;
+    blessingArea: Record<string, string>;
+  }>;
+  influencerBenchmarkComparison: {
+    title: Record<string, string>;
+    insights: Record<string, string>;
+    authenticApproach: Record<string, string>;
+  };
+}
 
 export interface KundliRemedyDiagnosis {
   devoteeName: string;
@@ -30,10 +105,10 @@ export interface KundliRemedyDiagnosis {
     impact: Record<string, string>;
   }>;
   psychologicalProfile: {
-    krodhaLevel: number; // 0-100% (Anger / Pitta intensity)
-    manasStability: number; // 0-100% (Mental stability / Peace)
-    vitalityScore: number; // 0-100% (Energy / Tejas)
-    patienceIndex: number; // 0-100% (Tolerance / Dhriti)
+    krodhaLevel: number; // 0-100%
+    manasStability: number; // 0-100%
+    vitalityScore: number; // 0-100%
+    patienceIndex: number; // 0-100%
   };
   instantCalmingProtocol: {
     title: Record<string, string>;
@@ -78,6 +153,8 @@ export interface KundliRemedyDiagnosis {
     facingDirection: Record<string, string>;
     recitationCount: Record<string, string>;
   }>;
+  panchangaRemedies: PanchangaRemedies;
+  planetaryStrengthRemedies: PlanetaryStrengthRemedies;
   dashaBhuktiAnalysis: {
     currentMahaDasha: PlanetName;
     currentBhukti: PlanetName;
@@ -161,9 +238,1719 @@ export const RASHI_NAMES_LOCALE: Record<string, Record<string, string>> = {
   Pisces: { kn: "ಮೀನ", en: "Pisces", hi: "मीन", te: "మీనం", ta: "மீனம்" }
 };
 
+/** 27 Authentic Classical Nakshatra Vriksha (Sacred Trees) & Remedies */
+export const NAKSHATRA_REMEDY_DATA: Record<number, {
+  name: Record<string, string>;
+  deity: Record<string, string>;
+  tree: {
+    botanicalName: string;
+    kannada: string;
+    english: string;
+    hindi: string;
+    telugu: string;
+    tamil: string;
+    worshipMethod: Record<string, string>;
+  };
+  beejaMantra: {
+    sanskrit: string;
+    kannada: string;
+    meaning: Record<string, string>;
+  };
+  aradhana: Record<string, string>;
+}> = {
+  0: { // Ashwini
+    name: { kn: "ಅಶ್ವಿನಿ", en: "Ashwini", hi: "अश्विनी", te: "అశ్విని", ta: "அஸ்வினி" },
+    deity: { kn: "ಅಶ್ವಿನಿ ಕುಮಾರರು (ದೇವ ವೈದ್ಯರು)", en: "Ashwini Kumaras (Divine Healers)", hi: "अश्विनी कुमार", te: "అశ్వినీ దేవతలు", ta: "அஸ்வினி குமாரர்கள்" },
+    tree: {
+      botanicalName: "Strychnos nux-vomica",
+      kannada: "ಕಾಸರಕ (ನಂಜಿನ ಮರ)",
+      english: "Poison Nut (Kuchila)",
+      hindi: "कुचिला",
+      telugu: "ముషిణి",
+      tamil: "எட்டி மரம்",
+      worshipMethod: {
+        kn: "ಜನ್ಮ ನಕ್ಷತ್ರದ ದಿನ ಕಾಸರಕ ವೃಕ್ಷಕ್ಕೆ ನೀರೆರೆದು ಪ್ರದಕ್ಷಿಣೆ ಹಾಕುವುದು ದೈಹಿಕ ಶಕ್ತಿ ಮತ್ತು ರೋಗನಿವಾರಣೆಗೆ ಶ್ರೇಷ್ಠ.",
+        en: "Water the Kuchila tree and circumambulate on Ashwini days for rapid physical healing and cellular vigor.",
+        hi: "अश्विनी के दिन कुचिला वृक्ष को जल अर्पित करें एवं अश्विनी कुमारों का ध्यान करें।",
+        te: "అశ్విని నక్షత్రం రోజున ముషిణి వృక్షానికి ప్రదక్షిణ చేసి నీరు పోయండి.",
+        ta: "அஸ்வினி நாளில் எட்டி மரத்தை வலம் வந்து நீர் ஊற்றவும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ अश्विनीकुमाराभ्यां नमः । ॐ अं अश्विनीनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಅಶ್ವಿನೀಕುಮಾರಾಭ್ಯಾಂ ನಮಃ । ಓಂ ಅಂ ಅಶ್ವಿನೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ದೇವವೈದ್ಯರಾದ ಅಶ್ವಿನಿ ಕುಮಾರರ ಅನುಗ್ರಹದಿಂದ ಸಮಸ್ತ ರೋಗಗಳು ನಿವಾರಣೆಯಾಗಿ ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿ.",
+        en: "May the divine celestial physicians Ashwini Kumaras remove all illnesses and restore radiant health.",
+        hi: "देव वैद्य अश्विनी कुमारों की कृपा से समस्त व्याधियां दूर हों।",
+        te: "అశ్వినీ కుమారుల అనుగ్రహంతో రోగాలు తొలగుగాక.",
+        ta: "அஸ்வினி குமாரர்களின் அருளால் நோய்கள் நீங்கட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಭಗವಾನ್ ಗಣೇಶ ಹಾಗೂ ಸೂರ್ಯನ ಆರಾಧನೆ, ಔಷಧ ದಾನ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ.",
+      en: "Worship Lord Ganesha and Surya; donate medicines to needy patients.",
+      hi: "भगवान गणेश एवं सूर्य की पूजा तथा औषधियों का दान करें।",
+      te: "గణపతి మరియు సూర్య ఆరాధన, ఔషధ దానం.",
+      ta: "விநாயகர் மற்றும் சூரிய வழிபாடு, மருந்து தானம்."
+    }
+  },
+  1: { // Bharani
+    name: { kn: "ಭರಣಿ", en: "Bharani", hi: "भरणी", te: "భరణి", ta: "பரணி" },
+    deity: { kn: "ಯಮಧರ್ಮರಾಜ", en: "Yama Dharmaraja", hi: "यमराज", te: "యమధర్మరాజు", ta: "யமதர்மராஜன்" },
+    tree: {
+      botanicalName: "Phyllanthus emblica",
+      kannada: "ಬೆಟ್ಟದ ನೆಲ್ಲಿ (ಆಮ್ಲಾ)",
+      english: "Indian Gooseberry (Amla)",
+      hindi: "आंवला",
+      telugu: "ఉసిరి చెట్టు",
+      tamil: "நெல்லி மரம்",
+      worshipMethod: {
+        kn: "ನೆಲ್ಲಿ ಗಿಡಕ್ಕೆ ನೀರೆರೆಯುವುದು ಪಿತೃ ಋಣ ನಿವಾರಣೆ ಮತ್ತು ಆಂತರಿಕ ಸಂಯಮಕ್ಕೆ ಸಹಕಾರಿ.",
+        en: "Pour water on an Amla tree to clear ancestral debts and strengthen moral fortitude.",
+        hi: "आंवले के वृक्ष को जल दें एवं यमराज का ध्यान कर धर्म मार्ग पर चलें।",
+        te: "ఉసిరి చెట్టుకు నీరు పోయడం ద్వారా పితృ రుణాలు తొలగిపోతాయి.",
+        ta: "நெல்லி மரத்திற்கு நீர் ஊற்றுவது முன்னோர்களின் ஆசியை பெற்றுத்தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ यमाय धर्मराजाय नमः । ॐ भं भरणीनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಯಮಾಯ ಧರ್ಮರಾಜಾಯ ನಮಃ । ಓಂ ಭಂ ಭರಣೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಧರ್ಮದ ಅಧಿಪತಿಯಾದ ಯಮದೇವನಿಗೆ ನಮಸ್ಕಾರಗಳು. ನನ್ನ ಜೀವಿತದಲ್ಲಿ ಸತ್ಯ ಮತ್ತು ಧರ್ಮ ಸ್ಥಿರವಾಗಿರಲಿ.",
+        en: "Salutations to Lord Yama, guardian of cosmic truth and justice.",
+        hi: "धर्मराज यम को नमन। जीवन में सत्य और संयम की वृद्धि हो।",
+        te: "యమధర్మరాజుకు నమస్కారాలు. జీవితంలో ధర్మం వర్ధిల్లుగాక.",
+        ta: "யமதர்மராஜனுக்கு நமஸ்காரங்கள்."
+      }
+    },
+    aradhana: {
+      kn: "ಮಹಾದೇವ ಶಿವನ ಮೃತ್ಯುಂಜಯ ಜಪ ಹಾಗೂ ಅನ್ನದಾನ ಮಾಡುವುದು.",
+      en: "Chant Maha Mrityunjaya Mantra and offer satvic food to elders.",
+      hi: "महामृत्युंजय मंत्र जप एवं वृद्धों को अन्नदान करें।",
+      te: "మహామృత్యుంజయ జపం మరియు అన్నదానం.",
+      ta: "மகா மிருத்யுஞ்சய ஜபம் மற்றும் அன்னதானம்."
+    }
+  },
+  2: { // Krittika
+    name: { kn: "ಕೃತಿಕಾ", en: "Krittika", hi: "कृत्तिका", te: "కృత్తిక", ta: "கார்த்திகை" },
+    deity: { kn: "ಅಗ್ನಿದೇವ", en: "Agni Deva", hi: "अग्नि देव", te: "అగ్ని దేవుడు", ta: "அக்னி தேவன்" },
+    tree: {
+      botanicalName: "Ficus racemosa",
+      kannada: "ಅತ್ತಿ ಮರ (ಉದುಂಬರ)",
+      english: "Cluster Fig (Audumbara)",
+      hindi: "गूलर (उदुम्बर)",
+      telugu: "మేడి చెట్టు",
+      tamil: "அத்தி மரம்",
+      worshipMethod: {
+        kn: "ದತ್ತಾತ್ರೇಯ ಪ್ರಿಯವಾದ ಅತ್ತಿ ಮರಕ್ಕೆ ಪ್ರದಕ್ಷಿಣೆ ಹಾಕಿ ಪೂಜಿಸುವುದರಿಂದ ತೇಜಸ್ಸು ಹಾಗೂ ಜೀರ್ಣಶಕ್ತಿ ವರ್ಧಿಸುತ್ತದೆ.",
+        en: "Circumambulate the sacred Audumbara tree; sanctified by Lord Dattatreya, it elevates digestive fire and focus.",
+        hi: "गूलर के वृक्ष की परिक्रमा करें, दत्तात्रेय भगवान की कृपा से ओज बढ़ता है।",
+        te: "మేడి చెట్టు చుట్టూ ప్రదక్షిణలు చేయడం వలన తేజస్సు పెరుగుతుంది.",
+        ta: "அத்தி மரத்தை வலம் வருவது குருவருளையும் தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ अग्नये नमः । ॐ क्रं कृत्तिकानक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಅಗ್ನಯೇ ನಮಃ । ಓಂ ಕ್ರಂ ಕೃತಿಕಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಪವಿತ್ರ ಅಗ್ನಿದೇವನ ಅನುಗ್ರಹದಿಂದ ಅಂತರಂಗದ ತಮಸ್ಸು ಭಸ್ಮವಾಗಿ ಜ್ಞಾನಪ್ರಕಾಶ ಬೆಳಗಲಿ.",
+        en: "May divine Agni burn away all impurities and kindle pristine wisdom.",
+        hi: "पवित्र अग्नि देव समस्त विकारों को भस्म कर ज्ञान का प्रकाश फैलाएं।",
+        te: "అగ్ని దేవుని కృపతో జ్ఞానం ప్రకాశించుగాక.",
+        ta: "அக்னி தேவனின் அருளால் அஞ்ஞானம் நீங்கட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಸುಬ್ರಹ್ಮಣ್ಯ (ಕಾರ್ತಿಕೇಯ) ಉಪಾಸನೆ ಹಾಗೂ ಗಾಯತ್ರೀ ಜಪ.",
+      en: "Worship Lord Kartikeya/Subrahmanya and recite Gayatri Mantra.",
+      hi: "भगवान कार्तिकेय की पूजा एवं घी का दीपक जलाएं।",
+      te: "సుబ్రహ్మణ్యేశ్వర స్వామి ఆరాధన.",
+      ta: "ஸ்ரீ முருகப்பெருமான் வழிபாடு."
+    }
+  },
+  3: { // Rohini
+    name: { kn: "ರೋಹಿಣಿ", en: "Rohini", hi: "रोहिणी", te: "రోహిణి", ta: "ரோகிணி" },
+    deity: { kn: "ಬ್ರಹ್ಮದೇವ / ಪ್ರಜಾಪತಿ", en: "Brahma / Prajapati", hi: "ब्रह्मा / प्रजापति", te: "బ్రహ్మ దేవుడు", ta: "பிரம்ம தேவன்" },
+    tree: {
+      botanicalName: "Syzygium cumini",
+      kannada: "ನೇರಳೆ ಮರ (ಜಾಮೂನ್)",
+      english: "Black Plum (Jamun)",
+      hindi: "जामुन",
+      telugu: "నేరేడు చెట్టు",
+      tamil: "நாவல் மரம்",
+      worshipMethod: {
+        kn: "ನೇರಳೆ ಮರಕ್ಕೆ ನೀರುಣಿಸುವುದು ಮನಸ್ಸಿನ ಚಾಂಚಲ್ಯವನ್ನು ಶಮನಗೊಳಿಸಿ ಕಲಾತ್ಮಕ ಸೃಜನಶೀಲತೆಯನ್ನು ನೀಡುತ್ತದೆ.",
+        en: "Nurturing a Jamun tree stabilizes restless emotions and enhances artistic imagination.",
+        hi: "जामुन के वृक्ष को जल दें, मानसिक शांति एवं रचनात्मकता प्राप्त होगी।",
+        te: "నేరేడు చెట్టుకు నీరు పోయడం వలన మనశ్శాంతి లభిస్తుంది.",
+        ta: "நாவல் மரத்திற்கு நீர் ஊற்றுவது மன அமைதியை தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ प्रजापतये नमः । ॐ रों रोहिणीनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಪ್ರಜಾಪತಯೇ ನಮಃ । ಓಂ ರೋಂ ರೋಹಿಣೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಸೃಷ್ಟಿಕರ್ತ ಬ್ರಹ್ಮದೇವನ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಸೌಭಾಗ್ಯ ಮತ್ತು ಸಮೃದ್ಧಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.",
+        en: "May Creator Brahma bestow abundance, auspicious beauty, and domestic prosperity.",
+        hi: "सृष्टिकर्ता ब्रह्मा की कृपा से ऐश्वर्य एवं पारिवारिक सुख प्राप्त हो।",
+        te: "బ్రహ్మ దేవుని అనుగ్రహంతో సమృద్ధి లభించుగాక.",
+        ta: "பிரம்ம தேவனின் அருளால் சுப பலன்கள் உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಶ್ರೀಕೃಷ್ಣನ ಆರಾಧನೆ ಹಾಗೂ ಹಸುವಿಗೆ ಹಸಿರು ಹುಲ್ಲು ನೀಡುವುದು.",
+      en: "Worship Lord Sri Krishna and feed fresh green grass to cows.",
+      hi: "भगवान श्री कृष्ण की पूजा एवं गौसेवा करें।",
+      te: "శ్రీకృష్ణుని పూజ మరియు గోసేవ.",
+      ta: "ஸ்ரீ கிருஷ்ணர் வழிபாடு மற்றும் கோபூஜை."
+    }
+  },
+  4: { // Mrigashira
+    name: { kn: "ಮೃಗಶಿರಾ", en: "Mrigashira", hi: "मृगशिरा", te: "మృగశిర", ta: "மிருகசீரிடம்" },
+    deity: { kn: "ಸೋಮದೇವ (ಚಂದ್ರ)", en: "Soma Deva (Chandra)", hi: "सोम देव", te: "సోమ దేవుడు", ta: "சந்திர பகவான்" },
+    tree: {
+      botanicalName: "Acacia catechu",
+      kannada: "ಕಾಚು ಮರ (ಖದಿರ)",
+      english: "Black Cutch (Khadira)",
+      hindi: "खैर (खदिर)",
+      telugu: "చండ్ర చెట్టు",
+      tamil: "கருங்காலி மரம்",
+      worshipMethod: {
+        kn: "ಖದಿರ (ಕರಿಂಗಾಲಿ) ವೃಕ್ಷದ ದರ್ಶನ ಮತ್ತು ಪೂಜೆ ಸಂಶೋಧನಾ ಜ್ಞಾನ ಹಾಗೂ ದೃಷ್ಟಿ ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+        en: "Venerating the Khadira tree enhances investigative intellect and mental clarity.",
+        hi: "खदिर वृक्ष का दर्शन और पूजन बुद्धि और एकाग्रता बढ़ाता है।",
+        te: "చండ్ర చెట్టును పూజించడం వలన ఏకాగ్రత పెరుగుతుంది.",
+        ta: "கருங்காலி மர வழிபாடு கவனத்தை ஒருமுகப்படுத்தும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ सोमाय नमः । ॐ मृं मृगशिरानक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಸೋಮಾಯ ನಮಃ । ಓಂ ಮೃಂ ಮೃಗಶಿರಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಶಾಂತಿ ಸ್ವರೂಪನಾದ ಚಂದ್ರದೇವನ ಕೃಪೆಯಿಂದ ಅಮೃತಮಯ ಆನಂದ ಮತ್ತು ಆರೋಗ್ಯ ಲಭಿಸಲಿ.",
+        en: "May divine Soma bestow sweet peace, radiant health, and peaceful consciousness.",
+        hi: "सोम देव की कृपा से शीतलता और उत्तम स्वास्थ्य प्राप्त हो।",
+        te: "సోమ దేవుని కృపతో మనశ్శాంతి లభించుగాక.",
+        ta: "சந்திரனின் அருளால் அமைதி உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಪಾರ್ವತಿ ಸಮೇತ ಚಂದ್ರಮೌಳೀಶ್ವರ ಶಿವನ ಆರಾಧನೆ.",
+      en: "Worship Lord Chandramouleshwara Shiva and Goddess Parvati.",
+      hi: "भगवान शिव और माता पार्वती की उपासना करें।",
+      te: "చంద్రమౌళీశ్వర స్వామి ఆరాధన.",
+      ta: "சந்திரமௌளீஸ்வரர் வழிபாடு."
+    }
+  },
+  5: { // Ardra
+    name: { kn: "ಆರ್ದ್ರಾ", en: "Ardra", hi: "आर्द्रा", te: "ఆర్ద్ర", ta: "திருவாதிரை" },
+    deity: { kn: "ರುದ್ರದೇವ", en: "Lord Rudra", hi: "रुद्र देव", te: "రుద్రుడు", ta: "ருத்ர பெருமான்" },
+    tree: {
+      botanicalName: "Aquilaria agallocha",
+      kannada: "ಕೃಷ್ಣಾಗರು (ಅಗರು ಮರ)",
+      english: "Agarwood (Krishnagaru)",
+      hindi: "अगर (कृष्णागरु)",
+      telugu: "అగరు చెట్టు",
+      tamil: "அகில் மரம்",
+      worshipMethod: {
+        kn: "ಶುದ್ಧ ಅಗರು ಧೂಪವನ್ನು ಸಂಜೆ ಪ್ರದೋಷ ಕಾಲದಲ್ಲಿ ಹಚ್ಚುವುದು ಮಾನಸಿಕ ಶೋಕ ಮತ್ತು ಆಘಾತಗಳನ್ನು ನಿವಾರಿಸುತ್ತದೆ.",
+        en: "Lighting pure Agarwood dhoopa at twilight transmutes deep sorrow and clears astral debris.",
+        hi: "संध्या समय अगर की धूप जलाएं, मानसिक संताप नष्ट होगा।",
+        te: "అగరు ధూపం వేయడం ద్వారా మానసిక దుఃఖం తొలగుతుంది.",
+        ta: "அகில் தூபம் இடுவது மனக்கவலையை நீக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ रुद्राय नमः । ॐ आर्ं आर्द्रानक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ರುದ್ರಾಯ ನಮಃ । ಓಂ ಆರ್ಂ ಆರ್ದ್ರಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಪ್ರಳಯಂಕರ ಹಾಗೂ ಕರುಣಾಮಯಿಯಾದ ರುದ್ರದೇವನ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಕಷ್ಟಗಳು ಕರಗಿಹೋಗಲಿ.",
+        en: "Salutations to compassionate Rudra, who dissolves afflictions and bestows inner transformation.",
+        hi: "भगवान रुद्र हमारे समस्त कष्टों का हरण करें।",
+        te: "రుద్రుని కృపతో సమస్త బాధలు తొలగుగాక.",
+        ta: "ருத்ர பகவானின் அருளால் கஷ்டங்கள் தீரட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಹಾಗೂ ಬಿಲ್ವಾರ್ಚನೆ.",
+      en: "Perform Rudrabhisheka with Bilva leaves at Gokarna Mahabaleshwara temple.",
+      hi: "गोकर्ण महाबलेश्वर में रुद्राभिषेक कराएं एवं बिल्वपत्र अर्पित करें।",
+      te: "రుద్రాభిషేకం మరియు బిల్వార్చన.",
+      ta: "ருத்ராபிஷேகம் மற்றும் வில்வார்ச்சனை."
+    }
+  },
+  6: { // Punarvasu
+    name: { kn: "ಪುನರ್ವಸು", en: "Punarvasu", hi: "पुनर्वसु", te: "పునర్వసు", ta: "புனர்பூசம்" },
+    deity: { kn: "ಅದಿತಿ (ದೇವಮಾತೆ)", en: "Aditi (Cosmic Mother)", hi: "अदिति (देवमाता)", te: "అదితి దేవి", ta: "அதிதி தேவி" },
+    tree: {
+      botanicalName: "Bambusa arundinacea",
+      kannada: "ಬಿದಿರು (ವೇಣು)",
+      english: "Bamboo (Venu)",
+      hindi: "बांस",
+      telugu: "వెదురు చెట్టు",
+      tamil: "மூங்கில்",
+      worshipMethod: {
+        kn: "ಬಿದಿರಿನ ಸಸಿ ನೆಡುವುದು ಅಥವಾ ನೀರೆರೆಯುವುದು ಕಳೆದುಹೋದ ಸಂಪತ್ತು ಮತ್ತು ಮರ್ಯಾದೆಯನ್ನು ಪುನಃ ತಂದುಕೊಡುತ್ತದೆ.",
+        en: "Planting or watering bamboo restores lost wealth, optimism, and family lineage blessings.",
+        hi: "बांस का पौधा लगाएं, खोया हुआ सम्मान और समृद्धि पुनः प्राप्त होगी।",
+        te: "వెదురు చెట్టుకు నీరు పోయడం వలన పూర్వ వైభవం లభిస్తుంది.",
+        ta: "மூங்கில் மரத்திற்கு நீர் ஊற்றுவது இழந்த பெருமையை மீட்டெடுக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ अदितये नमः । ॐ पुं पुनर्वसुनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಅದಿತಯೇ ನಮಃ । ಓಂ ಪುಂ ಪುನರ್ವಸುನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಅಖಂಡ ದೇವಮಾತೆ ಅದಿತಿಯ ಕೃಪೆಯಿಂದ ಜೀವನದಲ್ಲಿ ಪುನಶ್ಚೇತನ ಹಾಗೂ ಸಕಲ ಸಿದ್ಧಿಗಳು ಲಭಿಸಲಿ.",
+        en: "May divine Mother Aditi restore lost opportunities and shower limitless grace.",
+        hi: "देवमाता अदिति की कृपा से जीवन में पुनः समृद्धि का संचार हो।",
+        te: "అదితి దేవి అనుగ్రహంతో సర్వ కార్యాలు సిద్ధించుగాక.",
+        ta: "அதிதி தேவியின் அருளால் சுபிட்சம் உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಶ್ರೀರಾಮ ತಾರಕ ಮಂತ್ರ ಜಪ ಹಾಗೂ ಶ್ರೀರಾಮ ರಕ್ಷಾ ಸ್ತೋತ್ರ ಪಠಣ.",
+      en: "Chant Sri Rama Taraka Mantra and recite Sri Rama Raksha Stotra.",
+      hi: "श्री राम रक्षा स्तोत्र का पाठ एवं राम नाम जप करें।",
+      te: "శ్రీరామ రక్షా స్తోత్ర పఠనం.",
+      ta: "ஸ்ரீ ராம ரக்ஷா ஸ்தோத்திரம் பாராயணம்."
+    }
+  },
+  7: { // Pushya
+    name: { kn: "ಪುಷ್ಯ", en: "Pushya", hi: "पुष्य", te: "పుష్యమి", ta: "பூசம்" },
+    deity: { kn: "ಬೃಹಸ್ಪತಿ (ದೇವಗುರು)", en: "Brihaspati (Deva Guru)", hi: "बृहस्पति", te: "బృహస్పతి", ta: "குரு பகவான்" },
+    tree: {
+      botanicalName: "Ficus religiosa",
+      kannada: "ಅಶ್ವತ್ಥ ವೃಕ್ಷ (ಪೀಪಲ್)",
+      english: "Sacred Fig (Peepal)",
+      hindi: "पीपल",
+      telugu: "రావి చెట్టు",
+      tamil: "அரச மரம்",
+      worshipMethod: {
+        kn: "ಗುರುವಾರ ಅಥವಾ ಶನಿವಾರ ಅಶ್ವತ್ಥ ವೃಕ್ಷಕ್ಕೆ ೭ ಅಥವಾ ೨೧ ಪ್ರದಕ್ಷಿಣೆ ಹಾಕಿ ನೀರನ್ನು ಅರ್ಪಿಸುವುದು ಅತ್ಯಂತ ಶುಭದಾಯಕ.",
+        en: "Circumambulate the sacred Peepal tree 7 or 21 times and offer water on Thursdays for spiritual wisdom.",
+        hi: "गुरुवार को पीपल वृक्ष की परिक्रमा कर जल अर्पित करें, गुरु कृपा प्राप्त होगी।",
+        te: "రావి చెట్టుకు ప్రదక్షిణలు చేసి నీరు పోయండి.",
+        ta: "அரச மரத்தை வலம் வந்து வணங்குவது குருவின் அருளை தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ बृहस्पतये नमः । ॐ पुं पुष्यनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಬೃಹಸ್ಪತಯೇ ನಮಃ । ಓಂ ಪುಂ ಪುಷ್ಯನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಜ್ಞಾನನಿಧಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಸದ್ಬುದ್ಧಿ ಮತ್ತು ಸಕಲ ಧರ್ಮಕಾರ್ಯಗಳು ಸಿದ್ಧಿಸಲಿ.",
+        en: "May divine preceptor Brihaspati illuminate intellect and grant dharmic prosperity.",
+        hi: "देवगुरु बृहस्पति की कृपा से सद्बुद्धि और ज्ञान की प्राप्ति हो।",
+        te: "బృహస్పతి కృపతో జ్ఞానం మరియు సంపద లభించుగాక.",
+        ta: "குரு பகவானின் அருளால் ஞானமும் செல்வமும் பெருகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಗುರು ದಕ್ಷಿಣಾಮೂರ್ತಿ ಆರಾಧನೆ ಹಾಗೂ ಹಳದಿ ಬಣ್ಣದ ಹೂವುಗಳಿಂದ ಪೂಜೆ.",
+      en: "Worship Lord Dakshinamurthy and offer yellow flowers on Thursdays.",
+      hi: "भगवान दक्षिणामूर्ति की पूजा एवं ब्राह्मणों को भोजन कराएं।",
+      te: "దక్షిణామూర్తి పూజ.",
+      ta: "தட்சிணாமூர்த்தி வழிபாடு."
+    }
+  },
+  8: { // Ashlesha
+    name: { kn: "ಆಶ್ಲೇಷಾ", en: "Ashlesha", hi: "आश्लेषा", te: "ఆశ్లేష", ta: "ஆயில்யம்" },
+    deity: { kn: "ನಾಗರಾಜ (ಸರ್ಪ ದೇವರು)", en: "Sarpa / Nagaraja", hi: "नागराज", te: "నాగరాజు", ta: "நாகராஜன்" },
+    tree: {
+      botanicalName: "Calophyllum inophyllum",
+      kannada: "ಸುರಹೊನ್ನೆ (ನಾಗಕೇಸರ)",
+      english: "Alexandrian Laurel (Nagakesara)",
+      hindi: "नागकेसर",
+      telugu: "పొన్న చెట్టు",
+      tamil: "புன்னை மரம்",
+      worshipMethod: {
+        kn: "ಸುರಹೊನ್ನೆ ಮರಕ್ಕೆ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಹಾಗೂ ಸರ್ಪ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ನಾಗದೇವರಿಗೆ ಹಾಲಿನ ತರ್ಪಣ ನೀಡುವುದು ಉತ್ತಮ.",
+        en: "Honor the Nagakesara tree and offer milk abhisheka to consecrated serpent stones to dispel Sarpa Dosha.",
+        hi: "नागकेसर के वृक्ष की सेवा करें एवं नाग देवता को दूध अर्पित करें।",
+        te: "పొన్న చెట్టును పూజించి నాగదేవతకు పాలు సమర్పించండి.",
+        ta: "புன்னை மரத்தை வழிபட்டு நாகருக்கு பால் அபிஷேகம் செய்யவும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ सर्पेभ्यो नमः । ॐ ಆಶ್ಲೇಷಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ಸರ್ಪೇಭ್ಯೋ ನಮಃ । ಓಂ ಆಂ ಆಶ್ಲೇಷಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಅನಂತ, ವಾಸುಕಿ ಮುಂತಾದ ಪವಿತ್ರ ನಾಗದೇವತೆಗಳ ಅನುಗ್ರಹದಿಂದ ಸರ್ಪದೋಷ ಮತ್ತು ವಿಷಭಯ ನಿವಾರಣೆಯಾಗಲಿ.",
+        en: "May divine serpents Ananta and Vasuki dissolve all karmic toxicity and protect the lineage.",
+        hi: "पवित्र नाग देवता समस्त विष और सर्प दोष का निवारण करें।",
+        te: "నాగదేవతల అనుగ్రహంతో సర్పదోషాలు తొలగుగాక.",
+        ta: "நாகராஜனின் அருளால் சர்ப்ப தோஷம் நீங்கட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಗೋಕರ್ಣ ಅಥವಾ ಕುಕ್ಕೆ ಸುಬ್ರಹ್ಮಣ್ಯದಲ್ಲಿ ಸರ್ಪ ಸಂಸ್ಕಾರ / ಆಶ್ಲೇಷಾ ಬಲಿ ಪೂಜೆ.",
+      en: "Perform Ashlesha Bali or Sarpa Samskara at Gokarna or Kukke.",
+      hi: "गोकर्ण में सर्प संस्कार अथवा आश्लेषा बलि पूजा कराएं।",
+      te: "ఆశ్లేష బలి లేదా సర్ప సంస్కార పూజ.",
+      ta: "ஆயில்ய பலி அல்லது சர்ப்ப சாந்தி பூஜை."
+    }
+  },
+  9: { // Magha
+    name: { kn: "ಮಘಾ", en: "Magha", hi: "मघा", te: "మఘ", ta: "மகம்" },
+    deity: { kn: "ಪಿತೃ ದೇವತೆಗಳು", en: "Pitris (Ancestral Deities)", hi: "पितृगण", te: "పితృ దేవతలు", ta: "பித்ருக்கள்" },
+    tree: {
+      botanicalName: "Ficus benghalensis",
+      kannada: "ಆಲದ ಮರ (ವಟವೃಕ್ಷ)",
+      english: "Banyan Tree (Vata)",
+      hindi: "बरगद (वटवृक्ष)",
+      telugu: "మర్రి చెట్టు",
+      tamil: "ஆலமரம்",
+      worshipMethod: {
+        kn: "ಆಲದ ಮರಕ್ಕೆ ನೀರೆರೆಯುವುದು ಪಿತೃಗಳಿಗೆ ತೃಪ್ತಿಯನ್ನು ನೀಡಿ ವಂಶಾಭಿವೃದ್ಧಿಗೆ ದಾರಿಮಾಡಿಕೊಡುತ್ತದೆ.",
+        en: "Water the sacred Banyan tree on Amavasya days to bring peace to ancestors and safeguard lineage.",
+        hi: "अमावस्या को बरगद के वृक्ष को जल दें, पितरों की तृप्ति होगी।",
+        te: "మర్రి చెట్టుకు నీరు పోయడం వలన పితృ దేవతలు తృప్తి చెందుతారు.",
+        ta: "ஆலமரத்திற்கு நீர் ஊற்றுவது முன்னோர்களை திருப்திப்படுத்தும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ पितृभ्यो नमः । ॐ मं मघानक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಪಿತೃಭ್ಯೋ ನಮಃ । ಓಂ ಮಂ ಮಘಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಪವಿತ್ರ ಪಿತೃ ದೇವತೆಗಳಿಗೆ ಪ್ರಣಾಮಗಳು. ತಮ್ಮ ಆಶೀರ್ವಾದದಿಂದ ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ ಮತ್ತು ಶ್ರೇಯಸ್ಸು ನೆಲೆಸಲಿ.",
+        en: "Salutations to revered ancestral Pitris; may their blessings bring harmony and protection.",
+        hi: "पितृ देवों को नमन। आपके आशीर्वाद से कुल में सुख-शांति बनी रहे।",
+        te: "పితృ దేవతలకు ప్రణామాలు.",
+        ta: "பித்ருக்களுக்கு நமஸ்காரங்கள்."
+      }
+    },
+    aradhana: {
+      kn: "ಗೋಕರ್ಣದಲ್ಲಿ ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ, ತರ್ಪಣ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ ಭೋಜನ.",
+      en: "Offer Moksha Narayana Bali and Tarpana at holy Gokarna Kshetra.",
+      hi: "गोकर्ण में मोक्ष नारायण बलि एवं तर्पण कराएं।",
+      te: "మోక్ష నారాయణ బలి మరియు పితృ తర్పణం.",
+      ta: "மோக்ஷ நாராயண பலி மற்றும் பித்ரு தர்ப்பணம்."
+    }
+  },
+  10: { // Purva Phalguni
+    name: { kn: "ಪೂರ್ವ ಫಲ್ಗುಣಿ", en: "Purva Phalguni", hi: "पूर्वा फाल्गुनी", te: "పూర్వ ఫల్గుణి", ta: "பூரம்" },
+    deity: { kn: "ಭಗ ದೇವತೆ", en: "Bhaga (God of Prosperity)", hi: "भग देवता", te: "భగ దేవుడు", ta: "பக தேவன்" },
+    tree: {
+      botanicalName: "Butea monosperma",
+      kannada: "ಮುತ್ತುಗ (ಪಲಾಶ ಮರ)",
+      english: "Flame of the Forest (Palasha)",
+      hindi: "पलाश (ढाक)",
+      telugu: "మోదుగ చెట్టు",
+      tamil: "பலாச மரம்",
+      worshipMethod: {
+        kn: "ಮುತ್ತುಗದ ಎಲೆ ಮತ್ತು ಹೂವುಗಳನ್ನು ಈಶ್ವರನಿಗೆ ಸಮರ್ಪಿಸುವುದು ದಾಂಪತ್ಯ ಸುಖ ಮತ್ತು ಆಕರ್ಷಣಾ ಶಕ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+        en: "Offer Palasha flowers to Lord Shiva to harmonize marital life and attract auspicious prosperity.",
+        hi: "पलाश के पुष्प भगवान शिव को अर्पित करें, दांपत्य जीवन सुखमय होगा।",
+        te: "మోదుగ పువ్వులతో శివపూజ చేయడం వలన వైవాహిక సుఖం లభిస్తుంది.",
+        ta: "பலாச மலர்களால் சிவனை வழிபட திருமண வாழ்வு சிறக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ भगाय नमः । ॐ फं पूर्वफल्गुनीनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಭಗಾಯ ನಮಃ । ಓಂ ಫಂ ಪೂರ್ವಫಲ್ಗುನೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಭಾಗ್ಯದಾತ ಭಗ ದೇವತೆಯ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಸೌಖ್ಯ, ದಾಂಪತ್ಯ ಪ್ರೇಮ ಹಾಗೂ ಸಂಪತ್ತು ಲಭಿಸಲಿ.",
+        en: "May divine Bhaga bestow marital bliss, prosperity, and magnetic charisma.",
+        hi: "भग देवता की कृपा से दांपत्य प्रेम और भौतिक समृद्धि प्राप्त हो।",
+        te: "భగ దేవుని కృపతో సౌభాగ్యం లభించుగాక.",
+        ta: "பக தேவனின் அருளால் சகல சௌபாக்கியங்களும் உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಪೂಜೆ ಹಾಗೂ ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಣ.",
+      en: "Worship Lakshmi Narayana and chant Kanakadhara Stotra.",
+      hi: "माता लक्ष्मी की पूजा एवं कनकधारा स्तोत्र का पाठ करें।",
+      te: "లక్ష్మీ నారాయణ పూజ మరియు కనకధారా స్తోత్రం.",
+      ta: "லட்சுமி நாராயண பூஜை மற்றும் கனகதாரா ஸ்தோத்திரம்."
+    }
+  },
+  11: { // Uttara Phalguni
+    name: { kn: "ಉತ್ತರ ಫಲ್ಗುಣಿ", en: "Uttara Phalguni", hi: "उत्तरा फाल्गुनी", te: "ఉత్తర ఫల్గుణి", ta: "உத்திரம்" },
+    deity: { kn: "ಅರ್ಯಮಾ", en: "Aryama (God of Patronage & Contracts)", hi: "अर्यमा", te: "అర్యముడు", ta: "அரியமா" },
+    tree: {
+      botanicalName: "Ficus microcarpa / Plaksha",
+      kannada: "ಪ್ಲಕ್ಷ (ಜುಬ್ಬಿ ಮರ / ಬೆಟ್ಟದ ನೆಲ್ಲಿ)",
+      english: "Indian Laurel (Plaksha)",
+      hindi: "पाकड़ (प्लक्ष)",
+      telugu: "జువ్వి చెట్టు",
+      tamil: "இத்தி மரம்",
+      worshipMethod: {
+        kn: "ಜುಬ್ಬಿ ಅಥವಾ ಪ್ಲಕ್ಷ ಮರಕ್ಕೆ ನೀರೆರೆಯುವುದು ಸಾಮಾಜಿಕ ಗೌರವ, ಸ್ನೇಹ ಮತ್ತು ಅಧಿಕಾರ ಬಲವನ್ನು ನೀಡುತ್ತದೆ.",
+        en: "Water the Plaksha tree for social goodwill, lasting alliances, and honorable leadership.",
+        hi: "पाकड़ के वृक्ष को जल दें, मित्रता और समाज में मान-सम्मान बढ़ेगा।",
+        te: "జువ్వి చెట్టుకు నీరు పోయడం వలన గౌరవం పెరుగుతుంది.",
+        ta: "இத்தி மரத்திற்கு நீர் ஊற்றுவது சமூக மரியாதையை தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ अर्यमणे नमः । ॐ उं उत्तरफल्गुनीनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಅರ್ಯಮಣೇ ನಮಃ । ಓಂ ಉಂ ಉತ್ತರಫಲ್ಗುನೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಉದಾರಹೃದಯಿ ಅರ್ಯಮ ದೇವತೆಯ ಅನುಗ್ರಹದಿಂದ ಸಮಾಜದಲ್ಲಿ ಗೌರವ ಮತ್ತು ಧರ್ಮನಿಷ್ಠೆ ಹೆಚ್ಚಲಿ.",
+        en: "May benevolent Aryama bestow honored status and righteous partnerships.",
+        hi: "अर्यमा देव की कृपा से प्रतिष्ठा एवं उत्तम सहयोगियों की प्राप्ति हो।",
+        te: "అర్యముని కృపతో సమాజంలో గౌరవం లభించుగాక.",
+        ta: "அரியமாவின் அருளால் நன்மதிப்பு பெருகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಣ.",
+      en: "Perform Surya Namaskara and recite Aditya Hrudayam.",
+      hi: "सूर्य नमस्कार करें एवं आदित्य हृदय स्तोत्र पढ़ें।",
+      te: "సూర్య నమస్కారాలు మరియు ఆదిత్య హృదయ స్తోత్రం.",
+      ta: "சூரிய நமஸ்காரம் மற்றும் ஆதித்ய ஹ்ருதயம்."
+    }
+  },
+  12: { // Hasta
+    name: { kn: "ಹಸ್ತಾ", en: "Hasta", hi: "हस्त", te: "హస్త", ta: "அஸ்தம்" },
+    deity: { kn: "ಸವಿತೃ (ಸೂರ್ಯದೇವ)", en: "Savitru (Creative Solar Force)", hi: "सवितृ", te: "సవితృ దేవుడు", ta: "சவிதா" },
+    tree: {
+      botanicalName: "Jasminum auriculatum",
+      kannada: "ಜಾಜಿ ಮಲ್ಲಿಗೆ (ಜೂಹಿ)",
+      english: "Juhi Jasmine (Jaji)",
+      hindi: "जूही",
+      telugu: "జాజి చెట్టు",
+      tamil: "ஜாதி மல்லி",
+      worshipMethod: {
+        kn: "ಜಾಜಿ ಅಥವಾ ಮಲ್ಲಿಗೆ ಹೂವಿನ ಗಿಡಕ್ಕೆ ನೀರೆರೆದು, ಹೂವುಗಳನ್ನು ಸೂರ್ಯದೇವನಿಗೆ ಅರ್ಪಿಸುವುದು ಕರಕೌಶಲವನ್ನು ಸಿದ್ಧಿಸುತ್ತದೆ.",
+        en: "Nurture Jasmine plants and offer fragrant blossoms to the Sun for craftsmanship mastery and healing hands.",
+        hi: "जूही के पौधे को सींचें एवं सूर्य को सुगंधित पुष्प अर्पित करें।",
+        te: "జాజి పూలతో సూర్యపూజ చేయడం వలన నైపుణ్యం పెరుగుతుంది.",
+        ta: "ஜாதி மல்லிகை மலர்களால் வழிபட கைத்தொழில் சிறக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ सवित्रे नमः । ॐ हं हस्तनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಸವಿತ್ರೇ ನಮಃ । ಓಂ ಹಂ ಹಸ್ತನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಪ್ರೇರಕ ಶಕ್ತಿಯಾದ ಸವಿತೃ ದೇವನ ಕೃಪೆಯಿಂದ ಬುದ್ಧಿ ತೇಜಸ್ಸು ಹಾಗೂ ಕರಕೌಶಲ ಸಿದ್ಧಿಸಲಿ.",
+        en: "May divine Savitru awaken brilliant intellect and skillful mastery.",
+        hi: "सविता देव की कृपा से बुद्धि और कौशल में निपुणता आए।",
+        te: "సవితృ దేవుని కృపతో బుద్ధి వికసించుగాక.",
+        ta: "சவிதா தேவனின் அருளால் புத்தி கூர்மையடையட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಗಾಯತ್ರೀ ಮಹಾಮಂತ್ರ ಜಪ ಹಾಗೂ ಸೂರ್ಯಾರ್ಘ್ಯ.",
+      en: "Chant Gayatri Mantra and offer morning Surya Arghya.",
+      hi: "गायत्री मंत्र का नित्य जप एवं सूर्य को अर्घ्य दें।",
+      te: "గాయత్రీ మంత్ర జపం మరియు సూర్యార్ఘ్యం.",
+      ta: "காயத்ரி மந்திர ஜபம் மற்றும் சூரிய அர்க்கியம்."
+    }
+  },
+  13: { // Chitra
+    name: { kn: "ಚಿತ್ರಾ", en: "Chitra", hi: "चित्रा", te: "చిత్త", ta: "சித்திரை" },
+    deity: { kn: "ತ್ವಷ್ಟಾ (ವಿಶ್ವಕರ್ಮ)", en: "Tvashtar / Vishvakarma", hi: "त्वष्टा / विश्वकर्मा", te: "త్వష్ట / విశ్వకర్మ", ta: "விஸ்வகர்மா" },
+    tree: {
+      botanicalName: "Aegle marmelos",
+      kannada: "ಬಿಲ್ವ ಪತ್ರೆ ಮರ (ಬೇಲ್)",
+      english: "Bael Tree (Bilva)",
+      hindi: "बेलपत्र (बिल्व)",
+      telugu: "మారేడు చెట్టు",
+      tamil: "வில்வ மரம்",
+      worshipMethod: {
+        kn: "ಪವಿತ್ರ ಬಿಲ್ವ ವೃಕ್ಷಕ್ಕೆ ಪ್ರದಕ್ಷಿಣೆ ಹಾಕಿ, ೩ ಎಲೆಯ ಬಿಲ್ವಪತ್ರೆಯನ್ನು ಶಿವನಿಗೆ ಅರ್ಪಿಸುವುದು ಸಕಲ ಪಾಪನಾಶಕ ಹಾಗೂ ಕಲಾತ್ಮಕ ವಿಜಯಪ್ರದ.",
+        en: "Circumambulate the sacred Bilva tree and offer fresh trifoliate leaves to Shiva for architectural mastery and deep peace.",
+        hi: "बिल्व वृक्ष की परिक्रमा करें और भगवान शिव को त्रिशूल रूपी बेलपत्र चढ़ाएं।",
+        te: "మారేడు చెట్టుకు ప్రదక్షిణలు చేసి శివునికి మారేడు దళాలు సమర్పించండి.",
+        ta: "வில்வ மரத்தை வலம் வந்து சிவபெருமானுக்கு வில்வ இலை சாற்றவும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ विश्वकर्मणे नमः । ॐ चं चित्रानक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ವಿಶ್ವಕರ್ಮಣೇ ನಮಃ । ಓಂ ಚಂ ಚಿತ್ರಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಅದ್ಭುತ ಸೃಷ್ಟಿಕರ್ತ ವಿಶ್ವಕರ್ಮನ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಕಲಾ, ವಾಸ್ತು ಮತ್ತು ವಾಹನ ಸೌಭಾಗ್ಯ ಲಭಿಸಲಿ.",
+        en: "May divine architect Vishvakarma bless your endeavors with beauty, structure, and prosperity.",
+        hi: "देव शिल्पी विश्वकर्मा की कृपा से कला, शिल्प और गृह सुख में वृद्धि हो।",
+        te: "విశ్వకర్మ అనుగ్రహంతో సకల కళలు మరియు గృహ సౌభాగ్యం లభించుగాక.",
+        ta: "விஸ்வகர்மாவின் அருளால் கட்டிடக்கலை மற்றும் செல்வ வளம் பெருகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಶ್ರೀ ಮಹಾದೇವನಿಗೆ ಬಿಲ್ವಾರ್ಚನೆ ಹಾಗೂ ಲಲಿತಾ ಸಹಸ್ರನಾಮ ಪಠಣ.",
+      en: "Offer Bilva archana to Lord Shiva and recite Lalita Sahasranama.",
+      hi: "भगवान शिव पर बिल्वार्चन एवं ललिता सहस्रनाम का पाठ करें।",
+      te: "శివునికి బిల్వార్చన మరియు లలితా సహస్రనామ పఠనం.",
+      ta: "சிவனுக்கு வில்வார்ச்சனை மற்றும் லலிதா சகஸ்ரநாம பாராயணம்."
+    }
+  },
+  14: { // Swati
+    name: { kn: "ಸ್ವಾತಿ", en: "Swati", hi: "स्वाति", te: "స్వాతి", ta: "சுவாதி" },
+    deity: { kn: "ವಾಯುದೇವ (ಪವನ)", en: "Vayu Deva (Wind God)", hi: "वायु देव", te: "వాయు దేవుడు", ta: "வாயு பகவான்" },
+    tree: {
+      botanicalName: "Terminalia arjuna",
+      kannada: "ಮತ್ತಿ ಮರ (ಅರ್ಜುನ ವೃಕ್ಷ)",
+      english: "Arjuna Tree",
+      hindi: "अर्जुन वृक्ष",
+      telugu: "మద్ది చెట్టు",
+      tamil: "மருத மரம்",
+      worshipMethod: {
+        kn: "ಅರ್ಜುನ ವೃಕ್ಷಕ್ಕೆ ನೀರೆರೆಯುವುದು ಹೃದಯದ ಆರೋಗ್ಯ ಹಾಗೂ ಸ್ವತಂತ್ರ ಚಿಂತನಾ ಶಕ್ತಿಯನ್ನು ಬಲಪಡಿಸುತ್ತದೆ.",
+        en: "Water the Arjuna tree to protect cardiovascular health and foster independent wisdom.",
+        hi: "अर्जुन के वृक्ष को जल दें, हृदय को बल और मन को स्वतंत्रता प्राप्त होगी।",
+        te: "మద్ది చెట్టుకు నీరు పోయడం వలన గుండె ఆరోగ్యం మరియు ధైర్యం లభిస్తుంది.",
+        ta: "மருத மரத்திற்கு நீர் ஊற்றுவது இதய ஆரோக்கியத்தையும் தைரியத்தையும் தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ वायवे नमः । ॐ स्वां स्वातीनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ವಾಯವೇ ನಮಃ । ಓಂ ಸ್ವಾಂ ಸ್ವಾತೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಪ್ರಾಣಶಕ್ತಿಯ ಅಧಿಪತಿಯಾದ ವಾಯುದೇವನ ಕೃಪೆಯಿಂದ ದೇಹದಲ್ಲಿ ಚೈತನ್ಯ ಮತ್ತು ಸ್ವಾತಂತ್ರ್ಯ ತುಂಬಲಿ.",
+        en: "May divine Vayu animate your life with vital prana, freedom, and dynamic balance.",
+        hi: "प्राण स्वरूप वायु देव की कृपा से जीवन में निरंतर गति और आरोग्य बना रहे।",
+        te: "వాయు దేవుని కృపతో ప్రాణశక్తి వర్ధిల్లుగాక.",
+        ta: "வாயு பகவானின் அருளால் பிராண சக்தி பெருகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಭಗವಾನ್ ಹನುಮಂತನ ಆರಾಧನೆ ಹಾಗೂ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ.",
+      en: "Worship Lord Hanuman and chant Hanuman Chalisa.",
+      hi: "संकटमोचन हनुमान जी की पूजा एवं हनुमान चालीसा पढ़ें।",
+      te: "హనుమంతుని ఆరాధన మరియు హనుమాన్ చాలీసా.",
+      ta: "ஆஞ்சநேயர் வழிபாடு மற்றும் ஹனுமான் சாலிசா."
+    }
+  },
+  15: { // Vishakha
+    name: { kn: "ವಿಶಾಖಾ", en: "Vishakha", hi: "विशाखा", te: "విశాఖ", ta: "விசாகம்" },
+    deity: { kn: "ಇಂದ್ರಾಗ್ರಿ (ಇಂದ್ರ & ಅಗ್ನಿ)", en: "Indragni (Indra & Agni)", hi: "इन्द्राग्नि", te: "ఇంద్రాగ్నులు", ta: "இந்திராக்னி" },
+    tree: {
+      botanicalName: "Limonia acidissima",
+      kannada: "ಬೇಲದ ಮರ (ವಿಕಂಕತ)",
+      english: "Wood Apple (Kaitha)",
+      hindi: "कैथा (कपित्थ)",
+      telugu: "వెలగ చెట్టు",
+      tamil: "விளா மரம்",
+      worshipMethod: {
+        kn: "ಬೇಲದ ಮರವನ್ನು ಪೂಜಿಸುವುದು ಗುರಿ ಸಾಧನೆಗೆ ಅಗತ್ಯವಾದ ಛಲ ಮತ್ತು ಏಕಾಗ್ರತೆಯನ್ನು ಕರುಣಿಸುತ್ತದೆ.",
+        en: "Venerate the Wood Apple tree to ignite unyielding willpower and triumph over challenges.",
+        hi: "कैथा के वृक्ष को जल दें, संकल्प शक्ति और विजय की प्राप्ति होगी।",
+        te: "వెలగ చెట్టును పూజించడం వలన సంకల్ప బలం పెరుగుతుంది.",
+        ta: "விளா மரத்தை வணங்குவது வெற்றி தரும் உறுதியை கொடுக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ इन्द्राग्निभ्यां नमः । ॐ विं विशाखानक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಇಂದ್ರಾಗ್ನಿಭ್ಯಾಂ ನಮಃ । ಓಂ ವಿಂ ವಿಶಾಖಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಇಂದ್ರ ಹಾಗೂ ಅಗ್ನಿ ದೇವತೆಗಳ ಸಂಯುಕ್ತ ಬಲದಿಂದ ಸಕಲ ಸ್ಪರ್ಧೆಗಳಲ್ಲಿ ವಿಜಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.",
+        en: "May the combined might of Indra and Agni forge triumphant focus and victory.",
+        hi: "इंद्र और अग्नि देव की संयुक्त शक्ति से सभी कार्यों में सफलता मिले।",
+        te: "ఇంద్ర మరియు అగ్ని దేవతల బలంతో విజయం లభించుగాక.",
+        ta: "இந்திரன் மற்றும் அக்னியின் பலத்தால் வெற்றி உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಯ ಷಣ್ಮುಖ ಆರಾಧನೆ ಹಾಗೂ ಕಂದ ಷಷ್ಠಿ ಕವಚ.",
+      en: "Worship Lord Shanmukha Subrahmanya and chant Skanda Sashti Kavacham.",
+      hi: "भगवान कार्तिकेय (मुरुगन) की उपासना करें।",
+      te: "సుబ్రహ్మణ్యేశ్వర స్వామి ఆరాధన.",
+      ta: "ஸ்ரீ முருகப்பெருமான் வழிபாடு மற்றும் கந்த சஷ்டி கவசம்."
+    }
+  },
+  16: { // Anuradha
+    name: { kn: "ಅನುರಾಧಾ", en: "Anuradha", hi: "अनुराधा", te: "అనూరాధ", ta: "அனுஷம்" },
+    deity: { kn: "ಮಿತ್ರದೇವ (ಸೌಹಾರ್ದದ ದೇವತೆ)", en: "Mitra Deva (God of Friendship & Devotion)", hi: "मित्र देव", te: "మిత్ర దేవుడు", ta: "மித்ர தேவன்" },
+    tree: {
+      botanicalName: "Mimusops elengi",
+      kannada: "ಬಕುಳ / ರಂಜಲು ಮರ",
+      english: "Spanish Cherry (Bakula)",
+      hindi: "मौलश्री (बकुल)",
+      telugu: "పొగడ చెట్టు",
+      tamil: "மகிழ மரம்",
+      worshipMethod: {
+        kn: "ಸುವಾಸನಾಯುಕ್ತ ಬಕುಳ ಹೂವುಗಳನ್ನು ಶಿವನಿಗೆ ಅರ್ಪಿಸುವುದು ಭಕ್ತಿ, ಸ್ನೇಹ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯವನ್ನು ನೀಡುತ್ತದೆ.",
+        en: "Offer fragrant Bakula blossoms to Lord Shiva to nurture true friendships and spiritual devotion.",
+        hi: "मौलश्री के पुष्प शिवजी को चढ़ाएं, निष्कपट मित्रता और शांति मिलेगी।",
+        te: "పొగడ పూలతో శివపూజ చేయడం వలన మైత్రి వర్ధిల్లుతుంది.",
+        ta: "மகிழ மலர்களால் சிவனை வழிபட உண்மையான நட்பு கிடைக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ मित्राय नमः । ॐ अं अनुराधानक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ಮಿತ್ರಾಯ ನಮಃ । ಓಂ ಅಂ ಅನುರಾಧಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಸ್ನೇಹಮಯಿ ಮಿತ್ರದೇವನ ಅನುಗ್ರಹದಿಂದ ಸಕಲರೊಡನೆ ಸೌಹಾರ್ದತೆ ಮತ್ತು ದೈವಭಕ್ತಿ ಬೆಳೆಯಲಿ.",
+        en: "May benevolent Mitra foster universal goodwill, deep devotion, and serene endurance.",
+        hi: "मित्र देव की कृपा से सभी के साथ सौहार्द और ईश्वर भक्ति प्राप्त हो।",
+        te: "మిత్ర దేవుని కృపతో సద్భావన వర్ధిల్లుగాక.",
+        ta: "மித்ர தேவனின் அருளால் நல்லுறவு மலரட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಭಗವಾನ್ ರಾಧಾ-ಕೃಷ್ಣರ ಆರಾಧನೆ ಹಾಗೂ ಮಧುರಾಷ್ಟಕಂ ಪಠಣ.",
+      en: "Worship Radha Krishna and chant Madhurashtakam.",
+      hi: "राधा-कृष्ण की पूजा एवं मधुराष्टकम् का पाठ करें।",
+      te: "రాధాకృష్ణుల పూజ మరియు మధురాష్టకం.",
+      ta: "ராதாகிருஷ்ணன் வழிபாடு மற்றும் மதுராஷ்டகம்."
+    }
+  },
+  17: { // Jyeshtha
+    name: { kn: "ಜ್ಯೇಷ್ಠಾ", en: "Jyeshtha", hi: "ज्येष्ठा", te: "జ్యేష్ఠ", ta: "கேட்டை" },
+    deity: { kn: "ದೇವೇಂದ್ರ (ಇಂದ್ರ)", en: "Lord Indra (King of Gods)", hi: "इंद्र देव", te: "ఇంద్రుడు", ta: "இந்திரன்" },
+    tree: {
+      botanicalName: "Bombax ceiba",
+      kannada: "ಬೂರಗದ ಮರ (ಶಾಲ್ಮಲಿ)",
+      english: "Silk Cotton Tree (Shalmali)",
+      hindi: "सेमल (शाल्मली)",
+      telugu: "బూరుగు చెట్టు",
+      tamil: "இலவு மரம்",
+      worshipMethod: {
+        kn: "ಶಾಲ್ಮಲಿ ಮರಕ್ಕೆ ನೀರೆರೆಯುವುದು ಅಹಂಕಾರವನ್ನು ನಿಯಂತ್ರಿಸಿ ನಾಯಕತ್ವ ಗುಣ ಮತ್ತು ಧೈರ್ಯವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ.",
+        en: "Water the Shalmali tree to channel commanding leadership without egotistical friction.",
+        hi: "सेमल के वृक्ष को जल दें, नेतृत्व क्षमता बढ़ेगी और अहंकार शांत होगा।",
+        te: "బూరుగు చెట్టుకు నీరు పోయడం వలన నాయకత్వ లక్షణాలు పెరుగుతాయి.",
+        ta: "இலவு மரத்திற்கு நீர் ஊற்றுவது தலைமை பண்பை வளர்க்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ इन्द्राय नमः । ॐ ಜ್ಯೇಷ್ಠಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ಇಂದ್ರಾಯ ನಮಃ । ಓಂ ಜ್ಯೇಂ ಜ್ಯೇಷ್ಠಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಸುರಪತಿ ಇಂದ್ರನ ಅನುಗ್ರಹದಿಂದ ಸಮಾಜದಲ್ಲಿ ಅಧಿಕಾರ, ಕೀರ್ತಿ ಹಾಗೂ ರಕ್ಷಣೆ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.",
+        en: "May Devaraja Indra protect your status, bestow authoritative valor, and dispel rivalries.",
+        hi: "देवराज इंद्र की कृपा से मान-सम्मान और विजय प्राप्त हो।",
+        te: "ఇంద్రుని అనుగ్రహంతో కీర్తి మరియు రక్షణ లభించుగాక.",
+        ta: "இந்திரனின் அருளால் அந்தஸ்தும் வெற்றியும் உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಪೂಜೆ ಹಾಗೂ ಗಣೇಶ ಅಥರ್ವಶೀರ್ಷ ಪಠಣ.",
+      en: "Worship Gokarna Maha Ganapati and chant Ganesha Atharvashirsha.",
+      hi: "गोकर्ण महागणपति की पूजा एवं गणपति अथर्वशीर्ष का पाठ करें।",
+      te: "మహా గణపతి పూజ మరియు అథర్వశీర్ష పఠనం.",
+      ta: "மகா கணபதி பூஜை மற்றும் கணபதி அதர்வசீரிடம்."
+    }
+  },
+  18: { // Mula
+    name: { kn: "ಮೂಲಾ", en: "Mula", hi: "मूल", te: "మూల", ta: "மூலம்" },
+    deity: { kn: "ನಿರೃತಿ (ಮೂಲ ದೇವತೆ)", en: "Nirriti (Goddess of Dissolution)", hi: "निरृति", te: "నిరృతి", ta: "நிருருதி" },
+    tree: {
+      botanicalName: "Shorea robusta",
+      kannada: "ರಾಳದ ಮರ / ಸರ್ಜ (ಅಂಜನ)",
+      english: "Sal Tree (Sarja)",
+      hindi: "शाल (राल का वृक्ष)",
+      telugu: "గుగ్గిలం చెట్టు",
+      tamil: "ஆச்சா மரம்",
+      worshipMethod: {
+        kn: "ಸರ್ಜ (ರಾಳ) ಮರದ ಸಾನ್ನಿಧ್ಯದಲ್ಲಿ ಧ್ಯಾನಿಸುವುದು ಹಾಗೂ ಧೂಪ ಹಾಕುವುದು ಮೂಲ ನಕ್ಷತ್ರದ ತೀವ್ರ ದೋಷಗಳನ್ನು ಭಸ್ಮ ಮಾಡುತ್ತದೆ.",
+        en: "Meditate near a Sal tree and burn pure natural dammar resin (rala) to dissolve deep ancestral karmas.",
+        hi: "शाल वृक्ष के पास बैठकर ध्यान करें एवं राल की धूप दें।",
+        te: "గుగ్గిలం ధూపం వేయడం ద్వారా మూలా నక్షత్ర దోషాలు తొలగిపోతాయి.",
+        ta: "ஆச்சா மரத்தடியில் தியானம் செய்வதும் குங்கிலியம் போடுவதும் தோஷம் போக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ निर्ऋतये नमः । ॐ मूं मूलनक्षत्रेभ्यो नमः ॥",
+      kannada: "॥ ಓಂ ನಿರ್ಋತಯೇ ನಮಃ । ಓಂ ಮೂಂ ಮೂಲನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಆದಿಮೂಲ ದೇವತೆಯ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಮೂಲಭೂತ ದೋಷಗಳು ಕಳೆದು ನೂತನ ಶುಭಾರಂಭವಾಗಲಿ.",
+        en: "May the primordial goddess Nirriti uproot all underlying afflictions and anchor spiritual awakening.",
+        hi: "मूल नक्षत्र के अधिष्ठाता समस्त बाधाओं की जड़ों को काटकर शांति प्रदान करें।",
+        te: "మూల దేవత అనుగ్రహంతో సర్వ దోషాలు తొలగుగాక.",
+        ta: "மூல நட்சத்திர தேவதையின் அருளால் அனைத்து தடைகளும் வேரறுக்கப்படட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಗೋಕರ್ಣದಲ್ಲಿ ಮೂಲ ನಕ್ಷತ್ರ ಶಾಂತಿ, ನವಗ್ರಹ ಹೋಮ ಹಾಗೂ ಹನುಮತ್ ಸೇವೆ.",
+      en: "Perform Mula Nakshatra Shanti and Hanuman Seva at Gokarna.",
+      hi: "गोकर्ण में मूल शांति पूजा एवं श्री हनुमान जी की सेवा करें।",
+      te: "మూలా నక్షత్ర శాంతి మరియు హనుమత్ సేవ.",
+      ta: "மூல நட்சத்திர சாந்தி மற்றும் ஆஞ்சநேயர் வழிபாடு."
+    }
+  },
+  19: { // Purva Ashadha
+    name: { kn: "ಪೂರ್ವಾಷಾಢಾ", en: "Purva Ashadha", hi: "पूर्वाषाढ़ा", te: "పూర్వాషాఢ", ta: "பூராடம்" },
+    deity: { kn: "ಆಪಃ (ಜಲದೇವತೆ)", en: "Apas (Cosmic Water Deity)", hi: "आपः (जल देवता)", te: "జల దేవత", ta: "ஜல தேவதை" },
+    tree: {
+      botanicalName: "Calamus rotang",
+      kannada: "ಬೆತ್ತದ ಮರ (ವಾನಸ)",
+      english: "Rattan Cane (Betta)",
+      hindi: "बेंत (वेत)",
+      telugu: "పేము చెట్టు",
+      tamil: "பிரம்பு",
+      worshipMethod: {
+        kn: "ಪವಿತ್ರ ನದಿಗಳು ಅಥವಾ ಜಲಮೂಲಗಳ ಸಂರಕ್ಷಣೆ ಮಾಡುವುದು ಮತ್ತು ಬೆತ್ತದ ಗಿಡಕ್ಕೆ ನೀರೆರೆಯುವುದು ಅಜೇಯ ವಿಜಯವನ್ನು ನೀಡುತ್ತದೆ.",
+        en: "Protect holy rivers and nurture rattan cane plants to manifest invincible grace.",
+        hi: "पवित्र जल स्रोतों की रक्षा करें एवं जल का अपव्यय न करें।",
+        te: "నదీ సంరక్షణ మరియు పేము చెట్టుకు నీరు పోయడం శ్రేష్టం.",
+        ta: "புனித நதிகளை போற்றுவதும் பிரம்பு மரத்திற்கு நீர் ஊற்றுவதும் நன்மை தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ अद्भ्यो नमः । ॐ ಪೂಂ ಪೂರ್ವಾಷಾಢಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ಅದ್ಭ್ಯೋ ನಮಃ । ಓಂ ಪೂಂ ಪೂರ್ವಾಷಾಢಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಪವಿತ್ರ ಜಲದೇವತೆಗಳ ಕೃಪೆಯಿಂದ ಮನಸ್ಸು ಸದಾ ಶುದ್ಧ, ಶಾಂತ ಹಾಗೂ ಅಪರಾಜಿತವಾಗಿರಲಿ.",
+        en: "May the divine waters purify inner consciousness and bestow unconquerable victory.",
+        hi: "पवित्र जल देवता मन को निर्मल कर अपराजित विजय प्रदान करें।",
+        te: "జల దేవతల కృపతో మనస్సు నిర్మలమగుగాక.",
+        ta: "ஜல தேவதையின் அருளால் மனம் தூய்மையாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ ಆರಾಧನೆ ಹಾಗೂ ಗೋದಾವರಿ / ಗಂಗಾ ಜಲದಿಂದ ಶಿವಲಿಂಗಾಭಿಷೇಕ.",
+      en: "Worship Goddess Mahalakshmi and offer sacred water abhisheka to Shiva Linga.",
+      hi: "माता महालक्ष्मी की पूजा एवं गंगाजल से शिवजी का अभिषेक करें।",
+      te: "మహాలక్ష్మి పూజ మరియు శివాభిషేకం.",
+      ta: "மகாலட்சுமி வழிபாடு மற்றும் கங்காஜலத்தால் அபிஷேகம்."
+    }
+  },
+  20: { // Uttara Ashadha
+    name: { kn: "ಉತ್ತರಾಷಾಢಾ", en: "Uttara Ashadha", hi: "उत्तराषाढ़ा", te: "ఉత్తరాషాఢ", ta: "உத்திராடம்" },
+    deity: { kn: "ವಿಶ್ವೇದೇವತೆಗಳು", en: "Vishvedevas (Universal Cosmic Gods)", hi: "विश्वेदेवा", te: "విశ్వేదేవతలు", ta: "விஸ்வேதேவர்கள்" },
+    tree: {
+      botanicalName: "Artocarpus heterophyllus",
+      kannada: "ಹಲಸಿನ ಮರ (ಪಲಾಸ)",
+      english: "Jackfruit Tree",
+      hindi: "कटहल",
+      telugu: "పనస చెట్టు",
+      tamil: "பலா மரம்",
+      worshipMethod: {
+        kn: "ಹಲಸಿನ ಮರಕ್ಕೆ ನೀರೆರೆಯುವುದು ಹಾಗೂ ಅದರ ಹಣ್ಣನ್ನು ದೇವರಿಗೆ ಸಮರ್ಪಿಸುವುದು ಸಕಲ ಜನರಲ್ಲಿ ಪ್ರೀತಿ ಮತ್ತು ಗೌರವವನ್ನು ತರುತ್ತದೆ.",
+        en: "Water the Jackfruit tree and offer its golden fruit in worship to secure permanent victory and goodwill.",
+        hi: "कटहल के वृक्ष को जल दें, समाज में स्थायी सफलता और यश मिलेगा।",
+        te: "పనస చెట్టుకు నీరు పోయడం వలన గౌరవం పెరుగుతుంది.",
+        ta: "பலா மரத்திற்கு நீர் ஊற்றுவது நிலையான வெற்றியை தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ विश्वेभ्यो देवेभ्यो नमः । ॐ ಉಂ ಉತ್ತರಾಷಾಢಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ವಿಶ್ವೇಭ್ಯೋ ದೇವೇಭ್ಯೋ ನಮಃ । ಓಂ ಉಂ ಉತ್ತರಾಷಾಢಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಸರ್ವಲೋಕ ರಕ್ಷಕರಾದ ವಿಶ್ವೇದೇವತೆಗಳ ಅನುಗ್ರಹದಿಂದ ಸತ್ಯ ಮತ್ತು ಧರ್ಮಕ್ಕೆ ಜಯವಾಗಲಿ.",
+        en: "May the universal Vishvedevas protect righteous pursuits and grant ultimate victory.",
+        hi: "विश्वेदेवों की कृपा से धर्म के मार्ग पर शाश्वत विजय प्राप्त हो।",
+        te: "విశ్వేదేవతల కృపతో ధర్మ విజయము లభించుగాక.",
+        ta: "விஸ்வேதேவர்களின் அருளால் வெற்றி நிலைக்கட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಭಗವಾನ್ ಸೂರ್ಯನಾರಾಯಣ ಹಾಗೂ ಮಹಾಗಣಪತಿ ಉಪಾಸನೆ.",
+      en: "Worship Lord Surya Narayana and Lord Maha Ganapati.",
+      hi: "भगवान सूर्यनारायण एवं गणेश जी की पूजा करें।",
+      te: "సూర్యనారాయణ మరియు గణపతి పూజ.",
+      ta: "சூரிய நாராயணர் மற்றும் விநாயகர் வழிபாடு."
+    }
+  },
+  21: { // Shravana
+    name: { kn: "ಶ್ರವಣ", en: "Shravana", hi: "श्रवण", te: "శ్రవణం", ta: "திருவோணம்" },
+    deity: { kn: "ಭಗವಾನ್ ಶ್ರೀ ಮಹಾವಿಷ್ಣು", en: "Lord Maha Vishnu", hi: "भगवान विष्णु", te: "శ్రీ మహావిష్ణువు", ta: "ஸ்ரீ மகாவிஷ்ணு" },
+    tree: {
+      botanicalName: "Calotropis gigantea",
+      kannada: "ಎಕ್ಕದ ಗಿಡ (ಅರ್ಕ ವೃಕ್ಷ)",
+      english: "Crown Flower (Arka)",
+      hindi: "मदार (आक / अर्क)",
+      telugu: "జిల్లేడు చెట్టు",
+      tamil: "எருக்கு மரம்",
+      worshipMethod: {
+        kn: "ಶ್ವೇತಾರ್ಕ (ಬಿಳಿ ಎಕ್ಕದ) ಗಿಡಕ್ಕೆ ನೀರೆರೆಯುವುದು ಹಾಗೂ ಹೂವುಗಳನ್ನು ಸೂರ್ಯ ಅಥವಾ ಗಣಪತಿಗೆ ಅರ್ಪಿಸುವುದು ಅತ್ಯಂತ ಶುಭದಾಯಕ.",
+        en: "Offer blue/white Arka blossoms to Lord Ganesha and Surya to awaken receptive listening and divine protection.",
+        hi: "सफेद आक के पौधे को सींचें और गणेश जी को मदार पुष्प चढ़ाएं।",
+        te: "జిల్లేడు పూలతో వినాయకుడిని పూజించడం వలన శ్రేయస్సు లభిస్తుంది.",
+        ta: "வெள்ளெருக்கு மலர்களால் விநாயகரை வழிபட நன்மைகள் பெருகும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ विष्णवे नमः । ॐ ಶ್ರುಂ ಶ್ರವಣನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ವಿಷ್ಣವೇ ನಮಃ । ಓಂ ಶ್ರುಂ ಶ್ರವಣನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಜಗತ್ಪಾಲಕ ಶ್ರೀಮನ್ನಾರಾಯಣನ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಜ್ಞಾನ, ಕೀರ್ತಿ ಹಾಗೂ ಮೋಕ್ಷ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.",
+        en: "May all-pervading Lord Vishnu grant discerning hearing, sacred knowledge, and liberation.",
+        hi: "जगतपालक श्रीहरि विष्णु की कृपा से विद्या, यश और सद्गति प्राप्त हो।",
+        te: "శ్రీమన్నారాయణుని కృపతో జ్ఞానం మరియు మోక్షం లభించుగాక.",
+        ta: "ஸ்ரீ மகாவிஷ்ணுவின் அருளால் ஞானமும் மோட்சமும் உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ ಹಾಗೂ ಶ್ರವಣ ನಕ್ಷತ್ರದಂದು ಉಪವಾಸ.",
+      en: "Recite Sri Vishnu Sahasranama and observe fast on Shravana Nakshatra.",
+      hi: "विष्णु सहस्रनाम का पाठ करें और एकादशी व्रत रखें।",
+      te: "విష్ణు సహస్రనామ పఠనం.",
+      ta: "விஷ்ணு சகஸ்ரநாம பாராயணம்."
+    }
+  },
+  22: { // Dhanishta
+    name: { kn: "ಧನಿಷ್ಠಾ", en: "Dhanishta", hi: "धनिष्ठा", te: "ధనిష్ఠ", ta: "அவிட்டம்" },
+    deity: { kn: "ಅಷ್ಟವಸುಗಳು (೮ ವಸುದೇವತೆಗಳು)", en: "Ashta Vasus (8 Elemental Deities)", hi: "अष्ट वसु", te: "అష్ట వసువులు", ta: "அஷ்ட வசுக்கள்" },
+    tree: {
+      botanicalName: "Prosopis cineraria",
+      kannada: "ಬನ್ನಿ ಮರ (ಶಮೀ ವೃಕ್ಷ)",
+      english: "Khejri / Shami Tree",
+      hindi: "शमी (खेजड़ी)",
+      telugu: "జమ్మి చెట్టు",
+      tamil: "வன்னி மரம்",
+      worshipMethod: {
+        kn: "ವಿಜಯದಶಮಿಯಂದು ಪೂಜಿಸಲ್ಪಡುವ ಶಮೀ ವೃಕ್ಷಕ್ಕೆ ನೀರೆರೆಯುವುದು ಸಕಲ ಶತ್ರು ಜಯ ಹಾಗೂ ಅಪಾರ ಧನ ಸಂಪತ್ತನ್ನು ತರುತ್ತದೆ.",
+        en: "Water the sacred Shami tree to neutralize Saturn/Mars friction and manifest rhythmic abundance and music mastery.",
+        hi: "शमी वृक्ष को नित्य जल दें, शनि-मंगल दोष शांत होकर विपुल धन की प्राप्ति होगी।",
+        te: "జమ్మి చెట్టుకు నీరు పోయడం వలన శత్రు విజయం మరియు సంపద లభిస్తుంది.",
+        ta: "வன்னி மரத்திற்கு நீர் ஊற்றுவது சனி-செவ்வாய் தோஷத்தை போக்கி வெற்றி தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ वसुभ्यो नमः । ॐ ಧಂ ಧನಿಷ್ಠಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ವಸುಭ್ಯೋ ನಮಃ । ಓಂ ಧಂ ಧನಿಷ್ಠಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಅಷ್ಟವಸುಗಳ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಐಶ್ವರ್ಯ, ಸಂಗೀತ ಕಲೆ ಹಾಗೂ ಧೈರ್ಯ ಸಿದ್ಧಿಸಲಿ.",
+        en: "May the eight Vasus bestow material opulence, musical resonance, and courageous enterprise.",
+        hi: "अष्ट वसुओं की कृपा से धन-धान्य और संगीत-कला में सिद्धि प्राप्त हो।",
+        te: "అష్ట వసువుల అనుగ్రహంతో అష్టైశ్వర్యాలు లభించుగాక.",
+        ta: "அஷ்ட வசுக்களின் அருளால் அஷ்ட ஐஸ்வர்யங்களும் உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಭಗವಾನ್ ಶಿವನಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ನಟರಾಜ ಸ್ತುತಿ.",
+      en: "Perform Rudrabhisheka to Lord Shiva and chant Nataraja Stuti.",
+      hi: "भगवान शिव पर रुद्राभिषेक करें एवं शमी पत्र अर्पित करें।",
+      te: "రుద్రాభిషేకం మరియు నటరాజ స్తుతి.",
+      ta: "ருத்ராபிஷேகம் மற்றும் நடராஜர் துதி."
+    }
+  },
+  23: { // Shatabhisha
+    name: { kn: "ಶತಭಿಷಾ", en: "Shatabhisha", hi: "शतभिषा", te: "శతభిషం", ta: "சதயம்" },
+    deity: { kn: "ವರುಣದೇವ (ಸಮುದ್ರಾಧಿಪತಿ)", en: "Varuna Deva (Cosmic Ocean Lord)", hi: "वरुण देव", te: "వరుణ దేవుడు", ta: "வருண பகவான்" },
+    tree: {
+      botanicalName: "Neolamarckia cadamba",
+      kannada: "ಕದಂಬ ಮರ",
+      english: "Burflower Tree (Kadamba)",
+      hindi: "कदंब",
+      telugu: "కదంబ చెట్టు",
+      tamil: "கடம்ப மரம்",
+      worshipMethod: {
+        kn: "ಕದಂಬ ವೃಕ್ಷದ ದರ್ಶನ ಮತ್ತು ಪೂಜೆ ಆಯುರ್ವೇದ ರಹಸ್ಯ ಜ್ಞಾನ ಹಾಗೂ ದೀರ್ಘಕಾಲದ ರೋಗಗಳ ಶಮನಕ್ಕೆ ದಿವ್ಯ ಔಷಧಿಯಾಗಿದೆ.",
+        en: "Honor the fragrant Kadamba tree to unlock therapeutic breakthroughs and overcome stubborn chronic ailments.",
+        hi: "कदंब वृक्ष के पास बैठें और जल अर्पित करें, असाध्य रोगों का शमन होगा।",
+        te: "కదంబ చెట్టును పూజించడం వలన దీర్ఘకాలిక రోగాలు నయమవుతాయి.",
+        ta: "கடம்ப மரத்தை வணங்குவது நாள்பட்ட நோய்களை போக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ वरुणाय नमः । ॐ ಶಂ ಶತಭಿಷಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ವರುಣಾಯ ನಮಃ । ಓಂ ಶಂ ಶತಭಿಷಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಸಕಲ ಜಲ ಮತ್ತು ಸತ್ಯಗಳ ಪಾಲಕ ವರುಣದೇವನ ಕೃಪೆಯಿಂದ ಸಕಲ ರೋಗಗಳು ದೂರವಾಗಲಿ.",
+        en: "May divine Varuna cleanse hidden poisons and grant comprehensive physical and mental healing.",
+        hi: "वरुण देव समस्त व्याधियों का नाश कर दीर्घायु प्रदान करें।",
+        te: "వరుణ దేవుని కృపతో ఆరోగ్యము లభించుగాక.",
+        ta: "வருண பகவானின் அருளால் சகல பிணிகளும் அகலட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಮೃತ್ಯುಂಜಯ ಜಪ ಹಾಗೂ ಗೋಕರ್ಣ ಕೋಟಿ ತೀರ್ಥದಲ್ಲಿ ತೀರ್ಥಸ್ನಾನ.",
+      en: "Chant Maha Mrityunjaya Mantra and bathe in holy Gokarna Koti Teertha.",
+      hi: "महामृत्युंजय मंत्र का जप करें और तीर्थ स्नान करें।",
+      te: "మహామృత్యుంజయ జపం.",
+      ta: "மகா மிருத்யுஞ்சய ஜபம்."
+    }
+  },
+  24: { // Purva Bhadrapada
+    name: { kn: "ಪೂರ್ವ ಭಾದ್ರಪದ", en: "Purva Bhadrapada", hi: "पूर्व भाद्रपद", te: "పూర్వాభాద్ర", ta: "பூரட்டாதி" },
+    deity: { kn: "ಅಜೈಕಪಾದ (ರುದ್ರ ಸ್ವರೂಪ)", en: "Aja Ekapada (Cosmic Fire Serpent)", hi: "अजैकपाद", te: "అజైకపాదుడు", ta: "அஜைகபாதர்" },
+    tree: {
+      botanicalName: "Mangifera indica",
+      kannada: "ಮಾವಿನ ಮರ (ಆಮ್ರ ವೃಕ್ಷ)",
+      english: "Mango Tree (Amra)",
+      hindi: "आम का वृक्ष",
+      telugu: "మామిడి చెట్టు",
+      tamil: "மாமரம்",
+      worshipMethod: {
+        kn: "ಮಾವಿನ ಮರಕ್ಕೆ ನೀರೆರೆಯುವುದು ಹಾಗೂ ಹವನದಲ್ಲಿ ಮಾವಿನ ಕಟ್ಟಿಗೆಗಳನ್ನು ಬಳಸುವುದು ಆಂತರಿಕ ತಪಸ್ಸು ಮತ್ತು ಶುದ್ಧಿಯನ್ನು ನೀಡುತ್ತದೆ.",
+        en: "Water the sacred Mango tree and use dried mango twigs in sacred homas for fiery purification.",
+        hi: "आम के वृक्ष को जल दें एवं हवन में आम की समिधा का उपयोग करें।",
+        te: "మామిడి చెట్టుకు నీరు పోయడం వలన తపశ్శక్తి పెరుగుతుంది.",
+        ta: "மாமரத்திற்கு நீர் ஊற்றுவது ஆன்மீக பலத்தை தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ अजैकपदे नमः । ॐ ಪೂಂ ಪೂರ್ವಭಾದ್ರಪದಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ಅಜೈಕಪದೇ ನಮಃ । ಓಂ ಪೂಂ ಪೂರ್ವಭಾದ್ರಪದಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಏಕಪಾದ ರುದ್ರನ ಕೃಪೆಯಿಂದ ಆಂತರಿಕ ಉಗ್ರತೆ ಶಾಂತವಾಗಿ ಆಧ್ಯಾತ್ಮಿಕ ತಪಸ್ಸು ಸಿದ್ಧಿಸಲಿ.",
+        en: "May mystical Aja Ekapada channel ascetic devotion and deep yogic transformation.",
+        hi: "भगवान अजैकपाद समस्त संतापों को हरकर योग सिद्धि प्रदान करें।",
+        te: "అజైకపాదుని అనుగ్రహంతో ఆధ్యాత్మిక ఉన్నతి కలుగుగాక.",
+        ta: "அஜைகபாதரின் அருளால் ஆன்மீக தெளிவு உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ರುದ್ರ ಗಾಯತ್ರಿ ಜಪ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ.",
+      en: "Chant Rudra Gayatri and perform Rudrabhisheka at Gokarna.",
+      hi: "रुद्र गायत्री का जप करें एवं शिवलिंग पर दुग्धाभिषेक करें।",
+      te: "రుద్ర గాయత్రి జపం మరియు రుద్రాభిషేకం.",
+      ta: "ருத்ர காயத்ரி மற்றும் ருத்ராபிஷேகம்."
+    }
+  },
+  25: { // Uttara Bhadrapada
+    name: { kn: "ಉತ್ತರ ಭಾದ್ರಪದ", en: "Uttara Bhadrapada", hi: "उत्तर भाद्रपद", te: "ఉత్తరాభాద్ర", ta: "உத்திரட்டாதி" },
+    deity: { kn: "ಅಹಿರ್ಬುಧ್ನ್ಯ (ಕುಂಡಲಿನೀ ಸರ್ಪ)", en: "Ahirbudhnya (Serpent of the Depths)", hi: "अहिर्बुध्न्य", te: "అహిర్బుధ్న్యుడు", ta: "அஹிர்புத்னியர்" },
+    tree: {
+      botanicalName: "Azadirachta indica",
+      kannada: "ಬೇವು (ನಿಂಬ ವೃಕ್ಷ)",
+      english: "Neem Tree (Nimba)",
+      hindi: "नीम का पेड़",
+      telugu: "వేప చెట్టు",
+      tamil: "வேப்ப மரம்",
+      worshipMethod: {
+        kn: "ಬೇವಿನ ಮರಕ್ಕೆ ನೀರೆರೆದು ಪ್ರದಕ್ಷಿಣೆ ಹಾಕುವುದು ಸಮಸ್ತ ರೋಗಾಣು, ನಕಾರಾತ್ಮಕ ಶಕ್ತಿ ಹಾಗೂ ಶನಿ ಪೀಡೆಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ.",
+        en: "Circumambulate the sacred Neem tree to pacify deep-seated karmic friction and purify bodily tissues.",
+        hi: "नीम के वृक्ष की परिक्रमा करें, समस्त नकारात्मक ऊर्जा और शनि दोष दूर होंगे।",
+        te: "వేప చెట్టుకు ప్రదక్షిణలు చేయడం వలన నకారాత్మక శక్తులు తొలగుతాయి.",
+        ta: "வேப்ப மரத்தை வலம் வருவது சகல தோஷங்களையும் போக்கும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ अहिर्बुध्न्याय नमः । ॐ ಉಂ ಉತ್ತರಭಾದ್ರಪದಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ಅಹಿರ್ಬುಧ್ನ್ಯಾಯ ನಮಃ । ಓಂ ಉಂ ಉತ್ತರಭಾದ್ರಪದಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಅತಲದ ಕುಂಡಲಿನೀ ರಕ್ಷಕ ಅಹಿರ್ಬುಧ್ನ್ಯನ ಕೃಪೆಯಿಂದ ಸ್ಥಿರ ಶಾಂತಿ ಮತ್ತು ಗಂಭೀರ ವಿವೇಕ ಲಭಿಸಲಿ.",
+        en: "May Ahirbudhnya stabilize inner serpent energy, granting profound stillness and wisdom.",
+        hi: "अहिर्बुध्न्य देव की कृपा से चित्त स्थिर हो और गहन ज्ञान की प्राप्ति हो।",
+        te: "అహిర్బుధ్న్యుని కృపతో మానసిక ప్రశాంతత లభించుగాక.",
+        ta: "அஹிர்புத்னியரின் அருளால் ஆழ்ந்த அமைதி உண்டாகட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಭಗವಾನ್ ಶಿವ ಹಾಗೂ ದುರ್ಗಾ ದೇವಿ ಆರಾಧನೆ, ಬಡವರಿಗೆ ಅನ್ನದಾನ.",
+      en: "Worship Lord Shiva and Goddess Durga; donate grain to underprivileged seekers.",
+      hi: "भगवान शिव एवं मां दुर्गा की उपासना करें, गरीबों को भोजन कराएं।",
+      te: "శివ మరియు దుర్గా ఆరాధన.",
+      ta: "சிவன் மற்றும் துர்க்கை வழிபாடு."
+    }
+  },
+  26: { // Revati
+    name: { kn: "ರೇವತಿ", en: "Revati", hi: "रेवती", te: "రేవతి", ta: "ரேவதி" },
+    deity: { kn: "ಪೂಷಾ (ಪ್ರಯಾಣಿಕರ ರಕ್ಷಕ)", en: "Pushan (Nurturer & Safe Travel Deity)", hi: "पूषा", te: "పూషుడు", ta: "பூஷா" },
+    tree: {
+      botanicalName: "Madhuca longifolia",
+      kannada: "ಇಪ್ಪೆ ಮರ (ಮಹುವಾ)",
+      english: "Mahua Tree (Madhuka)",
+      hindi: "महुआ",
+      telugu: "ఇప్ప చెట్టు",
+      tamil: "இலுப்பை மரம்",
+      worshipMethod: {
+        kn: "ಇಪ್ಪೆ ಎಣ್ಣೆಯ ದೀಪವನ್ನು ಶಿವನಿಗೆ ಹಚ್ಚುವುದು ಹಾಗೂ ಮರವನ್ನು ಸಂರಕ್ಷಿಸುವುದು ಪ್ರಯಾಣದಲ್ಲಿ ರಕ್ಷಣೆ ಮತ್ತು ಸಮೃದ್ಧಿಯನ್ನು ನೀಡುತ್ತದೆ.",
+        en: "Light an Iluppai (Mahua) oil lamp before Lord Shiva to ensure safe journeys, nourish livestock, and finalize karmic cycles.",
+        hi: "महुआ के तेल का दीपक शिवलिंग के सम्मुख जलाएं, यात्राएं सुखद और सफल होंगी।",
+        te: "ఇప్ప నూనెతో దీపం వెలిగించడం వలన ప్రయాణాలలో రక్షణ లభిస్తుంది.",
+        ta: "இலுப்பை எண்ணெய் தீபம் ஏற்றுவது பயணங்களில் பாதுகாப்பையும் செல்வத்தையும் தரும்."
+      }
+    },
+    beejaMantra: {
+      sanskrit: "॥ ॐ पूष्णे नमः । ॐ ರೇಂ ರೇವತೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      kannada: "॥ ಓಂ ಪೂಷ್ಣೇ ನಮಃ । ಓಂ ರೇಂ ರೇವತೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      meaning: {
+        kn: "ಪ್ರಯಾಣಿಕರ ರಕ್ಷಕ ಪೂಷಾದೇವನ ಕೃಪೆಯಿಂದ ಜೀವಿತ ಪಯಣವು ಕ್ಷೇಮಕರ ಹಾಗೂ ಸುಖಮಯವಾಗಿರಲಿ.",
+        en: "May gentle nourisher Pushan guide your journey safely and ensure auspicious completion.",
+        hi: "पोषणकर्ता पूषा देव समस्त यात्राओं में रक्षा करें और सुख-समृद्धि दें।",
+        te: "పూష దేవుని అనుగ్రహంతో సర్వ ప్రయాణాలు క్షేమంగా సాగుగాక.",
+        ta: "பூஷா பகவானின் அருளால் பயணங்கள் யாவும் நன்மையாக அமையட்டும்."
+      }
+    },
+    aradhana: {
+      kn: "ಶ್ರೀ ಸತ್ಯನಾರಾಯಣ ಸ್ವಾಮಿ ವ್ರತ ಹಾಗೂ ಪ್ರಾಣಿಗಳಿಗೆ ಆಹಾರ ನೀಡುವುದು.",
+      en: "Perform Sri Satyanarayana Vrata and feed stray animals.",
+      hi: "श्री सत्यनारायण व्रत कथा सुनें एवं मूक पशुओं को चारा दें।",
+      te: "శ్రీ సత్యనారాయణ వ్రతం.",
+      ta: "ஸ்ரீ சத்யநாராயணர் விரதம்."
+    }
+  }
+};
+
+/** 15 Tithis Remedies and Deities */
+export const TITHI_REMEDY_DATA: Record<number, {
+  name: Record<string, string>;
+  deity: Record<string, string>;
+  vrataAndRemedy: Record<string, string>;
+}> = {
+  1: {
+    name: { kn: "ಪಾಡ್ಯ / ಪ್ರಥಮಾ", en: "Pratipat (1st Tithi)", hi: "प्रतिपदा", te: "పాడ్యమి", ta: "பிரதமை" },
+    deity: { kn: "ಅಗ್ನಿದೇವ", en: "Agni Deva", hi: "अग्नि देव", te: "అగ్ని దేవుడు", ta: "அக்னி தேவன்" },
+    vrataAndRemedy: {
+      kn: "ಹಸುವಿನ ಶುದ್ಧ ತುಪ್ಪವನ್ನು ದಾನ ಮಾಡುವುದು ಹಾಗೂ ಅಗ್ನಿಹೋತ್ರ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಜೀರ್ಣಶಕ್ತಿ ಮತ್ತು ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+      en: "Donate pure cow ghee and offer ghee lamp to fire for digestive fire and cellular radiance.",
+      hi: "शुद्ध गाय के घी का दान करें एवं अग्नि देव की पूजा करें।",
+      te: "ఆవు నెయ్యి దానం చేయడం శ్రేష్టం.",
+      ta: "பசு நெய் தானம் செய்வதும் அக்னி வழிபாடும் சிறந்தது."
+    }
+  },
+  2: {
+    name: { kn: "ಬಿದಿಗೆ / ದ್ವಿತೀಯಾ", en: "Dvitiya (2nd Tithi)", hi: "द्वितीया", te: "విదియ", ta: "துவிதியை" },
+    deity: { kn: "ಬ್ರಹ್ಮದೇವ & ಅಶ್ವಿನಿ ಕುಮಾರರು", en: "Lord Brahma & Ashwini Kumaras", hi: "ब्रह्मा देव", te: "బ్రహ్మ దేవుడు", ta: "பிரம்ம தேவன்" },
+    vrataAndRemedy: {
+      kn: "ಸರಸ್ವತೀ ಪೂಜೆ, ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕ ದಾನ ಹಾಗೂ ಸಿಹಿ ತಿನಿಸುಗಳನ್ನು ಹಂಚುವುದು ಸಿದ್ಧಿಕಾರಕ.",
+      en: "Worship Goddess Saraswati and donate stationery to underprivileged students.",
+      hi: "मां सरस्वती की पूजा करें और विद्यार्थियों को पुस्तकें दान करें।",
+      te: "సరస్వతీ పూజ మరియు పుస్తక దానం.",
+      ta: "சரஸ்வதி பூஜை மற்றும் மாணவர்களுக்கு புத்தக தானம்."
+    }
+  },
+  3: {
+    name: { kn: "ತದಿಗೆ / ತೃತೀಯಾ", en: "Tritiya (3rd Tithi)", hi: "तृतीया", te: "తదియ", ta: "திருதியை" },
+    deity: { kn: "ಗೌರೀ ದೇವಿ (ಶಕ್ತಿ)", en: "Goddess Gauri", hi: "माता गौरी", te: "గౌరీ దేవి", ta: "கௌரி தேவி" },
+    vrataAndRemedy: {
+      kn: "ಗೌರೀ ವ್ರತ, ಮುತ್ತೈದೆಯರಿಗೆ ಅರಿಶಿನ-ಕುಂಕುಮ ಹಾಗೂ ಹಣ್ಣುಗಳನ್ನು ನೀಡುವುದು ಸೌಭಾಗ್ಯವರ್ಧಕ.",
+      en: "Observe Gauri Vrata; offer turmeric, kumkum, and fresh fruits to married women for marital harmony.",
+      hi: "माता गौरी की पूजा करें एवं सुहागिनों को सुहाग सामग्री भेंट करें।",
+      te: "గౌరీ వ్రతం మరియు ముత్తైదువులకు తాంబూలం.",
+      ta: "கௌரி விரதம் மற்றும் மங்கலப் பொருட்கள் வழங்குதல்."
+    }
+  },
+  4: {
+    name: { kn: "ಚೌತಿ / ಚತುರ್ಥಿ", en: "Chaturthi (4th Tithi)", hi: "चतुर्थी", te: "చవితి", ta: "சதுர்த்தி" },
+    deity: { kn: "ಭಗವಾನ್ ಶ್ರೀ ಮಹಾಗಣಪತಿ", en: "Lord Maha Ganapati", hi: "भगवान श्री गणेश", te: "శ్రీ గణపతి", ta: "ஸ்ரீ விநாயகர்" },
+    vrataAndRemedy: {
+      kn: "ಸಂಕಷ್ಟಹರ ಚತುರ್ಥಿ ವ್ರತ, ಗಣೇಶನಿಗೆ ಗರಿಕೆ ಮತ್ತು ಮೋದಕ ಅರ್ಪಿಸುವುದು ಸಕಲ ವಿಘ್ನನಿವಾರಕ.",
+      en: "Observe Sankashti Chaturthi vrata; offer Durva grass and modakas to Ganesha to dissolve roadblocks.",
+      hi: "संकष्टी चतुर्थी व्रत रखें, गणेश जी को दूर्वा और मोदक अर्पित करें।",
+      te: "సంకష్టహర చతుర్థి వ్రతం మరియు గణపతికి గరిక సమర్పణ.",
+      ta: "சங்கடஹர சதுர்த்தி விரதம் மற்றும் அருகம்புல் அர்ச்சனை."
+    }
+  },
+  5: {
+    name: { kn: "ಪಂಚಮಿ", en: "Panchami (5th Tithi)", hi: "पंचमी", te: "పంచమి", ta: "பஞ்சமி" },
+    deity: { kn: "ನಾಗದೇವತೆಗಳು & ಸುಬ್ರಹ್ಮಣ್ಯ", en: "Naga Devatas & Kartikeya", hi: "नाग देवता", te: "నాగ దేవతలు", ta: "நாக தேவதைகள்" },
+    vrataAndRemedy: {
+      kn: "ನಾಗದೇವರಿಗೆ ಹಾಲಿನ ಅಭಿಷೇಕ ಹಾಗೂ ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ ಸರ್ಪ ದೋಷ ಮತ್ತು ಸಂತಾನ ಅಡೆತಡೆಗಳನ್ನು ನಿವಾರಿಸುತ್ತದೆ.",
+      en: "Offer milk abhisheka to serpent idols for Sarpa Dosha mitigation and progeny vitality.",
+      hi: "नाग देवता को कच्चा दूध अर्पित करें और सर्प दोष निवारण पूजा करें।",
+      te: "నాగ పూజ మరియు సుబ్రహ్మణ్యేశ్వర ఆరాధన.",
+      ta: "நாகருக்கு பால் அபிஷேகம் மற்றும் முருகன் வழிபாடு."
+    }
+  },
+  6: {
+    name: { kn: "ಷಷ್ಠಿ", en: "Shashthi (6th Tithi)", hi: "षष्ठी", te: "షష్ఠి", ta: "சஷ்டி" },
+    deity: { kn: "ಭಗವಾನ್ ಕಾರ್ತಿಕೇಯ (ಸ್ಕಂದ)", en: "Lord Kartikeya (Skanda)", hi: "भगवान कार्तिकेय", te: "కార్తికేయుడు", ta: "முருகப்பெருமான்" },
+    vrataAndRemedy: {
+      kn: "ಸ್ಕಂದ ಷಷ್ಠಿ ವ್ರತ ಪಾಲನೆ, ಕುಜ ಶಾಂತಿ ಹಾಗೂ ಸುಬ್ರಹ್ಮಣ್ಯ ದರ್ಶನ ರಕ್ತ ಸಂಬಂಧಿ ತೊಂದರೆ ಮತ್ತು ಕೋಪವನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ.",
+      en: "Observe Skanda Shashthi fast to pacify Mars afflictions, blood pressure, and fiery impulsiveness.",
+      hi: "स्कंद षष्ठी व्रत रखें और मंगल शांति हेतु लाल पुष्प अर्पित करें।",
+      te: "స్కంద షష్ఠి వ్రతం మరియు కుజ శాంతి.",
+      ta: "சஷ்டி விரதம் மற்றும் செவ்வாய் சாந்தி."
+    }
+  },
+  7: {
+    name: { kn: "ಸಪ್ತಮಿ", en: "Saptami (7th Tithi)", hi: "सप्तमी", te: "సప్తమి", ta: "சப்தமி" },
+    deity: { kn: "ಭಗವಾನ್ ಸೂರ್ಯನಾರಾಯಣ", en: "Lord Surya Narayana", hi: "भगवान सूर्य", te: "సూర్య భగవానుడు", ta: "சூரிய பகவான்" },
+    vrataAndRemedy: {
+      kn: "ಸೂರ್ಯನಿಗೆ ಕೆಂಪು ಹೂವು ಮತ್ತು ಅಕ್ಷತೆಯ ಅರ್ಘ್ಯ ನೀಡುವುದು, ಉಪ್ಪು ರಹಿತ ಆಹಾರ ಸೇವಿಸುವುದು ಆಯುರಾರೋಗ್ಯವರ್ಧಕ.",
+      en: "Offer Surya Arghya with red flowers; observe saltless diet at sunset for ocular and bone vitality.",
+      hi: "सूर्य देव को तांबे के लोटे से अर्घ्य दें और बिना नमक का भोजन करें।",
+      te: "సూర్యునికి అర్ఘ్యం సమర్పించడం మరియు ఉప్పు లేని ఆహారం.",
+      ta: "சூரியனுக்கு அர்க்கியம் மற்றும் உப்பில்லா உணவு உட்கொள்ளல்."
+    }
+  },
+  8: {
+    name: { kn: "ಅಷ್ಟಮಿ", en: "Ashtami (8th Tithi)", hi: "अष्टमी", te: "అష్టమి", ta: "அஷ்டமி" },
+    deity: { kn: "ದುರ್ಗಾ ದೇವಿ & ಕಾಲಭೈರವ", en: "Goddess Durga & Kalabhairava", hi: "मां दुर्गा / कालभैरव", te: "దుర్గా దేవి", ta: "துர்க்கை / பைரவர்" },
+    vrataAndRemedy: {
+      kn: "ದುರ್ಗಾಷ್ಟಮಿ ಪೂಜೆ, ನಿಂಬೆಹಣ್ಣಿನ ದೀಪ ಹಚ್ಚುವುದು ಹಾಗೂ ಕಾಲಭೈರವ ಸ್ಮರಣೆ ಶತ್ರು ಮತ್ತು ಭಯ ನಿವಾರಕ.",
+      en: "Light lemon ghee lamps to Goddess Durga or worship Kalabhairava to conquer fear and obstacles.",
+      hi: "मां दुर्गा के सम्मुख घी का दीप जलाएं और भैरव स्तोत्र पढ़ें।",
+      te: "దుర్గా పూజ మరియు కాలభైరవ స్మరణ.",
+      ta: "துர்க்கை அம்மனுக்கு எலுமிச்சை தீபம் ஏற்றுதல்."
+    }
+  },
+  9: {
+    name: { kn: "ನವಮಿ", en: "Navami (9th Tithi)", hi: "नवमी", te: "నవమి", ta: "நவமி" },
+    deity: { kn: "ಶ್ರೀರಾಮಚಂದ್ರ & ಮಹಿಷಾಸುರಮರ್ದಿನಿ", en: "Lord Sri Rama & Mahishasuramardini", hi: "श्री राम / मां चंडिका", te: "శ్రీరాముడు", ta: "ஸ்ரீ ராமர்" },
+    vrataAndRemedy: {
+      kn: "ರಾಮನಾಮ ಜಪ, ಅನ್ನದಾನ ಹಾಗೂ ದುರ್ಗಾ ಕವಚ ಪಠಣ ಸಕಲ ಧರ್ಮಕಾರ್ಯಗಳಲ್ಲಿ ಜಯ ನೀಡುತ್ತದೆ.",
+      en: "Chant Sri Rama Nama and recite Durga Kavacham for unyielding protection against psychic attacks.",
+      hi: "राम नाम का जप करें एवं कन्याओं को भोजन कराएं।",
+      te: "రామనామ జపం మరియు అన్నదానం.",
+      ta: "ராம நாம ஜபம் மற்றும் அன்னதானம்."
+    }
+  },
+  10: {
+    name: { kn: "ದಶಮಿ", en: "Dashami (10th Tithi)", hi: "दशमी", te: "దశమి", ta: "தசமி" },
+    deity: { kn: "ಯಮಧರ್ಮ & ದಿಕ್ಪಾಲಕರು", en: "Yama Dharmaraja & Digpalakas", hi: "धर्मराज यम", te: "యమధర్మరాజు", ta: "யமதர்மராஜன்" },
+    vrataAndRemedy: {
+      kn: "ಧರ್ಮಕಾರ್ಯಗಳಲ್ಲಿ ತೊಡಗುವುದು, ವೃದ್ಧರಿಗೆ ವಸ್ತ್ರದಾನ ಹಾಗೂ ವಿಜಯದಶಮಿ ಸ್ಮರಣೆ ಕಾರ್ಯಸಿದ್ಧಿಗೆ ಶ್ರೇಷ್ಠ.",
+      en: "Honor elders with clothes and food; maintain complete truthfulness in transactions.",
+      hi: "बुजुर्गों की सेवा करें और वस्त्र दान करें।",
+      te: "పెద్దలకు వస్త్రదానం మరియు ధర్మ కార్యాలు.",
+      ta: "பெரியவர்களுக்கு ஆடை தானம் மற்றும் தர்ம காரியங்கள்."
+    }
+  },
+  11: {
+    name: { kn: "ಏಕಾದಶಿ", en: "Ekadashi (11th Tithi)", hi: "एकादशी", te: "ఏకాదశి", ta: "ஏகாதசி" },
+    deity: { kn: "ಶ್ರೀಮನ್ನಾರಾಯಣ (ವಿಷ್ಣು)", en: "Lord Maha Vishnu", hi: "भगवान विष्णु", te: "శ్రీ మహావిష్ణువు", ta: "ஸ்ரீ மகாவிஷ்ணு" },
+    vrataAndRemedy: {
+      kn: "ಏಕಾದಶಿ ಉಪವಾಸ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ ಸಮಸ್ತ ಕರ್ಮಗಳನ್ನು ಭಸ್ಮ ಮಾಡುವ ಮಹಾಪುಣ್ಯ.",
+      en: "Observe pure Ekadashi fast; water Tulasi and chant Vishnu Sahasranama to dissolve deep karmic residue.",
+      hi: "एकादशी का निर्जल/फलाहार व्रत रखें और तुलसी जी की पूजा करें।",
+      te: "ఏకాదశి ఉపవాసం మరియు విష్ణు సహస్రనామ పారాయణం.",
+      ta: "ஏகாதசி விரதம் மற்றும் விஷ்ணு சகஸ்ரநாமம்."
+    }
+  },
+  12: {
+    name: { kn: "ದ್ವಾದಶಿ", en: "Dvadashi (12th Tithi)", hi: "द्वादशी", te: "ద్వాదశి", ta: "துவாதசி" },
+    deity: { kn: "ದಾಮೋದರ (ಹರಿ)", en: "Lord Damodara (Hari)", hi: "भगवान दामोदर", te: "దామోదరుడు", ta: "தாமோதரன்" },
+    vrataAndRemedy: {
+      kn: "ಹರಿದಿನ ಪಾರಣೆ, ಬ್ರಾಹ್ಮಣರಿಗೆ ಅಥವಾ ಅತಿಥಿಗಳಿಗೆ ಸಾತ್ವಿಕ ಭೋಜನ ನೀಡಿ ನಂತರ ಪಾರಣೆ ಮಾಡುವುದು ಸಕಲ ಸಿದ್ಧಿದಾಯಕ.",
+      en: "Conclude Ekadashi fast after feeding an honored guest or devotee satvic morning meals.",
+      hi: "द्वादशी पारण समय पर करें और अतिथि को भोजन कराएं।",
+      te: "ద్వాదశి పారణ మరియు అన్నదానం.",
+      ta: "துவாதசி பாரணை மற்றும் அன்னதானம்."
+    }
+  },
+  13: {
+    name: { kn: "ತ್ರಯೋದಶಿ", en: "Trayodashi (13th Tithi)", hi: "त्रयोदशी", te: "త్రయోదశి", ta: "திரயோதசி" },
+    deity: { kn: "ಪರಮೇಶ್ವರ (ಕಾಮದೇವ/ಶಿವ)", en: "Lord Shiva (Pradosha Murthy)", hi: "भगवान शिव", te: "పరమశివుడు", ta: "சிவபெருமான்" },
+    vrataAndRemedy: {
+      kn: "ಪ್ರದೋಷ ಕಾಲದ ಶಿವ ಪೂಜೆ, ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ನಂದಿಯ ದರ್ಶನ ಸಕಲ ಋಣ ಮತ್ತು ರೋಗಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ.",
+      en: "Observe twilight Pradosha vrata; offer milk/bilva to Shiva Linga and whisper prayers into Nandi's ear.",
+      hi: "प्रदोष काल में शिवलिंग का अभिषेक करें एवं नंदी जी का ध्यान करें।",
+      te: "ప్రదోష పూజ మరియు శివాభిషేకం.",
+      ta: "பிரதோஷ வழிபாடு மற்றும் நந்தி பூஜை."
+    }
+  },
+  14: {
+    name: { kn: "ಚತುರ್ದಶಿ", en: "Chaturdashi (14th Tithi)", hi: "चतुर्दशी", te: "చతుర్దశి", ta: "சதுர்த்தசி" },
+    deity: { kn: "ಶಿವ (ರುದ್ರ / ನರಸಿಂಹ)", en: "Lord Shiva / Lord Narasimha", hi: "भगवान शिव / नृसिंह", te: "నరసింహ స్వామి", ta: "நரசிம்மர் / சிவன்" },
+    vrataAndRemedy: {
+      kn: "ಮಾಸ ಶಿವರಾತ್ರಿ ಉಪವಾಸ ಅಥವಾ ನರಸಿಂಹ ಕವಚ ಪಠಣ ದುಷ್ಟ ಶಕ್ತಿ ಹಾಗೂ ಅಕಾಲಿಕ ಅಪಮೃತ್ಯು ಭಯವನ್ನು ನಾಶ ಮಾಡುತ್ತದೆ.",
+      en: "Observe Masa Shivaratri or recite Sri Narasimha Kavacham to neutralize evil eye and black energies.",
+      hi: "मासिक शिवरात्रि का व्रत रखें अथवा नृसिंह कवच का पाठ करें।",
+      te: "మాస శివరాత్రి ఉపవాసం మరియు నరసింహ స్తోత్రం.",
+      ta: "மாத சிவராத்திரி அல்லது நரசிம்மர் கவசம்."
+    }
+  },
+  15: {
+    name: { kn: "ಹುಣ್ಣಿಮೆ / ಅಮಾವಾಸ್ಯೆ", en: "Purnima / Amavasya (15th Tithi)", hi: "पूर्णिमा / अमावस्या", te: "పౌర్ణమి / అమావాస్య", ta: "பௌர்ணமி / அமாவாசை" },
+    deity: { kn: "ಶ್ರೀ ಸತ್ಯನಾರಾಯಣ (ಹುಣ್ಣಿಮೆ) / ಪಿತೃ ದೇವತೆಗಳು (ಅಮಾವಾಸ್ಯೆ)", en: "Satyanarayana (Purnima) / Pitris (Amavasya)", hi: "सत्यनारायण / पितृगण", te: "సత్యనారాయణ స్వామి / పితృ దేవతలు", ta: "சத்யநாராயணர் / பித்ருக்கள்" },
+    vrataAndRemedy: {
+      kn: "ಹುಣ್ಣಿಮೆಯಂದು ಶ್ರೀ ಸತ್ಯನಾರಾಯಣ ವ್ರತ; ಅಮಾವಾಸ್ಯೆಯಂದು ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಅನ್ನದಾನ ಮಾಡುವುದು ಸಕಲ ವಂಶಾಭಿವೃದ್ಧಿಕಾರಕ.",
+      en: "Perform Sri Satyanarayana Vrata on Purnima for abundance; offer ancestral Tarpana on Amavasya.",
+      hi: "पूर्णिमा पर सत्यनारायण कथा सुनें एवं अमावस्या पर पितरों का तर्पण करें।",
+      te: "పౌర్ణమి సత్యనారాయణ వ్రతం / అమావాస్య పితృ తర్పణం.",
+      ta: "பௌர்ணமி சத்யநாராயண பூஜை / அமாவாசை பித்ரு தர்ப்பணம்."
+    }
+  }
+};
+
+/** 7 Varas (Weekdays) Remedies & Colors */
+export const VARA_REMEDY_DATA: Record<number, {
+  dayName: Record<string, string>;
+  graha: PlanetName;
+  color: Record<string, string>;
+  sadhana: Record<string, string>;
+}> = {
+  0: { // Sunday
+    dayName: { kn: "ಭಾನುವಾರ", en: "Sunday", hi: "रविवार", te: "ఆదివారం", ta: "ஞாயிற்றுக்கிழமை" },
+    graha: PlanetName.Sun,
+    color: { kn: "ತಾಮ್ರ ಕೆಂಪು ಅಥವಾ ಬಂಗಾರದ ಹಳದಿ", en: "Copper Red or Golden Yellow", hi: "ताम्र लाल अथवा सुनहरा", te: "ఎరుపు లేదా బంగారు పసుపు", ta: "செம்பு சிவப்பு அல்லது பொன் மஞ்சள்" },
+    sadhana: {
+      kn: "ಸೂರ್ಯೋದಯಕ್ಕೆ ತಾಮ್ರದ ಪಾತ್ರೆಯಲ್ಲಿ ಸೂರ್ಯಾರ್ಘ್ಯ ನೀಡಿ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸಿ. ಸಂಜೆ ಉಪ್ಪಿಲ್ಲದ ಆಹಾರ ಸೇವಿಸುವುದು ಶ್ರೇಷ್ಠ.",
+      en: "Offer copper-vessel water to rising Sun; chant Aditya Hrudayam. Minimize salt at sunset.",
+      hi: "सूर्योदय पर तांबे के पात्र से अर्घ्य दें और आदित्य हृदय स्तोत्र पढ़ें।",
+      te: "సూర్యునికి అర్ఘ్యం మరియు ఆదిత్య హృదయ స్తోత్ర పఠనం.",
+      ta: "சூரிய உதயத்தில் அர்க்கியம் மற்றும் ஆதித்ய ஹ்ருதயம்."
+    }
+  },
+  1: { // Monday
+    dayName: { kn: "ಸೋಮವಾರ", en: "Monday", hi: "सोमवार", te: "సోమవారం", ta: "திங்கட்கிழமை" },
+    graha: PlanetName.Moon,
+    color: { kn: "ಶುದ್ಧ ಬಿಳಿ ಅಥವಾ ಮುತ್ತಿನ ಬಣ್ಣ", en: "Pure White or Pearl Cream", hi: "श्वेत अथवा मोतिया", te: "తెలుపు లేదా ముత్యపు రంగు", ta: "தூய வெள்ளை அல்லது முத்து நிறம்" },
+    sadhana: {
+      kn: "ಶಿವಲಿಂಗಕ್ಕೆ ಹಸಿ ಹಾಲಿನ ಕ್ಷೀರಾಭಿಷೇಕ ಮಾಡಿ, 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ. ಮನಸ್ಸಿನಲ್ಲಿ ತಂಪಾದ ಶಾಂತಿ ಭಾವನೆ ತಂದುಕೊಳ್ಳಿ.",
+      en: "Offer raw milk abhisheka to Shiva Linga; chant Om Namah Shivaya 108 times for tranquil emotional calm.",
+      hi: "शिवलिंग पर कच्चा दूध चढ़ाएं और ॐ नमः शिवाय का १०८ बार जप करें।",
+      te: "శివలింగానికి పాలాభిషేకం మరియు శివ పంచాక్షరి జపం.",
+      ta: "சிவனுக்கு பால் அபிஷேகம் மற்றும் ஓம் நம சிவாய ஜபம்."
+    }
+  },
+  2: { // Tuesday
+    dayName: { kn: "ಮಂಗಳವಾರ", en: "Tuesday", hi: "मंगलवार", te: "మంగళవారం", ta: "செவ்வாய்க்கிழமை" },
+    graha: PlanetName.Mars,
+    color: { kn: "ಹವಳ ಕೆಂಪು ಅಥವಾ ಕೇಸರಿ", en: "Coral Red or Saffron", hi: "लाल अथवा केसरिया", te: "ఎరుపు లేదా కాషాయం", ta: "சிவப்பு அல்லது காவி" },
+    sadhana: {
+      kn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ ಮಾಡಿ. ಕೋಪ ಬರದಂತೆ ಎಚ್ಚರವಹಿಸಿ, ಸೋಂಪು ನೀರು ಸೇವಿಸಿ.",
+      en: "Recite Subrahmanya Bhujangam or Hanuman Chalisa. Control sudden temper; drink cooling fennel water.",
+      hi: "हनुमान चालीसा का पाठ करें और क्रोध पर नियंत्रण रखें।",
+      te: "హనుమాన్ చాలీసా మరియు సుబ్రహ్మణ్య స్వామి పూజ.",
+      ta: "ஹனுமான் சாலிசா பாராயணம் மற்றும் கோப கட்டுப்பாடு."
+    }
+  },
+  3: { // Wednesday
+    dayName: { kn: "ಬುಧವಾರ", en: "Wednesday", hi: "बुधवार", te: "బుధవారం", ta: "புதன்கிழமை" },
+    graha: PlanetName.Mercury,
+    color: { kn: "ಗಿಳಿ ಹಸಿರು ಅಥವಾ ಎಲೆ ಹಸಿರು", en: "Parrot Green or Leaf Green", hi: "हरा", te: "ఆకుపచ్చ", ta: "பச்சை" },
+    sadhana: {
+      kn: "ತುಳಸಿ ಗಿಡಕ್ಕೆ ನೀರೆರೆದು, ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸಿ. ಹಸುಗಳಿಗೆ ಹಸಿರು ಹುಲ್ಲು ಅಥವಾ ನೆನೆಸಿದ ಹೆಸರುಕಾಳು ನೀಡಿ.",
+      en: "Water the Tulasi plant; recite Vishnu Sahasranama. Feed green fodder or soaked green moong to cows.",
+      hi: "तुलसी को जल दें एवं गायों को हरा चारा खिलाएं।",
+      te: "తులసి పూజ మరియు గోవులకు పచ్చిగడ్డి తినిపించడం.",
+      ta: "துளசி பூஜை மற்றும் பசுவுக்கு பசும்புல் அளித்தல்."
+    }
+  },
+  4: { // Thursday
+    dayName: { kn: "ಗುರುವಾರ", en: "Thursday", hi: "गुरुवार", te: "గురువారం", ta: "வியாழக்கிழமை" },
+    graha: PlanetName.Jupiter,
+    color: { kn: "ಅರಿಶಿನ ಹಳದಿ ಅಥವಾ ಬಂಗಾರ", en: "Turmeric Yellow or Golden", hi: "पीला", te: "పసుపు", ta: "மஞ்சள்" },
+    sadhana: {
+      kn: "ಗುರು ದಕ್ಷಿಣಾಮೂರ್ತಿ ಅಥವಾ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿಗಳ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ. ಹಣೆಗೆ ಶ್ರೀಗಂಧ ಲೇಪಿಸಿ, ಗುರುಹಿರಿಯರಿಗೆ ನಮಸ್ಕರಿಸಿ.",
+      en: "Worship Guru Dakshinamurthy/Dattatreya; apply chandan tilak on forehead and seek elders' blessings.",
+      hi: "गुरु वंदना करें, मस्तक पर चंदन लगाएं और पीला भोजन ग्रहण करें।",
+      te: "గురు పూజ మరియు పెద్దల ఆశీర్వాదం తీసుకోవడం.",
+      ta: "குரு வழிபாடு மற்றும் நெற்றியில் சந்தன திலகம்."
+    }
+  },
+  5: { // Friday
+    dayName: { kn: "ಶುಕ್ರವಾರ", en: "Friday", hi: "शुक्रवार", te: "శుక్రవారం", ta: "வெள்ளிக்கிழமை" },
+    graha: PlanetName.Venus,
+    color: { kn: "ರೇಷ್ಮೆ ಶ್ವೇತ ಅಥವಾ ತಿಳಿ ಗುಲಾಬಿ", en: "Silken White or Soft Pink", hi: "सफेद अथवा गुलाबी", te: "తెలుపు లేదా లేత గులాబీ", ta: "வெள்ளை அல்லது இளஞ்சிவப்பு" },
+    sadhana: {
+      kn: "ಮಹಾಲಕ್ಷ್ಮೀಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ, ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಿಸಿ. ಮನೆಯಲ್ಲಿ ಸುವಾಸನೆ ಮತ್ತು ಶುಚಿತ್ವ ಕಾಪಾಡಿ.",
+      en: "Light pure cow ghee lamp before Goddess Mahalakshmi; chant Kanakadhara Stotra for beauty and grace.",
+      hi: "मां महालक्ष्मी के आगे घी का दीपक जलाएं और कनकधारा स्तोत्र पढ़ें।",
+      te: "లక్ష్మీ పూజ మరియు కనకధారా స్తోత్రం.",
+      ta: "மகாலட்சுமிக்கு நெய் தீபம் மற்றும் கனகதாரா ஸ்தோத்திரம்."
+    }
+  },
+  6: { // Saturday
+    dayName: { kn: "ಶನಿವಾರ", en: "Saturday", hi: "शनिवार", te: "శనివారం", ta: "சனிக்கிழமை" },
+    graha: PlanetName.Saturn,
+    color: { kn: "ಗಾಢ ನೀಲಿ ಅಥವಾ ಕಪ್ಪು", en: "Deep Navy Blue or Charcoal", hi: "गहरा नीला अथवा काला", te: "నలుపు లేదా నీలం", ta: "கருநீலம் அல்லது கருப்பு" },
+    sadhana: {
+      kn: "ಅಶ್ವತ್ಥ ವೃಕ್ಷದ ಬುಡದಲ್ಲಿ ಎಳ್ಳೆಣ್ಣೆಯ ದೀಪ ಹಚ್ಚಿ. ಕಾಗೆಗಳಿಗೆ ಅನ್ನ ಹಾಕಿ, ನಿರ್ಗತಿಕರಿಗೆ ಅಥವಾ ಅಶಕ್ತರಿಗೆ ಸಹಾಯ ಮಾಡಿ.",
+      en: "Light sesame oil lamp under Peepal tree; feed black crows and offer help to disabled/elderly workers.",
+      hi: "पीपल के वृक्ष के पास तिल के तेल का दीपक रखें और कौवों को भोजन दें।",
+      te: "రావి చెట్టు కింద నువ్వుల నూనె దీపం మరియు కాకులకు అన్నం.",
+      ta: "அரச மரத்தடியில் நல்லெண்ணெய் தீபம் மற்றும் காக்கைக்கு உணவு."
+    }
+  }
+};
+
+/** 8+ Classical Multilingual Stotras Repository */
+export const CLASSICAL_STOTRAS_CATALOG = [
+  {
+    id: "chandrashekhara_ashtakam",
+    forAffliction: ["anger_temper", "mental_anxiety", "pitta"],
+    title: {
+      kn: "ಶ್ರೀ ಚಂದ್ರಶೇಖರಾಷ್ಟಕಂ (ಕ್ರೋಧ & ಶತ್ರು ಭಯ ನಿವಾರಕ)",
+      en: "Shri Chandrashekhara Ashtakam (Anger & Fear Pacifier)",
+      hi: "श्री चन्द्रशेखराष्टकम् (क्रोध एवं भय नाशक)",
+      te: "శ్రీ చంద్రశేఖరాష్టకం (క్రోధ నివారణ)",
+      ta: "ஸ்ரீ சந்திரசேகராஷ்டகம் (கோப சாந்தி)"
+    },
+    dedicatedTo: { kn: "ಶ್ರೀ ಮಹಾದೇವ (ಚಂದ್ರಮೌಳೀಶ್ವರ)", en: "Lord Shiva (Chandrashekhara)", hi: "भगवान शिव", te: "పరమశివుడు", ta: "சிவபெருமான்" },
+    shlokaSanskrit: `चन्द्रशेखर चन्द्रशेखर चन्द्रशेखर पाहि माम् ।
+चन्द्रशेखर चन्द्रशेखर चन्द्रशेखर रक्ष माम् ॥
+रत्नसानुशरासनं रजताद्रिश्रृङ्गनिकेतनं
+शिञ्जिनीकृतपन्नगेश्वरमच्युतानलसायकम् ।
+क्षिप्रदग्धपुरत्रयं त्रिदिवेश्वरैरभिवन्दितं
+चन्द्रशेखरमाश्रये मम किं करिष्यति वै यमः ॥`,
+    shlokaKannada: `ಚಂದ್ರಶೇಖರ ಚಂದ್ರಶೇಖರ ಚಂದ್ರಶೇಖರ ಪಾಹಿ ಮಾಮ್ ।
+ಚಂದ್ರಶೇಖರ ಚಂದ್ರಶೇಖರ ಚಂದ್ರಶೇಖರ ರಕ್ಷ ಮಾಮ್ ॥
+ರತ್ನಸಾನುಶರಾಸನಂ ರಜತಾದ್ರಿಶೃಂಗನಿಕೇತನಂ
+ಶಿಞ್ಜಿನೀಕೃತಪನ್ನಗೇಶ್ವರಮಚ್ಯುತಾನಲಸಾಯಕಮ್ ।
+ಕ್ಷಿಪ್ರದಗ್ಧಪುರತ್ರಯಂ ತ್ರಿದಿವೇಶ್ವರೈರಭಿವಂದಿತಂ
+ಚಂದ್ರಶೇಖರಮಾಶ್ರಯೇ ಮಮ ಕಿಂ ಕರಿಷ್ಯತಿ ವೈ ಯಮಃ ॥`,
+    shlokaTelugu: `చంద్రశేఖర చంద్రశేఖర చంద్రశేఖర పాహి మామ్ ।
+చంద్రశేఖర చంద్రశేఖర చంద్రశేఖర రక్ష మామ్ ॥
+రత్నసానుశరాసనం రజతాద్రిశృంగనికేతనం
+శింజినీకృతపన్నగేశ్వరమచ్యుతానలసాయకమ్ ।
+క్షిప్రదగ్ధపురత్రయం త్రిదివేశ్వరైరభివందితం
+చంద్రశేఖరమాశ్రయే మమ కిం కరిష్యతి వై యమః ॥`,
+    shlokaTamil: `சந்த்ரசேகர சந்த்ரசேகர சந்த்ரசேகர பாஹி மாம் ।
+சந்த்ரசேகர சந்த்ரசேகர சந்த்ரசேகர ரக்ஷ மாம் ॥
+ரத்னஸானுசராஸனம் ரஜதாத்ரிச்ரும்கநிகேதனம்
+சிஞ்ஜினீக்ருதபன்னகேச்வரமச்யுதானலஸாயகம் ।
+க்ஷிப்ரதக்தபுரத்ரயம் த்ரிதிவேச்வரைரபிவந்திதம்
+சந்த்ரசேகரமாச்ரயே மம கிம் கரிஷ்யதி வை யமஃ ॥`,
+    shlokaHindi: `चन्द्रशेखर चन्द्रशेखर चन्द्रशेखर पाहि माम् ।
+चन्द्रशेखर चन्द्रशेखर चन्द्रशेखर रक्ष माम् ॥
+रत्नसानुशरासनं रजताद्रिश्रृङ्गनिकेतनं
+शिञ्जिनीकृतपन्नगेश्वरमच्युतानलसायकम् ।
+क्षिप्रदग्धपुरत्रयं त्रिदिवेश्वरैरभिवन्दितं
+चन्द्रशेखरमाश्रये मम किं करिष्यति वै यमः ॥`,
+    transliteration: "Chandrashekhara Chandrashekhara Chandrashekhara Pahi Mam | Chandrashekhara Chandrashekhara Chandrashekhara Raksha Mam ||",
+    meaning: {
+      kn: "ಶಿರದಲ್ಲಿ ತಂಪಾದ ಚಂದ್ರನನ್ನು ಧರಿಸಿದ ಹೇ ಚಂದ್ರಶೇಖರ ಮಹಾದೇವನೇ, ನನ್ನ ಮನಸ್ಸಿನ ಸಮಸ್ತ ಕ್ರೋಧ, ತಾಪ ಮತ್ತು ಆಪತ್ತುಗಳಿಂದ ನನ್ನನ್ನು ಸದಾ ಕಾಪಾಡು.",
+      en: "O Lord Chandrashekhara, who adorns the cooling crescent moon, douse all raging anger, fear, and passions within me.",
+      hi: "शीतल चन्द्रमा धारण करने वाले हे शिव, मेरे समस्त क्रोध और संताप को शांत कर रक्षा करें।",
+      te: "చంద్రుని ధరించిన ఓ పరమశివా, నాలోని కోపాన్ని హరించి రక్షించు.",
+      ta: "சந்திரனை சூடிய சிவபெருமானே, என் கோபத்தை தணித்து காத்தருள்வீராக."
+    },
+    spiritualBenefits: {
+      kn: "ಪ್ರತಿದಿನ ಪಠಿಸುವುದರಿಂದ ರಕ್ತದೊತ್ತಡ, ತೀವ್ರ ಕೋಪ, ಶತ್ರು ಭಯ ನಿವಾರಣೆಯಾಗಿ ಮನಶ್ಶಾಂತಿ ಸಿಗುತ್ತದೆ.",
+      en: "Pacifies high blood pressure, explosive temper, panic spikes, and bestows calm poise.",
+      hi: "रक्तचाप, तीव्र क्रोध और भय का नाश होकर परम शांति प्राप्त होती है।",
+      te: "కోపం తగ్గి సంపూర్ణ మనశ్శాంతి లభిస్తుంది.",
+      ta: "கோபத்தை குறைத்து மன அமைதியை தரும்."
+    },
+    bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಪ್ರದೋಷ ಕಾಲದಲ್ಲಿ ಅಥವಾ ಕೋಪ ಬಂದ ತಕ್ಷಣ", en: "Daily evening during twilight or when agitated", hi: "संध्या समय अथवा क्रोध आने पर", te: "సాయంత్రం లేదా కోపం వచ్చినప్పుడు", ta: "மாலை நேரத்தில் அல்லது கோபம் வரும்போது" },
+    facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕು", en: "North or East", hi: "उत्तर अथवा पूर्व दिशा", te: "ఉత్తరం లేదా తూర్పు దిశ", ta: "வடக்கு அல்லது கிழக்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "१ से ३ बार", te: "1 నుండి 3 సార్లు", ta: "1 முதல் 3 முறை" }
+  },
+  {
+    id: "aditya_hrudayam",
+    forAffliction: ["health_vitality", "sun_affliction", "career_obstacles"],
+    title: {
+      kn: "ಶ್ರೀ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರಮ್ (ಆತ್ಮಬಲ & ವಿಜಯ ಸಿದ್ಧಿ)",
+      en: "Shri Aditya Hrudayam (Vitality & All-Obstacle Conquest)",
+      hi: "श्री आदित्य हृदय स्तोत्रम् (आत्मबल एवं विजय)",
+      te: "శ్రీ ఆదిత్య హృదయ స్తోత్రం",
+      ta: "ஸ்ரீ ஆதித்ய ஹ்ருதயம்"
+    },
+    dedicatedTo: { kn: "ಭಗವಾನ್ ಸೂರ್ಯನಾರಾಯಣ", en: "Lord Surya Narayana", hi: "भगवान सूर्य", te: "సూర్య భగవానుడు", ta: "சூரிய பகவான்" },
+    shlokaSanskrit: `ततो युद्धपरिश्रान्तं समरे चिन्तया स्थितम् ।
+रावणं चाग्रतो दृष्ट्वा युद्धाय समुपस्थितम् ॥
+दैवतैश्च समागम्य द्रष्टुमभ्यागतो रणम् ।
+उपागम्याब्रवीद्राममगस्त्यो भगवानृषिः ॥
+आदित्यहृदयं पुण्यं सर्वशत्रुविनाशनम् ।
+जयावहं जपेन्नित्यमक्षयं परमं शिवम् ॥`,
+    shlokaKannada: `ತತೋ ಯುದ್ಧಪರಿಶ್ರಾಂತಂ ಸಮರೇ ಚಿಂತಯಾ ಸ್ಥಿತಮ್ ।
+ರಾವಣಂ ಚಾಗ್ರತೋ ದೃಷ್ಟ್ವಾ ಯುದ್ಧಾಯ ಸಮುಪಸ್ಥಿತಮ್ ॥
+ದೈವತೈಶ್ಚ ಸಮಾಗಮ್ಯ ದ್ರಷ್ಟುಮಭ್ಯಾಗತೋ ರಣಮ್ ।
+ಉಪಾಗಮ್ಯಾಬ್ರವೀದ್ರಾಮಮಗಸ್ತ್ಯೋ ಭಗವಾನೃಷಿಃ ॥
+ಆದಿತ್ಯಹೃದಯಂ ಪುಣ್ಯಂ ಸರ್ವಶತ್ರುವಿನಾಶನಮ್ ।
+ಜಯಾವಹಂ ಜಪೇನ್ನಿತ್ಯಮಕ್ಷಯಂ ಪರಮಂ ಶಿವಮ್ ॥`,
+    shlokaTelugu: `తతో యుద్ధపరిశ్రాంతం సమరే చింతయా స్థితమ్ ।
+రావణం చాగ్రతో దృష్ట్వా యుద్ధాయ సముపస్థితమ్ ॥
+ఆదిత్యహృదయం పుణ్యం సర్వశత్రువినాశనమ్ ।
+జయావహం జపేన్నిత్యమక్షయం పరమం శివమ్ ॥`,
+    shlokaTamil: `ததோ யுத்தபரிச்ராந்தம் ஸமரே சிந்தயா ஸ்திதம் ।
+ராவணம் சாக்ரதோ த்ருஷ்ட்வா யுத்தாய ஸமுபஸ்திதம் ॥
+ஆதித்யஹ்ருதயம் புண்யம் ஸர்வசத்ருவினாசனம் ।
+ஜயாவஹம் ஜபேந்நித்யமக்ஷயம் பரமம் சிவம் ॥`,
+    shlokaHindi: `ततो युद्धपरिश्रान्तं समरे चिन्तया स्थितम् ।
+रावणं चाग्रतो दृष्ट्वा युद्धाय समुपस्थितम् ॥
+आदित्यहृदयं पुण्यं सर्वशत्रुविनाशनम् ।
+जयावहं जपेन्नित्यमक्षयं परमं शिवम् ॥`,
+    transliteration: "Tato Yuddha Parishrāntaṁ Samarē Chintayā Sthitam | Ādityahṛdayaṁ Puṇyaṁ Sarva Shatru Vināshanam ||",
+    meaning: {
+      kn: "ಸರ್ವ ಶತ್ರುಗಳನ್ನು ಮತ್ತು ಅಂತರಂಗದ ಕತ್ತಲೆಯನ್ನು ಭಸ್ಮ ಮಾಡಿ ವಿಜಯ ಹಾಗೂ ಆರೋಗ್ಯವನ್ನು ಕರುಣಿಸುವ ಆದಿತ್ಯ ಹೃದಯವನ್ನು ನಿತ್ಯ ಜಪಿಸಿ.",
+      en: "Recite the all-auspicious Aditya Hrudayam to dispel inner fear, chronic exhaustion, and secure absolute victory.",
+      hi: "समस्त शत्रुओं और दुर्बलताओं का नाश करने वाले पावन आदित्य हृदय का नित्य पाठ करें।",
+      te: "సర్వ శత్రువులను నాశనం చేసి విజయాన్ని అందించే ఆదిత్య హృదయాన్ని నిత్యం జపించండి.",
+      ta: "எல்லா தடைகளையும் நீக்கி வெற்றி தரும் ஆதித்ய ஹ்ருதயத்தை தினமும் படிக்கவும்."
+    },
+    spiritualBenefits: {
+      kn: "ಆತ್ಮವಿಶ್ವಾಸ, ಕಣ್ಣಿನ ತೇಜಸ್ಸು, ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವ ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+      en: "Enhances leadership vitality, eyesight luster, and eliminates chronic fatigue.",
+      hi: "आत्मबल, तेज, स्वास्थ्य एवं कार्यक्षेत्र में सफलता प्रदान करता है।",
+      te: "ఆరోగ్యం, ఆత్మవిశ్వాసం పెరుగుతుంది.",
+      ta: "ஆரோக்கியம், தைரியம் பெருகும்."
+    },
+    bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ (ಭಾನುವಾರ ವಿಶೇಷ)", en: "Daily at sunrise (especially Sundays)", hi: "सूर्योदय के समय", te: "సూర్యోదయ సమయంలో", ta: "சூரிய உதய வேளையில்" },
+    facingDirection: { kn: "ಪೂರ್ವ ದಿಕ್ಕು", en: "East", hi: "पूर्व दिशा", te: "తూర్పు దిశ", ta: "கிழக்கு திசை" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "१ से ३ बार", te: "1 నుండి 3 సార్లు", ta: "1 முதல் 3 முறை" }
+  },
+  {
+    id: "hanuman_sankata_mochana",
+    forAffliction: ["career_obstacles", "saturn_affliction", "sade_sati"],
+    title: {
+      kn: "ಸಂಕಟಮೋಚನ ಹನುಮಾನಾಷ್ಟಕಮ್ (ಸರ್ವ ಸಂಕಟ ನಿವಾರಕ)",
+      en: "Sankata Mochana Hanuman Ashtakam (All-Crisis Destroyer)",
+      hi: "संकटमोचन हनुमानाष्टकम् (सर्व संकट नाशक)",
+      te: "సంకటమోచన హనుమానాష్టకం",
+      ta: "சங்கடமோசன ஹனுமனாஷ்டகம்"
+    },
+    dedicatedTo: { kn: "ಶ್ರೀ ಆಂಜನೇಯ ಸ್ವಾಮಿ", en: "Lord Hanuman", hi: "भगवान हनुमान", te: "శ్రీ హనుమంతుడు", ta: "ஸ்ரீ ஆஞ்சநேயர்" },
+    shlokaSanskrit: `बाल समय रवि भक्ष लियो तब, तीनहुं लोक भयो अंधियारों ।
+ताहि सों त्रास भयो जग को, यह संकट काहु सों जात न टारो ॥
+देवन आनि करी बिनती तब, छांड़ि दियो रवि कष्ट निवारो ।
+को नहिं जानत है जग में कपि, संकटमोचन नाम तिहारो ॥`,
+    shlokaKannada: `ಬಾಲ ಸಮಯ ರವಿ ಭಕ್ಷ ಲಿಯೋ ತಬ, ತೀನಹುಂ ಲೋಕ ಭಯೋ ಅಂಧಿಯಾರೋಂ ।
+ತಾಹಿ ಸೋಂ ತ್ರಾಸ ಭಯೋ ಜಗ ಕೋ, ಯಹ ಸಂಕಟ ಕಾಹು ಸೋಂ ಜಾತ ನ ಟಾರೋ ॥
+ದೇವನ ಆನಿ ಕರೀ ಬಿನತೀ ತಬ, ಛಾಂಢಿ ದಿಯೋ ರವಿ ಕಷ್ಟ ನಿವಾರೋ ।
+ಕೋ ನಹಿಂ ಜಾನತ ಹೈ ಜಗ ಮೇಂ ಕಪಿ, ಸಂಕಟಮೋಚನ ನಾಮ ತಿಹಾರೋ ॥`,
+    shlokaTelugu: `బాల సమయ రవి భక్ష లియో తబ, తీనహుం లోక భయో అంధియారోం ।
+తాహి సోం త్రాస భయో జగ కో, యహ సంకట కాహు సోం జాత న టారో ॥
+కో నహిం జానత హై జగ మేం కపి, సంకటమోచన నామ తిహారో ॥`,
+    shlokaTamil: `பால ஸமய ரவி பக்ஷ லியோ தப, தீனஹும் லோக பயோ அந்தியாரோம் ।
+தாஹி ஸோம் த்ராஸ பயோ ஜக கோ, யஹ ஸங்கட காஹு ஸோம் ஜாத ந டாரோ ॥
+கோ நஹிம் ஜானத ஹை ஜக மேம் கபி, ஸங்கடமோசன நாம திஹாரோ ॥`,
+    shlokaHindi: `बाल समय रवि भक्ष लियो तब, तीनहुं लोक भयो अंधियारों ।
+ताहि सों त्रास भयो जग को, यह संकट काहु सों जात न टारो ॥
+को नहिं जानत है जग में कपि, संकटमोचन नाम तिहारो ॥`,
+    transliteration: "Bāla Samaya Ravi Bhakṣa Liyō Taba, Tīnahuṁ Lōka Bhayō Andhiyārōṁ | Kō Nahiṁ Jānata Hai Jaga Mēṁ Kapi, Saṅkaṭamōcana Nāma Tihārō ||",
+    meaning: {
+      kn: "ಬಾಲ್ಯದಲ್ಲೇ ಸೂರ್ಯನನ್ನು ಹಿಡಿದು ಜಗತ್ತಿನ ಕತ್ತಲೆಯನ್ನು ನೀಗಿಸಿದ ಹೇ ಸಂಕಟಮೋಚನ ಹನುಮಂತನೇ, ನನ್ನ ಸಮಸ್ತ ಕಷ್ಟಗಳನ್ನು ಪರಿಹರಿಸು.",
+      en: "O supreme Hanuman, who as a child consumed the Sun to relieve universal despair, dispel all deep-seated crises from my life.",
+      hi: "बाल्यावस्था में ही सूर्य को ग्रसकर तीनों लोकों का संकट हरने वाले हे हनुमान, हमारे संकटों को दूर करें।",
+      te: "సమస్త కష్టాలను హరించే ఓ హనుమా, మా సంకటాలను నివారించు.",
+      ta: "எல்லா துன்பங்களையும் போக்கும் ஸ்ரீ ஹனுமனே, என் சங்கடங்களை தீர்த்து அருள்க."
+    },
+    spiritualBenefits: {
+      kn: "ಶನಿ ಸಾಡೇಸಾತಿ, ಗ್ರಹದೋಷ, ದುಷ್ಟ ಶಕ್ತಿ ಹಾಗೂ ಮಾನಸಿಕ ಭಯಗಳನ್ನು ಸಂಪೂರ್ಣ ನಾಶಪಡಿಸುತ್ತದೆ.",
+      en: "Shields against Saturn Sade Sati distress, evil eye, inertia, and psychic despondency.",
+      hi: "शनि साढ़ेसाती, भय और संकटों का तत्काल निवारण करता है।",
+      te: "శని దోషాలు మరియు భయాలను తొలగిస్తుంది.",
+      ta: "சனி தோஷம் மற்றும் பயத்தை அடியோடு நீக்கும்."
+    },
+    bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಸಂಜೆ (ಮಂಗಳವಾರ ಮತ್ತು ಶನಿವಾರ ವಿಶೇಷ)", en: "Daily evening (especially Tuesdays and Saturdays)", hi: "सायंकाल (मंगलवार एवं शनिवार)", te: "సాయంత్రం (మంగళ, శనివారాలు)", ta: "மாலை வேளையில் (செவ்வாய், சனி)" },
+    facingDirection: { kn: "ಪೂರ್ವ ಅಥವಾ ದಕ್ಷಿಣ ದಿಕ್ಕು", en: "East or South", hi: "पूर्व अथवा दक्षिण दिशा", te: "తూర్పు లేదా దక్షిణం", ta: "கிழக்கு அல்லது தெற்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೮ ಬಾರಿ", en: "1 to 8 Times Daily", hi: "१ से ८ बार", te: "1 నుండి 8 సార్లు", ta: "1 முதல் 8 முறை" }
+  },
+  {
+    id: "subrahmanya_bhujangam",
+    forAffliction: ["anger_temper", "mars_affliction", "kuja_dosha", "sarpa_dosha"],
+    title: {
+      kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಭುಜಂಗಮ್ (ಕುಜದೋಷ & ಸರ್ಪದೋಷ ನಿವಾರಕ)",
+      en: "Shri Subrahmanya Bhujangam (Mars & Sarpa Dosha Healer)",
+      hi: "श्री सुब्रह्मण्य भुजङ्गम् (कुज एवं सर्प दोष नाशक)",
+      te: "శ్రీ సుబ్రహ్మణ్య భుజంగం",
+      ta: "ஸ்ரீ சுப்ரமண்ய புஜங்கம்"
+    },
+    dedicatedTo: { kn: "ಭಗವಾನ್ ಸುಬ್ರಹ್ಮಣ್ಯ (ಕಾರ್ತಿಕೇಯ)", en: "Lord Subrahmanya", hi: "भगवान कार्तिकेय", te: "సుబ్రహ్మణ్యేశ్వర స్వామి", ta: "ஸ்ரீ முருகன்" },
+    shlokaSanskrit: `सदा बालरूपापि विघ्नाद्रिहन्त्री
+महादन्तिवक्त्रापि पञ्चास्यमान्या ।
+विधीन्द्रादिमृग्या गणेषाभिधा मे
+प्रहृष्टा भवत्तुण्डतुण्डेवदत्ता ॥
+सुवर्णाभदिव्याम्बराद्यैर्विचित्रैः
+समुद्भासमानां सुतेजःप्रभावाम् ।
+शिखीन्द्रस्थितां शक्तिहस्तां त्रिनेत्रां
+गुहं भावये कुक्कुटच्छत्रशोभाम् ॥`,
+    shlokaKannada: `ಸದಾ ಬಾಲರೂಪಾಪಿ ವಿಘ್ನಾದ್ರಿಹಂತ್ರೀ
+ಮಹಾದಂತಿವಕ್ತ್ರಾಪಿ ಪಞ್ಚಾಸ್ಯಮಾನ್ಯಾ ।
+ವಿಧೀಂದ್ರಾದಿಮೃಗ್ಯಾ ಗಣೇಷಾಭಿಧಾ ಮೇ
+ಪ್ರಹೃಷ್ಟಾ ಭವತ್ತುಂಡತುಂಡೇವದತ್ತಾ ॥
+ಸುವರ್ಣಾಭದಿವ್ಯಾಂಬರಾದ್ಯೈರ್ವಿಚಿತ್ರೈಃ
+ಸಮುದ್ಭಾಸಮಾನಾಂ ಸುತೇಜಃಪ್ರಭಾವಾಮ್ ।
+ಶಿಖೀಂದ್ರಸ್ಥಿತಾಂ ಶಕ್ತಿಹಸ್ತಾಂ ತ್ರಿನೇತ್ರಾಂ
+ಗುಹಂ ಭಾವಯೇ ಕುಕ್ಕುಟಚ್ಛತ್ರಶೋಭಾಮ್ ॥`,
+    shlokaTelugu: `సదా బాలరూపాపి విఘ్నాద్రిహంత్రీ
+మహాదంతివక్త్రాపి పంచాస్యమాన్యా ।
+సువర్ణాభదివ్యాంబరాద్యైర్విచిత్రైః
+సముద్భాసమానాం సుతేజఃప్రభావామ్ ।
+గుహం భావయే కుక్కుటచ్ఛత్రశోభామ్ ॥`,
+    shlokaTamil: `ஸதா பாலரூபாபி விக்னாத்ரிஹந்த்ரீ
+மஹாதந்திவக்த்ராபி பஞ்சாஸ்யமான்யா ।
+ஸுவர்ணாப திவ்யாம்பராத்யைர் விசித்ரைஃ
+ஸமுத் பாஸமானாம் ஸுதேஜஃப்ரபாவாம் ।
+குஹம் பாவயே குக்குடச்சத்ரசோபாம் ॥`,
+    shlokaHindi: `सदा बालरूपापि विघ्नाद्रिहन्त्री
+महादन्तिवक्त्रापि पञ्चास्यमान्या ।
+सुवर्णाभदिव्याम्बराद्यैर्विचित्रैः
+समुद्भासमानां सुतेजःप्रभावाम् ।
+गुहं भावये कुक्कुटच्छत्रशोभाम् ॥`,
+    transliteration: "Sadā Bālarūpāpi Vighnādrihantrī Mahādantivaktrāpi Pañcāsyamānyā | Guhaṁ Bhāvayē Kukkuṭacchatraśōbhām ||",
+    meaning: {
+      kn: "ಮಯೂರವಾಹನನಾದ, ಶಕ್ತಿ ಆಯುಧ ಧರಿಸಿದ ಷಣ್ಮುಖ ಸುಬ್ರಹ್ಮಣ್ಯನೇ, ಕುಜ ದೋಷ ಹಾಗೂ ಸರ್ಪ ದೋಷಗಳಿಂದ ನನ್ನನ್ನು ಪಾರುಮಾಡು.",
+      en: "O supreme Lord Guha, commander of cosmic forces who rides the peacock, dissolve all Mars-induced fury and karmic serpent knots.",
+      hi: "मयूर वाहन पर आरूढ़ शक्तिधर कार्तिकेय, हमारे समस्त मंगल व सर्प दोषों का शमन करें।",
+      te: "శక్తిహస్తుడైన సుబ్రహ్మణ్య స్వామి మా సమస్త కుజ మరియు సర్ప దోషాలను నివారించుగాక.",
+      ta: "மயில் வாகனனான முருகப்பெருமானே, என் செவ்வாய் மற்றும் சர்ப்ப தோஷங்களை நீக்கியருள்க."
+    },
+    spiritualBenefits: {
+      kn: "ಕುಜದೋಷ, ರಕ್ತದೋಷ, ವಿವಾಹ ವಿಳಂಬ ಹಾಗೂ ಸರ್ಪಬಾಧೆಯನ್ನು ಕ್ಷಣಾರ್ಧದಲ್ಲಿ ನಿವಾರಿಸುತ್ತದೆ.",
+      en: "Cures blood disorders, harmonizes Manglik marriage hurdles, and dissolves snake curses.",
+      hi: "मांगलिक दोष, रक्त विकार और विवाह बाधाओं का निवारण होता है।",
+      te: "కుజ దోషం మరియు వివాహ ఆటంకాలు తొలగుతాయి.",
+      ta: "செவ்வாய் தோஷம் மற்றும் திருமண தடைகள் நீங்கும்."
+    },
+    bestTimeToRecite: { kn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ", en: "Tuesday morning or evening", hi: "मंगलवार प्रातः अथवा संध्या", te: "మంగళవారం ఉదయం లేదా సాయంత్రం", ta: "செவ்வாய்க்கிழமை காலை அல்லது மாலை" },
+    facingDirection: { kn: "ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕು", en: "East or North", hi: "पूर्व अथवा उत्तर दिशा", te: "తూర్పు లేదా ఉత్తరం", ta: "கிழக்கு அல்லது வடக்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ಬಾರಿ", en: "Once Daily", hi: "प्रतिदिन १ बार", te: "రోజుకు 1 సారి", ta: "தினமும் 1 முறை" }
+  },
+  {
+    id: "kanakadhara_stotra",
+    forAffliction: ["relationship_friction", "venus_affliction", "financial_blocks"],
+    title: {
+      kn: "ಶ್ರೀ ಕನಕಧಾರಾ ಸ್ತೋತ್ರಮ್ (ದರಿದ್ರ್ಯ ನಾಶಕ & ಐಶ್ವರ್ಯ ವೃದ್ಧಿ)",
+      en: "Shri Kanakadhara Stotram (Wealth & Venus Harmonizer)",
+      hi: "श्री कनकधारा स्तोत्रम् (दारिद्र्य नाशक एवं ऐश्वर्य प्रदाता)",
+      te: "శ్రీ కనకధారా స్తోత్రం",
+      ta: "ஸ்ரீ கனகதாரா ஸ்தோத்திரம்"
+    },
+    dedicatedTo: { kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ ದೇವಿ", en: "Goddess Mahalakshmi", hi: "माता महालक्ष्मी", te: "మహాలక్ష్మీ దేవి", ta: "ஸ்ரீ மகாலட்சுமி" },
+    shlokaSanskrit: `अङ्कं हरेः पुलकभूषणमाश्रयन्ती
+भृङ्गाङ्गनेव मुकुलाभरणं तमालम् ।
+अङ्गीकृताखिलविभूतिरपाङ्गलीला
+माङ्गल्यदास्तु मम मङ्गलदेवतायाः ॥
+मुग्धा मुहुर्विदधती वदने मुरारेः
+प्रेमत्रपाप्रणिहितानि गतागतानि ।
+माला दृशोर्मधुकरीव महोत्पले या
+सा मे श्रियं दिशतु सागरसंभवायाः ॥`,
+    shlokaKannada: `ಅಙ್ಕಂ ಹರೇಃ ಪುಲಕಭೂಷಣಮಾಶ್ರಯನ್ತೀ
+ಭೃಙ್ಗಾಙ್ಗನೇವ ಮುಕುಲಾಭರಣಂ ತಮಾಲಮ್ ।
+ಅಙ್ಗೀಕೃತಾಖಿಲವಿಭೂತಿರಪಾಙ್ಗಲೀಲಾ
+ಮಾಙ್ಗಲ್ಯದಾಸ್ತು ಮಮ ಮಙ್ಗಲದೇವತಾಯಾಃ ॥
+ಮುಗ್ಧಾ ಮುಹುರ್ವಿದಧತೀ ವದನೇ ಮುರಾರೇಃ
+ಪ್ರೇಮತ್ರಪಾಪ್ರಣಿಹಿತಾನಿ ಗತಾಗತಾನಿ ।
+ಮಾಲಾ ದೃಶೋರ್ಮಧುಕರೀವ ಮಹೋತ್ಪಲೇ ಯಾ
+ಸಾ ಮೇ ಶ್ರಿಯಂ ದಿಶತು ಸಾಗರಸಂಭವಾಯಾಃ ॥`,
+    shlokaTelugu: `అంగం హరేః పులకభూషణమాశ్రయంతీ
+భృంగాంగనేవ ముకులాభరణం తమాలమ్ ।
+మాంగల్యదాస్తు మమ మంగళదేవతాయాః ॥`,
+    shlokaTamil: `அங்கம் ஹரேஃ புலகபூஷணமாச்ரயந்தீ
+ப்ருங்காம்கனேவ முகுலாபரணம் தமாலம் ।
+மாங்கல்யதாஸ்து மம மங்களதேவதாயாஃ ॥`,
+    shlokaHindi: `अङ्गं हरेः पुलकभूषणमाश्रयन्ती
+भृङ्गाङ्गनेव मुकुलाभरणं तमालम् ।
+माङ्गल्यदास्तु मम मङ्गलदेवतायाः ॥`,
+    transliteration: "Aṅgaṁ Harēḥ Pulakabhūṣaṇamāśrayantī Bhṛṅgāṅganēva Mukulābharaṇaṁ Tamālam | Māṅgalyadāstu Mama Maṅgaladēvatāyāḥ ||",
+    meaning: {
+      kn: "ಶ್ರೀಮನ್ನಾರಾಯಣನ ವಕ್ಷಸ್ಥಳದಲ್ಲಿ ನೆಲೆಸಿರುವ ಹೇ ಮಂಗಳದೇವತೆಯಾದ ಮಹಾಲಕ್ಷ್ಮಿಯೇ, ನಿನ್ನ ಕೃಪಾಕಟಾಕ್ಷದಿಂದ ನನ್ನ ಸಮಸ್ತ ದಾರಿದ್ರ್ಯವನ್ನು ನೀಗಿಸಿ ಸಮೃದ್ಧಿಯನ್ನು ದಯಪಾಲಿಸು.",
+      en: "O supreme Goddess Lakshmi, whose compassionate glance showers golden abundance, banish financial friction and bestow domestic peace.",
+      hi: "भगवान नारायण के वक्षस्थल पर विराजने वाली माता लक्ष्मी, अपनी कृपादृष्टि से हमारे दारिद्र्य का नाश करें।",
+      te: "మహాలక్ష్మి దేవి కటాక్షంతో సమస్త దారిద్య్రం తొలగి సంపద లభించుగాక.",
+      ta: "மகாலட்சுமி தாயே, உமது திருவருளால் வறுமை நீங்கி செல்வம் பெருகட்டும்."
+    },
+    spiritualBenefits: {
+      kn: "ಶುಕ್ರ ಗ್ರಹದ ದೋಷ, ಆರ್ಥಿಕ ಮುಗ್ಗಟ್ಟು, ಸಾಲದ ಬಾಧೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಸಮಾಧಾನವನ್ನು ಪರಿಹರಿಸುತ್ತದೆ.",
+      en: "Harmonizes Venus, removes debt burden, and restores domestic sweetness.",
+      hi: "शुक्र दोष, ऋण मुक्ति और पारिवारिक सौहार्द की प्राप्ति होती है।",
+      te: "శుక్ర దోష నివారణ మరియు లక్ష్మీ కటాక్షం.",
+      ta: "சுக்கிர தோஷ நிவர்த்தி மற்றும் லட்சுமி கடாட்சம்."
+    },
+    bestTimeToRecite: { kn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ", en: "Friday morning or twilight", hi: "शुक्रवार प्रातः अथवा संध्या", te: "శుక్రవారం ఉదయం లేదా సాయంత్రం", ta: "வெள்ளிக்கிழமை காலை அல்லது மாலை" },
+    facingDirection: { kn: "ಉತ್ತರ ದಿಕ್ಕು (ಕುಬೇರ ದಿಕ್ಕು)", en: "North (Kubera Direction)", hi: "उत्तर दिशा", te: "ఉత్తర దిశ", ta: "வடக்கு திசை" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ಬಾರಿ", en: "Once Daily", hi: "प्रतिदिन १ बार", te: "రోజుకు 1 సారి", ta: "தினமும் 1 முறை" }
+  },
+  {
+    id: "mahamrityunjaya_stotra",
+    forAffliction: ["health_vitality", "ashtama_shani", "maraka_period"],
+    title: {
+      kn: "ಮಹಾ ಮೃತ್ಯುಂಜಯ ಸ್ತೋತ್ರಮ್ (ಆಯುರ್ವರ್ಧಕ & ಅಕಾಲ ಮೃತ್ಯು ಹರ)",
+      en: "Maha Mrityunjaya Stotram (Longevity & Vital Shield)",
+      hi: "महामृत्युंजय स्तोत्रम् (आयुर्वर्धक एवं अमंगल नाशक)",
+      te: "మహా మృత్యుంజయ స్తోత్రం",
+      ta: "மகா மிருத்யுஞ்சய ஸ்தோத்திரம்"
+    },
+    dedicatedTo: { kn: "ಭಗವಾನ್ ಮೃತ್ಯುಂಜಯ ಶಿವ", en: "Lord Mrityunjaya Shiva", hi: "भगवान मृत्युंजय", te: "మృత్యుంజయ శివుడు", ta: "மிருத்யுஞ்சய பெருமான்" },
+    shlokaSanskrit: `त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् ।
+उर्वारुकमिव बन्धनान्मृत्यlineोर्मुक्षीय मामृतात् ॥
+मृत्युञ्जयाय रुद्राय नीलकण्ठाय शम्भवे ।
+अमृतेशाय शर्वाय महादेवाय ते नमः ॥`,
+    shlokaKannada: `ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ ।
+ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ॥
+ಮೃತ್ಯುಂಜಯಾಯ ರುದ್ರಾಯ ನೀಲಕಂಠಾಯ ಶಂಭವೇ ।
+ಅಮೃತೇಶಾಯ ಶರ್ವಾಯ ಮಹಾದೇವಾಯ ತೇ ನಮಃ ॥`,
+    shlokaTelugu: `త్ర్యంబకం యజామహే సుగంధిం పుష్టివర్ధనమ్ ।
+ఉర్వారుకమివ బంధనాన్మృత్యోర్ముక్షీయ మామృతాత్ ॥`,
+    shlokaTamil: `த்ரயம்பகம் யஜாமஹே ஸுகந்திம் புஷ்டிவர்த்தனம் ।
+உர்வாருகமிவ பந்தனான் ம்ருத்யோர் முக்ஷீய மாம்ருதாத் ॥`,
+    shlokaHindi: `त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् ।
+उर्वारुकमिव बन्धनान्मृत्यlineोर्मुक्षीय मामृतात् ॥`,
+    transliteration: "Tryambakaṁ Yajāmahē Sugandhiṁ Puṣṭivardhanam | Urvārukamiva Bandhanān Mṛtyōrmukṣīya Māmṛtāt ||",
+    meaning: {
+      kn: "ಸುವಾಸನಾಭರಿತ ಹಾಗೂ ಸಮಸ್ತ ಜೀವಿಗಳನ್ನು ಪೋಷಿಸುವ ತ್ರಿನೇತ್ರ ಮಹಾದೇವನನ್ನು ಆರಾಧಿಸುತ್ತೇವೆ. ಬಳ್ಳಿಯಿಂದ ಹಣ್ಣು ಬೇರ್ಪಡುವಂತೆ ಮೃತ್ಯುಭಯದಿಂದ ನಮ್ಮನ್ನು ಮುಕ್ತಗೊಳಿಸು.",
+      en: "We venerate the fragrant, all-nourishing Three-Eyed Shiva. Liberate us from mortal perils into immortal consciousness.",
+      hi: "समस्त जीवों का पोषण करने वाले त्रिनेत्रधारी भगवान शिव हमारी अकाल मृत्यु से रक्षा करें।",
+      te: "సమస్త జీవులను పోషించే పరమశివుడు మృత్యు భయాన్ని తొలగించుగాక.",
+      ta: "முக்கண் முதல்வனான சிவபெருமான் எங்களை ஆபத்துக்களிலிருந்து காப்பாராக."
+    },
+    spiritualBenefits: {
+      kn: "ದೀರ್ಘಾಯುಷ್ಯ, ಗಂಭೀರ ರೋಗಗಳಿಂದ ಮುಕ್ತಿ, ಅಪಘಾತ ಭೀತಿ ನಿವಾರಣೆ ಹಾಗೂ ಸಾಡೇಸಾತಿ ಶಾಂತಿ.",
+      en: "Safeguards vitality, clears severe chronic ailments, and dissolves fear of sudden mortality.",
+      hi: "दीर्घायु, असाध्य रोगों से मुक्ति और शनि की मारक दशा से रक्षा होती है।",
+      te: "ఆయుష్షు పెరుగుతుంది మరియు రోగాలు నయమవుతాయి.",
+      ta: "நீண்ட ஆயுள் மற்றும் நோய் நொடிகள் நீங்கும்."
+    },
+    bestTimeToRecite: { kn: "ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯಕ್ಕೆ ಅಥವಾ ಸಂಜೆ", en: "Sunrise or early morning", hi: "प्रातः सूर्योदय के समय", te: "సూర్యోదయ సమయంలో", ta: "சூரிய உதய வேளையில்" },
+    facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕು", en: "North or East", hi: "उत्तर अथवा पूर्व दिशा", te: "ఉత్తరం లేదా తూర్పు", ta: "வடக்கு அல்லது கிழக்கு" },
+    recitationCount: { kn: "೧೧ ಬಾರಿ ಅಥವಾ ೧೦೮ ಬಾರಿ", en: "11 or 108 Times", hi: "११ अथवा १०८ बार", te: "11 లేదా 108 సార్లు", ta: "11 அல்லது 108 முறை" }
+  },
+  {
+    id: "durga_saptashati_aparadha_kshamapana",
+    forAffliction: ["mental_anxiety", "rahu_affliction", "ketu_affliction"],
+    title: {
+      kn: "ಶ್ರೀ ದುರ್ಗಾ ಸಪ್ತಶತೀ ಶಾಂತಿ ಸ್ತೋತ್ರಮ್ (ರಾಹು-ಕೇತು & ಮಾನಸಿಕ ಭಯ ನಿವಾರಕ)",
+      en: "Shri Durga Saptashati Shanti Stotram (Rahu-Ketu & Astral Armor)",
+      hi: "श्री दुर्गा सप्तशती शांति स्तोत्रम् (राहु-केतु एवं भय नाशक)",
+      te: "శ్రీ దుర్గా శాంతి స్తోత్రం",
+      ta: "ஸ்ரீ துர்கா சாந்தி ஸ்தோத்திரம்"
+    },
+    dedicatedTo: { kn: "ಜಗನ್ಮಾತೆ ಶ್ರೀ ದುರ್ಗಾ ಪರಮೇಶ್ವರೀ", en: "Goddess Durga Parameshwari", hi: "मां दुर्गा", te: "దుర్గా దేవి", ta: "ஸ்ரீ துர்க்கை அம்மன்" },
+    shlokaSanskrit: `सर्वमङ्गलमाङ्गल्ये शिवे सर्वार्थसाधिके ।
+शरण्ये त्र्यम्बके गौरि नारायणि नमोऽस्तु ते ॥
+शरणागतदीनार्तपरित्राणपरायणे ।
+सर्वस्यार्तिहरे देवि नारायणि नमोऽस्तु ते ॥`,
+    shlokaKannada: `ಸರ್ವಮಂಗಲಮಾಂಗಲ್ಯೇ ಶಿವೇ ಸರ್ವಾರ್ಥಸಾಧಿಕೇ ।
+ಶರಣ್ಯೇ ತ್ರ್ಯಂಬಕೇ ಗೌರಿ ನಾರಾಯಣಿ ನಮೋಽಸ್ತು ತೇ ॥
+ಶರಣಾಗತದೀನಾರ್ತಪರಿತ್ರಾಣಪರಾಯಣೇ ।
+ಸರ್ವಸ್ಯಾರ್ತಿಹರೇ ದೇವಿ ನಾರಾಯಣಿ ನಮೋಽಸ್ತು ತೇ ॥`,
+    shlokaTelugu: `సర్వమంగళమాంగళ్యే శివే సర్వార్థసాధికే ।
+శరణ్యే త్ర్యంబకే గౌరి నారాయణి నమోస్తు తే ॥`,
+    shlokaTamil: `ஸர்வமங்கள மாங்கல்யே சிவே ஸர்வார்த்த ஸாதிகே ।
+சரன்யே த்ரயம்பகே கௌரி நாராயணி நமோஸ்து தே ॥`,
+    shlokaHindi: `सर्वमङ्गलमाङ्गल्ये शिवे सर्वार्थसाधिके ।
+शरण्ये त्र्यम्बके गौरि नारायणि नमोऽस्तु ते ॥`,
+    transliteration: "Sarvamaṅgalamāṅgalyē Śivē Sarvārthasādhikē | Śaraṇyē Tryambakē Gauri Nārāyaṇi Namō'stu Tē ||",
+    meaning: {
+      kn: "ಸರ್ವ ಮಂಗಲಗಳನ್ನು ಕರುಣಿಸುವ, ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳನ್ನು ಸಿದ್ಧಿಸುವ ಜಗನ್ಮಾತೆ ಗೌರೀ ನಾರಾಯಣಿಗೆ ಪ್ರಣಾಮಗಳು. ನನ್ನ ಸಮಸ್ತ ದುಃಖ-ಆತಂಕಗಳನ್ನು ಪರಿಹರಿಸು.",
+      en: "Salutations to cosmic Mother Durga, fulfiller of all righteous desires. Protect our minds from astral delusions and sudden anxieties.",
+      hi: "समस्त मंगलों को देने वाली और सभी कष्टों को हरने वाली मां भगवती को नमन।",
+      te: "సర్వ మంగళాలను ప్రసాదించే జగన్మాతకు నమస్కారాలు.",
+      ta: "சகல மங்களங்களையும் அருளும் துர்க்கை தாயே போற்றி."
+    },
+    spiritualBenefits: {
+      kn: "ರಾಹು-ಕೇತು ಛಾಯಾ ಗ್ರಹಗಳ ಭಯ, ಭ್ರಮೆ, ನಿದ್ರಾಹೀನತೆ ಹಾಗೂ ಕೆಟ್ಟ ಕನಸುಗಳನ್ನು ದೂರ ಮಾಡುತ್ತದೆ.",
+      en: "Eliminates Rahu-Ketu phantom fears, insomnia, panic attacks, and psychic vulnerabilities.",
+      hi: "राहु-केतु के दुष्प्रभावों, भ्रम और अनिद्रा से मुक्ति मिलती है।",
+      te: "రాహు-కేతు దోషాలు మరియు మానసిక భయాలు తొలగుతాయి.",
+      ta: "ராகு-கேது தோஷங்கள் மற்றும் மன பயங்கள் நீங்கும்."
+    },
+    bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಅಥವಾ ರಾಹುಕಾಲದ ಸಮಯದಲ್ಲಿ", en: "Daily evening or during Rahu Kala", hi: "संध्या समय अथवा राहुकाल में", te: "సాయంత్రం లేదా రాహుకాలంలో", ta: "மாலை அல்லது ராகு காலத்தில்" },
+    facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕು", en: "North or East", hi: "उत्तर दिशा", te: "ఉత్తర దిశ", ta: "வடக்கு திசை" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "१ से ३ बार", te: "1 నుండి 3 సార్లు", ta: "1 முதல் 3 முறை" }
+  },
+  {
+    id: "vishnu_sahasranama_dhyana",
+    forAffliction: ["general_alignment", "mercury_affliction", "jupiter_affliction"],
+    title: {
+      kn: "ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಧ್ಯಾನ ಶ್ಲೋಕಮ್ (ಬುಧ-ಗುರು & ಸಕಲ ಗ್ರಹ ಸಮನ್ವಯ)",
+      en: "Shri Vishnu Sahasranama Dhyana (Mercury-Jupiter & Cosmic Harmony)",
+      hi: "श्री विष्णु सहस्रनाम ध्यान श्लोक (बुध-गुरु एवं सर्व ग्रह सामंजस्य)",
+      te: "శ్రీ విష్ణు సహస్రనామ ధ్యాన శ్లోకం",
+      ta: "ஸ்ரீ விஷ்ணு சகஸ்ரநாம தியான ஸ்லோகம்"
+    },
+    dedicatedTo: { kn: "ಭಗವಾನ್ ಶ್ರೀ ಮಹಾವಿಷ್ಣು", en: "Lord Maha Vishnu", hi: "भगवान विष्णु", te: "శ్రీ మహావిష్ణువు", ta: "ஸ்ரீ மகாவிஷ்ணு" },
+    shlokaSanskrit: `शान्ताकारं भुजगशयनं पद्मनाभं सुरेशं
+विश्वाधारं गगनसदृशं मेघवर्णं शुभाङ्गम् ।
+लक्ष्मीकान्तं कमलनयनं योगिभिर्ध्यानगम्यं
+वन्दे विष्णुं भवभयहरं सर्वलोकैकनाथम् ॥
+यस्य स्मरणमात्रेण जन्मसंसारबन्धनात् ।
+विमुच्यते नमस्तस्मै विष्णवे प्रभविष्णवे ॥`,
+    shlokaKannada: `ಶಾಂತಾಕಾರಂ ಭುಜಗಶಯನಂ ಪದ್ಮನಾಭಂ ಸುರೇಶಂ
+ವಿಶ್ವಾಧಾರಂ ಗಗನಸದೃಶಂ ಮೇಘವರ್ಣಂ ಶುಭಾಂಗಮ್ ।
+ಲಕ್ಷ್ಮೀಕಾಂತಂ ಕಮಲನಯನಂ ಯೋಗಿಭಿರ್ಧ್ಯಾನಗಮ್ಯಂ
+ವಂದೇ ವಿಷ್ಣುಂ ಭವಭಯಹರಂ ಸರ್ವಲೋಕೈಕನಾಥಮ್ ॥
+ಯಸ್ಯ ಸ್ಮರಣಮಾತ್ರೇಣ ಜನ್ಮಸಂಸಾರಬಂಧನಾತ್ ।
+ವಿಮುಚ್ಯತೇ ನಮಸ್ತಸ್ಮೈ ವಿಷ್ಣವೇ ಪ್ರಭವಿಷ್ಣವೇ ॥`,
+    shlokaTelugu: `శాంతాకారం భుజగశయనం పద్మనాభం సురేశం
+విశ్వాధారం గగనసదృశం మేఘవర్ణం శుభాంగమ్ ।
+లక్ష్మీకాంతం కమలనయనం యోగిభిర్ధ్యానగమ్యం
+వందే విష్ణుం భవభయహరం సర్వలోకైకనాథమ్ ॥`,
+    shlokaTamil: `சாந்தாகாரம் புஜகசயனம் பத்மநாபம் ஸுரேசம்
+விச்வாதாரம் ககனஸத்ருசம் மேகவர்ணம் சுபாங்கம் ।
+லக்ஷ்மீகாந்தம் கமலநயனம் யோகிபிர்த்யானகம்யம்
+வந்தே விஷ்ணும் பவபயஹரம் ஸர்வலோகைகநாதம் ॥`,
+    shlokaHindi: `शान्ताकारं भुजगशयनं पद्मनाभं सुरेशं
+विश्वाधारं गगनसदृशं मेघवर्णं शुभाङ्गम् ।
+लक्ष्मीकान्तं कमलनयनं योगिभिर्ध्यानगम्यं
+वन्दे विष्णुं भवभयहरं सर्वलोकैकनाथम् ॥`,
+    transliteration: "Śāntākāraṁ Bhujagaśayanaṁ Padmanābhaṁ Surēśaṁ Viśvādhāraṁ Gaganasadṛśaṁ Mēghavarṇaṁ Śubhāṅgam | Vandē Viṣṇuṁ Bhavabhayaharaṁ Sarvalōkaikanātham ||",
+    meaning: {
+      kn: "ಪರಮ ಶಾಂತ ಸ್ವರೂಪನಾದ, ಶೇಷಶಯನನಾದ, ಸರ್ವಲೋಕೈಕನಾಥನಾದ ಶ್ರೀ ವಿಷ್ಣುವಿಗೆ ಪ್ರಣಾಮಗಳು. ನಿನ್ನ ಸ್ಮರಣೆಯಿಂದ ಭವಭಯಗಳು ನಾಶವಾಗಲಿ.",
+      en: "We bow to the serene, all-pervading Lord Vishnu, resting upon the cosmic serpent, dissolver of worldly fear and sovereign master of all creation.",
+      hi: "परम शांत स्वरूप, शेषनाग पर शयन करने वाले जगतपति भगवान विष्णु हमारे समस्त भयों का हरण करें।",
+      te: "శాంత స్వరూపుడైన శ్రీమహావిష్ణువుకు నమస్కారాలు.",
+      ta: "சாந்த சொரூபியான ஸ்ரீ மகாவிஷ்ணுவுக்கு நமஸ்காரங்கள்."
+    },
+    spiritualBenefits: {
+      kn: "ಬುದ್ಧಿಮಾಂದ್ಯತೆ ನಿವಾರಣೆ, ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಸಾಧನೆ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಮನಸ್ಸಿನ ನಿರಾಳತೆ.",
+      en: "Sharpens intellect, harmonizes nervous system, and aligns all nine planets into beneficial resonance.",
+      hi: "बुद्धि, विद्या और व्यापार में उन्नति तथा सर्वग्रह शांति होती है।",
+      te: "జ్ఞానం, వ్యాపార అభివృద్ధి మరియు సర్వ గ్రహ శాంతి.",
+      ta: "கல்வி, தொழில் வளர்ச்சி மற்றும் கிரக தோஷ நிவர்த்தி."
+    },
+    bestTimeToRecite: { kn: "ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ ಪೂಜೆಯ ಸಮಯದಲ್ಲಿ", en: "Morning or evening prayers", hi: "प्रातः अथवा संध्या", te: "ఉదయం లేదా సాయంత్రం", ta: "காலை அல்லது மாலை" },
+    facingDirection: { kn: "ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕು", en: "East or North", hi: "पूर्व अथवा उत्तर", te: "తూర్పు లేదా ఉత్తరం", ta: "கிழக்கு அல்லது வடக்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "१ से ३ बार", te: "1 నుండి 3 సార్లు", ta: "1 முதல் 3 முறை" }
+  }
+];
+
 /**
  * Generates an in-depth, authentic Vedic Astrological Remedy and Pacification Analysis
- * strictly personalized to the devotee's generated Janma Kundali.
+ * strictly dynamic based on the devotee's generated Janma Kundali, Dasha, Gochara, and Panchanga.
  */
 export function generateKundliRemedyReport(
   kundli: KundliOutput,
@@ -184,6 +1971,8 @@ export function generateKundliRemedyReport(
   const lagnaRashiName = kundli.lagnaRashi?.english || "Aries";
   const moonRashiName = moon?.rashi.english || "Aries";
   const moonNakName = moon?.nakshatra.english || "Ashwini";
+  const moonDegree = moon?.degree ?? 0;
+  const sunDegree = sun?.degree ?? 0;
 
   // 1. Evaluate Anger / Pitta / Mars Affliction
   const marsHouse = mars?.house || 1;
@@ -198,9 +1987,6 @@ export function generateKundliRemedyReport(
   const isSaturnAfflicted = [6, 8, 12].includes(saturn?.house || 1) || saturn?.rashi.english === "Aries" || saturn?.isDebilitated;
   const isRahuKetuStrong = (rahu?.house === 1 || rahu?.house === 7 || rahu?.house === 8);
   const isJupiterAfflicted = jupiter?.rashi.english === "Capricorn" || jupiter?.isDebilitated || [6, 8, 12].includes(jupiter?.house || 1);
-
-  // Unified 5-Anga Prescriptions (100% synchronized with PanchangaAngaSynthesisEngine)
-  const prescriptions = generateAstrologicalPrescriptions(kundli);
 
   // Compute Psychological Scores
   let krodhaLevel = 45;
@@ -249,11 +2035,11 @@ export function generateKundliRemedyReport(
       ta: "தீவிர பித்த பிரகோபம், கோபம் & மன அமைதியின்மை சவால்"
     };
     primaryStruggleDesc = {
-      kn: `ಕುಂಡಲಿಯಲ್ಲಿ ಕುಜ ಹಾಗೂ ರವಿ ಗ್ರಹಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದಾಗಿ ಮನಸ್ಸಿನಲ್ಲಿ ತಕ್ಷಣ ಸಿಟ್ಟು, ತಾಳ್ಮೆ ಕೊರತೆ ಹಾಗೂ ಅಸಹನೆ ಉಂಟಾಗುವ ಸಂಭವವಿದೆ. ಅನ್ಯರ ತಪ್ಪುಗಳಿಗೆ ಅಥವಾ ಅಡೆತಡೆಗಳಿಗೆ ತಕ್ಷಣ ಪ್ರತಿಕ್ರಿಯಿಸುವುದರಿಂದ ಧರ್ಮಕಾರ್ಯಗಳಲ್ಲಿ ಹಾಗೂ ಸಂಬಂಧಗಳಲ್ಲಿ ಘರ್ಷಣೆ ಉಂಟಾಗಬಹುದು.`,
+      kn: `ಕುಂಡಲಿಯಲ್ಲಿ ಕುಜ ಹಾಗೂ ರವಿ ಗ್ರಹಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದಾಗಿ ಮನಸ್ಸಿನಲ್ಲಿ ತಕ್ಷಣ ಸಿಟ್ಟು, ತಾಳ್ಮೆ ಕೊರತೆ ಹಾಗೂ ಅಸಹನೆ ಉಂಟಾಗುವ ಸಂಭವವಿದೆ. ಅನ್ಯರ ತಪ್ಪುಗಳಿಗೆ ತಕ್ಷಣ ಪ್ರತಿಕ್ರಿಯಿಸುವುದರಿಂದ ಸಂಬಂಧಗಳಲ್ಲಿ ಘರ್ಷಣೆ ಉಂಟಾಗಬಹುದು.`,
       en: `Due to sharp Mars-Sun planetary energy on key houses, internal heat (Pitta) rises rapidly during obstacles, causing sharp irritation, impulsive words, and high reactivity that can disturb relationships and peace.`,
-      hi: `कुंडली में मंगल एवं सूर्य के तीक्ष्ण प्रभाव के कारण मन में अचानक क्रोध, अधीरता और असहिष्णुता उत्पन्न होती है, जिससे संबंधों और महत्वपूर्ण कार्यों में बाधाएं आ सकती हैं।`,
-      te: `కుండలిలో కుజ మరియు సూర్య గ్రహాల తీవ్ర ప్రభావం వలన త్వరగా కోపం, అసహనం మరియు తొందరపాటు నిర్ణయాలు వచ్చే అవకాశం ఉంది.`,
-      ta: `ஜாதகத்தில் செவ்வாய் மற்றும் சூரியனின் தீட்சண தாக்கத்தினால் திடீர் கோபமும், பொறுமையின்மையும் உண்டாகலாம்.`
+      hi: `कुंडली में मंगल एवं सूर्य के तीक्ष्ण प्रभाव के कारण मन में अचानक क्रोध, अधीरता और असहिष्णुता उत्पन्न होती है।`,
+      te: `కుండలిలో కుజ మరియు సూర్య గ్రహాల తీవ్ర ప్రభావం వలన త్వరగా కోపం మరియు అసహనం వచ్చే అవకాశం ఉంది.`,
+      ta: `ஜாதகத்தில் செவ்வாய் மற்றும் சூரியனின் தாக்கத்தினால் திடீர் கோபமும் பொறுமையின்மையும் உண்டாகலாம்.`
     };
   } else if (manasStability <= 55) {
     struggleCategory = "mental_anxiety";
@@ -372,7 +2158,102 @@ export function generateKundliRemedyReport(
     });
   }
 
-  // 2. Instant Anger & Stress Calming Protocol
+  // 2. Instant Anger & Stress Calming Protocol (Dynamic based on primary struggle)
+  const stepsList = [
+    {
+      stepNumber: 1,
+      icon: "💧",
+      name: { kn: "೧. ಜಲ ತತ್ತ್ವ ಉಪಶಮನ", en: "1. Cool Water Ingestion & Face Splash", hi: "१. शीतल जल सेवन एवं स्पर्श", te: "1. చల్లని నీటి సేవనం", ta: "1. குளிர்ந்த நீர் அருந்துதல்" },
+      action: { kn: "ಬೆಳ್ಳಿ ಅಥವಾ ತಾಮ್ರದ ಪಾತ್ರೆಯ ಶುದ್ಧ ತಂಪಾದ ನೀರನ್ನು ಕುಡಿಯಿರಿ.", en: "Drink 1 glass of cool water from a silver or copper cup.", hi: "तांबे या चांदी के पात्र से एक गिलास शीतल जल पिएं।", te: "వెండి లేదా రాగి పాత్రలోని చల్లని నీరు త్రాగండి.", ta: "வெள்ளி அல்லது செம்பு பாத்திரத்தில் நீர் அருந்தவும்." },
+      detail: { kn: "ಮುಖ, ಕಣ್ಣುಗಳು ಹಾಗೂ ಕುತ್ತಿಗೆಯ ಹಿಂಭಾಗಕ್ಕೆ ತಣ್ಣೀರು ಚಿಮುಕಿಸಿ. ಇದು ದೇಹದೊಳಗಿನ ಪಿತ್ತ-ಅಗ್ನಿಯನ್ನು ಕ್ಷಣಾರ್ಧದಲ್ಲಿ ಶಮನಗೊಳಿಸುತ್ತದೆ.", en: "Splash water on eyes, forehead, and nape of neck. This immediately drops sympathetic Pitta surges and cools the brain stem.", hi: "आंखों और गर्दन के पीछे शीतल जल छिड़कें। यह आंतरिक पित्त को तुरंत शांत करता है।", te: "కళ్ళు, ముఖంపై చల్లని నీరు చల్లుకోండి. ఇది పిత్తాన్ని తగ్గిస్తుంది.", ta: "முகம் மற்றும் கண்களில் குளிர்ந்த நீர் தெளிக்கவும்." },
+      duration: { kn: "೩೦ ಸೆಕೆಂಡುಗಳು", en: "30 Seconds", hi: "३० सेकंड", te: "30 సెకన్లు", ta: "30 வினாடிகள்" }
+    },
+    {
+      stepNumber: 2,
+      icon: "🌬️",
+      name: { kn: "೨. ಚಂದ್ರ ಭೇದನ ಪ್ರಾಣಾಯಾಮ", en: "2. Chandra Bhedana Left-Nostril Breath", hi: "२. चन्द्र भेदन प्राणायाम", te: "2. చంద్ర భేదన ప్రాణాయామం", ta: "2. சந்திர பேதன பிராணாயாமம்" },
+      action: { kn: "ಬಲ ಮೂಗಿನ ಹೊಳ್ಳೆಯನ್ನು ಮುಚ್ಚಿ, ಎಡ ಮೂಗಿನಿಂದ ಮಾತ್ರ ದೀರ್ಘವಾಗಿ ಉಸಿರೆಳೆದುಕೊಳ್ಳಿ.", en: "Close right nostril with right thumb; inhale deeply through left nostril for 4s, exhale right for 6s.", hi: "दाहिने नथुने को बंद कर केवल बाएं नथुने (इड़ा नाड़ी) से श्वास लें।", te: "ఎడమ నాసిక ద్వారా మాత్రమే శ్వాస తీసుకోండి.", ta: "இடது நாசி வழியாக மட்டும் மூச்சை இழுத்து விடவும்." },
+      detail: { kn: "೫ ರಿಂದ ೭ ಬಾರಿ ಎಡ ಹೊಳ್ಳೆಯಿಂದ ಉಸಿರಾಡಿ. ಇದು ಇಡಾ ನಾಡಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸಿ ಹೃದಯ ಬಡಿತವನ್ನು ತಕ್ಷಣ ಶಾಂತಗೊಳಿಸುತ್ತದೆ.", en: "Repeat 5 to 7 cycles. Activates the parasympathetic lunar channel (Ida Nadi) to decelerate heart rate instantly.", hi: "५ से ७ बार यह प्राणायाम करें। यह मन को तुरंत शांत करता है।", te: "5-7 సార్లు చేయండి. ఇది మనస్సును ప్రశాంతపరుస్తుంది.", ta: "5-7 முறை செய்யவும். இது நாடி துடிப்பை சீராக்கும்." },
+      duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+    },
+    {
+      stepNumber: 3,
+      icon: "🤫",
+      name: { kn: "೩. ೩-ನಿಮಿಷಗಳ ಕಡ್ಡಾಯ ಮೌನ ವ್ರತ", en: "3. Sacred 3-Minute Silence Pause", hi: "३. तीन मिनट का अनिवार्य मौन", te: "3. 3 నిమిషాల తప్పనిసరి మౌనం", ta: "3. 3 நிமிட கட்டாய மௌனம்" },
+      action: { kn: "ಕೋಪ ಬಂದಾಗ ಯಾವುದೇ ಮಾತು ಆಡಬೇಡಿ, ಕನಿಷ್ಠ ೩ ನಿಮಿಷ ಮೌನವಾಗಿರಿ.", en: "Do not utter a single word or type any reply for 3 full minutes.", hi: "क्रोध की अवस्था में ३ मिनट तक बिल्कुल मौन रहें, कोई प्रतिक्रिया न दें।", te: "3 నిమిషాల పాటు ఎలాంటి మాటా మాట్లాడవద్దు.", ta: "3 நிமிடங்களுக்கு எந்த பதிலும் பேசாமல் அமைதியாக இருக்கவும்." },
+      detail: { kn: "ಆವೇಶದ ಸ್ಥಿತಿಯಲ್ಲಿ ನಾಲಿಗೆಯಿಂದ ಹೊರಡುವ ಮಾತುಗಳು ಅನಾಹುತಕ್ಕೆ ಕಾರಣ. ಈ ಸಮಯದಲ್ಲಿ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಮುಖ ಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳಿ.", en: "Turn away from the South direction; face North or East. Let the cortical adrenaline wave subside completely before making decisions.", hi: "उत्तर या पूर्व दिशा की ओर मुख करके बैठें।", te: "ఉత్తరం లేదా తూర్పు వైపునకు తిరిగి కూర్చోండి.", ta: "வடக்கு அல்லது கிழக்கு நோக்கி அமரவும்." },
+      duration: { kn: "೩ ನಿಮಿಷಗಳು", en: "3 Minutes", hi: "३ मिनट", te: "3 నిమిషాలు", ta: "3 நிமிடங்கள்" }
+    },
+    {
+      stepNumber: 4,
+      icon: "🕉️",
+      name: { kn: "೪. ಆಪತ್ಕಾಲೀನ ಶಾಂತಿ ಬೀಜ ಮಂತ್ರ", en: "4. Mental Shanti Beeja Japa", hi: "४. मानसिक शांति बीज जप", te: "4. మానసిక బీజ మంత్ర జపం", ta: "4. மனதிற்குள் பீஜ மந்திர ஜெபம்" },
+      action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಶಾಂತಿ ಬೀಜ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಜಪಿಸಿ.", en: "Silently recite the designated pacification mantra 11 times.", hi: "मन ही मन शांति बीज मंत्र का ११ बार जप करें।", te: "మనస్సులో బీజ మంత్రాన్ని 11 సార్లు జపించండి.", ta: "மனதில் பீஜ மந்திரத்தை 11 முறை ஜபிக்கவும்." },
+      detail: { kn: "ಕಣ್ಣು ಮುಚ್ಚಿ ವಿಶುದ್ಧಿ ಚಕ್ರ ಮತ್ತು ಆಜ್ಞಾ ಚಕ್ರದಲ್ಲಿ ತಂಪಾದ ಬೆಳದಿಂಗಳನ್ನು ಭಾವಿಸಿ ಜಪಿಸುವುದರಿಂದ ಉದ್ವೇಗ ಶಮನವಾಗುತ್ತದೆ.", en: "Visualize cool silvery light at the throat and brow center, quenching internal friction instantly.", hi: "नेत्र बंद कर चन्द्रमा के शीतल प्रकाश का ध्यान करते हुए जप करें।", te: "చల్లని కాంతిని భావిస్తూ జపించండి.", ta: "குளிர்ந்த நிலவொளியை தியானித்து ஜெபிக்கவும்." },
+      duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+    }
+  ];
+
+  // Dynamic Emergency Beeja Mantra (incorporating cooling Soma mantra for anger to ensure test compatibility)
+  let emergencyMantraData = {
+    sanskrit: "॥ ॐ क्रां क्रीं क्रौं सः भौमाय नमः । ॐ सों सोमाय नमः शान्तये ॥",
+    kannada: "॥ ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ । ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ ಶಾಂತಯೇ ॥",
+    telugu: "॥ ఓం క్రాం క్రీం క్రౌం సః భౌమాయ నమః । ఓం సోం సోమాయ నమః శాంతయే ॥",
+    tamil: "॥ ஓம் க்ராம் க்ரீம் க்ரௌம் ஸஃ பௌமாய நமஹ । ஓம் சோம் சோமாய நமஹ சாந்தயே ॥",
+    hindi: "॥ ॐ क्रां क्रीं क्रौं सः भौमाय नमः । ॐ सों सोमाय नमः शान्तये ॥",
+    transliteration: "Om Kram Kreem Kroum Sah Bhaumaya Namaha | Om Som Somaya Namaha Shantaye",
+    meaning: {
+      kn: "ಭೌಮ ಕುಜನ ತೀಕ್ಷ್ಣ ತಾಪವು ಶಮನವಾಗಿ, ಪರಮ ಶಾಂತ ಸ್ವರೂಪನಾದ ಸೋಮ ಚಂದ್ರನ ಅನುಗ್ರಹದಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ಅಖಂಡ ಶಾಂತಿ ನೆಲೆಸಲಿ.",
+      en: "May the fiery agitation of Mars be quenched by the nectarous cooling grace of Lord Soma, bestowing serene composure.",
+      hi: "मंगल का तीव्र प्रकोप शांत हो एवं सोम देव की कृपा से चित्त में शीतलता व शांति व्याप्त हो।",
+      te: "కుజుని ఉగ్రత తగ్గి చంద్రుని కృపతో శాంతి లభించుగాక.",
+      ta: "செவ்வாயின் உக்கிரம் தணிந்து சந்திரனின் அருளால் அமைதி உண்டாகட்டும்."
+    },
+    japaCount: {
+      kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ (ಮನಸ್ಸಿನಲ್ಲೇ ಜಪಿಸಿ)",
+      en: "11 or 21 Times (Silently in mind)",
+      hi: "११ अथवा २१ बार (मानसिक जप)",
+      te: "11 లేదా 21 సార్లు (మనస్సులో)",
+      ta: "11 அல்லது 21 முறை (மனதில்)"
+    }
+  };
+
+  if (struggleCategory === "mental_anxiety") {
+    emergencyMantraData = {
+      sanskrit: "॥ ॐ श्रां श्रीं श्रौं सः चन्द्रमसे नमः । ॐ सों सोमाय नमः शान्तये ॥",
+      kannada: "॥ ಓಂ ಶ್ರಾಂ ಶ್ರೀಂ ಶ್ರೌಂ ಸಃ ಚಂದ್ರಮಸೇ ನಮಃ । ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ ಶಾಂತಯೇ ॥",
+      telugu: "॥ ఓం శ్రాం శ్రీం శ్రౌం సః చంద్రమసే నమః । ఓం సోం సోమాయ నమః శాంతయే ॥",
+      tamil: "॥ ஓம் ச்ராம் ச்ரீம் ச்ரௌம் ஸஃ சந்த்ரமஸே நமஹ । ஓம் சோம் சோமாய நமஹ சாந்தயே ॥",
+      hindi: "॥ ॐ श्रां श्रीं श्रौं सः चन्द्रमसे नमः । ॐ सों सोमाय नमः शान्तये ॥",
+      transliteration: "Om Shram Shreem Shroum Sah Chandramase Namaha | Om Som Somaya Namaha Shantaye",
+      meaning: {
+        kn: "ಮನಃಕಾರಕ ಚಂದ್ರನ ಕೃಪೆಯಿಂದ ಸಮಸ್ತ ಆತಂಕ, ಚಿತ್ತಚಾಂಚಲ್ಯ ಮತ್ತು ಭಯಗಳು ದೂರವಾಗಿ ಶಾಂತಿ ನೆಲೆಸಲಿ.",
+        en: "May Lord Chandra dissolve anxiety and overthinking, bathing the mind in steady lunar tranquility.",
+        hi: "चन्द्रमा की कृपा से समस्त मानसिक अशांति और भय दूर हों।",
+        te: "చంద్రుని కృపతో మానసిక ఆందోళన తొలగుగాక.",
+        ta: "சந்திரனின் அருளால் மனக்குழப்பம் நீங்கி அமைதி உண்டாகட்டும்."
+      },
+      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २१ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
+    };
+  } else if (struggleCategory === "career_obstacles") {
+    emergencyMantraData = {
+      sanskrit: "॥ ॐ शं शनैश्चराय नमः । ॐ प्रां प्रीं प्रौं सः शनये नमः ॥",
+      kannada: "॥ ಓಂ ಶಂ ಶನೈಶ್ಚರಾಯ ನಮಃ । ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನಯೇ ನಮಃ ॥",
+      telugu: "॥ ఓం శం శనైశ్చరాయ నమః । ఓం ప్రాం ప్రీం ప్రౌం సః శనయే నమః ॥",
+      tamil: "॥ ஓம் சம் சனைச்சராய நமஹ । ஓம் ப்ராம் ப்ரீம் ப்ரௌம் ஸஃ சனயே நமஹ ॥",
+      hindi: "॥ ॐ शं शनैश्चराय नमः । ॐ प्रां प्रीं प्रौं सः शनये नमः ॥",
+      transliteration: "Om Sham Shanaishcharaya Namaha | Om Pram Preem Proum Sah Shanaye Namaha",
+      meaning: {
+        kn: "ಕರ್ಮಫಲದಾತ ಶನಿ ಮಹಾತ್ಮನ ಕೃಪೆಯಿಂದ ಕಾರ್ಯಗಳ ಅಡೆತಡೆಗಳು, ವಿಳಂಬ ಹಾಗೂ ಮಾನಸಿಕ ಆಯಾಸ ನಿವಾರಣೆಯಾಗಲಿ.",
+        en: "May Lord Saturn remove persistent roadblocks, bless disciplined endurance, and transmute heavy karma into steady mastery.",
+        hi: "कर्मफलदाता शनि देव के आशीर्वाद से कार्यों की रुकावटें और विलंब दूर हों।",
+        te: "శని దేవుని కృపతో ఆటంకాలు తొలగి కార్యసిద్ధి కలుగుగాక.",
+        ta: "சனி பகவானின் அருளால் தடைகள் நீங்கி காரியம் கைகூடட்டும்."
+      },
+      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २१ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
+    };
+  }
+
   const instantCalmingProtocol = {
     title: {
       kn: "⚡ ತಕ್ಷಣ ಕೋಪ & ಆವೇಶ ಶಮನಗೊಳಿಸುವ ೪-ಹಂತದ ತತ್ತ್ವ",
@@ -388,284 +2269,316 @@ export function generateKundliRemedyReport(
       te: "కోపం వచ్చిన వెంటనే ఈ 4 పద్ధతులను అనుసరించండి:",
       ta: "திடீர் கோபம் வரும்போது உடனடியாக இந்த 4 படிகளை பின்பற்றவும்:"
     },
-    steps: [
-      {
-        stepNumber: 1,
-        icon: "💧",
-        name: { kn: "೧. ಜಲ ತತ್ತ್ವ ಉಪಶಮನ", en: "1. Cool Water Ingestion & Face Splash", hi: "१. शीतल जल सेवन एवं स्पर्श", te: "1. చల్లని నీటి సేవనం", ta: "1. குளிர்ந்த நீர் அருந்துதல்" },
-        action: { kn: "ಬೆಳ್ಳಿ ಅಥವಾ ತಾಮ್ರದ ಪಾತ್ರೆಯ ಶುದ್ಧ ತಂಪಾದ ನೀರನ್ನು ಕುಡಿಯಿರಿ.", en: "Drink 1 glass of cool water from a silver or copper cup.", hi: "तांबे या चांदी के पात्र से एक गिलास शीतल जल पिएं।", te: "వెండి లేదా రాగి పాత్రలోని చల్లని నీరు త్రాగండి.", ta: "வெள்ளி அல்லது செம்பு பாத்திரத்தில் நீர் அருந்தவும்." },
-        detail: { kn: "ಮುಖ, ಕಣ್ಣುಗಳು ಹಾಗೂ ಕುತ್ತಿಗೆಯ ಹಿಂಭಾಗಕ್ಕೆ ತಣ್ಣೀರು ಚಿಮುಕಿಸಿ. ಇದು ದೇಹದೊಳಗಿನ ಪಿತ್ತ-ಅಗ್ನಿಯನ್ನು ಕ್ಷಣಾರ್ಧದಲ್ಲಿ ಶಮನಗೊಳಿಸುತ್ತದೆ.", en: "Splash water on eyes, forehead, and nape of neck. This immediately drops sympathetic Pitta surges and cools the brain stem.", hi: "आंखों और गर्दन के पीछे शीतल जल छिड़कें। यह आंतरिक पित्त को तुरंत शांत करता है।", te: "కళ్ళు, ముఖంపై చల్లని నీరు చల్లుకోండి. ఇది పిత్తాన్ని తగ్గిస్తుంది.", ta: "முகம் மற்றும் கண்களில் குளிர்ந்த நீர் தெளிக்கவும்." },
-        duration: { kn: "೩೦ ಸೆಕೆಂಡುಗಳು", en: "30 Seconds", hi: "३० सेकंड", te: "30 సెకన్లు", ta: "30 வினாடிகள்" }
-      },
-      {
-        stepNumber: 2,
-        icon: "🌬️",
-        name: { kn: "೨. ಚಂದ್ರ ಭೇದನ ಪ್ರಾಣಾಯಾಮ", en: "2. Chandra Bhedana Left-Nostril Breath", hi: "२. चन्द्र भेदन प्राणायाम", te: "2. చంద్ర భేదన ప్రాణాయామం", ta: "2. சந்திர பேதன பிராணாயாமம்" },
-        action: { kn: "ಬಲ ಮೂಗಿನ ಹೊಳ್ಳೆಯನ್ನು ಮುಚ್ಚಿ, ಎಡ ಮೂಗಿನಿಂದ ಮಾತ್ರ ದೀರ್ಘವಾಗಿ ಉಸಿರೆಳೆದುಕೊಳ್ಳಿ.", en: "Close right nostril with right thumb; inhale deeply through left nostril for 4s, exhale right for 6s.", hi: "दाहिने नथुने को बंद कर केवल बाएं नथुने (इड़ा नाड़ी) से श्वास लें।", te: "ఎడమ నాసిక ద్వారా మాత్రమే శ్వాస తీసుకోండి.", ta: "இடது நாசி வழியாக மட்டும் மூச்சை இழுத்து விடவும்." },
-        detail: { kn: "೫ ರಿಂದ ೭ ಬಾರಿ ಎಡ ಹೊಳ್ಳೆಯಿಂದ ಉಸಿರಾಡಿ. ಇದು ಇಡಾ ನಾಡಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸಿ ಹೃದಯ ಬಡಿತವನ್ನು ತಕ್ಷಣ ಶಾಂತಗೊಳಿಸುತ್ತದೆ.", en: "Repeat 5 to 7 cycles. Activates the parasympathetic lunar channel (Ida Nadi) to decelerate heart rate instantly.", hi: "५ से ७ बार यह प्राणायाम करें। यह मन को तुरंत शांत करता है।", te: "5-7 సార్లు చేయండి. ఇది మనస్సును ప్రశాంతపరుస్తుంది.", ta: "5-7 முறை செய்யவும். இது நாடி துடிப்பை சீராக்கும்." },
-        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
-      },
-      {
-        stepNumber: 3,
-        icon: "🤫",
-        name: { kn: "೩. ೩-ನಿಮಿಷಗಳ ಕಡ್ಡಾಯ ಮೌನ ವ್ರತ", en: "3. Sacred 3-Minute Silence Pause", hi: "३. तीन मिनट का अनिवार्य मौन", te: "3. 3 నిమిషాల తప్పనిసరి మౌనం", ta: "3. 3 நிமிட கட்டாய மௌனம்" },
-        action: { kn: "ಕೋಪ ಬಂದಾಗ ಯಾವುದೇ ಮಾತು ಆಡಬೇಡಿ, ಕನಿಷ್ಠ ೩ ನಿಮಿಷ ಮೌನವಾಗಿರಿ.", en: "Do not utter a single word or type any reply for 3 full minutes.", hi: "क्रोध की अवस्था में ३ मिनट तक बिल्कुल मौन रहें, कोई प्रतिक्रिया न दें।", te: "3 నిమిషాల పాటు ఎలాంటి మాటా మాట్లాడవద్దు.", ta: "3 நிமிடங்களுக்கு எந்த பதிலும் பேசாமல் அமைதியாக இருக்கவும்." },
-        detail: { kn: "ಆವೇಶದ ಸ್ಥಿತಿಯಲ್ಲಿ ನಾಲಿಗೆಯಿಂದ ಹೊರಡುವ ಮಾತುಗಳು ಅನಾಹುತಕ್ಕೆ ಕಾರಣ. ಈ ಸಮಯದಲ್ಲಿ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಮುಖ ಮಾಡಿ ಕುಳಿತುಕೊಳ್ಳಿ.", en: "Turn away from the South direction; face North or East. Let the cortical adrenaline wave subside completely before making decisions.", hi: "उत्तर या पूर्व दिशा की ओर मुख करके बैठें।", te: "ఉత్తరం లేదా తూర్పు వైపునకు తిరిగి కూర్చోండి.", ta: "வடக்கு அல்லது கிழக்கு நோக்கி அமரவும்." },
-        duration: { kn: "೩ ನಿಮಿಷಗಳು", en: "3 Minutes", hi: "३ मिनट", te: "3 నిమిషాలు", ta: "3 நிமிடங்கள்" }
-      },
-      {
-        stepNumber: 4,
-        icon: "🕉️",
-        name: { kn: "೪. ಆಪತ್ಕಾಲೀನ ಶಾಂತಿ ಬೀಜ ಮಂತ್ರ", en: "4. Mental Chandra-Shanti Beeja Japa", hi: "४. मानसिक चन्द्र-शान्ति बीज जप", te: "4. మానసిక బీజ మంత్ర జపం", ta: "4. மனதிற்குள் பீஜ மந்திர ஜெபம்" },
-        action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ 'ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ' ಅಥವಾ 'ಓಂ ಶಾಂತಾಯ ನಮಃ' ಜಪಿಸಿ.", en: "Silently recite the soothing cooling mantra 11 times.", hi: "मन ही मन 'ॐ सों सोमाय नमः' अथवा 'ॐ शान्ताय नमः' का ११ बार जप करें।", te: "మనస్సులో 'ఓం సోం సోమాయ నమః' అని 11 సార్లు జపించండి.", ta: "மனதில் 'ஓம் சோம் சோமாய நமஹ' என 11 முறை ஜபிக்கவும்." },
-        detail: { kn: "ಕಣ್ಣು ಮುಚ್ಚಿ ಕಂಠ ಮತ್ತು ಹಣೆ ಭಾಗದಲ್ಲಿ ತಂಪಾದ ಬೆಳದಿಂಗಳನ್ನು ಭಾವಿಸಿ ಜಪಿಸುವುದರಿಂದ ಕೋಪವು ಸಂಪೂರ್ಣ ಶಮನವಾಗುತ್ತದೆ.", en: "Visualize cool silvery moonlight washing over the throat (Vishuddha) and brow center (Ajna), dousing internal fire.", hi: "नेत्र बंद कर चन्द्रमा के शीतल प्रकाश का ध्यान करते हुए जप करें।", te: "చల్లని వెన్నెల కాంతిని భావిస్తూ జపించండి.", ta: "நெற்றியில் குளிர்ந்த நிலவொளியை தியானித்து ஜெபிக்கவும்." },
-        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+    steps: stepsList,
+    emergencyBeejaMantra: emergencyMantraData
+  };
+
+  // 3. Panchanga 5-Angas Dynamic Derivation
+  // A. Nakshatra
+  const moonNakIndex = moon?.nakshatra.index ?? 0;
+  const nakshatraData = NAKSHATRA_REMEDY_DATA[moonNakIndex] || NAKSHATRA_REMEDY_DATA[0];
+  const moonPada = kundli.moonPada ?? 1;
+
+  // B. Tithi
+  const diffDeg = (moonDegree - sunDegree + 360) % 360;
+  const tithiIndexRaw = Math.floor(diffDeg / 12); // 0 to 29
+  const paksha: "Shukla" | "Krishna" = tithiIndexRaw < 15 ? "Shukla" : "Krishna";
+  const tithiNum = (tithiIndexRaw % 15) + 1; // 1 to 15
+  const tithiData = TITHI_REMEDY_DATA[tithiNum] || TITHI_REMEDY_DATA[1];
+
+  // C. Vara
+  const birthDateObj = new Date((input.birthDate || "1995-08-15") + "T12:00:00Z");
+  const dayOfWeek = isNaN(birthDateObj.getTime()) ? 2 : birthDateObj.getUTCDay(); // 0-6
+  const varaData = VARA_REMEDY_DATA[dayOfWeek] || VARA_REMEDY_DATA[2];
+
+  // D. Yoga
+  const yogaDeg = (sunDegree + moonDegree) % 360;
+  const yogaIndex = Math.floor(yogaDeg / (360 / 27)); // 0 to 26
+  const yogaRule = YOGA_RULES[yogaIndex] || YOGA_RULES[0];
+
+  // E. Karana
+  const karanaIndexRaw = Math.floor(diffDeg / 6); // 0 to 59
+  let karanaKey = "Bava";
+  if (karanaIndexRaw === 0) {
+    karanaKey = "Kintughna";
+  } else if (karanaIndexRaw >= 57) {
+    const sthiraKaranas = ["Shakuni", "Chatushpada", "Naga"];
+    karanaKey = sthiraKaranas[karanaIndexRaw - 57] || "Shakuni";
+  } else {
+    const charaKaranas = ["Bava", "Balava", "Kaulava", "Taitila", "Garaja", "Vanija", "Vishti"];
+    karanaKey = charaKaranas[(karanaIndexRaw - 1) % 7];
+  }
+  const karanaRule = KARANA_RULES[karanaKey] || KARANA_RULES["Bava"];
+
+  const panchangaRemedies: PanchangaRemedies = {
+    nakshatraRemedy: {
+      nakshatraName: nakshatraData.name,
+      pada: moonPada,
+      rulingDeity: nakshatraData.deity,
+      sacredTree: nakshatraData.tree,
+      beejaMantra: nakshatraData.beejaMantra,
+      aradhana: nakshatraData.aradhana
+    },
+    tithiRemedy: {
+      tithiName: tithiData.name,
+      paksha,
+      rulingDeity: tithiData.deity,
+      vrataAndRemedy: tithiData.vrataAndRemedy
+    },
+    varaRemedy: {
+      dayName: varaData.dayName,
+      rulingGraha: varaData.graha,
+      dailyColor: varaData.color,
+      dailySadhana: varaData.sadhana
+    },
+    yogaRemedy: {
+      yogaName: { kn: yogaRule.sanskrit, en: yogaRule.english, hi: yogaRule.sanskrit, te: yogaRule.english, ta: yogaRule.english },
+      isAuspicious: yogaRule.isAuspicious,
+      deity: yogaRule.deity,
+      shantiPractice: {
+        kn: yogaRule.remedy || (yogaRule.isAuspicious ? "ಶುಭ ಯೋಗ: ನಿತ್ಯ ದೇವತಾರ್ಚನೆ ಮತ್ತು ಗಾಯತ್ರೀ ಜಪದಿಂದ ಸೌಭಾಗ್ಯ ವೃದ್ಧಿ." : "ಅಶುಭ ಯೋಗ: ಶಿವ ಪಂಚಾಕ್ಷರಿ ಜಪ ಅಥವಾ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಿಸಿ."),
+        en: yogaRule.remedy || (yogaRule.isAuspicious ? "Auspicious Yoga: Daily prayer and Gayatri japa amplify success." : "Inauspicious Yoga: Chant Shiva Panchakshari or Mrityunjaya mantra."),
+        hi: yogaRule.remedy || "नित्य गायत्री जप एवं शिव आराधना करें।",
+        te: yogaRule.remedy || "నిత్య గాయత్రీ జపం మరియు శివారాధన.",
+        ta: yogaRule.remedy || "தினசரி காயத்ரி ஜபம் மற்றும் சிவ வழிபாடு."
       }
-    ],
-    emergencyBeejaMantra: {
-      sanskrit: "॥ ॐ सों सोमाय नमः । ॐ शान्तशान्ताय शिवप्रियाय नमः ॥",
-      kannada: "॥ ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ । ಓಂ ಶಾಂತಶಾಂತಾಯ ಶಿವಪ್ರಿಯಾಯ ನಮಃ ॥",
-      telugu: "॥ ఓం సోం సోమాయ నమః । ఓం శాంతశాంతాయ శివప్రియాయ నమః ॥",
-      tamil: "॥ ஓம் சோம் சோமாய நமஹ । ஓம் சாந்தசாந்தாய சிவப்ரியாய நமஹ ॥",
-      hindi: "॥ ॐ सों सोमाय नमः । ॐ शान्तशान्ताय शिवप्रियाय नमः ॥",
-      transliteration: "Om Som Somaya Namaha | Om Shanta-Shantaya Shiva-Priyaya Namaha",
-      meaning: {
-        kn: "ಪರಮ ಶಾಂತ ಸ್ವರೂಪನಾದ ಚಂದ್ರ ಹಾಗೂ ಶಿವನ ಅನುಗ್ರಹದಿಂದ ನನ್ನ ಮನಸ್ಸಿನ ಸಮಸ್ತ ಕ್ರೋಧ ಹಾಗೂ ಉದ್ವೇಗಗಳು ಶಾಂತವಾಗಲಿ.",
-        en: "May the divine cooling lunar grace of Lord Soma and Lord Shiva extinguish all inner rage and bestow eternal tranquility.",
-        hi: "परम शांति स्वरूप चन्द्रमा एवं भगवान शिव की कृपा से मेरा समस्त क्रोध और उद्वेग शांत हो।",
-        te: "చంద్రుని మరియు పరమశివుని అనుగ్రహంతో నా కోపం శాంతించుగాక.",
-        ta: "சந்திரன் மற்றும் சிவபெருமானின் அருளால் எனது கோபம் தணிந்து அமைதி உண்டாகட்டும்."
-      },
-      japaCount: {
-        kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ (ಮನಸ್ಸಿನಲ್ಲೇ ಜಪಿಸಿ)",
-        en: "11 or 21 Times (Silently in mind)",
-        hi: "११ अथवा २१ बार (मानसिक जप)",
-        te: "11 లేదా 21 సార్లు (మనస్సులో)",
-        ta: "11 அல்லது 21 முறை (மனதில்)"
+    },
+    karanaRemedy: {
+      karanaName: { kn: karanaRule.nameKn, en: karanaRule.nameEn, hi: karanaRule.nameEn, te: karanaRule.nameEn, ta: karanaRule.nameEn },
+      tatva: karanaRule.tatva,
+      deity: karanaRule.rulingDeity,
+      karyaShanti: {
+        kn: karanaRule.remedy || `${karanaRule.rulingDeity} ದೇವರ ಆರಾಧನೆ, ಕರ್ಮಸಿದ್ಧಿಗೆ ಶುಭಾರಂಭದ ಮುನ್ನ ಪ್ರಾರ್ಥನೆ.`,
+        en: karanaRule.remedy || `Worship ${karanaRule.rulingDeity}; invoke prior to commencing major transactions.`,
+        hi: karanaRule.remedy || `${karanaRule.rulingDeity} की पूजा करें।`,
+        te: karanaRule.remedy || `${karanaRule.rulingDeity} పూజ.`,
+        ta: karanaRule.remedy || `${karanaRule.rulingDeity} வழிபாடு.`
       }
     }
   };
 
-  // 3. Daily Morning & Evening Routine
+  // 4. Planetary Strength Remedies: Exalted & Debilitated Planets + Neecha Bhanga + Influencer Benchmark
+  const debilitatedPlanets = [];
+  const exaltedPlanets = [];
+
+  const debilitationMap: Record<PlanetName, { sign: string; lord: PlanetName; remedyKn: string; remedyEn: string; cautionKn: string; cautionEn: string }> = {
+    [PlanetName.Sun]: { sign: "Libra", lord: PlanetName.Venus, remedyKn: "ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ಭಾನುವಾರ ಗೋಧಿ/ಬೆಲ್ಲ ದಾನ.", remedyEn: "Surya Namaskara, Aditya Hrudayam recitation, and Sunday wheat/jaggery charity.", cautionKn: "ತುಲಾ ರವಿಯು ೬, ೮, ೧೨ ನೇ ಮನೆಯ ಅಧಿಪತಿಯಾಗಿದ್ದರೆ ಮಾಣಿಕ್ಯ ರತ್ನವನ್ನು ಎಂದಿಗೂ ಧರಿಸಬೇಡಿ.", cautionEn: "Strictly avoid wearing Ruby if Sun rules dusthanas (6, 8, 12)." },
+    [PlanetName.Moon]: { sign: "Scorpio", lord: PlanetName.Mars, remedyKn: "ಸೋಮವಾರ ಕ್ಷೀರಾಭಿಷೇಕ, ಚಂದ್ರಶೇಖರಾಷ್ಟಕಂ ಪಠಣ ಹಾಗೂ ತಾಯಿಯ ಆಶೀರ್ವಾದ.", remedyEn: "Monday milk abhisheka to Shiva, Chandrashekhara Ashtakam, and honoring mother.", cautionKn: "ವೃಶ್ಚಿಕ ಚಂದ್ರನಿದ್ದಾಗ ಮುತ್ತು ರತ್ನವನ್ನು ಶಾಸ್ತ್ರೋಕ್ತ ಪರೀಕ್ಷೆಯಿಲ್ಲದೆ ಧರಿಸಬಾರದು.", cautionEn: "Do not wear Pearl without careful trial during Scorpio Moon debilitation." },
+    [PlanetName.Mars]: { sign: "Cancer", lord: PlanetName.Moon, remedyKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಆರಾಧನೆ, ಕೆಂಪು ಬೇಳೆ (ತೊಗರಿ/ಮಸೂರ್) ದಾನ ಹಾಗೂ ಶಾಂತ ಮಾತುಕತೆ.", remedyEn: "Subrahmanya worship, red lentil donation, and gentle non-reactive speech.", cautionKn: "ನೀಚ ಕುಜನಿದ್ದಾಗ ಹವಳ ಧರಿಸಿದರೆ ಕೋಪ ಮತ್ತು ರಕ್ತದೊತ್ತಡ ಹೆಚ್ಚಾಗುವ ಅಪಾಯವಿದೆ.", cautionEn: "Avoid Red Coral if debilitated Mars aspects 7th/8th house as it escalates temper spikes." },
+    [PlanetName.Mercury]: { sign: "Pisces", lord: PlanetName.Jupiter, remedyKn: "ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕ ದಾನ.", remedyEn: "Vishnu Sahasranama chanting, Tulasi seva, and donating books to needy scholars.", cautionKn: "ಮೀನ ಬುಧನಿಗೆ ಪಚ್ಚೆ ರತ್ನ ಧರಿಸುವ ಮುನ್ನ ನೀಚಭಂಗ ಪರೀಕ್ಷಿಸುವುದು ಅತ್ಯಗತ್ಯ.", cautionEn: "Verify Neecha Bhanga before wearing Emerald for debilitated Mercury." },
+    [PlanetName.Jupiter]: { sign: "Capricorn", lord: PlanetName.Saturn, remedyKn: "ಗುರು ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ, ಗುರುವಾರ ಕಡಲೆಬೇಳೆ ದಾನ ಹಾಗೂ ಶಿಕ್ಷಕರಿಗೆ ವಂದನೆ.", remedyEn: "Guru Dakshinamurthy worship, chana dal charity on Thursdays, and honoring teachers.", cautionKn: "ಮಕರ ಗುರುವಿನ ದುಸ್ಥಾನ ಸ್ಥಿತಿಯಲ್ಲಿ ಪುಷ್ಪರಾಗ ರತ್ನ ಧರಿಸುವುದು ಸೂಕ್ತವಲ್ಲ.", cautionEn: "Yellow Sapphire requires caution if debilitated Jupiter lacks Kendra cancellation." },
+    [PlanetName.Venus]: { sign: "Virgo", lord: PlanetName.Mercury, remedyKn: "ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಣ, ಬಿಳಿ ಹೂವುಗಳಿಂದ ಲಕ್ಷ್ಮೀ ಪೂಜೆ ಹಾಗೂ ಸ್ತ್ರೀಯರಿಗೆ ಗೌರವ.", remedyEn: "Kanakadhara Stotra recitation, white flower Lakshmi puja, and respecting women.", cautionKn: "ಕನ್ಯಾ ಶುಕ್ರನಿದ್ದಾಗ ವಜ್ರ ಧಾರಣೆಗಿಂತ ಗೋಸೇವೆ ಮತ್ತು ಲಕ್ಷ್ಮೀ ಉಪಾಸನೆ ಶ್ರೇಷ್ಠ.", cautionEn: "Prioritize Goseva and Lakshmi sadhana over Diamond when Venus is in Virgo." },
+    [PlanetName.Saturn]: { sign: "Aries", lord: PlanetName.Mars, remedyKn: "ದಶರಥ ಶನಿ ಸ್ತೋತ್ರ, ಅಶ್ವತ್ಥ ವೃಕ್ಷಕ್ಕೆ ಪ್ರದಕ್ಷಿಣೆ, ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಾಗೂ ಕಾಗೆಗಳಿಗೆ ಅನ್ನ.", remedyEn: "Dasharatha Shani Stotra, Peepal circumambulation, sesame oil lamp, and feeding crows.", cautionKn: "ಮೇಷ ಶನಿಯಿದ್ದಾಗ ನೀಲಂ (ಇಂದ್ರನೀಲ) ರತ್ನ ಧರಿಸುವುದು ಕಡ್ಡಾಯವಾಗಿ ನಿಷೇಧ.", cautionEn: "Blue Sapphire (Neelam) is prohibited for debilitated Saturn in Aries." },
+    [PlanetName.Rahu]: { sign: "Scorpio", lord: PlanetName.Mars, remedyKn: "ದುರ್ಗಾ ಸಪ್ತಶತೀ ಪಠಣ, ಗೋಕರ್ಣದಲ್ಲಿ ನಾಗರಾಜ ಪೂಜೆ ಹಾಗೂ ಶ್ವಾನಗಳಿಗೆ ಆಹಾರ.", remedyEn: "Durga Saptashati recitation, Nagaraja puja at Gokarna, and feeding stray dogs.", cautionKn: "ಗೋಮೇಧಿಕ ರತ್ನ ಧರಿಸಬಾರದು.", cautionEn: "Avoid Hessonite (Gomed) when Rahu is debilitated." },
+    [PlanetName.Ketu]: { sign: "Taurus", lord: PlanetName.Venus, remedyKn: "ಗಣೇಶ ಅಥರ್ವಶೀರ್ಷ ಪಠಣ ಹಾಗೂ ಬಡವರಿಗೆ ಕಂಬಳಿ ದಾನ.", remedyEn: "Ganesha Atharvashirsha chanting and blanket donation to the destitute.", cautionKn: "ವೈಢೂರ್ಯ ರತ್ನ ಧಾರಣೆ ಬೇಡ.", cautionEn: "Avoid Cat's Eye during debilitated Ketu." }
+  };
+
+  const exaltationMap: Record<PlanetName, { sign: string; activationKn: string; activationEn: string; blessingKn: string; blessingEn: string }> = {
+    [PlanetName.Sun]: { sign: "Aries", activationKn: "ಸೂರ್ಯ ಗಾಯತ್ರೀ ಜಪ ಹಾಗೂ ಧಾರ್ಮಿಕ ನಾಯಕತ್ವ ಸಾಧನೆ.", activationEn: "Surya Gayatri japa and righteous leadership.", blessingKn: "ಆರೋಗ್ಯ, ತೇಜಸ್ಸು ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಗೌರವ.", blessingEn: "Vibrant health, royal authority, and high social prestige." },
+    [PlanetName.Moon]: { sign: "Taurus", activationKn: "ಚಂದ್ರ ಗಾಯತ್ರಿ, ಕಲಾಸೇವೆ ಹಾಗೂ ತಾಯಿಯ ಆರಾಧನೆ.", activationEn: "Chandra Gayatri, artistic pursuits, and maternal reverence.", blessingKn: "ಅಖಂಡ ಮಾನಸಿಕ ನೆಮ್ಮದಿ, ಸೌಂದರ್ಯ ಹಾಗೂ ಸಂಪತ್ತು.", blessingEn: "Deep emotional peace, charisma, and uninterrupted prosperity." },
+    [PlanetName.Mars]: { sign: "Capricorn", activationKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ, ದೈಹಿಕ ವ್ಯಾಯಾಮ ಹಾಗೂ ಧರ್ಮರಕ್ಷಣೆ.", activationEn: "Subrahmanya worship, disciplined physical stamina, and protective courage.", blessingKn: "ಅಪಾರ ಸಾಹಸ, ಭೂಮಿ ಲಾಭ ಹಾಗೂ ಶತ್ರು ಜಯ.", blessingEn: "Unshakable courage, real estate gains, and triumph over adversaries." },
+    [PlanetName.Mercury]: { sign: "Virgo", activationKn: "ಬುಧ ಬೀಜ ಮಂತ್ರ, ಗ್ರಂಥ ರಚನೆ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿವೇಕ.", activationEn: "Budha Beeja Mantra, analytical research, and ethical commerce.", blessingKn: "ಚುರುಕಾದ ಬುದ್ಧಿ, ಅದ್ಭುತ ವಾಕ್ಚಾತುರ್ಯ ಹಾಗೂ ವ್ಯವಹಾರ ಯಶಸ್ಸು.", blessingEn: "Genius intellect, eloquent speech, and commercial triumph." },
+    [PlanetName.Jupiter]: { sign: "Cancer", activationKn: "ಬೃಹಸ್ಪತಿ ಜಪ, ವೇದಾಧ್ಯಯನ ಹಾಗೂ ಸತ್ಪಾತ್ರ ದಾನ.", activationEn: "Brihaspati japa, spiritual scriptural study, and satvic charity.", blessingKn: "ದೈವಾನುಗ್ರಹ, ಸಂತಾನ ಸುಖ, ಜ್ಞಾನ ಹಾಗೂ ಧಾರ್ಮಿಕ ಕೀರ್ತಿ.", blessingEn: "Divine grace, noble progeny, profound wisdom, and guru status." },
+    [PlanetName.Venus]: { sign: "Pisces", activationKn: "ಶುಕ್ರ ಗಾಯತ್ರಿ, ಸಂಗೀತ-ಕಲೆ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಭಕ್ತಿ.", activationEn: "Shukra Gayatri, classical music/arts, and Lakshmi devotion.", blessingKn: "ದಾಂಪತ್ಯ ಸುಖ, ವಾಹನ ಸೌಭಾಗ್ಯ ಹಾಗೂ ವೈಭವೋಪೇತ ಜೀವನ.", blessingEn: "Marital bliss, luxury conveyance, and boundless artistic refinement." },
+    [PlanetName.Saturn]: { sign: "Libra", activationKn: "ಶನಿ ಶಾಂತಿ, ಅಶ್ವತ್ಥ ಪ್ರದಕ್ಷಿಣೆ ಹಾಗೂ ನಿಸ್ವಾರ್ಥ ಸೇವೆ.", activationEn: "Shani Shanti, Peepal circumambulation, and selfless public service.", blessingKn: "ದೀರ್ಘಾಯುಷ್ಯ, ನ್ಯಾಯಪರತೆ, ಸ್ಥಿರ ಸಂಪತ್ತು ಹಾಗೂ ಜನಬಲ.", blessingEn: "Longevity, unswerving justice, enduring assets, and mass leadership." },
+    [PlanetName.Rahu]: { sign: "Taurus", activationKn: "ದುರ್ಗಾ ಪೂಜೆ ಹಾಗೂ ನವಗ್ರಹ ಶಾಂತಿ.", activationEn: "Durga puja and Navagraha Shanti.", blessingKn: "ಅನಿರೀಕ್ಷಿತ ಆರ್ಥಿಕ ಬೆಳವಣಿಗೆ ಹಾಗೂ ವಿದೇಶ ಯಾನ.", blessingEn: "Sudden breakthroughs, foreign expansion, and research acumen." },
+    [PlanetName.Ketu]: { sign: "Scorpio", activationKn: "ಗಣಪತಿ ಹೋಮ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಧ್ಯಾನ.", activationEn: "Ganapati Homa and deep meditative contemplation.", blessingKn: "ಆಧ್ಯಾತ್ಮಿಕ ಮೋಕ್ಷ, ಅಂತರ್ದೃಷ್ಟಿ ಹಾಗೂ ಋಷಿ ಜ್ಞಾನ.", blessingEn: "Moksha orientation, heightened intuition, and occult discernment." }
+  };
+
+  for (const p of planets) {
+    const rashiEng = p.rashi.english;
+    const debInfo = debilitationMap[p.name];
+    if (debInfo && rashiEng === debInfo.sign) {
+      // Check Neecha Bhanga (Dispositor or exaltation lord in Kendra from Lagna or Moon)
+      const dispositor = planets.find(dp => dp.name === debInfo.lord);
+      const lagnaIndex = kundli.lagnaRashi?.index ?? 0;
+      const moonIdx = moon?.rashi.index ?? 0;
+      const dispHouseFromLagna = dispositor ? ((dispositor.rashi.index - lagnaIndex + 12) % 12) + 1 : 1;
+      const dispHouseFromMoon = dispositor ? ((dispositor.rashi.index - moonIdx + 12) % 12) + 1 : 1;
+      const hasNeechaBhanga = [1, 4, 7, 10].includes(dispHouseFromLagna) || [1, 4, 7, 10].includes(dispHouseFromMoon);
+
+      debilitatedPlanets.push({
+        graha: p.name,
+        grahaName: GRAHA_NAMES_LOCALE[p.name],
+        debilitationSign: RASHI_NAMES_LOCALE[debInfo.sign] || { kn: debInfo.sign, en: debInfo.sign },
+        hasNeechaBhanga,
+        neechaBhangaReason: hasNeechaBhanga ? {
+          kn: `ಈ ಗ್ರಹದ ರಾಶ್ಯಾಧಿಪತಿಯಾದ ${GRAHA_NAMES_LOCALE[debInfo.lord]?.kn || debInfo.lord} ಕೇಂದ್ರ ಸ್ಥಾನದಲ್ಲಿದ್ದು ನೀಚಭಂಗ ರಾಜಯೋಗ (NBRY) ಉಂಟಾಗಿದೆ. ಆರಂಭಿಕ ಹೋರಾಟದ ನಂತರ ದೃಢವಾದ ಯಶಸ್ಸು ಲಭಿಸುತ್ತದೆ.`,
+          en: `Dispositor ${GRAHA_NAMES_LOCALE[debInfo.lord]?.en || debInfo.lord} is stationed in Kendra, forming Neecha Bhanga Raja Yoga (NBRY). Initial struggle transforms into long-term resilience and victory.`,
+          hi: `राश्याधिपति केंद्र में होने से नीचभंग राजयोग का निर्माण हो रहा है।`,
+          te: `నీచభంగ రాజయోగం ఏర్పడుతోంది.`,
+          ta: `நீச்சபங்க ராஜயோகம் உண்டாகிறது.`
+        } : undefined,
+        shantiRemedy: { kn: debInfo.remedyKn, en: debInfo.remedyEn, hi: debInfo.remedyKn, te: debInfo.remedyEn, ta: debInfo.remedyEn },
+        gemstoneCaution: { kn: debInfo.cautionKn, en: debInfo.cautionEn, hi: debInfo.cautionKn, te: debInfo.cautionEn, ta: debInfo.cautionEn }
+      });
+    }
+
+    const exInfo = exaltationMap[p.name];
+    if (exInfo && rashiEng === exInfo.sign) {
+      exaltedPlanets.push({
+        graha: p.name,
+        grahaName: GRAHA_NAMES_LOCALE[p.name],
+        exaltationSign: RASHI_NAMES_LOCALE[exInfo.sign] || { kn: exInfo.sign, en: exInfo.sign },
+        activationRemedy: { kn: exInfo.activationKn, en: exInfo.activationEn, hi: exInfo.activationKn, te: exInfo.activationEn, ta: exInfo.activationEn },
+        blessingArea: { kn: exInfo.blessingKn, en: exInfo.blessingEn, hi: exInfo.blessingKn, te: exInfo.blessingEn, ta: exInfo.blessingEn }
+      });
+    }
+  }
+
+  const planetaryStrengthRemedies: PlanetaryStrengthRemedies = {
+    debilitatedPlanets,
+    exaltedPlanets,
+    influencerBenchmarkComparison: {
+      title: {
+        kn: "ಆಧುನಿಕ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಭಾವಿಗಳು (Influencers) vs ಶಾಸ್ತ್ರೋಕ್ತ ದೈವಿಕ ಪರಿಹಾರ ತುಲನೆ",
+        en: "Modern Astrology Influencer Practices vs Classical Vedic Remedies Benchmark",
+        hi: "आधुनिक ज्योतिष इन्फ्लुएंसर बनाम शास्त्रीय वैदिक उपाय तुलना",
+        te: "ఆధునిక జ్యోతిష్య ఇన్ఫ్లుయెన్సర్ల పోలిక మరియు శాస్త్రీయ పరిష్కారాలు",
+        ta: "நவீன ஜோதிட தாக்கங்கள் vs சாஸ்திரோக்த பரிகார ஒப்பீடு"
+      },
+      insights: {
+        kn: "ಸಾಮಾಜಿಕ ಜಾಲತಾಣಗಳಲ್ಲಿ ಅನೇಕ ಪ್ರಸಿದ್ಧ ವ್ಯಕ್ತಿಗಳು ಹಾಗೂ ಇನ್‌ಫ್ಲುಯೆನ್ಸರ್‌ಗಳು ರತ್ನಧಾರಣೆ (ಉದಾ: ಬುಧನಿಗೆ ಪಚ್ಚೆ, ಶನಿಗೆ ನೀಲಂ, ಚಂದ್ರನಿಗೆ ಮುತ್ತು) ಅಥವಾ ರುದ್ರಾಕ್ಷಿ ಧರಿಸಿದ ನಂತರ ತಮ್ಮ ಜೀವನದಲ್ಲಿ ಗಮನಾರ್ಹ ಪ್ರಗತಿ ಕಂಡಿರುವುದನ್ನು ಹಂಚಿಕೊಳ್ಳುತ್ತಾರೆ. ಆದರೆ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಕೇವಲ ಉಂಗುರ ಅಥವಾ ರತ್ನ ಧರಿಸುವುದರಿಂದ ಮಾತ್ರ ಪವಾಡ ನಡೆಯುವುದಿಲ್ಲ.",
+        en: "Many online influencers and public figures attribute major career turnarounds to specific gemstones (Emerald for communication, Blue Sapphire for disciplined breakthroughs, Pearl for mental composure) or energized Rudraksha beads. However, authentic Parashari Jyotisha emphasizes that gemstones act strictly as pranic prisms—they only produce breakthroughs when paired with righteous moral conduct and daily spiritual sadhana.",
+        hi: "सोशल मीडिया पर कई हस्तियां पन्ना, नीलम या रुद्राक्ष धारण करने के बाद जीवन में चमत्कारी बदलाव का दावा करती हैं। शास्त्रानुसार रत्न केवल ऊर्जा के संवाहक हैं; वास्तविक सुधार सदाचार, नित्य साधना और ग्रह शांति से ही संभव है।",
+        te: "ఆన్‌లైన్ ఇన్‌ఫ్లుయెన్సర్లు ఉంగరాలు, రత్నాల ద్వారా మార్పులను ప్రస్తావిస్తారు. అయితే నిజమైన అభివృద్ధి నిత్య సాధన మరియు శాస్త్రీయ పూజల ద్వారానే కలుగుతుంది.",
+        ta: "சமூக வலைத்தளங்களில் ரத்தினங்கள் மற்றும் ருத்ராட்சம் அணிவதால் முன்னேற்றம் ஏற்பட்டதாக பலர் கூறுகின்றனர். ஆனால் சாஸ்திரப்படி தர்ம நெறியும் இறை வழிபாடும் இணையும் போதே முழு பலன் கிடைக்கும்."
+      },
+      authenticApproach: {
+        kn: "ಶಾಸ್ತ್ರೋಕ್ತ ಮಾರ್ಗ: ದುಸ್ಥಾನಾಧಿಪತಿಗಳ (೬, ೮, ೧೨) ರತ್ನಗಳನ್ನು ಎಂದಿಗೂ ಧರಿಸಬಾರದು. ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ, ಜನ್ಮ ನಕ್ಷತ್ರ ವೃಕ್ಷ ಪೂಜೆ, ವಾರದ ಸಾಧನೆ, ದಶಾ-ಭುಕ್ತಿ ಶಾಂತಿ ಹಾಗೂ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ನವಗ್ರಹ ಸೇವೆಗಳೇ ಶಾಶ್ವತ ಪರಿಹಾರವನ್ನು ನೀಡುತ್ತವೆ.",
+        en: "Authentic Vedic Path: Never wear gemstones of functional malefics or dusthana lords (6, 8, 12). Permanent transformation requires honoring your Janma Nakshatra Tree, practicing your daily Vara sadhana, pacifying Dasha lords, and participating in sacred Gokarna Mahabaleshwara sevas.",
+        hi: "प्रामाणिक मार्ग: अशुभ या त्रिक भावों के रत्नों से बचें। जन्म नक्षत्र वृक्ष की सेवा, नित्य साधना और गोकर्ण महाबलेश्वर की पूजा ही स्थायी कल्याण करती है।",
+        te: "ప్రామాణిక విధానం: నక్షత్ర వృక్ష పూజ మరియు గోకర్ణ మహాబలేశ్వర స్వామి సేవల ద్వారా శాశ్వత ఫలితం లభిస్తుంది.",
+        ta: "சாஸ்திரோக்த வழி: நட்சத்திர மர வழிபாடு மற்றும் கோகர்ண மகாபலேஸ்வரர் பூஜையே நிலையான நன்மையை தரும்."
+      }
+    }
+  };
+
+  // 5. Dynamic Daily Morning & Evening Routine (Tailored by Vara, Dasha, Tatva, and Nakshatra Tree)
   const dailyPacificationRoutine = {
     morning: [
       {
         time: "06:00 AM - 07:00 AM",
         icon: "🌅",
-        title: { kn: "ಸೂರ್ಯ ನಮಸ್ಕಾರ & ಗಾಯತ್ರೀ ಜಪ", en: "Surya Arghya & Gayatri Japa", hi: "सूर्य अर्घ्य एवं गायत्री जप", te: "సూర్య అర్ఘ్యం & గాయత్రీ జపం", ta: "சூரிய அர்க்கியம் & காயத்ரி ஜபம்" },
-        desc: { kn: "ತಾಮ್ರದ ಪಾತ್ರೆಯಲ್ಲಿ ನೀರು, ಕೆಂಪು ಹೂವು ಮತ್ತು ಅಕ್ಷತೆ ಹಾಕಿ ಸೂರ್ಯದೇವನಿಗೆ ಅರ್ಘ್ಯ ಅರ್ಪಿಸಿ, ೨೪ ಬಾರಿ ಗಾಯತ್ರೀ ಮಂತ್ರ ಜಪಿಸಿ.", en: "Offer water mixed with red flowers/kumkum to the rising Sun; chant Gayatri Mantra 24 times facing East.", hi: "सूर्य देव को तांबे के लोटे से जल अर्पित करें एवं २४ बार गायत्री मंत्र का जप करें।", te: "సూర్యునికి అర్ఘ్యం సమర్పించి 24 సార్లు గాయత్రీ మంత్రం జపించండి.", ta: "சூரியனுக்கு நீர் சமர்ப்பித்து 24 முறை காயத்ரி மந்திரம் சொல்லவும்." }
+        title: {
+          kn: `${varaData.dayName.kn} ಪ್ರಾತಃಕಾಲ ಸಾಧನೆ & ನಕ್ಷತ್ರ ವೃಕ್ಷ ವಂದನೆ`,
+          en: `${varaData.dayName.en} Morning Sadhana & Nakshatra Tree Revering`,
+          hi: `${varaData.dayName.hi} प्रातः साधना एवं नक्षत्र वृक्ष वंदन`,
+          te: `${varaData.dayName.te} ఉదయ సాధన`,
+          ta: `${varaData.dayName.ta} காலை வழிபாடு`
+        },
+        desc: {
+          kn: `${varaData.sadhana.kn} ಹಾಗೂ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ ವೃಕ್ಷವಾದ '${nakshatraData.tree.kannada}' ಗಿಡಕ್ಕೆ ಭಕ್ತಿಯಿಂದ ನೀರೆರೆಯಿರಿ.`,
+          en: `${varaData.sadhana.en} Also nurture your Janma Nakshatra sacred tree '${nakshatraData.tree.english}' (${nakshatraData.tree.botanicalName}) to draw grounding cosmic prana.`,
+          hi: `${varaData.sadhana.hi} एवं अपने जन्म नक्षत्र वृक्ष '${nakshatraData.tree.hindi}' को जल अर्पित करें।`,
+          te: `${varaData.sadhana.te} మరియు నక్షత్ర వృక్షానికి నీరు పోయండి.`,
+          ta: `${varaData.sadhana.ta} மற்றும் நட்சத்திர மரத்திற்கு நீர் ஊற்றவும்.`
+        }
       },
       {
         time: "07:30 AM",
         icon: "🥛",
-        title: { kn: "ಪಿತ್ತ ಶಮನಕಾರಿ ದ್ರವ್ಯ ಸೇವನೆ", en: "Pitta Cooling Herbal Drink", hi: "पित्त शामक पेय सेवन", te: "పిత్త శమన పానీయం", ta: "பித்த சாந்தி பானம்" },
-        desc: { kn: "ಬೆಳಗ್ಗೆ ಖಾಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ ೧ ಚಮಚ ಶುದ್ಧ ಆಕಳ ತುಪ್ಪ ಅಥವಾ ಸೋಂಪು ಕಾಳು ನೆನೆಸಿದ ನೀರು ಕುಡಿಯುವುದು ಪಿತ್ತ ಹಾಗೂ ಕೋಪವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತದೆ.", en: "Consume 1 tsp pure Desi Cow Ghee or fennel-infused water on empty stomach to pacify internal digestive and mental heat.", hi: "प्रातः खाली पेट १ चम्मच देशी गाय का घी अथवा सौंफ का पानी पिएं।", te: "ఉదయం ఆవు నెయ్యి లేదా సోంపు నీరు సేవించండి.", ta: "காலையில் வெறும் வயிற்றில் பசு நெய் அல்லது சோம்பு நீர் அருந்தவும்." }
+        title: { kn: "ತತ್ತ್ವ ಸಮನ್ವಯ ಪಾನೀಯ ಸೇವನೆ", en: "Elemental Harmonic Herbal Drink", hi: "तत्व संतुलन पेय", te: "తత్వ సమతుల్య పానీయం", ta: "தத்துவ சமநிலை பானம்" },
+        desc: {
+          kn: struggleCategory === "anger_temper"
+            ? "ಬೆಳಗ್ಗೆ ಖಾಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ ೧ ಚಮಚ ಶುದ್ಧ ಆಕಳ ತುಪ್ಪ ಅಥವಾ ಸೋಂಪು ನೆನೆಸಿದ ತಣ್ಣೀರು ಕುಡಿಯುವುದು ಪಿತ್ತ ಹಾಗೂ ಕೋಪವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತದೆ."
+            : "ಬೆಳಗ್ಗೆ ತುಳಸಿ ಮತ್ತು ಶುಂಠಿ ಬೆರೆಸಿದ ಬೆಚ್ಚಗಿನ ನೀರನ್ನು ಕುಡಿಯುವುದು ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸಿ ಮನಸ್ಸನ್ನು ಚುರುಕುಗೊಳಿಸುತ್ತದೆ.",
+          en: struggleCategory === "anger_temper"
+            ? "Consume 1 tsp pure Desi Cow Ghee or fennel-infused water on empty stomach to pacify internal digestive and mental heat."
+            : "Sip warm water infused with fresh Tulasi leaves and dry ginger to kindle gentle digestive fire and mental clarity.",
+          hi: "प्रातः खाली पेट सौंफ का पानी अथवा तुलसी का गुनगुना काढ़ा पिएं।",
+          te: "ఉదయం సోంపు నీరు లేదా తులసి కషాయం సేవించండి.",
+          ta: "காலையில் வெறும் வயிற்றில் சோம்பு நீர் அல்லது துளசி கஷாயம் அருந்தவும்."
+        }
       }
     ],
     afternoonLifestyle: [
       {
         icon: "🥗",
-        title: { kn: "ಸಾತ್ವಿಕ ಆಹಾರ ನಿಯಮ", en: "Cooling Satvic Food Discipline", hi: "सात्विक आहार नियम", te: "సాత్విక ఆహార నియమం", ta: "சாத்வீக உணவு முறை" },
-        desc: { kn: "ಅತಿಯಾದ ಖಾರ, ಹುಳಿ, ಮಸಾಲೆ ಹಾಗೂ ಎಣ್ಣೆ ಪದಾರ್ಥಗಳನ್ನು ತ್ಯಜಿಸಿ. ಮಧ್ಯಾಹ್ನ ತಂಪಾದ ಮಜ್ಜಿಗೆ (ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು ಹಾಕಿ) ಸೇವಿಸಿ.", en: "Avoid excessively spicy, pungent, acidic and fried foods. Drink fresh spiced buttermilk with coriander at noon.", hi: "अधिक मिर्च, खटाई और तले हुए भोजन से बचें। दोपहर में ताजी छाछ पिएं।", te: "అధిక కారం, పులుపు వస్తువులను తగ్గించండి. మధ్యాహ్నం మజ్జిగ త్రాగండి.", ta: "அதிக காரம், புளிப்பு உணவுகளை தவிர்க்கவும். மோர் பருகவும்." }
+        title: { kn: "ಸಾತ್ವಿಕ ಆಹಾರ ನಿಯಮ", en: "Satvic Food Discipline", hi: "सात्विक आहार नियम", te: "సాత్విక ఆహార నియమం", ta: "சாத்வீக உணவு முறை" },
+        desc: {
+          kn: "ಅತಿಯಾದ ಖಾರ, ಹುಳಿ ಹಾಗೂ ಎಣ್ಣೆ ಪದಾರ್ಥಗಳನ್ನು ತ್ಯಜಿಸಿ. ಮಧ್ಯಾಹ್ನ ತಂಪಾದ ಮಜ್ಜಿಗೆ (ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು ಹಾಕಿ) ಸೇವಿಸಿ.",
+          en: "Avoid excessively spicy, pungent, acidic, and fried foods. Drink fresh spiced buttermilk with fresh coriander at noon.",
+          hi: "अधिक मिर्च, खटाई और तले हुए भोजन से बचें। दोपहर में ताजी छाछ पिएं।",
+          te: "అధిక కారం, పులుపు వస్తువులను తగ్గించండి. మధ్యాహ్నం మజ్జిగ త్రాగండి.",
+          ta: "அதிக காரம், புளிப்பு உணவுகளை தவிர்க்கவும். மோர் பருகவும்."
+        }
       },
       {
         icon: "🧭",
         title: { kn: "ದಿಕ್ಪಾಲಕ ಸ್ಥಿತಿ ಹಾಗೂ ವಿವೇಕ", en: "Compassionate Seating Alignment", hi: "दिशा संरेखण", te: "దిశా నియమం", ta: "திசை அமைப்பு" },
-        desc: { kn: "ಕೆಲಸ ಮಾಡುವಾಗ ಅಥವಾ ವಿಶ್ರಾಂತಿ ಪಡೆಯುವಾಗ ದಕ್ಷಿಣ ದಿಕ್ಕಿಗೆ ಮುಖ ಮಾಡುವುದನ್ನು ತಪ್ಪಿಸಿ, ಯಾವಾಗಲೂ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಮುಖ ಮಾಡಿ.", en: "Face North or East while working and making crucial decisions; avoid facing direct South during heated discussions.", hi: "कार्य करते समय मुख उत्तर अथवा पूर्व दिशा में रखें।", te: "పనిచేసేటప్పుడు ఉత్తరం లేదా తూర్పు వైపు ముఖం పెట్టండి.", ta: "வேலை செய்யும் போது வடக்கு அல்லது கிழக்கு நோக்கி அமரவும்." }
+        desc: {
+          kn: "ಕೆಲಸ ಮಾಡುವಾಗ ಅಥವಾ ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳುವಾಗ ದಕ್ಷಿಣ ದಿಕ್ಕಿಗೆ ಮುಖ ಮಾಡುವುದನ್ನು ತಪ್ಪಿಸಿ, ಯಾವಾಗಲೂ ಉತ್ತರ ಅಥವಾ ಪೂರ್ವಕ್ಕೆ ಮುಖ ಮಾಡಿ.",
+          en: "Face North or East while working and making crucial decisions; avoid facing direct South during intense discussions.",
+          hi: "महत्वपूर्ण कार्य करते समय मुख उत्तर अथवा पूर्व दिशा में रखें।",
+          te: "పనిచేసేటప్పుడు ఉత్తరం లేదా తూర్పు వైపు ముఖం పెట్టండి.",
+          ta: "வேலை செய்யும் போது வடக்கு அல்லது கிழக்கு நோக்கி அமரவும்."
+        }
       }
     ],
     evening: [
       {
         time: "06:30 PM - 07:30 PM",
         icon: "🪔",
-        title: { kn: "ಸಂಧ್ಯಾ ದೀಪಾರಾಧನೆ & ಸ್ತೋತ್ರ ಪಠಣ", en: "Evening Deepa & Stotra Recitation", hi: "संध्या दीप प्रज्वलन एवं स्तोत्र पाठ", te: "సంధ్యా దీపారాధన & స్తోత్ర పఠనం", ta: "மாலை தீபாராதனை & ஸ்தோத்திரம்" },
-        desc: { kn: "ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ಎಳ್ಳೆಣ್ಣೆ ಅಥವಾ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ, ನಿಯೋಜಿತ ಸ್ತೋತ್ರವನ್ನು ಶಾಂತಚಿತ್ತದಿಂದ ಪಠಿಸಿ.", en: "Light a sesame oil or ghee lamp at twilight; sit facing North and recite the designated personalized Stotra.", hi: "संध्या समय तिल के तेल अथवा घी का दीपक जलाकर निर्धारित स्तोत्र का पाठ करें।", te: "నువ్వుల నూనె లేదా నెయ్యి దీపం వెలిగించి స్తోత్రం చదవండి.", ta: "நல்லெண்ணெய் அல்லது நெய் தீபம் ஏற்றி ஸ்தோத்திரம் படிக்கவும்." }
+        title: { kn: "ಸಂಧ್ಯಾ ದೀಪಾರಾಧನೆ & ಸ್ತೋತ್ರ ಪಠಣ", en: "Evening Deepa & Designated Stotra", hi: "संध्या दीप प्रज्वलन एवं स्तोत्र पाठ", te: "సంధ్యా దీపారాధన & స్తోత్ర పఠనం", ta: "மாலை தீபாராதனை & ஸ்தோத்திரம்" },
+        desc: {
+          kn: `ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ಎಳ್ಳೆಣ್ಣೆ ಅಥವಾ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ, ಜನ್ಮ ಕುಂಡಲಿಗೆ ನಿಗದಿತ ಸ್ತೋತ್ರವನ್ನು ಶಾಂತಚಿತ್ತದಿಂದ ಪಠಿಸಿ (${varaData.color.kn} ಉಡುಗೆ ಶ್ರೇಷ್ಠ).`,
+          en: `Light a sesame oil or cow ghee lamp at twilight; sit facing North and recite the designated personalized Stotra (wearing ${varaData.color.en}).`,
+          hi: "संध्या समय तिल के तेल अथवा घी का दीपक जलाकर निर्धारित स्तोत्र का पाठ करें।",
+          te: "నువ్వుల నూనె లేదా నెయ్యి దీపం వెలిగించి స్తోత్రం చదవండి.",
+          ta: "நல்லெண்ணெய் அல்லது நெய் தீபம் ஏற்றி ஸ்தோத்திரம் படிக்கவும்."
+        }
       },
       {
         time: "09:30 PM",
         icon: "🌙",
         title: { kn: "ರಾತ್ರಿ ಶಾಂತಿ ಧ್ಯಾನ & ಶಯನ ನಿಯಮ", en: "Night Peace Meditation & Sleep Alignment", hi: "रात्रि शांति ध्यान एवं शयन नियम", te: "రాత్రి శాంతి ధ్యానం", ta: "இரவு சாந்தி தியானம்" },
-        desc: { kn: "ಮಲಗುವ ಮುನ್ನ ೫ ನಿಮಿಷ ಕೈ-ಕಾಲು ತೊಳೆದು, ಪೂರ್ವ ಅಥವಾ ದಕ್ಷಿಣಕ್ಕೆ ತಲೆ ಇಟ್ಟು ಮಲಗಿ. ಮಲಗುವಾಗ ಮೊಬೈಲ್ ನೋಡದೆ ಶಿವನಾಮ ಸ್ಮರಿಸಿ.", en: "Wash feet with cool water; align head towards East or South during sleep; meditate on Lord Shiva before slumber.", hi: "सोने से पूर्व हाथ-पैर धोकर पूर्व या दक्षिण दिशा में सिर रखकर सोएं।", te: "పడుకునే ముందు కాళ్ళు కడుక్కుని తూర్పు వైపు తలపెట్టి నిద్రించండి.", ta: "தூங்குவதற்கு முன் கிழக்கு நோக்கி தலை வைத்து படுக்கவும்." }
+        desc: {
+          kn: "ಮಲಗುವ ಮುನ್ನ ೫ ನಿಮಿಷ ಕೈ-ಕಾಲು ತೊಳೆದು, ಪೂರ್ವ ಅಥವಾ ದಕ್ಷಿಣಕ್ಕೆ ತಲೆ ಇಟ್ಟು ಮಲಗಿ. ಮಲಗುವಾಗ ಮೊಬೈಲ್ ನೋಡದೆ ಇಷ್ಟದೇವತಾ ನಾಮ ಸ್ಮರಿಸಿ.",
+          en: "Wash feet with cool water; align head towards East or South during sleep; meditate on Ishta Devata before slumber.",
+          hi: "सोने से पूर्व हाथ-पैर धोकर पूर्व या दक्षिण दिशा में सिर रखकर सोएं।",
+          te: "పడుకునే ముందు కాళ్ళు కడుక్కుని తూర్పు వైపు తలపెట్టి నిద్రించండి.",
+          ta: "தூங்குவதற்கு முன் கிழக்கு நோக்கி தலை வைத்து படுக்கவும்."
+        }
       }
     ]
   };
 
-  // 4. Curate Personalized Stotras based on chart afflictions
+  // 6. Curate Classical Stotras dynamically matching chart afflictions
   const personalizedStotras = [];
-
-  if (krodhaLevel >= 60 || isMarsAfflicted) {
-    personalizedStotras.push({
-      id: "chandrashekhara_ashtakam",
-      title: {
-        kn: "ಶ್ರೀ ಚಂದ್ರಶೇಖರಾಷ್ಟಕಂ (ಕ್ರೋಧ & ಶತ್ರು ಭಯ ನಿವಾರಕ)",
-        en: "Shri Chandrashekhara Ashtakam (Anger & Fear Pacifier)",
-        hi: "श्री चन्द्रशेखराष्टकम् (क्रोध एवं भय नाशक)",
-        te: "శ్రీ చంద్రశేఖరాష్టకం (క్రోధ నివారణ)",
-        ta: "ஸ்ரீ சந்திரசேகராஷ்டகம் (கோப சாந்தி)"
-      },
-      dedicatedTo: { kn: "ಶ್ರೀ ಮಹಾದೇವ (ಚಂದ್ರಮೌಳೀಶ್ವರ)", en: "Lord Shiva (Chandrashekhara)", hi: "भगवान शिव", te: "పరమశివుడు", ta: "சிவபெருமான்" },
-      shlokaSanskrit: `चन्द्रशेखर चन्द्रशेखर चन्द्रशेखर पाहि माम् ।
-चन्द्रशेखर चन्द्रशेखर चन्द्रशेखर रक्ष माम् ॥
-रत्नसानुशरासनं रजताद्रिश्रृङ्गनिकेतनं
-शिञ्जिनीकृतपन्नगेश्वरमच्युतानलसायकम् ।
-क्षिप्रदग्धपुरत्रयं त्रिदिवेश्वरैरभिवन्दितं
-चन्द्रशेखरमाश्रये मम किं करिष्यति वै यमः ॥`,
-      shlokaKannada: `ಚಂದ್ರಶೇಖರ ಚಂದ್ರಶೇಖರ ಚಂದ್ರಶೇಖರ ಪಾಹಿ ಮಾಮ್ ।
-ಚಂದ್ರಶೇಖರ ಚಂದ್ರಶೇಖರ ಚಂದ್ರಶೇಖರ ರಕ್ಷ ಮಾಮ್ ॥
-ರತ್ನಸಾನುಶರಾಸನಂ ರಜತಾದ್ರಿಶೃಂಗನಿಕೇತನಂ
-ಶಿಞ್ಜಿನೀಕೃತಪನ್ನಗೇಶ್ವರಮಚ್ಯುತಾನಲಸಾಯಕಮ್ ।
-ಕ್ಷಿಪ್ರದಗ್ಧಪುರತ್ರಯಂ ತ್ರಿದಿವೇಶ್ವರೈರಭಿವಂದಿತಂ
-ಚಂದ್ರಶೇಖರಮಾಶ್ರಯೇ ಮಮ ಕಿಂ ಕರಿಷ್ಯತಿ ವೈ ಯಮಃ ॥`,
-      shlokaTelugu: `చంద్రశేఖర చంద్రశేఖర చంద్రశేఖర పాహి మామ్ ।
-చంద్రశేఖర చంద్రశేఖర చంద్రశేఖర రక్ష మామ్ ॥
-రత్నసానుశరాసనం రజతాద్రిశృంగనికేతనం
-శింజినీకృతపన్నగేశ్వరమచ్యుతానలసాయకమ్ ।
-క్షిప్రదగ్ధపురత్రయం త్రిదివేశ్వరైరభివందితం
-చంద్రశేఖరమాశ్రయే మమ కిం కరిష్యతి వై యమః ॥`,
-      shlokaTamil: `சந்த்ரசேகர சந்த்ரசேகர சந்த்ரசேகர பாஹி மாம் ।
-சந்த்ரசேகர சந்த்ரசேகர சந்த்ரசேகர ரக்ஷ மாம் ॥
-ரத்னஸானுசராஸனம் ரஜதாத்ரிச்ரும்கநிகேதனம்
-சிஞ்ஜினீக்ருதபன்னகேச்வரமச்யுதானலஸாயகம் ।
-க்ஷிப்ரதக்தபுரத்ரயம் த்ரிதிவேச்வரைரபிவந்திதம்
-சந்த்ரசேகரமாச்ரயே மம கிம் கரிஷ்யதி வை யமஃ ॥`,
-      shlokaHindi: `चन्द्रशेखर चन्द्रशेखर चन्द्रशेखर पाहि माम् ।
-चन्द्रशेखर चन्द्रशेखर चन्द्रशेखर रक्ष माम् ॥
-रत्नसानुशरासनं रजताद्रिश्रृङ्गनिकेतनं
-शिञ्जिनीकृतपन्नगेश्वरमच्युतानलसायकम् ।
-क्षिप्रदग्धपुरत्रयं त्रिदिवेश्वरैरभिवन्दितं
-चन्द्रशेखरमाश्रये मम किं करिष्यति वै यमः ॥`,
-      transliteration: "Chandrashekhara Chandrashekhara Chandrashekhara Pahi Mam | Chandrashekhara Chandrashekhara Chandrashekhara Raksha Mam || Ratnasana Sharāsanaṁ Rajatādri Shringa Nikētanaṁ...",
-      meaning: {
-        kn: "ಶಿರದಲ್ಲಿ ತಂಪಾದ ಚಂದ್ರನನ್ನು ಧರಿಸಿದ ಹೇ ಚಂದ್ರಶೇಖರ ಮಹಾದೇವನೇ, ನನ್ನ ಮನಸ್ಸಿನ ಸಮಸ್ತ ಕ್ರೋಧ, ತಾಪ, ಅಹಂಕಾರ ಮತ್ತು ಆಪತ್ತುಗಳಿಂದ ನನ್ನನ್ನು ಸದಾ ಕಾಪಾಡು.",
-        en: "O Lord Chandrashekhara, who adorns the cooling crescent moon on Thy brow, extinguish all fiery passions, anger, and mortality fear within me.",
-        hi: "मस्तक पर शीतल चन्द्रमा धारण करने वाले हे भगवान शिव, मेरे समस्त क्रोध और संताप को हरकर मेरी रक्षा करें।",
-        te: "చంద్రుని ధరించిన ఓ పరమశివా, నాలోని కోపాన్ని హరించి నన్ను రక్షించు.",
-        ta: "தலையில் சந்திரனை சூடிய சிவபெருமானே, என் கோபத்தை தணித்து காத்தருள்வீராக."
-      },
-      spiritualBenefits: {
-        kn: "ಪ್ರತಿದಿನ ಪಠಿಸುವುದರಿಂದ ರಕ್ತದೊತ್ತಡ, ತೀವ್ರ ಕೋಪ, ಶತ್ರು ಬಾಧೆ ಮತ್ತು ಅಪಮೃತ್ಯು ಭಯ ನಿವಾರಣೆಯಾಗಿ ಅಖಂಡ ಮನಶ್ಶಾಂತಿ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.",
-        en: "Instantly pacifies high blood pressure, explosive temper, enemy fears, and bestows profound serenity.",
-        hi: "रक्तचाप, तीव्र क्रोध और भय का नाश होकर परम शांति प्राप्त होती है।",
-        te: "కోపం తగ్గి సంపూర్ణ మనశ్శాంతి లభిస్తుంది.",
-        ta: "கோபத்தை குறைத்து பூரண மன அமைதியை தரும்."
-      },
-      bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಪ್ರದೋಷ ಕಾಲದಲ್ಲಿ ಅಥವಾ ಕೋಪ ಬಂದ ತಕ್ಷಣ", en: "Daily evening during twilight (Pradosha) or when feeling agitated", hi: "प्रतिदिन संध्या समय अथवा क्रोध आने पर", te: "ప్రతిరోజు సాయంత్రం లేదా కోపం వచ్చినప్పుడు", ta: "மாலை நேரத்தில் அல்லது கோபம் வரும்போது" },
-      facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕು", en: "North or East", hi: "उत्तर अथवा पूर्व दिशा", te: "ఉత్తరం లేదా తూర్పు దిశ", ta: "வடக்கு அல்லது கிழக்கு திசை" },
-      recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "प्रतिदिन १ से ३ बार", te: "రోజుకు 1 నుండి 3 సార్లు", ta: "தினமும் 1 முதல் 3 முறை" }
-    });
+  // Primary selection
+  if (struggleCategory === "anger_temper" || isMarsAfflicted) {
+    const s1 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "chandrashekhara_ashtakam");
+    if (s1) personalizedStotras.push(s1);
+    const s2 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "subrahmanya_bhujangam");
+    if (s2) personalizedStotras.push(s2);
+  } else if (struggleCategory === "mental_anxiety" || isMoonAfflicted) {
+    const s1 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "durga_saptashati_aparadha_kshamapana");
+    if (s1) personalizedStotras.push(s1);
+    const s2 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "chandrashekhara_ashtakam");
+    if (s2) personalizedStotras.push(s2);
+  } else if (struggleCategory === "career_obstacles" || isSaturnAfflicted) {
+    const s1 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "hanuman_sankata_mochana");
+    if (s1) personalizedStotras.push(s1);
+    const s2 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "aditya_hrudayam");
+    if (s2) personalizedStotras.push(s2);
+  } else {
+    const s1 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "aditya_hrudayam");
+    if (s1) personalizedStotras.push(s1);
+    const s2 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "vishnu_sahasranama_dhyana");
+    if (s2) personalizedStotras.push(s2);
   }
 
-  personalizedStotras.push({
-    id: "aditya_hrudayam",
-    title: {
-      kn: "ಶ್ರೀ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರಮ್ (ಆತ್ಮಬಲ & ವಿಜಯ ಸಿದ್ಧಿ)",
-      en: "Shri Aditya Hrudayam (Vitality & All-Obstacle Conquest)",
-      hi: "श्री आदित्य हृदय स्तोत्रम् (आत्मबल एवं विजय)",
-      te: "శ్రీ ఆదిత్య హృదయ స్తోత్రం",
-      ta: "ஸ்ரீ ஆதித்ய ஹ்ருதயம்"
-    },
-    dedicatedTo: { kn: "ಭಗವಾನ್ ಸೂರ್ಯನಾರಾಯಣ", en: "Lord Surya Narayana", hi: "भगवान सूर्य", te: "సూర్య భగవానుడు", ta: "சூரிய பகவான்" },
-    shlokaSanskrit: `ततो युद्धपरिश्रान्तं समरे चिन्तया स्थितम् ।
-रावणं चाग्रतो दृष्ट्वा युद्धाय समुपस्थितम् ॥
-दैवतैश्च समागम्य द्रष्टुमभ्यागतो रणम् ।
-उपागम्याब्रवीद्राममगस्त्यो भगवानृषिः ॥
-आदित्यहृदयं पुण्यं सर्वशत्रुविनाशनम् ।
-जयावहं जपेन्नित्यमक्षयं परमं शिवम् ॥`,
-    shlokaKannada: `ತತೋ ಯುದ್ಧಪರಿಶ್ರಾಂತಂ ಸಮರೇ ಚಿಂತಯಾ ಸ್ಥಿತಮ್ ।
-ರಾವಣಂ ಚಾಗ್ರತೋ ದೃಷ್ಟ್ವಾ ಯುದ್ಧಾಯ ಸಮುಪಸ್ಥಿತಮ್ ॥
-ದೈವತೈಶ್ಚ ಸಮಾಗಮ್ಯ ದ್ರಷ್ಟುಮಭ್ಯಾಗತೋ ರಣಮ್ ।
-ಉಪಾಗಮ್ಯಾಬ್ರವೀದ್ರಾಮಮಗಸ್ತ್ಯೋ ಭಗವಾನೃಷಿಃ ॥
-ಆದಿತ್ಯಹೃದಯಂ ಪುಣ್ಯಂ ಸರ್ವಶತ್ರುವಿನಾಶನಮ್ ।
-ಜಯಾವಹಂ ಜಪೇನ್ನಿತ್ಯಮಕ್ಷಯಂ ಪರಮಂ ಶಿವಮ್ ॥`,
-    shlokaTelugu: `తతో యుద్ధపరిశ్రాంతం సమరే చింతయా స్థితమ్ ।
-రావణం చాగ్రతో దృష్ట్వా యుద్ధాయ సముపస్థితమ్ ॥
-దైవతైశ్చ సమాగమ్య ద్రష్టుమభ్యాగతో రణమ్ ।
-ఉపాగమ్యాబ్రవీద్రామమగస్త్యో భగవానృషిః ॥
-ఆదిత్యహృదయం పుణ్యం సర్వశత్రువినాశనమ్ ।
-జయావహం జపేన్నిత్యమక్షయం పరమం శివమ్ ॥`,
-    shlokaTamil: `ததோ யுத்தபரிச்ராந்தம் ஸமரே சிந்தயா ஸ்திதம் ।
-ராவணம் சாக்ரதோ த்ருஷ்ட்வா யுத்தாய ஸமுபஸ்திதம் ॥
-தைவதைச்ச ஸமாகம்ய த்ரஷ்டுமப்யாகதோ ரணம் ।
-உபாகம்யாப்ரவீத்ராமமகஸ்த்யோ பகவான்குஷிஃ ॥
-ஆதித்யஹ்ருதயம் புண்யம் ஸர்வசத்ருவினாசனம் ।
-ஜயாவஹம் ஜபேந்நித்யமக்ஷயம் பரமம் சிவம் ॥`,
-    shlokaHindi: `ततो युद्धपरिश्रान्तं समरे चिन्तया स्थितम् ।
-रावणं चाग्रतो दृष्ट्वा युद्धाय समुपस्थितम् ॥
-दैवतैश्च समागम्य द्रष्टुमभ्यागतो रणम् ।
-उपागम्याब्रवीद्राममगस्त्यो भगवानृषिः ॥
-आदित्यहृदयं पुण्यं सर्वशत्रुविनाशनम् ।
-जयावहं जपेन्नित्यमक्षयं परमं शिवम् ॥`,
-    transliteration: "Tato Yuddha Parishrāntaṁ Samarē Chintayā Sthitam | Rāvaṇaṁ Chāgrato Dṛṣṭvā Yuddhāya Samupasthitam || Ādityahṛdayaṁ Puṇyaṁ Sarva Shatru Vināshanam...",
-    meaning: {
-      kn: "ಸರ್ವ ಶತ್ರುಗಳನ್ನು ಮತ್ತು ಆಂತರಿಕ ನಕಾರಾತ್ಮಕತೆಯನ್ನು ಭಸ್ಮ ಮಾಡಿ ವಿಜಯ ಹಾಗೂ ಆರೋಗ್ಯವನ್ನು ನೀಡುವ ಪರಮ ಪವಿತ್ರವಾದ ಆದಿತ್ಯ ಹೃದಯವನ್ನು ನಿತ್ಯವೂ ಜಪಿಸಿ.",
-      en: "Recite the all-auspicious Aditya Hrudayam, which destroys all internal and external foes, ensuring absolute triumph, vitality, and brilliance.",
-      hi: "समस्त शत्रुओं एवं नकारात्मकताओं का नाश करने वाले परम पावन आदित्य हृदय का नित्य पाठ करें।",
-      te: "సర్వ శత్రువులను నాశనం చేసి విజయాన్ని అందించే ఆదిత్య హృదయాన్ని నిత్యం జపించండి.",
-      ta: "எல்லா எதிர்ப்புகளையும் நீக்கி வெற்றி தரும் ஆதித்ய ஹ்ருதயத்தை தினமும் படிக்கவும்."
-    },
-    spiritualBenefits: {
-      kn: "ಆರೋಗ್ಯ, ಆತ್ಮವಿಶ್ವಾಸ, ಕಣ್ಣಿನ ತೇಜಸ್ಸು ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಕೀರ್ತಿ ಮತ್ತು ಗೌರವ ವೃದ್ಧಿಸುತ್ತದೆ.",
-      en: "Enhances leadership vitality, eyesight luster, immune strength, and removes chronic fatigue.",
-      hi: "आत्मबल, तेज, स्वास्थ्य एवं कार्यक्षेत्र में सफलता प्रदान करता है।",
-      te: "ఆరోగ్యం, ఆత్మవిశ్వాసం మరియు కీర్తి పెరుగుతుంది.",
-      ta: "ஆரோக்கியம், தைரியம் மற்றும் புகழ் பெருகும்."
-    },
-    bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ (ಭಾನುವಾರ ವಿಶೇಷ)", en: "Daily at sunrise (especially on Sundays)", hi: "प्रतिदिन सूर्योदय के समय (रविवार को विशेष)", te: "ప్రతిరోజు సూర్యోదయ సమయంలో", ta: "தினமும் சூரிய உதய வேளையில்" },
-    facingDirection: { kn: "ಪೂರ್ವ ದಿಕ್ಕು", en: "East", hi: "पूर्व दिशा", te: "తూర్పు దిశ", ta: "கிழக்கு திசை" },
-    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "प्रतिदिन १ से ३ बार", te: "రోజుకు 1 నుండి 3 సార్లు", ta: "தினமும் 1 முதல் 3 முறை" }
-  });
+  // Always append Aditya Hrudayam or Hanuman if not yet added to ensure 3 diverse hymns
+  for (const fallbackId of ["aditya_hrudayam", "hanuman_sankata_mochana", "vishnu_sahasranama_dhyana", "kanakadhara_stotra"]) {
+    if (personalizedStotras.length >= 3) break;
+    const item = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === fallbackId);
+    if (item && !personalizedStotras.some(p => p.id === item.id)) {
+      personalizedStotras.push(item);
+    }
+  }
 
-  personalizedStotras.push({
-    id: "hanuman_sankata_mochana",
-    title: {
-      kn: "ಸಂಕಟಮೋಚನ ಹನುಮಾನಾಷ್ಟಕಮ್ (ಸರ್ವ ಸಂಕಟ ನಿವಾರಕ)",
-      en: "Sankata Mochana Hanuman Ashtakam (All-Crisis Destroyer)",
-      hi: "संकटमोचन हनुमानाष्टकम् (सर्व संकट नाशक)",
-      te: "సంకటమోచన హనుమానాష్టకం",
-      ta: "சங்கடமோசன ஹனுமனாஷ்டகம்"
-    },
-    dedicatedTo: { kn: "ಶ್ರೀ ಆಂಜನೇಯ ಸ್ವಾಮಿ", en: "Lord Hanuman", hi: "भगवान हनुमान", te: "శ్రీ హనుమంతుడు", ta: "ஸ்ரீ ஆஞ்சநேயர்" },
-    shlokaSanskrit: `बाल समय रवि भक्ष लियो तब, तीनहुं लोक भयो अंधियारों ।
-ताहि सों त्रास भयो जग को, यह संकट काहु सों जात न टारो ॥
-देवन आनि करी बिनती तब, छांड़ि दियो रवि कष्ट निवारो ।
-को नहिं जानत है जग में कपि, संकटमोचन नाम तिहारो ॥`,
-    shlokaKannada: `ಬಾಲ ಸಮಯ ರವಿ ಭಕ್ಷ ಲಿಯೋ ತಬ, ತೀನಹುಂ ಲೋಕ ಭಯೋ ಅಂಧಿಯಾರೋಂ ।
-ತಾಹಿ ಸೋಂ ತ್ರಾಸ ಭಯೋ ಜಗ ಕೋ, ಯಹ ಸಂಕಟ ಕಾಹು ಸೋಂ ಜಾತ ನ ಟಾರೋ ॥
-ದೇವನ ಆನಿ ಕರೀ ಬಿನತೀ ತಬ, ಛಾಂಢಿ ದಿಯೋ ರವಿ ಕಷ್ಟ ನಿವಾರೋ ।
-ಕೋ ನಹಿಂ ಜಾನತ ಹೈ ಜಗ ಮೇಂ ಕಪಿ, ಸಂಕಟಮೋಚನ ನಾಮ ತಿಹಾರೋ ॥`,
-    shlokaTelugu: `బాల సమయ రవి భక్ష లియో తబ, తీనహుం లోక భయో అంధియారోం ।
-తాహి సోం త్రాస భయో జగ కో, యహ సంకట కాహు సోం జాత న టారో ॥
-దేవన ఆని కరీ బినతీ తబ, ఛాంఢి దియో రవి కష్ట నివారో ।
-కో నహిం జానత హై జగ మేం కపి, సంకటమోచన నామ తిహారో ॥`,
-    shlokaTamil: `பால ஸமய ரவி பக்ஷ லியோ தப, தீனஹும் லோக பயோ அந்தியாரோம் ।
-தாஹி ஸோம் த்ராஸ பயோ ஜக கோ, யஹ ஸங்கட காஹு ஸோம் ஜாத ந டாரோ ॥
-தேவன ஆனி கரீ பினதீ தப, சாண்டி தியோ ரவி கஷ்ட நிவாரோ ।
-கோ நஹிம் ஜானத ஹை ஜக மேம் கபி, ஸங்கடமோசன நாம திஹாரோ ॥`,
-    shlokaHindi: `बाल समय रवि भक्ष लियो तब, तीनहुं लोक भयो अंधियारों ।
-ताहि सों त्रास भयो जग को, यह संकट काहु सों जात न टारो ॥
-देवन आनि करी बिनती तब, छांड़ि दियो रवि कष्ट निवारो ।
-को नहिं जानत है जग में कपि, संकटमोचन नाम तिहारो ॥`,
-    transliteration: "Bāla Samaya Ravi Bhakṣa Liyō Taba, Tīnahuṁ Lōka Bhayō Andhiyārōṁ | Tāhi Sōṁ Trāsa Bhayō Jaga Kō, Yaha Saṅkaṭa Kāhu Sōṁ Jāta Na Tārō || Kō Nahiṁ Jānata Hai Jaga Mēṁ Kapi, Saṅkaṭamōcana Nāma Tihārō ||",
-    meaning: {
-      kn: "ಬಾಲ ಪ್ರಾಯದಲ್ಲೇ ಸೂರ್ಯನನ್ನೇ ನುಂಗಿ ಜಗತ್ತಿನ ಕತ್ತಲೆಯನ್ನು ಹಾಗೂ ಸಮಸ್ತ ದೇವತೆಗಳ ಸಂಕಟವನ್ನು ನಿವಾರಿಸಿದ ಹೇ ಸಂಕಟಮೋಚನ ಹನುಮಂತನೇ, ನನ್ನ ಸಮಸ್ತ ಕಷ್ಟ-ವಿಘ್ನಗಳನ್ನು ಪರಿಹರಿಸು.",
-      en: "O supreme Hanuman, who as a child consumed the Sun to relieve universal despair, who in this universe does not revere Thee as the Destroyer of all Crises?",
-      hi: "बाल्यावस्था में ही सूर्य को ग्रसकर तीनों लोकों का कष्ट हरने वाले हे संकटमोचन हनुमान, हमारे सभी संकटों को दूर करें।",
-      te: "సమస్త కష్టాలను హరించే ఓ సంకటమోచన హనుమా, మా సంకటాలను నివారించు.",
-      ta: "எல்லா துன்பங்களையும் போக்கும் ஸ்ரீ ஹனுமனே, என் சங்கடங்களை தீர்த்து அருள்க."
-    },
-    spiritualBenefits: {
-      kn: "ಶನಿ ಸಾಡೇಸಾತಿ, ಗ್ರಹದೋಷ, ದುಷ್ಟ ಶಕ್ತಿ ಹಾಗೂ ಮಾನಸಿಕ ಭಯ-ಆತಂಕಗಳನ್ನು ಸಂಪೂರ್ಣ ನಾಶಪಡಿಸುತ್ತದೆ.",
-      en: "Destroys Saturn Sade-Sati afflictions, evil eye, black energies, fear of failure, and grants unwavering strength.",
-      hi: "शनि साढ़ेसाती, भय, भूत-बाधा और संकटों का तत्काल निवारण करता है।",
-      te: "శని దోషాలు మరియు భయాలను తొలగిస్తుంది.",
-      ta: "சனி தோஷம் மற்றும் பயத்தை அடியோடு நீக்கும்."
-    },
-    bestTimeToRecite: { kn: "ಪ್ರತಿದಿನ ಮುಸ್ಸಂಜೆ ವೇಳೆ (ಮಂಗಳವಾರ ಮತ್ತು ಶನಿವಾರ ವಿಶೇಷ)", en: "Daily evening (especially on Tuesdays and Saturdays)", hi: "प्रतिदिन सायंकाल (मंगलवार एवं शनिवार को विशेष)", te: "ప్రతిరోజు సాయంత్రం (మంగళ, శనివారాలు విశేషం)", ta: "தினமும் மாலை வேளையில் (செவ்வாய், சனிக்கிழமைகளில் விசேஷம்)" },
-    facingDirection: { kn: "ಪೂರ್ವ ಅಥವಾ ದಕ್ಷಿಣ ದಿಕ್ಕು", en: "East or South", hi: "पूर्व अथवा दक्षिण दिशा", te: "తూర్పు లేదా దక్షిణం", ta: "கிழக்கு அல்லது தெற்கு" },
-    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೮ ಬಾರಿ", en: "1 to 8 Times Daily", hi: "प्रतिदिन १ से ८ बार", te: "రోజుకు 1 నుండి 8 సార్లు", ta: "தினமும் 1 முதல் 8 முறை" }
-  });
-
-  // 5. Active Dasha-Bhukti Analysis & Mitigation
+  // 7. Active Dasha-Bhukti Analysis & Mitigation
   const birthYmd = input.birthDate || "1993-05-31";
   const birthHm = input.birthTime || "09:25";
   const lat = input.latitude ?? 14.5479;
@@ -697,21 +2610,28 @@ export function generateKundliRemedyReport(
     }
   };
 
-  // 6. Gochara (Transit) Analysis
+  // 8. Gochara (Transit) Real-Time Calculation for all planets
   let todaysSaturnDeg = 325;
   let todaysJupiterDeg = 45;
+  let todaysRahuDeg = 330;
+  let todaysKetuDeg = 150;
   try {
     const s = siderealLongitudes(new Date(), "lahiri", "mean");
     todaysSaturnDeg = s.saturn ?? 325;
     todaysJupiterDeg = s.jupiter ?? 45;
+    todaysRahuDeg = s.rahu ?? 330;
+    todaysKetuDeg = s.ketu ?? 150;
   } catch {
     todaysSaturnDeg = 325;
     todaysJupiterDeg = 45;
+    todaysRahuDeg = 330;
+    todaysKetuDeg = 150;
   }
 
   const moonRashiIndex = moon?.rashi.index ?? 0;
   const transitSaturnRashi = degreeToRashi(todaysSaturnDeg);
   const transitJupiterRashi = degreeToRashi(todaysJupiterDeg);
+  const transitRahuRashi = degreeToRashi(todaysRahuDeg);
 
   const saturnDiff = (transitSaturnRashi.index - moonRashiIndex + 12) % 12;
   const isSadeSati = saturnDiff === 11 || saturnDiff === 0 || saturnDiff === 1;
@@ -752,6 +2672,8 @@ export function generateKundliRemedyReport(
       ta: "✅ சனி பகவானின் பாதகமான தாக்கம் தற்போது இல்லை."
     };
   }
+
+  const rahuDiff = (transitRahuRashi.index - moonRashiIndex + 12) % 12;
 
   const gocharaTransitAnalysis = {
     transitHighlights: [
@@ -808,21 +2730,139 @@ export function generateKundliRemedyReport(
           te: "గురువారం పసుపు పూలతో విష్ణు పూజ చేయండి.",
           ta: "வியாழக்கிழமை குரு வழிபாடு செய்யவும்."
         }
+      },
+      {
+        graha: PlanetName.Rahu,
+        transitSign: RASHI_NAMES_LOCALE[transitRahuRashi.english]?.en || transitRahuRashi.english,
+        houseFromMoon: rahuDiff + 1,
+        effect: [1, 7, 8, 12].includes(rahuDiff + 1) ? ("Caution" as const) : ("Benefic" as const),
+        title: {
+          kn: `ಗೋಚಾರ ರಾಹು (${RASHI_NAMES_LOCALE[transitRahuRashi.english]?.kn || transitRahuRashi.english} ರಾಶಿ)`,
+          en: `Transit Rahu in ${transitRahuRashi.english} (${rahuDiff + 1}th from Moon)`,
+          hi: `गोचर राहु (${transitRahuRashi.english})`,
+          te: `గోచార రాహువు (${transitRahuRashi.english})`,
+          ta: `கோசார ராகு (${transitRahuRashi.english})`
+        },
+        description: {
+          kn: `ರಾಹುವು ಜನ್ಮ ರಾಶಿಯಿಂದ ${rahuDiff + 1} ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಅನಿರೀಕ್ಷಿತ ತಿರುವುಗಳು ಮತ್ತು ಆಲೋಚನಾ ತೀವ್ರತೆಯನ್ನು ನೀಡುತ್ತಾನೆ.`,
+          en: `Rahu transits ${rahuDiff + 1} houses from natal Moon, requiring balanced ambition and regular grounding prayers.`,
+          hi: `राहु का गोचर मानसिक चंचलता और अप्रत्याशित बदलाव ला सकता है।`,
+          te: `రాహువు గోచారం వలన అప్రమత్తత అవసరం.`,
+          ta: `ராகு கோசாரம் மன அமைதியை சோதிக்கலாம்.`
+        },
+        remedy: {
+          kn: "ದುರ್ಗಾ ದೇವಿಗೆ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಅಥವಾ ಗೋಕರ್ಣದಲ್ಲಿ ಸರ್ಪ ಶಾಂತಿ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ.",
+          en: "Light ghee lamp to Goddess Durga; recite Durga Chalisa.",
+          hi: "मां दुर्गा को घी का दीप लगाएं।",
+          te: "దుర్గా పూజ చేయండి.",
+          ta: "துர்க்கை அம்மனுக்கு தீபம் ஏற்றவும்."
+        }
       }
     ],
     sadeSatiStatus: sadeSatiText
   };
 
-  // 7. Sacred Gokarna Mahabaleshwara Temple Remedies
+  // 9. Sacred Gokarna Mahabaleshwara Temple Remedies & Dāna (Dynamically mapped to actual dosha)
+  const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
+
+  let prescribedSevaName = {
+    kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ & ನವಗ್ರಹ ಶಾಂತಿ",
+    en: "Gokarna Atmalinga Ksheerabhisheka & Navagraha Shanti",
+    hi: "श्री महाबलेश्वर आत्मलिंग क्षीराभिषेक एवं नवग्रह शांति",
+    te: "శ్రీ మహాబలేశ్వర ఆత్మలింగ క్షీరాభిషేకం",
+    ta: "ஸ்ரீ மகாபலேஸ்வரர் ஆத்மலிங்க க்ஷீராபிஷேகம்"
+  };
+  let sevaSignificance = {
+    kn: "ರಾವಣನಿಂದ ಪ್ರತಿಷ್ಠಾಪಿಸಲ್ಪಟ್ಟ ಪರಮ ಪವಿತ್ರ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಮಾಡುವುದರಿಂದ ಜಾತಕದ ಸಮಸ್ತ ಪಿತ್ತ, ಕ್ರೋಧ ಹಾಗೂ ಗ್ರಹಪೀಡೆಗಳು ಭಸ್ಮವಾಗುತ್ತವೆ.",
+    en: "Pouring sacred milk over the primordial Atmalinga at Gokarna douses high Pitta/Mars rage and clears deep ancestral karmic blocks.",
+    hi: "परम पावन आत्मलिंग पर क्षीराभिषेक से समस्त क्रोध, ग्रह दोष एवं अशांति का नाश होता है।",
+    te: "ఆత్మలింగానికి క్షీరాభిషేకం వలన సర్వ గ్రహ దోషాలు తొలగిపోతాయి.",
+    ta: "ஆத்மலிங்கத்திற்கு பால் அபிஷேகம் செய்வதால் அனைத்து தோஷங்களும் நீங்கும்."
+  };
+  let sevaIdealDay = {
+    kn: "ಸೋಮವಾರ ಅಥವಾ ಪ್ರದೋಷ / ಮಾಸ ಶಿವರಾತ್ರಿ ದಿನ",
+    en: "Monday, Pradosha, or Masa Shivaratri",
+    hi: "सोमवार अथवा प्रदोष काल",
+    te: "సోమవారం లేదా ప్రదోష వేళ",
+    ta: "திங்கட்கிழமை அல்லது பிரதோஷ காலம்"
+  };
+
+  let donationItem = {
+    kn: "ಹಾಲು, ಸಕ್ಕರೆ, ಅಕ್ಕಿ ಅಥವಾ ಬೆಳ್ಳಿ",
+    en: "Milk, raw rice, sugar candy, or silver coin",
+    hi: "दूध, चावल, मिश्री अथवा चांदी",
+    te: "పాలు, బియ్యం, పటికబెల్లం",
+    ta: "பால், பச்சரிசி அல்லது வெள்ளி"
+  };
+  let donationDay = { kn: "ಸೋಮವಾರ", en: "Monday", hi: "सोमवार", te: "సోమవారం", ta: "திங்கட்கிழமை" };
+  let donationBeneficiary = {
+    kn: "ಗೋಶಾಲೆ (ಆಕಳುಗಳಿಗೆ ಮೇವು/ಹಾಲು) ಅಥವಾ ಬಡ ಭಕ್ತರಿಗೆ",
+    en: "Goshala (feed cows) or elderly devotees in need",
+    hi: "गौशाला में गायों को चारा अथवा जरूरतमंदों को",
+    te: "గోశాలలో ఆవులకు లేదా పేదలకు",
+    ta: "கோசாலையில் பசுக்களுக்கு அல்லது ஏழைகளுக்கு"
+  };
+
+  if (isMarsAfflicted || struggleCategory === "anger_temper") {
+    prescribedSevaName = {
+      kn: "ಗೋಕರ್ಣ ಕುಜ ಶಾಂತಿ, ತಾಮ್ರಾಭಿಷೇಕ & ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ",
+      en: "Gokarna Kuja Shanti, Copper Abhisheka & Subrahmanya Seva",
+      hi: "गोकर्ण कुज शांति, ताम्राभिषेक एवं कार्तिकेय पूजा",
+      te: "గోకర్ణ కుజ శాంతి & సుబ్రహ్మణ్య పూజ",
+      ta: "கோகர்ண குஜ சாந்தி & முருகன் பூஜை"
+    };
+    sevaSignificance = {
+      kn: "ಕುಜದೋಷ, ರಕ್ತದೊತ್ತಡ, ಆವೇಶ ಮತ್ತು ಸಂಬಂಧಗಳ ಘರ್ಷಣೆಯನ್ನು ತಗ್ಗಿಸಲು ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ತಾಮ್ರಪಾತ್ರೆಯ ಗಂಗಾಜಲ ಅಭಿಷೇಕ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.",
+      en: "Pacifies severe Manglik friction, lowers arterial agitation, and harmonizes partnerships through copper vessel abhisheka.",
+      hi: "मंगल दोष और क्रोध के शमन हेतु ताम्रपात्र से अभिषेक अत्यंत शुभ फलदायी है।",
+      te: "కుజ దోష నివారణకు తామ్రాభిషేకం శ్రేష్టం.",
+      ta: "செவ்வாய் தோஷம் தீர தாமிர பாத்திர அபிஷேகம் சிறந்தது."
+    };
+    sevaIdealDay = { kn: "ಮಂಗಳವಾರ ಅಥವಾ ಷಷ್ಠಿ ತಿಥಿ", en: "Tuesday or Shashthi Tithi", hi: "मंगलवार अथवा षष्ठी", te: "మంగళవారం లేదా షష్ఠి", ta: "செவ்வாய்க்கிழமை அல்லது சஷ்டி" };
+    donationItem = { kn: "ಕೆಂಪು ತೊಗರಿಬೇಳೆ / ಮಸೂರ್ ದಾಲ್, ಬೆಲ್ಲ ಹಾಗೂ ತಾಮ್ರದ ಪಾತ್ರೆ", en: "Red lentils (masoor dal), pure jaggery, or copper utensils", hi: "मसूर दाल, गुड़ अथवा तांबे का बर्तन", te: "ఎర్ర కందులు, బెల్లం, రాగి పాత్ర", ta: "சிவப்பு பருப்பு, வெல்லம் அல்லது செம்பு பாத்திரம்" };
+    donationDay = { kn: "ಮಂಗಳವಾರ", en: "Tuesday", hi: "मंगलवार", te: "మంగళవారం", ta: "செவ்வாய்க்கிழமை" };
+  } else if (isSaturnAfflicted || isSadeSati || isAshtamaShani) {
+    prescribedSevaName = {
+      kn: "ಗೋಕರ್ಣ ಶನಿ-ಶಿವಾಭಿಷೇಕ & ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ",
+      en: "Gokarna Shani-Shiva Tailabhisheka & Mrityunjaya Shanti",
+      hi: "गोकर्ण शनि-शिवाभिषेक एवं महामृत्युंजय तैलाभिषेक",
+      te: "గోకర్ణ శని-శివాభిషేకం",
+      ta: "கோகர்ண சனி-சிவாபிஷேகம்"
+    };
+    sevaSignificance = {
+      kn: "ಏಳೂವರೆ ವರ್ಷದ ಶನಿ ಸಾಡೇಸಾತಿ ಮತ್ತು ಅಷ್ಟಮ ಶನಿಯ ಕಠಿಣ ಕರ್ಮಬಾಧೆಗಳನ್ನು ಕರಗಿಸಿ ರಕ್ಷಣೆ ನೀಡುವ ಮಹಾಬಲೇಶ್ವರ ತೈಲಾಭಿಷೇಕ ಸೇವೆ.",
+      en: "Transmutes heavy Saturnian karmic trials, offering spiritual armor during Sade Sati and Ashtama Shani.",
+      hi: "साढ़ेसाती एवं अष्टम शनि के कष्टों से मुक्ति हेतु तैलाभिषेक परम कल्याणकारी है।",
+      te: "ఏలినాటి శని బాధలు తొలగడానికి తైలాభిషేకం శ్రేష్టం.",
+      ta: "ஏழரை சனி தாக்கம் நீங்க நல்லெண்ணெய் அபிஷேகம் சிறந்தது."
+    };
+    sevaIdealDay = { kn: "ಶನಿವಾರ ಅಥವಾ ಪ್ರದೋಷ", en: "Saturday or Pradosha", hi: "शनिवार अथवा प्रदोष", te: "శనివారం లేదా ప్రదోషం", ta: "சனிக்கிழமை அல்லது பிரதோஷம்" };
+    donationItem = { kn: "ಕಪ್ಪು ಎಳ್ಳು, ಸಾಸಿವೆ/ಎಳ್ಳೆಣ್ಣೆ ಹಾಗೂ ಕಪ್ಪು ಕಂಬಳಿ", en: "Black sesame seeds, mustard/sesame oil, or dark blanket", hi: "काले तिल, तेल अथवा काला कंबल", te: "నల్ల నువ్వులు, నువ్వుల నూనె, దుప్పటి", ta: "கருப்பு எள், நல்லெண்ணெய் அல்லது கம்பளி" };
+    donationDay = { kn: "ಶನಿವಾರ", en: "Saturday", hi: "शनिवार", te: "శనివారం", ta: "சனிக்கிழமை" };
+    donationBeneficiary = { kn: "ಅಶಕ್ತ ವೃದ್ಧರಿಗೆ ಅಥವಾ ಪೌರಕಾರ್ಮಿಕರಿಗೆ", en: "Elderly destitute or laboring workers", hi: "वृद्धों एवं जरूरतमंद श्रमिकों को", te: "వృద్ధులకు లేదా పేద కార్మికులకు", ta: "முதியவர்கள் அல்லது ஏழை தொழிலாளர்களுக்கு" };
+  } else if (isRahuKetuStrong) {
+    prescribedSevaName = {
+      kn: "ಗೋಕರ್ಣ ಸರ್ಪ ಸಂಸ್ಕಾರ, ನಾಗಪ್ರತಿಷ್ಠೆ & ಆಶ್ಲೇಷಾ ಬಲಿ",
+      en: "Gokarna Sarpa Samskara, Naga Pratishtha & Ashlesha Bali",
+      hi: "गोकर्ण सर्प संस्कार एवं नाग प्रतिष्ठा",
+      te: "గోకర్ణ సర్ప సంస్కార పూజ",
+      ta: "கோகர்ண சர்ப்ப சம்ஸ்கார பூஜை"
+    };
+    sevaSignificance = {
+      kn: "ರಾಹು-ಕೇತುಗಳ ಕಾಲಸರ್ಪ ಅಥವಾ ಸರ್ಪದೋಷದಿಂದ ಉಂಟಾಗುವ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆ ಮತ್ತು ವಂಶಾಭಿವೃದ್ಧಿ ಅಡೆತಡೆಗಳ ಪರಿಹಾರಕ್ಕೆ ಪರಮ ಶ್ರೇಷ್ಠ.",
+      en: "Clears Kala Sarpa and ancestral serpent curses, restoring domestic harmony and psychic clarity.",
+      hi: "कालसर्प और सर्प दोष निवारण हेतु गोकर्ण में नाग पूजा अत्यंत फलदायी है।",
+      te: "సర్ప దోష నివారణకు విశేష పూజ.",
+      ta: "சர்ப்ப தோஷம் நீங்க விசேஷ பூஜை."
+    };
+    sevaIdealDay = { kn: "ಪಂಚಮಿ, ಅಮಾವಾಸ್ಯೆ ಅಥವಾ ಮಂಗಳವಾರ", en: "Panchami, Amavasya, or Tuesday", hi: "पंचमी अथवा अमावस्या", te: "పంచమి లేదా అమావాస్య", ta: "பஞ்சமி அல்லது அமாவாசை" };
+    donationItem = { kn: "ಉದ್ದಿನ ಕಾಳು (ಕಪ್ಪು ಉದ್ದು), ಬೆಳ್ಳಿ ಸರ್ಪ ಅಥವಾ ವಸ್ತ್ರ", en: "Black gram (urad dal), silver serpent idol, or clothing", hi: "उड़द की दाल अथवा चांदी के नाग-नागिन", te: "మినుములు లేదా వెండి సర్పం", ta: "உளுந்து அல்லது வெள்ளி நாகர்" };
+    donationDay = { kn: "ಮಂಗಳವಾರ ಅಥವಾ ಶನಿವಾರ", en: "Tuesday or Saturday", hi: "मंगलवार अथवा शनिवार", te: "మంగళ లేదా శనివారం", ta: "செவ்வாய் அல்லது சனிக்கிழமை" };
+  }
+
   const gokarnaTempleRemedies = {
     prescribedSeva: {
-      name: {
-        kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ & ನವಗ್ರಹ ಶಾಂತಿ",
-        en: "Gokarna Atmalinga Ksheerabhisheka & Navagraha Shanti",
-        hi: "श्री महाबलेश्वर आत्मलिंग क्षीराभिषेक एवं नवग्रह शांति",
-        te: "శ్రీ మహాబలేశ్వర ఆత్మలింగ క్షీరాభిషేకం",
-        ta: "ஸ்ரீ மகாபலேஸ்வரர் ஆத்மலிங்க க்ஷீராபிஷேகம்"
-      },
+      name: prescribedSevaName,
       temple: {
         kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ ಸನ್ನಿಧಿ, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (ಕರ್ನಾಟಕ)",
         en: "Sri Mahabaleshwara Swamy Temple, Gokarna (Karnataka)",
@@ -830,20 +2870,8 @@ export function generateKundliRemedyReport(
         te: "శ్రీ మహాబలేశ్వర స్వామి దేవస్థానం, గోకర్ణ (కర్ణాటక)",
         ta: "ஸ்ரீ மகாபலேஸ்வரர் திருக்கோயில், கோகர்ணம் (கர்நாடகா)"
       },
-      significance: {
-        kn: "ರಾವಣನಿಂದ ಪ್ರತಿಷ್ಠಾಪಿಸಲ್ಪಟ್ಟ ಪರಮ ಪವಿತ್ರ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಮಾಡುವುದರಿಂದ ಜಾತಕದ ಸಮಸ್ತ ಪಿತ್ತ, ಕ್ರೋಧ ಹಾಗೂ ಗ್ರಹಪೀಡೆಗಳು ಭಸ್ಮವಾಗುತ್ತವೆ.",
-        en: "Pouring sacred milk over the primordial Atmalinga at Gokarna douses high Pitta/Mars rage and clears deep ancestral karmic blocks.",
-        hi: "परम पावन आत्मलिंग पर क्षीराभिषेक से समस्त क्रोध, ग्रह दोष एवं अशांति का नाश होता है।",
-        te: "ఆత్మలింగానికి క్షీరాభిషేకం వలన సర్వ గ్రహ దోషాలు తొలగిపోతాయి.",
-        ta: "ஆத்மலிங்கத்திற்கு பால் அபிஷேகம் செய்வதால் அனைத்து தோஷங்களும் நீங்கும்."
-      },
-      idealDay: {
-        kn: "ಸೋಮವಾರ ಅಥವಾ ಪ್ರದೋಷ / ಮಾಸ ಶಿವರಾತ್ರಿ ದಿನ",
-        en: "Monday, Pradosha, or Masa Shivaratri",
-        hi: "सोमवार अथवा प्रदोष काल",
-        te: "సోమవారం లేదా ప్రదోష వేళ",
-        ta: "திங்கட்கிழமை அல்லது பிரதோஷ காலம்"
-      }
+      significance: sevaSignificance,
+      idealDay: sevaIdealDay
     },
     rudrakshaRecommendation: {
       mukhi: {
@@ -899,25 +2927,13 @@ export function generateKundliRemedyReport(
       }
     },
     donationDaana: {
-      item: {
-        kn: "ಹಾಲು, ಸಕ್ಕರೆ, ಅಕ್ಕಿ ಅಥವಾ ತಾಮ್ರದ ಪಾತ್ರೆ",
-        en: "Milk, raw rice, sugar, or a copper vessel",
-        hi: "दूध, चावल, मिश्री अथवा तांबे का पात्र",
-        te: "పాలు, బియ్యం, రాగి పాత్ర",
-        ta: "பால், அரிசி அல்லது செம்பு பாத்திரம்"
-      },
-      day: { kn: "ಸೋಮವಾರ ಅಥವಾ ಮಂಗಳವಾರ", en: "Monday or Tuesday", hi: "सोमवार अथवा मंगलवार", te: "సోమ లేదా మంగళవారం", ta: "திங்கள் அல்லது செவ்வாய்க்கிழமை" },
-      beneficiary: {
-        kn: "ಗೋಶಾಲೆ (ಆಕಳುಗಳಿಗೆ ಮೇವು/ಹಾಲು) ಅಥವಾ ಬಡ ಭಕ್ತರಿಗೆ",
-        en: "Goshala (feed cows) or elderly devotees in need",
-        hi: "गौशाला में गायों को चारा अथवा जरूरतमंदों को",
-        te: "గోశాలలో ఆవులకు లేదా పేదలకు",
-        ta: "கோசாலையில் பசுக்களுக்கு அல்லது ஏழைகளுக்கு"
-      }
+      item: donationItem,
+      day: donationDay,
+      beneficiary: donationBeneficiary
     }
   };
 
-  // 8. Chief Priest Blessing
+  // 10. Chief Priest Blessing
   const chiefPriestBlessing = {
     priestName: {
       kn: "ವೇದಮೂರ್ತಿ ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
@@ -976,6 +2992,8 @@ export function generateKundliRemedyReport(
     instantCalmingProtocol,
     dailyPacificationRoutine,
     personalizedStotras,
+    panchangaRemedies,
+    planetaryStrengthRemedies,
     dashaBhuktiAnalysis,
     gocharaTransitAnalysis,
     gokarnaTempleRemedies,

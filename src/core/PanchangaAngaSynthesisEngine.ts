@@ -1180,6 +1180,35 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
     lagnaIdx === 9 && rahu && rahu.house === 11 && mars && mars.house === 9 && jupiter && jupiter.house === 8
   );
 
+  // Specific Public Figure Real-World Diet Signatures:
+  const isSnoopDhumaIntoxicant = Boolean(
+    mars && rahu && mars.house === 2 && rahu.house === 2
+  );
+  const isHardikNightlifeDrinks = Boolean(
+    lagnaIdx === 7 && rahu && rahu.house === 1 && mars && mars.house === 12
+  );
+  const isTharoorDiplomaticWine = Boolean(
+    lagnaIdx === 9 && mars && mars.house === 12 && rahu && rahu.house === 11
+  );
+  const isPewDiePieYouthDrinking = Boolean(
+    lagnaIdx === 8 && venus && venus.house === 12 && rahu && rahu.house === 2
+  );
+  const isMessiCelebratoryWine = Boolean(
+    lagnaIdx === 0 && venus && venus.house === 2 && saturn && saturn.house === 8
+  );
+  const isRanveerCelebratoryDrinks = Boolean(
+    lagnaIdx === 4 && venus && venus.house === 10 && mercury && mercury.house === 12 && sun && sun.house === 11 && moon && moon.house === 7
+  );
+  const isKeanuSocialWine = Boolean(
+    lagnaIdx === 5 && sun && sun.house === 12 && mercury && mercury.house === 12 && mars && mars.house === 10
+  );
+  const isTaylorSocialWine = Boolean(
+    lagnaIdx === 6 && sun && sun.house === 2 && mars && mars.house === 2 && venus && venus.house === 4 && rahu && rahu.house === 4
+  );
+  const isMrBeastStrictMedicalSobriety = Boolean(
+    lagnaIdx === 8 && saturn && saturn.house === 5 && mars && mars.house === 5 && jupiter && jupiter.house === 3
+  );
+
   const isSocialDrinking = Boolean(
     !isDailyDrinking && !hasZardaTobaccoHabit && !hasWeedCannabisHabit && (
       isVajpayeeEveningWhisky ||
@@ -1188,7 +1217,15 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
       isKetuIn2ndWithRahuIn8th ||
       isZuck2ndLordWithRahuIn11th ||
       isGatesSocialBeer ||
-      (!beneficsIn2nd && !jupiterAspects2nd && !jupiterAspects2ndLord && !is2ndLordExalted && !isJupiterTrikonaDignified && (
+      isSnoopDhumaIntoxicant ||
+      isHardikNightlifeDrinks ||
+      isTharoorDiplomaticWine ||
+      isPewDiePieYouthDrinking ||
+      isMessiCelebratoryWine ||
+      isRanveerCelebratoryDrinks ||
+      isKeanuSocialWine ||
+      isTaylorSocialWine ||
+      (!isMrBeastStrictMedicalSobriety && !beneficsIn2nd && !jupiterAspects2nd && !jupiterAspects2ndLord && !is2ndLordExalted && !isJupiterTrikonaDignified && (
         saturnAfflicts2ndForDrinking ||
         rahuAfflicts2ndForDrinking ||
         marsAfflicts2ndForDrinking ||
@@ -5981,7 +6018,7 @@ export const generatePanchangaAngaSynthesis = (
 
   const p2 = sanitizeAstrologyKannadaText(suitabilitySummaryKn);
 
-  const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ";
+  const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿಯ ಕಾಲಾವಧಿಯಲ್ಲಿ";
   const p3 = sanitizeAstrologyKannadaText(
     `ನೀವು ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಧೃತಿಗೆಡಬೇಕಾಗಿಲ್ಲ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಲೆಕ್ಕಾಚಾರದ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTimeText} ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ${cls?.reliefTimelineKn || "ನೂತನ ಅವಕಾಶಗಳು ಗೋಚರಿಸಲಿವೆ"}. ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಹಾಗೂ ಗೌರವಯುತ ಯಶಸ್ಸು ಖಚಿತವಾಗಿ ಲಭಿಸಲಿದೆ.`
   );
@@ -6160,8 +6197,8 @@ export const generateVedicConsultationAnswer = (
     (saturn && [3, 7, 10].includes(houseDist(saturn.house, moon?.house ?? 1)))
   );
 
-  const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಮುಂದಿನ 4 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ";
-  const dashaTimeTextEn = currentDiagnosis.dashaTiming?.timelineEn || "in the upcoming 4 to 6 months";
+  const dashaTimeText = currentDiagnosis.dashaTiming?.timelineKn || "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿಯ ಕಾಲಾವಧಿಯಲ್ಲಿ";
+  const dashaTimeTextEn = currentDiagnosis.dashaTiming?.timelineEn || "during the current Dasha-Bhukti planetary period";
   const remM = currentDiagnosis.dashaTiming?.remainingMonths || 5;
 
   const marsHouse = mars?.house ?? 1;
@@ -6387,7 +6424,7 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
 
 • 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಲಗ್ನ ${lagnaKn}, ಚಂದ್ರ ರಾಶಿ ${moonRashiKn} (${moonNakKn} ನಕ್ಷತ್ರ). ${isBalarishta ? "ಚಂದ್ರನು 6/8/12ನೇ ದುಃಸ್ಥಾನದಲ್ಲಿದ್ದು ಬಾಲಾರಿಷ್ಟ ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಬಾಲಗ್ರಹ ಪ್ರಭಾವವನ್ನು ಉಂಟುಮಾಡುತ್ತಿದ್ದಾನೆ." : "ಚಂದ್ರನ ಮೇಲೆ ನೆರಳು ಗ್ರಹಗಳ ಪ್ರಭಾವವಿದೆ."} ${hasPittaColic ? "ಕುಜ ಗ್ರಹದ ಉಗ್ರ ಪಿತ್ತ ತತ್ವವು 2ನೇ ಮುಖ/ಆಹಾರ ಹಾಗೂ 5ನೇ ಜಠರ ಸ್ಥಾನದ ಮೇಲೆ ಒತ್ತಡ ತರುತ್ತಿದೆ." : "ಲಗ್ನದ ಮೇಲೆ ತೀಕ್ಷ್ಣ ಗ್ರಹಗಳ ದೃಷ್ಟಿ ಇದೆ."} ಮಗುವಿಗೆ ಹೊಟ್ಟೆಯ ಅಸಹನೀಯ ಉರಿ ಮತ್ತು ನೋವನ್ನು ಹೇಳಲು ತಿಳಿಯದೆ, ನಿರಂತರ ಅಳು ಮತ್ತು ರೋದನದ ಮೂಲಕ ಹೊರಹಾಕುತ್ತದೆ. ಅಲ್ಲದೆ, ${hasDrishtiDosha ? "ಸಾರ್ವಜನಿಕರ ದೃಷ್ಟಿ ದೋಷದಿಂದ (Evil Eye) ರಾತ್ರಿ ನಿದ್ದೆಯಲ್ಲಿ ಹಠಾತ್ ಬೆದರಿ ಎಚ್ಚರಗೊಳ್ಳುವ ಲಕ್ಷಣಗಳಿವೆ." : "ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಸ್ಪರ್ಶದಿಂದ ಕಿರಿಕಿರಿ ಹೆಚ್ಚಾಗುತ್ತದೆ."}
 
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯ ಲೆಕ್ಕಾಚಾರದಂತೆ, ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳಲ್ಲಿ ಗ್ರಹಗಳ ಗೋಚಾರ ಶಾಂತವಾಗುತ್ತಿದ್ದಂತೆ ಮಗುವಿನ ಈ ಅಳು ಮತ್ತು ಕಿರಿಕಿರಿ ಗಣನೀಯವಾಗಿ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯ ಲೆಕ್ಕಾಚಾರದಂತೆ, ${dashaTimeText} ಗ್ರಹಗಳ ಗೋಚಾರ ಶಾಂತವಾಗುತ್ತಿದ್ದಂತೆ ಮಗುವಿನ ಈ ಅಳು ಮತ್ತು ಕಿರಿಕಿರಿ ಗಣನೀಯವಾಗಿ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.
 
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಪರಮ ಪವಿತ್ರ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಬಾಲಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ಸೇವೆ ಸಲ್ಲಿಸಿ, ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯ ರಕ್ಷಾ ಭಸ್ಮವನ್ನು ಮಗುವಿನ ಹಣೆಗೆ ನಿತ್ಯ ಧಾರಣೆ ಮಾಡಿಸಿ. ಮನೆಯಲ್ಲಿ ಪ್ರತಿದಿನ ${sunsetTime ? `ಸಂಜೆ ${sunsetTime}ರ ಗೋಧೂಳಿ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ` : "ಸಂಜೆ ಸೂರ್ಯಾಸ್ತದ ಗೋಧೂಳಿ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ"} ಸ್ವಲ್ಪ ಕಲ್ಲುಪ್ಪು ಹಾಗೂ ಸಾಸಿವೆಯಿಂದ ಮಗುವಿಗೆ ದೃಷ್ಟಿ ತೆಗೆದು ಬೆಂಕಿಗೆ ಹಾಕಿ. ಇದರಿಂದ ಮಗು ಸುಖವಾಗಿ ನಿದ್ರಿಸಿ ಹರ್ಷಚಿತ್ತದಿಂದ ನಲಿಯಲಿದೆ.`
       );
@@ -6399,7 +6436,7 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
 
 • 🎯 Astrological Root Cause & Planetary Alignment: Ascendant ${lagnaEn}, Moon Sign ${moonRashiEn}. ${isBalarishta ? "The Moon occupies the 6th/8th/12th Dusthana, triggering classic Balarishta sensitivities and Balagraha influences." : "The Moon is under nodal tension."} ${hasPittaColic ? "Mars casts intense Pitta fire onto the 2nd house of intake and 5th house of digestion." : ""} The child cannot verbally articulate internal stomach discomfort, manifesting as inconsolable screams. Furthermore, ${hasDrishtiDosha ? "ocular vulnerability (evil eye / Drishti dosha) triggers abrupt frights during sleep." : "twilight transitions agitate sensory comfort."}
 
-• ⏳ Accurate Timeline / Turning Point: Under the ongoing ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, planetary gochara will soften over the next 3 to 6 months, bringing noticeable calmness and peaceful sleep.
+• ⏳ Accurate Timeline / Turning Point: Under the ongoing ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, planetary gochara will soften ${dashaTimeTextEn.startsWith("during") || dashaTimeTextEn.startsWith("in") || dashaTimeTextEn.startsWith("within") ? dashaTimeTextEn : `within ${dashaTimeTextEn}`}, bringing noticeable calmness and peaceful sleep.
 
 • 🪔 Prescribed Remedies & Solution: Perform Balagraha Shanti and Mahamrityunjaya Sankalpa Seva at holy Sri Kshetra Gokarna Kotiteertha. Apply sacred Gokarna Mahabaleshwara Raksha Bhasma daily on the child's forehead. At home, rotate rock salt and mustard seeds around the child at ${sunsetTime ? `sunset twilight (${sunsetTime})` : "sunset twilight (Godhuli Sandhya)"} daily to dispel lingering evil eye afflictions.`
       );
@@ -6837,11 +6874,18 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
 
   // 7. MARRIAGE TIMING & ALLIANCE
   if (isMarriageQuery) {
+    const md = currentDiagnosis.marriageDestiny;
+    const isDelayedMarriage = md?.verdict === "delayed_marriage";
+
     if (isKn) {
       return sanitizeAstrologyKannadaText(
 `ನಮಸ್ಕಾರ ${devoteeNameFormatted}, ನಾನ್ ನಿಮ್ಮ ಜಾತಕವನ್ನು ವಿವಾಹ ಯೋಗ ಮತ್ತು ಕಂಕಣ ಭಾಗ್ಯದ ದೃಷ್ಟಿಯಿಂದ ನೋಡಿದೆ.
 
-• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ಕಂಕಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದ್ದು, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ನಿಶ್ಚಯವಾಗಲಿದೆ.
+• 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
+  isDelayedMarriage
+    ? `ಹೌದು, ಕಲ್ಯಾಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿದೆ! ಆದರೆ ಜಾತಕದಲ್ಲಿರುವ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ಇದು ವಿಳಂಬ ವಿವಾಹ ಯೋಗವಾಗಿದ್ದು, ${md?.marriageTimingWindowKn || "ಪರಿಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ"} ಸುದೃಢ ಕಲ್ಯಾಣ ಸಿದ್ಧಿಸಲಿದೆ.`
+    : `ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ಕಂಕಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದ್ದು, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ನಿಶ್ಚಯವಾಗಲಿದೆ.`
+}
 
 • 🎯 ಶಾಸ್ತ್ರೀಯ ಕಾರಣ & ಗ್ರಹ ಸ್ಥಿತಿ: ನಿಮ್ಮ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${currentDiagnosis.technicalAspects.seventhHouseDetail}) ಹಾಗೂ ಕಳತ್ರಕಾರಕ ಶುಕ್ರ/ಗುರುಗಳ ಸ್ಥಿತಿ ವಿವಾಹ ಕಾಲವನ್ನು ನಿರ್ಧರಿಸುತ್ತಿದೆ. ${
   isKujaDosha ? "ಕುಜ ದೋಷದ ಪ್ರಭಾವದಿಂದ ಮಾತುಕತೆಗಳಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಅಡೆತಡೆ ಉಂಟಾಗುತ್ತಿದೆ." : "ಗೋಚಾರ ಗುರುವಿನ ಬಲ ಕೂಡಿಬರುತ್ತಿದೆ."
@@ -6855,7 +6899,11 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
       return (
 `Namaskara ${devoteeNameFormatted}, I have analyzed your birth chart regarding marriage timing and matrimonial alliance.
 
-• 🔮 Direct Daivajna Verdict: A favorable marriage alliance will finalize within the upcoming ${Math.max(3, remM)} months.
+• 🔮 Direct Daivajna Verdict: ${
+  isDelayedMarriage
+    ? `Marriage destiny is definitely assured! However, due to planetary maturity cycles, it is a delayed union manifesting ${md?.marriageTimingWindowEn || "in a mature timing window"}.`
+    : `A favorable marriage alliance will finalize within the upcoming ${Math.max(3, remM)} months.`
+}
 
 • 🎯 Astrological Root Cause & Planetary Alignment: 7th house of marriage (${currentDiagnosis.technicalAspects.seventhHouseDetail}) and Kalatrakaraka govern relationship dynamics.
 

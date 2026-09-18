@@ -6,7 +6,7 @@ import {
 } from "../core/PanchangaAngaSynthesisEngine";
 import { calculateKundli } from "../core/KundliEngine";
 import { cleanAstrologyText } from "../pages/InstantReadingPage";
-import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra } from "../utils/kannadaAstrologyTerms";
+import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra, toKannadaVara } from "../utils/kannadaAstrologyTerms";
 
 describe("Instant Reading Dynamic 6-Field Astrologer Verbal Prompts & Synthesis Suite", () => {
   const sampleBirth1 = {
@@ -183,13 +183,22 @@ describe("Instant Reading Dynamic 6-Field Astrologer Verbal Prompts & Synthesis 
     expect(cleaned).toContain("10ನೇ");
   });
 
-  it("kannadaAstrologyTerms correctly maps Mars to Kuja and Sun to Ravi", () => {
+  it("kannadaAstrologyTerms correctly maps Mars to Kuja, Sun to Ravi, Tishya/Pushya to ತಿಷ್ಯ, and Varas", () => {
     expect(toKannadaPlanet("Mars")).toBe("ಕುಜ");
     expect(toKannadaPlanet("Sun")).toBe("ರವಿ");
     expect(toKannadaPlanet("Mangala")).toBe("ಕುಜ");
     expect(toKannadaPlanet("Surya")).toBe("ರವಿ");
     expect(toKannadaRashi("Leo")).toBe("ಸಿಂಹ");
     expect(toKannadaRashi("Cancer")).toBe("ಕರ್ಕಾಟಕ");
-    expect(toKannadaNakshatra("Pushya")).toBe("ಪುಷ್ಯ");
+    expect(toKannadaNakshatra("Tishya")).toBe("ತಿಷ್ಯ");
+    expect(toKannadaNakshatra("Pushya")).toBe("ತಿಷ್ಯ");
+    expect(toKannadaNakshatra("Hubbe")).toBe("ಹುಬ್ಬೆ");
+    expect(toKannadaNakshatra("Purva Phalguni")).toBe("ಹುಬ್ಬೆ");
+    expect(toKannadaNakshatra("Uttara")).toBe("ಉತ್ತರ");
+    expect(toKannadaNakshatra("Maghe")).toBe("ಮಘೆ");
+    expect(toKannadaVara("Sunday")).toBe("ರವಿವಾರ");
+    expect(toKannadaVara("Monday")).toBe("ಸೋಮವಾರ");
+    expect(toKannadaVara("Somavara")).toBe("ಸೋಮವಾರ");
+    expect(toKannadaVara("Ravivara")).toBe("ರವಿವಾರ");
   });
 });

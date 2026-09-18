@@ -237,6 +237,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     instantCalmingProtocol,
     dailyPacificationRoutine,
     personalizedStotras,
+    panchangaRemedies,
+    planetaryStrengthRemedies,
     dashaBhuktiAnalysis,
     gocharaTransitAnalysis,
     gokarnaTempleRemedies,
@@ -612,6 +614,40 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 ))}
               </div>
             </div>
+
+            {/* Panchanga 5-Angas Divine Anchor */}
+            {panchangaRemedies && (
+              <div
+                style={{
+                  marginTop: "8px",
+                  background: "#F0FDF4",
+                  border: "1px solid #86EFAC",
+                  borderRadius: "6px",
+                  padding: "7px 10px",
+                  fontSize: "11px",
+                  lineHeight: 1.45
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#166534", marginBottom: "3px" }}>
+                  <span>🌿 {isKn ? "ಪಂಚಾಂಗ ೫-ಅಂಗ ದೈವಿಕ ಸಾಧನೆ & ನಕ್ಷತ್ರ ವೃಕ್ಷ:" : "Panchanga 5-Anga Sacred Alignment:"}</span>
+                  <span style={{ background: "#DCFCE7", padding: "1px 6px", borderRadius: "6px", color: "#14532D" }}>
+                    {panchangaRemedies.nakshatraRemedy.nakshatraName[code] || panchangaRemedies.nakshatraRemedy.nakshatraName.kn} (ಪಾದ {panchangaRemedies.nakshatraRemedy.pada})
+                  </span>
+                </div>
+                <div style={{ color: "#14532D" }}>
+                  <span style={{ fontWeight: 800 }}>• ವೃಕ್ಷ (Sacred Tree): </span>
+                  {panchangaRemedies.nakshatraRemedy.sacredTree.kannada} ({panchangaRemedies.nakshatraRemedy.sacredTree.botanicalName}) — {panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod[code] || panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod.kn}
+                </div>
+                <div style={{ color: "#166534", marginTop: "2px" }}>
+                  <span style={{ fontWeight: 800 }}>• ತಿಥಿ & ವಾರ: </span>
+                  {panchangaRemedies.tithiRemedy.tithiName[code] || panchangaRemedies.tithiRemedy.tithiName.kn} ({panchangaRemedies.tithiRemedy.paksha} Paksha) · {panchangaRemedies.varaRemedy.dayName[code] || panchangaRemedies.varaRemedy.dayName.kn} (ಬಣ್ಣ: {panchangaRemedies.varaRemedy.dailyColor[code] || panchangaRemedies.varaRemedy.dailyColor.kn})
+                </div>
+                <div style={{ color: "#15803D", marginTop: "2px", fontWeight: 700 }}>
+                  <span style={{ fontWeight: 800 }}>• ಯೋಗ & ಕರಣ: </span>
+                  ಯೋಗ: {panchangaRemedies.yogaRemedy.yogaName[code] || panchangaRemedies.yogaRemedy.yogaName.kn} · ಕರಣ: {panchangaRemedies.karanaRemedy.karanaName[code] || panchangaRemedies.karanaRemedy.karanaName.kn}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Page 1 Footer */}
@@ -765,6 +801,41 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             >
               {gocharaTransitAnalysis.sadeSatiStatus[code] || gocharaTransitAnalysis.sadeSatiStatus.kn}
             </div>
+
+            {/* Planetary Strength, Exaltation/Debilitation & Influencer Benchmark */}
+            {planetaryStrengthRemedies && (
+              <div
+                style={{
+                  marginTop: "8px",
+                  background: "#F8FAFC",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: "6px",
+                  padding: "7px 10px",
+                  fontSize: "11px",
+                  lineHeight: 1.45
+                }}
+              >
+                <div style={{ fontWeight: 800, color: "#0F172A", marginBottom: "3px" }}>
+                  💎 {isKn ? "ಗ್ರಹಗಳ ಉಚ್ಚ / ನೀಚ ಬಲ, ನೀಚಭಂಗ ರಾಜಯೋಗ & ರತ್ನ ಮಾರ್ಗದರ್ಶನ:" : "Planetary Strength (Exaltation/Debilitation) & Gemstone Discipline:"}
+                </div>
+                {planetaryStrengthRemedies.debilitatedPlanets.length > 0 && (
+                  <div style={{ color: "#991B1B" }}>
+                    <span style={{ fontWeight: 800 }}>⚠️ ನೀಚ ಗ್ರಹ: </span>
+                    {planetaryStrengthRemedies.debilitatedPlanets.map(dp => `${dp.grahaName[code] || dp.grahaName.kn} (${dp.hasNeechaBhanga ? "ನೀಚಭಂಗ ರಾಜಯೋಗ" : "ನೀಚ"}) - ${dp.gemstoneCaution[code] || dp.gemstoneCaution.kn}`).join("; ")}
+                  </div>
+                )}
+                {planetaryStrengthRemedies.exaltedPlanets.length > 0 && (
+                  <div style={{ color: "#166534", marginTop: "2px" }}>
+                    <span style={{ fontWeight: 800 }}>⭐ ಉಚ್ಚ ಗ್ರಹ: </span>
+                    {planetaryStrengthRemedies.exaltedPlanets.map(ep => `${ep.grahaName[code] || ep.grahaName.kn} (${ep.exaltationSign[code] || ep.exaltationSign.kn}) - ${ep.blessingArea[code] || ep.blessingArea.kn}`).join("; ")}
+                  </div>
+                )}
+                <div style={{ color: "#334155", marginTop: "2px", fontSize: "10.5px" }}>
+                  <span style={{ fontWeight: 800 }}>🌐 ಇನ್‌ಫ್ಲುಯೆನ್ಸರ್ vs ಶಾಸ್ತ್ರೋಕ್ತ ತುಲನೆ: </span>
+                  {planetaryStrengthRemedies.influencerBenchmarkComparison.authenticApproach[code] || planetaryStrengthRemedies.influencerBenchmarkComparison.authenticApproach.kn}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 5: Personalized Daily Classical Stotra */}

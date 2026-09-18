@@ -86,4 +86,29 @@ describe("Kundli Remedy Engine", () => {
     expect(report.chiefPriestBlessing.phone).toBe("+91 99723 39362");
     expect(report.chiefPriestBlessing.sanskritAshirvada).toContain("स्वस्ति");
   });
+
+  it("should generate 100% dynamic Panchanga 5-Anga remedies including sacred Nakshatra tree", () => {
+    const report = generateKundliRemedyReport(mockKundliMarsAfflicted, mockInput);
+
+    expect(report.panchangaRemedies).toBeDefined();
+    expect(report.panchangaRemedies.nakshatraRemedy.sacredTree.botanicalName).toBeDefined();
+    expect(report.panchangaRemedies.nakshatraRemedy.sacredTree.kannada).toBeDefined();
+    expect(report.panchangaRemedies.nakshatraRemedy.beejaMantra.kannada).toBeDefined();
+    expect(report.panchangaRemedies.tithiRemedy.tithiName.kn).toBeDefined();
+    expect(report.panchangaRemedies.tithiRemedy.vrataAndRemedy.kn).toBeDefined();
+    expect(report.panchangaRemedies.varaRemedy.dayName.kn).toBeDefined();
+    expect(report.panchangaRemedies.varaRemedy.dailyColor.kn).toBeDefined();
+    expect(report.panchangaRemedies.yogaRemedy.yogaName.kn).toBeDefined();
+    expect(report.panchangaRemedies.karanaRemedy.karanaName.kn).toBeDefined();
+  });
+
+  it("should evaluate planetary strength (exaltation/debilitation), Neecha Bhanga, and influencer benchmark", () => {
+    const report = generateKundliRemedyReport(mockKundliMarsAfflicted, mockInput);
+
+    expect(report.planetaryStrengthRemedies).toBeDefined();
+    expect(report.planetaryStrengthRemedies.influencerBenchmarkComparison.title.kn).toContain("ಆಧುನಿಕ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಭಾವಿಗಳು");
+    expect(report.planetaryStrengthRemedies.influencerBenchmarkComparison.authenticApproach.kn).toBeDefined();
+    expect(report.planetaryStrengthRemedies.exaltedPlanets.length).toBeGreaterThanOrEqual(1); // Jupiter in Cancer is exalted!
+    expect(report.planetaryStrengthRemedies.exaltedPlanets.some(ep => ep.graha === PlanetName.Jupiter)).toBe(true);
+  });
 });

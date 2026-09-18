@@ -54,6 +54,8 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
     instantCalmingProtocol,
     dailyPacificationRoutine,
     personalizedStotras,
+    panchangaRemedies,
+    planetaryStrengthRemedies,
     dashaBhuktiAnalysis,
     gocharaTransitAnalysis,
     gokarnaTempleRemedies,
@@ -378,6 +380,110 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
       </div>
 
       {/* ====================================================================== */}
+      {/* 3. PANCHANGA 5-ANGA DIVINE REMEDIES & NAKSHATRA VRIKSHA                 */}
+      {/* ====================================================================== */}
+      {panchangaRemedies && (
+        <Card className="border border-amber-300 bg-gradient-to-b from-amber-50/50 via-white to-amber-50/30 p-5 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-amber-200 pb-2.5 gap-2">
+            <div>
+              <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
+                <span>🌿</span>
+                <span>{isKn ? "ಪಂಚಾಂಗ ೫-ಅಂಗ ದೈವಿಕ ಪರಿಹಾರಗಳು & ನಕ್ಷತ್ರ ವೃಕ್ಷ ಸಾಧನೆ" : "Panchanga 5-Anga Divine Remedies & Sacred Tree Alignment"}</span>
+              </h3>
+              <p className="text-xs text-amber-900 font-medium mt-0.5">
+                {isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ ವೃಕ್ಷ, ತಿಥಿ ವ್ರತ, ವಾರದ ಆರಾಧನೆ, ಯೋಗ & ಕರಣ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರಗಳು." : "Authentic remedies derived strictly from your natal Nakshatra sacred tree, Tithi, Vara, Yoga, and Karana."}
+              </p>
+            </div>
+            <span className="rounded-full bg-amber-800 text-amber-50 px-3 py-1 text-xs font-bold shrink-0 self-start sm:self-auto">
+              {panchangaRemedies.nakshatraRemedy.nakshatraName[selectedLang] || panchangaRemedies.nakshatraRemedy.nakshatraName.kn} (ಪಾದ {panchangaRemedies.nakshatraRemedy.pada})
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            {/* 1. Nakshatra Vriksha (Sacred Tree) */}
+            <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50/40 p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="font-extrabold text-emerald-950 text-sm flex items-center gap-1.5">
+                  <span>🌳</span>
+                  <span>{isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ ವೃಕ್ಷ (Sacred Tree):" : "Janma Nakshatra Sacred Tree:"}</span>
+                </div>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900">
+                  {panchangaRemedies.nakshatraRemedy.sacredTree.botanicalName}
+                </span>
+              </div>
+              <div className="text-emerald-900 font-bold text-sm">
+                • {panchangaRemedies.nakshatraRemedy.sacredTree[selectedLang === "en" ? "english" : selectedLang === "hi" ? "hindi" : selectedLang === "te" ? "telugu" : selectedLang === "ta" ? "tamil" : "kannada"]}
+              </div>
+              <p className="text-slate-700 leading-relaxed text-[11px]">
+                {panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod[selectedLang] || panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod.kn}
+              </p>
+              <div className="rounded-xl bg-emerald-950 text-emerald-200 p-2.5 text-center font-serif font-black text-xs">
+                {panchangaRemedies.nakshatraRemedy.beejaMantra[selectedLang === "en" ? "sanskrit" : "kannada"]}
+              </div>
+              <div className="text-[10px] text-emerald-900 font-bold">
+                🙏 {isKn ? "ದೇವತಾ ಆರಾಧನೆ:" : "Deity Worship:"} {panchangaRemedies.nakshatraRemedy.aradhana[selectedLang] || panchangaRemedies.nakshatraRemedy.aradhana.kn}
+              </div>
+            </div>
+
+            {/* 2. Tithi Vrata & Devata */}
+            <div className="rounded-2xl border-2 border-amber-300 bg-amber-50/40 p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="font-extrabold text-amber-950 text-sm flex items-center gap-1.5">
+                  <span>🌕</span>
+                  <span>{isKn ? "ಜನ್ಮ ತಿಥಿ ವ್ರತ & ಉಪಾಯ:" : "Janma Tithi Vrata & Grace:"}</span>
+                </div>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                  {panchangaRemedies.tithiRemedy.paksha} Paksha
+                </span>
+              </div>
+              <div className="text-amber-900 font-bold text-sm">
+                • {panchangaRemedies.tithiRemedy.tithiName[selectedLang] || panchangaRemedies.tithiRemedy.tithiName.kn} ({panchangaRemedies.tithiRemedy.rulingDeity[selectedLang] || panchangaRemedies.tithiRemedy.rulingDeity.kn})
+              </div>
+              <p className="text-slate-700 leading-relaxed text-[11px]">
+                {panchangaRemedies.tithiRemedy.vrataAndRemedy[selectedLang] || panchangaRemedies.tithiRemedy.vrataAndRemedy.kn}
+              </p>
+              <div className="pt-2 border-t border-amber-200 space-y-1">
+                <div className="font-bold text-amber-950 flex items-center gap-1">
+                  <span>📅</span>
+                  <span>{isKn ? "ವಾರದ ದೈವಿಕ ಸಾಧನೆ & ಶುಭ ವರ್ಣ:" : "Weekday Sadhana & Daily Color:"}</span>
+                </div>
+                <div className="text-[11px] text-slate-800 font-semibold">
+                  {panchangaRemedies.varaRemedy.dayName[selectedLang] || panchangaRemedies.varaRemedy.dayName.kn} · {isKn ? "ಬಣ್ಣ:" : "Color:"} {panchangaRemedies.varaRemedy.dailyColor[selectedLang] || panchangaRemedies.varaRemedy.dailyColor.kn}
+                </div>
+                <p className="text-[11px] text-slate-700 leading-snug">
+                  {panchangaRemedies.varaRemedy.dailySadhana[selectedLang] || panchangaRemedies.varaRemedy.dailySadhana.kn}
+                </p>
+              </div>
+            </div>
+
+            {/* 3. Yoga & Karana Shanti */}
+            <div className="rounded-2xl border border-amber-300 bg-white p-3.5 space-y-1.5 md:col-span-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="font-bold text-amber-950 flex items-center gap-1.5">
+                  <span>⚡</span>
+                  <span>{isKn ? "ಸೌರ-ಚಾಂದ್ರ ಯೋಗ & ಕರಣ ಕರ್ಮ ಫಲ:" : "Solar-Lunar Yoga & Karana Shanti:"}</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${panchangaRemedies.yogaRemedy.isAuspicious ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                    ಯೋಗ: {panchangaRemedies.yogaRemedy.yogaName[selectedLang] || panchangaRemedies.yogaRemedy.yogaName.kn}
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-800">
+                    ಕರಣ: {panchangaRemedies.karanaRemedy.karanaName[selectedLang] || panchangaRemedies.karanaRemedy.karanaName.kn} ({panchangaRemedies.karanaRemedy.tatva})
+                  </span>
+                </div>
+              </div>
+              <p className="text-slate-700 text-[11px] leading-relaxed">
+                💡 <span className="font-bold text-amber-900">{isKn ? "ಯೋಗ ಪರಿಹಾರ:" : "Yoga Shanti:"}</span> {panchangaRemedies.yogaRemedy.shantiPractice[selectedLang] || panchangaRemedies.yogaRemedy.shantiPractice.kn}
+              </p>
+              <p className="text-slate-700 text-[11px] leading-relaxed">
+                💡 <span className="font-bold text-amber-900">{isKn ? "ಕರಣ ಪರಿಹಾರ:" : "Karana Remedy:"}</span> {panchangaRemedies.karanaRemedy.karyaShanti[selectedLang] || panchangaRemedies.karanaRemedy.karyaShanti.kn}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* ====================================================================== */}
       {/* 3. PERSONALIZED DAILY STOTRA & JAPA SECTION                           */}
       {/* ====================================================================== */}
       <Card className="border border-amber-300 bg-white p-5 shadow-sm space-y-4">
@@ -512,6 +618,98 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
           {gocharaTransitAnalysis.sadeSatiStatus[selectedLang] || gocharaTransitAnalysis.sadeSatiStatus.kn}
         </div>
       </Card>
+
+      {/* ====================================================================== */}
+      {/* 5. PLANETARY STRENGTH, NEECHA BHANGA & INFLUENCER BENCHMARK           */}
+      {/* ====================================================================== */}
+      {planetaryStrengthRemedies && (
+        <Card className="border border-amber-300 bg-white p-5 shadow-sm space-y-4">
+          <div className="border-b border-amber-200 pb-2">
+            <h3 className="font-serif text-base font-bold text-amber-950 flex items-center gap-2">
+              <span>💎</span>
+              <span>{isKn ? "ಗ್ರಹಗಳ ಉಚ್ಚ / ನೀಚ ಬಲ, ನೀಚಭಂಗ ರಾಜಯೋಗ & ರತ್ನ ಎಚ್ಚರಿಕೆ" : "Planetary Strength (Exaltation / Debilitation) & Gemstone Precautions"}</span>
+            </h3>
+            <p className="text-xs text-amber-900 font-medium mt-0.5">
+              {isKn ? "ಗ್ರಹಗಳ ಪ್ರಭಾವಕ್ಕೆ ತಕ್ಕಂತೆ ಶಾಸ್ತ್ರೋಕ್ತ ರತ್ನ ಧಾರಣೆ, ನೀಚಭಂಗ ರಾಜಯೋಗ ಪರಿಶೀಲನೆ ಹಾಗೂ ಆಧುನಿಕ ಪ್ರಭಾವಿಗಳ (Influencers) ತುಲನೆ." : "Rigorous Vedic analysis of debilitation cancellation, authentic gemstones, and influencer benchmark."}
+            </p>
+          </div>
+
+          {/* Debilitated Planets */}
+          {planetaryStrengthRemedies.debilitatedPlanets.length > 0 && (
+            <div className="space-y-2.5">
+              <div className="font-extrabold text-xs text-rose-950 flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span>{isKn ? "ಕುಂಡಲಿಯಲ್ಲಿ ನೀಚ ಸ್ಥಿತಿಯಲ್ಲಿರುವ ಗ್ರಹಗಳು & ಶಾಂತಿ ಪರಿಹಾರ:" : "Debilitated Planets & Pacification Remedies:"}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {planetaryStrengthRemedies.debilitatedPlanets.map((dp, idx) => (
+                  <div key={idx} className="rounded-xl border border-rose-200 bg-rose-50/50 p-3.5 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-rose-950 text-sm">
+                        {dp.grahaName[selectedLang] || dp.grahaName.kn}
+                      </span>
+                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${dp.hasNeechaBhanga ? "bg-emerald-100 text-emerald-800" : "bg-rose-200 text-rose-900"}`}>
+                        {dp.hasNeechaBhanga ? "ನೀಚಭಂಗ ರಾಜಯೋಗ (NBRY)" : "ನೀಚ ಸ್ಥಿತಿ (Debilitated)"}
+                      </span>
+                    </div>
+                    {dp.neechaBhangaReason && (
+                      <p className="text-emerald-900 font-semibold text-[11px] leading-snug">
+                        ✨ {dp.neechaBhangaReason[selectedLang] || dp.neechaBhangaReason.kn}
+                      </p>
+                    )}
+                    <p className="text-slate-700 text-[11px] leading-snug">
+                      <span className="font-bold text-amber-900">ಶಾಂತಿ ಪರಿಹಾರ:</span> {dp.shantiRemedy[selectedLang] || dp.shantiRemedy.kn}
+                    </p>
+                    <p className="text-rose-900 font-bold text-[11px] leading-snug bg-rose-100/70 p-1.5 rounded-lg border border-rose-200">
+                      🚫 <span className="underline">ರತ್ನ ಎಚ್ಚರಿಕೆ:</span> {dp.gemstoneCaution[selectedLang] || dp.gemstoneCaution.kn}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Exalted Planets */}
+          {planetaryStrengthRemedies.exaltedPlanets.length > 0 && (
+            <div className="space-y-2.5 pt-1">
+              <div className="font-extrabold text-xs text-emerald-950 flex items-center gap-1.5">
+                <span>⭐</span>
+                <span>{isKn ? "ಕುಂಡಲಿಯಲ್ಲಿ ಉಚ್ಚ ಸ್ಥಿತಿಯಲ್ಲಿರುವ ಗ್ರಹಗಳು & ಸದ್ಬಲ ಕ್ರಿಯಾಶೀಲತೆ:" : "Exalted Planets & Positive Activation:"}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {planetaryStrengthRemedies.exaltedPlanets.map((ep, idx) => (
+                  <div key={idx} className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 space-y-1">
+                    <div className="flex items-center justify-between font-bold text-emerald-950">
+                      <span>{ep.grahaName[selectedLang] || ep.grahaName.kn} ({ep.exaltationSign[selectedLang] || ep.exaltationSign.kn})</span>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">ಉಚ್ಚ ಸ್ಥಾನ</span>
+                    </div>
+                    <p className="text-slate-700 text-[11px] leading-snug">
+                      <span className="font-bold text-emerald-900">ಆಶೀರ್ವಾದ:</span> {ep.blessingArea[selectedLang] || ep.blessingArea.kn}
+                    </p>
+                    <p className="text-amber-900 font-bold text-[11px] leading-snug">
+                      💡 ಸಾಧನೆ: {ep.activationRemedy[selectedLang] || ep.activationRemedy.kn}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Online Influencer Benchmark Comparison Box */}
+          <div className="rounded-2xl border-2 border-indigo-300 bg-indigo-50/40 p-4 space-y-2 text-xs">
+            <div className="font-extrabold text-indigo-950 flex items-center gap-2 text-sm">
+              <span>🌐</span>
+              <span>{planetaryStrengthRemedies.influencerBenchmarkComparison.title[selectedLang] || planetaryStrengthRemedies.influencerBenchmarkComparison.title.kn}</span>
+            </div>
+            <p className="text-slate-700 leading-relaxed font-medium">
+              {planetaryStrengthRemedies.influencerBenchmarkComparison.insights[selectedLang] || planetaryStrengthRemedies.influencerBenchmarkComparison.insights.kn}
+            </p>
+            <div className="rounded-xl bg-indigo-900 text-indigo-100 p-3 font-semibold leading-relaxed border border-indigo-400/50">
+              💡 {planetaryStrengthRemedies.influencerBenchmarkComparison.authenticApproach[selectedLang] || planetaryStrengthRemedies.influencerBenchmarkComparison.authenticApproach.kn}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* ====================================================================== */}
       {/* 5. GOKARNA MAHABALESHWARA TEMPLE REMEDIES & ASHIRVADA                 */}

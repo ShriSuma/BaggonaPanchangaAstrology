@@ -96,7 +96,14 @@ export const toKannadaRashi = (rashi: string | number | undefined | null): strin
 };
 
 /**
- * 27 Nakshatras in pristine Kannada Vedic nomenclature with flawless Vathakshara.
+ * 27 Authentic Baggona Panchanga Nakshatras in pristine Kannada Vedic nomenclature.
+ * 1. Ashwini (ಅಶ್ವಿನಿ), 2. Bharani (ಭರಣಿ), 3. Krittika (ಕೃತ್ತಿಕಾ), 4. Rohini (ರೋಹಿಣಿ),
+ * 5. Mrigashira (ಮೃಗಶಿರಾ), 6. Aardra (ಆರ್ದ್ರಾ), 7. Punarvasu (ಪುನರ್ವಸು), 8. Tishya (ತಿಷ್ಯ),
+ * 9. Aashlesha (ಆಶ್ಲೇಷಾ), 10. Maghe (ಮಘೆ), 11. Hubbe (ಹುಬ್ಬೆ), 12. Uttara (ಉತ್ತರ),
+ * 13. Hasta (ಹಸ್ತಾ), 14. Chitra (ಚಿತ್ರಾ), 15. Swati (ಸ್ವಾತಿ), 16. Vishakha (ವಿಶಾಖಾ),
+ * 17. Anuradha (ಅನುರಾಧಾ), 18. Jyeshta (ಜ್ಯೇಷ್ಠಾ), 19. Moola (ಮೂಲಾ), 20. Poorvashada (ಪೂರ್ವಾಷಾಢಾ),
+ * 21. Uttrashada (ಉತ್ತರಾಷಾಢಾ), 22. Shravana (ಶ್ರವಣ), 23. Dhanishta (ಧನಿಷ್ಠಾ), 24. Shatavisha (ಶತಭಿಷಾ),
+ * 25. Poorvabhadra (ಪೂರ್ವಾಭಾದ್ರ), 26. Uttrabhadra (ಉತ್ತರಾಭಾದ್ರ), 27. Revati (ರೇವತಿ)
  */
 export const KANNADA_NAKSHATRAS: string[] = [
   "ಅಶ್ವಿನಿ",
@@ -104,18 +111,18 @@ export const KANNADA_NAKSHATRAS: string[] = [
   "ಕೃತ್ತಿಕಾ",
   "ರೋಹಿಣಿ",
   "ಮೃಗಶಿರಾ",
-  "ಆರಿದ್ರಾ",
+  "ಆರ್ದ್ರಾ",
   "ಪುನರ್ವಸು",
-  "ಪುಷ್ಯ",
-  "ಆಶ್ಲೇಷ",
-  "ಮಖಾ",
-  "ಪುಬ್ಬಾ",
-  "ಉತ್ತರಾ",
+  "ತಿಷ್ಯ",
+  "ಆಶ್ಲೇಷಾ",
+  "ಮಘೆ",
+  "ಹುಬ್ಬೆ",
+  "ಉತ್ತರ",
   "ಹಸ್ತಾ",
-  "ಚಿತ್ತಾ",
+  "ಚಿತ್ರಾ",
   "ಸ್ವಾತಿ",
   "ವಿಶಾಖಾ",
-  "ಅನೂರಾಧಾ",
+  "ಅನುರಾಧಾ",
   "ಜ್ಯೇಷ್ಠಾ",
   "ಮೂಲಾ",
   "ಪೂರ್ವಾಷಾಢಾ",
@@ -123,8 +130,8 @@ export const KANNADA_NAKSHATRAS: string[] = [
   "ಶ್ರವಣ",
   "ಧನಿಷ್ಠಾ",
   "ಶತಭಿಷಾ",
-  "ಪೂರ್ವಾಭಾದ್ರಾ",
-  "ಉತ್ತರಾಭಾದ್ರಾ",
+  "ಪೂರ್ವಾಭಾದ್ರ",
+  "ಉತ್ತರಾಭಾದ್ರ",
   "ರೇವತಿ"
 ];
 
@@ -144,47 +151,58 @@ export const toKannadaNakshatra = (nak: string | number | undefined | null): str
     rohini: "ರೋಹಿಣಿ",
     mrigashira: "ಮೃಗಶಿರಾ",
     mrigasira: "ಮೃಗಶಿರಾ",
-    ardra: "ಆರಿದ್ರಾ",
-    arudra: "ಆರಿದ್ರಾ",
+    aardra: "ಆರ್ದ್ರಾ",
+    ardra: "ಆರ್ದ್ರಾ",
+    arudra: "ಆರ್ದ್ರಾ",
     punarvasu: "ಪುನರ್ವಸು",
-    pushya: "ಪುಷ್ಯ",
-    pushyami: "ಪುಷ್ಯ",
-    ashlesha: "ಆಶ್ಲೇಷ",
-    aslesha: "ಆಶ್ಲೇಷ",
-    magha: "ಮಖಾ",
-    makha: "ಮಖಾ",
-    purvaphalguni: "ಪುಬ್ಬಾ",
-    "purva phalguni": "ಪುಬ್ಬಾ",
-    pubba: "ಪುಬ್ಬಾ",
-    uttaraphalguni: "ಉತ್ತರಾ",
-    "uttara phalguni": "ಉತ್ತರಾ",
-    uttara: "ಉತ್ತರಾ",
+    tishya: "ತಿಷ್ಯ",
+    pushya: "ತಿಷ್ಯ",
+    pushyami: "ತಿಷ್ಯ",
+    aashlesha: "ಆಶ್ಲೇಷಾ",
+    ashlesha: "ಆಶ್ಲೇಷಾ",
+    aslesha: "ಆಶ್ಲೇಷಾ",
+    maghe: "ಮಘೆ",
+    magha: "ಮಘೆ",
+    makha: "ಮಘೆ",
+    hubbe: "ಹುಬ್ಬೆ",
+    pubba: "ಹುಬ್ಬೆ",
+    purvaphalguni: "ಹುಬ್ಬೆ",
+    "purva phalguni": "ಹುಬ್ಬೆ",
+    uttara: "ಉತ್ತರ",
+    uttaraphalguni: "ಉತ್ತರ",
+    "uttara phalguni": "ಉತ್ತರ",
     hasta: "ಹಸ್ತಾ",
-    chitra: "ಚಿತ್ತಾ",
+    chitra: "ಚಿತ್ರಾ",
+    chitta: "ಚಿತ್ರಾ",
     swati: "ಸ್ವಾತಿ",
     swathi: "ಸ್ವಾತಿ",
     vishakha: "ವಿಶಾಖಾ",
     visakha: "ವಿಶಾಖಾ",
-    anuradha: "ಅನೂರಾಧಾ",
-    jyeshtha: "ಜ್ಯೇಷ್ಠಾ",
+    anuradha: "ಅನುರಾಧಾ",
     jyeshta: "ಜ್ಯೇಷ್ಠಾ",
-    mula: "ಮೂಲಾ",
+    jyeshtha: "ಜ್ಯೇಷ್ಠಾ",
     moola: "ಮೂಲಾ",
+    mula: "ಮೂಲಾ",
+    poorvashada: "ಪೂರ್ವಾಷಾಢಾ",
     purvashadha: "ಪೂರ್ವಾಷಾಢಾ",
     "purva ashadha": "ಪೂರ್ವಾಷಾಢಾ",
+    uttrashada: "ಉತ್ತರಾಷಾಢಾ",
     uttarashadha: "ಉತ್ತರಾಷಾಢಾ",
     "uttara ashadha": "ಉತ್ತರಾಷಾಢಾ",
     shravana: "ಶ್ರವಣ",
     sravana: "ಶ್ರವಣ",
     dhanishta: "ಧನಿಷ್ಠಾ",
-    dhanishta1: "ಧನಿಷ್ಠಾ",
+    dhanishtha: "ಧನಿಷ್ಠಾ",
+    shatavisha: "ಶತಭಿಷಾ",
     shatabhisha: "ಶತಭಿಷಾ",
     satabhisha: "ಶತಭಿಷಾ",
     shatataraka: "ಶತಭಿಷಾ",
-    purvabhadra: "ಪೂರ್ವಾಭಾದ್ರಾ",
-    "purva bhadrapada": "ಪೂರ್ವಾಭಾದ್ರಾ",
-    uttarabhadra: "ಉತ್ತರಾಭಾದ್ರಾ",
-    "uttara bhadrapada": "ಉತ್ತರಾಭಾದ್ರಾ",
+    poorvabhadra: "ಪೂರ್ವಾಭಾದ್ರ",
+    purvabhadra: "ಪೂರ್ವಾಭಾದ್ರ",
+    "purva bhadrapada": "ಪೂರ್ವಾಭಾದ್ರ",
+    uttrabhadra: "ಉತ್ತರಾಭಾದ್ರ",
+    uttarabhadra: "ಉತ್ತರಾಭಾದ್ರ",
+    "uttara bhadrapada": "ಉತ್ತರಾಭಾದ್ರ",
     revati: "ರೇವತಿ",
     revathi: "ರೇವತಿ"
   };
@@ -195,6 +213,55 @@ export const toKannadaNakshatra = (nak: string | number | undefined | null): str
 
   return String(nak);
 };
+
+/**
+ * 7 Authentic Baggona Panchanga Varas (Weekdays).
+ * Order: Somavara, Mangalavara, Budhavara, Guruvara, Shukravara, Shanivara, Ravivara.
+ */
+export const KANNADA_VARAS: string[] = [
+  "ಸೋಮವಾರ",
+  "ಮಂಗಳವಾರ",
+  "ಬುಧವಾರ",
+  "ಗುರುವಾರ",
+  "ಶುಕ್ರವಾರ",
+  "ಶನಿವಾರ",
+  "ರವಿವಾರ"
+];
+
+export const toKannadaVara = (vara: string | number | undefined | null): string => {
+  if (vara === undefined || vara === null) return "ಸೋಮವಾರ";
+  if (typeof vara === "number") {
+    // Standard JS Sunday=0, Monday=1, ... Saturday=6
+    if (vara === 0) return "ರವಿವಾರ";
+    return KANNADA_VARAS[((vara - 1) % 7 + 7) % 7] ?? "ಸೋಮವಾರ";
+  }
+
+  const v = String(vara).trim().toLowerCase();
+  if (v.includes("ravi") || v.includes("sun") || v.includes("bhanu") || v.includes("ಆದಿ") || v.includes("ರವಿ") || v.includes("ಭಾನು") || v.includes("ஞாயிறு")) {
+    return "ರವಿವಾರ";
+  }
+  if (v.includes("soma") || v.includes("mon") || v.includes("ಸೋಮ") || v.includes("திங்கள்") || v.includes("సోమ")) {
+    return "ಸೋಮವಾರ";
+  }
+  if (v.includes("mangal") || v.includes("kuja") || v.includes("tue") || v.includes("ಮಂಗಳ") || v.includes("ಕುಜ") || v.includes("செவ்வாய்") || v.includes("మంగళ")) {
+    return "ಮಂಗಳವಾರ";
+  }
+  if (v.includes("budh") || v.includes("wed") || v.includes("ಬುಧ") || v.includes("புதன்") || v.includes("బుధ")) {
+    return "ಬುಧವಾರ";
+  }
+  if (v.includes("guru") || v.includes("brihaspati") || v.includes("thu") || v.includes("ಗುರು") || v.includes("ಬೃಹಸ್ಪತಿ") || v.includes("வியாழன்") || v.includes("గురు")) {
+    return "ಗುರುವಾರ";
+  }
+  if (v.includes("shukra") || v.includes("sukra") || v.includes("fri") || v.includes("ಶುಕ್ರ") || v.includes("வெள்ளி") || v.includes("శుక్ర")) {
+    return "ಶುಕ್ರವಾರ";
+  }
+  if (v.includes("shani") || v.includes("sani") || v.includes("sat") || v.includes("ಶನಿ") || v.includes("சனி") || v.includes("శని")) {
+    return "ಶನಿವಾರ";
+  }
+
+  return String(vara);
+};
+
 
 export const toKannadaDeity = (deity: string | undefined | null): string => {
   if (!deity) return "ಶ್ರೀ ಪರಮಶಿವ";
@@ -330,35 +397,64 @@ export function sanitizeAstrologyKannadaText(text: string): string {
     [/\bCapricorn\b/gi, "ಮಕರ"],
     [/\bAquarius\b/gi, "ಕುಂಭ"],
     [/\bPisces\b/gi, "ಮೀನ"],
-    // English Nakshatras
+    // English Nakshatras -> Pristine Baggona Kannada
     [/\bAshwini\b/gi, "ಅಶ್ವಿನಿ"],
     [/\bBharani\b/gi, "ಭರಣಿ"],
     [/\bKrittika\b/gi, "ಕೃತ್ತಿಕಾ"],
     [/\bRohini\b/gi, "ರೋಹಿಣಿ"],
     [/\bMrigashira\b/gi, "ಮೃಗಶಿರಾ"],
-    [/\bArdra\b/gi, "ಆರಿದ್ರಾ"],
+    [/\bAardra\b/gi, "ಆರ್ದ್ರಾ"],
+    [/\bArdra\b/gi, "ಆರ್ದ್ರಾ"],
     [/\bPunarvasu\b/gi, "ಪುನರ್ವಸು"],
-    [/\bPushya\b/gi, "ಪುಷ್ಯ"],
-    [/\bAshlesha\b/gi, "ಆಶ್ಲೇಷ"],
-    [/\bMagha\b/gi, "ಮಖಾ"],
-    [/\bPubba\b/gi, "ಪುಬ್ಬಾ"],
-    [/\bUttara\b/gi, "ಉತ್ತರಾ"],
+    [/\bTishya\b/gi, "ತಿಷ್ಯ"],
+    [/\bPushya\b/gi, "ತಿಷ್ಯ"],
+    [/\bAashlesha\b/gi, "ಆಶ್ಲೇಷಾ"],
+    [/\bAshlesha\b/gi, "ಆಶ್ಲೇಷಾ"],
+    [/\bMaghe\b/gi, "ಮಘೆ"],
+    [/\bMagha\b/gi, "ಮಘೆ"],
+    [/\bHubbe\b/gi, "ಹುಬ್ಬೆ"],
+    [/\bPubba\b/gi, "ಹುಬ್ಬೆ"],
+    [/\bPurva Phalguni\b/gi, "ಹುಬ್ಬೆ"],
+    [/\bUttara Phalguni\b/gi, "ಉತ್ತರ"],
+    [/\bUttara\b/gi, "ಉತ್ತರ"],
     [/\bHasta\b/gi, "ಹಸ್ತಾ"],
-    [/\bChitra\b/gi, "ಚಿತ್ತಾ"],
+    [/\bChitra\b/gi, "ಚಿತ್ರಾ"],
     [/\bSwati\b/gi, "ಸ್ವಾತಿ"],
     [/\bVishakha\b/gi, "ವಿಶಾಖಾ"],
-    [/\bAnuradha\b/gi, "ಅನೂರಾಧಾ"],
+    [/\bAnuradha\b/gi, "ಅನುರಾಧಾ"],
+    [/\bJyeshta\b/gi, "ಜ್ಯೇಷ್ಠಾ"],
     [/\bJyeshtha\b/gi, "ಜ್ಯೇಷ್ಠಾ"],
     [/\bMoola\b/gi, "ಮೂಲಾ"],
     [/\bMula\b/gi, "ಮೂಲಾ"],
+    [/\bPoorvashada\b/gi, "ಪೂರ್ವಾಷಾಢಾ"],
     [/\bPurvashadha\b/gi, "ಪೂರ್ವಾಷಾಢಾ"],
+    [/\bUttrashada\b/gi, "ಉತ್ತರಾಷಾಢಾ"],
     [/\bUttarashadha\b/gi, "ಉತ್ತರಾಷಾಢಾ"],
     [/\bShravana\b/gi, "ಶ್ರವಣ"],
     [/\bDhanishta\b/gi, "ಧನಿಷ್ಠಾ"],
+    [/\bShatavisha\b/gi, "ಶತಭಿಷಾ"],
     [/\bShatabhisha\b/gi, "ಶತಭಿಷಾ"],
-    [/\bPurvabhadra\b/gi, "ಪೂರ್ವಾಭಾದ್ರಾ"],
-    [/\bUttarabhadra\b/gi, "ಉತ್ತರಾಭಾದ್ರಾ"],
+    [/\bPoorvabhadra\b/gi, "ಪೂರ್ವಾಭಾದ್ರ"],
+    [/\bPurvabhadra\b/gi, "ಪೂರ್ವಾಭಾದ್ರ"],
+    [/\bUttrabhadra\b/gi, "ಉತ್ತರಾಭಾದ್ರ"],
+    [/\bUttarabhadra\b/gi, "ಉತ್ತರಾಭಾದ್ರ"],
     [/\bRevati\b/gi, "ರೇವತಿ"],
+    // Weekdays (Varas)
+    [/\bSomavara\b/gi, "ಸೋಮವಾರ"],
+    [/\bMonday\b/gi, "ಸೋಮವಾರ"],
+    [/\bMangalavara\b/gi, "ಮಂಗಳವಾರ"],
+    [/\bTuesday\b/gi, "ಮಂಗಳವಾರ"],
+    [/\bBudhavara\b/gi, "ಬುಧವಾರ"],
+    [/\bWednesday\b/gi, "ಬುಧವಾರ"],
+    [/\bGuruvara\b/gi, "ಗುರುವಾರ"],
+    [/\bThursday\b/gi, "ಗುರುವಾರ"],
+    [/\bShukravara\b/gi, "ಶುಕ್ರವಾರ"],
+    [/\bFriday\b/gi, "ಶುಕ್ರವಾರ"],
+    [/\bShanivara\b/gi, "ಶನಿವಾರ"],
+    [/\bSaturday\b/gi, "ಶನಿವಾರ"],
+    [/\bRavivara\b/gi, "ರವಿವಾರ"],
+    [/\bSunday\b/gi, "ರವಿವಾರ"],
+    [/\bBhanuvara\b/gi, "ರವಿವಾರ"],
     // Common English Phrases
     [/Next (\d+) to (\d+) Months/gi, "ಮುಂದಿನ $1 ರಿಂದ $2 ತಿಂಗಳುಗಳಲ್ಲಿ"],
     [/Next (\d+) Months/gi, "ಮುಂದಿನ $1 ತಿಂಗಳುಗಳಲ್ಲಿ"],

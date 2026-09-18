@@ -14,6 +14,21 @@ import { askGemini } from "../core/GeminiEngine";
 import { stopAllAudioGlobal } from "../features/audio/globalAudioManager";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
+import { generatePDFFromElement } from "../utils/pdfGenerator";
+import InstantReadingPdfTemplate from "../components/instantReading/InstantReadingPdfTemplate";
+import { PDF_LANGUAGES, type SupportedPdfLang } from "../components/instantReading/instantReadingPdfLocale";
+
+const hiddenHost: React.CSSProperties = {
+  position: "fixed",
+  left: 0,
+  top: 0,
+  width: 900,
+  opacity: 0,
+  pointerEvents: "none",
+  zIndex: -1,
+  overflow: "hidden",
+  height: 0
+};
 
 /**
  * Sanitizes astrology text to guarantee clean presentation:
@@ -56,6 +71,12 @@ export default function InstantReadingPage(): JSX.Element {
   const [qaHistory, setQaHistory] = useState<{ question: string; answer: string }[]>([]);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+
+  // PDF Export State & 6-Language Support
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isPdfLangModalOpen, setIsPdfLangModalOpen] = useState(false);
+  const [pdfLanguage, setPdfLanguage] = useState<SupportedPdfLang>("kn");
+  const [pdfStatusMessage, setPdfStatusMessage] = useState("");
 
   const isKn = i18n.language.startsWith("kn");
 
@@ -434,6 +455,37 @@ STRICT RULES:
     siddhaPariharaRemedyKn: isKn ? currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn : (currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyEn || currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn)
   } : null);
 
+  const handleDownloadPdf = async (chosenLang: SupportedPdfLang) => {
+    if (!synthesisData || isGeneratingPdf) return;
+    setIsPdfLangModalOpen(false);
+    setIsGeneratingPdf(true);
+    setPdfLanguage(chosenLang);
+    setPdfStatusMessage(
+      isKn
+        ? "ದೈವಜ್ಞ ಮುಖ್ಯಾಂಶಗಳು ಹಾಗೂ ಶಾಸ್ತ್ರೋಕ್ತ ಫಲಿತಾಂಶಗಳ A4 PDF ಮುದ್ರಣ ಪ್ರಕ್ರಿಯೆ..."
+        : "Rendering Baggona Panchanga A4 Executive Astrological PDF..."
+    );
+
+    try {
+      // Allow React to re-render DOM with the updated language in the hidden container
+      await new Promise((resolve) => setTimeout(resolve, 450));
+
+      const cleanName = (session?.input?.name || "Devotee").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
+      const fileName = `Baggona_Instant_Reading_${cleanName}_${chosenLang.toUpperCase()}.pdf`;
+
+      await generatePDFFromElement("instant-reading-pdf-container", fileName);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert(
+        isKn
+          ? "PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ ಕಂಡುಬಂದಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ."
+          : "Failed to generate PDF. Please try again."
+      );
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl space-y-6 animate-fade-in pb-16">
       {/* TOP NAVIGATION & MODE BAR */}
@@ -446,9 +498,25 @@ STRICT RULES:
           <span>{isKn ? "ಕುಂಡಲಿಗೆ ಹಿಂತಿರುಗಿ (Back to Kundali)" : "Back to Kundali"}</span>
         </button>
 
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-900 text-xs font-bold">
-          <span>🔮</span>
-          <span>{isKn ? "ದೈವಜ್ಞ ನೇರ ಸಮಾಲೋಚನೆ & ತ್ವರಿತ ದರ್ಶನ" : "Live Astrologer Consultation Desk"}</span>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* A4 PDF Download Button */}
+          <button
+            onClick={() => setIsPdfLangModalOpen(true)}
+            disabled={!synthesisData || isGeneratingPdf}
+            className="inline-flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-amber-950 font-black text-xs md:text-sm hover:scale-105 hover:shadow-lg shadow-md transition-all border-2 border-amber-500 cursor-pointer disabled:opacity-50"
+            title="Download A4 Executive Astrological PDF"
+          >
+            <span className="text-base">📜</span>
+            <span>{isKn ? "A4 PDF ಡೌನ್‌ಲೋಡ್" : "Download A4 PDF"}</span>
+            <span className="px-2 py-0.5 rounded-md bg-amber-950/10 text-[10px] font-black uppercase tracking-wider">
+              {pdfLanguage}
+            </span>
+          </button>
+
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-900 text-xs font-bold">
+            <span>🔮</span>
+            <span>{isKn ? "ದೈವಜ್ಞ ನೇರ ಸಮಾಲೋಚನೆ & ತ್ವರಿತ ದರ್ಶನ" : "Live Astrologer Consultation Desk"}</span>
+          </div>
         </div>
       </div>
 
@@ -599,7 +667,7 @@ STRICT RULES:
                       ? cls
                         ? `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿ ಗೋಚರಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಪರಿಸ್ಥಿತಿ: ${cleanAstrologyText(cls.headlineKn)}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಅವಧಿಯಲ್ಲಿ, ${cleanAstrologyText(cls.detailedRealityKn)}. ಈ ಸಂಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
                         : (isAcuteCrisis
-                          ? `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ಕಾಡುತ್ತಿರುವ ಈ ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.areaKn || currentDiagnosis.primaryLifeChallenge.area)} ವಿಷಯದ ಬಗ್ಗೆ ನಾವು ಮಾತನಾಡಲೇಬೇಕು. ಈ ಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
+                          ? `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಉಳಿದೆಲ್ಲ ವಿಷಯಗಳಿಗಿಂತ ಮೊದಲು ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ಕಾಡುತ್ತಿರುವ ಈ ${cleanAstrologyText(currentDiagnosis.primaryLifeChallenge.areaKn || toKannadaChallengeArea(currentDiagnosis.primaryLifeChallenge.area))} ವಿಷಯದ ಬಗ್ಗೆ ನಾವು ಮಾತನಾಡಲೇಬೇಕು. ಈ ಕಷ್ಟದಿಂದ ಶೀಘ್ರವಾಗಿ ಹೊರಬರಲು ಗ್ರಹಗಳ ನೈಜ ಸ್ಥಿತಿ, ಬಿಕ್ಕಟ್ಟು ಮುಕ್ತವಾಗುವ ನಿಖರ ಕಾಲಾವಧಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`
                           : `ನಮಸ್ಕಾರ ${session.input.name || (isChild ? "ಮಗುವಿನ ಪೋಷಕರೇ" : "ಭಕ್ತರೇ")}, ನಿಮ್ಮ ${toKannadaRashi(session.result.lagnaRashi.english)} ಲಗ್ನ ಮತ್ತು ${toKannadaRashi(session.result.moonSign.english)} ರಾಶಿಯ (${toKannadaNakshatra(session.result.planets.find(p => p.name === "Moon")?.nakshatra.english) || ""} ನಕ್ಷತ್ರ) ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಜೀವಿತ ಘಟ್ಟದಲ್ಲಿ ನಿಮ್ಮ ದಶಾ-ಗೋಚಾರ ಸ್ಥಿತಿ ಹಾಗೂ ಮುನ್ನಡೆಯ ಮಾರ್ಗೋಪಾಯ ಇಲ್ಲಿದೆ:`)
                       : cls
                       ? `Namaskara ${session.input.name || (isChild ? "Parents" : "Devotee")}, reviewing your ${session.result.lagnaRashi.english} Ascendant and ${session.result.moonSign.english} Moon sign deeply, your paramount real-life situation is: ${cleanAstrologyText(cls.headlineEn)}. Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, ${cleanAstrologyText(cls.detailedRealityEn)}. Here is the astrological root cause, relief timeline, and sacred exit strategy:`
@@ -1464,8 +1532,8 @@ STRICT RULES:
                     </div>
                     <p className="text-stone-800 text-xs sm:text-sm leading-relaxed font-medium">
                       {isKn
-                        ? "ಶನಿ, ರಾಹು ಅಥವಾ ಕೇತು ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದ ಕಲ್ಯಾಣ ಕಾಲ ವಿಳಂಬವಾಗುತ್ತದೆಯೇ ವಿನಃ, ದಾಂಪತ್ಯ ಭಾಗ್ಯ ಶಾಶ್ವತವಾಗಿ ನಿರಾಕರಿಸಲ್ಪಟ್ಟಿಲ್ಲ. ಸೂಕ್ತ ವಯಸ್ಸಿನಲ್ಲಿ ದೈವಿಕ ಸಂಕಲ್ಪ, ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ ಹಾಗೂ ಸಕಾಲದ ಪ್ರಯತ್ನದಿಂದ ದಾಂಪತ್ಯ ಜೀವನ ಸಿದ್ಧಿಸಲಿದೆ."
-                        : "Planetary aspects of Saturn, Rahu, or Ketu indicate a delayed timing window, not denial of marriage. With proper spiritual remedies and conscious effort, fruitful marital destiny manifests."}
+                        ? `${md.delayFactorsKn && md.delayFactorsKn.length > 0 ? md.delayFactorsKn.map(f => f.split("—")[0].trim()).join(", ") : "ಜಾತಕದ ಗ್ರಹಗಳ"} ಪ್ರಭಾವದಿಂದ ಕಲ್ಯಾಣ ಕಾಲ ವಿಳಂಬವಾಗುತ್ತದೆಯೇ ವಿನಃ, ದಾಂಪತ್ಯ ಭಾಗ್ಯ ಶಾಶ್ವತವಾಗಿ ನಿರಾಕರಿಸಲ್ಪಟ್ಟಿಲ್ಲ. ಸೂಕ್ತ ವಯಸ್ಸಿನಲ್ಲಿ ದೈವಿಕ ಸಂಕಲ್ಪ, ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ ಹಾಗೂ ಸಕಾಲದ ಪ್ರಯತ್ನದಿಂದ ದಾಂಪತ್ಯ ಜೀವನ ಸಿದ್ಧಿಸಲಿದೆ.`
+                        : `${md.delayFactorsEn && md.delayFactorsEn.length > 0 ? md.delayFactorsEn.map(f => f.split("—")[0].trim()).join(", ") : "Planetary influences"} indicate a delayed timing window, not denial of marriage. With proper spiritual remedies and conscious effort, fruitful marital destiny manifests.`}
                     </p>
                   </div>
                 )}
@@ -2727,6 +2795,116 @@ STRICT RULES:
             </button>
           </div>
         </>
+      )}
+
+      {/* 🚨 SCREEN-BLOCKING INTERACTIVE LOADER OVERLAY 🚨 */}
+      {isGeneratingPdf && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-stone-950/85 backdrop-blur-md text-center p-6 select-none animate-fade-in"
+        >
+          <div className="relative p-8 rounded-3xl bg-gradient-to-b from-amber-950/90 via-stone-900/95 to-black/95 border-2 border-amber-400/70 shadow-[0_0_50px_rgba(245,158,11,0.35)] max-w-md w-full flex flex-col items-center text-amber-100">
+            <GrahaSpinner size="lg" message="" />
+            <h3 className="mt-4 text-xl font-serif font-black text-amber-300 tracking-wide">
+              ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ ॥
+            </h3>
+            <p className="mt-2 text-xs font-medium text-amber-200/90 tracking-wide leading-relaxed">
+              {pdfStatusMessage || "100% ಶಾಸ್ತ್ರೋಕ್ತ ಫಲಿತಾಂಶ ಹಾಗೂ ದೈವಜ್ಞ ಮುಖ್ಯಾಂಶಗಳ A4 PDF ಮುದ್ರಣಗೊಳ್ಳುತ್ತಿದೆ..."}
+            </p>
+            <div className="mt-5 w-full bg-stone-800/80 rounded-full h-2.5 overflow-hidden border border-amber-500/30">
+              <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 h-full rounded-full animate-pulse w-full" />
+            </div>
+            <div className="mt-3 flex items-center justify-center gap-2 text-[11px] text-amber-400/90 font-bold">
+              <span>✨</span>
+              <span>A4 Executive Print Edition ({PDF_LANGUAGES.find((l) => l.code === pdfLanguage)?.label || "Kannada"})</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🌐 6-LANGUAGE PDF EXPORT SELECTION MODAL 🌐 */}
+      {isPdfLangModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[99990] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
+        >
+          <div className="bg-gradient-to-b from-amber-50 via-white to-amber-50/90 border-2 border-amber-400 rounded-3xl p-6 max-w-md w-full shadow-2xl text-stone-900 space-y-4">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider font-black text-amber-900 block">
+                  ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ A4 ಮುದ್ರಣ ॥
+                </span>
+                <h3 className="text-lg font-black text-amber-950 font-serif">
+                  {isKn ? "ವರದಿ ಭಾಷೆ ಆಯ್ಕೆ ಮಾಡಿ" : "Select Report Language"}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsPdfLangModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 font-black text-sm flex items-center justify-center transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-stone-600 leading-relaxed">
+              {isKn
+                ? "ದೈವಜ್ಞ ಮುಖ್ಯಾಂಶಗಳು ಹಾಗೂ ಪಂಚಾಂಗ ವಿಶ್ಲೇಷಣೆಯನ್ನು ಕೆಳಗಿನ ಯಾವುದೇ 6 ಭಾಷೆಗಳಲ್ಲಿ ಮುದ್ರಿಸಬಹುದು:"
+                : "Choose your preferred language for the A4 executive reading and Vedic consultation report:"}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2.5 py-1">
+              {PDF_LANGUAGES.map((langOpt) => {
+                const isSelected = pdfLanguage === langOpt.code;
+                return (
+                  <button
+                    key={langOpt.code}
+                    onClick={() => setPdfLanguage(langOpt.code)}
+                    className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer text-left ${
+                      isSelected
+                        ? "border-amber-500 bg-amber-100/90 text-amber-950 shadow-md ring-2 ring-amber-400/40"
+                        : "border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 text-stone-800"
+                    }`}
+                  >
+                    <span className="text-xl">{langOpt.flagEmoji}</span>
+                    <div>
+                      <div className="text-xs font-black">{langOpt.nativeScript}</div>
+                      <div className="text-[10px] text-stone-500">{langOpt.label}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-amber-200">
+              <button
+                onClick={() => setIsPdfLangModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-stone-600 hover:bg-stone-100 text-xs font-bold transition-all cursor-pointer"
+              >
+                {isKn ? "ರದ್ದುಗೊಳಿಸಿ" : "Cancel"}
+              </button>
+              <button
+                onClick={() => void handleDownloadPdf(pdfLanguage)}
+                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-neutral-950 text-xs font-black shadow-md hover:scale-105 transition-all border border-amber-400 cursor-pointer"
+              >
+                {isKn ? "📥 ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ" : "📥 Download PDF"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HIDDEN A4 PDF RENDER HOST (Adheres strictly to baggona-pdf-layout-guard) */}
+      {synthesisData && (
+        <div id="instant-reading-pdf-container" style={hiddenHost} aria-hidden>
+          <InstantReadingPdfTemplate
+            synthesisData={synthesisData}
+            session={session}
+            aiNarration={aiNarration}
+            lang={pdfLanguage}
+          />
+        </div>
       )}
     </div>
   );
