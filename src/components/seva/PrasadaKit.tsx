@@ -15,6 +15,8 @@ import { registerCalendarAtGeneration } from "../../features/seva/calendarVisitS
 import { T, pick, SHLOKA_SHANTI, type L5 } from "../../features/seva/sevaLocale";
 import { todayYmd } from "../../features/seva/sevaPresentation";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
+import { transliterateName } from "../../utils/transliterator";
+import { formatPoojaName } from "../../features/seva/formatPoojaName";
 import { SEVA_CATALOG, type SevaId } from "../../data/gokarnaSevas";
 import { transliterateNameWithAI, fetchPoojaDetailsWithAI } from "../../features/seva/sevaGenAI";
 import {
@@ -354,11 +356,11 @@ export default function PrasadaKit({
           id: "custom_pooja" as SevaId,
           icon: "🪔",
           name: {
-            kn: cleanName,
-            en: cleanName,
-            hi: cleanName,
-            te: cleanName,
-            ta: cleanName
+            kn: transliterateName(cleanName, "kn"),
+            en: transliterateName(cleanName, "en"),
+            hi: transliterateName(cleanName, "hi"),
+            te: transliterateName(cleanName, "te"),
+            ta: transliterateName(cleanName, "ta")
           },
           purpose: {
             kn: "ಭಕ್ತರ ಸಂಕಲ್ಪಾನುಸಾರ ನೆರವೇರಿಸಲಾದ ದೈವಿಕ ಆರಾಧನೆ ಹಾಗೂ ಪರಿಹಾರ ಸೇವೆ.",
@@ -421,14 +423,12 @@ export default function PrasadaKit({
 
   const chosenPoojaName = useMemo(() => {
     if (customPoojaMode && customPoojaName.trim()) {
-      return customPoojaName.trim();
+      return transliterateName(customPoojaName.trim(), pdfLang);
     }
-    if (chosenSeva?.seva?.name) {
-      if (typeof chosenSeva.seva.name === "object") {
-        return (chosenSeva.seva.name as any)[pdfLang] || chosenSeva.seva.name.en || chosenSeva.seva.name.kn || "Seva";
-      }
+    if (chosenSeva) {
+      return formatPoojaName(chosenSeva, pdfLang);
     }
-    return (chosenSeva as any)?.label || chosenSeva?.seva?.id || "Seva";
+    return "Seva";
   }, [chosenSeva, pdfLang, customPoojaMode, customPoojaName]);
 
   // Fetch AI details whenever a new Pooja is selected or the PDF language changes

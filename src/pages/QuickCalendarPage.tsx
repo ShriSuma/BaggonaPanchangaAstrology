@@ -17,6 +17,7 @@ import {
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import { calculateKundli } from "../core/KundliEngine";
 import { transliterateName } from "../utils/transliterator";
+import { formatPoojaName } from "../features/seva/formatPoojaName";
 import type { RhythmDay, RhythmResult } from "../core/DailyRhythmEngine";
 
 const RASHI_NAMES = RASHI_L5.map(r => r.kn || r.en);
@@ -262,15 +263,27 @@ export default function QuickCalendarPage(): JSX.Element {
 
   const chosenPooja = useMemo(() => {
     if (customPoojaMode && customPoojaName.trim()) {
-      return { id: "custom", name: { kn: customPoojaName.trim(), en: customPoojaName.trim() } };
+      const clean = customPoojaName.trim();
+      return {
+        id: "custom",
+        name: {
+          kn: transliterateName(clean, "kn"),
+          hi: transliterateName(clean, "hi"),
+          te: transliterateName(clean, "te"),
+          ta: transliterateName(clean, "ta"),
+          en: transliterateName(clean, "en")
+        }
+      };
     }
     return SEVA_CATALOG[sevaId as SevaId] || SEVA_CATALOG["rudrabhisheka"];
   }, [customPoojaMode, customPoojaName, sevaId]);
 
   const chosenPoojaName = useMemo(() => {
-    if (customPoojaMode && customPoojaName.trim()) return customPoojaName.trim();
-    if (chosenPooja?.name) {
-      return (chosenPooja.name as any)[lang] || chosenPooja.name.en || chosenPooja.name.kn || "ವಿಶೇಷ ಪೂಜಾ ಸಂಕಲ್ಪ";
+    if (customPoojaMode && customPoojaName.trim()) {
+      return transliterateName(customPoojaName.trim(), lang);
+    }
+    if (chosenPooja) {
+      return formatPoojaName(chosenPooja, lang);
     }
     return "ವಿಶೇಷ ಪೂಜಾ ಸಂಕಲ್ಪ";
   }, [chosenPooja, customPoojaMode, customPoojaName, lang]);
@@ -290,7 +303,10 @@ export default function QuickCalendarPage(): JSX.Element {
   const handleDownload5PagePdf = async () => {
     setBusy("5page-pdf");
     try {
-      const fileName = `${personName.replace(/\s+/g, "_")}_Gokarna_Ashirvada_Patra_5Pages.pdf`;
+      const pName = (panditName || "Sri_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+      const dName = (personName.trim() || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
+      const dateStr = sevaDate || new Date().toISOString().slice(0, 10);
+      const fileName = `${pName}_${dName}_${dateStr}.pdf`;
       await generatePDFFromElement("quick-seva-5page-pdf", fileName);
       setIsSuccessGenerated(true);
     } catch (err) {
@@ -851,6 +867,36 @@ export default function QuickCalendarPage(): JSX.Element {
 
           {/* Action Buttons Hub */}
           <div className="pt-2 border-t border-amber-500/30 space-y-3">
+            {/* Language Selector for PDF & Calendar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 bg-amber-950/40 p-2.5 rounded-xl border border-amber-500/30">
+              <span className="text-xs font-bold text-amber-200 flex items-center gap-1.5">
+                <span>🌐</span>
+                <span>ಭಾಷೆ / Language (PDF & Calendar):</span>
+              </span>
+              <div className="flex flex-wrap gap-1.5 justify-center">
+                {[
+                  { code: "kn", label: "ಕನ್ನಡ" },
+                  { code: "en", label: "English" },
+                  { code: "hi", label: "हिन्दी" },
+                  { code: "te", label: "తెలుగు" },
+                  { code: "ta", label: "தமிழ்" }
+                ].map((item) => (
+                  <button
+                    key={item.code}
+                    type="button"
+                    onClick={() => setLang(item.code as SevaLang)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition border ${
+                      lang === item.code
+                        ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md scale-105"
+                        : "bg-slate-900/80 text-amber-200 border-amber-500/30 hover:border-amber-400"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 text-center">
               ಸಿದ್ಧಪಡಿಸಿದ ಆಶೀರ್ವಾದ ದಾಖಲೆಗಳು & ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್
             </h3>
@@ -982,6 +1028,7 @@ export default function QuickCalendarPage(): JSX.Element {
           lang={lang}
           identity={identity}
           panditName={panditName}
+          primarySeva={{ seva: chosenPooja, score: 0, reasons: [] } as any}
         />
       </div>
     </div>

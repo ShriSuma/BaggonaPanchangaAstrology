@@ -46,6 +46,88 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "shraddha": { kn: "ಶ್ರಾದ್ಧ", hi: "श्राद्ध", te: "శ్రాద్ధము", ta: "ஸ்ராத்தம்", en: "Shraddha" },
   "rudrabhisheka": { kn: "ರುದ್ರಾಭಿಷೇಕ", hi: "रुद्राभिषेक", te: "రుద్రాభిషేకము", ta: "ருத்ராபிஷேகம்", en: "Rudrabhisheka" },
   "rudrabhishek": { kn: "ರುದ್ರಾಭಿಷೇಕ", hi: "रुद्राभिषेक", te: "రుద్రాభిషేకము", ta: "ருத்ராபிஷேகம்", en: "Rudrabhishek" },
+  "pooja": { kn: "ಪೂಜೆ", hi: "पूजा", te: "పూజ", ta: "பூஜை", en: "Pooja" },
+  "puja": { kn: "ಪೂಜೆ", hi: "पूजा", te: "పూజ", ta: "பூஜை", en: "Puja" },
+  "pooje": { kn: "ಪೂಜೆ", hi: "पूजा", te: "పూజ", ta: "பூஜை", en: "Pooja" },
+  "homa": { kn: "ಹೋಮ", hi: "होम", te: "హోమం", ta: "ஹோமம்", en: "Homa" },
+  "homam": { kn: "ಹೋಮ", hi: "होम", te: "హోమం", ta: "ஹோமம்", en: "Homam" },
+  "havana": { kn: "ಹವನ", hi: "हवन", te: "హవనం", ta: "ஹவனம்", en: "Havana" },
+  "havan": { kn: "ಹವನ", hi: "हवन", te: "ಹವనం", ta: "ஹவனம்", en: "Havan" },
+  "shanti": { kn: "ಶಾಂತಿ", hi: "शांति", te: "శాంతి", ta: "சாந்தி", en: "Shanti" },
+  "shanthi": { kn: "ಶಾಂತಿ", hi: "शांति", te: "శాంతి", ta: "சாந்தி", en: "Shanthi" },
+  "vrata": { kn: "ವ್ರತ", hi: "व्रत", te: "వ్రతం", ta: "விரதம்", en: "Vrata" },
+  "vratha": { kn: "ವ್ರತ", hi: "व्रत", te: "వ్రతం", ta: "விரதம்", en: "Vratha" },
+  "vratham": { kn: "ವ್ರತ", hi: "व्रत", te: "వ్రతం", ta: "விரதம்", en: "Vratham" },
+  "sankalpa": { kn: "ಸಂಕಲ್ಪ", hi: "संकल्प", te: "సంకల్పం", ta: "சங்கல்பம்", en: "Sankalpa" },
+  "sankalpam": { kn: "ಸಂಕಲ್ಪ", hi: "संकल्प", te: "సంకల్పం", ta: "சங்கல்பம்", en: "Sankalpam" },
+  "seva": { kn: "ಸೇವೆ", hi: "सेवा", te: "సేవ", ta: "சேவை", en: "Seva" },
+  "seve": { kn: "ಸೇವೆ", hi: "सेवा", te: "సేవ", ta: "சேவை", en: "Seva" },
+  "abhisheka": { kn: "ಅಭಿಷೇಕ", hi: "अभिषेक", te: "అభిషేకం", ta: "அபிஷேகம்", en: "Abhisheka" },
+  "abhishekam": { kn: "ಅಭಿಷೇಕ", hi: "अभिषेक", te: "అభిషేకం", ta: "அபிஷேகம்", en: "Abhishekam" },
+  "archana": { kn: "ಅರ್ಚನೆ", hi: "अर्चना", te: "అర్చన", ta: "அர்ச்சனை", en: "Archana" },
+  "archane": { kn: "ಅರ್ಚನೆ", hi: "अर्चना", te: "అర్చన", ta: "அர்ச்சனை", en: "Archana" },
+  "pretoddhara": { kn: "ಪ್ರೇತೋದ್ಧಾರ", hi: "प्रेतोद्धार", te: "ప్రేతోద్ధార", ta: "பிரேதோத்தார", en: "Pretoddhara" },
+  "pretoddhara shanti": { kn: "ಪ್ರೇತೋದ್ಧಾರ ಶಾಂತಿ", hi: "प्रेतोद्धार शांति", te: "ప్రేతోద్ధార శాంతి", ta: "பிரேதோத்தார சாந்தி", en: "Pretoddhara Shanti" },
+  "satyanarayana": { kn: "ಸತ್ಯನಾರಾಯಣ", hi: "सत्यनारायण", te: "సత్యనారాయణ", ta: "சத்தியநாராயண", en: "Satyanarayana" },
+  "satyanarayana pooja": { kn: "ಸತ್ಯನಾರಾಯಣ ಪೂಜೆ", hi: "सत्यनारायण पूजा", te: "సత్యనారాయణ పూజ", ta: "சத்தியநாராயண பூஜை", en: "Satyanarayana Pooja" },
+  "satyanarayana puja": { kn: "ಸತ್ಯನಾರಾಯಣ ಪೂಜೆ", hi: "सत्यनारायण पूजा", te: "సత్యనారాయణ పూజ", ta: "சத்தியநாராயண பூஜை", en: "Satyanarayana Puja" },
+  "ganapati": { kn: "ಗಣಪತಿ", hi: "गणपति", te: "గణపతి", ta: "கணபதி", en: "Ganapati" },
+  "ganapathi": { kn: "ಗಣಪತಿ", hi: "गणपति", te: "గణపతి", ta: "கணபதி", en: "Ganapathi" },
+  "ganapati homa": { kn: "ಗಣಪತಿ ಹೋಮ", hi: "गणपति होम", te: "గణపతి హోమం", ta: "கணபதி ஹோமம்", en: "Ganapati Homa" },
+  "ganapathi homa": { kn: "ಗಣಪತಿ ಹೋಮ", hi: "गणपति होम", te: "గణపతి హోమం", ta: "கணபதி ஹோமம்", en: "Ganapathi Homa" },
+  "vinayaka": { kn: "ವಿನಾಯಕ", hi: "विनायक", te: "వినాయక", ta: "விநாயக", en: "Vinayaka" },
+  "vinayaka shanti": { kn: "ವಿನಾಯಕ ಶಾಂತಿ", hi: "विनायक शांति", te: "వినాయక శాంతి", ta: "விநாயக சாந்தி", en: "Vinayaka Shanti" },
+  "lakshmi": { kn: "ಲಕ್ಷ್ಮಿ", hi: "लक्ष्मी", te: "లక్ష్మి", ta: "லக்ஷ்மி", en: "Lakshmi" },
+  "mahalakshmi": { kn: "ಮಹಾಲಕ್ಷ್ಮಿ", hi: "महालक्ष्मी", te: "మహాలక్ష్మి", ta: "மகாலக்ஷ்மி", en: "Mahalakshmi" },
+  "mahalakshmi pooja": { kn: "ಮಹಾಲಕ್ಷ್ಮಿ ಪೂಜೆ", hi: "महालक्ष्मी पूजा", te: "మహాలక్ష్మి పూజ", ta: "மகாலக்ஷ்மி பூஜை", en: "Mahalakshmi Pooja" },
+  "varamahalakshmi": { kn: "ವರಮಹಾಲಕ್ಷ್ಮಿ", hi: "वरमहालक्ष्मी", te: "వరమహాలక్ష్మి", ta: "வரமகாலக்ஷ்மி", en: "Varamahalakshmi" },
+  "varamahalakshmi vrata": { kn: "ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ", hi: "वरमहालक्ष्मी व्रत", te: "వరమహాలక్ష్మి వ్రతం", ta: "வரமகாலக்ஷ்மி விரதம்", en: "Varamahalakshmi Vrata" },
+  "varamahalakshmi vratha": { kn: "ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ", hi: "वरमहालक्ष्मी व्रत", te: "వరమహాలక్ష్మి వ్రతం", ta: "வரமகாலக்ஷ்மி விரதம்", en: "Varamahalakshmi Vratha" },
+  "chandi": { kn: "ಚಂಡಿ", hi: "चंडी", te: "చండీ", ta: "சண்டி", en: "Chandi" },
+  "chandika": { kn: "ಚಂಡಿಕಾ", hi: "चंडिका", te: "చండికా", ta: "சண்டிகா", en: "Chandika" },
+  "chandi homa": { kn: "ಚಂಡಿ ಹೋಮ", hi: "चंडी होम", te: "చండీ హోమం", ta: "சண்டி ஹோமம்", en: "Chandi Homa" },
+  "navagraha": { kn: "ನವಗ್ರಹ", hi: "नवग्रह", te: "నవగ్రహ", ta: "நவகிரக", en: "Navagraha" },
+  "navagraha shanti": { kn: "ನವಗ್ರಹ ಶಾಂತಿ", hi: "नवग्रह शांति", te: "నవగ్రహ శాంతి", ta: "நவகிரக சாந்தி", en: "Navagraha Shanti" },
+  "mrityunjaya": { kn: "ಮೃತ್ಯುಂಜಯ", hi: "मृत्युंजय", te: "మృత్యుంజయ", ta: "மிருத்யுஞ்ஜய", en: "Mrityunjaya" },
+  "maha mrityunjaya": { kn: "ಮಹಾ ಮೃತ್ಯುಂಜಯ", hi: "महा मृत्युंजय", te: "మహా మృత్యుంజయ", ta: "மகா மிருத்யுஞ்ஜய", en: "Maha Mrityunjaya" },
+  "mrityunjaya homa": { kn: "ಮೃತ್ಯುಂಜಯ ಹೋಮ", hi: "मृत्युंजय होम", te: "మృత్యుంజయ హోమం", ta: "மிருத்யுஞ்ஜய ஹோமம்", en: "Mrityunjaya Homa" },
+  "kuja": { kn: "ಕುಜ", hi: "कुज", te: "కుజ", ta: "செவ்வாய்", en: "Kuja" },
+  "kuja shanti": { kn: "ಕುಜ ಶಾಂತಿ", hi: "कुज शांति", te: "కుజ శాంతి", ta: "செவ்வாய் சாந்தி", en: "Kuja Shanti" },
+  "rahu": { kn: "ರಾಹು", hi: "राहु", te: "రాహు", ta: "ராகு", en: "Rahu" },
+  "ketu": { kn: "ಕೇತು", hi: "केतु", te: "కేతు", ta: "கேது", en: "Ketu" },
+  "brihaspati": { kn: "ಬೃಹಸ್ಪತಿ", hi: "बृहस्पति", te: "బృహస్పతి", ta: "பிரகஸ்பதி", en: "Brihaspati" },
+  "sudarshana": { kn: "ಸುದರ್ಶನ", hi: "सुदर्शन", te: "సుదర్శన", ta: "சுதர்சன", en: "Sudarshana" },
+  "sudarshana homa": { kn: "ಸುದರ್ಶನ ಹೋಮ", hi: "सुदर्शन होम", te: "సుదర్శన హోమం", ta: "சுதர்சன ஹோமம்", en: "Sudarshana Homa" },
+  "narasimha": { kn: "ನರಸಿಂಹ", hi: "नृसिंह", te: "నరసింహ", ta: "நரசிம்ம", en: "Narasimha" },
+  "ayushya": { kn: "ಆಯುಷ್ಯ", hi: "आयुष्य", te: "ఆయుష్య", ta: "ஆயுஷ்ய", en: "Ayushya" },
+  "ayushya homa": { kn: "ಆಯುಷ್ಯ ಹೋಮ", hi: "आयुष्य होम", te: "ఆయుష్య హోమం", ta: "ஆயுஷ்ய ஹோமம்", en: "Ayushya Homa" },
+  "dhanvantari": { kn: "ಧನ್ವಂತರಿ", hi: "धन्वंतरि", te: "ధన్వంతరి", ta: "தன்வந்திரி", en: "Dhanvantari" },
+  "dhanvantari homa": { kn: "ಧನ್ವಂತರಿ ಹೋಮ", hi: "धन्वंतरि होम", te: "ధన్వంతరి హోమం", ta: "தன்வந்திரி ஹோமம்", en: "Dhanvantari Homa" },
+  "kalasarpa": { kn: "ಕಾಲಸರ್ಪ", hi: "कालसर्प", te: "కాలసర్ప", ta: "காலசர்ப்ப", en: "Kalasarpa" },
+  "kalasarpa shanti": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాంతి", ta: "காலசர்ப்ப சாந்தி", en: "Kalasarpa Shanti" },
+  "sarpa samskara": { kn: "ಸರ್ಪ ಸಂಸ್ಕಾರ", hi: "सर्प संस्कार", te: "సర్ప సంస్కారం", ta: "சர்ப்ப சம்ஸ்காரம்", en: "Sarpa Samskara" },
+  "sarpasamskara": { kn: "ಸರ್ಪ ಸಂಸ್ಕಾರ", hi: "सर्प संस्कार", te: "సర్ప సంస్కారం", ta: "சர்ப்ப சம்ஸ்காரம்", en: "Sarpasamskara" },
+  "vastu": { kn: "ವಾಸ್ತು", hi: "वास्तु", te: "వాస్తు", ta: "வாஸ்து", en: "Vastu" },
+  "vastu shanti": { kn: "ವಾಸ್ತು ಶಾಂತಿ", hi: "वास्तु शांति", te: "వాస్తు శాంతి", ta: "வாஸ்து சாந்தி", en: "Vastu Shanti" },
+  "vastu pooja": { kn: "ವಾಸ್ತು ಪೂಜೆ", hi: "वास्तु पूजा", te: "వాస్తు పూజ", ta: "வாஸ்து பூஜை", en: "Vastu Pooja" },
+  "pinda pradana": { kn: "ಪಿಂಡ ಪ್ರದಾನ", hi: "पिंड प्रदान", te: "పిండ ప్రదానం", ta: "பிண்ட பிரதானம்", en: "Pinda Pradana" },
+  "pinda": { kn: "ಪಿಂಡ", hi: "पिंड", te: "పిండ", ta: "பிண்ட", en: "Pinda" },
+  "pradana": { kn: "ಪ್ರದಾನ", hi: "प्रदान", te: "ప్రదానం", ta: "பிரதானம்", en: "Pradana" },
+  "tarpanam": { kn: "ತರ್ಪಣ", hi: "तर्पण", te: "తర్పణం", ta: "தர்பணம்", en: "Tarpanam" },
+  "tarpana": { kn: "ತರ್ಪಣ", hi: "तर्पण", te: "తర్పణం", ta: "தர்பணம்", en: "Tarpana" },
+  "swayamvara": { kn: "ಸ್ವಯಂವರ", hi: "स्वयंवर", te: "స్వయంవర", ta: "சுயம்வர", en: "Swayamvara" },
+  "santana": { kn: "ಸಂತಾನ", hi: "संतान", te: "సంతాన", ta: "சந்தான", en: "Santana" },
+  "santana gopala": { kn: "ಸಂತಾನ ಗೋಪಾಲ", hi: "संतान गोपाल", te: "సంతాన గోపాల", ta: "சந்தான கோபால", en: "Santana Gopala" },
+  "tilahavana": { kn: "ತಿಲಹವನ", hi: "तिलहवन", te: "తిలహవనం", ta: "திலஹவனம்", en: "Tilahavana" },
+  "ashlesha bali": { kn: "ಆಶ್ಲೇಷಾ ಬಲಿ", hi: "आश्लेषा बलि", te: "ఆశ్లేషా బలి", ta: "ஆயில்ய பலி", en: "Ashlesha Bali" },
+  "shani shanti": { kn: "ಶನಿ ಶಾಂತಿ", hi: "शनि शांति", te: "శని శాంతి", ta: "சனி சாந்தி", en: "Shani Shanti" },
+  "maha pooja": { kn: "ಮಹಾಪೂಜೆ", hi: "महापूजा", te: "ಮಹಾಪೂಜ", ta: "மகாபூஜை", en: "Maha Pooja" },
+  "mahapooja": { kn: "ಮಹಾಪೂಜೆ", hi: "महापूजा", te: "ಮಹಾಪೂಜ", ta: "மகாபூஜை", en: "Mahapooja" },
+  "vishesha": { kn: "ವಿಶೇಷ", hi: "विशेष", te: "విశేష", ta: "விசேஷ", en: "Vishesha" },
+  "ishtartha": { kn: "ಇಷ್ಟಾರ್ಥ", hi: "इष्टार्थ", te: "ఇష్టార్థ", ta: "இஷ்டார்த்த", en: "Ishtartha" },
+  "kavacha": { kn: "ಕವಚ", hi: "कवच", te: "కవచం", ta: "கவசம்", en: "Kavacha" },
+  "anugraha": { kn: "ಅನುಗ್ರಹ", hi: "अनुग्रह", te: "అనుగ్రహం", ta: "அனுக்ரஹம்", en: "Anugraha" },
+  "ashirvada": { kn: "ಆಶೀರ್ವಾದ", hi: "आशीर्वाद", te: "ఆశీర్వాదం", ta: "ஆசீர்வாதம்", en: "Ashirvada" },
   "devotee": { kn: "ಭಕ್ತರು", hi: "भक्त", te: "భక్తుడు", ta: "பக்தர்", en: "Devotee" },
   "kumar": { kn: "ಕುಮಾರ್", hi: "कुमार", te: "కుమార్", ta: "குமார்", en: "Kumar" },
   "sharma": { kn: "ಶರ್ಮಾ", hi: "शर्मा", te: "శర్మ", ta: "சர்மா", en: "Sharma" },
@@ -208,7 +290,38 @@ export function transliterateIndicToLatin(text: string): string {
     .replace(/ಮಂಜುನಾಥ್/g, "Manjunath ")
     .replace(/ವೆಂಕಟೇಶ್/g, "Venkatesh ")
     .replace(/ಗಜಾನನ/g, "Gajanana ")
-    .replace(/ಗೌತಮ್/g, "Gowtam ");
+    .replace(/ಗೌತಮ್/g, "Gowtam ")
+    .replace(/ಸತ್ಯನಾರಾಯಣ/g, "Satyanarayana ")
+    .replace(/ವರಮಹಾಲಕ್ಷ್ಮಿ|ವರಮಹಾಲಕ್ಷ್ಮೀ/g, "Varamahalakshmi ")
+    .replace(/ಮಹಾಲಕ್ಷ್ಮಿ|ಮಹಾಲಕ್ಷ್ಮೀ/g, "Mahalakshmi ")
+    .replace(/ಲಕ್ಷ್ಮಿ|ಲಕ್ಷ್ಮೀ/g, "Lakshmi ")
+    .replace(/ರುದ್ರಾಭಿಷೇಕ/g, "Rudrabhisheka ")
+    .replace(/ಮೃತ್ಯುಂಜಯ/g, "Mrityunjaya ")
+    .replace(/ಸುದರ್ಶನ/g, "Sudarshana ")
+    .replace(/ನವಗ್ರಹ/g, "Navagraha ")
+    .replace(/ಚಂಡಿಕಾ|ಚಂಡಿ/g, "Chandi ")
+    .replace(/ಗಣಪತಿ/g, "Ganapati ")
+    .replace(/ವಿನಾಯಕ/g, "Vinayaka ")
+    .replace(/ಆಯುಷ್ಯ/g, "Ayushya ")
+    .replace(/ಧನ್ವಂತರಿ/g, "Dhanvantari ")
+    .replace(/ಕಾಲಸರ್ಪ/g, "Kalasarpa ")
+    .replace(/ಸರ್ಪ ಸಂಸ್ಕಾರ|ಸರ್ಪಸಂಸ್ಕಾರ/g, "Sarpa Samskara ")
+    .replace(/ವಾಸ್ತು/g, "Vastu ")
+    .replace(/ತ್ರಿಪಿಂಡಿ/g, "Tripindi ")
+    .replace(/ಪ್ರೇತೋದ್ಧಾರ/g, "Pretoddhara ")
+    .replace(/ಪಿಂಡ ಪ್ರದಾನ/g, "Pinda Pradana ")
+    .replace(/ಪೂಜೆ|ಪೂಜಾ/g, "Pooja ")
+    .replace(/ಹೋಮ/g, "Homa ")
+    .replace(/ಹವನ/g, "Havana ")
+    .replace(/ಶಾಂತಿ/g, "Shanti ")
+    .replace(/ವ್ರತ/g, "Vrata ")
+    .replace(/ಸಂಕಲ್ಪ/g, "Sankalpa ")
+    .replace(/ಸೇವೆ/g, "Seva ")
+    .replace(/ಅಭಿಷೇಕ/g, "Abhisheka ")
+    .replace(/ಅರ್ಚನೆ/g, "Archana ")
+    .replace(/ಶ್ರಾದ್ಧ/g, "Shraddha ")
+    .replace(/ತರ್ಪಣ/g, "Tarpana ")
+    .replace(/ಮಹಾಪೂಜೆ/g, "Mahapooja ");
 
   // Comprehensive character mapping for Indic Unicode: Kannada, Tamil, Telugu, Devanagari
   const indicMap: Record<string, string> = {

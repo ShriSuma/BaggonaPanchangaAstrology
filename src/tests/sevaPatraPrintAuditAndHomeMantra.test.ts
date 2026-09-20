@@ -12,6 +12,9 @@ import {
   type SevaLang
 } from "../features/seva/sevaLocale";
 import { getPriestProfile } from "../features/seva/sevaPriestDirectory";
+import { formatPoojaName } from "../features/seva/formatPoojaName";
+import { transliterateName } from "../utils/transliterator";
+import { SEVA_CATALOG } from "../data/gokarnaSevas";
 
 describe("Seva Patra 5-Page Ashirvada Booklet & Home Mantras Audit", () => {
   const LANGUAGES: SevaLang[] = ["kn", "hi", "te", "ta", "en"];
@@ -175,6 +178,92 @@ describe("Seva Patra 5-Page Ashirvada Booklet & Home Mantras Audit", () => {
       expect(pick(T.labelGotra, "te")).toBe("గోత్రం");
       expect(pick(T.labelGotra, "ta")).toBe("கோத்திரம்");
       expect(pick(T.labelGotra, "en")).toBe("Gotra");
+    });
+  });
+
+  describe("8. formatPoojaName Pure 5-Language Script Isolation", () => {
+    it("should resolve SEVA_CATALOG items in the exact script of all 5 languages", () => {
+      LANGUAGES.forEach((lang) => {
+        const name = formatPoojaName(SEVA_CATALOG.rudrabhisheka, lang);
+        expect(name).toBeTruthy();
+        if (lang === "kn") expect(name).toContain("ರುದ್ರ");
+        if (lang === "en") expect(name).toContain("Rudra");
+        if (lang === "hi") expect(name).toContain("रुद्र");
+        if (lang === "te") expect(name).toContain("రుద్ర");
+        if (lang === "ta") expect(name).toContain("ருத்ர");
+      });
+    });
+
+    it("should transliterate custom Pooja entered in Kannada to English, Hindi, Telugu, and Tamil with zero Kannada leakage in non-Kannada scripts", () => {
+      const customSevaKn = {
+        seva: {
+          id: "custom_pooja",
+          name: {
+            kn: "ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ",
+            en: "ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ", // simulate legacy bug where Kannada leaked into en
+            hi: "ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ",
+            te: "ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ",
+            ta: "ವರಮಹಾಲಕ್ಷ್ಮಿ ವ್ರತ"
+          }
+        }
+      };
+
+      const enName = formatPoojaName(customSevaKn, "en");
+      expect(enName).not.toMatch(/[\u0C80-\u0CFF]/); // ZERO Kannada characters
+      expect(enName.toLowerCase()).toContain("varamahalakshmi");
+
+      const hiName = formatPoojaName(customSevaKn, "hi");
+      expect(hiName).toMatch(/[\u0900-\u097F]/); // Devanagari
+
+      const teName = formatPoojaName(customSevaKn, "te");
+      expect(teName).toMatch(/[\u0C00-\u0C7F]/); // Telugu
+
+      const taName = formatPoojaName(customSevaKn, "ta");
+      expect(taName).toMatch(/[\u0B80-\u0BFF]/); // Tamil
+
+      const knName = formatPoojaName(customSevaKn, "kn");
+      expect(knName).toContain("ವರಮಹಾಲಕ್ಷ್ಮಿ");
+    });
+
+    it("should transliterate custom Pooja entered in English to Kannada, Hindi, Telugu, and Tamil", () => {
+      const customString = "Satyanarayana Swamy Pooja";
+      
+      const knName = formatPoojaName(customString, "kn");
+      expect(knName).toContain("ಸತ್ಯನಾರಾಯಣ");
+
+      const hiName = formatPoojaName(customString, "hi");
+      expect(hiName).toContain("सत्यनारायण");
+
+      const teName = formatPoojaName(customString, "te");
+      expect(teName).toContain("సత్యనారాయణ");
+
+      const enName = formatPoojaName(customString, "en");
+      expect(enName).toBe("Satyanarayana Swamy Pooja");
+    });
+
+    it("should provide safe canonical fallback when pooja is undefined", () => {
+      expect(formatPoojaName(undefined, "kn")).toBe("ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಪೂಜೆ");
+      expect(formatPoojaName(undefined, "en")).toBe("Shri Gokarna Maha Seva");
+      expect(formatPoojaName(undefined, "hi")).toBe("श्री गोकर्ण महापूजा");
+      expect(formatPoojaName(undefined, "te")).toBe("శ్రీ గోకర్ణ మహాపూజ");
+      expect(formatPoojaName(undefined, "ta")).toBe("ஸ்ரீ கோகர்ண மகாபூஜை");
+    });
+  });
+
+  describe("9. Devotee Gotra Transliteration Pure Script Validation", () => {
+    it("should transliterate devotee Gotra across all 5 languages with zero script leakage", () => {
+      const gotraKn = "ಕಾಶ್ಯಪ";
+      expect(transliterateName(gotraKn, "en")).toBe("Kashyapa");
+      expect(transliterateName(gotraKn, "hi")).toBe("काश्यप");
+      expect(transliterateName(gotraKn, "te")).toBe("కాశ్యప");
+      expect(transliterateName(gotraKn, "ta")).toBe("காஸ்யப");
+      expect(transliterateName(gotraKn, "kn")).toBe("ಕಾಶ್ಯಪ");
+
+      const gotraEn = "Bharadwaja";
+      expect(transliterateName(gotraEn, "kn")).toBe("ಭಾರದ್ವಾಜ");
+      expect(transliterateName(gotraEn, "hi")).toBe("भरद्वाज");
+      expect(transliterateName(gotraEn, "te")).toBe("భారద్వాజ");
+      expect(transliterateName(gotraEn, "ta")).toBe("பரத்வாஜ");
     });
   });
 });

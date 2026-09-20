@@ -171,9 +171,9 @@ describe("Seva PDF 5-Page Suite & QR Code Verification", () => {
     expect(screen.getByText(/೧೨ ಮಾಸಗಳ ಶ್ರೇಷ್ಠ ಪೂಜಾ ಪರಿಹಾರ/i)).toBeInTheDocument();
     expect(screen.getByText(/ಗೃಹ ಶಾಂತಿ ಹಾಗೂ ವಾಸ್ತು ಧರ್ಮ ಸೂತ್ರಗಳು/i)).toBeInTheDocument();
     expect(screen.getByText(/ಸಿಂಹದ್ವಾರ ಕುಂಕುಮ ಧಾರಣೆ/i)).toBeInTheDocument();
-    expect(screen.getByText(/ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಕುಲದೇವರ/i)).toBeInTheDocument();
-    expect(screen.getByText(/ಪವಿತ್ರ ಪ್ರಸಾದ ರಕ್ಷಣೆ ಹಾಗೂ ವಿನಿಯೋಗ ಮಾರ್ಗದರ್ಶಿ/i)).toBeInTheDocument();
-    expect(screen.getByText(/ಪೂಜೆಯಿಂದ ಲಭಿಸಿದ ಪವಿತ್ರ ಪ್ರಸಾದವನ್ನು/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಕುಲ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಪವಿತ್ರ ಪ್ರಸಾದ ರಕ್ಷಣೆ ಮಾರ್ಗದರ್ಶಿ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಪ್ರಸಾದವನ್ನು ದೇವರ ಮನೆಯಲ್ಲಿ/i)).toBeInTheDocument();
     expect(screen.getByText(/೪ \/ ೫|4 \/ 5/)).toBeInTheDocument();
   });
 

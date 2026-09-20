@@ -34,6 +34,7 @@ import {
   type L5
 } from "../../../features/seva/sevaLocale";
 import { transliterateName } from "../../../utils/transliterator";
+import { formatPoojaName } from "../../../features/seva/formatPoojaName";
 import {
   BAND_STYLE,
   MARK,
@@ -143,7 +144,7 @@ const SheetHeader = ({
         [pick(T.labelName!, lang), (identity as any).aiTransliteratedName || transliterateName(identity.personName, lang)],
         [pick(T.labelRashi!, lang), pick(RASHI_L5[identity.rashiIndex]!, lang)],
         [pick(T.labelNakshatra!, lang), pick(NAKSHATRA_L5[identity.nakshatraIndex]!, lang)],
-        ...(identity.gotra ? [[pick(T.labelGotra!, lang), identity.gotra]] : [])
+        ...(identity.gotra ? [[pick(T.labelGotra!, lang), transliterateName(identity.gotra, lang)]] : [])
       ].map(([label, value]) => (
         <div
           key={label}
@@ -576,12 +577,12 @@ export const SevaLetterPrint = ({
           }}
         >
           {[
-            [pick(T.sevaPerformed!, lang), (primarySeva?.seva?.name ? pick(primarySeva.seva.name, lang) : (primarySeva as any)?.name ? pick((primarySeva as any).name, lang) : "—")],
+            [pick(T.sevaPerformed!, lang), formatPoojaName(primarySeva, lang) || "—"],
             [pick(T.sevaDate!, lang), sevaDate || "—"],
             [pick(T.sevaPlace!, lang), sevaPlaceValue],
             [pick(T.labelRashi!, lang), pick(RASHI_L5[identity.rashiIndex]!, lang)],
             [pick(T.labelNakshatra!, lang), pick(NAKSHATRA_L5[identity.nakshatraIndex]!, lang)],
-            ...(identity.gotra ? [[pick(T.labelGotra!, lang), identity.gotra]] : [])
+            ...(identity.gotra ? [[pick(T.labelGotra!, lang), transliterateName(identity.gotra, lang)]] : [])
           ].map(([label, value]) => (
             <div
               key={label}
@@ -1918,45 +1919,48 @@ export const SevaPoojaMahatmePrint = ({
   const priestNameLocalized = priestProfile.name[lang as keyof typeof priestProfile.name] || safePanditName;
   const priestTitleLocalized = priestProfile.title[lang as keyof typeof priestProfile.title] || priestProfile.title.en;
   const priestSealTextLocalized = priestProfile.sealText[lang as keyof typeof priestProfile.sealText] || priestProfile.sealText.en;
-  const sevaTitle = primarySeva?.seva ? pick(primarySeva.seva.name, lang) : pick({ kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಪೂಜೆ", hi: "श्री गोकर्ण महापूजा", te: "శ్రీ గోకర్ణ మహాపూజ", ta: "ஸ்ரீ கோகர்ண மகாபூஜை", en: "Shri Gokarna Maha Seva" }, lang);
+  const sevaTitle = formatPoojaName(primarySeva, lang);
 
   // Fallback Mahatme generator for offline/error handling across all 5 languages
   const defaultMahatme = (() => {
+    const currentSevaId = (primarySeva?.seva?.id || (primarySeva as any)?.id || "").toLowerCase();
+    const enName = formatPoojaName(primarySeva, "en").toLowerCase();
+    const knName = formatPoojaName(primarySeva, "kn");
+    const hiName = formatPoojaName(primarySeva, "hi");
+    const teName = formatPoojaName(primarySeva, "te");
+    const taName = formatPoojaName(primarySeva, "ta");
     const sLower = sevaTitle.toLowerCase();
-    const isGanapati = sLower.includes("ganapati") || sevaTitle.includes("ಗಣಪತಿ") || sevaTitle.includes("गणपति") || sevaTitle.includes("గణపతి") || sevaTitle.includes("கணபதி");
-    const isChandi = sLower.includes("chandi") || sevaTitle.includes("ಚಂಡಿ") || sevaTitle.includes("चंडी") || sevaTitle.includes("చండీ") || sevaTitle.includes("சண்டி");
-    const isNavagraha = sLower.includes("navagraha") || sevaTitle.includes("ನವಗ್ರಹ") || sevaTitle.includes("नवग्रह") || sevaTitle.includes("నవగ్రహ") || sevaTitle.includes("நவகிரக");
-    const isKuja = sLower.includes("kuja") || sLower.includes("mangal") || sevaTitle.includes("ಕುಜ") || sevaTitle.includes("कुज") || sevaTitle.includes("మంగళ") || sevaTitle.includes("செவ்வாய்");
-    const isShani = sLower.includes("shani") || sevaTitle.includes("ಶನಿ") || sevaTitle.includes("शनि") || sevaTitle.includes("శని") || sevaTitle.includes("சனி");
-    const isRahuKetuOrSarpa = sLower.includes("rahu") || sLower.includes("sarpa") || sevaTitle.includes("ರಾಹು") || sevaTitle.includes("ಸರ್ಪ") || sevaTitle.includes("कालसर्प") || sevaTitle.includes("సర్ప");
-    const isSudarshana = sLower.includes("sudarshana") || sLower.includes("narasimha") || sevaTitle.includes("ಸುದರ್ಶನ") || sevaTitle.includes("सुदर्शन") || sevaTitle.includes("సుదర్శన") || sevaTitle.includes("சுதர்சன");
-    const isDhanvantari = sLower.includes("dhanvantari") || sevaTitle.includes("ಧನ್ವಂತರಿ") || sevaTitle.includes("धन्वंतरि") || sevaTitle.includes("ధన్వంతరి") || sevaTitle.includes("தன்வந்திரி");
-    const isPitru = sLower.includes("pitru") || sLower.includes("pinda") || sLower.includes("bali") || sLower.includes("tripindi") || sevaTitle.includes("ಪಿತೃ") || sevaTitle.includes("ಪಿಂಡ") || sevaTitle.includes("पितृ") || sevaTitle.includes("పిండ");
-    const isVastu = sLower.includes("vastu") || sevaTitle.includes("ವಾಸ್ತು") || sevaTitle.includes("वास्तु") || sevaTitle.includes("వాస్తు") || sevaTitle.includes("வாஸ்து");
-    const isLakshmi = sLower.includes("lakshmi") || sLower.includes("sukta") || sevaTitle.includes("ಲಕ್ಷ್ಮೀ") || sevaTitle.includes("महालक्ष्मी") || sevaTitle.includes("లక్ష్మీ") || sevaTitle.includes("லக்ஷ்மி");
-    const isSantana = sLower.includes("santana") || sevaTitle.includes("ಸಂತಾನ") || sevaTitle.includes("संतान") || sevaTitle.includes("సంతాన") || sevaTitle.includes("சந்தான");
-    const isMarriage = sLower.includes("swayamvara") || sLower.includes("vivaha") || sevaTitle.includes("ಸ್ವಯಂವರ") || sevaTitle.includes("स्वयंवर") || sevaTitle.includes("వివాహ") || sevaTitle.includes("சுயம்வர");
-    const isSatyanarayana = sLower.includes("satyanarayana") || sevaTitle.includes("ಸತ್ಯನಾರಾಯಣ") || sevaTitle.includes("सत्यनारायण") || sevaTitle.includes("సత్యనారాయణ") || sevaTitle.includes("சத்தியநாராயண");
-    const isAyushya = sLower.includes("ayushya") || sevaTitle.includes("ಆಯುಷ್ಯ") || sevaTitle.includes("आयुष्य") || sevaTitle.includes("ఆయుష్య") || sevaTitle.includes("ஆயுஷ்ய");
-    const isRudra = sLower.includes("rudra") || sevaTitle.includes("ರುದ್ರ") || sevaTitle.includes("रुद्र") || sevaTitle.includes("రుద్ర") || sevaTitle.includes("ருத்ர");
-    const isMrityunjaya = sLower.includes("mrityunjaya") || sevaTitle.includes("ಮೃತ್ಯುಂಜಯ") || sevaTitle.includes("मृत्युंजय") || sevaTitle.includes("మృత్యుంజయ") || sevaTitle.includes("மிருத்யுஞ்ஜய");
+    const allNames = `${currentSevaId} ${enName} ${knName} ${hiName} ${teName} ${taName} ${sLower}`.toLowerCase();
 
-    const currentSevaId = primarySeva?.seva?.id || "";
+    const isGanapati = allNames.includes("ganapati") || allNames.includes("vinayaka") || allNames.includes("ಗಣಪತಿ") || allNames.includes("ವಿನಾಯಕ") || allNames.includes("गणपति") || allNames.includes("विनायक") || allNames.includes("గణపతి") || allNames.includes("వినాయక") || allNames.includes("கணபதி") || allNames.includes("விநாயக");
+    const isChandi = allNames.includes("chandi") || allNames.includes("durga") || allNames.includes("ಚಂಡಿ") || allNames.includes("ದುರ್ಗಾ") || allNames.includes("चंडी") || allNames.includes("दुर्गा") || allNames.includes("చండీ") || allNames.includes("దుర్గా") || allNames.includes("சண்டி") || allNames.includes("துர்கா");
+    const isNavagraha = allNames.includes("navagraha") || allNames.includes("ನವಗ್ರಹ") || allNames.includes("नवग्रह") || allNames.includes("నవగ్రహ") || allNames.includes("நவகிரக");
+    const isKuja = allNames.includes("kuja") || allNames.includes("mangal") || allNames.includes("angarak") || allNames.includes("ಕುಜ") || allNames.includes("ಮಂಗಳ") || allNames.includes("कुज") || allNames.includes("मंगल") || allNames.includes("మంగళ") || allNames.includes("செவ்வாய்");
+    const isShani = allNames.includes("shani") || allNames.includes("ಶನಿ") || allNames.includes("शनि") || allNames.includes("శని") || allNames.includes("சனி");
+    const isRahuKetuOrSarpa = allNames.includes("rahu") || allNames.includes("ketu") || allNames.includes("sarpa") || allNames.includes("naga") || allNames.includes("ashlesha") || allNames.includes("ರಾಹು") || allNames.includes("ಕೇತು") || allNames.includes("ಸರ್ಪ") || allNames.includes("ನಾಗ") || allNames.includes("ಆಶ್ಲೇಷ") || allNames.includes("कालसर्प") || allNames.includes("नाग") || allNames.includes("సర్ప") || allNames.includes("நாக");
+    const isSudarshana = allNames.includes("sudarshana") || allNames.includes("narasimha") || allNames.includes("ಸುದರ್ಶನ") || allNames.includes("ನರಸಿಂಹ") || allNames.includes("सुदर्शन") || allNames.includes("नृसिंह") || allNames.includes("సుదర్శన") || allNames.includes("சுதர்சன");
+    const isDhanvantari = allNames.includes("dhanvantari") || allNames.includes("ಧನ್ವಂತರಿ") || allNames.includes("धन्वंतरि") || allNames.includes("ధన్వంతರಿ") || allNames.includes("தன்வந்திரி");
+    const isVastu = allNames.includes("vastu") || allNames.includes("ವಾಸ್ತು") || allNames.includes("वास्तु") || allNames.includes("వాస్తు") || allNames.includes("வாஸ்து");
+    const isLakshmi = allNames.includes("lakshmi") || allNames.includes("sukta") || allNames.includes("varamahalakshmi") || allNames.includes("vaibhava") || allNames.includes("ಧನಲಕ್ಷ್ಮಿ") || allNames.includes("ಲಕ್ಷ್ಮೀ") || allNames.includes("ವರಮಹಾಲಕ್ಷ್ಮಿ") || allNames.includes("महालक्ष्मी") || allNames.includes("లక్ష్మీ") || allNames.includes("லக்ஷ்மி");
+    const isSantana = allNames.includes("santana") || allNames.includes("ಸಂತಾನ") || allNames.includes("संतान") || allNames.includes("సಂತాన") || allNames.includes("சந்தான");
+    const isMarriage = allNames.includes("swayamvara") || allNames.includes("vivaha") || allNames.includes("kalyana") || allNames.includes("ಸ್ವಯಂವರ") || allNames.includes("ವಿವಾಹ") || allNames.includes("ಕಲ್ಯಾಣ") || allNames.includes("स्वयंवर") || allNames.includes("వివాహ") || allNames.includes("சுயம்வர");
+    const isSatyanarayana = allNames.includes("satyanarayana") || allNames.includes("ಸತ್ಯನಾರಾಯಣ") || allNames.includes("सत्यनारायण") || allNames.includes("ಸತ್ಯನಾರಾಯಣ") || allNames.includes("சத்தியநாராயண");
+    const isAyushya = allNames.includes("ayushya") || allNames.includes("ಆಯುಷ್ಯ") || allNames.includes("आयुष्य") || allNames.includes("ఆయుష్య") || allNames.includes("ஆயுஷ்ய");
+    const isRudra = allNames.includes("rudra") || allNames.includes("shiva") || allNames.includes("linga") || allNames.includes("ರುದ್ರ") || allNames.includes("ಶಿವ") || allNames.includes("ಲಿಂಗ") || allNames.includes("रुद्र") || allNames.includes("शिव") || allNames.includes("రుద్ర") || allNames.includes("ருத்ர");
+    const isMrityunjaya = allNames.includes("mrityunjaya") || allNames.includes("ಮೃತ್ಯುಂಜಯ") || allNames.includes("मृत्युंजय") || allNames.includes("మృత్యుంజయ") || allNames.includes("மிருத்யுஞ்ஜய");
+
     const isVinayakaSudarshana =
       currentSevaId === "vinayakashanti_sudarshana" ||
-      ((sLower.includes("vinayaka") || sLower.includes("ganapati") || sevaTitle.includes("ವಿನಾಯಕ") || sevaTitle.includes("ಗಣಪತಿ") || sevaTitle.includes("विनायक") || sevaTitle.includes("गणपति") || sevaTitle.includes("వినాయక") || sevaTitle.includes("గణపతి") || sevaTitle.includes("விநாயக") || sevaTitle.includes("கணபதி")) &&
-       (sLower.includes("sudarshana") || sevaTitle.includes("ಸುದರ್ಶನ") || sevaTitle.includes("सुदर्शन") || sevaTitle.includes("సుదర్శన") || sevaTitle.includes("சுதர்சன")));
+      (isGanapati && isSudarshana);
 
     const isCombinedKujaRahuMrityunjaya =
       currentSevaId === "kujashanti_rahubrihaspati_mrityunjaya" ||
-      ((sLower.includes("kuja") || sLower.includes("mangal") || sevaTitle.includes("ಕುಜ") || sevaTitle.includes("कुज") || sevaTitle.includes("మంగళ") || sevaTitle.includes("செவ்வாய்")) &&
-       (sLower.includes("rahu") || sLower.includes("brihaspati") || sevaTitle.includes("ರಾಹು") || sevaTitle.includes("ಬೃಹಸ್ಪತಿ") || sevaTitle.includes("राहु") || sevaTitle.includes("बृहस्पति") || sevaTitle.includes("బృహస్పతి") || sevaTitle.includes("பிரகஸ்பதி")) &&
-       (sLower.includes("mrityunjaya") || sevaTitle.includes("ಮೃತ್ಯುಂಜಯ") || sevaTitle.includes("मृत्युंजय") || sevaTitle.includes("మృత్యుంజయ") || sevaTitle.includes("மிருத்யுஞ்ஜய")));
+      (isKuja && (allNames.includes("rahu") || allNames.includes("brihaspati") || allNames.includes("ರಾಹು") || allNames.includes("ಬೃಹಸ್ಪತಿ")) && isMrityunjaya);
 
     const isRahuBrihaspati =
       currentSevaId === "rahubrihaspatishanti" ||
-      ((sLower.includes("rahu") || sevaTitle.includes("ರಾಹು") || sevaTitle.includes("राहु") || sevaTitle.includes("రాహు") || sevaTitle.includes("ராகு")) &&
-       (sLower.includes("brihaspati") || sLower.includes("guru") || sevaTitle.includes("ಬೃಹಸ್ಪತಿ") || sevaTitle.includes("ಗುರು") || sevaTitle.includes("बृहस्पति") || sevaTitle.includes("गुरु") || sevaTitle.includes("బృహస్పతి") || sevaTitle.includes("பிரகஸ்பதி")));
+      ((allNames.includes("rahu") || allNames.includes("ರಾಹು") || allNames.includes("राहु")) &&
+       (allNames.includes("brihaspati") || allNames.includes("guru") || allNames.includes("ಬೃಹಸ್ಪತಿ") || allNames.includes("ಗುರು")));
 
     const isKujaStandalone = (currentSevaId === "kujashanti" || isKuja) && !isCombinedKujaRahuMrityunjaya;
     const isMrityunjayaStandalone = (currentSevaId === "mrityunjaya" || isMrityunjaya) && !isCombinedKujaRahuMrityunjaya;
@@ -2221,9 +2225,10 @@ export const SevaPoojaMahatmePrint = ({
       };
     }
 
-    const isNarayanaBaliTripindi = (sLower.includes("narayana") || sLower.includes("bali") || sevaTitle.includes("ನಾರಾಯಣ") || sevaTitle.includes("नारायण") || sevaTitle.includes("నారాయణ")) && (sLower.includes("tripindi") || sevaTitle.includes("ತ್ರಿಪಿಂಡಿ") || sevaTitle.includes("त्रिपिंडी") || sevaTitle.includes("త్రిపిండి"));
-    const isNarayanaBaliPretoddhara = (sLower.includes("narayana") || sLower.includes("bali") || sevaTitle.includes("ನಾರಾಯಣ") || sevaTitle.includes("नारायण") || sevaTitle.includes("నారాయణ")) && (sLower.includes("pret") || sevaTitle.includes("ಪ್ರೇತ") || sevaTitle.includes("प्रेत") || sevaTitle.includes("ప్రేత"));
-    const isNarayanaBaliStandalone = (sLower.includes("narayana") || sevaTitle.includes("ನಾರಾಯಣ") || sevaTitle.includes("नारायण") || sevaTitle.includes("నారాయణ")) && (sLower.includes("bali") || sevaTitle.includes("ಬಲಿ") || sevaTitle.includes("बलि") || sevaTitle.includes("బలి")) && !isNarayanaBaliTripindi && !isNarayanaBaliPretoddhara;
+    const isNarayanaBaliTripindi = currentSevaId === "narayana_bali_tripindi" || ((allNames.includes("narayana") || allNames.includes("bali") || allNames.includes("ನಾರಾಯಣ") || allNames.includes("नारायण") || allNames.includes("నారాయణ")) && (allNames.includes("tripindi") || allNames.includes("ತ್ರಿಪಿಂಡಿ") || allNames.includes("त्रिपिंडी") || allNames.includes("త్రిపిండి")));
+    const isNarayanaBaliPretoddhara = currentSevaId === "narayana_bali_pretoddhara" || ((allNames.includes("narayana") || allNames.includes("bali") || allNames.includes("ನಾರಾಯಣ") || allNames.includes("नारायण") || allNames.includes("నారాయణ")) && (allNames.includes("pret") || allNames.includes("ಪ್ರೇತ") || allNames.includes("प्रेत") || allNames.includes("ప్రేత")));
+    const isNarayanaBaliStandalone = (currentSevaId === "narayana_bali" || ((allNames.includes("narayana") || allNames.includes("ನಾರಾಯಣ") || allNames.includes("नारायण") || allNames.includes("నారಾಯణ")) && (allNames.includes("bali") || allNames.includes("ಬಲಿ") || allNames.includes("बलि") || allNames.includes("బలి")))) && !isNarayanaBaliTripindi && !isNarayanaBaliPretoddhara;
+    const isPitru = isNarayanaBaliStandalone || isNarayanaBaliPretoddhara || isNarayanaBaliTripindi || allNames.includes("pitru") || allNames.includes("pinda") || allNames.includes("tarpana") || allNames.includes("shraddha") || allNames.includes("ತಿಲಹವನ") || allNames.includes("ಪಿತೃ") || allNames.includes("ಪಿಂಡ") || allNames.includes("ತರ್ಪಣ") || allNames.includes("ಶ್ರಾದ್ಧ") || allNames.includes("पितृ") || allNames.includes("పిండ") || allNames.includes("பித்ரு");
 
     if (isNarayanaBaliTripindi) {
       return {
@@ -2357,25 +2362,25 @@ export const SevaPoojaMahatmePrint = ({
 
     return {
       whatIsPooja: pick({
-        kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನೆರವೇರಿಸಲಾದ ಈ ಪವಿತ್ರ ಸೇವೆಯು ಜನ್ಮ ನಕ್ಷತ್ರ ಹಾಗೂ ರಾಶಿ ಗ್ರಹಗಳ ಪ್ರಸನ್ನತೆಗೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾದ ದೈವಿಕ ಆರಾಧನೆಯಾಗಿದೆ.",
-        hi: "श्री महाबलेश्वर सन्निधि में संपन्न यह पवित्र सेवा जन्म नक्षत्र एवं राशि ग्रहों की प्रसन्नता हेतु प्रभावकारी वैदिक आराधना है।",
-        te: "శ్రీ మహాబలేశ్వర సన్నిధిలో నిర్వహించిన ఈ పవిత్ర సేవ జన్మ నక్షత్రం మరియు రాశి గ్రహాల ప్రసన్నతకు శ్రేష్ఠమైన ఆరాధన.",
-        ta: "ஸ்ரீ மகாபலேஸ்வர சந்நிதியில் செய்யப்பட்ட இந்த பூஜை ஜன்ம நட்சத்திர மற்றும் ராசி கிரகங்களின் திருப்திக்காக செய்யப்பட்டது.",
-        en: "Performed at the holy Mahabaleshwara Sanctum, this sacred Seva is an auspicious consecration tailored to your birth chart."
+        kn: `${sevaTitle}ಯು ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಜನ್ಮ ನಕ್ಷತ್ರ ಹಾಗೂ ರಾಶಿ ಗ್ರಹಗಳ ಪ್ರಸನ್ನತೆಗೆ ವೈದಿಕ ವಿಧಿ-ವಿಧಾನಗಳೊಂದಿಗೆ ಸಮರ್ಪಿತವಾಗುವ ಪರಮ ಪವಿತ್ರ ದೈವಿಕ ಆರಾಧನೆಯಾಗಿದೆ.`,
+        hi: `${sevaTitle} श्री महाबलेश्वर सन्निधि में जन्म नक्षत्र एवं राशि ग्रहों की प्रसन्नता हेतु वैदिक विधि-विधानों के साथ संपन्न की जाने वाली परम पावन आराधना है।`,
+        te: `${sevaTitle} శ్రీ మహాబలేశ్వర సన్నిధిలో జన్మ నక్షత్రం మరియు రాశి గ్రహాల ప్రసన్నత కొరకు వైదిక విధివిధానాలతో సమర్పించే పరమ పవిత్ర ఆరాధన.`,
+        ta: `${sevaTitle} ஸ்ரீ மகாபலேஸ்வர சந்நிதியில் ஜன்ம நட்சத்திர மற்றும் ராசி கிரகங்களின் திருப்திக்காக சாஸ்திரோக்தமாக செய்யப்படும் புனித ஆராதனையாகும்.`,
+        en: `Consecrated at the holy Mahabaleshwara Sanctum, ${sevaTitle} is an auspicious Vedic offering performed in accordance with sacred scriptures to invoke divine grace.`
       }, lang),
       whyDoPooja: pick({
-        kn: "ಜಾತಕದಲ್ಲಿರುವ ನವಗ್ರಹ ದೋಷಗಳ ಶಮನ, ಕೌಟುಂಬಿಕ ಅಭ್ಯುದಯ, ವ್ಯಾಪಾರ-ಉದ್ಯೋಗದಲ್ಲಿ ಅಭಿವೃದ್ಧಿ ಹಾಗೂ ಮಾನಸಿಕ ನೆಮ್ಮದಿಗಾಗಿ ಈ ಸೇವೆಯನ್ನು ಸಲ್ಲಿಸಲಾಗುತ್ತದೆ.",
-        hi: "कुण्डली में स्थित नवग्रह दोषों के शमन, पारिवारिक उन्नति, व्यापार में वृद्धि तथा मानसिक शांति हेतु यह सेवा अर्पित की जाती है।",
-        te: "జాతకంలోని నవగ్రహ దోషాల నివారణ, కుటుంబ అభ్యుదయం, ఉద్యోగ వ్యాపారాలలో ప్రగతి కోసం ఈ సేవ సమర్పించబడుతుంది.",
-        ta: "ஜாதக கிரக தோஷ நிவர்த்தி, குடும்ப வளர்ச்சி, தொழில் முன்னேற்றம் மற்றும் மன அமைதிக்காக இந்த சேவை செய்யப்படுகிறது.",
-        en: "Designed to neutralize planetary imbalances, enhance career growth, foster domestic peace, and clear obstacles."
+        kn: `${sevaTitle}ಯನ್ನು ಜಾತಕದಲ್ಲಿರುವ ಗ್ರಹದೋಷಗಳ ಶಮನ, ಸಕಲ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆ, ಕುಟುಂಬದಲ್ಲಿ ಮಂಗಳ-ಸಮೃದ್ಧಿ ಹಾಗೂ ದೈವಬಲ ವೃದ್ಧಿಗಾಗಿ ಭಕ್ತಿಪೂರ್ವಕವಾಗಿ ನೆರವೇರಿಸಲಾಗುತ್ತದೆ.`,
+        hi: `${sevaTitle} को जन्म पत्रिका के समस्त ग्रह दोषों के शमन, विघ्न-बाधाओं के निवारण, पारिवारिक सुख-समृद्धि तथा आत्मिक एवं दैवीय शक्ति की वृद्धि हेतु श्रद्धापूर्वक संपन्न किया जाता है।`,
+        te: `${sevaTitle}ను జాతకంలోని గ్రహ దోషాల నివారణ, విఘ్నాల తొలగింపు, కుటుంబంలో సకల శుభాలు మరియు దైవబల వృద్ధి కొరకు భక్తితో నిర్వహిస్తారు.`,
+        ta: `${sevaTitle} ஜாதக கிரக தோஷங்களின் சாந்தி, தடைகள் விலகுதல், குடும்பத்தில் மங்களம் மற்றும் தெய்வீக பலன் பெருக பக்தியுடன் செய்யப்படுகிறது.`,
+        en: `Performed with deep devotion to pacify malefic planetary influences, dissolve unforeseen obstacles, protect family well-being, and invite positive spiritual vibrations through ${sevaTitle}.`
       }, lang),
       benefitsPooja: pick({
-        kn: "ಈ ಸೇವೆಯ ಫಲವಾಗಿ ನಿರಂತರ ಕೌಟುಂಬಿಕ ಭಾಗ್ಯೋದಯ, ಧನ-ಧಾನ್ಯ ಸಮೃದ್ಧಿ, ಸಮಾಜದಲ್ಲಿ ಗೌರವ ಹಾಗೂ ಮನಃಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.",
-        hi: "इस सेवा के फलस्वरुप निरंतर पारिवारिक भाग्योदय, धन-धान्य समृद्धि, समाज में सम्मान एवं शांति प्राप्त होती है।",
-        te: "ఈ సేవ వల్ల నిరంతర కుటుంబ భాగ్యోదయం, ధన ధాన్య సమృద్ధి మరియు సమాజంలో గౌరవ ప్రతిష్ఠలు కలుగుతాయి.",
-        ta: "இந்த சேவையின் பலனாக குடும்ப பாக்கியம், தன தானிய பெருக்கம், சமூக மதிப்பு மற்றும் சாந்தி கிடைக்கும்.",
-        en: "Bestows enduring family prosperity, continuous financial stability, elevated social respect, and divine grace."
+        kn: `ಈ ${sevaTitle}ಯ ಫಲವಾಗಿ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಜಯ, ಆಯುರಾರೋಗ್ಯ-ಭಾಗ್ಯ, ವ್ಯಾಪಾರ-ಉದ್ಯೋಗದಲ್ಲಿ ಅಭಿವೃದ್ಧಿ, ದುಷ್ಟದೃಷ್ಟಿ ನಿವಾರಣೆ ಹಾಗೂ ಗೃಹದಲ್ಲಿ ನಿರಂತರ ಶಾಂತಿ ನೆಲೆಸುತ್ತದೆ.`,
+        hi: `इस ${sevaTitle} के अनुष्ठान से सर्व कार्यों में विजय, दीर्घायु, उत्तम स्वास्थ्य, धन-धान्य समृद्धि, नजर-दोष से मुक्ति तथा परिवार में अखंड शांति की प्राप्ति होती है।`,
+        te: `ఈ ${sevaTitle} ఫలితంగా సర్వకార్య విజయం, ఆయురారోగ్యాలు, ఆర్థికాభివృద్ధి, దిష్టి దోషాల నివారణ మరియు ఇంట్లో నిరంతర శాంతి కలుగుతాయి.`,
+        ta: `இந்த ${sevaTitle}யின் பலனாக சகல காரிய வெற்றி, பூரண ஆரோக்கியம், செல்வ விருத்தி, கண் திருஷ்டி நீங்குதல் மற்றும் குடும்பத்தில் நிரந்தர அமைதி கிட்டும்.`,
+        en: `Through the sacred performance of ${sevaTitle}, the devotee and family receive divine protection, radiant health, career progress, freedom from negative energies, and lasting harmony.`
       }, lang)
     };
   })();
