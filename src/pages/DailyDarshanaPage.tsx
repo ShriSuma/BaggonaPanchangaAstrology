@@ -1690,17 +1690,18 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [decoded, urlParams, activePanditPhone]);
 
   const activePanditName = useMemo(() => {
+    let raw = "";
     if (decoded?.p || decoded?.pandit || decoded?.priestName) {
-      return (decoded.p || decoded.pandit || decoded.priestName)!.trim();
+      raw = (decoded.p || decoded.pandit || decoded.priestName)!.trim();
+    } else if (decoded?.ocp && (decoded?.p || decoded?.pandit)) {
+      raw = (decoded.p || decoded.pandit)!.trim();
+    } else if (urlParams.get("overrideContact") === "true" && urlParams.get("priestName")) {
+      raw = urlParams.get("priestName")!.trim();
+    } else {
+      return localizedPandit;
     }
-    if (decoded?.ocp && (decoded?.p || decoded?.pandit)) {
-      return (decoded.p || decoded.pandit)!.trim();
-    }
-    if (urlParams.get("overrideContact") === "true" && urlParams.get("priestName")) {
-      return urlParams.get("priestName")!.trim();
-    }
-    return localizedPandit;
-  }, [decoded, urlParams, localizedPandit]);
+    return transliterateName(raw, lang);
+  }, [decoded, urlParams, localizedPandit, lang]);
   
   const devoteeDisplayName = useMemo(() => {
     let raw = "";
@@ -1723,12 +1724,14 @@ export default function DailyDarshanaPage(): JSX.Element {
     const sessionDob = storedSession?.birthDate || null;
     const sessionTob = storedSession?.birthTime || null;
     const tokenNak = decoded?.nk ?? (decoded as any)?.nakshatra ?? storedSession?.nakshatraIndex ?? null;
+    const tokenRashi = decoded?.r ?? (decoded as any)?.rashi ?? storedSession?.rashiIndex ?? null;
 
     return getUniversalBirthDetails({
       dob: paramDob || tokenDob || sessionDob,
       tob: paramTob || tokenTob || sessionTob,
       name: devoteeDisplayName,
-      nakshatraIndex: tokenNak
+      nakshatraIndex: tokenNak,
+      rashiIndex: tokenRashi
     });
   }, [urlParams, decoded, storedSession, devoteeDisplayName]);
 

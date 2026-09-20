@@ -24,6 +24,12 @@ import {
   formatPanditName,
   getNakshatraMantraInfo,
   pick,
+  MAHA_MRITYUNJAYA_MANTRA_L5,
+  SARVA_SHANTI_MANTRA_L5,
+  GRIHA_DIYA_MUHURTHA_L5,
+  KULA_DEVATA_GRIHA_RAKSHA_L5,
+  QR_TARGET_BADGE_DICT,
+  QR_CONSECRATING_DICT,
   type SevaLang,
   type L5
 } from "../../../features/seva/sevaLocale";
@@ -499,7 +505,13 @@ export const SevaLetterPrint = ({
         ? pick(primarySeva.seva.where, lang)
         : (primarySeva as any)?.where
           ? pick((primarySeva as any).where, lang)
-          : "—");
+          : pick({
+              kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (Gokarna Kshetra)",
+              hi: "गोकर्ण क्षेत्र",
+              te: "గోకర్ణ క్షేత్రం",
+              ta: "கோகர்ண க்ஷேத்திரம்",
+              en: "Gokarna Kshetra"
+            }, lang));
 
   const paragraph: React.CSSProperties = {
     fontSize: 13.5,
@@ -568,7 +580,8 @@ export const SevaLetterPrint = ({
             [pick(T.sevaDate!, lang), sevaDate || "—"],
             [pick(T.sevaPlace!, lang), sevaPlaceValue],
             [pick(T.labelRashi!, lang), pick(RASHI_L5[identity.rashiIndex]!, lang)],
-            [pick(T.labelNakshatra!, lang), pick(NAKSHATRA_L5[identity.nakshatraIndex]!, lang)]
+            [pick(T.labelNakshatra!, lang), pick(NAKSHATRA_L5[identity.nakshatraIndex]!, lang)],
+            ...(identity.gotra ? [[pick(T.labelGotra!, lang), identity.gotra]] : [])
           ].map(([label, value]) => (
             <div
               key={label}
@@ -608,7 +621,7 @@ export const SevaLetterPrint = ({
           </div>
 
           <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 12, backgroundColor: GOLD_LIGHT + "33", padding: "6px 16px", borderRadius: 20, display: "inline-block", border: `1px solid ${GOLD_LIGHT}` }}>
-            {safePanditName ? `${pick(LETTER_L5.priestBlessingPrefix!, lang)} ${safePanditName}` : "ಅರ್ಚಕರು"}
+            {safePanditName ? `${pick(LETTER_L5.priestBlessingPrefix!, lang)} ${safePanditName}` : pick({ kn: "ಅರ್ಚಕರು", hi: "अर्चक", te: "అర్చకులు", ta: "அர்ச்சகர்", en: "Archaka" }, lang)}
           </div>
 
           <div style={{ fontSize: 13.5, margin: 0, lineHeight: 1.9, textAlign: "left", color: INK, whiteSpace: "pre-line" }}>
@@ -651,7 +664,7 @@ export const SevaLetterPrint = ({
               {pick(LETTER_L5.namaskaraSubtitle!, lang)}
             </div>
             <div style={{ fontSize: 16, fontWeight: 700, color: GOLD, marginTop: 2 }}>
-              {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"}
+              {safePanditName || formatPanditName("Shreeram Pandit", lang)}
             </div>
             <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2 }}>
               {rhythm?.startYmd || ""} — {rhythm?.endYmd || ""}
@@ -717,70 +730,109 @@ export const SevaQRCodePrint = ({
         }}
       >
         <div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: INK, marginBottom: 6 }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: INK, marginBottom: 4 }}>
             {pick(T.qrPrintHeader!, lang)}
           </div>
-          <div style={{ fontSize: 13, color: INK_SOFT, marginBottom: 12, maxWidth: 660 }}>
+          <div style={{ fontSize: 12.5, color: INK_SOFT, marginBottom: 10, maxWidth: 660 }}>
             {pick(T.scanQrDesc!, lang)}
           </div>
         </div>
 
         <div
           style={{
-            padding: 12,
+            padding: 10,
             backgroundColor: "#FFFFFF",
             border: `2px solid ${GOLD_LIGHT}`,
             borderRadius: 14,
             display: "inline-block",
-            marginBottom: 12,
+            marginBottom: 8,
             boxShadow: "0 6px 20px rgba(180, 83, 9, 0.10)"
           }}
         >
           {displayQr ? (
-            <img src={displayQr} alt="Baggona Panchanga 90-Day Sync QR Code" style={{ width: 240, height: 240, display: "block" }} />
+            <img src={displayQr} alt="Baggona Panchanga 90-Day Sync QR Code" style={{ width: 210, height: 210, display: "block" }} />
           ) : (
-            <div style={{ width: 240, height: 240, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: PANEL, color: GOLD, fontSize: 13, fontWeight: 700 }}>
-              QR Code Consecrating...
+            <div style={{ width: 210, height: 210, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: PANEL, color: GOLD, fontSize: 13, fontWeight: 700 }}>
+              {pick(QR_CONSECRATING_DICT, lang)}
             </div>
           )}
-          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginTop: 8 }}>
-            {target === "google"
-              ? (lang.startsWith("kn") ? "🌟 ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ 90-ದಿನಗಳ ನೇರ ಸಿಂಕ್" : "🌟 Google Calendar 90-Day Live Sync")
-              : target === "webcal"
-                ? (lang.startsWith("kn") ? "🍎 ಆಪಲ್ / ಔಟ್‌ಲುಕ್ .ics ಕ್ಯಾಲೆಂಡರ್ ಫೀಡ್" : "🍎 Apple & Outlook .ics Calendar Feed")
-                : (lang.startsWith("kn") ? "🕉️ ಬಗ್ಗೋಣ ದೈನಿಕ ದರ್ಶನ ಗರ್ಭಗುಡಿ ವೆಬ್ ಆಪ್" : "🕉️ Baggona Daily Darshana Sanctum PWA")}
+          <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, marginTop: 6 }}>
+            {pick(QR_TARGET_BADGE_DICT[target] || QR_TARGET_BADGE_DICT.google, lang)}
           </div>
-
         </div>
 
-        <div style={{ textAlign: "left", width: "100%", maxWidth: 640, backgroundColor: PANEL, padding: "16px 22px", borderRadius: 14, border: `1.5px solid ${GOLD_LIGHT}`, boxSizing: "border-box" }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: GOLD, marginBottom: 10, textTransform: "uppercase", textAlign: "center" }}>
+        {/* 4-Step Instructions Card */}
+        <div style={{ textAlign: "left", width: "100%", maxWidth: 680, backgroundColor: PANEL, padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${GOLD_LIGHT}`, boxSizing: "border-box", marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
             {pick(T.scanQrTitle!, lang)}
           </div>
-          <div style={{ fontSize: 13.5, color: INK }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: 20 }}>📱</span> {pick(T.qrPrintStep1!, lang)}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 12px", fontSize: 11.5, color: INK }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>📱</span> {pick(T.qrPrintStep1!, lang)}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: 20 }}>📷</span> {pick(T.qrPrintStep2!, lang)}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>📷</span> {pick(T.qrPrintStep2!, lang)}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: 20 }}>🔗</span> {pick(T.qrPrintStep3!, lang)}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>🔗</span> {pick(T.qrPrintStep3!, lang)}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 20 }}>✅</span> {pick(T.qrPrintStep4!, lang)}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>✅</span> {pick(T.qrPrintStep4!, lang)}
             </div>
+          </div>
+        </div>
+
+        {/* Sacred Home Altar: Daily Sandhya Lamp Lighting Muhurtha */}
+        <div style={{ textAlign: "left", width: "100%", maxWidth: 680, backgroundColor: "#FFFFFF", padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${GOLD_LIGHT}`, boxSizing: "border-box", marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 6, textTransform: "uppercase", textAlign: "center" }}>
+            {pick(GRIHA_DIYA_MUHURTHA_L5.title, lang)}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ borderLeft: `3px solid ${GOLD}`, paddingLeft: 10 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: INK }}>
+                {pick(GRIHA_DIYA_MUHURTHA_L5.morning.label, lang)}: <span style={{ color: GOLD }}>{pick(GRIHA_DIYA_MUHURTHA_L5.morning.time, lang)}</span>
+              </div>
+              <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
+                {pick(GRIHA_DIYA_MUHURTHA_L5.morning.desc, lang)}
+              </div>
+            </div>
+            <div style={{ borderLeft: `3px solid ${GOLD}`, paddingLeft: 10 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: INK }}>
+                {pick(GRIHA_DIYA_MUHURTHA_L5.evening.label, lang)}: <span style={{ color: GOLD }}>{pick(GRIHA_DIYA_MUHURTHA_L5.evening.time, lang)}</span>
+              </div>
+              <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.5 }}>
+                {pick(GRIHA_DIYA_MUHURTHA_L5.evening.desc, lang)}
+              </div>
+            </div>
+          </div>
+          <div style={{ fontSize: 9.5, color: INK_SOFT, textAlign: "center", marginTop: 5, fontStyle: "italic" }}>
+            {pick(GRIHA_DIYA_MUHURTHA_L5.sanctumAdvice, lang)}
+          </div>
+        </div>
+
+        {/* Sacred Home Altar: Universal Vedic Peace Mantra */}
+        <div style={{ textAlign: "center", width: "100%", maxWidth: 680, backgroundColor: PANEL, padding: "8px 14px", borderRadius: 12, border: `1.5px solid ${GOLD_LIGHT}`, boxSizing: "border-box", marginBottom: 8 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
+            {pick(SARVA_SHANTI_MANTRA_L5.title, lang)}
+          </div>
+          <div style={{ fontSize: 10.5, color: INK, lineHeight: 1.7 }}>
+            {SARVA_SHANTI_MANTRA_L5.lines.map((lineObj, idx) => (
+              <div key={idx}>{pick(lineObj, lang)}</div>
+            ))}
+          </div>
+          <div style={{ fontSize: 9.5, color: INK_SOFT, marginTop: 3, lineHeight: 1.45 }}>
+            {pick(SARVA_SHANTI_MANTRA_L5.desc, lang)}
           </div>
         </div>
 
         <div
           style={{
-            marginTop: 10,
+            marginTop: 2,
             marginBottom: 20,
-            fontSize: 12,
+            fontSize: 11.5,
             color: INK_SOFT,
             fontWeight: 600,
-            lineHeight: 1.6
+            lineHeight: 1.5
           }}
         >
           🕉️ {pick({ kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪೆ ಸದಾ ನಿಮ್ಮೊಂದಿಗಿರಲಿ", hi: "श्री गोकर्ण महाबलेश्वर स्वामी की दिव्य कृपा सदैव आप पर बनी रहे", te: "శ్రీ గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య కృపాకటాక్షాలు సదా మీతో ఉండుగాక", ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வர சுவாமியின் திவ்ய கிருபை எப்போதும் உங்களுடன் இருப்பதாக", en: "May the divine grace of Shri Gokarna Mahabaleshwara always protect you" }, lang)}
@@ -1417,12 +1469,13 @@ export const SevaAnugrahaGuidancePrint = ({
               textAlign: "center"
             }}
           >
-            <div style={{ fontSize: 11.5, color: GOLD, letterSpacing: "normal" }}>
-              <div>ॐ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ |</div>
-              <div>ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||</div>
+            <div style={{ fontSize: 11.5, color: GOLD, letterSpacing: "normal", fontWeight: 600 }}>
+              {MAHA_MRITYUNJAYA_MANTRA_L5.lines.map((lineObj, idx) => (
+                <div key={idx}>{pick(lineObj, lang)}</div>
+              ))}
             </div>
             <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 3, lineHeight: 1.55 }}>
-              {pick(MANTHRA_DESC_DICT, lang)}
+              {pick(MAHA_MRITYUNJAYA_MANTRA_L5.meaning, lang)}
             </div>
           </div>
 
@@ -1442,7 +1495,7 @@ export const SevaAnugrahaGuidancePrint = ({
             ✦ {pick({ kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರ ಅರ್ಚಕರ ಆಶೀರ್ವಾದ", hi: "गोकर्ण महाबलेश्वर क्षेत्र अर्चक आशीर्वाद", te: "గోకర్ణ మహాబలేశ్వర క్షేత్ర అర్చకుల ఆశీర్వాదం", ta: "கோகர்ண மகாபலேஸ்வர க்ஷேத்திர அர்ச்சகர் ஆசீர்வாதம்", en: "Gokarna Kshetra Archaka Benediction" }, lang)} ✦
           </div>
           <div style={{ fontSize: 11.5, color: INK, fontWeight: 700, marginTop: 1 }}>
-            {safePanditName || "ಚೈತನ್ಯ ಪಂಡಿತ"} — {pick({ kn: "ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ", hi: "मुख्य अर्चक, गोकर्ण क्षेत्र", te: "ముఖ్య అర్చకులు, గోకర్ణ క్షేత్రం", ta: "முதன்மை அர்ச்சகர், கோகர்ண க்ஷேத்திரம்", en: "Chief Archaka, Gokarna Kshetra" }, lang)}
+            {safePanditName || formatPanditName("Shreeram Pandit", lang)} — {pick({ kn: "ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ", hi: "मुख्य अर्चक, गोकर्ण क्षेत्र", te: "ముఖ్య అర్చకులు, గోకర్ణ క్షేత్రం", ta: "முதன்மை அர்ச்சகர், கோகர்ண க்ஷேத்திரம்", en: "Chief Archaka, Gokarna Kshetra" }, lang)}
           </div>
           <div style={{ fontSize: 10, color: INK_SOFT, marginTop: 2, lineHeight: 1.55 }}>
             {pick({ kn: "ವಿಶೇಷ ಗೋತ್ರ ಸಂಕಲ್ಪ ಸೇವೆ, ನವಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಗೋಕರ್ಣ ಪ್ರಸಾದ ಸೇವೆಗಾಗಿ ಅರ್ಚಕರೊಂದಿಗೆ ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಬಹುದು.", hi: "विशेष गोत्र संकल्प पूजा, नवग्रह शांति एवं गोकर्ण प्रसाद सेवा हेतु अर्चक से संपर्क कर सकते हैं।", te: "విశేష గోత్ర సంకల్ప పూజ, నవగ్రహ శాంతి మరియు ప్రసాద సేవల కొరకు అర్చకులను సంప్రదించవచ్చు.", ta: "விசேஷ சங்கல்ப பூஜை, நவகிரக சாந்தி மற்றும் பிரசாத சேவைக்கு அர்ச்சகரை தொடர்புகொள்ளலாம்.", en: "For special Gotra Sankalpa Seva, Navagraha Shanti, and sacred Mahabaleshwara Prasada, consult the Archaka directly." }, lang)}
@@ -1708,7 +1761,7 @@ export const SevaRemediesAnnualPrint = ({
             </div>
           </div>
 
-          {/* Section 3: Pitru Tarpanam & Ancestral Grace */}
+          {/* Section 3: Kula Devata Griha Raksha & Mangalam Shloka */}
           <div
             style={{
               marginTop: 10,
@@ -1719,30 +1772,53 @@ export const SevaRemediesAnnualPrint = ({
               textAlign: "center"
             }}
           >
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
-              ✦ {pick({ kn: "ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಕುಲದೇವರ ಆಶೀರ್ವಾದ", hi: "पितृ तर्पण एवं कुलदेवता आशीर्वाद", te: "పితృ తర్పణం మరియు కులదేవత ఆశీర్వాదం", ta: "பித்ரு தர்பணம் & குலதெய்வ ஆசீர்வாதம்", en: "Ancestral Peace & Clan Deity Grace Guidelines" }, lang)} ✦
+            <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 4 }}>
+              {pick(KULA_DEVATA_GRIHA_RAKSHA_L5.title, lang)}
             </div>
-            <div style={{ fontSize: 11.5, color: INK_SOFT, lineHeight: 1.8, letterSpacing: "normal" }}>
-              {pick({ kn: "ಪರಮ ಪವಿತ್ರ ರುದ್ರಪಾದ ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಅಥವಾ ಪುಣ್ಯ ತೀರ್ಥಗಳಲ್ಲಿ ಪಿತೃ ಶ್ರಾದ್ಧ, ತರ್ಪಣ ಹಾಗೂ ತಿಲ ತರ್ಪಣ ಮಾಡುವುದರಿಂದ ಏಳು ತಲೆಮಾರಿನ ಪಿತೃಗಳಿಗೆ ಸದ್ಗತಿ ದೊರೆತು, ಸಂತತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಮೃದ್ಧಿ ಲಭಿಸುತ್ತದೆ.", hi: "परम पवित्र रुद्रपाद तीर्थों में अथवा पुण्य नदियों के तट पर पितृ तर्पण करने से सात पीढ़ियों के पितरों को सद्गति मिलती है तथा वंश समृद्धि प्राप्त होती है।", te: "పరమ పవిత్ర రుద్రపాద క్షేత్రాలలో లేదా పుణ్య తీర్థాలలో పితృ తర్పణం చేయడం వలన ఏడు తరాల పితృదేవతలకు ముక్తి లభించి వంశాభివృద్ధి జరుగుతుంది.", ta: "புனித ருத்ரபாத தீர்த்தங்களில் அல்லது புண்ணிய நதிக்கரைகளில் பித்ரு தர்பணம் செய்வது 7 தலைமுறை பித்ருக்களுக்கு முக்தியும் வம்ச சுபிட்சமும் தரும்.", en: "Performing ancestral rites and Tarpanam at sacred Rudrapada tirthas or pilgrimage sites guarantees liberation to 7 generations and bestows family prosperity." }, lang)}
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: INK, lineHeight: 1.8, whiteSpace: "pre-line", marginBottom: 3 }}>
+              {pick(KULA_DEVATA_GRIHA_RAKSHA_L5.shloka, lang)}
+            </div>
+            <div style={{ fontSize: 10, color: INK_SOFT, lineHeight: 1.6, letterSpacing: "normal" }}>
+              {pick(KULA_DEVATA_GRIHA_RAKSHA_L5.desc, lang)}
             </div>
           </div>
 
-          {/* Section 4: Sacred Prasada Preservation */}
-          <div
-            style={{
-              marginTop: 10,
-              backgroundColor: "#FFFFFF",
-              border: `1.5px solid ${GOLD_LIGHT}`,
-              borderRadius: 9,
-              padding: "10px 14px",
-              textAlign: "center"
-            }}
-          >
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3 }}>
-              ✦ {pick({ kn: "ಪವಿತ್ರ ಪ್ರಸಾದ ರಕ್ಷಣೆ ಹಾಗೂ ವಿನಿಯೋಗ ಮಾರ್ಗದರ್ಶಿ", hi: "पवित्र प्रसाद उपयोग एवं संरक्षण मार्गदर्शिका", te: "పవిత్ర ప్రసాదం వినియోగం మరియు సంరక్షణ మార్గదర్శి", ta: "புனித பிரசாத உபயோகம் & பாதுகாப்பு வழிகாட்டி", en: "Sacred Prasada Preservation & Usage Guidelines" }, lang)} ✦
+          {/* Section 4: Ancestral Peace & Sacred Prasada Preservation (Side-by-Side) */}
+          <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div
+              style={{
+                backgroundColor: "#FFFFFF",
+                border: `1px solid ${GOLD_LIGHT}`,
+                borderRadius: 9,
+                padding: "10px 12px",
+                textAlign: "left",
+                boxSizing: "border-box"
+              }}
+            >
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3, textAlign: "center" }}>
+                ✦ {pick({ kn: "ಪಿತೃ ತರ್ಪಣ ಹಾಗೂ ಕುಲ ಶಾಂತಿ", hi: "पितृ तर्पण एवं कुल शांति", te: "పితృ తర్పణం మరియు వంశ శాంతి", ta: "பித்ரு தர்பணம் & குல சாந்தி", en: "Ancestral Peace & Lineage Grace" }, lang)} ✦
+              </div>
+              <div style={{ fontSize: 10.5, color: INK_SOFT, lineHeight: 1.65, letterSpacing: "normal" }}>
+                {pick({ kn: "ರುದ್ರಪಾದ ಅಥವಾ ಪುಣ್ಯ ತೀರ್ಥಗಳಲ್ಲಿ ಪಿತೃ ಶ್ರಾದ್ಧ, ತರ್ಪಣ ಮಾಡುವುದರಿಂದ ಏಳು ತಲೆಮಾರಿನ ಪಿತೃಗಳಿಗೆ ಸದ್ಗತಿ ದೊರೆತು, ಸಂತತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಮೃದ್ಧಿ ಲಭಿಸುತ್ತದೆ.", hi: "रुद्रपाद अथवा तीर्थों में पितृ तर्पण करने से सात पीढ़ियों के पितरों को सद्गति मिलती है तथा कुल में अखंड सुख-समृद्धि प्राप्त होती है।", te: "రుద్రపాద లేదా పుణ్య తీర్థాలలో పితృ తర్పణం చేయడం వలన ఏడు తరాల పితరులకు మోక్షం లభించి వంశాభివృద్ధి జరుగుతుంది.", ta: "புனித தீர்த்தங்களில் பித்ரு தர்பணம் செய்வது 7 தலைமுறை பித்ருக்களுக்கு முக்தியும் வம்ச சுபிட்சமும் தரும்.", en: "Ancestral rites and Tarpanam at sacred Rudrapada tirthas ensure liberation to 7 generations and bestows family prosperity." }, lang)}
+              </div>
             </div>
-            <div style={{ fontSize: 11.5, color: INK_SOFT, lineHeight: 1.8, letterSpacing: "normal" }}>
-              {pick({ kn: "ಪೂಜೆಯಿಂದ ಲಭಿಸಿದ ಪವಿತ್ರ ಪ್ರಸಾದವನ್ನು ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಅಥವಾ ತಿಜೋರಿಯಲ್ಲಿ ಭಕ್ತಿಯಿಂದ ಇರಿಸಿ. ಶುಭ ಕಾರ್ಯಗಳಿಗೆ ಹೊರಡುವಾಗ ಪ್ರಸಾದವನ್ನು ಧರಿಸಿ ಪ್ರಾರ್ಥಿಸುವುದು ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯ ಹಾಗೂ ದಿವ್ಯ ರಕ್ಷಣೆಯನ್ನು ನೀಡುತ್ತದೆ.", hi: "पूजा से प्राप्त पवित्र प्रसाद को घर के पूजा स्थल अथवा तिजोरी में श्रद्धापूर्वक रखें। शुभ कार्यों हेतु निकलते समय प्रसाद ग्रहण कर प्रार्थना करने से सर्व कार्यों में सफलता एवं दैवीय सुरक्षा प्राप्त होती है।", te: "పూజ నుండి లభించిన పవిత్ర ప్రసాదాన్ని ఇంటి పూజాగదిలో లేదా బీరువాలో భక్తితో ఉంచండి. శుభ కార్యాలకు వెళ్ళేటప్పుడు ప్రసాదాన్ని స్వీకరించి ప్రార్థించడం వలన సమస్త కార్యాలలో విజయం మరియు రక్షణ లభిస్తాయి.", ta: "பூஜையிலிருந்து பெற்ற புனித பிரசாதத்தை பூஜை அறையிலோ அல்லது பணப்பெட்டியிலோ பக்தியுடன் வைக்கவும். சுப காரியங்களுக்குச் செல்லும்போது பிரசாதத்தை அணிந்து பிரார்த்திப்பது வெற்றி தரும்.", en: "Reverently place the sacred blessed Prasada in your home altar or treasury. Accepting the Prasada with prayer before embarking on important endeavors ensures success, prosperity, and divine protection." }, lang)}
+
+            <div
+              style={{
+                backgroundColor: "#FFFFFF",
+                border: `1px solid ${GOLD_LIGHT}`,
+                borderRadius: 9,
+                padding: "10px 12px",
+                textAlign: "left",
+                boxSizing: "border-box"
+              }}
+            >
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: GOLD, marginBottom: 3, textAlign: "center" }}>
+                ✦ {pick({ kn: "ಪವಿತ್ರ ಪ್ರಸಾದ ರಕ್ಷಣೆ ಮಾರ್ಗದರ್ಶಿ", hi: "पवित्र प्रसाद संरक्षण विधि", te: "పవిత్ర ప్రసాదం సంరక్షణ", ta: "புனித பிரசாத பாதுகாப்பு", en: "Sacred Prasada Preservation" }, lang)} ✦
+              </div>
+              <div style={{ fontSize: 10.5, color: INK_SOFT, lineHeight: 1.65, letterSpacing: "normal" }}>
+                {pick({ kn: "ಲಕ್ಷ್ಮೀ-ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದವನ್ನು ದೇವರ ಮನೆಯಲ್ಲಿ ಭಕ್ತಿಯಿಂದ ಇರಿಸಿ. ಶುಭ ಕಾರ್ಯಗಳಿಗೆ ಹೊರಡುವಾಗ ಪ್ರಸಾದ ಧರಿಸಿ ಪ್ರಾರ್ಥಿಸುವುದು ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯ ನೀಡುತ್ತದೆ.", hi: "प्रसाद को घर के पूजा स्थल में श्रद्धापूर्वक रखें। शुभ कार्यों हेतु निकलते समय प्रसाद ग्रहण कर प्रार्थना करने से कार्यों में सफलता एवं दैवीय सुरक्षा मिलती है।", te: "ప్రసాదాన్ని పూజాగదిలో భక్తితో ఉంచండి. శుభ కార్యాలకు వెళ్ళేటప్పుడు ప్రసాదం స్వీకరించి ప్రార్థించడం వలన విజయము, రక్షణ లభిస్తాయి.", ta: "பிரசாதத்தை பூஜை அறையில் பக்தியுடன் வைக்கவும். சுப காரியங்களுக்கு செல்லும்போது பிரசாதத்தை அணிந்து பிரார்த்திப்பது வெற்றி தரும்.", en: "Keep sacred Prasada reverently in your home altar. Accepting it before important tasks bestows victory and divine shield." }, lang)}
+              </div>
             </div>
           </div>
 

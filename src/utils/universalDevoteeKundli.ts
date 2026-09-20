@@ -63,35 +63,33 @@ export function getUniversalBirthDetails(
 ): UniversalBirthDetailsOutput {
   const { dob, tob, name, nakshatraIndex, rashiIndex } = input;
 
+  const hasDob = Boolean(dob && dob.trim().length > 0);
+  const hasTob = Boolean(tob && tob.trim().length > 0);
+
   // 1. Explicit DOB & TOB passed in input
-  if (dob && dob.trim().length > 0 && tob && tob.trim().length > 0) {
+  if (hasDob && hasTob) {
     return {
-      dob: dob.trim(),
-      tob: tob.trim(),
+      dob: dob!.trim(),
+      tob: tob!.trim(),
       isDerived: false,
       nakshatraIndex: nakshatraIndex ?? undefined,
       rashiIndex: rashiIndex ?? undefined
     };
   }
 
-  // 2. Known Devotee Name Fallbacks
-  const displayName = name || "";
-  if (displayName.includes("Manoj") || displayName.includes("ಮನೋಜ್")) {
-    return { dob: "1993-03-16", tob: "01:40", isDerived: true, nakshatraIndex: 18, rashiIndex: 8 };
-  }
-  if (displayName.includes("Dilip") || displayName.includes("ದಿಲೀಪ್")) {
-    return { dob: "1993-03-22", tob: "23:40", isDerived: true, nakshatraIndex: 24, rashiIndex: 10 };
-  }
-  if (
-    displayName.includes("Shreeram") ||
-    displayName.includes("ಶ್ರೀರಾಮ್") ||
-    displayName.includes("Pramod") ||
-    displayName.includes("ಪ್ರಮೋದ್")
-  ) {
-    return { dob: "1993-05-31", tob: "09:25", isDerived: true, nakshatraIndex: 12, rashiIndex: 5 };
+  // 1b. Devotee knows DOB but does NOT know exact TOB (unknown birth time)
+  // Use user's exact DOB, anchor at 12:00 (Madhyahna Kaala / Surya Lagna anchor)
+  if (hasDob && !hasTob) {
+    return {
+      dob: dob!.trim(),
+      tob: "12:00",
+      isDerived: false,
+      nakshatraIndex: nakshatraIndex ?? undefined,
+      rashiIndex: rashiIndex ?? undefined
+    };
   }
 
-  // 3. Nakshatra-based Universal Reference Date
+  // 2. Devotee does NOT know DOB or TOB, but has known Nakshatra Index (0..26)
   if (
     nakshatraIndex !== undefined &&
     nakshatraIndex !== null &&
@@ -108,6 +106,46 @@ export function getUniversalBirthDetails(
       nakshatraIndex,
       rashiIndex: rashiIndex ?? ref.rashiIndex
     };
+  }
+
+  // 2b. Devotee does NOT know DOB or Nakshatra, but knows Rashi Index (0..11)
+  const RASHI_START_NAKSHATRA: Record<number, number> = {
+    0: 0, 1: 3, 2: 4, 3: 7, 4: 9, 5: 12, 6: 14, 7: 16, 8: 18, 9: 21, 10: 23, 11: 25
+  };
+  if (
+    rashiIndex !== undefined &&
+    rashiIndex !== null &&
+    typeof rashiIndex === "number" &&
+    rashiIndex >= 0 &&
+    rashiIndex < 12 &&
+    RASHI_START_NAKSHATRA[rashiIndex] !== undefined
+  ) {
+    const derivedNak = RASHI_START_NAKSHATRA[rashiIndex];
+    const ref = NAKSHATRA_UNIVERSAL_BIRTH_TABLE[derivedNak];
+    return {
+      dob: ref.dob,
+      tob: ref.tob,
+      isDerived: true,
+      nakshatraIndex: derivedNak,
+      rashiIndex
+    };
+  }
+
+  // 3. Known Devotee Name Fallbacks
+  const displayName = name || "";
+  if (displayName.includes("Manoj") || displayName.includes("ಮನೋಜ್")) {
+    return { dob: "1993-03-16", tob: "01:40", isDerived: true, nakshatraIndex: 18, rashiIndex: 8 };
+  }
+  if (displayName.includes("Dilip") || displayName.includes("ದಿಲೀಪ್")) {
+    return { dob: "1993-03-22", tob: "23:40", isDerived: true, nakshatraIndex: 24, rashiIndex: 10 };
+  }
+  if (
+    displayName.includes("Shreeram") ||
+    displayName.includes("ಶ್ರೀರಾಮ್") ||
+    displayName.includes("Pramod") ||
+    displayName.includes("ಪ್ರಮೋದ್")
+  ) {
+    return { dob: "1993-05-31", tob: "09:25", isDerived: true, nakshatraIndex: 12, rashiIndex: 5 };
   }
 
   // 4. Default Universal Fallback

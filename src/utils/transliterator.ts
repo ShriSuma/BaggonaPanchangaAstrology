@@ -5,32 +5,47 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "gautam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గౌతమ్", ta: "கௌதம்", en: "Gautam" },
   "roja": { kn: "ರೋಜಾ", hi: "रोजा", te: "రోజా", ta: "ரோஜா", en: "Roja" },
   "swayam naik": { kn: "ಸ್ವಯಂ ನಾಯಕ್", hi: "स्वयं नायक", te: "స్వయం నాయక్", ta: "ஸ்வயம் நாயக்", en: "Swayam Naik" },
-  "swayam": { kn: "ಸ್ವಯಂ", hi: "स्वयं", te: "స్ವయం", ta: "ஸ்வயம்", en: "Swayam" },
+  "swayam": { kn: "ಸ್ವಯಂ", hi: "स्वयं", te: "స్వయం", ta: "ஸ்வயம்", en: "Swayam" },
   "naik": { kn: "ನಾಯಕ್", hi: "नायक", te: "నాయక్", ta: "நாயக்", en: "Naik" },
   "nayak": { kn: "ನಾಯಕ್", hi: "नायक", te: "నాయక్", ta: "நாயக்", en: "Nayak" },
   "manoj poornamath": { kn: "ಮನೋಜ್ ಪೂರ್ಣಮಠ", hi: "मनोज पूर्णमठ", te: "మనోజ్ పూర్ణమఠ", ta: "மனோஜ் பூரணமடா", en: "Manoj Poornamath" },
-  "manoj purnamath": { kn: "ಮನೋಜ್ ಪೂರ್ಣಮಠ", hi: "मनोज पूर्णमठ", te: "మనోజ్ పూర్ణమఠ", ta: "மனೋಜ್ பூரணமடா", en: "Manoj Purnamath" },
-  "manoj poornamatha": { kn: "ಮನೋಜ್ ಪೂರ್ಣಮಠ", hi: "मनोज पूर्णमठ", te: "మనోజ్ పూర్ణమఠ", ta: "மனೋஜ் பூரணಮடா", en: "Manoj Poornamatha" },
+  "manoj purnamath": { kn: "ಮನೋಜ್ ಪೂರ್ಣಮಠ", hi: "मनोज पूर्णमठ", te: "మనోజ్ పూర్ణమఠ", ta: "மனோஜ் பூரணமடா", en: "Manoj Purnamath" },
+  "manoj poornamatha": { kn: "ಮನೋಜ್ ಪೂರ್ಣಮಠ", hi: "मनोज पूर्णमठ", te: "మనోజ్ పూర్ణమఠ", ta: "மனோஜ் பூரணமடா", en: "Manoj Poornamatha" },
   "poornamath": { kn: "ಪೂರ್ಣಮಠ", hi: "पूर्णमठ", te: "పూర్ణమఠ", ta: "பூரணமடா", en: "Poornamath" },
   "purnamath": { kn: "ಪೂರ್ಣಮಠ", hi: "पूर्णमठ", te: "పూర్ణమఠ", ta: "பூரணமடா", en: "Purnamath" },
   "manoj": { kn: "ಮನೋಜ್", hi: "मनोज", te: "మనోజ్", ta: "மனோஜ்", en: "Manoj" },
   "poornamatha": { kn: "ಪೂರ್ಣಮಠ", hi: "पूर्णमठ", te: "పూర్ణమఠ", ta: "பூரணமடா", en: "Poornamatha" },
   "dileep hiregange": { kn: "ದಿಲೀಪ್ ಹಿರೇಗಂಗೆ", hi: "दिलीप हिरेगंगे", te: "దిలీప్ హిరేగంగె", ta: "தில்லீப் ஹிரேகங்கே", en: "Dileep Hiregange" },
-  "dilip hiregange": { kn: "ದಿಲೀಪ್ ಹಿರೇಗಂಗೆ", hi: "दिलीप हिरेगंगे", te: "దిలీప్ హిరేగంగె", ta: "தில்லீப் ಹிரேகங்கே", en: "Dilip Hiregange" },
-  "dileep": { kn: "ದಿಲೀಪ್", hi: "दिलीप", te: "దిలీప్", ta: "தில்லீಪ್", en: "Dileep" },
+  "dilip hiregange": { kn: "ದಿಲೀಪ್ ಹಿರೇಗಂಗೆ", hi: "दिलीप हिरेगंगे", te: "దిలీప్ హిరేగంగె", ta: "தில்லீப் ஹிரேகங்கே", en: "Dilip Hiregange" },
+  "dileep": { kn: "ದಿಲೀಪ್", hi: "दिलीप", te: "దిలీప్", ta: "தில்லீப்", en: "Dileep" },
   "hiregange": { kn: "ಹಿರೇಗಂಗೆ", hi: "हिरेगंगे", te: "హిరేగంగె", ta: "ஹிரேகங்கே", en: "Hiregange" },
-  "dilip pujari": { kn: "ದಿಲೀಪ್ ಪೂಜಾರಿ", hi: "दिलीप पुजारी", te: "దిలీಪ್ పూజారి", ta: "தில்லீப் பூஜாரி", en: "Dilip Pujari" },
+  "dilip pujari": { kn: "ದಿಲೀಪ್ ಪೂಜಾರಿ", hi: "दिलीप पुजारी", te: "దిలీప్ పూజారి", ta: "தில்லீப் பூஜாரி", en: "Dilip Pujari" },
   "dilip": { kn: "ದಿಲೀಪ್", hi: "दिलीप", te: "దిలీప్", ta: "தில்லீப்", en: "Dilip" },
   "pujari": { kn: "ಪೂಜಾರಿ", hi: "पुजारी", te: "పూజారి", ta: "பூஜாரி", en: "Pujari" },
   "pramod kudgi": { kn: "ಪ್ರಮೋದ್ ಕುಡ್ಗಿ", hi: "प्रमोद कुड्गी", te: "ప్రమోద్ ಕುಡ್ಗಿ", ta: "பிரமோத் குட்கி", en: "Pramod Kudgi" },
   "pramod kodgi": { kn: "ಪ್ರಮೋದ್ ಕೊಡ್ಗಿ", hi: "प्रमोद कोडगी", te: "ప్రమోద్ కొడ్గి", ta: "பிரமோத் கொட்கி", en: "Pramod Kodgi" },
-  "pramod kodigi": { kn: "ಪ್ರಮೋದ್ ಕೊಡಿಗಿ", hi: "प्रमोद कोडिगी", te: "ಪ್ರಮೋದ್ ಕೊಡಿಗಿ", ta: "பிரமோத் கொடிகீ", en: "Pramod Kodigi" },
+  "pramod kodigi": { kn: "ಪ್ರಮೋದ್ ಕೊಡಿಗಿ", hi: "प्रमोद कोडिगी", te: "ప్రమోద్ ಕೊಡಿಗಿ", ta: "பிரமோத் கொடிகீ", en: "Pramod Kodigi" },
   "pramod": { kn: "ಪ್ರಮೋದ್", hi: "प्रमोद", te: "ప్రమోద్", ta: "பிரமோத்", en: "Pramod" },
   "kudgi": { kn: "ಕುಡ್ಗಿ", hi: "कुड्गी", te: "కుడ్గి", ta: "குட்கி", en: "Kudgi" },
   "shreeram pandit": { kn: "ಶ್ರೀರಾಮ ಪಂಡಿತ್", hi: "श्रीराम पंडित", te: "శ్రీరామ్ పండిట్", ta: "ஸ்ரீராம் பண்டிட்", en: "Shreeram Pandit" },
   "chaitanya pandit": { kn: "ಚೈತನ್ಯ ಪಂಡಿತ್", hi: "चैतन्य पंडित", te: "చైతన్య పండిట్", ta: "சைதன்ய பண்டிட்", en: "Chaitanya Pandit" },
   "shreeram": { kn: "ಶ್ರೀರಾಮ", hi: "श्रीराम", te: "శ్రీరామ్", ta: "ஸ்ரீராம்", en: "Shreeram" },
   "pandit": { kn: "ಪಂಡಿತ್", hi: "पंडित", te: "పండిట్", ta: "பண்டிட்", en: "Pandit" },
+  "purohit": { kn: "ಪುರೋಹಿತ", hi: "पुरोहित", te: "పురోహితుడు", ta: "புரோகிதர்", en: "Purohit" },
+  "archak": { kn: "ಅರ್ಚಕ", hi: "अर्चक", te: "అర్చకుడు", ta: "அர்ச்சகர்", en: "Archak" },
+  "archaka": { kn: "ಅರ್ಚಕ", hi: "अर्चक", te: "అర్చకుడు", ta: "அர்ச்சகர்", en: "Archaka" },
+  "shastri": { kn: "ಶಾಸ್ತ್ರಿ", hi: "शास्त्री", te: "శాస్త్రి", ta: "சாஸ்திரி", en: "Shastri" },
+  "gokarna": { kn: "ಗೋಕರ್ಣ", hi: "गोकर्ण", te: "గోకర్ణ", ta: "கோகர்ணா", en: "Gokarna" },
+  "narayana bali": { kn: "ನಾರಾಯಣ ಬಲಿ", hi: "नारायण बलि", te: "నారాయణ బలి", ta: "நாராயண பலி", en: "Narayana Bali" },
+  "narayana": { kn: "ನಾರಾಯಣ", hi: "नारायण", te: "నారాయణ", ta: "நாராயண", en: "Narayana" },
+  "bali": { kn: "ಬಲಿ", hi: "बलि", te: "బలి", ta: "பலி", en: "Bali" },
+  "tripindi shradha": { kn: "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "त्रिपिंडी श्राद्ध", te: "త్రిపిండి శ్రాద్ధము", ta: "திரிபிண்டி ஸ்ராத்தம்", en: "Tripindi Shradha" },
+  "tripindi shraddha": { kn: "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "त्रिपिंडी श्राद्ध", te: "త్రిపిండి శ్రాద్ధము", ta: "திரிபிண்டி ஸ்ராத்தம்", en: "Tripindi Shraddha" },
+  "tripindi": { kn: "ತ್ರಿಪಿಂಡಿ", hi: "त्रिपिंडी", te: "త్రిపిండి", ta: "திரிபிண்டி", en: "Tripindi" },
+  "shradha": { kn: "ಶ್ರಾದ್ಧ", hi: "श्राद्ध", te: "శ్రాద్ధము", ta: "ஸ்ராத்தம்", en: "Shradha" },
+  "shraddha": { kn: "ಶ್ರಾದ್ಧ", hi: "श्राद्ध", te: "శ్రాద్ధము", ta: "ஸ்ராத்தம்", en: "Shraddha" },
+  "rudrabhisheka": { kn: "ರುದ್ರಾಭಿಷೇಕ", hi: "रुद्राभिषेक", te: "రుద్రాభిషేకము", ta: "ருத்ராபிஷேகம்", en: "Rudrabhisheka" },
+  "rudrabhishek": { kn: "ರುದ್ರಾಭಿಷೇಕ", hi: "रुद्राभिषेक", te: "రుద్రాభిషేకము", ta: "ருத்ராபிஷேகம்", en: "Rudrabhishek" },
   "devotee": { kn: "ಭಕ್ತರು", hi: "भक्त", te: "భక్తుడు", ta: "பக்தர்", en: "Devotee" },
   "kumar": { kn: "ಕುಮಾರ್", hi: "कुमार", te: "కుమార్", ta: "குமார்", en: "Kumar" },
   "sharma": { kn: "ಶರ್ಮಾ", hi: "शर्मा", te: "శర్మ", ta: "சர்மா", en: "Sharma" },
@@ -126,7 +141,14 @@ const PHONETIC_CHAR_MAP: Record<string, { kn: string; hi: string; te: string; ta
  */
 function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | "ta"): string {
   if (!word) return word;
-  const lower = word.toLowerCase();
+  
+  // If the word contains non-English (Indic) characters, convert to Latin phonetic first
+  let inputWord = word;
+  if (detectScript(word) !== "en") {
+    inputWord = transliterateIndicToLatin(word);
+  }
+
+  const lower = inputWord.toLowerCase();
   let result = "";
   let i = 0;
 
@@ -145,7 +167,7 @@ function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | 
       i += 1;
       continue;
     }
-    result += word[i];
+    result += inputWord[i];
     i += 1;
   }
   return result;

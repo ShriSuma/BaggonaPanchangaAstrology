@@ -1093,11 +1093,20 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
   const scheduledEveAlerts = new Set<string>();
   const lastSeenVrataIndexMap = new Map<string, number>();
 
+  // Enforce zero duplicate dates across the 90-day calendar
+  const seenDaysYmd = new Set<string>();
+  const uniqueDays = days.filter((rawDay) => {
+    if (!rawDay.ymd) return false;
+    if (seenDaysYmd.has(rawDay.ymd)) return false;
+    seenDaysYmd.add(rawDay.ymd);
+    return true;
+  });
+
   // Mandatory Parity Guard: Normalize every single day in the calendar to use
   // calculateDeterministicRhythmDay so that calendar events and DailyDarshanaPage.tsx
   // match 100% identically across energy score, band, and color vibe.
-  const alignedDays = days.map((rawDay) => {
-    if (rawDay.band && rawDay.energyScore && rawDay.tara && rawDay.chandra && days.length < 5) {
+  const alignedDays = uniqueDays.map((rawDay) => {
+    if (rawDay.band && rawDay.energyScore && rawDay.tara && rawDay.chandra && uniqueDays.length < 5) {
       return rawDay;
     }
     const detDay = calculateDeterministicRhythmDay(rawDay.ymd, birthNakIdx, birthRashiIdx, startDateStr);
@@ -1272,8 +1281,10 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `🛕 ${labels.deityLabel}: ${pick(deity.deityL5, lang) || deity.deity}`,
       `📜 ${labels.mantraLabel}: ${deity.mantra}`,
       "----------------------------------------",
-      `🌐 ${labels.visitLabel}`,
-      `${sanctumUrl}`
+      `🌐 ${labels.visitLabel}:`,
+      "",
+      `${sanctumUrl}`,
+      ""
     );
 
     if (priestPortalUrl) {
@@ -1598,11 +1609,15 @@ export function generateGoogleCalendarUrl(options: {
     `🛕 ${labels.deityLabel}: ${pick(deity.deityL5, lang) || deity.deity}`,
     `📜 ${labels.mantraLabel}: ${deity.mantra}`,
     "----------------------------------------",
-    `🌐 ${labels.visitLabel}`,
+    `🌐 ${labels.visitLabel}:`,
+    "",
     `${sanctumUrl}`,
+    "",
     "----------------------------------------",
     `📥 Import Full 90-Day Calendar:`,
+    "",
     `${origin}/daily?token=${devoteeToken}&action=ics90`,
+    "",
     "----------------------------------------",
     "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
   ].join("\n");
@@ -1612,6 +1627,7 @@ export function generateGoogleCalendarUrl(options: {
     action: "TEMPLATE",
     text: summary,
     dates: `${dtStart}/${dtEnd}`,
+    location: sanctumUrl,
     details: details,
     ctz: "Asia/Kolkata"
   });

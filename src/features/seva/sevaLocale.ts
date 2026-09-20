@@ -10,6 +10,8 @@
  * every language, with a plain-language meaning supplied alongside.
  */
 
+import { transliterateName } from "../../utils/transliterator";
+
 export type SevaLang = "en" | "kn" | "te" | "ta" | "hi";
 
 /** One phrase in all five supported languages. */
@@ -1239,11 +1241,13 @@ export const getNakshatraMantraInfo = (nakshatraIndex?: number): NakshatraMantra
   return NAKSHATRA_MANTRAS_L5[safeIdx] || NAKSHATRA_MANTRAS_L5[0];
 };
 
-/** Format priest name into native script for the active language. */
+/** Format priest name into native script for the active language. Fully backward-compatible. */
 export const formatPanditName = (name?: string, lang: string = "en"): string => {
-  if (!name) return "";
-  const trimmed = name.trim();
+  const trimmed = (name || "").trim();
   const base = (lang || "en").split("-")[0];
+  if (!trimmed) {
+    return transliterateName("Shreeram Pandit", base);
+  }
   if (
     trimmed.toLowerCase().includes("chaitanya") ||
     trimmed.includes("ಚೈತನ್ಯ") ||
@@ -1260,7 +1264,160 @@ export const formatPanditName = (name?: string, lang: string = "en"): string => 
     };
     return map[base] || map.en;
   }
-  return trimmed;
+  return transliterateName(trimmed, base);
+};
+
+/* ------------------------------------------------------------------ *
+ * Sacred Home Altar & Family Protection Mantras (5-Language Pure)
+ * ------------------------------------------------------------------ */
+
+export const MAHA_MRITYUNJAYA_MANTRA_L5 = {
+  lines: [
+    {
+      kn: "ॐ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ |",
+      hi: "ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम्।",
+      te: "ఓం త్ర్యంబకం యజామహే సుగంధిం పుష్టివర్ధనమ్ |",
+      ta: "ஓம் த்ரயம்பகம் யஜாமஹே ஸுகந்திம் புஷ்டிவர்தனம் |",
+      en: "Om Tryambakam Yajamahe Sugandhim Pushtivardhanam |"
+    },
+    {
+      kn: "ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||",
+      hi: "उर्वारुकमिव बन्धनान्मृत्योर्मुक्षीय मामृतात्॥",
+      te: "ఉర్వారుకమివ బంధనాన్మృత్యోర్ముక్షీయ మామృతాత్ ||",
+      ta: "உர்வாருகமிவ பந்தனான்-மிருத்யோர்-முக்ஷீய மாமிர்தாத் ||",
+      en: "Urvarukamiva Bandhanan Mrityor Mukshiya Mamritat ||"
+    }
+  ],
+  meaning: {
+    kn: "ಮಹಾ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಣವು ನಿಮ್ಮ ಹಾಗೂ ನಿಮ್ಮ ಕುಟುಂಬದ ಸದಸ್ಯರಿಗೆ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ ಹಾಗೂ ದಿವ್ಯ ರಕ್ಷಣೆ ನೀಡುವ ಶಿವ ಕವಚವಾಗಿದೆ.",
+    hi: "महामृत्युंजय मंत्र का पाठ आपके और आपके परिवार के लिए उत्तम स्वास्थ्य, दीर्घायु एवं सुरक्षा का दिव्य शिव कवच है।",
+    te: "మహా మృత్యుంజయ మంత్ర జపం మీ మరియు మీ కుటుంబ సభ్యుల ఆయుష్షు, ఆరోగ్యం మరియు రక్షణకు దివ్య శివ కవచం.",
+    ta: "மகா மிருத்யுஞ்சய மந்திர ஜபம் உங்கள் குடும்பத்தின் ஆயுள், ஆரோக்கியம் மற்றும் பாதுகாப்புக்கு திவ்ய சிவ கவசம்.",
+    en: "Reciting the sacred Maha Mrityunjaya Mantra serves as a divine shield granting longevity, health, and resilience."
+  }
+};
+
+export const SARVA_SHANTI_MANTRA_L5 = {
+  title: {
+    kn: "✦ ದಿವ್ಯ ಗೃಹ ಸರ್ವ ಶಾಂತಿ ಮಂತ್ರ ✦",
+    hi: "✦ दिव्य गृह सर्व शांति मंत्र ✦",
+    te: "✦ దివ్య గృహ సర్వ శాంతి మంత్రం ✦",
+    ta: "✦ திவ்ய கிரக சர்வ சாந்தி மந்திரம் ✦",
+    en: "✦ Universal Vedic Peace & Domestic Harmony Mantra ✦"
+  },
+  lines: [
+    {
+      kn: "ॐ ದ್ಯೌಃ ಶಾಂತಿರಂತರಿಕ್ಷಂ ಶಾಂತಿಃ ಪೃಥಿವೀ ಶಾಂತಿರಾಪಃ ಶಾಂತಿರೋಷಧಯಃ ಶಾಂತಿಃ |",
+      hi: "ॐ द्यौः शान्तिरन्तरिक्षं शान्तिः पृथिवी शान्तिरापः शान्तिरोषधयः शान्तिः।",
+      te: "ఓం ద్యౌః శాంతిరంతరిక్షం శాంతిః పృథివీ శాంతిరాపః శాంతిరోషధయః శాంతిః |",
+      ta: "ஓம் த்யௌஃ சாந்திரந்தரிக்ஷம் சாந்திஃ ப்ரிதிவீ சாந்திராபஃ சாந்திரோஷதயஃ சாந்திஃ |",
+      en: "Om Dyauh Shantir-Antariksham Shantih Prithivi Shantir-Apah Shantir-Oshadhayah Shantih |"
+    },
+    {
+      kn: "ವನಸ್ಪತಯಃ ಶಾಂತಿರ್ವಿಶ್ವೇದೇವಾಃ ಶಾಂತಿರ್ಬ್ರಹ್ಮ ಶಾಂತಿಃ ಸರ್ವಂ ಶಾಂತಿಃ ಶಾಂತಿರೇವ ಶಾಂತಿಃ ಸಾ ಮಾ ಶಾಂತಿರೇಧಿ ||",
+      hi: "वनस्पतयः शान्तिर्विश्वेदेवाः शान्तिर्ब्रह्म शान्तिः सर्वं शान्तिः शान्तिरेव शान्तिः सा मा शान्तिरेधि॥",
+      te: "వనస్పతయః శాంతిర్విశ్వేదేవాః శాంతిర్బ్రహ్మ శాంతిః సర్వం శాంతిః శాంతిరేవ శాంతిః సా మా శాంతిరేధి ||",
+      ta: "வனஸ்பதயஃ சாந்திர்-விஸ்வேதேவாஃ சாந்திர்-பிரம்ம சாந்திஃ சர்வம் சாந்திஃ சாந்திரேவ சாந்திஃ சா மா சாந்திரேதி ||",
+      en: "Vanaspatayah Shantir-Vishvedevah Shantir-Brahma Shantih Sarvam Shantih Shantireva Shantih Sa Ma Shantiredhi ||"
+    },
+    {
+      kn: "ॐ ಶಾಂತಿಃ ಶಾಂತಿಃ ಶಾಂತಿಃ ||",
+      hi: "ॐ शान्तिः शान्तिः शान्तिः॥",
+      te: "ఓం శాంతిః శాంతిః శాంతిః ||",
+      ta: "ஓம் சாந்திஃ சாந்திஃ சாந்திஃ ||",
+      en: "Om Shantih Shantih Shantih ||"
+    }
+  ],
+  desc: {
+    kn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಮನೆಯಲ್ಲಿ ಈ ವೈದಿಕ ಶಾಂತಿ ಮಂತ್ರವನ್ನು ಸ್ಮರಿಸುವುದರಿಂದ ಸಕಲ ವಾಸ್ತು ದೋಷಗಳು, ಮನಃಕ್ಲೇಶಗಳು ಹಾಗೂ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳು ಶಮನವಾಗಿ ಅಖಂಡ ಗೃಹ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.",
+    hi: "प्रतिदिन सायं इस वैदिक शांति मंत्र का स्मरण करने से वास्तु दोष, मानसिक क्लेश एवं नकारात्मक ऊर्जा का शमन होकर घर में अखंड शांति रहती है।",
+    te: "ప్రతిరోజూ సాయంత్రం ఈ వైదిక శాంతి మంత్రం స్మరించడం వలన సమస్త వాస్తు దోషాలు, గృహ కలహాలు తొలగి శాంతి లభిస్తుంది.",
+    ta: "தினமும் மாலையில் இந்த சாந்தி மந்திரத்தை ஜபிப்பது வாஸ்து தோஷங்களை நீக்கி இல்லத்தில் மன அமைதி அளிக்கும்.",
+    en: "Reciting this Vedic Peace Mantra daily in the evening dispels Vastu afflictions, eliminates domestic tension, and invites enduring serenity."
+  }
+};
+
+export const GRIHA_DIYA_MUHURTHA_L5 = {
+  title: {
+    kn: "✦ ಪೂಜಾ ಮಂದಿರ ನಿತ್ಯ ದೀಪಾರಾಧನಾ ಸಂಧ್ಯಾ ಮುಹೂರ್ತ ✦",
+    hi: "✦ पूजा मंदिर नित्य दीपाराधन संध्या मुहूर्त ✦",
+    te: "✦ పూజా మందిర నిత్య దీపారాధన సంధ్యా ముహూర్తం ✦",
+    ta: "✦ பூஜை அறை நித்ய தீபாராதனை சந்தியா முகூர்த்தம் ✦",
+    en: "✦ Sacred Altar Daily Lamp Lighting Auspicious Hours ✦"
+  },
+  morning: {
+    label: { kn: "🌅 ಪ್ರಾತಃ ಸಂಧ್ಯಾ ದೀಪ", hi: "🌅 प्रातः संध्या दीप", te: "🌅 ప్రాతః సంధ్యా దీపం", ta: "🌅 காலை சந்தியா தீபம்", en: "🌅 Dawn Sandhya Lamp" },
+    time: { kn: "ಬೆಳಿಗ್ಗೆ ೬:೦೦ ರಿಂದ ೭:೩೦", hi: "प्रातः ६:०० से ७:३०", te: "ఉదయం ౬:౦౦ నుండి ౭:౩౦", ta: "காலை 6:00 முதல் 7:30", en: "06:00 AM – 07:30 AM" },
+    desc: { kn: "ಪೂರ್ವಾಭಿಮುಖವಾಗಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪ ಅಥವಾ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸಿ", hi: "पूर्व मुख होकर शुद्ध गोघृत अथवा तिल तैल का दीपक जलाएं", te: "తూర్పు ముఖంగా గోఘృత లేదా నువ్వుల నూనె దీపం వెలిగించండి", ta: "கிழக்கு நோக்கி தூய நெய் அல்லது நல்லெண்ணெய் தீபம் ஏற்றவும்", en: "Face East and light a pure cow ghee or sesame oil lamp" }
+  },
+  evening: {
+    label: { kn: "🪔 ಗೋಧೂಳಿ ಸಾಯಂ ದೀಪ", hi: "🪔 गोधूलि सायं दीप", te: "🪔 గోధూళి సాయం దీపం", ta: "🪔 கோதூளி மாலை தீபம்", en: "🪔 Godhuli Dusk Lamp" },
+    time: { kn: "ಸಂಜೆ ೬:೦೦ ರಿಂದ ೭:೧೫", hi: "सायं ६:०० से ७:१५", te: "సాయంత్రం ౬:౦౦ నుండి ౭:౧౫", ta: "மாலை 6:00 முதல் 7:15", en: "06:00 PM – 07:15 PM" },
+    desc: { kn: "ಈಶಾನ್ಯ ಅಥವಾ ದೇವರ ಮನೆಯಲ್ಲಿ ದೀಪವಿರಿಸಿ 'ಶುಭಂ ಕರೋತಿ' ಪ್ರಾರ್ಥನೆ ಮಾಡಿ", hi: "ईशान अथवा पूजा घर में दीप रखकर 'शुभं करोति' प्रार्थना करें", te: "ఈశాన్యం లేదా పూజాగదిలో దీపం ఉంచి 'శుభం కరోతి' ప్రార్థించండి", ta: "ஈசானியம் அல்லது பூஜை அறையில் தீபம் வைத்து 'சுபம் கரோதி' பிரார்த்திக்கவும்", en: "Place lamp in North-East or Altar and pray 'Shubham Karoti'" }
+  },
+  sanctumAdvice: {
+    kn: "ಈ ಪವಿತ್ರ ಪತ್ರಿಕೆಯನ್ನು ನಿಮ್ಮ ದೇವರ ಕೋಣೆಯ ಗೋಡೆಯಲ್ಲಿ ಅಥವಾ ಪೂಜಾ ಫಲಕದ ಮೇಲೆ ಪ್ರತಿಷ್ಠಾಪಿಸಿ, ನಿತ್ಯ ದರ್ಶನ ಪಡೆಯುವುದು ಸಮಸ್ತ ಕುಲಕ್ಕೆ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.",
+    hi: "इस पावन पत्र को अपने पूजा घर की दीवार अथवा वेदी पर स्थापित कर नित्य दर्शन करना संपूर्ण कुल को सुरक्षा प्रदान करता है।",
+    te: "ఈ పవిత్ర పత్రాన్ని మీ పూజాగది గోడకు లేదా పీఠంపై ఉంచి నిత్యం దర్శించుకోవడం సమస్త వంశానికి రక్షణనిస్తుంది.",
+    ta: "இந்த புனித அட்டையை உங்கள் பூஜை அறையின் சுவரிலோ அல்லது பீடத்திலோ வைத்து நித்தமும் தரிசிப்பது வம்சத்திற்கு பாதுகாப்பு தரும்.",
+    en: "Display this sacred sheet on your home altar wall or shrine. Daily darshana of this consecrated document shields the entire family lineage."
+  }
+};
+
+export const KULA_DEVATA_GRIHA_RAKSHA_L5 = {
+  title: {
+    kn: "✦ ಕುಲದೇವತಾ ರಕ್ಷಾ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮಂಗಳ ಶ್ಲೋಕ ✦",
+    hi: "✦ कुलदेवता रक्षा एवं पारिवारिक मंगल श्लोक ✦",
+    te: "✦ కులదేవతా రక్షా మరియు కుటుంబ మంగళ శ్లోకం ✦",
+    ta: "✦ குலதெய்வ ரக்ஷா மற்றும் குடும்ப மங்கள ஸ்லோகம் ✦",
+    en: "✦ Clan Deity Invocation & Family Harmony Verse ✦"
+  },
+  shloka: {
+    kn: "ಸ್ವಸ್ತಿ ಪ್ರಜಾಭ್ಯಃ ಪರಿಪಾಲಯಂತಾಂ ನ್ಯಾಯೇನ ಮಾರ್ಗೇಣ ಮಹೀಂ ಮಹೀಶಾಃ |\nಗೋಬ್ರಾಹ್ಮಣೇಭ್ಯಃ ಶುಭಮಸ್ತು ನಿತ್ಯಂ ಲೋಕಾಃ ಸಮಸ್ತಾಃ ಸುಖಿನೋ ಭವಂತು ||",
+    hi: "स्वस्ति प्रजाभ्यः परिपालयन्तां न्यायेन मार्गेण महीं महीशाः।\nगोब्राह्मणेभ्यः शुभमस्तु नित्यं लोकाः समस्ताः सुखिनो भवन्तु॥",
+    te: "స్వస్తి ప్రజాభ్యః పరిపాలయంతాం న్యాయేన మార్గేణ మహీం మహీశాః |\nగోబ్రాహ్మణేభ్యః శుభమస్తు నిత్యం లోకాః సమస్తాః సుఖినో భవంతు ||",
+    ta: "ஸ்வஸ்தி ப்ரஜாப்யஃ பரிபாலயந்தாம் ந்யாயேன மார்கேண மஹீம் மஹீசாஃ |\nகோப்ராஹ்மணேப்யஃ சுபமஸ்து நித்யம் லோகாஃ சமஸ்தாஃ சுகினோ பவந்து ||",
+    en: "Swasti Prajabhyah Paripalayantam Nyayena Margena Mahim Mahishah |\nGo-Brahmanebhyah Shubham-Astu Nityam Lokah Samastah Sukhino Bhavantu ||"
+  },
+  desc: {
+    kn: "ನಿತ್ಯ ಪ್ರಾರ್ಥನೆಯೊಂದಿಗೆ ಈ ಮಂಗಳ ಶ್ಲೋಕವನ್ನು ೩ ಬಾರಿ ಪಠಿಸುವುದರಿಂದ ಮನೆಯಲ್ಲಿ ಶಾಂತಿ, ಸಕಲ ಸದಸ್ಯರಲ್ಲಿ ಪರಸ್ಪರ ಸೌಹಾರ್ದ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಕಟಾಕ್ಷ ಸದಾ ನೆಲೆಸುತ್ತದೆ.",
+    hi: "नित्य पूजा में इस मंगल श्लोक का ३ बार पाठ करने से परिवार में शांति, पारस्परिक सौहार्द एवं अखंड लक्ष्मी कृपा बनी रहती है।",
+    te: "నిత్య పూజలో ఈ మంగళ శ్లోకాన్ని 3 సార్లు పఠించడం వలన ఇంట్లో శాంతి, సభ్యుల మధ్య సఖ్యత మరియు లక్ష్మీ కటాక్షం కలుగుతాయి.",
+    ta: "நித்ய பூஜையில் இந்த மங்கள ஸ்லோகத்தை 3 முறை ஜபிப்பது இல்லத்தில் அமைதியும் பரஸ்பர அன்பும் லக்ஷ்மி கடாட்சமும் தரும்.",
+    en: "Chanting this auspicious benediction 3 times during daily prayer ensures domestic peace, mutual love among family members, and enduring prosperity."
+  }
+};
+
+export const QR_TARGET_BADGE_DICT: Record<string, L5> = {
+  google: {
+    kn: "🌟 ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ 90-ದಿನಗಳ ನೇರ ಸಿಂಕ್",
+    hi: "🌟 गूगल कैलेंडर 90-दिवसीय लाइव सिंक",
+    te: "🌟 గూగుల్ క్యాలెండర్ 90-రోజుల ప్రత్యక్ష సింక్",
+    ta: "🌟 கூகிள் நாட்காட்டி 90-நாள் நேரடி ஒத்திசைவு",
+    en: "🌟 Google Calendar 90-Day Live Sync"
+  },
+  webcal: {
+    kn: "🍎 ಆಪಲ್ / ಔಟ್‌ಲುಕ್ .ics ಕ್ಯಾಲೆಂಡರ್ ಫೀಡ್",
+    hi: "🍎 एप्पल एवं आउटलुक .ics कैलेंडर फ़ीड",
+    te: "🍎 ఆపిల్ & ఔట్‌లుక్ .ics క్యాలెండర్ ఫీడ్",
+    ta: "🍎 ஆப்பிள் & அவுட்லுக் .ics நாட்காட்டி ஊட்டம்",
+    en: "🍎 Apple & Outlook .ics Calendar Feed"
+  },
+  sanctum: {
+    kn: "🕉️ ಬಗ್ಗೋಣ ದೈನಿಕ ದರ್ಶನ ಗರ್ಭಗುಡಿ ವೆಬ್ ಆಪ್",
+    hi: "🕉️ बग्गोण दैनिक दर्शन गर्भगृह वेब ऐप",
+    te: "🕉️ బగ్గోణ దైనిక దర్శనం గర్భగుడి వెబ్ యాప్",
+    ta: "🕉️ பக்கோண தினசரி தரிசனம் கருவறை வலை செயலி",
+    en: "🕉️ Baggona Daily Darshana Sanctum PWA"
+  }
+};
+
+export const QR_CONSECRATING_DICT: L5 = {
+  kn: "ಕ್ಯೂಆರ್ ಕೋಡ್ ಪಾವನಗೊಳ್ಳುತ್ತಿದೆ...",
+  hi: "क्यूआर कोड पवित्र हो रहा है...",
+  te: "క్యూర్ కోడ్ పవిత్రమవుతోంది...",
+  ta: "க்யூஆர் குறியீடு புனிதப்படுத்தப்படுகிறது...",
+  en: "Consecrating Sacred QR Code..."
 };
 
 /* ------------------------------------------------------------------ *
