@@ -18,7 +18,8 @@
     "teetotalerEvidence": "Non-teetotaler; has discussed drinking culture and subsequent personal sobriety journey in personal vlogs",
     "romanticAffairsGroundTruth": "Deep long-term romantic fidelity with wife Marzia since 2011; zero scandalous affairs",
     "currentLifeSituation": "Living in Tokyo, Japan; enjoying fatherhood with son Björn; relaxed YouTube lifestyle vlogging",
-    "currentDashaFocus": "Family life, creative autonomy, international relocation"
+    "currentDashaFocus": "Family life, creative autonomy, international relocation",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "mrbeast",
@@ -39,7 +40,8 @@
     "teetotalerEvidence": "Strict teetotaler; manages Crohn's disease and completely abstains from alcohol and substances",
     "romanticAffairsGroundTruth": "Focused single-minded hyper-obsession on video craft; stable dating life with Thea Booysen; 0 promiscuity",
     "currentLifeSituation": "Filming Beast Games (Amazon Prime Video), expanding Feastables globally, running largest digital studio",
-    "currentDashaFocus": "Massive global media production, high-stakes corporate partnerships, studio scale"
+    "currentDashaFocus": "Massive global media production, high-stakes corporate partnerships, studio scale",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "rohit_sharma",
@@ -60,7 +62,8 @@
     "teetotalerEvidence": "Disciplined national athlete lifestyle; abstains from alcohol during professional career",
     "romanticAffairsGroundTruth": "Devoted family man; married his long-time sports manager Ritika Sajdeh; 0 infidelity scandals",
     "currentLifeSituation": "Captained India to ICC Men's T20 World Cup 2024 victory; leading Test and ODI national team",
-    "currentDashaFocus": "Peak athletic leadership, World Cup triumphs, legacy consolidation"
+    "currentDashaFocus": "Peak athletic leadership, World Cup triumphs, legacy consolidation",
+    "expectedCurrentLifeCategory": "elite_sports_athletic_triumph"
   },
   {
     "id": "deepika_padukone",
@@ -81,7 +84,8 @@
     "teetotalerEvidence": "Non-teetotaler; social wine and cocktail drinker at industry celebrations and public galas",
     "romanticAffairsGroundTruth": "High-profile romantic past (Ranbir Kapoor, Nihar Pandya) followed by deep matrimonial union with Ranveer Singh",
     "currentLifeSituation": "Celebrated the birth of daughter Dua in September 2024; starring in blockbuster cinema (Kalki 2898 AD, Singham Again)",
-    "currentDashaFocus": "Motherhood, blockbuster cinema domination, mental health philanthropy (Live Love Laugh)"
+    "currentDashaFocus": "Motherhood, blockbuster cinema domination, mental health philanthropy (Live Love Laugh)",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "ranveer_singh",
@@ -90,7 +94,7 @@
     "category": "Cinema / Performing Arts",
     "birthDate": "1985-07-06",
     "birthTime": "09:30",
-    "lat": 19.0760,
+    "lat": 19.076,
     "lon": 72.8777,
     "gender": "Male",
     "expectedCareerCode": "creative_media",
@@ -102,7 +106,8 @@
     "teetotalerEvidence": "Non-teetotaler; social drinker and nightlife party enthusiast",
     "romanticAffairsGroundTruth": "Flamboyant, charismatic romantic charm; past relationship with Anushka Sharma; married to Deepika Padukone",
     "currentLifeSituation": "Stepping into fatherhood; headlining major action franchises (Don 3, Dhurandhar)",
-    "currentDashaFocus": "Paternal responsibilities, high-voltage film productions, artistic reinvention"
+    "currentDashaFocus": "Paternal responsibilities, high-voltage film productions, artistic reinvention",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "cristiano_ronaldo",
@@ -123,7 +128,8 @@
     "teetotalerEvidence": "Strict teetotaler; never touches alcohol due to his father's tragic death from alcoholism",
     "romanticAffairsGroundTruth": "High-profile romantic past (Irina Shayk, Gemma Atkinson); strong family life with Georgina and 5 children",
     "currentLifeSituation": "Leading Al-Nassr FC, scored 900+ career goals, launched record-breaking YouTube channel (UR Cristiano)",
-    "currentDashaFocus": "Longevity in football, YouTube subscriber explosion, global business empire"
+    "currentDashaFocus": "Longevity in football, YouTube subscriber explosion, global business empire",
+    "expectedCurrentLifeCategory": "elite_sports_athletic_triumph"
   },
   {
     "id": "lionel_messi",
@@ -144,7 +150,8 @@
     "teetotalerEvidence": "Non-teetotaler; drinks wine and celebratory champagne in moderation with family and teammates",
     "romanticAffairsGroundTruth": "Legendary lifelong romantic loyalty; has known Antonela since age 9; zero scandals or infidelity",
     "currentLifeSituation": "Captained Argentina to Copa America 2024 victory; leading Inter Miami CF in MLS",
-    "currentDashaFocus": "Family life in Miami, international farewell tours, MLS championship pursuit"
+    "currentDashaFocus": "Family life in Miami, international farewell tours, MLS championship pursuit",
+    "expectedCurrentLifeCategory": "elite_sports_athletic_triumph"
   },
   {
     "id": "sundar_pichai",
@@ -165,7 +172,8 @@
     "teetotalerEvidence": "Strictly sober, disciplined lifestyle; focuses on reading, cricket, and quiet engineering routines",
     "romanticAffairsGroundTruth": "College romance from IIT Kharagpur; deeply devoted marriage; 0 scandals or romantic controversies",
     "currentLifeSituation": "Spearheading Google's transformation into the Gemini AI era, managing trillion-dollar Alphabet enterprise",
-    "currentDashaFocus": "Generative AI innovation, antitrust regulatory defense, cloud enterprise growth"
+    "currentDashaFocus": "Generative AI innovation, antitrust regulatory defense, cloud enterprise growth",
+    "expectedCurrentLifeCategory": "leadership_expansion_scaling"
   },
   {
     "id": "taylor_swift",
@@ -186,7 +194,8 @@
     "teetotalerEvidence": "Non-teetotaler; regularly enjoys fine wine, champagne, and cocktails (e.g. French Blonde)",
     "romanticAffairsGroundTruth": "Extensive high-profile romantic history chronicled in poetic albums (Joe Alwyn, Matty Healy, Travis Kelce)",
     "currentLifeSituation": "The Eras Tour (highest-grossing tour in music history), re-recording masters (Taylor's Version)",
-    "currentDashaFocus": "Historic concert tour completion, billionaire wealth management, global cultural impact"
+    "currentDashaFocus": "Historic concert tour completion, billionaire wealth management, global cultural impact",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "kangana_ranaut",
@@ -196,7 +205,7 @@
     "birthDate": "1987-03-23",
     "birthTime": "14:45",
     "lat": 31.7087,
-    "lon": 76.9320,
+    "lon": 76.932,
     "gender": "Female",
     "expectedCareerCode": "creative_media",
     "expectedCareerDesc": "Dramatic film acting, cinematic direction, fierce political rhetoric & legislative leadership",
@@ -207,7 +216,8 @@
     "teetotalerEvidence": "Strict teetotaler now; adopted satvik vegetarianism, yoga, and sadhana; renounced alcohol years ago",
     "romanticAffairsGroundTruth": "Turbulent past romantic liaisons and public disputes (Hrithik Roshan, Aditya Pancholi); fiercely single today",
     "currentLifeSituation": "Elected Member of Parliament from Mandi constituency (2024); releasing historical film Emergency",
-    "currentDashaFocus": "Parliamentary representation, political governance, cultural debates"
+    "currentDashaFocus": "Parliamentary representation, political governance, cultural debates",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "snoop_dogg",
@@ -228,7 +238,8 @@
     "teetotalerEvidence": "Non-teetotaler; world-famous consumer of cannabis, gin & juice, and owner of spirits brands",
     "romanticAffairsGroundTruth": "Overcame rough patches and brief divorce filing in 2004 to renew marriage vows in 2008; 27+ years together",
     "currentLifeSituation": "Special cultural correspondent for NBC at Paris 2024 Olympics; Death Row Records owner",
-    "currentDashaFocus": "Global ambassador roles, television broadcasting, legacy hip-hop curation"
+    "currentDashaFocus": "Global ambassador roles, television broadcasting, legacy hip-hop curation",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "gautam_adani",
@@ -249,7 +260,8 @@
     "teetotalerEvidence": "Strict teetotaler; lifelong vegetarian and adherent of traditional Jain dietary ethics",
     "romanticAffairsGroundTruth": "Traditional, low-profile family life; zero personal scandals or extramarital affairs",
     "currentLifeSituation": "Massive expansion in renewable energy (Khavda solar park), airport operations, and international shipping",
-    "currentDashaFocus": "Green energy transition, port operations, balance-sheet resilience"
+    "currentDashaFocus": "Green energy transition, port operations, balance-sheet resilience",
+    "expectedCurrentLifeCategory": "leadership_expansion_scaling"
   },
   {
     "id": "keanu_reeves",
@@ -270,7 +282,8 @@
     "teetotalerEvidence": "Non-teetotaler; enjoys red wine, whiskey, and craft spirits in moderation",
     "romanticAffairsGroundTruth": "Profound grief and bachelorhood after losing partner and child in 1999-2001; beautiful partnership with Alexandra Grant",
     "currentLifeSituation": "Toured with rock band Dogstar; developing John Wick spin-offs, writing fantasy novel (The Book of Elsewhere)",
-    "currentDashaFocus": "Literary authoring, musical touring, philosophical independent filmmaking"
+    "currentDashaFocus": "Literary authoring, musical touring, philosophical independent filmmaking",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "sanjeev_kapoor",
@@ -291,7 +304,8 @@
     "teetotalerEvidence": "Teetotaler; maintains clean palate and healthy culinary discipline; avoids drinking",
     "romanticAffairsGroundTruth": "Warm, devoted marriage of over 32 years with Alyona; business and domestic partners; 0 affairs",
     "currentLifeSituation": "Expanding Wonderchef brand, mentoring young chefs, digital culinary academies",
-    "currentDashaFocus": "Kitchenware technology, culinary nutrition, international franchising"
+    "currentDashaFocus": "Kitchenware technology, culinary nutrition, international franchising",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "saina_nehwal",
@@ -312,7 +326,8 @@
     "teetotalerEvidence": "Strict teetotaler; disciplined lifestyle from childhood under intense training regimen",
     "romanticAffairsGroundTruth": "Decade-long companionship with fellow academy player Parupalli Kashyap culminating in marriage; 0 affairs",
     "currentLifeSituation": "Sports mentorship, podcast appearances, exploring political and public service engagements",
-    "currentDashaFocus": "Post-retirement sports mentoring, physical health management, public speaking"
+    "currentDashaFocus": "Post-retirement sports mentoring, physical health management, public speaking",
+    "expectedCurrentLifeCategory": "elite_sports_athletic_triumph"
   },
   {
     "id": "nitin_gadkari",
@@ -333,7 +348,8 @@
     "teetotalerEvidence": "Strict teetotaler; lifelong vegetarian and devout follower of traditional Hindu disciplines",
     "romanticAffairsGroundTruth": "Stable family life of over 40 years; deeply supportive wife Kanchana; 0 personal controversies",
     "currentLifeSituation": "Spearheading India's expressways (Delhi-Mumbai Expressway, Zojila Tunnel), Union Cabinet Minister",
-    "currentDashaFocus": "National highway infrastructure completion, biofuels and green hydrogen advocacy"
+    "currentDashaFocus": "National highway infrastructure completion, biofuels and green hydrogen advocacy",
+    "expectedCurrentLifeCategory": "leadership_expansion_scaling"
   },
   {
     "id": "shashi_tharoor",
@@ -354,7 +370,8 @@
     "teetotalerEvidence": "Non-teetotaler; social wine and spirits drinker at diplomatic banquets and literary festivals",
     "romanticAffairsGroundTruth": "Complex, colorful romantic life; three marriages; intense public scrutiny during Sunanda Pushkar tragedy",
     "currentLifeSituation": "Re-elected for 4th consecutive term as MP for Thiruvananthapuram (2024); actively authoring books",
-    "currentDashaFocus": "Parliamentary opposition leadership, international literary keynotes, intellectual writing"
+    "currentDashaFocus": "Parliamentary opposition leadership, international literary keynotes, intellectual writing",
+    "expectedCurrentLifeCategory": "leadership_expansion_scaling"
   },
   {
     "id": "neeraj_chopra",
@@ -375,7 +392,8 @@
     "teetotalerEvidence": "Strict teetotaler; adheres to strict nutritional regimen with zero alcohol or smoking",
     "romanticAffairsGroundTruth": "Intensely humble and focused; zero dating rumors or romantic controversies; devoted to his sport",
     "currentLifeSituation": "Won Silver medal at Paris 2024 Olympics, competing in Diamond League, national hero",
-    "currentDashaFocus": "Breaking the 90-meter barrier, world championship defense, athletics training"
+    "currentDashaFocus": "Breaking the 90-meter barrier, world championship defense, athletics training",
+    "expectedCurrentLifeCategory": "elite_sports_athletic_triumph"
   },
   {
     "id": "jay_shetty",
@@ -396,7 +414,8 @@
     "teetotalerEvidence": "Strict teetotaler; lived 3 years as a Vedic monk in an ashram; plant-based sober lifestyle",
     "romanticAffairsGroundTruth": "Married to Radhi for over 8 years; co-founders of plant-based wellness brand; 0 extramarital affairs",
     "currentLifeSituation": "Hosting world's #1 health podcast (On Purpose), touring globally with 'Love Rules', wellness entrepreneur",
-    "currentDashaFocus": "Global podcast scaling, mindfulness academies, holistic wellness expansion"
+    "currentDashaFocus": "Global podcast scaling, mindfulness academies, holistic wellness expansion",
+    "expectedCurrentLifeCategory": "creative_media_stardom"
   },
   {
     "id": "hardik_pandya",
@@ -417,6 +436,7 @@
     "teetotalerEvidence": "Non-teetotaler; enjoys nightlife, celebrity parties, and celebratory drinks",
     "romanticAffairsGroundTruth": "Glamorous dating history (Elli AvrRam, Urvashi Rautela); famous Koffee with Karan controversy; recent mutual divorce with Natasa",
     "currentLifeSituation": "Defended final over to win ICC T20 World Cup 2024; co-parenting son Agastya post-divorce",
-    "currentDashaFocus": "Cricket resurgence, navigating post-divorce singlehood, leading all-rounder duties"
+    "currentDashaFocus": "Cricket resurgence, navigating post-divorce singlehood, leading all-rounder duties",
+    "expectedCurrentLifeCategory": "elite_sports_athletic_triumph"
   }
 ]

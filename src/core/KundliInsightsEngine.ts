@@ -334,8 +334,8 @@ export const marriageDashaWindow = (
   const lord7 = signLord(seventhSign);
   const targets = new Set<PlanetName>([PN.Venus, PN.Jupiter, lord7]);
   const timeline = generateDashaTimeline(k, 100);
-  const hit = timeline.find((e) => e.startAge >= minAge - 1e-6 && targets.has(e.planet));
-  return hit ? { startAge: hit.startAge, endAge: hit.endAge, planet: hit.planet } : null;
+  const hit = timeline.find((e) => e.endAge > minAge + 1e-6 && targets.has(e.planet));
+  return hit ? { startAge: Math.max(minAge, hit.startAge), endAge: hit.endAge, planet: hit.planet } : null;
 };
 
 export type HousemateRelation = {

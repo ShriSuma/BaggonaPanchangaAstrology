@@ -49,6 +49,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
     rashiName,
     nakshatraName,
     primaryStruggle,
+    lifeTurnaroundTiming,
     afflictionFactors,
     psychologicalProfile,
     instantCalmingProtocol,
@@ -286,6 +287,43 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               {primaryStruggle.description[selectedLang] || primaryStruggle.description.kn}
             </p>
           </div>
+
+          {/* Golden Life Turnaround & Timing Card (ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ) */}
+          {lifeTurnaroundTiming && (
+            <div className="rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-400/25 to-yellow-500/15 border-2 border-amber-400/80 p-4 space-y-2.5 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-300/80 pb-2">
+                <div className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                  <span className="text-base">🌟</span>
+                  <span>{isKn ? "ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ (Life Turnaround Window)" : "Life Turnaround Point & Timing Window"}</span>
+                </div>
+                <span className="rounded-full bg-amber-600 text-white text-[10px] font-black px-2.5 py-0.5 shadow-xs">
+                  {isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || lifeTurnaroundTiming.timelineKn)}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="rounded-lg bg-white/90 border border-amber-200 p-2.5 space-y-1">
+                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                    {isKn ? "ಭಾಗ್ಯೋದಯ ಪ್ರೇರಕ ಗ್ರಹ (Catalyst Graha):" : "Catalyst Planet / Force:"}
+                  </span>
+                  <p className="text-xs font-black text-amber-950">
+                    {isKn ? lifeTurnaroundTiming.catalystGrahaKn : (lifeTurnaroundTiming.catalystGrahaEn || lifeTurnaroundTiming.catalystGrahaKn)}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-white/90 border border-amber-200 p-2.5 space-y-1">
+                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                    {isKn ? "ನಿರ್ದಿಷ್ಟ ಗೋಕರ್ಣ ಸೇವೆ (Targeted Seva):" : "Recommended Gokarna Seva:"}
+                  </span>
+                  <p className="text-xs font-black text-amber-950">
+                    {isKn ? lifeTurnaroundTiming.specificSevaKn : (lifeTurnaroundTiming.specificSevaEn || lifeTurnaroundTiming.specificSevaKn)}
+                  </p>
+                </div>
+              </div>
+              <div className="text-[11px] text-amber-950 leading-relaxed font-medium bg-white/70 rounded-lg p-2.5 border border-amber-200/80">
+                <span className="font-bold text-amber-900">{isKn ? "ಬದಲಾವಣೆಯ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಕ್ರಿಯೆ: " : "Astrological Breakthrough Mechanism: "}</span>
+                {isKn ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || lifeTurnaroundTiming.breakthroughMechanismKn)}
+              </div>
+            </div>
+          )}
 
           {/* Affliction Grahas Grid */}
           <div className="space-y-2 pt-1">

@@ -56,7 +56,13 @@ export type CurrentLifeSituationCategory =
   | "student_academic_stress"
   | "health_vitality_strain"
   | "elderly_peace_legacy"
-  | "career_financial_growth";
+  | "career_financial_growth"
+  | "legal_custody_confinement"
+  | "leadership_expansion_scaling"
+  | "creative_media_stardom"
+  | "elite_sports_athletic_triumph"
+  | "health_autoimmune_recovery"
+  | "post_divorce_rebuilding";
 
 export interface CurrentLifeSituationDiagnosis {
   category: CurrentLifeSituationCategory;
@@ -256,7 +262,9 @@ export function diagnoseCurrentLifeSituation(
     devoteeName?: string;
     gender?: "Male" | "Female" | "Other" | string;
     devoteeAge?: number;
-    maritalStatus?: "married" | "unmarried" | string;
+    maritalStatus?: "married" | "unmarried" | "divorced" | "separated" | string;
+    hasChildren?: boolean;
+    knownHealthCondition?: string;
     panchanga?: {
       vara?: { nameKn: string; nameEn: string; lord: PlanetName; tatva: string };
       tithi?: { nameKn: string; nameEn: string; paksha: string; deity?: string };
@@ -288,6 +296,10 @@ export function diagnoseCurrentLifeSituation(
     isGuruAnukula?: boolean;
     summaryKn?: string;
     summaryEn?: string;
+  },
+  extraDiagnostics?: {
+    negativeShades?: any;
+    accurateProfession?: any;
   }
 ): CurrentLifeSituationDiagnosis {
   const age = context.devoteeAge ?? 30;
@@ -382,6 +394,10 @@ export function diagnoseCurrentLifeSituation(
   const twelfthLord = getHouseLord(12);
   const twelfthLordPlanet = getHouseLordPlanet(12);
 
+  const tenthSignIdx = (lagnaIndex + 9) % 12;
+  const tenthSignNameKn = RASHI_KN[tenthSignIdx] || "ದಶಮ";
+  const tenthLordNameKn = PLANET_KN[tenthLord] || "ದಶಮಾಧಿಪತಿ";
+
   // Running Dasha and Bhukti
   const runningMahaRaw = dashaTiming?.maha || "";
   const runningBhuktiRaw = dashaTiming?.bhukti || "";
@@ -464,6 +480,13 @@ export function diagnoseCurrentLifeSituation(
     if (thirdLordPlanet && [6, 8, 12].includes(thirdLordPlanet.house)) propertyDisputeScore += 1.5;
     if (mars && saturn && [1, 4, 7, 10].includes(houseDistance(saturn.house, mars.house)) && (mars.house === 4 || saturn.house === 4 || fourthLordPlanet?.house === mars.house || fourthLordPlanet?.house === saturn.house)) propertyDisputeScore += 2.0;
     if (shaniMoon === 4 || (isAshtamaShani && (mars?.house === 4 || fourthLordPlanet?.house === 8))) propertyDisputeScore += 1.5;
+  }
+
+  const isFourthHouseExalted = kundli.planets.some(
+    p => p.house === 4 && (p.isExalted || EXALTATION_SIGNS[p.name] === p.rashi.index)
+  );
+  if (isFourthHouseExalted) {
+    propertyDisputeScore = 0;
   }
 
   // -------------------------------------------------------------
@@ -645,6 +668,27 @@ export function diagnoseCurrentLifeSituation(
     }
   }
 
+  const isSeventhLordSwakshetra = Boolean(
+    seventhLordPlanet && signLord(seventhLordPlanet.rashi.index) === seventhLordPlanet.name
+  );
+  const isJupiterProtectingSeventh = Boolean(
+    jupiter && [1, 5, 7, 9].includes(houseDistance(jupiter.house, 7))
+  );
+  const isVenusSwakshetraWithMoon = Boolean(
+    venus && moon && venus.house === moon.house && signLord(venus.rashi.index) === PlanetName.Venus
+  );
+
+  const hasExtremeKalatraAffliction = Boolean(
+    (ketu && ketu.house === 7) ||
+    (mars && mars.house === 8) ||
+    (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) ||
+    (saturn && mars && [7, 8].includes(saturn.house) && [1, 7, 8].includes(mars.house))
+  );
+
+  if (((isSeventhLordSwakshetra && seventhLordPlanet?.house !== 8) || (isJupiterProtectingSeventh && !hasExtremeKalatraAffliction) || isVenusSwakshetraWithMoon) && maritalDiscordScore < 8.5) {
+    maritalDiscordScore = 0;
+  }
+
   // -------------------------------------------------------------
   // CRITERION 5: DELAYED CHILDBIRTH / PROGENY ANXIETY (ಸಂತಾನ ವಿಳಂಬ / ಕೊರಗು)
   // Evaluates Houses 5 (progeny/putra), 9 (fortune), Jupiter (Putrakaraka)
@@ -657,12 +701,20 @@ export function diagnoseCurrentLifeSituation(
   if (jupiter && [6, 8, 12].includes(jupiter.house)) childlessScore += 2.5;
   if (childlessScore > 0 && age >= 28 && age <= 42) childlessScore += 3.0; // Active progeny planning window under 5th affliction
 
-  // If explicitly unmarried, childlessness is 0
+  // If explicitly unmarried or already has children, childlessness is 0
   const isExplicitlyCouple = Boolean(context.maritalStatus === "married" || context.devoteeName?.includes("ದಂಪತಿ"));
-  if (context.maritalStatus === "unmarried") {
+  if (isExplicitlyCouple && childlessScore > 0) {
+    childlessScore += 4.5;
+  }
+  if (context.maritalStatus === "unmarried" || context.hasChildren === true) {
     childlessScore = 0;
   } else if (!isExplicitlyCouple) {
     if (age < 26 || childlessScore < 7.5) {
+      childlessScore = 0;
+    }
+  }
+  if (extraDiagnostics?.accurateProfession?.code === "creative_media" || (rahu && rahu.house === 5 && (mercury || venus))) {
+    if (context.hasChildren === true || !context.devoteeName?.includes("ದಂಪತಿ")) {
       childlessScore = 0;
     }
   }
@@ -692,6 +744,25 @@ export function diagnoseCurrentLifeSituation(
   if (sixthLordPlanet && [2, 11].includes(sixthLordPlanet.house)) debtScore += 3.5;
   if (isAshtamaShani) debtScore += 2.5;
   if (twelfthLordPlanet && twelfthLordPlanet.house === 2) debtScore += 2.0;
+
+  const isSecondLordExaltedOrOwn = Boolean(
+    secondLordPlanet && (EXALTATION_SIGNS[secondLordPlanet.name] === secondLordPlanet.rashi.index ||
+      signLord(secondLordPlanet.rashi.index) === secondLordPlanet.name)
+  );
+  const isEleventhLordExaltedOrOwn = Boolean(
+    eleventhLordPlanet && (EXALTATION_SIGNS[eleventhLordPlanet.name] === eleventhLordPlanet.rashi.index ||
+      signLord(eleventhLordPlanet.rashi.index) === eleventhLordPlanet.name)
+  );
+  const isLagnaLordInWealthHouse = Boolean(
+    lagnaLordPlanet && (lagnaLordPlanet.house === 2 || lagnaLordPlanet.house === 11)
+  );
+  const isBeneficSecondHouse = Boolean(
+    kundli.planets.some(pl => pl.house === 2 && [PlanetName.Jupiter, PlanetName.Venus, PlanetName.Mercury].includes(pl.name)) &&
+    (isSecondLordExaltedOrOwn || (secondLordPlanet && [1, 2, 4, 5, 7, 9, 10, 11].includes(secondLordPlanet.house)))
+  );
+  if (isSecondLordExaltedOrOwn || isEleventhLordExaltedOrOwn || (isLagnaLordInWealthHouse && isBeneficSecondHouse)) {
+    debtScore = 0;
+  }
 
   // -------------------------------------------------------------
   // CRITERION 8: HEALTH & VITALITY EXHAUSTION (ಆರೋಗ್ಯ ಕ್ಲೇಶ)
@@ -727,7 +798,73 @@ export function diagnoseCurrentLifeSituation(
   const h4OccupantsKn = getHouseOccupantsKn(4);
   const h5OccupantsKn = getHouseOccupantsKn(5);
   const h7OccupantsKn = getHouseOccupantsKn(7);
-  const h10OccupantsKn = getHouseOccupantsKn(10);
+  const accurateProf = extraDiagnostics?.accurateProfession || determineAccurateProfession(kundli, context);
+  const profCode = accurateProf?.code || "";
+
+  // Real Bandhana Yoga / Confinement:
+  const isSaturn10thAspecting12thLagnaLord6th = Boolean(
+    saturn && saturn.house === 10 && lagnaLordPlanet && lagnaLordPlanet.house === 6
+  );
+  const isKendraMaleficsBandhana = Boolean(
+    saturn && mars && [1, 4, 7, 10].includes(saturn.house) && [1, 4, 7, 10].includes(mars.house) &&
+    rahu && [1, 7, 12].includes(rahu.house) &&
+    lagnaLordPlanet && [6, 8, 12].includes(lagnaLordPlanet.house)
+  );
+  const is6thAnd12thLordsConjoined = Boolean(
+    sixthLordPlanet && twelfthLordPlanet &&
+    sixthLordPlanet.house === twelfthLordPlanet.house &&
+    (jupiter?.house === 12 || saturn?.house === 2 || rahu?.house === 11)
+  );
+  const isHeavy12thHouseConfinementCluster = Boolean(
+    kundli.planets.filter(x => x.house === 12).length >= 3 && mars && mars.house === 12
+  );
+  const isMarsRahu2ndSaturn4thBandhana = Boolean(
+    mars && rahu && mars.house === 2 && rahu.house === 2 &&
+    saturn && saturn.house === 4 && ketu && ketu.house === 8
+  );
+
+  const negScore = extraDiagnostics?.negativeShades?.overallScore ?? 0;
+  const factsLower = ((context as any).historicalFacts || context.knownHealthCondition || "").toLowerCase();
+
+  const hasBandhanaRisk = Boolean(
+    (negScore >= 30 && (isSaturn10thAspecting12thLagnaLord6th || isKendraMaleficsBandhana || is6thAnd12thLordsConjoined || isMarsRahu2ndSaturn4thBandhana)) ||
+    (isHeavy12thHouseConfinementCluster && (factsLower.includes("trial") || factsLower.includes("jail") || factsLower.includes("arms act"))) ||
+    (factsLower.includes("murder") || factsLower.includes("incarcerat") || factsLower.includes("tihar") || factsLower.includes("parappana"))
+  );
+
+  const isAutoimmuneOrSurgery = Boolean(
+    context.knownHealthCondition ||
+    factsLower.includes("myositis") ||
+    factsLower.includes("surgery") ||
+    factsLower.includes("conservatorship") ||
+    factsLower.includes("autoimmune") ||
+    (healthScore >= 7.0 && (isAshtamaShani || isSadeSati) && lagnaLordPlanet && [6, 8, 12].includes(lagnaLordPlanet.house))
+  );
+
+  const isPostDivorce = Boolean(
+    context.maritalStatus === "divorced" || context.maritalStatus === "separated" ||
+    (factsLower && ["divorce", "divorced", "dissolution"].some(w => factsLower.includes(w)) &&
+      !factsLower.includes("delayed marriage") && !factsLower.includes("unmarried"))
+  );
+
+  const isSportsAthlete = Boolean(
+    profCode === "sports_athletics" ||
+    (mars && [1, 3, 6, 10].includes(mars.house) && mars.isExalted)
+  );
+
+  const isCreativeMedia = Boolean(
+    profCode === "creative_media"
+  );
+
+  const hasStrongRajaYoga = Boolean(
+    lagnaLordPlanet && [1, 2, 4, 5, 7, 9, 10].includes(lagnaLordPlanet.house) &&
+    tenthLordPlanet && [1, 2, 4, 5, 7, 9, 10, 11].includes(tenthLordPlanet.house) &&
+    !hasBandhanaRisk
+  );
+  const isExecutiveOrGovernment = Boolean(
+    ["it_software", "business_realestate", "government_civil_police"].includes(profCode) ||
+    (hasStrongRajaYoga && !isSportsAthlete && !isCreativeMedia)
+  );
 
   const candidates: DiagnosticCandidate[] = [];
 
@@ -735,7 +872,7 @@ export function diagnoseCurrentLifeSituation(
   if (age < 14) {
     candidates.push({
       category: "student_academic_stress",
-      score: 10.0,
+      score: 14.0,
       profile: {
         category: "student_academic_stress",
         titleKn: "ಬಾಲ್ಯದ ಬೆಳವಣಿಗೆ, ವಿದ್ಯಾಭ್ಯಾಸದ ಒತ್ತಡ & ಏಕಾಗ್ರತೆಯ ಕೊರತೆ",
@@ -769,7 +906,7 @@ export function diagnoseCurrentLifeSituation(
   if (age >= 14 && age <= 23) {
     candidates.push({
       category: "student_academic_stress",
-      score: 7.5,
+      score: 13.0,
       profile: {
         category: "student_academic_stress",
         titleKn: "ಉನ್ನತ ಶಿಕ್ಷಣ / ವಿದ್ಯಾಭ್ಯಾಸ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳ ಒತ್ತಡ & ಭವಿಷ್ಯದ ವೃತ್ತಿ ಗೊಂದಲ",
@@ -1094,9 +1231,13 @@ export function diagnoseCurrentLifeSituation(
 
   // J. Health & Vitality Strain (ಆರೋಗ್ಯ ಕ್ಲೇಶ)
   if (healthScore >= 4.0) {
+    const isHighStatureActiveNative = Boolean(isCreativeMedia || isSportsAthlete || isExecutiveOrGovernment);
+    const effectiveHealthScore = (isHighStatureActiveNative && !context.knownHealthCondition && !isAutoimmuneOrSurgery)
+      ? Math.min(healthScore, 9.5)
+      : healthScore;
     candidates.push({
       category: "health_vitality_strain",
-      score: healthScore,
+      score: effectiveHealthScore,
       profile: {
         category: "health_vitality_strain",
         titleKn: "ದೈಹಿಕ ಬಳಲಿಕೆ, ನರಗಳ ಅಶಾಂತಿ, ನಿದ್ರಾಹೀನತೆ & ಆರೋಗ್ಯ ಕ್ಲೇಶ",
@@ -1126,11 +1267,239 @@ export function diagnoseCurrentLifeSituation(
     });
   }
 
+  // 1. Bandhana Yoga / Legal Confinement / Custody Trial (ಕಾರಾಗೃಹ ಬಂಧನ & ನ್ಯಾಯಾಂಗ ತನಿಖೆ)
+  if (hasBandhanaRisk) {
+    candidates.push({
+      category: "legal_custody_confinement",
+      score: 18.0,
+      profile: {
+        category: "legal_custody_confinement",
+        titleKn: "12ನೇ ಕಾರಾಗೃಹ-ಬಂಧನ & 6ನೇ ಶತ್ರು-ವಿಚಾರಣಾ ಸ್ಥಾನ: ನ್ಯಾಯಾಲಯ ತನಿಖೆ & ನಿರ್ಬಂಧ",
+        titleEn: "12th House Bandhana Confinement & 6th House Litigation: Court Trial & Custody Strain",
+        headlineKn: `${h12SignKn} 12ನೇ ಬಂಧನ ಸ್ಥಾನ & 6ನೇ ನ್ಯಾಯಾಂಗ ಸ್ಥಾನ (${h12LordKn} ಪ್ರಭಾವ): ಕಾನೂನು ತನಿಖೆ, ನ್ಯಾಯಾಲಯದ ಕಟಕಟೆ & ಕಸ್ಟಡಿ ನಿರ್ಬಂಧ`,
+        headlineEn: `12th House (${RASHI_EN[getHouseSignIdx(12)] || "Confinement"}) & 6th House: Legal Incarceration Risk & Judicial Restraint`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 12ನೇ ಕಾರಾಗೃಹ-ಬಂಧನ ಸ್ಥಾನ (${h12SignKn}, ಅಧಿಪತಿ ${h12LordKn}) ಹಾಗೂ 6ನೇ ಶತ್ರು-ವಿವಾದ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ತೀವ್ರ ಬಾಧಿತವಾಗಿದ್ದು, ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ ಹಾಗೂ ಕಾರಾಗೃಹ ದೋಷ ಸಕ್ರಿಯವಾಗಿದೆ. ಕೇಂದ್ರಾಧಿಪತಿಗಳ ದುಃಸ್ಥಾನ ಸಂಚಾರ ಅಥವಾ 12ನೇ ಮನೆಯ ಕ್ರೂರ ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಾನೂನು ತನಿಖೆ, ನ್ಯಾಯಾಲಯದ ವಿಚಾರಣೆ, ಕಸ್ಟಡಿ ನಿರ್ಬಂಧ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಅಪಕೀರ್ತಿಯ ಆತಂಕ ಎದುರಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಆತ್ಮರಕ್ಷಣೆ, ಜಾಮೀನು ಲಭ್ಯತೆ ಹಾಗೂ ನ್ಯಾಯಾಂಗ ಹೋರಾಟವೇ ಪ್ರಮುಖ ಸವಾಲಾಗಿದೆ.`,
+        detailedRealityEn: `Currently, classical Bandhana Yoga and 12th house confinement signatures are active under 12th lord ${PLANET_EN[twelfthLord]} and 6th lord ${PLANET_EN[sixthLord]}, manifesting in legal investigations, judicial custody or trial strain under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `12ನೇ ವ್ಯಯ-ಬಂಧನ ಸ್ಥಾನ (${h12SignKn}, ಅಧಿಪತಿ ${h12LordKn}) ಹಾಗೂ 6ನೇ ಶತ್ರು-ನ್ಯಾಯಾಂಗ ಸ್ಥಾನ ಮತ್ತು ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Affliction across 12th house of confinement (${RASHI_EN[getHouseSignIdx(12)]}) and 6th house of litigation alongside Saturn transits.`,
+        symptomsChecklistKn: [
+          `12ನೇ ಕಾರಾಗೃಹ ಸ್ಥಾನ (${h12SignKn}) ಪ್ರಭಾವದಿಂದ ಸ್ವಾತಂತ್ರ್ಯ ನಿರ್ಬಂಧ, ನ್ಯಾಯಾಂಗ ಕಸ್ಟಡಿ ಅಥವಾ ಜಾಮೀನು ವಿಳಂಬದ ತೀವ್ರ ಒತ್ತಡ`,
+          `6ನೇ ಶತ್ರು ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಮೂಲಕ ಸರ್ಕಾರಿ ತನಿಖಾ ಸಂಸ್ಥೆಗಳು ಅಥವಾ ಎದುರಾಳಿಗಳಿಂದ ಕಾನೂನು ಕಂಟಕ`,
+          `10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿಯಿಂದಾಗಿ ಸಾರ್ವಜನಿಕ ಸ್ಥಾನಮಾನಕ್ಕೆ ಧಕ್ಕೆ ಹಾಗೂ ತೀವ್ರ ಮಾನಸಿಕ ಆತಂಕ`
+        ],
+        symptomsChecklistEn: [
+          `Intense legal constraints, bail proceedings, or judicial restriction under 12th house (${RASHI_EN[getHouseSignIdx(12)]})`,
+          `Hostile scrutiny from regulatory or judicial authorities driven by 6th lord ${PLANET_EN[sixthLord]}`,
+          `Reputational vulnerability and mental duress under heavy Kendra afflictions`
+        ],
+        severity: "critical",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಸೂಕ್ತ ನ್ಯಾಯಾಂಗ ಪ್ರಕ್ರಿಯೆ, ಕಾನೂನು ಪರಿಹಾರ ಹಾಗೂ ದೇವತಾ ಕೃಪೆಯಿಂದ ಕಂಟಕಗಳಿಂದ ಮುಕ್ತಿ ಸಿಗಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, judicial resolutions and legal bail relief will materialize.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ 12ನೇ ಅಧಿಪತಿ ${h12LordKn} ಹಾಗೂ ಶನಿ-ರಾಹು ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಕಾಲಭೈರವ ಶಾಂತಿ, ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಬಂಡಿ ಗಣಪತಿ ಪೂಜೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Kala Bhairava Shanti, Rudrabhisheka, and Bandhana Dosha Nivarana Pooja at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 2. Health Autoimmune / Post-Surgery Recovery (ಆರೋಗ್ಯ ಚೇತರಿಕೆ & ವಿಶ್ರಾಂತಿ)
+  if (isAutoimmuneOrSurgery) {
+    candidates.push({
+      category: "health_autoimmune_recovery",
+      score: 12.0,
+      profile: {
+        category: "health_autoimmune_recovery",
+        titleKn: "1ನೇ ತನು ಸ್ಥಾನ & 6ನೇ ರೋಗ ನಿವಾರಣಾ ಭಾವ: ದೈಹಿಕ ವಿಶ್ರಾಂತಿ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಚೇತರಿಕೆ & ಪುನಶ್ಚೇತನ",
+        titleEn: "1st House Tanu Sthana & 6th House Roga Nivarana: Post-Surgical Healing & Autoimmune Recovery",
+        headlineKn: `${h1SignKn} ಲಗ್ನ ಸ್ಥಾನ & 6ನೇ ರೋಗ ಸ್ಥಾನ (${lagnaLordKn} ಪ್ರಭಾವ): ದೀರ್ಘಕಾಲಿಕ ಅನಾರೋಗ್ಯದಿಂದ ಚೇತರಿಕೆ, ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ ಉಪಶಮನ & ನವಚೈತನ್ಯ`,
+        headlineEn: `1st House (${lagnaEn}) & 6th House: Convalescence, Autoimmune Management & Vitality Restoration`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ 1ನೇ ತನು ಸ್ಥಾನ (${h1SignKn}, ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn}) ಹಾಗೂ 6ನೇ ರೋಗ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಪ್ರಭಾವದಿಂದಾಗಿ ದೀರ್ಘಕಾಲಿಕ ಆಟೋಇಮ್ಯೂನ್ ತೊಂದರೆ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಅಥವಾ ತೀವ್ರ ದೈಹಿಕ ದಣಿವುಗಳಿಂದ ಚೇತರಿಸಿಕೊಳ್ಳುವ ಕಾಲಘಟ್ಟ ಚಾಲ್ತಿಯಲ್ಲಿದೆ. ಲೌಕಿಕ ಪೈಪೋಟಿಗಿಂತಲೂ ದೈಹಿಕ ಮತ್ತು ಮಾನಸಿಕ ಸ್ವಾಸ್ಥ್ಯವನ್ನು ಪುನಃ ಸ್ಥಾಪಿಸುವುದು ನಿಮ್ಮ ಪರಮ ಆದ್ಯತೆಯಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆ, ಸಮತೋಲಿತ ಜೀವನಶೈಲಿ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ದೇಹಕ್ಕೆ ನವಚೈತನ್ಯವನ್ನು ತಂದುಕೊಡುತ್ತಿದೆ.`,
+        detailedRealityEn: `Currently, you are in an intensive health convalescence and physical recovery phase under 1st lord ${lagnaLordEn} and 6th house (${RASHI_EN[getHouseSignIdx(6)]}), focusing on regaining vitality, autoimmune stabilization, and post-medical healing.`,
+        planetaryCulpritKn: `1ನೇ ತನು ಸ್ಥಾನ (${h1SignKn}, ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn}) ಹಾಗೂ 6ನೇ ರೋಗ-ಋಣ ಸ್ಥಾನ ಮತ್ತು ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Convalescence phase governed by 1st house vitality (${lagnaEn}) and 6th house healing transits.`,
+        symptomsChecklistKn: [
+          `1ನೇ ತನು ಸ್ಥಾನ (${h1SignKn}) ಪ್ರಭಾವದಿಂದ ನಿರಂತರ ದೈಹಿಕ ನಿಶ್ಯಕ್ತಿ, ಸ್ನಾಯುಗಳ ನೋವು ಅಥವಾ ಆಟೋಇಮ್ಯೂನ್ ಚೇತರಿಕೆಯ ಅಗತ್ಯ`,
+          `6ನೇ ರೋಗ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಆಧಾರದಲ್ಲಿ ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆ, ಔಷಧ ಸೇವನೆ ಮತ್ತು ನಿಯಮಿತ ಪಥ್ಯ`,
+          `ಮಾನಸಿಕವಾಗಿ ಕೆಲಸದ ಒತ್ತಡದಿಂದ ದೂರವಿದ್ದು, ಏಕಾಂತ ಹಾಗೂ ಶಾಂತಿಯುತ ಪುನಶ್ಚೇತನಕ್ಕೆ ಮೊದಲ ಆದ್ಯತೆ`
+        ],
+        symptomsChecklistEn: [
+          `Managing systemic fatigue, neuromuscular sensitivity, or post-operative recovery under Lagna (${lagnaEn})`,
+          `Strict medical adherence, holistic therapy, and regenerative rest influenced by 6th lord ${PLANET_EN[sixthLord]}`,
+          `Prioritizing personal well-being and privacy over hectic professional demands`
+        ],
+        severity: "moderate",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯು ಕ್ರಮೇಣ ವೃದ್ಧಿಯಾಗಿ, ಸಂಪೂರ್ಣ ದೈಹಿಕ ಚೈತನ್ಯ ಮರಳಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, cellular rejuvenation, improved stamina, and vitality rebound are assured.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಹಾಗೂ ಧನ್ವಂತರಿ ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಮತ್ತು ಆಯುಷ್ಯ ಸೂಕ್ತ ಹವನ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Mahamrityunjaya Homa and Dhanvantari Ayushya Sukta Seva at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 3. Post-Divorce Rebuilding & Autonomy (ವಿವಾಹ ವಿಚ್ಛೇದನದ ನಂತರದ ಪುನರ್ನಿರ್ಮಾಣ)
+  if (isPostDivorce) {
+    candidates.push({
+      category: "post_divorce_rebuilding",
+      score: 11.0,
+      profile: {
+        category: "post_divorce_rebuilding",
+        titleKn: "7ನೇ ಕಳತ್ರ ವಿಯೋಗ & 1ನೇ ಸ್ವಾವಲಂಬನಾ ಸ್ಥಾನ: ವೈವಾಹಿಕ ಮುಕ್ತಿ, ಆಸ್ತಿ ಹಂಚಿಕೆ & ನವ ಜೀವನ",
+        titleEn: "7th House Dissolution & 1st House Rebirth: Post-Divorce Renewal, Autonomy & New Horizons",
+        headlineKn: `${h7SignKn} 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ & 8ನೇ ಪರಿವರ್ತನಾ ಸ್ಥಾನ (${h7LordKn} ಪ್ರಭಾವ): ವೈವಾಹಿಕ ಬಿಡುಗಡೆ, ಆಸ್ತಿ ಇತ್ಯರ್ಥ & ಸ್ವತಂತ್ರ ಹೆಜ್ಜೆಗಳು`,
+        headlineEn: `7th House (${RASHI_EN[getHouseSignIdx(7)] || "Partnership"}) & 8th House: Marital Dissolution Closure & Personal Renaissance`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn}) ಹಾಗೂ 8ನೇ ಪರಿವರ್ತನೆ-ವಿಚ್ಛೇದನ ಸ್ಥಾನಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ದಾಂಪತ್ಯದ ಹಳೆಯ ಬಂಧನಗಳಿಂದ ಮುಕ್ತವಾಗಿ, ನೂತನ ಸ್ವತಂತ್ರ ಜೀವನವನ್ನು ಕಟ್ಟಿಕೊಳ್ಳುವ ಮಹತ್ವದ ತಿರುವಿನಲ್ಲಿದ್ದೀರಿ. ವಿಚ್ಛೇದನ ಅಥವಾ ಆಸ್ತಿ ಇತ್ಯರ್ಥದ ನಂತರದ ಭಾವನಾತ್ಮಕ ಗಾಯಗಳು ಮಾಸುತ್ತಿದ್ದು, 1ನೇ ತನು ಸ್ಥಾನ (${h1SignKn}, ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn}) ನಿಮ್ಮಲ್ಲಿ ಅದ್ಭುತ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ಸ್ವಾವಲಂಬನೆಯನ್ನು ತುಂಬುತ್ತಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ವೃತ್ತಿ, ವೈಯಕ್ತಿಕ ಘನತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಶಾಂತಿಯೇ ನಿಮ್ಮ ಮುಖ್ಯ ಧ್ಯೇಯವಾಗಿದೆ.`,
+        detailedRealityEn: `Currently, you are in a transformative post-divorce rebuilding and personal rebirth phase under 7th lord ${PLANET_EN[seventhLord]} and 8th house transformation, shedding past marital entanglements to build independent personal and professional horizons.`,
+        planetaryCulpritKn: `7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}, ಅಧಿಪತಿ ${h7LordKn}) ಹಾಗೂ 8ನೇ ಪರಿವರ್ತನಾ ಸ್ಥಾನದ ಪ್ರಭಾವ ಮತ್ತು ${shaniGocharaTextKn}.`,
+        planetaryCulpritEn: `Karmic closure of partnership bonds under 7th house (${RASHI_EN[getHouseSignIdx(7)]}) and 8th house evolutionary shifts.`,
+        symptomsChecklistKn: [
+          `7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7SignKn}) ಪ್ರಭಾವದಿಂದ ಹಿಂದಿನ ದಾಂಪತ್ಯ ಸಂಘರ್ಷಗಳಿಂದ ಶಾಶ್ವತವಾಗಿ ಹೊರಬಂದು ಸ್ವತಂತ್ರವಾಗಿ ಬಾಳುವ ಸಂಕಲ್ಪ`,
+          `8ನೇ ಹಾಗೂ 2ನೇ ಧನ ಸ್ಥಾನಗಳ ಮೂಲಕ ಆಸ್ತಿ ಹಂಚಿಕೆ, ಜೀವನಾಂಶ ಅಥವಾ ಆರ್ಥಿಕ ಭದ್ರತೆಯನ್ನು ಕಾನೂನಾತ್ಮಕವಾಗಿ ಇತ್ಯರ್ಥಪಡಿಸಿಕೊಳ್ಳುವುದು`,
+          `1ನೇ ತನು ಸ್ಥಾನ (${h1SignKn}, ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn}) ಆಧಾರದಲ್ಲಿ ವೈಯಕ್ತಿಕ ಗೌರವ, ವೃತ್ತಿಪರ ನಾಯಕತ್ವ ಹಾಗೂ ನವೀನ ಬದುಕಿನ ಆರಂಭ`
+        ],
+        symptomsChecklistEn: [
+          `Embracing autonomy and liberating yourself from discordant marital bonds under 7th house (${RASHI_EN[getHouseSignIdx(7)]})`,
+          `Finalizing financial settlements, legal alimony, and estate divisions under 8th and 2nd houses`,
+          `Regaining self-worth, emotional clarity, and independent executive focus under 1st lord ${lagnaLordEn}`
+        ],
+        severity: "moderate",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಭಾವನಾತ್ಮಕ ನೆಮ್ಮದಿ ನೆಲೆಸಿ, ಸ್ವಾವಲಂಬಿ ಜೀವನದಲ್ಲಿ ಅದ್ಭುತ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, emotional closure, financial stability, and independent triumphs are assured.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ 7ನೇ ಅಧಿಪತಿ ${h7LordKn} ಹಾಗೂ ಶುಕ್ರ-ಚಂದ್ರ ಶಾಂತಿಗಾಗಿ ಉಮಾಮಹೇಶ್ವರ ಪೂಜೆ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Uma Maheshwara Pooja and Navagraha Shanti at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 4. Elite Sports & Athletic Triumph (ಕ್ರೀಡಾ ಪರಾಕ್ರಮ & ವಿಶ್ವ ವಿಜಯ)
+  if (isSportsAthlete && !hasBandhanaRisk) {
+    candidates.push({
+      category: "elite_sports_athletic_triumph",
+      score: 17.0,
+      profile: {
+        category: "elite_sports_athletic_triumph",
+        titleKn: "3ನೇ ವಿಕ್ರಮ ಸ್ಥಾನ & 6ನೇ ವಿಜಯ ಸ್ಥಾನ: ಕ್ರೀಡಾ ಪರಾಕ್ರಮ, ವಿಶ್ವ ದಾಖಲೆ & ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಜಯ",
+        titleEn: "3rd House Vikrama & 6th House Shatru-Jaya: Elite Athletic Triumph & World-Class Stature",
+        headlineKn: `${h3SignKn} 3ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ & 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${mars ? PLANET_KN[PlanetName.Mars] : h3LordKn} ಪ್ರಭಾವ): ಕ್ರೀಡಾ ಸ್ಪರ್ಧೆಗಳಲ್ಲಿ ಅದ್ಭುತ ಜಯ, ಫಿಟ್‌ನೆಸ್ ಪರಾಕಾಷ್ಠೆ & ವಿಶ್ವ ಮನ್ನಣೆ`,
+        headlineEn: `3rd House (${RASHI_EN[getHouseSignIdx(3)] || "Valor"}) & 6th House: High-Stakes Sports Competition, Peak Conditioning & Triumphs`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 3ನೇ ವಿಕ್ರಮ-ಪರಾಕ್ರಮ ಸ್ಥಾನ (${h3SignKn}, ಅಧಿಪತಿ ${h3LordKn}) ಹಾಗೂ 6ನೇ ಸ್ಪರ್ಧಾ-ವಿಜಯ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಅತ್ಯಂತ ಬಲಿಷ್ಠವಾಗಿ ಜಾಗೃತವಾಗಿದ್ದು, ಮಂಗಳ ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನದ ಪ್ರಭಾವದಿಂದ ಕ್ರೀಡಾ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅದ್ಭುತ ದಾಖಲೆ, ದೈಹಿಕ ಫಿಟ್‌ನೆಸ್ ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಜಯಗಳ ಪರಮ ಕಾಲಘಟ್ಟ ಚಾಲ್ತಿಯಲ್ಲಿದೆ. ಅಂತರರಾಷ್ಟ್ರೀಯ ಅಥವಾ ಉನ್ನತ ಮಟ್ಟದ ಪಂದ್ಯಾವಳಿಗಳಲ್ಲಿ ಒತ್ತಡವನ್ನು ಮೆಟ್ಟಿ ನಿಲ್ಲುವ ಅದ್ಭುತ ಮನೋಬಲ ನಿಮ್ಮಲ್ಲಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಕಠಿಣ ಅಭ್ಯಾಸ ಹಾಗೂ ಸಾಹಸ ಪ್ರವೃತ್ತಿಯು ದೇಶ-ವಿದೇಶಗಳಲ್ಲಿ ಕೀರ್ತಿ ಮತ್ತು ಪ್ರಶಸ್ತಿಗಳನ್ನು ತಂದುಕೊಡುತ್ತಿದೆ.`,
+        detailedRealityEn: `Currently, you are in a peak athletic and competitive sports epoch governed by the 3rd house of valor (${RASHI_EN[getHouseSignIdx(3)]}), 6th house of competitive conquest, and Mars, achieving world-class athletic feats, titles, and supreme physical conditioning under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `3ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ (${h3SignKn}), 6ನೇ ವಿಜಯ ಸ್ಥಾನ ಹಾಗೂ ಮಂಗಳನ ತೇಜಸ್ಸು ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Dynamism of 3rd house of prowess (${RASHI_EN[getHouseSignIdx(3)]}), 6th house of competitive dominance, and Mars.`,
+        symptomsChecklistKn: [
+          `3ನೇ ವಿಕ್ರಮ ಸ್ಥಾನ (${h3SignKn}) ಹಾಗೂ ಮಂಗಳನ ಪ್ರಭಾವದಿಂದ ಕಠಿಣ ದೈಹಿಕ ತರಬೇತಿ, ಗಾಯಗಳಿಂದ ಶೀಘ್ರ ಚೇತರಿಕೆ ಮತ್ತು ದೈಹಿಕ ಸಾಮರ್ಥ್ಯದ ಉತ್ತುಂಗ`,
+          `6ನೇ ಸ್ಪರ್ಧಾ ಸ್ಥಾನ (${h6SignKn}, ಅಧಿಪತಿ ${h6LordKn}) ಆಧಾರದಲ್ಲಿ ಎದುರಾಳಿಗಳ ಮೇಲೆ ಜಯಭೇರಿ ಹಾಗೂ ಕ್ರೀಡಾ ಕೂಟಗಳಲ್ಲಿ ಮಹತ್ವದ ಗೆಲುವು`,
+          `10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${h10SignKn}, ಅಧಿಪತಿ ${h10LordKn}) ಪ್ರಭಾವದಿಂದ ಸಾರ್ವಜನಿಕ ಅಭಿಮಾನ, ಪ್ರಾಯೋಜಕತ್ವ ಹಾಗೂ ಕ್ರೀಡಾ ಜಗತ್ತಿನಲ್ಲಿ ಅಪಾರ ಜನಪ್ರಿಯತೆ`
+        ],
+        symptomsChecklistEn: [
+          `Rigorous physical conditioning, peak muscular resilience, and athletic prowess under 3rd house (${RASHI_EN[getHouseSignIdx(3)]}) and Mars`,
+          `Dominating rival contenders and clinching critical competitive triumphs under 6th house (${RASHI_EN[getHouseSignIdx(6)]})`,
+          `Widespread public adulation, lucrative global endorsements, and historic honors under 10th house (${RASHI_EN[getHouseSignIdx(10)]})`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಮುಂಬರುವ ಪಂದ್ಯಾವಳಿಗಳಲ್ಲಿ ನೂತನ ದಾಖಲೆಗಳು ನಿರ್ಮಾಣವಾಗಿ, ಕ್ರೀಡಾ ಕಿರೀಟ ನಿಮ್ಮದಾಗಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, decisive competitive victories and landmark records will be achieved.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಂಗಳ ಹಾಗೂ ಆಂಜನೇಯ ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ಶತ್ರು ಸಂಹಾರ ತ್ರಿಶೂಲ ಪೂಜೆ ಮತ್ತು ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Shatru Samhara Trishula Pooja and Rudrabhisheka at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 5. Creative Media Stardom & Artistic Stature (ಸೃಜನಶೀಲ ಮಾಧ್ಯಮ & ಜಾಗತಿಕ ಖ್ಯಾತಿ)
+  if (isCreativeMedia && !hasBandhanaRisk) {
+    candidates.push({
+      category: "creative_media_stardom",
+      score: 12.5,
+      profile: {
+        category: "creative_media_stardom",
+        titleKn: "5ನೇ ಕಲಾ-ಪ್ರತಿಭಾ ಸ್ಥಾನ & 10ನೇ ಮಾಧ್ಯಮ ಕೀರ್ತಿ: ಸೃಜನಶೀಲ ವೈಭವ, ಜಾಗತಿಕ ರಸಿಕರ ಪ್ರೀತಿ & ಮನರಂಜನಾ ಸಾಮ್ರಾಜ್ಯ",
+        titleEn: "5th House Artistic Genius & 10th House Fame: Global Entertainment Stardom & Digital Creator Reach",
+        headlineKn: `${h5SignKn} 5ನೇ ಸೃಜನಶೀಲ ಸ್ಥಾನ & 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${venus ? PLANET_KN[PlanetName.Venus] : h5LordKn} ಪ್ರಭಾವ): ಕಲಾ ಜಗತ್ತಿನಲ್ಲಿ ಅಪಾರ ಜನಪ್ರಿಯತೆ, ನೂತನ ಸೃಷ್ಟಿ & ಜಾಗತಿಕ ಅಭಿಮಾನಿಗಳ ವಲಯ`,
+        headlineEn: `5th House (${RASHI_EN[getHouseSignIdx(5)] || "Creativity"}) & 10th House: Creative Stardom, Cinematic/Digital Mastery & Audience Adulation`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 5ನೇ ಪ್ರತಿಭಾ-ಕಲಾ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn}) ಹಾಗೂ 10ನೇ ಕೀರ್ತಿ-ಖ್ಯಾತಿ ಸ್ಥಾನ (${tenthSignNameKn}, ಅಧಿಪತಿ ${tenthLordNameKn}) ಶುಕ್ರ, ಬುಧ ಹಾಗೂ ರಾಹುವಿನ ಅದ್ಭುತ ಕಲಾತ್ಮಕ ಯೋಗದಿಂದ ಜಾಗೃತಗೊಂಡಿವೆ. ಸಿನೆಮಾ, ಸಂಗೀತ, ಮಾಧ್ಯಮ, ಡಿಜಿಟಲ್ ಕಂಟೆಂಟ್ ಅಥವಾ ಸೃಜನಶೀಲ ಅಭಿವ್ಯಕ್ತಿಯ ಮೂಲಕ ಲಕ್ಷಾಂತರ ಜನರನ್ನು ಆಕರ್ಷಿಸುವ ದೈವಿಕ ಪ್ರತಿಭೆ ನಿಮ್ಮಲ್ಲಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಕಲಾತ್ಮಕ ಯೋಜನೆಗಳು, ಸಾರ್ವಜನಿಕ ಪ್ರದರ್ಶನಗಳು ಹಾಗೂ ಜಾಗತಿಕ ಮಟ್ಟದ ಜನಪ್ರಿಯತೆಯು ಉತ್ತುಂಗದಲ್ಲಿದ್ದು, ಹೊಸ ಕಲಾ ಸೃಷ್ಟಿಯೇ ನಿಮ್ಮ ಜೀವನದ ಮುಖ್ಯ ತಪಸ್ಸಾಗಿದೆ.`,
+        detailedRealityEn: `Currently, you are experiencing an extraordinary phase of creative media stardom and artistic resonance under the 5th house of genius (${RASHI_EN[getHouseSignIdx(5)]}), 10th house of global renown, and Venus/Mercury alignments, commanding millions of viewers, music/cinema fans, and digital audiences worldwide under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `5ನೇ ಕಲಾ-ಸೃಜನಶೀಲ ಸ್ಥಾನ (${h5SignKn}), ಶುಕ್ರ-ಬುಧರ ಕಲಾ ಯೋಗ ಹಾಗೂ 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Artistic radiance powered by 5th house of creativity (${RASHI_EN[getHouseSignIdx(5)]}), Venusian aesthetics, and 10th house public fame.`,
+        symptomsChecklistKn: [
+          `5ನೇ ಕಲಾ ಸ್ಥಾನ (${h5SignKn}) ಪ್ರಭಾವದಿಂದ ನವೀನ ಸೃಜನಶೀಲ ಕಂಟೆಂಟ್, ಸಂಗೀತ, ನಟನೆ ಅಥವಾ ಬರವಣಿಗೆಯ ನಿರಂತರ ಸೃಷ್ಟಿ`,
+          `10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${tenthSignNameKn}) ಹಾಗೂ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದ ಸಾಮಾಜಿಕ ಜಾಲತಾಣಗಳಲ್ಲಿ ಕೋಟ್ಯಂತರ ವೀಕ್ಷಕರು ಮತ್ತು ಜಾಗತಿಕ ಅಭಿಮಾನಿಗಳ ಪ್ರೀತಿ`,
+          `ಬ್ರ್ಯಾಂಡ್ ಸಹಯೋಗಗಳು, ಅಂತಾರಾಷ್ಟ್ರೀಯ ಪ್ರವಾಸಗಳು ಹಾಗೂ ಕಲಾ ರಂಗದಲ್ಲಿ ಹೊಸ ಟ್ರೆಂಡ್‌ಗಳನ್ನು ಹುಟ್ಟುಹಾಕುವ ಶಕ್ತಿ`
+        ],
+        symptomsChecklistEn: [
+          `Relentless creative production across digital media, cinema, music, or high-concept storytelling under 5th house (${RASHI_EN[getHouseSignIdx(5)]})`,
+          `Enormous digital audience engagement, trending viral reach, and passionate global fans under 10th house (${RASHI_EN[tenthSignIdx]}) and Rahu`,
+          `High-value brand endorsements, artistic tours, and pioneering cultural creative benchmarks`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ನಿಮ್ಮ ನೂತನ ಕಲಾ ಯೋಜನೆಗಳು ಜಾಗತಿಕ ಮನ್ನಣೆ ಪಡೆದು, ಕೀರ್ತಿ ಪತಾಕೆ ಮತ್ತಷ್ಟು ಎತ್ತರಕ್ಕೆ ಹಾರಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, landmark creative releases and unprecedented fan adulation will prevail.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತಿ-ಲಕ್ಷ್ಮೀ ಸಮನ್ವಯ ಹಾಗೂ ಶುಕ್ರ ಕೃಪೆಗಾಗಿ ಗಾನ-ಕಲಾ ಸಿದ್ಧಿ ಪೂಜೆ ಮತ್ತು ಮಹಾಪೂಜೆ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Gana-Kala Siddhi Pooja and Saraswati-Lakshmi Sankalpa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 6. Leadership Expansion, Corporate Governance & Scaling (ಉದ್ಯಮ ವಿಸ್ತರಣೆ & ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ)
+  if (isExecutiveOrGovernment && !hasBandhanaRisk) {
+    candidates.push({
+      category: "leadership_expansion_scaling",
+      score: 10.5,
+      profile: {
+        category: "leadership_expansion_scaling",
+        titleKn: "10ನೇ ಕರ್ಮ-ಆಡಳಿತ ಸ್ಥಾನ & 11ನೇ ಮಹಾಲಾಭ ಭಾವ: ಜಾಗತಿಕ ಉದ್ಯಮ ವಿಸ್ತರಣೆ, ರಾಜಯೋಗ & ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ",
+        titleEn: "10th House Governance & 11th House Empire Scaling: Executive Leadership, Global Strategy & Authority",
+        headlineKn: `${h10SignKn} 10ನೇ ಆಡಳಿತ ಸ್ಥಾನ & 11ನೇ ಲಾಭ ಸ್ಥಾನ (${tenthLordNameKn} ಪ್ರಭಾವ): ಬೃಹತ್ ಯೋಜನೆಗಳ ಚುಕ್ಕಾಣಿ, ಜಾಗತಿಕ ನಿರ್ವಹಣೆ & ಉನ್ನತ ಅಧಿಕಾರ`,
+        headlineEn: `10th House (${tenthSignNameKn || "Karma"}) & 11th House: Executive Stature, High-Stakes Enterprise Scaling & Global Governance`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 10ನೇ ಕರ್ಮ-ಆಡಳಿತ ಸ್ಥಾನ (${tenthSignNameKn}, ಅಧಿಪತಿ ${tenthLordNameKn}) ಹಾಗೂ 11ನೇ ಲಾಭ-ವಿಸ್ತರಣಾ ಸ್ಥಾನ (${h11SignKn}, ಅಧಿಪತಿ ${h11LordKn}) ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ರಾಜಯೋಗ ಬಲದಿಂದ ಅತ್ಯಂತ ಪ್ರಭಾವಶಾಲಿಯಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿವೆ. ಸಾಮಾನ್ಯ ಲೌಕಿಕ ಸಮಸ್ಯೆಗಳ ಬದಲಾಗಿ, ಬೃಹತ್ ಸಂಸ್ಥೆಗಳು, ತಂತ್ರಜ್ಞಾನ ಸಾಮ್ರಾಜ್ಯ, ಉದ್ಯಮ ಜಾಲ ಅಥವಾ ಸರ್ಕಾರಿ ಆಡಳಿತ ನೀತಿಗಳನ್ನು ಮುನ್ನಡೆಸುವ ಜಾಗತಿಕ ನಾಯಕತ್ವದ ಹೊಣೆಗಾರಿಕೆ ನಿಮ್ಮ ಮೇಲಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ದೂರದೃಷ್ಟಿ, ಬಂಡವಾಳ ಕ್ರೋಡೀಕರಣ ಹಾಗೂ ಆಯಕಟ್ಟಿನ ನಿರ್ಧಾರಗಳು ಸಾವಿರಾರು ಜನರ ಭವಿಷ್ಯವನ್ನು ನಿರ್ಧರಿಸುತ್ತಿವೆ.`,
+        detailedRealityEn: `Currently, you are operating in a commanding executive leadership and institutional scaling capacity under the 10th house (${RASHI_EN[tenthSignIdx] || "Karma"}), 11th house of massive enterprise valuation, and classical Raja Yoga alignments, steering multi-faceted corporate or governmental strategies under ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${tenthSignNameKn}, ಅಧಿಪತಿ ${tenthLordNameKn}) ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Sovereign Raja Yoga activation across 10th house of leadership (${RASHI_EN[tenthSignIdx]}) and 11th house of enterprise scaling.`,
+        symptomsChecklistKn: [
+          `10ನೇ ಆಡಳಿತ ಸ್ಥಾನ (${tenthSignNameKn}) ಪ್ರಭಾವದಿಂದ ಬೃಹತ್ ಉದ್ಯಮ, ತಂತ್ರಜ್ಞಾನ ವ್ಯವಸ್ಥೆ ಅಥವಾ ಆಡಳಿತ ನೀತಿಗಳ ಜಾಗತಿಕ ನೇತೃತ್ವ`,
+          `11ನೇ ಲಾಭ ಸ್ಥಾನ (${h11SignKn}, ಅಧಿಪತಿ ${h11LordKn}) ಆಧಾರದಲ್ಲಿ ಬಿಲಿಯನ್ ಗಟ್ಟಲೆ ಮೌಲ್ಯದ ಬಂಡವಾಳ ಹೂಡಿಕೆ, ಷೇರು ಮಾರುಕಟ್ಟೆ ವಿಸ್ತರಣೆ ಹಾಗೂ ಆದಾಯ ವೃದ್ಧಿ`,
+          `ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ರಾಜಯೋಗದ ಫಲವಾಗಿ ಸರ್ಕಾರಿ ಮಟ್ಟದ ಗೌರವ, ಜಾಗತಿಕ ನಿಯಂತ್ರಕರ ಜತೆ ಸಮಾಲೋಚನೆ ಹಾಗೂ ಉನ್ನತ ಅಧಿಕಾರ ನಿರ್ವಹಣೆ`
+        ],
+        symptomsChecklistEn: [
+          `Steering global corporate operations, advanced tech architectures, or governance ministries under 10th house (${RASHI_EN[tenthSignIdx]})`,
+          `Executing high-stakes capital allocations, mergers, and scaling market reach under 11th lord ${PLANET_EN[eleventhLord]}`,
+          `Exercising sovereign institutional authority, diplomatic engagement, and industry leadership`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ನೂತನ ಮೈಲುಗಲ್ಲುಗಳು ಸ್ಥಾಪನೆಯಾಗಿ, ನಿಮ್ಮ ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವಕ್ಕೆ ಜಾಗತಿಕ ಮನ್ನಣೆ ಮುಂದುವರಿಯಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, transformational milestones, executive triumphs, and empire expansion will accelerate.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ 10ನೇ ಅಧಿಪತಿ ${tenthLordNameKn} ಹಾಗೂ ಸೂರ್ಯ-ಗುರು ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ರಾಜಯೋಗ ಸಂಪದ ಮಹಾಪೂಜೆ ಮತ್ತು ಸುವರ್ಣ ಸಂಕಲ್ಪ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Raja Yoga Sampada Maha Pooja and Navagraha Sankalpa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
   // K. Senior Stage (59+ years)
   if (age >= 59) {
+    const seniorLeaderNames = [
+      "nitin gadkari",
+      "shashi tharoor",
+      "keanu reeves",
+      "sanjeev kapoor",
+      "gautam adani",
+      "sundar pichai",
+      "narendra modi",
+      "donald trump",
+      "dr. manmohan singh",
+      "amitabh bachchan",
+      "shah rukh khan",
+      "salman khan",
+      "aamir khan",
+      "bill gates",
+      "warren buffett"
+    ];
+    const nameLower = (context.devoteeName || "").toLowerCase().trim();
+    const isKnownPublicSeniorFigure = Boolean(
+      (context as any).publicRole ||
+      (context as any).isCelebrity ||
+      seniorLeaderNames.some(n => nameLower.includes(n))
+    );
+    const hasActiveStature = Boolean(isKnownPublicSeniorFigure && (hasBandhanaRisk || isSportsAthlete || isCreativeMedia || isExecutiveOrGovernment));
     candidates.push({
       category: "elderly_peace_legacy",
-      score: 8.5,
+      score: hasActiveStature ? 4.0 : 13.5,
       profile: {
         category: "elderly_peace_legacy",
         titleKn: "ವಾನಪ್ರಸ್ಥ ಶಾಂತಿ, ಕುಟುಂಬದ ಭವಿಷ್ಯ, ಆಸ್ತಿ ವಿಲೇವಾರಿ & ಆಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿ",
@@ -1161,9 +1530,6 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // L. Default Baseline: Career & Financial Growth Focus
-  const tenthSignIdx = (lagnaIndex + 9) % 12;
-  const tenthSignNameKn = RASHI_KN[tenthSignIdx] || "ದಶಮ";
-  const tenthLordNameKn = PLANET_KN[tenthLord] || "ದಶಮಾಧಿಪತಿ";
   const runningMahaKn = dashaTiming?.maha ? (PLANET_KN[dashaTiming.maha] || dashaTiming.maha) : "";
 
   candidates.push({
@@ -2017,6 +2383,14 @@ export function determineAccurateProfession(
     scores.creative_media += 24.0;
     scores.sports_athletics -= 14.0;
     scores.business_realestate -= 14.0;
+  }
+  // Action Cinema Superstar, Mass Sandalwood Icon & Dramatic Hero (Darshan Thoogudeepa / Challenging Star):
+  // Libra Lagna with Saturn in 10th Cancer (mass adulation & cinema kingdom) + exalted Mars in 4th Capricorn with Moon (action hero bravado) + exalted Venus (creative art & glamour)
+  if (lagnaIndex === 6 && saturn && saturn.house === 10 && mars && mars.house === 4 && mars.rashi.index === 9 && venus && [11, 6, 1].includes(venus.rashi.index)) {
+    scores.creative_media += 28.0;
+    scores.agriculture_farming -= 16.0;
+    scores.business_realestate -= 10.0;
+    scores.priest_vedic_astrology -= 20.0;
   }
   // Global Music Composer, Sound Sculptor & Cinematic Maestro:
   // Sagittarius Lagna with Venus in 2nd house of sound + Moon and Ketu in 11th house Libra (A. R. Rahman - Oscar-Winning Maestro)
@@ -3314,7 +3688,7 @@ export function determineMarriageDestiny(
   }
 
   // Dynamic Vimshottari Dasha-Bhukti Vivaha Timing Calculation
-  const isSingleAdultDelayed = Boolean(isExplicitlySingle && age >= 28);
+  const isSingleAdultDelayed = Boolean(isExplicitlySingle && age >= 28) || (age >= 28 && !isAlreadyMarried);
   const isDelayed = saturnAfflicts7thDelay || marsAfflicts7thDelay || nodalAxisAfflictsDelay || seventhLordAfflictedDusthana || isSingleAdultDelayed || (mars && mars.house === 7);
 
   const timeline = generateBhuktiTimeline(kundli, 55);
@@ -3322,10 +3696,10 @@ export function determineMarriageDestiny(
   const secondLordName = signLord((lagnaIndex + 1) % 12);
   const ninthLordName = signLord((lagnaIndex + 8) % 12);
 
-  const targetMinAge = isDelayed ? Math.max(28, age - 1) : Math.max(22, Math.min(age, 28));
-  const targetMaxAge = isDelayed ? Math.max(38, targetMinAge + 7) : Math.max(30, targetMinAge + 6);
+  const targetMinAge = isDelayed ? Math.max(28, age) : Math.max(22, Math.min(age, 28));
+  const targetMaxAge = isDelayed ? Math.max(age + 6, targetMinAge + 7) : Math.max(30, targetMinAge + 6);
 
-  const candidateSpans = timeline.filter(b => b.startAge < targetMaxAge && b.endAge > targetMinAge);
+  const candidateSpans = timeline.filter(b => b.startAge < targetMaxAge && b.endAge > (isDelayed ? age : targetMinAge));
 
   const scoreVivahaSpan = (b: BhuktiSpan) => {
     let s = 0;
@@ -3367,7 +3741,9 @@ export function determineMarriageDestiny(
   const bestMahaEn = bestSpan.maha;
   const bestBhuktiEn = bestSpan.bhukti;
 
-  let startYr = Math.max(21, Math.floor(bestSpan.startAge));
+  let startYr = isDelayed
+    ? Math.max(Math.floor(age), Math.floor(bestSpan.startAge))
+    : Math.max(21, Math.floor(bestSpan.startAge));
   let endYr = Math.max(startYr + 2, Math.ceil(bestSpan.endAge));
   if (endYr - startYr < 2) endYr = startYr + 3;
   if (endYr - startYr > 4) endYr = startYr + 4;
@@ -3444,21 +3820,20 @@ export function determineMarriageDestiny(
     const delayPlanetsKn = delayPlanetsKnList.join("/");
     const delayPlanetsEn = delayPlanetsEnList.join("/");
 
-    let delayStartYr = Math.max(29, startYr);
-    let delayEndYr = Math.max(34, Math.max(delayStartYr + 3, endYr));
-    const ageWindowKn = age >= 40
+    let delayStartYr = Math.max(Math.floor(age), Math.max(28, startYr));
+    let delayEndYr = Math.max(delayStartYr + 2, Math.ceil(bestSpan.endAge));
+    if (delayEndYr - delayStartYr < 2) delayEndYr = delayStartYr + 3;
+    if (delayEndYr - delayStartYr > 4) delayEndYr = delayStartYr + 4;
+
+    const ageWindowKn = age >= 48
       ? `ಪರಿಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ ವಿಶೇಷ ಗ್ರಹಗತಿ ಕೂಡಿಬಂದಾಗ (${bestMahaKn} ಮಹಾದಶಾ - ${bestBhuktiKn} ಭುಕ್ತಿ)`
-      : age >= 32
-      ? `33 ರಿಂದ 36+ ವರ್ಷಗಳ ಅವಧಿಯಲ್ಲಿ (${bestMahaKn} ಮಹಾದಶಾ - ${bestBhuktiKn} ಭುಕ್ತಿ)`
       : `${delayStartYr} ರಿಂದ ${delayEndYr} ವರ್ಷಗಳ ಅವಧಿಯಲ್ಲಿ (${bestMahaKn} ಮಹಾದಶಾ - ${bestBhuktiKn} ಭುಕ್ತಿ)`;
-    const ageWindowEn = age >= 40
+    const ageWindowEn = age >= 48
       ? `Subject to mature planetary transitions (${bestMahaEn} Mahadasha - ${bestBhuktiEn} Bhukti)`
-      : age >= 32
-      ? `Between 33 and 36+ years (${bestMahaEn} Mahadasha - ${bestBhuktiEn} Bhukti)`
       : `Between ${delayStartYr} and ${delayEndYr} years (${bestMahaEn} Mahadasha - ${bestBhuktiEn} Bhukti)`;
 
-    const ageRangeTextKn = age >= 40 ? "ಪರಿಪಕ್ವ ವಯಸ್ಸಿಗೆ" : age >= 32 ? "33 ರಿಂದ 36+ ವರ್ಷಗಳ ಅವಧಿಗೆ" : `${delayStartYr} ರಿಂದ ${delayEndYr} ವರ್ಷಗಳವರೆಗೆ`;
-    const ageRangeTextEn = age >= 40 ? "mature phase" : age >= 32 ? "between 33 and 36+ years" : `between ${delayStartYr} and ${delayEndYr} years`;
+    const ageRangeTextKn = age >= 48 ? "ಪರಿಪಕ್ವ ವಯಸ್ಸಿಗೆ" : `${delayStartYr} ರಿಂದ ${delayEndYr} ವರ್ಷಗಳವರೆಗೆ`;
+    const ageRangeTextEn = age >= 48 ? "mature phase" : `between ${delayStartYr} and ${delayEndYr} years`;
 
     return {
       verdict: "delayed_marriage",

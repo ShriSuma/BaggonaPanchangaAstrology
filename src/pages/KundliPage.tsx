@@ -1303,7 +1303,7 @@ export default function KundliPage(): JSX.Element {
             position: "fixed",
             left: 0,
             top: 0,
-            width: 900,
+            width: 794,
             opacity: 0,
             pointerEvents: "none",
             zIndex: -1,

@@ -232,6 +232,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     rashiName,
     nakshatraName,
     primaryStruggle,
+    lifeTurnaroundTiming,
     afflictionFactors,
     psychologicalProfile,
     instantCalmingProtocol,
@@ -745,7 +746,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               <div style={{ fontWeight: 800, color: "#92400E" }}>
                 <span>⏳ {i18n.currentDasha} </span>
                 <span style={{ color: "#B45309", fontWeight: 900 }}>
-                  {dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.kn} ಮಹಾದಶೆ — {dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.kn} ಭುಕ್ತಿ
+                  {isKn
+                    ? `${dashaBhuktiAnalysis.mahaDashaLabel.kn} ಮಹಾದಶೆ — ${dashaBhuktiAnalysis.bhuktiLabel.kn} ಭುಕ್ತಿ`
+                    : `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en} Dasha — ${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en} Bhukti`}
                 </span>
               </div>
               <div style={{ color: "#451A03", marginTop: "3px" }}>
@@ -757,6 +760,30 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 {dashaBhuktiAnalysis.remedialAction[code] || dashaBhuktiAnalysis.remedialAction.kn}
               </div>
             </div>
+
+            {/* Turnaround Timing Box (ಭಾಗ್ಯೋದಯ ಕಾಲಾವಧಿ) */}
+            {lifeTurnaroundTiming && (
+              <div style={{ marginTop: "8px", background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "6px", padding: "8px 10px", fontSize: "12px", lineHeight: 1.55 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 900, color: "#78350F" }}>
+                  <span>🌟 {isKn ? "ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ:" : "Turnaround Point & Timing Window:"}</span>
+                  <span style={{ background: "#D97706", color: "#FFFFFF", padding: "1px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 800 }}>
+                    {isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || lifeTurnaroundTiming.timelineKn)}
+                  </span>
+                </div>
+                <div style={{ color: "#451A03", marginTop: "3px" }}>
+                  <span style={{ fontWeight: 800 }}>• {isKn ? "ಪ್ರೇರಕ ಗ್ರಹ & ಗೋಕರ್ಣ ಸೇವೆ: " : "Catalyst & Recommended Seva: "}</span>
+                  <span style={{ fontWeight: 700, color: "#92400E" }}>
+                    {isKn
+                      ? `${lifeTurnaroundTiming.catalystGrahaKn} · ${lifeTurnaroundTiming.specificSevaKn}`
+                      : `${lifeTurnaroundTiming.catalystGrahaEn || lifeTurnaroundTiming.catalystGrahaKn} · ${lifeTurnaroundTiming.specificSevaEn || lifeTurnaroundTiming.specificSevaKn}`}
+                  </span>
+                </div>
+                <div style={{ color: "#78350F", marginTop: "2px", fontSize: "11.5px" }}>
+                  <span style={{ fontWeight: 800 }}>• {isKn ? "ಜ್ಯೋತಿಷ್ಯ ಪ್ರಕ್ರಿಯೆ: " : "Breakthrough Mechanism: "}</span>
+                  {isKn ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || lifeTurnaroundTiming.breakthroughMechanismKn)}
+                </div>
+              </div>
+            )}
 
             {/* Gochara Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "8px" }}>

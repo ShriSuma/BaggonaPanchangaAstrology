@@ -30,6 +30,7 @@ export interface NewInternetBenchmarkProfile {
   teetotalerEvidence: string;
   romanticAffairsGroundTruth: string;
   currentLifeSituation: string;
+  expectedCurrentLifeCategory: string;
   currentDashaFocus: string;
 }
 
@@ -71,6 +72,7 @@ describe("20 New Internet Benchmark Profiles Ground-Truth Fidelity Audit", () =>
   Career: expected=${person.expectedCareerCode}, got primary=${primaryCode}, top3=${topCodes.join(", ")}
   Marriage: expected=${person.expectedMarriageVerdict}, got=${marriageVerdict}
   Teetotaler: expected=${person.isExpectedTeetotaler}, got=${teetotalerStatus}
+  CurrentLifeSituation: got category=${diag.currentLifeSituation?.category}, titleKn=${diag.currentLifeSituation?.titleKn}
   Ascendant: ${kundli.ascendant.toFixed(1)}, Planets: ${kundli.planets.map(p => `${p.name}:H${p.house}`).join(" ")}`);
 
       // 1. Career Suitability & Accurate Profession Match
@@ -85,6 +87,14 @@ describe("20 New Internet Benchmark Profiles Ground-Truth Fidelity Audit", () =>
       // 4. Current Life Phase & Dasha Bhukti Exists & Active
       expect(diag.prasthuthaSthiti.runningDashaSummary).toBeTruthy();
       expect(diag.dashaTiming?.timelineKn).toBeTruthy();
+
+      // 5. Current Life Situation Real-Life Reality
+      expect(diag.currentLifeSituation).toBeDefined();
+      expect(diag.currentLifeSituation?.category).toBe(person.expectedCurrentLifeCategory);
+      expect(diag.currentLifeSituation?.externalLifeRealityKn).toBeTruthy();
+      expect(diag.currentLifeSituation?.internalMindsetKn).toBeTruthy();
+      expect(diag.currentLifeSituation?.symptomsChecklistKn.length).toBeGreaterThanOrEqual(3);
+      expect(diag.currentLifeSituation?.gokarnaRemedyKn).toContain("ಗೋಕರ್ಣ");
     });
   }
 });

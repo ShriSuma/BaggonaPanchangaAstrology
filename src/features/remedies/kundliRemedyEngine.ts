@@ -5,6 +5,7 @@ import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { degreeToRashi } from "../../core/AstroMath";
 import {
   generateAstrologicalPrescriptions,
+  generatePanchangaAngaSynthesis,
   YOGA_RULES,
   KARANA_RULES
 } from "../../core/PanchangaAngaSynthesisEngine";
@@ -91,11 +92,34 @@ export interface KundliRemedyDiagnosis {
   rashiName: Record<string, string>;
   nakshatraName: Record<string, string>;
   primaryStruggle: {
-    category: "anger_temper" | "mental_anxiety" | "career_obstacles" | "relationship_friction" | "health_vitality" | "general_alignment";
+    category:
+      | "anger_temper"
+      | "mental_anxiety"
+      | "career_obstacles"
+      | "relationship_friction"
+      | "health_vitality"
+      | "marriage_delay"
+      | "student_academic"
+      | "debt_financial"
+      | "legal_confinement"
+      | "leadership_expansion"
+      | "creative_stardom"
+      | "elite_sports"
+      | "general_alignment";
     title: Record<string, string>;
     description: Record<string, string>;
     intensity: "High" | "Moderate" | "Balanced";
     intensityLabel: Record<string, string>;
+  };
+  lifeTurnaroundTiming: {
+    timelineKn: string;
+    timelineEn: string;
+    catalystGrahaKn: string;
+    catalystGrahaEn: string;
+    breakthroughMechanismKn: string;
+    breakthroughMechanismEn: string;
+    specificSevaKn: string;
+    specificSevaEn: string;
   };
   afflictionFactors: Array<{
     graha: PlanetName;
@@ -1945,6 +1969,137 @@ export const CLASSICAL_STOTRAS_CATALOG = [
     bestTimeToRecite: { kn: "ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ ಪೂಜೆಯ ಸಮಯದಲ್ಲಿ", en: "Morning or evening prayers", hi: "प्रातः अथवा संध्या", te: "ఉదయం లేదా సాయంత్రం", ta: "காலை அல்லது மாலை" },
     facingDirection: { kn: "ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕು", en: "East or North", hi: "पूर्व अथवा उत्तर", te: "తూర్పు లేదా ఉత్తరం", ta: "கிழக்கு அல்லது வடக்கு" },
     recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ರಿಂದ ೩ ಬಾರಿ", en: "1 to 3 Times Daily", hi: "१ से ३ बार", te: "1 నుండి 3 సార్లు", ta: "1 முதல் 3 முறை" }
+  },
+  {
+    id: "medha_dakshinamurthy",
+    forAffliction: ["student_academic", "buddhi_mandya", "guru_weakness"],
+    title: {
+      kn: "ಶ್ರೀ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸ್ತೋತ್ರಂ",
+      en: "Sri Medha Dakshinamurthy Stotram",
+      hi: "श्री मेधा दक्षिणामूर्ति स्तोत्रम्",
+      te: "శ్రీ మేధా దక్షిణామూర్తి స్తోత్రం",
+      ta: "ஸ்ரீ மேதா தட்சிணாமூர்த்தி ஸ்தோத்திரம்"
+    },
+    dedicatedTo: {
+      kn: "ಭಗವಾನ್ ದಕ್ಷಿಣಾಮೂರ್ತಿ / ಗುರು",
+      en: "Lord Dakshinamurthy / Guru",
+      hi: "भगवान दक्षिणामूर्ति / गुरु",
+      te: "దక్షిణామూర్తి స్వామి",
+      ta: "தட்சிணாமூர்த்தி பெருமான்"
+    },
+    shlokaSanskrit: `ॐ नमो भगवते दक्षिणामूर्तये मह्यं मेधां प्रज्ञां प्रयच्छ स्वाहा ।
+ओंकाररूपाय गुरवे सर्वविद्याप्रदायिने । दक्षिणामूर्तये तुभ्यं नमो बुद्धिप्रबोधक ॥`,
+    shlokaKannada: `ಓಂ ನಮೋ ಭಗವತೇ ದಕ್ಷಿಣಾಮೂರ್ತಯೇ ಮಹ್ಯಂ ಮೇಧಾಂ ಪ್ರಜ್ಞಾಂ ಪ್ರಯಚ್ಛ ಸ್ವಾಹಾ ।
+ಓಂಕಾರರೂಪಾಯ ಗುರವೇ ಸರ್ವವಿದ್ಯಾಪ್ರದಾಯಿನೇ । ದಕ್ಷಿಣಾಮೂರ್ತಯೇ ತುಭ್ಯಂ ನಮೋ ಬುದ್ಧಿಪ್ರಬೋಧಕ ॥`,
+    shlokaTelugu: `ఓం నమో భగవతే దక్షిణామూర్తయే మహ్యం మేధాం ప్రజ్ఞాం ప్రయచ్ఛ స్వాహా ।
+ఓంకారరూపాయ గురవే సర్వవిద్యాప్రదాయినే । దక్షిణామూర్తయే తుభ్యం నమో బుద్ధిప్రబోధక ॥`,
+    shlokaTamil: `ஓம் நமோ பகவதே தக்ஷிணாமூர்த்தயே மஹ்யம் மேதாம் ப்ரஜ்ஞாம் ப்ரயச்ச ஸ்வாஹா ।`,
+    shlokaHindi: `ॐ नमो भगवते दक्षिणामूर्तये मह्यं मेधां प्रज्ञां प्रयच्छ स्वाहा ।
+ओंकाररूपाय गुरवे सर्वविद्याप्रदायिने । दक्षिणामूर्तये तुभ्यं नमो बुद्धिप्रबोधक ॥`,
+    transliteration: "Oṁ Namō Bhagavate Dakṣiṇāmūrtaye Mahyaṁ Medhāṁ Prajñāṁ Prayaccha Svāhā | Oṅkārarūpāya Gurave Sarvavidyāpradāyine ||",
+    meaning: {
+      kn: "ಜ್ಞಾನ, ವಿವೇಕ ಮತ್ತು ಸರ್ವವಿದ್ಯೆಗಳನ್ನು ಕರುಣಿಸುವ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪರಬ್ರಹ್ಮನಿಗೆ ನಮಸ್ಕಾರಗಳು. ನಮ್ಮ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸಿ ಅಜ್ಞಾನವನ್ನು ನೀಗಿಸು.",
+      en: "Salutations to Lord Dakshinamurthy, embodiment of the primordial Omkara and bestower of supreme intellect, memory retention, and spiritual discrimination.",
+      hi: "सर्वविद्याप्रदायक भगवान दक्षिणामूर्ति को नमन। हमारी बुद्धि एवं प्रज्ञा को प्रकाशित करें।",
+      te: "సకల విద్యా ప్రదాత అయిన దక్షిణామూర్తికి నమస్కారాలు.",
+      ta: "சகல வித்தைகளையும் அருளும் தட்சிணாமூர்த்தி பெருமானுக்கு நமஸ்காரங்கள்."
+    },
+    spiritualBenefits: {
+      kn: "ತೀಕ್ಷ್ಣ ಬುದ್ಧಿಶಕ್ತಿ, ಏಕಾಗ್ರತೆ, ಅಧ್ಯಯನದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಯಶಸ್ಸು ಹಾಗೂ ಅಜ್ಞಾನ ನಿವಾರಣೆ.",
+      en: "Sharpens intellect, memory retention, academic mastery, and clears cognitive fog.",
+      hi: "मेधा, प्रज्ञा और बौद्धिक एकाग्रता में वृद्धि होती है।",
+      te: "జ్ఞానం, మేధస్సు మరియు విద్యా రంగంలో విశేష విజయం.",
+      ta: "ஞாபக சக்தி, புத்திக் கூர்மை மற்றும் கல்வி தேர்ச்சி உண்டாகும்."
+    },
+    bestTimeToRecite: { kn: "ಗುರುವಾರ ಮುಂಜಾನೆ ಅಥವಾ ಅಧ್ಯಯನದ ಮುನ್ನ", en: "Thursday morning or before study", hi: "गुरुवार प्रातः", te: "గురువారం ఉదయం", ta: "வியாழக்கிழமை காலை" },
+    facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಈಶಾನ್ಯ ದಿಕ್ಕು", en: "North or North-East", hi: "उत्तर अथवा ईशान", te: "ఉత్తరం లేదా ఈశాన్యం", ta: "வடக்கு அல்லது வடகிழக்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ಅಥವಾ ೧೧ ಬಾರಿ", en: "1 or 11 Times Daily", hi: "१ अथवा ११ बार", te: "1 లేదా 11 సార్లు", ta: "1 அல்லது 11 முறை" }
+  },
+  {
+    id: "swayamvara_parvati",
+    forAffliction: ["marriage_delay", "relationship_friction", "shukra_affliction"],
+    title: {
+      kn: "ಶ್ರೀ ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಸ್ತೋತ್ರಂ & ಮಂತ್ರ",
+      en: "Sri Swayamvara Parvati Stotram & Mantra",
+      hi: "श्री स्वयंवर पार्वती स्तोत्रम्",
+      te: "శ్రీ స్వయంవర పార్వతీ స్తోత్రం",
+      ta: "ஸ்ரீ சுயம்வர பார்வதி ஸ்தோத்திரம்"
+    },
+    dedicatedTo: {
+      kn: "ಜಗನ್ಮಾತೆ ಪಾರ್ವತೀ ದೇವಿ / ಉಮಾ-ಮಹೇಶ್ವರ",
+      en: "Goddess Parvati / Uma-Maheshwara",
+      hi: "माता पार्वती / उमा-महेश्वर",
+      te: "పార్వతీ దేవి",
+      ta: "பார்வதி தேவி"
+    },
+    shlokaSanskrit: `ॐ ह्रीं योगिनि योगिनी योगेश्वरी योग भयङ्करि सकल स्थावर ಜङ्गमस्य मुख हृदयं मम वशं आकर्षय आकर्षय नमः ॥`,
+    shlokaKannada: `ಓಂ ಹ್ರೀಂ ಯೋಗಿನಿ ಯೋಗಿನೀ ಯೋಗೇಶ್ವರೀ ಯೋಗ ಭಯಂಕರಿ ಸಕಲ ಸ್ಥಾವರ ಜಂಗಮಸ್ಯ ಮುಖ ಹೃದಯಂ ಮಮ ವಶಂ ಆಕರ್ಷಯ ಆಕರ್ಷಯ ನಮಃ ॥`,
+    shlokaTelugu: `ఓం హ్రీం యోగిని ಯೋಗಿನೀ యోగేశ్వరీ యోగ భయంకరి సకల స్థావర జంగమస్య ముఖ హృదయం మమ వశం ఆకర్షయ ఆకర్షయ నమః ॥`,
+    shlokaTamil: `ஓம் ஹ்ரீம் யோகினி யோகினீ யோகேஸ்வரீ சகல ஸ்தாவர ஜங்கமஸ்ய முகம் ஹ்ருதயம் மம வசம் ஆகர்ஷய நமஹ ॥`,
+    shlokaHindi: `ॐ ह्रीं योगिनि योगिनी योगेश्वरी योग भयङ्करि सकल स्थावर ಜङ्गमस्य मुख हृदयं मम वशं आकर्षय आकर्षय नमः ॥`,
+    transliteration: "Oṁ Hrīṁ Yōgini Yōginī Yōgēśvarī Yōga Bhayaṅkari Sakala Sthāvara Jaṅgamasya Mukha Hṛdayaṁ Mama Vaśaṁ Ākarṣaya Ākarṣaya Namaḥ ||",
+    meaning: {
+      kn: "ವಿವಾಹ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಿ ಯೋಗ್ಯ ಸಂಗಾತಿಯೊಡನೆ ಸೌಭಾಗ್ಯದ ಜೀವನವನ್ನು ಕರುಣಿಸುವ ಜಗನ್ಮಾತೆ ಪಾರ್ವತಿಯನ್ನು ಭಕ್ತಿಯಿಂದ ಶರಣುಹೋಗುತ್ತೇವೆ.",
+      en: "Divine invocation to Goddess Parvati to dissolve obstacles in marriage matching and bestow an auspicious, loving, virtuous life partner.",
+      hi: "विवाह बाधा निवारण एवं सुयोग्य जीवनसाथी की प्राप्ति हेतु जगन्माता पार्वती की वंदना।",
+      te: "వివాహ అడ్డంకులు తొలగి సుగుణవంతుడైన భాగస్వామి లభించాలని పార్వతీ దేవిని ప్రార్థిస్తున్నాము.",
+      ta: "திருமண தடைகள் நீங்கி நல்ல வாழ்க்கைத்துணை அமைய அன்னையை வேண்டுகிறோம்."
+    },
+    spiritualBenefits: {
+      kn: "ವಿವಾಹ ವಿಳಂಬ ನಿವಾರಣೆ, ಶೀಘ್ರ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿ, ಸುಗುಣವಂತ ಸಂಗಾತಿಯ ಲಾಭ ಹಾಗೂ ದಾಂಪತ್ಯ ಸೌಖ್ಯ.",
+      en: "Dissolves marriage obstacles, resolves delay in finding match, and blesses domestic bliss.",
+      hi: "शीघ्र विवाह, उत्तम जीवनसाथी की प्राप्ति एवं दांपत्य सुख की वृद्धि।",
+      te: "శీఘ్ర వివాహం, అనుకూల జీవిత భాగస్వామి లభించడం.",
+      ta: "விரைவில் திருமணம் கைகூடும், நல்ல வாழ்க்கைத்துணை அமையும்."
+    },
+    bestTimeToRecite: { kn: "ಶುಕ್ರವಾರ ಮುಂಜಾನೆ ಅಥವಾ ಪ್ರದೋಷ ಕಾಲ", en: "Friday morning or Pradosha twilight", hi: "शुक्रवार प्रातः", te: "శుక్రవారం ఉదయం", ta: "வெள்ளிக்கிழமை காலை" },
+    facingDirection: { kn: "ಪೂರ್ವ ದಿಕ್ಕು", en: "East", hi: "पूर्व", te: "తూర్పు", ta: "கிழக்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೨೧ ಅಥವಾ ೧೦೮ ಬಾರಿ", en: "21 or 108 Times Daily", hi: "२१ अथवा १०८ बार", te: "21 లేదా 108 సార్లు", ta: "21 அல்லது 108 முறை" }
+  },
+  {
+    id: "runa_vimochana_angāraka",
+    forAffliction: ["debt_financial", "kuja_dosha", "mars_weakness"],
+    title: {
+      kn: "ಶ್ರೀ ಋಣವಿಮೋಚನ ಅಂಗಾರಕ ಸ್ತೋತ್ರಂ",
+      en: "Sri Runa Vimochana Angāraka Stotram",
+      hi: "श्री ऋणमोचन अङ्गारक स्तोत्रम्",
+      te: "శ్రీ రుణవిమోచన అంగారక స్తోత్రం",
+      ta: "ஸ்ரீ ருணவிமோசன அங்காரக ஸ்தோத்திரம்"
+    },
+    dedicatedTo: {
+      kn: "ಭಗವಾನ್ ಮಂಗಳ / ಸುಬ್ರಹ್ಮಣ್ಯ",
+      en: "Lord Mangala / Kartikeya",
+      hi: "भगवान मंगल / कार्तिकेय",
+      te: "అంగారక స్వామి",
+      ta: "செவ்வாய் பகவான்"
+    },
+    shlokaSanskrit: `मङ्गलो भूमिपुत्रश्च ऋणहर्ता धनप्रदः । स्थिरासनो महाकायः सर्वकर्मविरोधकः ॥
+अङ्गारको महातेजाः सर्वकार्यफलप्रदः । तं नमामि सदा भक्त्या ऋणं मे मोचय प्रभो ॥`,
+    shlokaKannada: `ಮಂಗಳೋ ಭೂಮಿಪುತ್ರಶ್ಚ ಋಣಹರ್ತಾ ಧನಪ್ರದಃ । ಸ್ಥಿರಾಸನೋ ಮಹಾಕಾಯಃ ಸರ್ವಕರ್ಮವಿರೋಧಕಃ ॥
+ಅಂಗಾರಕೋ ಮಹಾತೇಜಾಃ ಸರ್ವಕಾರ್ಯಫಲಪ್ರದಃ । ತಂ ನಮಾಮಿ ಸದಾ ಭಕ್ತ್ಯಾ ಋಣಂ ಮೇ ಮೋಚಯ ಪ್ರಭೋ ॥`,
+    shlokaTelugu: `మంగళో భూమిపుత్రశ్చ రుణహర్తా ధనప్రదః । స్థిరాసనో మహాకాయః సర్వకర్మవిరోధకః ॥
+అంగారకో మహాతేజాః సర్వకార్యఫలప్రదః । తం నమామి సదా భక్త్యా రుణం మే మోచయ ప్రభో ॥`,
+    shlokaTamil: `மங்கலோ பூமிபுத்ரஸ்ச ருணஹர்த்தா தனப்ரதஃ । ஸ்திராஸனோ மஹாகாயஃ சர்வகர்மவிரோதகஃ ॥`,
+    shlokaHindi: `मङ्गलो भूमिपुत्रश्च ऋणहर्ता धनप्रदः । स्थिरासनो महाकायः सर्वकर्मविरोधकः ॥
+अङ्गारको महातेजाः सर्वकार्यफलप्रदः । तं नमामि सदा भक्त्या ऋणं मे मोचय प्रभो ॥`,
+    transliteration: "Maṅgalō Bhūmiputraśca Ṛṇahartā Dhanapradaḥ | Sthirāsanō Mahākāyaḥ Sarvakarmavirōdhakaḥ || Aṅgārakō Mahātējāḥ Sarvakāryaphalapradaḥ | Taṁ Namāmi Sadā Bhaktyā Ṛṇaṁ Mē Mōcaya Prabhō ||",
+    meaning: {
+      kn: "ಸಮಸ್ತ ಋಣ-ಸಾಲಗಳನ್ನು ಪರಿಹರಿಸಿ, ಭೂಮಿ ಮತ್ತು ಧನ-ಸಂಪತ್ತನ್ನು ಅನುಗ್ರಹಿಸುವ ಭೂಮಿಪುತ್ರ ಅಂಗಾರಕನಿಗೆ ನಮಸ್ಕರಿಸುತ್ತೇನೆ. ನನ್ನ ಸಮಸ್ತ ಋಣಗಳನ್ನು ಕಳೆಯಿರಿ ಪ್ರಭು.",
+      en: "Salutations to Angaraka, son of Earth and dissolver of debts and financial encumbrances. We pray with devotion for liberation from monetary obligations and restoration of prosperity.",
+      hi: "ऋणहर्ता एवं धनप्रदाता भूमिपुत्र मंगल देव को नमन। हमारे समस्त ऋणों का निवारण करें।",
+      te: "రుణాలను హరించి ధనాన్ని ప్రసాదించే అంగారక స్వామికి నమస్కారాలు.",
+      ta: "கடன்களை நீக்கி செல்வத்தை அருளும் அங்காரக பகவானுக்கு நமస్కாரங்கள்."
+    },
+    spiritualBenefits: {
+      kn: "ಸಾಲದ ಹೊರೆಯಿಂದ ಮುಕ್ತಿ, ಆರ್ಥಿಕ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆ ಹಾಗೂ ಭೂಮಿ-ಆಸ್ತಿ ಸೌಭಾಗ್ಯ.",
+      en: "Relief from debt traps, financial unblocking, and restoration of stable asset cash-flow.",
+      hi: "ऋण मुक्ति, आर्थिक बाधा निवारण एवं संपत्ति लाभ।",
+      te: "రుణ విముక్తి, ఆర్థిక సమస్యల నివారణ మరియు సంపద వృద్ధి.",
+      ta: "கடன் சுமை குறைந்து பொருளாதார முன்னேற்றம் உண்டாகும்."
+    },
+    bestTimeToRecite: { kn: "ಮಂಗಳವಾರ ಬೆಳಗ್ಗೆ ಅಥವಾ ಪ್ರದೋಷ ಕಾಲದಲ್ಲಿ", en: "Tuesday morning or Pradosha twilight", hi: "मंगलवार प्रातः अथवा प्रदोष काल", te: "మంగళవారం ఉదయం లేదా ప్రదోష వేళ", ta: "செவ்வாய் காலை அல்லது பிரதோஷ காலம்" },
+    facingDirection: { kn: "ದಕ್ಷಿಣ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕು", en: "South or East", hi: "दक्षिण अथवा पूर्व", te: "దక్షిణం లేదా తూర్పు", ta: "தெற்கு அல்லது கிழக்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ಅಥವಾ ೭ ಬಾರಿ", en: "1 or 7 Times Daily", hi: "१ अथवा ७ बार", te: "1 లేదా 7 సార్లు", ta: "1 அல்லது 7 முறை" }
   }
 ];
 
@@ -1956,6 +2111,28 @@ export function generateKundliRemedyReport(
   kundli: KundliOutput,
   input: KundliInput
 ): KundliRemedyDiagnosis {
+  const birthYmd = input.birthDate || "1993-05-31";
+  const birthHm = input.birthTime || "09:25";
+  const lat = input.latitude ?? 14.5479;
+  const lng = input.longitude ?? 74.3188;
+  const ageNow = ageDecimalYearsAt(birthYmd, birthHm, lat, lng, new Date());
+  const devoteeAge = Math.floor(ageNow);
+
+  // 1. Synthesize Panchanga & Holistic Current Life Diagnosis
+  const synthesis = generatePanchangaAngaSynthesis(kundli, {
+    birthDate: birthYmd,
+    birthTime: birthHm,
+    latitude: lat,
+    longitude: lng,
+    devoteeName: input.name || "Devotee",
+    gender: input.gender,
+    devoteeAge,
+    lang: "kn"
+  });
+  const currentDiag = synthesis.currentDiagnosis;
+  const cls = currentDiag.currentLifeSituation;
+  const dashaTiming = currentDiag.dashaTiming;
+
   const planets = kundli.planets;
   const mars = planets.find(p => p.name === PlanetName.Mars);
   const moon = planets.find(p => p.name === PlanetName.Moon);
@@ -1969,30 +2146,50 @@ export function generateKundliRemedyReport(
 
   // Ascendant / Lagna identification
   const lagnaRashiName = kundli.lagnaRashi?.english || "Aries";
+  const lagnaRashiIndex = kundli.lagnaRashi?.index ?? 0;
   const moonRashiName = moon?.rashi.english || "Aries";
   const moonNakName = moon?.nakshatra.english || "Ashwini";
   const moonDegree = moon?.degree ?? 0;
   const sunDegree = sun?.degree ?? 0;
 
-  // 1. Evaluate Anger / Pitta / Mars Affliction
+  // 2. Parashari Mars & Temperament Affliction Evaluation
   const marsHouse = mars?.house || 1;
-  const isMarsAfflicted = [1, 2, 4, 7, 8, 12].includes(marsHouse) || 
-    planets.some(p => (p.name === PlanetName.Sun || p.name === PlanetName.Rahu || p.name === PlanetName.Saturn) && p.house === marsHouse) ||
-    mars?.rashi.english === "Cancer" || mars?.isDebilitated;
+  const hasGuruAspectOnMars = Boolean(
+    jupiter && mars && [1, 5, 7, 9].includes(((mars.house - jupiter.house + 12) % 12) + 1)
+  );
 
-  const isMoonAfflicted = moon?.rashi.english === "Scorpio" || moon?.isDebilitated ||
-    planets.some(p => (p.name === PlanetName.Rahu || p.name === PlanetName.Ketu || p.name === PlanetName.Saturn) && p.house === (moon?.house || 0)) ||
-    [6, 8, 12].includes(moon?.house || 1);
+  // Mars in 1st house in fiery sign without Jupiter aspect triggers acute Tanu Bhava Pitta/Anger (e.g. mockKundliMarsAfflicted)
+  const isMarsInLagnaFire = Boolean(
+    mars && mars.house === 1 && ["Aries", "Leo", "Sagittarius"].includes(lagnaRashiName) && !hasGuruAspectOnMars
+  );
 
-  const isSaturnAfflicted = [6, 8, 12].includes(saturn?.house || 1) || saturn?.rashi.english === "Aries" || saturn?.isDebilitated;
-  const isRahuKetuStrong = (rahu?.house === 1 || rahu?.house === 7 || rahu?.house === 8);
-  const isJupiterAfflicted = jupiter?.rashi.english === "Capricorn" || jupiter?.isDebilitated || [6, 8, 12].includes(jupiter?.house || 1);
+  const isMarsAfflicted = isMarsInLagnaFire || Boolean(
+    (marsHouse === 1 || marsHouse === 7 || marsHouse === 8) &&
+    (mars?.rashi.english === "Cancer" || mars?.isDebilitated || planets.some(p => (p.name === PlanetName.Sun || p.name === PlanetName.Rahu) && p.house === marsHouse && !hasGuruAspectOnMars))
+  );
 
-  // Compute Psychological Scores
-  let krodhaLevel = 45;
-  if (isMarsAfflicted) krodhaLevel += 35;
-  if (["Aries", "Leo", "Scorpio", "Sagittarius"].includes(lagnaRashiName)) krodhaLevel += 10;
-  if (["Aries", "Leo", "Scorpio"].includes(moonRashiName)) krodhaLevel += 10;
+  const isMoonAfflicted = Boolean(
+    moon && (moon.rashi.english === "Scorpio" || moon.isDebilitated ||
+    planets.some(p => (p.name === PlanetName.Rahu || p.name === PlanetName.Ketu || p.name === PlanetName.Saturn) && p.house === moon.house) ||
+    [6, 8, 12].includes(moon.house))
+  );
+
+  const isSaturnAfflicted = Boolean(
+    saturn && ([6, 8, 12].includes(saturn.house) || saturn.rashi.english === "Aries" || saturn.isDebilitated)
+  );
+  const isRahuKetuStrong = Boolean(rahu && (rahu.house === 1 || rahu.house === 7 || rahu.house === 8));
+  const isJupiterAfflicted = Boolean(jupiter && (jupiter.rashi.english === "Capricorn" || jupiter.isDebilitated || [6, 8, 12].includes(jupiter.house)));
+
+  // Compute Psychological Scores (calibrated to ensure calm states for non-afflicted statesmen/creators)
+  let krodhaLevel = 35;
+  if (isMarsInLagnaFire) {
+    krodhaLevel = 80;
+  } else if (isMarsAfflicted) {
+    krodhaLevel += 25;
+  }
+  if (["Aries", "Leo", "Scorpio"].includes(moonRashiName) && !hasGuruAspectOnMars) {
+    krodhaLevel += 5;
+  }
   krodhaLevel = Math.min(95, Math.max(25, krodhaLevel));
 
   let manasStability = 80;
@@ -2006,27 +2203,68 @@ export function generateKundliRemedyReport(
   vitalityScore = Math.min(95, Math.max(35, vitalityScore));
 
   let patienceIndex = 80;
-  if (isMarsAfflicted) patienceIndex -= 30;
-  if (isSaturnAfflicted) patienceIndex -= 15;
+  if (krodhaLevel >= 70) patienceIndex -= 35;
+  else if (isSaturnAfflicted) patienceIndex -= 15;
   patienceIndex = Math.min(95, Math.max(25, patienceIndex));
 
-  // Determine Primary Struggle Category
-  let struggleCategory: "anger_temper" | "mental_anxiety" | "career_obstacles" | "relationship_friction" | "health_vitality" | "general_alignment" = "general_alignment";
-  let primaryStruggleTitle: Record<string, string>;
-  let primaryStruggleDesc: Record<string, string>;
+  // 3. Determine Primary Struggle Category (Harmonized with authentic Parashari Life Reality)
+  const clsCat = cls?.category;
+  let struggleCategory: KundliRemedyDiagnosis["primaryStruggle"]["category"] = "general_alignment";
   let intensity: "High" | "Moderate" | "Balanced" = "Moderate";
   let intensityLabel: Record<string, string>;
+  let primaryStruggleTitle: Record<string, string>;
+  let primaryStruggleDesc: Record<string, string>;
 
-  if (krodhaLevel >= 70) {
+  if (isMarsInLagnaFire) {
     struggleCategory = "anger_temper";
     intensity = "High";
-    intensityLabel = {
-      kn: "ಅತ್ಯಂತ ಮುಖ್ಯ (ತೀವ್ರ ಆದ್ಯತೆ)",
-      en: "High Priority Action",
-      hi: "उच्च प्राथमिकता",
-      te: "అత్యధిక ప్రాధాన్యత",
-      ta: "முக்கிய தீர்வு"
-    };
+  } else if (clsCat === "student_academic_stress") {
+    struggleCategory = "student_academic";
+    intensity = "High";
+  } else if (clsCat === "marriage_delay") {
+    struggleCategory = "marriage_delay";
+    intensity = "High";
+  } else if (clsCat === "debt_financial_crisis") {
+    struggleCategory = "debt_financial";
+    intensity = "High";
+  } else if (clsCat === "legal_custody_confinement") {
+    struggleCategory = "legal_confinement";
+    intensity = "High";
+  } else if (clsCat === "health_vitality_strain" || clsCat === "health_autoimmune_recovery") {
+    struggleCategory = "health_vitality";
+    intensity = "High";
+  } else if (clsCat === "marital_discord" || clsCat === "partner_distrust_betrayal" || clsCat === "post_divorce_rebuilding") {
+    struggleCategory = "relationship_friction";
+    intensity = "Moderate";
+  } else if (clsCat === "career_politics_layoff" || clsCat === "property_share_dispute") {
+    struggleCategory = "career_obstacles";
+    intensity = "Moderate";
+  } else if (clsCat === "leadership_expansion_scaling") {
+    struggleCategory = "leadership_expansion";
+    intensity = "Balanced";
+  } else if (clsCat === "creative_media_stardom") {
+    struggleCategory = "creative_stardom";
+    intensity = "Balanced";
+  } else if (clsCat === "elite_sports_athletic_triumph") {
+    struggleCategory = "elite_sports";
+    intensity = "Balanced";
+  } else if (krodhaLevel >= 70) {
+    struggleCategory = "anger_temper";
+    intensity = "High";
+  } else if (manasStability <= 55) {
+    struggleCategory = "mental_anxiety";
+    intensity = "High";
+  } else if (isSaturnAfflicted) {
+    struggleCategory = "career_obstacles";
+    intensity = "Moderate";
+  } else {
+    struggleCategory = "general_alignment";
+    intensity = "Balanced";
+  }
+
+  // 13 Rich Dynamic Category Descriptions
+  if (struggleCategory === "anger_temper") {
+    intensityLabel = { kn: "ಅತ್ಯಂತ ಮುಖ್ಯ (ತೀವ್ರ ಆದ್ಯತೆ)", en: "High Priority Action", hi: "उच्च प्राथमिकता", te: "అత్యధిక ప్రాధాన్యత", ta: "முக்கிய தீர்வு" };
     primaryStruggleTitle = {
       kn: "ತೀವ್ರ ಪಿತ್ತ ಪ್ರಕೋಪ, ಆವೇಶ & ಕೋಪ ನಿಯಂತ್ರಣ ಸವಾಲು",
       en: "Pitta Aggravation, Impatience & Anger Spikes",
@@ -2041,16 +2279,152 @@ export function generateKundliRemedyReport(
       te: `కుండలిలో కుజ మరియు సూర్య గ్రహాల తీవ్ర ప్రభావం వలన త్వరగా కోపం మరియు అసహనం వచ్చే అవకాశం ఉంది.`,
       ta: `ஜாதகத்தில் செவ்வாய் மற்றும் சூரியனின் தாக்கத்தினால் திடீர் கோபமும் பொறுமையின்மையும் உண்டாகலாம்.`
     };
-  } else if (manasStability <= 55) {
-    struggleCategory = "mental_anxiety";
-    intensity = "High";
-    intensityLabel = {
-      kn: "ಅತ್ಯಂತ ಮುಖ್ಯ (ತೀವ್ರ ಆದ್ಯತೆ)",
-      en: "High Priority Action",
-      hi: "उच्च प्राथमिकता",
-      te: "అత్యధిక ప్రాధాన్యత",
-      ta: "முக்கிய தீர்வு"
+  } else if (struggleCategory === "student_academic") {
+    intensityLabel = { kn: "ಶೈಕ್ಷಣಿಕ ಶ್ರದ್ಧೆ (ಮುಖ್ಯ ಆದ್ಯತೆ)", en: "Academic Focus Priority", hi: "शैक्षणिक एकाग्रता प्राथमिकता", te: "విద్యా ఏకాగ్రత ప్రాధాన్యత", ta: "கல்வி கவனம் முதன்மை" };
+    primaryStruggleTitle = {
+      kn: "ವಿದ್ಯಾಭ್ಯಾಸದ ಒತ್ತಡ, ಏಕಾಗ್ರತೆಯ ಕೊರತೆ & ಪರೀಕ್ಷಾ ಆತಂಕ",
+      en: "Academic Pressure, Concentration Distraction & Exam Anxiety",
+      hi: "शैक्षणिक दबाव, एकाग्रता की कमी एवं परीक्षा चिंता",
+      te: "విద్యాభ్యాస ఒత్తిడి, ఏకాగ్రత లేమి & పరీక్షల ఆందోళన",
+      ta: "கல்வி அழுத்தம், கவனச்சிதறல் & தேர்வு பயம்"
     };
+    primaryStruggleDesc = {
+      kn: `೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ ಮತ್ತು ಬುದ್ಧಿಕಾರಕ ಬುಧನ ಮೇಲೆ ರಾಹು ಅಥವಾ ಶನಿಯ ಪ್ರಭಾವದಿಂದ ಅಧ್ಯಯನದಲ್ಲಿ ಏಕಾಗ್ರತೆ ಭಂಗ, ಮರೆವು ಹಾಗೂ ಪರೀಕ್ಷಾ ಸಮಯದಲ್ಲಿ ಅನಗತ್ಯ ಆತಂಕ ಉಂಟಾಗಬಹುದು. ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಮತ್ತು ಸರಸ್ವತಿ ಆರಾಧನೆ ಅಗತ್ಯ.`,
+      en: `Affliction to the 4th/5th house of intellect and Mercury creates study restlessness, procrastination, and pre-exam stress. Pacifying intellect channels restores sharp memory retention.`,
+      hi: `विद्या भाव एवं बुध पर पाप प्रभाव से पढ़ाई में मन भटकना और परीक्षा पूर्व तनाव उत्पन्न हो सकता है।`,
+      te: `4వ విద్యా స్థానంపై పాప గ్రహాల ప్రభావం వలన చదువులో ఏకాగ్రత లోపించవచ్చు.`,
+      ta: `4ம் கல்வி ஸ்தானத்தில் அசுப கிரக தாக்கத்தால் படிப்பில் கவனச்சிதறல் உண்டாகலாம்.`
+    };
+  } else if (struggleCategory === "marriage_delay") {
+    intensityLabel = { kn: "ವಿವಾಹ ಸಾಫಲ್ಯ (ತೀವ್ರ ಆದ್ಯತೆ)", en: "Matrimonial Fulfillment Priority", hi: "विवाह बाधा निवारण", te: "వివాహ ప్రాధాన్యత", ta: "திருமண தடை நிவர்த்தி" };
+    primaryStruggleTitle = {
+      kn: "ವಿವಾಹ ವಿಳಂಬ, ಕಂಕಣ ಬಲ ತಡೆ & ಸೂಕ್ತ ಸಂಬಂಧದ ನಿರೀಕ್ಷೆ",
+      en: "Delayed Marriage, Matrimonial Obstacles & Delay in Finding Auspicious Match",
+      hi: "विवाह में अप्रत्याशित विलंब एवं कंकण बल बाधा",
+      te: "వివాహ ఆలస్యం & కంకణ బలం ఆటంకం",
+      ta: "திருமண தாமதம் & வரன் அமைவதில் தடை"
+    };
+    primaryStruggleDesc = {
+      kn: `೭ನೇ ಕಳತ್ರ ಸ್ಥಾನ, ಶುಕ್ರ ಅಥವಾ ಗುರು ಗ್ರಹಗಳ ಮೇಲಿನ ಶನಿ-ರಾಹು ಪ್ರಭಾವದಿಂದ ಮಾತುಕತೆಗಳು ಕೊನೆ ಕ್ಷಣದಲ್ಲಿ ಮುರಿದುಬೀಳುವುದು ಅಥವಾ ಸೂಕ್ತ ಹೊಂದಾಣಿಕೆಯ ಸಂಬಂಧ ದೊರೆಯದೆ ವಿಳಂಬವಾಗುತ್ತಿದೆ. ಉಮಾ-ಮಹೇಶ್ವರ ಹಾಗೂ ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಶಾಂತಿ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`,
+      en: `Karmic restrictions on the 7th house and marriage karakas (Venus/Jupiter) create unexpected delays, near-miss matchmaking discussions, and matrimonial hurdles requiring consecrated Parashari remedies.`,
+      hi: `सप्तम भाव एवं शुक्र-गुरु पर प्रतिकूल प्रभाव से विवाह में अनावश्यक विलंब हो रहा है।`,
+      te: `7వ భావంపై శని-రాహు ప్రభావం వలన వివాహ సంబంధాలు కుదరడంలో ఆలస్యం జరుగుతోంది.`,
+      ta: `7ம் இடத்தில் உள்ள தோஷங்களால் திருமண பேச்சுவார்த்தைகளில் தாமதம் ஏற்படுகிறது.`
+    };
+  } else if (struggleCategory === "debt_financial") {
+    intensityLabel = { kn: "ಆರ್ಥಿಕ ಸಂಕಷ್ಟ ಮುಕ್ತಿ (ಮುಖ್ಯ ಆದ್ಯತೆ)", en: "Financial Liberation Priority", hi: "आर्थिक संकट निवारण", te: "ఆర్థిక విముక్తి ప్రాధాన్యత", ta: "பொருளாதார தடை நீக்கம்" };
+    primaryStruggleTitle = {
+      kn: "ಆರ್ಥಿಕ ಅಡಚಣೆ, ಸಾಲದ ಹೊರೆ & ಹಣಕಾಸಿನ ಹರಿವಿನಲ್ಲಿ ತಡೆ",
+      en: "Financial Blockages, Debt Burden & Liquidity Bottlenecks",
+      hi: "आर्थिक रुकावट, ऋण भार एवं धन प्रवाह में बाधा",
+      te: "ఆర్థిక ఆటంకాలు, రుణ భారం & ధన ప్రవాహ నిరోధం",
+      ta: "பொருளாதார சிக்கல், கடன் சுமை & பணத்தடை"
+    };
+    primaryStruggleDesc = {
+      kn: `೨ನೇ ಧನ ಸ್ಥಾನ ಹಾಗೂ ೧೧ನೇ ಲಾಭ ಸ್ಥಾನದ ಮೇಲೆ ೬ನೇ ರೋಗ-ಋಣ-ಶತ್ರು ಅಧಿಪತಿಯ ಪ್ರಭಾವದಿಂದ ಸಾಲದ ಮರುಪಾವತಿಯಲ್ಲಿ ತೊಂದರೆ ಮತ್ತು ಅನಿರೀಕ್ಷಿತ ಖರ್ಚುಗಳು ಎದುರಾಗುತ್ತಿವೆ. ಋಣವಿಮೋಚನ ಅಂಗಾರಕ ಜಪ ಮತ್ತು ಕನಕಧಾರಾ ಸಂಕಲ್ಪ ಅತ್ಯಗತ್ಯ.`,
+      en: `Friction between 2nd house of liquid wealth and 6th house of debts triggers financial tight-spots and delayed inflows. Propitiating Runa Vimochana and Kanakadhara restores stable abundance.`,
+      hi: `धन एवं लाभ भाव पर षष्ठेश के प्रभाव से कर्ज मुक्ति में कठिनाई और अनावश्यक व्यय हो रहे हैं।`,
+      te: `ధన స్థానంపై 6వ అధిపతి ప్రభావం వలన రుణ సమస్యలు మరియు ఆర్థిక ఇబ్బందులు కలుగుతున్నాయి.`,
+      ta: `தன ஸ்தானத்தில் 6ம் அதிபதியின் தாக்கத்தால் கடன் தொல்லையும் பொருளாதார நெருக்கடியும் உண்டாகலாம்.`
+    };
+  } else if (struggleCategory === "relationship_friction") {
+    intensityLabel = { kn: "ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ (ಮಧ್ಯಮ ಆದ್ಯತೆ)", en: "Marital Harmony Priority", hi: "वैवाहिक सामंजस्य", te: "దాంపత్య సామరస్యం", ta: "குடும்ப ஒற்றுமை" };
+    primaryStruggleTitle = {
+      kn: "ದಾಂಪತ್ಯದಲ್ಲಿ ಹೊಂದಾಣಿಕೆ ಕೊರತೆ, ಮನಸ್ತಾಪ & ಕೌಟುಂಬಿಕ ಘರ್ಷಣೆ",
+      en: "Marital Friction, Relationship Misunderstandings & Communication Blocks",
+      hi: "दांपत्य जीवन में कलह, मतभेद एवं पारिवारिक तनाव",
+      te: "దాంపత్యంలో అవగాహన లోపం & మనస్పర్ధలు",
+      ta: "தம்பதியர் கருத்து வேறுபாடு & குடும்ப அமைதியின்மை"
+    };
+    primaryStruggleDesc = {
+      kn: `೭ನೇ ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಕೇತು ಅಥವಾ ರಾಹುವಿನ ದೃಷ್ಟಿಯಿಂದಾಗಿ ಸಂಗಾತಿಗಳ ನಡುವೆ ಕ್ಷುಲ್ಲಕ ಕಾರಣಗಳಿಗೂ ವಾದ-ವಿವಾದ ಮತ್ತು ಅಸಮಾಧಾನ ತಲೆದೋರುತ್ತಿದೆ. ಪರಸ್ಪರ ಗೌರವ ಹಾಗೂ ಉಮಾ-ಮಹೇಶ್ವರ ಶಾಂತಿಯಿಂದ ನೆಮ್ಮದಿ ಸಾಧ್ಯ.`,
+      en: `Malefic aspect on the 7th house creates sudden emotional reactivity and miscommunications between partners. Harmonizing Venus and performing Uma-Maheshwara seva restores tenderness.`,
+      hi: `सप्तम भाव पर पाप दृष्टि के कारण दांपत्य जीवन में छोटी-छोटी बातों पर तनाव और असंतोष उत्पन्न होता है।`,
+      te: `7వ స్థానంలో గ్రహాల ప్రభావం వలన భార్యాభర్తల మధ్య విభేదాలు వచ్చే అవకాశం ఉంది.`,
+      ta: `7ம் பாவத்தில் தோஷம் இருப்பதால் தம்பதியரிடையே வீண் வாக்குவாதங்கள் வரலாம்.`
+    };
+  } else if (struggleCategory === "health_vitality") {
+    intensityLabel = { kn: "ಆರೋಗ್ಯ ರಕ್ಷಣೆ (ತೀವ್ರ ಆದ್ಯತೆ)", en: "Health & Vitality Priority", hi: "स्वास्थ्य संरक्षण", te: "ఆరోగ్య రక్షణ", ta: "ஆரோக்கிய பாதுகாப்பு" };
+    primaryStruggleTitle = {
+      kn: "ಆರೋಗ್ಯ ಕ್ಷೀಣತೆ, ದೈಹಿಕ ಆಯಾಸ & ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ಕೊರತೆ",
+      en: "Health & Vitality Strain, Chronic Fatigue & Immune Imbalance",
+      hi: "स्वास्थ्य दुर्बलता, शारीरिक थकान एवं रोग प्रतिरोधक क्षमता की कमी",
+      te: "ఆరోగ్య క్షీణత, శరీర అలసట & వ్యాధి నిరోధక శక్తి లోపం",
+      ta: "உடல் சோர்வு, நோய் எதிர்ப்பு சக்தி குறைவு & ஆரோக்கிய குறைபாடு"
+    };
+    primaryStruggleDesc = {
+      kn: `ಲಗ್ನಾಧಿಪತಿ ಅಥವಾ ರವಿ ಗ್ರಹವು ದುಸ್ಥಾನದಲ್ಲಿದ್ದು (೬, ೮, ೧೨), ಶನಿಯ ದೃಷ್ಟಿ ಇರುವುದರಿಂದ ದೈಹಿಕ ಶಕ್ತಿ ಕುಂಠಿತವಾಗುವುದು, ಜೀರ್ಣಾಂಗ ತೊಂದರೆ ಮತ್ತು ಸುಸ್ತು ಕಾಡುತ್ತಿದೆ. ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ ಮತ್ತು ಸೂರ್ಯ ಆರಾಧನೆ ರಕ್ಷಣೆ ನೀಡಲಿದೆ.`,
+      en: `Debilitation or Dusthana placement of Ascendant lord/Sun drains physical vitality and sympathetic recovery. Mahamrityunjaya and Aditya Hrudaya energize cellular health.`,
+      hi: `लग्नेश अथवा सूर्य के दुर्बल होने से शारीरिक ऊर्जा में कमी और रोग प्रतिरोधक क्षमता प्रभावित होती है।`,
+      te: `లగ్నాధిపతి లేదా సూర్యుడు బలహీనపడటం వలన శారీరక నిస్సత్తువ కలగవచ్చు.`,
+      ta: `லக்னாதிபதி அல்லது சூரியன் பலவீனமாக இருப்பதால் உடல் சோர்வும் ஆரோக்கிய குறைவும் உண்டாகலாம்.`
+    };
+  } else if (struggleCategory === "legal_confinement") {
+    intensityLabel = { kn: "ನ್ಯಾಯ ರಕ್ಷಣೆ (ತೀವ್ರ ಆದ್ಯತೆ)", en: "Legal Protection Priority", hi: "विधिक संकट निवारण", te: "న్యాయ సంరక్షణ", ta: "சட்ட விவகார பாதுகாப்பு" };
+    primaryStruggleTitle = {
+      kn: "ಕಾನೂನು ತೊಡಕು, ನ್ಯಾಯಾಂಗ ವ್ಯಾಜ್ಯ & ಕಂಟಕಗಳಿಂದ ಮುಕ್ತಿ",
+      en: "Legal Complications, Litigation Delays & Need for Protective Armor",
+      hi: "कानूनी अड़चनें, मुकदमेबाजी एवं शत्रु बाधा",
+      te: "చట్టపరమైన చిక్కులు & శత్రు బాధ నివారణ",
+      ta: "சட்ட சிக்கல்கள், வழக்கு தாமதம் & எதிர்ப்புகள்"
+    };
+    primaryStruggleDesc = {
+      kn: `೬ನೇ ಶತ್ರು ಸ್ಥಾನ ಹಾಗೂ ೧೨ನೇ ಬಂಧನ ಸ್ಥಾನಗಳ ಅಧಿಪತಿಗಳ ಪ್ರತಿಕೂಲ ಸಂಚಾರದಿಂದ ಕೋರ್ಟ್-ಕಚೇರಿ ವ್ಯಾಜ್ಯ ಅಥವಾ ಅನಗತ್ಯ ವಂಚನೆಗಳು ಎದುರಾಗಬಹುದು. ಸುದರ್ಶನ ನರಸಿಂಹ ಮತ್ತು ಬಗಲಾಮುಖೀ ರಕ್ಷಾ ಕವಚ ಅಗತ್ಯ.`,
+      en: `Adverse planetary configurations on the 6th/12th axis expose native to bureaucratic friction, audit disputes, or litigation stress. Sudarshana Narasimha provides impregnable protection.`,
+      hi: `षष्ठ एवं द्वादश भाव के प्रतिकूल प्रभाव से कानूनी उलझनों और विरोधी पक्ष से सावधानी अपेक्षित है।`,
+      te: `6 మరియు 12వ స్థానాల ప్రభావం వలన కోర్టు వివాదాలు లేదా చట్టపరమైన సమస్యలు రావచ్చు.`,
+      ta: `6 மற்றும் 12ம் இடங்களின் தாக்கத்தால் வழக்கு விவகாரங்களில் விழிப்புணர்வு தேவை.`
+    };
+  } else if (struggleCategory === "leadership_expansion") {
+    intensityLabel = { kn: "ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ (ಉನ್ನತ ಯೋಗ)", en: "High Executive Leadership", hi: "उच्च नेतृत्व संवर्धन", te: "ఉన్నత నాయకత్వ యోగం", ta: "தலைமைத்துவ மேன்மை" };
+    primaryStruggleTitle = {
+      kn: "ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ, ಉದ್ಯಮ ವಿಸ್ತರಣೆ & ಜಾಗತಿಕ ನಿರ್ಧಾರಗಳ ಹೊರೆ",
+      en: "Corporate Leadership, Enterprise Scaling & High-Stakes Governance",
+      hi: "संस्थागत नेतृत्व, व्यावसायिक विस्तार एवं उच्च निर्णयों का दायित्व",
+      te: "సంస్థాగత నాయకత్వం, వ్యాపార విస్తరణ & ఉన్నత నిర్ణయాలు",
+      ta: "நிறுவன தலைமைத்துவம், தொழில் விரிவாக்கம் & நிர்வாக திறன்"
+    };
+    primaryStruggleDesc = {
+      kn: `೧೦ನೇ ರಾಜ್ಯ-ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ಬಲಿಷ್ಠ ರಾಜಯೋಗವಿದ್ದು, ಉನ್ನತ ಅಧಿಕಾರ, ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ ಹಾಗೂ ಜಾಗತಿಕ ಜವಾಬ್ದಾರಿಗಳು ಹೆಗಲೇರಿವೆ. ಅಪಾರ ಒತ್ತಡದ ನಡುವೆಯೂ ಶಾಂತಚಿತ್ತದಿಂದ ಧರ್ಮ ಮಾರ್ಗದ ನಿರ್ಧಾರ ಕೈಗೊಳ್ಳಲು ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನ ಕೃಪೆ ಅಗತ್ಯ.`,
+      en: `Powerful 10th house Raja Yoga elevates native to massive corporate governance, multi-million enterprise scale, and global responsibility. Grounding spiritual practices maintain supreme clarity under intense pressure.`,
+      hi: `दशम भाव में प्रबल राजयोग से उच्च प्रशासनिक पद एवं व्यापार विस्तार की स्थिति है; शांत चित्त हेतु साधना लाभप्रद है।`,
+      te: `10వ స్థానంలో బలమైన రాజయోగం వలన ఉన్నత పదవులు మరియు వ్యాపార విస్తరణ లభిస్తాయి.`,
+      ta: `10ம் இடத்தில் உள்ள ராஜயோகத்தால் உயர்ந்த பொறுப்புகளும் பெரும் புகழும் உண்டாகும்.`
+    };
+  } else if (struggleCategory === "creative_stardom") {
+    intensityLabel = { kn: "ಕಲಾ ಸೃಷ್ಟಿ ವೈಭವ (ವಿಶೇಷ ಯೋಗ)", en: "Creative Media Radiance", hi: "सृजनात्मक कला वैभव", te: "సృజనాత్మక కళా వైభవం", ta: "கலை சிருஷ்டி மேன்மை" };
+    primaryStruggleTitle = {
+      kn: "ಸೃಜನಶೀಲ ಸೃಷ್ಟಿ, ಜಾಗತಿಕ ಅಭಿಮಾನಿಗಳ ಪ್ರೀತಿ & ಸಾರ್ವಜನಿಕ ಕೀರ್ತಿ",
+      en: "Creative Stardom, Cinematic/Media Resonance & Public Eminence",
+      hi: "रचनात्मक कला, जनप्रियता एवं वैश्विक ख्याति",
+      te: "సృజనాత్మక కళ, అంతర్జాతీయ ఖ్యాతి & అభిమానుల ఆదరణ",
+      ta: "படைப்பாற்றல் கலைத்திறன் & உலகளாவிய ரசிகர் பிரியம்"
+    };
+    primaryStruggleDesc = {
+      kn: `೫ನೇ ಕಲಾ-ಪ್ರತಿಭಾ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರ-ಬುಧರ ದಿವ್ಯ ಯೋಗದಿಂದ ಜಾಗತಿಕ ಮನರಂಜನೆ, ಸಿನಿಮಾ, ಸಂಗೀತ ಅಥವಾ ಡಿಜಿಟಲ್ ಮಾಧ್ಯಮದಲ್ಲಿ ಲಕ್ಷಾಂತರ ಜನರ ಪ್ರೀತಿ ಪ್ರಾಪ್ತವಾಗಿದೆ. ಮಾನಸಿಕ ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ ಮತ್ತು ನಿರಂತರ ನವೀನ ಸೃಷ್ಟಿಗೆ ದೈವಿಕ ಬಲ ಬೇಕು.`,
+      en: `Brilliant 5th house artistic genius and Venusian charisma command vast public audiences across media, cinema, and digital arts. Sacred sadhana shields against public evil eye and sustains artistic flow.`,
+      hi: `पंचम कला भाव एवं शुक्र के प्रभाव से रचनात्मक क्षेत्र एवं मीडिया में अपार जनसमर्थन और प्रसिद्धि प्राप्त है।`,
+      te: `5వ కళా స్థానం వలన మీడియా, కళా రంగాలలో విశేష ప్రజాదరణ మరియు కీర్తి లభిస్తుంది.`,
+      ta: `5ம் கலை ஸ்தானத்தின் பலத்தால் ஊடகம் மற்றும் கலைத்துறையில் பெரும் புகழும் ரசிகர் ஆதரவும் கிடைக்கிறது.`
+    };
+  } else if (struggleCategory === "elite_sports") {
+    intensityLabel = { kn: "ಕ್ರೀಡಾ ಪರಾಕ್ರಮ (ವಿಜಯ ಯೋಗ)", en: "Athletic Championship Vigor", hi: "खेल पराक्रम एवं विजय", te: "క్రీడా పరాక్రమం", ta: "விளையாட்டு வீரம் & வெற்றி" };
+    primaryStruggleTitle = {
+      kn: "ಕ್ರೀಡಾ ಪರಾಕ್ರಮ, ದೈಹಿಕ ಶಕ್ತಿ & ಜಾಗತಿಕ ವಿಜಯ ಸಾಧನೆ",
+      en: "Elite Athletic Prowess, Physical Stamina & Champion's Victory",
+      hi: "उत्कृष्ट खेल कौशल, शारीरिक सहनशक्ति एवं विश्व विजय",
+      te: "ఉత్కృష్ట క్రీడా నైపుణ్యం, శరీర బలం & అంతర్జాతీయ విజయం",
+      ta: "விளையாட்டு சாகசம், உடல் வலிமை & உலகளாவிய வெற்றி சாதனை"
+    };
+    primaryStruggleDesc = {
+      kn: `೩ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ ಮತ್ತು ೬ನೇ ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಜಯ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ರವಿ ಗ್ರಹಗಳ ತೇಜಸ್ಸಿದ್ದು, ಮೈದಾನದಲ್ಲಿ ಅಸಾಧಾರಣ ಶಕ್ತಿ ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯ ಒಲಿಯುತ್ತಿದೆ. ಗಾಯಗಳಿಂದ ರಕ್ಷಣೆ ಮತ್ತು ಮಾನಸಿಕ ಶಾಂತಿಗೆ ಸುಬ್ರಹ್ಮಣ್ಯ ಆರಾಧನೆ ಶ್ರೇಷ್ಠ.`,
+      en: `High-octane Mars-Sun vitality in 3rd/6th houses fuels elite athletic stamina, tournament breakthroughs, and world-class sports achievements. Subrahmanya protects ligaments and builds championship mental grit.`,
+      hi: `तृतीय एवं षष्ठ भाव में मंगल-सूर्य के बल से खेलकूद एवं शारीरिक पराक्रम में असाधारण सफलता प्राप्त है।`,
+      te: `3 మరియు 6వ స్థానాలలో కుజ-సూర్య బలంతో క్రీడారంగంలో ఉన్నత విజయాలు సాధిస్తారు.`,
+      ta: `3 மற்றும் 6ம் இடங்களில் செவ்வாய்-சூரியன் பலத்தால் விளையாட்டில் மகத்தான வெற்றிகள் குவியும்.`
+    };
+  } else if (struggleCategory === "mental_anxiety") {
+    intensityLabel = { kn: "ಅತ್ಯಂತ ಮುಖ್ಯ (ತೀವ್ರ ಆದ್ಯತೆ)", en: "High Priority Action", hi: "उच्च प्राथमिकता", te: "అత్యధిక ప్రాధాన్యత", ta: "முக்கிய தீர்வு" };
     primaryStruggleTitle = {
       kn: "ಚಿತ್ತಚಾಂಚಲ್ಯ, ಅತಿ ಯೋಚನೆ & ಮಾನಸಿಕ ಆತಂಕ",
       en: "Mental Overthinking, Mood Turbulence & Anxiety",
@@ -2059,22 +2433,14 @@ export function generateKundliRemedyReport(
       ta: "மன அமைதியின்மை, அதிக சிந்தனை & குழப்பம்"
     };
     primaryStruggleDesc = {
-      kn: `ಚಂದ್ರ ಗ್ರಹದ ಸ್ಥಾನ ಹಾಗೂ ರಾಹು/ಕೇತು ಪ್ರಭಾವದಿಂದಾಗಿ ಸಣ್ಣಪುಟ್ಟ ವಿಷಯಗಳಿಗೂ ಅತಿಯಾಗಿ ಯೋಚಿಸುವುದು, ನಿದ್ರಾಭಂಗ ಹಾಗೂ ಮನಸ್ಸಿನಲ್ಲಿ ಅನಿಶ್ಚಿತತೆಯ ಭಯ ಕಾಡಬಹುದು.`,
-      en: `Affliction to the natal Moon triggers emotional vulnerability, nocturnal overthinking, and transient fears regarding future outcomes.`,
+      kn: `ಚಂದ್ರ ಗ್ರಹದ ಸ್ಥಾನ ಹಾಗೂ ರಾಹು/ಕೇತು ಪ್ರಭಾವದಿಂದಾಗಿ ಸಣ್ಣಪುಟ್ಟ ವಿಷಯಗಳಿಗೂ ಅತಿಯಾಗಿ ಯೋಚಿಸುವುದು, ನಿದ್ರಾಭಂಗ ಹಾಗೂ ಮನಸ್ಸಿನಲ್ಲಿ ಅನಿಶ್ಚಿತತೆಯ ಭಯ ಕಾಡಬಹುದು. ಸೋಮ ಮಂತ್ರ ಹಾಗೂ ಕ್ಷೀರಾಭಿಷೇಕ ಅಗತ್ಯ.`,
+      en: `Affliction to the natal Moon triggers emotional vulnerability, nocturnal overthinking, and transient fears regarding future outcomes. Chandra Shanti restores deep tranquil grounding.`,
       hi: `चन्द्रमा पर पाप ग्रहों के प्रभाव से अनावश्यक चिंता, अनिद्रा और चित्त में भय बना रहता है।`,
       te: `చంద్రుని స్థానం వలన అధిక ఆలోచనలు మరియు మానసిక ఆందోళన కలగవచ్చు.`,
       ta: `சந்திரனின் பலவீனத்தால் அதிக கவலையும் தூக்கமின்மையும் ஏற்படலாம்.`
     };
-  } else if (isSaturnAfflicted) {
-    struggleCategory = "career_obstacles";
-    intensity = "Moderate";
-    intensityLabel = {
-      kn: "ಮಧ್ಯಮ ಆದ್ಯತೆ",
-      en: "Moderate Priority",
-      hi: "मध्यम प्राथमिकता",
-      te: "మధ్యస్థ ప్రాధాన్యత",
-      ta: "மிதமான தீர்வு"
-    };
+  } else if (struggleCategory === "career_obstacles") {
+    intensityLabel = { kn: "ಮಧ್ಯಮ ಆದ್ಯತೆ", en: "Moderate Priority", hi: "मध्यम प्राथमिकता", te: "మధ్యస్థ ప్రాధాన్యత", ta: "மிதமான தீர்வு" };
     primaryStruggleTitle = {
       kn: "ಕಾರ್ಯ ವಿಳಂಬ, ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಫಲ ಸಿಗದಿರುವಿಕೆ & ಶನಿ ಬಾಧೆ",
       en: "Career Friction, Unwarranted Delays & Saturn Burden",
@@ -2083,27 +2449,19 @@ export function generateKundliRemedyReport(
       ta: "காரிய தாமதம் & சனி தாக்கம்"
     };
     primaryStruggleDesc = {
-      kn: `ಶನಿ ಮಹಾತ್ಮನ ಪ್ರಭಾವದಿಂದ ಪ್ರತಿ ಕಾರ್ಯದಲ್ಲೂ ಕೊನೆ ಕ್ಷಣದಲ್ಲಿ ವಿಳಂಬ, ಆರ್ಥಿಕ ತಡೆಗಳು ಹಾಗೂ ಅತಿಯಾದ ಜವಾಬ್ದಾರಿಯ ಹೊರೆ ಕಾಡುತ್ತದೆ.`,
+      kn: `ಶನಿ ಮಹಾತ್ಮನ ಪ್ರಭಾವದಿಂದ ಪ್ರತಿ ಕಾರ್ಯದಲ್ಲೂ ಕೊನೆ ಕ್ಷಣದಲ್ಲಿ ವಿಳಂಬ, ಆರ್ಥಿಕ ತಡೆಗಳು ಹಾಗೂ ಅತಿಯಾದ ಜವಾಬ್ದಾರಿಯ ಹೊರೆ ಕಾಡುತ್ತದೆ. ಹನುಮಾನ್ ಚಾಲೀಸಾ ಮತ್ತು ಶನಿ ಶಾಂತಿಯಿಂದ ಮುಕ್ತಿ.`,
       en: `Saturnian friction slows down momentum and delays fruiting of sincere hard work, demanding disciplined spiritual perseverance.`,
       hi: `शनि के प्रभाव से कार्यों में अंतिम समय पर अड़चनें और जिम्मेदारियों का अत्यधिक बोझ रहता है।`,
       te: `శని ప్రభావం వలన పనులలో ఆటంకాలు మరియు ఆలస్యం ఏర్పడవచ్చు.`,
       ta: `சனி பகவானின் தாக்கத்தால் காரியங்களில் தாமதமும் தடைகளும் ஏற்படலாம்.`
     };
   } else {
-    struggleCategory = "general_alignment";
-    intensity = "Balanced";
-    intensityLabel = {
-      kn: "ಸಾಮಾನ್ಯ ಸಮನ್ವಯ",
-      en: "General Balance",
-      hi: "सामान्य सामंजस्य",
-      te: "సాధారణ సమతుల్యత",
-      ta: "பொதுவான சமநிலை"
-    };
+    intensityLabel = { kn: "ಸಾಮಾನ್ಯ ಸಮನ್ವಯ", en: "General Balance", hi: "सामान्य सामंजस्य", te: "సాధారణ సమతుల్యత", ta: "பொதுவான சமநிலை" };
     primaryStruggleTitle = {
       kn: "ಸಾಮಾನ್ಯ ಗ್ರಹ ಸಮನ್ವಯ & ಆತ್ಮಶಕ್ತಿ ವರ್ಧನೆ",
       en: "General Planetary Harmonic Balance & Inner Vitality",
       hi: "सामान्य ग्रह सामंजस्य एवं आत्मबल संवर्धन",
-      te: "సాధారణ గ్రహ సమన్వయం & ఆత్మశక్తి వృద్ధి",
+      te: "సాధారణ గ్రహ సమన్వయం & ఆత్మశక్తి ವೃದ್ಧಿ",
       ta: "பொதுவான கிரக சமநிலை & ஆத்ம சக்தி"
     };
     primaryStruggleDesc = {
@@ -2114,6 +2472,100 @@ export function generateKundliRemedyReport(
       ta: `ஜாதகம் சமநிலையில் உள்ளது; தினசரி வழிபாட்டால் மேன்மை உண்டாகும்.`
     };
   }
+
+  // 4. Parashari Turnaround Point & Life Shift Timing Window (ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ)
+  const catalystByLagna: Record<number, { graha: PlanetName; kn: string; en: string }> = {
+    0: { graha: PlanetName.Jupiter, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಗುರು & ಪಂಚಮಾಧಿಪತಿ ರವಿ", en: "9th Lord Jupiter & 5th Lord Sun" },
+    1: { graha: PlanetName.Saturn, kn: "ಯೋಗಕಾರಕ ಶನಿ & ಧನಾಧಿಪತಿ ಬುಧ", en: "Yogakaraka Saturn & Wealth Lord Mercury" },
+    2: { graha: PlanetName.Mercury, kn: "ಲಗ್ನಾಧಿಪತಿ ಬುಧ & ಪಂಚಮಾಧಿಪತಿ ಶುಕ್ರ", en: "Ascendant Lord Mercury & 5th Lord Venus" },
+    3: { graha: PlanetName.Mars, kn: "ಯೋಗಕಾರಕ ಕುಜ & ಭಾಗ್ಯಾಧಿಪತಿ ಗುರು", en: "Yogakaraka Mars & 9th Lord Jupiter" },
+    4: { graha: PlanetName.Mars, kn: "ಯೋಗಕಾರಕ ಕುಜ & ಲಗ್ನಾಧಿಪತಿ ರವಿ", en: "Yogakaraka Mars & Ascendant Lord Sun" },
+    5: { graha: PlanetName.Venus, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಬುಧ", en: "9th Lord Venus & Ascendant Lord Mercury" },
+    6: { graha: PlanetName.Saturn, kn: "ಯೋಗಕಾರಕ ಶನಿ & ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರ", en: "Yogakaraka Saturn & Ascendant Lord Venus" },
+    7: { graha: PlanetName.Jupiter, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಚಂದ್ರ & ಪಂಚಮಾಧಿಪತಿ ಗುರು", en: "9th Lord Moon & 5th Lord Jupiter" },
+    8: { graha: PlanetName.Sun, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ರವಿ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Sun & Ascendant Lord Jupiter" },
+    9: { graha: PlanetName.Venus, kn: "ಯೋಗಕಾರಕ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಶನಿ", en: "Yogakaraka Venus & Ascendant Lord Saturn" },
+    10: { graha: PlanetName.Venus, kn: "ಯೋಗಕಾರಕ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಶನಿ", en: "Yogakaraka Venus & Ascendant Lord Saturn" },
+    11: { graha: PlanetName.Mars, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Mars & Ascendant Lord Jupiter" }
+  };
+  const catalyst = catalystByLagna[lagnaRashiIndex] || catalystByLagna[0];
+
+  const timingMonths = dashaTiming?.remainingMonths ?? 8;
+  const turnaroundTimelineKn = dashaTiming?.timelineKn || `ಮುಂದಿನ ${timingMonths} ತಿಂಗಳುಗಳಲ್ಲಿ`;
+  const turnaroundTimelineEn = dashaTiming?.timelineEn || `over the Next ${timingMonths} Month${timingMonths > 1 ? "s" : ""}`;
+
+  let breakthroughMechanismKn = `ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಸಂಚಾರದಲ್ಲಿ ಯೋಗಕಾರಕ ಗ್ರಹದ ಬಲದಿಂದ ಕರ್ಮಬಂಧ ಕರಗಿ ಭಾಗ್ಯೋದಯದ ಹೊಸ ಹಾದಿ ತೆರೆದುಕೊಳ್ಳಲಿದೆ.`;
+  let breakthroughMechanismEn = `Under current planetary transit and benefic catalyst support, karmic roadblocks dissolve, opening clear breakthrough horizons.`;
+  let turnaroundSevaKn = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ & ನವಗ್ರಹ ಶಾಂತಿ`;
+  let turnaroundSevaEn = `Sri Kshetra Gokarna Mahabaleshwara Atmalinga Ksheerabhisheka & Navagraha Shanti`;
+
+  if (struggleCategory === "marriage_delay") {
+    breakthroughMechanismKn = `ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಸಂಚಾರದಲ್ಲಿ ಕಂಕಣ ಬಲ ಜಾಗೃತಗೊಂಡು, ಸಪ್ತಮಾಧಿಪತಿ ಹಾಗೂ ಗುರು ಕೃಪೆಯಿಂದ ಸಕಲ ವಿವಾಹ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿಶ್ಚಿತಾರ್ಥ ನೆರವೇರಲಿದೆ.`;
+    breakthroughMechanismEn = `Matrimonial alignments awaken under Jupiter-Venus benefic transit, dissolving delay doshas and sealing an auspicious match.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆ & ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಹೋಮ`;
+    turnaroundSevaEn = `Gokarna Uma-Maheshwara Kalyana Pooja & Swayamvara Parvati Homa`;
+  } else if (struggleCategory === "student_academic") {
+    breakthroughMechanismKn = `ಬುದ್ಧಿಕಾರಕ ಬುಧ ಹಾಗೂ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿಯ ಅನುಗ್ರಹದಿಂದ ಏಕಾಗ್ರತೆ ಹೆಚ್ಚಿ, ಮುಂಬರುವ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಅತ್ಯುನ್ನತ ಶ್ರೇಣಿ ಹಾಗೂ ಕಾಲೇಜು ಪ್ರವೇಶಾವಕಾಶ ಲಭಿಸಲಿದೆ.`;
+    breakthroughMechanismEn = `Cognitive clarity sharpens under Mercury and Dakshinamurthy alignment, eliminating exam anxiety and securing academic honors.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸಂಕಲ್ಪ & ವಿದ್ಯಾ ಗಣಪತಿ ಪೂಜೆ`;
+    turnaroundSevaEn = `Gokarna Medha Dakshinamurthy Sankalpa & Vidya Ganapati Pooja`;
+  } else if (struggleCategory === "debt_financial") {
+    breakthroughMechanismKn = `ಧನಕಾರಕ ಗುರು ಹಾಗೂ ಕುಬೇರ ಸಂಕಲ್ಪದಿಂದ ಸಾಲ ಮರುಪಾವತಿಗೆ ನೂತನ ಆರ್ಥಿಕ ಆದಾಯ ಮೂಲಗಳು ತೆರೆದುಕೊಂಡು ಬಿಕ್ಕಟ್ಟು ಸಂಪೂರ್ಣ ಶಮನವಾಗಲಿದೆ.`;
+    breakthroughMechanismEn = `Fresh liquidity channels open under Dhanakaraka Jupiter transit, enabling systematic debt clearance and wealth stability.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಗೋಕರ್ಣದಲ್ಲಿ ಋಣವಿಮೋಚನ ಅಂಗಾರಕ ಪೂಜೆ & ಕನಕಧಾರಾ ಮಹಾಲಕ್ಷ್ಮೀ ಸಂಕಲ್ಪ`;
+    turnaroundSevaEn = `Gokarna Runa Vimochana Angaraka Pooja & Kanakadhara Mahalakshmi Sankalpa`;
+  } else if (struggleCategory === "leadership_expansion") {
+    breakthroughMechanismKn = `೧೦ನೇ ಕೀರ್ತಿ ಸ್ಥಾನದ ರಾಜಯೋಗ ಬಲದಿಂದ ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ ಹಾಗೂ ಜಾಗತಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಅಖಂಡ ಯಶಸ್ಸು ಮುಂದುವರಿಯಲಿದೆ.`;
+    breakthroughMechanismEn = `High-level 10th house Raja Yoga continues scaling executive authority, institutional expansion, and global renown.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರಾಜಯೋಗ ಸಂಪದ ಮಹಾಪೂಜೆ & ಸುವರ್ಣ ಸಂಕಲ್ಪ ಸೇವೆ`;
+    turnaroundSevaEn = `Gokarna Raja Yoga Sampada Maha Pooja & Suvarna Sankalpa Seva`;
+  } else if (struggleCategory === "creative_stardom") {
+    breakthroughMechanismKn = `೫ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರ-ಬುಧರ ಕಲಾತ್ಮಕ ಯೋಗದಿಂದ ನೂತನ ಸೃಷ್ಟಿಗೆ ಅಪಾರ ಜಾಗತಿಕ ಮನ್ನಣೆ ಹಾಗೂ ಕೋಟ್ಯಂತರ ರಸಿಕರ ಪ್ರೀತಿ ದಕ್ಕಲಿದೆ.`;
+    breakthroughMechanismEn = `Artistic innovation reaches peak resonance under 5th house Venus alignments, commanding global viral reach and fan acclaim.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತಿ-ಲಕ್ಷ್ಮೀ ಗಾನ-ಕಲಾ ಸಿದ್ಧಿ ಮಹಾಪೂಜೆ`;
+    turnaroundSevaEn = `Gokarna Saraswati-Lakshmi Gana-Kala Siddhi Maha Pooja`;
+  } else if (struggleCategory === "elite_sports") {
+    breakthroughMechanismKn = `ಕುಜ-ರವಿ ತೇಜಸ್ಸಿನಿಂದ ಕ್ರೀಡಾ ಪರಾಕ್ರಮ ಉತ್ತುಂಗಕ್ಕೇರಿ ಮುಂಬರುವ ಪ್ರಮುಖ ಪಂದ್ಯಾವಳಿಗಳಲ್ಲಿ ನೂತನ ದಾಖಲೆಗಳು ನಿರ್ಮಾಣವಾಗಿ ಚಾಂಪಿಯನ್ ಕಿರೀಟ ಲಭಿಸಲಿದೆ.`;
+    breakthroughMechanismEn = `Unstoppable Mars-Sun athletic stamina manifests in major tournaments, securing championship trophies and physical supremacy.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ತೇಜಸ್ಸು ಪೂಜೆ & ಆದಿತ್ಯ ಹೃದಯ ಮಹಾಸಂಕಲ್ಪ`;
+    turnaroundSevaEn = `Gokarna Subrahmanya Tejas Pooja & Aditya Hrudaya Maha Sankalpa`;
+  } else if (struggleCategory === "legal_confinement") {
+    breakthroughMechanismKn = `ಸುದರ್ಶನ ನರಸಿಂಹ ಹಾಗೂ ಕಾಲಭೈರವ ಕೃಪೆಯಿಂದ ನ್ಯಾಯಾಲಯ ವ್ಯಾಜ್ಯಗಳು ಶೀಘ್ರ ಇತ್ಯರ್ಥವಾಗಿ ಸತ್ಯಕ್ಕೆ ಜಯ ಲಭಿಸಲಿದೆ.`;
+    breakthroughMechanismEn = `Legal gridlocks dissolve through Sudarshana Narasimha shielding, establishing righteous vindication and peaceful release.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುದರ್ಶನ ನರಸಿಂಹ ಜಪ & ಬಗಲಾಮುಖೀ ರಕ್ಷಾ ಕವಚ ಪೂಜೆ`;
+    turnaroundSevaEn = `Gokarna Sudarshana Narasimha Japa & Bagalamukhi Raksha Kavacha Pooja`;
+  } else if (struggleCategory === "health_vitality") {
+    breakthroughMechanismKn = `ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪದಿಂದ ಜೀವಧಾತು ಪುನಶ್ಚೇತನಗೊಂಡು, ದೈಹಿಕ ನವಚೈತನ್ಯ ಹಾಗೂ ಸಂಪೂರ್ಣ ಆರೋಗ್ಯ ಸಿದ್ಧಿಸಲಿದೆ.`;
+    breakthroughMechanismEn = `Cellular rejuvenation accelerates under Mahamrityunjaya shanti, restoring robust immunity, energy, and physical vitality.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ & ಆಯುಷ್ಯ ಹೋಮ`;
+    turnaroundSevaEn = `Gokarna Mahamrityunjaya Tailabhisheka & Ayushya Homa`;
+  } else if (struggleCategory === "relationship_friction") {
+    breakthroughMechanismKn = `ಉಮಾ-ಮಹೇಶ್ವರ ಕೃಪೆಯಿಂದ ಸಂಗಾತಿಗಳ ನಡುವಿನ ಅಪಾರ್ಥಗಳು ಕರಗಿ, ಪರಸ್ಪರ ಪ್ರೇಮ, ವಿಶ್ವಾಸ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಮರಳಲಿದೆ.`;
+    breakthroughMechanismEn = `Marital emotional distance dissolves under Uma-Maheshwara grace, re-establishing deep affection and domestic peace.`;
+    turnaroundSevaKn = `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಶಾಂತಿ ಪೂಜೆ`;
+    turnaroundSevaEn = `Gokarna Uma-Maheshwara Shanti Pooja`;
+  } else if (struggleCategory === "anger_temper") {
+    breakthroughMechanismKn = `ಸೋಮ-ಚಂದ್ರ ಹಾಗೂ ಕುಜ ಶಾಂತಿಯಿಂದ ಆಂತರಿಕ ಪಿತ್ತ ತಾಪ ಕರಗಿ, ವಿವೇಕಯುತ ಶಾಂತ ನಿರ್ಧಾರಗಳಿಂದ ಸರ್ವ ವಿಜಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+    breakthroughMechanismEn = `High Pitta turbulence quenches under Soma-Mars shanti, restoring crystal-clear equanimity and harmonious communication.`;
+    turnaroundSevaKn = `ಗೋಕರ್ಣ ಕುಜ ಶಾಂತಿ, ತಾಮ್ರಾಭಿಷೇಕ & ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ`;
+    turnaroundSevaEn = `Gokarna Kuja Shanti, Copper Abhisheka & Subrahmanya Seva`;
+  } else if (struggleCategory === "career_obstacles") {
+    breakthroughMechanismKn = `ಶನಿ ಮಹಾತ್ಮನ ಕೃಪೆ ಮತ್ತು ಗೋಚಾರ ಗುರು ಬಲದಿಂದ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಉದ್ಯೋಗಾವಕಾಶ ಹಾಗೂ ಗೌರವಯುತ ಬಡ್ತಿ ಲಭಿಸಲಿದೆ.`;
+    breakthroughMechanismEn = `Saturnian delays transmute into enduring professional momentum, elevating native into a stable career breakthrough.`;
+    turnaroundSevaKn = `ಗೋಕರ್ಣ ಶನಿ-ಶಿವಾಭಿಷೇಕ & ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ`;
+    turnaroundSevaEn = `Gokarna Shani-Shiva Tailabhisheka & Mrityunjaya Shanti`;
+  }
+
+  const lifeTurnaroundTiming = {
+    timelineKn: turnaroundTimelineKn,
+    timelineEn: turnaroundTimelineEn,
+    catalystGrahaKn: catalyst.kn,
+    catalystGrahaEn: catalyst.en,
+    breakthroughMechanismKn,
+    breakthroughMechanismEn,
+    specificSevaKn: turnaroundSevaKn,
+    specificSevaEn: turnaroundSevaEn
+  };
 
   // Affliction Factors List
   const afflictionFactors = [];
@@ -2158,7 +2610,7 @@ export function generateKundliRemedyReport(
     });
   }
 
-  // 2. Instant Anger & Stress Calming Protocol (Dynamic based on primary struggle)
+  // 5. Instant Anger & Stress Calming Protocol (Guaranteed 4 steps with cooling Soma Beeja)
   const stepsList = [
     {
       stepNumber: 1,
@@ -2266,38 +2718,33 @@ export function generateKundliRemedyReport(
       kn: "ಯಾವುದೇ ಸಂದರ್ಭದಲ್ಲಿ ಕೋಪ, ಕಿರಿಕಿರಿ ಅಥವಾ ರೇಗಾಟ ಉಂಟಾದ ತಕ್ಷಣ ಈ ೪ ಕ್ರಮಗಳನ್ನು ತಪ್ಪದೇ ಪಾಲಿಸಿ:",
       en: "Whenever sudden anger, irritation, or confrontation strikes, strictly execute these 4 immediate actions:",
       hi: "जब भी अत्यधिक क्रोध या तनाव महसूस हो, तुरंत इन ४ चरणों का पालन करें:",
-      te: "కోపం వచ్చిన వెంటనే ఈ 4 పద్ధతులను అనుసరించండి:",
+      te: "కోపం వచ్చిన వెంటనే ಈ 4 పద్ధతులను అనుసరించండి:",
       ta: "திடீர் கோபம் வரும்போது உடனடியாக இந்த 4 படிகளை பின்பற்றவும்:"
     },
     steps: stepsList,
     emergencyBeejaMantra: emergencyMantraData
   };
 
-  // 3. Panchanga 5-Angas Dynamic Derivation
-  // A. Nakshatra
+  // 6. Panchanga 5-Angas Dynamic Derivation
   const moonNakIndex = moon?.nakshatra.index ?? 0;
   const nakshatraData = NAKSHATRA_REMEDY_DATA[moonNakIndex] || NAKSHATRA_REMEDY_DATA[0];
   const moonPada = kundli.moonPada ?? 1;
 
-  // B. Tithi
   const diffDeg = (moonDegree - sunDegree + 360) % 360;
-  const tithiIndexRaw = Math.floor(diffDeg / 12); // 0 to 29
+  const tithiIndexRaw = Math.floor(diffDeg / 12);
   const paksha: "Shukla" | "Krishna" = tithiIndexRaw < 15 ? "Shukla" : "Krishna";
-  const tithiNum = (tithiIndexRaw % 15) + 1; // 1 to 15
+  const tithiNum = (tithiIndexRaw % 15) + 1;
   const tithiData = TITHI_REMEDY_DATA[tithiNum] || TITHI_REMEDY_DATA[1];
 
-  // C. Vara
   const birthDateObj = new Date((input.birthDate || "1995-08-15") + "T12:00:00Z");
-  const dayOfWeek = isNaN(birthDateObj.getTime()) ? 2 : birthDateObj.getUTCDay(); // 0-6
+  const dayOfWeek = isNaN(birthDateObj.getTime()) ? 2 : birthDateObj.getUTCDay();
   const varaData = VARA_REMEDY_DATA[dayOfWeek] || VARA_REMEDY_DATA[2];
 
-  // D. Yoga
   const yogaDeg = (sunDegree + moonDegree) % 360;
-  const yogaIndex = Math.floor(yogaDeg / (360 / 27)); // 0 to 26
+  const yogaIndex = Math.floor(yogaDeg / (360 / 27));
   const yogaRule = YOGA_RULES[yogaIndex] || YOGA_RULES[0];
 
-  // E. Karana
-  const karanaIndexRaw = Math.floor(diffDeg / 6); // 0 to 59
+  const karanaIndexRaw = Math.floor(diffDeg / 6);
   let karanaKey = "Bava";
   if (karanaIndexRaw === 0) {
     karanaKey = "Kintughna";
@@ -2357,14 +2804,11 @@ export function generateKundliRemedyReport(
     }
   };
 
-  // 4. Planetary Strength Remedies: Exalted & Debilitated Planets + Neecha Bhanga + Influencer Benchmark
-  const debilitatedPlanets = [];
-  const exaltedPlanets = [];
-
+  // 7. Planetary Strength Remedies: Exalted & Debilitated Planets
   const debilitationMap: Record<PlanetName, { sign: string; lord: PlanetName; remedyKn: string; remedyEn: string; cautionKn: string; cautionEn: string }> = {
-    [PlanetName.Sun]: { sign: "Libra", lord: PlanetName.Venus, remedyKn: "ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ಭಾನುವಾರ ಗೋಧಿ/ಬೆಲ್ಲ ದಾನ.", remedyEn: "Surya Namaskara, Aditya Hrudayam recitation, and Sunday wheat/jaggery charity.", cautionKn: "ತುಲಾ ರವಿಯು ೬, ೮, ೧೨ ನೇ ಮನೆಯ ಅಧಿಪತಿಯಾಗಿದ್ದರೆ ಮಾಣಿಕ್ಯ ರತ್ನವನ್ನು ಎಂದಿಗೂ ಧರಿಸಬೇಡಿ.", cautionEn: "Strictly avoid wearing Ruby if Sun rules dusthanas (6, 8, 12)." },
-    [PlanetName.Moon]: { sign: "Scorpio", lord: PlanetName.Mars, remedyKn: "ಸೋಮವಾರ ಕ್ಷೀರಾಭಿಷೇಕ, ಚಂದ್ರಶೇಖರಾಷ್ಟಕಂ ಪಠಣ ಹಾಗೂ ತಾಯಿಯ ಆಶೀರ್ವಾದ.", remedyEn: "Monday milk abhisheka to Shiva, Chandrashekhara Ashtakam, and honoring mother.", cautionKn: "ವೃಶ್ಚಿಕ ಚಂದ್ರನಿದ್ದಾಗ ಮುತ್ತು ರತ್ನವನ್ನು ಶಾಸ್ತ್ರೋಕ್ತ ಪರೀಕ್ಷೆಯಿಲ್ಲದೆ ಧರಿಸಬಾರದು.", cautionEn: "Do not wear Pearl without careful trial during Scorpio Moon debilitation." },
-    [PlanetName.Mars]: { sign: "Cancer", lord: PlanetName.Moon, remedyKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಆರಾಧನೆ, ಕೆಂಪು ಬೇಳೆ (ತೊಗರಿ/ಮಸೂರ್) ದಾನ ಹಾಗೂ ಶಾಂತ ಮಾತುಕತೆ.", remedyEn: "Subrahmanya worship, red lentil donation, and gentle non-reactive speech.", cautionKn: "ನೀಚ ಕುಜನಿದ್ದಾಗ ಹವಳ ಧರಿಸಿದರೆ ಕೋಪ ಮತ್ತು ರಕ್ತದೊತ್ತಡ ಹೆಚ್ಚಾಗುವ ಅಪಾಯವಿದೆ.", cautionEn: "Avoid Red Coral if debilitated Mars aspects 7th/8th house as it escalates temper spikes." },
+    [PlanetName.Sun]: { sign: "Libra", lord: PlanetName.Venus, remedyKn: "ಸೂರ್ಯ ಗಾಯತ್ರೀ ಜಪ, ಮಾಣಿಕ್ಯ ರತ್ನ ಧಾರಣೆ ಪರೀಕ್ಷೆ ಹಾಗೂ ತಂದೆಯ ಸೇವೆ.", remedyEn: "Surya Gayatri japa, Father's blessing, and Sunday Aditya Hrudaya.", cautionKn: "ತುಲಾ ಸೂರ್ಯನಿಗೆ ಮಾಣಿಕ್ಯ ಧರಿಸುವ ಮುನ್ನ ಲಗ್ನ ಶುಭತ್ವ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.", cautionEn: "Verify functional beneficence before Ruby." },
+    [PlanetName.Moon]: { sign: "Scorpio", lord: PlanetName.Mars, remedyKn: "ಚಂದ್ರಶೇಖರಾಷ್ಟಕ ಪಠಣ, ಸೋಮವಾರ ಶಿವನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಹಾಗೂ ಧ್ಯಾನ.", remedyEn: "Chandrashekhara Ashtakam, Monday Shiva milk abhisheka, and pranayama.", cautionKn: "ವೃಶ್ಚಿಕ ಚಂದ್ರನಿದ್ದಾಗ ಮುತ್ತು ಧರಿಸಿದರೆ ಮಾನಸಿಕ ಆತಂಕ ಹೆಚ್ಚಾಗಬಹುದು.", cautionEn: "Avoid Pearl for debilitated Moon unless cancelled." },
+    [PlanetName.Mars]: { sign: "Cancer", lord: PlanetName.Moon, remedyKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ, ಮಂಗಳವಾರ ತೊಗರಿಬೇಳೆ ದಾನ ಹಾಗೂ ಭೂಮಿ ವಂದನೆ.", remedyEn: "Subrahmanya worship, Tuesday toor dal charity, and honoring mother Earth.", cautionKn: "ಕಟಕ ಕುಜನಿಗೆ ಹವಳ ಧರಿಸುವುದರಿಂದ ರಕ್ತದೊತ್ತಡ ಏರುಪೇರಾಗಬಹುದು, ಎಚ್ಚರ.", cautionEn: "Red Coral for debilitated Mars requires careful scrutiny." },
     [PlanetName.Mercury]: { sign: "Pisces", lord: PlanetName.Jupiter, remedyKn: "ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕ ದಾನ.", remedyEn: "Vishnu Sahasranama chanting, Tulasi seva, and donating books to needy scholars.", cautionKn: "ಮೀನ ಬುಧನಿಗೆ ಪಚ್ಚೆ ರತ್ನ ಧರಿಸುವ ಮುನ್ನ ನೀಚಭಂಗ ಪರೀಕ್ಷಿಸುವುದು ಅತ್ಯಗತ್ಯ.", cautionEn: "Verify Neecha Bhanga before wearing Emerald for debilitated Mercury." },
     [PlanetName.Jupiter]: { sign: "Capricorn", lord: PlanetName.Saturn, remedyKn: "ಗುರು ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ, ಗುರುವಾರ ಕಡಲೆಬೇಳೆ ದಾನ ಹಾಗೂ ಶಿಕ್ಷಕರಿಗೆ ವಂದನೆ.", remedyEn: "Guru Dakshinamurthy worship, chana dal charity on Thursdays, and honoring teachers.", cautionKn: "ಮಕರ ಗುರುವಿನ ದುಸ್ಥಾನ ಸ್ಥಿತಿಯಲ್ಲಿ ಪುಷ್ಪರಾಗ ರತ್ನ ಧರಿಸುವುದು ಸೂಕ್ತವಲ್ಲ.", cautionEn: "Yellow Sapphire requires caution if debilitated Jupiter lacks Kendra cancellation." },
     [PlanetName.Venus]: { sign: "Virgo", lord: PlanetName.Mercury, remedyKn: "ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಣ, ಬಿಳಿ ಹೂವುಗಳಿಂದ ಲಕ್ಷ್ಮೀ ಪೂಜೆ ಹಾಗೂ ಸ್ತ್ರೀಯರಿಗೆ ಗೌರವ.", remedyEn: "Kanakadhara Stotra recitation, white flower Lakshmi puja, and respecting women.", cautionKn: "ಕನ್ಯಾ ಶುಕ್ರನಿದ್ದಾಗ ವಜ್ರ ಧಾರಣೆಗಿಂತ ಗೋಸೇವೆ ಮತ್ತು ಲಕ್ಷ್ಮೀ ಉಪಾಸನೆ ಶ್ರೇಷ್ಠ.", cautionEn: "Prioritize Goseva and Lakshmi sadhana over Diamond when Venus is in Virgo." },
@@ -2385,11 +2829,13 @@ export function generateKundliRemedyReport(
     [PlanetName.Ketu]: { sign: "Scorpio", activationKn: "ಗಣಪತಿ ಹೋಮ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಧ್ಯಾನ.", activationEn: "Ganapati Homa and deep meditative contemplation.", blessingKn: "ಆಧ್ಯಾತ್ಮಿಕ ಮೋಕ್ಷ, ಅಂತರ್ದೃಷ್ಟಿ ಹಾಗೂ ಋಷಿ ಜ್ಞಾನ.", blessingEn: "Moksha orientation, heightened intuition, and occult discernment." }
   };
 
+  const debilitatedPlanets = [];
+  const exaltedPlanets = [];
+
   for (const p of planets) {
     const rashiEng = p.rashi.english;
     const debInfo = debilitationMap[p.name];
     if (debInfo && rashiEng === debInfo.sign) {
-      // Check Neecha Bhanga (Dispositor or exaltation lord in Kendra from Lagna or Moon)
       const dispositor = planets.find(dp => dp.name === debInfo.lord);
       const lagnaIndex = kundli.lagnaRashi?.index ?? 0;
       const moonIdx = moon?.rashi.index ?? 0;
@@ -2454,52 +2900,42 @@ export function generateKundliRemedyReport(
     }
   };
 
-  // 5. Dynamic Daily Morning & Evening Routine (Tailored by Vara, Dasha, Tatva, and Nakshatra Tree)
+  // 8. Daily Pacification Routine
   const dailyPacificationRoutine = {
     morning: [
       {
-        time: "06:00 AM - 07:00 AM",
+        time: "06:00 AM - 06:45 AM",
         icon: "🌅",
-        title: {
-          kn: `${varaData.dayName.kn} ಪ್ರಾತಃಕಾಲ ಸಾಧನೆ & ನಕ್ಷತ್ರ ವೃಕ್ಷ ವಂದನೆ`,
-          en: `${varaData.dayName.en} Morning Sadhana & Nakshatra Tree Revering`,
-          hi: `${varaData.dayName.hi} प्रातः साधना एवं नक्षत्र वृक्ष वंदन`,
-          te: `${varaData.dayName.te} ఉదయ సాధన`,
-          ta: `${varaData.dayName.ta} காலை வழிபாடு`
-        },
+        title: { kn: "ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರ & ಗಾಯತ್ರೀ ಜಪ", en: "Surya Arghya & Gayatri Japa", hi: "प्रातः सूर्य अर्घ्य एवं गायत्री जप", te: "సూర్య నమస్కారాలు & గాయత్రీ జపం", ta: "சூரிய நமஸ்காரம் & காயத்ரி ஜபம்" },
         desc: {
-          kn: `${varaData.sadhana.kn} ಹಾಗೂ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರ ವೃಕ್ಷವಾದ '${nakshatraData.tree.kannada}' ಗಿಡಕ್ಕೆ ಭಕ್ತಿಯಿಂದ ನೀರೆರೆಯಿರಿ.`,
-          en: `${varaData.sadhana.en} Also nurture your Janma Nakshatra sacred tree '${nakshatraData.tree.english}' (${nakshatraData.tree.botanicalName}) to draw grounding cosmic prana.`,
-          hi: `${varaData.sadhana.hi} एवं अपने जन्म नक्षत्र वृक्ष '${nakshatraData.tree.hindi}' को जल अर्पित करें।`,
-          te: `${varaData.sadhana.te} మరియు నక్షత్ర వృక్షానికి నీరు పోయండి.`,
-          ta: `${varaData.sadhana.ta} மற்றும் நட்சத்திர மரத்திற்கு நீர் ஊற்றவும்.`
+          kn: "ಸ್ನಾನದ ನಂತರ ತಾಮ್ರದ ಚೊಂಬಿನಿಂದ ಉದಯಿಸುವ ಸೂರ್ಯನಿಗೆ ಶುದ್ಧ ನೀರನ್ನು ಅರ್ಪಿಸಿ. ೧೧ ಬಾರಿ ಗಾಯತ್ರೀ ಮಂತ್ರ ಜಪಿಸಿ.",
+          en: "Offer water in a copper vessel to rising Sun facing East; silently recite 11 Gayatri mantras.",
+          hi: "स्नान के बाद तांबे के लोटे से सूर्य को जल अर्पित करें और ११ बार गायत्री मंत्र जपें।",
+          te: "స్నానం అనంతరం రాగి పాత్రతో సూర్యునికి అర్ఘ్యం ఇవ్వండి.",
+          ta: "குளித்த பின் செம்பு பாத்திரத்தில் சூரியனுக்கு நீர் அர்ப்பணிக்கவும்."
         }
       },
       {
-        time: "07:30 AM",
-        icon: "🥛",
-        title: { kn: "ತತ್ತ್ವ ಸಮನ್ವಯ ಪಾನೀಯ ಸೇವನೆ", en: "Elemental Harmonic Herbal Drink", hi: "तत्व संतुलन पेय", te: "తత్వ సమతుల్య పానీయం", ta: "தத்துவ சமநிலை பானம்" },
+        time: "07:00 AM",
+        icon: "🧘",
+        title: { kn: "ನಾಡಿ ಶೋಧನ & ಪ್ರಾಣಾಯಾಮ", en: "Nadi Shodhana Pranayama", hi: "नाड़ी शोधन प्राणायाम", te: "నాడీ శోధన ప్రాణాయామం", ta: "நாடி சுத்தி பிராணாயாமம்" },
         desc: {
-          kn: struggleCategory === "anger_temper"
-            ? "ಬೆಳಗ್ಗೆ ಖಾಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ ೧ ಚಮಚ ಶುದ್ಧ ಆಕಳ ತುಪ್ಪ ಅಥವಾ ಸೋಂಪು ನೆನೆಸಿದ ತಣ್ಣೀರು ಕುಡಿಯುವುದು ಪಿತ್ತ ಹಾಗೂ ಕೋಪವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತದೆ."
-            : "ಬೆಳಗ್ಗೆ ತುಳಸಿ ಮತ್ತು ಶುಂಠಿ ಬೆರೆಸಿದ ಬೆಚ್ಚಗಿನ ನೀರನ್ನು ಕುಡಿಯುವುದು ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸಿ ಮನಸ್ಸನ್ನು ಚುರುಕುಗೊಳಿಸುತ್ತದೆ.",
-          en: struggleCategory === "anger_temper"
-            ? "Consume 1 tsp pure Desi Cow Ghee or fennel-infused water on empty stomach to pacify internal digestive and mental heat."
-            : "Sip warm water infused with fresh Tulasi leaves and dry ginger to kindle gentle digestive fire and mental clarity.",
-          hi: "प्रातः खाली पेट सौंफ का पानी अथवा तुलसी का गुनगुना काढ़ा पिएं।",
-          te: "ఉదయం సోంపు నీరు లేదా తులసి కషాయం సేవించండి.",
-          ta: "காலையில் வெறும் வயிற்றில் சோம்பு நீர் அல்லது துளசி கஷாயம் அருந்தவும்."
+          kn: "೫ ರಿಂದ ೧೦ ನಿಮಿಷಗಳ ಕಾಲ ಎಡ-ಬಲ ಹೊಳ್ಳೆಗಳಿಂದ ಸಮತೋಲಿತ ಉಸಿರಾಟ ನಡೆಸಿ. ಮನಸ್ಸಿನ ತೀವ್ರತೆ ಮತ್ತು ಆವೇಶ ನಿಯಂತ್ರಣಕ್ಕೆ ಬರುತ್ತದೆ.",
+          en: "5 to 10 minutes of alternate nostril breathing to equilibrate autonomic nervous system.",
+          hi: "५ से १० मिनट तक नाड़ी शोधन प्राणायाम करें।",
+          te: "5-10 నిమిషాలు నాడీ శోధన చేయండి.",
+          ta: "5-10 நிமிடங்கள் நாடி சுத்தி செய்யவும்."
         }
       }
     ],
     afternoonLifestyle: [
       {
         icon: "🥗",
-        title: { kn: "ಸಾತ್ವಿಕ ಆಹಾರ ನಿಯಮ", en: "Satvic Food Discipline", hi: "सात्विक आहार नियम", te: "సాత్విక ఆహార నియమం", ta: "சாத்வீக உணவு முறை" },
+        title: { kn: "ಪಿತ್ತ ಶಮನ ಸಾತ್ವಿಕ ಆಹಾರ ಪಾಲನೆ", en: "Pitta-Soothing Sattvic Diet", hi: "पित्त शामक सात्विक आहार", te: "సాత్విక ఆహార నియమం", ta: "பித்த சாந்தி உணவு" },
         desc: {
-          kn: "ಅತಿಯಾದ ಖಾರ, ಹುಳಿ ಹಾಗೂ ಎಣ್ಣೆ ಪದಾರ್ಥಗಳನ್ನು ತ್ಯಜಿಸಿ. ಮಧ್ಯಾಹ್ನ ತಂಪಾದ ಮಜ್ಜಿಗೆ (ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು ಹಾಕಿ) ಸೇವಿಸಿ.",
-          en: "Avoid excessively spicy, pungent, acidic, and fried foods. Drink fresh spiced buttermilk with fresh coriander at noon.",
-          hi: "अधिक मिर्च, खटाई और तले हुए भोजन से बचें। दोपहर में ताजी छाछ पिएं।",
+          kn: "ಅತಿಯಾದ ಖಾರ, ಹುಳಿ ಹಾಗೂ ಎಣ್ಣೆಯುಕ್ತ ಪದಾರ್ಥಗಳನ್ನು ತ್ಯಜಿಸಿ. ಮಧ್ಯಾಹ್ನ ಊಟದೊಂದಿಗೆ ಜೀರಿಗೆ ಮತ್ತು ಕೊತ್ತಂಬರಿ ಬೆರೆಸಿದ ತಂಪಾದ ಮಜ್ಜಿಗೆ ಸೇವಿಸಿ.",
+          en: "Minimize pungent chilies, excessive spices, and heated fried snacks; consume buttermilk with cumin after lunch.",
+          hi: "अत्यधिक मिर्च-मसाले से बचें; दोपहर भोजन में जीरा युक्त छाछ लें।",
           te: "అధిక కారం, పులుపు వస్తువులను తగ్గించండి. మధ్యాహ్నం మజ్జిగ త్రాగండి.",
           ta: "அதிக காரம், புளிப்பு உணவுகளை தவிர்க்கவும். மோர் பருகவும்."
         }
@@ -2544,32 +2980,34 @@ export function generateKundliRemedyReport(
     ]
   };
 
-  // 6. Curate Classical Stotras dynamically matching chart afflictions
+  // 9. Curate Classical Stotras dynamically matching chart challenge
   const personalizedStotras = [];
-  // Primary selection
-  if (struggleCategory === "anger_temper" || isMarsAfflicted) {
-    const s1 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "chandrashekhara_ashtakam");
+  if (struggleCategory === "student_academic") {
+    const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "medha_dakshinamurthy");
+    if (s) personalizedStotras.push(s);
+  } else if (struggleCategory === "marriage_delay") {
+    const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "swayamvara_parvati");
+    if (s) personalizedStotras.push(s);
+  } else if (struggleCategory === "debt_financial") {
+    const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "runa_vimochana_angāraka");
+    if (s) personalizedStotras.push(s);
+  } else if (struggleCategory === "anger_temper") {
+    const s1 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "chandrashekhara_ashtakam");
     if (s1) personalizedStotras.push(s1);
-    const s2 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "subrahmanya_bhujangam");
+    const s2 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "subrahmanya_bhujangam");
     if (s2) personalizedStotras.push(s2);
-  } else if (struggleCategory === "mental_anxiety" || isMoonAfflicted) {
-    const s1 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "durga_saptashati_aparadha_kshamapana");
+  } else if (struggleCategory === "mental_anxiety") {
+    const s1 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "durga_saptashati_aparadha_kshamapana");
     if (s1) personalizedStotras.push(s1);
-    const s2 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "chandrashekhara_ashtakam");
+    const s2 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "chandrashekhara_ashtakam");
     if (s2) personalizedStotras.push(s2);
-  } else if (struggleCategory === "career_obstacles" || isSaturnAfflicted) {
-    const s1 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "hanuman_sankata_mochana");
+  } else if (struggleCategory === "career_obstacles") {
+    const s1 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "hanuman_sankata_mochana");
     if (s1) personalizedStotras.push(s1);
-    const s2 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "aditya_hrudayam");
-    if (s2) personalizedStotras.push(s2);
-  } else {
-    const s1 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "aditya_hrudayam");
-    if (s1) personalizedStotras.push(s1);
-    const s2 = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === "vishnu_sahasranama_dhyana");
+    const s2 = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "aditya_hrudayam");
     if (s2) personalizedStotras.push(s2);
   }
 
-  // Always append Aditya Hrudayam or Hanuman if not yet added to ensure 3 diverse hymns
   for (const fallbackId of ["aditya_hrudayam", "hanuman_sankata_mochana", "vishnu_sahasranama_dhyana", "kanakadhara_stotra"]) {
     if (personalizedStotras.length >= 3) break;
     const item = CLASSICAL_STOTRAS_CATALOG.find(s => s.id === fallbackId);
@@ -2578,16 +3016,51 @@ export function generateKundliRemedyReport(
     }
   }
 
-  // 7. Active Dasha-Bhukti Analysis & Mitigation
-  const birthYmd = input.birthDate || "1993-05-31";
-  const birthHm = input.birthTime || "09:25";
-  const lat = input.latitude ?? 14.5479;
-  const lng = input.longitude ?? 74.3188;
-  const ageNow = ageDecimalYearsAt(birthYmd, birthHm, lat, lng, new Date());
+  // 10. Active Dasha-Bhukti Analysis & Mitigation (100% Dynamic Parashari Calculation)
   const dashaInfo = findBhuktiAtAge(kundli, ageNow);
+  const mahaDashaPlanet = dashaInfo?.maha?.planet ?? (dashaTiming?.currentMaha as PlanetName) ?? PlanetName.Jupiter;
+  const bhuktiPlanet = dashaInfo?.bhukti ?? (dashaTiming?.currentBhukti as PlanetName) ?? PlanetName.Jupiter;
 
-  const mahaDashaPlanet = dashaInfo?.maha?.planet ?? PlanetName.Jupiter;
-  const bhuktiPlanet = dashaInfo?.bhukti ?? PlanetName.Jupiter;
+  const mahaDescByGraha: Record<PlanetName, { kn: string; en: string }> = {
+    [PlanetName.Jupiter]: {
+      kn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಮಹಾದಶೆಯು ಜ್ಞಾನ, ಆಧ್ಯಾತ್ಮಿಕ ವಿಕಾಸ, ಗೌರವ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ನೀಡುವ ಮಹಾಯೋಗದ ಕಾಲವಾಗಿದೆ.",
+      en: "Jupiter Mahadasha unfolds wisdom, spiritual clarity, family grace, and long-term socio-financial stability."
+    },
+    [PlanetName.Saturn]: {
+      kn: "ಕರ್ಮಫಲದಾತ ಶನಿ ಮಹಾತ್ಮನ ಮಹಾದಶೆಯು ಪರಿಶ್ರಮ, ಶಿಸ್ತು, ಕರ್ಮ ಪರಿಶುದ್ಧತೆ ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಸಾಧನೆಗೆ ಅಡಿಪಾಯ ಹಾಕುವ ಮಹತ್ವದ ಕಾಲವಾಗಿದೆ.",
+      en: "Saturn Mahadasha demands disciplined focus, endurance, and ethical precision, transmuting heavy karma into lasting mastery."
+    },
+    [PlanetName.Mercury]: {
+      kn: "ಬುದ್ಧಿಕಾರಕ ಬುಧ ಮಹಾದಶೆಯು ವ್ಯಾಪಾರ, ಸಂವಹನ, ತಾರ್ಕಿಕ ಚಿಂತನೆ ಹಾಗೂ ನೂತನ ಕೌಶಲಗಳ ವಿಕಾಸಕ್ಕೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಅವಧಿಯಾಗಿದೆ.",
+      en: "Mercury Mahadasha accelerates intellect, commercial growth, persuasive communication, and analytical breakthroughs."
+    },
+    [PlanetName.Venus]: {
+      kn: "ಕಲಾಕಾರಕ ಶುಕ್ರ ಮಹಾದಶೆಯು ಸೌಭಾಗ್ಯ, ಕೌಟುಂಬಿಕ ಸುಖ, ಕಲಾತ್ಮಕ ಸೃಷ್ಟಿ ಹಾಗೂ ಭೋಗ-ಭಾಗ್ಯಗಳನ್ನು ಅನುಗ್ರಹಿಸುವ ಶುಭ ಕಾಲವಾಗಿದೆ.",
+      en: "Venus Mahadasha showers aesthetic resonance, relationship fulfillment, creative luxury, and material prosperity."
+    },
+    [PlanetName.Sun]: {
+      kn: "ಆತ್ಮಕಾರಕ ಸೂರ್ಯ ಮಹಾದಶೆಯು ತೇಜಸ್ಸು, ನಾಯಕತ್ವ, ಗೌರವ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಉತ್ತುಂಗಕ್ಕೇರಿಸುವ ಅವಧಿಯಾಗಿದೆ.",
+      en: "Sun Mahadasha illuminates soul vitality, public authority, governance recognition, and fearless self-expression."
+    },
+    [PlanetName.Moon]: {
+      kn: "ಮನಃಕಾರಕ ಚಂದ್ರ ಮಹಾದಶೆಯು ಸಾರ್ವಜನಿಕ ಸಂಪರ್ಕ, ಭಾವನಾತ್ಮಕ ಸಮೃದ್ಧಿ ಹಾಗೂ ಕಲ್ಪನಾ ಶಕ್ತಿಯನ್ನು ಉದ್ದೀಪಿಸುವ ಸಮಯವಾಗಿದೆ.",
+      en: "Moon Mahadasha stimulates emotional depth, maternal blessings, public popularity, and creative imagination."
+    },
+    [PlanetName.Mars]: {
+      kn: "ಪರಾಕ್ರಮಕಾರಕ ಮಂಗಳ ಮಹಾದಶೆಯು ಧೈರ್ಯ, ಭೂಮಿ ಲಾಭ, ಕ್ರೀಡೆ ಹಾಗೂ ತಾಂತ್ರಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ದಿಟ್ಟ ಹೆಜ್ಜೆಗಳನ್ನು ಇಡುವ ಕಾಲವಾಗಿದೆ.",
+      en: "Mars Mahadasha unleashes physical valor, technical acumen, land property gains, and competitive dominance."
+    },
+    [PlanetName.Rahu]: {
+      kn: "ಛಾಯಾಗ್ರಹ ರಾಹು ಮಹಾದಶೆಯು ಅನಿರೀಕ್ಷಿತ ತಿರುವುಗಳು, ಜಾಗತಿಕ ವಿಸ್ತರಣೆ, ಡಿಜಿಟಲ್ ಖ್ಯಾತಿ ಹಾಗೂ ಮಹತ್ವಾಕಾಂಕ್ಷೆಯನ್ನು ಜಾಗೃತಗೊಳಿಸುವ ಕಾಲವಾಗಿದೆ.",
+      en: "Rahu Mahadasha creates unconventional breakthroughs, digital innovation, foreign connections, and exponential worldly ambition."
+    },
+    [PlanetName.Ketu]: {
+      kn: "ಮೋಕ್ಷಕಾರಕ ಕೇತು ಮಹಾದಶೆಯು ಆಂತರಿಕ ಜ್ಞಾನ, ಆಧ್ಯಾತ್ಮಿಕ ಅನ್ವೇಷಣೆ ಹಾಗೂ ಅನಗತ್ಯ ವ್ಯಾಮೋಹಗಳಿಂದ ಮುಕ್ತಿ ನೀಡುವ ತಪಸ್ಸು ಕಾಲವಾಗಿದೆ.",
+      en: "Ketu Mahadasha prompts deep introspection, spiritual detachment, intuitive mastery, and inner liberation."
+    }
+  };
+
+  const mahaDesc = mahaDescByGraha[mahaDashaPlanet] || mahaDescByGraha[PlanetName.Jupiter];
 
   const dashaBhuktiAnalysis = {
     currentMahaDasha: mahaDashaPlanet,
@@ -2595,22 +3068,22 @@ export function generateKundliRemedyReport(
     mahaDashaLabel: GRAHA_NAMES_LOCALE[mahaDashaPlanet] || { kn: mahaDashaPlanet, en: mahaDashaPlanet },
     bhuktiLabel: GRAHA_NAMES_LOCALE[bhuktiPlanet] || { kn: bhuktiPlanet, en: bhuktiPlanet },
     periodEffect: {
-      kn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.kn || mahaDashaPlanet} ಮಹಾದಶೆಯಲ್ಲಿ ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.kn || bhuktiPlanet} ಭುಕ್ತಿಯು ನಡೆಯುತ್ತಿದೆ. ಈ ಕಾಲಾವಧಿಯಲ್ಲಿ ಕರ್ಮದ ಫಲಗಳು ಶೀಘ್ರವಾಗಿ ವ್ಯಕ್ತವಾಗುತ್ತಿದ್ದು, ಮನಸ್ಸಿನಲ್ಲಿ ಏರಿಳಿತಗಳು ಉಂಟಾಗಬಹುದು.`,
-      en: `You are actively running the ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.en || mahaDashaPlanet} Mahadasha with ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.en || bhuktiPlanet} Bhukti. This timing triggers active karmic processing affecting mental focus, partnerships, and vitality.`,
-      hi: `वर्तमान में आप ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.hi || mahaDashaPlanet} महादशा में ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.hi || bhuktiPlanet} भुक्ति से गुजर रहे हैं, जो जीवन में महत्वपूर्ण बदलाव ला रही है।`,
+      kn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.kn || mahaDashaPlanet} ಮಹಾದಶೆಯಲ್ಲಿ ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.kn || bhuktiPlanet} ಭುಕ್ತಿಯು ನಡೆಯುತ್ತಿದೆ. ${mahaDesc.kn} ${turnaroundTimelineKn} ನಿರ್ಣಾಯಕ ಫಲಗಳು ವ್ಯಕ್ತವಾಗಲಿವೆ.`,
+      en: `You are actively running the ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.en || mahaDashaPlanet} Mahadasha with ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.en || bhuktiPlanet} Bhukti. ${mahaDesc.en} Significant breakthroughs unfold ${turnaroundTimelineEn}.`,
+      hi: `वर्तमान में आप ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.hi || mahaDashaPlanet} महादशा में ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.hi || bhuktiPlanet} भुक्ति से गुजर रहे हैं।`,
       te: `ప్రస్తుతం ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.te || mahaDashaPlanet} మహాదశలో ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.te || bhuktiPlanet} భుక్తి నడుస్తోంది.`,
       ta: `தற்போது ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.ta || mahaDashaPlanet} மகாதிசையில் ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.ta || bhuktiPlanet} புக்தி நடைபெறுகிறது.`
     },
     remedialAction: {
-      kn: `ಈ ದಶಾ ಪ್ರಭಾವವನ್ನು ಶುಭಕರವಾಗಿಸಲು ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.kn || mahaDashaPlanet} ಹಾಗೂ ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.kn || bhuktiPlanet} ದೇವತೆಗಳಿಗೆ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಮತ್ತು ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಅತ್ಯಂತ ಫಲದಾಯಕ.`,
-      en: `To optimize the karmic flow of this Dasha-Bhukti, perform dedicated japa to ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.en || mahaDashaPlanet} and offer Mahabaleshwara Rudrabhisheka seva.`,
-      hi: `इस दशा-भुक्ति के शुभ फल हेतु संबंधित ग्रहों की शांति एवं गोकर्ण महाबलेश्वर में रुद्राभिषेक कराएं।`,
-      te: `ఈ దశ అనుకూలత కొరకు గోకర్ణంలో రుద్రాభిషేకం జరిపించండి.`,
-      ta: `இந்த திசை நன்மை பெற கோகர்ணத்தில் ருத்ராபிஷேகம் செய்யவும்.`
+      kn: `ಈ ದಶಾ ಸಂಚಾರವನ್ನು ಶುಭಕರವಾಗಿಸಲು ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.kn || mahaDashaPlanet} ಹಾಗೂ ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.kn || bhuktiPlanet} ದೇವತೆಗಳಿಗೆ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಮತ್ತು ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ${turnaroundSevaKn} ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಫಲದಾಯಕ.`,
+      en: `To align this Dasha-Bhukti flow, offer dedicated prayers to ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.en || mahaDashaPlanet} and participate in ${turnaroundSevaEn}.`,
+      hi: `इस दशा-भुक्ति के शुभ फल हेतु संबंधित ग्रहों की शांति एवं गोकर्ण महाबलेश्वर में पूजा कराएं।`,
+      te: `ఈ దశ అనుకూలత కొరకు గోకర్ణంలో పూజ జరిపించండి.`,
+      ta: `இந்த திசை நன்மை பெற கோகர்ணத்தில் வழிபாடு செய்யவும்.`
     }
   };
 
-  // 8. Gochara (Transit) Real-Time Calculation for all planets
+  // 11. Gochara (Transit) Real-Time Calculation for all planets
   let todaysSaturnDeg = 325;
   let todaysJupiterDeg = 45;
   let todaysRahuDeg = 330;
@@ -2762,33 +3235,33 @@ export function generateKundliRemedyReport(
     sadeSatiStatus: sadeSatiText
   };
 
-  // 9. Sacred Gokarna Mahabaleshwara Temple Remedies & Dāna (Dynamically mapped to actual dosha)
+  // 12. Sacred Gokarna Mahabaleshwara Temple Remedies & Dāna
   const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
 
   let prescribedSevaName = {
-    kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ & ನವಗ್ರಹ ಶಾಂತಿ",
-    en: "Gokarna Atmalinga Ksheerabhisheka & Navagraha Shanti",
-    hi: "श्री महाबलेश्वर आत्मलिंग क्षीराभिषेक एवं नवग्रह शांति",
-    te: "శ్రీ మహాబలేశ్వర ఆత్మలింగ క్షీరాభిషేకం",
-    ta: "ஸ்ரீ மகாபலேஸ்வரர் ஆத்மலிங்க க்ஷீராபிஷேகம்"
+    kn: turnaroundSevaKn,
+    en: turnaroundSevaEn,
+    hi: turnaroundSevaEn,
+    te: turnaroundSevaEn,
+    ta: turnaroundSevaEn
   };
   let sevaSignificance = {
-    kn: "ರಾವಣನಿಂದ ಪ್ರತಿಷ್ಠಾಪಿಸಲ್ಪಟ್ಟ ಪರಮ ಪವಿತ್ರ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಮಾಡುವುದರಿಂದ ಜಾತಕದ ಸಮಸ್ತ ಪಿತ್ತ, ಕ್ರೋಧ ಹಾಗೂ ಗ್ರಹಪೀಡೆಗಳು ಭಸ್ಮವಾಗುತ್ತವೆ.",
-    en: "Pouring sacred milk over the primordial Atmalinga at Gokarna douses high Pitta/Mars rage and clears deep ancestral karmic blocks.",
-    hi: "परम पावन आत्मलिंग पर क्षीराभिषेक से समस्त क्रोध, ग्रह दोष एवं अशांति का नाश होता है।",
-    te: "ఆత్మలింగానికి క్షీరాభిషేకం వలన సర్వ గ్రహ దోషాలు తొలగిపోతాయి.",
-    ta: "ஆத்மலிங்கத்திற்கு பால் அபிஷேகம் செய்வதால் அனைத்து தோஷங்களும் நீங்கும்."
+    kn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಮರ್ಪಿಸುವ ಈ ದೈವಿಕ ಸಂಕಲ್ಪ ಸೇವೆಯು ನಿಮ್ಮ ಜಾತಕದ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ, ಶೀಘ್ರ ಯಶಸ್ಸು ಮತ್ತು ಶಾಂತಿ ಕರುಣಿಸುತ್ತದೆ.`,
+    en: `Consecrated at Sri Kshetra Gokarna Mahabaleshwara, this targeted seva dissolves focal karmic impediments, invoking sovereign divine protection.`,
+    hi: `श्री गोकर्ण महाबलेश्वर सन्निधि में यह पूजा समस्त ग्रह बाधाओं को शांत कर शुभ फल प्रदान करती है।`,
+    te: `శ్రీ గోకర్ణ క్షేత్రంలో ఈ పూజ వలన సర్వ దోషాలు తొలగి శుభాలు కలుగుతాయి.`,
+    ta: `ஸ்ரீ கோகர்ண க்ஷேத்திரத்தில் செய்யப்படும் இந்த விசேஷ பூஜை சகல தோஷங்களையும் நீக்கும்.`
   };
   let sevaIdealDay = {
-    kn: "ಸೋಮವಾರ ಅಥವಾ ಪ್ರದೋಷ / ಮಾಸ ಶಿವರಾತ್ರಿ ದಿನ",
-    en: "Monday, Pradosha, or Masa Shivaratri",
+    kn: "ಸೋಮವಾರ, ಪ್ರದೋಷ ಅಥವಾ ಶುಭ ತಿಥಿ",
+    en: "Monday, Pradosha, or Auspicious Tithi",
     hi: "सोमवार अथवा प्रदोष काल",
     te: "సోమవారం లేదా ప్రదోష వేళ",
-    ta: "திங்கட்கிழமை அல்லது பிரதோஷ காலம்"
+    ta: "திங்கட்கிழமை அல்லது பிரதோஷம்"
   };
 
   let donationItem = {
-    kn: "ಹಾಲು, ಸಕ್ಕರೆ, ಅಕ್ಕಿ ಅಥವಾ ಬೆಳ್ಳಿ",
+    kn: "ಹಾಲು, ಸಕ್ಕರೆ, ಅಕ್ಕಿ ಅಥವಾ ಬೆಳ್ಳಿ ನಾಣ್ಯ",
     en: "Milk, raw rice, sugar candy, or silver coin",
     hi: "दूध, चावल, मिश्री अथवा चांदी",
     te: "పాలు, బియ్యం, పటికబెల్లం",
@@ -2803,7 +3276,7 @@ export function generateKundliRemedyReport(
     ta: "கோசாலையில் பசுக்களுக்கு அல்லது ஏழைகளுக்கு"
   };
 
-  if (isMarsAfflicted || struggleCategory === "anger_temper") {
+  if (struggleCategory === "anger_temper" || isMarsAfflicted) {
     prescribedSevaName = {
       kn: "ಗೋಕರ್ಣ ಕುಜ ಶಾಂತಿ, ತಾಮ್ರಾಭಿಷೇಕ & ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ",
       en: "Gokarna Kuja Shanti, Copper Abhisheka & Subrahmanya Seva",
@@ -2821,7 +3294,7 @@ export function generateKundliRemedyReport(
     sevaIdealDay = { kn: "ಮಂಗಳವಾರ ಅಥವಾ ಷಷ್ಠಿ ತಿಥಿ", en: "Tuesday or Shashthi Tithi", hi: "मंगलवार अथवा षष्ठी", te: "మంగళవారం లేదా షష్ఠి", ta: "செவ்வாய்க்கிழமை அல்லது சஷ்டி" };
     donationItem = { kn: "ಕೆಂಪು ತೊಗರಿಬೇಳೆ / ಮಸೂರ್ ದಾಲ್, ಬೆಲ್ಲ ಹಾಗೂ ತಾಮ್ರದ ಪಾತ್ರೆ", en: "Red lentils (masoor dal), pure jaggery, or copper utensils", hi: "मसूर दाल, गुड़ अथवा तांबे का बर्तन", te: "ఎర్ర కందులు, బెల్లం, రాగి పాత్ర", ta: "சிவப்பு பருப்பு, வெல்லம் அல்லது செம்பு பாத்திரம்" };
     donationDay = { kn: "ಮಂಗಳವಾರ", en: "Tuesday", hi: "मंगलवार", te: "మంగళవారం", ta: "செவ்வாய்க்கிழமை" };
-  } else if (isSaturnAfflicted || isSadeSati || isAshtamaShani) {
+  } else if (struggleCategory === "career_obstacles" || isSaturnAfflicted || isSadeSati || isAshtamaShani) {
     prescribedSevaName = {
       kn: "ಗೋಕರ್ಣ ಶನಿ-ಶಿವಾಭಿಷೇಕ & ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ",
       en: "Gokarna Shani-Shiva Tailabhisheka & Mrityunjaya Shanti",
@@ -2933,7 +3406,7 @@ export function generateKundliRemedyReport(
     }
   };
 
-  // 10. Chief Priest Blessing
+  // 13. Chief Priest Blessing (Strictly Vedamurthi Shri Shreeram Pandit)
   const chiefPriestBlessing = {
     priestName: {
       kn: "ವೇದಮೂರ್ತಿ ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
@@ -2982,6 +3455,7 @@ export function generateKundliRemedyReport(
       intensity,
       intensityLabel
     },
+    lifeTurnaroundTiming,
     afflictionFactors,
     psychologicalProfile: {
       krodhaLevel,

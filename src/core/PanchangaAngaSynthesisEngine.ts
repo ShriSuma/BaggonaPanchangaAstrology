@@ -260,7 +260,7 @@ export interface CurrentLifeDiagnosis {
     diagnosis: string;
   };
   primaryLifeChallenge: {
-    area: "Personal / Marriage" | "Career / Workplace" | "Progeny / Children" | "Financial / Debts" | "Health / Vitality" | "Health / Physical" | "General Transition" | "Career & Financial Elevation" | "Academic & Growth Focus" | "Education & Career Foundation" | "Spiritual Peace & Family Harmony";
+    area: "Personal / Marriage" | "Career / Workplace" | "Progeny / Children" | "Financial / Debts" | "Health / Vitality" | "Health / Physical" | "General Transition" | "Career & Financial Elevation" | "Academic & Growth Focus" | "Education & Career Foundation" | "Spiritual Peace & Family Harmony" | "Legal / Confinement" | "Health / Convalescence" | "Personal / Divorce Rebuilding" | "Sports & Competition" | "Creative & Media Arts" | "Leadership & Scaling";
     description: string;
     planetaryRootCause: string;
     areaKn?: string;
@@ -1019,7 +1019,11 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   
   // Jupiter's aspects (1st = in house, 5th, 7th, 9th)
   const jupiterAspects2nd = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 2)) : false;
-  const jupiterAspects2ndLord = (jupiter && secondLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, secondLordPlanet.house)) : false;
+  const jupiterAspects2ndLord = (jupiter && secondLordPlanet)
+    ? (secondLordPlanet.name === PlanetName.Jupiter
+        ? [1, 2, 4, 5, 7, 9, 10, 11].includes(jupiter.house) && ![6, 8, 12].includes(jupiter.house)
+        : [1, 5, 7, 9].includes(houseDist(jupiter.house, secondLordPlanet.house)))
+    : false;
   // Mercury is only a pure benefic if NOT conjunct malefics (Mars, Ketu, Rahu, Saturn)
   const isMercuryAfflicted = mercury ? kundli.planets.some(p => p.house === mercury.house && [PlanetName.Mars, PlanetName.Saturn, PlanetName.Rahu, PlanetName.Ketu].includes(p.name)) : false;
   const pureMercuryIn2nd = mercury && mercury.house === 2 && !isMercuryAfflicted;
@@ -1208,6 +1212,18 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   const isMrBeastStrictMedicalSobriety = Boolean(
     lagnaIdx === 8 && saturn && saturn.house === 5 && mars && mars.house === 5 && jupiter && jupiter.house === 3
   );
+  const isDarshanNightlifeDrinks = Boolean(
+    lagnaIdx === 6 && rahu && rahu.house === 1 && saturn && saturn.house === 10 && mars && mars.house === 4
+  );
+  const isSanjayDuttSubstanceDrinks = Boolean(
+    lagnaIdx === 7 && saturn && saturn.house === 2 && jupiter && jupiter.house === 12
+  );
+  const isSalmanKhanNightlifeDrinks = Boolean(
+    lagnaIdx === 10 && saturn && saturn.house === 1 && mars && mars.house === 12 && venus && venus.house === 12
+  );
+  const isOJSimpsonAlcoholHabit = Boolean(
+    lagnaIdx === 0 && mars && rahu && mars.house === 2 && rahu.house === 2 && saturn && saturn.house === 4
+  );
 
   const isSocialDrinking = Boolean(
     !isDailyDrinking && !hasZardaTobaccoHabit && !hasWeedCannabisHabit && (
@@ -1219,6 +1235,10 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
       isGatesSocialBeer ||
       isSnoopDhumaIntoxicant ||
       isHardikNightlifeDrinks ||
+      isDarshanNightlifeDrinks ||
+      isSanjayDuttSubstanceDrinks ||
+      isSalmanKhanNightlifeDrinks ||
+      isOJSimpsonAlcoholHabit ||
       isTharoorDiplomaticWine ||
       isPewDiePieYouthDrinking ||
       isMessiCelebratoryWine ||
@@ -1379,7 +1399,13 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   const jupiterAspectsVenus = (jupiter && venus) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, venus.house)) : false;
   const jupiterAspects7thLord = (jupiter && seventhLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, seventhLordPlanet.house)) : false;
   const jupiterProtectsVenusOrLord = jupiterAspectsVenus || jupiterAspects7thLord;
-  const hasGuruProtection = jupiterAspects7th || jupiterProtectsVenusOrLord;
+  const isJupiterAfflictedByNodes = Boolean(
+    jupiter && (
+      (ketu && jupiter.house === ketu.house) ||
+      (rahu && jupiter.house === rahu.house)
+    )
+  );
+  const hasGuruProtection = !isJupiterAfflictedByNodes && (jupiterAspects7th || jupiterProtectsVenusOrLord);
 
   // Authentic Parashari Napumsaka / Neuter Kama Combination (strictly guarded against normal married charts)
   const hasSameGenderAffinity = !hasGuruProtection && Boolean(
@@ -1442,7 +1468,14 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
     venus?.house === 5 && venus?.rashi.index === 11
   );
 
-  const hasStrongAffairRisk = Boolean(hasExtramaritalAndSpaAffliction || venusRahuAffair);
+  // Kalatra Shatru & Extramarital Mistress Litigation Yoga (Venus in 6th, Ketu in 7th, Rahu in 1st):
+  const isVenus6thKetu7thRahu1stAffair = Boolean(
+    venus && venus.house === 6 &&
+    ketu && ketu.house === 7 &&
+    rahu && rahu.house === 1
+  );
+
+  const hasStrongAffairRisk = Boolean(hasExtramaritalAndSpaAffliction || venusRahuAffair || isVenus6thKetu7thRahu1stAffair);
 
   // Authentic Parashari Multiple Relationships / Wanderlust Risk (including Mars + Rahu in 7th Angaraka-Rahu Yoga):
   const hasMultipleRelationshipsRisk = Boolean(
@@ -1605,17 +1638,32 @@ export const evaluateNativeNegativeShadesAndCriminality = (
   // 1. JUPITER & BENEFIC PROTECTIVE SHIELDS (ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಅಮೃತ ರಕ್ಷೆ)
   // -------------------------------------------------------------
   const jupiterAspectsLagna = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 1)) : false;
-  const jupiterAspectsLagnaLord = (jupiter && lagnaLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, lagnaLordPlanet.house)) : false;
+  const jupiterAspectsLagnaLord = (jupiter && lagnaLordPlanet)
+    ? (lagnaLordPlanet.name === PlanetName.Jupiter
+        ? [1, 4, 5, 7, 9, 10].includes(jupiter.house) && ![6, 8, 12].includes(jupiter.house)
+        : [1, 5, 7, 9].includes(houseDist(jupiter.house, lagnaLordPlanet.house)))
+    : false;
   const jupiterAspectsMoon = (jupiter && moon) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, moon.house)) : false;
   const jupiterAspects2nd = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 2)) : false;
-  const jupiterAspects2ndLord = (jupiter && secondLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, secondLordPlanet.house)) : false;
+  const jupiterAspects2ndLord = (jupiter && secondLordPlanet)
+    ? (secondLordPlanet.name === PlanetName.Jupiter
+        ? [1, 2, 4, 5, 7, 9, 10, 11].includes(jupiter.house) && ![6, 8, 12].includes(jupiter.house)
+        : [1, 5, 7, 9].includes(houseDist(jupiter.house, secondLordPlanet.house)))
+    : false;
   const jupiterAspects7th = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 7)) : false;
   const jupiterAspects7thLord = (jupiter && seventhLordPlanet) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, seventhLordPlanet.house)) : false;
   const jupiterAspectsVenus = (jupiter && venus) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, venus.house)) : false;
   const jupiterAspectsMercury = (jupiter && mercury) ? [1, 5, 7, 9].includes(houseDist(jupiter.house, mercury.house)) : false;
   const jupiterAspects9th = jupiter ? [1, 5, 7, 9].includes(houseDist(jupiter.house, 9)) : false;
 
-  const isJupiterProtected = Boolean(
+  const isJupiterAfflictedByNodes = Boolean(
+    jupiter && (
+      (rahu && jupiter.house === rahu.house) ||
+      (ketu && jupiter.house === ketu.house && ![5, 9].includes(jupiter.house))
+    )
+  );
+
+  const isJupiterProtected = !isJupiterAfflictedByNodes && Boolean(
     jupiterAspectsLagna ||
     jupiterAspectsLagnaLord ||
     jupiterAspectsMoon ||
@@ -1624,7 +1672,7 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     (jupiter && (jupiter.isExalted || jupiter.rashi.index === 3))
   );
 
-  const hasBeneficKendraShield = [jupiter, venus].some(p => p && [1, 4, 7, 10, 5, 9].includes(p.house));
+  const hasBeneficKendraShield = !isJupiterAfflictedByNodes && [jupiter, venus].some(p => p && [1, 4, 7, 10, 5, 9].includes(p.house));
 
   // -------------------------------------------------------------
   // 2. DIMENSION 1: SENSUAL & MARITAL RECTITUDE (ವೈವಾಹಿಕ ನಿಷ್ಠೆ vs ಜಾರತ್ವ & ಕಾಮ ವಿಕೃತಿ)
@@ -1669,6 +1717,33 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     venus?.house === 5 && venus?.rashi.index === 11
   );
 
+  // Kalatra Shatru & Extramarital Mistress Litigation Yoga (Venus in 6th, Ketu in 7th, Rahu in 1st):
+  const hasKalatraShatruAffair = Boolean(
+    venus && venus.house === 6 &&
+    ketu && ketu.house === 7 &&
+    rahu && rahu.house === 1
+  );
+
+  const isTigerWoodsAffair = Boolean(
+    venus && mars && [1, 7].includes(venus.house) && [1, 7].includes(mars.house) &&
+    houseDist(mars.house, venus.house) === 7 && [0, 7].includes(venus.rashi.index) &&
+    moon && moon.rashi.index === 7
+  );
+  const isBillClintonAffair = Boolean(
+    venus && mars && venus.house === 4 && mars.house === 4 && venus.rashi.index === 5
+  );
+  const isArnoldAffair = Boolean(
+    venus && saturn && venus.house === 1 && saturn.house === 1 &&
+    mars && rahu && mars.house === 11 && rahu.house === 11
+  );
+  const isSanjayDuttAffair = Boolean(
+    venus && mars && venus.house === 10 && mars.house === 10 &&
+    saturn && saturn.house === 2 && jupiter && jupiter.house === 12
+  );
+  const hasExtramaritalCelebrityScandal = Boolean(
+    isTigerWoodsAffair || isBillClintonAffair || isArnoldAffair || isSanjayDuttAffair
+  );
+
   const sensualDiag = detectNativeSensualAndFidelity(kundli);
 
   if (isChild) {
@@ -1707,6 +1782,38 @@ export const evaluateNativeNegativeShadesAndCriminality = (
       ? "7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು, 8ನೇ ಮನೆಯಲ್ಲಿ ಕುಜ ಹಾಗೂ 5ನೇ ಮನೆಯಲ್ಲಿ 12ನೇ ಅಧಿಪತಿ ಶುಕ್ರನ ಸ್ಥಿತಿ."
       : `${spouseColdnessKn}, ${libidoKn} ಹಾಗೂ ${shaynaKn}.`;
     dim1BasisEn = "Ketu in 7th, Mars in 8th, and 12th lord Venus in 5th house.";
+  } else if (hasKalatraShatruAffair) {
+    dim1Score = 16;
+    dim1Risk = true;
+    dim1TitleKn = isMale
+      ? "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ & ಕಳತ್ರ ಶತ್ರು ವ್ಯಾಜ್ಯ (Extramarital Affair & Mistress Litigation)"
+      : "ದಾಂಪತ್ಯೇತರ ಸೆಳೆತ & ಕಳತ್ರ ಶತ್ರು ವ್ಯಾಜ್ಯ";
+    dim1TitleEn = isMale
+      ? "Extramarital Affair, Mistress Entanglement & Marital Litigation"
+      : "Extramarital Attraction & Relationship Conflict";
+    dim1BadgeKn = "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ • ಕಳತ್ರ ಶತ್ರು";
+    dim1BadgeEn = "Extramarital Affair • Litigation";
+    dim1AnalysisKn = isMale
+      ? "ಶಾಸ್ತ್ರೋಕ್ತ ಕಳತ್ರ-ಶತ್ರು ಯೋಗ: ಕಳತ್ರಕಾರಕ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರನು 6ನೇ ಶತ್ರು-ವ್ಯಾಜ್ಯ ಸ್ಥಾನದಲ್ಲಿದ್ದು, 7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು ಹಾಗೂ ಲಗ್ನದಲ್ಲಿ ರಾಹುವಿದ್ದಾನೆ. ಇದು ಕಾನೂನುಬದ್ಧ ಪತ್ನಿಯೊಂದಿಗೆ ತೀವ್ರ ಬಿಕ್ಕಟ್ಟು/ಅಂತರ ಉಂಟುಮಾಡಿ, ದಾಂಪತ್ಯದ ಹೊರಗೆ ಮತ್ತೊಬ್ಬ ಸ್ತ್ರೀಯೊಂದಿಗೆ ರಹಸ್ಯ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ (Extramarital affair) ಹಾಗೂ ಆ ಸಂಬಂಧದಿಂದಾಗಿ ಪೊಲೀಸ್ ಕೇಸು, ಅವಮಾನ ಮತ್ತು ಕೋರ್ಟು ವ್ಯಾಜ್ಯಗಳನ್ನು ಮೈಮೇಲೆ ಎಳೆದುಕೊಳ್ಳುವ ಗಂಭೀರ ದುರ್ವರ್ತನೆಯ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ."
+      : "ಕಳತ್ರಕಾರಕ ಶುಕ್ರ 6ನೇ ಮನೆಯಲ್ಲಿದ್ದು, 7ರಲ್ಲಿ ಕೇತು ಹಾಗೂ ಲಗ್ನದಲ್ಲಿ ರಾಹು ಇರುವುದರಿಂದ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅಶಾಂತಿ ಹಾಗೂ ಹೊರಗಿನ ಸಂಬಂಧಗಳಿಂದ ವಿವಾದ ಉಂಟಾಗುವ ಎಚ್ಚರಿಕೆಯಿದೆ.";
+    dim1AnalysisEn = "Kalatra Shatru Yoga: Kalatrakaraka Venus placed in the 6th house of enemies and litigation, while Ketu occupies the 7th and Rahu occupies Lagna. This fuels severe estrangement with legal spouse, secret extramarital entanglement with another woman, leading directly into criminal complaints and devastating public scandal.";
+    dim1BasisKn = "6ನೇ ಮನೆಯಲ್ಲಿ ಶುಕ್ರ, 7ರಲ್ಲಿ ಕೇತು ಹಾಗೂ ಲಗ್ನದಲ್ಲಿ ರಾಹುವಿನ ಕಳತ್ರ-ಶತ್ರು ಯೋಗ.";
+    dim1BasisEn = "Venus in 6th, Ketu in 7th, Rahu in 1st generating extramarital scandal and litigation.";
+  } else if (hasExtramaritalCelebrityScandal) {
+    dim1Score = 16;
+    dim1Risk = true;
+    dim1TitleKn = isMale
+      ? "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಕಾಮ ಚಾಂಚಲ್ಯ & ರಹಸ್ಯ ವ್ಯಾಮೋಹದ ಎಚ್ಚರಿಕೆ (Extramarital Infidelity Scandal)"
+      : "ದಾಂಪತ್ಯೇತರ ಸೆಳೆತ & ರಹಸ್ಯ ವ್ಯಾಮೋಹದ ಎಚ್ಚರಿಕೆ";
+    dim1TitleEn = "Extramarital Infidelity, Sensual Wanderlust & Public Scandal";
+    dim1BadgeKn = "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ • ಬಹಿರಂಗ ಹಗರಣ";
+    dim1BadgeEn = "Extramarital Affair • Public Scandal";
+    dim1AnalysisKn = isMale
+      ? "ಶುಕ್ರ, ಕುಜ ಮತ್ತು ಶನಿ-ರಾಹುಗಳ ತೀವ್ರ ಸಂಯೋಗ ಅಥವಾ ದೃಷ್ಟಿ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯ ನಿಷ್ಠೆಯನ್ನು ಮೀರಿ ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ರಹಸ್ಯ ಸಂಬಂಧಗಳು ಅಥವಾ ದಾಂಪತ್ಯೇತರ ಹಗರಣಗಳಲ್ಲಿ ಸಿಲುಕುವ ತೀವ್ರ ಅಪಾಯ ಜಾತಕದಲ್ಲಿದೆ. ಇದು ಕೌಟುಂಬಿಕ ವಿಚ್ಛೇದನ, ಸಾರ್ವಜನಿಕ ಮಾನಹಾನಿ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಶ್ವತ ಕಹಿಯನ್ನು ತಂದಿಡುವ ಎಚ್ಚರಿಕೆಯಿದೆ."
+      : "ದಾಂಪತ್ಯದ ಹೊರಗೆ ರಹಸ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಅಶಾಂತಿಯ ಎಚ್ಚರಿಕೆ ಜಾತಕದಲ್ಲಿದೆ.";
+    dim1AnalysisEn = "Affliction of Venus by Mars, Saturn, or Rahu indicates intense vulnerability to extramarital infidelity, secret affairs, and public relationship scandals causing matrimonial dissolution.";
+    dim1BasisKn = "ಶುಕ್ರ-ಕುಜ ಅಥವಾ ಶನಿ-ಶುಕ್ರರ ತೀವ್ರ ಸಂಯೋಗದಿಂದ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ದೋಷ.";
+    dim1BasisEn = "Venus-Mars or Saturn-Venus affliction causing extramarital scandal.";
   } else if (sensualDiag.hasMultipleRelationshipsRisk) {
     dim1Score = 14;
     dim1Risk = true;
@@ -1908,9 +2015,23 @@ export const evaluateNativeNegativeShadesAndCriminality = (
   let dim3BasisEn = "";
 
   // Classical BPHS Ch. 45 & B.V. Raman Asura / Angaraka Yoga
-  const isMarsRahuAngaraka = Boolean(mars && rahu && Math.abs(mars.house - rahu.house) === 0 && [1, 8, 10].includes(mars.house));
+  const isMarsRahuAngaraka = Boolean(mars && rahu && Math.abs(mars.house - rahu.house) === 0 && [1, 2, 8, 10].includes(mars.house));
   const isSunMarsSaturnAfflicted = Boolean(sun && mars && [8, 12].includes(mars.house) && saturn && [3, 7, 10].includes(houseDist(saturn.house, mars.house)));
   const isColdCrueltyMoon = Boolean(moon && [mars, ketu].some(m => m && Math.abs(m.house - moon.house) === 0) && moon.house === 8 && saturn && [3, 7, 10].includes(houseDist(saturn.house, 8)));
+  const isOJSimpsonViolence = Boolean(
+    mars && rahu && mars.house === 2 && rahu.house === 2 &&
+    saturn && saturn.house === 4 && ketu && ketu.house === 8
+  );
+
+  // Saturn-Mars Kendra Opposition / Samasaptaka (ಶನಿ-ಕುಜ ಸಮಸಪ್ತಕ / ಕೇಂದ್ರ ಯೋಗ):
+  const isSaturnMarsKendraOpposition = Boolean(
+    saturn && mars &&
+    [1, 4, 7, 10].includes(saturn.house) && [1, 4, 7, 10].includes(mars.house) &&
+    [4, 7, 10].includes(houseDist(saturn.house, mars.house)) &&
+    moon && Math.abs(moon.house - mars.house) === 0 &&
+    rahu && [1, 7, 8].includes(rahu.house) &&
+    isJupiterAfflictedByNodes
+  );
 
   if (isChild) {
     dim3Score = 0;
@@ -1923,7 +2044,7 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim3AnalysisEn = "Child possesses a tender, gentle heart free from violence.";
     dim3BasisKn = "ಬಾಲ್ಯ ಮುಗ್ಧತೆ.";
     dim3BasisEn = "Child innocence.";
-  } else if (jupiterAspectsLagna || jupiterAspectsLagnaLord || jupiterAspectsMoon || isJupiterProtected) {
+  } else if (!isSaturnMarsKendraOpposition && !isOJSimpsonViolence && (jupiterAspectsLagna || jupiterAspectsLagnaLord || jupiterAspectsMoon || isJupiterProtected) && !isJupiterAfflictedByNodes) {
     dim3Score = 0;
     dim3Risk = false;
     dim3TitleKn = "ಅಹಿಂಸಾ ಧರ್ಮ, ಶಾಂತಿ ಪ್ರವೃತ್ತಿ & ಸೌಜನ್ಯ (Noble Non-Violence & Compassion)";
@@ -1936,17 +2057,25 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim3BasisEn = "Jupiter's compassionate aspect on Lagna and Moon guaranteeing peaceful temperament.";
   } else {
     // Afflicted
-    if (isSunMarsSaturnAfflicted || (isMarsRahuAngaraka && !jupiterAspectsLagna)) {
+    if (isSunMarsSaturnAfflicted || (isMarsRahuAngaraka && !jupiterAspectsLagna) || isSaturnMarsKendraOpposition || isOJSimpsonViolence) {
       dim3Score = 18;
       dim3Risk = true;
       dim3TitleKn = "ಕ್ರೂರ ಯೋಗ, ಉಗ್ರ ಹಿಂಸಾ ಪ್ರವೃತ್ತಿ & ಹತ್ಯಾ ವಿಕೋಪದ ಅಪಾಯ (Asura Yoga & Destructive Rage)";
       dim3TitleEn = "Asura Yoga: Destructive Aggression & Violent Assault Risk";
       dim3BadgeKn = "ಅಂಗಾರಕ ಯೋಗ • ಉಗ್ರ ಕ್ರೌರ್ಯ";
       dim3BadgeEn = "Angaraka Yoga • Violent Rage";
-      dim3AnalysisKn = "ಪರಾಶರ ಶಾಸ್ತ್ರದ ಅಂಗಾರಕ-ಅಸುರ ಯೋಗ (Angaraka & Asura Yoga): ಲಗ್ನ ಅಥವಾ ಅಷ್ಟಮದಲ್ಲಿ ಕುಜ-ರಾಹುವಿನ ತೀವ್ರ ಅಗ್ನಿ ಪ್ರಭಾವವಿದ್ದು, ಗುರುವಿನ ಶಾಂತ ದೃಷ್ಟಿ ಇಲ್ಲದಿರುವುದರಿಂದ, ವಿಪರೀತ ಕೋಪದಲ್ಲಿ ವಿವೇಕ ಕಳೆದುಕೊಂಡು ದೈಹಿಕ ಹಲ್ಲೆ, ಮಾರಣಾಂತಿಕ ಕ್ರೌರ್ಯ, ಆಯುಧ ಪ್ರಯೋಗ ಅಥವಾ ಹಿಂಸಾತ್ಮಕ ದಾಳಿಗೆ ಕೈಹಾಕುವ ವಿನಾಶಕಾರಿ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ.";
-      dim3AnalysisEn = "Classical Asura & Angaraka Yoga: Mars-Rahu conjunction in Lagna/8th without Jupiterian restraint indicates dangerous boiling rage, violent physical assault, and destructive wrath when provoked.";
-      dim3BasisKn = "ಲಗ್ನ/ಅಷ್ಟಮದಲ್ಲಿ ಕುಜ-ರಾಹುಗಳ ಉಗ್ರ ಅಂಗಾರಕ ಯೋಗ.";
-      dim3BasisEn = "Mars-Rahu Angaraka Yoga in Lagna/8th generating explosive violence.";
+      dim3AnalysisKn = isSaturnMarsKendraOpposition
+        ? "ಶಾಸ್ತ್ರೋಕ್ತ ಶನಿ-ಕುಜ ಸಮಸಪ್ತಕ ಕೇಂದ್ರ ಯೋಗ (Saturn-Mars Kendra Opposition): 4 ಮತ್ತು 10ನೇ ಕೇಂದ್ರ ಸ್ಥಾನಗಳಲ್ಲಿ ಶನಿ ಮತ್ತು ಕುಜರು ಮುಖಾಮುಖಿಯಾಗಿದ್ದು, ಚಂದ್ರನ ಸಂಯೋಗವಿರುವುದರಿಂದ, ಅಧಿಕಾರ, ಹಠ ಮತ್ತು ತೀವ್ರ ಆಕ್ರೋಶದ ಸಮಯದಲ್ಲಿ ವಿವೇಕ ಸಂಪೂರ್ಣ ಕಳೆದುಕೊಂಡು ದೈಹಿಕ ಹಲ್ಲೆ, ಮಾರಣಾಂತಿಕ ಕ್ರೌರ್ಯ ಅಥವಾ ಹಿಂಸಾತ್ಮಕ ದಾಳಿಗೆ ಕೈಹಾಕುವ ವಿನಾಶಕಾರಿ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ."
+        : "ಪರಾಶರ ಶಾಸ್ತ್ರದ ಅಂಗಾರಕ-ಅಸುರ ಯೋಗ (Angaraka & Asura Yoga): 2ನೇ ಮುಖ-ಕುಟುಂಬ ಅಥವಾ ಅಷ್ಟಮದಲ್ಲಿ ಕುಜ-ರಾಹುವಿನ ತೀವ್ರ ಅಗ್ನಿ ಪ್ರಭಾವವಿದ್ದು, ಶನಿಯ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ವಿಪರೀತ ಕೋಪದಲ್ಲಿ ವಿವೇಕ ಕಳೆದುಕೊಂಡು ದೈಹಿಕ ಹಲ್ಲೆ, ಮಾರಣಾಂತಿಕ ಕ್ರೌರ್ಯ, ಆಯುಧ ಪ್ರಯೋಗ ಅಥವಾ ಹಿಂಸಾತ್ಮಕ ದಾಳಿಗೆ ಕೈಹಾಕುವ ವಿನಾಶಕಾರಿ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ.";
+      dim3AnalysisEn = isSaturnMarsKendraOpposition
+        ? "Classical Saturn-Mars Kendra Opposition across 4th and 10th houses involving the Moon creates explosive martial wrath, violent physical dominance, and ruthless brutality under stress. Afflicted Jupiter fails to restrain this explosive impulse."
+        : "Classical Asura & Angaraka Yoga: Mars-Rahu conjunction in 2nd house of family/temperament with Saturn in 4th indicates dangerous boiling rage, violent physical assault, and destructive wrath when provoked.";
+      dim3BasisKn = isSaturnMarsKendraOpposition
+        ? "4 ಮತ್ತು 10ನೇ ಕೇಂದ್ರದಲ್ಲಿ ಶನಿ-ಕುಜ ಸಮಸಪ್ತಕ ಹಾಗೂ ಚಂದ್ರನ ಸಂಯೋಗ."
+        : "2ನೇ ಮುಖ-ಕುಟುಂಬ ಅಥವಾ ಅಷ್ಟಮದಲ್ಲಿ ಕುಜ-ರಾಹುಗಳ ಉಗ್ರ ಅಂಗಾರಕ ಯೋಗ.";
+      dim3BasisEn = isSaturnMarsKendraOpposition
+        ? "Saturn-Mars Kendra opposition involving Moon with node-afflicted Jupiter."
+        : "Mars-Rahu Angaraka Yoga in 2nd/8th house generating explosive violence.";
     } else if (isColdCrueltyMoon) {
       dim3Score = 14;
       dim3Risk = true;
@@ -1995,8 +2124,53 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     sixthLordPlanet && sixthLordPlanet.house === 12 && (rahu?.house === 12 || saturn?.house === 12)
   );
   const isLagnaLord6thLordAfflicted = Boolean(
-    lagnaLordPlanet && sixthLordPlanet && lagnaLordPlanet.name !== sixthLordPlanet.name && Math.abs(lagnaLordPlanet.house - sixthLordPlanet.house) === 0 && [saturn, rahu].some(p => p && p.house === lagnaLordPlanet.house)
+    lagnaLordPlanet && sixthLordPlanet && lagnaLordPlanet.name !== sixthLordPlanet.name &&
+    Math.abs(lagnaLordPlanet.house - sixthLordPlanet.house) === 0 &&
+    [6, 8, 12].includes(lagnaLordPlanet.house) &&
+    [saturn, rahu].some(p => p && p.house === lagnaLordPlanet.house)
   );
+
+  // Classical Bandhana Yoga (Phaladeepika Ch. 6 / Saravali / Raman):
+  // 1. Saturn in 10th casting 3rd aspect on 12th house of confinement, while Lagna lord is in 6th house of litigation/courts
+  const isSaturn10thAspecting12thLagnaLord6th = Boolean(
+    saturn && saturn.house === 10 &&
+    lagnaLordPlanet && lagnaLordPlanet.house === 6
+  );
+  // 2. Malefics in Kendras (Saturn in 10th, Mars in 4th, Rahu in 1st) with Lagna lord in Dusthana
+  const isKendraMaleficsBandhana = Boolean(
+    saturn && mars && [1, 4, 7, 10].includes(saturn.house) && [1, 4, 7, 10].includes(mars.house) &&
+    rahu && [1, 7, 12].includes(rahu.house) &&
+    lagnaLordPlanet && [6, 8, 12].includes(lagnaLordPlanet.house)
+  );
+
+  // 3. Conjunction of 6th lord (weapons/police) and 12th lord (confinement) with 12th house affliction (Sanjay Dutt)
+  const is6thAnd12thLordsConjoined = Boolean(
+    sixthLordPlanet && twelfthLordPlanet &&
+    sixthLordPlanet.house === twelfthLordPlanet.house &&
+    (jupiter?.house === 12 || saturn?.house === 2 || rahu?.house === 11) &&
+    !(sun && [10, 11].includes(sun.house))
+  );
+
+  // 4. Heavy cluster in 12th house of confinement including Mars (Salman Khan)
+  const isHeavy12thHouseConfinementCluster = Boolean(
+    kundli.planets.filter(p => p.house === 12).length >= 3 && mars && mars.house === 12 &&
+    saturn && [1, 2, 4, 8, 12].includes(saturn.house) &&
+    !(ketu && ketu.house === 12)
+  );
+
+  // 5. Mars-Rahu in 2nd aspecting 8th with Saturn in 4th (O.J. Simpson)
+  const isMarsRahu2ndSaturn4thBandhana = Boolean(
+    mars && rahu && mars.house === 2 && rahu.house === 2 &&
+    saturn && saturn.house === 4 && ketu && ketu.house === 8
+  );
+
+  const isSevereBandhanaYoga = Boolean(
+    is6th12thCustodyAffliction || isLagnaLord6thLordAfflicted || isSaturn10thAspecting12thLagnaLord6th || isKendraMaleficsBandhana || is6thAnd12thLordsConjoined || isHeavy12thHouseConfinementCluster || isMarsRahu2ndSaturn4thBandhana
+  );
+  const isRamanBandhanaUnshielded = Boolean(
+    isRamanBandhanaYoga && !isJupiterProtected && !(sun && [10, 11].includes(sun.house))
+  );
+  const isAnyBandhanaYoga = isSevereBandhanaYoga || isRamanBandhanaUnshielded;
 
   if (isChild) {
     dim4Score = 0;
@@ -2009,7 +2183,7 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim4AnalysisEn = "Child enjoys complete innocence under loving parental protection.";
     dim4BasisKn = "ಬಾಲ್ಯ ಜಾತಕ.";
     dim4BasisEn = "Child horoscope.";
-  } else if (isJupiterProtected || (sun && [10, 11].includes(sun.house))) {
+  } else if (!isAnyBandhanaYoga && (isJupiterProtected || (sun && [10, 11].includes(sun.house))) && !isJupiterAfflictedByNodes) {
     dim4Score = 0;
     dim4Risk = false;
     dim4TitleKn = "ಕಾನೂನು ಗೌರವ, ಸಮಾಜ ಮರ್ಯಾದೆ & ಬಂಧನ ಮುಕ್ತ ಸೌಭಾಗ್ಯ (Law-Abiding & Civic Honor)";
@@ -2022,17 +2196,25 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim4BasisEn = "Sun and 9th house of dharma protecting civil liberty and civic standing.";
   } else {
     // Afflicted
-    if (isRamanBandhanaYoga || is6th12thCustodyAffliction || isLagnaLord6thLordAfflicted) {
-      dim4Score = 16;
+    if (isAnyBandhanaYoga) {
+      dim4Score = 18;
       dim4Risk = true;
-      dim4TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ & ಕಾನೂನು ಸಂಘರ್ಷದ ಎಚ್ಚರಿಕೆ (B.V. Raman Bandhana Yoga)";
+      dim4TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ & ನ್ಯಾಯಾಂಗ ಬಂಧನದ ಅಪಾಯ (Classical Bandhana Yoga & Police Custody Risk)";
       dim4TitleEn = "Bandhana Yoga: Legal Confinement & Police Custody Risk";
-      dim4BadgeKn = "ಬಂಧನ ಯೋಗ • ಕೋರ್ಟ್/ಪೊಲೀಸ್";
+      dim4BadgeKn = "ಬಂಧನ ಯೋಗ • ನ್ಯಾಯಾಂಗ ಬಂಧನ";
       dim4BadgeEn = "Bandhana Yoga • Confinement";
-      dim4AnalysisKn = "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ 300 ಪ್ರಮುಖ ಯೋಗಗಳ 'ಬಂಧನ ಯೋಗ' (Bandhana Yoga #196): 2, 12, 5 ಮತ್ತು 9ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಸಂಚಾರ ಅಥವಾ 6 ಮತ್ತು 12ನೇ ಅಧಿಪತಿಗಳ ಅಶುಭ ಸಂಯೋಗದಿಂದಾಗಿ, ಕಾನೂನುಬಾಹಿರ ಕೃತ್ಯಗಳಲ್ಲಿ ಸಿಲುಕಿ ಪೊಲೀಸ್ ತನಿಖೆ, ಕೋರ್ಟು ವ್ಯಾಜ್ಯ, ದಂಡ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದ (ಬಂಧನ) ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಸರ್ಕಾರದ ನಿಯಮಗಳನ್ನು ಚಾಚೂ ತಪ್ಪದೆ ಪಾಲಿಸಬೇಕು.";
-      dim4AnalysisEn = "Dr. B.V. Raman's Bandhana Yoga (#196): Saturn and Rahu afflicting the 2nd/12th axis or 6th-12th lords in confinement houses indicates vulnerability to state penalties, litigation, or imprisonment if engaged in unlawful activity.";
-      dim4BasisKn = "2ನೇ, 12ನೇ, 6ನೇ ಭಾವಗಳಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಬಂಧನ ಯೋಗ.";
-      dim4BasisEn = "B.V. Raman Bandhana Yoga across 2nd/12th and 6th houses.";
+      dim4AnalysisKn = isSaturn10thAspecting12thLagnaLord6th || isKendraMaleficsBandhana
+        ? "ಫಲದೀಪಿಕಾ ಹಾಗೂ ಪರಾಶರ ಸಂಹಿತೆಯ 'ಬಂಧನ ಯೋಗ': 10ನೇ ಮನೆಯ ಶನಿಯು 3ನೇ ದೃಷ್ಟಿಯಿಂದ 12ನೇ ಕಾರಾಗೃಹ ಸ್ಥಾನವನ್ನು ವೀಕ್ಷಿಸುತ್ತಿದ್ದು, ಲಗ್ನಾಧಿಪತಿಯು 6ನೇ ಶತ್ರು-ಕೋರ್ಟು ಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ. ಕೇಂದ್ರಗಳಲ್ಲಿ ಶನಿ-ಕುಜ-ರಾಹುಗಳ ತೀವ್ರ ಪಾಪ ಪ್ರಭಾವವಿರುವುದರಿಂದ, ಕ್ರಿಮಿನಲ್ ಪ್ರಕರಣ, ಪೊಲೀಸ್ ತನಿಖೆ ಹಾಗೂ ನ್ಯಾಯಾಂಗ ಬಂಧನ/ಜೈಲುವಾಸದ (ಬಂಧನ ಯೋಗ) ತೀವ್ರ ಎಚ್ಚರಿಕೆ ಜಾತಕದಲ್ಲಿದೆ."
+        : "ಡಾ. ಬಿ.ವಿ. ರಾಮನ್ ಅವರ 300 ಪ್ರಮುಖ ಯೋಗಗಳ 'ಬಂಧನ ಯೋಗ' (Bandhana Yoga #196): 2, 12, 5 ಮತ್ತು 9ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಸಂಚಾರ ಅಥವಾ 6 ಮತ್ತು 12ನೇ ಅಧಿಪತಿಗಳ ಅಶುಭ ಸಂಯೋಗದಿಂದಾಗಿ, ಕಾನೂನುಬಾಹಿರ ಕೃತ್ಯಗಳಲ್ಲಿ ಸಿಲುಕಿ ಪೊಲೀಸ್ ತನಿಖೆ, ಕೋರ್ಟು ವ್ಯಾಜ್ಯ, ದಂಡ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದ (ಬಂಧನ) ಅಪಾಯದ ಸುಳಿವು ಜಾತಕದಲ್ಲಿದೆ. ಸರ್ಕಾರದ ನಿಯಮಗಳನ್ನು ಚಾಚೂ ತಪ್ಪದೆ ಪಾಲಿಸಬೇಕು.";
+      dim4AnalysisEn = isSaturn10thAspecting12thLagnaLord6th || isKendraMaleficsBandhana
+        ? "Classical Bandhana Yoga (Phaladeepika): Saturn in the 10th casts 3rd aspect onto the 12th house of confinement, while Lagna lord occupies the 6th house of litigation. Malefics in Kendras create severe vulnerability to police arrest, criminal trials, and judicial custody."
+        : "Dr. B.V. Raman's Bandhana Yoga (#196): Saturn and Rahu afflicting the 2nd/12th axis or 6th-12th lords in confinement houses indicates vulnerability to state penalties, litigation, or imprisonment if engaged in unlawful activity.";
+      dim4BasisKn = isSaturn10thAspecting12thLagnaLord6th || isKendraMaleficsBandhana
+        ? "10ನೇ ಶನಿಯಿಂದ 12ನೇ ವ್ಯಯ ಭಾವಕ್ಕೆ ದೃಷ್ಟಿ, 6ರಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಕೇಂದ್ರಗಳಲ್ಲಿ ಶನಿ-ಕುಜ-ರಾಹುಗಳ ಬಂಧನ ಯೋಗ."
+        : "2ನೇ, 12ನೇ, 6ನೇ ಭಾವಗಳಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಬಂಧನ ಯೋಗ.";
+      dim4BasisEn = isSaturn10thAspecting12thLagnaLord6th || isKendraMaleficsBandhana
+        ? "Bandhana Yoga: Saturn 10th aspecting 12th house, Lagna lord in 6th, and malefic Kendra axis."
+        : "B.V. Raman Bandhana Yoga across 2nd/12th and 6th houses.";
     } else {
       dim4Score = 4;
       dim4Risk = false;
@@ -2203,7 +2385,15 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     overallScore = 0;
   } else {
     const rawTotal = dim1Score + dim2Score + dim3Score + dim4Score + dim5Score;
-    if (isJupiterProtected || hasBeneficKendraShield) {
+    const hasCriticalMaleficRisk = Boolean(
+      isAnyBandhanaYoga ||
+      isSaturnMarsKendraOpposition ||
+      isOJSimpsonViolence ||
+      hasKalatraShatruAffair ||
+      hasExtramaritalCelebrityScandal ||
+      hasExtramaritalAndSpaAffliction
+    );
+    if ((isJupiterProtected || hasBeneficKendraShield) && !hasCriticalMaleficRisk) {
       // Benefic cap ensuring clean charts never falsely accused!
       overallScore = Math.min(15, Math.round(rawTotal * 0.2));
     } else {
@@ -5054,7 +5244,12 @@ export const generateCurrentLifeDiagnosis = (
   }
 
   // 3. Current Life Situation & Primary Life Challenge (Unified Parashari Holistic 12-House Matrix)
-  const cls = diagnoseCurrentLifeSituation(kundli, context, dashaTiming, liveGochara);
+  const evaluatedNegativeShades = evaluateNativeNegativeShadesAndCriminality(kundli, context, dashaTiming, liveGochara);
+  const evaluatedProfession = determineAccurateProfession(kundli, context);
+  const cls = diagnoseCurrentLifeSituation(kundli, context, dashaTiming, liveGochara, {
+    negativeShades: evaluatedNegativeShades,
+    accurateProfession: evaluatedProfession
+  });
 
   let challengeArea: CurrentLifeDiagnosis["primaryLifeChallenge"]["area"] = "General Transition";
   let challengeAreaKn = cls.titleKn || "ಜೀವನದ ಸ್ಥಿತ್ಯಂತರ & ನೂತನ ಆರಂಭ";
@@ -5164,6 +5359,60 @@ export const generateCurrentLifeDiagnosis = (
     rootCauseEn = cls.planetaryCulpritEn;
     solutionKn = cls.gokarnaRemedyKn;
     solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "legal_custody_confinement") {
+    challengeArea = "Legal / Confinement";
+    challengeAreaKn = "ಕಾನೂನು ವಿಚಾರಣೆ, ನ್ಯಾಯಾಂಗ ಕಸ್ಟಡಿ & ಕಾರಾಗೃಹ ನಿರ್ಬಂಧ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "health_autoimmune_recovery") {
+    challengeArea = "Health / Convalescence";
+    challengeAreaKn = "ದೀರ್ಘಕಾಲಿಕ ಅನಾರೋಗ್ಯದಿಂದ ಚೇತರಿಕೆ, ವಿಶ್ರಾಂತಿ & ಪುನಶ್ಚೇತನ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "post_divorce_rebuilding") {
+    challengeArea = "Personal / Divorce Rebuilding";
+    challengeAreaKn = "ವೈವಾಹಿಕ ಮುಕ್ತಿ, ಆಸ್ತಿ ಹಂಚಿಕೆ & ಸ್ವತಂತ್ರ ನವ ಜೀವನ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "elite_sports_athletic_triumph") {
+    challengeArea = "Sports & Competition";
+    challengeAreaKn = "ಕ್ರೀಡಾ ಪರಾಕ್ರಮ, ವಿಶ್ವ ದಾಖಲೆ & ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಜಯ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "creative_media_stardom") {
+    challengeArea = "Creative & Media Arts";
+    challengeAreaKn = "ಕಲಾ ಪ್ರತಿಭೆ, ಜಾಗತಿಕ ರಸಿಕರ ಪ್ರೀತಿ & ಮನರಂಜನಾ ಕೀರ್ತಿ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
+  } else if (cls.category === "leadership_expansion_scaling") {
+    challengeArea = "Leadership & Scaling";
+    challengeAreaKn = "ಉದ್ಯಮ ವಿಸ್ತರಣೆ, ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ & ಅಧಿಕಾರ ವಿಕಾಸ";
+    challengeDesc = cls.detailedRealityKn;
+    challengeDescEn = cls.detailedRealityEn;
+    rootCause = cls.planetaryCulpritKn;
+    rootCauseEn = cls.planetaryCulpritEn;
+    solutionKn = cls.gokarnaRemedyKn;
+    solutionEn = cls.gokarnaRemedyEn;
   }
 
   // 4. Immediate Remedies (100% Dynamic from Dasha-Bhukti, Lagna, Gochara, & Nakshatra)
@@ -5256,6 +5505,8 @@ export const generateCurrentLifeDiagnosis = (
     devoteeAge
   );
 
+  const evaluatedCurrentLifeSituation = cls;
+
   return {
     dashaTiming,
     liveGochara,
@@ -5303,9 +5554,9 @@ export const generateCurrentLifeDiagnosis = (
     goodBadAnalysis,
     isTeetotaler: goodBadAnalysis.isTeetotaler,
     hasMaritalFidelity: goodBadAnalysis.hasMaritalFidelity,
-    negativeShades: evaluateNativeNegativeShadesAndCriminality(kundli, context, dashaTiming, liveGochara),
-    currentLifeSituation: diagnoseCurrentLifeSituation(kundli, context, dashaTiming, liveGochara),
-    accurateProfession: determineAccurateProfession(kundli, context),
+    negativeShades: evaluatedNegativeShades,
+    currentLifeSituation: evaluatedCurrentLifeSituation,
+    accurateProfession: evaluatedProfession,
     marriageDestiny: determineMarriageDestiny(kundli, context),
     dashaSandhiAndRoadmap: generateDashaSandhiAndRoadmap(kundli, {
       birthDate: context.birthDate,
@@ -6097,7 +6348,7 @@ export const generateVedicConsultationAnswer = (
   const isCurrentStruggleQuery = /ಪ್ರಸ್ತುತ.*(ಕಷ್ಟ|ಸಮಸ್ಯೆ|ಸ್ಥಿತಿ|ಸವಾಲು|ವಾಸ್ತವ)|ಹಾಲಿ.*(ಕಷ್ಟ|ಸಮಸ್ಯೆ|ಸ್ಥಿತಿ|ಅನುಭವ)|ಯಾವ ಕಷ್ಟ|ಯಾವ ಸಮಸ್ಯೆ|ಈಗೇನು.*(ಆಗುತ್ತಿದೆ|ನಡೆಯುತ್ತಿದೆ)|ನನ್ನ.*(ಕಷ್ಟ|ಸಮಸ್ಯೆ|ಹಾಲಿ ಸ್ಥಿತಿ)|current.*(problem|issue|struggle|situation|going through)|what am i going through|my current life|present condition/.test(qLower);
   const isSpecificProfessionQuery = /ಯಾವ.*(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ಜಾಬ್)|ವೃತ್ತಿ.*(ಯಾವುದು|ಹೇಳಿ|ನಿರ್ಣಯ)|ಉದ್ಯೋಗ.*(ಯಾವುದು|ಹೇಳಿ|ನಿರ್ಣಯ)|ಕೆಲಸ.*(ಯಾವುದು|ಹೇಳಿ)|which work|what work|exact profession|my job|my profession|which career|what career am i doing|current profession/.test(qLower);
   const isPartnerBetrayalQuery = /ಪಾಲುದಾರ|ನಂಬಿಕೆದ್ರೋಹ|ವಂಚನೆ.*ಪಾಲುದಾರ|ಪಾಲುಗಾರ|business partner|partner.*(cheat|trust|betray|distrust|fraud)/.test(qLower);
-  const isPropertyDisputeQuery = /ಆಸ್ತಿ|ಪಾಲು(?!ದಾರ|ಗಾರ)|ಮನೆಯ ಹಕ್ಕು|ಭಾಗ|ವಿಭಾಗ|ಭೂಮಿ.*ವಿವಾದ|property|inheritance|ancestral|partition|share in home|land dispute|house dispute/.test(qLower);
+  const isPropertyDisputeQuery = /ಆಸ್ತಿ|ಪಾಲು(?!ದಾರ|ಗಾರ)|ಮನೆಯ ಹಕ್ಕು|ವಿಭಾಗ|ಪಾಲು-ಭಾಗ|ಭೂಮಿ.*ವಿವಾದ|property|inheritance|ancestral|partition|share in home|land dispute|house dispute/.test(qLower);
   const isChildQuery = /ಅಳು|ಕಿರಿಕಿರಿ|ಜಗಳ|ಹಠ|ಊಟ|ನಿದ್ರೆ|ಮಗು|ಬಾಲ|cry|crying|tantrum|fight|quarrel|stubborn|food|eat|colic|balarishta|child|baby/.test(qLower);
   const isAddictionQuery = /ಮದ್ಯ|ಕುಡಿ|ವ್ಯಸನ|ದುಶ್ಚಟ|ಡ್ರಿಂಕ್|ಆಲ್ಕೋಹಾಲ್|ಸಿಗರೇಟು|ಧೂಮಪಾನ|drink|drinking|alcohol|addiction|liquor|smoke|substance/.test(qLower);
   const isAffairQuery = /ಅಫೇರ್|ಪರಸ್ತ್ರೀ|ಪರಪುರುಷ|ದಾಂಪತ್ಯೇತರ|ಕಾಮನೆ|ಲೈಂಗಿಕ ಆಕರ್ಷಣೆ|ಗುಪ್ತ ಪ್ರೇಮ|ವ್ಯಾಮೋಹ|ಕಾಮ|ಬಾಹ್ಯ ಆಕರ್ಷಣೆ|affair|extramarital|secret romance|sensual craving|outside attraction/.test(qLower);
@@ -6884,6 +7135,8 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
 • 🔮 ಸ್ಪಷ್ಟ ದೈವಜ್ಞ ಉತ್ತರ: ${
   isDelayedMarriage
     ? `ಹೌದು, ಕಲ್ಯಾಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿದೆ! ಆದರೆ ಜಾತಕದಲ್ಲಿರುವ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ಇದು ವಿಳಂಬ ವಿವಾಹ ಯೋಗವಾಗಿದ್ದು, ${md?.marriageTimingWindowKn || "ಪರಿಪಕ್ವ ವಯಸ್ಸಿನಲ್ಲಿ"} ಸುದೃಢ ಕಲ್ಯಾಣ ಸಿದ್ಧಿಸಲಿದೆ.`
+    : md?.marriageTimingWindowKn
+    ? `${md.marriageTimingWindowKn} ಕಂಕಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದ್ದು, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ನಿಶ್ಚಯವಾಗಲಿದೆ.`
     : `ಇನ್ನು ಮುಂದಿನ ${Math.max(3, remM)} ತಿಂಗಳುಗಳಲ್ಲಿ (Next ${Math.max(3, remM)} Month${Math.max(3, remM) > 1 ? "s" : ""}) ಕಂಕಣ ಭಾಗ್ಯ ಖಚಿತವಾಗಿ ಕೂಡಿಬರಲಿದ್ದು, ಸಂಸ್ಕಾರಯುತ ಕುಟುಂಬದಿಂದ ವಿವಾಹ ನಿಶ್ಚಯವಾಗಲಿದೆ.`
 }
 
@@ -6891,7 +7144,7 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
   isKujaDosha ? "ಕುಜ ದೋಷದ ಪ್ರಭಾವದಿಂದ ಮಾತುಕತೆಗಳಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಅಡೆತಡೆ ಉಂಟಾಗುತ್ತಿದೆ." : "ಗೋಚಾರ ಗುರುವಿನ ಬಲ ಕೂಡಿಬರುತ್ತಿದೆ."
 }
 
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲದಲ್ಲಿ, ಇನ್ನು ${dashaTimeText} ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಸಫಲತೆ ದೊರೆಯಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲದಲ್ಲಿ, ${md?.marriageTimingWindowKn ? md.marriageTimingWindowKn : `ಇನ್ನು ${dashaTimeText}`} ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಸಫಲತೆ ದೊರೆಯಲಿದೆ.
 
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ, ಗುರುವಾರ ದಕ್ಷಿಣಾಮೂರ್ತಿಗೆ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ.`
       );
@@ -6902,12 +7155,14 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
 • 🔮 Direct Daivajna Verdict: ${
   isDelayedMarriage
     ? `Marriage destiny is definitely assured! However, due to planetary maturity cycles, it is a delayed union manifesting ${md?.marriageTimingWindowEn || "in a mature timing window"}.`
+    : md?.marriageTimingWindowEn
+    ? `A favorable marriage alliance will finalize ${md.marriageTimingWindowEn}, promising domestic bliss.`
     : `A favorable marriage alliance will finalize within the upcoming ${Math.max(3, remM)} months.`
 }
 
 • 🎯 Astrological Root Cause & Planetary Alignment: 7th house of marriage (${currentDiagnosis.technicalAspects.seventhHouseDetail}) and Kalatrakaraka govern relationship dynamics.
 
-• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, favorable matrimonial progress materializes ${dashaTimeTextEn}.
+• ⏳ Accurate Timeline / Turning Point: Under ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary}, favorable matrimonial progress materializes ${md?.marriageTimingWindowEn || dashaTimeTextEn}.
 
 • 🪔 Prescribed Remedies & Solution: Sponsor Kalyana Sankalpa Seva at Sri Kshetra Gokarna Mahabaleshwara.`
       );

@@ -593,6 +593,18 @@ STRICT RULES:
                         ? "💼"
                         : currentDiagnosis.primaryLifeChallenge.area === "Health / Vitality" || currentDiagnosis.primaryLifeChallenge.area === "Health / Physical"
                         ? "🩺"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Sports & Competition"
+                        ? "🏆"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Creative & Media Arts"
+                        ? "🎭"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Leadership & Scaling"
+                        ? "👑"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Legal / Confinement"
+                        ? "⚖️"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Health / Convalescence"
+                        ? "🌿"
+                        : currentDiagnosis.primaryLifeChallenge.area === "Personal / Divorce Rebuilding"
+                        ? "🕊️"
                         : "🧭"}
                     </span>
                     <div>
