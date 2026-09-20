@@ -9,7 +9,7 @@
 
 import { SEVA_CATALOG, type SevaId } from "../../data/gokarnaSevas";
 import { pick, type SevaLang, type L5 } from "./sevaLocale";
-import { transliterateName, detectScript } from "../../utils/transliterator";
+import { transliterateName } from "../../utils/transliterator";
 
 export interface SevaLike {
   id?: string;
@@ -52,55 +52,61 @@ export function formatPoojaName(sevaOrName: any, lang: string = "en"): string {
   const sevaObj: SevaLike = (sevaOrName?.seva || sevaOrName) as SevaLike;
   const rawId: string = typeof sevaOrName === "string" ? sevaOrName.trim() : (sevaObj?.id || "").trim();
 
-  // 2. If name is an object (e.g. { kn: "...", en: "...", ... }), prioritize explicit custom or item name
+  // 2. Direct catalog lookup by ID (if not custom placeholder)
+  if (rawId && rawId !== "custom" && rawId !== "custom_pooja" && SEVA_CATALOG[rawId as SevaId]) {
+    return pick(SEVA_CATALOG[rawId as SevaId].name, base);
+  }
+
+  let resolved = "";
+
+  // 3. If name is an object (e.g. { kn: "...", en: "...", ... }), prioritize explicit custom or item name
   if (sevaObj?.name && typeof sevaObj.name === "object") {
     const nameMap = sevaObj.name as Record<string, string>;
     const targetCandidate = nameMap[base];
 
     if (targetCandidate && typeof targetCandidate === "string" && targetCandidate.trim()) {
-      const trimmed = targetCandidate.trim();
-      const detected = detectScript(trimmed);
-      // If the candidate's script matches the target language, use it directly
-      if (detected === base || (base === "en" && detected === "en")) {
-        return trimmed;
-      }
-      // If the candidate contains text in another script (e.g. user typed Kannada into all fields), transliterate
-      return transliterateName(trimmed, base);
-    }
-
-    // Fallback: pick any available localized text and transliterate it into base
-    const anyAvailable = nameMap.en || nameMap.kn || nameMap.hi || nameMap.te || nameMap.ta || Object.values(nameMap)[0];
-    if (anyAvailable && typeof anyAvailable === "string" && anyAvailable.trim()) {
-      return transliterateName(anyAvailable.trim(), base);
-    }
-  }
-
-  // 3. Direct catalog lookup by ID
-  if (rawId && SEVA_CATALOG[rawId as SevaId]) {
-    return pick(SEVA_CATALOG[rawId as SevaId].name, base);
-  }
-
-  // 4. If plain string, check if it matches any SEVA_CATALOG entry by ID, English name, or native name
-  const rawStr = typeof sevaOrName === "string"
-    ? sevaOrName.trim()
-    : (typeof sevaObj?.name === "string" ? sevaObj.name.trim() : (sevaObj?.label || sevaObj?.title || "").trim());
-
-  if (!rawStr) {
-    return pick(FALLBACK_POOJA_L5, base);
-  }
-
-  const rawLower = rawStr.toLowerCase();
-  for (const item of Object.values(SEVA_CATALOG)) {
-    if (item.id.toLowerCase() === rawLower) {
-      return pick(item.name, base);
-    }
-    for (const val of Object.values(item.name)) {
-      if (val && val.toLowerCase() === rawLower) {
-        return pick(item.name, base);
+      resolved = targetCandidate.trim();
+    } else {
+      const anyAvailable = nameMap.en || nameMap.kn || nameMap.hi || nameMap.te || nameMap.ta || Object.values(nameMap)[0];
+      if (anyAvailable && typeof anyAvailable === "string" && anyAvailable.trim()) {
+        resolved = anyAvailable.trim();
       }
     }
   }
 
-  // 5. Transliterate custom pooja string using our comprehensive 5-language dictionary & engine
-  return transliterateName(rawStr, base);
+  // 4. Plain string or label/title fallback
+  if (!resolved) {
+    const rawStr = typeof sevaOrName === "string"
+      ? sevaOrName.trim()
+      : (typeof sevaObj?.name === "string" ? sevaObj.name.trim() : (sevaObj?.label || sevaObj?.title || "").trim());
+
+    if (!rawStr) {
+      return pick(FALLBACK_POOJA_L5, base);
+    }
+
+    const rawLower = rawStr.toLowerCase();
+    for (const item of Object.values(SEVA_CATALOG)) {
+      if (item.id !== "custom_pooja") {
+        if (item.id.toLowerCase() === rawLower) {
+          return pick(item.name, base);
+        }
+        for (const val of Object.values(item.name)) {
+          if (val && val.toLowerCase() === rawLower) {
+            return pick(item.name, base);
+          }
+        }
+      }
+    }
+    resolved = rawStr;
+  }
+
+  // 5. Transliterate into base script
+  resolved = transliterateName(resolved, base);
+
+  // 6. Strict Purity Guard: If target is not Kannada, ensure NO Kannada characters leak
+  if (base !== "kn" && /[\u0C80-\u0CFF]/.test(resolved)) {
+    resolved = transliterateName(resolved, base);
+  }
+
+  return resolved;
 }

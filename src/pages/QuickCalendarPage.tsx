@@ -267,11 +267,11 @@ export default function QuickCalendarPage(): JSX.Element {
       return {
         id: "custom",
         name: {
-          kn: transliterateName(clean, "kn"),
-          hi: transliterateName(clean, "hi"),
-          te: transliterateName(clean, "te"),
-          ta: transliterateName(clean, "ta"),
-          en: transliterateName(clean, "en")
+          kn: formatPoojaName(clean, "kn"),
+          hi: formatPoojaName(clean, "hi"),
+          te: formatPoojaName(clean, "te"),
+          ta: formatPoojaName(clean, "ta"),
+          en: formatPoojaName(clean, "en")
         }
       };
     }
@@ -280,7 +280,7 @@ export default function QuickCalendarPage(): JSX.Element {
 
   const chosenPoojaName = useMemo(() => {
     if (customPoojaMode && customPoojaName.trim()) {
-      return transliterateName(customPoojaName.trim(), lang);
+      return formatPoojaName(customPoojaName.trim(), lang);
     }
     if (chosenPooja) {
       return formatPoojaName(chosenPooja, lang);

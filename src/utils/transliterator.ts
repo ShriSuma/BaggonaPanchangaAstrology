@@ -1,7 +1,23 @@
 // Comprehensive 5-Language Transliteration Engine for Devotee Names
 
 const NAME_DICTIONARY: Record<string, Record<string, string>> = {
-  "gowtam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గౌతమ్", ta: "கௌதம்", en: "Gowtam" },
+  "vinayak": { kn: "ವಿನಾಯಕ್", hi: "विनायक", te: "వినాయక్", ta: "விநாயக", en: "Vinayak" },
+  "vinayaka": { kn: "ವಿನಾಯಕ", hi: "विनायक", te: "వినాయక", ta: "விநாயக", en: "Vinayaka" },
+  "vinayak shanti": { kn: "ವಿನಾಯಕ್ ಶಾಂತಿ", hi: "विनायक शांति", te: "వినాయక్ శాంతి", ta: "விநாயக சாந்தி", en: "Vinayak Shanthi" },
+  "vinayaka shanti": { kn: "ವಿನಾಯಕ ಶಾಂತಿ", hi: "विनायक शांति", te: "వినాయక శాంతి", ta: "விநாயக சாந்தி", en: "Vinayaka Shanthi" },
+  "haagoo": { kn: "ಹಾಗೂ", hi: "एवं", te: "మరియు", ta: "மற்றும்", en: "and" },
+  "hagu": { kn: "ಹಾಗೂ", hi: "एवं", te: "మరియు", ta: "மற்றும்", en: "and" },
+  "mattu": { kn: "ಮತ್ತು", hi: "तथा", te: "మరియు", ta: "மற்றும்", en: "and" },
+  "and": { kn: "ಹಾಗೂ", hi: "एवं", te: "మరియు", ta: "மற்றும்", en: "and" },
+  "&": { kn: "&", hi: "&", te: "&", ta: "&", en: "&" },
+  "evam": { kn: "ಹಾಗೂ", hi: "एवं", te: "మరియు", ta: "மற்றும்", en: "and" },
+  "tatha": { kn: "ಮತ್ತು", hi: "तथा", te: "మరియు", ta: "மற்றும்", en: "and" },
+  "aur": { kn: "ಮತ್ತು", hi: "और", te: "మరియు", ta: "மற்றும்", en: "and" },
+  "kirti": { kn: "ಕೀರ್ತಿ", hi: "कीर्ति", te: "కీర్తి", ta: "கீர்த்தி", en: "Kirti" },
+  "keerthi": { kn: "ಕೀರ್ತಿ", hi: "कीರ್ತಿ", te: "కీర్తి", ta: "கீர்த்தி", en: "Keerthi" },
+  "talpankar": { kn: "ತಲ್ಪಂಕರ್", hi: "तल्पंकर", te: "తల్పంకర్", ta: "தல்பங்கர்", en: "Talpankar" },
+  "talpanakar": { kn: "ತಲ್ಪನಕರ್", hi: "तल्पनकर", te: "తల్పనకర్", ta: "தல்பனகர்", en: "Talpanakar" },
+  "gowtam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గೌತಮ್", ta: "கௌதம்", en: "Gowtam" },
   "gautam": { kn: "ಗೌತಮ್", hi: "गौतम", te: "గౌతమ్", ta: "கௌதம்", en: "Gautam" },
   "roja": { kn: "ರೋಜಾ", hi: "रोजा", te: "రోజా", ta: "ரோஜா", en: "Roja" },
   "swayam naik": { kn: "ಸ್ವಯಂ ನಾಯಕ್", hi: "स्वयं नायक", te: "స్వయం నాయక్", ta: "ஸ்வயம் நாயக்", en: "Swayam Naik" },
@@ -75,8 +91,6 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "ganapathi": { kn: "ಗಣಪತಿ", hi: "गणपति", te: "గణపతి", ta: "கணபதி", en: "Ganapathi" },
   "ganapati homa": { kn: "ಗಣಪತಿ ಹೋಮ", hi: "गणपति होम", te: "గణపతి హోమం", ta: "கணபதி ஹோமம்", en: "Ganapati Homa" },
   "ganapathi homa": { kn: "ಗಣಪತಿ ಹೋಮ", hi: "गणपति होम", te: "గణపతి హోమం", ta: "கணபதி ஹோமம்", en: "Ganapathi Homa" },
-  "vinayaka": { kn: "ವಿನಾಯಕ", hi: "विनायक", te: "వినాయక", ta: "விநாயக", en: "Vinayaka" },
-  "vinayaka shanti": { kn: "ವಿನಾಯಕ ಶಾಂತಿ", hi: "विनायक शांति", te: "వినాయక శాంతి", ta: "விநாயக சாந்தி", en: "Vinayaka Shanti" },
   "lakshmi": { kn: "ಲಕ್ಷ್ಮಿ", hi: "लक्ष्मी", te: "లక్ష్మి", ta: "லக்ஷ்மி", en: "Lakshmi" },
   "mahalakshmi": { kn: "ಮಹಾಲಕ್ಷ್ಮಿ", hi: "महालक्ष्मी", te: "మహాలక్ష్మి", ta: "மகாலக்ஷ்மி", en: "Mahalakshmi" },
   "mahalakshmi pooja": { kn: "ಮಹಾಲಕ್ಷ್ಮಿ ಪೂಜೆ", hi: "महालक्ष्मी पूजा", te: "మహాలక్ష్మి పూజ", ta: "மகாலக்ஷ்மி பூஜை", en: "Mahalakshmi Pooja" },
@@ -284,7 +298,7 @@ export function transliterateIndicToLatin(text: string): string {
     .replace(/ಜೋಶಿ/g, "Joshi ")
     .replace(/ರಾವ್/g, "Rao ")
     .replace(/ಗೌಡ/g, "Gowda ")
-    .replace(/ನಾಯಕ್|ನಾಯ್ಕ/g, "Nayak ")
+    .replace(/ವಿನಾಯಕ್|ವಿನಾಯಕ/g, "Vinayaka ").replace(/ಹಾಗೂ|ಮತ್ತು/g, "and ").replace(/(^|[\s_.,-])(ನಾಯಕ್|ನಾಯ್ಕ)(?=[\s_.,-]|$)/g, "$1Nayak ")
     .replace(/ಕುಮಾರ್/g, "Kumar ")
     .replace(/ಶರ್ಮಾ/g, "Sharma ")
     .replace(/ಮಂಜುನಾಥ್/g, "Manjunath ")
@@ -419,32 +433,167 @@ export function transliterateIndicToLatin(text: string): string {
 /**
  * Transliterates English/Indic names into the requested target language (kn, hi, te, ta, en).
  */
+// Brahmic Script Offsets
+const SCRIPT_OFFSETS: Record<string, number> = {
+  hi: 0x0900,
+  te: 0x0c00,
+  kn: 0x0c80
+};
+
+// Tamil consonant/vowel remapping table (offsets 0x00 to 0x7F)
+const TAMIL_OFFSET_MAP: Record<number, number> = {
+  0x02: 0x02, // anusvara
+  0x05: 0x05, // a
+  0x06: 0x06, // aa
+  0x07: 0x07, // i
+  0x08: 0x08, // ee
+  0x09: 0x09, // u
+  0x0a: 0x0a, // oo
+  0x0e: 0x0e, // e
+  0x0f: 0x0f, // ee
+  0x10: 0x10, // ai
+  0x12: 0x12, // o
+  0x13: 0x13, // oo
+  0x14: 0x14, // au
+  0x15: 0x15, // ka
+  0x16: 0x15, // kha -> ka
+  0x17: 0x15, // ga -> ka
+  0x18: 0x15, // gha -> ka
+  0x19: 0x19, // nga
+  0x1a: 0x1a, // cha
+  0x1b: 0x1a, // chha -> cha
+  0x1c: 0x1a, // ja -> cha
+  0x1d: 0x1a, // jha -> cha
+  0x1e: 0x1e, // nya
+  0x1f: 0x1f, // tta
+  0x20: 0x1f, // ttha -> tta
+  0x21: 0x1f, // dda -> tta
+  0x22: 0x1f, // ddha -> tta
+  0x23: 0x23, // nna
+  0x24: 0x24, // ta
+  0x25: 0x24, // tha -> ta
+  0x26: 0x24, // da -> ta
+  0x27: 0x24, // dha -> ta
+  0x28: 0x28, // na
+  0x2a: 0x2a, // pa
+  0x2b: 0x2a, // pha -> pa
+  0x2c: 0x2a, // ba -> pa
+  0x2d: 0x2a, // bha -> pa
+  0x2e: 0x2e, // ma
+  0x2f: 0x2f, // ya
+  0x30: 0x30, // ra
+  0x32: 0x32, // la
+  0x33: 0x33, // lha
+  0x35: 0x35, // va
+  0x36: 0x37, // sha -> ssa (0x0BB7)
+  0x37: 0x37, // ssa (0x0BB7)
+  0x38: 0x38, // sa (0x0BB8)
+  0x39: 0x39, // ha (0x0BB9)
+  0x3e: 0x3e, // aa
+  0x3f: 0x3f, // i
+  0x40: 0x40, // ee
+  0x41: 0x41, // u
+  0x42: 0x42, // oo
+  0x46: 0x46, // e
+  0x47: 0x47, // ee
+  0x48: 0x48, // ai
+  0x4a: 0x4a, // o
+  0x4b: 0x4b, // oo
+  0x4c: 0x4c, // au
+  0x4d: 0x4d  // virama
+};
+
+export function convertIndicScript(text: string, targetLang: "kn" | "hi" | "te" | "ta"): string {
+  if (!text) return text;
+  if (targetLang === "ta") {
+    let res = "";
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      let srcBase = 0;
+      if (code >= 0x0900 && code <= 0x097f) srcBase = 0x0900;
+      else if (code >= 0x0c00 && code <= 0x0c7f) srcBase = 0x0c00;
+      else if (code >= 0x0c80 && code <= 0x0cff) srcBase = 0x0c80;
+      else if (code >= 0x0b80 && code <= 0x0bff) srcBase = 0x0b80;
+
+      if (srcBase !== 0) {
+        const offset = code - srcBase;
+        const mapped = TAMIL_OFFSET_MAP[offset];
+        if (mapped !== undefined) {
+          res += String.fromCharCode(0x0b80 + mapped);
+        }
+      } else {
+        res += text[i];
+      }
+    }
+    return res;
+  }
+
+  const targetBase = SCRIPT_OFFSETS[targetLang];
+  if (!targetBase) return text;
+
+  let res = "";
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    let srcBase = 0;
+    if (code >= 0x0900 && code <= 0x097f) srcBase = 0x0900;
+    else if (code >= 0x0b80 && code <= 0x0bff) srcBase = 0x0b80;
+    else if (code >= 0x0c00 && code <= 0x0c7f) srcBase = 0x0c00;
+    else if (code >= 0x0c80 && code <= 0x0cff) srcBase = 0x0c80;
+
+    if (srcBase !== 0) {
+      const offset = code - srcBase;
+      res += String.fromCharCode(targetBase + offset);
+    } else {
+      res += text[i];
+    }
+  }
+  return res;
+}
+
+/**
+ * Transliterates English/Indic names into the requested target language (kn, hi, te, ta, en).
+ */
 export function transliterateName(inputName: string, targetLang: string): string {
   if (!inputName || !inputName.trim()) return inputName;
   const langCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en") as "kn" | "hi" | "te" | "ta" | "en";
   const nameTrimmed = inputName.trim();
   const inputScript = detectScript(nameTrimmed);
 
-  // If the input is already in the requested target script, return it untouched to prevent corruption
+  // If the input is already in the requested target script with no foreign Indic contamination
   if (inputScript === langCode) {
-    return nameTrimmed;
+    if (langCode !== "kn" && /[\u0C80-\u0CFF]/.test(nameTrimmed)) {
+      // Contains foreign Kannada letters - proceed to transliterate
+    } else if (langCode === "en" && /[\u0900-\u0D7F]/.test(nameTrimmed)) {
+      // Contains Indic letters - proceed to transliterate
+    } else {
+      return nameTrimmed;
+    }
   }
 
-  if (langCode === "en") {
-    // 1. Direct whole-name reverse lookup
-    const lowerWhole = nameTrimmed.toLowerCase();
-    for (const map of Object.values(NAME_DICTIONARY)) {
-      for (const val of Object.values(map)) {
-        if (val.toLowerCase() === lowerWhole) {
-          return map.en || val;
-        }
+  // 1. Direct whole-name dictionary lookup
+  const lowerWhole = nameTrimmed.toLowerCase();
+  if (NAME_DICTIONARY[lowerWhole] && NAME_DICTIONARY[lowerWhole][langCode]) {
+    return NAME_DICTIONARY[lowerWhole][langCode];
+  }
+  for (const map of Object.values(NAME_DICTIONARY)) {
+    for (const val of Object.values(map)) {
+      if (val.toLowerCase() === lowerWhole) {
+        return map[langCode] || val;
       }
     }
+  }
 
-    // 2. Token-by-token reverse lookup
-    const words = nameTrimmed.split(/\s+/);
+  // 2. Multi-word phrase substitutions from dictionary (e.g. "vinayaka shanti", "kuja shanti", "narayana bali")
+  let processed = nameTrimmed;
+
+  if (langCode === "en") {
+    // English output: convert words to English
+    const words = processed.split(/\s+/);
     const translatedWords = words.map((word) => {
       const wLower = word.toLowerCase();
+      if (NAME_DICTIONARY[wLower] && NAME_DICTIONARY[wLower].en) {
+        return NAME_DICTIONARY[wLower].en;
+      }
       for (const map of Object.values(NAME_DICTIONARY)) {
         for (const val of Object.values(map)) {
           if (val.toLowerCase() === wLower) {
@@ -454,30 +603,14 @@ export function transliterateName(inputName: string, targetLang: string): string
       }
       return transliterateIndicToLatin(word);
     });
-
-    return translatedWords.join(" ").trim();
+    return translatedWords.join(" ").replace(/\s+/g, " ").trim();
   }
 
-  const lowerWhole = nameTrimmed.toLowerCase();
-
-  // 1. Direct whole-name dictionary lookup
-  if (NAME_DICTIONARY[lowerWhole] && NAME_DICTIONARY[lowerWhole][langCode]) {
-    return NAME_DICTIONARY[lowerWhole][langCode];
-  }
-
-  // Check if input matches any localized value in dictionary
-  for (const map of Object.values(NAME_DICTIONARY)) {
-    for (const val of Object.values(map)) {
-      if (val.toLowerCase() === lowerWhole) {
-        return map[langCode] || val;
-      }
-    }
-  }
-
-  // 2. Token-by-token word translation
-  const words = nameTrimmed.split(/\s+/);
+  // Indic target (kn, hi, te, ta):
+  const words = processed.split(/\s+/);
   const translatedWords = words.map((word) => {
     const wLower = word.toLowerCase();
+    // Dictionary word match
     if (NAME_DICTIONARY[wLower] && NAME_DICTIONARY[wLower][langCode]) {
       return NAME_DICTIONARY[wLower][langCode];
     }
@@ -488,11 +621,22 @@ export function transliterateName(inputName: string, targetLang: string): string
         }
       }
     }
-    // If the word itself is already in target script, keep it as is
-    if (detectScript(word) === langCode) return word;
-    // 3. Fallback to phonetic character mapping if word not in dictionary
+
+    // If word contains Indic characters, use authentic Brahmic script conversion
+    if (/[\u0900-\u0D7F]/.test(word)) {
+      return convertIndicScript(word, langCode);
+    }
+
+    // Fallback phonetic transliteration for English word
     return phoneticTransliterateWord(word, langCode);
   });
 
-  return translatedWords.join(" ");
+  let result = translatedWords.join(" ").replace(/\s+/g, " ").trim();
+
+  // Final Script Purity Guard:
+  // If target is NOT kn, convert any remaining Kannada characters into target script
+  if (langCode !== "kn" && /[\u0C80-\u0CFF]/.test(result)) {
+    result = convertIndicScript(result, langCode);
+  }
+  return result;
 }

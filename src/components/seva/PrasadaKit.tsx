@@ -356,11 +356,11 @@ export default function PrasadaKit({
           id: "custom_pooja" as SevaId,
           icon: "🪔",
           name: {
-            kn: transliterateName(cleanName, "kn"),
-            en: transliterateName(cleanName, "en"),
-            hi: transliterateName(cleanName, "hi"),
-            te: transliterateName(cleanName, "te"),
-            ta: transliterateName(cleanName, "ta")
+            kn: formatPoojaName(cleanName, "kn"),
+            en: formatPoojaName(cleanName, "en"),
+            hi: formatPoojaName(cleanName, "hi"),
+            te: formatPoojaName(cleanName, "te"),
+            ta: formatPoojaName(cleanName, "ta")
           },
           purpose: {
             kn: "ಭಕ್ತರ ಸಂಕಲ್ಪಾನುಸಾರ ನೆರವೇರಿಸಲಾದ ದೈವಿಕ ಆರಾಧನೆ ಹಾಗೂ ಪರಿಹಾರ ಸೇವೆ.",
@@ -423,7 +423,7 @@ export default function PrasadaKit({
 
   const chosenPoojaName = useMemo(() => {
     if (customPoojaMode && customPoojaName.trim()) {
-      return transliterateName(customPoojaName.trim(), pdfLang);
+      return formatPoojaName(customPoojaName.trim(), pdfLang);
     }
     if (chosenSeva) {
       return formatPoojaName(chosenSeva, pdfLang);

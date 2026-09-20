@@ -241,6 +241,29 @@ describe("Seva Patra 5-Page Ashirvada Booklet & Home Mantras Audit", () => {
       expect(enName).toBe("Satyanarayana Swamy Pooja");
     });
 
+    it("should accurately translate Vinayak Shanti and Kuja Shanti across all 5 languages with zero Kannada leakage", () => {
+      const inputStr = "ವಿನಾಯಕ್ ಶಾಂತಿ ಹಾಗೂ ಕುಜ ಶಾಂತಿ";
+      
+      const hiName = formatPoojaName(inputStr, "hi");
+      expect(hiName).toBe("विनायक शांति एवं कुज शांति");
+      expect(hiName).not.toMatch(/[\u0C80-\u0CFF]/);
+
+      const enName = formatPoojaName(inputStr, "en");
+      expect(enName).toBe("Vinayak Shanti and Kuja Shanti");
+      expect(enName).not.toMatch(/[\u0C80-\u0CFF]/);
+
+      const teName = formatPoojaName(inputStr, "te");
+      expect(teName).toBe("వినాయక్ శాంతి మరియు కుజ శాంతి");
+      expect(teName).not.toMatch(/[\u0C80-\u0CFF]/);
+
+      const taName = formatPoojaName(inputStr, "ta");
+      expect(taName).toBe("விநாயக சாந்தி மற்றும் செவ்வாய் சாந்தி");
+      expect(taName).not.toMatch(/[\u0C80-\u0CFF]/);
+
+      const knName = formatPoojaName(inputStr, "kn");
+      expect(knName).toBe("ವಿನಾಯಕ್ ಶಾಂತಿ ಹಾಗೂ ಕುಜ ಶಾಂತಿ");
+    });
+
     it("should provide safe canonical fallback when pooja is undefined", () => {
       expect(formatPoojaName(undefined, "kn")).toBe("ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಪೂಜೆ");
       expect(formatPoojaName(undefined, "en")).toBe("Shri Gokarna Maha Seva");
@@ -251,6 +274,17 @@ describe("Seva Patra 5-Page Ashirvada Booklet & Home Mantras Audit", () => {
   });
 
   describe("9. Devotee Gotra Transliteration Pure Script Validation", () => {
+    it("should accurately transliterate devotee name Kirti Talpankar across all 5 languages with zero script leakage or mangling", () => {
+      const devoteeName = "Kirti Talpankar";
+      expect(transliterateName(devoteeName, "hi")).toBe("कीर्ति तल्पंकर");
+      expect(transliterateName(devoteeName, "hi")).not.toMatch(/[\u0C80-\u0CFF]/);
+
+      expect(transliterateName(devoteeName, "kn")).toBe("ಕೀರ್ತಿ ತಲ್ಪಂಕರ್");
+      expect(transliterateName(devoteeName, "te")).toBe("కీర్తి తల్పంకర్");
+      expect(transliterateName(devoteeName, "ta")).toBe("கீர்த்தி தல்பங்கர்");
+      expect(transliterateName(devoteeName, "en")).toBe("Kirti Talpankar");
+    });
+
     it("should transliterate devotee Gotra across all 5 languages with zero script leakage", () => {
       const gotraKn = "ಕಾಶ್ಯಪ";
       expect(transliterateName(gotraKn, "en")).toBe("Kashyapa");
