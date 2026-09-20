@@ -2127,6 +2127,7 @@ export function generateKundliRemedyReport(
     devoteeName: input.name || "Devotee",
     gender: input.gender,
     devoteeAge,
+    maritalStatus: input.maritalStatus,
     lang: "kn"
   });
   const currentDiag = synthesis.currentDiagnosis;
@@ -2208,6 +2209,14 @@ export function generateKundliRemedyReport(
   patienceIndex = Math.min(95, Math.max(25, patienceIndex));
 
   // 3. Determine Primary Struggle Category (Harmonized with authentic Parashari Life Reality)
+  const isFemaleRemedy = input.gender === "Female";
+  const isConfirmedMarriedRemedy = Boolean(
+    input.maritalStatus === "married" ||
+    (input.name && /ದಂಪತಿ|ಮತ್ತು|ಸಹಿತ|couple|\band\b/i.test(input.name)) ||
+    currentDiag.marriageDestiny?.verdict === "already_married"
+  );
+  const isDestinyDelayedRemedy = currentDiag.marriageDestiny?.verdict === "delayed_marriage";
+
   const clsCat = cls?.category;
   let struggleCategory: KundliRemedyDiagnosis["primaryStruggle"]["category"] = "general_alignment";
   let intensity: "High" | "Moderate" | "Balanced" = "Moderate";
@@ -2221,7 +2230,7 @@ export function generateKundliRemedyReport(
   } else if (clsCat === "student_academic_stress") {
     struggleCategory = "student_academic";
     intensity = "High";
-  } else if (clsCat === "marriage_delay") {
+  } else if (clsCat === "marriage_delay" || (isDestinyDelayedRemedy && (input.maritalStatus === "unmarried" || (isFemaleRemedy && !isConfirmedMarriedRemedy)) && devoteeAge >= 20 && devoteeAge <= 52)) {
     struggleCategory = "marriage_delay";
     intensity = "High";
   } else if (clsCat === "debt_financial_crisis") {
@@ -2234,8 +2243,13 @@ export function generateKundliRemedyReport(
     struggleCategory = "health_vitality";
     intensity = "High";
   } else if (clsCat === "marital_discord" || clsCat === "partner_distrust_betrayal" || clsCat === "post_divorce_rebuilding") {
-    struggleCategory = "relationship_friction";
-    intensity = "Moderate";
+    if (input.maritalStatus === "unmarried" || (isFemaleRemedy && !isConfirmedMarriedRemedy)) {
+      struggleCategory = "marriage_delay";
+      intensity = "High";
+    } else {
+      struggleCategory = "relationship_friction";
+      intensity = "Moderate";
+    }
   } else if (clsCat === "career_politics_layoff" || clsCat === "property_share_dispute") {
     struggleCategory = "career_obstacles";
     intensity = "Moderate";
@@ -2260,6 +2274,12 @@ export function generateKundliRemedyReport(
   } else {
     struggleCategory = "general_alignment";
     intensity = "Balanced";
+  }
+
+  // Mandatory Safeguard: Unmarried natives or unmarried females must never be diagnosed with marital discord
+  if (struggleCategory === "relationship_friction" && (input.maritalStatus === "unmarried" || (isFemaleRemedy && !isConfirmedMarriedRemedy))) {
+    struggleCategory = "marriage_delay";
+    intensity = "High";
   }
 
   // 13 Rich Dynamic Category Descriptions

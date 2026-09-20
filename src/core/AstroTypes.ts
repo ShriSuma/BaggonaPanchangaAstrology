@@ -36,6 +36,7 @@ export type KundliInput = {
   longitude: number;
   name: string;
   gender?: "Male" | "Female" | "Other";
+  maritalStatus?: "married" | "unmarried" | "divorced" | "separated" | string;
   gothra?: string;
   pincode?: string;
 };

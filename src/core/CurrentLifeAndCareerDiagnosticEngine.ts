@@ -307,6 +307,19 @@ export function diagnoseCurrentLifeSituation(
   const isMale = context.gender === "Male" || (!isFemale && context.gender !== "Other");
   const devoteeName = context.devoteeName || (isFemale ? "ಭಕ್ತೆಯವರೇ" : "ಭಕ್ತರೇ");
 
+  // Determine Astrological Marriage Destiny Early (Single Source of Truth)
+  const marriageDestiny = determineMarriageDestiny(kundli, context);
+  const isDestinyDelayed = marriageDestiny.verdict === "delayed_marriage";
+  const isDestinyCelibate = marriageDestiny.verdict === "lifelong_celibacy_denial";
+  const isDestinyAlreadyMarried = marriageDestiny.verdict === "already_married";
+
+  const isConfirmedMarried = Boolean(
+    context.maritalStatus === "married" ||
+    context.hasChildren === true ||
+    (context.devoteeName && /ದಂಪತಿ|ಮತ್ತು|ಸಹಿತ|couple|\band\b/i.test(context.devoteeName)) ||
+    isDestinyAlreadyMarried
+  );
+
   const sun = kundli.planets.find(p => p.name === PlanetName.Sun);
   const moon = kundli.planets.find(p => p.name === PlanetName.Moon);
   const mars = kundli.planets.find(p => p.name === PlanetName.Mars);
@@ -578,38 +591,26 @@ export function diagnoseCurrentLifeSituation(
   // preventing false assumptions on normal married adults.
   let distinctMarriageAfflictionCount = 0;
   if (mars && mars.house === 7) distinctMarriageAfflictionCount += 1; // Saptama Kuja
+  if (mars && mars.house === 8) distinctMarriageAfflictionCount += 1; // Ashtama Kuja
   if (saturn && saturn.house === 7) distinctMarriageAfflictionCount += 1; // Saptama Shani
+  if (saturn && saturn.house === 8) distinctMarriageAfflictionCount += 1; // Ashtama Shani
   if (rahu && rahu.house === 7) distinctMarriageAfflictionCount += 1; // Saptama Rahu
   if (ketu && ketu.house === 7) distinctMarriageAfflictionCount += 1; // Saptama Ketu
+  if (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) distinctMarriageAfflictionCount += 1;
   if (seventhLordPlanet?.isDebilitated) distinctMarriageAfflictionCount += 1;
   if (seventhLordPlanet?.isRetrograde) distinctMarriageAfflictionCount += 1;
   if (isMale && venus?.isRetrograde) distinctMarriageAfflictionCount += 1;
   if (isFemale && (jupiter?.isRetrograde || venus?.isRetrograde)) distinctMarriageAfflictionCount += 1;
 
   const hasDirect7thHouseAffliction = Boolean(
-    (mars && mars.house === 7) ||
-    (saturn && saturn.house === 7) ||
+    (mars && [7, 8].includes(mars.house)) ||
+    (saturn && [7, 8].includes(saturn.house)) ||
     (rahu && rahu.house === 7) ||
     (ketu && ketu.house === 7) ||
+    (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) ||
     seventhLordPlanet?.isRetrograde ||
     seventhLordPlanet?.isDebilitated
   );
-
-  if (context.maritalStatus === "married") {
-    marriageDelayScore = 0;
-  } else if (context.maritalStatus !== "unmarried") {
-    const isConfirmedUnmarriedDelay =
-      hasDirect7thHouseAffliction &&
-      distinctMarriageAfflictionCount >= 2 &&
-      marriageDelayScore >= 12.0 &&
-      age >= 25 &&
-      age <= 45;
-
-    if (!isConfirmedUnmarriedDelay || (partnerBetrayalScore >= 8.0 && partnerBetrayalScore >= marriageDelayScore - 2.0)) {
-      marriageDelayScore = 0; // Guard against false marriage delay for unspecified married adults
-    }
-  }
-
 
   // Parashari Classical Marriage Certainty & Discord Priority Principle across all 12 Lagnas:
   // When the 7th lord is Exalted (in its respective exaltation sign index for any planet),
@@ -636,7 +637,31 @@ export function diagnoseCurrentLifeSituation(
     (mars && mars.house === 7 && saturn && saturn.house === 8)
   );
 
-  if (hasStrongSeventhLord && hasSevereDiscordAfflictions && context.maritalStatus !== "unmarried") {
+  if (isConfirmedMarried) {
+    marriageDelayScore = 0;
+  } else if (context.maritalStatus === "unmarried") {
+    marriageDelayScore = Math.max(marriageDelayScore, 14.5);
+  } else if (isFemale && !isConfirmedMarried && (isDestinyDelayed || (age >= 21 && age <= 48 && hasConcreteMarriageAffliction))) {
+    // Parashari Stree Jataka: Mangalya/Kalatra affliction routes to Marriage Delay for unmarried/unspecified females
+    marriageDelayScore = Math.max(marriageDelayScore, 14.5);
+  } else if (isMale && !isConfirmedMarried && isDestinyDelayed && !(hasStrongSeventhLord && hasSevereDiscordAfflictions)) {
+    // Male native with delayed destiny AND without strong 7th lord assuring marriage
+    marriageDelayScore = Math.max(marriageDelayScore, 14.5);
+  } else if (context.maritalStatus !== "unmarried") {
+    const isConfirmedUnmarriedDelay =
+      hasDirect7thHouseAffliction &&
+      distinctMarriageAfflictionCount >= 2 &&
+      marriageDelayScore >= 12.0 &&
+      age >= 25 &&
+      age <= 45;
+
+    if (!isConfirmedUnmarriedDelay || (partnerBetrayalScore >= 8.0 && partnerBetrayalScore >= marriageDelayScore - 2.0)) {
+      marriageDelayScore = 0; // Guard against false marriage delay for unspecified married adults
+    }
+  }
+
+  // Only zero out marriageDelayScore for confirmed married adults or male with strong 7th lord assuring marriage + severe discord
+  if (hasStrongSeventhLord && hasSevereDiscordAfflictions && (isConfirmedMarried || (isMale && context.maritalStatus !== "unmarried"))) {
     marriageDelayScore = 0;
   }
 
@@ -656,14 +681,19 @@ export function diagnoseCurrentLifeSituation(
   if (hasKujaDosha) maritalDiscordScore += 2.5;
   if (saturn && (saturn.house === 7 || saturn.house === 8)) maritalDiscordScore += 2.5;
 
-  if (context.maritalStatus === "married") {
+  if (isConfirmedMarried) {
     maritalDiscordScore += 3.0;
-  } else if (context.maritalStatus === "unmarried") {
+  } else if (context.maritalStatus === "unmarried" || isDestinyCelibate || (isFemale && !isConfirmedMarried)) {
+    // An unmarried native, celibate, or unmarried female CANNOT have cohabitation marital discord with a spouse!
     maritalDiscordScore = 0;
-  } else {
-    // When marital status is unspecified, only consider marital discord if there is a CONFIRMED extreme affliction
-    // (e.g. Ketu in 7th with Mars in 8th and Rahu in 1st). Otherwise do not assume fighting!
-    if (maritalDiscordScore < 8.5) {
+  } else if (isMale && !isConfirmedMarried) {
+    // When marital status is unspecified for a male:
+    // If he has strong 7th lord (assuring marriage) and severe discord afflictions (e.g. Ketu in 7th, Mars in 8th, Rahu in 1st as in Shreedhar Bhat / 31 May 1993),
+    // then marital discord is permitted and accurate.
+    // Otherwise (if destiny is delayed without strong 7th lord), do not falsely assume marital fighting!
+    if (isDestinyDelayed && !(hasStrongSeventhLord && hasSevereDiscordAfflictions)) {
+      maritalDiscordScore = 0;
+    } else if (maritalDiscordScore < 8.5) {
       maritalDiscordScore = 0;
     }
   }
@@ -1005,7 +1035,13 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // E. Marital Discord / Samsara Strife (ದಾಂಪತ್ಯ ಬಿಕ್ಕಟ್ಟು & ಸಂಸಾರದಲ್ಲಿ ಕಲಹ)
-  if (age >= 24 && age < 59 && context.maritalStatus !== "unmarried" && maritalDiscordScore >= 4.0) {
+  const canHaveMaritalDiscord = Boolean(
+    !isDestinyCelibate &&
+    context.maritalStatus !== "unmarried" &&
+    !(isFemale && !isConfirmedMarried) &&
+    (!isDestinyDelayed || (isConfirmedMarried || (isMale && hasStrongSeventhLord && hasSevereDiscordAfflictions)))
+  );
+  if (canHaveMaritalDiscord && age >= 24 && age < 59 && maritalDiscordScore >= 4.0) {
     const spouseKn = isFemale ? "ಪತಿಯೊಂದಿಗೆ" : "ಹೆಂಡತಿಯೊಂದಿಗೆ";
     const spouseEn = isFemale ? "husband" : "wife";
     candidates.push({
@@ -1059,7 +1095,14 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // F. Marriage Delay / Unmarried Past Prime (ವಿವಾಹ ವಿಳಂಬ)
-  if (context.maritalStatus !== "married" && age >= 24 && age <= 48 && marriageDelayScore >= 4.5) {
+  const canHaveMarriageDelay = Boolean(
+    !isConfirmedMarried &&
+    context.maritalStatus !== "married" &&
+    age >= 20 &&
+    age <= 50 &&
+    (marriageDelayScore >= 4.5 || (isDestinyDelayed && !(isMale && hasStrongSeventhLord && hasSevereDiscordAfflictions)))
+  );
+  if (canHaveMarriageDelay) {
     candidates.push({
       category: "marriage_delay",
       score: marriageDelayScore,
