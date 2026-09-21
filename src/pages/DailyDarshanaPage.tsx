@@ -1405,7 +1405,7 @@ function getTodayBhavishyaHighlights(
 ): TodayBhavishyaData {
   const code = lang || "en";
   const score = dinaBhavishyaData?.energyScore ?? rhythmDay?.energyScore ?? 85;
-  const guidance = getDailyActionableGuidance(rhythmDay, lang);
+  const guidance = getDailyActionableGuidance(rhythmDay, lang, birthKundli);
 
   const vehiclePoint = {
     category: code === "kn" ? "ವಾಹನ, ಶುಭ ಮುಹೂರ್ತ & ಪ್ರಯಾಣ" : code === "hi" ? "वाहन, शुभ मुहूर्त व यात्रा" : code === "te" ? "వాహన & శుభ ముహూర్తం" : code === "ta" ? "வாகனம், சுப முகூர்த்தம் & பயணம்" : "Vehicle, Muhurtha & Travel",
@@ -1585,12 +1585,12 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const initialTab = useMemo(() => {
     const rawTab = (params.get("tab") || (decoded as any)?.tab || "").toLowerCase();
+    if (rawTab.includes("darsh") || rawTab.includes("sanct") || rawTab.includes("pooj")) return "darshana";
     if (rawTab.includes("guid") || rawTab.includes("muhur") || rawTab.includes("gem") || rawTab.includes("karm") || rawTab.includes("gold")) return "guidance";
-    if (rawTab.includes("bhav") || rawTab.includes("dina") || rawTab.includes("fore")) return "bhavishya";
     if (rawTab.includes("kund") || rawTab.includes("janma")) return "kundali";
     if (rawTab.includes("goch")) return "gochara";
     if (rawTab.includes("dash")) return "dasha";
-    return "darshana";
+    return "bhavishya";
   }, [decoded, params]);
 
   const [activeTab, setActiveTab] = useState<"darshana" | "guidance" | "bhavishya" | "kundali" | "gochara" | "dasha">(initialTab);
@@ -1626,6 +1626,31 @@ export default function DailyDarshanaPage(): JSX.Element {
     isCompletedToday: false,
     totalSankalpas: 1
   });
+
+  const [timeLeftToday, setTimeLeftToday] = useState<string>(() => {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(23, 59, 59, 999);
+    const diffMs = Math.max(0, midnight.getTime() - now.getTime());
+    const h = String(Math.floor(diffMs / 3600000)).padStart(2, "0");
+    const m = String(Math.floor((diffMs % 3600000) / 60000)).padStart(2, "0");
+    const s = String(Math.floor((diffMs % 60000) / 1000)).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(23, 59, 59, 999);
+      const diffMs = Math.max(0, midnight.getTime() - now.getTime());
+      const h = String(Math.floor(diffMs / 3600000)).padStart(2, "0");
+      const m = String(Math.floor((diffMs % 3600000) / 60000)).padStart(2, "0");
+      const s = String(Math.floor((diffMs % 60000) / 1000)).padStart(2, "0");
+      setTimeLeftToday(`${h}:${m}:${s}`);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     try {
@@ -1715,7 +1740,6 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, userLat, userLng, userPincode), [dayLordIdx, lang, dateParam, userLat, userLng, userPincode]);
 
-  const localizedPandit = useMemo(() => getLocalizedPanditName(panditParam, lang), [panditParam, lang]);
 
   const activePanditPhone = useMemo(() => {
     if (decoded?.pp || decoded?.priestPhone) {
@@ -1753,15 +1777,19 @@ export default function DailyDarshanaPage(): JSX.Element {
     let raw = "";
     if (decoded?.p || decoded?.pandit || decoded?.priestName) {
       raw = (decoded.p || decoded.pandit || decoded.priestName)!.trim();
-    } else if (decoded?.ocp && (decoded?.p || decoded?.pandit)) {
-      raw = (decoded.p || decoded.pandit)!.trim();
-    } else if (urlParams.get("overrideContact") === "true" && urlParams.get("priestName")) {
+    } else if (urlParams.get("priestName")) {
       raw = urlParams.get("priestName")!.trim();
+    } else if (urlParams.get("pandit")) {
+      raw = urlParams.get("pandit")!.trim();
+    } else if (urlParams.get("p")) {
+      raw = urlParams.get("p")!.trim();
     } else {
-      return localizedPandit;
+      raw = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
     }
-    return transliterateName(raw, lang);
-  }, [decoded, urlParams, localizedPandit, lang]);
+    return getLocalizedPanditName(raw, lang);
+  }, [decoded, urlParams, lang]);
+
+  const localizedPandit = activePanditName;
   
   const devoteeDisplayName = useMemo(() => {
     let raw = "";
@@ -1983,7 +2011,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [decoded, currentTithiName, lang]);
 
   // 100% 5-Language Actionable Guidance
-  const actionableGuidance = useMemo(() => getDailyActionableGuidance(mockDay, lang), [mockDay, lang]);
+  const actionableGuidance = useMemo(() => getDailyActionableGuidance(mockDay, lang, birthKundli), [mockDay, lang, birthKundli]);
 
   // Gochara Planet Placements for South Indian Grid
   const gocharaPlacements = useMemo(() => {
@@ -2130,7 +2158,8 @@ export default function DailyDarshanaPage(): JSX.Element {
       userLng,
       userPincode,
       userIdentifier: devoteeUserId,
-      geminiApiKey: geminiApiKey || undefined
+      geminiApiKey: geminiApiKey || undefined,
+      priestName: activePanditName
     }).then((data) => {
       if (isMounted) {
         setDinaBhavishyaData(data);
@@ -2146,7 +2175,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     return () => {
       isMounted = false;
     };
-  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, devoteeUserId, geminiApiKey, isPassExpired]);
+  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, devoteeUserId, geminiApiKey, isPassExpired, activePanditName]);
 
   // Immediately stop any audio synthesis/playback if pass is expired
   useEffect(() => {
@@ -2813,7 +2842,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             </a>
             <a
               href={`https://wa.me/?text=${encodeURIComponent(
-                `ನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತರೆ, ನನ್ನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಆಶೀರ್ವಾದ ಪಾಸ್ (${rawDuration} ದಿನಗಳು) ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಸಹಾಯ ಮಾಡಿ.\nಭಕ್ತರ ಹೆಸರು: ${devoteeDisplayName}\nಗೋತ್ರ: ${devoteeGotra}\nದಿನಾಂಕ: ${mockDay.ymd}`
+                `ನಮಸ್ಕಾರ ${activePanditName} ಅವರೇ, ನನ್ನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಆಶೀರ್ವಾದ ಪಾಸ್ (${rawDuration} ದಿನಗಳು) ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಸಹಾಯ ಮಾಡಿ.\nಭಕ್ತರ ಹೆಸರು: ${devoteeDisplayName}\nಗೋತ್ರ: ${devoteeGotra}\nದಿನಾಂಕ: ${mockDay.ymd}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -2855,6 +2884,24 @@ export default function DailyDarshanaPage(): JSX.Element {
           gap: 8
         }}>
           <button
+            onClick={() => setActiveTab("bhavishya")}
+            style={{
+              background: activeTab === "bhavishya" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.85)",
+              color: activeTab === "bhavishya" ? "#FFFFFF" : "#FCD34D",
+              border: activeTab === "bhavishya" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.3)",
+              padding: "10px 4px",
+              borderRadius: 12,
+              fontSize: 12,
+              fontWeight: 800,
+              cursor: "pointer",
+              textAlign: "center",
+              boxShadow: activeTab === "bhavishya" ? "0 4px 12px rgba(217, 119, 6, 0.4)" : "none"
+            }}
+          >
+            🔮 {dict.tabBhavishya}
+          </button>
+
+          <button
             onClick={() => setActiveTab("darshana")}
             style={{
               background: activeTab === "darshana" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.85)",
@@ -2888,24 +2935,6 @@ export default function DailyDarshanaPage(): JSX.Element {
             }}
           >
             ✨ {dict.tabGuidance}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("bhavishya")}
-            style={{
-              background: activeTab === "bhavishya" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.85)",
-              color: activeTab === "bhavishya" ? "#FFFFFF" : "#FCD34D",
-              border: activeTab === "bhavishya" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.3)",
-              padding: "10px 4px",
-              borderRadius: 12,
-              fontSize: 12,
-              fontWeight: 800,
-              cursor: "pointer",
-              textAlign: "center",
-              boxShadow: activeTab === "bhavishya" ? "0 4px 12px rgba(217, 119, 6, 0.4)" : "none"
-            }}
-          >
-            🔮 {dict.tabBhavishya}
           </button>
         </div>
       </nav>
@@ -3013,21 +3042,20 @@ export default function DailyDarshanaPage(): JSX.Element {
           </div>
         </div>
 
-        {/* 🌸 Prominently Featured Daily Satkarma (Good Deed) Practice Card - Only in Darshana & Pooja Tabs */}
-        {(activeTab === "darshana" || activeTab === "guidance") && (
-          <DailySatkarmaPracticeCard
-            day={mockDay}
-            lang={lang}
-            devoteeName={devoteeDisplayName}
-            panditName={localizedPandit}
-            userId={devoteeUserId || devoteeDisplayName || "guest_devotee"}
-            devoteeToken={tokenParam || undefined}
-          />
-        )}
 
-        {/* ── TAB 1: SACRED SANCTUM & DARSHANA ── */}
+
+        {/* ── TAB 2: SACRED SANCTUM & DARSHANA ── */}
         {activeTab === "darshana" && (
           <div>
+            {/* 🌸 Prominently Featured Daily Satkarma (Good Deed) Practice Card - Strictly inside Darshana Tab ONLY */}
+            <DailySatkarmaPracticeCard
+              day={mockDay}
+              lang={lang}
+              devoteeName={devoteeDisplayName}
+              panditName={activePanditName}
+              userId={devoteeUserId || devoteeDisplayName || "guest_devotee"}
+              devoteeToken={tokenParam || undefined}
+            />
             {/* 🌟 Sacred Abhijit Muhurtha Sanctum Spotlight (Exclusive Website Feature) */}
             <div style={{
               background: "linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(67, 20, 7, 0.95) 100%)",
@@ -3209,80 +3237,168 @@ export default function DailyDarshanaPage(): JSX.Element {
               </div>
             </div>
             {/* Daily Priest-Guided 3-5 Minute Morning Deva Pooja & Sankalpa Banner */}
-            <div style={{
-              background: "linear-gradient(135deg, rgba(146, 64, 14, 0.95) 0%, rgba(69, 26, 3, 0.98) 100%)",
-              border: "2px solid #F59E0B",
-              borderRadius: 18,
-              padding: "16px 18px",
-              marginBottom: 16,
-              boxShadow: "0 8px 24px rgba(217, 119, 6, 0.35)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 12
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 26 }}>🪔</span>
-                  <div>
-                    <span style={{ fontSize: 13.5, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                      {dict.dailyPoojaBannerTitle}
+            {poojaStreak.isCompletedToday ? (
+              <div style={{
+                background: "linear-gradient(135deg, rgba(6, 78, 59, 0.95) 0%, rgba(20, 83, 45, 0.95) 100%)",
+                border: "2px solid #34D399",
+                borderRadius: 18,
+                padding: "16px 18px",
+                marginBottom: 16,
+                boxShadow: "0 8px 24px rgba(16, 185, 129, 0.3)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 10
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 28 }}>✅</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: "#A7F3D0", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        {lang === "kn" ? "ಇಂದಿನ ಪೂಜೆ ಸಂಪನ್ನಗೊಂಡಿದೆ" : lang === "hi" ? "आज की पूजा संपन्न हुई" : lang === "te" ? "నేటి పూజ పూర్తయింది" : lang === "ta" ? "இன்றைய பூஜை நிறைவடைந்தது" : "Today's Vedic Pooja Completed"}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#D1FAE5", marginTop: 2 }}>
+                        🔥 {poojaStreak.currentStreak} {lang === "kn" ? "ದಿನಗಳ ಸತತ ಪೂಜಾ ಸಂಕಲ್ಪ (Streak)" : "Consecutive Days Streak"}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPoojaModalOpen(true)}
+                    style={{
+                      background: "rgba(16, 185, 129, 0.2)",
+                      color: "#A7F3D0",
+                      border: "1px solid #34D399",
+                      borderRadius: 10,
+                      padding: "6px 12px",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      cursor: "pointer"
+                    }}
+                  >
+                    🔄 {lang === "kn" ? "ಪುನಃ ವೀಕ್ಷಿಸಿ" : "Repeat Pooja"}
+                  </button>
+                </div>
+                <div style={{ fontSize: 11.5, color: "#ECFDF5", borderTop: "1px solid rgba(52, 211, 153, 0.3)", paddingTop: 8 }}>
+                  ✨ {lang === "kn" ? "ಇಂದಿನ ಶುಭ ಫಲಗಳಿಗಾಗಿ ಕೆಳಗಿನ ಜಪ ಸಾಧನೆ ಹಾಗೂ ರಕ್ಷಣಾ ಕವಚವನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಪಠಿಸಿ:" : "For today's optimal planetary grace, chant the remedy japa and sacred kavacha below:"}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                background: "linear-gradient(135deg, rgba(146, 64, 14, 0.95) 0%, rgba(69, 26, 3, 0.98) 100%)",
+                border: "2px solid #F59E0B",
+                borderRadius: 18,
+                padding: "16px 18px",
+                marginBottom: 16,
+                boxShadow: "0 8px 24px rgba(217, 119, 6, 0.35)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 12
+              }}>
+                {/* 24-Hour Remaining Countdown Clock */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "rgba(0, 0, 0, 0.4)",
+                  border: "1px solid rgba(245, 158, 11, 0.5)",
+                  borderRadius: 12,
+                  padding: "8px 14px",
+                  fontSize: 12.5,
+                  fontWeight: 800,
+                  color: "#FDE68A"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 16 }}>⏳</span>
+                    <span>
+                      {lang === "kn"
+                        ? "ಇಂದಿನ ಪೂಜೆಗೆ ಬಾಕಿ ಸಮಯ:"
+                        : lang === "hi"
+                        ? "आज की पूजा हेतु शेष समय:"
+                        : lang === "te"
+                        ? "నేటి పూజకు మిగిలిన సమయం:"
+                        : lang === "ta"
+                        ? "இன்றைய பூஜைக்கு மீதமுள்ள நேரம்:"
+                        : "Time Remaining Today:"}
                     </span>
-                    <div style={{ fontSize: 11.5, color: "#FEF3C7", marginTop: 2, lineHeight: 1.4 }}>
-                      {(POOJA_BANNER_SUBTITLES[lang] || POOJA_BANNER_SUBTITLES.en)(deity.name[lang] || deity.name.en, poojaStreak.currentStreak)}
+                  </div>
+                  <span style={{
+                    fontFamily: "monospace",
+                    fontSize: 15,
+                    color: "#FEF08A",
+                    letterSpacing: "1px",
+                    background: "rgba(245, 158, 11, 0.25)",
+                    padding: "2px 8px",
+                    borderRadius: 6,
+                    border: "1px solid #F59E0B"
+                  }}>
+                    {timeLeftToday}
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 26 }}>🪔</span>
+                    <div>
+                      <span style={{ fontSize: 13.5, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        {dict.dailyPoojaBannerTitle}
+                      </span>
+                      <div style={{ fontSize: 11.5, color: "#FEF3C7", marginTop: 2, lineHeight: 1.4 }}>
+                        {(POOJA_BANNER_SUBTITLES[lang] || POOJA_BANNER_SUBTITLES.en)(deity.name[lang] || deity.name.en, poojaStreak.currentStreak)}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Buttons: Manage Sankalpas & Start Pooja */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => setIsManageSankalpaOpen(true)}
-                  style={{
-                    background: "rgba(245, 158, 11, 0.2)",
-                    color: "#FEF3C7",
-                    border: "1.5px solid #FCD34D",
-                    borderRadius: 12,
-                    padding: "10px 14px",
-                    fontSize: 12.5,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
-                    transition: "all 0.15s ease"
-                  }}
-                >
-                  <span>📝</span>
-                  <span>{dict.manageSankalpasBtn}</span>
-                </button>
+                {/* Action Buttons: Manage Sankalpas & Start Pooja */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsManageSankalpaOpen(true)}
+                    style={{
+                      background: "rgba(245, 158, 11, 0.2)",
+                      color: "#FEF3C7",
+                      border: "1.5px solid #FCD34D",
+                      borderRadius: 12,
+                      padding: "10px 14px",
+                      fontSize: 12.5,
+                      fontWeight: 900,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    <span>📝</span>
+                    <span>{dict.manageSankalpasBtn}</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => setIsPoojaModalOpen(true)}
-                  style={{
-                    background: "linear-gradient(135deg, #F59E0B, #D97706)",
-                    color: "#1C0A00",
-                    border: "1.5px solid #FDE68A",
-                    borderRadius: 12,
-                    padding: "10px 16px",
-                    fontSize: 13,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                    boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6
-                  }}
-                >
-                  <span>🪔</span>
-                  <span>{dict.startPoojaBtn}</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsPoojaModalOpen(true)}
+                    style={{
+                      background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                      color: "#1C0A00",
+                      border: "1.5px solid #FDE68A",
+                      borderRadius: 12,
+                      padding: "10px 16px",
+                      fontSize: 13,
+                      fontWeight: 900,
+                      cursor: "pointer",
+                      boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6
+                    }}
+                  >
+                    <span>🪔</span>
+                    <span>{dict.startPoojaBtn}</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* 🪔 Devotee In-Page Sankalpa Grid & Vedic Prayer Customizer */}
             <div className="mb-4">
@@ -4169,7 +4285,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             {dict.calendarContactPrompt}
           </div>
           <div style={{ fontSize: 16, color: "#FFFFFF", fontWeight: 900, marginBottom: 10 }}>
-            🛕 {dict.panditTitle}
+            🛕 {activePanditName} ({dict.panditRole || (lang === "kn" ? "ಪ್ರಧಾನ ಅರ್ಚಕರು" : "Chief Archaka")})
           </div>
           <button
             onClick={() => setShowContactModal(true)}

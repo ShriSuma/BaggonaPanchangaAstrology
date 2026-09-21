@@ -6,6 +6,7 @@
 
 import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import type { TithiGroup } from "../../core/TaraBalaEngine";
+import type { KundliOutput } from "../../core/AstroTypes";
 import { getPriestProfile } from "./sevaPriestDirectory";
 import {
   AMAVASYA_L5,
@@ -394,7 +395,11 @@ export type DailyFocusPoint = {
   type: "positive" | "warning" | "neutral";
 };
 
-export function getDailyActionableGuidance(day: RhythmDay, lang: string = "en"): DailyFocusPoint[] {
+export function getDailyActionableGuidance(
+  day: RhythmDay,
+  lang: string = "en",
+  birthKundli?: KundliOutput
+): DailyFocusPoint[] {
   const code = (lang || "en").slice(0, 2);
   const isKn = code === "kn";
   const isHi = code === "hi";
@@ -423,92 +428,112 @@ export function getDailyActionableGuidance(day: RhythmDay, lang: string = "en"):
   const score = day.energyScore ?? 75;
   const isCaution = day.isChandrashtama || day.isAmavasya || taraNum === 3 || taraNum === 5 || taraNum === 7 || score < 50;
 
+  // Derive native's ascendant and moon rashi for authentic Bhava linkages
+  const ascRashiIdx = birthKundli?.lagnaRashi?.index ?? (birthKundli?.ascendant !== undefined ? Math.floor(((birthKundli.ascendant % 360) + 360) % 360 / 30) : undefined);
+  const natalMoonRashiIdx = birthKundli?.moonSign?.index ?? (day as any).janmaRashiIndex ?? ((day.moonRashiIndex - (chandraHouse - 1) + 12) % 12);
+
+  // 4th house (Vahana Bhava) from Lagna (or Moon if Lagna unknown)
+  const vahanaHouseRashiIdx = ascRashiIdx !== undefined ? (ascRashiIdx + 3) % 12 : (natalMoonRashiIdx + 3) % 12;
+  const vahanaRashiName = rashiName(vahanaHouseRashiIdx, lang);
+  const vahanaBhavaLabel = ascRashiIdx !== undefined
+    ? (isKn ? `೪ನೇ ವಾಹನ ಭಾವ (${vahanaRashiName})` : isHi ? `चतुर्थ वाहन भाव (${vahanaRashiName})` : isTe ? `4వ వాహన భావం (${vahanaRashiName})` : isTa ? `4ஆம் வாகன பாவம் (${vahanaRashiName})` : `4th Vahana Bhava (${vahanaRashiName})`)
+    : (isKn ? `ಚಂದ್ರನಿಂದ ೪ನೇ ವಾಹನ ಭಾವ (${vahanaRashiName})` : isHi ? `चंद्र से चतुर्थ वाहन भाव (${vahanaRashiName})` : isTe ? `చంద్రుని నుండి 4వ వాహన భావం (${vahanaRashiName})` : isTa ? `சந்திரனிலிருந்து 4ஆம் வாகன பாவம் (${vahanaRashiName})` : `4th House from Moon (${vahanaRashiName})`);
+
+  // 2nd house (Dhana Bhava) & 11th house (Labha Bhava) from Lagna (or Moon if Lagna unknown)
+  const dhanaHouseRashiIdx = ascRashiIdx !== undefined ? (ascRashiIdx + 1) % 12 : (natalMoonRashiIdx + 1) % 12;
+  const labhaHouseRashiIdx = ascRashiIdx !== undefined ? (ascRashiIdx + 10) % 12 : (natalMoonRashiIdx + 10) % 12;
+  const dhanaRashiName = rashiName(dhanaHouseRashiIdx, lang);
+  const labhaRashiName = rashiName(labhaHouseRashiIdx, lang);
+  const dhanaLabhaLabel = ascRashiIdx !== undefined
+    ? (isKn ? `೨ನೇ ಧನ ಭಾವ (${dhanaRashiName}) & ೧೧ನೇ ಲಾಭ ಭಾವ (${labhaRashiName})` : isHi ? `द्वितीय धन भाव (${dhanaRashiName}) व 11वें लाभ भाव (${labhaRashiName})` : isTe ? `2వ ధన భావం (${dhanaRashiName}) & 11వ లాభ భావం (${labhaRashiName})` : isTa ? `2ஆம் தன பாவம் (${dhanaRashiName}) & 11ஆம் லாப பாவம் (${labhaRashiName})` : `2nd Dhana (${dhanaRashiName}) & 11th Labha (${labhaRashiName})`)
+    : (isKn ? `ಚಂದ್ರನಿಂದ ೨ನೇ ಧನ ಭಾವ (${dhanaRashiName}) & ೧೧ನೇ ಲಾಭ ಭಾವ (${labhaRashiName})` : isHi ? `चंद्र से 2रे धन भाव (${dhanaRashiName}) व 11वें लाभ भाव (${labhaRashiName})` : isTe ? `చంద్రుని నుండి 2వ ధన భావం (${dhanaRashiName}) & 11వ లాభ భావం (${labhaRashiName})` : isTa ? `சந்திரனிலிருந்து 2ஆம் தன பாவம் (${dhanaRashiName}) & 11ஆம் லாப பாவம் (${labhaRashiName})` : `2nd & 11th Bhavas from Moon (${dhanaRashiName}/${labhaRashiName})`);
+
   const points: DailyFocusPoint[] = [];
 
-  // 1. Vehicle & Asset Guidance (Synthesized from 9 Taras & Energy Score)
+  // 1. Vehicle & Asset Guidance (Synthesized from 4th House Vahana Bhava & 9 Taras)
   const p1Cat = isKn ? "ವಾಹನ, ಆಸ್ತಿ & ಪ್ರಯಾಣ" : isHi ? "वाहन, संपत्ति व यात्रा" : isTe ? "వాహన & ఆస్తి మార్గదర్శకత్వం" : isTa ? "வாகனம், சொத்து & பயணம்" : "Vehicle, Asset & Travel";
   let p1Text = "";
   let p1Type: "positive" | "warning" | "neutral" = "neutral";
 
   if (taraNum === 2) {
     p1Type = "positive";
-    p1Text = isKn ? "ಸಂಪತ್ ತಾರಾ ಬಲದಿಂದ ನೂತನ ವಾಹನ ಖರೀದಿ, ಬಂಗಾರ ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ಹೂಡಿಕೆಗೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ದಿನ."
-      : isHi ? "सम्पत् तारा प्रभाव से नए वाहन क्रय, स्वर्ण व अचल संपत्ति निवेश के लिए अत्यंत उत्तम दिन।"
-      : isTe ? "సంపత్ తారా బలంతో నూతన వాహన కొనుగోలు, ఆస్తి పెట్టుబడులకు అత్యంత శుభప్రదమైన రోజు."
-      : isTa ? "சம்பத் தாரா பலத்தால் புதிய வாகனம் வாங்குதல், சொத்து முதலீடுகளுக்கு மிகவும் உகந்த நாள்."
-      : "Sampat Tara infuses immense prosperity for new vehicle delivery, gold purchases, and property assets.";
+    p1Text = isKn ? `ಸಂಪತ್ ತಾರಾ ಬಲ ಹಾಗೂ ${vahanaBhavaLabel} ಅನುಗ್ರಹದಿಂದ ನೂತನ ವಾಹನ ಖರೀದಿ, ಬಂಗಾರ ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ಹೂಡಿಕೆಗೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ದಿನ.`
+      : isHi ? `सम्पत् तारा प्रभाव एवं ${vahanaBhavaLabel} के शुभ योग से नए वाहन क्रय, स्वर्ण व अचल संपत्ति निवेश के लिए अत्यंत उत्तम दिन।`
+      : isTe ? `సంపత్ తారా బలం మరియు ${vahanaBhavaLabel} అనుగ్రహంతో నూతన వాహన కొనుగోలు, ఆస్తి పెట్టుబడులకు అత్యంత శుభప్రదమైన రోజు.`
+      : isTa ? `சம்பத் தாரா பலம் மற்றும் ${vahanaBhavaLabel} யோகத்தால் புதிய வாகனம் வாங்குதல், சொத்து முதலீடுகளுக்கு மிகவும் உகந்த நாள்.`
+      : `Sampat Tara synergized with your ${vahanaBhavaLabel} infuses immense prosperity for vehicle delivery, gold purchases, and property assets.`;
   } else if (taraNum === 6) {
     p1Type = "positive";
-    p1Text = isKn ? "ಸಾಧಕ ತಾರಾ ಪ್ರಭಾವದಿಂದ ಯಂತ್ರೋಪಕರಣ ಖರೀದಿ, ವ್ಯಾಪಾರ ವಾಹನ ಪರವಾನಗಿ ಹಾಗೂ ದೂರದ ಪ್ರಯಾಣದಲ್ಲಿ ಜಯ."
-      : isHi ? "साधक तारा योग से वाणिज्यिक वाहन, मशीनरी क्रय व लंबी सुखद यात्रा में पूर्ण सफलता मिलेगी।"
-      : isTe ? "సాధక తారా ప్రభావంతో యంత్రాలు, వాణిజ్య వాహనాల కొనుగోలు మరియు సుదూర ప్రయాణాలలో విజయం."
-      : isTa ? "சாதக தாரா யோகத்தால் இயந்திரங்கள் வாங்குதல் மற்றும் நீண்ட தூர பயணங்களில் வெற்றி உண்டாகும்."
-      : "Sadhaka Tara ensures victory in purchasing machinery, vehicle permits, and progressive journeys.";
+    p1Text = isKn ? `ಸಾಧಕ ತಾರಾ ಪ್ರಭಾವ ಮತ್ತು ${vahanaBhavaLabel} ಬಲದಿಂದ ಯಂತ್ರೋಪಕರಣ ಖರೀದಿ, ವ್ಯಾಪಾರ ವಾಹನ ಪರವಾನಗಿ ಹಾಗೂ ಪ್ರಯಾಣದಲ್ಲಿ ಜಯ.`
+      : isHi ? `साधक तारा प्रभाव एवं ${vahanaBhavaLabel} के बल से वाणिज्यिक वाहन, मशीनरी क्रय व यात्रा में पूर्ण सफलता मिलेगी।`
+      : isTe ? `సాధక తారా ప్రభావం మరియు ${vahanaBhavaLabel} బలంతో యంత్రాలు, వాణిజ్య వాహనాల కొనుగోలు మరియు ప్రయాణాలలో విజయం.`
+      : isTa ? `சாதக தாரா பலம் மற்றும் ${vahanaBhavaLabel} பலத்தால் வாகன பயணம் மற்றும் சுப காரியங்களில் வெற்றி உண்டாகும்.`
+      : `Sadhaka Tara activating ${vahanaBhavaLabel} ensures victory in machinery, vehicle permits, and progressive journeys.`;
   } else if (taraNum === 4 || taraNum === 9) {
     p1Type = "positive";
-    p1Text = isKn ? "ಕ್ಷೇಮ/ಪರಮ ಮಿತ್ರ ತಾರಾ ಪ್ರಭಾವದಿಂದ ಕುಟುಂಬದೊಂದಿಗೆ ವಾಹನ ಪ್ರಯಾಣ ಹಾಗೂ ಗೃಹಾಲಂಕಾರಕ್ಕೆ ಅನುಕೂಲಕರ."
-      : isHi ? "क्षेम/परम मित्र तारा प्रभाव से पारिवारिक यात्रा व गृह सज्जा हेतु समय अत्यंत अनुकूल है।"
-      : isTe ? "క్షేమ/పరమ మిత్ర తారా బలంతో కుటుంబ సమేత ప్రయాణాలు, గృహ పనులకు అనుకూల సమయం."
-      : isTa ? "க்ஷேம/பரம மித்ர தாராவால் குடும்ப வாகன பயணம் மற்றும் வீட்டு வேலைகளுக்கு ஏற்ற நாள்."
-      : "Kshema / Parama Mitra Tara brings safety and delight for family travels and home asset improvements.";
+    p1Text = isKn ? `ಕ್ಷೇಮ/ಪರಮ ಮಿತ್ರ ತಾರಾ ಹಾಗೂ ${vahanaBhavaLabel} ಪ್ರಭಾವದಿಂದ ಕುಟುಂಬದೊಂದಿಗೆ ವಾಹನ ಪ್ರಯಾಣ ಹಾಗೂ ಗೃಹಾಲಂಕಾರಕ್ಕೆ ಅನುಕೂಲಕರ.`
+      : isHi ? `क्षेम/परम मित्र तारा एवं ${vahanaBhavaLabel} प्रभाव से पारिवारिक यात्रा व गृह सज्जा हेतु समय अनुकूल है।`
+      : isTe ? `క్షేమ/పరమ మిత్ర తారా మరియు ${vahanaBhavaLabel} బలంతో కుటుంబ సమేత ప్రయాణాలు, గృహ పనులకు అనుకూల సమయం.`
+      : isTa ? `க்ஷேம/பரம மித்ர தாரா மற்றும் ${vahanaBhavaLabel} அருளால் குடும்ப வாகன பயணம் மற்றும் வீட்டு வேலைகளுக்கு ஏற்ற நாள்.`
+      : `Kshema / Parama Mitra Tara supporting ${vahanaBhavaLabel} brings safety and delight for family travels and home asset improvements.`;
   } else if (taraNum === 3 || isCaution) {
     p1Type = "warning";
-    p1Text = isKn ? "ವಿಪತ್/ಎಚ್ಚರಿಕೆ ದಿನ: ದೂರದ ರಾತ್ರಿ ಪ್ರಯಾಣ ಹಾಗೂ ಹೊಸ ಆಸ್ತಿ ಒಪ್ಪಂದಗಳನ್ನು ಮುಂದೂಡುವುದು ಕ್ಷೇಮ."
-      : isHi ? "सतर्कता दिन: लंबी रात्रि यात्रा व नए संपत्ति समझौतों को आज टालना ही श्रेयस्कर रहेगा।"
-      : isTe ? "జాగ్రత్త సమయం: రాత్రి వేళ సుదూర ప్రయాణాలు, నూతన ఆస్తి ఒప్పందాలను వాయిదా వేయండి."
-      : isTa ? "கவனமான நாள்: இரவு நேர நீண்ட பயணங்களையும் புதிய சொத்து ஒப்பந்தங்களையும் தள்ளிவைக்கவும்."
-      : "Caution transit: Avoid impulsive vehicle delivery or night highway drives; verify vehicle safety checks.";
+    p1Text = isKn ? `ವಿಪತ್/ಎಚ್ಚರಿಕೆ ದಿನ: ${vahanaBhavaLabel}ದಲ್ಲಿ ಸಂಯಮವಿರಲಿ; ದೂರದ ರಾತ್ರಿ ಪ್ರಯಾಣ ಹಾಗೂ ಹೊಸ ಆಸ್ತಿ ಒಪ್ಪಂದಗಳನ್ನು ಮುಂದೂಡುವುದು ಕ್ಷೇಮ.`
+      : isHi ? `सतर्कता दिन: ${vahanaBhavaLabel} में संयम रखें; लंबी रात्रि यात्रा व नए संपत्ति समझौतों को आज टालना ही श्रेयस्कर रहेगा।`
+      : isTe ? `జాగ్రత్త సమయం: ${vahanaBhavaLabel}ను దృష్టిలో ఉంచుకుని రాత్రి వేళ సుదూర ప్రయాణాలు, నూతన ఆస్తి ఒప్పందాలను వాయిదా వేయండి.`
+      : isTa ? `கவனமான நாள்: ${vahanaBhavaLabel} அமைப்பில் கவனம் தேவை; இரவு நேர நீண்ட பயணங்களையும் புதிய சொத்து ஒப்பந்தங்களையும் தள்ளிவைக்கவும்.`
+      : `Caution transit affecting ${vahanaBhavaLabel}: Avoid impulsive vehicle delivery or night highway drives; verify vehicle safety checks.`;
   } else {
     p1Type = "neutral";
-    p1Text = isKn ? "ದೈನಂದಿನ ವಾಹನ ಸಂಚಾರಕ್ಕೆ ಶುಭ. ಮಧ್ಯಾಹ್ನದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಸಾಮಾನ್ಯ ಪ್ರಯಾಣ ಬೆಳೆಸಿ."
-      : isHi ? "दैनिक वाहन उपयोग हेतु दिन सामान्य है। शुभ वेला में नियोजित यात्रा करें।"
-      : isTe ? "సాధారణ వాహన ప్రయాణాలకు అనుకూలం. శుభ సమయంలో ప్రయాణాన్ని ప్రారంభించండి."
-      : isTa ? "வழக்கமான வாகன பயணத்திற்கு நல்லது. சுப நேரத்தில் பயணத்தை மேற்கொள்ளவும்."
-      : "Moderate day for planned routine commutes and regular vehicle maintenance during auspicious hours.";
+    p1Text = isKn ? `${vahanaBhavaLabel} ದಿನಚರಿಗೆ ಶುಭ. ಮಧ್ಯಾಹ್ನದ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಸಾಮಾನ್ಯ ವಾಹನ ಸಂಚಾರ ಬೆಳೆಸಿ.`
+      : isHi ? `${vahanaBhavaLabel} सामान्य है। शुभ वेला में नियोजित यात्रा एवं वाहन उपयोग करें।`
+      : isTe ? `${vahanaBhavaLabel} సాధారణంగా ఉంది. శుభ సమయంలో సాధారణ వాహన ప్రయాణాన్ని ప్రారంభించండి.`
+      : isTa ? `${vahanaBhavaLabel} சீராக உள்ளது. சுப நேரத்தில் வழக்கமான வாகன பயணத்தை மேற்கொள்ளவும்.`
+      : `Moderate rhythm for ${vahanaBhavaLabel}; plan routine commutes and regular vehicle maintenance during auspicious hours.`;
   }
 
   points.push({ icon: "🚗", category: p1Cat, text: p1Text, type: p1Type });
 
-  // 2. Financial Growth & Career Guidance (Synthesized from 12 Chandra Houses)
+  // 2. Financial Growth & Career Guidance (Synthesized from 2nd Dhana & 11th Labha Bhavas and Transit Moon)
   const p2Cat = isKn ? "ಧನ ಅಭಿವೃದ್ಧಿ & ವೃತ್ತಿ" : isHi ? "धन वृद्धि एवं करियर" : isTe ? "ధన లాభం & ఉద్యోగం" : isTa ? "தன லாபம் & தொழில்" : "Financial Growth & Career";
   let p2Text = "";
   let p2Type: "positive" | "warning" | "neutral" = "neutral";
 
   if (chandraHouse === 11 || chandraHouse === 2) {
     p2Type = "positive";
-    p2Text = isKn ? "೧೧/೨ನೇ ಭಾವದ ಚಂದ್ರಬಲದಿಂದ ಹಳೆಯ ಬಾಕಿ ವಸೂಲಾತಿ, ಧನ ಲಾಭ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆಗೆ ಅತ್ಯುತ್ತಮ."
-      : isHi ? "11वें/2रे भाव में चंद्र संचरण से रुका हुआ धन प्राप्त होगा तथा व्यापार विस्तार के नए मार्ग खुलेंगे।"
-      : isTe ? "11వ/2వ భావ చంద్రబలంతో పాత బాకీలు వసూలవుతాయి, నూతన ఆదాయ మార్గాలు తెరుచుకుంటాయి."
-      : isTa ? "11/2ஆம் இட சந்திரனால் பழைய பாக்கிகள் வசூலாகும், தொழில் மற்றும் வியாபாரத்தில் தன லாபம் பெருகும்."
-      : "Chandra in 11th/2nd house opens lucrative income streams, debt recoveries, and business expansion.";
+    p2Text = isKn ? `${dhanaLabhaLabel} ಮತ್ತು ${chandraHouse}ನೇ ಭಾವದ ಚಂದ್ರಬಲದಿಂದ ಹಳೆಯ ಬಾಕಿ ವಸೂಲಾತಿ, ಧನ ಲಾಭ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆಗೆ ಅತ್ಯುತ್ತಮ.`
+      : isHi ? `${dhanaLabhaLabel} तथा ${chandraHouse}वें भाव में चंद्र संचरण से रुका हुआ धन प्राप्त होगा तथा व्यापार विस्तार के नए मार्ग खुलेंगे।`
+      : isTe ? `${dhanaLabhaLabel} మరియు ${chandraHouse}వ భావ చంద్రబలంతో పాత బాకీలు వసూలవుతాయి, నూతన ఆదాయ మార్గాలు తెరుచుకుంటాయి.`
+      : isTa ? `${dhanaLabhaLabel} மற்றும் ${chandraHouse}ஆம் இட சந்திரனால் பழைய பாக்கிகள் வசூலாகும், தொழில் மற்றும் வியாபாரத்தில் தன லாபம் பெருகும்.`
+      : `Activating your ${dhanaLabhaLabel}, transit Moon in house ${chandraHouse} opens lucrative income streams, debt recoveries, and business expansion.`;
   } else if (chandraHouse === 10 || chandraHouse === 9 || chandraHouse === 1) {
     p2Type = "positive";
-    p2Text = isKn ? "ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಪ್ರಮುಖ ನಿರ್ಧಾರ, ಉನ್ನತಾಧಿಕಾರಿಗಳ ಮೆಚ್ಚುಗೆ ಹಾಗೂ ನೂತನ ಜವಾಬ್ದಾರಿ ಲಭಿಸಲಿದೆ."
-      : isHi ? "कार्यक्षेत्र में महत्वपूर्ण निर्णय, अधिकारियों की प्रशंसा व नए दायित्व मिलने का प्रबल योग है।"
-      : isTe ? "ఉద్యోగంలో ముఖ్యమైన నిర్ణయాలు, ఉన్నతాధికారుల ప్రశంసలు మరియు నూతన బాధ్యతలు లభిస్తాయి."
-      : isTa ? "தொழிலில் முக்கிய முடிவுகள், அதிகாரிகளின் பாராட்டு மற்றும் புதிய பொறுப்புகள் கிடைக்கும்."
-      : "Auspicious career alignment boosts executive reputation, leadership initiatives, and strategic milestones.";
+    p2Text = isKn ? `ಕರ್ಮ/ಭಾಗ್ಯ ಸ್ಥಾನದ ಚಂದ್ರಬಲ ಹಾಗೂ ${dhanaLabhaLabel} ಬೆಂಬಲದಿಂದ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಪ್ರಮುಖ ನಿರ್ಧಾರ, ಉನ್ನತಾಧಿಕಾರಿಗಳ ಮೆಚ್ಚುಗೆ ಲಭಿಸಲಿದೆ.`
+      : isHi ? `कर्म/भाग्य भाव के चंद्र बल एवं ${dhanaLabhaLabel} के सहयोग से कार्यक्षेत्र में महत्वपूर्ण निर्णय, अधिकारियों की प्रशंसा व नए दायित्व मिलने का प्रबल योग है।`
+      : isTe ? `కర్మ/భాగ్య స్థాన చంద్రబలం మరియు ${dhanaLabhaLabel} సహకారంతో ఉద్యోగంలో ముఖ్యమైన నిర్ణయాలు, ఉన్నతాధికారుల ప్రశంసలు మరియు బాధ్యతలు లభిస్తాయి.`
+      : isTa ? `தொழில்/பாக்ய ஸ்தான சந்திர பலம் மற்றும் ${dhanaLabhaLabel} ஆதரவால் பணியில் முக்கிய முடிவுகள், அதிகாரிகளின் பாராட்டு மற்றும் புதிய பொறுப்புகள் கிடைக்கும்.`
+      : `Auspicious career alignment synergizing with ${dhanaLabhaLabel} boosts executive reputation, leadership initiatives, and strategic milestones.`;
   } else if (chandraHouse === 6 || chandraHouse === 3) {
     p2Type = "positive";
-    p2Text = isKn ? "ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯ, ವಿರೋಧಿಗಳ ಶಮನ ಹಾಗೂ ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಶ್ರೇಷ್ಠ ಆರ್ಥಿಕ ಪ್ರತಿಫಲ."
-      : isHi ? "प्रतियोगिता में विजय, विरोधियों का शमन एवं परिश्रम का पूर्ण आर्थिक लाभ प्राप्त होगा।"
-      : isTe ? "పోటీలలో విజయం, విరోధులపై పైచేయి మరియు శ్రమకు తగిన ఆర్థిక ప్రతిఫలం లభిస్తుంది."
-      : isTa ? "போட்டிகளில் வெற்றி, எதிர்ப்புகள் விலகுதல் மற்றும் உழைப்புக்கேற்ற சிறந்த தன லாபம் கிடைக்கும்."
-      : "Overcoming hurdles and client negotiations rewarded with tangible financial gains.";
+    p2Text = isKn ? `ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯ, ವಿರೋಧಿಗಳ ಶಮನ ಹಾಗೂ ${dhanaLabhaLabel} ಬಲದಿಂದ ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಶ್ರೇಷ್ಠ ಆರ್ಥಿಕ ಪ್ರತಿಫಲ.`
+      : isHi ? `प्रतियोगिता में विजय, विरोधियों का शमन एवं ${dhanaLabhaLabel} के प्रभाव से परिश्रम का पूर्ण आर्थिक लाभ प्राप्त होगा।`
+      : isTe ? `పోటీలలో విజయం, విరోధులపై పైచేయి మరియు ${dhanaLabhaLabel} బలంతో శ్రమకు తగిన ఆర్థిక ప్రతిఫలం లభిస్తుంది.`
+      : isTa ? `போட்டிகளில் வெற்றி, எதிர்ப்புகள் விலகுதல் மற்றும் ${dhanaLabhaLabel} பலத்தால் உழைப்புக்கேற்ற சிறந்த தன லாபம் கிடைக்கும்.`
+      : `Overcoming hurdles with ${dhanaLabhaLabel} strength rewarded with tangible financial gains and client negotiations.`;
   } else if (chandraHouse === 8 || chandraHouse === 12) {
     p2Type = "warning";
-    p2Text = isKn ? "ಆರ್ಥಿಕ ವಹಿವಾಟಿನಲ್ಲಿ ಮಿತವ್ಯಯ ಪಾಲಿಸಿ; ಅಪರಿಚಿತರಿಗೆ ಸಾಲ ನೀಡುವುದು ಅಥವಾ ಊಹಾತ್ಮಕ ಹೂಡಿಕೆ ಬೇಡ."
-      : isHi ? "आर्थिक लेन-देन में सतर्कता बरतें; किसी को उधार न दें और जोखिम भरे निवेश से बचें।"
-      : isTe ? "ఆర్థిక లావాదేవీలలో జాగ్రత్త వహించండి; అపరిచితులకు అప్పు ఇవ్వడం, రిస్క్ పెట్టుబడులు వద్దు."
-      : isTa ? "பண பரிவர்த்தனைகளில் கவனம் தேவை; கடன் கொடுப்பதையும் அதிக ஆபத்துள்ள முதலீடுகளையும் தவிர்க்கவும்."
-      : "Exercise budget discipline; audit existing financial commitments and avoid speculative gambles.";
+    p2Text = isKn ? `${chandraHouse}ನೇ ಭಾವ ಸಂಚಾರ: ${dhanaLabhaLabel} ರಕ್ಷಣೆಗಾಗಿ ಆರ್ಥಿಕ ವಹಿವಾಟಿನಲ್ಲಿ ಮಿತವ್ಯಯ ಪಾಲಿಸಿ; ಅಪರಿಚಿತರಿಗೆ ಸಾಲ ನೀಡುವುದು ಬೇಡ.`
+      : isHi ? `${chandraHouse}वें भाव संचरण: ${dhanaLabhaLabel} की सुरक्षा हेतु आर्थिक लेन-देन में सतर्कता बरतें; किसी को उधार न दें और जोखिम भरे निवेश से बचें।`
+      : isTe ? `${chandraHouse}వ స్థాన సంచారం: ${dhanaLabhaLabel} రక్షణ కోసం ఆర్థిక లావాదేవీలలో జాగ్రత్త వహించండి; అపరిచితులకు అప్పు ఇవ్వడం, రిస్క్ పెట్టుబడులు వద్దు.`
+      : isTa ? `${chandraHouse}ஆம் இட சஞ்சாரம்: ${dhanaLabhaLabel} நலனுக்காக பண பரிவர்த்தனைகளில் கவனம் தேவை; கடன் கொடுப்பதையும் அதிக ஆபத்துள்ள முதலீடுகளையும் தவிர்க்கவும்.`
+      : `House ${chandraHouse} transit: Safeguard your ${dhanaLabhaLabel} by exercising budget discipline; audit commitments and avoid speculative gambles.`;
   } else {
     p2Type = "neutral";
-    p2Text = isKn ? "ಸಾಮಾನ್ಯ ಆರ್ಥಿಕ ಪ್ರಗತಿ. ನಿಯಮಿತ ಕರ್ತವ್ಯಗಳನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ನಿರ್ವಹಿಸಿ ಸ್ಥಿರತೆ ಕಾಯ್ದುಕೊಳ್ಳಿ."
-      : isHi ? "सामान्य आर्थिक स्थिति। नियमित कार्यों को निष्ठापूर्वक पूरा करें और स्थिरता बनाए रखें।"
-      : isTe ? "సాధారణ ఆర్థిక పురోగతి. నిత్య విధులను శ్రద్ధతో నిర్వర్తించి ఆర్థిక స్థిరత్వం కాపాడుకోండి."
-      : isTa ? "சீரான பொருளாதார நிலை. வழக்கமான பணிகளை நேர்த்தியாக செய்து நிதி நிலையை சீராக வைக்கவும்."
-      : "Steady vocational flow; maintain prudent financial stewardship and complete pending deliverables.";
+    p2Text = isKn ? `${dhanaLabhaLabel} ಸ್ಥಿರ ಪ್ರಗತಿ. ನಿಯಮಿತ ಕರ್ತವ್ಯಗಳನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ನಿರ್ವಹಿಸಿ ಆರ್ಥಿಕ ಸಮತೋಲನ ಕಾಯ್ದುಕೊಳ್ಳಿ.`
+      : isHi ? `${dhanaLabhaLabel} में सामान्य स्थिरता। नियमित कार्यों को निष्ठापूर्वक पूरा करें और आर्थिक संतुलन बनाए रखें।`
+      : isTe ? `${dhanaLabhaLabel} సాధారణ పురోగతి. నిత్య విధులను శ్రద్ధతో నిర్వర్తించి ఆర్థిక స్థిరత్వం కాపాడుకోండి.`
+      : isTa ? `${dhanaLabhaLabel} சீரான வளர்ச்சி. வழக்கமான பணிகளை நேர்த்தியாக செய்து நிதி நிலையை சீராக வைக்கவும்.`
+      : `Steady vocational flow for ${dhanaLabhaLabel}; maintain prudent financial stewardship and complete pending deliverables.`;
   }
 
   points.push({ icon: "💰", category: p2Cat, text: p2Text, type: p2Type });

@@ -449,10 +449,14 @@ export function computeGocharaMoonForDate(
 function getDinaBhavishyaCacheKey(
   userKey: string,
   dateYmd: string,
-  lang: string
+  lang: string,
+  priestName?: string
 ): string {
   const cleanUser = (userKey || "guest").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32);
-  return `bgn_dina_bhavishya_${cleanUser}_${dateYmd}_${lang}`;
+  const cleanPriest = (priestName && priestName !== "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" && priestName !== "Shreeram Pandit")
+    ? `_${encodeURIComponent(priestName.trim()).slice(0, 24)}`
+    : "";
+  return `bgn_dina_bhavishya_${cleanUser}_${dateYmd}_${lang}${cleanPriest}`;
 }
 
 export interface DinaBhavishyaParams {
@@ -471,6 +475,7 @@ export interface DinaBhavishyaParams {
   geminiApiKey?: string;
   forceRegenerate?: boolean;
   rhythmDay?: RhythmDay;
+  priestName?: string;
 }
 
 export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Promise<DinaBhavishyaPayload> {
@@ -489,7 +494,8 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
     userIdentifier = "devotee",
     geminiApiKey,
     forceRegenerate = false,
-    rhythmDay
+    rhythmDay,
+    priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
   } = params;
 
   // Strict Indian Standard Time (IST, UTC+05:30) date determination
@@ -501,7 +507,7 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
 
   const isToday = effectiveDate === todayYmd;
   const wasFutureRequested = effectiveDate > todayYmd;
-  const cacheKey = getDinaBhavishyaCacheKey(userIdentifier || devoteeName, effectiveDate, lang);
+  const cacheKey = getDinaBhavishyaCacheKey(userIdentifier || devoteeName, effectiveDate, lang, priestName);
 
   // 1. Tier 1: In-Memory Cache
   if (!forceRegenerate && IN_MEMORY_CACHE.has(cacheKey)) {
@@ -633,7 +639,7 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
   const localizedRashi = rashiName(natalMoonRashi, lang);
   const localizedNak = nakshatraName(natalNakshatra, lang);
   const localizedLagna = natalLagnaRashi !== undefined ? rashiName(natalLagnaRashi, lang) : undefined;
-  const localizedPandit = getLocalizedPanditName("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್", lang);
+  const localizedPandit = getLocalizedPanditName(priestName || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್", lang);
 
   // Dynamic Abhijit Muhurtha
   const abhijitMuhurtha = lang === "kn"
@@ -680,7 +686,7 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
     travelAndInitiatives = taraBalaInfo.isGood
       ? `शुभ अभिजीत मुहूर्त (${abhijitMuhurtha}) में की गई यात्रा एवं नई पहल लाभकारी सिद्ध होगी। राहुकाल (${kaala.rahu}) में सावधानी बरतें।`
       : `अनावश्यक यात्रा टालें और नियमित कार्यों पर ही ध्यान केंद्रित करें।`;
-    priestBlessing = `गोकर्ण महाबलेश्वर क्षेत्र से मुख्य अर्चक का आशीर्वाद: "${devoteeDisplayName} को आज के दिन सुख-समृद्धि एवं ग्रह शांति प्राप्त हो। ॐ नमः शिवाय।"`;
+    priestBlessing = `गोकर्ण महाबलेश्वर क्षेत्र से ${localizedPandit} का आशीर्वाद: "${devoteeDisplayName} को आज के दिन सुख-समृद्धि एवं ग्रह शांति प्राप्त हो। ॐ नमः शिवाय।"`;
   } else if (lang === "te") {
     overview = `నేడు మీ చంద్ర రాశి ${localizedRashi}కి గోచార చంద్రుడు ${chandraBalaInfo.title}లో ఉన్నాడు (${chandraBalaInfo.desc}) మరియు తారా బలం ${taraBalaInfo.name}. ${activeDashaSummary} ప్రభావంతో రోజు ${energyScore >= 75 ? "అత్యంత శుభప్రదంగా మరియు ఉత్సాహంగా సాగుతుంది." : "సమతుల్యంగా ఉంటుంది."}`;
     careerAndFinance = chandraBalaInfo.isFavorable
@@ -692,7 +698,7 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
     travelAndInitiatives = taraBalaInfo.isGood
       ? `శుభ అభిజిత్ ముహూర్తంలో (${abhijitMuhurtha}) చేసే ప్రయాణాలు విజయవంతమవుతాయి.`
       : `అనవసర ప్రయాణాలు వాయిదా వేసుకోవడం మంచిది.`;
-    priestBlessing = `శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి నుండి ప్రధాన అర్చకుల ఆశీర్వచనం: "${devoteeDisplayName} గారికి గ్రహ దోష శాంతి మరియు కార్య సిద్ధి కలుగుగాక."`;
+    priestBlessing = `శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి నుండి ${localizedPandit} ఆశీర్వచనం: "${devoteeDisplayName} గారికి గ్రహ దోష శాంతి మరియు కార్య సిద్ధి కలుగుగాక."`;
   } else if (lang === "ta") {
     overview = `இன்று உங்கள் சந்திர ராசி ${localizedRashi}க்கு கோச்சார சந்திரன் ${chandraBalaInfo.title}யில் சஞ்சரிக்கிறார் (${chandraBalaInfo.desc}) மற்றும் தாரா பலம் ${taraBalaInfo.name}. ${activeDashaSummary} அருளால் நாள் ${energyScore >= 75 ? "மிகவும் சுபமாகவும் உற்சாகமாகவும் இருக்கும்." : "நிதானமாக அமையும்."}`;
     careerAndFinance = chandraBalaInfo.isFavorable
@@ -704,7 +710,7 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
     travelAndInitiatives = taraBalaInfo.isGood
       ? `சுப அபிஜித் முகூர்த்தத்தில் (${abhijitMuhurtha}) செய்யும் பயணங்கள் வெற்றியைத் தரும்.`
       : `அவசியமற்ற பயணங்களைத் தவிர்க்கவும்.`;
-    priestBlessing = `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியிலிருந்து தலைமை அர்ச்சகர் ஆசீர்வாதம்: "${devoteeDisplayName} அவர்களுக்கு சகல சுபங்களும் உண்டாகட்டும். ஓம் நம சிவாய."`;
+    priestBlessing = `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னதியிலிருந்து ${localizedPandit} ஆசீர்வாதம்: "${devoteeDisplayName} அவர்களுக்கு சகல சுபங்களும் உண்டாகட்டும். ஓம் நம சிவாய."`;
   } else {
     overview = `Today, transit Moon operates in ${chandraBalaInfo.title} relative to your Moon sign ${localizedRashi} (${chandraBalaInfo.desc}), synergized by ${taraBalaInfo.name} and ${activeDashaSummary}. Blessed by ${deity.deityL5.en}, this day delivers ${energyScore >= 75 ? "high vigor, auspicious momentum, and success." : "steady progress with focused discipline."}`;
     careerAndFinance = chandraBalaInfo.isFavorable
@@ -716,7 +722,7 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
     travelAndInitiatives = taraBalaInfo.isGood
       ? `Favorable window during Abhijit Muhurtha (${abhijitMuhurtha}) for planned travel and auspicious beginnings. Avoid Rahu Kaala (${kaala.rahu}).`
       : `Stick to essential routine commutes and postpone high-stakes travels.`;
-    priestBlessing = `Chief Archaka Benediction from Gokarna Kshetra: "May divine blessings of Sri Gokarna Mahabaleshwara protect and guide ${devoteeDisplayName} throughout today. Om Namah Shivaya."`;
+    priestBlessing = `Benediction from ${localizedPandit} (Gokarna Kshetra): "May divine blessings of Sri Gokarna Mahabaleshwara protect and guide ${devoteeDisplayName} throughout today. Om Namah Shivaya."`;
   }
 
   // 6. GenAI High-Clarity Spoken Narration Synthesis (if API Key provided)

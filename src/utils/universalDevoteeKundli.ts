@@ -4,6 +4,8 @@
  * gets 100% complete, vibrant, and accurate Janama Kundali, Gochara transits, and Vimshottari Dasha-Bhukti.
  */
 
+import { calculateKundli } from "../core/KundliEngine";
+
 export interface UniversalBirthDetailsInput {
   dob?: string | null;
   tob?: string | null;
@@ -68,24 +70,74 @@ export function getUniversalBirthDetails(
 
   // 1. Explicit DOB & TOB passed in input
   if (hasDob && hasTob) {
+    let resolvedNak = (nakshatraIndex !== undefined && nakshatraIndex !== null) ? nakshatraIndex : undefined;
+    let resolvedRashi = (rashiIndex !== undefined && rashiIndex !== null) ? rashiIndex : undefined;
+
+    if (resolvedNak === undefined || resolvedRashi === undefined) {
+      try {
+        const k = calculateKundli({
+          name: name || "Devotee",
+          birthDate: dob!.trim(),
+          birthTime: tob!.trim(),
+          latitude: 14.5479,
+          longitude: 74.3187,
+          pincode: "581326"
+        });
+        const moonP = k.planets.find((p) => p.name === "Moon");
+        if (resolvedNak === undefined && moonP?.nakshatra?.index !== undefined) {
+          resolvedNak = moonP.nakshatra.index;
+        }
+        if (resolvedRashi === undefined && (moonP?.rashi?.index !== undefined || k.moonSign?.index !== undefined)) {
+          resolvedRashi = moonP?.rashi?.index ?? k.moonSign?.index;
+        }
+      } catch {
+        // preserve undefined on computation error
+      }
+    }
+
     return {
       dob: dob!.trim(),
       tob: tob!.trim(),
       isDerived: false,
-      nakshatraIndex: nakshatraIndex ?? undefined,
-      rashiIndex: rashiIndex ?? undefined
+      nakshatraIndex: resolvedNak,
+      rashiIndex: resolvedRashi
     };
   }
 
   // 1b. Devotee knows DOB but does NOT know exact TOB (unknown birth time)
   // Use user's exact DOB, anchor at 12:00 (Madhyahna Kaala / Surya Lagna anchor)
   if (hasDob && !hasTob) {
+    let resolvedNak = (nakshatraIndex !== undefined && nakshatraIndex !== null) ? nakshatraIndex : undefined;
+    let resolvedRashi = (rashiIndex !== undefined && rashiIndex !== null) ? rashiIndex : undefined;
+
+    if (resolvedNak === undefined || resolvedRashi === undefined) {
+      try {
+        const k = calculateKundli({
+          name: name || "Devotee",
+          birthDate: dob!.trim(),
+          birthTime: "12:00",
+          latitude: 14.5479,
+          longitude: 74.3187,
+          pincode: "581326"
+        });
+        const moonP = k.planets.find((p) => p.name === "Moon");
+        if (resolvedNak === undefined && moonP?.nakshatra?.index !== undefined) {
+          resolvedNak = moonP.nakshatra.index;
+        }
+        if (resolvedRashi === undefined && (moonP?.rashi?.index !== undefined || k.moonSign?.index !== undefined)) {
+          resolvedRashi = moonP?.rashi?.index ?? k.moonSign?.index;
+        }
+      } catch {
+        // preserve undefined on computation error
+      }
+    }
+
     return {
       dob: dob!.trim(),
       tob: "12:00",
       isDerived: false,
-      nakshatraIndex: nakshatraIndex ?? undefined,
-      rashiIndex: rashiIndex ?? undefined
+      nakshatraIndex: resolvedNak,
+      rashiIndex: resolvedRashi
     };
   }
 
