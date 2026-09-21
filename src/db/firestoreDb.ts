@@ -1962,6 +1962,24 @@ export function subscribeAllKundlis(
 }
 
 /**
+ * Super Admin / Priest: Fetch all saved Kundlis from Firestore as a Promise
+ */
+export async function getAllKundlisFromFirestore(): Promise<KundliHistoryDoc[]> {
+  try {
+    const q = query(collection(firestore, KUNDLIS_COL), orderBy("createdAt", "desc"), limit(250));
+    const snap = await getDocs(q);
+    const list: KundliHistoryDoc[] = [];
+    snap.forEach((docSnap) => {
+      list.push(docSnap.data() as KundliHistoryDoc);
+    });
+    return list;
+  } catch (err) {
+    console.warn("[Firestore] Failed to fetch kundlis:", err);
+    return [];
+  }
+}
+
+/**
  * Save or update Ashirvada QR pass in Firestore
  */
 export async function saveAshirvadaPassToFirestore(pass: AshirvadaPassDoc): Promise<void> {

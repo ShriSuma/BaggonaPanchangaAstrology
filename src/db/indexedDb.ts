@@ -419,6 +419,10 @@ export const getLatestKundliRecord = async (): Promise<KundliRecord | undefined>
   return db.kundlis.orderBy("createdAt").reverse().first();
 };
 
+export const getAllKundliRecords = async (): Promise<KundliRecord[]> => {
+  return db.kundlis.orderBy("createdAt").reverse().toArray();
+};
+
 export const savePanchangCache = async (date: string, location: string, data: PanchangOutput): Promise<void> => {
   const id = `${date}-${location}`;
   await db.panchangCache.put({ id, date, location, data, cachedAt: new Date().toISOString() });

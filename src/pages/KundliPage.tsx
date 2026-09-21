@@ -42,11 +42,23 @@ import { GOTRA_OPTIONS, gotraI18nKey } from "../data/gotras";
 import { formatNavamsaPada, formatRashiAmsha, patrikaNavamshaFromDegree } from "../core/localeNumbers";
 import { isRoughIndiaRegion } from "../core/placeTime";
 import { resolvePlaceFromPincode } from "../services/locationApi";
+import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../features/auth/authStore";
+import { DevoteeDatabaseSearchModal } from "../components/kundli/DevoteeDatabaseSearchModal";
+import type { DevoteeProfile } from "../services/devoteeSearchService";
 
 const parseYmdToDate = (ymd: string): Date | null => {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
-  if (!m) return null;
-  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0, 0);
+  if (!ymd) return null;
+  const trimmed = ymd.trim();
+  const m = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/.exec(trimmed);
+  if (m) {
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0, 0);
+  }
+  const dmy = /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/.exec(trimmed);
+  if (dmy) {
+    return new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]), 12, 0, 0, 0);
+  }
+  const parsed = new Date(trimmed);
+  return isNaN(parsed.getTime()) ? null : parsed;
 };
 
 export default function KundliPage(): JSX.Element {
@@ -125,6 +137,82 @@ export default function KundliPage(): JSX.Element {
   const pushPlaceToStore = (lat: number, lng: number, core: string, pin?: string) => {
     const label = homePlaceName.trim() ? `${homePlaceName.trim()} · ${core}` : core;
     void setDefaultLocation(lat, lng, label, pin && /^\d{6}$/.test(pin) ? pin : "");
+  };
+
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const role = useAuthStore((s) => s.role);
+  const isSuperAdminOrBaggona = useMemo(() => {
+    return Boolean(
+      role === "superadmin" ||
+      role === "priest" ||
+      currentUser?.toLowerCase() === "baggona" ||
+      (currentUser && SUPER_ADMIN_USERNAMES.some((u) => u.toLowerCase() === currentUser.toLowerCase() || u === currentUser))
+    );
+  }, [role, currentUser]);
+
+  const [isDevoteeSearchModalOpen, setIsDevoteeSearchModalOpen] = useState(false);
+  const [devoteeAutoFillToast, setDevoteeAutoFillToast] = useState<string>("");
+
+  const handleSelectDevoteeFromDb = (devotee: DevoteeProfile) => {
+    setIsDevoteeSearchModalOpen(false);
+
+    // 1. Parse birth date
+    const parsedDate = parseYmdToDate(devotee.birthDate);
+    if (parsedDate) {
+      setBirthDatePicker(parsedDate);
+    }
+
+    // 2. Format birth time (ensure HH:mm format for validation)
+    let formattedTime = (devotee.birthTime || "").trim();
+    const timeMatch = formattedTime.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      formattedTime = `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}`;
+    }
+    setBirthTimeHm(formattedTime);
+
+    // 3. Set place & coordinates
+    const lat = devotee.latitude || defaultLat;
+    const lng = devotee.longitude || defaultLng;
+    const pin = devotee.pincode && /^\d{6}$/.test(devotee.pincode) ? devotee.pincode : undefined;
+    const place = devotee.placeName || locationCore;
+
+    setLocationCore(place);
+    setHomePlaceName(place);
+    pushPlaceToStore(lat, lng, place, pin);
+
+    if (pin) {
+      lastResolvedPinRef.current = pin;
+    }
+
+    // 4. Gotra matching against GOTRA_OPTIONS
+    let matchedGotra = devotee.gothra?.trim() || "";
+    if (matchedGotra) {
+      const found = GOTRA_OPTIONS.find((g) => g.toLowerCase() === matchedGotra.toLowerCase());
+      if (found) {
+        matchedGotra = found;
+      }
+    }
+
+    // 5. Update form state
+    setForm((f) => ({
+      ...f,
+      name: devotee.name,
+      birthDate: parsedDate ? formatPickerDateLocalYmd(parsedDate) : devotee.birthDate,
+      birthTime: formattedTime,
+      latitude: lat,
+      longitude: lng,
+      pincode: pin,
+      gothra: matchedGotra,
+      gender: devotee.gender || "Male"
+    }));
+
+    // 6. Toast feedback
+    const isKnLang = Boolean(i18n?.language?.startsWith("kn"));
+    const msg = isKnLang
+      ? `✅ ${devotee.name} ಅವರ ವಿವರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಲಾಗಿದೆ.`
+      : `✅ Filled details for ${devotee.name}.`;
+    setDevoteeAutoFillToast(msg);
+    setTimeout(() => setDevoteeAutoFillToast(""), 8000);
   };
 
   const [pinResolving, setPinResolving] = useState(false);
@@ -222,7 +310,7 @@ export default function KundliPage(): JSX.Element {
     return t("kundli.birthTimeLocal");
   }, [form.pincode, form.latitude, form.longitude, t]);
 
-  /** Restore chart from session/draft when store changes (e.g. returning to tab or sub-module navigation). */
+  /** Restore chart from session when store changes (e.g. returning to tab or sub-module navigation). */
   useEffect(() => {
     if (kundliSession) {
       lastResolvedPinRef.current = kundliSession.input.pincode || "";
@@ -238,23 +326,8 @@ export default function KundliPage(): JSX.Element {
       if (kundliSession.includePriestCalendar !== undefined) {
         setIncludePriestCalendar(kundliSession.includePriestCalendar);
       }
-    } else if (draftInput) {
-      if (draftInput.input) {
-        lastResolvedPinRef.current = draftInput.input.pincode || "";
-        setForm(draftInput.input);
-      }
-      if (draftInput.birthDateYmd) {
-        const bd = parseYmdToDate(draftInput.birthDateYmd);
-        if (bd) setBirthDatePicker(bd);
-      }
-      if (draftInput.birthTimeHm) setBirthTimeHm(draftInput.birthTimeHm);
-      if (draftInput.homePlaceName) setHomePlaceName(draftInput.homePlaceName);
-      if (draftInput.placeLabel) setLocationCore(draftInput.placeLabel);
-      if (draftInput.includePriestCalendar !== undefined) {
-        setIncludePriestCalendar(draftInput.includePriestCalendar);
-      }
     }
-  }, [kundliSession, draftInput]);
+  }, [kundliSession]);
 
   /** Persist draft inputs so unexpected browser refresh or incoming phone call doesn't wipe in-progress form inputs. */
   useEffect(() => {
@@ -667,36 +740,96 @@ export default function KundliPage(): JSX.Element {
     <Card>
       {!(result && birthDatePicker && birthTimeHm.trim()) ? (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
             <div>
-              <h2 className="text-2xl font-bold text-indigo-950">{t("kundli.formTitle")}</h2>
-              <p className="mt-1 text-sm text-slate-600">{t("kundli.subtitle")}</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-indigo-950">{t("kundli.formTitle")}</h2>
+              <p className="mt-0.5 text-xs sm:text-sm text-slate-600">{t("kundli.subtitle")}</p>
             </div>
-            {import.meta.env.DEV && (
-              <button
-                type="button"
-                onClick={fillTestKundali}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition"
-              >
-                <span>⚡</span>
-                <span>Fill Test Details (Shreeram Pandit)</span>
-              </button>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {isSuperAdminOrBaggona && (
+                <button
+                  type="button"
+                  onClick={() => setIsDevoteeSearchModalOpen(true)}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-2xl border-2 border-amber-400/80 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-xs sm:text-sm shadow-md hover:shadow-lg hover:brightness-105 active:scale-95 transition-all"
+                  title={i18n.language.startsWith("kn") ? "ಡೇಟಾಬೇಸ್‌ನಿಂದ ಭಕ್ತರ ಹೆಸರು ಹುಡುಕಿ" : "Search Devotee from Database"}
+                >
+                  <span className="text-base">🏛️</span>
+                  <span>
+                    {i18n.language.startsWith("kn")
+                      ? "ಡೇಟಾಬೇಸ್‌ನಿಂದ ಭಕ್ತರ ಹುಡುಕಾಟ"
+                      : "Search Devotee from Database"}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-amber-950/20 text-slate-950 text-[10px] font-black uppercase border border-amber-950/20">
+                    🎙️ {i18n.language.startsWith("kn") ? "ಮೈಕ್" : "Mic"}
+                  </span>
+                </button>
+              )}
+              {import.meta.env.DEV && (
+                <button
+                  type="button"
+                  onClick={fillTestKundali}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition"
+                >
+                  <span>⚡</span>
+                  <span>Fill Test (Shreeram Pandit)</span>
+                </button>
+              )}
+            </div>
           </div>
+          {devoteeAutoFillToast && (
+            <div className="mb-3 p-2.5 sm:p-3.5 rounded-2xl border border-emerald-300 bg-emerald-50/95 text-emerald-950 text-xs sm:text-sm font-semibold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-sm animate-fadeIn">
+              <span className="flex items-center gap-2">
+                <span className="text-base">✨</span>
+                <span>{devoteeAutoFillToast}</span>
+              </span>
+              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => void onGenerate()}
+                  className="px-3 py-1.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-amber-200 text-xs font-black shadow-sm flex items-center gap-1.5 active:scale-95 transition"
+                >
+                  <span>⚡</span>
+                  <span>{i18n.language.startsWith("kn") ? "ಕುಂಡಲಿ ರಚಿಸಿ" : "Create Kundali"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDevoteeAutoFillToast("")}
+                  className="text-emerald-700 hover:text-emerald-950 text-xs px-2 py-1 font-bold"
+                  aria-label="Dismiss"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <div className="relative">
               <div className="flex justify-between items-end mb-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-indigo-900/70">{t("kundli.name")}</p>
-                <button
-                  type="button"
-                  title="Dictate Name"
-                  onClick={() => startDictation("name")}
-                  className={`text-xs flex items-center gap-1 font-semibold px-2 py-1 rounded-full ${dictatingField === "name" ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} transition-colors`}
-                >
-                  <span role="img" aria-label="microphone">🎤</span> 
-                </button>
+                <div className="flex items-center gap-1.5">
+                  {isSuperAdminOrBaggona && (
+                    <button
+                      type="button"
+                      onClick={() => setIsDevoteeSearchModalOpen(true)}
+                      className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 active:scale-95 transition flex items-center gap-1 shadow-2xs"
+                      title={i18n.language.startsWith("kn") ? "ಡೇಟಾಬೇಸ್‌ನಿಂದ ಭಕ್ತರ ಆಯ್ಕೆ" : "Select from Devotee Database"}
+                    >
+                      <span>🏛️</span>
+                      <span>{i18n.language.startsWith("kn") ? "ಡೇಟಾಬೇಸ್" : "Database"}</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    title="Dictate Name"
+                    onClick={() => startDictation("name")}
+                    className={`text-xs flex items-center gap-1 font-semibold px-2 py-1 rounded-full ${dictatingField === "name" ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} transition-colors`}
+                  >
+                    <span role="img" aria-label="microphone">🎤</span> 
+                  </button>
+                </div>
               </div>
               <input
+                data-testid="kundli-name-input"
                 placeholder={t("kundli.name")}
                 className="w-full min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-indigo-950 shadow-sm"
                 value={form.name}
@@ -1316,6 +1449,15 @@ export default function KundliPage(): JSX.Element {
             lang={remedyPdfLanguage}
           />
         </div>
+      )}
+
+      {/* Super Admin & Baggona Devotee Database Search Modal */}
+      {isSuperAdminOrBaggona && (
+        <DevoteeDatabaseSearchModal
+          isOpen={isDevoteeSearchModalOpen}
+          onClose={() => setIsDevoteeSearchModalOpen(false)}
+          onSelect={handleSelectDevoteeFromDb}
+        />
       )}
 
     </Card>
