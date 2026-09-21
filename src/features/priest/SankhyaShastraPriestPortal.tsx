@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import QRCode from "qrcode";
 import { useWalletStore } from "../wallet/walletStore";
 import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../auth/authStore";
@@ -21,7 +21,12 @@ import {
   type SankhyaMobileVehicleResult,
   type SankhyaJanmaResult
 } from "./sankhyaShastraPriestEngine";
-import { SpeechRecognitionSession } from "../../utils/speechRecognitionHelper";
+import {
+  SpeechRecognitionSession,
+  parseSpeechError,
+  type SpeechErrorInfo,
+  SANKHYA_QUICK_QUESTIONS_KN
+} from "../../utils/speechRecognitionHelper";
 import { setDoc, doc } from "firebase/firestore";
 import { firestore } from "../../services/firebase";
 import { updateUserPassword, isPriestAccountActive, isPriestFirstTimeSetupDone, getUserProfile } from "../../db/firestoreDb";
@@ -147,7 +152,8 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
 
   // Voice Recognition States
   const [isListeningFor, setIsListeningFor] = useState<string | null>(null);
-  const [speechError, setSpeechError] = useState<string | null>(null);
+  const [speechError, setSpeechError] = useState<SpeechErrorInfo | null>(null);
+  const speechSessionRef = useRef<SpeechRecognitionSession | null>(null);
 
   // Refill Modal State
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
@@ -345,27 +351,40 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
   const coinBalance = wallet?.coinBalance ?? 0;
 
   // Handle Voice Input
-  // Handle Voice Input
   const handleVoiceInput = (targetField: "name" | "gothra" | "question" | "nameInput" | "janmaName" | "janmaGothra" | "janmaQuestion") => {
-    const session = new SpeechRecognitionSession("kn-IN");
-    if (!session.isAvailable()) {
-      setSpeechError("ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಲಭ್ಯವಿಲ್ಲ.");
+    // 1. Toggle off if already listening for this field
+    if (isListeningFor === targetField) {
+      if (speechSessionRef.current) {
+        try {
+          speechSessionRef.current.stopListening();
+        } catch {
+          // ignore
+        }
+      }
+      setIsListeningFor(null);
       return;
     }
 
+    const session = new SpeechRecognitionSession("kn-IN");
+    if (!session.isAvailable()) {
+      setSpeechError({
+        code: "unsupported",
+        userFriendlyMessage: "ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಲಭ್ಯವಿಲ್ಲ.",
+        suggestion: "ದಯವಿಟ್ಟು Google Chrome ಬಳಸಿ ಅಥವಾ ಕೀಬೋರ್ಡ್ ಮೂಲಕ ನೇರವಾಗಿ ಟೈಪ್ ಮಾಡಿ.",
+        isCallRelated: false
+      });
+      return;
+    }
+
+    speechSessionRef.current = session;
     setIsListeningFor(targetField);
     setSpeechError(null);
 
-    if (targetField === "name") setDevoteeName("");
-    else if (targetField === "gothra") setGothra("");
-    else if (targetField === "question") setPrashnaQuestion("");
-    else if (targetField === "nameInput") setNameInput("");
-    else if (targetField === "janmaName") setJanmaDevoteeName("");
-    else if (targetField === "janmaGothra") setJanmaGothra("");
-    else if (targetField === "janmaQuestion") setJanmaQuestion("");
+    // CRITICAL: DO NOT wipe out existing field values before speech is recognized!
 
     session.startListening(
       (transcript) => {
+        if (!transcript) return;
         if (targetField === "name") setDevoteeName(transcript);
         else if (targetField === "gothra") setGothra(transcript);
         else if (targetField === "question") setPrashnaQuestion(transcript);
@@ -377,7 +396,8 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       },
       () => setIsListeningFor(null),
       (err) => {
-        setSpeechError(`ಧ್ವನಿ ದೋಷ: ${err}`);
+        const parsed = parseSpeechError(err, "kn");
+        setSpeechError(parsed);
         setIsListeningFor(null);
       }
     );
@@ -923,9 +943,23 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
       )}
 
       {speechError && (
-        <div className="mx-4 mt-2 p-2.5 rounded-xl bg-amber-50 border-2 border-amber-400 text-amber-900 text-[11px] font-bold flex items-center justify-between">
-          <span>🎤 {speechError}</span>
-          <button onClick={() => setSpeechError(null)} className="text-amber-800">✕</button>
+        <div className="mx-4 mt-2 p-3 rounded-2xl bg-gradient-to-r from-amber-50 to-rose-50 border-2 border-rose-300 text-rose-950 text-xs shadow-xs animate-fadeIn space-y-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2">
+              <span className="text-base">{speechError.isCallRelated ? "📵" : "⚠️"}</span>
+              <div>
+                <p className="font-black text-rose-900 leading-snug">{speechError.userFriendlyMessage}</p>
+                <p className="text-[11px] text-slate-700 mt-0.5">{speechError.suggestion}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setSpeechError(null)}
+              className="text-slate-400 hover:text-slate-700 font-bold text-sm px-1"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
@@ -1072,24 +1106,87 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-amber-950 font-bold mb-1">ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆ / ಸಮಾಲೋಚನೆ (ಐಚ್ಛಿಕ)</label>
+                <label className="block text-amber-950 font-bold mb-1">
+                  <span>ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆ / ಸಮಾಲೋಚನೆ (ಐಚ್ಛಿಕ)</span>
+                  {isListeningFor === "janmaQuestion" && (
+                    <span className="text-[11px] font-bold text-rose-600 animate-pulse ml-2">
+                      🎙️ ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದೆ... ಮಾತನಾಡಿ
+                    </span>
+                  )}
+                </label>
                 <div className="relative">
                   <textarea
                     value={janmaQuestion}
-                    onChange={(e) => setJanmaQuestion(e.target.value)}
+                    onChange={(e) => {
+                      setJanmaQuestion(e.target.value);
+                      if (speechError) setSpeechError(null);
+                    }}
                     placeholder="ಉದಾ: ಉದ್ಯೋಗ ಬಡ್ತಿ, ವಿದೇಶ ಪ್ರಯಾಣ, ಆರ್ಥಿಕ ಪ್ರಗತಿ, ವಿವಾಹ ಕಾಲ..."
                     rows={2}
-                    className="w-full px-3.5 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500 pr-8 shadow-inner"
+                    className={`w-full px-3.5 py-2 bg-[#FEFCF4] border-2 ${
+                      isListeningFor === "janmaQuestion"
+                        ? "border-rose-400 ring-2 ring-rose-200 bg-rose-50/40"
+                        : "border-amber-300 focus:border-amber-500"
+                    } rounded-xl text-slate-900 font-semibold focus:outline-none pr-10 shadow-inner transition`}
                   />
                   <button
                     type="button"
                     onClick={() => handleVoiceInput("janmaQuestion")}
-                    className={`absolute right-1.5 top-2 p-1 rounded-lg ${
-                      isListeningFor === "janmaQuestion" ? "bg-red-500 text-white animate-pulse" : "text-amber-700"
+                    title={isListeningFor === "janmaQuestion" ? "ನಿಲ್ಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ" : "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಹೇಳಿ"}
+                    className={`absolute right-1.5 top-2 p-1.5 rounded-lg transition-all active:scale-95 ${
+                      isListeningFor === "janmaQuestion"
+                        ? "bg-rose-600 text-white animate-pulse ring-2 ring-rose-300 shadow-md"
+                        : "text-amber-800 hover:bg-amber-100"
                     }`}
                   >
-                    🎤
+                    <span>{isListeningFor === "janmaQuestion" ? "🎙️" : "🎤"}</span>
                   </button>
+                </div>
+
+                {/* Local Diagnostic Error Banner for Janma Question */}
+                {speechError && isListeningFor === null && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-amber-50 to-rose-50 border-2 border-rose-300 text-rose-950 text-xs shadow-xs animate-fadeIn space-y-1">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="flex items-start gap-1.5">
+                        <span className="text-base">{speechError.isCallRelated ? "📵" : "⚠️"}</span>
+                        <div>
+                          <p className="font-black text-rose-900 leading-snug">{speechError.userFriendlyMessage}</p>
+                          <p className="text-[11px] text-slate-700 mt-0.5">{speechError.suggestion}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSpeechError(null)}
+                        className="text-slate-400 hover:text-slate-700 font-bold text-xs p-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Question Suggestions */}
+                <div className="mt-2 pt-1.5 border-t border-amber-200/60">
+                  <p className="text-[10px] font-bold text-amber-900 flex items-center gap-1 mb-1">
+                    <span>💡</span>
+                    <span>ತ್ವರಿತ ಪ್ರಶ್ನೆಗಳು (ಕರೆಯಲ್ಲಿದ್ದಾಗ ೧-ಕ್ಲಿಕ್‌ನಲ್ಲಿ ಆರಿಸಿ):</span>
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {SANKHYA_QUICK_QUESTIONS_KN.slice(0, 5).map((q) => (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => {
+                          setJanmaQuestion(q.text);
+                          setSpeechError(null);
+                        }}
+                        className="px-2 py-0.5 rounded-lg bg-amber-100/80 hover:bg-amber-200 text-amber-950 border border-amber-300/80 text-[11px] font-semibold active:scale-95 transition"
+                        title={q.text}
+                      >
+                        {q.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -1347,25 +1444,88 @@ export const SankhyaShastraPriestPortal: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-amber-950 font-bold mb-1">ಭಕ್ತರ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆ</label>
+                <label className="block text-amber-950 font-bold mb-1">
+                  <span>ಭಕ್ತರ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆ</span>
+                  {isListeningFor === "question" && (
+                    <span className="text-[11px] font-bold text-rose-600 animate-pulse ml-2">
+                      🎙️ ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದೆ... ಮಾತನಾಡಿ
+                    </span>
+                  )}
+                </label>
                 <div className="relative">
                   <textarea
                     value={prashnaQuestion}
-                    onChange={(e) => setPrashnaQuestion(e.target.value)}
+                    onChange={(e) => {
+                      setPrashnaQuestion(e.target.value);
+                      if (speechError) setSpeechError(null);
+                    }}
                     placeholder="ಉದಾ: ನನಗೆ ಮದುವೆ ಆಗುವಂತಹ ಗಂಡನ ಅಕ್ಕ ಬಾವ ನನಗೆ ಬೈತಾಯಿದ್ದಾರೆ ಯಾಕೆ? ಅಥವಾ ಕಳೆದುಹೋದ ವಸ್ತು ಎಲ್ಲಿ ಸಿಗುತ್ತದೆ?"
                     rows={2}
                     required
-                    className="w-full px-3.5 py-2 bg-[#FEFCF4] border-2 border-amber-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-amber-500 pr-8 shadow-inner"
+                    className={`w-full px-3.5 py-2 bg-[#FEFCF4] border-2 ${
+                      isListeningFor === "question"
+                        ? "border-rose-400 ring-2 ring-rose-200 bg-rose-50/40"
+                        : "border-amber-300 focus:border-amber-500"
+                    } rounded-xl text-slate-900 font-semibold focus:outline-none pr-10 shadow-inner transition`}
                   />
                   <button
                     type="button"
                     onClick={() => handleVoiceInput("question")}
-                    className={`absolute right-1.5 top-2 p-1 rounded-lg ${
-                      isListeningFor === "question" ? "bg-red-500 text-white animate-pulse" : "text-amber-700"
+                    title={isListeningFor === "question" ? "ನಿಲ್ಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ" : "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಹೇಳಿ"}
+                    className={`absolute right-1.5 top-2 p-1.5 rounded-lg transition-all active:scale-95 ${
+                      isListeningFor === "question"
+                        ? "bg-rose-600 text-white animate-pulse ring-2 ring-rose-300 shadow-md"
+                        : "text-amber-800 hover:bg-amber-100"
                     }`}
                   >
-                    🎤
+                    <span>{isListeningFor === "question" ? "🎙️" : "🎤"}</span>
                   </button>
+                </div>
+
+                {/* Local Diagnostic Error Banner for Prashna */}
+                {speechError && isListeningFor === null && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-amber-50 to-rose-50 border-2 border-rose-300 text-rose-950 text-xs shadow-xs animate-fadeIn space-y-1">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="flex items-start gap-1.5">
+                        <span className="text-base">{speechError.isCallRelated ? "📵" : "⚠️"}</span>
+                        <div>
+                          <p className="font-black text-rose-900 leading-snug">{speechError.userFriendlyMessage}</p>
+                          <p className="text-[11px] text-slate-700 mt-0.5">{speechError.suggestion}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSpeechError(null)}
+                        className="text-slate-400 hover:text-slate-700 font-bold text-xs p-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Prashna Suggestions for Priest on Call */}
+                <div className="mt-2 pt-1.5 border-t border-amber-200/60">
+                  <p className="text-[10px] font-bold text-amber-900 flex items-center gap-1 mb-1">
+                    <span>💡</span>
+                    <span>ತ್ವರಿತ ಪ್ರಶ್ನೆಗಳು (ಕರೆಯಲ್ಲಿದ್ದಾಗ ೧-ಕ್ಲಿಕ್‌ನಲ್ಲಿ ಆರಿಸಿ):</span>
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {SANKHYA_QUICK_QUESTIONS_KN.map((q) => (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => {
+                          setPrashnaQuestion(q.text);
+                          setSpeechError(null);
+                        }}
+                        className="px-2.5 py-1 rounded-xl bg-amber-100/80 hover:bg-amber-200 text-amber-950 border border-amber-300/80 text-xs font-semibold shadow-2xs active:scale-95 transition"
+                        title={q.text}
+                      >
+                        {q.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

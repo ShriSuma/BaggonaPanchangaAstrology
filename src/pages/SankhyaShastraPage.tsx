@@ -33,6 +33,12 @@ import { sanitizeAIText } from "../utils/textFormatter";
 import { SankhyaNumerologyLoader } from "../components/sankhyashastra/SankhyaNumerologyLoader";
 import { VedicGridDashaTab } from "../components/sankhyashastra/VedicGridDashaTab";
 import AudioPlayerButton from "../components/ui/AudioPlayerButton";
+import {
+  parseSpeechError,
+  type SpeechErrorInfo,
+  SANKHYA_QUICK_QUESTIONS_KN,
+  SANKHYA_QUICK_QUESTIONS_EN
+} from "../utils/speechRecognitionHelper";
 
 type ChatMessage = {
   id: string;
@@ -81,6 +87,10 @@ export default function SankhyaShastraPage(): JSX.Element {
   );
   const [followUpInput, setFollowUpInput] = useState<string>(() => savedSankhyaSession?.followUpInput || "");
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [speechError, setSpeechError] = useState<SpeechErrorInfo | null>(null);
+  const [speechInterim, setSpeechInterim] = useState<string>("");
+  const questionInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   const [activeResult, setActiveResult] = useState<SankhyaShastraResult | null>(() => savedSankhyaSession?.activeResult || null);
@@ -275,39 +285,103 @@ export default function SankhyaShastraPage(): JSX.Element {
 
   // Speech Recognition (Voice Input Mic for Prashna)
   const handleVoiceInput = () => {
+    // 1. Toggle off if already listening
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+      setIsListening(false);
+      setSpeechInterim("");
+      return;
+    }
+
+    // 2. Check browser SpeechRecognition support
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert(
-        isKn
-          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಇನ್‌ಪುಟ್ (Voice Input) ಅನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಬರೆದು ಟೈಪ್ ಮಾಡಿ."
-          : "Voice input is not supported in this browser. Please type your question."
-      );
+      setSpeechError({
+        code: "unsupported",
+        userFriendlyMessage: isKn
+          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಇನ್‌ಪುಟ್ (Voice Input) ಅನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ."
+          : "Voice input is not supported in this browser.",
+        suggestion: isKn
+          ? "ದಯವಿಟ್ಟು Google Chrome ಬಳಸಿ ಅಥವಾ ಕೆಳಗಿನ ಕೀಬೋರ್ಡ್ ಬಳಸಿ ನೇರವಾಗಿ ಟೈಪ್ ಮಾಡಿ."
+          : "Please use Google Chrome or type your question below.",
+        isCallRelated: false
+      });
       return;
     }
 
+    setSpeechError(null);
+    setSpeechInterim("");
+
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang = selectedLang === "kn" ? "kn-IN" : selectedLang === "hi" ? "hi-IN" : selectedLang === "te" ? "te-IN" : selectedLang === "ta" ? "ta-IN" : "en-US";
+      recognition.lang =
+        selectedLang === "kn"
+          ? "kn-IN"
+          : selectedLang === "hi"
+          ? "hi-IN"
+          : selectedLang === "te"
+          ? "te-IN"
+          : selectedLang === "ta"
+          ? "ta-IN"
+          : "en-US";
       recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.interimResults = true;
 
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
+      recognition.onstart = () => {
+        setIsListening(true);
+        setSpeechError(null);
+      };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results?.[0]?.[0]?.transcript;
-        if (transcript) {
-          setQuestionInput(transcript);
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        const currentText = (finalTranscript || interimTranscript).trim();
+        if (currentText) {
+          setSpeechInterim(currentText);
+          if (finalTranscript) {
+            setQuestionInput(currentText);
+            setSpeechInterim("");
+          }
         }
       };
 
+      recognition.onerror = (event: any) => {
+        setIsListening(false);
+        setSpeechInterim("");
+        const parsed = parseSpeechError(event?.error || event, selectedLang);
+        setSpeechError(parsed);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        setSpeechInterim("");
+      };
+
+      recognitionRef.current = recognition;
       recognition.start();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Speech recognition error:", err);
       setIsListening(false);
+      setSpeechInterim("");
+      const parsed = parseSpeechError(err?.message || err, selectedLang);
+      setSpeechError(parsed);
     }
   };
 
@@ -695,33 +769,127 @@ export default function SankhyaShastraPage(): JSX.Element {
           <Card className="border border-amber-300/80 bg-white p-5 shadow-sm space-y-4">
             <form onSubmit={handleStartPrashna} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5">
-                  ❓ {isKn ? "ನಿಮ್ಮ ಮನಸ್ಸಿನ ಪ್ರಶ್ನೆ (Your Question)" : "Your Question"}
+                <label className="text-xs font-bold uppercase tracking-wider text-amber-950 mb-1.5 flex items-center justify-between">
+                  <span>❓ {isKn ? "ನಿಮ್ಮ ಮನಸ್ಸಿನ ಪ್ರಶ್ನೆ (Your Question)" : "Your Question"}</span>
+                  {isListening && (
+                    <span className="text-[11px] font-bold text-rose-600 animate-pulse flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                      <span>{isKn ? "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದೆ... ಮಾತನಾಡಿ 🎙️" : "Listening... Speak now 🎙️"}</span>
+                    </span>
+                  )}
                 </label>
                 <div className="relative">
                   <input
+                    ref={questionInputRef}
                     type="text"
-                    value={questionInput}
-                    onChange={(e) => setQuestionInput(e.target.value)}
+                    value={speechInterim || questionInput}
+                    onChange={(e) => {
+                      setQuestionInput(e.target.value);
+                      if (speechError) setSpeechError(null);
+                    }}
                     placeholder={
                       isKn
                         ? "ಉದಾ: ನನಗೆ ಈ ವರ್ಷ ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ ಸಿಗುವುದೇ? / ಹೊಸ ವ್ಯಾಪಾರ ಆರಂಭಿಸಬಹುದೇ?"
                         : "e.g. Will I get a job promotion this year? / Is this a good time to start business?"
                     }
-                    className="w-full rounded-xl border border-amber-300 bg-amber-50/40 px-4 py-3 pr-12 text-sm font-semibold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none"
+                    className={`w-full rounded-xl border ${
+                      isListening
+                        ? "border-rose-400 ring-2 ring-rose-200 bg-rose-50/30"
+                        : "border-amber-300 bg-amber-50/40"
+                    } px-4 py-3 pr-14 text-sm font-semibold text-amber-950 shadow-inner focus:border-amber-600 focus:outline-none transition`}
                   />
                   <button
                     type="button"
                     onClick={handleVoiceInput}
-                    title={isKn ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ" : "Voice Input (Speak)"}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm transition ${
+                    title={
                       isListening
-                        ? "bg-rose-500 text-white animate-pulse"
-                        : "bg-amber-100 text-amber-900 hover:bg-amber-200"
+                        ? isKn
+                          ? "ನಿಲ್ಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ"
+                          : "Stop listening"
+                        : isKn
+                        ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ"
+                        : "Voice Input (Speak)"
+                    }
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-xl p-2 text-sm transition-all active:scale-95 ${
+                      isListening
+                        ? "bg-rose-600 text-white animate-pulse ring-2 ring-rose-300 shadow-md"
+                        : "bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300"
                     }`}
                   >
-                    <span>🎤</span>
+                    <span>{isListening ? "🎙️" : "🎤"}</span>
                   </button>
+                </div>
+
+                {/* Speech Error Diagnostic Banner (Specially when in call or muted) */}
+                {speechError && (
+                  <div className="mt-2.5 p-3 rounded-2xl bg-gradient-to-r from-amber-50 to-rose-50 border-2 border-rose-300/90 text-rose-950 text-xs shadow-xs animate-fadeIn space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">{speechError.isCallRelated ? "📵" : "⚠️"}</span>
+                        <div>
+                          <p className="font-black text-rose-900 leading-snug">{speechError.userFriendlyMessage}</p>
+                          <p className="text-[11px] text-slate-700 mt-0.5">{speechError.suggestion}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSpeechError(null)}
+                        className="text-slate-400 hover:text-slate-700 font-bold text-sm px-1.5 py-0.5"
+                        aria-label="Dismiss"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="pt-0.5 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          questionInputRef.current?.focus();
+                          setSpeechError(null);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] shadow-xs active:scale-95 transition flex items-center gap-1.5"
+                      >
+                        <span>⌨️</span>
+                        <span>{isKn ? "ಕೀಬೋರ್ಡ್‌ನಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ / ಕೀಬೋರ್ಡ್ ಮೈಕ್ ಬಳಸಿ" : "Focus to Type / Use Keyboard Mic"}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Typo / Short Length Notice */}
+                {questionInput.trim().length > 0 && questionInput.trim().length < 4 && (
+                  <p className="mt-1.5 text-[11px] font-semibold text-amber-800 flex items-center gap-1">
+                    <span>⚠️</span>
+                    <span>
+                      {isKn
+                        ? "ಪ್ರಶ್ನೆ ತುಂಬಾ ಚಿಕ್ಕದಾಗಿದೆ ಅಥವಾ ಅಪೂರ್ಣವಾಗಿದೆ. ಸ್ಪಷ್ಟ ಫಲಿತಾಂಶಕ್ಕಾಗಿ ಪೂರ್ಣ ಪ್ರಶ್ನೆ ಬರೆಯಿರಿ."
+                        : "Question is very short or incomplete. Please provide a clear question for accurate guidance."}
+                    </span>
+                  </p>
+                )}
+
+                {/* Quick Question Bank (1-Tap asking while on call or muted) */}
+                <div className="mt-2.5 pt-2 border-t border-amber-200/60">
+                  <p className="text-[11px] font-bold text-amber-900 flex items-center gap-1 mb-1.5">
+                    <span>💡</span>
+                    <span>{isKn ? "ತ್ವರಿತ ಪ್ರಶ್ನೆಗಳು (ಕರೆಯಲ್ಲಿದ್ದಾಗ ಸುಲಭವಾಗಿ ೧-ಕ್ಲಿಕ್‌ನಲ್ಲಿ ಆರಿಸಿ):" : "Quick Questions (1-Tap while on call):"}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(isKn ? SANKHYA_QUICK_QUESTIONS_KN : SANKHYA_QUICK_QUESTIONS_EN).map((q) => (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => {
+                          setQuestionInput(q.text);
+                          setSpeechError(null);
+                        }}
+                        className="px-2.5 py-1 rounded-xl bg-amber-100/80 hover:bg-amber-200 text-amber-950 border border-amber-300/80 text-xs font-semibold shadow-2xs active:scale-95 transition"
+                        title={q.text}
+                      >
+                        {q.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
