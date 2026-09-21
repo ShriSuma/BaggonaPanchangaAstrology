@@ -62,6 +62,12 @@ function escapeIcsText(str: string): string {
     .replace(/\r?\n/g, "\\n");
 }
 
+function escapeIcsHtml(html: string): string {
+  return html
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, "\\n");
+}
+
 /** Formats date into YYYYMMDD string. */
 function formatYmdCompact(ymd: string): string {
   return ymd.replace(/-/g, "");
@@ -1212,7 +1218,25 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const energyMeaning = getEnergyIndicatorMeaning(day, lang);
 
+    const isKn = lang.startsWith("kn");
+    const isHi = lang.startsWith("hi");
+    const isTe = lang.startsWith("te");
+    const isTa = lang.startsWith("ta");
+
+    const openSanctumPrompt = isKn
+      ? "👉 ನೇರ ಲೈವ್ ದರ್ಶನ ಪಡೆಯಲು ಕೆಳಗಿನ ಲಿಂಕ್ ಒತ್ತಿ (CLICK TO OPEN):"
+      : isHi
+      ? "👉 सीधे लाइव दर्शन के लिए नीचे दिए लिंक पर क्लिक करें (CLICK TO OPEN):"
+      : isTe
+      ? "👉 ప్రత్యక్ష దర్శనం కోసం క్రింది లింక్ క్లిక్ చేయండి (CLICK TO OPEN):"
+      : isTa
+      ? "👉 நேரடி தரிசனத்திற்கு கீழே உள்ள இணைப்பை கிளிக் செய்யவும் (CLICK TO OPEN):"
+      : "👉 Click the link below to open Live Darshana:";
+
     const descriptionParts: string[] = [
+      openSanctumPrompt,
+      sanctumUrl,
+      "",
       `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
       "----------------------------------------",
       `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
@@ -1309,7 +1333,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       ? `${tithiFullStr} <span style="font-size:11px; color:#fde68a;">(${tithiDetailInfo.tithiEndTimeStr} ${lang === "kn" ? "ರವರೆಗೆ" : "till"}, ${lang === "kn" ? "ನಂತರ" : "then"}: ${tithiDetailInfo.nextTithiFullLabel?.[lang] || ''})</span>`
       : tithiFullStr;
 
-    const htmlDescriptionStr = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:16px;"><h2 style="color:#fde68a; margin:0 0 12px 0; font-size:16px; text-align:center;">🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b; width:45%;">👤 ${labels.devoteeLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🙏 ${labels.priestLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedPandit}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📅 ${labels.tithiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${htmlTithiVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.rashiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${rashiStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌅 ${labels.sunriseLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunrise}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌇 ${labels.sunsetLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunset}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⚡ ${labels.statusLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">✨ ${labels.vibeTagLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.vibeTag}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">💡 ${labels.energyMeaningLabel}:</td><td style="padding:6px 4px; color:#fde68a;">${energyMeaning}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎯 ${labels.taraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.chandraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${chandraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔢 ${labels.luckyNumberLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${luckyNumsStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎨 ${labels.luckyColorLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedColor}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🧭 ${labels.luckyDirectionLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedDirection}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔴 ${labels.rahuLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🟡 ${labels.gulikaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.gulika}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⏳ ${labels.yamagandaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.yamaganda}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🛕 ${labels.deityLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${pick(deity.deityL5, lang)}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📜 ${labels.mantraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;"><span style="font-size:11px; color:#fde68a;">${deity.mantra}</span></td></tr><tr><td style="padding:10px 4px; font-weight:bold; color:#f59e0b;">🌐 Live Sanctum:</td><td style="padding:10px 4px;"><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#d97706; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:13px;">👉 ${openSanctumLabel}</a></td></tr></table></div><div style="text-align:center; margin-top:14px;"><p style="color:#fde68a; font-weight:bold; margin-bottom:8px;">${labels.visitLabel}</p><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#d97706; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px; box-shadow:0 4px 12px rgba(217,119,6,0.4);">👉 ${openSanctumLabel}</a><p style="margin-top:8px; font-size:12px;"><a href="${sanctumUrl}" style="color:#6ee7b7; word-break:break-all;">${sanctumUrl}</a></p></div><br/><p style="text-align:center; color:#f59e0b; font-size:12px;">${closingBlessing}</p></body></html>`;
+    const htmlDescriptionStr = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:16px;"><div style="text-align:center; margin-bottom:14px; padding:10px; background:linear-gradient(135deg,#78350f,#451a03); border:1px solid #f59e0b; border-radius:8px;"><p style="color:#fde68a; font-weight:bold; margin:0 0 6px 0; font-size:12px;">${openSanctumPrompt}</p><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#d97706; color:#ffffff; text-decoration:none; padding:10px 20px; border-radius:8px; font-weight:bold; font-size:14px; box-shadow:0 4px 12px rgba(217,119,6,0.4);">👉 ${openSanctumLabel}</a><p style="margin:6px 0 0 0; font-size:11px;"><a href="${sanctumUrl}" style="color:#6ee7b7; word-break:break-all;">${sanctumUrl}</a></p></div><h2 style="color:#fde68a; margin:0 0 12px 0; font-size:16px; text-align:center;">🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b; width:45%;">👤 ${labels.devoteeLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🙏 ${labels.priestLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedPandit}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📅 ${labels.tithiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${htmlTithiVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.rashiLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${rashiStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌅 ${labels.sunriseLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunrise}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌇 ${labels.sunsetLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.sunset}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⚡ ${labels.statusLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">✨ ${labels.vibeTagLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${vibe.vibeTag}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">💡 ${labels.energyMeaningLabel}:</td><td style="padding:6px 4px; color:#fde68a;">${energyMeaning}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎯 ${labels.taraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🌙 ${labels.chandraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${chandraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔢 ${labels.luckyNumberLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${luckyNumsStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🎨 ${labels.luckyColorLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedColor}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🧭 ${labels.luckyDirectionLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${localizedDirection}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🔴 ${labels.rahuLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🟡 ${labels.gulikaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.gulika}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">⏳ ${labels.yamagandaLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${kaala.yamaganda}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">🛕 ${labels.deityLabel}:</td><td style="padding:6px 4px; color:#fff8e7;">${pick(deity.deityL5, lang)}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:6px 4px; font-weight:bold; color:#f59e0b;">📜 ${labels.mantraLabel}:</td><td style="padding:6px 4px; color:#fff8e7;"><span style="font-size:11px; color:#fde68a;">${deity.mantra}</span></td></tr><tr><td style="padding:10px 4px; font-weight:bold; color:#f59e0b;">🌐 Live Sanctum:</td><td style="padding:10px 4px;"><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#d97706; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:13px;">👉 ${openSanctumLabel}</a></td></tr></table></div><div style="text-align:center; margin-top:14px;"><p style="color:#fde68a; font-weight:bold; margin-bottom:8px;">${labels.visitLabel}</p><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#d97706; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px; box-shadow:0 4px 12px rgba(217,119,6,0.4);">👉 ${openSanctumLabel}</a><p style="margin-top:8px; font-size:12px;"><a href="${sanctumUrl}" style="color:#6ee7b7; word-break:break-all;">${sanctumUrl}</a></p></div><br/><p style="text-align:center; color:#f59e0b; font-size:12px;">${closingBlessing}</p></body></html>`;
 
     const masterSeriesUid = `baggona-series-${sanitizedDevoteeToken}@baggona.app`;
     const eventLines: string[] = [
@@ -1323,7 +1347,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       `DTEND;TZID=Asia/Kolkata:${dtEnd}`,
       `SUMMARY:${escapeIcsText(summaryStr)}`,
       `DESCRIPTION:${escapeIcsText(descriptionStr)}`,
-      `X-ALT-DESC;FMTTYPE=text/html:${escapeIcsText(htmlDescriptionStr)}`,
+      `X-ALT-DESC;FMTTYPE=text/html:${escapeIcsHtml(htmlDescriptionStr)}`,
       `ATTACH;FMTTYPE=image/jpeg:${origin}/calendar_event_flair.jpg`,
       `IMAGE;VALUE=URI:${origin}/calendar_event_flair.jpg`,
       `X-MICROSOFT-IMAGE;VALUE=URI:${origin}/calendar_event_flair.jpg`,
@@ -1593,7 +1617,33 @@ export function generateGoogleCalendarUrl(options: {
 
   const energyMeaning = getEnergyIndicatorMeaning(day, lang);
 
+  const directTapLabel = isKn
+    ? "👉 ನೇರ ಲೈವ್ ದರ್ಶನ ಪಡೆಯಲು ಕೆಳಗಿನ ಲಿಂಕ್ ಒತ್ತಿ:"
+    : isHi
+    ? "👉 सीधे लाइव दर्शन के लिए नीचे दिए लिंक पर क्लिक करें:"
+    : isTe
+    ? "👉 ప్రత్యక్ష దర్శనం కొరకు క్రింది లింక్‌పై క్లిక్ చేయండి:"
+    : isTa
+    ? "👉 நேரடி தரிசனத்திற்கு கீழே உள்ள இணைப்பை கிளிக் செய்யவும்:"
+    : "👉 Click the link below to enter Live Darshana:";
+
+  const openActionText = isKn
+    ? "ಲೈವ್ ದರ್ಶನ ಹಾಗೂ ಇಂದಿನ ಪಂಚಾಂಗ (Live Sanctum)"
+    : isHi
+    ? "लाइव दर्शन एवं दैनिक पंचांग (Live Sanctum)"
+    : isTe
+    ? "ప్రత్యక్ష దర్శనం & నేటి పంచాంగం (Live Sanctum)"
+    : isTa
+    ? "நேரலை தரிசனம் & தினசரி பஞ்சாங்கம் (Live Sanctum)"
+    : "Open Live Darshana & Daily Panchanga";
+
   const details = [
+    directTapLabel,
+    `<a href="${sanctumUrl}">👉 ${openActionText}</a>`,
+    "",
+    sanctumUrl,
+    "",
+    "----------------------------------------",
     `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
     "----------------------------------------",
     `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
@@ -1618,11 +1668,13 @@ export function generateGoogleCalendarUrl(options: {
     `📜 ${labels.mantraLabel}: ${deity.mantra}`,
     "----------------------------------------",
     `🌐 ${labels.visitLabel}:`,
+    `<a href="${sanctumUrl}">👉 ${sanctumUrl}</a>`,
     "",
     `${sanctumUrl}`,
     "",
     "----------------------------------------",
     `📥 Import Full 90-Day Calendar:`,
+    `<a href="${origin}/daily?token=${devoteeToken}&action=ics90&lang=${lang}${contactOverrideQuery}">👉 Download 90-Day ICS Calendar</a>`,
     "",
     `${origin}/daily?token=${devoteeToken}&action=ics90&lang=${lang}${contactOverrideQuery}`,
     "",

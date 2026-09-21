@@ -463,7 +463,13 @@ export const useSankalpaStore = create<SankalpaStoreState>((set, get) => ({
       return s.sanskritPhrasing || s.title;
     }).join(", ");
 
-    const displayParts = active.map((s) => s.title).join(" · ");
+    const displayParts = active.map((s) => {
+      const preset = SANKALPA_PRESETS.find((p) => p.category === s.category);
+      if (preset) {
+        return getPresetTitle(preset, lang);
+      }
+      return s.title;
+    }).join(" · ");
 
     return {
       sanskritText: sanskritParts,

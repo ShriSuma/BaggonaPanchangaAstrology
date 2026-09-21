@@ -115,6 +115,50 @@ const GRID_STRINGS: Record<SevaLang, {
   }
 };
 
+const TOAST_MESSAGES: Record<SevaLang, {
+  activated: string;
+  alreadyActive: string;
+  addedToPooja: string;
+  customAdded: string;
+  removed: string;
+}> = {
+  kn: {
+    activated: "ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ!",
+    alreadyActive: "ಈಗಾಗಲೇ ಪೂಜೆಯಲ್ಲಿದೆ!",
+    addedToPooja: "ಪೂಜೆಗೆ ಸೇರಿಸಲಾಗಿದೆ!",
+    customAdded: "ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ ಸೇರಿಸಲಾಗಿದೆ!",
+    removed: "ಸಂಕಲ್ಪ ತೆಗೆದುಹಾಕಲಾಗಿದೆ"
+  },
+  te: {
+    activated: "క్రియాశీలపరచబడింది!",
+    alreadyActive: "ఇప్పటికే పూజలో ఉంది!",
+    addedToPooja: "పూజకు చేర్చబడింది!",
+    customAdded: "వ్యక్తిగత సంకల్పం చేర్చబడింది!",
+    removed: "సంకల్పం తొలగించబడింది"
+  },
+  ta: {
+    activated: "செயல்படுத்தப்பட்டது!",
+    alreadyActive: "ஏற்கனவே பூஜையில் உள்ளது!",
+    addedToPooja: "பூஜையில் சேர்க்கப்பட்டது!",
+    customAdded: "தனிப்பட்ட சங்கல்பம் சேர்க்கப்பட்டது!",
+    removed: "சங்கல்பம் நீக்கப்பட்டது"
+  },
+  hi: {
+    activated: "सक्रिय किया गया!",
+    alreadyActive: "पहले से पूजा में शामिल है!",
+    addedToPooja: "पूजा में जोड़ा गया!",
+    customAdded: "व्यक्तिगत संकल्प जोड़ा गया!",
+    removed: "संकल्प हटाया गया"
+  },
+  en: {
+    activated: "activated!",
+    alreadyActive: "already in pooja!",
+    addedToPooja: "added to pooja!",
+    customAdded: "Custom prayer added!",
+    removed: "Sankalpa removed"
+  }
+};
+
 export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
   userId = "devotee_default",
   devoteeName = "ಭಕ್ತ",
@@ -153,19 +197,20 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
   const handleDelete = async (id: string) => {
     if (window.confirm(t.deleteConfirm)) {
       await deleteSankalpa(id);
-      showToast(lang === "kn" ? "ಸಂಕಲ್ಪ ತೆಗೆದುಹಾಕಲಾಗಿದೆ" : "Sankalpa removed");
+      const toastMsgs = TOAST_MESSAGES[lang] || TOAST_MESSAGES.kn;
+      showToast(toastMsgs.removed);
     }
   };
 
   const handleAddPreset = async (preset: SankalpaPreset) => {
-    // Check if preset already added
+    const toastMsgs = TOAST_MESSAGES[lang] || TOAST_MESSAGES.kn;
     const existing = sankalpas.find((s) => s.category === preset.category);
     if (existing) {
       if (!existing.isActive) {
         await toggleSankalpaActive(existing.id);
-        showToast(`✅ ${getPresetTitle(preset, lang)} ${lang === "kn" ? "ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ" : "activated"}!`);
+        showToast(`✅ ${getPresetTitle(preset, lang)} ${toastMsgs.activated}`);
       } else {
-        showToast(`✨ ${getPresetTitle(preset, lang)} ${lang === "kn" ? "ಈಗಾಗಲೇ ಪೂಜೆಯಲ್ಲಿದೆ" : "already active"}!`);
+        showToast(`✨ ${getPresetTitle(preset, lang)} ${toastMsgs.alreadyActive}`);
       }
       return;
     }
@@ -179,7 +224,7 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
       devoteeName
     });
 
-    showToast(`✨ ${getPresetTitle(preset, lang)} ${lang === "kn" ? "ಪೂಜೆಗೆ ಸೇರಿಸಲಾಗಿದೆ" : "added to pooja"}!`);
+    showToast(`✨ ${getPresetTitle(preset, lang)} ${toastMsgs.addedToPooja}`);
   };
 
   const handleAddCustom = async (e?: React.FormEvent) => {
@@ -187,17 +232,21 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
     const clean = customText.trim();
     if (!clean) return;
 
+    const customPreset = SANKALPA_PRESETS.find((p) => p.category === "custom");
+    const sanskritPhrasing = customPreset ? getPresetSanskritPhrasing(customPreset, lang) : "Samasta manoratha siddhyarthaṁ";
+
     await createSankalpa(userId, {
       category: "custom",
       title: clean,
       description: clean,
-      sanskritPhrasing: "ಸಮಸ್ತ ಮನೋರಥ ಸಿದ್ಧ್ಯರ್ಥಂ, ಸಕಲ ಸತ್ಕಾರ್ಯ ಜಯಸಿದ್ಧ್ಯರ್ಥಂ",
+      sanskritPhrasing,
       isActive: true,
       devoteeName
     });
 
     setCustomText("");
-    showToast(lang === "kn" ? "ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ ಸೇರಿಸಲಾಗಿದೆ!" : "Custom prayer added!");
+    const toastMsgs = TOAST_MESSAGES[lang] || TOAST_MESSAGES.kn;
+    showToast(toastMsgs.customAdded);
   };
 
   // Speech-to-Text handler with multi-language recognition
@@ -253,9 +302,23 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
         console.warn("[InPageSankalpaGrid] SpeechRecognition error:", event.error);
         setIsListening(false);
         if (event.error !== "no-speech") {
+          const micDenied: Record<SevaLang, string> = {
+            kn: "ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿ ನಿರಾಕರಿಸಲಾಗಿದೆ",
+            te: "మైక్రోఫోన్ అనుమతి నిరాకరించబడింది",
+            ta: "மைக்ரோஃபோன் அனுமதி மறுக்கப்பட்டது",
+            hi: "माइक्रोफ़ोन अनुमति अस्वीकृत",
+            en: "Microphone permission denied"
+          };
+          const micHearErr: Record<SevaLang, string> = {
+            kn: "ಧ್ವನಿ ಗ್ರಹಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ, ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+            te: "వాయిస్ సరిగ్గా వినపడలేదు, దయచేసి మళ్ళీ ప్రయత్నించండి",
+            ta: "குரல் சரியாகக் கேட்கவில்லை, மீண்டும் முயற்சிக்கவும்",
+            hi: "आवाज स्पष्ट नहीं हुई, कृपया पुनः प्रयास करें",
+            en: "Could not hear clearly, please retry"
+          };
           setSpeechError(event.error === "not-allowed"
-            ? (lang === "kn" ? "ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿ ನಿರಾಕರಿಸಲಾಗಿದೆ" : "Microphone permission denied")
-            : (lang === "kn" ? "ಧ್ವನಿ ಗ್ರಹಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ, ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ" : "Could not hear clearly, please retry"));
+            ? (micDenied[lang] || micDenied.en)
+            : (micHearErr[lang] || micHearErr.en));
           setTimeout(() => setSpeechError(null), 4000);
         }
       };
@@ -280,21 +343,34 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
     <div style={{
       background: "linear-gradient(135deg, rgba(67, 26, 7, 0.95) 0%, rgba(28, 10, 0, 0.98) 100%)",
       border: "2px solid #D4AF37",
-      borderRadius: 18,
-      padding: "16px 18px",
+      borderRadius: 16,
+      padding: "14px 14px",
       marginBottom: 16,
       boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-      position: "relative"
+      position: "relative",
+      boxSizing: "border-box",
+      width: "100%",
+      maxWidth: "100%",
+      overflow: "hidden"
     }}>
       {/* Header with Title & Active Count Badge */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 26 }}>📜</span>
-          <div>
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#FDE68A", letterSpacing: "0.3px" }}>
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        flexWrap: "wrap",
+        gap: 8,
+        marginBottom: 12,
+        width: "100%",
+        boxSizing: "border-box"
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flex: "1 1 200px", minWidth: 0 }}>
+          <span style={{ fontSize: 24, flexShrink: 0, marginTop: 2 }}>📜</span>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h3 style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: "#FDE68A", letterSpacing: "0.2px", wordBreak: "break-word" }}>
               {t.headerTitle}
             </h3>
-            <p style={{ margin: "3px 0 0", fontSize: 11.5, color: "#FEF3C7", lineHeight: 1.4, opacity: 0.9 }}>
+            <p style={{ margin: "3px 0 0", fontSize: 11, color: "#FEF3C7", lineHeight: 1.4, opacity: 0.9, wordBreak: "break-word" }}>
               {t.headerSub}
             </p>
           </div>
@@ -304,13 +380,14 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
           background: "rgba(245, 158, 11, 0.2)",
           border: "1.5px solid #FCD34D",
           borderRadius: 12,
-          padding: "4px 12px",
-          fontSize: 11.5,
+          padding: "4px 10px",
+          fontSize: 11,
           fontWeight: 800,
           color: "#FEF3C7",
           display: "flex",
           alignItems: "center",
-          gap: 6
+          gap: 6,
+          flexShrink: 0
         }}>
           <span>✨</span>
           <span>{t.activeCount(activeSankalpas.length)}</span>
@@ -337,13 +414,18 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
       {/* Active Sankalpas Cards Grid */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
         gap: 10,
-        marginBottom: 14
+        marginBottom: 14,
+        width: "100%",
+        boxSizing: "border-box"
       }}>
         {sankalpas.map((s) => {
           const matchedPreset = SANKALPA_PRESETS.find((p) => p.category === s.category);
           const icon = matchedPreset?.icon || (s.category === "custom" ? "✨" : "🌿");
+          const displayTitle = matchedPreset ? getPresetTitle(matchedPreset, lang) : s.title;
+          const displayDesc = matchedPreset ? getPresetDescription(matchedPreset, lang) : s.description;
+          const displayPhrasing = matchedPreset ? getPresetSanskritPhrasing(matchedPreset, lang) : s.sanskritPhrasing;
 
           return (
             <div
@@ -358,18 +440,30 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
                 display: "flex",
                 flexDirection: "column",
                 gap: 6,
-                transition: "all 0.2s ease"
+                transition: "all 0.2s ease",
+                boxSizing: "border-box",
+                width: "100%",
+                minWidth: 0,
+                overflowWrap: "anywhere",
+                wordBreak: "break-word"
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 18 }}>{icon}</span>
-                  <strong style={{ fontSize: 13, color: s.isActive ? "#FFFFFF" : "#9CA3AF" }}>
-                    {s.title}
+              <div style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 6,
+                flexWrap: "wrap",
+                width: "100%"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: "1 1 auto" }}>
+                  <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+                  <strong style={{ fontSize: 13, color: s.isActive ? "#FFFFFF" : "#9CA3AF", wordBreak: "break-word" }}>
+                    {displayTitle}
                   </strong>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                   {/* Toggle Active Button */}
                   <button
                     type="button"
@@ -382,7 +476,8 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
                       padding: "2px 8px",
                       fontSize: 10.5,
                       fontWeight: 800,
-                      cursor: "pointer"
+                      cursor: "pointer",
+                      whiteSpace: "nowrap"
                     }}
                   >
                     {s.isActive ? t.includedInPooja : t.paused}
@@ -400,7 +495,8 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
                       fontSize: 13,
                       cursor: "pointer",
                       padding: "2px 4px",
-                      opacity: 0.8
+                      opacity: 0.8,
+                      flexShrink: 0
                     }}
                   >
                     🗑️
@@ -408,13 +504,13 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
                 </div>
               </div>
 
-              {s.description && (
-                <p style={{ margin: 0, fontSize: 11, color: "#E5E7EB", lineHeight: 1.4, opacity: 0.85 }}>
-                  {s.description}
+              {displayDesc && (
+                <p style={{ margin: 0, fontSize: 11, color: "#E5E7EB", lineHeight: 1.4, opacity: 0.85, wordBreak: "break-word" }}>
+                  {displayDesc}
                 </p>
               )}
 
-              {s.sanskritPhrasing && (
+              {displayPhrasing && (
                 <div style={{
                   background: "rgba(0,0,0,0.3)",
                   border: "1px dashed rgba(245, 158, 11, 0.4)",
@@ -423,9 +519,11 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
                   fontSize: 11,
                   fontFamily: "serif",
                   fontWeight: 700,
-                  color: "#FDE68A"
+                  color: "#FDE68A",
+                  wordBreak: "break-word",
+                  overflowWrap: "anywhere"
                 }}>
-                  "{s.sanskritPhrasing}"
+                  "{displayPhrasing}"
                 </div>
               )}
             </div>
@@ -434,11 +532,11 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
       </div>
 
       {/* Quick-Add Vedic Suggestion Chips */}
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 14, width: "100%", boxSizing: "border-box" }}>
         <div style={{ fontSize: 11.5, fontWeight: 800, color: "#FCD34D", marginBottom: 6 }}>
           {t.presetsTitle}
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, width: "100%", boxSizing: "border-box" }}>
           {SANKALPA_PRESETS.filter((p) => p.category !== "custom").map((preset) => {
             const isAlreadyAdded = sankalpas.some((s) => s.category === preset.category && s.isActive);
             return (
@@ -458,7 +556,10 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  transition: "all 0.15s ease"
+                  transition: "all 0.15s ease",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
+                  wordBreak: "break-word"
                 }}
               >
                 <span>{preset.icon}</span>
@@ -476,14 +577,26 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
         border: "1px solid rgba(212, 175, 55, 0.3)",
         borderRadius: 14,
         padding: "10px 12px",
-        marginBottom: 12
+        marginBottom: 12,
+        width: "100%",
+        boxSizing: "border-box"
       }}>
         <div style={{ fontSize: 11.5, fontWeight: 800, color: "#FDE68A", marginBottom: 6 }}>
           {t.customTitle}
         </div>
 
-        <form onSubmit={handleAddCustom} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 200, display: "flex", alignItems: "center", background: "rgba(0,0,0,0.4)", border: "1px solid rgba(245, 158, 11, 0.5)", borderRadius: 10, padding: "0 8px" }}>
+        <form onSubmit={handleAddCustom} style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", boxSizing: "border-box" }}>
+          <div style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "rgba(0,0,0,0.45)",
+            border: "1px solid rgba(245, 158, 11, 0.5)",
+            borderRadius: 10,
+            padding: "2px 8px",
+            boxSizing: "border-box"
+          }}>
             <input
               type="text"
               value={customText}
@@ -491,6 +604,7 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
               placeholder={t.inputPlaceholder}
               style={{
                 flex: 1,
+                minWidth: 0,
                 background: "transparent",
                 border: "none",
                 outline: "none",
@@ -506,7 +620,8 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
               onClick={toggleSpeechRecognition}
               title={t.micTip}
               style={{
-                background: isListening ? "#DC2626" : "rgba(245, 158, 11, 0.2)",
+                flexShrink: 0,
+                background: isListening ? "#DC2626" : "rgba(245, 158, 11, 0.25)",
                 border: isListening ? "1px solid #EF4444" : "1px solid #F59E0B",
                 borderRadius: "50%",
                 width: 32,
@@ -527,6 +642,8 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
             type="submit"
             disabled={!customText.trim()}
             style={{
+              width: "100%",
+              minHeight: 38,
               background: customText.trim()
                 ? "linear-gradient(135deg, #F59E0B, #D97706)"
                 : "rgba(255, 255, 255, 0.1)",
@@ -534,10 +651,14 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
               border: "1px solid rgba(245, 158, 11, 0.5)",
               borderRadius: 10,
               padding: "8px 14px",
-              fontSize: 12,
+              fontSize: 12.5,
               fontWeight: 800,
               cursor: customText.trim() ? "pointer" : "not-allowed",
-              transition: "all 0.15s"
+              transition: "all 0.15s",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxSizing: "border-box"
             }}
           >
             {t.addBtn}
@@ -559,23 +680,27 @@ export const InPageSankalpaGrid: React.FC<InPageSankalpaGridProps> = ({
 
       {/* Start Daily Pooja Action Link */}
       {onStartPooja && (
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", justifyContent: "center", width: "100%", boxSizing: "border-box" }}>
           <button
             type="button"
             onClick={onStartPooja}
             style={{
+              width: "100%",
+              maxWidth: 380,
+              justifyContent: "center",
               background: "linear-gradient(135deg, #F59E0B, #D97706)",
               color: "#1C0A00",
               border: "1.5px solid #FDE68A",
               borderRadius: 12,
-              padding: "9px 16px",
+              padding: "10px 16px",
               fontSize: 12.5,
               fontWeight: 900,
               cursor: "pointer",
               boxShadow: "0 4px 14px rgba(245, 158, 11, 0.4)",
               display: "inline-flex",
               alignItems: "center",
-              gap: 6
+              gap: 6,
+              boxSizing: "border-box"
             }}
           >
             <span>{t.startPoojaBtn}</span>
