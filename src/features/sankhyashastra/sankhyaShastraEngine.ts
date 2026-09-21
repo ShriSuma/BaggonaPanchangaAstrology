@@ -218,86 +218,288 @@ export function getSignMobility(rashiIndex: number): SignMobility {
   return "dwiswabhava";
 }
 
+export type QuestionSubIntent =
+  | "money_lent_recovery"
+  | "loan_approval"
+  | "investment_speculation"
+  | "job_promotion"
+  | "job_interview_new"
+  | "business_new_venture"
+  | "marriage_timing"
+  | "marriage_proposal_match"
+  | "lost_item_theft"
+  | "property_purchase"
+  | "foreign_travel"
+  | "health_recovery"
+  | "court_legal_dispute"
+  | "education_exam"
+  | "general_matter";
+
+export interface DetailedQuestionContext {
+  category: QuestionCategory;
+  subIntent: QuestionSubIntent;
+  karyaBhava: number;
+  extractedAmount?: { kn: string; en: string };
+  targetPerson?: { kn: string; en: string };
+  actionTopic: { kn: string; en: string };
+}
+
+/** Extract monetary or commodity amount from question text */
+export function extractAmountFromQuestion(query: string): { kn: string; en: string } | undefined {
+  const text = (query || "").toLowerCase();
+
+  // Crores
+  const crMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:cr|crore|crores|ಕೋಟಿ)/i);
+  if (crMatch && crMatch[1]) {
+    const val = crMatch[1];
+    return { kn: `${val} ಕೋಟಿ`, en: `${val} crore(s)` };
+  }
+
+  // Lakhs
+  const lakhMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|lacs|ಲಕ್ಷ)/i);
+  if (lakhMatch && lakhMatch[1]) {
+    const val = lakhMatch[1];
+    return { kn: `${val} ಲಕ್ಷ`, en: `${val} lakh(s)` };
+  }
+
+  // Currency
+  const rupeeMatch = text.match(/(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:rs|rupees|₹|ರೂ|ರೂಪಾಯಿ)/i);
+  if (rupeeMatch && rupeeMatch[1]) {
+    const val = rupeeMatch[1];
+    return { kn: `₹${val}`, en: `₹${val}` };
+  }
+
+  // Gold / Jewelry
+  if (/gold|chain|ring|necklace|bangle|jewel|ಚಿನ್ನ|ಬಂಗಾರ|ಆಭರಣ|ಒಡವೆ|ಉಂಗುರ/i.test(text)) {
+    return { kn: "ಚಿನ್ನಾಭರಣ / ಬೆಲೆಬಾಳುವ ವಸ್ತು", en: "gold / valuable jewelry" };
+  }
+
+  return undefined;
+}
+
+/** Extract counterparty or relationship context from question text */
+export function extractPersonFromQuestion(query: string): { kn: string; en: string } {
+  const text = (query || "").toLowerCase();
+  if (/friend|friends|ಗೆಳೆಯ|ಸ್ನೇಹಿತ|ಮಿತ್ರ/i.test(text)) {
+    return { kn: "ಸ್ನೇಹಿತ", en: "friend" };
+  }
+  if (/partner|partnership|ಪಾಲುದಾರ|ಜೊತೆಗಾರ/i.test(text)) {
+    return { kn: "ವ್ಯಾವಹಾರಿಕ ಪಾಲುದಾರ", en: "business partner" };
+  }
+  if (/relative|relatives|ಸಂಬಂಧಿ|ನೆಂಟ|ಬಂಧು/i.test(text)) {
+    return { kn: "ಸಂಬಂಧಿಕರು", en: "relative" };
+  }
+  if (/borrower|debtor|ಸಾಲಗಾರ|ಸಾಲ ಪಡೆದವರು/i.test(text)) {
+    return { kn: "ಸಾಲ ಪಡೆದ ವ್ಯಕ್ತಿ", en: "borrower" };
+  }
+  if (/boss|manager|employer|company|ಮಾಲೀಕ|ಬಾಸ್|ಕಂಪನಿ/i.test(text)) {
+    return { kn: "ಉದ್ಯೋಗದಾತ / ಕಂಪನಿ", en: "employer / company" };
+  }
+  if (/husband|wife|spouse|ಗಂಡ|ಹೆಂಡತಿ|ಪತಿ|ಪತ್ನಿ/i.test(text)) {
+    return { kn: "ಜೀವನ ಸಂಗಾತಿ", en: "spouse" };
+  }
+  return { kn: "ಸಂಬಂಧಪಟ್ಟ ವ್ಯಕ್ತಿ", en: "concerned person" };
+}
+
+/** Deep Intent & Entity Extraction for 100% Dynamic Up-To-Point Answering */
+export function extractDetailedQuestionContext(query: string): DetailedQuestionContext {
+  const text = (query || "").toLowerCase();
+  const extractedAmount = extractAmountFromQuestion(query);
+  const targetPerson = extractPersonFromQuestion(query);
+
+  // 1. Money Lent / Debt Recovery (Matches: "given 2 crores to friend did he give me back")
+  if (
+    /lent|gave.*money|give.*back|given.*money|return.*money|money.*back|recover.*money|repay|repayment|ಕೊಟ್ಟ.*ಹಣ|ಹಣ.*ಕೊಟ್ಟ|ಹಣ.*ವಾಪಸ್|ವಾಪಸ್.*ಕೊಡುವ|ಬರಬೇಕಾದ.*ಹಣ|ಸಾಲ.*ಕೊಟ್ಟ|ಹಣ.*ಮರಳಿ|ಉದ್ದರಿ|ಬಾಕಿ|ಮರಳಿಸುವ/i.test(
+      text
+    )
+  ) {
+    return {
+      category: "wealth_finance",
+      subIntent: "money_lent_recovery",
+      karyaBhava: 11,
+      extractedAmount,
+      targetPerson,
+      actionTopic: { kn: "ನೀಡಿದ ಸಾಲ ಅಥವಾ ಹಣದ ವಾಪಸಾತಿ", en: "recovery of lent funds" }
+    };
+  }
+
+  // 2. Bank Loan Approval / Sanction
+  if (/apply.*loan|sanction|bank.*loan|ಸಾಲ.*ಸಿಗುವುದೇ|ಬ್ಯಾಂಕ್.*ಲೋನ್|ಸಾಲ.*ಮಂಜೂರು/i.test(text)) {
+    return {
+      category: "wealth_finance",
+      subIntent: "loan_approval",
+      karyaBhava: 11,
+      extractedAmount,
+      targetPerson,
+      actionTopic: { kn: "ಬ್ಯಾಂಕ್ ಸಾಲ ಮಂಜೂರಾತಿ", en: "bank loan approval" }
+    };
+  }
+
+  // 3. Investment / Stock Market / Trading
+  if (/invest|stock|share|crypto|mutual.*fund|trading|ಹೂಡಿಕೆ|ಷೇರು|ಮಾರುಕಟ್ಟೆ|ಟ್ರೇಡಿಂಗ್/i.test(text)) {
+    return {
+      category: "wealth_finance",
+      subIntent: "investment_speculation",
+      karyaBhava: 5,
+      extractedAmount,
+      targetPerson,
+      actionTopic: { kn: "ಹೂಡಿಕೆ ಮತ್ತು ಷೇರು ಮಾರುಕಟ್ಟೆ ಲಾಭ", en: "investment & stock returns" }
+    };
+  }
+
+  // 4. Job Promotion & Salary Appraisal
+  if (/promot|hike|appraisal|position|ಬಡ್ತಿ|ಸಂಬಳ.*ಹೆಚ್ಚಳ|ಪ್ರಮೋಷನ್|ಉನ್ನತ.*ಸ್ಥಾನ/i.test(text)) {
+    return {
+      category: "career_business",
+      subIntent: "job_promotion",
+      karyaBhava: 10,
+      targetPerson,
+      actionTopic: { kn: "ಉದ್ಯೋಗ ಬಡ್ತಿ ಮತ್ತು ವೇತನ ಹೆಚ್ಚಳ", en: "career promotion & salary hike" }
+    };
+  }
+
+  // 5. Job Interview / New Job Offer
+  if (/interview|new.*job|offer|selection|change.*job|ಇಂಟರ್ವ್ಯೂ|ಹೊಸ.*ಕೆಲಸ|ನೇಮಕಾತಿ|ಆಫರ್/i.test(text)) {
+    return {
+      category: "career_business",
+      subIntent: "job_interview_new",
+      karyaBhava: 10,
+      targetPerson,
+      actionTopic: { kn: "ಹೊಸ ಉದ್ಯೋಗ ಸಂದರ್ಶನ ಮತ್ತು ಆಫರ್", en: "new job interview & offer" }
+    };
+  }
+
+  // 6. Starting New Business / Venture
+  if (/start.*business|new.*shop|startup|partnership|ಹೊಸ.*ವ್ಯಾಪಾರ|ಅಂಗಡಿ|ಉದ್ದಿಮೆ|ಸ್ಟಾರ್ಟಪ್|ಪಾಲುದಾರಿಕೆ/i.test(text)) {
+    return {
+      category: "career_business",
+      subIntent: "business_new_venture",
+      karyaBhava: 10,
+      targetPerson,
+      actionTopic: { kn: "ಹೊಸ ವ್ಯಾಪಾರ ಮತ್ತು ಉದ್ದಿಮೆ ಆರಂಭ", en: "new business venture & startup" }
+    };
+  }
+
+  // 7. Marriage Proposal / Alliance Suitability
+  if (/proposal|match|alliance|boy.*good|girl.*good|ಈ.*ಸಂಬಂಧ|ವರ.*ಸೂಕ್ತವೇ|ವಧು.*ಸೂಕ್ತವೇ|ಜಾತಕ.*ಹೊಂದಾಣಿಕೆ/i.test(text)) {
+    return {
+      category: "marriage_love",
+      subIntent: "marriage_proposal_match",
+      karyaBhava: 7,
+      targetPerson,
+      actionTopic: { kn: "ವಿವಾಹ ಸಂಬಂಧ ಮತ್ತು ಹೊಂದಾಣಿಕೆ", en: "marriage alliance suitability" }
+    };
+  }
+
+  // 8. Marriage Timing & General Marriage
+  if (/marry|marriage|wedding|groom|bride|when.*marry|ಮದುವೆ|ವಿವಾಹ|ಕಂಕಣ|ಕಲ್ಯಾಣ/i.test(text)) {
+    return {
+      category: "marriage_love",
+      subIntent: "marriage_timing",
+      karyaBhava: 7,
+      targetPerson,
+      actionTopic: { kn: "ವಿವಾಹ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವ ಕಾಲ", en: "timing of marriage" }
+    };
+  }
+
+  // 9. Theft / Lost / Misplaced Article
+  if (/theft|steal|stolen|stole|rob|thief|lost|miss|missing|dropped|misplaced|keys|ಕಳ್ಳ|ಕಳ್ಳತನ|ಕಳವು|ಕಳೆದು|ಚೋರ|ದಾಖಲೆ.*ಕಳೆದು|ಕಳೆದುಕೊಂಡ|ಚೋರತನ|चोरी|खो/i.test(text)) {
+    return {
+      category: "theft_lost_item",
+      subIntent: "lost_item_theft",
+      karyaBhava: 2,
+      extractedAmount,
+      targetPerson,
+      actionTopic: { kn: "ಕಳೆದುಹೋದ ವಸ್ತು ಅಥವಾ ಕಳ್ಳತನ ಶೋಧನೆ", en: "search for lost or stolen article" }
+    };
+  }
+
+  // 10. Property / Land / House Purchase
+  if (/house|home|land|property|flat|site|car|vehicle|buy|purchase|construct|ಆಸ್ತಿ|ಮನೆ|ವಾಹನ|ಖರೀದಿ|ಸ್ಥಳ|ಸೈಟ್|ಮನೆಕಟ್ಟ/i.test(text)) {
+    return {
+      category: "wealth_finance",
+      subIntent: "property_purchase",
+      karyaBhava: 4,
+      extractedAmount,
+      targetPerson,
+      actionTopic: { kn: "ಮನೆ, ನಿವೇಶನ ಅಥವಾ ಆಸ್ತಿ ಖರೀದಿ", en: "purchase of property or home" }
+    };
+  }
+
+  // 11. Foreign Travel / Visa
+  if (/foreign|abroad|visa|travel|passport|flight|country|settle|ವಿದೇಶ|ಪ್ರಯಾಣ|ವೀಸಾ|ಪಾಸ್‌ಪೋರ್ಟ್|ವಿದೇಶಯಾನ/i.test(text)) {
+    return {
+      category: "foreign_travel",
+      subIntent: "foreign_travel",
+      karyaBhava: 12,
+      targetPerson,
+      actionTopic: { kn: "ವಿದೇಶ ಪ್ರಯಾಣ ಮತ್ತು ವೀಸಾ ಅನುಮೋದನೆ", en: "foreign travel & visa clearance" }
+    };
+  }
+
+  // 12. Health & Medical Recovery
+  if (/health|disease|cure|doctor|hospital|pain|dispute|operation|surgery|ಆರೋಗ್ಯ|ರೋಗ|ಆಸ್ಪತ್ರೆ|ನೋವು|ಚಿಕಿತ್ಸೆ|ಗುಣ|ಅನಾರೋಗ್ಯ/i.test(text)) {
+    return {
+      category: "health_legal",
+      subIntent: "health_recovery",
+      karyaBhava: 6,
+      targetPerson,
+      actionTopic: { kn: "ಆರೋಗ್ಯ ಸುಧಾರಣೆ ಮತ್ತು ರೋಗ ನಿವಾರಣೆ", en: "health recovery & vitality" }
+    };
+  }
+
+  // 13. Court Case & Legal Disputes
+  if (/court|case|legal|judge|dispute|lawsuit|ಕೋರ್ಟ್|ಕೇಸ್|ವ್ಯಾಜ್ಯ|ಸಾಧನೆ|ನ್ಯಾಯಾಲಯ|ತೀರ್ಪು/i.test(text)) {
+    return {
+      category: "health_legal",
+      subIntent: "court_legal_dispute",
+      karyaBhava: 6,
+      targetPerson,
+      actionTopic: { kn: "ಕೋರ್ಟ್ ಕೇಸ್ ಮತ್ತು ಕಾನೂನು ವ್ಯಾಜ್ಯ ಜಯ", en: "court litigation & dispute outcome" }
+    };
+  }
+
+  // 14. Education & Exam Success
+  if (/exam|study|educat|college|degree|mark|rank|pass|score|school|admission|ಪರೀಕ್ಷೆ|ಶಿಕ್ಷಣ|ಅಂಕ|ರ‍್ಯಾಂಕ್|ಓದು|ಶಾಲೆ|ಕಾಲೇಜು|ಫಲಿತಾಂಶ/i.test(text)) {
+    return {
+      category: "education_study",
+      subIntent: "education_exam",
+      karyaBhava: 5,
+      targetPerson,
+      actionTopic: { kn: "ಪರೀಕ್ಷಾ ಯಶಸ್ಸು ಮತ್ತು ಶಿಕ್ಷಣ ಪ್ರಗತಿ", en: "examination success & academics" }
+    };
+  }
+
+  // 15. General Wealth, Debt Relief & Financial Gains
+  if (/wealth|finance|debt|profit|income|money|ಧನ|ಸಾಲ|ಹಣಕಾಸು|ಲಾಭ|ಸಂಪತ್ತು|ಆದಾಯ|ಐಶ್ವರ್ಯ|ಶ್ರೀಮಂತ/i.test(text)) {
+    return {
+      category: "wealth_finance",
+      subIntent: "money_lent_recovery",
+      karyaBhava: 11,
+      extractedAmount,
+      targetPerson,
+      actionTopic: { kn: "ಧನ ಲಾಭ ಮತ್ತು ಸಾಲ ನಿವಾರಣೆ", en: "wealth gain and debt relief" }
+    };
+  }
+
+  // Fallback: General Question
+  return {
+    category: "general_life",
+    subIntent: "general_matter",
+    karyaBhava: 1,
+    extractedAmount,
+    targetPerson,
+    actionTopic: { kn: "ಪ್ರಶ್ನಿತ ಕಾರ್ಯ ಸಿದ್ಧಿ", en: "fulfillment of stated objective" }
+  };
+}
+
 /** Keyword Intent Classification for Question Category & Karya Bhava */
 export function detectQuestionCategoryAndKaryaBhava(query: string): {
   category: QuestionCategory;
   karyaBhava: number;
 } {
-  const text = (query || "").toLowerCase();
-
-  // 1. Theft, Lost Items, Missing Objects, Stolen Property, Stolen Gold/Cash, Lost Keys/Documents
-  if (
-    /theft|steal|stolen|stole|rob|thief|lost|miss|missing|dropped|misplaced|gold|chain|ring|wallet|money.*lost|jewel|phone.*lost|keys|ಕಳ್ಳ|ಕಳ್ಳತನ|ಕಳವು|ಕಳೆದು|ಚೋರ|ಚಿನ್ನ|ಬಂಗಾರ|ದಾಖಲೆ.*ಕಳೆದು|ಕಳೆದುಕೊಂಡ|ಚೋರತನ|चोरी|खो|गायब|सोना|सामान.*खो|దొంగ|పోయింది|బంగారం|திருட்டு|தொலைந்து|தங்கம்/.test(
-      text
-    )
-  ) {
-    return { category: "theft_lost_item", karyaBhava: 2 };
-  }
-
-  // 2. Career / Job / Promotion / Business / Interview / Work
-  if (
-    /job|promot|work|career|interview|salary|business|wurk|transfer|join|office|govt.*job|ಸರ್ಕಾರಿ.*ಕೆಲಸ|ಸರಕಾರಿ.*ಕೆಲಸ|ವೃತ್ತಿ|ಉದ್ಯೋಗ|ಬಡ್ತಿ|ಕೆಲಸ|ಸಂಬಳ|ವ್ಯಾಪಾರ|ವರ್ಗಾವಣೆ|ಆಫೀಸ್|नौकरी|करियर|उद्योग|उद्यోగం|వృత్తి|వేலை|தொழில்/.test(
-      text
-    )
-  ) {
-    return { category: "career_business", karyaBhava: 10 };
-  }
-
-  // 3. Marriage / Relationship / Spouse / Love / Match / Bride / Groom
-  if (
-    /marria|marrige|wedding|match|spouse|husband|wife|love|relationship|bride|groom|boy|girl|alliance|ವಿವಾಹ|ಮದುವೆ|ಪತಿ|ಪತ್ನಿ|ಸಂಬಂಧ|ವರ|ವಧು|ಪ್ರೇಮ|ಜೊತೆ|ಕಲ್ಯಾಣ|विवाह|शादी|पति|पत्नी|లగ్నం|పెళ్లి|వివాహం|திருமணம்|கல்யாணம்/.test(
-      text
-    )
-  ) {
-    return { category: "marriage_love", karyaBhava: 7 };
-  }
-
-  // 4. Wealth / Money / Loan / Finance / Investment / Debt / Profits
-  if (
-    /money|wealth|cash|finance|profit|debt|loan|invest|return|bank|ಸಾಲ|ಧನ|ಹಣ|ಲಾಭ|ಸಂಪತ್ತು|ಬ್ಯಾಂಕ್|ಹೂಡಿಕೆ|ಧನಲಾಭ|धन|पैसा|ऋण|लाभ|ధనం|డబ్బు|ఋణం|தனம்|பணம்|கடன்/.test(
-      text
-    )
-  ) {
-    return { category: "wealth_finance", karyaBhava: 11 };
-  }
-
-  // 5. House / Property / Land / Vehicle / Buying / Flat
-  if (
-    /house|home|land|property|flat|site|car|vehicle|buy|purchase|construct|ಆಸ್ತಿ|ಮನೆ|ವಾಹನ|ಖರೀದಿ|ಸ್ಥಳ|ಸೈಟ್|ಮನೆಕಟ್ಟ|मकान|भूमि|वाहन|सम्पत्ति|ఇల్లు|ఆస్తి|వాహనం|வீடு|நிலம்|வாகனம்/.test(
-      text
-    )
-  ) {
-    return { category: "wealth_finance", karyaBhava: 4 };
-  }
-
-  // 6. Education / Exam / Higher Studies / Degree / Rank
-  if (
-    /exam|study|educat|college|degree|mark|rank|pass|score|school|admission|ಪರೀಕ್ಷೆ|ಶಿಕ್ಷಣ|ಅಂಕ|ರ‍್ಯಾಂಕ್|ಓದು|ಶಾಲೆ|ಕಾಲೇಜು|ಫಲಿತಾಂಶ|परीक्षा|शिक्षा|अंक|చదువు|పరీక్ష|தேர்வு|கல்வி/.test(
-      text
-    )
-  ) {
-    return { category: "education_study", karyaBhava: 5 };
-  }
-
-  // 7. Health / Medical / Disease / Court / Legal Competition / Dispute
-  if (
-    /health|disease|court|case|legal|cure|doctor|hospital|pain|dispute|operation|surgery|ಆರೋಗ್ಯ|ರೋಗ|ಕೋರ್ಟ್|ವ್ಯಾಜ್ಯ|ಸಾಧನೆ|ಆಸ್ಪತ್ರೆ|ನೋವು|ಚಿಕಿತ್ಸೆ|ಗುಣ|स्वास्थ्य|रोग|कोर्ट|आरोग्यం|கேஸ்|சிகிச்சை/.test(
-      text
-    )
-  ) {
-    return { category: "health_legal", karyaBhava: 6 };
-  }
-
-  // 8. Foreign Travel / Visa / Passport / Relocation / Abroad
-  if (
-    /foreign|abroad|visa|travel|passport|flight|country|settle|ವಿದೇಶ|ಪ್ರಯಾಣ|ವೀಸಾ|ಪಾಸ್‌ಪೋರ್ಟ್|ವಿದೇಶಯಾನ|विदेश|यात्रा|విదేశీ|வெளிநாடு/.test(
-      text
-    )
-  ) {
-    return { category: "foreign_travel", karyaBhava: 12 };
-  }
-
-  return { category: "general_life", karyaBhava: 1 };
+  const ctx = extractDetailedQuestionContext(query);
+  return { category: ctx.category, karyaBhava: ctx.karyaBhava };
 }
 
 /** Compute Cardinal Direction based on Prashna Lagna and Planetary Elements */
@@ -461,6 +663,212 @@ export function analyzeCompoundNumber(n: number, lang: string): Record<string, s
     te: `సంయుక్త సంఖ్య ${n} (${combinationStr} = ${root}): ${digits.map(d => ROOT_RULERS_L5[calculateDigitalRoot(Number(d))]?.ruler.te).join(" మరియు ")} గ్రహాల కలయిక.`,
     ta: `கூட்டு எண் ${n} (${combinationStr} = ${root}): ${digits.map(d => ROOT_RULERS_L5[calculateDigitalRoot(Number(d))]?.ruler.ta).join(" மற்றும் ")} கிரகங்களின் ஒருங்கிணைந்த ஆற்றல்.`
   };
+}
+
+// ----------------------------------------------------------------------
+// 100% DYNAMIC UP-TO-POINT 4-STEP PRASHNA READING ENGINE
+// ----------------------------------------------------------------------
+
+export function buildDynamicUpToPointReading(params: {
+  rawQuestion: string;
+  userNumber: number;
+  rootNum: number;
+  rootData: { ruler: Record<string, string>; deity: Record<string, string> };
+  houseNum: number;
+  lagnaName: Record<string, string>;
+  lagnaLord: Record<string, string>;
+  mobility: SignMobility;
+  mobilityLabel: Record<string, string>;
+  karyaLabel: Record<string, string>;
+  dirInfo: { labels: Record<string, string>; environmentalMarker: Record<string, string> };
+  objSuspectInfo: { objectMobility: Record<string, string>; suspectProfile: Record<string, string> };
+  finalScore: number;
+  verdictCat: "high_success" | "moderate_success" | "delay_with_effort" | "caution_rest";
+  verdictLabels: Record<string, Record<string, string>>;
+  timeHorizonLabels: Record<SignMobility, Record<string, string>>;
+  remedyLabels: Record<number, Record<string, string>>;
+  langCode: string;
+}): string {
+  const {
+    rawQuestion,
+    rootNum,
+    mobility,
+    objSuspectInfo,
+    dirInfo,
+    verdictCat,
+    timeHorizonLabels,
+    remedyLabels,
+    langCode
+  } = params;
+
+  const isKn = langCode === "kn";
+  const ctx = extractDetailedQuestionContext(rawQuestion);
+  const amountStrKn = ctx.extractedAmount ? ctx.extractedAmount.kn : "";
+  const amountStrEn = ctx.extractedAmount ? ctx.extractedAmount.en : "";
+  const personKn = ctx.targetPerson?.kn || "ಸಂಬಂಧಪಟ್ಟ ವ್ಯಕ್ತಿ";
+  const personEn = ctx.targetPerson?.en || "concerned person";
+
+  // Section 1: Direct Verdict & Reality
+  // Section 2: Why? (Cause)
+  // Section 3: When? (Timeline)
+  // Section 4: Remedies & Practical Real-World Action Steps
+  let section1Kn = "";
+  let section1En = "";
+  let section2Kn = "";
+  let section2En = "";
+  let section3Kn = "";
+  let section3En = "";
+  let section4Kn = "";
+  let section4En = "";
+
+  if (ctx.subIntent === "money_lent_recovery") {
+    const isAffirmative = verdictCat === "high_success";
+    if (isAffirmative) {
+      section1Kn = `ಹೌದು, ನೀವು ನೀಡಿದ ${amountStrKn || "ಹಣ"}ವು ನಿಶ್ಚಿತವಾಗಿ ವಾಪಸ್ ಸಿಗಲಿದೆ. ಆ ${personKn} ಹಣವನ್ನು ಹಿಂದಿರುಗಿಸಲು ಸಕಾರಾತ್ಮಕ ಪ್ರಯತ್ನ ಮಾಡುತ್ತಿದ್ದು, ಸಣ್ಣ ಕಾಲಾವಕಾಶದ ನಂತರ ಪೂರ್ಣ ಹಣ ನಿಮ್ಮ ಕೈಸೇರಲಿದೆ.`;
+      section1En = `Yes, the ${amountStrEn || "money"} you lent will definitely be returned. That ${personEn} is making sincere efforts to arrange the funds, and aside from a brief procedural delay, the amount will be restored to you.`;
+    } else {
+      section1Kn = `ಇಲ್ಲ, ಸದ್ಯಕ್ಕೆ ನೀವು ನೀಡಿದ ${amountStrKn || "ಹಣ"}ವು ತಕ್ಷಣ ವಾಪಸ್ ಸಿಗುವುದಿಲ್ಲ. ಆ ${personKn} ನಿಮ್ಮ ಹಣವನ್ನು ಬೇರೊಂದು ಕಡೆ (ಮತ್ತೊಂದು ಹೂಡಿಕೆ, ವ್ಯಾಪಾರ ಅಥವಾ ತುರ್ತು ಹೊಣೆಗಾರಿಕೆಯಲ್ಲಿ) ತೊಡಗಿಸಿದ್ದು, ಪ್ರಸ್ತುತ ಆರ್ಥಿಕ ಸಂಕಷ್ಟ ಅಥವಾ ನಗದು ಮುಗ್ಗಟ್ಟನ್ನು ಎದುರಿಸುತ್ತಿದ್ದಾರೆ. ಹಣ ಖಂಡಿತವಾಗಿ ವಾಪಸ್ ಸಿಗಲಿದೆ, ಆದರೆ ನಿರೀಕ್ಷಿತ ಸಮಯಕ್ಕಿಂತ ಹೆಚ್ಚು ಕಾಲಾವಕಾಶ ತೆಗೆದುಕೊಳ್ಳಲಿದೆ.`;
+      section1En = `No, currently the ${amountStrEn || "amount"} you gave will not be returned immediately. That ${personEn} has already committed those funds elsewhere (into another investment, trade, or emergency liability) and is currently facing financial losses or liquidity stress. They will definitely return it, but it will take considerable time.`;
+    }
+
+    section2Kn = `ಇದಕ್ಕೆ ಶಾಸ್ತ್ರೀಯ ಹಾಗೂ ವಾಸ್ತವಿಕ ಕಾರಣವೇನೆಂದರೆ: ಪ್ರಸ್ತುತ ಪ್ರಶ್ನಾ ಕುಂಡಲಿಯಲ್ಲಿ ಸಾಲ, ನಿರ್ಬಂಧಿತ ದ್ರವ್ಯ ಹಾಗೂ ವಿಳಂಬವನ್ನು ಸೂಚಿಸುವ ೬ನೇ ಮತ್ತು ೮ನೇ ಸ್ಥಾನಗಳ ಪ್ರಭಾವವಿದೆ. ವಾಸ್ತವಿಕವಾಗಿ ಆ ${personKn} ನಿಮ್ಮ ಹಣವನ್ನು ದುರುದ್ದೇಶದಿಂದ ಮುಚ್ಚಿಡುತ್ತಿಲ್ಲ; ಅವರ ಇತರ ಹಣಕಾಸು ವ್ಯವಹಾರಗಳು ತಾತ್ಕಾಲಿಕವಾಗಿ ಸ್ಥಗಿತಗೊಂಡಿರುವುದರಿಂದ ಅಥವಾ ನಷ್ಟ ಅನುಭವಿಸುತ್ತಿರುವುದರಿಂದ ಅವರ ಬಳಿ ತಕ್ಷಣ ನೀಡಲು ನಗದು ಲಭ್ಯವಿಲ್ಲ. ಆದರೆ ೧೧ನೇ ಲಾಭ ಸ್ಥಾನದ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಅಸಲು ಮೊತ್ತವನ್ನು ಶಾಶ್ವತವಾಗಿ ನಷ್ಟವಾಗದಂತೆ ರಕ್ಷಿಸುತ್ತಿದೆ.`;
+    section2En = `The astrological and ground reality behind this is: The Prashna chart indicates temporary affliction on the 6th (debts/liabilities) and 8th (blocked capital) houses. In reality, that ${personEn} is not intentionally defrauding you; their other financial inflows are stalled or undergoing losses, leaving them without ready cash. However, benefic aspects on the 11th house of recovery safeguard your principal from being permanently lost.`;
+
+    section3Kn = `ಈ ಹಣಕಾಸಿನ ಸ್ಥಿತಿ ಸುಧಾರಿಸಲು ${timeHorizonLabels[mobility].kn}. ಗ್ರಹಗಳ ಗೋಚಾರ ಬಲದಲ್ಲಿ ಅನುಕೂಲಕರ ಬದಲಾವಣೆಯಾದಾಗ, ಅವರ ವ್ಯಾಪಾರ ಅಥವಾ ಹೂಡಿಕೆಯ ಮೂಲಗಳಿಂದ ನಗದು ಹರಿದುಬರಲು ಆರಂಭವಾಗುತ್ತದೆ. ಆಗ ನಿಮ್ಮ ಹಣವನ್ನು ಒಂದೇ ಬಾರಿಗೆ ಪೂರ್ಣವಾಗಿ ಪಡೆಯುವ ಬದಲು, ಹಂತ-ಹಂತವಾಗಿ ಕಂತುಗಳಲ್ಲಿ (tranches) ಮರಳಿ ಪಡೆಯಲು ಕಾಲ ಕೂಡಿಬರಲಿದೆ.`;
+    section3En = `A concrete turnaround will begin within ${timeHorizonLabels[mobility].en}. When key planetary transits shift, their pending receivables or trade will restart, opening the window for you to recover the funds in structured partial installments.`;
+
+    section4Kn = `ದೈವಿಕ ಪರಿಹಾರ: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn} ಪ್ರತಿದಿನ ಮುಂಜಾನೆ 'ಋಣವಿಮೋಚಕ ನೃಸಿಂಹ ಸ್ತೋತ್ರ' ಅಥವಾ 'ಓಂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರಾಯ ನಮಃ' ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ.
+ಪ್ರಾಯೋಗಿಕ ಮುಂದಿನ ಕ್ರಮ: ಅವರ ಮೇಲೆ ಸಿಟ್ಟಾಗದೆ ಅಥವಾ ಆಕ್ರಮಣಕಾರಿ ಸಂಘರ್ಷಕ್ಕೆ ಇಳಿಯದೆ, ಸೌಮ್ಯವಾಗಿ ಮುಖಾಮುಖಿ ಭೇಟಿಯಾಗಿ ಅವರ ಸದ್ಯದ ವ್ಯವಹಾರಿಕ ಸ್ಥಿತಿಯನ್ನು ನೇರವಾಗಿ ತಿಳಿದುಕೊಳ್ಳಿ. ಹಣವನ್ನು ಒಟ್ಟಿಗೆ ನೀಡಲು ಒತ್ತಾಯಿಸುವ ಬದಲು, ಹಂತ-ಹಂತದ ಕಂತುಗಳಲ್ಲಿ ಮರುಪಾವತಿಸಲು ಕಾಲಾವಧಿ ನಿಗದಿಪಡಿಸಿ ಲಿಖಿತ ಒಪ್ಪಂದ (promissory note ಅಥವಾ ಭದ್ರತಾ ದಾಖಲೆ) ಮಾಡಿಕೊಳ್ಳಿ.`;
+    section4En = `Sacred Remedy: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en} Chant the Runa Vimochana Nrisimha Stotram or "Om Namah Shivaya" 108 times daily.
+Practical Real-World Steps: Connect directly and peacefully with them in person to understand their ground business reality. Rather than initiating aggressive confrontation, establish a structured installment repayment schedule and secure formal written documentation or promissory notes.`;
+  } else if (ctx.subIntent === "job_promotion" || ctx.subIntent === "job_interview_new") {
+    const isAffirmative = verdictCat === "high_success" || verdictCat === "moderate_success";
+    if (isAffirmative) {
+      section1Kn = `ಹೌದು, ಈ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಉದ್ಯೋಗದಲ್ಲಿ ಬಡ್ತಿ, ಪ್ರಗತಿ ಹಾಗೂ ಅಧಿಕಾರ ವಿಸ್ತರಣೆಯ ಯೋಗ ದೃಢವಾಗಿದೆ. ಆಡಳಿತ ಮಂಡಳಿಯು ನಿಮ್ಮ ಪರಿಶ್ರಮವನ್ನು ಗುರುತಿಸಿ ಸೂಕ್ತ ಮನ್ನಣೆ ನೀಡಲಿದೆ.`;
+      section1En = `Yes, favorable planetary indications confirm career promotion, salary appraisal, and expanded responsibilities. Management will acknowledge your dedicated contributions.`;
+    } else {
+      section1Kn = `ಇಲ್ಲ, ಸದ್ಯಕ್ಕೆ ಬಡ್ತಿಯು ತಕ್ಷಣ ಕೈಗೂಡುವುದಿಲ್ಲ. ಸಂಸ್ಥೆಯ ಆಂತರಿಕ ಆಡಳಿತ ಪ್ರಕ್ರಿಯೆ, ಬಜೆಟ್ ಅನುಮೋದನೆ ಹಾಗೂ ಇಲಾಖಾ ಮರುಹೊಂದಾಣಿಕೆಯ ವಿಳಂಬದಿಂದಾಗಿ ನೀವು ನಿರೀಕ್ಷೆಗಿಂತ ಹೆಚ್ಚು ಕಾಲ ಕಾಯಬೇಕಾಗುತ್ತದೆ.`;
+      section1En = `No, promotion will not materialize immediately. Internal corporate restructuring, budget reallocations, and delayed departmental approvals mean it will take more time than expected.`;
+    }
+
+    section2Kn = `ಇದಕ್ಕೆ ಕಾರಣವೇನೆಂದರೆ: ೧೦ನೇ ಕರ್ಮ ಸ್ಥಾನದ ಮೇಲೆ ಗ್ರಹಗಳ ಮಂದಗತಿಯ ಸಂಚಾರವಿದ್ದು, ಆಡಳಿತಾತ್ಮಕ ಅನುಮೋದನೆಗಳು ನಿಧಾನಗತಿಯಲ್ಲಿ ಸಾಗುತ್ತಿವೆ. ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯದಲ್ಲಿ ಯಾವುದೇ ಕೊರತೆಯಿಲ್ಲದಿದ್ದರೂ, ಮೇಲಧಿಕಾರಿಗಳ ಹಂತದಲ್ಲಿ ಹಿರಿಯರ ನಡುವಿನ ಆಂತರಿಕ ಚರ್ಚೆಗಳು ನಡೆಯುತ್ತಿವೆ.`;
+    section2En = `The reason for this: Slow planetary transit over the 10th Karma house causes procedural sluggishness. While your competency is strong, internal deliberations among upper management are pacing slowly.`;
+
+    section3Kn = `ಈ ಉದ್ಯೋಗ ಫಲ ಸಿದ್ಧಿಯು ${timeHorizonLabels[mobility].kn} ಅವಧಿಯಲ್ಲಿ ಸ್ಪಷ್ಟ ರೂಪ ಪಡೆಯಲಿದೆ.`;
+    section3En = `This career development will crystallize within ${timeHorizonLabels[mobility].en}.`;
+
+    section4Kn = `ದೈವಿಕ ಪರಿಹಾರ: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn} ಆದಿತ್ಯ ಹ್ರದಯ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ.
+ಪ್ರಾಯೋಗಿಕ ಮುಂದಿನ ಕ್ರಮ: ಮೇಲಧಿಕಾರಿಗಳೊಂದಿಗೆ ಶಾಂತರಾಗಿ ಮುಖಾಮುಖಿ ವೃತ್ತಿಪರ ಸಮಾಲೋಚನೆ (1-on-1 meeting) ನಡೆಸಿ, ನಿಮ್ಮ ಸಾಧನೆಗಳ ದಾಖಲೆಯನ್ನು ಸೌಮ್ಯವಾಗಿ ಮುಂದಿಟ್ಟು ಅಧಿಕೃತ ಮೌಲ್ಯಮಾಪನ ಕೋರಿ.`;
+    section4En = `Sacred Remedy: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en} Recite Aditya Hrudayam Stotram daily.
+Practical Real-World Steps: Schedule a calm 1-on-1 review with your reporting manager, present documented performance metrics without emotional friction, and formally confirm your promotion pathway.`;
+  } else if (ctx.subIntent === "marriage_timing" || ctx.subIntent === "marriage_proposal_match") {
+    const isAffirmative = verdictCat === "high_success" || verdictCat === "moderate_success";
+    if (isAffirmative) {
+      section1Kn = `ಹೌದು, ಈ ವಿವಾಹ ಪ್ರಸ್ತಾವ ಹಾಗೂ ಕಂಕಣ ಭಾಗ್ಯಕ್ಕೆ ಕಾಲವು ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾಗಿದೆ. ಸಂಬಂಧವು ಕುಟುಂಬಕ್ಕೆ ಶುಭ ತರಲಿದ್ದು, ಮುನ್ನಡೆಯಲು ಶಾಸ್ತ್ರ ಸಮ್ಮತವಿದೆ.`;
+      section1En = `Yes, timing is highly favorable for marriage alignment and this alliance. Cosmic energies favor domestic harmony and alliance finalization.`;
+    } else {
+      section1Kn = `ಸದ್ಯಕ್ಕೆ ಈ ವಿವಾಹ ವಿಷಯದಲ್ಲಿ ತಕ್ಷಣದ ನಿರ್ಧಾರ ಬೇಡ; ಹೊಂದಾಣಿಕೆ, ಕುಟುಂಬದ ಹಿರಿಯರ ಆಲೋಚನೆ ಹಾಗೂ ಹಿನ್ನೆಲೆಯ ವಿಚಾರದಲ್ಲಿ ಕೆಲವು ಗೊಂದಲಗಳಿದ್ದು ಇನ್ನಷ್ಟು ತಾಳ್ಮೆ ಅಗತ್ಯ.`;
+      section1En = `Hold off on an immediate marriage decision; lingering hesitations regarding horoscope compatibility, family elder expectations, and background require patient review.`;
+    }
+
+    section2Kn = `ಇದಕ್ಕೆ ಕಾರಣವೇನೆಂದರೆ: ೭ನೇ ಕಳತ್ರ ಭಾವ ಹಾಗೂ ಶುಕ್ರ-ಗುರು ಗ್ರಹಗಳ ಸಂಚಾರವು ಹಿರಿಯರ ನಡುವೆ ಪೂರ್ಣ ಮಟ್ಟದ ಒಮ್ಮತ ಮೂಡಲು ಸ್ವಲ್ಪ ಸಮಯವನ್ನು ನಿರೀಕ್ಷಿಸುತ್ತಿದೆ.`;
+    section2En = `The astrological reason: Transits affecting the 7th Kalatra house indicate that complete consensus between family elders needs a little more time to mature.`;
+
+    section3Kn = `ವಿವಾಹ ಸಂಕಲ್ಪದ ಫಲಿತಾಂಶವು ${timeHorizonLabels[mobility].kn} ಅವಧಿಯಲ್ಲಿ ಪೂರ್ಣ ಸ್ಪಷ್ಟತೆ ಪಡೆಯಲಿದೆ.`;
+    section3En = `Complete clarity and decisive movement on this marriage matter will emerge within ${timeHorizonLabels[mobility].en}.`;
+
+    section4Kn = `ದೈವಿಕ ಪರಿಹಾರ: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn} ಶುಕ್ರವಾರ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಅಥವಾ ಮಂಗಳ ಗೌರಿ ದೇವಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ/ಪೂಜೆ ಸಲ್ಲಿಸಿ.
+ಪ್ರಾಯೋಗಿಕ ಮುಂದಿನ ಕ್ರಮ: ಎರಡೂ ಕುಟುಂಬಗಳ ಹಿರಿಯರು ಮುಖಾಮುಖಿ ಕುಳಿತು ಮುಕ್ತವಾಗಿ ಸೌಹಾರ್ದಯುತ ಮಾತುಕತೆ ನಡೆಸಿ, ಯಾವುದೇ ಮಧ್ಯವರ್ತಿಗಳ ಊಹಾಪೋಹಗಳಿಗೆ ಕಿವಿಗೊಡದೆ ನಿರ್ಧಾರ ಕೈಗೊಳ್ಳಿ.`;
+    section4En = `Sacred Remedy: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en} Offer prayers to Goddess Mahalakshmi or Mangala Gowri on Fridays.
+Practical Real-World Steps: Arrange a direct, cordial meeting between family elders without relying solely on intermediaries, verifying all expectations transparently.`;
+  } else if (ctx.subIntent === "lost_item_theft") {
+    const isAffirmative = verdictCat === "high_success" || verdictCat === "moderate_success";
+    if (isAffirmative) {
+      section1Kn = `ಹೌದು, ನಿಮ್ಮ ${amountStrKn || "ಕಳೆದುಹೋದ ವಸ್ತು"}ವು ನಿಶ್ಚಿತವಾಗಿ ಪತ್ತೆಯಾಗಲಿದೆ. ವಸ್ತುವು ನಾಶವಾಗಿಲ್ಲ; ${objSuspectInfo.objectMobility.kn}`;
+      section1En = `Yes, your ${amountStrEn || "lost article"} will definitely be recovered. It is intact; ${objSuspectInfo.objectMobility.en}`;
+    } else {
+      section1Kn = `ಸದ್ಯಕ್ಕೆ ${amountStrKn || "ವಸ್ತು"}ವು ಸುಲಭವಾಗಿ ಕಣ್ಣಿಗೆ ಬೀಳುತ್ತಿಲ್ಲ. ${objSuspectInfo.objectMobility.kn} ಇದು ಕಳುವಾಗಿರುವ ಬದಲು ಮರೆತು ಇರಿಸಲ್ಪಟ್ಟ ಅಥವಾ ಮುಚ್ಚಿಹೋದ ಸಾಧ್ಯತೆಯೇ ಅಧಿಕವಾಗಿದೆ.`;
+      section1En = `The ${amountStrEn || "item"} is not immediately visible. ${objSuspectInfo.objectMobility.en} It is more likely safely displaced or concealed under belongings rather than permanently stolen.`;
+    }
+
+    section2Kn = `ಇದಕ್ಕೆ ಕಾರಣ ಮತ್ತು ಶೋಧನಾ ಸ್ಥಳ: ${dirInfo.labels.kn}. ${dirInfo.environmentalMarker.kn} ${objSuspectInfo.suspectProfile.kn}`;
+    section2En = `Search direction and location markers: ${dirInfo.labels.en}. ${dirInfo.environmentalMarker.en} ${objSuspectInfo.suspectProfile.en}`;
+
+    section3Kn = `ವಸ್ತು ಲಭ್ಯತೆಯ ಕಾಲಾವಧಿ: ${timeHorizonLabels[mobility].kn}.`;
+    section3En = `Recovery timeframe: ${timeHorizonLabels[mobility].en}.`;
+
+    section4Kn = `ದೈವಿಕ ಪರಿಹಾರ: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn} ಶ್ರೀ ಸಂಕಷ್ಟಹರ ಗಣಪತಿಗೆ ಗರಿಕಾರ್ಚನೆ ಸಲ್ಲಿಸಿ.
+ಪ್ರಾಯೋಗಿಕ ಮುಂದಿನ ಕ್ರಮ: ಆತಂಕಪಡದೆ, ಸೂಚಿತ ದಿಕ್ಕಿನಲ್ಲಿರುವ ಕಪಾಟು, ಬ್ಯಾಗ್, ವಾಹನ ಅಥವಾ ಪೀಠೋಪಕರಣಗಳ ಕೆಳಭಾಗವನ್ನು ಸಮಾಧಾನಚಿತ್ತದಿಂದ ಶೋಧಿಸಿ; ಆಪ್ತರ ಮೇಲೆ ತಕ್ಷಣ ನೇರ ಆರೋಪ ಮಾಡಬೇಡಿ.`;
+    section4En = `Sacred Remedy: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en} Pray to Lord Sankashtahara Ganapati with Garika grass.
+Practical Real-World Steps: Search methodically without panic in the indicated directional quadrant, examining bags, elevated shelves, vehicle crevices, or behind furniture without accusatory confrontations.`;
+  } else if (ctx.subIntent === "property_purchase") {
+    const isAffirmative = verdictCat === "high_success" || verdictCat === "moderate_success";
+    if (isAffirmative) {
+      section1Kn = `ಹೌದು, ಈ ${amountStrKn || "ಆಸ್ತಿ ಅಥವಾ ಮನೆ"} ಖರೀದಿ ನಿರ್ಧಾರವು ಭವಿಷ್ಯಕ್ಕೆ ಅತ್ಯಂತ ಶುಭದಾಯಕವಾಗಿದೆ ಮತ್ತು ಆಸ್ತಿಯು ನಿಮ್ಮ ಕೈವಶವಾಗಲಿದೆ.`;
+      section1En = `Yes, this ${amountStrEn || "property / home"} purchase is astrologically favorable and will bring long-term security and appreciation.`;
+    } else {
+      section1Kn = `ಸದ್ಯಕ್ಕೆ ಆಸ್ತಿ ಖರೀದಿಯಲ್ಲಿ ಆತುರದ ನಿರ್ಧಾರ ಬೇಡ; ದಾಖಲೆಗಳ ಪರಿಶೀಲನೆ, ದರ ಹೊಂದಾಣಿಕೆ ಅಥವಾ ಕಾನೂನು ಒಪ್ಪಿಗೆಗಳಲ್ಲಿ ಕೆಲವು ಸೂಕ್ಷ್ಮ ಸಮಸ್ಯೆಗಳಿದ್ದು ತಾಳ್ಮೆ ವಹಿಸಬೇಕು.`;
+      section1En = `Exercise caution before finalizing this property transaction; subtleties in title deeds, pricing alignment, or municipal clearances require thorough scrutiny.`;
+    }
+
+    section2Kn = `ಇದಕ್ಕೆ ಕಾರಣವೇನೆಂದರೆ: ೪ನೇ ಗೃಹ-ಭೂಮಿ ಸ್ಥಾನದ ಮೇಲೆ ಗ್ರಹಗಳ ಸ್ಥಿತಿ ನಿಷ್ಪಕ್ಷಪಾತ ತನಿಖೆಯನ್ನು ಕೋರುತ್ತಿದೆ. ಆಸ್ತಿಯು ಉತ್ತಮವಾಗಿದ್ದರೂ, ಮೂಲ ದಾಖಲೆಗಳ (parent deeds) ಸ್ಪಷ್ಟತೆ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳುವುದು ಅನಿವಾರ್ಯ.`;
+    section2En = `Astrological reasoning: Planetary influences on the 4th Sukha house demand rigorous due diligence. While the property holds merit, legal clarity on parent documents is vital.`;
+
+    section3Kn = `ಖರೀದಿ ಪ್ರಕ್ರಿಯೆಯು ${timeHorizonLabels[mobility].kn} ಅವಧಿಯಲ್ಲಿ ಸುಗಮ ಹಂತಕ್ಕೆ ಬರಲಿದೆ.`;
+    section3En = `The transaction process will stabilize into an auspicious phase within ${timeHorizonLabels[mobility].en}.`;
+
+    section4Kn = `ದೈವಿಕ ಪರಿಹಾರ: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn} ಭೂಮಿ ಸೂಕ್ತ ಪಠಣೆ ಅಥವಾ ವಾಸ್ತು ಪ್ರಾರ್ಥನೆ ಮಾಡಿ.
+ಪ್ರಾಯೋಗಿಕ ಮುಂದಿನ ಕ್ರಮ: ಪರಿಣಿತ ವಕೀಲರಿಂದ ಎನ್‌ಕಂಬರೆನ್ಸ್ ಸರ್ಟಿಫಿಕೇಟ್ (EC), ಖಾತಾ ಹಾಗೂ ಮೂಲ ದಾಖಲೆಗಳನ್ನು ಮರುಪರಿಶೀಲಿಸಿ, ಯಾವುದೇ ಕಚ್ಚಾ ಒಪ್ಪಂದಕ್ಕೆ ಮುಂಗಡ ಹಣ ನೀಡಬೇಡಿ.`;
+    section4En = `Sacred Remedy: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en} Perform Bhoomi Suktam or Vastu prayer.
+Practical Real-World Steps: Have an independent legal advocate verify the Encumbrance Certificate (EC), municipal approvals, and parent title chain before releasing substantial advances.`;
+  } else {
+    // General fallback
+    const isAffirmative = verdictCat === "high_success" || verdictCat === "moderate_success";
+    if (isAffirmative) {
+      section1Kn = `ಹೌದು, ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ (${rawQuestion}) ಶಾಸ್ತ್ರೀಯವಾಗಿ ಸಕಾರಾತ್ಮಕ ಉತ್ತರ ಲಭಿಸಿದ್ದು, ಈ ಕಾರ್ಯವು ನಿಶ್ಚಿತವಾಗಿ ಸಿದ್ಧಿಯಾಗಲಿದೆ.`;
+      section1En = `Yes, your query (${rawQuestion}) receives an astrologically affirmative indication, confirming the successful realization of your objective.`;
+    } else {
+      section1Kn = `ಇಲ್ಲ, ಸದ್ಯಕ್ಕೆ ಈ ಕಾರ್ಯವು ತಕ್ಷಣ ಸಿದ್ಧಿಯಾಗುವುದಿಲ್ಲ; ಕಾಲಾವಕಾಶ ಹಾಗೂ ತಾಳ್ಮೆಯ ಅಗತ್ಯವಿದ್ದು, ಸದ್ಯದ ಅಡೆತಡೆಗಳು ತಾತ್ಕಾಲಿಕವಾಗಿವೆ.`;
+      section1En = `No, this matter will not resolve immediately; patience and persistent navigation are required, and current hurdles are temporary.`;
+    }
+
+    section2Kn = `ಇದಕ್ಕೆ ಕಾರಣವೇನೆಂದರೆ: ಪ್ರಸ್ತುತ ಪ್ರಶ್ನಾ ಕುಂಡಲಿಯಲ್ಲಿ ಗ್ರಹಗಳ ಸಂಚಾರವು ಕಾರ್ಯ ಸ್ಥಾನದಲ್ಲಿ ಹಂತ-ಹಂತದ ಬೆಳವಣಿಗೆಯನ್ನು ಸೂಚಿಸುತ್ತಿದ್ದು, ಆತುರದ ಹೆಜ್ಜೆಯು ಹಿನ್ನಡೆ ತರಬಹುದು.`;
+    section2En = `Astrological reasoning: Transits influencing the relevant house indicate gradual phased progression; hasty actions could trigger avoidable friction.`;
+
+    section3Kn = `ಕಾರ್ಯ ಸಿದ್ಧಿಯ ನಿಖರ ಕಾಲಾವಧಿ: ${timeHorizonLabels[mobility].kn}.`;
+    section3En = `Expected realization horizon: ${timeHorizonLabels[mobility].en}.`;
+
+    section4Kn = `ದೈವಿಕ ಪರಿಹಾರ: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn} ಪ್ರತಿದಿನ ಮುಂಜಾನೆ 'ಓಂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರಾಯ ನಮಃ' ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ.
+ಪ್ರಾಯೋಗಿಕ ಮುಂದಿನ ಕ್ರಮ: ಯಾವುದೇ ಮೂರನೇ ವ್ಯಕ್ತಿಯ ಅಪ್ರಮಾಣಿಕ ಮಾತುಗಳಿಗೆ ಕಿವಿಗೊಡದೆ, ಸಂಬಂಧಪಟ್ಟವರೊಂದಿಗೆ ನೇರ ಸಂವಾದ ನಡೆಸಿ ಅಗತ್ಯ ದಾಖಲೆಗಳನ್ನು ವ್ಯವಸ್ಥಿತವಾಗಿ ನಿರ್ವಹಿಸಿ ಮುನ್ನಡೆಯಿರಿ.`;
+    section4En = `Sacred Remedy: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en} Chant "Om Namah Shivaya" 108 times daily.
+Practical Real-World Steps: Avoid hearsay and third-party rumors; engage directly with the primary stakeholders and maintain organized records.`;
+  }
+
+  if (isKn) {
+    return `೧. ನೇರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ & ಸದ್ಯದ ವಾಸ್ತವಿಕ ಸ್ಥಿತಿ:
+${section1Kn}
+
+೨. ಇದಕ್ಕೆ ಕಾರಣವೇನು? ಗ್ರಹಸ್ಥಿತಿ & ಶಾಸ್ತ್ರೀಯ ವಿಶ್ಲೇಷಣೆ:
+${section2Kn}
+
+೩. ನಿಖರ ಕಾಲಾವಧಿ & ಫಲ ಬದಲಾವಣೆಯ ಸಮಯ:
+${section3Kn}
+
+೪. ದೈವಿಕ ಪರಿಹಾರ & ಪ್ರಾಯೋಗಿಕ ಮುಂದಿನ ಕ್ರಮಗಳು:
+${section4Kn}`;
+  }
+
+  return `1. DIRECT ASTROLOGICAL VERDICT & GROUND REALITY:
+${section1En}
+
+2. WHY? PLANETARY ROOT CAUSE & SITUATIONAL ANALYSIS:
+${section2En}
+
+3. CONCRETE TIMELINE & TURNING POINT:
+${section3En}
+
+4. SACRED REMEDIES & REAL-WORLD PRACTICAL NEXT STEPS:
+${section4En}`;
 }
 
 // ----------------------------------------------------------------------
@@ -631,17 +1039,28 @@ export async function executeSankhyaShastraPrashna(
     9: { kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟೋತ್ತರ ಪಾರಾಯಣ, ಮಂಗಳವಾರ ಕೆಂಪು ಹೂವಿನ ಅರ್ಚನೆ ಹಾಗೂ ಋಣವಿಮೋಚಕ ಸ್ತೋತ್ರ.", en: "Chant Sri Subramanya Ashtottaram & offer red flowers on Tuesdays for debt/obstacle freedom." }
   };
 
-  // 8. Deterministic Fallback 2-Paragraph Builder
-  const buildDeterministic2ParagraphReading = (): string => {
-    if (langCode === "kn") {
-      return `ನೋಡಿ ಭಕ್ತರೇ, ನಿಮ್ಮ ಈ ಪ್ರಶ್ನೆಯನ್ನು ("${rawQuestion}") ನಿಮ್ಮ ಸಂಖ್ಯಾ ಕುಂಡಲಿ ಹಾಗೂ ಪ್ರಶ್ನಾ ಲಗ್ನದ ಗಣಿತದಲ್ಲಿ ನಾನು ಸ್ಕ್ರೀನ್ ಮೇಲೆ ಪ್ರತ್ಯಕ್ಷವಾಗಿ ನೋಡುತ್ತಿದ್ದೇನೆ. ನೀವು ಆಯ್ದ ಸಂಖ್ಯಾ ಬಲ ${userNumber} ರ ಏಕಾಂಕ ${rootNum} ಆಗಿದ್ದು, ಇದರ ನೇರ ಅಧಿಪತಿ ಗ್ರಹ ${rootData.ruler.kn} ಮತ್ತು ರಕ್ಷಕ ದೇವತೆ ${rootData.deity.kn}. ಪ್ರಸ್ತುತ ಪ್ರಶ್ನಾ ಲಗ್ನವು ${houseNum}ನೇ ಮನೆಯಾದ ${lagnaName.kn} ರಾಶಿಯಲ್ಲಿ ಉದಯಿಸಿದ್ದು, ಇದರ ಅಧಿಪತಿ ${lagnaLord.kn} ಹಾಗೂ ಕಾರ್ಯ ಸ್ಥಾನವಾದ ${karyaLabel.kn} ದಲ್ಲಿ ಗೋಚಾರ ಗ್ರಹಗಳು ಸಂಚರಿಸುತ್ತಿವೆ. ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ನೇರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯವೇನೆಂದರೆ: ನಿಮ್ಮ ಪ್ರಶ್ನೆಯ ಸಂಖ್ಯಾ ಬಲವು ಶೇಕಡಾ ${finalScore}% ರಷ್ಟಿದ್ದು, ${verdictLabels[verdictCat].kn} ಸಿದ್ಧಿಯಾಗಲಿದೆ. ಸದ್ಯದ ಗೊಂದಲವು ತಾತ್ಕಾಲಿಕವಾಗಿದ್ದು, ${objSuspectInfo.objectMobility.kn} ${dirInfo.labels.kn}: ${dirInfo.environmentalMarker.kn} ${objSuspectInfo.suspectProfile.kn} ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಧೃತಿಗೆಡದೆ, ಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆದರೆ ನಿಮ್ಮ ಸಂಕಲ್ಪವು ಸಾಕಾರಗೊಳ್ಳಲಿದೆ.
-
-ಈ ಕಾರ್ಯದ ಪೂರ್ಣ ಫಲ ಹಾಗೂ ಸಿದ್ಧಿಯು ${timeHorizonLabels[mobility].kn} ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಕಣ್ಣಮುಂದೆ ಸಾಕಾರಗೊಳ್ಳಲಿದೆ ಎಂದು ಕುಂಡಲಿಯು ಸ್ಪಷ್ಟಪಡಿಸುತ್ತಿದೆ. ಈ ಕಾರ್ಯವನ್ನು ಸುಗಮವಾಗಿ ಸಾಧಿಸಲು, ನೀವು ಯಾವುದೇ ಮೂರನೇ ವ್ಯಕ್ತಿಯ ಅಪಪ್ರಚಾರಕ್ಕೆ ಕಿವಿಗೊಡದೆ, ಸೂಚಿತ ದಿಕ್ಕಿನಲ್ಲಿ ಸೌಮ್ಯ ಸಂವಾದ ನಡೆಸಿ ಮತ್ತು ಅಗತ್ಯ ದಾಖಲೆಗಳನ್ನು ಮರುಪರಿಶೀಲಿಸಿ ಮುನ್ನಡೆಯಿರಿ. ಈ ಸನ್ನಿವೇಶದಲ್ಲಿ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಗೋಕರ್ಣ-ಬಗ್ಗೋಣ ದೈವಿಕ ಮಹಾ ಪರಿಹಾರ: ${remedyLabels[rootNum]?.kn || remedyLabels[1]!.kn}. ಪ್ರತಿದಿನ ಮುಂಜಾನೆ ಸ್ನಾನದ ನಂತರ ಶ್ರೀ ${rootData.deity.kn} ರನ್ನು ಧ್ಯಾನಿಸಿ, "ಓಂ ನಮಃ ಶಿವಾಯ" ಅಥವಾ "ಓಂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರಾಯ ನಮಃ" ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ, ಶ್ರೀ ತಾಮ್ರಗೌರಿ ಅಮ್ಮನವರು ಹಾಗೂ ಬಗ್ಗೋಣ ಶ್ರೀ ಮಹಾಗಣಪತಿಯ ದಿವ್ಯ ಕೃಪಾಕಟಾಕ್ಷದಿಂದ ನಿಶ್ಚಿತ ಜಯ ಲಭಿಸಲಿದೆ ಎಂದು ಶ್ರೀರಾಮ ಪಂಡಿತರಾದ ನಾನು ಸಾಕ್ಷಾತ್ ಆಶೀರ್ವದಿಸುತ್ತೇನೆ.`;
-    }
-
-    return `Dear devotee, I am directly looking at your numbers and Prashna Kundli on the screen regarding your specific query ("${rawQuestion}"). Your chosen intuitive number is ${userNumber} with root ${rootNum}, governed by ${rootData.ruler.en} and protected by ${rootData.deity.en}. Rising in House ${houseNum} (${lagnaName.en}), your planetary transit alignment in the ${karyaLabel.en} reveals a Prashna Bala Score of ${finalScore}% (${verdictLabels[verdictCat].en}). The direct astrological verdict is: ${objSuspectInfo.objectMobility.en} ${dirInfo.labels.en}: ${dirInfo.environmentalMarker.en} ${objSuspectInfo.suspectProfile.en}. Any current obstruction is temporary and cosmic forces are actively realigning in your favor.
-
-The complete fulfillment of this query will unfold within ${timeHorizonLabels[mobility].en} as indicated by your chart. To ensure smooth progress, proceed with calm dialogue in the indicated direction without paying heed to hearsay, and re-examine key documents. For obstacle removal, your sacred remedy is: ${remedyLabels[rootNum]?.en || remedyLabels[1]!.en}. Chant "Om Namah Shivaya" 108 times daily after morning ablutions. May Lord Mahabaleshwara, Goddess Tamragauri, and Baggona Maha Ganapati bless you with complete victory. Blessings from Sri Shreeram Pandit.`;
+  // 8. 100% Dynamic, Up-To-Point 4-Step Prashna Reading Builder (Zero filler, Direct Verdict FIRST)
+  const buildFallbackReading = (): string => {
+    return buildDynamicUpToPointReading({
+      rawQuestion,
+      userNumber,
+      rootNum,
+      rootData,
+      houseNum,
+      lagnaName,
+      lagnaLord,
+      mobility,
+      mobilityLabel,
+      karyaLabel,
+      dirInfo,
+      objSuspectInfo,
+      finalScore,
+      verdictCat,
+      verdictLabels,
+      timeHorizonLabels,
+      remedyLabels,
+      langCode
+    });
   };
 
   // 9. Format Deterministic Summary for AI Prompt
@@ -665,20 +1084,46 @@ The complete fulfillment of this query will unfold within ${timeHorizonLabels[mo
 ================================================================
 `;
 
-  // 10. Gemini AI Prompt Enforcing 2 In-Depth Paragraphs Answering Question FIRST in Screen-Viewing Priest's Voice
+  // 10. Gemini AI Prompt Enforcing 4-Step Up-To-Point Direct Reading Without Filler
+  const isKn = langCode === "kn";
   const narrationPrompt = `
 You are revered Chief Priest Sri Shreeram Pandit from Gokarna-Baggona Kshetra.
 
-USER'S CRITICAL REQUIREMENTS:
-1. NARRATION PERSPECTIVE: Speak directly to the devotee as if in an in-person face-to-face consultation, actively looking at their Prashna Kundli, numbers, Lagna, and transits directly on the screen. It MUST sound like the priest is looking at the Kundli and telling them directly, NOT reading pre-written text from a book or mobile phone!
-2. STRICTLY NO GREETINGS OR META INTROS (DO NOT write 'ನಮಸ್ಕಾರ', 'ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪಂಡಿತ್', 'ನಾನು ಜ್ಯೋತಿಷಿ', 'ಸ್ವಾಗತ' at the beginning).
-3. NO BLUFFING, NO HALLUCINATIONS: Keep the points crisp, clear, authoritative, and 100% accurate based on the technical parameters.
-4. ANSWER THE QUESTION FIRST IN DEPTH: Give the direct answer to "${rawQuestion}" right in the opening sentence.
-5. STRICTLY EXACTLY TWO (2) IN-DEPTH PARAGRAPHS ONLY. Each paragraph MUST have at least 6 lines:
-   - PARAGRAPH 1 (At least 6 lines): Direct screen-viewing analysis of devotee's Prashna Kundli & immediate verdict (devotee's number ${userNumber}, root ${rootNum}, planet ${rootData.ruler[langCode] || rootData.ruler.en}, Lagna ${lagnaName[langCode] || lagnaName.en}, Karya Sthana, direct root cause, situational reality, direction, and item/matter status).
-   - PARAGRAPH 2 (At least 6 lines): Concrete timeline (${timeHorizonLabels[mobility][langCode] || timeHorizonLabels[mobility].en}), actionable steps/search method, Gokarna-Baggona sacred remedy (${remedyLabels[rootNum]?.[langCode as keyof typeof remedyLabels[1]] || remedyLabels[1]!['kn']}), daily mantra, and direct blessings from Sri Shreeram Pandit.
-
-Write EXCLUSIVELY in the native script of requested language: ${langCode} (${lang === "kn" ? "Kannada" : lang}). No other language should interrupt.
+USER'S ABSOLUTE ZERO-TOLERANCE RULES:
+1. STRICTLY NO GREETINGS OR META INTROS:
+   DO NOT write 'ನಮಸ್ಕಾರ', 'ಸ್ವಾಗತ', 'ನಾನು ಜ್ಯೋತಿಷಿ', 'ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪಂಡಿತ್', 'ನೋಡಿ ಭಕ್ತರೇ ಕುಂಡಲಿ ಸ್ಕ್ರೀನ್ ಮೇಲೆ ನೋಡುತ್ತಿದ್ದೇನೆ' or 'Welcome devotee' anywhere!
+2. COME DIRECTLY TO THE POINT IN THE OPENING SENTENCE:
+   The very first sentence MUST state the direct answer / verdict to the devotee's specific question: "${rawQuestion}".
+   Example (if asked: "I have given 2 crores to my friend, did he give me back those amount?"):
+   Start immediately with:
+   "ಇಲ್ಲ, ಸದ್ಯಕ್ಕೆ ಆ ೨ ಕೋಟಿ ಹಣ ತಕ್ಷಣ ನಿಮ್ಮ ಕೈಸೇರುವುದಿಲ್ಲ. ಆ ಸ್ನೇಹಿತನು ನಿಮ್ಮ ಹಣವನ್ನು ಬೇರೊಂದು ಕಡೆ ತೊಡಗಿಸಿದ್ದು, ಪ್ರಸ್ತುತ ಆರ್ಥಿಕ ನಷ್ಟ ಅಥವಾ ನಗದು ಮುಗ್ಗಟ್ಟನ್ನು ಎದುರಿಸುತ್ತಿದ್ದಾನೆ. ಹಣ ಖಂಡಿತವಾಗಿ ವಾಪಸ್ ಸಿಗಲಿದೆ, ಆದರೆ ನಿರೀಕ್ಷಿತ ಸಮಯಕ್ಕಿಂತ ಹೆಚ್ಚು ಕಾಲಾವಕಾಶ ತೆಗೆದುಕೊಳ್ಳಲಿದೆ."
+3. STRICTLY STRUCTURE YOUR RESPONSE INTO EXACTLY FOUR (4) NUMBERED SECTIONS WITH THESE EXACT HEADINGS:
+   ${isKn ? `
+   ೧. ನೇರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ & ಸದ್ಯದ ವಾಸ್ತವಿಕ ಸ್ಥಿತಿ:
+   (Give the direct conclusion in sentence 1, then explain the counterparty's ground reality)
+   
+   ೨. ಇದಕ್ಕೆ ಕಾರಣವೇನು? ಗ್ರಹಸ್ಥಿತಿ & ಶಾಸ್ತ್ರೀಯ ವಿಶ್ಲೇಷಣೆ:
+   (Explain the specific planetary forces and real-world factors causing this situation)
+   
+   ೩. ನಿಖರ ಕಾಲಾವಧಿ & ಫಲ ಬದಲಾವಣೆಯ ಸಮಯ:
+   (State the clear timeline and turning point: ${timeHorizonLabels[mobility].kn})
+   
+   ೪. ದೈವಿಕ ಪರಿಹಾರ & ಪ್ರಾಯೋಗಿಕ ಮುಂದಿನ ಕ್ರಮಗಳು:
+   (Give the sacred mantra/puja remedy, AND give concrete real-world next steps: e.g., "connect with them directly and peacefully in person to understand their ground reality, avoid aggressive conflict, and secure written acknowledgment or structured installments")
+   ` : `
+   1. DIRECT ASTROLOGICAL VERDICT & GROUND REALITY:
+   (State the direct answer in sentence 1, then explain the ground reality of the matter/counterparty)
+   
+   2. WHY? PLANETARY ROOT CAUSE & SITUATIONAL ANALYSIS:
+   (Explain the planetary transits and situational realities causing this)
+   
+   3. CONCRETE TIMELINE & TURNING POINT:
+   (State the timeline: ${timeHorizonLabels[mobility].en})
+   
+   4. SACRED REMEDIES & REAL-WORLD PRACTICAL NEXT STEPS:
+   (State the mantra/remedy, and give practical real-world steps like connecting in person peacefully to review details without conflict)
+   `}
+4. WRITE EXCLUSIVELY IN ${isKn ? "pure Kannada script without any English words" : langCode}.
 `;
 
   let aiPrediction = "";
@@ -691,10 +1136,10 @@ Write EXCLUSIVELY in the native script of requested language: ${langCode} (${lan
       });
     } catch (err) {
       console.warn("AI Prashna narration failed, falling back to deterministic reading:", err);
-      aiPrediction = buildDeterministic2ParagraphReading();
+      aiPrediction = buildFallbackReading();
     }
   } else {
-    aiPrediction = buildDeterministic2ParagraphReading();
+    aiPrediction = buildFallbackReading();
   }
 
   return {

@@ -103,11 +103,21 @@ describe("Sankhya Shastra Prashna Engine", () => {
     expect(result.suspectAndLocationProfile.kn).toBeTruthy();
     expect(result.remedyRecommendation.kn).toBeTruthy();
 
-    // Verify 2-paragraph structure starting with Priest Direct Screen Observation & Verdict FIRST
+    // Verify 4-step up-to-the-point structure starting with direct verdict FIRST without filler
     const paras = result.aiPrediction.split(/\n\n+/).filter((p) => p.trim().length > 0);
-    expect(paras).toHaveLength(2);
-    expect(paras[0]).toMatch(/(ನೋಡಿ ಭಕ್ತರೇ|ಸಂಖ್ಯಾ ಕುಂಡಲಿ|ಪ್ರತ್ಯಕ್ಷವಾಗಿ ನೋಡುತ್ತಿದ್ದೇನೆ)/);
-    expect(paras[1]).toMatch(/(ಸಾಕಾರಗೊಳ್ಳಲಿದೆ|ಗೋಕರ್ಣ-ಬಗ್ಗೋಣ ದೈವಿಕ|ಸಾಕ್ಷಾತ್ ಆಶೀರ್ವದಿಸುತ್ತೇನೆ)/);
+    expect(paras).toHaveLength(4);
+    // Banned generic filler phrases
+    expect(result.aiPrediction).not.toContain("ನೋಡಿ ಭಕ್ತರೇ");
+    expect(result.aiPrediction).not.toContain("ಪ್ರತ್ಯಕ್ಷವಾಗಿ ನೋಡುತ್ತಿದ್ದೇನೆ");
+    expect(result.aiPrediction).not.toContain("ನಮಸ್ಕಾರ");
+    // Paragraph 1: Direct verdict & actual situation
+    expect(paras[0]).toMatch(/(೧\.|ನೇರ ಶಾಸ್ತ್ರೀಯ ನಿರ್ಣಯ|ಸದ್ಯದ ವಾಸ್ತವಿಕ ಸ್ಥಿತಿ)/);
+    // Paragraph 2: Astrological reasons / why
+    expect(paras[1]).toMatch(/(೨\.|ಕಾರಣವೇನು|ಗ್ರಹಸ್ಥಿತಿ|ವಿಶ್ಲೇಷಣೆ)/);
+    // Paragraph 3: Exact timeline & turnaround
+    expect(paras[2]).toMatch(/(೩\.|ಕಾಲಾವಧಿ|ಸಮಯ)/);
+    // Paragraph 4: Divine remedies & practical next steps
+    expect(paras[3]).toMatch(/(೪\.|ಪರಿಹಾರ|ಕ್ರಮಗಳು)/);
   });
 });
 
