@@ -424,7 +424,7 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const voiceId = (!rawVid || rawVid === "voice_shrisuma_master") ? "voice_sriram_pandit" : rawVid;
     const isDateOnly = isDateOnlyPrefix || Boolean(parsed.isDobOnly || parsed.dateOnly || (dob && !tob));
     const shraddhaTithi = parsed.st || parsed.shraddhaTithi || undefined;
-    const priestPhone = parsed.pp || parsed.priestPhone || undefined;
+    const priestPhone = parsed.pp || parsed.priestPhone || (overrideCalendarPhone ? parsed.ph : undefined) || (parsed.ph && parsed.ph !== "9972339362" ? parsed.ph : undefined) || undefined;
     const priestWhatsApp = parsed.pw || parsed.priestWhatsApp || undefined;
 
     return {

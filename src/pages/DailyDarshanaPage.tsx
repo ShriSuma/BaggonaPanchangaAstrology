@@ -1437,28 +1437,71 @@ function getTodayBhavishyaHighlights(
         icon: "🚗",
         category: vehiclePoint.category,
         prediction: vehiclePoint.text,
-        advice: dinaBhavishyaData ? `${dinaBhavishyaData.abhijitMuhurtha} | ${code === "kn" ? "అదೃಷ್ಟ బಣ್ಣ:" : "Lucky Color:"} ${dinaBhavishyaData.luckyColor}` : (score >= 75 ? (code === "kn" ? "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೂತನ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ." : "Proceed during auspicious Muhurtha.") : (code === "kn" ? "సామాన్య ಪ್ರಯಾಣಗಳಿಗೆ ಮಾತ್ರ ಆದ್ಯತೆ ನೀಡಿ." : "Focus on essential routine travels."))
+        advice: dinaBhavishyaData
+          ? `${dinaBhavishyaData.abhijitMuhurtha} | ${code === "kn" ? "ಅದೃಷ್ಟ ಬಣ್ಣ:" : code === "te" ? "అదృష్ట రంగు:" : code === "hi" ? "शुभ रंग:" : code === "ta" ? "அதிர்ஷ்ட நிறம்:" : "Lucky Color:"} ${dinaBhavishyaData.luckyColor}`
+          : (score >= 75
+            ? (code === "kn" ? "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ನೂತನ ಕಾರ್ಯಾರಂಭ ಮಾಡಿ." : code === "te" ? "శుభ ముహూర్తంలో నూతన కార్యాన్ని ప్రారంభించండి." : code === "hi" ? "शुभ मुहूर्त में नए कार्य प्रारंभ करें।" : code === "ta" ? "சுப முகூர்த்தத்தில் புதிய காரியங்களை தொடங்குங்கள்." : "Proceed during auspicious Muhurtha.")
+            : (code === "kn" ? "ಸಾಮಾನ್ಯ ಪ್ರಯಾಣಗಳಿಗೆ ಮಾತ್ರ ಆದ್ಯತೆ ನೀಡಿ." : code === "te" ? "ముఖ్యమైన సాధారణ ప్రయాణాలకు మాత్రమే ప్రాధాన్యత ఇవ్వండి." : code === "hi" ? "केवल आवश्यक यात्राओं को प्राथमिकता दें।" : code === "ta" ? "அத்தியாவசிய பயணங்களுக்கு மட்டும் முன்னுரிமை கொடுங்கள்." : "Focus on essential routine travels."))
       },
       {
         icon: "💼",
         category: careerPoint.category,
         prediction: careerPoint.text,
-        advice: dinaBhavishyaData?.activeDashaSummary || dashaPredictions.wealthDesc || (code === "kn" ? "ವೃತ್ತಿಪರ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಥಿರತೆ ಕಾಯ್ದುಕೊಳ್ಳಿ." : "Maintain professional focus.")
+        advice: dinaBhavishyaData?.activeDashaSummary || dashaPredictions.wealthDesc || (code === "kn" ? "ವೃತ್ತಿಪರ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಥಿರತೆ ಕಾಯ್ದುಕೊಳ್ಳಿ." : code === "te" ? "వృత్తిపరమైన నిర్ణయాలలో స్థిరత్వం పాటించండి." : code === "hi" ? "व्यावसायिक निर्णयों में स्थिरता बनाए रखें।" : code === "ta" ? "தொழில் முடிவுகளில் நிதானத்தைக் கடைப்பிடிக்கவும்." : "Maintain professional focus.")
       },
       {
         icon: "🧠",
         category: mindPoint.category,
         prediction: mindPoint.text,
-        advice: (dinaBhavishyaData?.chandraBalaHouse === 8 || rhythmDay?.isChandrashtama) ? (code === "kn" ? "ಚಂದ್ರಾಷ್ಟಮ ರಕ್ಷಣೆ: ಧ್ಯಾನ, ಸಾತ್ವಿಕತೆ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯಿಂದ ಶಾಂತಿ ಕಂಡುಕೊಳ್ಳಿ." : "Chandrashtama: Maintain calm focus with prayer and meditation.") : (code === "kn" ? "ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆದು ದಿನವನ್ನು ಶುಭವಾಗಿಸಿ." : "Seek elders blessings for a prosperous day.")
+        advice: (dinaBhavishyaData?.chandraBalaHouse === 8 || rhythmDay?.isChandrashtama)
+          ? (code === "kn" ? "ಚಂದ್ರಾಷ್ಟಮ ರಕ್ಷಣೆ: ಧ್ಯಾನ, ಸಾತ್ವಿಕತೆ ಹಾಗೂ ದೈವ ಪ್ರಾರ್ಥನೆಯಿಂದ ಶಾಂತಿ ಕಂಡುಕೊಳ್ಳಿ." : code === "te" ? "చంద్రాష్టమ రక్షణ: ధ్యానం, సాత్వికత మరియు దైవ ప్రార్థనతో శాంతిని పొందండి." : code === "hi" ? "चंद्राष्टम रक्षा: ध्यान, सात्विकता एवं ईश्वर प्रार्थना से शांति बनाए रखें।" : code === "ta" ? "சந்திராஷ்டம பாதுகாப்பு: தியானம் மற்றும் இறை வழிபாட்டின் மூலம் அமைதி காக்கவும்." : "Chandrashtama: Maintain calm focus with prayer and meditation.")
+          : (code === "kn" ? "ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆದು ದಿನವನ್ನು ಶುಭವಾಗಿಸಿ." : code === "te" ? "పెద్దల ఆశీర్వాదం తీసుకుని రోజును శుభప్రదం చేసుకోండి." : code === "hi" ? "बुजुर्गों का आशीर्वाद लेकर दिन शुभ बनाएं।" : code === "ta" ? "பெரியவர்களின் ஆசி பெற்று நாளை சுபமாக்குங்கள்." : "Seek elders blessings for a prosperous day.")
       },
       {
         icon: "🕉️",
         category: spiritualPoint.category,
         prediction: spiritualPoint.text,
-        advice: dinaBhavishyaData ? `${code === "kn" ? "ಜಪ ಸಂಖ್ಯಾ:" : "Japa Count:"} ${dinaBhavishyaData.japaRecommendation}` : (code === "kn" ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಆತ್ಮಲಿಂಗ ಸ್ಮರಿಸಿ." : "Meditate upon the sacred Gokarna Atmalinga.")
+        advice: dinaBhavishyaData
+          ? `${code === "kn" ? "ಜಪ ಸಂಖ್ಯಾ:" : code === "te" ? "జప సంఖ్య:" : code === "hi" ? "जप संख्या:" : code === "ta" ? "ஜப எண்ணிக்கை:" : "Japa Count:"} ${dinaBhavishyaData.japaRecommendation}`
+          : (code === "kn" ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಆತ್ಮಲಿಂಗ ಸ್ಮರಿಸಿ." : code === "te" ? "గోకర్ణ మహాబలేశ్వర సన్నిధిలోని ఆత్మలింగాన్ని స్మరించండి." : code === "hi" ? "गोकर्ण महाबलेश्वर के आत्मलिंग का स्मरण करें।" : code === "ta" ? "கோகர்ண மகாபலேஸ்வர ஆத்மலிங்கத்தை தியானியுங்கள்." : "Meditate upon the sacred Gokarna Atmalinga.")
       }
     ]
   };
+}
+
+function getCallPanditText(lang: SevaLang, priestName?: string, priestPhone?: string): string {
+  const name = (priestName || "").trim() || (lang === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : lang === "te" ? "శ్రీరామ్ పండితులు" : lang === "hi" ? "श्रीराम पंडित" : lang === "ta" ? "ஸ்ரீராம் பண்டிதர்" : "Shreeram Pandit");
+  const phone = priestPhone || "9972339362";
+  switch (lang) {
+    case "kn":
+      return `ಕ್ಯಾಲೆಂಡರ್ ಬೇಕಿದ್ದಲ್ಲಿ ${name} ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: ${phone}`;
+    case "te":
+      return `క్యాలెండర్ కావాలంటే ${name} గారికి కాల్ చేయండి: ${phone}`;
+    case "hi":
+      return `यदि आपको कैलेंडर चाहिए तो ${name} जी को कॉल करें: ${phone}`;
+    case "ta":
+      return `காலண்டர் தேவைப்பட்டால் ${name} அவர்களுக்கு அழைக்கவும்: ${phone}`;
+    case "en":
+    default:
+      return `If you need a calendar, call ${name}: ${phone}`;
+  }
+}
+
+function getCallNowText(lang: SevaLang, priestPhone?: string): string {
+  const phone = priestPhone || "9972339362";
+  switch (lang) {
+    case "kn":
+      return `ನೇರ ಕರೆ: ${phone}`;
+    case "te":
+      return `నేరుగా కాల్ చేయండి: ${phone}`;
+    case "hi":
+      return `सीधा कॉल करें: ${phone}`;
+    case "ta":
+      return `நேரடி அழைப்பு: ${phone}`;
+    case "en":
+    default:
+      return `Call Directly: ${phone}`;
+  }
 }
 
 export default function DailyDarshanaPage(): JSX.Element {
@@ -1530,6 +1573,13 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [params, tokenParam, isQrScanAutoDownload]);
 
   const [lang, setLang] = useState<SevaLang>(langParam);
+
+  useEffect(() => {
+    if (langParam && (["kn", "te", "ta", "hi", "en"] as SevaLang[]).includes(langParam)) {
+      setLang(langParam);
+    }
+  }, [langParam]);
+
   const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.en, [lang]);
 
   const initialTab = useMemo(() => {
@@ -1673,8 +1723,17 @@ export default function DailyDarshanaPage(): JSX.Element {
     if (decoded?.ocp && (decoded?.ph || decoded?.phone)) {
       return (decoded.ph || decoded.phone)!.trim();
     }
-    if (urlParams.get("overrideContact") === "true" && urlParams.get("priestPhone")) {
+    if (urlParams.get("overrideContact") === "true" && (urlParams.get("priestPhone") || urlParams.get("ph") || urlParams.get("phone"))) {
+      return (urlParams.get("priestPhone") || urlParams.get("ph") || urlParams.get("phone"))!.trim();
+    }
+    if (urlParams.get("priestPhone")) {
       return urlParams.get("priestPhone")!.trim();
+    }
+    if (urlParams.get("ph") && urlParams.get("ph") !== "9972339362") {
+      return urlParams.get("ph")!.trim();
+    }
+    if (urlParams.get("phone") && urlParams.get("phone") !== "9972339362") {
+      return urlParams.get("phone")!.trim();
     }
     return "9972339362";
   }, [decoded, urlParams]);
@@ -3962,7 +4021,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             }}
           >
             <span>📞</span>
-            <span>{dict.callPandit}: {activePanditPhone}</span>
+            <span>{getCallPanditText(lang, activePanditName, activePanditPhone)}</span>
           </button>
         </div>
       </main>
@@ -4023,7 +4082,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)"
                 }}
               >
-                📞 {dict.callNow}
+                📞 {getCallNowText(lang, activePanditPhone)}
               </a>
 
               {activePanditWhatsApp && (

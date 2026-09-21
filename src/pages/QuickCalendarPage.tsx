@@ -217,6 +217,7 @@ export default function QuickCalendarPage(): JSX.Element {
       lg: lng,
       loc: locationName,
       ph: priestPhone,
+      pp: overridePriestContact && priestPhone ? priestPhone : undefined,
       ocp: overridePriestContact ? 1 : undefined,
       shraddhaTithi: shraddhaTithi || undefined,
       st: shraddhaTithi || undefined
@@ -227,7 +228,8 @@ export default function QuickCalendarPage(): JSX.Element {
 
     if (rhythmResult.days.length > 0) {
       const origin = getSafeProductionOrigin();
-      const sanctumUrl = `${origin}/daily?token=${token}&date=${new Date().toISOString().slice(0, 10)}`;
+      const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}&priestName=${encodeURIComponent(panditName)}` : "";
+      const sanctumUrl = `${origin}/daily?token=${token}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}${contactOverrideQuery}`;
       
       const qrPayload = qrTarget === "sanctum"
         ? sanctumUrl
@@ -243,7 +245,9 @@ export default function QuickCalendarPage(): JSX.Element {
             lng,
             locationName,
             dob: effectiveDob || undefined,
-            tob: effectiveTob || undefined
+            tob: effectiveTob || undefined,
+            priestPhone: overridePriestContact && priestPhone ? priestPhone : undefined,
+            overrideCalendarPhone: overridePriestContact
           });
 
       QRCode.toDataURL(qrPayload, {
@@ -354,14 +358,16 @@ export default function QuickCalendarPage(): JSX.Element {
   // 3. Open Sanctum Live Darshana URL
   const handleOpenSanctum = () => {
     const origin = getSafeProductionOrigin();
-    const url = `${origin}/daily?token=${generatedToken}&date=${new Date().toISOString().slice(0, 10)}`;
+    const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}&priestName=${encodeURIComponent(panditName)}` : "";
+    const url = `${origin}/daily?token=${generatedToken}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}${contactOverrideQuery}`;
     window.open(url, "_blank");
   };
 
   // 4. WhatsApp Share
   const handleShareWhatsApp = () => {
     const origin = getSafeProductionOrigin();
-    const url = `${origin}/daily?token=${generatedToken}&date=${new Date().toISOString().slice(0, 10)}`;
+    const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}&priestName=${encodeURIComponent(panditName)}` : "";
+    const url = `${origin}/daily?token=${generatedToken}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}${contactOverrideQuery}`;
     const msg = `॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಅನುಗ್ರಹ ಪ್ರಸಾದಿತ ॥\n\nನಮಸ್ಕಾರ ${personName}, ನಿಮ್ಮ ೯೦ ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಹಾಗೂ ನಿತ್ಯ ದರ್ಶನ ಸಿದ್ಧವಾಗಿದೆ.\n\nನಿಮ್ಮ ದೈನಂದಿನ ದರ್ಶನ ಸಾಧನಾ ಸ್ಟ್ರೀಕ್ (🔥) ಹಾಗೂ ಇಂದಿನ ಅಭಿಜಿತ್ ಮುಹೂರ್ತ ತಿಳಿಯಲು ಇಲ್ಲಿ ಭೇಟಿ ನೀಡಿ:\n${url}\n\nಪ್ರಧಾನ ಅರ್ಚಕರು: ${panditName} (${priestPhone})`;
     const waUrl = `https://api.whatsapp.com/send?phone=${whatsappPhone.replace(/\D/g, "")}&text=${encodeURIComponent(msg)}`;
     window.open(waUrl, "_blank");
@@ -930,11 +936,22 @@ export default function QuickCalendarPage(): JSX.Element {
                 type="button"
                 onClick={() => {
                   if (!rhythmResult?.days?.[0]) return;
+                  const effectiveDob = isUnknownBirth ? "" : dob;
                   const gUrl = generateGoogleCalendarUrl({
                     day: rhythmResult.days[0],
                     lang,
                     panditName,
-                    notificationTime
+                    notificationTime,
+                    personName,
+                    pincode,
+                    lat,
+                    lng,
+                    locationName,
+                    birthNakshatraIndex: selectedNakshatra,
+                    birthRashiIndex: selectedRashi,
+                    dob: effectiveDob || undefined,
+                    priestPhone: overridePriestContact && priestPhone ? priestPhone : undefined,
+                    overrideCalendarPhone: overridePriestContact
                   });
                   window.open(gUrl, "_blank");
                 }}

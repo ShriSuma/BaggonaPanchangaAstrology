@@ -73,6 +73,15 @@ export default function SevaCalendarSyncModal({
 
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);
   const panditName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en;
+  const [overridePriestContact, setOverridePriestContact] = useState<boolean>(false);
+  const [customPriestPhone, setCustomPriestPhone] = useState<string>("");
+
+  const effectivePriestPhone = useMemo(() => {
+    if (overridePriestContact && customPriestPhone.trim()) {
+      return customPriestPhone.trim();
+    }
+    return activePriest.phone || "9972339362";
+  }, [overridePriestContact, customPriestPhone, activePriest]);
 
   const [pincodeInput, setPincodeInput] = useState<string>("581326");
   const [locationName, setLocationName] = useState<string>("Gokarna");
@@ -195,11 +204,15 @@ export default function SevaCalendarSyncModal({
       loc: locationName,
       dob: birthDetails.dob,
       tob: birthDetails.tob,
-      voiceId: selectedVoiceId
+      voiceId: selectedVoiceId,
+      ph: effectivePriestPhone,
+      pp: overridePriestContact && effectivePriestPhone ? effectivePriestPhone : undefined,
+      ocp: overridePriestContact ? 1 : undefined
     });
-  }, [days, personName, lang, panditName, platform, target, notificationTime, pincodeInput, lat, lng, locationName, calendarSpanDays, selectedVoiceId]);
+  }, [days, personName, lang, panditName, platform, target, notificationTime, pincodeInput, lat, lng, locationName, calendarSpanDays, selectedVoiceId, effectivePriestPhone, overridePriestContact]);
 
-  const webSanctumUrl = `${origin}/daily?token=${devoteeToken}`;
+  const contactOverrideQuery = overridePriestContact && effectivePriestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(effectivePriestPhone)}&priestName=${encodeURIComponent(panditName)}` : "";
+  const webSanctumUrl = `${origin}/daily?token=${devoteeToken}&lang=${lang}${contactOverrideQuery}`;
 
   // Speech Recognition for Pandit Name (Voice Input)
   const handleMicClick = () => {
@@ -305,7 +318,9 @@ export default function SevaCalendarSyncModal({
             birthNakshatraIndex: activeNak,
             birthRashiIndex: activeRashi,
             includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest",
-            daysCount: calendarSpanDays
+            daysCount: calendarSpanDays,
+            priestPhone: effectivePriestPhone,
+            overrideCalendarPhone: overridePriestContact
           });
 
       if (devoteeToken) {
@@ -315,7 +330,7 @@ export default function SevaCalendarSyncModal({
           startDate: days && days.length > 0 ? days[0].ymd : new Date().toISOString().slice(0, 10),
           durationDays: calendarSpanDays,
           priestName: panditName,
-          priestPhone: "9972339362",
+          priestPhone: effectivePriestPhone,
           nakshatraIndex: activeNak,
           rashiIndex: activeRashi,
           dob: activeDob,
@@ -350,7 +365,7 @@ export default function SevaCalendarSyncModal({
       QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 280 })
         .then((fallbackUrl) => setQrDataUrl(fallbackUrl));
     }
-  }, [days, lang, panditName, notificationTime, personName, platform, target, isOpen, webSanctumUrl, origin, pincodeInput, lat, lng, locationName, calendarMode, activeDob, activeTob, activeNak, activeRashi]);
+  }, [days, lang, panditName, notificationTime, personName, platform, target, isOpen, webSanctumUrl, origin, pincodeInput, lat, lng, locationName, calendarMode, activeDob, activeTob, activeNak, activeRashi, effectivePriestPhone, overridePriestContact]);
 
   if (!isOpen) return null;
 
@@ -385,7 +400,9 @@ export default function SevaCalendarSyncModal({
           birthRashiIndex: activeRashi,
           dob: activeDob,
           tob: activeTob,
-          includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
+          includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest",
+          priestPhone: effectivePriestPhone,
+          overrideCalendarPhone: overridePriestContact
         });
 
     const safePujari = (panditName || "Sri_Chaitanya_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
@@ -436,7 +453,9 @@ export default function SevaCalendarSyncModal({
       birthRashiIndex: activeRashi,
       dob: activeDob,
       tob: activeTob,
-      includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
+      includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest",
+      priestPhone: effectivePriestPhone,
+      overrideCalendarPhone: overridePriestContact
     });
     window.open(url, "_blank");
   };
@@ -469,7 +488,9 @@ export default function SevaCalendarSyncModal({
           birthRashiIndex: activeRashi,
           dob: activeDob,
           tob: activeTob,
-          includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest"
+          includePriestCalendar: includePriestCalendar || (calendarMode as string) === "priest",
+          priestPhone: effectivePriestPhone,
+          overrideCalendarPhone: overridePriestContact
         });
     const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
     navigator.clipboard.writeText(dataUri);
@@ -766,6 +787,50 @@ export default function SevaCalendarSyncModal({
               </div>
             </div>
           )}
+
+          {/* Custom Priest Contact Phone Override */}
+          <div className="rounded-xl border border-amber-300/80 bg-white/70 p-2.5 shadow-xs">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={overridePriestContact}
+                onChange={(e) => setOverridePriestContact(e.target.checked)}
+                className="w-4 h-4 rounded text-amber-700 focus:ring-amber-500"
+              />
+              <span className="text-xs font-bold text-amber-950">
+                {lang.startsWith("kn")
+                  ? "ಪುರೋಹಿತರ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಬದಲಾಯಿಸಿ (Override Priest Contact)"
+                  : lang === "te"
+                  ? "పురోహితుల సంప్రదింపు సంఖ్యను మార్చండి (Override Priest Contact)"
+                  : lang === "hi"
+                  ? "पुरोहित संपर्क नंबर बदलें (Override Priest Contact)"
+                  : lang === "ta"
+                  ? "புரோகிதர் தொடர்பு எண்ணை மாற்றவும் (Override Priest Contact)"
+                  : "Override Priest Contact Number"}
+              </span>
+            </label>
+            {overridePriestContact && (
+              <div className="mt-2 pl-6 space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-amber-900">📞 +91</span>
+                  <input
+                    type="tel"
+                    value={customPriestPhone}
+                    onChange={(e) => setCustomPriestPhone(e.target.value.replace(/[^\d]/g, "").slice(0, 10))}
+                    placeholder="9972339362"
+                    className="w-44 rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-amber-950 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+                <p className="text-[10px] text-amber-800/80">
+                  {lang.startsWith("kn")
+                    ? "ದೈನಂದಿನ ದರ್ಶನ ಪುಟ ಮತ್ತು ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಈ ಸಂಖ್ಯೆ ಕಾಣಿಸುತ್ತದೆ (Default: 9972339362)"
+                    : lang === "te"
+                    ? "రోజువారీ దర్శనం పేజీ మరియు క్యాలెండర్‌లో ఈ సంఖ్య కనిపిస్తుంది (Default: 9972339362)"
+                    : "This phone number will appear on Daily Darshana page & Calendar (Default: 9972339362)"}
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Target & Platform Selector */}
           <div className="rounded-2xl border border-amber-300/80 bg-amber-100/40 p-3 shadow-inner">

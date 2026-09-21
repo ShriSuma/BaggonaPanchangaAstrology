@@ -173,9 +173,24 @@ export default function PrasadaKit({
   const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [customInputMode, setCustomInputMode] = useState<boolean>(false);
   const [newPriestName, setNewPriestName] = useState<string>("");
+  const [overridePriestContact, setOverridePriestContact] = useState<boolean>(false);
+  const [customPriestPhone, setCustomPriestPhone] = useState<string>("");
 
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);
   const panditName = activePriest.name[pdfLang as keyof typeof activePriest.name] || activePriest.name.en;
+
+  const effectivePriestPhone = useMemo(() => {
+    if (overridePriestContact && customPriestPhone.trim()) {
+      return customPriestPhone.trim();
+    }
+    return activePriest.phone || "9972339362";
+  }, [overridePriestContact, customPriestPhone, activePriest]);
+
+  useEffect(() => {
+    if (lang) {
+      setPdfLang(lang);
+    }
+  }, [lang]);
 
   const poojaVidhiDetails = useMemo(() => {
     return getHardcodedPoojaVidhiDetails(sevaId || "rudrabhisheka", pdfLang, selectedPriestId);
@@ -310,7 +325,9 @@ export default function PrasadaKit({
       lng: pincodeLocation.lng,
       locationName: pincodeLocation.villageName,
       dob: identity?.dob,
-      tob: identity?.tob
+      tob: identity?.tob,
+      priestPhone: effectivePriestPhone,
+      overrideCalendarPhone: overridePriestContact
     });
 
     try {
@@ -323,7 +340,7 @@ export default function PrasadaKit({
           startDate: rhythm.days[0]?.ymd || new Date().toISOString().slice(0, 10),
           durationDays: 90,
           priestName: panditName,
-          priestPhone: "9972339362",
+          priestPhone: effectivePriestPhone,
           nakshatraIndex: identity?.nakshatraIndex,
           rashiIndex: identity?.rashiIndex,
           gotra: identity?.gotra,
@@ -346,7 +363,7 @@ export default function PrasadaKit({
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("Error generating print QR code:", err));
-  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName, platform, qrTarget, pincode, pincodeLocation]);
+  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName, platform, qrTarget, pincode, pincodeLocation, effectivePriestPhone, overridePriestContact]);
 
   const chosenSeva = useMemo(() => {
     if (customPoojaMode && customPoojaName.trim()) {
@@ -485,7 +502,9 @@ export default function PrasadaKit({
       locationName: pincodeLocation.villageName,
       birthNakshatraIndex: identity.nakshatraIndex,
       birthRashiIndex: identity.rashiIndex,
-      dob: identity.dob
+      dob: identity.dob,
+      priestPhone: effectivePriestPhone,
+      overrideCalendarPhone: overridePriestContact
     });
     const blob = new Blob([csStr], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -544,7 +563,9 @@ export default function PrasadaKit({
           lng: pincodeLocation.lng,
           locationName: pincodeLocation.villageName,
           dob: identity?.dob,
-          tob: identity?.tob
+          tob: identity?.tob,
+          priestPhone: effectivePriestPhone,
+          overrideCalendarPhone: overridePriestContact
         });
         let currentQr = "";
         try {
@@ -845,6 +866,50 @@ export default function PrasadaKit({
               <div className="text-right text-[11px] italic text-amber-900 max-w-[240px]">
                 "{activePriest.shloka.sanskrit}"
               </div>
+            </div>
+
+            {/* Custom Priest Contact Phone Override */}
+            <div className="mt-3 rounded-lg border border-amber-300/80 bg-amber-50 p-3">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={overridePriestContact}
+                  onChange={(e) => setOverridePriestContact(e.target.checked)}
+                  className="w-4 h-4 rounded text-amber-700 focus:ring-amber-500"
+                />
+                <span className="text-xs font-bold text-amber-950">
+                  {lang.startsWith("kn")
+                    ? "ಪುರೋಹಿತರ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಬದಲಾಯಿಸಿ (Override Priest Contact)"
+                    : lang === "te"
+                    ? "పురోహితుల సంప్రదింపు సంఖ్యను మార్చండి (Override Priest Contact)"
+                    : lang === "hi"
+                    ? "पुरोहित संपर्क नंबर बदलें (Override Priest Contact)"
+                    : lang === "ta"
+                    ? "புரோகிதர் தொடர்பு எண்ணை மாற்றவும் (Override Priest Contact)"
+                    : "Override Priest Contact Number"}
+                </span>
+              </label>
+              {overridePriestContact && (
+                <div className="mt-2 pl-6 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-amber-900">📞 +91</span>
+                    <input
+                      type="tel"
+                      value={customPriestPhone}
+                      onChange={(e) => setCustomPriestPhone(e.target.value.replace(/[^\d]/g, "").slice(0, 10))}
+                      placeholder="9972339362"
+                      className="w-44 rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-amber-950 focus:border-amber-500 focus:outline-none"
+                    />
+                  </div>
+                  <p className="text-[10px] text-amber-800/80">
+                    {lang.startsWith("kn")
+                      ? "ದೈನಂದಿನ ದರ್ಶನ ಪುಟ ಮತ್ತು ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಈ ಸಂಖ್ಯೆ ಕಾಣಿಸುತ್ತದೆ (Default: 9972339362)"
+                      : lang === "te"
+                      ? "రోజువారీ దర్శనం పేజీ మరియు క్యాలెండర్‌లో ఈ సంఖ్య కనిపిస్తుంది (Default: 9972339362)"
+                      : "This phone number will appear on Daily Darshana page & Calendar (Default: 9972339362)"}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1180,7 +1245,17 @@ export default function PrasadaKit({
                 day: rhythm.days[0],
                 lang: pdfLang,
                 panditName,
-                notificationTime
+                notificationTime,
+                personName: identity?.personName,
+                pincode,
+                lat: pincodeLocation.lat,
+                lng: pincodeLocation.lng,
+                locationName: pincodeLocation.villageName,
+                birthNakshatraIndex: identity?.nakshatraIndex,
+                birthRashiIndex: identity?.rashiIndex,
+                dob: identity?.dob,
+                priestPhone: effectivePriestPhone,
+                overrideCalendarPhone: overridePriestContact
               });
               window.open(gUrl, "_blank");
             }}

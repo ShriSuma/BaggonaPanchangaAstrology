@@ -1151,9 +1151,13 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       dob: resolvedDob,
       tob: resolvedTob,
       ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
-      ocp: options.overrideCalendarPhone ? 1 : undefined
+      ocp: options.overrideCalendarPhone ? 1 : undefined,
+      pp: options.overrideCalendarPhone ? options.priestPhone : undefined
     });
-    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}&sd=${startDateStr}`;
+    const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
+      ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}&priestName=${encodeURIComponent(localizedPandit)}`
+      : "";
+    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}${contactOverrideQuery}`;
 
     const aiItem = aiPanchangaMap?.[day.ymd];
     // Canonical Drik Ganita Udaya Tithi at 06:00 AM IST from day ensures 100% parity with DailyDarshanaPage web sanctum links
@@ -1552,10 +1556,14 @@ export function generateGoogleCalendarUrl(options: {
     dob: resolvedBirth.dob,
     tob: resolvedBirth.tob,
     ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
-    ocp: options.overrideCalendarPhone ? 1 : undefined
+    ocp: options.overrideCalendarPhone ? 1 : undefined,
+    pp: options.overrideCalendarPhone ? options.priestPhone : undefined
   });
   const origin = getSafeProductionOrigin(webAppBaseUrl);
-  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}`;
+  const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
+    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}&priestName=${encodeURIComponent(localizedPandit)}`
+    : "";
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}${contactOverrideQuery}`;
 
   const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాಂಗం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
   const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
@@ -1616,7 +1624,7 @@ export function generateGoogleCalendarUrl(options: {
     "----------------------------------------",
     `📥 Import Full 90-Day Calendar:`,
     "",
-    `${origin}/daily?token=${devoteeToken}&action=ics90`,
+    `${origin}/daily?token=${devoteeToken}&action=ics90&lang=${lang}${contactOverrideQuery}`,
     "",
     "----------------------------------------",
     "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨"
@@ -1654,6 +1662,8 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   days?: RhythmDay[];
   lang: string;
   panditName: string;
+  priestPhone?: string;
+  overrideCalendarPhone?: boolean;
   notificationTime: string;
   personName?: string;
   webAppBaseUrl?: string;
@@ -1736,9 +1746,15 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     l: lang,
     tm: notificationTime,
     pl: "android",
-    t: "google"
+    t: "google",
+    ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
+    ocp: options.overrideCalendarPhone ? 1 : undefined,
+    pp: options.overrideCalendarPhone ? options.priestPhone : undefined
   });
-  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}`;
+  const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
+    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}&priestName=${encodeURIComponent(safePandit)}`
+    : "";
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}${contactOverrideQuery}`;
 
   // Compact ASCII-only summary for QR (strictly under 600 chars)
   const summary = `Baggona Panchanga`;
@@ -1826,17 +1842,24 @@ export function generateQrPayloadByTarget(
     lg: lng,
     loc: locationName,
     dob: resolvedBirth.dob,
-    tob: resolvedBirth.tob
+    tob: resolvedBirth.tob,
+    ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
+    ocp: options.overrideCalendarPhone ? 1 : undefined,
+    pp: options.overrideCalendarPhone ? options.priestPhone : undefined
   });
+
+  const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
+    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}&priestName=${encodeURIComponent(safePandit)}`
+    : "";
 
   if (target === "google" || target === "webcal") {
     // Instant 90-day native calendar import engine
     // Triggers direct .ics calendar import on devotee's phone without waiting 24h for Google crawler
-    return `${origin}/daily?token=${token}&action=ics90&sd=${startDateStr}`;
+    return `${origin}/daily?token=${token}&action=ics90&sd=${startDateStr}&lang=${lang}${contactOverrideQuery}`;
   }
 
   // target === "sanctum"
-  return `${origin}/daily?token=${token}&sd=${startDateStr}`;
+  return `${origin}/daily?token=${token}&sd=${startDateStr}&lang=${lang}${contactOverrideQuery}`;
 }
 
 export function generatePlatformSpecificQrPayload(
