@@ -2854,8 +2854,8 @@ export const generate10MasterLifeBulletPoints = (
   // 7. Marriage, Relationship & Children (Lifecycle-Aware & Dosha Specifics)
   const isChildNative = age < 16;
   const isSeniorNative = age >= 55;
-  const isMarriedNative = (context.maritalStatus || "").toLowerCase() === "married";
   const marriageDestiny = determineMarriageDestiny(kundli, context);
+  const isMarriedNative = (context.maritalStatus || "").toLowerCase() === "married" || marriageDestiny.verdict === "already_married";
   const isCelibateAscetic = marriageDestiny.verdict === "lifelong_celibacy_denial";
 
   let doshaTitleKn = "ಸಾಮರಸ್ಯದ ದಾಂಪತ್ಯ ಯೋಗ";
@@ -6309,7 +6309,7 @@ export const generateInstantQAList = (
     }
   ];
 
-  const isMarried = (context?.maritalStatus || "").toLowerCase() === "married";
+  const isMarried = (context?.maritalStatus || "").toLowerCase() === "married" || diagnosis.marriageDestiny?.verdict === "already_married";
   const isUnmarried = (context?.maritalStatus || "").toLowerCase() === "unmarried";
 
   let filteredAdultQuestions = allAdultQuestions;

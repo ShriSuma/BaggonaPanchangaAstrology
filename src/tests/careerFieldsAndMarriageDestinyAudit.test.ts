@@ -198,7 +198,7 @@ describe("Career Fields & Lifetime Marriage Destiny Engine Audit", () => {
       expect(destiny.directAnswerKn).toContain("ಗೃಹಸ್ಥಾಶ್ರಮ");
     });
 
-    it("identifies Lifelong Celibacy & Unmarried Destiny (12th House Moon-Saturn Sayana Sukha Bhanga) for real-world devotee (DOB 1982-07-25, 12:05 PM, Pin 581326)", async () => {
+    it("identifies Already Married (ಗೃಹಸ್ಥಾಶ್ರಮ / ಸುಖಿ ದಾಂಪತ್ಯ) for real-world devotee (DOB 1982-07-25, 12:05 PM, Pin 581326) when maritalStatus is omitted", async () => {
       const { calculateKundli } = await import("../core/KundliEngine");
       const chart = calculateKundli({
         name: "ಭಕ್ತ (ಉತ್ತರ ಕನ್ನಡ)",
@@ -214,6 +214,30 @@ describe("Career Fields & Lifetime Marriage Destiny Engine Audit", () => {
         birthDate: "1982-07-25",
         devoteeAge: 44,
         gender: "Male"
+      });
+
+      expect(destiny.verdict).toBe("already_married");
+      expect(destiny.badgeColor).toBe("emerald");
+      expect(destiny.directAnswerKn).toContain("ಗೃಹಸ್ಥಾಶ್ರಮ");
+    });
+
+    it("identifies Lifelong Celibacy & Unmarried Destiny (12th House Moon-Saturn Sayana Sukha Bhanga) ONLY when native explicitly affirms unmarried status", async () => {
+      const { calculateKundli } = await import("../core/KundliEngine");
+      const chart = calculateKundli({
+        name: "ಭಕ್ತ (ಉತ್ತರ ಕನ್ನಡ)",
+        birthDate: "1982-07-25",
+        birthTime: "12:05",
+        latitude: 14.5479,
+        longitude: 74.3188,
+        pincode: "581326"
+      });
+
+      const destiny = determineMarriageDestiny(chart, {
+        devoteeName: "ಭಕ್ತ (ಉತ್ತರ ಕನ್ನಡ)",
+        birthDate: "1982-07-25",
+        devoteeAge: 44,
+        gender: "Male",
+        maritalStatus: "unmarried"
       });
 
       expect(destiny.verdict).toBe("lifelong_celibacy_denial");

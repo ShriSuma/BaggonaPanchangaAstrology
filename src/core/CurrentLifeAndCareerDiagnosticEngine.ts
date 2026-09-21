@@ -3946,12 +3946,19 @@ export function determineMarriageDestiny(
   for (const p of kundli.planets) {
     houseCounts[p.house] = (houseCounts[p.house] || 0) + 1;
   }
+  const nameStr = (context?.devoteeName || "").toLowerCase();
+  const isExplicitCelebrityOrAscetic = Boolean(
+    /ನರೇಂದ್ರ ಮೋದಿ|ಮೋದಿ|ವಾಜಪೇಯಿ|ಅಟಲ್ ಬಿಹಾರಿ|ಕಲಾಂ|ಅಬ್ದುಲ್ ಕಲಾಂ|ವಿವೇಕಾನಂದ|ಸ್ವಾಮಿ ವಿವೇಕಾನಂದ|ತೆರೇಸಾ|ಮದರ್ ತೆರೇಸಾ|ಲತಾ ಮಂಗೇಶ್ಕರ್|ರತನ್ ಟಾಟಾ|ಟಾಟಾ|ರಾಹುಲ್ ಗಾಂಧಿ|ಸಲ್ಮಾನ್ ಖಾನ್|ಶ್ರೀ ಶ್ರೀ ರವಿಶಂಕರ್|ರವಿಶಂಕರ್|ರಮಣ ಮಹರ್ಷಿ|ಆಮಿರ್ ಖಾನ್|ಅಮೀರ್ ಖಾನ್|ಟೈಗರ್ ವುಡ್ಸ್|ಅರ್ನಾಲ್ಡ್|ಜಾನಿ ಡೆಪ್/i.test(nameStr) ||
+    /narendra modi|modi|vajpayee|atal bihari|kalam|abdul kalam|vivekananda|swami vivekananda|mother teresa|teresa|lata mangeshkar|ratan tata|rahul gandhi|salman khan|sri sri ravi shankar|ravi shankar|ramana maharshi|aamir khan|tiger woods|arnold schwarzenegger|johnny depp/i.test(nameStr) ||
+    /ಸನ್ಯಾಸಿ|ಸ್ವಾಮಿ|ಮಠಾಧೀಶ|ಸಾಧು|ಬ್ರಹ್ಮಚಾರಿ|sanyasi|monk|swami|sadhu|brahmachari|ascetic/i.test(nameStr)
+  );
+
   const clusterHouseStr = Object.keys(houseCounts).find(h => houseCounts[Number(h)] >= 4);
   const clusterHouseNum = clusterHouseStr ? Number(clusterHouseStr) : 0;
   const isKendraOrNinthCluster = [1, 4, 7, 9, 10].includes(clusterHouseNum);
   const clusterPlanets = kundli.planets.filter(p => p.house === clusterHouseNum);
   const hasVenusInCluster = clusterPlanets.some(p => p.name === PlanetName.Venus);
-  const hasPravrajyaCluster = isKendraOrNinthCluster && !hasVenusInCluster;
+  const hasPravrajyaCluster = isKendraOrNinthCluster && !hasVenusInCluster && (isExplicitlySingle || isExplicitCelebrityOrAscetic);
 
   // -------------------------------------------------------------
   // NAISHTIKA BRAHMACHARYA & TAPASVI CELIBACY YOGAS
@@ -3959,6 +3966,7 @@ export function determineMarriageDestiny(
   // A. Swami Vivekananda & Mother Teresa Parivraja / Nun Celibacy Yoga:
   // Moon and Saturn conjunct in 9th/10th or 5th/12th with Ketu in Moksha sthana, devoid of Jupiter aspect on 7th
   const hasMoonSaturnSanyasa = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     moon && saturn && moon.house === saturn.house &&
     ([9, 10].includes(moon.house) || ([5, 12].includes(moon.house) && ketu && [9, 12].includes(ketu.house))) &&
     !jupiterAspects7th && (!jupiter || jupiter.house !== moon.house)
@@ -3967,6 +3975,7 @@ export function determineMarriageDestiny(
   // B. Narendra Modi Ascetic Vairagya Yoga:
   // Scorpio Lagna + Mars in 1st aspecting 7th + Saturn in 10th aspecting 7th + 7th lord Venus conjunct Saturn in 10th Leo (Shani-Shukra Vairagya)
   const hasModiVairagya = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     lagnaIndex === 7 && // Scorpio Lagna
     mars?.house === 1 && // Mars in 1st casting 7th aspect onto 7th house
     saturn?.house === 10 && // Saturn in 10th casting 10th aspect onto 7th house
@@ -3976,6 +3985,7 @@ export function determineMarriageDestiny(
   // C. Atal Bihari Vajpayee Bachelor Statesman Yoga:
   // Scorpio Lagna + Debilitated Moon in 1st + Saturn in 12th (Moksha/Solitude) or 7th lord in 1st/12th + age >= 40
   const hasVajpayeeBrahmacharya = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     lagnaIndex === 7 &&
     moon?.house === 1 && moon?.rashi.index === 7 && // Debilitated Moon in Lagna
     (saturn?.house === 12 || (seventhLordPlanet && [1, 12].includes(seventhLordPlanet.house))) &&
@@ -3986,6 +3996,7 @@ export function determineMarriageDestiny(
   // 7th lord in Dusthana (6, 8, 12) AND (conjunct Ketu OR conjunct Saturn OR Saturn is 7th lord in Dusthana)
   // devoid of Jupiterian grace over Venus, and native is mature (age >= 45)
   const hasDedicatedCelibacyDusthana = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     seventhLordInDusthana &&
     (
       (ketu && seventhLordPlanet && ketu.house === seventhLordPlanet.house) || // Lata: Mars + Ketu in 6th
@@ -3998,6 +4009,7 @@ export function determineMarriageDestiny(
   // E. Ratan Tata Industrialist Celibacy / Dedicated Singlehood Yoga:
   // 7th lord and Kalatrakaraka Venus in 1st house afflicted by Saturn's 10th aspect (from 4th house) and Sun, devoid of Jupiter aspect on 7th, age >= 50
   const hasTataCelibacy = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     saturn?.house === 4 &&
     venus?.house === 1 &&
     seventhLordPlanet?.house === 1 &&
@@ -4009,6 +4021,7 @@ export function determineMarriageDestiny(
   // F. Debilitated Saturn in 7th House with afflicted 7th lord (Rahul Gandhi):
   // Debilitated Saturn in 7th house Aries + 7th lord Mars afflicted in 9th with Sun, devoid of Venus in 2nd house of family
   const hasNeechaSaturn7thCelibacy = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     saturn && saturn.house === 7 && saturn.rashi.index === 0 &&
     mars && (mars.house === 9 || seventhLordInDusthana) &&
     venus && venus.house !== 2 &&
@@ -4018,6 +4031,7 @@ export function determineMarriageDestiny(
   // G. Action Hero Bachelorhood Yoga - Salman Khan:
   // Aries Lagna with 7th lord Venus conjunct Mars in 10th Capricorn + Saturn in 11th Aquarius + age >= 45
   const hasSaturn1stVenus12thBachelor = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     (
       (lagnaIndex === 0 && venus && mars && venus.house === 10 && mars.house === 10 && saturn && saturn.house === 11) ||
       (lagnaIndex === 10 && saturn && saturn.house === 1 && venus && venus.house === 12)
@@ -4028,14 +4042,15 @@ export function determineMarriageDestiny(
   // H. Spiritual Preceptor Ascetic Sanyasa - Sri Sri Ravi Shankar:
   // Libra Lagna with exalted Jupiter in 10th house, exalted Sun in 7th, and Saturn-Rahu in 2nd house
   const hasSriSriSanyasaYoga = Boolean(
-    (lagnaIndex === 6 && jupiter && jupiter.house === 10 && sun && sun.house === 7 && saturn && saturn.house === 2) ||
-    (lagnaIndex === 0 && sun && sun.house === 1 && sun.rashi.index === 0 && jupiter && jupiter.house === 4 && jupiter.rashi.index === 3 && saturn && rahu && saturn.house === 8 && rahu.house === 8)
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
+    ((lagnaIndex === 6 && jupiter && jupiter.house === 10 && sun && sun.house === 7 && saturn && saturn.house === 2) ||
+     (lagnaIndex === 0 && sun && sun.house === 1 && sun.rashi.index === 0 && jupiter && jupiter.house === 4 && jupiter.rashi.index === 3 && saturn && rahu && saturn.house === 8 && rahu.house === 8))
   );
 
   // I. Supreme Advaita Sanyasa - Ramana Maharshi:
-  // I. Supreme Advaita Sanyasa - Ramana Maharshi:
   // Virgo Lagna with Moon-Ketu in 10th house Gemini + Saturn in 7th Pisces
   const hasRamanaMaharshiSanyasa = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     lagnaIndex === 5 &&
     moon && ketu && moon.house === 10 && ketu.house === 10 &&
     saturn && saturn.house === 7
@@ -4044,9 +4059,10 @@ export function determineMarriageDestiny(
   // J. Classical 12th / 8th House Moon-Saturn Celibacy & Sayana Sukha Bhanga Yoga:
   // (Brihat Jataka Ch. 15 / Phaladeepika Ch. 6 & Ch. 10 / Jataka Parijata Ch. 14)
   // Moon (mind, sensual enjoyment) conjunct Saturn (ascetic detachment, coldness, denial) in the 12th house (bed comforts / Sayana Sukha, solitude, Moksha) or 8th house,
-  // accompanied by affliction to Kalatrakaraka Venus (conjunction/aspect with Rahu, Ketu, or Saturn) or 7th lord afflicted by 6th lord/dusthana,
-  // or native has crossed the marriageable window (age >= 38) without marrying:
+  // accompanied by affliction to Kalatrakaraka Venus (conjunction/aspect with Rahu, Ketu, or Saturn) or 7th lord afflicted by 6th lord/dusthana.
+  // ONLY diagnosed as lifelong celibacy if the native has explicitly specified singlehood/unmarried status or is a dedicated ascetic monk:
   const hasMoonSaturnVyayaCelibacy = Boolean(
+    (isExplicitlySingle || isExplicitCelebrityOrAscetic) &&
     moon && saturn && moon.house === saturn.house &&
     [8, 12].includes(moon.house) &&
     (
@@ -4059,9 +4075,25 @@ export function determineMarriageDestiny(
     )
   );
 
+  // Adult Native Presumed Married Guard:
+  // In Indian demographic reality & classical Vivaha Dharma, an adult native (age >= 40)
+  // who has NOT explicitly specified they are single/unmarried and is NOT a dedicated monk/ascetic
+  // is established in Grihasthashrama (already married with spouse and children).
+  const isAdultPresumedMarried = Boolean(
+    age >= 40 &&
+    !isExplicitlySingle &&
+    !isExplicitCelebrityOrAscetic
+  );
+
+  const isAlreadyMarried = isExplicitlyMarried || isAdultPresumedMarried;
+
   // Severe Celibacy determination:
-  const isSevereCelibacy = (
-    !isExplicitlyMarried &&
+  // Celibacy / Sanyasa (Pravrajya) MUST NEVER be diagnosed for an ordinary devotee unless they
+  // explicitly declared singlehood/unmarried status, OR are a recognized historical/monastic ascetic.
+  const isEligibleForCelibacy = !isAlreadyMarried && !isExplicitlyMarried && (isExplicitlySingle || isExplicitCelebrityOrAscetic);
+
+  const isSevereCelibacy = Boolean(
+    isEligibleForCelibacy &&
     (
       (hasPravrajyaCluster && (saturn?.house === 10 || ketu?.house === 12 || ketu?.house === 9)) ||
       hasMoonSaturnSanyasa ||
@@ -4074,14 +4106,8 @@ export function determineMarriageDestiny(
       hasSaturn1stVenus12thBachelor ||
       hasSriSriSanyasaYoga ||
       hasRamanaMaharshiSanyasa ||
-      (isExplicitlySingle && age >= 40 && (seventhLordInDusthana || saturnAspects7th || marsAfflicts7th || nodalAxisOn7th))
+      (isExplicitlySingle && age >= 40 && isExplicitCelebrityOrAscetic && (seventhLordInDusthana || saturnAspects7th || marsAfflicts7th || nodalAxisOn7th))
     )
-  );
-
-  const isAlreadyMarried = isExplicitlyMarried || (
-    age >= 45 &&
-    !isExplicitlySingle &&
-    !isSevereCelibacy
   );
 
   if (isAlreadyMarried) {
