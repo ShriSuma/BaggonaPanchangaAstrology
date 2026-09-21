@@ -12,7 +12,7 @@
  */
 
 import type { SevaLang } from "../seva/sevaLocale";
-import type { PriestVoiceProfile } from "./priestVoiceDatabase";
+import { getVoiceProfileById, type PriestVoiceProfile } from "./priestVoiceDatabase";
 import {
   stopAllAudioGlobal,
   isPlaybackTokenActive,
@@ -226,21 +226,41 @@ export async function handleGenerateAudio(
     : voiceId;
 
   try {
-    // 2. Fetch the audio using our normal TTS POST endpoint
-    let response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ voice_id: targetVoiceId, text: cleanText })
-    });
+    // 2. Fetch the audio using our normal TTS POST endpoint with a 3.5s timeout for instant responsiveness
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 3500) : null;
+
+    let response: Response;
+    try {
+      response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voice_id: targetVoiceId, text: cleanText }),
+        signal: controller?.signal
+      });
+      if (timeoutId) clearTimeout(timeoutId);
+    } catch (fetchErr) {
+      if (timeoutId) clearTimeout(timeoutId);
+      throw fetchErr;
+    }
 
     // If a custom voice ID returns 404, immediately retry with the registered master voice
     if (response.status === 404 && targetVoiceId !== "voice_sriram_pandit") {
       console.warn(`[AIVoiceCloneEngine] Voice "${targetVoiceId}" not found (404), retrying with voice_sriram_pandit`);
-      response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voice_id: "voice_sriram_pandit", text: cleanText })
-      });
+      const retryController = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const retryTimeoutId = retryController ? setTimeout(() => retryController.abort(), 3500) : null;
+      try {
+        response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ voice_id: "voice_sriram_pandit", text: cleanText }),
+          signal: retryController?.signal
+        });
+        if (retryTimeoutId) clearTimeout(retryTimeoutId);
+      } catch (retryErr) {
+        if (retryTimeoutId) clearTimeout(retryTimeoutId);
+        throw retryErr;
+      }
     }
 
     if (!response.ok) throw new Error(`TTS Generation failed (${response.status})`);
@@ -303,9 +323,13 @@ export async function handleGenerateAudio(
 
     return audio;
   } catch (err) {
-    console.error("[AIVoiceCloneEngine] TTS Generation error:", err);
+    console.warn("[AIVoiceCloneEngine] Remote TTS unavailable or timed out, delegating to browser Vedic speech engine:", err);
     unregister();
     if (currentAudio === audio) {
+      try {
+        audio.pause();
+        audio.src = "";
+      } catch {}
       currentAudio = null;
     }
     if (onError) onError(err);
@@ -317,6 +341,7 @@ export async function handleGenerateAudio(
 /**
  * Synthesizes and plays cloned voice using the Custom Studio POST endpoint with silent unlocker.
  * Pre-unlocks audio synchronously in click event, then streams the Blob seamlessly.
+ * Automatically falls back to high-fidelity browser SpeechSynthesis if remote server is slow or unavailable.
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
@@ -327,21 +352,56 @@ export async function synthesizeAndPlayClonedVoice(
   _fallbackTransliteration?: string
 ): Promise<() => void> {
   let isCancelled = false;
+  let fallbackCancelFn: (() => void) | null = null;
+  let isFallbackActive = false;
   const targetVoiceId = voiceId || "voice_sriram_pandit";
 
   const audioPromise = handleGenerateAudio(
     text,
     targetVoiceId,
     () => {
-      if (!isCancelled && onEnd) onEnd();
+      if (!isCancelled && !isFallbackActive && onEnd) onEnd();
     },
     () => {
       if (!isCancelled && onStart) onStart();
+    },
+    () => {
+      // Remote failed; flag that fallback will take over the completion lifecycle
+      isFallbackActive = true;
     }
   );
 
+  // Monitor audio promise; if remote returns null, trigger immediate Web Speech fallback
+  void audioPromise.then(async (audio) => {
+    if (isCancelled) return;
+    if (!audio) {
+      isFallbackActive = true;
+      const profile = getVoiceProfileById(targetVoiceId);
+      fallbackCancelFn = await playStrictlyMaleWebSpeechDSP(
+        text,
+        _lang,
+        profile,
+        () => {
+          if (!isCancelled && onEnd) onEnd();
+        },
+        undefined,
+        undefined,
+        () => {
+          if (!isCancelled && onStart) onStart();
+        },
+        _fallbackTransliteration
+      );
+    }
+  });
+
   return () => {
     isCancelled = true;
+    if (fallbackCancelFn) {
+      try {
+        fallbackCancelFn();
+      } catch {}
+      fallbackCancelFn = null;
+    }
     audioPromise.then((audio) => {
       if (audio) {
         try {

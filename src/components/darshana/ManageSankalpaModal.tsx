@@ -3,7 +3,10 @@ import type { SevaLang } from "../../features/seva/sevaLocale";
 import {
   useSankalpaStore,
   SANKALPA_PRESETS,
-  type SankalpaPreset
+  type SankalpaPreset,
+  getPresetTitle,
+  getPresetDescription,
+  getPresetSanskritPhrasing
 } from "../../features/sankalpa/sankalpaStore";
 import type { SankalpaCategory, UserSankalpaRecord } from "../../db/indexedDb";
 
@@ -45,9 +48,9 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      void loadSankalpas(userId, devoteeName);
+      void loadSankalpas(userId, devoteeName, lang);
     }
-  }, [isOpen, userId, devoteeName]);
+  }, [isOpen, userId, devoteeName, lang]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -56,9 +59,9 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
 
   const handleSelectPreset = (preset: SankalpaPreset) => {
     setSelectedCategory(preset.category);
-    setTitleInput(preset.titleKn);
-    setDescInput(preset.descriptionKn);
-    setSanskritInput(preset.sanskritPhrasing);
+    setTitleInput(getPresetTitle(preset, lang));
+    setDescInput(getPresetDescription(preset, lang));
+    setSanskritInput(getPresetSanskritPhrasing(preset, lang));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -329,7 +332,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                         }}
                       >
                         <span>{preset.icon}</span>
-                        <span>{lang === "kn" ? preset.titleKn : preset.titleEn}</span>
+                        <span>{getPresetTitle(preset, lang)}</span>
                       </button>
                     );
                   })}

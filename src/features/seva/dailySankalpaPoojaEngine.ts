@@ -7,12 +7,51 @@
  * 3. Maha Vedic Sankalpa (Live Desha-Kaala + Devotee Janma Details + Personal Active Sankalpas)
  * 4. Sankalpa Samarpanam (Offering Sacred Akshata & Flowers to God's Lotus Feet)
  * 5. Deeparadhana (Mangalarati), Sashtanga Namaskara & Shanti Prayer
- * 
  * Perfect 3 to 5 minute Satvik morning worship flow for devotees with active priest voice recitation.
  */
 
 import type { SevaLang } from "./sevaLocale";
 import type { UserSankalpaRecord } from "../../db/indexedDb";
+import { convertIndicScript, transliterateIndicToLatin, transliterateName } from "../../utils/transliterator";
+import { SANKALPA_PRESETS, getPresetSanskritPhrasing } from "../sankalpa/sankalpaStore";
+
+function localizePanchangaTerm(term: string, targetLang: SevaLang): string {
+  if (!term) return "";
+  if (targetLang === "kn") return term;
+  if (targetLang === "en") return transliterateIndicToLatin(term);
+  return convertIndicScript(term, targetLang as "hi" | "te" | "ta");
+}
+
+function getLocalizedSanskritPhrases(activeSankalpas: UserSankalpaRecord[], targetLang: SevaLang): string {
+  const active = activeSankalpas.filter((s) => s.isActive);
+  if (active.length === 0) {
+    const defaultPhrases: Record<SevaLang, string> = {
+      kn: "ಮಮ ಕುಟುಂಬಸ್ಯ ಸರ್ವೇಷಾಂ ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯಾಭಿವೃದ್ಧಿ ಸಿದ್ಧ್ಯರ್ಥಂ, ಸರ್ವಾಭೀಷ್ಟ ಸಿದ್ಧ್ಯರ್ಥಂ",
+      hi: "मम कुटुम्बस्य सर्वेषां आयुरारोग्य ऐश्वर्याभिवृद्धि सिद्ध्यर्थं, सर्वाभीष्ट सिद्ध्यर्थं",
+      te: "మమ కుటుంబస్య సర్వేషాం ఆయురారోగ్య ఐశ్వర్యాభివృద్ధి సిద్ధ్యర్థం, సర్వాభీష్ట సిద్ధ్యర్థం",
+      ta: "மம குடும்பஸ்ய சர்வேஷாம் ஆயுராரோக்ய ஐஸ்வர்யாபிவிருத்தி சித்யர்த்தம், சர்வாபீஷ்ட சித்யர்த்தம்",
+      en: "mama kuṭumbasya sarveṣāṁ āyurārogya aiśvaryābhivṛddhi siddhyarthaṁ, sarvābhīṣṭa siddhyarthaṁ"
+    };
+    return defaultPhrases[targetLang] || defaultPhrases.kn;
+  }
+
+  return active.map((s) => {
+    if (s.sanskritPhrasing && s.sanskritPhrasing.trim()) {
+      const phrase = s.sanskritPhrasing.trim();
+      if (targetLang === "kn") return phrase;
+      if (targetLang === "en") return transliterateIndicToLatin(phrase);
+      return convertIndicScript(phrase, targetLang as "hi" | "te" | "ta");
+    }
+    const preset = SANKALPA_PRESETS.find((p) => p.category === s.category);
+    if (preset) {
+      return getPresetSanskritPhrasing(preset, targetLang);
+    }
+    const phrase = s.title;
+    if (targetLang === "kn") return phrase;
+    if (targetLang === "en") return transliterateIndicToLatin(phrase);
+    return convertIndicScript(phrase, targetLang as "hi" | "te" | "ta");
+  }).join(", ");
+}
 
 export interface DailyPoojaStep {
   step: number;
@@ -68,10 +107,67 @@ export function buildDailyPoojaSteps(params: BuildDailyPoojaParams): DailyPoojaS
     activeSankalpas = []
   } = params;
 
-  // Compile user's active personal sankalpa phrases for dynamic mantra insertion
-  const activePhrasesSanskrit = activeSankalpas.length > 0
-    ? activeSankalpas.filter((s) => s.isActive).map((s) => s.sanskritPhrasing || s.title).join(", ")
-    : "ಮಮ ಕುಟುಂಬಸ್ಯ ಸರ್ವೇಷಾಂ ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯಾಭಿವೃದ್ಧಿ ಸಿದ್ಧ್ಯರ್ಥಂ, ಸರ್ವಾಭೀಷ್ಟ ಸಿದ್ಧ್ಯರ್ಥಂ";
+  // Compile user's active personal sankalpa phrases for dynamic mantra insertion in each language
+  const phKn = getLocalizedSanskritPhrases(activeSankalpas, "kn");
+  const phHi = getLocalizedSanskritPhrases(activeSankalpas, "hi");
+  const phTe = getLocalizedSanskritPhrases(activeSankalpas, "te");
+  const phTa = getLocalizedSanskritPhrases(activeSankalpas, "ta");
+  const phEn = getLocalizedSanskritPhrases(activeSankalpas, "en");
+
+  // Localized placeholders per language
+  const nameHi = transliterateName(devoteeName, "hi");
+  const gotraHi = localizePanchangaTerm(gotra, "hi");
+  const rashiHi = localizePanchangaTerm(rashiName, "hi");
+  const nakshatraHi = localizePanchangaTerm(nakshatraName, "hi");
+  const samvatsaraHi = localizePanchangaTerm(samvatsara, "hi");
+  const ayanaHi = localizePanchangaTerm(ayana, "hi");
+  const rituHi = localizePanchangaTerm(ritu, "hi");
+  const masaHi = localizePanchangaTerm(masa, "hi");
+  const pakshaHi = localizePanchangaTerm(paksha, "hi");
+  const tithiHi = localizePanchangaTerm(tithi, "hi");
+  const vasaraHi = localizePanchangaTerm(vasara, "hi");
+  const nakHi = localizePanchangaTerm(nakshatra, "hi");
+
+  const nameTe = transliterateName(devoteeName, "te");
+  const gotraTe = localizePanchangaTerm(gotra, "te");
+  const rashiTe = localizePanchangaTerm(rashiName, "te");
+  const nakshatraTe = localizePanchangaTerm(nakshatraName, "te");
+  const samvatsaraTe = localizePanchangaTerm(samvatsara, "te");
+  const ayanaTe = localizePanchangaTerm(ayana, "te");
+  const rituTe = localizePanchangaTerm(ritu, "te");
+  const masaTe = localizePanchangaTerm(masa, "te");
+  const pakshaTe = localizePanchangaTerm(paksha, "te");
+  const tithiTe = localizePanchangaTerm(tithi, "te");
+  const vasaraTe = localizePanchangaTerm(vasara, "te");
+  const nakTe = localizePanchangaTerm(nakshatra, "te");
+
+  const nameTa = transliterateName(devoteeName, "ta");
+  const gotraTa = localizePanchangaTerm(gotra, "ta");
+  const rashiTa = localizePanchangaTerm(rashiName, "ta");
+  const nakshatraTa = localizePanchangaTerm(nakshatraName, "ta");
+  const samvatsaraTa = localizePanchangaTerm(samvatsara, "ta");
+  const ayanaTa = localizePanchangaTerm(ayana, "ta");
+  const rituTa = localizePanchangaTerm(ritu, "ta");
+  const masaTa = localizePanchangaTerm(masa, "ta");
+  const pakshaTa = localizePanchangaTerm(paksha, "ta");
+  const tithiTa = localizePanchangaTerm(tithi, "ta");
+  const vasaraTa = localizePanchangaTerm(vasara, "ta");
+  const nakTa = localizePanchangaTerm(nakshatra, "ta");
+
+  const nameEn = transliterateName(devoteeName, "en");
+  const gotraEn = localizePanchangaTerm(gotra, "en");
+  const rashiEn = localizePanchangaTerm(rashiName, "en");
+  const nakshatraEn = localizePanchangaTerm(nakshatraName, "en");
+  const samvatsaraEn = localizePanchangaTerm(samvatsara, "en");
+  const ayanaEn = localizePanchangaTerm(ayana, "en");
+  const rituEn = localizePanchangaTerm(ritu, "en");
+  const masaEn = localizePanchangaTerm(masa, "en");
+  const pakshaEn = localizePanchangaTerm(paksha, "en");
+  const tithiEn = localizePanchangaTerm(tithi, "en");
+  const vasaraEn = localizePanchangaTerm(vasara, "en");
+  const nakEn = localizePanchangaTerm(nakshatra, "en");
+
+  const activePhrasesSanskrit = phKn;
 
   const activePhrasesKannada = activeSankalpas.length > 0
     ? activeSankalpas.filter((s) => s.isActive).map((s) => s.title).join(" · ")
@@ -142,27 +238,27 @@ Anekadantaṁ bhaktānāṁ ekadantamupāsmahe ||`
     kn: `ಓಂ ಶ್ರೀಮದ್ ಭಗವತೋ ಮಹಾಪುರುಷಸ್ಯ ವಿಷ್ಣೋರಾಜ್ಞಯಾ ಪ್ರವರ್ತಮಾನಸ್ಯ ಆದ್ಯ ಬ್ರಹ್ಮಣಃ ದ್ವಿತೀಯ ಪರಾರ್ಧೇ ಶ್ವೇತವರಾಹ ಕಲ್ಪೇ ವೈವಸ್ವತ ಮನ್ವಂತರೇ ಅಷ್ಟಾವಿಂಶತಿತಮೇ ಕಲಿಯುಗೇ ಪ್ರಥಮಪಾದೇ ಜಂಬೂದ್ವೀಪೇ ಭಾರತವರ್ಷೇ ಭರತಖಂಡೇ ದಂಡಕಾರಣ್ಯೇ ಗೋದಾವರ್ಯಾಃ ದಕ್ಷಿಣೇ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ...
 ${samvatsara} ನಾಮ ಸಂವತ್ಸರೇ, ${ayana}, ${ritu}, ${masa}, ${paksha}, ${tithi} ತಿಥೌ, ${vasara} ವಾಸರೇ, ${nakshatra} ನಕ್ಷತ್ರೇ, ಶುಭಯೋಗ ಶುಭಕರಣ ಏವಂಗುಣ ವಿಶೇಷಣ ವಿಶಿಷ್ಟಾಯಾಂ ಶುಭಪುಣ್ಯತಿಥೌ ...
 ಮಮ ಉಪಾತ್ತ ಸಮಸ್ತ ದುರಿತಕ್ಷಯದ್ವಾರಾ ಶ್ರೀ ಪರಮೇಶ್ವರ ಪ್ರೀತ್ಯರ್ಥಂ, ${gotra} ಗೋತ್ರೋತ್ಪನ್ನಸ್ಯ ${rashiName} ರಾಶೌ ${nakshatraName} ನಕ್ಷತ್ರೇ ಜಾತಸ್ಯ ${devoteeName} ಶರ್ಮಣಃ / ನಾಮ್ನ್ಯಾಃ ...
-${activePhrasesSanskrit} ...
+${phKn} ...
 ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ, ಶ್ರೀ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧೌ ಯಥಾಶಕ್ತಿ ನಿತ್ಯ ಪೂಜಾಂ ಸಂಕಲ್ಪಂ ಚ ಕರಿಷ್ಯೇ ॥`,
     hi: `ॐ श्रीमद् भगवतो महापुरुषस्य विष्णोराज्ञया प्रवर्तमानस्य अद्य ब्रह्मणः द्वितीयपरार्धे श्वेतवराहकल्पे वैवस्वत मन्वन्तरे अष्टाविंशतितमे कलियुगे प्रथमपादे जम्बूद्वीपे भारतवर्षे भरतखण्डे दण्डकारण्ये गोदावर्याः दक्षिणे गोकर्णक्षेत्रे ...
-${samvatsara} नाम संवत्सरे, ${ayana}, ${ritu}, ${masa}, ${paksha}, ${tithi} तिथौ, ${vasara} वासरे, ${nakshatra} नक्षत्रे, शुभयोग शुभकरण एवं गुणविशेषण विशिष्टायां शुभपुण्यतिथौ ...
-मम उपात्त समस्त दुरितक्षयद्वारा श्री परमेश्वर प्रीत्यर्थं, ${gotra} गोत्रोत्पन्नस्य ${rashiName} राशौ ${nakshatraName} नक्षत्रे जातस्य ${devoteeName} शर्मणः / नाम्न्याः ...
-${activePhrasesSanskrit} ...
+${samvatsaraHi} नाम संवत्सरे, ${ayanaHi}, ${rituHi}, ${masaHi}, ${pakshaHi}, ${tithiHi} तिथौ, ${vasaraHi} वासरे, ${nakHi} नक्षत्रे, शुभयोग शुभकरण एवं गुणविशेषण विशिष्टायां शुभपुण्यतिथौ ...
+मम उपात्त समस्त दुरितक्षयद्वारा श्री परमेश्वर प्रीत्यर्थं, ${gotraHi} गोत्रोत्पन्नस्य ${rashiHi} राशौ ${nakshatraHi} नक्षत्रे जातस्य ${nameHi} शर्मणः / नाम्न्याः ...
+${phHi} ...
 श्री महाबलेश्वर स्वामी, श्री महागणपति संनिधौ यथाशक्ति नित्य पूजां संकल्पं च करिष्ये ॥`,
     te: `ఓం శ్రీమద్ భగవతో మహాపురుషస్య విష్ణోరాజ్ఞయా ప్రవర్తమానస్య ఆద్య బ్రహ్మణః ద్వితీయ పరార్ధే శ్వేతవరాహ కల్పే వైవస్వత మన్వంతరే అష్టావింశతితమే కలియుగే ప్రథమపాదే జంబూద్వీపే భారతవర్షే భరతఖండే దండకారణ్యే గోదావర్యాః దక్షిణే గోకర్ణ క్షేత్రే ...
-${samvatsara} నామ సంవథ్సరే, ${ayana}, ${ritu}, ${masa}, ${paksha}, ${tithi} తిథౌ, ${vasara} వాసరే, ${nakshatra} నక్షత్రే, శుభయోగ శుభకరణ ఏవంగుణ విశేషణ విశిష్టాయాం శుభపుణ్యతిథౌ ...
-మమ ఉపాత్త సమస్త దురితక్షయద్వారా శ్రీ పరమేశ్వర ప్రీత్యర్థం, ${gotra} గోత్రోత్పన్నస్య ${rashiName} రాశౌ ${nakshatraName} నక్షత్రే జాతస్య ${devoteeName} శర్మణః / నామ్న్యాః ...
-${activePhrasesSanskrit} ...
+${samvatsaraTe} నామ సంవథ్సరే, ${ayanaTe}, ${rituTe}, ${masaTe}, ${pakshaTe}, ${tithiTe} తిథౌ, ${vasaraTe} వాసరే, ${nakTe} నక్షత్రే, శుభయోగ శుభకరణ ఏవంగుణ విశేషణ విశిష్టాయాం శుభపుణ్యతిథౌ ...
+మమ ఉపాత్త సమస్త దురితక్షయద్వారా శ్రీ పరమేశ్వర ప్రీత్యర్థం, ${gotraTe} గోత్రోత్పన్నస్య ${rashiTe} రాశౌ ${nakshatraTe} నక్షత్రే జాతస్య ${nameTe} శర్మణః / నామ్న్యాః ...
+${phTe} ...
 శ్రీ మహాబలేశ్వర స్వామి, శ్రీ మహాగణపతి సన్నిధౌ యథాశక్తి నిత్య పూజాం సంకల్పం చ కరిష్యే ॥`,
     ta: `ஓம் ஸ்ரீமத் பகவதோ மகாபுருஷஸ்ய விஷ்ணோராஜ்ஞயா பிரவர்த்தமானஸ்ய ஆத்ய பிரம்மணஃ த்விதீய பரார்தே ஸ்வேதவராஹ கல்பே வைவஸ்வத மன்வந்தரே அஷ்டாவிம்சதிதமே கலியுகே பிரதமபாதே ஜம்பூத்வீபே பாரதவர்ஷே பரதகண்டே தண்டகாரண்யே கோதாவர்யாஃ தக்ஷிணே கோகர்ண க்ஷேத்ரே ...
-${samvatsara} நாம சம்வத்ஸரே, ${ayana}, ${ritu}, ${masa}, ${paksha}, ${tithi} திதௌ, ${vasara} வாஸரே, ${nakshatra} நக்ஷத்ரே, சுபயோக சுபகரண ஏவங்குண விசேஷண விசிஷ்டாயாம் சுபபுண்யதிதௌ ...
-மம உபார்த்த சமஸ்த துரிதக்ஷயத்வாரா ஸ்ரீ பரமேஸ்வர ப்ரீத்யர்த்தம், ${gotra} கோத்ரோத்பன்னஸ்ய ${rashiName} ராசௌ ${nakshatraName} நக்ஷத்ரே ஜாதஸ்ய ${devoteeName} சர்மணஃ ...
-${activePhrasesSanskrit} ...
+${samvatsaraTa} நாம சம்வத்ஸரே, ${ayanaTa}, ${rituTa}, ${masaTa}, ${pakshaTa}, ${tithiTa} திதௌ, ${vasaraTa} வாஸரே, ${nakTa} நக்ஷத்ரே, சுபயோக சுபகரண ஏவங்குண விசேஷண விசிஷ்டாயாம் சுபபுண்யதிதௌ ...
+மம உபார்த்த சமஸ்த துரிதக்ஷயத்வாரா ஸ்ரீ பரமேஸ்வர ப்ரீத்யர்த்தம், ${gotraTa} கோத்ரோத்பன்னஸ்ய ${rashiTa} ராசௌ ${nakshatraTa} நக்ஷத்ரே ஜாதஸ்ய ${nameTa} சர்மணஃ ...
+${phTa} ...
 ஸ்ரீ மஹாபலேஸ்வர சுவாமி, ஸ்ரீ மஹாகணபதி சந்நிதௌ யதாசக்தி நித்ய பூஜாம் சங்கல்பம் ச கரிஷ்யே ॥`,
     en: `Om Śrīmad Bhagavato Mahāpuruṣasya Viṣṇorājñayā pravartamānasya ādya brahmaṇaḥ dvitīya parārdhe śvetavarāha kalpe vaivasvata manvantare aṣṭāviṁśatitame kaliyuge prathamapāde jambūdvīpe bhāratavarṣe bharatakhaṇḍe daṇḍakāraṇye godāvaryāḥ dakṣiṇe gokarṇakṣetre ...
-${samvatsara} nāma saṁvatsare, ${ayana}, ${ritu}, ${masa}, ${paksha}, ${tithi} tithau, ${vasara} vāsare, ${nakshatra} nakṣatre, śubhayoga śubhakaraṇa evaṅguṇa viśeṣaṇa viśiṣṭāyāṁ śubhapuṇyatithau ...
-mama upātta samasta duritakṣayadvārā śrī parameśvara prītyarthaṁ, ${gotra} gotrotpannasya ${rashiName} rāśau ${nakshatraName} nakṣatre jātasya ${devoteeName} śarmaṇaḥ ...
-${activePhrasesSanskrit} ...
+${samvatsaraEn} nāma saṁvatsare, ${ayanaEn}, ${rituEn}, ${masaEn}, ${pakshaEn}, ${tithiEn} tithau, ${vasaraEn} vāsare, ${nakEn} nakṣatre, śubhayoga śubhakaraṇa evaṅguṇa viśeṣaṇa viśiṣṭāyāṁ śubhapuṇyatithau ...
+mama upātta samasta duritakṣayadvārā śrī parameśvara prītyarthaṁ, ${gotraEn} gotrotpannasya ${rashiEn} rāśau ${nakshatraEn} nakṣatre jātasya ${nameEn} śarmaṇaḥ ...
+${phEn} ...
 Śrī Mahābaleśvara Svāmī, Śrī Mahāgaṇapati sannidhau yathāśakti nitya pūjāṁ saṅkalpaṁ ca kariṣye ||`
   };
 

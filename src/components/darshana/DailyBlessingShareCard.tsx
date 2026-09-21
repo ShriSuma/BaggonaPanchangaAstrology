@@ -383,18 +383,18 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               type="button"
               onClick={() => setSelectedLang(l)}
               style={{
-                padding: "4px 8px",
+                padding: "5px 10px",
                 borderRadius: "8px",
                 fontSize: "11px",
                 fontWeight: selectedLang === l ? 900 : 600,
                 background: selectedLang === l ? "linear-gradient(135deg, #F59E0B, #D97706)" : "transparent",
                 color: selectedLang === l ? "#000000" : "#FDE68A",
-                border: "none",
+                border: selectedLang === l ? "1px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.2)",
                 cursor: "pointer",
                 transition: "all 0.2s"
               }}
             >
-              {l === "kn" ? "ಕನ್ನಡ" : l === "en" ? "EN" : l === "hi" ? "हिंदी" : l === "te" ? "తెలుగు" : "தமிழ்"}
+              {l === "kn" ? "Kannada (ಕನ್ನಡ)" : l === "en" ? "English" : l === "hi" ? "Hindi (हिन्दी)" : l === "te" ? "Telugu (తెలుగు)" : "Tamil (தமிழ்)"}
             </button>
           ))}
         </div>

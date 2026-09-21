@@ -29,13 +29,21 @@ export const pick = (phrase?: L5 | null, lang?: string): string => {
   return isSevaLang(base) ? (phrase[base] || phrase.en || "") : (phrase.en || "");
 };
 
-/** Native name of each language, shown in its own script. */
+/** Native name of each language, shown with full readable clarity (Kannada, Telugu, Tamil, Hindi, English). */
 export const LANGUAGE_OWN_NAME: Record<SevaLang, string> = {
-  en: "English",
-  kn: "ಕನ್ನಡ",
-  te: "తెలుగు",
-  ta: "தமிழ்",
-  hi: "हिन्दी"
+  kn: "ಕನ್ನಡ (Kannada)",
+  te: "తెలుగు (Telugu)",
+  ta: "தமிழ் (Tamil)",
+  hi: "हिन्दी (Hindi)",
+  en: "English"
+};
+
+export const LANGUAGE_FULL_DISPLAY_NAMES: Record<SevaLang, { native: string; english: string; combined: string }> = {
+  kn: { native: "ಕನ್ನಡ", english: "Kannada", combined: "ಕನ್ನಡ (Kannada)" },
+  te: { native: "తెలుగు", english: "Telugu", combined: "తెలుగు (Telugu)" },
+  ta: { native: "தமிழ்", english: "Tamil", combined: "தமிழ் (Tamil)" },
+  hi: { native: "हिन्दी", english: "Hindi", combined: "हिन्दी (Hindi)" },
+  en: { native: "English", english: "English", combined: "English" }
 };
 
 /** Time of day period labels across 5 languages: Morning / Afternoon / Evening / Night */

@@ -881,11 +881,11 @@ export default function QuickCalendarPage(): JSX.Element {
               </span>
               <div className="flex flex-wrap gap-1.5 justify-center">
                 {[
-                  { code: "kn", label: "ಕನ್ನಡ" },
+                  { code: "kn", label: "Kannada (ಕನ್ನಡ)" },
                   { code: "en", label: "English" },
-                  { code: "hi", label: "हिन्दी" },
-                  { code: "te", label: "తెలుగు" },
-                  { code: "ta", label: "தமிழ்" }
+                  { code: "hi", label: "Hindi (हिन्दी)" },
+                  { code: "te", label: "Telugu (తెలుగు)" },
+                  { code: "ta", label: "Tamil (தமிழ்)" }
                 ].map((item) => (
                   <button
                     key={item.code}

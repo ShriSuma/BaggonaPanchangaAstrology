@@ -1434,7 +1434,7 @@ export function generateGoogleCalendarUrl(options: {
   panditName: string;
   priestPhone?: string;
   overrideCalendarPhone?: boolean;
-  notificationTime: string;
+  notificationTime?: string;
   personName?: string;
   webAppBaseUrl?: string;
   pincode?: string;
@@ -1453,7 +1453,7 @@ export function generateGoogleCalendarUrl(options: {
     days,
     lang,
     panditName,
-    notificationTime,
+    notificationTime = "06:00",
     personName,
     webAppBaseUrl,
     pincode = "581326",

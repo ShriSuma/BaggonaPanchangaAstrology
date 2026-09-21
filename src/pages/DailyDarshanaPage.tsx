@@ -54,6 +54,7 @@ import {
 import { DevoteeContactCaptureModal } from "../components/darshana/DevoteeContactCaptureModal";
 import { DailyPoojaSankalpaModal } from "../components/darshana/DailyPoojaSankalpaModal";
 import { ManageSankalpaModal } from "../components/darshana/ManageSankalpaModal";
+import { InPageSankalpaGrid } from "../components/darshana/InPageSankalpaGrid";
 import { DevoteeStreakBadge } from "../components/darshana/DevoteeStreakBadge";
 import { PostPoojaRemedyJapaCard } from "../components/darshana/PostPoojaRemedyJapaCard";
 import { PersonalGoldenHourWidget } from "../components/darshana/PersonalGoldenHourWidget";
@@ -2371,13 +2372,17 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   };
 
-  const [activeVoiceKey, setActiveVoiceKey] = useState<"none" | "benediction" | "mantra">("none");
+  const [activeVoiceKey, setActiveVoiceKey] = useState<"none" | "benediction" | "mantra" | "kavacha" | "siddha">("none");
   const [activeVoiceState, setActiveVoiceState] = useState<"idle" | "loading" | "playing">("idle");
 
   const isBenedictionLoading = activeVoiceKey === "benediction" && activeVoiceState === "loading";
   const isBenedictionPlaying = activeVoiceKey === "benediction" && activeVoiceState === "playing";
   const isMantraLoading = activeVoiceKey === "mantra" && activeVoiceState === "loading";
   const isMantraPlaying = activeVoiceKey === "mantra" && activeVoiceState === "playing";
+  const isKavachaLoading = activeVoiceKey === "kavacha" && activeVoiceState === "loading";
+  const isKavachaPlaying = activeVoiceKey === "kavacha" && activeVoiceState === "playing";
+  const isSiddhaLoading = activeVoiceKey === "siddha" && activeVoiceState === "loading";
+  const isSiddhaPlaying = activeVoiceKey === "siddha" && activeVoiceState === "playing";
 
   const toggleBenedictionVoice = async () => {
     if (activeVoiceKey === "benediction" && activeVoiceState === "loading") {
@@ -2454,6 +2459,78 @@ export default function DailyDarshanaPage(): JSX.Element {
       );
     } catch {
       setActiveVoiceKey((prev) => (prev === "mantra" ? "none" : prev));
+      setActiveVoiceState("idle");
+    }
+  };
+
+  const toggleKavachaVoice = async () => {
+    const textToChant = pitruRaksha.kavachaMantra;
+    if (!textToChant) return;
+
+    if (activeVoiceKey === "kavacha" && activeVoiceState === "loading") return;
+    if (activeVoiceKey === "kavacha" && activeVoiceState === "playing") {
+      stopAllAudioGlobal();
+      setActiveVoiceKey("none");
+      setActiveVoiceState("idle");
+      return;
+    }
+    stopAllAudioGlobal();
+    setIsPlayingAudio(false);
+    setActiveVoiceKey("kavacha");
+    setActiveVoiceState("loading");
+
+    try {
+      await synthesizeAndPlayClonedVoice(
+        textToChant,
+        lang,
+        activeVoiceId,
+        () => {
+          setActiveVoiceKey((prev) => (prev === "kavacha" ? "none" : prev));
+          setActiveVoiceState((prev) => (prev === "playing" ? "idle" : prev));
+        },
+        () => {
+          setActiveVoiceKey("kavacha");
+          setActiveVoiceState("playing");
+        }
+      );
+    } catch {
+      setActiveVoiceKey((prev) => (prev === "kavacha" ? "none" : prev));
+      setActiveVoiceState("idle");
+    }
+  };
+
+  const toggleSiddhaVoice = async () => {
+    const textToChant = dinaBhavishyaData?.siddhaMantra;
+    if (!textToChant) return;
+
+    if (activeVoiceKey === "siddha" && activeVoiceState === "loading") return;
+    if (activeVoiceKey === "siddha" && activeVoiceState === "playing") {
+      stopAllAudioGlobal();
+      setActiveVoiceKey("none");
+      setActiveVoiceState("idle");
+      return;
+    }
+    stopAllAudioGlobal();
+    setIsPlayingAudio(false);
+    setActiveVoiceKey("siddha");
+    setActiveVoiceState("loading");
+
+    try {
+      await synthesizeAndPlayClonedVoice(
+        textToChant,
+        lang,
+        activeVoiceId,
+        () => {
+          setActiveVoiceKey((prev) => (prev === "siddha" ? "none" : prev));
+          setActiveVoiceState((prev) => (prev === "playing" ? "idle" : prev));
+        },
+        () => {
+          setActiveVoiceKey("siddha");
+          setActiveVoiceState("playing");
+        }
+      );
+    } catch {
+      setActiveVoiceKey((prev) => (prev === "siddha" ? "none" : prev));
       setActiveVoiceState("idle");
     }
   };
@@ -3077,14 +3154,49 @@ export default function DailyDarshanaPage(): JSX.Element {
                 background: "rgba(0,0,0,0.35)",
                 border: "1px dashed rgba(212, 175, 55, 0.4)",
                 borderRadius: 10,
-                padding: "8px 12px",
+                padding: "10px 12px",
                 fontSize: 12,
                 fontWeight: 800,
                 color: "#FDE68A",
                 margin: "6px 0",
-                textAlign: "center"
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 8
               }}>
-                "{pitruRaksha.kavachaMantra}"
+                <div>"{pitruRaksha.kavachaMantra}"</div>
+                <button
+                  type="button"
+                  disabled={isKavachaLoading}
+                  onClick={toggleKavachaVoice}
+                  style={{
+                    background: isKavachaPlaying
+                      ? "#DC2626"
+                      : isKavachaLoading
+                      ? "linear-gradient(135deg, #B45309, #78350F)"
+                      : "linear-gradient(135deg, #F59E0B, #D97706)",
+                    color: isKavachaPlaying || isKavachaLoading ? "#FFFFFF" : "#1E1B4B",
+                    border: "1px solid #FCD34D",
+                    padding: "5px 14px",
+                    borderRadius: 16,
+                    fontSize: 11.5,
+                    fontWeight: 800,
+                    cursor: isKavachaLoading ? "not-allowed" : "pointer",
+                    boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5
+                  }}
+                >
+                  {isKavachaPlaying ? (
+                    <><span>⏹️</span><span>{lang === "kn" ? "ನಿಲ್ಲಿಸಿ" : "Stop"}</span></>
+                  ) : isKavachaLoading ? (
+                    <><span className="inline-block animate-spin">⏳</span><span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing..."}</span></>
+                  ) : (
+                    <><span>🔊</span><span>{lang === "kn" ? "ಕವಚ ಮಂತ್ರ ಶ್ರವಣ" : "Listen Kavacha Mantra"}</span></>
+                  )}
+                </button>
               </div>
 
               <div style={{ fontSize: 11.5, color: "#D1D5DB", marginTop: 6, lineHeight: 1.4 }}>
@@ -3170,6 +3282,16 @@ export default function DailyDarshanaPage(): JSX.Element {
                   <span>{dict.startPoojaBtn}</span>
                 </button>
               </div>
+            </div>
+
+            {/* 🪔 Devotee In-Page Sankalpa Grid & Vedic Prayer Customizer */}
+            <div className="mb-4">
+              <InPageSankalpaGrid
+                userId={devoteeUserId}
+                devoteeName={devoteeDisplayName}
+                lang={lang}
+                onStartPooja={() => setIsPoojaModalOpen(true)}
+              />
             </div>
 
             {/* Post-Pooja 11-Time Personal Kundli Remedy Japa Card */}
@@ -3553,6 +3675,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               dynamicLuckyColor={darshanaPersonalization.powerMetrics.luckyColor}
               dynamicLuckyDigit={darshanaPersonalization.powerMetrics.luckyDigit}
               dynamicLuckyDirection={darshanaPersonalization.powerMetrics.luckyDirection}
+              voiceId={activeVoiceId}
             />
 
             {/* 3. Daily Karma Navigator (Do's & Don'ts + 1-Min Micro-Parihara) */}
@@ -3726,8 +3849,53 @@ export default function DailyDarshanaPage(): JSX.Element {
                 <div style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", margin: "4px 0" }}>
                   {dinaBhavishyaData.deityName}
                 </div>
-                <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(212, 175, 55, 0.4)", borderRadius: 10, padding: "10px 14px", margin: "10px 0", color: "#FDE68A", fontSize: 14, fontWeight: 700, fontFamily: "serif" }}>
-                  {dinaBhavishyaData.siddhaMantra}
+                <div style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(212, 175, 55, 0.4)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  margin: "10px 0",
+                  color: "#FDE68A",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  fontFamily: "serif",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 8
+                }}>
+                  <div>{dinaBhavishyaData.siddhaMantra}</div>
+                  <button
+                    type="button"
+                    disabled={isSiddhaLoading}
+                    onClick={toggleSiddhaVoice}
+                    style={{
+                      background: isSiddhaPlaying
+                        ? "#DC2626"
+                        : isSiddhaLoading
+                        ? "linear-gradient(135deg, #B45309, #78350F)"
+                        : "linear-gradient(135deg, #F59E0B, #D97706)",
+                      color: isSiddhaPlaying || isSiddhaLoading ? "#FFFFFF" : "#1E1B4B",
+                      border: "1px solid #FCD34D",
+                      padding: "5px 14px",
+                      borderRadius: 16,
+                      fontSize: 11.5,
+                      fontWeight: 800,
+                      cursor: isSiddhaLoading ? "not-allowed" : "pointer",
+                      boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5
+                    }}
+                  >
+                    {isSiddhaPlaying ? (
+                      <><span>⏹️</span><span>{lang === "kn" ? "ನಿಲ್ಲಿಸಿ" : "Stop"}</span></>
+                    ) : isSiddhaLoading ? (
+                      <><span className="inline-block animate-spin">⏳</span><span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing..."}</span></>
+                    ) : (
+                      <><span>🔊</span><span>{lang === "kn" ? "ಸಿದ್ಧ ಮಂತ್ರ ಶ್ರವಣ" : "Listen Siddha Mantra"}</span></>
+                    )}
+                  </button>
                 </div>
                 <div style={{ fontSize: 12, color: "#FEF3C7", marginBottom: 8 }}>
                   📿 {(JAPA_RECOMMENDATION_TEMPLATES[lang] || JAPA_RECOMMENDATION_TEMPLATES.en)(dinaBhavishyaData.japaRecommendation)}

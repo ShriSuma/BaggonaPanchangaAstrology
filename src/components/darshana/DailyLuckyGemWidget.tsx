@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import { playTempleBellChime } from "../../features/seva/priestAudioNarrator";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../../features/audio/aiVoiceCloneEngine";
 
 export interface DailyLuckyGemWidgetProps {
   dateStr: string;
@@ -19,6 +20,7 @@ export interface DailyLuckyGemWidgetProps {
     name: Record<SevaLang, string>;
     degrees: string;
   };
+  voiceId?: string;
 }
 
 const LUCKY_TEXTS: Record<SevaLang, {
@@ -244,9 +246,60 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
   dynamicLuckyColor,
   dynamicLuckyDigit,
   dynamicLuckyNumbers,
-  dynamicLuckyDirection
+  dynamicLuckyDirection,
+  voiceId
 }) => {
   const [japaCount, setJapaCount] = useState<number>(0);
+  const [isMantraPlaying, setIsMantraPlaying] = useState(false);
+  const [isMantraLoading, setIsMantraLoading] = useState(false);
+  const audioCancelRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioCancelRef.current) {
+        try {
+          audioCancelRef.current();
+        } catch {}
+      }
+      stopClonedAudio();
+    };
+  }, []);
+
+  const toggleDeityMantraAudio = async () => {
+    if (isMantraPlaying) {
+      if (audioCancelRef.current) {
+        audioCancelRef.current();
+        audioCancelRef.current = null;
+      }
+      stopClonedAudio();
+      setIsMantraPlaying(false);
+      setIsMantraLoading(false);
+      return;
+    }
+
+    setIsMantraLoading(true);
+    try {
+      const cancelFn = await synthesizeAndPlayClonedVoice(
+        deityMantra,
+        lang,
+        voiceId || "voice_sriram_pandit",
+        () => {
+          setIsMantraPlaying(false);
+          setIsMantraLoading(false);
+          audioCancelRef.current = null;
+        },
+        () => {
+          setIsMantraLoading(false);
+          setIsMantraPlaying(true);
+        }
+      );
+      audioCancelRef.current = cancelFn;
+    } catch {
+      setIsMantraPlaying(false);
+      setIsMantraLoading(false);
+    }
+  };
+
   const t = LUCKY_TEXTS[lang] || LUCKY_TEXTS.kn;
 
   const gemData = useMemo(() => {
@@ -372,9 +425,23 @@ export const DailyLuckyGemWidget: React.FC<DailyLuckyGemWidgetProps> = ({
           </span>
         </div>
 
-        {/* Deity Mantra Box */}
-        <div className="p-3 bg-black/50 rounded-xl border border-amber-500/30 text-center">
-          <span className="text-[10px] text-amber-300 font-bold block uppercase tracking-wider">{t.mantraTitle}</span>
+        {/* Deity Mantra Box with Audio Chanting Button */}
+        <div className="p-3 bg-black/50 rounded-xl border border-amber-500/30 text-center relative">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider">{t.mantraTitle}</span>
+            <button
+              type="button"
+              onClick={toggleDeityMantraAudio}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition border ${
+                isMantraPlaying
+                  ? "bg-rose-900/80 text-rose-200 border-rose-500 shadow-md"
+                  : "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30"
+              }`}
+            >
+              <span>{isMantraPlaying ? "⏹️" : isMantraLoading ? "⏳" : "🔊"}</span>
+              <span>{isMantraPlaying ? (lang === "kn" ? "ನಿಲ್ಲಿಸಿ" : "Stop") : (lang === "kn" ? "ಮಂತ್ರ ಕೇಳಿ" : "Listen")}</span>
+            </button>
+          </div>
           <h4 className="text-sm sm:text-base font-serif font-black text-[#FDE68A] mt-1 tracking-wide">
             "{deityMantra}"
           </h4>

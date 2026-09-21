@@ -54,7 +54,8 @@ describe("Priest Phone Override & Multi-Language Calendar Fidelity", () => {
       lang: "te",
       panditName: customPriest,
       priestPhone: customPhone,
-      overrideCalendarPhone: true
+      overrideCalendarPhone: true,
+      notificationTime: "06:00"
     });
 
     const decodedUrl = decodeURIComponent(url);

@@ -332,9 +332,9 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
   useEffect(() => {
     if (isOpen) {
-      void loadSankalpas(devoteeKey, devoteeName);
+      void loadSankalpas(devoteeKey, devoteeName, lang);
     }
-  }, [isOpen, devoteeKey, devoteeName, loadSankalpas]);
+  }, [isOpen, devoteeKey, devoteeName, lang, loadSankalpas]);
 
   const poojaSteps = buildDailyPoojaSteps({
     devoteeName,
