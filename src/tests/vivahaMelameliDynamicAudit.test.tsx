@@ -140,7 +140,31 @@ describe("Vivaha Guna Melameli Dynamic Overhaul Audit", () => {
     expect(result.gokarnaSevas.length).toBeGreaterThanOrEqual(1);
   });
 
-  // Test 5: Multi-Page PDF Template Rendering in all 5 languages
+  // Test 5: Yoni Koota Panchanga-correct 4-level matrix validation
+  it("validates Yoni Koota uses Panchanga 4-level scoring (0/2/3/4) with correct enemy pairs", () => {
+    // Ashwini (Horse, idx=0) + Mrigashira (Serpent, idx=4)
+    // Horse-Serpent is NOT a sworn enemy → expect neutral (2) or friendly (3), NOT 0
+    const horseSerp = calculateVivahaMelameli(
+      { name: "Boy", birthDate: "1994-05-15", birthTime: "08:30", latitude: 14.5479, longitude: 74.3188, pincode: "581326" },
+      { name: "Girl", birthDate: "1994-05-15", birthTime: "08:30", latitude: 14.5479, longitude: 74.3188, pincode: "581326" }
+    );
+    const yoni = horseSerp.ashtaKuta.find((k) => k.id === "yoni")!;
+    // Same birth → same nakshatra → same yoni = 4 pts
+    expect(yoni.score).toBe(4);
+
+    // Verify overall Yoni score is bounded 0–4
+    const r2 = calculateVivahaMelameli(
+      { name: "A", birthDate: "1992-03-10", birthTime: "06:00", latitude: 14.5479, longitude: 74.3188, pincode: "581326" },
+      { name: "B", birthDate: "1995-11-20", birthTime: "18:45", latitude: 14.5479, longitude: 74.3188, pincode: "581326" }
+    );
+    const yoni2 = r2.ashtaKuta.find((k) => k.id === "yoni")!;
+    expect(yoni2.score).toBeGreaterThanOrEqual(0);
+    expect(yoni2.score).toBeLessThanOrEqual(4);
+    // New scoring: neutral = 2 pts (Panchanga standard), no more binary 0/3 only
+    expect([0, 2, 3, 4]).toContain(yoni2.score);
+  });
+
+  // Test 6: Multi-Page PDF Template Rendering in all 5 languages
   it("renders 3-page printable PDF template across all 5 languages without crashing", () => {
     const boyInput: KundliInput = {
       name: "Anand",

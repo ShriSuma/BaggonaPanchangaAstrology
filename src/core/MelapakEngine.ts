@@ -170,25 +170,38 @@ const taraPoints = (girlNak: number, boyNak: number): number => {
   return good.has(taraIdx) ? 3 : 0;
 };
 
-const YONI_ENEMIES = new Set([
-  lordPairKey("Horse", "Buffalo"),
-  lordPairKey("Elephant", "Lion"),
-  lordPairKey("Sheep", "Dog"),
-  lordPairKey("Serpent", "Mongoose"),
-  lordPairKey("Cat", "Rat"),
-  lordPairKey("Cow", "Tiger"),
-  lordPairKey("Monkey", "Sheep"),
-  lordPairKey("Deer", "Dog")
+// Yoni Compatibility Matrix — Baggona Panchanga (classical South Indian)
+// 7 sworn-enemy pairs (Abhichara Yoni)
+const YONI_SWORN_ENEMY_PAIRS = new Set([
+  lordPairKey("Horse", "Buffalo"),   lordPairKey("Buffalo", "Horse"),
+  lordPairKey("Elephant", "Lion"),   lordPairKey("Lion", "Elephant"),
+  lordPairKey("Goat", "Serpent"),    lordPairKey("Serpent", "Goat"),
+  lordPairKey("Dog", "Deer"),        lordPairKey("Deer", "Dog"),
+  lordPairKey("Rat", "Cat"),         lordPairKey("Cat", "Rat"),
+  lordPairKey("Cow", "Tiger"),       lordPairKey("Tiger", "Cow"),
+  lordPairKey("Mongoose", "Monkey"), lordPairKey("Monkey", "Mongoose")
+]);
+
+// Friendly Yoni pairs → 3 points
+const YONI_FRIEND_PAIRS = new Set([
+  lordPairKey("Horse", "Deer"),      lordPairKey("Deer", "Horse"),
+  lordPairKey("Elephant", "Cow"),    lordPairKey("Cow", "Elephant"),
+  lordPairKey("Goat", "Monkey"),     lordPairKey("Monkey", "Goat"),
+  lordPairKey("Serpent", "Mongoose"), lordPairKey("Mongoose", "Serpent"),
+  lordPairKey("Dog", "Lion"),        lordPairKey("Lion", "Dog"),
+  lordPairKey("Buffalo", "Tiger"),   lordPairKey("Tiger", "Buffalo"),
+  lordPairKey("Horse", "Cat"),       lordPairKey("Cat", "Horse")
 ]);
 
 const yoniPoints = (girlNak: number, boyNak: number): number => {
   const yg = patrikaMetaForNakshatraIndex(girlNak).yoniEn;
   const yb = patrikaMetaForNakshatraIndex(boyNak).yoniEn;
-  if (yg === yb) return 4;
+  if (yg === yb) return 4; // Same Yoni
   const k1 = lordPairKey(yg, yb);
   const k2 = lordPairKey(yb, yg);
-  if (YONI_ENEMIES.has(k1) || YONI_ENEMIES.has(k2)) return 0;
-  return 3;
+  if (YONI_SWORN_ENEMY_PAIRS.has(k1) || YONI_SWORN_ENEMY_PAIRS.has(k2)) return 0; // Abhichara
+  if (YONI_FRIEND_PAIRS.has(k1) || YONI_FRIEND_PAIRS.has(k2)) return 3;            // Friendly
+  return 2; // Neutral
 };
 
 const ganaPoints = (girlNak: number, boyNak: number): number => {

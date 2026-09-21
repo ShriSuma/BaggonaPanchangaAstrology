@@ -120,15 +120,29 @@ const GRAHA_FRIENDSHIP: Record<string, Record<string, 0 | 1 | 2>> = {
   Saturn: { Sun: 0, Moon: 0, Mars: 0, Mercury: 2, Jupiter: 1, Venus: 2, Saturn: 1 }
 };
 
-// 14 Yoni Animals Matrix: 4 = Same, 3 = Friend, 2 = Neutral, 1 = Enemy, 0 = Sworn Enemy
-const YONI_ENEMIES_SET = new Set([
-  "Horse|Buffalo", "Buffalo|Horse",
-  "Elephant|Lion", "Lion|Elephant",
-  "Sheep|Monkey", "Monkey|Sheep",
-  "Serpent|Mongoose", "Mongoose|Serpent",
-  "Dog|Deer", "Deer|Dog",
-  "Cat|Rat", "Rat|Cat",
-  "Cow|Tiger", "Tiger|Cow"
+// Yoni Compatibility Matrix (Baggona Panchanga standard)
+// 4 = Same Yoni | 3 = Friendly | 2 = Neutral | 0 = Sworn Enemy (Abhichara)
+// 7 Sworn-Enemy pairs (both directions)
+const YONI_SWORN_ENEMIES = new Set([
+  "Horse|Buffalo",   "Buffalo|Horse",
+  "Elephant|Lion",   "Lion|Elephant",
+  "Goat|Serpent",    "Serpent|Goat",
+  "Dog|Deer",        "Deer|Dog",
+  "Rat|Cat",         "Cat|Rat",
+  "Cow|Tiger",       "Tiger|Cow",
+  "Mongoose|Monkey", "Monkey|Mongoose"
+]);
+
+// Friendly Yoni pairs give 3 pts
+const YONI_FRIENDS = new Set([
+  "Horse|Deer",     "Deer|Horse",
+  "Elephant|Cow",   "Cow|Elephant",
+  "Goat|Monkey",    "Monkey|Goat",
+  "Serpent|Mongoose","Mongoose|Serpent",
+  "Dog|Lion",       "Lion|Dog",
+  "Cat|Rat",        // same-genus (handled separately)
+  "Buffalo|Tiger",  "Tiger|Buffalo",
+  "Horse|Cat",      "Cat|Horse"
 ]);
 
 // Saravali Rajju Limbs
@@ -199,13 +213,20 @@ function computeBidirectionalTara(girlNak: number, boyNak: number): { score: num
 function computeYoniScore(girlNak: number, boyNak: number): { score: number; animalG: string; animalB: string } {
   const yg = patrikaMetaForNakshatraIndex(girlNak).yoniEn;
   const yb = patrikaMetaForNakshatraIndex(boyNak).yoniEn;
+  // Same Yoni = full 4 points
   if (yg === yb) return { score: 4, animalG: yg, animalB: yb };
   const pair1 = `${yg}|${yb}`;
   const pair2 = `${yb}|${yg}`;
-  if (YONI_ENEMIES_SET.has(pair1) || YONI_ENEMIES_SET.has(pair2)) {
+  // Sworn Enemy = 0 points (Abhichara dosha)
+  if (YONI_SWORN_ENEMIES.has(pair1) || YONI_SWORN_ENEMIES.has(pair2)) {
     return { score: 0, animalG: yg, animalB: yb };
   }
-  return { score: 3, animalG: yg, animalB: yb };
+  // Friendly pairs = 3 points
+  if (YONI_FRIENDS.has(pair1) || YONI_FRIENDS.has(pair2)) {
+    return { score: 3, animalG: yg, animalB: yb };
+  }
+  // All others = 2 points (Neutral / Samamitri)
+  return { score: 2, animalG: yg, animalB: yb };
 }
 
 function computeGrahaMaitri(girlRashi: number, boyRashi: number): { score: number; lordG: string; lordB: string } {
