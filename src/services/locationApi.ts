@@ -527,6 +527,29 @@ export const formatGoogleStylePlaceName = (primary?: string, district?: string, 
   return `${p}, ${d}`;
 };
 
+/** Synchronously resolve coordinates from an Indian PIN code using offline bundled catalog and postal region centroids. */
+export const resolvePincodeCoordinatesSync = (
+  pincode?: string,
+  fallbackLat = 14.5479,
+  fallbackLng = 74.3187
+): { lat: number; lng: number } => {
+  if (!pincode) return { lat: fallbackLat, lng: fallbackLng };
+  const clean = pincode.trim();
+  if (!/^\d{6}$/.test(clean)) return { lat: fallbackLat, lng: fallbackLng };
+
+  const villages = bundledVillagesByPincode(clean);
+  if (villages && villages.length > 0 && typeof villages[0].lat === "number" && typeof villages[0].lng === "number") {
+    return { lat: villages[0].lat, lng: villages[0].lng };
+  }
+
+  const centroid = getPostalRegionCentroid(clean);
+  if (centroid && typeof centroid.lat === "number" && typeof centroid.lng === "number") {
+    return { lat: centroid.lat, lng: centroid.lng };
+  }
+
+  return { lat: fallbackLat, lng: fallbackLng };
+};
+
 /** Resolve Indian PIN to coordinates and Google-style place name using Nominatim & India Post synergy. */
 export const resolvePlaceFromPincode = async (pincode: string): Promise<ResolvedPinPlace | null> => {
   if (!/^[1-9]\d{5}$/.test(pincode)) return null;

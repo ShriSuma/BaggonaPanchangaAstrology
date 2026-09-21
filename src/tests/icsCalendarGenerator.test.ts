@@ -215,6 +215,59 @@ describe("icsCalendarGenerator", () => {
     expect(kaala.rahu).toMatch(/\d{2}:\d{2} (AM|PM) – \d{2}:\d{2} (AM|PM)/);
     expect(kaala.gulika).toMatch(/\d{2}:\d{2} (AM|PM) – \d{2}:\d{2} (AM|PM)/);
     expect(kaala.yamaganda).toMatch(/\d{2}:\d{2} (AM|PM) – \d{2}:\d{2} (AM|PM)/);
+    expect(kaala.tzLabel).toBe("IST");
+  });
+
+  it("dynamically recalculates Suryodaya & Suryastha based on the devotee's given pincode", () => {
+    // Gokarna pincode 581326 (lat 14.54, lng 74.31)
+    const gokarnaKaala = getDailyKaalaTimings("Mercury", "en", "2026-08-26", 14.54, 74.31, "581326");
+    // Delhi pincode 110001 (lat ~28.61, lng ~77.20)
+    const delhiKaala = getDailyKaalaTimings("Mercury", "en", "2026-08-26", 14.54, 74.31, "110001");
+    // Bengaluru pincode 560001 (lat ~12.97, lng ~77.59)
+    const blrKaala = getDailyKaalaTimings("Mercury", "en", "2026-08-26", 14.54, 74.31, "560001");
+
+    // All should be marked with IST
+    expect(gokarnaKaala.tzLabel).toBe("IST");
+    expect(delhiKaala.tzLabel).toBe("IST");
+    expect(blrKaala.tzLabel).toBe("IST");
+
+    // Delhi is further north and east than Gokarna, so sunrise/sunset will differ
+    expect(delhiKaala.sunrise).not.toBe(gokarnaKaala.sunrise);
+    expect(delhiKaala.pincodeUsed).toBe("110001");
+    expect(blrKaala.pincodeUsed).toBe("560001");
+    expect(gokarnaKaala.pincodeUsed).toBe("581326");
+  });
+
+  it("embeds IST indicators and pincode location in generated .ics and Google Calendar descriptions", () => {
+    const ics = generateSevaICalendarString({
+      days: mockDays,
+      lang: "kn",
+      panditName: "Shreeram Pandit",
+      notificationTime: "08:00",
+      personName: "Pramod Kodagi",
+      pincode: "560001",
+      locationName: "Bengaluru"
+    });
+
+    // Verify IST tags for Kaala
+    expect(ics).toContain("ರಾಹು ಕಾಲ (IST):");
+    expect(ics).toContain("ಗುಳಿಕ ಕಾಲ (IST):");
+    expect(ics).toContain("ಯಮಗಂಡ ಕಾಲ (IST):");
+    expect(ics).toContain("IST (+05:30)");
+    // Verify pincode and location
+    expect(ics).toContain("560001");
+    expect(ics).toContain("Bengaluru");
+
+    // Google Calendar URL formatting
+    const gCalUrl = generateGoogleCalendarUrl({
+      day: mockDays[0]!,
+      lang: "kn",
+      panditName: "Shreeram Pandit",
+      pincode: "560001",
+      locationName: "Bengaluru"
+    });
+    expect(gCalUrl).toContain("560001");
+    expect(gCalUrl).toContain("IST");
   });
 });
 

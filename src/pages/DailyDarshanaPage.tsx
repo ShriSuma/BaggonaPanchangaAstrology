@@ -22,6 +22,7 @@ import { calculateGokarnaPitruRaksha, evaluateShraddhaTithiStatus } from "../fea
 import { resolveDevoteeToken, type ResolveTokenResult } from "../features/seva/devoteeTokenDbService";
 import { DailySatkarmaPracticeCard } from "../components/seva/DailySatkarmaPracticeCard";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
+import { resolvePincodeCoordinatesSync, resolvePlaceFromPincode } from "../services/locationApi";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import type { DetailedTithiInfo } from "../core/VedicCalculations";
 import { nakshatraName, rashiName, tithiLabel, pakshaLabel, tithiOnlyLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
@@ -1714,29 +1715,52 @@ export default function DailyDarshanaPage(): JSX.Element {
     return new URLSearchParams();
   }, []);
 
-  const userLat = useMemo(() => {
-    const pLat = urlParams.get("lat") || urlParams.get("lt");
-    if (pLat && !isNaN(Number(pLat))) return Number(pLat);
-    return decoded?.lt ?? decoded?.lat ?? storedSession?.latitude ?? 14.5479;
-  }, [decoded, storedSession, urlParams]);
-
-  const userLng = useMemo(() => {
-    const pLng = urlParams.get("lng") || urlParams.get("lg");
-    if (pLng && !isNaN(Number(pLng))) return Number(pLng);
-    return decoded?.lg ?? decoded?.lng ?? storedSession?.longitude ?? 74.3187;
-  }, [decoded, storedSession, urlParams]);
-
   const userPincode = useMemo(() => {
     const pPin = urlParams.get("pincode") || urlParams.get("pc");
     if (pPin && pPin.trim()) return pPin.trim();
     return decoded?.pc || storedSession?.pincode || "581326";
   }, [decoded, storedSession, urlParams]);
 
+  const [resolvedPlaceName, setResolvedPlaceName] = useState<string>("");
+
+  useEffect(() => {
+    if (userPincode && /^\d{6}$/.test(userPincode)) {
+      void resolvePlaceFromPincode(userPincode).then((place) => {
+        if (place?.villageName) {
+          setResolvedPlaceName(place.villageName);
+        }
+      }).catch(() => {});
+    }
+  }, [userPincode]);
+
+  const userLat = useMemo(() => {
+    const pLat = urlParams.get("lat") || urlParams.get("lt");
+    if (pLat && !isNaN(Number(pLat))) return Number(pLat);
+    const rawLat = decoded?.lt ?? decoded?.lat ?? storedSession?.latitude;
+    if (userPincode && userPincode !== "581326" && (!rawLat || Math.abs(Number(rawLat) - 14.5479) < 0.05)) {
+      const coords = resolvePincodeCoordinatesSync(userPincode);
+      return coords.lat;
+    }
+    return rawLat !== undefined ? Number(rawLat) : 14.5479;
+  }, [decoded, storedSession, urlParams, userPincode]);
+
+  const userLng = useMemo(() => {
+    const pLng = urlParams.get("lng") || urlParams.get("lg");
+    if (pLng && !isNaN(Number(pLng))) return Number(pLng);
+    const rawLng = decoded?.lg ?? decoded?.lng ?? storedSession?.longitude;
+    if (userPincode && userPincode !== "581326" && (!rawLng || Math.abs(Number(rawLng) - 74.3187) < 0.05)) {
+      const coords = resolvePincodeCoordinatesSync(userPincode);
+      return coords.lng;
+    }
+    return rawLng !== undefined ? Number(rawLng) : 74.3187;
+  }, [decoded, storedSession, urlParams, userPincode]);
+
   const userLocationName = useMemo(() => {
     const pLoc = urlParams.get("location") || urlParams.get("loc");
     if (pLoc && pLoc.trim()) return pLoc.trim();
+    if (resolvedPlaceName) return resolvedPlaceName;
     return (decoded as any)?.loc || (decoded as any)?.location || storedSession?.placeName || "Gokarna";
-  }, [decoded, storedSession, urlParams]);
+  }, [decoded, storedSession, urlParams, resolvedPlaceName]);
 
   const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, userLat, userLng, userPincode), [dayLordIdx, lang, dateParam, userLat, userLng, userPincode]);
 
@@ -3578,22 +3602,33 @@ export default function DailyDarshanaPage(): JSX.Element {
               padding: 16,
               marginBottom: 16
             }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
-                <span>⏳ {dict.kaalaHeading}</span>
-                <span style={{ fontSize: 11, color: "#F59E0B" }}>🌅 {kaala.sunrise} | 🌇 {kaala.sunset}</span>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>⏳ {dict.kaalaHeading}</span>
+                  <span style={{ fontSize: 10.5, color: "#10B981", background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: 6, padding: "1px 6px", fontWeight: 800 }}>
+                    IST (+05:30)
+                  </span>
+                </span>
+                <span style={{ fontSize: 11.5, color: "#F59E0B", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                  <span>🌅 {kaala.sunrise} | 🌇 {kaala.sunset}</span>
+                  <span style={{ fontSize: 10, color: "#FCD34D" }}>(📍 {userLocationName} - {userPincode})</span>
+                </span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, fontSize: 11, textAlign: "center" }}>
                 <div style={{ background: "rgba(220, 38, 38, 0.15)", border: "1px solid rgba(220, 38, 38, 0.4)", padding: 8, borderRadius: 10 }}>
-                  <div style={{ color: "#FCA5A5", fontWeight: 700 }}>🔴 {dict.rahuKaala}</div>
-                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2 }}>{kaala.rahu}</div>
+                  <div style={{ color: "#FCA5A5", fontWeight: 700 }}>🔴 {dict.rahuKaala} (IST)</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.rahuWindow || kaala.rahu.split(" (")[0]}</div>
+                  <div style={{ fontSize: 9.5, color: "#FCA5A5", marginTop: 2 }}>{kaala.rahuSuffix || (kaala.rahu.includes("(") ? `(${kaala.rahu.split("(")[1]}` : "")}</div>
                 </div>
                 <div style={{ background: "rgba(217, 119, 6, 0.15)", border: "1px solid rgba(217, 119, 6, 0.4)", padding: 8, borderRadius: 10 }}>
-                  <div style={{ color: "#FDE047", fontWeight: 700 }}>🟡 {dict.gulikaKaala}</div>
-                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2 }}>{kaala.gulika}</div>
+                  <div style={{ color: "#FDE047", fontWeight: 700 }}>🟡 {dict.gulikaKaala} (IST)</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.gulikaWindow || kaala.gulika.split(" (")[0]}</div>
+                  <div style={{ fontSize: 9.5, color: "#FDE047", marginTop: 2 }}>{kaala.gulikaSuffix || (kaala.gulika.includes("(") ? `(${kaala.gulika.split("(")[1]}` : "")}</div>
                 </div>
                 <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.4)", padding: 8, borderRadius: 10 }}>
-                  <div style={{ color: "#86EFAC", fontWeight: 700 }}>🟢 {dict.yamaganda}</div>
-                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2 }}>{kaala.yamaganda}</div>
+                  <div style={{ color: "#86EFAC", fontWeight: 700 }}>🟢 {dict.yamaganda} (IST)</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.yamaWindow || kaala.yamaganda.split(" (")[0]}</div>
+                  <div style={{ fontSize: 9.5, color: "#86EFAC", marginTop: 2 }}>{kaala.yamaSuffix || (kaala.yamaganda.includes("(") ? `(${kaala.yamaganda.split("(")[1]}` : "")}</div>
                 </div>
               </div>
             </div>
