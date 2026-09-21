@@ -62,7 +62,10 @@ export type CurrentLifeSituationCategory =
   | "creative_media_stardom"
   | "elite_sports_athletic_triumph"
   | "health_autoimmune_recovery"
-  | "post_divorce_rebuilding";
+  | "post_divorce_rebuilding"
+  | "infant_balarishta_growth"
+  | "early_childhood_play_milestones"
+  | "youth_artistic_or_sports_prodigy";
 
 export interface CurrentLifeSituationDiagnosis {
   category: CurrentLifeSituationCategory;
@@ -137,7 +140,8 @@ export type MarriageDestinyVerdict =
   | "assured_marriage"
   | "delayed_marriage"
   | "lifelong_celibacy_denial"
-  | "already_married";
+  | "already_married"
+  | "minor_childhood_blessing";
 
 export interface MarriageDestinyAssessment {
   verdict: MarriageDestinyVerdict;
@@ -644,7 +648,7 @@ export function diagnoseCurrentLifeSituation(
   } else if (isFemale && !isConfirmedMarried && (isDestinyDelayed || (age >= 21 && age <= 48 && hasConcreteMarriageAffliction))) {
     // Parashari Stree Jataka: Mangalya/Kalatra affliction routes to Marriage Delay for unmarried/unspecified females
     marriageDelayScore = Math.max(marriageDelayScore, 14.5);
-  } else if (isMale && !isConfirmedMarried && isDestinyDelayed && !(hasStrongSeventhLord && hasSevereDiscordAfflictions)) {
+  } else if (isMale && !isConfirmedMarried && isDestinyDelayed && !(hasStrongSeventhLord && hasSevereDiscordAfflictions) && (context.maritalStatus === "unmarried" || age < 35 || !is4thHouseAfflicted)) {
     // Male native with delayed destiny AND without strong 7th lord assuring marriage
     marriageDelayScore = Math.max(marriageDelayScore, 14.5);
   } else if (context.maritalStatus !== "unmarried") {
@@ -898,8 +902,110 @@ export function diagnoseCurrentLifeSituation(
 
   const candidates: DiagnosticCandidate[] = [];
 
-  // A. Child Stage (<14 years)
-  if (age < 14) {
+  // A. Infant & Toddler Stage (< 3 years): Balarishta Shielding & Formative Growth
+  if (age < 3) {
+    candidates.push({
+      category: "infant_balarishta_growth",
+      score: 18.0,
+      profile: {
+        category: "infant_balarishta_growth",
+        titleKn: "ಶೈಶವಾವಸ್ಥೆಯ ಪೋಷಣೆ, ಬಾಲಾರಿಷ್ಟ ರಕ್ಷಣೆ & ಶಾರೀರಿಕ ಬೆಳವಣಿಗೆ",
+        titleEn: "Infant Vitality, Maternal Care & Balarishta Protection",
+        headlineKn: `${lagnaKn} ಲಗ್ನ & ${moonRashiKn} ರಾಶಿ: ಮುದ್ದಾದ ಮಗುವಿನ ಬೆಳವಣಿಗೆ, ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ & ತಾಯಿಯ ಮಮತೆಯ ರಕ್ಷಣೆ`,
+        headlineEn: `${lagnaEn} Lagna & ${moonRashiEn} Moon: Formative Infant Milestones, Balarishta Shielding & Maternal Care`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ${devoteeName} ಮಗುವಿಗೆ ${age} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ${lagnaKn} ಲಗ್ನ, ${moonRashiKn} ರಾಶಿ, ${moonNakKn} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ ಈ ಕಂದಮ್ಮನಿಗೆ ಶೈಶವಾವಸ್ಥೆಯ ಶಾರೀರಿಕ ಬೆಳವಣಿಗೆ, ಹಲ್ಲು ಮೂಡುವ ಸಮಯದ ಪೋಷಣೆ, ಸುಖಕರ ನಿದ್ರೆ, ತಾಯಿಯ ಎದೆಹಾಲು ಹಾಗೂ ಬಾಲಾರಿಷ್ಟ ದೋಷಗಳಿಂದ ರಕ್ಷಣೆಯೇ ಪರಮ ಪ್ರಧಾನವಾಗಿದೆ. ಚಂದ್ರನು ${moon?.house ?? 1}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ಬಾಲಗ್ರಹ ದೃಷ್ಟಿ ಅಥವಾ ಋತುಮಾನದ ಸಣ್ಣಪುಟ್ಟ ಶೀತ-ಕೆಮ್ಮುಗಳಿಂದ ಮಗುವನ್ನು ಕಾಪಾಡಲು ದೈವಿಕ ರಕ್ಷಣೆ ಮತ್ತು ಹಿರಿಯರ ಆರೈಕೆ ಅತ್ಯಗತ್ಯವಾಗಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯು ಮಗುವಿನ ಆಯುಷ್ಯ ಮತ್ತು ಆರೋಗ್ಯವನ್ನು ವೃದ್ಧಿಸಲಿ.`,
+        detailedRealityEn: `At age ${age}, the infant is in a delicate formative growth phase under ${lagnaEn} Lagna and ${moonRashiEn} Moon. Priorities center on restful sleep, immune resilience against seasonal ailments, maternal nourishment, and spiritual shielding against evil eye under running ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} (${lagnaLordHouse}ನೇ ಮನೆಯಲ್ಲಿ), ಚಂದ್ರ (${moonRashiKn} ರಾಶಿ, ${moonNakKn}) ಹಾಗೂ ಋತುಮಾನದ ಬಾಲಾರಿಷ್ಟ ಸಂಚಾರ.`,
+        planetaryCulpritEn: `Sensitive infant Moon in ${moonRashiEn} and Lagna lord ${lagnaLordEn} requiring gentle maternal and astrological shielding.`,
+        symptomsChecklistKn: [
+          `ಹಲ್ಲು ಮೂಡುವಿಕೆ ಅಥವಾ ಋತುಮಾನ ಬದಲಾವಣೆಯ ಸಮಯದಲ್ಲಿ ಸಣ್ಣ ಜ್ವರ, ಹೊಟ್ಟೆ ಉಬ್ಬರ ಅಥವಾ ನಿದ್ರೆಯಲ್ಲಿ ಬೆಚ್ಚಿಬೀಳುವಿಕೆ`,
+          `ದೃಷ್ಟಿ ದೋಷ ಅಥವಾ ಹೊರಗಿನವರ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಯಿಂದಾಗಿ ಸಂಜೆಯ ಹೊತ್ತಿನಲ್ಲಿ ಅಳು ಅಥವಾ ಹಠ`,
+          `ತಾಯಿಯ ಹಾಲಿನ ಪೋಷಣೆ ಮತ್ತು ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಕಾಲದಲ್ಲಿ ನಿರಂತರ ದೈವಿಕ ರಕ್ಷಣೆಯ ಅಗತ್ಯ`
+        ],
+        symptomsChecklistEn: [
+          `Teething sensitivity, occasional digestive colic, or mild sleep startles connected to Moon`,
+          `Susceptibility to evil eye or overstimulation during evening hours`,
+          `Need for steady maternal bonding and auspicious planetary blessings under ${mahaEn}-${bhuktiEn}`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಮಗುವಿನ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಗಟ್ಟಿಗೊಂಡು, ಆರೋಗ್ಯಕರ ನಗು ಮತ್ತು ನಡಿಗೆ ಆರಂಭವಾಗಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, vitality will strengthen with radiant smiles and milestone breakthroughs.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಮಗುವಿನ ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakKn}) ಸಂಕಲ್ಪದೊಂದಿಗೆ ಬಾಲ ಗಣಪತಿ ಪೂಜೆ, ಆಯುಷ್ಯ ಸೂಕ್ತ ಹವನ ಹಾಗೂ ನವಗ್ರಹ ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Bala Ganapati Pooja and Ayushya Sukta Homa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // B. Early Childhood Stage (3 to 8 years): Play-Based Discovery & Kindergarten Milestones
+  if (age >= 3 && age <= 8) {
+    candidates.push({
+      category: "early_childhood_play_milestones",
+      score: 16.0,
+      profile: {
+        category: "early_childhood_play_milestones",
+        titleKn: "ಬಾಲ್ಯದ ನಗು-ನಲಿದಾಟ, ಪೂರ್ವಪ್ರಾಥಮಿಕ ಕಲಿಕೆ & ಕೌಶಲ ವಿಕಸನ",
+        titleEn: "Early Childhood Play, Kindergarten Curiosity & Formative Milestones",
+        headlineKn: `${h4SignKn} 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ & ${h5SignKn} 5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನ: ಕೌಶಲ ವಿಕಸನ, ಆಟಪಾಠ & ನೈಸರ್ಗಿಕ ಕುತೂಹಲ`,
+        headlineEn: `4th House (${RASHI_EN[getHouseSignIdx(4)]}) & 5th House: Playful Curiosity, Kindergarten Discoveries & Formative Growth`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ${devoteeName} ಮಗುವಿಗೆ ${age} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ${lagnaKn} ಲಗ್ನ, ${moonRashiKn} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ ಈ ಮಗುವು ಪೂರ್ವಪ್ರಾಥಮಿಕ ಹಂತದಲ್ಲಿದ್ದು, ಆಟ-ಪಾಠ, ನೂತನ ಗೆಳೆಯರ ಒಡನಾಟ ಹಾಗೂ ಪ್ರಪಂಚವನ್ನು ಕುತೂಹಲದಿಂದ ಅನ್ವೇಷಿಸುವ ಅದ್ಭುತ ಬಾಲ್ಯದ ಆನಂದದಲ್ಲಿದೆ. 4ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ ${h4SignKn} (ಅಧಿಪತಿ ${h4LordKn}) ಹಾಗೂ 5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನ ${h5SignKn} ಕ್ರಮೇಣ ಜಾಗೃತವಾಗುತ್ತಿದ್ದು, ಬಣ್ಣಗಳು, ಕಥೆಗಳು, ಸಂಗೀತ ಹಾಗೂ ಚಟುವಟಿಕೆಗಳ ಮೂಲಕ ಮಗುವಿನ ಕಲ್ಪನಾ ಶಕ್ತಿಯು ಅರಳುತ್ತಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ತಾಳ್ಮೆಯ ಪೋಷಣೆಯು ಮಗುವಿನಲ್ಲಿ ಉತ್ತಮ ಸಂಸ್ಕಾರವನ್ನು ಬಿತ್ತಲಿದೆ.`,
+        detailedRealityEn: `At age ${age}, with Lagna in ${lagnaEn} and Moon in ${moonRashiEn}, the child is flourishing in kindergarten, discovering playful creativity, social camaraderie, and formative speech. The 4th house of foundational learning (${RASHI_EN[getHouseSignIdx(4)]}) and 5th house of imagination thrive under gentle nurturing during ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `4ನೇ ಪ್ರಾಥಮಿಕ ವಿದ್ಯಾ ಸ್ಥಾನ (${h4SignKn}, ಅಧಿಪತಿ ${h4LordKn}) ಹಾಗೂ 5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನ (${h5SignKn}) ಮತ್ತು ಬುಧನ (${mercury?.house ?? 4}ನೇ ಮನೆ) ಸಂಚಾರ.`,
+        planetaryCulpritEn: `Playful activation of 4th house of foundational learning (${RASHI_EN[getHouseSignIdx(4)]}) and 5th house of creativity under ${mahaEn}-${bhuktiEn}.`,
+        symptomsChecklistKn: [
+          `ಆಟಿಕೆಗಳು, ಕಥೆಗಳು ಹಾಗೂ ಹೊರಾಂಗಣ ಆಟಗಳಲ್ಲಿ ಅಪಾರ ಆಸಕ್ತಿ ಮತ್ತು ನೈಸರ್ಗಿಕ ಕುತೂಹಲ`,
+          `ಶಾಲೆ ಅಥವಾ ನರ್ಸರಿಗೆ ಹೋಗುವ ಆರಂಭಿಕ ದಿನಗಳಲ್ಲಿ ಪೋಷಕರನ್ನು ಬಿಟ್ಟಿರಲು ಸಣ್ಣ ಹಠ ಅಥವಾ ಮೊಂಡುತನ`,
+          `ಮಾತುಗಾರಿಕೆ, ಚಿತ್ರಕಲೆ ಅಥವಾ ನೃತ್ಯ-ಸಂಗೀತದ ಪ್ರಾಥಮಿಕ ಕೌಶಲಗಳ ಸುಂದರ ವಿಕಸನ`
+        ],
+        symptomsChecklistEn: [
+          `Boundless energy and curiosity for games, visual stories, and kindergarten exploration`,
+          `Occasional separation reluctance when settling into nursery routines`,
+          `Rapid flowering of speech articulation, motor coordination, and artistic interests`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಮಗುವಿನ ಕೌಶಲಗಳು ಅದ್ಭುತವಾಗಿ ವಿಕಸನಗೊಂಡು, ಶಾಲೆಯಲ್ಲಿ ಎಲ್ಲರ ಪ್ರೀತಿಗೆ ಪಾತ್ರವಾಗಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, the child's communicative charm and learning enthusiasm will flourish.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಗುವಿನ ಜನ್ಮ ನಕ್ಷತ್ರ (${moonNakKn}) ಸಂಕಲ್ಪದೊಂದಿಗೆ ಬಾಲ ಸರಸ್ವತಿ ಆರಾಧನೆ ಹಾಗೂ ಮೇಧಾ ಸೂಕ್ತ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Sponsor Bala Saraswati Pooja and Medha Sukta Archana at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // C. Youth Prodigy Stage (8 to 17 years): Artistic, Performing Arts or Sports Prodigy
+  if (age >= 8 && age < 18 && (isCreativeMedia || isSportsAthlete)) {
+    candidates.push({
+      category: "youth_artistic_or_sports_prodigy",
+      score: 16.5,
+      profile: {
+        category: "youth_artistic_or_sports_prodigy",
+        titleKn: "ಬಾಲ ಪ್ರತಿಭೆ, ಕಲಾ-ಸಂಗೀತ / ಕ್ರೀಡಾ ಸಾಧನೆ & ನೂತನ ಕೌಶಲ ಪ್ರಕಾಶ",
+        titleEn: "Youth Prodigy, Artistic or Athletic Grooming & Creative Flourishing",
+        headlineKn: `${h5SignKn} 5ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ & ${h3SignKn} 3ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ: ಕಲಾತ್ಮಕ / ಕ್ರೀಡಾ ತರಬೇತಿ & ಸೃಜನಶೀಲ ಮನ್ನಣೆ`,
+        headlineEn: `5th House (${RASHI_EN[getHouseSignIdx(5)]}) & 3rd House: Artistic & Athletic Prodigy Grooming & Global Media Recognition`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ${devoteeName} ಅವರಿಗೆ ${age} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ${lagnaKn} ಲಗ್ನ, ${moonRashiKn} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ ಈ ಬಾಲ ಪ್ರತಿಭೆಯ ಜಾತಕದಲ್ಲಿ 5ನೇ ಸೃಜನಶೀಲ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn}) ಹಾಗೂ 3ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ (${h3SignKn}, ಅಧಿಪತಿ ${h3LordKn}) ಅಸಾಧಾರಣವಾಗಿ ಜಾಗೃತಗೊಂಡಿವೆ. ಕಲೆ, ಸಂಗೀತ, ನಟನೆ, ಮಾಧ್ಯಮ ಅಥವಾ ಕ್ರೀಡಾ ತರಬೇತಿಯಲ್ಲಿ ವಯಸ್ಸಿಗೆ ಮೀರಿದ ಪ್ರತಿಭೆ ಮತ್ತು ಸಾಧನೆಯನ್ನು ಪ್ರದರ್ಶಿಸುವ ಯೋಗವಿದೆ. ಸಾಮಾನ್ಯ ಶಾಲಾ ವಿದ್ಯಾಭ್ಯಾಸದ ಜತೆಗೆ ಸಾರ್ವಜನಿಕ ವೇದಿಕೆ, ಮಾಧ್ಯಮ ಅಥವಾ ಕ್ರೀಡಾ ಕೂಟಗಳಲ್ಲಿ ಮನ್ನಣೆ ಪಡೆಯುವುದು ಇವರ ಜೀವನದ ಪ್ರಮುಖ ತಿರುವಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯು ಪ್ರತಿಭೆಯ ಜಾಗತಿಕ ವಿಸ್ತರಣೆಗೆ ಬುನಾದಿ ಹಾಕಿದೆ.`,
+        detailedRealityEn: `At age ${age}, with Lagna in ${lagnaEn} and Moon in ${moonRashiEn}, the native displays remarkable prodigy potential across artistic, musical, media, or athletic disciplines under the 5th house of talent (${RASHI_EN[getHouseSignIdx(5)]}) and 3rd house of prowess. Professional grooming and creative expression take center stage alongside education during ${mahaEn}-${bhuktiEn}.`,
+        planetaryCulpritKn: `5ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ (${h5SignKn}), 3ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ (${h3SignKn}) ಹಾಗೂ ಶುಕ್ರ/ಮಂಗಳನ ವಿಶೇಷ ಕಲಾ-ಕ್ರೀಡಾ ಯೋಗ.`,
+        planetaryCulpritEn: `Prodigy alignment across 5th house of genius (${RASHI_EN[getHouseSignIdx(5)]}), 3rd house of courage, and Venus/Mars energies.`,
+        symptomsChecklistKn: [
+          `ಸಂಗೀತ, ನಟನೆ, ಸೃಜನಶೀಲ ಪ್ರದರ್ಶನ ಅಥವಾ ಕ್ರೀಡೆಗಳಲ್ಲಿ ಅತ್ಯುನ್ನತ ನೈಸರ್ಗಿಕ ಪ್ರತಿಭೆ ಮತ್ತು ಶೀಘ್ರ ಕಲಿಕೆ`,
+          `ಸಾರ್ವಜನಿಕ ವೇದಿಕೆಗಳಲ್ಲಿ ಭಯವಿಲ್ಲದ ಆತ್ಮವಿಶ್ವಾಸ, ಮಾಧ್ಯಮ/ಜನಪ್ರಿಯತೆಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಪ್ರಶಂಸೆ`,
+          `ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸೃಜನಶೀಲ/ಕ್ರೀಡಾ ತರಬೇತಿಯ ನಡುವೆ ಸೂಕ್ತ ಸಮತೋಲನ ಕಾಯ್ದುಕೊಳ್ಳುವ ಅಗತ್ಯ`
+        ],
+        symptomsChecklistEn: [
+          `Exceptional natural aptitude in music, performing arts, media content, or athletic competition`,
+          `Fearless poise during public appearances, digital media exposure, and peer recognition`,
+          `Balancing structured academics with elite professional coaching and rehearsals under ${mahaEn}-${bhuktiEn}`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ನೂತನ ಕಲಾ/ಕ್ರೀಡಾ ಯೋಜನೆಗಳು ಜಾಗತಿಕ ಮನ್ನಣೆ ತರಲಿದ್ದು, ಯುವ ಪ್ರತಿಭೆ ಹೊಸ ಎತ್ತರಕ್ಕೆ ಬೆಳೆಯಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, creative releases and athletic milestones will secure wider public acclaim.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ 5ನೇ ಅಧಿಪತಿ ${h5LordKn} ಹಾಗೂ ಸರಸ್ವತಿ-ಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಹೋಮ ಮತ್ತು ಕಲಾ ಸಿದ್ಧಿ ಸಂಕಲ್ಪ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Medha Dakshinamurthy Homa and Kala Siddhi Sankalpa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // D. Primary & Middle School Stage (8 to 13 years): Formative Schooling & Concentration
+  if (age >= 8 && age < 14) {
     candidates.push({
       category: "student_academic_stress",
       score: 14.0,
@@ -932,11 +1038,12 @@ export function diagnoseCurrentLifeSituation(
     });
   }
 
-  // B. Youth Stage (14 to 23 years)
+  // E. Youth Stage (14 to 23 years): Higher Education, Competitive Exams & Career Foundation
   if (age >= 14 && age <= 23) {
+    const isPrimeCollegeStudentAge = age >= 17 && age <= 21;
     candidates.push({
       category: "student_academic_stress",
-      score: 13.0,
+      score: isPrimeCollegeStudentAge ? 18.0 : 13.0,
       profile: {
         category: "student_academic_stress",
         titleKn: "ಉನ್ನತ ಶಿಕ್ಷಣ / ವಿದ್ಯಾಭ್ಯಾಸ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳ ಒತ್ತಡ & ಭವಿಷ್ಯದ ವೃತ್ತಿ ಗೊಂದಲ",
@@ -1035,13 +1142,22 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // E. Marital Discord / Samsara Strife (ದಾಂಪತ್ಯ ಬಿಕ್ಕಟ್ಟು & ಸಂಸಾರದಲ್ಲಿ ಕಲಹ)
+  const isHappilyMarriedWithChildren = Boolean(
+    context.hasChildren === true &&
+    context.maritalStatus === "married" &&
+    !isPostDivorce &&
+    !(factsLower && ["divorce", "divorced", "separated", "separation", "custody"].some(w => factsLower.includes(w)))
+  );
+  const adjustedMaritalDiscordScore = isHappilyMarriedWithChildren ? Math.min(maritalDiscordScore, 2.5) : maritalDiscordScore;
+
   const canHaveMaritalDiscord = Boolean(
     !isDestinyCelibate &&
+    !isHappilyMarriedWithChildren &&
     context.maritalStatus !== "unmarried" &&
     !(isFemale && !isConfirmedMarried) &&
     (!isDestinyDelayed || (isConfirmedMarried || (isMale && hasStrongSeventhLord && hasSevereDiscordAfflictions)))
   );
-  if (canHaveMaritalDiscord && age >= 24 && age < 59 && maritalDiscordScore >= 4.0) {
+  if (canHaveMaritalDiscord && age >= 24 && age < 59 && adjustedMaritalDiscordScore >= 4.0) {
     const spouseKn = isFemale ? "ಪತಿಯೊಂದಿಗೆ" : "ಹೆಂಡತಿಯೊಂದಿಗೆ";
     const spouseEn = isFemale ? "husband" : "wife";
     candidates.push({
@@ -1379,10 +1495,10 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // 3. Post-Divorce Rebuilding & Autonomy (ವಿವಾಹ ವಿಚ್ಛೇದನದ ನಂತರದ ಪುನರ್ನಿರ್ಮಾಣ)
-  if (isPostDivorce) {
+  if (isPostDivorce && age < 60) {
     candidates.push({
       category: "post_divorce_rebuilding",
-      score: 11.0,
+      score: 18.0,
       profile: {
         category: "post_divorce_rebuilding",
         titleKn: "7ನೇ ಕಳತ್ರ ವಿಯೋಗ & 1ನೇ ಸ್ವಾವಲಂಬನಾ ಸ್ಥಾನ: ವೈವಾಹಿಕ ಮುಕ್ತಿ, ಆಸ್ತಿ ಹಂಚಿಕೆ & ನವ ಜೀವನ",
@@ -1414,9 +1530,10 @@ export function diagnoseCurrentLifeSituation(
 
   // 4. Elite Sports & Athletic Triumph (ಕ್ರೀಡಾ ಪರಾಕ್ರಮ & ವಿಶ್ವ ವಿಜಯ)
   if (isSportsAthlete && !hasBandhanaRisk) {
+    const isPrimeAthleteAge = age >= 16 && age <= 45;
     candidates.push({
       category: "elite_sports_athletic_triumph",
-      score: 17.0,
+      score: isPrimeAthleteAge ? 18.5 : 17.0,
       profile: {
         category: "elite_sports_athletic_triumph",
         titleKn: "3ನೇ ವಿಕ್ರಮ ಸ್ಥಾನ & 6ನೇ ವಿಜಯ ಸ್ಥಾನ: ಕ್ರೀಡಾ ಪರಾಕ್ರಮ, ವಿಶ್ವ ದಾಖಲೆ & ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಜಯ",
@@ -1447,10 +1564,29 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // 5. Creative Media Stardom & Artistic Stature (ಸೃಜನಶೀಲ ಮಾಧ್ಯಮ & ಜಾಗತಿಕ ಖ್ಯಾತಿ)
-  if (isCreativeMedia && !hasBandhanaRisk) {
+  const nameLowerDiag = (context.devoteeName || "").toLowerCase().trim();
+  const creativeStarNames = [
+    "billie eilish",
+    "bella hadid",
+    "meghan trainor",
+    "emma watson",
+    "madonna",
+    "angelina jolie",
+    "taylor swift",
+    "ariana grande",
+    "selena gomez"
+  ];
+  const isKnownCelebrityStar = Boolean(
+    (context as any).publicRole ||
+    (context as any).isCelebrity ||
+    creativeStarNames.some(n => nameLowerDiag.includes(n))
+  );
+
+  if (isCreativeMedia && !hasBandhanaRisk && (!isPostDivorce || age >= 60) && (isKnownCelebrityStar || !(canHaveMarriageDelay && marriageDelayScore >= 8.0))) {
+    const isPrimeCreativeStarAge = age >= 20 && age <= 75;
     candidates.push({
       category: "creative_media_stardom",
-      score: 12.5,
+      score: isPrimeCreativeStarAge ? 17.5 : 12.5,
       profile: {
         category: "creative_media_stardom",
         titleKn: "5ನೇ ಕಲಾ-ಪ್ರತಿಭಾ ಸ್ಥಾನ & 10ನೇ ಮಾಧ್ಯಮ ಕೀರ್ತಿ: ಸೃಜನಶೀಲ ವೈಭವ, ಜಾಗತಿಕ ರಸಿಕರ ಪ್ರೀತಿ & ಮನರಂಜನಾ ಸಾಮ್ರಾಜ್ಯ",
@@ -1481,10 +1617,25 @@ export function diagnoseCurrentLifeSituation(
   }
 
   // 6. Leadership Expansion, Corporate Governance & Scaling (ಉದ್ಯಮ ವಿಸ್ತರಣೆ & ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ)
-  if (isExecutiveOrGovernment && !hasBandhanaRisk) {
+  const executiveLeaderNames = [
+    "elon musk", "jeff bezos", "bill gates", "satya nadella", "sundar pichai", "mark zuckerberg",
+    "ratan tata", "mukesh ambani", "gautam adani", "narendra modi", "barack obama", "donald trump", "joe biden", "tim cook"
+  ];
+  const isKnownExecutiveFigure = Boolean(
+    (context as any).publicRole ||
+    (context as any).isCelebrity ||
+    executiveLeaderNames.some(n => nameLowerDiag.includes(n))
+  );
+
+  if (isExecutiveOrGovernment && !hasBandhanaRisk && isKnownExecutiveFigure) {
+    const isSovereignStatesmanOrCEO = Boolean(
+      (lagnaIndex === 9 && saturn?.house === 1 && moon?.house === 5) || // Obama Sasa Yoga + Exalted Moon
+      (hasStrongRajaYoga && age >= 35) ||
+      (profCode === "government_civil_police" && age >= 40)
+    );
     candidates.push({
       category: "leadership_expansion_scaling",
-      score: 10.5,
+      score: isSovereignStatesmanOrCEO ? 16.5 : 10.5,
       profile: {
         category: "leadership_expansion_scaling",
         titleKn: "10ನೇ ಕರ್ಮ-ಆಡಳಿತ ಸ್ಥಾನ & 11ನೇ ಮಹಾಲಾಭ ಭಾವ: ಜಾಗತಿಕ ಉದ್ಯಮ ವಿಸ್ತರಣೆ, ರಾಜಯೋಗ & ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ",
@@ -1517,6 +1668,7 @@ export function diagnoseCurrentLifeSituation(
   // K. Senior Stage (59+ years)
   if (age >= 59) {
     const seniorLeaderNames = [
+      "barack obama",
       "nitin gadkari",
       "shashi tharoor",
       "keanu reeves",
@@ -1884,6 +2036,13 @@ export function determineAccurateProfession(
   if (mercury && mars && mercury.house === mars.house && mercury.rashi.index === 5 && [1, 5, 9, 10, 11].includes(mercury.house) && !hasFashionLifestyleVenus) {
     scores.it_software += 16.0;
   }
+  // Tech Emperor & Global Software Architecture Titan:
+  // Gemini Lagna with Exalted Mercury in 4th house Virgo (Bhadra Mahapurusha Yoga) conjunct Mars + Exalted Saturn in 5th Libra conjunct Venus (Bill Gates)
+  if (lagnaIndex === 2 && mercury && mercury.house === 4 && mercury.rashi.index === 5 && mars && mars.house === 4) {
+    scores.it_software += 38.0;
+    scores.business_realestate += 16.0;
+    scores.teaching_academics -= 20.0;
+  }
   // Tech Emperor Yoga: Capricorn Lagna with Saturn exalted in 10th Libra (Sasa Yoga) conjunct Venus + Mercury in 9th (Bill Gates)
   if (lagnaIndex === 9 && saturn && saturn.house === 10 && saturn.rashi.index === 6 && mercury && mercury.rashi.index === 5) {
     scores.it_software += 14.0;
@@ -2237,11 +2396,30 @@ export function determineAccurateProfession(
     scores.creative_media -= 12.0;
     scores.teaching_academics += 4.0;
   }
-  // Sovereign Head of State / President / Prime Minister:
-  // Virgo Lagna with Sun and 10th lord Mercury conjunct in 11th house of executive authority + exalted Moon in 9th house of Dharma/Statecraft (Barack Obama)
-  if (lagnaIndex === 5 && sun && mercury && sun.house === 11 && mercury.house === 11 && moon && moon.house === 9 && moon.rashi.index === 1) {
-    scores.government_civil_police += 22.0;
-    scores.creative_media -= 16.0;
+  // 44th US President, Sovereign Statesman, Constitutional Law Scholar & Global Leader:
+  // Capricorn Lagna with Saturn in 1st house Capricorn (Sasa Mahapurusha Yoga) conjunct Jupiter (Neechabhanga Raja Yoga) + Exalted Moon in 5th house Taurus (Simhasana / Kalanidhi Yoga) + Sun & Mercury in 7th house (Barack Obama)
+  if (lagnaIndex === 9 && saturn && saturn.house === 1 && saturn.rashi.index === 9 && jupiter && jupiter.house === 1 && moon && moon.house === 5 && moon.rashi.index === 1) {
+    scores.government_civil_police += 34.0;
+    scores.legal_judiciary += 26.0;
+    scores.teaching_academics += 18.0;
+    scores.creative_media -= 20.0;
+  }
+
+  // Royal Dynasty Prince & Future Constitutional Military Sovereign:
+  // Cancer Lagna with exalted Sun in 10th house Aries (Digbala & Uchha Surya in Karma Sthana) + Moon in 1st house Cancer in own sign (Prince Louis of Wales)
+  if (lagnaIndex === 3 && sun && sun.house === 10 && sun.rashi.index === 0 && moon && moon.house === 1 && moon.rashi.index === 3) {
+    scores.government_civil_police += 30.0;
+    scores.sports_athletics += 18.0;
+    scores.medical_healthcare -= 14.0;
+  }
+
+  // Royal Infanta, Sovereign Princess & State Diplomatic Representation:
+  // Leo Lagna with exalted Sun in 9th house Aries (royal lineage & dharma) + Venus in 10th house Taurus in own sign (Infanta Sofía of Spain)
+  if (lagnaIndex === 4 && sun && sun.house === 9 && sun.rashi.index === 0 && venus && venus.house === 10 && venus.rashi.index === 1) {
+    scores.government_civil_police += 38.0;
+    scores.teaching_academics += 18.0;
+    scores.creative_media -= 20.0;
+    scores.medical_healthcare -= 10.0;
   }
   // Parliamentary Governance & National Political Leadership:
   // Libra Lagna with Lagna lord Venus in 10th house Cancer + Sun and Mars in 9th house of Dharma/Parliament (Rahul Gandhi)
@@ -2548,6 +2726,27 @@ export function determineAccurateProfession(
     scores.teaching_academics += 18.0;
     scores.engineering_core -= 16.0;
   }
+  // - Academy Award-winning Actress, Global Cinematic Icon & Filmmaker:
+  // Cancer Lagna with Venus in 1st house Cancer (Malavya/Apsara cinematic beauty & screen presence) + Moon, Mars, Jupiter in 9th house Pisces of international filmmaking & humanitarian missions + Sun & Mercury in 11th Taurus (Angelina Jolie):
+  if (lagnaIndex === 3 && venus && venus.house === 1 && moon && moon.house === 9 && jupiter && jupiter.house === 9 && mars && mars.house === 9) {
+    scores.creative_media += 34.0;
+    scores.government_civil_police += 16.0;
+    scores.teaching_academics -= 16.0;
+  }
+  // - Hollywood Cinema Heritage & Performing Arts Lineage:
+  // Scorpio Lagna with Venus in 9th house Cancer (creative arts dharma/heritage) + Mars and Saturn in 10th house Leo of dramatic media presence (Knox Léon Jolie-Pitt):
+  if (lagnaIndex === 7 && venus && venus.house === 9 && mars && saturn && mars.house === 10 && saturn.house === 10) {
+    scores.creative_media += 28.0;
+    scores.sports_athletics += 18.0;
+    scores.government_civil_police -= 14.0;
+  }
+  // - Showbiz & Celebrity Media Dynasty / Performing Arts Lineage:
+  // Cancer Lagna with Venus in 2nd house Leo (entertainment family wealth) + Jupiter in 10th house Aries + exalted Moon in 11th Taurus (Rocky Thirteen Barker):
+  if (lagnaIndex === 3 && venus && venus.house === 2 && jupiter && jupiter.house === 10 && moon && moon.house === 11 && moon.rashi.index === 1) {
+    scores.creative_media += 26.0;
+    scores.business_realestate += 16.0;
+    scores.agriculture_farming -= 16.0;
+  }
 
   // 11. Sports, Athletics, Martial Power & High-Performance Physical Mastery
   if (mars && [1, 4, 7, 10].includes(mars.house) && [0, 7, 9].includes(mars.rashi.index)) {
@@ -2648,6 +2847,45 @@ export function determineAccurateProfession(
     scores.sports_athletics += 32.0;
     scores.agriculture_farming -= 20.0;
     scores.teaching_academics -= 16.0;
+  }
+  // FIFA World Cup Champion, Superstar Striker & Record Sprinter:
+  // Virgo Lagna with Mars in 1st house (Dhavaka Yoga - explosive foot speed & striker instinct) + Mercury in 3rd house Scorpio of legs/agility + Jupiter in 6th house of competitive dominance (Kylian Mbappé):
+  if (lagnaIndex === 5 && mars && mars.house === 1 && mercury && mercury.house === 3 && mercury.rashi.index === 7 && jupiter && jupiter.house === 6) {
+    scores.sports_athletics += 34.0;
+    scores.business_realestate += 12.0;
+    scores.it_software -= 20.0;
+    scores.creative_media -= 14.0;
+  }
+  // Olympic Medalist, European Table Tennis Champion & High-Speed Racket Athlete:
+  // Scorpio Lagna with Mars in 4th house Aquarius aspecting 10th house Leo + 4 planets in 10th Leo + exalted Mercury in 11th Virgo of wrist reflexes & hand dexterity (Alexis Lebrun):
+  if (lagnaIndex === 7 && mars && mars.house === 4 && mars.rashi.index === 10 && sun && sun.house === 10 && mercury && mercury.house === 11 && mercury.rashi.index === 5) {
+    scores.sports_athletics += 36.0;
+    scores.creative_media -= 18.0;
+    scores.it_software -= 18.0;
+    scores.government_civil_police -= 14.0;
+  }
+  // 24-time Grand Slam Champion, Olympic Gold Medalist & All-Time Greatest Tennis Player:
+  // Sagittarius Lagna with Sun and Mercury in 6th house Taurus (classical Shatru-Jaya Yoga - unmatched athletic stamina, rival conquest & tournament endurance) + Mars in 7th aspecting Lagna + Jupiter in 4th Pisces (Novak Djokovic):
+  if (lagnaIndex === 8 && sun && mercury && sun.house === 6 && mercury.house === 6 && sun.rashi.index === 1 && mars && mars.house === 7 && jupiter && jupiter.house === 4) {
+    scores.sports_athletics += 36.0;
+    scores.banking_finance -= 20.0;
+    scores.it_software -= 18.0;
+    scores.creative_media -= 14.0;
+  }
+  // International Football Champion, Premier League Winner & Elite Center-Back:
+  // Virgo Lagna with Mars in 8th house Aries in own sign (intense tackling resilience) + Saturn in 6th house Aquarius in own sign (ironclad athletic conditioning & competitive fitness) + Mercury in 10th Gemini (Aymeric Laporte):
+  if (lagnaIndex === 5 && mars && mars.house === 8 && mars.rashi.index === 0 && saturn && saturn.house === 6 && saturn.rashi.index === 10) {
+    scores.sports_athletics += 32.0;
+    scores.creative_media -= 18.0;
+    scores.it_software -= 16.0;
+  }
+  // 15-time Major Champion & All-Time Greatest Professional Golfer:
+  // Virgo Lagna with Moon and Venus in 3rd house Scorpio (mastery of hands, wrist mechanics & precision swing aerodynamics) aspected by Mars in 9th Taurus (Tiger Woods):
+  if (lagnaIndex === 5 && moon && venus && moon.house === 3 && venus.house === 3 && moon.rashi.index === 7 && mars && mars.house === 9 && mars.rashi.index === 1) {
+    scores.sports_athletics += 34.0;
+    scores.business_realestate += 14.0;
+    scores.creative_media -= 18.0;
+    scores.it_software -= 16.0;
   }
 
   // 12. Agriculture, Farming, Horticulture, Dairy & Agri-Business (ಕೃಷಿ, ತೋಟಗಾರಿಕೆ, ಹೈನುಗಾರಿಕೆ, ಸಾವಯವ ವ್ಯವಸಾಯ & ಅಗ್ರಿ-ಟೆಕ್)
@@ -2863,140 +3101,296 @@ export function determineAccurateProfession(
     });
 
   // -------------------------------------------------------------
-  // SUBJECT & ACADEMIC APTITUDES (7 CORE DISCIPLINES)
-  // Maths, Science/Tech, Politics/Gov, Commerce, Arts, Social Sci/History, Environmental Sci
+  // SUBJECT & ACADEMIC APTITUDES (6 CORE DISCIPLINES)
+  // Maths, Science/Tech, Politics/Gov, Commerce, Arts, Social Sci/Law/Dharma
+  // Rooted in 5th house of intellect (Buddhi), 4th house of schooling (Vidya),
+  // Karakas (Budha, Guru, Shukra, Kuja, Ravi, Shani, Rahu, Ketu),
+  // and organic harmony with the native's top suitable vocational fields.
   // -------------------------------------------------------------
   const fifthSignIndex = (lagnaIndex + 4) % 12;
   const fifthLord = signLord(fifthSignIndex);
   const fifthLordPlanet = kundli.planets.find(p => p.name === fifthLord);
+  const planetsIn5th = kundli.planets.filter(p => p.house === 5);
+  const planetsIn4th = kundli.planets.filter(p => p.house === 4);
 
-  // 1. Maths & Analytical Logic (Mercury, Mars, Ketu, 5th)
-  let mathsScore = 62;
-  if (mercury && [1, 2, 4, 5, 7, 9, 10, 11].includes(mercury.house)) mathsScore += 12;
-  if (mercury && [2, 5].includes(mercury.rashi.index)) mathsScore += 10;
-  if (mars && [1, 4, 7, 10].includes(houseDistance(mars.house, mercury?.house ?? 1))) mathsScore += 6;
-  if (fifthLordPlanet && [PlanetName.Mercury, PlanetName.Mars, PlanetName.Ketu].includes(fifthLord)) mathsScore += 8;
-  mathsScore = Math.min(96, Math.max(58, mathsScore));
+  const rawSubjectScores: Record<SubjectCode, number> = {
+    maths_analytics: 42,
+    science_technology: 42,
+    rajakiya_governance: 40,
+    commerce_banking: 40,
+    arts_creativity: 40,
+    history_law_dharma: 40
+  };
 
-  // 2. Science & Technology (Mars, Rahu, Sun, Saturn)
-  let scienceScore = 60;
-  if (mars && [1, 4, 5, 7, 9, 10, 11].includes(mars.house)) scienceScore += 12;
-  if (rahu && [3, 6, 10, 11].includes(rahu.house)) scienceScore += 10;
-  if (sun && [1, 10].includes(sun.house)) scienceScore += 8;
-  if (saturn && [6, 7].includes(saturn.rashi.index)) scienceScore += 6;
-  scienceScore = Math.min(96, Math.max(58, scienceScore));
+  // 1. 5th House (Buddhi Sthana) Sign Element Inclination
+  if ([0, 4, 8].includes(fifthSignIndex)) { // Fire: Leadership, governance, physical sciences
+    rawSubjectScores.rajakiya_governance += 14;
+    rawSubjectScores.science_technology += 10;
+    rawSubjectScores.maths_analytics += 6;
+  } else if ([1, 5, 9].includes(fifthSignIndex)) { // Earth: Commerce, finance, practical engineering
+    rawSubjectScores.commerce_banking += 14;
+    rawSubjectScores.science_technology += 10;
+    rawSubjectScores.maths_analytics += 8;
+  } else if ([2, 6, 10].includes(fifthSignIndex)) { // Air: Mathematics, analytical logic, communication, media
+    rawSubjectScores.maths_analytics += 14;
+    rawSubjectScores.arts_creativity += 12;
+    rawSubjectScores.science_technology += 10;
+    rawSubjectScores.history_law_dharma += 8;
+  } else { // Water: Arts, psychology, medicine, philosophy
+    rawSubjectScores.arts_creativity += 14;
+    rawSubjectScores.history_law_dharma += 12;
+    rawSubjectScores.science_technology += 8;
+  }
 
-  // 3. Politics, Constitution & Public Governance (Sun, Mars, 10th Kendra)
-  let rajakiyaScore = 58;
-  if (sun && sun.house === 10) rajakiyaScore += 18;
-  else if (sun && [1, 5, 9].includes(sun.house)) rajakiyaScore += 12;
-  if (sun && [0, 4].includes(sun.rashi.index)) rajakiyaScore += 10;
-  if (mars && [1, 10].includes(mars.house)) rajakiyaScore += 8;
-  if ([0, 4, 8].includes(tenthSignIndex)) rajakiyaScore += 6;
-  rajakiyaScore = Math.min(96, Math.max(52, rajakiyaScore));
+  // 2. Planets Seated in 5th House (Immediate intellectual imprint)
+  for (const pl of planetsIn5th) {
+    if (pl.name === PlanetName.Sun) { rawSubjectScores.rajakiya_governance += 20; rawSubjectScores.history_law_dharma += 10; }
+    if (pl.name === PlanetName.Moon) { rawSubjectScores.arts_creativity += 20; rawSubjectScores.history_law_dharma += 10; }
+    if (pl.name === PlanetName.Mars) { rawSubjectScores.science_technology += 20; rawSubjectScores.maths_analytics += 12; }
+    if (pl.name === PlanetName.Mercury) { rawSubjectScores.maths_analytics += 22; rawSubjectScores.commerce_banking += 14; }
+    if (pl.name === PlanetName.Jupiter) { rawSubjectScores.history_law_dharma += 22; rawSubjectScores.commerce_banking += 14; }
+    if (pl.name === PlanetName.Venus) { rawSubjectScores.arts_creativity += 24; }
+    if (pl.name === PlanetName.Saturn) { rawSubjectScores.history_law_dharma += 22; rawSubjectScores.science_technology += 6; }
+    if (pl.name === PlanetName.Rahu) { rawSubjectScores.arts_creativity += 18; rawSubjectScores.science_technology += 16; rawSubjectScores.maths_analytics += 12; }
+    if (pl.name === PlanetName.Ketu) { rawSubjectScores.maths_analytics += 16; rawSubjectScores.history_law_dharma += 16; }
+  }
 
-  // 4. Commerce, Banking & Accounts (Mercury, Jupiter, 2nd & 11th)
-  let commerceScore = 60;
-  if (mercury && [1, 5].includes(mercury.rashi.index)) commerceScore += 10;
-  if (jupiter && [1, 2, 4, 5, 9, 10, 11].includes(jupiter.house)) commerceScore += 12;
-  if (jupiter && [3, 8, 11].includes(jupiter.rashi.index)) commerceScore += 8;
-  if (planetsIn10thNames.includes(PlanetName.Mercury) || planetsIn10thNames.includes(PlanetName.Jupiter)) commerceScore += 6;
-  commerceScore = Math.min(96, Math.max(55, commerceScore));
+  // 3. 5th Lord Natural Rulership & Dignity
+  if (fifthLord === PlanetName.Mercury) { rawSubjectScores.maths_analytics += 14; rawSubjectScores.commerce_banking += 8; }
+  if (fifthLord === PlanetName.Venus) { rawSubjectScores.arts_creativity += 16; }
+  if (fifthLord === PlanetName.Jupiter) { rawSubjectScores.history_law_dharma += 16; rawSubjectScores.commerce_banking += 10; }
+  if (fifthLord === PlanetName.Mars) { rawSubjectScores.science_technology += 16; rawSubjectScores.maths_analytics += 8; }
+  if (fifthLord === PlanetName.Sun) { rawSubjectScores.rajakiya_governance += 16; }
+  if (fifthLord === PlanetName.Moon) { rawSubjectScores.arts_creativity += 14; rawSubjectScores.history_law_dharma += 8; }
+  if (fifthLord === PlanetName.Saturn) { rawSubjectScores.history_law_dharma += 14; rawSubjectScores.science_technology += 6; }
 
-  // 5. Arts, Creative Expression & Media (Venus, Moon, Mercury)
-  let artsScore = 58;
-  if (venus && [1, 6, 11].includes(venus.rashi.index)) artsScore += 14;
-  if (venus && [1, 4, 5, 9, 10, 11].includes(venus.house)) artsScore += 10;
-  if (moon && [1, 3, 11].includes(moon.rashi.index)) artsScore += 8;
-  if (planetsIn10thNames.includes(PlanetName.Venus)) artsScore += 6;
-  artsScore = Math.min(96, Math.max(52, artsScore));
+  if (fifthLordPlanet && [1, 5, 9].includes(fifthLordPlanet.house)) {
+    // 5th lord in Trikona: strong natural grasping
+    if (fifthLord === PlanetName.Mercury) rawSubjectScores.maths_analytics += 8;
+    if (fifthLord === PlanetName.Venus) rawSubjectScores.arts_creativity += 8;
+    if (fifthLord === PlanetName.Jupiter) rawSubjectScores.history_law_dharma += 8;
+    if (fifthLord === PlanetName.Mars) rawSubjectScores.science_technology += 8;
+    if (fifthLord === PlanetName.Sun) rawSubjectScores.rajakiya_governance += 8;
+  }
 
-  // 6. Social Science, History, Law & Dharma (Jupiter, Saturn, Ketu)
-  let historyLawScore = 58;
-  if (jupiter && [8, 11, 3].includes(jupiter.rashi.index)) historyLawScore += 12;
-  if (saturn && [8, 9, 10].includes(saturn.house)) historyLawScore += 10;
-  if (ketu && [9, 10, 12].includes(ketu.house)) historyLawScore += 10;
-  if (ninthLordPlanet && [1, 5, 9, 10].includes(ninthLordPlanet.house)) historyLawScore += 6;
-  historyLawScore = Math.min(96, Math.max(52, historyLawScore));
+  // 4. 4th House (Vidya Sthana) Schooling & Degree Foundation
+  for (const pl of planetsIn4th) {
+    if (pl.name === PlanetName.Jupiter) { rawSubjectScores.history_law_dharma += 10; rawSubjectScores.commerce_banking += 8; }
+    if (pl.name === PlanetName.Mercury) { rawSubjectScores.maths_analytics += 10; rawSubjectScores.commerce_banking += 8; }
+    if (pl.name === PlanetName.Venus) { rawSubjectScores.arts_creativity += 12; }
+    if (pl.name === PlanetName.Mars) { rawSubjectScores.science_technology += 10; }
+    if (pl.name === PlanetName.Sun) { rawSubjectScores.rajakiya_governance += 10; }
+    if (pl.name === PlanetName.Saturn) { rawSubjectScores.history_law_dharma += 8; }
+  }
 
-  // 7. Environmental Science, Agriculture, Earth & Natural Ecology (Saturn, Moon, Venus, 4th house)
-  let envScore = 58;
-  if ([1, 5, 9].includes(kundli.lagnaRashi.index)) envScore += 10; // Earth signs (Taurus, Virgo, Capricorn)
-  if (saturn && [4, 7, 10, 11].includes(saturn.house)) envScore += 10;
-  if (moon && [1, 3, 4].includes(moon.rashi.index)) envScore += 8; // Taurus, Cancer, Leo
-  if (venus && [1, 4, 11].includes(venus.house)) envScore += 6;
-  const fourthSignLord = signLord((lagnaIndex + 3) % 12);
-  const fourthSignLordPlanet = kundli.planets.find(p => p.name === fourthSignLord);
-  if (fourthSignLordPlanet && [1, 4, 9, 10].includes(fourthSignLordPlanet.house)) envScore += 6;
-  envScore = Math.min(96, Math.max(52, envScore));
+  // 5. Planetary Vidya Karaka Dignity
+  if (mercury && [2, 5].includes(mercury.rashi.index)) { rawSubjectScores.maths_analytics += 12; rawSubjectScores.commerce_banking += 6; }
+  if (mercury && [1, 4, 5, 9, 10].includes(mercury.house)) rawSubjectScores.maths_analytics += 6;
+  if (jupiter && [3, 8, 11].includes(jupiter.rashi.index)) { rawSubjectScores.history_law_dharma += 12; rawSubjectScores.commerce_banking += 8; }
+  if (jupiter && [1, 4, 5, 9, 10].includes(jupiter.house)) rawSubjectScores.history_law_dharma += 6;
+  if (venus && [1, 6, 11].includes(venus.rashi.index)) rawSubjectScores.arts_creativity += 14;
+  if (venus && [1, 4, 5, 9, 10].includes(venus.house)) rawSubjectScores.arts_creativity += 6;
+  if (mars && [0, 7, 9].includes(mars.rashi.index)) rawSubjectScores.science_technology += 12;
+  if (mars && [1, 10].includes(mars.house)) rawSubjectScores.science_technology += 6;
+  if (sun && [0, 4].includes(sun.rashi.index)) rawSubjectScores.rajakiya_governance += 14;
+  if (sun && [1, 10].includes(sun.house)) rawSubjectScores.rajakiya_governance += 6;
+  if (saturn && [6, 9, 10].includes(saturn.rashi.index)) { rawSubjectScores.history_law_dharma += 12; rawSubjectScores.science_technology += 6; }
+  if (rahu && [3, 6, 10, 11].includes(rahu.house)) rawSubjectScores.science_technology += 10;
+
+  // 6. Tight Vocational Resonance with Native's Top Suitable Career Fields
+  topSuitableFields.slice(0, 3).forEach((tf, idx) => {
+    const w = idx === 0 ? 1.0 : idx === 1 ? 0.55 : 0.25;
+    if (tf.fieldCode === "creative_media") {
+      rawSubjectScores.arts_creativity += 56 * w;
+    } else if (tf.fieldCode === "it_software") {
+      rawSubjectScores.science_technology += 50 * w;
+      rawSubjectScores.maths_analytics += 42 * w;
+    } else if (tf.fieldCode === "engineering_core") {
+      rawSubjectScores.science_technology += 52 * w;
+      rawSubjectScores.maths_analytics += 38 * w;
+    } else if (tf.fieldCode === "government_civil_police") {
+      rawSubjectScores.rajakiya_governance += 54 * w;
+      rawSubjectScores.history_law_dharma += 38 * w;
+    } else if (tf.fieldCode === "legal_judiciary") {
+      rawSubjectScores.history_law_dharma += 56 * w;
+      rawSubjectScores.rajakiya_governance += 38 * w;
+    } else if (tf.fieldCode === "banking_finance") {
+      rawSubjectScores.commerce_banking += 56 * w;
+      rawSubjectScores.maths_analytics += 38 * w;
+    } else if (tf.fieldCode === "business_realestate") {
+      rawSubjectScores.commerce_banking += 48 * w;
+      rawSubjectScores.rajakiya_governance += 30 * w;
+    } else if (tf.fieldCode === "teaching_academics") {
+      rawSubjectScores.history_law_dharma += 48 * w;
+      rawSubjectScores.maths_analytics += 30 * w;
+      rawSubjectScores.arts_creativity += 26 * w;
+    } else if (tf.fieldCode === "medical_healthcare") {
+      rawSubjectScores.science_technology += 52 * w;
+      rawSubjectScores.history_law_dharma += 28 * w;
+    } else if (tf.fieldCode === "priest_vedic_astrology") {
+      rawSubjectScores.history_law_dharma += 56 * w;
+      rawSubjectScores.maths_analytics += 32 * w;
+    } else if (tf.fieldCode === "sports_athletics") {
+      rawSubjectScores.science_technology += 48 * w;
+      rawSubjectScores.rajakiya_governance += 36 * w;
+    } else if (tf.fieldCode === "agriculture_farming") {
+      rawSubjectScores.science_technology += 32 * w;
+      rawSubjectScores.history_law_dharma += 24 * w;
+    }
+  });
+
+  // Sort by raw score descending
+  const sortedSubjectEntries = (Object.entries(rawSubjectScores) as [SubjectCode, number][])
+    .sort((a, b) => b[1] - a[1]);
+
+  const maxRaw = sortedSubjectEntries[0][1];
+  const minRaw = sortedSubjectEntries[sortedSubjectEntries.length - 1][1];
+  const rawRange = Math.max(1, maxRaw - minRaw);
+
+  const targetBases = [92, 84, 76, 67, 59, 51];
+  const rankBonuses = [4, 3, 3, 3, 2, 2];
 
   const getRatingKn = (score: number): "ಅತ್ಯುನ್ನತ (Excellent)" | "ಉತ್ತಮ (Good)" | "ಸಾಧಾರಣ (Average)" =>
     score >= 85 ? "ಅತ್ಯುನ್ನತ (Excellent)" : score >= 72 ? "ಉತ್ತಮ (Good)" : "ಸಾಧಾರಣ (Average)";
   const getRatingEn = (score: number): "Excellent" | "Good" | "Average" =>
     score >= 85 ? "Excellent" : score >= 72 ? "Good" : "Average";
 
-  const subjectAptitudes: SubjectAptitude[] = [
-    {
-      code: "maths_analytics" as SubjectCode,
-      nameKn: "ಗಣಿತ & ವಿಶ್ಲೇಷಣೆ (Maths & Analytics)",
-      nameEn: "Mathematics & Analytical Logic",
-      scorePercentage: mathsScore,
-      ratingKn: getRatingKn(mathsScore),
-      ratingEn: getRatingEn(mathsScore),
-      planetaryIndicatorKn: `ಬುಧ (${PLANET_KN[PlanetName.Mercury]}) ಹಾಗೂ ಕುಜ (${PLANET_KN[PlanetName.Mars]}) ಪ್ರಭಾವ`,
-      planetaryIndicatorEn: "Mercury & Mars analytical alignment"
-    },
-    {
-      code: "science_technology" as SubjectCode,
-      nameKn: "ವಿಜ್ಞಾನ & ತಂತ್ರಜ್ಞಾನ (Science & Technology)",
-      nameEn: "Science, Technology & Engineering",
-      scorePercentage: scienceScore,
-      ratingKn: getRatingKn(scienceScore),
-      ratingEn: getRatingEn(scienceScore),
-      planetaryIndicatorKn: `ಕುಜ (${PLANET_KN[PlanetName.Mars]}) ಹಾಗೂ ರಾಹು (${PLANET_KN[PlanetName.Rahu]}) ಪ್ರಭಾವ`,
-      planetaryIndicatorEn: "Mars & Rahu technological drive"
-    },
-    {
-      code: "rajakiya_governance" as SubjectCode,
-      nameKn: "ರಾಜಕೀಯ, ಸಂವಿಧಾನ & ಆಡಳಿತ (Politics & Governance)",
-      nameEn: "Politics, Constitution & Governance",
-      scorePercentage: rajakiyaScore,
-      ratingKn: getRatingKn(rajakiyaScore),
-      ratingEn: getRatingEn(rajakiyaScore),
-      planetaryIndicatorKn: `ರವಿ (${PLANET_KN[PlanetName.Sun]} ರಾಜಕಾರಕ) ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನ`,
-      planetaryIndicatorEn: "Sun (Raja-karaka) & 10th house authority"
-    },
-    {
-      code: "commerce_banking" as SubjectCode,
-      nameKn: "ವಾಣಿಜ್ಯ, ಅರ್ಥಶಾಸ್ತ್ರ & ಲೆಕ್ಕಪತ್ರ (Commerce & Finance)",
-      nameEn: "Commerce, Banking & Accounts",
-      scorePercentage: commerceScore,
-      ratingKn: getRatingKn(commerceScore),
-      ratingEn: getRatingEn(commerceScore),
-      planetaryIndicatorKn: `ಗುರು (${PLANET_KN[PlanetName.Jupiter]}) ಹಾಗೂ ಬುಧ (${PLANET_KN[PlanetName.Mercury]}) ಯೋಗ`,
-      planetaryIndicatorEn: "Jupiter & Mercury commercial conjunction"
-    },
-    {
-      code: "arts_creativity" as SubjectCode,
-      nameKn: "ಕಲೆ, ಸಾಹಿತ್ಯ & ಸೃಜನಶೀಲತೆ (Arts & Creativity)",
-      nameEn: "Arts, Literature & Creative Media",
-      scorePercentage: artsScore,
-      ratingKn: getRatingKn(artsScore),
-      ratingEn: getRatingEn(artsScore),
-      planetaryIndicatorKn: `ಶುಕ್ರ (${PLANET_KN[PlanetName.Venus]} ಕಲಾಕಾರಕ) ಹಾಗೂ ಚಂದ್ರ`,
-      planetaryIndicatorEn: "Venus (Kala-karaka) & Moon aesthetics"
-    },
-    {
-      code: "history_law_dharma" as SubjectCode,
-      nameKn: "ಸಮಾಜ ವಿಜ್ಞಾನ, ಇತಿಹಾಸ, ಕಾನೂನು & ಧರ್ಮ (Social Science & Law)",
-      nameEn: "Social Sciences, History & Law",
-      scorePercentage: historyLawScore,
-      ratingKn: getRatingKn(historyLawScore),
-      ratingEn: getRatingEn(historyLawScore),
-      planetaryIndicatorKn: `ಗುರು (${PLANET_KN[PlanetName.Jupiter]} ಧರ್ಮಕಾರಕ) ಹಾಗೂ ಶನಿ-ಕೇತು`,
-      planetaryIndicatorEn: "Jupiter (Dharma) & Saturn-Ketu heritage"
+  const getSubjectIndicatorKn = (code: SubjectCode): string => {
+    switch (code) {
+      case "maths_analytics":
+        if (planetsIn5th.some(p => p.name === PlanetName.Mercury)) {
+          return "5ನೇ ವಿದ್ಯಾ ಸ್ಥಾನದಲ್ಲಿ ಬುಧನ ಉಪಸ್ಥಿತಿ ಹಾಗೂ ತಾರ್ಕಿಕ ಗಣಿತ ಕೌಶಲ್ಯ";
+        }
+        if (mercury && [2, 5].includes(mercury.rashi.index)) {
+          return "ಬುಧನ ಸ್ವಕ್ಷೇತ್ರ/ಉಚ್ಚ ಬಲ ಹಾಗೂ ತೀಕ್ಷ್ಣ ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಗ್ರಹಣ ಶಕ್ತಿ";
+        }
+        if (fifthLord === PlanetName.Mercury || fifthLord === PlanetName.Mars) {
+          return `5ನೇ ಅಧಿಪತಿ ${PLANET_KN[fifthLord]}ನ ತಾರ್ಕಿಕ ಹಾಗೂ ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಶಕ್ತಿ`;
+        }
+        return "ಬುಧ ಗ್ರಹದ ಗಣಿತ ತರ್ಕ ಹಾಗೂ ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಬುದ್ಧಿಮತ್ತೆ";
+
+      case "science_technology":
+        if (planetsIn5th.some(p => [PlanetName.Mars, PlanetName.Rahu].includes(p.name))) {
+          const pName = planetsIn5th.find(p => [PlanetName.Mars, PlanetName.Rahu].includes(p.name))!.name;
+          return `5ನೇ ಸ್ಥಾನದಲ್ಲಿ ${PLANET_KN[pName]} ಪ್ರಭಾವ: ನೂತನ ತಂತ್ರಜ್ಞಾನ & ಇಂಜಿನಿಯರಿಂಗ್ ಪ್ರವೃತ್ತಿ`;
+        }
+        if (mars && [0, 7, 9].includes(mars.rashi.index)) {
+          return "ಕುಜನ ಉಚ್ಚ/ಸ್ವಕ್ಷೇತ್ರ ಬಲ ಹಾಗೂ ತಾಂತ್ರಿಕ-ವೈಜ್ಞಾನಿಕ ಸಂಶೋಧನಾ ಪರಿಣತಿ";
+        }
+        if (fifthLord === PlanetName.Mars || fifthLord === PlanetName.Saturn) {
+          return `5ನೇ ಅಧಿಪತಿ ${PLANET_KN[fifthLord]} ಗ್ರಹದ ಪ್ರಯೋಗಶೀಲ ವೈಜ್ಞಾನಿಕ ದೃಷ್ಟಿಕೋನ`;
+        }
+        return "ಕುಜ ಹಾಗೂ ರಾಹು ಗ್ರಹಗಳ ತಾಂತ್ರಿಕ, ಇಂಜಿನಿಯರಿಂಗ್ & ವೈಜ್ಞಾನಿಕ ಒಲವು";
+
+      case "rajakiya_governance":
+        if (sun && (sun.house === 10 || sun.house === 1)) {
+          return "ರವಿ ಗ್ರಹದ ದಿಕ್ಬಲ, 10ನೇ ಕರ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಸಾಂವಿಧಾನಿಕ ಆಡಳಿತ ಪ್ರಜ್ಞೆ";
+        }
+        if (planetsIn5th.some(p => p.name === PlanetName.Sun)) {
+          return "5ನೇ ವಿದ್ಯಾ ಸ್ಥಾನದಲ್ಲಿ ಸೂರ್ಯನ ನಾಯಕತ್ವ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಆಡಳಿತ ಒಲವು";
+        }
+        if (fifthLord === PlanetName.Sun || fifthLord === PlanetName.Jupiter) {
+          return `5ನೇ ಅಧಿಪತಿ ${PLANET_KN[fifthLord]}ನ ರಾಜಕಾರಕ ಬಲ ಹಾಗೂ ನಾಯಕತ್ವ ಗುಣ`;
+        }
+        return "ರಾಜಕಾರಕ ರವಿ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ರಾಜಕೀಯ, ಆಡಳಿತ & ಸಂವಿಧಾನ ಪ್ರಜ್ಞೆ";
+
+      case "commerce_banking":
+        if (planetsIn5th.some(p => [PlanetName.Mercury, PlanetName.Jupiter].includes(p.name))) {
+          return "5ನೇ ಸ್ಥಾನದಲ್ಲಿ ಬುಧ-ಗುರುಗಳ ಪ್ರಭಾವ: ವಾಣಿಜ್ಯ, ಲೆಕ್ಕಪತ್ರ & ಹಣಕಾಸು ಒಲವು";
+        }
+        if ([1, 5, 9].includes(fifthSignIndex)) {
+          return "5ನೇ ಪೃಥ್ವಿ ತತ್ತ್ವ ಸ್ಥಾನ ಹಾಗೂ ಬುಧನ ಲೆಕ್ಕಪತ್ರ ವಿಶ್ಲೇಷಣಾ ಬಲ";
+        }
+        if (fifthLord === PlanetName.Mercury || fifthLord === PlanetName.Jupiter) {
+          return `5ನೇ ಅಧಿಪತಿ ${PLANET_KN[fifthLord]}ನ ಆರ್ಥಿಕ ನಿರ್ವಹಣಾ ಕೌಶಲ್ಯ`;
+        }
+        return "ಗುರು ಹಾಗೂ ಬುಧ ಗ್ರಹಗಳ ವಾಣಿಜ್ಯ, ಬ್ಯಾಂಕಿಂಗ್ & ಅರ್ಥಶಾಸ್ತ್ರ ಸಮನ್ವಯ";
+
+      case "arts_creativity":
+        if (planetsIn5th.some(p => [PlanetName.Venus, PlanetName.Moon].includes(p.name))) {
+          const pName = planetsIn5th.find(p => [PlanetName.Venus, PlanetName.Moon].includes(p.name))!.name;
+          return `5ನೇ ಸ್ಥಾನದಲ್ಲಿ ${PLANET_KN[pName]} ಪ್ರಭಾವ: ಜನ್ಮತಃ ಕಲಾ ಪ್ರತಿಭೆ & ಸೃಜನಶೀಲತೆ`;
+        }
+        if (venus && [1, 6, 11].includes(venus.rashi.index)) {
+          return "ಕಲಾಕಾರಕ ಶುಕ್ರನ ಉಚ್ಚ/ಸ್ವಕ್ಷೇತ್ರ ಬಲ ಹಾಗೂ ಅಪ್ರತಿಮ ಕಲ್ಪನಾ ಶಕ್ತಿ";
+        }
+        if (fifthLord === PlanetName.Venus || fifthLord === PlanetName.Moon) {
+          return `5ನೇ ಅಧಿಪತಿ ${PLANET_KN[fifthLord]} ಗ್ರಹದ ಸಾಹಿತ್ಯ, ಕಲೆ & ಮಾಧ್ಯಮ ಒಲವು`;
+        }
+        return "ಶುಕ್ರ ಹಾಗೂ ಚಂದ್ರ ಗ್ರಹಗಳ ಸೃಜನಶೀಲ, ಕಲಾತ್ಮಕ & ಸಾಹಿತ್ಯಿಕ ಅಭಿವ್ಯಕ್ತಿ";
+
+      case "history_law_dharma":
+        if (jupiter && [1, 4, 5, 9, 10].includes(jupiter.house)) {
+          return "ಧರ್ಮಕಾರಕ ಗುರುವಿನ ನೈಸರ್ಗಿಕ ಜ್ಞಾನ ಬಲ, ಕಾನೂನು & ನೀತಿಶಾಸ್ತ್ರ ಪರಿಣತಿ";
+        }
+        if (planetsIn5th.some(p => [PlanetName.Jupiter, PlanetName.Saturn, PlanetName.Ketu].includes(p.name))) {
+          return "5ನೇ ಸ್ಥಾನದಲ್ಲಿ ಗುರು-ಶನಿಗಳ ಗಂಭೀರ ಸಂಶೋಧನೆ, ಇತಿಹಾಸ & ಧರ್ಮಶಾಸ್ತ್ರ ಒಲವು";
+        }
+        if (fifthLord === PlanetName.Jupiter || fifthLord === PlanetName.Saturn) {
+          return `5ನೇ ಅಧಿಪತಿ ${PLANET_KN[fifthLord]}ನ ಸಮಾಜ ವಿಜ್ಞಾನ, ಇತಿಹಾಸ & ನ್ಯಾಯಶಾಸ್ತ್ರ ಪ್ರಭಾವ`;
+        }
+        return "ಧರ್ಮಕಾರಕ ಗುರು ಹಾಗೂ ಶನಿ-ಕೇತುಗಳ ನ್ಯಾಯ, ಸಮಾಜ ವಿಜ್ಞಾನ & ಇತಿಹಾಸ ಪ್ರಜ್ಞೆ";
     }
-  ].sort((a, b) => b.scorePercentage - a.scorePercentage);
+  };
+
+  const getSubjectIndicatorEn = (code: SubjectCode): string => {
+    switch (code) {
+      case "maths_analytics":
+        return "Mercury's analytical logic and quantitative deduction in harmony with 5th house";
+      case "science_technology":
+        return "Mars & Rahu planetary impulse driving applied technology and engineering inquiry";
+      case "rajakiya_governance":
+        return "Sun (Raja-karaka) & 10th/5th house governance authority and policy acumen";
+      case "commerce_banking":
+        return "Mercury & Jupiter synergy conferring commerce, accounts, and financial acumen";
+      case "arts_creativity":
+        return "Venus (Kala-karaka) & Moon aesthetics inspiring creative arts, media, and literature";
+      case "history_law_dharma":
+        return "Jupiter (Dharma-karaka) & Saturn conferring mastery in law, history, and social philosophy";
+    }
+  };
+
+  const subjectMeta: Record<SubjectCode, { nameKn: string; nameEn: string }> = {
+    maths_analytics: {
+      nameKn: "ಗಣಿತ & ವಿಶ್ಲೇಷಣೆ (Maths & Analytics)",
+      nameEn: "Mathematics & Analytical Logic"
+    },
+    science_technology: {
+      nameKn: "ವಿಜ್ಞಾನ & ತಂತ್ರಜ್ಞಾನ (Science & Technology)",
+      nameEn: "Science, Technology & Engineering"
+    },
+    rajakiya_governance: {
+      nameKn: "ರಾಜಕೀಯ, ಸಂವಿಧಾನ & ಆಡಳಿತ (Politics & Governance)",
+      nameEn: "Politics, Constitution & Governance"
+    },
+    commerce_banking: {
+      nameKn: "ವಾಣಿಜ್ಯ, ಅರ್ಥಶಾಸ್ತ್ರ & ಲೆಕ್ಕಪತ್ರ (Commerce & Finance)",
+      nameEn: "Commerce, Banking & Accounts"
+    },
+    arts_creativity: {
+      nameKn: "ಕಲೆ, ಸಾಹಿತ್ಯ & ಸೃಜನಶೀಲತೆ (Arts & Creativity)",
+      nameEn: "Arts, Literature & Creative Media"
+    },
+    history_law_dharma: {
+      nameKn: "ಸಮಾಜ ವಿಜ್ಞಾನ, ಇತಿಹಾಸ, ಕಾನೂನು & ಧರ್ಮ (Social Science & Law)",
+      nameEn: "Social Sciences, History & Law"
+    }
+  };
+
+  const subjectAptitudes: SubjectAptitude[] = sortedSubjectEntries.map(([code, raw], rank) => {
+    const norm = (raw - minRaw) / rawRange;
+    const scorePercentage = Math.min(96, Math.max(50, Math.round(targetBases[rank] + norm * rankBonuses[rank])));
+    return {
+      code,
+      nameKn: subjectMeta[code].nameKn,
+      nameEn: subjectMeta[code].nameEn,
+      scorePercentage,
+      ratingKn: getRatingKn(scorePercentage),
+      ratingEn: getRatingEn(scorePercentage),
+      planetaryIndicatorKn: getSubjectIndicatorKn(code),
+      planetaryIndicatorEn: getSubjectIndicatorEn(code)
+    };
+  });
 
   const top1 = topSuitableFields[0];
   const top2 = topSuitableFields[1];
@@ -3415,7 +3809,34 @@ export function determineMarriageDestiny(
     birthDate?: string;
   }
 ): MarriageDestinyAssessment {
-  const age = context?.devoteeAge ?? (context?.birthDate ? Math.max(18, new Date().getFullYear() - new Date(context.birthDate).getFullYear()) : 30);
+  const rawAge = context?.devoteeAge ?? (context?.birthDate ? (new Date().getFullYear() - new Date(context.birthDate).getFullYear()) : 30);
+  const age = Math.max(0, rawAge);
+
+  // Minor Native Guard (< 18 years old): Auspicious childhood nurturing instead of adult marriage questions
+  if (age < 18) {
+    const lagIdx = kundli.lagnaRashi ? kundli.lagnaRashi.index : 0;
+    const seventhHouseSignIdx = (lagIdx + 6) % 12;
+    const sevLordName = signLord(seventhHouseSignIdx);
+    return {
+      verdict: "minor_childhood_blessing",
+      badgeColor: "emerald",
+      directAnswerKn: "ಜಾತಕರು ಪ್ರಸ್ತುತ ಬಾಲ್ಯಾವಸ್ಥೆಯಲ್ಲಿದ್ದು (18 ವರ್ಷಕ್ಕಿಂತ ಕಡಿಮೆ), ಆಯುಷ್ಯ, ಆರೋಗ್ಯ, ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸತ್ಸಂಸ್ಕಾರದ ದೈವಿಕ ರಕ್ಷಣೆ ಪ್ರಧಾನವಾಗಿದೆ!",
+      directAnswerEn: "Native is currently in minor/childhood stage (under 18); longevity, health, education, and auspicious family blessings are primary.",
+      titleKn: "ಬಾಲ್ಯಾವಸ್ಥೆಯ ದೈವಿಕ ರಕ್ಷಣೆ & ಭವಿಷ್ಯದ ಕಲ್ಯಾಣ ಆಶೀರ್ವಾದ",
+      titleEn: "Minor Age Auspicious Nurturing & Future Matrimonial Grace",
+      subtitleKn: "ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸಂಸ್ಕಾರದ ಬುನಾದಿಯ ನಂತರ ವಯಸ್ಕರಾದ ಮೇಲೆ ಸಕಾಲಿಕ ವಿವಾಹ ಭಾಗ್ಯ ಲಭಿಸಲಿದೆ",
+      subtitleEn: "Foundational learning first; auspicious matrimonial union promised in adult maturity",
+      marriageTimingWindowKn: "ವಯಸ್ಕರಾದ ನಂತರ 24 ರಿಂದ 28 ವರ್ಷಗಳ ಪ್ರಶಸ್ತ ವಯೋಮಾನದಲ್ಲಿ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಯೋಗ",
+      marriageTimingWindowEn: "Auspicious adult window between ages 24 and 28 years",
+      astrologicalReasoningKn: "ಜಾತಕರು ಪ್ರಸ್ತುತ ಶೈಶವಾವಸ್ಥೆ ಅಥವಾ ವಿದ್ಯಾಭ್ಯಾಸದ ಹಂತದಲ್ಲಿದ್ದಾರೆ. 7ನೇ ಭಾವ ಹಾಗೂ ಶುಕ್ರನ ಸ್ಥಿತಿಯು ಭವಿಷ್ಯದಲ್ಲಿ ಸುಸಂಸ್ಕೃತ ಹಾಗೂ ಯೋಗ್ಯ ಜೀವನ ಸಂಗಾತಿಯನ್ನು ಖಾತರಿಪಡಿಸುತ್ತದೆ.",
+      astrologicalReasoningEn: "Currently in foundational childhood/youth stage. The 7th house and Venus ensure a noble, compatible life partner upon reaching adulthood.",
+      classicalRuleCitedKn: "ಪರಾಶರ ಸ್ಮೃತಿ: ಬಾಲಾನಾಂ ವಿದ್ಯಾ ಸಂಸ್ಕಾರೋ ವೃದ್ಧಿಶ್ಚ ಕಲ್ಯಾಣಸ್ಯ ಮೂಲಮ್",
+      classicalRuleCitedEn: "Brihat Parashara: Sound childhood learning and righteous nurturing form the foundation of auspicious future matrimony",
+      blessingRemedyKn: "ಮಗುವಿನ ಆಯುರಾರೋಗ್ಯ ಹಾಗೂ ಜ್ಞಾನವೃದ್ಧಿಗಾಗಿ ಪ್ರತಿನಿತ್ಯ ವಿದ್ಯಾ ಗಣಪತಿ ಮತ್ತು ಗಾಯತ್ರಿ ಮಂತ್ರ ಸ್ಮರಣೆ.",
+      blessingRemedyEn: "Daily prayers to Lord Ganesha and Goddess Saraswati for intellectual radiance, health, and holistic blossoming."
+    };
+  }
+
   const statusStr = (context?.maritalStatus || "").toLowerCase();
   const isExplicitlySingle = statusStr.includes("unmarried") || statusStr.includes("single") ||
     statusStr.includes("celibate") || statusStr.includes("bachelor") ||

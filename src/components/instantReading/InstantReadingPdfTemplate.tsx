@@ -16,6 +16,11 @@ import {
   getGocharaShaniDescription,
   isNarrationScriptMatchingLang,
   generateLocalizedExecutiveNarration,
+  getTithiName,
+  getYogaName,
+  getKaranaName,
+  getTatvaName,
+  getNakshatraDeityName,
   type SupportedPdfLang,
   type DevoteeIdentity
 } from "./instantReadingPdfLocale";
@@ -205,7 +210,7 @@ export default function InstantReadingPdfTemplate({
             borderRadius: 8
           }}
         >
-          {pageNum === 1 ? "ಭಾಗ ೧ / Part 1" : "ಭಾಗ ೨ / Part 2"}
+          {pickL6({ kn: pageNum === 1 ? "ಭಾಗ ೧" : "ಭಾಗ ೨", hi: pageNum === 1 ? "भाग १ / Part 1" : "भाग २ / Part 2", te: pageNum === 1 ? "భాగం 1 / Part 1" : "భాగం 2 / Part 2", ta: pageNum === 1 ? "பகுதி 1 / Part 1" : "பகுதி 2 / Part 2", ml: pageNum === 1 ? "ഭാഗം 1 / Part 1" : "ഭാഗം 2 / Part 2", en: pageNum === 1 ? "Part 1" : "Part 2" }, selectedLang)}
         </div>
       </div>
 
@@ -360,7 +365,7 @@ export default function InstantReadingPdfTemplate({
                   {getVaraName(vara.nameKn, selectedLang)}
                 </div>
                 <div style={{ fontSize: 8, color: INK_MUTED, marginTop: 1 }}>
-                  {getPlanetName(vara.lord, selectedLang)} · {vara.tatva || "ಅಗ್ನಿ"}
+                  {getPlanetName(vara.lord, selectedLang)} · {getTatvaName(vara.tatva, selectedLang)}
                 </div>
               </div>
 
@@ -378,10 +383,10 @@ export default function InstantReadingPdfTemplate({
                   {t("labelTithi")}
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 800, color: INK, marginTop: 1 }}>
-                  {tithi.nameKn}
+                  {getTithiName(tithi.nameKn, selectedLang)}
                 </div>
                 <div style={{ fontSize: 8, color: INK_MUTED, marginTop: 1 }}>
-                  {tithi.paksha} {selectedLang === "kn" ? "ಪಕ್ಷ" : "Paksha"} · {tithi.jalTatvaQuality || "ಜಲ ತತ್ತ್ವ"}
+                  {(tithi.paksha === "Shukla" ? pickL6({ kn: "ಶುಕ್ಲ ಪಕ್ಷ", en: "Shukla Paksha", hi: "शुक्ल पक्ष", te: "శుక్ల పక్షం", ta: "சுக்ல பட்சம்", ml: "ശുക്ല പക്ഷം" }, selectedLang) : pickL6({ kn: "ಕೃಷ್ಣ ಪಕ್ಷ", en: "Krishna Paksha", hi: "कृष्ण पक्ष", te: "కృష్ణ పక్షం", ta: "கிருஷ்ண பட்சம்", ml: "കൃഷ്ണ പക്ഷം" }, selectedLang))} · {getTatvaName(tithi.jalTatvaQuality || "ಜಲ ತತ್ತ್ವ", selectedLang)}
                 </div>
               </div>
 
@@ -402,7 +407,7 @@ export default function InstantReadingPdfTemplate({
                   {nakshatraText}
                 </div>
                 <div style={{ fontSize: 8, color: INK_MUTED, marginTop: 1 }}>
-                  {nak.deity || "ದೈವಿಕ ಅಧಿಪತಿ"}
+                  {getNakshatraDeityName(nak.deity, selectedLang)}
                 </div>
               </div>
 
@@ -420,7 +425,7 @@ export default function InstantReadingPdfTemplate({
                   {t("labelYoga")}
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 800, color: INK, marginTop: 1 }}>
-                  {yoga.nameKn}
+                  {getYogaName(yoga.nameKn, selectedLang)}
                 </div>
                 <div
                   style={{
@@ -448,7 +453,7 @@ export default function InstantReadingPdfTemplate({
                   {t("labelKarana")}
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 800, color: INK, marginTop: 1 }}>
-                  {karana.nameKn}
+                  {getKaranaName(karana.nameKn, selectedLang)}
                 </div>
                 <div style={{ fontSize: 8, color: INK_MUTED, marginTop: 1 }}>
                   {karana.rule?.type === "Chara" ? t("labelChara") : t("labelSthira")}
@@ -514,7 +519,7 @@ export default function InstantReadingPdfTemplate({
                 </div>
 
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: INK }}>
-                  {currentMahaName ? `${currentMahaName} - ${currentBhuktiName}` : (prasthuthaSthiti?.runningDashaSummary || "ದಶಾ ಚಕ್ರ")}
+                  {currentMahaName ? `${currentMahaName} - ${currentBhuktiName}` : (prasthuthaSthiti?.runningDashaSummary || pickL6({ kn: "ದಶಾ ಚಕ್ರ", en: "Dasha Cycle", hi: "दशा चक्र", te: "దశా చక్రం", ta: "தசா சக்கரம்", ml: "ദശാ ചക്രം" }, selectedLang))}
                 </div>
 
                 <div style={{ fontSize: 9, color: INK_MUTED }}>
@@ -623,7 +628,7 @@ export default function InstantReadingPdfTemplate({
           }}
         >
           <div>
-            <b>{t("brandBanner")}</b> · {t("priestName")} · ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ
+            <b>{t("brandBanner")}</b> · {t("priestName")} · {pickL6({ kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ", en: "Gokarna Mahabaleshwara Kshetra", hi: "गोकर्ण महाबलेश्वर सन्निधान", te: "గోకర్ణ మహాబలేశ్వర సన్నిధానం", ta: "கோகர்ண மகாபலேஸ்வரர் சந்நிதி", ml: "ഗോകർണം മഹാബലേശ്വര സന്നിധാനം" }, selectedLang)}
           </div>
           <div style={{ fontWeight: 800, color: GOLD }}>{t("page1Footer")}</div>
         </div>
@@ -666,7 +671,7 @@ export default function InstantReadingPdfTemplate({
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 11.5, fontWeight: 800, color: MAROON }}>
-                  {selectedLang === "kn" ? (cls?.headlineKn || "ಜೀವನದ ಪ್ರಮುಖ ಪರಿವರ್ತನಾ ಹಂತ") : (cls?.headlineEn || cls?.headlineKn || "Pivotal Life Transition")}
+                  {selectedLang === "kn" ? (cls?.headlineKn || "ಜೀವನದ ಪ್ರಮುಖ ಪರಿವರ್ತನಾ ಹಂತ") : (cls?.headlineEn || "Pivotal Life Transition")}
                 </span>
                 <span
                   style={{
@@ -876,7 +881,7 @@ export default function InstantReadingPdfTemplate({
               <div>
                 <b style={{ color: MAROON, display: "block", fontSize: 9.5 }}>{t("labelRudraksha")}:</b>
                 <span style={{ fontWeight: 800, color: INK }}>
-                  {selectedLang === "kn" ? remedies.rudraksha.nameKn : (remedies.rudraksha.nameEn || remedies.rudraksha.nameKn)} ({remedies.rudraksha.wearingMethod || remedies.rudraksha.panchangaSynergy || "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ"})
+                  {selectedLang === "kn" ? remedies.rudraksha.nameKn : (remedies.rudraksha.nameEn || remedies.rudraksha.nameKn)} ({selectedLang === "kn" ? (remedies.rudraksha.wearingMethod || "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ") : selectedLang === "hi" ? (remedies.rudraksha.wearingMethodHi || remedies.rudraksha.wearingMethodEn || "सोमवार प्रातः") : selectedLang === "te" ? (remedies.rudraksha.wearingMethodTe || remedies.rudraksha.wearingMethodEn || "సోమవారం ఉదయం") : selectedLang === "ta" ? (remedies.rudraksha.wearingMethodTa || remedies.rudraksha.wearingMethodEn || "திங்கட்கிழமை காலை") : (remedies.rudraksha.wearingMethodEn || "Monday morning")})
                 </span>
               </div>
               <div>
@@ -962,12 +967,12 @@ export default function InstantReadingPdfTemplate({
             >
               <div style={{ fontSize: 13, color: MAROON }}>🔱</div>
               <div style={{ fontSize: 8, fontWeight: 900, color: MAROON, lineHeight: 1.1 }}>
-                ಬಗ್ಗೋಣ
+                {pickL6({ kn: "ಬಗ್ಗೋಣ", en: "BAGGONA", hi: "बग्गोण", te: "బగ్గోణ", ta: "பக்கோணா", ml: "ബഗ്ഗോണ" }, selectedLang)}
               </div>
               <div style={{ fontSize: 7, fontWeight: 800, color: GOLD, letterSpacing: 0.5 }}>
-                ಪಂಚಾಂಗ
+                {pickL6({ kn: "ಪಂಚಾಂಗ", en: "PANCHANGA", hi: "पंचांग", te: "పంచాంగం", ta: "பஞ்சாங்கம்", ml: "പഞ്ചാംഗം" }, selectedLang)}
               </div>
-              <div style={{ fontSize: 6.5, color: INK_MUTED }}>ಗೋಕರ್ಣ</div>
+              <div style={{ fontSize: 6.5, color: INK_MUTED }}>{pickL6({ kn: "ಗೋಕರ್ಣ", en: "GOKARNA", hi: "गोकर्ण", te: "గోకర్ణ", ta: "கோகர்ணம்", ml: "ഗോകർണം" }, selectedLang)}</div>
             </div>
           </div>
         </div>
@@ -985,7 +990,7 @@ export default function InstantReadingPdfTemplate({
           }}
         >
           <div>
-            <b>{t("brandBanner")}</b> · {t("priestName")} · ದೂರವಾಣಿ: +91 94486 24830
+            <b>{t("brandBanner")}</b> · {t("priestName")} · {pickL6({ kn: "ದೂರವಾಣಿ:", en: "Phone:", hi: "फ़ोन:", te: "ఫోన్:", ta: "தொலைபேசி:", ml: "ഫോൺ:" }, selectedLang)} +91 94486 24830
           </div>
           <div style={{ fontWeight: 800, color: GOLD }}>{t("page2Footer")}</div>
         </div>

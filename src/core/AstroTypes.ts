@@ -38,7 +38,10 @@ export type KundliInput = {
   gender?: "Male" | "Female" | "Other";
   maritalStatus?: "married" | "unmarried" | "divorced" | "separated" | string;
   gothra?: string;
+  primaryConcern?: string;
   pincode?: string;
+  timezoneIana?: string;
+  timezoneOffsetMinutes?: number;
 };
 
 export type PlanetPosition = {

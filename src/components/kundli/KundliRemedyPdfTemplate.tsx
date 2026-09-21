@@ -221,6 +221,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
 }) => {
   const code = (lang || "kn").slice(0, 2) as SupportedLanguage;
   const isKn = code === "kn";
+  const isHi = code === "hi";
+  const isTe = code === "te";
+  const isTa = code === "ta";
   const i18n = PDF_I18N[code] || PDF_I18N.kn;
 
   const {
@@ -632,16 +635,16 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#166534", marginBottom: "3px" }}>
                   <span>🌿 {isKn ? "ಪಂಚಾಂಗ ೫-ಅಂಗ ದೈವಿಕ ಸಾಧನೆ & ನಕ್ಷತ್ರ ವೃಕ್ಷ:" : "Panchanga 5-Anga Sacred Alignment:"}</span>
                   <span style={{ background: "#DCFCE7", padding: "1px 6px", borderRadius: "6px", color: "#14532D" }}>
-                    {panchangaRemedies.nakshatraRemedy.nakshatraName[code] || panchangaRemedies.nakshatraRemedy.nakshatraName.kn} (ಪಾದ {panchangaRemedies.nakshatraRemedy.pada})
+                    {panchangaRemedies.nakshatraRemedy.nakshatraName[code] || panchangaRemedies.nakshatraRemedy.nakshatraName.en || panchangaRemedies.nakshatraRemedy.nakshatraName.kn} (${isKn ? "ಪಾದ" : isHi ? "चरण" : isTe ? "పాద" : isTa ? "பாதம்" : "Pada"} {panchangaRemedies.nakshatraRemedy.pada})
                   </span>
                 </div>
                 <div style={{ color: "#14532D" }}>
-                  <span style={{ fontWeight: 800 }}>• ವೃಕ್ಷ (Sacred Tree): </span>
+                  <span style={{ fontWeight: 800 }}>{isKn ? "• ವೃಕ್ಷ: " : isHi ? "• पवित्र वृक्ष: " : isTe ? "• పవిత్ర వృక్షం: " : isTa ? "• புனித மரம்: " : "• Sacred Tree: "}</span>
                   {panchangaRemedies.nakshatraRemedy.sacredTree.kannada} ({panchangaRemedies.nakshatraRemedy.sacredTree.botanicalName}) — {panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod[code] || panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod.kn}
                 </div>
                 <div style={{ color: "#166534", marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800 }}>• ತಿಥಿ & ವಾರ: </span>
-                  {panchangaRemedies.tithiRemedy.tithiName[code] || panchangaRemedies.tithiRemedy.tithiName.kn} ({panchangaRemedies.tithiRemedy.paksha} Paksha) · {panchangaRemedies.varaRemedy.dayName[code] || panchangaRemedies.varaRemedy.dayName.kn} (ಬಣ್ಣ: {panchangaRemedies.varaRemedy.dailyColor[code] || panchangaRemedies.varaRemedy.dailyColor.kn})
+                  <span style={{ fontWeight: 800 }}>{isKn ? "• ತಿಥಿ & ವಾರ: " : isHi ? "• तिथि एवं वार: " : isTe ? "• తిథి & వారం: " : isTa ? "• திதி & வாரம்: " : "• Tithi & Day: "}</span>
+                  {panchangaRemedies.tithiRemedy.tithiName[code] || panchangaRemedies.tithiRemedy.tithiName.en || panchangaRemedies.tithiRemedy.tithiName.kn} (${panchangaRemedies.tithiRemedy.paksha === "Shukla" ? (isKn ? "ಶುಕ್ಲ ಪಕ್ಷ" : isHi ? "शुक्ल पक्ष" : isTe ? "శుక్ల పక్షం" : isTa ? "சுக்ல பட்சம்" : "Shukla Paksha") : (isKn ? "ಕೃಷ್ಣ ಪಕ್ಷ" : isHi ? "कृष्ण पक्ष" : isTe ? "కృష్ణ పక్షం" : isTa ? "கிருஷ்ண பட்சம்" : "Krishna Paksha")}) · {panchangaRemedies.varaRemedy.dayName[code] || panchangaRemedies.varaRemedy.dayName.en || panchangaRemedies.varaRemedy.dayName.kn} (${isKn ? "ಬಣ್ಣ: " : isHi ? "रंग: " : isTe ? "రంగు: " : isTa ? "வண்ணம்: " : "Color: "}{panchangaRemedies.varaRemedy.dailyColor[code] || panchangaRemedies.varaRemedy.dailyColor.en || panchangaRemedies.varaRemedy.dailyColor.kn})
                 </div>
                 <div style={{ color: "#15803D", marginTop: "2px", fontWeight: 700 }}>
                   <span style={{ fontWeight: 800 }}>• ಯೋಗ & ಕರಣ: </span>
@@ -747,7 +750,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 <span>⏳ {i18n.currentDasha} </span>
                 <span style={{ color: "#B45309", fontWeight: 900 }}>
                   {isKn
-                    ? `${dashaBhuktiAnalysis.mahaDashaLabel.kn} ಮಹಾದಶೆ — ${dashaBhuktiAnalysis.bhuktiLabel.kn} ಭುಕ್ತಿ`
+                    ? `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn}${isKn ? " ಮಹಾದಶೆ — " : isHi ? " महादशा — " : isTe ? " మహర్దశ — " : isTa ? " மகாதிசை — " : " Mahadasha — "}${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn}${isKn ? " ಭುಕ್ತಿ" : isHi ? " भुक्ति" : isTe ? " భుక్తి" : isTa ? " புக்தி" : " Bhukti"}`
                     : `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en} Dasha — ${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en} Bhukti`}
                 </span>
               </div>
@@ -765,22 +768,22 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             {lifeTurnaroundTiming && (
               <div style={{ marginTop: "8px", background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "6px", padding: "8px 10px", fontSize: "12px", lineHeight: 1.55 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 900, color: "#78350F" }}>
-                  <span>🌟 {isKn ? "ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ:" : "Turnaround Point & Timing Window:"}</span>
+                  <span>🌟 {isKn ? "ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ:" : isHi ? "भाग्योदय एवं परिहार समयावधि:" : isTe ? "భాగ్యోదయ & పరిహార సమయం:" : isTa ? "வாழ்வு திருப்பம் & பரிகார காலம்:" : "Turnaround Point & Timing Window:"}</span>
                   <span style={{ background: "#D97706", color: "#FFFFFF", padding: "1px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 800 }}>
-                    {isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || lifeTurnaroundTiming.timelineKn)}
+                    {isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || "Upcoming 3 to 6 months")}
                   </span>
                 </div>
                 <div style={{ color: "#451A03", marginTop: "3px" }}>
-                  <span style={{ fontWeight: 800 }}>• {isKn ? "ಪ್ರೇರಕ ಗ್ರಹ & ಗೋಕರ್ಣ ಸೇವೆ: " : "Catalyst & Recommended Seva: "}</span>
+                  <span style={{ fontWeight: 800 }}>{isKn ? "• ಪ್ರೇರಕ ಗ್ರಹ & ಗೋಕರ್ಣ ಸೇವೆ: " : isHi ? "• प्रेरक ग्रह एवं गोकर्ण सेवा: " : isTe ? "• ప్రేరక గ్రహం & గోకర్ణ సేవ: " : isTa ? "• தூண்டுதல் கிரகம் & கோகர்ண சேவை: " : "• Catalyst & Recommended Seva: "}</span>
                   <span style={{ fontWeight: 700, color: "#92400E" }}>
                     {isKn
                       ? `${lifeTurnaroundTiming.catalystGrahaKn} · ${lifeTurnaroundTiming.specificSevaKn}`
-                      : `${lifeTurnaroundTiming.catalystGrahaEn || lifeTurnaroundTiming.catalystGrahaKn} · ${lifeTurnaroundTiming.specificSevaEn || lifeTurnaroundTiming.specificSevaKn}`}
+                      : `${lifeTurnaroundTiming.catalystGrahaEn || "Catalyst Planet"} · ${lifeTurnaroundTiming.specificSevaEn || "Gokarna Seva"}`}
                   </span>
                 </div>
                 <div style={{ color: "#78350F", marginTop: "2px", fontSize: "11.5px" }}>
-                  <span style={{ fontWeight: 800 }}>• {isKn ? "ಜ್ಯೋತಿಷ್ಯ ಪ್ರಕ್ರಿಯೆ: " : "Breakthrough Mechanism: "}</span>
-                  {isKn ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || lifeTurnaroundTiming.breakthroughMechanismKn)}
+                  <span style={{ fontWeight: 800 }}>{isKn ? "• ಜ್ಯೋತಿಷ್ಯ ಪ್ರಕ್ರಿಯೆ: " : isHi ? "• ज्योतिषीय प्रक्रिया: " : isTe ? "• జ్యోతిష్య ప్రక్రియ: " : isTa ? "• ஜோதிட திருப்ப முறை: " : "• Breakthrough Mechanism: "}</span>
+                  {isKn ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || "Astrological planetary alignment facilitates breakthroughs.")}
                 </div>
               </div>
             )}
@@ -843,22 +846,22 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 }}
               >
                 <div style={{ fontWeight: 800, color: "#0F172A", marginBottom: "3px" }}>
-                  💎 {isKn ? "ಗ್ರಹಗಳ ಉಚ್ಚ / ನೀಚ ಬಲ, ನೀಚಭಂಗ ರಾಜಯೋಗ & ರತ್ನ ಮಾರ್ಗದರ್ಶನ:" : "Planetary Strength (Exaltation/Debilitation) & Gemstone Discipline:"}
+                  💎 {isKn ? "ಗ್ರಹಗಳ ಉಚ್ಚ / ನೀಚ ಬಲ, ನೀಚಭಂಗ ರಾಜಯೋಗ & ರತ್ನ ಮಾರ್ಗದರ್ಶನ:" : isHi ? "ग्रहों का उच्च/नीच बल, नीचभंग राजयोग एवं रत्न मार्गदर्शन:" : isTe ? "గ్రహాల ఉచ్ఛ/నీచ బలం, నీచభంగ రాజయోగం & రత్న మార్గదర్శనం:" : isTa ? "கிரகங்களின் உச்ச/நீச பலம், நீசபங்க ராஜயோகம் & ரத்தின வழிகாட்டல்:" : "Planetary Strength (Exaltation/Debilitation) & Gemstone Discipline:"}
                 </div>
                 {planetaryStrengthRemedies.debilitatedPlanets.length > 0 && (
                   <div style={{ color: "#991B1B" }}>
-                    <span style={{ fontWeight: 800 }}>⚠️ ನೀಚ ಗ್ರಹ: </span>
-                    {planetaryStrengthRemedies.debilitatedPlanets.map(dp => `${dp.grahaName[code] || dp.grahaName.kn} (${dp.hasNeechaBhanga ? "ನೀಚಭಂಗ ರಾಜಯೋಗ" : "ನೀಚ"}) - ${dp.gemstoneCaution[code] || dp.gemstoneCaution.kn}`).join("; ")}
+                    <span style={{ fontWeight: 800 }}>{isKn ? "⚠️ ನೀಚ ಗ್ರಹ: " : isHi ? "⚠️ नीच ग्रह: " : isTe ? "⚠️ నీచ గ్రహం: " : isTa ? "⚠️ நீச கிரகம்: " : "⚠️ Debilitated Planet: "}</span>
+                    {planetaryStrengthRemedies.debilitatedPlanets.map(dp => `${dp.grahaName[code] || dp.grahaName.kn} (${dp.hasNeechaBhanga ? (isKn ? "ನೀಚಭಂಗ ರಾಜಯೋಗ" : isHi ? "नीचभंग राजयोग" : isTe ? "నీచభంగ రాజయోగం" : isTa ? "நீசபங்க ராஜயோகம்" : "Neecha Bhanga Raja Yoga") : (isKn ? "ನೀಚ" : isHi ? "नीच" : isTe ? "నీచ" : isTa ? "நீசம்" : "Debilitated")}) - ${dp.gemstoneCaution[code] || dp.gemstoneCaution.kn}`).join("; ")}
                   </div>
                 )}
                 {planetaryStrengthRemedies.exaltedPlanets.length > 0 && (
                   <div style={{ color: "#166534", marginTop: "2px" }}>
-                    <span style={{ fontWeight: 800 }}>⭐ ಉಚ್ಚ ಗ್ರಹ: </span>
+                    <span style={{ fontWeight: 800 }}>{isKn ? "⭐ ಉಚ್ಚ ಗ್ರಹ: " : isHi ? "⭐ उच्च ग्रह: " : isTe ? "⭐ ఉచ్ఛ గ్రహం: " : isTa ? "⭐ உச்ச கிரகம்: " : "⭐ Exalted Planet: "}</span>
                     {planetaryStrengthRemedies.exaltedPlanets.map(ep => `${ep.grahaName[code] || ep.grahaName.kn} (${ep.exaltationSign[code] || ep.exaltationSign.kn}) - ${ep.blessingArea[code] || ep.blessingArea.kn}`).join("; ")}
                   </div>
                 )}
                 <div style={{ color: "#334155", marginTop: "2px", fontSize: "10.5px" }}>
-                  <span style={{ fontWeight: 800 }}>🌐 ಇನ್‌ಫ್ಲುಯೆನ್ಸರ್ vs ಶಾಸ್ತ್ರೋಕ್ತ ತುಲನೆ: </span>
+                  <span style={{ fontWeight: 800 }}>{isKn ? "🌐 ಇನ್‌ಫ್ಲುಯೆನ್ಸರ್ vs ಶಾಸ್ತ್ರೋಕ್ತ ತುಲನೆ: " : isHi ? "🌐 मिथक बनाम शास्त्रोक्त सत्य: " : isTe ? "🌐 మూఢనమ్మకం vs శాస్త్రోక్త విశ్లేషణ: " : isTa ? "🌐 கட்டுக்கதை vs சாஸ்திர உண்மை: " : "🌐 Social Media Myths vs Shastric Truth: "}</span>
                   {planetaryStrengthRemedies.influencerBenchmarkComparison.authenticApproach[code] || planetaryStrengthRemedies.influencerBenchmarkComparison.authenticApproach.kn}
                 </div>
               </div>
@@ -919,7 +922,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               </div>
 
               <div style={{ fontSize: "11.5px", color: "#78350F", marginTop: "6px", lineHeight: 1.55 }}>
-                <span style={{ fontWeight: 800, color: "#92400E" }}>• ಅರ್ಥ:</span> {stotra.meaning[code] || stotra.meaning.kn}
+                <span style={{ fontWeight: 800, color: "#92400E" }}>{isKn ? "• ಅರ್ಥ: " : isHi ? "• अर्थ: " : isTe ? "• భావం: " : isTa ? "• பொருள்: " : "• Meaning: "}</span> {stotra.meaning[code] || stotra.meaning.kn}
               </div>
 
               {/* Stotra Metadata Rules */}
@@ -1066,7 +1069,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             >
               <div style={{ fontSize: "16px" }}>🪔</div>
               <div style={{ fontSize: "7.5px", fontWeight: 900, color: "#78350F", lineHeight: 1.2, marginTop: "1px" }}>
-                ॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥
+                {isKn ? "॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥" : isHi ? "॥ गोकर्ण सन्निधि ॥" : isTe ? "॥ గోకర్ణ సన్నిధి ॥" : isTa ? "॥ கோகர்ண சந்நிதி ॥" : "॥ Sri Gokarna Kshetra ॥"}
               </div>
               <div style={{ fontSize: "6.5px", color: "#92400E", fontWeight: 800 }}>
                 {i18n.templeSealLabel}

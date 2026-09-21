@@ -800,3 +800,155 @@ export function generateLocalizedExecutiveNarration(
     `ഈ ശുഭകാലത്തെ കൂടുതൽ പ്രയോജനപ്പെടുത്തുന്നതിനായി നിർദ്ദേശിച്ച പവിത്ര രുദ്രാക്ഷവും രത്നവും ധരിക്കുന്നത് ഉത്തമമാണ്. കൂടാതെ ശ്രീ ഗോകർണ മഹാബലേശ്വര സന്നിധാനത്തിൽ വിശേഷാൽ സങ്കൽപ്പ പൂജകൾ നടത്തി ദർശനം നേടുക. സർവ്വേശ്വരനായ ശ്രീ മഹാദേവന്റെ ദിവ്യാനുഗ്രഹത്താൽ സർവ്വ തടസ്സങ്ങളും നീങ്ങി സമഗ്ര വിജയം കൈവരട്ടെ.`
   ];
 }
+
+
+/* ------------------------------------------------------------------ *
+ * Panchanga 5-Angas Localization: Tithis, Yogas, Karanas, Tatvas & Deities
+ * ------------------------------------------------------------------ */
+
+export const TITHI_LOCALES: Record<string, L6> = {
+  "ಪಾಡ್ಯ": { kn: "ಪಾಡ್ಯ", en: "Prathama", hi: "प्रतिपदा", te: "పాడ్యమి", ta: "பிரதமை", ml: "പ്രഥമ" },
+  "ಬಿದಿಗೆ": { kn: "ಬಿದಿಗೆ", en: "Dwitiya", hi: "द्वितीया", te: "విదియ", ta: "துவிதியை", ml: "ദ്വിതീയ" },
+  "ತದಿಗೆ": { kn: "ತದಿಗೆ", en: "Tritiya", hi: "तृतीया", te: "తదియ", ta: "திரிதியை", ml: "തൃതീയ" },
+  "ಚೌತಿ": { kn: "ಚೌತಿ", en: "Chaturthi", hi: "चतुर्थी", te: "చవితి", ta: "சதுர்த்தி", ml: "ചതുർത്ഥി" },
+  "ಪಂಚಮಿ": { kn: "ಪಂಚಮಿ", en: "Panchami", hi: "पंचमी", te: "పంచమి", ta: "பஞ்சமி", ml: "പഞ്ചമി" },
+  "ಷಷ್ಠಿ": { kn: "ಷಷ್ಠಿ", en: "Shashthi", hi: "षष्ठी", te: "షష్ఠి", ta: "சஷ்டி", ml: "ഷഷ്ഠി" },
+  "ಸಪ್ತಮಿ": { kn: "ಸಪ್ತಮಿ", en: "Saptami", hi: "सप्तमी", te: "సప్తమి", ta: "சப்தமி", ml: "സപ്തമി" },
+  "ಅಷ್ಟಮಿ": { kn: "ಅಷ್ಟಮಿ", en: "Ashtami", hi: "अष्टमी", te: "అష్టమి", ta: "அஷ்டமி", ml: "അഷ്ടമി" },
+  "ನವಮಿ": { kn: "ನವಮಿ", en: "Navami", hi: "नवमी", te: "నవమి", ta: "நவமி", ml: "നവമി" },
+  "ದಶಮಿ": { kn: "ದಶಮಿ", en: "Dashami", hi: "दशमी", te: "దశమి", ta: "தசமி", ml: "ദശമി" },
+  "ಏಕಾದಶಿ": { kn: "ಏಕಾದಶಿ", en: "Ekadashi", hi: "एकादशी", te: "ఏకాదశి", ta: "ஏகாதசி", ml: "ഏകാദശി" },
+  "ದ್ವಾದಶಿ": { kn: "ದ್ವಾದಶಿ", en: "Dwadashi", hi: "द्वादशी", te: "ద్వాదశి", ta: "துவாதசி", ml: "ദ്വാദശി" },
+  "ತ್ರಯೋದಶಿ": { kn: "ತ್ರಯೋದಶಿ", en: "Trayodashi", hi: "त्रयोदशी", te: "త్రయోదశి", ta: "திரயோதசி", ml: "ത്രയോദശി" },
+  "ಚತುರ್ದಶಿ": { kn: "ಚತುರ್ದಶಿ", en: "Chaturdashi", hi: "चतुर्दशी", te: "చతుర్దశి", ta: "சதுர்த்தசி", ml: "ചതുർദ്ദശി" },
+  "ಹುಣ್ಣಿಮೆ": { kn: "ಹುಣ್ಣಿಮೆ", en: "Purnima", hi: "पूर्णिमा", te: "పౌర్ణమి", ta: "பௌர்ணமி", ml: "പൗർണ്ണമി" },
+  "ಅಮಾವಾಸ್ಯೆ": { kn: "ಅಮಾವಾಸ್ಯೆ", en: "Amavasya", hi: "अमावस्या", te: "అమావాస్య", ta: "அமாவாசை", ml: "അമാവാസ്യ" }
+};
+
+export const getTithiName = (tithiKnOrEn: string, lang: string): string => {
+  if (!tithiKnOrEn) return "";
+  for (const [key, val] of Object.entries(TITHI_LOCALES)) {
+    if (tithiKnOrEn.includes(key) || (val.en && tithiKnOrEn.toLowerCase().includes(val.en.toLowerCase()))) {
+      return pickL6(val, lang);
+    }
+  }
+  return tithiKnOrEn;
+};
+
+export const YOGA_LOCALES: Record<string, L6> = {
+  "ವಿಷ್ಕಂಭ": { kn: "ವಿಷ್ಕಂಭ", en: "Vishkambha", hi: "विष्कम्भ", te: "విష్కంభ", ta: "விஷ்கம்பம்", ml: "വിഷ്കംഭം" },
+  "ಪ್ರೀತಿ": { kn: "ಪ್ರೀತಿ", en: "Preeti", hi: "प्रीति", te: "ప్రీతి", ta: "ப்ரீதி", ml: "പ്രീതി" },
+  "ಆಯುಷ್ಮಾನ್": { kn: "ಆಯುಷ್ಮಾನ್", en: "Ayushman", hi: "आयुष्मान", te: "ఆయుష్మాన్", ta: "ஆயுஷ்மான்", ml: "ആയുഷ്മാൻ" },
+  "ಸೌಭಾಗ್ಯ": { kn: "ಸೌಭಾಗ್ಯ", en: "Saubhagya", hi: "सौभाग्य", te: "సౌభాగ్య", ta: "சௌபாக்யம்", ml: "സൗಭಾಗ്യം" },
+  "ಶೋಭನ": { kn: "ಶೋಭನ", en: "Shobhana", hi: "शोभन", te: "శోభన", ta: "சோபனம்", ml: "ശോഭനം" },
+  "ಅತಿಗಂಡ": { kn: "ಅತಿಗಂಡ", en: "Atiganda", hi: "अतिगण्ड", te: "అతిగండ", ta: "அதிகண்டம்", ml: "அதிഗണ്ഡം" },
+  "ಸುಕರ್ಮ": { kn: "ಸುಕರ್ಮ", en: "Sukarma", hi: "सुकर्मा", te: "సుకర్మ", ta: "சுகர்மா", ml: "സുകർമ്മ" },
+  "ಧೃತಿ": { kn: "ಧೃತಿ", en: "Dhriti", hi: "धृति", te: "ధృతి", ta: "திருதி", ml: "ധൃതി" },
+  "ಶೂಲ": { kn: "ಶೂಲ", en: "Shoola", hi: "शूल", te: "శూల", ta: "சூலம்", ml: "ശൂലം" },
+  "ಗಂಡ": { kn: "ಗಂಡ", en: "Ganda", hi: "गण्ड", te: "గండ", ta: "கண்டம்", ml: "ഗണ്ഡം" },
+  "ವೃದ್ಧಿ": { kn: "ವೃದ್ಧಿ", en: "Vriddhi", hi: "वृद्धि", te: "వృద్ధి", ta: "விருத்தி", ml: "വൃദ്ധി" },
+  "ಧ್ರುವ": { kn: "ಧ್ರುವ", en: "Dhruva", hi: "ध्रुव", te: "ధ్రువ", ta: "துருவம்", ml: "ധ്രുവം" },
+  "ವ್ಯಾಘಾತ": { kn: "ವ್ಯಾಘಾತ", en: "Vyaghata", hi: "व्याघात", te: "వ్యాఘాత", ta: "வியாகாதம்", ml: "വ്യാഘാതം" },
+  "ಹರ್ಷಣ": { kn: "ಹರ್ಷಣ", en: "Harshana", hi: "हर्षण", te: "హర్షణ", ta: "ஹர்ஷணம்", ml: "ഹർഷണം" },
+  "ವಜ್ರ": { kn: "ವಜ್ರ", en: "Vajra", hi: "वज्र", te: "వజ్ర", ta: "வஜ்ரம்", ml: "വജ്രം" },
+  "ಸಿದ್ಧಿ": { kn: "ಸಿದ್ಧಿ", en: "Siddhi", hi: "सिद्धि", te: "సిద్ధి", ta: "சித்தி", ml: "സിദ്ധി" },
+  "ವ್ಯತೀಪಾತ": { kn: "ವ್ಯತೀಪಾತ", en: "Vyatipata", hi: "व्यतीपात", te: "వ్యతీపాత", ta: "வியதீபாதம்", ml: "വ്യതീപാതം" },
+  "ವರೀಯಾನ್": { kn: "ವರೀಯಾನ್", en: "Variyana", hi: "वरीयान", te: "వరీయాన్", ta: "வரியான்", ml: "വരീയാൻ" },
+  "ಪರಿಘ": { kn: "ಪರಿಘ", en: "Parigha", hi: "परिघ", te: "పరిఘ", ta: "பரிகம்", ml: "പരിഘം" },
+  "ಶಿವ": { kn: "ಶಿವ", en: "Shiva", hi: "शिव", te: "శివ", ta: "சிவம்", ml: "ശിവം" },
+  "ಸಿದ್ಧ": { kn: "ಸಿದ್ಧ", en: "Siddha", hi: "सिद्ध", te: "సిద్ధ", ta: "சித்தம்", ml: "സിദ്ധം" },
+  "ಸಾಧ್ಯ": { kn: "ಸಾಧ್ಯ", en: "Sadhya", hi: "साध्य", te: "సాధ్య", ta: "சாத்தியம்", ml: "സാധ്യം" },
+  "ಶುಭ": { kn: "ಶುಭ", en: "Shubha", hi: "शुभ", te: "శుభ", ta: "சுபம்", ml: "ശുഭം" },
+  "ಶುಕ್ಲ": { kn: "ಶುಕ್ಲ", en: "Shukla", hi: "शुक्ल", te: "శుక్ల", ta: "சுக்லம்", ml: "ശുക്ലം" },
+  "ಬ್ರಹ್ಮ": { kn: "ಬ್ರಹ್ಮ", en: "Brahma", hi: "ब्रह्म", te: "బ్రహ్మ", ta: "பிரம்directionமம்", ml: "ബ്രഹ്മം" },
+  "ಐಂದ್ರ": { kn: "ಐಂದ್ರ", en: "Indra", hi: "ऐन्द्र", te: "ఐంద్ర", ta: "ஐந்திரம்", ml: "ഐന്ദ്രം" },
+  "ವೈಧೃತಿ": { kn: "ವೈಧೃತಿ", en: "Vaidhriti", hi: "वैधृति", te: "వైధృతి", ta: "வைதிருதி", ml: "വൈധൃതി" }
+};
+
+export const getYogaName = (yogaKnOrEn: string, lang: string): string => {
+  if (!yogaKnOrEn) return "";
+  for (const [key, val] of Object.entries(YOGA_LOCALES)) {
+    if (yogaKnOrEn.includes(key) || (val.en && yogaKnOrEn.toLowerCase().includes(val.en.toLowerCase()))) {
+      return pickL6(val, lang);
+    }
+  }
+  return yogaKnOrEn;
+};
+
+export const KARANA_LOCALES: Record<string, L6> = {
+  "ಬವ": { kn: "ಬವ", en: "Bava", hi: "बव", te: "బవ", ta: "பவம்", ml: "ബവം" },
+  "ಬಾಲವ": { kn: "ಬಾಲವ", en: "Balava", hi: "बालव", te: "బాలవ", ta: "பாலவம்", ml: "ബാലവം" },
+  "ಕೌಲವ": { kn: "ಕೌಲವ", en: "Kaulava", hi: "कौलव", te: "కౌలవ", ta: "கௌலவம்", ml: "കൗലവം" },
+  "ತೈತಿಲ": { kn: "ತೈತಿಲ", en: "Taitila", hi: "तैतिल", te: "తైతిల", ta: "தைதுலம்", ml: "തൈതിലം" },
+  "ಗರಜ": { kn: "ಗರಜ", en: "Garaja", hi: "गरज", te: "గరజ", ta: "கரசை", ml: "ഗരജം" },
+  "ವಣಿಜ": { kn: "ವಣಿಜ", en: "Vanija", hi: "वणिज", te: "వణిజ", ta: "வணிகம்", ml: "വണിజം" },
+  "ವಿಷ್ಟಿ": { kn: "ಭದ್ರೆ (ವಿಷ್ಟಿ)", en: "Vishti (Bhadra)", hi: "विष्टि (भद्रा)", te: "విష్టి (భద్ర)", ta: "விஷ்டி (பத்ரா)", ml: "വിഷ്ടി (ഭദ്ര)" },
+  "ಶಕುನಿ": { kn: "ಶಕುನಿ", en: "Shakuni", hi: "शकुनि", te: "శకుని", ta: "சகுனி", ml: "ശகுനി" },
+  "ಚತುಷ್ಪಾದ": { kn: "ಚತುಷ್ಪಾದ", en: "Chatushpada", hi: "चतुष्पद", te: "చతుష్పాద", ta: "சதுஷ்பாதம்", ml: "ചതുഷ്പാദം" },
+  "ನಾಗ": { kn: "ನಾಗ", en: "Naga", hi: "नाग", te: "నాగ", ta: "நாகம்", ml: "നാഗം" },
+  "ಕಿಂಸ್ತುಘ್ನ": { kn: "ಕಿಂಸ್ತುಘ್ನ", en: "Kintughna", hi: "किंस्तुघ्न", te: "కింస్తుఘ్నం", ta: "கிம்ஸ்துக்னம்", ml: "കിംസ്തുഘ്നം" }
+};
+
+export const getKaranaName = (karanaKnOrEn: string, lang: string): string => {
+  if (!karanaKnOrEn) return "";
+  for (const [key, val] of Object.entries(KARANA_LOCALES)) {
+    if (karanaKnOrEn.includes(key) || (val.en && karanaKnOrEn.toLowerCase().includes(val.en.toLowerCase()))) {
+      return pickL6(val, lang);
+    }
+  }
+  return karanaKnOrEn;
+};
+
+export const TATVA_LOCALES: Record<string, L6> = {
+  "ಅಗ್ನಿ": { kn: "ಅಗ್ನಿ ತತ್ತ್ವ", en: "Agni (Fire)", hi: "अग्नि तत्व", te: "అగ్ని తత్త్వం", ta: "அக்னி தத்துவம்", ml: "അഗ്നി തത്ത്വം" },
+  "ಜಲ": { kn: "ಜಲ ತತ್ತ್ವ", en: "Jala (Water)", hi: "जल तत्व", te: "జల తత్త్వం", ta: "ஜல தத்துவம்", ml: "ஜല തത്ത്വം" },
+  "ವಾಯು": { kn: "ವಾಯು ತತ್ತ್ವ", en: "Vayu (Air)", hi: "वायु तत्व", te: "వాయు తత్త్వం", ta: "வாயு தத்துவம்", ml: "വായു തത്ത്വം" },
+  "ಪೃಥ್ವಿ": { kn: "ಪೃಥ್ವಿ ತತ್ತ್ವ", en: "Prithvi (Earth)", hi: "पृथ्वी तत्व", te: "పృథ్వి తత్త్వం", ta: "பிருத்வி தத்துவம்", ml: "പൃഥ്വി തത്ത്വം" },
+  "ಆಕಾಶ": { kn: "ಆಕಾಶ ತತ್ತ್ವ", en: "Akasha (Ether)", hi: "आकाश तत्व", te: "ఆకాశ తత్త్వం", ta: "ஆகாய தத்துவம்", ml: "ആകാശ തത്ത്വം" }
+};
+
+export const getTatvaName = (tatvaKnOrEn: string, lang: string): string => {
+  if (!tatvaKnOrEn) return pickL6({ kn: "ಅಗ್ನಿ ತತ್ತ್ವ", en: "Fire Element", hi: "अग्नि तत्व", te: "అగ్ని తత్త్వం", ta: "அக்னி தத்துவம்", ml: "അഗ്നി തത്ത്വം" }, lang);
+  for (const [key, val] of Object.entries(TATVA_LOCALES)) {
+    if (tatvaKnOrEn.includes(key) || (val.en && tatvaKnOrEn.toLowerCase().includes(val.en.toLowerCase()))) {
+      return pickL6(val, lang);
+    }
+  }
+  return tatvaKnOrEn;
+};
+
+export const DEITY_LOCALES: Record<string, L6> = {
+  "ಅಶ್ವಿನಿ": { kn: "ಅಶ್ವಿನಿ ಕುಮಾರರು", en: "Ashwini Kumaras", hi: "अश्विनी कुमार", te: "అశ్విని కుమారులు", ta: "அஸ்வினி குமாரர்கள்", ml: "അശ്വിനി കുമാരന്മാർ" },
+  "ಯಮ": { kn: "ಯಮ ಧರ್ಮರಾಜ", en: "Lord Yama", hi: "यमराज", te: "యమ ధర్మరాజు", ta: "எமதர்மன்", ml: "യമധർമ്മൻ" },
+  "ಅಗ್ನಿ": { kn: "ಅಗ್ನಿ ದೇವ", en: "Lord Agni", hi: "अग्नि देव", te: "అగ్ని దేవుడు", ta: "அக்னி பகவான்", ml: "അഗ്നി ദേവൻ" },
+  "ಬ್ರಹ್ಮ": { kn: "ಬ್ರಹ್ಮ ದೇವ", en: "Lord Brahma", hi: "ब्रह्मा जी", te: "బ్రహ్మ దేవుడు", ta: "பிரம்மா", ml: "ബ്രഹ്മാവ്" },
+  "ಸೋಮ": { kn: "ಸೋಮ (ಚಂದ್ರ)", en: "Lord Chandra (Soma)", hi: "सोम (चन्द्र)", te: "చంద్రుడు (సోమ)", ta: "சந்திரன் (சோமன்)", ml: "ചന്ദ്രൻ (സോമൻ)" },
+  "ರುದ್ರ": { kn: "ರುದ್ರ (ಶಿವ)", en: "Lord Rudra (Shiva)", hi: "रुद्र (शिव)", te: "రుద్రుడు (శివుడు)", ta: "ருத்ரன் (சிவன்)", ml: "രുദ്രൻ (ശിവൻ)" },
+  "ಅದಿತಿ": { kn: "ಅದಿತಿ ದೇವಿ", en: "Goddess Aditi", hi: "अदिति देवी", te: "అదితి దేవి", ta: "அதிதி தேவி", ml: "അദിതി ദേവി" },
+  "ಬೃಹಸ್ಪತಿ": { kn: "ಬೃಹಸ್ಪತಿ (ಗುರು)", en: "Brihaspati (Guru)", hi: "बृहस्पति देव", te: "బృహస్పతి", ta: "பிருஹஸ்பதி", ml: "ബൃഹസ്പതി" },
+  "ಸರ್ಪ": { kn: "ನಾಗ ದೇವತೆಗಳು (ಸರ್ಪ)", en: "Sarpa / Naga Devatas", hi: "नाग देवता", te: "నాగ దేవతలు", ta: "நாக தேவதைகள்", ml: "നാഗ ദേവതകൾ" },
+  "ಪಿತೃ": { kn: "ಪಿತೃ ದೇವತೆಗಳು", en: "Pitris (Ancestral Deities)", hi: "पितृ गण", te: "పితృ దేవతలు", ta: "பித்ருக்கள்", ml: "പിതൃക്കൾ" },
+  "ಭಗ": { kn: "ಭಗ ದೇವ", en: "Lord Bhaga", hi: "भग देव", te: "భగ దేవుడు", ta: "பக தேவன்", ml: "ഭഗ ദേവൻ" },
+  "ಅರ್ಯಮ": { kn: "ಅರ್ಯಮ ದೇವ", en: "Lord Aryama", hi: "अर्यमा देव", te: "అర్యముడు", ta: "அரியமா", ml: "അര്യമാവ്" },
+  "ಸೂರ್ಯ": { kn: "ಸೂರ್ಯ ನಾರಾಯಣ (ಸವಿತೃ)", en: "Surya Savitr", hi: "सूर्य देव", te: "సూర్య భగవానుడు", ta: "சூரிய பகவான்", ml: "സൂര്യ ഭഗവാൻ" },
+  "ವಿಶ್ವಕರ್ಮ": { kn: "ವಿಶ್ವಕರ್ಮ", en: "Tvashtr (Vishwakarma)", hi: "विश्वकर्मा", te: "విశ్వకర్మ", ta: "விஸ்வகர்மா", ml: "വിശ്വകർമ്മാവ്" },
+  "ವಾಯು": { kn: "ವಾಯು ದೇವ", en: "Lord Vayu", hi: "वायु देव", te: "వాయు దేవుడు", ta: "வாயு பகவான்", ml: "വായു ദേവൻ" },
+  "ಇಂದ್ರಾಗ್ನಿ": { kn: "ಇಂದ್ರ & ಅಗ್ನಿ", en: "Indra & Agni", hi: "इंद्राग्नि", te: "ఇంద్రాగ్నులు", ta: "இந்திராக்னி", ml: "ഇന്ദ്രാഗ്നി" },
+  "ಮಿತ್ರ": { kn: "ಮಿತ್ರ ದೇವ", en: "Lord Mitra", hi: "मित्र देव", te: "మిత్ర దేవుడు", ta: "மித்ர தேவன்", ml: "മിത്ര ദേവൻ" },
+  "ಇಂದ್ರ": { kn: "ದೇವೇಂದ್ರ", en: "Lord Indra", hi: "देवराज इंद्र", te: "ఇంద్రుడు", ta: "இந்திரன்", ml: "ഇന്ദ്രൻ" },
+  "ನಿರೃತಿ": { kn: "ನಿರೃತಿ (ಮೂಲಾದೇವಿ)", en: "Nirriti", hi: "निर्ऋति", te: "నిరృతి", ta: "நிர்ருதி", ml: "നിരൃതി" },
+  "ವರುಣ": { kn: "ವರುಣ ದೇವ", en: "Lord Varuna", hi: "वरुण देव", te: "వరుణ దేవుడు", ta: "வருண பகவான்", ml: "വരുണ ദേവൻ" },
+  "ಅಜೈಕಪಾದ": { kn: "ಅಜೈಕಪಾದ (ಶಿವ)", en: "Aja Ekapada", hi: "अजैकपाद", te: "అజైకపాదుడు", ta: "அஜைகபாதர்", ml: "അജൈകപാദൻ" },
+  "ಅಹಿರ್ಬುಧ್ನ್ಯ": { kn: "ಅಹಿರ್ಬುಧ್ನ್ಯ (ಶಿವ)", en: "Ahirbudhnya", hi: "अहिर्बुध्न्य", te: "అహిర్బుధ్న్యుడు", ta: "அஹிர்புத்னியர்", ml: "അഹിർബുധ്ന്യൻ" },
+  "ಪೂಷಾ": { kn: "ಪೂಷಾ ದೇವ", en: "Lord Pushan", hi: "पूषा देव", te: "పూష దేవుడు", ta: "பூஷா பகவான்", ml: "പൂഷാവ്" }
+};
+
+export const getNakshatraDeityName = (deityKnOrEn: string, lang: string): string => {
+  if (!deityKnOrEn) return pickL6({ kn: "ದೈವಿಕ ಅಧಿಪತಿ", en: "Presiding Deity", hi: "अधिष्ठाता देवता", te: "అధిష్టాన దైవం", ta: "அதிஷ்டான தெய்வம்", ml: "അധിഷ്ഠാന ദേവത" }, lang);
+  for (const [key, val] of Object.entries(DEITY_LOCALES)) {
+    if (deityKnOrEn.includes(key) || (val.en && deityKnOrEn.toLowerCase().includes(val.en.toLowerCase()))) {
+      return pickL6(val, lang);
+    }
+  }
+  return deityKnOrEn;
+};

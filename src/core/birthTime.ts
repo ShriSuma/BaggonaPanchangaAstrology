@@ -5,12 +5,53 @@ import { isRoughIndiaRegion } from "./placeTime";
  * Indian births: wall clock is interpreted as Asia/Kolkata (IST), matching common desktop software.
  * Elsewhere: interpreted as UTC until a timezone picker is added.
  */
-export const inferBirthTimezoneIana = (lat: number, lng: number, pincode = ""): string => {
+export const inferBirthTimezoneIana = (
+  lat: number,
+  lng: number,
+  pincode = "",
+  explicitTz?: string
+): string => {
+  if (explicitTz) return explicitTz;
   if (/^[1-9]\d{5}$/.test(pincode.trim())) return "Asia/Kolkata";
-  return isRoughIndiaRegion(lat, lng) ? "Asia/Kolkata" : "Etc/UTC";
+  if (isRoughIndiaRegion(lat, lng)) return "Asia/Kolkata";
+
+  // High-accuracy geographic timezone inference:
+  // Hawaii (USA)
+  if (lat >= 18 && lat <= 23 && lng >= -161 && lng <= -154) return "Pacific/Honolulu";
+  // Alaska (USA)
+  if (lat >= 51 && lat <= 72 && lng >= -170 && lng <= -130) return "America/Anchorage";
+  // US/Canada Pacific (CA, WA, OR, NV, BC)
+  if (lat >= 30 && lat <= 55 && lng >= -126 && lng <= -114) return "America/Los_Angeles";
+  // US Mountain (AZ, UT, CO, NM, MT, WY, ID)
+  if (lat >= 30 && lat <= 55 && lng > -114 && lng <= -102) {
+    return lat >= 31 && lat <= 37 && lng >= -115 && lng <= -109 ? "America/Phoenix" : "America/Denver";
+  }
+  // US/Canada Central (TX, IL, MO, MN, WI, MB)
+  if (lat >= 25 && lat <= 55 && lng > -102 && lng <= -85) return "America/Chicago";
+  // US/Canada Eastern (NY, MA, PA, FL, DC, GA, ON, QC)
+  if (lat >= 24 && lat <= 55 && lng > -85 && lng <= -65) return "America/New_York";
+  // UK & Ireland
+  if (lat >= 49 && lat <= 60 && lng >= -11 && lng <= 2) return "Europe/London";
+  // Western/Central Europe (France, Spain, Germany, Italy, Netherlands, Belgium, Switzerland)
+  if (lat >= 35 && lat <= 55 && lng > -10 && lng <= 16) return "Europe/Paris";
+  // Southern & Eastern Europe (Serbia, Greece, Poland, Romania)
+  if (lat >= 35 && lat <= 55 && lng > 16 && lng <= 26) return "Europe/Belgrade";
+  // UAE & Gulf
+  if (lat >= 22 && lat <= 27 && lng >= 50 && lng <= 57) return "Asia/Dubai";
+  // Singapore & Malaysia
+  if (lat >= 1 && lat <= 7 && lng >= 100 && lng <= 105) return "Asia/Singapore";
+  // Japan
+  if (lat >= 30 && lat <= 46 && lng >= 128 && lng <= 146) return "Asia/Tokyo";
+  // Australia (Sydney / Melbourne)
+  if (lat >= -44 && lat <= -28 && lng >= 140 && lng <= 154) return "Australia/Sydney";
+
+  return "Etc/UTC";
 };
 
 /**
+ * Converts birth calendar wall clock at the birthplace to a UTC instant.
+ * Accurately accounts for regional IANA timezones and historical Daylight Saving Time (DST).
+ *
  * @param birthDate YYYY-MM-DD
  * @param birthTime HH:mm (24h)
  */
@@ -19,13 +60,51 @@ export const wallClockBirthToUtc = (
   birthTime: string,
   lat: number,
   lng: number,
-  pincode = ""
+  pincode = "",
+  explicitTz?: string,
+  explicitOffsetMinutes?: number
 ): Date => {
-  const tz = inferBirthTimezoneIana(lat, lng, pincode);
+  if (typeof explicitOffsetMinutes === "number") {
+    const [y, m, d] = birthDate.split("-").map(Number);
+    const [h, min] = birthTime.split(":").map(Number);
+    const utcMs = Date.UTC(y, m - 1, d, h, min) - explicitOffsetMinutes * 60 * 1000;
+    return new Date(utcMs);
+  }
+
+  const tz = inferBirthTimezoneIana(lat, lng, pincode, explicitTz);
   if (tz === "Asia/Kolkata") {
     return new Date(`${birthDate}T${birthTime}:00+05:30`);
   }
-  return new Date(`${birthDate}T${birthTime}:00Z`);
+  if (tz === "Etc/UTC" || !tz) {
+    return new Date(`${birthDate}T${birthTime}:00Z`);
+  }
+
+  try {
+    const [y, m, d] = birthDate.split("-").map(Number);
+    const [h, min] = birthTime.split(":").map(Number);
+    const guessUtc = new Date(Date.UTC(y, m - 1, d, h, min));
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    });
+    const parts = dtf.formatToParts(guessUtc);
+    const pMap: Record<string, number> = {};
+    for (const p of parts) {
+      if (p.type !== "literal") pMap[p.type] = Number(p.value);
+    }
+    const tzWallClockMs = Date.UTC(pMap.year, pMap.month - 1, pMap.day, pMap.hour % 24, pMap.minute);
+    const offsetMs = tzWallClockMs - guessUtc.getTime();
+    const targetWallClockMs = Date.UTC(y, m - 1, d, h, min);
+    return new Date(targetWallClockMs - offsetMs);
+  } catch {
+    return new Date(`${birthDate}T${birthTime}:00Z`);
+  }
 };
 
 /** Calendar YYYY-MM-DD from a DatePicker value (browser local calendar day). */

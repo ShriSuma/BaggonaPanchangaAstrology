@@ -105,7 +105,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
             {/* Devotee Metadata Badges */}
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
               <span className="rounded-lg bg-amber-800/80 px-2.5 py-1 text-amber-100 border border-amber-600/60">
-                👤 {devoteeName} {gotra ? `(${gotra} ಗೋತ್ರ)` : ""}
+                👤 {devoteeName} {gotra ? `(${gotra} ${selectedLang === "kn" ? "ಗೋತ್ರ" : selectedLang === "hi" ? "गोत्र" : selectedLang === "te" ? "గోత్రం" : selectedLang === "ta" ? "கோத்திரம்" : "Gotra"})` : ""}
               </span>
               <span className="rounded-lg bg-emerald-950/80 px-2.5 py-1 text-emerald-200 border border-emerald-600/60">
                 🏛️ {isKn ? "ಲಗ್ನ:" : "Lagna:"} {lagnaName[selectedLang] || lagnaName.kn}
@@ -117,7 +117,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 ⭐ {isKn ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"} {nakshatraName[selectedLang] || nakshatraName.kn}
               </span>
               <span className="rounded-lg bg-rose-950/80 px-2.5 py-1 text-rose-200 border border-rose-600/60">
-                ⏳ {dashaBhuktiAnalysis.mahaDashaLabel[selectedLang] || dashaBhuktiAnalysis.mahaDashaLabel.kn} ದಶೆ / {dashaBhuktiAnalysis.bhuktiLabel[selectedLang] || dashaBhuktiAnalysis.bhuktiLabel.kn} ಭುಕ್ತಿ
+                ⏳ {dashaBhuktiAnalysis.mahaDashaLabel[selectedLang] || dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn} {selectedLang === "kn" ? "ದಶೆ / " : selectedLang === "hi" ? "महादशा / " : selectedLang === "te" ? "దశ / " : selectedLang === "ta" ? "திசை / " : "Dasha / "}{dashaBhuktiAnalysis.bhuktiLabel[selectedLang] || dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn} {selectedLang === "kn" ? "ಭುಕ್ತಿ" : selectedLang === "hi" ? "भुक्ति" : selectedLang === "te" ? "భుక్తి" : selectedLang === "ta" ? "புக்தி" : "Bhukti"}
               </span>
             </div>
           </div>
@@ -699,7 +699,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                       <span className="font-bold text-amber-900">ಶಾಂತಿ ಪರಿಹಾರ:</span> {dp.shantiRemedy[selectedLang] || dp.shantiRemedy.kn}
                     </p>
                     <p className="text-rose-900 font-bold text-[11px] leading-snug bg-rose-100/70 p-1.5 rounded-lg border border-rose-200">
-                      🚫 <span className="underline">ರತ್ನ ಎಚ್ಚರಿಕೆ:</span> {dp.gemstoneCaution[selectedLang] || dp.gemstoneCaution.kn}
+                      🚫 <span className="underline">{isKn ? "ರತ್ನ ಎಚ್ಚರಿಕೆ:" : selectedLang === "hi" ? "रत्न सावधानी:" : selectedLang === "te" ? "రత్న హెచ్చరిక:" : selectedLang === "ta" ? "ரத்தின எச்சரிக்கை:" : "Gemstone Caution:"}</span> {dp.gemstoneCaution[selectedLang] || dp.gemstoneCaution.kn}
                     </p>
                   </div>
                 ))}
@@ -783,12 +783,12 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <span>{isKn ? "ರುದ್ರಾಕ್ಷಿ & ರತ್ನ ಧಾರಣೆ:" : "Rudraksha & Gemstone:"}</span>
             </div>
             <div className="font-bold text-amber-950 text-[11px]">
-              • ರುದ್ರಾಕ್ಷಿ: {typeof gokarnaTempleRemedies.rudrakshaRecommendation.mukhi === "object"
+              {isKn ? "• ರುದ್ರಾಕ್ಷಿ:" : selectedLang === "hi" ? "• रुद्राक्ष:" : selectedLang === "te" ? "• రుద్రాక్ష:" : selectedLang === "ta" ? "• ருத்ராட்சம்:" : "• Rudraksha:"} {typeof gokarnaTempleRemedies.rudrakshaRecommendation.mukhi === "object"
                 ? gokarnaTempleRemedies.rudrakshaRecommendation.mukhi[selectedLang] || gokarnaTempleRemedies.rudrakshaRecommendation.mukhi.kn
                 : gokarnaTempleRemedies.rudrakshaRecommendation.mukhi}
             </div>
             <div className="font-bold text-amber-950 text-[11px]">
-              • ರತ್ನ: {gokarnaTempleRemedies.gemstoneRecommendation.stone[selectedLang] || gokarnaTempleRemedies.gemstoneRecommendation.stone.kn}
+              {isKn ? "• ರತ್ನ:" : selectedLang === "hi" ? "• रत्न:" : selectedLang === "te" ? "• రత్నం:" : selectedLang === "ta" ? "• ரத்தினம்:" : "• Gemstone:"} {gokarnaTempleRemedies.gemstoneRecommendation.stone[selectedLang] || gokarnaTempleRemedies.gemstoneRecommendation.stone.en || gokarnaTempleRemedies.gemstoneRecommendation.stone.kn}
             </div>
             <div className="text-[10px] text-slate-700 pt-1">
               {gokarnaTempleRemedies.rudrakshaRecommendation.benefits[selectedLang] || gokarnaTempleRemedies.rudrakshaRecommendation.benefits.kn}
@@ -802,13 +802,13 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <span>{isKn ? "ಶುಭ ದಾನ & ಗೋಸೇವೆ:" : "Sacred Daana & Goseva:"}</span>
             </div>
             <div className="font-bold text-amber-950 text-[11px]">
-              • ದ್ರವ್ಯ: {gokarnaTempleRemedies.donationDaana.item[selectedLang] || gokarnaTempleRemedies.donationDaana.item.kn}
+              {isKn ? "• ದ್ರವ್ಯ:" : selectedLang === "hi" ? "• द्रव्य (सामग्री):" : selectedLang === "te" ? "• ద్రవ్యం (వస్తువు):" : selectedLang === "ta" ? "• தானப் பொருள்:" : "• Donation Item:"} {gokarnaTempleRemedies.donationDaana.item[selectedLang] || gokarnaTempleRemedies.donationDaana.item.en || gokarnaTempleRemedies.donationDaana.item.kn}
             </div>
             <div className="text-[10px] text-slate-700">
-              • ದಿನ: {gokarnaTempleRemedies.donationDaana.day[selectedLang] || gokarnaTempleRemedies.donationDaana.day.kn}
+              {isKn ? "• ದಿನ:" : selectedLang === "hi" ? "• दिन:" : selectedLang === "te" ? "• రోజు:" : selectedLang === "ta" ? "• நாள்:" : "• Day:"} {gokarnaTempleRemedies.donationDaana.day[selectedLang] || gokarnaTempleRemedies.donationDaana.day.en || gokarnaTempleRemedies.donationDaana.day.kn}
             </div>
             <div className="text-[10px] text-emerald-800 font-bold pt-1">
-              • ಸ್ವೀಕಾರಕರ್ತರು: {gokarnaTempleRemedies.donationDaana.beneficiary[selectedLang] || gokarnaTempleRemedies.donationDaana.beneficiary.kn}
+              {isKn ? "• ಸ್ವೀಕಾರಕರ್ತರು:" : selectedLang === "hi" ? "• स्वीकारकर्ता:" : selectedLang === "te" ? "• స్వీకర్తలు:" : selectedLang === "ta" ? "• பெறுபவர்:" : "• Beneficiary:"} {gokarnaTempleRemedies.donationDaana.beneficiary[selectedLang] || gokarnaTempleRemedies.donationDaana.beneficiary.en || gokarnaTempleRemedies.donationDaana.beneficiary.kn}
             </div>
           </div>
         </div>

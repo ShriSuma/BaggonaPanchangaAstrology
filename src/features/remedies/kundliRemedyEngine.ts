@@ -2224,7 +2224,27 @@ export function generateKundliRemedyReport(
   let primaryStruggleTitle: Record<string, string>;
   let primaryStruggleDesc: Record<string, string>;
 
-  if (isMarsInLagnaFire) {
+  if (input.primaryConcern) {
+    const pc = input.primaryConcern;
+    if (
+      pc === "student_academic" ||
+      pc === "marriage_delay" ||
+      pc === "debt_financial" ||
+      pc === "health_vitality" ||
+      pc === "anger_temper" ||
+      pc === "mental_anxiety" ||
+      pc === "career_obstacles" ||
+      pc === "relationship_friction" ||
+      pc === "legal_confinement" ||
+      pc === "leadership_expansion" ||
+      pc === "creative_stardom" ||
+      pc === "elite_sports" ||
+      pc === "general_alignment"
+    ) {
+      struggleCategory = pc;
+      intensity = "High";
+    }
+  } else if (isMarsInLagnaFire) {
     struggleCategory = "anger_temper";
     intensity = "High";
   } else if (clsCat === "student_academic_stress") {
@@ -2631,7 +2651,7 @@ export function generateKundliRemedyReport(
   }
 
   // 5. Instant Anger & Stress Calming Protocol (Guaranteed 4 steps with cooling Soma Beeja)
-  const stepsList = [
+  let stepsList = [
     {
       stepNumber: 1,
       icon: "💧",
@@ -2690,7 +2710,297 @@ export function generateKundliRemedyReport(
     }
   };
 
-  if (struggleCategory === "mental_anxiety") {
+  let protocolTitle = {
+    kn: "⚡ ತಕ್ಷಣ ಕೋಪ & ಆವೇಶ ಶಮನಗೊಳಿಸುವ ೪-ಹಂತದ ತತ್ತ್ವ",
+    en: "⚡ 4-Step Instant Anger & Temper Pacification Protocol",
+    hi: "⚡ तत्काल क्रोध एवं उत्तेजना शमन हेतु ४-चरणीय विधि",
+    te: "⚡ తక్షణ కోపం & ఆవేశ నివారణ 4-దశల విధానం",
+    ta: "⚡ உடனடி கோபத்தை தணிக்கும் 4-படிமுறை விதிகள்"
+  };
+
+  let protocolSubtitle = {
+    kn: "ಯಾವುದೇ ಸಂದರ್ಭದಲ್ಲಿ ಕೋಪ, ಕಿರಿಕಿರಿ ಅಥವಾ ರೇಗಾಟ ಉಂಟಾದ ತಕ್ಷಣ ಈ ೪ ಕ್ರಮಗಳನ್ನು ತಪ್ಪದೇ ಪಾಲಿಸಿ:",
+    en: "Whenever sudden anger, irritation, or confrontation strikes, strictly execute these 4 immediate actions:",
+    hi: "जब भी अत्यधिक क्रोध या तनाव महसूस हो, तुरंत इन ४ चरणों का पालन करें:",
+    te: "కోపం వచ్చిన వెంటనే ఈ 4 పద్ధతులను అనుసరించండి:",
+    ta: "திடீர் கோபம் வரும்போது உடனடியாக இந்த 4 படிகளை பின்பற்றவும்:"
+  };
+
+  if (struggleCategory === "student_academic") {
+    protocolTitle = {
+      kn: "⚡ ವಿದ್ಯಾ ಗಣಪತಿ & ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಏಕಾಗ್ರತಾ ಸೂತ್ರ",
+      en: "⚡ 4-Step Vidya Ganapati & Saraswati Academic Focus Protocol",
+      hi: "⚡ विद्या गणपति एवं मेधा सरस्वती एकाग्रता सूत्र",
+      te: "⚡ విద్యా గణపతి & సరస్వతీ ఏకాగ్రతా సూత్రం",
+      ta: "⚡ வித்யா கணபதி & சரஸ்வதி மன ஒருமுகப்பாடு விதி"
+    };
+    protocolSubtitle = {
+      kn: "ಅಧ್ಯಯನ ಅಥವಾ ಪರೀಕ್ಷೆಯ ಸಮಯದಲ್ಲಿ ಏಕಾಗ್ರತೆ ಭಂಗವಾದಾಗ ಅಥವಾ ಮರೆವು ಉಂಟಾದಾಗ ಈ ೪ ಕ್ರಮಗಳನ್ನು ಪಾಲಿಸಿ:",
+      en: "Whenever study distractions, memory fog, or exam anxiety strike, execute these 4 steps:",
+      hi: "पढ़ाई या परीक्षा में एकाग्रता भंग होने पर तुरंत इन ४ चरणों का पालन करें:",
+      te: "చదువులో ఏకాగ్రత లోపించినప్పుడు వెంటనే ఈ 4 పద్ధతులను పాటించండి:",
+      ta: "படிப்பில் கவனம் குறையும் போது உடனடியாக இந்த 4 படிகளை பின்பற்றவும்:"
+    };
+    stepsList = [
+      {
+        stepNumber: 1,
+        icon: "💧",
+        name: { kn: "೧. ಜಲ ಪ್ರಾಶನ & ಮುಖ ಪ್ರಕ್ಷಾಲನ", en: "1. Cool Water Ingestion & Face Wash", hi: "१. शीतल जल प्राशन एवं मुख प्रक्षालन", te: "1. చల్లని నీరు త్రాగడం & ముఖం కడగడం", ta: "1. குளிர்ந்த நீர் அருந்துதல் & முகம் கழுவுதல்" },
+        action: { kn: "ಸ್ವಲ್ಪ ತಂಪಾದ ನೀರನ್ನು ನಿಧಾನವಾಗಿ ಕುಡಿದು, ಕಣ್ಣು ಮತ್ತು ಮುಖವನ್ನು ತಣ್ಣೀರಿನಿಂದ ತೊಳೆದುಕೊಳ್ಳಿ.", en: "Drink a glass of fresh water slowly and splash cool water on face and eyes to reduce mental fatigue.", hi: "शीतल जल का घूंट-घूंट सेवन करें और मुख पर जल छिड़कें।", te: "చల్లని నీటిని త్రాగి ముఖం కడుక్కోండి.", ta: "குளிர்ந்த நீரை அருந்தி முகத்தை கழுவவும்." },
+        detail: { kn: "ಜಲ ತತ್ತ್ವವು ಮಿದುಳಿನ ರಕ್ತಸಂಚಾರವನ್ನು ಸಮತೋಲನಗೊಳಿಸಿ, ನರಗಳ ಆಯಾಸವನ್ನು ತಕ್ಷಣ ಶಮನಗೊಳಿಸುತ್ತದೆ.", en: "Water element hydrates neural pathways and settles nervous exhaustion immediately.", hi: "जल तत्व मस्तिष्क को शांत और तरोताजा करता है।", te: "నీటి తత్త్వం మెదడుకు విశ్రాంతినిస్తుంది.", ta: "நீர் தத்துவம் நரம்புகளுக்கு அமைதி தரும்." },
+        duration: { kn: "೩೦ ಸೆಕೆಂಡುಗಳು", en: "30 Seconds", hi: "३० सेकंड", te: "30 సెకన్లు", ta: "30 வினாடிகள்" }
+      },
+      {
+        stepNumber: 2,
+        icon: "🌬️",
+        name: { kn: "೨. ಬ್ರಾಹ್ಮರೀ ಪ್ರಾಣಾಯಾಮ (ಏಕಾಗ್ರತಾ ಉಸಿರಾಟ)", en: "2. Bhramari Pranayama (Cognitive Coherence)", hi: "२. भ्रामरी प्राणायाम (एकाग्रता श्वास)", te: "2. భ్రామరీ ప్రాణాయామం", ta: "2. பிராமரி பிராணாயாமம்" },
+        action: { kn: "ಕಣ್ಣು ಮುಚ್ಚಿ, ದೀರ್ಘ ಉಸಿರೆಳೆದು ಜೇನ್ನೊಣದಂತೆ ಝೇಂಕಾರ ಮಾಡುತ್ತಾ ನಿಧಾನವಾಗಿ ಉಸಿರು ಬಿಡಿ.", en: "Inhale deeply, close ears gently with thumbs, and exhale with a steady humming bee sound (Bhramari).", hi: "गहरी श्वास लेकर भौंरे की भांति गुंजन करते हुए श्वास छोड़ें।", te: "గాలి పీల్చి భ్రమరంలా శబ్దం చేస్తూ గాలి వదలండి.", ta: "ஆழ்ந்து மூச்சிழுத்து வண்டு போல ரீங்காரம் செய்து மூச்சை வெளியிடவும்." },
+        detail: { kn: "೫ ಬಾರಿ ಬ್ರಾಹ್ಮರೀ ಮಾಡುವುದರಿಂದ ಮೆದುಳಿನ ಅಲ್ಫಾ ತರಂಗಗಳು ಹೆಚ್ಚಿ ಮರೆವು ದೂರವಾಗಿ ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಶಕ್ತಿ ಬರುತ್ತದೆ.", en: "5 cycles stimulate cerebral nitric oxide and alpha brainwaves, dissolving panic and boosting memory retention.", hi: "५ बार करने से एकाग्रता और स्मरण शक्ति बढ़ती है।", te: "5 సార్లు చేయండి. ఏకాగ్రత పెరుగుతుంది.", ta: "5 முறை செய்யவும். ஞாபக சக்தி கூடும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+      },
+      {
+        stepNumber: 3,
+        icon: "🧘",
+        name: { kn: "೩. ಸಾರಸ್ವತ ಮೌನ ಧಾರಣೆ", en: "3. Saraswata Stillness Pause", hi: "३. सारस्वत मौन ध्यान", te: "3. సరస్వతీ మౌన ధ్యానం", ta: "3. சரஸ்வதி மௌன தியானம்" },
+        action: { kn: "೨ ನಿಮಿಷಗಳ ಕಾಲ ಕಣ್ಣು ಮುಚ್ಚಿ, ಆಜ್ಞಾ ಚಕ್ರದಲ್ಲಿ (ಹುಬ್ಬುಗಳ ಮಧ್ಯೆ) ಶ್ವೇತ ಜ್ಯೋತಿಯನ್ನು ಧ್ಯಾನಿಸಿ.", en: "Sit spine straight facing East or North; close eyes and meditate on brilliant white radiant light at brow center.", hi: "२ मिनट तक आंखें बंद कर आज्ञा चक्र में श्वेत प्रकाश का ध्यान करें।", te: "కళ్ళు మూసుకుని కనుబొమ్మల మధ్య తెల్లని కాంతిని ధ్యానించండి.", ta: "புருவ மத்தியில் வெண்மையான ஒளியை தியானிக்கவும்." },
+        detail: { kn: "ಚಂಚಲ ಮನಸ್ಸನ್ನು ಸ್ಥಿರಗೊಳಿಸಲು ಮೌನವು ಪರಮ ಔಷಧ. ಈ ಸಮಯದಲ್ಲಿ ಯಾವುದೇ ಪಠ್ಯಪುಸ್ತಕ ಮುಟ್ಟಬೇಡಿ.", en: "Allows intellectual processing centers to consolidate learned concepts without distraction.", hi: "यह मन की चंचलता को दूर कर स्थिरता देता है।", te: "ఇది మనస్సుకు స్థిరత్వాన్ని ఇస్తుంది.", ta: "மன சஞ்சலத்தை போக்கி ஒருமுகப்படுத்தும்." },
+        duration: { kn: "೨ ನಿಮಿಷಗಳು", en: "2 Minutes", hi: "२ मिनट", te: "2 నిమిషాలు", ta: "2 நிமிடங்கள்" }
+      },
+      {
+        stepNumber: 4,
+        icon: "🕉️",
+        name: { kn: "೪. ಸರಸ್ವತೀ & ಮೇಧಾ ಬೀಜ ಜಪ", en: "4. Saraswati & Medha Beeja Japa", hi: "४. सरस्वती एवं मेधा बीज जप", te: "4. సరస్వతీ బీజ మంత్ర జపం", ta: "4. சரஸ்வதி பீஜ மந்திர ஜெபம்" },
+        action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ 'ಐಂ' (AIM) ಬೀಜ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಸ್ಪಷ್ಟವಾಗಿ ಉಚ್ಚರಿಸಿ.", en: "Silently recite the divine Saraswati Beeja 'AIM' 11 times with devotion.", hi: "मन में 'ऐं' (AIM) सरस्वती बीज मंत्र का ११ बार जप करें।", te: "'ఐం' బీజ మంత్రాన్ని మనస్సులో 11 సార్లు జపించండి.", ta: "'ஐம்' என்ற பீஜ மந்திரத்தை மனதில் 11 முறை ஜபிக்கவும்." },
+        detail: { kn: "ವಾಕ್ ಮತ್ತು ವಿದ್ಯಾಧಿಷ್ಠಾತ್ರಿಯಾದ ಸರಸ್ವತಿಯ ಕೃಪೆಯಿಂದ ಪರೀಕ್ಷಾ ಭಯ ನೀಗಿ ಅದ್ಭುತ ಆತ್ಮವಿಶ್ವಾಸ ಮೂಡುತ್ತದೆ.", en: "Aligns cerebral hemisphere frequencies, infusing calm confidence for academic mastery.", hi: "मां सरस्वती की कृपा से परीक्षा का भय समाप्त होता है।", te: "సరస్వతీ దేవి కృపతో పరీక్షా భయం తొలగుతుంది.", ta: "அம்பிகையின் அருளால் தேர்வு பயம் நீங்கும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషಂ", ta: "1 நிமிடம்" }
+      }
+    ];
+    emergencyMantraData = {
+      sanskrit: "॥ ॐ ऐं सरस्वत्यै नमः । ॐ ह्रीं श्रीं क्लीं मेधादेव्यै नमः ॥",
+      kannada: "॥ ಓಂ ಐಂ ಸರಸ್ವತ್ಯೈ ನಮಃ । ಓಂ ಹ್ರೀಂ ಶ್ರೀಂ ಕ್ಲೀಂ ಮೇಧಾದೇವ್ಯೈ ನಮಃ ॥",
+      telugu: "॥ ఓం ఐం సరస్వత్యై నమః । ఓం హ్రీం శ్రీಂ క్లీం మేధాదేవ్యై నమః ॥",
+      tamil: "॥ ஓம் ஐம் சரஸ்வத்யை நமஹ । ஓம் ஹ்ரீம் ஸ்ரீம் க்லீம் மேதாதேவ்யை நமஹ ॥",
+      hindi: "॥ ॐ ऐं सरस्वत्यै नमः । ॐ ह्रीं श्रीं क्लीं मेधादेव्यै नमः ॥",
+      transliteration: "Om Aim Saraswatyai Namaha | Om Hreem Shreem Kleem Medhadevyai Namaha",
+      meaning: {
+        kn: "ವಿದ್ಯಾದೇವತೆ ಸರಸ್ವತಿ ಮತ್ತು ಮೇಧಾದೇವಿಯ ಕೃಪೆಯಿಂದ ಜ್ಞಾನ, ಏಕಾಗ್ರತೆ, ತೀಕ್ಷ್ಣ ಬುದ್ಧಿ ಮತ್ತು ಪರೀಕ್ಷೆಯಲ್ಲಿ ಯಶಸ್ಸು ಲಭಿಸಲಿ.",
+        en: "May Divine Mother Saraswati bless razor-sharp intellect, photographic recall, deep concentration, and effortless mastery.",
+        hi: "मां सरस्वती एवं मेधा देवी की कृपा से तीक्ष्ण बुद्धि, एकाग्रता एवं परीक्षा में श्रेष्ठ सफलता प्राप्त हो।",
+        te: "సరస్వతీ దేవి కృపతో జ్ఞానం, ఏకాగ్రత మరియు పరీక్షల్లో విజయం కలుగుగాక.",
+        ta: "சரஸ்வதி தேவியின் அருளால் கூர்மையான அறிவு, ஏகாக்ரதை மற்றும் கல்வி வெற்றி உண்டாகட்டும்."
+      },
+      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २१ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
+    };
+  } else if (struggleCategory === "marriage_delay") {
+    protocolTitle = {
+      kn: "⚡ ಸ್ವಯಂವರ ಪಾರ್ವತಿ & ಕಂಕಣ ಬಲ ಜಾಗೃತಿ ಸೂತ್ರ",
+      en: "⚡ 4-Step Swayamvara Parvati & Kankana Bala Marriage Alignment Protocol",
+      hi: "⚡ स्वयंवर पार्वती एवं कंकण बल जागृति सूत्र",
+      te: "⚡ స్వయంవర పార్వతి & కంకణ బల జాగృతి సూత్రం",
+      ta: "⚡ சுயம்வர பார்வதி & மங்கல பலன் ஈர்ப்பு விதி"
+    };
+    protocolSubtitle = {
+      kn: "ವಿವಾಹ ಸಂಬಂಧದ ಮಾತುಕತೆಯ ಮುನ್ನ ಅಥವಾ ಕಂಕಣ ಬಲದ ಅಡೆತಡೆಗಳ ಶಮನಕ್ಕೆ ಈ ೪ ಕ್ರಮಗಳನ್ನು ತಪ್ಪದೇ ಪಾಲಿಸಿ:",
+      en: "Prior to matchmaking meets or whenever feeling despair regarding marriage delays, follow these 4 steps:",
+      hi: "विवाह चर्चा से पूर्व अथवा विवाह में आ रही रुकावटों के निवारण हेतु इन ४ चरणों का पालन करें:",
+      te: "వివాహ సంబంధాల చర్చల ముందు లేదా వివాహ ఆటంకాలు తొలగడానికి ఈ 4 దశలను పాటించండి:",
+      ta: "திருமண பேச்சுவார்த்தைக்கு முன் அல்லது தாமதங்கள் நீங்க இந்த 4 படிகளை பின்பற்றவும்:"
+    };
+    stepsList = [
+      {
+        stepNumber: 1,
+        icon: "🌸",
+        name: { kn: "೧. ಶುದ್ಧ ಮನಸ್ಸಿನ ಪ್ರಾರ್ಥನೆ", en: "1. Heart Center Relaxation & Prayer", hi: "१. हृदय चक्र शुद्धि एवं प्रार्थना", te: "1. హృదయ చక్ర విశ్రాంతి & ప్రార్థన", ta: "1. மன அமைதி மற்றும் பிரார்த்தனை" },
+        action: { kn: "ಉತ್ತರಕ್ಕೆ ಮುಖಮಾಡಿ ಕುಳಿತು, ಕೈಜೋಡಿಸಿ ಮನಸ್ಸಿನಲ್ಲಿ ಶುಭ ಕಂಕಣ ಬಲವನ್ನು ಆಹ್ವಾನಿಸಿ.", en: "Sit facing East or North, place right palm over heart center, and breathe slowly for 30s.", hi: "उत्तर दिशा की ओर मुख कर हृदय पर हाथ रखकर शांत भाव से बैठें।", te: "ఉత్తరం వైపు తిరిగి కూర్చుని ప్రశాంతంగా ప్రార్థించండి.", ta: "வடக்கு நோக்கி அமர்ந்து மனதார பிரார்த்தனை செய்யவும்." },
+        detail: { kn: "ಹೃದಯ ಚಕ್ರದ ಒತ್ತಡ ನಿವಾರಣೆಯಾಗಿ ಸೌಮ್ಯ ತೇಜಸ್ಸು ಮತ್ತು ಆಕರ್ಷಣಾ ಶಕ್ತಿ ಜಾಗೃತವಾಗುತ್ತದೆ.", en: "Releases subconscious anxiety around matrimonial delays and harmonizes relational vibrations.", hi: "यह मन से निराशा को दूर कर सकारात्मक ऊर्जा का संचार करता है।", te: "ఇది ఆందోళనను తొలగించి శాంతినిస్తుంది.", ta: "இது மன அழுத்தத்தை போக்கி நேர்மறை ஆற்றலை தரும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+      },
+      {
+        stepNumber: 2,
+        icon: "🌬️",
+        name: { kn: "೨. ಗೌರಿ-ಶಂಕರ ಪ್ರಾಣಾಯಾಮ (ಅನುಲೋಮ-ವಿಲೋಮ)", en: "2. Gauri-Shankara Anulom Vilom Pranayama", hi: "२. गौरी-शंकर अनुलोम-विलोम प्राणायाम", te: "2. అనులోమ విలోమ ప్రాణాయామం", ta: "2. அநுலோம் விலோம் பிராணாயாமம்" },
+        action: { kn: "ಎಡ ಮತ್ತು ಬಲ ನಾಸಿಕಗಳ ಮೂಲಕ ೭ ಬಾರಿ ಸಮತೋಲನ ಶ್ವಾಸಕ್ರಿಯೆ ನಡೆಸಿ.", en: "Perform 7 rhythmic cycles of alternate nostril breathing (Inhale Left, Exhale Right, Inhale Right, Exhale Left).", hi: "७ बार अनुलोम-विलोम प्राणायाम करें।", te: "7 సార్లు అనులోమ విలోమ ప్రాణాయామం చేయండి.", ta: "7 முறை அநுலோம் விலோம் செய்யவும்." },
+        detail: { kn: "ಇದು ಶುಕ್ರ ಮತ್ತು ಗುರುವಿನ ತತ್ತ್ವಗಳನ್ನು ಸಮತೋಲನಗೊಳಿಸಿ, ದಾಂಪತ್ಯ ಭಾಗ್ಯಕ್ಕೆ ಯೋಗ್ಯ ಮಾನಸಿಕ ಸ್ಥಿತಿ ನೀಡುತ್ತದೆ.", en: "Balances solar-lunar polarities, harmonizing Venusian charm and Jovian wisdom.", hi: "यह शुक्र और गुरु की ऊर्जा को संतुलित करता है।", te: "ఇది శుక్ర, గురు గ్రహాల అనుగ్రహాన్ని ఇస్తుంది.", ta: "சுக்கிரன் மற்றும் குருவின் அனுகூலத்தை தரும்." },
+        duration: { kn: "೧.೫ ನಿಮಿಷ", en: "1.5 Minutes", hi: "१.५ मिनट", te: "1.5 నిమిషాలు", ta: "1.5 நிமிடங்கள்" }
+      },
+      {
+        stepNumber: 3,
+        icon: "✨",
+        name: { kn: "೩. ಕಂಕಣ ಬಲ ಸಂಕಲ್ಪ ಧಾರಣೆ", en: "3. Kankana Bala Sankalpa Meditation", hi: "३. कंकण बल संकल्प ध्यान", te: "3. కళ్యాణ సంకల్ప ధ్యానం", ta: "3. மங்கல சங்கல்ப தியானம்" },
+        action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಯೋಗ್ಯ ಸುಸಂಸ್ಕೃತ ಜೀವನ ಸಂಗಾತಿಯ ಆಗಮನವನ್ನು ಕೃತಜ್ಞತೆಯಿಂದ ಕಲ್ಪಿಸಿಕೊಳ್ಳಿ.", en: "Mentally visualize the blossoming of an auspicious, joyful, and dharmic life partnership.", hi: "सुयोग्य जीवनसाथी के आगमन की मंगलमय भावना मन में रखें।", te: "సద్గుణవంతుడైన జీవిత భాగస్వామిని సంకల్పించండి.", ta: "நல்ல வாழ்க்கை துணை அமைய தியானிக்கவும்." },
+        detail: { kn: "ಸಕಾರಾತ್ಮಕ ಸಂಕಲ್ಪವು ಕಂಕಣ ಬಲದ ಸೂಕ್ಷ್ಮ ತರಂಗಗಳನ್ನು ಆಕರ್ಷಿಸಲು ಅತ್ಯಂತ ಪ್ರಭಾವಶಾಲಿ.", en: "Replaces subconscious despair with auspicious magnetic resonance.", hi: "सकारात्मक भाव वैवाहिक योग को प्रबल करता है।", te: "ఇది వివాహ యోగాన్ని బలపరుస్తుంది.", ta: "இது திருமண யோகத்தை விரைவுபடுத்தும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+      },
+      {
+        stepNumber: 4,
+        icon: "🕉️",
+        name: { kn: "೪. ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಬೀಜ ಜಪ", en: "4. Swayamvara Parvati Beeja Japa", hi: "४. स्वयंवर पार्वती बीज जप", te: "4. స్వయంవర పార్వతీ జపం", ta: "4. சுயம்வர பார்வதி மந்திர ஜெபம்" },
+        action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ.", en: "Silently recite the Swayamvara Parvati marriage blessing mantra 11 times.", hi: "मन ही मन स्वयंवर पार्वती मंत्र का ११ बार जप करें।", te: "మనస్సులో స్వయంవర పార్వతీ మంత్రాన్ని 11 సార్లు జపించండి.", ta: "மனதில் சுயம்வர பார்வதி மந்திரத்தை 11 முறை ஜபிக்கவும்." },
+        detail: { kn: "ಜಗನ್ಮಾತೆ ಪಾರ್ವತಿ ಮತ್ತು ಮಹಾದೇವನ ಕೃಪೆಯಿಂದ ಸಕಲ ವಿವಾಹ ದೋಷಗಳು, ಕುಜ ದೋಷದ ಅಡೆತಡೆಗಳು ಶಮನವಾಗುತ್ತವೆ.", en: "Invokes the divine matrimonial grace of Shiva and Parvati to dissolve planetary obstacles.", hi: "मां पार्वती की कृपा से शीघ्र विवाह का मार्ग प्रशस्त होता है।", te: "పార్వతీ పరమేశ్వరుల కృపతో వివాహ ఆటంకాలు తొలగుతాయి.", ta: "சிவபார்வதி அருளால் திருமண தடைகள் நீங்கும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషಂ", ta: "1 நிமிடம்" }
+      }
+    ];
+    emergencyMantraData = {
+      sanskrit: "॥ ॐ ह्रीं योगिनि योगिनि योगेश्वरि योग भयङ्करि सकल स्थावर जङ्गमस्य मुख हृदयं मम वशं आकर्षय आकर्षय नमः ॥",
+      kannada: "॥ ಓಂ ಹ್ರೀಂ ಯೋಗಿನಿ ಯೋಗಿನಿ ಯೋಗೇಶ್ವರಿ ಯೋಗ ಭಯಂಕರಿ ಸಕಲ ಸ್ಥಾವರ ಜಂಗಮಸ್ಯ ಮುಖ ಹೃದಯಂ ಮಮ ವಶಂ ಆಕರ್ಷಯ ಆಕರ್ಷಯ ನಮಃ ॥",
+      telugu: "॥ ఓం హ్రీం యోగిని యోగిని యోగేశ్వరి యోగ భయంకరి సకల స్థావర జంగమస్య ముఖ హృదయం మమ వశం ఆకర్షయ ఆకర్షయ నమః ॥",
+      tamil: "॥ ஓம் ஹ்ரீம் யோகினி யோகினி யோகேஸ்வரி யோக பயங்கரி சகல ஸ்தாவர ஜங்கமஸ்ய முக ஹ்ருதயம் மம வசம் ஆகர்ஷய ஆகர்ஷய நமஹ ॥",
+      hindi: "॥ ॐ ह्रीं योगिनि योगिनि योगेश्वरि योग भयङ्करि सकल स्थावर जङ्गमस्य मुख हृदयं मम वशं आकर्षय आकर्षय नमः ॥",
+      transliteration: "Om Hreem Yogini Yogini Yogeshwari Yoga Bhayankari Sakala Sthavara Jangamasya Mukha Hridayam Mama Vasham Akarshaya Akarshaya Namaha",
+      meaning: {
+        kn: "ಜಗನ್ಮಾತೆ ಪಾರ್ವತಿಯ ಪರಮಾನುಗ್ರಹದಿಂದ ಸಮಸ್ತ ವಿವಾಹ ತಡೆಗಳು ದೂರವಾಗಿ ಶೀಘ್ರ ಕಂಕಣ ಬಲ ಹಾಗೂ ಸುಖೀ ದಾಂಪತ್ಯ ಸಿದ್ಧಿಸಲಿ.",
+        en: "By Divine Mother Parvati's eternal grace, may all matrimonial roadblocks dissolve, blessing you with an auspicious and harmonious life partner.",
+        hi: "मां पार्वती की कृपा से समस्त विवाह बाधाएं दूर हों और शीघ्र सुयोग्य जीवनसाथी की प्राप्ति हो।",
+        te: "పార్వతీ దేవి కృపతో వివాహ ఆటంకాలు తొలగి శీఘ్ర వివాహ ప్రాప్తి కలుగుగాక.",
+        ta: "பார்வதி தேவியின் அருளால் திருமண தடைகள் நீங்கி நல்ல வரன் அமையட்டும்."
+      },
+      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २１ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
+    };
+  } else if (struggleCategory === "debt_financial") {
+    protocolTitle = {
+      kn: "⚡ ಋಣವಿಮೋಚನ ಅಂಗಾರಕ & ಕನಕಧಾರಾ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ ಸೂತ್ರ",
+      en: "⚡ 4-Step Runa Vimochana & Kanakadhara Financial Protection Protocol",
+      hi: "⚡ ऋणविमोचन अंगारक एवं कनकधारा आर्थिक समृद्धि सूत्र",
+      te: "⚡ రుణవిమోచన అంగారక & కనకధారా ఆర్థిక రక్షా సూత్రం",
+      ta: "⚡ கடன் நிவாரண அங்காரக & கனகதாரா பொருளாதார வளர்ச்சி விதி"
+    };
+    protocolSubtitle = {
+      kn: "ಹಣಕಾಸಿನ ತೀವ್ರ ಒತ್ತಡ, ಸಾಲದ ಬಾಧೆ ಅಥವಾ ವ್ಯಾಪಾರ ನಷ್ಟ ಉಂಟಾದಾಗ ಈ ೪ ಕ್ರಮಗಳನ್ನು ಪಾಲಿಸಿ:",
+      en: "When facing acute financial stress, unexpected loss, or debt anxiety, immediately execute these 4 actions:",
+      hi: "आर्थिक संकट, ऋण या व्यवसाय में हानि होने पर तुरंत इन ४ चरणों का पालन करें:",
+      te: "ఆర్థిక ఒత్తిడి లేదా అప్పుల బాధ ఉన్నప్పుడు వెంటనే ఈ 4 పద్ధతులను అనుసరించండి:",
+      ta: "பொருளாதார நெருக்கடி அல்லது கடன் சுமை ஏற்படும் போது இந்த 4 படிகளை பின்பற்றவும்:"
+    };
+    stepsList = [
+      {
+        stepNumber: 1,
+        icon: "💧",
+        name: { kn: "೧. ಜಲ ತರ್ಪಣ & ಕರ ಪ್ರಕ್ಷಾಲನ", en: "1. Hand Cleansing & Bhoomi Touch", hi: "१. हस्त प्रक्षालन एवं भूमि वंदन", te: "1. చేతులు కడగడం & భూమి స్పర్శ", ta: "1. கை கழுவுதல் & பூமி வந்தனம்" },
+        action: { kn: "ಶುದ್ಧ ನೀರಿನಿಂದ ಕೈ ತೊಳೆದುಕೊಂಡು, ಭೂಮಿಯನ್ನು ಸ್ಪರ್ಶಿಸಿ ಕೃತಜ್ಞತೆ ಸಲ್ಲಿಸಿ.", en: "Wash hands with clean water; touch the ground/floor gently with palms in gratitude to Mother Earth.", hi: "स्वच्छ जल से हाथ धोकर भूमि का स्पर्श कर नमन करें।", te: "చేతులు కడుక్కుని భూమిని తాకి నమస్కరించండి.", ta: "கை கழுவி பூமியை தொட்டு வணங்கவும்." },
+        detail: { kn: "ಇದು ಭೂಮಿಯ ಸ್ಥಿರತೆಯನ್ನು ಮೈಗೂಡಿಸಿ ಸಾಲದ ಆತಂಕ ಹಾಗೂ ಆತುರದ ತಪ್ಪು ನಿರ್ಧಾರಗಳನ್ನು ತಡೆಯುತ್ತದೆ.", en: "Grounds panic energy, preventing rash impulsive financial decisions under distress.", hi: "यह मन के घबराहट को शांत कर स्थिरता प्रदान करता है।", te: "ఇది తొందరపాటు నిర్ణయాలను నివారిస్తుంది.", ta: "மன அமைதியை தந்து தவறான முடிவுகளை தடுக்கும்." },
+        duration: { kn: "೩೦ ಸೆಕೆಂಡುಗಳು", en: "30 Seconds", hi: "३० सेकंड", te: "30 సెకన్లు", ta: "30 வினாடிகள்" }
+      },
+      {
+        stepNumber: 2,
+        icon: "🌬️",
+        name: { kn: "೨. ಸೂರ್ಯ ಭೇದನ ಧೈರ್ಯ ಶ್ವಾಸ", en: "2. Surya Bhedana Willpower Breath", hi: "२. सूर्य भेदन प्राण शक्ति श्वास", te: "2. సూర్య భేదన ప్రాణాయామం", ta: "2. சூரிய பேதன பிராணாயாமம்" },
+        action: { kn: "ಎಡ ನಾಸಿಕ ಮುಚ್ಚಿ, ಬಲ ನಾಸಿಕದಿಂದ ದೀರ್ಘ ಉಸಿರೆಳೆದು ಎಡದಿಂದ ಬಿಡಿ.", en: "Close left nostril, inhale deeply through right nostril for 4s, exhale left for 6s (Surya Bhedana).", hi: "दाहिने नथुने से श्वास खींचकर बाएं से निकालें।", te: "కుడి నాసిక ద్వారా శ్వాస తీసుకుని ఎడమ వైపు వదలండి.", ta: "வலது நாசி வழியே மூச்சிழுத்து இடது வழியே விடவும்." },
+        detail: { kn: "ಆಂತರಿಕ ಧೈರ್ಯ, ಸಂಕಲ್ಪ ಶಕ್ತಿ ಮತ್ತು ಕರ್ಮ ಸಾಮರ್ಥ್ಯವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತದೆ.", en: "Awakens solar resolve and pragmatic problem-solving acumen to tackle debts.", hi: "यह आंतरिक साहस और निर्णय शक्ति को जाग्रत करता है।", te: "ఇది సమస్యలను ఎదుర్కొనే ధైర్యాన్ని ఇస్తుంది.", ta: "இது மனோதிடத்தையும் தைரியத்தையும் தரும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషಂ", ta: "1 நிமிடம்" }
+      },
+      {
+        stepNumber: 3,
+        icon: "🪙",
+        name: { kn: "೩. ಕನಕಧಾರಾ ಸಮೃದ್ಧಿ ಧ್ಯಾಸ", en: "3. Kanakadhara Abundance Meditation", hi: "३. कनकधारा समृद्धि ध्यान", te: "3. కనకధారా సమృద్ధి ధ్యానం", ta: "3. கனகதாரா லக்ஷ்மி தியானம்" },
+        action: { kn: "ಉತ್ತರಕ್ಕೆ ಮುಖ ಮಾಡಿ ಕುಳಿತು ಮಹಾಲಕ್ಷ್ಮಿಯ ಸುವರ್ಣ ದೃಷ್ಟಿಯನ್ನು ಭಾವಿಸಿ.", en: "Face North (Kubera direction); visualize golden blessings dissolving heavy liabilities.", hi: "उत्तर दिशा की ओर मुख कर मां लक्ष्मी की कृपा दृष्टि का ध्यान करें।", te: "ఉత్తరం వైపు తిరిగి లక్ష్మీ దేవి అనుగ్రహాన్ని ధ్యానించండి.", ta: "வடக்கு நோக்கி அமர்ந்து மகாலட்சுமியை தியானிக்கவும்." },
+        detail: { kn: "ಕೊರತೆಯ ಭಯವನ್ನು ನಿವಾರಿಸಿ ಧನ ಸಂಪತ್ತು ಮತ್ತು ನೂತನ ಆದಾಯದ ದಾರಿಗಳನ್ನು ತೆರೆಯುತ್ತದೆ.", en: "Replaces the scarcity panic mindset with structured abundance consciousness.", hi: "यह ऋण के भय को दूर कर नए मार्ग प्रशस्त करता है।", te: "ఆర్థిక భయాన్ని పోగొట్టి కొత్త మార్గాలు చూపిస్తుంది.", ta: "பொருளாதார பயத்தை போக்கும்." },
+        duration: { kn: "೨ ನಿಮಿಷಗಳು", en: "2 Minutes", hi: "२ मिनट", te: "2 నిమిషాలు", ta: "2 நிமிடங்கள்" }
+      },
+      {
+        stepNumber: 4,
+        icon: "🕉️",
+        name: { kn: "೪. ಋಣವಿಮೋಚನ ಅಂಗಾರಕ ಬೀಜ ಜಪ", en: "4. Runa Vimochana Angaraka Beeja Japa", hi: "೪. ऋणविमोचन अंगारक बीज जप", te: "4. రుణవిమోచన మంత్ర జపం", ta: "4. கடன் நிவாரண மந்திர ஜெபம்" },
+        action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಋಣಹರ್ತೃ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಸ್ಪಷ್ಟವಾಗಿ ಜಪಿಸಿ.", en: "Silently chant the sacred Runa Vimochana mantra 11 times.", hi: "मन में ऋणविमोचन अंगारक मंत्र का ११ बार जप करें।", te: "రుణవిమోచన మంత్రాన్ని 11 సార్లు జపించండి.", ta: "கடன் நிவாரண மந்திரத்தை 11 முறை ஜபிக்கவும்." },
+        detail: { kn: "ಭೂಮಿಪುತ್ರ ಕುಜ ಮತ್ತು ಲಕ್ಷ್ಮೀ ಕೃಪೆಯಿಂದ ಆರ್ಥಿಕ ಸಂಕಷ್ಟ ಹಾಗೂ ಸಾಲದ ಬಾಧೆಗಳು ಪರಿಹಾರವಾಗುತ್ತವೆ.", en: "Invokes divine planetary dispensations to break cycles of compounded liabilities.", hi: "भूमिपुत्र मंगल एवं लक्ष्मी कृपा से कर्ज से मुक्ति मिलती है।", te: "అంగారకుడి కృపతో అప్పుల బాధలు తొలగుతాయి.", ta: "அங்காரக பகவான் அருளால் கடன்கள் தீரும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషಂ", ta: "1 நிமிடம்" }
+      }
+    ];
+    emergencyMantraData = {
+      sanskrit: "॥ ॐ मङ्गलो भूमिपुत्रश्च ऋणहर्ता धनप्रदः । स्थिरासनो महाकायः सर्वकर्मविरोधकः ॥",
+      kannada: "॥ ಓಂ ಮಂಗಳೋ ಭೂಮಿಪುತ್ರಶ್ಚ ಋಣಹರ್ತಾ ಧನಪ್ರದಃ । ಸ್ಥಿರಾಸನೋ ಮಹಾಕಾಯಃ ಸರ್ವಕರ್ಮವಿರೋಧಕಃ ॥",
+      telugu: "॥ ఓం మంగళో భూమిపుత్రశ్చ రుణహర్తా ధనప్రదః । స్థిరాసనో మహాకాయః సర్వకర్మవిరోధకః ॥",
+      tamil: "॥ ஓம் மங்களோ பூமிபுத்ரஸ்ச ருணஹர்தா தனப்ரதஃ । ஸ்திராஸனோ மஹாகாயஃ ஸர்வகர்மவிரோதகஃ ॥",
+      hindi: "॥ ॐ मङ्गलो भूमिपुत्रश्च ऋणहर्ता धनप्रदः । स्थिरासनो महाकायः सर्वकर्मविरोधकः ॥",
+      transliteration: "Om Mangalo Bhoomiputrashcha Runa Harta Dhanapradaha | Sthirasano Mahakayaha Sarva Karma Virodhakaha",
+      meaning: {
+        kn: "ಋಣಹರ್ತನಾದ ಭೂಮಿಪುತ್ರ ಕುಜ ಮತ್ತು ಮಹಾಲಕ್ಷ್ಮಿಯ ಕೃಪೆಯಿಂದ ಸಮಸ್ತ ಸಾಲದ ಬಾಧೆಗಳು ಕರಗಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಲಭಿಸಲಿ.",
+        en: "May Lord Angaraka the Debt-Destroyer and Goddess Mahalakshmi dissolve financial burdens, bestowing wealth and cash stability.",
+        hi: "ऋणहर्ता मंगल देव एवं मां लक्ष्मी की कृपा से समस्त कर्जों का निवारण हो और आर्थिक स्थिरता प्राप्त हो।",
+        te: "రుణహర్త అయిన అంగారకుని కృపతో అప్పుల బాధలు తొలగి ఆర్థిక స్థిరత్వం కలుగుగాక.",
+        ta: "கடன் தீர்க்கும் அங்காரக பகவானின் அருளால் சகல கடன்களும் நீங்கி ஐஸ்வர்யம் உண்டாகட்டும்."
+      },
+      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २१ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
+    };
+  } else if (struggleCategory === "health_vitality") {
+    protocolTitle = {
+      kn: "⚡ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನಿ ಪ್ರಾಣಶಕ್ತಿ ಸೂತ್ರ",
+      en: "⚡ 4-Step Mahamrityunjaya Sanjeevini Prana Vitality Protocol",
+      hi: "⚡ महामृत्युंजय संजीवनी प्राणशक्ति सूत्र",
+      te: "⚡ మహామృత్యుంజయ సంజీవని ప్రాణశక్తి సూత్రం",
+      ta: "⚡ மகா மிருத்யுஞ்சய சஞ்சீவினி பிராண சக்தி விதி"
+    };
+    protocolSubtitle = {
+      kn: "ದೈಹಿಕ ಅಸ್ವಸ್ಥತೆ, ಆಯಾಸ ಅಥವಾ ಜೀವಭಯ ಉಂಟಾದಾಗ ತಕ್ಷಣ ಈ ೪ ಸಂಜೀವಿನಿ ಕ್ರಮಗಳನ್ನು ಪಾಲಿಸಿ:",
+      en: "Whenever sudden physical fatigue, low vitality, or health anxiety arises, follow these 4 steps:",
+      hi: "अस्वस्थता या प्राणशक्ति की कमी महसूस होने पर तुरंत इन ४ चरणों का पालन करें:",
+      te: "శారీరక అలసట లేదా అనారోగ్యం కలిగినప్పుడు వెంటనే ఈ 4 సంజీవని పద్ధతులను పాటించండి:",
+      ta: "உடல் சோர்வு அல்லது ஆரோக்கிய குறைபாடு ஏற்படும் போது இந்த 4 படிகளை பின்பற்றவும்:"
+    };
+    stepsList = [
+      {
+        stepNumber: 1,
+        icon: "💧",
+        name: { kn: "೧. ಉಷಃಪಾನ & ತುಳಸೀ ಜಲ ಪ್ರೋಕ್ಷಣ", en: "1. Fresh Water Sip & Face Refresh", hi: "१. शीतल जल सेवन एवं मुख मार्जन", te: "1. చల్లని నీరు త్రాగడం & విశ్రాంతి", ta: "1. நீர் அருந்துதல் & புத்துணர்ச்சி" },
+        action: { kn: "ಸ್ವಲ್ಪ ಶುದ್ಧ ನೀರನ್ನು ಕುಡಿದು, ತಲೆಯ ಮೇಲೆ ಮತ್ತು ಕಣ್ಣುಗಳ ಮೇಲೆ ನೀರನ್ನು ಪ್ರೋಕ್ಷಣೆ ಮಾಡಿಕೊಳ್ಳಿ.", en: "Sip room-temperature water slowly; splash a few drops over head and eyes.", hi: "धीमे-धीमे जल पिएं और आंखों पर छींटे मारें।", te: "నెమ్మదిగా నీరు త్రాగి కళ్ళు కడుక్కోండి.", ta: "மெதுவாக நீர் அருந்தி கண்களை கழுவவும்." },
+        detail: { kn: "ಜಲ ತತ್ತ್ವವು ಆಯುಷ್ಯ ವರ್ಧಕವಾಗಿದ್ದು, ದೇಹದ ತಾಪ ಮತ್ತು ಆಯಾಸವನ್ನು ಕಡಿಮೆ ಮಾಡುತ್ತದೆ.", en: "Soothes internal heat and rehydrates depleted cellular vitality.", hi: "यह शरीर के ताप को शांत कर ताजगी देता है।", te: "ఇది శరీర తాపాన్ని తగ్గిస్తుంది.", ta: "இது உடல் சூட்டை தணித்து புத்துணர்ச்சி தரும்." },
+        duration: { kn: "೩೦ ಸೆಕೆಂಡುಗಳು", en: "30 Seconds", hi: "३० सेकंड", te: "30 సెకన్లు", ta: "30 வினாடிகள்" }
+      },
+      {
+        stepNumber: 2,
+        icon: "🌬️",
+        name: { kn: "೨. ಸಂಜೀವಿನಿ ಪ್ರಾಣಾಯಾಮ (ದೀರ್ಘ ಶ್ವಾಸ)", en: "2. Sanjeevini Deep Diaphragmatic Breath", hi: "२. संजीवनी दीर्घ प्राणायाम", te: "2. దీర్ఘ శ్వాస ప్రాణాయామం", ta: "2. சஞ்சீவினி ஆழ்ந்த மூச்சு பயிற்சி" },
+        action: { kn: "ಬೆನ್ನು ನೇರವಾಗಿಸಿ ಕುಳಿತು, ೫ ಸೆಕೆಂಡ್ ದೀರ್ಘ ಉಸಿರೆಳೆದು, ೫ ಸೆಕೆಂಡ್ ಬಿಡಿ.", en: "Sit comfortably, inhale life force slowly for 4s, hold gently for 2s, exhale smoothly for 6s.", hi: "रीढ़ सीधी कर बैठें, गहरी श्वास लें और धीरे-धीरे छोड़ें।", te: "వెన్ను నిటారుగా ఉంచి నెమ్మదిగా ఊపిరి పీల్చి వదలండి.", ta: "முதுகை நேராக வைத்து ஆழ்ந்து மூச்சிழுத்து வெளியிடவும்." },
+        detail: { kn: "ಪ್ರಾಣವಾಯು ದೇಹದ ಸಮಸ್ತ ನರಮಂಡಲವನ್ನು ಪುನಶ್ಚೇತನಗೊಳಿಸಿ ಆತಂಕವನ್ನು ನಿವಾರಿಸುತ್ತದೆ.", en: "Floods the bloodstream with oxygen, activating immune parasympathetic restoration.", hi: "यह रक्त संचार और रोग प्रतिरोधक क्षमता को बढ़ाता है।", te: "ఇది రోగనిరోధక శక్తిని పెంచుతుంది.", ta: "நோய் எதிர்ப்பு சக்தியை அதிகரிக்கும்." },
+        duration: { kn: "೧.೫ ನಿಮಿಷ", en: "1.5 Minutes", hi: "१.५ मिनट", te: "1.5 నిమిషాలు", ta: "1.5 நிமிடங்கள்" }
+      },
+      {
+        stepNumber: 3,
+        icon: "🧘",
+        name: { kn: "೩. ಅಮೃತ ಶಿವ ಸಂಕಲ್ಪ", en: "3. Amrita Shiva Healing Stillness", hi: "३. अमृत शिव आरोग्य ध्यान", te: "3. అమృత శివ ఆరోగ్య ధ్యానం", ta: "3. அமிர்த சிவ தியானம்" },
+        action: { kn: "ದೇಹದ ಪ್ರತಿಯೊಂದು ಅಂಗದಲ್ಲೂ ಅಮೃತಮಯ ದೈವಿಕ ರಕ್ಷಣೆ ಹರಿಯುತ್ತಿರುವುದನ್ನು ಕಲ್ಪಿಸಿಕೊಳ್ಳಿ.", en: "Visualize cool, nectarous healing light enveloping every cell and tissue.", hi: "शरीर में दिव्य आरोग्यदायिनी ऊर्जा का ध्यान करें।", te: "దివ్య ఆరోగ్య కాంతిని భావిస్తూ ధ్యానించండి.", ta: "ஆரோக்கிய ஒளியை உடலில் தியானிக்கவும்." },
+        detail: { kn: "ಭಯವು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಕುಗ್ಗಿಸುತ್ತದೆ; ಮೃತ್ಯುಂಜಯ ಧ್ಯಾನವು ತಕ್ಷಣ ಚೇತರಿಕೆ ನೀಡುತ್ತದೆ.", en: "Clears fear frequencies, triggering intrinsic cellular rejuvenation.", hi: "यह भय को समाप्त कर स्वास्थ्य लाभ कराता है।", te: "భయాన్ని పోగొట్టి ఆరోగ్యాన్ని ఇస్తుంది.", ta: "பயத்தை போக்கி நலம் தரும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిಷಂ", ta: "1 நிமிடம்" }
+      },
+      {
+        stepNumber: 4,
+        icon: "🕉️",
+        name: { kn: "೪. ಮಹಾಮೃತ್ಯುಂಜಯ ಅಮೃತ ಬೀಜ ಜಪ", en: "4. Mahamrityunjaya Sanjeevini Japa", hi: "४. महामृत्युंजय अमृत मंत्र जप", te: "4. మహామృత్యుంజయ మంత్ర జపం", ta: "4. மகா மிருத்யுஞ்சய மந்திர ஜெபம்" },
+        action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ತ್ರ್ಯಂಬಕ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ.", en: "Silently recite the supreme Mahamrityunjaya mantra 11 times.", hi: "मन ही मन महामृत्युंजय मंत्र का ११ बार जप करें।", te: "మహామృత్యుంజయ మంత్రాన్ని 11 సార్లు జపించండి.", ta: "மகா மிருத்யுஞ்சய மந்திரத்தை 11 முறை ஜபிக்கவும்." },
+        detail: { kn: "ಭಗವಾನ್ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನ ಕೃಪೆಯಿಂದ ಸಕಲ ರೋಗ ಭಯ, ಅಕಾಲಿಕ ಬಾಧೆಗಳು ದೂರವಾಗಿ ಆಯುಷ್ಯ ವೃದ್ಧಿಯಾಗುತ್ತದೆ.", en: "Invokes Lord Shiva's ultimate restorative grace, shielding against physical and mental afflictions.", hi: "भगवान शिव की कृपा से अकाल कष्ट और रोग दूर होते हैं।", te: "శివుని కృపతో సమస్త రోగాలు నివారించబడతాయి.", ta: "சிவபெருமானின் அருளால் சகல நோய்களும் நீங்கும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిಷಂ", ta: "1 நிமிடம்" }
+      }
+    ];
+    emergencyMantraData = {
+      sanskrit: "॥ ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् । उर्वारुकमिव बन्धनान्मृत्योर्मुक्षीय मामृतात् ॥",
+      kannada: "॥ ಓಂ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ । ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ॥",
+      telugu: "॥ ఓం త్ర్యంబకం యజామహే సుగంధిం పుష్టివర్ధనమ్ । ఉర్వారుకమివ బంధనాన్మృత్యోర్ముక్షీయ మామృతాత్ ॥",
+      tamil: "॥ ஓம் த்ரயம்பகம் யஜாமஹே ஸுகந்திம் புஷ்டிவர்த்தனம் । உர்வாருகமிவ பந்தனான்மிருத்யோர்முக்ஷீய மாமிருதாத் ॥",
+      hindi: "॥ ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् । उर्वारुकमिव बन्धनान्मृत्योर्मुक्षीय मामृतात् ॥",
+      transliteration: "Om Tryambakam Yajamahe Sugandhim Pushti Vardhanam | Urvaarukamiva Bandhanaan Mrityor Muksheeya Maamritaat",
+      meaning: {
+        kn: "ಮಹಾಮೃತ್ಯುಂಜಯ ಮಹಾದೇವನ ಕೃಪೆಯಿಂದ ಸಮಸ್ತ ರೋಗಭಯ, ಆಯಾಸ ಮತ್ತು ದೈಹಿಕ ಬಾಧೆಗಳು ದೂರವಾಗಿ ದೀರ್ಘ ಆಯುರಾರೋಗ್ಯ ಸಿದ್ಧಿಸಲಿ.",
+        en: "May Lord Mahamrityunjaya grant freedom from ailments and untimely distress, rejuvenating vitality, longevity, and well-being.",
+        hi: "भगवान महामृत्युंजय की कृपा से समस्त व्याधियां दूर हों और दीर्घायु एवं पूर्ण आरोग्य की प्राप्ति हो।",
+        te: "మహామృత్యుంజయుడైన శివుని కృపతో సమస్త రోగాలు తొలగి సంపూర్ణ ఆయురారోగ్యాలు కలుగుగాక.",
+        ta: "மகா மிருத்யுஞ்சய பகவானின் அருளால் சகல பிணிகளும் நீங்கி நீண்ட ஆயுளும் ஆரோக்கியமும் கிடைக்கட்டும்."
+      },
+      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २१ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
+    };
+  } else if (struggleCategory === "mental_anxiety") {
+    protocolTitle = {
+      kn: "⚡ ಸೋಮ-ಚಂದ್ರ ಮನಃಶಾಂತಿ & ಚಿತ್ತ ವಿಶ್ರಾಂತಿ ಸೂತ್ರ",
+      en: "⚡ 4-Step Soma-Chandra Mental Peace & Anxiety Release Protocol",
+      hi: "⚡ सोम-चन्द्र मानसिक शांति एवं चित्त विश्रांति सूत्र",
+      te: "⚡ సోమ-చంద్ర మానసిక శాంతి & చిత్త విశ్రాంతి సూత్రం",
+      ta: "⚡ சோம-சந்திர மன அமைதி மற்றும் அமைதி விதி"
+    };
+    protocolSubtitle = {
+      kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಅತಿಯಾದ ಆತಂಕ, ಅನಗತ್ಯ ಚಿಂತೆ ಅಥವಾ ನಿದ್ರಾಹೀನತೆ ಉಂಟಾದಾಗ ಈ ೪ ಕ್ರಮಗಳನ್ನು ಪಾಲಿಸಿ:",
+      en: "Whenever acute overthinking, panic, or restless anxiety arises, follow these 4 steps:",
+      hi: "जब भी मन में अत्यधिक चिंता या घबराहट हो, तुरंत इन ४ चरणों का पालन करें:",
+      te: "అధిక ఆందోళన లేదా మానసిక ఒత్తిడి ఉన్నప్పుడు ఈ 4 దశలను పాటించండి:",
+      ta: "அதிக மன உளைச்சல் ஏற்படும் போது இந்த 4 படிகளை பின்பற்றவும்:"
+    };
     emergencyMantraData = {
       sanskrit: "॥ ॐ श्रां श्रीं श्रौं सः चन्द्रमसे नमः । ॐ सों सोमाय नमः शान्तये ॥",
       kannada: "॥ ಓಂ ಶ್ರಾಂ ಶ್ರೀಂ ಶ್ರೌಂ ಸಃ ಚಂದ್ರಮಸೇ ನಮಃ । ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ ಶಾಂತಯೇ ॥",
@@ -2705,13 +3015,27 @@ export function generateKundliRemedyReport(
         te: "చంద్రుని కృపతో మానసిక ఆందోళన తొలగుగాక.",
         ta: "சந்திரனின் அருளால் மனக்குழப்பம் நீங்கி அமைதி உண்டாகட்டும்."
       },
-      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २१ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
+      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २１ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
     };
   } else if (struggleCategory === "career_obstacles") {
+    protocolTitle = {
+      kn: "⚡ ಆದಿತ್ಯ ಹೃದಯ & ಶನಿ ಕರ್ಮಸಿದ್ಧಿ ಸೂತ್ರ",
+      en: "⚡ 4-Step Aditya & Saturn Karma Siddhi Career Breakthrough Protocol",
+      hi: "⚡ आदित्य हृदय एवं शनि कर्मसिद्धि सूत्र",
+      te: "⚡ ఆదిత్య హృదయ & శని కర్మసిద్ధి సూత్రం",
+      ta: "⚡ ஆதித்ய ஹிருதய & சனி கர்ம சித்தி விதி"
+    };
+    protocolSubtitle = {
+      kn: "ಉದ್ಯೋಗದಲ್ಲಿ ಅಡೆತಡೆ, ವ್ಯಾಪಾರ ನಿಶ್ಚಲತೆ ಅಥವಾ ಕಠಿಣ ಸಂದರ್ಭಗಳಲ್ಲಿ ಈ ೪ ಕ್ರಮಗಳನ್ನು ಪಾಲಿಸಿ:",
+      en: "When facing career stagnation, interview nervousness, or heavy professional obstacles, follow these 4 steps:",
+      hi: "नौकरी या कार्यक्षेत्र में बाधाएं आने पर तुरंत इन ४ चरणों का पालन करें:",
+      te: "ఉద్యోగంలో ఆటంకాలు ఎదురైనప్పుడు వెంటనే ఈ 4 పద్ధతులను పాటించండి:",
+      ta: "தொழில் தடைகள் ஏற்படும் போது உடனடியாக இந்த 4 படிகளை பின்பற்றவும்:"
+    };
     emergencyMantraData = {
       sanskrit: "॥ ॐ शं शनैश्चराय नमः । ॐ प्रां प्रीं प्रौं सः शनये नमः ॥",
       kannada: "॥ ಓಂ ಶಂ ಶನೈಶ್ಚರಾಯ ನಮಃ । ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನಯೇ ನಮಃ ॥",
-      telugu: "॥ ఓం శం శనైశ్చరాయ నమః । ఓం ప్రాం ప్రీం ప్రౌం సః శనయే నమః ॥",
+      telugu: "॥ ఓం శం శనైశ్చరాయ నమః । ಓಂ ప్రాం ప్రీಂ ಪ್ರೌಂ ಸಃ ಶನಯೇ ನಮಃ ॥",
       tamil: "॥ ஓம் சம் சனைச்சராய நமஹ । ஓம் ப்ராம் ப்ரீம் ப்ரௌம் ஸஃ சனயே நமஹ ॥",
       hindi: "॥ ॐ शं शनैश्चराय नमः । ॐ प्रां प्रीं प्रौं सः शनये नमः ॥",
       transliteration: "Om Sham Shanaishcharaya Namaha | Om Pram Preem Proum Sah Shanaye Namaha",
@@ -2727,20 +3051,8 @@ export function generateKundliRemedyReport(
   }
 
   const instantCalmingProtocol = {
-    title: {
-      kn: "⚡ ತಕ್ಷಣ ಕೋಪ & ಆವೇಶ ಶಮನಗೊಳಿಸುವ ೪-ಹಂತದ ತತ್ತ್ವ",
-      en: "⚡ 4-Step Instant Anger & Temper Pacification Protocol",
-      hi: "⚡ तत्काल क्रोध एवं उत्तेजना शमन हेतु ४-चरणीय विधि",
-      te: "⚡ తక్షణ కోపం & ఆవేశ నివారణ 4-దశల విధానం",
-      ta: "⚡ உடனடி கோபத்தை தணிக்கும் 4-படிமுறை விதிகள்"
-    },
-    subtitle: {
-      kn: "ಯಾವುದೇ ಸಂದರ್ಭದಲ್ಲಿ ಕೋಪ, ಕಿರಿಕಿರಿ ಅಥವಾ ರೇಗಾಟ ಉಂಟಾದ ತಕ್ಷಣ ಈ ೪ ಕ್ರಮಗಳನ್ನು ತಪ್ಪದೇ ಪಾಲಿಸಿ:",
-      en: "Whenever sudden anger, irritation, or confrontation strikes, strictly execute these 4 immediate actions:",
-      hi: "जब भी अत्यधिक क्रोध या तनाव महसूस हो, तुरंत इन ४ चरणों का पालन करें:",
-      te: "కోపం వచ్చిన వెంటనే ಈ 4 పద్ధతులను అనుసరించండి:",
-      ta: "திடீர் கோபம் வரும்போது உடனடியாக இந்த 4 படிகளை பின்பற்றவும்:"
-    },
+    title: protocolTitle,
+    subtitle: protocolSubtitle,
     steps: stepsList,
     emergencyBeejaMantra: emergencyMantraData
   };
@@ -3296,7 +3608,83 @@ export function generateKundliRemedyReport(
     ta: "கோசாலையில் பசுக்களுக்கு அல்லது ஏழைகளுக்கு"
   };
 
-  if (struggleCategory === "anger_temper" || isMarsAfflicted) {
+  if (struggleCategory === "student_academic") {
+    prescribedSevaName = {
+      kn: "ಗೋಕರ್ಣ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ & ಸರಸ್ವತೀ ವಿದ್ಯಾಪೂಜೆ",
+      en: "Gokarna Medha Dakshinamoorthi & Saraswati Vidya Pooja",
+      hi: "गोकर्ण मेधा दक्षिणामूर्ति एवं सरस्वती विद्या पूजा",
+      te: "ಗೋಕರ್ಣ ಮೇಧಾ దక్షిణామూర్తి విద్యా పూజ",
+      ta: "கோகர்ண மேதா தட்சிணாமூர்த்தி வித்யா பூஜை"
+    };
+    sevaSignificance = {
+      kn: "ಏಕಾಗ್ರತೆ, ತೀಕ್ಷ್ಣ ಬುದ್ಧಿಶಕ್ತಿ, ಗ್ರಹಣ ಸಾಮರ್ಥ್ಯ ಮತ್ತು ಪರೀಕ್ಷಾ ಯಶಸ್ಸಿಗಾಗಿ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಲ್ಲಿಸುವ ವಿಶೇಷ ಸಾರಸ್ವತ ಸೇವೆ.",
+      en: "Enhances deep memory retention, intellectual brilliance, and academic triumph at Gokarna Kshetra.",
+      hi: "एकाग्रता, तीक्ष्ण स्मरणशक्ति एवं परीक्षा में सफलता हेतु दक्षिणामूर्ति एवं सरस्वती पूजा।",
+      te: "జ్ఞానార్జన, ఏకాగ్రత మరియు పరీక్షల్లో విజయం కోసం ప్రత్యేక పూజ.",
+      ta: "நினைவாற்றல் மற்றும் கல்வி வெற்றிக்காக செய்யப்படும் சிறப்பு பூஜை."
+    };
+    sevaIdealDay = { kn: "ಬುಧವಾರ ಅಥವಾ ಗುರುವಾರ", en: "Wednesday or Thursday", hi: "बुधवार अथवा गुरुवार", te: "బుధవారం లేదా గురువారం", ta: "புதன்கிழமை அல்லது வியாழக்கிழமை" };
+    donationItem = { kn: "ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕಗಳು, ಲೇಖನಿ ಅಥವಾ ಹಸಿರು ಹೆಸರುಕಾಳು", en: "Educational books, pens, or green gram (moong dal) to needy students", hi: "जरूरतमंद छात्रों को पुस्तकें, पेन अथवा मूंग दाल", te: "పుస్తకాలు, పెన్నులు లేదా పెసలు దానం", ta: "மாணவர்களுக்கு புத்தகங்கள், பேனா அல்லது பாசிப்பயறு தானம்" };
+    donationDay = { kn: "ಬುಧವಾರ", en: "Wednesday", hi: "बुधवार", te: "బుధవారం", ta: "புதன்கிழமை" };
+    donationBeneficiary = { kn: "ಬಡ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಅಥವಾ ಶಾಲಾ ಗ್ರಂಥಾಲಯಕ್ಕೆ", en: "Needy school students or library", hi: "निर्धन छात्रों अथवा विद्यालय को", te: "పేద విద్యార్థులకు లేదా పాఠశాలకు", ta: "ஏழை மாணவர்களுக்கு" };
+  } else if (struggleCategory === "marriage_delay") {
+    prescribedSevaName = {
+      kn: "ಗೋಕರ್ಣ ಸ್ವಯಂವರ ಪಾರ್ವತಿ & ಕಲ್ಯಾಣೋತ್ಸವ ಸೇವೆ",
+      en: "Gokarna Swayamvara Parvati & Kalyana Mahotsava Seva",
+      hi: "गोकर्ण स्वयंवर पार्वती एवं कल्याणोत्सव सेवा",
+      te: "ಗೋಕರ್ಣ స్వయంవర పార్వతి & కళ్యాణోత్సవ సేవ",
+      ta: "கோகர்ண சுயம்வர பார்வதி & கல்யாண உற்சவ சேவை"
+    };
+    sevaSignificance = {
+      kn: "ವಿವಾಹ ತಡೆ, ಕಂಕಣ ಬಲದ ಕೊರತೆ ಮತ್ತು ಶುಕ್ರ-ಗುರು ದೋಷಗಳನ್ನು ಪರಿಹರಿಸಿ ಅನುರೂಪ ದಾಂಪತ್ಯ ಜೀವನ ಕರುಣಿಸುವ ಪವಿತ್ರ ಸೇವೆ.",
+      en: "Dissolves marriage delays and Kuja/Guru doshas, invoking matrimonial bliss at Gokarna Kshetra.",
+      hi: "शीघ्र विवाह एवं सुयोग्य जीवनसाथी की प्राप्ति हेतु स्वयंवर पार्वती पूजा।",
+      te: "శీఘ్ర వివాహ సిద్ధి మరియు దాంపత్య సుఖం కొరకు కళ్యాణోత్సవం.",
+      ta: "விரைவில் திருமணம் கைகூட மற்றும் தோஷங்கள் நீங்க விசேஷ பூஜை."
+    };
+    sevaIdealDay = { kn: "ಶುಕ್ರವಾರ ಅಥವಾ ಸೋಮವಾರ", en: "Friday or Monday", hi: "शुक्रवार अथवा सोमवार", te: "శుక్రవారం లేదా సోమవారం", ta: "வெள்ளிக்கிழமை அல்லது திங்கட்கிழமை" };
+    donationItem = { kn: "ಅರಿಶಿನ, ಕುಂಕುಮ, ಹಳದಿ ಸೀರೆ ಅಥವಾ ಕಲ್ಯಾಣ ದ್ರವ್ಯ", en: "Haldi-kumkum, yellow silk, or auspicious bridal offerings", hi: "हल्दी, कुमकुम, पीले वस्त्र अथवा सुहाग सामग्री", te: "పసుపు, కుంకుమ, పసుపు రంగు వస్త్రాలు", ta: "மஞ்சள், குங்குமம் அல்லது மங்கல பொருட்கள்" };
+    donationDay = { kn: "ಶುಕ್ರವಾರ", en: "Friday", hi: "शुक्रवार", te: "శుక్రవారం", ta: "வெள்ளிக்கிழமை" };
+    donationBeneficiary = { kn: "ಮುತ್ತೈದೆಯರಿಗೆ (ಸುಮಂಗಲಿಯರಿಗೆ) ಅಥವಾ ಬಡ ಕನ್ಯೆಯ ವಿವಾಹಕ್ಕೆ", en: "Married Sumangalis or impoverished bride wedding", hi: "सुहागिन महिलाओं अथवा निर्धन कन्या के विवाह में", te: "సుమంగళి స్త్రీలకు లేదా పేద కన్య వివాహానికి", ta: "சுமங்கலிகளுக்கு அல்லது ஏழை பெண் திருமணத்திற்கு" };
+  } else if (struggleCategory === "debt_financial") {
+    prescribedSevaName = {
+      kn: "ಗೋಕರ್ಣ ಋಣವಿಮೋಚನ ಮಹಾಬಲೇಶ್ವರ ಮಹಾಭಿಷೇಕ",
+      en: "Gokarna Runa Vimochana Mahabaleshwara Abhisheka",
+      hi: "गोकर्ण ऋणविमोचन महाबलेश्वर अभिषेक",
+      te: "గోకర్ణ రుణవిమోచన మహాబలేశ్వర అభిషేకం",
+      ta: "கோகர்ண கடன் நிவாரண மகாபலேஸ்வரர் அபிஷேகம்"
+    };
+    sevaSignificance = {
+      kn: "ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟು, ವ್ಯಾಪಾರ ನಷ್ಟ ಹಾಗೂ ದೀರ್ಘಕಾಲದ ಸಾಲದ ಬಾಧೆಯನ್ನು ಕರಗಿಸಿ ಲಕ್ಷ್ಮೀ ಕಟಾಕ್ಷ ಒದಗಿಸುವ ವಿಶೇಷ ರುದ್ರಾಭಿಷೇಕ.",
+      en: "Dissolves heavy debt burdens, unblocks financial stagnation, and invokes prosperity.",
+      hi: "ऋण मुक्ति एवं आर्थिक समृद्धि हेतु गोकर्ण में विशेष रुद्राभिषेक।",
+      te: "అప్పుల బాధల నివారణ మరియు ఆర్థిక అభివృద్ధికి విశేష అభిషేకం.",
+      ta: "கடன் தொல்லைகள் நீங்கி லட்சுமி கடாட்சம் பெற ருத்ராபிஷேகம்."
+    };
+    sevaIdealDay = { kn: "ಮಂಗಳವಾರ ಅಥವಾ ಶುಕ್ರವಾರ", en: "Tuesday or Friday", hi: "मंगलवार अथवा शुक्रवार", te: "మంగళవారం లేదా శుక్రవారం", ta: "செவ்வாய் அல்லது வெள்ளிக்கிழமை" };
+    donationItem = { kn: "ಗೋಧಿ, ಬೆಲ್ಲ, ತಾಮ್ರದ ನಾಣ್ಯ ಅಥವಾ ಅನ್ನದಾನ ಸೇವೆ", en: "Wheat, pure jaggery, or Annadana meal sponsorship", hi: "गेहूं, गुड़ अथवा मंदिर में अन्नदान", te: "గోధుమలు, బెల్లం లేదా అన్నదానం", ta: "கோதுமை, வெல்லம் அல்லது அன்னதானம்" };
+    donationDay = { kn: "ಮಂಗಳವಾರ ಅಥವಾ ಶುಕ್ರವಾರ", en: "Tuesday or Friday", hi: "मंगलवार अथवा शुक्रवार", te: "మంగళవారం లేదా శుక్రవారం", ta: "செவ்வாய் அல்லது வெள்ளிக்கிழமை" };
+    donationBeneficiary = { kn: "ಕ್ಷೇತ್ರದ ಅನ್ನದಾಸೋಹಕ್ಕೆ ಅಥವಾ ನಿರ್ಗತಿಕರಿಗೆ", en: "Temple free meal hall (Annadana) or needy families", hi: "मंदिर अन्नक्षेत्र अथवा भूखे निर्धनों को", te: "అన్నదాన సత్రానికి లేదా నిరుపేదలకు", ta: "அன்னதான கூடம் அல்லது ஏழைகளுக்கு" };
+  } else if (struggleCategory === "health_vitality") {
+    prescribedSevaName = {
+      kn: "ಗೋಕರ್ಣ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ & ಆಯುಷ್ಯ ಶಾಂತಿ",
+      en: "Gokarna Mahamrityunjaya Homa & Ayushya Shanti",
+      hi: "गोकर्ण महामृत्युंजय होम एवं आयुष्य शांति",
+      te: "గోಕರ್ణ మహామృత్యుంజయ హోమం",
+      ta: "கோகர்ண மகா மிருத்யுஞ்சய ஹோமம்"
+    };
+    sevaSignificance = {
+      kn: "ಅಪಮೃತ್ಯು ಭಯ ನಿವಾರಣೆ, ದೀರ್ಘಕಾಲದ ರೋಗ ಶಮನ ಹಾಗೂ ದೈವಿಕ ಆಯುರಾರೋಗ್ಯ ರಕ್ಷಣೆಗೆ ಪರಮ ಶ್ರೇಷ್ಠ ಹೋಮ.",
+      en: "Supreme Vedic fire ritual for physical vitality, overcoming chronic ailments, and longevity.",
+      hi: "रोगमुक्ति, दीर्घायु एवं आरोग्य लाभ हेतु महामृत्युंजय होम।",
+      te: "దీర్ఘాయుష్షు మరియు ఆరోగ్య రక్షణ కొరకు విశేష హోమం.",
+      ta: "ஆயுள் விருத்தி மற்றும் நோய் நிவாரணத்திற்கு மகா மிருத்யுஞ்சய ஹோமம்."
+    };
+    sevaIdealDay = { kn: "ಸೋಮವಾರ ಅಥವಾ ತ್ರಯೋದಶಿ (ಪ್ರದೋಷ)", en: "Monday or Trayodashi (Pradosha)", hi: "सोमवार अथवा प्रदोष", te: "సోమవారం లేదా ప్రదోషం", ta: "திங்கட்கிழமை அல்லது பிரதோஷம்" };
+    donationItem = { kn: "ಔಷಧ ದಾನ, ಹಾಲು, ಹಸುವಿನ ತುಪ್ಪ ಅಥವಾ ಗೋಸೇವೆ", en: "Medicines to patients, pure cow ghee, or Gau Seva feed", hi: "औषधि दान, गाय का घी अथवा गोसेवा", te: "మందుల దానం, ఆవు నెయ్యి లేదా గోసేవ", ta: "மருந்து தானம், நெய் அல்லது கோபூஜை" };
+    donationDay = { kn: "ಸೋಮವಾರ", en: "Monday", hi: "सोमवार", te: "సోమవారం", ta: "திங்கட்கிழமை" };
+    donationBeneficiary = { kn: "ಆಸ್ಪತ್ರೆಯ ರೋಗಿಗಳಿಗೆ ಅಥವಾ ಗೋಶಾಲೆಗೆ", en: "Hospital patients or Cow Shelter (Gaushala)", hi: "रोगियों अथवा गोशाला में", te: "ఆసుపత్రి రోగులకు లేదా గోశాలకు", ta: "மருத்துவமனை நோயாளிகள் அல்லது கோசாலைக்கு" };
+  } else if (struggleCategory === "anger_temper" || isMarsAfflicted) {
     prescribedSevaName = {
       kn: "ಗೋಕರ್ಣ ಕುಜ ಶಾಂತಿ, ತಾಮ್ರಾಭಿಷೇಕ & ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ",
       en: "Gokarna Kuja Shanti, Copper Abhisheka & Subrahmanya Seva",
@@ -3392,10 +3780,10 @@ export function generateKundliRemedyReport(
     gemstoneRecommendation: {
       stone: {
         kn: `${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight})`,
-        en: `${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeight})`,
-        hi: prescriptions.gemstoneRing.sanskritName,
-        te: prescriptions.gemstoneRing.primaryGemstoneEn,
-        ta: prescriptions.gemstoneRing.primaryGemstoneEn
+        en: `${prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeightEn || prescriptions.gemstoneRing.caratWeight})`,
+        hi: `${prescriptions.gemstoneRing.primaryGemstoneHi || prescriptions.gemstoneRing.sanskritName} (${prescriptions.gemstoneRing.caratWeightHi || prescriptions.gemstoneRing.caratWeight})`,
+        te: `${prescriptions.gemstoneRing.primaryGemstoneTe || prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeightTe || prescriptions.gemstoneRing.caratWeight})`,
+        ta: `${prescriptions.gemstoneRing.primaryGemstoneTa || prescriptions.gemstoneRing.primaryGemstoneEn} (${prescriptions.gemstoneRing.caratWeightTa || prescriptions.gemstoneRing.caratWeight})`
       },
       metal: {
         kn: prescriptions.gemstoneRing.metalKn,
@@ -3407,16 +3795,16 @@ export function generateKundliRemedyReport(
       finger: {
         kn: prescriptions.gemstoneRing.fingerKn,
         en: prescriptions.gemstoneRing.fingerEn,
-        hi: prescriptions.gemstoneRing.fingerEn,
-        te: prescriptions.gemstoneRing.fingerEn,
-        ta: prescriptions.gemstoneRing.fingerEn
+        hi: prescriptions.gemstoneRing.fingerHi || prescriptions.gemstoneRing.fingerEn,
+        te: prescriptions.gemstoneRing.fingerTe || prescriptions.gemstoneRing.fingerEn,
+        ta: prescriptions.gemstoneRing.fingerTa || prescriptions.gemstoneRing.fingerEn
       },
       dayToWear: {
         kn: prescriptions.gemstoneRing.activationDay,
-        en: prescriptions.gemstoneRing.activationDay,
-        hi: prescriptions.gemstoneRing.activationDay,
-        te: prescriptions.gemstoneRing.activationDay,
-        ta: prescriptions.gemstoneRing.activationDay
+        en: prescriptions.gemstoneRing.activationDayEn || prescriptions.gemstoneRing.activationDay,
+        hi: prescriptions.gemstoneRing.activationDayHi || prescriptions.gemstoneRing.activationDay,
+        te: prescriptions.gemstoneRing.activationDayTe || prescriptions.gemstoneRing.activationDay,
+        ta: prescriptions.gemstoneRing.activationDayTa || prescriptions.gemstoneRing.activationDay
       }
     },
     donationDaana: {
@@ -3445,11 +3833,11 @@ export function generateKundliRemedyReport(
     phone: "+91 99723 39362",
     sanskritAshirvada: "॥ ॐ स्वस्ति प्रजाभ्यः परिपालयन्तां न्यायेन मार्गेण महीं महीशाः । शुभं भवतु कल्याणं च वर्धताम् ॥",
     ashirvadaMeaning: {
-      kn: "ಭಗವಾನ್ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನ ಪರಮ ಕೃಪೆಯಿಂದ ತಮ್ಮ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳು, ಮನಸ್ಸಿನ ಕ್ರೋಧ-ಆತಂಕಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆಯುರಾರೋಗ್ಯ, ಸುಖ-ಶಾಂತಿ ಮತ್ತು ಅಖಂಡ ಯಶಸ್ಸು ಲಭಿಸಲಿ ಎಂದು ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಿಂದ ಆಶೀರ್ವದಿಸುತ್ತೇವೆ.",
-      en: "By the supreme grace of Lord Mahabaleshwara at Gokarna, may all planetary afflictions and temper spikes be dissolved, bestowing you with health, peace, longevity, and auspicious prosperity.",
-      hi: "भगवान श्री महाबलेश्वर की असीम अनुकंपा से आपके समस्त ग्रह दोष और मानसिक संताप दूर हों तथा जीवन में सुख-शांति एवं ऐश्वर्य की वृद्धि हो।",
-      te: "శ్రీ మహాబలేశ్వరుని దివ్య కృపతో సర్వ దోషాలు తొలగి ఆయురారోగ్యాలు, మనశ్శాంతి కలగాలని ఆశీర్వదిస్తున్నాము.",
-      ta: "ஸ்ரீ மகாபலேஸ்வரரின் திருவருளால் சகல தோஷங்களும் நீங்கி ஆரோக்கியமும் மன அமைதியும் உண்டாக ஆசீர்வதிக்கிறோம்."
+      kn: `${input.gothra ? input.gothra + " ಗೋತ್ರದ " : ""}${input.name ? input.name + " ರವರಿಗೆ " : ""}ಭಗವಾನ್ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನ ಪರಮ ಕೃಪೆಯಿಂದ ತಮ್ಮ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳು, ಮನಸ್ಸಿನ ಕ್ರೋಧ-ಆತಂಕಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆಯುರಾರೋಗ್ಯ, ಸುಖ-ಶಾಂತಿ ಮತ್ತು ಅಖಂಡ ಯಶಸ್ಸು ಲಭಿಸಲಿ ಎಂದು ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಿಂದ ಆಶೀರ್ವದಿಸುತ್ತೇವೆ.`,
+      en: `For devotee ${input.name || "devotee"}${input.gothra ? " of " + input.gothra + " Gotra" : ""}, by the supreme grace of Lord Mahabaleshwara at Gokarna, may all planetary afflictions and life obstacles be dissolved, bestowing you with health, peace, longevity, and auspicious prosperity.`,
+      hi: `श्री ${input.name || "भक्त"}${input.gothra ? " (" + input.gothra + " गोत्र)" : ""} पर भगवान श्री महाबलेश्वर की असीम अनुकंपा से समस्त ग्रह दोष और जीवन के संताप दूर हों तथा सुख-शांति एवं ऐश्वर्य की वृद्धि हो।`,
+      te: `${input.gothra ? input.gothra + " గోత్రోద్భవులైన " : ""}${input.name ? input.name + " గారికి " : ""}శ్రీ మహాబలేశ్వరుని దివ్య కృపతో సర్వ దోషాలు తొలగి ఆయురారోగ్యాలు, మనశ్శాంతి కలగాలని ఆశీర్వదిస్తున్నాము.`,
+      ta: `${input.gothra ? input.gothra + " கோத்திர " : ""}${input.name ? input.name + " அவர்களுக்கு " : ""}ஸ்ரீ மகாபலேஸ்வரரின் திருவருளால் சகல தோஷங்களும் நீங்கி ஆரோக்கியமும் மன அமைதியும் உண்டாக ஆசீர்வதிக்கிறோம்.`
     },
     templeSealText: {
       kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನಂ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಅಧಿಕೃತ ಮುದ್ರೆ",

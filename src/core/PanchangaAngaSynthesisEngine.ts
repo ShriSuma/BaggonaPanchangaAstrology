@@ -176,24 +176,53 @@ export interface AstrologicalPrescriptions {
     mukhi: number;
     nameKn: string;
     nameEn: string;
+    nameHi?: string;
+    nameTe?: string;
+    nameTa?: string;
     deity: string;
     planet: PlanetName;
     astrologicalReason: string;
     wearingMethod: string;
+    wearingMethodEn?: string;
+    wearingMethodHi?: string;
+    wearingMethodTe?: string;
+    wearingMethodTa?: string;
     panchangaSynergy: string;
+    panchangaSynergyEn?: string;
+    panchangaSynergyHi?: string;
+    panchangaSynergyTe?: string;
+    panchangaSynergyTa?: string;
   };
   gemstoneRing: {
     primaryGemstoneKn: string;
     primaryGemstoneEn: string;
+    primaryGemstoneHi?: string;
+    primaryGemstoneTe?: string;
+    primaryGemstoneTa?: string;
     sanskritName: string;
     caratWeight: string;
+    caratWeightEn?: string;
+    caratWeightHi?: string;
+    caratWeightTe?: string;
+    caratWeightTa?: string;
     metalKn: string;
     metalEn: string;
     fingerKn: string;
     fingerEn: string;
+    fingerHi?: string;
+    fingerTe?: string;
+    fingerTa?: string;
     astrologicalReason: string;
     activationDay: string;
+    activationDayEn?: string;
+    activationDayHi?: string;
+    activationDayTe?: string;
+    activationDayTa?: string;
     panchangaSynergy: string;
+    panchangaSynergyEn?: string;
+    panchangaSynergyHi?: string;
+    panchangaSynergyTe?: string;
+    panchangaSynergyTa?: string;
   };
   luckyAttributes: {
     carColors: string[];
@@ -205,6 +234,9 @@ export interface AstrologicalPrescriptions {
   shantiPooja: {
     nameKn: string;
     nameEn: string;
+    nameHi?: string;
+    nameTe?: string;
+    nameTa?: string;
     purpose: string;
   };
 }
@@ -477,103 +509,198 @@ export const generateAstrologicalPrescriptions = (
   const nakIndex = moon ? moon.nakshatra.index : 0;
   const nakLord = calculateKpSubLord(moon?.degree ?? 0).nakshatraLord;
 
+
   // 1. Rudraksha Selection based on Lagna Lord, Nakshatra & Karana Tatva (English Digits)
-  const rudrakshaMap: Record<PlanetName, { mukhi: number; nameKn: string; nameEn: string; deity: string }> = {
-    [PlanetName.Sun]: { mukhi: 1, nameKn: "1 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "1 Mukhi Rudraksha", deity: "Lord Shiva (Surya Tatva)" },
-    [PlanetName.Moon]: { mukhi: 2, nameKn: "2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "2 Mukhi Rudraksha", deity: "Ardhanarishvara (Chandra Tatva)" },
-    [PlanetName.Mars]: { mukhi: 3, nameKn: "3 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "3 Mukhi Rudraksha", deity: "Lord Agni (Mangala Tatva)" },
-    [PlanetName.Mercury]: { mukhi: 4, nameKn: "4 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "4 Mukhi Rudraksha", deity: "Lord Brahma (Budha Tatva)" },
-    [PlanetName.Jupiter]: { mukhi: 5, nameKn: "5 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "5 Mukhi Rudraksha", deity: "Lord Kalagni Rudra (Guru Tatva)" },
-    [PlanetName.Venus]: { mukhi: 6, nameKn: "6 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "6 Mukhi Rudraksha", deity: "Lord Kartikeya (Shukra Tatva)" },
-    [PlanetName.Saturn]: { mukhi: 7, nameKn: "7 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "7 Mukhi Rudraksha", deity: "Goddess Mahalakshmi (Shani Tatva)" },
-    [PlanetName.Rahu]: { mukhi: 8, nameKn: "8 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "8 Mukhi Rudraksha", deity: "Lord Ganesha (Rahu Tatva)" },
-    [PlanetName.Ketu]: { mukhi: 9, nameKn: "9 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "9 Mukhi Rudraksha", deity: "Goddess Durga (Ketu Tatva)" }
+  const rudrakshaMap: Record<PlanetName, {
+    mukhi: number;
+    nameKn: string;
+    nameEn: string;
+    nameHi: string;
+    nameTe: string;
+    nameTa: string;
+    deity: string;
+  }> = {
+    [PlanetName.Sun]: { mukhi: 1, nameKn: "1 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "1 Mukhi Rudraksha", nameHi: "1 मुखी रुद्राक्ष", nameTe: "1 ముఖి రుద్రాక్ష", nameTa: "1 முக ருத்ராட்சம்", deity: "Lord Shiva (Surya Tatva)" },
+    [PlanetName.Moon]: { mukhi: 2, nameKn: "2 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "2 Mukhi Rudraksha", nameHi: "2 मुखी रुद्राक्ष", nameTe: "2 ముఖి రుద్రాక్ష", nameTa: "2 முக ருத்ராட்சம்", deity: "Ardhanarishvara (Chandra Tatva)" },
+    [PlanetName.Mars]: { mukhi: 3, nameKn: "3 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "3 Mukhi Rudraksha", nameHi: "3 मुखी रुद्राक्ष", nameTe: "3 ముఖి రుద్రాక్ష", nameTa: "3 முக ருத்ராட்சம்", deity: "Lord Agni (Mangala Tatva)" },
+    [PlanetName.Mercury]: { mukhi: 4, nameKn: "4 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "4 Mukhi Rudraksha", nameHi: "4 मुखी रुद्राक्ष", nameTe: "4 ముఖి రుద్రాక్ష", nameTa: "4 முக ருத்ராட்சம்", deity: "Lord Brahma (Budha Tatva)" },
+    [PlanetName.Jupiter]: { mukhi: 5, nameKn: "5 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "5 Mukhi Rudraksha", nameHi: "5 मुखी रुद्राक्ष", nameTe: "5 ముఖి రుద్రాక్ష", nameTa: "5 முக ருத்ராட்சம்", deity: "Lord Kalagni Rudra (Guru Tatva)" },
+    [PlanetName.Venus]: { mukhi: 6, nameKn: "6 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "6 Mukhi Rudraksha", nameHi: "6 मुखी रुद्राक्ष", nameTe: "6 ముఖి రుద్రాక్ష", nameTa: "6 முக ருத்ராட்சம்", deity: "Lord Kartikeya (Shukra Tatva)" },
+    [PlanetName.Saturn]: { mukhi: 7, nameKn: "7 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "7 Mukhi Rudraksha", nameHi: "7 मुखी रुद्राक्ष", nameTe: "7 ముఖి రుద్రాక్ష", nameTa: "7 முக ருத்ராட்சம்", deity: "Goddess Mahalakshmi (Shani Tatva)" },
+    [PlanetName.Rahu]: { mukhi: 8, nameKn: "8 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "8 Mukhi Rudraksha", nameHi: "8 मुखी रुद्राक्ष", nameTe: "8 ముఖి రుద్రాక్ష", nameTa: "8 முக ருத்ராட்சம்", deity: "Lord Ganesha (Rahu Tatva)" },
+    [PlanetName.Ketu]: { mukhi: 9, nameKn: "9 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ", nameEn: "9 Mukhi Rudraksha", nameHi: "9 मुखी रुद्राक्ष", nameTe: "9 ముಖಿ రుద్రాಕ್ಷ", nameTa: "9 முக ருத்ராட்சம்", deity: "Goddess Durga (Ketu Tatva)" }
   };
 
   const selectedRudraksha = rudrakshaMap[lagnaLord] || rudrakshaMap[PlanetName.Jupiter];
 
-  // Dynamic Rudraksha Wearing Day and Method
-  const rudrakshaWearingMap: Record<PlanetName, string> = {
-    [PlanetName.Sun]: "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ ಹಸಿ ಹಾಲಿನಲ್ಲಿ ಮತ್ತು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
-    [PlanetName.Moon]: "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ಲಪಕ್ಷ) ಹಸಿ ಹಾಲಿನಲ್ಲಿ ಮತ್ತು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
-    [PlanetName.Mars]: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಕುಜ ಗಾಯತ್ರಿ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
-    [PlanetName.Mercury]: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ ಬುಧ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಬುಧ ಮಂತ್ರ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
-    [PlanetName.Jupiter]: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಗುರು ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಗುರು ಗಾಯತ್ರಿ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
-    [PlanetName.Venus]: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ ಹಾಲಿನಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
-    [PlanetName.Saturn]: "ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ ಶನಿ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
-    [PlanetName.Rahu]: "ಶನಿವಾರ ಸಂಜೆ ರಾಹುಕಾಲ ಕಳೆದು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
-    [PlanetName.Ketu]: "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಗಣೇಶ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಧರಿಸಬೇಕು."
+  // Dynamic Rudraksha Wearing Day and Method (5 Languages)
+  const rudrakshaWearingMap: Record<PlanetName, { kn: string; en: string; hi: string; te: string; ta: string }> = {
+    [PlanetName.Sun]: {
+      kn: "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ ಹಸಿ ಹಾಲಿನಲ್ಲಿ ಮತ್ತು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify in raw milk and holy water on Sunday morning at sunrise, chant 'Om Namah Shivaya' 108 times, and wear.",
+      hi: "रविवार प्रातः सूर्योदय के समय कच्चे दूध व गंगाजल से शुद्ध कर 108 बार 'ॐ नमः शिवाय' जप कर धारण करें।",
+      te: "ఆదివారం ఉదయం సూర్యోదయ సమయంలో పచ్చిపాలు, గంగాజలంతో శుద్ధి చేసి 'ఓం నమః శివాయ' 108 సార్లు జపించి ధరించాలి.",
+      ta: "ஞாயிறு காலை சூரியோதய வேளையில் பசும்பால் மற்றும் கங்கா தீர்த்தத்தில் சுத்தி செய்து 'ஓம் நம சிவாய' 108 முறை ஜபித்து அணியவும்."
+    },
+    [PlanetName.Moon]: {
+      kn: "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ಲಪಕ್ಷ) ಹಸಿ ಹಾಲಿನಲ್ಲಿ ಮತ್ತು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify in raw milk and Gangajal on Monday morning during Shukla Paksha, chant 'Om Namah Shivaya' 108 times, and wear.",
+      hi: "शुक्ल पक्ष के सोमवार प्रातः कच्चे दूध व गंगाजल से शुद्ध कर 108 बार 'ॐ नमः शिवाय' जप कर धारण करें।",
+      te: "శుక్లపక్ష సోమవారం ఉదయం పచ్చిపాలు, గంగాజలంతో శుద్ధి చేసి 'ఓం నమః శివాయ' 108 సార్లు జపించి ధరించాలి.",
+      ta: "சுக்லபக்ஷ திங்கட்கிழமை காலை பசும்பால், கங்கா தீர்த்தத்தில் சுத்தி செய்து 'ஓம் நம சிவாய' 108 முறை ஜபித்து அணியவும்."
+    },
+    [PlanetName.Mars]: {
+      kn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಕುಜ ಗಾಯತ್ರಿ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify on Tuesday morning during Mars Hora, chant Kuja Gayatri and 'Om Namah Shivaya' 108 times, and wear.",
+      hi: "मंगलवार प्रातः मंगल होरा में गंगाजल से शुद्ध कर कुज गायत्री व 'ॐ नमः शिवाय' 108 बार जप कर धारण करें।",
+      te: "మంగళవారం ఉదయం కుజ హోరలో శుద్ధి చేసి కుజ గాయత్రి మరియు 'ఓం నమః శివాయ' 108 సార్లు జపించి ధరించాలి.",
+      ta: "செவ்வாய் காலை செவ்வாய் ஓரையில் சுத்தி செய்து குஜ காயத்ரி மற்றும் 'ஓம் நம சிவாய' 108 முறை ஜபித்து அணியவும்."
+    },
+    [PlanetName.Mercury]: {
+      kn: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ ಬುಧ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಬುಧ ಮಂತ್ರ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify on Wednesday morning during Mercury Hora, chant Budha Mantra and 'Om Namah Shivaya' 108 times, and wear.",
+      hi: "बुधवार प्रातः बुध होरा में शुद्ध कर बुध मंत्र व 'ॐ नमः शिवाय' 108 बार जप कर धारण करें।",
+      te: "బుధవారం ఉదయం బుధ హోరలో శుద్ధి చేసి బుధ మంత్రం మరియు 'ఓಂ నమః శివాయ' 108 సార్లు జపించి ధరించాలి.",
+      ta: "புதன் காலை புதன் ஓரையில் சுத்தி செய்து புதன் மந்திரம் மற்றும் 'ஓம் நம சிவாய' 108 முறை ஜபித்து அணியவும்."
+    },
+    [PlanetName.Jupiter]: {
+      kn: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಗುರು ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಗುರು ಗಾಯತ್ರಿ ಮತ್ತು 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify on Thursday morning during Jupiter Hora, chant Guru Gayatri and 'Om Namah Shivaya' 108 times, and wear.",
+      hi: "गुरुवार प्रातः गुरु होरा में शुद्ध कर गुरु गायत्री व 'ॐ नमः शिवाय' 108 बार जप कर धारण करें।",
+      te: "గురువారం ఉదయం గురు హోరలో శుద్ధి చేసి గురు గాయత్రి మరియు 'ఓం నమః శివాయ' 108 సార్లు జపించి ధరించాలి.",
+      ta: "வியாழன் காலை குரு ஓரையில் சுத்தி செய்து குரு காயத்ரி மற்றும் 'ஓம் நம சிவாய' 108 முறை ஜபித்து அணியவும்."
+    },
+    [PlanetName.Venus]: {
+      kn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ ಹಾಲಿನಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify on Friday morning during Venus Hora with raw milk, chant 'Om Namah Shivaya' 108 times, and wear.",
+      hi: "शुक्रवार प्रातः शुक्र होरा में कच्चे दूध से शुद्ध कर 'ॐ नमः शिवाय' 108 बार जप कर धारण करें।",
+      te: "శుక్రవారం ఉదయం శుక్ర హోరలో పాలతో శుద్ధి చేసి 'ఓం నమః శివాయ' 108 సార్లు జపించి ధరించాలి.",
+      ta: "வெள்ளி காலை சுக்ர ஓரையில் பாலில் சுத்தி செய்து 'ஓம் நம சிவாய' 108 முறை ஜபித்து அணியவும்."
+    },
+    [PlanetName.Saturn]: {
+      kn: "ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ ಶನಿ ಹೋರೆಯಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify on Saturday morning or evening during Saturn Hora, chant Maha Mrityunjaya Mantra 108 times, and wear.",
+      hi: "शनिवार प्रातः अथवा सांध्य काल शनि होरा में शुद्ध कर महामृत्युंजय मंत्र 108 बार जप कर धारण करें।",
+      te: "శనివారం ఉదయం లేదా సాయంత్రం శని హోరలో శుద్ధి చేసి మహామృత్యుంజయ మంత్రం 108 సార్లు జపించి ధరించాలి.",
+      ta: "சனிக்கிழமை காலை அல்லது மாலை சனி ஓரையில் சுத்தி செய்து மகா மிருத்யுஞ்ஜய மந்திரம் 108 முறை ஜபித்து அணியவும்."
+    },
+    [PlanetName.Rahu]: {
+      kn: "ಶನಿವಾರ ಸಂಜೆ ರಾಹುಕಾಲ ಕಳೆದು ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ 'ಓಂ ನಮಃ ಶಿವಾಯ' 108 ಬಾರಿ ಜಪಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify on Saturday evening after Rahu Kalam in Gangajal, chant 'Om Namah Shivaya' 108 times, and wear.",
+      hi: "शनिवार सायं राहुकाल बीतने के पश्चात गंगाजल से शुद्ध कर 108 बार 'ॐ नमः शिवाय' जप कर धारण करें।",
+      te: "శనివారం సాయంత్రం రాహుకాలం ముగిసిన తర్వాత గంగాజలంతో శుద్ధి చేసి 108 సార్లు 'ఓం నమః శివాయ' జపించి ధరించాలి.",
+      ta: "சனிக்கிழமை மாலை ராகு காலம் முடிந்த பின் கங்கா தீர்த்தத்தில் சுத்தி செய்து 108 முறை 'ஓம் நம சிவாய' ஜபித்து அணியவும்."
+    },
+    [PlanetName.Ketu]: {
+      kn: "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ ಗಣೇಶ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಧರಿಸಬೇಕು.",
+      en: "Purify on Thursday or Tuesday morning in Gangajal, recite Ganesha Stotra, chant 'Om Namah Shivaya', and wear.",
+      hi: "गुरुवार अथवा मंगलवार प्रातः गंगाजल से शुद्ध कर गणेश स्तोत्र का पाठ कर धारण करें।",
+      te: "గురువారం లేదా మంగళవారం ఉదయం గంగాజలంతో శుద్ధి చేసి గణేశ స్తోత్రం పఠించి ధరించాలి.",
+      ta: "வியாழன் அல்லது செவ்வாய் காலை கங்கா தீர்த்தத்தில் சுத்தி செய்து கணேச ஸ்தோத்திரம் பாராயணம் செய்து அணியவும்."
+    }
   };
 
-  // Dynamic Carat calculation based on Ascendant degree
+  const selectedRudrakshaWearing = rudrakshaWearingMap[lagnaLord] || rudrakshaWearingMap[PlanetName.Jupiter];
+
+  // Dynamic Carat calculation based on Ascendant degree (5 Languages)
   const ascDegree = kundli.ascendant ?? 15;
   const minCarat = Number((4.0 + (ascDegree % 8) * 0.25).toFixed(2));
   const maxCarat = Number((minCarat + 1.25).toFixed(2));
   const dynamicCaratKn = `${minCarat} ರಿಂದ ${maxCarat} ಕ್ಯಾರಟ್`;
+  const dynamicCaratEn = `${minCarat} to ${maxCarat} Carats`;
+  const dynamicCaratHi = `${minCarat} से ${maxCarat} कैरेट`;
+  const dynamicCaratTe = `${minCarat} నుండి ${maxCarat} క్యారెట్లు`;
+  const dynamicCaratTa = `${minCarat} முதல் ${maxCarat} கேரட்`;
 
-  // 2. Gemstone Ring Selection (ಉಂಗುರ / ರತ್ನ - English Digits)
+  // 2. Gemstone Ring Selection (ಉಂಗುರ / ರತ್ನ - 5 Languages)
   const gemstoneMap: Record<PlanetName, {
-    kn: string; en: string; sanskrit: string; metalKn: string; metalEn: string; fingerKn: string; fingerEn: string;
+    kn: string; en: string; hi: string; te: string; ta: string; sanskrit: string;
+    metalKn: string; metalEn: string;
+    fingerKn: string; fingerEn: string; fingerHi: string; fingerTe: string; fingerTa: string;
   }> = {
-    [PlanetName.Sun]: { kn: "ಮಾಣಿಕ್ಯ", en: "Ruby", sanskrit: "Manikya", metalKn: "ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ಶುದ್ಧ ತಾಮ್ರ", metalEn: "Gold or Copper", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand" },
-    [PlanetName.Moon]: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು", en: "Natural Pearl", sanskrit: "Mukta", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", metalEn: "Pure Silver", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand" },
-    [PlanetName.Mars]: { kn: "ಹವಳ", en: "Red Coral", sanskrit: "Pravala", metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನ", metalEn: "Copper or Gold", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand" },
-    [PlanetName.Mercury]: { kn: "ಪಚ್ಚೆ", en: "Emerald", sanskrit: "Marakata", metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand" },
-    [PlanetName.Jupiter]: { kn: "ಪುಷ್ಪರಾಗ", en: "Yellow Sapphire", sanskrit: "Pushparaga", metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger of Right Hand" },
-    [PlanetName.Venus]: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", sanskrit: "Vajra / Heera", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪ್ಲಾಟಿನಂ", metalEn: "Silver or Platinum", fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger" },
-    [PlanetName.Saturn]: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", sanskrit: "Neelam", metalKn: "ಪಂಚಧಾತು ಅಥವಾ ಬೆಳ್ಳಿ", metalEn: "Panchadhatu or Silver", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand" },
-    [PlanetName.Rahu]: { kn: "ಗೋಮೇಧಿಕ", en: "Hessonite (Gomed)", sanskrit: "Gomedhika", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand" },
-    [PlanetName.Ketu]: { kn: "ವೈಢೂರ್ಯ", en: "Cat's Eye (Vaidurya)", sanskrit: "Vaidurya", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು", fingerEn: "Ring or Little Finger" }
+    [PlanetName.Sun]: { kn: "ಮಾಣಿಕ್ಯ", en: "Ruby", hi: "माणिक्य (रूबी)", te: "మాణిక్యం", ta: "மாணிக்கம்", sanskrit: "Manikya", metalKn: "ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ಶುದ್ಧ ತಾಮ್ರ", metalEn: "Gold or Copper", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
+    [PlanetName.Moon]: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು", en: "Natural Pearl", hi: "सच्चा मोती", te: "సహజ ముత్యం", ta: "இயற்கை முத்து", sanskrit: "Mukta", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", metalEn: "Pure Silver", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
+    [PlanetName.Mars]: { kn: "ಹವಳ", en: "Red Coral", hi: "लाल मूंगा", te: "పగడం", ta: "பவழம்", sanskrit: "Pravala", metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನ", metalEn: "Copper or Gold", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
+    [PlanetName.Mercury]: { kn: "ಪಚ್ಚೆ", en: "Emerald", hi: "पन्ना", te: "పచ్చ", ta: "மரகதம்", sanskrit: "Marakata", metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
+    [PlanetName.Jupiter]: { kn: "ಪುಷ್ಪರಾಗ", en: "Yellow Sapphire", hi: "पुखराज", te: "పుష్యరాగం", ta: "புஷ்பராகம்", sanskrit: "Pushparaga", metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger of Right Hand", fingerHi: "तर्जनी अंगुली (दाहिना हाथ)", fingerTe: "చూపుడు వేలు (కుడి చేయి)", fingerTa: "ஆள்காட்டி விரல் (வலது கை)" },
+    [PlanetName.Venus]: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", hi: "हीरा अथवा श्वेत जरकन", te: "వజ్రం లేదా తెల్ల జిర్కాన్", ta: "வைரம் அல்லது வெள்ளை ஜிர்கான்", sanskrit: "Vajra / Heera", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪ್ಲಾಟಿನಂ", metalEn: "Silver or Platinum", fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య వేలు లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்" },
+    [PlanetName.Saturn]: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", hi: "नीलम", te: "నీలం", ta: "நீலக்கல் (நீலம்)", sanskrit: "Neelam", metalKn: "ಪಂಚಧಾತು ಅಥವಾ ಬೆಳ್ಳಿ", metalEn: "Panchadhatu or Silver", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
+    [PlanetName.Rahu]: { kn: "ಗೋಮೇಧಿಕ", en: "Hessonite (Gomed)", hi: "गोमेद", te: "గోమేధికం", ta: "கோமேதகம்", sanskrit: "Gomedhika", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
+    [PlanetName.Ketu]: { kn: "ವೈಢೂರ್ಯ", en: "Cat's Eye (Vaidurya)", hi: "लहसुनिया (वैडूर्य)", te: "వైడూర్యం", ta: "வைடூரியம்", sanskrit: "Vaidurya", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು", fingerEn: "Ring or Little Finger", fingerHi: "अनामिका अथवा कनिष्ठिका अंगुली", fingerTe: "ఉంగరపు వేలు లేదా చిటికెన వేలు", fingerTa: "மோதிர விரல் அல்லது சுண்டு விரல்" }
   };
 
   const selectedGem = gemstoneMap[lagnaLord] || gemstoneMap[PlanetName.Jupiter];
 
-  // Dynamic Activation Day per Lagna Lord
-  const activationDayMap: Record<PlanetName, string> = {
-    [PlanetName.Sun]: "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ (ಸೂರ್ಯೋದಯ ಕಾಲದಲ್ಲಿ)",
-    [PlanetName.Moon]: "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ಲಪಕ್ಷದಲ್ಲಿ)",
-    [PlanetName.Mars]: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)",
-    [PlanetName.Mercury]: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ (ಬುಧ ಹೋರೆಯಲ್ಲಿ)",
-    [PlanetName.Jupiter]: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)",
-    [PlanetName.Venus]: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)",
-    [PlanetName.Saturn]: "ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ (ಶನಿ ಹೋರೆಯಲ್ಲಿ)",
-    [PlanetName.Rahu]: "ಶನಿವಾರ ಸಂಜೆ (ರಾಹುಕಾಲ ಕಳೆದು)",
-    [PlanetName.Ketu]: "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ"
+  // Dynamic Activation Day per Lagna Lord (5 Languages)
+  const activationDayMap: Record<PlanetName, { kn: string; en: string; hi: string; te: string; ta: string }> = {
+    [PlanetName.Sun]: { kn: "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ (ಸೂರ್ಯೋದಯ ಕಾಲದಲ್ಲಿ)", en: "Sunday Morning (Sunrise)", hi: "रविवार प्रातःकाल (सूर्योदय काल)", te: "ఆదివారం ఉదయం (సూర్యోదయ వేళ)", ta: "ஞாயிறு அதிகாலை (சூரியோதய வேளை)" },
+    [PlanetName.Moon]: { kn: "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ಲಪಕ್ಷದಲ್ಲಿ)", en: "Monday Morning (Shukla Paksha)", hi: "शुक्ल पक्ष सोमवार प्रातःकाल", te: "శుక్లపక్ష సోమవారం ఉదయం", ta: "சுக்லபக்ஷ திங்கட்கிழமை அதிகாலை" },
+    [PlanetName.Mars]: { kn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)", en: "Tuesday Morning (Mars Hora)", hi: "मंगलवार प्रातःकाल (मंगल होरा)", te: "మంగళవారం ఉదయం (కుజ హోర)", ta: "செவ்வாய் அதிகாலை (குஜ ஓரை)" },
+    [PlanetName.Mercury]: { kn: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ (ಬುಧ ಹೋರೆಯಲ್ಲಿ)", en: "Wednesday Morning (Mercury Hora)", hi: "बुधवार प्रातःकाल (बुध होरा)", te: "బుధవారం ఉదయం (బుధ హోర)", ta: "புதன் அதிகாலை (புதன் ஓரை)" },
+    [PlanetName.Jupiter]: { kn: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)", en: "Thursday Morning (Jupiter Hora)", hi: "गुरुवार प्रातःकाल (गुरु होरा)", te: "గురువారం ఉదయం (గురు హోర)", ta: "வியாழன் அதிகாலை (குரு ஓரை)" },
+    [PlanetName.Venus]: { kn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)", en: "Friday Morning (Venus Hora)", hi: "शुक्रवार प्रातःकाल (शुक्र होरा)", te: "శుక్రవారం ఉదయం (శుక్ర హోర)", ta: "வெள்ளி அதிகாலை (சுக்ர ஓரை)" },
+    [PlanetName.Saturn]: { kn: "ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ (ಶನಿ ಹೋರೆಯಲ್ಲಿ)", en: "Saturday Morning or Evening (Saturn Hora)", hi: "शनिवार प्रातः अथवा सांध्य (शनि होरा)", te: "శనివారం ఉదయం లేదా సాయంత్రం (శని హోర)", ta: "சனிக்கிழமை காலை அல்லது மாலை (சனி ஓரை)" },
+    [PlanetName.Rahu]: { kn: "ಶನಿವಾರ ಸಂಜೆ (ರಾಹುಕಾಲ ಕಳೆದು)", en: "Saturday Evening (Post Rahu Kalam)", hi: "शनिवार सांध्य (राहुकाल उपरांत)", te: "శనివారం సాయంత్రం (రాహుకాలం తర్వాత)", ta: "சனிக்கிழமை மாலை (ராகுகாலம் கடந்த பின்)" },
+    [PlanetName.Ketu]: { kn: "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ", en: "Thursday or Tuesday Morning", hi: "गुरुवार अथवा मंगलवार प्रातःकाल", te: "గురువారం లేదా మంగళవారం ఉదయం", ta: "வியாழன் அல்லது செவ்வாய் அதிகாலை" }
   };
-  const dynamicActivationDay = activationDayMap[lagnaLord] || "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)";
+  const selectedActivationDay = activationDayMap[lagnaLord] || activationDayMap[PlanetName.Jupiter];
 
-  // Dynamic Shanti Pooja based on Lagna Lord & Affliction
+  // Dynamic Shanti Pooja based on Lagna Lord & Affliction (5 Languages)
   let shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ & ಮೃತ್ಯುಂಜಯ ಸಂಪುಟ ನವಗ್ರಹ ಶಾಂತಿ";
   let shantiEn = "Gokarna Maha Ganapati & Mrityunjaya Navagraha Shanti";
+  let shantiHi = "गोकर्ण महागणपति एवं मृत्युंजय नवग्रह शांति सेवा";
+  let shantiTe = "గోకర్ణ మహా గణపతి మరియు మృత్యుంజయ నవగ్రహ శాంతి సేవ";
+  let shantiTa = "கோகர்ண மகா கணபதி மற்றும் மிருத்யுஞ்ஜய நவகிரக சாந்தி சேவை";
   let shantiPurpose = "ಲಗ್ನ ಬಲವರ್ಧನೆ, ದಶಾ ಸಂಧಿಯ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆ ಮತ್ತು ಆಯುರ್-ಆರೋಗ್ಯ ವೃದ್ಧಿ.";
 
   if (lagnaLord === PlanetName.Mars) {
     shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ ಪೂಜೆ & ಬಿಲ್ವಾರ್ಚನೆ";
     shantiEn = "Subrahmanya Kuja Shanti & Bilvarchana at Gokarna Kshetra";
+    shantiHi = "श्री क्षेत्र गोकर्ण में सुब्रह्मण्य कुज शांति पूजा एवं बिल्वार्चना";
+    shantiTe = "శ్రీ క్షేత్ర గోకర్ణంలో సుబ్రహ్మణ్య కుజ శాంతి పూజ & బిల్వార్చన";
+    shantiTa = "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் சுப்ரமணிய குஜ சாந்தி பூஜை & வில்வார்ச்சனை";
     shantiPurpose = "ಕುಜ ಬಲವರ್ಧನೆ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಮತ್ತು ರಕ್ತದೊತ್ತಡ/ಅಗ್ನಿ ದೋಷ ಶಮನ.";
   } else if (lagnaLord === PlanetName.Saturn) {
     shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಶನಿ ಶಾಂತಿ, ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪ & ತೈಲಾಭಿಷೇಕ";
     shantiEn = "Shani Shanti & Maha Mrityunjaya Japa at Gokarna Kshetra";
+    shantiHi = "श्री क्षेत्र गोकर्ण में शनि शांति, महामृत्युंजय जप एवं तैलाभिषेक";
+    shantiTe = "శ్రీ క్షేత్ర గోకర్ణంలో శని శాంతి, మహా మృత్యుంజయ జపం & తైలాభిషేకం";
+    shantiTa = "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் சனி சாந்தி, மகா மிருத்யுஞ்ஜய ஜபம் & தைலாபிஷேகம்";
     shantiPurpose = "ಶನಿ ಪೀಡಾ ನಿವಾರಣೆ, ಆಯುಷ್ಯ ವೃದ್ಧಿ ಮತ್ತು ಕರ್ಮ ಸಿದ್ಧಿ.";
   } else if (lagnaLord === PlanetName.Moon) {
     shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಚಂದ್ರ ಶಾಂತಿ, ಕ್ಷೀರಾಭಿಷೇಕ & ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ";
     shantiEn = "Chandra Shanti, Ksheerabhisheka & Rudrabhisheka at Gokarna";
+    shantiHi = "श्री क्षेत्र गोकर्ण में चंद्र शांति, क्षीराभिषेक एवं रुद्राभिषेक सेवा";
+    shantiTe = "శ్రీ క్షేత్ర గోకర్ణంలో చంద్ర శాంతి, క్షీరాభిషేకం & రుద్రాభిషేక సేవ";
+    shantiTa = "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் சந்திர சாந்தி, க்ஷீராபிஷேகம் & ருத்ராபிஷேக சேவை";
     shantiPurpose = "ಮಾನಸಿಕ ಶಾಂತಿ, ಭಾವನಾತ್ಮಕ ಸ್ಥೈರ್ಯ ಮತ್ತು ಮಾತೃ ಸುಖ ವೃದ್ಧಿ.";
   } else if (lagnaLord === PlanetName.Mercury) {
     shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಗಣಪತಿ ಹೋಮ & ಬುಧ ಶಾಂತಿ ಸೇವೆ";
     shantiEn = "Maha Ganapati Homa & Budha Shanti Seva at Gokarna";
+    shantiHi = "श्री क्षेत्र गोकर्ण में महागणपति होम एवं बुध शांति सेवा";
+    shantiTe = "శ్రీ క్షేత్ర గోకర్ణంలో మహా గణపతి హోమం & బుధ శాంతి సేవ";
+    shantiTa = "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் மகா கணபதி ஹோமம் & புதன் சாந்தி சேவை";
     shantiPurpose = "ಬುದ್ಧಿ ಸ್ಥೈರ್ಯ, ವ್ಯಾಪಾರ-ವಿದ್ಯಾಭ್ಯಾಸ ಅಭಿವೃದ್ಧಿ ಮತ್ತು ವಾಕ್ ಸಿದ್ಧಿ.";
   } else if (lagnaLord === PlanetName.Venus) {
     shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಶ್ರೀ ಸೂಕ್ತ ಹವನ & ಲಕ್ಷ್ಮೀ-ಪಾರ್ವತಿ ಪೂಜೆ";
     shantiEn = "Shree Sukta Hawana & Lakshmi-Parvati Pooja at Gokarna";
+    shantiHi = "श्री क्षेत्र गोकर्ण में श्री सूक्त हवन एवं लक्ष्मी-पार्वती पूजा";
+    shantiTe = "శ్రీ క్షేత్ర గోకర్ణంలో శ్రీ సూక్త హవనం & లక్ష్మీ-పార్వతి పూజ";
+    shantiTa = "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் ஸ்ரீ சூக்த ஹவனம் & லக்ஷ்மி-பார்வதி பூஜை";
     shantiPurpose = "ಸೌಭಾಗ್ಯ ವೃದ್ಧಿ, ದಾಂಪತ್ಯ ಸುಖ ಮತ್ತು ಆರ್ಥಿಕ ಸ್ಥಿರತೆ.";
   } else if (lagnaLord === PlanetName.Sun) {
     shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಸಂಕಲ್ಪ & ಮಹಾ ರುದ್ರಾಭಿಷೇಕ";
     shantiEn = "Surya Sankalpa & Maha Rudrabhisheka at Gokarna Kshetra";
+    shantiHi = "श्री क्षेत्र गोकर्ण में सूर्य नमस्कार संकल्प एवं महा रुद्राभिषेक";
+    shantiTe = "శ్రీ క్షేత్ర గోకర్ణంలో సూర్య నమస్కార సంకల్పం & మహా రుద్రాభిషేకం";
+    shantiTa = "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் சூர்ய நமஸ்கார சங்கல்பம் & மகா ருத்ராபிஷேகம்";
     shantiPurpose = "ಆತ್ಮಬಲ ವೃದ್ಧಿ, ಪಿತೃ ಕೃಪೆ, ತೇಜಸ್ಸು ಮತ್ತು ಆರೋಗ್ಯ ಭಾಗ್ಯ.";
   } else if (lagnaLord === PlanetName.Jupiter) {
     shantiKn = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಗುರು ಶಾಂತಿ, ಬೃಹಸ್ಪತಿ ಯಾಗ & ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ";
     shantiEn = "Guru Shanti, Brihaspati Yajna & Medha Dakshinamurthy Pooja at Gokarna";
+    shantiHi = "श्री क्षेत्र गोकर्ण में गुरु शांति, बृहस्पति याग एवं मेधा दक्षिणामूर्ति पूजा";
+    shantiTe = "శ్రీ క్షేత్ర గోకర్ణంలో గురు శాంతి, బృహస్పతి యాగం & మేధా దక్షిణామూర్తి పూజ";
+    shantiTa = "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் குரு சாந்தி, பிருஹஸ்பதி யாகம் & மேதா தக்ஷிணாமூர்த்தி பூஜை";
     shantiPurpose = "ಗುರು ಬಲವರ್ಧನೆ, ಜ್ಞಾನ ಸಿದ್ಧಿ, ದೈವಾನುಗ್ರಹ ಮತ್ತು ಗೌರವಯುತ ಯಶಸ್ಸು.";
   }
 
@@ -600,24 +727,53 @@ export const generateAstrologicalPrescriptions = (
       mukhi: selectedRudraksha.mukhi,
       nameKn: selectedRudraksha.nameKn,
       nameEn: selectedRudraksha.nameEn,
+      nameHi: selectedRudraksha.nameHi,
+      nameTe: selectedRudraksha.nameTe,
+      nameTa: selectedRudraksha.nameTa,
       deity: selectedRudraksha.deity,
       planet: lagnaLord,
       astrologicalReason: `ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${toKannadaPlanet(lagnaLord)} ಹಾಗೂ ಜನ್ಮ ನಕ್ಷತ್ರದ ತರಂಗಾಂತರವನ್ನು ಶುದ್ಧೀಕರಿಸಲು, ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ವೃದ್ಧಿಸಲು ಈ ${selectedRudraksha.mukhi} ಮುಖಿ ರುದ್ರಾಕ್ಷಿಯು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`,
-      wearingMethod: rudrakshaWearingMap[lagnaLord] || rudrakshaWearingMap[PlanetName.Jupiter],
-      panchangaSynergy: `ಜನ್ಮ ನಕ್ಷತ್ರಾಧಿಪತಿ (${nakLord}) ಮತ್ತು ಕರಣ ತತ್ವದ (${kRule.tatva}) ಜೊತೆಗೆ ಅದ್ಭುತ ಸಮನ್ವಯ ಸಾಧಿಸುತ್ತದೆ.`
+      wearingMethod: selectedRudrakshaWearing.kn,
+      wearingMethodEn: selectedRudrakshaWearing.en,
+      wearingMethodHi: selectedRudrakshaWearing.hi,
+      wearingMethodTe: selectedRudrakshaWearing.te,
+      wearingMethodTa: selectedRudrakshaWearing.ta,
+      panchangaSynergy: `ಜನ್ಮ ನಕ್ಷತ್ರಾಧಿಪತಿ (${nakLord}) ಮತ್ತು ಕರಣ ತತ್ವದ (${kRule.tatva}) ಜೊತೆಗೆ ಅದ್ಭುತ ಸಮನ್ವಯ ಸಾಧಿಸುತ್ತದೆ.`,
+      panchangaSynergyEn: `Harmonizes with your Janma Nakshatra lord (${nakLord}) and Karana Tatva (${kRule.tatva}).`,
+      panchangaSynergyHi: `जन्म नक्षत्र स्वामी (${nakLord}) और करण तत्व (${kRule.tatva}) के साथ दिव्य समन्वय स्थापित करता है।`,
+      panchangaSynergyTe: `జన్మ నక్షత్రాధిపతి (${nakLord}) మరియు కరణ తత్వముతో (${kRule.tatva}) దివ్య సమన్వయం సాధిస్తుంది.`,
+      panchangaSynergyTa: `ஜன்ம நட்சத்திர அதிபதி (${nakLord}) மற்றும் கரண தத்துவத்துடன் (${kRule.tatva}) அற்புத ஒருங்கிணைப்பை ஏற்படுத்துகிறது.`
     },
     gemstoneRing: {
       primaryGemstoneKn: selectedGem.kn,
       primaryGemstoneEn: selectedGem.en,
+      primaryGemstoneHi: selectedGem.hi,
+      primaryGemstoneTe: selectedGem.te,
+      primaryGemstoneTa: selectedGem.ta,
       sanskritName: selectedGem.sanskrit,
       caratWeight: dynamicCaratKn,
+      caratWeightEn: dynamicCaratEn,
+      caratWeightHi: dynamicCaratHi,
+      caratWeightTe: dynamicCaratTe,
+      caratWeightTa: dynamicCaratTa,
       metalKn: selectedGem.metalKn,
       metalEn: selectedGem.metalEn,
       fingerKn: selectedGem.fingerKn,
       fingerEn: selectedGem.fingerEn,
+      fingerHi: selectedGem.fingerHi,
+      fingerTe: selectedGem.fingerTe,
+      fingerTa: selectedGem.fingerTa,
       astrologicalReason: `ಲಗ್ನ ಬಲವನ್ನು ಸ್ಥಿರಗೊಳಿಸಿ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಮತ್ತು ದಶಾ ಸಂಧಿಕಾಲದ ಅಡೆತಡೆಗಳಿಂದ ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸಲು ಈ ${selectedGem.kn} (${dynamicCaratKn}) ಭಾಗ್ಯ ರತ್ನ ಉಂಗುರವನ್ನು ನಿಗದಿಪಡಿಸಲಾಗಿದೆ.`,
-      activationDay: dynamicActivationDay,
-      panchangaSynergy: `ಯೋಗದ ಪ್ರಭಾವವನ್ನು (${yRule.sanskrit}) ಶುಭ ಫಲಕ್ಕೆ ತಿರುಗಿಸಲು ಹಾಗೂ ಲಗ್ನ ಬಲವನ್ನು ಹೆಚ್ಚಿಸಲು ಸಹಕಾರಿಯಾಗಿದೆ.`
+      activationDay: selectedActivationDay.kn,
+      activationDayEn: selectedActivationDay.en,
+      activationDayHi: selectedActivationDay.hi,
+      activationDayTe: selectedActivationDay.te,
+      activationDayTa: selectedActivationDay.ta,
+      panchangaSynergy: `ಯೋಗದ ಪ್ರಭಾವವನ್ನು (${yRule.sanskrit}) ಶುಭ ಫಲಕ್ಕೆ ತಿರುಗಿಸಲು ಹಾಗೂ ಲಗ್ನ ಬಲವನ್ನು ಹೆಚ್ಚಿಸಲು ಸಹಕಾರಿಯಾಗಿದೆ.`,
+      panchangaSynergyEn: `Reinforces the positive vibration of Yoga (${yRule.sanskrit}) and strengthens the Ascendant.`,
+      panchangaSynergyHi: `योग के प्रभाव (${yRule.sanskrit}) को शुभ फल में परिवर्तित कर लग्न बल को पुष्ट करता है।`,
+      panchangaSynergyTe: `యోగ ప్రభావమును (${yRule.sanskrit}) శుభ ఫలముగా మార్చి లగ్న బలాన్ని వృద్ధి చేస్తుంది.`,
+      panchangaSynergyTa: `யோகத்தின் நற்பலனை (${yRule.sanskrit}) பெருக்கி லக்ன பலத்தை நிலைநிறுத்துகிறது.`
     },
     luckyAttributes: {
       carColors: lucky.car,
@@ -629,6 +785,9 @@ export const generateAstrologicalPrescriptions = (
     shantiPooja: {
       nameKn: shantiKn,
       nameEn: shantiEn,
+      nameHi: shantiHi,
+      nameTe: shantiTe,
+      nameTa: shantiTa,
       purpose: shantiPurpose
     }
   };
@@ -7144,7 +7303,11 @@ ${prof.secondaryAlternativeEn ? `• 🔄 Secondary / Alternative Vocation: ${pr
   isKujaDosha ? "ಕುಜ ದೋಷದ ಪ್ರಭಾವದಿಂದ ಮಾತುಕತೆಗಳಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಅಡೆತಡೆ ಉಂಟಾಗುತ್ತಿದೆ." : "ಗೋಚಾರ ಗುರುವಿನ ಬಲ ಕೂಡಿಬರುತ್ತಿದೆ."
 }
 
-• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲದಲ್ಲಿ, ${md?.marriageTimingWindowKn ? md.marriageTimingWindowKn : `ಇನ್ನು ${dashaTimeText}`} ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಸಫಲತೆ ದೊರೆಯಲಿದೆ.
+• ⏳ ನಿಖರ ಕಾಲಾವಧಿ / ತಿರುವು: ${
+  isDelayedMarriage
+    ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರೌಢಾವಸ್ಥೆಯ ಕಲ್ಯಾಣ ಯೋಗವಿದ್ದು, ${md?.marriageTimingWindowKn || "36 ರಿಂದ 40 ವರ್ಷಗಳ ಅವಧಿಯಲ್ಲಿ"} ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಸಫಲತೆ ದೊರೆಯಲಿದೆ.`
+    : `ಪ್ರಸ್ತುತ ${currentDiagnosis.prasthuthaSthiti.runningDashaSummary} ಕಾಲದಲ್ಲಿ, ${md?.marriageTimingWindowKn ? md.marriageTimingWindowKn : `ಇನ್ನು ${dashaTimeText}`} ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಸಫಲತೆ ದೊರೆಯಲಿದೆ.`
+}
 
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ, ಗುರುವಾರ ದಕ್ಷಿಣಾಮೂರ್ತಿಗೆ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ.`
       );

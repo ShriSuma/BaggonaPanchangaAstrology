@@ -1409,11 +1409,22 @@ STRICT RULES:
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {prof.subjectAptitudes.map((subj, sIdx) => {
                         const isHigh = subj.scorePercentage >= 80;
+                        const isRank1 = sIdx === 0;
                         return (
                           <div
                             key={sIdx}
-                            className="p-4 rounded-2xl bg-white border-2 border-emerald-200/80 shadow-sm hover:shadow-md transition-all space-y-3"
+                            className={`p-4 rounded-2xl bg-white transition-all space-y-3 relative ${
+                              isRank1
+                                ? "border-2 border-emerald-500 shadow-md ring-2 ring-emerald-400/20 bg-gradient-to-b from-emerald-50/40 via-white to-white"
+                                : "border-2 border-emerald-200/80 shadow-sm hover:shadow-md"
+                            }`}
                           >
+                            {isRank1 && (
+                              <div className="flex items-center gap-1.5 -mt-1 -mb-1 text-[10px] font-black uppercase text-emerald-800 bg-emerald-100/90 px-2.5 py-0.5 rounded-full w-fit border border-emerald-300">
+                                <span>🌟</span>
+                                <span>{isKn ? "ಅಗ್ರಗಣ್ಯ ನೈಸರ್ಗಿಕ ಒಲವು (Top Rank)" : "Top Natural Inclination"}</span>
+                              </div>
+                            )}
                             <div className="flex items-start justify-between gap-2">
                               <h4 className="font-bold text-stone-900 text-xs sm:text-sm">
                                 {isKn ? subj.nameKn : subj.nameEn}
