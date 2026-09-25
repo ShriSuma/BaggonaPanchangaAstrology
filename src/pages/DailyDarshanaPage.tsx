@@ -68,7 +68,7 @@ import { playTempleBellChime } from "../features/seva/priestAudioNarrator";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio, prewarmIndicAudio } from "../features/audio/aiVoiceCloneEngine";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../features/audio/globalAudioManager";
 import { useAppStore } from "../stores/appStore";
-import { getOrComputeDinaBhavishya, type DinaBhavishyaPayload } from "../features/seva/dinaBhavishyaEngine";
+import { getOrComputeDinaBhavishya, sanitizeDinaIndicText, type DinaBhavishyaPayload } from "../features/seva/dinaBhavishyaEngine";
 import { computePersonalizedDarshanaPayload } from "../features/darshana/dailyDarshanaPersonalizationEngine";
 import { getIndianStandardDateStr } from "../core/placeTime";
 
@@ -1788,27 +1788,38 @@ export default function DailyDarshanaPage(): JSX.Element {
   const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, userLat, userLng, userPincode), [dayLordIdx, lang, dateParam, userLat, userLng, userPincode]);
 
 
+  const hasContactOverride = useMemo(() => {
+    if (urlParams.get("overrideContact") === "true") return true;
+    if (decoded?.ocp || decoded?.overrideCalendarPhone) return true;
+    if (decoded?.pp && decoded.pp !== "9972339362") return true;
+    if (urlParams.get("priestPhone") && urlParams.get("priestPhone") !== "9972339362") return true;
+    if (urlParams.get("ph") && urlParams.get("ph") !== "9972339362") return true;
+    if (urlParams.get("phone") && urlParams.get("phone") !== "9972339362") return true;
+    if (urlParams.get("priestName") && !urlParams.get("priestName")!.includes("Shreeram") && !urlParams.get("priestName")!.includes("ಶ್ರೀರಾಮ್")) return true;
+    return false;
+  }, [decoded, urlParams]);
+
   const activePanditPhone = useMemo(() => {
+    if (!hasContactOverride) {
+      return "9972339362";
+    }
+    if (urlParams.get("priestPhone")) {
+      return urlParams.get("priestPhone")!.trim();
+    }
     if (decoded?.pp || decoded?.priestPhone) {
       return (decoded.pp || decoded.priestPhone)!.trim();
     }
     if (decoded?.ocp && (decoded?.ph || decoded?.phone)) {
       return (decoded.ph || decoded.phone)!.trim();
     }
-    if (urlParams.get("overrideContact") === "true" && (urlParams.get("priestPhone") || urlParams.get("ph") || urlParams.get("phone"))) {
-      return (urlParams.get("priestPhone") || urlParams.get("ph") || urlParams.get("phone"))!.trim();
-    }
-    if (urlParams.get("priestPhone")) {
-      return urlParams.get("priestPhone")!.trim();
-    }
-    if (urlParams.get("ph") && urlParams.get("ph") !== "9972339362") {
+    if (urlParams.get("ph")) {
       return urlParams.get("ph")!.trim();
     }
-    if (urlParams.get("phone") && urlParams.get("phone") !== "9972339362") {
+    if (urlParams.get("phone")) {
       return urlParams.get("phone")!.trim();
     }
     return "9972339362";
-  }, [decoded, urlParams]);
+  }, [hasContactOverride, decoded, urlParams]);
 
   const activePanditWhatsApp = useMemo(() => {
     if (decoded?.pw || decoded?.priestWhatsApp) {
@@ -1821,20 +1832,23 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [decoded, urlParams, activePanditPhone]);
 
   const activePanditName = useMemo(() => {
+    if (!hasContactOverride) {
+      return getLocalizedPanditName("shreeram-pandit", lang);
+    }
     let raw = "";
-    if (decoded?.p || decoded?.pandit || decoded?.priestName) {
-      raw = (decoded.p || decoded.pandit || decoded.priestName)!.trim();
-    } else if (urlParams.get("priestName")) {
+    if (urlParams.get("priestName")) {
       raw = urlParams.get("priestName")!.trim();
+    } else if (decoded?.p || decoded?.pandit || decoded?.priestName) {
+      raw = (decoded.p || decoded.pandit || decoded.priestName)!.trim();
     } else if (urlParams.get("pandit")) {
       raw = urlParams.get("pandit")!.trim();
     } else if (urlParams.get("p")) {
       raw = urlParams.get("p")!.trim();
     } else {
-      raw = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+      raw = "shreeram-pandit";
     }
     return getLocalizedPanditName(raw, lang);
-  }, [decoded, urlParams, lang]);
+  }, [hasContactOverride, decoded, urlParams, lang]);
 
   const localizedPandit = activePanditName;
   
@@ -2460,6 +2474,31 @@ export default function DailyDarshanaPage(): JSX.Element {
   const isSiddhaLoading = activeVoiceKey === "siddha" && activeVoiceState === "loading";
   const isSiddhaPlaying = activeVoiceKey === "siddha" && activeVoiceState === "playing";
 
+  const [siddhaJapaCount, setSiddhaJapaCount] = useState<number>(0);
+  const [isSiddhaJapaCompleted, setIsSiddhaJapaCompleted] = useState<boolean>(false);
+
+  const handleIncrementSiddhaJapa = (target: number) => {
+    if (siddhaJapaCount >= target) return;
+    playTempleBellChime();
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try {
+        navigator.vibrate(40);
+      } catch {
+        // ignore
+      }
+    }
+    const next = siddhaJapaCount + 1;
+    setSiddhaJapaCount(next);
+    if (next >= target) {
+      setIsSiddhaJapaCompleted(true);
+    }
+  };
+
+  const handleResetSiddhaJapa = () => {
+    setSiddhaJapaCount(0);
+    setIsSiddhaJapaCompleted(false);
+  };
+
   const toggleBenedictionVoice = async () => {
     if (activeVoiceKey === "benediction" && activeVoiceState === "loading") {
       return;
@@ -2889,7 +2928,15 @@ export default function DailyDarshanaPage(): JSX.Element {
             </a>
             <a
               href={`https://wa.me/?text=${encodeURIComponent(
-                `ನಮಸ್ಕಾರ ${activePanditName} ಅವರೇ, ನನ್ನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಆಶೀರ್ವಾದ ಪಾಸ್ (${rawDuration} ದಿನಗಳು) ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಸಹಾಯ ಮಾಡಿ.\nಭಕ್ತರ ಹೆಸರು: ${devoteeDisplayName}\nಗೋತ್ರ: ${devoteeGotra}\nದಿನಾಂಕ: ${mockDay.ymd}`
+                lang === "kn"
+                  ? `ನಮಸ್ಕಾರ ${activePanditName} ಅವರೇ, ನನ್ನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಆಶೀರ್ವಾದ ಪಾಸ್ (${rawDuration} ದಿನಗಳು) ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಸಹಾಯ ಮಾಡಿ.\nಭಕ್ತರ ಹೆಸರು: ${devoteeDisplayName}\nಗೋತ್ರ: ${devoteeGotra}\nದಿನಾಂಕ: ${mockDay.ymd}`
+                  : lang === "te"
+                  ? `నమస్కారం ${activePanditName} గారూ, నా బగ్గోణ పంచాంగ ఆశీర్వాద పాస్ (${rawDuration} రోజులు) ముగిసింది. పునరుద్ధరణ కొరకు దయచేసి సహాయం చేయండి.\nభక్తుని పేరు: ${devoteeDisplayName}\nగోత్రం: ${devoteeGotra}\nతేదీ: ${mockDay.ymd}`
+                  : lang === "ta"
+                  ? `வணக்கம் ${activePanditName} அவர்களே, எனது பக்கோண பஞ்சாங்க ஆசீர்வாத பாஸ் (${rawDuration} நாட்கள்) முடிவடைந்தது. புதுப்பித்தலுக்கு உதவ வேண்டுகிறேன்.\nபக்தர் பெயர்: ${devoteeDisplayName}\nகோத்திரம்: ${devoteeGotra}\nதேதி: ${mockDay.ymd}`
+                  : lang === "hi"
+                  ? `नमस्ते ${activePanditName} जी, मेरा बग्गोण पंचांग आशीर्वाद पास (${rawDuration} दिन) समाप्त हो गया है। कृपया नवीनीकरण हेतु सहायता करें।\nभक्त का नाम: ${devoteeDisplayName}\nगोत्र: ${devoteeGotra}\nदिनांक: ${mockDay.ymd}`
+                  : `Namaste ${activePanditName}, my Baggona Panchanga Ashirvada Pass (${rawDuration} days) has expired. Please assist with renewal.\nDevotee: ${devoteeDisplayName}\nGotra: ${devoteeGotra}\nDate: ${mockDay.ymd}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -3069,6 +3116,12 @@ export default function DailyDarshanaPage(): JSX.Element {
                   <span>
                     {lang === "kn"
                       ? "ಜನನ ದಿನಾಂಕ ಆಧಾರಿತ ಪವಿತ್ರ ದರ್ಶನ (ಚಂದ್ರ ಕುಂಡಲಿ ಹಾಗೂ ಗೋಚಾರ)"
+                      : lang === "te"
+                      ? "పుట్టిన తేదీ ఆధారిత పవిత్ర దర్శనం (చంద్ర కుండలి & గోచారం)"
+                      : lang === "ta"
+                      ? "பிறந்த தேதி அடிப்படையிலான புனித தரிசனம் (சந்திர ஜாதகம் & கோசாரம்)"
+                      : lang === "hi"
+                      ? "जन्म तिथि आधारित पवित्र दर्शन (चंद्र कुंडली एवं गोचर)"
                       : "Date-of-Birth Sanctum (Chandra Kundli & Gochara)"}
                   </span>
                 </div>
@@ -3120,7 +3173,15 @@ export default function DailyDarshanaPage(): JSX.Element {
                   <span style={{ fontSize: 24 }}>✨</span>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                      {lang === "kn" ? "ಇಂದಿನ ಶುಭ ಅಭಿಜಿತ್ ಮುಹೂರ್ತ" : "Today's Auspicious Abhijit Muhurtha"}
+                      {lang === "kn"
+                        ? "ಇಂದಿನ ಶುಭ ಅಭಿಜಿತ್ ಮುಹೂರ್ತ"
+                        : lang === "te"
+                        ? "నేటి శుభ అభిజిత్ ముహూర్తం"
+                        : lang === "ta"
+                        ? "இன்றைய சுப அபிஜித் முகூர்த்தம்"
+                        : lang === "hi"
+                        ? "आज का शुभ अभिजीत मुहूर्त"
+                        : "Today's Auspicious Abhijit Muhurtha"}
                     </div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
                       ⏱️ {dinaBhavishyaData?.abhijitMuhurtha || "11:54 AM – 12:44 PM IST"}
@@ -3140,12 +3201,29 @@ export default function DailyDarshanaPage(): JSX.Element {
                   gap: 6
                 }}>
                   <span style={{ fontSize: 16 }}>🔥</span>
-                  <span>{darshanaStreak.currentStreak} {lang === "kn" ? "ದಿನಗಳ ದರ್ಶನ ದೀಕ್ಷೆ" : "Days Darshana Streak"}</span>
+                  <span>
+                    {darshanaStreak.currentStreak}{" "}
+                    {lang === "kn"
+                      ? "ದಿನಗಳ ದರ್ಶನ ದೀಕ್ಷೆ"
+                      : lang === "te"
+                      ? "రోజుల దర్శన దీక్ష"
+                      : lang === "ta"
+                      ? "நாட்கள் தரிசன தீட்சை"
+                      : lang === "hi"
+                      ? "दिनों की दर्शन दीक्षा"
+                      : "Days Darshana Streak"}
+                  </span>
                 </div>
               </div>
               <div style={{ fontSize: 11.5, color: "#FEF3C7", lineHeight: 1.4, borderTop: "1px dashed rgba(252, 211, 77, 0.3)", paddingTop: 6 }}>
                 {lang === "kn"
                   ? "🌟 ಅಭಿಜಿತ್ ಮುಹೂರ್ತವು ವೆಬ್‌ಸೈಟ್ ಸನ್ನಿಧಿಯ ವಿಶೇಷ ದರ್ಶನವಾಗಿದೆ. ಪ್ರತಿದಿನ ಭೇಟಿ ನೀಡಿ ನಿಮ್ಮ ದರ್ಶನ ಸಾಧನಾ ದೀಕ್ಷೆ (🔥) ಮುಂದುವರಿಸಿ!"
+                  : lang === "te"
+                  ? "🌟 అభిజిత్ ముహూర్తం వెబ్‌సైట్ సన్నిధి ప్రత్యేక దర్శనం. ప్రతిరోజూ దర్శించి మీ దర్శన సాధనా దీక్షను (🔥) కొనసాగించండి!"
+                  : lang === "ta"
+                  ? "🌟 அபிஜித் முகூர்த்தம் இணையதள சந்நிதியின் சிறப்பு தரிசனமாகும். தினமும் வருகை தந்து உங்கள் தரிசன சாதனா தீட்சையை (🔥) தொடருங்கள்!"
+                  : lang === "hi"
+                  ? "🌟 अभिजीत मुहूर्त वेबसाइट सन्निधि का विशेष दर्शन है। प्रतिदिन पधारकर अपनी दर्शन साधना दीक्षा (🔥) जारी रखें!"
                   : "🌟 Abhijit Muhurtha is an exclusive web sanctum feature. Visit daily to receive your darshana and maintain your visit streak (🔥)!"}
               </div>
             </div>
@@ -3171,10 +3249,27 @@ export default function DailyDarshanaPage(): JSX.Element {
                       color: shraddhaStatus.isToday ? "#FCA5A5" : "#FDE68A",
                       textTransform: "uppercase"
                     }}>
-                      {lang === "kn" ? "ಪೋಷಕರ ವಾರ್ಷಿಕ ಶ್ರಾದ್ಧ ತಿಥಿ ಸ್ಮರಣೆ" : "Parents' Annual Shraddha Tithi Remembrance"}
+                      {lang === "kn"
+                        ? "ಪೋಷಕರ ವಾರ್ಷಿಕ ಶ್ರಾದ್ಧ ತಿಥಿ ಸ್ಮರಣೆ"
+                        : lang === "te"
+                        ? "తల్లిదండ్రుల వార్షిక శ్రాద్ధ తిథి స్మరణ"
+                        : lang === "ta"
+                        ? "பெற்றோரின் வருடாந்திர சிரார்த்த திதி நினைவு"
+                        : lang === "hi"
+                        ? "माता-पिता की वार्षिक श्राद्ध तिथि स्मरण"
+                        : "Parents' Annual Shraddha Tithi Remembrance"}
                     </div>
                     <div style={{ fontSize: 13, color: "#FFFFFF", fontWeight: 800, marginTop: 2 }}>
-                      {lang === "kn" ? "ತಿಥಿ:" : "Tithi:"} {shraddhaStatus.tithiLabel}
+                      {lang === "kn"
+                        ? "ತಿಥಿ:"
+                        : lang === "te"
+                        ? "తిథి:"
+                        : lang === "ta"
+                        ? "திதி:"
+                        : lang === "hi"
+                        ? "तिथि:"
+                        : "Tithi:"}{" "}
+                      {shraddhaStatus.tithiLabel}
                     </div>
                     {shraddhaStatus.alertText && (
                       <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4, lineHeight: 1.4 }}>
@@ -3216,12 +3311,31 @@ export default function DailyDarshanaPage(): JSX.Element {
                   fontWeight: 800,
                   color: "#FDE68A"
                 }}>
-                  {pitruRaksha.score}% {lang === "kn" ? "ಕವಚ ರಕ್ಷಾ ಶಕ್ತಿ" : "Shield Aura"}
+                  {pitruRaksha.score}%{" "}
+                  {lang === "kn"
+                    ? "ಕವಚ ರಕ್ಷಾ ಶಕ್ತಿ"
+                    : lang === "te"
+                    ? "కవచ రక్షా శక్తి"
+                    : lang === "ta"
+                    ? "கவச பாதுகாப்பு சக்தி"
+                    : lang === "hi"
+                    ? "कवच रक्षा शक्ति"
+                    : "Shield Aura"}
                 </span>
               </div>
 
               <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.5, margin: "8px 0" }}>
-                <strong style={{ color: "#FCD34D" }}>{lang === "kn" ? "ಪಿತೃ ದೇವತೆ:" : "Ancestral Deity:"} </strong>
+                <strong style={{ color: "#FCD34D" }}>
+                  {lang === "kn"
+                    ? "ಪಿತೃ ದೇವತೆ:"
+                    : lang === "te"
+                    ? "పితృ దేవత:"
+                    : lang === "ta"
+                    ? "பித்ரு தெய்வம்:"
+                    : lang === "hi"
+                    ? "पितृ देवता:"
+                    : "Ancestral Deity:"}{" "}
+                </strong>
                 {pitruRaksha.pitruDevata}
               </div>
 
@@ -3265,17 +3379,67 @@ export default function DailyDarshanaPage(): JSX.Element {
                   }}
                 >
                   {isKavachaPlaying ? (
-                    <><span>⏹️</span><span>{lang === "kn" ? "ನಿಲ್ಲಿಸಿ" : "Stop"}</span></>
+                    <>
+                      <span>⏹️</span>
+                      <span>
+                        {lang === "kn"
+                          ? "ನಿಲ್ಲಿಸಿ"
+                          : lang === "te"
+                          ? "ఆపండి"
+                          : lang === "ta"
+                          ? "நிறுத்துக"
+                          : lang === "hi"
+                          ? "रोकें"
+                          : "Stop"}
+                      </span>
+                    </>
                   ) : isKavachaLoading ? (
-                    <><span className="inline-block animate-spin">⏳</span><span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing..."}</span></>
+                    <>
+                      <span className="inline-block animate-spin">⏳</span>
+                      <span>
+                        {lang === "kn"
+                          ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+                          : lang === "te"
+                          ? "వాయిస్ సిద్ధమవుతోంది..."
+                          : lang === "ta"
+                          ? "குரல் தயாராகிறது..."
+                          : lang === "hi"
+                          ? "ध्वनि तैयार हो रही है..."
+                          : "Synthesizing..."}
+                      </span>
+                    </>
                   ) : (
-                    <><span>🔊</span><span>{lang === "kn" ? "ಕವಚ ಮಂತ್ರ ಶ್ರವಣ" : "Listen Kavacha Mantra"}</span></>
+                    <>
+                      <span>🔊</span>
+                      <span>
+                        {lang === "kn"
+                          ? "ಕವಚ ಮಂತ್ರ ಶ್ರವಣ"
+                          : lang === "te"
+                          ? "కవచ మంత్ర శ్రవణం"
+                          : lang === "ta"
+                          ? "கவச மந்திரம் கேட்க"
+                          : lang === "hi"
+                          ? "कवच मंत्र श्रवण"
+                          : "Listen Kavacha Mantra"}
+                      </span>
+                    </>
                   )}
                 </button>
               </div>
 
               <div style={{ fontSize: 11.5, color: "#D1D5DB", marginTop: 6, lineHeight: 1.4 }}>
-                <span style={{ color: "#F59E0B", fontWeight: 700 }}>📿 {lang === "kn" ? "ದೈನಂದಿನ ಸಾಧನೆ:" : "Daily Sadhana:"} </span>
+                <span style={{ color: "#F59E0B", fontWeight: 700 }}>
+                  📿{" "}
+                  {lang === "kn"
+                    ? "ದೈನಂದಿನ ಸಾಧನೆ:"
+                    : lang === "te"
+                    ? "రోజువారీ సాధన:"
+                    : lang === "ta"
+                    ? "தினசரி சாதனை:"
+                    : lang === "hi"
+                    ? "दैनिक साधना:"
+                    : "Daily Sadhana:"}{" "}
+                </span>
                 {pitruRaksha.dailySadhana}
               </div>
 
@@ -3304,7 +3468,16 @@ export default function DailyDarshanaPage(): JSX.Element {
                         {lang === "kn" ? "ಇಂದಿನ ಪೂಜೆ ಸಂಪನ್ನಗೊಂಡಿದೆ" : lang === "hi" ? "आज की पूजा संपन्न हुई" : lang === "te" ? "నేటి పూజ పూర్తయింది" : lang === "ta" ? "இன்றைய பூஜை நிறைவடைந்தது" : "Today's Vedic Pooja Completed"}
                       </div>
                       <div style={{ fontSize: 12, color: "#D1FAE5", marginTop: 2 }}>
-                        🔥 {poojaStreak.currentStreak} {lang === "kn" ? "ದಿನಗಳ ಸತತ ಪೂಜಾ ಸಂಕಲ್ಪ (Streak)" : "Consecutive Days Streak"}
+                        🔥 {poojaStreak.currentStreak}{" "}
+                        {lang === "kn"
+                          ? "ದಿನಗಳ ಸತತ ಪೂಜಾ ಸಂಕಲ್ಪ (Streak)"
+                          : lang === "te"
+                          ? "రోజుల నిరంతర పూజా సంకల్పం (Streak)"
+                          : lang === "ta"
+                          ? "நாட்கள் தொடர் பூஜா சங்கல்பம் (Streak)"
+                          : lang === "hi"
+                          ? "दिनों का निरंतर पूजा संकल्प (Streak)"
+                          : "Consecutive Days Streak"}
                       </div>
                     </div>
                   </div>
@@ -3322,11 +3495,29 @@ export default function DailyDarshanaPage(): JSX.Element {
                       cursor: "pointer"
                     }}
                   >
-                    🔄 {lang === "kn" ? "ಪುನಃ ವೀಕ್ಷಿಸಿ" : "Repeat Pooja"}
+                    🔄{" "}
+                    {lang === "kn"
+                      ? "ಪುನಃ ವೀಕ್ಷಿಸಿ"
+                      : lang === "te"
+                      ? "మళ్లీ వీక్షించండి"
+                      : lang === "ta"
+                      ? "மீண்டும் பார்க்க"
+                      : lang === "hi"
+                      ? "पुनः देखें"
+                      : "Repeat Pooja"}
                   </button>
                 </div>
                 <div style={{ fontSize: 11.5, color: "#ECFDF5", borderTop: "1px solid rgba(52, 211, 153, 0.3)", paddingTop: 8 }}>
-                  ✨ {lang === "kn" ? "ಇಂದಿನ ಶುಭ ಫಲಗಳಿಗಾಗಿ ಕೆಳಗಿನ ಜಪ ಸಾಧನೆ ಹಾಗೂ ರಕ್ಷಣಾ ಕವಚವನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಪಠಿಸಿ:" : "For today's optimal planetary grace, chant the remedy japa and sacred kavacha below:"}
+                  ✨{" "}
+                  {lang === "kn"
+                    ? "ಇಂದಿನ ಶುಭ ಫಲಗಳಿಗಾಗಿ ಕೆಳಗಿನ ಜಪ ಸಾಧನೆ ಹಾಗೂ ರಕ್ಷಣಾ ಕವಚವನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಪಠಿಸಿ:"
+                    : lang === "te"
+                    ? "నేటి శుభ ఫలితాల కోసం క్రింది జప సాధన మరియు రక్షా కవచాన్ని శ్రద్ధతో పఠించండి:"
+                    : lang === "ta"
+                    ? "இன்றைய சுப பலன்களுக்காக கீழே உள்ள ஜப சாதனை மற்றும் பாதுகாப்புக் கவசத்தை பக்தியுடன் பாராயணம் செய்யுங்கள்:"
+                    : lang === "hi"
+                    ? "आज के शुभ फलों हेतु नीचे दी गई जप साधना एवं रक्षा कवच का श्रद्धापूर्वक पाठ करें:"
+                    : "For today's optimal planetary grace, chant the remedy japa and sacred kavacha below:"}
                 </div>
               </div>
             ) : (
@@ -3939,7 +4130,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 )}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {dinaBhavishyaData?.overview || (DINA_OVERVIEW_FALLBACKS[lang] || DINA_OVERVIEW_FALLBACKS.en)(rashiName(moonRashiIdx, lang))}
+                {sanitizeDinaIndicText(dinaBhavishyaData?.overview || (DINA_OVERVIEW_FALLBACKS[lang] || DINA_OVERVIEW_FALLBACKS.en)(rashiName(moonRashiIdx, lang)), lang as SevaLang)}
               </p>
             </div>
 
@@ -3954,7 +4145,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 <span>💼</span> {dict.dinaCareerTitle}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {dinaBhavishyaData?.careerAndFinance || dict.dinaCareerFallback}
+                {sanitizeDinaIndicText(dinaBhavishyaData?.careerAndFinance || dict.dinaCareerFallback, lang as SevaLang)}
               </p>
             </div>
 
@@ -3969,7 +4160,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 <span>🧘</span> {dict.dinaHealthTitle}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {dinaBhavishyaData?.healthAndFamily || dict.dinaHealthFallback}
+                {sanitizeDinaIndicText(dinaBhavishyaData?.healthAndFamily || dict.dinaHealthFallback, lang as SevaLang)}
               </p>
             </div>
 
@@ -3984,7 +4175,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 <span>🚗</span> {dict.dinaTravelTitle}
               </div>
               <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: "0 0 10px" }}>
-                {dinaBhavishyaData?.travelAndInitiatives || dict.dinaTravelFallback}
+                {sanitizeDinaIndicText(dinaBhavishyaData?.travelAndInitiatives || dict.dinaTravelFallback, lang as SevaLang)}
               </p>
               {dinaBhavishyaData && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
@@ -4063,17 +4254,264 @@ export default function DailyDarshanaPage(): JSX.Element {
                     }}
                   >
                     {isSiddhaPlaying ? (
-                      <><span>⏹️</span><span>{lang === "kn" ? "ನಿಲ್ಲಿಸಿ" : "Stop"}</span></>
+                      <>
+                        <span>⏹️</span>
+                        <span>
+                          {lang === "kn"
+                            ? "ನಿಲ್ಲಿಸಿ"
+                            : lang === "te"
+                            ? "ఆపండి"
+                            : lang === "ta"
+                            ? "நிறுத்துக"
+                            : lang === "hi"
+                            ? "रोकें"
+                            : "Stop"}
+                        </span>
+                      </>
                     ) : isSiddhaLoading ? (
-                      <><span className="inline-block animate-spin">⏳</span><span>{lang === "kn" ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Synthesizing..."}</span></>
+                      <>
+                        <span className="inline-block animate-spin">⏳</span>
+                        <span>
+                          {lang === "kn"
+                            ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+                            : lang === "te"
+                            ? "వాయిస్ సిద్ధమవుతోంది..."
+                            : lang === "ta"
+                            ? "குரல் தயாராகிறது..."
+                            : lang === "hi"
+                            ? "ध्वनि तैयार हो रही है..."
+                            : "Synthesizing..."}
+                        </span>
+                      </>
                     ) : (
-                      <><span>🔊</span><span>{lang === "kn" ? "ಸಿದ್ಧ ಮಂತ್ರ ಶ್ರವಣ" : "Listen Siddha Mantra"}</span></>
+                      <>
+                        <span>🔊</span>
+                        <span>
+                          {lang === "kn"
+                            ? "ಸಿದ್ಧ ಮಂತ್ರ ಶ್ರವಣ"
+                            : lang === "te"
+                            ? "సిద్ధ మంత్ర శ్రవణం"
+                            : lang === "ta"
+                            ? "சித்த மந்திரம் கேட்க"
+                            : lang === "hi"
+                            ? "सिद्ध मंत्र श्रवण"
+                            : "Listen Siddha Mantra"}
+                        </span>
+                      </>
                     )}
                   </button>
                 </div>
-                <div style={{ fontSize: 12, color: "#FEF3C7", marginBottom: 8 }}>
-                  📿 {(JAPA_RECOMMENDATION_TEMPLATES[lang] || JAPA_RECOMMENDATION_TEMPLATES.en)(dinaBhavishyaData.japaRecommendation)}
-                </div>
+                {/* Interactive Siddha Mantra Japa Counter */}
+                {(() => {
+                  const targetCount = dinaBhavishyaData.targetJapaCount || 16;
+                  const formatJapaNum = (num: number, l: string) => {
+                    if (l === "kn") {
+                      const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
+                      return String(num).split("").map(c => knDigits[Number(c)] ?? c).join("");
+                    }
+                    if (l === "hi") {
+                      const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
+                      return String(num).split("").map(c => hiDigits[Number(c)] ?? c).join("");
+                    }
+                    if (l === "te") {
+                      const teDigits = ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯"];
+                      return String(num).split("").map(c => teDigits[Number(c)] ?? c).join("");
+                    }
+                    return String(num);
+                  };
+
+                  return (
+                    <div style={{
+                      background: "rgba(0,0,0,0.35)",
+                      border: "1px solid rgba(212, 175, 55, 0.35)",
+                      borderRadius: 12,
+                      padding: "10px 12px",
+                      margin: "10px 0 12px 0"
+                    }}>
+                      {/* Japa Title & Count Header */}
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        fontSize: 12,
+                        color: "#FEF3C7",
+                        fontWeight: 700,
+                        marginBottom: 8
+                      }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                          <span>📿</span>
+                          <span>{(JAPA_RECOMMENDATION_TEMPLATES[lang] || JAPA_RECOMMENDATION_TEMPLATES.en)(dinaBhavishyaData.japaRecommendation)}</span>
+                        </span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{
+                            background: isSiddhaJapaCompleted ? "rgba(16, 185, 129, 0.3)" : "rgba(245, 158, 11, 0.25)",
+                            color: isSiddhaJapaCompleted ? "#6EE7B7" : "#FDE68A",
+                            padding: "2px 8px",
+                            borderRadius: 10,
+                            fontSize: 11,
+                            fontWeight: 800,
+                            border: `1px solid ${isSiddhaJapaCompleted ? "rgba(16, 185, 129, 0.5)" : "rgba(245, 158, 11, 0.4)"}`
+                          }}>
+                            {formatJapaNum(siddhaJapaCount, lang)} / {formatJapaNum(targetCount, lang)}
+                          </span>
+                          {siddhaJapaCount > 0 && (
+                            <button
+                              type="button"
+                              onClick={handleResetSiddhaJapa}
+                              title={lang === "kn" ? "ಜಪ ಮರುಹೊಂದಿಸಿ" : "Reset Count"}
+                              style={{
+                                background: "rgba(255, 255, 255, 0.1)",
+                                color: "#FDE68A",
+                                border: "1px solid rgba(253, 230, 138, 0.3)",
+                                borderRadius: 8,
+                                padding: "1px 6px",
+                                fontSize: 11,
+                                cursor: "pointer"
+                              }}
+                            >
+                              ↺
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Japamala Beads Mala Layout (Medium 30px Beads, Mobile-Optimized) */}
+                      <div style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                        gap: "6px 8px",
+                        maxWidth: 320,
+                        margin: "0 auto 12px",
+                        padding: "4px 0"
+                      }}>
+                        {Array.from({ length: targetCount }).map((_, idx) => {
+                          const beadNum = idx + 1;
+                          const isDone = beadNum <= siddhaJapaCount;
+                          const isCurrent = beadNum === siddhaJapaCount + 1;
+
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleIncrementSiddhaJapa(targetCount)}
+                              disabled={isSiddhaJapaCompleted}
+                              style={{
+                                width: 30,
+                                height: 30,
+                                minWidth: 30,
+                                minHeight: 30,
+                                borderRadius: "50%",
+                                border: isDone
+                                  ? "1px solid #10B981"
+                                  : isCurrent
+                                  ? "1.5px solid #FCD34D"
+                                  : "1px solid rgba(212, 175, 55, 0.3)",
+                                background: isDone
+                                  ? "linear-gradient(135deg, #059669, #10B981)"
+                                  : isCurrent
+                                  ? "linear-gradient(135deg, #D97706, #F59E0B)"
+                                  : "rgba(0, 0, 0, 0.6)",
+                                color: isDone ? "#FFFFFF" : isCurrent ? "#1C0A00" : "rgba(254, 243, 199, 0.7)",
+                                fontSize: isDone ? 12 : 10,
+                                fontWeight: 800,
+                                cursor: isSiddhaJapaCompleted ? "default" : "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                transition: "all 0.2s ease",
+                                transform: isCurrent ? "scale(1.15)" : "scale(1)",
+                                boxShadow: isCurrent ? "0 0 10px rgba(245, 158, 11, 0.7)" : "none",
+                                padding: 0
+                              }}
+                              title={`Bead ${beadNum}`}
+                            >
+                              {isDone ? "✓" : formatJapaNum(beadNum, lang)}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Main Action Button or Celebration */}
+                      {!isSiddhaJapaCompleted ? (
+                        <button
+                          type="button"
+                          onClick={() => handleIncrementSiddhaJapa(targetCount)}
+                          style={{
+                            width: "100%",
+                            background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                            color: "#1C0A00",
+                            border: "1.5px solid #FDE68A",
+                            borderRadius: 12,
+                            padding: "8px 14px",
+                            fontSize: 12.5,
+                            fontWeight: 900,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 6,
+                            boxShadow: "0 3px 10px rgba(245, 158, 11, 0.35)",
+                            transition: "all 0.15s ease"
+                          }}
+                        >
+                          <span>📿</span>
+                          <span>
+                            {lang === "kn"
+                              ? `ಜಪ ಸಂಖ್ಯೆ ಹೆಚ್ಚಿಸಿ (${formatJapaNum(siddhaJapaCount, "kn")} / ${formatJapaNum(targetCount, "kn")})`
+                              : lang === "te"
+                              ? `జపం చేయండి (${formatJapaNum(siddhaJapaCount, "te")} / ${formatJapaNum(targetCount, "te")})`
+                              : lang === "ta"
+                              ? `ஜபம் செய்க (${siddhaJapaCount} / ${targetCount})`
+                              : lang === "hi"
+                              ? `जप संख्या बढ़ाएं (${formatJapaNum(siddhaJapaCount, "hi")} / ${formatJapaNum(targetCount, "hi")})`
+                              : `Count Japa (${siddhaJapaCount} / ${targetCount})`}
+                          </span>
+                        </button>
+                      ) : (
+                        <div style={{
+                          background: "linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.3))",
+                          border: "1.5px solid #10B981",
+                          borderRadius: 12,
+                          padding: "8px 12px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 8
+                        }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: "#A7F3D0" }}>
+                            {lang === "kn"
+                              ? `✨ ${formatJapaNum(targetCount, "kn")} ಬಾರಿ ಜಪ ಸಂಪೂರ್ಣವಾಯಿತು! ಭಗವದನುಗ್ರಹ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.`
+                              : lang === "te"
+                              ? `✨ ${formatJapaNum(targetCount, "te")} సార్లు జపం పూర్తయింది! దైవానుగ్రహం కలుగుగాక.`
+                              : lang === "ta"
+                              ? `✨ ${targetCount} முறைகள் ஜபம் நிறைவடைந்தது! இறைவனின் அருள் கிட்டட்டும்.`
+                              : lang === "hi"
+                              ? `✨ ${formatJapaNum(targetCount, "hi")} बार जप संपन्न हुआ! प्रभु कृपा प्राप्त हो।`
+                              : `✨ ${targetCount} Japa rounds completed! Divine grace attained.`}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleResetSiddhaJapa}
+                            title="Reset"
+                            style={{
+                              background: "rgba(255, 255, 255, 0.2)",
+                              color: "#FFFFFF",
+                              border: "1px solid rgba(255, 255, 255, 0.4)",
+                              borderRadius: 8,
+                              padding: "2px 8px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer"
+                            }}
+                          >
+                            ↺
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
                 <div style={{ fontSize: 12, fontStyle: "italic", color: "#FCD34D", borderTop: "1px solid rgba(212, 175, 55, 0.3)", paddingTop: 8 }}>
                   {dinaBhavishyaData.priestBlessing}
                 </div>
@@ -4156,7 +4594,19 @@ export default function DailyDarshanaPage(): JSX.Element {
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11.5 }}>
                     <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
-                      <span style={{ color: "#F59E0B" }}>{isDateOnlyMode ? (lang === "kn" ? "ಚಂದ್ರ ಲಗ್ನ:" : "Chandra Lagna:") : `${dict.lagna}:`}</span>{" "}
+                      <span style={{ color: "#F59E0B" }}>
+                        {isDateOnlyMode
+                          ? lang === "kn"
+                            ? "ಚಂದ್ರ ಲಗ್ನ:"
+                            : lang === "te"
+                            ? "చంద్ర లగ్నం:"
+                            : lang === "ta"
+                            ? "சந்திர லக்னம்:"
+                            : lang === "hi"
+                            ? "चंद्र लग्न:"
+                            : "Chandra Lagna:"
+                          : `${dict.lagna}:`}
+                      </span>{" "}
                       <strong>{RASHI_L5[isDateOnlyMode ? moonRashiIdx : ascendantRashiIdx]?.[lang] || RASHI_L5[isDateOnlyMode ? moonRashiIdx : ascendantRashiIdx]?.en}</strong>
                     </div>
                     <div style={{ background: "rgba(0,0,0,0.3)", padding: 8, borderRadius: 8 }}>
@@ -4189,10 +4639,24 @@ export default function DailyDarshanaPage(): JSX.Element {
                     <span style={{ fontSize: 22 }}>🌕</span>
                     <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.4 }}>
                       <strong style={{ color: "#FDE68A", display: "block", fontSize: 13 }}>
-                        {lang === "kn" ? "ಚಂದ್ರ ಕುಂಡಲಿ ದರ್ಶನ (ಜನನ ದಿನಾಂಕ ಆಧಾರಿತ)" : "Chandra Kundli (Moon Chart - Date of Birth Mode)"}
+                        {lang === "kn"
+                          ? "ಚಂದ್ರ ಕುಂಡಲಿ ದರ್ಶನ (ಜನನ ದಿನಾಂಕ ಆಧಾರಿತ)"
+                          : lang === "te"
+                          ? "చంద్ర కుండలి దర్శనం (పుట్టిన తేదీ ఆధారిత)"
+                          : lang === "ta"
+                          ? "சந்திர ஜாதக தரிசனம் (பிறந்த தேதி முறை)"
+                          : lang === "hi"
+                          ? "चंद्र कुंडली दर्शन (जन्म तिथि आधारित)"
+                          : "Chandra Kundli (Moon Chart - Date of Birth Mode)"}
                       </strong>
                       {lang === "kn"
                         ? "ಜನನ ಸಮಯ ಲಭ್ಯವಿಲ್ಲದ ಕಾರಣ ಜನ್ಮ ರಾಶಿಯನ್ನು (ಚಂದ್ರ ಲಗ್ನ) ಪ್ರಥಮ ಭಾವವನ್ನಾಗಿ ಪರಿಗಣಿಸಿ ಈ ಕುಂಡಲಿಯನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ಸಾಂಪ್ರದಾಯಿಕ ಗೋಚಾರ ಫಲಗಳು ಚಂದ್ರ ಕುಂಡಲಿಯನ್ನೇ ಅವಲಂಬಿಸಿವೆ."
+                        : lang === "te"
+                        ? "జనన సమయం లేనందున జన్మ రాశిని (చంద్ర లగ్నం) ప్రథమ భావంగా పరిగణించి ఈ కుండలిని రూపొందించడం జరిగింది. సాంప్రదాయ గోచార ఫలితాలు చంద్ర కుండలిపైనే ఆధారపడి ఉంటాయి."
+                        : lang === "ta"
+                        ? "பிறந்த நேரம் கிடைக்காததால் ஜென்ம ராசியை (சந்திர லக்னம்) முதல் வீடாகக் கொண்டு இந்த ஜாதகம் கணிக்கப்பட்டுள்ளது. பாரம்பரிய கோசார பலன்கள் சந்திர ஜாதகத்தையே அடிப்படையாகக் கொண்டவை."
+                        : lang === "hi"
+                        ? "जन्म समय उपलब्ध न होने के कारण जन्म राशि (चंद्र लग्न) को प्रथम भाव मानकर यह कुंडली तैयार की गई है। पारंपरिक गोचर फल चंद्र कुंडली पर ही आधारित होते हैं।"
                         : "Computed using Chandra Lagna (Moon Sign) as the 1st House since birth time was omitted. Transit Gochara is naturally reckoned from Chandra Lagna."}
                     </div>
                   </div>
@@ -4205,7 +4669,19 @@ export default function DailyDarshanaPage(): JSX.Element {
                   lagnaRashiIndex={isDateOnlyMode ? moonRashiIdx : ascendantRashiIdx}
                   planetPlacements={birthPlacements}
                   devoteeName={devoteeDisplayName}
-                  title={isDateOnlyMode ? (lang === "kn" ? `🌕 ${devoteeDisplayName} ಅವರ ಚಂದ್ರ ಕುಂಡಲಿ` : `🌕 Chandra Kundli of ${devoteeDisplayName}`) : (KUNDALI_CHART_TITLES[lang] || KUNDALI_CHART_TITLES.en).birth(devoteeDisplayName)}
+                  title={
+                    isDateOnlyMode
+                      ? lang === "kn"
+                        ? `🌕 ${devoteeDisplayName} ಅವರ ಚಂದ್ರ ಕುಂಡಲಿ`
+                        : lang === "te"
+                        ? `🌕 ${devoteeDisplayName} గారి చంద్ర కుండలి`
+                        : lang === "ta"
+                        ? `🌕 ${devoteeDisplayName} அவர்களின் சந்திர ஜாதகம்`
+                        : lang === "hi"
+                        ? `🌕 ${devoteeDisplayName} की चंद्र कुंडली`
+                        : `🌕 Chandra Kundli of ${devoteeDisplayName}`
+                      : (KUNDALI_CHART_TITLES[lang] || KUNDALI_CHART_TITLES.en).birth(devoteeDisplayName)
+                  }
                   isGochara={false}
                 />
 
@@ -4343,7 +4819,18 @@ export default function DailyDarshanaPage(): JSX.Element {
             {dict.calendarContactPrompt}
           </div>
           <div style={{ fontSize: 16, color: "#FFFFFF", fontWeight: 900, marginBottom: 10 }}>
-            🛕 {activePanditName} ({dict.panditRole || (lang === "kn" ? "ಪ್ರಧಾನ ಅರ್ಚಕರು" : "Chief Archaka")})
+            🛕 {activePanditName} (
+            {dict.panditRole ||
+              (lang === "kn"
+                ? "ಪ್ರಧಾನ ಅರ್ಚಕರು"
+                : lang === "te"
+                ? "ప్రధాన అర్చకులు"
+                : lang === "ta"
+                ? "தலைமை அர்ச்சகர்"
+                : lang === "hi"
+                ? "प्रधान अर्चक"
+                : "Chief Archaka")}
+            )
           </div>
           <button
             onClick={() => setShowContactModal(true)}
@@ -4447,7 +4934,16 @@ export default function DailyDarshanaPage(): JSX.Element {
                     gap: 8
                   }}
                 >
-                  <span>💬</span> {lang === "kn" ? "ವಾಟ್ಸಾಪ್ ಸಂದೇಶ ಕಳುಹಿಸಿ" : "WhatsApp Priest"}
+                  <span>💬</span>{" "}
+                  {lang === "kn"
+                    ? "ವಾಟ್ಸಾಪ್ ಸಂದೇಶ ಕಳುಹಿಸಿ"
+                    : lang === "te"
+                    ? "వాట్సాప్ సందేశం పంపండి"
+                    : lang === "ta"
+                    ? "வாட்ஸ்அப் செய்தி அனுப்பவும்"
+                    : lang === "hi"
+                    ? "व्हाट्सएप संदेश भेजें"
+                    : "WhatsApp Priest"}
                 </a>
               )}
 

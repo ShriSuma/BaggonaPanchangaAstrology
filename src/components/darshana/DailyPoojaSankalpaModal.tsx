@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import type { SevaLang } from "../../features/seva/sevaLocale";
 import { getPoojaStreak, recordPoojaSankalpaCompleted, type PoojaStreakInfo } from "../../features/seva/calendarVisitService";
-import { playTempleBellChime, speakPriestNarration, stopPriestAudio } from "../../features/seva/priestAudioNarrator";
+import {
+  playTempleBellChime,
+  speakPriestNarration,
+  stopPriestAudio,
+  pausePriestAudio,
+  resumePriestAudio,
+  isPriestAudioPaused,
+  seekPriestAudio
+} from "../../features/seva/priestAudioNarrator";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../../features/audio/globalAudioManager";
 import { buildDailyPoojaSteps, type DailyPoojaStep } from "../../features/seva/dailySankalpaPoojaEngine";
 import { useSankalpaStore, SANKALPA_PRESETS, getPresetTitle } from "../../features/sankalpa/sankalpaStore";
@@ -198,46 +206,130 @@ const FOOTER_BTNS: Record<SevaLang, {
   play: string;
   playing: string;
   loading: string;
+  pause: string;
+  resume: string;
+  restart: string;
+  seekBack: string;
+  seekFwd: string;
 }> = {
   kn: {
     prev: "ಹಿಂದಿನ ಹಂತ",
-    next: "ಮುಂದಿನ ಹಂತ",
+    next: "ಮುಂದುವರಿಸಿ",
     complete: "ಪೂಜೆ ಸಂಪೂರ್ಣಗೊಳಿಸಿ",
     play: "ಧ್ವನಿ ಕೇಳಿ",
-    playing: "ಧ್ವನಿ ನಿಲ್ಲಿಸಿ...",
-    loading: "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+    playing: "ಧ್ವನಿ ನಿಲ್ಲಿಸಿ",
+    loading: "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    pause: "ವಿರಾಮ",
+    resume: "ಮುಂದುವರಿಸಿ",
+    restart: "ಮೊದಲಿಂದ",
+    seekBack: "-೧೦ಸೆ",
+    seekFwd: "+೧೦ಸೆ"
   },
   hi: {
     prev: "पिछला चरण",
-    next: "अगला चरण",
+    next: "आगे बढ़ें",
     complete: "पूजा संपन्न करें",
     play: "ध्वनि सुनें",
-    playing: "ध्वनि रोकें...",
-    loading: "ध्वनि तैयार हो रही है..."
+    playing: "ध्वनि रोकें",
+    loading: "ध्वनि तैयार हो रही है...",
+    pause: "रोकें",
+    resume: "जारी रखें",
+    restart: "शुरू से",
+    seekBack: "-10से",
+    seekFwd: "+10से"
   },
   te: {
     prev: "మునుపటి దశ",
-    next: "తరువాతి దశ",
+    next: "కొనసాగించండి",
     complete: "పూజ పూర్తి చేయండి",
     play: "మంత్రం వినండి",
-    playing: "ధ్వని ఆపండి...",
-    loading: "ధ్వని సిద్ధమవుతోంది..."
+    playing: "ధ్వని ఆపండి",
+    loading: "ధ్వని సిద్ధమవుతోంది...",
+    pause: "విరామం",
+    resume: "కొనసాగించండి",
+    restart: "మొదటి నుండి",
+    seekBack: "-10సె",
+    seekFwd: "+10సె"
   },
   ta: {
     prev: "முந்தைய படி",
-    next: "அடுத்த படி",
+    next: "தொடரவும்",
     complete: "பூஜையை நிறைவு செய்க",
     play: "குரல் கேளுங்கள்",
-    playing: "குரலை நிறுத்து...",
-    loading: "ஆடியோ தயாராகிறது..."
+    playing: "குரலை நிறுத்து",
+    loading: "ஆடியோ தயாராகிறது...",
+    pause: "இடைநிறுத்து",
+    resume: "தொடரவும்",
+    restart: "மீண்டும்",
+    seekBack: "-10வி",
+    seekFwd: "+10வி"
   },
   en: {
     prev: "Previous",
-    next: "Next Step",
+    next: "Continue",
     complete: "Complete Pooja",
     play: "Play Voice",
-    playing: "Stop Chanting...",
-    loading: "Preparing Sacred Audio..."
+    playing: "Stop Chanting",
+    loading: "Preparing Sacred Audio...",
+    pause: "Pause",
+    resume: "Resume",
+    restart: "Restart",
+    seekBack: "-10s",
+    seekFwd: "+10s"
+  }
+};
+
+export const BENEFIT_INTRO: Record<SevaLang, string> = {
+  kn: "ಇದರಿಂದ ಆಗುವ ಶುಭ ಫಲ:",
+  hi: "इससे प्राप्त होने वाला पावन फल:",
+  te: "దీనివలన చేకూరే శుభ ఫలితం:",
+  ta: "இதனால் ஏற்படும் நற்பலன்:",
+  en: "Spiritual Benefit & Divine Impact:"
+};
+
+export const WAITING_CARD_HEADER: Record<SevaLang, string> = {
+  kn: "⏳ ಪೂಜಾ ಕ್ರಿಯೆಗಾಗಿ ನಿರೀಕ್ಷಿಸಲಾಗುತ್ತಿದೆ",
+  hi: "⏳ पूजा क्रिया हेतु प्रतीक्षा",
+  te: "⏳ పూజా క్రియ కోసం వేచి ఉన్నాము",
+  ta: "⏳ பூஜை காரியத்திற்காக காத்திருக்கிறோம்",
+  en: "⏳ Waiting for Your Ritual Action"
+};
+
+export const DEFAULT_NEXT_STEP_PROMPTS: Record<SevaLang, Record<number, string>> = {
+  kn: {
+    1: "ನೀವು ದೀಪ ಬೆಳಗಿಸುವವರೆಗೆ ನಾನು ಕಾಯುತ್ತಿದ್ದೇನೆ. ದೀಪ ಬೆಳಗಿದ ನಂತರ ಮುಂದಿನ ಹಂತಕ್ಕೆ ಮುಂದುವರಿಯಲು ದಯವಿಟ್ಟು 'ಮುಂದುವರಿಸಿ' ಬಟನ್ ಅನ್ನು ಒತ್ತಿ.",
+    2: "ಕೈಯಲ್ಲಿ ಅಕ್ಷತೆ ಮತ್ತು ಹೂವನ್ನು ಹಿಡಿದುಕೊಳ್ಳಿ, ನೀವು ಸಿದ್ಧವಾಗುವವರೆಗೆ ನಾನು ಕಾಯುತ್ತಿದ್ದೇನೆ. ಸಿದ್ಧವಾದ ನಂತರ ಮುಂದಿನ ಹಂತಕ್ಕೆ ತೆರಳಲು ದಯವಿಟ್ಟು 'ಮುಂದುವರಿಸಿ' ಬಟನ್ ಅನ್ನು ಒತ್ತಿ.",
+    3: "ನೀವು ಸಂಕಲ್ಪ ಧ್ಯಾನ ಮಾಡುವವರೆಗೆ ನಾನು ಕಾಯುತ್ತಿದ್ದೇನೆ. ಕೈಯಲ್ಲಿರುವ ಅಕ್ಷತೆಯನ್ನು ಹಾಗೆಯೇ ಹಿಡಿದುಕೊಳ್ಳಿ, ಮುಂದಿನ ಹಂತಕ್ಕೆ ತೆರಳಲು ದಯವಿಟ್ಟು 'ಮುಂದುವರಿಸಿ' ಬಟನ್ ಅನ್ನು ಒತ್ತಿ.",
+    4: "ನೀವು ದೇವರ ಚರಣಗಳಿಗೆ ಅಕ್ಷತೆ ಸಮರ್ಪಿಸಿ ಪ್ರಾರ್ಥಿಸುವವರೆಗೆ ನಾನು ಕಾಯುತ್ತಿದ್ದೇನೆ. ಸಮರ್ಪಿಸಿದ ನಂತರ ಮುಂದಿನ ಹಂತಕ್ಕೆ ತೆರಳಲು ದಯವಿಟ್ಟು 'ಮುಂದುವರಿಸಿ' ಬಟನ್ ಅನ್ನು ಒತ್ತಿ.",
+    5: "ನೀವು ಮಂಗಳಾರತಿ ಬೆಳಗಿ ಸಾಷ್ಟಾಂಗ ನಮಸ್ಕಾರ ಮಾಡುವವರೆಗೆ ನಾನು ಕಾಯುತ್ತಿದ್ದೇನೆ. ಪೂಜೆ ಸಂಪನ್ನವಾದ ನಂತರ ದಯವಿಟ್ಟು 'ಪೂಜೆ ಸಂಪೂರ್ಣಗೊಳಿಸಿ' ಬಟನ್ ಅನ್ನು ಒತ್ತಿ."
+  },
+  hi: {
+    1: "आप जब तक दीप प्रज्वलित करते हैं, मैं प्रतीक्षा कर रहा हूँ। दीप प्रज्वलन के उपरांत अगले चरण में जाने हेतु कृपया 'आगे बढ़ें' बटन पर क्लिक करें।",
+    2: "हाथ में अक्षत एवं पुष्प धारण करें, आपके तैयार होने तक मैं प्रतीक्षा कर रहा हूँ। तैयार होने पर अगले चरण में जाने हेतु कृपया 'आगे बढ़ें' बटन पर क्लिक करें।",
+    3: "हाथ में अक्षत वैसे ही रखें, आपके संकल्प ध्यान तक मैं प्रतीक्षा कर रहा हूँ। अगले समर्पण चरण में जाने हेतु कृपया 'आगे बढ़ें' बटन पर क्लिक करें।",
+    4: "आप जब तक भगवान के चरणों में अक्षत समर्पित कर प्रार्थना करते हैं, मैं प्रतीक्षा कर रहा हूँ। समर्पण के उपरांत अगले चरण में जाने हेतु कृपया 'आगे बढ़ें' बटन पर क्लिक करें।",
+    5: "आप जब तक मंगल आरती कर साष्टांग प्रणाम करते हैं, मैं प्रतीक्षा कर रहा हूँ। पूजा समाप्त करने हेतु नीचे दिए गए 'पूजा संपन्न करें' बटन पर क्लिक करें।"
+  },
+  te: {
+    1: "మీరు దీపం వెలిగించేవరకు నేను వేచి ఉంటాను. దీపం వెలిగించిన తర్వాత తదుపరి దశకు వెళ్ళడానికి దయచేసి 'కొనసాగించండి' బటన్‌ను క్లిక్ చేయండి.",
+    2: "చేతిలో అక్షతలు మరియు పుష్పం ఉంచుకోండి, మీరు సిద్ధమయ్యేవరకు నేను వేచి ఉంటాను. సిద్ధమైన తర్వాత తదుపరి దశకు వెళ్ళడానికి దయచేసి 'కొనసాగించండి' బటన్‌ను క్లిక్ చేయండి.",
+    3: "చేతిలోని అక్షతలను అలాగే ఉంచుకోండి, మీరు సంకల్ప ధ్యానం చేసేవరకు నేను వేచి ఉంటాను. తదుపరి సమర్పణ దశకు వెళ్ళడానికి దయచేసి 'కొనసాగించండి' బటన్‌ను క్లిక్ చేయండి.",
+    4: "మీరు దేవుని పాదాలకు అక్షతలు సమర్పించి ప్రార్థించేవరకు నేను వేచి ఉంటాను. సమర్పించిన తర్వాత తదుపరి దశకు వెళ్ళడానికి దయచేసి 'కొనసాగించండి' బటన్‌ను క్లిక్ చేయండి.",
+    5: "మీరు మంగళ హారతి ఇచ్చి సాష్టాంగ నమస్కారం చేసేవరకు నేను వేచి ఉంటాను. పూజ ముగించడానికి క్రింద ఉన్న 'పూజ పూర్తి చేయండి' బటన్‌ను క్లిక్ చేయండి.",
+  },
+  ta: {
+    1: "நீங்கள் விளக்கேற்றும் வரை நான் காத்திருக்கிறேன். விளக்கேற்றிய பிறகு அடுத்த படிக்குச் செல்ல தயவுசெய்து 'தொடரவும்' பொத்தானை அழுத்தவும்.",
+    2: "கையில் அட்சதை மற்றும் மலரை ஏந்தவும், நீங்கள் தயாராகும் வரை நான் காத்திருக்கிறேன். தயாரானதும் அடுத்த படிக்குச் செல்ல தயவுசெய்து 'தொடரவும்' பொத்தானை அழுத்தவும்.",
+    3: "கையில் உள்ள அட்சதையை அப்படியே வைத்திருக்கவும், நீங்கள் சங்கல்ப தியானம் செய்யும் வரை நான் காத்திருக்கிறேன். அடுத்த சமர்ப்பண படிக்குச் செல்ல தயவுசெய்து 'தொடரவும்' பொத்தானை அழுத்தவும்.",
+    4: "நீங்கள் இறைவனின் திருவடிகளில் அட்சதை சமர்ப்பித்து பிரார்த்திக்கும் வரை நான் காத்திருக்கிறேன். சமர்ப்பித்த பிறகு அடுத்த படிக்குச் செல்ல தயவுசெய்து 'தொடரவும்' பொத்தானை அழுத்தவும்.",
+    5: "நீங்கள் மங்கள ஆரத்தி எடுத்து சாஷ்டாங்க நமஸ்காரம் செய்யும் வரை நான் காத்திருக்கிறேன். பூஜை நிறைவடைந்ததும் தயவுசெய்து 'பூஜையை நிறைவு செய்க' பொத்தானை அழுத்தவும்.",
+  },
+  en: {
+    1: "I am waiting for you to light the sacred lamp and pray. Once lit, please click the 'Continue' button to proceed.",
+    2: "Please hold the sacred Akshata and flowers in hand, I am waiting for you to prepare. Once ready, please click the 'Continue' button.",
+    3: "Keep holding the sacred Akshata in hand, I am waiting as you meditate upon your Sankalpa. Please click the 'Continue' button to proceed to the offering step.",
+    4: "I am waiting for you to offer the sacred Akshata at the lotus feet and pray. Once offered, please click the 'Continue' button.",
+    5: "I am waiting for you to wave the sacred Mangalarati and bow down in prayer. Once completed, please click the 'Complete Pooja' button."
   }
 };
 
@@ -269,7 +361,12 @@ export function isProperAudioAvailableForStep(_stepNum: number, _lang: SevaLang 
 export function getStepNarrationText(stepObj: DailyPoojaStep, lang: SevaLang = "kn"): string {
   if (!stepObj) return "";
 
-  // 1. Step Title
+  // If pre-built authentic priest narration exists, return it directly
+  if (stepObj.priestNarrationL5?.[lang]) {
+    return stepObj.priestNarrationL5[lang].trim();
+  }
+
+  // Fallback: construct cleanly without step numbers or repetitive boilerplate
   const title = (
     lang === "kn" ? stepObj.titleKn :
     lang === "hi" ? stepObj.titleHi :
@@ -278,46 +375,32 @@ export function getStepNarrationText(stepObj: DailyPoojaStep, lang: SevaLang = "
     stepObj.titleEn
   ) || stepObj.titleKn || "";
 
-  // 2. Instructive Spoken Guidance (stepObj.narrationText)
+  // Strip leading numbering like "೧.", "1.", "1 - ", etc.
+  const cleanTitle = title.replace(/^[\d\u0966-\u096F\u0CE6-\u0CEF\u0C66-\u0C6F\u0BE6-\u0BEF]+[\.\s\-:]+/, "").trim();
+
   const narration = (stepObj.narrationText?.[lang] || stepObj.narrationText?.kn || "").trim();
-
-  // 3. Visual Cue Instruction (e.g. "ದೇವರೆದುರು ದೀಪ ಬೆಳಗಿಸಿ", "ಬಲಗೈಯಲ್ಲಿ ಅಕ್ಷತೆ-ಹೂವನ್ನು ಹಿಡಿದುಕೊಳ್ಳಿ", "ದೇವತಾ ಚರಣಾರವಿಂದಕ್ಕೆ ಅಕ್ಷತೆ ಸಮರ್ಪಿಸಿ", "ಮಂಗಳಾರತಿ ಬೆಳಗಿ")
-  const cues = VISUAL_CUES[lang] || VISUAL_CUES.kn;
-  let cueInstruction = "";
-  if (stepObj.key === "deepa_achamana") {
-    cueInstruction = cues.lightLamp;
-  } else if (stepObj.key === "guru_ganapati") {
-    cueInstruction = cues.holdAkshata;
-  } else if (stepObj.key === "sankalpa_samarpana") {
-    cueInstruction = cues.offerAkshata;
-  } else if (stepObj.key === "deeparadhana_namaskara") {
-    cueInstruction = cues.waveArati;
-  }
-
-  // 4. Ritual Action Guidance
-  const actionHeader = ACTION_GUIDE_HEADER[lang] || ACTION_GUIDE_HEADER.kn;
-  const actionGuideText = (stepObj.actionGuide?.[lang] || stepObj.actionGuide?.kn || "").trim();
-
-  // 5. Sacred Sanskrit Mantra
-  const mantraText = (stepObj.sanskritMantraL5?.[lang] || stepObj.sanskritMantra || "").trim();
-
-  // 6. Spiritual Significance
+  const benefitIntro = BENEFIT_INTRO[lang] || BENEFIT_INTRO.kn;
   const spiritualText = (stepObj.spiritualSignificance?.[lang] || stepObj.spiritualSignificance?.kn || "").trim();
+  const mantraText = (stepObj.sanskritMantraL5?.[lang] || stepObj.sanskritMantra || "").trim();
+  const nextPrompt = (stepObj.nextStepPrompt?.[lang] || stepObj.nextStepPrompt?.kn) ||
+    DEFAULT_NEXT_STEP_PROMPTS[lang]?.[stepObj.step] ||
+    DEFAULT_NEXT_STEP_PROMPTS.kn[stepObj.step] || "";
 
   const speechParts: string[] = [];
-  if (title) speechParts.push(title);
-  if (narration) speechParts.push(narration);
-  if (cueInstruction && !narration.includes(cueInstruction)) {
-    speechParts.push(cueInstruction);
+  if (narration) {
+    speechParts.push(narration);
+  } else if (cleanTitle) {
+    speechParts.push(cleanTitle);
   }
-  if (actionGuideText) {
-    speechParts.push(`${actionHeader} ${actionGuideText}`);
+
+  if (spiritualText) {
+    speechParts.push(`${benefitIntro} ${spiritualText}`);
   }
   if (mantraText) {
     speechParts.push(mantraText);
   }
-  if (spiritualText) {
-    speechParts.push(spiritualText);
+  if (nextPrompt) {
+    speechParts.push(nextPrompt);
   }
 
   return speechParts.join(" । ").trim();
@@ -355,7 +438,9 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const [isAratiRotating, setIsAratiRotating] = useState(false);
   const [streakInfo, setStreakInfo] = useState<PoojaStreakInfo | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [isAudioPaused, setIsAudioPaused] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [isAudioOptedIn, setIsAudioOptedIn] = useState(false);
   const [isManageSankalpaOpen, setIsManageSankalpaOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState<boolean>(() => {
@@ -373,6 +458,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
   const devoteeKey = devoteeId || (devoteeName ? devoteeName.toLowerCase().replace(/[^a-z0-9]/g, "_") : "devotee_default");
   const activeAudioCancelRef = useRef<(() => void) | null>(null);
+  const stepTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const akshataTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -426,6 +513,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   useEffect(() => {
     const unregister = onGlobalAudioStop(() => {
       setIsAudioPlaying(false);
+      setIsAudioPaused(false);
       setIsAudioLoading(false);
     });
     return () => {
@@ -435,6 +523,14 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   }, []);
 
   const cleanupAudioAndTimers = () => {
+    if (stepTimeoutRef.current) {
+      clearTimeout(stepTimeoutRef.current);
+      stepTimeoutRef.current = null;
+    }
+    if (akshataTimeoutRef.current) {
+      clearTimeout(akshataTimeoutRef.current);
+      akshataTimeoutRef.current = null;
+    }
     if (activeAudioCancelRef.current) {
       try {
         activeAudioCancelRef.current();
@@ -443,10 +539,12 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     }
     stopAllAudioGlobal();
     setIsAudioPlaying(false);
+    setIsAudioPaused(false);
     setIsAudioLoading(false);
   };
 
   const handleCloseModal = () => {
+    setIsAudioOptedIn(false);
     cleanupAudioAndTimers();
     onClose();
   };
@@ -461,11 +559,13 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     if (!isProperAudioAvailableForStep(targetStep, lang)) {
       setIsAudioLoading(false);
       setIsAudioPlaying(false);
+      setIsAudioPaused(false);
       return;
     }
 
     setIsAudioLoading(true);
     setIsAudioPlaying(false);
+    setIsAudioPaused(false);
 
     // STRICT USER MANDATE: Two audios must NEVER start together!
     // Do NOT play temple bell chime concurrently with speech synthesis.
@@ -484,6 +584,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
       lang,
       () => {
         setIsAudioPlaying(false);
+        setIsAudioPaused(false);
         setIsAudioLoading(false);
         activeAudioCancelRef.current = null;
         // STRICT USER MANDATE: ZERO AUTO-ADVANCE!
@@ -494,9 +595,40 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
       () => {
         setIsAudioLoading(false);
         setIsAudioPlaying(true);
+        setIsAudioPaused(false);
       }
     );
     activeAudioCancelRef.current = cancelFn;
+  };
+
+  // Devotee Audio Control Handlers
+  const handleTogglePlayPause = () => {
+    if (isAudioPlaying) {
+      pausePriestAudio();
+      setIsAudioPlaying(false);
+      setIsAudioPaused(true);
+    } else if (isAudioPaused) {
+      resumePriestAudio();
+      setIsAudioPlaying(true);
+      setIsAudioPaused(false);
+    } else if (!isAudioLoading) {
+      setIsAudioOptedIn(true);
+      playStepPriestAudio(step);
+    }
+  };
+
+  const handleRestartStepAudio = () => {
+    setIsAudioOptedIn(true);
+    playStepPriestAudio(step);
+  };
+
+  const handleSeekAudio = (deltaSeconds: number) => {
+    seekPriestAudio(deltaSeconds);
+  };
+
+  const handleStopAudio = () => {
+    setIsAudioOptedIn(false);
+    cleanupAudioAndTimers();
   };
 
   const handleNextStep = (nextStepNum?: number) => {
@@ -508,7 +640,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     }
     if (next === 4) {
       setShowAkshataAnimation(true);
-      setTimeout(() => setShowAkshataAnimation(false), 3500);
+      if (akshataTimeoutRef.current) clearTimeout(akshataTimeoutRef.current);
+      akshataTimeoutRef.current = setTimeout(() => setShowAkshataAnimation(false), 3500);
     }
     if (next === 5) {
       setIsAratiRotating(true);
@@ -517,9 +650,16 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
     if (next <= totalSteps) {
       setStep(next);
-      // STRICT USER MANDATE: Never auto-play audio on step transition.
-      // Devotee will explicitly click "ಧ್ವನಿ ಕೇಳಿ" if they wish to hear the mantra.
+      // USER AUDIO MANDATE (2026-09-25):
+      // Sticky session: If audio was started by the user, keep it going on subsequent steps automatically!
+      if (isAudioOptedIn) {
+        if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
+        stepTimeoutRef.current = setTimeout(() => {
+          playStepPriestAudio(next);
+        }, 250);
+      }
     } else {
+      setIsAudioOptedIn(false);
       handleCompletePooja();
     }
   };
@@ -529,7 +669,12 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
     if (step > 1) {
       const prev = step - 1;
       setStep(prev);
-      // STRICT USER MANDATE: Never auto-play audio on step transition.
+      if (isAudioOptedIn) {
+        if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
+        stepTimeoutRef.current = setTimeout(() => {
+          playStepPriestAudio(prev);
+        }, 250);
+      }
     }
   };
 
@@ -1004,8 +1149,10 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                   </div>
                 )}
 
-                {/* Action & Guidance Box */}
+                {/* Action & Guidance Box with Dedicated Ritual Waiting Card */}
                 <div
+                  onDoubleClick={handleTogglePlayPause}
+                  title={isAudioPlaying || isAudioPaused ? (isAudioPlaying ? "ಡಬಲ್ ಕ್ಲಿಕ್: ವಿರಾಮಗೊಳಿಸಿ (Double click to pause)" : "ಡಬಲ್ ಕ್ಲಿಕ್: ಮುಂದುವರಿಸಿ (Double click to resume)") : undefined}
                   style={{
                     background: "linear-gradient(135deg, rgba(69, 26, 3, 0.7) 0%, rgba(28, 15, 5, 0.9) 100%)",
                     border: "1px solid #B45309",
@@ -1013,7 +1160,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                     padding: isMobile ? "10px 12px" : "14px 16px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: 4
+                    gap: 6,
+                    cursor: (isAudioPlaying || isAudioPaused) ? "pointer" : "default"
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", color: "#FDE68A", fontSize: isMobile ? 11 : 12, fontWeight: 900 }}>
@@ -1025,8 +1173,34 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                   <div style={{ fontSize: isMobile ? 12 : 13, color: "#FEF3C7", lineHeight: 1.45, fontWeight: 700 }}>
                     {currentStepData.actionGuide[lang || "kn"] || currentStepData.actionGuide.kn}
                   </div>
-                  <div style={{ fontSize: isMobile ? 10.5 : 11.5, color: "#D1D5DB", marginTop: 2, fontStyle: "italic" }}>
-                    🌿 {currentStepData.spiritualSignificance[lang || "kn"] || currentStepData.spiritualSignificance.kn}
+                  <div style={{ fontSize: isMobile ? 10.5 : 11.5, color: "#D1D5DB", marginTop: 1, fontStyle: "italic" }}>
+                    🌿 {BENEFIT_INTRO[lang || "kn"] || BENEFIT_INTRO.kn} {currentStepData.spiritualSignificance[lang || "kn"] || currentStepData.spiritualSignificance.kn}
+                  </div>
+
+                  {/* Dedicated Action Waiting Card */}
+                  <div
+                    style={{
+                      background: "rgba(245, 158, 11, 0.12)",
+                      border: "1.5px dashed #F59E0B",
+                      borderRadius: 10,
+                      padding: isMobile ? "6px 10px" : "8px 12px",
+                      marginTop: 4,
+                      display: (isAudioOptedIn || isAudioPlaying || isAudioPaused) ? "flex" : "none",
+                      alignItems: "flex-start",
+                      gap: 8
+                    }}
+                  >
+                    <span style={{ fontSize: isMobile ? 14 : 16, flexShrink: 0 }}>⏳</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        {WAITING_CARD_HEADER[lang || "kn"] || WAITING_CARD_HEADER.kn}
+                      </div>
+                      <div style={{ fontSize: isMobile ? 11 : 12, color: "#FFFBEB", fontWeight: 700, marginTop: 2, lineHeight: 1.4 }}>
+                        {(currentStepData.nextStepPrompt?.[lang || "kn"] || currentStepData.nextStepPrompt?.kn) ||
+                          DEFAULT_NEXT_STEP_PROMPTS[lang || "kn"]?.[currentStepData.step] ||
+                          DEFAULT_NEXT_STEP_PROMPTS.kn[currentStepData.step]}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </>
@@ -1151,53 +1325,169 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
                 {/* Audio Status & Manual Replay: Only rendered if verified proper audio is confirmed to exist */}
                 {isProperAudioAvailableForStep(step, lang) && (
-                  <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10 }}>
-                    <button
-                      type="button"
-                      disabled={isAudioLoading}
-                      onClick={() => {
-                        if (isAudioPlaying) {
-                          cleanupAudioAndTimers();
-                        } else if (!isAudioLoading) {
-                          playStepPriestAudio(step);
-                        }
-                      }}
-                      style={{
-                        background: isAudioPlaying
-                          ? "#D97706"
-                          : isAudioLoading
-                          ? "#92400E"
-                          : "rgba(245, 158, 11, 0.2)",
-                        border: "1.5px solid #F59E0B",
-                        color: "#FEF3C7",
-                        borderRadius: 12,
-                        padding: isMobile ? "7px 10px" : "8px 14px",
-                        fontSize: isMobile ? 11 : 12,
-                        fontWeight: 800,
-                        cursor: isAudioLoading ? "not-allowed" : "pointer",
-                        opacity: isAudioLoading ? 0.85 : 1,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 5
-                      }}
-                    >
-                      {isAudioPlaying ? (
-                        <>
-                          <span>🔊</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8 }}>
+                    {isAudioPlaying || isAudioPaused ? (
+                      /* Audio Player Dock: Seek -10s, Pause/Resume, Seek +10s, Restart, Stop */
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: isMobile ? 4 : 6,
+                          background: "rgba(245, 158, 11, 0.12)",
+                          border: "1.5px solid rgba(245, 158, 11, 0.35)",
+                          borderRadius: 14,
+                          padding: isMobile ? "3px 5px" : "4px 8px"
+                        }}
+                      >
+                        {/* Seek -10s */}
+                        <button
+                          type="button"
+                          onClick={() => handleSeekAudio(-10)}
+                          title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).seekBack}
+                          style={{
+                            background: "rgba(255, 255, 255, 0.08)",
+                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                            color: "#FEF3C7",
+                            borderRadius: 8,
+                            padding: isMobile ? "5px 6px" : "6px 8px",
+                            fontSize: isMobile ? 10 : 11,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2
+                          }}
+                        >
+                          <span>⏪</span>
+                          <span>10s</span>
+                        </button>
+
+                        {/* Play / Pause Toggle */}
+                        <button
+                          type="button"
+                          onClick={handleTogglePlayPause}
+                          title={isAudioPlaying ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).pause : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).resume}
+                          style={{
+                            background: isAudioPlaying ? "#D97706" : "#059669",
+                            border: "1.5px solid #FCD34D",
+                            color: "#FFFFFF",
+                            borderRadius: 10,
+                            padding: isMobile ? "5px 8px" : "6px 12px",
+                            fontSize: isMobile ? 10.5 : 12,
+                            fontWeight: 800,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            boxShadow: isAudioPlaying ? "0 0 8px rgba(217, 119, 6, 0.5)" : "0 0 8px rgba(5, 150, 105, 0.5)"
+                          }}
+                        >
+                          <span>{isAudioPlaying ? "⏸️" : "▶️"}</span>
+                          <span>{isAudioPlaying ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).pause : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).resume}</span>
+                        </button>
+
+                        {/* Seek +10s */}
+                        <button
+                          type="button"
+                          onClick={() => handleSeekAudio(10)}
+                          title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).seekFwd}
+                          style={{
+                            background: "rgba(255, 255, 255, 0.08)",
+                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                            color: "#FEF3C7",
+                            borderRadius: 8,
+                            padding: isMobile ? "5px 6px" : "6px 8px",
+                            fontSize: isMobile ? 10 : 11,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2
+                          }}
+                        >
+                          <span>10s</span>
+                          <span>⏩</span>
+                        </button>
+
+                        {/* Restart from beginning (↺) */}
+                        <button
+                          type="button"
+                          onClick={handleRestartStepAudio}
+                          title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).restart}
+                          style={{
+                            background: "rgba(255, 255, 255, 0.08)",
+                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                            color: "#FDE68A",
+                            borderRadius: 8,
+                            padding: isMobile ? "5px 7px" : "6px 9px",
+                            fontSize: isMobile ? 11 : 12.5,
+                            fontWeight: 800,
+                            cursor: "pointer"
+                          }}
+                        >
+                          ↺
+                        </button>
+
+                        {/* Stop Button: Retains exact text "(FOOTER_BTNS[lang].playing)" ("ಧ್ವನಿ ನಿಲ್ಲಿಸಿ") for test compatibility */}
+                        <button
+                          type="button"
+                          onClick={handleStopAudio}
+                          title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing}
+                          style={{
+                            background: "rgba(239, 68, 68, 0.2)",
+                            border: "1px solid rgba(239, 68, 68, 0.6)",
+                            color: "#FCA5A5",
+                            borderRadius: 8,
+                            padding: isMobile ? "5px 7px" : "6px 10px",
+                            fontSize: isMobile ? 10 : 11.5,
+                            fontWeight: 800,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 3
+                          }}
+                        >
+                          <span>⏹️</span>
                           <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing}</span>
-                        </>
-                      ) : isAudioLoading ? (
-                        <>
-                          <span className="inline-block animate-spin">⏳</span>
-                          <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).loading}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>🔈</span>
-                          <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).play}</span>
-                        </>
-                      )}
-                    </button>
+                        </button>
+                      </div>
+                    ) : (
+                      /* Idle / Loading state button */
+                      <button
+                        type="button"
+                        disabled={isAudioLoading}
+                        onClick={() => {
+                          setIsAudioOptedIn(true);
+                          playStepPriestAudio(step);
+                        }}
+                        style={{
+                          background: isAudioLoading ? "#92400E" : "rgba(245, 158, 11, 0.2)",
+                          border: "1.5px solid #F59E0B",
+                          color: "#FEF3C7",
+                          borderRadius: 12,
+                          padding: isMobile ? "7px 10px" : "8px 14px",
+                          fontSize: isMobile ? 11 : 12,
+                          fontWeight: 800,
+                          cursor: isAudioLoading ? "not-allowed" : "pointer",
+                          opacity: isAudioLoading ? 0.85 : 1,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 5
+                        }}
+                      >
+                        {isAudioLoading ? (
+                          <>
+                            <span className="inline-block animate-spin">⏳</span>
+                            <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).loading}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🔈</span>
+                            <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).play}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 )}
 

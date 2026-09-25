@@ -19,6 +19,7 @@ import { calculateKundli } from "../core/KundliEngine";
 import { transliterateName } from "../utils/transliterator";
 import { formatPoojaName } from "../features/seva/formatPoojaName";
 import type { RhythmDay, RhythmResult } from "../core/DailyRhythmEngine";
+import { parseSpokenPhoneNumber } from "../utils/speechRecognitionHelper";
 
 const RASHI_NAMES = RASHI_L5.map(r => r.kn || r.en);
 const NAKSHATRA_NAMES = NAKSHATRA_L5.map(n => n.kn || n.en);
@@ -123,12 +124,45 @@ export default function QuickCalendarPage(): JSX.Element {
     };
   }, [personName]);
 
+  const defaultPriest = useMemo(() => getPriestProfile("shreeram-pandit"), []);
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId]);
-  const panditName = overridePriestContact && customPriestName.trim()
-    ? customPriestName.trim()
-    : (activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en);
-  const priestPhone = overridePriestContact && customPriestPhone.trim() ? customPriestPhone.trim() : "9972339362";
-  const whatsappPhone = overridePriestContact && customWhatsappNumber.trim() ? customWhatsappNumber.trim() : "9972339362";
+
+  const panditName = useMemo(() => {
+    if (overridePriestContact && customPriestName.trim()) {
+      return customPriestName.trim();
+    }
+    return defaultPriest.name[lang as keyof typeof defaultPriest.name] || defaultPriest.name.en || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+  }, [overridePriestContact, customPriestName, defaultPriest, lang]);
+
+  const priestPhone = useMemo(() => {
+    if (overridePriestContact && customPriestPhone.trim()) {
+      return customPriestPhone.trim();
+    }
+    return "9972339362";
+  }, [overridePriestContact, customPriestPhone]);
+
+  const whatsappPhone = useMemo(() => {
+    if (overridePriestContact && customWhatsappNumber.trim()) {
+      return customWhatsappNumber.trim();
+    }
+    return priestPhone;
+  }, [overridePriestContact, customWhatsappNumber, priestPhone]);
+
+  const handleSelectPriest = (priestId: string) => {
+    setSelectedPriestId(priestId);
+    if (priestId === "shreeram-pandit") {
+      setCustomPriestName("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+      setCustomPriestPhone("9972339362");
+      setCustomWhatsappNumber("9972339362");
+    } else {
+      const p = getPriestProfile(priestId);
+      const locName = p.name[lang as keyof typeof p.name] || p.name.en || p.name.kn;
+      setCustomPriestName(locName);
+      setCustomPriestPhone(p.phone || "9972339362");
+      setCustomWhatsappNumber(p.phone || "9972339362");
+      setOverridePriestContact(true);
+    }
+  };
 
   const priestTransliterations = useMemo(() => {
     if (!panditName.trim()) return null;
@@ -762,46 +796,112 @@ export default function QuickCalendarPage(): JSX.Element {
 
           {/* Priest Custom Override Section */}
           <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-300">
-                🛕 ಅರ್ಚಕರ ವಿವರಗಳು & ವಾಟ್ಸಾಪ್ ಕಾಂಟ್ಯಾಕ್ಟ್ ಓವರ್‌ರೈಡ್
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2">
+              <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                <span>🛕</span>
+                <span>ಅರ್ಚಕರ ಆಯ್ಕೆ & ನೇರ ಸಂಪರ್ಕ (Priest Selection & Direct Contact)</span>
               </span>
-              <label className="flex items-center gap-1.5 text-xs text-amber-300/90 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={overridePriestContact}
-                  onChange={(e) => setOverridePriestContact(e.target.checked)}
-                  className="rounded border-amber-500 text-amber-600"
-                />
-                <span>ಕಸ್ಟಮ್ ಅರ್ಚಕರ ವಿವರಗಳು (Override Priest)</span>
-              </label>
+              <button
+                type="button"
+                onClick={() => setOverridePriestContact(prev => !prev)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition border ${
+                  overridePriestContact
+                    ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md"
+                    : "bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-amber-950/60"
+                }`}
+              >
+                <span>✏️</span>
+                <span>{overridePriestContact ? "ಓವರ್‌ರೈಡ್ ಸಕ್ರಿಯವಾಗಿದೆ (Active)" : "ವಿವರಗಳನ್ನು ಸಂಪಾದಿಸಿ (Edit Priest)"}</span>
+              </button>
             </div>
 
+            {/* Priest Dropdown Selector */}
+            <div>
+              <label className="block text-[11px] font-bold text-amber-300/90 mb-1">
+                ಮುಖ್ಯ ಅರ್ಚಕರ ಆಯ್ಕೆ (Select Chief Priest):
+              </label>
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedPriestId}
+                  onChange={(e) => handleSelectPriest(e.target.value)}
+                  className="flex-1 rounded-xl border border-amber-400/40 bg-slate-950 px-3 py-2 text-xs font-bold text-amber-100 focus:border-amber-400 focus:outline-none"
+                >
+                  {priestsList.map((p) => {
+                    const name = p.name[lang as keyof typeof p.name] || p.name.en;
+                    const title = p.title[lang as keyof typeof p.title] || p.title.en;
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.sealSymbol} {name} ({title}) {p.id === "shreeram-pandit" ? "— [Default 9972339362]" : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+                <button
+                  type="button"
+                  title="ಧ್ವನಿ ಮೂಲಕ ಅರ್ಚಕರನ್ನು ಹುಡುಕಿ (Voice Priest Search)"
+                  onClick={() => startVoiceInput("priestSearch", (val) => {
+                    const found = priestsList.find(p => 
+                      Object.values(p.name).some(n => n.toLowerCase().includes(val.toLowerCase())) ||
+                      p.id.toLowerCase().includes(val.toLowerCase())
+                    );
+                    if (found) {
+                      handleSelectPriest(found.id);
+                    } else if (val.trim()) {
+                      setCustomPriestName(val.trim());
+                      setOverridePriestContact(true);
+                    }
+                  })}
+                  className={`rounded-xl p-2 text-xs font-bold border transition ${
+                    listeningField === "priestSearch"
+                      ? "bg-red-500 text-white border-red-400 animate-pulse"
+                      : "bg-slate-950 text-amber-300 border-amber-400/40 hover:bg-amber-900/40"
+                  }`}
+                >
+                  🎙️
+                </button>
+              </div>
+            </div>
+
+            {/* Non-overridden summary or Overridden edit form */}
             {!overridePriestContact ? (
-              <div className="flex items-center justify-between rounded-lg bg-slate-950/60 p-3 border border-amber-500/20 text-xs">
+              <div className="flex items-center justify-between rounded-xl bg-slate-950/70 p-3 border border-amber-500/20 text-xs">
                 <div>
-                  <div className="font-bold text-amber-200">
-                    {activePriest.sealSymbol} {panditName}
+                  <div className="font-bold text-amber-200 flex items-center gap-1.5">
+                    <span>{defaultPriest.sealSymbol}</span>
+                    <span>{defaultPriest.name[lang as keyof typeof defaultPriest.name] || defaultPriest.name.en}</span>
                   </div>
-                  <div className="text-amber-400/70">
-                    ಪ್ರಧಾನ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ | ಕರೆ: {priestPhone}
+                  <div className="text-[11px] text-amber-400/80 mt-0.5">
+                    ಪ್ರಧಾನ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ | ನೇರ ಕರೆ: 9972339362
                   </div>
                 </div>
-                <span className="bg-amber-800/60 text-amber-200 px-2 py-1 rounded text-[11px] font-bold">
-                  ಡಿಫಾಲ್ಟ್ ಅರ್ಚಕರು
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">
+                    ✓ ಡಿಫಾಲ್ಟ್ ಅರ್ಚಕರು
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setOverridePriestContact(true)}
+                    className="text-amber-400 hover:text-amber-200 underline text-xs font-semibold"
+                  >
+                    ಬದಲಾಯಿಸಿ
+                  </button>
+                </div>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3 rounded-xl bg-slate-950/80 p-3.5 border border-amber-500/30">
                 <div className="grid gap-3 sm:grid-cols-3">
+                  {/* Custom Priest Name with Voice Mic */}
                   <div>
-                    <span className="block text-[11px] text-amber-300 mb-1">ಅರ್ಚಕರ ಹೆಸರು:</span>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                      ಅರ್ಚಕರ ಹೆಸರು (Priest Name) *
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
                         value={customPriestName}
                         onChange={(e) => setCustomPriestName(e.target.value)}
-                        className="w-full rounded-lg border border-amber-500/40 bg-slate-950 pl-2.5 pr-8 py-1.5 text-xs text-amber-100"
+                        placeholder="ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+                        className="w-full rounded-lg border border-amber-500/40 bg-slate-900 pl-2.5 pr-8 py-1.5 text-xs text-amber-100 focus:border-amber-400 focus:outline-none"
                       />
                       <button
                         type="button"
@@ -815,19 +915,27 @@ export default function QuickCalendarPage(): JSX.Element {
                       </button>
                     </div>
                   </div>
+
+                  {/* Custom Priest Phone with Voice Mic */}
                   <div>
-                    <span className="block text-[11px] text-amber-300 mb-1">ನೇರ ಕರೆ ಸಂಖ್ಯೆ:</span>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                      ನೇರ ಕರೆ ಸಂಖ್ಯೆ (Phone) *
+                    </label>
                     <div className="relative">
                       <input
-                        type="text"
+                        type="tel"
                         value={customPriestPhone}
-                        onChange={(e) => setCustomPriestPhone(e.target.value)}
-                        className="w-full rounded-lg border border-amber-500/40 bg-slate-950 pl-2.5 pr-8 py-1.5 text-xs text-amber-100"
+                        onChange={(e) => setCustomPriestPhone(e.target.value.replace(/[^\d]/g, "").slice(0, 10))}
+                        placeholder="9972339362"
+                        className="w-full rounded-lg border border-amber-500/40 bg-slate-900 pl-2.5 pr-8 py-1.5 text-xs text-amber-100 focus:border-amber-400 focus:outline-none"
                       />
                       <button
                         type="button"
-                        title="ಕರೆ ಸಂಖ್ಯೆ ಹೇಳಿ (Speak Phone)"
-                        onClick={() => startVoiceInput("priestPhone", (val) => setCustomPriestPhone(val.replace(/\D/g, "")))}
+                        title="ಕರೆ ಸಂಖ್ಯೆ ಹೇಳಿ (Speak Phone Number)"
+                        onClick={() => startVoiceInput("priestPhone", (val) => {
+                          const parsed = parseSpokenPhoneNumber(val);
+                          setCustomPriestPhone(parsed || val.replace(/\D/g, "").slice(0, 10));
+                        })}
                         className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-xs transition ${
                           listeningField === "priestPhone" ? "bg-red-500 text-white animate-pulse" : "text-amber-400 hover:text-amber-200"
                         }`}
@@ -836,19 +944,27 @@ export default function QuickCalendarPage(): JSX.Element {
                       </button>
                     </div>
                   </div>
+
+                  {/* Custom WhatsApp with Voice Mic */}
                   <div>
-                    <span className="block text-[11px] text-amber-300 mb-1">ವಾಟ್ಸಾಪ್ ಸಂಖ್ಯೆ:</span>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                      ವಾಟ್ಸಾಪ್ ಸಂಖ್ಯೆ (WhatsApp)
+                    </label>
                     <div className="relative">
                       <input
-                        type="text"
+                        type="tel"
                         value={customWhatsappNumber}
-                        onChange={(e) => setCustomWhatsappNumber(e.target.value)}
-                        className="w-full rounded-lg border border-amber-500/40 bg-slate-950 pl-2.5 pr-8 py-1.5 text-xs text-amber-100"
+                        onChange={(e) => setCustomWhatsappNumber(e.target.value.replace(/[^\d]/g, "").slice(0, 10))}
+                        placeholder="9972339362"
+                        className="w-full rounded-lg border border-amber-500/40 bg-slate-900 pl-2.5 pr-8 py-1.5 text-xs text-amber-100 focus:border-amber-400 focus:outline-none"
                       />
                       <button
                         type="button"
-                        title="ವಾಟ್ಸಾಪ್ ಸಂಖ್ಯೆ ಹೇಳಿ (Speak WhatsApp)"
-                        onClick={() => startVoiceInput("priestWhatsApp", (val) => setCustomWhatsappNumber(val.replace(/\D/g, "")))}
+                        title="ವಾಟ್ಸಾಪ್ ಸಂಖ್ಯೆ ಹೇಳಿ (Speak WhatsApp Number)"
+                        onClick={() => startVoiceInput("priestWhatsApp", (val) => {
+                          const parsed = parseSpokenPhoneNumber(val);
+                          setCustomWhatsappNumber(parsed || val.replace(/\D/g, "").slice(0, 10));
+                        })}
                         className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-xs transition ${
                           listeningField === "priestWhatsApp" ? "bg-red-500 text-white animate-pulse" : "text-amber-400 hover:text-amber-200"
                         }`}
@@ -857,6 +973,25 @@ export default function QuickCalendarPage(): JSX.Element {
                       </button>
                     </div>
                   </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-500/10 text-[11px] text-amber-300/80">
+                  <span>
+                    ℹ️ ದೈನಂದಿನ ದರ್ಶನ (Daily Darshana) ಪುಟದ ಕೆಳಭಾಗದಲ್ಲಿ <strong>{panditName} ({priestPhone})</strong> ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಕಾಣಿಸುತ್ತದೆ.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPriestId("shreeram-pandit");
+                      setCustomPriestName("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+                      setCustomPriestPhone("9972339362");
+                      setCustomWhatsappNumber("9972339362");
+                      setOverridePriestContact(false);
+                    }}
+                    className="text-amber-400 hover:text-amber-200 underline"
+                  >
+                    ಮರುಹೊಂದಿಸಿ (Revert to Default)
+                  </button>
                 </div>
                 {customPriestName.trim() && priestTransliterations && (
                   <div className="rounded bg-slate-950/60 p-1.5 border border-amber-500/20 text-[10px] text-amber-300/80 flex flex-wrap gap-x-3 gap-y-0.5">

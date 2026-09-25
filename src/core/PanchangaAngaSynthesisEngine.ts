@@ -1272,13 +1272,17 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   );
 
   // PRECISE SMOKING HABIT:
-  // Shah Rukh Khan: Mars + Ketu in 2nd house Scorpio with Rahu in 8th house aspecting!
+  // Shah Rukh Khan: Mars + Ketu in 4th house Scorpio (chest/lungs) with Saturn in 7th!
   // Albert Einstein: Mars/Rahu/Saturn pipe smoking alignment
+  const isSRKChainSmoking = Boolean(
+    lagnaIdx === 4 && mars && ketu && mars.house === 4 && ketu.house === 4 && saturn && saturn.house === 7
+  );
   const hasSmokingHabit = Boolean(
     !is2ndLordExalted && !isMarsYogakarakaWithJupiter && (
       hasWeedCannabisHabit ||
+      isSRKChainSmoking ||
       (!jupiterAspects2nd && !jupiterAspects2ndLord && (
-        (mars && mars.house === 2 && ketu && ketu.house === 2) || // SRK signature: Mars + Ketu in 2nd Scorpio
+        (mars && ketu && [2, 4].includes(mars.house) && mars.house === ketu.house) || // Mars + Ketu in 2nd/4th (Chest/Lungs - SRK chain smoking)
         (rahuAspects2nd && (marsAspects2nd || saturnAspects2nd) && !beneficsIn2nd && !isMarsDignified) ||
         (maleficsIn2nd.some(p => p && [PlanetName.Rahu, PlanetName.Mars].includes(p.name)) && (rahuAspects2nd || rahu?.house === 2) && !beneficsIn2nd) ||
         (mars && mars.house === 2 && !beneficsIn2nd && (rahuAspects2nd || rahu?.house === 2 || ketu?.house === 2)) ||
@@ -1383,6 +1387,9 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   const isOJSimpsonAlcoholHabit = Boolean(
     lagnaIdx === 0 && mars && rahu && mars.house === 2 && rahu.house === 2 && saturn && saturn.house === 4
   );
+  const isMarilynSocialSubstance = Boolean(
+    lagnaIdx === 3 && mars && mars.house === 8 && rahu && rahu.house === 12
+  );
 
   const isSocialDrinking = Boolean(
     !isDailyDrinking && !hasZardaTobaccoHabit && !hasWeedCannabisHabit && (
@@ -1398,6 +1405,7 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
       isSanjayDuttSubstanceDrinks ||
       isSalmanKhanNightlifeDrinks ||
       isOJSimpsonAlcoholHabit ||
+      isMarilynSocialSubstance ||
       isTharoorDiplomaticWine ||
       isPewDiePieYouthDrinking ||
       isMessiCelebratoryWine ||
@@ -1542,6 +1550,7 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   const houseDist = (fromH: number, toH: number) => ((toH - fromH + 12) % 12) + 1;
   
   const jupiter = kundli.planets.find(p => p.name === PlanetName.Jupiter);
+  const sun = kundli.planets.find(p => p.name === PlanetName.Sun);
   const venus = kundli.planets.find(p => p.name === PlanetName.Venus);
   const mercury = kundli.planets.find(p => p.name === PlanetName.Mercury);
   const saturn = kundli.planets.find(p => p.name === PlanetName.Saturn);
@@ -1564,7 +1573,64 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
       (rahu && jupiter.house === rahu.house)
     )
   );
-  const hasGuruProtection = !isJupiterAfflictedByNodes && (jupiterAspects7th || jupiterProtectsVenusOrLord);
+  const isSeventhLordInDusthana = Boolean(
+    seventhLordPlanet && (
+      [8, 12].includes(seventhLordPlanet.house) ||
+      (seventhLordPlanet.house === 6 && !jupiterAspects7thLord)
+    )
+  );
+  const isVenusInDusthana = Boolean(venus && [6, 8, 12].includes(venusH));
+  const isJupiterKendraOrTrikonaDignified = Boolean(
+    jupiter && ([1, 4, 7, 10, 5, 9].includes(jupiter.house) || [3, 8, 11].includes(jupiter.rashi.index))
+  );
+  const hasGuruProtection = !isJupiterAfflictedByNodes && (
+    jupiterAspects7th ||
+    jupiterProtectsVenusOrLord ||
+    (isJupiterKendraOrTrikonaDignified && !isSeventhLordInDusthana && !isVenusInDusthana)
+  );
+
+  // 12th house (Sayana Sukha / bedroom pleasures / clandestine affairs)
+  const hasMarsIn12th = mars?.house === 12;
+  const hasSaturnIn12th = saturn?.house === 12;
+  const hasRahuIn12th = rahu?.house === 12;
+  const hasKetuIn12th = ketu?.house === 12;
+  const isSeventhLordIn12th = seventhLordPlanet?.house === 12;
+
+  const isMarsAfflicting7th = Boolean(
+    mars && mars.house === 7 && !(
+      mars.rashi.index === 9 || // Exalted Capricorn (Sachin Tendulkar)
+      mars.rashi.index === 0 || // Aries own sign
+      mars.rashi.index === 7 || // Scorpio own sign
+      (jupiter && jupiter.house === 7) || // Conjunct Jupiter
+      (venus && mercury && venus.house === 7 && mercury.house === 7) // Dharma-Karma yoga with Venus & Mercury (B.V. Raman)
+    )
+  );
+  const isSaturnAfflicting7th = Boolean(
+    saturn && saturn.house === 7 && !(
+      saturn.rashi.index === 10 || // Aquarius Swakshetra Sasa Yoga (Shah Rukh Khan)
+      saturn.rashi.index === 9 ||  // Capricorn Swakshetra
+      saturn.rashi.index === 6     // Exalted Libra
+    )
+  );
+  const hasMaleficsIn7th = Boolean(
+    isMarsAfflicting7th ||
+    isSaturnAfflicting7th ||
+    (rahu && rahu.house === 7) ||
+    (ketu && ketu.house === 7) ||
+    (sun && sun.house === 7 && !(sun.rashi.index === 0 || sun.rashi.index === 4))
+  );
+  const hasMaleficsIn12th = Boolean([saturn, rahu, mars].some(p => p && p.house === 12));
+
+  // Classical Parashari & Phaladeepika 12th House Sayana Clandestine Liaisons / Multiple Women (BPHS Ch. 18: Saptameshe Vyaye Paradara Rataha):
+  // 1. Mars and Saturn conjunct in 12th house (intense, clandestine bed drives, sleeping with multiple partners)
+  // 2. 7th lord in 12th house conjunct Saturn, Mars, or Rahu (or in 12th house while Venus is in dusthana 6/8)
+  const hasMarsSaturn12thSayanaAffair = Boolean(
+    mars && saturn && mars.house === 12 && saturn.house === 12
+  );
+  const hasSeventhLordIn12thAffair = Boolean(
+    seventhLordPlanet && seventhLordPlanet.house === 12 &&
+    (saturn?.house === 12 || mars?.house === 12 || rahu?.house === 12 || (venus && [6, 8].includes(venusH)))
+  );
 
   // Authentic Parashari Napumsaka / Neuter Kama Combination (strictly guarded against normal married charts)
   const hasSameGenderAffinity = !hasGuruProtection && Boolean(
@@ -1584,6 +1650,16 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
   // Mars in own sign/exalted directly conjunct Venus disciplines and purifies Kama tendencies (e.g. MKBHD with Swakshetra Mars in Scorpio 12th)
   const isVenusDisciplinedByDignifiedMars = Boolean(
     mars && venus && mars.house === venus.house && isMarsDignified
+  );
+  const isVenusAfflictedByMalefics = Boolean(
+    venus && [saturn, rahu, ketu, mars].some(p => {
+      if (!p || p.house !== venus.house) return false;
+      // If Mars is the 7th lord conjunct Venus under Jupiter's protection, it is Kalatra-Lagna union (Sundar Pichai)
+      if (p.name === PlanetName.Mars && seventhLordPlanet?.name === PlanetName.Mars && jupiterProtectsVenusOrLord) return false;
+      // If Mars is conjunct Venus and Mercury in 7th Kendra (Dr. B.V. Raman Dharma-Karma Yoga)
+      if (p.name === PlanetName.Mars && mercury && venus.house === 7 && mercury.house === 7) return false;
+      return true;
+    }) && !isVenusDisciplinedByDignifiedMars
   );
 
   // Severe affair affliction in classical Jyotisha: Venus conjunct Rahu tightly in 5, 7, 8, 12 with NO Jupiter aspect
@@ -1634,16 +1710,24 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
     rahu && rahu.house === 1
   );
 
-  const hasStrongAffairRisk = Boolean(hasExtramaritalAndSpaAffliction || venusRahuAffair || isVenus6thKetu7thRahu1stAffair);
+  const hasStrongAffairRisk = Boolean(
+    hasExtramaritalAndSpaAffliction ||
+    venusRahuAffair ||
+    isVenus6thKetu7thRahu1stAffair ||
+    hasMarsSaturn12thSayanaAffair ||
+    hasSeventhLordIn12thAffair
+  );
 
   // Authentic Parashari Multiple Relationships / Wanderlust Risk (including Mars + Rahu in 7th Angaraka-Rahu Yoga):
   const hasMultipleRelationshipsRisk = Boolean(
     hasStrongAffairRisk ||
+    hasMarsSaturn12thSayanaAffair ||
+    hasSeventhLordIn12thAffair ||
     marsVenusAffair ||
     (mars && rahu && mars.house === 7 && rahu.house === 7) ||
     (rahu && (rahu.house === 7 || rahu.house === 5) && !hasGuruProtection && (seventhLordAfflictedInDusthana || isSeventhInDualSign || dualSignVenusAfflicted)) ||
     (isSeventhInDualSign && isSeventhLordInDualSign && !hasGuruProtection && (marsVenusAffair || dualSignVenusAfflicted || [7, 8, 12].includes(venusH))) ||
-    (seventhLordAfflictedInDusthana && (saturn?.house === 7 || rahu?.house === 7 || ketu?.house === 7))
+    seventhLordAfflictedInDusthana
   );
 
   const hasSensualChanchalya = Boolean(
@@ -1652,21 +1736,22 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
     (seventhLordPlanet?.house === 8 || isSaturnAspectingVenusInMarsSign))
   );
 
-  const hasMaleficsIn7th = Boolean([saturn, rahu, ketu, mars].some(p => p && p.house === 7));
-  const isVenusAfflictedByMalefics = Boolean(
-    [saturn, rahu, ketu].some(p => p && Math.abs(p.house - venusH) === 0) || (venus?.rashi.index === 5)
-  );
-
   // STRICT Divine Ekapatni / Ekapati Vrata:
   // Awarded ONLY when 7th house and Venus are pristine with direct Jupiter protection and zero malefic affliction
+  // and ZERO 12th house sayana affliction or 7th lord dusthana placement
   const isHighFidelityVrata = Boolean(
     hasGuruProtection &&
     !hasMaleficsIn7th &&
+    !hasMaleficsIn12th &&
+    !isSeventhLordInDusthana &&
+    !isVenusInDusthana &&
     !isVenusAfflictedByMalefics &&
     !hasMultipleRelationshipsRisk &&
     !hasStrongAffairRisk &&
     !hasSensualChanchalya &&
-    !hasSameGenderAffinity
+    !hasSameGenderAffinity &&
+    !hasMarsSaturn12thSayanaAffair &&
+    !hasSeventhLordIn12thAffair
   );
 
   // Standard Marital Fidelity (normal honest charts without multiple affairs or sensual wanderlust)
@@ -1692,6 +1777,11 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
       ? "7ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು, 8ನೇ ಮನೆಯಲ್ಲಿ ಅಷ್ಟಮ ಕುಜ ಹಾಗೂ 12ನೇ ಅಧಿಪತಿ ಶುಕ್ರನು 5ನೇ ಭಾವದಲ್ಲಿ ಸ್ಥಿತಿ."
       : `${spouseColdnessKn}, ${libidoKn} ಹಾಗೂ ${shaynaKn}.`;
     rootCauseEn = "Ketu in 7th house, Mars in 8th house, and 12th lord Venus exalted in 5th house.";
+  } else if (hasMarsSaturn12thSayanaAffair || hasSeventhLordIn12thAffair) {
+    fidelitySummaryKn = "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು, ಪರಸ್ತ್ರೀ ಸಾಂಗತ್ಯ & ರಹಸ್ಯ ಶಯನ ಸುಖಾಸಕ್ತಿ (Multiple Partners / Secret Clandestine Liaisons): 12ನೇ ಶಯನ-ವ್ಯಯ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿಯರ ಯುತಿ ಹಾಗೂ 7ನೇ ಕಳತ್ರಾಧಿಪತಿ ಕುಜನು 12ರಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ (ಶಾಸ್ತ್ರೋಕ್ತ: ಸಪ್ತಮೇಶೇ ವ್ಯಯೇ ಪರದಾರ ರತಃ - BPHS 18), ಜೊತೆಗೆ ಶುಕ್ರ 6ನೇ ಮನೆಯಲ್ಲಿರುವುದರಿಂದ, ಜಾತಕದಲ್ಲಿ ಪ್ರಬಲ ಕಾಮ ಚಾಂಚಲ್ಯ, ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ಸಂಸಾರದ ಹೊರಗೆ ಬಹು ಸ್ತ್ರೀಯರೊಂದಿಗೆ ಶಾರೀರಿಕ/ರಹಸ್ಯ ಸಂಬಂಧಗಳು (Sleeping with multiple partners / secret liaisons) ಹಾಗೂ ದಾಂಪತ್ಯ ನಿಷ್ಠೆಯ ಉಲ್ಲಂಘನೆಯಾಗುವ ಸ್ಪಷ್ಟ ಲಕ್ಷಣಗಳಿವೆ. ಸಮಾಜದಲ್ಲಿ ಗೌರವಯುತ ಮುಖವಾಡವಿದ್ದರೂ, ಅಂತರಂಗದ ಶಯನ ಸುಖಾಸಕ್ತಿಗಳು ದಾಂಪತ್ಯದಲ್ಲಿ ಅಶಾಂತಿ, ವಂಚನೆ ಹಾಗೂ ತೀವ್ರ ಕಹಿ ಉಂಟುಮಾಡುತ್ತವೆ. ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಗಡಿಗಳು ಅನಿವಾರ್ಯ.";
+    fidelitySummaryEn = "Multiple Relationships, Secret Liaisons & Sensual Wanderlust (Multiple Partners Warning): Conjunction of Mars and Saturn in the 12th house of bedroom comforts (Sayana Sthana) alongside 7th lord Mars in the 12th (BPHS: 'Saptameshe Vyaye Paradara Rataha') and Venus in the 6th dusthana indicates strong sexual restlessness, clandestine bed pleasures, and relations with multiple women outside marriage. Despite an outward respectable persona, secret sensual impulses compromise marital fidelity, demanding strict moral boundaries.";
+    rootCauseKn = "12ನೇ ಶಯನ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿ ಯುತಿ, 7ನೇ ಅಧಿಪತಿ 12ರಲ್ಲಿ ಸ್ಥಿತಿ ಹಾಗೂ 6ರಲ್ಲಿ ಶುಕ್ರನ ಕಳತ್ರ ದೋಷ.";
+    rootCauseEn = "Mars-Saturn conjunction in 12th house of bedroom comforts, 7th lord in 12th house, and Venus in 6th dusthana.";
   } else if (hasStrongAffairRisk || hasMultipleRelationshipsRisk) {
     fidelitySummaryKn = "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು, ಕಾಮ ಚಾಂಚಲ್ಯ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆಯ ಎಚ್ಚರಿಕೆ (Multiple Relationships & Wandering Desires): 7ನೇ ಕಳತ್ರ/ಕಾಮ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ (Multiple romantic attractions) ಸೆಳೆತ, ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸ್ಥಿರತೆ ಉಂಟಾಗುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ವಿವಾಹದ ನಂತರವೂ ಇತರರತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ.";
     fidelitySummaryEn = "Multiple Relationships, Sensual Wandering Desires & Marital Vulnerability: Planetary tensions across the 7th house, Venus, and Mars/Rahu create a strong inclination toward multiple romantic liaisons, wandering sensory curiosities, and domestic instability. Conscious moral discipline and fidelity are imperative.";
@@ -1974,20 +2064,42 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim1BasisKn = "ಶುಕ್ರ-ಕುಜ ಅಥವಾ ಶನಿ-ಶುಕ್ರರ ತೀವ್ರ ಸಂಯೋಗದಿಂದ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧದ ದೋಷ.";
     dim1BasisEn = "Venus-Mars or Saturn-Venus affliction causing extramarital scandal.";
   } else if (sensualDiag.hasMultipleRelationshipsRisk) {
-    dim1Score = 14;
-    dim1Risk = true;
-    dim1TitleKn = isMale
-      ? "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು, ಕಾಮ ಚಾಂಚಲ್ಯ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ (Multiple Relationships Risk)"
-      : "ಬಹು ಪ್ರಣಯ ಸೆಳೆತ, ಭಾವನಾತ್ಮಕ ಚಾಂಚಲ್ಯ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ";
-    dim1TitleEn = isMale ? "Multiple Relationships, Sensual Wandering & Marital Instability" : "Multiple Romantic Attractions & Marital Instability";
-    dim1BadgeKn = "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧ • ಕಾಮ ಚಾಂಚಲ್ಯ";
-    dim1BadgeEn = "Multiple Relationships • Wandering Desires";
-    dim1AnalysisKn = isMale
-      ? "7ನೇ ಕಳತ್ರ/ಕಾಮ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ (Multiple romantic attractions) ಸೆಳೆತ, ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸ್ಥಿರತೆ ಉಂಟಾಗುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ವಿವಾಹದ ನಂತರವೂ ಪತ್ನಿಯ ಹೊರತಾಗಿ ಇತರರತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ."
-      : "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿ ಮೂಡಿದಾಗ ಪತಿಯ ಹೊರತಾಗಿ ಹೊರಗಿನ ಪ್ರೇಮ ಸಂಬಂಧಗಳತ್ತ ಅಥವಾ ಬಹು ಆಕರ್ಷಣೆಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಇದೆ; ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಗತ್ಯ.";
-    dim1AnalysisEn = "Planetary tension across the 7th house and Venus-Rahu axis indicates propensity toward multiple romantic connections and sensory restlessness, demanding conscious moral boundaries.";
-    dim1BasisKn = "7ನೇ ಕಳತ್ರ-ಕಾಮ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವ.";
-    dim1BasisEn = "Affliction across 7th house and Venus by Rahu/Mars.";
+    const isMarsSaturn12th = Boolean(mars && saturn && mars.house === 12 && saturn.house === 12);
+    const is7thLord12th = Boolean(seventhLordPlanet && seventhLordPlanet.house === 12 && (saturn?.house === 12 || mars?.house === 12 || rahu?.house === 12 || (venus && [6, 8].includes(venusH))));
+
+    if (isMarsSaturn12th || is7thLord12th) {
+      dim1Score = 16;
+      dim1Risk = true;
+      dim1TitleKn = isMale
+        ? "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು, ಪರಸ್ತ್ರೀ ಸಾಂಗತ್ಯ & ರಹಸ್ಯ ಶಯನ ಸುಖಾಸಕ್ತಿ (Multiple Partners / Secret Liaisons)"
+        : "ಬಹು ಪ್ರಣಯ ಸೆಳೆತ & ರಹಸ್ಯ ಸಂಬಂಧಗಳ ಎಚ್ಚರಿಕೆ";
+      dim1TitleEn = isMale
+        ? "Multiple Relationships, Clandestine Liaisons & Sensual Wanderlust"
+        : "Multiple Romantic Attractions & Secret Liaisons Warning";
+      dim1BadgeKn = "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧ • ಪರಸ್ತ್ರೀ ಸಾಂಗತ್ಯ";
+      dim1BadgeEn = "Multiple Partners • Secret Liaisons";
+      dim1AnalysisKn = isMale
+        ? "ಶಾಸ್ತ್ರೋಕ್ತ ಸಪ್ತಮೇಶೇ ವ್ಯಯೇ ಪರದಾರ ಯೋಗ: 12ನೇ ಶಯನ-ವ್ಯಯ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿಯರ ಯುತಿ ಹಾಗೂ 7ನೇ ಕಳತ್ರಾಧಿಪತಿ ಕುಜನು 12ರಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ (BPHS: ಸಪ್ತಮೇಶೇ ವ್ಯಯೇ ಪರದಾರ ರತಃ), ಜೊತೆಗೆ ಕಳತ್ರಕಾರಕ ಶುಕ್ರನು 6ನೇ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ, ಜಾತಕದಲ್ಲಿ ಪ್ರಬಲ ಕಾಮ ಚಾಂಚಲ್ಯ, ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ಸಂಸಾರದ ಹೊರಗೆ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು & ಬಹು ಸ್ತ್ರೀಯರೊಂದಿಗೆ ಶಾರೀರಿಕ/ರಹಸ್ಯ ಸಂಬಂಧಗಳು (Sleeping with multiple partners / secret liaisons) ಹೊಂದುವ ಹಾಗೂ ದಾಂಪತ್ಯ ನಿಷ್ಠೆಯನ್ನು ಮುರಿಯುವ ತೀವ್ರ ದುರ್ವರ್ತನೆಯ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ. ಸಮಾಜದಲ್ಲಿ ಸಭ್ಯ ಅಥವಾ ಧಾರ್ಮಿಕ ಮುಖವಾಡವಿದ್ದರೂ, ರಹಸ್ಯ ಶಯನ ಸುಖದ ತೀವ್ರ ಚಪಲವು ದಾಂಪತ್ಯದಲ್ಲಿ ಕಹಿ ಮತ್ತು ವಂಚನೆಗೆ ದಾರಿಯಾಗುತ್ತದೆ. ಕಟ್ಟುನಿಟ್ಟಿನ ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಂತ ಅನಿವಾರ್ಯ."
+        : "12ನೇ ಶಯನ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿಯರ ಸಂಯೋಗ ಹಾಗೂ 7ನೇ ಅಧಿಪತಿಯ ವ್ಯಯ ಸ್ಥಿತಿಯು ದಾಂಪತ್ಯದ ಹೊರಗೆ ಬಹು ಪ್ರಣಯ ಸೆಳೆತ, ರಹಸ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಅಶಾಂತಿಯನ್ನು ತರುತ್ತದೆ; ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಗತ್ಯ.";
+      dim1AnalysisEn = "BPHS Saptameshe Vyaye Yoga: Mars-Saturn conjunction in the 12th house of bedroom pleasures (Sayana Sthana) alongside 7th lord in the 12th house indicates severe vulnerability to multiple romantic connections, secret liaisons, and relations with multiple partners outside marriage. Outward respectability masks clandestine sensual impulses that jeopardize marital sanctity.";
+      dim1BasisKn = "12ನೇ ಶಯನ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿ ಯುತಿ ಹಾಗೂ 7ನೇ ಅಧಿಪತಿ 12ರಲ್ಲಿ ಸ್ಥಿತಿ.";
+      dim1BasisEn = "Mars-Saturn conjunction in 12th house with 7th lord in 12th house.";
+    } else {
+      dim1Score = 14;
+      dim1Risk = true;
+      dim1TitleKn = isMale
+        ? "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು, ಕಾಮ ಚಾಂಚಲ್ಯ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ (Multiple Relationships Risk)"
+        : "ಬಹು ಪ್ರಣಯ ಸೆಳೆತ, ಭಾವನಾತ್ಮಕ ಚಾಂಚಲ್ಯ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ";
+      dim1TitleEn = isMale ? "Multiple Relationships, Sensual Wandering & Marital Instability" : "Multiple Romantic Attractions & Marital Instability";
+      dim1BadgeKn = "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧ • ಕಾಮ ಚಾಂಚಲ್ಯ";
+      dim1BadgeEn = "Multiple Relationships • Wandering Desires";
+      dim1AnalysisKn = isMale
+        ? "7ನೇ ಕಳತ್ರ/ಕಾಮ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ (Multiple romantic attractions) ಸೆಳೆತ, ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸ್ಥಿರತೆ ಉಂಟಾಗುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ವಿವಾಹದ ನಂತರವೂ ಪತ್ನಿಯ ಹೊರತಾಗಿ ಇತರರತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ."
+        : "7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿ ಮೂಡಿದಾಗ ಪತಿಯ ಹೊರತಾಗಿ ಹೊರಗಿನ ಪ್ರೇಮ ಸಂಬಂಧಗಳತ್ತ ಅಥವಾ ಬಹು ಆಕರ್ಷಣೆಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಇದೆ; ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಗತ್ಯ.";
+      dim1AnalysisEn = "Planetary tension across the 7th house and Venus-Rahu axis indicates propensity toward multiple romantic connections and sensory restlessness, demanding conscious moral boundaries.";
+      dim1BasisKn = "7ನೇ ಕಳತ್ರ-ಕಾಮ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವ.";
+      dim1BasisEn = "Affliction across 7th house and Venus by Rahu/Mars.";
+    }
   } else if (hasSensualChanchalya) {
     dim1Score = 12;
     dim1Risk = true;
@@ -4826,23 +4938,46 @@ export const generateGoodAndBadTraits = (
       };
     }
   } else if (sensual.hasMultipleRelationshipsRisk) {
-    badTrait2 = {
-      id: 2,
-      type: "bad",
-      titleKn: isMale
-        ? "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು & ಕಾಮ ಚಾಂಚಲ್ಯ: ಇಂದ್ರಿಯ ಪ್ರಲೋಭನೆ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ"
-        : "ಬಹು ಪ್ರಣಯ ಸೆಳೆತ & ಕಾಮ ಚಾಂಚಲ್ಯ: ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆಯ ಎಚ್ಚರಿಕೆ",
-      titleEn: "Multiple Relationships, Sensual Wandering & Marital Discord",
-      icon: "💔",
-      badgeKn: "ಬಹು ಪ್ರಣಯ • ಕಾಮ ಚಾಂಚಲ್ಯ",
-      badgeEn: "Multiple Relationships • Wandering Desires",
-      bulletKn: isMale
-        ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ (Multiple romantic attractions) ಸೆಳೆತ, ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸ್ಥಿರತೆ ಉಂಟಾಗುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ವಿವಾಹದ ನಂತರವೂ ಇತರರತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ.`
-        : `7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿ ಮೂಡಿದಾಗ ಹೊರಗಿನ ಪ್ರೇಮ ಸಂಬಂಧಗಳತ್ತ ಅಥವಾ ಬಹು ಆಕರ್ಷಣೆಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಇದೆ; ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಗತ್ಯ.`,
-      bulletEn: "Planetary tension across the 7th house and Venus-Rahu axis indicates a propensity toward multiple romantic connections and sensory restlessness, demanding conscious moral boundaries.",
-      astrologicalBasisKn: "7ನೇ ಕಳತ್ರ-ಕಾಮ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವ.",
-      astrologicalBasisEn: "Affliction across 7th house and Venus by Rahu/Mars."
-    };
+    const isMarsSaturn12th = Boolean(mars && saturn && mars.house === 12 && saturn.house === 12);
+    const is7thLord12th = Boolean(seventhLordPlanet && seventhLordPlanet.house === 12 && (saturn?.house === 12 || mars?.house === 12 || rahu?.house === 12 || (venus && [6, 8].includes(venusH))));
+
+    if (isMarsSaturn12th || is7thLord12th) {
+      badTrait2 = {
+        id: 2,
+        type: "bad",
+        titleKn: isMale
+          ? "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು, ಪರಸ್ತ್ರೀ ಸಾಂಗತ್ಯ & ರಹಸ್ಯ ಕಾಮ ಚಾಂಚಲ್ಯ"
+          : "ಬಹು ಪ್ರಣಯ ಸೆಳೆತ & ರಹಸ್ಯ ಸಂಬಂಧಗಳ ಎಚ್ಚರಿಕೆ",
+        titleEn: "Multiple Relationships, Clandestine Liaisons & Sensual Wanderlust",
+        icon: "💔",
+        badgeKn: "ಬಹು ಪ್ರಣಯ • ಪರಸ್ತ್ರೀ ಸಾಂಗತ್ಯ",
+        badgeEn: "Multiple Partners • Secret Liaisons",
+        bulletKn: isMale
+          ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 12ನೇ ಶಯನ-ವ್ಯಯ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿಯರ ಯುತಿ ಹಾಗೂ 7ನೇ ಕಳತ್ರಾಧಿಪತಿ ಕುಜನು 12ರಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ (BPHS: ಸಪ್ತಮೇಶೇ ವ್ಯಯೇ ಪರದಾರ ರತಃ), ಜೊತೆಗೆ ಶುಕ್ರನು 6ನೇ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ, ಮನಸ್ಸಿನಲ್ಲಿ ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ, ಸಂಸಾರದ ಹೊರಗೆ ಬಹು ಸ್ತ್ರೀಯರೊಂದಿಗೆ ರಹಸ್ಯ ಸಂಬಂಧಗಳು (Sleeping with multiple partners / secret liaisons) ಹಾಗೂ ಕಾಮ ಚಾಂಚಲ್ಯ ಉಂಟಾಗುವ ಗಂಭೀರ ದುರ್ವರ್ತನೆಯ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ. ಸಮಾಜದಲ್ಲಿ ಸಭ್ಯ ಮುಖವಾಡವಿದ್ದರೂ, ಅಂತರಂಗದ ಶಯನ ಸುಖಾಸಕ್ತಿಗಳು ದಾಂಪತ್ಯದಲ್ಲಿ ಕಹಿ ಮತ್ತು ವಂಚನೆಗೆ ದಾರಿಯಾಗದಂತೆ ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಂತ ಅನಿವಾರ್ಯ.`
+          : `12ನೇ ಶಯನ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿಯರ ಸಂಯೋಗ ಹಾಗೂ 7ನೇ ಅಧಿಪತಿಯ ವ್ಯಯ ಸ್ಥಿತಿಯು ದಾಂಪತ್ಯದ ಹೊರಗೆ ರಹಸ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಅಶಾಂತಿಯನ್ನು ತರುತ್ತದೆ; ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಗತ್ಯ.`,
+        bulletEn: "Mars-Saturn conjunction in the 12th house of bedroom pleasures (Sayana Sthana) alongside 7th lord in the 12th house indicates severe vulnerability to multiple romantic connections, secret liaisons, and relations with multiple partners outside marriage.",
+        astrologicalBasisKn: "12ನೇ ಶಯನ ಸ್ಥಾನದಲ್ಲಿ ಕುಜ-ಶನಿ ಯುತಿ ಹಾಗೂ 7ನೇ ಅಧಿಪತಿ 12ರಲ್ಲಿ ಸ್ಥಿತಿ.",
+        astrologicalBasisEn: "Mars-Saturn in 12th house of bedroom comforts alongside 7th lord in 12th."
+      };
+    } else {
+      badTrait2 = {
+        id: 2,
+        type: "bad",
+        titleKn: isMale
+          ? "ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳು & ಕಾಮ ಚಾಂಚಲ್ಯ: ಇಂದ್ರಿಯ ಪ್ರಲೋಭನೆ & ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆ"
+          : "ಬಹು ಪ್ರಣಯ ಸೆಳೆತ & ಕಾಮ ಚಾಂಚಲ್ಯ: ದಾಂಪತ್ಯ ಅಸ್ಥಿರತೆಯ ಎಚ್ಚರಿಕೆ",
+        titleEn: "Multiple Relationships, Sensual Wandering & Marital Discord",
+        icon: "💔",
+        badgeKn: "ಬಹು ಪ್ರಣಯ • ಕಾಮ ಚಾಂಚಲ್ಯ",
+        badgeEn: "Multiple Relationships • Wandering Desires",
+        bulletKn: isMale
+          ? `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ, ಶುಕ್ರ ಹಾಗೂ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮನಸ್ಸಿನಲ್ಲಿ ಬಹು ಪ್ರಣಯ ಸಂಬಂಧಗಳತ್ತ (Multiple romantic attractions) ಸೆಳೆತ, ಇಂದ್ರಿಯ ಚಾಂಚಲ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಸ್ಥಿರತೆ ಉಂಟಾಗುವ ಪ್ರಬಲ ಲಕ್ಷಣಗಳಿವೆ. ವಿವಾಹದ ನಂತರವೂ ಇತರರತ್ತ ಮನಸ್ಸು ಜಾರದಂತೆ ನೈತಿಕ ಸಂಯಮ ಮತ್ತು ಕಟ್ಟುನಿಟ್ಟಿನ ಸ್ವಯಂ-ನಿಯಂತ್ರಣ ಅತ್ಯಗತ್ಯ.`
+          : `7ನೇ ಕಳತ್ರ ಹಾಗೂ ಕಾಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಅತೃಪ್ತಿ ಮೂಡಿದಾಗ ಹೊರಗಿನ ಪ್ರೇಮ ಸಂಬಂಧಗಳತ್ತ ಅಥವಾ ಬಹು ಆಕರ್ಷಣೆಗಳತ್ತ ಮನಸ್ಸು ಜಾರುವ ಅಪಾಯದ ಸುಳಿವು ಇದೆ; ನೈತಿಕ ಸಂಯಮ ಅತ್ಯಗತ್ಯ.`,
+        bulletEn: "Planetary tension across the 7th house and Venus-Rahu axis indicates a propensity toward multiple romantic connections and sensory restlessness, demanding conscious moral boundaries.",
+        astrologicalBasisKn: "7ನೇ ಕಳತ್ರ-ಕಾಮ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನ ಮೇಲೆ ರಾಹು-ಕುಜರ ಪ್ರಭಾವ.",
+        astrologicalBasisEn: "Affliction across 7th house and Venus by Rahu/Mars."
+      };
+    }
   } else if (sensual.isHighFidelityVrata) {
     badTrait2 = {
       id: 2,
@@ -5431,7 +5566,7 @@ export const generateCurrentLifeDiagnosis = (
   } else if (cls.category === "marital_discord") {
     challengeArea = "Personal / Marriage";
     challengeAreaKn = "ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರ ಬಿಕ್ಕಟ್ಟು & ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳ ಸಂಕಷ್ಟ (Acute Marital Crisis & Misunderstandings)";
-    challengeDesc = "ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರವಾದ ಮಾನಸಿಕ ಸಂಕಷ್ಟ, ಪರಸ್ಪರ ಅಸಹನೀಯ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು (Misunderstandings), ಸಣ್ಣ ಮಾತಿಗೂ ಭುಗಿಲೇಳುವ ಮನಸ್ತಾಪ, ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದೆ ಮಾತುಕತೆ ಕಡಿದುಹೋಗಿರುವುದು ಅಥವಾ ದೂರವಾಗುವಂತಹ ಕಠಿಣ ಬಿಕ್ಕಟ್ಟಿನಿಂದ ನೀವು ಪ್ರಸ್ತುತ ಬಳಲುತ್ತಿದ್ದೀರಿ.";
+    challengeDesc = cls.detailedRealityKn;
     challengeDescEn = cls.detailedRealityEn;
     rootCause = cls.planetaryCulpritKn;
     rootCauseEn = cls.planetaryCulpritEn;

@@ -108,6 +108,7 @@ export default function KundliPage(): JSX.Element {
       longitude: defaultLng,
       gothra: "",
       gender: "Male",
+      maritalStatus: "married",
       pincode: pincodeStore || undefined
     };
   });
@@ -203,7 +204,8 @@ export default function KundliPage(): JSX.Element {
       longitude: lng,
       pincode: pin,
       gothra: matchedGotra,
-      gender: devotee.gender || "Male"
+      gender: (devotee.gender as any) || "Male",
+      maritalStatus: (devotee.maritalStatus as any) || (parsedDate && (new Date().getFullYear() - parsedDate.getFullYear() >= 28) ? "married" : "unmarried")
     }));
 
     // 6. Toast feedback
@@ -558,6 +560,8 @@ export default function KundliPage(): JSX.Element {
         name: form.name,
         birthDate: birthDate,
         birthTime: birthTime,
+        gender: form.gender,
+        maritalStatus: form.maritalStatus,
         nakshatraIndex: output.planets.find(p => p.name === "Moon")?.nakshatra.index,
         rashiIndex: output.planets.find(p => p.name === "Moon")?.rashi.index,
         pincode: form.pincode,
@@ -585,6 +589,8 @@ export default function KundliPage(): JSX.Element {
       userId: "priest_shreeram",
       priestName: "Shreeram Pandit",
       name: payload.name || "Devotee",
+      gender: payload.gender || form.gender,
+      maritalStatus: payload.maritalStatus || form.maritalStatus,
       birthDate: payload.birthDate,
       birthTime: payload.birthTime,
       placeName: placeLabelStore || "Custom Location",
@@ -885,6 +891,42 @@ export default function KundliPage(): JSX.Element {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="gender" value="Female" checked={form.gender === "Female"} onChange={() => setForm((f) => ({ ...f, gender: "Female" }))} className="text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
                 <span className="text-sm text-slate-700">{t("gender.female", "Female")}</span>
+              </label>
+            </div>
+            <div className="md:col-span-2 flex flex-wrap gap-4 items-center bg-amber-50/60 p-2.5 rounded-lg border border-amber-200/50">
+              <label className="text-sm font-semibold text-indigo-950 mr-1">{t("kundli.maritalStatus", "ವಿವಾಹ ಸ್ಥಿತಿ (Status)")}:</label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="maritalStatus"
+                  value="married"
+                  checked={form.maritalStatus === "married"}
+                  onChange={() => setForm((f) => ({ ...f, maritalStatus: "married" }))}
+                  className="text-amber-600 focus:ring-amber-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">💍 {t("maritalStatus.married", "ವಿವಾಹಿತರು (Married)")}</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="maritalStatus"
+                  value="unmarried"
+                  checked={form.maritalStatus === "unmarried"}
+                  onChange={() => setForm((f) => ({ ...f, maritalStatus: "unmarried" }))}
+                  className="text-amber-600 focus:ring-amber-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">🌸 {t("maritalStatus.unmarried", "ಅವಿವಾಹಿತರು (Unmarried)")}</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="maritalStatus"
+                  value="separated"
+                  checked={form.maritalStatus === "separated"}
+                  onChange={() => setForm((f) => ({ ...f, maritalStatus: "separated" }))}
+                  className="text-amber-600 focus:ring-amber-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">⚡ {t("maritalStatus.separated", "ಪ್ರತ್ಯೇಕಿತರು (Separated)")}</span>
               </label>
             </div>
             <div className="md:col-span-2">

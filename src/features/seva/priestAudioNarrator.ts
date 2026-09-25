@@ -10,7 +10,15 @@
 
 import type { SevaLang } from "./sevaLocale";
 import { getVoiceProfileById, type PriestAudioKey } from "../audio/priestVoiceDatabase";
-import { synthesizeAndPlayClonedVoice, stopClonedAudio, resolveBestVedicVoice } from "../audio/aiVoiceCloneEngine";
+import {
+  synthesizeAndPlayClonedVoice,
+  stopClonedAudio,
+  resolveBestVedicVoice,
+  pauseClonedAudio,
+  resumeClonedAudio,
+  isClonedAudioPaused,
+  seekClonedAudio
+} from "../audio/aiVoiceCloneEngine";
 import {
   stopAllAudioGlobal,
   startNewAudioSession,
@@ -146,4 +154,20 @@ export function speakPriestNarration(
 
 export function stopPriestAudio(): void {
   stopAllAudioGlobal();
+}
+
+export function pausePriestAudio(): void {
+  pauseClonedAudio();
+}
+
+export async function resumePriestAudio(): Promise<void> {
+  await resumeClonedAudio();
+}
+
+export function isPriestAudioPaused(): boolean {
+  return isClonedAudioPaused();
+}
+
+export function seekPriestAudio(deltaSeconds: number): void {
+  seekClonedAudio(deltaSeconds);
 }

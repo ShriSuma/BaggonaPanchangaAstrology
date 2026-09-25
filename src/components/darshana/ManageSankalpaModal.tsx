@@ -292,7 +292,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
         sanskritPhrasing: sanskritInput.trim() || t.sanskritPlaceholder,
         isActive: true,
         devoteeName
-      });
+      }, lang);
       showToast(t.toasts.created);
       setIsAddingNew(false);
     }
@@ -307,9 +307,18 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
     setEditingId(sankalpa.id);
     setIsAddingNew(true);
     setSelectedCategory(sankalpa.category);
-    setTitleInput(sankalpa.title);
-    setDescInput(sankalpa.description);
-    setSanskritInput(sankalpa.sanskritPhrasing || "");
+    const preset = SANKALPA_PRESETS.find(
+      (p) =>
+        p.category === sankalpa.category ||
+        p.titleKn === sankalpa.title ||
+        p.titleEn === sankalpa.title ||
+        p.titleHi === sankalpa.title ||
+        p.titleTe === sankalpa.title ||
+        p.titleTa === sankalpa.title
+    );
+    setTitleInput(preset ? getPresetTitle(preset, lang) : sankalpa.title);
+    setDescInput(preset ? getPresetDescription(preset, lang) : sankalpa.description);
+    setSanskritInput(preset ? getPresetSanskritPhrasing(preset, lang) : (sankalpa.sanskritPhrasing || ""));
   };
 
   const handleCancelForm = () => {

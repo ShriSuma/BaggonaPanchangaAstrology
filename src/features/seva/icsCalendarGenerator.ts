@@ -1273,7 +1273,8 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const descriptionParts: string[] = [
       `🔮 ${viewBhavishyaButtonLabel}:`,
-      `👉 ${sanctumUrl}`,
+      "",
+      sanctumUrl,
       "",
       "════════════════════════════════════════",
       `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,

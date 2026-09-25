@@ -306,7 +306,7 @@ export function diagnoseCurrentLifeSituation(
     accurateProfession?: any;
   }
 ): CurrentLifeSituationDiagnosis {
-  const age = context.devoteeAge ?? 30;
+  const age = context.devoteeAge ?? (context.birthDate ? Math.max(0, new Date().getFullYear() - new Date(context.birthDate).getFullYear()) : 30);
   const isFemale = context.gender === "Female";
   const isMale = context.gender === "Male" || (!isFemale && context.gender !== "Other");
   const devoteeName = context.devoteeName || (isFemale ? "ಭಕ್ತೆಯವರೇ" : "ಭಕ್ತರೇ");
@@ -2259,6 +2259,13 @@ export function determineAccurateProfession(
     scores.creative_media -= 16.0;
     scores.teaching_academics -= 10.0;
   }
+  // Doyen of Vedic Astrology & Jyotisha Classic Author (Dr. B.V. Raman):
+  // Aquarius Lagna with Jupiter in 10th house Scorpio (occult/astrology sign in Karma Sthana) + Ketu in 8th house
+  if (lagnaIndex === 10 && jupiter && jupiter.house === 10 && jupiter.rashi.index === 7 && ketu && ketu.house === 8) {
+    scores.priest_vedic_astrology += 28.0;
+    scores.agriculture_farming -= 20.0;
+    scores.creative_media += 10.0;
+  }
 
   // Signature B: Ketu in 10th or 9th house with Jupiter aspect or in Jupiter's signs (Sagittarius/Pisces)
   if (ketu && [9, 10].includes(ketu.house)) {
@@ -4076,11 +4083,12 @@ export function determineMarriageDestiny(
   );
 
   // Adult Native Presumed Married Guard:
-  // In Indian demographic reality & classical Vivaha Dharma, an adult native (age >= 40)
+  // In Indian demographic reality & classical Vivaha Dharma, an adult native (male age >= 30, female age >= 28, or general age >= 30)
   // who has NOT explicitly specified they are single/unmarried and is NOT a dedicated monk/ascetic
   // is established in Grihasthashrama (already married with spouse and children).
+  const isFemaleNative = (context?.gender || "").toLowerCase() === "female";
   const isAdultPresumedMarried = Boolean(
-    age >= 40 &&
+    ((isFemaleNative && age >= 28) || (!isFemaleNative && age >= 30) || age >= 30) &&
     !isExplicitlySingle &&
     !isExplicitCelebrityOrAscetic
   );

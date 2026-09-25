@@ -337,9 +337,241 @@ export async function handleGenerateAudio(
 }
 
 /**
- * Synthesizes and plays cloned voice using the Custom Studio POST endpoint with silent unlocker.
- * Pre-unlocks audio synchronously in click event, then streams the Blob seamlessly.
- * Automatically falls back to high-fidelity browser SpeechSynthesis if remote server is slow or unavailable.
+ * Resolves the ultra-fast Indian Language male voice ID with RAM cache
+ */
+export function getVoiceIdForLanguage(lang: SevaLang = "kn", customVoiceId?: string): string {
+  if (customVoiceId &&
+      customVoiceId !== "voice_sriram_pandit" &&
+      customVoiceId !== "voice_shrisuma_master" &&
+      customVoiceId !== "default" &&
+      customVoiceId !== "master" &&
+      customVoiceId !== "voice_default") {
+    return customVoiceId;
+  }
+  switch (lang) {
+    case "kn": return "voice_kannada_male";
+    case "te": return "voice_telugu_male";
+    case "ta": return "voice_tamil_male";
+    case "hi": return "voice_hindi_male";
+    case "en":
+    default: return "voice_kannada_male";
+  }
+}
+
+/**
+ * Builds the direct HTTP chunked streaming URL for a given sentence and voice ID
+ */
+export function buildVoiceStreamUrl(sentence: string, voiceId: string): string {
+  const clean = sanitizeTextForSpeech(sentence);
+  return `https://indian-language-voici-clone-tts-7273.ai.studio/v1/text-to-speech/${encodeURIComponent(voiceId)}?text=${encodeURIComponent(clean)}&gender=male`;
+}
+
+/**
+ * Splits long paragraphs into individual sentences for Progressive Sentence-First Streaming
+ */
+export function splitTextIntoSentences(text: string): string[] {
+  if (!text) return [];
+  const clean = sanitizeTextForSpeech(text);
+  if (!clean) return [];
+  const raw = clean.match(/[^.!?।॥\n]+[.!?।॥\n]*/g) || [clean];
+  const results: string[] = [];
+  for (const chunk of raw) {
+    const trimmed = chunk.trim();
+    if (!trimmed) continue;
+    if (results.length > 0 && (results[results.length - 1].length < 15 || trimmed.length < 5)) {
+      results[results.length - 1] += " " + trimmed;
+    } else {
+      results.push(trimmed);
+    }
+  }
+  return results.length > 0 ? results : [clean];
+}
+
+/**
+ * Plays progressive sentence-by-sentence streaming audio:
+ * 1. Sentence 1 begins playing immediately via new Audio(streamUrl) in <1 second.
+ * 2. Pre-fetches subsequent sentences in the background to warm the server's in-memory RAM cache (2.5ms response).
+ * 3. Chains seamlessly to subsequent sentences on audio.onended.
+ */
+export function streamSentencePipeline(
+  text: string,
+  lang: SevaLang = "kn",
+  voiceId?: string,
+  onEnd?: () => void,
+  onStart?: () => void,
+  onError?: (err: any) => void
+): () => void {
+  const targetVoiceId = getVoiceIdForLanguage(lang, voiceId);
+  const sentences = splitTextIntoSentences(text);
+  if (sentences.length === 0) {
+    if (onEnd) onEnd();
+    return () => {};
+  }
+
+  // 1. Stop old audio
+  stopClonedAudio();
+
+  const audio = new Audio();
+  currentAudio = audio;
+  const unregister = registerActiveAudio(audio);
+
+  let isCancelled = false;
+  let currentIndex = 0;
+  let hasStarted = false;
+
+  const notifyStart = () => {
+    if (!hasStarted && !isCancelled) {
+      hasStarted = true;
+      if (onStart) onStart();
+    }
+  };
+
+  const prefetchSentence = (index: number) => {
+    if (isCancelled || index >= sentences.length) return;
+    if (typeof fetch !== "undefined") {
+      const nextUrl = buildVoiceStreamUrl(sentences[index], targetVoiceId);
+      fetch(nextUrl, { mode: "cors" }).catch(() => {});
+    }
+  };
+
+  const playSentence = (index: number) => {
+    if (isCancelled || currentAudio !== audio) return;
+    if (index >= sentences.length) {
+      unregister();
+      if (currentAudio === audio) currentAudio = null;
+      if (onEnd) onEnd();
+      return;
+    }
+
+    currentIndex = index;
+    const url = buildVoiceStreamUrl(sentences[index], targetVoiceId);
+    audio.src = url;
+
+    // Speculatively pre-warm next sentence into server LRU cache
+    prefetchSentence(index + 1);
+
+    const playResult = audio.play();
+    if (playResult && typeof playResult.then === "function") {
+      playResult.then(() => {
+        notifyStart();
+      }).catch((err) => {
+        console.warn("[AIVoiceCloneEngine] Audio play error on sentence index", index, err);
+        if (index === 0) {
+          if (onError) onError(err);
+        } else {
+          // Try skipping to next sentence
+          playSentence(index + 1);
+        }
+      });
+    } else {
+      // JSDOM / browsers returning undefined
+      notifyStart();
+    }
+  };
+
+  const onEndedHandler = () => {
+    if (!isCancelled) {
+      playSentence(currentIndex + 1);
+    }
+  };
+
+  const onErrorHandler = (e: any) => {
+    console.warn("[AIVoiceCloneEngine] Direct audio error on sentence:", currentIndex, e);
+    if (currentIndex === 0) {
+      if (onError) onError(audio.error || e);
+    } else {
+      playSentence(currentIndex + 1);
+    }
+  };
+
+  audio.addEventListener("playing", notifyStart, { once: true });
+  audio.addEventListener("ended", onEndedHandler);
+  audio.addEventListener("error", onErrorHandler);
+
+  playSentence(0);
+
+  return () => {
+    isCancelled = true;
+    audio.removeEventListener("ended", onEndedHandler);
+    audio.removeEventListener("error", onErrorHandler);
+    unregister();
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = "";
+    } catch {}
+    if (currentAudio === audio) {
+      currentAudio = null;
+    }
+  };
+}
+
+/**
+ * Pauses active cloned audio (HTMLAudioElement or Web Speech)
+ */
+export function pauseClonedAudio(): void {
+  if (currentAudio && !currentAudio.paused) {
+    try {
+      currentAudio.pause();
+    } catch {}
+  }
+  if (typeof window !== "undefined" && "speechSynthesis" in window && window.speechSynthesis.speaking) {
+    try {
+      window.speechSynthesis.pause();
+    } catch {}
+  }
+}
+
+/**
+ * Resumes active cloned audio from paused state
+ */
+export async function resumeClonedAudio(): Promise<void> {
+  if (currentAudio && currentAudio.paused) {
+    try {
+      await currentAudio.play();
+      return;
+    } catch (err) {
+      console.warn("[AIVoiceCloneEngine] Resume audio play error:", err);
+    }
+  }
+  if (typeof window !== "undefined" && "speechSynthesis" in window && window.speechSynthesis.paused) {
+    try {
+      window.speechSynthesis.resume();
+    } catch {}
+  }
+}
+
+/**
+ * Checks whether audio is currently in paused state
+ */
+export function isClonedAudioPaused(): boolean {
+  if (currentAudio && currentAudio.paused && currentAudio.currentTime > 0) {
+    return true;
+  }
+  if (typeof window !== "undefined" && "speechSynthesis" in window && window.speechSynthesis.paused) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Seeks forward or backward in active audio by deltaSeconds (+10s / -10s)
+ */
+export function seekClonedAudio(deltaSeconds: number): void {
+  if (currentAudio) {
+    try {
+      const duration = currentAudio.duration || 999;
+      currentAudio.currentTime = Math.max(0, Math.min(duration, currentAudio.currentTime + deltaSeconds));
+    } catch {}
+  }
+}
+
+/**
+ * Synthesizes and plays cloned voice using Progressive Sentence-First Streaming
+ * with the new ultra-fast in-memory RAM cache GET streaming endpoint.
+ * Audio begins playing in under 1 second without full-blob buffering.
+ * Automatically falls back to high-fidelity browser SpeechSynthesis if remote server is slow or unavailable,
+ * waiting a full 5 seconds first to prevent premature fallback or overlapping dual-voice playback.
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
@@ -352,74 +584,105 @@ export async function synthesizeAndPlayClonedVoice(
   let isCancelled = false;
   let fallbackCancelFn: (() => void) | null = null;
   let isFallbackActive = false;
-  const targetVoiceId = voiceId || "voice_sriram_pandit";
+  let apiStreamStarted = false;
+  let fallbackWaitTimer: any = null;
+  const targetVoiceId = getVoiceIdForLanguage(_lang, voiceId);
 
-  const audioPromise = handleGenerateAudio(
-    text,
-    targetVoiceId,
-    () => {
-      if (!isCancelled && !isFallbackActive && onEnd) onEnd();
-    },
-    () => {
-      if (!isCancelled && onStart) onStart();
-    },
-    () => {
-      // Remote failed; flag that fallback will take over the completion lifecycle
-      isFallbackActive = true;
-    }
-  );
+  let streamCancelFn: (() => void) | null = null;
 
-  // Monitor audio promise; if remote returns null, trigger immediate Web Speech fallback
-  void audioPromise.then(async (audio) => {
-    if (isCancelled) return;
-    if (!audio) {
-      isFallbackActive = true;
-      const profile = getVoiceProfileById(targetVoiceId);
-      fallbackCancelFn = await playStrictlyMaleWebSpeechDSP(
-        text,
-        _lang,
-        profile,
-        () => {
-          if (!isCancelled && onEnd) onEnd();
-        },
-        undefined,
-        undefined,
-        () => {
-          if (!isCancelled && onStart) onStart();
-        },
-        _fallbackTransliteration
-      );
+  const triggerFallback = async () => {
+    if (isCancelled || isFallbackActive || apiStreamStarted) return;
+    isFallbackActive = true;
+
+    // Disarm and stop any pending or stalled remote stream so two voices never play simultaneously
+    if (streamCancelFn) {
+      try {
+        streamCancelFn();
+      } catch {}
+      streamCancelFn = null;
     }
-  });
+    stopClonedAudio();
+
+    console.warn("[AIVoiceCloneEngine] Remote API stream not available. Transitioning to high-fidelity fallback voice.");
+    const profile = getVoiceProfileById(targetVoiceId);
+    fallbackCancelFn = await playStrictlyMaleWebSpeechDSP(
+      text,
+      _lang,
+      profile,
+      () => {
+        if (!isCancelled && onEnd) onEnd();
+      },
+      undefined,
+      undefined,
+      () => {
+        if (!isCancelled && onStart) onStart();
+      },
+      _fallbackTransliteration
+    );
+  };
+
+  // 5-SECOND TIMEOUT GUARD (User Mandate 2026-09-25):
+  // Wait a full 5000ms for remote neural API synthesis.
+  // Never fire fallback prematurely while API is downloading!
+  fallbackWaitTimer = setTimeout(() => {
+    if (!apiStreamStarted && !isCancelled && !isFallbackActive) {
+      console.warn("[AIVoiceCloneEngine] API stream did not produce sound within 5000ms. Engaging fallback.");
+      void triggerFallback();
+    }
+  }, 5000);
+
+  try {
+    streamCancelFn = streamSentencePipeline(
+      text,
+      _lang,
+      targetVoiceId,
+      () => {
+        if (fallbackWaitTimer) {
+          clearTimeout(fallbackWaitTimer);
+          fallbackWaitTimer = null;
+        }
+        if (!isCancelled && !isFallbackActive && onEnd) onEnd();
+      },
+      () => {
+        apiStreamStarted = true;
+        if (fallbackWaitTimer) {
+          clearTimeout(fallbackWaitTimer);
+          fallbackWaitTimer = null;
+        }
+        if (!isCancelled && onStart) onStart();
+      },
+      (err) => {
+        console.warn("[AIVoiceCloneEngine] Initial API stream notice (waiting for 5s window):", err);
+      }
+    );
+  } catch (err) {
+    console.warn("[AIVoiceCloneEngine] Error launching progressive stream pipeline:", err);
+    if (fallbackWaitTimer) {
+      clearTimeout(fallbackWaitTimer);
+      fallbackWaitTimer = null;
+    }
+    void triggerFallback();
+  }
 
   return () => {
     isCancelled = true;
+    if (fallbackWaitTimer) {
+      clearTimeout(fallbackWaitTimer);
+      fallbackWaitTimer = null;
+    }
+    if (streamCancelFn) {
+      try {
+        streamCancelFn();
+      } catch {}
+      streamCancelFn = null;
+    }
     if (fallbackCancelFn) {
       try {
         fallbackCancelFn();
       } catch {}
       fallbackCancelFn = null;
     }
-    audioPromise.then((audio) => {
-      if (audio) {
-        try {
-          audio.pause();
-          audio.currentTime = 0;
-          audio.src = "";
-        } catch {}
-        if (currentAudio === audio) {
-          currentAudio = null;
-        }
-      }
-    });
-    if (currentAudio) {
-      try {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        currentAudio.src = "";
-      } catch {}
-      currentAudio = null;
-    }
+    stopClonedAudio();
   };
 }
 

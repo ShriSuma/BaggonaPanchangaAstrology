@@ -38,6 +38,8 @@ export type KundliRecord = {
   longitude: number;
   placeName: string;
   gothra?: string;
+  gender?: string;
+  maritalStatus?: string;
   pincode?: string;
   kundliData: KundliOutput;
   createdAt: string;
@@ -402,6 +404,8 @@ export const saveKundli = async (input: KundliInput, output: KundliOutput): Prom
     longitude: input.longitude,
     placeName: "Custom",
     gothra: input.gothra,
+    gender: input.gender,
+    maritalStatus: input.maritalStatus,
     pincode: input.pincode,
     kundliData: output,
     createdAt: new Date().toISOString()

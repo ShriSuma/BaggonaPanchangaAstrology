@@ -14,6 +14,7 @@ import { generatePriestICalendarString } from "../../core/PriestCalendarEngine";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
 import { registerCalendarAtGeneration } from "../../features/seva/calendarVisitService";
 import { getUniversalBirthDetails } from "../../utils/universalDevoteeKundli";
+import { parseSpokenPhoneNumber } from "../../utils/speechRecognitionHelper";
 import { T, pick } from "../../features/seva/sevaLocale";
 import {
   getAllPriests,
@@ -71,17 +72,71 @@ export default function SevaCalendarSyncModal({
   const [selectedVoiceId, setSelectedVoiceId] = useState<string>("voice_sriram_pandit");
   const [isVoiceUploadModalOpen, setIsVoiceUploadModalOpen] = useState<boolean>(false);
 
+  const defaultPriest = useMemo(() => getPriestProfile("shreeram-pandit"), []);
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId, priestsList]);
-  const panditName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en;
   const [overridePriestContact, setOverridePriestContact] = useState<boolean>(false);
-  const [customPriestPhone, setCustomPriestPhone] = useState<string>("");
+  const [customPriestName, setCustomPriestName] = useState<string>("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+  const [customPriestPhone, setCustomPriestPhone] = useState<string>("9972339362");
+  const [listeningPriestField, setListeningPriestField] = useState<string | null>(null);
+
+  const panditName = useMemo(() => {
+    if (overridePriestContact && customPriestName.trim()) {
+      return customPriestName.trim();
+    }
+    return defaultPriest.name[lang as keyof typeof defaultPriest.name] || defaultPriest.name.en || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+  }, [overridePriestContact, customPriestName, defaultPriest, lang]);
 
   const effectivePriestPhone = useMemo(() => {
     if (overridePriestContact && customPriestPhone.trim()) {
       return customPriestPhone.trim();
     }
-    return activePriest.phone || "9972339362";
-  }, [overridePriestContact, customPriestPhone, activePriest]);
+    return "9972339362";
+  }, [overridePriestContact, customPriestPhone]);
+
+  const handleSelectPriest = (priestId: string) => {
+    if (priestId === "ADD_NEW") {
+      setCustomInputMode(true);
+      return;
+    }
+    setSelectedPriestId(priestId);
+    if (priestId === "shreeram-pandit") {
+      setCustomPriestName("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+      setCustomPriestPhone("9972339362");
+      setOverridePriestContact(false);
+    } else {
+      const p = getPriestProfile(priestId);
+      const locName = p.name[lang as keyof typeof p.name] || p.name.en || p.name.kn;
+      setCustomPriestName(locName);
+      setCustomPriestPhone(p.phone || "9972339362");
+      setOverridePriestContact(true);
+    }
+  };
+
+  const startPriestVoiceInput = (fieldKey: "name" | "phone", onResult: (val: string) => void) => {
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      alert("ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಲಭ್ಯವಿಲ್ಲ (Voice input not supported in this browser)");
+      return;
+    }
+    try {
+      const rec = new SpeechRec();
+      rec.lang = lang === "kn" ? "kn-IN" : lang === "hi" ? "hi-IN" : lang === "te" ? "te-IN" : lang === "ta" ? "ta-IN" : "en-IN";
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      setListeningPriestField(fieldKey);
+      rec.onresult = (evt: any) => {
+        const transcript = evt.results[0]?.[0]?.transcript;
+        if (transcript) onResult(transcript.trim());
+        setListeningPriestField(null);
+      };
+      rec.onerror = () => setListeningPriestField(null);
+      rec.onend = () => setListeningPriestField(null);
+      rec.start();
+    } catch (e) {
+      console.warn("SpeechRec error:", e);
+      setListeningPriestField(null);
+    }
+  };
 
   const [pincodeInput, setPincodeInput] = useState<string>("581326");
   const [locationName, setLocationName] = useState<string>("Gokarna");
@@ -1005,21 +1060,30 @@ export default function SevaCalendarSyncModal({
             )}
 
             {/* Pre-defined Priest Dropdown Selector & Dynamic Custom Addition */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80 mb-1">
-                {lang.startsWith("kn") ? "ಅರ್ಚಕರ ಆಯ್ಕೆ (Priest Selection)" : "Select Priest / Archaka"}
-              </label>
+            <div className="sm:col-span-2 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80">
+                  {lang.startsWith("kn") ? "ಅರ್ಚಕರ ಆಯ್ಕೆ & ನೇರ ಸಂಪರ್ಕ (Priest Selection & Direct Contact)" : "Select Priest & Contact"}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setOverridePriestContact(prev => !prev)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition border ${
+                    overridePriestContact
+                      ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                      : "bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200"
+                  }`}
+                >
+                  <span>✏️</span>
+                  <span>{overridePriestContact ? (lang.startsWith("kn") ? "ಓವರ್‌ರೈಡ್ ಸಕ್ರಿಯವಾಗಿದೆ (Active)" : "Override Active") : (lang.startsWith("kn") ? "ವಿವರಗಳನ್ನು ಸಂಪಾದಿಸಿ (Edit Priest)" : "Edit Priest Details")}</span>
+                </button>
+              </div>
+
               {!customInputMode ? (
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <select
                     value={selectedPriestId}
-                    onChange={(e) => {
-                      if (e.target.value === "ADD_NEW") {
-                        setCustomInputMode(true);
-                      } else {
-                        setSelectedPriestId(e.target.value);
-                      }
-                    }}
+                    onChange={(e) => handleSelectPriest(e.target.value)}
                     className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
                   >
                     {priestsList.map((p) => {
@@ -1027,7 +1091,7 @@ export default function SevaCalendarSyncModal({
                       const title = p.title[lang as keyof typeof p.title] || p.title.en;
                       return (
                         <option key={p.id} value={p.id}>
-                          {p.sealSymbol} {name} ({title})
+                          {p.sealSymbol} {name} ({title}) {p.id === "shreeram-pandit" ? "— [Default 9972339362]" : ""}
                         </option>
                       );
                     })}
@@ -1035,11 +1099,27 @@ export default function SevaCalendarSyncModal({
                   </select>
                   <button
                     type="button"
-                    onClick={handleMicClick}
-                    title={isListening ? pick(T.micListening!, lang) : pick(T.micSpeak!, lang)}
-                    className={`rounded-xl p-2 transition ${
-                      isListening
-                        ? "animate-pulse bg-red-500 text-white"
+                    onClick={() => {
+                      startPriestVoiceInput("name", (val) => {
+                        const found = priestsList.find(p => 
+                          Object.values(p.name).some(n => n.toLowerCase().includes(val.toLowerCase())) ||
+                          p.id.toLowerCase().includes(val.toLowerCase())
+                        );
+                        if (found) {
+                          handleSelectPriest(found.id);
+                        } else if (val.trim()) {
+                          const added = addCustomPriest(val.trim());
+                          setPriestsList(getAllPriests());
+                          setSelectedPriestId(added.id);
+                          setCustomPriestName(val.trim());
+                          setOverridePriestContact(true);
+                        }
+                      });
+                    }}
+                    title={listeningPriestField === "name" ? pick(T.micListening!, lang) : "ಧ್ವನಿ ಮೂಲಕ ಅರ್ಚಕರನ್ನು ಹುಡುಕಿ (Voice Priest Search)"}
+                    className={`rounded-xl p-2 transition shrink-0 ${
+                      listeningPriestField === "name"
+                        ? "animate-pulse bg-red-500 text-white border border-red-600"
                         : "bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300"
                     }`}
                   >
@@ -1062,6 +1142,8 @@ export default function SevaCalendarSyncModal({
                         const added = addCustomPriest(newPriestName.trim());
                         setPriestsList(getAllPriests());
                         setSelectedPriestId(added.id);
+                        setCustomPriestName(newPriestName.trim());
+                        setOverridePriestContact(true);
                         setNewPriestName("");
                         setCustomInputMode(false);
                       }
@@ -1081,12 +1163,12 @@ export default function SevaCalendarSyncModal({
               )}
 
               {/* Dynamic Priest Seal Badge & Shloka Card */}
-              <div className="mt-2 rounded-xl border border-amber-300/80 bg-amber-100/60 p-2.5 shadow-sm">
+              <div className="rounded-xl border border-amber-300/80 bg-amber-100/60 p-2.5 shadow-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-xl" style={{ color: activePriest.sealColor }}>{activePriest.sealSymbol}</span>
                   <div>
                     <div className="text-xs font-bold text-amber-950">
-                      {activePriest.sealText[lang as keyof typeof activePriest.sealText] || activePriest.sealText.en}
+                      {overridePriestContact && customPriestName.trim() ? customPriestName : (activePriest.sealText[lang as keyof typeof activePriest.sealText] || activePriest.sealText.en)}
                     </div>
                     <div className="text-[11px] font-medium text-amber-800/80">
                       {activePriest.title[lang as keyof typeof activePriest.title] || activePriest.title.en}
@@ -1097,6 +1179,121 @@ export default function SevaCalendarSyncModal({
                   "{activePriest.shloka.sanskrit}"
                 </div>
               </div>
+
+              {/* Default Priest Summary or Editable Priest Card */}
+              {!overridePriestContact ? (
+                <div className="flex items-center justify-between rounded-xl bg-amber-50 p-2.5 border border-amber-300/80 text-xs">
+                  <div>
+                    <div className="font-bold text-amber-950 flex items-center gap-1.5">
+                      <span>{defaultPriest.sealSymbol}</span>
+                      <span>{defaultPriest.name[lang as keyof typeof defaultPriest.name] || defaultPriest.name.en}</span>
+                    </div>
+                    <div className="text-[11px] text-amber-800/80 mt-0.5">
+                      {lang.startsWith("kn") ? "ಪ್ರಧಾನ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ | ನೇರ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ: 9972339362" : "Chief Priest - Gokarna Kshetra | Direct Phone: 9972339362"}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                      ✓ {lang.startsWith("kn") ? "ಡಿಫಾಲ್ಟ್ ಅರ್ಚಕರು" : "Default Priest"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomPriestName(activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en);
+                        setCustomPriestPhone(activePriest.phone || "9972339362");
+                        setOverridePriestContact(true);
+                      }}
+                      className="text-amber-800 hover:text-amber-950 underline text-xs font-bold"
+                    >
+                      {lang.startsWith("kn") ? "ಸಂಪಾದಿಸಿ" : "Edit"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3 rounded-xl bg-amber-50/90 p-3.5 border border-amber-300/90 shadow-sm">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-amber-200">
+                    <span className="text-xs font-bold text-amber-900 flex items-center gap-1">
+                      <span>✏️</span>
+                      <span>{lang.startsWith("kn") ? "ಅರ್ಚಕರ ವಿವರಗಳನ್ನು ಸಂಪಾದಿಸಿ (Edit Priest Info)" : "Edit Priest Information"}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPriestId("shreeram-pandit");
+                        setCustomPriestName("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+                        setCustomPriestPhone("9972339362");
+                        setOverridePriestContact(false);
+                      }}
+                      className="text-[11px] text-amber-800 hover:text-amber-950 underline font-semibold"
+                    >
+                      {lang.startsWith("kn") ? "ಡಿಫಾಲ್ಟ್‌ಗೆ ಮರುಹೊಂದಿಸಿ (Reset to Default)" : "Reset to Default"}
+                    </button>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {/* Editable Priest Name with Mic Speech-to-Text */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-amber-900 mb-1">
+                        {lang.startsWith("kn") ? "ಅರ್ಚಕರ ಹೆಸರು (Priest Name) *" : "Priest Name *"}
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          type="text"
+                          value={customPriestName}
+                          onChange={(e) => setCustomPriestName(e.target.value)}
+                          placeholder={lang.startsWith("kn") ? "ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "e.g. Shreeram Pandit"}
+                          className="w-full rounded-lg border border-amber-300 bg-white pl-2.5 pr-8 py-2 text-xs font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          title={lang.startsWith("kn") ? "ಅರ್ಚಕರ ಹೆಸರು ಹೇಳಿ (Speak Priest Name)" : "Speak Priest Name"}
+                          onClick={() => startPriestVoiceInput("name", (val) => setCustomPriestName(val))}
+                          className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-xs transition ${
+                            listeningPriestField === "name" ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:text-amber-900"
+                          }`}
+                        >
+                          🎤
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Editable Priest Phone with Mic Speech-to-Text */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-amber-900 mb-1">
+                        {lang.startsWith("kn") ? "ನೇರ ಕರೆ ಸಂಖ್ಯೆ (Phone) *" : "Contact Phone *"}
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          type="tel"
+                          value={customPriestPhone}
+                          onChange={(e) => setCustomPriestPhone(e.target.value.replace(/[^\d]/g, "").slice(0, 10))}
+                          placeholder="9972339362"
+                          className="w-full rounded-lg border border-amber-300 bg-white pl-2.5 pr-8 py-2 text-xs font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          title={lang.startsWith("kn") ? "ಫೋನ್ ಸಂಖ್ಯೆ ಹೇಳಿ (Speak Phone Number)" : "Speak Phone Number"}
+                          onClick={() => startPriestVoiceInput("phone", (val) => {
+                            const parsed = parseSpokenPhoneNumber(val);
+                            setCustomPriestPhone(parsed || val.replace(/\D/g, "").slice(0, 10));
+                          })}
+                          className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-xs transition ${
+                            listeningPriestField === "phone" ? "bg-red-500 text-white animate-pulse" : "text-amber-700 hover:text-amber-900"
+                          }`}
+                        >
+                          🎤
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-amber-800/90 font-medium">
+                    {lang.startsWith("kn")
+                      ? "⚡ ಓವರ್‌ರೈಡ್ ಮಾಡಲಾದ ಹೆಸರು ಮತ್ತು ದೂರವಾಣಿ ಸಂಖ್ಯೆಯು ಸಿಂಕ್ ಆಗುವ ಕ್ಯಾಲೆಂಡರ್ ಹಾಗೂ ದೈನಂದಿನ ದರ್ಶನ ಪುಟದಲ್ಲಿ (9972339362 ಬದಲಿಗೆ) ಪ್ರತಿಫಲಿಸುತ್ತದೆ."
+                      : "⚡ Overridden name & phone will appear on Synced Calendar events and Daily Darshana call button (instead of 9972339362)."}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Notification Time Dropdown */}

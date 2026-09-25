@@ -92,10 +92,197 @@ export interface DinaBhavishyaPayload {
   deityName: string;
   siddhaMantra: string;
   japaRecommendation: string;
+  targetJapaCount?: number;
   priestBlessing: string;
 }
 
 const IN_MEMORY_CACHE = new Map<string, DinaBhavishyaPayload>();
+
+/**
+ * Sanitizes Latin transliterations (Kanglish, Hinglish, etc.) into authentic native script
+ * for Indic languages, ensuring zero English script leak into native language outputs.
+ */
+export function sanitizeDinaIndicText(text: string, lang: SevaLang): string {
+  if (lang === "en" || !text) return text;
+
+  let s = text;
+  if (lang === "kn") {
+    s = s.replace(/\bHari\s+O[hm]\b/gi, "ಹರಿ ಓಂ")
+         .replace(/\bOm\s+Namah\s+Shivaya\b/gi, "ಓಂ ನಮಃ ಶಿವಾಯ")
+         .replace(/\bOm\s+Namashivaya\b/gi, "ಓಂ ನಮಃ ಶಿವಾಯ")
+         .replace(/\bOm\s+Namo\s+Narayanaya\b/gi, "ಓಂ ನಮೋ ನಾರಾಯಣಾಯ")
+         .replace(/\bO[hm]\b/gi, "ಓಂ")
+         .replace(/\bAum\b/gi, "ಓಂ")
+         .replace(/\bNamaskara(galu)?\b/gi, "ನಮಸ್ಕಾರ")
+         .replace(/\bNamaskar(am)?\b/gi, "ನಮಸ್ಕಾರ")
+         .replace(/\bNamaste\b/gi, "ನಮಸ್ಕಾರ")
+         .replace(/\bSri\s+Gokarna\s+Mahabaleshwara\b/gi, "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ")
+         .replace(/\bShri\s+Gokarna\s+Mahabaleshwara\b/gi, "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ")
+         .replace(/\bSri\s+Gokarna\b/gi, "ಶ್ರೀ ಗೋಕರ್ಣ")
+         .replace(/\bShri\s+Gokarna\b/gi, "ಶ್ರೀ ಗೋಕರ್ಣ")
+         .replace(/\bSri\s+Rama\s+Pandit(\s+avare)?\b/gi, "ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರೇ")
+         .replace(/\bShreeram\s+Pandit(\s+avare)?\b/gi, "ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರೇ")
+         .replace(/\bSri\s+Rama\b/gi, "ಶ್ರೀರಾಮ")
+         .replace(/\bShreeram\b/gi, "ಶ್ರೀರಾಮ")
+         .replace(/\bSri\b/gi, "ಶ್ರೀ")
+         .replace(/\bShri\b/gi, "ಶ್ರೀ")
+         .replace(/\bShree\b/gi, "ಶ್ರೀ")
+         .replace(/\bPandit(ji)?\b/gi, "ಪಂಡಿತ್")
+         .replace(/\bKshetra\b/gi, "ಕ್ಷೇತ್ರ")
+         .replace(/\bMahabaleshwara?\b/gi, "ಮಹಾಬಲೇಶ್ವರ")
+         .replace(/\bGokarna\b/gi, "ಗೋಕರ್ಣ")
+         .replace(/\bki\s+Ja[iy]\b/gi, "ಗೆ ಜಯವಾಗಲಿ")
+         .replace(/\bge\s+ja[iy]\b/gi, "ಗೆ ಜಯವಾಗಲಿ")
+         .replace(/\bJa[iy]\b/gi, "ಜಯ")
+         .replace(/\bavare\b/gi, "ಅವರೇ")
+         .replace(/\bOverthinking\b/gi, "ಅತಿಯಾದ ಆಲೋಚನೆ")
+         .replace(/\bCaution\b/gi, "ಎಚ್ಚರಿಕೆ");
+  } else if (lang === "hi") {
+    s = s.replace(/\bHari\s+O[hm]\b/gi, "हरि ॐ")
+         .replace(/\bOm\s+Namah\s+Shivaya\b/gi, "ॐ नमः शिवाय")
+         .replace(/\bOm\s+Namashivaya\b/gi, "ॐ नमः शिवाय")
+         .replace(/\bOm\s+Namo\s+Narayanaya\b/gi, "ॐ नमो नारायणाय")
+         .replace(/\bO[hm]\b/gi, "ॐ")
+         .replace(/\bAum\b/gi, "ॐ")
+         .replace(/\bNamaskar(am)?\b/gi, "नमस्कार")
+         .replace(/\bNamaste\b/gi, "नमस्ते")
+         .replace(/\bSri\s+Gokarna\s+Mahabaleshwara\b/gi, "श्री गोकर्ण महाबलेश्वर")
+         .replace(/\bShri\s+Gokarna\s+Mahabaleshwara\b/gi, "श्री गोकर्ण महाबलेश्वर")
+         .replace(/\bSri\s+Gokarna\b/gi, "श्री गोकर्ण")
+         .replace(/\bShri\s+Gokarna\b/gi, "श्री गोकर्ण")
+         .replace(/\bSri\s+Rama\s+Pandit\b/gi, "श्रीराम पंडित")
+         .replace(/\bShreeram\s+Pandit\b/gi, "श्रीराम पंडित")
+         .replace(/\bSri\s+Rama\b/gi, "श्रीराम")
+         .replace(/\bShreeram\b/gi, "श्रीराम")
+         .replace(/\bSri\b/gi, "श्री")
+         .replace(/\bShri\b/gi, "श्री")
+         .replace(/\bShree\b/gi, "श्री")
+         .replace(/\bPandit(ji)?\b/gi, "पंडित")
+         .replace(/\bKshetra\b/gi, "क्षेत्र")
+         .replace(/\bMahabaleshwara?\b/gi, "महाबलेश्वर")
+         .replace(/\bGokarna\b/gi, "गोकर्ण")
+         .replace(/\bki\s+Ja[iy]\b/gi, "की जय")
+         .replace(/\bJa[iy]\b/gi, "जय")
+         .replace(/\bOverthinking\b/gi, "अत्यधिक सोच")
+         .replace(/\bCaution\b/gi, "सतर्कता");
+  } else if (lang === "te") {
+    s = s.replace(/\bHari\s+O[hm]\b/gi, "హరి ఓం")
+         .replace(/\bOm\s+Namah\s+Shivaya\b/gi, "ఓం నమః శివాయ")
+         .replace(/\bOm\s+Namashivaya\b/gi, "ఓం నమః శివాయ")
+         .replace(/\bOm\s+Namo\s+Narayanaya\b/gi, "ఓం నమో నారాయణాయ")
+         .replace(/\bO[hm]\b/gi, "ఓం")
+         .replace(/\bAum\b/gi, "ఓం")
+         .replace(/\bNamaskar(am|amu)?\b/gi, "నమస్కారం")
+         .replace(/\bNamaste\b/gi, "నమస్కారం")
+         .replace(/\bSri\s+Gokarna\s+Mahabaleshwara\b/gi, "శ్రీ గోకర్ణ మహాబలేశ్వర")
+         .replace(/\bShri\s+Gokarna\s+Mahabaleshwara\b/gi, "శ్రీ గోకర్ణ మహాబలేశ్వర")
+         .replace(/\bSri\s+Gokarna\b/gi, "శ్రీ గోకర్ణ")
+         .replace(/\bShri\s+Gokarna\b/gi, "శ్రీ గోకర్ణ")
+         .replace(/\bSri\s+Rama\s+Pandit\b/gi, "శ్రీరామ పండిట్")
+         .replace(/\bShreeram\s+Pandit\b/gi, "శ్రీరామ పండిట్")
+         .replace(/\bSri\s+Rama\b/gi, "శ్రీరామ")
+         .replace(/\bShreeram\b/gi, "శ్రీరామ")
+         .replace(/\bSri\b/gi, "శ్రీ")
+         .replace(/\bShri\b/gi, "శ్రీ")
+         .replace(/\bShree\b/gi, "శ్రీ")
+         .replace(/\bPandit(ji)?\b/gi, "పండిట్")
+         .replace(/\bKshetra\b/gi, "క్షేత్రం")
+         .replace(/\bMahabaleshwara?\b/gi, "మహాబలేశ్వర")
+         .replace(/\bGokarna\b/gi, "గోకర్ణ")
+         .replace(/\bki\s+Ja[iy]\b/gi, "కి జయం")
+         .replace(/\bJa[iy]\b/gi, "జయం")
+         .replace(/\bOverthinking\b/gi, "అధిక ఆలోచన")
+         .replace(/\bCaution\b/gi, "జాగ్రత్త");
+  } else if (lang === "ta") {
+    s = s.replace(/\bHari\s+O[hm]\b/gi, "ஹரி ஓம்")
+         .replace(/\bOm\s+Namah\s+Shivaya\b/gi, "ஓம் நம சிவாய")
+         .replace(/\bOm\s+Namashivaya\b/gi, "ஓம் நம சிவாய")
+         .replace(/\bOm\s+Namo\s+Narayanaya\b/gi, "ஓம் நமோ நாராயணாய")
+         .replace(/\bO[hm]\b/gi, "ஓம்")
+         .replace(/\bAum\b/gi, "ஓம்")
+         .replace(/\bNamaskar(am)?\b/gi, "வணக்கம்")
+         .replace(/\bNamaste\b/gi, "வணக்கம்")
+         .replace(/\bSri\s+Gokarna\s+Mahabaleshwara\b/gi, "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர்")
+         .replace(/\bShri\s+Gokarna\s+Mahabaleshwara\b/gi, "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர்")
+         .replace(/\bSri\s+Gokarna\b/gi, "ஸ்ரீ கோகர்ண")
+         .replace(/\bShri\s+Gokarna\b/gi, "ஸ்ரீ கோகர்ண")
+         .replace(/\bSri\s+Rama\s+Pandit\b/gi, "ஸ்ரீராம பண்டிதர்")
+         .replace(/\bShreeram\s+Pandit\b/gi, "ஸ்ரீராம பண்டிதர்")
+         .replace(/\bSri\s+Rama\b/gi, "ஸ்ரீராம")
+         .replace(/\bShreeram\b/gi, "ஸ்ரீராம")
+         .replace(/\bSri\b/gi, "ஸ்ரீ")
+         .replace(/\bShri\b/gi, "ஸ்ரீ")
+         .replace(/\bShree\b/gi, "ஸ்ரீ")
+         .replace(/\bPandit(ji)?\b/gi, "பண்டிதர்")
+         .replace(/\bKshetra\b/gi, "க்ஷேத்திரம்")
+         .replace(/\bMahabaleshwara?\b/gi, "மகாபலேஸ்வரர்")
+         .replace(/\bGokarna\b/gi, "கோகர்ண")
+         .replace(/\bki\s+Ja[iy]\b/gi, "வெற்றி உண்டாகட்டும்")
+         .replace(/\bJa[iy]\b/gi, "ஜெயம்")
+         .replace(/\bOverthinking\b/gi, "அதிக சிந்தனை")
+         .replace(/\bCaution\b/gi, "எச்சரிக்கை");
+  }
+  return s;
+}
+
+export function sanitizeDinaIndicPayload<T extends Partial<DinaBhavishyaPayload>>(payload: T, lang: SevaLang): T {
+  if (lang === "en" || !payload) return payload;
+  const clone = { ...payload };
+  if (clone.overview) clone.overview = sanitizeDinaIndicText(clone.overview, lang);
+  if (clone.careerAndFinance) clone.careerAndFinance = sanitizeDinaIndicText(clone.careerAndFinance, lang);
+  if (clone.healthAndFamily) clone.healthAndFamily = sanitizeDinaIndicText(clone.healthAndFamily, lang);
+  if (clone.travelAndInitiatives) clone.travelAndInitiatives = sanitizeDinaIndicText(clone.travelAndInitiatives, lang);
+  if (clone.overallVibe) clone.overallVibe = sanitizeDinaIndicText(clone.overallVibe, lang);
+  if (clone.priestBlessing) clone.priestBlessing = sanitizeDinaIndicText(clone.priestBlessing, lang);
+  return clone;
+}
+
+/**
+ * Strict Indic Script Validation Guard
+ * 
+ * Verifies that the Dina Bhavishya payload is written strictly in the native script
+ * corresponding to the selected language (e.g. Kannada script for 'kn', Devanagari for 'hi',
+ * Telugu for 'te', Tamil for 'ta').
+ * 
+ * Absolutely rejects Latin/English transliterations (Kanglish, Hinglish, etc.)
+ * so the devotee never sees Romanized text when an Indic language is selected.
+ */
+export function isDinaPayloadScriptValid(payload: Partial<DinaBhavishyaPayload>, lang: SevaLang): boolean {
+  if (lang === "en") return true;
+  const sample = [
+    payload.overview,
+    payload.careerAndFinance,
+    payload.healthAndFamily,
+    payload.travelAndInitiatives
+  ].filter(Boolean).join(" ");
+
+  if (!sample.trim()) return false;
+
+  const scriptRegexMap: Record<Exclude<SevaLang, "en">, RegExp> = {
+    kn: /[\u0C80-\u0CFF]/g, // Kannada
+    hi: /[\u0900-\u097F]/g, // Devanagari
+    te: /[\u0C00-\u0C7F]/g, // Telugu
+    ta: /[\u0B80-\u0BFF]/g  // Tamil
+  };
+
+  const regex = scriptRegexMap[lang as Exclude<SevaLang, "en">];
+  if (!regex) return true;
+
+  const nativeMatches = sample.match(regex) || [];
+  // Strip allowed time and measurement tokens (AM, PM, IST, min, hrs)
+  const cleanSample = sample.replace(/\b(AM|PM|IST|am|pm|min|hrs)\b/g, "");
+  const latinMatches = cleanSample.match(/[A-Za-z]/g) || [];
+
+  // Must have a healthy body of native characters
+  if (nativeMatches.length < 30) return false;
+
+  // STRICT ZERO TOLERANCE: For Indic languages, NO Latin words/transliterations allowed!
+  if (latinMatches.length > 0) {
+    return false;
+  }
+
+  return true;
+}
 
 export const CHANDRA_BALA_RULES: Record<number, Record<SevaLang, { title: string; desc: string; isFavorable: boolean }>> = {
   1: {
@@ -511,8 +698,12 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
 
   // 1. Tier 1: In-Memory Cache
   if (!forceRegenerate && IN_MEMORY_CACHE.has(cacheKey)) {
-    const cached = IN_MEMORY_CACHE.get(cacheKey)!;
-    return { ...cached, wasFutureRequested };
+    const cached = sanitizeDinaIndicPayload(IN_MEMORY_CACHE.get(cacheKey)!, lang);
+    if (isDinaPayloadScriptValid(cached, lang)) {
+      return { ...cached, wasFutureRequested };
+    } else {
+      IN_MEMORY_CACHE.delete(cacheKey);
+    }
   }
 
   // 2. Tier 2: LocalStorage Cache
@@ -522,8 +713,13 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
       if (raw) {
         const parsed = JSON.parse(raw) as DinaBhavishyaPayload;
         if (parsed && parsed.targetDate === effectiveDate) {
-          IN_MEMORY_CACHE.set(cacheKey, parsed);
-          return { ...parsed, wasFutureRequested };
+          const sanitized = sanitizeDinaIndicPayload(parsed, lang);
+          if (isDinaPayloadScriptValid(sanitized, lang)) {
+            IN_MEMORY_CACHE.set(cacheKey, sanitized);
+            return { ...sanitized, wasFutureRequested };
+          } else {
+            localStorage.removeItem(cacheKey);
+          }
         }
       }
     } catch {
@@ -539,11 +735,14 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
       if (snap.exists()) {
         const data = snap.data() as DinaBhavishyaPayload;
         if (data && data.targetDate === effectiveDate) {
-          IN_MEMORY_CACHE.set(cacheKey, data);
-          try {
-            localStorage.setItem(cacheKey, JSON.stringify(data));
-          } catch { /* Quota */ }
-          return { ...data, wasFutureRequested };
+          const sanitized = sanitizeDinaIndicPayload(data, lang);
+          if (isDinaPayloadScriptValid(sanitized, lang)) {
+            IN_MEMORY_CACHE.set(cacheKey, sanitized);
+            try {
+              localStorage.setItem(cacheKey, JSON.stringify(sanitized));
+            } catch { /* Quota */ }
+            return { ...sanitized, wasFutureRequested };
+          }
         }
       }
     } catch (err) {
@@ -552,7 +751,13 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
   }
 
   // 4. Authentic Astrological Computation
-  const devoteeDisplayName = devoteeName || (lang === "kn" ? "ಭಕ್ತರು" : "Devotee");
+  const devoteeDisplayName = devoteeName || (
+    lang === "kn" ? "ಭಕ್ತರು" :
+    lang === "te" ? "భక్తులు" :
+    lang === "ta" ? "பக்தர்கள்" :
+    lang === "hi" ? "भक्त" :
+    "Devotee"
+  );
   const targetDateObj = new Date(effectiveDate);
   const dayLordIdx = isNaN(targetDateObj.getDay()) ? 1 : targetDateObj.getDay();
   const weekdayName = WEEKDAY_NAMES[dayLordIdx]?.[lang] || WEEKDAY_NAMES[dayLordIdx]?.en || "Monday";
@@ -667,7 +872,7 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
       : `ಆರ್ಥಿಕ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಆತುರದ ನಿರ್ಧಾರಗಳು ಬೇಡ. ಖರ್ಚುಗಳ ಮೇಲೆ ಹಿಡಿತವಿರಲಿ. ಕಚೇರಿಯಲ್ಲಿ ಅನಗತ್ಯ ವಾದ-ವಿವಾದಗಳಿಂದ ದೂರವಿದ್ದು, ಪೂರ್ವನಿಯೋಜಿತ ಕರ್ತವ್ಯಗಳಿಗೆ ಮಾತ್ರ ಗಮನಹರಿಸಿ.`;
     
     healthAndFamily = chandraBalaHouse === 8
-      ? `ಚಂದ್ರಾಷ್ಟಮ ಸಂಚಾರವಿರುವುದರಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ಅತಿಯಾದ ಆಲೋಚನೆ (Overthinking) ಹಾಗೂ ಆತಂಕ ಕಾಡದಂತೆ ಧ್ಯಾನ ಮತ್ತು ಸಾತ್ವಿಕ ಆಹಾರ ಸೇವಿಸಿ. ಕುಟುಂಬದಲ್ಲಿ ಸಂಯಮದಿಂದ ವರ್ತಿಸಿ, "ಓಂ ನಮಃ ಶಿವಾಯ" ಜಪಿಸಿ.`
+      ? `ಚಂದ್ರಾಷ್ಟಮ ಸಂಚಾರವಿರುವುದರಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ಅತಿಯಾದ ಆಲೋಚನೆ ಹಾಗೂ ಆತಂಕ ಕಾಡದಂತೆ ಧ್ಯಾನ ಮತ್ತು ಸಾತ್ವಿಕ ಆಹಾರ ಸೇವಿಸಿ. ಕುಟುಂಬದಲ್ಲಿ ಸಂಯಮದಿಂದ ವರ್ತಿಸಿ, "ಓಂ ನಮಃ ಶಿವಾಯ" ಜಪಿಸಿ.`
       : `ದೈಹಿಕ ಚೈತನ್ಯ ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಸನ್ನತೆ ಉತ್ತಮವಾಗಿರುತ್ತದೆ. ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ವೃದ್ಧಿಯಾಗಲಿದ್ದು, ಗೃಹದಲ್ಲಿ ಶಾಂತಿಯುತ ಹಾಗೂ ಮಂಗಳಕರ ವಾತಾವರಣ ನೆಲೆಸಲಿದೆ.`;
     
     travelAndInitiatives = taraBalaInfo.isGood
@@ -736,6 +941,14 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
         ta: "Tamil"
       };
 
+      const nativeScriptInstructions: Record<SevaLang, string> = {
+        kn: "CRITICAL SCRIPT MANDATE: You MUST write 100% exclusively in authentic KANNADA SCRIPT (ಕನ್ನಡ ಲಿಪಿಯಲ್ಲಿ ಮಾತ್ರ ಬರೆಯಿರಿ). Absolutely NO Kanglish or Latin alphabet transliteration. Do NOT write English words like 'Hari Om' (write 'ಹರಿ ಓಂ'), 'Sri' (write 'ಶ್ರೀ'), 'Namaskara' (write 'ನಮಸ್ಕಾರ'). Every single character must be in native Kannada script.",
+        hi: "CRITICAL SCRIPT MANDATE: You MUST write 100% exclusively in DEVANAGARI SCRIPT (केवल देवनागरी लिपि में लिखें). Absolutely NO Hinglish or Latin alphabet transliteration. Do NOT write 'Hari Om' (write 'हरि ॐ'), 'Shri' (write 'श्री'). Every character must be in Devanagari script.",
+        te: "CRITICAL SCRIPT MANDATE: You MUST write 100% exclusively in TELUGU SCRIPT (తెలుగు లిపిలోనే రాయండి). Absolutely NO Latin alphabet transliteration. Do NOT write 'Hari Om' (write 'హరి ఓಂ'), 'Sri' (write 'శ్రీ').",
+        ta: "CRITICAL SCRIPT MANDATE: You MUST write 100% exclusively in TAMIL SCRIPT (தமிழ் எழுத்துக்களில் மட்டுமே எழுதுங்கள்). Absolutely NO Latin alphabet transliteration. Do NOT write 'Hari Om' (write 'ஹரி ஓம்'), 'Sri' (write 'ஸ்ரீ').",
+        en: "Write in clear, dignified English."
+      };
+
       const promptContext = `
 You are a revered, authoritative, deeply compassionate Vedic Astrologer from Sri Gokarna Kshetra providing an in-depth, face-to-face spoken daily horoscope ("ದಿನ ಭವಿಷ್ಯ") to devotee ${devoteeDisplayName}.
 
@@ -750,8 +963,10 @@ Cosmic Planetary Alignments for Today (${effectiveDate}, ${weekdayName}):
 - Rahu Kaala: ${kaala.rahu}
 
 TASK: Generate a vivid, spoken, deeply accurate 4-section daily horoscope in pure, natural ${langNames[lang]}.
+${nativeScriptInstructions[lang]}
+
 STRICT RULES:
-1. Speak DIRECTLY to the devotee in a warm, authoritative Pandit voice ("ನೋಡಿ, ಇಂದು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ...").
+1. Speak DIRECTLY to the devotee in a warm, authoritative Pandit voice ("ನೋಡಿ, ಇಂದು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ..."). If starting with a greeting, use pure native script (e.g. "ಹರಿ ಓಂ", "ಶ್ರೀ ಮಹಾಗಣಪತಯೇ ನಮಃ"). NEVER write "Hari Om", "Sri", or any Latin alphabet words.
 2. DO NOT use markdown bold asterisks (** or *). Output clean, readable text.
 3. ALL numbers must be in English digits (e.g. 1, 2, 3, 11:48 AM, 12:36 PM, 10th house, 11 times).
 4. Output EXACTLY 4 structured sections separated by triple hyphens "---":
@@ -768,17 +983,29 @@ Section 4: Travel, Auspicious Timing & Day Guidance (Abhijit Muhurtha & Lucky at
         "Generate comprehensive live Dina Bhavishya horoscope",
         promptContext,
         geminiApiKey,
-        lang === "kn" ? "kn" : "en",
+        lang,
         { raw: true, temperature: 0.2 }
       );
 
       if (response && response.includes("---")) {
         const parts = response.split("---").map(p => p.replace(/\*\*/g, "").replace(/\*/g, "").trim()).filter(p => p.length > 10);
         if (parts.length >= 4) {
-          overview = parts[0]!;
-          careerAndFinance = parts[1]!;
-          healthAndFamily = parts[2]!;
-          travelAndInitiatives = parts[3]!;
+          const rawCandidate = {
+            overview: parts[0]!,
+            careerAndFinance: parts[1]!,
+            healthAndFamily: parts[2]!,
+            travelAndInitiatives: parts[3]!
+          };
+          const candidate = sanitizeDinaIndicPayload(rawCandidate, lang);
+          // STRICT SCRIPT GUARD: Reject if candidate output contains Latin transliteration (Kanglish, etc.)
+          if (isDinaPayloadScriptValid(candidate, lang)) {
+            overview = candidate.overview;
+            careerAndFinance = candidate.careerAndFinance;
+            healthAndFamily = candidate.healthAndFamily;
+            travelAndInitiatives = candidate.travelAndInitiatives;
+          } else {
+            console.warn(`[DinaBhavishya] GenAI response rejected due to invalid script / transliteration for lang=${lang}. Preserving pure deterministic Indic fallback.`);
+          }
         }
       }
     } catch (err) {
@@ -786,7 +1013,10 @@ Section 4: Travel, Auspicious Timing & Day Guidance (Abhijit Muhurtha & Lucky at
     }
   }
 
-  const payload: DinaBhavishyaPayload = {
+  const dayLordTargetCounts: Record<number, number> = { 0: 12, 1: 11, 2: 21, 3: 17, 4: 19, 5: 16, 6: 23 };
+  const targetJapaCount = dayLordTargetCounts[dayLordIdx] || 16;
+
+  const rawPayload: DinaBhavishyaPayload = {
     targetDate: effectiveDate,
     formattedDate,
     weekdayName,
@@ -826,8 +1056,11 @@ Section 4: Travel, Auspicious Timing & Day Guidance (Abhijit Muhurtha & Lucky at
     deityName: deity.deityL5[lang] || deity.deityL5.en,
     siddhaMantra: deity.mantra,
     japaRecommendation: deity.countL5[lang] || deity.countL5.en,
+    targetJapaCount,
     priestBlessing
   };
+
+  const payload = sanitizeDinaIndicPayload(rawPayload, lang);
 
   // Save to Caches (In-Memory, LocalStorage, Firestore)
   IN_MEMORY_CACHE.set(cacheKey, payload);

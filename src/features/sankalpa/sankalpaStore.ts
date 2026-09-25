@@ -281,7 +281,7 @@ interface SankalpaStoreState {
   isLoading: boolean;
   activeUserId: string;
   loadSankalpas: (userId: string, devoteeName?: string, lang?: SevaLang) => Promise<UserSankalpaRecord[]>;
-  createSankalpa: (
+    createSankalpa: (
     userId: string,
     data: {
       category: SankalpaCategory;
@@ -290,7 +290,8 @@ interface SankalpaStoreState {
       sanskritPhrasing?: string;
       isActive?: boolean;
       devoteeName?: string;
-    }
+    },
+    lang?: SevaLang
   ) => Promise<UserSankalpaRecord>;
   updateSankalpa: (id: string, updates: Partial<UserSankalpaRecord>) => Promise<boolean>;
   deleteSankalpa: (id: string) => Promise<boolean>;
@@ -330,6 +331,21 @@ export const useSankalpaStore = create<SankalpaStoreState>((set, get) => ({
           void syncDevoteeSankalpaToCloud(item);
         }
         records = defaults;
+      } else {
+        // Dynamic Language Refresh: If records contain default seeded sankalpas, update them to match the active lang
+        for (const item of records) {
+          if (item.id.startsWith("sankalpa_def_")) {
+            const preset = SANKALPA_PRESETS.find((p) => p.category === item.category);
+            if (preset) {
+              item.title = getPresetTitle(preset, lang);
+              item.description = getPresetDescription(preset, lang);
+              item.sanskritPhrasing = getPresetSanskritPhrasing(preset, lang);
+              try {
+                await db.userSankalpas.put(item);
+              } catch {}
+            }
+          }
+        }
       }
 
       set({ sankalpas: records, isLoading: false });
@@ -342,7 +358,7 @@ export const useSankalpaStore = create<SankalpaStoreState>((set, get) => ({
     }
   },
 
-  createSankalpa: async (userId, data) => {
+  createSankalpa: async (userId, data, lang: SevaLang = "kn") => {
     const cleanId = (userId || "devotee_default").toLowerCase().trim();
     const id = `sankalpa_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const now = new Date().toISOString();
@@ -351,11 +367,11 @@ export const useSankalpaStore = create<SankalpaStoreState>((set, get) => ({
     const newRecord: UserSankalpaRecord = {
       id,
       userId: cleanId,
-      devoteeName: data.devoteeName || "ಭಕ್ತ",
+      devoteeName: data.devoteeName || (lang === "kn" ? "ಭಕ್ತ" : lang === "te" ? "భక్తుడు" : lang === "ta" ? "பக்தர்" : lang === "hi" ? "भक्त" : "Devotee"),
       category: data.category,
-      title: data.title.trim() || matchingPreset?.titleKn || "ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ",
-      description: data.description.trim() || matchingPreset?.descriptionKn || "",
-      sanskritPhrasing: data.sanskritPhrasing?.trim() || matchingPreset?.sanskritPhrasing || "ಸಮಸ್ತ ಮನೋರಥ ಸಿದ್ಧ್ಯರ್ಥಂ",
+      title: data.title.trim() || (matchingPreset ? getPresetTitle(matchingPreset, lang) : (lang === "kn" ? "ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ" : lang === "te" ? "వ్యక్తిగత సంకల్పం" : lang === "ta" ? "தனிப்பட்ட சங்கல்பம்" : lang === "hi" ? "व्यक्तिगत संकल्प" : "Personal Sankalpa")),
+      description: data.description.trim() || (matchingPreset ? getPresetDescription(matchingPreset, lang) : ""),
+      sanskritPhrasing: data.sanskritPhrasing?.trim() || (matchingPreset ? getPresetSanskritPhrasing(matchingPreset, lang) : "ಸಮಸ್ತ ಮನೋರಥ ಸಿದ್ಧ್ಯರ್ಥಂ"),
       isActive: data.isActive !== undefined ? data.isActive : true,
       createdAt: now,
       updatedAt: now

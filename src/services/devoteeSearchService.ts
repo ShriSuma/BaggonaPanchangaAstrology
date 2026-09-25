@@ -12,7 +12,8 @@ export interface DevoteeProfile {
   placeName: string;
   pincode?: string;
   gothra?: string;
-  gender?: "Male" | "Female";
+  gender?: "Male" | "Female" | "Other" | string;
+  maritalStatus?: "married" | "unmarried" | "separated" | string;
   rashi?: string;
   rashiSanskrit?: string;
   nakshatra?: string;
@@ -62,7 +63,8 @@ export async function fetchDevoteeDatabase(): Promise<DevoteeProfile[]> {
         placeName: clean(rec.placeName || (rec.pincode ? `PIN: ${rec.pincode}` : "Unknown Place")),
         pincode: rec.pincode,
         gothra: rec.gothra,
-        gender: "Male", // Default
+        gender: (rec.gender as any) || (rec.name?.includes("ಶ್ರೀಮತಿ") || rec.name?.includes("ಕುಮಾರಿ") || rec.name?.toLowerCase().includes("chaitra") || rec.name?.includes("ಚೈತ್ರಾ") ? "Female" : "Male"),
+        maritalStatus: (rec.maritalStatus as any) || undefined,
         rashi: rec.kundliData?.moonSign?.english,
         rashiSanskrit: rec.kundliData?.moonSign?.sanskrit,
         nakshatra: moonPlanet?.nakshatra?.english,
@@ -96,7 +98,8 @@ export async function fetchDevoteeDatabase(): Promise<DevoteeProfile[]> {
         placeName: clean(rec.placeName || existing?.placeName || (rec.pincode ? `PIN: ${rec.pincode}` : "Unknown Place")),
         pincode: rec.pincode || existing?.pincode,
         gothra: rec.gothra || existing?.gothra,
-        gender: existing?.gender || "Male",
+        gender: (rec as any).gender || existing?.gender || (rec.name?.includes("ಶ್ರೀಮತಿ") || rec.name?.includes("ಕುಮಾರಿ") || rec.name?.toLowerCase().includes("chaitra") || rec.name?.includes("ಚೈತ್ರಾ") ? "Female" : "Male"),
+        maritalStatus: (rec as any).maritalStatus || existing?.maritalStatus || undefined,
         rashi: rec.rashi || existing?.rashi,
         rashiSanskrit: rec.rashiSanskrit || existing?.rashiSanskrit,
         nakshatra: rec.nakshatra || existing?.nakshatra,

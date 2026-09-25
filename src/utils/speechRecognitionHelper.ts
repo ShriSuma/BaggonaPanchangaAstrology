@@ -244,3 +244,41 @@ export class SpeechRecognitionSession {
     }
   }
 }
+
+/**
+ * Parses spoken numbers in multiple languages (English, Kannada, Hindi, Telugu, Tamil)
+ * and extracts a clean numeric string (e.g. 10 digits for phone numbers).
+ */
+export function parseSpokenPhoneNumber(spoken: string): string {
+  if (!spoken) return "";
+  const wordMap: Record<string, string> = {
+    // English
+    zero: "0", one: "1", two: "2", three: "3", four: "4", five: "5",
+    six: "6", seven: "7", eight: "8", nine: "9",
+    // Kannada
+    ಸೊನ್ನೆ: "0", ಒಂದು: "1", ಎರಡು: "2", ಮೂರು: "3", ನಾಲ್ಕು: "4", ಐದು: "5",
+    ಆರು: "6", ಏಳು: "7", ಎಂಟು: "8", ಒಂಬತ್ತು: "9",
+    // Hindi
+    शून्य: "0", एक: "1", दो: "2", तीन: "3", चार: "4", पांच: "5",
+    छह: "6", सात: "7", आठ: "8", नौ: "9",
+    // Telugu
+    సున్నా: "0", ఒకటి: "1", రెండు: "2", మూడు: "3", నాలుగు: "4", ఐదు: "5",
+    ఆరు: "6", ఏడు: "7", ఎనిమిది: "8", తొమ్మిది: "9",
+    // Tamil
+    பூஜ்ஜியம்: "0", ஒன்று: "1", இரண்டு: "2", மூன்று: "3", நான்கு: "4", ஐந்து: "5",
+    ஆறு: "6", ஏழு: "7", எட்டு: "8", ஒன்பது: "9"
+  };
+
+  let clean = spoken.toLowerCase();
+  for (const [word, digit] of Object.entries(wordMap)) {
+    clean = clean.split(word).join(digit);
+  }
+  let digits = clean.replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith("0")) {
+    digits = digits.slice(1);
+  }
+  return digits.slice(0, 10);
+}
+

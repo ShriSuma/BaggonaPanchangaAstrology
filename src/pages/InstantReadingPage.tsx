@@ -48,6 +48,17 @@ export default function InstantReadingPage(): JSX.Element {
 
   const [loading, setLoading] = useState(true);
   const [synthesisData, setSynthesisData] = useState<PanchangaSynthesisOutput | null>(null);
+  const [maritalStatusOverride, setMaritalStatusOverride] = useState<string | undefined>(
+    session?.input?.maritalStatus
+  );
+
+  useEffect(() => {
+    if (session?.input?.maritalStatus) {
+      setMaritalStatusOverride(session.input.maritalStatus);
+    } else {
+      setMaritalStatusOverride(undefined);
+    }
+  }, [session?.input?.name, session?.input?.maritalStatus]);
   const [aiNarration, setAiNarration] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [dynamicTalkingPoints, setDynamicTalkingPoints] = useState<{
@@ -103,6 +114,9 @@ export default function InstantReadingPage(): JSX.Element {
     }
 
     const devoteeAge = calculateDevoteeAge(birthDate);
+    const resolvedMaritalStatus = maritalStatusOverride !== undefined
+      ? maritalStatusOverride
+      : session.input?.maritalStatus;
 
     const data = generatePanchangaAngaSynthesis(session.result, {
       birthDate,
@@ -112,7 +126,8 @@ export default function InstantReadingPage(): JSX.Element {
       lang: i18n.language,
       devoteeName: session.input.name || "Devotee",
       gender: session.input.gender,
-      devoteeAge
+      devoteeAge,
+      maritalStatus: resolvedMaritalStatus
     });
 
     setSynthesisData(data);
@@ -139,6 +154,7 @@ export default function InstantReadingPage(): JSX.Element {
 Devotee Name: ${session.input.name || "Devotee"}
 Gender: ${session.input.gender || "Not Specified"} (${isFemale ? "Female/ಸ್ತ್ರೀ" : "Male/ಪುರುಷ"})
 Age: ${devoteeAge} (${devoteeAge < 14 ? "Child / Minor (<14 years) - Protect innocence" : "Adult"})
+Marital Status: ${resolvedMaritalStatus || (devoteeAge >= 30 ? "Presumed Married (Grihastha - Adult)" : "Single/Unmarried")}
 Birth Details: ${birthDate} at ${birthTime} (Lat: ${lat}, Lon: ${lon})
 Lagna: ${session.result.lagnaRashi.english} (${session.result.lagnaRashi.sanskrit})
 Moon Rashi: ${session.result.moonSign.english} (${session.result.moonSign.sanskrit})
@@ -267,7 +283,7 @@ STRICT RULES:
         setAiLoading(false);
       }
     })();
-  }, [session, geminiApiKey, i18n.language]);
+  }, [session, geminiApiKey, i18n.language, maritalStatusOverride]);
 
   // Handle Speech Recognition for Voice Q&A
   const handleToggleVoice = () => {
@@ -334,6 +350,7 @@ STRICT RULES:
 Devotee: ${session.input.name || "Devotee"}
 Gender: ${session.input.gender || "Not Specified"} (${isFemaleQ ? "Female/ಸ್ತ್ರೀ" : "Male/ಪುರುಷ"})
 Age: ${devoteeAge} (${isChild ? "Child / Minor (<14 years)" : "Adult (>=14 years)"})
+Marital Status: ${(maritalStatusOverride ?? session.input?.maritalStatus) || (devoteeAge >= 30 ? "Presumed Married (Grihastha - Adult)" : "Single/Unmarried")}
 Lagna: ${session.result.lagnaRashi.english} | Moon: ${session.result.moonSign.english} | Nakshatra: ${session.result.planets.find(p => p.name === "Moon")?.nakshatra.english}
 Panchanga 5-Angas: Vara=${synthesisData.panchanga.vara.nameKn}, Tithi=${synthesisData.panchanga.tithi.nameKn}, Yoga=${synthesisData.panchanga.yoga.nameKn}, Karana=${synthesisData.panchanga.karana.nameKn}
 Technical Placements: 4th=${synthesisData.currentDiagnosis.technicalAspects.fourthHouseDetail}, 7th=${synthesisData.currentDiagnosis.technicalAspects.seventhHouseDetail}, 10th=${synthesisData.currentDiagnosis.technicalAspects.tenthHouseDetail}.
@@ -534,6 +551,44 @@ STRICT RULES:
             <p className="text-xs text-stone-700 mt-1">
               ಲಗ್ನ: <b className="text-amber-900">{toKannadaRashi(session.result.lagnaRashi.english)}</b> • ರಾಶಿ: <b className="text-amber-900">{toKannadaRashi(session.result.moonSign.english)}</b> • ನಕ್ಷತ್ರ: <b className="text-amber-900">{toKannadaNakshatra(session.result.planets.find(p => p.name === "Moon")?.nakshatra.english)} (ಪಾದ {session.result.moonPada})</b> • ಪ್ರಸ್ತುತ ದಶಾ: <b className="text-amber-800">{cleanAstrologyText(currentDiagnosis?.prasthuthaSthiti.runningDashaSummary.split("|")[0] || "")}</b>
             </p>
+            <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-amber-300/40">
+              <span className="text-xs font-bold text-amber-950 flex items-center gap-1">
+                <span>ವಿವಾಹ ಸ್ಥಿತಿ:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setMaritalStatusOverride("married")}
+                className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
+                  (maritalStatusOverride ?? session.input?.maritalStatus ?? (devoteeAge >= 30 ? "married" : "unmarried")) === "married"
+                    ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                    : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                💍 ವಿವಾಹಿತರು (Married)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMaritalStatusOverride("unmarried")}
+                className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
+                  (maritalStatusOverride ?? session.input?.maritalStatus ?? (devoteeAge >= 30 ? "married" : "unmarried")) === "unmarried"
+                    ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                    : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                🌸 ಅವಿವಾಹಿತರು (Unmarried)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMaritalStatusOverride("separated")}
+                className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
+                  (maritalStatusOverride ?? session.input?.maritalStatus) === "separated"
+                    ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                    : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                ⚡ ಪ್ರತ್ಯೇಕಿತರು (Separated)
+              </button>
+            </div>
           </div>
           <div className="px-4 py-2 rounded-2xl bg-amber-200/70 border border-amber-400 text-right">
             <span className="text-[10px] text-amber-900 uppercase font-black block">ಪಂಚಾಂಗ ವಿಶ್ಲೇಷಣೆ</span>

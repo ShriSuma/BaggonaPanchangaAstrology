@@ -98,6 +98,8 @@ export interface KundliHistoryDoc {
   longitude?: number;
   pincode?: string;
   gothra?: string;
+  gender?: string;
+  maritalStatus?: string;
 
   // Discrete Astrological Fields
   rashi: string;
