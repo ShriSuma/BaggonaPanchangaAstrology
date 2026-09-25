@@ -213,6 +213,13 @@ export default function KundliPage(): JSX.Element {
       : `✅ Filled details for ${devotee.name}.`;
     setDevoteeAutoFillToast(msg);
     setTimeout(() => setDevoteeAutoFillToast(""), 8000);
+
+    // 7. Smoothly scroll to the top of the form so the filled details & Generate button are in clear view
+    if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+      try {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch {}
+    }
   };
 
   const [pinResolving, setPinResolving] = useState(false);

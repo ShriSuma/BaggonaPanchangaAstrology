@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import {
   fetchDevoteeDatabase,
@@ -21,6 +22,9 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
   const { i18n } = useTranslation();
   const lang = i18n?.language || "kn";
   const isKn = lang.startsWith("kn");
+  const isHi = lang.startsWith("hi");
+  const isTe = lang.startsWith("te");
+  const isTa = lang.startsWith("ta");
 
   const [devotees, setDevotees] = useState<DevoteeProfile[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -30,6 +34,16 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Lock body scroll while modal is open to keep view stable
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   // Fetch devotees whenever modal opens
   useEffect(() => {
@@ -53,9 +67,9 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
         if (isMounted) {
           setDevotees(data);
           setLoading(false);
-          // Focus search input on open
+          // Focus search input on open safely without jumping page scroll
           setTimeout(() => {
-            searchInputRef.current?.focus();
+            searchInputRef.current?.focus({ preventScroll: true });
           }, 150);
         }
       })
@@ -145,16 +159,18 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
 
   if (!isOpen) return null;
 
-  return (
+  const currentLang = (["kn", "hi", "te", "ta", "en"].find((l) => lang.startsWith(l)) || "kn") as "kn" | "hi" | "te" | "ta" | "en";
+
+  const modalJsx = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-1.5 xs:p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md transition-all animate-fadeIn"
+      className="fixed inset-0 z-[99999] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto"
       role="dialog"
       aria-modal="true"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-lg max-h-[92dvh] max-h-[92vh] flex flex-col bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-2 border-amber-400/60 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden text-amber-50">
+      <div className="w-full max-w-lg my-auto max-h-[88vh] flex flex-col bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-2 border-amber-400/60 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden text-amber-50">
         {/* Header */}
         <div className="p-2.5 sm:p-4 bg-gradient-to-r from-amber-950/90 via-slate-900 to-amber-950/90 border-b border-amber-400/30 flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
@@ -164,16 +180,26 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <h3 className="text-xs sm:text-sm md:text-base font-black text-amber-200 tracking-wide leading-tight">
-                  {isKn ? "ಭಕ್ತರ ಜಾತಕ ಡೇಟಾಬೇಸ್" : "Devotee Kundali Database"}
+                  {currentLang === "kn" ? "ಭಕ್ತರ ಜಾತಕ ಡೇಟಾಬೇಸ್" :
+                   currentLang === "hi" ? "भक्त जन्म कुण्डली डेटाबेस" :
+                   currentLang === "te" ? "భక్తుల జాతక డేటాబేస్" :
+                   currentLang === "ta" ? "பக்தர்கள் ஜாதக தரவுத்தளம்" :
+                   "Devotee Kundali Database"}
                 </h3>
                 <span className="text-[9px] sm:text-[10px] uppercase font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 whitespace-nowrap">
-                  {isKn ? "ಪುರೋಹಿತರ ಆವೃತ್ತಿ" : "Priest Portal"}
+                  {currentLang === "kn" ? "ಪುರೋಹಿತರ ಆವೃತ್ತಿ" :
+                   currentLang === "hi" ? "पुरोहित पोर्टल" :
+                   currentLang === "te" ? "పురోహిత పోర్టల్" :
+                   currentLang === "ta" ? "புரோகிதர் போர்டல்" :
+                   "Priest Portal"}
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-amber-100/70 truncate">
-                {isKn
-                  ? "ಕನ್ನಡ / English ಹುಡುಕಾಟ ಹಾಗೂ ಮೈಕ್ ಧ್ವನಿ ಆಯ್ಕೆ"
-                  : "Instant cross-language prefix search & mic voice input"}
+                {currentLang === "kn" ? "ಕನ್ನಡ / English ಹುಡುಕಾಟ ಹಾಗೂ ಮೈಕ್ ಧ್ವನಿ ಆಯ್ಕೆ" :
+                 currentLang === "hi" ? "हिन्दी / English खोज एवं माइक वॉइस इनपुट" :
+                 currentLang === "te" ? "తెలుగు / English శోధన & మైక్ వాయిస్ ఇన్‌పుట్" :
+                 currentLang === "ta" ? "தமிழ் / English தேடல் மற்றும் மைக் குரல் உள்ளீடு" :
+                 "Instant cross-language search & mic voice input"}
               </p>
             </div>
           </div>
@@ -197,9 +223,11 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
-                isKn
-                  ? "ಹೆಸರು ಟೈಪ್ ಮಾಡಿ / ಮೈಕ್ ಬಳಸಿ..."
-                  : "Type devotee name or use mic..."
+                currentLang === "kn" ? "ಹೆಸರು ಟೈಪ್ ಮಾಡಿ / ಮೈಕ್ ಬಳಸಿ..." :
+                currentLang === "hi" ? "नाम टाइप करें या माइक का उपयोग करें..." :
+                currentLang === "te" ? "పేరు టైప్ చేయండి లేదా మైక్ ఉపయోగించండి..." :
+                currentLang === "ta" ? "பெயரை தட்டச்சு செய்க அல்லது மைக்கை பயன்படுத்துக..." :
+                "Type devotee name or use mic..."
               }
               className="w-full h-10 sm:h-12 pl-8 sm:pl-10 pr-20 sm:pr-24 rounded-xl sm:rounded-2xl bg-slate-950/90 border border-amber-400/40 text-amber-100 placeholder-amber-200/40 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-300 shadow-inner transition"
             />
@@ -210,7 +238,7 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
                   type="button"
                   onClick={() => setSearchQuery("")}
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-amber-200/70 hover:text-white flex items-center justify-center text-xs active:scale-95 transition"
-                  title={isKn ? "ತೆರವುಗೊಳಿಸಿ" : "Clear"}
+                  title={currentLang === "kn" ? "ತೆರವುಗೊಳಿಸಿ" : "Clear"}
                 >
                   ✕
                 </button>
@@ -225,7 +253,13 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
                     ? "bg-rose-600 text-white animate-pulse ring-2 ring-rose-400 shadow-lg"
                     : "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-400/40 active:scale-95"
                 }`}
-                title={isKn ? "ಮೈಕ್ ಮೂಲಕ ಹೆಸರು ಹೇಳಿ" : "Speak name using microphone"}
+                title={
+                  currentLang === "kn" ? "ಮೈಕ್ ಮೂಲಕ ಹೆಸರು ಹೇಳಿ" :
+                  currentLang === "hi" ? "माइक से नाम बोलें" :
+                  currentLang === "te" ? "మైక్ ద్వారా పేరు చెప్పండి" :
+                  currentLang === "ta" ? "மைக் மூலம் பெயர் கூறவும்" :
+                  "Speak name using microphone"
+                }
               >
                 <span className="text-xs sm:text-sm">🎙️</span>
               </button>
@@ -236,7 +270,13 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
           {isListening && (
             <div className="flex items-center justify-center gap-2 py-1.5 px-3 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs font-semibold animate-pulse shadow-xs">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-              <span>{isKn ? "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದೆ... ಹೆಸರನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಹೇಳಿ 🎙️" : "Listening... Speak devotee name clearly 🎙️"}</span>
+              <span>
+                {currentLang === "kn" ? "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದೆ... ಹೆಸರನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಹೇಳಿ 🎙️" :
+                 currentLang === "hi" ? "सुन रहा हूँ... नाम स्पष्ट बोलें 🎙️" :
+                 currentLang === "te" ? "వింటోంది... పేరు స్పష్టంగా చెప్పండి 🎙️" :
+                 currentLang === "ta" ? "கேட்கிறது... பெயரை தெளிவாகக் கூறவும் 🎙️" :
+                 "Listening... Speak devotee name clearly 🎙️"}
+              </span>
             </div>
           )}
 
@@ -247,12 +287,16 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
           {/* Status Counter */}
           <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-amber-200/70 px-1">
             <span>
-              {isKn ? "ಲಭ್ಯವಿರುವ ಭಕ್ತರು: " : "Devotees Available: "}
+              {currentLang === "kn" ? "ಲಭ್ಯವಿರುವ ಭಕ್ತರು: " :
+               currentLang === "hi" ? "उपलब्ध भक्त: " :
+               currentLang === "te" ? "అందుబాటులో ఉన్న భక్తులు: " :
+               currentLang === "ta" ? "உள்ள பக்தர்கள்: " :
+               "Devotees Available: "}
               <strong className="text-amber-300 font-bold">{filteredDevotees.length}</strong>
               {devotees.length > 0 && ` / ${devotees.length}`}
             </span>
             <span className="text-[9px] sm:text-[10px] text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-400/20">
-              {isKn ? "ದ್ವಿಮುಖ ಕನ್ನಡ ⇄ En" : "Bi-directional Kn ⇄ En"}
+              {currentLang === "kn" ? "ದ್ವಿಮುಖ ಕನ್ನಡ ⇄ En" : "Bi-directional ⇄ En"}
             </span>
           </div>
         </div>
@@ -263,7 +307,11 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
             <div className="py-12 flex flex-col items-center justify-center gap-3">
               <div className="w-8 h-8 border-3 border-amber-400/30 border-t-amber-400 rounded-full animate-spin"></div>
               <p className="text-xs text-amber-200/80 font-medium">
-                {isKn ? "ಡೇಟಾಬೇಸ್‌ನಿಂದ ಭಕ್ತರ ಮಾಹಿತಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ..." : "Loading devotees from database..."}
+                {currentLang === "kn" ? "ಡೇಟಾಬೇಸ್‌ನಿಂದ ಭಕ್ತರ ಮಾಹಿತಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ..." :
+                 currentLang === "hi" ? "डेटाबेस से भक्तों का विवरण लोड हो रहा है..." :
+                 currentLang === "te" ? "డేటాబేస్ నుండి భక్తుల వివరాలు లోడ్ అవుతున్నాయి..." :
+                 currentLang === "ta" ? "தரவுத்தளத்திலிருந்து விவரங்கள் ஏற்றப்படுகின்றன..." :
+                 "Loading devotees from database..."}
               </p>
             </div>
           ) : filteredDevotees.length === 0 ? (
@@ -271,19 +319,31 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
               <div className="text-3xl mb-2">🔍</div>
               <p className="text-xs sm:text-sm font-bold text-amber-200">
                 {searchQuery
-                  ? isKn
+                  ? currentLang === "kn"
                     ? `"${searchQuery}" ಹೆಸರಿನ ಭಕ್ತರು ಕಂಡುಬಂದಿಲ್ಲ`
+                    : currentLang === "hi"
+                    ? `"${searchQuery}" नाम के कोई भक्त नहीं मिले`
+                    : currentLang === "te"
+                    ? `"${searchQuery}" పేరుతో భక్తులు కనుగొనబడలేదు`
+                    : currentLang === "ta"
+                    ? `"${searchQuery}" பெயரில் பக்தர்கள் காணப்படவில்லை`
                     : `No devotees matching "${searchQuery}" found`
-                  : isKn
+                  : currentLang === "kn"
                   ? "ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಇನ್ನೂ ಯಾವುದೇ ಜಾತಕಗಳು ಉಳಿಸಲಾಗಿಲ್ಲ"
+                  : currentLang === "hi"
+                  ? "डेटाबेस में अभी तक कोई कुंडली सुरक्षित नहीं है"
+                  : currentLang === "te"
+                  ? "డేటాబేస్‌లో ఇంకా ఏ జాతకాలు భద్రపరచబడలేదు"
+                  : currentLang === "ta"
+                  ? "தரவுத்தளத்தில் இன்னும் ஜாதகங்கள் சேமிக்கப்படவில்லை"
                   : "No saved Kundlis found in database"}
               </p>
               <p className="text-[11px] text-amber-200/60 mt-1">
                 {searchQuery
-                  ? isKn
+                  ? currentLang === "kn"
                     ? "ಕನ್ನಡ ಅಥವಾ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಬೇರೆ ಅಕ್ಷರಗಳನ್ನು ಟೈಪ್ ಮಾಡಿ ಪ್ರಯತ್ನಿಸಿ."
-                    : "Try typing different letters in Kannada or English."
-                  : isKn
+                    : "Try typing different letters in native script or English."
+                  : currentLang === "kn"
                   ? "ಕುಂಡಲಿ ರಚಿಸಿದ ನಂತರ ಅದು ಇಲ್ಲಿ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಉಳಿಯುತ್ತದೆ."
                   : "Generated Kundlis will automatically be saved and appear here."}
               </p>
@@ -293,7 +353,7 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
                   onClick={() => setSearchQuery("")}
                   className="mt-3 px-3 py-1.5 rounded-xl border border-amber-400/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold transition active:scale-95"
                 >
-                  {isKn ? "ಹುಡುಕಾಟ ತೆರವುಗೊಳಿಸಿ" : "Clear Search"}
+                  {currentLang === "kn" ? "ಹುಡುಕಾಟ ತೆರವುಗೊಳಿಸಿ" : "Clear Search"}
                 </button>
               )}
             </div>
@@ -382,7 +442,13 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
                         tabIndex={-1}
                         className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-[11px] sm:text-xs shadow hover:brightness-110 active:scale-95 flex items-center gap-1 transition-all pointer-events-none"
                       >
-                        <span>{isKn ? "ಆಯ್ಕೆ" : "Select"}</span>
+                        <span>
+                          {currentLang === "kn" ? "ಆಯ್ಕೆ" :
+                           currentLang === "hi" ? "चयन" :
+                           currentLang === "te" ? "ఎంపిక" :
+                           currentLang === "ta" ? "தேர்வு" :
+                           "Select"}
+                        </span>
                         <span className="text-xs font-bold">➔</span>
                       </button>
                     </div>
@@ -395,16 +461,31 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
 
         {/* Footer */}
         <div className="p-2.5 sm:p-3 bg-slate-950/95 border-t border-amber-400/20 flex items-center justify-between gap-2 text-[10px] sm:text-[11px] text-amber-200/70 shrink-0">
-          <span className="truncate">💡 {isKn ? "ಕಾರ್ಡ್ ಒತ್ತಿ ತಕ್ಷಣ ಭರ್ತಿ ಮಾಡಿ" : "Tap card to auto-fill all inputs"}</span>
+          <span className="truncate">
+            {currentLang === "kn" ? "💡 ಕಾರ್ಡ್ ಒತ್ತಿ ತಕ್ಷಣ ಭರ್ತಿ ಮಾಡಿ" :
+             currentLang === "hi" ? "💡 कार्ड पर टैप करके विवरण भरें" :
+             currentLang === "te" ? "💡 వివరాలను నింపడానికి కార్డుపై నొక్కండి" :
+             currentLang === "ta" ? "💡 விவரங்களை நிரப்ப கார்டை தொடவும்" :
+             "💡 Tap card to auto-fill all inputs"}
+          </span>
           <button
             type="button"
             onClick={onClose}
             className="px-3 py-1.5 rounded-xl border border-amber-400/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold transition active:scale-95 shrink-0"
           >
-            {isKn ? "ಮುಚ್ಚಿ (Close)" : "Close"}
+            {currentLang === "kn" ? "ಮುಚ್ಚಿ (Close)" :
+             currentLang === "hi" ? "बंद करें (Close)" :
+             currentLang === "te" ? "మూసివేయి (Close)" :
+             currentLang === "ta" ? "மூடுக (Close)" :
+             "Close"}
           </button>
         </div>
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined") {
+    return createPortal(modalJsx, document.body);
+  }
+  return modalJsx;
 };

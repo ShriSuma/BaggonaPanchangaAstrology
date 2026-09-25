@@ -10,6 +10,208 @@ import {
 } from "../../features/sankalpa/sankalpaStore";
 import type { SankalpaCategory, UserSankalpaRecord } from "../../db/indexedDb";
 
+interface ManageModalTexts {
+  title: string;
+  subtitle: string;
+  statsSummary: (total: number, active: number) => string;
+  statsHint: string;
+  addNewBtn: string;
+  editTitle: string;
+  createTitle: string;
+  cancelBtn: string;
+  categoryLabel: string;
+  titleLabel: string;
+  titlePlaceholder: string;
+  descLabel: string;
+  descPlaceholder: string;
+  sanskritLabel: string;
+  sanskritPlaceholder: string;
+  saveBtn: string;
+  saveChangesBtn: string;
+  emptyState: string;
+  activeBadge: string;
+  inactiveBadge: string;
+  editBtn: string;
+  deleteConfirm: string;
+  chantingLabel: string;
+  closeBtn: string;
+  startPoojaBtn: string;
+  toasts: {
+    titleRequired: string;
+    updated: string;
+    created: string;
+    deleted: string;
+  };
+}
+
+const MANAGE_MODAL_I18N: Record<SevaLang, ManageModalTexts> = {
+  kn: {
+    title: "ವೈಯಕ್ತಿಕ ದೈವಿಕ ಸಂಕಲ್ಪಗಳ ನಿರ್ವಹಣೆ",
+    subtitle: "೩-೫ ನಿಮಿಷಗಳ ನಿತ್ಯ ಪೂಜೆಯಲ್ಲಿ ಈ ಸಂಕಲ್ಪಗಳು ನೇರವಾಗಿ ಮಂತ್ರದಲ್ಲಿ ಸೇರ್ಪಡೆಯಾಗುತ್ತವೆ",
+    statsSummary: (total, active) => `ಒಟ್ಟು ಸಂಕಲ್ಪಗಳು: ${total} · ಇಂದಿನ ಪೂಜೆಯಲ್ಲಿ ಸಕ್ರಿಯ: ${active}`,
+    statsHint: "✔️ ಗುರುತು ಹಾಕಲಾದ (Active) ಸಂಕಲ್ಪಗಳು ಮಾತ್ರ ಇಂದಿನ ಪೂಜಾ ಮಂತ್ರದಲ್ಲಿ ಪಠಣವಾಗುತ್ತವೆ.",
+    addNewBtn: "ಹೊಸ ಸಂಕಲ್ಪ ಸೇರಿಸಿ",
+    editTitle: "✏️ ಸಂಕಲ್ಪ ತಿದ್ದುಪಡಿ",
+    createTitle: "✨ ಹೊಸ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಸೇರಿಸಿ",
+    cancelBtn: "ರದ್ದು",
+    categoryLabel: "೧. ಶಾಸ್ತ್ರೋಕ್ತ ವರ್ಗವನ್ನು ಆರಿಸಿ (Quick Presets):",
+    titleLabel: "೨. ಸಂಕಲ್ಪದ ಶೀರ್ಷಿಕೆ (Sankalpa Title):",
+    titlePlaceholder: "ಉದಾ: ಕುಟುಂಬ ಆರೋಗ್ಯ & ಆಯುರ್ವೃದ್ಧಿ",
+    descLabel: "೩. ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಪ್ರಾರ್ಥನಾ ವಿವರ (Devotional Prayer Details):",
+    descPlaceholder: "ನನ್ನ ಕುಟುಂಬದ ಸಮಸ್ತ ಸದಸ್ಯರಿಗೆ ಸಕಲ ಸುಖ-ಶಾಂತಿ, ಆರೋಗ್ಯ ಲಭಿಸಲಿ...",
+    sanskritLabel: "೪. ಮಂತ್ರದಲ್ಲಿ ಪಠಣವಾಗುವ ಸಂಸ್ಕೃತ ವಾಕ್ಯ (Sanskrit Phrasing):",
+    sanskritPlaceholder: "ಮಮ ಕುಟುಂಬಸ್ಯ ಸರ್ವೇಷಾಂ ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯಾಭಿವೃದ್ಧಿ ಸಿದ್ಧ್ಯರ್ಥಂ",
+    saveBtn: "✨ ಸಂಕಲ್ಪವನ್ನು ಉಳಿಸಿ",
+    saveChangesBtn: "💾 ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ",
+    emptyState: "ಯಾವುದೇ ಸಂಕಲ್ಪಗಳು ಲಭ್ಯವಿಲ್ಲ. 'ಹೊಸ ಸಂಕಲ್ಪ ಸೇರಿಸಿ' ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ.",
+    activeBadge: "ಪೂಜೆಯಲ್ಲಿ ಸಕ್ರಿಯ",
+    inactiveBadge: "ನಿಷ್ಕ್ರಿಯ",
+    editBtn: "ತಿದ್ದು",
+    deleteConfirm: "ಈ ಸಂಕಲ್ಪವನ್ನು ಡಿಲೀಟ್ ಮಾಡಲು ನೀವು ಖಚಿತವೇ?",
+    chantingLabel: "ಮಂತ್ರ ಪಠಣ:",
+    closeBtn: "ಮುಚ್ಚಿ",
+    startPoojaBtn: "೩-೫ ನಿಮಿಷಗಳ ಪೂಜೆ ಆರಂಭಿಸಿ",
+    toasts: {
+      titleRequired: "ದಯವಿಟ್ಟು ಸಂಕಲ್ಪದ ಶೀರ್ಷಿಕೆಯನ್ನು ನಮೂದಿಸಿ",
+      updated: "ಸಂಕಲ್ಪ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!",
+      created: "ಹೊಸ ಸಂಕಲ್ಪ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ!",
+      deleted: "ಸಂಕಲ್ಪ ಡಿಲೀಟ್ ಮಾಡಲಾಗಿದೆ"
+    }
+  },
+  hi: {
+    title: "व्यक्तिगत वैदिक संकल्प प्रबंधन",
+    subtitle: "३-५ मिनट की नित्य पूजा में ये संकल्प सीधे मंत्र में सम्मिलित होंगे",
+    statsSummary: (total, active) => `कुल संकल्प: ${total} · आज की पूजा में सक्रिय: ${active}`,
+    statsHint: "✔️ चिह्नित (सक्रिय) संकल्प ही आज के पूजा मंत्र में पढ़े जाएंगे।",
+    addNewBtn: "नया संकल्प जोड़ें",
+    editTitle: "✏️ संकल्प संपादित करें",
+    createTitle: "✨ नया पवित्र संकल्प जोड़ें",
+    cancelBtn: "रद्द करें",
+    categoryLabel: "१. वैदिक श्रेणी चुनें (त्वरित विकल्प):",
+    titleLabel: "२. संकल्प का शीर्षक:",
+    titlePlaceholder: "उदा: परिवार का उत्तम स्वास्थ्य एवं दीर्घायु",
+    descLabel: "३. व्यक्तिगत प्रार्थना का विवरण:",
+    descPlaceholder: "परिवार के सभी सदस्यों को सुख-शांति एवं उत्तम स्वास्थ्य मिले...",
+    sanskritLabel: "४. मंत्र में उच्चारित होने वाला संस्कृत वाक्य:",
+    sanskritPlaceholder: "मम कुटुम्बस्य सर्वेषां आयुरारोग्य ऐश्वर्याभिवृद्धि सिद्ध्यर्थं",
+    saveBtn: "✨ संकल्प सुरक्षित करें",
+    saveChangesBtn: "💾 परिवर्तन सुरक्षित करें",
+    emptyState: "कोई संकल्प उपलब्ध नहीं है। ऊपर 'नया संकल्प जोड़ें' पर क्लिक करें।",
+    activeBadge: "पूजा में सक्रिय",
+    inactiveBadge: "निष्क्रिय",
+    editBtn: "संपादित करें",
+    deleteConfirm: "क्या आप इस संकल्प को हटाना चाहते हैं?",
+    chantingLabel: "मंत्र पाठ:",
+    closeBtn: "बंद करें",
+    startPoojaBtn: "३-५ मिनट की वैदिक पूजा प्रारंभ करें",
+    toasts: {
+      titleRequired: "कृपया संकल्प का शीर्षक दर्ज करें",
+      updated: "संकल्प सफलतापूर्वक अद्यतन किया गया!",
+      created: "नया संकल्प सफलतापूर्वक जोड़ा गया!",
+      deleted: "संकल्प हटा दिया गया है"
+    }
+  },
+  te: {
+    title: "వ్యక్తిగత వైదిక సంకల్పాల నిర్వహణ",
+    subtitle: "3-5 నిమిషాల నిత్య పూజలో ఈ సంకల్పాలు నేరుగా మంత్రంలో చేరుతాయి",
+    statsSummary: (total, active) => `మొత్తం సంకల్పాలు: ${total} · నేటి పూజలో సక్రియం: ${active}`,
+    statsHint: "✔️ ఎంపిక చేసిన (సక్రియ) సంకల్పాలు మాత్రమే నేటి పూజా మంత్రంలో పఠించబడతాయి.",
+    addNewBtn: "కొత్త సంకల్పం జోడించండి",
+    editTitle: "✏️ సంకల్పం సవరించండి",
+    createTitle: "✨ కొత్త పవిత్ర సంకల్పం చేర్చండి",
+    cancelBtn: "రద్దు",
+    categoryLabel: "1. వైదిక వర్గాన్ని ఎంచుకోండి:",
+    titleLabel: "2. సంకల్పం శీర్షిక:",
+    titlePlaceholder: "ఉదా: కుటుంబ ఆరోగ్యం & దీర్ఘాయుష్షు",
+    descLabel: "3. వ్యక్తిగత ప్రార్థన వివరాలు:",
+    descPlaceholder: "కుటుంబ సభ్యులందరికీ సుఖశాంతులు, ఆరోగ్యం లభించాలి...",
+    sanskritLabel: "4. మంత్రంలో పఠించబడే సంస్కృత వాక్యం:",
+    sanskritPlaceholder: "మమ కుటుంబస్య సర్వేషాం ఆయురారోగ్య ఐశ్వర్యాభివృద్ధి సిద్ధ్యర్థం",
+    saveBtn: "✨ సంకల్పం సేవ్ చేయండి",
+    saveChangesBtn: "💾 మార్పులను సేవ్ చేయండి",
+    emptyState: "సంకల్పాలు ఏవీ లేవు. పైన 'కొత్త సంకల్పం జోడించండి' క్లిక్ చేయండి.",
+    activeBadge: "పూజలో సక్రియం",
+    inactiveBadge: "నిష్క్రియం",
+    editBtn: "సవరించండి",
+    deleteConfirm: "మీరు ఖచ్చితంగా ఈ సంకల్పాన్ని తొలగించాలనుకుంటున్నారా?",
+    chantingLabel: "మంత్ర పఠనం:",
+    closeBtn: "మూసివేయి",
+    startPoojaBtn: "3-5 నిమిషాల వైదిక పూజ ప్రారంభించండి",
+    toasts: {
+      titleRequired: "దయచేసి సంకల్పం శీర్షికను నమోదు చేయండి",
+      updated: "సంకల్పం విజయవంతంగా నవీకరించబడింది!",
+      created: "కొత్త సంకల్పం విజయవంతంగా చేర్చబడింది!",
+      deleted: "సంకల్పం తొలగించబడింది"
+    }
+  },
+  ta: {
+    title: "தனிப்பட்ட வைதீக சங்கல்ப மேலாண்மை",
+    subtitle: "3-5 நிமிட தினசரி பூஜையில் இந்த சங்கல்பங்கள் நேரடியாக மந்திரத்தில் இணைக்கப்படும்",
+    statsSummary: (total, active) => `மொத்த சங்கல்பங்கள்: ${total} · இன்றைய பூஜையில் பயன்பாட்டில்: ${active}`,
+    statsHint: "✔️ தேர்வு செய்யப்பட்ட (Active) சங்கல்பங்கள் மட்டுமே இன்றைய பூஜை மந்திரத்தில் ஓதப்படும்.",
+    addNewBtn: "புதிய சங்கல்பம் சேர்க்க",
+    editTitle: "✏️ சங்கல்பம் திருத்த",
+    createTitle: "✨ புதிய புனித சங்கல்பம் சேர்க்க",
+    cancelBtn: "ரத்து",
+    categoryLabel: "1. வைதீக வகையைத் தேர்ந்தெடுக்கவும்:",
+    titleLabel: "2. சங்கல்ப தலைப்பு:",
+    titlePlaceholder: "உதா: குடும்ப ஆரோக்கியம் & நீண்ட ஆயுள்",
+    descLabel: "3. தனிப்பட்ட பிரார்த்தனை விவரம்:",
+    descPlaceholder: "குடும்பத்தினர் அனைவருக்கும் சுக அமைதி, நல்வாழ்வு கிடைக்கட்டும்...",
+    sanskritLabel: "4. மந்திரத்தில் ஓதப்படும் சமஸ்கிருத வாக்கியம்:",
+    sanskritPlaceholder: "மம குடும்பஸ்ய சர்வேஷாம் ஆயுராரோக்ய ஐஸ்வர்யாபிவிருத்தி சித்யர்த்தம்",
+    saveBtn: "✨ சங்கல்பத்தை சேமிக்க",
+    saveChangesBtn: "💾 மாற்றங்களைச் சேமிக்க",
+    emptyState: "சங்கல்பங்கள் எதுவும் இல்லை. மேலே 'புதிய சங்கல்பம் சேர்க்க' என்பதை அழுத்தவும்.",
+    activeBadge: "பூஜையில் பயன்பாட்டில்",
+    inactiveBadge: "செயலற்றது",
+    editBtn: "திருத்த",
+    deleteConfirm: "இந்த சங்கல்பத்தை நிச்சயமாக நீக்க விரும்புகிறீர்களா?",
+    chantingLabel: "மந்திர பாராயணம்:",
+    closeBtn: "மூடுக",
+    startPoojaBtn: "3-5 நிமிட வைதீக பூஜையைத் தொடங்கவும்",
+    toasts: {
+      titleRequired: "தயவுசெய்து சங்கல்பத்தின் தலைப்பை உள்ளிடவும்",
+      updated: "சங்கல்பம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!",
+      created: "புதிய சங்கல்பம் வெற்றிகரமாக சேர்க்கப்பட்டது!",
+      deleted: "சங்கல்பம் நீக்கப்பட்டது"
+    }
+  },
+  en: {
+    title: "Manage Personal Vedic Sankalpas",
+    subtitle: "These active prayers will be dynamically chanted in your 3-5 Min Daily Vedic Pooja",
+    statsSummary: (total, active) => `Total Sankalpas: ${total} · Active in Today's Pooja: ${active}`,
+    statsHint: "Checked items will be recited by the priest in your daily morning Sankalpa.",
+    addNewBtn: "Add New Sankalpa",
+    editTitle: "✏️ Edit Sankalpa",
+    createTitle: "✨ Add New Sacred Sankalpa",
+    cancelBtn: "Cancel",
+    categoryLabel: "1. Choose Vedic Category:",
+    titleLabel: "2. Sankalpa Title:",
+    titlePlaceholder: "e.g., Family Health & Longevity",
+    descLabel: "3. Devotional Prayer Details:",
+    descPlaceholder: "Detailed prayer intention for peace, health and success...",
+    sanskritLabel: "4. Sanskrit Mantra Phrasing:",
+    sanskritPlaceholder: "Mama kuṭumbasya sarveṣāṁ āyurārogya aiśvaryābhivṛddhi siddhyarthaṁ",
+    saveBtn: "Add to Daily Sankalpa",
+    saveChangesBtn: "Save Changes",
+    emptyState: "No Sankalpas found. Click 'Add New Sankalpa' above.",
+    activeBadge: "Active in Pooja",
+    inactiveBadge: "Inactive",
+    editBtn: "Edit",
+    deleteConfirm: "Are you sure you want to delete this Sankalpa?",
+    chantingLabel: "Mantra Phrasing:",
+    closeBtn: "Close",
+    startPoojaBtn: "Start 3-5 Min Vedic Pooja",
+    toasts: {
+      titleRequired: "Please enter a Sankalpa title",
+      updated: "Sankalpa successfully updated!",
+      created: "New Sankalpa created successfully!",
+      deleted: "Sankalpa deleted"
+    }
+  }
+};
+
 export interface ManageSankalpaModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,6 +237,8 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
     deleteSankalpa,
     toggleSankalpaActive
   } = useSankalpaStore();
+
+  const t = MANAGE_MODAL_I18N[lang] || MANAGE_MODAL_I18N.kn;
 
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -67,7 +271,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleInput.trim()) {
-      showToast("ದಯವಿಟ್ಟು ಸಂಕಲ್ಪದ ಶೀರ್ಷಿಕೆಯನ್ನು ನಮೂದಿಸಿ (Please enter title)");
+      showToast(t.toasts.titleRequired);
       return;
     }
 
@@ -76,20 +280,20 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
         category: selectedCategory,
         title: titleInput.trim(),
         description: descInput.trim(),
-        sanskritPhrasing: sanskritInput.trim() || "ಸಮಸ್ತ ಮನೋರಥ ಸಿದ್ಧ್ಯರ್ಥಂ"
+        sanskritPhrasing: sanskritInput.trim() || t.sanskritPlaceholder
       });
-      showToast("ಸಂಕಲ್ಪ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ (Updated)!");
+      showToast(t.toasts.updated);
       setEditingId(null);
     } else {
       await createSankalpa(userId, {
         category: selectedCategory,
         title: titleInput.trim(),
         description: descInput.trim(),
-        sanskritPhrasing: sanskritInput.trim() || "ಸಮಸ್ತ ಮನೋರಥ ಸಿದ್ಧ್ಯರ್ಥಂ",
+        sanskritPhrasing: sanskritInput.trim() || t.sanskritPlaceholder,
         isActive: true,
         devoteeName
       });
-      showToast("ಹೊಸ ಸಂಕಲ್ಪ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ (Created)!");
+      showToast(t.toasts.created);
       setIsAddingNew(false);
     }
 
@@ -166,15 +370,10 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
             <span style={{ fontSize: 28 }}>📜</span>
             <div>
               <h2 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#FEF3C7" }}>
-                {lang === "kn" ? "ವೈಯಕ್ತಿಕ ದೈವಿಕ ಸಂಕಲ್ಪಗಳ ನಿರ್ವಹಣೆ" :
-                 lang === "hi" ? "व्यक्तिगत वैदिक संकल्प प्रबंधन" :
-                 lang === "te" ? "వ్యక్తిగత వైదిక సంకల్పాల నిర్వహణ" :
-                 lang === "ta" ? "தனிப்பட்ட வைதீக சங்கல்ப மேலாண்மை" :
-                 "Manage Personal Vedic Sankalpas"}
+                {t.title}
               </h2>
               <p style={{ margin: 0, fontSize: 11.5, color: "#FDE68A", marginTop: 2 }}>
-                {lang === "kn" ? "೩-೫ ನಿಮಿಷಗಳ ನಿತ್ಯ ಪೂಜೆಯಲ್ಲಿ ಈ ಸಂಕಲ್ಪಗಳು ನೇರವಾಗಿ ಮಂತ್ರದಲ್ಲಿ ಸೇರ್ಪಡೆಯಾಗುತ್ತವೆ" :
-                 "These active prayers will be dynamically chanted in your 3-5 Min Daily Vedic Pooja"}
+                {t.subtitle}
               </p>
             </div>
           </div>
@@ -236,12 +435,10 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
           >
             <div>
               <span style={{ fontSize: 12.5, fontWeight: 800, color: "#92400E" }}>
-                {lang === "kn" ? `ಒಟ್ಟು ಸಂಕಲ್ಪಗಳು: ${sankalpas.length} · ಇಂದಿನ ಪೂಜೆಯಲ್ಲಿ ಸಕ್ರಿಯ: ${activeCount}` :
-                 `Total Sankalpas: ${sankalpas.length} · Active in Today's Pooja: ${activeCount}`}
+                {t.statsSummary(sankalpas.length, activeCount)}
               </span>
               <div style={{ fontSize: 11.5, color: "#B45309", marginTop: 2 }}>
-                {lang === "kn" ? "✔️ ಗುರುತು ಹಾಕಲಾದ (Active) ಸಂಕಲ್ಪಗಳು ಮಾತ್ರ ಇಂದಿನ ಪೂಜಾ ಮಂತ್ರದಲ್ಲಿ ಪಠಣವಾಗುತ್ತವೆ." :
-                 "Checked items will be recited by the priest in your daily morning Sankalpa."}
+                {t.statsHint}
               </div>
             </div>
             {!isAddingNew && (
@@ -269,7 +466,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                 }}
               >
                 <span>➕</span>
-                <span>{lang === "kn" ? "ಹೊಸ ಸಂಕಲ್ಪ ಸೇರಿಸಿ" : "Add New Sankalpa"}</span>
+                <span>{t.addNewBtn}</span>
               </button>
             )}
           </div>
@@ -291,22 +488,21 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #FDE68A", paddingBottom: 8 }}>
                 <span style={{ fontSize: 13.5, fontWeight: 900, color: "#78350F" }}>
-                  {editingId ? (lang === "kn" ? "✏️ ಸಂಕಲ್ಪ ತಿದ್ದುಪಡಿ (Edit Sankalpa)" : "✏️ Edit Sankalpa") :
-                               (lang === "kn" ? "✨ ಹೊಸ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಸೇರಿಸಿ (Create Sankalpa)" : "✨ Add New Sankalpa")}
+                  {editingId ? t.editTitle : t.createTitle}
                 </span>
                 <button
                   type="button"
                   onClick={handleCancelForm}
                   style={{ background: "none", border: "none", color: "#92400E", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
                 >
-                  {lang === "kn" ? "ರದ್ದುಮಾಡಿ (Cancel)" : "Cancel"}
+                  {t.cancelBtn}
                 </button>
               </div>
 
               {/* Presets Quick Picker */}
               <div>
                 <label style={{ display: "block", fontSize: 11.5, fontWeight: 800, color: "#92400E", marginBottom: 6 }}>
-                  {lang === "kn" ? "೧. ಶಾಸ್ತ್ರೋಕ್ತ ವರ್ಗವನ್ನು ಆರಿಸಿ (Quick Presets):" : "1. Choose Vedic Category:"}
+                  {t.categoryLabel}
                 </label>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {SANKALPA_PRESETS.map((preset) => {
@@ -342,14 +538,14 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
               {/* Title Input */}
               <div>
                 <label style={{ display: "block", fontSize: 11.5, fontWeight: 800, color: "#92400E", marginBottom: 4 }}>
-                  {lang === "kn" ? "೨. ಸಂಕಲ್ಪದ ಶೀರ್ಷಿಕೆ (Sankalpa Title):" : "2. Sankalpa Title:"}
+                  {t.titleLabel}
                 </label>
                 <input
                   type="text"
                   required
                   value={titleInput}
                   onChange={(e) => setTitleInput(e.target.value)}
-                  placeholder={lang === "kn" ? "ಉದಾ: ಕುಟುಂಬ ಆರೋಗ್ಯ & ಆಯುರ್ವೃದ್ಧಿ" : "e.g., Good Health & Long Life"}
+                  placeholder={t.titlePlaceholder}
                   style={{
                     width: "100%",
                     padding: "9px 12px",
@@ -367,13 +563,13 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
               {/* Description Input */}
               <div>
                 <label style={{ display: "block", fontSize: 11.5, fontWeight: 800, color: "#92400E", marginBottom: 4 }}>
-                  {lang === "kn" ? "೩. ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಪ್ರಾರ್ಥನಾ ವಿವರ (Devotional Prayer Details):" : "3. Devotional Prayer Details:"}
+                  {t.descLabel}
                 </label>
                 <textarea
                   rows={2}
                   value={descInput}
                   onChange={(e) => setDescInput(e.target.value)}
-                  placeholder={lang === "kn" ? "ನನ್ನ ಕುಟುಂಬದ ಸಮಸ್ತ ಸದಸ್ಯರಿಗೆ ಸಕಲ ಸುಖ-ಶಾಂತಿ, ಆರೋಗ್ಯ ಲಭಿಸಲಿ..." : "Detailed prayer intention..."}
+                  placeholder={t.descPlaceholder}
                   style={{
                     width: "100%",
                     padding: "8px 12px",
@@ -391,13 +587,13 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
               {/* Sanskrit Phrasing Input */}
               <div>
                 <label style={{ display: "block", fontSize: 11.5, fontWeight: 800, color: "#92400E", marginBottom: 4 }}>
-                  {lang === "kn" ? "೪. ಮಂತ್ರದಲ್ಲಿ ಪಠಣವಾಗುವ ಸಂಸ್ಕೃತ ವಾಕ್ಯ (Sanskrit Phrasing for Mantra):" : "4. Sanskrit Mantra Phrasing:"}
+                  {t.sanskritLabel}
                 </label>
                 <input
                   type="text"
                   value={sanskritInput}
                   onChange={(e) => setSanskritInput(e.target.value)}
-                  placeholder="ಮಮ ಕುಟುಂಬಸ್ಯ ಸರ್ವೇಷಾಂ ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯಾಭಿವೃದ್ಧಿ ಸಿದ್ಧ್ಯರ್ಥಂ"
+                  placeholder={t.sanskritPlaceholder}
                   style={{
                     width: "100%",
                     padding: "8px 12px",
@@ -428,7 +624,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                     cursor: "pointer"
                   }}
                 >
-                  {lang === "kn" ? "ರದ್ದು" : "Cancel"}
+                  {t.cancelBtn}
                 </button>
                 <button
                   type="submit"
@@ -444,8 +640,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                     boxShadow: "0 2px 8px rgba(180, 83, 9, 0.3)"
                   }}
                 >
-                  {editingId ? (lang === "kn" ? "💾 ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ" : "Save Changes") :
-                               (lang === "kn" ? "✨ ಸಂಕಲ್ಪವನ್ನು ಉಳಿಸಿ" : "Add to Daily Sankalpa")}
+                  {editingId ? t.saveChangesBtn : t.saveBtn}
                 </button>
               </div>
             </form>
@@ -455,11 +650,22 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {sankalpas.length === 0 ? (
               <div style={{ textAlign: "center", padding: "24px 16px", color: "#92400E", fontSize: 13 }}>
-                {lang === "kn" ? "ಯಾವುದೇ ಸಂಕಲ್ಪಗಳು ಲಭ್ಯವಿಲ್ಲ. 'ಹೊಸ ಸಂಕಲ್ಪ ಸೇರಿಸಿ' ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ." : "No Sankalpas found. Click 'Add New Sankalpa' above."}
+                {t.emptyState}
               </div>
             ) : (
-              sankalpas.map((sankalpa, idx) => {
-                const preset = SANKALPA_PRESETS.find((p) => p.category === sankalpa.category);
+              sankalpas.map((sankalpa) => {
+                const preset = SANKALPA_PRESETS.find(
+                  (p) =>
+                    p.category === sankalpa.category ||
+                    p.titleKn === sankalpa.title ||
+                    p.titleEn === sankalpa.title ||
+                    p.titleHi === sankalpa.title ||
+                    p.titleTe === sankalpa.title ||
+                    p.titleTa === sankalpa.title
+                );
+                const displayTitle = preset ? getPresetTitle(preset, lang) : sankalpa.title;
+                const displayDesc = preset ? getPresetDescription(preset, lang) : sankalpa.description;
+                const displaySanskrit = preset ? getPresetSanskritPhrasing(preset, lang) : sankalpa.sanskritPhrasing;
                 return (
                   <div
                     key={sankalpa.id}
@@ -493,7 +699,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span style={{ fontSize: 16 }}>{preset?.icon || "✨"}</span>
                             <span style={{ fontSize: 13.5, fontWeight: 900, color: "#78350F" }}>
-                              {sankalpa.title}
+                              {displayTitle}
                             </span>
                             {sankalpa.isActive ? (
                               <span
@@ -507,7 +713,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                                   border: "1px solid #31C48D"
                                 }}
                               >
-                                {lang === "kn" ? "ಪೂಜೆಯಲ್ಲಿ ಸಕ್ರಿಯ" : "Active in Pooja"}
+                                {t.activeBadge}
                               </span>
                             ) : (
                               <span
@@ -520,7 +726,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                                   borderRadius: 10
                                 }}
                               >
-                                {lang === "kn" ? "ನಿಷ್ಕ್ರಿಯ" : "Inactive"}
+                                {t.inactiveBadge}
                               </span>
                             )}
                           </div>
@@ -543,14 +749,14 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                             cursor: "pointer"
                           }}
                         >
-                          ✏️ {lang === "kn" ? "ತಿದ್ದು" : "Edit"}
+                          ✏️ {t.editBtn}
                         </button>
                         <button
                           type="button"
                           onClick={async () => {
-                            if (window.confirm(lang === "kn" ? "ಈ ಸಂಕಲ್ಪವನ್ನು ಡಿಲೀಟ್ ಮಾಡಲು ನೀವು ಖಚಿತವೇ?" : "Are you sure you want to delete this Sankalpa?")) {
+                            if (window.confirm(t.deleteConfirm)) {
                               await deleteSankalpa(sankalpa.id);
-                              showToast("ಸಂಕಲ್ಪ ಡಿಲೀಟ್ ಮಾಡಲಾಗಿದೆ");
+                              showToast(t.toasts.deleted);
                             }
                           }}
                           style={{
@@ -569,15 +775,15 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
                       </div>
                     </div>
 
-                    {sankalpa.description && (
+                    {displayDesc && (
                       <p style={{ margin: 0, fontSize: 12, color: "#4B5563", lineHeight: 1.4, paddingLeft: 28 }}>
-                        {sankalpa.description}
+                        {displayDesc}
                       </p>
                     )}
 
-                    {sankalpa.sanskritPhrasing && (
+                    {displaySanskrit && (
                       <div style={{ paddingLeft: 28, fontSize: 11.5, color: "#B45309", fontStyle: "italic" }}>
-                        🕉️ <span style={{ fontWeight: 600 }}>ಮಂತ್ರ ಪಠಣ:</span> "{sankalpa.sanskritPhrasing}"
+                        🕉️ <span style={{ fontWeight: 600 }}>{t.chantingLabel}</span> "{displaySanskrit}"
                       </div>
                     )}
                   </div>
@@ -613,7 +819,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
               cursor: "pointer"
             }}
           >
-            {lang === "kn" ? "ಮುಚ್ಚಿ (Close)" : "Close"}
+            {t.closeBtn}
           </button>
 
           {onOpenPooja && (
@@ -639,7 +845,7 @@ export const ManageSankalpaModal: React.FC<ManageSankalpaModalProps> = ({
               }}
             >
               <span>🪔</span>
-              <span>{lang === "kn" ? "೩-೫ ನಿಮಿಷಗಳ ಪೂಜೆ ಆರಂಭಿಸಿ" : "Start 3-5 Min Vedic Pooja"}</span>
+              <span>{t.startPoojaBtn}</span>
             </button>
           )}
         </div>

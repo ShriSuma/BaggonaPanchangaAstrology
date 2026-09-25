@@ -23,6 +23,118 @@ export interface DailyBlessingShareCardProps {
   customDeitySource?: string;
 }
 
+const KSHETRA_INSIGNIA: Record<SupportedLang, string> = {
+  kn: "✨ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ✨",
+  hi: "✨ ॥ बग्गोण पंचांग ज्योतिष क्षेत्र • गोकर्ण सन्निधि ॥ ✨",
+  te: "✨ ॥ బగ్గోణ పంచాంగ జ్యోతిష్య క్షేత్రం • గోకర్ణ సన్నిధి ॥ ✨",
+  ta: "✨ ॥ பக்கோண பஞ்சாங்க ஜோதிட க்ஷேத்திரம் • கோகர்ண சந்நிதி ॥ ✨",
+  en: "✨ ॥ Baggona Panchanga Kshetra • Gokarna Sannidhi ॥ ✨"
+};
+
+const SHUBHA_MUHURTHA_LABEL: Record<SupportedLang, string> = {
+  kn: "⏳ ಶುಭ ಮುಹೂರ್ತ:",
+  hi: "⏳ शुभ मुहूर्त:",
+  te: "⏳ శుభ ముహూర్తం:",
+  ta: "⏳ சுப முகூர்த்தம்:",
+  en: "⏳ Auspicious Muhurtha:"
+};
+
+const CARD_HEADER_TITLE: Record<SupportedLang, string> = {
+  kn: "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ & ಆಶೀರ್ವಾದ ಎನ್‌ವಲಪ್",
+  hi: "दैनिक शुभ प्रभात संदेश एवं आशीर्वाद",
+  te: "నిత్య శుభోదయ సందేశం & ఆశీర్వాదం",
+  ta: "தினசரி காலை வணக்க செய்தி & ஆசீர்வாதம்",
+  en: "Daily Good Morning & Shloka Blessings"
+};
+
+const CARD_HEADER_SUBTITLE: Record<SupportedLang, (theme: string) => string> = {
+  kn: (theme) => `೩೬೫ ದಿನಗಳ ನಿತ್ಯ ಶ್ಲೋಕ, ದೈವಿಕ ಕಲಾಚಿತ್ರ & ವಾಟ್ಸಾಪ್ ಹಂಚಿಕೆ (${theme})`,
+  hi: (theme) => `365 दिन दैनिक श्लोक, सूर्योदय कला एवं WhatsApp साझा (${theme})`,
+  te: (theme) => `365 రోజుల నిత్య శ్లోకం, సూర్యోదయ కళ & WhatsApp భాగస్వామ్యం (${theme})`,
+  ta: (theme) => `365 நாட்கள் தினசரி ஸ்லோகம், சூரியோதய கலை & WhatsApp பகிர்வு (${theme})`,
+  en: (theme) => `365 Days Daily Shloka, Sunrise Art & WhatsApp Share (${theme})`
+};
+
+const MORNING_BLESSING_LABEL: Record<SupportedLang, string> = {
+  kn: "☀️ ಶುಭೋದಯ ಸಂದೇಶ (Morning Blessing)",
+  hi: "☀️ शुभ प्रभात संदेश",
+  te: "☀️ శుభోదయ సందేశం",
+  ta: "☀️ காலை வணக்க செய்தி",
+  en: "☀️ Good Morning Blessing"
+};
+
+const DAILY_SHLOKA_LABEL: Record<SupportedLang, (src: string) => string> = {
+  kn: (src) => `🪔 ಇಂದಿನ ದೈವಿಕ ಶ್ಲೋಕ (${src})`,
+  hi: (src) => `🪔 आज का दिव्य श्लोक (${src})`,
+  te: (src) => `🪔 నేటి దివ్య శ್లోకం (${src})`,
+  ta: (src) => `🪔 இன்றைய தெய்வீக ஸ்லோகம் (${src})`,
+  en: (src) => `🪔 Daily Sacred Shloka (${src})`
+};
+
+const GOOD_KARMA_LABEL: Record<SupportedLang, string> = {
+  kn: "🌱 ಇಂದಿನ ಪುಣ್ಯ ಕಾರ್ಯ (Good Karma):",
+  hi: "🌱 आज का पुण्य कर्म:",
+  te: "🌱 నేటి పుణ్య కార్యం:",
+  ta: "🌱 இன்றைய புண்ணிய காரியம்:",
+  en: "🌱 Today's Good Karma:"
+};
+
+const LIFE_INSIGHT_LABEL: Record<SupportedLang, string> = {
+  kn: "💡 ಸ್ಫೂರ್ತಿದಾಯಕ ಚಿಂತನೆ (Life Insight):",
+  hi: "💡 प्रेरक विचार (Life Insight):",
+  te: "💡 స్ఫూర్తిదాయక ఆలోచన:",
+  ta: "💡 ஊக்கமளிக்கும் சிந்தனை:",
+  en: "💡 Life Insight:"
+};
+
+const LOCATION_LABEL: Record<SupportedLang, string> = {
+  kn: "📍 ರಥಬೀದಿ, ಗೋಕರ್ಣ",
+  hi: "📍 रथबीदि, गोकर्ण",
+  te: "📍 రథవీధి, గోకర్ణ",
+  ta: "📍 ரதவீதி, கோகர்ணம்",
+  en: "📍 Ratha Beedi, Gokarna"
+};
+
+const CHIEF_PRIEST_LABEL: Record<SupportedLang, string> = {
+  kn: "ಮುಖ್ಯ ಅರ್ಚಕರು",
+  hi: "मुख्य अर्चक",
+  te: "ప్రధాన అర్చకులు",
+  ta: "முதன்மை அர்ச்சகர்",
+  en: "Chief Priest"
+};
+
+const DEFAULT_PRIEST_NAME: Record<SupportedLang, string> = {
+  kn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+  hi: "श्रीराम पंडित",
+  te: "శ్రీరామ్ పండిత్",
+  ta: "ஸ்ரீராம் பண்டித்",
+  en: "Shreeram Pandit"
+};
+
+const SHARE_WHATSAPP_BTN: Record<SupportedLang, string> = {
+  kn: "WhatsApp ನಲ್ಲಿ ಹಂಚಿ (Clean Share)",
+  hi: "WhatsApp पर साझा करें",
+  te: "WhatsApp లో పంచుకోండి",
+  ta: "WhatsApp இல் பகிரவும்",
+  en: "Share on WhatsApp"
+};
+
+const DOWNLOAD_BTN: Record<SupportedLang, { ready: string; generating: string }> = {
+  kn: { ready: "ಕಾರ್ಡ್ ಇಮೇಜ್ ಡೌನ್‌ಲೋಡ್ (PNG)", generating: "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." },
+  hi: { ready: "कार्ड चित्र डाउनलोड (PNG)", generating: "तैयार हो रहा है..." },
+  te: { ready: "కార్డ్ చిత్రం డౌన్‌లోడ్ (PNG)", generating: "సిద్ధమవుతోంది..." },
+  ta: { ready: "கார்டு படம் பதிவிறக்கு (PNG)", generating: "தயாராகிறது..." },
+  en: { ready: "Download Card Image", generating: "Generating Image..." }
+};
+
+const COPY_BTN: Record<SupportedLang, { copy: string; copied: string }> = {
+  kn: { copy: "ಇಮೇಜ್ ಕಾಪಿ / ಡೌನ್‌ಲೋಡ್", copied: "ಇಮೇಜ್ & ಸಂದೇಶ ಕಾಪಿ ಆಗಿದೆ! ✓" },
+  hi: { copy: "चित्र कॉपी / डाउनलोड", copied: "चित्र एवं संदेश कॉपी हो गया! ✓" },
+  te: { copy: "చిత్రం కాపీ / డౌన్‌లోడ్", copied: "చిత్రం & సందేశం కాపీ అయింది! ✓" },
+  ta: { copy: "படம் நகல் / பதிவிறக்கு", copied: "படம் & செய்தி நகலெடுக்கப்பட்டது! ✓" },
+  en: { copy: "Copy Image & Text", copied: "Image & Message Copied! ✓" }
+};
+
 export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   devoteeName,
   dateStr,
@@ -265,27 +377,11 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     setTimeout(() => setIsCopied(false), 2500);
   };
 
-  const isKn = selectedLang === "kn";
-
-  const locationText = selectedLang === "kn"
-    ? "📍 ರಥಬೀದಿ, ಗೋಕರ್ಣ"
-    : selectedLang === "hi"
-    ? "📍 रथबीदि, गोकर्ण"
-    : selectedLang === "te"
-    ? "📍 రథవీధి, గోకర్ణ"
-    : selectedLang === "ta"
-    ? "📍 ரதவீதி, கோகர்ணம்"
-    : "📍 Ratha Beedi, Gokarna";
-
-  const chiefPriestLabel = selectedLang === "kn"
-    ? "ಮುಖ್ಯ ಅರ್ಚಕರು"
-    : selectedLang === "hi"
-    ? "मुख्य अर्चक"
-    : selectedLang === "te"
-    ? "ప్రధాన అర్చకులు"
-    : selectedLang === "ta"
-    ? "முதன்மை அர்ச்சகர்"
-    : "Chief Priest";
+  const locationText = LOCATION_LABEL[selectedLang] || LOCATION_LABEL.en;
+  const chiefPriestLabel = CHIEF_PRIEST_LABEL[selectedLang] || CHIEF_PRIEST_LABEL.en;
+  const localizedPriestName = (!priestName || priestName === "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" || priestName === "Shreeram Pandit")
+    ? (DEFAULT_PRIEST_NAME[selectedLang] || "Shreeram Pandit")
+    : priestName;
 
   return (
     <div
@@ -355,12 +451,10 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
                 letterSpacing: "normal"
               }}
             >
-              {isKn ? "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ & ಆಶೀರ್ವಾದ ಎನ್‌ವಲಪ್" : "Daily Good Morning & Shloka Blessings"}
+              {CARD_HEADER_TITLE[selectedLang] || CARD_HEADER_TITLE.kn}
             </h3>
             <span style={{ fontSize: "11px", color: "#FCD34D", fontWeight: 700 }}>
-              {isKn
-                ? `೩೬೫ ದಿನಗಳ ನಿತ್ಯ ಶ್ಲೋಕ, ದೈವಿಕ ಕಲಾಚಿತ್ರ & ವಾಟ್ಸಾಪ್ ಹಂಚಿಕೆ (${bgConfig.themeName})`
-                : `365 Days Daily Shloka, Sunrise Art & WhatsApp Share (${bgConfig.themeName})`}
+              {(CARD_HEADER_SUBTITLE[selectedLang] || CARD_HEADER_SUBTITLE.kn)(bgConfig.themeName)}
             </span>
           </div>
         </div>
@@ -457,7 +551,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               boxShadow: "0 4px 18px rgba(0,0,0,0.6)"
             }}
           >
-            <span>✨ ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕ್ಷೇತ್ರ • ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ✨</span>
+            <span>{KSHETRA_INSIGNIA[selectedLang] || KSHETRA_INSIGNIA.kn}</span>
           </div>
         </div>
 
@@ -570,7 +664,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               boxShadow: "0 3px 12px rgba(6, 78, 59, 0.5)"
             }}
           >
-            <span>⏳ ಶುಭ ಮುಹೂರ್ತ: {goldenHourStr}</span>
+            <span>{(SHUBHA_MUHURTHA_LABEL[selectedLang] || SHUBHA_MUHURTHA_LABEL.kn)} {goldenHourStr}</span>
           </div>
         </div>
 
@@ -599,7 +693,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               marginBottom: "4px"
             }}
           >
-            ☀️ {isKn ? "ಶುಭೋದಯ ಸಂದೇಶ (Morning Blessing)" : "Good Morning Blessing"}
+            {MORNING_BLESSING_LABEL[selectedLang] || MORNING_BLESSING_LABEL.kn}
           </div>
           <div
             style={{
@@ -638,7 +732,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               marginBottom: "6px"
             }}
           >
-            🪔 {isKn ? `ಇಂದಿನ ದೈವಿಕ ಶ್ಲೋಕ (${deitySourceText})` : `Daily Sacred Shloka (${deitySourceText})`}
+            {(DAILY_SHLOKA_LABEL[selectedLang] || DAILY_SHLOKA_LABEL.kn)(deitySourceText)}
           </div>
           <div
             style={{
@@ -697,7 +791,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
                 marginBottom: "3px"
               }}
             >
-              🌱 {isKn ? "ಇಂದಿನ ಪುಣ್ಯ ಕಾರ್ಯ (Good Karma):" : "Today's Good Karma:"}
+              {GOOD_KARMA_LABEL[selectedLang] || GOOD_KARMA_LABEL.kn}
             </div>
             <div
               style={{
@@ -731,7 +825,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
                 marginBottom: "3px"
               }}
             >
-              💡 {isKn ? "ಸ್ಫೂರ್ತಿದಾಯಕ ಚಿಂತನೆ (Life Insight):" : "Life Insight:"}
+              {LIFE_INSIGHT_LABEL[selectedLang] || LIFE_INSIGHT_LABEL.kn}
             </div>
             <div
               style={{
@@ -770,7 +864,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           }}
         >
           <span data-footer-item="true">{locationText}</span>
-          <span data-footer-item="true">{chiefPriestLabel}: {priestName}</span>
+          <span data-footer-item="true">{chiefPriestLabel}: {localizedPriestName}</span>
         </div>
       </div>
 
@@ -802,7 +896,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           }}
         >
           <span>💬</span>
-          <span>{isKn ? "WhatsApp ನಲ್ಲಿ ಹಂಚಿ (Clean Share)" : "Share on WhatsApp"}</span>
+          <span>{SHARE_WHATSAPP_BTN[selectedLang] || SHARE_WHATSAPP_BTN.kn}</span>
         </button>
 
         <button
@@ -829,8 +923,8 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           <span>📸</span>
           <span>
             {isGeneratingImage
-              ? (isKn ? "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating Image...")
-              : (isKn ? "ಕಾರ್ಡ್ ಇಮೇಜ್ ಡೌನ್‌ಲೋಡ್ (PNG)" : "Download Card Image")}
+              ? (DOWNLOAD_BTN[selectedLang] || DOWNLOAD_BTN.kn).generating
+              : (DOWNLOAD_BTN[selectedLang] || DOWNLOAD_BTN.kn).ready}
           </span>
         </button>
 
@@ -854,7 +948,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           }}
         >
           <span>📋</span>
-          <span>{isCopied ? (isKn ? "ಇಮೇಜ್ & ಸಂದೇಶ ಕಾಪಿ ಆಗಿದೆ! ✓" : "Image & Message Copied! ✓") : (isKn ? "ಇಮೇಜ್ ಕಾಪಿ / ಡೌನ್‌ಲೋಡ್" : "Copy Image & Text")}</span>
+          <span>{isCopied ? (COPY_BTN[selectedLang] || COPY_BTN.kn).copied : (COPY_BTN[selectedLang] || COPY_BTN.kn).copy}</span>
         </button>
       </div>
     </div>

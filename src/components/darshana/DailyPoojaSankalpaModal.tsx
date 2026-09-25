@@ -4,7 +4,7 @@ import { getPoojaStreak, recordPoojaSankalpaCompleted, type PoojaStreakInfo } fr
 import { playTempleBellChime, speakPriestNarration, stopPriestAudio } from "../../features/seva/priestAudioNarrator";
 import { stopAllAudioGlobal, onGlobalAudioStop } from "../../features/audio/globalAudioManager";
 import { buildDailyPoojaSteps, type DailyPoojaStep } from "../../features/seva/dailySankalpaPoojaEngine";
-import { useSankalpaStore } from "../../features/sankalpa/sankalpaStore";
+import { useSankalpaStore, SANKALPA_PRESETS, getPresetTitle } from "../../features/sankalpa/sankalpaStore";
 import { ManageSankalpaModal } from "./ManageSankalpaModal";
 import { PostPoojaRemedyJapaCard } from "./PostPoojaRemedyJapaCard";
 import type { KundliOutput } from "../../core/AstroTypes";
@@ -736,89 +736,174 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
           <div style={{ padding: isMobile ? "10px 12px" : "16px 20px", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: isMobile ? 10 : 16 }}>
             {step <= 5 ? (
               <>
-                {/* Visual Sanctum Altar Card (Mobile: Sleek Horizontal Sanctum Pill; Desktop: Spacious Altar) */}
+                {/* Visual Sanctum Altar Card - Majestic Sacred Sanctum (Uncluttered, Never Breaks on Mobile) */}
                 <div
                   style={{
                     background: "radial-gradient(circle at center, #2D1405 0%, #150802 100%)",
                     border: "1.5px solid #D97706",
                     borderRadius: isMobile ? 14 : 20,
-                    padding: isMobile ? "8px 12px" : "18px 16px",
+                    padding: isMobile ? "12px 14px" : "18px 20px",
                     display: "flex",
-                    flexDirection: isMobile ? "row" : "column",
+                    flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: isMobile ? "space-between" : "center",
+                    justifyContent: "center",
                     position: "relative",
                     overflow: "hidden",
-                    boxShadow: "inset 0 0 30px rgba(0,0,0,0.8)",
-                    gap: isMobile ? 10 : 0
+                    boxShadow: "inset 0 0 30px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.3)",
+                    gap: isMobile ? 8 : 12,
+                    textAlign: "center"
                   }}
                 >
                   {/* Altar Deity Aura */}
                   <div
                     style={{
-                      width: isMobile ? 60 : 120,
-                      height: isMobile ? 60 : 120,
+                      width: isMobile ? 90 : 130,
+                      height: isMobile ? 90 : 130,
                       borderRadius: "50%",
                       background: "radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0) 70%)",
                       position: "absolute",
-                      top: isMobile ? 0 : 15,
-                      left: isMobile ? 10 : undefined,
+                      top: isMobile ? 4 : 12,
+                      left: "50%",
+                      transform: "translateX(-50%)",
                       pointerEvents: "none"
                     }}
                   />
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 2 }}>
-                    {/* Icon & Animations */}
-                    <div style={{ fontSize: isMobile ? 32 : 56, lineHeight: 1 }}>
-                      {currentStepData.icon}
-                    </div>
+                  {/* Deity / Ritual Icon */}
+                  <div
+                    style={{
+                      fontSize: isMobile ? 38 : 56,
+                      lineHeight: 1,
+                      position: "relative",
+                      zIndex: 2,
+                      filter: "drop-shadow(0 2px 8px rgba(245, 158, 11, 0.4))"
+                    }}
+                  >
+                    {currentStepData.icon}
+                  </div>
 
-                    {/* Step Title */}
-                    <div style={{ textAlign: isMobile ? "left" : "center" }}>
-                      <h3 style={{ margin: 0, fontSize: isMobile ? 14 : 18, fontWeight: 900, color: "#FEF3C7" }}>
-                        {lang === "kn" ? currentStepData.titleKn :
-                         lang === "hi" ? currentStepData.titleHi :
-                         lang === "te" ? currentStepData.titleTe :
-                         lang === "ta" ? currentStepData.titleTa :
-                         currentStepData.titleEn}
-                      </h3>
-                      {isMobile && (
-                        <div style={{ fontSize: 10, color: "#FDE68A", marginTop: 1 }}>
-                          {devoteeName} · {rashiName}
-                        </div>
-                      )}
+                  {/* Step Title & Devotee Subtitle */}
+                  <div style={{ position: "relative", zIndex: 2, maxWidth: "100%", width: "100%", padding: "0 4px" }}>
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: isMobile ? 15 : 18,
+                        fontWeight: 900,
+                        color: "#FEF3C7",
+                        lineHeight: 1.35,
+                        textShadow: "0 2px 6px rgba(0,0,0,0.8)"
+                      }}
+                    >
+                      {lang === "kn" ? currentStepData.titleKn :
+                       lang === "hi" ? currentStepData.titleHi :
+                       lang === "te" ? currentStepData.titleTe :
+                       lang === "ta" ? currentStepData.titleTa :
+                       currentStepData.titleEn}
+                    </h3>
+                    <div
+                      style={{
+                        fontSize: isMobile ? 11 : 12,
+                        color: "#FDE68A",
+                        marginTop: 3,
+                        opacity: 0.9,
+                        letterSpacing: "0.2px"
+                      }}
+                    >
+                      {devoteeName} · {rashiName}
                     </div>
                   </div>
 
-                  {/* Interactive Visual Cue */}
-                  <div style={{ position: "relative", zIndex: 2, flexShrink: 0 }}>
+                  {/* Interactive Visual Cue Pill */}
+                  <div
+                    style={{
+                      position: "relative",
+                      zIndex: 2,
+                      display: "flex",
+                      justifyContent: "center",
+                      width: "100%",
+                      marginTop: 2
+                    }}
+                  >
                     {currentStepData.key === "deepa_achamana" && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(245, 158, 11, 0.15)", padding: isMobile ? "3px 8px" : "4px 10px", borderRadius: 10, border: "1px solid rgba(245, 158, 11, 0.4)" }}>
-                        <span style={{ fontSize: isMobile ? 16 : 24, filter: isLampLit ? "drop-shadow(0 0 10px #F59E0B)" : "grayscale(80%)" }}>
+                      <button
+                        type="button"
+                        onClick={() => setIsLampLit((prev) => !prev)}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          background: isLampLit ? "rgba(245, 158, 11, 0.25)" : "rgba(245, 158, 11, 0.12)",
+                          padding: isMobile ? "5px 12px" : "6px 14px",
+                          borderRadius: 12,
+                          border: isLampLit ? "1.5px solid #F59E0B" : "1px dashed rgba(245, 158, 11, 0.5)",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        <span style={{ fontSize: isMobile ? 18 : 22, filter: isLampLit ? "drop-shadow(0 0 8px #F59E0B)" : "grayscale(80%)" }}>
                           🪔
                         </span>
-                        <span style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: 800, color: "#FDE68A" }}>
+                        <span style={{ fontSize: isMobile ? 11 : 12, fontWeight: 800, color: "#FDE68A" }}>
                           {isLampLit
                             ? (VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).lampLit
                             : (VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).lightLamp}
                         </span>
-                      </div>
+                      </button>
                     )}
 
                     {currentStepData.key === "guru_ganapati" && (
-                      <div style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: 800, color: "#FDE68A", background: "rgba(245, 158, 11, 0.15)", padding: isMobile ? "3px 8px" : "4px 10px", borderRadius: 10, border: "1px solid rgba(245, 158, 11, 0.4)" }}>
+                      <div
+                        style={{
+                          fontSize: isMobile ? 11 : 12,
+                          fontWeight: 800,
+                          color: "#FDE68A",
+                          background: "rgba(245, 158, 11, 0.15)",
+                          padding: isMobile ? "5px 12px" : "6px 14px",
+                          borderRadius: 12,
+                          border: "1px solid rgba(245, 158, 11, 0.4)",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6
+                        }}
+                      >
                         {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).holdAkshata}
                       </div>
                     )}
 
                     {currentStepData.key === "sankalpa_samarpana" && (
-                      <div style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: 800, color: "#34D399", background: "rgba(52, 211, 153, 0.15)", padding: isMobile ? "3px 8px" : "4px 10px", borderRadius: 10, border: "1px solid rgba(52, 211, 153, 0.4)" }}>
+                      <div
+                        style={{
+                          fontSize: isMobile ? 11 : 12,
+                          fontWeight: 800,
+                          color: "#34D399",
+                          background: "rgba(52, 211, 153, 0.15)",
+                          padding: isMobile ? "5px 12px" : "6px 14px",
+                          borderRadius: 12,
+                          border: "1px solid rgba(52, 211, 153, 0.4)",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6
+                        }}
+                      >
                         {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).offerAkshata}
                       </div>
                     )}
 
                     {currentStepData.key === "deeparadhana_namaskara" && (
-                      <div style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: 800, color: "#FDE68A", background: "rgba(245, 158, 11, 0.15)", padding: isMobile ? "3px 8px" : "4px 10px", borderRadius: 10, border: "1px solid rgba(245, 158, 11, 0.4)" }}>
+                      <div
+                        style={{
+                          fontSize: isMobile ? 11 : 12,
+                          fontWeight: 800,
+                          color: "#FDE68A",
+                          background: "rgba(245, 158, 11, 0.15)",
+                          padding: isMobile ? "5px 12px" : "6px 14px",
+                          borderRadius: 12,
+                          border: "1px solid rgba(245, 158, 11, 0.4)",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6
+                        }}
+                      >
                         {(VISUAL_CUES[lang || "kn"] || VISUAL_CUES.kn).waveArati}
                       </div>
                     )}
@@ -887,22 +972,34 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {sankalpas
                         .filter((s) => s.isActive)
-                        .map((s) => (
-                          <span
-                            key={s.id}
-                            style={{
-                              background: "rgba(245, 158, 11, 0.2)",
-                              border: "1px solid #FCD34D",
-                              color: "#FEF3C7",
-                              fontSize: 11.5,
-                              fontWeight: 700,
-                              padding: "3px 10px",
-                              borderRadius: 12
-                            }}
-                          >
-                            ✨ {s.title}
-                          </span>
-                        ))}
+                        .map((s) => {
+                          const preset = SANKALPA_PRESETS.find(
+                            (p) =>
+                              p.category === s.category ||
+                              p.titleKn === s.title ||
+                              p.titleEn === s.title ||
+                              p.titleHi === s.title ||
+                              p.titleTe === s.title ||
+                              p.titleTa === s.title
+                          );
+                          const displayTitle = preset ? getPresetTitle(preset, lang || "kn") : s.title;
+                          return (
+                            <span
+                              key={s.id}
+                              style={{
+                                background: "rgba(245, 158, 11, 0.2)",
+                                border: "1px solid #FCD34D",
+                                color: "#FEF3C7",
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                padding: "3px 10px",
+                                borderRadius: 12
+                              }}
+                            >
+                              ✨ {displayTitle}
+                            </span>
+                          );
+                        })}
                     </div>
                   </div>
                 )}
