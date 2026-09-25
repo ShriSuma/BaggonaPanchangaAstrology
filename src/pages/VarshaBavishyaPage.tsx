@@ -6,6 +6,8 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
+import type { SevaLang } from "../features/seva/sevaLocale";
 
 export default function VarshaBavishyaPage() {
   const { t, i18n } = useTranslation();
@@ -14,13 +16,21 @@ export default function VarshaBavishyaPage() {
   const [prediction, setPrediction] = useState<VarshaPrediction | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const cancelAudioRef = useRef<(() => void) | null>(null);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Stop audio if component unmounts
     return () => {
-      window.speechSynthesis.cancel();
+      if (cancelAudioRef.current) {
+        cancelAudioRef.current();
+        cancelAudioRef.current = null;
+      }
+      stopClonedAudio();
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 
@@ -28,24 +38,34 @@ export default function VarshaBavishyaPage() {
     if (!prediction) return;
 
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
+      if (cancelAudioRef.current) {
+        cancelAudioRef.current();
+        cancelAudioRef.current = null;
+      }
+      stopClonedAudio();
       setIsSpeaking(false);
       return;
     }
 
     const fullText = prediction.paragraphs.flat().map(p => t(p)).join(". ");
-    const utterance = new SpeechSynthesisUtterance(fullText);
+    const rawLang = (i18n.language || "kn").split("-")[0].toLowerCase();
+    const cleanLang: SevaLang = (["kn", "hi", "te", "ta", "en"].includes(rawLang) ? rawLang : "kn") as SevaLang;
 
-    utterance.lang = i18n.language === "kn" ? "kn-IN" :
-      i18n.language === "hi" ? "hi-IN" :
-        i18n.language === "te" ? "te-IN" :
-          i18n.language === "ta" ? "ta-IN" : "en-US";
-
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
+    void synthesizeAndPlayClonedVoice(
+      fullText,
+      cleanLang,
+      "voice_sriram_pandit",
+      () => {
+        setIsSpeaking(false);
+        cancelAudioRef.current = null;
+      },
+      () => {
+        setIsSpeaking(true);
+      }
+    ).then((cancelFn) => {
+      cancelAudioRef.current = cancelFn;
+    });
   };
 
   const handleGenerate = () => {

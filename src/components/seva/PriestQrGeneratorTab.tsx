@@ -170,7 +170,7 @@ export default function PriestQrGeneratorTab({
       source: "priest_qr"
     });
 
-    const payloadUrl = `${origin}/daily?token=${token}&action=ics`;
+    const payloadUrl = `${origin}/daily?token=${token}&action=ics&lang=${selectedLang}`;
 
     QRCode.toDataURL(payloadUrl, {
       errorCorrectionLevel: "M",

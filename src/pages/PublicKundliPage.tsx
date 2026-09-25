@@ -56,6 +56,7 @@ import {
   getPublicGuestWallet,
   creditGuestCoins
 } from "../utils/publicKundliSecurity";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
 
 export default function PublicKundliPage(): JSX.Element {
   // 0. Auth & Dynamic Pricing Configuration from Super Admin
@@ -400,10 +401,16 @@ export default function PublicKundliPage(): JSX.Element {
   const [isPausedNarration, setIsPausedNarration] = useState<boolean>(false);
   const [narrationSpeed, setNarrationSpeed] = useState<number>(1.0);
   const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioCancelRef = useRef<(() => void) | null>(null);
 
   // Stop speech when component unmounts
   useEffect(() => {
     return () => {
+      if (audioCancelRef.current) {
+        audioCancelRef.current();
+        audioCancelRef.current = null;
+      }
+      stopClonedAudio();
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
@@ -518,63 +525,50 @@ export default function PublicKundliPage(): JSX.Element {
   // --------------------------------------------------------------------------
   const handlePlayNarration = () => {
     if (!deepPersonalityData) return;
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      alert("Voice narration is not supported on this browser.");
-      return;
+    if (audioCancelRef.current) {
+      audioCancelRef.current();
+      audioCancelRef.current = null;
     }
-
-    if (isPausedNarration) {
-      window.speechSynthesis.resume();
-      setIsPausedNarration(false);
-      setIsPlayingNarration(true);
-      return;
-    }
-
-    window.speechSynthesis.cancel();
+    stopClonedAudio();
 
     const fullText = deepPersonalityData.spokenNarrationFullText;
-    const utterance = new SpeechSynthesisUtterance(fullText);
+    setIsPlayingNarration(true);
+    setIsPausedNarration(false);
 
-    const langVoiceMap: Record<PublicKundliLang, string> = {
-      kn: "kn-IN",
-      en: "en-IN",
-      hi: "hi-IN",
-      te: "te-IN",
-      ta: "ta-IN"
-    };
-
-    utterance.lang = langVoiceMap[selectedLang] || "kn-IN";
-    utterance.rate = narrationSpeed;
-
-    utterance.onstart = () => {
-      setIsPlayingNarration(true);
-      setIsPausedNarration(false);
-    };
-
-    utterance.onend = () => {
-      setIsPlayingNarration(false);
-      setIsPausedNarration(false);
-    };
-
-    utterance.onerror = () => {
-      setIsPlayingNarration(false);
-      setIsPausedNarration(false);
-    };
-
-    speechUtteranceRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
+    void synthesizeAndPlayClonedVoice(
+      fullText,
+      selectedLang as any,
+      "voice_sriram_pandit",
+      () => {
+        setIsPlayingNarration(false);
+        setIsPausedNarration(false);
+        audioCancelRef.current = null;
+      },
+      () => {
+        setIsPlayingNarration(true);
+        setIsPausedNarration(false);
+      }
+    ).then((cancelFn) => {
+      audioCancelRef.current = cancelFn;
+    });
   };
 
   const handlePauseNarration = () => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.pause();
+    if (audioCancelRef.current) {
+      audioCancelRef.current();
+      audioCancelRef.current = null;
+    }
+    stopClonedAudio();
     setIsPausedNarration(true);
     setIsPlayingNarration(false);
   };
 
   const handleStopNarration = () => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
+    if (audioCancelRef.current) {
+      audioCancelRef.current();
+      audioCancelRef.current = null;
+    }
+    stopClonedAudio();
     setIsPlayingNarration(false);
     setIsPausedNarration(false);
   };

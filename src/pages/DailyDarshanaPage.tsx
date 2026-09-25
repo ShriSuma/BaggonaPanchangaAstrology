@@ -1125,7 +1125,7 @@ function getDynamicGocharaPredictions(
   rahuKetuTitle: string;
   rahuKetuDesc: string;
 } {
-  const code = lang || "en";
+  const code = lang || "kn";
   if (!transitKundli) {
     return {
       guruTitle: DARSHANA_LABELS[code]?.guruTransitTitle || "Jupiter Transit",
@@ -1305,7 +1305,7 @@ function getDynamicDashaPredictions(
   familyDesc: string;
   healthDesc: string;
 } {
-  const code = lang || "en";
+  const code = lang || "kn";
   const targetDate = new Date(targetDateStr);
   const birthDate = new Date(birthDateStr || "1993-03-16");
 
@@ -1404,7 +1404,7 @@ function getTodayBhavishyaHighlights(
   dashaPredictions: ReturnType<typeof getDynamicDashaPredictions>,
   dinaBhavishyaData?: DinaBhavishyaPayload | null
 ): TodayBhavishyaData {
-  const code = lang || "en";
+  const code = lang || "kn";
   const score = dinaBhavishyaData?.energyScore ?? rhythmDay?.energyScore ?? 85;
   const guidance = getDailyActionableGuidance(rhythmDay, lang, birthKundli);
 
@@ -1557,7 +1557,25 @@ export default function DailyDarshanaPage(): JSX.Element {
   const dateParam = todayStr;
   const isSelectedDateToday = true;
 
-  const langParam = (decoded?.l || params.get("lang") || "kn") as SevaLang;
+  const langParam = useMemo<SevaLang>(() => {
+    const fromUrl = params.get("lang");
+    if (fromUrl && (["kn", "te", "ta", "hi", "en"] as SevaLang[]).includes(fromUrl as SevaLang)) {
+      return fromUrl as SevaLang;
+    }
+    const tokenLang = decoded?.l || (decoded as any)?.lang || (resolvedTokenData?.payload as any)?.l || (resolvedTokenData?.payload as any)?.lang;
+    if (tokenLang && (["kn", "te", "ta", "hi", "en"] as SevaLang[]).includes(tokenLang as SevaLang)) {
+      return tokenLang as SevaLang;
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("baggona_lang");
+        if (stored && (["kn", "te", "ta", "hi", "en"] as SevaLang[]).includes(stored as SevaLang)) {
+          return stored as SevaLang;
+        }
+      } catch {}
+    }
+    return "kn";
+  }, [params, decoded, resolvedTokenData]);
   const nameParam = decoded?.n || params.get("name") || "";
   const panditParam = decoded?.p || params.get("pandit") || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
 
@@ -1582,7 +1600,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     }
   }, [langParam]);
 
-  const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.en, [lang]);
+  const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.kn, [lang]);
 
   const initialTab = useMemo(() => {
     const rawTab = (params.get("tab") || (decoded as any)?.tab || "").toLowerCase();
@@ -1685,10 +1703,15 @@ export default function DailyDarshanaPage(): JSX.Element {
   const handleLangChange = (newLang: SevaLang) => {
     stopAllAudioGlobal();
     setLang(newLang);
-    if (typeof window !== "undefined" && window.history) {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set("lang", newLang);
-      window.history.replaceState({}, "", newUrl.toString());
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("baggona_lang", newLang);
+      } catch {}
+      if (window.history) {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set("lang", newLang);
+        window.history.replaceState({}, "", newUrl.toString());
+      }
     }
   };
 
@@ -2649,7 +2672,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [params, decoded]);
 
   const downloadIcsLabel = useMemo(() => {
-    return (ICS_DOWNLOAD_TEMPLATES[lang] || ICS_DOWNLOAD_TEMPLATES.en)(requestedCalendarDays);
+    return (ICS_DOWNLOAD_TEMPLATES[lang] || ICS_DOWNLOAD_TEMPLATES.kn)(requestedCalendarDays);
   }, [requestedCalendarDays, lang]);
 
   // Helper to generate & download dynamic duration .ics file

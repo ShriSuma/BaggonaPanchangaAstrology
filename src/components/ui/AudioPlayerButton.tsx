@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../../features/audio/aiVoiceCloneEngine";
+import type { SevaLang } from "../../features/seva/sevaLocale";
 
 interface AudioPlayerButtonProps {
   text: string;
@@ -7,66 +9,51 @@ interface AudioPlayerButtonProps {
   voiceType?: "default" | "jayashree" | "dramatic" | "priest";
 }
 
-export default function AudioPlayerButton({ text, lang = "kn-IN", className = "", voiceType = "default" }: AudioPlayerButtonProps) {
+export default function AudioPlayerButton({ text, lang = "kn-IN", className = "" }: AudioPlayerButtonProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isSupported, setIsSupported] = useState(true);
-
-  useEffect(() => {
-    if (!("speechSynthesis" in window)) {
-      setIsSupported(false);
-    }
-  }, []);
+  const cancelRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     // Cleanup if unmounted while playing
     return () => {
-      if (isPlaying) {
-        window.speechSynthesis.cancel();
+      if (cancelRef.current) {
+        cancelRef.current();
+        cancelRef.current = null;
       }
+      stopClonedAudio();
     };
-  }, [isPlaying]);
+  }, []);
 
   const togglePlay = () => {
-    if (!isSupported) return;
-
     if (isPlaying) {
-      window.speechSynthesis.cancel();
+      if (cancelRef.current) {
+        cancelRef.current();
+        cancelRef.current = null;
+      }
+      stopClonedAudio();
       setIsPlaying(false);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    // Use Kannada as default if available, fallback to provided lang
-    utterance.lang = lang;
-    
-    // Add emotion based on voiceType
-    if (voiceType === "priest") {
-      utterance.rate = 0.88; // Deep, calm, authoritative tempo
-      utterance.pitch = 0.85; // Resonant priest baritone
-    } else if (voiceType === "jayashree") {
-      utterance.rate = 0.85; // Slower, older, wiser
-      utterance.pitch = 0.8; // Deeper voice
-    } else if (voiceType === "dramatic") {
-      utterance.rate = 1.0; 
-      utterance.pitch = 1.2; // Higher, more energetic
-    } else {
-      utterance.rate = 0.95; // Default slightly slower for clarity
-      utterance.pitch = 1.0;
-    }
+    const rawCode = lang.split("-")[0].toLowerCase();
+    const cleanLang: SevaLang = (["kn", "hi", "te", "ta", "en"].includes(rawCode) ? rawCode : "kn") as SevaLang;
 
-    utterance.onend = () => {
-      setIsPlaying(false);
-    };
-
-    utterance.onerror = () => {
-      setIsPlaying(false);
-    };
-
-    window.speechSynthesis.speak(utterance);
     setIsPlaying(true);
+    void synthesizeAndPlayClonedVoice(
+      text,
+      cleanLang,
+      "voice_sriram_pandit",
+      () => {
+        setIsPlaying(false);
+        cancelRef.current = null;
+      },
+      () => {
+        setIsPlaying(true);
+      }
+    ).then((cancelFn) => {
+      cancelRef.current = cancelFn;
+    });
   };
-
-  if (!isSupported) return null;
 
   return (
     <button

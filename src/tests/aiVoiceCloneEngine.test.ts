@@ -299,6 +299,30 @@ describe("AI Voice Clone Engine & GET Real-Time Audio Streaming", () => {
         expect(narration).toContain(steps[i].actionGuide.kn);
       }
     });
+
+    it("includes comprehensive instructive guidance telling devotees to hold akshata, light lamp, offer akshata, and wave arati", () => {
+      const steps = buildDailyPoojaSteps({ devoteeName: "ಅನಂತ", priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" });
+
+      // Step 1: Lighting the lamp
+      const step1 = getStepNarrationText(steps[0], "kn");
+      expect(step1).toContain(steps[0].titleKn);
+      expect(step1).toContain("ದೀಪ");
+
+      // Step 2: Holding Akshata
+      const step2 = getStepNarrationText(steps[1], "kn");
+      expect(step2).toContain(steps[1].titleKn);
+      expect(step2).toContain("ಅಕ್ಷತೆ");
+
+      // Step 4: Offering Akshata to God
+      const step4 = getStepNarrationText(steps[3], "kn");
+      expect(step4).toContain(steps[3].titleKn);
+      expect(step4).toContain("ಸಮರ್ಪಿಸಿ");
+
+      // Step 5: Waving Mangalarati
+      const step5 = getStepNarrationText(steps[4], "kn");
+      expect(step5).toContain(steps[4].titleKn);
+      expect(step5).toContain("ಮಂಗಳಾರತಿ");
+    });
   });
 });
 

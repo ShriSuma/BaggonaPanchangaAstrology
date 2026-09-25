@@ -226,41 +226,39 @@ export async function handleGenerateAudio(
     : voiceId;
 
   try {
-    // 2. Fetch the audio using our normal TTS POST endpoint with a 3.5s timeout for instant responsiveness
-    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    const timeoutId = controller ? setTimeout(() => controller.abort(), 3500) : null;
+    // 2. Fetch the audio using our normal TTS POST endpoint with a 12s timeout for reliable neural synthesis
+    const fetchStudioTts = async (voice: string, timeoutMs = 12000): Promise<Response> => {
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+      try {
+        const res = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ voice_id: voice, text: cleanText }),
+          signal: controller?.signal
+        });
+        if (timeoutId) clearTimeout(timeoutId);
+        return res;
+      } catch (err) {
+        if (timeoutId) clearTimeout(timeoutId);
+        throw err;
+      }
+    };
 
-    let response: Response;
+    let response: Response | null = null;
     try {
-      response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voice_id: targetVoiceId, text: cleanText }),
-        signal: controller?.signal
-      });
-      if (timeoutId) clearTimeout(timeoutId);
-    } catch (fetchErr) {
-      if (timeoutId) clearTimeout(timeoutId);
-      throw fetchErr;
+      response = await fetchStudioTts(targetVoiceId, 12000);
+    } catch (firstErr) {
+      console.warn("[AIVoiceCloneEngine] Primary TTS stream attempt failed or timed out, retrying once with voice_sriram_pandit:", firstErr);
+      // Wait brief backoff and retry once
+      await new Promise((r) => setTimeout(r, 400));
+      response = await fetchStudioTts("voice_sriram_pandit", 12000);
     }
 
     // If a custom voice ID returns 404, immediately retry with the registered master voice
     if (response.status === 404 && targetVoiceId !== "voice_sriram_pandit") {
       console.warn(`[AIVoiceCloneEngine] Voice "${targetVoiceId}" not found (404), retrying with voice_sriram_pandit`);
-      const retryController = typeof AbortController !== "undefined" ? new AbortController() : null;
-      const retryTimeoutId = retryController ? setTimeout(() => retryController.abort(), 3500) : null;
-      try {
-        response = await fetch("https://indian-language-voici-clone-tts-7273.ai.studio/api/admin/tts-stream", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ voice_id: "voice_sriram_pandit", text: cleanText }),
-          signal: retryController?.signal
-        });
-        if (retryTimeoutId) clearTimeout(retryTimeoutId);
-      } catch (retryErr) {
-        if (retryTimeoutId) clearTimeout(retryTimeoutId);
-        throw retryErr;
-      }
+      response = await fetchStudioTts("voice_sriram_pandit", 12000);
     }
 
     if (!response.ok) throw new Error(`TTS Generation failed (${response.status})`);
