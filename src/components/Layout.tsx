@@ -170,6 +170,14 @@ export default function Layout({ children }: Props): JSX.Element {
 
         {/* Right side Actions: Wallet Pill, Super Admin & Reset */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage("calendar")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-500/30 text-xs font-bold transition-all shadow-xs"
+            title="ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ / Baggona Panchanga Calendar"
+          >
+            <span>📅</span>
+            <span className="hidden sm:inline">ಕ್ಯಾಲೆಂಡರ್</span>
+          </button>
           {/* Super Admin Control Center Button */}
           {role === "superadmin" && (
             <button
@@ -306,6 +314,7 @@ export default function Layout({ children }: Props): JSX.Element {
             {role === "superadmin" && (
               <TabButton page="superadmindashboard" icon="🛡️" label={getNavLabel("superadmindashboard", language)} onClose={() => setIsDrawerOpen(false)} />
             )}
+            <TabButton page="calendar" icon="📅" label={getNavLabel("calendar", language)} onClose={() => setIsDrawerOpen(false)} />
             <TabButton page="public_kundli" icon="🌟" label={getNavLabel("public_kundli", language)} onClose={() => setIsDrawerOpen(false)} />
             <TabButton page="priestdashboard" icon="🪙" label={getNavLabel("priestdashboard", language)} onClose={() => setIsDrawerOpen(false)} />
             

@@ -42,6 +42,7 @@ import InstantReadingPage from "./pages/InstantReadingPage";
 import PublicKundliPage from "./pages/PublicKundliPage";
 import { BaggonaBookPublisherDashboard } from "./features/admin/BaggonaBookPublisherDashboard";
 import QuickCalendarPage from "./pages/QuickCalendarPage";
+import { BaggonaCalendarPage } from "./pages/BaggonaCalendarPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -94,6 +95,16 @@ export default function App(): JSX.Element {
     window.location.search.includes("portal=publisher") ||
     window.location.search.includes("portal=book") ||
     window.location.hash.includes("#/publisher")
+  );
+
+  const isCalendarRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/calendar") ||
+    window.location.pathname.startsWith("/baggona-calendar") ||
+    window.location.pathname.startsWith("/panchanga-calendar") ||
+    window.location.search.includes("portal=calendar") ||
+    window.location.search.includes("portal=baggona_calendar") ||
+    window.location.search.includes("page=calendar") ||
+    window.location.hash.includes("#/calendar")
   );
 
   const isQuickCalendarRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
@@ -165,7 +176,8 @@ export default function App(): JSX.Element {
         : ["public_kundli"];
 
       const allowedPages: string[] = [];
-      if (allowed.includes("public_kundli")) allowedPages.push("public_kundli");
+      if (allowed.includes("public_kundli")) allowedPages.push("public_kundli", "calendar");
+      allowedPages.push("calendar");
       if (allowed.includes("panchanga")) allowedPages.push("priestdashboard", "kundli");
       if (allowed.includes("sankhyashastra")) allowedPages.push("sankhyashastra");
       if (allowed.includes("diksuchi")) allowedPages.push("kaaladiksuchi");
@@ -225,6 +237,7 @@ export default function App(): JSX.Element {
             isPublicKundliRoute ||
             isPublisherRoute ||
             isQuickCalendarRoute ||
+            isCalendarRoute ||
             isPriestPortalRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
@@ -243,7 +256,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isPriestPortalRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isPriestPortalRoute]);
 
   if (isPriestPanchangaRoute) {
     return <PriestPanchangaPage />;
@@ -263,6 +276,14 @@ export default function App(): JSX.Element {
 
   if (isPublicKundliRoute) {
     return <PublicKundliPage />;
+  }
+
+  if (isCalendarRoute) {
+    return (
+      <ErrorBoundary>
+        <BaggonaCalendarPage />
+      </ErrorBoundary>
+    );
   }
 
   if (isQuickCalendarRoute) {
@@ -349,6 +370,7 @@ export default function App(): JSX.Element {
         {currentPage === "instant_reading" && <InstantReadingPage />}
         {currentPage === "public_kundli" && <PublicKundliPage />}
         {currentPage === "quick_calendar" && <QuickCalendarPage />}
+        {currentPage === "calendar" && <BaggonaCalendarPage />}
       </Layout>
     </ErrorBoundary>
   );

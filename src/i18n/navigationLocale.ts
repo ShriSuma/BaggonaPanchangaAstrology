@@ -190,6 +190,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "సార్వజనిక కుండలి & అంతరంగ దర్శనం",
     ta: "பொது ஜாதகம் & அந்தரங்க தரிசனம்"
   },
+  calendar: {
+    kn: "ಕ್ಯಾಲೆಂಡರ್ (ಬಗ್ಗೋಣ ಪಂಚಾಂಗ)",
+    en: "Calendar (Baggona Panchanga)",
+    hi: "कैलेंडर (बग्गोण पंचांग)",
+    te: "క్యాలెండర్ (బగ్గోణ పంచాంగం)",
+    ta: "கேலெண்டர் (பக்கோண பஞ்சாங்கம்)"
+  },
   quick_calendar: {
     kn: "ದಿನಾಂಕ ಪಂಚಾಂಗ & ಆಶೀರ್ವಾದ ಪತ್ರ",
     en: "Quick Calendar & Ashirvada Patra",

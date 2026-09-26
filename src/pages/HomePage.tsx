@@ -644,6 +644,40 @@ export default function HomePage(): JSX.Element {
           </div>
         )}
 
+        {/* 📅 Featured Master Innovation: Baggona Panchanga Calendar */}
+        <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400 bg-gradient-to-r from-amber-900 via-amber-800 to-amber-950 p-4 text-amber-50 shadow-2xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/30 text-2xl border border-amber-300/50 shadow-sm">
+                📅
+              </span>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                  <span>🪔</span> {i18n.language === "en" ? "Official Annual Calendar" : "ಅಧಿಕೃತ ವಾರ್ಷಿಕ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್"}
+                </div>
+                <h3 className="font-serif text-sm sm:text-base font-bold text-amber-100 mt-0.5">
+                  {i18n.language === "en"
+                    ? "Baggona Panchanga Master Calendar • All Festivals, Pujas & Voice Search"
+                    : "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ • ಸಮಸ್ತ ಹಬ್ಬಗಳು, ಪೂಜೆಗಳು & ಧ್ವನಿ ಶೋಧನೆ"}
+                </h3>
+                <p className="text-[11px] text-amber-200/80 hidden sm:block">
+                  {i18n.language === "en"
+                    ? "Explore Navaratri (10 days), Deepavali (4 days), Rama Navami, Tithi, Nakshatra, Dasha & daily Muhurtha windows."
+                    : "ದಸರಾ (೧೦ ದಿನಗಳು), ದೀಪಾವಳಿ (೪ ದಿನಗಳು), ರಾಮನವಮಿ, ತಿಥಿ, ನಕ್ಷತ್ರ, ಗೋಚಾರ ಹಾಗೂ ನಿತ್ಯ ಪಂಚಾಂಗ ದರ್ಶನ."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage("calendar")}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 px-4 py-2 text-xs font-black text-slate-950 shadow-lg hover:shadow-xl transition-all transform active:scale-95 whitespace-nowrap"
+            >
+              <span>{i18n.language === "en" ? "Open Calendar" : "ಕ್ಯಾಲೆಂಡರ್ ಪ್ರವೇಶಿಸಿ"}</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
         {/* 🧭 Featured Innovation: Divya Kaala Diksuchi (No-TOB Astrology & Modern World Navigator) */}
         <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/80 bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 p-4 text-amber-50 shadow-xl">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
