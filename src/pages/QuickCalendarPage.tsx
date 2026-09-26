@@ -20,6 +20,7 @@ import { transliterateName } from "../utils/transliterator";
 import { formatPoojaName } from "../features/seva/formatPoojaName";
 import type { RhythmDay, RhythmResult } from "../core/DailyRhythmEngine";
 import { parseSpokenPhoneNumber } from "../utils/speechRecognitionHelper";
+import { getLocalizedPanditName } from "../features/seva/sevaPresentation";
 
 const RASHI_NAMES = RASHI_L5.map(r => r.kn || r.en);
 const NAKSHATRA_NAMES = NAKSHATRA_L5.map(n => n.kn || n.en);
@@ -127,19 +128,27 @@ export default function QuickCalendarPage(): JSX.Element {
   const defaultPriest = useMemo(() => getPriestProfile("shreeram-pandit"), []);
   const activePriest = useMemo(() => getPriestProfile(selectedPriestId), [selectedPriestId]);
 
+  useEffect(() => {
+    const locName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en || activePriest.name.kn;
+    setCustomPriestName(locName);
+    const ph = activePriest.phone || "9972339362";
+    setCustomPriestPhone(ph);
+    setCustomWhatsappNumber(ph);
+  }, [activePriest, lang]);
+
   const panditName = useMemo(() => {
     if (overridePriestContact && customPriestName.trim()) {
-      return customPriestName.trim();
+      return getLocalizedPanditName(customPriestName.trim(), lang);
     }
-    return defaultPriest.name[lang as keyof typeof defaultPriest.name] || defaultPriest.name.en || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
-  }, [overridePriestContact, customPriestName, defaultPriest, lang]);
+    return activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en || getLocalizedPanditName(activePriest.name.kn, lang);
+  }, [overridePriestContact, customPriestName, activePriest, lang]);
 
   const priestPhone = useMemo(() => {
     if (overridePriestContact && customPriestPhone.trim()) {
       return customPriestPhone.trim();
     }
-    return "9972339362";
-  }, [overridePriestContact, customPriestPhone]);
+    return activePriest.phone || "9972339362";
+  }, [overridePriestContact, customPriestPhone, activePriest]);
 
   const whatsappPhone = useMemo(() => {
     if (overridePriestContact && customWhatsappNumber.trim()) {
@@ -150,18 +159,12 @@ export default function QuickCalendarPage(): JSX.Element {
 
   const handleSelectPriest = (priestId: string) => {
     setSelectedPriestId(priestId);
-    if (priestId === "shreeram-pandit") {
-      setCustomPriestName("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-      setCustomPriestPhone("9972339362");
-      setCustomWhatsappNumber("9972339362");
-    } else {
-      const p = getPriestProfile(priestId);
-      const locName = p.name[lang as keyof typeof p.name] || p.name.en || p.name.kn;
-      setCustomPriestName(locName);
-      setCustomPriestPhone(p.phone || "9972339362");
-      setCustomWhatsappNumber(p.phone || "9972339362");
-      setOverridePriestContact(true);
-    }
+    const p = getPriestProfile(priestId);
+    const locName = p.name[lang as keyof typeof p.name] || p.name.en || p.name.kn;
+    setCustomPriestName(locName);
+    const ph = p.phone || "9972339362";
+    setCustomPriestPhone(ph);
+    setCustomWhatsappNumber(ph);
   };
 
   const priestTransliterations = useMemo(() => {
@@ -262,8 +265,8 @@ export default function QuickCalendarPage(): JSX.Element {
 
     if (rhythmResult.days.length > 0) {
       const origin = getSafeProductionOrigin();
-      const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}&priestName=${encodeURIComponent(panditName)}` : "";
-      const sanctumUrl = `${origin}/daily?token=${token}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}${contactOverrideQuery}`;
+      const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}` : "";
+      const sanctumUrl = `${origin}/daily?token=${token}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}&priestName=${encodeURIComponent(panditName)}${contactOverrideQuery}`;
       
       const qrPayload = qrTarget === "sanctum"
         ? sanctumUrl
@@ -392,16 +395,16 @@ export default function QuickCalendarPage(): JSX.Element {
   // 3. Open Sanctum Live Darshana URL
   const handleOpenSanctum = () => {
     const origin = getSafeProductionOrigin();
-    const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}&priestName=${encodeURIComponent(panditName)}` : "";
-    const url = `${origin}/daily?token=${generatedToken}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}${contactOverrideQuery}`;
+    const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}` : "";
+    const url = `${origin}/daily?token=${generatedToken}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}&priestName=${encodeURIComponent(panditName)}${contactOverrideQuery}`;
     window.open(url, "_blank");
   };
 
   // 4. WhatsApp Share
   const handleShareWhatsApp = () => {
     const origin = getSafeProductionOrigin();
-    const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}&priestName=${encodeURIComponent(panditName)}` : "";
-    const url = `${origin}/daily?token=${generatedToken}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}${contactOverrideQuery}`;
+    const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}` : "";
+    const url = `${origin}/daily?token=${generatedToken}&date=${new Date().toISOString().slice(0, 10)}&lang=${lang}&priestName=${encodeURIComponent(panditName)}${contactOverrideQuery}`;
     const msg = `॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಅನುಗ್ರಹ ಪ್ರಸಾದಿತ ॥\n\nನಮಸ್ಕಾರ ${personName}, ನಿಮ್ಮ ೯೦ ದಿನಗಳ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಹಾಗೂ ನಿತ್ಯ ದರ್ಶನ ಸಿದ್ಧವಾಗಿದೆ.\n\nನಿಮ್ಮ ದೈನಂದಿನ ದರ್ಶನ ಸಾಧನಾ ಸ್ಟ್ರೀಕ್ (🔥) ಹಾಗೂ ಇಂದಿನ ಅಭಿಜಿತ್ ಮುಹೂರ್ತ ತಿಳಿಯಲು ಇಲ್ಲಿ ಭೇಟಿ ನೀಡಿ:\n${url}\n\nಪ್ರಧಾನ ಅರ್ಚಕರು: ${panditName} (${priestPhone})`;
     const waUrl = `https://api.whatsapp.com/send?phone=${whatsappPhone.replace(/\D/g, "")}&text=${encodeURIComponent(msg)}`;
     window.open(waUrl, "_blank");
@@ -801,18 +804,20 @@ export default function QuickCalendarPage(): JSX.Element {
                 <span>🛕</span>
                 <span>ಅರ್ಚಕರ ಆಯ್ಕೆ & ನೇರ ಸಂಪರ್ಕ (Priest Selection & Direct Contact)</span>
               </span>
-              <button
-                type="button"
-                onClick={() => setOverridePriestContact(prev => !prev)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition border ${
-                  overridePriestContact
-                    ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md"
-                    : "bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-amber-950/60"
-                }`}
-              >
-                <span>✏️</span>
-                <span>{overridePriestContact ? "ಓವರ್‌ರೈಡ್ ಸಕ್ರಿಯವಾಗಿದೆ (Active)" : "ವಿವರಗಳನ್ನು ಸಂಪಾದಿಸಿ (Edit Priest)"}</span>
-              </button>
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  id="override-priest-contact-toggle"
+                  checked={overridePriestContact}
+                  onChange={(e) => setOverridePriestContact(e.target.checked)}
+                  className="w-4 h-4 rounded text-amber-500 border-amber-400/50 focus:ring-amber-400/30 bg-slate-900 cursor-pointer"
+                />
+                <span className={`text-xs font-bold ${overridePriestContact ? "text-amber-300" : "text-slate-300"}`}>
+                  {overridePriestContact
+                    ? (lang === "te" ? "సంప్రదింపుల ఓవర్‌రైడ్ సక్రియం (Active)" : lang === "ta" ? "தொடர்பு மேலெழுத்து செயலில் (Active)" : lang === "hi" ? "संपर्क ओवरराइड सक्रिय (Active)" : "ಸಂಪರ್ಕ ಓವರ್‌ರೈಡ್ ಸಕ್ರಿಯವಾಗಿದೆ (Active)")
+                    : (lang === "te" ? "అర్చక సంప్రదింపులను ఓవర్‌రైడ్ చేయండి (Override Priest Contact)" : lang === "ta" ? "அர்ச்சகர் தொடர்பை மாற்றவும் (Override Priest Contact)" : lang === "hi" ? "अर्चक संपर्क ओवरराइड करें (Override Priest Contact)" : "ಅರ್ಚಕರ ಸಂಪರ್ಕ ವಿವರಗಳನ್ನು ಓವರ್‌ರೈಡ್ ಮಾಡಿ (Override Priest Contact)")}
+                </span>
+              </label>
             </div>
 
             {/* Priest Dropdown Selector */}
@@ -867,24 +872,26 @@ export default function QuickCalendarPage(): JSX.Element {
               <div className="flex items-center justify-between rounded-xl bg-slate-950/70 p-3 border border-amber-500/20 text-xs">
                 <div>
                   <div className="font-bold text-amber-200 flex items-center gap-1.5">
-                    <span>{defaultPriest.sealSymbol}</span>
-                    <span>{defaultPriest.name[lang as keyof typeof defaultPriest.name] || defaultPriest.name.en}</span>
+                    <span>{activePriest.sealSymbol}</span>
+                    <span>{panditName}</span>
                   </div>
                   <div className="text-[11px] text-amber-400/80 mt-0.5">
-                    ಪ್ರಧಾನ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ | ನೇರ ಕರೆ: 9972339362
+                    {activePriest.title[lang as keyof typeof activePriest.title] || activePriest.title.en} | ನೇರ ಕರೆ: {priestPhone}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">
-                    ✓ ಡಿಫಾಲ್ಟ್ ಅರ್ಚಕರು
+                    ✓ {selectedPriestId === "shreeram-pandit" ? "ಡಿಫಾಲ್ಟ್ ಅರ್ಚಕರು" : "ಆಯ್ಕೆಯಾದ ಅರ್ಚಕರು"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setOverridePriestContact(true)}
-                    className="text-amber-400 hover:text-amber-200 underline text-xs font-semibold"
-                  >
-                    ಬದಲಾಯಿಸಿ
-                  </button>
+                  <label className="text-amber-400 hover:text-amber-200 cursor-pointer text-xs font-semibold flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      checked={overridePriestContact}
+                      onChange={(e) => setOverridePriestContact(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded text-amber-500 bg-slate-900 border-amber-500/40"
+                    />
+                    <span>ಓವರ್‌ರೈಡ್</span>
+                  </label>
                 </div>
               </div>
             ) : (

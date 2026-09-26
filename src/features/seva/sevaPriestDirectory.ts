@@ -9,6 +9,7 @@
 
 import type { L5 } from "./sevaLocale";
 import { SEVA_CATALOG, type SevaId } from "../../data/gokarnaSevas";
+import { transliterateName } from "../../utils/transliterator";
 
 export interface PriestProfile {
   id: string;
@@ -268,6 +269,7 @@ export const PREDEFINED_PRIESTS: PriestProfile[] = [
     },
     sealSymbol: "🌸",
     sealColor: "#047857",
+    phone: "9480123456",
     shloka: {
       sanskrit: "ನಮಸ್ತೇ ಅಸ್ತು ಭಗವನ್ ವಿಶ್ವೇಶ್ವರಾಯ ಮಹಾದೇವಾಯ ತ್ರಯಂಬಕಾಯ ತ್ರಿಪುರಾಂತಕಾಯ ತ್ರಿಕಾಗ್ನಿಕಾಲಾಯ ಕಾಲಾಗ್ನಿರುದ್ರಾಯ ನೀಲಕಂಠಾಯ ಮೃತ್ಯುಂಜಯಾಯ ಮಹಾದೇವಾಯ ನಮಃ ||",
       meaningKn: "ಪರಮೇಶ್ವರ ಜಂಬೆ ಅವರ ನೇತೃತ್ವದ ರುದ್ರಾಭಿಷೇಕದ ಫಲವಾಗಿ ನಿಮ್ಮ ಸಂಸಾರಕ್ಕೆ ಆಯುರಾರೋಗ್ಯ ಸೌಭಾಗ್ಯ ದೊರೆಯಲಿ.",
@@ -283,7 +285,7 @@ export const PREDEFINED_PRIESTS: PriestProfile[] = [
       kn: "ರವಿ ಜಂಬೆ",
       en: "Ravi Jambe",
       hi: "रवि जंबे",
-      te: "ರವಿ ಜಂಬೆ",
+      te: "రవి జంబె",
       ta: "ரவி ஜம்பே"
     },
     title: {
@@ -302,6 +304,7 @@ export const PREDEFINED_PRIESTS: PriestProfile[] = [
     },
     sealSymbol: "☀️",
     sealColor: "#D97706",
+    phone: "9481234567",
     shloka: {
       sanskrit: "ಆದಿತ್ಯಸ್ಯ ನಮಸ್ಕಾರಾನ್ ಯೇ ಕುರ್ವಂತಿ ದಿನೇ ದಿನೇ | ಜನ್ಮಾಂತರಸಹಸ್ರೇಷು ದಾರಿದ್ರ್ಯಂ ನೋಪಜಾಯತೇ ||",
       meaningKn: "ರವಿ ಜಂಬೆ ಅವರ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮತ್ತು ಮಂತ್ರಾಕ್ಷತೆಯಿಂದ ತೇಜಸ್ಸು ಹಾಗೂ ನವಗ್ರಹ ದೋಷ ಶಾಂತಿ ಲಭಿಸಲಿ.",
@@ -317,7 +320,7 @@ export const PREDEFINED_PRIESTS: PriestProfile[] = [
       kn: "ಗೋಪಾಲ ಜಂಬೆ",
       en: "Gopala Jambe",
       hi: "गोपाल जंबे",
-      te: "ಗೋపాల ಜಂಬೆ",
+      te: "గోపాల జంబె",
       ta: "கோபால ஜம்பே"
     },
     title: {
@@ -336,6 +339,7 @@ export const PREDEFINED_PRIESTS: PriestProfile[] = [
     },
     sealSymbol: "🪶",
     sealColor: "#2563EB",
+    phone: "9482345678",
     shloka: {
       sanskrit: "ಕೃಷ್ಣಾಯ ವಾಸುದೇವಾಯ ಹರಯೇ ಪರಮಾತ್ಮನೇ | ಪ್ರಣತಕ್ಲೇಶನಾಶಾಯ ಗೋವಿಂದಾಯ ನಮೋ ನಮಃ ||",
       meaningKn: "ಗೋಪಾಲ ಜಂಬೆ ಅವರ ಅನುಗ್ರಹ ಮಂತ್ರಾಕ್ಷತೆಯಿಂದ ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ, ಸಮೃದ್ಧಿ ಮತ್ತು ಕ್ಲೇಶನಾಶ ಉಂಟಾಗಲಿ.",
@@ -431,7 +435,10 @@ export function getPriestProfile(idOrName?: string | null): PriestProfile {
     p.id.toLowerCase() === query ||
     Object.values(p.name).some(val => val.toLowerCase() === query) ||
     p.name.en.toLowerCase().includes(query) ||
-    p.name.kn.toLowerCase().includes(query)
+    p.name.kn.toLowerCase().includes(query) ||
+    (p.name.te && p.name.te.toLowerCase().includes(query)) ||
+    (p.name.ta && p.name.ta.toLowerCase().includes(query)) ||
+    (p.name.hi && p.name.hi.toLowerCase().includes(query))
   );
 
   if (found) return found;
@@ -440,11 +447,11 @@ export function getPriestProfile(idOrName?: string | null): PriestProfile {
   return {
     id: `virtual-${query}`,
     name: {
-      kn: idOrName.trim(),
-      en: idOrName.trim(),
-      hi: idOrName.trim(),
-      te: idOrName.trim(),
-      ta: idOrName.trim()
+      kn: transliterateName(idOrName.trim(), "kn"),
+      en: transliterateName(idOrName.trim(), "en"),
+      hi: transliterateName(idOrName.trim(), "hi"),
+      te: transliterateName(idOrName.trim(), "te"),
+      ta: transliterateName(idOrName.trim(), "ta")
     },
     title: {
       kn: "ಗೋಕರ್ಣ ವೈದಿಕ ಅರ್ಚಕರು",

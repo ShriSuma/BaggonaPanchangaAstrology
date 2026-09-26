@@ -8,6 +8,7 @@ import type { RhythmDay } from "../../core/DailyRhythmEngine";
 import type { TithiGroup } from "../../core/TaraBalaEngine";
 import type { KundliOutput } from "../../core/AstroTypes";
 import { getPriestProfile } from "./sevaPriestDirectory";
+import { transliterateName } from "../../utils/transliterator";
 import {
   AMAVASYA_L5,
   BAND_GUIDE_L5,
@@ -99,9 +100,17 @@ export const weekdayName = (day?: RhythmDay | null, lang: string = "en"): string
 /** Formats the Priest (Pandit) Name in the active language script. */
 export function getLocalizedPanditName(rawPanditName?: string | null, lang: string = "en"): string {
   const p = (rawPanditName || "").trim();
+  if (!p) {
+    const profile = getPriestProfile("shreeram-pandit");
+    const l = (lang.startsWith("kn") ? "kn" : lang.startsWith("hi") ? "hi" : lang.startsWith("te") ? "te" : lang.startsWith("ta") ? "ta" : "en") as keyof typeof profile.name;
+    return profile.name[l] || profile.name.en;
+  }
   const profile = getPriestProfile(p);
   const l = (lang.startsWith("kn") ? "kn" : lang.startsWith("hi") ? "hi" : lang.startsWith("te") ? "te" : lang.startsWith("ta") ? "ta" : "en") as keyof typeof profile.name;
-  return profile.name[l] || profile.name.en;
+  if (profile.name[l]) {
+    return profile.name[l];
+  }
+  return transliterateName(p, lang);
 }
 
 /** Full tithi label, e.g. "Shukla Paksha Panchami" or simply "Purnima", based on the dominant majority Tithi for the whole day. */

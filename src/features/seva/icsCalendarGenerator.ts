@@ -54,6 +54,7 @@ import {
 import { encodeDevoteeToken, encodeDateOnlyDevoteeToken } from "../../utils/tokenCipher";
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { normalizeDegree } from "../../core/AstroMath";
+import { transliterateName } from "../../utils/transliterator";
 
 function escapeIcsText(str: string): string {
   return str
@@ -1109,7 +1110,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
   const startDateStr = days[0]?.ymd || new Date().toISOString().slice(0, 10);
   const localizedPandit = getLocalizedPanditName(panditName, lang);
-  const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : labels.defaultDevotee;
+  const devoteeDisplayName = (personName && personName.trim().length > 0) ? transliterateName(personName.trim(), lang) : labels.defaultDevotee;
 
   const resolvedBirth = getUniversalBirthDetails({
     dob,
@@ -1215,9 +1216,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       pp: options.overrideCalendarPhone ? options.priestPhone : undefined
     });
     const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
-      ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}&priestName=${encodeURIComponent(localizedPandit)}`
+      ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}`
       : "";
-    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya${contactOverrideQuery}`;
+    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya&priestName=${encodeURIComponent(localizedPandit)}${contactOverrideQuery}`;
 
     const aiItem = aiPanchangaMap?.[day.ymd];
     // Canonical Drik Ganita Udaya Tithi at 06:00 AM IST from day ensures 100% parity with DailyDarshanaPage web sanctum links
@@ -1288,7 +1289,45 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       : "👉 Click the link below to open Live Darshana:";
 
     const closingBlessing = isKn ? "✨ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು ✨" : isHi ? "✨ श्री महाबलेश्वर प्रसाद सिद्धिरस्तु ✨" : isTe ? "✨ శ్రీ మహాబలేశ్వర ప్రసాద సిద్ధిరస్తు ✨" : isTa ? "✨ ஸ்ரீ மகாபலேஸ்வரர் பிரசாத சித்திரஸ்து ✨" : "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨";
-    const viewBhavishyaButtonLabel = isKn ? "🔮 ಇಂದಿನ ದಿನ ಭವಿಷ್ಯವನ್ನು ವೀಕ್ಷಿಸಿ" : isHi ? "🔮 आज का दिन भविष्य देखें" : isTe ? "🔮 నేటి దిన భవిష్యత్తును వీక్షించండి" : isTa ? "🔮 இன்றைய தின பலனைப் பார்க்க" : "🔮 View Today's Daily Horoscope";
+    const viewBhavishyaButtonLabel = isKn
+      ? "ದಿನದ ಸಂಪೂರ್ಣ ಭವಿಷ್ಯವನ್ನು ತಿಳಿದುಕೊಳ್ಳಿ"
+      : isTe
+      ? "దిన సంపూర్ణ భవిష్యత్తును తెలుసుకోండి"
+      : isTa
+      ? "நாளின் முழுமையான பலனைத் தெரிந்துகொள்ளுங்கள்"
+      : isHi
+      ? "दिन का संपूर्ण भविष्य जानें"
+      : "Know Today's Complete Horoscope";
+
+    const bellDarshanaLabel = isKn
+      ? "🔔 ಗಂಟಾನಾದ & ದರ್ಶನ"
+      : isHi
+      ? "🔔 घंटानाद एवं दर्शन"
+      : isTe
+      ? "🔔 ఘంటానాదం & దర్శనం"
+      : isTa
+      ? "🔔 மணியோசை & தரிசனம்"
+      : "🔔 Temple Bell & Darshana";
+
+    const dailyDarshanaAlarmLabel = isKn
+      ? "🔔 ದೈನಂದಿನ ದರ್ಶನ"
+      : isHi
+      ? "🔔 दैनिक दर्शन"
+      : isTe
+      ? "🔔 దైనందిన దర్శనం"
+      : isTa
+      ? "🔔 தினசரி தரிசனம்"
+      : "🔔 Daily Darshana";
+
+    const morningReminderAlarmLabel = isKn
+      ? "🔔 ಮುಂಜಾನೆ ಪಂಚಾಂಗ ಜ್ಞಾಪನೆ"
+      : isHi
+      ? "🔔 प्रभात पंचांग स्मरण"
+      : isTe
+      ? "🔔 ఉదయకాల పంచాంగ జ్ఞాపిక"
+      : isTa
+      ? "🔔 காலை பஞ்சாங்க நினைவೂಟಲ್"
+      : "🔔 Morning Panchanga Reminder";
 
     const descriptionParts: string[] = [
       `🔮 ${viewBhavishyaButtonLabel}:`,
@@ -1373,9 +1412,6 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     descriptionParts.push(
       "",
       "════════════════════════════════════════",
-      `🔮 ${viewBhavishyaButtonLabel}:`,
-      `👉 ${sanctumUrl}`,
-      "════════════════════════════════════════",
       "",
       `✨ ${closingBlessing} ✨`
     );
@@ -1385,7 +1421,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       ? `${tithiFullStr} <span style="font-size:11px; color:#fde68a;">(${tithiDetailInfo.tithiEndTimeStr} ${lang === "kn" ? "ರವರೆಗೆ" : "till"}, ${lang === "kn" ? "ನಂತರ" : "then"}: ${tithiDetailInfo.nextTithiFullLabel?.[lang] || ''})</span>`
       : tithiFullStr;
 
-    const htmlDescriptionStr = `<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#1c0a00;color:#fff8e7;padding:12px;margin:0;"><div style="background:linear-gradient(135deg,#451a03 0%,#1c0a00 100%);border:2px solid #d97706;border-radius:14px;padding:16px;max-width:540px;margin:0 auto;box-shadow:0 8px 24px rgba(0,0,0,0.6);"><div style="text-align:center;margin-bottom:14px;padding:12px;background:linear-gradient(135deg,rgba(217,119,6,0.25) 0%,rgba(120,53,15,0.35) 100%);border:1.5px solid #f59e0b;border-radius:10px;"><div style="color:#fde68a;font-weight:800;font-size:11px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">✨ ${labels.kshetraTitle} · ${labels.panchangaTitle}</div><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1c0a00;text-decoration:none;padding:11px 22px;border-radius:9px;font-weight:900;font-size:14px;box-shadow:0 4px 12px rgba(217,119,6,0.4);border:1.5px solid #fde68a;">${viewBhavishyaButtonLabel}</a></div><div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11px;"><span style="font-weight:800;color:#fde68a;text-transform:uppercase;">🌅 ${labels.sunriseLabel} / ${labels.sunsetLabel}</span><span style="color:#f59e0b;font-weight:700;">📍 ${locationName} (${pincode})</span></div><table style="width:100%;border-collapse:collapse;font-size:12.5px;"><tr><td style="width:50%;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:6px;text-align:center;"><span style="color:#fcd34d;font-size:11px;">🌅 ${labels.sunriseLabel}:</span> <strong style="color:#ffffff;">${kaala.sunrise}</strong></td><td style="width:50%;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:6px;text-align:center;"><span style="color:#fcd34d;font-size:11px;">🌇 ${labels.sunsetLabel}:</span> <strong style="color:#ffffff;">${kaala.sunset}</strong></td></tr></table></div><div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;color:#fde68a;margin-bottom:6px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>⏳ ${isKn ? "ದೈನಂದಿನ ಕಾಲಗಳು" : isHi ? "दैनिक काल" : isTe ? "దైనందిన కాలాలు" : isTa ? "தினசரி காலங்கள்" : "Daily Timings"}</span><span style="color:#10b981;font-weight:800;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:4px;padding:1px 5px;font-size:10px;">🇮🇳 IST (+05:30)</span></div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.2);"><td style="padding:4px 2px;color:#fca5a5;font-weight:700;width:38%;">🔴 ${labels.rahuLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.2);"><td style="padding:4px 2px;color:#fde047;font-weight:700;">🟡 ${labels.gulikaLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.gulika}</td></tr><tr><td style="padding:4px 2px;color:#86efac;font-weight:700;">🟢 ${labels.yamagandaLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.yamaganda}</td></tr></table></div><div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;color:#fde68a;margin-bottom:6px;text-transform:uppercase;">🕉️ ${labels.panchangaTitle}</div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;width:38%;">👤 ${labels.devoteeLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🙏 ${labels.priestLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${localizedPandit}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">📅 ${labels.tithiLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${htmlTithiVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🌙 ${labels.rashiLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${rashiStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🎯 ${labels.taraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🌙 ${labels.chandraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${chandraBalaStr}</td></tr><tr><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">⚡ ${labels.statusLabel}:</td><td style="padding:3px 2px;color:#fde68a;font-weight:800;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr></table></div><div style="background:linear-gradient(135deg,rgba(120,53,15,0.3) 0%,rgba(69,26,3,0.3) 100%);border:1px solid #f59e0b;border-radius:10px;padding:8px 12px;text-align:center;margin-bottom:12px;"><div style="font-size:11px;color:#fde68a;font-weight:800;">🛕 ${labels.deityLabel}: ${pick(deity.deityL5, lang) || deity.deity}</div><div style="font-size:12px;color:#ffffff;font-family:serif;margin-top:2px;">"${deity.mantra}"</div></div><div style="text-align:center;padding:6px 0;"><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1c0a00;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:900;font-size:13px;box-shadow:0 4px 10px rgba(217,119,6,0.3);border:1px solid #fde68a;">${viewBhavishyaButtonLabel}</a><div style="color:#d97706;font-size:11px;margin-top:8px;font-weight:700;">${closingBlessing} · ${localizedPandit}</div></div></div></body></html>`;
+    const htmlDescriptionStr = `<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#1c0a00;color:#fff8e7;padding:12px;margin:0;"><div style="background:linear-gradient(135deg,#451a03 0%,#1c0a00 100%);border:2px solid #d97706;border-radius:14px;padding:16px;max-width:540px;margin:0 auto;box-shadow:0 8px 24px rgba(0,0,0,0.6);"><div style="text-align:center;margin-bottom:14px;padding:12px;background:linear-gradient(135deg,rgba(217,119,6,0.25) 0%,rgba(120,53,15,0.35) 100%);border:1.5px solid #f59e0b;border-radius:10px;"><div style="color:#fde68a;font-weight:800;font-size:11px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">✨ ${labels.kshetraTitle} · ${labels.panchangaTitle}</div><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1c0a00;text-decoration:none;padding:11px 22px;border-radius:9px;font-weight:900;font-size:14px;box-shadow:0 4px 12px rgba(217,119,6,0.4);border:1.5px solid #fde68a;">${viewBhavishyaButtonLabel}</a></div><div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11px;"><span style="font-weight:800;color:#fde68a;text-transform:uppercase;">🌅 ${labels.sunriseLabel} / ${labels.sunsetLabel}</span><span style="color:#f59e0b;font-weight:700;">📍 ${locationName} (${pincode})</span></div><table style="width:100%;border-collapse:collapse;font-size:12.5px;"><tr><td style="width:50%;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:6px;text-align:center;"><span style="color:#fcd34d;font-size:11px;">🌅 ${labels.sunriseLabel}:</span> <strong style="color:#ffffff;">${kaala.sunrise}</strong></td><td style="width:50%;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:6px;text-align:center;"><span style="color:#fcd34d;font-size:11px;">🌇 ${labels.sunsetLabel}:</span> <strong style="color:#ffffff;">${kaala.sunset}</strong></td></tr></table></div><div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;color:#fde68a;margin-bottom:6px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>⏳ ${isKn ? "ದೈನಂದಿನ ಕಾಲಗಳು" : isHi ? "दैनिक काल" : isTe ? "దైనందిన కాలాలు" : isTa ? "தினசரி காலங்கள்" : "Daily Timings"}</span><span style="color:#10b981;font-weight:800;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:4px;padding:1px 5px;font-size:10px;">🇮🇳 IST (+05:30)</span></div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.2);"><td style="padding:4px 2px;color:#fca5a5;font-weight:700;width:38%;">🔴 ${labels.rahuLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.2);"><td style="padding:4px 2px;color:#fde047;font-weight:700;">🟡 ${labels.gulikaLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.gulika}</td></tr><tr><td style="padding:4px 2px;color:#86efac;font-weight:700;">🟢 ${labels.yamagandaLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.yamaganda}</td></tr></table></div><div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;color:#fde68a;margin-bottom:6px;text-transform:uppercase;">🕉️ ${labels.panchangaTitle}</div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;width:38%;">👤 ${labels.devoteeLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🙏 ${labels.priestLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${localizedPandit}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">📅 ${labels.tithiLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${htmlTithiVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🌙 ${labels.rashiLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${rashiStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🎯 ${labels.taraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🌙 ${labels.chandraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${chandraBalaStr}</td></tr><tr><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">⚡ ${labels.statusLabel}:</td><td style="padding:3px 2px;color:#fde68a;font-weight:800;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr></table></div><div style="background:linear-gradient(135deg,rgba(120,53,15,0.3) 0%,rgba(69,26,3,0.3) 100%);border:1px solid #f59e0b;border-radius:10px;padding:8px 12px;text-align:center;margin-bottom:12px;"><div style="font-size:11px;color:#fde68a;font-weight:800;">🛕 ${labels.deityLabel}: ${pick(deity.deityL5, lang) || deity.deity}</div><div style="font-size:12px;color:#ffffff;font-family:serif;margin-top:2px;">"${deity.mantra}"</div></div><div style="text-align:center;padding:6px 0;"><div style="color:#d97706;font-size:11px;margin-top:8px;font-weight:700;">${closingBlessing} · ${localizedPandit}</div></div></div></body></html>`;
 
     const masterSeriesUid = `baggona-series-${sanitizedDevoteeToken}@baggona.app`;
     const eventLines: string[] = [
@@ -1421,19 +1457,19 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       "ATTACH;VALUE=URI:PresetSound#Alarm",
       "X-APPLE-DEFAULT-ALARM:TRUE",
       "X-APPLE-LOCAL-DEFAULT-ALARM:TRUE",
-      `DESCRIPTION:${escapeIcsText(`🔔 ಗಂಟಾನಾದ & ದರ್ಶನ: ${summaryStr}`)}`,
+      `DESCRIPTION:${escapeIcsText(`${bellDarshanaLabel}: ${summaryStr}`)}`,
       "TRIGGER:-PT0M",
       "REPEAT:2",
       "DURATION:PT2M",
       "END:VALARM",
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
-      `DESCRIPTION:${escapeIcsText(`🔔 ದೈನಂದಿನ ದರ್ಶನ: ${summaryStr}`)}`,
+      `DESCRIPTION:${escapeIcsText(`${dailyDarshanaAlarmLabel}: ${summaryStr}`)}`,
       "TRIGGER:-PT0M",
       "END:VALARM",
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
-      `DESCRIPTION:${escapeIcsText(`🔔 ಮುಂಜಾನೆ ಪಂಚಾಂಗ ಜ್ಞಾಪನೆ: ${summaryStr}`)}`,
+      `DESCRIPTION:${escapeIcsText(`${morningReminderAlarmLabel}: ${summaryStr}`)}`,
       "TRIGGER:-PT15M",
       "END:VALARM",
       "END:VEVENT"
@@ -1572,7 +1608,8 @@ export function generateGoogleCalendarUrl(options: {
   const isTa = lang.startsWith("ta");
 
   const localizedPandit = getLocalizedPanditName(panditName, lang);
-  const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : "Devotee");
+  const rawDevotee = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : isHi ? "भक्त" : isTe ? "భక్తులు" : isTa ? "பக்தர்" : "Devotee");
+  const devoteeDisplayName = transliterateName(rawDevotee, lang);
 
   const resolvedBirth = getUniversalBirthDetails({
     dob,
@@ -1637,9 +1674,9 @@ export function generateGoogleCalendarUrl(options: {
   });
   const origin = getSafeProductionOrigin(webAppBaseUrl);
   const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
-    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}&priestName=${encodeURIComponent(localizedPandit)}`
+    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}`
     : "";
-  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya${contactOverrideQuery}`;
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya&priestName=${encodeURIComponent(localizedPandit)}${contactOverrideQuery}`;
 
   const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాಂಗం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
   const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
@@ -1690,14 +1727,14 @@ export function generateGoogleCalendarUrl(options: {
     : "Open Live Darshana & Daily Panchanga";
 
   const viewBhavishyaButtonLabel = isKn
-    ? "🔮 ಇಂದಿನ ದಿನ ಭವಿಷ್ಯವನ್ನು ವೀಕ್ಷಿಸಿ"
-    : isHi
-    ? "🔮 आज का दिन भविष्य देखें"
+    ? "ದಿನದ ಸಂಪೂರ್ಣ ಭವಿಷ್ಯವನ್ನು ತಿಳಿದುಕೊಳ್ಳಿ"
     : isTe
-    ? "🔮 నేటి దిన భవిష్యత్తును వీక్షించండి"
+    ? "దిన సంపూర్ణ భవిష్యత్తును తెలుసుకోండి"
     : isTa
-    ? "🔮 இன்றைய தின பலனைப் பார்க்க"
-    : "🔮 View Today's Daily Horoscope";
+    ? "நாளின் முழுமையான பலனைத் தெரிந்துகொள்ளுங்கள்"
+    : isHi
+    ? "दिन का संपूर्ण भविष्य जानें"
+    : "Know Today's Complete Horoscope";
 
   const closingBlessing = isKn ? "✨ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು ✨" : isHi ? "✨ श्री महाबलेश्वर प्रसाद सिद्धिरस्तु ✨" : isTe ? "✨ శ్రీ మహాబలేశ్వర ప్రసాద సిద్ధిరస్తు ✨" : isTa ? "✨ ஸ்ரீ மகாபலேஸ்வரர் பிரசாத சித்திரஸ்து ✨" : "✨ Gokarna Mahabaleshwara Prasada Siddhirastu ✨";
 
@@ -1735,12 +1772,6 @@ export function generateGoogleCalendarUrl(options: {
     `🛕 ${labels.deityLabel}: ${pick(deity.deityL5, lang) || deity.deity}`,
     `📜 ${labels.mantraLabel}: "${deity.mantra}"`,
     "",
-    "════════════════════════════════════════",
-    `🔮 ${viewBhavishyaButtonLabel}:`,
-    `👉 ${sanctumUrl}`,
-    "",
-    `📥 90-Day ICS Calendar Import:`,
-    `👉 ${origin}/daily?token=${devoteeToken}&action=ics90&lang=${lang}${contactOverrideQuery}`,
     "════════════════════════════════════════",
     "",
     `✨ ${closingBlessing} ✨`
@@ -1868,7 +1899,7 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     pp: options.overrideCalendarPhone ? options.priestPhone : undefined
   });
   const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
-    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}&priestName=${encodeURIComponent(safePandit)}`
+    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}`
     : "";
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya${contactOverrideQuery}`;
 

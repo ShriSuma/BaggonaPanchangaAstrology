@@ -33,6 +33,7 @@ import { signLord } from "../core/KundliInsightsEngine";
 import { normalizeDegree } from "../core/AstroMath";
 import { PlanetName, type KundliOutput, type PlanetPosition } from "../core/AstroTypes";
 import { transliterateName } from "../utils/transliterator";
+import { getPriestProfile } from "../features/seva/sevaPriestDirectory";
 import {
   recordCalendarVisit,
   getPoojaStreak,
@@ -1880,50 +1881,10 @@ export default function DailyDarshanaPage(): JSX.Element {
   const hasContactOverride = useMemo(() => {
     if (urlParams.get("overrideContact") === "true") return true;
     if (decoded?.ocp || decoded?.overrideCalendarPhone) return true;
-    if (decoded?.pp && decoded.pp !== "9972339362") return true;
-    if (urlParams.get("priestPhone") && urlParams.get("priestPhone") !== "9972339362") return true;
-    if (urlParams.get("ph") && urlParams.get("ph") !== "9972339362") return true;
-    if (urlParams.get("phone") && urlParams.get("phone") !== "9972339362") return true;
-    if (urlParams.get("priestName") && !urlParams.get("priestName")!.includes("Shreeram") && !urlParams.get("priestName")!.includes("ಶ್ರೀರಾಮ್")) return true;
     return false;
   }, [decoded, urlParams]);
 
-  const activePanditPhone = useMemo(() => {
-    if (!hasContactOverride) {
-      return "9972339362";
-    }
-    if (urlParams.get("priestPhone")) {
-      return urlParams.get("priestPhone")!.trim();
-    }
-    if (decoded?.pp || decoded?.priestPhone) {
-      return (decoded.pp || decoded.priestPhone)!.trim();
-    }
-    if (decoded?.ocp && (decoded?.ph || decoded?.phone)) {
-      return (decoded.ph || decoded.phone)!.trim();
-    }
-    if (urlParams.get("ph")) {
-      return urlParams.get("ph")!.trim();
-    }
-    if (urlParams.get("phone")) {
-      return urlParams.get("phone")!.trim();
-    }
-    return "9972339362";
-  }, [hasContactOverride, decoded, urlParams]);
-
-  const activePanditWhatsApp = useMemo(() => {
-    if (decoded?.pw || decoded?.priestWhatsApp) {
-      return (decoded.pw || decoded.priestWhatsApp)!.trim();
-    }
-    if (urlParams.get("overrideContact") === "true" && urlParams.get("priestWhatsApp")) {
-      return urlParams.get("priestWhatsApp")!.trim();
-    }
-    return activePanditPhone;
-  }, [decoded, urlParams, activePanditPhone]);
-
   const activePanditName = useMemo(() => {
-    if (!hasContactOverride) {
-      return getLocalizedPanditName("shreeram-pandit", lang);
-    }
     let raw = "";
     if (urlParams.get("priestName")) {
       raw = urlParams.get("priestName")!.trim();
@@ -1937,7 +1898,40 @@ export default function DailyDarshanaPage(): JSX.Element {
       raw = "shreeram-pandit";
     }
     return getLocalizedPanditName(raw, lang);
-  }, [hasContactOverride, decoded, urlParams, lang]);
+  }, [decoded, urlParams, lang]);
+
+  const activePanditPhone = useMemo(() => {
+    if (urlParams.get("priestPhone")) {
+      return urlParams.get("priestPhone")!.trim();
+    }
+    if (decoded?.pp || decoded?.priestPhone) {
+      return (decoded.pp || decoded.priestPhone)!.trim();
+    }
+    if (decoded?.ph || decoded?.phone) {
+      return (decoded.ph || decoded.phone)!.trim();
+    }
+    const profile = getPriestProfile(activePanditName);
+    if (profile && profile.phone) return profile.phone;
+    return "9972339362";
+  }, [decoded, urlParams, activePanditName]);
+
+  const activePanditWhatsApp = useMemo(() => {
+    if (decoded?.pw || decoded?.priestWhatsApp) {
+      return (decoded.pw || decoded.priestWhatsApp)!.trim();
+    }
+    if (urlParams.get("overrideContact") === "true" && urlParams.get("priestWhatsApp")) {
+      return urlParams.get("priestWhatsApp")!.trim();
+    }
+    return activePanditPhone;
+  }, [decoded, urlParams, activePanditPhone]);
+
+  // Contact details specifically for bottom call/WhatsApp block:
+  // If overrideContact is true -> show activePanditName & activePanditPhone
+  // If overrideContact is false -> strictly default to Shreeram Pandit & 9972339362
+  const defaultShreeramName = useMemo(() => getLocalizedPanditName("shreeram-pandit", lang), [lang]);
+  const contactPanditName = hasContactOverride ? activePanditName : defaultShreeramName;
+  const contactPanditPhone = hasContactOverride ? activePanditPhone : "9972339362";
+  const contactPanditWhatsApp = hasContactOverride ? activePanditWhatsApp : "9972339362";
 
   const localizedPandit = activePanditName;
   
@@ -2998,7 +2992,7 @@ export default function DailyDarshanaPage(): JSX.Element {
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <a
-              href={`tel:${activePanditPhone.replace(/[^\d+]/g, "")}`}
+              href={`tel:${contactPanditPhone.replace(/[^\d+]/g, "")}`}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -5225,7 +5219,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             }}
           >
             <span>📞</span>
-            <span>{getCallPanditText(lang, activePanditName, activePanditPhone)}</span>
+            <span>{getCallPanditText(lang, contactPanditName, contactPanditPhone)}</span>
           </button>
         </div>
       </main>
@@ -5596,7 +5590,7 @@ export default function DailyDarshanaPage(): JSX.Element {
           }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>🛕</div>
             <h3 style={{ margin: "0 0 4px", fontSize: 18, color: "#FDE68A", fontWeight: 900 }}>
-              {activePanditName}
+              {contactPanditName}
             </h3>
             <div style={{ fontSize: 12, color: "#F59E0B", marginBottom: 16 }}>
               {dict.panditRole}
@@ -5620,12 +5614,12 @@ export default function DailyDarshanaPage(): JSX.Element {
                   boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)"
                 }}
               >
-                📞 {getCallNowText(lang, activePanditPhone)}
+                📞 {getCallNowText(lang, contactPanditPhone)}
               </a>
 
               {activePanditWhatsApp && (
                 <a
-                  href={`https://wa.me/${activePanditWhatsApp.replace(/[^\d]/g, "")}`}
+                  href={`https://wa.me/${contactPanditWhatsApp.replace(/[^\d]/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{

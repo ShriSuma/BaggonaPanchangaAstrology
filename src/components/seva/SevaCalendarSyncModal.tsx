@@ -29,6 +29,7 @@ import { useAuthStore } from "../../features/auth/authStore";
 import { recordPriestCalendarAction } from "../../features/seva/calendarVisitService";
 import { getAllVoiceProfiles, type PriestVoiceProfile } from "../../features/audio/priestVoiceDatabase";
 import { PriestVoiceUploadModal } from "../darshana/PriestVoiceUploadModal";
+import { getLocalizedPanditName } from "../../features/seva/sevaPresentation";
 
 type Props = {
   days: RhythmDay[];
@@ -79,19 +80,26 @@ export default function SevaCalendarSyncModal({
   const [customPriestPhone, setCustomPriestPhone] = useState<string>("9972339362");
   const [listeningPriestField, setListeningPriestField] = useState<string | null>(null);
 
+  useEffect(() => {
+    const locName = activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en || activePriest.name.kn;
+    setCustomPriestName(locName);
+    const ph = activePriest.phone || "9972339362";
+    setCustomPriestPhone(ph);
+  }, [activePriest, lang]);
+
   const panditName = useMemo(() => {
     if (overridePriestContact && customPriestName.trim()) {
-      return customPriestName.trim();
+      return getLocalizedPanditName(customPriestName.trim(), lang);
     }
-    return defaultPriest.name[lang as keyof typeof defaultPriest.name] || defaultPriest.name.en || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
-  }, [overridePriestContact, customPriestName, defaultPriest, lang]);
+    return activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en || getLocalizedPanditName(activePriest.name.kn, lang);
+  }, [overridePriestContact, customPriestName, activePriest, lang]);
 
   const effectivePriestPhone = useMemo(() => {
     if (overridePriestContact && customPriestPhone.trim()) {
       return customPriestPhone.trim();
     }
-    return "9972339362";
-  }, [overridePriestContact, customPriestPhone]);
+    return activePriest.phone || "9972339362";
+  }, [overridePriestContact, customPriestPhone, activePriest]);
 
   const handleSelectPriest = (priestId: string) => {
     if (priestId === "ADD_NEW") {
@@ -99,17 +107,11 @@ export default function SevaCalendarSyncModal({
       return;
     }
     setSelectedPriestId(priestId);
-    if (priestId === "shreeram-pandit") {
-      setCustomPriestName("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-      setCustomPriestPhone("9972339362");
-      setOverridePriestContact(false);
-    } else {
-      const p = getPriestProfile(priestId);
-      const locName = p.name[lang as keyof typeof p.name] || p.name.en || p.name.kn;
-      setCustomPriestName(locName);
-      setCustomPriestPhone(p.phone || "9972339362");
-      setOverridePriestContact(true);
-    }
+    const p = getPriestProfile(priestId);
+    const locName = p.name[lang as keyof typeof p.name] || p.name.en || p.name.kn;
+    setCustomPriestName(locName);
+    const ph = p.phone || "9972339362";
+    setCustomPriestPhone(ph);
   };
 
   const startPriestVoiceInput = (fieldKey: "name" | "phone", onResult: (val: string) => void) => {
@@ -266,8 +268,8 @@ export default function SevaCalendarSyncModal({
     });
   }, [days, personName, lang, panditName, platform, target, notificationTime, pincodeInput, lat, lng, locationName, calendarSpanDays, selectedVoiceId, effectivePriestPhone, overridePriestContact]);
 
-  const contactOverrideQuery = overridePriestContact && effectivePriestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(effectivePriestPhone)}&priestName=${encodeURIComponent(panditName)}` : "";
-  const webSanctumUrl = `${origin}/daily?token=${devoteeToken}&lang=${lang}${contactOverrideQuery}`;
+  const contactOverrideQuery = overridePriestContact && effectivePriestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(effectivePriestPhone)}` : "";
+  const webSanctumUrl = `${origin}/daily?token=${devoteeToken}&lang=${lang}&priestName=${encodeURIComponent(panditName)}${contactOverrideQuery}`;
 
   // Speech Recognition for Pandit Name (Voice Input)
   const handleMicClick = () => {
@@ -1065,18 +1067,20 @@ export default function SevaCalendarSyncModal({
                 <label className="block text-xs font-bold uppercase tracking-wider text-amber-900/80">
                   {lang.startsWith("kn") ? "ಅರ್ಚಕರ ಆಯ್ಕೆ & ನೇರ ಸಂಪರ್ಕ (Priest Selection & Direct Contact)" : "Select Priest & Contact"}
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setOverridePriestContact(prev => !prev)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition border ${
-                    overridePriestContact
-                      ? "bg-amber-600 text-white border-amber-700 shadow-sm"
-                      : "bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200"
-                  }`}
-                >
-                  <span>✏️</span>
-                  <span>{overridePriestContact ? (lang.startsWith("kn") ? "ಓವರ್‌ರೈಡ್ ಸಕ್ರಿಯವಾಗಿದೆ (Active)" : "Override Active") : (lang.startsWith("kn") ? "ವಿವರಗಳನ್ನು ಸಂಪಾದಿಸಿ (Edit Priest)" : "Edit Priest Details")}</span>
-                </button>
+                <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    id="override-priest-contact-modal-toggle"
+                    checked={overridePriestContact}
+                    onChange={(e) => setOverridePriestContact(e.target.checked)}
+                    className="w-4 h-4 rounded text-amber-700 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <span className={`text-xs font-bold ${overridePriestContact ? "text-amber-800" : "text-amber-900/70"}`}>
+                    {overridePriestContact
+                      ? (lang.startsWith("kn") ? "ಓವರ್‌ರೈಡ್ ಸಕ್ರಿಯವಾಗಿದೆ (Active)" : "Override Active")
+                      : (lang.startsWith("kn") ? "ವಿವರಗಳನ್ನು ಬದಲಾಯಿಸಿ (Override Contact)" : "Override Priest Details")}
+                  </span>
+                </label>
               </div>
 
               {!customInputMode ? (
@@ -1185,28 +1189,26 @@ export default function SevaCalendarSyncModal({
                 <div className="flex items-center justify-between rounded-xl bg-amber-50 p-2.5 border border-amber-300/80 text-xs">
                   <div>
                     <div className="font-bold text-amber-950 flex items-center gap-1.5">
-                      <span>{defaultPriest.sealSymbol}</span>
-                      <span>{defaultPriest.name[lang as keyof typeof defaultPriest.name] || defaultPriest.name.en}</span>
+                      <span>{activePriest.sealSymbol}</span>
+                      <span>{panditName}</span>
                     </div>
                     <div className="text-[11px] text-amber-800/80 mt-0.5">
-                      {lang.startsWith("kn") ? "ಪ್ರಧಾನ ಅರ್ಚಕರು - ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ | ನೇರ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ: 9972339362" : "Chief Priest - Gokarna Kshetra | Direct Phone: 9972339362"}
+                      {activePriest.title[lang as keyof typeof activePriest.title] || activePriest.title.en} | {lang.startsWith("kn") ? "ನೇರ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ:" : "Direct Phone:"} {effectivePriestPhone}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                      ✓ {lang.startsWith("kn") ? "ಡಿಫಾಲ್ಟ್ ಅರ್ಚಕರು" : "Default Priest"}
+                      ✓ {selectedPriestId === "shreeram-pandit" ? (lang.startsWith("kn") ? "ಡಿಫಾಲ್ಟ್ ಅರ್ಚಕರು" : "Default Priest") : (lang.startsWith("kn") ? "ಆಯ್ಕೆಯಾದ ಅರ್ಚಕರು" : "Selected Priest")}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomPriestName(activePriest.name[lang as keyof typeof activePriest.name] || activePriest.name.en);
-                        setCustomPriestPhone(activePriest.phone || "9972339362");
-                        setOverridePriestContact(true);
-                      }}
-                      className="text-amber-800 hover:text-amber-950 underline text-xs font-bold"
-                    >
-                      {lang.startsWith("kn") ? "ಸಂಪಾದಿಸಿ" : "Edit"}
-                    </button>
+                    <label className="text-amber-800 hover:text-amber-950 cursor-pointer text-xs font-bold flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={overridePriestContact}
+                        onChange={(e) => setOverridePriestContact(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded text-amber-700"
+                      />
+                      <span>{lang.startsWith("kn") ? "ಓವರ್‌ರೈಡ್" : "Override"}</span>
+                    </label>
                   </div>
                 </div>
               ) : (
