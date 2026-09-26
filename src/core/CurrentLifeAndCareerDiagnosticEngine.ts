@@ -1010,7 +1010,7 @@ export function diagnoseCurrentLifeSituation(
   if (age >= 8 && age < 14) {
     candidates.push({
       category: "student_academic_stress",
-      score: 14.0,
+      score: 18.0,
       profile: {
         category: "student_academic_stress",
         titleKn: "ಬಾಲ್ಯದ ಬೆಳವಣಿಗೆ, ವಿದ್ಯಾಭ್ಯಾಸದ ಒತ್ತಡ & ಏಕಾಗ್ರತೆಯ ಕೊರತೆ",
@@ -1171,7 +1171,7 @@ export function diagnoseCurrentLifeSituation(
         titleEn: "Acute Marital Friction, Estrangement & Samsara Cohabitation Crisis",
         headlineKn: `${h7SignKn} 7ನೇ ಕಳತ್ರ ಸ್ಥಾನ (${h7LordKn} ಪ್ರಭಾವ): ದಾಂಪತ್ಯದಲ್ಲಿ ${spouseKn} ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಮನಸ್ತಾಪ & ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ`,
         headlineEn: `7th House (${RASHI_EN[getHouseSignIdx(7)] || "Spouse"}): Volatile Marital Friction with ${isFemale ? "Husband" : "Wife"} & Samsara Discord`,
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ ಮತ್ತು ${spouseKn} ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಗಂಭೀರ ಮನಸ್ತಾಪಗಳು ಕಾಡುತ್ತಿವೆ. ${lagnaKn} ಲಗ್ನದ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನವು ${h7SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. 8ನೇ ಮಾಂಗಲ್ಯ ಸ್ಥಾನವು ${h8SignKn} ಆಗಿದ್ದು (ಅಧಿಪತಿ ${h8LordKn}), ${mars ? `ಕುಜನು ${mars.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}${saturn ? `ಶನಿಯು ${saturn.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ಸಣ್ಣ ಮಾತೂ ದೊಡ್ಡ ಜಗಳವಾಗಿ ಪರಿವರ್ತನೆಗೊಳ್ಳುವುದು, ಸಂಗಾತಿಯ ಕಡೆಯಿಂದ ಕಟುವಾದ ಮಾತುಗಳು, ಪರಸ್ಪರ ಅಂತರ ಹಾಗೂ ಮನೆಯೊಳಗೆ ನೆಮ್ಮದಿಯಿಲ್ಲದ ವಾತಾವರಣ ಉಂಟಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ${shaniGocharaTextKn} ಸಂಸಾರಿಕ ಸುಖದಲ್ಲಿ ಏರುಪೇರು ಉಂಟುಮಾಡಿದೆ.`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಸಂಸಾರದಲ್ಲಿ ಅಶಾಂತಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ತೀವ್ರವಾದ ಮಾನಸಿಕ ಸಂಕಷ್ಟ ಮತ್ತು ${spouseKn} ಹೊಂದಾಣಿಕೆಯಿಲ್ಲದ ಗಂಭೀರ ಮನಸ್ತಾಪಗಳು ಕಾಡುತ್ತಿವೆ. ${lagnaKn} ಲಗ್ನದ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನವು ${h7SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h7LordKn} ${h7LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದಾರೆ. 8ನೇ ಮಾಂಗಲ್ಯ ಸ್ಥಾನವು ${h8SignKn} ಆಗಿದ್ದು (ಅಧಿಪತಿ ${h8LordKn}), ${mars ? `ಕುಜನು ${mars.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}${saturn ? `ಶನಿಯು ${saturn.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ` : ""}ಸಣ್ಣ ಮಾತೂ ದೊಡ್ಡ ಜಗಳವಾಗಿ ಪರಿವರ್ತನೆಗೊಳ್ಳುವುದು, ಸಂಗಾತಿಯ ಕಡೆಯಿಂದ ಕಟುವಾದ ಮಾತುಗಳು, ಪರಸ್ಪರ ಅಂತರ ಹಾಗೂ ಮನೆಯೊಳಗೆ ನೆಮ್ಮದಿಯಿಲ್ಲದ ವಾತಾವರಣ ಉಂಟಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ${shaniGocharaTextKn} ಸಂಸಾರಿಕ ಸುಖದಲ್ಲಿ ಏರುಪೇರು ಉಂಟುಮಾಡಿದೆ.`,
         detailedRealityEn: `Currently, you are enduring acute marital friction and emotional alienation with your ${spouseEn}. The 7th house (${RASHI_EN[getHouseSignIdx(7)]}) ruled by ${PLANET_EN[seventhLord]} and 8th house (${RASHI_EN[getHouseSignIdx(8)]}) reflect temperamental clashes under ${mahaEn}-${bhuktiEn}.`,
         planetaryCulpritKn: (() => {
           const reasons: string[] = [];

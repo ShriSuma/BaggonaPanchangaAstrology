@@ -65,10 +65,49 @@ export default function InstantReadingPage(): JSX.Element {
     openingIceBreakerKn: string;
     hiddenSubconsciousWorryKn: string;
     maandiKarmicImpactKn: string;
+    bodyMarkAndTemperamentKn?: string;
     karmaFinancialRealityKn: string;
     immediateTurningPointKn: string;
     siddhaPariharaRemedyKn: string;
+    ageGroupBadge?: string;
+    technicalAspectsCueKn?: string;
   } | null>(null);
+
+  const [playingPointKey, setPlayingPointKey] = useState<string | null>(null);
+
+  const handlePlayTalkingPoint = (pointKey: string, text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      alert(isKn ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಸೌಲಭ್ಯವನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ." : "Audio speech is not supported in this browser.");
+      return;
+    }
+
+    if (playingPointKey === pointKey) {
+      window.speechSynthesis.cancel();
+      setPlayingPointKey(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/[*#_`]/g, " ").replace(/\s+/g, " ").trim();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = isKn ? "kn-IN" : "en-IN";
+    utterance.rate = 0.88;
+    utterance.pitch = 0.95;
+
+    utterance.onstart = () => setPlayingPointKey(pointKey);
+    utterance.onend = () => setPlayingPointKey(null);
+    utterance.onerror = () => setPlayingPointKey(null);
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Selected Category & Active Question Drawer
   const [activeCategory, setActiveCategory] = useState<"all" | "career" | "marriage" | "children" | "mind" | "wealth">("all");
@@ -261,9 +300,12 @@ STRICT RULES:
                 openingIceBreakerKn: cleanAstrologyText(parsed.openingIceBreaker),
                 hiddenSubconsciousWorryKn: cleanAstrologyText(parsed.hiddenSubconsciousWorry),
                 maandiKarmicImpactKn: cleanAstrologyText(parsed.maandiKarmicImpact || data.currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn),
+                bodyMarkAndTemperamentKn: parsed.bodyMarkAndTemperament ? cleanAstrologyText(parsed.bodyMarkAndTemperament) : (isKn ? data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentKn : (data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentEn || data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentKn)),
                 karmaFinancialRealityKn: cleanAstrologyText(parsed.karmaFinancialReality || data.currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn),
                 immediateTurningPointKn: cleanAstrologyText(parsed.immediateTurningPoint || data.currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn),
-                siddhaPariharaRemedyKn: cleanAstrologyText(parsed.siddhaPariharaRemedy || data.currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn)
+                siddhaPariharaRemedyKn: cleanAstrologyText(parsed.siddhaPariharaRemedy || data.currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn),
+                ageGroupBadge: isKn ? data.currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeKn : (data.currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeEn || data.currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeKn),
+                technicalAspectsCueKn: data.currentDiagnosis.astrologerTalkingPoints.technicalAspectsCueKn
               });
             }
             if (Array.isArray(parsed.executiveReadingParagraphs) && parsed.executiveReadingParagraphs.length >= 2) {
@@ -467,9 +509,12 @@ STRICT RULES:
     openingIceBreakerKn: isKn ? currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn : (currentDiagnosis.astrologerTalkingPoints.openingIceBreakerEn || currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn),
     hiddenSubconsciousWorryKn: isKn ? currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn : (currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryEn || currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn),
     maandiKarmicImpactKn: isKn ? currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn : (currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactEn || currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn),
+    bodyMarkAndTemperamentKn: isKn ? currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentKn : (currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentEn || currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentKn),
     karmaFinancialRealityKn: isKn ? currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn : (currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityEn || currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn),
     immediateTurningPointKn: isKn ? currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn : (currentDiagnosis.astrologerTalkingPoints.immediateTurningPointEn || currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn),
-    siddhaPariharaRemedyKn: isKn ? currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn : (currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyEn || currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn)
+    siddhaPariharaRemedyKn: isKn ? currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn : (currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyEn || currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn),
+    ageGroupBadge: isKn ? currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeKn : (currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeEn || currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeKn),
+    technicalAspectsCueKn: currentDiagnosis.astrologerTalkingPoints.technicalAspectsCueKn
   } : null);
 
   const handleDownloadPdf = async (chosenLang: SupportedPdfLang) => {
@@ -617,6 +662,209 @@ STRICT RULES:
         </Card>
       ) : (
         <>
+          {/* 🔮 ದೈವಜ್ಞ ಗೋಪ್ಯ ಮುಖಾಮುಖಿ ರಹಸ್ಯ ದರ್ಶನ (Face-to-Face Astrologer's Mind-Reading Dossier) 🔮 */}
+          {activeTalkingPoints && (
+            <div className="rounded-3xl border-2 border-amber-500/70 bg-gradient-to-br from-amber-50/95 via-yellow-50/60 to-amber-100/50 p-6 md:p-8 shadow-2xl space-y-6 relative overflow-hidden ring-2 ring-amber-400/40">
+              {/* Header Bar */}
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-amber-300 pb-5">
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-200/80 border border-amber-400 text-amber-950 text-xs font-black uppercase tracking-wider shadow-sm">
+                    <span>🔮</span>
+                    <span>{isKn ? "ದೈವಜ್ಞ ಗೋಪ್ಯ ಮುಖಾಮುಖಿ ರಹಸ್ಯ ದರ್ಶನ" : "Face-to-Face Astrologer's Mind-Reading Dossier"}</span>
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-black text-amber-950 font-serif flex items-center gap-2">
+                    <span>{isKn ? "ಜಾತಕರನ್ನು ಬೆರಗುಗೊಳಿಸುವ 100% ನಿಖರ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಖ್ಯಾಂಶಗಳು" : "100% Authentic Face-to-Face Astrological Consultation Points"}</span>
+                  </h2>
+                  <p className="text-xs md:text-sm text-stone-700 font-medium">
+                    {isKn
+                      ? "ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ & ಬೃಹತ್ ಜಾತಕದ ಆಧಾರದ ಮೇಲೆ ಸಿದ್ಧಪಡಿಸಿದ ಗೋಪ್ಯ ಪಂಚಾಂಗ ದರ್ಶನ. ಜ್ಯೋತಿಷಿಗಳು ಮುಖತಃ ಓದಿ ಹೇಳಬಹುದು."
+                      : "Classical Parashari & Brihat Jataka principles structured for direct face-to-face recitation by the astrologer."}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {activeTalkingPoints.ageGroupBadge && (
+                    <span className="px-3.5 py-1.5 rounded-xl bg-amber-200/90 border border-amber-400 text-amber-950 text-xs font-black shadow-sm">
+                      {activeTalkingPoints.ageGroupBadge}
+                    </span>
+                  )}
+                  {activeTalkingPoints.technicalAspectsCueKn && (
+                    <span className="hidden lg:inline-block px-3 py-1.5 rounded-xl bg-amber-100/80 border border-amber-300 text-stone-700 text-xs font-semibold">
+                      {isKn ? activeTalkingPoints.technicalAspectsCueKn : "4th/10th House, Maandi & Vimshottari Dasha Analysis"}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 6 Reading Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 1. Ice-Breaker & Temperament */}
+                <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
+                      <span className="text-sm font-black text-amber-950 flex items-center gap-2">
+                        <span>🗣️</span>
+                        <span>{isKn ? "1. ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ (Ice-Breaker & Temperament)" : "1. Ice-Breaker & Core Temperament"}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTalkingPoint("icebreaker", activeTalkingPoints.openingIceBreakerKn)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                          playingPointKey === "icebreaker"
+                            ? "bg-rose-600 text-white animate-pulse"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300"
+                        }`}
+                      >
+                        <span>{playingPointKey === "icebreaker" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
+                      </button>
+                    </div>
+                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
+                      {activeTalkingPoints.openingIceBreakerKn}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. Hidden Subconscious Worry / Agony */}
+                <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
+                      <span className="text-sm font-black text-amber-950 flex items-center gap-2">
+                        <span>🧠</span>
+                        <span>{isKn ? "2. ಅಂತರಂಗದ ಗುಪ್ತ ಆತಂಕ & ಚಿಂತೆ (Hidden Worry)" : "2. Hidden Subconscious Worry / Agony"}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTalkingPoint("worry", activeTalkingPoints.hiddenSubconsciousWorryKn)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                          playingPointKey === "worry"
+                            ? "bg-rose-600 text-white animate-pulse"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300"
+                        }`}
+                      >
+                        <span>{playingPointKey === "worry" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
+                      </button>
+                    </div>
+                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
+                      {activeTalkingPoints.hiddenSubconsciousWorryKn}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. The 99% Last-Mile Knot & Maandi Karma */}
+                <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
+                      <span className="text-sm font-black text-amber-950 flex items-center gap-2">
+                        <span>🌀</span>
+                        <span>{isKn ? "3. 99% ಆದ ಕೆಲಸ ನಿಲ್ಲುವ 'ಮಾಂದಿ ಗಂಟು' (The 99% Knot)" : "3. The 99% Last-Mile Knot & Maandi Karma"}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTalkingPoint("maandi", activeTalkingPoints.maandiKarmicImpactKn)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                          playingPointKey === "maandi"
+                            ? "bg-rose-600 text-white animate-pulse"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300"
+                        }`}
+                      >
+                        <span>{playingPointKey === "maandi" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
+                      </button>
+                    </div>
+                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
+                      {activeTalkingPoints.maandiKarmicImpactKn}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 4. Classical Anga Lakshana & Tridosha Constitution */}
+                <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
+                      <span className="text-sm font-black text-amber-950 flex items-center gap-2">
+                        <span>🩺</span>
+                        <span>{isKn ? "4. ಶಾರೀರಿಕ ಮಚ್ಚೆ ಗುರುತು & ತ್ರಿದೋಷ ಪ್ರಕೃತಿ (Physical Sign)" : "4. Physical Sign (Anga Lakshana) & Tridosha"}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTalkingPoint("bodymark", activeTalkingPoints.bodyMarkAndTemperamentKn || "")}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                          playingPointKey === "bodymark"
+                            ? "bg-rose-600 text-white animate-pulse"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300"
+                        }`}
+                      >
+                        <span>{playingPointKey === "bodymark" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
+                      </button>
+                    </div>
+                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
+                      {activeTalkingPoints.bodyMarkAndTemperamentKn || (isKn ? "ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಬಲದಂತೆ ದೇಹ ಪ್ರಕೃತಿ ಸಮತೋಲನದಲ್ಲಿದೆ." : "Ayurvedic constitution and physical markers are balanced.")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 5. Karma & Financial Reality */}
+                <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
+                      <span className="text-sm font-black text-amber-950 flex items-center gap-2">
+                        <span>💼</span>
+                        <span>{isKn ? "5. ಕರ್ಮ ಸ್ಥಾನ & ವಾಸ್ತವಿಕ ಆರ್ಥಿಕ ಸ್ಥಿತಿ (Financial Reality)" : "5. Karma & Financial Reality"}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTalkingPoint("finance", activeTalkingPoints.karmaFinancialRealityKn)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                          playingPointKey === "finance"
+                            ? "bg-rose-600 text-white animate-pulse"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300"
+                        }`}
+                      >
+                        <span>{playingPointKey === "finance" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
+                      </button>
+                    </div>
+                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
+                      {activeTalkingPoints.karmaFinancialRealityKn}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 6. Turning Point Countdown & Sacred Remedy */}
+                <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
+                      <span className="text-sm font-black text-amber-950 flex items-center gap-2">
+                        <span>⏳</span>
+                        <span>{isKn ? "6. ದಶಾ ತಿರುವು & ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ (Turning Point)" : "6. Turning Point & Sacred Gokarna Remedy"}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTalkingPoint("turningpoint", `${activeTalkingPoints.immediateTurningPointKn}\n\n${activeTalkingPoints.siddhaPariharaRemedyKn}`)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                          playingPointKey === "turningpoint"
+                            ? "bg-rose-600 text-white animate-pulse"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300"
+                        }`}
+                      >
+                        <span>{playingPointKey === "turningpoint" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
+                      </button>
+                    </div>
+                    <div className="space-y-2.5">
+                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
+                        {activeTalkingPoints.immediateTurningPointKn}
+                      </p>
+                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/90 text-xs text-amber-950 leading-relaxed whitespace-pre-line font-semibold">
+                        <span className="text-[10px] text-amber-800 uppercase font-black block mb-1">
+                          {isKn ? "✦ ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ ನಿರ್ದೇಶನ:" : "✦ Sacred Gokarna Siddha Remedy Direction:"}
+                        </span>
+                        {activeTalkingPoints.siddhaPariharaRemedyKn}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 🚨 0. PRIMARY LIFE FOCUS, CRISIS RESOLUTION OR LIFE PHASE STRATEGY 🚨 */}
           {currentDiagnosis?.primaryLifeChallenge && (() => {
             const cls = currentDiagnosis.currentLifeSituation;
