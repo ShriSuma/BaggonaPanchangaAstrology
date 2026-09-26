@@ -89,9 +89,12 @@ describe("Priest Selection, Telugu Conversion & Single Button Calendar Audit", (
     expect(details).toContain("దిన సంపూర్ణ భవిష్యత్తును తెలుసుకోండి");
     expect(details).toContain(encodeURIComponent("రవి జంబె"));
 
-    // Count URLs in details
-    const urlMatches = details.match(/https?:\/\/[^\s]+/g) || [];
-    expect(urlMatches.length).toBe(1);
+    // Verify HTML anchor tag button link and single unique destination target
+    expect(details).toContain("<a href=\"https://");
+    const uniqueDestinations = Array.from(new Set(
+      (details.match(/https?:\/\/[^\s"'>]+/g) || []).map(u => u.split("&tab=")[0])
+    ));
+    expect(uniqueDestinations.length).toBe(1);
 
     // Verify duplicate 90-Day ICS link is removed from event description
     expect(details).not.toContain("90-Day ICS Calendar Import");

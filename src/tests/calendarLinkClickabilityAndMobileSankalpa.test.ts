@@ -50,8 +50,8 @@ describe("Calendar 1-Click URL Clickability & Multi-Language Sankalpa", () => {
     expect(lines[2]).toBe("");
     expect(lines[4]).toBe("");
 
-    // Details must also include full 90-day ICS import
-    expect(details).toContain("action=ics90");
+    // Details must NOT contain duplicate secondary 90-day ICS import
+    expect(details).not.toContain("action=ics90");
   });
 
   it("places direct clickable prompt at top in Telugu, Tamil, Hindi, and English", () => {
