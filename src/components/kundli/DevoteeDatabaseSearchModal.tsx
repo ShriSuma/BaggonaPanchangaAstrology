@@ -6,7 +6,12 @@ import {
   filterDevoteesCrossLanguage,
   type DevoteeProfile
 } from "../../services/devoteeSearchService";
-import { transliterateName } from "../../utils/transliterator";
+import {
+  transliterateName,
+  detectScript,
+  convertTextIfLanguageDiffers
+} from "../../utils/transliterator";
+import { RASHI_L5, NAKSHATRA_L5, pick } from "../../features/seva/sevaLocale";
 
 interface DevoteeDatabaseSearchModalProps {
   isOpen: boolean;
@@ -160,6 +165,34 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
   if (!isOpen) return null;
 
   const currentLang = (["kn", "hi", "te", "ta", "en"].find((l) => lang.startsWith(l)) || "kn") as "kn" | "hi" | "te" | "ta" | "en";
+
+  const getLocalizedRashi = (rashi?: string, rashiSanskrit?: string): string => {
+    if (!rashi) return "";
+    const raw = (rashi || "").trim();
+    const key = raw.toLowerCase().replace(/[^a-z]/g, "");
+    const found = (RASHI_L5 as any)[key];
+    if (found) return pick(found, currentLang);
+    return convertTextIfLanguageDiffers(rashiSanskrit || raw, currentLang);
+  };
+
+  const getLocalizedNakshatra = (nakshatra?: string, nakshatraSanskrit?: string): string => {
+    if (!nakshatra) return "";
+    const raw = (nakshatra || "").trim();
+    const key = raw.toLowerCase().replace(/[^a-z]/g, "");
+    const found = (NAKSHATRA_L5 as any)[key];
+    if (found) return pick(found, currentLang);
+    return convertTextIfLanguageDiffers(nakshatraSanskrit || raw, currentLang);
+  };
+
+  const getLocalizedGothra = (gothra?: string): string => {
+    if (!gothra) return "";
+    return convertTextIfLanguageDiffers(gothra, currentLang);
+  };
+
+  const getLocalizedPlace = (place?: string): string => {
+    if (!place) return "";
+    return convertTextIfLanguageDiffers(place, currentLang);
+  };
 
   const modalJsx = (
     <div
@@ -360,10 +393,14 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
           ) : (
             filteredDevotees.map((devotee) => {
               const origName = devotee.name;
-              const knAlias = transliterateName(origName, "kn");
-              const enAlias = transliterateName(origName, "en");
-              const isOrigEnglish = /[a-zA-Z]/.test(origName);
-              const secondaryName = isOrigEnglish ? knAlias : enAlias;
+              const savedScript = detectScript(origName);
+              const isSameLanguage = savedScript === currentLang;
+              // If saved in the same language as viewing, show exactly as saved without converting!
+              // Only convert if viewing in a different language.
+              const primaryName = isSameLanguage
+                ? origName
+                : convertTextIfLanguageDiffers(origName, currentLang);
+              const showSecondary = !isSameLanguage && primaryName !== origName;
 
               return (
                 <div
@@ -384,11 +421,11 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-baseline gap-1.5">
                         <span className="text-sm sm:text-base font-black text-amber-100 group-hover:text-amber-300 transition leading-tight">
-                          {origName}
+                          {primaryName}
                         </span>
-                        {secondaryName && secondaryName !== origName && (
+                        {showSecondary && (
                           <span className="text-xs text-amber-300/70 font-semibold">
-                            ({secondaryName})
+                            ({origName})
                           </span>
                         )}
                       </div>
@@ -407,7 +444,7 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
                         <span className="text-amber-400/30">•</span>
                         <span className="inline-flex items-center gap-1 truncate max-w-[120px] sm:max-w-[190px]" title={devotee.placeName}>
                           <span>📍</span>
-                          <span className="truncate">{devotee.placeName}</span>
+                          <span className="truncate">{getLocalizedPlace(devotee.placeName)}</span>
                         </span>
                       </div>
 
@@ -415,18 +452,18 @@ export const DevoteeDatabaseSearchModal: React.FC<DevoteeDatabaseSearchModalProp
                       <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mt-1.5">
                         {devotee.rashi && (
                           <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/30 text-[10px] font-bold text-amber-300 whitespace-nowrap">
-                            🪐 {isKn && devotee.rashiSanskrit ? devotee.rashiSanskrit : devotee.rashi}
+                            🪐 {getLocalizedRashi(devotee.rashi, devotee.rashiSanskrit)}
                           </span>
                         )}
                         {devotee.nakshatra && (
                           <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-400/30 text-[10px] font-bold text-indigo-300 whitespace-nowrap">
-                            ✨ {isKn && devotee.nakshatraSanskrit ? devotee.nakshatraSanskrit : devotee.nakshatra}
+                            ✨ {getLocalizedNakshatra(devotee.nakshatra, devotee.nakshatraSanskrit)}
                             {devotee.pada ? ` (${devotee.pada})` : ""}
                           </span>
                         )}
                         {devotee.gothra && (
                           <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/30 text-[10px] font-semibold text-emerald-300 whitespace-nowrap">
-                            🌿 {devotee.gothra}
+                            🌿 {getLocalizedGothra(devotee.gothra)}
                           </span>
                         )}
                       </div>

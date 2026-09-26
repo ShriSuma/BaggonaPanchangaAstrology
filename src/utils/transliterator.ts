@@ -192,52 +192,113 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "srivatsa": { kn: "ಶ್ರೀವತ್ಸ", hi: "श्रीवत्स", te: "శ్రీవత్స", ta: "ஸ்ரீவத்ச", en: "Srivatsa" },
   "shrivatsa": { kn: "ಶ್ರೀವತ್ಸ", hi: "श्रीवत्स", te: "శ్రీవత్స", ta: "ஸ்ரீவத்ச", en: "Shrivatsa" },
   "shandilya": { kn: "ಶಾಂಡಿಲ್ಯ", hi: "शांडिल्य", te: "శాండిల్య", ta: "சாண்டில்ய", en: "Shandilya" },
-  "sandilya": { kn: "ಶಾಂಡಿಲ್ಯ", hi: "शांडिल्य", te: "శాండిల్య", ta: "சாண்டில்ய", en: "Sandilya" }
+  "sandilya": { kn: "ಶಾಂಡಿಲ್ಯ", hi: "शांडिल्य", te: "శాండిల్య", ta: "சாண்டில்ய", en: "Sandilya" },
+  // Holy Places in Gokarna
+  "kotiteertha": { kn: "ಕೋಟಿತೀರ್ಥ", hi: "कोटितीर्थ", te: "కోటితీర్థం", ta: "கோடிதீர்த்தம்", en: "Kotiteertha" },
+  "koti teertha": { kn: "ಕೋಟಿತೀರ್ಥ", hi: "कोटितीर्थ", te: "కోటితీర్థం", ta: "கோடிதீர்த்தம்", en: "Koti Teertha" },
+  "muktimantapa": { kn: "ಮುಕ್ತಿಮಂಟಪ", hi: "मुक्तिमंडप", te: "ముక్తిమంటపం", ta: "முக்திமண்டபம்", en: "Muktimantapa" },
+  "mukti mantapa": { kn: "ಮುಕ್ತಿಮಂಟಪ", hi: "मुक्तिमंडप", te: "ముక్తిమంటపం", ta: "முக்திமண்டபம்", en: "Mukti Mantapa" },
+  "mukti mantapa gokarna": { kn: "ಮುಕ್ತಿಮಂಟಪ, ಗೋಕರ್ಣ", hi: "मुक्तिमंडप, गोकर्ण", te: "ముక్తిమంటపం, గోకర్ణ", ta: "முக்திமண்டபம், கோகர்ணம்", en: "Muktimantapa, Gokarna" },
+  "kotiteertha gokarna": { kn: "ಕೋಟಿತೀರ್ಥ, ಗೋಕರ್ಣ", hi: "कोटितीर्थ, गोकर्ण", te: "కోటితీర్థం, గోకర్ణ", ta: "கோடிதீர்த்தம், கோகர்ணம்", en: "Kotiteertha, Gokarna" },
+  "gokarna kotiteertha": { kn: "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ", hi: "गोकर्ण कोटितीर्थ", te: "గోకర్ణ కోటితీర్థం", ta: "கோகர்ண கோடிதீர்த்தம்", en: "Gokarna Kotiteertha" },
+  "gokarna muktimantapa": { kn: "ಗೋಕರ್ಣ ಮುಕ್ತಿಮಂಟಪ", hi: "गोकर्ण मुक्तिमंडप", te: "గోಕರ್ಣ ಮುಕ್ತಿಮಂಟపం", ta: "கோகர்ண முக்திமண்டபம்", en: "Gokarna Muktimantapa" },
+  "gokarna kshetra": { kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ", hi: "गोकर्ण क्षेत्र", te: "గోకర్ణ క్షేత్రం", ta: "கோகர்ண க்ஷேத்திரம்", en: "Gokarna Kshetra" },
+  "mahabaleshwara": { kn: "ಮಹಾಬಲೇಶ್ವರ", hi: "महाबलेश्वर", te: "మహాబలేశ్వర", ta: "மகாபலேஸ்வரர்", en: "Mahabaleshwara" },
+  "devasthana": { kn: "ದೇವಸ್ಥಾನ", hi: "देवस्थान", te: "దేవస్థానం", ta: "தேவஸ்தானம்", en: "Temple" },
+  "mahabaleshwara devasthana": { kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನ, ಗೋಕರ್ಣ", hi: "श्री महाबलेश्वर देवस्थान, गोकर्ण", te: "శ్రీ మహాబలేశ్వర దేవస్థానం, గోకర్ణ", ta: "ஸ்ரீ மகாபலேஸ்வரர் தேவஸ்தானம், கோகர்ணம்", en: "Shri Mahabaleshwara Temple, Gokarna" },
+  "temple": { kn: "ದೇವಸ್ಥಾನ", hi: "देवस्थान", te: "దేవస్థానం", ta: "தேவஸ்தானம்", en: "Temple" },
+  "sannidhi": { kn: "ಸನ್ನಿಧಿ", hi: "सन्निधि", te: "సన్నిధి", ta: "சந்நிதி", en: "Sannidhi" },
+  // Common devotee & priest names
+  "raghunath": { kn: "ರಘುನಾಥ್", hi: "रघुनाथ", te: "రఘునాథ్", ta: "ரகுநாத்", en: "Raghunath" },
+  "girish": { kn: "ಗಿರಿಶ್", hi: "गिरीश", te: "గిరీష్", ta: "கிரீஷ்", en: "Girish" },
+  "santosh": { kn: "ಸಂತೋಷ್", hi: "संतोष", te: "సంతోష్", ta: "சந்தோஷ்", en: "Santosh" },
+  "suma": { kn: "ಸುಮಾ", hi: "सुमा", te: "సుమ", ta: "சுமா", en: "Suma" },
+  "shreesuma": { kn: "ಶ್ರೀಸುಮಾ", hi: "श्रीसुमा", te: "శ్రీసుమ", ta: "ஸ்ரீசுமா", en: "Shreesuma" },
+  "srinivas": { kn: "ಶ್ರೀನಿವಾಸ್", hi: "श्रीनिवास", te: "శ్రీనివాస్", ta: "ஸ்ரீனிவாஸ்", en: "Srinivas" },
+  "anand": { kn: "ಆನಂದ್", hi: "आनंद", te: "ఆనంద్", ta: "ஆனந்த்", en: "Anand" },
+  "anant": { kn: "ಅನಂತ್", hi: "अनंत", te: "అనంత్", ta: "அனந்த்", en: "Anant" },
+  "nagaraj": { kn: "ನಾಗರಾಜ್", hi: "नागराज", te: "నాగరాజ్", ta: "நாகராஜ்", en: "Nagaraj" },
+  "shankar": { kn: "ಶಂಕರ್", hi: "शंकर", te: "శంకర్", ta: "சங்கர்", en: "Shankar" },
+  "subrahmanya": { kn: "ಸುಬ್ರಹ್ಮಣ್ಯ", hi: "सुब्रह्मण्य", te: "సుబ్రహ్మణ్య", ta: "சுப்பிரமணிய", en: "Subrahmanya" },
+  "harish": { kn: "ಹರೀಶ್", hi: "हरीश", te: "హరీష్", ta: "ஹரீஷ்", en: "Harish" },
+  "satish": { kn: "ಸತೀಶ್", hi: "सतीश", te: "సతీష్", ta: "சதீஷ்", en: "Satish" },
+  "venkat": { kn: "ವೆಂಕಟ್", hi: "वेंकट", te: "వెంకట్", ta: "வெங்கட்", en: "Venkat" },
+  "venkataramana": { kn: "ವೆಂಕಟರಮಣ", hi: "वेंकटरमण", te: "వెంకటరమణ", ta: "வேங்கடரமண", en: "Venkataramana" },
+  "chaitra": { kn: "ಚೈತ್ರಾ", hi: "चैत्रा", te: "చైత్ర", ta: "சைத்ரா", en: "Chaitra" }
 };
 
-/** Phonetic character map for unknown words */
-const PHONETIC_CHAR_MAP: Record<string, { kn: string; hi: string; te: string; ta: string }> = {
-  "aa": { kn: "ಆ", hi: "आ", te: "ఆ", ta: "ஆ" },
-  "ai": { kn: "ಐ", hi: "ऐ", te: "ఐ", ta: "ஐ" },
-  "au": { kn: "ಔ", hi: "औ", te: "ఔ", ta: "ஔ" },
-  "kh": { kn: "ಖ್", hi: "ख्", te: "ఖ్", ta: "க்" },
-  "gh": { kn: "ಘ್", hi: "घ्", te: "ఘ్", ta: "க்" },
-  "ch": { kn: "ಚ್", hi: "च्", te: "చ్", ta: "ச்" },
-  "jh": { kn: "ಝ್", hi: "झ्", te: "ఝ్", ta: "ஜ" },
-  "th": { kn: "ಥ್", hi: "थ्", te: "థ్", ta: "த்" },
-  "dh": { kn: "ಧ್", hi: "ध्", te: "ధ్", ta: "த்" },
-  "ph": { kn: "ಫ್", hi: "फ्", te: "ఫ్", ta: "ப்" },
-  "bh": { kn: "ಭ್", hi: "भ्", te: "భ్", ta: "ப" },
-  "sh": { kn: "ಶ್", hi: "श्", te: "శ్", ta: "ஷ்" },
-  "k": { kn: "ಕ್", hi: "क्", te: "క్", ta: "க்" },
-  "g": { kn: "ಗ್", hi: "ग्", te: "గ్", ta: "க்" },
-  "j": { kn: "ಜ್", hi: "ज्", te: "జ్", ta: "ஜ" },
-  "t": { kn: "ಟ್", hi: "ट्", te: "ట్", ta: "ட்" },
-  "d": { kn: "ಡ್", hi: "ड्", te: "డ్", ta: "ட்" },
-  "n": { kn: "ನ್", hi: "न्", te: "న్", ta: "ன்" },
-  "p": { kn: "ಪ್", hi: "प्", te: "ప్", ta: "ப்" },
-  "b": { kn: "ಬ್", hi: "ब्", te: "బ్", ta: "ப்" },
-  "m": { kn: "ಮ್", hi: "म्", te: "మ్", ta: "ம்" },
-  "y": { kn: "ಯ್", hi: "य्", te: "య్", ta: "ய்" },
-  "r": { kn: "ರ್", hi: "र्", te: "ర్", ta: "ர்" },
-  "l": { kn: "ಲ್", hi: "ल्", te: "ల్", ta: "ல்" },
-  "v": { kn: "ವ್", hi: "व्", te: "వ్", ta: "வ்" },
-  "w": { kn: "ವ್", hi: "व्", te: "వ్", ta: "வ்" },
-  "s": { kn: "ಸ್", hi: "स्", te: "స్", ta: "ஸ்" },
-  "h": { kn: "ಹ್", hi: "ह्", te: "హ్", ta: "ஹ்" },
-  "a": { kn: "ಅ", hi: "अ", te: "అ", ta: "அ" },
-  "i": { kn: "ಇ", hi: "इ", te: "ఇ", ta: "இ" },
-  "u": { kn: "ಉ", hi: "उ", te: "ఉ", ta: "உ" },
-  "e": { kn: "ಎ", hi: "ए", te: "ఎ", ta: "எ" },
-  "o": { kn: "ಒ", hi: "ओ", te: "ఒ", ta: "ஒ" }
+/** Syllabic consonant definitions with inherent vowel 'a' */
+const SYLLABIC_CONSONANTS: Record<string, { kn: string; hi: string; te: string; ta: string }> = {
+  kh: { kn: "ಖ", hi: "ख", te: "ఖ", ta: "க" },
+  gh: { kn: "ಘ", hi: "घ", te: "ఘ", ta: "க" },
+  ch: { kn: "ಚ", hi: "च", te: "చ", ta: "ச" },
+  jh: { kn: "ಝ", hi: "झ", te: "ఝ", ta: "ஜ" },
+  th: { kn: "ಥ", hi: "थ", te: "థ", ta: "த" },
+  dh: { kn: "ಧ", hi: "ध", te: "ధ", ta: "த" },
+  ph: { kn: "ಫ", hi: "फ", te: "ఫ", ta: "ப" },
+  bh: { kn: "ಭ", hi: "भ", te: "భ", ta: "ப" },
+  sh: { kn: "ಶ", hi: "श", te: "శ", ta: "ஷ" },
+  zh: { kn: "ಳ", hi: "ळ", te: "ళ", ta: "ழ" },
+  k: { kn: "ಕ", hi: "क", te: "క", ta: "க" },
+  g: { kn: "ಗ", hi: "ग", te: "గ", ta: "க" },
+  j: { kn: "ಜ", hi: "ज", te: "జ", ta: "ஜ" },
+  t: { kn: "ತ", hi: "त", te: "త", ta: "த" },
+  d: { kn: "ದ", hi: "द", te: "ద", ta: "த" },
+  n: { kn: "ನ", hi: "न", te: "న", ta: "ந" },
+  p: { kn: "ಪ", hi: "प", te: "ప", ta: "ப" },
+  b: { kn: "ಬ", hi: "ब", te: "బ", ta: "ப" },
+  m: { kn: "ಮ", hi: "म", te: "మ", ta: "ம" },
+  y: { kn: "ಯ", hi: "य", te: "య", ta: "ய" },
+  r: { kn: "ರ", hi: "र", te: "ర", ta: "ர" },
+  l: { kn: "ಲ", hi: "ल", te: "ల", ta: "ல" },
+  v: { kn: "ವ", hi: "व", te: "వ", ta: "வ" },
+  w: { kn: "ವ", hi: "व", te: "వ", ta: "வ" },
+  s: { kn: "ಸ", hi: "स", te: "స", ta: "ஸ" },
+  h: { kn: "ಹ", hi: "ह", te: "హ", ta: "ஹ" }
+};
+
+/** Matras (dependent vowel signs following a consonant) */
+const SYLLABIC_MATRAS: Record<string, { kn: string; hi: string; te: string; ta: string }> = {
+  aa: { kn: "ಾ", hi: "ा", te: "ా", ta: "ா" },
+  ai: { kn: "ೈ", hi: "ै", te: "ై", ta: "ை" },
+  au: { kn: "ೌ", hi: "ौ", te: "ౌ", ta: "ௌ" },
+  ee: { kn: "ೀ", hi: "ी", te: "ీ", ta: "ீ" },
+  oo: { kn: "ೂ", hi: "ू", te: "ూ", ta: "ூ" },
+  a: { kn: "", hi: "", te: "", ta: "" },
+  i: { kn: "ಿ", hi: "ि", te: "ి", ta: "ி" },
+  u: { kn: "ು", hi: "ु", te: "ు", ta: "ு" },
+  e: { kn: "ೆ", hi: "े", te: "ె", ta: "ெ" },
+  o: { kn: "ೊ", hi: "ो", te: "ొ", ta: "ொ" }
+};
+
+/** Independent vowels (at beginning of word or after another vowel) */
+const INDEP_VOWELS: Record<string, { kn: string; hi: string; te: string; ta: string }> = {
+  aa: { kn: "ಆ", hi: "आ", te: "ఆ", ta: "ஆ" },
+  ai: { kn: "ಐ", hi: "ऐ", te: "ఐ", ta: "ஐ" },
+  au: { kn: "ಔ", hi: "औ", te: "ఔ", ta: "ஔ" },
+  ee: { kn: "ಈ", hi: "ई", te: "ఈ", ta: "ஈ" },
+  oo: { kn: "ಊ", hi: "ऊ", te: "ఊ", ta: "ஊ" },
+  a: { kn: "ಅ", hi: "अ", te: "అ", ta: "அ" },
+  i: { kn: "ಇ", hi: "इ", te: "ఇ", ta: "இ" },
+  u: { kn: "ಉ", hi: "उ", te: "ఉ", ta: "உ" },
+  e: { kn: "ಎ", hi: "ए", te: "ఎ", ta: "எ" },
+  o: { kn: "ಒ", hi: "ओ", te: "ఒ", ta: "ஒ" }
+};
+
+const SYLLABIC_VIRAMA: Record<string, string> = {
+  kn: "್",
+  hi: "्",
+  te: "్",
+  ta: "்"
 };
 
 /**
- * Phonetically transliterates a single unknown English word into an Indic script.
+ * Phonetically transliterates a single unknown English word into an Indic script
+ * using authentic syllabic composition (consonant + matra) rather than broken viramas.
  */
 function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | "ta"): string {
   if (!word) return word;
-  
+
   // If the word contains non-English (Indic) characters, convert to Latin phonetic first
   let inputWord = word;
   if (detectScript(word) !== "en") {
@@ -249,23 +310,73 @@ function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | 
   let i = 0;
 
   while (i < lower.length) {
-    // Try 2-char match first
-    const two = lower.slice(i, i + 2);
-    if (PHONETIC_CHAR_MAP[two]) {
-      result += PHONETIC_CHAR_MAP[two][langCode];
+    // 1. Try 2-char consonant match
+    const c2 = lower.slice(i, i + 2);
+    if (SYLLABIC_CONSONANTS[c2]) {
+      const cons = SYLLABIC_CONSONANTS[c2][langCode];
+      i += 2;
+      // Check following 2-char vowel
+      const v2 = lower.slice(i, i + 2);
+      if (SYLLABIC_MATRAS[v2]) {
+        result += cons + SYLLABIC_MATRAS[v2][langCode];
+        i += 2;
+        continue;
+      }
+      // Check following 1-char vowel
+      const v1 = lower.slice(i, i + 1);
+      if (SYLLABIC_MATRAS[v1]) {
+        result += cons + SYLLABIC_MATRAS[v1][langCode];
+        i += 1;
+        continue;
+      }
+      // Consonant not followed by vowel (word end or next consonant)
+      result += cons + SYLLABIC_VIRAMA[langCode];
+      continue;
+    }
+
+    // 2. Try 1-char consonant match
+    const c1 = lower.slice(i, i + 1);
+    if (SYLLABIC_CONSONANTS[c1]) {
+      const cons = SYLLABIC_CONSONANTS[c1][langCode];
+      i += 1;
+      // Check following 2-char vowel
+      const v2 = lower.slice(i, i + 2);
+      if (SYLLABIC_MATRAS[v2]) {
+        result += cons + SYLLABIC_MATRAS[v2][langCode];
+        i += 2;
+        continue;
+      }
+      // Check following 1-char vowel
+      const v1 = lower.slice(i, i + 1);
+      if (SYLLABIC_MATRAS[v1]) {
+        result += cons + SYLLABIC_MATRAS[v1][langCode];
+        i += 1;
+        continue;
+      }
+      // Consonant not followed by vowel (word end or next consonant)
+      result += cons + SYLLABIC_VIRAMA[langCode];
+      continue;
+    }
+
+    // 3. Independent vowel (at start of syllable or word)
+    const v2 = lower.slice(i, i + 2);
+    if (INDEP_VOWELS[v2]) {
+      result += INDEP_VOWELS[v2][langCode];
       i += 2;
       continue;
     }
-    // 1-char match
-    const one = lower.slice(i, i + 1);
-    if (PHONETIC_CHAR_MAP[one]) {
-      result += PHONETIC_CHAR_MAP[one][langCode];
+    const v1 = lower.slice(i, i + 1);
+    if (INDEP_VOWELS[v1]) {
+      result += INDEP_VOWELS[v1][langCode];
       i += 1;
       continue;
     }
+
+    // Unmapped character (punctuation, digit, etc.)
     result += inputWord[i];
     i += 1;
   }
+
   return result;
 }
 
@@ -278,6 +389,29 @@ export function detectScript(text: string): "kn" | "hi" | "te" | "ta" | "en" {
   if (/[\u0C00-\u0C7F]/.test(text)) return "te";
   if (/[\u0B80-\u0BFF]/.test(text)) return "ta";
   return "en";
+}
+
+/**
+ * Checks if the text's primary script already matches the requested target language.
+ */
+export function isScriptMatchingLanguage(text: string, targetLang: string): boolean {
+  if (!text || !text.trim()) return true;
+  const langCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en") as "kn" | "hi" | "te" | "ta" | "en";
+  const script = detectScript(text);
+  return script === langCode;
+}
+
+/**
+ * Converts text into target language only if the current script differs from the target language.
+ * If already matching, preserves the text faithfully without alteration.
+ */
+export function convertTextIfLanguageDiffers(text: string, targetLang: string): string {
+  if (!text || !text.trim()) return text;
+  const langCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en") as "kn" | "hi" | "te" | "ta" | "en";
+  if (isScriptMatchingLanguage(text, langCode)) {
+    return text;
+  }
+  return transliterateName(text, langCode);
 }
 
 /** Indic (Kannada, Devanagari, Telugu, Tamil) to Latin/English phonetic transliteration */

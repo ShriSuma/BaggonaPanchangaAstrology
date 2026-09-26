@@ -33,7 +33,7 @@ import {
   type SevaLang,
   type L5
 } from "../../../features/seva/sevaLocale";
-import { transliterateName } from "../../../utils/transliterator";
+import { transliterateName, convertTextIfLanguageDiffers } from "../../../utils/transliterator";
 import { formatPoojaName } from "../../../features/seva/formatPoojaName";
 import {
   BAND_STYLE,
@@ -461,11 +461,12 @@ export const SevaCalendarPrint = ({ rhythm, lang, identity }: CalendarPrintProps
 export type LetterPrintProps = {
   lang: string;
   identity: Identity;
-  primarySeva: SevaRecommendation | undefined;
+  primarySeva?: SevaRecommendation;
   sevaDate: string;
   rhythm: RhythmResult;
   panditName?: string;
   qrDataUrl?: string;
+  place?: string;
 };
 
 export const SevaLetterPrint = ({
@@ -475,7 +476,8 @@ export const SevaLetterPrint = ({
   sevaDate,
   rhythm,
   panditName,
-  qrDataUrl
+  qrDataUrl,
+  place
 }: LetterPrintProps): JSX.Element => {
   const safePanditName = formatPanditName(panditName, lang);
   const priestProfile = getPriestProfile(panditName);
@@ -491,28 +493,36 @@ export const SevaLetterPrint = ({
       )
     );
 
-  const sevaPlaceValue = isVenkataramana
-    ? pick(
-        priestProfile.residence || {
-          kn: "ವೆಂಕಟರಮಣ ಪಂಡಿತರ ಮನೆ, ಗೋಕರ್ಣ",
-          en: "Venkataramana Panditara Mane, Gokarna",
-          hi: "वेंकटरमण पंडित जी का निवास, गोकर्ण",
-          te: "వెంకటరమణ పండితుల నివాసం, గోకర్ణ",
-          ta: "வேங்கடரமண பண்டிதர் இல்லம், கோகர்ணம்"
-        },
-        lang
-      )
-    : (primarySeva?.seva?.where
-        ? pick(primarySeva.seva.where, lang)
-        : (primarySeva as any)?.where
-          ? pick((primarySeva as any).where, lang)
-          : pick({
-              kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (Gokarna Kshetra)",
-              hi: "गोकर्ण क्षेत्र",
-              te: "గోకర్ణ క్షేత్రం",
-              ta: "கோகர்ண க்ஷேத்திரம்",
-              en: "Gokarna Kshetra"
-            }, lang));
+  let sevaPlaceValue = "";
+  if (place?.trim()) {
+    sevaPlaceValue = convertTextIfLanguageDiffers(place.trim(), lang);
+  } else if (isVenkataramana) {
+    sevaPlaceValue = pick(
+      priestProfile.residence || {
+        kn: "ವೆಂಕಟರಮಣ ಪಂಡಿತರ ಮನೆ, ಗೋಕರ್ಣ",
+        en: "Venkataramana Panditara Mane, Gokarna",
+        hi: "वेंकटरमण पंडित जी का निवास, गोकर्ण",
+        te: "వెంకటరమణ పండితుల నివాసం, గోకర్ణ",
+        ta: "வேங்கடரமண பண்டிதர் இல்லம், கோகர்ணம்"
+      },
+      lang
+    );
+  } else if (primarySeva?.seva?.where) {
+    sevaPlaceValue = pick(primarySeva.seva.where, lang);
+  } else if ((primarySeva as any)?.where) {
+    sevaPlaceValue = pick((primarySeva as any).where, lang);
+  } else {
+    sevaPlaceValue = pick(
+      {
+        kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (Gokarna Kshetra)",
+        hi: "गोकर्ण क्षेत्र",
+        te: "గోకర్ణ క్షేత్రం",
+        ta: "கோகர்ண க்ஷேத்திரம்",
+        en: "Gokarna Kshetra"
+      },
+      lang
+    );
+  }
 
   const paragraph: React.CSSProperties = {
     fontSize: 13.5,
@@ -685,13 +695,18 @@ export const SevaQRCodePrint = ({
   lang,
   identity,
   qrDataUrl,
-  target = "google"
+  target = "google",
+  panditName
 }: {
   lang: string;
   identity: Identity;
   qrDataUrl?: string;
   target?: "google" | "webcal" | "sanctum";
+  panditName?: string;
 }): JSX.Element => {
+  const safePanditName = formatPanditName(panditName, lang);
+  const priestProfile = getPriestProfile(panditName);
+  const priestPhone = priestProfile.phone || "9972339362";
   const [internalQr, setInternalQr] = useState<string>(qrDataUrl || "");
 
   useEffect(() => {
@@ -734,8 +749,30 @@ export const SevaQRCodePrint = ({
           <div style={{ fontSize: 22, fontWeight: 700, color: INK, marginBottom: 4 }}>
             {pick(T.qrPrintHeader!, lang)}
           </div>
-          <div style={{ fontSize: 12.5, color: INK_SOFT, marginBottom: 10, maxWidth: 660 }}>
+          <div style={{ fontSize: 12.5, color: INK_SOFT, marginBottom: 6, maxWidth: 660 }}>
             {pick(T.scanQrDesc!, lang)}
+          </div>
+
+          {/* Prominent Priest Benediction & Contact Badge */}
+          <div
+            style={{
+              marginBottom: 8,
+              backgroundColor: GOLD_LIGHT + "25",
+              border: `1.5px solid ${GOLD}`,
+              borderRadius: 20,
+              padding: "4px 16px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              boxShadow: "0 2px 8px rgba(180, 83, 9, 0.08)"
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 800, color: GOLD }}>
+              ✦ {pick(LETTER_L5.priestBlessingPrefix!, lang)} {safePanditName || formatPanditName("Shreeram Pandit", lang)} ✦
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: INK }}>
+              📞 {priestPhone}
+            </span>
           </div>
         </div>
 
@@ -850,7 +887,7 @@ export const SevaQRCodePrint = ({
             color: INK_SOFT
           }}
         >
-          {pick(LETTER_L5.signature!, lang)} · 2 / 5
+          {safePanditName || formatPanditName("Shreeram Pandit", lang)} · {pick(LETTER_L5.signature!, lang)} · 2 / 5
         </div>
       </div>
     </div>

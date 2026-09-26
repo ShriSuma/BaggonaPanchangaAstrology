@@ -16,7 +16,13 @@ import {
 } from "../components/seva/pdf/SevaPrintTemplates";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import { calculateKundli } from "../core/KundliEngine";
-import { transliterateName } from "../utils/transliterator";
+import { transliterateName, convertTextIfLanguageDiffers } from "../utils/transliterator";
+import {
+  GOKARNA_HOLY_PLACES,
+  getHolyPlaceById,
+  getHolyPlaceName,
+  findHolyPlacePresetByText
+} from "../features/seva/holyPlaces";
 import { formatPoojaName } from "../features/seva/formatPoojaName";
 import type { RhythmDay, RhythmResult } from "../core/DailyRhythmEngine";
 import { parseSpokenPhoneNumber } from "../utils/speechRecognitionHelper";
@@ -60,10 +66,66 @@ export default function QuickCalendarPage(): JSX.Element {
   const [sevaDate, setSevaDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const [pincode, setPincode] = useState("581326");
-  const [locationName, setLocationName] = useState("Gokarna");
+  const [selectedPlaceId, setSelectedPlaceId] = useState("kotiteertha");
+  const [locationName, setLocationName] = useState(() => getHolyPlaceName("kotiteertha", "kn"));
   const [lat, setLat] = useState(14.54);
   const [lng, setLng] = useState(74.31);
   const [isResolvingPin, setIsResolvingPin] = useState(false);
+
+  const handleLanguageChange = (newLang: SevaLang) => {
+    setLang(newLang);
+
+    if (customPoojaName.trim()) {
+      const updatedPooja = convertTextIfLanguageDiffers(customPoojaName.trim(), newLang);
+      setCustomPoojaName(updatedPooja);
+    }
+
+    if (personName.trim()) {
+      const updatedName = convertTextIfLanguageDiffers(personName.trim(), newLang);
+      setPersonName(updatedName);
+    }
+
+    if (selectedPlaceId !== "custom") {
+      const presetName = getHolyPlaceName(selectedPlaceId, newLang);
+      if (presetName) {
+        setLocationName(presetName);
+      }
+    } else if (locationName.trim()) {
+      const updatedPlace = convertTextIfLanguageDiffers(locationName.trim(), newLang);
+      setLocationName(updatedPlace);
+    }
+
+    if (overridePriestContact && customPriestName.trim()) {
+      const updatedPriest = convertTextIfLanguageDiffers(customPriestName.trim(), newLang);
+      setCustomPriestName(updatedPriest);
+    }
+  };
+
+  const handlePlacePresetChange = (placeId: string) => {
+    setSelectedPlaceId(placeId);
+    if (placeId === "custom") return;
+    const preset = getHolyPlaceById(placeId);
+    if (preset) {
+      setLocationName(getHolyPlaceName(placeId, lang));
+      if (preset.pincode) {
+        setPincode(preset.pincode);
+      }
+      setLat(preset.lat);
+      setLng(preset.lng);
+    }
+  };
+
+  const handlePlaceTextChange = (val: string) => {
+    setLocationName(val);
+    const matchingPreset = findHolyPlacePresetByText(val);
+    if (matchingPreset) {
+      setSelectedPlaceId(matchingPreset.id);
+      setLat(matchingPreset.lat);
+      setLng(matchingPreset.lng);
+    } else {
+      setSelectedPlaceId("custom");
+    }
+  };
 
   // Priest & Overrides
   const [priestsList] = useState<PriestProfile[]>(() => getAllPriests());
@@ -750,20 +812,35 @@ export default function QuickCalendarPage(): JSX.Element {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-bold text-amber-300 mb-1">
-                📍 ಸ್ಥಳದ ಪಿನ್‌ಕೋಡ್ (Pincode)
+                🛕 ಪೂಜಾ ಸ್ಥಳ / ಕ್ಷೇತ್ರ (Place of Pooja)
               </label>
+              <select
+                value={selectedPlaceId}
+                onChange={(e) => handlePlacePresetChange(e.target.value)}
+                className="w-full rounded-xl border border-amber-400/40 bg-slate-950 px-3 py-2 text-sm text-amber-100 font-bold mb-2 focus:border-amber-400 focus:outline-none"
+              >
+                {GOKARNA_HOLY_PLACES.map((place) => (
+                  <option key={place.id} value={place.id}>
+                    {getHolyPlaceName(place.id, lang)}
+                  </option>
+                ))}
+              </select>
               <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={locationName}
+                  onChange={(e) => handlePlaceTextChange(e.target.value)}
+                  placeholder="ಸ್ಥಳದ ಹೆಸರು..."
+                  className="w-full rounded-xl border border-amber-400/40 bg-slate-950 px-3 py-2 text-sm text-amber-100 font-semibold focus:border-amber-400 focus:outline-none"
+                />
                 <input
                   type="text"
                   maxLength={6}
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
                   placeholder="581326"
-                  className="w-full rounded-xl border border-amber-400/40 bg-slate-950 px-3 py-2 text-sm text-amber-100 font-semibold"
+                  className="w-24 shrink-0 rounded-xl border border-amber-400/40 bg-slate-950 px-2 py-2 text-sm text-amber-100 font-semibold text-center focus:border-amber-400 focus:outline-none"
                 />
-                <span className="shrink-0 rounded-xl bg-amber-900/60 border border-amber-600/40 px-3 py-2 text-xs font-bold text-amber-200 flex items-center">
-                  {isResolvingPin ? "ಶೋಧಿಸಲಾಗುತ್ತಿದೆ..." : locationName}
-                </span>
               </div>
             </div>
 
@@ -1032,7 +1109,7 @@ export default function QuickCalendarPage(): JSX.Element {
                   <button
                     key={item.code}
                     type="button"
-                    onClick={() => setLang(item.code as SevaLang)}
+                    onClick={() => handleLanguageChange(item.code as SevaLang)}
                     className={`px-3 py-1 rounded-lg text-xs font-bold transition border ${
                       lang === item.code
                         ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md scale-105"
@@ -1164,12 +1241,14 @@ export default function QuickCalendarPage(): JSX.Element {
           rhythm={rhythmResult}
           panditName={panditName}
           qrDataUrl={qrDataUrl}
+          place={locationName}
         />
         <SevaQRCodePrint
           lang={lang}
           identity={identity}
           qrDataUrl={qrDataUrl}
           target={qrTarget}
+          panditName={panditName}
         />
         <SevaAnugrahaGuidancePrint
           lang={lang}

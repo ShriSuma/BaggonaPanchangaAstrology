@@ -9,7 +9,7 @@
 
 import { SEVA_CATALOG, type SevaId } from "../../data/gokarnaSevas";
 import { pick, type SevaLang, type L5 } from "./sevaLocale";
-import { transliterateName } from "../../utils/transliterator";
+import { transliterateName, convertTextIfLanguageDiffers } from "../../utils/transliterator";
 
 export interface SevaLike {
   id?: string;
@@ -100,8 +100,8 @@ export function formatPoojaName(sevaOrName: any, lang: string = "en"): string {
     resolved = rawStr;
   }
 
-  // 5. Transliterate into base script
-  resolved = transliterateName(resolved, base);
+  // 5. Transliterate into base script (checking script first to avoid redundant modifications)
+  resolved = convertTextIfLanguageDiffers(resolved, base);
 
   // 6. Strict Purity Guard: If target is not Kannada, ensure NO Kannada characters leak
   if (base !== "kn" && /[\u0C80-\u0CFF]/.test(resolved)) {

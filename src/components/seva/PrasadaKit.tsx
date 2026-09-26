@@ -40,6 +40,13 @@ import {
   type PriestProfile
 } from "../../features/seva/sevaPriestDirectory";
 import { fetchVillagesByPincode, resolvePlaceFromPincode } from "../../services/locationApi";
+import {
+  GOKARNA_HOLY_PLACES,
+  getHolyPlaceById,
+  getHolyPlaceName,
+  findHolyPlacePresetByText
+} from "../../features/seva/holyPlaces";
+import { convertTextIfLanguageDiffers } from "../../utils/transliterator";
 
 type Identity = {
   personName: string;
@@ -242,11 +249,99 @@ export default function PrasadaKit({
     }
   };
 
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string>("kotiteertha");
+  const [placeName, setPlaceName] = useState<string>(() => getHolyPlaceName("kotiteertha", lang || "kn"));
+  const [isPlaceListening, setIsPlaceListening] = useState<boolean>(false);
+
+  const handleLanguageChange = (newLang: string) => {
+    setPdfLang(newLang);
+
+    // 1. Convert custom pooja name if entered
+    if (customPoojaName.trim()) {
+      const updatedPooja = convertTextIfLanguageDiffers(customPoojaName.trim(), newLang);
+      setCustomPoojaName(updatedPooja);
+    }
+
+    // 2. Update holy place name based on new language
+    if (selectedPlaceId !== "custom") {
+      const presetName = getHolyPlaceName(selectedPlaceId, newLang);
+      if (presetName) {
+        setPlaceName(presetName);
+      }
+    } else if (placeName.trim()) {
+      const updatedPlace = convertTextIfLanguageDiffers(placeName.trim(), newLang);
+      setPlaceName(updatedPlace);
+    }
+
+    // 3. Convert custom priest name if overridden
+    if (overridePriestContact && customPriestName.trim()) {
+      const updatedPriest = convertTextIfLanguageDiffers(customPriestName.trim(), newLang);
+      setCustomPriestName(updatedPriest);
+    }
+  };
+
   useEffect(() => {
-    if (lang) {
-      setPdfLang(lang);
+    if (lang && lang !== pdfLang) {
+      handleLanguageChange(lang);
     }
   }, [lang]);
+
+  const handlePlacePresetChange = (placeId: string) => {
+    setSelectedPlaceId(placeId);
+    if (placeId === "custom") return;
+    const preset = getHolyPlaceById(placeId);
+    if (preset) {
+      setPlaceName(getHolyPlaceName(placeId, pdfLang));
+      if (preset.pincode) {
+        setPincode(preset.pincode);
+      }
+    }
+  };
+
+  const handlePlaceTextChange = (val: string) => {
+    setPlaceName(val);
+    const matchingPreset = findHolyPlacePresetByText(val);
+    if (matchingPreset) {
+      setSelectedPlaceId(matchingPreset.id);
+    } else {
+      setSelectedPlaceId("custom");
+    }
+  };
+
+  const handlePlaceMicClick = () => {
+    const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionClass) {
+      alert("Speech recognition is not supported in this browser. Please type the place name manually.");
+      return;
+    }
+    try {
+      const recognition = new SpeechRecognitionClass();
+      const speechLangMap: Record<string, string> = {
+        kn: "kn-IN",
+        te: "te-IN",
+        ta: "ta-IN",
+        hi: "hi-IN",
+        en: "en-IN"
+      };
+      recognition.lang = speechLangMap[pdfLang] || "kn-IN";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => setIsPlaceListening(true);
+      recognition.onend = () => setIsPlaceListening(false);
+      recognition.onerror = () => setIsPlaceListening(false);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0]?.[0]?.transcript?.trim();
+        if (transcript) {
+          handlePlaceTextChange(transcript);
+        }
+      };
+      recognition.start();
+    } catch (e) {
+      console.warn("SpeechRec error:", e);
+      setIsPlaceListening(false);
+    }
+  };
 
   const poojaVidhiDetails = useMemo(() => {
     return getHardcodedPoojaVidhiDetails(sevaId || "rudrabhisheka", pdfLang, selectedPriestId);
@@ -379,7 +474,7 @@ export default function PrasadaKit({
       pincode,
       lat: pincodeLocation.lat,
       lng: pincodeLocation.lng,
-      locationName: pincodeLocation.villageName,
+      locationName: placeName || pincodeLocation.villageName,
       dob: identity?.dob,
       tob: identity?.tob,
       priestPhone: effectivePriestPhone,
@@ -402,7 +497,7 @@ export default function PrasadaKit({
           gotra: identity?.gotra,
           dob: identity?.dob,
           tob: identity?.tob,
-          placeName: pincodeLocation.villageName,
+          placeName: placeName || pincodeLocation.villageName,
           pincode: pincode,
           source: "prasada_kit"
         });
@@ -419,7 +514,7 @@ export default function PrasadaKit({
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("Error generating print QR code:", err));
-  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName, platform, qrTarget, pincode, pincodeLocation, effectivePriestPhone, overridePriestContact]);
+  }, [rhythm, pdfLang, panditName, notificationTime, identity?.personName, platform, qrTarget, pincode, pincodeLocation, placeName, effectivePriestPhone, overridePriestContact]);
 
   const chosenSeva = useMemo(() => {
     if (customPoojaMode && customPoojaName.trim()) {
@@ -555,7 +650,7 @@ export default function PrasadaKit({
       pincode,
       lat: pincodeLocation.lat,
       lng: pincodeLocation.lng,
-      locationName: pincodeLocation.villageName,
+      locationName: placeName || pincodeLocation.villageName,
       birthNakshatraIndex: identity.nakshatraIndex,
       birthRashiIndex: identity.rashiIndex,
       dob: identity.dob,
@@ -617,7 +712,7 @@ export default function PrasadaKit({
           pincode,
           lat: pincodeLocation.lat,
           lng: pincodeLocation.lng,
-          locationName: pincodeLocation.villageName,
+          locationName: placeName || pincodeLocation.villageName,
           dob: identity?.dob,
           tob: identity?.tob,
           priestPhone: effectivePriestPhone,
@@ -794,6 +889,59 @@ export default function PrasadaKit({
               onChange={(e) => setSevaDate(e.target.value)}
               className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-amber-950"
             />
+          </label>
+        </div>
+
+        {/* Holy Place (Pooja Kshetra / Devasthana) Dropdown + Custom Textbox */}
+        <div className="pt-2 border-t border-amber-200/60 space-y-2">
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-bold text-amber-900/80 uppercase tracking-wider flex items-center justify-between">
+              <span>🛕 {pdfLang.startsWith("kn") ? "ಪೂಜಾ ಸ್ಥಳ / ಕ್ಷೇತ್ರ ಆಯ್ಕೆ (Place of Pooja)" : "Place of Pooja / Sacred Kshetra"}</span>
+              <span className="text-[10px] text-amber-700 font-semibold">
+                {selectedPlaceId !== "custom" ? "✓ Gokarna Kshetra" : "Custom Location"}
+              </span>
+            </span>
+
+            {/* Dropdown Selector for Gokarna Holy Places */}
+            <select
+              value={selectedPlaceId}
+              onChange={(e) => handlePlacePresetChange(e.target.value)}
+              className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-bold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none mb-2"
+            >
+              {GOKARNA_HOLY_PLACES.map((place) => (
+                <option key={place.id} value={place.id}>
+                  {getHolyPlaceName(place.id, pdfLang)}
+                </option>
+              ))}
+            </select>
+
+            {/* Custom Editable Textbox with Mic Dictation */}
+            <div className="relative flex items-center gap-2">
+              <input
+                type="text"
+                value={placeName}
+                onChange={(e) => handlePlaceTextChange(e.target.value)}
+                placeholder={pdfLang.startsWith("kn") ? "ಪೂಜಾ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ..." : "Enter place of pooja..."}
+                className="w-full rounded-lg border border-amber-300 bg-white pl-3 pr-10 py-2 text-sm font-semibold text-amber-950 shadow-sm focus:border-amber-600 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={handlePlaceMicClick}
+                title={pdfLang.startsWith("kn") ? "ಸ್ಥಳದ ಹೆಸರು ಧ್ವನಿ ಮೂಲಕ ಹೇಳಿ" : "Speak place name via microphone"}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition ${
+                  isPlaceListening
+                    ? "bg-red-500 text-white animate-pulse"
+                    : "bg-amber-100 hover:bg-amber-200 text-amber-900"
+                }`}
+              >
+                🎙️
+              </button>
+            </div>
+            <p className="mt-1 text-[10.5px] text-amber-800/80">
+              {pdfLang.startsWith("kn")
+                ? "ಆಶೀರ್ವಾದ ಪತ್ರಿಕೆಯ 'ಸ್ಥಳ'ದಲ್ಲಿ ಹಾಗೂ ಕ್ಯಾಲೆಂಡರ್ ಸಿಂಕ್‌ನಲ್ಲಿ ಈ ಸ್ಥಳ ನಮೂದಾಗುತ್ತದೆ."
+                : "This holy place will appear on Page 1 of the Ashirvada letter and calendar sync."}
+            </p>
           </label>
         </div>
 
@@ -1262,7 +1410,7 @@ export default function PrasadaKit({
                 name="sevaPdfLang"
                 value={item.code}
                 checked={pdfLang === item.code}
-                onChange={() => setPdfLang(item.code)}
+                onChange={() => handleLanguageChange(item.code)}
                 className="sr-only"
               />
               <span>{item.name}</span>
@@ -1452,12 +1600,14 @@ export default function PrasadaKit({
           rhythm={rhythm}
           panditName={panditName}
           qrDataUrl={qrDataUrl}
+          place={placeName}
         />
         <SevaQRCodePrint
           lang={pdfLang}
           identity={identity}
           qrDataUrl={qrDataUrl}
           target={qrTarget}
+          panditName={panditName}
         />
         <SevaAnugrahaGuidancePrint
           lang={pdfLang}
