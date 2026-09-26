@@ -358,6 +358,25 @@ export function getVoiceIdForLanguage(lang: SevaLang = "kn", customVoiceId?: str
   }
 }
 
+// In-memory bounded cache for synthesized audio Blobs/URLs to deliver 0ms immediate playback
+const sentenceAudioMemoryCache = new Map<string, string>();
+const MAX_AUDIO_CACHE_ENTRIES = 50;
+
+function storeSentenceCache(url: string, objectUrl: string): void {
+  if (sentenceAudioMemoryCache.has(url)) return;
+  if (sentenceAudioMemoryCache.size >= MAX_AUDIO_CACHE_ENTRIES) {
+    const firstKey = sentenceAudioMemoryCache.keys().next().value;
+    if (firstKey) {
+      const oldObjUrl = sentenceAudioMemoryCache.get(firstKey);
+      if (oldObjUrl && oldObjUrl.startsWith("blob:")) {
+        try { URL.revokeObjectURL(oldObjUrl); } catch {}
+      }
+      sentenceAudioMemoryCache.delete(firstKey);
+    }
+  }
+  sentenceAudioMemoryCache.set(url, objectUrl);
+}
+
 /**
  * Builds the direct HTTP chunked streaming URL for a given sentence and voice ID
  */
@@ -389,8 +408,8 @@ export function splitTextIntoSentences(text: string): string[] {
 
 /**
  * Plays progressive sentence-by-sentence streaming audio:
- * 1. Sentence 1 begins playing immediately via new Audio(streamUrl) in <1 second.
- * 2. Pre-fetches subsequent sentences in the background to warm the server's in-memory RAM cache (2.5ms response).
+ * 1. Sentence 1 begins playing immediately via new Audio(streamUrl) in <1 second (0ms if cached).
+ * 2. Pre-fetches subsequent sentences in the background to warm the server's in-memory RAM cache and client blob cache.
  * 3. Chains seamlessly to subsequent sentences on audio.onended.
  */
 export function streamSentencePipeline(
@@ -412,6 +431,7 @@ export function streamSentencePipeline(
   stopClonedAudio();
 
   const audio = new Audio();
+  audio.preload = "auto";
   currentAudio = audio;
   const unregister = registerActiveAudio(audio);
 
@@ -426,11 +446,21 @@ export function streamSentencePipeline(
     }
   };
 
-  const prefetchSentence = (index: number) => {
+  const prefetchSentence = async (index: number) => {
     if (isCancelled || index >= sentences.length) return;
+    const nextUrl = buildVoiceStreamUrl(sentences[index], targetVoiceId);
+    if (sentenceAudioMemoryCache.has(nextUrl)) return;
     if (typeof fetch !== "undefined") {
-      const nextUrl = buildVoiceStreamUrl(sentences[index], targetVoiceId);
-      fetch(nextUrl, { mode: "cors" }).catch(() => {});
+      try {
+        const res = await fetch(nextUrl, { mode: "cors" });
+        if (res.ok) {
+          const blob = await res.blob();
+          if (!isCancelled && typeof URL !== "undefined" && URL.createObjectURL) {
+            const blobUrl = URL.createObjectURL(blob);
+            storeSentenceCache(nextUrl, blobUrl);
+          }
+        }
+      } catch {}
     }
   };
 
@@ -445,10 +475,15 @@ export function streamSentencePipeline(
 
     currentIndex = index;
     const url = buildVoiceStreamUrl(sentences[index], targetVoiceId);
-    audio.src = url;
+    const cachedUrl = sentenceAudioMemoryCache.get(url);
+    audio.src = cachedUrl || url;
+    audio.preload = "auto";
 
-    // Speculatively pre-warm next sentence into server LRU cache
-    prefetchSentence(index + 1);
+    // Speculatively pre-warm next sentences into server RAM cache and local memory cache
+    void prefetchSentence(index + 1);
+    if (index + 2 < sentences.length) {
+      void prefetchSentence(index + 2);
+    }
 
     const playResult = audio.play();
     if (playResult && typeof playResult.then === "function") {
@@ -485,6 +520,7 @@ export function streamSentencePipeline(
   };
 
   audio.addEventListener("playing", notifyStart, { once: true });
+  audio.addEventListener("canplay", notifyStart, { once: true });
   audio.addEventListener("ended", onEndedHandler);
   audio.addEventListener("error", onErrorHandler);
 
@@ -492,6 +528,8 @@ export function streamSentencePipeline(
 
   return () => {
     isCancelled = true;
+    audio.removeEventListener("playing", notifyStart);
+    audio.removeEventListener("canplay", notifyStart);
     audio.removeEventListener("ended", onEndedHandler);
     audio.removeEventListener("error", onErrorHandler);
     unregister();
@@ -568,10 +606,10 @@ export function seekClonedAudio(deltaSeconds: number): void {
 
 /**
  * Synthesizes and plays cloned voice using Progressive Sentence-First Streaming
- * with the new ultra-fast in-memory RAM cache GET streaming endpoint.
- * Audio begins playing in under 1 second without full-blob buffering.
+ * with the ultra-fast in-memory RAM cache GET streaming endpoint.
+ * Audio begins playing immediately without full-blob buffering.
  * Automatically falls back to high-fidelity browser SpeechSynthesis if remote server is slow or unavailable,
- * waiting a full 5 seconds first to prevent premature fallback or overlapping dual-voice playback.
+ * waiting a full 12 seconds first to prevent premature fallback or overlapping dual-voice playback.
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
@@ -621,15 +659,15 @@ export async function synthesizeAndPlayClonedVoice(
     );
   };
 
-  // 5-SECOND TIMEOUT GUARD (User Mandate 2026-09-25):
-  // Wait a full 5000ms for remote neural API synthesis.
-  // Never fire fallback prematurely while API is downloading!
+  // 12-SECOND TIMEOUT GUARD (User Mandate 2026-09-26):
+  // Wait a full 12000ms for remote neural API synthesis.
+  // Never fire robotic fallback prematurely while API is generating and downloading!
   fallbackWaitTimer = setTimeout(() => {
     if (!apiStreamStarted && !isCancelled && !isFallbackActive) {
-      console.warn("[AIVoiceCloneEngine] API stream did not produce sound within 5000ms. Engaging fallback.");
+      console.warn("[AIVoiceCloneEngine] API stream did not produce sound within 12000ms. Engaging fallback.");
       void triggerFallback();
     }
-  }, 5000);
+  }, 12000);
 
   try {
     streamCancelFn = streamSentencePipeline(
@@ -652,7 +690,18 @@ export async function synthesizeAndPlayClonedVoice(
         if (!isCancelled && onStart) onStart();
       },
       (err) => {
-        console.warn("[AIVoiceCloneEngine] Initial API stream notice (waiting for 5s window):", err);
+        console.warn("[AIVoiceCloneEngine] Initial API stream notice (waiting for 12s window):", err);
+        // Fast-fail if client is completely offline or media source is fundamentally invalid/unsupported
+        const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
+        const isFatalMedia = err && (err.code === 4 || err.code === 2);
+        if (isOffline || isFatalMedia) {
+          console.warn("[AIVoiceCloneEngine] Fatal stream failure detected, engaging fallback immediately.");
+          if (fallbackWaitTimer) {
+            clearTimeout(fallbackWaitTimer);
+            fallbackWaitTimer = null;
+          }
+          void triggerFallback();
+        }
       }
     );
   } catch (err) {
@@ -700,10 +749,34 @@ export async function streamCustomStudioTTS(
 
 /**
  * Speculative Background Pre-warming of Indic Neural Audio
- * (GET streaming delivers instant chunked audio, prewarming returns null)
+ * Fetches and stores the first sentence blob ahead of time in client RAM cache,
+ * ensuring 0ms audio playback when devotee clicks.
  */
-export async function prewarmIndicAudio(_text: string, _lang: SevaLang = "kn"): Promise<string | null> {
-  return null;
+export async function prewarmIndicAudio(text: string, lang: SevaLang = "kn"): Promise<string | null> {
+  if (!text || typeof fetch === "undefined") return null;
+  try {
+    const sentences = splitTextIntoSentences(text);
+    if (sentences.length === 0) return null;
+    const targetVoiceId = getVoiceIdForLanguage(lang);
+    const firstUrl = buildVoiceStreamUrl(sentences[0], targetVoiceId);
+
+    if (sentenceAudioMemoryCache.has(firstUrl)) {
+      return sentenceAudioMemoryCache.get(firstUrl)!;
+    }
+
+    const res = await fetch(firstUrl, { mode: "cors" });
+    if (res.ok) {
+      const blob = await res.blob();
+      if (typeof URL !== "undefined" && URL.createObjectURL) {
+        const blobUrl = URL.createObjectURL(blob);
+        storeSentenceCache(firstUrl, blobUrl);
+        return blobUrl;
+      }
+    }
+    return firstUrl;
+  } catch {
+    return null;
+  }
 }
 
 

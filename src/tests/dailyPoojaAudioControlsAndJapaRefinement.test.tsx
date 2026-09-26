@@ -134,7 +134,7 @@ describe("Daily Pooja Audio Controls & Japa Refinement", () => {
     expect(screen.getByTitle("ವಿರಾಮ")).toBeDefined();
   });
 
-  describe("AI Voice Clone Engine - 5-Second Wait & Pause/Seek Mechanics", () => {
+  describe("AI Voice Clone Engine - 12-Second Wait & Pause/Seek Mechanics", () => {
     it("exports pauseClonedAudio, resumeClonedAudio, isClonedAudioPaused, seekClonedAudio", async () => {
       const cloneEngine = await import("../features/audio/aiVoiceCloneEngine");
       expect(typeof cloneEngine.pauseClonedAudio).toBe("function");
@@ -144,12 +144,26 @@ describe("Daily Pooja Audio Controls & Japa Refinement", () => {
       expect(cloneEngine.isClonedAudioPaused()).toBe(false);
     });
 
-    it("synthesizeAndPlayClonedVoice waits 5000ms before falling back to Web Speech to prevent overlapping voices", async () => {
+    it("synthesizeAndPlayClonedVoice waits 12000ms before falling back to Web Speech to prevent overlapping voices", async () => {
       vi.useFakeTimers();
       const cloneEngine = await import("../features/audio/aiVoiceCloneEngine");
 
       let startCalled = false;
       let endCalled = false;
+
+      // Mock audio to return a pending promise for play(), simulating waiting for remote audio stream
+      const originalAudio = globalThis.Audio;
+      class WaitingAudio {
+        src = "";
+        currentTime = 0;
+        paused = true;
+        listeners: Record<string, Function[]> = {};
+        play = vi.fn().mockImplementation(() => new Promise(() => {}));
+        pause = vi.fn();
+        addEventListener = vi.fn();
+        removeEventListener = vi.fn();
+      }
+      (globalThis as any).Audio = WaitingAudio;
 
       // Call synthesizeAndPlayClonedVoice
       const cancelFn = await cloneEngine.synthesizeAndPlayClonedVoice(
@@ -160,12 +174,13 @@ describe("Daily Pooja Audio Controls & Japa Refinement", () => {
         () => { startCalled = true; }
       );
 
-      // Advance 4900ms (less than 5s) -> Web Speech fallback must NOT have fired prematurely
-      vi.advanceTimersByTime(4900);
+      // Advance 11900ms (less than 12s) -> Web Speech fallback must NOT have fired prematurely
+      vi.advanceTimersByTime(11900);
       expect(startCalled).toBe(false);
 
       // Cancel playback cleans up gracefully
       cancelFn();
+      (globalThis as any).Audio = originalAudio;
       vi.useRealTimers();
     });
   });
