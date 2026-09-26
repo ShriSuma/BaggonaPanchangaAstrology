@@ -1709,44 +1709,151 @@ export async function cleanupDuplicateKundlis(): Promise<{ removedCount: number 
  * Cleans duplicate calendar visit documents and test entries.
  */
 export async function cleanupDuplicateCalendarVisitsAndEngagement(): Promise<{ removedCount: number }> {
+  let totalRemoved = 0;
+
+  // 0. Clean In-Memory caches for unit tests and local state
+  const seenMemRegs = new Map<string, string>();
+  for (const [id, reg] of Array.from(memoryCalendarRegistrations.entries())) {
+    const key = `${(reg.userName || "").trim().toLowerCase()}_${(reg.dob || "").trim()}_${(reg.tob || "").trim()}`;
+    if (seenMemRegs.has(key)) {
+      memoryCalendarRegistrations.delete(id);
+      totalRemoved++;
+    } else {
+      seenMemRegs.set(key, id);
+    }
+  }
+
   try {
-    if (!firestore) return { removedCount: 0 };
-    const snap = await getDocs(query(collection(firestore, "calendarVisits"), limit(500)));
-    const seen = new Map<string, string>(); // canonicalKey -> primaryDocId
-    let removedCount = 0;
+    if (!firestore) return { removedCount: totalRemoved };
 
-    for (const docSnap of snap.docs) {
-      const data = docSnap.data();
-      const devoteeName = (data.devoteeName || "").trim().toLowerCase();
-      const token = (data.tokenIdentifier || "").trim();
-      const dateClicked = (data.dateClicked || "").trim();
-      const actualDate = (data.actualDate || "").trim();
+    // 1. Deduplicate calendarRegistrations
+    try {
+      const regSnap = await getDocs(collection(firestore, CALENDAR_REGISTRATIONS_COL));
+      const regGroups = new Map<string, Array<{ id: string; data: CalendarRegistrationDoc; ref: any }>>();
 
-      // Check if it's a test/mock entry
-      if (
-        devoteeName.includes("test") ||
-        devoteeName.includes("mock") ||
-        token.includes("test") ||
-        token.includes("mock")
-      ) {
-        await deleteDoc(docSnap.ref);
-        removedCount++;
-        continue;
+      regSnap.docs.forEach((docSnap) => {
+        const data = docSnap.data() as CalendarRegistrationDoc;
+        const name = (data.userName || (data as any).devoteeName || "").trim().toLowerCase();
+        const dob = (data.dob || "").trim();
+        const tob = (data.tob || "").trim();
+        const key = `${name}_${dob}_${tob}`;
+        if (!regGroups.has(key)) regGroups.set(key, []);
+        regGroups.get(key)!.push({ id: docSnap.id, data, ref: docSnap.ref });
+      });
+
+      for (const [, list] of regGroups.entries()) {
+        if (list.length <= 1) continue;
+        list.sort((a, b) => {
+          const aPhone = (a.data.devoteePhone || "").length > 0 ? 1 : 0;
+          const bPhone = (b.data.devoteePhone || "").length > 0 ? 1 : 0;
+          if (bPhone !== aPhone) return bPhone - aPhone;
+
+          const aEmail = (a.data.devoteeEmail || "").length > 0 ? 1 : 0;
+          const bEmail = (b.data.devoteeEmail || "").length > 0 ? 1 : 0;
+          if (bEmail !== aEmail) return bEmail - aEmail;
+
+          const aTime = new Date(a.data.updatedAt || a.data.createdAt || 0).getTime();
+          const bTime = new Date(b.data.updatedAt || b.data.createdAt || 0).getTime();
+          return bTime - aTime;
+        });
+
+        for (let i = 1; i < list.length; i++) {
+          await deleteDoc(list[i].ref);
+          totalRemoved++;
+        }
       }
-
-      const canonicalKey = `${token}_${actualDate}_${dateClicked}`;
-      if (seen.has(canonicalKey)) {
-        await deleteDoc(docSnap.ref);
-        removedCount++;
-      } else {
-        seen.set(canonicalKey, docSnap.id);
-      }
+    } catch (e) {
+      console.warn("[Firestore] Registration deduplication step warning:", e);
     }
 
-    return { removedCount };
+    // 2. Deduplicate calendarDevoteeEngagement
+    try {
+      const engSnap = await getDocs(collection(firestore, "calendarDevoteeEngagement"));
+      const testFilter = (name: string, token: string) => {
+        const s = `${name || ""} ${token || ""}`.toLowerCase();
+        return s.includes("test") || s.includes("mock") || s.includes("ஷ்அஷ்அ") || s.includes("ಶ್ಅಶ್ಅ");
+      };
+
+      const engGroups = new Map<string, Array<{ id: string; data: any; ref: any }>>();
+
+      for (const docSnap of engSnap.docs) {
+        const data = docSnap.data();
+        const name = (data.devoteeName || "").trim().toLowerCase();
+        const dob = (data.dob || "").trim();
+        const tob = (data.tob || "").trim();
+        const token = (data.tokenKey || docSnap.id || "").trim();
+
+        if (testFilter(name, token)) {
+          await deleteDoc(docSnap.ref);
+          totalRemoved++;
+          continue;
+        }
+
+        const key = `${name}_${dob}_${tob}`;
+        if (!engGroups.has(key)) engGroups.set(key, []);
+        engGroups.get(key)!.push({ id: docSnap.id, data, ref: docSnap.ref });
+      }
+
+      for (const [, list] of engGroups.entries()) {
+        if (list.length <= 1) continue;
+        list.sort((a, b) => {
+          const aVisits = a.data.totalVisitsCount || 0;
+          const bVisits = b.data.totalVisitsCount || 0;
+          if (bVisits !== aVisits) return bVisits - aVisits;
+
+          const aTime = new Date(a.data.lastVisitAt || a.data.updatedAt || a.data.createdAt || 0).getTime();
+          const bTime = new Date(b.data.lastVisitAt || b.data.updatedAt || b.data.createdAt || 0).getTime();
+          return bTime - aTime;
+        });
+
+        for (let i = 1; i < list.length; i++) {
+          await deleteDoc(list[i].ref);
+          totalRemoved++;
+        }
+      }
+    } catch (e) {
+      console.warn("[Firestore] Engagement deduplication step warning:", e);
+    }
+
+    // 3. Deduplicate calendarVisits
+    try {
+      const snap = await getDocs(collection(firestore, "calendarVisits"));
+      const seen = new Map<string, string>();
+
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        const devoteeName = (data.devoteeName || data.userName || "").trim().toLowerCase();
+        const token = (data.tokenIdentifier || data.token || "").trim();
+        const dateClicked = (data.dateClicked || "").trim();
+        const actualDate = (data.actualDate || data.visitDate || "").trim();
+
+        if (
+          devoteeName.includes("test") ||
+          devoteeName.includes("mock") ||
+          token.includes("test") ||
+          token.includes("mock")
+        ) {
+          await deleteDoc(docSnap.ref);
+          totalRemoved++;
+          continue;
+        }
+
+        const canonicalKey = `${token}_${actualDate}_${dateClicked}`;
+        if (seen.has(canonicalKey)) {
+          await deleteDoc(docSnap.ref);
+          totalRemoved++;
+        } else {
+          seen.set(canonicalKey, docSnap.id);
+        }
+      }
+    } catch (e) {
+      console.warn("[Firestore] Visit deduplication step warning:", e);
+    }
+
+    return { removedCount: totalRemoved };
   } catch (err) {
     console.error("[Firestore] Calendar visits deduplication error:", err);
-    return { removedCount: 0 };
+    return { removedCount: totalRemoved };
   }
 }
 
@@ -1999,7 +2106,7 @@ export async function saveAshirvadaPassToFirestore(pass: AshirvadaPassDoc): Prom
 export function subscribeAshirvadaPasses(
   onUpdate: (passes: AshirvadaPassDoc[]) => void
 ): Unsubscribe {
-  const q = query(collection(firestore, ASHIRVADA_COL), orderBy("createdAt", "desc"), limit(100));
+  const q = query(collection(firestore, ASHIRVADA_COL), orderBy("createdAt", "desc"), limit(1000));
   return onSnapshot(q, (snapshot) => {
     const list: AshirvadaPassDoc[] = [];
     snapshot.forEach((docSnap) => {
@@ -2953,6 +3060,68 @@ export async function getCalendarRegistration(tokenOrKey: string): Promise<Calen
 }
 
 /**
+ * Find existing Calendar Registration by devotee profile (Name + DOB + TOB or Phone)
+ * Ensures idempotent deduplication so distributing calendars doesn't create duplicate documents.
+ */
+export async function findRegistrationByDevoteeProfile(
+  userName: string,
+  dob?: string,
+  tob?: string,
+  phone?: string
+): Promise<CalendarRegistrationDoc | null> {
+  const cleanName = (userName || "").trim().toLowerCase();
+  const cleanDob = (dob || "").trim();
+  const cleanTob = (tob || "").trim();
+  const cleanPhone = (phone || "").trim();
+
+  // 1. In-memory check
+  for (const reg of memoryCalendarRegistrations.values()) {
+    const regName = (reg.userName || "").trim().toLowerCase();
+    const regDob = (reg.dob || "").trim();
+    const regTob = (reg.tob || "").trim();
+    const regPhone = (reg.devoteePhone || "").trim();
+
+    if (cleanPhone && regPhone && cleanPhone === regPhone) return reg;
+    if (cleanName && regName === cleanName && cleanDob && regDob === cleanDob) {
+      if (!cleanTob || !regTob || cleanTob === regTob) return reg;
+    }
+  }
+
+  // 2. Firestore check
+  try {
+    if (!firestore) return null;
+
+    if (cleanPhone) {
+      const qPhone = query(collection(firestore, CALENDAR_REGISTRATIONS_COL), where("devoteePhone", "==", cleanPhone), limit(1));
+      const snapPhone = await getDocs(qPhone);
+      if (!snapPhone.empty) {
+        const found = snapPhone.docs[0].data() as CalendarRegistrationDoc;
+        memoryCalendarRegistrations.set(found.id, found);
+        return found;
+      }
+    }
+
+    if (userName.trim()) {
+      const qName = query(collection(firestore, CALENDAR_REGISTRATIONS_COL), where("userName", "==", userName.trim()), limit(10));
+      const snapName = await getDocs(qName);
+      for (const d of snapName.docs) {
+        const data = d.data() as CalendarRegistrationDoc;
+        const regDob = (data.dob || "").trim();
+        const regTob = (data.tob || "").trim();
+        if (cleanDob && regDob === cleanDob && (!cleanTob || !regTob || cleanTob === regTob)) {
+          memoryCalendarRegistrations.set(data.id, data);
+          return data;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[Firestore] findRegistrationByDevoteeProfile error:", err);
+  }
+
+  return null;
+}
+
+/**
  * Record an authentic daily visit event into calendarDailyVisits
  */
 export async function recordDailyVisitLog(visit: CalendarDailyVisitDoc): Promise<void> {
@@ -3026,7 +3195,7 @@ export function subscribeAllCalendarRegistrations(
  */
 export function subscribeAllDailyVisits(
   callback: (visits: CalendarDailyVisitDoc[]) => void,
-  limitCount: number = 200
+  limitCount: number = 1000
 ): Unsubscribe {
   if (!firestore) {
     callback(Array.from(memoryCalendarDailyVisits.values()).reverse().slice(0, limitCount));
@@ -3203,7 +3372,7 @@ export function subscribeAllPurohitaProfiles(
     const q = query(
       collection(firestore, PUROHITA_PROFILES_COL),
       orderBy("updatedAt", "desc"),
-      limit(200)
+      limit(1000)
     );
 
     return onSnapshot(
@@ -3444,7 +3613,7 @@ export function subscribePurohitaDailySummaries(
     const q = query(
       collection(firestore, PUROHITA_DAILY_SUMMARIES_COL),
       where("date", "==", targetDate),
-      limit(200)
+      limit(1000)
     );
 
     return onSnapshot(

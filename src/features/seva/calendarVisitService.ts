@@ -32,6 +32,7 @@ import {
   type KundliHistoryDoc,
   saveCalendarRegistration,
   getCalendarRegistration,
+  findRegistrationByDevoteeProfile,
   recordDailyVisitLog,
   getMemoryTodayVisitsCount,
   subscribeAllCalendarRegistrations,
@@ -94,9 +95,22 @@ export async function registerCalendarAtGeneration(params: RegisterCalendarParam
   const expiresAt = new Date(startUtc + durationDays * 24 * 60 * 60 * 1000).toISOString();
 
   const token = (params.token || "").trim();
-  const rawId = token ? `reg_${token.slice(0, 48)}` : `reg_${Date.now().toString(36)}`;
-  const userId = params.userId || token || `usr_${Date.now().toString(36)}`;
   const userName = params.userName?.trim() || "Devotee";
+
+  // Strict Deduplication Guard: Check if registration already exists for this devotee
+  let existingReg: CalendarRegistrationDoc | null = null;
+  if (token) {
+    existingReg = await getCalendarRegistration(token);
+  }
+  if (!existingReg && params.userId) {
+    existingReg = await getCalendarRegistration(params.userId);
+  }
+  if (!existingReg && userName && params.dob) {
+    existingReg = await findRegistrationByDevoteeProfile(userName, params.dob, params.tob, params.devoteePhone);
+  }
+
+  const rawId = existingReg?.id || (token ? `reg_${token.slice(0, 48)}` : `reg_${Date.now().toString(36)}`);
+  const userId = existingReg?.userId || params.userId || token || `usr_${Date.now().toString(36)}`;
   const priestName = params.priestName?.trim() || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
   const priestPhone = params.priestPhone?.trim() || "9972339362";
 
@@ -106,28 +120,28 @@ export async function registerCalendarAtGeneration(params: RegisterCalendarParam
     id: rawId,
     userId,
     userName,
-    token,
+    token: token || existingReg?.token || "",
     startDate,
     durationDays,
     expiresAt,
     priestName,
     priestPhone,
-    devoteePhone: params.devoteePhone?.trim() || "",
-    devoteeEmail: params.devoteeEmail?.trim() || "",
-    nakshatra: params.nakshatra,
-    nakshatraIndex: params.nakshatraIndex,
-    rashi: params.rashi,
-    rashiIndex: params.rashiIndex,
-    gotra: params.gotra,
-    dob: params.dob,
-    tob: params.tob,
-    placeName: params.placeName,
-    pincode: params.pincode,
-    source: params.source,
-    createdAt: now.toISOString(),
+    devoteePhone: params.devoteePhone?.trim() || existingReg?.devoteePhone || "",
+    devoteeEmail: params.devoteeEmail?.trim() || existingReg?.devoteeEmail || "",
+    nakshatra: params.nakshatra || existingReg?.nakshatra,
+    nakshatraIndex: params.nakshatraIndex ?? existingReg?.nakshatraIndex,
+    rashi: params.rashi || existingReg?.rashi,
+    rashiIndex: params.rashiIndex ?? existingReg?.rashiIndex,
+    gotra: params.gotra || existingReg?.gotra,
+    dob: params.dob || existingReg?.dob,
+    tob: params.tob || existingReg?.tob,
+    placeName: params.placeName || existingReg?.placeName,
+    pincode: params.pincode || existingReg?.pincode,
+    source: params.source || existingReg?.source,
+    createdAt: existingReg?.createdAt || now.toISOString(),
     updatedAt: now.toISOString(),
     status: passStatus.isExpired ? "expired" : "active",
-    notes: params.notes
+    notes: params.notes || existingReg?.notes
   };
 
   await saveCalendarRegistration(regDoc);
@@ -1048,8 +1062,7 @@ export function subscribeCalendarDevoteeSubscriptions(
 
   const q = query(
     collection(firestore, "calendarDevoteeEngagement"),
-    orderBy("lastVisitAt", "desc"),
-    limit(200)
+    orderBy("lastVisitAt", "desc")
   );
 
   return onSnapshot(

@@ -28,6 +28,7 @@ import { computeGocharaMoonForDate } from "../seva/dinaBhavishyaEngine";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { calculatePanchang } from "../../core/PanchangEngine";
 import { getLunarMonthAndYear, getLocalizedSamvatsara, getLocalizedMasa } from "../../core/VedicCalculations";
+import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 
 export interface PersonalizedDarshanaPayload {
   targetDate: string; // YYYY-MM-DD
@@ -965,9 +966,22 @@ export function computePersonalizedDarshanaPayload(params: PersonalizeDarshanaPa
         degrees: palette.degrees
       };
 
-  // Golden Hour Calculation (Aligned with Abhijit Muhurtha / Tara Bala)
-  const baseStart = 10 * 60 + 48; // 10:48 AM
-  const offsetMinutes = (taraBalaNumber * 7) % 60;
+  // Golden Hour Calculation (Dynamically Aligned with Local Sunrise & Solar Noon / Abhijit Muhurtha)
+  let baseStart = 10 * 60 + 48; // fallback
+  try {
+    const pDate = new Date(targetDate);
+    const sun = sunTimesSyncForBirth(pDate, userLat, userLng, userPincode || "");
+    const sunriseDate = new Date(sun.sunrise.getTime() + 330 * 60 * 1000);
+    const sunsetDate = new Date(sun.sunset.getTime() + 330 * 60 * 1000);
+    const sunriseM = sunriseDate.getUTCHours() * 60 + sunriseDate.getUTCMinutes();
+    const sunsetM = sunsetDate.getUTCHours() * 60 + sunsetDate.getUTCMinutes();
+    const solarNoonM = Math.round((sunriseM + sunsetM) / 2);
+    // Dynamic golden hour window aligned with auspicious morning-to-noon transition based on Tara Bala
+    baseStart = Math.max(sunriseM + 120, solarNoonM - 72);
+  } catch {
+    baseStart = 10 * 60 + 48;
+  }
+  const offsetMinutes = (taraBalaNumber * 7) % 45;
   const startMinutes = baseStart + (taraBalaNumber % 2 === 0 ? offsetMinutes : -offsetMinutes);
   const endMinutes = startMinutes + 48; // 48-minute Muhurtha window
 

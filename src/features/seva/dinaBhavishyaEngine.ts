@@ -845,17 +845,17 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
   const localizedNak = nakshatraName(natalNakshatra, lang);
   const localizedLagna = natalLagnaRashi !== undefined ? rashiName(natalLagnaRashi, lang) : undefined;
   const localizedPandit = getLocalizedPanditName(priestName || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್", lang);
-
   // Dynamic Abhijit Muhurtha
+  const abhijitWindow = (kaala as any).abhijitWindow || "11:48 AM – 12:36 PM";
   const abhijitMuhurtha = lang === "kn"
-    ? "ಪೂರ್ವಾಹ್ನ 11:48 ರಿಂದ ಮಧ್ಯಾಹ್ನ 12:36 (ಅಭಿಜಿತ್ ಮುಹೂರ್ತ)"
+    ? `${abhijitWindow} (ಅಭಿಜಿತ್ ಮುಹೂರ್ತ)`
     : lang === "hi"
-    ? "पूर्वाह्न 11:48 से दोपहर 12:36 (अभिजित मुहूर्त)"
+    ? `${abhijitWindow} (अभिजित मुहूर्त)`
     : lang === "te"
-    ? "ఉదయం 11:48 నుండి మధ్యాహ్నం 12:36 (అభిజిత్ ముహూర్తం)"
+    ? `${abhijitWindow} (అభిజిత్ ముహూర్తం)`
     : lang === "ta"
-    ? "முற்பகல் 11:48 முதல் பிற்பகல் 12:36 (அபிஜித் முகூர்த்தம்)"
-    : "11:48 AM – 12:36 PM (Abhijit Muhurtha)";
+    ? `${abhijitWindow} (அபிஜித் முகூர்த்தம்)`
+    : `${abhijitWindow} (Abhijit Muhurtha)`;
 
   // 5. Rich Deterministic Vedic Fallback Sections
   let overview = "";

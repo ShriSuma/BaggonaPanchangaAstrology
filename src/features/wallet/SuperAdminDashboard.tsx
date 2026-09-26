@@ -105,6 +105,7 @@ import { UserIdSuggestionChips } from "../../components/ui/UserIdSuggestionChips
 import { generateSmartUserIdSuggestions } from "../../utils/userIdSuggestionEngine";
 import { ServicePricingManager } from "../../components/wallet/ServicePricingManager";
 import { BaggonaBookPublisherDashboard } from "../admin/BaggonaBookPublisherDashboard";
+import { getIndianStandardDateStr } from "../../core/placeTime";
 
 export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "book_publisher" | "voice_db" | "pricing";
 
@@ -381,7 +382,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [kundliSearch, setKundliSearch] = useState("");
   const [auditSearch, setAuditSearch] = useState("");
   const [subscriptionSearch, setSubscriptionSearch] = useState("");
-  const [subscriptionFilter, setSubscriptionFilter] = useState<"all" | "active" | "near_expiry" | "expired">("all");
+  const [subscriptionFilter, setSubscriptionFilter] = useState<"all" | "today_active" | "active" | "near_expiry" | "expired">("all");
   const [isDeduplicating, setIsDeduplicating] = useState(false);
   const [isRestoringPriests, setIsRestoringPriests] = useState(false);
   const [isPurgingCalendarData, setIsPurgingCalendarData] = useState(false);
@@ -585,6 +586,39 @@ export const SuperAdminDashboard: React.FC = () => {
     : 100;
 
   const todayKey = new Date().toISOString().split("T")[0];
+  const todayYmd = useMemo(() => getIndianStandardDateStr(new Date()), []);
+  const sevenDaysAgoIso = useMemo(() => new Date(Date.now() - 7 * 86400 * 1000).toISOString(), []);
+
+  // Live Devotee Calendar Usage Telemetry (How many people are actually using currently)
+  const todayActiveDevotees = useMemo(() => {
+    const activeKeys = new Set<string>();
+    dailyVisitLogs.forEach((v) => {
+      if (v.visitDate === todayYmd) {
+        activeKeys.add((v.userName || v.userId || v.token || v.id).trim().toLowerCase());
+      }
+    });
+    subscriptions.forEach((s) => {
+      if (s.lastVisitDate === todayYmd || (s.todayVisitsCount && s.todayVisitsCount > 0)) {
+        activeKeys.add((s.devoteeName || s.tokenKey || s.id).trim().toLowerCase());
+      }
+    });
+    return activeKeys.size;
+  }, [dailyVisitLogs, subscriptions, todayYmd]);
+
+  const weeklyActiveDevotees = useMemo(() => {
+    const activeKeys = new Set<string>();
+    dailyVisitLogs.forEach((v) => {
+      if (v.visitTimestamp && v.visitTimestamp >= sevenDaysAgoIso) {
+        activeKeys.add((v.userName || v.userId || v.token || v.id).trim().toLowerCase());
+      }
+    });
+    subscriptions.forEach((s) => {
+      if (s.lastVisitAt && s.lastVisitAt >= sevenDaysAgoIso) {
+        activeKeys.add((s.devoteeName || s.tokenKey || s.id).trim().toLowerCase());
+      }
+    });
+    return activeKeys.size;
+  }, [dailyVisitLogs, subscriptions, sevenDaysAgoIso]);
 
   const mergedPurohitas = useMemo(() => {
     const map = new Map<string, {
@@ -1816,12 +1850,12 @@ export const SuperAdminDashboard: React.FC = () => {
 
         <RadialGauge
           value={passValidityScore}
-          title="ಆಶೀರ್ವಾದ ಪಾಸ್ (QR Passes)"
-          subtitle={`${ashirvadaPasses.length} Active 90-Day Passes`}
-          displayValue={`${ashirvadaPasses.length}`}
+          title="ಕ್ಯಾಲೆಂಡರ್ ಬಳಕೆ (Calendar Usage)"
+          subtitle={`${calendarRegistrations.length} ನೋಂದಾಯಿತ • ${ashirvadaPasses.length} ಪಾಸ್‌ಗಳು`}
+          displayValue={`${todayActiveDevotees} Active`}
           color="purple"
           icon="🪔"
-          badgeText="Verified"
+          badgeText={`ಇಂದು ${todayActiveDevotees} ಭಕ್ತರು`}
         />
       </div>
 
@@ -3199,7 +3233,10 @@ export const SuperAdminDashboard: React.FC = () => {
 
       {/* 6. TAB 3: Ashirvada QR Passes & Devotee Calendar Subscription CRM */}
       {activeTab === "ashirvada" && (() => {
+        const todayYmd = getIndianStandardDateStr(new Date());
+
         const filteredSubs = subscriptions.filter((s) => {
+          if (subscriptionFilter === "today_active" && !(s.lastVisitDate === todayYmd || (s.todayVisitsCount && s.todayVisitsCount > 0))) return false;
           if (subscriptionFilter === "active" && (s.isExpired || s.daysRemaining <= 7)) return false;
           if (subscriptionFilter === "near_expiry" && (s.isExpired || s.daysRemaining > 7)) return false;
           if (subscriptionFilter === "expired" && !s.isExpired) return false;
@@ -3231,6 +3268,10 @@ export const SuperAdminDashboard: React.FC = () => {
           if (durationFilter !== "all" && r.durationDays !== durationFilter) return false;
           if (subscriptionFilter === "active" && r.status === "expired") return false;
           if (subscriptionFilter === "expired" && r.status !== "expired") return false;
+          if (subscriptionFilter === "today_active") {
+            const hasVisitedToday = dailyVisitLogs.some(v => v.token === r.token && v.visitDate === todayYmd);
+            if (!hasVisitedToday) return false;
+          }
           if (!subscriptionSearch.trim()) return true;
           const q = subscriptionSearch.toLowerCase();
           return (
@@ -3244,6 +3285,7 @@ export const SuperAdminDashboard: React.FC = () => {
         });
 
         const filteredVisits = dailyVisitLogs.filter((v) => {
+          if (subscriptionFilter === "today_active" && v.visitDate !== todayYmd) return false;
           if (!subscriptionSearch.trim()) return true;
           const q = subscriptionSearch.toLowerCase();
           return (
@@ -3306,7 +3348,7 @@ export const SuperAdminDashboard: React.FC = () => {
             </div>
 
             {/* KPI Summary Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               <div
                 onClick={() => setSubscriptionFilter("all")}
                 className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
@@ -3316,8 +3358,21 @@ export const SuperAdminDashboard: React.FC = () => {
                 }`}
               >
                 <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">👥 ಒಟ್ಟು ಭಕ್ತರು (Total)</div>
-                <div className="text-2xl font-black text-amber-950 font-mono mt-1">{totalSubs}</div>
-                <div className="text-[10px] text-amber-700 font-semibold mt-0.5">ನೋಂದಾಯಿತ: {calendarRegistrations.length} | ಲಾಗ್: {dailyVisitLogs.length}</div>
+                <div className="text-2xl font-black text-amber-950 font-mono mt-1">{calendarRegistrations.length || totalSubs}</div>
+                <div className="text-[10px] text-amber-700 font-semibold mt-0.5">ನೋಂದಾಯಿತ: {calendarRegistrations.length} | CRM: {totalSubs}</div>
+              </div>
+
+              <div
+                onClick={() => setSubscriptionFilter("today_active")}
+                className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                  subscriptionFilter === "today_active"
+                    ? "bg-orange-100 border-orange-500 shadow-sm"
+                    : "bg-[#FEFCF4] border-orange-200 hover:border-orange-400"
+                }`}
+              >
+                <div className="text-[11px] font-bold text-orange-800 uppercase tracking-wider">🔥 ಇಂದು ಸಕ್ರಿಯ (Active Today)</div>
+                <div className="text-2xl font-black text-orange-950 font-mono mt-1">{todayActiveDevotees}</div>
+                <div className="text-[10px] text-orange-700 font-semibold mt-0.5">ವಾರದ ಸಕ್ರಿಯ: {weeklyActiveDevotees} ಭಕ್ತರು</div>
               </div>
 
               <div
@@ -3343,7 +3398,7 @@ export const SuperAdminDashboard: React.FC = () => {
               >
                 <div className="text-[11px] font-bold text-yellow-800 uppercase tracking-wider">🟡 ಮುಕ್ತಾಯ ಸಮೀಪ</div>
                 <div className="text-2xl font-black text-yellow-950 font-mono mt-1">{nearExpirySubs}</div>
-                <div className="text-[10px] text-yellow-700 font-semibold mt-0.5">≤ ೭ ದಿನಗಳಲ್ಲಿ ಮುಕ್ತಾಯ (ನವೀಕರಣ ಸಂದೇಶ)</div>
+                <div className="text-[10px] text-yellow-700 font-semibold mt-0.5">≤ ೭ ದಿನಗಳಲ್ಲಿ ಮುಕ್ತಾಯ</div>
               </div>
 
               <div
@@ -3354,9 +3409,9 @@ export const SuperAdminDashboard: React.FC = () => {
                     : "bg-[#FEFCF4] border-red-200 hover:border-red-400"
                 }`}
               >
-                <div className="text-[11px] font-bold text-red-800 uppercase tracking-wider">🔴 ಮುಕ್ತಾಯಗೊಂಡಿದೆ (Expired)</div>
+                <div className="text-[11px] font-bold text-red-800 uppercase tracking-wider">🔴 ಮುಕ್ತಾಯ (Expired)</div>
                 <div className="text-2xl font-black text-red-900 font-mono mt-1">{expiredSubs}</div>
-                <div className="text-[10px] text-red-700 font-semibold mt-0.5">ದರ್ಶನ ಪ್ರವೇಶ ಸಂಪೂರ್ಣ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ</div>
+                <div className="text-[10px] text-red-700 font-semibold mt-0.5">ಪ್ರವೇಶ ಸಂಪೂರ್ಣ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ</div>
               </div>
             </div>
 
@@ -3435,6 +3490,15 @@ export const SuperAdminDashboard: React.FC = () => {
                   }`}
                 >
                   ಎಲ್ಲಾ ({totalSubs})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter("today_active")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    subscriptionFilter === "today_active" ? "bg-orange-600 text-white shadow-xs" : "text-orange-950 hover:bg-orange-100"
+                  }`}
+                >
+                  🔥 ಇಂದು ಸಕ್ರಿಯ ({todayActiveDevotees})
                 </button>
                 <button
                   type="button"

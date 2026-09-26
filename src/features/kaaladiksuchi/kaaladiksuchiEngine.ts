@@ -1,6 +1,7 @@
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { askGemini } from "../../core/GeminiEngine";
 import { calculateRahuKaal } from "../../core/RahuKaalEngine";
+import { sunTimesSyncForBirth } from "../../core/birthSunTimes";
 import type {
   KaalaDiksuchiInput,
   KaalaDiksuchiResult,
@@ -311,8 +312,37 @@ export function computeDiksuchiCompassMatrix(
 
   // 6. Kaala Timing Rhythms for Today
   const coords = resolvePincodeCoordinates(input.pincode, input.placeLabel);
-  const sunriseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6, 12, 0);
-  const sunsetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 38, 0);
+  const formatTimeIst = (d: Date) => {
+    const istDate = new Date(d.getTime() + 330 * 60 * 1000);
+    const hours = istDate.getUTCHours();
+    const minutes = istDate.getUTCMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const h12 = hours % 12 || 12;
+    return `${String(h12).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${ampm}`;
+  };
+
+  let sunriseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6, 12, 0);
+  let sunsetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 38, 0);
+  let sunriseStr = "06:12 AM IST";
+  let sunsetStr = "06:38 PM IST";
+  let abhijitStr = "11:58 AM - 12:48 PM IST";
+
+  try {
+    const sun = sunTimesSyncForBirth(now, coords.lat, coords.lng, input.pincode || "");
+    sunriseDate = sun.sunrise;
+    sunsetDate = sun.sunset;
+    sunriseStr = `${formatTimeIst(sun.sunrise)} IST`;
+    sunsetStr = `${formatTimeIst(sun.sunset)} IST`;
+    const sunriseMs = sun.sunrise.getTime();
+    const sunsetMs = sun.sunset.getTime();
+    const daySpanMs = Math.max(sunsetMs - sunriseMs, 3600000);
+    const muhurthaMs = daySpanMs / 15;
+    const abhijitStart = new Date(sunriseMs + 7 * muhurthaMs);
+    const abhijitEnd = new Date(sunriseMs + 8 * muhurthaMs);
+    abhijitStr = `${formatTimeIst(abhijitStart)} - ${formatTimeIst(abhijitEnd)} IST`;
+  } catch {
+    /* fallback to defaults */
+  }
 
   const rahuKaalObj = calculateRahuKaal(now, sunriseDate, sunsetDate);
   const rahuStr = `${rahuKaalObj.startTime} - ${rahuKaalObj.endTime}`;
@@ -339,9 +369,9 @@ export function computeDiksuchiCompassMatrix(
   };
 
   const timingRhythm: KaalaTimingRhythm = {
-    sunriseTime: "06:12 AM IST",
-    sunsetTime: "06:38 PM IST",
-    abhijitMuhurtha: "11:58 AM - 12:48 PM IST",
+    sunriseTime: sunriseStr,
+    sunsetTime: sunsetStr,
+    abhijitMuhurtha: abhijitStr,
     rahuKaal: rahuStr,
     gulikaKaal: GULIKA_SEGMENTS[currentDayOfWeek] || "01:30 PM - 03:00 PM",
     yamaganda: YAMAGANDA_SEGMENTS[currentDayOfWeek] || "10:30 AM - 12:00 PM",

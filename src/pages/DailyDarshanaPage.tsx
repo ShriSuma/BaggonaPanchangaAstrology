@@ -4559,7 +4559,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                         : "Today's Auspicious Abhijit Muhurtha"}
                     </div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
-                      ⏱️ {dinaBhavishyaData?.abhijitMuhurtha || "11:54 AM – 12:44 PM IST"}
+                      ⏱️ {dinaBhavishyaData?.abhijitMuhurtha || (kaala?.abhijitWindow ? `${kaala.abhijitWindow} IST` : "11:48 AM – 12:36 PM IST")}
                     </div>
                   </div>
                 </div>
@@ -4730,7 +4730,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                     {lang === "kn" ? "ಶುಭ ಕಾಲ:" : lang === "hi" ? "शुभ काल:" : lang === "te" ? "శుభ కాలం:" : lang === "ta" ? "சுப காலம்:" : "Golden Hour:"}
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 800, color: "#86EFAC", marginTop: 2 }}>
-                    {darshanaPersonalization.powerMetrics.goldenHour.windowLabel[lang] || "10:48 AM - 11:36 AM"}
+                    {darshanaPersonalization.powerMetrics.goldenHour.windowLabel[lang] || kaala?.abhijitWindow || "11:48 AM – 12:36 PM"}
                   </div>
                 </div>
               </div>
@@ -4763,7 +4763,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                       {dict.abhijitLabel || "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ:"}
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
-                      {dinaBhavishyaData?.abhijitMuhurtha || "11:54 AM – 12:44 PM IST"}
+                      {dinaBhavishyaData?.abhijitMuhurtha || (kaala?.abhijitWindow ? `${kaala.abhijitWindow} IST` : "11:48 AM – 12:36 PM IST")}
                     </div>
                   </div>
                 </div>
@@ -4827,7 +4827,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               goldenHourWindowMap={darshanaPersonalization.powerMetrics.goldenHour.windowLabel}
               goldenHourStartTime={darshanaPersonalization.powerMetrics.goldenHour.startTimeStr}
               goldenHourEndTime={darshanaPersonalization.powerMetrics.goldenHour.endTimeStr}
-              goldenHourStr={darshanaPersonalization.powerMetrics.goldenHour.windowLabel[lang] || "10:48 AM - 11:36 AM"}
+              goldenHourStr={darshanaPersonalization.powerMetrics.goldenHour.windowLabel[lang] || kaala?.abhijitWindow || "11:48 AM – 12:36 PM"}
               devoteeLocationName={userLocationName}
               devoteePincode={userPincode}
               lang={lang}

@@ -582,6 +582,7 @@ export function getDailyKaalaTimings(
   let rahuStr = "";
   let gulikaStr = "";
   let yamaStr = "";
+  let abhijitStr = "";
 
   if (dateStr && typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng)) {
     try {
@@ -606,6 +607,7 @@ export function getDailyKaalaTimings(
       const sunsetMs = sun.sunset.getTime();
       const daySpanMs = Math.max(sunsetMs - sunriseMs, 3600000);
       const octantMs = daySpanMs / 8;
+      const muhurthaMs = daySpanMs / 15;
 
       const rahuOctantMap = [8, 2, 7, 5, 6, 4, 3];
       const gulikaOctantMap = [7, 6, 5, 4, 3, 2, 1];
@@ -620,6 +622,11 @@ export function getDailyKaalaTimings(
       rahuStr = getWindowStr(rahuOctantMap[idx] ?? 8);
       gulikaStr = getWindowStr(gulikaOctantMap[idx] ?? 7);
       yamaStr = getWindowStr(yamaOctantMap[idx] ?? 5);
+
+      // Authentic Vedic Abhijit Muhurtha (8th Muhurtha of daytime, centered at solar noon)
+      const abhijitStart = new Date(sunriseMs + 7 * muhurthaMs);
+      const abhijitEnd = new Date(sunriseMs + 8 * muhurthaMs);
+      abhijitStr = `${formatTime(abhijitStart)} – ${formatTime(abhijitEnd)}`;
     } catch {
       /* fallback to standard Kolkata offsets */
     }
@@ -641,6 +648,10 @@ export function getDailyKaalaTimings(
     yamaStr = t.yama;
   }
 
+  if (!abhijitStr) {
+    abhijitStr = "11:48 AM – 12:36 PM";
+  }
+
   const rahuSuffix = code === "kn" ? "(ಸಾಮಾನ್ಯ ಕೆಲಸ ಮಾಡಿ)"
                    : code === "hi" ? "(सामान्य कार्य करें)"
                    : code === "te" ? "(సాధారణ పనులు చేయండి)"
@@ -656,6 +667,11 @@ export function getDailyKaalaTimings(
                    : code === "te" ? "(ప్రార్థనకు శ్రేష్ఠం)"
                    : code === "ta" ? "(பிரார்த்தனைக்கு உகந்தது)"
                    : "(Good for Prayer)";
+  const abhijitSuffix = code === "kn" ? "(ಅಭಿಜಿತ್ ಮುಹೂರ್ತ)"
+                      : code === "hi" ? "(अभिजित मुहूर्त)"
+                      : code === "te" ? "(అభిజిత్ ముహూర్తం)"
+                      : code === "ta" ? "(அபிஜித் முகூர்த்தம்)"
+                      : "(Abhijit Muhurtha)";
 
   return {
     sunrise: sunriseStr,
@@ -663,12 +679,15 @@ export function getDailyKaalaTimings(
     rahu: `${rahuStr} ${rahuSuffix}`,
     gulika: `${gulikaStr} ${gulikaSuffix}`,
     yamaganda: `${yamaStr} ${yamaSuffix}`,
+    abhijit: `${abhijitStr} ${abhijitSuffix}`,
     rahuWindow: rahuStr,
     gulikaWindow: gulikaStr,
     yamaWindow: yamaStr,
+    abhijitWindow: abhijitStr,
     rahuSuffix,
     gulikaSuffix,
     yamaSuffix,
+    abhijitSuffix,
     pincodeUsed: pincode || "581326",
     latUsed: lat,
     lngUsed: lng,
