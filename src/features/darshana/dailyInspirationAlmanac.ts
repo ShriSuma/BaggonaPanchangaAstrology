@@ -400,7 +400,8 @@ export function buildCleanDailyWhatsAppShareText(
   tithiStr?: string,
   nakshatraStr?: string,
   customShloka?: string,
-  customDeitySource?: string
+  customDeitySource?: string,
+  customMeaning?: string
 ): string {
   let targetDate = new Date();
   try {
@@ -418,7 +419,7 @@ export function buildCleanDailyWhatsAppShareText(
     lang === "ta" ? (insp.shlokaText.ta || insp.shlokaText.sa) :
     insp.shlokaText.kn
   );
-  const meaning = insp.shlokaMeaning[lang] || insp.shlokaMeaning.kn;
+  const meaning = customMeaning || insp.shlokaMeaning[lang] || insp.shlokaMeaning.kn;
   const deed = insp.goodDeedOfTheDay[lang] || insp.goodDeedOfTheDay.kn;
   const quote = insp.motivationalQuote[lang] || insp.motivationalQuote.kn;
 

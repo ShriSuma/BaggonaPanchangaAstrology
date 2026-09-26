@@ -81,6 +81,16 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabGochara: "ಗೋಚಾರ ಕುಂಡಲಿ",
     tabDasha: "ದಶಾ-ಭುಕ್ತಿ",
     tabBhavishya: "ದಿನ ಭವಿಷ್ಯ",
+    tabLucky: "ಅದೃಷ್ಟ ವಿವರಗಳು",
+    tabPooja: "ನಿತ್ಯ ಪೂಜೆ & ಮಂತ್ರ",
+    tabLuckyAria: "ದೈನಂದಿನ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತ",
+    tabPoojaAria: "ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ ಹಾಗೂ ಶಕ್ತಿ ಮಂತ್ರಗಳು",
+    tabWhatsapp: "ವಾಟ್ಸಾಪ್ ಸಂದೇಶ",
+    tabWhatsappAria: "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್",
+    whatsappTabHeading: "॥ ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್ (WhatsApp ಹಂಚಿಕೆ) ॥",
+    luckyTabHeading: "॥ ಅದೃಷ್ಟ ರತ್ನ, ಸಂಖ್ಯೆ, ಬಣ್ಣ, ಶುಭ ಮುಹೂರ್ತ & ಗೋಲ್ಡನ್ ಅವರ್ ॥",
+    poojaTabHeading: "॥ ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ, ಶಕ್ತಿ ಮಂತ್ರ ಹಾಗೂ ಜಪ ಸನ್ನಿಧಿ ॥",
+    bhavishyaTabHeading: "॥ ದಿನ ಭವಿಷ್ಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ದೈನಂದಿನ ಕರ್ಮ ಮಾರ್ಗದರ್ಶಿ ॥",
     panchangaTitle: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ",
     kshetraTitle: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
     creationSubtitle: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೃಷ್ಟಿ",
@@ -175,6 +185,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaalaLabel: "ರಾಹು ಕಾಲ:",
     luckyColorLabel: "ಅದೃಷ್ಟ ಬಣ್ಣ:",
     luckyDirectionLabel: "ಅದೃಷ್ಟ ದಿಕ್ಕು:",
+    luckyMetalLabel: "ಶುಭ ಲೋಹ:",
     dinaDeityTitle: "ಇಂದಿನ ದೇವತೋಪಾಸನೆ & ಸಿದ್ಧ ಮಂತ್ರ",
     accordionTitle: "ಸಂಪೂರ್ಣ ಜನ್ಮ ಕುಂಡಲಿ, ಗೋಚಾರ & ದಶಾ ವಿವರಗಳು",
     calendarContactPrompt: "ಈ ಕ್ಯಾಲೆಂಡರ್ ಪಡೆಯಲು ಅಥವಾ ನಿಮ್ಮ ಇಂದಿನ ಜೀವನದ ಜಾತಕದ ವಿವರಗಳನ್ನು ಪಡೆಯಲು ಈ ಕೆಳಗಿನ ಪ್ರಧಾನ ಅರ್ಚಕರನ್ನು ಸಂಪರ್ಕಿಸಿ:",
@@ -189,6 +200,16 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabGochara: "Gochara Chart",
     tabDasha: "Dasha-Bhukti",
     tabBhavishya: "Daily Horoscope",
+    tabLucky: "Lucky & Power",
+    tabPooja: "Daily Pooja & Mantra",
+    tabLuckyAria: "Daily Lucky Gem, Color, Number & Auspicious Muhurtha",
+    tabPoojaAria: "Daily Deva Pooja, Sankalpa & Divine Energy Mantras",
+    tabWhatsapp: "WhatsApp Share",
+    tabWhatsappAria: "Daily Good Morning & Shloka Blessing Card",
+    whatsappTabHeading: "॥ Daily Good Morning & Shloka Blessing Card (WhatsApp Share) ॥",
+    luckyTabHeading: "॥ Daily Lucky Gem, Number, Color, Golden Hour & Muhurtha ॥",
+    poojaTabHeading: "॥ Daily Deva Pooja, Sankalpa, Energy Mantras & Sacred Japa Sanctum ॥",
+    bhavishyaTabHeading: "॥ Daily Horoscope, Key Life Areas & Daily Karma Navigator ॥",
     panchangaTitle: "Baggona Panchanga",
     kshetraTitle: "Gokarna Kshetra",
     creationSubtitle: "Gokarna Kshetra Creation",
@@ -283,6 +304,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaalaLabel: "Rahu Kaala:",
     luckyColorLabel: "Lucky Color:",
     luckyDirectionLabel: "Direction:",
+    luckyMetalLabel: "Lucky Metal:",
     dinaDeityTitle: "Today's Sacred Deity & Siddha Mantra",
     accordionTitle: "Complete Janma Kundali, Gochara & Dasha Details",
     calendarContactPrompt: "To get this calendar or to get current life related details/predictions, you can contact Chief Archaka:",
@@ -297,6 +319,16 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabGochara: "गोचर कुंडली",
     tabDasha: "दशा-भुक्ति",
     tabBhavishya: "दैनिक राशिफल",
+    tabLucky: "शुभ व भाग्य",
+    tabPooja: "नित्य पूजा व मंत्र",
+    tabLuckyAria: "दैनिक शुभ रत्न, अंक, रंग व मुहूर्त",
+    tabPoojaAria: "नित्य देव पूजा, संकल्प एवं दिव्य शक्ति मंत्र",
+    tabWhatsapp: "व्हाट्सएप साझा",
+    tabWhatsappAria: "दैनिक शुभ प्रभात संदेश एवं आशीर्वाद कार्ड",
+    whatsappTabHeading: "॥ दैनिक शुभ प्रभात संदेश एवं आशीर्वाद कार्ड (WhatsApp साझा) ॥",
+    luckyTabHeading: "॥ दैनिक शुभ रत्न, अंक, रंग, शुभ मुहूर्त व गोल्डेन ऑवर ॥",
+    poojaTabHeading: "॥ नित्य देव पूजा, संकल्प, दिव्य शक्ति मंत्र एवं जप सन्निधि ॥",
+    bhavishyaTabHeading: "॥ दैनिक राशिफल, कार्य सिद्धि एवं दैनिक कर्म मार्गदर्शक ॥",
     panchangaTitle: "बग्गोण पंचांग",
     kshetraTitle: "गोकर्ण क्षेत्र",
     creationSubtitle: "गोकर्ण क्षेत्र सृष्टि",
@@ -391,6 +423,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaalaLabel: "राहु काल:",
     luckyColorLabel: "शुभ रंग:",
     luckyDirectionLabel: "शुभ दिशा:",
+    luckyMetalLabel: "शुभ धातु:",
     dinaDeityTitle: "आज की देव उपासना एवं सिद्ध मंत्र",
     accordionTitle: "संपूर्ण जन्म कुंडली, गोचर व दशा विवरण",
     calendarContactPrompt: "यह कैलेंडर प्राप्त करने या अपने वर्तमान जीवन से संबंधित विवरण व फलादेश पाने के लिए मुख्य अर्चक से संपर्क करें:",
@@ -405,6 +438,16 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabGochara: "గోచార కుండలి",
     tabDasha: "దశా-భుక్తి",
     tabBhavishya: "దిన భవిష్యత్తు",
+    tabLucky: "అదృష్ట వివరాలు",
+    tabPooja: "నిత్య పూజ & మంత్రం",
+    tabLuckyAria: "రోజువారీ అదృష్ట రత్నం, రంగు, సంఖ్య మరియు శుభ ముహూర్తం",
+    tabPoojaAria: "నిత్య దేవ పూజ, సంకల్పం మరియు దివ్య శక్తి మంత్రాలు",
+    tabWhatsapp: "వాట్సాప్ సందేశం",
+    tabWhatsappAria: "నిత్య శుభోదయ సందేశం & ఆశీర్వాద కార్డ్",
+    whatsappTabHeading: "॥ నిత్య శుభోదయ సందేశం & ఆశీర్వాద కార్డ్ (WhatsApp భాగస్వామ్యం) ॥",
+    luckyTabHeading: "॥ రోజువారీ అదృష్ట రత్నం, సంఖ్య, రంగు, శుభ ముహూర్తం & గోల్డెన్ అవర్ ॥",
+    poojaTabHeading: "॥ నిత్య దేవ పూజ, సంకల్పం, శక్తి మంత్రాలు మరియు జప సన్నిధి ॥",
+    bhavishyaTabHeading: "॥ దిన ఫలితాలు, కార్య సిద్ధి మరియు దైనందిన కర్మ మార్గదర్శి ॥",
     panchangaTitle: "బగ్గోణ పంచాంగం",
     kshetraTitle: "గోకర్ణ క్షేత్రం",
     creationSubtitle: "గోకర్ణ క్షేత్రం సృష్టి",
@@ -499,6 +542,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaalaLabel: "రాహు కాలం:",
     luckyColorLabel: "అదృష్ట రంగు:",
     luckyDirectionLabel: "అదృష్ట దిక్కు:",
+    luckyMetalLabel: "శుభ లోహం:",
     dinaDeityTitle: "నేటి దేవతోపాసన & సిద్ధ మంత్రం",
     accordionTitle: "పూర్తి జన్మ జాతకం, గోచారం & దశా వివరాలు",
     calendarContactPrompt: "ఈ క్యాలెండర్ పొందుటకు లేదా మీ ప్రస్తుత జీవిత జాతక ఫలాల వివరాలు పొందుటకు ఈ క్రింది ప్రధాన అర్చకుడిని సంప్రదించండి:",
@@ -513,6 +557,16 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabGochara: "கோச்சார கட்டம்",
     tabDasha: "தசா-புக்தி",
     tabBhavishya: "தினம் பலன்",
+    tabLucky: "அதிர்ஷ்ட விவரங்கள்",
+    tabPooja: "நித்ய பூஜை & மந்திரம்",
+    tabLuckyAria: "தினசரி அதிர்ஷ்ட ரத்தினம், நிறம், எண் மற்றும் முகூர்த்தம்",
+    tabPoojaAria: "நித்ய தேவ பூஜை, சங்கல்பம் மற்றும் தெய்வீக சக்தி மந்திரங்கள்",
+    tabWhatsapp: "வாட்ஸ்அப் பகிர்வு",
+    tabWhatsappAria: "தினசரி காலை வணக்க செய்தி & ஆசீர்வாத அட்டை",
+    whatsappTabHeading: "॥ தினசரி காலை வணக்க செய்தி & ஆசீர்வாத அட்டை (WhatsApp பகிர்வு) ॥",
+    luckyTabHeading: "॥ தினசரி அதிர்ஷ்ட ரத்தினம், எண், நிறம், சுப முகூர்த்தம் & பொன் நேரம் ॥",
+    poojaTabHeading: "॥ நித்ய தேவ பூஜை, சங்கல்பம், சக்தி மந்திரங்கள் & ஜப சந்நிதி ॥",
+    bhavishyaTabHeading: "॥ தின பலன்கள், காரிய சித்தி மற்றும் தினசரி கர்ம வழிகாட்டி ॥",
     panchangaTitle: "பக்கோண பஞ்சாங்கம்",
     kshetraTitle: "கோகர்ண க்ஷேத்திரம்",
     creationSubtitle: "கோகர்ண க்ஷேத்திரம் படைப்பு",
@@ -607,6 +661,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaalaLabel: "ராகு காலம்:",
     luckyColorLabel: "அதிர்ஷ்ட நிறம்:",
     luckyDirectionLabel: "அதிர்ஷ்ட திசை:",
+    luckyMetalLabel: "சுப உலோகம்:",
     dinaDeityTitle: "இன்றைய தெய்வ வழிபாடு & சித்த மந்திரம்",
     accordionTitle: "முழு ஜாதகம், கோச்சாரம் & தசா விவரங்கள்",
     calendarContactPrompt: "இந்த காலண்டரைப் பெற அல்லது உங்களின் தற்போதைய வாழ்க்கை பலன்களைப் பெற கீழே உள்ள முதன்மை அர்ச்சகரைத் தொடர்பு கொள்ளவும்:",
@@ -650,6 +705,22 @@ const POOJA_BANNER_SUBTITLES: Record<SevaLang, (deityName: string, streak: numbe
   hi: (d, s) => `आज की पूजा: ${d} · व्यक्तिगत संकल्पों के साथ वैदिक पंडित मार्गदर्शन · संकल्प: ${s} दिन`,
   te: (d, s) => `నేటి పూజ: ${d} · వ్యక్తిగత సంకల్పాలతో వైదిక పండితుల మార్గదర్శనం · క్రమం: ${s} రోజులు`,
   ta: (d, s) => `இன்றைய பூஜை: ${d} · தனிப்பட்ட சங்கல்பங்களுடன் வைதீக பண்டிதர் வழிகாட்டல் · தொடர்ச்சி: ${s} நாட்கள்`
+};
+
+// 12 Rashi Lucky Metals in 5 Languages
+const LUCKY_METALS_L5: Record<number, Record<SevaLang, string>> = {
+  0: { kn: "ತಾಮ್ರ / ಬಂಗಾರ", en: "Copper / Gold", hi: "तांबा / स्वर्ण", te: "రాగి / బంగారం", ta: "செம்பு / தங்கம்" },
+  1: { kn: "ಬೆಳ್ಳಿ / ಪ್ಲಾಟಿನಂ", en: "Silver / Platinum", hi: "चांदी / प्लैटिनम", te: "వెండి / ప్లాటినం", ta: "வெள்ளி / பிளாட்டினம்" },
+  2: { kn: "ಕಂಚು / ಹಿತ್ತಾಳೆ", en: "Bronze / Brass", hi: "कांस्य / पीतल", te: "కంచు / ఇత్తడి", ta: "வெண்கலம் / பித்தளை" },
+  3: { kn: "ಬೆಳ್ಳಿ", en: "Silver", hi: "चांदी", te: "వెండి", ta: "வெள்ளி" },
+  4: { kn: "ಚಿನ್ನ / ತಾಮ್ರ", en: "Gold / Copper", hi: "स्वर्ण / तांबा", te: "బంగారం / రాగి", ta: "தங்கம் / செம்பு" },
+  5: { kn: "ಕಂಚು / ಬೆಳ್ಳಿ", en: "Bronze / Silver", hi: "कांस्य / चांदी", te: "కంచు / వెండి", ta: "வெண்கலம் / வெள்ளி" },
+  6: { kn: "ಬೆಳ್ಳಿ / ಶ್ವೇತ ಚಿನ್ನ", en: "Silver / White Gold", hi: "चांदी / श्वेत स्वर्ण", te: "వెండి / తెల్ల బంగారం", ta: "வெள்ளி / வெள்ளை தங்கம்" },
+  7: { kn: "ತಾಮ್ರ", en: "Copper", hi: "तांबा", te: "రాగి", ta: "செம்பு" },
+  8: { kn: "ಚಿನ್ನ / ಹಿತ್ತಾಳೆ", en: "Gold / Brass", hi: "स्वर्ण / पीतल", te: "బంగారం / ఇత్తడి", ta: "தங்கம் / பித்தளை" },
+  9: { kn: "ಕಬ್ಬಿಣ / ಸೀಸ", en: "Iron / Lead", hi: "लोहा / सीसा", te: "ఇనుము / సీసం", ta: "இரும்பு / ஈயம்" },
+  10: { kn: "ಕಬ್ಬಿಣ / ಪಂಚಲೋಹ", en: "Iron / Panchaloha", hi: "लोहा / पंचधातु", te: "ఇనుము / పంచలోహం", ta: "இரும்பு / பஞ்சலோகம்" },
+  11: { kn: "ಚಿನ್ನ / ಕಾಂಸ್ಯ", en: "Gold / Bronze", hi: "स्वर्ण / कांस्य", te: "బంగారం / కంచు", ta: "தங்கம் / வெண்கலம்" }
 };
 
 // Tithi Transition Labels
@@ -1602,17 +1673,35 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const dict = useMemo(() => DARSHANA_LABELS[lang] || DARSHANA_LABELS.kn, [lang]);
 
-  const initialTab = useMemo(() => {
-    const rawTab = (params.get("tab") || (decoded as any)?.tab || "").toLowerCase();
-    if (rawTab.includes("darsh") || rawTab.includes("sanct") || rawTab.includes("pooj")) return "darshana";
-    if (rawTab.includes("guid") || rawTab.includes("muhur") || rawTab.includes("gem") || rawTab.includes("karm") || rawTab.includes("gold")) return "guidance";
-    if (rawTab.includes("kund") || rawTab.includes("janma")) return "kundali";
-    if (rawTab.includes("goch")) return "gochara";
-    if (rawTab.includes("dash")) return "dasha";
-    return "bhavishya";
+  type DarshanaTab = "darshana" | "bhavishya" | "pooja" | "lucky" | "whatsapp" | "details";
+
+  const initialTab: DarshanaTab = useMemo(() => {
+    const rawTab = (params.get("tab") || (decoded as any)?.tab || "").toLowerCase().trim();
+    // 1. WhatsApp / Share / Card / Story / Msg / Bless / Env
+    if (rawTab.includes("what") || rawTab.includes("share") || rawTab.includes("card") || rawTab.includes("story") || rawTab.includes("msg") || rawTab.includes("bless") || rawTab.includes("env") || rawTab.includes("lakote")) return "whatsapp";
+    // 2. Pooja / Mantra / Japa / Shloka / Sankalpa
+    if (rawTab.includes("pooj") || rawTab.includes("puja") || rawTab.includes("puj") || rawTab.includes("mantr") || rawTab.includes("japa") || rawTab.includes("shlok") || rawTab.includes("sankalp")) return "pooja";
+    // 3. Lucky / Gem / Gold / Color / Direction / Muhurtha / Digit
+    if (rawTab.includes("luck") || rawTab.includes("gem") || rawTab.includes("gold") || rawTab.includes("color") || rawTab.includes("digit") || rawTab.includes("numb") || rawTab.includes("muhur")) return "lucky";
+    // 4. Technical details: Details / Kundali / Janma / Gochara / Dasha / Panchanga / Kaala
+    if (rawTab.includes("detail") || rawTab.includes("kund") || rawTab.includes("janma") || rawTab.includes("goch") || rawTab.includes("dash") || rawTab.includes("panch") || rawTab.includes("kaala")) return "details";
+    // 5. Bhavishya / Horoscope / Karma / Rashi / Future
+    if (rawTab.includes("bhav") || rawTab.includes("horo") || rawTab.includes("karm") || rawTab.includes("rash") || rawTab.includes("futur")) return "bhavishya";
+    // 6. Old guidance tab -> maps to "lucky" for backward compatibility
+    if (rawTab.includes("guid")) return "lucky";
+    // 7. Sanctum / Darshana / Temple -> "darshana"
+    if (rawTab.includes("darsh") || rawTab.includes("sanct") || rawTab.includes("templ")) return "darshana";
+    // Numeric indices support for backward compatibility:
+    if (rawTab === "1" || rawTab === "0") return "darshana";
+    if (rawTab === "2") return "bhavishya";
+    if (rawTab === "3") return "pooja";
+    if (rawTab === "4") return "lucky";
+    if (rawTab === "5") return "whatsapp";
+    if (rawTab === "6") return "details";
+    return "darshana";
   }, [decoded, params]);
 
-  const [activeTab, setActiveTab] = useState<"darshana" | "guidance" | "bhavishya" | "kundali" | "gochara" | "dasha">(initialTab);
+  const [activeTab, setActiveTab] = useState<DarshanaTab>(initialTab);
 
   useEffect(() => {
     if (initialTab) {
@@ -2960,81 +3049,64 @@ export default function DailyDarshanaPage(): JSX.Element {
         </div>
       ) : (
         <>
-      {/* Sticky Mobile 3-Tab Navigation */}
-      <nav style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        background: "rgba(28, 10, 0, 0.95)",
-        backdropFilter: "blur(8px)",
-        borderBottom: "1px solid rgba(212, 175, 55, 0.4)",
-        padding: "8px 12px"
+            {/* Active Tab Indicator Header Pill */}
+      <div style={{
+        maxWidth: 600,
+        margin: "8px auto 0 auto",
+        padding: "6px 14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "rgba(35, 12, 2, 0.75)",
+        border: "1px solid rgba(212, 175, 55, 0.3)",
+        borderRadius: 14,
+        backdropFilter: "blur(6px)"
       }}>
-        <div style={{
-          maxWidth: 600,
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 8
-        }}>
-          <button
-            onClick={() => setActiveTab("bhavishya")}
-            style={{
-              background: activeTab === "bhavishya" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.85)",
-              color: activeTab === "bhavishya" ? "#FFFFFF" : "#FCD34D",
-              border: activeTab === "bhavishya" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.3)",
-              padding: "10px 4px",
-              borderRadius: 12,
-              fontSize: 12,
-              fontWeight: 800,
-              cursor: "pointer",
-              textAlign: "center",
-              boxShadow: activeTab === "bhavishya" ? "0 4px 12px rgba(217, 119, 6, 0.4)" : "none"
-            }}
-          >
-            🔮 {dict.tabBhavishya}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("darshana")}
-            style={{
-              background: activeTab === "darshana" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.85)",
-              color: activeTab === "darshana" ? "#FFFFFF" : "#FCD34D",
-              border: activeTab === "darshana" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.3)",
-              padding: "10px 4px",
-              borderRadius: 12,
-              fontSize: 12,
-              fontWeight: 800,
-              cursor: "pointer",
-              textAlign: "center",
-              boxShadow: activeTab === "darshana" ? "0 4px 12px rgba(217, 119, 6, 0.4)" : "none"
-            }}
-          >
-            🛕 {dict.tabSanctum}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("guidance")}
-            style={{
-              background: activeTab === "guidance" ? "linear-gradient(135deg, #D97706, #B45309)" : "rgba(45, 20, 7, 0.85)",
-              color: activeTab === "guidance" ? "#FFFFFF" : "#FCD34D",
-              border: activeTab === "guidance" ? "1.5px solid #FDE68A" : "1px solid rgba(212, 175, 55, 0.3)",
-              padding: "10px 4px",
-              borderRadius: 12,
-              fontSize: 12,
-              fontWeight: 800,
-              cursor: "pointer",
-              textAlign: "center",
-              boxShadow: activeTab === "guidance" ? "0 4px 12px rgba(217, 119, 6, 0.4)" : "none"
-            }}
-          >
-            ✨ {dict.tabGuidance}
-          </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 900, color: "#FDE68A" }}>
+          <span>
+            {activeTab === "darshana"
+              ? "🛕"
+              : activeTab === "bhavishya"
+              ? "🔮"
+              : activeTab === "pooja"
+              ? "🪔"
+              : activeTab === "lucky"
+              ? "💎"
+              : activeTab === "whatsapp"
+              ? "💬"
+              : "📜"}
+          </span>
+          <span>
+            {activeTab === "darshana"
+              ? dict.tabDarshanaAria
+              : activeTab === "bhavishya"
+              ? dict.tabBhavishyaAria
+              : activeTab === "pooja"
+              ? (dict.tabPoojaAria || "ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ ಹಾಗೂ ಶಕ್ತಿ ಮಂತ್ರಗಳು")
+              : activeTab === "lucky"
+              ? (dict.tabLuckyAria || "ದೈನಂದಿನ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತ")
+              : activeTab === "whatsapp"
+              ? (dict.tabWhatsappAria || "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್")
+              : dict.tabDetailsAria}
+          </span>
         </div>
-      </nav>
+        <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700 }}>
+          {activeTab === "darshana"
+            ? "1/6"
+            : activeTab === "bhavishya"
+            ? "2/6"
+            : activeTab === "pooja"
+            ? "3/6"
+            : activeTab === "lucky"
+            ? "4/6"
+            : activeTab === "whatsapp"
+            ? "5/6"
+            : "6/6"}
+        </div>
+      </div>
 
       {/* Main Content Area */}
-      <main style={{ maxWidth: 600, margin: "0 auto", padding: "16px 12px" }}>
+      <main style={{ maxWidth: 600, margin: "0 auto", padding: "16px 12px 120px 12px" }}>
 
         {/* Sacred Today Darshana Date Card (Locked to Today Only) */}
         <div style={{
@@ -3144,90 +3216,403 @@ export default function DailyDarshanaPage(): JSX.Element {
 
 
 
-        {/* ── TAB 2: SACRED SANCTUM & DARSHANA ── */}
+        {/* ── TAB 1: SACRED SANCTUM & DARSHANA (ದರ್ಶನ) ── */}
         {activeTab === "darshana" && (
-          <div>
-            {/* 🌸 Prominently Featured Daily Satkarma (Good Deed) Practice Card - Strictly inside Darshana Tab ONLY */}
-            <DailySatkarmaPracticeCard
-              day={mockDay}
-              lang={lang}
-              devoteeName={devoteeDisplayName}
-              panditName={activePanditName}
-              userId={devoteeUserId || devoteeDisplayName || "guest_devotee"}
-              devoteeToken={tokenParam || undefined}
-            />
-            {/* 🌟 Sacred Abhijit Muhurtha Sanctum Spotlight (Exclusive Website Feature) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Chief Priest Benediction */}
             <div style={{
-              background: "linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(67, 20, 7, 0.95) 100%)",
-              border: "2px solid #FCD34D",
+              background: "rgba(45, 20, 7, 0.85)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
               borderRadius: 16,
-              padding: "14px 18px",
-              marginBottom: 16,
-              boxShadow: "0 6px 20px rgba(252, 211, 77, 0.2)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 8
+              padding: 16,
+              marginBottom: 16
             }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 24 }}>✨</span>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                      {lang === "kn"
-                        ? "ಇಂದಿನ ಶುಭ ಅಭಿಜಿತ್ ಮುಹೂರ್ತ"
-                        : lang === "te"
-                        ? "నేటి శుభ అభిజిత్ ముహూర్తం"
-                        : lang === "ta"
-                        ? "இன்றைய சுப அபிஜித் முகூர்த்தம்"
-                        : lang === "hi"
-                        ? "आज का शुभ अभिजीत मुहूर्त"
-                        : "Today's Auspicious Abhijit Muhurtha"}
-                    </div>
-                    <div style={{ fontSize: 16, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
-                      ⏱️ {dinaBhavishyaData?.abhijitMuhurtha || "11:54 AM – 12:44 PM IST"}
-                    </div>
-                  </div>
-                </div>
-                <div style={{
-                  background: "rgba(245, 158, 11, 0.25)",
-                  border: "1px solid #F59E0B",
-                  borderRadius: 10,
-                  padding: "6px 12px",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: "#FEF3C7",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6
-                }}>
-                  <span style={{ fontSize: 16 }}>🔥</span>
-                  <span>
-                    {darshanaStreak.currentStreak}{" "}
-                    {lang === "kn"
-                      ? "ದಿನಗಳ ದರ್ಶನ ದೀಕ್ಷೆ"
-                      : lang === "te"
-                      ? "రోజుల దర్శన దీక్ష"
-                      : lang === "ta"
-                      ? "நாட்கள் தரிசன தீட்சை"
-                      : lang === "hi"
-                      ? "दिनों की दर्शन दीक्षा"
-                      : "Days Darshana Streak"}
-                  </span>
-                </div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                <span>📜 {(PRIEST_BENEDICTION_TITLES[lang] || PRIEST_BENEDICTION_TITLES.en)(localizedPandit)}</span>
+                <button
+                  type="button"
+                  disabled={isBenedictionLoading}
+                  onClick={toggleBenedictionVoice}
+                  style={{
+                    background: isBenedictionPlaying
+                      ? "#DC2626"
+                      : isBenedictionLoading
+                      ? "linear-gradient(135deg, #B45309, #78350F)"
+                      : "linear-gradient(135deg, #D97706, #B45309)",
+                    color: "#FFFFFF",
+                    border: "1px solid #FCD34D",
+                    padding: "6px 14px",
+                    borderRadius: 12,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    cursor: isBenedictionLoading ? "not-allowed" : "pointer",
+                    opacity: isBenedictionLoading ? 0.85 : 1,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    boxShadow: "0 2px 8px rgba(217, 119, 6, 0.3)"
+                  }}
+                >
+                  {isBenedictionPlaying ? (
+                    <>
+                      <span>⏹️</span>
+                      <span>{dict.stopVoice}</span>
+                    </>
+                  ) : isBenedictionLoading ? (
+                    <>
+                      <span className="inline-block animate-spin">⏳</span>
+                      <span>{dict.generatingVoice}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🔊</span>
+                      <span>{dict.listenVoice}</span>
+                    </>
+                  )}
+                </button>
               </div>
-              <div style={{ fontSize: 11.5, color: "#FEF3C7", lineHeight: 1.4, borderTop: "1px dashed rgba(252, 211, 77, 0.3)", paddingTop: 6 }}>
-                {lang === "kn"
-                  ? "🌟 ಅಭಿಜಿತ್ ಮುಹೂರ್ತವು ವೆಬ್‌ಸೈಟ್ ಸನ್ನಿಧಿಯ ವಿಶೇಷ ದರ್ಶನವಾಗಿದೆ. ಪ್ರತಿದಿನ ಭೇಟಿ ನೀಡಿ ನಿಮ್ಮ ದರ್ಶನ ಸಾಧನಾ ದೀಕ್ಷೆ (🔥) ಮುಂದುವರಿಸಿ!"
-                  : lang === "te"
-                  ? "🌟 అభిజిత్ ముహూర్తం వెబ్‌సైట్ సన్నిధి ప్రత్యేక దర్శనం. ప్రతిరోజూ దర్శించి మీ దర్శన సాధనా దీక్షను (🔥) కొనసాగించండి!"
-                  : lang === "ta"
-                  ? "🌟 அபிஜித் முகூர்த்தம் இணையதள சந்நிதியின் சிறப்பு தரிசனமாகும். தினமும் வருகை தந்து உங்கள் தரிசன சாதனா தீட்சையை (🔥) தொடருங்கள்!"
-                  : lang === "hi"
-                  ? "🌟 अभिजीत मुहूर्त वेबसाइट सन्निधि का विशेष दर्शन है। प्रतिदिन पधारकर अपनी दर्शन साधना दीक्षा (🔥) जारी रखें!"
-                  : "🌟 Abhijit Muhurtha is an exclusive web sanctum feature. Visit daily to receive your darshana and maintain your visit streak (🔥)!"}
+              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "#E5E7EB", fontStyle: "italic" }}>
+                "{benediction}"
+              </p>
+            </div>
+            {/* Dynamic 3-Color Vibe Status Card */}
+            <div style={{
+              background: dayTheme.cardBg,
+              border: dayTheme.border,
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#FDE68A", textTransform: "uppercase" }}>
+                  ⚡ {dict.status}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: dayTheme.badgeColor, background: dayTheme.badgeBg, padding: "2px 8px", borderRadius: 10, border: `1px solid ${dayTheme.accent}` }}>
+                  {vibe.vibeTag}
+                </span>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#FFFFFF", marginBottom: 6 }}>
+                {vibe.badgeEmoji} {vibe.badgeText} ({mockDay.energyScore}%)
+              </div>
+              {/* Dynamic Energy Bar */}
+              <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, height: 8, overflow: "hidden", marginBottom: 8 }}>
+                <div style={{ background: dayTheme.barGradient, height: "100%", width: `${mockDay.energyScore}%` }} />
+              </div>
+              <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5, display: "flex", flexDirection: "column", gap: 4, marginTop: 6 }}>
+                <div>🌟 {dict.taraBala}: <strong style={{ color: dayTheme.badgeColor }}>{getTaraBalaInfo(mockDay.tara?.tara || 2, lang)}</strong></div>
+                <div>🌙 {dict.chandraBala}: <strong style={{ color: dayTheme.badgeColor }}>{getChandraBalaInfo(mockDay.chandra?.house || 11, mockDay.isChandrashtama, lang)} ({mockDay.energyScore}%)</strong></div>
               </div>
             </div>
 
+            {/* Sacred Tithi Timings & Transition Details Card */}
+            {(() => {
+              const dt = (mockDay as any).detailedTithi as DetailedTithiInfo | undefined;
+              if (!dt) return null;
+              const tLabels = TITHI_TRANSITION_LABELS[lang] || TITHI_TRANSITION_LABELS.en;
+
+              return (
+                <div style={{
+                  background: "linear-gradient(135deg, rgba(80, 27, 17, 0.95) 0%, rgba(45, 14, 5, 0.95) 100%)",
+                  border: "1.5px solid #F59E0B",
+                  borderRadius: 16,
+                  padding: "16px 18px",
+                  marginBottom: 16,
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", display: "flex", alignItems: "center", gap: 6 }}>
+                      <span>📜</span>
+                      <span>{tLabels.cardHeading}</span>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B", background: "rgba(245, 158, 11, 0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                      100% IST
+                    </span>
+                  </div>
+
+                  {/* 2-Column Grid: Current Tithi vs Next Tithi */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                    {/* Primary Sunrise Tithi */}
+                    <div style={{
+                      background: "rgba(30, 10, 5, 0.8)",
+                      border: "1px solid rgba(212, 175, 55, 0.35)",
+                      borderRadius: 12,
+                      padding: 12
+                    }}>
+                      <div style={{ fontSize: 10, color: "#F59E0B", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        🌅 {tLabels.activeTithiLabel}
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
+                        {dt.tithiFullLabel[lang] || dt.tithiFullLabel.en}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#FDE68A", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                        <span>⏱️</span>
+                        <span>{tLabels.untilLabel}: <strong style={{ color: "#86EFAC" }}>{dt.tithiEndTimeStr}</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Next Tithi */}
+                    <div style={{
+                      background: "rgba(30, 10, 5, 0.8)",
+                      border: "1px solid rgba(212, 175, 55, 0.35)",
+                      borderRadius: 12,
+                      padding: 12
+                    }}>
+                      <div style={{ fontSize: 10, color: "#93C5FD", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        🌙 {tLabels.nextTithiLabel}
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
+                        {dt.nextTithiFullLabel[lang] || dt.nextTithiFullLabel.en}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#E0E7FF", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                        <span>⏳</span>
+                        <span>{tLabels.nextDurationLabel}: <strong style={{ color: "#FDE047" }}>{dt.nextTithiDurationStr[lang] || dt.nextTithiDurationStr.en}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Majority Tithi Banner & Energy Focus */}
+                  <div style={{
+                    background: "rgba(245, 158, 11, 0.12)",
+                    border: "1px dashed rgba(245, 158, 11, 0.5)",
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: 12,
+                    color: "#FFF8E7"
+                  }}>
+                    <span style={{ fontSize: 16 }}>⚡</span>
+                    <div>
+                      <strong style={{ color: "#FDE68A" }}>{tLabels.majorityHeading}:</strong>{" "}
+                      <span style={{ color: "#86EFAC", fontWeight: 700 }}>
+                        {dt.majorityTithiName[lang] || dt.majorityTithiName.en}
+                      </span>{" "}
+                      <span style={{ fontSize: 11, color: "rgba(255, 248, 231, 0.8)" }}>
+                        ({dt.isSunriseTithiMajority ? tLabels.sunriseMajority : tLabels.nextMajority})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+{/* 100% Native 5-Language Actionable Guidance Grid */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 10,
+              marginBottom: 16
+            }}>
+              {actionableGuidance.map((pt, idx) => (
+                <div key={idx} style={{
+                  background: "rgba(45, 20, 7, 0.85)",
+                  border: pt.type === "warning" ? "1px solid rgba(239, 68, 68, 0.4)" : "1px solid rgba(212, 175, 55, 0.25)",
+                  borderRadius: 14,
+                  padding: 12
+                }}>
+                  <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, marginBottom: 4 }}>
+                    {pt.icon} {pt.category}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#FFF8E7", lineHeight: 1.4 }}>
+                    {pt.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Sanctum Prayer Box */}
+            <SanctumPrayerBox
+              devoteeName={devoteeDisplayName}
+              gotra={devoteeGotra}
+              dateStr={mockDay.ymd}
+              lang={lang}
+              priestName={activePanditName}
+            />
+          </div>
+        )}
+
+        {/* ── TAB 2: DINA BHAVISHYA & KARMA NAVIGATOR (ದಿನ ಭವಿಷ್ಯ) ── */}
+        {activeTab === "bhavishya" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Header Banner */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(69, 26, 3, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
+              border: "2px solid #D4AF37",
+              borderRadius: 16,
+              padding: "16px 18px",
+              textAlign: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D" }}>
+                🔮 {dict.bhavishyaTabHeading || "॥ ದಿನ ಭವಿಷ್ಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ದೈನಂದಿನ ಕರ್ಮ ಮಾರ್ಗದರ್ಶಿ ॥"}
+              </div>
+              <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4 }}>
+                {lang === "kn" ? "ದೈನಂದಿನ ರಾಶಿಫಲ, ಉದ್ಯೋಗ, ಆರೋಗ್ಯ, ಕುಟುಂಬ ಹಾಗೂ 3 ಮಾಡಬೇಕಾದ & 3 ಮಾಡಬಾರದ ಕರ್ಮ ಸೂತ್ರಗಳು" : lang === "hi" ? "दैनिक राशिफल, आजीविका, स्वास्थ्य, परिवार एवं 3 करने योग्य व 3 वर्जित कर्म सूत्र" : lang === "te" ? "రోజువారీ రాశిఫలాలు, ఉద్యోగం, ఆరోగ్యం, కుటుంబం మరియు 3 చేయవలసిన & చేయకూడని కర్మ సూత్రాలు" : lang === "ta" ? "தினசரி ராசிபலன், தொழில், ஆரோக்கியம், குடும்பம் & 3 செய்ய வேண்டியவை மற்றும் செய்யக்கூடாதவை" : "Daily Horoscope, Career, Health, Family & 3 Do's and 3 Don'ts"}
+              </div>
+            </div>
+
+            {/* Header Card */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(69, 26, 3, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
+              border: "2px solid #D4AF37",
+              borderRadius: 16,
+              padding: "18px 20px",
+              textAlign: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D", letterSpacing: "0.5px" }}>
+                ✨ {dict.dinaBhavishyaBlessed}
+              </div>
+              <h2 style={{ fontSize: 20, fontWeight: 900, color: "#FFFFFF", margin: "6px 0 4px", fontFamily: "serif" }}>
+                {dict.dinaBhavishyaTitle}
+              </h2>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <span>📅 {formatLongDate(mockDay, lang)} ({rashiName(moonRashiIdx, lang)})</span>
+                {dinaBhavishyaData && (
+                  <span style={{ background: "rgba(212, 175, 55, 0.2)", border: "1px solid #D4AF37", borderRadius: 8, padding: "2px 8px", fontSize: 11, color: "#FDE68A" }}>
+                    {dinaBhavishyaData.badgeEmoji} {(ENERGY_SCORE_TEMPLATES[lang] || ENERGY_SCORE_TEMPLATES.en)(dinaBhavishyaData.energyScore)}
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: 12, color: "#FEF3C7", margin: 0, lineHeight: 1.5 }}>
+                {dinaBhavishyaData?.activeDashaSummary
+                  ? (DINA_BHAVISHYA_INTRO_TEMPLATES[lang] || DINA_BHAVISHYA_INTRO_TEMPLATES.en).withDasha(
+                      devoteeDisplayName,
+                      dinaBhavishyaData.activeDashaSummary,
+                      dinaBhavishyaData.chandraBalaText
+                    )
+                  : (DINA_BHAVISHYA_INTRO_TEMPLATES[lang] || DINA_BHAVISHYA_INTRO_TEMPLATES.en).withoutDasha(
+                      devoteeDisplayName,
+                      activePanditName
+                    )}
+              </p>
+            </div>
+            {/* Section 1: Daily Highlight & Cosmic Overview */}
+            <div style={{
+              background: "rgba(30, 10, 0, 0.85)",
+              border: "1.5px solid rgba(212, 175, 55, 0.4)",
+              borderRadius: 14,
+              padding: "16px 18px"
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>🌟</span> {dict.dinaOverviewTitle}
+                </span>
+                {dinaBhavishyaData && (
+                  <span style={{ fontSize: 11, color: "#A7F3D0", background: "rgba(16, 185, 129, 0.15)", border: "1px solid #10B981", padding: "2px 8px", borderRadius: 6 }}>
+                    {dinaBhavishyaData.taraBalaText}
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
+                {sanitizeDinaIndicText(dinaBhavishyaData?.overview || (DINA_OVERVIEW_FALLBACKS[lang] || DINA_OVERVIEW_FALLBACKS.en)(rashiName(moonRashiIdx, lang)), lang as SevaLang)}
+              </p>
+            </div>
+            {/* Section 2: Career, Business & Finance */}
+            <div style={{
+              background: "rgba(30, 10, 0, 0.85)",
+              border: "1.5px solid rgba(212, 175, 55, 0.4)",
+              borderRadius: 14,
+              padding: "16px 18px"
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>💼</span> {dict.dinaCareerTitle}
+              </div>
+              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
+                {sanitizeDinaIndicText(dinaBhavishyaData?.careerAndFinance || dict.dinaCareerFallback, lang as SevaLang)}
+              </p>
+            </div>
+            {/* Section 3: Health & Family Harmony */}
+            <div style={{
+              background: "rgba(30, 10, 0, 0.85)",
+              border: "1.5px solid rgba(212, 175, 55, 0.4)",
+              borderRadius: 14,
+              padding: "16px 18px"
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>🧘</span> {dict.dinaHealthTitle}
+              </div>
+              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
+                {sanitizeDinaIndicText(dinaBhavishyaData?.healthAndFamily || dict.dinaHealthFallback, lang as SevaLang)}
+              </p>
+            </div>
+            {/* Section 4: Travel, Auspicious Muhurtha & Day Guidelines */}
+            <div style={{
+              background: "rgba(30, 10, 0, 0.85)",
+              border: "1.5px solid rgba(212, 175, 55, 0.4)",
+              borderRadius: 14,
+              padding: "16px 18px"
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>🚗</span> {dict.dinaTravelTitle}
+              </div>
+              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: "0 0 10px" }}>
+                {sanitizeDinaIndicText(dinaBhavishyaData?.travelAndInitiatives || dict.dinaTravelFallback, lang as SevaLang)}
+              </p>
+              {dinaBhavishyaData && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12, marginBottom: 10 }}>
+                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
+                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>⏱️ {dict.abhijitLabel} </span>
+                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.abhijitMuhurtha}</span>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+                    <span style={{ color: "#FCA5A5", fontWeight: 700 }}>⚠️ {dict.rahuKaalaLabel} </span>
+                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.rahuKaala}</span>
+                  </div>
+                </div>
+              )}
+              {/* Direct Quick Link to Lucky Tab */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("lucky");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                style={{
+                  width: "100%",
+                  background: "linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(180, 83, 9, 0.2) 100%)",
+                  border: "1px dashed rgba(252, 211, 77, 0.4)",
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  color: "#FDE68A",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between"
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>💎</span>
+                  <span>
+                    {lang === "kn"
+                      ? "ದಿನದ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ & ಗೋಲ್ಡನ್ ಅವರ್ ವೀಕ್ಷಿಸಿ"
+                      : lang === "hi"
+                      ? "आज का शुभ रत्न, रंग, अंक व गोल्डेन ऑवर देखें"
+                      : lang === "te"
+                      ? "నేటి అదృష్ట రత్నం, రంగు, సంఖ్య & గోల్డెన్ అవర్ చూడండి"
+                      : lang === "ta"
+                      ? "இன்றைய அதிர்ஷ்ட ரத்தினம், நிறம், எண் & பொன் நேரம் காண்க"
+                      : "View Today's Lucky Gem, Color, Number & Golden Hour"}
+                  </span>
+                </span>
+                <span>➔</span>
+              </button>
+            </div>
+            {/* 3. Daily Karma Navigator (Do's & Don'ts + 1-Min Micro-Parihara) */}
+            <DailyKarmaNavigator
+              dateStr={mockDay.ymd}
+              rashiIndex={moonRashiIdx}
+              nakshatraIndex={moonNakshatraIdx}
+              lang={lang}
+              devoteeName={devoteeDisplayName}
+              dynamicDos={darshanaPersonalization.karmaNavigator.dos[lang] || darshanaPersonalization.karmaNavigator.dos.kn}
+              dynamicDonts={darshanaPersonalization.karmaNavigator.donts[lang] || darshanaPersonalization.karmaNavigator.donts.kn}
+              dynamicMicroTitle={darshanaPersonalization.karmaNavigator.microPariharaTitle[lang]}
+              dynamicMicroDesc={darshanaPersonalization.karmaNavigator.microPariharaDesc[lang]}
+            />
             {/* 🙏 Parents' Annual Shraddha Tithi Alert Card */}
             {shraddhaStatus.hasRegisteredTithi && (
               <div style={{
@@ -3280,173 +3665,30 @@ export default function DailyDarshanaPage(): JSX.Element {
                 </div>
               </div>
             )}
+          </div>
+        )}
 
-            {/* 🛡️ Gokarna Pitru Raksha & Vamsha Vriddhi Kavacha Card */}
+        {/* ── TAB 3: DAILY POOJA, SANKALPA & DIVINE MANTRAS (ಪೂಜೆ & ಮಂತ್ರ) ── */}
+        {activeTab === "pooja" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Header Banner */}
             <div style={{
-              background: "linear-gradient(135deg, rgba(45, 20, 7, 0.95) 0%, rgba(20, 8, 2, 0.98) 100%)",
+              background: "linear-gradient(135deg, rgba(69, 26, 3, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
               border: "2px solid #D4AF37",
               borderRadius: 16,
               padding: "16px 18px",
-              marginBottom: 16,
+              textAlign: "center",
               boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
             }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 24 }}>🛡️</span>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A" }}>
-                      {pitruRaksha.badgeTitle}
-                    </div>
-                    <div style={{ fontSize: 11, color: "#86EFAC", fontWeight: 700 }}>
-                      {pitruRaksha.statusText}
-                    </div>
-                  </div>
-                </div>
-                <span style={{
-                  background: "rgba(212, 175, 55, 0.2)",
-                  border: "1px solid #D4AF37",
-                  borderRadius: 10,
-                  padding: "4px 10px",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: "#FDE68A"
-                }}>
-                  {pitruRaksha.score}%{" "}
-                  {lang === "kn"
-                    ? "ಕವಚ ರಕ್ಷಾ ಶಕ್ತಿ"
-                    : lang === "te"
-                    ? "కవచ రక్షా శక్తి"
-                    : lang === "ta"
-                    ? "கவச பாதுகாப்பு சக்தி"
-                    : lang === "hi"
-                    ? "कवच रक्षा शक्ति"
-                    : "Shield Aura"}
-                </span>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D" }}>
+                🪔 {dict.poojaTabHeading || "॥ ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ, ಶಕ್ತಿ ಮಂತ್ರ ಹಾಗೂ ಜಪ ಸನ್ನಿಧಿ ॥"}
               </div>
-
-              <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.5, margin: "8px 0" }}>
-                <strong style={{ color: "#FCD34D" }}>
-                  {lang === "kn"
-                    ? "ಪಿತೃ ದೇವತೆ:"
-                    : lang === "te"
-                    ? "పితృ దేవత:"
-                    : lang === "ta"
-                    ? "பித்ரு தெய்வம்:"
-                    : lang === "hi"
-                    ? "पितृ देवता:"
-                    : "Ancestral Deity:"}{" "}
-                </strong>
-                {pitruRaksha.pitruDevata}
-              </div>
-
-              <div style={{
-                background: "rgba(0,0,0,0.35)",
-                border: "1px dashed rgba(212, 175, 55, 0.4)",
-                borderRadius: 10,
-                padding: "10px 12px",
-                fontSize: 12,
-                fontWeight: 800,
-                color: "#FDE68A",
-                margin: "6px 0",
-                textAlign: "center",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 8
-              }}>
-                <div>"{pitruRaksha.kavachaMantra}"</div>
-                <button
-                  type="button"
-                  disabled={isKavachaLoading}
-                  onClick={toggleKavachaVoice}
-                  style={{
-                    background: isKavachaPlaying
-                      ? "#DC2626"
-                      : isKavachaLoading
-                      ? "linear-gradient(135deg, #B45309, #78350F)"
-                      : "linear-gradient(135deg, #F59E0B, #D97706)",
-                    color: isKavachaPlaying || isKavachaLoading ? "#FFFFFF" : "#1E1B4B",
-                    border: "1px solid #FCD34D",
-                    padding: "5px 14px",
-                    borderRadius: 16,
-                    fontSize: 11.5,
-                    fontWeight: 800,
-                    cursor: isKavachaLoading ? "not-allowed" : "pointer",
-                    boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5
-                  }}
-                >
-                  {isKavachaPlaying ? (
-                    <>
-                      <span>⏹️</span>
-                      <span>
-                        {lang === "kn"
-                          ? "ನಿಲ್ಲಿಸಿ"
-                          : lang === "te"
-                          ? "ఆపండి"
-                          : lang === "ta"
-                          ? "நிறுத்துக"
-                          : lang === "hi"
-                          ? "रोकें"
-                          : "Stop"}
-                      </span>
-                    </>
-                  ) : isKavachaLoading ? (
-                    <>
-                      <span className="inline-block animate-spin">⏳</span>
-                      <span>
-                        {lang === "kn"
-                          ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
-                          : lang === "te"
-                          ? "వాయిస్ సిద్ధమవుతోంది..."
-                          : lang === "ta"
-                          ? "குரல் தயாராகிறது..."
-                          : lang === "hi"
-                          ? "ध्वनि तैयार हो रही है..."
-                          : "Synthesizing..."}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span>🔊</span>
-                      <span>
-                        {lang === "kn"
-                          ? "ಕವಚ ಮಂತ್ರ ಶ್ರವಣ"
-                          : lang === "te"
-                          ? "కవచ మంత్ర శ్రవణం"
-                          : lang === "ta"
-                          ? "கவச மந்திரம் கேட்க"
-                          : lang === "hi"
-                          ? "कवच मंत्र श्रवण"
-                          : "Listen Kavacha Mantra"}
-                      </span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div style={{ fontSize: 11.5, color: "#D1D5DB", marginTop: 6, lineHeight: 1.4 }}>
-                <span style={{ color: "#F59E0B", fontWeight: 700 }}>
-                  📿{" "}
-                  {lang === "kn"
-                    ? "ದೈನಂದಿನ ಸಾಧನೆ:"
-                    : lang === "te"
-                    ? "రోజువారీ సాధన:"
-                    : lang === "ta"
-                    ? "தினசரி சாதனை:"
-                    : lang === "hi"
-                    ? "दैनिक साधना:"
-                    : "Daily Sadhana:"}{" "}
-                </span>
-                {pitruRaksha.dailySadhana}
-              </div>
-
-              <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6, fontStyle: "italic" }}>
-                {pitruRaksha.vamshaProtectionText}
+              <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4 }}>
+                {lang === "kn" ? "ಪ್ರಧಾನ ಅರ್ಚಕರ ಧ್ವನಿ ಸಹಿತ ನಿತ್ಯ ಪೂಜೆ, ವೈಯಕ್ತಿಕ ಸಂಕಲ್ಪ ಹಾಗೂ ದೈವಿಕ ಶಕ್ತಿ ಜಪ ಮಂತ್ರಗಳು" : lang === "hi" ? "प्रधान अर्चक की वाणी में नित्य पूजा, व्यक्तिगत संकल्प एवं शक्तिवर्धक मंत्र जप" : lang === "te" ? "ప్రధాన అర్చకుల దివ్య స్వరంతో నిత్య పూజ, వ్యక్తిగత సంకల్పం మరియు శక్తి మంత్ర జపం" : lang === "ta" ? "முதன்மை அர்ச்சகர் குரலில் நித்ய பூஜை, தனிப்பட்ட சங்கல்பம் மற்றும் சக்தி மந்திர ஜபம்" : "Priest Guided Daily Pooja, Personal Sankalpa & Divine Strength Energy Mantras"}
               </div>
             </div>
+
+            {/* ── POOJA AS FIRST OPTION ── */}
             {/* Daily Priest-Guided 3-5 Minute Morning Deva Pooja & Sankalpa Banner */}
             {poojaStreak.isCompletedToday ? (
               <div style={{
@@ -3637,7 +3879,6 @@ export default function DailyDarshanaPage(): JSX.Element {
                 </div>
               </div>
             )}
-
             {/* 🪔 Devotee In-Page Sankalpa Grid & Vedic Prayer Customizer */}
             <div className="mb-4">
               <InPageSankalpaGrid
@@ -3648,203 +3889,17 @@ export default function DailyDarshanaPage(): JSX.Element {
               />
             </div>
 
-            {/* Post-Pooja 11-Time Personal Kundli Remedy Japa Card */}
-            <div className="mb-4">
-              <PostPoojaRemedyJapaCard
-                birthKundli={birthKundli}
-                devoteeName={devoteeDisplayName}
-                gotra={devoteeGotra}
-                rashiName={rashiName(moonRashiIdx, lang)}
-                nakshatraName={nakshatraName(moonNakshatraIdx, lang)}
-                lang={lang}
-                voiceId={activeVoiceId}
-              />
-            </div>
-
-            {/* Dynamic 3-Color Vibe Status Card */}
+            {/* ── ALL MANTRAS FOR DIVINE STRENGTH & ENERGY ── */}
             <div style={{
-              background: dayTheme.cardBg,
-              border: dayTheme.border,
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 16,
-              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+              background: "linear-gradient(135deg, rgba(45, 20, 7, 0.9) 0%, rgba(20, 8, 2, 0.95) 100%)",
+              border: "1.5px solid rgba(212, 175, 55, 0.4)",
+              borderRadius: 14,
+              padding: "10px 14px",
+              textAlign: "center"
             }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#FDE68A", textTransform: "uppercase" }}>
-                  ⚡ {dict.status}
-                </span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: dayTheme.badgeColor, background: dayTheme.badgeBg, padding: "2px 8px", borderRadius: 10, border: `1px solid ${dayTheme.accent}` }}>
-                  {vibe.vibeTag}
-                </span>
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: "#FFFFFF", marginBottom: 6 }}>
-                {vibe.badgeEmoji} {vibe.badgeText} ({mockDay.energyScore}%)
-              </div>
-              {/* Dynamic Energy Bar */}
-              <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, height: 8, overflow: "hidden", marginBottom: 8 }}>
-                <div style={{ background: dayTheme.barGradient, height: "100%", width: `${mockDay.energyScore}%` }} />
-              </div>
-              <div style={{ fontSize: 12, color: "#E5E7EB", lineHeight: 1.5, display: "flex", flexDirection: "column", gap: 4, marginTop: 6 }}>
-                <div>🌟 {dict.taraBala}: <strong style={{ color: dayTheme.badgeColor }}>{getTaraBalaInfo(mockDay.tara?.tara || 2, lang)}</strong></div>
-                <div>🌙 {dict.chandraBala}: <strong style={{ color: dayTheme.badgeColor }}>{getChandraBalaInfo(mockDay.chandra?.house || 11, mockDay.isChandrashtama, lang)} ({mockDay.energyScore}%)</strong></div>
-              </div>
-            </div>
-
-            {/* Sacred Tithi Timings & Transition Details Card */}
-            {(() => {
-              const dt = (mockDay as any).detailedTithi as DetailedTithiInfo | undefined;
-              if (!dt) return null;
-              const tLabels = TITHI_TRANSITION_LABELS[lang] || TITHI_TRANSITION_LABELS.en;
-
-              return (
-                <div style={{
-                  background: "linear-gradient(135deg, rgba(80, 27, 17, 0.95) 0%, rgba(45, 14, 5, 0.95) 100%)",
-                  border: "1.5px solid #F59E0B",
-                  borderRadius: 16,
-                  padding: "16px 18px",
-                  marginBottom: 16,
-                  boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", display: "flex", alignItems: "center", gap: 6 }}>
-                      <span>📜</span>
-                      <span>{tLabels.cardHeading}</span>
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B", background: "rgba(245, 158, 11, 0.15)", padding: "2px 8px", borderRadius: 8, border: "1px solid rgba(245, 158, 11, 0.3)" }}>
-                      100% IST
-                    </span>
-                  </div>
-
-                  {/* 2-Column Grid: Current Tithi vs Next Tithi */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                    {/* Primary Sunrise Tithi */}
-                    <div style={{
-                      background: "rgba(30, 10, 5, 0.8)",
-                      border: "1px solid rgba(212, 175, 55, 0.35)",
-                      borderRadius: 12,
-                      padding: 12
-                    }}>
-                      <div style={{ fontSize: 10, color: "#F59E0B", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        🌅 {tLabels.activeTithiLabel}
-                      </div>
-                      <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
-                        {dt.tithiFullLabel[lang] || dt.tithiFullLabel.en}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#FDE68A", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                        <span>⏱️</span>
-                        <span>{tLabels.untilLabel}: <strong style={{ color: "#86EFAC" }}>{dt.tithiEndTimeStr}</strong></span>
-                      </div>
-                    </div>
-
-                    {/* Next Tithi */}
-                    <div style={{
-                      background: "rgba(30, 10, 5, 0.8)",
-                      border: "1px solid rgba(212, 175, 55, 0.35)",
-                      borderRadius: 12,
-                      padding: 12
-                    }}>
-                      <div style={{ fontSize: 10, color: "#93C5FD", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        🌙 {tLabels.nextTithiLabel}
-                      </div>
-                      <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF", marginTop: 4 }}>
-                        {dt.nextTithiFullLabel[lang] || dt.nextTithiFullLabel.en}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#E0E7FF", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                        <span>⏳</span>
-                        <span>{tLabels.nextDurationLabel}: <strong style={{ color: "#FDE047" }}>{dt.nextTithiDurationStr[lang] || dt.nextTithiDurationStr.en}</strong></span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Majority Tithi Banner & Energy Focus */}
-                  <div style={{
-                    background: "rgba(245, 158, 11, 0.12)",
-                    border: "1px dashed rgba(245, 158, 11, 0.5)",
-                    borderRadius: 10,
-                    padding: "8px 12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    fontSize: 12,
-                    color: "#FFF8E7"
-                  }}>
-                    <span style={{ fontSize: 16 }}>⚡</span>
-                    <div>
-                      <strong style={{ color: "#FDE68A" }}>{tLabels.majorityHeading}:</strong>{" "}
-                      <span style={{ color: "#86EFAC", fontWeight: 700 }}>
-                        {dt.majorityTithiName[lang] || dt.majorityTithiName.en}
-                      </span>{" "}
-                      <span style={{ fontSize: 11, color: "rgba(255, 248, 231, 0.8)" }}>
-                        ({dt.isSunriseTithiMajority ? tLabels.sunriseMajority : tLabels.nextMajority})
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
-{/* 100% Native 5-Language Actionable Guidance Grid */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-              marginBottom: 16
-            }}>
-              {actionableGuidance.map((pt, idx) => (
-                <div key={idx} style={{
-                  background: "rgba(45, 20, 7, 0.85)",
-                  border: pt.type === "warning" ? "1px solid rgba(239, 68, 68, 0.4)" : "1px solid rgba(212, 175, 55, 0.25)",
-                  borderRadius: 14,
-                  padding: 12
-                }}>
-                  <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700, marginBottom: 4 }}>
-                    {pt.icon} {pt.category}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#FFF8E7", lineHeight: 1.4 }}>
-                    {pt.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Local Kaala Timings */}
-            <div style={{
-              background: "rgba(45, 20, 7, 0.85)",
-              border: "1px solid rgba(212, 175, 55, 0.3)",
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 16
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span>⏳ {dict.kaalaHeading}</span>
-                  <span style={{ fontSize: 10.5, color: "#10B981", background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: 6, padding: "1px 6px", fontWeight: 800 }}>
-                    IST (+05:30)
-                  </span>
-                </span>
-                <span style={{ fontSize: 11.5, color: "#F59E0B", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-                  <span>🌅 {kaala.sunrise} | 🌇 {kaala.sunset}</span>
-                  <span style={{ fontSize: 10, color: "#FCD34D" }}>(📍 {userLocationName} - {userPincode})</span>
-                </span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, fontSize: 11, textAlign: "center" }}>
-                <div style={{ background: "rgba(220, 38, 38, 0.15)", border: "1px solid rgba(220, 38, 38, 0.4)", padding: 8, borderRadius: 10 }}>
-                  <div style={{ color: "#FCA5A5", fontWeight: 700 }}>🔴 {dict.rahuKaala} (IST)</div>
-                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.rahuWindow || kaala.rahu.split(" (")[0]}</div>
-                  <div style={{ fontSize: 9.5, color: "#FCA5A5", marginTop: 2 }}>{kaala.rahuSuffix || (kaala.rahu.includes("(") ? `(${kaala.rahu.split("(")[1]}` : "")}</div>
-                </div>
-                <div style={{ background: "rgba(217, 119, 6, 0.15)", border: "1px solid rgba(217, 119, 6, 0.4)", padding: 8, borderRadius: 10 }}>
-                  <div style={{ color: "#FDE047", fontWeight: 700 }}>🟡 {dict.gulikaKaala} (IST)</div>
-                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.gulikaWindow || kaala.gulika.split(" (")[0]}</div>
-                  <div style={{ fontSize: 9.5, color: "#FDE047", marginTop: 2 }}>{kaala.gulikaSuffix || (kaala.gulika.includes("(") ? `(${kaala.gulika.split("(")[1]}` : "")}</div>
-                </div>
-                <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.4)", padding: 8, borderRadius: 10 }}>
-                  <div style={{ color: "#86EFAC", fontWeight: 700 }}>🟢 {dict.yamaganda} (IST)</div>
-                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.yamaWindow || kaala.yamaganda.split(" (")[0]}</div>
-                  <div style={{ fontSize: 9.5, color: "#86EFAC", marginTop: 2 }}>{kaala.yamaSuffix || (kaala.yamaganda.includes("(") ? `(${kaala.yamaganda.split("(")[1]}` : "")}</div>
-                </div>
-              </div>
+              <span style={{ fontSize: 12.5, fontWeight: 900, color: "#FDE68A" }}>
+                {lang === "kn" ? "⚡ ದೈವಿಕ ಶಕ್ತಿ, ಸಕಾರಾತ್ಮಕ ಬದಲಾವಣೆ ಹಾಗೂ ಗ್ರಹ ದೋಷ ನಿವಾರಣಾ ಮಂತ್ರಗಳು" : lang === "hi" ? "⚡ दिव्य शक्ति, सकारात्मक ऊर्जा एवं ग्रह दोष निवारण मंत्र" : lang === "te" ? "⚡ దివ్య శక్తి, సానుకూల మార్పు మరియు గ్రహ దోష నివారణ మంత్రాలు" : lang === "ta" ? "⚡ தெய்வீக சக்தி, நேர்மறை மாற்றம் மற்றும் கிரக தோஷ நிவாரண மந்திரங்கள்" : "⚡ Divine Strength, Positive Transformation & Planetary Remedy Mantras"}
+              </span>
             </div>
 
             {/* Sacred Deity Vedic Shloka & Mantra Card (100% Dynamic Kundli + Gochara + Dasha) */}
@@ -3948,257 +4003,6 @@ export default function DailyDarshanaPage(): JSX.Element {
                 </button>
               </div>
             </div>
-
-            {/* Chief Priest Benediction */}
-            <div style={{
-              background: "rgba(45, 20, 7, 0.85)",
-              border: "1px solid rgba(212, 175, 55, 0.3)",
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 16
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-                <span>📜 {(PRIEST_BENEDICTION_TITLES[lang] || PRIEST_BENEDICTION_TITLES.en)(localizedPandit)}</span>
-                <button
-                  type="button"
-                  disabled={isBenedictionLoading}
-                  onClick={toggleBenedictionVoice}
-                  style={{
-                    background: isBenedictionPlaying
-                      ? "#DC2626"
-                      : isBenedictionLoading
-                      ? "linear-gradient(135deg, #B45309, #78350F)"
-                      : "linear-gradient(135deg, #D97706, #B45309)",
-                    color: "#FFFFFF",
-                    border: "1px solid #FCD34D",
-                    padding: "6px 14px",
-                    borderRadius: 12,
-                    fontSize: 11,
-                    fontWeight: 800,
-                    cursor: isBenedictionLoading ? "not-allowed" : "pointer",
-                    opacity: isBenedictionLoading ? 0.85 : 1,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                    boxShadow: "0 2px 8px rgba(217, 119, 6, 0.3)"
-                  }}
-                >
-                  {isBenedictionPlaying ? (
-                    <>
-                      <span>⏹️</span>
-                      <span>{dict.stopVoice}</span>
-                    </>
-                  ) : isBenedictionLoading ? (
-                    <>
-                      <span className="inline-block animate-spin">⏳</span>
-                      <span>{dict.generatingVoice}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>🔊</span>
-                      <span>{dict.listenVoice}</span>
-                    </>
-                  )}
-                </button>
-              </div>
-              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "#E5E7EB", fontStyle: "italic" }}>
-                "{benediction}"
-              </p>
-            </div>
-
-            {/* Sanctum Prayer Box */}
-            <SanctumPrayerBox
-              devoteeName={devoteeDisplayName}
-              gotra={devoteeGotra}
-              dateStr={mockDay.ymd}
-              lang={lang}
-              priestName={activePanditName}
-            />
-          </div>
-        )}
-
-        {/* ── TAB 2: GOLDEN HOUR & POWER GUIDANCE ── */}
-        {activeTab === "guidance" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* 1. Personalized Golden Hour Widget */}
-            <PersonalGoldenHourWidget
-              dateStr={mockDay.ymd}
-              devoteeName={devoteeDisplayName}
-              rashiIndex={moonRashiIdx}
-              nakshatraIndex={moonNakshatraIdx}
-              lang={lang}
-              voiceId={activeVoiceId}
-            />
-
-            {/* 2. Daily Lucky Gem & Power Direction + 11-Bead Digital Japa Mala */}
-            <DailyLuckyGemWidget
-              dateStr={mockDay.ymd}
-              rashiIndex={moonRashiIdx}
-              nakshatraIndex={moonNakshatraIdx}
-              lang={lang}
-              deityMantra={deity.mantra[lang] || deity.mantra.kn}
-              dynamicLuckyColor={darshanaPersonalization.powerMetrics.luckyColor}
-              dynamicLuckyDigit={darshanaPersonalization.powerMetrics.luckyDigit}
-              dynamicLuckyDirection={darshanaPersonalization.powerMetrics.luckyDirection}
-              voiceId={activeVoiceId}
-            />
-
-            {/* 3. Daily Karma Navigator (Do's & Don'ts + 1-Min Micro-Parihara) */}
-            <DailyKarmaNavigator
-              dateStr={mockDay.ymd}
-              rashiIndex={moonRashiIdx}
-              nakshatraIndex={moonNakshatraIdx}
-              lang={lang}
-              devoteeName={devoteeDisplayName}
-              dynamicDos={darshanaPersonalization.karmaNavigator.dos[lang] || darshanaPersonalization.karmaNavigator.dos.kn}
-              dynamicDonts={darshanaPersonalization.karmaNavigator.donts[lang] || darshanaPersonalization.karmaNavigator.donts.kn}
-              dynamicMicroTitle={darshanaPersonalization.karmaNavigator.microPariharaTitle[lang]}
-              dynamicMicroDesc={darshanaPersonalization.karmaNavigator.microPariharaDesc[lang]}
-            />
-
-            {/* 4. 1-Tap WhatsApp Story & Blessing Card Generator */}
-            <DailyBlessingShareCard
-              devoteeName={devoteeDisplayName}
-              dateStr={mockDay.ymd}
-              tithiStr={tithiLabel(mockDay, lang)}
-              nakshatraStr={nakshatraName(mockDay.moonNakshatraIndex, lang)}
-              goldenHourStr={darshanaPersonalization.powerMetrics.goldenHour.windowLabel[lang] || "10:48 AM - 11:36 AM"}
-              lang={lang}
-              priestName={activePanditName}
-              customShlokaText={deity.shloka}
-              customShlokaMeaning={deity.meaning[lang] || deity.meaning.kn}
-              customDeitySource={deity.name[lang] || deity.name.kn}
-            />
-          </div>
-        )}
-
-        {/* ── TAB 3: DAILY HOROSCOPE & VEDIC ASTROLOGY (BHAVISHYA, KUNDALI, GOCHARA, DASHA) ── */}
-        {(activeTab === "bhavishya" || activeTab === "kundali" || activeTab === "gochara" || activeTab === "dasha") && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Header Card */}
-            <div style={{
-              background: "linear-gradient(135deg, rgba(69, 26, 3, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
-              border: "2px solid #D4AF37",
-              borderRadius: 16,
-              padding: "18px 20px",
-              textAlign: "center",
-              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D", letterSpacing: "0.5px" }}>
-                ✨ {dict.dinaBhavishyaBlessed}
-              </div>
-              <h2 style={{ fontSize: 20, fontWeight: 900, color: "#FFFFFF", margin: "6px 0 4px", fontFamily: "serif" }}>
-                {dict.dinaBhavishyaTitle}
-              </h2>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                <span>📅 {formatLongDate(mockDay, lang)} ({rashiName(moonRashiIdx, lang)})</span>
-                {dinaBhavishyaData && (
-                  <span style={{ background: "rgba(212, 175, 55, 0.2)", border: "1px solid #D4AF37", borderRadius: 8, padding: "2px 8px", fontSize: 11, color: "#FDE68A" }}>
-                    {dinaBhavishyaData.badgeEmoji} {(ENERGY_SCORE_TEMPLATES[lang] || ENERGY_SCORE_TEMPLATES.en)(dinaBhavishyaData.energyScore)}
-                  </span>
-                )}
-              </div>
-              <p style={{ fontSize: 12, color: "#FEF3C7", margin: 0, lineHeight: 1.5 }}>
-                {dinaBhavishyaData?.activeDashaSummary
-                  ? (DINA_BHAVISHYA_INTRO_TEMPLATES[lang] || DINA_BHAVISHYA_INTRO_TEMPLATES.en).withDasha(
-                      devoteeDisplayName,
-                      dinaBhavishyaData.activeDashaSummary,
-                      dinaBhavishyaData.chandraBalaText
-                    )
-                  : (DINA_BHAVISHYA_INTRO_TEMPLATES[lang] || DINA_BHAVISHYA_INTRO_TEMPLATES.en).withoutDasha(
-                      devoteeDisplayName,
-                      activePanditName
-                    )}
-              </p>
-            </div>
-
-            {/* Section 1: Daily Highlight & Cosmic Overview */}
-            <div style={{
-              background: "rgba(30, 10, 0, 0.85)",
-              border: "1.5px solid rgba(212, 175, 55, 0.4)",
-              borderRadius: 14,
-              padding: "16px 18px"
-            }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span>🌟</span> {dict.dinaOverviewTitle}
-                </span>
-                {dinaBhavishyaData && (
-                  <span style={{ fontSize: 11, color: "#A7F3D0", background: "rgba(16, 185, 129, 0.15)", border: "1px solid #10B981", padding: "2px 8px", borderRadius: 6 }}>
-                    {dinaBhavishyaData.taraBalaText}
-                  </span>
-                )}
-              </div>
-              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {sanitizeDinaIndicText(dinaBhavishyaData?.overview || (DINA_OVERVIEW_FALLBACKS[lang] || DINA_OVERVIEW_FALLBACKS.en)(rashiName(moonRashiIdx, lang)), lang as SevaLang)}
-              </p>
-            </div>
-
-            {/* Section 2: Career, Business & Finance */}
-            <div style={{
-              background: "rgba(30, 10, 0, 0.85)",
-              border: "1.5px solid rgba(212, 175, 55, 0.4)",
-              borderRadius: 14,
-              padding: "16px 18px"
-            }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>💼</span> {dict.dinaCareerTitle}
-              </div>
-              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {sanitizeDinaIndicText(dinaBhavishyaData?.careerAndFinance || dict.dinaCareerFallback, lang as SevaLang)}
-              </p>
-            </div>
-
-            {/* Section 3: Health & Family Harmony */}
-            <div style={{
-              background: "rgba(30, 10, 0, 0.85)",
-              border: "1.5px solid rgba(212, 175, 55, 0.4)",
-              borderRadius: 14,
-              padding: "16px 18px"
-            }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>🧘</span> {dict.dinaHealthTitle}
-              </div>
-              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: 0 }}>
-                {sanitizeDinaIndicText(dinaBhavishyaData?.healthAndFamily || dict.dinaHealthFallback, lang as SevaLang)}
-              </p>
-            </div>
-
-            {/* Section 4: Travel, Auspicious Muhurtha & Day Guidelines */}
-            <div style={{
-              background: "rgba(30, 10, 0, 0.85)",
-              border: "1.5px solid rgba(212, 175, 55, 0.4)",
-              borderRadius: 14,
-              padding: "16px 18px"
-            }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#FCD34D", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>🚗</span> {dict.dinaTravelTitle}
-              </div>
-              <p style={{ fontSize: 13, color: "#FEE2E2", lineHeight: 1.6, margin: "0 0 10px" }}>
-                {sanitizeDinaIndicText(dinaBhavishyaData?.travelAndInitiatives || dict.dinaTravelFallback, lang as SevaLang)}
-              </p>
-              {dinaBhavishyaData && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
-                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
-                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>⏱️ {dict.abhijitLabel} </span>
-                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.abhijitMuhurtha}</span>
-                  </div>
-                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)" }}>
-                    <span style={{ color: "#FCA5A5", fontWeight: 700 }}>⚠️ {dict.rahuKaalaLabel} </span>
-                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.rahuKaala}</span>
-                  </div>
-                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
-                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>🎨 {dict.luckyColorLabel} </span>
-                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.luckyColor}</span>
-                  </div>
-                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
-                    <span style={{ color: "#FCD34D", fontWeight: 700 }}>🧭 {dict.luckyDirectionLabel} </span>
-                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.luckyDirection}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Sacred Deity & Priest Blessing Card */}
             {dinaBhavishyaData && (
               <div style={{
@@ -4517,7 +4321,579 @@ export default function DailyDarshanaPage(): JSX.Element {
                 </div>
               </div>
             )}
+            {/* Post-Pooja 11-Time Personal Kundli Remedy Japa Card */}
+            <div className="mb-4">
+              <PostPoojaRemedyJapaCard
+                birthKundli={birthKundli}
+                devoteeName={devoteeDisplayName}
+                gotra={devoteeGotra}
+                rashiName={rashiName(moonRashiIdx, lang)}
+                nakshatraName={nakshatraName(moonNakshatraIdx, lang)}
+                lang={lang}
+                voiceId={activeVoiceId}
+              />
+            </div>
+            {/* 🛡️ Gokarna Pitru Raksha & Vamsha Vriddhi Kavacha Card */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(45, 20, 7, 0.95) 0%, rgba(20, 8, 2, 0.98) 100%)",
+              border: "2px solid #D4AF37",
+              borderRadius: 16,
+              padding: "16px 18px",
+              marginBottom: 16,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 24 }}>🛡️</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A" }}>
+                      {pitruRaksha.badgeTitle}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#86EFAC", fontWeight: 700 }}>
+                      {pitruRaksha.statusText}
+                    </div>
+                  </div>
+                </div>
+                <span style={{
+                  background: "rgba(212, 175, 55, 0.2)",
+                  border: "1px solid #D4AF37",
+                  borderRadius: 10,
+                  padding: "4px 10px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "#FDE68A"
+                }}>
+                  {pitruRaksha.score}%{" "}
+                  {lang === "kn"
+                    ? "ಕವಚ ರಕ್ಷಾ ಶಕ್ತಿ"
+                    : lang === "te"
+                    ? "కవచ రక్షా శక్తి"
+                    : lang === "ta"
+                    ? "கவச பாதுகாப்பு சக்தி"
+                    : lang === "hi"
+                    ? "कवच रक्षा शक्ति"
+                    : "Shield Aura"}
+                </span>
+              </div>
 
+              <div style={{ fontSize: 12, color: "#FEF3C7", lineHeight: 1.5, margin: "8px 0" }}>
+                <strong style={{ color: "#FCD34D" }}>
+                  {lang === "kn"
+                    ? "ಪಿತೃ ದೇವತೆ:"
+                    : lang === "te"
+                    ? "పితృ దేవత:"
+                    : lang === "ta"
+                    ? "பித்ரு தெய்வம்:"
+                    : lang === "hi"
+                    ? "पितृ देवता:"
+                    : "Ancestral Deity:"}{" "}
+                </strong>
+                {pitruRaksha.pitruDevata}
+              </div>
+
+              <div style={{
+                background: "rgba(0,0,0,0.35)",
+                border: "1px dashed rgba(212, 175, 55, 0.4)",
+                borderRadius: 10,
+                padding: "10px 12px",
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#FDE68A",
+                margin: "6px 0",
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 8
+              }}>
+                <div>"{pitruRaksha.kavachaMantra}"</div>
+                <button
+                  type="button"
+                  disabled={isKavachaLoading}
+                  onClick={toggleKavachaVoice}
+                  style={{
+                    background: isKavachaPlaying
+                      ? "#DC2626"
+                      : isKavachaLoading
+                      ? "linear-gradient(135deg, #B45309, #78350F)"
+                      : "linear-gradient(135deg, #F59E0B, #D97706)",
+                    color: isKavachaPlaying || isKavachaLoading ? "#FFFFFF" : "#1E1B4B",
+                    border: "1px solid #FCD34D",
+                    padding: "5px 14px",
+                    borderRadius: 16,
+                    fontSize: 11.5,
+                    fontWeight: 800,
+                    cursor: isKavachaLoading ? "not-allowed" : "pointer",
+                    boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5
+                  }}
+                >
+                  {isKavachaPlaying ? (
+                    <>
+                      <span>⏹️</span>
+                      <span>
+                        {lang === "kn"
+                          ? "ನಿಲ್ಲಿಸಿ"
+                          : lang === "te"
+                          ? "ఆపండి"
+                          : lang === "ta"
+                          ? "நிறுத்துக"
+                          : lang === "hi"
+                          ? "रोकें"
+                          : "Stop"}
+                      </span>
+                    </>
+                  ) : isKavachaLoading ? (
+                    <>
+                      <span className="inline-block animate-spin">⏳</span>
+                      <span>
+                        {lang === "kn"
+                          ? "ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+                          : lang === "te"
+                          ? "వాయిస్ సిద్ధమవుతోంది..."
+                          : lang === "ta"
+                          ? "குரல் தயாராகிறது..."
+                          : lang === "hi"
+                          ? "ध्वनि तैयार हो रही है..."
+                          : "Synthesizing..."}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🔊</span>
+                      <span>
+                        {lang === "kn"
+                          ? "ಕವಚ ಮಂತ್ರ ಶ್ರವಣ"
+                          : lang === "te"
+                          ? "కవచ మంత్ర శ్రవణం"
+                          : lang === "ta"
+                          ? "கவச மந்திரம் கேட்க"
+                          : lang === "hi"
+                          ? "कवच मंत्र श्रवण"
+                          : "Listen Kavacha Mantra"}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div style={{ fontSize: 11.5, color: "#D1D5DB", marginTop: 6, lineHeight: 1.4 }}>
+                <span style={{ color: "#F59E0B", fontWeight: 700 }}>
+                  📿{" "}
+                  {lang === "kn"
+                    ? "ದೈನಂದಿನ ಸಾಧನೆ:"
+                    : lang === "te"
+                    ? "రోజువారీ సాధన:"
+                    : lang === "ta"
+                    ? "தினசரி சாதனை:"
+                    : lang === "hi"
+                    ? "दैनिक साधना:"
+                    : "Daily Sadhana:"}{" "}
+                </span>
+                {pitruRaksha.dailySadhana}
+              </div>
+
+              <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6, fontStyle: "italic" }}>
+                {pitruRaksha.vamshaProtectionText}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB 4: ALL LUCKY DETAILS & MUHURTHA (ಅದೃಷ್ಟ ವಿವರಗಳು & ಮುಹೂರ್ತ) ── */}
+        {activeTab === "lucky" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Header Banner */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(69, 26, 3, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
+              border: "2px solid #D4AF37",
+              borderRadius: 16,
+              padding: "16px 18px",
+              textAlign: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D" }}>
+                💎 {dict.luckyTabHeading || "॥ ಅದೃಷ್ಟ ರತ್ನ, ಸಂಖ್ಯೆ, ಬಣ್ಣ, ಶುಭ ಮುಹೂರ್ತ & ಗೋಲ್ಡನ್ ಅವರ್ ॥"}
+              </div>
+              <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4 }}>
+                {lang === "kn" ? "ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿ-ನಕ್ಷತ್ರಕ್ಕೆ ಅನುಗುಣವಾದ ಅದೃಷ್ಟ ರತ್ನ, ಶುಭ ಬಣ್ಣ, ಶುಭ ಸಂಖ್ಯೆ, ಶುಭ ದಿಕ್ಕು ಹಾಗೂ ಗೋಲ್ಡನ್ ಅವರ್" : lang === "hi" ? "आपकी जन्म राशि व नक्षत्र अनुसार शुभ रत्न, शुभ रंग, शुभ अंक, शुभ दिशा व गोल्डेन ऑवर" : lang === "te" ? "మీ జన్మ రాశి-నక్షత్రానికి అనుగుణంగా అదృష్ట రత్నం, శుభ రంగు, శుభ సంఖ్య, శుభ దిక్కు & గోల్డెన్ అవర్" : lang === "ta" ? "உங்கள் ராசி-நட்சத்திரத்திற்குரிய அதிர்ஷ்ட ரத்தினம், சுப நிறம், சுப எண், சுப திசை & பொன் நேரம்" : "Daily Lucky Gemstone, Color, Number, Power Direction & Personal Golden Hour"}
+              </div>
+            </div>
+
+            {/* 🌸 1. Prominently Featured Daily Satkarma (Good Deed) Practice Card - Top of Lucky & Muhurtha Tab */}
+            <DailySatkarmaPracticeCard
+              day={mockDay}
+              lang={lang}
+              devoteeName={devoteeDisplayName}
+              panditName={activePanditName}
+              userId={devoteeUserId || devoteeDisplayName || "guest_devotee"}
+              devoteeToken={tokenParam || undefined}
+            />
+
+            {/* 🌟 2. Sacred Abhijit Muhurtha Sanctum Spotlight (Exclusive Website Feature) */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(67, 20, 7, 0.95) 100%)",
+              border: "2px solid #FCD34D",
+              borderRadius: 16,
+              padding: "14px 18px",
+              boxShadow: "0 6px 20px rgba(252, 211, 77, 0.2)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 24 }}>✨</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      {lang === "kn"
+                        ? "ಇಂದಿನ ಶುಭ ಅಭಿಜಿತ್ ಮುಹೂರ್ತ"
+                        : lang === "te"
+                        ? "నేటి శుభ అభిజిత్ ముహూర్తం"
+                        : lang === "ta"
+                        ? "இன்றைய சுப அபிஜித் முகூர்த்தம்"
+                        : lang === "hi"
+                        ? "आज का शुभ अभिजीत मुहूर्त"
+                        : "Today's Auspicious Abhijit Muhurtha"}
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
+                      ⏱️ {dinaBhavishyaData?.abhijitMuhurtha || "11:54 AM – 12:44 PM IST"}
+                    </div>
+                  </div>
+                </div>
+                <div style={{
+                  background: "rgba(245, 158, 11, 0.25)",
+                  border: "1px solid #F59E0B",
+                  borderRadius: 10,
+                  padding: "6px 12px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "#FEF3C7",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6
+                }}>
+                  <span style={{ fontSize: 16 }}>🔥</span>
+                  <span>
+                    {darshanaStreak.currentStreak}{" "}
+                    {lang === "kn"
+                      ? "ದಿನಗಳ ದರ್ಶನ ದೀಕ್ಷೆ"
+                      : lang === "te"
+                      ? "రోజుల దర్శన దీక్ష"
+                      : lang === "ta"
+                      ? "நாட்கள் தரிசன தீட்சை"
+                      : lang === "hi"
+                      ? "दिनों की दर्शन दीक्षा"
+                      : "Days Darshana Streak"}
+                  </span>
+                </div>
+              </div>
+              <div style={{ fontSize: 11.5, color: "#FEF3C7", lineHeight: 1.4, borderTop: "1px dashed rgba(252, 211, 77, 0.3)", paddingTop: 6 }}>
+                {lang === "kn"
+                  ? "🌟 ಅಭಿಜಿತ್ ಮುಹೂರ್ತವು ವೆಬ್‌ಸೈಟ್ ಸನ್ನಿಧಿಯ ವಿಶೇಷ ದರ್ಶನವಾಗಿದೆ. ಪ್ರತಿದಿನ ಭೇಟಿ ನೀಡಿ ನಿಮ್ಮ ದರ್ಶನ ಸಾಧನಾ ದೀಕ್ಷೆ (🔥) ಮುಂದುವರಿಸಿ!"
+                  : lang === "te"
+                  ? "🌟 అభిజిత్ ముహూర్తం వెబ్‌సైట్ సన్నిధి ప్రత్యేక దర్శనం. ప్రతిరోజూ దర్శించి మీ దర్శన సాధనా దీక్షను (🔥) కొనసాగించండి!"
+                  : lang === "ta"
+                  ? "🌟 அபிஜித் முகூர்த்தம் இணையதள சந்நிதியின் சிறப்பு தரிசனமாகும். தினமும் வருகை தந்து உங்கள் தரிசன சாதனா தீட்சையை (🔥) தொடருங்கள்!"
+                  : lang === "hi"
+                  ? "🌟 अभिजीत मुहूर्त वेबसाइट सन्निधि का विशेष दर्शन है। प्रतिदिन पधारकर अपनी दर्शन साधना दीक्षा (🔥) जारी रखें!"
+                  : "🌟 Abhijit Muhurtha is an exclusive web sanctum feature. Visit daily to receive your darshana and maintain your visit streak (🔥)!"}
+              </div>
+            </div>
+
+            {/* 3. Daily Lucky Gemstone & Chanting Mala Widget */}
+            {/* 2. Daily Lucky Gem & Power Direction + 11-Bead Digital Japa Mala */}
+            <DailyLuckyGemWidget
+              dateStr={mockDay.ymd}
+              rashiIndex={moonRashiIdx}
+              nakshatraIndex={moonNakshatraIdx}
+              lang={lang}
+              deityMantra={deity.mantra[lang] || deity.mantra.kn}
+              dynamicLuckyColor={darshanaPersonalization.powerMetrics.luckyColor}
+              dynamicLuckyDigit={darshanaPersonalization.powerMetrics.luckyDigit}
+              dynamicLuckyDirection={darshanaPersonalization.powerMetrics.luckyDirection}
+              voiceId={activeVoiceId}
+            />
+
+            {/* 2. Devotee's Lucky Power Metrics Summary Card */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(67, 20, 7, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
+              border: "1.5px solid #FCD34D",
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                <span>✨</span>
+                <span>
+                  {lang === "kn" ? "ದಿನದ ಶುಭ ಶಕ್ತಿ & ಅದೃಷ್ಟ ನಿಯತಾಂಕಗಳು" : lang === "hi" ? "आज के शुभ ऊर्जा व भाग्य सूचक" : lang === "te" ? "నేటి శుభ శక్తి మరియు అదృష్ట కొలమానాలు" : lang === "ta" ? "இன்றைய சுப ஆற்றல் & அதிர்ஷ்ட அளவீடுகள்" : "Today's Lucky Power & Auspicious Metrics"}
+                </span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                {/* Lucky Color */}
+                <div style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                  borderRadius: 12,
+                  padding: "10px 8px",
+                  textAlign: "center"
+                }}>
+                  <div style={{ fontSize: 18 }}>🎨</div>
+                  <div style={{ fontSize: 10.5, color: "#D1D5DB", fontWeight: 700, marginTop: 4 }}>
+                    {dict.luckyColorLabel || "ಅದೃಷ್ಟ ಬಣ್ಣ:"}
+                  </div>
+                  <div style={{ fontSize: 12.5, fontWeight: 900, color: "#FDE68A", marginTop: 2 }}>
+                    {darshanaPersonalization.powerMetrics.luckyColor?.name?.[lang] || darshanaPersonalization.powerMetrics.luckyColor?.name?.en || dinaBhavishyaData?.luckyColor || "ಹಳದಿ / Yellow"}
+                  </div>
+                </div>
+
+                {/* Lucky Digit */}
+                <div style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                  borderRadius: 12,
+                  padding: "10px 8px",
+                  textAlign: "center"
+                }}>
+                  <div style={{ fontSize: 18 }}>🔢</div>
+                  <div style={{ fontSize: 10.5, color: "#D1D5DB", fontWeight: 700, marginTop: 4 }}>
+                    {lang === "kn" ? "ಅದೃಷ್ಟ ಸಂಖ್ಯೆ:" : lang === "hi" ? "शुभ अंक:" : lang === "te" ? "అదృష్ట సంఖ్య:" : lang === "ta" ? "அதிர்ஷ்ட எண்:" : "Lucky Number:"}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "#34D399", marginTop: 2 }}>
+                    {darshanaPersonalization.powerMetrics.luckyDigit || 7}
+                  </div>
+                </div>
+
+                {/* Lucky Direction */}
+                <div style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                  borderRadius: 12,
+                  padding: "10px 8px",
+                  textAlign: "center"
+                }}>
+                  <div style={{ fontSize: 18 }}>🧭</div>
+                  <div style={{ fontSize: 10.5, color: "#D1D5DB", fontWeight: 700, marginTop: 4 }}>
+                    {dict.luckyDirectionLabel || "ಅದೃಷ್ಟ ದಿಕ್ಕು:"}
+                  </div>
+                  <div style={{ fontSize: 12.5, fontWeight: 900, color: "#FDE68A", marginTop: 2 }}>
+                    {darshanaPersonalization.powerMetrics.luckyDirection?.name?.[lang] || darshanaPersonalization.powerMetrics.luckyDirection?.name?.en || dinaBhavishyaData?.luckyDirection || "ಈಶಾನ್ಯ / North-East"}
+                  </div>
+                </div>
+
+                {/* Lucky Metal */}
+                <div style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                  borderRadius: 12,
+                  padding: "10px 8px",
+                  textAlign: "center"
+                }}>
+                  <div style={{ fontSize: 18 }}>🪙</div>
+                  <div style={{ fontSize: 10.5, color: "#D1D5DB", fontWeight: 700, marginTop: 4 }}>
+                    {dict.luckyMetalLabel || "ಶುಭ ಲೋಹ:"}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: "#FCD34D", marginTop: 2 }}>
+                    {LUCKY_METALS_L5[moonRashiIdx]?.[lang] || LUCKY_METALS_L5[moonRashiIdx]?.en || "ಬಂಗಾರ / Gold"}
+                  </div>
+                </div>
+
+                {/* Rashi Lord */}
+                <div style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                  borderRadius: 12,
+                  padding: "10px 8px",
+                  textAlign: "center"
+                }}>
+                  <div style={{ fontSize: 18 }}>☀️</div>
+                  <div style={{ fontSize: 10.5, color: "#D1D5DB", fontWeight: 700, marginTop: 4 }}>
+                    {dict.rashiLord || "ರಾಶ್ಯಾಧಿಪತಿ:"}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: "#FDE68A", marginTop: 2 }}>
+                    {rashiLordLocalized}
+                  </div>
+                </div>
+
+                {/* Golden Hour Window */}
+                <div style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                  borderRadius: 12,
+                  padding: "10px 8px",
+                  textAlign: "center"
+                }}>
+                  <div style={{ fontSize: 18 }}>⚡</div>
+                  <div style={{ fontSize: 10.5, color: "#D1D5DB", fontWeight: 700, marginTop: 4 }}>
+                    {lang === "kn" ? "ಶುಭ ಕಾಲ:" : lang === "hi" ? "शुभ काल:" : lang === "te" ? "శుభ కాలం:" : lang === "ta" ? "சுப காலம்:" : "Golden Hour:"}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#86EFAC", marginTop: 2 }}>
+                    {darshanaPersonalization.powerMetrics.goldenHour.windowLabel[lang] || "10:48 AM - 11:36 AM"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Personalized Golden Hour Widget */}
+            {/* 1. Personalized Golden Hour Widget */}
+            <PersonalGoldenHourWidget
+              dateStr={mockDay.ymd}
+              devoteeName={devoteeDisplayName}
+              rashiIndex={moonRashiIdx}
+              nakshatraIndex={moonNakshatraIdx}
+              lang={lang}
+              voiceId={activeVoiceId}
+            />
+
+            {/* 4. Auspicious Muhurtha & Daily Cosmic Energy Card */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(67, 20, 7, 0.95) 100%)",
+              border: "1.5px solid #FCD34D",
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.4)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 22 }}>⏱️</span>
+                  <div>
+                    <div style={{ fontSize: 11, color: "#FCD34D", fontWeight: 800, textTransform: "uppercase" }}>
+                      {dict.abhijitLabel || "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ:"}
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
+                      {dinaBhavishyaData?.abhijitMuhurtha || "11:54 AM – 12:44 PM IST"}
+                    </div>
+                  </div>
+                </div>
+                <div style={{
+                  background: "rgba(245, 158, 11, 0.2)",
+                  border: "1px solid #F59E0B",
+                  borderRadius: 10,
+                  padding: "6px 12px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "#FDE68A"
+                }}>
+                  ⚡ {mockDay.energyScore}% {vibe.vibeTag}
+                </div>
+              </div>
+              <div style={{ marginTop: 10, background: "rgba(255,255,255,0.1)", borderRadius: 6, height: 6, overflow: "hidden" }}>
+                <div style={{
+                  background: dayTheme.barGradient,
+                  height: "100%",
+                  width: `${mockDay.energyScore}%`
+                }} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB 5: 1-TAP WHATSAPP STORY & BLESSING CARD GENERATOR (ವಾಟ್ಸಾಪ್ ಸಂದೇಶ & ಆಶೀರ್ವಾದ ಕಾರ್ಡ್) ── */}
+        {activeTab === "whatsapp" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Header Banner */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(6, 78, 59, 0.95) 0%, rgba(20, 30, 20, 0.95) 100%)",
+              border: "2px solid #34D399",
+              borderRadius: 16,
+              padding: "16px 18px",
+              textAlign: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#6EE7B7" }}>
+                💬 {dict.whatsappTabHeading || "॥ ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್ (WhatsApp ಹಂಚಿಕೆ) ॥"}
+              </div>
+              <div style={{ fontSize: 12, color: "#ECFDF5", marginTop: 4 }}>
+                {lang === "kn"
+                  ? "೩೬೫ ದಿನಗಳ ನಿತ್ಯ ಶ್ಲೋಕ, ಶುಭೋದಯ ಸಂದೇಶ, ಪುಣ್ಯ ಕಾರ್ಯ ಹಾಗೂ ವೈದಿಕ ಕಲಾಚಿತ್ರವನ್ನು ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಹಂಚಿಕೊಳ್ಳಿ"
+                  : lang === "hi"
+                  ? "365 दिन दैनिक श्लोक, शुभ प्रभात संदेश, पुण्य संकल्प एवं वैदिक कलाचित्र व्हाट्सएप पर साझा करें"
+                  : lang === "te"
+                  ? "365 రోజుల నిత్య శ్లోకం, ఉదయ శుభ సందేశం, పుణ్య కార్యం & వేద కళాచిత్రాన్ని వాట్సాప్‌లో పంచుకోండి"
+                  : lang === "ta"
+                  ? "365 நாட்கள் தினசரி ஸ்லோகம், காலை சுப செய்தி, நற்பணி & வேத சித்திரத்தை வாட்ஸ்அப்பில் பகிருங்கள்"
+                  : "365 Days Daily Shloka, Good Morning Blessings, Sacred Artwork & 1-Tap WhatsApp Story Sharing"}
+              </div>
+            </div>
+
+            {/* 100% Pure Language Localized WhatsApp Blessing Card with Dynamic Devotee Location */}
+            <DailyBlessingShareCard
+              devoteeName={devoteeDisplayName}
+              dateStr={mockDay.ymd}
+              mockDay={mockDay}
+              deityObj={deity}
+              goldenHourWindowMap={darshanaPersonalization.powerMetrics.goldenHour.windowLabel}
+              goldenHourStartTime={darshanaPersonalization.powerMetrics.goldenHour.startTimeStr}
+              goldenHourEndTime={darshanaPersonalization.powerMetrics.goldenHour.endTimeStr}
+              goldenHourStr={darshanaPersonalization.powerMetrics.goldenHour.windowLabel[lang] || "10:48 AM - 11:36 AM"}
+              devoteeLocationName={userLocationName}
+              devoteePincode={userPincode}
+              lang={lang}
+              priestName={activePanditName}
+            />
+          </div>
+        )}
+
+        {/* ── TAB 6: ALL TECHNICAL PANCHANGA DETAILS (ಸಂಪೂರ್ಣ ಪಂಚಾಂಗ ವಿವರಗಳು) ── */}
+        {activeTab === "details" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Header Banner */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(69, 26, 3, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
+              border: "2px solid #D4AF37",
+              borderRadius: 16,
+              padding: "16px 18px",
+              textAlign: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D" }}>
+                📜 {dict.detailsTabHeading || "॥ ಪಂಚಾಂಗ, ಜನ್ಮ ಕುಂಡಲಿ & ಗ್ರಹ ಗೋಚಾರ ವಿವರಗಳು ॥"}
+              </div>
+              <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4 }}>
+                {lang === "kn" ? "ನಿಖರ ಸ್ಥಳೀಯ ಕಾಲಗಳು, ತಿಥಿ ಬದಲಾವಣೆ, ಜನ್ಮ ಕುಂಡಲಿ, ಗೋಚಾರ ಗ್ರಹಗಳು ಹಾಗೂ ದಶಾ ಫಲಗಳು" : lang === "hi" ? "सटीक स्थानीय काल समय, तिथि संक्रमण, जन्म कुंडली, गोचर ग्रह एवं दशा फल" : lang === "te" ? "ఖచ్చితమైన స్థానిక కాల సమయాలు, తిథి మార్పులు, జన్మ కుండలి, గోచార గ్రహాలు మరియు దశా ఫలితాలు" : lang === "ta" ? "துல்லியமான கால நேரங்கள், திதி மாற்றம், ஜாதக கட்டம், கோசார கிரகங்கள் & தசா பலன்கள்" : "Exact Kaala Timings, Tithi Transitions, Janma Kundali, Gochara Transits & Dasha Phala"}
+              </div>
+            </div>
+
+            {/* Local Kaala Timings */}
+            <div style={{
+              background: "rgba(45, 20, 7, 0.85)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>⏳ {dict.kaalaHeading}</span>
+                  <span style={{ fontSize: 10.5, color: "#10B981", background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: 6, padding: "1px 6px", fontWeight: 800 }}>
+                    IST (+05:30)
+                  </span>
+                </span>
+                <span style={{ fontSize: 11.5, color: "#F59E0B", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                  <span>🌅 {kaala.sunrise} | 🌇 {kaala.sunset}</span>
+                  <span style={{ fontSize: 10, color: "#FCD34D" }}>(📍 {userLocationName} - {userPincode})</span>
+                </span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, fontSize: 11, textAlign: "center" }}>
+                <div style={{ background: "rgba(220, 38, 38, 0.15)", border: "1px solid rgba(220, 38, 38, 0.4)", padding: 8, borderRadius: 10 }}>
+                  <div style={{ color: "#FCA5A5", fontWeight: 700 }}>🔴 {dict.rahuKaala} (IST)</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.rahuWindow || kaala.rahu.split(" (")[0]}</div>
+                  <div style={{ fontSize: 9.5, color: "#FCA5A5", marginTop: 2 }}>{kaala.rahuSuffix || (kaala.rahu.includes("(") ? `(${kaala.rahu.split("(")[1]}` : "")}</div>
+                </div>
+                <div style={{ background: "rgba(217, 119, 6, 0.15)", border: "1px solid rgba(217, 119, 6, 0.4)", padding: 8, borderRadius: 10 }}>
+                  <div style={{ color: "#FDE047", fontWeight: 700 }}>🟡 {dict.gulikaKaala} (IST)</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.gulikaWindow || kaala.gulika.split(" (")[0]}</div>
+                  <div style={{ fontSize: 9.5, color: "#FDE047", marginTop: 2 }}>{kaala.gulikaSuffix || (kaala.gulika.includes("(") ? `(${kaala.gulika.split("(")[1]}` : "")}</div>
+                </div>
+                <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.4)", padding: 8, borderRadius: 10 }}>
+                  <div style={{ color: "#86EFAC", fontWeight: 700 }}>🟢 {dict.yamaganda} (IST)</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.yamaWindow || kaala.yamaganda.split(" (")[0]}</div>
+                  <div style={{ fontSize: 9.5, color: "#86EFAC", marginTop: 2 }}>{kaala.yamaSuffix || (kaala.yamaganda.includes("(") ? `(${kaala.yamaganda.split("(")[1]}` : "")}</div>
+                </div>
+              </div>
+            </div>
             {/* Major Planetary Gochara Transits */}
             <div style={{
               background: "rgba(45, 20, 7, 0.85)",
@@ -4559,7 +4935,6 @@ export default function DailyDarshanaPage(): JSX.Element {
                 </div>
               </div>
             </div>
-
             {/* Collapsible Uncluttered Deep Astrology Accordion (Kundali, Gochara Grid, Dasha) */}
             <details style={{
               background: "linear-gradient(135deg, rgba(45, 20, 7, 0.95), rgba(28, 10, 0, 0.95))",
@@ -4854,6 +5229,340 @@ export default function DailyDarshanaPage(): JSX.Element {
           </button>
         </div>
       </main>
+
+      {/* ── Fixed Floating Bottom Image-Only Tab Dock (6 Tabs, No Text Names) ── */}
+      <nav
+        aria-label="Daily Darshana Navigation"
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+          background: "linear-gradient(180deg, rgba(28, 10, 0, 0.95) 0%, rgba(15, 4, 0, 0.98) 100%)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderTop: "1.5px solid rgba(212, 175, 55, 0.5)",
+          boxShadow: "0 -8px 25px rgba(0, 0, 0, 0.8), 0 -1px 0 rgba(253, 230, 138, 0.25)",
+          padding: "8px 8px max(10px, env(safe-area-inset-bottom, 10px))"
+        }}
+      >
+        <div style={{
+          maxWidth: 580,
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(6, 1fr)",
+          gap: 6,
+          alignItems: "center"
+        }}>
+          {/* Tab 1: Darshana */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("darshana");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label={dict.tabDarshanaAria}
+            title={dict.tabDarshanaAria}
+            style={{
+              background: activeTab === "darshana" 
+                ? "linear-gradient(135deg, rgba(217, 119, 6, 0.45) 0%, rgba(180, 83, 9, 0.6) 100%)" 
+                : "rgba(45, 20, 7, 0.6)",
+              border: activeTab === "darshana" ? "2px solid #FCD34D" : "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 14,
+              padding: "7px 2px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: activeTab === "darshana" 
+                ? "0 0 16px rgba(245, 158, 11, 0.55), inset 0 0 10px rgba(253, 230, 138, 0.3)" 
+                : "none",
+              transform: activeTab === "darshana" ? "scale(1.05)" : "scale(1)",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
+          >
+            <img
+              src="/icons/darshana_tabs/tab_darshana.svg"
+              alt="Darshana"
+              style={{
+                width: 32,
+                height: 32,
+                display: "block",
+                filter: activeTab === "darshana" ? "drop-shadow(0 2px 8px rgba(252, 211, 77, 0.6))" : "grayscale(25%) opacity(0.75)",
+                transition: "filter 0.2s ease"
+              }}
+            />
+            {activeTab === "darshana" && (
+              <span style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: "#FCD34D",
+                marginTop: 3,
+                boxShadow: "0 0 6px #FCD34D"
+              }} />
+            )}
+          </button>
+
+          {/* Tab 2: Bhavishya */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("bhavishya");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label={dict.tabBhavishyaAria}
+            title={dict.tabBhavishyaAria}
+            style={{
+              background: activeTab === "bhavishya" 
+                ? "linear-gradient(135deg, rgba(217, 119, 6, 0.45) 0%, rgba(180, 83, 9, 0.6) 100%)" 
+                : "rgba(45, 20, 7, 0.6)",
+              border: activeTab === "bhavishya" ? "2px solid #FCD34D" : "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 14,
+              padding: "7px 2px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: activeTab === "bhavishya" 
+                ? "0 0 16px rgba(245, 158, 11, 0.55), inset 0 0 10px rgba(253, 230, 138, 0.3)" 
+                : "none",
+              transform: activeTab === "bhavishya" ? "scale(1.05)" : "scale(1)",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
+          >
+            <img
+              src="/icons/darshana_tabs/tab_bhavishya.svg"
+              alt="Bhavishya"
+              style={{
+                width: 32,
+                height: 32,
+                display: "block",
+                filter: activeTab === "bhavishya" ? "drop-shadow(0 2px 8px rgba(252, 211, 77, 0.6))" : "grayscale(25%) opacity(0.75)",
+                transition: "filter 0.2s ease"
+              }}
+            />
+            {activeTab === "bhavishya" && (
+              <span style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: "#FCD34D",
+                marginTop: 3,
+                boxShadow: "0 0 6px #FCD34D"
+              }} />
+            )}
+          </button>
+
+          {/* Tab 3: Pooja & Divine Mantras */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("pooja");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label={dict.tabPoojaAria || "ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ ಹಾಗೂ ಶಕ್ತಿ ಮಂತ್ರಗಳು"}
+            title={dict.tabPoojaAria || "ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ ಹಾಗೂ ಶಕ್ತಿ ಮಂತ್ರಗಳು"}
+            style={{
+              background: activeTab === "pooja" 
+                ? "linear-gradient(135deg, rgba(217, 119, 6, 0.45) 0%, rgba(180, 83, 9, 0.6) 100%)" 
+                : "rgba(45, 20, 7, 0.6)",
+              border: activeTab === "pooja" ? "2px solid #FCD34D" : "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 14,
+              padding: "7px 2px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: activeTab === "pooja" 
+                ? "0 0 16px rgba(245, 158, 11, 0.55), inset 0 0 10px rgba(253, 230, 138, 0.3)" 
+                : "none",
+              transform: activeTab === "pooja" ? "scale(1.05)" : "scale(1)",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
+          >
+            <img
+              src="/icons/darshana_tabs/tab_pooja.svg"
+              alt="Pooja"
+              style={{
+                width: 32,
+                height: 32,
+                display: "block",
+                filter: activeTab === "pooja" ? "drop-shadow(0 2px 8px rgba(252, 211, 77, 0.6))" : "grayscale(25%) opacity(0.75)",
+                transition: "filter 0.2s ease"
+              }}
+            />
+            {activeTab === "pooja" && (
+              <span style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: "#FCD34D",
+                marginTop: 3,
+                boxShadow: "0 0 6px #FCD34D"
+              }} />
+            )}
+          </button>
+
+          {/* Tab 4: Lucky Details */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("lucky");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label={dict.tabLuckyAria || "ದೈನಂದಿನ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತ"}
+            title={dict.tabLuckyAria || "ದೈನಂದಿನ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತ"}
+            style={{
+              background: activeTab === "lucky" 
+                ? "linear-gradient(135deg, rgba(217, 119, 6, 0.45) 0%, rgba(180, 83, 9, 0.6) 100%)" 
+                : "rgba(45, 20, 7, 0.6)",
+              border: activeTab === "lucky" ? "2px solid #FCD34D" : "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 14,
+              padding: "7px 2px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: activeTab === "lucky" 
+                ? "0 0 16px rgba(245, 158, 11, 0.55), inset 0 0 10px rgba(253, 230, 138, 0.3)" 
+                : "none",
+              transform: activeTab === "lucky" ? "scale(1.05)" : "scale(1)",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
+          >
+            <img
+              src="/icons/darshana_tabs/tab_lucky.svg"
+              alt="Lucky"
+              style={{
+                width: 32,
+                height: 32,
+                display: "block",
+                filter: activeTab === "lucky" ? "drop-shadow(0 2px 8px rgba(252, 211, 77, 0.6))" : "grayscale(25%) opacity(0.75)",
+                transition: "filter 0.2s ease"
+              }}
+            />
+            {activeTab === "lucky" && (
+              <span style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: "#FCD34D",
+                marginTop: 3,
+                boxShadow: "0 0 6px #FCD34D"
+              }} />
+            )}
+          </button>
+
+          {/* Tab 5: WhatsApp Share Card */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("whatsapp");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label={dict.tabWhatsappAria || "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್"}
+            title={dict.tabWhatsappAria || "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್"}
+            style={{
+              background: activeTab === "whatsapp" 
+                ? "linear-gradient(135deg, rgba(16, 185, 129, 0.45) 0%, rgba(5, 150, 105, 0.6) 100%)" 
+                : "rgba(45, 20, 7, 0.6)",
+              border: activeTab === "whatsapp" ? "2px solid #34D399" : "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 14,
+              padding: "7px 2px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: activeTab === "whatsapp" 
+                ? "0 0 16px rgba(16, 185, 129, 0.55), inset 0 0 10px rgba(110, 231, 183, 0.3)" 
+                : "none",
+              transform: activeTab === "whatsapp" ? "scale(1.05)" : "scale(1)",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
+          >
+            <img
+              src="/icons/darshana_tabs/tab_whatsapp.svg"
+              alt="WhatsApp"
+              style={{
+                width: 32,
+                height: 32,
+                display: "block",
+                filter: activeTab === "whatsapp" ? "drop-shadow(0 2px 8px rgba(52, 211, 153, 0.6))" : "grayscale(25%) opacity(0.75)",
+                transition: "filter 0.2s ease"
+              }}
+            />
+            {activeTab === "whatsapp" && (
+              <span style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: "#34D399",
+                marginTop: 3,
+                boxShadow: "0 0 6px #34D399"
+              }} />
+            )}
+          </button>
+
+          {/* Tab 6: Details */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("details");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label={dict.tabDetailsAria}
+            title={dict.tabDetailsAria}
+            style={{
+              background: activeTab === "details" 
+                ? "linear-gradient(135deg, rgba(217, 119, 6, 0.45) 0%, rgba(180, 83, 9, 0.6) 100%)" 
+                : "rgba(45, 20, 7, 0.6)",
+              border: activeTab === "details" ? "2px solid #FCD34D" : "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: 14,
+              padding: "7px 2px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: activeTab === "details" 
+                ? "0 0 16px rgba(245, 158, 11, 0.55), inset 0 0 10px rgba(253, 230, 138, 0.3)" 
+                : "none",
+              transform: activeTab === "details" ? "scale(1.05)" : "scale(1)",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
+          >
+            <img
+              src="/icons/darshana_tabs/tab_details.svg"
+              alt="Details"
+              style={{
+                width: 32,
+                height: 32,
+                display: "block",
+                filter: activeTab === "details" ? "drop-shadow(0 2px 8px rgba(252, 211, 77, 0.6))" : "grayscale(25%) opacity(0.75)",
+                transition: "filter 0.2s ease"
+              }}
+            />
+            {activeTab === "details" && (
+              <span style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: "#FCD34D",
+                marginTop: 3,
+                boxShadow: "0 0 6px #FCD34D"
+              }} />
+            )}
+          </button>
+        </div>
+      </nav>
+
       </>
       )}
 

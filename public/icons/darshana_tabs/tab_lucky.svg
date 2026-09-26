@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="gemGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFBEB"/>
+      <stop offset="25%" stop-color="#FDE68A"/>
+      <stop offset="60%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </linearGradient>
+    <linearGradient id="facetTop" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FEF3C7"/>
+      <stop offset="100%" stop-color="#FDE68A"/>
+    </linearGradient>
+    <linearGradient id="facetSide" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <radialGradient id="gemGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FCD34D" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Aura Glow -->
+  <circle cx="24" cy="25" r="22" fill="url(#gemGlow)" />
+
+  <!-- Four Major Radiant Sparkle Rays -->
+  <line x1="24" y1="2" x2="24" y2="46" stroke="#FEF3C7" stroke-width="1.2" stroke-linecap="round" opacity="0.6" />
+  <line x1="2" y1="24" x2="46" y2="24" stroke="#FEF3C7" stroke-width="1.2" stroke-linecap="round" opacity="0.6" />
+
+  <!-- Diagonal Sub-Rays -->
+  <line x1="8" y1="8" x2="40" y2="40" stroke="#FDE68A" stroke-width="0.8" stroke-linecap="round" opacity="0.4" />
+  <line x1="8" y1="40" x2="40" y2="8" stroke="#FDE68A" stroke-width="0.8" stroke-linecap="round" opacity="0.4" />
+
+  <!-- Golden Faceted Gemstone (Brilliant Cut) -->
+  <!-- Top Table Facet -->
+  <polygon points="17,14 31,14 36,22 12,22" fill="url(#facetTop)" stroke="#FEF08A" stroke-width="1.2" />
+
+  <!-- Crown Triangles -->
+  <polygon points="17,14 24,22 12,22" fill="#FEF9C3" opacity="0.9" />
+  <polygon points="31,14 36,22 24,22" fill="#FBBF24" opacity="0.9" />
+  <polygon points="17,14 31,14 24,22" fill="#FFFFFF" opacity="0.95" />
+
+  <!-- Pavilion (Lower Body pointing down) -->
+  <polygon points="12,22 36,22 24,42" fill="url(#facetSide)" stroke="#FEF08A" stroke-width="1.2" />
+  
+  <!-- Pavilion Facets -->
+  <polygon points="12,22 24,22 24,42" fill="#D97706" opacity="0.85" />
+  <polygon points="24,22 36,22 24,42" fill="#B45309" opacity="0.9" />
+  <polygon points="18,22 24,22 24,42" fill="#F59E0B" opacity="0.95" />
+
+  <!-- Center Heart Flare / Brilliant Star -->
+  <path d="M 24 18 Q 24 22 28 22 Q 24 22 24 26 Q 24 22 20 22 Q 24 22 24 18 Z" fill="#FFFFFF" />
+
+  <!-- Little Lucky Sparkle 1 (Top Left) -->
+  <circle cx="8" cy="14" r="1.5" fill="#FEF08A" />
+  <line x1="8" y1="10" x2="8" y2="18" stroke="#FFFFFF" stroke-width="1" />
+  <line x1="4" y1="14" x2="12" y2="14" stroke="#FFFFFF" stroke-width="1" />
+
+  <!-- Little Lucky Sparkle 2 (Bottom Right) -->
+  <circle cx="40" cy="34" r="1.5" fill="#FEF08A" />
+  <line x1="40" y1="30" x2="40" y2="38" stroke="#FFFFFF" stroke-width="1" />
+  <line x1="36" y1="34" x2="44" y2="34" stroke="#FFFFFF" stroke-width="1" />
+</svg>

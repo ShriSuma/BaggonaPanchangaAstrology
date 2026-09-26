@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="detailsGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFBEB" />
+      <stop offset="30%" stop-color="#FCD34D" />
+      <stop offset="70%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#92400E" />
+    </linearGradient>
+    <radialGradient id="detailsGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.8" />
+      <stop offset="60%" stop-color="#D97706" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#451A03" stop-opacity="0" />
+    </radialGradient>
+    <filter id="chartFilter" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Aura Glow -->
+  <circle cx="32" cy="32" r="30" fill="url(#detailsGlow)" opacity="0.4" />
+  <circle cx="32" cy="32" r="29" fill="none" stroke="url(#detailsGold)" stroke-width="1.2" stroke-dasharray="2 2" />
+
+  <!-- Sacred South-Indian Kundali 4x4 Square Grid -->
+  <!-- Outer Box -->
+  <rect x="10" y="10" width="44" height="44" rx="4" fill="#2E1005" stroke="url(#detailsGold)" stroke-width="2" />
+  
+  <!-- Outer Border Inset -->
+  <rect x="13" y="13" width="38" height="38" fill="none" stroke="url(#detailsGold)" stroke-width="1" />
+
+  <!-- Internal Grid Division Lines -->
+  <!-- Vertical lines -->
+  <line x1="22.5" y1="13" x2="22.5" y2="51" stroke="url(#detailsGold)" stroke-width="1" />
+  <line x1="41.5" y1="13" x2="41.5" y2="51" stroke="url(#detailsGold)" stroke-width="1" />
+  
+  <!-- Horizontal lines -->
+  <line x1="13" y1="22.5" x2="51" y2="22.5" stroke="url(#detailsGold)" stroke-width="1" />
+  <line x1="13" y1="41.5" x2="51" y2="41.5" stroke="url(#detailsGold)" stroke-width="1" />
+
+  <!-- Central Brahma Sthana (2x2 center) Solid Sanctum Core -->
+  <rect x="22.5" y="22.5" width="19" height="19" fill="#78350F" stroke="url(#detailsGold)" stroke-width="1.5" />
+  
+  <!-- Center Star / Navagraha glyph -->
+  <circle cx="32" cy="32" r="6" fill="#F59E0B" opacity="0.6" />
+  <polygon points="32,25 34,30 39,32 34,34 32,39 30,34 25,32 30,30" fill="#FFFBEB" filter="url(#chartFilter)" />
+
+  <!-- House Glyphs / Dots in 12 Zodiac Houses -->
+  <!-- Mesha (Aries, Top-2nd col) -->
+  <circle cx="32" cy="17.7" r="1.8" fill="#FDE68A" />
+  <!-- Vrishabha (Top-3rd col) -->
+  <circle cx="46.2" cy="17.7" r="1.8" fill="#FDE68A" />
+  <!-- Mithuna (Top-Right) -->
+  <circle cx="46.2" cy="32" r="1.8" fill="#FDE68A" />
+  <!-- Karka -->
+  <circle cx="46.2" cy="46.2" r="1.8" fill="#FDE68A" />
+  <!-- Simha -->
+  <circle cx="32" cy="46.2" r="1.8" fill="#FDE68A" />
+  <!-- Kanya -->
+  <circle cx="17.7" cy="46.2" r="1.8" fill="#FDE68A" />
+  <!-- Tula -->
+  <circle cx="17.7" cy="32" r="1.8" fill="#FDE68A" />
+  <!-- Vrishchika -->
+  <circle cx="17.7" cy="17.7" r="1.8" fill="#FDE68A" />
+</svg>

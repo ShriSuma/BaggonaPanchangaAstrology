@@ -9,6 +9,7 @@ import {
   getDailyBackgroundConfig,
   renderDailyVedicSvgBackground
 } from "../../features/darshana/dailyBlessingBackgrounds";
+import { tithiLabel, nakshatraName } from "../../features/seva/sevaPresentation";
 
 export interface DailyBlessingShareCardProps {
   devoteeName?: string;
@@ -21,6 +22,24 @@ export interface DailyBlessingShareCardProps {
   customShlokaText?: string;
   customShlokaMeaning?: string;
   customDeitySource?: string;
+  // 100% Pure Language Localization & Devotee Place Extensions
+  mockDay?: any;
+  deityObj?: {
+    key?: string;
+    name?: Record<string, string>;
+    beejaMantra?: Record<string, string>;
+    shloka?: string;
+    allShlokas?: Record<string, string>;
+    sanskritShloka?: any;
+    transliteration?: string;
+    meaning?: Record<string, string>;
+    spiritualSignificance?: Record<string, string>;
+  };
+  goldenHourWindowMap?: Record<string, string>;
+  goldenHourStartTime?: string;
+  goldenHourEndTime?: string;
+  devoteeLocationName?: string;
+  devoteePincode?: string;
 }
 
 const KSHETRA_INSIGNIA: Record<SupportedLang, string> = {
@@ -40,12 +59,44 @@ const SHUBHA_MUHURTHA_LABEL: Record<SupportedLang, string> = {
 };
 
 const CARD_HEADER_TITLE: Record<SupportedLang, string> = {
-  kn: "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ & ಆಶೀರ್ವಾದ ಎನ್‌ವಲಪ್",
-  hi: "दैनिक शुभ प्रभात संदेश एवं आशीर्वाद",
-  te: "నిత్య శుభోదయ సందేశం & ఆశీర్వాదం",
-  ta: "தினசரி காலை வணக்க செய்தி & ஆசீர்வாதம்",
-  en: "Daily Good Morning & Shloka Blessings"
+  kn: "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್",
+  hi: "दैनिक शुभ प्रभात संदेश एवं आशीर्वाद कार्ड",
+  te: "నిత్య శుభోదయ సందేశం & ఆశీర్వాద కార్డ్",
+  ta: "தினசரி காலை வணக்க செய்தி & ஆசீர்வாத அட்டை",
+  en: "Daily Good Morning & Shloka Blessing Card"
 };
+
+function formatMuhurthaTimeRange(
+  rawRange: string,
+  startTime: string | undefined,
+  endTime: string | undefined,
+  windowMap: Record<string, string> | undefined,
+  targetLang: SupportedLang
+): string {
+  if (windowMap && windowMap[targetLang]) {
+    return windowMap[targetLang];
+  }
+  let start = startTime;
+  let end = endTime;
+  if ((!start || !end) && rawRange) {
+    const match = rawRange.match(/^(.+?)\s*(?:-|–|ರಿಂದ|से|నుండి|முதல்|to)\s*(.+)$/i);
+    if (match) {
+      start = match[1].trim();
+      end = match[2].trim();
+    }
+  }
+  if (start && end) {
+    switch (targetLang) {
+      case "kn": return `${start} ರಿಂದ ${end}`;
+      case "hi": return `${start} से ${end}`;
+      case "te": return `${start} నుండి ${end}`;
+      case "ta": return `${start} முதல் ${end}`;
+      case "en":
+      default: return `${start} - ${end}`;
+    }
+  }
+  return rawRange || "10:48 AM - 11:36 AM";
+}
 
 const CARD_HEADER_SUBTITLE: Record<SupportedLang, (theme: string) => string> = {
   kn: (theme) => `೩೬೫ ದಿನಗಳ ನಿತ್ಯ ಶ್ಲೋಕ, ದೈವಿಕ ಕಲಾಚಿತ್ರ & ವಾಟ್ಸಾಪ್ ಹಂಚಿಕೆ (${theme})`,
@@ -145,7 +196,14 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
   customShlokaText,
   customShlokaMeaning,
-  customDeitySource
+  customDeitySource,
+  mockDay,
+  deityObj,
+  goldenHourWindowMap,
+  goldenHourStartTime,
+  goldenHourEndTime,
+  devoteeLocationName,
+  devoteePincode
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -185,15 +243,79 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
   }, [bgConfig]);
 
   const morningVibe = inspiration.goodMorningVibe[selectedLang] || inspiration.goodMorningVibe.kn;
-  const shlokaText = customShlokaText || (
-    selectedLang === "en" ? inspiration.shlokaText.transliteration :
-    selectedLang === "hi" ? (inspiration.shlokaText.hi || inspiration.shlokaText.sa) :
-    selectedLang === "te" ? (inspiration.shlokaText.te || inspiration.shlokaText.sa) :
-    selectedLang === "ta" ? (inspiration.shlokaText.ta || inspiration.shlokaText.sa) :
-    inspiration.shlokaText.kn
-  );
-  const shlokaMeaning = customShlokaMeaning || (inspiration.shlokaMeaning[selectedLang] || inspiration.shlokaMeaning.kn);
-  const deitySourceText = customDeitySource || inspiration.deitySource;
+
+  // 100% Pure Language Localization for Tithi & Nakshatra
+  const effectiveTithi = useMemo(() => {
+    if (mockDay) {
+      return tithiLabel(mockDay, selectedLang);
+    }
+    return tithiStr;
+  }, [mockDay, selectedLang, tithiStr]);
+
+  const effectiveNakshatra = useMemo(() => {
+    if (mockDay && typeof mockDay.moonNakshatraIndex === "number") {
+      return nakshatraName(mockDay.moonNakshatraIndex, selectedLang);
+    }
+    return nakshatraStr;
+  }, [mockDay, selectedLang, nakshatraStr]);
+
+  // Pure Language Localization for Deity Name/Source
+  const deitySourceText = useMemo(() => {
+    if (deityObj?.name) {
+      return deityObj.name[selectedLang] || deityObj.name.kn || deityObj.name.en || "";
+    }
+    return customDeitySource || inspiration.deitySource;
+  }, [deityObj, selectedLang, customDeitySource, inspiration.deitySource]);
+
+  // Pure Language Localization for Sacred Shloka in exact script
+  const shlokaText = useMemo(() => {
+    if (deityObj) {
+      if (selectedLang === "en") {
+        return deityObj.transliteration || deityObj.allShlokas?.en || (typeof deityObj.sanskritShloka === "object" ? deityObj.sanskritShloka?.en : undefined) || inspiration.shlokaText.transliteration;
+      }
+      if (selectedLang === "hi") {
+        return deityObj.allShlokas?.hi || deityObj.allShlokas?.sa || (typeof deityObj.sanskritShloka === "object" ? (deityObj.sanskritShloka?.hi || deityObj.sanskritShloka?.sa) : undefined) || inspiration.shlokaText.hi || inspiration.shlokaText.sa;
+      }
+      if (selectedLang === "te") {
+        return deityObj.allShlokas?.te || (typeof deityObj.sanskritShloka === "object" ? deityObj.sanskritShloka?.te : undefined) || inspiration.shlokaText.te || inspiration.shlokaText.sa;
+      }
+      if (selectedLang === "ta") {
+        return deityObj.allShlokas?.ta || (typeof deityObj.sanskritShloka === "object" ? deityObj.sanskritShloka?.ta : undefined) || inspiration.shlokaText.ta || inspiration.shlokaText.sa;
+      }
+      return deityObj.allShlokas?.kn || (typeof deityObj.sanskritShloka === "object" ? deityObj.sanskritShloka?.kn : deityObj.shloka) || inspiration.shlokaText.kn;
+    }
+    if (customShlokaText && selectedLang === lang) {
+      return customShlokaText;
+    }
+    return selectedLang === "en" ? inspiration.shlokaText.transliteration :
+      selectedLang === "hi" ? (inspiration.shlokaText.hi || inspiration.shlokaText.sa) :
+      selectedLang === "te" ? (inspiration.shlokaText.te || inspiration.shlokaText.sa) :
+      selectedLang === "ta" ? (inspiration.shlokaText.ta || inspiration.shlokaText.sa) :
+      inspiration.shlokaText.kn;
+  }, [deityObj, selectedLang, customShlokaText, lang, inspiration.shlokaText]);
+
+  // Pure Language Localization for Sacred Shloka Meaning
+  const shlokaMeaning = useMemo(() => {
+    if (deityObj?.meaning) {
+      return deityObj.meaning[selectedLang] || deityObj.meaning.kn || deityObj.meaning.en || "";
+    }
+    if (customShlokaMeaning && selectedLang === lang) {
+      return customShlokaMeaning;
+    }
+    return inspiration.shlokaMeaning[selectedLang] || inspiration.shlokaMeaning.kn;
+  }, [deityObj, selectedLang, customShlokaMeaning, lang, inspiration.shlokaMeaning]);
+
+  // Language-Aware Muhurtha Time Range (Zero Kannada "ರಿಂದ" leakage in en/hi/te/ta)
+  const effectiveGoldenHour = useMemo(() => {
+    return formatMuhurthaTimeRange(
+      goldenHourStr,
+      goldenHourStartTime,
+      goldenHourEndTime,
+      goldenHourWindowMap,
+      selectedLang
+    );
+  }, [goldenHourStr, goldenHourStartTime, goldenHourEndTime, goldenHourWindowMap, selectedLang]);
+
   const goodDeed = inspiration.goodDeedOfTheDay[selectedLang] || inspiration.goodDeedOfTheDay.kn;
   const motivationalQuote = inspiration.motivationalQuote[selectedLang] || inspiration.motivationalQuote.kn;
 
@@ -201,12 +323,13 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     return buildCleanDailyWhatsAppShareText(
       dateStr,
       selectedLang,
-      tithiStr,
-      nakshatraStr,
-      customShlokaText,
-      customDeitySource
+      effectiveTithi,
+      effectiveNakshatra,
+      shlokaText,
+      deitySourceText,
+      shlokaMeaning
     );
-  }, [dateStr, selectedLang, tithiStr, nakshatraStr, customShlokaText, customDeitySource]);
+  }, [dateStr, selectedLang, effectiveTithi, effectiveNakshatra, shlokaText, deitySourceText, shlokaMeaning]);
 
   /**
    * Generates High-Resolution Canvas with pixel-perfect Indic vertical centering and high-contrast text backing
@@ -377,7 +500,15 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
     setTimeout(() => setIsCopied(false), 2500);
   };
 
-  const locationText = LOCATION_LABEL[selectedLang] || LOCATION_LABEL.en;
+  const locationText = useMemo(() => {
+    if (devoteeLocationName && devoteeLocationName.trim()) {
+      const loc = devoteeLocationName.trim();
+      const pin = devoteePincode && devoteePincode.trim() ? devoteePincode.trim() : "";
+      return pin && !loc.includes(pin) ? `📍 ${loc} (${pin})` : `📍 ${loc}`;
+    }
+    return LOCATION_LABEL[selectedLang] || LOCATION_LABEL.en;
+  }, [devoteeLocationName, devoteePincode, selectedLang]);
+
   const chiefPriestLabel = CHIEF_PRIEST_LABEL[selectedLang] || CHIEF_PRIEST_LABEL.en;
   const localizedPriestName = (!priestName || priestName === "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" || priestName === "Shreeram Pandit")
     ? (DEFAULT_PRIEST_NAME[selectedLang] || "Shreeram Pandit")
@@ -590,7 +721,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
           >
             <span>📅 {dateStr}</span>
           </div>
-          {tithiStr && (
+          {effectiveTithi && (
             <div
               data-pill="true"
               style={{
@@ -611,10 +742,10 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
                 boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
               }}
             >
-              <span>✨ {tithiStr}</span>
+              <span>✨ {effectiveTithi}</span>
             </div>
           )}
-          {nakshatraStr && (
+          {effectiveNakshatra && (
             <div
               data-pill="true"
               style={{
@@ -635,7 +766,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
                 boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
               }}
             >
-              <span>⭐ {nakshatraStr}</span>
+              <span>⭐ {effectiveNakshatra}</span>
             </div>
           )}
         </div>
@@ -664,7 +795,7 @@ export const DailyBlessingShareCard: React.FC<DailyBlessingShareCardProps> = ({
               boxShadow: "0 3px 12px rgba(6, 78, 59, 0.5)"
             }}
           >
-            <span>{(SHUBHA_MUHURTHA_LABEL[selectedLang] || SHUBHA_MUHURTHA_LABEL.kn)} {goldenHourStr}</span>
+            <span>{(SHUBHA_MUHURTHA_LABEL[selectedLang] || SHUBHA_MUHURTHA_LABEL.kn)} {effectiveGoldenHour}</span>
           </div>
         </div>
 

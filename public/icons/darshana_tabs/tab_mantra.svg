@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="mantraGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFBEB" />
+      <stop offset="30%" stop-color="#FCD34D" />
+      <stop offset="70%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+    <radialGradient id="mantraGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#D97706" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#451A03" stop-opacity="0" />
+    </radialGradient>
+    <filter id="omGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Divine Aura -->
+  <circle cx="32" cy="32" r="30" fill="url(#mantraGlow)" opacity="0.4" />
+  
+  <!-- Japa Mala Beads Circle (16 Sacred Beads) -->
+  <circle cx="32" cy="6" r="2.8" fill="url(#mantraGold)" />
+  <circle cx="42" cy="8" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="50" cy="14" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="56" cy="22" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="58" cy="32" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="56" cy="42" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="50" cy="50" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="42" cy="56" r="2.5" fill="url(#mantraGold)" />
+  <!-- Sumeru Bead & Tassel at Bottom -->
+  <circle cx="32" cy="58" r="3.2" fill="#FEF08A" stroke="#B45309" stroke-width="0.8" />
+  <path d="M30 60 L34 60 L33 63 L31 63 Z" fill="#EF4444" />
+  <circle cx="22" cy="56" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="14" cy="50" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="8" cy="42" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="6" cy="32" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="8" cy="22" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="14" cy="14" r="2.5" fill="url(#mantraGold)" />
+  <circle cx="22" cy="8" r="2.5" fill="url(#mantraGold)" />
+
+  <!-- Inner Sacred Meditative Disc -->
+  <circle cx="32" cy="32" r="20" fill="#431407" stroke="url(#mantraGold)" stroke-width="1.5" />
+  
+  <!-- Sacred Sanskrit OM ॐ Symbol -->
+  <g fill="url(#mantraGold)" filter="url(#omGlow)">
+    <!-- 3 curve -->
+    <path d="M26 25 C24 23, 21 24, 21 27 C21 30, 24 31, 27 32 C23 33, 20 35, 20 39 C20 44, 25 45, 29 44 C33 43, 34 40, 34 38 L31 37 C31 39, 29 41.5, 27 41.5 C24 41.5, 22.5 39.5, 22.5 38 C22.5 35.5, 24.5 34, 28 34 L30 32 L28 30 C25.5 30, 23.5 28.5, 23.5 26.5 C23.5 25, 25 24.5, 26 25 Z" />
+    <!-- S hook right loop -->
+    <path d="M29 32.5 C34 32.5, 38 29, 39 25 L36.5 24.5 C35.5 27.5, 33 29.5, 29.5 29.5 Z" />
+    <!-- Tail sweeping up and down -->
+    <path d="M37 26.5 C40 28, 43 32, 43 37 C43 43, 38 46, 35 46.5 L35 44 C37 43.5, 40.5 41, 40.5 37 C40.5 33, 38.5 29.5, 36 28 Z" />
+    <!-- Crescent (Chandra) -->
+    <path d="M34 20 C37 20, 40 22, 42 22 C40 21, 38 18.5, 34 18.5 Z" />
+    <!-- Dot (Bindu) -->
+    <circle cx="38" cy="17" r="1.8" />
+  </g>
+</svg>
