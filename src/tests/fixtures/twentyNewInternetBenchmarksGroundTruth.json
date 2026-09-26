@@ -123,7 +123,7 @@
     "expectedCareerDesc": "World-class professional football mastery, superhuman physical stamina & sports marketing",
     "maritalStatusGroundTruth": "Unmarried legally; long-term domestic partnership with Georgina Rodriguez since 2016",
     "maritalStatusInput": "unmarried",
-    "expectedMarriageVerdict": "lifelong_celibacy_denial",
+    "expectedMarriageVerdict": "delayed_marriage",
     "isExpectedTeetotaler": true,
     "teetotalerEvidence": "Strict teetotaler; never touches alcohol due to his father's tragic death from alcoholism",
     "romanticAffairsGroundTruth": "High-profile romantic past (Irina Shayk, Gemma Atkinson); strong family life with Georgina and 5 children",

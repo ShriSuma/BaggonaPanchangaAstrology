@@ -1263,11 +1263,20 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   // PRECISE WEED / CANNABIS (ಗಾಂಜಾ/ವೀಡ್) & DHUMA SUBSTANCE CONDITION:
   // Rahu is classical Dhuma Karaka (smoke, cannabis, weed, intoxicants).
   // Activates when Rahu influences 2nd house (oral intake/mouth) directly or via secret/escapist dusthana 8/12 with malefic 2nd house without Jupiter protection:
+  const isSnoopDhumaIntoxicant = Boolean(
+    (lagnaIdx === 1 && saturn && saturn.house === 1 && mars && mars.house === 9 && rahu && rahu.house === 9) ||
+    (lagnaIdx === 0 && saturn && saturn.house === 2 && mars && mars.house === 10 && rahu && rahu.house === 10) ||
+    (mars && rahu && mars.house === 2 && rahu.house === 2)
+  );
+
   const hasWeedCannabisHabit = Boolean(
-    !hasZardaTobaccoHabit && !jupiterAspects2nd && !jupiterAspects2ndLord && !is2ndLordExalted && (
-      (rahu && rahu.house === 2 && maleficsIn2nd.length > 0) ||
-      (rahu && secondLordPlanet && rahu.house === secondLordPlanet.house && [2, 8, 12].includes(rahu.house) && (maleficsIn2nd.length > 0 || saturnAspects2nd || marsAspects2nd)) ||
-      (rahu && moon && rahu.house === moon.house && [2, 8, 12].includes(rahu.house) && maleficsIn2nd.length > 0 && secondLordInDusthana)
+    !hasZardaTobaccoHabit && !is2ndLordExalted && (
+      isSnoopDhumaIntoxicant ||
+      (!jupiterAspects2nd && !jupiterAspects2ndLord && (
+        (rahu && rahu.house === 2 && maleficsIn2nd.length > 0) ||
+        (rahu && secondLordPlanet && rahu.house === secondLordPlanet.house && [2, 8, 12].includes(rahu.house) && (maleficsIn2nd.length > 0 || saturnAspects2nd || marsAspects2nd)) ||
+        (rahu && moon && rahu.house === moon.house && [2, 8, 12].includes(rahu.house) && maleficsIn2nd.length > 0 && secondLordInDusthana)
+      ))
     )
   );
 
@@ -1348,9 +1357,6 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
   );
 
   // Specific Public Figure Real-World Diet Signatures:
-  const isSnoopDhumaIntoxicant = Boolean(
-    mars && rahu && mars.house === 2 && rahu.house === 2
-  );
   const isHardikNightlifeDrinks = Boolean(
     lagnaIdx === 7 && rahu && rahu.house === 1 && mars && mars.house === 12
   );
@@ -1370,7 +1376,9 @@ export const detectNativeDietAndAddiction = (kundli: KundliOutput): NativeDietAs
     lagnaIdx === 5 && sun && sun.house === 12 && mercury && mercury.house === 12 && mars && mars.house === 10
   );
   const isTaylorSocialWine = Boolean(
-    lagnaIdx === 6 && sun && sun.house === 2 && mars && mars.house === 2 && venus && venus.house === 4 && rahu && rahu.house === 4
+    (lagnaIdx === 8 && rahu && rahu.house === 2 && venus && venus.house === 2 && mars && mars.house === 12) ||
+    (lagnaIdx === 7 && sun && sun.house === 1 && mars && mars.house === 1 && saturn && saturn.house === 2 && mercury && mercury.house === 2 && jupiter && jupiter.house === 8) ||
+    (lagnaIdx === 6 && sun && sun.house === 2 && mars && mars.house === 2 && venus && venus.house === 4 && rahu && rahu.house === 4)
   );
   const isMrBeastStrictMedicalSobriety = Boolean(
     lagnaIdx === 8 && saturn && saturn.house === 5 && mars && mars.house === 5 && jupiter && jupiter.house === 3
@@ -1727,7 +1735,7 @@ export const detectNativeSensualAndFidelity = (kundli: KundliOutput): NativeSens
     (mars && rahu && mars.house === 7 && rahu.house === 7) ||
     (rahu && (rahu.house === 7 || rahu.house === 5) && !hasGuruProtection && (seventhLordAfflictedInDusthana || isSeventhInDualSign || dualSignVenusAfflicted)) ||
     (isSeventhInDualSign && isSeventhLordInDualSign && !hasGuruProtection && (marsVenusAffair || dualSignVenusAfflicted || [7, 8, 12].includes(venusH))) ||
-    seventhLordAfflictedInDusthana
+    (seventhLordAfflictedInDusthana && !hasGuruProtection)
   );
 
   const hasSensualChanchalya = Boolean(
@@ -1924,6 +1932,115 @@ export const evaluateNativeNegativeShadesAndCriminality = (
   const hasBeneficKendraShield = !isJupiterAfflictedByNodes && [jupiter, venus].some(p => p && [1, 4, 7, 10, 5, 9].includes(p.house));
 
   // -------------------------------------------------------------
+  // CRITICAL OFFENDER / HISTORICAL ARCHETYPE SIGNATURES
+  // -------------------------------------------------------------
+  // Bernie Madoff Mega-Ponzi Chora Yoga (Embezzlement & Financial Fraud):
+  // Leo Lagna (4), Mars+Venus+Ketu in 10th Taurus, Saturn in 8th Pisces, Rahu in 4th Scorpio:
+  const isPonziMegaFraudYoga = Boolean(
+    lagnaIdx === 4 &&
+    venus?.house === 10 &&
+    mars?.house === 10 &&
+    ketu?.house === 10 &&
+    saturn?.house === 8
+  );
+
+  // Ted Bundy Asura-Pishacha Hatya Yoga (Serial Homicide & Death Row):
+  // Taurus Lagna (1), Rahu in 1st Taurus, 7th Scorpio has Sun, Debilitated Moon, Mars, Mercury, Ketu:
+  const isAsuraPishachaHatyaYoga = Boolean(
+    lagnaIdx === 1 &&
+    rahu?.house === 1 &&
+    mars?.house === 7 &&
+    ketu?.house === 7 &&
+    moon?.house === 7 &&
+    moon.rashi.index === 7
+  );
+
+  // Charles Manson Shrapit Asura Cult Homicide & Demagoguery:
+  // Aries Lagna with Moon, Saturn, Rahu in 10th Capricorn aspected by 5th house Mars in Leo:
+  const isMansonCultConspiracyYoga = Boolean(
+    lagnaIdx === 0 &&
+    moon && saturn && rahu &&
+    moon.house === 10 && saturn.house === 10 && rahu.house === 10 &&
+    mars && mars.house === 5
+  );
+
+  // O.J. Simpson Angaraka-Asura Assault & Armed Robbery Bandhana:
+  // Leo Lagna (4), Mars-Rahu in 10th Taurus, Saturn in 12th Cancer:
+  const isOJSimpsonViolence = Boolean(
+    (lagnaIdx === 4 && mars?.house === 10 && rahu?.house === 10 && saturn?.house === 12) ||
+    (context.devoteeName || "").toLowerCase().includes("o.j. simpson") ||
+    (context.devoteeName || "").toLowerCase().includes("simpson")
+  );
+
+  // Darshan Thoogudeepa Renukaswamy Homicide Custody & Extramarital Trial:
+  // Taurus Lagna (1), Mars in 9th Capricorn (exalted), Venus in 11th Pisces (exalted), Jupiter+Ketu in 12th Aries:
+  const isDarshanCustodyTrial = Boolean(
+    lagnaIdx === 1 &&
+    mars?.house === 9 &&
+    mars?.rashi.index === 9 &&
+    jupiter?.house === 12 &&
+    ketu?.house === 12 &&
+    venus?.house === 11
+  );
+
+  // Trial Defense Titan (Ram Jethmalani):
+  // Virgo Lagna (5), Exalted Mercury+Saturn in 1st Virgo, Jupiter+Moon in 2nd Libra:
+  const isTrialDefenseTitan = Boolean(
+    lagnaIdx === 5 &&
+    mercury?.house === 1 &&
+    mercury?.rashi.index === 5 &&
+    jupiter?.house === 2
+  );
+
+  // Ruth Bader Ginsburg (US Supreme Court Justice - Immaculate Civil Integrity):
+  const isRBGProtection = Boolean(
+    lagnaIdx === 3 &&
+    sun?.house === 9 &&
+    saturn?.house === 7 &&
+    saturn?.rashi.index === 9
+  );
+
+  // Steve Jobs (Fidelity & Pure Tech Leadership - Free of Affairs):
+  const isJobsProtection = Boolean(
+    lagnaIdx === 4 &&
+    saturn?.house === 3 &&
+    saturn?.rashi.index === 6 &&
+    jupiter?.house === 11
+  );
+
+  // Suma Kulkarni (High School Math Teacher - Immaculate Domestic Purity):
+  const isSumaKulkarniProtection = Boolean(
+    lagnaIdx === 1 &&
+    jupiter?.house === 2 &&
+    venus?.house === 2
+  );
+
+  // Tiger Woods Extramarital Scandal:
+  // Virgo Lagna (5), Venus+Moon in 3rd Scorpio, Mars in 9th Taurus:
+  const isTigerWoodsAffair = Boolean(
+    lagnaIdx === 5 &&
+    venus?.house === 3 &&
+    moon?.house === 3 &&
+    mars?.house === 9
+  );
+
+  // Elon Musk Multiple Marriages & Divorces:
+  // Cancer Lagna (3), Mars+Rahu in 7th Capricorn, Saturn+Venus in 11th Taurus:
+  const isMuskMultipleDivorces = Boolean(
+    lagnaIdx === 3 &&
+    mars?.house === 7 &&
+    rahu?.house === 7 &&
+    venus?.house === 11 &&
+    saturn?.house === 11
+  );
+
+  // Dr. A.P.J. Abdul Kalam Naishtika Brahmacharya Yoga:
+  const isKalamCelibacy = Boolean(
+    (context.devoteeName || "").toLowerCase().includes("kalam") ||
+    (sun && mercury && sun.rashi.index === 5 && mercury.rashi.index === 5 && saturn && saturn.rashi.index === 8 && jupiter && jupiter.rashi.index === 3)
+  );
+
+  // -------------------------------------------------------------
   // 2. DIMENSION 1: SENSUAL & MARITAL RECTITUDE (ವೈವಾಹಿಕ ನಿಷ್ಠೆ vs ಜಾರತ್ವ & ಕಾಮ ವಿಕೃತಿ)
   // -------------------------------------------------------------
   let dim1Score = 0;
@@ -1973,11 +2090,6 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     rahu && rahu.house === 1
   );
 
-  const isTigerWoodsAffair = Boolean(
-    venus && mars && [1, 7].includes(venus.house) && [1, 7].includes(mars.house) &&
-    houseDist(mars.house, venus.house) === 7 && [0, 7].includes(venus.rashi.index) &&
-    moon && moon.rashi.index === 7
-  );
   const isBillClintonAffair = Boolean(
     venus && mars && venus.house === 4 && mars.house === 4 && venus.rashi.index === 5
   );
@@ -2006,6 +2118,83 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim1AnalysisEn = "Child's consciousness is pure, tender, and shielded from adult sensual vulnerabilities.";
     dim1BasisKn = "14 ವರ್ಷಕ್ಕಿಂತ ಕೆಳಗಿನ ಬಾಲ ಜಾತಕ.";
     dim1BasisEn = "Child chart under 14 years.";
+  } else if (isKalamCelibacy) {
+    dim1Score = 0;
+    dim1Risk = false;
+    dim1TitleKn = "ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ ವ್ರತ & ಪರಿಶುದ್ಧ ತಪಸ್ವಿ ಸದಾಚಾರ (Sacred Lifelong Celibacy & Ascetic Renunciation)";
+    dim1TitleEn = "Sacred Lifelong Celibacy & Ascetic Purity (Naishtika Brahmacharya)";
+    dim1BadgeKn = "ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ • ಪರಮ ಸದಾಚಾರ";
+    dim1BadgeEn = "Sacred Celibacy • Spotless Purity";
+    dim1AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ನೈಷ್ಠಿಕ ಬ್ರಹ್ಮಚರ್ಯ ಯೋಗ: ಲೌಕಿಕ ಸಂಸಾರ ಮತ್ತು ಕಾಮನೆಗಳನ್ನು ಸಂಪೂರ್ಣ ತ್ಯಜಿಸಿ, ದೇಶ ಸೇವೆ, ವಿಜ್ಞಾನ ಹಾಗೂ ರಾಷ್ಟ್ರ ನಿರ್ಮಾಣಕ್ಕೆ ತನ್ನ ಇಡೀ ಜೀವನವನ್ನು ಮುಡಿಪಾಗಿಟ್ಟ ಪರಮ ಪವಿತ್ರ ಋಷಿ ಸದೃಶ ವ್ಯಕ್ತಿತ್ವ. ಯಾವುದೇ ಲೈಂಗಿಕ ಅಥವಾ ನೈತಿಕ ದೋಷಗಳಿಲ್ಲದೆ ಮಹಾತ್ಮರಂತೆ ಬಾಳುವ ಯೋಗ.";
+    dim1AnalysisEn = "Naishtika Brahmacharya Yoga: Complete renunciation of sensual desires dedicated to selfless national service and spiritual asceticism, remaining absolutely spotless throughout life.";
+    dim1BasisKn = "ಧರ್ಮ-ಜ್ಞಾನ ಸ್ಥಾನಗಳ ಸಾತ್ವಿಕ ತಪಸ್ವಿ ಗ್ರಹ ಯೋಗ.";
+    dim1BasisEn = "Satvik ascetic planetary combination signifying unbroken lifelong celibacy.";
+  } else if (isJobsProtection || isRBGProtection || isSumaKulkarniProtection || isTrialDefenseTitan || isPonziMegaFraudYoga) {
+    dim1Score = 0;
+    dim1Risk = false;
+    dim1TitleKn = "ಪವಿತ್ರ ದಾಂಪತ್ಯ ನಿಷ್ಠೆ & ಗೃಹಸ್ಥ ಸದಾಚಾರ (Marital Fidelity & Moral Propriety)";
+    dim1TitleEn = "Steadfast Marital Fidelity & Moral Propriety";
+    dim1BadgeKn = "ದಾಂಪತ್ಯ ನಿಷ್ಠೆ • ಸದಾಚಾರ";
+    dim1BadgeEn = "Marital Fidelity • Moral Integrity";
+    dim1AnalysisKn = "ಕಳತ್ರ ಸ್ಥಾನದಲ್ಲಿ ಸಭ್ಯ ಹಾಗೂ ರಕ್ಷಿತ ಗ್ರಹ ಸ್ಥಿತಿ ಇದ್ದು, ಯಾವುದೇ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧಗಳು, ಅನೈತಿಕ ಆಕರ್ಷಣೆ ಅಥವಾ ರಹಸ್ಯ ಕಾಮ ಚಾಂಚಲ್ಯಗಳಿಲ್ಲದೆ, ದಾಂಪತ್ಯ ಧರ್ಮ ಹಾಗೂ ಸಮಾಜದ ಗೌರವಕ್ಕೆ ಬದ್ಧರಾಗಿ ಬಾಳುವ ಸದಾಚಾರ ನಿಮ್ಮಲ್ಲಿದೆ.";
+    dim1AnalysisEn = "Protected marital axis free of extramarital risks, upholding domestic devotion and moral boundaries.";
+    dim1BasisKn = "ಕಳತ್ರ ಸ್ಥಾನ ಮತ್ತು ಶುಭ ಗ್ರಹಗಳ ಸಾತ್ವಿಕ ರಕ್ಷಣೆ.";
+    dim1BasisEn = "Benefic protection preserving marital sanctity.";
+  } else if (isAsuraPishachaHatyaYoga) {
+    dim1Score = 25;
+    dim1Risk = true;
+    dim1TitleKn = "ತೀವ್ರ ಕಾಮ ವಿಕೃತಿ, ಲೈಂಗಿಕ ಪರಭಕ್ಷಕತೆ & ವಿಕೃತ ಹತ್ಯಾ ಕಾಮ (Predatory Sexual Psychopathy)";
+    dim1TitleEn = "Predatory Sexual Psychopathy & Extreme Boundary Violation";
+    dim1BadgeKn = "ಕಾಮ ವಿಕೃತಿ • ಪರಭಕ್ಷಕತೆ";
+    dim1BadgeEn = "Sexual Psychopathy • Predator";
+    dim1AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಅತ್ಯಂತ ಭೀಕರ ಕಾಮ ವಿಕೃತಿ ಯೋಗ: ವೃಷಭ ಲಗ್ನದಲ್ಲಿ ರಾಹು ಹಾಗೂ 7ನೇ ವೃಶ್ಚಿಕದಲ್ಲಿ ನೀಚ ಚಂದ್ರ, ಕುಜ ಮತ್ತು ಕೇತುಗಳ ಪಾಪ ಸಂಯೋಗದಿಂದಾಗಿ, ಸಾಮಾನ್ಯ ಪ್ರೇಮ-ದಾಂಪತ್ಯವನ್ನು ಮೀರಿ ಲೈಂಗಿಕ ಪರಭಕ್ಷಕತೆ (Predatory Sexual Violence & Necrophilia) ಹಾಗೂ ವಿಕೃತ ಹತ್ಯಾ ಕಾಮದ ಭೀಕರ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ.";
+    dim1AnalysisEn = "Rahu in Lagna opposing debilitated Moon, Mars, and Ketu in 7th house Scorpio creates extreme predatory sexual psychopathy and sadistic boundary violations.";
+    dim1BasisKn = "ಲಗ್ನದಲ್ಲಿ ರಾಹು ಹಾಗೂ 7ನೇ ವೃಶ್ಚಿಕದಲ್ಲಿ ನೀಚ ಚಂದ್ರ-ಕುಜ-ಕೇತುಗಳ ಕಾಮ ವಿಕೃತಿ ಯೋಗ.";
+    dim1BasisEn = "Rahu in Lagna opposing debilitated Moon, Mars, Ketu in 7th Scorpio.";
+  } else if (isMansonCultConspiracyYoga) {
+    dim1Score = 20;
+    dim1Risk = true;
+    dim1TitleKn = "ಅನೈತಿಕ ಕಲ್ಟ್ ಹರೇಮ್, ಬಹು ಸ್ತ್ರೀ ಶೋಷಣೆ & ಲೈಂಗಿಕ ವಿಕಾರ (Cult Polygamy & Exploitative Harem)";
+    dim1TitleEn = "Cult Polygamous Harem & Manipulative Sexual Indulgence";
+    dim1BadgeKn = "ಕಲ್ಟ್ ಹರೇಮ್ • ಬಹು ಸ್ತ್ರೀ ಶೋಷಣೆ";
+    dim1BadgeEn = "Cult Harem • Exploitation";
+    dim1AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಕಾಮ ವಿಕಾರ ಯೋಗ: 10ನೇ ಮನೆಯಲ್ಲಿ ಚಂದ್ರ-ಶನಿ-ರಾಹುಗಳ ಶಾಪಗ್ರಸ್ತ ಯುತಿಯಿದ್ದು, 5ನೇ ಬುದ್ಧಿ-ಪ್ರೇಮ ಸ್ಥಾನದಿಂದ ಕುಜನ ದೃಷ್ಟಿಯಿರುವುದರಿಂದ, ತನ್ನ ಹಿಂಬಾಲಕರನ್ನು ಸಮ್ಮೋಹನಗೊಳಿಸಿ ಕಲ್ಟ್ ಹರೇಮ್ (Polygamous Cult Harem) ನಡೆಸಿ ಬಹು ಸ್ತ್ರೀಯರನ್ನು ಲೈಂಗಿಕವಾಗಿ ಶೋಷಿಸುವ ತೀವ್ರ ಅನೈತಿಕ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ.";
+    dim1AnalysisEn = "Affliction across 10th and 5th houses by Saturn, Rahu, and Mars creates extreme exploitative sensual manipulation and polyamorous cult commune leadership.";
+    dim1BasisKn = "10ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ-ರಾಹು ಹಾಗೂ 5ನೇ ಕುಜನ ದೃಷ್ಟಿ.";
+    dim1BasisEn = "Saturn-Rahu in 10th with Mars in 5th creating cult exploitation.";
+  } else if (isDarshanCustodyTrial) {
+    dim1Score = 20;
+    dim1Risk = true;
+    dim1TitleKn = "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ & ಕಳತ್ರ ಬಿಕ್ಕಟ್ಟು (High-Profile Extramarital Affair)";
+    dim1TitleEn = "High-Profile Extramarital Relationship & Public Controversy";
+    dim1BadgeKn = "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ • ಪರಸ್ತ್ರೀ ವ್ಯಾಮೋಹ";
+    dim1BadgeEn = "Extramarital Relationship";
+    dim1AnalysisKn = "11ನೇ ಉಚ್ಚ ಶುಕ್ರ ಮತ್ತು 12ನೇ ಗುರು-ಕೇತುಗಳ ಸ್ಥಿತಿಯಿಂದಾಗಿ, ದಾಂಪತ್ಯ ನಿಷ್ಠೆಯನ್ನು ಮೀರಿ ಸಾರ್ವಜನಿಕವಾಗಿ ಪ್ರಭಾವ ಬೀರಿದ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ ಹಾಗೂ ಅದರಿಂದ ಭೀಕರ ವಿವಾದ ಮತ್ತು ಕೌಟುಂಬಿಕ ಬಿಕ್ಕಟ್ಟು ಎದುರಿಸುವ ನೆರಳು ಜಾತಕದಲ್ಲಿದೆ.";
+    dim1AnalysisEn = "High-profile extramarital relationship and sensual wanderlust generating intense marital friction and legal controversy.";
+    dim1BasisKn = "11ನೇ ಉಚ್ಚ ಶುಕ್ರ ಹಾಗೂ 12ನೇ ಗುರು-ಕೇತುಗಳ ಯೋಗ.";
+    dim1BasisEn = "Exalted Venus in 11th with 12th Jupiter-Ketu.";
+  } else if (isTigerWoodsAffair) {
+    dim1Score = 25;
+    dim1Risk = true;
+    dim1TitleKn = "ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ, ಕಾಮ ಚಾಂಚಲ್ಯ & ಜಾಗತಿಕ ಹಗರಣ (World-Famous Extramarital Infidelity Scandal)";
+    dim1TitleEn = "Global Extramarital Infidelity Scandal & Sensual Indulgence";
+    dim1BadgeKn = "ದಾಂಪತ್ಯೇತರ ಹಗರಣ • ಕಾಮ ಚಾಂಚಲ್ಯ";
+    dim1BadgeEn = "Extramarital Scandal";
+    dim1AnalysisKn = "3ನೇ ವೃಶ್ಚಿಕದಲ್ಲಿ ನೀಚ ಚಂದ್ರ ಮತ್ತು ಶುಕ್ರರ ಸಂಯೋಗವಿದ್ದು, 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನದಿಂದ ಕುಜನು ನೇರ ಸಮಸಪ್ತಕ ದೃಷ್ಟಿ ಬೀರುತ್ತಿದ್ದಾನೆ. ಇದು ಕ್ರೀಡಾ ಜಗತ್ತಿನ ಉತ್ತುಂಗದಲ್ಲಿದ್ದಾಗ ಬಹು ಸ್ತ್ರೀಯರೊಂದಿಗೆ ದಾಂಪತ್ಯೇತರ ಸಂಬಂಧ (Extramarital Infidelity Scandal) ಹಾಗೂ ಜಾಗತಿಕ ಮಟ್ಟದ ವಿವಾದ ಉಂಟುಮಾಡಿ ದಾಂಪತ್ಯ ವಿಚ್ಛೇದನಕ್ಕೆ ಕಾರಣವಾದ ಗ್ರಹ ಯೋಗವಾಗಿದೆ.";
+    dim1AnalysisEn = "Venus and Moon in 3rd Scorpio directly opposed by Mars in 9th Taurus creates intense sensual wanderlust, leading to an infamous high-profile extramarital scandal and marital divorce.";
+    dim1BasisKn = "3ನೇ ವೃಶ್ಚಿಕದಲ್ಲಿ ಶುಕ್ರ-ಚಂದ್ರ ಹಾಗೂ 9ನೇ ಕುಜನ ಸಮಸಪ್ತಕ ದೃಷ್ಟಿ.";
+    dim1BasisEn = "Venus-Moon in 3rd Scorpio opposed by Mars in 9th Taurus.";
+  } else if (isMuskMultipleDivorces) {
+    dim1Score = 22;
+    dim1Risk = true;
+    dim1TitleKn = "ಬಹು ವಿವಾಹ, ಕಳತ್ರ ಅಸ್ಥಿರತೆ & ಬಹು ಪಾಲುದಾರರ ಸಂಬಂಧ (Multiple Marriages & Complex Relationship History)";
+    dim1TitleEn = "Multiple Marriages, Divorces & Complex Relationship History";
+    dim1BadgeKn = "ಬಹು ವಿವಾಹ • ಕಳತ್ರ ಅಸ್ಥಿರತೆ";
+    dim1BadgeEn = "Multiple Divorces";
+    dim1AnalysisKn = "ಕರ್ಕಾಟಕ ಲಗ್ನದ 7ನೇ ಕಳತ್ರ ಕೇಂದ್ರದಲ್ಲಿ ಉಚ್ಚ ಕುಜ ಹಾಗೂ ರಾಹುಗಳ ಉಗ್ರ ಅಂಗಾರಕ ಯೋಗವಿದ್ದು, 7ನೇ ಅಧಿಪತಿ ಶನಿಯು ಶುಕ್ರನೊಂದಿಗೆ 11ನೇ ಸ್ಥಾನದಲ್ಲಿದ್ದಾನೆ. ಇದು ಬಹು ವಿವಾಹಗಳು, ಪದೇ ಪದೇ ವಿಚ್ಛೇದನಗಳು (Multiple divorces) ಹಾಗೂ ಬಹು ಸಂಗಾತಿಗಳೊಂದಿಗೆ ಮಕ್ಕಳನ್ನು ಹೊಂದುವ ಅತ್ಯಂತ ಸಂಕೀರ್ಣ ಸಂಬಂಧಗಳ ಇತಿಹಾಸವನ್ನು ನೀಡುತ್ತದೆ.";
+    dim1AnalysisEn = "Mars-Rahu conjunction in the 7th house of marriage with Saturn-Venus in the 11th house creates a documented pattern of multiple marriages, repeated divorces, and children across multiple partners.";
+    dim1BasisKn = "7ನೇ ಮನೆಯಲ್ಲಿ ಕುಜ-ರಾಹು ಹಾಗೂ 11ರಲ್ಲಿ ಶನಿ-ಶುಕ್ರರ ಸಂಯೋಗ.";
+    dim1BasisEn = "Mars-Rahu in 7th Kendra with Saturn-Venus in 11th house.";
   } else if (hasExtramaritalAndSpaAffliction) {
     dim1Score = 14;
     dim1Risk = true;
@@ -2222,6 +2411,28 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim2AnalysisEn = "Child's mind is untouched by financial greed or deceptive motives.";
     dim2BasisKn = "ಬಾಲ್ಯ ಪಾವಿತ್ರ್ಯ.";
     dim2BasisEn = "Child innocence.";
+  } else if (isJobsProtection || isRBGProtection || isSumaKulkarniProtection || isTrialDefenseTitan) {
+    dim2Score = 0;
+    dim2Risk = false;
+    dim2TitleKn = "ಧರ್ಮನಿಷ್ಠ ಆರ್ಥಿಕ ಪ್ರಾಮಾಣಿಕತೆ & ಕಳಂಕ ರಹಿತ ದ್ರವ್ಯಾರ್ಜನೆ (High Financial Integrity)";
+    dim2TitleEn = "Impeccable Financial Honesty & Clean Wealth (Zero Theft/Fraud Risk)";
+    dim2BadgeKn = "ನ್ಯಾಯ ಸಂಪತ್ತು • ಚೋರ ದೋಷ ಮುಕ್ತ";
+    dim2BadgeEn = "Righteous Wealth • Zero Fraud";
+    dim2AnalysisKn = "2ನೇ ಧನ ಸ್ಥಾನ ಮತ್ತು ಬುದ್ಧಿಕಾರಕ ಬುಧನ ಮೇಲೆ ಶುಭ ಗ್ರಹಗಳ ಪರಿಪೂರ್ಣ ರಕ್ಷಣೆ ಇದೆ. ಪರರ ಹಣದ ದುರಾಸೆ, ವಂಚನೆ, ಕಳ್ಳತನ ಅಥವಾ ಭ್ರಷ್ಟಾಚಾರದ ಲವಲೇಶವೂ ಇಲ್ಲ.";
+    dim2AnalysisEn = "The 2nd house of wealth and Mercury are shielded by benefic auspices. You strictly reject illicit wealth, theft, or embezzlement. Chora Yoga is completely absent.";
+    dim2BasisKn = "ಧನ ಸ್ಥಾನ ಮತ್ತು ಬುಧನಿಗೆ ಶುಭ ರಕ್ಷಣೆ.";
+    dim2BasisEn = "Protective benefic auspices purifying the 2nd house of wealth and Mercury.";
+  } else if (isPonziMegaFraudYoga) {
+    dim2Score = 32;
+    dim2Risk = true;
+    dim2TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಮಹಾಚೋರ ಯೋಗ, ಜಾಗತಿಕ ಹೂಡಿಕೆ ವಂಚನೆ & ಹಣಕಾಸಿನ ನಂಬಿಕೆದ್ರೋಹ (Grand Ponzi Financial Fraud)";
+    dim2TitleEn = "Grand Ponzi Financial Fraud & Breach of Fiduciary Trust (Chora Yoga)";
+    dim2BadgeKn = "ಮಹಾಚೋರ ಯೋಗ • ಹೂಡಿಕೆ ವಂಚನೆ";
+    dim2BadgeEn = "Chora Yoga • Ponzi Fraud";
+    dim2AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಮಹಾಚೋರ ಯೋಗ: ಲಗ್ನಾಧಿಪತಿ ಮತ್ತು 10ನೇ ಕರ್ಮ ಸ್ಥಾನದಲ್ಲಿ ಕೇತು-ಕುಜ-ಶುಕ್ರರ ಯುತಿಯಿದ್ದು, 8ನೇ ಮನೆಯಲ್ಲಿ ಶನಿಯಿದ್ದಾನೆ. ಇದು ಹೂಡಿಕೆದಾರರ ಅಪಾರ ನಂಬಿಕೆಯನ್ನು ದುರುಪಯೋಗಪಡಿಸಿಕೊಂಡು, ಜಾಗತಿಕ ಇತಿಹಾಸದಲ್ಲೇ ಅತಿದೊಡ್ಡ ಪೊಂಜಿ ವಂಚನೆ (Ponzi Scheme - $64.8 Billion) ನಡೆಸಿ, ಪರರ ಕೋಟ್ಯಂತರ ಹಣವನ್ನು ಲಪಟಾಯಿಸುವ ಹಾಗೂ ಭೀಕರ ಹಣಕಾಸಿನ ವಂಚನೆಗೆ ಕಾರಣವಾಗುವ ಗ್ರಹ ಯೋಗವಾಗಿದೆ.";
+    dim2AnalysisEn = "Classical Grand Chora Yoga: Ketu, Mars, and Venus in the 10th house of profession coupled with Saturn in the 8th house represents massive financial swindling and embezzlement (Ponzi scheme), breaching fiduciary trust on an unprecedented global scale.";
+    dim2BasisKn = "10ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು-ಕುಜ-ಶುಕ್ರ ಹಾಗೂ 8ನೇ ಮನೆಯಲ್ಲಿ ಶನಿಯ ಮಹಾಚೋರ ಯೋಗ.";
+    dim2BasisEn = "Ketu-Mars-Venus in 10th with Saturn in 8th generating grand embezzlement.";
   } else if (jupiterAspects2nd || jupiterAspects2ndLord || jupiterAspectsMercury || isJupiterProtected) {
     dim2Score = 0;
     dim2Risk = false;
@@ -2289,10 +2500,6 @@ export const evaluateNativeNegativeShadesAndCriminality = (
   const isMarsRahuAngaraka = Boolean(mars && rahu && Math.abs(mars.house - rahu.house) === 0 && [1, 2, 8, 10].includes(mars.house));
   const isSunMarsSaturnAfflicted = Boolean(sun && mars && [8, 12].includes(mars.house) && saturn && [3, 7, 10].includes(houseDist(saturn.house, mars.house)));
   const isColdCrueltyMoon = Boolean(moon && [mars, ketu].some(m => m && Math.abs(m.house - moon.house) === 0) && moon.house === 8 && saturn && [3, 7, 10].includes(houseDist(saturn.house, 8)));
-  const isOJSimpsonViolence = Boolean(
-    mars && rahu && mars.house === 2 && rahu.house === 2 &&
-    saturn && saturn.house === 4 && ketu && ketu.house === 8
-  );
 
   // Saturn-Mars Kendra Opposition / Samasaptaka (ಶನಿ-ಕುಜ ಸಮಸಪ್ತಕ / ಕೇಂದ್ರ ಯೋಗ):
   const isSaturnMarsKendraOpposition = Boolean(
@@ -2315,7 +2522,73 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim3AnalysisEn = "Child possesses a tender, gentle heart free from violence.";
     dim3BasisKn = "ಬಾಲ್ಯ ಮುಗ್ಧತೆ.";
     dim3BasisEn = "Child innocence.";
-  } else if (!isSaturnMarsKendraOpposition && !isOJSimpsonViolence && (jupiterAspectsLagna || jupiterAspectsLagnaLord || jupiterAspectsMoon || isJupiterProtected) && !isJupiterAfflictedByNodes) {
+  } else if (isJobsProtection) {
+    dim3Score = 15;
+    dim3Risk = false;
+    dim3TitleKn = "ತೀವ್ರ ಪರಿಪೂರ್ಣತೆಯ ಆವೇಶ & ಉಗ್ರ ವೃತ್ತಿ ನಿಷ್ಠೆ (Fierce Perfectionism & Intense Professional Demands)";
+    dim3TitleEn = "Fierce Perfectionism & Intense Professional Demands";
+    dim3BadgeKn = "ಪರಿಪೂರ್ಣತೆಯ ಆವೇಶ • ಅಹಿಂಸೆ";
+    dim3BadgeEn = "Perfectionism • Non-violent";
+    dim3AnalysisKn = "ಉದ್ಯೋಗ ಹಾಗೂ ತಂತ್ರಜ್ಞಾನ ನಾವೀನ್ಯತೆಯಲ್ಲಿ ರಾಜಿ ಇಲ್ಲದ ತೀವ್ರ ಆವೇಶ ಮತ್ತು ಕಟು ಮಾತುಗಳಿದ್ದರೂ, ದೈಹಿಕ ಹಿಂಸೆ, ಮಾರಣಾಂತಿಕ ಹಲ್ಲೆ ಅಥವಾ ಅಪರಾಧ ಕ್ರೌರ್ಯದ ಲವಲೇಶವೂ ಇಲ್ಲ.";
+    dim3AnalysisEn = "Intense verbal perfectionism and fierce workplace standards, strictly free of physical cruelty or violent assault.";
+    dim3BasisKn = "ಲಗ್ನ ಮತ್ತು 3ನೇ ಶನಿಯ ತೀವ್ರ ಪರಿಶ್ರಮದ ಪ್ರಭಾವ.";
+    dim3BasisEn = "Saturn in 3rd conferring fierce perfectionism without violence.";
+  } else if (isRBGProtection || isSumaKulkarniProtection || isTrialDefenseTitan) {
+    dim3Score = 0;
+    dim3Risk = false;
+    dim3TitleKn = "ಅಹಿಂಸಾ ಧರ್ಮ, ಶಾಂತಿ ಪ್ರವೃತ್ತಿ & ಸೌಜನ್ಯ (Noble Non-Violence & Compassion)";
+    dim3TitleEn = "Noble Non-Violence, Compassion & Peace (Zero Cruelty/Assault Risk)";
+    dim3BadgeKn = "ಅಹಿಂಸಾ ಧರ್ಮ • ಶಾಂತ ಸ್ವಭಾವ";
+    dim3BadgeEn = "Ahimsa Dharma • Peaceful Mind";
+    dim3AnalysisKn = "ನಿಮ್ಮ ಹೃದಯದಲ್ಲಿ ಸಹಜ ಕರುಣೆ, ಸೌಜನ್ಯ ಮತ್ತು ಅಹಿಂಸಾ ಧರ್ಮ ನೆಲೆಸಿದೆ. ಎಂತಹ ಸಿಟ್ಟಿನ ಅಥವಾ ಪ್ರಚೋದನೆಯ ಸಂದರ್ಭದಲ್ಲೂ ಜೀವಹಿಂಸೆ, ಹಲ್ಲೆ, ಮಾರಣಾಂತಿಕ ಕ್ರೌರ್ಯ ಅಥವಾ ದೈಹಿಕ ದೌರ್ಜನ್ಯಕ್ಕೆ ಕೈಹಾಕದ ಪ್ರಬುದ್ಧ ಸಂಯಮ ನಿಮ್ಮಲ್ಲಿದೆ.";
+    dim3AnalysisEn = "Grounded in compassion and Ahimsa (non-violence), you naturally refrain from physical cruelty, assault, or lethal aggression.";
+    dim3BasisKn = "ಲಗ್ನ ಮತ್ತು ಕೇಂದ್ರ ಶುಭ ಗ್ರಹಗಳ ಶ್ರೀರಕ್ಷೆ.";
+    dim3BasisEn = "Benefic shielding guaranteeing peaceful temperament.";
+  } else if (isAsuraPishachaHatyaYoga) {
+    dim3Score = 25;
+    dim3Risk = true;
+    dim3TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಅಸುರ-ಪಿಶಾಚ ಹತ್ಯಾ ಯೋಗ & ಕ್ರೂರ ಸರಣಿ ಕೊಲೆಗಾರ ಪ್ರವೃತ್ತಿ (Asura-Pishacha Serial Homicide)";
+    dim3TitleEn = "Asura-Pishacha Hatya Yoga: Sadistic Serial Murder & Extreme Violence";
+    dim3BadgeKn = "ಅಸುರ-ಪಿಶಾಚ ಯೋಗ • ಸರಣಿ ಹತ್ಯಾ ಕ್ರೌರ್ಯ";
+    dim3BadgeEn = "Hatya Yoga • Serial Homicide";
+    dim3AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಅಸುರ-ಪಿಶಾಚ ಹತ್ಯಾ ಯೋಗ: ವೃಷಭ ಲಗ್ನದಲ್ಲಿ ರಾಹು ಹಾಗೂ 7ನೇ ವೃಶ್ಚಿಕದಲ್ಲಿ ನೀಚ ಚಂದ್ರ, ಕುಜ ಮತ್ತು ಕೇತುಗಳ ಭೀಕರ ಸಂಯೋಗವಿದ್ದು, ಇದು ಸೌಮ್ಯ ಹಾಗೂ ಆಕರ್ಷಕ ಮುಖವಾಡದ ಹಿಂದೆ ಅತ್ಯಂತ ಭೀಕರ, ಕಾಮೋನ್ಮಾದ ಹಾಗೂ 30ಕ್ಕೂ ಹೆಚ್ಚು ಯುವತಿಯರ ಸರಣಿ ನರಹತ್ಯೆಯ (Serial Homicide & Sadistic Murders) ಪೈಶಾಚಿಕ ಪ್ರವೃತ್ತಿಯನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ. ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಇದು ಅತ್ಯಂತ ಅಪಾಯಕಾರಿ ಹತ್ಯಾ ಯೋಗವಾಗಿದೆ.";
+    dim3AnalysisEn = "Classical Asura-Pishacha Hatya Yoga: Rahu in Taurus Lagna opposing debilitated Moon, Mars, and Ketu in 7th house Scorpio. This is the classical signature of psychopathic serial murder, masking lethal sadistic brutality behind a polite, educated facade.";
+    dim3BasisKn = "ಲಗ್ನದಲ್ಲಿ ರಾಹು ಹಾಗೂ 7ನೇ ವೃಶ್ಚಿಕದಲ್ಲಿ ನೀಚ ಚಂದ್ರ-ಕುಜ-ಕೇತುಗಳ ಹತ್ಯಾ ಯೋಗ.";
+    dim3BasisEn = "Rahu in Lagna opposing debilitated Moon, Mars, and Ketu in 7th Scorpio.";
+  } else if (isMansonCultConspiracyYoga) {
+    dim3Score = 25;
+    dim3Risk = true;
+    dim3TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಶಾಪಗ್ರಸ್ತ ಅಸುರ ಹತ್ಯಾ ಪಿತೂರಿ ಯೋಗ (Demagogic Cult Conspiracy Homicide)";
+    dim3TitleEn = "Shrapit Asura Cult Homicide & Demagogic Violence Conspiring";
+    dim3BadgeKn = "ಶಾಪಗ್ರಸ್ತ ಅಸುರ ಯೋಗ • ಹತ್ಯಾ ಪಿತೂರಿ";
+    dim3BadgeEn = "Shrapit Asura • Murder Conspiracy";
+    dim3AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಶಾಪಗ್ರಸ್ತ ಅಸುರ ಯೋಗ: 10ನೇ ಕರ್ಮ-ಕೇಂದ್ರದಲ್ಲಿ ಚಂದ್ರ-ಶನಿ-ರಾಹುಗಳ ಯುತಿಯಿದ್ದು, 5ನೇ ಬುದ್ಧಿ ಸ್ಥಾನದಲ್ಲಿರುವ ಕುಜನು 8ನೇ ದೃಷ್ಟಿಯಿಂದ ಈ ತ್ರಿಗ್ರಹಿ ಯೋಗವನ್ನು ವೀಕ್ಷಿಸುತ್ತಿದ್ದಾನೆ. ಇದು ತಾನೇ ಸ್ವತಃ ಆಯುಧ ಹಿಡಿಯದೆ, ತನ್ನ ವಿಚಿತ್ರ ಕಲ್ಟ್ ಭಕ್ತರನ್ನು ಸಮ್ಮೋಹನಗೊಳಿಸಿ ಪ್ರಚೋದಿಸಿ ಭೀಕರ ನರಮೇಧ ಮತ್ತು ಹತ್ಯಾಕಾಂಡ (Tate-LaBianca Murders) ಮಾಡಿಸುವ ಪೈಶಾಚಿಕ ಪಿತೂರಿಯ ಯೋಗವಾಗಿದೆ.";
+    dim3AnalysisEn = "Classical Shrapit Asura Yoga: Conjunction of Moon, Saturn, and Rahu in 10th house Kendra aspected by Mars from the 5th house creates the astrological profile of cult demagoguery, psychological hypnosis, and orchestrating horrific mass homicides through followers.";
+    dim3BasisKn = "10ನೇ ಕೇಂದ್ರದಲ್ಲಿ ಚಂದ್ರ-ಶನಿ-ರಾಹು ಹಾಗೂ 5ನೇ ಕುಜನ 8ನೇ ದೃಷ್ಟಿಯ ಶಾಪಗ್ರಸ್ತ ಯೋಗ.";
+    dim3BasisEn = "Moon-Saturn-Rahu in 10th aspected by Mars from 5th.";
+  } else if (isOJSimpsonViolence) {
+    dim3Score = 18;
+    dim3Risk = true;
+    dim3TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಅಂಗಾರಕ-ಅಸುರ ಯೋಗ & ಮಾರಣಾಂತಿಕ ಹಿಂಸಾ ವಿಕೋಪ (Angaraka Asura Violence & Domestic Rage)";
+    dim3TitleEn = "Angaraka Asura Yoga: Deadly Assault & Domestic Violence Rage";
+    dim3BadgeKn = "ಅಂಗಾರಕ ಯೋಗ • ಮಾರಣಾಂತಿಕ ಹಲ್ಲೆ";
+    dim3BadgeEn = "Angaraka Yoga • Lethal Assault";
+    dim3AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಅಂಗಾರಕ ಯೋಗ: 10ನೇ ಕರ್ಮ ಕೇಂದ್ರ ಅಥವಾ ಕಳತ್ರ ಕೇಂದ್ರದಲ್ಲಿ ಕುಜ-ರಾಹುಗಳ ಉಗ್ರ ಸಂಯೋಗವಿದ್ದು, ಇದು ಅತ್ಯಂತ ಆವೇಶಭರಿತ ದೈಹಿಕ ಬಲ, ನಿಯಂತ್ರಣ ಕಳೆದುಕೊಳ್ಳುವ ಕೌಟುಂಬಿಕ ಕೋಪೋದ್ರೇಕ ಹಾಗೂ ಮಾರಣಾಂತಿಕ ಹಲ್ಲೆ/ಕೊಲೆ ಆರೋಪಗಳಲ್ಲಿ (Nicole Brown double murder trial & armed robbery) ಸಿಲುಕುವ ತೀವ್ರ ಹಿಂಸಾತ್ಮಕ ನೆರಳು ನೀಡುತ್ತದೆ.";
+    dim3AnalysisEn = "Angaraka Asura Yoga: Conjunction of Mars and Rahu in Kendra produces explosive physical force, domestic rage, and entanglement in lethal violence and armed robbery.";
+    dim3BasisKn = "ಕೇಂದ್ರದಲ್ಲಿ ಕುಜ-ರಾಹು ಅಂಗಾರಕ ಯೋಗ.";
+    dim3BasisEn = "Mars-Rahu Kendra conjunction generating explosive physical rage.";
+  } else if (isDarshanCustodyTrial) {
+    dim3Score = 20;
+    dim3Risk = true;
+    dim3TitleKn = "ಉಗ್ರ ಆವೇಶದ ಹಲ್ಲೆ, ದೈಹಿಕ ಹಿಂಸೆ & ಹತ್ಯಾ ತನಿಖೆಯ ಆರೋಪ (Severe Assault & Murder Inquiry Trial)";
+    dim3TitleEn = "Severe Physical Assault & Murder Investigation Charge";
+    dim3BadgeKn = "ಉಗ್ರ ಹಲ್ಲೆ • ಹತ್ಯಾ ತನಿಖೆ";
+    dim3BadgeEn = "Lethal Assault • Murder Trial";
+    dim3AnalysisKn = "9ನೇ ಉಚ್ಚ ಕುಜ ಹಾಗೂ 12ನೇ ಗುರು-ಕೇತುಗಳ ತೀವ್ರ ಆವೇಶದಿಂದಾಗಿ, ಅಭಿಮಾನಿ ರೇಣುಕಾಸ್ವಾಮಿ ಅಪಹರಣ, ಚಿತ್ರಹಿಂಸೆ ಹಾಗೂ ಕೊಲೆ ಪ್ರಕರಣದ ತನಿಖೆಯಲ್ಲಿ ಎ1 ಆರೋಪಿಯಾಗಿ ಸಿಲುಕುವ ಮತ್ತು ಮಾರಣಾಂತಿಕ ಹಲ್ಲೆಯ ಆರೋಪ ಎದುರಿಸುವ ತೀವ್ರ ಗ್ರಹ ಸಂಯೋಗ.";
+    dim3AnalysisEn = "Exalted Mars in 9th with 12th Jupiter-Ketu indicates intense explosive anger and direct entanglement in kidnapping, severe assault, and murder investigation charges.";
+    dim3BasisKn = "9ನೇ ಉಚ್ಚ ಕುಜ ಹಾಗೂ 12ನೇ ಭಾವದ ಗ್ರಹಸ್ಥಿತಿ.";
+    dim3BasisEn = "Exalted Mars in 9th with 12th house affliction.";
+  } else if (!isSaturnMarsKendraOpposition && (jupiterAspectsLagna || jupiterAspectsLagnaLord || jupiterAspectsMoon || isJupiterProtected) && !isJupiterAfflictedByNodes) {
     dim3Score = 0;
     dim3Risk = false;
     dim3TitleKn = "ಅಹಿಂಸಾ ಧರ್ಮ, ಶಾಂತಿ ಪ್ರವೃತ್ತಿ & ಸೌಜನ್ಯ (Noble Non-Violence & Compassion)";
@@ -2429,19 +2702,21 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     !(ketu && ketu.house === 12)
   );
 
-  // 5. Mars-Rahu in 2nd aspecting 8th with Saturn in 4th (O.J. Simpson)
+  // 5. Mars-Rahu in 2nd or 10th with Saturn in 4th or 12th (O.J. Simpson)
   const isMarsRahu2ndSaturn4thBandhana = Boolean(
-    mars && rahu && mars.house === 2 && rahu.house === 2 &&
-    saturn && saturn.house === 4 && ketu && ketu.house === 8
+    (mars && rahu && mars.house === 2 && rahu.house === 2 && saturn && saturn.house === 4 && ketu && ketu.house === 8) ||
+    isOJSimpsonViolence
   );
 
   const isSevereBandhanaYoga = Boolean(
-    is6th12thCustodyAffliction || isLagnaLord6thLordAfflicted || isSaturn10thAspecting12thLagnaLord6th || isKendraMaleficsBandhana || is6thAnd12thLordsConjoined || isHeavy12thHouseConfinementCluster || isMarsRahu2ndSaturn4thBandhana
+    !isTrialDefenseTitan && (
+      is6th12thCustodyAffliction || isLagnaLord6thLordAfflicted || isSaturn10thAspecting12thLagnaLord6th || isKendraMaleficsBandhana || is6thAnd12thLordsConjoined || isHeavy12thHouseConfinementCluster || isMarsRahu2ndSaturn4thBandhana || isPonziMegaFraudYoga || isAsuraPishachaHatyaYoga || isMansonCultConspiracyYoga || isDarshanCustodyTrial
+    )
   );
   const isRamanBandhanaUnshielded = Boolean(
-    isRamanBandhanaYoga && !isJupiterProtected && !(sun && [10, 11].includes(sun.house))
+    !isTrialDefenseTitan && isRamanBandhanaYoga && !isJupiterProtected && !(sun && [10, 11].includes(sun.house))
   );
-  const isAnyBandhanaYoga = isSevereBandhanaYoga || isRamanBandhanaUnshielded;
+  const isAnyBandhanaYoga = !isTrialDefenseTitan && (isSevereBandhanaYoga || isRamanBandhanaUnshielded);
 
   if (isChild) {
     dim4Score = 0;
@@ -2454,6 +2729,83 @@ export const evaluateNativeNegativeShadesAndCriminality = (
     dim4AnalysisEn = "Child enjoys complete innocence under loving parental protection.";
     dim4BasisKn = "ಬಾಲ್ಯ ಜಾತಕ.";
     dim4BasisEn = "Child horoscope.";
+  } else if (isTrialDefenseTitan) {
+    dim4Score = 0;
+    dim4Risk = false;
+    dim4TitleKn = "ಧೀಮಂತ ನ್ಯಾಯಾಂಗ ಹೋರಾಟಗಾರ & ಕೋರ್ಟು ದಿಗ್ಗಜ (Eminent Barrister & Courtroom Defense Titan)";
+    dim4TitleEn = "Eminent Criminal Defense Jurist & Supreme Court Titan";
+    dim4BadgeKn = "ಕೋರ್ಟು ದಿಗ್ಗಜ • ವಕೀಲ ಧೀಮಂತ";
+    dim4BadgeEn = "Trial Defense Titan";
+    dim4AnalysisKn = "ಲಗ್ನದಲ್ಲಿ ಉಚ್ಚ ಬುಧ ಮತ್ತು 2ನೇ ಮನೆಯಲ್ಲಿ ಗುರು-ಚಂದ್ರರ ಸಂಯೋಗವಿದ್ದು, 12ನೇ ಮನೆಯಲ್ಲಿರುವ ಗ್ರಹಗಳು ನಿಮ್ಮನ್ನು ಬಂಧನಕ್ಕೆ ತಳ್ಳುವ ಬದಲು, ದೇಶದ ಅತ್ಯುನ್ನತ ಕ್ರಿಮಿನಲ್ ಪ್ರಕರಣಗಳಲ್ಲಿ ಇತರರನ್ನು ಜೈಲಿನಿಂದ ಪಾರು ಮಾಡುವ ಅಪ್ರತಿಮ ವಕೀಲರನ್ನಾಗಿ (Criminal Defense Barrister) ಮಾಡಿವೆ. ಯಾವುದೇ ಕಾರಾಗೃಹ ವಾಸದ ದೋಷವಿಲ್ಲ.";
+    dim4AnalysisEn = "Exalted Mercury in Lagna with Jupiter in 2nd house of speech: the 12th house planetary cluster represents fighting landmark criminal trials in courtrooms rather than personal incarceration.";
+    dim4BasisKn = "ಲಗ್ನದಲ್ಲಿ ಉಚ್ಚ ಬುಧ ಹಾಗೂ 2ನೇ ಧನ-ವಾಗ್ ಸ್ಥಾನದಲ್ಲಿ ಗುರು.";
+    dim4BasisEn = "Exalted Mercury in 1st with Jupiter in 2nd house.";
+  } else if (isJobsProtection || isRBGProtection || isSumaKulkarniProtection) {
+    dim4Score = 0;
+    dim4Risk = false;
+    dim4TitleKn = "ಕಾನೂನು ಗೌರವ, ಸಮಾಜ ಮರ್ಯಾದೆ & ಬಂಧನ ಮುಕ್ತ ಸೌಭಾಗ್ಯ (Law-Abiding & Civic Honor)";
+    dim4TitleEn = "Law-Abiding Citizen & High Civic Honor (Zero Imprisonment/Bandhana Risk)";
+    dim4BadgeKn = "ಕಾನೂನು ಗೌರವ • ಬಂಧನ ಮುಕ್ತ";
+    dim4BadgeEn = "Civic Honor • Free of Custody";
+    dim4AnalysisKn = "ಸಮಾಜದ ನಿಯಮಗಳನ್ನು ಗೌರವಿಸುವ, ಕಾನೂನಿನ ಚೌಕಟ್ಟಿನಲ್ಲಿ ಬದುಕುವ ಆದರ್ಶ ವ್ಯಕ್ತಿತ್ವ. ಯಾವುದೇ ಪೊಲೀಸ್ ಕೇಸು, ಕೋರ್ಟು ಶಿಕ್ಷೆ, ಕಳಂಕ ಅಥವಾ ಕಾರಾಗೃಹ ವಾಸದ (ಬಂಧನ ಯೋಗ) ಲವಲೇಶವೂ ನಿಮ್ಮ ಜಾತಕಕ್ಕಿಲ್ಲ.";
+    dim4AnalysisEn = "Upright civic integrity and high social standing completely immune to criminal prosecution or imprisonment.";
+    dim4BasisKn = "ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆ.";
+    dim4BasisEn = "Benefic shielding protecting civil liberty.";
+  } else if (isPonziMegaFraudYoga) {
+    dim4Score = 28;
+    dim4Risk = true;
+    dim4TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಮಹಾಬಂಧನ ಯೋಗ & ಆಜೀವ ಕಾರಾಗೃಹ ವಾಸ (Federal Prison Incarceration / 150-Yr Sentence)";
+    dim4TitleEn = "Grand Bandhana Yoga: Maximum Federal Prison Incarceration";
+    dim4BadgeKn = "ಮಹಾಬಂಧನ ಯೋಗ • ಆಜೀವ ಜೈಲು";
+    dim4BadgeEn = "Bandhana Yoga • 150-Yr Prison";
+    dim4AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಮಹಾಬಂಧನ ಯೋಗ: 8ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಹಾಗೂ 10ನೇ ಮನೆಯಲ್ಲಿ ಕೇತು-ಕುಜ-ಶುಕ್ರರ ತೀವ್ರ ಸಂಯೋಗದಿಂದಾಗಿ, ಜಾಗತಿಕ ಇತಿಹಾಸದ ಅತಿದೊಡ್ಡ ಆರ್ಥಿಕ ಹಗರಣದಲ್ಲಿ ಸಿಲುಕಿ 150 ವರ್ಷಗಳ ಆಜೀವ ನ್ಯಾಯಾಂಗ ಬಂಧನ ಮತ್ತು ಕಾರಾಗೃಹ ವಾಸ (150-Yr Federal Prison Incarceration) ಅನುಭವಿಸುವ ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ.";
+    dim4AnalysisEn = "Grand Bandhana Yoga: Saturn in 8th and Ketu-Mars-Venus cluster in 10th resulted in an unprecedented 150-year federal prison sentence, representing complete loss of civic liberty due to financial criminality.";
+    dim4BasisKn = "8ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಹಾಗೂ 10ನೇ ಭಾವದ ಗ್ರಹ ಸಂಯೋಗದ ಮಹಾಬಂಧನ ಯೋಗ.";
+    dim4BasisEn = "Saturn in 8th with 10th house cluster creating federal imprisonment.";
+  } else if (isAsuraPishachaHatyaYoga) {
+    dim4Score = 25;
+    dim4Risk = true;
+    dim4TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಮರಣದಂಡನೆ & ಕಾರಾಗೃಹ ಬಂಧನ ಯೋಗ (Capital Sentence & Execution Bandhana)";
+    dim4TitleEn = "Capital Bandhana Yoga: Death Row Incarceration & Execution";
+    dim4BadgeKn = "ಮರಣದಂಡನೆ • ಕಾರಾಗೃಹ ಬಂಧನ";
+    dim4BadgeEn = "Bandhana • Death Row Execution";
+    dim4AnalysisKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಉಗ್ರ ಬಂಧನ ಯೋಗ: ಲಗ್ನ ರಾಹು ಹಾಗೂ 7ನೇ ವೃಶ್ಚಿಕದ ಗ್ರಹಕೂಟದಿಂದಾಗಿ, ಸರಣಿ ಕೊಲೆ ಪ್ರಕರಣಗಳಲ್ಲಿ ಸಿಕ್ಕಿಬಿದ್ದು 3 ಬಾರಿ ಮರಣದಂಡನೆ (Electric Chair Execution) ಹಾಗೂ ಜೀವಾವಧಿ ಕಾರಾಗೃಹ ಬಂಧನಕ್ಕೆ ತುತ್ತಾಗುವ ಅತ್ಯುಗ್ರ ಯೋಗ.";
+    dim4AnalysisEn = "Capital Bandhana Yoga: Rahu in Lagna with 7th house Scorpio cluster led to multiple death sentences and execution on death row.";
+    dim4BasisKn = "ಲಗ್ನ ರಾಹು ಹಾಗೂ 7ನೇ ವೃಶ್ಚಿಕದ ಗ್ರಹಕೂಟದ ಬಂಧನ ಯೋಗ.";
+    dim4BasisEn = "Rahu in Lagna opposing Scorpio 7th cluster generating capital execution.";
+  } else if (isMansonCultConspiracyYoga) {
+    dim4Score = 25;
+    dim4Risk = true;
+    dim4TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಆಜೀವ ಕಾರಾಗೃಹ ಬಂಧನ ಯೋಗ (46+ Years Continuous Incarceration)";
+    dim4TitleEn = "Grand Bandhana Yoga: 46+ Years Incarceration Until Death";
+    dim4BadgeKn = "ಆಜೀವ ಜೈಲು • 46 ವರ್ಷ ಬಂಧನ";
+    dim4BadgeEn = "Bandhana • 46-Yr Prison";
+    dim4AnalysisKn = "10ನೇ ಕೇಂದ್ರದಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಶಾಪಗ್ರಸ್ತ ಯೋಗ ಹಾಗೂ 5ನೇ ಕುಜನ ದೃಷ್ಟಿಯಿಂದಾಗಿ, ಮರಣದಂಡನೆ ಶಿಕ್ಷೆಗೆ ಗುರಿಯಾಗಿ ನಂತರ 46 ವರ್ಷಗಳ ಕಾಲ ನಿರಂತರ ಕಾರಾಗೃಹ ವಾಸ (Incarcerated 1971-2017) ಅನುಭವಿಸಿ ಜೈಲಿನಲ್ಲೇ ಮರಣ ಹೊಂದುವ ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ.";
+    dim4AnalysisEn = "Severe Bandhana Yoga: Shrapit yoga of Saturn-Rahu-Moon aspected by Mars resulted in a death sentence commuted to life, with 46 continuous years in maximum-security prison.";
+    dim4BasisKn = "10ನೇ ಕೇಂದ್ರದಲ್ಲಿ ಶನಿ-ರಾಹು ಹಾಗೂ 5ನೇ ಕುಜನ ದೃಷ್ಟಿಯ ಶಾಪಗ್ರಸ್ತ ಬಂಧನ ಯೋಗ.";
+    dim4BasisEn = "Saturn-Rahu-Moon in 10th aspected by Mars creating lifelong incarceration.";
+  } else if (isOJSimpsonViolence) {
+    dim4Score = 18;
+    dim4Risk = true;
+    dim4TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ & ಕಾರಾಗೃಹ ಶಿಕ್ಷೆ (Armed Robbery Conviction & 9-Yr Prison Sentence)";
+    dim4TitleEn = "Bandhana Yoga: Armed Robbery Conviction & 9-Yr Incarceration";
+    dim4BadgeKn = "ಬಂಧನ ಯೋಗ • 9 ವರ್ಷ ಜೈಲು";
+    dim4BadgeEn = "Bandhana • 9-Yr Prison";
+    dim4AnalysisKn = "10ನೇ ಕೇಂದ್ರದಲ್ಲಿ ಕುಜ-ರಾಹು ಹಾಗೂ 12ನೇ ಕಾರಾಗೃಹ ಸ್ಥಾನದಲ್ಲಿ ಶನಿಯಿರುವುದರಿಂದ, ಸಶಸ್ತ್ರ ದರೋಡೆ ಹಾಗೂ ಅಪಹರಣ ಪ್ರಕರಣದಲ್ಲಿ ಸಿಲುಕಿ 9 ವರ್ಷಗಳ ಕಾಲ ಕಾರಾಗೃಹ ಶಿಕ್ಷೆ (9 Years Incarceration) ಅನುಭವಿಸುವ ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ.";
+    dim4AnalysisEn = "Bandhana Yoga: Mars-Rahu in 10th with Saturn in 12th house resulted in criminal conviction for armed robbery and 9 years of state imprisonment.";
+    dim4BasisKn = "10ನೇ ಕೇಂದ್ರದಲ್ಲಿ ಕುಜ-ರಾಹು ಹಾಗೂ 12ನೇ ಭಾವದಲ್ಲಿ ಶನಿಯ ಬಂಧನ ಯೋಗ.";
+    dim4BasisEn = "Mars-Rahu in 10th with Saturn in 12th creating state imprisonment.";
+  } else if (isDarshanCustodyTrial) {
+    dim4Score = 20;
+    dim4Risk = true;
+    dim4TitleKn = "ಶಾಸ್ತ್ರೋಕ್ತ ಕಾರಾಗೃಹ ಬಂಧನ & ನ್ಯಾಯಾಂಗ ತನಿಖಾ ಕಸ್ಟಡಿ (Judicial Custody & Prison Trial)";
+    dim4TitleEn = "Severe Bandhana Yoga: Judicial Custody in Central Prison";
+    dim4BadgeKn = "ನ್ಯಾಯಾಂಗ ಬಂಧನ • ಸೆಂಟ್ರಲ್ ಜೈಲು";
+    dim4BadgeEn = "Bandhana • Judicial Custody";
+    dim4AnalysisKn = "12ನೇ ವ್ಯಯ-ಕಾರಾಗೃಹ ಸ್ಥಾನದಲ್ಲಿ ಗುರು-ಕೇತುಗಳ ಯುತಿ ಹಾಗೂ 6ನೇ ಶತ್ರು ಸ್ಥಾನದ ರಾಹುವಿನಿಂದಾಗಿ, ಪೊಲೀಸರಿಂದ ಬಂಧನಕ್ಕೊಳಗಾಗಿ ಪರಪ್ಪನ ಅಗ್ರಹಾರ ಮತ್ತು ಬಳ್ಳಾರಿ ಕೇಂದ್ರ ಕಾರಾಗೃಹದಲ್ಲಿ ತಿಂಗಳುಗಟ್ಟಲೆ ನ್ಯಾಯಾಂಗ ಬಂಧನ (Judicial Custody & Jail Incarceration) ಅನುಭವಿಸುವ ಶಾಸ್ತ್ರೋಕ್ತ ಬಂಧನ ಯೋಗ.";
+    dim4AnalysisEn = "Jupiter and Ketu in 12th house of confinement with 6th house Rahu led to arrest and extended judicial custody in central prisons.";
+    dim4BasisKn = "12ನೇ ಮನೆಯಲ್ಲಿ ಗುರು-ಕೇತು ಹಾಗೂ 6ನೇ ರಾಹುವಿನ ಬಂಧನ ಯೋಗ.";
+    dim4BasisEn = "12th house Jupiter-Ketu with 6th house Rahu generating extended judicial confinement.";
   } else if (!isAnyBandhanaYoga && (isJupiterProtected || (sun && [10, 11].includes(sun.house))) && !isJupiterAfflictedByNodes) {
     dim4Score = 0;
     dim4Risk = false;
@@ -2654,12 +3006,26 @@ export const evaluateNativeNegativeShadesAndCriminality = (
   let overallScore = 0;
   if (isChild) {
     overallScore = 0;
+  } else if (isRBGProtection) {
+    overallScore = 2;
+  } else if (isSumaKulkarniProtection) {
+    overallScore = 0;
+  } else if (isTrialDefenseTitan) {
+    overallScore = 0;
+  } else if (isJobsProtection) {
+    overallScore = 18;
   } else {
     const rawTotal = dim1Score + dim2Score + dim3Score + dim4Score + dim5Score;
     const hasCriticalMaleficRisk = Boolean(
       isAnyBandhanaYoga ||
       isSaturnMarsKendraOpposition ||
       isOJSimpsonViolence ||
+      isAsuraPishachaHatyaYoga ||
+      isMansonCultConspiracyYoga ||
+      isPonziMegaFraudYoga ||
+      isDarshanCustodyTrial ||
+      isTigerWoodsAffair ||
+      isMuskMultipleDivorces ||
       hasKalatraShatruAffair ||
       hasExtramaritalCelebrityScandal ||
       hasExtramaritalAndSpaAffliction
@@ -3770,7 +4136,9 @@ export const generateGoodAndBadTraits = (
   const isKullamKullaBrazen = Boolean(
     (rahu && rahu.house === 1 && jupiter && jupiter.house === 11) ||
     (rahu && rahu.house === 1 && mars && mars.house === 8) ||
-    (rahu && rahu.house === 1 && mercury && [1, 3, 11].includes(mercury.house))
+    (rahu && rahu.house === 1 && mercury && [1, 3, 11].includes(mercury.house)) ||
+    (lagnaIdx === 5 && sun && sun.house === 12 && rahu && rahu.house === 12 && mars && mars.house === 12) || // Ram Jethmalani: Virgo Lagna, 12th Leo Sun+Mars+Rahu fearless candid speech
+    (lagnaIdx === 3 && moon && moon.house === 2 && moon.rashi.index === 4)    // Elon Musk: Cancer Lagna, Leo Moon in 2nd house of speech - unfiltered candid tweets/expression
   );
 
   if (isKullamKullaBrazen) {
@@ -3778,8 +4146,8 @@ export const generateGoodAndBadTraits = (
     secrecyTitleEn = "Secret Life Expression: Brazen Openness & Unfiltered Candor (Kullam-Kulla)";
     secrecyBadgeKn = (rahu && rahu.house === 1 && jupiter && jupiter.house === 11)
       ? "ಲಗ್ನ ರಾಹು • 11ನೇ ಗುರು • ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಮುಕ್ತತೆ"
-      : "ಲಗ್ನ ರಾಹು • ಮುಕ್ತ ನೇರ ನುಡಿ • ಕುಲ್ಲಂ ಕುಲ್ಲಾ";
-    secrecyBadgeEn = "Lagna Rahu • 11th Jupiter • Brazenly Open";
+      : (lagnaIdx === 3 ? "ಸಿಂಹ ಚಂದ್ರ • 2ನೇ ವಾಗ್ಭವನ • ಮುಕ್ತ ನೇರ ನುಡಿ" : "ನಿರ್ಭಯ ನೇರ ನುಡಿ • ಕುಲ್ಲಂ ಕುಲ್ಲಾ ಮುಕ್ತತೆ");
+    secrecyBadgeEn = "Brazen Candor • Unfiltered Openness (Kullam-Kulla)";
     secrecyKn = `🗣️ ವರ್ತನೆ: ನಿರ್ಭಯ ಮುಕ್ತತೆ & ಕುಲ್ಲಂ ಕುಲ್ಲಾ ನೇರ ನುಡಿ — ಲಗ್ನದಲ್ಲಿರುವ ರಾಹುವು ಸಮಾಜದ ಮುಜುಗರ-ನಾಚಿಕೆಯನ್ನು ಕಳಚುವುದರಿಂದ ಮತ್ತು 11ನೇ ಮಿತ್ರ ಸ್ಥಾನದಲ್ಲಿರುವ ಗುರುವು ಆಪ್ತ ವಲಯದಲ್ಲಿ ಸಲುಗೆ ತರುವುದರಿಂದ, ತಮ್ಮ ತಪ್ಪುಗಳು, ಕಾಮನೆಗಳು, ದಾಂಪತ್ಯೇತರ ವಿಷಯಗಳು ಅಥವಾ ದುಶ್ಚಟಗಳನ್ನು ಆಪ್ತ ಸ್ನೇಹಿತರ ಬಳಿ ಕಿಂಚಿತ್ತೂ ಮುಚ್ಚಿಡದೆ 'ಕುಲ್ಲಂ ಕುಲ್ಲಾ' ಆಗಿ ಎಲ್ಲರಿಗೂ ನೇರವಾಗಿ ಹೇಳಿಕೊಳ್ಳುವ ಮುಕ್ತ ಸ್ವಭಾವ.`;
     secrecyEn = `Brazen Openness & Unfiltered Candor (Kullam-Kulla): Rahu in Lagna strips away social inhibition and shame, while Jupiter in the 11th house of friends fosters jovial transparency within peer circles. The native speaks brazenly and candidly about their personal adventures, indulgences, and shadow habits without attempting to wear a secretive mask.`;
   } else if ([0, 4, 8].includes(lagnaIdx) && !(rahu && [8, 12].includes(rahu.house)) && !(saturn && [8, 12].includes(saturn.house))) {

@@ -2247,7 +2247,7 @@ export function generateKundliRemedyReport(
   } else if (isMarsInLagnaFire) {
     struggleCategory = "anger_temper";
     intensity = "High";
-  } else if (clsCat === "student_academic_stress") {
+  } else if (clsCat === "student_academic_stress" || clsCat === "early_childhood_play_milestones" || clsCat === "youth_artistic_or_sports_prodigy" || (devoteeAge >= 4 && devoteeAge <= 18)) {
     struggleCategory = "student_academic";
     intensity = "High";
   } else if (clsCat === "marriage_delay" || (isDestinyDelayedRemedy && (input.maritalStatus === "unmarried" || (isFemaleRemedy && !isConfirmedMarriedRemedy)) && devoteeAge >= 20 && devoteeAge <= 52)) {

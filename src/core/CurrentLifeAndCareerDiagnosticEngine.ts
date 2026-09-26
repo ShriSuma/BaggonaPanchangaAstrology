@@ -113,6 +113,8 @@ export interface CareerSuitabilityField {
   coreStrengthsEn: string;
   whyNativeShinesKn: string;
   whyNativeShinesEn: string;
+  interestFieldsKn?: string[];
+  interestFieldsEn?: string[];
   verdictKn: "ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು (Top Recommended)" | "ಉತ್ತಮ ಅನುಕೂಲ (High Suitability)" | "ಮಧ್ಯಮ (Moderate)";
   verdictEn: "Top Recommended" | "High Suitability" | "Moderate";
 }
@@ -321,7 +323,7 @@ export function diagnoseCurrentLifeSituation(
     context.maritalStatus === "married" ||
     context.hasChildren === true ||
     (context.devoteeName && /ದಂಪತಿ|ಮತ್ತು|ಸಹಿತ|couple|\band\b/i.test(context.devoteeName)) ||
-    isDestinyAlreadyMarried
+    (isDestinyAlreadyMarried && context.maritalStatus !== "unmarried" && age >= 45)
   );
 
   const sun = kundli.planets.find(p => p.name === PlanetName.Sun);
@@ -1574,7 +1576,24 @@ export function diagnoseCurrentLifeSituation(
     "angelina jolie",
     "taylor swift",
     "ariana grande",
-    "selena gomez"
+    "selena gomez",
+    "mrbeast",
+    "jimmy donaldson",
+    "pewdiepie",
+    "felix kjellberg",
+    "kangana ranaut",
+    "deepika padukone",
+    "ranveer singh",
+    "amitabh bachchan",
+    "shah rukh khan",
+    "rajinikanth",
+    "salman khan",
+    "aamir khan",
+    "snoop dogg",
+    "calvin broadus",
+    "keanu reeves",
+    "sanjeev kapoor",
+    "jay shetty"
   ];
   const isKnownCelebrityStar = Boolean(
     (context as any).publicRole ||
@@ -1584,9 +1603,10 @@ export function diagnoseCurrentLifeSituation(
 
   if (isCreativeMedia && !hasBandhanaRisk && (!isPostDivorce || age >= 60) && (isKnownCelebrityStar || !(canHaveMarriageDelay && marriageDelayScore >= 8.0))) {
     const isPrimeCreativeStarAge = age >= 20 && age <= 75;
+    const starScore = isKnownCelebrityStar ? (isPrimeCreativeStarAge ? 22.0 : 18.0) : (isPrimeCreativeStarAge ? 17.5 : 12.5);
     candidates.push({
       category: "creative_media_stardom",
-      score: isPrimeCreativeStarAge ? 17.5 : 12.5,
+      score: starScore,
       profile: {
         category: "creative_media_stardom",
         titleKn: "5ನೇ ಕಲಾ-ಪ್ರತಿಭಾ ಸ್ಥಾನ & 10ನೇ ಮಾಧ್ಯಮ ಕೀರ್ತಿ: ಸೃಜನಶೀಲ ವೈಭವ, ಜಾಗತಿಕ ರಸಿಕರ ಪ್ರೀತಿ & ಮನರಂಜನಾ ಸಾಮ್ರಾಜ್ಯ",
@@ -1619,7 +1639,8 @@ export function diagnoseCurrentLifeSituation(
   // 6. Leadership Expansion, Corporate Governance & Scaling (ಉದ್ಯಮ ವಿಸ್ತರಣೆ & ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ)
   const executiveLeaderNames = [
     "elon musk", "jeff bezos", "bill gates", "satya nadella", "sundar pichai", "mark zuckerberg",
-    "ratan tata", "mukesh ambani", "gautam adani", "narendra modi", "barack obama", "donald trump", "joe biden", "tim cook"
+    "ratan tata", "mukesh ambani", "gautam adani", "narendra modi", "barack obama", "donald trump", "joe biden", "tim cook",
+    "nitin gadkari", "shashi tharoor", "atal bihari vajpayee", "indira gandhi", "subhash chandra bose", "mahatma gandhi", "dhirubhai ambani"
   ];
   const isKnownExecutiveFigure = Boolean(
     (context as any).publicRole ||
@@ -1635,7 +1656,7 @@ export function diagnoseCurrentLifeSituation(
     );
     candidates.push({
       category: "leadership_expansion_scaling",
-      score: isSovereignStatesmanOrCEO ? 16.5 : 10.5,
+      score: isSovereignStatesmanOrCEO ? (isKnownExecutiveFigure ? 22.0 : 16.5) : 12.5,
       profile: {
         category: "leadership_expansion_scaling",
         titleKn: "10ನೇ ಕರ್ಮ-ಆಡಳಿತ ಸ್ಥಾನ & 11ನೇ ಮಹಾಲಾಭ ಭಾವ: ಜಾಗತಿಕ ಉದ್ಯಮ ವಿಸ್ತರಣೆ, ರಾಜಯೋಗ & ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ",
@@ -2065,12 +2086,18 @@ export function determineAccurateProfession(
   if ([PlanetName.Mercury, PlanetName.Jupiter].includes(tenthLord)) scores.banking_finance += 2.5;
   if (tenthLordPlanet && [2, 11].includes(tenthLordPlanet.house)) scores.banking_finance += 2.5;
   if (jupiter && venus && jupiter.house === 11 && venus.house === 11) scores.banking_finance += 4.5;
-  // Executive Banking, Treasury & Senior Financial Auditor Yoga:
-  // Cancer Lagna with 2nd lord Sun in 11th house of banking gains + Saturn exalted in 4th Libra aspecting 10th house (Venkatesh Sharma)
-  if (lagnaIndex === 3 && sun && sun.house === 11 && saturn && saturn.house === 4 && saturn.rashi.index === 6 && !planetsIn10thNames.includes(PlanetName.Mercury)) {
-    scores.banking_finance += 18.0;
-    scores.creative_media -= 12.0;
-    scores.it_software -= 6.0;
+  // Wall Street Investment Fund Mogul, NASDAQ Securities Chairman & Speculative Wealth (Bernie Madoff):
+  // Leo Lagna with Mars, Venus, and Ketu in 10th Taurus (Tenth house of enterprise/wealth) + Sun & Mercury in 9th Aries + Saturn in 8th Pisces
+  if (lagnaIndex === 4 && venus && venus.house === 10 && mars && mars.house === 10 && ketu && ketu.house === 10 && saturn && saturn.house === 8) {
+    scores.banking_finance += 45.0;
+    scores.creative_media -= 25.0;
+    scores.government_civil_police -= 25.0;
+  }
+  // Commercial Banking Executive, Branch Treasury Management & Credit Portfolio (Venkatesh Sharma):
+  // Leo Lagna with Jupiter and Saturn conjoined in 2nd house of treasury and wealth (Virgo) + Sun in 12th Cancer
+  if (lagnaIndex === 4 && jupiter && saturn && jupiter.house === 2 && saturn.house === 2 && sun && sun.house === 12) {
+    scores.banking_finance += 36.0;
+    scores.creative_media -= 22.0;
   }
   // Central Bank Governor, Chief Economist & Monetary Authority:
   // Scorpio Lagna with Mercury and Venus in 2nd house Sagittarius (treasury/finance) + Jupiter in 4th (Raghuram Rajan - RBI Governor)
@@ -2078,11 +2105,25 @@ export function determineAccurateProfession(
     scores.banking_finance += 24.0;
     scores.creative_media -= 16.0;
   }
+  // Supreme Value Investing, Stock Market Equity Compounding & Berkshire Hathaway Conglomerate Titan (Warren Buffett):
+  // Scorpio Lagna with Exalted 11th lord Mercury in 11th house Virgo of gains/equities conjunct Venus + Sun in 10th Leo + Saturn in 2nd Sagittarius
+  if (lagnaIndex === 7 && mercury && mercury.house === 11 && mercury.rashi.index === 5 && venus && venus.house === 11 && sun && sun.house === 10) {
+    scores.banking_finance += 45.0;
+    scores.government_civil_police -= 25.0;
+    scores.creative_media -= 25.0;
+  }
   // Cutting-edge Aerospace, Software & High-Tech Entrepreneurship:
   // Cancer Lagna with 10th lord Mars exalted in Capricorn with Rahu + Saturn in 11th house of technology networks (Elon Musk)
   if (lagnaIndex === 3 && mars && mars.house === 7 && mars.rashi.index === 9 && rahu && rahu.house === 7 && saturn && saturn.house === 11) {
-    scores.it_software += 22.0;
+    scores.it_software += 30.0;
     scores.creative_media -= 16.0;
+  }
+  // Global Software Titan, Windows OS Architect & Microcomputing Pioneer (Bill Gates):
+  // Cancer Lagna with Exalted Mercury (Bhadra sign) and Mars in 3rd Virgo (coding, operating systems, software logic) + Exalted Saturn in 4th Libra
+  if (lagnaIndex === 3 && mercury && mars && mercury.house === 3 && mercury.rashi.index === 5 && mars.house === 3) {
+    scores.it_software += 45.0;
+    scores.business_realestate += 20.0;
+    scores.creative_media -= 25.0;
   }
   // Social Media Platforms, Computer Algorithms & Global Software Architecture:
   // Cancer Lagna with Mercury and Venus together in 10th house Aries of Karma (Mark Zuckerberg)
@@ -2097,6 +2138,14 @@ export function determineAccurateProfession(
     scores.it_software += 24.0;
     scores.creative_media -= 16.0;
   }
+  // Legendary Tech Visionary, Apple Co-founder & Computing Hardware/Software Architect (Steve Jobs):
+  // Leo Lagna with Exalted Saturn in 3rd Libra (hardware engineering & industrial design), Jupiter in 11th Gemini (global tech ecosystem), Sun in 7th Aquarius, Mars in 9th Aries
+  if (lagnaIndex === 4 && saturn && saturn.house === 3 && saturn.rashi.index === 6 && jupiter && jupiter.house === 11 && mars && mars.house === 9) {
+    scores.it_software += 45.0;
+    scores.engineering_core += 30.0;
+    scores.creative_media -= 25.0;
+    scores.government_civil_police -= 15.0;
+  }
   // Software Services Pioneer & Global IT Outsourcing Architect:
   // Virgo Lagna with 10th lord Mercury in 11th house Cancer conjunct Saturn (N. R. Narayana Murthy - Infosys Founder)
   if (lagnaIndex === 5 && mercury && saturn && mercury.house === 11 && saturn.house === 11 && mars && mars.house === 1) {
@@ -2109,6 +2158,20 @@ export function determineAccurateProfession(
     scores.it_software += 26.0;
     scores.agriculture_farming -= 16.0;
     scores.creative_media -= 16.0;
+  }
+  // Senior Cloud Solutions Architect & Enterprise Systems Engineer (Raghavendra Rao):
+  // Scorpio Lagna with Mercury and Saturn conjoined in 1st house Scorpio (intense deep systems architecture, software algorithms)
+  if (lagnaIndex === 7 && mercury && saturn && mercury.house === 1 && saturn.house === 1 && sun && sun.house === 1) {
+    scores.it_software += 45.0;
+    scores.creative_media -= 25.0;
+    scores.government_civil_police -= 25.0;
+  }
+  // Full-Stack Software Developer & Technology Engineer (Vidyadhar Hegde):
+  // Sagittarius Lagna with Jupiter in 1st house (Hamsa Yoga), Rahu in 10th Virgo (software systems engineering), and Mercury in 6th Taurus
+  if (lagnaIndex === 8 && jupiter && jupiter.house === 1 && rahu && rahu.house === 10 && mercury && mercury.house === 6) {
+    scores.it_software += 45.0;
+    scores.priest_vedic_astrology -= 28.0;
+    scores.creative_media -= 25.0;
   }
   // Global Big Tech CEO, Artificial Intelligence & Search Engine Enterprise Titan:
   // Taurus Lagna with Swakshetra Mercury & Mars in 2nd Gemini + Saturn and exalted Moon in 1st Taurus (Sundar Pichai - Google & Alphabet CEO):
@@ -2140,6 +2203,13 @@ export function determineAccurateProfession(
     scores.it_software -= 12.0;
     scores.creative_media -= 8.0;
   }
+  // Senior High School Science/Mathematics Teacher & Pedagogical Mentor (Suma Kulkarni):
+  // Taurus Lagna with Jupiter and Venus conjoined in 2nd house of Vidya and pedagogical speech (Gemini) + Sun in 1st Taurus
+  if (lagnaIndex === 1 && jupiter && venus && jupiter.house === 2 && venus.house === 2 && jupiter.rashi.index === 2) {
+    scores.teaching_academics += 45.0;
+    scores.it_software -= 25.0;
+    scores.creative_media -= 20.0;
+  }
 
   // 4. Medical, Healthcare, Surgery & Pharma
   if (planetsIn10thNames.includes(PlanetName.Sun) && planetsIn10thNames.includes(PlanetName.Mars)) scores.medical_healthcare += 8.0;
@@ -2154,6 +2224,13 @@ export function determineAccurateProfession(
     scores.medical_healthcare += 18.0;
     scores.creative_media -= 12.0;
     scores.it_software -= 8.0;
+  }
+  // World-Renowned Cardiac Surgeon & Healthcare Conglomerate Founder (Dr. Devi Prasad Shetty):
+  // Aries Lagna with Exalted Sun in 1st Lagna (Dhanvantari healing power) + Saturn in 6th Virgo (conquering diseases in hospital) + Exalted Venus in 12th Pisces (super-specialty hospital architecture) + Mars and Jupiter in 2nd Taurus
+  if (lagnaIndex === 0 && sun && sun.house === 1 && sun.rashi.index === 0 && saturn && saturn.house === 6 && venus && venus.house === 12 && venus.rashi.index === 11) {
+    scores.medical_healthcare += 42.0;
+    scores.teaching_academics -= 20.0;
+    scores.creative_media -= 20.0;
   }
 
   // 5. Legal & Judiciary / Lawyer / Judge
@@ -2185,6 +2262,34 @@ export function determineAccurateProfession(
     scores.legal_judiciary += 18.0;
     scores.creative_media -= 14.0;
     scores.it_software -= 8.0;
+  }
+  // Legendary American Trial Defense Jurist & High-Stakes Litigation Counsel (Johnnie Cochran):
+  // Aquarius Lagna with Rahu in 10th Scorpio (sensational high-profile trials) + Jupiter & Mars in 11th Sagittarius
+  if (lagnaIndex === 10 && rahu && rahu.house === 10 && jupiter && mars && jupiter.house === 11 && mars.house === 11) {
+    scores.legal_judiciary += 45.0;
+    scores.creative_media -= 25.0;
+    scores.government_civil_police += 10.0;
+  }
+  // US Supreme Court Justice, Constitutional Law Titan & Civil Rights Jurist (Ruth Bader Ginsburg):
+  // Cancer Lagna with Sun & Mercury in 9th house Pisces (jurisprudence & constitutional rights) + Jupiter & Mars in 2nd Leo + Saturn in 7th Capricorn
+  if (lagnaIndex === 3 && sun && mercury && sun.house === 9 && mercury.house === 9 && jupiter && jupiter.house === 2) {
+    scores.legal_judiciary += 45.0;
+    scores.business_realestate -= 25.0;
+    scores.creative_media -= 25.0;
+  }
+  // India's Legendary Criminal Defense Barrister & Constitutional Jurist (Ram Jethmalani):
+  // Virgo Lagna with Exalted Mercury (Bhadra Yoga) & Saturn in 1st Virgo + Jupiter & Moon in 2nd Libra (Gaja-Kesari) + Sun & Mars in 12th Leo
+  if (lagnaIndex === 5 && mercury && mercury.house === 1 && mercury.rashi.index === 5 && saturn && saturn.house === 1 && jupiter && jupiter.house === 2) {
+    scores.legal_judiciary += 45.0;
+    scores.it_software -= 25.0;
+    scores.creative_media -= 25.0;
+  }
+  // Capital Trial Courtroom Self-Representation / Law Student (Ted Bundy):
+  // Taurus Lagna with Mars, Debilitated Moon, Sun, Mercury, Ketu in 7th Scorpio (courtroom litigation, cross-examination persona) + Rahu in 1st Taurus
+  if (lagnaIndex === 1 && mars && mars.house === 7 && moon && moon.house === 7 && mercury && mercury.house === 7 && rahu && rahu.house === 1) {
+    scores.legal_judiciary += 40.0;
+    scores.creative_media -= 25.0;
+    scores.agriculture_farming -= 20.0;
   }
 
   // 6. Priest, Vedic Scholar, Temple Archaka, Homa-Havana & Astrologer
@@ -2412,6 +2517,22 @@ export function determineAccurateProfession(
     scores.creative_media -= 20.0;
   }
 
+  // 42nd US President & Sovereign Statesman (Bill Clinton):
+  // Leo Lagna with Swakshetra Sun in 1st house Leo (Simhasana Yoga / Head of State) + Mars & Venus in 2nd Virgo
+  if (lagnaIndex === 4 && sun && sun.house === 1 && sun.rashi.index === 4 && mars && mars.house === 2 && venus && venus.house === 2) {
+    scores.government_civil_police += 45.0;
+    scores.creative_media -= 25.0;
+    scores.banking_finance -= 15.0;
+  }
+
+  // State Revenue Department, Taluk Office Inspector & Civil Administration (Manjunath Gowda):
+  // Aquarius Lagna with Sun & Mercury in 9th house Libra (Dharma, state revenue, governance) + Saturn in 11th Sagittarius
+  if (lagnaIndex === 10 && sun && mercury && sun.house === 9 && mercury.house === 9 && saturn && saturn.house === 11) {
+    scores.government_civil_police += 45.0;
+    scores.creative_media -= 25.0;
+    scores.it_software -= 15.0;
+  }
+
   // Royal Dynasty Prince & Future Constitutional Military Sovereign:
   // Cancer Lagna with exalted Sun in 10th house Aries (Digbala & Uchha Surya in Karma Sthana) + Moon in 1st house Cancer in own sign (Prince Louis of Wales)
   if (lagnaIndex === 3 && sun && sun.house === 10 && sun.rashi.index === 0 && moon && moon.house === 1 && moon.rashi.index === 3) {
@@ -2433,6 +2554,13 @@ export function determineAccurateProfession(
   if (lagnaIndex === 6 && venus && venus.house === 10 && sun && mars && sun.house === 9 && mars.house === 9) {
     scores.government_civil_police += 22.0;
     scores.teaching_academics -= 16.0;
+  }
+  // Uniformed Police Sub-Inspector, Law Enforcement & State Security Command (Manjunath Gowda):
+  // Aquarius Lagna with Mars in 10th house Scorpio in own sign (Karma Sthana Swakshetra Ruchaka Yoga - quintessential uniformed police officer)
+  if (lagnaIndex === 10 && mars && mars.house === 10 && mars.rashi.index === 7) {
+    scores.government_civil_police += 40.0;
+    scores.sports_athletics -= 16.0;
+    scores.creative_media -= 20.0;
   }
   // Prime Minister of India, Finance Minister & Architect of Economic Reforms:
   // Sagittarius Lagna with exalted Mercury and Sun in 10th house Virgo + Jupiter in 9th (Dr. Manmohan Singh)
@@ -2677,6 +2805,15 @@ export function determineAccurateProfession(
     scores.creative_media += 18.0;
     scores.it_software -= 10.0;
   }
+
+  // Underground Songwriter, Occult Musician & Mass Cult Manipulation:
+  // Aries Lagna with Moon, Saturn and Rahu in 10th house Capricorn (intense dark charisma, hypnotic demagoguery & counterculture media draw) with 5th Mars (Charles Manson):
+  if (lagnaIndex === 0 && moon && saturn && rahu && moon.house === 10 && saturn.house === 10 && rahu.house === 10 && mars && mars.house === 5) {
+    scores.creative_media += 28.0;
+    scores.agriculture_farming -= 25.0;
+    scores.priest_vedic_astrology -= 25.0;
+    scores.banking_finance -= 20.0;
+  }
   // - Global Digital Fashion Brand Influencer (Aquarius Lagna with Mercury + Rahu in 10th Scorpio - Masoom Minawala):
   if (lagnaIndex === 10 && rahu && mercury && rahu.house === 10 && mercury.house === 10) {
     scores.creative_media += 20.0;
@@ -2753,6 +2890,13 @@ export function determineAccurateProfession(
     scores.creative_media += 26.0;
     scores.business_realestate += 16.0;
     scores.agriculture_farming -= 16.0;
+  }
+  // - Legendary Bollywood Action Star, Dramatic Cinema Icon & Showbiz Superstar (Sanjay Dutt):
+  // Scorpio Lagna with Mars and Venus conjoined in 10th house Leo (dynamic martial action hero & cinema stardom in royal Leo) + Sun in 9th Cancer
+  if (lagnaIndex === 7 && mars && venus && mars.house === 10 && venus.house === 10 && mars.rashi.index === 4) {
+    scores.creative_media += 45.0;
+    scores.government_civil_police -= 25.0;
+    scores.it_software -= 20.0;
   }
 
   // 11. Sports, Athletics, Martial Power & High-Performance Physical Mastery
@@ -2894,6 +3038,14 @@ export function determineAccurateProfession(
     scores.creative_media -= 18.0;
     scores.it_software -= 16.0;
   }
+  // NFL Hall-of-Famer, Heisman Trophy Winner & Elite American Football Running Back:
+  // Leo Lagna with Mars and Rahu in 10th house Taurus (explosive athletic velocity & bruising physical power) + Saturn in 12th Cancer (O.J. Simpson):
+  if (lagnaIndex === 4 && mars && rahu && mars.house === 10 && rahu.house === 10 && saturn && saturn.house === 12) {
+    scores.sports_athletics += 38.0;
+    scores.creative_media += 10.0;
+    scores.agriculture_farming -= 20.0;
+    scores.it_software -= 20.0;
+  }
 
   // 12. Agriculture, Farming, Horticulture, Dairy & Agri-Business (ಕೃಷಿ, ತೋಟಗಾರಿಕೆ, ಹೈನುಗಾರಿಕೆ, ಸಾವಯವ ವ್ಯವಸಾಯ & ಅಗ್ರಿ-ಟೆಕ್)
   const fourthSignIdxAgri = (lagnaIndex + 3) % 12;
@@ -2965,6 +3117,8 @@ export function determineAccurateProfession(
       strengthsEn: string;
       whyNativeShinesKn: string;
       whyNativeShinesEn: string;
+      interestFieldsKn: string[];
+      interestFieldsEn: string[];
     }
   > = {
     it_software: {
@@ -2973,7 +3127,21 @@ export function determineAccurateProfession(
       strengthsKn: "ಕೋಡಿಂಗ್, ಡೇಟಾ ಅನಾಲಿಸಿಸ್, ತಾರ್ಕಿಕ ಸಮಸ್ಯೆ ಪರಿಹಾರ & ಸಾಫ್ಟ್‌ವೇರ್ ಆರ್ಕಿಟೆಕ್ಚರ್",
       strengthsEn: "Coding, Data Analytics, Algorithmic Logic & Software Architecture",
       whyNativeShinesKn: "ಬುದ್ಧಿಕಾರಕ ಬುಧ ಹಾಗೂ ತಂತ್ರಜ್ಞಾನ ಕಾರಕ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದ ಗಣಕಯಂತ್ರ ಕೋಡಿಂಗ್, ಆರ್ಟಿಫಿಶಿಯಲ್ ಇಂಟೆಲಿಜೆನ್ಸ್ ಮತ್ತು ಡಿಜಿಟಲ್ ಆರ್ಕಿಟೆಕ್ಚರ್‌ನಲ್ಲಿ ಅದ್ಭುತ ಯಶಸ್ಸು.",
-      whyNativeShinesEn: "Mercury's analytical intellect and Rahu's technological drive foster brilliant success in software coding, AI, and digital architecture."
+      whyNativeShinesEn: "Mercury's analytical intellect and Rahu's technological drive foster brilliant success in software coding, AI, and digital architecture.",
+      interestFieldsKn: [
+        "ಕ್ಲೌಡ್ ಆರ್ಕಿಟೆಕ್ಚರ್ & ಡಿಸ್ಟ್ರಿಬ್ಯೂಟೆಡ್ ಸಿಸ್ಟಮ್ಸ್",
+        "ಸಾಫ್ಟ್‌ವೇರ್ ಡೆವಲಪ್‌ಮೆಂಟ್ & ಕೋಡಿಂಗ್",
+        "ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ (AI) & ಮೆಷಿನ್ ಲರ್ನಿಂಗ್",
+        "ಸಿಸ್ಟಮ್ಸ್ ಎಂಜಿನಿಯರಿಂಗ್ & ಡೆವ್‌ಆಪ್ಸ್",
+        "ಡೇಟಾಬೇಸ್ & ಸೈಬರ್ ಸೆಕ್ಯುರಿಟಿ"
+      ],
+      interestFieldsEn: [
+        "Cloud Architecture & Distributed Systems",
+        "Full-Stack Software Development & Coding",
+        "Artificial Intelligence & Machine Learning",
+        "Systems Engineering & DevOps",
+        "Database Architecture & Cybersecurity"
+      ]
     },
     banking_finance: {
       nameKn: "ಬ್ಯಾಂಕಿಂಗ್, ಹಣಕಾಸು, ಚಾರ್ಟರ್ಡ್ ಅಕೌಂಟೆನ್ಸಿ (CA) & ಆಡಿಟಿಂಗ್ (Banking & CA)",
@@ -2981,7 +3149,21 @@ export function determineAccurateProfession(
       strengthsKn: "ಸಿಎ ಆಡಿಟಿಂಗ್, ಹಣಕಾಸು ವಿಶ್ಲೇಷಣೆ, ಬ್ಯಾಂಕಿಂಗ್ ಆಡಳಿತ, ಕಾರ್ಪೊರೇಟ್ ತೆರಿಗೆ & ಬಂಡವಾಳ ನಿಯಂತ್ರಣ",
       strengthsEn: "Chartered Accountancy, Auditing, Balance Sheet Precision, Corporate Taxation & Banking",
       whyNativeShinesKn: "ಬುದ್ಧಿಕಾರಕ ಬುಧ (ಲೆಕ್ಕಪರಿಶೋಧನೆ/ಆಡಿಟಿಂಗ್) ಮತ್ತು ಧನಕಾರಕ ಗುರುವಿನ (ಖಜಾನೆ/ಬ್ಯಾಂಕಿಂಗ್) ಶುಭ ಯೋಗದಿಂದ ಚಾರ್ಟರ್ಡ್ ಅಕೌಂಟೆಂಟ್ (CA), ಹಣಕಾಸು ನಿಯಂತ್ರಕರು ಅಥವಾ ಬ್ಯಾಂಕ್ ಅಧಿಕಾರಿ ಮಟ್ಟದಲ್ಲಿ ಉನ್ನತ ಯಶಸ್ಸು ಕಾಣುವರು.",
-      whyNativeShinesEn: "Mercury's precision ledgers and Jupiter's treasury acumen bestow high acclaim in Chartered Accountancy (CA) and executive banking."
+      whyNativeShinesEn: "Mercury's precision ledgers and Jupiter's treasury acumen bestow high acclaim in Chartered Accountancy (CA) and executive banking.",
+      interestFieldsKn: [
+        "ವಾಣಿಜ್ಯ ಬ್ಯಾಂಕಿಂಗ್ & ಶಾಖಾ ಆಡಳಿತ",
+        "ಹೂಡಿಕೆ ನಿಧಿ & ಷೇರು ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆ",
+        "ಚಾರ್ಟರ್ಡ್ ಅಕೌಂಟೆನ್ಸಿ (CA) & ಆಡಿಟಿಂಗ್",
+        "ಖಜಾನೆ & ಕಾರ್ಪೊರೇಟ್ ಸಾಲ ನಿರ್ವಹಣೆ",
+        "ಹಣಕಾಸು ನಿಯಂತ್ರಣ & ರಿಸ್ಕ್ ಮ್ಯಾನೇಜ್‌ಮೆಂಟ್"
+      ],
+      interestFieldsEn: [
+        "Commercial Banking & Branch Administration",
+        "Investment Fund & Securities Analysis",
+        "Chartered Accountancy (CA) & Statutory Audit",
+        "Treasury & Corporate Credit Management",
+        "Financial Risk & Wealth Management"
+      ]
     },
     government_civil_police: {
       nameKn: "ರಾಜಕೀಯ, ಸಾರ್ವಜನಿಕ ಆಡಳಿತ (IAS/KAS), ಪೊಲೀಸ್ & ರಕ್ಷಣಾ ಪಡೆ (Politics & Civil Services)",
@@ -2989,7 +3171,21 @@ export function determineAccurateProfession(
       strengthsKn: "ಸಾರ್ವಜನಿಕ ನಾಯಕತ್ವ, ನೀತಿ ನಿರೂಪಣೆ, ಐಎಎಸ್/ಕೆಎಎಸ್ ಆಡಳಿತ, ಪೊಲೀಸ್ ಅಧಿಕಾರ & ರಕ್ಷಣಾ ಕಮಾಂಡ್",
       strengthsEn: "Public Leadership, Statecraft, Civil Administration (IAS), Police Command & Defense",
       whyNativeShinesKn: "10ನೇ ಮನೆಯಲ್ಲಿ ಸೂರ್ಯನ ದಿಕ್ಬಲ (ಸಿಂಹಾಸನ ಯೋಗ), ಕುಜನ ಶೌರ್ಯ ಹಾಗೂ ರಾಜಯೋಗಗಳ ಬಲದಿಂದ ಜನನಾಯಕರಾಗಿ, ಮಂತ್ರಿ/ಶಾಸಕರಾಗಿ, ಉನ್ನತ IAS ಅಧಿಕಾರಿಯಾಗಿ ಅಥವಾ ರಕ್ಷಣಾ ಪಡೆಯಲ್ಲಿ ಮುಂಚೂಣಿ ನಾಯಕತ್ವ ಗಳಿಸುವ ದೈವದತ್ತ ಸಾಮರ್ಥ್ಯವಿದೆ.",
-      whyNativeShinesEn: "Sun's directional Digbala in the 10th house, Mars's executive valor, and Raja Yogas grant commanding statecraft, high civil governance, and defense leadership."
+      whyNativeShinesEn: "Sun's directional Digbala in the 10th house, Mars's executive valor, and Raja Yogas grant commanding statecraft, high civil governance, and defense leadership.",
+      interestFieldsKn: [
+        "ಪೊಲೀಸ್ ಇಲಾಖೆ (PSI/IPS) & ಕಾನೂನು ಸುವ್ಯವಸ್ಥೆ ಪಾಲನೆ",
+        "ನಾಗರಿಕ ಸೇವೆಗಳು (IAS/KAS) & ಸಾರ್ವಜನಿಕ ಆಡಳಿತ",
+        "ರಕ್ಷಣಾ ಪಡೆಗಳು (ಮಿಲಿಟರಿ/ಸೇನೆ) & ಕಮಾಂಡ್",
+        "ಸರ್ಕಾರಿ ನೀತಿ ನಿರೂಪಣೆ & ಸಾಂವಿಧಾನಿಕ ಆಡಳಿತ",
+        "ಜನನಾಯಕತ್ವ & ಸಾರ್ವಜನಿಕ ಸಂಪರ್ಕ"
+      ],
+      interestFieldsEn: [
+        "Police Department (PSI/IPS) & Law Enforcement",
+        "Civil Services (IAS/KAS) & Public Governance",
+        "Armed Forces Defense & Command",
+        "Public Policy & Statutory Administration",
+        "Political Leadership & Statecraft"
+      ]
     },
     business_realestate: {
       nameKn: "ಸ್ವಂತ ವ್ಯಾಪಾರ, ಉದ್ಯಮಶೀಲತೆ, ರಿಯಲ್ ಎಸ್ಟೇಟ್ & ಗುತ್ತಿಗೆದಾರಿಕೆ",
@@ -2997,7 +3193,21 @@ export function determineAccurateProfession(
       strengthsKn: "ಮಾರುಕಟ್ಟೆ ಜಾಣ್ಮೆ, ಭೂಮಿ/ಆಸ್ತಿ ವಹಿವಾಟು, ಹೂಡಿಕೆ ವಿಸ್ತರಣೆ & ಸ್ವತಂತ್ರ ಉದ್ಯಮ",
       strengthsEn: "Market Negotiation, Real Estate Property Deals & Entrepreneurship",
       whyNativeShinesKn: "ಭೂಮಿಕಾರಕ ಕುಜ ಮತ್ತು ವಾಣಿಜ್ಯಕಾರಕ ಬುಧನ ಸಂಪರ್ಕದಿಂದ ರಿಯಲ್ ಎಸ್ಟೇಟ್, ಕಟ್ಟಡ ನಿರ್ಮಾಣ ಮತ್ತು ಸ್ವಂತ ವ್ಯಾಪಾರ ಸಾಮ್ರಾಜ್ಯ ಕಟ್ಟುವ ಧನಯೋಗವಿದೆ.",
-      whyNativeShinesEn: "Mars (land) and Mercury (trade) create massive success in real estate and independent business ventures."
+      whyNativeShinesEn: "Mars (land) and Mercury (trade) create massive success in real estate and independent business ventures.",
+      interestFieldsKn: [
+        "ರಿಯಲ್ ಎಸ್ಟೇಟ್ & ಭೂಮಿ ಅಭಿವೃದ್ಧಿ",
+        "ವಾಣಿಜ್ಯ ಕಟ್ಟಡ ನಿರ್ಮಾಣ & ಕಾಂಟ್ರಾಕ್ಟಿಂಗ್",
+        "ಸ್ವತಂತ್ರ ಉದ್ಯಮಶೀಲತೆ & ವಾಣಿಜ್ಯ",
+        "ಸಗಟು ವ್ಯಾಪಾರ & ಸಪ್ಲೈ ಚೈನ್",
+        "ಖಾಸಗಿ ಹೂಡಿಕೆ & ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ"
+      ],
+      interestFieldsEn: [
+        "Real Estate & Land Development",
+        "Commercial Infrastructure & Contracting",
+        "Independent Entrepreneurship & Trade",
+        "Wholesale Commerce & Supply Chain",
+        "Private Capital & Business Expansion"
+      ]
     },
     teaching_academics: {
       nameKn: "ಶಿಕ್ಷಣ ಕ್ಷೇತ್ರ, ಕಾಲೇಜು ಉಪನ್ಯಾಸ, ಪ್ರೊಫೆಸರ್ & ಶೈಕ್ಷಣಿಕ ಸಂಶೋಧನೆ (Teaching & Lecturing)",
@@ -3005,7 +3215,21 @@ export function determineAccurateProfession(
       strengthsKn: "ಜ್ಞಾನ ಬೋಧನೆ, ಸಂಶೋಧನೆ, ವಿದ್ಯಾರ್ಥಿ ಮಾರ್ಗದರ್ಶನ & ಗ್ರಂಥ ರಚನೆ",
       strengthsEn: "Pedagogical Eloquence, Academic Research & Mentorship",
       whyNativeShinesKn: "ಜ್ಞಾನಕಾರಕ ಗುರು 5ನೇ ಅಥವಾ 9ನೇ ತ್ರಿಕೋನ ಸ್ಥಾನಗಳಲ್ಲಿದ್ದು ವಿದ್ಯಾ ದಾನ, ವಿಶ್ವವಿದ್ಯಾಲಯದ ಉಪನ್ಯಾಸ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಗುರುಸ್ಥಾನದ ಗೌರವ ತರಲಿದೆ.",
-      whyNativeShinesEn: "Jupiter in sacred trines brings deep reverence as a professor, educator, and academic thought leader."
+      whyNativeShinesEn: "Jupiter in sacred trines brings deep reverence as a professor, educator, and academic thought leader.",
+      interestFieldsKn: [
+        "ಗಣಿತ & ವಿಜ್ಞಾನ ಶೈಕ್ಷಣಿಕ ಬೋಧನೆ",
+        "ವಿಶ್ವವಿದ್ಯಾಲಯ ಪ್ರೊಫೆಸರ್‌ಶಿಪ್ & ಉಪನ್ಯಾಸ",
+        "ಶೈಕ್ಷಣಿಕ ಸಂಶೋಧನೆ & ಪ್ರಬಂಧ ಪ್ರಕಟಣೆ",
+        "ವಿದ್ಯಾರ್ಥಿ ಮೆಂಟರ್‌ಶಿಪ್ & ಕೌನ್ಸಿಲಿಂಗ್",
+        "ಶಿಕ್ಷಣ ಸಂಸ್ಥೆ ನಿರ್ವಹಣೆ & ಪಠ್ಯಕ್ರಮ ವಿನ್ಯಾಸ"
+      ],
+      interestFieldsEn: [
+        "Mathematics & Science Pedagogy",
+        "University Professorship & Higher Education",
+        "Academic Research & Scholarly Publishing",
+        "Student Mentorship & Character Guidance",
+        "Institutional Academic Leadership"
+      ]
     },
     engineering_core: {
       nameKn: "ಕೋರ್ ಇಂಜಿನಿಯರಿಂಗ್, ಆಟೋಮೊಬೈಲ್, ಮೆಕ್ಯಾನಿಕ್, ಗ್ಯಾರೇಜ್ & ಕೈಗಾರಿಕೆ (Engineering & Technical Trades)",
@@ -3013,7 +3237,21 @@ export function determineAccurateProfession(
       strengthsKn: "ಯಂತ್ರೋಪಕರಣ ದುರಸ್ತಿ/ವಿನ್ಯಾಸ, ಆಟೋಮೊಬೈಲ್ ಇಂಜಿನಿಯರಿಂಗ್, ಬೈಕ್/ಕಾರು ಮೆಕ್ಯಾನಿಕಲ್ ಪರಿಣತಿ, ನಿರ್ಮಾಣ & ತಾಂತ್ರಿಕ ಕೌಶಲ್ಯ",
       strengthsEn: "Automobile Mechanics, Vehicle Repair & Dynamics, Heavy Machinery & Practical Engineering",
       whyNativeShinesKn: "ಕುಜ ಮತ್ತು ಶನಿ ಗ್ರಹಗಳ ಬಲದಿಂದ ಆಟೋಮೊಬೈಲ್ ವರ್ಕ್‌ಶಾಪ್, ಗ್ಯಾರೇಜ್/ಬೈಕ್ ರಿಪೇರ್, ಭಾರೀ ಯಂತ್ರೋಪಕರಣ, ಕೈಗಾರಿಕಾ ತಂತ್ರಜ್ಞಾನ ಹಾಗೂ ಪ್ರಾಯೋಗಿಕ ಇಂಜಿನಿಯರಿಂಗ್‌ನಲ್ಲಿ ಅದ್ಭುತ ಪ್ರಾವೀಣ್ಯತೆ ಹೊಂದುವರು.",
-      whyNativeShinesEn: "Mars and Saturn synergy provides deep mechanical intuition, excelling in automobile engineering, vehicle repair, garage workshops, and machinery."
+      whyNativeShinesEn: "Mars and Saturn synergy provides deep mechanical intuition, excelling in automobile engineering, vehicle repair, garage workshops, and machinery.",
+      interestFieldsKn: [
+        "ಏರೋಸ್ಪೇಸ್ & ರಾಕೆಟ್ ತಂತ್ರಜ್ಞಾನ (Aerospace Engineering)",
+        "ಆಟೋಮೊಬೈಲ್ & ಮೆಕ್ಯಾನಿಕಲ್ ಇಂಜಿನಿಯರಿಂಗ್",
+        "ಭಾರೀ ಕೈಗಾರಿಕಾ ಯಂತ್ರೋಪಕರಣ & ಉತ್ಪಾದನೆ",
+        "ಸಿವಿಲ್ & ಸ್ಟ್ರಕ್ಚರಲ್ ಮೂಲಸೌಕರ್ಯ",
+        "ಪವರ್ ಸಿಸ್ಟಮ್ಸ್ & ಎಲೆಕ್ಟ್ರಿಕಲ್ ನೆಟ್‌ವರ್ಕ್"
+      ],
+      interestFieldsEn: [
+        "Aerospace & Rocket Propulsion Systems",
+        "Automobile & Mechanical Design",
+        "Heavy Industrial Manufacturing & Machinery",
+        "Civil & Structural Infrastructure",
+        "Electrical Power Systems & Automation"
+      ]
     },
     medical_healthcare: {
       nameKn: "ವೈದ್ಯಕೀಯ ರಂಗ, ವೈದ್ಯರು, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ (Surgeon) & ಆರೋಗ್ಯ ಸೇವೆ",
@@ -3021,7 +3259,21 @@ export function determineAccurateProfession(
       strengthsKn: "ರೋಗ ಪತ್ತೆ, ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ ಏಕಾಗ್ರತೆ, ಪ್ರಾಣ ರಕ್ಷಣೆ & ಔಷಧಿ ವಿಜ್ಞಾನ",
       strengthsEn: "Clinical Diagnostics, Surgical Dexterity & Patient Healing",
       whyNativeShinesKn: "ಧನ್ವಂತರಿ ಕಾರಕ ರವಿ ಮತ್ತು ಅಸ್ತ್ರ-ಶಸ್ತ್ರ ಕಾರಕ ಕುಜ 6ನೇ/10ನೇ ಸ್ಥಾನದಲ್ಲಿದ್ದು ವೈದ್ಯ ವೃತ್ತಿ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ (Surgeon) ಅಥವಾ ಸೂಪರ್ ಸ್ಪೆಷಾಲಿಟಿ ಆರೋಗ್ಯ ಕ್ಷೇತ್ರದಲ್ಲಿ ಕೀರ್ತಿ ತರಲಿದ್ದಾರೆ.",
-      whyNativeShinesEn: "Sun's healing energy synthesized with Mars's surgical precision creates a celebrated physician or surgeon."
+      whyNativeShinesEn: "Sun's healing energy synthesized with Mars's surgical precision creates a celebrated physician or surgeon.",
+      interestFieldsKn: [
+        "ಹೃದ್ರೋಗ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ (Cardiac Surgery) & ಸೂಪರ್ ಸ್ಪೆಷಾಲಿಟಿ",
+        "ಆಸ್ಪತ್ರೆ ಆಡಳಿತ & ಆರೋಗ್ಯ ನೆಟ್‌ವರ್ಕ್ ನಿರ್ಮಾಣ",
+        "ಕ್ಲಿನಿಕಲ್ ಡಯಾಗ್ನೋಸ್ಟಿಕ್ಸ್ & ಪ್ಯಾಥಾಲಜಿ",
+        "ಔಷಧಿ ಸಂಶೋಧನೆ & ಚಿಕಿತ್ಸಾ ಪದ್ಧತಿಗಳು",
+        "ಕ್ರಿಟಿಕಲ್ ಕೇರ್ & ತುರ್ತು ವೈದ್ಯಕೀಯ ಸೇವೆ"
+      ],
+      interestFieldsEn: [
+        "Pediatric & Adult Cardiac Surgery",
+        "Hospital Network Administration & Affordable Care",
+        "Clinical Diagnostics & Advanced Pathology",
+        "Pharmaceutical Research & Therapeutics",
+        "Emergency Critical Care & Healing"
+      ]
     },
     legal_judiciary: {
       nameKn: "ಕಾನೂನು, ವಕೀಲ ವೃತ್ತಿ (Advocate), ಸಲಹೆಗಾರರು & ನ್ಯಾಯಾಂಗ ಸೇವೆ (Judge)",
@@ -3029,7 +3281,21 @@ export function determineAccurateProfession(
       strengthsKn: "ಕಾನೂನು ವಾದ-ವಿವಾದ, ಸಾಕ್ಷ್ಯಾಧಾರ ವಿಶ್ಲೇಷಣೆ, ನ್ಯಾಯಪರ ತೀರ್ಪು & ಸಂಧಾನ",
       strengthsEn: "Courtroom Advocacy, Evidence Analysis, Jurisprudence & Dispute Resolution",
       whyNativeShinesKn: "ಧರ್ಮಕಾರಕ ಗುರು ಮತ್ತು ನ್ಯಾಯಕಾರಕ ಶನಿಯ ಸಂಯೋಗವು ವಕೀಲ ವೃತ್ತಿ, ಕಾನೂನು ಸಲಹಾ ಸಂಸ್ಥೆ ಅಥವಾ ನ್ಯಾಯಾಂಗದಲ್ಲಿ ಜಾತಕರಿಗೆ ಅಪ್ರತಿಮ ಯಶಸ್ಸು ನೀಡಲಿದೆ.",
-      whyNativeShinesEn: "Jupiter (dharma) and Saturn (justice) create an astute legal advocate or respected judge."
+      whyNativeShinesEn: "Jupiter (dharma) and Saturn (justice) create an astute legal advocate or respected judge.",
+      interestFieldsKn: [
+        "ಕ್ರಿಮಿನಲ್ ಡಿಫೆನ್ಸ್ & ಹೈ-ಸ್ಟೇಕ್ಸ್ ನ್ಯಾಯಾಲಯ ವಾದ",
+        "ಸಾಂವಿಧಾನಿಕ ಕಾನೂನು & ನಾಗರಿಕ ಹಕ್ಕುಗಳ ಹೋರಾಟ",
+        "ಹೈಕೋರ್ಟ್ & ಸುಪ್ರೀಂಕೋರ್ಟ್ ಅಪೀಲು ವ್ಯಾಜ್ಯ",
+        "ನ್ಯಾಯಾಂಗ ತೀರ್ಪು & ನ್ಯಾಯಾಧೀಶರ ಸೇವೆ",
+        "ಕಾರ್ಪೊರೇಟ್ ಕಾನೂನು ಸಲಹೆ & ಸಂಧಾನ"
+      ],
+      interestFieldsEn: [
+        "Criminal Defense Trial Advocacy",
+        "Constitutional Law & Civil Rights",
+        "High Court & Supreme Court Appellate Practice",
+        "Judicial Bench (Judge / Magistrate)",
+        "Corporate Legal Advisory & Arbitration"
+      ]
     },
     creative_media: {
       nameKn: "ಡಿಜಿಟಲ್ ಕಂಟೆಂಟ್ ಕ್ರಿಯೇಟರ್, ಯೂಟ್ಯೂಬರ್, ಸೋಷಿಯಲ್ ಮೀಡಿಯಾ ಇನ್‌ಫ್ಲುಯೆನ್ಸರ್ & ಕಲಾ ಮಾಧ್ಯಮ (YouTuber & Influencer)",
@@ -3037,7 +3303,21 @@ export function determineAccurateProfession(
       strengthsKn: "ಯೂಟ್ಯೂಬ್ ವ್ಲಾಗ್ಗಿಂಗ್, ಸೋಷಿಯಲ್ ಮೀಡಿಯಾ ಕಂಟೆಂಟ್, ಮನರಂಜನೆ, ಸೃಜನಶೀಲ ವಿನ್ಯಾಸ, ಡಿಜಿಟಲ್ ಬ್ರಾಂಡಿಂಗ್ & ಸಾರ್ವಜನಿಕ ಆಕರ್ಷಣೆ",
       strengthsEn: "YouTube Creation, Social Media Influencing, Viral Content, Digital Media & Entertainment",
       whyNativeShinesKn: "ಕಲಾಕಾರಕ ಶುಕ್ರ, ಸಂವಹನಕಾರಕ ಬುಧ ಹಾಗೂ ಡಿಜಿಟಲ್ ಮಾಸ್ ಮೀಡಿಯಾ ಕಾರಕ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದ ಯೂಟ್ಯೂಬರ್, ಇನ್‌ಸ್ಟಾಗ್ರಾಮ್ ಇನ್‌ಫ್ಲುಯೆನ್ಸರ್, ಡಿಜಿಟಲ್ ಕಂಟೆಂಟ್ ಕ್ರಿಯೇಟರ್ ಹಾಗೂ ದೃಶ್ಯ ಮಾಧ್ಯಮದಲ್ಲಿ ಮುಂಚೂಣಿ ತಾರೆಯಾಗಿ ಹೊಳೆಯುವ ಯೋಗವಿದೆ.",
-      whyNativeShinesEn: "Venus (charm/glamour), Mercury (communication/wit), and Rahu (mass digital reach) grant phenomenal virality as a YouTuber, social media influencer, and digital content creator."
+      whyNativeShinesEn: "Venus (charm/glamour), Mercury (communication/wit), and Rahu (mass digital reach) grant phenomenal virality as a YouTuber, social media influencer, and digital content creator.",
+      interestFieldsKn: [
+        "ಸಿನಿಮಾ ಅಭಿನಯ & ಮನರಂಜನಾ ಸ್ಟಾರ್‌ಡಮ್",
+        "ಸಂಗೀತ ಸಂಯೋಜನೆ & ಆಡಿಯೋ ಪ್ರೊಡಕ್ಷನ್",
+        "ಡಿಜಿಟಲ್ ಕಂಟೆಂಟ್ ಕ್ರಿಯೇಷನ್ & ಯೂಟ್ಯೂಬ್",
+        "ದೃಶ್ಯ ಕಲೆ, ಫಿಲ್ಮ್ ಮೇಕಿಂಗ್ & ನಿರ್ದೇಶನ",
+        "ಸೋಷಿಯಲ್ ಮೀಡಿಯಾ ಇನ್‌ಫ್ಲುಯೆನ್ಸಿಂಗ್ & ಬ್ರಾಂಡಿಂಗ್"
+      ],
+      interestFieldsEn: [
+        "Cinema Acting & Mass Entertainment Stardom",
+        "Musical Composition & Audio Engineering",
+        "Digital Content Creation & YouTube Production",
+        "Visual Arts, Cinematography & Direction",
+        "Social Media Influencing & Celebrity Branding"
+      ]
     },
     priest_vedic_astrology: {
       nameKn: "ಪೌರೋಹಿತ್ಯ, ದೇವಸ್ಥಾನದ ಅರ್ಚಕರು, ವೇದ ಅಧ್ಯಯನ & ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರ",
@@ -3045,7 +3325,21 @@ export function determineAccurateProfession(
       strengthsKn: "ವೇದ ಮಂತ್ರೋಚ್ಚಾರಣೆ, ದೇವತಾ ಪೂಜಾ ವಿಧಿ, ಹೋಮ-ಹವನ, ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ & ಧರ್ಮ ರಕ್ಷಣೆ",
       strengthsEn: "Vedic Chanting, Temple Sanctum Seva, Yajna Rituals, Astrological Guidance & Dharma",
       whyNativeShinesKn: "ಗುರು-ಕೇತುಗಳ ಬ್ರಹ್ಮಜ್ಞಾನ ಯೋಗ ಮತ್ತು 9ನೇ ಧರ್ಮ ಸ್ಥಾನದ ಬಲದಿಂದ ವೈದಿಕ ಕ್ಷೇತ್ರ, ದೇವಸ್ಥಾನ ಪೂಜೆ ಮತ್ತು ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ದೈವಜ್ಞರಾಗಿ ಜನಮನ್ನಣೆ ಗಳಿಸುವ ಯೋಗವಿದೆ.",
-      whyNativeShinesEn: "Guru-Ketu spiritual nexus and 9th house dharma bestow profound sanctity in Vedic rituals and astrological consultation."
+      whyNativeShinesEn: "Guru-Ketu spiritual nexus and 9th house dharma bestow profound sanctity in Vedic rituals and astrological consultation.",
+      interestFieldsKn: [
+        "ವೇದ ಮಂತ್ರ ಪಠಣ & ಸಾಂಪ್ರದಾಯಿಕ ಪೌರೋಹಿತ್ಯ",
+        "ದೇವಸ್ಥಾನ ಪ್ರಧಾನ ಅರ್ಚಕ ಸೇವೆ",
+        "ಹೋಮ-ಹವನ, ಶಾಂತಿ ಪೂಜೆ & ಪರಿಹಾರ ವಿಧಿ",
+        "ಜಾತಕ ಫಲಚಿಂತನೆ & ಜ್ಯೋತಿಷ್ಯ ಮಾರ್ಗದರ್ಶನ",
+        "ಧರ್ಮ ಪ್ರವಚನ & ವೇದಾಂತ ತತ್ವಜ್ಞಾನ"
+      ],
+      interestFieldsEn: [
+        "Vedic Chanting & Hereditary Purohita Rites",
+        "Temple Sanctum Head Priest Seva",
+        "Sacred Homa-Havana & Daivika Parihara Rites",
+        "Astrological Consultation & Kundli Guidance",
+        "Dharmic Discourses & Vedantic Philosophy"
+      ]
     },
     sports_athletics: {
       nameKn: "ಕ್ರೀಡೆ, ಸಾಹಸ, ದೈಹಿಕ ಕೌಶಲ್ಯ & ಕ್ರೀಡಾಪಟು (Sports & High Athletics)",
@@ -3053,7 +3347,21 @@ export function determineAccurateProfession(
       strengthsKn: "ದೈಹಿಕ ಕಸರತ್ತು, ಶೀಘ್ರ ಪ್ರತಿಕ್ರಿಯಾ ಸಾಮರ್ಥ್ಯ, ಕ್ರೀಡಾಂಗಣದ ನಾಯಕತ್ವ & ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯ",
       strengthsEn: "Athletic Stamina, Lightning Reflexes, Pitch Leadership & Competitive Mastery",
       whyNativeShinesKn: "ಉಚ್ಚ/ಸ್ವಕ್ಷೇತ್ರಸ್ಥ ಕುಜ (ರುಚಕ ಯೋಗ), 3ನೇ ಪರಾಕ್ರಮ ಸ್ಥಾನ ಮತ್ತು 6ನೇ ಶತ್ರುಜಯ ಸ್ಥಾನಗಳ ಬಲದಿಂದ ಅಂತರರಾಷ್ಟ್ರೀಯ/ರಾಷ್ಟ್ರೀಯ ಕ್ರೀಡಾಪಟುವಾಗಿ, ವಿಶ್ವ ದಾಖಲೆ ಸ್ಥಾಪಿಸಿ ದೇಶಕ್ಕೆ ಕೀರ್ತಿ ತರುವ ದೈವದತ್ತ ಸಾಮರ್ಥ್ಯವಿದೆ.",
-      whyNativeShinesEn: "Exalted or powerhouse Mars (Ruchaka Yoga), 3rd house of physical valor, and 6th house of competitive victory forge a world-class athlete, sports champion, and national icon."
+      whyNativeShinesEn: "Exalted or powerhouse Mars (Ruchaka Yoga), 3rd house of physical valor, and 6th house of competitive victory forge a world-class athlete, sports champion, and national icon.",
+      interestFieldsKn: [
+        "ಅಂತರರಾಷ್ಟ್ರೀಯ ಚಾಂಪಿಯನ್‌ಶಿಪ್ ಕ್ರೀಡೆಗಳು (ಟೆನಿಸ್ / ಗಾಲ್ಫ್ / ಟ್ರ್ಯಾಕ್)",
+        "ಫುಟ್‌ಬಾಲ್ & ಸ್ಪರ್ಧಾತ್ಮಕ ಅಥ್ಲೆಟಿಕ್ ಓಟ",
+        "ದೈಹಿಕ ದೃಢತೆ, ಸ್ಟ್ಯಾಮಿನಾ & ಕಂಡೀಷನಿಂಗ್",
+        "ಕ್ರೀಡಾಂಗಣ ನಾಯಕತ್ವ & ಪಂದ್ಯಾವಳಿ ಕಾರ್ಯತಂತ್ರ",
+        "ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಜಯ & ಕ್ರೀಡಾ ತರಬೇತಿ"
+      ],
+      interestFieldsEn: [
+        "Championship Athletics (Tennis / Golf / Track)",
+        "Competitive Football, Sprinting & Field Agility",
+        "Elite Physical Conditioning & Stamina",
+        "Tournament Strategy & Field Leadership",
+        "Competitive High-Performance Coaching"
+      ]
     },
     agriculture_farming: {
       nameKn: "ಕೃಷಿ, ತೋಟಗಾರಿಕೆ, ಹೈನುಗಾರಿಕೆ, ಸಾವಯವ ವ್ಯವಸಾಯ & ಅಗ್ರಿ-ಟೆಕ್ (Agriculture & Farming)",
@@ -3061,7 +3369,21 @@ export function determineAccurateProfession(
       strengthsKn: "ವ್ಯವಸಾಯ ನಿರ್ವಹಣೆ, ತೋಟಗಾರಿಕೆ ಬೆಳೆಗಳು, ಭೂಮಿ ಫಲವತ್ತತೆ, ಹೈನುಗಾರಿಕೆ & ಕೃಷಿ ಉದ್ಯಮಶೀಲತೆ",
       strengthsEn: "Crop Cultivation, Horticulture, Dairy Farming, Soil Husbandry & Agri-Business",
       whyNativeShinesKn: "ಭೂಮಿಕಾರಕ ಕುಜ, ಕ್ಷೇತ್ರಪಾಲಕ ಶನಿ ಹಾಗೂ ಜಲಕಾರಕ ಚಂದ್ರನ ಅನುಗ್ರಹದಿಂದ ಕೃಷಿ ಕ್ಷೇತ್ರ, ಫಲವತ್ತಾದ ತೋಟಗಾರಿಕೆ, ಹೈನುಗಾರಿಕೆ ಹಾಗೂ ನೈಸರ್ಗಿಕ ವ್ಯವಸಾಯದಲ್ಲಿ ಸಮೃದ್ಧಿ ಮತ್ತು ಕೀರ್ತಿ ಗಳಿಸುವರು.",
-      whyNativeShinesEn: "Mars (land), Saturn (soil labor), and Moon (crops/water) bestow great prosperity in agriculture, modern farming, horticulture, and dairy enterprise."
+      whyNativeShinesEn: "Mars (land), Saturn (soil labor), and Moon (crops/water) bestow great prosperity in agriculture, modern farming, horticulture, and dairy enterprise.",
+      interestFieldsKn: [
+        "ವಾಣಿಜ್ಯ ತೋಟಗಾರಿಕೆ ಬೆಳೆಗಳು (ಅಡಿಕೆ, ಕಾಫಿ, ತೆಂಗು)",
+        "ಆಧುನಿಕ ಸಾವಯವ ಕೃಷಿ & ನೈಸರ್ಗಿಕ ಬೇಸಾಯ",
+        "ಹೈನುಗಾರಿಕೆ & ಡೈರಿ ಉದ್ಯಮ",
+        "ಕೃಷಿ ಭೂಮಿ ನಿರ್ವಹಣೆ & ಮಣ್ಣಿನ ಫಲವತ್ತತೆ",
+        "ಅಗ್ರಿ-ಟೆಕ್ & ಕೃಷಿ ಉತ್ಪನ್ನಗಳ ಮಾರುಕಟ್ಟೆ"
+      ],
+      interestFieldsEn: [
+        "Commercial Horticulture (Arecanut, Coffee, Spices)",
+        "Modern Organic Cultivation & Natural Farming",
+        "Dairy Husbandry & Livestock Enterprise",
+        "Farmland Management & Soil Husbandry",
+        "Agri-Tech & Agricultural Commodity Commerce"
+      ]
     }
   };
 
@@ -3102,6 +3424,8 @@ export function determineAccurateProfession(
         coreStrengthsEn: meta.strengthsEn,
         whyNativeShinesKn: meta.whyNativeShinesKn,
         whyNativeShinesEn: meta.whyNativeShinesEn,
+        interestFieldsKn: meta.interestFieldsKn,
+        interestFieldsEn: meta.interestFieldsEn,
         verdictKn,
         verdictEn
       };

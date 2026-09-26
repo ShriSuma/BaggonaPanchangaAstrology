@@ -108,7 +108,7 @@ export default function KundliPage(): JSX.Element {
       longitude: defaultLng,
       gothra: "",
       gender: "Male",
-      maritalStatus: "married",
+      maritalStatus: undefined,
       pincode: pincodeStore || undefined
     };
   });
@@ -205,7 +205,7 @@ export default function KundliPage(): JSX.Element {
       pincode: pin,
       gothra: matchedGotra,
       gender: (devotee.gender as any) || "Male",
-      maritalStatus: (devotee.maritalStatus as any) || (parsedDate && (new Date().getFullYear() - parsedDate.getFullYear() >= 28) ? "married" : "unmarried")
+      maritalStatus: (devotee.maritalStatus as any) || undefined
     }));
 
     // 6. Toast feedback
@@ -895,6 +895,17 @@ export default function KundliPage(): JSX.Element {
             </div>
             <div className="md:col-span-2 flex flex-wrap gap-4 items-center bg-amber-50/60 p-2.5 rounded-lg border border-amber-200/50">
               <label className="text-sm font-semibold text-indigo-950 mr-1">{t("kundli.maritalStatus", "ವಿವಾಹ ಸ್ಥಿತಿ (Status)")}:</label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="maritalStatus"
+                  value="unspecified"
+                  checked={!form.maritalStatus || form.maritalStatus === "unspecified"}
+                  onChange={() => setForm((f) => ({ ...f, maritalStatus: undefined }))}
+                  className="text-amber-600 focus:ring-amber-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">❓ {t("maritalStatus.unspecified", "ತಿಳಿದಿಲ್ಲ / ನೀಡಲಾಗಿಲ್ಲ (Not Specified)")}</span>
+              </label>
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="radio"

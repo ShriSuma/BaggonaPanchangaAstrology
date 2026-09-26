@@ -557,9 +557,20 @@ STRICT RULES:
               </span>
               <button
                 type="button"
+                onClick={() => setMaritalStatusOverride(undefined)}
+                className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
+                  maritalStatusOverride === undefined && !session.input?.maritalStatus
+                    ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                    : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                ❓ ತಿಳಿಸಿಲ್ಲ (Not Specified)
+              </button>
+              <button
+                type="button"
                 onClick={() => setMaritalStatusOverride("married")}
                 className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
-                  (maritalStatusOverride ?? session.input?.maritalStatus ?? (devoteeAge >= 30 ? "married" : "unmarried")) === "married"
+                  (maritalStatusOverride ?? session.input?.maritalStatus) === "married"
                     ? "bg-amber-600 text-white border-amber-700 shadow-sm"
                     : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
                 }`}
@@ -570,7 +581,7 @@ STRICT RULES:
                 type="button"
                 onClick={() => setMaritalStatusOverride("unmarried")}
                 className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
-                  (maritalStatusOverride ?? session.input?.maritalStatus ?? (devoteeAge >= 30 ? "married" : "unmarried")) === "unmarried"
+                  (maritalStatusOverride ?? session.input?.maritalStatus) === "unmarried"
                     ? "bg-amber-600 text-white border-amber-700 shadow-sm"
                     : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
                 }`}
@@ -1362,6 +1373,27 @@ STRICT RULES:
                             <p className="font-medium leading-relaxed">{cleanAstrologyText(isKn ? field.coreStrengthsKn : field.coreStrengthsEn)}</p>
                           </div>
 
+                          {/* Interest Fields & Core Specializations */}
+                          {Boolean(((isKn ? (field as any).interestFieldsKn : (field as any).interestFieldsEn) || (field as any).interestFieldsKn)?.length) && (
+                            <div className="space-y-1.5 pt-1">
+                              <span className="text-[11px] font-bold text-amber-950 flex items-center gap-1.5">
+                                <span>🎯</span>
+                                <span>{isKn ? "ಆಸಕ್ತಿ ರಂಗಗಳು & ಪ್ರಮುಖ ವಿಭಾಗಗಳು (Interest Fields):" : "Interest Fields & Specializations:"}</span>
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {(((isKn ? (field as any).interestFieldsKn : (field as any).interestFieldsEn) || (field as any).interestFieldsKn) as string[]).map((tag: string, tIdx: number) => (
+                                  <span
+                                    key={tIdx}
+                                    className="inline-flex items-center px-2.5 py-1 rounded-lg bg-amber-100/80 border border-amber-300 text-stone-900 text-[11px] font-bold shadow-2xs"
+                                  >
+                                    <span className="text-amber-700 mr-1">•</span>
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           {/* Why Native Shines */}
                           <div className="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200/80 text-[11px] text-stone-800 leading-relaxed space-y-1">
                             <span className="font-bold text-indigo-950 block">✨ {isKn ? "ಈ ರಂಗದಲ್ಲಿ ಶೈನ್ ಆಗಲು ಗ್ರಹಗಳ ಕಾರಣ:" : "Astrological Driver for Success:"}</span>
@@ -1850,12 +1882,29 @@ STRICT RULES:
                     </div>
                   )}
 
-                  {/* HIGHLIGHT BANNER 1: SECRET LIFE HABIT */}
+                  {/* HIGHLIGHT BANNER 1: SECRET LIFE HABIT & DISCLOSURE DYNAMIC */}
                   {currentDiagnosis.goodBadAnalysis.secrecyHabitKn && (
-                    <div className="p-4 rounded-2xl bg-amber-100/70 border-2 border-amber-400 space-y-1.5 shadow-sm">
-                      <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
-                        <span>🎭</span>
-                        <span>{isKn ? "ರಹಸ್ಯ ಜೀವನದ ನಡವಳಿಕೆ & ಸಂವಹನ ಪ್ರವೃತ್ತಿ (Secret Life Habit):" : "Secret Life Expression Dynamic:"}</span>
+                    <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-100/90 border-2 border-amber-400 space-y-2.5 shadow-md">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-300 pb-2">
+                        <div className="flex items-center gap-2 text-amber-950 font-black text-xs md:text-sm">
+                          <span className="text-lg">🎭</span>
+                          <span>
+                            {isKn
+                              ? "ಅಂತರಂಗದ ರಹಸ್ಯ ವರ್ತನೆ: ಜನರೊಂದಿಗೆ ಮುಕ್ತವಾಗಿ ಹಂಚಿಕೊಳ್ಳುತ್ತಾರೆಯೇ ಅಥವಾ ಒಳಗೇ ಮುಚ್ಚಿಡುತ್ತಾರೆಯೇ?"
+                              : "Inner Secrecy & Disclosure Dynamic: Do they openly share secrets or conceal inside?"}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-black bg-white/90 text-amber-900 border border-amber-300 shadow-2xs self-start sm:self-auto">
+                          {isKn
+                            ? currentDiagnosis.goodBadAnalysis.secrecyHabitKn.includes("ಕುಲ್ಲಂ ಕುಲ್ಲಾ")
+                              ? "🗣️ ಕುಲ್ಲಂ ಕುಲ್ಲಾ / ನಿರ್ಭಯ ಮುಕ್ತತೆ"
+                              : currentDiagnosis.goodBadAnalysis.secrecyHabitKn.includes("ಪ್ರಾಯೋಗಿಕ")
+                              ? "🔒 ಪ್ರಾಯೋಗಿಕ ಮೌನ / ಶಿಸ್ತುಬದ್ಧ ಗೌಪ್ಯತೆ"
+                              : currentDiagnosis.goodBadAnalysis.secrecyHabitKn.includes("ಬೌದ್ಧಿಕ")
+                              ? "🎭 ಬೌದ್ಧಿಕ ಚಾಣಾಕ್ಷತೆ / ನಯವಾದ ಮರೆಮಾಚುವಿಕೆ"
+                              : "🌊 ಆಳವಾದ ಭಾವನಾತ್ಮಕ ಕಂದಕ / ಸಂಪೂರ್ಣ ಗೌಪ್ಯತೆ"
+                            : "Psychological Disclosure Mode"}
+                        </span>
                       </div>
                       <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
                         {cleanAstrologyText(isKn ? currentDiagnosis.goodBadAnalysis.secrecyHabitKn : (currentDiagnosis.goodBadAnalysis.secrecyHabitEn || currentDiagnosis.goodBadAnalysis.secrecyHabitKn))}
@@ -1974,6 +2023,51 @@ STRICT RULES:
                       <span className={`px-3 py-1 rounded-full text-xs font-black border shadow-xs ${scoreColor}`}>
                         {isKn ? shades.categoryTitleKn : shades.categoryTitleEn}
                       </span>
+                    </div>
+
+                    {/* 4 QUICK INTEGRITY BADGES */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className={`p-2.5 rounded-xl border flex flex-col items-center text-center gap-1 ${
+                        !shades.legalBandhana.hasRisk ? "bg-emerald-50 border-emerald-300 text-emerald-950" : "bg-rose-50 border-rose-300 text-rose-950"
+                      }`}>
+                        <span className="text-base">{!shades.legalBandhana.hasRisk ? "🛡️" : "⚠️"}</span>
+                        <span className="text-[10px] font-bold uppercase opacity-80">{isKn ? "ನಾಗರಿಕ ಸತ್ಪ್ರಜೆ" : "Civic Standing"}</span>
+                        <span className="text-[11px] font-black">{!shades.legalBandhana.hasRisk ? (isKn ? "ಕಾನೂನು ಪಾಲಕ" : "Law-Abiding") : (isKn ? "ಅಪರಾಧ ಎಚ್ಚರಿಕೆ" : "Criminal Risk")}</span>
+                      </div>
+
+                      <div className={`p-2.5 rounded-xl border flex flex-col items-center text-center gap-1 ${
+                        !shades.financialIntegrity.hasRisk ? "bg-emerald-50 border-emerald-300 text-emerald-950" : "bg-amber-50 border-amber-300 text-amber-950"
+                      }`}>
+                        <span className="text-base">{!shades.financialIntegrity.hasRisk ? "💎" : "🚨"}</span>
+                        <span className="text-[10px] font-bold uppercase opacity-80">{isKn ? "ಆರ್ಥಿಕ ಪ್ರಾಮಾಣಿಕತೆ" : "Wealth Integrity"}</span>
+                        <span className="text-[11px] font-black">{!shades.financialIntegrity.hasRisk ? (isKn ? "ನ್ಯಾಯ ಸಂಪತ್ತು" : "Clean Wealth") : (isKn ? "ಚೋರ/ವಂಚನೆ ಯೋಗ" : "Fraud / Theft Risk")}</span>
+                      </div>
+
+                      <div className={`p-2.5 rounded-xl border flex flex-col items-center text-center gap-1 ${
+                        !shades.violenceAggression.hasRisk ? "bg-emerald-50 border-emerald-300 text-emerald-950" : "bg-rose-50 border-rose-300 text-rose-950"
+                      }`}>
+                        <span className="text-base">{!shades.violenceAggression.hasRisk ? "🕊️" : "⚡"}</span>
+                        <span className="text-[10px] font-bold uppercase opacity-80">{isKn ? "ಅಹಿಂಸಾ ಪ್ರವೃತ್ತಿ" : "Non-Violence"}</span>
+                        <span className="text-[11px] font-black">{!shades.violenceAggression.hasRisk ? (isKn ? "ಅಹಿಂಸಾ ಧರ್ಮ" : "Ahimsa / Peaceful") : (isKn ? "ಹತ್ಯಾ/ಹಿಂಸಾ ಯೋಗ" : "Violent Assault")}</span>
+                      </div>
+
+                      <div className={`p-2.5 rounded-xl border flex flex-col items-center text-center gap-1 ${
+                        currentDiagnosis?.accurateProfession?.code === "legal_judiciary"
+                          ? "bg-indigo-50 border-indigo-300 text-indigo-950"
+                          : !shades.legalBandhana.hasRisk
+                          ? "bg-emerald-50 border-emerald-300 text-emerald-950"
+                          : "bg-rose-50 border-rose-300 text-rose-950"
+                      }`}>
+                        <span className="text-base">{currentDiagnosis?.accurateProfession?.code === "legal_judiciary" ? "⚖️" : (!shades.legalBandhana.hasRisk ? "🕊️" : "🏛️")}</span>
+                        <span className="text-[10px] font-bold uppercase opacity-80">{isKn ? "ನ್ಯಾಯಾಂಗ ಸ್ಥಾನ" : "Legal Status"}</span>
+                        <span className="text-[11px] font-black">
+                          {currentDiagnosis?.accurateProfession?.code === "legal_judiciary"
+                            ? (isKn ? "ಕೋರ್ಟ್ ಹೋರಾಟಗಾರ" : "Court Fighter")
+                            : !shades.legalBandhana.hasRisk
+                            ? (isKn ? "ಬಂಧನ ಮುಕ್ತ" : "Free of Custody")
+                            : (isKn ? "ಬಂಧನ ಯೋಗ" : "Custody Confinement")}
+                        </span>
+                      </div>
                     </div>
 
                     {/* EMERALD CERTIFICATE OF PURITY */}
