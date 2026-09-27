@@ -736,12 +736,12 @@ export function calculateDeterministicRhythmDay(
   const majorityTithiInPaksha = detailedTithi.majorityTithiInPaksha;
   const majorityPaksha: "shukla" | "krishna" = detailedTithi.majorityPaksha;
 
-  // Special Vrata determinations using majority Tithi
-  const isAmavasya = majorityTithiNumber === 30;
-  const isPurnima = majorityTithiNumber === 15;
-  const isEkadashi = majorityTithiInPaksha === 11;
-  const isPradosha = majorityTithiInPaksha === 13;
-  const isSankashti = majorityPaksha === "krishna" && majorityTithiInPaksha === 4;
+  // Special Vrata determinations using canonical Udaya Tithi
+  const isAmavasya = tithiNumber === 30;
+  const isPurnima = tithiNumber === 15;
+  const isEkadashi = tithiInPaksha === 11;
+  const isPradosha = tithiInPaksha === 13;
+  const isSankashti = paksha === "krishna" && tithiInPaksha === 4;
 
   const taraVal = (((transitNak - birthNakIdx + 27) % 9) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   const isTaraFav = [2, 4, 6, 8, 9].includes(taraVal);
@@ -1242,8 +1242,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       lastSeenVrataIndexMap.set(vrataKey, idx);
     }
 
+    const cleanVrataName = vrata.vrataName.replace(/^[🪔🕉️🚩\s]+/, "");
     const summaryPrefix = isNewVrataDay
-      ? (vrata.category === "FESTIVAL" ? "🚩 " : "🕉️ ")
+      ? (vrata.category === "FESTIVAL" ? `🚩 ${cleanVrataName} · ` : `🕉️ ${cleanVrataName} · `)
       : "";
     const summaryStr = `${summaryPrefix}${vibe.badgeEmoji} ${pakshaStr} - ${tithiOnlyStr} - ${localizedPandit} - ${labels.panchangaTitle}`;
 
@@ -1691,7 +1692,12 @@ export function generateGoogleCalendarUrl(options: {
   const priestLabel = isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರು" : isHi ? "मुख्य अर्चक" : isTe ? "ముఖ్య అర్చకులు" : isTa ? "முதன்மை அர்ச்சகர்" : "Chief Priest";
   const devoteeLabel = isKn ? "ಭಕ್ತರ ಹೆಸರು" : isHi ? "भक्त का नाम" : isTe ? "భక్తుని పేరు" : isTa ? "பக்தர் பெயர்" : "Devotee";
 
-  const summary = `${vibe.badgeEmoji} ${pakshaLabel(day, lang)} - ${tithiOnlyLabel(day, lang)} - ${localizedPandit} - ${panchangaTitle}`;
+  const festivalInfo = detectSpecialVrata(day.ymd, lang);
+  const cleanVrataName = festivalInfo.isSpecial ? festivalInfo.vrataName.replace(/^[🪔🕉️🚩\s]+/, "") : "";
+  const vrataPrefix = festivalInfo.isSpecial
+    ? (festivalInfo.category === "FESTIVAL" ? `🚩 ${cleanVrataName} · ` : `🕉️ ${cleanVrataName} · `)
+    : "";
+  const summary = `${vrataPrefix}${vibe.badgeEmoji} ${pakshaLabel(day, lang)} - ${tithiOnlyLabel(day, lang)} - ${localizedPandit} - ${panchangaTitle}`;
 
   const taraNum = day.tara?.tara || 2;
   const taraInfo = getTaraBalaInfo(taraNum, lang);

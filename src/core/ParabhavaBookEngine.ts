@@ -453,9 +453,15 @@ export function getParabhavaDayDetails(inputDate: string | Date): ParabhavaDayRe
     ? ["ಪಾಡ್ಯ", "ಬಿದಿಗೆ", "ತದಿಗೆ", "ಚೌತಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ", "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ", "ಹುಣ್ಣಿಮೆ", "ಹುಣ್ಣಿಮೆ"]
     : ["ಪಾಡ್ಯ", "ಬಿದಿಗೆ", "ತದಿಗೆ", "ಚೌತಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ", "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ", "ಅಮಾವಾಸ್ಯೆ", "ಅಮಾವಾಸ್ಯೆ"];
 
-  const tithiKn = tithiList[Math.min(dayIndex, tithiList.length - 1)] || mathData.tithiKn;
+  let tithiKn = tithiList[Math.min(dayIndex, tithiList.length - 1)] || mathData.tithiKn;
   const tithiEngList = ["Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shasthi", "Saptami", "Ashtami", "Navami", "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", monthDef.paksha === "Shukla" ? "Purnima" : "Amavasya"];
-  const tithiEng = tithiEngList[Math.min(dayIndex, tithiEngList.length - 1)] || mathData.tithi;
+  let tithiEng = tithiEngList[Math.min(dayIndex, tithiEngList.length - 1)] || mathData.tithi;
+
+  // Canonical Paksha Ending Guard: The final day of any Paksha is ALWAYS Hunnime (Shukla) or Amavasya (Krishna)
+  if (dayIndex >= monthDef.dayCount - 1) {
+    tithiKn = monthDef.paksha === "Shukla" ? "ಹುಣ್ಣಿಮೆ" : "ಅಮಾವಾಸ್ಯೆ";
+    tithiEng = monthDef.paksha === "Shukla" ? "Purnima" : "Amavasya";
+  }
 
   // Book Ghati values for Chaitra Shukla
   const chaitraShuklaGhati = [

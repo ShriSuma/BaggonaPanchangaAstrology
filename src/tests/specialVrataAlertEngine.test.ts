@@ -10,7 +10,7 @@ describe("Special Vrata Alert Engine", () => {
 
     const firstSpecial = list[0];
     expect(firstSpecial.isSpecial).toBe(true);
-    expect(firstSpecial.eveAlertTitle).toContain("1-Day Prior Prep");
+    expect(firstSpecial.eveAlertTitle).toContain("Eve Alert");
     expect(firstSpecial.mantra).toBeDefined();
 
     // Test specific special item
@@ -42,6 +42,6 @@ describe("Special Vrata Alert Engine", () => {
     });
 
     expect(ics).toContain("baggona-eve-");
-    expect(ics).toContain("1-Day Prior Prep");
+    expect(ics).toContain("Eve Alert");
   }, 30000);
 });

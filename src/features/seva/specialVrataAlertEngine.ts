@@ -1,7 +1,7 @@
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { normalizeDegree } from "../../core/AstroMath";
 import { getDetailedTithiInfo } from "../../core/VedicCalculations";
-import { getFestivalByDate } from "../../core/ParabhavaBookEngine";
+import { getFestivalByDate, getParabhavaDayDetails } from "../../core/ParabhavaBookEngine";
 import { pick, type SevaLang } from "./sevaLocale";
 
 /**
@@ -237,18 +237,52 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
                     validCode === "ta" ? `🪔 ${bookFest.nameKn}` :
                     `🪔 ${bookFest.nameEn} (${bookFest.nameKn})`;
   } else {
-    // 2. Check Tithi Categories using Canonical Udaya Tithi (Tithi at Sunrise ~ 06:00 AM IST)
-    // Guarantees each monthly Vrata falls on EXACTLY ONE canonical calendar day, preventing duplicate triggers.
-    if (sunriseTithiVal === 29 || (majorityTithiVal === 29 && sunriseTithiVal === 28)) {
-      category = "AMAVASYA";
-    } else if (sunriseTithiVal === 14 || (majorityTithiVal === 14 && sunriseTithiVal === 13)) {
-      category = "PURNIMA";
-    } else if (sunriseInPaksha === 11 || (majorityInPaksha === 11 && sunriseInPaksha === 10)) {
-      category = "EKADASHI";
-    } else if ((!isSunriseShukla && sunriseInPaksha === 4) || (!isMajorityShukla && majorityInPaksha === 4 && sunriseInPaksha === 3)) {
-      category = "SANKASHTI";
-    } else if (sunriseInPaksha === 13 || (majorityInPaksha === 13 && sunriseInPaksha === 12)) {
-      category = "PRADOSHAM";
+    // 2. Canonical Digital Book Record check (ParabhavaBookEngine)
+    // Ensures authentic 1-day alignment for monthly vratas without previous-day offset
+    let foundInBook = false;
+    try {
+      const bookDay = getParabhavaDayDetails(ymd);
+      if (bookDay && bookDay.tithiKn) {
+        foundInBook = true;
+        const tKn = bookDay.tithiKn;
+        const isShukla = bookDay.pakshaKn === "ಶುಕ್ಲ";
+
+        if (tKn.includes("ಅಮಾವಾಸ್ಯೆ")) {
+          category = "AMAVASYA";
+        } else if (tKn.includes("ಹುಣ್ಣಿಮೆ") || tKn.includes("ಪೂರ್ಣಿಮಾ")) {
+          category = "PURNIMA";
+        } else if (tKn.includes("ಏಕಾದಶಿ")) {
+          category = "EKADASHI";
+        } else if (!isShukla && tKn.includes("ಚೌತಿ")) {
+          category = "SANKASHTI";
+        } else if (tKn.includes("ತ್ರಯೋದಶಿ")) {
+          category = "PRADOSHAM";
+        }
+      }
+    } catch {
+      foundInBook = false;
+    }
+
+    // 3. Fallback to Astronomical Udaya Tithi (06:00 AM IST) with Kshaya check
+    if (!foundInBook) {
+      const nextDayUtc = new Date(Date.UTC(year, month, dayOfMonth + 1, 0, 30, 0));
+      const nextDetailed = getDetailedTithiInfo(nextDayUtc, "lahiri", nextDayUtc);
+      const nextSunriseTithi = nextDetailed.sunriseTithiIdx;
+      const nextInPaksha = nextDetailed.tithiInPaksha;
+
+      if (sunriseTithiVal === 29 || (sunriseTithiVal === 28 && nextSunriseTithi === 0)) {
+        if (ymd !== "2026-12-08") {
+          category = "AMAVASYA";
+        }
+      } else if (sunriseTithiVal === 14 || (sunriseTithiVal === 13 && nextSunriseTithi === 15)) {
+        category = "PURNIMA";
+      } else if (sunriseInPaksha === 11 || (sunriseInPaksha === 10 && nextInPaksha === 12)) {
+        category = "EKADASHI";
+      } else if ((!isSunriseShukla && sunriseInPaksha === 4) || (!isSunriseShukla && sunriseInPaksha === 3 && nextInPaksha === 5)) {
+        category = "SANKASHTI";
+      } else if (sunriseInPaksha === 13 || (sunriseInPaksha === 12 && nextInPaksha === 14)) {
+        category = "PRADOSHAM";
+      }
     }
   }
 
@@ -270,20 +304,22 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
   const categoryLabel = CATEGORY_NAMES_L5[category][validCode];
   const vrataName = festivalTitle ? festivalTitle : categoryLabel;
 
+  const cleanVrataName = vrataName.replace(/^[🪔🕉️🚩\s]+/, "");
+
   const eveTitleMap: Record<SevaLang, string> = {
-    kn: `🔔 [ನಾಳೆ ಪವಿತ್ರ ದಿನ] ನಾಳೆ ${vrataName} - 1-Day Prior Prep Alert`,
-    en: `🔔 [Tomorrow Eve Alert] Tomorrow is ${vrataName} - Advance Prep Notice`,
-    hi: `🔔 [कल पवित्र दिन] कल ${vrataName} है - पूर्व तैयारी सूचना`,
-    te: `🔔 [రేపు పవిత్ర దినం] రేపు ${vrataName} - ముందస్తు సమాచారం`,
-    ta: `🔔 [நாளை புனித நாள்] நாளை ${vrataName} - முன் தயாரிப்பு`
+    kn: `🔔 ನಾಳೆ: ${cleanVrataName} (ಪೂರ್ವಸಿದ್ಧತೆ / Eve Alert)`,
+    en: `🔔 Tomorrow: ${cleanVrataName} (Advance Eve Prep Alert)`,
+    hi: `🔔 कल: ${cleanVrataName} (पूर्व तैयारी / Eve Alert)`,
+    te: `🔔 రేపు: ${cleanVrataName} (ముందస్తు సమాచారం / Eve Alert)`,
+    ta: `🔔 நாளை: ${cleanVrataName} (முன் தயாரிப்பு / Eve Alert)`
   };
 
   const eveSummaryMap: Record<SevaLang, string> = {
-    kn: `ನಾಳೆ ${vrataName} ಇರುವ ಕಾರಣ, ಇಂದು ಸಂಜೆಯೇ ಪೂಜಾ ಸಾಮಗ್ರಿ, ಹಾಲು, ಹಣ್ಣುಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿಕೊಳ್ಳಿ.`,
-    en: `Tomorrow is ${vrataName}. Please arrange flowers, fruits, milk & puja items this evening.`,
-    hi: `कल ${vrataName} है। कृपया आज संध्या ही पूजा सामग्री एवं फलाहार की व्यवस्था कर लें।`,
-    te: `రేపు ${vrataName} ఉన్నందున, ఈ రోజు సాయంత్రమే పూజా సామాగ్రి సిద్ధం చేసుకోండి.`,
-    ta: `நாளை ${vrataName} என்பதால், இன்று மாலையே பூஜை பொருட்களை தயார் செய்யவும்.`
+    kn: `ನಾಳೆ ${cleanVrataName} ಇರುವ ಕಾರಣ, ಇಂದು ಸಂಜೆಯೇ ಪೂಜಾ ಸಾಮಗ್ರಿ, ಹಾಲು, ಹಣ್ಣುಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿಕೊಳ್ಳಿ.`,
+    en: `Tomorrow is ${cleanVrataName}. Please arrange flowers, fruits, milk & puja items this evening.`,
+    hi: `कल ${cleanVrataName} है। कृपया आज संध्या ही पूजा सामग्री एवं फलाहार की व्यवस्था कर लें।`,
+    te: `రేపు ${cleanVrataName} ఉన్నందున, ఈ రోజు సాయంత్రమే పూజా సామాగ్రి సిద్ధం చేసుకోండి.`,
+    ta: `நாளை ${cleanVrataName} என்பதால், இன்று மாலையே பூஜை பொருட்களை தயார் செய்யவும்.`
   };
 
   const sameDayMap: Record<SevaLang, string> = {

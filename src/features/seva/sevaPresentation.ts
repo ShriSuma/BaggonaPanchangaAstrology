@@ -131,7 +131,7 @@ export const tithiOnlyLabel = (day?: RhythmDay | null, lang: string = "en"): str
   if (!day) return "";
   if (day.isPurnima) return pick(PURNIMA_L5, lang);
   if (day.isAmavasya) return pick(AMAVASYA_L5, lang);
-  const tithiInPaksha = day.majorityTithiInPaksha ?? day.tithiInPaksha ?? 1;
+  const tithiInPaksha = day.tithiInPaksha ?? day.majorityTithiInPaksha ?? 1;
   const tithiIdx = Math.max(0, tithiInPaksha - 1);
   return pick(TITHI_L5[tithiIdx] ?? TITHI_L5[0], lang);
 };
@@ -139,7 +139,7 @@ export const tithiOnlyLabel = (day?: RhythmDay | null, lang: string = "en"): str
 /** Paksha name only, e.g. "Shukla Paksha" or "Krishna Paksha". */
 export const pakshaLabel = (day?: RhythmDay | null, lang: string = "en"): string => {
   if (!day) return "";
-  const pakshaKey = day.majorityPaksha ?? day.paksha ?? "shukla";
+  const pakshaKey = day.paksha ?? day.majorityPaksha ?? "shukla";
   const pakshaPhrase = PAKSHA_L5[pakshaKey] || PAKSHA_L5["shukla"];
   return pick(pakshaPhrase, lang);
 };
