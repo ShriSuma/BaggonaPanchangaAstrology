@@ -1249,6 +1249,7 @@ export default function QuickCalendarPage(): JSX.Element {
           qrDataUrl={qrDataUrl}
           target={qrTarget}
           panditName={panditName}
+          priestPhone={priestPhone}
         />
         <SevaAnugrahaGuidancePrint
           lang={lang}

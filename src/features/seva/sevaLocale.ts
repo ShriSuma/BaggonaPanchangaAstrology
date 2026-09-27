@@ -1272,6 +1272,22 @@ export const formatPanditName = (name?: string, lang: string = "en"): string => 
     };
     return map[base] || map.en;
   }
+  if (
+    trimmed.toLowerCase().includes("ravi") ||
+    trimmed.includes("ರವಿ") ||
+    trimmed.includes("रवि") ||
+    trimmed.includes("రవి") ||
+    trimmed.includes("ரவி")
+  ) {
+    const map: Record<string, string> = {
+      kn: "ರವಿ ಜಂಬೆ",
+      hi: "रवि जंबे",
+      te: "రవి జంబె",
+      ta: "ரவி ஜம்பே",
+      en: "Ravi Jambe"
+    };
+    return map[base] || map.en;
+  }
   return transliterateName(trimmed, base);
 };
 

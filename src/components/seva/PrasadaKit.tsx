@@ -201,8 +201,8 @@ export default function PrasadaKit({
     if (overridePriestContact && customPriestPhone.trim()) {
       return customPriestPhone.trim();
     }
-    return "9972339362";
-  }, [overridePriestContact, customPriestPhone]);
+    return activePriest?.phone || "9972339362";
+  }, [overridePriestContact, customPriestPhone, activePriest]);
 
   const handleSelectPriest = (priestId: string) => {
     if (priestId === "ADD_NEW") {
@@ -1608,6 +1608,7 @@ export default function PrasadaKit({
           qrDataUrl={qrDataUrl}
           target={qrTarget}
           panditName={panditName}
+          priestPhone={effectivePriestPhone}
         />
         <SevaAnugrahaGuidancePrint
           lang={pdfLang}

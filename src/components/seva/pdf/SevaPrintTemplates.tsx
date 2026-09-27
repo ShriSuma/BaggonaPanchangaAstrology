@@ -696,17 +696,21 @@ export const SevaQRCodePrint = ({
   identity,
   qrDataUrl,
   target = "google",
-  panditName
+  panditName,
+  priestPhone: priestPhoneProp
 }: {
   lang: string;
   identity: Identity;
   qrDataUrl?: string;
   target?: "google" | "webcal" | "sanctum";
   panditName?: string;
+  priestPhone?: string;
 }): JSX.Element => {
   const safePanditName = formatPanditName(panditName, lang);
   const priestProfile = getPriestProfile(panditName);
-  const priestPhone = priestProfile.phone || "9972339362";
+  const priestPhone = (priestPhoneProp && priestPhoneProp.trim())
+    ? priestPhoneProp.trim()
+    : (priestProfile.phone || "9972339362");
   const [internalQr, setInternalQr] = useState<string>(qrDataUrl || "");
 
   useEffect(() => {
@@ -756,21 +760,24 @@ export const SevaQRCodePrint = ({
           {/* Prominent Priest Benediction & Contact Badge */}
           <div
             style={{
-              marginBottom: 8,
+              marginTop: 14,
+              marginBottom: 10,
               backgroundColor: GOLD_LIGHT + "25",
               border: `1.5px solid ${GOLD}`,
-              borderRadius: 20,
-              padding: "4px 16px",
+              borderRadius: 24,
+              padding: "6px 24px",
               display: "inline-flex",
               alignItems: "center",
-              gap: 10,
+              justifyContent: "center",
+              textAlign: "center",
+              gap: 14,
               boxShadow: "0 2px 8px rgba(180, 83, 9, 0.08)"
             }}
           >
-            <span style={{ fontSize: 12, fontWeight: 800, color: GOLD }}>
+            <span style={{ fontSize: 12, fontWeight: 800, color: GOLD, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
               ✦ {pick(LETTER_L5.priestBlessingPrefix!, lang)} {safePanditName || formatPanditName("Shreeram Pandit", lang)} ✦
             </span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: INK }}>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: INK, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
               📞 {priestPhone}
             </span>
           </div>
