@@ -862,7 +862,7 @@ export const BaggonaCalendarPage: React.FC = () => {
               <span className="truncate">ಸೂರ್ಯೋದಯ, ದಿನಮಾನ & ಮುಹೂರ್ತ ಕಾಲಾವಧಿಗಳು (Muhurtha Windows):</span>
             </h4>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 text-xs">
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
                 <span className="text-[9.5px] font-bold text-slate-500 block truncate">ಸೂರ್ಯೋದಯ:</span>
                 <span className="font-black text-amber-950 text-xs mt-0.5 block truncate">{dossier.suryodaya}</span>
@@ -882,6 +882,10 @@ export const BaggonaCalendarPage: React.FC = () => {
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
                 <span className="text-[9.5px] font-bold text-slate-500 block truncate">ಅಭಿಜಿನ್ ಮುಹೂರ್ತ:</span>
                 <span className="font-black text-emerald-800 text-xs mt-0.5 block truncate">{dossier.abhijitMuhurtha}</span>
+              </div>
+              <div className="bg-emerald-50/70 p-2 rounded-xl border border-emerald-200 overflow-hidden">
+                <span className="text-[9.5px] font-bold text-emerald-800 block truncate">ಅಮೃತ ಕಾಲ:</span>
+                <span className="font-black text-emerald-950 text-xs mt-0.5 block truncate">{dossier.amritaKaala}</span>
               </div>
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
                 <span className="text-[9.5px] font-bold text-slate-500 block truncate">ಪ್ರದೋಷ ಕಾಲ:</span>

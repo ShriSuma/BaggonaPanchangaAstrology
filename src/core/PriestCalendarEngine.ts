@@ -93,6 +93,7 @@ export interface PriestDayDossier {
   rahuKaala: string;
   gulikaKaala: string;
   yamaganda: string;
+  amritaKaala: string;
   durmuhurtha: string;
   
   // Right Page: 12 Dina Lagna Ending Times
@@ -170,10 +171,11 @@ function computePriestIstDutyWindows(
   const octantMs = daySpanMs / 8;
   const idx = (new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 6, 0)).getUTCDay()) % 7;
 
-  // Rahu, Gulika, Yama octants for day (0=Sun, 1=Mon, ..., 6=Sat)
+  // Rahu, Gulika, Yama, Amrita octants for day (0=Sun, 1=Mon, ..., 6=Sat)
   const rahuOctantMap = [8, 2, 7, 5, 6, 4, 3];
   const gulikaOctantMap = [7, 6, 5, 4, 3, 2, 1];
   const yamaOctantMap = [5, 4, 3, 2, 1, 7, 6];
+  const amritaOctantMap = [4, 1, 5, 2, 6, 3, 7];
 
   const getWindow = (octantPeriod: number) => {
     const start = new Date(sunriseMs + (octantPeriod - 1) * octantMs);
@@ -217,6 +219,7 @@ function computePriestIstDutyWindows(
     rahuKaala: getWindow(rahuOctantMap[idx] ?? 8),
     gulikaKaala: getWindow(gulikaOctantMap[idx] ?? 7),
     yamaganda: getWindow(yamaOctantMap[idx] ?? 5),
+    amritaKaala: getWindow(amritaOctantMap[idx] ?? 4),
     durmuhurtha: "10:15 AM - 11:05 AM & 03:20 PM - 04:10 PM"
   };
 }
@@ -591,6 +594,7 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
       `• ರಾಹುಕಾಲ: ${day.rahuKaala}`,
       `• ಗುಳಿಕಕಾಲ: ${day.gulikaKaala}`,
       `• ಯಮಗಂಡ: ${day.yamaganda}`,
+      `• ಅಮೃತಕಾಲ: ${day.amritaKaala}`,
       ""
     ];
 

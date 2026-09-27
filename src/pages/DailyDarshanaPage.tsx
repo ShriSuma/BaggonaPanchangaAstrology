@@ -23,6 +23,7 @@ import { resolveDevoteeToken, type ResolveTokenResult } from "../features/seva/d
 import { DailySatkarmaPracticeCard } from "../components/seva/DailySatkarmaPracticeCard";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
 import { resolvePincodeCoordinatesSync, resolvePlaceFromPincode, bundledVillagesByPincode, getPostalRegionCentroid } from "../services/locationApi";
+import { fetchSunriseSunsetUtc, type SunriseSunsetUtc } from "../core/sunriseSunsetApi";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import type { DetailedTithiInfo } from "../core/VedicCalculations";
 import { nakshatraName, rashiName, tithiLabel, pakshaLabel, tithiOnlyLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
@@ -116,6 +117,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaala: "ರಾಹು ಕಾಲ",
     gulikaKaala: "ಗುಳಿಕ ಕಾಲ",
     yamaganda: "ಯಮಗಂಡ ಕಾಲ",
+    abhijitMuhurtha: "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ",
+    amritaKaala: "ಅಮೃತ ಕಾಲ",
     sunrise: "ಸೂರ್ಯೋದಯ",
     sunset: "ಸೂರ್ಯಾಸ್ತ",
     deityMantra: "ಇಂದಿನ ದೇವತಾ ಜಪ ಮಂತ್ರ",
@@ -190,6 +193,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     dinaTravelTitle: "ಪ್ರಯಾಣ, ಶುಭ ಮುಹೂರ್ತ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ",
     dinaTravelFallback: "ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ಪ್ರಯಾಣ ಹಾಗೂ ನೂತನ ಕಾರ್ಯಾರಂಭಗಳು ಯಶಸ್ವಿಯಾಗಲಿವೆ.",
     abhijitLabel: "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ:",
+    amritaKaalaLabel: "ಅಮೃತ ಕಾಲ:",
     rahuKaalaLabel: "ರಾಹು ಕಾಲ:",
     luckyColorLabel: "ಅದೃಷ್ಟ ಬಣ್ಣ:",
     luckyDirectionLabel: "ಅದೃಷ್ಟ ದಿಕ್ಕು:",
@@ -242,6 +246,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaala: "Rahu Kaala",
     gulikaKaala: "Gulika Kaala",
     yamaganda: "Yamaganda",
+    abhijitMuhurtha: "Abhijit Muhurtha",
+    amritaKaala: "Amrita Kaala",
     sunrise: "Sunrise",
     sunset: "Sunset",
     deityMantra: "Sacred Deity Mantra of the Day",
@@ -316,6 +322,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     dinaTravelTitle: "Travel, Auspicious Timing & Day Guidance",
     dinaTravelFallback: "Auspicious window for planned travel and starting key tasks.",
     abhijitLabel: "Abhijit:",
+    amritaKaalaLabel: "Amrita Kaala:",
     rahuKaalaLabel: "Rahu Kaala:",
     luckyColorLabel: "Lucky Color:",
     luckyDirectionLabel: "Direction:",
@@ -368,6 +375,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaala: "राहु काल",
     gulikaKaala: "गुलिक काल",
     yamaganda: "यमगंड",
+    abhijitMuhurtha: "अभिजित मुहूर्त",
+    amritaKaala: "अमृत काल",
     sunrise: "सूर्योदय",
     sunset: "सूर्यास्त",
     deityMantra: "आज का देव मंत्र",
@@ -442,6 +451,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     dinaTravelTitle: "यात्रा, शुभ मुहूर्त एवं मार्गदर्शन",
     dinaTravelFallback: "शुभ मुहूर्त में की गई यात्रा एवं नए कार्यों की शुरुआत सफल रहेगी।",
     abhijitLabel: "अभिजीत मुहूर्त:",
+    amritaKaalaLabel: "अमृत काल:",
     rahuKaalaLabel: "राहु काल:",
     luckyColorLabel: "शुभ रंग:",
     luckyDirectionLabel: "शुभ दिशा:",
@@ -494,6 +504,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaala: "రాహు కాలం",
     gulikaKaala: "గుళిక కాలం",
     yamaganda: "యమగండం",
+    abhijitMuhurtha: "అభిజిత్ ముహూర్తం",
+    amritaKaala: "అమృత కాలం",
     sunrise: "సూర్యోదయం",
     sunset: "సూర్యాస్తమయం",
     deityMantra: "నేటి దేవుని జప మంత్రం",
@@ -568,6 +580,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     dinaTravelTitle: "ప్రయాణం, శుభ ముహూర్తం & మార్గదర్శనం",
     dinaTravelFallback: "శుభ ముహూర్తంలో ప్రారంభించే ప్రయాణాలు మరియు కొత్త పనులు విజయవంతమవుతాయి.",
     abhijitLabel: "అభిజిత్ ముహూర్తం:",
+    amritaKaalaLabel: "అమృత కాలం:",
     rahuKaalaLabel: "రాహు కాలం:",
     luckyColorLabel: "అదృష్ట రంగు:",
     luckyDirectionLabel: "అదృష్ట దిక్కు:",
@@ -620,6 +633,8 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     rahuKaala: "ரஹு காலம்",
     gulikaKaala: "குளிகை காலம்",
     yamaganda: "யமகண்டம்",
+    abhijitMuhurtha: "அபிஜித் முகூர்த்தம்",
+    amritaKaala: "அமிர்த காலம்",
     sunrise: "சூரியோதயம்",
     sunset: "சூரிய அஸ்தமனம்",
     deityMantra: "இன்றைய தெய்வ மந்திரம்",
@@ -694,6 +709,7 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     dinaTravelTitle: "பயணம், சுப முகூர்த்தம் & வழிகாட்டல்",
     dinaTravelFallback: "சுப முகூர்த்தத்தில் மேற்கொள்ளும் பயணங்களும் புதிய தொடக்கங்களும் வெற்றியைத் தரும்.",
     abhijitLabel: "அபிஜித் முகூர்த்தம்:",
+    amritaKaalaLabel: "அமிர்த காலம்:",
     rahuKaalaLabel: "ராகு காலம்:",
     luckyColorLabel: "அதிர்ஷ்ட நிறம்:",
     luckyDirectionLabel: "அதிர்ஷ்ட திசை:",
@@ -1928,7 +1944,21 @@ export default function DailyDarshanaPage(): JSX.Element {
     return (decoded as any)?.loc || (decoded as any)?.location || storedSession?.placeName || "Gokarna";
   }, [decoded, storedSession, urlParams, resolvedPlaceName, userPincode]);
 
-  const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, userLat, userLng, userPincode), [dayLordIdx, lang, dateParam, userLat, userLng, userPincode]);
+  const [sunApiTimes, setSunApiTimes] = useState<SunriseSunsetUtc | null>(null);
+
+  useEffect(() => {
+    if (userLat && userLng && dateParam) {
+      let cancelled = false;
+      fetchSunriseSunsetUtc(userLat, userLng, dateParam).then(times => {
+        if (!cancelled && times) {
+          setSunApiTimes(times);
+        }
+      }).catch(() => {});
+      return () => { cancelled = true; };
+    }
+  }, [userLat, userLng, dateParam]);
+
+  const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, userLat, userLng, userPincode), [dayLordIdx, lang, dateParam, userLat, userLng, userPincode, sunApiTimes]);
 
 
   const hasContactOverride = useMemo(() => {
@@ -3650,14 +3680,18 @@ export default function DailyDarshanaPage(): JSX.Element {
                 {sanitizeDinaIndicText(dinaBhavishyaData?.travelAndInitiatives || dict.dinaTravelFallback, lang as SevaLang)}
               </p>
               {dinaBhavishyaData && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12, marginBottom: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8, fontSize: 12, marginBottom: 10 }}>
                   <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(212, 175, 55, 0.2)" }}>
                     <span style={{ color: "#FCD34D", fontWeight: 700 }}>⏱️ {dict.abhijitLabel} </span>
-                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.abhijitMuhurtha}</span>
+                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.abhijitMuhurtha || kaala?.abhijitWindow}</span>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+                    <span style={{ color: "#FDE68A", fontWeight: 700 }}>🪔 {dict.amritaKaalaLabel || "ಅಮೃತ ಕಾಲ:"} </span>
+                    <span style={{ color: "#FEF3C7" }}>{kaala?.amritaWindow || kaala?.amrita}</span>
                   </div>
                   <div style={{ background: "rgba(0,0,0,0.3)", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)" }}>
                     <span style={{ color: "#FCA5A5", fontWeight: 700 }}>⚠️ {dict.rahuKaalaLabel} </span>
-                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.rahuKaala}</span>
+                    <span style={{ color: "#FEF3C7" }}>{dinaBhavishyaData.rahuKaala || kaala?.rahuWindow}</span>
                   </div>
                 </div>
               )}
@@ -4866,6 +4900,17 @@ export default function DailyDarshanaPage(): JSX.Element {
                     </div>
                   </div>
                 </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 22 }}>🪔</span>
+                  <div>
+                    <div style={{ fontSize: 11, color: "#FDE68A", fontWeight: 800, textTransform: "uppercase" }}>
+                      {dict.amritaKaalaLabel || "ಅಮೃತ ಕಾಲ:"}
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#FFFFFF", marginTop: 2 }}>
+                      {kaala?.amritaWindow ? `${kaala.amritaWindow} IST` : (kaala?.amrita || "02:15 PM – 03:45 PM IST")}
+                    </div>
+                  </div>
+                </div>
                 <div style={{
                   background: "rgba(245, 158, 11, 0.2)",
                   border: "1px solid #F59E0B",
@@ -4975,7 +5020,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                   <span style={{ fontSize: 10, color: "#FCD34D" }}>(📍 {userLocationName} - {userPincode})</span>
                 </span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, fontSize: 11, textAlign: "center" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8, fontSize: 11, textAlign: "center" }}>
                 <div style={{ background: "rgba(220, 38, 38, 0.15)", border: "1px solid rgba(220, 38, 38, 0.4)", padding: 8, borderRadius: 10 }}>
                   <div style={{ color: "#FCA5A5", fontWeight: 700 }}>🔴 {dict.rahuKaala} (IST)</div>
                   <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.rahuWindow || kaala.rahu.split(" (")[0]}</div>
@@ -4990,6 +5035,16 @@ export default function DailyDarshanaPage(): JSX.Element {
                   <div style={{ color: "#86EFAC", fontWeight: 700 }}>🟢 {dict.yamaganda} (IST)</div>
                   <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.yamaWindow || kaala.yamaganda.split(" (")[0]}</div>
                   <div style={{ fontSize: 9.5, color: "#86EFAC", marginTop: 2 }}>{kaala.yamaSuffix || (kaala.yamaganda.includes("(") ? `(${kaala.yamaganda.split("(")[1]}` : "")}</div>
+                </div>
+                <div style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.4)", padding: 8, borderRadius: 10 }}>
+                  <div style={{ color: "#93C5FD", fontWeight: 700 }}>⏱️ {dict.abhijitMuhurtha || "ಅಭಿಜಿತ್"} (IST)</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.abhijitWindow || kaala.abhijit.split(" (")[0]}</div>
+                  <div style={{ fontSize: 9.5, color: "#93C5FD", marginTop: 2 }}>{kaala.abhijitSuffix || (kaala.abhijit.includes("(") ? `(${kaala.abhijit.split("(")[1]}` : "")}</div>
+                </div>
+                <div style={{ background: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.4)", padding: 8, borderRadius: 10 }}>
+                  <div style={{ color: "#FDE68A", fontWeight: 700 }}>🪔 {dict.amritaKaala || "ಅಮೃತ ಕಾಲ"} (IST)</div>
+                  <div style={{ fontWeight: 800, color: "#FFFFFF", marginTop: 2, fontSize: 12 }}>{kaala.amritaWindow || kaala.amrita.split(" (")[0]}</div>
+                  <div style={{ fontSize: 9.5, color: "#FDE68A", marginTop: 2 }}>{kaala.amritaSuffix || (kaala.amrita.includes("(") ? `(${kaala.amrita.split("(")[1]}` : "")}</div>
                 </div>
               </div>
             </div>

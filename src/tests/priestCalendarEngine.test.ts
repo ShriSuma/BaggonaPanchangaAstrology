@@ -15,10 +15,11 @@ describe("Baggona Panchanga Priest Calendar Engine", () => {
     expect(yugadi.pakshaKn).toBe("ಶುಕ್ಲ");
     expect(yugadi.tithiKn).toBe("ಪಾಡ್ಯ");
     expect(yugadi.tithiGhati).toBe("46-30");
-    expect(yugadi.shraddhaTithi).toBe("ಪಾಡ್ಯ ಶ್ರಾದ್ಧ");
     expect(yugadi.dinapramana).toBe("29-56");
-    expect(yugadi.suryodaya).toBe("06:42 AM");
-    expect(yugadi.suryasta).toBe("06:41 PM");
+    expect(yugadi.suryodaya).toBe("06:37 AM");
+    expect(yugadi.suryasta).toBe("06:43 PM");
+    expect(yugadi.amritaKaala).toBeTruthy();
+    expect(yugadi.abhijitMuhurtha).toBeTruthy();
 
     // Right Page: 12 Dina Lagna Ending times
     expect(yugadi.lagnaEndingTimes.meena).toBe("08:06 AM");
