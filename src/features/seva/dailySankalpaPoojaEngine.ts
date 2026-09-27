@@ -14,6 +14,7 @@ import type { SevaLang } from "./sevaLocale";
 import type { UserSankalpaRecord } from "../../db/indexedDb";
 import { convertIndicScript, transliterateIndicToLatin, transliterateName } from "../../utils/transliterator";
 import { SANKALPA_PRESETS, getPresetSanskritPhrasing } from "../sankalpa/sankalpaStore";
+import { getLocalizedPanditName } from "./sevaPresentation";
 
 function localizePanchangaTerm(term: string, targetLang: SevaLang): string {
   if (!term) return "";
@@ -163,7 +164,17 @@ export function buildDailyPoojaSteps(params: BuildDailyPoojaParams): DailyPoojaS
   const phEn = getLocalizedSanskritPhrases(activeSankalpas, "en");
 
   // Localized placeholders per language
-  const nameHi = transliterateName(devoteeName, "hi");
+  const nameKn = devoteeName ? transliterateName(devoteeName, "kn") : "ಭಕ್ತ";
+  const nameHi = devoteeName ? transliterateName(devoteeName, "hi") : "भक्त";
+  const nameTe = devoteeName ? transliterateName(devoteeName, "te") : "భక్తులు";
+  const nameTa = devoteeName ? transliterateName(devoteeName, "ta") : "பக்தர்";
+  const nameEn = devoteeName ? transliterateName(devoteeName, "en") : "Devotee";
+
+  const priestKn = getLocalizedPanditName(priestName, "kn");
+  const priestHi = getLocalizedPanditName(priestName, "hi");
+  const priestTe = getLocalizedPanditName(priestName, "te");
+  const priestTa = getLocalizedPanditName(priestName, "ta");
+  const priestEn = getLocalizedPanditName(priestName, "en");
   const gotraHi = localizePanchangaTerm(gotra, "hi");
   const rashiHi = localizePanchangaTerm(rashiName, "hi");
   const nakshatraHi = localizePanchangaTerm(nakshatraName, "hi");
@@ -176,7 +187,6 @@ export function buildDailyPoojaSteps(params: BuildDailyPoojaParams): DailyPoojaS
   const vasaraHi = localizePanchangaTerm(vasara, "hi");
   const nakHi = localizePanchangaTerm(nakshatra, "hi");
 
-  const nameTe = transliterateName(devoteeName, "te");
   const gotraTe = localizePanchangaTerm(gotra, "te");
   const rashiTe = localizePanchangaTerm(rashiName, "te");
   const nakshatraTe = localizePanchangaTerm(nakshatraName, "te");
@@ -189,7 +199,6 @@ export function buildDailyPoojaSteps(params: BuildDailyPoojaParams): DailyPoojaS
   const vasaraTe = localizePanchangaTerm(vasara, "te");
   const nakTe = localizePanchangaTerm(nakshatra, "te");
 
-  const nameTa = transliterateName(devoteeName, "ta");
   const gotraTa = localizePanchangaTerm(gotra, "ta");
   const rashiTa = localizePanchangaTerm(rashiName, "ta");
   const nakshatraTa = localizePanchangaTerm(nakshatraName, "ta");
@@ -202,7 +211,6 @@ export function buildDailyPoojaSteps(params: BuildDailyPoojaParams): DailyPoojaS
   const vasaraTa = localizePanchangaTerm(vasara, "ta");
   const nakTa = localizePanchangaTerm(nakshatra, "ta");
 
-  const nameEn = transliterateName(devoteeName, "en");
   const gotraEn = localizePanchangaTerm(gotra, "en");
   const rashiEn = localizePanchangaTerm(rashiName, "en");
   const nakshatraEn = localizePanchangaTerm(nakshatraName, "en");
@@ -384,11 +392,11 @@ Om Śāntiḥ Śāntiḥ Śāntiḥ ||`
       sanskritMantra: step1MantraL5[selectedLang] || step1MantraL5.kn,
       sanskritMantraL5: step1MantraL5,
       narrationText: {
-        kn: `ದೇವರಿಗೆ ಎರಡೂ ಕೈಯನ್ನು ಮುಗಿದು ನಮಸ್ಕರಿಸಿ. ದೇವರ ಮುಂದೆ ಶುದ್ಧ ಎಣ್ಣೆ ಅಥವಾ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸಿ. ಈಗ ಹೇಳುವ ಮಂತ್ರವನ್ನು ಸರಿಯಾಗಿ ಕೇಳಿ, ಮನಸ್ಸಿನಲ್ಲಿ ದೇವರನ್ನು ಸ್ಮರಣೆ ಮಾಡಿ.`,
-        hi: `भगवान के समक्ष दोनों हाथ जोड़कर प्रणाम करें। पूजा स्थल में शुद्ध घी अथवा तेल का दीप प्रज्वलित करें। अब इस पावन मंत्र को ध्यान से सुनें और मन में प्रभु का स्मरण करें।`,
-        te: `దేవునికి రెండు చేతులు జోడించి నమస్కరించండి. పూజా మందిరంలో స్వచ్ఛమైన నెయ్యి లేదా నూనెతో దీపం వెలిగించండి. ఇప్పుడు చెప్పే మంత్రాన్ని శ్రద్ధగా విని, మనస్సులో భగవంతుని స్మరించుకోండి.`,
-        ta: `இறைவனுக்கு இரு கைகூப்பி வணங்குங்கள். பூஜை அறையில் தூய நெய் அல்லது எண்ணெய் தீபம் ஏற்றுங்கள். இப்போது சொல்லப்படும் மந்திரத்தை கவனமாகக் கேட்டு, மனதில் இறைவனை தியானியுங்கள்.`,
-        en: `Fold both hands in humble reverence before God. Light the sacred lamp with pure oil or cow's ghee at the altar. Listen attentively to the sacred mantra and meditate upon the Supreme Divine in your heart.`
+        kn: `ನಮಸ್ಕಾರ ${nameKn} ಅವರೇ, ನಾನು ನಿಮ್ಮ ಅರ್ಚಕ ${priestKn}. ಈಗ ಇಂದಿನ ನಿತ್ಯ ಪೂಜೆಯ ಎಲ್ಲಾ ಕಾರ್ಯಗಳನ್ನು ನಾನು ನಿಮಗೆ ಹೇಳುತ್ತೇನೆ, ಅದರ ಪ್ರಕಾರ ಇದನ್ನು ಮುಂದುವರಿಸಿ. ಮೊದಲನೆಯದಾಗಿ ದೀಪಾರಾಧನೆ — ದೇವರ ಮಂಟಪದಲ್ಲಿ ಶುದ್ಧ ಎಣ್ಣೆ ಅಥವಾ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸಿ, ದೇವರಿಗೆ ಎರಡೂ ಕೈಯನ್ನು ಮುಗಿದು ನಮಸ್ಕರಿಸಿ. ಈಗ ಹೇಳುವ ಮಂತ್ರವನ್ನು ಸರಿಯಾಗಿ ಕೇಳಿ, ಮನಸ್ಸಿನಲ್ಲಿ ದೇವರನ್ನು ಸ್ಮರಣೆ ಮಾಡಿ.`,
+        hi: `नमस्कार ${nameHi} जी, मैं आपका अर्चक ${priestHi}। अब आज की नित्य देव पूजा के सभी कार्यों का मैं आपको मार्गदर्शन करूँगा, उसी अनुसार इसे आगे बढ़ाएं। सर्वप्रथम दीपाराधना — पूजा स्थल में शुद्ध घी अथवा तेल का दीप प्रज्वलित करें, भगवान के समक्ष दोनों हाथ जोड़कर प्रणाम करें। अब इस पावन मंत्र को ध्यान से सुनें और मन में प्रभु का स्मरण करें।`,
+        te: `నమస్కారం ${nameTe} గారూ, నేను మీ అర్చకులు ${priestTe}. ఇప్పుడు నేటి నిత్య దేవ పూజా విధులను నేను మీకు తెలియజేస్తాను, దాని ప్రకారం దీనిని కొనసాగించండి. మొదటిగా దీపారాధన — పూజా మందిరంలో స్వచ్ఛమైన నెయ్యి లేదా నూనెతో దీపం వెలిగించండి, దేవునికి రెండు చేతులు జోడించి నమస్కరించండి. ఇప్పుడు చెప్పే మంత్రాన్ని శ్రద్ధగా విని, మనస్సులో భగవంతుని స్మరించుకోండి.`,
+        ta: `வணக்கம் ${nameTa} அவர்களே, நான் உங்கள் அர்ச்சகர் ${priestTa}. இப்போது இன்றைய நித்ய தேவ பூஜை வழிமுறைகளை நான் உங்களுக்கு கூறுகிறேன், அதன்படி இதைத் தொடருங்கள். முதலாவதாக தீபாராதனை — பூஜை அறையில் தூய நெய் அல்லது எண்ணெய் தீபம் ஏற்றுங்கள், இறைவனுக்கு இரு கைகூப்பி வணங்குங்கள். இப்போது சொல்லப்படும் மந்திரத்தை கவனமாகக் கேட்டு, மனதில் இறைவனை தியானியுங்கள்.`,
+        en: `Namaskara ${nameEn}, I am your sacred priest ${priestEn}. I will guide you through today's divine daily Vedic pooja rituals. Please proceed with this sacred worship accordingly. First, Deeparadhana — Light the sacred lamp with pure oil or cow's ghee at the altar, and fold both hands in humble reverence before God. Listen attentively to the sacred mantra and meditate upon the Supreme Divine in your heart.`
       },
       actionGuide: {
         kn: "ದೇವರ ಮಂಟಪದಲ್ಲಿ ದೀಪ ಬೆಳಗಿಸಿ, ಎರಡು ಕೈಗಳನ್ನು ಮುಗಿದು ಭಕ್ತಿಯಿಂದ ನಮಸ್ಕರಿಸಿ.",
@@ -412,11 +420,11 @@ Om Śāntiḥ Śāntiḥ Śāntiḥ ||`
         en: "I am waiting for you to light the sacred lamp and pray. Once lit, please click the 'Continue' button to proceed."
       },
       priestNarrationL5: {
-        kn: `ದೇವರ ಮಂಟಪದಲ್ಲಿ ಶುದ್ಧ ಎಣ್ಣೆ ಅಥವಾ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸಿ, ಬತ್ತಿಯನ್ನು ಇಟ್ಟು ಜ್ಯೋತಿಯನ್ನು ಪ್ರಜ್ವಲಿಸಿ. ${BENEFIT_INTRO.kn} ಅಜ್ಞಾನದ ಕತ್ತಲೆಯನ್ನು ನೀಗಿಸಿ ಜ್ಞಾನ, ಶಾಂತಿ, ಶುಭ ಮತ್ತು ಆರೋಗ್ಯವನ್ನು ಮನೆಯಲ್ಲಿ ನೆಲೆಗೊಳಿಸುವುದು. ದೇವರಿಗೆ ಎರಡೂ ಕೈಯನ್ನು ಮುಗಿದು ನಮಸ್ಕರಿಸಿ. ಈಗ ಹೇಳುವ ಮಂತ್ರವನ್ನು ಸರಿಯಾಗಿ ಕೇಳಿ, ಮನಸ್ಸಿನಲ್ಲಿ ದೇವರನ್ನು ಸ್ಮರಣೆ ಮಾಡಿ: ${step1MantraL5.kn} । ${DEFAULT_NEXT_STEP_PROMPTS.kn[1]}`,
-        hi: `पूजा स्थल में शुद्ध घी अथवा तेल का दीप प्रज्वलित करें। ${BENEFIT_INTRO.hi} अज्ञान रूपी अंधकार को दूर कर ज्ञान, शांति एवं आरोग्यता का संचार करना। भगवान के समक्ष दोनों हाथ जोड़कर प्रणाम करें। अब इस पावन मंत्र को ध्यान से सुनें और मन में प्रभु का स्मरण करें: ${step1MantraL5.hi} । ${DEFAULT_NEXT_STEP_PROMPTS.hi[1]}`,
-        te: `పూజా మందిరంలో స్వచ్ఛమైన నెయ్యి లేదా నూనెతో దీపం వెలిగించండి. ${BENEFIT_INTRO.te} అజ్ఞానాన్ని తొలగించి జ్ఞానం, శాంతి, ఆరోగ్యం మరియు శుభాన్ని నింపడం. దేవునికి రెండు చేతులు జోడించి నమస్కరించండి. ఇప్పుడు చెప్పే మంత్రాన్ని శ్రద్ధగా విని, మనస్సులో భగవంతుని స్మరించుకోండి: ${step1MantraL5.te} । ${DEFAULT_NEXT_STEP_PROMPTS.te[1]}`,
-        ta: `பூஜை அறையில் தூய நெய் அல்லது எண்ணெய் தீபம் ஏற்றுங்கள். ${BENEFIT_INTRO.ta} அறியாமை நீக்கி ஞானம், அமைதி, ஆரோக்கியம் மற்றும் சுபத்தை நிலைநிறுத்துதல். இறைவனுக்கு இரு கைகூப்பி வணங்குங்கள். இப்போது சொல்லப்படும் மந்திரத்தை கவனமாகக் கேட்டு, மனதில் இறைவனை தியானியுங்கள்: ${step1MantraL5.ta} । ${DEFAULT_NEXT_STEP_PROMPTS.ta[1]}`,
-        en: `Light the sacred lamp with pure oil or cow's ghee at the altar. ${BENEFIT_INTRO.en} Dispels darkness, invokes wisdom, peace, vitality, and fills the home with auspicious cosmic energies. Fold both hands in humble reverence before God, listen attentively to this sacred mantra, and meditate upon the Supreme Divine in your heart: ${step1MantraL5.en} | ${DEFAULT_NEXT_STEP_PROMPTS.en[1]}`
+        kn: `ನಮಸ್ಕಾರ ${nameKn} ಅವರೇ, ನಾನು ನಿಮ್ಮ ಅರ್ಚಕ ${priestKn}. ಈಗ ಇಂದಿನ ನಿತ್ಯ ಪೂಜೆಯ ಎಲ್ಲಾ ಕಾರ್ಯಗಳನ್ನು ನಾನು ನಿಮಗೆ ಹೇಳುತ್ತೇನೆ, ಅದರ ಪ್ರಕಾರ ಇದನ್ನು ಮುಂದುವರಿಸಿ. ಮೊದಲನೆಯದಾಗಿ ದೀಪಾರಾಧನೆ — ದೇವರ ಮಂಟಪದಲ್ಲಿ ಶುದ್ಧ ಎಣ್ಣೆ ಅಥವಾ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸಿ, ಬತ್ತಿಯನ್ನು ಇಟ್ಟು ಜ್ಯೋತಿಯನ್ನು ಪ್ರಜ್ವಲಿಸಿ. ${BENEFIT_INTRO.kn} ಅಜ್ಞಾನದ ಕತ್ತಲೆಯನ್ನು ನೀಗಿಸಿ ಜ್ಞಾನ, ಶಾಂತಿ, ಶುಭ ಮತ್ತು ಆರೋಗ್ಯವನ್ನು ಮನೆಯಲ್ಲಿ ನೆಲೆಗೊಳಿಸುವುದು. ದೇವರಿಗೆ ಎರಡೂ ಕೈಯನ್ನು ಮುಗಿದು ನಮಸ್ಕರಿಸಿ. ಈಗ ಹೇಳುವ ಮಂತ್ರವನ್ನು ಸರಿಯಾಗಿ ಕೇಳಿ, ಮನಸ್ಸಿನಲ್ಲಿ ದೇವರನ್ನು ಸ್ಮರಣೆ ಮಾಡಿ: ${step1MantraL5.kn} । ${DEFAULT_NEXT_STEP_PROMPTS.kn[1]}`,
+        hi: `नमस्कार ${nameHi} जी, मैं आपका अर्चक ${priestHi}। अब आज की नित्य देव पूजा के सभी कार्यों का मैं आपको मार्गदर्शन करूँगा, मेरे साथ इस पावन पूजा को श्रद्धापूर्वक आगे बढ़ाएं। सर्वप्रथम दीपाराधना — पूजा स्थल में शुद्ध घी अथवा तेल का दीप प्रज्वलित करें, बाती रखकर पावन ज्योति प्रज्वलित करें। ${BENEFIT_INTRO.hi} अज्ञान रूपी अंधकार को दूर कर ज्ञान, शांति एवं आरोग्यता का संचार करना। भगवान के समक्ष दोनों हाथ जोड़कर प्रणाम करें। अब इस पावन मंत्र को ध्यान से सुनें और मन में प्रभु का स्मरण करें: ${step1MantraL5.hi} । ${DEFAULT_NEXT_STEP_PROMPTS.hi[1]}`,
+        te: `నమస్కారం ${nameTe} గారూ, నేను మీ అర్చకులు ${priestTe}. ఇప్పుడు నేటి నిత్య దేవ పూజా విధులను నేను మీకు దశలవారీగా తెలియజేస్తాను, నాతో కలిసి ఈ దివ్య పూజను శ్రద్ధతో కొనసాగించండి. మొదటిగా దీపారాధన — పూజా మందిరంలో స్వచ్ఛమైన నెయ్యి లేదా నూనెతో దీపం వెలిగించండి, వత్తిని ఉంచి దివ్య జ్యోతిని వెలిగించండి. ${BENEFIT_INTRO.te} అజ్ఞానాన్ని తొలగించి జ్ఞానం, శాంతి, ఆరోగ్యం మరియు శుభాన్ని నింపడం. దేవునికి రెండు చేతులు జోడించి నమస్కరించండి. ఇప్పుడు చెప్పే మంత్రాన్ని శ్రద్ధగా విని, మనస్సులో భగవంతుని స్మరించుకోండి: ${step1MantraL5.te} । ${DEFAULT_NEXT_STEP_PROMPTS.te[1]}`,
+        ta: `வணக்கம் ${nameTa} அவர்களே, நான் உங்கள் அர்ச்சகர் ${priestTa}. இப்போது இன்றைய நித்ய தேவ பூஜை வழிமுறைகளை நான் உங்களுக்கு படி-படியாக வழிகாட்டுகிறேன், என்னுடன் இணைந்து இந்த பூஜையை பக்தியுடன் தொடருங்கள். முதலாவதாக தீபாராதனை — பூஜை அறையில் தூய நெய் அல்லது எண்ணெய் தீபம் ஏற்றுங்கள், திரியிட்டு திருவிளக்கை ஏற்றுங்கள். ${BENEFIT_INTRO.ta} அறியாமை நீக்கி ஞானம், அமைதி, ஆரோக்கியம் மற்றும் சுபத்தை நிலைநிறுத்துதல். இறைவனுக்கு இரு கைகூப்பி வணங்குங்கள். இப்போது சொல்லப்படும் மந்திரத்தை கவனமாகக் கேட்டு, மனதில் இறைவனை தியானியுங்கள்: ${step1MantraL5.ta} । ${DEFAULT_NEXT_STEP_PROMPTS.ta[1]}`,
+        en: `Namaskara ${nameEn}, I am your sacred priest ${priestEn}. I will guide you step-by-step through today's divine daily Vedic pooja. Please proceed with this sacred worship alongside me with utmost devotion. First, Deeparadhana — Light the sacred lamp with pure oil or cow's ghee at the altar, place the wick, and kindle the holy flame. ${BENEFIT_INTRO.en} Dispels darkness, invokes wisdom, peace, vitality, and fills the home with auspicious cosmic energies. Fold both hands in humble reverence before God, listen attentively to this sacred mantra, and meditate upon the Supreme Divine in your heart: ${step1MantraL5.en} | ${DEFAULT_NEXT_STEP_PROMPTS.en[1]}`
       }
     },
 

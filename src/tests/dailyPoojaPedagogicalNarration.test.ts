@@ -129,4 +129,49 @@ describe("Daily Vedic Pooja - Pedagogical Voice Narration Audit", () => {
       }
     });
   });
+  it("Step 1 audio narration includes personal devotee greeting and priest introduction (Ravi Jambe & Shreeram Pandit)", () => {
+    const steps = buildDailyPoojaSteps({
+      devoteeName: "ರವಿ ಜಂಬೆ",
+      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      lang: "kn"
+    });
+    const step1Text = getStepNarrationText(steps[0], "kn");
+
+    expect(step1Text).toContain("ನಮಸ್ಕಾರ ರವಿ ಜಂಬೆ ಅವರೇ");
+    expect(step1Text).toContain("ನಾನು ನಿಮ್ಮ ಅರ್ಚಕ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    expect(step1Text).toContain("ಈಗ ಇಂದಿನ ನಿತ್ಯ ಪೂಜೆಯ ಎಲ್ಲಾ ಕಾರ್ಯಗಳನ್ನು ನಾನು ನಿಮಗೆ ಹೇಳುತ್ತೇನೆ, ಅದರ ಪ್ರಕಾರ ಇದನ್ನು ಮುಂದುವರಿಸಿ");
+    expect(step1Text).toContain("ಮೊದಲನೆಯದಾಗಿ ದೀಪಾರಾಧನೆ");
+  });
+
+  it("dynamically honors priest override across all 5 languages", () => {
+    // Custom Priest Override: "ಚೈತನ್ಯ ಪಂಡಿತ್" / "Chaitanya Pandit"
+    const knSteps = buildDailyPoojaSteps({ devoteeName: "ರವಿ ಜಂಬೆ", priestName: "ಚೈತನ್ಯ ಪಂಡಿತ್", lang: "kn" });
+    const knText = getStepNarrationText(knSteps[0], "kn");
+    expect(knText).toContain("ನಮಸ್ಕಾರ ರವಿ ಜಂಬೆ ಅವರೇ");
+    expect(knText).toContain("ಚೈತನ್ಯ ಪಂಡಿತ್");
+
+    const hiSteps = buildDailyPoojaSteps({ devoteeName: "Ravi Jambe", priestName: "Chaitanya Pandit", lang: "hi" });
+    const hiText = getStepNarrationText(hiSteps[0], "hi");
+    expect(hiText).toContain("नमस्कार");
+    expect(hiText).toContain("रवि");
+    expect(hiText).toContain("चैतन्य पंडित");
+    expect(hiText).toContain("दीपाराधना");
+
+    const teSteps = buildDailyPoojaSteps({ devoteeName: "Ravi Jambe", priestName: "Chaitanya Pandit", lang: "te" });
+    const teText = getStepNarrationText(teSteps[0], "te");
+    expect(teText).toContain("నమస్కారం");
+    expect(teText).toContain("రవి"); expect(teText).toContain("చైతన్య");
+    expect(teText).toContain("దీపారాధన");
+
+    const taSteps = buildDailyPoojaSteps({ devoteeName: "Ravi Jambe", priestName: "Chaitanya Pandit", lang: "ta" });
+    const taText = getStepNarrationText(taSteps[0], "ta");
+    expect(taText).toContain("வணக்கம்");
+    expect(taText).toContain("தீபாராதனை");
+
+    const enSteps = buildDailyPoojaSteps({ devoteeName: "Ravi Jambe", priestName: "Chaitanya Pandit", lang: "en" });
+    const enText = getStepNarrationText(enSteps[0], "en");
+    expect(enText).toContain("Namaskara Ravi Jambe");
+    expect(enText).toContain("Chaitanya Pandit");
+    expect(enText).toContain("Deeparadhana");
+  });
 });
