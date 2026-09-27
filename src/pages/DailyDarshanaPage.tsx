@@ -81,17 +81,24 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabKundali: "ಜನ್ಮ ಕುಂಡಲಿ",
     tabGochara: "ಗೋಚಾರ ಕುಂಡಲಿ",
     tabDasha: "ದಶಾ-ಭುಕ್ತಿ",
+    tabDarshana: "ದರ್ಶನ & ಪೂಜೆ",
+    tabDarshanaAria: "ಪವಿತ್ರ ದರ್ಶನ, ನಿತ್ಯ ಕಾಲಗಳು ಹಾಗೂ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ",
     tabBhavishya: "ದಿನ ಭವಿಷ್ಯ",
-    tabLucky: "ಅದೃಷ್ಟ ವಿವರಗಳು",
+    tabBhavishyaAria: "ದಿನ ಭವಿಷ್ಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ದೈನಂದಿನ ಕರ್ಮ ಮಾರ್ಗದರ್ಶಿ",
     tabPooja: "ನಿತ್ಯ ಪೂಜೆ & ಮಂತ್ರ",
-    tabLuckyAria: "ದೈನಂದಿನ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತ",
     tabPoojaAria: "ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ ಹಾಗೂ ಶಕ್ತಿ ಮಂತ್ರಗಳು",
+    tabLucky: "ಅದೃಷ್ಟ ವಿವರಗಳು",
+    tabLuckyAria: "ದೈನಂದಿನ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತ",
     tabWhatsapp: "ವಾಟ್ಸಾಪ್ ಸಂದೇಶ",
     tabWhatsappAria: "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್",
-    whatsappTabHeading: "॥ ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್ (WhatsApp ಹಂಚಿಕೆ) ॥",
-    luckyTabHeading: "॥ ಅದೃಷ್ಟ ರತ್ನ, ಸಂಖ್ಯೆ, ಬಣ್ಣ, ಶುಭ ಮುಹೂರ್ತ & ಗೋಲ್ಡನ್ ಅವರ್ ॥",
-    poojaTabHeading: "॥ ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ, ಶಕ್ತಿ ಮಂತ್ರ ಹಾಗೂ ಜಪ ಸನ್ನಿಧಿ ॥",
+    tabDetails: "ಸಂಪೂರ್ಣ ಪಂಚಾಂಗ",
+    tabDetailsAria: "ಪಂಚಾಂಗ, ಜನ್ಮ ಕುಂಡಲಿ & ಗ್ರಹ ಗೋಚಾರ ವಿವರಗಳು",
+    darshanaTabHeading: "॥ ಪವಿತ್ರ ದರ್ಶನ ಸನ್ನಿಧಿ, ಕಾಲ ಸಮಯಗಳು ಹಾಗೂ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ ॥",
     bhavishyaTabHeading: "॥ ದಿನ ಭವಿಷ್ಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ದೈನಂದಿನ ಕರ್ಮ ಮಾರ್ಗದರ್ಶಿ ॥",
+    poojaTabHeading: "॥ ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ, ಶಕ್ತಿ ಮಂತ್ರ ಹಾಗೂ ಜಪ ಸನ್ನಿಧಿ ॥",
+    luckyTabHeading: "॥ ಅದೃಷ್ಟ ರತ್ನ, ಸಂಖ್ಯೆ, ಬಣ್ಣ, ಶುಭ ಮುಹೂರ್ತ & ಗೋಲ್ಡನ್ ಅವರ್ ॥",
+    whatsappTabHeading: "॥ ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್ (WhatsApp ಹಂಚಿಕೆ) ॥",
+    detailsTabHeading: "॥ ಪಂಚಾಂಗ, ಜನ್ಮ ಕುಂಡಲಿ & ಗ್ರಹ ಗೋಚಾರ ವಿವರಗಳು ॥",
     panchangaTitle: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ",
     kshetraTitle: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
     creationSubtitle: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೃಷ್ಟಿ",
@@ -200,17 +207,24 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabKundali: "Janma Kundali",
     tabGochara: "Gochara Chart",
     tabDasha: "Dasha-Bhukti",
+    tabDarshana: "Darshana & Blessings",
+    tabDarshanaAria: "Sacred Sanctum Darshana, Kaala Timings & Chief Archaka Benediction",
     tabBhavishya: "Daily Horoscope",
-    tabLucky: "Lucky & Power",
+    tabBhavishyaAria: "Daily Horoscope, Key Life Areas & Daily Karma Navigator",
     tabPooja: "Daily Pooja & Mantra",
-    tabLuckyAria: "Daily Lucky Gem, Color, Number & Auspicious Muhurtha",
     tabPoojaAria: "Daily Deva Pooja, Sankalpa & Divine Energy Mantras",
+    tabLucky: "Lucky & Power",
+    tabLuckyAria: "Daily Lucky Gem, Color, Number & Auspicious Muhurtha",
     tabWhatsapp: "WhatsApp Share",
     tabWhatsappAria: "Daily Good Morning & Shloka Blessing Card",
-    whatsappTabHeading: "॥ Daily Good Morning & Shloka Blessing Card (WhatsApp Share) ॥",
-    luckyTabHeading: "॥ Daily Lucky Gem, Number, Color, Golden Hour & Muhurtha ॥",
-    poojaTabHeading: "॥ Daily Deva Pooja, Sankalpa, Energy Mantras & Sacred Japa Sanctum ॥",
+    tabDetails: "Full Panchanga",
+    tabDetailsAria: "Panchanga, Janma Kundali & Planetary Gochara Details",
+    darshanaTabHeading: "॥ Sacred Sanctum Darshana, Kaala Timings & Chief Archaka Benediction ॥",
     bhavishyaTabHeading: "॥ Daily Horoscope, Key Life Areas & Daily Karma Navigator ॥",
+    poojaTabHeading: "॥ Daily Deva Pooja, Sankalpa, Energy Mantras & Sacred Japa Sanctum ॥",
+    luckyTabHeading: "॥ Daily Lucky Gem, Number, Color, Golden Hour & Muhurtha ॥",
+    whatsappTabHeading: "॥ Daily Good Morning & Shloka Blessing Card (WhatsApp Share) ॥",
+    detailsTabHeading: "॥ Panchanga, Janma Kundali & Planetary Gochara Details ॥",
     panchangaTitle: "Baggona Panchanga",
     kshetraTitle: "Gokarna Kshetra",
     creationSubtitle: "Gokarna Kshetra Creation",
@@ -319,17 +333,24 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabKundali: "जन्म कुंडली",
     tabGochara: "गोचर कुंडली",
     tabDasha: "दशा-भुक्ति",
+    tabDarshana: "दर्शन एवं पूजा",
+    tabDarshanaAria: "पवित्र दर्शन, दैनिक काल समय एवं मुख्य अर्चक का आशीर्वाद",
     tabBhavishya: "दैनिक राशिफल",
-    tabLucky: "शुभ व भाग्य",
+    tabBhavishyaAria: "दैनिक राशिफल, कार्य सिद्धि एवं दैनिक कर्म मार्गदर्शक",
     tabPooja: "नित्य पूजा व मंत्र",
-    tabLuckyAria: "दैनिक शुभ रत्न, अंक, रंग व मुहूर्त",
     tabPoojaAria: "नित्य देव पूजा, संकल्प एवं दिव्य शक्ति मंत्र",
+    tabLucky: "शुभ व भाग्य",
+    tabLuckyAria: "दैनिक शुभ रत्न, अंक, रंग व मुहूर्त",
     tabWhatsapp: "व्हाट्सएप साझा",
     tabWhatsappAria: "दैनिक शुभ प्रभात संदेश एवं आशीर्वाद कार्ड",
-    whatsappTabHeading: "॥ दैनिक शुभ प्रभात संदेश एवं आशीर्वाद कार्ड (WhatsApp साझा) ॥",
-    luckyTabHeading: "॥ दैनिक शुभ रत्न, अंक, रंग, शुभ मुहूर्त व गोल्डेन ऑवर ॥",
-    poojaTabHeading: "॥ नित्य देव पूजा, संकल्प, दिव्य शक्ति मंत्र एवं जप सन्निधि ॥",
+    tabDetails: "सम्पूर्ण पंचांग",
+    tabDetailsAria: "पंचांग, जन्म कुंडली एवं ग्रह गोचर विवरण",
+    darshanaTabHeading: "॥ पवित्र दर्शन सन्निधि, काल समय एवं मुख्य अर्चक का आशीर्वाद ॥",
     bhavishyaTabHeading: "॥ दैनिक राशिफल, कार्य सिद्धि एवं दैनिक कर्म मार्गदर्शक ॥",
+    poojaTabHeading: "॥ नित्य देव पूजा, संकल्प, दिव्य शक्ति मंत्र एवं जप सन्निधि ॥",
+    luckyTabHeading: "॥ दैनिक शुभ रत्न, अंक, रंग, शुभ मुहूर्त व गोल्डेन ऑवर ॥",
+    whatsappTabHeading: "॥ दैनिक शुभ प्रभात संदेश एवं आशीर्वाद कार्ड (WhatsApp साझा) ॥",
+    detailsTabHeading: "॥ पंचांग, जन्म कुंडली एवं ग्रह गोचर विवरण ॥",
     panchangaTitle: "बग्गोण पंचांग",
     kshetraTitle: "गोकर्ण क्षेत्र",
     creationSubtitle: "गोकर्ण क्षेत्र सृष्टि",
@@ -438,17 +459,24 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabKundali: "జన్మ కుండలి",
     tabGochara: "గోచార కుండలి",
     tabDasha: "దశా-భుక్తి",
+    tabDarshana: "దర్శనం & పూజ",
+    tabDarshanaAria: "పవిత్ర దర్శనం, నిత్య కాలాలు మరియు ప్రధాన అర్చకుల ఆశీర్వచనం",
     tabBhavishya: "దిన భవిష్యత్తు",
-    tabLucky: "అదృష్ట వివరాలు",
+    tabBhavishyaAria: "దిన ఫలితాలు, కార్య సిద్ధి మరియు దైనందిన కర్మ మార్గదర్శి",
     tabPooja: "నిత్య పూజ & మంత్రం",
-    tabLuckyAria: "రోజువారీ అదృష్ట రత్నం, రంగు, సంఖ్య మరియు శుభ ముహూర్తం",
     tabPoojaAria: "నిత్య దేవ పూజ, సంకల్పం మరియు దివ్య శక్తి మంత్రాలు",
+    tabLucky: "అదృష్ట వివరాలు",
+    tabLuckyAria: "రోజువారీ అదృష్ట రత్నం, రంగు, సంఖ్య మరియు శుభ ముహూర్తం",
     tabWhatsapp: "వాట్సాప్ సందేశం",
     tabWhatsappAria: "నిత్య శుభోదయ సందేశం & ఆశీర్వాద కార్డ్",
-    whatsappTabHeading: "॥ నిత్య శుభోదయ సందేశం & ఆశీర్వాద కార్డ్ (WhatsApp భాగస్వామ్యం) ॥",
-    luckyTabHeading: "॥ రోజువారీ అదృష్ట రత్నం, సంఖ్య, రంగు, శుభ ముహూర్తం & గోల్డెన్ అవర్ ॥",
-    poojaTabHeading: "॥ నిత్య దేవ పూజ, సంకల్పం, శక్తి మంత్రాలు మరియు జప సన్నిధి ॥",
+    tabDetails: "పూర్తి పంచాంగం",
+    tabDetailsAria: "పంచాంగం, జన్మ కుండలి & గ్రహ గోచార వివరాలు",
+    darshanaTabHeading: "॥ పవిత్ర దర్శన సన్నిధి, కాల సమయాలు మరియు ప్రధాన అర్చకుల ఆశీర్వచనం ॥",
     bhavishyaTabHeading: "॥ దిన ఫలితాలు, కార్య సిద్ధి మరియు దైనందిన కర్మ మార్గదర్శి ॥",
+    poojaTabHeading: "॥ నిత్య దేవ పూజ, సంకల్పం, శక్తి మంత్రాలు మరియు జప సన్నిధి ॥",
+    luckyTabHeading: "॥ రోజువారీ అదృష్ట రత్నం, సంఖ్య, రంగు, శుభ ముహూర్తం & గోల్డెన్ అవర్ ॥",
+    whatsappTabHeading: "॥ నిత్య శుభోదయ సందేశం & ఆశీర్వాద కార్డ్ (WhatsApp భాగస్వామ్యం) ॥",
+    detailsTabHeading: "॥ పంచాంగం, జన్మ కుండలి & గ్రహ గోచార వివరాలు ॥",
     panchangaTitle: "బగ్గోణ పంచాంగం",
     kshetraTitle: "గోకర్ణ క్షేత్రం",
     creationSubtitle: "గోకర్ణ క్షేత్రం సృష్టి",
@@ -557,17 +585,24 @@ const DARSHANA_LABELS: Record<SevaLang, Record<string, string>> = {
     tabKundali: "ஜன்ம ஜாதகம்",
     tabGochara: "கோச்சார கட்டம்",
     tabDasha: "தசா-புக்தி",
+    tabDarshana: "தரிசனம் & பூஜை",
+    tabDarshanaAria: "புனித தரிசனம், கால நேரங்கள் மற்றும் முதன்மை அர்ச்சகர் ஆசீர்வாதம்",
     tabBhavishya: "தினம் பலன்",
-    tabLucky: "அதிர்ஷ்ட விவரங்கள்",
+    tabBhavishyaAria: "தின பலன்கள், காரிய சித்தி மற்றும் தினசரி கர்ம வழிகாட்டி",
     tabPooja: "நித்ய பூஜை & மந்திரம்",
-    tabLuckyAria: "தினசரி அதிர்ஷ்ட ரத்தினம், நிறம், எண் மற்றும் முகூர்த்தம்",
     tabPoojaAria: "நித்ய தேவ பூஜை, சங்கல்பம் மற்றும் தெய்வீக சக்தி மந்திரங்கள்",
+    tabLucky: "அதிர்ஷ்ட விவரங்கள்",
+    tabLuckyAria: "தினசரி அதிர்ஷ்ட ரத்தினம், நிறம், எண் மற்றும் முகூர்த்தம்",
     tabWhatsapp: "வாட்ஸ்அப் பகிர்வு",
     tabWhatsappAria: "தினசரி காலை வணக்க செய்தி & ஆசீர்வாத அட்டை",
-    whatsappTabHeading: "॥ தினசரி காலை வணக்க செய்தி & ஆசீர்வாத அட்டை (WhatsApp பகிர்வு) ॥",
-    luckyTabHeading: "॥ தினசரி அதிர்ஷ்ட ரத்தினம், எண், நிறம், சுப முகூர்த்தம் & பொன் நேரம் ॥",
-    poojaTabHeading: "॥ நித்ய தேவ பூஜை, சங்கல்பம், சக்தி மந்திரங்கள் & ஜப சந்நிதி ॥",
+    tabDetails: "முழு பஞ்சாங்கம்",
+    tabDetailsAria: "பஞ்சாங்கம், ஜாதக கட்டம் & கோசார கிரக விவரங்கள்",
+    darshanaTabHeading: "॥ புனித தரிசன சந்நிதி, கால நேரங்கள் மற்றும் முதன்மை அர்ச்சகர் ஆசீர்வாதம் ॥",
     bhavishyaTabHeading: "॥ தின பலன்கள், காரிய சித்தி மற்றும் தினசரி கர்ம வழிகாட்டி ॥",
+    poojaTabHeading: "॥ நித்ய தேவ பூஜை, சங்கல்பம், சக்தி மந்திரங்கள் & ஜப சந்நிதி ॥",
+    luckyTabHeading: "॥ தினசரி அதிர்ஷ்ட ரத்தினம், எண், நிறம், சுப முகூர்த்தம் & பொன் நேரம் ॥",
+    whatsappTabHeading: "॥ தினசரி காலை வணக்க செய்தி & ஆசீர்வாத அட்டை (WhatsApp பகிர்வு) ॥",
+    detailsTabHeading: "॥ பஞ்சாங்கம், ஜாதக கட்டம் & கோசார கிரக விவரங்கள் ॥",
     panchangaTitle: "பக்கோண பஞ்சாங்கம்",
     kshetraTitle: "கோகர்ண க்ஷேத்திரம்",
     creationSubtitle: "கோகர்ண க்ஷேத்திரம் படைப்பு",
@@ -3072,16 +3107,16 @@ export default function DailyDarshanaPage(): JSX.Element {
           </span>
           <span>
             {activeTab === "darshana"
-              ? dict.tabDarshanaAria
+              ? (dict.tabDarshanaAria || (lang === "kn" ? "ಪವಿತ್ರ ದರ್ಶನ, ನಿತ್ಯ ಕಾಲಗಳು ಹಾಗೂ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ" : lang === "te" ? "పవిత్ర దర్శనం, నిత్య కాలాలు మరియు ప్రధాన అర్చకుల ఆశీర్వచనం" : lang === "ta" ? "புனித தரிசனம், கால நேரங்கள் மற்றும் முதன்மை அர்ச்சகர் ஆசீர்வாதம்" : lang === "hi" ? "पवित्र दर्शन, दैनिक काल समय एवं मुख्य अर्चक का आशीर्वाद" : "Sacred Sanctum Darshana, Kaala Timings & Chief Archaka Benediction"))
               : activeTab === "bhavishya"
-              ? dict.tabBhavishyaAria
+              ? (dict.tabBhavishyaAria || (lang === "kn" ? "ದಿನ ಭವಿಷ್ಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ದೈನಂದಿನ ಕರ್ಮ ಮಾರ್ಗದರ್ಶಿ" : lang === "te" ? "దిన ఫలితాలు, కార్య సిద్ధి మరియు దైనందిన కర్మ మార్గదర్శి" : lang === "ta" ? "தின பலன்கள், காரிய சித்தி மற்றும் தினசரி கர்ம வழிகாட்டி" : lang === "hi" ? "दैनिक राशिफल, कार्य सिद्धि एवं दैनिक कर्म मार्गदर्शक" : "Daily Horoscope, Key Life Areas & Daily Karma Navigator"))
               : activeTab === "pooja"
-              ? (dict.tabPoojaAria || "ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ ಹಾಗೂ ಶಕ್ತಿ ಮಂತ್ರಗಳು")
+              ? (dict.tabPoojaAria || (lang === "kn" ? "ನಿತ್ಯ ದೇವ ಪೂಜೆ, ಸಂಕಲ್ಪ ಹಾಗೂ ಶಕ್ತಿ ಮಂತ್ರಗಳು" : lang === "te" ? "నిత్య దేవ పూజ, సంకల్పం మరియు దివ్య శక్తి మంత్రాలు" : lang === "ta" ? "நித்ய தேவ பூஜை, சங்கல்பம் மற்றும் தெய்வீக சக்தி மந்திரங்கள்" : lang === "hi" ? "नित्य देव पूजा, संकल्प एवं दिव्य शक्ति मंत्र" : "Daily Deva Pooja, Sankalpa & Divine Energy Mantras"))
               : activeTab === "lucky"
-              ? (dict.tabLuckyAria || "ದೈನಂದಿನ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತ")
+              ? (dict.tabLuckyAria || (lang === "kn" ? "ದೈನಂದಿನ ಅದೃಷ್ಟ ರತ್ನ, ಬಣ್ಣ, ಸಂಖ್ಯೆ ಹಾಗೂ ಶುಭ ಮುಹೂರ್ತ" : lang === "te" ? "రోజువారీ అదృష్ట రత్నం, రంగు, సంఖ్య మరియు శుభ ముహూర్తం" : lang === "ta" ? "தினசரி அதிர்ஷ்ட ரத்தினம், நிறம், எண் மற்றும் முகூர்த்தம்" : lang === "hi" ? "दैनिक शुभ रत्न, अंक, रंग व मुहूर्त" : "Daily Lucky Gem, Color, Number & Auspicious Muhurtha"))
               : activeTab === "whatsapp"
-              ? (dict.tabWhatsappAria || "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್")
-              : dict.tabDetailsAria}
+              ? (dict.tabWhatsappAria || (lang === "kn" ? "ನಿತ್ಯ ಶುಭೋದಯ ಸಂದೇಶ ಹಾಗೂ ಆಶೀರ್ವಾದ ಕಾರ್ಡ್" : lang === "te" ? "నిత్య శుభోదయ సందేశం & ఆశీర్వాద కార్డ్" : lang === "ta" ? "தினசரி காலை வணக்க செய்தி & ஆசீர்வாத அட்டை" : lang === "hi" ? "दैनिक शुभ प्रभात संदेश एवं आशीर्वाद कार्ड" : "Daily Good Morning & Shloka Blessing Card"))
+              : (dict.tabDetailsAria || (lang === "kn" ? "ಪಂಚಾಂಗ, ಜನ್ಮ ಕುಂಡಲಿ & ಗ್ರಹ ಗೋಚಾರ ವಿವರಗಳು" : lang === "te" ? "పంచాంగం, జన్మ కుండలి & గ్రహ గోచార వివరాలు" : lang === "ta" ? "பஞ்சாங்கம், ஜாதக கட்டம் & கோசார கிரக விவரங்கள்" : lang === "hi" ? "पंचांग, जन्म कुंडली एवं ग्रह गोचर विवरण" : "Panchanga, Janma Kundali & Planetary Gochara Details"))}
           </span>
         </div>
         <div style={{ fontSize: 11, color: "#F59E0B", fontWeight: 700 }}>
@@ -3213,6 +3248,31 @@ export default function DailyDarshanaPage(): JSX.Element {
         {/* ── TAB 1: SACRED SANCTUM & DARSHANA (ದರ್ಶನ) ── */}
         {activeTab === "darshana" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Header Banner */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(69, 26, 3, 0.95) 0%, rgba(30, 10, 0, 0.95) 100%)",
+              border: "2px solid #D4AF37",
+              borderRadius: 16,
+              padding: "16px 18px",
+              textAlign: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#FCD34D" }}>
+                🛕 {dict.darshanaTabHeading || (lang === "kn" ? "॥ ಪವಿತ್ರ ದರ್ಶನ ಸನ್ನಿಧಿ, ಕಾಲ ಸಮಯಗಳು ಹಾಗೂ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ ॥" : lang === "te" ? "॥ పవిత్ర దర్శన సన్నిధి, కాల సమయాలు మరియు ప్రధాన అర్చకుల ఆశీర్వచనం ॥" : lang === "ta" ? "॥ புனித தரிசன சந்நிதி, கால நேரங்கள் மற்றும் முதன்மை அர்ச்சகர் ஆசீர்வாதம் ॥" : lang === "hi" ? "॥ पवित्र दर्शन सन्निधि, काल समय एवं मुख्य अर्चक का आशीर्वाद ॥" : "॥ Sacred Sanctum Darshana, Kaala Timings & Chief Archaka Benediction ॥")}
+              </div>
+              <div style={{ fontSize: 12, color: "#FEF3C7", marginTop: 4 }}>
+                {lang === "kn" 
+                  ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದರ್ಶನ, ನಿತ್ಯ ಶುಭ ಮುಹೂರ್ತ, ಕಾಲ ಸಮಯ ಹಾಗೂ ಪ್ರಧಾನ ಅರ್ಚಕರ ವೈದಿಕ ಆಶೀರ್ವಾದ" 
+                  : lang === "hi" 
+                  ? "गोकर्ण महाबलेश्वर दर्शन, नित्य शुभ मुहूर्त, काल समय एवं मुख्य अर्चक का वैदिक आशीर्वाद" 
+                  : lang === "te" 
+                  ? "గోకర్ణ మహాబలేశ్వర దర్శనం, నిత్య శుభ ముహూర్తం, కాల సమయాలు మరియు ప్రధాన అర్చకుల వేద ఆశీర్వాదం" 
+                  : lang === "ta" 
+                  ? "கோகர்ண மகாபலேஸ்வரர் தரிசனம், சுப முகூர்த்தம், கால நேரங்கள் மற்றும் முதன்மை அர்ச்சகர் ஆசீர்வாதம்" 
+                  : "Sacred Gokarna Mahabaleshwara Darshana, Auspicious Kaala Timings & Chief Archaka Vedic Blessings"}
+              </div>
+            </div>
+
             {/* Chief Priest Benediction */}
             <div style={{
               background: "rgba(45, 20, 7, 0.85)",
@@ -5256,8 +5316,8 @@ export default function DailyDarshanaPage(): JSX.Element {
               setActiveTab("darshana");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            aria-label={dict.tabDarshanaAria}
-            title={dict.tabDarshanaAria}
+            aria-label={dict.tabDarshanaAria || "ಪವಿತ್ರ ದರ್ಶನ, ನಿತ್ಯ ಕಾಲಗಳು ಹಾಗೂ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ"}
+            title={dict.tabDarshanaAria || "ಪವಿತ್ರ ದರ್ಶನ, ನಿತ್ಯ ಕಾಲಗಳು ಹಾಗೂ ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ"}
             style={{
               background: activeTab === "darshana" 
                 ? "linear-gradient(135deg, rgba(217, 119, 6, 0.45) 0%, rgba(180, 83, 9, 0.6) 100%)" 
@@ -5307,8 +5367,8 @@ export default function DailyDarshanaPage(): JSX.Element {
               setActiveTab("bhavishya");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            aria-label={dict.tabBhavishyaAria}
-            title={dict.tabBhavishyaAria}
+            aria-label={dict.tabBhavishyaAria || "ದಿನ ಭವಿಷ್ಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ದೈನಂದಿನ ಕರ್ಮ ಮಾರ್ಗದರ್ಶಿ"}
+            title={dict.tabBhavishyaAria || "ದಿನ ಭವಿಷ್ಯ, ಕಾರ್ಯ ಸಿದ್ಧಿ ಹಾಗೂ ದೈನಂದಿನ ಕರ್ಮ ಮಾರ್ಗದರ್ಶಿ"}
             style={{
               background: activeTab === "bhavishya" 
                 ? "linear-gradient(135deg, rgba(217, 119, 6, 0.45) 0%, rgba(180, 83, 9, 0.6) 100%)" 
@@ -5511,8 +5571,8 @@ export default function DailyDarshanaPage(): JSX.Element {
               setActiveTab("details");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            aria-label={dict.tabDetailsAria}
-            title={dict.tabDetailsAria}
+            aria-label={dict.tabDetailsAria || "ಪಂಚಾಂಗ, ಜನ್ಮ ಕುಂಡಲಿ & ಗ್ರಹ ಗೋಚಾರ ವಿವರಗಳು"}
+            title={dict.tabDetailsAria || "ಪಂಚಾಂಗ, ಜನ್ಮ ಕುಂಡಲಿ & ಗ್ರಹ ಗೋಚಾರ ವಿವರಗಳು"}
             style={{
               background: activeTab === "details" 
                 ? "linear-gradient(135deg, rgba(217, 119, 6, 0.45) 0%, rgba(180, 83, 9, 0.6) 100%)" 
