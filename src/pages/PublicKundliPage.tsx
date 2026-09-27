@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import type { KundliInput, KundliOutput } from "../core/AstroTypes";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { generateDashaTimeline, type DashaEntry } from "../core/DashaBhuktiEngine";
-import { resolvePlaceFromPincode } from "../services/locationApi";
+import { resolvePlaceFromPincode, resolvePlaceOrPincode, GERMAN_MAJOR_CITIES } from "../services/locationApi";
 import { formatPickerDateLocalYmd } from "../core/birthTime";
 import { askGemini } from "../core/GeminiEngine";
 import { useAuthStore } from "../features/auth/authStore";
@@ -205,6 +205,49 @@ export default function PublicKundliPage(): JSX.Element {
   const [locationCore, setLocationCore] = useState<string>(() => savedSession?.locationCore || "Gokarna (581326)");
   const [homePlaceName, setHomePlaceName] = useState<string>(() => savedSession?.homePlaceName || "");
   const [pinResolving, setPinResolving] = useState<boolean>(false);
+  const [locationMode, setLocationMode] = useState<"india" | "international">("india");
+  const [selectedGermanCity, setSelectedGermanCity] = useState<string>("");
+  const [intlPlaceQuery, setIntlPlaceQuery] = useState<string>("");
+  const [intlSearching, setIntlSearching] = useState<boolean>(false);
+
+  const handleSelectGermanCity = (cityName: string) => {
+    setSelectedGermanCity(cityName);
+    if (!cityName) return;
+    const city = GERMAN_MAJOR_CITIES.find((c) => c.name === cityName);
+    if (city) {
+      setForm((f) => ({
+        ...f,
+        latitude: city.lat,
+        longitude: city.lng,
+        pincode: city.postalCode
+      }));
+      setLocationCore(`🇩🇪 ${city.name}, Germany (${city.lat.toFixed(4)}°N, ${city.lng.toFixed(4)}°E)`);
+      setHomePlaceName(city.name);
+    }
+  };
+
+  const handleResolveIntlPlace = async () => {
+    const q = intlPlaceQuery.trim();
+    if (!q) return;
+    setIntlSearching(true);
+    try {
+      const res = await resolvePlaceOrPincode(q);
+      if (res && res.lat && res.lng) {
+        setForm((f) => ({
+          ...f,
+          latitude: res.lat,
+          longitude: res.lng,
+          pincode: res.pincode
+        }));
+        setLocationCore(`🌍 ${res.placeName} (${res.lat.toFixed(4)}°N, ${res.lng.toFixed(4)}°E)`);
+        setHomePlaceName(res.placeName);
+      }
+    } catch (e) {
+      console.warn("Could not resolve place:", e);
+    } finally {
+      setIntlSearching(false);
+    }
+  };
 
   // 5. Calculation State & Comprehensive Profile with persistence
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
@@ -1156,26 +1199,108 @@ ${publicProfile.name}`;
                   />
                 </div>
 
-                {/* 5. Pincode */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-amber-200/90 uppercase tracking-wider">
-                    {txt("pincodeLabel")} *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      maxLength={6}
-                      value={form.pincode || ""}
-                      onChange={(e) => setForm({ ...form, pincode: e.target.value.replace(/\D/g, "") })}
-                      placeholder={txt("pincodePlaceholder")}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-mono"
-                    />
-                    {pinResolving && (
-                      <span className="absolute right-3 top-3 text-xs text-amber-400 animate-spin">
-                        ⏳
-                      </span>
-                    )}
+                {/* 5. Birthplace / Pincode */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-amber-200/90 uppercase tracking-wider">
+                      {locationMode === "india" ? txt("pincodeLabel") : txt("customPlaceSearchLabel")} *
+                    </label>
+                    <div className="inline-flex rounded-lg bg-slate-900 p-0.5 border border-slate-800 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLocationMode("india");
+                        }}
+                        className={`px-2.5 py-1 rounded-md transition font-medium ${
+                          locationMode === "india"
+                            ? "bg-amber-400 text-slate-950 font-bold shadow-xs"
+                            : "text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        {txt("locationModeIndia")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLocationMode("international");
+                        }}
+                        className={`px-2.5 py-1 rounded-md transition font-medium ${
+                          locationMode === "international"
+                            ? "bg-amber-400 text-slate-950 font-bold shadow-xs"
+                            : "text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        {txt("locationModeInternational")}
+                      </button>
+                    </div>
                   </div>
+
+                  {locationMode === "india" ? (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={form.pincode || ""}
+                        onChange={(e) => setForm({ ...form, pincode: e.target.value.replace(/\D/g, "") })}
+                        placeholder={txt("pincodePlaceholder")}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-mono"
+                      />
+                      {pinResolving && (
+                        <span className="absolute right-3 top-3 text-xs text-amber-400 animate-spin">
+                          ⏳
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      <select
+                        aria-label="German Major City"
+                        value={selectedGermanCity}
+                        onChange={(e) => handleSelectGermanCity(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                      >
+                        <option value="">{txt("germanCitySelectPlaceholder")}</option>
+                        {GERMAN_MAJOR_CITIES.map((city) => (
+                          <option key={city.name} value={city.name}>
+                            🇩🇪 {city.name} ({city.nameDe}) · {city.state} [PLZ {city.postalCode}]
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={intlPlaceQuery}
+                          onChange={(e) => setIntlPlaceQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void handleResolveIntlPlace();
+                            }
+                          }}
+                          placeholder={
+                            selectedLang === "kn"
+                              ? "ಅಥವಾ ಬೇರೆ ನಗರ / PLZ (ಉದಾ: Munich, Berlin, 10115)..."
+                              : "Or type any German / foreign city or PLZ (e.g. Munich, Berlin, 10115)..."
+                          }
+                          className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void handleResolveIntlPlace()}
+                          disabled={intlSearching}
+                          className="px-4 py-2.5 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-bold hover:bg-amber-400/30 transition disabled:opacity-50"
+                        >
+                          {intlSearching ? "..." : "🔍 Search"}
+                        </button>
+                      </div>
+
+                      <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-2.5 text-[11px] text-amber-200/90 leading-relaxed">
+                        {txt("germanTimezoneNote")}
+                      </div>
+                    </div>
+                  )}
+
                   <p className="text-[11px] text-slate-400 italic">
                     📍 {placeDisplay}
                   </p>

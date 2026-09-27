@@ -22,6 +22,7 @@ import {
   getPriestProfile,
   type PriestProfile
 } from "../../features/seva/sevaPriestDirectory";
+import { syncSevaDataOnAction } from "../../services/sevaPersistenceService";
 import { resolvePlaceFromPincode, getCoordinates } from "../../services/locationApi";
 import { fetch90DayAiPanchanga, type DayPanchangaAiItem } from "../../features/seva/panchanga90DayAiEngine";
 import { get90DaySpecialVratas, type SpecialVrataInfo } from "../../features/seva/specialVrataAlertEngine";
@@ -86,6 +87,15 @@ export default function SevaCalendarSyncModal({
     const ph = activePriest.phone || "9972339362";
     setCustomPriestPhone(ph);
   }, [activePriest, lang]);
+
+  // Listen to cross-component data sync events
+  useEffect(() => {
+    const handleSync = () => {
+      setPriestsList(getAllPriests());
+    };
+    window.addEventListener("baggona_seva_data_synced", handleSync);
+    return () => window.removeEventListener("baggona_seva_data_synced", handleSync);
+  }, []);
 
   const panditName = useMemo(() => {
     if (overridePriestContact && customPriestName.trim()) {
@@ -289,9 +299,18 @@ export default function SevaCalendarSyncModal({
       recognition.onresult = (event: any) => {
         const transcript = event.results[0]?.[0]?.transcript;
         if (transcript) {
-          const added = addCustomPriest(transcript);
-          setPriestsList(getAllPriests());
-          setSelectedPriestId(added.id);
+          void syncSevaDataOnAction({
+            priest: {
+              name: transcript.trim(),
+              phone: "9972339362",
+              lang
+            }
+          }).then((res) => {
+            setPriestsList(getAllPriests());
+            if (res.priest) {
+              setSelectedPriestId(res.priest.id);
+            }
+          });
         }
       };
       recognition.onerror = () => setIsListening(false);
@@ -466,6 +485,29 @@ export default function SevaCalendarSyncModal({
     const safeDevotee = calendarMode === "priest" ? "Priest_Panchanga" : (personName || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
     const safeDate = (selectedDay?.ymd || new Date().toISOString().slice(0, 10)).replace(/[^\d-]/g, "");
     const filename = `${safePujari}_${safeDevotee}_${safeDate}_${calendarSpanDays}Days.ics`;
+
+    // Persist priest and devotee details to database
+    try {
+      void syncSevaDataOnAction({
+        priest: {
+          id: selectedPriestId,
+          name: panditName,
+          phone: effectivePriestPhone,
+          lang
+        },
+        user: {
+          name: personName,
+          dob: activeDob,
+          tob: activeTob,
+          nakshatraIndex: activeNak,
+          rashiIndex: activeRashi,
+          place: locationName
+        }
+      }).then(() => setPriestsList(getAllPriests()));
+    } catch (syncErr) {
+      console.warn("SevaCalendarSyncModal sync error:", syncErr);
+    }
+
     downloadIcsFile(filename, icsContent);
 
     if (calendarMode === "priest") {
@@ -481,6 +523,28 @@ export default function SevaCalendarSyncModal({
   };
 
   const handleGoogleCalendar = () => {
+    // Persist priest and devotee details to database
+    try {
+      void syncSevaDataOnAction({
+        priest: {
+          id: selectedPriestId,
+          name: panditName,
+          phone: effectivePriestPhone,
+          lang
+        },
+        user: {
+          name: personName,
+          dob: activeDob,
+          tob: activeTob,
+          nakshatraIndex: activeNak,
+          rashiIndex: activeRashi,
+          place: locationName
+        }
+      }).then(() => setPriestsList(getAllPriests()));
+    } catch (syncErr) {
+      console.warn("SevaCalendarSyncModal sync error:", syncErr);
+    }
+
     if (calendarMode === "priest") {
       void recordPriestCalendarAction({
         priestName: panditName,
@@ -1155,11 +1219,20 @@ export default function SevaCalendarSyncModal({
                         if (found) {
                           handleSelectPriest(found.id);
                         } else if (val.trim()) {
-                          const added = addCustomPriest(val.trim());
-                          setPriestsList(getAllPriests());
-                          setSelectedPriestId(added.id);
-                          setCustomPriestName(val.trim());
-                          setOverridePriestContact(true);
+                          void syncSevaDataOnAction({
+                            priest: {
+                              name: val.trim(),
+                              phone: "9972339362",
+                              lang
+                            }
+                          }).then((res) => {
+                            setPriestsList(getAllPriests());
+                            if (res.priest) {
+                              setSelectedPriestId(res.priest.id);
+                            }
+                            setCustomPriestName(val.trim());
+                            setOverridePriestContact(true);
+                          });
                         }
                       });
                     }}
@@ -1186,13 +1259,22 @@ export default function SevaCalendarSyncModal({
                     type="button"
                     onClick={() => {
                       if (newPriestName.trim()) {
-                        const added = addCustomPriest(newPriestName.trim());
-                        setPriestsList(getAllPriests());
-                        setSelectedPriestId(added.id);
-                        setCustomPriestName(newPriestName.trim());
-                        setOverridePriestContact(true);
-                        setNewPriestName("");
-                        setCustomInputMode(false);
+                        void syncSevaDataOnAction({
+                          priest: {
+                            name: newPriestName.trim(),
+                            phone: customPriestPhone || "9972339362",
+                            lang
+                          }
+                        }).then((res) => {
+                          setPriestsList(getAllPriests());
+                          if (res.priest) {
+                            setSelectedPriestId(res.priest.id);
+                          }
+                          setCustomPriestName(newPriestName.trim());
+                          setOverridePriestContact(true);
+                          setNewPriestName("");
+                          setCustomInputMode(false);
+                        });
                       }
                     }}
                     className="rounded-xl bg-amber-800 px-3.5 py-2 text-xs font-bold text-white hover:bg-amber-900 shadow-sm"

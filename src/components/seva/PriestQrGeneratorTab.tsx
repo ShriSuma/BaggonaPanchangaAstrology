@@ -14,6 +14,7 @@ import { encodeDevoteeToken } from "../../utils/tokenCipher";
 import { getSafeProductionOrigin } from "../../features/seva/icsCalendarGenerator";
 import { registerCalendarAtGeneration } from "../../features/seva/calendarVisitService";
 import { PriestQrCard1PageTemplate } from "./pdf/PriestQrCard1PageTemplate";
+import { syncSevaDataOnAction } from "../../services/sevaPersistenceService";
 
 type PriestQrGeneratorTabProps = {
   identity: {
@@ -70,6 +71,15 @@ export default function PriestQrGeneratorTab({
     setCustomPriestName(defaultPName);
     setCustomPriestPhone(defaultPhone);
   }, [selectedPriestId, selectedLang]);
+
+  // Listen to cross-component data sync events
+  useEffect(() => {
+    const handleSync = () => {
+      setPriestsList(getAllPriests());
+    };
+    window.addEventListener("baggona_seva_data_synced", handleSync);
+    return () => window.removeEventListener("baggona_seva_data_synced", handleSync);
+  }, []);
 
   const resolvedPriestName = customPriestName.trim() || defaultPName;
   const resolvedPriestPhone = customPriestPhone.trim() || defaultPhone;
@@ -187,15 +197,27 @@ export default function PriestQrGeneratorTab({
       });
   }, [durationDays, resolvedPriestName, resolvedPriestPhone, overridePriestContact, identity, selectedLang, includePriestCalendar]);
 
-  const handleAddPriest = () => {
+  const handleAddPriest = async () => {
     if (newPriestName.trim()) {
-      const added = addCustomPriest(newPriestName.trim(), newPriestPhone.trim());
-      setPriestsList(getAllPriests());
-      setSelectedPriestId(added.id);
-      setCustomPriestName(newPriestName.trim());
-      setCustomPriestPhone(newPriestPhone.trim());
-      setNewPriestName("");
-      setCustomInputMode(false);
+      try {
+        const res = await syncSevaDataOnAction({
+          priest: {
+            name: newPriestName.trim(),
+            phone: newPriestPhone.trim(),
+            lang: selectedLang
+          }
+        });
+        setPriestsList(getAllPriests());
+        if (res.priest) {
+          setSelectedPriestId(res.priest.id);
+        }
+        setCustomPriestName(newPriestName.trim());
+        setCustomPriestPhone(newPriestPhone.trim());
+        setNewPriestName("");
+        setCustomInputMode(false);
+      } catch (err) {
+        console.warn("Failed to add priest:", err);
+      }
     }
   };
 
@@ -209,6 +231,28 @@ export default function PriestQrGeneratorTab({
     setIsGeneratingPdf(true);
 
     try {
+      // Persist priest & devotee details to database
+      try {
+        await syncSevaDataOnAction({
+          priest: {
+            id: selectedPriestId,
+            name: resolvedPriestName,
+            phone: resolvedPriestPhone,
+            lang: selectedLang
+          },
+          user: identity ? {
+            name: identity.personName,
+            gotra: identity.gotra,
+            nakshatraIndex: identity.nakshatraIndex,
+            rashiIndex: identity.rashiIndex,
+            place: identity.placeLabel
+          } : undefined
+        });
+        setPriestsList(getAllPriests());
+      } catch (syncErr) {
+        console.warn("PriestQrGeneratorTab sync error:", syncErr);
+      }
+
       const canvas = await html2canvas(container, {
         scale: 1.8,
         useCORS: true,

@@ -764,7 +764,9 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: 12
+          padding: isMobile ? "8px 6px" : 12,
+          overflowY: "auto",
+          overscrollBehavior: "contain"
         }}
         onClick={handleCloseModal}
       >
@@ -775,13 +777,14 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
             borderRadius: isMobile ? 18 : 24,
             maxWidth: 720,
             width: "100%",
-            maxHeight: isMobile ? "96vh" : "94vh",
+            maxHeight: isMobile ? "calc(100dvh - 16px)" : "min(92vh, 840px)",
             display: "flex",
             flexDirection: "column",
             boxShadow: "0 25px 60px rgba(0,0,0,0.9), 0 0 50px rgba(245, 158, 11, 0.35)",
             overflow: "hidden",
             color: "#FFFDF7",
-            position: "relative"
+            position: "relative",
+            margin: "auto"
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -890,7 +893,7 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
           </div>
 
           {/* Main Scrollable Shrine Area */}
-          <div style={{ padding: isMobile ? "10px 12px" : "16px 20px", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: isMobile ? 10 : 16 }}>
+          <div style={{ padding: isMobile ? "10px 12px" : "16px 20px", overflowY: "auto", minHeight: 0, flex: 1, display: "flex", flexDirection: "column", gap: isMobile ? 10 : 16 }}>
             {step <= 5 ? (
               <>
                 {/* Visual Sanctum Altar Card - Majestic Sacred Sanctum (Uncluttered, Never Breaks on Mobile) */}
@@ -1189,18 +1192,12 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                     🌿 {BENEFIT_INTRO[lang || "kn"] || BENEFIT_INTRO.kn} {currentStepData.spiritualSignificance[lang || "kn"] || currentStepData.spiritualSignificance.kn}
                   </div>
 
-                  {/* Dedicated Action Waiting Card */}
+                  {/* Dedicated Action Waiting Card - Visually hidden per user mandate to keep popup clean and prevent height overflow; audio narration speaks these instructions */}
                   <div
                     style={{
-                      background: "rgba(245, 158, 11, 0.12)",
-                      border: "1.5px dashed #F59E0B",
-                      borderRadius: 10,
-                      padding: isMobile ? "6px 10px" : "8px 12px",
-                      marginTop: 4,
-                      display: (isAudioOptedIn || isAudioPlaying || isAudioPaused) ? "flex" : "none",
-                      alignItems: "flex-start",
-                      gap: 8
+                      display: "none"
                     }}
+                    aria-hidden="true"
                   >
                     <span style={{ fontSize: isMobile ? 14 : 16, flexShrink: 0 }}>⏳</span>
                     <div style={{ minWidth: 0 }}>

@@ -32,6 +32,8 @@ export const inferBirthTimezoneIana = (
   if (lat >= 24 && lat <= 55 && lng > -85 && lng <= -65) return "America/New_York";
   // UK & Ireland
   if (lat >= 49 && lat <= 60 && lng >= -11 && lng <= 2) return "Europe/London";
+  // Germany (explicit Europe/Berlin for exact municipal/national DST compliance)
+  if (lat >= 47 && lat <= 55.1 && lng >= 5.8 && lng <= 15.2) return "Europe/Berlin";
   // Western/Central Europe (France, Spain, Germany, Italy, Netherlands, Belgium, Switzerland)
   if (lat >= 35 && lat <= 55 && lng > -10 && lng <= 16) return "Europe/Paris";
   // Southern & Eastern Europe (Serbia, Greece, Poland, Romania)

@@ -171,5 +171,32 @@ describe("locationApi", () => {
     expect(textRes.lat).toBeCloseTo(12.5426, 2);
     expect(textRes.lng).toBeCloseTo(78.3567, 2);
   });
+
+  it("resolves German major cities (Berlin, Munich, Frankfurt) with accurate coordinates and Europe/Berlin timezone", async () => {
+    // 1. Berlin
+    const berlin = await resolvePlaceOrPincode("Berlin");
+    expect(berlin.placeName).toBe("Berlin, Germany");
+    expect(berlin.lat).toBeCloseTo(52.5200, 2);
+    expect(berlin.lng).toBeCloseTo(13.4050, 2);
+    expect(berlin.country).toBe("Germany");
+
+    // 2. Munich (German name München)
+    const munich = await resolvePlaceOrPincode("München");
+    expect(munich.placeName).toBe("Munich, Germany");
+    expect(munich.lat).toBeCloseTo(48.1371, 2);
+    expect(munich.lng).toBeCloseTo(11.5754, 2);
+
+    // 3. German 5-digit PLZ (Frankfurt 60311)
+    const frankfurtPlz = await resolvePlaceOrPincode("60311");
+    expect(frankfurtPlz.placeName).toBe("Frankfurt, Germany");
+    expect(frankfurtPlz.lat).toBeCloseTo(50.1109, 2);
+    expect(frankfurtPlz.lng).toBeCloseTo(8.6821, 2);
+
+    // 4. Direct getCoordinates for German city
+    const berlinCoords = await getCoordinates("Berlin");
+    expect(berlinCoords.lat).toBeCloseTo(52.5200, 2);
+    expect(berlinCoords.lng).toBeCloseTo(13.4050, 2);
+  });
 });
+
 

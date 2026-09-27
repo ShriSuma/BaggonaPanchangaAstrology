@@ -41,7 +41,7 @@ import { formatPickerDateLocalYmd } from "../core/birthTime";
 import { GOTRA_OPTIONS, gotraI18nKey } from "../data/gotras";
 import { formatNavamsaPada, formatRashiAmsha, patrikaNavamshaFromDegree } from "../core/localeNumbers";
 import { isRoughIndiaRegion } from "../core/placeTime";
-import { resolvePlaceFromPincode } from "../services/locationApi";
+import { resolvePlaceFromPincode, GERMAN_MAJOR_CITIES } from "../services/locationApi";
 import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../features/auth/authStore";
 import { DevoteeDatabaseSearchModal } from "../components/kundli/DevoteeDatabaseSearchModal";
 import type { DevoteeProfile } from "../services/devoteeSearchService";
@@ -998,11 +998,33 @@ export default function KundliPage(): JSX.Element {
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950"
+              className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950 font-medium"
               onClick={() => setMapOpen(true)}
             >
               {t("kundli.openMap")}
             </button>
+            <select
+              aria-label="German City Quick Select"
+              className="jk-btn rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-indigo-950 font-medium cursor-pointer"
+              value=""
+              onChange={(e) => {
+                const city = GERMAN_MAJOR_CITIES.find((c) => c.name === e.target.value);
+                if (city) {
+                  setForm((f) => ({ ...f, latitude: city.lat, longitude: city.lng, pincode: city.postalCode }));
+                  const core = `🇩🇪 ${city.name}, Germany`;
+                  setLocationCore(core);
+                  setHomePlaceName(city.name);
+                  pushPlaceToStore(city.lat, city.lng, core, city.postalCode);
+                }
+              }}
+            >
+              <option value="">🇩🇪 Quick German Cities (Berlin, Munich, Frankfurt...)</option>
+              {GERMAN_MAJOR_CITIES.map((c) => (
+                <option key={c.name} value={c.name}>
+                  🇩🇪 {c.name} ({c.nameDe}) · {c.state} [PLZ {c.postalCode}]
+                </option>
+              ))}
+            </select>
           </div>
           <div className="mt-3">
             <LocationSelector

@@ -153,6 +153,48 @@ export const T_PUBLIC_KUNDLI: Record<string, Record<PublicKundliLang, string>> =
     te: "ఉదా: గోకర్ణ, కుమటా, బెంగళూరు",
     ta: "எ.கா: கோகர்ணா, குமட்டா, பெங்களூரு"
   },
+  locationModeIndia: {
+    kn: "🇮🇳 ಭಾರತ (PIN ಕೋಡ್)",
+    en: "🇮🇳 India (PIN Code)",
+    hi: "🇮🇳 भारत (पिनकोड)",
+    te: "🇮🇳 భారతదేశం (పిన్‌కోడ్)",
+    ta: "🇮🇳 இந்தியா (அஞ்சல் குறியீடு)"
+  },
+  locationModeInternational: {
+    kn: "🇩🇪 ಜರ್ಮನಿ / 🌍 ವಿದೇಶ (Germany / Foreign)",
+    en: "🇩🇪 Germany / 🌍 International",
+    hi: "🇩🇪 जर्मनी / 🌍 अंतरराष्ट्रीय",
+    te: "🇩🇪 జర్మనీ / 🌍 అంతర్జాతీయ",
+    ta: "🇩🇪 ஜெர்மனி / 🌍 சர்வதேச"
+  },
+  germanCitySelectLabel: {
+    kn: "ಜರ್ಮನಿ ಪ್ರಮುಖ ನಗರ ಆಯ್ಕೆ (German Major City)",
+    en: "Select German Major City",
+    hi: "जर्मनी के प्रमुख शहर का चयन करें",
+    te: "జర్మనీ ప్రముఖ నగరాన్ని ఎంచుకోండి",
+    ta: "ஜெர்மனியின் முக்கிய நகரத்தைத் தேர்ந்தெடுக்கவும்"
+  },
+  germanCitySelectPlaceholder: {
+    kn: "-- ಜರ್ಮನಿಯ ನಗರ ಆಯ್ಕೆಮಾಡಿ (Select City) --",
+    en: "-- Select German City (Berlin, Munich, etc.) --",
+    hi: "-- जर्मनी का शहर चुनें --",
+    te: "-- జర్మనీ నగరాన్ని ఎంచుకోండి --",
+    ta: "-- ஜெர்மனி நகரத்தைத் தேர்ந்தெடுக்கவும் --"
+  },
+  customPlaceSearchLabel: {
+    kn: "ನಗರದ ಹೆಸರು ಅಥವಾ ಅಕ್ಷಾಂಶ / ರೇಖಾಂಶ (City Name or Lat/Lng)",
+    en: "City Name or Custom Lat / Long",
+    hi: "शहर का नाम या अक्षांश / देशांतर",
+    te: "నగరం పేరు లేదా అక్షాంశం / రేఖాంశం",
+    ta: "நகரத்தின் பெயர் அல்லது அட்சரேகை / தீர்க்கரேகை"
+  },
+  germanTimezoneNote: {
+    kn: "ℹ️ ಜರ್ಮನಿಯ ಸ್ಥಳೀಯ ಜನನ ಸಮಯವನ್ನು ನಮೂದಿಸಿ (CET/CEST). ಸಿಸ್ಟಮ್ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸಾರ್ವತ್ರಿಕ ಕಾಲಮಾನವನ್ನು (UTC/IST) ಲೆಕ್ಕಾಚಾರ ಮಾಡಿ, ಜರ್ಮನಿಯ ಅಕ್ಷಾಂಶ-ರೇಖಾಂಶಕ್ಕೆ ಅನುಗುಣವಾಗಿ ನಿಖರ ಜನ್ಮ ಲಗ್ನವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ.",
+    en: "ℹ️ Enter birth time in German local time (as recorded on birth certificate). The system automatically calculates the exact universal UTC/IST instant (with Daylight Saving Time) and computes the authentic Janma Lagna for Germany's coordinates.",
+    hi: "ℹ️ जन्म प्रमाण पत्र के अनुसार जर्मनी का स्थानीय समय दर्ज करें। इंजन स्वचालित रूप से सार्वभौमिक UTC/IST समय की गणना करेगा और जर्मनी के सटीक निर्देशांक पर जन्म लग्न निकालेगा।",
+    te: "ℹ️ జర్మనీ స్థానిక జన్మ సమయాన్ని నమోదు చేయండి. వ్యవస్థ స్వయంచాలకంగా సార్వత్రిక సమయాన్ని (UTC/IST) లెక్కిస్తుంది మరియు జర్మనీ అక్షాంశ-రేఖాంశాలకు ఖచ్చితమైన జన్మ లగ్నాన్ని గణిస్తుంది.",
+    ta: "ℹ️ ஜெர்மனியின் உள்ளூர் பிறந்த நேரத்தை உள்ளிடவும். கணினி தானாகவே உலகளாவிய நேரத்தை (UTC/IST) கணக்கிட்டு, ஜெர்மனியின் ஒருங்கிணைப்புகளுக்கான துல்லியமான லக்னத்தை தீர்மானிக்கும்."
+  },
   gotraLabel: {
     kn: "ಗೋತ್ರ (Gotra - ಐಚ್ಛಿಕ)",
     en: "Gothra (Optional)",

@@ -700,19 +700,84 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
   };
 };
 
+export type GermanCity = {
+  name: string;
+  nameDe: string;
+  lat: number;
+  lng: number;
+  postalCode: string;
+  state: string;
+};
+
+export const GERMAN_MAJOR_CITIES: GermanCity[] = [
+  { name: "Berlin", nameDe: "Berlin", lat: 52.5200, lng: 13.4050, postalCode: "10115", state: "Berlin" },
+  { name: "Munich", nameDe: "München", lat: 48.1371, lng: 11.5754, postalCode: "80331", state: "Bavaria" },
+  { name: "Frankfurt", nameDe: "Frankfurt am Main", lat: 50.1109, lng: 8.6821, postalCode: "60311", state: "Hesse" },
+  { name: "Hamburg", nameDe: "Hamburg", lat: 53.5511, lng: 9.9937, postalCode: "20095", state: "Hamburg" },
+  { name: "Cologne", nameDe: "Köln", lat: 50.9375, lng: 6.9603, postalCode: "50667", state: "North Rhine-Westphalia" },
+  { name: "Stuttgart", nameDe: "Stuttgart", lat: 48.7758, lng: 9.1829, postalCode: "70173", state: "Baden-Württemberg" },
+  { name: "Düsseldorf", nameDe: "Düsseldorf", lat: 51.2277, lng: 6.7735, postalCode: "40213", state: "North Rhine-Westphalia" },
+  { name: "Leipzig", nameDe: "Leipzig", lat: 51.3397, lng: 12.3731, postalCode: "04109", state: "Saxony" },
+  { name: "Dortmund", nameDe: "Dortmund", lat: 51.5136, lng: 7.4653, postalCode: "44135", state: "North Rhine-Westphalia" },
+  { name: "Essen", nameDe: "Essen", lat: 51.4556, lng: 7.0116, postalCode: "45127", state: "North Rhine-Westphalia" },
+  { name: "Bremen", nameDe: "Bremen", lat: 53.0793, lng: 8.8017, postalCode: "28195", state: "Bremen" },
+  { name: "Dresden", nameDe: "Dresden", lat: 51.0504, lng: 13.7373, postalCode: "01067", state: "Saxony" },
+  { name: "Hannover", nameDe: "Hannover", lat: 52.3759, lng: 9.7320, postalCode: "30159", state: "Lower Saxony" },
+  { name: "Nuremberg", nameDe: "Nürnberg", lat: 49.4521, lng: 11.0767, postalCode: "90403", state: "Bavaria" },
+  { name: "Duisburg", nameDe: "Duisburg", lat: 51.4344, lng: 6.7623, postalCode: "47051", state: "North Rhine-Westphalia" },
+  { name: "Bochum", nameDe: "Bochum", lat: 51.4818, lng: 7.2162, postalCode: "44787", state: "North Rhine-Westphalia" },
+  { name: "Wuppertal", nameDe: "Wuppertal", lat: 51.2562, lng: 7.1508, postalCode: "42103", state: "North Rhine-Westphalia" },
+  { name: "Bonn", nameDe: "Bonn", lat: 50.7374, lng: 7.0982, postalCode: "53111", state: "North Rhine-Westphalia" },
+  { name: "Münster", nameDe: "Münster", lat: 51.9607, lng: 7.6261, postalCode: "48143", state: "North Rhine-Westphalia" },
+  { name: "Karlsruhe", nameDe: "Karlsruhe", lat: 49.0069, lng: 8.4037, postalCode: "76133", state: "Baden-Württemberg" },
+  { name: "Mannheim", nameDe: "Mannheim", lat: 49.4875, lng: 8.4660, postalCode: "68161", state: "Baden-Württemberg" },
+  { name: "Augsburg", nameDe: "Augsburg", lat: 48.3705, lng: 10.8978, postalCode: "86150", state: "Bavaria" },
+  { name: "Wiesbaden", nameDe: "Wiesbaden", lat: 50.0826, lng: 8.2400, postalCode: "65183", state: "Hesse" },
+  { name: "Heidelberg", nameDe: "Heidelberg", lat: 49.3988, lng: 8.6724, postalCode: "69117", state: "Baden-Württemberg" },
+  { name: "Freiburg", nameDe: "Freiburg im Breisgau", lat: 47.9990, lng: 7.8421, postalCode: "79098", state: "Baden-Württemberg" },
+  { name: "Aachen", nameDe: "Aachen", lat: 50.7753, lng: 6.0839, postalCode: "52062", state: "North Rhine-Westphalia" },
+  { name: "Kiel", nameDe: "Kiel", lat: 54.3233, lng: 10.1228, postalCode: "24103", state: "Schleswig-Holstein" }
+];
+
+export const findGermanCity = (query: string): GermanCity | undefined => {
+  const q = query.trim().toLowerCase();
+  if (!q) return undefined;
+  return GERMAN_MAJOR_CITIES.find(
+    (c) =>
+      c.name.toLowerCase() === q ||
+      c.nameDe.toLowerCase() === q ||
+      c.postalCode === q ||
+      q.startsWith(c.name.toLowerCase() + ",") ||
+      q.startsWith(c.nameDe.toLowerCase() + ",") ||
+      q.startsWith(c.postalCode + " ")
+  );
+};
+
 /**
- * Universal resolver for Indian Pincodes OR City / Place names.
+ * Universal resolver for Indian Pincodes, German Cities, OR City / Place names.
  * Never resets to (0,0) or throws uncaught exceptions.
  */
 export const resolvePlaceOrPincode = async (
   query: string
-): Promise<{ placeName: string; lat: number; lng: number; pincode?: string }> => {
+): Promise<{ placeName: string; lat: number; lng: number; pincode?: string; country?: string }> => {
   const q = (query || "").trim();
   if (!q) {
-    return { placeName: "Gokarna, Karnataka", lat: 14.5479, lng: 74.3188, pincode: "581326" };
+    return { placeName: "Gokarna, Karnataka", lat: 14.5479, lng: 74.3188, pincode: "581326", country: "India" };
   }
 
-  // 1. If 6-digit PIN
+  // 1. Fast-path German major city check
+  const germanMatch = findGermanCity(q);
+  if (germanMatch) {
+    return {
+      placeName: `${germanMatch.name}, Germany`,
+      lat: germanMatch.lat,
+      lng: germanMatch.lng,
+      pincode: germanMatch.postalCode,
+      country: "Germany"
+    };
+  }
+
+  // 2. If 6-digit Indian PIN
   if (/^[1-9]\d{5}$/.test(q)) {
     const res = await resolvePlaceFromPincode(q);
     if (res && res.lat && res.lng) {
@@ -720,7 +785,8 @@ export const resolvePlaceOrPincode = async (
         placeName: `${res.villageName} (${res.pincode})`,
         lat: res.lat,
         lng: res.lng,
-        pincode: res.pincode
+        pincode: res.pincode,
+        country: "India"
       };
     }
     const centroid = getPostalRegionCentroid(q);
@@ -728,11 +794,12 @@ export const resolvePlaceOrPincode = async (
       placeName: `${centroid.regionName || "PIN " + q} (${q})`,
       lat: centroid.lat || 14.5479,
       lng: centroid.lng || 74.3188,
-      pincode: q
+      pincode: q,
+      country: "India"
     };
   }
 
-  // 2. If City / Town name
+  // 3. If City / Town name (Indian or International)
   try {
     const coords = await getCoordinates(q);
     if (coords && coords.lat && coords.lng) {
@@ -746,7 +813,7 @@ export const resolvePlaceOrPincode = async (
     console.warn("Geocoding lookup fallback for:", q, err);
   }
 
-  return { placeName: q || "Gokarna, Karnataka", lat: 14.5479, lng: 74.3188, pincode: "581326" };
+  return { placeName: q || "Gokarna, Karnataka", lat: 14.5479, lng: 74.3188, pincode: "581326", country: "India" };
 };
 
 export const getCoordinates = async (placeName: string): Promise<{ lat: number; lng: number }> => {
@@ -754,6 +821,13 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
   const cached = await getGeocode(normalized);
   if (cached) {
     return cached;
+  }
+
+  // Fast-path for bundled German cities (e.g. Berlin, Munich, Frankfurt)
+  const germanMatch = findGermanCity(normalized);
+  if (germanMatch) {
+    await cacheGeocode(normalized, germanMatch.lat, germanMatch.lng);
+    return { lat: germanMatch.lat, lng: germanMatch.lng };
   }
 
   // Fast-path for bundled catalog places (e.g. Gokarna, Bargur, Sirsi)
@@ -813,9 +887,13 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
       }
     }
 
-    // Nominatim usage policy: max 1 req/s; identify app via User-Agent
+    const isExplicitNonIndia = /(germany|deutschland|\bde\b|berlin|munich|münchen|frankfurt|hamburg|cologne|köln|stuttgart|düsseldorf|leipzig|dresden|nuremberg|nürnberg|london|paris|new\s*york|usa|singapore|dubai|tokyo|sydney|toronto)/i.test(placeName);
+
     const cleanPlace = placeName.replace(/,\s*india$/i, "").trim();
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanPlace)},India&format=json&limit=1`;
+    const url = isExplicitNonIndia
+      ? `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanPlace)}&format=json&limit=1`
+      : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanPlace)},India&format=json&limit=1`;
+
     const response = await withTimeout(
       fetch(url, {
         headers: {
@@ -828,7 +906,29 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
     if (!response.ok) {
       throw new Error("Unable to fetch coordinates right now");
     }
-    const records = (await response.json()) as Array<{ lat: string; lon: string }>;
+    let records = (await response.json()) as Array<{ lat: string; lon: string }>;
+
+    // If query with ",India" yielded no results, fallback to searching cleanPlace globally
+    if (!records.length && !isExplicitNonIndia) {
+      try {
+        const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanPlace)}&format=json&limit=1`;
+        const fallbackResp = await withTimeout(
+          fetch(fallbackUrl, {
+            headers: {
+              Accept: "application/json",
+              "User-Agent": "BaggonaPanchangaAstrologyPWA/1.0 (offline-first astrology; contact: local-app)"
+            }
+          }),
+          NOMINATIM_TIMEOUT_MS
+        );
+        if (fallbackResp.ok) {
+          records = (await fallbackResp.json()) as Array<{ lat: string; lon: string }>;
+        }
+      } catch {
+        // continue to validation
+      }
+    }
+
     if (!records.length) {
       throw new Error("Location not found");
     }
@@ -840,6 +940,10 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
     if (pinMatch) {
       const centroid = getPostalRegionCentroid(pinMatch[1]);
       return { lat: centroid.lat, lng: centroid.lng };
+    }
+    const germanFallback = findGermanCity(placeName);
+    if (germanFallback) {
+      return { lat: germanFallback.lat, lng: germanFallback.lng };
     }
     return { lat: 14.5479, lng: 74.3188 };
   }

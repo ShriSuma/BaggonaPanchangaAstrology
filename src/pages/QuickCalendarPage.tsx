@@ -19,10 +19,15 @@ import { calculateKundli } from "../core/KundliEngine";
 import { transliterateName, convertTextIfLanguageDiffers } from "../utils/transliterator";
 import {
   GOKARNA_HOLY_PLACES,
+  getAllHolyPlaces,
   getHolyPlaceById,
   getHolyPlaceName,
-  findHolyPlacePresetByText
+  findMatchingHolyPlace,
+  findHolyPlacePresetByText,
+  type HolyPlaceItem
 } from "../features/seva/holyPlaces";
+import { getCustomPoojas, type CustomPoojaItem } from "../features/seva/customPoojaRegistry";
+import { syncSevaDataOnAction, initializeSevaPersistence } from "../services/sevaPersistenceService";
 import { formatPoojaName } from "../features/seva/formatPoojaName";
 import type { RhythmDay, RhythmResult } from "../core/DailyRhythmEngine";
 import { parseSpokenPhoneNumber } from "../utils/speechRecognitionHelper";
@@ -101,6 +106,8 @@ export default function QuickCalendarPage(): JSX.Element {
     }
   };
 
+  const [holyPlacesList, setHolyPlacesList] = useState<HolyPlaceItem[]>(() => getAllHolyPlaces());
+
   const handlePlacePresetChange = (placeId: string) => {
     setSelectedPlaceId(placeId);
     if (placeId === "custom") return;
@@ -117,7 +124,7 @@ export default function QuickCalendarPage(): JSX.Element {
 
   const handlePlaceTextChange = (val: string) => {
     setLocationName(val);
-    const matchingPreset = findHolyPlacePresetByText(val);
+    const matchingPreset = findMatchingHolyPlace(val);
     if (matchingPreset) {
       setSelectedPlaceId(matchingPreset.id);
       setLat(matchingPreset.lat);
@@ -128,12 +135,30 @@ export default function QuickCalendarPage(): JSX.Element {
   };
 
   // Priest & Overrides
-  const [priestsList] = useState<PriestProfile[]>(() => getAllPriests());
+  const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
+  const [customPoojasList, setCustomPoojasList] = useState<CustomPoojaItem[]>(() => getCustomPoojas());
   const [selectedPriestId, setSelectedPriestId] = useState("shreeram-pandit");
   const [overridePriestContact, setOverridePriestContact] = useState(false);
   const [customPriestName, setCustomPriestName] = useState("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
   const [customPriestPhone, setCustomPriestPhone] = useState("9972339362");
   const [customWhatsappNumber, setCustomWhatsappNumber] = useState("9972339362");
+
+  // Sync listener and Firestore initialization
+  useEffect(() => {
+    void initializeSevaPersistence().then(() => {
+      setPriestsList(getAllPriests());
+      setCustomPoojasList(getCustomPoojas());
+      setHolyPlacesList(getAllHolyPlaces());
+    });
+
+    const handleSync = () => {
+      setPriestsList(getAllPriests());
+      setCustomPoojasList(getCustomPoojas());
+      setHolyPlacesList(getAllHolyPlaces());
+    };
+    window.addEventListener("baggona_seva_data_synced", handleSync);
+    return () => window.removeEventListener("baggona_seva_data_synced", handleSync);
+  }, []);
 
   // Optional Parents' Shraddha Tithi
   const [shraddhaTithi, setShraddhaTithi] = useState("");
@@ -378,18 +403,30 @@ export default function QuickCalendarPage(): JSX.Element {
         }
       };
     }
+    const customMatch = customPoojasList.find((cp) => cp.id === sevaId);
+    if (customMatch) {
+      return {
+        id: customMatch.id,
+        name: customMatch.name
+      };
+    }
     return SEVA_CATALOG[sevaId as SevaId] || SEVA_CATALOG["rudrabhisheka"];
-  }, [customPoojaMode, customPoojaName, sevaId]);
+  }, [customPoojaMode, customPoojaName, sevaId, customPoojasList]);
 
   const chosenPoojaName = useMemo(() => {
     if (customPoojaMode && customPoojaName.trim()) {
       return formatPoojaName(customPoojaName.trim(), lang);
     }
+    const customMatch = customPoojasList.find((cp) => cp.id === sevaId);
+    if (customMatch) {
+      const n = (customMatch.name as any)[lang] || customMatch.name.kn || customMatch.name.en;
+      return formatPoojaName(n, lang);
+    }
     if (chosenPooja) {
       return formatPoojaName(chosenPooja, lang);
     }
     return "ವಿಶೇಷ ಪೂಜಾ ಸಂಕಲ್ಪ";
-  }, [chosenPooja, customPoojaMode, customPoojaName, lang]);
+  }, [chosenPooja, customPoojaMode, customPoojaName, lang, sevaId, customPoojasList]);
 
   // Identity object passed to 5-page PDF templates
   const identity = useMemo(() => ({
@@ -406,6 +443,41 @@ export default function QuickCalendarPage(): JSX.Element {
   const handleDownload5PagePdf = async () => {
     setBusy("5page-pdf");
     try {
+      try {
+        await syncSevaDataOnAction({
+          priest: {
+            id: selectedPriestId,
+            name: panditName,
+            phone: priestPhone,
+            lang
+          },
+          pooja: customPoojaMode && customPoojaName.trim() ? {
+            name: customPoojaName.trim(),
+            lang
+          } : undefined,
+          place: locationName.trim() ? {
+            id: selectedPlaceId,
+            name: locationName.trim(),
+            pincode,
+            lang
+          } : undefined,
+          user: {
+            name: personName,
+            gotra,
+            nakshatraIndex: selectedNakshatra,
+            rashiIndex: selectedRashi,
+            dob: isUnknownBirth ? undefined : dob,
+            tob: isUnknownBirth ? undefined : (tob || undefined),
+            place: locationName
+          }
+        });
+        setPriestsList(getAllPriests());
+        setCustomPoojasList(getCustomPoojas());
+        setHolyPlacesList(getAllHolyPlaces());
+      } catch (syncErr) {
+        console.warn("QuickCalendarPage sync error during PDF download:", syncErr);
+      }
+
       const pName = (panditName || "Sri_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
       const dName = (personName.trim() || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
       const dateStr = sevaDate || new Date().toISOString().slice(0, 10);
@@ -421,8 +493,43 @@ export default function QuickCalendarPage(): JSX.Element {
   };
 
   // 2. Download 90-Day Calendar (.ics)
-  const handleDownloadIcs = () => {
+  const handleDownloadIcs = async () => {
     if (!rhythmResult?.days?.length) return;
+    try {
+      await syncSevaDataOnAction({
+        priest: {
+          id: selectedPriestId,
+          name: panditName,
+          phone: priestPhone,
+          lang
+        },
+        pooja: customPoojaMode && customPoojaName.trim() ? {
+          name: customPoojaName.trim(),
+          lang
+        } : undefined,
+        place: locationName.trim() ? {
+          id: selectedPlaceId,
+          name: locationName.trim(),
+          pincode,
+          lang
+        } : undefined,
+        user: {
+          name: personName,
+          gotra,
+          nakshatraIndex: selectedNakshatra,
+          rashiIndex: selectedRashi,
+          dob: isUnknownBirth ? undefined : dob,
+          tob: isUnknownBirth ? undefined : (tob || undefined),
+          place: locationName
+        }
+      });
+      setPriestsList(getAllPriests());
+      setCustomPoojasList(getCustomPoojas());
+      setHolyPlacesList(getAllHolyPlaces());
+    } catch (syncErr) {
+      console.warn("QuickCalendarPage sync error during ICS download:", syncErr);
+    }
+
     const icsStr = generateSevaICalendarString({
       days: rhythmResult.days,
       lang,
@@ -737,6 +844,15 @@ export default function QuickCalendarPage(): JSX.Element {
                     {s.icon} {(s.name as any)[lang] || s.name.kn || s.name.en}
                   </option>
                 ))}
+                {customPoojasList.length > 0 && (
+                  <optgroup label={lang === "kn" ? "ಕಸ್ಟಮ್ / ಸಂಯೋಜಿತ ಪೂಜೆಗಳು" : "Custom Poojas"}>
+                    {customPoojasList.map((cp) => (
+                      <option key={cp.id} value={cp.id}>
+                        🪔 {(cp.name as any)[lang] || cp.name.kn || cp.name.en}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
                 <option value="CUSTOM">➕ ಇತರ ವಿಶೇಷ ಪೂಜೆ (Custom Pooja)...</option>
               </select>
               {customPoojaMode && (
@@ -819,7 +935,7 @@ export default function QuickCalendarPage(): JSX.Element {
                 onChange={(e) => handlePlacePresetChange(e.target.value)}
                 className="w-full rounded-xl border border-amber-400/40 bg-slate-950 px-3 py-2 text-sm text-amber-100 font-bold mb-2 focus:border-amber-400 focus:outline-none"
               >
-                {GOKARNA_HOLY_PLACES.map((place) => (
+                {holyPlacesList.map((place) => (
                   <option key={place.id} value={place.id}>
                     {getHolyPlaceName(place.id, lang)}
                   </option>
@@ -929,8 +1045,20 @@ export default function QuickCalendarPage(): JSX.Element {
                     if (found) {
                       handleSelectPriest(found.id);
                     } else if (val.trim()) {
-                      setCustomPriestName(val.trim());
-                      setOverridePriestContact(true);
+                      void syncSevaDataOnAction({
+                        priest: {
+                          name: val.trim(),
+                          phone: "9972339362",
+                          lang
+                        }
+                      }).then((res) => {
+                        setPriestsList(getAllPriests());
+                        if (res.priest) {
+                          setSelectedPriestId(res.priest.id);
+                        }
+                        setCustomPriestName(val.trim());
+                        setOverridePriestContact(true);
+                      });
                     }
                   })}
                   className={`rounded-xl p-2 text-xs font-bold border transition ${

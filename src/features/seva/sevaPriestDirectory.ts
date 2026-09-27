@@ -352,30 +352,313 @@ export const PREDEFINED_PRIESTS: PriestProfile[] = [
 ];
 
 const LOCAL_STORAGE_KEY = "baggona_custom_priests_v2";
+const LOCAL_STORAGE_OVERRIDES_KEY = "baggona_priest_overrides_v1";
+
+// In-memory caches for instant retrieval & offline resilience
+export const memoryPriestOverrides = new Map<string, Partial<PriestProfile>>();
+export const memoryCustomPriests = new Map<string, PriestProfile>();
+
+/** Reads priest overrides (e.g., corrected phone number or edited name for existing priests) */
+export function getPriestOverrides(): Record<string, Partial<PriestProfile>> {
+  if (typeof window === "undefined") {
+    const res: Record<string, Partial<PriestProfile>> = {};
+    for (const [k, v] of memoryPriestOverrides.entries()) res[k] = v;
+    return res;
+  }
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_OVERRIDES_KEY);
+    if (!raw) {
+      const res: Record<string, Partial<PriestProfile>> = {};
+      for (const [k, v] of memoryPriestOverrides.entries()) res[k] = v;
+      return res;
+    }
+    const parsed = JSON.parse(raw) as Record<string, Partial<PriestProfile>>;
+    for (const [k, v] of Object.entries(parsed)) {
+      memoryPriestOverrides.set(k, v);
+    }
+    return parsed;
+  } catch (err) {
+    console.error("Failed to parse priest overrides:", err);
+    const res: Record<string, Partial<PriestProfile>> = {};
+    for (const [k, v] of memoryPriestOverrides.entries()) res[k] = v;
+    return res;
+  }
+}
 
 /** Reads all custom priests stored in LocalStorage */
 export function getCustomPriests(): PriestProfile[] {
+  if (memoryCustomPriests.size > 0) {
+    return Array.from(memoryCustomPriests.values());
+  }
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as PriestProfile[];
+    const list = JSON.parse(raw) as PriestProfile[];
+    for (const p of list) {
+      if (p && p.id) memoryCustomPriests.set(p.id, p);
+    }
+    return list;
   } catch (err) {
     console.error("Failed to parse stored custom priests:", err);
     return [];
   }
 }
 
-/** Get full combined array of predefined and custom priests */
+/** Get full combined array of predefined and custom priests with all database/localStorage overrides applied */
 export function getAllPriests(): PriestProfile[] {
+  const overrides = getPriestOverrides();
   const custom = getCustomPriests();
-  return [...PREDEFINED_PRIESTS, ...custom];
+
+  const applyOverride = (p: PriestProfile): PriestProfile => {
+    const ov = overrides[p.id] || overrides[p.id.toLowerCase()];
+    if (!ov) return p;
+    return {
+      ...p,
+      phone: ov.phone !== undefined ? ov.phone : p.phone,
+      name: { ...p.name, ...(ov.name || {}) },
+      title: { ...p.title, ...(ov.title || {}) }
+    };
+  };
+
+  const mergedPredefined = PREDEFINED_PRIESTS.map(applyOverride);
+  const mergedCustom = custom.map(applyOverride);
+
+  return [...mergedPredefined, ...mergedCustom];
+}
+
+/** Clean normalized phone string */
+export function cleanPhoneNumber(phone?: string | null): string {
+  if (!phone) return "";
+  return phone.replace(/[^\d]/g, "").slice(-10);
+}
+
+/**
+ * Searches across all priests (predefined + custom + overrides) for a matching priest.
+ * Matches by exact ID, or normalized name across 5 languages, or 10-digit phone number.
+ */
+export interface PriestSaveResult {
+  profile: PriestProfile;
+  action: "updated" | "inserted";
+}
+
+/**
+ * Matches a priest by exact ID, or normalized name across 5 languages, or 10-digit phone number.
+ */
+export function findMatchingPriest(query?: string | {
+  id?: string;
+  name?: string;
+  phone?: string;
+}): PriestProfile | undefined {
+  if (!query) return undefined;
+  const qObj = typeof query === "string" ? { name: query } : query;
+  const all = getAllPriests();
+  const qId = (qObj.id || "").trim().toLowerCase();
+  const qPhone = cleanPhoneNumber(qObj.phone || (typeof query === "string" ? query : ""));
+  const qName = (qObj.name || "").trim().toLowerCase();
+
+  // 1. Direct ID match
+  if (qId && qId !== "add_new") {
+    const foundById = all.find(p => p.id.toLowerCase() === qId || p.id.replace(/^(priest_|custom-)/, "").toLowerCase() === qId.replace(/^(priest_|custom-)/, ""));
+    if (foundById) return foundById;
+  }
+
+  // 2. Exact phone number match
+  if (qPhone && qPhone.length >= 10) {
+    const foundByPhone = all.find(p => cleanPhoneNumber(p.phone) === qPhone);
+    if (foundByPhone) return foundByPhone;
+  }
+
+  // 3. Name match across any language
+  if (qName) {
+    const foundByName = all.find(p =>
+      p.id.toLowerCase() === qName ||
+      Object.values(p.name).some(val => val && val.toLowerCase() === qName) ||
+      p.name.en.toLowerCase().includes(qName) ||
+      p.name.kn.toLowerCase().includes(qName) ||
+      (p.name.te && p.name.te.toLowerCase().includes(qName)) ||
+      (p.name.ta && p.name.ta.toLowerCase().includes(qName)) ||
+      (p.name.hi && p.name.hi.toLowerCase().includes(qName))
+    );
+    if (foundByName) return foundByName;
+  }
+
+  return undefined;
+}
+
+/**
+ * Saves or updates a priest profile:
+ * - If matching existing priest (by ID, name, or phone): updates their phone number and name.
+ * - If new priest: inserts a new profile.
+ * Synchronizes with Firestore `purohitaProfiles`, `users`, `wallets` and LocalStorage.
+ */
+export async function saveOrUpdatePriestProfile(params: {
+  id?: string;
+  name?: string;
+  phone?: string;
+  title?: string;
+  lang?: string;
+}): Promise<PriestSaveResult> {
+  const cleanName = (params.name || "").trim();
+  const cleanPhone = (params.phone || "").trim();
+  const langKey = ((params.lang || "kn").split("-")[0] as keyof L5) || "kn";
+
+  const existing = findMatchingPriest({
+    id: params.id,
+    name: cleanName,
+    phone: cleanPhone
+  });
+
+  if (existing) {
+    // Existing priest: check if phone or name is different
+    const isPhoneDifferent = cleanPhone && cleanPhoneNumber(existing.phone) !== cleanPhoneNumber(cleanPhone);
+    const isNameDifferent = cleanName && cleanName !== existing.name[langKey];
+
+    if (isPhoneDifferent || isNameDifferent) {
+      const overrides = getPriestOverrides();
+      const existingOv = overrides[existing.id] || {};
+      const updatedOv: Partial<PriestProfile> = {
+        ...existingOv,
+        phone: cleanPhone || existing.phone,
+        name: {
+          ...existing.name,
+          ...(existingOv.name || {}),
+          ...(cleanName ? { [langKey]: cleanName } : {})
+        }
+      };
+
+      overrides[existing.id] = updatedOv;
+      memoryPriestOverrides.set(existing.id, updatedOv);
+
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(LOCAL_STORAGE_OVERRIDES_KEY, JSON.stringify(overrides));
+        } catch (_) {}
+      }
+
+      // If it was a custom priest, update custom list too
+      if (existing.isCustom) {
+        const custom = getCustomPriests();
+        const updatedCustom = custom.map(cp => cp.id === existing.id ? { ...cp, ...updatedOv } as PriestProfile : cp);
+        memoryCustomPriests.set(existing.id, { ...existing, ...updatedOv } as PriestProfile);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCustom));
+          } catch (_) {}
+        }
+      }
+
+      // Persist to Firestore asynchronously via dynamic import of savePurohitaProfile
+      try {
+        const { savePurohitaProfile } = await import("../../db/firestoreDb");
+        await savePurohitaProfile({
+          purohitaId: existing.id,
+          priestName: cleanName || existing.name.en || existing.name.kn,
+          phone: cleanPhone || existing.phone,
+          mobileNumber: cleanPhone || existing.phone,
+          status: "active"
+        });
+      } catch (err) {
+        console.warn("[PriestSync] Firestore save error for existing priest:", err);
+      }
+
+      return {
+        action: "updated",
+        profile: {
+          ...existing,
+          phone: cleanPhone || existing.phone,
+          name: {
+            ...existing.name,
+            ...(cleanName ? { [langKey]: cleanName } : {})
+          }
+        }
+      };
+    }
+
+    return {
+      action: "updated",
+      profile: existing
+    };
+  }
+
+  // Brand new priest: Insert
+  const newName = cleanName || "ಅರ್ಚಕರು";
+  const idSlug = newName.toLowerCase().replace(/[^\p{L}\p{M}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "").slice(0, 30);
+  const id = `priest_${idSlug || "custom"}_${Date.now()}`;
+
+  const newPriest: PriestProfile = {
+    id,
+    name: {
+      kn: transliterateName(newName, "kn"),
+      en: transliterateName(newName, "en"),
+      hi: transliterateName(newName, "hi"),
+      te: transliterateName(newName, "te"),
+      ta: transliterateName(newName, "ta")
+    },
+    title: {
+      kn: "ವೇದಮೂರ್ತಿ ವೈದಿಕ ಅರ್ಚಕರು",
+      en: "Veda Murthy Archaka",
+      hi: "वेदमूर्ति वैदिक अर्चक",
+      te: "వేదమూర్తి వైదిక అర్చకులు",
+      ta: "வேதமூர்த்தி வைதிக அர்ச்சகர்"
+    },
+    sealText: {
+      kn: "ಗೋಕರ್ಣ ಧರ್ಮಸಭಾ ಅಧಿಕೃತ ಮುದ್ರೆ",
+      en: "Gokarna Dharma Sabha Official Seal",
+      hi: "गोकर्ण धर्मसभा आधिकारिक मुद्रा",
+      te: "గోకర్ణ ధర్మసభా అధికారిక ముద్ర",
+      ta: "கோகர்ண தர்மசபா அதிகாரப்பூர்வ முத்திரை"
+    },
+    sealSymbol: "🪔",
+    sealColor: "#B91C1C",
+    phone: cleanPhone || "+91 99723 39362",
+    shloka: {
+      sanskrit: "ॐ ಸ್ವಸ್ತಿ ಪ್ರಜಾಭ್ಯಃ ಪರಿಪಾಲಯಂತಾಂ ನ್ಯಾಯೇನ ಮಾರ್ಗೇಣ ಮಹೀಂ ಮಹೀಶಾಃ | ಗೋಬ್ರಾಹ್ಮಣೇಭ್ಯಃ ಶುಭಮಸ್ತು ನಿತ್ಯಂ ಲೋಕಾಃ ಸಮಸ್ತಾಃ ಸುಖಿನೋ ಭವಂತು ||",
+      meaningKn: "ಅರ್ಚಕರ ವೇದ ಮಂತ್ರ ಘೋಷ ಹಾಗೂ ಆಶೀರ್ವಾದದ ಫಲವಾಗಿ ಸಕಲ ಭಕ್ತರಿಗೂ ಮಂಗಲವುಂಟಾಗಲಿ.",
+      meaningEn: "Through sacred Vedic chants and priestly benedictions, may peace and prosperity reign.",
+      meaningHi: "वैदिक मन्त्रों एवं अर्चक के आशीर्वाद से आपके जीवन में सुख और मंगल का वास हो।",
+      meaningTe: "వైదిక మంత్రాలు, అర్చకుల ఆశీస్సుల ఫలితంగా ಸಕಲ ಶುಭాలు సిద్ధించుగాక.",
+      meaningTa: "வேத மந்திரங்கள் மற்றும் அர்ச்சகரின் ஆசியால் வாழ்வில் மங்களம் பொங்கட்டும்."
+    },
+    isCustom: true
+  };
+
+  memoryCustomPriests.set(id, newPriest);
+  const existingCustom = getCustomPriests();
+  const updatedCustom = [...existingCustom, newPriest];
+
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedCustom));
+    } catch (e) {
+      console.error("Failed to save custom priest:", e);
+    }
+  }
+
+  // Persist to Firestore asynchronously
+  try {
+    const { savePurohitaProfile } = await import("../../db/firestoreDb");
+    await savePurohitaProfile({
+      purohitaId: id,
+      priestName: newName,
+      phone: cleanPhone,
+      mobileNumber: cleanPhone,
+      status: "active"
+    });
+  } catch (err) {
+    console.warn("[PriestSync] Firestore save error for new priest:", err);
+  }
+
+  return {
+    action: "inserted",
+    profile: newPriest
+  };
 }
 
 /** Add a new custom priest and save to LocalStorage */
 export function addCustomPriest(nameInput: string, phoneInput?: string): PriestProfile {
   const cleanName = nameInput.trim();
-  const id = `custom-${cleanName.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-")}-${Date.now()}`;
+  const id = `custom-${cleanName.toLowerCase().replace(/[^\p{L}\p{M}\p{N}]+/gu, "-")}-${Date.now()}`;
   
   const newPriest: PriestProfile = {
     id,
@@ -410,9 +693,11 @@ export function addCustomPriest(nameInput: string, phoneInput?: string): PriestP
       meaningTe: "వైదిక మంత్రాలు, అర్చకుల ఆశీస్సుల ఫలితంగా సకల శుభాలు సిద్ధించుగాక.",
       meaningTa: "வேத மந்திரங்கள் மற்றும் அர்ச்சகரின் ஆசியால் வாழ்வில் மங்களம் பொங்கட்டும்."
     },
+    phone: phoneInput ? phoneInput.trim() : undefined,
     isCustom: true
   };
 
+  memoryCustomPriests.set(id, newPriest);
   const existing = getCustomPriests();
   const updated = [...existing, newPriest];
   if (typeof window !== "undefined") {

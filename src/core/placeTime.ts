@@ -16,6 +16,7 @@ export const clockTimeZoneForPlace = (lat: number, lng: number): string | undefi
 export const panchangClockTimeZone = (lat: number, lng: number, pincode = ""): string => {
   if (/^[1-9]\d{5}$/.test(pincode.trim())) return "Asia/Kolkata";
   if (isRoughIndiaRegion(lat, lng)) return "Asia/Kolkata";
+  if (lat >= 47 && lat <= 55.1 && lng >= 5.8 && lng <= 15.2) return "Europe/Berlin";
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
   } catch {

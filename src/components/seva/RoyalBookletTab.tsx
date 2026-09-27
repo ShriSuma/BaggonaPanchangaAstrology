@@ -7,7 +7,8 @@ import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import { generateQrPayloadByTarget } from "../../features/seva/icsCalendarGenerator";
 import { registerCalendarAtGeneration } from "../../features/seva/calendarVisitService";
 import { pick } from "../../features/seva/sevaLocale";
-import { PREDEFINED_PRIESTS, type PriestProfile } from "../../features/seva/sevaPriestDirectory";
+import { getAllPriests, type PriestProfile } from "../../features/seva/sevaPriestDirectory";
+import { syncSevaDataOnAction } from "../../services/sevaPersistenceService";
 
 const hiddenHost: React.CSSProperties = {
   position: "fixed",
@@ -70,6 +71,15 @@ export default function RoyalBookletTab({
   const [selectedPandit, setSelectedPandit] = useState<string>(panditName);
   const [busy, setBusy] = useState<boolean>(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
+
+  React.useEffect(() => {
+    const handleSync = () => {
+      setPriestsList(getAllPriests());
+    };
+    window.addEventListener("baggona_seva_data_synced", handleSync);
+    return () => window.removeEventListener("baggona_seva_data_synced", handleSync);
+  }, []);
 
   const isKn = pdfLang === "kn";
 
@@ -137,6 +147,26 @@ export default function RoyalBookletTab({
   const handleDownload = async () => {
     setBusy(true);
     try {
+      // 0. Persist priest & devotee details to database
+      try {
+        await syncSevaDataOnAction({
+          priest: {
+            name: selectedPandit,
+            lang: pdfLang
+          },
+          user: identity ? {
+            name: identity.personName,
+            gotra: identity.gotra,
+            nakshatraIndex: identity.nakshatraIndex,
+            rashiIndex: identity.rashiIndex,
+            place: identity.placeLabel
+          } : undefined
+        });
+        setPriestsList(getAllPriests());
+      } catch (syncErr) {
+        console.warn("RoyalBookletTab sync error:", syncErr);
+      }
+
       // 1. Run Pre-Flight Pre-Download Validation Engine
       const valRes = validateRoyalBookletData(pdfLang, identity, rhythm, selectedPandit);
       if (!valRes.isValid) {
@@ -218,7 +248,7 @@ export default function RoyalBookletTab({
             onChange={(e) => setSelectedPandit(e.target.value)}
             className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-amber-950 border border-amber-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
-            {PREDEFINED_PRIESTS.map((p: PriestProfile) => (
+            {priestsList.map((p: PriestProfile) => (
               <option key={p.id} value={p.name.kn}>
                 {isKn ? p.name.kn : p.name.en}
               </option>
