@@ -1146,10 +1146,10 @@ export default function QuickCalendarPage(): JSX.Element {
               >
                 <div className="flex items-center gap-2">
                   <span>📥</span>
-                  <span>೯೦ ದಿನಗಳ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್ (.ics) ಡೌನ್‌ಲೋಡ್</span>
+                  <span>೯೦ ದಿನಗಳ ಸಾರ್ವತ್ರಿಕ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್ (.ics)</span>
                 </div>
-                <span className="text-[11px] font-normal text-amber-400/90">
-                  (iPhone / Apple / Android / Outlook / ಇತರೆ ಮೊಬೈಲ್)
+                <span className="text-[11px] font-medium text-emerald-400">
+                  ✓ ಹೊಸ ಆಪ್ ಅಗತ್ಯವಿಲ್ಲ · Apple / Samsung / Google / Outlook
                 </span>
               </button>
             </div>
@@ -1183,10 +1183,10 @@ export default function QuickCalendarPage(): JSX.Element {
               >
                 <div className="flex items-center gap-1.5">
                   <span>📅</span>
-                  <span>ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ ಸಿಂಕ್</span>
+                  <span>ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ ವೆಬ್ ಸಿಂಕ್</span>
                 </div>
                 <span className="text-[10px] font-normal text-amber-400/80">
-                  (Google Calendar ಮಾತ್ರ)
+                  (Google Calendar Web)
                 </span>
               </button>
 

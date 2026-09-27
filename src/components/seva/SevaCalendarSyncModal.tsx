@@ -923,7 +923,7 @@ export default function SevaCalendarSyncModal({
                 }`}
               >
                 <span>🤖</span>
-                <span>Google Cal</span>
+                <span>{lang.startsWith("kn") ? "Google Cal (ವೆಬ್)" : "Google Cal"}</span>
               </button>
               <button
                 type="button"
@@ -938,7 +938,7 @@ export default function SevaCalendarSyncModal({
                 }`}
               >
                 <span>🍎</span>
-                <span>Apple / iCal</span>
+                <span>{lang.startsWith("kn") ? "Apple / ಇತರೆ (.ics)" : "Apple / Any App (.ics)"}</span>
               </button>
             </div>
           </div>
@@ -1332,7 +1332,7 @@ export default function SevaCalendarSyncModal({
                 </div>
               )}
               <span className="mt-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700">
-                📲 {target === "sanctum" ? "🌟 Scan to Open Web Sanctum" : target === "google" ? "🤖 Scan for Google Cal" : "🍎 Scan for Apple iCal"}
+                📲 {target === "sanctum" ? "🌟 Scan to Open Web Sanctum" : target === "google" ? "🤖 Scan for Google Cal" : "🍎 Scan for Apple & All Calendars"}
               </span>
             </div>
 
@@ -1379,6 +1379,19 @@ export default function SevaCalendarSyncModal({
             </div>
           </div>
 
+          {/* Universal Calendar Compatibility Note */}
+          <div className="rounded-xl border border-emerald-500/60 bg-emerald-50/90 p-2.5 text-[11px] leading-relaxed text-emerald-950 shadow-sm flex items-start gap-2">
+            <span className="text-base shrink-0">📱</span>
+            <div>
+              <span className="font-bold text-emerald-950">
+                {lang.startsWith("kn") ? "ಯಾವುದೇ ಕ್ಯಾಲೆಂಡರ್ ಆಪ್‌ನಲ್ಲಿ ನೇರ ಸೇರ್ಪಡೆ:" : "Universal Calendar Compatibility:"}
+              </span>{" "}
+              {lang.startsWith("kn")
+                ? "ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ ಇಲ್ಲದಿದ್ದರೂ ಚಿಂತೆಯಿಲ್ಲ! Apple Calendar (iPhone/iPad/Mac), Samsung Calendar, Outlook ಅಥವಾ ನಿಮ್ಮ ಮೊಬೈಲ್‌ನ ಯಾವುದೇ ಡೀಫಾಲ್ಟ್ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ೯೦ ದಿನಗಳು ಸುಲಭವಾಗಿ ಸೇರ್ಪಡೆಯಾಗುತ್ತವೆ — ಯಾವುದೇ ಹೊಸ ಆಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡುವ ಅಗತ್ಯವಿಲ್ಲ."
+                : "No Google Calendar app needed! Works seamlessly with Apple Calendar (iPhone/iPad/Mac), Samsung Calendar, Outlook, and any built-in phone calendar. No extra app installation required."}
+            </div>
+          </div>
+
           {/* Delete All Events Series Tip */}
           <div className="rounded-xl border border-amber-300/80 bg-amber-50/90 p-2.5 text-[11px] leading-relaxed text-amber-900 shadow-sm flex items-start gap-2">
             <span className="text-base shrink-0">💡</span>
@@ -1393,32 +1406,39 @@ export default function SevaCalendarSyncModal({
           </div>
 
           {/* Actions */}
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={handleGoogleCalendar}
-              className="flex items-center justify-center gap-2 rounded-xl bg-amber-800 px-4 py-2.5 text-xs font-bold text-amber-50 shadow-md transition hover:bg-amber-900"
-            >
-              🌐 {pick(T.addToGoogleCalendar!, lang)}
-            </button>
-
+          <div className="space-y-2">
             <button
               type="button"
               onClick={handleDownload}
-              className="flex items-center justify-center gap-2 rounded-xl border border-amber-400 bg-amber-100 px-4 py-2.5 text-xs font-bold text-amber-950 shadow-sm transition hover:bg-amber-200"
+              className="w-full flex flex-col items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-amber-800 via-amber-700 to-amber-900 p-3.5 text-white shadow-lg transition hover:brightness-110 active:scale-[0.99] border-2 border-amber-400"
             >
-              📅 {pick(T.downloadIcsFile!, lang)}
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-extrabold tracking-wide">
+                <span>📅</span>
+                <span>{pick(T.downloadUniversalCalendar!, lang) || "Download 90-Day Universal Calendar (.ics)"}</span>
+              </div>
+              <div className="text-[10.5px] font-medium text-amber-200 flex items-center gap-1">
+                <span>✨</span>
+                <span>{pick(T.universalCalendarSubtext!, lang) || "Works on Apple, Samsung, Google & Outlook — No App Install Needed!"}</span>
+              </div>
             </button>
-          </div>
 
-          <div className="text-center pt-0.5">
-            <button
-              type="button"
-              onClick={handleCopyLinkData}
-              className="text-[11px] font-semibold text-amber-800 underline decoration-amber-400 underline-offset-4 transition hover:text-amber-950"
-            >
-              {copiedData ? "✓ Copied iCal Data to Clipboard!" : "📋 Copy Raw iCalendar Data"}
-            </button>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={handleGoogleCalendar}
+                className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/70 bg-amber-100/90 px-4 py-2.5 text-xs font-bold text-amber-950 shadow-sm transition hover:bg-amber-200"
+              >
+                🌐 {pick(T.addToGoogleCalendarWeb!, lang) || "Add to Google Calendar (Web)"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCopyLinkData}
+                className="flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-white/90 px-4 py-2.5 text-xs font-bold text-amber-900 shadow-sm transition hover:bg-amber-50"
+              >
+                {copiedData ? "✓ Copied iCal Data!" : "📋 Copy Raw iCalendar Data"}
+              </button>
+            </div>
           </div>
 
           {/* Bottom Close Button */}

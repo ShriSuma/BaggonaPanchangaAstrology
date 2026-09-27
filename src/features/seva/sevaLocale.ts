@@ -565,6 +565,27 @@ export const T: Record<string, L5> = {
   },
   addToGoogleCalendar: { en: "Add to Google Calendar", kn: "Google Calendar ಗೆ ಸೇರಿಸಿ", te: "Google Calendar ಕು ಜೋಡಿಂದಿ", ta: "Google Calendar இல் சேர்க்கவும்", hi: "Google Calendar में जोड़ें" },
   downloadIcsFile: { en: "Download .ics Calendar File", kn: ".ics ಕ್ಯಾಲೆಂಡರ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್", te: ".ics ಕ್ಯಾಲಂಡರ್ ಫೈಲ್ ಡೌನ್‌ಲೋಡ್", ta: ".ics காலண்டர் கோப்பைப் பதிவிறக்கு", hi: ".ics कैलेंडर फ़ाइल डाउनलोड करें" },
+  downloadUniversalCalendar: {
+    en: "Download 90-Day Universal Calendar (.ics)",
+    kn: "೯೦ ದಿನಗಳ ಸಾರ್ವತ್ರಿಕ ಕ್ಯಾಲೆಂಡರ್ ಡೌನ್‌ಲೋಡ್ (.ics)",
+    te: "90 రోజుల సార్వత్రిక క్యాలెండర్ డౌన్‌లోడ్ (.ics)",
+    ta: "90 நாட்கள் உலகளாவிய காலண்டர் பதிவிறக்கம் (.ics)",
+    hi: "९० दिनों का सार्वभौमिक कैलेंडर डाउनलोड (.ics)"
+  },
+  universalCalendarSubtext: {
+    en: "Works on Apple, Samsung, Google & Outlook — No App Install Needed!",
+    kn: "Apple, Samsung, Google & Outlook ಎಲ್ಲಾ ಮೊಬೈಲ್‌ನಲ್ಲೂ ನೇರವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ — ಹೊಸ ಆಪ್ ಅಗತ್ಯವಿಲ್ಲ!",
+    te: "Apple, Samsung, Google & Outlook లలో నేరుగా పనిచేస్తుంది — కొత్త యాప్ అవసరం లేదు!",
+    ta: "Apple, Samsung, Google & Outlook அனைத்திலும் செயல்படும் — புதிய ஆப் தேவையில்லை!",
+    hi: "Apple, Samsung, Google और Outlook सभी में काम करता है — किसी नए ऐप की आवश्यकता नहीं!"
+  },
+  addToGoogleCalendarWeb: {
+    en: "Add to Google Calendar (Web)",
+    kn: "Google Calendar ಗೆ ಸೇರಿಸಿ (ವೆಬ್)",
+    te: "Google Calendar కు జోడించండి (వెబ్)",
+    ta: "Google Calendar இல் சேர்க்கவும் (வலைப்பக்கம்)",
+    hi: "Google Calendar में जोड़ें (वेब)"
+  },
   namaskaraHeader: { en: "Namaskara from", kn: "ಅವರಿಂದ ನಮಸ್ಕಾರಗಳು", te: "గారి నుండి నమస్కారాలు", ta: "அவர்களின் அன்பு வணக்கங்கள்", hi: "की ओर से सादर प्रणाम" },
   micListening: { en: "Listening...", kn: "ಆಲಿಸಲಾಗುತ್ತಿದೆ...", te: "ವಿಂಟೋಂದಿ...", ta: "கேட்கிறது...", hi: "सुन रहा है..." },
   micSpeak: { en: "Click mic to speak priest name", kn: "ಅರ್ಚಕರ ಹೆಸರು ಹೇಳಲು ಮೈಕ್ ಒತ್ತಿರಿ", te: "ಅರ್ಚಕುನಿ ಪೇರು ಚೆಪ್ಪಡಾನಿಕಿ ಮೈಕ್ ನೊಕ್ಕಂಡಿ", ta: "அர்ச்சகர் பெயரைச் சொல்ல மைக் அழுத்தவும்", hi: "पुजारी का नाम बोलने के लिए माइक दबाएँ" },

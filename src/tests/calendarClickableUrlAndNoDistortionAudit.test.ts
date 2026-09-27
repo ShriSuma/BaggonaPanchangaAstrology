@@ -110,4 +110,80 @@ describe("Calendar Clean Single Clickable URL & Non-Google Calendar Compatibilit
       expect(ics).not.toContain("LOCATION:https://");
     }
   });
+
+  it("ensures both .ics and Google Calendar include 4 Actionable Guidance points (🚗, 💰, 🧠, 🪔)", () => {
+    const ics = generateSevaICalendarString({
+      days: [sampleDay],
+      lang: "kn",
+      personName: "Devotee Test",
+      panditName: "Shreeram Pandit"
+    });
+
+    expect(ics).toContain("🚗");
+    expect(ics).toContain("💰");
+    expect(ics).toContain("🧠");
+    expect(ics).toContain("🪔");
+    expect(ics).toContain("ಭವಿಷ್ಯದ ಪ್ರಮುಖ ೪ ಮಾರ್ಗದರ್ಶನಗಳು");
+
+    const gCalUrl = generateGoogleCalendarUrl({
+      day: sampleDay,
+      lang: "kn",
+      panditName: "Shreeram Pandit",
+      locationName: "Gokarna"
+    });
+
+    const parsed = new URL(gCalUrl);
+    const details = parsed.searchParams.get("details") || "";
+
+    expect(details).toContain("🚗");
+    expect(details).toContain("💰");
+    expect(details).toContain("🧠");
+    expect(details).toContain("🪔");
+    expect(details).toContain("ಭವಿಷ್ಯದ ಪ್ರಮುಖ ೪ ಮಾರ್ಗದರ್ಶನಗಳು");
+  });
+
+  it("ensures sanctumUrl is isolated by newlines in both .ics and Google Calendar for seamless 1-tap mobile clicks", () => {
+    const ics = generateSevaICalendarString({
+      days: [sampleDay],
+      lang: "kn",
+      personName: "Devotee Test",
+      panditName: "Shreeram Pandit"
+    });
+
+    // In ICS text, newlines are escaped as \n. Ensure the URL has empty line before and after
+    expect(ics).toMatch(/\\n\\nhttps:\/\/[^\s\\]+\\n\\n/);
+
+    const gCalUrl = generateGoogleCalendarUrl({
+      day: sampleDay,
+      lang: "kn",
+      panditName: "Shreeram Pandit",
+      locationName: "Gokarna"
+    });
+
+    const parsed = new URL(gCalUrl);
+    const details = parsed.searchParams.get("details") || "";
+
+    // In Google Calendar URL details, the URL is isolated with \n\n before and \n\n after
+    expect(details).toMatch(/\n\nhttps:\/\/[^\s]+\n\n/);
+    expect(details).toContain("tab=bhavishya");
+  });
+
+  it("ensures Google Calendar URL displays priest phone override in details when overrideCalendarPhone is active", () => {
+    const customPriest = "ವೇ.ಮೂ. ಶ್ರೀ ಕೃಷ್ಣ ಭಟ್";
+    const customPhone = "9845123456";
+
+    const gCalUrl = generateGoogleCalendarUrl({
+      day: sampleDay,
+      lang: "kn",
+      panditName: customPriest,
+      priestPhone: customPhone,
+      overrideCalendarPhone: true
+    });
+
+    const parsed = new URL(gCalUrl);
+    const details = parsed.searchParams.get("details") || "";
+
+    expect(details).toContain(customPhone);
+    expect(details).toContain(`(📞 ${customPhone})`);
+  });
 });
