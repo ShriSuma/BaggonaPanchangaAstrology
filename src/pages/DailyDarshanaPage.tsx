@@ -22,7 +22,7 @@ import { calculateGokarnaPitruRaksha, evaluateShraddhaTithiStatus } from "../fea
 import { resolveDevoteeToken, type ResolveTokenResult } from "../features/seva/devoteeTokenDbService";
 import { DailySatkarmaPracticeCard } from "../components/seva/DailySatkarmaPracticeCard";
 import { getUniversalBirthDetails } from "../utils/universalDevoteeKundli";
-import { resolvePincodeCoordinatesSync, resolvePlaceFromPincode } from "../services/locationApi";
+import { resolvePincodeCoordinatesSync, resolvePlaceFromPincode, bundledVillagesByPincode, getPostalRegionCentroid } from "../services/locationApi";
 import type { RhythmDay } from "../core/DailyRhythmEngine";
 import type { DetailedTithiInfo } from "../core/VedicCalculations";
 import { nakshatraName, rashiName, tithiLabel, pakshaLabel, tithiOnlyLabel, getDailyActionableGuidance, formatLongDate, getLocalizedPanditName } from "../features/seva/sevaPresentation";
@@ -1866,7 +1866,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   const userPincode = useMemo(() => {
     const pPin = urlParams.get("pincode") || urlParams.get("pc");
     if (pPin && pPin.trim()) return pPin.trim();
-    return decoded?.pc || storedSession?.pincode || "581326";
+    return decoded?.pc || (decoded as any)?.pincode || storedSession?.pincode || "581326";
   }, [decoded, storedSession, urlParams]);
 
   const [resolvedPlaceName, setResolvedPlaceName] = useState<string>("");
@@ -1884,31 +1884,49 @@ export default function DailyDarshanaPage(): JSX.Element {
   const userLat = useMemo(() => {
     const pLat = urlParams.get("lat") || urlParams.get("lt");
     if (pLat && !isNaN(Number(pLat))) return Number(pLat);
-    const rawLat = decoded?.lt ?? decoded?.lat ?? storedSession?.latitude;
-    if (userPincode && userPincode !== "581326" && (!rawLat || Math.abs(Number(rawLat) - 14.5479) < 0.05)) {
+    if (userPincode && /^\d{6}$/.test(userPincode) && userPincode !== "581326") {
       const coords = resolvePincodeCoordinatesSync(userPincode);
-      return coords.lat;
+      if (coords && coords.lat && (Math.abs(coords.lat - 14.5479) > 0.001 || coords.lng !== 74.3187)) {
+        return coords.lat;
+      }
     }
-    return rawLat !== undefined ? Number(rawLat) : 14.5479;
+    const rawLat = decoded?.lt ?? decoded?.lat ?? storedSession?.latitude;
+    if (rawLat !== undefined && !isNaN(Number(rawLat))) return Number(rawLat);
+    if (userPincode && /^\d{6}$/.test(userPincode)) {
+      return resolvePincodeCoordinatesSync(userPincode).lat;
+    }
+    return 14.5479;
   }, [decoded, storedSession, urlParams, userPincode]);
 
   const userLng = useMemo(() => {
     const pLng = urlParams.get("lng") || urlParams.get("lg");
     if (pLng && !isNaN(Number(pLng))) return Number(pLng);
-    const rawLng = decoded?.lg ?? decoded?.lng ?? storedSession?.longitude;
-    if (userPincode && userPincode !== "581326" && (!rawLng || Math.abs(Number(rawLng) - 74.3187) < 0.05)) {
+    if (userPincode && /^\d{6}$/.test(userPincode) && userPincode !== "581326") {
       const coords = resolvePincodeCoordinatesSync(userPincode);
-      return coords.lng;
+      if (coords && coords.lng && (Math.abs(coords.lng - 74.3187) > 0.001 || coords.lat !== 14.5479)) {
+        return coords.lng;
+      }
     }
-    return rawLng !== undefined ? Number(rawLng) : 74.3187;
+    const rawLng = decoded?.lg ?? decoded?.lng ?? storedSession?.longitude;
+    if (rawLng !== undefined && !isNaN(Number(rawLng))) return Number(rawLng);
+    if (userPincode && /^\d{6}$/.test(userPincode)) {
+      return resolvePincodeCoordinatesSync(userPincode).lng;
+    }
+    return 74.3187;
   }, [decoded, storedSession, urlParams, userPincode]);
 
   const userLocationName = useMemo(() => {
     const pLoc = urlParams.get("location") || urlParams.get("loc");
     if (pLoc && pLoc.trim()) return pLoc.trim();
     if (resolvedPlaceName) return resolvedPlaceName;
+    if (userPincode && /^\d{6}$/.test(userPincode)) {
+      const v = bundledVillagesByPincode(userPincode);
+      if (v && v.length > 0 && v[0].name) return v[0].name;
+      const c = getPostalRegionCentroid(userPincode);
+      if (c && c.regionName) return c.regionName;
+    }
     return (decoded as any)?.loc || (decoded as any)?.location || storedSession?.placeName || "Gokarna";
-  }, [decoded, storedSession, urlParams, resolvedPlaceName]);
+  }, [decoded, storedSession, urlParams, resolvedPlaceName, userPincode]);
 
   const kaala = useMemo(() => getDailyKaalaTimings(dayLordIdx, lang, dateParam, userLat, userLng, userPincode), [dayLordIdx, lang, dateParam, userLat, userLng, userPincode]);
 

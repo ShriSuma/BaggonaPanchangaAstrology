@@ -26,8 +26,8 @@ describe("panchanga90DayAiEngine", () => {
     expect(firstDay.paksha).toBeDefined();
     expect(firstDay.tithi).toBeDefined();
     expect(firstDay.nakshatra).toBeDefined();
-    expect(firstDay.suryodaya).toMatch(/\d{2}:\d{2}\s+(AM|PM)/);
-    expect(firstDay.suryasta).toMatch(/\d{2}:\d{2}\s+(AM|PM)/);
+    expect(firstDay.suryodaya).toMatch(/\d{2}:\d{2}(?::\d{2})?\s+(AM|PM)/);
+    expect(firstDay.suryasta).toMatch(/\d{2}:\d{2}(?::\d{2})?\s+(AM|PM)/);
     expect(firstDay.rahuKaala).toBeDefined();
     expect(firstDay.gulikaKaala).toBeDefined();
     expect(firstDay.yamagandaKaala).toBeDefined();

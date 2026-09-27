@@ -226,18 +226,27 @@ Strict Rules:
 
     if (itemsArray.length > 0) {
       const map: Panchanga90Map = {};
+      const dayLords = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
+      const cleanTiming = (str: string) => str.replace(/\s*\([^)]*\)/g, "").trim();
+
       for (const item of itemsArray) {
         if (item && item.date) {
+          const dateParts = item.date.split("-").map(Number);
+          const noonUtc = new Date(Date.UTC(dateParts[0], (dateParts[1] || 1) - 1, dateParts[2] || 1, 12, 0, 0));
+          const weekday = !isNaN(noonUtc.getTime()) ? noonUtc.getUTCDay() : 0;
+          const dayLord = dayLords[weekday] || "Sun";
+          const exactKaala = getDailyKaalaTimings(dayLord, lang, item.date, lat, lng, pincode);
+
           map[item.date] = {
             date: item.date,
             paksha: item.paksha || "",
             tithi: item.tithi || "",
             nakshatra: item.nakshatra || "",
-            suryodaya: item.suryodaya || "06:00 AM",
-            suryasta: item.suryasta || "06:30 PM",
-            rahuKaala: item.rahuKaala || "",
-            gulikaKaala: item.gulikaKaala || "",
-            yamagandaKaala: item.yamagandaKaala || ""
+            suryodaya: exactKaala.sunrise,
+            suryasta: exactKaala.sunset,
+            rahuKaala: cleanTiming(exactKaala.rahu),
+            gulikaKaala: cleanTiming(exactKaala.gulika),
+            yamagandaKaala: cleanTiming(exactKaala.yamaganda)
           };
         }
       }

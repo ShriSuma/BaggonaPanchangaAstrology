@@ -560,7 +560,8 @@ export function getDailyKaalaTimings(
       lng === undefined ||
       !Number.isFinite(lat) ||
       !Number.isFinite(lng) ||
-      (cleanPin !== "581326" && Math.abs(lat - 14.54) < 0.05 && Math.abs(lng - 74.31) < 0.05)
+      (cleanPin !== "581326" && Math.abs(lat - 14.54) < 0.05 && Math.abs(lng - 74.31) < 0.05) ||
+      (cleanPin !== "581326" && (pinCoords.lat !== 14.5479 || pinCoords.lng !== 74.3187))
     ) {
       lat = pinCoords.lat;
       lng = pinCoords.lng;
@@ -579,12 +580,18 @@ export function getDailyKaalaTimings(
     }
   }
 
-  let sunriseStr = "06:00 AM";
-  let sunsetStr = "06:30 PM";
+  let sunriseStr = "06:00:00 AM";
+  let sunsetStr = "06:30:00 PM";
+  let sunriseStrShort = "06:00 AM";
+  let sunsetStrShort = "06:30 PM";
   let rahuStr = "";
   let gulikaStr = "";
   let yamaStr = "";
   let abhijitStr = "";
+  let rahuStrShort = "";
+  let gulikaStrShort = "";
+  let yamaStrShort = "";
+  let abhijitStrShort = "";
 
   if (dateStr && typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng)) {
     try {
@@ -592,8 +599,18 @@ export function getDailyKaalaTimings(
       const dateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
       const sun = sunTimesSyncForBirth(dateObj, lat, lng, pincode || "");
 
-      const formatTime = (d: Date) => {
+      const formatTimeWithSeconds = (d: Date) => {
         // Enforce strict Indian Standard Time (+05:30) conversion regardless of client browser/system timezone
+        const istDate = new Date(d.getTime() + 330 * 60 * 1000);
+        const hours = istDate.getUTCHours();
+        const minutes = istDate.getUTCMinutes();
+        const seconds = istDate.getUTCSeconds();
+        const ampm = hours >= 12 ? "PM" : "AM";
+        const h12 = hours % 12 || 12;
+        return `${String(h12).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} ${ampm}`;
+      };
+
+      const formatTimeShort = (d: Date) => {
         const istDate = new Date(d.getTime() + 330 * 60 * 1000);
         const hours = istDate.getUTCHours();
         const minutes = istDate.getUTCMinutes();
@@ -602,8 +619,10 @@ export function getDailyKaalaTimings(
         return `${String(h12).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${ampm}`;
       };
 
-      sunriseStr = formatTime(sun.sunrise);
-      sunsetStr = formatTime(sun.sunset);
+      sunriseStr = formatTimeWithSeconds(sun.sunrise);
+      sunsetStr = formatTimeWithSeconds(sun.sunset);
+      sunriseStrShort = formatTimeShort(sun.sunrise);
+      sunsetStrShort = formatTimeShort(sun.sunset);
 
       const sunriseMs = sun.sunrise.getTime();
       const sunsetMs = sun.sunset.getTime();
@@ -618,17 +637,28 @@ export function getDailyKaalaTimings(
       const getWindowStr = (octantPeriod: number) => {
         const start = new Date(sunriseMs + (octantPeriod - 1) * octantMs);
         const end = new Date(sunriseMs + octantPeriod * octantMs);
-        return `${formatTime(start)} – ${formatTime(end)}`;
+        return `${formatTimeWithSeconds(start)} – ${formatTimeWithSeconds(end)}`;
+      };
+
+      const getWindowStrShort = (octantPeriod: number) => {
+        const start = new Date(sunriseMs + (octantPeriod - 1) * octantMs);
+        const end = new Date(sunriseMs + octantPeriod * octantMs);
+        return `${formatTimeShort(start)} – ${formatTimeShort(end)}`;
       };
 
       rahuStr = getWindowStr(rahuOctantMap[idx] ?? 8);
       gulikaStr = getWindowStr(gulikaOctantMap[idx] ?? 7);
       yamaStr = getWindowStr(yamaOctantMap[idx] ?? 5);
 
+      rahuStrShort = getWindowStrShort(rahuOctantMap[idx] ?? 8);
+      gulikaStrShort = getWindowStrShort(gulikaOctantMap[idx] ?? 7);
+      yamaStrShort = getWindowStrShort(yamaOctantMap[idx] ?? 5);
+
       // Authentic Vedic Abhijit Muhurtha (8th Muhurtha of daytime, centered at solar noon)
       const abhijitStart = new Date(sunriseMs + 7 * muhurthaMs);
       const abhijitEnd = new Date(sunriseMs + 8 * muhurthaMs);
-      abhijitStr = `${formatTime(abhijitStart)} – ${formatTime(abhijitEnd)}`;
+      abhijitStr = `${formatTimeWithSeconds(abhijitStart)} – ${formatTimeWithSeconds(abhijitEnd)}`;
+      abhijitStrShort = `${formatTimeShort(abhijitStart)} – ${formatTimeShort(abhijitEnd)}`;
     } catch {
       /* fallback to standard Kolkata offsets */
     }
@@ -636,22 +666,26 @@ export function getDailyKaalaTimings(
 
   if (!rahuStr) {
     const timings = [
-      { rahu: "04:30 PM – 06:00 PM", gulika: "03:00 PM – 04:30 PM", yama: "12:00 PM – 01:30 PM" },
-      { rahu: "07:30 AM – 09:00 AM", gulika: "01:30 PM – 03:00 PM", yama: "10:30 AM – 12:00 PM" },
-      { rahu: "03:00 PM – 04:30 PM", gulika: "12:00 PM – 01:30 PM", yama: "09:00 AM – 10:30 AM" },
-      { rahu: "12:00 PM – 01:30 PM", gulika: "10:30 AM – 12:00 PM", yama: "07:30 AM – 09:00 AM" },
-      { rahu: "01:30 PM – 03:00 PM", gulika: "09:00 AM – 10:30 AM", yama: "06:00 AM – 07:30 AM" },
-      { rahu: "10:30 AM – 12:00 PM", gulika: "07:30 AM – 09:00 AM", yama: "03:00 PM – 04:30 PM" },
-      { rahu: "09:00 AM – 10:30 AM", gulika: "06:00 AM – 07:30 AM", yama: "01:30 PM – 03:00 PM" }
+      { rahu: "04:30:00 PM – 06:00:00 PM", gulika: "03:00:00 PM – 04:30:00 PM", yama: "12:00:00 PM – 01:30:00 PM", rahuShort: "04:30 PM – 06:00 PM", gulikaShort: "03:00 PM – 04:30 PM", yamaShort: "12:00 PM – 01:30 PM" },
+      { rahu: "07:30:00 AM – 09:00:00 AM", gulika: "01:30:00 PM – 03:00:00 PM", yama: "10:30:00 AM – 12:00:00 PM", rahuShort: "07:30 AM – 09:00 AM", gulikaShort: "01:30 PM – 03:00 PM", yamaShort: "10:30 AM – 12:00 PM" },
+      { rahu: "03:00:00 PM – 04:30:00 PM", gulika: "12:00:00 PM – 01:30:00 PM", yama: "09:00:00 AM – 10:30:00 AM", rahuShort: "03:00 PM – 04:30 PM", gulikaShort: "12:00 PM – 01:30 PM", yamaShort: "09:00 AM – 10:30 AM" },
+      { rahu: "12:00:00 PM – 01:30:00 PM", gulika: "10:30:00 AM – 12:00:00 PM", yama: "07:30:00 AM – 09:00:00 AM", rahuShort: "12:00 PM – 01:30 PM", gulikaShort: "10:30 AM – 12:00 PM", yamaShort: "07:30 AM – 09:00 AM" },
+      { rahu: "01:30:00 PM – 03:00:00 PM", gulika: "09:00:00 AM – 10:30:00 AM", yama: "06:00:00 AM – 07:30:00 AM", rahuShort: "01:30 PM – 03:00 PM", gulikaShort: "09:00 AM – 10:30 AM", yamaShort: "06:00 AM – 07:30 AM" },
+      { rahu: "10:30:00 AM – 12:00:00 PM", gulika: "07:30:00 AM – 09:00:00 AM", yama: "03:00:00 PM – 04:30:00 PM", rahuShort: "10:30 AM – 12:00 PM", gulikaShort: "07:30 AM – 09:00 AM", yamaShort: "03:00 PM – 04:30 PM" },
+      { rahu: "09:00:00 AM – 10:30:00 AM", gulika: "06:00:00 AM – 07:30:00 AM", yama: "01:30:00 PM – 03:00:00 PM", rahuShort: "09:00 AM – 10:30 AM", gulikaShort: "06:00 AM – 07:30 AM", yamaShort: "01:30 PM – 03:00 PM" }
     ];
     const t = timings[idx] || timings[0];
     rahuStr = t.rahu;
     gulikaStr = t.gulika;
     yamaStr = t.yama;
+    rahuStrShort = t.rahuShort;
+    gulikaStrShort = t.gulikaShort;
+    yamaStrShort = t.yamaShort;
   }
 
   if (!abhijitStr) {
-    abhijitStr = "11:48 AM – 12:36 PM";
+    abhijitStr = "11:48:00 AM – 12:36:00 PM";
+    abhijitStrShort = "11:48 AM – 12:36 PM";
   }
 
   const rahuSuffix = code === "kn" ? "(ಸಾಮಾನ್ಯ ಕೆಲಸ ಮಾಡಿ)"
@@ -666,7 +700,7 @@ export function getDailyKaalaTimings(
                      : "(Favorable for Action)";
   const yamaSuffix = code === "kn" ? "(ಪ್ರಾರ್ಥನೆಗೆ ಸೂಕ್ತ)"
                    : code === "hi" ? "(प्रार्थना व ध्यान हेतु श्रेष्ठ)"
-                   : code === "te" ? "(ప్రార్థనకు శ్రేష్ఠం)"
+                   : code === "te" ? "(ప్రార్థనకు శ్రేష్ఠಂ)"
                    : code === "ta" ? "(பிரார்த்தனைக்கு உகந்தது)"
                    : "(Good for Prayer)";
   const abhijitSuffix = code === "kn" ? "(ಅಭಿಜಿತ್ ಮುಹೂರ್ತ)"
@@ -678,6 +712,8 @@ export function getDailyKaalaTimings(
   return {
     sunrise: sunriseStr,
     sunset: sunsetStr,
+    sunriseShort: sunriseStrShort,
+    sunsetShort: sunsetStrShort,
     rahu: `${rahuStr} ${rahuSuffix}`,
     gulika: `${gulikaStr} ${gulikaSuffix}`,
     yamaganda: `${yamaStr} ${yamaSuffix}`,
@@ -686,11 +722,19 @@ export function getDailyKaalaTimings(
     gulikaWindow: gulikaStr,
     yamaWindow: yamaStr,
     abhijitWindow: abhijitStr,
+    rahuShort: `${rahuStrShort} ${rahuSuffix}`,
+    gulikaShort: `${gulikaStrShort} ${gulikaSuffix}`,
+    yamagandaShort: `${yamaStrShort} ${yamaSuffix}`,
+    abhijitShort: `${abhijitStrShort} ${abhijitSuffix}`,
+    rahuWindowShort: rahuStrShort,
+    gulikaWindowShort: gulikaStrShort,
+    yamaWindowShort: yamaStrShort,
+    abhijitWindowShort: abhijitStrShort,
     rahuSuffix,
     gulikaSuffix,
     yamaSuffix,
     abhijitSuffix,
-    pincodeUsed: pincode || "581326",
+    pincodeUsed: (pincode && pincode.trim()) || "581326",
     latUsed: lat,
     lngUsed: lng,
     tzLabel: "IST"
@@ -1075,7 +1119,10 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
   if (pincode && /^\d{6}$/.test(pincode.trim())) {
     const pinCoords = resolvePincodeCoordinatesSync(pincode.trim(), lat, lng);
-    if (pincode.trim() !== "581326" && Math.abs(lat - 14.54) < 0.05) {
+    if (
+      pincode.trim() !== "581326" &&
+      (Math.abs(lat - 14.54) < 0.05 || pinCoords.lat !== 14.5479 || pinCoords.lng !== 74.3187)
+    ) {
       lat = pinCoords.lat;
       lng = pinCoords.lng;
     }
@@ -1234,7 +1281,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     const contactOverrideQuery = isContactOverride
       ? `&overrideContact=true&overrideCalendarPhone=true&ocp=1&priestPhone=${encodeURIComponent(effectivePriestPhone)}&priestName=${encodeURIComponent(localizedPandit)}&fromCal=1`
       : "";
-    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya&priestName=${encodeURIComponent(localizedPandit)}${contactOverrideQuery}`;
+    const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya&priestName=${encodeURIComponent(localizedPandit)}&pincode=${encodeURIComponent(pincode)}&lat=${lat}&lng=${lng}&loc=${encodeURIComponent(locationName)}${contactOverrideQuery}`;
 
     const aiItem = aiPanchangaMap?.[day.ymd];
     // Canonical Drik Ganita Udaya Tithi at 06:00 AM IST from day ensures 100% parity with DailyDarshanaPage web sanctum links
@@ -1266,11 +1313,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
     const kaalaRaw = getDailyKaalaTimings(day.dayLord, lang, day.ymd, lat, lng, pincode);
     const kaala = {
-      sunrise: aiItem?.suryodaya || kaalaRaw.sunrise,
-      sunset: aiItem?.suryasta || kaalaRaw.sunset,
-      rahu: aiItem?.rahuKaala || kaalaRaw.rahu,
-      gulika: aiItem?.gulikaKaala || kaalaRaw.gulika,
-      yamaganda: aiItem?.yamagandaKaala || kaalaRaw.yamaganda
+      sunrise: kaalaRaw.sunrise,
+      sunset: kaalaRaw.sunset,
+      rahu: kaalaRaw.rahu,
+      gulika: kaalaRaw.gulika,
+      yamaganda: kaalaRaw.yamaganda
     };
     const deity = DEITY_MANTRAS[getDayLordIndex(day.dayLord)] || DEITY_MANTRAS[1];
     const taraBalaStr = getTaraBalaInfo((day.tara?.tara as number) || 2, lang);
@@ -1617,7 +1664,7 @@ export function generateGoogleCalendarUrl(options: {
   aiPanchangaMap?: Record<string, DayPanchangaAiItem>;
   includePriestCalendar?: boolean;
 }): string {
-  const {
+  let {
     day: singleDay,
     days,
     lang,
@@ -1635,6 +1682,18 @@ export function generateGoogleCalendarUrl(options: {
     birthRashiIndex,
     aiPanchangaMap
   } = options;
+
+  if (pincode && /^\d{6}$/.test(pincode.trim())) {
+    const pinCoords = resolvePincodeCoordinatesSync(pincode.trim(), lat, lng);
+    if (
+      pincode.trim() !== "581326" &&
+      (Math.abs(lat - 14.54) < 0.05 || pinCoords.lat !== 14.5479 || pinCoords.lng !== 74.3187)
+    ) {
+      lat = pinCoords.lat;
+      lng = pinCoords.lng;
+    }
+  }
+
   const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
     ymd: new Date().toISOString().slice(0, 10),
     dayLord: "Sun",
@@ -1700,13 +1759,12 @@ export function generateGoogleCalendarUrl(options: {
 
   const vibe = getEnergyMeterAndVibe(activeDay, lang);
   const kaalaRaw = getDailyKaalaTimings(activeDay.dayLord, lang, activeDay.ymd, lat, lng, pincode);
-  const aiItem = aiPanchangaMap?.[activeDay.ymd];
   const kaala = {
-    sunrise: aiItem?.suryodaya || kaalaRaw.sunrise,
-    sunset: aiItem?.suryasta || kaalaRaw.sunset,
-    rahu: aiItem?.rahuKaala || kaalaRaw.rahu,
-    gulika: aiItem?.gulikaKaala || kaalaRaw.gulika,
-    yamaganda: aiItem?.yamagandaKaala || kaalaRaw.yamaganda
+    sunrise: kaalaRaw.sunrise,
+    sunset: kaalaRaw.sunset,
+    rahu: kaalaRaw.rahu,
+    gulika: kaalaRaw.gulika,
+    yamaganda: kaalaRaw.yamaganda
   };
   const dayIdx = getDayLordIndex(activeDay.dayLord);
   const deity = DEITY_MANTRAS[dayIdx] || DEITY_MANTRAS[0];
@@ -1744,7 +1802,7 @@ export function generateGoogleCalendarUrl(options: {
   const contactOverrideQuery = isContactOverride
     ? `&overrideContact=true&overrideCalendarPhone=true&ocp=1&priestPhone=${encodeURIComponent(effectivePriestPhone)}&priestName=${encodeURIComponent(localizedPandit)}&fromCal=1`
     : "";
-  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya&priestName=${encodeURIComponent(localizedPandit)}${contactOverrideQuery}`;
+  const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya&priestName=${encodeURIComponent(localizedPandit)}&pincode=${encodeURIComponent(pincode)}&lat=${lat}&lng=${lng}&loc=${encodeURIComponent(locationName)}${contactOverrideQuery}`;
 
   const panchangaTitle = isKn ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ" : isHi ? "बग्गोण पंचांग" : isTe ? "బగ్గోణ పంచాಂಗం" : isTa ? "பக்கோண பஞ்சாங்கம்" : "Baggona Panchanga";
   const kshetraTitle = isKn ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "गोकर्ण क्षेत्र" : isTe ? "గోకర్ణ క్షేత్రం" : isTa ? "கோகர்ண க்ஷேத்திரம்" : "Gokarna Kshetra";
@@ -1918,7 +1976,7 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   birthNakshatraIndex?: number;
   birthRashiIndex?: number;
 }): string {
-  const {
+  let {
     day: singleDay,
     days,
     lang,
@@ -1935,6 +1993,18 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     birthNakshatraIndex,
     birthRashiIndex
   } = options;
+
+  if (pincode && /^\d{6}$/.test(pincode.trim())) {
+    const pinCoords = resolvePincodeCoordinatesSync(pincode.trim(), lat, lng);
+    if (
+      pincode.trim() !== "581326" &&
+      (Math.abs(lat - 14.54) < 0.05 || pinCoords.lat !== 14.5479 || pinCoords.lng !== 74.3187)
+    ) {
+      lat = pinCoords.lat;
+      lng = pinCoords.lng;
+    }
+  }
+
   const day = (singleDay || (days && days.length > 0 ? days[0] : null) || {
     ymd: new Date().toISOString().slice(0, 10),
     dayLord: "Sun",
@@ -1996,6 +2066,9 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     tm: notificationTime,
     pl: "android",
     t: "google",
+    pc: pincode !== "581326" ? pincode : undefined,
+    lt: pincode !== "581326" ? lat : undefined,
+    lg: pincode !== "581326" ? lng : undefined,
     ph: isContactOverride ? effectivePriestPhone : undefined,
     ocp: isContactOverride ? 1 : undefined,
     overrideCalendarPhone: isContactOverride,
@@ -2043,7 +2116,7 @@ export function generateQrPayloadByTarget(
   target: QrCalendarTarget,
   options: CalendarGeneratorOptions & { platform?: "android" | "apple" }
 ): string {
-  const {
+  let {
     days,
     lang,
     panditName,
@@ -2057,6 +2130,18 @@ export function generateQrPayloadByTarget(
     dob,
     tob
   } = options;
+
+  if (pincode && /^\d{6}$/.test(pincode.trim())) {
+    const pinCoords = resolvePincodeCoordinatesSync(pincode.trim(), lat, lng);
+    if (
+      pincode.trim() !== "581326" &&
+      (Math.abs(lat - 14.54) < 0.05 || pinCoords.lat !== 14.5479 || pinCoords.lng !== 74.3187)
+    ) {
+      lat = pinCoords.lat;
+      lng = pinCoords.lng;
+    }
+  }
+
   const firstDay = days && days.length > 0 ? days[0] : null;
   const startDateStr = firstDay?.ymd || new Date().toISOString().slice(0, 10);
   const safePandit = getLocalizedPanditName(panditName || options.priestName || "shreeram-pandit", lang);
