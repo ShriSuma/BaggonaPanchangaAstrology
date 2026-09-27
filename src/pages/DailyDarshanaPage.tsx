@@ -2440,6 +2440,9 @@ export default function DailyDarshanaPage(): JSX.Element {
     let cancelled = false;
     async function syncDevoteeProfile() {
       try {
+        const incomingPhone = (decoded?.ph || decoded?.phone || urlParams.get("phone") || urlParams.get("ph") || "").trim();
+        const incomingEmail = ((decoded as any)?.email || urlParams.get("email") || "").trim();
+
         const userRec = await checkAndRegisterDevoteeUser({
           name: devoteeDisplayName,
           dob: resolvedBirth.dob,
@@ -2450,8 +2453,8 @@ export default function DailyDarshanaPage(): JSX.Element {
           nakshatra: nakshatraName(moonNakshatraIdx, "en"),
           nakshatraIndex: moonNakshatraIdx,
           pincode: decoded?.pc || urlParams.get("pincode") || "",
-          phone: decoded?.ph || decoded?.phone || urlParams.get("phone") || "",
-          email: (decoded as any)?.email || urlParams.get("email") || "",
+          phone: incomingPhone,
+          email: incomingEmail,
           token: tokenParam || undefined,
           source: isFromCalendarRedirect ? "calendar_redirect" : "direct_darshana"
         });
@@ -2465,14 +2468,32 @@ export default function DailyDarshanaPage(): JSX.Element {
           setPoojaStreak(cloudStreak);
         }
 
-        // Check if Contact details (Phone or Email) are present in Firestore database
+        // Check if Contact details (Phone or Email) are present in redirection, local storage, or Firestore database
         if (typeof window !== "undefined") {
           localStorage.removeItem("baggona_contact_collected_global");
         }
+
+        const hasRedirectContact = Boolean(
+          (incomingPhone && incomingPhone.replace(/[^\d]/g, "").length >= 10) ||
+          (incomingEmail && incomingEmail.length >= 5 && incomingEmail.includes("@") && incomingEmail.includes("."))
+        );
+
+        const isCollectedLocally = typeof window !== "undefined" && (
+          localStorage.getItem(`baggona_contact_collected_${devoteeUserId}`) === "true" ||
+          (tokenParam ? localStorage.getItem(`baggona_contact_collected_${tokenParam}`) === "true" : false)
+        );
+
+        if (hasRedirectContact && typeof window !== "undefined") {
+          localStorage.setItem(`baggona_contact_collected_${devoteeUserId}`, "true");
+          if (tokenParam) {
+            localStorage.setItem(`baggona_contact_collected_${tokenParam}`, "true");
+          }
+        }
+
         const isSessionDismissed = typeof window !== "undefined" && (
           sessionStorage.getItem(`baggona_contact_dismissed_${devoteeUserId}`) === "true"
         );
-        const hasContact = hasDevoteeContactDetails(userRec);
+        const hasContact = hasRedirectContact || isCollectedLocally || hasDevoteeContactDetails(userRec);
         if (!hasContact && !isSessionDismissed) {
           // Show popup asking for Phone or Email only if never provided
           setIsContactCaptureOpen(true);
@@ -5833,7 +5854,14 @@ export default function DailyDarshanaPage(): JSX.Element {
       )}
       {/* Devotee Contact Details Capture Modal (Phone / Email Popup) */}
       <DevoteeContactCaptureModal
-        isOpen={isContactCaptureOpen && !hasDevoteeContactDetails(devoteeUser)}
+        isOpen={
+          isContactCaptureOpen &&
+          !hasDevoteeContactDetails(devoteeUser) &&
+          !(typeof window !== "undefined" && (
+            localStorage.getItem(`baggona_contact_collected_${devoteeUserId}`) === "true" ||
+            (tokenParam ? localStorage.getItem(`baggona_contact_collected_${tokenParam}`) === "true" : false)
+          ))
+        }
         onClose={() => {
           setIsContactCaptureOpen(false);
           if (typeof window !== "undefined") {
@@ -5852,6 +5880,9 @@ export default function DailyDarshanaPage(): JSX.Element {
           setIsContactCaptureOpen(false);
           if (typeof window !== "undefined") {
             localStorage.setItem(`baggona_contact_collected_${devoteeUserId}`, "true");
+            if (tokenParam) {
+              localStorage.setItem(`baggona_contact_collected_${tokenParam}`, "true");
+            }
             localStorage.removeItem("baggona_contact_collected_global");
           }
           // Immediately record calendar visit with newly submitted phone and email

@@ -274,11 +274,18 @@ Return a valid JSON object matching this schema:
     "Paragraph 2 (Destined Career Fields & Natural Talents - ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ ವೃತ್ತಿ ರಂಗಗಳು & ಪ್ರತಿಭೆ)",
     "Paragraph 3 (Planetary Reality & Turning Point Timeline in English digits)",
     "Paragraph 4 (Practical Remedies, Gemstone, Rudraksha & Gokarna Blessings)"
-  ]
+  ],
+  "openingIceBreaker": "Card 1: 100% authentic Vedic temperament & opening ice-breaker reading in pure ${isKn ? "Kannada with zero English words" : "English"}",
+  "hiddenSubconsciousWorry": "Card 2: Deep inner mental worry & anxiety in pure ${isKn ? "Kannada with zero English words" : "English"}",
+  "maandiKarmicImpact": "Card 3: 99% task hurdle & Maandi knot in pure ${isKn ? "Kannada with zero English words" : "English"}",
+  "bodyMarkAndTemperament": "Card 4: Anga Lakshana mark & Tridosha constitution in pure ${isKn ? "Kannada with zero English words" : "English"}",
+  "karmaFinancialReality": "Card 5: Karma bhava & financial reality in pure ${isKn ? "Kannada with zero English words" : "English"}",
+  "immediateTurningPoint": "Card 6: Dasha turning point timeline in pure ${isKn ? "Kannada with zero English words" : "English"}",
+  "siddhaPariharaRemedy": "Gokarna Siddha Parashari remedy in pure ${isKn ? "Kannada with zero English words" : "English"}"
 }
 
 STRICT RULES:
-1. Speak DIRECTLY to the devotee in empathetic, authoritative Vedic pandit voice in natural ${isKn ? "Kannada" : "English"}.
+1. Speak DIRECTLY to the devotee in empathetic, authoritative Vedic pandit voice in natural ${isKn ? "Kannada (CRITICAL: ZERO English words or Latin letters in Kannada text)" : "English"}.
 2. NO markdown asterisks (no ** or *).
 3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
 4. Return ONLY raw valid JSON.`;
@@ -704,7 +711,7 @@ STRICT RULES:
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>🗣️</span>
-                        <span>{isKn ? "1. ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ (Ice-Breaker & Temperament)" : "1. Ice-Breaker & Core Temperament"}</span>
+                        <span>{isKn ? "1. ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ" : "1. Ice-Breaker & Core Temperament"}</span>
                       </span>
                       <button
                         type="button"
@@ -730,7 +737,7 @@ STRICT RULES:
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>🧠</span>
-                        <span>{isKn ? "2. ಅಂತರಂಗದ ಗುಪ್ತ ಆತಂಕ & ಚಿಂತೆ (Hidden Worry)" : "2. Hidden Subconscious Worry / Agony"}</span>
+                        <span>{isKn ? "2. ಅಂತರಂಗದ ಗುಪ್ತ ಆತಂಕ & ಚಿಂತೆ" : "2. Hidden Subconscious Worry / Agony"}</span>
                       </span>
                       <button
                         type="button"
@@ -756,7 +763,7 @@ STRICT RULES:
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>🌀</span>
-                        <span>{isKn ? "3. 99% ಆದ ಕೆಲಸ ನಿಲ್ಲುವ 'ಮಾಂದಿ ಗಂಟು' (The 99% Knot)" : "3. The 99% Last-Mile Knot & Maandi Karma"}</span>
+                        <span>{isKn ? "3. 99% ಆದ ಕೆಲಸ ನಿಲ್ಲಿಸುವ 'ಮಾಂದಿ ಕರ್ಮ ಗಂಟು'" : "3. The 99% Last-Mile Knot & Maandi Karma"}</span>
                       </span>
                       <button
                         type="button"
@@ -782,7 +789,7 @@ STRICT RULES:
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>🩺</span>
-                        <span>{isKn ? "4. ಶಾರೀರಿಕ ಮಚ್ಚೆ ಗುರುತು & ತ್ರಿದೋಷ ಪ್ರಕೃತಿ (Physical Sign)" : "4. Physical Sign (Anga Lakshana) & Tridosha"}</span>
+                        <span>{isKn ? "4. ಶಾರೀರಿಕ ಮಚ್ಚೆ ಗುರುತು & ತ್ರಿದೋಷ ಪ್ರಕೃತಿ" : "4. Physical Sign (Anga Lakshana) & Tridosha"}</span>
                       </span>
                       <button
                         type="button"
@@ -808,7 +815,7 @@ STRICT RULES:
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>💼</span>
-                        <span>{isKn ? "5. ಕರ್ಮ ಸ್ಥಾನ & ವಾಸ್ತವಿಕ ಆರ್ಥಿಕ ಸ್ಥಿತಿ (Financial Reality)" : "5. Karma & Financial Reality"}</span>
+                        <span>{isKn ? "5. ಕರ್ಮ ಸ್ಥಾನ & ವಾಸ್ತವಿಕ ಆರ್ಥಿಕ ಸ್ಥಿತಿ" : "5. Karma & Financial Reality"}</span>
                       </span>
                       <button
                         type="button"
@@ -834,7 +841,7 @@ STRICT RULES:
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>⏳</span>
-                        <span>{isKn ? "6. ದಶಾ ತಿರುವು & ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ (Turning Point)" : "6. Turning Point & Sacred Gokarna Remedy"}</span>
+                        <span>{isKn ? "6. ದಶಾ ತಿರುವು & ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ" : "6. Turning Point & Sacred Gokarna Remedy"}</span>
                       </span>
                       <button
                         type="button"

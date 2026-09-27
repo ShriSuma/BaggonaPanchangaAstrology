@@ -98,8 +98,17 @@ describe("Instant Reading Dynamic 6-Field Astrologer Verbal Prompts & Synthesis 
     expect(points1.maandiKarmicImpactKn).not.toBe(points2.maandiKarmicImpactKn);
     expect(points1.siddhaPariharaRemedyKn).not.toBe(points2.siddhaPariharaRemedyKn);
 
-    expect(points1.openingIceBreakerKn).toContain(kundli1.lagnaRashi.sanskrit);
-    expect(points2.openingIceBreakerKn).toContain(kundli2.lagnaRashi.sanskrit);
+    expect(points1.openingIceBreakerKn).toContain(toKannadaRashi(kundli1.lagnaRashi.index));
+    expect(points2.openingIceBreakerKn).toContain(toKannadaRashi(kundli2.lagnaRashi.index));
+
+    // Verify zero English characters leak into the Kannada talking points
+    const englishWordRegex = /[a-zA-Z]{2,}/;
+    expect(points1.openingIceBreakerKn).not.toMatch(englishWordRegex);
+    expect(points1.hiddenSubconsciousWorryKn).not.toMatch(englishWordRegex);
+    expect(points1.maandiKarmicImpactKn).not.toMatch(englishWordRegex);
+    expect(points1.karmaFinancialRealityKn).not.toMatch(englishWordRegex);
+    expect(points1.immediateTurningPointKn).not.toMatch(englishWordRegex);
+    expect(points1.siddhaPariharaRemedyKn).not.toMatch(englishWordRegex);
   });
 
   it("strictly enforces English digits across all 6 talking points and remedies", () => {
