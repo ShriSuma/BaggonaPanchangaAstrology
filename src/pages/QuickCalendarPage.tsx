@@ -1142,10 +1142,15 @@ export default function QuickCalendarPage(): JSX.Element {
               <button
                 type="button"
                 onClick={handleDownloadIcs}
-                className="w-full rounded-xl border-2 border-amber-500 bg-slate-950 p-3.5 text-amber-200 font-bold text-sm hover:bg-amber-950/40 transition flex items-center justify-center gap-2"
+                className="w-full rounded-xl border-2 border-amber-500 bg-slate-950 p-3 text-amber-200 font-bold text-sm hover:bg-amber-950/40 transition flex flex-col items-center justify-center gap-0.5"
               >
-                <span>📥</span>
-                <span>೯೦ ದಿನಗಳ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್ (.ics) ಡೌನ್‌ಲೋಡ್</span>
+                <div className="flex items-center gap-2">
+                  <span>📥</span>
+                  <span>೯೦ ದಿನಗಳ ಮೊಬೈಲ್ ಕ್ಯಾಲೆಂಡರ್ (.ics) ಡೌನ್‌ಲೋಡ್</span>
+                </div>
+                <span className="text-[11px] font-normal text-amber-400/90">
+                  (iPhone / Apple / Android / Outlook / ಇತರೆ ಮೊಬೈಲ್)
+                </span>
               </button>
             </div>
 
@@ -1174,10 +1179,15 @@ export default function QuickCalendarPage(): JSX.Element {
                   });
                   window.open(gUrl, "_blank");
                 }}
-                className="rounded-xl border border-amber-600/40 bg-slate-900 px-3 py-2.5 text-xs font-bold text-amber-200 hover:bg-amber-950/60 transition flex items-center justify-center gap-1.5"
+                className="rounded-xl border border-amber-600/40 bg-slate-900 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-950/60 transition flex flex-col items-center justify-center gap-0.5"
               >
-                <span>📅</span>
-                <span>ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ ಸಿಂಕ್</span>
+                <div className="flex items-center gap-1.5">
+                  <span>📅</span>
+                  <span>ಗೂಗಲ್ ಕ್ಯಾಲೆಂಡರ್ ಸಿಂಕ್</span>
+                </div>
+                <span className="text-[10px] font-normal text-amber-400/80">
+                  (Google Calendar ಮಾತ್ರ)
+                </span>
               </button>
 
               {/* 4. Open Live Sanctum URL */}

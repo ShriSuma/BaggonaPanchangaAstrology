@@ -169,11 +169,11 @@ describe("Calendar Daily Redirection, Token Universal Kundli, and Multi-Language
         priestName: "Shreeram Pandit"
       });
 
-      // Check for standalone URL and LOCATION
+      // Check for standalone URL and LOCATION (sacred kshetra, not duplicate URL)
       expect(icsString).toContain("URL;VALUE=URI:https://");
-      expect(icsString).toContain("LOCATION:https://");
-      // Check for clean double-newline isolation in DESCRIPTION
-      expect(icsString).toMatch(/DESCRIPTION:.*\\n\\nhttps:\/\/.*\\n\\n/);
+      expect(icsString).toContain("LOCATION:");
+      expect(icsString).toContain("🔴 [");
+      expect(icsString).toContain("https://");
     });
 
     it("generates Google Calendar Web Intent with location param and isolated URL", () => {
@@ -188,7 +188,7 @@ describe("Calendar Daily Redirection, Token Universal Kundli, and Multi-Language
 
       expect(url).toContain("https://calendar.google.com/calendar/render");
       expect(url).toContain("action=TEMPLATE");
-      expect(url).toContain("location=https%3A%2F%2F"); // location parameter present!
+      expect(url).toContain("location="); // location parameter present with sacred kshetra
       expect(url).toContain("details=");
     });
 

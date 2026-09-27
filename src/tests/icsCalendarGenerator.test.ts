@@ -144,8 +144,8 @@ describe("icsCalendarGenerator", () => {
     // RRULE was removed to prevent duplicating Day 1 content across 90 recurring instances
     expect(url).not.toContain("recur=RRULE");
     expect(url).toContain("token%3Dbgn_v1_");
-    // Should include link to full 90-day ICS import in the event details
-    expect(url).toContain("action%3Dics90");
+    // Extra secondary URL was removed to keep exactly 1 clean clickable redirection
+    expect(url).not.toContain("action%3Dics90");
   });
 
   it("generates platform-specific and multi-target QR code payloads with encrypted tokens", () => {
