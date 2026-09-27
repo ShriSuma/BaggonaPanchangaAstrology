@@ -103,10 +103,23 @@ export function saveVoiceCloneConfig(cfg: Partial<VoiceCloneConfig>): void {
 // Keep a global or ref reference to the active audio
 export let currentAudio: HTMLAudioElement | null = null;
 
+export type ActiveSeekHandler = (deltaSeconds: number) => void;
+let activeSeekHandler: ActiveSeekHandler | null = null;
+
+export function registerActiveSeekHandler(handler: ActiveSeekHandler | null): () => void {
+  activeSeekHandler = handler;
+  return () => {
+    if (activeSeekHandler === handler) {
+      activeSeekHandler = null;
+    }
+  };
+}
+
 /**
  * Stops any currently playing audio immediately across all tabs and resets global audio state
  */
 export function stopClonedAudio(): void {
+  activeSeekHandler = null;
   if (currentAudio) {
     try {
       currentAudio.pause();
@@ -524,10 +537,46 @@ export function streamSentencePipeline(
   audio.addEventListener("ended", onEndedHandler);
   audio.addEventListener("error", onErrorHandler);
 
+  const seekPipeline = (deltaSeconds: number) => {
+    if (isCancelled || currentAudio !== audio) return;
+
+    // 1. If audio element has loaded duration >= 12s, seek directly inside:
+    const dur = audio.duration;
+    if (dur && !isNaN(dur) && isFinite(dur) && dur >= 12) {
+      const cur = audio.currentTime || 0;
+      audio.currentTime = Math.max(0, Math.min(dur - 0.2, cur + deltaSeconds));
+      return;
+    }
+
+    // 2. Sentence-level seeking across the progressive stream:
+    // In sacred Sanskrit / Vedic mantras, each sentence takes ~3.5 seconds on average.
+    // +10s moves ~3 sentences forward; -10s moves ~3 sentences backward.
+    const sentencesToJump = Math.round(deltaSeconds / 3.5);
+    const stepDelta = sentencesToJump === 0 ? (deltaSeconds > 0 ? 1 : -1) : sentencesToJump;
+    const targetIndex = currentIndex + stepDelta;
+
+    if (targetIndex >= sentences.length) {
+      // Reached the end of recitation
+      unregister();
+      if (currentAudio === audio) currentAudio = null;
+      if (onEnd) onEnd();
+      return;
+    }
+
+    const safeTarget = Math.max(0, targetIndex);
+    try {
+      audio.pause();
+    } catch {}
+    playSentence(safeTarget);
+  };
+
+  const unregisterSeek = registerActiveSeekHandler(seekPipeline);
+
   playSentence(0);
 
   return () => {
     isCancelled = true;
+    unregisterSeek();
     audio.removeEventListener("playing", notifyStart);
     audio.removeEventListener("canplay", notifyStart);
     audio.removeEventListener("ended", onEndedHandler);
@@ -596,11 +645,22 @@ export function isClonedAudioPaused(): boolean {
  * Seeks forward or backward in active audio by deltaSeconds (+10s / -10s)
  */
 export function seekClonedAudio(deltaSeconds: number): void {
+  if (activeSeekHandler) {
+    try {
+      activeSeekHandler(deltaSeconds);
+      return;
+    } catch (err) {
+      console.warn("[AIVoiceCloneEngine] activeSeekHandler error:", err);
+    }
+  }
   if (currentAudio) {
     try {
-      const duration = currentAudio.duration || 999;
-      currentAudio.currentTime = Math.max(0, Math.min(duration, currentAudio.currentTime + deltaSeconds));
-    } catch {}
+      const dur = currentAudio.duration;
+      const duration = (dur && !isNaN(dur) && isFinite(dur) && dur > 0) ? dur : 999;
+      currentAudio.currentTime = Math.max(0, Math.min(duration - 0.2, (currentAudio.currentTime || 0) + deltaSeconds));
+    } catch (err) {
+      console.warn("[AIVoiceCloneEngine] currentAudio seek error:", err);
+    }
   }
 }
 
@@ -952,80 +1012,121 @@ export async function playStrictlyMaleWebSpeechDSP(
     ? (fallbackTransliteration || transliterateIndicToLatin(text))
     : text;
 
-  const utterance = new SpeechSynthesisUtterance(textToSpeak);
-
-  if (hasNativeVoice) {
-    if (lang === "kn") utterance.lang = "kn-IN";
-    else if (lang === "hi") utterance.lang = "hi-IN";
-    else if (lang === "te") utterance.lang = "te-IN";
-    else if (lang === "ta") utterance.lang = "ta-IN";
-    else utterance.lang = "en-IN";
-  } else {
-    utterance.lang = chosenVoice?.lang || "en-IN";
-  }
-
-  utterance.pitch = config?.preferredPitch || profile.voicePitch || 0.76;
-  utterance.rate = config?.preferredRate || profile.voiceRate || 0.88;
-  utterance.volume = 1.0;
-
-  if (chosenVoice) {
-    utterance.voice = chosenVoice;
-  }
-
-  (window as any).__baggonaActiveUtterance = utterance;
-
+  const speechSentences = splitTextIntoSentences(textToSpeak);
+  let currentSpeechIdx = 0;
   let isCancelled = false;
   let keepAliveTimer: any = null;
 
-  utterance.onstart = () => {
-    if (token !== undefined && !isPlaybackTokenActive(token)) {
-      try {
-        window.speechSynthesis.cancel();
-      } catch {}
+  const speakSentenceAt = (index: number) => {
+    if (isCancelled || token !== undefined && !isPlaybackTokenActive(token)) return;
+    if (index >= speechSentences.length) {
+      if (keepAliveTimer) clearInterval(keepAliveTimer);
+      (window as any).__baggonaActiveUtterance = null;
+      if (!isCancelled && onEnd) onEnd();
       return;
     }
-    if (onStart) onStart();
 
-    // Chrome/WebKit keep-alive ping: periodic pause/resume prevents speech truncation on utterances > 15 seconds
-    if (keepAliveTimer) clearInterval(keepAliveTimer);
-    keepAliveTimer = setInterval(() => {
-      if (typeof window !== "undefined" && window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.pause();
-        window.speechSynthesis.resume();
+    currentSpeechIdx = index;
+    const sentText = speechSentences[index];
+    const utterance = new SpeechSynthesisUtterance(sentText);
+
+    if (hasNativeVoice) {
+      if (lang === "kn") utterance.lang = "kn-IN";
+      else if (lang === "hi") utterance.lang = "hi-IN";
+      else if (lang === "te") utterance.lang = "te-IN";
+      else if (lang === "ta") utterance.lang = "ta-IN";
+      else utterance.lang = "en-IN";
+    } else {
+      utterance.lang = chosenVoice?.lang || "en-IN";
+    }
+
+    utterance.pitch = config?.preferredPitch || profile.voicePitch || 0.76;
+    utterance.rate = config?.preferredRate || profile.voiceRate || 0.88;
+    utterance.volume = 1.0;
+
+    if (chosenVoice) {
+      utterance.voice = chosenVoice;
+    }
+
+    (window as any).__baggonaActiveUtterance = utterance;
+
+    utterance.onstart = () => {
+      if (token !== undefined && !isPlaybackTokenActive(token)) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch {}
+        return;
       }
-    }, 10000);
-  };
+      if (index === 0 && onStart) onStart();
 
-  utterance.onend = () => {
-    if (keepAliveTimer) clearInterval(keepAliveTimer);
-    (window as any).__baggonaActiveUtterance = null;
-    if (!isCancelled && onEnd) onEnd();
-  };
+      if (keepAliveTimer) clearInterval(keepAliveTimer);
+      keepAliveTimer = setInterval(() => {
+        if (typeof window !== "undefined" && window.speechSynthesis && window.speechSynthesis.speaking) {
+          window.speechSynthesis.pause();
+          window.speechSynthesis.resume();
+        }
+      }, 10000);
+    };
 
-  utterance.onerror = (e) => {
-    if (keepAliveTimer) clearInterval(keepAliveTimer);
-    console.warn("[AIVoiceCloneEngine] Speech notice:", e);
-    (window as any).__baggonaActiveUtterance = null;
-    try {
-      playSacredChimeTone();
-    } catch {}
-    if (!isCancelled && onEnd) onEnd();
-  };
+    utterance.onend = () => {
+      if (!isCancelled) {
+        speakSentenceAt(index + 1);
+      }
+    };
 
-  setTimeout(() => {
-    if (token !== undefined && !isPlaybackTokenActive(token)) return;
+    utterance.onerror = (e) => {
+      console.warn("[AIVoiceCloneEngine] Speech sentence notice:", e);
+      if (!isCancelled) {
+        if (index + 1 < speechSentences.length) {
+          speakSentenceAt(index + 1);
+        } else {
+          if (keepAliveTimer) clearInterval(keepAliveTimer);
+          (window as any).__baggonaActiveUtterance = null;
+          try {
+            playSacredChimeTone();
+          } catch {}
+          if (onEnd) onEnd();
+        }
+      }
+    };
+
     try {
       window.speechSynthesis.speak(utterance);
     } catch (err) {
-      if (keepAliveTimer) clearInterval(keepAliveTimer);
       console.warn("[AIVoiceCloneEngine] speak error:", err);
+      if (keepAliveTimer) clearInterval(keepAliveTimer);
       playSacredChimeTone();
       if (!isCancelled && onEnd) onEnd();
     }
+  };
+
+  const seekWebSpeech = (deltaSeconds: number) => {
+    if (isCancelled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const sentencesToJump = Math.round(deltaSeconds / 3.5);
+    const stepDelta = sentencesToJump === 0 ? (deltaSeconds > 0 ? 1 : -1) : sentencesToJump;
+    const targetIdx = currentSpeechIdx + stepDelta;
+
+    if (targetIdx >= speechSentences.length) {
+      try { window.speechSynthesis.cancel(); } catch {}
+      if (onEnd) onEnd();
+      return;
+    }
+
+    const safeTarget = Math.max(0, targetIdx);
+    try { window.speechSynthesis.cancel(); } catch {}
+    speakSentenceAt(safeTarget);
+  };
+
+  const unregisterSeek = registerActiveSeekHandler(seekWebSpeech);
+
+  setTimeout(() => {
+    if (token !== undefined && !isPlaybackTokenActive(token)) return;
+    speakSentenceAt(0);
   }, 50);
 
   return () => {
     isCancelled = true;
+    unregisterSeek();
     if (keepAliveTimer) clearInterval(keepAliveTimer);
     (window as any).__baggonaActiveUtterance = null;
     if (typeof window !== "undefined" && "speechSynthesis" in window) {

@@ -460,6 +460,8 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
   const activeAudioCancelRef = useRef<(() => void) | null>(null);
   const stepTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const akshataTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const seekFeedbackTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [seekFeedback, setSeekFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -531,6 +533,11 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
       clearTimeout(akshataTimeoutRef.current);
       akshataTimeoutRef.current = null;
     }
+    if (seekFeedbackTimerRef.current) {
+      clearTimeout(seekFeedbackTimerRef.current);
+      seekFeedbackTimerRef.current = null;
+    }
+    setSeekFeedback(null);
     if (activeAudioCancelRef.current) {
       try {
         activeAudioCancelRef.current();
@@ -624,6 +631,11 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
 
   const handleSeekAudio = (deltaSeconds: number) => {
     seekPriestAudio(deltaSeconds);
+    if (seekFeedbackTimerRef.current) clearTimeout(seekFeedbackTimerRef.current);
+    setSeekFeedback(deltaSeconds > 0 ? "+10s ⏩" : "⏪ -10s");
+    seekFeedbackTimerRef.current = setTimeout(() => {
+      setSeekFeedback(null);
+    }, 900);
   };
 
   const handleStopAudio = () => {
@@ -1296,47 +1308,59 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
             style={{
               background: "#1C0F05",
               borderTop: "1.5px solid #78350F",
-              padding: isMobile ? "8px 12px" : "14px 20px",
+              padding: isMobile ? "8px 10px" : "12px 18px",
               display: "flex",
+              flexDirection: isMobile && (isAudioPlaying || isAudioPaused) ? "column" : "row",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: isMobile ? 6 : 10
+              gap: isMobile ? 8 : 10,
+              width: "100%",
+              boxSizing: "border-box"
             }}
           >
             {step <= 5 ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handlePrevStep}
-                  disabled={step === 1}
-                  style={{
-                    background: step === 1 ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.12)",
-                    color: step === 1 ? "#6B7280" : "#FEF3C7",
-                    border: "1px solid rgba(253, 230, 138, 0.2)",
-                    borderRadius: 12,
-                    padding: isMobile ? "8px 12px" : "10px 16px",
-                    fontSize: isMobile ? 11.5 : 12.5,
-                    fontWeight: 800,
-                    cursor: step === 1 ? "not-allowed" : "pointer"
-                  }}
-                >
-                  ← {(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).prev}
-                </button>
-
-                {/* Audio Status & Manual Replay: Only rendered if verified proper audio is confirmed to exist */}
-                {isProperAudioAvailableForStep(step, lang) && (
-                  <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8 }}>
-                    {isAudioPlaying || isAudioPaused ? (
-                      /* Audio Player Dock: Seek -10s, Pause/Resume, Seek +10s, Restart, Stop */
+              isMobile && (isAudioPlaying || isAudioPaused) ? (
+                /* Mobile Layout: Row 1 = Audio Player Dock in a dedicated single line (Stop button never goes out), Row 2 = Navigation */
+                <>
+                  {/* Line 1: Dedicated Audio Player Dock */}
+                  {isProperAudioAvailableForStep(step, lang) && (
+                    <div style={{ position: "relative", width: "100%", display: "flex", justifyContent: "center" }}>
+                      {seekFeedback && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: -26,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                            color: "#1C0A00",
+                            fontWeight: 900,
+                            fontSize: 11,
+                            padding: "2px 8px",
+                            borderRadius: 8,
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                            pointerEvents: "none",
+                            zIndex: 10,
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          {seekFeedback}
+                        </div>
+                      )}
                       <div
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: isMobile ? 4 : 6,
-                          background: "rgba(245, 158, 11, 0.12)",
-                          border: "1.5px solid rgba(245, 158, 11, 0.35)",
-                          borderRadius: 14,
-                          padding: isMobile ? "3px 5px" : "4px 8px"
+                          justifyContent: "center",
+                          gap: 4,
+                          background: "linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(120, 53, 15, 0.24) 100%)",
+                          border: "1.5px solid rgba(245, 158, 11, 0.45)",
+                          borderRadius: 12,
+                          padding: "4px 6px",
+                          width: "100%",
+                          maxWidth: 390,
+                          boxSizing: "border-box",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.4)"
                         }}
                       >
                         {/* Seek -10s */}
@@ -1346,16 +1370,17 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                           title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).seekBack}
                           style={{
                             background: "rgba(255, 255, 255, 0.08)",
-                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                            border: "1px solid rgba(245, 158, 11, 0.35)",
                             color: "#FEF3C7",
                             borderRadius: 8,
-                            padding: isMobile ? "5px 6px" : "6px 8px",
-                            fontSize: isMobile ? 10 : 11,
+                            padding: "5px 7px",
+                            fontSize: 10.5,
                             fontWeight: 700,
                             cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
-                            gap: 2
+                            gap: 2,
+                            flexShrink: 0
                           }}
                         >
                           <span>⏪</span>
@@ -1368,17 +1393,18 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                           onClick={handleTogglePlayPause}
                           title={isAudioPlaying ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).pause : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).resume}
                           style={{
-                            background: isAudioPlaying ? "#D97706" : "#059669",
+                            background: isAudioPlaying ? "linear-gradient(135deg, #D97706, #B45309)" : "linear-gradient(135deg, #059669, #047857)",
                             border: "1.5px solid #FCD34D",
                             color: "#FFFFFF",
-                            borderRadius: 10,
-                            padding: isMobile ? "5px 8px" : "6px 12px",
-                            fontSize: isMobile ? 10.5 : 12,
+                            borderRadius: 9,
+                            padding: "5px 8px",
+                            fontSize: 11,
                             fontWeight: 800,
                             cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
-                            gap: 4,
+                            gap: 3,
+                            flexShrink: 0,
                             boxShadow: isAudioPlaying ? "0 0 8px rgba(217, 119, 6, 0.5)" : "0 0 8px rgba(5, 150, 105, 0.5)"
                           }}
                         >
@@ -1393,16 +1419,17 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                           title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).seekFwd}
                           style={{
                             background: "rgba(255, 255, 255, 0.08)",
-                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                            border: "1px solid rgba(245, 158, 11, 0.35)",
                             color: "#FEF3C7",
                             borderRadius: 8,
-                            padding: isMobile ? "5px 6px" : "6px 8px",
-                            fontSize: isMobile ? 10 : 11,
+                            padding: "5px 7px",
+                            fontSize: 10.5,
                             fontWeight: 700,
                             cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
-                            gap: 2
+                            gap: 2,
+                            flexShrink: 0
                           }}
                         >
                           <span>10s</span>
@@ -1416,13 +1443,14 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                           title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).restart}
                           style={{
                             background: "rgba(255, 255, 255, 0.08)",
-                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                            border: "1px solid rgba(245, 158, 11, 0.35)",
                             color: "#FDE68A",
                             borderRadius: 8,
-                            padding: isMobile ? "5px 7px" : "6px 9px",
-                            fontSize: isMobile ? 11 : 12.5,
+                            padding: "5px 7px",
+                            fontSize: 12,
                             fontWeight: 800,
-                            cursor: "pointer"
+                            cursor: "pointer",
+                            flexShrink: 0
                           }}
                         >
                           ↺
@@ -1434,85 +1462,315 @@ export const DailyPoojaSankalpaModal: React.FC<DailyPoojaSankalpaModalProps> = (
                           onClick={handleStopAudio}
                           title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing}
                           style={{
-                            background: "rgba(239, 68, 68, 0.2)",
-                            border: "1px solid rgba(239, 68, 68, 0.6)",
-                            color: "#FCA5A5",
+                            background: "linear-gradient(135deg, rgba(220, 38, 38, 0.28) 0%, rgba(185, 28, 28, 0.38) 100%)",
+                            border: "1.5px solid #EF4444",
+                            color: "#FEE2E2",
                             borderRadius: 8,
-                            padding: isMobile ? "5px 7px" : "6px 10px",
-                            fontSize: isMobile ? 10 : 11.5,
+                            padding: "5px 8px",
+                            fontSize: 10.5,
                             fontWeight: 800,
                             cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
-                            gap: 3
+                            gap: 3,
+                            flexShrink: 0,
+                            boxShadow: "0 0 8px rgba(239, 68, 68, 0.35)"
                           }}
                         >
                           <span>⏹️</span>
                           <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing}</span>
                         </button>
                       </div>
-                    ) : (
-                      /* Idle / Loading state button */
-                      <button
-                        type="button"
-                        disabled={isAudioLoading}
-                        onClick={() => {
-                          setIsAudioOptedIn(true);
-                          playStepPriestAudio(step);
-                        }}
-                        style={{
-                          background: isAudioLoading ? "#92400E" : "rgba(245, 158, 11, 0.2)",
-                          border: "1.5px solid #F59E0B",
-                          color: "#FEF3C7",
-                          borderRadius: 12,
-                          padding: isMobile ? "7px 10px" : "8px 14px",
-                          fontSize: isMobile ? 11 : 12,
-                          fontWeight: 800,
-                          cursor: isAudioLoading ? "not-allowed" : "pointer",
-                          opacity: isAudioLoading ? 0.85 : 1,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 5
-                        }}
-                      >
-                        {isAudioLoading ? (
-                          <>
-                            <span className="inline-block animate-spin">⏳</span>
-                            <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).loading}</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>🔈</span>
-                            <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).play}</span>
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                <button
-                  type="button"
-                  onClick={() => handleNextStep()}
-                  style={{
-                    background: "linear-gradient(135deg, #F59E0B, #D97706)",
-                    color: "#1C0A00",
-                    border: "1.5px solid #FDE68A",
-                    borderRadius: 12,
-                    padding: isMobile ? "8px 14px" : "10px 20px",
-                    fontSize: isMobile ? 12 : 13,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)"
-                  }}
-                >
-                  <span>{step === 5 ? "✨" : "→"}</span>
-                  <span>{step === 5 ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).complete : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).next}</span>
-                </button>
-              </>
+                  {/* Line 2: Navigation Buttons */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={handlePrevStep}
+                      disabled={step === 1}
+                      style={{
+                        background: step === 1 ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.12)",
+                        color: step === 1 ? "#6B7280" : "#FEF3C7",
+                        border: "1px solid rgba(253, 230, 138, 0.2)",
+                        borderRadius: 10,
+                        padding: "7px 12px",
+                        fontSize: 11.5,
+                        fontWeight: 800,
+                        cursor: step === 1 ? "not-allowed" : "pointer"
+                      }}
+                    >
+                      ← {(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).prev}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleNextStep()}
+                      style={{
+                        background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                        color: "#1C0A00",
+                        border: "1.5px solid #FDE68A",
+                        borderRadius: 10,
+                        padding: "7px 14px",
+                        fontSize: 12,
+                        fontWeight: 900,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)"
+                      }}
+                    >
+                      <span>{step === 5 ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).complete : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).next}</span>
+                      <span>{step === 5 ? "✨" : "→"}</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                /* Desktop or Idle State: Everything in a Single Clean Line */
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrevStep}
+                    disabled={step === 1}
+                    style={{
+                      background: step === 1 ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.12)",
+                      color: step === 1 ? "#6B7280" : "#FEF3C7",
+                      border: "1px solid rgba(253, 230, 138, 0.2)",
+                      borderRadius: 12,
+                      padding: isMobile ? "8px 12px" : "10px 16px",
+                      fontSize: isMobile ? 11.5 : 12.5,
+                      fontWeight: 800,
+                      cursor: step === 1 ? "not-allowed" : "pointer",
+                      flexShrink: 0
+                    }}
+                  >
+                    ← {(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).prev}
+                  </button>
+
+                  {/* Audio Status & Player: Only rendered if verified proper audio is confirmed to exist */}
+                  {isProperAudioAvailableForStep(step, lang) && (
+                    <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      {seekFeedback && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: -28,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                            color: "#1C0A00",
+                            fontWeight: 900,
+                            fontSize: 11,
+                            padding: "2px 8px",
+                            borderRadius: 8,
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                            pointerEvents: "none",
+                            zIndex: 10,
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          {seekFeedback}
+                        </div>
+                      )}
+                      {isAudioPlaying || isAudioPaused ? (
+                        /* Audio Player Dock: Seek -10s, Pause/Resume, Seek +10s, Restart, Stop */
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            background: "linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(120, 53, 15, 0.24) 100%)",
+                            border: "1.5px solid rgba(245, 158, 11, 0.4)",
+                            borderRadius: 14,
+                            padding: "5px 10px",
+                            boxShadow: "0 3px 12px rgba(0,0,0,0.4)"
+                          }}
+                        >
+                          {/* Seek -10s */}
+                          <button
+                            type="button"
+                            onClick={() => handleSeekAudio(-10)}
+                            title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).seekBack}
+                            style={{
+                              background: "rgba(255, 255, 255, 0.08)",
+                              border: "1px solid rgba(245, 158, 11, 0.35)",
+                              color: "#FEF3C7",
+                              borderRadius: 8,
+                              padding: "6px 8px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 2,
+                              flexShrink: 0
+                            }}
+                          >
+                            <span>⏪</span>
+                            <span>10s</span>
+                          </button>
+
+                          {/* Play / Pause Toggle */}
+                          <button
+                            type="button"
+                            onClick={handleTogglePlayPause}
+                            title={isAudioPlaying ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).pause : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).resume}
+                            style={{
+                              background: isAudioPlaying ? "linear-gradient(135deg, #D97706, #B45309)" : "linear-gradient(135deg, #059669, #047857)",
+                              border: "1.5px solid #FCD34D",
+                              color: "#FFFFFF",
+                              borderRadius: 10,
+                              padding: "6px 12px",
+                              fontSize: 12,
+                              fontWeight: 800,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 4,
+                              flexShrink: 0,
+                              boxShadow: isAudioPlaying ? "0 0 8px rgba(217, 119, 6, 0.5)" : "0 0 8px rgba(5, 150, 105, 0.5)"
+                            }}
+                          >
+                            <span>{isAudioPlaying ? "⏸️" : "▶️"}</span>
+                            <span>{isAudioPlaying ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).pause : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).resume}</span>
+                          </button>
+
+                          {/* Seek +10s */}
+                          <button
+                            type="button"
+                            onClick={() => handleSeekAudio(10)}
+                            title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).seekFwd}
+                            style={{
+                              background: "rgba(255, 255, 255, 0.08)",
+                              border: "1px solid rgba(245, 158, 11, 0.35)",
+                              color: "#FEF3C7",
+                              borderRadius: 8,
+                              padding: "6px 8px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 2,
+                              flexShrink: 0
+                            }}
+                          >
+                            <span>10s</span>
+                            <span>⏩</span>
+                          </button>
+
+                          {/* Restart from beginning (↺) */}
+                          <button
+                            type="button"
+                            onClick={handleRestartStepAudio}
+                            title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).restart}
+                            style={{
+                              background: "rgba(255, 255, 255, 0.08)",
+                              border: "1px solid rgba(245, 158, 11, 0.35)",
+                              color: "#FDE68A",
+                              borderRadius: 8,
+                              padding: "6px 9px",
+                              fontSize: 12.5,
+                              fontWeight: 800,
+                              cursor: "pointer",
+                              flexShrink: 0
+                            }}
+                          >
+                            ↺
+                          </button>
+
+                          {/* Stop Button: Retains exact text "(FOOTER_BTNS[lang].playing)" ("ಧ್ವನಿ ನಿಲ್ಲಿಸಿ") for test compatibility */}
+                          <button
+                            type="button"
+                            onClick={handleStopAudio}
+                            title={(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing}
+                            style={{
+                              background: "linear-gradient(135deg, rgba(220, 38, 38, 0.28) 0%, rgba(185, 28, 28, 0.38) 100%)",
+                              border: "1.5px solid #EF4444",
+                              color: "#FEE2E2",
+                              borderRadius: 8,
+                              padding: "6px 11px",
+                              fontSize: 11.5,
+                              fontWeight: 800,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 3,
+                              flexShrink: 0,
+                              boxShadow: "0 0 8px rgba(239, 68, 68, 0.35)"
+                            }}
+                          >
+                            <span>⏹️</span>
+                            <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).playing}</span>
+                          </button>
+                        </div>
+                      ) : (
+                        /* Idle / Loading state button */
+                        <button
+                          type="button"
+                          disabled={isAudioLoading}
+                          onClick={() => {
+                            setIsAudioOptedIn(true);
+                            playStepPriestAudio(step);
+                          }}
+                          style={{
+                            background: isAudioLoading ? "#92400E" : "rgba(245, 158, 11, 0.2)",
+                            border: "1.5px solid #F59E0B",
+                            color: "#FEF3C7",
+                            borderRadius: 12,
+                            padding: isMobile ? "7px 10px" : "8px 14px",
+                            fontSize: isMobile ? 11 : 12,
+                            fontWeight: 800,
+                            cursor: isAudioLoading ? "not-allowed" : "pointer",
+                            opacity: isAudioLoading ? 0.85 : 1,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 5,
+                            flexShrink: 0
+                          }}
+                        >
+                          {isAudioLoading ? (
+                            <>
+                              <span className="inline-block animate-spin">⏳</span>
+                              <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).loading}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>🔈</span>
+                              <span>{(FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).play}</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleNextStep()}
+                    style={{
+                      background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                      color: "#1C0A00",
+                      border: "1.5px solid #FDE68A",
+                      borderRadius: 12,
+                      padding: isMobile ? "8px 14px" : "10px 20px",
+                      fontSize: isMobile ? 12 : 13,
+                      fontWeight: 900,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)",
+                      flexShrink: 0
+                    }}
+                  >
+                    <span>{step === 5 ? (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).complete : (FOOTER_BTNS[lang || "kn"] || FOOTER_BTNS.kn).next}</span>
+                    <span>{step === 5 ? "✨" : "→"}</span>
+                  </button>
+                </>
+              )
             ) : (
               <button
                 type="button"
