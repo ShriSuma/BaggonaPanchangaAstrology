@@ -2465,13 +2465,15 @@ export default function DailyDarshanaPage(): JSX.Element {
           setPoojaStreak(cloudStreak);
         }
 
-        // Check if Contact details (Phone or Email) are present in Firestore database or local storage
-        const isLocallyCollected = typeof window !== "undefined" && (
-          localStorage.getItem(`baggona_contact_collected_${devoteeUserId}`) === "true" ||
-          localStorage.getItem("baggona_contact_collected_global") === "true"
+        // Check if Contact details (Phone or Email) are present in Firestore database
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("baggona_contact_collected_global");
+        }
+        const isSessionDismissed = typeof window !== "undefined" && (
+          sessionStorage.getItem(`baggona_contact_dismissed_${devoteeUserId}`) === "true"
         );
-        const hasContact = hasDevoteeContactDetails(userRec) || isLocallyCollected;
-        if (!hasContact) {
+        const hasContact = hasDevoteeContactDetails(userRec);
+        if (!hasContact && !isSessionDismissed) {
           // Show popup asking for Phone or Email only if never provided
           setIsContactCaptureOpen(true);
         } else {
@@ -5835,8 +5837,8 @@ export default function DailyDarshanaPage(): JSX.Element {
         onClose={() => {
           setIsContactCaptureOpen(false);
           if (typeof window !== "undefined") {
-            localStorage.setItem(`baggona_contact_collected_${devoteeUserId}`, "true");
-            localStorage.setItem("baggona_contact_collected_global", "true");
+            // Dismiss for current session so user is not interrupted repeatedly
+            sessionStorage.setItem(`baggona_contact_dismissed_${devoteeUserId}`, "true");
           }
         }}
         devoteeId={devoteeUserId}
@@ -5850,8 +5852,36 @@ export default function DailyDarshanaPage(): JSX.Element {
           setIsContactCaptureOpen(false);
           if (typeof window !== "undefined") {
             localStorage.setItem(`baggona_contact_collected_${devoteeUserId}`, "true");
-            localStorage.setItem("baggona_contact_collected_global", "true");
+            localStorage.removeItem("baggona_contact_collected_global");
           }
+          // Immediately record calendar visit with newly submitted phone and email
+          const todayYmd = getIndianStandardDateStr(new Date());
+          const tokenIdentifier = tokenParam || (decoded as any)?.n || devoteeDisplayName;
+          void recordCalendarVisit({
+            devoteeName: devoteeDisplayName,
+            tokenIdentifier,
+            dateClicked: dateParam,
+            actualDate: todayYmd,
+            lang,
+            tabVisited: activeTab,
+            rashiIndex: moonRashiIdx,
+            nakshatraIndex: moonNakshatraIdx,
+            priestName: contactPanditName,
+            dob: resolvedBirth.dob,
+            tob: resolvedBirth.tob,
+            gotra: devoteeGotra,
+            rashi: rashiName(moonRashiIdx, "en"),
+            nakshatra: nakshatraName(moonNakshatraIdx, "en"),
+            lagnaRashi: birthKundli?.lagnaRashi?.english || "Dhanu",
+            sunSign: birthKundli?.sunSign?.english || "Mesha",
+            placeName: decoded?.loc || urlParams.get("location") || "Gokarna",
+            pincode: decoded?.pc || urlParams.get("pincode") || "581326",
+            phone: updatedUser.phone,
+            email: updatedUser.email,
+            durationDays: rawDuration,
+            startDate: rawStartDate,
+            source: isFromCalendarRedirect ? "calendar_redirect" : "direct_darshana"
+          });
         }}
       />
 

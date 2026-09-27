@@ -15,6 +15,10 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  collection,
+  getDocs,
+  query,
+  where,
   serverTimestamp
 } from "firebase/firestore";
 import type { UserProfileDoc } from "../../db/firestoreDb";
@@ -54,6 +58,7 @@ export interface DevoteeUserRecord extends UserProfileDoc {
   totalVisitsCount?: number;
   lastVisitDate?: string;
   isLocked?: boolean;
+  token?: string;
 }
 
 /**
@@ -292,6 +297,8 @@ export async function updateDevoteeContact(
     try {
       localStorage.setItem(`baggona_devotee_user_${devoteeId}`, JSON.stringify(updated));
       localStorage.setItem(`baggona_contact_collected_${devoteeId}`, "true");
+      // Explicitly remove any global suppression flag to prevent cross-devotee blockage
+      localStorage.removeItem("baggona_contact_collected_global");
     } catch {}
   }
 
@@ -310,7 +317,7 @@ export async function updateDevoteeContact(
     });
     await setDoc(userDocRef, cleanUpdate, { merge: true });
 
-    // Also synchronize calendarDevoteeEngagement document if present
+    // 1. Synchronize calendarDevoteeEngagement document
     try {
       const engDocRef = doc(firestore, "calendarDevoteeEngagement", devoteeId);
       const engSnap = await getDoc(engDocRef);
@@ -322,6 +329,53 @@ export async function updateDevoteeContact(
       }
     } catch (engErr) {
       console.warn("[DevoteeUserService] Engagement contact sync notice:", engErr);
+    }
+
+    // 2. Synchronize calendarRegistrations collection
+    try {
+      const regDocRef = doc(firestore, "calendarRegistrations", devoteeId);
+      const regSnap = await getDoc(regDocRef);
+      if (regSnap.exists()) {
+        const regUpdates: Record<string, any> = { updatedAt: nowIso };
+        if (cleanPhone) regUpdates.devoteePhone = cleanPhone;
+        if (cleanEmail) regUpdates.devoteeEmail = cleanEmail;
+        await updateDoc(regDocRef, regUpdates);
+      }
+
+      // Query any registration documents matching userId or token
+      const regCol = collection(firestore, "calendarRegistrations");
+      const qUser = query(regCol, where("userId", "==", devoteeId));
+      const qUserSnap = await getDocs(qUser);
+      for (const d of qUserSnap.docs) {
+        const regUpdates: Record<string, any> = { updatedAt: nowIso };
+        if (cleanPhone) regUpdates.devoteePhone = cleanPhone;
+        if (cleanEmail) regUpdates.devoteeEmail = cleanEmail;
+        await updateDoc(d.ref, regUpdates);
+      }
+
+      if (cachedUser?.token) {
+        const qTok = query(regCol, where("token", "==", cachedUser.token));
+        const qTokSnap = await getDocs(qTok);
+        for (const d of qTokSnap.docs) {
+          const regUpdates: Record<string, any> = { updatedAt: nowIso };
+          if (cleanPhone) regUpdates.devoteePhone = cleanPhone;
+          if (cleanEmail) regUpdates.devoteeEmail = cleanEmail;
+          await updateDoc(d.ref, regUpdates);
+        }
+      }
+    } catch (regErr) {
+      console.warn("[DevoteeUserService] Calendar registrations contact sync notice:", regErr);
+    }
+
+    // 3. Synchronize devoteeTokens collection
+    try {
+      const tokenDocRef = doc(firestore, "devoteeTokens", devoteeId);
+      const tokenUpdates: Record<string, any> = { updatedAt: nowIso };
+      if (cleanPhone) tokenUpdates.phone = cleanPhone;
+      if (cleanEmail) tokenUpdates.email = cleanEmail;
+      await setDoc(tokenDocRef, tokenUpdates, { merge: true });
+    } catch (tokenErr) {
+      console.warn("[DevoteeUserService] devoteeTokens contact sync notice:", tokenErr);
     }
 
     return { success: true, updatedUser: updated };

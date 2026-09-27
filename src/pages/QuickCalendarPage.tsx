@@ -7,6 +7,7 @@ import { encodeDateOnlyDevoteeToken, encodeDevoteeToken } from "../utils/tokenCi
 import { generatePDFFromElement } from "../utils/pdfGenerator";
 import { resolvePlaceFromPincode } from "../services/locationApi";
 import { getAllPriests, addCustomPriest, getPriestProfile, type PriestProfile } from "../features/seva/sevaPriestDirectory";
+import { registerCalendarAtGeneration } from "../features/seva/calendarVisitService";
 import {
   SevaLetterPrint,
   SevaQRCodePrint,
@@ -350,6 +351,25 @@ export default function QuickCalendarPage(): JSX.Element {
     const token = isDateOnly ? encodeDateOnlyDevoteeToken(payload) : encodeDevoteeToken(payload);
     setGeneratedToken(token);
 
+    if (token) {
+      void registerCalendarAtGeneration({
+        userName: personName.trim() || "Devotee",
+        token,
+        startDate: sevaDate || new Date().toISOString().slice(0, 10),
+        durationDays: 90,
+        priestName: panditName,
+        priestPhone,
+        nakshatraIndex: selectedNakshatra,
+        rashiIndex: selectedRashi,
+        gotra,
+        dob: effectiveDob || undefined,
+        tob: effectiveTob || undefined,
+        placeName: locationName,
+        pincode,
+        source: "calendar_sync"
+      });
+    }
+
     if (rhythmResult.days.length > 0) {
       const origin = getSafeProductionOrigin();
       const contactOverrideQuery = overridePriestContact && priestPhone ? `&overrideContact=true&priestPhone=${encodeURIComponent(priestPhone)}` : "";
@@ -478,6 +498,25 @@ export default function QuickCalendarPage(): JSX.Element {
         console.warn("QuickCalendarPage sync error during PDF download:", syncErr);
       }
 
+      if (generatedToken) {
+        void registerCalendarAtGeneration({
+          userName: personName.trim() || "Devotee",
+          token: generatedToken,
+          startDate: sevaDate || new Date().toISOString().slice(0, 10),
+          durationDays: 90,
+          priestName: panditName,
+          priestPhone,
+          nakshatraIndex: selectedNakshatra,
+          rashiIndex: selectedRashi,
+          gotra,
+          dob: isUnknownBirth ? undefined : dob,
+          tob: isUnknownBirth ? undefined : (tob || undefined),
+          placeName: locationName,
+          pincode,
+          source: "calendar_sync"
+        });
+      }
+
       const pName = (panditName || "Sri_Pandit").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
       const dName = (personName.trim() || "Devotee").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
       const dateStr = sevaDate || new Date().toISOString().slice(0, 10);
@@ -548,6 +587,25 @@ export default function QuickCalendarPage(): JSX.Element {
       dob,
       tob: tob || undefined
     });
+
+    if (generatedToken) {
+      void registerCalendarAtGeneration({
+        userName: personName.trim() || "Devotee",
+        token: generatedToken,
+        startDate: sevaDate || new Date().toISOString().slice(0, 10),
+        durationDays: 90,
+        priestName: panditName,
+        priestPhone,
+        nakshatraIndex: selectedNakshatra,
+        rashiIndex: selectedRashi,
+        gotra,
+        dob: isUnknownBirth ? undefined : dob,
+        tob: isUnknownBirth ? undefined : (tob || undefined),
+        placeName: locationName,
+        pincode,
+        source: "calendar_sync"
+      });
+    }
 
     const blob = new Blob([icsStr], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);

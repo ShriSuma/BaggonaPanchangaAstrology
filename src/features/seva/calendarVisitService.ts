@@ -647,7 +647,12 @@ export async function recordCalendarVisit(params: CalendarVisitRecord): Promise<
       tabVisited: params.tabVisited,
       lang: params.lang,
       priestName: params.priestName || regDoc?.priestName || "Shreeram Pandit",
-      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : params.userAgent
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : params.userAgent,
+      phone: params.phone || regDoc?.devoteePhone || "",
+      email: params.email || regDoc?.devoteeEmail || "",
+      gotra: params.gotra || regDoc?.gotra || "",
+      rashi: params.rashi || regDoc?.rashi || "",
+      nakshatra: params.nakshatra || regDoc?.nakshatra || ""
     };
 
     await recordDailyVisitLog(dailyVisitDoc);

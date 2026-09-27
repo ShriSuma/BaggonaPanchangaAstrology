@@ -302,13 +302,13 @@ const MIND_MAP_NODES: MindMapNode[] = [
   },
   {
     id: "ashirvada",
-    title: "Ashirvada QR Verification",
-    kannadaTitle: "ಆಶೀರ್ವಾದ ಪಾಸ್ & ಕೌಂಟ್‌ಡೌನ್",
+    title: "Calendar Subscriptions & Tracking CRM",
+    kannadaTitle: "ಕ್ಯಾಲೆಂಡರ್ ಚಂದಾದಾರಿಕೆ & ಭೇಟಿ CRM",
     icon: "🪔",
     category: "security",
     status: "active",
-    metrics: "90-Day Digital Validity Window",
-    details: "Scannable luxury passes with automated countdown, instant renewal, and devotee blessing tracking."
+    metrics: "30/90/180/365-Day Validity & Visits",
+    details: "Devotee token tracking, daily visits, taken/consumed days, mobile contact capture, and expiration enforcement."
   },
   {
     id: "reports",
@@ -1903,7 +1903,7 @@ export const SuperAdminDashboard: React.FC = () => {
             }`}
           >
             <span>🪔</span>
-            <span>ಆಶೀರ್ವಾದ QR ಟ್ರ್ಯಾಕರ್ ({ashirvadaPasses.length})</span>
+            <span>ಕ್ಯಾಲೆಂಡರ್ ಚಂದಾದಾರಿಕೆ & ಭೇಟಿ CRM ({Math.max(calendarRegistrations.length, subscriptions.length)})</span>
           </button>
 
           <button
@@ -3292,7 +3292,10 @@ export const SuperAdminDashboard: React.FC = () => {
             (v.userName || "").toLowerCase().includes(q) ||
             (v.token || "").toLowerCase().includes(q) ||
             (v.visitDate || "").toLowerCase().includes(q) ||
-            (v.priestName || "").toLowerCase().includes(q)
+            (v.priestName || "").toLowerCase().includes(q) ||
+            (v.phone || "").toLowerCase().includes(q) ||
+            (v.email || "").toLowerCase().includes(q) ||
+            (v.gotra || "").toLowerCase().includes(q)
           );
         });
 
@@ -3624,6 +3627,9 @@ export const SuperAdminDashboard: React.FC = () => {
                               <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                                 Priest: {s.priestName || "Shreeram Pandit"}
                               </div>
+                              <div className="text-[9px] text-slate-400 font-mono mt-0.5 truncate max-w-[140px]" title={s.tokenKey || s.id}>
+                                Token: {s.tokenKey || s.id}
+                              </div>
                             </td>
 
                             {/* Contact Details (Phone & Email) */}
@@ -3953,10 +3959,11 @@ export const SuperAdminDashboard: React.FC = () => {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-amber-100/80 text-amber-950 font-black border-b border-amber-300">
-                        <th className="py-3 px-3.5">ಭಕ್ತರ ಹೆಸರು</th>
-                        <th className="py-3 px-3">ದಿನಾಂಕ (Visit Date)</th>
-                        <th className="py-3 px-3">ಸಮಯ (Timestamp)</th>
+                        <th className="py-3 px-3.5">ಭಕ್ತರ ಹೆಸರು & ಗೋತ್ರ</th>
+                        <th className="py-3 px-3">ಸಂಪರ್ಕ ವಿವರ (Contact)</th>
+                        <th className="py-3 px-3">ದಿನಾಂಕ & ಸಮಯ</th>
                         <th className="py-3 px-3 text-center">ಇಂದಿನ ಭೇಟಿ #</th>
+                        <th className="py-3 px-3 text-center">ಅವಧಿ & ಆರಂಭ</th>
                         <th className="py-3 px-3 text-center">ಉಳಿದ ದಿನಗಳು</th>
                         <th className="py-3 px-3 text-center">ಪಾಸ್ ಸ್ಥಿತಿ</th>
                         <th className="py-3 px-3">ಪುರೋಹಿತರು</th>
@@ -3971,20 +3978,56 @@ export const SuperAdminDashboard: React.FC = () => {
                               <span>👤</span>
                               <span>{v.userName}</span>
                             </div>
+                            {v.gotra && (
+                              <div className="text-[10px] text-amber-900 font-semibold mt-0.5">
+                                ಗೋತ್ರ: {v.gotra}
+                              </div>
+                            )}
                           </td>
 
-                          <td className="py-3 px-3 align-middle font-mono font-bold text-slate-900">
-                            📅 {v.visitDate}
+                          <td className="py-3 px-3 align-middle text-xs">
+                            {v.phone ? (
+                              <div className="font-mono text-slate-900 font-bold">
+                                <a href={`tel:${v.phone}`} className="hover:underline text-amber-950">
+                                  📱 {v.phone}
+                                </a>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-red-500 font-semibold bg-red-50 px-1 py-0.5 rounded border border-red-200">
+                                📱 ಫೋನ್ ಇಲ್ಲ
+                              </span>
+                            )}
+                            {v.email ? (
+                              <div className="text-[10px] text-slate-600 truncate max-w-[130px] mt-0.5">
+                                <a href={`mailto:${v.email}`} className="hover:underline" title={v.email}>
+                                  ✉️ {v.email}
+                                </a>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 block mt-0.5">✉️ ಇಮೇಲ್ ಇಲ್ಲ</span>
+                            )}
                           </td>
 
-                          <td className="py-3 px-3 align-middle font-mono text-[11px] text-slate-600">
-                            {v.visitTimestamp ? new Date(v.visitTimestamp).toLocaleTimeString() : "—"}
+                          <td className="py-3 px-3 align-middle font-mono text-xs">
+                            <div className="font-bold text-slate-900">📅 {v.visitDate}</div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              🕒 {v.visitTimestamp ? new Date(v.visitTimestamp).toLocaleTimeString() : "—"}
+                            </div>
                           </td>
 
                           <td className="py-3 px-3 align-middle text-center">
                             <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 font-black text-[11px] border border-amber-300 font-mono">
                               #{v.todayVisitNumber || 1}
                             </span>
+                          </td>
+
+                          <td className="py-3 px-3 align-middle text-center text-xs font-mono">
+                            <div className="font-black text-amber-950">
+                              {v.durationDays || 90} ದಿನಗಳು
+                            </div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              ಆರಂಭ: {v.startDate || "—"}
+                            </div>
                           </td>
 
                           <td className="py-3 px-3 align-middle text-center font-mono font-black">

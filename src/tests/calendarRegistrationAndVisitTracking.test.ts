@@ -11,6 +11,11 @@ import {
   createDatabaseDevoteeToken,
   resolveDevoteeToken
 } from "../features/seva/devoteeTokenDbService";
+import {
+  hasDevoteeContactDetails,
+  updateDevoteeContact,
+  type DevoteeUserRecord
+} from "../features/seva/devoteeUserService";
 
 describe("Calendar Registration, Daily Visit Tracking & Expiration Security", () => {
   beforeEach(() => {
@@ -261,6 +266,97 @@ describe("Calendar Registration, Daily Visit Tracking & Expiration Security", ()
       expect(resolved).not.toBeNull();
       expect(resolved?.payload.d).toBe(pastStart);
       expect(resolved?.payload.dy).toBe(30);
+    });
+  });
+
+  describe("4. Devotee Contact Details Capture (Phone OR Email Requirement)", () => {
+    it("accepts phone number alone as sufficient contact detail", () => {
+      const userWithPhoneOnly = {
+        id: "usr_phone_only",
+        username: "usr_phone_only",
+        name: "Ramesh",
+        role: "devotee" as const,
+        createdAt: new Date().toISOString(),
+        phone: "9876543210",
+        email: ""
+      };
+      expect(hasDevoteeContactDetails(userWithPhoneOnly)).toBe(true);
+    });
+
+    it("accepts email address alone as sufficient contact detail", () => {
+      const userWithEmailOnly = {
+        id: "usr_email_only",
+        username: "usr_email_only",
+        name: "Pooja",
+        role: "devotee" as const,
+        createdAt: new Date().toISOString(),
+        phone: "",
+        email: "pooja.devotee@example.com"
+      };
+      expect(hasDevoteeContactDetails(userWithEmailOnly)).toBe(true);
+    });
+
+    it("accepts both phone and email when both are provided", () => {
+      const userWithBoth = {
+        id: "usr_both",
+        username: "usr_both",
+        name: "Shreesha",
+        role: "devotee" as const,
+        createdAt: new Date().toISOString(),
+        phone: "9972339362",
+        email: "shreesha@example.com"
+      };
+      expect(hasDevoteeContactDetails(userWithBoth)).toBe(true);
+    });
+
+    it("rejects when neither phone nor email is provided", () => {
+      const userWithNeither = {
+        id: "usr_neither",
+        username: "usr_neither",
+        name: "Devotee Unknown",
+        role: "devotee" as const,
+        createdAt: new Date().toISOString(),
+        phone: "",
+        email: ""
+      };
+      expect(hasDevoteeContactDetails(userWithNeither)).toBe(false);
+    });
+
+    it("ensures updateDevoteeContact cleans up any global suppression flag to prevent cross-devotee blockage", async () => {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("baggona_contact_collected_global", "true");
+      }
+
+      const res = await updateDevoteeContact("dev_test_unique_id", {
+        phone: "9845012345"
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.updatedUser?.phone).toBe("9845012345");
+
+      if (typeof window !== "undefined") {
+        expect(localStorage.getItem("baggona_contact_collected_global")).toBeNull();
+        expect(localStorage.getItem("baggona_contact_collected_dev_test_unique_id")).toBe("true");
+      }
+    });
+
+    it("retains phone, email, gotra, rashi, and nakshatra in recorded daily visits for CRM visibility", async () => {
+      const visitRes = await recordCalendarVisit({
+        userId: "dev_crm_test",
+        userName: "Girish Upadhyaya",
+        tokenIdentifier: "tok_crm_123",
+        dateClicked: "2026-09-27",
+        actualDate: "2026-09-27",
+        phone: "9845099999",
+        email: "girish@example.com",
+        gotra: "Kashyapa",
+        rashi: "Vrishabha",
+        nakshatra: "Rohini",
+        priestName: "Shreeram Pandit"
+      });
+
+      expect(visitRes.isSuccess).toBe(true);
+      expect(visitRes.todayVisitsCount).toBeGreaterThanOrEqual(1);
     });
   });
 });

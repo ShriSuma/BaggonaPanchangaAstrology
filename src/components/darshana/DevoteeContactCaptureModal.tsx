@@ -176,7 +176,7 @@ export const DevoteeContactCaptureModal: React.FC<DevoteeContactCaptureModalProp
       if (res.success && res.updatedUser) {
         if (typeof window !== "undefined") {
           localStorage.setItem(`baggona_contact_collected_${devoteeId}`, "true");
-          localStorage.setItem("baggona_contact_collected_global", "true");
+          localStorage.removeItem("baggona_contact_collected_global");
         }
         setSuccessMessage(t.successMsg);
         if (onSuccess) {

@@ -2977,6 +2977,11 @@ export interface CalendarDailyVisitDoc {
   lang?: string;
   priestName?: string;
   userAgent?: string;
+  phone?: string;
+  email?: string;
+  gotra?: string;
+  rashi?: string;
+  nakshatra?: string;
 }
 
 // In-memory fallback stores for tests / offline
@@ -3002,6 +3007,34 @@ export async function saveCalendarRegistration(reg: CalendarRegistrationDoc): Pr
     if (!firestore) return;
     const docRef = doc(firestore, CALENDAR_REGISTRATIONS_COL, cleanId);
     await setDoc(docRef, sanitizeFirestoreData(normalizedReg), { merge: true });
+
+    // Also mirror to devoteeTokens collection for cross-collection persistence
+    if (normalizedReg.token || cleanId) {
+      try {
+        const tokenDocRef = doc(firestore, "devoteeTokens", cleanId);
+        await setDoc(tokenDocRef, sanitizeFirestoreData({
+          id: cleanId,
+          token: normalizedReg.token,
+          devoteeName: normalizedReg.userName,
+          phone: normalizedReg.devoteePhone || "",
+          email: normalizedReg.devoteeEmail || "",
+          gotra: normalizedReg.gotra || "",
+          nakshatra: normalizedReg.nakshatra || "",
+          rashi: normalizedReg.rashi || "",
+          priestName: normalizedReg.priestName,
+          priestPhone: normalizedReg.priestPhone,
+          startDate: normalizedReg.startDate,
+          durationDays: normalizedReg.durationDays,
+          expiresAt: normalizedReg.expiresAt,
+          status: normalizedReg.status,
+          source: normalizedReg.source,
+          createdAt: normalizedReg.createdAt,
+          updatedAt: normalizedReg.updatedAt
+        }), { merge: true });
+      } catch (tokenErr) {
+        console.warn("[Firestore] devoteeTokens sync notice:", tokenErr);
+      }
+    }
   } catch (err) {
     console.warn("[Firestore] saveCalendarRegistration error:", err);
   }
