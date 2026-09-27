@@ -2,6 +2,7 @@ import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { normalizeDegree } from "../../core/AstroMath";
 import { getDetailedTithiInfo } from "../../core/VedicCalculations";
 import { getFestivalByDate, getParabhavaDayDetails } from "../../core/ParabhavaBookEngine";
+import { getLocalizedFestivalName } from "../../core/festivalLocalization";
 import { pick, type SevaLang } from "./sevaLocale";
 
 /**
@@ -231,11 +232,8 @@ export function detectSpecialVrata(ymd: string, lang = "kn"): SpecialVrataInfo {
   const bookFest = getFestivalByDate(ymd);
   if (bookFest) {
     category = "FESTIVAL";
-    festivalTitle = validCode === "kn" ? `🪔 ${bookFest.nameKn}` :
-                    validCode === "hi" ? `🪔 ${bookFest.nameKn}` :
-                    validCode === "te" ? `🪔 ${bookFest.nameKn}` :
-                    validCode === "ta" ? `🪔 ${bookFest.nameKn}` :
-                    `🪔 ${bookFest.nameEn} (${bookFest.nameKn})`;
+    const locName = getLocalizedFestivalName(bookFest, validCode);
+    festivalTitle = `🪔 ${locName}`;
   } else {
     // 2. Canonical Digital Book Record check (ParabhavaBookEngine)
     // Ensures authentic 1-day alignment for monthly vratas without previous-day offset

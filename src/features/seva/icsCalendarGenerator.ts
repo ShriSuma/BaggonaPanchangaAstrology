@@ -1545,7 +1545,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       );
     }
 
-    const prevAlert = getPreviousDayPreparationAlert(day.ymd);
+    const prevAlert = getPreviousDayPreparationAlert(day.ymd, lang);
     if (prevAlert) {
       descriptionParts.push("", `🔔 ${prevAlert}`);
     }
@@ -1635,6 +1635,9 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
         const eveDtStart = `${prevYmdCompact}T200000`; // 8:00 PM previous evening
         const eveDtEnd = `${prevYmdCompact}T203000`;   // 8:30 PM IST
 
+        const eveFastingLabel = lang === "kn" ? "ಉಪವಾಸ ನಿಯಮ" : lang === "hi" ? "उपवास नियम" : lang === "te" ? "ఉపవాస నిబంధనలు" : lang === "ta" ? "விரத விதிமுறை" : "Fasting Advice";
+        const eveMantraLabel = lang === "kn" ? "ವಿಶೇಷ ಮಂತ್ರ" : lang === "hi" ? "विशेष मंत्र" : lang === "te" ? "ప్రత్యేక మంత్రం" : lang === "ta" ? "சிறப்பு மந்திரம்" : "Special Mantra";
+
         const eveLines: string[] = [
         "BEGIN:VEVENT",
         `UID:${eveUid}`,
@@ -1644,7 +1647,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
         `DTSTART;TZID=Asia/Kolkata:${eveDtStart}`,
         `DTEND;TZID=Asia/Kolkata:${eveDtEnd}`,
         `SUMMARY:${escapeIcsText(vrata.eveAlertTitle)}`,
-        `DESCRIPTION:${escapeIcsText(`${vrata.eveAlertSummary}\n\nFasting Advice: ${vrata.fastingAdvice}\nSpecial Mantra: ${vrata.mantra}\n\n🔴 [ ${viewBhavishyaButtonLabel} ➔ ]\n${sanctumUrl}`)}`,
+        `DESCRIPTION:${escapeIcsText(`${vrata.eveAlertSummary}\n\n${eveFastingLabel}: ${vrata.fastingAdvice}\n${eveMantraLabel}: ${vrata.mantra}\n\n🔴 [ ${viewBhavishyaButtonLabel} ➔ ]\n${sanctumUrl}`)}`,
         `ATTACH;FMTTYPE=image/jpeg:${origin}/calendar_event_flair.jpg`,
         `URL;VALUE=URI:${sanctumUrl}`,
         `LOCATION:${escapeIcsText(labels.kshetraTitle)}`,
@@ -1959,6 +1962,18 @@ export function generateGoogleCalendarUrl(options: {
     `• 💰 ${financeText}`,
     `• 🧠 ${mindText}`,
     `• 🪔 ${spiritualText}`,
+    ...(festivalInfo.isSpecial ? [
+      "",
+      "────────────────────────────────────────",
+      `🔔 ${festivalInfo.vrataName}`,
+      `📜 ${festivalInfo.sameDayNotice}`,
+      `🍽️ ${lang === "kn" ? "ಉಪವಾಸ ನಿಯಮ" : lang === "hi" ? "उपवास नियम" : lang === "te" ? "ఉపవాస నిబంధనలు" : lang === "ta" ? "விரத விதிமுறை" : "Fasting Advice"}: ${festivalInfo.fastingAdvice}`,
+      `🕉️ ${lang === "kn" ? "ವಿಶೇಷ ಮಂತ್ರ" : lang === "hi" ? "विशेष मंत्र" : lang === "te" ? "ప్రత్యేక ಮంత్రం" : lang === "ta" ? "சிறப்பு மந்திரம்" : "Special Mantra"}: ${festivalInfo.mantra}`
+    ] : []),
+    ...(getPreviousDayPreparationAlert(day.ymd, lang) ? [
+      "",
+      `🔔 ${getPreviousDayPreparationAlert(day.ymd, lang)}`
+    ] : []),
     "",
     "════════════════════════════════════════",
     "",

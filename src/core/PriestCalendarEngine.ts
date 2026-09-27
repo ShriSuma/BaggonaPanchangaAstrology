@@ -23,6 +23,11 @@ import {
   type ParabhavaDayRecord,
   type ParabhavaFestivalItem
 } from "./ParabhavaBookEngine";
+import {
+  getLocalizedFestivalName,
+  getLocalizedMasaName,
+  getLocalizedPreparationAlert
+} from "./festivalLocalization";
 import { sunTimesSyncForBirth } from "./birthSunTimes";
 
 export interface PriestGocharaPlanetPlacement {
@@ -119,6 +124,7 @@ export interface PriestCalendarOptions {
   locationName?: string; // Default "Gokarna"
   priestName?: string; // Default "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
   webAppBaseUrl?: string;
+  lang?: string;
 }
 
 /**
@@ -227,43 +233,71 @@ function computePriestIstDutyWindows(
 /**
  * Intelligent Next-Day Preparation Alert Detector
  */
-export function getPreviousDayPreparationAlert(currentDateStr: string): string | undefined {
-  // Find next day's date string
-  const curr = new Date(currentDateStr);
-  const nextDateObj = new Date(curr.getTime() + 86400000);
+export function getPreviousDayPreparationAlert(currentDateStr: string, lang: string = "kn"): string | undefined {
+  const code = (lang || "kn").slice(0, 2);
+  const validCode = (["kn", "en", "hi", "te", "ta"].includes(code) ? code : "kn") as "kn" | "en" | "hi" | "te" | "ta";
+
+  // Find next day's date string safely in UTC
+  const [y, m, d] = currentDateStr.slice(0, 10).split('-').map(Number);
+  const nextDateObj = new Date(Date.UTC(y, m - 1, d + 1));
   const nextDateStr = nextDateObj.toISOString().slice(0, 10);
 
   const nextDay = getParabhavaDayDetails(nextDateStr);
   const nextFest = getFestivalByDate(nextDateStr);
 
+  const localizedFestName = nextFest ? getLocalizedFestivalName(nextFest, validCode) : "";
+  const masaName = getLocalizedMasaName(nextDay.chandramanaMasaKn, validCode);
+
   // 1. Ekadashi alert (Dashami evening prep & fasting sankalpa)
-  if (nextDay.tithiKn.includes("ಏಕಾದಶಿ") || (nextFest && nextFest.nameKn.includes("ಏಕಾದಶಿ"))) {
-    return `🔔 ನಾಳೆ ${nextFest ? nextFest.nameKn : nextDay.tithiKn} (ಏಕಾದಶಿ ವ್ರತ). ಇಂದು ದಶಮೀ ನಿಯಮ ಪಾಲಿಸಿ, ರಾತ್ರಿ ಲಘು ಆಹಾರ & ಉಪವಾಸ ಸಂಕಲ್ಪ.`;
+  if (nextDay.tithiKn.includes("ಏಕಾದಶಿ") || (nextFest && (nextFest.nameKn.includes("ಏಕಾದಶಿ") || nextFest.nameEn.toLowerCase().includes("ekadashi")))) {
+    const festName = localizedFestName || (validCode === "kn" ? nextDay.tithiKn : "Ekadashi");
+    return getLocalizedPreparationAlert({ type: "EKADASHI", festName }, validCode);
   }
 
   // 2. Major Festival alert (Ugadi, Maha Shivaratri, Shri Rama Navami, Varamahalakshmi, etc.)
   if (nextFest && nextFest.category === "Major Festival") {
-    return `🪔 ನಾಳೆ ಮಹಾಪರ್ವ: ${nextFest.nameKn}! ${nextFest.pujaWindow ? `ಪೂಜಾ ಮುಹೂರ್ತ: ${nextFest.pujaWindow}` : "ದಿನದ ಪ್ರಾತಃಕಾಲ ಪೂಜೆ"}.`;
+    return getLocalizedPreparationAlert({
+      type: "MAJOR_FESTIVAL",
+      festName: localizedFestName,
+      pujaWindow: nextFest.pujaWindow
+    }, validCode);
   }
 
   // 3. Purnima alert
   if (nextDay.tithiKn.includes("ಹುಣ್ಣಿಮೆ") || nextDay.tithiKn.includes("ಪೂರ್ಣಿಮಾ")) {
-    return `🌕 ನಾಳೆ ${nextDay.chandramanaMasaKn} ಹುಣ್ಣಿಮೆ (${nextFest ? nextFest.nameKn : "ಸತ್ಯನಾರಾಯಣ ಪೂಜೆ"}). ಸಂಜೆ ದೇವತಾ ಆರಾಧನೆ & ವ್ರತ ಸಿದ್ಧತೆ.`;
+    const festName = localizedFestName || (validCode === "kn" ? "ಸತ್ಯನಾರಾಯಣ ಪೂಜೆ" : "Satyanarayana Puja");
+    return getLocalizedPreparationAlert({
+      type: "PURNIMA",
+      festName,
+      masaName
+    }, validCode);
   }
 
-  // 4. Amavasya alert
-  if (nextDay.tithiKn.includes("ಅಮಾವಾಸ್ಯೆ")) {
-    return `🌑 ನಾಳೆ ${nextDay.chandramanaMasaKn} ದರ್ಶ ಅಮಾವಾಸ್ಯೆ. ಪಿತೃ ತರ್ಪಣ & ತಿಲತರ್ಪಣ ಶ್ರಾದ್ಧ ಕಾರ್ಯಗಳ ಪೂರ್ವಸಿದ್ಧತೆ.`;
+  // 4. Amavasya alert (including Mahalaya Amavasya)
+  if (nextDay.tithiKn.includes("ಅಮಾವಾಸ್ಯೆ") || (nextFest && (nextFest.id === "mahalaya_amavasya" || nextFest.nameKn.includes("ಅಮಾವಾಸ್ಯೆ")))) {
+    const festName = localizedFestName || (validCode === "kn" ? "ದರ್ಶ ಅಮಾವಾಸ್ಯೆ" : "Darsha Amavasya");
+    return getLocalizedPreparationAlert({
+      type: "AMAVASYA",
+      festName,
+      masaName
+    }, validCode);
   }
 
   // 5. Pradosha alert
   if (nextDay.tithiKn.includes("ತ್ರಯೋದಶಿ")) {
-    return `🔱 ನಾಳೆ ಪ್ರದೋಷ ವ್ರತ. ಸಂಜೆ ರುದ್ರಾಭಿಷೇಕ & ಶಿವಪೂಜಾ ದ್ರವ್ಯಗಳ ಸಿದ್ಧತೆ.`;
+    return getLocalizedPreparationAlert({
+      type: "PRADOSHAM",
+      festName: ""
+    }, validCode);
   }
 
   // 6. Other religious festival alert
   if (nextFest) {
-    return `🪔 ನಾಳೆ ಧಾರ್ಮಿಕ ವಿಶೇಷ: ${nextFest.nameKn}! ${nextFest.pujaWindow ? `ಪೂಜಾ ಮುಹೂರ್ತ: ${nextFest.pujaWindow}` : "ದಿನದ ಪ್ರಾತಃಕಾಲ ಪೂಜೆ"}.`;
+    return getLocalizedPreparationAlert({
+      type: "MAJOR_FESTIVAL",
+      festName: localizedFestName,
+      pujaWindow: nextFest.pujaWindow
+    }, validCode);
   }
 
   return undefined;
@@ -278,9 +312,10 @@ export function generatePriestDayDossier(
   dateStr: string,
   lat: number = 14.5479,
   lng: number = 74.3187,
-  pincode: string = "581326"
+  pincode: string = "581326",
+  lang: string = "kn"
 ): PriestDayDossier {
-  const cacheKey = `${dateStr}_${lat.toFixed(3)}_${lng.toFixed(3)}_${pincode}`;
+  const cacheKey = `${dateStr}_${lat.toFixed(3)}_${lng.toFixed(3)}_${pincode}_${lang}`;
   if (dossierCache.has(cacheKey)) {
     return dossierCache.get(cacheKey)!;
   }
@@ -288,7 +323,7 @@ export function generatePriestDayDossier(
   const bookDay = getParabhavaDayDetails(dateStr);
   const matchedFest = getFestivalByDate(dateStr);
   const dutyWindows = computePriestIstDutyWindows(dateStr, lat, lng, pincode);
-  const prevAlert = getPreviousDayPreparationAlert(dateStr);
+  const prevAlert = getPreviousDayPreparationAlert(dateStr, lang);
 
   // Map Navagraha Spashta into Gochara Placements and House Map
   const placements: PriestGocharaPlanetPlacement[] = [
@@ -466,7 +501,8 @@ export function generatePriestCalendarSchedule(
   daysCount: number = 90,
   lat: number = 14.5479,
   lng: number = 74.3187,
-  pincode: string = "581326"
+  pincode: string = "581326",
+  lang: string = "kn"
 ): PriestDayDossier[] {
   const count = Math.min(Math.max(daysCount, 1), 180);
   const startObj = new Date(startDateStr);
@@ -475,7 +511,7 @@ export function generatePriestCalendarSchedule(
   for (let i = 0; i < count; i++) {
     const cur = new Date(startObj.getTime() + i * 86400000);
     const ymd = cur.toISOString().slice(0, 10);
-    results.push(generatePriestDayDossier(ymd, lat, lng, pincode));
+    results.push(generatePriestDayDossier(ymd, lat, lng, pincode, lang));
   }
 
   return results;
@@ -505,10 +541,26 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
     lng = 74.3187,
     locationName = "Gokarna",
     priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-    webAppBaseUrl = "https://baggonapanchanga.web.app"
+    webAppBaseUrl = "https://baggonapanchanga.web.app",
+    lang = "kn"
   } = options;
 
-  const schedule = generatePriestCalendarSchedule(startDateStr, daysCount, lat, lng, pincode);
+  const schedule = generatePriestCalendarSchedule(startDateStr, daysCount, lat, lng, pincode, lang);
+
+  const isEn = lang.startsWith("en");
+  const isHi = lang.startsWith("hi");
+  const isTe = lang.startsWith("te");
+  const isTa = lang.startsWith("ta");
+
+  const calName = isEn
+    ? `Baggona Panchanga — ${priestName} (Priest Calendar)`
+    : isHi
+    ? `बग्गोण पंचांग — ${priestName} (पुरोहित कैलेंडर)`
+    : isTe
+    ? `బగ్గోణ పంచాంగం — ${priestName} (పురోహిత క్యాలెండర్)`
+    : isTa
+    ? `பக்கோணா பஞ்சாங்கம் — ${priestName} (புரோகிதர் நாட்காட்டி)`
+    : `ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ${priestName} (ಪುರೋಹಿತ ಕ್ಯಾಲೆಂಡರ್)`;
 
   const lines: string[] = [
     "BEGIN:VCALENDAR",
@@ -516,7 +568,7 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
     "PRODID:-//Baggona Panchanga Astrology//NONSGML Priest Calendar v3.0//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    `X-WR-CALNAME:${escapeIcs(`ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ${priestName} (ಪುರೋಹಿತ ಕ್ಯಾಲೆಂಡರ್)`)}`,
+    `X-WR-CALNAME:${escapeIcs(calName)}`,
     "X-WR-TIMEZONE:Asia/Kolkata",
     "BEGIN:VTIMEZONE",
     "TZID:Asia/Kolkata",
@@ -538,71 +590,138 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
     const portalUrl = `${baseUrl}/priest-panchanga?date=${day.dateStr}&pincode=${pincode}`;
 
     // Rich Summary
-    const festTitle = day.matchedFestival ? ` 🪔 ${day.matchedFestival.nameKn}` : day.festivalsAndVratas.length > 0 ? ` 🪔 ${day.festivalsAndVratas[0]}` : "";
-    const summary = `॥ ಬಗ್ಗೋಣ ॥ ${day.chandramanaMasaKn} ${day.pakshaKn} ${day.tithiKn} • ${day.shraddhaTithi}${festTitle}`;
+    const festNameLocalized = day.matchedFestival ? getLocalizedFestivalName(day.matchedFestival, lang) : "";
+    const festTitle = festNameLocalized ? ` 🪔 ${festNameLocalized}` : (!isEn && day.festivalsAndVratas.length > 0) ? ` 🪔 ${day.festivalsAndVratas[0]}` : "";
+
+    const pakshaEn = day.paksha || (day.pakshaKn.includes("ಶುಕ್ಲ") ? "Shukla" : "Krishna");
+    const tithiEn = day.tithi || day.tithiKn;
+    const shraddhaEn = `${tithiEn} Shraddha`;
+
+    const summary = isEn
+      ? `|| Baggona || ${getLocalizedMasaName(day.chandramanaMasaKn, "en")} ${pakshaEn} Paksha ${tithiEn} • ${shraddhaEn}${festTitle}`
+      : `॥ ಬಗ್ಗೋಣ ॥ ${day.chandramanaMasaKn} ${day.pakshaKn} ${day.tithiKn} • ${day.shraddhaTithi}${festTitle}`;
 
     // Royal ASCII Framed Description
-    const descLines: string[] = [
-      "╔═══════════════════════════════════════════════════════════════╗",
-      "           ॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪುರೋಹಿತ ಪಂಚಾಂಗ ದರ್ಶನ ॥         ",
-      "╚═══════════════════════════════════════════════════════════════╝",
-      "",
-      `📅 ದಿನಾಂಕ: ${day.dateStr} (${day.weekdayKn}) | ಸ್ಥಳ: ${locationName} (${pincode})`,
-      `🪐 ಸಂವತ್ಸರ: ${day.samvatsaraKn} (ಶಕ ${day.shakaYear})`,
-      `🌙 ಚಾಂದ್ರಮಾನ: ${day.chandramanaMasaKn} ಮಾಸ, ${day.pakshaKn} ಪಕ್ಷ`,
-      `☀️ ಸೌರಮಾನ: ${day.sauramanaMasaKn} ಮಾಸ (ದಿನ ${day.sauramanaDina})`,
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      "📖 ಎಡ ಪುಟ (LEFT PAGE — PANCHANGA 5 ANGAS & SHRADDHA)",
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      `• ತಿಥಿ (Tithi): ${day.tithiKn} (${day.tithiGhati}) [ಅಂತ್ಯ: ${day.tithiEndTime}]`,
-      `• ನಕ್ಷತ್ರ (Nakshatra): ${day.nakshatraKn} (${day.nakshatraGhati}) [ಅಂತ್ಯ: ${day.nakshatraEndTime}]`,
-      `• ಯೋಗ (Yoga): ${day.yogaKn} (${day.yogaGhati})`,
-      `• ಕರಣ (Karana): ${day.karanaKn} (${day.karanaGhati})`,
-      `• ರವಿ ನಕ್ಷತ್ರ: ${day.sunNakshatraKn}`,
-      `• ಶ್ರಾದ್ಧ ತಿಥಿ (Shraddha): ${day.shraddhaTithi}`,
-      `• ದಿನಪ್ರಮಾಣ: ${day.dinapramana} (ವಿಷಘಟಿ: ${day.vishaGhati} | ಅಮೃತಘಟಿ: ${day.amritaGhati})`,
-      `• ಸೂರ್ಯೋದಯ: ${day.suryodaya} | ಸೂರ್ಯಾಸ್ತ: ${day.suryasta}`,
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      "🏛️ ಬಲ ಪುಟ (RIGHT PAGE — 12 DINA LAGNA ENDING TIMES)",
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      `• ಮೀನ: ${day.lagnaEndingTimes.meena} | ಮೇಷ: ${day.lagnaEndingTimes.mesha} | ವೃಷಭ: ${day.lagnaEndingTimes.vrishabha} | ಮಿಥುನ: ${day.lagnaEndingTimes.mithuna}`,
-      `• ಕರ್ಕ: ${day.lagnaEndingTimes.karkataka} | ಸಿಂಹ: ${day.lagnaEndingTimes.simha} | ಕನ್ಯಾ: ${day.lagnaEndingTimes.kanya} | ತುಲಾ: ${day.lagnaEndingTimes.tula}`,
-      `• ವೃಶ್ಚಿಕ: ${day.lagnaEndingTimes.vrischika} | ಧನು: ${day.lagnaEndingTimes.dhanu} | ಮಕರ: ${day.lagnaEndingTimes.makara} | ಕುಂಭ: ${day.lagnaEndingTimes.kumbha}`,
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      "🪐 ನವಗ್ರಹ ಗೋಚಾರ ಸ್ಪಷ್ಟ (PLANETARY POSITIONS)",
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      `• ರವಿ: ${day.grahaSpashta.ravi.rashiKn} (${day.grahaSpashta.ravi.nakshatraKn} ಪಾದ ${day.grahaSpashta.ravi.pada})`,
-      `• ಕುಜ: ${day.grahaSpashta.kuja.rashiKn} (${day.grahaSpashta.kuja.nakshatraKn} ಪಾದ ${day.grahaSpashta.kuja.pada}) ${day.grahaSpashta.kuja.isVakri ? "[ವಕ್ರೀ]" : ""}`,
-      `• ಬುಧ: ${day.grahaSpashta.budha.rashiKn} (${day.grahaSpashta.budha.nakshatraKn}) ${day.grahaSpashta.budha.isVakri ? "[ವಕ್ರೀ]" : ""}`,
-      `• ಗುರು: ${day.grahaSpashta.guru.rashiKn} (${day.grahaSpashta.guru.nakshatraKn} ಪಾದ ${day.grahaSpashta.guru.pada}) ${day.grahaSpashta.guru.isVakri ? "[ವಕ್ರೀ]" : ""}`,
-      `• ಶುಕ್ರ: ${day.grahaSpashta.shukra.rashiKn} (${day.grahaSpashta.shukra.nakshatraKn} ಪಾದ ${day.grahaSpashta.shukra.pada}) ${day.grahaSpashta.shukra.isVakri ? "[ವಕ್ರೀ]" : ""}`,
-      `• ಶನಿ: ${day.grahaSpashta.shani.rashiKn} (${day.grahaSpashta.shani.nakshatraKn} ಪಾದ ${day.grahaSpashta.shani.pada}) ${day.grahaSpashta.shani.isVakri ? "[ವಕ್ರೀ]" : ""}`,
-      `• ರಾಹು: ${day.grahaSpashta.rahu.rashiKn} (${day.grahaSpashta.rahu.nakshatraKn} ಪಾದ ${day.grahaSpashta.rahu.pada}) | ಕೇತು: ${day.grahaSpashta.ketu.rashiKn} (${day.grahaSpashta.ketu.nakshatraKn} ಪಾದ ${day.grahaSpashta.ketu.pada})`,
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      "⏳ ನಿತ್ಯ ಪುರೋಹಿತ ಮುಹೂರ್ತ & ಪೂಜಾ ಕಾಲಗಳು (IST)",
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      `• ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತ: ${day.brahmaMuhurtha}`,
-      `• ಪ್ರಾತಃ ಸಂಧ್ಯಾ: ${day.pratahkalaSandhya}`,
-      `• ಅಭಿಜಿತ್ ಮುಹೂರ್ತ: ${day.abhijitMuhurtha}`,
-      `• ಅಪರಾಹ್ನ ಶ್ರಾದ್ಧ ಕಾಲ: ${day.madhyahnaShraddhaWindow}`,
-      `• ಸಾಯಂಕಾಲ ಪ್ರದೋಷ: ${day.sayankalaPradosha}`,
-      `• ನಿಶೀಥ ಕಾಲ: ${day.nishitaKaala}`,
-      `• ರಾಹುಕಾಲ: ${day.rahuKaala}`,
-      `• ಗುಳಿಕಕಾಲ: ${day.gulikaKaala}`,
-      `• ಯಮಗಂಡ: ${day.yamaganda}`,
-      `• ಅಮೃತಕಾಲ: ${day.amritaKaala}`,
-      ""
-    ];
+    const descLines: string[] = isEn
+      ? [
+          "╔═══════════════════════════════════════════════════════════════╗",
+          "           || Shri Baggona Panchanga — Priest Calendar Darshana ||         ",
+          "╚═══════════════════════════════════════════════════════════════╝",
+          "",
+          `📅 Date: ${day.dateStr} (${day.weekday}) | Location: ${locationName} (${pincode})`,
+          `🪐 Samvatsara: ${day.samvatsara} (Shaka ${day.shakaYear})`,
+          `🌙 Chandramana: ${getLocalizedMasaName(day.chandramanaMasaKn, "en")} Masa, ${pakshaEn} Paksha`,
+          `☀️ Sauramana: ${day.sauramanaMasa} Masa (Day ${day.sauramanaDina})`,
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "📖 LEFT PAGE — PANCHANGA 5 ANGAS & SHRADDHA",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          `• Tithi: ${tithiEn} (${day.tithiGhati}) [End: ${day.tithiEndTime}]`,
+          `• Nakshatra: ${day.nakshatra} (${day.nakshatraGhati}) [End: ${day.nakshatraEndTime}]`,
+          `• Yoga: ${day.yoga} (${day.yogaGhati})`,
+          `• Karana: ${day.karana} (${day.karanaGhati})`,
+          `• Sun Nakshatra: ${day.sunNakshatra}`,
+          `• Shraddha Tithi: ${shraddhaEn}`,
+          `• Dinapramana: ${day.dinapramana} (Visha Ghati: ${day.vishaGhati} | Amrita Ghati: ${day.amritaGhati})`,
+          `• Sunrise: ${day.suryodaya} | Sunset: ${day.suryasta}`,
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "🏛️ RIGHT PAGE — 12 DINA LAGNA ENDING TIMES",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          `• Pisces: ${day.lagnaEndingTimes.meena} | Aries: ${day.lagnaEndingTimes.mesha} | Taurus: ${day.lagnaEndingTimes.vrishabha} | Gemini: ${day.lagnaEndingTimes.mithuna}`,
+          `• Cancer: ${day.lagnaEndingTimes.karkataka} | Leo: ${day.lagnaEndingTimes.simha} | Virgo: ${day.lagnaEndingTimes.kanya} | Libra: ${day.lagnaEndingTimes.tula}`,
+          `• Scorpio: ${day.lagnaEndingTimes.vrischika} | Sagittarius: ${day.lagnaEndingTimes.dhanu} | Capricorn: ${day.lagnaEndingTimes.makara} | Aquarius: ${day.lagnaEndingTimes.kumbha}`,
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "🪐 PLANETARY POSITIONS (GRAHA SPASHTA)",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          `• Sun: ${day.grahaSpashta.ravi.rashi} (${day.grahaSpashta.ravi.nakshatra} Pada ${day.grahaSpashta.ravi.pada})`,
+          `• Mars: ${day.grahaSpashta.kuja.rashi} (${day.grahaSpashta.kuja.nakshatra} Pada ${day.grahaSpashta.kuja.pada}) ${day.grahaSpashta.kuja.isVakri ? "[Retrograde]" : ""}`,
+          `• Mercury: ${day.grahaSpashta.budha.rashi} (${day.grahaSpashta.budha.nakshatra}) ${day.grahaSpashta.budha.isVakri ? "[Retrograde]" : ""}`,
+          `• Jupiter: ${day.grahaSpashta.guru.rashi} (${day.grahaSpashta.guru.nakshatra} Pada ${day.grahaSpashta.guru.pada}) ${day.grahaSpashta.guru.isVakri ? "[Retrograde]" : ""}`,
+          `• Venus: ${day.grahaSpashta.shukra.rashi} (${day.grahaSpashta.shukra.nakshatra} Pada ${day.grahaSpashta.shukra.pada}) ${day.grahaSpashta.shukra.isVakri ? "[Retrograde]" : ""}`,
+          `• Saturn: ${day.grahaSpashta.shani.rashi} (${day.grahaSpashta.shani.nakshatra} Pada ${day.grahaSpashta.shani.pada}) ${day.grahaSpashta.shani.isVakri ? "[Retrograde]" : ""}`,
+          `• Rahu: ${day.grahaSpashta.rahu.rashi} (${day.grahaSpashta.rahu.nakshatra} Pada ${day.grahaSpashta.rahu.pada}) | Ketu: ${day.grahaSpashta.ketu.rashi} (${day.grahaSpashta.ketu.nakshatra} Pada ${day.grahaSpashta.ketu.pada})`,
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "⏳ DAILY PRIEST MUHURTHA & AUSPICIOUS TIMINGS (IST)",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          `• Brahma Muhurtha: ${day.brahmaMuhurtha}`,
+          `• Morning Sandhya: ${day.pratahkalaSandhya}`,
+          `• Abhijit Muhurtha: ${day.abhijitMuhurtha}`,
+          `• Aparahna Shraddha Window: ${day.madhyahnaShraddhaWindow.replace(/\(ಅಪರಾಹ್ನ ಕಾಲ\)/g, "(Aparahna Period)")}`,
+          `• Evening Pradosha: ${day.sayankalaPradosha}`,
+          `• Nishita Kaala: ${day.nishitaKaala}`,
+          `• Rahu Kaala: ${day.rahuKaala}`,
+          `• Gulika Kaala: ${day.gulikaKaala}`,
+          `• Yamaganda: ${day.yamaganda}`,
+          `• Amrita Kaala: ${day.amritaKaala}`,
+          ""
+        ]
+      : [
+          "╔═══════════════════════════════════════════════════════════════╗",
+          "           ॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪುರೋಹಿತ ಪಂಚಾಂಗ ದರ್ಶನ ॥         ",
+          "╚═══════════════════════════════════════════════════════════════╝",
+          "",
+          `📅 ದಿನಾಂಕ: ${day.dateStr} (${day.weekdayKn}) | ಸ್ಥಳ: ${locationName} (${pincode})`,
+          `🪐 ಸಂವತ್ಸರ: ${day.samvatsaraKn} (ಶಕ ${day.shakaYear})`,
+          `🌙 ಚಾಂದ್ರಮಾನ: ${day.chandramanaMasaKn} ಮಾಸ, ${day.pakshaKn} ಪಕ್ಷ`,
+          `☀️ ಸೌರಮಾನ: ${day.sauramanaMasaKn} ಮಾಸ (ದಿನ ${day.sauramanaDina})`,
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "📖 ಎಡ ಪುಟ (LEFT PAGE — PANCHANGA 5 ANGAS & SHRADDHA)",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          `• ತಿಥಿ (Tithi): ${day.tithiKn} (${day.tithiGhati}) [ಅಂತ್ಯ: ${day.tithiEndTime}]`,
+          `• ನಕ್ಷತ್ರ (Nakshatra): ${day.nakshatraKn} (${day.nakshatraGhati}) [ಅಂತ್ಯ: ${day.nakshatraEndTime}]`,
+          `• ಯೋಗ (Yoga): ${day.yogaKn} (${day.yogaGhati})`,
+          `• ಕರಣ (Karana): ${day.karanaKn} (${day.karanaGhati})`,
+          `• ರವಿ ನಕ್ಷತ್ರ: ${day.sunNakshatraKn}`,
+          `• ಶ್ರಾದ್ಧ ತಿಥಿ (Shraddha): ${day.shraddhaTithi}`,
+          `• ದಿನಪ್ರಮಾಣ: ${day.dinapramana} (ವಿಷಘಟಿ: ${day.vishaGhati} | ಅಮೃತಘಟಿ: ${day.amritaGhati})`,
+          `• ಸೂರ್ಯೋದಯ: ${day.suryodaya} | ಸೂರ್ಯಾಸ್ತ: ${day.suryasta}`,
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "🏛️ ಬಲ ಪುಟ (RIGHT PAGE — 12 DINA LAGNA ENDING TIMES)",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          `• ಮೀನ: ${day.lagnaEndingTimes.meena} | ಮೇಷ: ${day.lagnaEndingTimes.mesha} | ವೃಷಭ: ${day.lagnaEndingTimes.vrishabha} | ಮಿಥುನ: ${day.lagnaEndingTimes.mithuna}`,
+          `• ಕರ್ಕ: ${day.lagnaEndingTimes.karkataka} | ಸಿಂಹ: ${day.lagnaEndingTimes.simha} | ಕನ್ಯಾ: ${day.lagnaEndingTimes.kanya} | ತುಲಾ: ${day.lagnaEndingTimes.tula}`,
+          `• ವೃಶ್ಚಿಕ: ${day.lagnaEndingTimes.vrischika} | ಧನು: ${day.lagnaEndingTimes.dhanu} | ಮಕರ: ${day.lagnaEndingTimes.makara} | ಕುಂಭ: ${day.lagnaEndingTimes.kumbha}`,
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "🪐 ನವಗ್ರಹ ಗೋಚಾರ ಸ್ಪಷ್ಟ (PLANETARY POSITIONS)",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          `• ರವಿ: ${day.grahaSpashta.ravi.rashiKn} (${day.grahaSpashta.ravi.nakshatraKn} ಪಾದ ${day.grahaSpashta.ravi.pada})`,
+          `• ಕುಜ: ${day.grahaSpashta.kuja.rashiKn} (${day.grahaSpashta.kuja.nakshatraKn} ಪಾದ ${day.grahaSpashta.kuja.pada}) ${day.grahaSpashta.kuja.isVakri ? "[ವಕ್ರೀ]" : ""}`,
+          `• ಬುಧ: ${day.grahaSpashta.budha.rashiKn} (${day.grahaSpashta.budha.nakshatraKn}) ${day.grahaSpashta.budha.isVakri ? "[ವಕ್ರೀ]" : ""}`,
+          `• ಗುರು: ${day.grahaSpashta.guru.rashiKn} (${day.grahaSpashta.guru.nakshatraKn} ಪಾದ ${day.grahaSpashta.guru.pada}) ${day.grahaSpashta.guru.isVakri ? "[ವಕ್ರೀ]" : ""}`,
+          `• ಶುಕ್ರ: ${day.grahaSpashta.shukra.rashiKn} (${day.grahaSpashta.shukra.nakshatraKn} ಪಾದ ${day.grahaSpashta.shukra.pada}) ${day.grahaSpashta.shukra.isVakri ? "[ವಕ್ರೀ]" : ""}`,
+          `• ಶನಿ: ${day.grahaSpashta.shani.rashiKn} (${day.grahaSpashta.shani.nakshatraKn} ಪಾದ ${day.grahaSpashta.shani.pada}) ${day.grahaSpashta.shani.isVakri ? "[ವಕ್ರೀ]" : ""}`,
+          `• ರಾಹು: ${day.grahaSpashta.rahu.rashiKn} (${day.grahaSpashta.rahu.nakshatraKn} ಪಾದ ${day.grahaSpashta.rahu.pada}) | ಕೇತು: ${day.grahaSpashta.ketu.rashiKn} (${day.grahaSpashta.ketu.nakshatraKn} ಪಾದ ${day.grahaSpashta.ketu.pada})`,
+          "",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          "⏳ ನಿತ್ಯ ಪುರೋಹಿತ ಮುಹೂರ್ತ & ಪೂಜಾ ಕಾಲಗಳು (IST)",
+          "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+          `• ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತ: ${day.brahmaMuhurtha}`,
+          `• ಪ್ರಾತಃ ಸಂಧ್ಯಾ: ${day.pratahkalaSandhya}`,
+          `• ಅಭಿಜಿತ್ ಮುಹೂರ್ತ: ${day.abhijitMuhurtha}`,
+          `• ಅಪರಾಹ್ನ ಶ್ರಾದ್ಧ ಕಾಲ: ${day.madhyahnaShraddhaWindow}`,
+          `• ಸಾಯಂಕಾಲ ಪ್ರದೋಷ: ${day.sayankalaPradosha}`,
+          `• ನಿಶೀಥ ಕಾಲ: ${day.nishitaKaala}`,
+          `• ರಾಹುಕಾಲ: ${day.rahuKaala}`,
+          `• ಗುಳಿಕಕಾಲ: ${day.gulikaKaala}`,
+          `• ಯಮಗಂಡ: ${day.yamaganda}`,
+          `• ಅಮೃತಕಾಲ: ${day.amritaKaala}`,
+          ""
+        ];
 
-    if (day.festivalsAndVratas.length > 0) {
+    if (festNameLocalized || (!isEn && day.festivalsAndVratas.length > 0)) {
       descLines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      descLines.push(`🪔 ಹಬ್ಬಗಳು & ಧಾರ್ಮಿಕ ವಿಶೇಷಗಳು: ${day.festivalsAndVratas.join(" • ")}`);
+      const fHeader = isEn ? "🪔 Festivals & Religious Observances" : "🪔 ಹಬ್ಬಗಳು & ಧಾರ್ಮಿಕ ವಿಶೇಷಗಳು";
+      const fContent = festNameLocalized || day.festivalsAndVratas.join(" • ");
+      descLines.push(`${fHeader}: ${fContent}`);
       if (day.matchedFestival?.pujaWindow) {
-        descLines.push(`⏳ ಪೂಜಾ ಕಾಲ: ${day.matchedFestival.pujaWindow}`);
+        const pLabel = isEn ? "⏳ Puja Window" : "⏳ ಪೂಜಾ ಕಾಲ";
+        descLines.push(`${pLabel}: ${day.matchedFestival.pujaWindow}`);
       }
       descLines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       descLines.push("");
@@ -610,29 +729,97 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
 
     if (day.previousDayAlert) {
       descLines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      descLines.push("🔔 ಮುಂಬರುವ ದಿನದ ಪೂರ್ವಭಾವಿ ಧಾರ್ಮಿಕ ಸೂಚನೆ:");
+      const alertHeader = isEn
+        ? "🔔 Upcoming Sacred Religious Preparation Alert:"
+        : isHi
+        ? "🔔 आगामी पावन धार्मिक सूचना एवं पूर्व तैयारी:"
+        : isTe
+        ? "🔔 రాబోయే పవిత్ర ధార్మిక సమాచారం & ముందస్తు సన్నాహాలు:"
+        : isTa
+        ? "🔔 வரவிருக்கும் புனித ஆன்மீகத் தகவல் & முன் தயாரிப்பு:"
+        : "🔔 ಮುಂಬರುವ ದಿನದ ಪೂರ್ವಭಾವಿ ಧಾರ್ಮಿಕ ಸೂಚನೆ:";
+      descLines.push(alertHeader);
       descLines.push(day.previousDayAlert);
       descLines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       descLines.push("");
     }
 
     descLines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    descLines.push("🌐 ಲೈವ್ ಗೋಚಾರ ಕುಂಡಲಿ & ಪೂರ್ಣ ಪಂಚಾಂಗ ದರ್ಶನ:");
+    const portalLabel = isEn
+      ? "🌐 Live Gochara Kundli & Full Panchanga Darshana:"
+      : isHi
+      ? "🌐 लाइव गोचर कुंडली एवं पंचांग दर्शन:"
+      : isTe
+      ? "🌐 ప్రత్యక్ష గోచార కుండలి & పంచాంగ దర్శనం:"
+      : isTa
+      ? "🌐 நேரடி கோச்சார குண்டலி & பஞ்சாங்க தரிசனம்:"
+      : "🌐 ಲೈವ್ ಗೋಚಾರ ಕುಂಡಲಿ & ಪೂರ್ಣ ಪಂಚಾಂಗ ದರ್ಶನ:";
+    descLines.push(portalLabel);
     descLines.push(`${portalUrl}`);
     descLines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    descLines.push(`📞 ಮುಖ್ಯ ಅರ್ಚಕರು: ${priestName} (9972339362)`);
-    descLines.push("✨ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು ✨");
+    const priestTitle = isEn
+      ? `📞 Chief Priest: ${priestName} (9972339362)`
+      : isHi
+      ? `📞 मुख्य अर्चक: ${priestName} (9972339362)`
+      : isTe
+      ? `📞 ముఖ్య అర్చకులు: ${priestName} (9972339362)`
+      : isTa
+      ? `📞 முதன்மை அர்ச்சகர்: ${priestName} (9972339362)`
+      : `📞 ಮುಖ್ಯ ಅರ್ಚಕರು: ${priestName} (9972339362)`;
+    descLines.push(priestTitle);
+    const benediction = isEn
+      ? "✨ Shri Mahabaleshwara Prasada Siddhirastu ✨"
+      : isHi
+      ? "✨ श्री महाबलेश्वर प्रसाद सिद्धिरस्तु ✨"
+      : isTe
+      ? "✨ శ్రీ మహాబలేశ్వర ప్రసాద సిద్ధిరస్తు ✨"
+      : isTa
+      ? "✨ ஸ்ரீ மகாபலேஸ்வரர் பிரசாத சித்தியரஸ்து ✨"
+      : "✨ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು ✨";
+    descLines.push(benediction);
 
     const description = descLines.join("\n");
 
-    const htmlDesc = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:14px;"><h2 style="color:#fde68a; margin:0 0 10px 0; font-size:16px; text-align:center;">॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪುರೋಹಿತ ಪಂಚಾಂಗ ದರ್ಶನ ॥</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b; width:40%;">📅 ದಿನಾಂಕ:</td><td style="padding:5px 4px; color:#fff8e7;">${day.dateStr} (${day.weekdayKn})</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">🌙 ಚಾಂದ್ರಮಾನ:</td><td style="padding:5px 4px; color:#fff8e7;">${day.chandramanaMasaKn} ${day.pakshaKn}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">📜 ತಿಥಿ & ಅಂತ್ಯ:</td><td style="padding:5px 4px; color:#fff8e7;">${day.tithiKn} (${day.tithiGhati}) [${day.tithiEndTime}]</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">⭐ ನಕ್ಷತ್ರ:</td><td style="padding:5px 4px; color:#fff8e7;">${day.nakshatraKn} (${day.nakshatraGhati}) [${day.nakshatraEndTime}]</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">🕉️ ಶ್ರಾದ್ಧ ತಿಥಿ:</td><td style="padding:5px 4px; color:#fde68a; font-weight:bold;">${day.shraddhaTithi}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">🏛️ ೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ:</td><td style="padding:5px 4px; color:#fff8e7; font-size:11px;">ಮೀ: ${day.lagnaEndingTimes.meena} | ಮೇ: ${day.lagnaEndingTimes.mesha} | ವೃ: ${day.lagnaEndingTimes.vrishabha} | ಮಿ: ${day.lagnaEndingTimes.mithuna}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">⏳ ಬ್ರಾಹ್ಮೀ / ಅಭಿಜಿತ್:</td><td style="padding:5px 4px; color:#fff8e7;">${day.brahmaMuhurtha} / ${day.abhijitMuhurtha}</td></tr><tr><td style="padding:10px 4px; font-weight:bold; color:#f59e0b;">🌐 ಪೂರ್ಣ ದರ್ಶನ:</td><td style="padding:10px 4px;"><a href="${portalUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#d97706; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:13px;">👉 ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ</a></td></tr></table></div><div style="text-align:center;"><p style="font-size:12px;"><a href="${portalUrl}" style="color:#6ee7b7; word-break:break-all;">${portalUrl}</a></p><p style="color:#f59e0b; font-size:12px; margin-top:8px;">✨ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸಾದ ಸಿದ್ಧಿರಸ್ತು ✨</p></div></body></html>`;
+    const htmlTitle = isEn
+      ? "|| Shri Baggona Panchanga — Priest Calendar Darshana ||"
+      : "॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪುರೋಹಿತ ಪಂಚಾಂಗ ದರ್ಶನ ॥";
+    const dateLabel = isEn ? "📅 Date:" : "📅 ದಿನಾಂಕ:";
+    const dateVal = isEn ? `${day.dateStr} (${day.weekday})` : `${day.dateStr} (${day.weekdayKn})`;
+    const chandraLabel = isEn ? "🌙 Chandramana:" : "🌙 ಚಾಂದ್ರಮಾನ:";
+    const chandraVal = isEn ? `${getLocalizedMasaName(day.chandramanaMasaKn, "en")} ${pakshaEn} Paksha` : `${day.chandramanaMasaKn} ${day.pakshaKn}`;
+    const tithiHLabel = isEn ? "📜 Tithi & End:" : "📜 ತಿಥಿ & ಅಂತ್ಯ:";
+    const tithiHVal = isEn ? `${tithiEn} (${day.tithiGhati}) [${day.tithiEndTime}]` : `${day.tithiKn} (${day.tithiGhati}) [${day.tithiEndTime}]`;
+    const nakshatraHLabel = isEn ? "⭐ Nakshatra:" : "⭐ ನಕ್ಷತ್ರ:";
+    const nakshatraHVal = isEn ? `${day.nakshatra} (${day.nakshatraGhati}) [${day.nakshatraEndTime}]` : `${day.nakshatraKn} (${day.nakshatraGhati}) [${day.nakshatraEndTime}]`;
+    const shraddhaHLabel = isEn ? "🕉️ Shraddha Tithi:" : "🕉️ ಶ್ರಾದ್ಧ ತಿಥಿ:";
+    const shraddhaHVal = isEn ? shraddhaEn : day.shraddhaTithi;
+    const lagnaHLabel = isEn ? "🏛️ 12 Dina Lagna Endings:" : "🏛️ ೧೨ ಲಗ್ನ ಸಮಾಪ್ತಿ:";
+    const lagnaHVal = isEn
+      ? `Pisces: ${day.lagnaEndingTimes.meena} | Aries: ${day.lagnaEndingTimes.mesha} | Taurus: ${day.lagnaEndingTimes.vrishabha} | Gemini: ${day.lagnaEndingTimes.mithuna}`
+      : `ಮೀ: ${day.lagnaEndingTimes.meena} | ಮೇ: ${day.lagnaEndingTimes.mesha} | ವೃ: ${day.lagnaEndingTimes.vrishabha} | ಮಿ: ${day.lagnaEndingTimes.mithuna}`;
+    const muhurthaHLabel = isEn ? "⏳ Brahma / Abhijit:" : "⏳ ಬ್ರಾಹ್ಮೀ / ಅಭಿಜಿತ್:";
+    const openPortalLabel = isEn ? "👉 Open Portal" : "👉 ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ";
+    const fullDarshanaLabel = isEn ? "🌐 Full Darshana:" : "🌐 ಪೂರ್ಣ ದರ್ಶನ:";
+
+    const htmlDesc = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px;"><div style="background-color:#501b11; border:2px solid #f59e0b; border-radius:12px; padding:16px; margin-bottom:14px;"><h2 style="color:#fde68a; margin:0 0 10px 0; font-size:16px; text-align:center;">${htmlTitle}</h2><table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b; width:40%;">${dateLabel}</td><td style="padding:5px 4px; color:#fff8e7;">${dateVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">${chandraLabel}</td><td style="padding:5px 4px; color:#fff8e7;">${chandraVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">${tithiHLabel}</td><td style="padding:5px 4px; color:#fff8e7;">${tithiHVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">${nakshatraHLabel}</td><td style="padding:5px 4px; color:#fff8e7;">${nakshatraHVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">${shraddhaHLabel}</td><td style="padding:5px 4px; color:#fde68a; font-weight:bold;">${shraddhaHVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">${lagnaHLabel}</td><td style="padding:5px 4px; color:#fff8e7; font-size:11px;">${lagnaHVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.3);"><td style="padding:5px 4px; font-weight:bold; color:#f59e0b;">${muhurthaHLabel}</td><td style="padding:5px 4px; color:#fff8e7;">${day.brahmaMuhurtha} / ${day.abhijitMuhurtha}</td></tr><tr><td style="padding:10px 4px; font-weight:bold; color:#f59e0b;">${fullDarshanaLabel}</td><td style="padding:10px 4px;"><a href="${portalUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#d97706; color:#ffffff; text-decoration:none; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:13px;">${openPortalLabel}</a></td></tr></table></div><div style="text-align:center;"><p style="font-size:12px;"><a href="${portalUrl}" style="color:#6ee7b7; word-break:break-all;">${portalUrl}</a></p><p style="color:#f59e0b; font-size:12px; margin-top:8px;">${benediction}</p></div></body></html>`;
+
+    const [dy, dm, dd] = day.dateStr.slice(0, 10).split('-').map(Number);
+    const nextDayCompact = formatYmdCompact(new Date(Date.UTC(dy, dm - 1, dd + 1)).toISOString().slice(0, 10));
+
+    const valarmBellDesc = isEn
+      ? `[Morning Panchanga Bell Reminder] ${tithiEn} • ${shraddhaEn}`
+      : `[ಪ್ರಾತಃಕಾಲ ಪಂಚಾಂಗ ಘಂಟಾನಾದ ಸ್ಮರಣೆ] ${day.tithiKn} • ${day.shraddhaTithi}`;
+
+    const valarmPrepDesc = isEn
+      ? `[Advance Religious Alert & Preparation] ${day.previousDayAlert || `${tithiEn} Advance Sankalpa`}`
+      : `[ಪೂರ್ವದಿನದ ಧಾರ್ಮಿಕ ಸೂಚನೆ & ಸಿದ್ಧತೆ] ${day.previousDayAlert || `${day.tithiKn} ಪೂರ್ವಭಾವಿ ಸಂಕಲ್ಪ`}`;
 
     lines.push(
       "BEGIN:VEVENT",
       `UID:priest-bgn-${compactDate}-${index}@baggonapanchanga.org`,
       `DTSTAMP:${nowIso}`,
       `DTSTART;VALUE=DATE:${compactDate}`,
-      `DTEND;VALUE=DATE:${formatYmdCompact(new Date(new Date(day.dateStr).getTime() + 86400000).toISOString().slice(0, 10))}`,
+      `DTEND;VALUE=DATE:${nextDayCompact}`,
       `SUMMARY:${escapeIcs(summary)}`,
       `DESCRIPTION:${escapeIcs(description)}`,
       `X-ALT-DESC;FMTTYPE=text/html:${escapeIcs(htmlDesc)}`,
@@ -651,7 +838,7 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
       "X-APPLE-DEFAULT-ALARM:TRUE",
       "X-MICROSOFT-DEFAULT-ALARM:TRUE",
       "SOUND:Bells",
-      `DESCRIPTION:${escapeIcs(`[ಪ್ರಾತಃಕಾಲ ಪಂಚಾಂಗ ಘಂಟಾನಾದ ಸ್ಮರಣೆ] ${day.tithiKn} • ${day.shraddhaTithi}`)}`,
+      `DESCRIPTION:${escapeIcs(valarmBellDesc)}`,
       "END:VALARM",
       "BEGIN:VALARM",
       "ACTION:AUDIO",
@@ -659,7 +846,7 @@ export function generatePriestICalendarString(options: PriestCalendarOptions = {
       "ATTACH;VALUE=URI:PresetSound#Bells",
       `ATTACH;VALUE=URI:${baseUrl}/audio/ghantanada.mp3`,
       "X-APPLE-DEFAULT-ALARM:TRUE",
-      `DESCRIPTION:${escapeIcs(`[ಪೂರ್ವದಿನದ ಧಾರ್ಮಿಕ ಸೂಚನೆ & ಸಿದ್ಧತೆ] ${day.previousDayAlert || `${day.tithiKn} ಪೂರ್ವಭಾವಿ ಸಂಕಲ್ಪ`}`)}`,
+      `DESCRIPTION:${escapeIcs(valarmPrepDesc)}`,
       "END:VALARM",
       "END:VEVENT"
     );

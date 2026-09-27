@@ -18,7 +18,9 @@ export interface MultiDayFestivalSubDay {
   titleKn: string;
   titleEn: string;
   tithiKn: string;
+  tithiEn?: string;
   nakshatraKn: string;
+  nakshatraEn?: string;
   pujaWindowKn: string;
   pujaWindowEn: string;
   significanceKn: string;

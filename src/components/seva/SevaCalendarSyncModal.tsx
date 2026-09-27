@@ -1031,32 +1031,75 @@ export default function SevaCalendarSyncModal({
                     <span>
                       {lang.startsWith("kn")
                         ? `90-ದಿನಗಳ ಪವಿತ್ರ ವ್ರತ & ಹಬ್ಬಗಳು (${specialVratas.length} ವ್ರತಗಳು)`
+                        : lang.startsWith("hi")
+                        ? `90-दिवसीय पवित्र व्रत एवं त्योहार (${specialVratas.length} विशेष दिन)`
+                        : lang.startsWith("te")
+                        ? `90-రోజుల పవిత్ర వ్రతాలు & పండుగలు (${specialVratas.length} ప్రత్యేక రోజులు)`
+                        : lang.startsWith("ta")
+                        ? `90-நாள் புனித விரதங்கள் & திருவிழாக்கள் (${specialVratas.length} சிறப்பு நாட்கள்)`
                         : `90-Day Sacred Vratas & Festivals (${specialVratas.length} Special Days)`}
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-800 text-amber-50 shadow-xs">
-                    1-DAY EVE ALERT
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-800 text-amber-50 shadow-xs uppercase">
+                    {lang.startsWith("kn")
+                      ? "೧ ದಿನ ಮುಂಚಿನ ಎಚ್ಚರಿಕೆ"
+                      : lang.startsWith("hi")
+                      ? "१-दिन पूर्व सूचना"
+                      : lang.startsWith("te")
+                      ? "1-రోజు ముందస్తు హెచ్చరిక"
+                      : lang.startsWith("ta")
+                      ? "1-நாள் முன்னறிவிப்பு"
+                      : "1-DAY EVE ALERT"}
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-                  {specialVratas.map((item) => (
-                    <div
-                      key={item.ymd}
-                      className="min-w-[150px] flex-shrink-0 rounded-xl bg-white/90 border border-amber-300/80 p-2 text-left shadow-xs"
-                    >
-                      <div className="flex items-center justify-between text-[10px] font-bold text-amber-800">
-                        <span>{item.ymd}</span>
-                        <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-900">{item.category}</span>
+                  {specialVratas.map((item) => {
+                    const lCode = lang.slice(0, 2);
+                    const catLabel =
+                      item.category === "AMAVASYA"
+                        ? { kn: "ಅಮಾವಾಸ್ಯೆ", en: "Amavasya", hi: "अमावस्या", te: "అమావాస్య", ta: "அமாவாசை" }[lCode] || "Amavasya"
+                        : item.category === "PURNIMA"
+                        ? { kn: "ಪೂರ್ಣಿಮೆ", en: "Purnima", hi: "पूर्णिमा", te: "పౌర్ణమి", ta: "பௌர்ணமி" }[lCode] || "Purnima"
+                        : item.category === "EKADASHI"
+                        ? { kn: "ಏಕಾದಶಿ", en: "Ekadashi", hi: "एकादशी", te: "ఏకాదశి", ta: "ஏகாதசி" }[lCode] || "Ekadashi"
+                        : item.category === "SANKASHTI"
+                        ? { kn: "ಸಂಕಷ್ಟಹರ", en: "Sankashti", hi: "संकष्टी", te: "సంకష్టహర", ta: "சங்கடஹர" }[lCode] || "Sankashti"
+                        : item.category === "PRADOSHAM"
+                        ? { kn: "ಪ್ರದೋಷ", en: "Pradosham", hi: "प्रदोष", te: "ప్రదోషం", ta: "பிரதோஷம்" }[lCode] || "Pradosham"
+                        : item.category === "FESTIVAL"
+                        ? { kn: "ಹಬ್ಬ", en: "Festival", hi: "त्योहार", te: "పండుగ", ta: "திருநாள்" }[lCode] || "Festival"
+                        : item.category;
+
+                    const eveLabel =
+                      lCode === "kn"
+                        ? "೧ ದಿನ ಮುಂಚಿನ ಪೂರ್ವ ಎಚ್ಚರಿಕೆ"
+                        : lCode === "hi"
+                        ? "१ दिन पूर्व की सूचना"
+                        : lCode === "te"
+                        ? "1 రోజు ముందు ఈవ్ అలర్ట్"
+                        : lCode === "ta"
+                        ? "1 நாள் முந்தைய மாலை எச்சரிக்கை"
+                        : "1-Day Prior Eve Alert";
+
+                    return (
+                      <div
+                        key={item.ymd}
+                        className="min-w-[150px] flex-shrink-0 rounded-xl bg-white/90 border border-amber-300/80 p-2 text-left shadow-xs"
+                      >
+                        <div className="flex items-center justify-between text-[10px] font-bold text-amber-800">
+                          <span>{item.ymd}</span>
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-900">{catLabel}</span>
+                        </div>
+                        <div className="text-[11px] font-extrabold text-amber-950 truncate mt-1" title={item.vrataName}>
+                          {item.vrataName}
+                        </div>
+                        <div className="text-[9px] font-semibold text-amber-700 mt-1 flex items-center gap-1">
+                          <span>🔔</span>
+                          <span>{eveLabel}</span>
+                        </div>
                       </div>
-                      <div className="text-[11px] font-extrabold text-amber-950 truncate mt-1" title={item.vrataName}>
-                        {item.vrataName}
-                      </div>
-                      <div className="text-[9px] font-semibold text-amber-700 mt-1 flex items-center gap-1">
-                        <span>🔔</span>
-                        <span>1-Day Prior Eve Alert</span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

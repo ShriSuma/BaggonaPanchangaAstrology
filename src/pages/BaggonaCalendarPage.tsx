@@ -19,6 +19,14 @@ import {
 } from "../core/BaggonaFestivalRegistry";
 import { getSafeProductionOrigin } from "../features/seva/icsCalendarGenerator";
 import { recordPriestCalendarAction } from "../features/seva/calendarVisitService";
+import {
+  getLocalizedFestivalName,
+  getLocalizedFestivalCategory,
+  getLocalizedFestivalDescription,
+  getLocalizedPujaWindow,
+  getLocalizedMasaName,
+  type SupportedLang
+} from "../core/festivalLocalization";
 
 
 function getRituKn(masaKn: string): string {
@@ -48,6 +56,20 @@ export const BaggonaCalendarPage: React.FC = () => {
     return getParam("date", "2026-03-19");
   };
 
+  // Determine initial language from URL or localStorage
+  const getInitialLang = (): SupportedLang => {
+    const p = getParam("lang", "");
+    if (["kn", "en", "hi", "te", "ta"].includes(p)) return p as SupportedLang;
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("baggona_lang");
+        if (stored && ["kn", "en", "hi", "te", "ta"].includes(stored)) return stored as SupportedLang;
+      } catch {}
+    }
+    return "kn";
+  };
+
+  const [lang, setLang] = useState<SupportedLang>(getInitialLang);
   const [selectedDate, setSelectedDate] = useState<string>(getInitialDate);
   const [pincode] = useState<string>(() => getParam("pincode", "581326"));
   const [locationName] = useState<string>(() => getParam("loc", "Gokarna"));
@@ -62,6 +84,18 @@ export const BaggonaCalendarPage: React.FC = () => {
   const [showMonthView, setShowMonthView] = useState<boolean>(false);
   const recognitionRef = useRef<any>(null);
 
+  const handleLangChange = (newLang: SupportedLang) => {
+    setLang(newLang);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("baggona_lang", newLang);
+      } catch {}
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", newLang);
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
+
   // Synchronize URL query params
   const handleDateChange = (newDate: string) => {
     setSelectedDate(newDate);
@@ -70,6 +104,7 @@ export const BaggonaCalendarPage: React.FC = () => {
       url.searchParams.set("date", newDate);
       url.searchParams.set("pincode", pincode);
       url.searchParams.set("loc", locationName);
+      url.searchParams.set("lang", lang);
       window.history.replaceState({}, "", url.toString());
     }
   };
@@ -96,8 +131,8 @@ export const BaggonaCalendarPage: React.FC = () => {
 
   // Generate dual-page daily Panchanga dossier for the selected date
   const dossier: PriestDayDossier = useMemo(() => {
-    return generatePriestDayDossier(selectedDate, 14.5479, 74.3187, pincode);
-  }, [selectedDate, pincode]);
+    return generatePriestDayDossier(selectedDate, 14.5479, 74.3187, pincode, lang);
+  }, [selectedDate, pincode, lang]);
 
   // Check if current date has a festival or belongs to an active multi-day festival
   const singleFestival = useMemo(() => {
@@ -207,7 +242,7 @@ export const BaggonaCalendarPage: React.FC = () => {
 
   // Generate QR code for mobile deep linking
   const origin = getSafeProductionOrigin();
-  const shareableUrl = `${origin}/calendar?date=${selectedDate}&pincode=${pincode}&loc=${encodeURIComponent(locationName)}`;
+  const shareableUrl = `${origin}/calendar?date=${selectedDate}&pincode=${pincode}&loc=${encodeURIComponent(locationName)}&lang=${lang}`;
 
   useEffect(() => {
     QRCode.toDataURL(shareableUrl, {
@@ -238,7 +273,19 @@ export const BaggonaCalendarPage: React.FC = () => {
 
   // Share to WhatsApp
   const handleWhatsAppShare = () => {
-    const text = `🕉️ *ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಕ್ಯಾಲೆಂಡರ್ ದಿನ ಮಹಾದರ್ಶನ*\n\nದಿನಾಂಕ: *${selectedDate}* (${dossier.weekdayKn})\nತಿಥಿ: ${dossier.tithiKn} (ಅಂತ್ಯ: ${dossier.tithiEndTime})\nನಕ್ಷತ್ರ: ${dossier.nakshatraKn} (ಅಂತ್ಯ: ${dossier.nakshatraEndTime})\n${singleFestival ? `ಹಬ್ಬ: *${singleFestival.nameKn}*\n` : ""}\nಸಂಪೂರ್ಣ ಪಂಚಾಂಗ ಹಾಗೂ ಲೈವ್ ಗೋಚಾರ ವೀಕ್ಷಿಸಲು ಈ ಲಿಂಕ್ ಕ್ಲಿಕ್ ಮಾಡಿ:\n👉 ${shareableUrl}\n\n॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥`;
+    const festName = singleFestival ? getLocalizedFestivalName(singleFestival, lang) : "";
+    let text = "";
+    if (lang === "kn") {
+      text = `🕉️ *ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಕ್ಯಾಲೆಂಡರ್ ದಿನ ಮಹಾದರ್ಶನ*\n\nದಿನಾಂಕ: *${selectedDate}* (${dossier.weekdayKn})\nತಿಥಿ: ${dossier.tithiKn} (ಅಂತ್ಯ: ${dossier.tithiEndTime})\nನಕ್ಷತ್ರ: ${dossier.nakshatraKn} (ಅಂತ್ಯ: ${dossier.nakshatraEndTime})\n${festName ? `ಹಬ್ಬ: *${festName}*\n` : ""}\nಸಂಪೂರ್ಣ ಪಂಚಾಂಗ ಹಾಗೂ ಲೈವ್ ಗೋಚಾರ ವೀಕ್ಷಿಸಲು ಈ ಲಿಂಕ್ ಕ್ಲಿಕ್ ಮಾಡಿ:\n👉 ${shareableUrl}\n\n॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥`;
+    } else if (lang === "hi") {
+      text = `🕉️ *बग्गोण पंचांग — दैनिक कैलेंडर दर्शन*\n\nदिनांक: *${selectedDate}* (${dossier.weekday})\nतिथि: ${dossier.tithi} (समाप्ति: ${dossier.tithiEndTime})\nनक्षत्र: ${dossier.nakshatra} (समाप्ति: ${dossier.nakshatraEndTime})\n${festName ? `पर्व: *${festName}*\n` : ""}\nसम्पूर्ण पंचांग एवं गोचर कुंडली देखने के लिए इस लिंक पर क्लिक करें:\n👉 ${shareableUrl}\n\n॥ श्रीराम पंडित · बग्गोण पंचांग ॥`;
+    } else if (lang === "te") {
+      text = `🕉️ *బగ్గోణ పంచాంగం — క్యాలెండర్ దర్శనం*\n\nతేదీ: *${selectedDate}* (${dossier.weekday})\nతిథి: ${dossier.tithi} (ముగింపు: ${dossier.tithiEndTime})\nనక్షత్రం: ${dossier.nakshatra} (ముగింపు: ${dossier.nakshatraEndTime})\n${festName ? `పండుగ: *${festName}*\n` : ""}\nపూర్తి పంచాంగం & గోచార చక్రం వీక్షించడానికి ఈ లింక్ క్లిక్ చేయండి:\n👉 ${shareableUrl}\n\n॥ శ్రీరామ్ పండిట్ · బగ్గోణ పంచాంగం ॥`;
+    } else if (lang === "ta") {
+      text = `🕉️ *பக்கோண பஞ்சாங்கம் — காலண்டர் தரிசனம்*\n\nதேதி: *${selectedDate}* (${dossier.weekday})\nதிதி: ${dossier.tithi} (முடிவு: ${dossier.tithiEndTime})\nநட்சத்திரம்: ${dossier.nakshatra} (முடிவு: ${dossier.nakshatraEndTime})\n${festName ? `திருநாள்: *${festName}*\n` : ""}\nமுழு பஞ்சாங்கம் மற்றும் கோசார நிலைகளை பார்க்க இந்த இணைப்பை கிளிக் செய்யவும்:\n👉 ${shareableUrl}\n\n॥ ஸ்ரீராம் பண்டிட் · பக்கோண பஞ்சாங்கம் ॥`;
+    } else {
+      text = `🕉️ *Baggona Panchanga — Sacred Calendar Dossier*\n\nDate: *${selectedDate}* (${dossier.weekday})\nTithi: ${dossier.tithi} (Ends: ${dossier.tithiEndTime})\nNakshatra: ${dossier.nakshatra} (Ends: ${dossier.nakshatraEndTime})\n${festName ? `Festival: *${festName}*\n` : ""}\nView complete Panchanga & Live Gochara Kundli:\n👉 ${shareableUrl}\n\n॥ Shreeram Pandit · Baggona Panchanga ॥`;
+    }
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
@@ -250,7 +297,8 @@ export const BaggonaCalendarPage: React.FC = () => {
       pincode,
       locationName,
       priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-      webAppBaseUrl: origin
+      webAppBaseUrl: origin,
+      lang
     });
 
     void recordPriestCalendarAction({
@@ -279,39 +327,75 @@ export const BaggonaCalendarPage: React.FC = () => {
     <div className="min-h-screen bg-[#FFFDF7] text-slate-900 pb-20 selection:bg-amber-200">
       {/* 1. ROYAL GOLD BANNER & HEADER - COMPACT & ULTRA-PREMIUM ON MOBILE */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#FFFDF7]/95 via-amber-50/95 to-[#FEFCF4]/95 backdrop-blur-md border-b-2 border-amber-300 shadow-sm px-2.5 sm:px-6 py-2">
-        <div className="max-w-6xl mx-auto space-y-1.5">
-          {/* Top Row: Title, Subtitle, and Primary Actions */}
-          <div className="flex items-center justify-between gap-2">
+        <div className="max-w-6xl mx-auto space-y-2">
+          {/* Top Row: Title, Subtitle, 5-Language Selector, and Primary Actions */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-xl sm:text-2xl p-1 bg-amber-100 rounded-xl border border-amber-300 shadow-xs shrink-0">📅</span>
               <div className="min-w-0">
                 <h1 className="text-xs sm:text-lg font-black text-amber-950 tracking-tight truncate flex items-center gap-1">
-                  <span>॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಕ್ಯಾಲೆಂಡರ್ ॥</span>
+                  <span>
+                    {lang === "kn"
+                      ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಕ್ಯಾಲೆಂಡರ್ ॥"
+                      : lang === "hi"
+                      ? "॥ बग्गोण पंचांग — कैलेंडर ॥"
+                      : lang === "te"
+                      ? "॥ బగ్గోణ పంచాంగం — క్యాలెండర్ ॥"
+                      : lang === "ta"
+                      ? "॥ பக்கோண பஞ்சாங்கம் — காலண்டர் ॥"
+                      : "॥ Baggona Panchanga — Calendar ॥"}
+                  </span>
                 </h1>
                 <p className="text-[9.5px] sm:text-[11px] font-bold text-amber-900 truncate">
-                  ಶ್ರೀ ಪರಾಭವ ಸಂವತ್ಸರ (೨೦೨೬–೨೦೨೭) • ಶಕ ೧೯೪೮
+                  {lang === "kn"
+                    ? "ಶ್ರೀ ಪರಾಭವ ಸಂವತ್ಸರ (೨೦೨೬–೨೦೨೭) • ಶಕ ೧೯೪೮"
+                    : "Shri Parabhava Samvatsara (2026–2027) • Shaka 1948"}
                 </p>
               </div>
             </div>
 
-            {/* Quick action buttons row */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {/* Language Selector + Quick Actions Row */}
+            <div className="flex items-center justify-between md:justify-end gap-1.5 flex-wrap">
+              {/* 5-Language Selector Pills */}
+              <div className="flex items-center gap-0.5 sm:gap-1 bg-amber-100/90 p-0.5 rounded-xl border border-amber-300">
+                {[
+                  { code: "kn" as SupportedLang, label: "ಕನ್ನಡ" },
+                  { code: "en" as SupportedLang, label: "English" },
+                  { code: "hi" as SupportedLang, label: "हिन्दी" },
+                  { code: "te" as SupportedLang, label: "తెలుగు" },
+                  { code: "ta" as SupportedLang, label: "தமிழ்" }
+                ].map((l) => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    onClick={() => handleLangChange(l.code)}
+                    className={`px-1.5 sm:px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-black transition-all cursor-pointer ${
+                      lang === l.code
+                        ? "bg-amber-700 text-white shadow-xs"
+                        : "text-amber-950 hover:bg-amber-200/70"
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+
               {/* Quick jump to today */}
               <button
                 type="button"
                 onClick={handleJumpToToday}
-                className="px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-black rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-950 border border-amber-400 shadow-xs active:scale-95 transition-all"
-                title="ಇಂದಿನ ದಿನಾಂಕಕ್ಕೆ ಹೋಗಿ"
+                className="px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-black rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-950 border border-amber-400 shadow-xs active:scale-95 transition-all cursor-pointer"
+                title={lang === "kn" ? "ಇಂದಿನ ದಿನಾಂಕಕ್ಕೆ ಹೋಗಿ" : "Jump to Today"}
               >
-                ಇಂದು
+                {lang === "kn" ? "ಇಂದು" : "Today"}
               </button>
 
               {/* Share to WhatsApp */}
               <button
                 type="button"
                 onClick={handleWhatsAppShare}
-                className="p-1 sm:px-2.5 sm:py-1 rounded-lg text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-700 shadow-xs active:scale-95 transition-all flex items-center gap-1"
-                title="WhatsApp ನಲ್ಲಿ ಹಂಚಿಕೊಳ್ಳಿ"
+                className="p-1 sm:px-2.5 sm:py-1 rounded-lg text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-700 shadow-xs active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                title={lang === "kn" ? "WhatsApp ನಲ್ಲಿ ಹಂಚಿಕೊಳ್ಳಿ" : "Share on WhatsApp"}
               >
                 <span>📲</span>
                 <span className="hidden md:inline">WhatsApp</span>
@@ -321,23 +405,23 @@ export const BaggonaCalendarPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className={`p-1 sm:px-2.5 sm:py-1 rounded-lg text-xs font-black border transition-all flex items-center gap-1 active:scale-95 ${
+                className={`p-1 sm:px-2.5 sm:py-1 rounded-lg text-xs font-black border transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
                   copySuccess
                     ? "bg-emerald-500 text-white border-emerald-600"
                     : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300"
                 }`}
-                title="ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ"
+                title={lang === "kn" ? "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ" : "Copy Link"}
               >
                 <span>{copySuccess ? "✅" : "📋"}</span>
-                <span className="hidden md:inline">{copySuccess ? "ಕಾಪಿ ಆಗಿದೆ" : "ಲಿಂಕ್"}</span>
+                <span className="hidden md:inline">{copySuccess ? (lang === "kn" ? "ಕಾಪಿ ಆಗಿದೆ" : "Copied") : (lang === "kn" ? "ಲಿಂಕ್" : "Link")}</span>
               </button>
 
               {/* QR Code trigger */}
               <button
                 type="button"
                 onClick={() => setShowQrModal(true)}
-                className="p-1 sm:p-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-950 text-xs font-bold transition-all"
-                title="QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ"
+                className="p-1 sm:p-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-950 text-xs font-bold transition-all cursor-pointer"
+                title={lang === "kn" ? "QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ" : "Scan QR Code"}
               >
                 <span>📱</span>
               </button>
@@ -348,13 +432,15 @@ export const BaggonaCalendarPage: React.FC = () => {
           <div className="flex items-center justify-between gap-2 pt-1 border-t border-amber-200/80 text-xs">
             {/* Priest Contact adhering to baggona-calendar-guard */}
             <div className="flex items-center gap-1 min-w-0">
-              <span className="text-[9.5px] font-bold text-amber-800 shrink-0">ಸಂಪರ್ಕ:</span>
+              <span className="text-[9.5px] font-bold text-amber-800 shrink-0">
+                {lang === "kn" ? "ಸಂಪರ್ಕ:" : lang === "hi" ? "संपर्क:" : lang === "te" ? "సంప్రదించండి:" : lang === "ta" ? "தொடர்புக்கு:" : "Contact:"}
+              </span>
               <a
                 href="tel:9972339362"
                 className="text-[11px] sm:text-xs font-black text-amber-950 hover:underline truncate flex items-center gap-1"
               >
                 <span>📞</span>
-                <span className="truncate">ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 9972339362</span>
+                <span className="truncate">{lang === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್: 9972339362" : "Shreeram Pandit: 9972339362"}</span>
               </a>
             </div>
 
@@ -362,11 +448,11 @@ export const BaggonaCalendarPage: React.FC = () => {
             <button
               type="button"
               onClick={handleDownloadICS}
-              className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-black bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 border border-amber-600 shadow-2xs hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1 shrink-0"
+              className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-black bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 border border-amber-600 shadow-2xs hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer"
               title="Download RFC 5545 .ics calendar"
             >
               <span>📥</span>
-              <span className="hidden sm:inline">ಕ್ಯಾಲೆಂಡರ್</span>
+              <span className="hidden sm:inline">{lang === "kn" ? "ಕ್ಯಾಲೆಂಡರ್" : "Calendar"}</span>
               <span>(ICS)</span>
             </button>
           </div>
@@ -438,36 +524,40 @@ export const BaggonaCalendarPage: React.FC = () => {
                 onChange={handleDropdownSelect}
                 className="w-full px-2.5 sm:px-3 py-2 text-xs font-black border-2 border-amber-300 rounded-xl bg-[#FFFDF7] text-slate-900 focus:outline-none focus:border-amber-500 shadow-xs cursor-pointer truncate"
               >
-                <option value="">🪔 ಸಮಸ್ತ ಬಗ್ಗೋಣ ಹಬ್ಬ-ಹರಿದಿನಗಳ ಪಟ್ಟಿ (ಆಯ್ಕೆ ಮಾಡಿ)</option>
+                <option value="">
+                  {lang === "kn"
+                    ? "🪔 ಸಮಸ್ತ ಬಗ್ಗೋಣ ಹಬ್ಬ-ಹರಿದಿನಗಳ ಪಟ್ಟಿ (ಆಯ್ಕೆ ಮಾಡಿ)"
+                    : "🪔 All Sacred Baggona Festivals & Vratas (Select Day)"}
+                </option>
 
-                <optgroup label="✨ ಬಹುದಿನದ ಮಹಾಪರ್ವಗಳು (Multi-Day Festivals)">
+                <optgroup label={lang === "kn" ? "✨ ಬಹುದಿನದ ಮಹಾಪರ್ವಗಳು (Multi-Day Festivals)" : "✨ Multi-Day Festivals"}>
                   {MULTI_DAY_FESTIVALS.map((g) => (
                     <option key={g.id} value={g.id}>
-                      {g.icon} {g.groupNameKn} ({g.startDate} to {g.endDate})
+                      {g.icon} {lang === "kn" ? g.groupNameKn : (g.groupNameEn || g.groupNameKn)} ({g.startDate} to {g.endDate})
                     </option>
                   ))}
                 </optgroup>
 
-                <optgroup label="🚩 ಪ್ರಮುಖ ವಾರ್ಷಿಕ ಹಬ್ಬಗಳು (Major Festivals)">
+                <optgroup label={lang === "kn" ? "🚩 ಪ್ರಮುಖ ವಾರ್ಷಿಕ ಹಬ್ಬಗಳು (Major Festivals)" : "🚩 Major Annual Festivals"}>
                   {MASTER_ANNUAL_FESTIVALS.filter((f) => f.category === "Major Festival").map((f) => (
                     <option key={f.id} value={f.date}>
-                      {f.date} · {f.nameKn} ({f.masaKn} {f.tithiKn})
+                      {f.date} · {getLocalizedFestivalName(f, lang)}
                     </option>
                   ))}
                 </optgroup>
 
-                <optgroup label="🕉️ ಪವಿತ್ರ ೨೬ ಏಕಾದಶಿಗಳು (All Ekadashis)">
+                <optgroup label={lang === "kn" ? "🕉️ ಪವಿತ್ರ ೨೬ ಏಕಾದಶಿಗಳು (All Ekadashis)" : "🕉️ Sacred 26 Ekadashis"}>
                   {MASTER_ANNUAL_FESTIVALS.filter((f) => f.category === "Ekadashi").map((f) => (
                     <option key={f.id} value={f.date}>
-                      {f.date} · {f.nameKn} ({f.masaKn} {f.pakshaKn})
+                      {f.date} · {getLocalizedFestivalName(f, lang)}
                     </option>
                   ))}
                 </optgroup>
 
-                <optgroup label="🌸 ವ್ರತಗಳು & ಜಯಂತಿಗಳು (Vratas & Jayantis)">
+                <optgroup label={lang === "kn" ? "🌸 ವ್ರತಗಳು & ಜಯಂತಿಗಳು (Vratas & Jayantis)" : "🌸 Vratas & Sacred Observances"}>
                   {MASTER_ANNUAL_FESTIVALS.filter((f) => f.category === "Jayanti" || f.category === "Vrata & Upavasa").map((f) => (
                     <option key={f.id} value={f.date}>
-                      {f.date} · {f.nameKn} ({f.masaKn} {f.tithiKn})
+                      {f.date} · {getLocalizedFestivalName(f, lang)}
                     </option>
                   ))}
                 </optgroup>
@@ -478,24 +568,56 @@ export const BaggonaCalendarPage: React.FC = () => {
           {/* Quick Filter Festival Pills - Sleek horizontal swipeable strip on mobile */}
           <div className="pt-2 border-t border-amber-200">
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 scroll-smooth">
-              <span className="text-[10px] font-black text-slate-500 shrink-0 pl-0.5">ತ್ವರಿತ:</span>
+              <span className="text-[10px] font-black text-slate-500 shrink-0 pl-0.5">
+                {lang === "kn" ? "ತ್ವರಿತ:" : "Quick:"}
+              </span>
               {[
-                { label: "ದಸರಾ (೧೦ ದಿನ)", action: () => executeFestivalSearch("dasara") },
-                { label: "ದೀಪಾವಳಿ (೪ ದಿನ)", action: () => executeFestivalSearch("deepavali") },
-                { label: "ಶ್ರೀರಾಮನವಮಿ (೯ ದಿನ)", action: () => executeFestivalSearch("rama navami") },
-                { label: "ಗಣೇಶ ಚತುರ್ಥಿ (೩ ದಿನ)", action: () => executeFestivalSearch("ganesha") },
-                { label: "ಯುಗಾದಿ", action: () => handleDateChange("2026-03-19") },
-                { label: "ಅಕ್ಷಯ ತೃತೀಯ", action: () => handleDateChange("2026-04-19") },
-                { label: "ವರಮಹಾಲಕ್ಷ್ಮಿ", action: () => handleDateChange("2026-08-21") },
-                { label: "ಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ", action: () => handleDateChange("2026-09-04") },
-                { label: "ಮಕರ ಸಂಕ್ರಾಂತಿ", action: () => handleDateChange("2027-01-14") },
-                { label: "ಮಹಾಶಿವರಾತ್ರಿ", action: () => handleDateChange("2027-03-06") }
+                {
+                  label: lang === "kn" ? "ಮಹಾಲಯ ಅಮಾವಾಸ್ಯೆ" : lang === "hi" ? "महालय अमावस्या" : lang === "te" ? "మహాలయ అమావాస్య" : lang === "ta" ? "மஹாளய அமாவாசை" : "Mahalaya Amavasya",
+                  action: () => handleDateChange("2026-10-10")
+                },
+                {
+                  label: lang === "kn" ? "ದಸರಾ (೧೦ ದಿನ)" : "Dasara (10 Days)",
+                  action: () => executeFestivalSearch("dasara")
+                },
+                {
+                  label: lang === "kn" ? "ದೀಪಾವಳಿ (೪ ದಿನ)" : "Deepavali (4 Days)",
+                  action: () => executeFestivalSearch("deepavali")
+                },
+                {
+                  label: lang === "kn" ? "ಶ್ರೀರಾಮನವಮಿ (೯ ದಿನ)" : "Rama Navami (9 Days)",
+                  action: () => executeFestivalSearch("rama navami")
+                },
+                {
+                  label: lang === "kn" ? "ಗಣೇಶ ಚತುರ್ಥಿ (೩ ದಿನ)" : "Ganesha Chaturthi (3 Days)",
+                  action: () => executeFestivalSearch("ganesha")
+                },
+                {
+                  label: lang === "kn" ? "ಯುಗಾದಿ" : "Yugadi",
+                  action: () => handleDateChange("2026-03-19")
+                },
+                {
+                  label: lang === "kn" ? "ಅಕ್ಷಯ ತೃತೀಯ" : "Akshaya Tritiya",
+                  action: () => handleDateChange("2026-04-19")
+                },
+                {
+                  label: lang === "kn" ? "ವರಮಹಾಲಕ್ಷ್ಮಿ" : "Varamahalakshmi",
+                  action: () => handleDateChange("2026-08-21")
+                },
+                {
+                  label: lang === "kn" ? "ಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ" : "Krishna Janmashtami",
+                  action: () => handleDateChange("2026-09-04")
+                },
+                {
+                  label: lang === "kn" ? "ಮಹಾಶಿವರಾತ್ರಿ" : "Maha Shivaratri",
+                  action: () => handleDateChange("2027-03-06")
+                }
               ].map((p, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={p.action}
-                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#FEFCF4] text-amber-950 border border-amber-300 hover:bg-amber-100 active:scale-95 transition-all shadow-2xs shrink-0 whitespace-nowrap"
+                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#FEFCF4] text-amber-950 border border-amber-300 hover:bg-amber-100 active:scale-95 transition-all shadow-2xs shrink-0 whitespace-nowrap cursor-pointer"
                 >
                   {p.label}
                 </button>
@@ -514,10 +636,12 @@ export const BaggonaCalendarPage: React.FC = () => {
                 </span>
                 <div className="min-w-0">
                   <h2 className="text-sm sm:text-lg font-black text-amber-950 truncate">
-                    {activeMultiGroup.groupNameKn}
+                    {lang === "kn" ? activeMultiGroup.groupNameKn : (activeMultiGroup.groupNameEn || activeMultiGroup.groupNameKn)}
                   </h2>
                   <p className="text-[10px] sm:text-xs font-semibold text-amber-900 truncate">
-                    {activeMultiGroup.totalDays} ದಿನಗಳ ಸಮಗ್ರ ವೇಳಾಪಟ್ಟಿ • {activeMultiGroup.startDate} ರಿಂದ {activeMultiGroup.endDate}
+                    {lang === "kn"
+                      ? `${activeMultiGroup.totalDays} ದಿನಗಳ ಸಮಗ್ರ ವೇಳಾಪಟ್ಟಿ • ${activeMultiGroup.startDate} ರಿಂದ ${activeMultiGroup.endDate}`
+                      : `${activeMultiGroup.totalDays}-Day Comprehensive Schedule • ${activeMultiGroup.startDate} to ${activeMultiGroup.endDate}`}
                   </p>
                 </div>
               </div>
@@ -525,15 +649,17 @@ export const BaggonaCalendarPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveMultiGroup(null)}
-                className="px-2.5 py-1 text-[11px] sm:text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-300 rounded-lg shrink-0 shadow-2xs active:scale-95"
+                className="px-2.5 py-1 text-[11px] sm:text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-300 rounded-lg shrink-0 shadow-2xs active:scale-95 cursor-pointer"
               >
-                ✕ ಮುಚ್ಚಿ
+                {lang === "kn" ? "✕ ಮುಚ್ಚಿ" : "✕ Close"}
               </button>
             </div>
 
             {/* Quick Day Selector Strip on mobile for instant 1-tap navigation across multi-day dates */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-              <span className="text-[10px] font-black text-amber-900 shrink-0">ದಿನಗಳು:</span>
+              <span className="text-[10px] font-black text-amber-900 shrink-0">
+                {lang === "kn" ? "ದಿನಗಳು:" : "Days:"}
+              </span>
               {activeMultiGroup.days.map((d) => {
                 const isCurrentActiveDay = selectedDate === d.date;
                 return (
@@ -541,13 +667,13 @@ export const BaggonaCalendarPage: React.FC = () => {
                     key={d.dayNumber}
                     type="button"
                     onClick={() => handleDateChange(d.date)}
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-black border transition-all shrink-0 whitespace-nowrap ${
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-black border transition-all shrink-0 whitespace-nowrap cursor-pointer ${
                       isCurrentActiveDay
                         ? "bg-amber-600 text-white border-amber-700 shadow-xs"
                         : "bg-white hover:bg-amber-50 text-amber-950 border-amber-300"
                     }`}
                   >
-                    ದಿನ {d.dayNumber} ({d.date.slice(5)})
+                    {lang === "kn" ? `ದಿನ ${d.dayNumber} (${d.date.slice(5)})` : `Day ${d.dayNumber} (${d.date.slice(5)})`}
                   </button>
                 );
               })}
@@ -569,7 +695,7 @@ export const BaggonaCalendarPage: React.FC = () => {
                   >
                     <div className="flex items-center justify-between gap-1">
                       <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${d.colorBadge || "bg-amber-600 text-white"}`}>
-                        ದಿನ {d.dayNumber} / {d.totalDays}
+                        {lang === "kn" ? `ದಿನ ${d.dayNumber} / ${d.totalDays}` : `Day ${d.dayNumber} / ${d.totalDays}`}
                       </span>
                       <span className="text-xs font-black text-amber-950 font-mono">
                         {d.date}
@@ -578,25 +704,29 @@ export const BaggonaCalendarPage: React.FC = () => {
 
                     <div>
                       <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
-                        {d.titleKn}
+                        {lang === "kn" ? d.titleKn : (d.titleEn || d.titleKn)}
                       </h4>
                       <p className="text-[10px] font-bold text-amber-900 mt-0.5">
-                        {d.tithiKn} • {d.nakshatraKn}
+                        {lang === "kn" ? `${d.tithiKn} • ${d.nakshatraKn}` : `${d.tithiEn || d.tithiKn} • ${d.nakshatraEn || d.nakshatraKn}`}
                       </p>
                     </div>
 
                     <div className="bg-amber-50/80 border border-amber-200 p-1.5 rounded-lg text-[10px] font-semibold text-slate-700">
-                      <span className="font-bold text-amber-950 block">ಪೂಜಾ ಮುಹೂರ್ತ:</span>
-                      <span className="text-emerald-800 font-bold break-words">{d.pujaWindowKn}</span>
+                      <span className="font-bold text-amber-950 block">
+                        {lang === "kn" ? "ಪೂಜಾ ಮುಹೂರ್ತ:" : "Puja Muhurtha:"}
+                      </span>
+                      <span className="text-emerald-800 font-bold break-words">
+                        {lang === "kn" ? d.pujaWindowKn : (d.pujaWindowEn || d.pujaWindowKn)}
+                      </span>
                     </div>
 
                     <p className="text-[10px] text-slate-600 line-clamp-2 leading-relaxed">
-                      {d.significanceKn}
+                      {lang === "kn" ? d.significanceKn : (d.significanceEn || d.significanceKn)}
                     </p>
 
                     <div className="pt-1 border-t border-amber-100 flex items-center justify-between text-[10px]">
                       <span className={`font-bold ${isCurrentActiveDay ? "text-amber-800" : "text-slate-500"}`}>
-                        {isCurrentActiveDay ? "● ಪ್ರಸ್ತುತ ವೀಕ್ಷಣೆಯ ದಿನ" : "ಕ್ಲಿಕ್ ಮಾಡಿ → ಪಂಚಾಂಗ ದರ್ಶನ"}
+                        {isCurrentActiveDay ? (lang === "kn" ? "● ಪ್ರಸ್ತುತ ವೀಕ್ಷಣೆಯ ದಿನ" : "● Selected Day") : (lang === "kn" ? "ಕ್ಲಿಕ್ ಮಾಡಿ → ಪಂಚಾಂಗ ದರ್ಶನ" : "Click to View →")}
                       </span>
                     </div>
                   </div>
@@ -614,29 +744,29 @@ export const BaggonaCalendarPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handlePreviousDay}
-                className="px-2 sm:px-3.5 py-2 rounded-xl text-[11px] sm:text-xs font-black bg-[#FFFDF7] text-amber-950 border-2 border-amber-300 hover:bg-amber-100 active:scale-95 transition-all flex items-center justify-center gap-1 shadow-2xs"
-                title="ಹಿಂದಿನ ದಿನದ ಪಂಚಾಂಗ"
+                className="px-2 sm:px-3.5 py-2 rounded-xl text-[11px] sm:text-xs font-black bg-[#FFFDF7] text-amber-950 border-2 border-amber-300 hover:bg-amber-100 active:scale-95 transition-all flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                title={lang === "kn" ? "ಹಿಂದಿನ ದಿನದ ಪಂಚಾಂಗ" : "Previous Day"}
               >
                 <span>◀</span>
-                <span>ಹಿಂದಿನ</span>
+                <span>{lang === "kn" ? "ಹಿಂದಿನ" : "Prev"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleJumpToToday}
-                className="px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black bg-amber-200 text-amber-950 border-2 border-amber-400 hover:bg-amber-300 active:scale-95 transition-all text-center shadow-2xs"
-                title="ಇಂದಿನ ದಿನಾಂಕಕ್ಕೆ ಹೋಗಿ"
+                className="px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black bg-amber-200 text-amber-950 border-2 border-amber-400 hover:bg-amber-300 active:scale-95 transition-all text-center shadow-2xs cursor-pointer"
+                title={lang === "kn" ? "ಇಂದಿನ ದಿನಾಂಕಕ್ಕೆ ಹೋಗಿ" : "Jump to Today"}
               >
-                ಇಂದು
+                {lang === "kn" ? "ಇಂದು" : "Today"}
               </button>
 
               <button
                 type="button"
                 onClick={handleNextDay}
-                className="px-2 sm:px-3.5 py-2 rounded-xl text-[11px] sm:text-xs font-black bg-[#FFFDF7] text-amber-950 border-2 border-amber-300 hover:bg-amber-100 active:scale-95 transition-all flex items-center justify-center gap-1 shadow-2xs"
-                title="ಮುಂದಿನ ದಿನದ ಪಂಚಾಂಗ"
+                className="px-2 sm:px-3.5 py-2 rounded-xl text-[11px] sm:text-xs font-black bg-[#FFFDF7] text-amber-950 border-2 border-amber-300 hover:bg-amber-100 active:scale-95 transition-all flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                title={lang === "kn" ? "ಮುಂದಿನ ದಿನದ ಪಂಚಾಂಗ" : "Next Day"}
               >
-                <span>ಮುಂದಿನ</span>
+                <span>{lang === "kn" ? "ಮುಂದಿನ" : "Next"}</span>
                 <span>▶</span>
               </button>
             </div>
@@ -645,26 +775,26 @@ export const BaggonaCalendarPage: React.FC = () => {
             <div className="flex items-center gap-2 justify-between">
               <div className="flex items-center gap-1.5 flex-1 min-w-0">
                 <label className="text-[11px] sm:text-xs font-black text-amber-950 shrink-0">
-                  📆 ದಿನಾಂಕ:
+                  {lang === "kn" ? "📆 ದಿನಾಂಕ:" : "📆 Date:"}
                 </label>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => handleDateChange(e.target.value)}
-                  className="w-full min-w-0 px-2 sm:px-3 py-1.5 text-xs font-black border-2 border-amber-400 rounded-xl bg-[#FFFDF7] text-slate-900 focus:outline-none focus:border-amber-600 shadow-xs"
+                  className="w-full min-w-0 px-2 sm:px-3 py-1.5 text-xs font-black border-2 border-amber-400 rounded-xl bg-[#FFFDF7] text-slate-900 focus:outline-none focus:border-amber-600 shadow-xs cursor-pointer"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowMonthView((prev) => !prev)}
-                className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all shrink-0 ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all shrink-0 cursor-pointer ${
                   showMonthView
                     ? "bg-amber-600 text-white border-amber-700"
                     : "bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300"
                 }`}
               >
-                <span>{showMonthView ? "✕ ಮುಚ್ಚಿ" : "🗓️ ಮಾಸಿಕ"}</span>
+                <span>{showMonthView ? (lang === "kn" ? "✕ ಮುಚ್ಚಿ" : "✕ Close") : (lang === "kn" ? "🗓️ ಮಾಸಿಕ" : "🗓️ Month")}</span>
               </button>
             </div>
           </div>
@@ -673,10 +803,15 @@ export const BaggonaCalendarPage: React.FC = () => {
           {showMonthView && (
             <div className="mt-3 pt-3 border-t border-amber-200 overflow-hidden">
               <div className="text-[11px] sm:text-xs font-black text-amber-950 mb-2 truncate">
-                {dossier.chandramanaMasaKn} ಮಾಸ ({dossier.pakshaKn} ಪಕ್ಷ) • ತ್ವರಿತ ಆಯ್ಕೆ:
+                {lang === "kn"
+                  ? `${dossier.chandramanaMasaKn} ಮಾಸ (${dossier.pakshaKn} ಪಕ್ಷ) • ತ್ವರಿತ ಆಯ್ಕೆ:`
+                  : `${getLocalizedMasaName(dossier.chandramanaMasaKn, lang)} Masa (${dossier.paksha} Paksha) • Select Day:`}
               </div>
               <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                {["ರವಿ", "ಸೋಮ", "ಮಂಗಳ", "ಬುಧ", "ಗುರು", "ಶುಕ್ರ", "ಶನಿ"].map((w) => (
+                {(lang === "kn"
+                  ? ["ರವಿ", "ಸೋಮ", "ಮಂಗಳ", "ಬುಧ", "ಗುರು", "ಶುಕ್ರ", "ಶನಿ"]
+                  : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                ).map((w) => (
                   <div key={w} className="font-bold text-amber-900 bg-amber-100/60 py-1 rounded text-[10px] sm:text-xs">
                     {w}
                   </div>
@@ -692,7 +827,7 @@ export const BaggonaCalendarPage: React.FC = () => {
                       key={i}
                       type="button"
                       onClick={() => handleDateChange(dStr)}
-                      className={`p-1 sm:p-1.5 rounded-lg border text-xs font-bold transition-all ${
+                      className={`p-1 sm:p-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
                         isCur
                           ? "bg-amber-600 text-white border-amber-700 shadow-xs"
                           : "bg-white hover:bg-amber-50 text-slate-800 border-amber-200"
@@ -708,55 +843,109 @@ export const BaggonaCalendarPage: React.FC = () => {
         </section>
 
         {/* 5. MATCHED FESTIVAL BANNER FOR CURRENT SELECTED DAY (IF ANY) */}
-        {(singleFestival || dossier.matchedFestival) && (
-          <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-100 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 rounded-2xl shadow-sm space-y-2 overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-amber-300 pb-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-2xl sm:text-3xl p-1 bg-white rounded-xl border border-amber-300 shadow-2xs shrink-0">🪔</span>
-                <div className="min-w-0">
-                  <h2 className="text-sm sm:text-base font-black text-amber-950 flex flex-wrap items-center gap-1.5">
-                    <span>{singleFestival?.nameKn || dossier.matchedFestival?.nameKn}</span>
-                    <span className="text-[11px] font-bold text-amber-800">
-                      ({singleFestival?.nameEn || dossier.matchedFestival?.nameEn})
-                    </span>
-                  </h2>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-amber-900 truncate">
-                    {dossier.chandramanaMasaKn} {dossier.pakshaKn} {dossier.tithiKn} • {dossier.weekdayKn}ವಾರ
-                  </p>
+        {(singleFestival || dossier.matchedFestival) && (() => {
+          const currentFest = singleFestival || dossier.matchedFestival;
+          const festTitle = getLocalizedFestivalName(currentFest, lang);
+          const festCategory = getLocalizedFestivalCategory(currentFest, lang);
+          const festDesc = getLocalizedFestivalDescription(currentFest, lang);
+          const festPujaWindow = getLocalizedPujaWindow(currentFest, lang);
+
+          return (
+            <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-100 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 rounded-2xl shadow-sm space-y-2 overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-amber-300 pb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-2xl sm:text-3xl p-1 bg-white rounded-xl border border-amber-300 shadow-2xs shrink-0">🪔</span>
+                  <div className="min-w-0">
+                    <h2 className="text-sm sm:text-base font-black text-amber-950 flex flex-wrap items-center gap-1.5">
+                      <span>{festTitle}</span>
+                      {lang === "kn" && currentFest?.nameEn && (
+                        <span className="text-[11px] font-bold text-amber-800">
+                          ({currentFest.nameEn})
+                        </span>
+                      )}
+                    </h2>
+                    <p className="text-[10px] sm:text-[11px] font-bold text-amber-900 truncate">
+                      {lang === "kn"
+                        ? `${dossier.chandramanaMasaKn} ${dossier.pakshaKn} ${dossier.tithiKn} • ${dossier.weekdayKn}ವಾರ`
+                        : `${getLocalizedMasaName(dossier.chandramanaMasaKn, lang)} ${dossier.paksha} ${dossier.tithi} • ${dossier.weekday}`}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-200 border border-amber-400 text-amber-950 shrink-0 self-start sm:self-auto">
+                  {festCategory}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-1">
+                <div className="bg-white p-2 sm:p-2.5 rounded-xl border border-amber-200 shadow-2xs">
+                  <span className="text-[9.5px] font-bold text-slate-500 block">
+                    {lang === "kn"
+                      ? "ಪೂಜಾ ಮುಹೂರ್ತ ಕಾಲಾವಧಿ:"
+                      : lang === "hi"
+                      ? "पूजा मुहूर्त समयावधि:"
+                      : lang === "te"
+                      ? "పూజా ముహూర్త సమయం:"
+                      : lang === "ta"
+                      ? "பூஜை முகூர்த்த நேரம்:"
+                      : "Puja Muhurtha Window:"}
+                  </span>
+                  <span className="font-black text-emerald-800 text-xs mt-0.5 block break-words">
+                    {festPujaWindow}
+                  </span>
+                </div>
+                <div className="bg-white p-2 sm:p-2.5 rounded-xl border border-amber-200 shadow-2xs">
+                  <span className="text-[9.5px] font-bold text-slate-500 block">
+                    {lang === "kn"
+                      ? "ತಿಥಿ ಅಂತ್ಯ & ಘಟಿ:"
+                      : lang === "hi"
+                      ? "तिथि समाप्ति व घटी:"
+                      : lang === "te"
+                      ? "తిథి సమాప్తి & ఘటి:"
+                      : lang === "ta"
+                      ? "திதி முடிவு & கடிகை:"
+                      : "Tithi End Time & Ghati:"}
+                  </span>
+                  <span className="font-black text-amber-950 text-xs mt-0.5 block break-words">
+                    {lang === "kn" ? dossier.tithiKn : dossier.tithi} ({dossier.tithiGhati}) {lang === "kn" ? "ಅಂತ್ಯ:" : "Ends:"} {dossier.tithiEndTime}
+                  </span>
+                </div>
+                <div className="bg-white p-2 sm:p-2.5 rounded-xl border border-amber-200 shadow-2xs">
+                  <span className="text-[9.5px] font-bold text-slate-500 block">
+                    {lang === "kn"
+                      ? "ಶ್ರಾದ್ಧ ತಿಥಿ:"
+                      : lang === "hi"
+                      ? "श्राद्ध तिथि:"
+                      : lang === "te"
+                      ? "శ్రాద్ధ తిథి:"
+                      : lang === "ta"
+                      ? "சிராத்த திதி:"
+                      : "Shraddha Tithi:"}
+                  </span>
+                  <span className="font-black text-purple-950 text-xs mt-0.5 block">
+                    {dossier.shraddhaTithi}
+                  </span>
                 </div>
               </div>
-              <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-200 border border-amber-400 text-amber-950 shrink-0 self-start sm:self-auto">
-                {singleFestival?.categoryKn || dossier.matchedFestival?.category || "ವಿಶೇಷ ಹಬ್ಬ"}
-              </span>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-1">
-              <div className="bg-white p-2 sm:p-2.5 rounded-xl border border-amber-200 shadow-2xs">
-                <span className="text-[9.5px] font-bold text-slate-500 block">ಪೂಜಾ ಮುಹೂರ್ತ ಕಾಲಾವಧಿ:</span>
-                <span className="font-black text-emerald-800 text-xs mt-0.5 block break-words">
-                  {singleFestival?.pujaWindowKn || dossier.matchedFestival?.pujaWindow || "ದಿನದ ಪ್ರಾತಃಕಾಲ & ಮಾಧ್ಯಾಹ್ನ ಕಾಲ"}
-                </span>
-              </div>
-              <div className="bg-white p-2 sm:p-2.5 rounded-xl border border-amber-200 shadow-2xs">
-                <span className="text-[9.5px] font-bold text-slate-500 block">ತಿಥಿ ಅಂತ್ಯ & ಘಟಿ:</span>
-                <span className="font-black text-amber-950 text-xs mt-0.5 block break-words">
-                  {dossier.tithiKn} ({dossier.tithiGhati}) ಅಂತ್ಯ: {dossier.tithiEndTime}
-                </span>
-              </div>
-              <div className="bg-white p-2 sm:p-2.5 rounded-xl border border-amber-200 shadow-2xs">
-                <span className="text-[9.5px] font-bold text-slate-500 block">ಶ್ರಾದ್ಧ ತಿಥಿ:</span>
-                <span className="font-black text-purple-950 text-xs mt-0.5 block">
-                  {dossier.shraddhaTithi}
-                </span>
-              </div>
+              {festDesc && (
+                <p className="text-xs text-slate-800 font-semibold leading-relaxed pt-1">
+                  <span className="font-bold text-amber-950">
+                    {lang === "kn"
+                      ? "ಧಾರ್ಮಿಕ ವಿವರ: "
+                      : lang === "hi"
+                      ? "धार्मिक विवरण: "
+                      : lang === "te"
+                      ? "ధార్మిక వివరాలు: "
+                      : lang === "ta"
+                      ? "ஆன்மீக விளக்கம்: "
+                      : "Sacred Details: "}
+                  </span>
+                  {festDesc}
+                </p>
+              )}
             </div>
-
-            <p className="text-xs text-slate-800 font-semibold leading-relaxed pt-1">
-              <span className="font-bold text-amber-950">ಧಾರ್ಮಿಕ ವಿವರ: </span>
-              {singleFestival?.descriptionKn || dossier.matchedFestival?.descriptionKn}
-            </p>
-          </div>
-        )}
+          );
+        })()}
 
         {/* 6. PREVIOUS DAY PREPARATION ALERT BANNER (IF ACTIVE) */}
         {dossier.previousDayAlert && (
@@ -764,7 +953,15 @@ export const BaggonaCalendarPage: React.FC = () => {
             <span className="text-xl sm:text-2xl shrink-0">🔔</span>
             <div className="flex-1 min-w-0">
               <span className="text-[9.5px] sm:text-[10px] font-black uppercase text-amber-900 tracking-wider block truncate">
-                ಮುಂಬರುವ ದಿನದ ಪೂರ್ವಭಾವಿ ಧಾರ್ಮಿಕ ಸೂಚನೆ (Preparation Alert)
+                {lang === "kn"
+                  ? "ಮುಂಬರುವ ದಿನದ ಪೂರ್ವಭಾವಿ ಧಾರ್ಮಿಕ ಸೂಚನೆ (Preparation Alert)"
+                  : lang === "hi"
+                  ? "आगामी दिवस की पूर्व धार्मिक सूचना (Preparation Alert)"
+                  : lang === "te"
+                  ? "రాబోయే రోజు ముందస్తు ధార్మిక సమాచారం (Preparation Alert)"
+                  : lang === "ta"
+                  ? "அடுத்த நாளுக்கான முந்தைய ஆன்மீக வழிகாட்டல் (Preparation Alert)"
+                  : "Next Day Advance Preparation Alert"}
               </span>
               <p className="text-[11px] sm:text-xs font-bold text-amber-950 whitespace-pre-line leading-relaxed break-words">
                 {dossier.previousDayAlert}
@@ -779,18 +976,22 @@ export const BaggonaCalendarPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b-2 border-amber-200 pb-2.5">
             <div>
               <span className="text-[9.5px] sm:text-[10px] font-black uppercase text-amber-800 tracking-wider block">
-                ದೈನಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನ (Daily Panchanga Dossier)
+                {lang === "kn" ? "ದೈನಂದಿನ ಪಂಚಾಂಗ ದರ್ಶನ (Daily Panchanga Dossier)" : "Daily Panchanga Dossier"}
               </span>
               <h3 className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 truncate">
-                {dossier.dateStr} · {dossier.weekdayKn}ವಾರ ({dossier.weekday})
+                {dossier.dateStr} · {lang === "kn" ? `${dossier.weekdayKn}ವಾರ (${dossier.weekday})` : dossier.weekday}
               </h3>
             </div>
             <div className="text-left sm:text-right">
               <span className="text-xs font-black text-amber-950 block truncate">
-                {dossier.samvatsaraKn} ಸಂವತ್ಸರ • ಶಕ {dossier.shakaYear}
+                {lang === "kn"
+                  ? `${dossier.samvatsaraKn} ಸಂವತ್ಸರ • ಶಕ ${dossier.shakaYear}`
+                  : `${dossier.samvatsara} Samvatsara • Shaka ${dossier.shakaYear}`}
               </span>
               <span className="text-[10px] sm:text-[11px] font-bold text-amber-800 block truncate">
-                {dossier.chandramanaMasaKn} ಮಾಸ ({dossier.pakshaKn} ಪಕ್ಷ) • {dossier.sauramanaMasaKn} {dossier.sauramanaDina}ನೇ ದಿನ
+                {lang === "kn"
+                  ? `${dossier.chandramanaMasaKn} ಮಾಸ (${dossier.pakshaKn} ಪಕ್ಷ) • ${dossier.sauramanaMasaKn} ${dossier.sauramanaDina}ನೇ ದಿನ`
+                  : `${getLocalizedMasaName(dossier.chandramanaMasaKn, lang)} Masa (${dossier.paksha} Paksha)`}
               </span>
             </div>
           </div>
@@ -799,35 +1000,57 @@ export const BaggonaCalendarPage: React.FC = () => {
           <div>
             <h4 className="text-[11px] sm:text-xs font-black text-amber-950 mb-2 flex items-center gap-1.5">
               <span>🪔</span>
-              <span className="truncate">ಪಂಚಾಂಗದ ಪಂಚ ಅಂಗಗಳು (The 5 Sacred Angas with End Times & Ghati):</span>
+              <span className="truncate">
+                {lang === "kn"
+                  ? "ಪಂಚಾಂಗದ ಪಂಚ ಅಂಗಗಳು (The 5 Sacred Angas with End Times & Ghati):"
+                  : "The 5 Sacred Panchanga Angas (End Times & Ghati):"}
+              </span>
             </h4>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-2.5">
               {/* Tithi */}
               <div className="bg-amber-50/70 border border-amber-200 p-2.5 sm:p-3 rounded-xl shadow-2xs overflow-hidden">
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">೧. ತಿಥಿ (Tithi)</span>
-                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5 truncate">{dossier.tithiKn}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block truncate">ಘಟಿ: {dossier.tithiGhati}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">
+                  {lang === "kn" ? "೧. ತಿಥಿ (Tithi)" : "1. Tithi"}
+                </span>
+                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5 truncate">
+                  {lang === "kn" ? dossier.tithiKn : dossier.tithi}
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block truncate">
+                  {lang === "kn" ? "ಘಟಿ:" : "Ghati:"} {dossier.tithiGhati}
+                </span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-emerald-800 block mt-1 break-words">
-                  ಅಂತ್ಯ: {dossier.tithiEndTime}
+                  {lang === "kn" ? "ಅಂತ್ಯ:" : "Ends:"} {dossier.tithiEndTime}
                 </span>
               </div>
 
               {/* Nakshatra */}
               <div className="bg-amber-50/70 border border-amber-200 p-2.5 sm:p-3 rounded-xl shadow-2xs overflow-hidden">
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">೨. ನಕ್ಷತ್ರ (Nakshatra)</span>
-                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5 truncate">{dossier.nakshatraKn}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block truncate">ಘಟಿ: {dossier.nakshatraGhati}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">
+                  {lang === "kn" ? "೨. ನಕ್ಷತ್ರ (Nakshatra)" : "2. Nakshatra"}
+                </span>
+                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5 truncate">
+                  {lang === "kn" ? dossier.nakshatraKn : dossier.nakshatra}
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block truncate">
+                  {lang === "kn" ? "ಘಟಿ:" : "Ghati:"} {dossier.nakshatraGhati}
+                </span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-emerald-800 block mt-1 break-words">
-                  ಅಂತ್ಯ: {dossier.nakshatraEndTime}
+                  {lang === "kn" ? "ಅಂತ್ಯ:" : "Ends:"} {dossier.nakshatraEndTime}
                 </span>
               </div>
 
               {/* Yoga */}
               <div className="bg-amber-50/70 border border-amber-200 p-2.5 sm:p-3 rounded-xl shadow-2xs overflow-hidden">
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">೩. ಯೋಗ (Yoga)</span>
-                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5 truncate">{dossier.yogaKn}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block truncate">ಘಟಿ: {dossier.yogaGhati}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">
+                  {lang === "kn" ? "೩. ಯೋಗ (Yoga)" : "3. Yoga"}
+                </span>
+                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5 truncate">
+                  {lang === "kn" ? dossier.yogaKn : dossier.yoga}
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block truncate">
+                  {lang === "kn" ? "ಘಟಿ:" : "Ghati:"} {dossier.yogaGhati}
+                </span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-slate-600 block mt-1 truncate">
                   {dossier.yoga}
                 </span>
@@ -835,9 +1058,15 @@ export const BaggonaCalendarPage: React.FC = () => {
 
               {/* Karana */}
               <div className="bg-amber-50/70 border border-amber-200 p-2.5 sm:p-3 rounded-xl shadow-2xs overflow-hidden">
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">೪. ಕರಣ (Karana)</span>
-                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5 truncate">{dossier.karanaKn}</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block truncate">ಘಟಿ: {dossier.karanaGhati}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">
+                  {lang === "kn" ? "೪. ಕರಣ (Karana)" : "4. Karana"}
+                </span>
+                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5 truncate">
+                  {lang === "kn" ? dossier.karanaKn : dossier.karana}
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block truncate">
+                  {lang === "kn" ? "ಘಟಿ:" : "Ghati:"} {dossier.karanaGhati}
+                </span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-slate-600 block mt-1 truncate">
                   {dossier.karana}
                 </span>
@@ -845,11 +1074,17 @@ export const BaggonaCalendarPage: React.FC = () => {
 
               {/* Vara */}
               <div className="bg-amber-50/70 border border-amber-200 p-2.5 sm:p-3 rounded-xl shadow-2xs col-span-2 lg:col-span-1 overflow-hidden">
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">೫. ವಾರ (Weekday)</span>
-                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5">{dossier.weekdayKn}ವಾರ</span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block">{dossier.weekday}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block truncate">
+                  {lang === "kn" ? "೫. ವಾರ (Weekday)" : "5. Weekday"}
+                </span>
+                <span className="text-xs sm:text-sm font-black text-amber-950 block mt-0.5">
+                  {lang === "kn" ? `${dossier.weekdayKn}ವಾರ` : dossier.weekday}
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-700 block">
+                  {lang === "kn" ? dossier.weekday : ""}
+                </span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-purple-900 block mt-1 truncate">
-                  ಋತು: {getRituKn(dossier.chandramanaMasaKn)}
+                  {lang === "kn" ? `ಋತು: ${getRituKn(dossier.chandramanaMasaKn)}` : `Ritu: ${getRituKn(dossier.chandramanaMasaKn).replace(/^[^\(]+\(([^)]+)\)/, "$1")}`}
                 </span>
               </div>
             </div>
@@ -859,36 +1094,40 @@ export const BaggonaCalendarPage: React.FC = () => {
           <div className="border-t border-amber-200 pt-2.5 sm:pt-3">
             <h4 className="text-[11px] sm:text-xs font-black text-amber-950 mb-2 flex items-center gap-1.5">
               <span>☀️</span>
-              <span className="truncate">ಸೂರ್ಯೋದಯ, ದಿನಮಾನ & ಮುಹೂರ್ತ ಕಾಲಾವಧಿಗಳು (Muhurtha Windows):</span>
+              <span className="truncate">
+                {lang === "kn"
+                  ? "ಸೂರ್ಯೋದಯ, ದಿನಮಾನ & ಮುಹೂರ್ತ ಕಾಲಾವಧಿಗಳು (Muhurtha Windows):"
+                  : "Sunrise, Sunset & Auspicious Muhurthas (Muhurtha Windows):"}
+              </span>
             </h4>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 text-xs">
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
-                <span className="text-[9.5px] font-bold text-slate-500 block truncate">ಸೂರ್ಯೋದಯ:</span>
+                <span className="text-[9.5px] font-bold text-slate-500 block truncate">{lang === "kn" ? "ಸೂರ್ಯೋದಯ:" : "Sunrise:"}</span>
                 <span className="font-black text-amber-950 text-xs mt-0.5 block truncate">{dossier.suryodaya}</span>
               </div>
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
-                <span className="text-[9.5px] font-bold text-slate-500 block truncate">ಸೂರ್ಯಾಸ್ತ:</span>
+                <span className="text-[9.5px] font-bold text-slate-500 block truncate">{lang === "kn" ? "ಸೂರ್ಯಾಸ್ತ:" : "Sunset:"}</span>
                 <span className="font-black text-amber-950 text-xs mt-0.5 block truncate">{dossier.suryasta}</span>
               </div>
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
-                <span className="text-[9.5px] font-bold text-slate-500 block truncate">ದಿನಪ್ರಮಾಣ:</span>
-                <span className="font-black text-slate-900 text-xs mt-0.5 block truncate">{dossier.dinapramana} ಘಟಿ</span>
+                <span className="text-[9.5px] font-bold text-slate-500 block truncate">{lang === "kn" ? "ದಿನಪ್ರಮಾಣ:" : "Day Span:"}</span>
+                <span className="font-black text-slate-900 text-xs mt-0.5 block truncate">{dossier.dinapramana} {lang === "kn" ? "ಘಟಿ" : "Ghati"}</span>
               </div>
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
-                <span className="text-[9.5px] font-bold text-slate-500 block truncate">ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತ:</span>
+                <span className="text-[9.5px] font-bold text-slate-500 block truncate">{lang === "kn" ? "ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತ:" : "Brahma Muhurtha:"}</span>
                 <span className="font-black text-indigo-900 text-xs mt-0.5 block truncate">{dossier.brahmaMuhurtha}</span>
               </div>
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
-                <span className="text-[9.5px] font-bold text-slate-500 block truncate">ಅಭಿಜಿನ್ ಮುಹೂರ್ತ:</span>
+                <span className="text-[9.5px] font-bold text-slate-500 block truncate">{lang === "kn" ? "ಅಭಿಜಿನ್ ಮುಹೂರ್ತ:" : "Abhijit Muhurtha:"}</span>
                 <span className="font-black text-emerald-800 text-xs mt-0.5 block truncate">{dossier.abhijitMuhurtha}</span>
               </div>
               <div className="bg-emerald-50/70 p-2 rounded-xl border border-emerald-200 overflow-hidden">
-                <span className="text-[9.5px] font-bold text-emerald-800 block truncate">ಅಮೃತ ಕಾಲ:</span>
+                <span className="text-[9.5px] font-bold text-emerald-800 block truncate">{lang === "kn" ? "ಅಮೃತ ಕಾಲ:" : "Amrita Kaala:"}</span>
                 <span className="font-black text-emerald-950 text-xs mt-0.5 block truncate">{dossier.amritaKaala}</span>
               </div>
               <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-hidden">
-                <span className="text-[9.5px] font-bold text-slate-500 block truncate">ಪ್ರದೋಷ ಕಾಲ:</span>
+                <span className="text-[9.5px] font-bold text-slate-500 block truncate">{lang === "kn" ? "ಪ್ರದೋಷ ಕಾಲ:" : "Pradosha Kaala:"}</span>
                 <span className="font-black text-purple-900 text-xs mt-0.5 block truncate">{dossier.sayankalaPradosha}</span>
               </div>
             </div>
@@ -898,28 +1137,32 @@ export const BaggonaCalendarPage: React.FC = () => {
           <div className="border-t border-amber-200 pt-2.5 sm:pt-3">
             <h4 className="text-[11px] sm:text-xs font-black text-amber-950 mb-2 flex items-center gap-1.5">
               <span>⚠️</span>
-              <span className="truncate">ರಾಹುಕಾಲ, ಯಮಗಂಡ, ವರ್ಜ್ಯ & ಶ್ರಾದ್ಧ ನಿರ್ಣಯ:</span>
+              <span className="truncate">
+                {lang === "kn"
+                  ? "ರಾಹುಕಾಲ, ಯಮಗಂಡ, ವರ್ಜ್ಯ & ಶ್ರಾದ್ಧ ನಿರ್ಣಯ:"
+                  : "Rahu Kaala, Yamaganda, Varjyam & Shraddha Details:"}
+              </span>
             </h4>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
               <div className="bg-red-50/70 border border-red-200 p-2 sm:p-2.5 rounded-xl overflow-hidden">
-                <span className="text-[9.5px] font-bold text-red-800 uppercase block truncate">ರಾಹುಕಾಲ:</span>
+                <span className="text-[9.5px] font-bold text-red-800 uppercase block truncate">{lang === "kn" ? "ರಾಹುಕಾಲ:" : "Rahu Kaala:"}</span>
                 <span className="font-black text-red-950 text-xs mt-0.5 block truncate">{dossier.rahuKaala}</span>
               </div>
               <div className="bg-amber-50/80 border border-amber-200 p-2 sm:p-2.5 rounded-xl overflow-hidden">
-                <span className="text-[9.5px] font-bold text-amber-900 uppercase block truncate">ಗುಳಿಕಕಾಲ:</span>
+                <span className="text-[9.5px] font-bold text-amber-900 uppercase block truncate">{lang === "kn" ? "ಗುಳಿಕಕಾಲ:" : "Gulika Kaala:"}</span>
                 <span className="font-black text-amber-950 text-xs mt-0.5 block truncate">{dossier.gulikaKaala}</span>
               </div>
               <div className="bg-slate-50 border border-slate-200 p-2 sm:p-2.5 rounded-xl overflow-hidden">
-                <span className="text-[9.5px] font-bold text-slate-600 uppercase block truncate">ಯಮಗಂಡ:</span>
+                <span className="text-[9.5px] font-bold text-slate-600 uppercase block truncate">{lang === "kn" ? "ಯಮಗಂಡ:" : "Yamaganda:"}</span>
                 <span className="font-black text-slate-900 text-xs mt-0.5 block truncate">{dossier.yamaganda}</span>
               </div>
               <div className="bg-amber-50/80 border border-amber-200 p-2 sm:p-2.5 rounded-xl overflow-hidden">
-                <span className="text-[9.5px] font-bold text-slate-600 uppercase block truncate">ವರ್ಜ್ಯ (ವಿಷ ಘಟಿ):</span>
-                <span className="font-black text-amber-950 text-xs mt-0.5 block truncate">{dossier.vishaGhati} ಘಟಿ</span>
+                <span className="text-[9.5px] font-bold text-slate-600 uppercase block truncate">{lang === "kn" ? "ವರ್ಜ್ಯ (ವಿಷ ಘಟಿ):" : "Varjyam (Visha Ghati):"}</span>
+                <span className="font-black text-amber-950 text-xs mt-0.5 block truncate">{dossier.vishaGhati} {lang === "kn" ? "ಘಟಿ" : "Ghati"}</span>
               </div>
               <div className="bg-purple-50/80 border border-purple-200 p-2 sm:p-2.5 rounded-xl col-span-2 sm:col-span-1 overflow-hidden">
-                <span className="text-[9.5px] font-bold text-purple-900 uppercase block truncate">ಶ್ರಾದ್ಧ ತಿಥಿ:</span>
+                <span className="text-[9.5px] font-bold text-purple-900 uppercase block truncate">{lang === "kn" ? "ಶ್ರಾದ್ಧ ತಿಥಿ:" : "Shraddha Tithi:"}</span>
                 <span className="font-black text-purple-950 text-xs mt-0.5 block truncate">{dossier.shraddhaTithi}</span>
               </div>
             </div>
@@ -930,9 +1173,13 @@ export const BaggonaCalendarPage: React.FC = () => {
             <h4 className="text-[11px] sm:text-xs font-black text-amber-950 mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1.5 truncate">
                 <span>⏱️</span>
-                <span className="truncate">೧೨ ದಿವಾ ಲಗ್ನಗಳ ನಿತ್ಯ ಸಮಾಪ್ತಿ ಕಾಲ (12 Dina Lagnas):</span>
+                <span className="truncate">
+                  {lang === "kn" ? "೧೨ ದಿವಾ ಲಗ್ನಗಳ ನಿತ್ಯ ಸಮಾಪ್ತಿ ಕಾಲ (12 Dina Lagnas):" : "12 Dina Lagnas Ending Times (12 Dina Lagnas):"}
+                </span>
               </span>
-              <span className="text-[9.5px] font-bold text-slate-500 shrink-0">ಗೋಕರ್ಣ ಮಾನಕ</span>
+              <span className="text-[9.5px] font-bold text-slate-500 shrink-0">
+                {lang === "kn" ? "ಗೋಕರ್ಣ ಮಾನಕ" : "Gokarna Standard"}
+              </span>
             </h4>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 text-xs">
@@ -951,7 +1198,9 @@ export const BaggonaCalendarPage: React.FC = () => {
                 { kn: "ಮೀನ", en: "Meena", time: dossier.lagnaEndingTimes.meena }
               ].map((l) => (
                 <div key={l.kn} className="bg-slate-50 p-2 rounded-xl border border-slate-200 text-center overflow-hidden">
-                  <span className="text-[10px] font-bold text-slate-700 block truncate">{l.kn} ({l.en})</span>
+                  <span className="text-[10px] font-bold text-slate-700 block truncate">
+                    {lang === "kn" ? `${l.kn} (${l.en})` : l.en}
+                  </span>
                   <span className="font-mono font-black text-slate-900 text-[11px] sm:text-xs mt-0.5 block truncate">{l.time}</span>
                 </div>
               ))}
