@@ -1914,10 +1914,34 @@ export default function DailyDarshanaPage(): JSX.Element {
 
 
   const hasContactOverride = useMemo(() => {
-    if (urlParams.get("overrideContact") === "true") return true;
+    // 1. Explicit query parameters
+    const overrideContactParam = urlParams.get("overrideContact");
+    if (overrideContactParam === "true" || overrideContactParam === "1") return true;
+    const overrideCalendarPhoneParam = urlParams.get("overrideCalendarPhone");
+    if (overrideCalendarPhoneParam === "true" || overrideCalendarPhoneParam === "1") return true;
+    const ocpParam = urlParams.get("ocp");
+    if (ocpParam === "1" || ocpParam === "true") return true;
+
+    // 2. Token payload flags
     if (decoded?.ocp || decoded?.overrideCalendarPhone) return true;
+
+    // 3. Custom priest phone passed via URL or token (distinct from default 9972339362)
+    const urlPriestPhone = urlParams.get("priestPhone");
+    if (urlPriestPhone && urlPriestPhone.replace(/[^\d]/g, "") !== "9972339362") return true;
+    const tokenPriestPhone = decoded?.pp || (decoded as any)?.priestPhone || (decoded as any)?.ph;
+    if (tokenPriestPhone && tokenPriestPhone.replace(/[^\d]/g, "") !== "9972339362") return true;
+
+    // 4. Overridden / non-default priest name in URL or token when redirected from calendar
+    const isFromCal = urlParams.get("fromCal") === "1" || urlParams.get("fromCal") === "true" || isFromCalendarRedirect;
+    if (isFromCal) {
+      const pName = urlParams.get("priestName") || decoded?.p || decoded?.pandit || decoded?.priestName;
+      if (pName && !pName.toLowerCase().includes("shreeram") && !pName.includes("ಶ್ರೀರಾಮ್")) {
+        return true;
+      }
+    }
+
     return false;
-  }, [decoded, urlParams]);
+  }, [decoded, urlParams, isFromCalendarRedirect]);
 
   const activePanditName = useMemo(() => {
     let raw = "";
@@ -1954,7 +1978,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     if (decoded?.pw || decoded?.priestWhatsApp) {
       return (decoded.pw || decoded.priestWhatsApp)!.trim();
     }
-    if (urlParams.get("overrideContact") === "true" && urlParams.get("priestWhatsApp")) {
+    if (urlParams.get("priestWhatsApp")) {
       return urlParams.get("priestWhatsApp")!.trim();
     }
     return activePanditPhone;
@@ -1968,7 +1992,7 @@ export default function DailyDarshanaPage(): JSX.Element {
   const contactPanditPhone = hasContactOverride ? activePanditPhone : "9972339362";
   const contactPanditWhatsApp = hasContactOverride ? activePanditWhatsApp : "9972339362";
 
-  const localizedPandit = activePanditName;
+  const localizedPandit = contactPanditName;
   
   const devoteeDisplayName = useMemo(() => {
     let raw = "";
@@ -2129,9 +2153,9 @@ export default function DailyDarshanaPage(): JSX.Element {
       userLat,
       userLng,
       userPincode,
-      priestName: activePanditName
+      priestName: contactPanditName
     });
-  }, [birthKundli, devoteeDisplayName, devoteeGotra, resolvedBirth.dob, resolvedBirth.tob, dateParam, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, activePanditName]);
+  }, [birthKundli, devoteeDisplayName, devoteeGotra, resolvedBirth.dob, resolvedBirth.tob, dateParam, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, contactPanditName]);
 
   const deity = useMemo(() => {
     const d = darshanaPersonalization.deity;
@@ -2338,7 +2362,7 @@ export default function DailyDarshanaPage(): JSX.Element {
       userPincode,
       userIdentifier: devoteeUserId,
       geminiApiKey: geminiApiKey || undefined,
-      priestName: activePanditName
+      priestName: contactPanditName
     }).then((data) => {
       if (isMounted) {
         setDinaBhavishyaData(data);
@@ -2354,7 +2378,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     return () => {
       isMounted = false;
     };
-  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, devoteeUserId, geminiApiKey, isPassExpired, activePanditName]);
+  }, [dateParam, devoteeDisplayName, resolvedBirth.dob, resolvedBirth.tob, moonRashiIdx, moonNakshatraIdx, ascendantRashiIdx, lang, userLat, userLng, userPincode, devoteeUserId, geminiApiKey, isPassExpired, contactPanditName]);
 
   // Immediately stop any audio synthesis/playback if pass is expired
   useEffect(() => {
@@ -2430,7 +2454,7 @@ export default function DailyDarshanaPage(): JSX.Element {
       tabVisited: activeTab,
       rashiIndex: moonRashiIdx,
       nakshatraIndex: moonNakshatraIdx,
-      priestName: activePanditName,
+      priestName: contactPanditName,
       dob: resolvedBirth.dob,
       tob: resolvedBirth.tob,
       gotra: devoteeGotra,
@@ -2454,7 +2478,7 @@ export default function DailyDarshanaPage(): JSX.Element {
     tokenParam,
     moonRashiIdx,
     moonNakshatraIdx,
-    activePanditName,
+    contactPanditName,
     resolvedBirth,
     devoteeGotra,
     birthKundli,
@@ -2856,6 +2880,7 @@ export default function DailyDarshanaPage(): JSX.Element {
         days,
         lang,
         panditName: localizedPandit,
+        priestName: localizedPandit,
         personName: devoteeDisplayName,
         birthNakshatraIndex: birthNakIdx,
         birthRashiIndex: birthRashiIdx,
@@ -2864,11 +2889,13 @@ export default function DailyDarshanaPage(): JSX.Element {
         lat: userLat,
         lng: userLng,
         pincode: userPincode,
-        locationName: userLocationName
+        locationName: userLocationName,
+        overrideCalendarPhone: hasContactOverride,
+        priestPhone: hasContactOverride ? contactPanditPhone : undefined
       });
 
       const sanitizeName = (str: string) => str.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "");
-      const cleanPandit = sanitizeName(localizedPandit) || "Shreeram_Pandit";
+      const cleanPandit = sanitizeName(contactPanditName) || "Shreeram_Pandit";
       const cleanDevotee = sanitizeName(devoteeDisplayName) || "Devotee";
       const cleanDate = startDateStr.replace(/[^\d-]/g, "");
 
@@ -3045,16 +3072,16 @@ export default function DailyDarshanaPage(): JSX.Element {
               📞 {dict.callPriestBtn}
             </a>
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(
+              href={`https://wa.me/${contactPanditWhatsApp ? contactPanditWhatsApp.replace(/[^\d]/g, "") : ""}?text=${encodeURIComponent(
                 lang === "kn"
-                  ? `ನಮಸ್ಕಾರ ${activePanditName} ಅವರೇ, ನನ್ನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಆಶೀರ್ವಾದ ಪಾಸ್ (${rawDuration} ದಿನಗಳು) ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಸಹಾಯ ಮಾಡಿ.\nಭಕ್ತರ ಹೆಸರು: ${devoteeDisplayName}\nಗೋತ್ರ: ${devoteeGotra}\nದಿನಾಂಕ: ${mockDay.ymd}`
+                  ? `ನಮಸ್ಕಾರ ${contactPanditName} ಅವರೇ, ನನ್ನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಆಶೀರ್ವಾದ ಪಾಸ್ (${rawDuration} ದಿನಗಳು) ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ನವೀಕರಣಕ್ಕಾಗಿ ದಯವಿಟ್ಟು ಸಹಾಯ ಮಾಡಿ.\nಭಕ್ತರ ಹೆಸರು: ${devoteeDisplayName}\nಗೋತ್ರ: ${devoteeGotra}\nದಿನಾಂಕ: ${mockDay.ymd}`
                   : lang === "te"
-                  ? `నమస్కారం ${activePanditName} గారూ, నా బగ్గోణ పంచాంగ ఆశీర్వాద పాస్ (${rawDuration} రోజులు) ముగిసింది. పునరుద్ధరణ కొరకు దయచేసి సహాయం చేయండి.\nభక్తుని పేరు: ${devoteeDisplayName}\nగోత్రం: ${devoteeGotra}\nతేదీ: ${mockDay.ymd}`
+                  ? `నమస్కారం ${contactPanditName} గారూ, నా బగ్గోణ పంచాంగ ఆశీర్వాద పాస్ (${rawDuration} రోజులు) ముగిసింది. పునరుద్ధరణ కొరకు దయచేసి సహాయం చేయండి.\nభక్తుని పేరు: ${devoteeDisplayName}\nగోత్రం: ${devoteeGotra}\nతేదీ: ${mockDay.ymd}`
                   : lang === "ta"
-                  ? `வணக்கம் ${activePanditName} அவர்களே, எனது பக்கோண பஞ்சாங்க ஆசீர்வாத பாஸ் (${rawDuration} நாட்கள்) முடிவடைந்தது. புதுப்பித்தலுக்கு உதவ வேண்டுகிறேன்.\nபக்தர் பெயர்: ${devoteeDisplayName}\nகோத்திரம்: ${devoteeGotra}\nதேதி: ${mockDay.ymd}`
+                  ? `வணக்கம் ${contactPanditName} அவர்களே, எனது பக்கோண பஞ்சாங்க ஆசீர்வாத பாஸ் (${rawDuration} நாட்கள்) முடிவடைந்தது. புதுப்பித்தலுக்கு உதவ வேண்டுகிறேன்.\nபக்தர் பெயர்: ${devoteeDisplayName}\nகோத்திரம்: ${devoteeGotra}\nதேதி: ${mockDay.ymd}`
                   : lang === "hi"
-                  ? `नमस्ते ${activePanditName} जी, मेरा बग्गोण पंचांग आशीर्वाद पास (${rawDuration} दिन) समाप्त हो गया है। कृपया नवीनीकरण हेतु सहायता करें।\nभक्त का नाम: ${devoteeDisplayName}\nगोत्र: ${devoteeGotra}\nदिनांक: ${mockDay.ymd}`
-                  : `Namaste ${activePanditName}, my Baggona Panchanga Ashirvada Pass (${rawDuration} days) has expired. Please assist with renewal.\nDevotee: ${devoteeDisplayName}\nGotra: ${devoteeGotra}\nDate: ${mockDay.ymd}`
+                  ? `नमस्ते ${contactPanditName} जी, मेरा बग्गोण पंचांग आशीर्वाद पास (${rawDuration} दिन) समाप्त हो गया है। कृपया नवीनीकरण हेतु सहायता करें।\nभक्त का नाम: ${devoteeDisplayName}\nगोत्र: ${devoteeGotra}\nदिनांक: ${mockDay.ymd}`
+                  : `Namaste ${contactPanditName}, my Baggona Panchanga Ashirvada Pass (${rawDuration} days) has expired. Please assist with renewal.\nDevotee: ${devoteeDisplayName}\nGotra: ${devoteeGotra}\nDate: ${mockDay.ymd}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -3481,7 +3508,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               gotra={devoteeGotra}
               dateStr={mockDay.ymd}
               lang={lang}
-              priestName={activePanditName}
+              priestName={contactPanditName}
             />
           </div>
         )}
@@ -3538,7 +3565,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                     )
                   : (DINA_BHAVISHYA_INTRO_TEMPLATES[lang] || DINA_BHAVISHYA_INTRO_TEMPLATES.en).withoutDasha(
                       devoteeDisplayName,
-                      activePanditName
+                      contactPanditName
                     )}
               </p>
             </div>
@@ -4581,7 +4608,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               day={mockDay}
               lang={lang}
               devoteeName={devoteeDisplayName}
-              panditName={activePanditName}
+              panditName={contactPanditName}
               userId={devoteeUserId || devoteeDisplayName || "guest_devotee"}
               devoteeToken={tokenParam || undefined}
             />
@@ -4885,7 +4912,7 @@ export default function DailyDarshanaPage(): JSX.Element {
               devoteeLocationName={userLocationName}
               devoteePincode={userPincode}
               lang={lang}
-              priestName={activePanditName}
+              priestName={contactPanditName}
             />
           </div>
         )}
@@ -5248,7 +5275,7 @@ export default function DailyDarshanaPage(): JSX.Element {
             {dict.calendarContactPrompt}
           </div>
           <div style={{ fontSize: 16, color: "#FFFFFF", fontWeight: 900, marginBottom: 10 }}>
-            🛕 {activePanditName} (
+            🛕 {contactPanditName} (
             {dict.panditRole ||
               (lang === "kn"
                 ? "ಪ್ರಧಾನ ಅರ್ಚಕರು"
@@ -5662,7 +5689,7 @@ export default function DailyDarshanaPage(): JSX.Element {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <a
-                href={`tel:${activePanditPhone.replace(/[^\d+]/g, "")}`}
+                href={`tel:${contactPanditPhone.replace(/[^\d+]/g, "")}`}
                 style={{
                   background: "linear-gradient(135deg, #10B981, #047857)",
                   color: "#FFFFFF",
@@ -5677,7 +5704,7 @@ export default function DailyDarshanaPage(): JSX.Element {
                 📞 {getCallNowText(lang, contactPanditPhone)}
               </a>
 
-              {activePanditWhatsApp && (
+              {contactPanditWhatsApp && (
                 <a
                   href={`https://wa.me/${contactPanditWhatsApp.replace(/[^\d]/g, "")}`}
                   target="_blank"
@@ -5766,7 +5793,7 @@ export default function DailyDarshanaPage(): JSX.Element {
         rashiName={rashiName(moonRashiIdx, lang)}
         nakshatraName={nakshatraName(moonNakshatraIdx, lang)}
         lang={lang}
-        priestName={activePanditName}
+        priestName={contactPanditName}
         voiceId={activeVoiceId}
         samvatsara={darshanaPersonalization.panchanga.samvatsara}
         ayana={darshanaPersonalization.panchanga.ayana}

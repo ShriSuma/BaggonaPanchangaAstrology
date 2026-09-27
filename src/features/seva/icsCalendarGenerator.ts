@@ -51,6 +51,7 @@ import {
   buildDeterministicPriestBenediction,
   getDevoteeSalutation
 } from "./sevaPriestNarrativeEngine";
+import { getPriestProfile } from "./sevaPriestDirectory";
 import { encodeDevoteeToken, encodeDateOnlyDevoteeToken } from "../../utils/tokenCipher";
 import { siderealLongitudes } from "../../core/EphemerisEngine";
 import { normalizeDegree } from "../../core/AstroMath";
@@ -1110,6 +1111,14 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
 
   const startDateStr = days[0]?.ymd || new Date().toISOString().slice(0, 10);
   const localizedPandit = getLocalizedPanditName(panditName, lang);
+  const priestProfile = getPriestProfile(panditName || options.priestName || "");
+  const effectivePriestPhone = options.priestPhone || (options as any).phone || (options as any).pp || (options as any).ph || priestProfile?.phone || "9972339362";
+  const isContactOverride = Boolean(
+    options.overrideCalendarPhone ||
+    (options as any).overrideContact ||
+    (options as any).ocp ||
+    (options.priestPhone && options.priestPhone.trim() !== "9972339362")
+  );
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? transliterateName(personName.trim(), lang) : labels.defaultDevotee;
 
   const resolvedBirth = getUniversalBirthDetails({
@@ -1133,6 +1142,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     nk: birthNakIdx,
     r: birthRashiIdx,
     p: localizedPandit,
+    priestName: localizedPandit,
     d: startDateStr,
     startDate: startDateStr,
     sd: startDateStr,
@@ -1146,8 +1156,11 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
     loc: locationName,
     dob: resolvedDob,
     tob: resolvedTob,
-    ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
-    ocp: options.overrideCalendarPhone ? 1 : undefined
+    ph: isContactOverride ? effectivePriestPhone : undefined,
+    ocp: isContactOverride ? 1 : undefined,
+    overrideCalendarPhone: isContactOverride,
+    pp: isContactOverride ? effectivePriestPhone : undefined,
+    priestPhone: isContactOverride ? effectivePriestPhone : undefined
   });
   const sanitizedDevoteeToken = baseToken.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
 
@@ -1198,6 +1211,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       nk: birthNakIdx,
       r: birthRashiIdx,
       p: localizedPandit,
+      priestName: localizedPandit,
       d: day.ymd,
       startDate: startDateStr,
       sd: startDateStr,
@@ -1211,12 +1225,14 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       loc: locationName,
       dob: resolvedDob,
       tob: resolvedTob,
-      ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
-      ocp: options.overrideCalendarPhone ? 1 : undefined,
-      pp: options.overrideCalendarPhone ? options.priestPhone : undefined
+      ph: isContactOverride ? effectivePriestPhone : undefined,
+      ocp: isContactOverride ? 1 : undefined,
+      overrideCalendarPhone: isContactOverride,
+      pp: isContactOverride ? effectivePriestPhone : undefined,
+      priestPhone: isContactOverride ? effectivePriestPhone : undefined
     });
-    const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
-      ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}`
+    const contactOverrideQuery = isContactOverride
+      ? `&overrideContact=true&overrideCalendarPhone=true&ocp=1&priestPhone=${encodeURIComponent(effectivePriestPhone)}&priestName=${encodeURIComponent(localizedPandit)}&fromCal=1`
       : "";
     const sanctumUrl = `${origin}/daily?token=${dayToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya&priestName=${encodeURIComponent(localizedPandit)}${contactOverrideQuery}`;
 
@@ -1348,7 +1364,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       "════════════════════════════════════════",
       `🕉️ ${labels.panchangaTitle} - ${labels.kshetraTitle}`,
       `👤 ${labels.devoteeLabel}: ${devoteeDisplayName}`,
-      `🙏 ${labels.priestLabel}: ${localizedPandit}`,
+      `🙏 ${labels.priestLabel}: ${localizedPandit}${isContactOverride ? ` (📞 ${effectivePriestPhone})` : ""}`,
       "════════════════════════════════════════",
       "",
       `🌅 ${labels.sunriseLabel} / ${labels.sunsetLabel} (📍 ${locationName} - ${pincode}):`,
@@ -1432,7 +1448,7 @@ export function generateSevaICalendarString(options: CalendarGeneratorOptions): 
       ? `${tithiFullStr} <span style="font-size:11px; color:#fde68a;">(${tithiDetailInfo.tithiEndTimeStr} ${lang === "kn" ? "ರವರೆಗೆ" : "till"}, ${lang === "kn" ? "ನಂತರ" : "then"}: ${tithiDetailInfo.nextTithiFullLabel?.[lang] || ''})</span>`
       : tithiFullStr;
 
-    const htmlDescriptionStr = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px; margin:0;"><div style="background:linear-gradient(135deg,#451a03 0%,#1c0a00 100%);border:2px solid #d97706;border-radius:14px;padding:16px;max-width:540px;margin:0 auto;box-shadow:0 8px 24px rgba(0,0,0,0.6);"><div style="text-align:center;margin-bottom:14px;padding:12px;background:linear-gradient(135deg,rgba(185,28,28,0.25) 0%,rgba(127,29,29,0.35) 100%);border:2px solid #ef4444;border-radius:12px;"><div style="color:#fee2e2;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">✨ ${labels.kshetraTitle} · ${labels.panchangaTitle}</div><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#991b1b);color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:900;font-size:14px;box-shadow:0 4px 14px rgba(220,38,38,0.5);border:2px solid #f87171;letter-spacing:0.3px;">🔴 ${viewBhavishyaButtonLabel} ➔</a></div><div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11px;"><span style="font-weight:800;color:#fde68a;text-transform:uppercase;">🌅 ${labels.sunriseLabel} / ${labels.sunsetLabel}</span><span style="color:#f59e0b;font-weight:700;">📍 ${locationName} (${pincode})</span></div><table style="width:100%;border-collapse:collapse;font-size:12.5px;"><tr><td style="width:50%;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:6px;text-align:center;"><span style="color:#fcd34d;font-size:11px;">🌅 ${labels.sunriseLabel}:</span> <strong style="color:#ffffff;">${kaala.sunrise}</strong></td><td style="width:50%;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:6px;text-align:center;"><span style="color:#fcd34d;font-size:11px;">🌇 ${labels.sunsetLabel}:</span> <strong style="color:#ffffff;">${kaala.sunset}</strong></td></tr></table></div><div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;color:#fde68a;margin-bottom:6px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>⏳ ${isKn ? "ದೈನಂದಿನ ಕಾಲಗಳು" : isHi ? "ದैनिक काल" : isTe ? "దైనందిన కాలాలు" : isTa ? "தினசரி காலங்கள்" : "Daily Timings"}</span><span style="color:#10b981;font-weight:800;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:4px;padding:1px 5px;font-size:10px;">🇮🇳 IST (+05:30)</span></div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.2);"><td style="padding:4px 2px;color:#fca5a5;font-weight:700;width:38%;">🔴 ${labels.rahuLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.2);"><td style="padding:4px 2px;color:#fde047;font-weight:700;">🟡 ${labels.gulikaLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.gulika}</td></tr><tr><td style="padding:4px 2px;color:#86efac;font-weight:700;">🟢 ${labels.yamagandaLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.yamaganda}</td></tr></table></div><div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;color:#fde68a;margin-bottom:6px;text-transform:uppercase;">🕉️ ${labels.panchangaTitle}</div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;width:38%;">👤 ${labels.devoteeLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🙏 ${labels.priestLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${localizedPandit}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">📅 ${labels.tithiLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${htmlTithiVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🌙 ${labels.rashiLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${rashiStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🎯 ${labels.taraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🌙 ${labels.chandraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${chandraBalaStr}</td></tr><tr><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">⚡ ${labels.statusLabel}:</td><td style="padding:3px 2px;color:#fde68a;font-weight:800;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr></table></div><div style="background:linear-gradient(135deg,rgba(120,53,15,0.3) 0%,rgba(69,26,3,0.3) 100%);border:1px solid #f59e0b;border-radius:10px;padding:8px 12px;text-align:center;margin-bottom:12px;"><div style="font-size:11px;color:#fde68a;font-weight:800;">🛕 ${labels.deityLabel}: ${pick(deity.deityL5, lang) || deity.deity}</div><div style="font-size:12px;color:#ffffff;font-family:serif;margin-top:2px;">"${deity.mantra}"</div></div><div style="text-align:center;padding:6px 0;"><div style="color:#d97706;font-size:11px;margin-top:8px;font-weight:700;">${closingBlessing} · ${localizedPandit}</div></div></div></body></html>`;
+    const htmlDescriptionStr = `<html><body style="font-family:sans-serif; background-color:#1c0a00; color:#fff8e7; padding:12px; margin:0;"><div style="background:linear-gradient(135deg,#451a03 0%,#1c0a00 100%);border:2px solid #d97706;border-radius:14px;padding:16px;max-width:540px;margin:0 auto;box-shadow:0 8px 24px rgba(0,0,0,0.6);"><div style="text-align:center;margin-bottom:14px;padding:12px;background:linear-gradient(135deg,rgba(185,28,28,0.25) 0%,rgba(127,29,29,0.35) 100%);border:2px solid #ef4444;border-radius:12px;"><div style="color:#fee2e2;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">✨ ${labels.kshetraTitle} · ${labels.panchangaTitle}</div><a href="${sanctumUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#991b1b);color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:900;font-size:14px;box-shadow:0 4px 14px rgba(220,38,38,0.5);border:2px solid #f87171;letter-spacing:0.3px;">🔴 ${viewBhavishyaButtonLabel} ➔</a></div><div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11px;"><span style="font-weight:800;color:#fde68a;text-transform:uppercase;">🌅 ${labels.sunriseLabel} / ${labels.sunsetLabel}</span><span style="color:#f59e0b;font-weight:700;">📍 ${locationName} (${pincode})</span></div><table style="width:100%;border-collapse:collapse;font-size:12.5px;"><tr><td style="width:50%;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:6px;text-align:center;"><span style="color:#fcd34d;font-size:11px;">🌅 ${labels.sunriseLabel}:</span> <strong style="color:#ffffff;">${kaala.sunrise}</strong></td><td style="width:50%;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:6px;text-align:center;"><span style="color:#fcd34d;font-size:11px;">🌇 ${labels.sunsetLabel}:</span> <strong style="color:#ffffff;">${kaala.sunset}</strong></td></tr></table></div><div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;color:#fde68a;margin-bottom:6px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>⏳ ${isKn ? "ದೈನಂದಿನ ಕಾಲಗಳು" : isHi ? "ದैनिक काल" : isTe ? "దైనందిన కాలాలు" : isTa ? "தினசரி காலங்கள்" : "Daily Timings"}</span><span style="color:#10b981;font-weight:800;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:4px;padding:1px 5px;font-size:10px;">🇮🇳 IST (+05:30)</span></div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.2);"><td style="padding:4px 2px;color:#fca5a5;font-weight:700;width:38%;">🔴 ${labels.rahuLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.rahu}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.2);"><td style="padding:4px 2px;color:#fde047;font-weight:700;">🟡 ${labels.gulikaLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.gulika}</td></tr><tr><td style="padding:4px 2px;color:#86efac;font-weight:700;">🟢 ${labels.yamagandaLabel} (IST):</td><td style="padding:4px 2px;color:#ffffff;font-weight:700;">${kaala.yamaganda}</td></tr></table></div><div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:10px 12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;color:#fde68a;margin-bottom:6px;text-transform:uppercase;">🕉️ ${labels.panchangaTitle}</div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;width:38%;">👤 ${labels.devoteeLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${devoteeDisplayName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🙏 ${labels.priestLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${localizedPandit}${isContactOverride ? ` (📞 ${effectivePriestPhone})` : ""}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">📅 ${labels.tithiLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${htmlTithiVal}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🌙 ${labels.rashiLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${rashiStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">⭐ ${labels.nakshatraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${nakName}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🎯 ${labels.taraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${taraBalaStr}</td></tr><tr style="border-bottom:1px solid rgba(245,158,11,0.15);"><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">🌙 ${labels.chandraLabel}:</td><td style="padding:3px 2px;color:#fff8e7;">${chandraBalaStr}</td></tr><tr><td style="padding:3px 2px;color:#f59e0b;font-weight:700;">⚡ ${labels.statusLabel}:</td><td style="padding:3px 2px;color:#fde68a;font-weight:800;">${vibe.badgeText} (${day.energyScore || 85}%)</td></tr></table></div><div style="background:linear-gradient(135deg,rgba(120,53,15,0.3) 0%,rgba(69,26,3,0.3) 100%);border:1px solid #f59e0b;border-radius:10px;padding:8px 12px;text-align:center;margin-bottom:12px;"><div style="font-size:11px;color:#fde68a;font-weight:800;">🛕 ${labels.deityLabel}: ${pick(deity.deityL5, lang) || deity.deity}</div><div style="font-size:12px;color:#ffffff;font-family:serif;margin-top:2px;">"${deity.mantra}"</div></div><div style="text-align:center;padding:6px 0;"><div style="color:#d97706;font-size:11px;margin-top:8px;font-weight:700;">${closingBlessing} · ${localizedPandit}</div></div></div></body></html>`;
 
     const masterSeriesUid = `baggona-series-${sanitizedDevoteeToken}@baggona.app`;
     const eventLines: string[] = [
@@ -1617,6 +1633,14 @@ export function generateGoogleCalendarUrl(options: {
   const isTa = lang.startsWith("ta");
 
   const localizedPandit = getLocalizedPanditName(panditName, lang);
+  const priestProfile = getPriestProfile(panditName || "");
+  const effectivePriestPhone = options.priestPhone || (options as any).phone || (options as any).pp || (options as any).ph || priestProfile?.phone || "9972339362";
+  const isContactOverride = Boolean(
+    options.overrideCalendarPhone ||
+    (options as any).overrideContact ||
+    (options as any).ocp ||
+    (options.priestPhone && options.priestPhone.trim() !== "9972339362")
+  );
   const rawDevotee = (personName && personName.trim().length > 0) ? personName.trim() : (isKn ? "ಭಕ್ತರು" : isHi ? "भक्त" : isTe ? "భక్తులు" : isTa ? "பக்தர்" : "Devotee");
   const devoteeDisplayName = transliterateName(rawDevotee, lang);
 
@@ -1662,6 +1686,7 @@ export function generateGoogleCalendarUrl(options: {
     nk: birthNakIdx,
     r: birthRashiIdx,
     p: localizedPandit,
+    priestName: localizedPandit,
     d: startDateStr,
     startDate: startDateStr,
     sd: startDateStr,
@@ -1677,13 +1702,15 @@ export function generateGoogleCalendarUrl(options: {
     loc: locationName,
     dob: resolvedBirth.dob,
     tob: resolvedBirth.tob,
-    ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
-    ocp: options.overrideCalendarPhone ? 1 : undefined,
-    pp: options.overrideCalendarPhone ? options.priestPhone : undefined
+    ph: isContactOverride ? effectivePriestPhone : undefined,
+    ocp: isContactOverride ? 1 : undefined,
+    overrideCalendarPhone: isContactOverride,
+    pp: isContactOverride ? effectivePriestPhone : undefined,
+    priestPhone: isContactOverride ? effectivePriestPhone : undefined
   });
   const origin = getSafeProductionOrigin(webAppBaseUrl);
-  const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
-    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}`
+  const contactOverrideQuery = isContactOverride
+    ? `&overrideContact=true&overrideCalendarPhone=true&ocp=1&priestPhone=${encodeURIComponent(effectivePriestPhone)}&priestName=${encodeURIComponent(localizedPandit)}&fromCal=1`
     : "";
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya&priestName=${encodeURIComponent(localizedPandit)}${contactOverrideQuery}`;
 
@@ -1886,6 +1913,14 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   const origin = getSafeProductionOrigin(webAppBaseUrl);
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : "Devotee";
   const safePandit = panditName || "Archaka";
+  const priestProfile = getPriestProfile(panditName || (options as any).priestName || "");
+  const effectivePriestPhone = options.priestPhone || (options as any).phone || (options as any).pp || (options as any).ph || priestProfile?.phone || "9972339362";
+  const isContactOverride = Boolean(
+    options.overrideCalendarPhone ||
+    (options as any).overrideContact ||
+    (options as any).ocp ||
+    (options.priestPhone && options.priestPhone.trim() !== "9972339362")
+  );
 
   const resolvedBirth = getUniversalBirthDetails({
     dob,
@@ -1907,18 +1942,18 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     d: day.ymd,
     startDate: startDateStr,
     sd: startDateStr,
-    days: 90,
     dy: 90,
     l: lang,
     tm: notificationTime,
     pl: "android",
     t: "google",
-    ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
-    ocp: options.overrideCalendarPhone ? 1 : undefined,
-    pp: options.overrideCalendarPhone ? options.priestPhone : undefined
+    ph: isContactOverride ? effectivePriestPhone : undefined,
+    ocp: isContactOverride ? 1 : undefined,
+    overrideCalendarPhone: isContactOverride,
+    pp: isContactOverride ? effectivePriestPhone : undefined
   });
-  const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
-    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}`
+  const contactOverrideQuery = isContactOverride
+    ? `&overrideContact=true&overrideCalendarPhone=true&ocp=1&priestPhone=${encodeURIComponent(effectivePriestPhone)}&fromCal=1`
     : "";
   const sanctumUrl = `${origin}/daily?token=${devoteeToken}&date=${day.ymd}&sd=${startDateStr}&lang=${lang}&tab=bhavishya${contactOverrideQuery}`;
 
@@ -1975,7 +2010,15 @@ export function generateQrPayloadByTarget(
   } = options;
   const firstDay = days && days.length > 0 ? days[0] : null;
   const startDateStr = firstDay?.ymd || new Date().toISOString().slice(0, 10);
-  const safePandit = panditName || "ಶ್ರೀ ಚೈತನ್ಯ ಪಂಡಿತ್";
+  const safePandit = getLocalizedPanditName(panditName || options.priestName || "shreeram-pandit", lang);
+  const priestProfile = getPriestProfile(panditName || options.priestName || "");
+  const effectivePriestPhone = options.priestPhone || (options as any).phone || (options as any).pp || (options as any).ph || priestProfile?.phone || "9972339362";
+  const isContactOverride = Boolean(
+    options.overrideCalendarPhone ||
+    (options as any).overrideContact ||
+    (options as any).ocp ||
+    (options.priestPhone && options.priestPhone.trim() !== "9972339362")
+  );
   const devoteeDisplayName = (personName && personName.trim().length > 0) ? personName.trim() : (lang.startsWith("kn") ? "ಭಕ್ತರು" : "Devotee");
 
   const resolvedBirth = getUniversalBirthDetails({
@@ -1995,6 +2038,7 @@ export function generateQrPayloadByTarget(
     nk: birthNakIdx,
     r: birthRashiIdx,
     p: safePandit,
+    priestName: safePandit,
     d: startDateStr,
     startDate: startDateStr,
     sd: startDateStr,
@@ -2009,13 +2053,15 @@ export function generateQrPayloadByTarget(
     loc: locationName,
     dob: resolvedBirth.dob,
     tob: resolvedBirth.tob,
-    ph: options.overrideCalendarPhone ? options.priestPhone : undefined,
-    ocp: options.overrideCalendarPhone ? 1 : undefined,
-    pp: options.overrideCalendarPhone ? options.priestPhone : undefined
+    ph: isContactOverride ? effectivePriestPhone : undefined,
+    ocp: isContactOverride ? 1 : undefined,
+    overrideCalendarPhone: isContactOverride,
+    pp: isContactOverride ? effectivePriestPhone : undefined,
+    priestPhone: isContactOverride ? effectivePriestPhone : undefined
   });
 
-  const contactOverrideQuery = options.overrideCalendarPhone && options.priestPhone
-    ? `&overrideContact=true&priestPhone=${encodeURIComponent(options.priestPhone)}&priestName=${encodeURIComponent(safePandit)}`
+  const contactOverrideQuery = isContactOverride
+    ? `&overrideContact=true&overrideCalendarPhone=true&ocp=1&priestPhone=${encodeURIComponent(effectivePriestPhone)}&priestName=${encodeURIComponent(safePandit)}&fromCal=1`
     : "";
 
   if (target === "google" || target === "webcal") {

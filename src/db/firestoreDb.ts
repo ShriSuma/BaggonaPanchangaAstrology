@@ -2596,6 +2596,7 @@ export interface DevoteeTokenDoc {
   phone?: string;
   email?: string;
   overrideCalendarPhone?: boolean;
+  priestPhone?: string;
   voiceId?: string;
   includePriestCalendar?: boolean;
   fullPayload: Record<string, any>;

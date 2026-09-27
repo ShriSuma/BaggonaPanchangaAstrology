@@ -205,7 +205,7 @@ describe("Priest Override Cleanliness, Dina Bhavishya & Calendar Tab Audit", () 
       });
 
       expect(icsString).toContain("&tab=bhavishya");
-      expect(icsString).toContain("🔮 ಇಂದಿನ ದಿನ ಭವಿಷ್ಯವನ್ನು ವೀಕ್ಷಿಸಿ");
+      expect(icsString).toContain("ದಿನದ ಸಂಪೂರ್ಣ ಭವಿಷ್ಯವನ್ನು ತಿಳಿದುಕೊಳ್ಳಿ");
     });
 
     it("generates Google Calendar URL with &tab=bhavishya and CTA button", () => {
