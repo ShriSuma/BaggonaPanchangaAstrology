@@ -226,32 +226,36 @@ export async function generateMasterPrediction(
 
     // Call LLM translation service (ensure prompt says "simple, non-complex language")
     // Note: The translationService internally handles the language.
-    const translatedStrings = await translateTexts(stringsToTranslate, lang);
+    try {
+      const translatedStrings = await translateTexts(stringsToTranslate, lang);
 
-    // Re-assign translated strings
-    let i = 0;
-    natalLayer.shadowSelf.title = translatedStrings[i++] ?? natalLayer.shadowSelf.title;
-    natalLayer.shadowSelf.description = translatedStrings[i++] ?? natalLayer.shadowSelf.description;
-    natalLayer.shadowSelf.bluntTruth = translatedStrings[i++] ?? natalLayer.shadowSelf.bluntTruth;
-    
-    natalLayer.karmicBaggage.title = translatedStrings[i++] ?? natalLayer.karmicBaggage.title;
-    natalLayer.karmicBaggage.description = translatedStrings[i++] ?? natalLayer.karmicBaggage.description;
-    natalLayer.karmicBaggage.soulPurpose = translatedStrings[i++] ?? natalLayer.karmicBaggage.soulPurpose;
-    
-    timingLayer.lifeClock.currentPhase = translatedStrings[i++] ?? timingLayer.lifeClock.currentPhase;
-    timingLayer.lifeClock.description = translatedStrings[i++] ?? timingLayer.lifeClock.description;
-    timingLayer.lifeClock.emotionalValidation = translatedStrings[i++] ?? timingLayer.lifeClock.emotionalValidation;
-    
-    masterSynthesis.priorityTopic = translatedStrings[i++] ?? masterSynthesis.priorityTopic;
-    masterSynthesis.priorityMessage = translatedStrings[i++] ?? masterSynthesis.priorityMessage;
-    masterSynthesis.mindfulRitual = translatedStrings[i++] ?? masterSynthesis.mindfulRitual;
-    masterSynthesis.career = translatedStrings[i++] ?? masterSynthesis.career;
-    masterSynthesis.finance = translatedStrings[i++] ?? masterSynthesis.finance;
-    masterSynthesis.overallTone = translatedStrings[i++] ?? masterSynthesis.overallTone;
+      // Re-assign translated strings
+      let i = 0;
+      natalLayer.shadowSelf.title = translatedStrings[i++] ?? natalLayer.shadowSelf.title;
+      natalLayer.shadowSelf.description = translatedStrings[i++] ?? natalLayer.shadowSelf.description;
+      natalLayer.shadowSelf.bluntTruth = translatedStrings[i++] ?? natalLayer.shadowSelf.bluntTruth;
+      
+      natalLayer.karmicBaggage.title = translatedStrings[i++] ?? natalLayer.karmicBaggage.title;
+      natalLayer.karmicBaggage.description = translatedStrings[i++] ?? natalLayer.karmicBaggage.description;
+      natalLayer.karmicBaggage.soulPurpose = translatedStrings[i++] ?? natalLayer.karmicBaggage.soulPurpose;
+      
+      timingLayer.lifeClock.currentPhase = translatedStrings[i++] ?? timingLayer.lifeClock.currentPhase;
+      timingLayer.lifeClock.description = translatedStrings[i++] ?? timingLayer.lifeClock.description;
+      timingLayer.lifeClock.emotionalValidation = translatedStrings[i++] ?? timingLayer.lifeClock.emotionalValidation;
+      
+      masterSynthesis.priorityTopic = translatedStrings[i++] ?? masterSynthesis.priorityTopic;
+      masterSynthesis.priorityMessage = translatedStrings[i++] ?? masterSynthesis.priorityMessage;
+      masterSynthesis.mindfulRitual = translatedStrings[i++] ?? masterSynthesis.mindfulRitual;
+      masterSynthesis.career = translatedStrings[i++] ?? masterSynthesis.career;
+      masterSynthesis.finance = translatedStrings[i++] ?? masterSynthesis.finance;
+      masterSynthesis.overallTone = translatedStrings[i++] ?? masterSynthesis.overallTone;
 
-    timingLayer.twelveMonthRoadmap.forEach(r => {
-      r.prediction = translatedStrings[i++] ?? r.prediction;
-    });
+      timingLayer.twelveMonthRoadmap.forEach(r => {
+        r.prediction = translatedStrings[i++] ?? r.prediction;
+      });
+    } catch (err) {
+      console.warn("[MasterPredictionEngine] Translation failed gracefully, retaining base strings:", err);
+    }
   }
 
   const pariharas = getPariharas(kundli);

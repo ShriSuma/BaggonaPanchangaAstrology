@@ -31,12 +31,14 @@ const translateApiUrl = (): string => {
   return "/api/translate";
 };
 
-const shouldSkipTranslation = (text: string): boolean => {
+const shouldSkipTranslation = (text: string, target?: IndicLanguage, source: IndicLanguage = "en"): boolean => {
   const t = text.trim();
   if (!t) return true;
   if (t.length <= 2) return true;
   if (/^[\d\s.,:;+\-/()%]+$/.test(t)) return true;
   if (/^https?:\/\//i.test(t)) return true;
+  // If translating from English but the text already contains Indic script characters, skip translation
+  if (source === "en" && /[\u0900-\u0D7F]/.test(t)) return true;
   return false;
 };
 
@@ -46,34 +48,52 @@ const callTranslateApi = async (
   source: IndicLanguage,
   signal?: AbortSignal
 ): Promise<string[]> => {
-  const res = await fetch(translateApiUrl(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({
-      texts,
-      target: googleTranslateTarget(target),
-      source: googleTranslateTarget(source)
-    }),
-    signal
-  });
-  const raw = await res.text();
-  if (!res.ok) {
-    console.warn(`Translation API rate limited or offline (${res.status}): ${raw || res.statusText} — using local fallback.`);
-    return texts; // Silent fallback to original texts to prevent HTTP 429 popups
-  }
-  let parsed: unknown;
   try {
-    parsed = JSON.parse(raw) as unknown;
-  } catch {
-    console.warn("Translation API returned invalid JSON — using local fallback.");
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    const onCallerAbort = () => controller.abort();
+    if (signal) {
+      signal.addEventListener("abort", onCallerAbort);
+    }
+
+    const res = await fetch(translateApiUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        texts,
+        target: googleTranslateTarget(target),
+        source: googleTranslateTarget(source)
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (signal) {
+      signal.removeEventListener("abort", onCallerAbort);
+    }
+
+    const raw = await res.text();
+    if (!res.ok) {
+      console.warn(`Translation API rate limited or offline (${res.status}): ${raw || res.statusText} — using local fallback.`);
+      return texts; // Silent fallback to original texts to prevent HTTP 429 popups
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw) as unknown;
+    } catch {
+      console.warn("Translation API returned invalid JSON — using local fallback.");
+      return texts;
+    }
+    const translations = (parsed as { translations?: unknown }).translations;
+    if (!Array.isArray(translations) || translations.length !== texts.length) {
+      console.warn("Translation API response shape mismatch — using local fallback.");
+      return texts;
+    }
+    return translations.map(String);
+  } catch (err) {
+    console.warn("Translation API network error or timed out — using local fallback:", err);
     return texts;
   }
-  const translations = (parsed as { translations?: unknown }).translations;
-  if (!Array.isArray(translations) || translations.length !== texts.length) {
-    console.warn("Translation API response shape mismatch — using local fallback.");
-    return texts;
-  }
-  return translations.map(String);
 };
 
 /**
@@ -86,7 +106,7 @@ export async function translateText(
 ): Promise<string> {
   const target = normalizeIndicLanguage(targetLang);
   const source = opts?.sourceLang ?? "en";
-  if (target === "en" || target === source || shouldSkipTranslation(text)) return text;
+  if (target === "en" || target === source || shouldSkipTranslation(text, target, source)) return text;
 
   const id = cacheId(target, text);
   const cached = await getTranslationCache(id);
@@ -118,7 +138,7 @@ export async function translateTexts(
 
   await Promise.all(
     texts.map(async (text, index) => {
-      if (shouldSkipTranslation(text)) {
+      if (shouldSkipTranslation(text, target, source)) {
         results[index] = text;
         return;
       }

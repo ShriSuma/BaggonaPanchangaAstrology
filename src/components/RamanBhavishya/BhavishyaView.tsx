@@ -101,8 +101,19 @@ const ensureValidSection = async (
   if (validItems.length > 0) {
     return validItems;
   }
-  const translatedFallback = await translateText(fallbackText, targetLang);
-  return [{ impact: translatedFallback }];
+  const safeFallback = fallbackText || "";
+  const isTargetEnglish = (targetLang || "en").toLowerCase().startsWith("en");
+  const hasIndicScript = /[\u0900-\u0D7F]/.test(safeFallback);
+  // If target is English or fallback is already in Indic script, use directly without network translation
+  if (isTargetEnglish || hasIndicScript) {
+    return [{ impact: safeFallback }];
+  }
+  try {
+    const translatedFallback = await translateText(safeFallback, targetLang);
+    return [{ impact: translatedFallback || safeFallback }];
+  } catch {
+    return [{ impact: safeFallback }];
+  }
 };
 
 
@@ -2090,25 +2101,37 @@ Return ONLY this JSON format:
         gender: ((userGender || "Male") as "Male" | "Female")
       };
 
-      setV1PdfProgress(38);
+      setV1PdfProgress(28);
       setV1PdfStageText(
         pdfLanguage === "kn"
-          ? "೨. ವಿವಾಹ, ಸಂತಾನ, ಉದ್ಯೋಗ, ಆರ್ಥಿಕ ಹಾಗೂ ಆರೋಗ್ಯ ಅಧ್ಯಾಯಗಳ ನಿಖರ ಸಂಶ್ಲೇಷಣೆ..."
+          ? "೨. ವೈದಿಕ ಸೂತ್ರಗಳು ಹಾಗೂ ಮಹಾದಶಾ-ಭುಕ್ತಿ ಕಾಲಗಣನೆ..."
           : pdfLanguage === "hi"
-          ? "2. विवाह, संतान, करियर, धन एवं स्वास्थ्य का विश्लेषण..."
-          : "2. Synthesizing Dynamic Marriage, Children, Career, Wealth & Health..."
+          ? "2. वैदिक सूत्र एवं महादशा-भुक्ति काल गणना..."
+          : "2. Calculating Vedic Formulas & Vimshottari Timeline..."
       );
 
-      const result = await generateMasterPrediction(session.result, {
-        name: session.input.name,
-        birthDate: session.input.birthDate,
-        birthTime: session.input.birthTime,
-        latitude: session.input.latitude,
-        longitude: session.input.longitude,
-        lang,
-        isMarried: personalization?.maritalStatus === "married" ? true : personalization?.maritalStatus === "unmarried" ? false : undefined,
-        hasChildren: personalization?.childrenStatus === "has_children" ? true : personalization?.childrenStatus === "no_children" ? false : undefined
-      });
+      let result: any = null;
+      try {
+        result = await generateMasterPrediction(session.result, {
+          name: session.input.name,
+          birthDate: session.input.birthDate,
+          birthTime: session.input.birthTime,
+          latitude: session.input.latitude,
+          longitude: session.input.longitude,
+          lang,
+          isMarried: personalization?.maritalStatus === "married" ? true : personalization?.maritalStatus === "unmarried" ? false : undefined,
+          hasChildren: personalization?.childrenStatus === "has_children" ? true : personalization?.childrenStatus === "no_children" ? false : undefined
+        });
+      } catch (masterErr) {
+        console.warn("[V1 PDF] generateMasterPrediction fallback triggered:", masterErr);
+        result = {
+          natalLayer: { shadowSelf: { bluntTruth: "" }, karmicBaggage: { soulPurpose: "", description: "" } },
+          timingLayer: { lifeClock: { currentPhase: "" }, twelveMonthRoadmap: [] },
+          masterSynthesis: { overallTone: "", career: "", finance: "" },
+          aiGeneratedNarrative: { yogas: [], doshas: [] },
+          pariharas: []
+        };
+      }
 
       const parseGeminiJSON = robustParseGeminiJSON;
 
@@ -2137,7 +2160,7 @@ Return ONLY this JSON format:
         engineYogas: result.aiGeneratedNarrative?.yogas ?? [],
         engineDoshas: result.aiGeneratedNarrative?.doshas ?? [],
         pariharas: (result.pariharas ?? []).map(
-          p => `${p.doshaName}: ${p.poojaName} (${p.whenToDo}, ${p.whereToDo})`
+          (p: any) => `${p.doshaName}: ${p.poojaName} (${p.whenToDo}, ${p.whereToDo})`
         ),
         shadowSelf: result.natalLayer.shadowSelf.bluntTruth,
         karmicBaggage: result.natalLayer.karmicBaggage.soulPurpose,
@@ -2149,65 +2172,117 @@ Return ONLY this JSON format:
         affairNote
       });
 
-      // 3-retry mechanism with exponential backoff for guaranteed resilience
-      const callGeminiWithRetry = async (label: string, prompt: string, temp = 0.3, maxRetries = 3): Promise<string> => {
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-          try {
-            const raw = await askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp });
-            if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:"))) {
-              console.warn(`[V1 AI Attempt ${attempt}/${maxRetries}] Error string detected for ${label}, retrying...`);
-              if (attempt < maxRetries) {
-                await new Promise(r => setTimeout(r, attempt * 1000));
-                continue;
-              }
-              return "";
-            }
-            if (typeof raw === "string" && raw.trim().length > 20) {
-              return raw;
-            }
-          } catch (e) {
-            console.warn(`[V1 AI Attempt ${attempt}/${maxRetries}] AI call failed for ${label}:`, e);
-            if (attempt < maxRetries) {
-              await new Promise(r => setTimeout(r, attempt * 1000));
-              continue;
-            }
+      // Safe AI call with strict 8-second timeout guard to prevent any freezing or hanging
+      const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8000): Promise<string> => {
+        try {
+          const timeoutPromise = new Promise<string>((resolve) =>
+            setTimeout(() => {
+              console.warn(`[V1 PDF] AI call for ${label} reached ${timeoutMs}ms timeout guard, gracefully switching to dynamic Vedic engine.`);
+              resolve("");
+            }, timeoutMs)
+          );
+          const raw = await Promise.race([
+            askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp }),
+            timeoutPromise
+          ]);
+          if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:") || raw.includes("GoogleGenerativeAIError"))) {
+            console.warn(`[V1 PDF] Error string detected for ${label}, using dynamic Vedic fallback.`);
             return "";
           }
+          if (typeof raw === "string" && raw.trim().length > 20) {
+            return raw;
+          }
+          return "";
+        } catch (e) {
+          console.warn(`[V1 PDF] AI call failed for ${label}, using dynamic Vedic fallback:`, e);
+          return "";
         }
-        return "";
       };
 
-      // Controlled Batching: 2 calls per batch with 500ms delay to eliminate rate limits
+      // Batch 1: Characteristics & Dark Secret
+      setV1PdfProgress(38);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೩. ಆತ್ಮಾನ್ವೇಷಣೆ ಹಾಗೂ ಜನ್ಮ ಲಗ್ನ ವ್ಯಕ್ತಿತ್ವ ಅಧ್ಯಾಯಗಳ ಸಂಶ್ಲೇಷಣೆ..."
+          : pdfLanguage === "hi"
+          ? "3. आत्मा एवं जन्म लग्न व्यक्तित्व अध्यायों का सटीक विश्लेषण..."
+          : "3. Synthesizing Soul & Personality Chapters..."
+      );
       console.log("[V1 PDF] Batch 1: Characteristics & Dark Secret...");
       const [resCharacteristics, resDarkSecret] = await Promise.all([
-        callGeminiWithRetry("Generate Characteristics", prompts.characteristics, 0.3),
-        ageYears < 8 ? Promise.resolve('{"darkSecret":[]}') : callGeminiWithRetry("Generate Dark Secret", prompts.darkSecret, 0.3)
+        callGeminiSafe("Generate Characteristics", prompts.characteristics, 0.3),
+        ageYears < 8 ? Promise.resolve('{"darkSecret":[]}') : callGeminiSafe("Generate Dark Secret", prompts.darkSecret, 0.3)
       ]);
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 150));
 
+      // Batch 2: Current Phase & Yogas
+      setV1PdfProgress(46);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೪. ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ವಿಶೇಷ ರಾಜಯೋಗಗಳ ಸಮನ್ವಯ..."
+          : pdfLanguage === "hi"
+          ? "4. वर्तमान दशा-भुक्ति एवं विशेष राजयोगों का समन्वय..."
+          : "4. Harmonizing Current Dasha-Bhukti & Special Yogas..."
+      );
       console.log("[V1 PDF] Batch 2: Current Phase & Yogas...");
       const [resCurrentPhase, resYogas] = await Promise.all([
-        callGeminiWithRetry("Generate Current Phase", prompts.currentPhase, 0.3),
-        callGeminiWithRetry("Generate Premium Yogas", prompts.yogas, 0.4)
+        callGeminiSafe("Generate Current Phase", prompts.currentPhase, 0.3),
+        callGeminiSafe("Generate Premium Yogas", prompts.yogas, 0.4)
       ]);
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 150));
 
+      // Batch 3: Doshas & Timeline
+      setV1PdfProgress(54);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೫. ಕರ್ಮ ಸವಾಲುಗಳು, ದೋಷ ಪರಿಹಾರ ಹಾಗೂ ೧೨ ತಿಂಗಳ ಭವಿಷ್ಯ ನಕ್ಷೆ..."
+          : pdfLanguage === "hi"
+          ? "5. कर्म चुनौतियाँ, दोष परिहार एवं १२ महीनों का जीवन मार्ग..."
+          : "5. Mapping Karmic Challenges, Remedies & 12-Month Timeline..."
+      );
       console.log("[V1 PDF] Batch 3: Doshas & Timeline...");
       const [resDoshas, resTimeline] = await Promise.all([
-        callGeminiWithRetry("Generate Premium Doshas", prompts.doshas, 0.4),
-        callGeminiWithRetry("Generate Planetary Timeline", prompts.timeline, 0.4)
+        callGeminiSafe("Generate Premium Doshas", prompts.doshas, 0.4),
+        callGeminiSafe("Generate Planetary Timeline", prompts.timeline, 0.4)
       ]);
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 150));
 
+      // Batch 4: Gochara & Summary
+      setV1PdfProgress(62);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೬. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು ಹಾಗೂ ದೈವಿಕ ಸಂಕ್ಷಿಪ್ತ ಸಾರಾಂಶ..."
+          : pdfLanguage === "hi"
+          ? "6. लाइव गोचर ग्रह एवं ज्योतिषी सारांश..."
+          : "6. Calculating Live Transits & Astrologer's Summary..."
+      );
       console.log("[V1 PDF] Batch 4: Gochara & Summary...");
       const [resGochara, resSummary] = await Promise.all([
-        callGeminiWithRetry("Generate Gochara", prompts.gochara, 0.4),
-        callGeminiWithRetry("Generate Summary", prompts.summary, 0.3)
+        callGeminiSafe("Generate Gochara", prompts.gochara, 0.4),
+        callGeminiSafe("Generate Summary", prompts.summary, 0.3)
       ]);
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 150));
 
+      // Batch 5: Bhavishya Life Areas
+      setV1PdfProgress(70);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೭. ವಿವಾಹ, ಸಂತಾನ, ಉದ್ಯೋಗ, ಆರ್ಥಿಕ ಹಾಗೂ ಆರೋಗ್ಯ ಅಧ್ಯಾಯಗಳ ನಿಖರ ಸಂಶ್ಲೇಷಣೆ..."
+          : pdfLanguage === "hi"
+          ? "7. विवाह, संतान, करियर, धन एवं स्वास्थ्य का गहन विश्लेषण..."
+          : "7. Synthesizing Marriage, Children, Career, Wealth & Health..."
+      );
       console.log("[V1 PDF] Batch 5: Bhavishya Life Areas...");
-      const resBhavishya = await callGeminiWithRetry("Generate Bhavishya Life Areas", prompts.bhavishya, 0.3);
+      const resBhavishya = await callGeminiSafe("Generate Bhavishya Life Areas", prompts.bhavishya, 0.3);
+
+      setV1PdfProgress(80);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೮. ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವರದಿ ಪರಿಶೀಲನೆ ಹಾಗೂ ಅಧಿಕೃತ ದೃಗ್ಗಣಿತ ತಾಳೆ..."
+          : pdfLanguage === "hi"
+          ? "8. संपूर्ण १०-अध्यायों का सत्यापन एवं शास्त्रीय मिलान..."
+          : "8. Verifying 10-Chapter Astrological Integrity & Alignment..."
+      );
 
       const dataCharacteristics = parseGeminiJSON(resCharacteristics);
       const dataDarkSecret = parseGeminiJSON(resDarkSecret);
@@ -2410,16 +2485,7 @@ Return ONLY this JSON format:
       const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang, 250);
       const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
 
-      setV1PdfProgress(65);
-      setV1PdfStageText(
-        pdfLanguage === "kn"
-          ? "೩. ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳ ಸಮನ್ವಯ..."
-          : pdfLanguage === "hi"
-          ? "3. विंशोत्तरी दशा-भुक्ति एवं लाइव गोचर समन्वय..."
-          : "3. Harmonizing Vimshottari Dasha-Bhukti & Live Planetary Transits..."
-      );
-
-      const rawYogasFallback = (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map(y => ({
+      const rawYogasFallback = (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map((y: any) => ({
         name: y.name,
         impact: enrichYogaDescription(y.name, asText(y.significance) || result.masterSynthesis.overallTone, lang, lagnaStr, moonStr)
       }));
@@ -2431,7 +2497,7 @@ Return ONLY this JSON format:
         impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr)
       }));
 
-      const rawDoshasFallback = (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(d => ({
+      const rawDoshasFallback = (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map((d: any) => ({
         name: d.name,
         impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
         remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
@@ -2441,7 +2507,7 @@ Return ONLY this JSON format:
         : rawDoshasFallback;
 
       const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
-      const fallbackTimeline = engineRoadmap6.map(r => ({
+      const fallbackTimeline = engineRoadmap6.map((r: any) => ({
         dateRange: r.month,
         impact: r.prediction
       }));
@@ -2490,13 +2556,13 @@ Return ONLY this JSON format:
 
       setPremiumDataForPdf(premiumDataPayload);
 
-      setV1PdfProgress(85);
+      setV1PdfProgress(88);
       setV1PdfStageText(
         pdfLanguage === "kn"
-          ? "೪. ಉನ್ನತ ರೆಸಲ್ಯೂಷನ್ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಪಿಡಿಎಫ್ ಮುದ್ರಣ ಸಿದ್ಧತೆ..."
+          ? "೯. ಉನ್ನತ ರೆಸಲ್ಯೂಷನ್ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಪಿಡಿಎಫ್ ಮುದ್ರಣ ಸಿದ್ಧತೆ..."
           : pdfLanguage === "hi"
-          ? "4. उच्च-रिज़ॉल्यूशन आधिकारिक बग्गोण पीडीएफ मुद्रण तैयारी..."
-          : "4. Assembling High-Resolution Official Baggona PDF Document..."
+          ? "9. उच्च-रिज़ॉल्यूशन आधिकारिक बग्गोण पीडीएफ मुद्रण तैयारी..."
+          : "9. Assembling High-Resolution Official Baggona PDF Document..."
       );
 
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -2512,6 +2578,15 @@ Return ONLY this JSON format:
 
       await document.fonts.ready;
       await new Promise(resolve => setTimeout(resolve, 400));
+
+      setV1PdfProgress(94);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "೧೦. ಡಿಜಿಟಲ್ ಪುಟಗಳ ವಿನ್ಯಾಸ ಹಾಗೂ ಅಂತಿಮ ಮುದ್ರಣ ರಚನೆ..."
+          : pdfLanguage === "hi"
+          ? "10. डिजिटल पृष्ठ संरचना एवं अंतिम प्रिंट निर्माण..."
+          : "10. Rendering High-Definition Vector Pages..."
+      );
 
       const domHeight = containerEl.scrollHeight || containerEl.offsetHeight;
       const safeScale = domHeight > 0 ? Math.min(2, Math.max(1, 30000 / domHeight)) : 2;
@@ -2537,6 +2612,16 @@ Return ONLY this JSON format:
       const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
       const langName = langNames[pdfLanguage] || "English";
       pdf.save(`Baggona_Panchanga_Prediction_V1_${langName}_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`);
+
+      setV1PdfProgress(100);
+      setV1PdfStageText(
+        pdfLanguage === "kn"
+          ? "ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಭವಿಷ್ಯ ಮುದ್ರಣ ಪೂರ್ಣಗೊಂಡಿದೆ!"
+          : pdfLanguage === "hi"
+          ? "आधिकारिक बग्गोण भविष्य मुद्रण सफलतापूर्वक पूर्ण!"
+          : "Official Baggona Bhavishya PDF Download Ready!"
+      );
+      await new Promise(r => setTimeout(r, 600));
 
     } catch (err: any) {
       console.error("[V1 PDF Generation Error]", err);

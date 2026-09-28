@@ -372,12 +372,17 @@ export async function generateJayashreePrediction(
   const fields = ["intro", "dashaContext", "education", "career", "health", "finance", "housing"] as const;
   const originals = fields.map((key) => base[key]);
 
-  const translated = await translateTexts(originals, lang);
+  try {
+    const translated = await translateTexts(originals, lang);
 
-  const result = { ...base };
-  fields.forEach((key, i) => {
-    result[key] = translated[i] ?? base[key];
-  });
+    const result = { ...base };
+    fields.forEach((key, i) => {
+      result[key] = translated[i] ?? base[key];
+    });
 
-  return result;
+    return result;
+  } catch (err) {
+    console.warn("[JayashreePredictionEngine] Translation failed gracefully, returning base:", err);
+    return base;
+  }
 }
