@@ -11,6 +11,8 @@ import {
   type DetectedFear,
 } from "../core/ComprehensiveDoshaEngine";
 import type { KundliInput, KundliOutput } from "../core/AstroTypes";
+import { generatePDFFromElement } from "../utils/pdfGenerator";
+import { KundliDoshaPdfTemplate } from "../components/kundli/KundliDoshaPdfTemplate";
 
 // Comprehensive 5-Language UI Dictionary for KundliDoshasPage
 const UI_TEXT: Record<string, Record<string, string>> = {
@@ -41,6 +43,55 @@ const UI_TEXT: Record<string, Record<string, string>> = {
     te: "పత్ర ముద్రణ (Print PDF)",
     ta: "அறிக்கை அச்சிடுக (Print PDF)",
     en: "Print Dossier (PDF)",
+  },
+  downloadPdf: {
+    kn: "ದೋಷ ಪತ್ರ PDF ಡೌನ್‌ಲೋಡ್",
+    hi: "दोष पत्र PDF डाउनलोड",
+    te: "దోష పత్రం PDF డౌన్‌లోడ్",
+    ta: "தோஷ அறிக்கை PDF பதிவிறக்கம்",
+    en: "Download PDF Dossier",
+  },
+  ageStrategyCardTitle: {
+    kn: "⭐ ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಆದ್ಯತಾ ಸೂಚಿ & ತುರ್ತು ಮಾರ್ಗದರ್ಶನ",
+    hi: "⭐ वर्तमान आयु प्राथमिकता निर्देश एवं तत्काल मार्गदर्शन",
+    te: "⭐ ప్రస్తుత వయస్సు ప్రాధాన్యత సూచిక & తక్షణ మార్గదర్శనం",
+    ta: "⭐ தற்போதைய வயது முன்னுரிமை & உடனடி வழிகாட்டுதல்",
+    en: "⭐ Current Age Priority Directives & Immediate Focus",
+  },
+  ageStrategyNote: {
+    kn: "ಗಮನಿಸಿ: ಜಾತಕರ ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ತುರ್ತು ಆಧಾರದ ಮೇಲೆ ದೋಷಗಳನ್ನು ಪರಿಹರಿಸಬೇಕಾದ ಆದ್ಯತಾ ಕ್ರಮದಲ್ಲಿ (#1, #2, #3...) ಜೋಡಿಸಲಾಗಿದೆ.",
+    hi: "सूचना: जातक की वर्तमान आयु की तात्कालिक आवश्यकता के अनुसार दोषों को समाधान हेतु प्राथमिकता क्रम (#1, #2, #3...) में व्यवस्थित किया गया है।",
+    te: "గమనిక: జాతకుని ప్రస్తుత వయస్సు అత్యవసర స్థితి ఆధారంగా దోషాలు పరిష్కార క్రమంలో (#1, #2, #3...) అమర్చబడ్డాయి.",
+    ta: "குறிப்பு: ஜாதகரின் தற்போதைய வயதின் அவசர நிலையை அடிப்படையாகக் கொண்டு தோஷங்கள் முன்னுரிமை வரிசையில் (#1, #2, #3...) அடுக்கப்பட்டுள்ளன.",
+    en: "Note: Afflictions are strictly sequenced in ascending urgency order (#1, #2, #3...) tailored to the native's current age.",
+  },
+  immediateActionTitle: {
+    kn: "🎯 ತಕ್ಷಣ ಮೊದಲು ಮಾಡಬೇಕಾದ ಕರ್ತವ್ಯ (Immediate Priority Action)",
+    hi: "🎯 सर्वप्रथम करने योग्य अनिवार्य कर्तव्य (Immediate Priority Action)",
+    te: "🎯 మొదట చేయవలసిన అత్యవసర కర్తవ్యం (Immediate Priority Action)",
+    ta: "🎯 முதலில் செய்ய வேண்டிய தலையாய கடமை (Immediate Priority Action)",
+    en: "🎯 Immediate Priority Action (What Must Be Addressed First)",
+  },
+  agePriorityBadgeLabel: {
+    kn: "ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಆದ್ಯತೆ",
+    hi: "वर्तमान आयु प्राथमिकता",
+    te: "ప్రస్తుత వయస్సు ప్రాధాన్యత",
+    ta: "தற்போதைய வயது முன்னுரிமை",
+    en: "Current Age Priority",
+  },
+  currentAgeLabel: {
+    kn: "ಪ್ರಸ್ತುತ ವಯಸ್ಸು",
+    hi: "वर्तमान आयु",
+    te: "ప్రస్తుత వయస్సు",
+    ta: "தற்போதைய வயது",
+    en: "Current Age",
+  },
+  ageStageLabel: {
+    kn: "ಜೀವನ ಹಂತ",
+    hi: "जीवन अवस्था",
+    te: "జీవిత దశ",
+    ta: "வாழ்க்கை பருவம்",
+    en: "Life Stage",
   },
   viewAllTab: {
     kn: "ಸಮಗ್ರ ಪತ್ರ ದರ್ಶನ (Unified Dossier)",
@@ -405,6 +456,25 @@ export const KundliDoshasPage: React.FC = () => {
     return gandantaraReport.detectedFears;
   }, [gandantaraReport]);
 
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (isDownloadingPdf || !doshaReport) return;
+    try {
+      setIsDownloadingPdf(true);
+      const nativeName = (doshaReport.devoteeInfo.name || "Devotee").replace(/\s+/g, "_");
+      const fileName = `${nativeName}_Kundli_Dosha_Report_${selectedLang.toUpperCase()}.pdf`;
+      await generatePDFFromElement("kundli-doshas-pdf-container", fileName);
+    } catch (err) {
+      console.error("Failed to generate Dosha PDF, falling back to window.print:", err);
+      if (typeof window !== "undefined") {
+        window.print();
+      }
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const handlePrint = () => {
     if (typeof window !== "undefined") {
       window.print();
@@ -470,14 +540,45 @@ export const KundliDoshasPage: React.FC = () => {
               ))}
             </div>
 
-            {/* 🖨️ Print Dossier Button */}
+            {/* 📥 1-Click PDF Download Button */}
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf || !doshaReport}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs shadow-md transition-all active:scale-95 ${
+                isDownloadingPdf
+                  ? "bg-amber-600/50 text-slate-300 cursor-wait"
+                  : "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950"
+              }`}
+              title={t("downloadPdf")}
+            >
+              {isDownloadingPdf ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                  <span>
+                    {selectedLang === "kn"
+                      ? "PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+                      : selectedLang === "hi"
+                      ? "PDF तैयार हो रहा है..."
+                      : "Generating PDF..."}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>📥</span>
+                  <span>{t("downloadPdf")}</span>
+                </>
+              )}
+            </button>
+
+            {/* 🖨️ Secondary Print Button */}
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs border border-slate-700 transition-all active:scale-95"
+              title={t("printPdf")}
             >
               <span>🖨️</span>
-              <span>{t("printPdf")}</span>
             </button>
           </div>
         </div>
@@ -591,6 +692,38 @@ export const KundliDoshasPage: React.FC = () => {
                     {doshaReport.devoteeInfo.currentDashaRecord?.[selectedLang] || doshaReport.devoteeInfo.currentDashaStr}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* 🌟 Age Priority Strategy Card 🌟 */}
+            <div className="rounded-3xl border-2 border-amber-500/50 bg-gradient-to-br from-amber-950/70 via-slate-900 to-amber-950/40 p-5 sm:p-6 shadow-xl relative overflow-hidden print:border-black print:bg-white print:text-black">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-4 print:border-black">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/50 bg-amber-500/20 text-2xl">
+                    ⭐
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-amber-200 print:text-black">
+                      {t("ageStrategyCardTitle")}
+                    </h3>
+                    <p className="text-xs text-amber-300 font-bold mt-0.5">
+                      {doshaReport.devoteeInfo.ageStageNameRecord?.[selectedLang] || doshaReport.devoteeInfo.ageStageKey} • {t("currentAgeLabel")}: {doshaReport.devoteeInfo.currentAge || doshaReport.devoteeInfo.devoteeAge} {selectedLang === "kn" ? "ವರ್ಷ" : "Yrs"}
+                    </p>
+                  </div>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 text-xs font-black self-start sm:self-auto">
+                  <span>⚡</span>
+                  <span>{t("agePriorityBadgeLabel")}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <div className="rounded-2xl bg-amber-950/40 border border-amber-500/30 p-4 text-xs sm:text-sm text-amber-100 font-bold leading-relaxed print:bg-white print:text-black print:border-black">
+                  {getLangText(doshaReport.devoteeInfo.currentAgeFocusSummary, "ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಅಗತ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಮೊದಲ ಆದ್ಯತೆಯ ಪರಿಹಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಾವಶ್ಯಕ.")}
+                </div>
+                <p className="text-[11px] text-amber-300/80 italic font-medium px-1 print:text-black">
+                  {t("ageStrategyNote")}
+                </p>
               </div>
             </div>
 
@@ -711,13 +844,46 @@ export const KundliDoshasPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* ⚡ Glowing Age Priority Badge */}
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase shadow-lg border ${
+                              isCritical
+                                ? "bg-rose-600 text-white border-rose-400 shadow-rose-900/40"
+                                : "bg-amber-600 text-white border-amber-400 shadow-amber-900/40"
+                            } print:border-black print:text-black`}
+                          >
+                            <span>⚡</span>
+                            <span>{getLangText(dosha.agePriorityBadge, `ಆದ್ಯತೆ #${dosha.agePriorityRank || 1}`)}</span>
+                          </span>
+
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase border ${badgeBg} print:border-black print:text-black`}>
                             <span className="animate-pulse">●</span>
                             <span>{getLangText(dosha.statusBadge)}</span>
                           </span>
                         </div>
                       </div>
+
+                      {/* 📌 Age Priority Reason */}
+                      {dosha.agePriorityReason && (
+                        <div className="rounded-xl bg-amber-950/40 border border-amber-500/40 p-3 text-xs text-amber-200 font-medium leading-relaxed print:bg-white print:text-black print:border-black">
+                          <span className="font-black text-amber-300">📌 {t("agePriorityBadgeLabel")}: </span>
+                          <span>{getLangText(dosha.agePriorityReason)}</span>
+                        </div>
+                      )}
+
+                      {/* 🎯 MANDATORY ACTIVE HIGHLIGHT: IMMEDIATE ACTION REQUIRED */}
+                      {dosha.immediateActionRequired && (
+                        <div className="rounded-2xl border-2 border-rose-500/90 bg-gradient-to-br from-rose-950/60 via-slate-900 to-amber-950/40 p-4 sm:p-5 shadow-2xl space-y-2 ring-2 ring-rose-500/20 print:border-black print:bg-white print:text-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-rose-300 tracking-wider print:text-black">
+                            <span className="text-lg">🎯</span>
+                            <span>{t("immediateActionTitle")}</span>
+                          </div>
+                          <p className="text-sm sm:text-base font-black text-rose-100 leading-relaxed print:text-black">
+                            {getLangText(dosha.immediateActionRequired)}
+                          </p>
+                        </div>
+                      )}
 
                       {/* ⚠️ SECTION: DEDICATED CURRENT LIFE PROBLEMS PARAGRAPH */}
                       <div className="rounded-2xl bg-rose-950/30 border border-rose-500/40 p-4 space-y-2 print:bg-white print:border-black">
@@ -726,7 +892,9 @@ export const KundliDoshasPage: React.FC = () => {
                           <span>{t("currentProblemsTitle")}</span>
                         </div>
                         <p className="text-xs sm:text-sm leading-relaxed text-rose-100/90 font-medium print:text-black">
-                          {getLangText(dosha.currentLifeProblems)}
+                          {Array.isArray((dosha.currentLifeProblems as any)?.[selectedLang])
+                            ? (dosha.currentLifeProblems as any)[selectedLang].join(" • ")
+                            : getLangText(dosha.currentLifeProblems) || getLangText(dosha.lifeImpact)}
                         </p>
                       </div>
 
@@ -1120,6 +1288,30 @@ export const KundliDoshasPage: React.FC = () => {
           </>
         )}
       </main>
+
+      {/* 🖨️ Off-screen PDF Container for 1-Click PDF Download (baggona-pdf-layout-guard compliant) */}
+      <div
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          width: 900,
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+          overflow: "hidden",
+          height: 0
+        }}
+        aria-hidden="true"
+      >
+        {doshaReport && (
+          <KundliDoshaPdfTemplate
+            id="kundli-doshas-pdf-container"
+            report={doshaReport}
+            lang={selectedLang}
+          />
+        )}
+      </div>
     </div>
   );
 };

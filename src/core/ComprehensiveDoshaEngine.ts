@@ -87,6 +87,11 @@ export interface DetectedDosha {
   lifeImpact: Record<string, string>; // 2 paragraphs explaining real-world effects
   recommendedPooja: Record<string, string>; // Specific Vedic ritual (e.g. Gokarna Tila Homa, Narayana Bali)
   remedies: Record<string, string[]>; // Mantras, charity, lifestyle disciplines
+  agePriorityScore?: number; // Lower score = higher priority to address first
+  agePriorityRank?: number; // 1, 2, 3...
+  agePriorityBadge?: Record<string, string>; // 5-lang badge e.g. ⚡ ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಆದ್ಯತೆ #1
+  agePriorityReason?: Record<string, string>; // 5-lang reason why it's priority at current age
+  immediateActionRequired?: Record<string, string>; // 5-lang immediate action to take first
 }
 
 export interface ComprehensiveDoshaReport {
@@ -95,6 +100,11 @@ export interface ComprehensiveDoshaReport {
     birthDate: string;
     birthTime: string;
     place: string;
+    currentAge?: number;
+    devoteeAge?: number;
+    ageStageKey?: "bala" | "vidya" | "vivaha_udyoga" | "gruhastha" | "vanaprastha";
+    ageStageNameRecord?: Record<string, string>;
+    currentAgeFocusSummary?: Record<string, string>;
     lagnaRashi: string;
     moonRashi: string;
     nakshatra: string;
@@ -2941,8 +2951,19 @@ Performing the Maha Mrityunjaya Homa and Kala Bhairava Archana at Gokarna Kshetr
     }
   });
 
-  // Calculate summary score
-  const activeDoshas = doshasList.filter((d) => d.isDetected);
+  // ==========================================================================
+  // AGE-ADAPTIVE & SHANTRIC PRIORITY SORTING ENGINE
+  // ==========================================================================
+  const ageAdaptiveResult = assignAgeAdaptivePriorities(
+    doshasList,
+    currentAge,
+    activeMahaPlanet,
+    activeBhuktiPlanet
+  );
+  const prioritizedDoshas = ageAdaptiveResult.sortedDoshas;
+
+  // Calculate summary score based on prioritized detected doshas
+  const activeDoshas = prioritizedDoshas.filter((d) => d.isDetected);
   const criticalCount = activeDoshas.filter((d) => d.severity === "critical").length;
   const highCount = activeDoshas.filter((d) => d.severity === "high").length;
   const moderateCount = activeDoshas.filter((d) => d.severity === "moderate").length;
@@ -2958,6 +2979,11 @@ Performing the Maha Mrityunjaya Homa and Kala Bhairava Archana at Gokarna Kshetr
       birthDate: input.birthDate,
       birthTime: input.birthTime,
       place: input.pincode || "India",
+      currentAge: Math.floor(currentAge),
+      devoteeAge: Math.floor(currentAge),
+      ageStageKey: ageAdaptiveResult.stageKey,
+      ageStageNameRecord: ageAdaptiveResult.stageNameRecord,
+      currentAgeFocusSummary: ageAdaptiveResult.stageFocusSummary,
       lagnaRashi: kundli.lagnaRashi.english,
       moonRashi: moon ? moon.rashi.english : "Unknown",
       nakshatra: moon?.nakshatra?.english || "Unknown",
@@ -2995,7 +3021,7 @@ Performing the Maha Mrityunjaya Homa and Kala Bhairava Archana at Gokarna Kshetr
       }
     },
     summary: {
-      totalEvaluated: doshasList.length,
+      totalEvaluated: prioritizedDoshas.length,
       totalActive: activeDoshas.length,
       criticalCount,
       highCount,
@@ -3003,9 +3029,395 @@ Performing the Maha Mrityunjaya Homa and Kala Bhairava Archana at Gokarna Kshetr
       mildCount,
       karmicIndexScore
     },
-    doshas: doshasList,
+    doshas: prioritizedDoshas,
     activeSandhiAlert: sandhiAlert,
     gandantaraAndBhaya,
     calculatedAt: new Date().toISOString()
   };
 }
+
+/**
+ * Assigns age-adaptive Parashari priorities to all detected doshas.
+ * E.g., for an 8-year-old child:
+ * Balarishta (1), Balyagraha (2), Gandanta (3) take top priority before Pitru Dosha, Kala Sarpa, etc.
+ */
+function assignAgeAdaptivePriorities(
+  doshas: DetectedDosha[],
+  currentAge: number,
+  runningMaha: PlanetName,
+  runningBhukti: PlanetName
+): {
+  sortedDoshas: DetectedDosha[];
+  stageKey: "bala" | "vidya" | "vivaha_udyoga" | "gruhastha" | "vanaprastha";
+  stageNameRecord: Record<string, string>;
+  stageFocusSummary: Record<string, string>;
+} {
+  const roundedAge = Math.floor(currentAge);
+
+  let stageKey: "bala" | "vidya" | "vivaha_udyoga" | "gruhastha" | "vanaprastha" = "gruhastha";
+  if (currentAge < 12) {
+    stageKey = "bala";
+  } else if (currentAge < 22) {
+    stageKey = "vidya";
+  } else if (currentAge < 36) {
+    stageKey = "vivaha_udyoga";
+  } else if (currentAge < 56) {
+    stageKey = "gruhastha";
+  } else {
+    stageKey = "vanaprastha";
+  }
+
+  const allStageNames: Record<string, Record<string, string>> = {
+    bala: {
+      kn: "ಬಾಲ್ಯಾವಸ್ಥೆ (ಆರೋಗ್ಯ, ಆಯುರ್ ರಕ್ಷಣೆ & ಬಾಲ ಶಾಂತಿ)",
+      en: "Childhood Stage (Health, Immunity & Vitality Protection)",
+      hi: "बाल्यावस्था (स्वास्थ्य, आयु रक्षा एवं बाल शांति)",
+      te: "బాల్యావస్థ (ఆరోగ్యం, ఆయుష్షు & బాల రక్ష)",
+      ta: "குழந்தைப் பருவம் (ஆரோக்கியம், ஆயுள் பாதுகாப்பு)"
+    },
+    vidya: {
+      kn: "ವಿದ್ಯಾವಸ್ಥೆ (ಶಿಕ್ಷಣ, ಏಕಾಗ್ರತೆ & ಬುದ್ಧಿ ವಿಕಾಸ)",
+      en: "Student/Youth Stage (Education, Focus & Intellect)",
+      hi: "विद्यावस्था (शिक्षा, एकाग्रता एवं विद्या बुद्धि)",
+      te: "విద్యావస్థ (విద్య, ఏకాగ్రత & విజ్ఞానం)",
+      ta: "கல்விப் பருவம் (கல்வி, கவனம் & அறிவு)"
+    },
+    vivaha_udyoga: {
+      kn: "ವಿವಾಹ & ಉದ್ಯೋಗಾವಸ್ಥೆ (ದಾಂಪತ್ಯ, ವೃತ್ತಿ ಸ್ಥಿರತೆ & ಸಂತಾನ)",
+      en: "Matrimonial & Career Stage (Marriage, Career & Progeny)",
+      hi: "विवाह एवं करियर चरण (दांपत्य, आजीविका एवं संतान)",
+      te: "వివాహ & ఉద్యోగావస్థ (దాంపత్యం, ఉద్యోగం & సంతానం)",
+      ta: "திருமண & தொழில் பருவம் (திருமணம், வேலை & சந்தானம்)"
+    },
+    gruhastha: {
+      kn: "ಗೃಹಸ್ಥಾವಸ್ಥೆ (ಕುಟುಂಬ ಕ್ಷೇಮ, ಸ್ಥಿರಾಸ್ತಿ & ಸಾಲ ಮುಕ್ತಿ)",
+      en: "Family & Wealth Stage (Family Welfare, Assets & Debt Relief)",
+      hi: "गृहस्थावस्था (पारिवारिक सुख, संपत्ति एवं ऋण मुक्ति)",
+      te: "గృహస్థావస్థ (కుటుంబ సంక్షేమం, సంపద & రుణవిముక్తి)",
+      ta: "குடும்பப் பருவம் (குடும்ப அமைதி, சொத்து & கடன் நிவர்த்தி)"
+    },
+    vanaprastha: {
+      kn: "ಜ್ಯೇಷ್ಠಾವಸ್ಥೆ (ಆಯುರ್ ಸ್ವಾಸ್ಥ್ಯ, ಮಾನಸಿಕ ಶಾಂತಿ & ಮೋಕ್ಷ)",
+      en: "Senior & Longevity Stage (Vitality, Peace & Moksha)",
+      hi: "ज्येष्ठावस्था (दीर्घायु, मानसिक शांति एवं मोक्ष)",
+      te: "జ్యేష్ఠావస్థ (దీర్ఘాయుష్షు, మానసిక శాంతి & మోక్షం)",
+      ta: "முதியோர் பருவம் (ஆயுள் நலம், மன அமைதி & மோட்சம்)"
+    }
+  };
+  const stageNameRecord = allStageNames[stageKey] || allStageNames.gruhastha;
+
+  const allStageSummaries: Record<string, Record<string, string>> = {
+    bala: {
+      kn: `ಜಾತಕರಿಗೆ ಪ್ರಸ್ತುತ ${roundedAge} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ಬಾಲ್ಯಾವಸ್ಥೆಯಲ್ಲಿದ್ದಾರೆ. ಬಾಲಾರಿಷ್ಟ, ಬಾಲ್ಯಗ್ರಹ ಮತ್ತು ನಕ್ಷತ್ರ ಗಂಡಾಂತರ ದೋಷಗಳು ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ದೈಹಿಕ ರಕ್ಷಣೆ, ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ಆಯುಷ್ಯದ ಮೇಲೆ ನೇರ ಪ್ರಭಾವ ಬೀರುವುದರಿಂದ ಇವುಗಳಿಗೆ ಪ್ರಥಮ ಆದ್ಯತೆ ನೀಡಲಾಗಿದೆ. ಪ್ರೌಢಾವಸ್ಥೆಯ ವಿವಾಹ-ಉದ್ಯೋಗ ದೋಷಗಳಿಗಿಂತ ಮಗುವಿನ ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ರಕ್ಷಣೆಯ ಶಾಂತಿಯೇ ಮೊದಲು ನೆರವೇರಿಸಬೇಕಾದ ಪವಿತ್ರ ಕರ್ತವ್ಯವಾಗಿದೆ.`,
+      en: `The native is currently ${roundedAge} years old (Childhood Stage). Because Balarishta, Balyagraha, and Gandanta afflictions directly impact early childhood vitality, physical immunity, and longevity up to age 12, they are prioritized first over adult matrimonial or career concerns.`,
+      hi: `जातक की वर्तमान आयु ${roundedAge} वर्ष है (बाल्यावस्था)। बालारिष्ट, बाल्यग्रह एवं गंडांतर दोष प्रारंभिक स्वास्थ्य, रोग प्रतिरोधक क्षमता एवं आयु पर सीधे प्रभाव डालते हैं, अतः वयस्क विवाह या करियर दोषों की तुलना में इन्हें सर्वोच्च प्राथमिकता दी गई है।`,
+      te: `జాతకునికి ప్రస్తుతం ${roundedAge} సంవత్సరాల వయస్సు ఉంది (బాల్యావస్థ). బాలారిష్ట, బాల్యగ్రహ మరియు గండాంతర దోషాలు చిన్ననాటి ఆరోగ్యం మరియు ఆయుష్షుపై నేరుగా ప్రభావం చూపుతాయి కాబట్టి వీటికి ప్రథమ ప్రాధాన్యత ఇవ్వబడింది.`,
+      ta: `ஜாதகருக்கு தற்போது ${roundedAge} வயது (குழந்தைப் பருவம்). பாலாரிஷ்ட, பால்யக் கிரக மற்றும் கண்டாந்தர தோஷங்கள் குழந்தை பருவ உடல்நலம், நோய் எதிர்ப்பு சக்தி மற்றும் ஆயுளை நேரடியாகப் பாதிப்பதால், இவற்றிற்கு முதல் முன்னுரிமை அளிக்கப்பட்டுள்ளது.`
+    },
+    vidya: {
+      kn: `ಜಾತಕರಿಗೆ ಪ್ರಸ್ತುತ ${roundedAge} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ವಿದ್ಯಾವಸ್ಥೆಯಲ್ಲಿದ್ದಾರೆ. ಗುರು ಚಂಡಾಲ, ಕೇಮದ್ರುಮ ಮತ್ತು ಗ್ರಹಣ ದೋಷಗಳು ಏಕಾಗ್ರತೆ, ಬುದ್ಧಿಮತ್ತೆ, ಪರೀಕ್ಷಾ ಆತ್ಮವಿಶ್ವಾಸ ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ನಿರ್ಧಾರಗಳ ಮೇಲೆ ನೇರವಾಗಿ ಪ್ರಭಾವ ಬೀರುವುದರಿಂದ ಇವುಗಳಿಗೆ ಪ್ರಥಮ ಆದ್ಯತೆ ನೀಡಲಾಗಿದೆ.`,
+      en: `The native is currently ${roundedAge} years old (Student/Youth Stage). Guru Chandala, Kemadruma, and Grahan doshas directly impact concentration, intellectual discernment, exam confidence, and academic success, making them the primary focus.`,
+      hi: `जातक की वर्तमान आयु ${roundedAge} वर्ष है (विद्यावस्था)। गुरु चांडाल, केमद्रुम एवं ग्रहण दोष विद्या, एकाग्रता एवं परीक्षा आत्मविश्वास को प्रभावित करते हैं, अतः ये मुख्य प्राथमिकताओं में हैं।`,
+      te: `జాతకునికి ప్రస్తుతం ${roundedAge} సంవత్సరాలు (విద్యావస్థ). గురు చాండాల, కేమద్రుమ మరియు గ్రహణ దోషాలు ఏకాగ్రత మరియు విద్యా విజయాలపై ప్రభావం చూపుతాయి.`,
+      ta: `ஜாதகருக்கு தற்போது ${roundedAge} வயது (கல்விப் பருவம்). குரு சண்டாள, கேமத்ரும, கிரகண தோஷங்கள் கல்வி மற்றும் கவனத்தை பாதிப்பதால் இவற்றுக்கு முன்னுரிமை.`
+    },
+    vivaha_udyoga: {
+      kn: `ಜಾತಕರಿಗೆ ಪ್ರಸ್ತುತ ${roundedAge} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ವಿವಾಹ & ಉದ್ಯೋಗಾವಸ್ಥೆಯಲ್ಲಿದ್ದಾರೆ. ಕುಜ (ಮಾಂಗಲಿಕ) ದೋಷ, ಕಾಳಸರ್ಪ ಮತ್ತು ಪಿತೃ ದೋಷಗಳು ವಿವಾಹ ಹೊಂದಾಣಿಕೆ, ವೃತ್ತಿ ಸ್ಥಿರತೆ ಹಾಗೂ ಸಂತಾನ ಭಾಗ್ಯದ ಮೇಲೆ ನೇರ ಪ್ರಭಾವ ಬೀರುವುದರಿಂದ ಈ ಹಂತದಲ್ಲಿ ಇವುಗಳಿಗೆ ಪರಮೋಚ್ಚ ಆದ್ಯತೆ ನೀಡಲಾಗಿದೆ.`,
+      en: `The native is currently ${roundedAge} years old (Marriage & Career Stage). Kuja (Manglik), Kala Sarpa, and Pitru Doshas directly impact marital harmony, career milestones, and progeny blessings, making them the highest priority.`,
+      hi: `जातक की वर्तमान आयु ${roundedAge} वर्ष है (विवाह एवं आजीविका चरण)। मांगलिक, कालसर्प एवं पितृ दोष दांपत्य, करियर स्थिरता एवं संतान पर प्रत्यक्ष प्रभाव डालते हैं।`,
+      te: `జాతకునికి ప్రస్తుతం ${roundedAge} సంవత్సరాలు (వివాహ & ఉద్యోగం). కుజ దోషం, కాలసర్ప మరియు పితృ దోషాలు దాంపత్యం మరియు ఉద్యోగ స్థిరత్వానికి అత్యంత ముఖ్యమైనవి.`,
+      ta: `ஜாதகருக்கு தற்போது ${roundedAge} வயது (திருமண & தொழில் பருவம்). செவ்வாய், காலசர்ப்ப, பித்ரு தோஷங்கள் திருமணம் மற்றும் உத்தியோகத்திற்கு மிக முக்கியம்.`
+    },
+    gruhastha: {
+      kn: `ಜಾತಕರಿಗೆ ಪ್ರಸ್ತುತ ${roundedAge} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ಗೃಹಸ್ಥಾವಸ್ಥೆಯಲ್ಲಿದ್ದಾರೆ. ಪಿತೃ ದೋಷ, ನಾರಾಯಣ ಬಲಿ, ಶ್ರಪಿತ ಮತ್ತು ಕಾಳಸರ್ಪ ದೋಷಗಳು ಕುಟುಂಬ ಕ್ಷೇಮ, ಸಾಲಮುಕ್ತಿ, ಸ್ಥಿರಾಸ್ತಿ ರಕ್ಷಣೆ ಹಾಗೂ ಮಕ್ಕಳ ಭವಿಷ್ಯದ ಮೇಲೆ ನೇರ ಪ್ರಭಾವ ಬೀರುವುದರಿಂದ ಇವುಗಳಿಗೆ ಪ್ರಥಮ ಆದ್ಯತೆ ನೀಡಲಾಗಿದೆ.`,
+      en: `The native is currently ${roundedAge} years old (Family & Wealth Stage). Pitru Dosha, Narayana Bali, Shrapit, and Kala Sarpa directly govern generational legacy, financial relief, and domestic prosperity, making them the foremost priority.`,
+      hi: `जातक की वर्तमान आयु ${roundedAge} वर्ष है (गृहस्थावस्था)। पितृ दोष, नारायण बलि, श्रापित एवं कालसर्प दोष पारिवारिक सुख, संपत्ति, ऋण मुक्ति एवं संतान कल्याण के लिए सर्वोच्च प्राथमिकता हैं।`,
+      te: `జాతకునికి ప్రస్తుతం ${roundedAge} సంవత్సరాలు (గృహస్థావస్థ). పితృ దోషం, నారాయణ బలి మరియు కాలసర్ప దోషాలు కుటుంబ సంక్షేమానికి ముఖ్యమైనవి.`,
+      ta: `ஜாதகருக்கு தற்போது ${roundedAge} வயது (குடும்பப் பருவம்). பித்ரு தோஷம், நாராயண பலி மற்றும் காலசர்ப்ப தோஷங்கள் குடும்ப நலம் மற்றும் கடன் நிவர்த்திக்கு முதன்மை.`
+    },
+    vanaprastha: {
+      kn: `ಜಾತಕರಿಗೆ ಪ್ರಸ್ತುತ ${roundedAge} ವರ್ಷ ವಯಸ್ಸಾಗಿದ್ದು, ಜ್ಯೇಷ್ಠಾವಸ್ಥೆಯಲ್ಲಿದ್ದಾರೆ. ನಾರಾಯಣ ಬಲಿ, ಪಿತೃ ದೋಷ, ಕೇಮದ್ರುಮ ಮತ್ತು ದಶಾ ಸಂಧಿಗಳು ಆಯುರ್ ರಕ್ಷಣೆ, ದೀರ್ಘಕಾಲೀನ ಕೀಲು-ಸ್ನಾಯು ಸ್ವಾಸ್ಥ್ಯ, ಆಧ್ಯಾತ್ಮಿಕ ಶಾಂತಿ ಹಾಗೂ ಪೂರ್ವಜರ ಮೋಕ್ಷಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಮುಖವಾಗಿವೆ.`,
+      en: `The native is currently ${roundedAge} years old (Senior & Longevity Stage). Narayana Bali, Pitru Dosha, Kemadruma, and Dasha Sandhi govern longevity preservation, health immunity, and ancestral spiritual liberation.`,
+      hi: `जातक की वर्तमान आयु ${roundedAge} वर्ष है (ज्येष्ठावस्था)। नारायण बलि, पितृ दोष एवं दशा संधि आयु रक्षा, स्वास्थ्य तथा पूर्वजों की आत्म शांति के लिए परम आवश्यक हैं।`,
+      te: `జాతకునికి ప్రస్తుతం ${roundedAge} సంవత్సరాలు (జ్యేష్ఠావస్థ). నారాయణ బలి మరియు పితృ దోషాలు ఆయుష్షు రక్షణ మరియు పితృ మోక్షానికి అత్యంత ప్రాధాన్యం.`,
+      ta: `ஜாதகருக்கு தற்போது ${roundedAge} வயது (முதியோர் பருவம்). நாராயண பலி மற்றும் பித்ரு தோஷங்கள் நீண்ட ஆயுள் மற்றும் முன்னோர்களின் ஆத்ம சாந்திக்கு முதன்மை.`
+    }
+  };
+  const stageFocusSummary = allStageSummaries[stageKey] || allStageSummaries.gruhastha;
+
+  // Base priority tables for each life stage (1 is top priority, lower score = comes first)
+  const basePriorities: Record<string, Record<string, number>> = {
+    bala: {
+      balarishta: 1,
+      balyagraha: 2,
+      gandanta_dosha: 3,
+      grahan_dosha: 4,
+      kemadruma_dosha: 5,
+      dasha_sandhi: 6,
+      pitru_dosha: 7,
+      narayana_bali: 8,
+      kala_sarpa: 9,
+      guru_chandala: 10,
+      kuja_dosha: 15,
+      shrapit_dosha: 16,
+      panchanga_yoga_dosha: 17,
+      gochara_sade_sati: 18,
+      gochara_rahu_ketu: 19,
+      gochara_kantaka_ashtama_shani: 20,
+      gochara_guru_atichara: 21
+    },
+    vidya: {
+      guru_chandala: 1,
+      kemadruma_dosha: 2,
+      grahan_dosha: 3,
+      dasha_sandhi: 4,
+      gandanta_dosha: 5,
+      pitru_dosha: 6,
+      kala_sarpa: 7,
+      kuja_dosha: 8,
+      shrapit_dosha: 9,
+      panchanga_yoga_dosha: 10,
+      gochara_sade_sati: 11,
+      gochara_rahu_ketu: 12,
+      gochara_kantaka_ashtama_shani: 13,
+      narayana_bali: 14,
+      balarishta: 25,
+      balyagraha: 26,
+      gochara_guru_atichara: 27
+    },
+    vivaha_udyoga: {
+      kuja_dosha: 1,
+      kala_sarpa: 2,
+      pitru_dosha: 3,
+      narayana_bali: 4,
+      dasha_sandhi: 5,
+      guru_chandala: 6,
+      shrapit_dosha: 7,
+      gochara_sade_sati: 8,
+      gochara_rahu_ketu: 9,
+      grahan_dosha: 10,
+      kemadruma_dosha: 11,
+      gandanta_dosha: 12,
+      panchanga_yoga_dosha: 13,
+      gochara_kantaka_ashtama_shani: 14,
+      balarishta: 30,
+      balyagraha: 31,
+      gochara_guru_atichara: 32
+    },
+    gruhastha: {
+      pitru_dosha: 1,
+      narayana_bali: 2,
+      shrapit_dosha: 3,
+      kala_sarpa: 4,
+      dasha_sandhi: 5,
+      gochara_sade_sati: 6,
+      gochara_kantaka_ashtama_shani: 7,
+      gochara_rahu_ketu: 8,
+      guru_chandala: 9,
+      kuja_dosha: 10,
+      grahan_dosha: 11,
+      kemadruma_dosha: 12,
+      gandanta_dosha: 13,
+      panchanga_yoga_dosha: 14,
+      balarishta: 35,
+      balyagraha: 36,
+      gochara_guru_atichara: 37
+    },
+    vanaprastha: {
+      narayana_bali: 1,
+      pitru_dosha: 2,
+      kemadruma_dosha: 3,
+      dasha_sandhi: 4,
+      gochara_sade_sati: 5,
+      gochara_rahu_ketu: 6,
+      gochara_kantaka_ashtama_shani: 7,
+      grahan_dosha: 8,
+      shrapit_dosha: 9,
+      kala_sarpa: 10,
+      guru_chandala: 11,
+      kuja_dosha: 12,
+      gandanta_dosha: 13,
+      panchanga_yoga_dosha: 14,
+      balarishta: 40,
+      balyagraha: 41,
+      gochara_guru_atichara: 42
+    }
+  };
+
+  const stagePriorities = basePriorities[stageKey] || basePriorities.gruhastha;
+
+  // Clone doshas to avoid mutating source array unexpectedly
+  const evaluated = doshas.map((d) => {
+    let base = stagePriorities[d.id] ?? 20;
+
+    // Severity adjustment
+    if (d.severity === "critical") base -= 0.4;
+    else if (d.severity === "high") base -= 0.2;
+    else if (d.severity === "moderate") base += 0.0;
+    else if (d.severity === "mild") base += 0.2;
+
+    // Dasha resonance boost
+    const involved = (d.technicalDetail?.grahasInvolved || []).map((g) => g.toLowerCase());
+    const mahaLow = (runningMaha || "").toLowerCase();
+    const bhuktiLow = (runningBhukti || "").toLowerCase();
+    if (involved.some((g) => g.includes(mahaLow) || g.includes(bhuktiLow))) {
+      base -= 0.5; // Actively manifesting in running dasha
+    }
+
+    // Detected vs undetected: undetected placed at the bottom
+    if (!d.isDetected) {
+      base += 1000;
+    }
+
+    return {
+      ...d,
+      agePriorityScore: base
+    };
+  });
+
+  // Sort doshas: detected first, by agePriorityScore ascending
+  evaluated.sort((a, b) => (a.agePriorityScore ?? 50) - (b.agePriorityScore ?? 50));
+
+  // Assign 1-indexed ranks and rich localized badges to detected doshas
+  let rank = 1;
+  evaluated.forEach((d) => {
+    if (d.isDetected) {
+      d.agePriorityRank = rank;
+
+      const stageShortKn = stageKey === "bala" ? "ಬಾಲ್ಯಾವಸ್ಥೆ" : stageKey === "vidya" ? "ವಿದ್ಯಾವಸ್ಥೆ" : stageKey === "vivaha_udyoga" ? "ವಿವಾಹ/ಉದ್ಯೋಗ" : stageKey === "gruhastha" ? "ಗೃಹಸ್ಥಾವಸ್ಥೆ" : "ಜ್ಯೇಷ್ಠಾವಸ್ಥೆ";
+      const stageShortEn = stageKey === "bala" ? "Childhood" : stageKey === "vidya" ? "Student/Youth" : stageKey === "vivaha_udyoga" ? "Marriage/Career" : stageKey === "gruhastha" ? "Family/Mid-Life" : "Senior";
+      const stageShortHi = stageKey === "bala" ? "बाल्यावस्था" : stageKey === "vidya" ? "विद्यावस्था" : stageKey === "vivaha_udyoga" ? "विवाह/करियर" : stageKey === "gruhastha" ? "गृहस्थावस्था" : "ज्येष्ठावस्था";
+      const stageShortTe = stageKey === "bala" ? "బాల్యావస్థ" : stageKey === "vidya" ? "విద్యావస్థ" : stageKey === "vivaha_udyoga" ? "వివాహ/ఉద్యోగం" : stageKey === "gruhastha" ? "గృహస్థావస్థ" : "జ్యేష్ఠావస్థ";
+      const stageShortTa = stageKey === "bala" ? "குழந்தைப் பருவம்" : stageKey === "vidya" ? "கல்விப் பருவம்" : stageKey === "vivaha_udyoga" ? "திருமண/தொழில்" : stageKey === "gruhastha" ? "குடும்பப் பருவம்" : "முதியோர் பருவம்";
+
+      d.agePriorityBadge = {
+        kn: `⚡ ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಆದ್ಯತೆ #${rank} (${roundedAge} ವರ್ಷ - ${stageShortKn})`,
+        en: `⚡ Current Age Priority #${rank} (Age ${roundedAge} - ${stageShortEn})`,
+        hi: `⚡ वर्तमान आयु प्राथमिकता #${rank} (${roundedAge} वर्ष - ${stageShortHi})`,
+        te: `⚡ ప్రస్తుత వయస్సు ప్రాధాన్యత #${rank} (${roundedAge} సం. - ${stageShortTe})`,
+        ta: `⚡ தற்போதைய வயது முன்னுரிமை #${rank} (${roundedAge} வயது - ${stageShortTa})`
+      };
+
+      // Age Priority Reason
+      d.agePriorityReason = getAgePriorityReasonText(d.id, stageKey, roundedAge);
+
+      // Immediate Action Required
+      d.immediateActionRequired = getImmediateActionText(d);
+
+      rank++;
+    }
+  });
+
+  return {
+    sortedDoshas: evaluated,
+    stageKey,
+    stageNameRecord,
+    stageFocusSummary
+  };
+}
+
+function getAgePriorityReasonText(
+  doshaId: string,
+  stageKey: string,
+  roundedAge: number
+): Record<string, string> {
+  switch (doshaId) {
+    case "balarishta":
+      return {
+        kn: `${roundedAge} ವರ್ಷದ ಬಾಲಕನಿಗೆ ಬಾಲಾರಿಷ್ಟ ದೋಷವು ಪ್ರಸ್ತುತ ಜೀವಿತಾವಧಿಯ ಅತ್ಯಂತ ಪ್ರಮುಖ ಆದ್ಯತೆಯಾಗಿದೆ. ೧೨ ವರ್ಷದೊಳಗಿನ ಮಕ್ಕಳ ಆರೋಗ್ಯ, ದೈಹಿಕ ರಕ್ಷಣೆ ಮತ್ತು ಆಯುಷ್ಯದ ಮೇಲೆ ಇದು ನೇರ ಪ್ರಭಾವ ಬೀರುವುದರಿಂದ ಮೊದಲು ಇದಕ್ಕೆ ಶ್ರೀ ಮಹಾಮೃತ್ಯುಂಜಯ ಹಾಗೂ ಬಾಲರಕ್ಷಾ ಶಾಂತಿ ಮಾಡಿಸಬೇಕು.`,
+        en: `For a child aged ${roundedAge}, Balarishta is the foremost priority. As it directly governs early childhood immunity, vitality, and physical protection up to age 12, this must be addressed first with Maha Mrityunjaya and Bala Raksha rituals.`,
+        hi: `${roundedAge} वर्ष के बालक के लिए बालारिष्ट दोष वर्तमान में सर्वोच्च प्राथमिकता है। 12 वर्ष तक की आयु में यह स्वास्थ्य एवं रोग प्रतिरोधक क्षमता को सीधे प्रभावित करता है।`,
+        te: `${roundedAge} సంవత్సరాల బాల్య దశలో బాలారిష్ట దోషం అత్యంత ముఖ్యమైనది. 12 ఏళ్ల లోపు పిల్లల ఆరోగ్యం మరియు ఆయుష్షు కోసం ముందుగా దీనికి శాంతి చేయించాలి.`,
+        ta: `${roundedAge} வயது குழந்தைக்கு பாலாரிஷ்ட தோஷம் மிக முக்கியமானது. 12 வயது வரை உடல்நலம் மற்றும் ஆயுள் காக்க இதற்கு உடனடியாக சாந்தி செய்ய வேண்டும்.`
+      };
+    case "balyagraha":
+      return {
+        kn: `ಬಾಲ್ಯದ ಸೂಕ್ಷ್ಮ ವಯಸ್ಸಿನಲ್ಲಿ ಗ್ರಹ ಪೀಡೆಯಿಂದ ರಕ್ಷಿಸಲು, ರಾತ್ರಿಯ ಅನಿರೀಕ್ಷಿತ ಬೆದರಿಕೆ, ಕಣ್ಣು ದೃಷ್ಟಿ ಹಾಗೂ ಶಾರೀರಿಕ ಕ್ಷೀಣತೆಯನ್ನು ಹೋಗಲಾಡಿಸಲು ಈ ದೋಷಕ್ಕೆ ತಕ್ಷಣದ ಶಾಂತಿ ಅಗತ್ಯ.`,
+        en: `Crucial during early childhood to shield against astral sensitivities, nocturnal restlessness, evil eye, and recurrent ailments.`,
+        hi: `बाल्यावस्था में ग्रह पीड़ा, नजर दोष एवं रात में भय से मुक्ति हेतु यह दोष तत्काल शांत करने योग्य है।`,
+        te: `బాల్య దశలో గ్రహ బాధల నుండి రక్షణ, రాత్రి భయాలు మరియు దిష్టి దోషాల నివారణకు తక్షణ శాంతి అవసరం.`,
+        ta: `சிறுவயதில் கிரக தோஷங்கள், கண் திருஷ்டி மற்றும் பயங்களிலிருந்து பாதுகாக்க உடனடி பரிகாரம் தேவை.`
+      };
+    case "gandanta_dosha":
+      return {
+        kn: `ಜನ್ಮ ನಕ್ಷತ್ರ ಗಂಡಾಂತವು ಜೀವನದ ಆರಂಭಿಕ ಹಂತಗಳಲ್ಲಿ ತೀವ್ರ ಕರ್ಮಿಕ ಸಂಘರ್ಷ ಉಂಟುಮಾಡುತ್ತದೆ. ಆದ್ದರಿಂದ ಬಾಲ್ಯದಲ್ಲೇ ೨೭ ತೀರ್ಥೋದಕ ಶಾಂತಿ ಸ್ನಾನ ಮಾಡಿಸುವುದು ಆಯುಷ್ಯ ವೃದ್ಧಿಗೆ ಶ್ರೇಷ್ಠ.`,
+        en: `Nakshatra Gandanta junctions cause early-life friction; early 27-tirtha propitiation ensures smooth life development.`,
+        hi: `नक्षत्र गंडांत जीवन के आरंभिक चरणों में संघर्ष देता है। 27 तीर्थों के जल से शांति स्नान दीर्घायु हेतु श्रेष्ठ है।`,
+        te: `గండాంతర సంధి జీవిత ప్రారంభ దశలో అడ్డంకులు సృష్టిస్తుంది. ముందుగా శాంతి స్నానం చేయించడం శ్రేయస్కరం.`,
+        ta: `கண்டாந்தர சந்தி ஆரம்ப காலங்களில் தடைகளைத் தரும்; 27 தீர்த்த சாந்தி ஸ்நானம் செய்வது ஆயுள் விருத்தி தரும்.`
+      };
+    case "kuja_dosha":
+      return {
+        kn: stageKey === "bala"
+          ? `ಕುಜ (ಮಾಂಗಲಿಕ) ದೋಷವು ವಿವಾಹ ಕಾಲದಲ್ಲಿ ಪ್ರಭಾವ ಬೀರುವ ದೋಷವಾಗಿದ್ದು, ಬಾಲ್ಯದಲ್ಲಿ ಇದು ಕೇವಲ ರಕ್ತದೊತ್ತಡ/ಕೋಪಕ್ಕೆ ಸೀಮಿತವಾಗಿರುತ್ತದೆ. ವಿವಾಹ ವಯಸ್ಸಿನಲ್ಲಿ ಇದು ಪ್ರಮುಖವಾಗುತ್ತದೆ.`
+          : `ವಿವಾಹ ಹಾಗೂ ಗೃಹಸ್ಥ ಜೀವನ ಪ್ರವೇಶಿಸುವ ವಯೋಮಿತಿಯಲ್ಲಿ ಕುಜ ದೋಷವು ವಿವಾಹ ವಿಳಂಬ ಅಥವಾ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆಯನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ. ಆದ್ದರಿಂದ ಈ ವಯಸ್ಸಿನಲ್ಲಿ ಇದು ಪ್ರಥಮ ಆದ್ಯತೆಯಾಗಿದೆ.`,
+        en: stageKey === "bala"
+          ? `Kuja (Manglik) Dosha primarily manifests around marriageable age; during childhood it merely shows energetic/temperamental traits.`
+          : `During matrimonial age, Kuja (Manglik) Dosha directly impacts marriage timing and partner compatibility, making it the #1 priority.`,
+        hi: `विवाह योग्य आयु में मांगलिक दोष विवाह विलंब एवं दांपत्य सामंजस्य पर सीधा प्रभाव डालता है, अतः यह मुख्य प्राथमिकता है।`,
+        te: `వివాహ వయస్సులో కుజ దోషం వివాహ ఆలస్యం మరియు దాంపత్య సమస్యలకు కారణమవుతుంది కాబట్టి ప్రాధాన్యత కలిగి ఉంది.`,
+        ta: `திருமண வயதில் செவ்வாய் தோஷம் திருமண தடை மற்றும் கருத்து வேறுபாடுகளை உண்டாக்குவதால் இது முதன்மை பெறுகிறது.`
+      };
+    case "guru_chandala":
+      return {
+        kn: `ಶಿಕ್ಷಣ ಹಾಗೂ ಭವಿಷ್ಯ ರೂಪಿಸಿಕೊಳ್ಳುವ ವಯೋಮಿತಿಯಲ್ಲಿ ಗುರು ಚಂಡಾಲ ದೋಷವು ಬುದ್ಧಿಭ್ರಮೆ, ಏಕಾಗ್ರತೆಯ ಕೊರತೆ ಹಾಗೂ ದುರ್ಜನರ ಸಹವಾಸಕ್ಕೆ ಕಾರಣವಾಗುವುದರಿಂದ ತಕ್ಷಣ ಶಾಂತಿ ಅಗತ್ಯ.`,
+        en: `During educational and youth formation, Guru Chandala directly clouds concentration, intellect, and mentors, requiring immediate propitiation.`,
+        hi: `शिक्षा एवं विद्या अध्ययन के समय गुरु चांडाल बुद्धि भ्रम एवं एकाग्रता की कमी उत्पन्न करता है।`,
+        te: `విద్యాభ్యాస సమయంలో గురు చాండాల దోషం ఏకాగ్రత లోపం మరియు విద్యా ఆటంకాలను కలిగిస్తుంది.`,
+        ta: `கல்வி கற்கும் பருவத்தில் குரு சண்டாள தோஷம் புத்தி மழுங்குதல் மற்றும் கவனக்குறைவை ஏற்படுத்தும்.`
+      };
+    case "pitru_dosha":
+      return {
+        kn: stageKey === "bala"
+          ? `ಬಾಲ ದೋಷಗಳ ನಂತರ, ವಂಶದ ಪಿತೃ ಋಣ ನಿವಾರಣೆಯು ಮಗುವಿನ ಭವಿಷ್ಯದ ಅಭ್ಯುದಯಕ್ಕೆ ರಕ್ಷಾ ಕವಚವಾಗುತ್ತದೆ. ಪೋಷಕರು ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಗೋಕರ್ಣದಲ್ಲಿ ತಿಲತರ್ಪಣ ನೆರವೇರಿಸುವುದು ಸೂಕ್ತ.`
+          : `ಕುಟುಂಬದ ನೆಮ್ಮದಿ, ವಂಶಾಭಿವೃದ್ಧಿ, ಸಂತಾನ ಕ್ಷೇಮ ಹಾಗೂ ಸಾಲಮುಕ್ತಿಗೆ ಪಿತೃ ದೋಷದ ನಿವಾರಣೆಯು ಅತ್ಯಗತ್ಯವಾದ ಪವಿತ್ರ ಕರ್ತವ್ಯವಾಗಿದೆ.`,
+        en: stageKey === "bala"
+          ? `Following child health protections, resolving ancestral debts through parental sankalpa at Gokarna shields the child's long-term destiny.`
+          : `Vital for family prosperity, peaceful progeny growth, and chronic debt relief.`,
+        hi: `परिवार की सुख-शांति, वंश वृद्धि एवं सर्वतोमुखी उन्नति के लिए पितृ दोष निवारण परम आवश्यक है।`,
+        te: `కుటుంబ శాంతి, వంశాభివృద్ధి మరియు ఆర్థిక స్థిరత్వం కొరకు పితృ దోష నివారణ తప్పనిసరి.`,
+        ta: `குடும்ப அமைதி, சந்தான பாக்கியம் மற்றும் கடன் நிவர்த்திக்கு பித்ரு தோஷ நிவர்த்தி மிகவும் அவசியம்.`
+      };
+    case "narayana_bali":
+      return {
+        kn: `ಅತೃಪ್ತ ಪೂರ್ವಜರ ಶಾಂತಿ ಹಾಗೂ ಸಂತಾನ-ಕುಟುಂಬದ ದೈವಿಕ ರಕ್ಷಣೆಗಾಗಿ ನಾರಾಯಣ ಬಲಿ ಶಾಂತಿಯು ಶಾಶ್ವತ ಪರಿಹಾರ ನೀಡುತ್ತದೆ.`,
+        en: `Essential for liberating unfulfilled ancestral spirits and blessing family lineage with peace and healthy progeny.`,
+        hi: `अतृप्त पूर्वजों की सद्गति एवं संतान रक्षा हेतु नारायण बलि अनुष्ठान परम कल्याणकारी है।`,
+        te: `పూర్వీకుల ఆత్మశాంతి మరియు సంతాన రక్షణ కొరకు నారాయణ బలి పూజ శాశ్వత పరిహారం.`,
+        ta: `முன்னோர்களின் ஆத்ம சாந்தி மற்றும் வம்ச விருத்திக்கு நாராயண பலி பூஜை சிறந்த பரிகாரம்.`
+      };
+    case "kala_sarpa":
+      return {
+        kn: `ಜೀವನದ ಪ್ರತಿ ಹಂತದಲ್ಲೂ ಎದುರಾಗುವ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು, ಕಾರ್ಯ ವಿಳಂಬ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಗಿತತೆಯನ್ನು ನಿವಾರಿಸಲು ಗೋಕರ್ಣದಲ್ಲಿ ಸರ್ಪ ಸಂಸ್ಕಾರ ಅಗತ್ಯ.`,
+        en: `Mitigates unexpected sudden reversals, delayed settlements, and systemic karmic friction across career and life.`,
+        hi: `जीवन में अचानक आने वाली बाधाओं, कार्य विलंब एवं वित्तीय रुकावटों के निवारण हेतु सर्प संस्कार आवश्यक है।`,
+        te: `ప్రతి పనిలో ఆకస్మిక అడ్డంకులు, ఆలస్యాలు తొలగడానికి గోకర్ణంలో సర్ప సంస్కార శాంతి అవసరం.`,
+        ta: `திடீர் தடைகள், தாமதங்கள் மற்றும் தொழில் தடைகளை நீக்க சர்ப்ப சாந்தி அவசியமானது.`
+      };
+    default:
+      return {
+        kn: `ಪ್ರಸ್ತುತ ವಯೋಮಿತಿಯ ಗ್ರಹ ಪ್ರಭಾವಗಳ ಪ್ರಕಾರ ಈ ದೋಷಕ್ಕೆ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ ನೆರವೇರಿಸುವುದು ಮಂಗಳಕರ.`,
+        en: `Astrologically recommended for timely pacification according to current age-stage planetary cycles.`,
+        hi: `वर्तमान आयु वर्ग के ग्रहों के अनुसार इस दोष का समय पर निवारण शुभकारी है।`,
+        te: `ప్రస్తుత వయస్సు ప్రకారం ఈ దోషానికి శాస్త్రోక్త పరిహారం చేసుకోవడం మంచిది.`,
+        ta: `தற்போதைய வயது நிலைக்கு ஏற்ப இந்த தோஷத்திற்கு சாந்தி பரிகாரம் செய்வது நலம்.`
+      };
+  }
+}
+
+function getImmediateActionText(dosha: DetectedDosha): Record<string, string> {
+  const poojaKn = dosha.recommendedPooja?.kn || "ವಿಧಿಪೂರ್ವಕ ಶಾಂತಿ";
+  const poojaEn = dosha.recommendedPooja?.en || "Consecrated Vedic Shanti";
+  const poojaHi = dosha.recommendedPooja?.hi || "वैदिक शांति अनुष्ठान";
+  const poojaTe = dosha.recommendedPooja?.te || "శాస్త్రోక్త శాంతి పూజ";
+  const poojaTa = dosha.recommendedPooja?.ta || "சாஸ்திரோக்த சாந்தி பூஜை";
+
+  return {
+    kn: `🎯 ಮೊದಲು ಮಾಡಬೇಕಾದ ಕರ್ತವ್ಯ: ${poojaKn}. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ ನಿತ್ಯ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸುವುದು.`,
+    en: `🎯 Immediate Priority Action: ${poojaEn}. Perform sanctified sankalpa at Sri Gokarna Kshetra and maintain daily spiritual disciplines.`,
+    hi: `🎯 तत्काल आवश्यक कर्तव्य: ${poojaHi}। गोकर्ण महाबलेश्वर क्षेत्र में संकल्प पूर्वक शांति करवाएं।`,
+    te: `🎯 ముందుగా చేయవలసిన కర్తవ్యం: ${poojaTe}. గోకర్ణ మహాబలేశ్వర సన్నిధిలో సంకల్ప పూజ చేయించండి.`,
+    ta: `🎯 உடனடியாக செய்ய வேண்டியது: ${poojaTa}. கோகர்ண தலத்தில் சங்கல்ப பூஜை செய்து தினசரி வழிபடுங்கள்.`
+  };
+}
+
