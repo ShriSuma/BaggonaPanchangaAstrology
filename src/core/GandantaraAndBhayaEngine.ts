@@ -194,6 +194,98 @@ export const calculateGandantaraAndBhaya = (
     };
   };
 
+
+interface DynamicSafeAgeResult {
+  safeAge: number;
+  safeAgeFormatted: string;
+  dashaCycleName: { kn: string; en: string; hi: string; te: string; ta: string };
+  targetDateStr: string;
+}
+
+const calculateDynamicSafeAge = (
+  afflictedGrahas: PlanetName[],
+  baseMaturationAge: number,
+  bhuktiTimeline: Array<{ maha: PlanetName; bhukti: PlanetName; startAge: number; endAge: number }>,
+  dashaTimeline: Array<{ planet: PlanetName; startAge: number; endAge: number }>,
+  primaryPlanetDegree: number,
+  birthDateStr: string
+): DynamicSafeAgeResult => {
+  // Find bhuktis of the afflicted planets in the youth/early-adulthood window (between age 18 and 42)
+  const candidateBhuktis = bhuktiTimeline.filter(
+    (b) => afflictedGrahas.includes(b.bhukti) || afflictedGrahas.includes(b.maha)
+  );
+
+  // Find candidate transition closest to baseMaturationAge (between age 20 and 42)
+  const matchingBhukti = candidateBhuktis
+    .filter((b) => b.endAge >= 20 && b.endAge <= 42)
+    .sort((a, b) => Math.abs(a.endAge - baseMaturationAge) - Math.abs(b.endAge - baseMaturationAge))[0];
+
+  let rawAge = baseMaturationAge;
+  let cycleNameKn = "";
+  let cycleNameEn = "";
+  let cycleNameHi = "";
+  let cycleNameTe = "";
+  let cycleNameTa = "";
+
+  if (matchingBhukti) {
+    rawAge = matchingBhukti.endAge;
+    const mKn = toKannadaPlanet(matchingBhukti.maha);
+    const bKn = toKannadaPlanet(matchingBhukti.bhukti);
+    cycleNameKn = `${mKn} ದಶೆ - ${bKn} ಭುಕ್ತಿ ಸಮಾಪ್ತಿ`;
+    cycleNameEn = `conclusion of ${matchingBhukti.maha}-${matchingBhukti.bhukti} Dasha cycle`;
+    cycleNameHi = `${matchingBhukti.maha}-${matchingBhukti.bhukti} दशा समाप्ति`;
+    cycleNameTe = `${matchingBhukti.maha}-${matchingBhukti.bhukti} దశా ముగింపు`;
+    cycleNameTa = `${matchingBhukti.maha}-${matchingBhukti.bhukti} திசை முடிவு`;
+  } else {
+    const matchingDasha = dashaTimeline
+      .filter((d) => afflictedGrahas.includes(d.planet) && d.endAge >= 18 && d.endAge <= 45)
+      .sort((a, b) => Math.abs(a.endAge - baseMaturationAge) - Math.abs(b.endAge - baseMaturationAge))[0];
+
+    if (matchingDasha) {
+      rawAge = matchingDasha.endAge;
+      const mKn = toKannadaPlanet(matchingDasha.planet);
+      cycleNameKn = `${mKn} ಮಹಾದಶೆ ಸಮಾಪ್ತಿ`;
+      cycleNameEn = `conclusion of ${matchingDasha.planet} Mahadasha`;
+      cycleNameHi = `${matchingDasha.planet} महादशा समाप्ति`;
+      cycleNameTe = `${matchingDasha.planet} మహాదశ ముగింపు`;
+      cycleNameTa = `${matchingDasha.planet} மகாதிசை முடிவு`;
+    } else {
+      // Modulate baseMaturationAge by natal degree of primary planet
+      const degMod = ((primaryPlanetDegree % 10) / 10) * 3.4 - 1.7;
+      rawAge = baseMaturationAge + degMod;
+      cycleNameKn = "ಗ್ರಹ ಪರಿಪಕ್ವತಾ ಸಂಧಿಕಾಲ";
+      cycleNameEn = "planetary maturation horizon";
+      cycleNameHi = "ग्रह परिपक्वता काल";
+      cycleNameTe = "గ్రహ పరిపక్వతా కాలం";
+      cycleNameTa = "கிரக முதிர்ச்சி காலம்";
+    }
+  }
+
+  // Round to 1 decimal place (e.g. 28.4)
+  const safeAge = Math.round(rawAge * 10) / 10;
+  const safeAgeFormatted = `${safeAge}`;
+
+  // Target calendar date calculation from birthDate
+  const bDate = new Date(birthDateStr);
+  const targetYear = Math.floor(bDate.getFullYear() + safeAge);
+  const targetMonthIdx = Math.floor((bDate.getMonth() + (safeAge % 1) * 12) % 12);
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const targetDateStr = `${monthNames[targetMonthIdx]} ${targetYear}`;
+
+  return {
+    safeAge,
+    safeAgeFormatted,
+    dashaCycleName: {
+      kn: cycleNameKn,
+      en: cycleNameEn,
+      hi: cycleNameHi,
+      te: cycleNameTe,
+      ta: cycleNameTa
+    },
+    targetDateStr
+  };
+};
+
   const gandantaras: DetectedGandantara[] = [];
 
   // ==========================================================================
@@ -202,7 +294,7 @@ export const calculateGandantaraAndBhaya = (
   const jalaGrahas: string[] = [];
   const jalaHouses: number[] = [];
   let isJalaActive = false;
-  let jalaSafeAge = 28;
+  let baseJalaAge = 28;
 
   if (moon) {
     if ([6, 8, 12].includes(moon.house)) {
@@ -214,19 +306,19 @@ export const calculateGandantaraAndBhaya = (
       isJalaActive = true;
       jalaGrahas.push("Moon (Neecha)");
       jalaHouses.push(moon.house);
-      jalaSafeAge = 32;
+      baseJalaAge = 32;
     }
     if (rahu && (rahu.house === moon.house || Math.abs(rahu.degree - moon.degree) < 15)) {
       isJalaActive = true;
       jalaGrahas.push("Rahu");
       jalaHouses.push(moon.house);
-      jalaSafeAge = 32;
+      baseJalaAge = 32;
     }
     if (saturn && (saturn.house === moon.house || Math.abs(saturn.degree - moon.degree) < 15)) {
       isJalaActive = true;
       jalaGrahas.push("Saturn");
       jalaHouses.push(moon.house);
-      jalaSafeAge = 36;
+      baseJalaAge = 36;
     }
   }
 
@@ -234,11 +326,21 @@ export const calculateGandantaraAndBhaya = (
     isJalaActive = true;
     jalaGrahas.push("Mars in 8th (Water Rashi)");
     jalaHouses.push(8);
-    jalaSafeAge = 28;
+    baseJalaAge = 28;
   }
 
   if (isJalaActive) {
+    const jalaDyn = calculateDynamicSafeAge(
+      [PN.Moon, PN.Rahu, PN.Saturn, PN.Mars],
+      baseJalaAge,
+      bhuktiTimeline,
+      dashaTimeline,
+      moon?.degree ?? 0,
+      input.birthDate
+    );
+    const jalaSafeAge = jalaDyn.safeAge;
     const isUnderDanger = currentAge <= jalaSafeAge;
+
     gandantaras.push({
       id: "gandantara_jala",
       type: "jala",
@@ -256,20 +358,20 @@ export const calculateGandantaraAndBhaya = (
       currentAge,
       ageWindowDescription: {
         kn: isUnderDanger
-          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${Math.floor(currentAge)} ಆಗಿದ್ದು, ${jalaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ಜಲ ಗಂಡಾಂತರ ಕಾಲ ಸಕ್ರಿಯವಾಗಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ನೀರಿನ ಸಾಹಸಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿರಿ.`
-          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${jalaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ಇದ್ದ ಜಲ ಗಂಡಾಂತರ ಕಾಲವು ಪೂರ್ಣಗೊಂಡಿದೆ. ಆದರೂ ಸಾಮಾನ್ಯ ಸುರಕ್ಷತಾ ನಿಯಮಗಳನ್ನು ಪಾಲಿಸಿ.`,
+          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${currentAge.toFixed(1)} ಆಗಿದ್ದು, ನಿಮ್ಮ ${jalaDyn.dashaCycleName.kn}ವಾದ ${jalaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${jalaDyn.targetDateStr}) ಜಲ ಗಂಡಾಂತರ ಕಾಲ ಸಕ್ರಿಯವಾಗಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ನೀರಿನ ಸಾಹಸಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿರಿ.`
+          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${jalaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${jalaDyn.targetDateStr}) ಇದ್ದ ಜಲ ಗಂಡಾಂತರ ಕಾಲವು ಪೂರ್ಣಗೊಂಡಿದೆ. ಆದರೂ ಸಾಮಾನ್ಯ ಸುರಕ್ಷತಾ ನಿಯಮಗಳನ್ನು ಪಾಲಿಸಿ.`,
         hi: isUnderDanger
-          ? `⚠️ वर्तमान में सक्रिय संकट काल: आपकी वर्तमान आयु ${Math.floor(currentAge)} वर्ष है तथा ${jalaSafeAge} वर्ष की आयु तक जल संकट काल प्रभावी है। गहरे जल से दूर रहें।`
-          : `✅ सुरक्षित आयु सीमा पार: ${jalaSafeAge} वर्ष तक का जल गंडांतर काल अब समाप्त हो चुका है।`,
+          ? `⚠️ वर्तमान में सक्रिय संकट काल: आपकी वर्तमान आयु ${currentAge.toFixed(1)} वर्ष है तथा ${jalaSafeAge} वर्ष (${jalaDyn.targetDateStr}, ${jalaDyn.dashaCycleName.hi}) की आयु तक जल संकट काल प्रभावी है। गहरे जल से दूर रहें।`
+          : `✅ सुरक्षित आयु सीमा पार: ${jalaSafeAge} वर्ष (${jalaDyn.targetDateStr}) तक का जल गंडांतर काल अब समाप्त हो चुका है।`,
         te: isUnderDanger
-          ? `⚠️ ప్రస్తుతం ప్రమాదకర వయస్సు: మీ ప్రస్తుత వయస్సు ${Math.floor(currentAge)} కాగా, ${jalaSafeAge} సంవత్సరాల వరకు జల గండాంతరం ఉంది. నీటి సాహసాలు వద్దు.`
-          : `✅ సురక్షిత వయస్సు దాటింది: ${jalaSafeAge} సంవత్సరాల వరకు ఉన్న జల గండాంతరం గడిచిపోయింది.`,
+          ? `⚠️ ప్రస్తుతం ప్రమాదకర వయస్సు: మీ ప్రస్తుత వయస్సు ${currentAge.toFixed(1)} కాగా, ${jalaSafeAge} సంవత్సరాల వరకు (${jalaDyn.targetDateStr}) జల గండాంతరం ఉంది. నీటి సాహసాలు వద్దు.`
+          : `✅ సురక్షిత వయస్సు దాటింది: ${jalaSafeAge} సంవత్సరాల వరకు (${jalaDyn.targetDateStr}) ఉన్న జల గండాంతరం గడిచిపోయింది.`,
         ta: isUnderDanger
-          ? `⚠️ தற்போது தீவிர காலகட்டம்: தங்களின் வயது ${Math.floor(currentAge)}; ${jalaSafeAge} வயது வரை நீர்நிலைகளில் ஆபத்து உள்ளது. ஆழமான நீரில் இறங்க வேண்டாம்.`
-          : `✅ பாதுகாப்பு எல்லை கடந்தது: ${jalaSafeAge} வயது வரை இருந்த ஜல கண்டாந்தர காலம் முடிந்தது.`,
+          ? `⚠️ தற்போது தீவிர காலகட்டம்: தங்களின் வயது ${currentAge.toFixed(1)}; ${jalaSafeAge} வயது வரை (${jalaDyn.targetDateStr}) நீர்நிலைகளில் ஆபத்து உள்ளது. ஆழமான நீரில் இறங்க வேண்டாம்.`
+          : `✅ பாதுகாப்பு எல்லை கடந்தது: ${jalaSafeAge} வயது வரை (${jalaDyn.targetDateStr}) இருந்த ஜல கண்டாந்தர காலம் முடிந்தது.`,
         en: isUnderDanger
-          ? `⚠️ Currently Active Vulnerability Window: Current age is ${Math.floor(currentAge)}; critical water hazard window operates until Age ${jalaSafeAge}. Strictly avoid deep water ventures.`
-          : `✅ Safe Threshold Surpassed: The acute Jala Gandantara window (till Age ${jalaSafeAge}) has elapsed safely. Continue standard precautions.`
+          ? `⚠️ Currently Active Vulnerability Window: Current age is ${currentAge.toFixed(1)}; critical water hazard window operates until Age ${jalaSafeAge} (${jalaDyn.targetDateStr}, ${jalaDyn.dashaCycleName.en}). Strictly avoid deep water ventures.`
+          : `✅ Safe Threshold Surpassed: The acute Jala Gandantara window (till Age ${jalaSafeAge}, ${jalaDyn.targetDateStr}) has elapsed safely. Continue standard precautions.`
       },
       grahasInvolved: jalaGrahas,
       houseNumbers: jalaHouses,
@@ -284,25 +386,25 @@ export const calculateGandantaraAndBhaya = (
       dashaResonance: buildDashaResonance([PN.Moon, PN.Rahu, PN.Saturn], "ಜಲ ಗಂಡಾಂತರ"),
       cautionDirectives: {
         kn: [
-          `${jalaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ಸಮುದ್ರ ಸ್ನಾನ, ಆಳವಾದ ನದಿ, ಈಜು ಕೊಳ, ಜಲಪಾತ ಹಾಗೂ ಬೋಟಿಂಗ್ ಸಾಹಸಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿರಿ.`,
+          `${jalaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${jalaDyn.targetDateStr}) ಸಮುದ್ರ ಸ್ನಾನ, ಆಳವಾದ ನದಿ, ಈಜು ಕೊಳ, ಜಲಪಾತ ಹಾಗೂ ಬೋಟಿಂಗ್ ಸಾಹಸಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿರಿ.`,
           "ಮಳೆಗಾಲದಲ್ಲಿ ಹಾಗೂ ರಾತ್ರಿ ವೇಳೆಯಲ್ಲಿ ಜಲಮೂಲಗಳ ಸಮೀಪ ಹೋಗುವುದನ್ನು ನಿಷೇಧಿಸಲಾಗಿದೆ.",
           "ಈಜು ಬಾರದಿದ್ದರೂ ಅಥವಾ ಬಂದರೂ ನಂಬಿಕೆ ಇಲ್ಲದ ಅಜ್ಞಾತ ಜಲಮೂಲಗಳಿಗೆ ಇಳಿಯಬಾರದು."
         ],
         hi: [
-          `${jalaSafeAge} वर्ष की आयु तक गहरे समुद्र, नदी, जलप्रपात एवं नौका विहार के जोखिम से पूर्णतः बचें।`,
+          `${jalaSafeAge} वर्ष (${jalaDyn.targetDateStr}) की आयु तक गहरे समुद्र, नदी, जलप्रपात एवं नौका विहार के जोखिम से पूर्णतः बचें।`,
           "वर्षा ऋतु में एवं रात्रि के समय नदियों अथवा तालाबों के निकट न जाएं।",
           "अज्ञात जलस्रोतों में तैराकी का जोखिम कभी न उठाएं।"
         ],
         te: [
-          `${jalaSafeAge} సంవత్సరాలు వచ్చేవరకు సముద్ర స్నానాలు, లోతైన నదులు, జలపాతాలు మరియు బోటింగ్‌లకు దూరంగా ఉండండి.`,
+          `${jalaSafeAge} సంవత్సరాలు (${jalaDyn.targetDateStr}) వచ్చేవరకు సముద్ర స్నానాలు, లోతైన నదులు, జలపాతాలు మరియు బోటింగ్‌లకు దూరంగా ఉండండి.`,
           "రాత్రి సమయాల్లో మరియు భారీ వర్షాల్లో నీటి ప్రవాహాల వద్దకు వెళ్లరాదు."
         ],
         ta: [
-          `${jalaSafeAge} வயது வரை ஆழ்கடல் குளியல், காட்டாறுகள் மற்றும் படகு சவாரிகளை முழுமையாகத் தவிர்க்கவும்.`,
+          `${jalaSafeAge} வயது வரை (${jalaDyn.targetDateStr}) ஆழ்கடல் குளியல், காட்டாறுகள் மற்றும் படகு சவாரிகளை முழுமையாகத் தவிர்க்கவும்.`,
           "இரவு நேரங்களில் நீர்நிலைகளின் அருகில் செல்வதைத் தவிர்க்கவும்."
         ],
         en: [
-          `Strictly avoid ocean bathing, deep river swimming, rapids, waterfalls, and adventure boating until Age ${jalaSafeAge}.`,
+          `Strictly avoid ocean bathing, deep river swimming, rapids, waterfalls, and adventure boating until Age ${jalaSafeAge} (${jalaDyn.targetDateStr}).`,
           "Do not venture near swelling water bodies during monsoons or late evening/night hours.",
           "Never enter unfamiliar reservoirs or step onto slippery riverbanks even in groups."
         ]
@@ -330,19 +432,19 @@ export const calculateGandantaraAndBhaya = (
   const vahanaGrahas: string[] = [];
   const vahanaHouses: number[] = [];
   let isVahanaActive = false;
-  let vahanaSafeAge = 32;
+  let baseVahanaAge = 32;
 
   if (mars && (mars.house === 4 || mars.house === 8)) {
     isVahanaActive = true;
     vahanaGrahas.push("Mars");
     vahanaHouses.push(mars.house);
-    vahanaSafeAge = 28;
+    baseVahanaAge = 28;
   }
   if (rahu && (rahu.house === 4 || rahu.house === 8)) {
     isVahanaActive = true;
     vahanaGrahas.push("Rahu");
     vahanaHouses.push(rahu.house);
-    vahanaSafeAge = 36;
+    baseVahanaAge = 36;
   }
   if (fourthLord && [6, 8, 12].includes(fourthLord.house)) {
     isVahanaActive = true;
@@ -351,7 +453,17 @@ export const calculateGandantaraAndBhaya = (
   }
 
   if (isVahanaActive) {
+    const vahanaDyn = calculateDynamicSafeAge(
+      [PN.Mars, PN.Rahu, PN.Saturn],
+      baseVahanaAge,
+      bhuktiTimeline,
+      dashaTimeline,
+      mars?.degree ?? 0,
+      input.birthDate
+    );
+    const vahanaSafeAge = vahanaDyn.safeAge;
     const isUnderDanger = currentAge <= vahanaSafeAge;
+
     gandantaras.push({
       id: "gandantara_vahana",
       type: "vahana",
@@ -369,20 +481,20 @@ export const calculateGandantaraAndBhaya = (
       currentAge,
       ageWindowDescription: {
         kn: isUnderDanger
-          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${Math.floor(currentAge)} ಆಗಿದ್ದು, ${vahanaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ವಾಹನ ಗಂಡಾಂತರ ಅವಧಿಯಿದೆ. ವೇಗದ ಚಾಲನೆ ಹಾಗೂ ರಾತ್ರಿ ಪಯಣ ತಪ್ಪಿಸಿ.`
-          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${vahanaSafeAge}ನೇ ವಯಸ್ಸಿನ ತೀವ್ರ ವಾಹನ ಗಂಡಾಂತರ ಕಾಲ ದಾಟಿದೆ. ಆದರೂ ನಿತ್ಯ ರಕ್ಷಣಾ ಸ್ತೋತ್ರ ಪಠಣ ಉತ್ತಮ.`,
+          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${currentAge.toFixed(1)} ಆಗಿದ್ದು, ನಿಮ್ಮ ${vahanaDyn.dashaCycleName.kn}ವಾದ ${vahanaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${vahanaDyn.targetDateStr}) ವಾಹನ ಗಂಡಾಂತರ ಅವಧಿಯಿದೆ. ವೇಗದ ಚಾಲನೆ ಹಾಗೂ ರಾತ್ರಿ ಪಯಣ ತಪ್ಪಿಸಿ.`
+          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${vahanaSafeAge}ನೇ ವಯಸ್ಸಿನ (${vahanaDyn.targetDateStr}) ತೀವ್ರ ವಾಹನ ಗಂಡಾಂತರ ಕಾಲ ದಾಟಿದೆ. ಆದರೂ ನಿತ್ಯ ರಕ್ಷಣಾ ಸ್ತೋತ್ರ ಪಠಣ ಉತ್ತಮ.`,
         hi: isUnderDanger
-          ? `⚠️ वर्तमान संकट काल: आयु ${Math.floor(currentAge)} वर्ष है; ${vahanaSafeAge} वर्ष तक तेज गति से वाहन चलाने एवं रात्रि यात्राओं से पूर्ण बचाव करें।`
-          : `✅ सुरक्षा सीमा पार: ${vahanaSafeAge} वर्ष तक का गंभीर वाहन गंडांतर काल समाप्त हो चुका है।`,
+          ? `⚠️ वर्तमान संकट काल: आयु ${currentAge.toFixed(1)} वर्ष है; ${vahanaSafeAge} वर्ष (${vahanaDyn.targetDateStr}, ${vahanaDyn.dashaCycleName.hi}) तक तेज गति से वाहन चलाने एवं रात्रि यात्राओं से पूर्ण बचाव करें।`
+          : `✅ सुरक्षा सीमा पार: ${vahanaSafeAge} वर्ष (${vahanaDyn.targetDateStr}) तक का गंभीर वाहन गंडांतर काल समाप्त हो चुका है।`,
         te: isUnderDanger
-          ? `⚠️ ప్రస్తుత ప్రమాద కాలం: ${vahanaSafeAge} సంవత్సరాల వరకు ద్విచక్ర వాహనాల వేగవంతమైన ప్రయాణాలు నివారించండి.`
-          : `✅ సంరక్షణ వయస్సు దాటింది.`,
+          ? `⚠️ ప్రస్తుత ప్రమాద కాలం: ${vahanaSafeAge} సంవత్సరాల వరకు (${vahanaDyn.targetDateStr}) ద్విచక్ర వాహనాల వేగవంతమైన ప్రయాణాలు నివారించండి.`
+          : `✅ సంరక్షణ వయస్సు దాటింది (${vahanaSafeAge} ఏళ్లు, ${vahanaDyn.targetDateStr}).`,
         ta: isUnderDanger
-          ? `⚠️ தீவிர எச்சரிக்கை: ${vahanaSafeAge} வயது வரை அதிவேக வாகன ஓட்டுதலை முழுமையாகத் தவிர்க்கவும்.`
-          : `✅ விபத்து கண்டாந்தர எல்லை கடந்தது.`,
+          ? `⚠️ தீவிர எச்சரிக்கை: ${vahanaSafeAge} வயது வரை (${vahanaDyn.targetDateStr}) அதிவேக வாகன ஓட்டுதலை முழுமையாகத் தவிர்க்கவும்.`
+          : `✅ விபத்து கண்டாந்தர எல்லை கடந்தது (${vahanaSafeAge} வயது, ${vahanaDyn.targetDateStr}).`,
         en: isUnderDanger
-          ? `⚠️ Currently Active Danger Window: Native is age ${Math.floor(currentAge)}; acute vehicular collision risk persists until Age ${vahanaSafeAge}. Defensive driving is paramount.`
-          : `✅ Safe Threshold Surpassed: Critical high-risk vehicular threshold (till Age ${vahanaSafeAge}) has elapsed.`
+          ? `⚠️ Currently Active Danger Window: Native is age ${currentAge.toFixed(1)}; acute vehicular collision risk persists until Age ${vahanaSafeAge} (${vahanaDyn.targetDateStr}, ${vahanaDyn.dashaCycleName.en}). Defensive driving is paramount.`
+          : `✅ Safe Threshold Surpassed: Critical high-risk vehicular threshold (till Age ${vahanaSafeAge}, ${vahanaDyn.targetDateStr}) has elapsed.`
       },
       grahasInvolved: vahanaGrahas,
       houseNumbers: vahanaHouses,
@@ -397,24 +509,24 @@ export const calculateGandantaraAndBhaya = (
       dashaResonance: buildDashaResonance([PN.Mars, PN.Rahu, PN.Saturn], "ವಾಹನ ಗಂಡಾಂತರ"),
       cautionDirectives: {
         kn: [
-          `${vahanaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ದ್ವಿಚಕ್ರ ವಾಹನಗಳಲ್ಲಿ ಅತಿ ವೇಗವಾಗಿ ಚಲಿಸುವುದು ಹಾಗೂ ರಾತ್ರಿ ವೇಳೆ ಹೆದ್ದಾರಿ ಪಯಣ ಸಂಪೂರ್ಣ ತ್ಯಜಿಸಿ.`,
+          `${vahanaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${vahanaDyn.targetDateStr}) ದ್ವಿಚಕ್ರ ವಾಹನಗಳಲ್ಲಿ ಅತಿ ವೇಗವಾಗಿ ಚಲಿಸುವುದು ಹಾಗೂ ರಾತ್ರಿ ವೇಳೆ ಹೆದ್ದಾರಿ ಪಯಣ ಸಂಪೂರ್ಣ ತ್ಯಜಿಸಿ.`,
           "ನಿದ್ರಾವಸ್ಥೆಯಲ್ಲಿ ಅಥವಾ ಆಯಾಸಗೊಂಡಾಗ ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಡ್ರೈವಿಂಗ್ ಮಾಡಬಾರದು.",
           "ವಾಹನದಲ್ಲಿ ಯಾವಾಗಲೂ ಶ್ರೀ ಸುದರ್ಶನ ಅಥವಾ ಹನುಮಾನ್ ಯಂತ್ರ/ಚಿತ್ರವನ್ನು ಸ್ಥಾಪಿಸಿ."
         ],
         hi: [
-          `${vahanaSafeAge} वर्ष की आयु तक दोपहिया वाहन पर तेज गति एवं देर रात राजमार्ग पर ड्राइविंग से बचें।`,
+          `${vahanaSafeAge} वर्ष (${vahanaDyn.targetDateStr}) की आयु तक दोपहिया वाहन पर तेज गति एवं देर रात राजमार्ग पर ड्राइविंग से बचें।`,
           "थकान या अनिद्रा की स्थिति में वाहन कभी न चलाएं।",
           "वाहन में हनुमान जी का यंत्र अथवा चित्र अवश्य रखें।"
         ],
         te: [
-          `${vahanaSafeAge} ఏళ్ల వరకు రాత్రి వేళల్లో హైవే డ్రైవింగ్ మరియు వేగవంతమైన బైక్ ప్రయాణాలు మానండి.`,
+          `${vahanaSafeAge} ఏళ్ల వరకు (${vahanaDyn.targetDateStr}) రాత్రి వేళల్లో హైవే డ్రైవింగ్ మరియు వేగవంతమైన బైక్ ప్రయాణాలు మానండి.`,
           "హనుమాన్ చాలీసా నిత్యం పఠించండి."
         ],
         ta: [
-          `${vahanaSafeAge} வயது வரை இரவு நேர நெடுஞ்சாலைப் பயணங்களையும் அதிவேக இருசக்கர வாகன ஓட்டுதலையும் தவிர்க்கவும்.`
+          `${vahanaSafeAge} வயது வரை (${vahanaDyn.targetDateStr}) இரவு நேர நெடுஞ்சாலைப் பயணங்களையும் அதிவேக இருசக்கர வாகன ஓட்டுதலையும் தவிர்க்கவும்.`
         ],
         en: [
-          `Strictly avoid high-speed two-wheeler driving and late-night highway travels until Age ${vahanaSafeAge}.`,
+          `Strictly avoid high-speed two-wheeler driving and late-night highway travels until Age ${vahanaSafeAge} (${vahanaDyn.targetDateStr}).`,
           "Never operate motor vehicles under fatigue, sleep deprivation, or emotional agitation.",
           "Keep an energized consecrated Hanuman or Sudarshana protective yantra in the vehicle."
         ]
@@ -442,19 +554,19 @@ export const calculateGandantaraAndBhaya = (
   const agniGrahas: string[] = [];
   const agniHouses: number[] = [];
   let isAgniActive = false;
-  let agniSafeAge = 28;
+  let baseAgniAge = 28;
 
   if (mars && ketu && (mars.house === ketu.house || Math.abs(mars.degree - ketu.degree) < 15)) {
     isAgniActive = true;
     agniGrahas.push("Mars conjunct Ketu (Angaraka-Ketu)");
     agniHouses.push(mars.house);
-    agniSafeAge = 35;
+    baseAgniAge = 35;
   }
   if (mars && sun && (mars.house === sun.house || Math.abs(mars.degree - sun.degree) < 10) && isFireRashi(mars.rashi.index)) {
     isAgniActive = true;
     agniGrahas.push("Mars conjunct Sun in Fire Rashi");
     agniHouses.push(mars.house);
-    agniSafeAge = 28;
+    baseAgniAge = 28;
   }
   if (mars && mars.house === 8 && isFireRashi(eighthRashiIdx)) {
     isAgniActive = true;
@@ -463,7 +575,17 @@ export const calculateGandantaraAndBhaya = (
   }
 
   if (isAgniActive) {
+    const agniDyn = calculateDynamicSafeAge(
+      [PN.Mars, PN.Sun, PN.Ketu],
+      baseAgniAge,
+      bhuktiTimeline,
+      dashaTimeline,
+      mars?.degree ?? 0,
+      input.birthDate
+    );
+    const agniSafeAge = agniDyn.safeAge;
     const isUnderDanger = currentAge <= agniSafeAge;
+
     gandantaras.push({
       id: "gandantara_agni",
       type: "agni",
@@ -481,20 +603,20 @@ export const calculateGandantaraAndBhaya = (
       currentAge,
       ageWindowDescription: {
         kn: isUnderDanger
-          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${Math.floor(currentAge)} ಆಗಿದ್ದು, ${agniSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ಅಗ್ನಿ-ವಿದ್ಯುತ್ ಗಂಡಾಂತರ ಅವಧಿಯಿದೆ. ಬೆಂಕಿ, ಸ್ಫೋಟಕ ಹಾಗೂ ಹೈವೋಲ್ಟೇಜ್ ವಿದ್ಯುತ್ ಉಪಕರಣಗಳಿಂದ ಎಚ್ಚರವಹಿಸಿ.`
-          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${agniSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗಿನ ಅಗ್ನಿ ಗಂಡಾಂತರ ಹಂತ ಮುಕ್ತಾಯವಾಗಿದೆ.`,
+          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${currentAge.toFixed(1)} ಆಗಿದ್ದು, ನಿಮ್ಮ ${agniDyn.dashaCycleName.kn}ವಾದ ${agniSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${agniDyn.targetDateStr}) ಅಗ್ನಿ-ವಿದ್ಯುತ್ ಗಂಡಾಂತರ ಅವಧಿಯಿದೆ. ಬೆಂಕಿ, ಸ್ಫೋಟಕ ಹಾಗೂ ಹೈವೋಲ್ಟೇಜ್ ವಿದ್ಯುತ್ ಉಪಕರಣಗಳಿಂದ ಎಚ್ಚರವಹಿಸಿ.`
+          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${agniSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗಿನ (${agniDyn.targetDateStr}) ಅಗ್ನಿ ಗಂಡಾಂತರ ಹಂತ ಮುಕ್ತಾಯವಾಗಿದೆ.`,
         hi: isUnderDanger
-          ? `⚠️ वर्तमान संकट काल: ${agniSafeAge} वर्ष की आयु तक अग्नि, गैस एवं उच्च विद्युत उपकरणों से अत्यधिक सतर्क रहें।`
-          : `✅ सुरक्षा सीमा पार हो चुकी है।`,
+          ? `⚠️ वर्तमान संकट काल: ${agniSafeAge} वर्ष (${agniDyn.targetDateStr}, ${agniDyn.dashaCycleName.hi}) की आयु तक अग्नि, गैस एवं उच्च विद्युत उपकरणों से अत्यधिक सतर्क रहें।`
+          : `✅ सुरक्षा सीमा पार हो चुकी है (${agniSafeAge} वर्ष, ${agniDyn.targetDateStr})।`,
         te: isUnderDanger
-          ? `⚠️ ${agniSafeAge} ఏళ్ల వరకు అగ్ని మరియు విద్యుత్ ఉపకరణాలతో జాగ్రత్తగా ఉండండి.`
-          : `✅ సురక్షిత వయస్సు దాటింది.`,
+          ? `⚠️ ${agniSafeAge} ఏళ్ల వరకు (${agniDyn.targetDateStr}) అగ్ని మరియు విద్యుత్ ఉపకరణాలతో జాగ్రత్తగా ఉండండి.`
+          : `✅ సురక్షిత వయస్సు దాటింది (${agniSafeAge} ఏళ్లు, ${agniDyn.targetDateStr}).`,
         ta: isUnderDanger
-          ? `⚠️ ${agniSafeAge} வயது வரை தீ மற்றும் மின்சாதனங்களில் கூடுதல் கவனம் தேவை.`
-          : `✅ அக்னி கண்டாந்தர எல்லை கடந்தது.`,
+          ? `⚠️ ${agniSafeAge} வயது வரை (${agniDyn.targetDateStr}) தீ மற்றும் மின்சாதனங்களில் கூடுதல் கவனம் தேவை.`
+          : `✅ அக்னி கண்டாந்தர எல்லை கடந்தது (${agniSafeAge} வயது, ${agniDyn.targetDateStr}).`,
         en: isUnderDanger
-          ? `⚠️ Currently Active Vulnerability Window: Native is Age ${Math.floor(currentAge)}; acute thermal burns and electrical hazards persist until Age ${agniSafeAge}.`
-          : `✅ Safe Threshold Surpassed: Thermal/electrical vulnerability window has elapsed.`
+          ? `⚠️ Currently Active Vulnerability Window: Native is Age ${currentAge.toFixed(1)}; acute thermal burns and electrical hazards persist until Age ${agniSafeAge} (${agniDyn.targetDateStr}, ${agniDyn.dashaCycleName.en}).`
+          : `✅ Safe Threshold Surpassed: Thermal/electrical vulnerability window has elapsed (till Age ${agniSafeAge}, ${agniDyn.targetDateStr}).`
       },
       grahasInvolved: agniGrahas,
       houseNumbers: agniHouses,
@@ -509,21 +631,21 @@ export const calculateGandantaraAndBhaya = (
       dashaResonance: buildDashaResonance([PN.Mars, PN.Sun, PN.Ketu], "ಅಗ್ನಿ ಗಂಡಾಂತರ"),
       cautionDirectives: {
         kn: [
-          `${agniSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ಗ್ಯಾಸ್ ಸಿಲಿಂಡರ್ ದುರಸ್ತಿ, ಪಟಾಕಿ ಸಿಡಿಸುವುದು, ಹೈವೋಲ್ಟೇಜ್ ತಂತಿಗಳು ಹಾಗೂ ಕುದಿಯುವ ಎಣ್ಣೆ/ನೀರಿನ ಕೆಲಸಗಳಲ್ಲಿ ನೇರವಾಗಿ ತೊಡಗಬೇಡಿ.`,
+          `${agniSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${agniDyn.targetDateStr}) ಗ್ಯಾಸ್ ಸಿಲಿಂಡರ್ ದುರಸ್ತಿ, ಪಟಾಕಿ ಸಿಡಿಸುವುದು, ಹೈವೋಲ್ಟೇಜ್ ತಂತಿಗಳು ಹಾಗೂ ಕುದಿಯುವ ಎಣ್ಣೆ/ನೀರಿನ ಕೆಲಸಗಳಲ್ಲಿ ನೇರವಾಗಿ ತೊಡಗಬೇಡಿ.`,
           "ವಿದ್ಯುತ್ ಶಾರ್ಟ್ ಸರ್ಕ್ಯೂಟ್ ನಿರೋಧಕಗಳನ್ನು ಮನೆಯಲ್ಲಿ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ."
         ],
         hi: [
-          `${agniSafeAge} वर्ष तक गैस रिपेयरिंग, आतिशबाजी एवं हाई-वोल्टेज तारों से दूर रहें।`,
+          `${agniSafeAge} वर्ष (${agniDyn.targetDateStr}) तक गैस रिपेयरिंग, आतिशबाजी एवं हाई-वोल्टेज तारों से दूर रहें।`,
           "घर में विद्युत सुरक्षा उपकरण अवश्य लगवाएं।"
         ],
         te: [
-          `${agniSafeAge} ఏళ్ల వరకు బాణసంచా మరియు కరెంట్ పనులకు దూరంగా ఉండండి.`
+          `${agniSafeAge} ఏళ్ల వరకు (${agniDyn.targetDateStr}) బాణసంచా మరియు కరెంట్ పనులకు దూరంగా ఉండండి.`
         ],
         ta: [
-          `${agniSafeAge} வயது வரை வெடிபொருட்கள் மற்றும் மின்சார பழுதுபார்க்கும் பணிகளில் ஈடுபட வேண்டாம்.`
+          `${agniSafeAge} வயது வரை (${agniDyn.targetDateStr}) வெடிபொருட்கள் மற்றும் மின்சார பழுதுபார்க்கும் பணிகளில் ஈடுபட வேண்டாம்.`
         ],
         en: [
-          `Strictly avoid DIY high-voltage electrical repairs, gas cylinder maintenance, explosive fireworks, and handling boiling vats until Age ${agniSafeAge}.`,
+          `Strictly avoid DIY high-voltage electrical repairs, gas cylinder maintenance, explosive fireworks, and handling boiling vats until Age ${agniSafeAge} (${agniDyn.targetDateStr}).`,
           "Ensure top-grade residual current circuit breakers (RCCB) are installed at domicile."
         ]
       },
@@ -550,23 +672,33 @@ export const calculateGandantaraAndBhaya = (
   const sarpaGrahas: string[] = [];
   const sarpaHouses: number[] = [];
   let isSarpaActive = false;
-  let sarpaSafeAge = 36;
+  let baseSarpaAge = 36;
 
   if (rahu && (rahu.house === 2 || rahu.house === 8)) {
     isSarpaActive = true;
     sarpaGrahas.push(`Rahu in ${rahu.house}th (Maraka/Randhra)`);
     sarpaHouses.push(rahu.house);
-    sarpaSafeAge = 42;
+    baseSarpaAge = 42;
   }
   if (moon && moon.rashi.index === 7 && rahu) { // Moon in Scorpio with Rahu influence
     isSarpaActive = true;
     sarpaGrahas.push("Moon in Scorpio with Rahu");
     sarpaHouses.push(moon.house);
-    sarpaSafeAge = 36;
+    baseSarpaAge = 36;
   }
 
   if (isSarpaActive) {
+    const sarpaDyn = calculateDynamicSafeAge(
+      [PN.Rahu, PN.Ketu],
+      baseSarpaAge,
+      bhuktiTimeline,
+      dashaTimeline,
+      rahu?.degree ?? 0,
+      input.birthDate
+    );
+    const sarpaSafeAge = sarpaDyn.safeAge;
     const isUnderDanger = currentAge <= sarpaSafeAge;
+
     gandantaras.push({
       id: "gandantara_sarpa",
       type: "sarpa",
@@ -584,20 +716,20 @@ export const calculateGandantaraAndBhaya = (
       currentAge,
       ageWindowDescription: {
         kn: isUnderDanger
-          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${Math.floor(currentAge)} ಆಗಿದ್ದು, ${sarpaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ಸರ್ಪ-ವಿಷ ಗಂಡಾಂತರ ಅವಧಿಯಿದೆ. ಕತ್ತಲೆಯ ಕಾಡು, ಪೊದೆ, ಹಳೆಯ ಕಟ್ಟಡಗಳು ಹಾಗೂ ಅಜ್ಞಾತ ಆಹಾರ ಪದಾರ್ಥಗಳ ಸೇವನೆಯಲ್ಲಿ ಎಚ್ಚರವಹಿಸಿ.`
-          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${sarpaSafeAge}ನೇ ವಯಸ್ಸಿನ ವಿಷ ಗಂಡಾಂತರ ಕಾಲ ಸಂಪೂರ್ಣ ಮುಗಿದಿದೆ.`,
+          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${currentAge.toFixed(1)} ಆಗಿದ್ದು, ನಿಮ್ಮ ${sarpaDyn.dashaCycleName.kn}ವಾದ ${sarpaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${sarpaDyn.targetDateStr}) ಸರ್ಪ-ವಿಷ ಗಂಡಾಂತರ ಅವಧಿಯಿದೆ. ಕತ್ತಲೆಯ ಕಾಡು, ಪೊದೆ, ಹಳೆಯ ಕಟ್ಟಡಗಳು ಹಾಗೂ ಅಜ್ಞಾತ ಆಹಾರ ಪದಾರ್ಥಗಳ ಸೇವನೆಯಲ್ಲಿ ಎಚ್ಚರವಹಿಸಿ.`
+          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${sarpaSafeAge}ನೇ ವಯಸ್ಸಿನ (${sarpaDyn.targetDateStr}) ವಿಷ ಗಂಡಾಂತರ ಕಾಲ ಸಂಪೂರ್ಣ ಮುಗಿದಿದೆ.`,
         hi: isUnderDanger
-          ? `⚠️ वर्तमान संकट काल: ${sarpaSafeAge} वर्ष तक झाड़ियों, अंधेरी जगहों में सर्पदंश एवं फूड पॉइजनिंग से विशेष सावधानी रखें।`
-          : `✅ सुरक्षा सीमा पार हो चुकी है।`,
+          ? `⚠️ वर्तमान संकट काल: ${sarpaSafeAge} वर्ष (${sarpaDyn.targetDateStr}, ${sarpaDyn.dashaCycleName.hi}) तक झाड़ियों, अंधेरी जगहों में सर्पदंश एवं फूड पॉइजनिंग से विशेष सावधानी रखें।`
+          : `✅ सुरक्षा सीमा पार हो चुकी है (${sarpaSafeAge} वर्ष, ${sarpaDyn.targetDateStr})।`,
         te: isUnderDanger
-          ? `⚠️ ${sarpaSafeAge} ఏళ్ల వరకు పాములు మరియు విష కీటకాలతో జాగ్రత్తగా ఉండండి.`
-          : `✅ సురక్షిత వయస్సు దాటింది.`,
+          ? `⚠️ ${sarpaSafeAge} ఏళ్ల వరకు (${sarpaDyn.targetDateStr}) పాములు మరియు విష కీటకాలతో జాగ్రత్తగా ఉండండి.`
+          : `✅ సురక్షిత వయస్సు దాటింది (${sarpaSafeAge} ఏళ్లు, ${sarpaDyn.targetDateStr}).`,
         ta: isUnderDanger
-          ? `⚠️ ${sarpaSafeAge} வயது வரை விஷப் பூச்சிகள் மற்றும் பாம்புகளிடம் எச்சரிக்கை தேவை.`
-          : `✅ சர்ப்ப கண்டாந்தர எல்லை கடந்தது.`,
+          ? `⚠️ ${sarpaSafeAge} வயது வரை (${sarpaDyn.targetDateStr}) விஷப் பூச்சிகள் மற்றும் பாம்புகளிடம் எச்சரிக்கை தேவை.`
+          : `✅ சர்ப்ப கண்டாந்தர எல்லை கடந்தது (${sarpaSafeAge} வயது, ${sarpaDyn.targetDateStr}).`,
         en: isUnderDanger
-          ? `⚠️ Currently Active Vulnerability Window: Native is Age ${Math.floor(currentAge)}; acute snakebite, venomous insect, or food toxicity hazard persists until Age ${sarpaSafeAge}.`
-          : `✅ Safe Threshold Surpassed: Venomous creature hazard window has elapsed.`
+          ? `⚠️ Currently Active Vulnerability Window: Native is Age ${currentAge.toFixed(1)}; acute snakebite, venomous insect, or food toxicity hazard persists until Age ${sarpaSafeAge} (${sarpaDyn.targetDateStr}, ${sarpaDyn.dashaCycleName.en}).`
+          : `✅ Safe Threshold Surpassed: Venomous creature hazard window has elapsed (till Age ${sarpaSafeAge}, ${sarpaDyn.targetDateStr}).`
       },
       grahasInvolved: sarpaGrahas,
       houseNumbers: sarpaHouses,
@@ -612,21 +744,21 @@ export const calculateGandantaraAndBhaya = (
       dashaResonance: buildDashaResonance([PN.Rahu, PN.Ketu], "ಸರ್ಪ ಗಂಡಾಂತರ"),
       cautionDirectives: {
         kn: [
-          `${sarpaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ಕತ್ತಲೆಯಲ್ಲಿ ಬೆಳಕಿಲ್ಲದೆ ನಡೆಯುವುದು, ಪೊದೆ-ಹುತ್ತಗಳ ಬಳಿ ಹೋಗುವುದು ಹಾಗೂ ಕಾಡುಗಳಲ್ಲಿ ಬರಿಗಾಲಿನಲ್ಲಿ ನಡೆಯುವುದನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಿ.`,
+          `${sarpaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${sarpaDyn.targetDateStr}) ಕತ್ತಲೆಯಲ್ಲಿ ಬೆಳಕಿಲ್ಲದೆ ನಡೆಯುವುದು, ಪೊದೆ-ಹುತ್ತಗಳ ಬಳಿ ಹೋಗುವುದು ಹಾಗೂ ಕಾಡುಗಳಲ್ಲಿ ಬರಿಗಾಲಿನಲ್ಲಿ ನಡೆಯುವುದನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಿ.`,
           "ಆಹಾರ ಸೇವಿಸುವ ಮುನ್ನ ನೈರ್ಮಲ್ಯ ಹಾಗೂ ಗಡುವಿನ ದಿನಾಂಕವನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ (ಫುಡ್ ಪಾಯಿಸನಿಂಗ್ ಎಚ್ಚರಿಕೆ)."
         ],
         hi: [
-          `${sarpaSafeAge} वर्ष की आयु तक अंधेरे रास्तों, झाड़ियों में बिना टॉर्च न जाएं।`,
+          `${sarpaSafeAge} वर्ष (${sarpaDyn.targetDateStr}) की आयु तक अंधेरे रास्तों, झाड़ियों में बिना टॉर्च न जाएं।`,
           "खाद्य पदार्थों की शुद्धता एवं एक्सपायरी डेट का विशेष ध्यान रखें।"
         ],
         te: [
-          `${sarpaSafeAge} ఏళ్ల వరకు చీకటి ప్రదేశాల్లో చెప్పులు లేకుండా నడవవద్దు.`
+          `${sarpaSafeAge} ఏళ్ల వరకు (${sarpaDyn.targetDateStr}) చీకటి ప్రదేశాల్లో చెప్పులు లేకుండా నడవవద్దు.`
         ],
         ta: [
-          `${sarpaSafeAge} வயது வரை புதர்கள் நிறைந்த பகுதிகளில் பாதுகாப்பற்ற முறையில் செல்ல வேண்டாம்.`
+          `${sarpaSafeAge} வயது வரை (${sarpaDyn.targetDateStr}) புதர்கள் நிறைந்த பகுதிகளில் பாதுகாப்பற்ற முறையில் செல்ல வேண்டாம்.`
         ],
         en: [
-          `Strictly avoid traversing unlit rural paths, dense undergrowth, ruins, or dense forest floor barefoot until Age ${sarpaSafeAge}.`,
+          `Strictly avoid traversing unlit rural paths, dense undergrowth, ruins, or dense forest floor barefoot until Age ${sarpaSafeAge} (${sarpaDyn.targetDateStr}).`,
           "Meticulously inspect food items and pharmaceuticals for expiration and sanitary storage to avoid acute systemic toxic reactions."
         ]
       },
@@ -653,7 +785,7 @@ export const calculateGandantaraAndBhaya = (
   const patanaGrahas: string[] = [];
   const patanaHouses: number[] = [];
   let isPatanaActive = false;
-  let patanaSafeAge = 26;
+  let basePatanaAge = 26;
 
   if (saturn && (saturn.house === 8 || saturn.house === 10) && isAirRashi(saturn.rashi.index)) {
     isPatanaActive = true;
@@ -664,11 +796,21 @@ export const calculateGandantaraAndBhaya = (
     isPatanaActive = true;
     patanaGrahas.push("Saturn-Mars Mutual Aspect");
     patanaHouses.push(saturn.house, mars.house);
-    patanaSafeAge = 32;
+    basePatanaAge = 32;
   }
 
   if (isPatanaActive) {
+    const patanaDyn = calculateDynamicSafeAge(
+      [PN.Saturn, PN.Mars],
+      basePatanaAge,
+      bhuktiTimeline,
+      dashaTimeline,
+      saturn?.degree ?? 0,
+      input.birthDate
+    );
+    const patanaSafeAge = patanaDyn.safeAge;
     const isUnderDanger = currentAge <= patanaSafeAge;
+
     gandantaras.push({
       id: "gandantara_patana",
       type: "patana",
@@ -686,20 +828,20 @@ export const calculateGandantaraAndBhaya = (
       currentAge,
       ageWindowDescription: {
         kn: isUnderDanger
-          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${Math.floor(currentAge)} ಆಗಿದ್ದು, ${patanaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ಎತ್ತರದಿಂದ ಜಾರಿ ಬೀಳುವ ಗಂಡಾಂತರವಿದೆ. ಕಟ್ಟಡಗಳ ತಾರಸಿ, ಬೆಟ್ಟ ಹತ್ತುವುದು ಹಾಗೂ ಮರ ಹತ್ತುವ ಸಾಹಸಗಳಿಂದ ದೂರವಿರಿ.`
-          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${patanaSafeAge}ನೇ ವಯಸ್ಸಿನ ಎತ್ತರದ ಗಂಡಾಂತರ ಹಂತ ಮುಕ್ತಾಯವಾಗಿದೆ.`,
+          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${currentAge.toFixed(1)} ಆಗಿದ್ದು, ನಿಮ್ಮ ${patanaDyn.dashaCycleName.kn}ವಾದ ${patanaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${patanaDyn.targetDateStr}) ಎತ್ತರದಿಂದ ಜಾರಿ ಬೀಳುವ ಗಂಡಾಂತರವಿದೆ. ಕಟ್ಟಡಗಳ ತಾರಸಿ, ಬೆಟ್ಟ ಹತ್ತುವುದು ಹಾಗೂ ಮರ ಹತ್ತುವ ಸಾಹಸಗಳಿಂದ ದೂರವಿರಿ.`
+          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${patanaSafeAge}ನೇ ವಯಸ್ಸಿನ (${patanaDyn.targetDateStr}) ಎತ್ತರದ ಗಂಡಾಂತರ ಹಂತ ಮುಕ್ತಾಯವಾಗಿದೆ.`,
         hi: isUnderDanger
-          ? `⚠️ वर्तमान संकट काल: ${patanaSafeAge} वर्ष तक छत की रेलिंग, पर्वतारोहण एवं ऊंची जगहों पर जाने से बचें।`
-          : `✅ सुरक्षा सीमा पार हो चुकी है।`,
+          ? `⚠️ वर्तमान संकट काल: ${patanaSafeAge} वर्ष (${patanaDyn.targetDateStr}, ${patanaDyn.dashaCycleName.hi}) तक छत की रेलिंग, पर्वतारोहण एवं ऊंची जगहों पर जाने से बचें।`
+          : `✅ सुरक्षा सीमा पार हो चुकी है (${patanaSafeAge} वर्ष, ${patanaDyn.targetDateStr})।`,
         te: isUnderDanger
-          ? `⚠️ ${patanaSafeAge} ఏళ్ల వరకు ఎత్తైన ప్రదేశాలలో జాగ్రత్తగా ఉండండి.`
-          : `✅ సురక్షిత వయస్సు దాటింది.`,
+          ? `⚠️ ${patanaSafeAge} ఏళ్ల వరకు (${patanaDyn.targetDateStr}) ఎత్తైన ప్రదేశాలలో జాగ్రత్తగా ఉండండి.`
+          : `✅ సురక్షిత వయస్సు దాటింది (${patanaSafeAge} ఏళ్లు, ${patanaDyn.targetDateStr}).`,
         ta: isUnderDanger
-          ? `⚠️ ${patanaSafeAge} வயது வரை மொட்டை மாடி மற்றும் மலை ஏறுதலைத் தவிர்க்கவும்.`
-          : `✅ எல்லை கடந்தது.`,
+          ? `⚠️ ${patanaSafeAge} வயது வரை (${patanaDyn.targetDateStr}) மொட்டை மாடி மற்றும் மலை ஏறுதலைத் தவிர்க்கவும்.`
+          : `✅ எல்லை கடந்தது (${patanaSafeAge} வயது, ${patanaDyn.targetDateStr}).`,
         en: isUnderDanger
-          ? `⚠️ Currently Active Vulnerability Window: Native is Age ${Math.floor(currentAge)}; acute vertigo and fall risk persists until Age ${patanaSafeAge}.`
-          : `✅ Safe Threshold Surpassed: Acute fall risk window has elapsed.`
+          ? `⚠️ Currently Active Vulnerability Window: Native is Age ${currentAge.toFixed(1)}; acute vertigo and fall risk persists until Age ${patanaSafeAge} (${patanaDyn.targetDateStr}, ${patanaDyn.dashaCycleName.en}).`
+          : `✅ Safe Threshold Surpassed: Acute fall risk window has elapsed (till Age ${patanaSafeAge}, ${patanaDyn.targetDateStr}).`
       },
       grahasInvolved: patanaGrahas,
       houseNumbers: patanaHouses,
@@ -714,19 +856,19 @@ export const calculateGandantaraAndBhaya = (
       dashaResonance: buildDashaResonance([PN.Saturn, PN.Mars], "ಎತ್ತರ ಬೀಳುವ ಗಂಡಾಂತರ"),
       cautionDirectives: {
         kn: [
-          `${patanaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ ರಕ್ಷಣಾ ಗೋಡೆ ಇಲ್ಲದ ತಾರಸಿ, ಕಡಿದಾದ ಬೆಟ್ಟದ ಅಂಚುಗಳು, ಮರ ಹತ್ತುವುದು ಹಾಗೂ ರೋಪ್ ವೇ ಸಾಹಸಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿರಿ.`
+          `${patanaSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${patanaDyn.targetDateStr}) ರಕ್ಷಣಾ ಗೋಡೆ ಇಲ್ಲದ ತಾರಸಿ, ಕಡಿದಾದ ಬೆಟ್ಟದ ಅಂಚುಗಳು, ಮರ ಹತ್ತುವುದು ಹಾಗೂ ರೋಪ್ ವೇ ಸಾಹಸಗಳಿಂದ ಸಂಪೂರ್ಣ ದೂರವಿರಿ.`
         ],
         hi: [
-          `${patanaSafeAge} वर्ष की आयु तक बिना रेलिंग वाली छत, ऊंची चट्टानों एवं ट्रैकिंग के जोखिम से बचें।`
+          `${patanaSafeAge} वर्ष (${patanaDyn.targetDateStr}) की आयु तक बिना रेलिंग वाली छत, ऊंची चट्टानों एवं ट्रैकिंग के जोखिम से बचें।`
         ],
         te: [
-          `${patanaSafeAge} ఏళ్ల వరకు రెయిలింగ్ లేని డాబాలు మరియు కొండల అంచులకు వెళ్లరాదు.`
+          `${patanaSafeAge} ఏళ్ల వరకు (${patanaDyn.targetDateStr}) రెయిలింగ్ లేని డాబాలు మరియు కొండల అంచులకు వెళ్లరాదు.`
         ],
         ta: [
-          `${patanaSafeAge} வயது வரை பாதுகாப்பற்ற மொட்டை மாடிகளுக்குச் செல்வதைத் தவிர்க்கவும்.`
+          `${patanaSafeAge} வயது வரை (${patanaDyn.targetDateStr}) பாதுகாப்பற்ற மொட்டை மாடிகளுக்குச் செல்வதைத் தவிர்க்கவும்.`
         ],
         en: [
-          `Strictly avoid unguarded terrace perimeters, treacherous cliff edges, high ladders, and unregulated adventure high-ropes until Age ${patanaSafeAge}.`
+          `Strictly avoid unguarded terrace perimeters, treacherous cliff edges, high ladders, and unregulated adventure high-ropes until Age ${patanaSafeAge} (${patanaDyn.targetDateStr}).`
         ]
       },
       protectiveParihara: {
@@ -746,6 +888,115 @@ export const calculateGandantaraAndBhaya = (
     });
   }
 
+  // ==========================================================================
+  // 6. SHASTRA & RAKTASRAVA GANDANTARA (ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ & ರಕ್ತಸ್ರಾವ ಗಂಡಾಂತರ - Surgery / Bleeding Hazard)
+  // ==========================================================================
+  const shastraGrahas: string[] = [];
+  const shastraHouses: number[] = [];
+  let isShastraActive = false;
+  let baseShastraAge = 28;
+
+  if (mars && (mars.house === 6 || mars.house === 8) && (ketu || saturn)) {
+    isShastraActive = true;
+    shastraGrahas.push("Mars in 6th/8th Dusthana");
+    shastraHouses.push(mars.house);
+    baseShastraAge = 32;
+  }
+  if (mars && mars.isDebilitated && [1, 6, 8, 12].includes(mars.house)) {
+    isShastraActive = true;
+    shastraGrahas.push("Debilitated Mars in Vulnerable House");
+    shastraHouses.push(mars.house);
+    baseShastraAge = 28;
+  }
+
+  if (isShastraActive) {
+    const shastraDyn = calculateDynamicSafeAge(
+      [PN.Mars, PN.Ketu, PN.Saturn],
+      baseShastraAge,
+      bhuktiTimeline,
+      dashaTimeline,
+      mars?.degree ?? 0,
+      input.birthDate
+    );
+    const shastraSafeAge = shastraDyn.safeAge;
+    const isUnderDanger = currentAge <= shastraSafeAge;
+
+    gandantaras.push({
+      id: "gandantara_shastra",
+      type: "shastra",
+      name: {
+        kn: "ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ & ರಕ್ತಸ್ರಾವ ಗಂಡಾಂತರ (Surgical & Sharp Tool Hazard)",
+        hi: "शस्त्र एवं शल्यक्रिया गंडांतर (Surgical & Bleeding Hazard)",
+        te: "శస్త్రచికిత్స & రక్తస్రావ గండాంతరం (Surgical Hazard)",
+        ta: "ஆயுத & அறுவைசிகிச்சை கண்டாந்தரம் (Surgical Hazard)",
+        en: "Shastra & Raktasrava Gandantara (Surgical & Sharp Tool Vulnerability)"
+      },
+      icon: "🗡️",
+      isDetected: true,
+      vulnerableTillAge: shastraSafeAge,
+      isCurrentlyInDangerWindow: isUnderDanger,
+      currentAge,
+      ageWindowDescription: {
+        kn: isUnderDanger
+          ? `⚠️ ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಗಂಡಾಂತರ ವಯೋಮಿತಿ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ವಯಸ್ಸು ${currentAge.toFixed(1)} ಆಗಿದ್ದು, ನಿಮ್ಮ ${shastraDyn.dashaCycleName.kn}ವಾದ ${shastraSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${shastraDyn.targetDateStr}) ಹರಿತವಾದ ಆಯುಧಗಳು, ಯಂತ್ರೋಪಕರಣಗಳು ಹಾಗೂ ತುರ್ತು ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯ ಅಪಾಯವಿರುತ್ತದೆ.`
+          : `✅ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ದಾಟಿದೆ: ${shastraSafeAge}ನೇ ವಯಸ್ಸಿನ (${shastraDyn.targetDateStr}) ತೀವ್ರ ರಕ್ತಸ್ರಾವ-ಶಸ್ತ್ರ ಗಂಡಾಂತರ ಹಂತ ಮುಕ್ತಾಯವಾಗಿದೆ.`,
+        hi: isUnderDanger
+          ? `⚠️ वर्तमान संकट काल: ${shastraSafeAge} वर्ष (${shastraDyn.targetDateStr}, ${shastraDyn.dashaCycleName.hi}) तक धारदार हथियारों एवं आकस्मिक शल्यक्रिया से सावधानी रखें।`
+          : `✅ सुरक्षा सीमा पार हो चुकी है (${shastraSafeAge} वर्ष, ${shastraDyn.targetDateStr})।`,
+        te: isUnderDanger
+          ? `⚠️ ${shastraSafeAge} ఏళ్ల వరకు (${shastraDyn.targetDateStr}) పదునైన ఆయుధాలు మరియు ఆపరేషన్ల విషయంలో జాగ్రత్తగా ఉండండి.`
+          : `✅ సురక్షిత వయస్సు దాటింది (${shastraSafeAge} ఏళ్లు, ${shastraDyn.targetDateStr}).`,
+        ta: isUnderDanger
+          ? `⚠️ ${shastraSafeAge} வயது வரை (${shastraDyn.targetDateStr}) கூர்மையான ஆயுதங்கள் மற்றும் அறுவை சிகிச்சைகளில் எச்சரிக்கை தேவை.`
+          : `✅ எல்லை கடந்தது (${shastraSafeAge} வயது, ${shastraDyn.targetDateStr}).`,
+        en: isUnderDanger
+          ? `⚠️ Currently Active Vulnerability Window: Native is Age ${currentAge.toFixed(1)}; acute vulnerability to sharp instruments, lacerations, and sudden surgical interventions persists until Age ${shastraSafeAge} (${shastraDyn.targetDateStr}, ${shastraDyn.dashaCycleName.en}).`
+          : `✅ Safe Threshold Surpassed: Acute surgical/laceration risk window has elapsed (till Age ${shastraSafeAge}, ${shastraDyn.targetDateStr}).`
+      },
+      grahasInvolved: shastraGrahas,
+      houseNumbers: shastraHouses,
+      scripturalReference: "ಜಾತಕ ಪಾರಿಜಾತ - ಶಸ್ತ್ರ ಪೀಡಾ ಯೋಗ (Jataka Parijata)",
+      technicalReason: {
+        kn: `ರಕ್ತ ಕಾರಕ ಕುಜನು 6 ಅಥವಾ 8ನೇ ರಂಧ್ರ ಸ್ಥಾನದಲ್ಲಿ ಕೇತು/ಶನಿಯ ಪ್ರಭಾವಕ್ಕೊಳಗಾಗಿದ್ದು ಶಸ್ತ್ರಭಯ ಉಂಟುಮಾಡಿದ್ದಾನೆ.`,
+        hi: `षष्ठ अथवा अष्टम भाव में मंगल का केतु/शनि से पीड़ित होना शल्यक्रिया और चोट का योग बनाता है।`,
+        te: `6 లేదా 8వ స్థానంలో కుజుడు ఉండటం వల్ల శస్త్ర ప్రమాదాలు ఏర్పడతాయి.`,
+        ta: `6 அல்லது 8ம் பாவத்தில் செவ்வாய் பாதிக்கப்பட்டுள்ளதால் ரத்த காயம் ஏற்படும் ஆபத்து உள்ளது.`,
+        en: `Mars (ruler of blood and iron tools) afflicted in 6th or 8th house, signifying acute risk of lacerations or emergency surgeries.`
+      },
+      dashaResonance: buildDashaResonance([PN.Mars, PN.Ketu], "ಶಸ್ತ್ರ ಗಂಡಾಂತರ"),
+      cautionDirectives: {
+        kn: [
+          `${shastraSafeAge}ನೇ ವಯಸ್ಸಿನವರೆಗೆ (${shastraDyn.targetDateStr}) ಯಂತ್ರೋಪಕರಣಗಳ ಅಜಾಗರೂಕ ಬಳಕೆ, ಹರಿತವಾದ ಚಾಕುಗಳು ಹಾಗೂ ಸಾಹಸ ಕ್ರೀಡೆಗಳಿಂದ ದೂರವಿರಿ.`
+        ],
+        hi: [
+          `${shastraSafeAge} वर्ष (${shastraDyn.targetDateStr}) की आयु तक नुकीले औजारों एवं जोखिम भरे खेलों से बचें।`
+        ],
+        te: [
+          `${shastraSafeAge} ఏళ్ల వరకు (${shastraDyn.targetDateStr}) పదునైన వస్తువులతో జాగ్రత్తగా ఉండండి.`
+        ],
+        ta: [
+          `${shastraSafeAge} வயது வரை (${shastraDyn.targetDateStr}) கூர்மையான பொருட்களை கவனமாக கையாளவும்.`
+        ],
+        en: [
+          `Strictly avoid careless handling of industrial blades, power tools, and high-impact contact sports until Age ${shastraSafeAge} (${shastraDyn.targetDateStr}).`
+        ]
+      },
+      protectiveParihara: {
+        kn: "ಶ್ರೀ ಸುದರ್ಶನ ಕವಚ ಜಪ & ಧನ್ವಂತರಿ ಹವನ",
+        hi: "श्री सुदर्शन कवच पाठ एवं धन्वंतरि हवन",
+        te: "శ్రీ సుదర్శన కవచం & ధన్వంతరి పూజ",
+        ta: "ஸ்ரீ சுதர்சன கவசம் & தன்வந்திரி பூஜை",
+        en: "Sri Sudarshana Kavacha & Dhanvantari Ayushya Homa"
+      },
+      protectiveMantras: {
+        kn: ["ನಿತ್ಯವೂ ಸುದರ್ಶನ ಮಹಾಮಂತ್ರ ಪಠಿಸಿ."],
+        hi: ["नित्य सुदर्शन महामंत्र का जाप करें।"],
+        te: ["సుదర్శన మహామంత్రం జపించండి."],
+        ta: ["சுதர்சன மகா மந்திரம் ஜபிக்கவும்."],
+        en: ["Recite Sri Sudarshana Maha Mantra daily for armor against physical lacerations."]
+      }
+    });
+  }
   // ==========================================================================
   // INNATE SUBCONSCIOUS PHOBIAS & MENTAL FEARS (ಅಂತರ್ಗತ ಮನೋಭಯಗಳು)
   // ==========================================================================

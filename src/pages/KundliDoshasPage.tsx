@@ -133,6 +133,13 @@ const UI_TEXT: Record<string, Record<string, string>> = {
     ta: "கோசார தோஷங்கள்",
     en: "Transit Afflictions",
   },
+  filterPanchanga: {
+    kn: "ಪಂಚಾಂಗ ದೋಷಗಳು",
+    hi: "पंचांग दोष",
+    te: "పంచాంగ దోషాలు",
+    ta: "பஞ்சாங்க தோஷங்கள்",
+    en: "Panchanga Afflictions",
+  },
   currentProblemsTitle: {
     kn: "ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಎದುರಾಗುತ್ತಿರುವ ನೈಜ ಸಮಸ್ಯೆಗಳು (Current Life Problems & Symptoms)",
     hi: "वर्तमान जीवन में उत्पन्न हो रही वास्तविक समस्याएं (Current Life Problems & Symptoms)",
@@ -313,12 +320,20 @@ export const KundliDoshasPage: React.FC = () => {
   const [mainTab, setMainTab] = useState<"all_sections" | "doshas" | "gandantara" | "fears">("all_sections");
 
   // Sub-filter for active doshas
-  const [activeFilter, setActiveFilter] = useState<"all" | "natal" | "dasha_sandhi" | "gochara">("all");
+  const [activeFilter, setActiveFilter] = useState<"all" | "natal" | "dasha_sandhi" | "gochara" | "panchanga">("all");
 
   // Local fallback state if no session in store
   const [localKundli, setLocalKundli] = useState<KundliOutput | null>(session?.result ?? null);
   const [localInput, setLocalInput] = useState<KundliInput | null>(session?.input ?? null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sync state whenever session changes in kundliViewerStore
+  useEffect(() => {
+    if (session?.result) {
+      setLocalKundli(session.result);
+      setLocalInput(session.input);
+    }
+  }, [session]);
 
   // Attempt to load from localStorage if store is empty
   useEffect(() => {
@@ -372,6 +387,8 @@ export const KundliDoshasPage: React.FC = () => {
       return activeDoshas.filter((d) => d.category === "dasha_sandhi");
     } else if (activeFilter === "gochara") {
       return activeDoshas.filter((d) => d.category === "gochara");
+    } else if (activeFilter === "panchanga") {
+      return activeDoshas.filter((d) => d.category === "panchanga");
     }
     return activeDoshas;
   }, [activeDoshas, activeFilter]);
@@ -542,7 +559,7 @@ export const KundliDoshasPage: React.FC = () => {
                     {t("lagnaLabel")}
                   </div>
                   <div className="text-sm font-black text-slate-100 mt-0.5 print:text-black">
-                    {doshaReport.devoteeInfo.lagnaRashi}
+                    {doshaReport.devoteeInfo.lagnaRashiRecord?.[selectedLang] || doshaReport.devoteeInfo.lagnaRashi}
                   </div>
                 </div>
 
@@ -551,7 +568,7 @@ export const KundliDoshasPage: React.FC = () => {
                     {t("moonLabel")}
                   </div>
                   <div className="text-sm font-black text-slate-100 mt-0.5 print:text-black">
-                    {doshaReport.devoteeInfo.moonRashi} • {doshaReport.devoteeInfo.nakshatra} ({doshaReport.devoteeInfo.pada})
+                    {doshaReport.devoteeInfo.moonRashiRecord?.[selectedLang] || doshaReport.devoteeInfo.moonRashi} • {doshaReport.devoteeInfo.nakshatraRecord?.[selectedLang] || doshaReport.devoteeInfo.nakshatra} ({doshaReport.devoteeInfo.pada})
                   </div>
                 </div>
 
@@ -571,7 +588,7 @@ export const KundliDoshasPage: React.FC = () => {
                     {t("currentDashaLabel")}
                   </div>
                   <div className="text-sm font-black text-amber-300 mt-0.5 print:text-black">
-                    {doshaReport.devoteeInfo.currentDashaStr}
+                    {doshaReport.devoteeInfo.currentDashaRecord?.[selectedLang] || doshaReport.devoteeInfo.currentDashaStr}
                   </div>
                 </div>
               </div>
@@ -623,6 +640,7 @@ export const KundliDoshasPage: React.FC = () => {
                         { id: "natal", label: t("filterNatal"), count: activeDoshas.filter((d) => d.category === "natal").length },
                         { id: "dasha_sandhi", label: t("filterDashaSandhi"), count: activeDoshas.filter((d) => d.category === "dasha_sandhi").length },
                         { id: "gochara", label: t("filterGochara"), count: activeDoshas.filter((d) => d.category === "gochara").length },
+                        { id: "panchanga", label: t("filterPanchanga"), count: activeDoshas.filter((d) => d.category === "panchanga").length },
                       ].map((tab) => (
                         <button
                           key={tab.id}

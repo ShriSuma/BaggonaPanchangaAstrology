@@ -553,6 +553,7 @@ export function diagnoseCurrentLifeSituation(
   // 4. Kalatrakaraka (Venus for males, Jupiter/Venus for females) Retrograde, Dusthana or Affliction
   if (isMale && venus?.isRetrograde) marriageDelayScore += 3.0; // Vakra Shukra for male delays bride finding & alliance finalization
   if (isFemale && (jupiter?.isRetrograde || venus?.isRetrograde)) marriageDelayScore += 3.0;
+  if (isFemale && jupiter && [6, 8, 12].includes(jupiter.house)) marriageDelayScore += 3.5; // Pati-Karaka Jupiter in Dusthana
   if (!isMale && !isFemale && venus?.isRetrograde) marriageDelayScore += 2.5;
   if (venus && [6, 8, 12].includes(venus.house)) marriageDelayScore += 2.0;
   if (venus && sun && venus.house === sun.house) marriageDelayScore += 1.5; // Venus conjunct Sun
@@ -570,7 +571,8 @@ export function diagnoseCurrentLifeSituation(
     seventhLordPlanet?.isDebilitated ||
     seventhLordPlanet?.isRetrograde ||
     venus?.isRetrograde ||
-    (venus && [6, 8, 12].includes(venus.house))
+    (venus && [6, 8, 12].includes(venus.house)) ||
+    (isFemale && jupiter && [6, 8, 12].includes(jupiter.house))
   );
 
   // 6. Age bracket weighting ONLY when concrete planetary affliction exists
@@ -607,6 +609,7 @@ export function diagnoseCurrentLifeSituation(
   if (seventhLordPlanet?.isRetrograde) distinctMarriageAfflictionCount += 1;
   if (isMale && venus?.isRetrograde) distinctMarriageAfflictionCount += 1;
   if (isFemale && (jupiter?.isRetrograde || venus?.isRetrograde)) distinctMarriageAfflictionCount += 1;
+  if (isFemale && jupiter && [6, 8, 12].includes(jupiter.house)) distinctMarriageAfflictionCount += 1;
 
   const hasDirect7thHouseAffliction = Boolean(
     (mars && [7, 8].includes(mars.house)) ||
@@ -615,7 +618,8 @@ export function diagnoseCurrentLifeSituation(
     (ketu && ketu.house === 7) ||
     (seventhLordPlanet && [6, 8, 12].includes(seventhLordPlanet.house)) ||
     seventhLordPlanet?.isRetrograde ||
-    seventhLordPlanet?.isDebilitated
+    seventhLordPlanet?.isDebilitated ||
+    (isFemale && jupiter && [6, 8, 12].includes(jupiter.house))
   );
 
   // Parashari Classical Marriage Certainty & Discord Priority Principle across all 12 Lagnas:
@@ -1601,7 +1605,7 @@ export function diagnoseCurrentLifeSituation(
     creativeStarNames.some(n => nameLowerDiag.includes(n))
   );
 
-  if (isCreativeMedia && !hasBandhanaRisk && (!isPostDivorce || age >= 60) && (isKnownCelebrityStar || !(canHaveMarriageDelay && marriageDelayScore >= 8.0))) {
+  if (isCreativeMedia && !hasBandhanaRisk && (!isPostDivorce || age >= 60) && (isKnownCelebrityStar || !canHaveMarriageDelay)) {
     const isPrimeCreativeStarAge = age >= 20 && age <= 75;
     const starScore = isKnownCelebrityStar ? (isPrimeCreativeStarAge ? 22.0 : 18.0) : (isPrimeCreativeStarAge ? 17.5 : 12.5);
     candidates.push({

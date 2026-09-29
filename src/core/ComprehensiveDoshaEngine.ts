@@ -61,7 +61,7 @@ export {
 };
 
 export type DoshaSeverity = "critical" | "high" | "moderate" | "mild" | "none";
-export type DoshaCategory = "natal" | "dasha_sandhi" | "gochara";
+export type DoshaCategory = "natal" | "dasha_sandhi" | "gochara" | "panchanga";
 
 export interface TechnicalDetail {
   houseNumbers: number[];
@@ -102,6 +102,10 @@ export interface ComprehensiveDoshaReport {
     currentDashaStr: string;
     runningMahaPlanet: string;
     runningBhuktiPlanet: string;
+    lagnaRashiRecord: Record<string, string>;
+    moonRashiRecord: Record<string, string>;
+    nakshatraRecord: Record<string, string>;
+    currentDashaRecord: Record<string, string>;
   };
   summary: {
     totalEvaluated: number;
@@ -137,6 +141,130 @@ const RASHI_NAMES_KN = [
   "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕಾಟಕ", "ಸಿಂಹ", "ಕನ್ಯಾ",
   "ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನುಸ್ಸು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
 ];
+
+export const RASHI_NAMES_5LANG: Record<string, Record<string, string>> = {
+  Aries: { kn: "ಮೇಷ", en: "Aries", hi: "मेष", te: "మేషం", ta: "மேஷம்" },
+  Taurus: { kn: "ವೃಷಭ", en: "Taurus", hi: "वृषभ", te: "వృషభం", ta: "ரிஷபம்" },
+  Gemini: { kn: "ಮಿಥುನ", en: "Gemini", hi: "मिथुन", te: "మిథునం", ta: "மிதுனம்" },
+  Cancer: { kn: "ಕರ್ಕಾಟಕ", en: "Cancer", hi: "कर्क", te: "కర్కాటకం", ta: "கடகம்" },
+  Leo: { kn: "ಸಿಂಹ", en: "Leo", hi: "सिंह", te: "సింహం", ta: "சிம்மம்" },
+  Virgo: { kn: "ಕನ್ಯಾ", en: "Virgo", hi: "कन्या", te: "కన్య", ta: "கன்னி" },
+  Libra: { kn: "ತುಲಾ", en: "Libra", hi: "तुला", te: "తుల", ta: "துலாம்" },
+  Scorpio: { kn: "ವೃಶ್ಚಿಕ", en: "Scorpio", hi: "वृश्चिक", te: "వృశ్చికం", ta: "விருச்சிகம்" },
+  Sagittarius: { kn: "ಧನುಸ್ಸು", en: "Sagittarius", hi: "धनु", te: "ధనుస్సు", ta: "தனுசு" },
+  Capricorn: { kn: "ಮಕರ", en: "Capricorn", hi: "मकर", te: "మకరం", ta: "மகரம்" },
+  Aquarius: { kn: "ಕುಂಭ", en: "Aquarius", hi: "कुंभ", te: "కుంభం", ta: "கும்பம்" },
+  Pisces: { kn: "ಮೀನ", en: "Pisces", hi: "मीन", te: "మీనం", ta: "மீனம்" }
+};
+
+export const PLANET_NAMES_5LANG: Record<string, Record<string, string>> = {
+  Sun: { kn: "ಸೂರ್ಯ", en: "Sun", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" },
+  Moon: { kn: "ಚಂದ್ರ", en: "Moon", hi: "चंद्र", te: "చంద్రుడు", ta: "சந்திரன்" },
+  Mars: { kn: "ಕುಜ (ಮಂಗಳ)", en: "Mars", hi: "मंगल", te: "కుజుడు", ta: "செவ்வாய்" },
+  Mercury: { kn: "ಬುಧ", en: "Mercury", hi: "बुध", te: "బుధుడు", ta: "புதன்" },
+  Jupiter: { kn: "ಗುರು (ಬೃಹಸ್ಪತಿ)", en: "Jupiter", hi: "बृहस्पति (गुरु)", te: "గురుడు", ta: "குரு" },
+  Venus: { kn: "ಶುಕ್ರ", en: "Venus", hi: "शुक्र", te: "శుక్రుడు", ta: "சுக்கிரன்" },
+  Saturn: { kn: "ಶನಿ", en: "Saturn", hi: "शनि", te: "శని", ta: "சனி" },
+  Rahu: { kn: "ರಾಹು", en: "Rahu", hi: "राहु", te: "రాహువు", ta: "ராகு" },
+  Ketu: { kn: "ಕೇತು", en: "Ketu", hi: "केतू", te: "కేతువు", ta: "கேது" }
+};
+
+export const NAKSHATRA_NAMES_5LANG: Record<string, Record<string, string>> = {
+  Ashwini: { kn: "ಅಶ್ವಿನಿ", en: "Ashwini", hi: "अश्विनी", te: "అశ్విని", ta: "அஸ்வினி" },
+  Bharani: { kn: "ಭರಣಿ", en: "Bharani", hi: "भरणी", te: "భరణి", ta: "பரணி" },
+  Krittika: { kn: "ಕೃತ್ತಿಕಾ", en: "Krittika", hi: "कृत्तिका", te: "కృత్తిక", ta: "கிருத்திகை" },
+  Rohini: { kn: "ರೋಹಿಣಿ", en: "Rohini", hi: "रोहिणी", te: "రోహిణి", ta: "ரோகிணி" },
+  Mrigashira: { kn: "ಮೃಗಶಿರ", en: "Mrigashira", hi: "मृगशिरा", te: "మృగశిర", ta: "மிருகசீரிஷம்" },
+  Ardra: { kn: "ಆರಿದ್ರಾ", en: "Ardra", hi: "आर्द्रा", te: "ఆరుద్ర", ta: "திருவாதிரை" },
+  Punarvasu: { kn: "ಪುನರ್ವಸು", en: "Punarvasu", hi: "पुनर्वसु", te: "పునర్వసు", ta: "புனர்பூசம்" },
+  Pushya: { kn: "ಪುಷ್ಯ", en: "Pushya", hi: "पुष्य", te: "పుష్యమి", ta: "பூசம்" },
+  Ashlesha: { kn: "ಆಶ್ಲೇಷಾ", en: "Ashlesha", hi: "आश्लेषा", te: "ఆశ్లేష", ta: "ஆயில்யம்" },
+  Magha: { kn: "ಮಘಾ", en: "Magha", hi: "मघा", te: "మఘ", ta: "மகம்" },
+  "Purva Phalguni": { kn: "ಪೂರ್ವ ಫಲ್ಗುಣಿ (ಹುಬ್ಬಾ)", en: "Purva Phalguni", hi: "पूर्वा फाल्गुनी", te: "పూర్వ ఫల్గుణి", ta: "பூரம்" },
+  "Uttara Phalguni": { kn: "ಉತ್ತರ ಫಲ್ಗುಣಿ (ಉತ್ತರಾ)", en: "Uttara Phalguni", hi: "उत्तरा फाल्गुनी", te: "ఉత్తర ఫల్గుణి", ta: "உத்திரம்" },
+  Hasta: { kn: "ಹಸ್ತಾ", en: "Hasta", hi: "हस्त", te: "హస్త", ta: "அஸ்தம்" },
+  Chitra: { kn: "ಚಿತ್ತಾ", en: "Chitra", hi: "चित्रा", te: "చిత్ర", ta: "சித்திரை" },
+  Swati: { kn: "ಸ್ವಾತಿ", en: "Swati", hi: "स्वाति", te: "స్వాతి", ta: "சுவாதி" },
+  Vishakha: { kn: "ವಿಶಾಖಾ", en: "Vishakha", hi: "विशाखा", te: "విశాఖ", ta: "விசாகம்" },
+  Anuradha: { kn: "ಅನೂರಾಧಾ", en: "Anuradha", hi: "अनुराधा", te: "అనూరాధ", ta: "அனுஷம்" },
+  Jyeshtha: { kn: "ಜ್ಯೇಷ್ಠಾ", en: "Jyeshtha", hi: "ज्येष्ठा", te: "జ్యేష్ఠ", ta: "கேட்டை" },
+  Moola: { kn: "ಮೂಲಾ", en: "Moola", hi: "मूल", te: "మూల", ta: "மூலம்" },
+  "Purva Ashadha": { kn: "ಪೂರ್ವಾಷಾಢಾ", en: "Purva Ashadha", hi: "पूर्वाषाढ़ा", te: "పూర్వాషాఢ", ta: "பூராடம்" },
+  "Uttara Ashadha": { kn: "ಉತ್ತರಾಷಾಢಾ", en: "Uttara Ashadha", hi: "उत्तराषाढ़ा", te: "ఉత్తరాషాఢ", ta: "உத்திராடம்" },
+  Shravana: { kn: "ಶ್ರವಣಾ", en: "Shravana", hi: "श्रवण", te: "శ్రవణం", ta: "திருவோணம்" },
+  Dhanishta: { kn: "ಧನಿಷ್ಠಾ", en: "Dhanishta", hi: "धनिष्ठा", te: "ధనిష్ఠ", ta: "அவிட்டம்" },
+  Shatabhisha: { kn: "ಶತಭಿಷಾ", en: "Shatabhisha", hi: "शतभिषा", te: "శతభిషం", ta: "சதயம்" },
+  "Purva Bhadrapada": { kn: "ಪೂರ್ವ ಭಾದ್ರಪದಾ", en: "Purva Bhadrapada", hi: "पूर्वा भाद्रपद", te: "పూర్వాభాద్ర", ta: "பூரட்டாதி" },
+  "Uttara Bhadrapada": { kn: "ಉತ್ತರ ಭಾದ್ರಪದಾ", en: "Uttara Bhadrapada", hi: "उत्तरा भाद्रपद", te: "ఉత్తరాభాద్ర", ta: "உத்திரட்டாதி" },
+  Revati: { kn: "ರೇವತಿ", en: "Revati", hi: "रेवती", te: "రేవతి", ta: "ரேவதி" }
+};
+
+export const TITHI_DAGDHA_RASHIS: Record<number, { indices: number[]; en: string; kn: string; hi: string; te: string; ta: string }> = {
+  1: { indices: [6, 9], en: "Libra & Capricorn", kn: "ತುಲಾ & ಮಕರ", hi: "तुला एवं मकर", te: "తుల & మకరం", ta: "துலாம் & மகரம்" },
+  2: { indices: [8, 11], en: "Sagittarius & Pisces", kn: "ಧನು & ಮೀನ", hi: "धनु एवं मीन", te: "ధనుస్సు & మీనం", ta: "தனுசு & மீனம்" },
+  3: { indices: [4, 9], en: "Leo & Capricorn", kn: "ಸಿಂಹ & ಮಕರ", hi: "सिंह एवं मकर", te: "సింహం & మకరం", ta: "சிம்மம் & மகரம்" },
+  4: { indices: [1, 10], en: "Taurus & Aquarius", kn: "ವೃಷಭ & ಕುಂಭ", hi: "वृषभ एवं कुंभ", te: "వృషభం & కుంభం", ta: "ரிஷபம் & கும்பம்" },
+  5: { indices: [2, 5], en: "Gemini & Virgo", kn: "ಮಿಥುನ & ಕನ್ಯಾ", hi: "मिथुन एवं कन्या", te: "మిథునం & కన్య", ta: "மிதுனம் & கன்னி" },
+  6: { indices: [0, 4], en: "Aries & Leo", kn: "ಮೇಷ & ಸಿಂಹ", hi: "मेष एवं सिंह", te: "మేషం & సింహం", ta: "மேஷம் & சிம்மம்" },
+  7: { indices: [8, 11], en: "Sagittarius & Pisces", kn: "ಧನು & ಮೀನ", hi: "धनु एवं मीन", te: "ధనుస్సు & మీనం", ta: "தனுசு & மீனம்" },
+  8: { indices: [2, 5], en: "Gemini & Virgo", kn: "ಮಿಥುನ & ಕನ್ಯಾ", hi: "मिथुन एवं कन्या", te: "మిథునం & కన్య", ta: "மிதுனம் & கன்னி" },
+  9: { indices: [4, 7], en: "Leo & Scorpio", kn: "ಸಿಂಹ & ವೃಶ್ಚಿಕ", hi: "सिंह एवं वृश्चिक", te: "సింహం & వృశ్చికం", ta: "சிம்மம் & விருச்சிகம்" },
+  10: { indices: [4, 7], en: "Leo & Scorpio", kn: "ಸಿಂಹ & ವೃಶ್ಚಿಕ", hi: "सिंह एवं वृश्चिक", te: "సింహం & వృశ్చికం", ta: "சிம்மம் & விருச்சிகம்" },
+  11: { indices: [8, 11], en: "Sagittarius & Pisces", kn: "ಧನು & ಮೀನ", hi: "धनु एवं मीन", te: "ధనుస్సు & మీనం", ta: "தனுசு & மீனம்" },
+  12: { indices: [0, 4], en: "Aries & Leo", kn: "ಮೇಷ & ಸಿಂಹ", hi: "मेष एवं सिंह", te: "మేషం & సింహం", ta: "மேஷம் & சிம்மம்" },
+  13: { indices: [1, 10], en: "Taurus & Aquarius", kn: "ವೃಷಭ & ಕುಂಭ", hi: "वृषभ एवं कुंभ", te: "వృషభం & కుంభం", ta: "ரிஷபம் & கும்பம்" },
+  14: { indices: [2, 5, 8, 11], en: "Gemini, Virgo, Sagittarius & Pisces", kn: "ಮಿಥುನ, ಕನ್ಯಾ, ಧನು & ಮೀನ", hi: "मिथुन, कन्या, धनु एवं मीन", te: "మిథునం, కన్య, ధనుస్సు & మీనం", ta: "மிதுனம், கன்னி, தனுசு & மீனம்" },
+  15: { indices: [], en: "None (Purified Full/New Moon)", kn: "ಯಾವುದೂ ಇಲ್ಲ (ಪೂರ್ಣಿಮಾ/ಅಮಾವಾಸ್ಯೆ ಪರಿಶುದ್ಧ)", hi: "कोई नहीं", te: "ఏదీ లేదు", ta: "எதுவுமில்லை" }
+};
+
+export const NITYA_YOGA_NAMES = [
+  { id: "vishkambha", num: 1, en: "Vishkambha", kn: "ವಿಷ್ಕಂಭ", hi: "विष्कंभ", te: "విష్కంభం", ta: "விஷ்கம்பம்", isMalefic: false },
+  { id: "priti", num: 2, en: "Priti", kn: "ಪ್ರೀತಿ", hi: "प्रीति", te: "ప్రీతి", ta: "பிரீதி", isMalefic: false },
+  { id: "ayushman", num: 3, en: "Ayushman", kn: "ಆಯುಷ್ಮಾನ್", hi: "आयुष्मान", te: "ఆయుష్మాన్", ta: "ஆயுஷ்மான்", isMalefic: false },
+  { id: "saubhagya", num: 4, en: "Saubhagya", kn: "ಸೌಭಾಗ್ಯ", hi: "सौभाग्य", te: "సౌభాగ్యం", ta: "சௌபாக்கியம்", isMalefic: false },
+  { id: "shobhana", num: 5, en: "Shobhana", kn: "ಶೋಭನ", hi: "शोभन", te: "శోభనం", ta: "சோபனம்", isMalefic: false },
+  { id: "atiganda", num: 6, en: "Atiganda", kn: "ಅತಿಗಂಡ", hi: "अतिगंड", te: "అతిగండం", ta: "அதிகண்டம்", isMalefic: true },
+  { id: "sukarma", num: 7, en: "Sukarma", kn: "ಸುಕರ್ಮ", hi: "सुकर्मा", te: "సుకర్మ", ta: "சுகர்மம்", isMalefic: false },
+  { id: "dhriti", num: 8, en: "Dhriti", kn: "ಧೃತಿ", hi: "धृति", te: "ధృతి", ta: "திருதி", isMalefic: false },
+  { id: "shoola", num: 9, en: "Shoola", kn: "ಶೂಲ", hi: "शूल", te: "శూలం", ta: "சூலம்", isMalefic: true },
+  { id: "ganda", num: 10, en: "Ganda", kn: "ಗಂಡ", hi: "गंड", te: "గండం", ta: "கண்டம்", isMalefic: true },
+  { id: "vriddhi", num: 11, en: "Vriddhi", kn: "ವೃದ್ಧಿ", hi: "वृद्धि", te: "వృద్ధి", ta: "விருத்தி", isMalefic: false },
+  { id: "dhruva", num: 12, en: "Dhruva", kn: "ಧ್ರುವ", hi: "ध्रुव", te: "ధ్రువం", ta: "துருவம்", isMalefic: false },
+  { id: "vyaghata", num: 13, en: "Vyaghata", kn: "ವ್ಯಾಘಾತ", hi: "व्याघात", te: "వ్యాఘాతం", ta: "வியாகாதம்", isMalefic: true },
+  { id: "harshana", num: 14, en: "Harshana", kn: "ಹರ್ಷಣ", hi: "हर्षण", te: "హర్షణం", ta: "ஹர்ஷணம்", isMalefic: false },
+  { id: "vajra", num: 15, en: "Vajra", kn: "ವಜ್ರ", hi: "वज्र", te: "వజ్రం", ta: "வஜ்ரம்", isMalefic: true },
+  { id: "siddhi", num: 16, en: "Siddhi", kn: "ಸಿದ್ಧಿ", hi: "सिद्धि", te: "సిద్ధి", ta: "சித்தி", isMalefic: false },
+  { id: "vyatipata", num: 17, en: "Vyatipata", kn: "ವ್ಯತೀಪಾತ", hi: "व्यतीपात", te: "వ్యతీపాతం", ta: "வியதீபாதம்", isMalefic: true },
+  { id: "variyan", num: 18, en: "Variyan", kn: "ವರೀಯಾನ್", hi: "वरीयान", te: "వరీయాన్", ta: "வரியான்", isMalefic: false },
+  { id: "parigha", num: 19, en: "Parigha", kn: "ಪರಿಘ", hi: "परिघ", te: "పరిఘం", ta: "பரிகம்", isMalefic: true },
+  { id: "shiva", num: 20, en: "Shiva", kn: "ಶಿವ", hi: "शिव", te: "శివం", ta: "சிவம்", isMalefic: false },
+  { id: "siddha", num: 21, en: "Siddha", kn: "ಸಿದ್ಧ", hi: "सिद्ध", te: "సిద్ధం", ta: "சித்தம்", isMalefic: false },
+  { id: "sadhya", num: 22, en: "Sadhya", kn: "ಸಾಧ್ಯ", hi: "साध्य", te: "సాధ్యం", ta: "சாத்தியம்", isMalefic: false },
+  { id: "shubha", num: 23, en: "Shubha", kn: "ಶುಭ", hi: "शुभ", te: "శుభం", ta: "சுபம்", isMalefic: false },
+  { id: "shukla", num: 24, en: "Shukla", kn: "ಶುಕ್ಲ", hi: "शुक्ल", te: "శుక్లం", ta: "சுக்லம்", isMalefic: false },
+  { id: "brahma", num: 25, en: "Brahma", kn: "ಬ್ರಹ್ಮ", hi: "ब्रह्म", te: "బ్రహ్మ", ta: "பிரம்மம்", isMalefic: false },
+  { id: "aindra", num: 26, en: "Indra (Aindra)", kn: "ಐಂದ್ರ (ಇಂದ್ರ)", hi: "ऐंद्र", te: "ఐంద్రం", ta: "ஐந்திரம்", isMalefic: false },
+  { id: "vaidhrithi", num: 27, en: "Vaidhrithi", kn: "ವೈಧೃತಿ", hi: "वैधृति", te: "వైధృతి", ta: "வைதிருதி", isMalefic: true }
+];
+
+export const TITHI_NAMES_5LANG: Record<number, Record<string, string>> = {
+  1: { kn: "ಪ್ರಥಮಾ (ಪಾಡ್ಯ)", en: "Pratipada (Padya)", hi: "प्रतिपदा", te: "పాడ్యమి", ta: "பிரதமை" },
+  2: { kn: "ದ್ವಿತೀಯಾ (ಬಿದಿಗೆ)", en: "Dvitiya (Bidige)", hi: "द्वितीया", te: "విదియ", ta: "துவிதியை" },
+  3: { kn: "ತೃತೀಯಾ (ತದಿಗೆ)", en: "Tritiya (Tadige)", hi: "तृतीया", te: "తదియ", ta: "திருதியை" },
+  4: { kn: "ಚತುರ್ಥಿ (ಚೌತಿ)", en: "Chaturthi (Chouthi)", hi: "चतुर्थी", te: "చవితి", ta: "சதுர்த்தி" },
+  5: { kn: "ಪಂಚಮೀ", en: "Panchami", hi: "पंचमी", te: "పంచమి", ta: "பஞ்சமி" },
+  6: { kn: "ಷಷ್ಠೀ", en: "Shashthi", hi: "षष्ठी", te: "షష్ఠి", ta: "சஷ்டி" },
+  7: { kn: "ಸಪ್ತಮೀ", en: "Saptami", hi: "सप्तमी", te: "సప్తమి", ta: "சப்தமி" },
+  8: { kn: "ಅಷ್ಟಮೀ", en: "Ashtami", hi: "अष्टमी", te: "అష్టమి", ta: "அஷ்டமி" },
+  9: { kn: "ನವಮೀ", en: "Navami", hi: "नवमी", te: "నవమి", ta: "நவமி" },
+  10: { kn: "ದಶಮೀ", en: "Dashami", hi: "दशमी", te: "దశమి", ta: "தசமி" },
+  11: { kn: "ಏಕಾದಶೀ", en: "Ekadashi", hi: "एकादशी", te: "ఏకాదశి", ta: "ஏகாதசி" },
+  12: { kn: "ದ್ವಾದಶೀ", en: "Dvadashi", hi: "द्वादशी", te: "ద్వాదశి", ta: "துவாதசி" },
+  13: { kn: "ತ್ರಯೋದಶೀ", en: "Trayodashi", hi: "त्रयोदशी", te: "త్రయోదశి", ta: "திரயோதசி" },
+  14: { kn: "ಚತುರ್ದಶೀ", en: "Chaturdashi", hi: "चतुर्दशी", te: "చతుర్దశి", ta: "சதுர்த்தசி" },
+  15: { kn: "ಪೂರ್ಣಿಮಾ / ಅಮಾವಾಸ್ಯಾ", en: "Purnima / Amavasya", hi: "पूर्णिमा / अमावस्या", te: "పూర్ణిమ / అమావాస్య", ta: "பௌர்ணமி / அமாவாசை" }
+};
+
 
 const getPlanet = (k: KundliOutput, name: PlanetName): PlanetPosition | undefined =>
   k.planets.find((p) => p.name === name);
@@ -1985,6 +2113,834 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
     }
   });
 
+  // ==========================================================================
+  // 14. GOCHARA GURU (ಲೈವ್ ಬೃಹಸ್ಪತಿ ಗೋಚಾರ - ಅಷ್ಟಮ/ವ್ಯಯ/ಜನ್ಮ/ಷಷ್ಠ ಗುರು)
+  // ==========================================================================
+  const liveJupiterRashi = Math.floor(liveLongs.jupiter / 30);
+  const liveJupiterHouseFromMoon = ((liveJupiterRashi - moonRashiIdx + 12) % 12) + 1;
+
+  const isAshtamaGuru = liveJupiterHouseFromMoon === 8;
+  const isVyayaGuru = liveJupiterHouseFromMoon === 12;
+  const isJanmaGuru = liveJupiterHouseFromMoon === 1;
+  const isShashtaGuru = liveJupiterHouseFromMoon === 6;
+  const isKantakaGuru = liveJupiterHouseFromMoon === 4 || liveJupiterHouseFromMoon === 10;
+  const isGuruBala = [2, 5, 7, 9, 11].includes(liveJupiterHouseFromMoon);
+
+  const isGocharaGuruAfflicted = isAshtamaGuru || isVyayaGuru || isJanmaGuru || isShashtaGuru;
+  const gocharaGuruSeverity: DoshaSeverity = isAshtamaGuru
+    ? "critical"
+    : isVyayaGuru
+    ? "high"
+    : isJanmaGuru
+    ? "moderate"
+    : isShashtaGuru
+    ? "mild"
+    : "none";
+
+  doshasList.push({
+    id: "gochara_guru",
+    name: {
+      kn: isAshtamaGuru
+        ? "ಅಷ್ಟಮ ಗುರು ಗೋಚಾರ (Ashtama Guru)"
+        : isVyayaGuru
+        ? "ವ್ಯಯ ಗುರು ಗೋಚಾರ (Vyaya Guru)"
+        : isJanmaGuru
+        ? "ಜನ್ಮ ಗುರು ಗೋಚಾರ (Janma Guru)"
+        : isShashtaGuru
+        ? "ಷಷ್ಠ ಗುರು ಗೋಚಾರ (Shashta Guru)"
+        : "ಗುರು ಗೋಚಾರ ದರ್ಶನ (Jupiter Transit)",
+      hi: isAshtamaGuru
+        ? "अष्टम गुरु गोचर (Ashtama Guru)"
+        : isVyayaGuru
+        ? "व्यय गुरु गोचर (Vyaya Guru)"
+        : isJanmaGuru
+        ? "जन्म गुरु गोचर (Janma Guru)"
+        : "गुरु गोचर प्रभाव (Jupiter Transit)",
+      te: isAshtamaGuru
+        ? "అష్టమ గురు గోచారం (Ashtama Guru)"
+        : isVyayaGuru
+        ? "వ్యయ గురు గోచారం"
+        : "గురు గోచార ప్రభావం",
+      ta: isAshtamaGuru
+        ? "அஷ்டம குரு பெயர்ச்சி (Ashtama Guru)"
+        : isVyayaGuru
+        ? "விரய குரு பெயர்ச்சி"
+        : "குரு பெயர்ச்சி தாக்கம்",
+      en: isAshtamaGuru
+        ? "Ashtama Guru Transit (8th Jupiter from Moon)"
+        : isVyayaGuru
+        ? "Vyaya Guru Transit (12th Jupiter from Moon)"
+        : isJanmaGuru
+        ? "Janma Guru Transit (1st Jupiter from Moon)"
+        : "Live Jupiter Transit (Guru Gochara)"
+    },
+    category: "gochara",
+    isDetected: isGocharaGuruAfflicted,
+    severity: gocharaGuruSeverity,
+    statusBadge: {
+      kn: isAshtamaGuru
+        ? "ತೀವ್ರ ಅಷ್ಟಮ ಗುರು"
+        : isVyayaGuru
+        ? "ವ್ಯಯ ಗುರು ಗೋಚಾರ"
+        : isJanmaGuru
+        ? "ಜನ್ಮ ಗುರು ಗೋಚಾರ"
+        : isGuruBala
+        ? "ಶುಭ ಗುರು ಬಲ (ಅನರ್ಥವಿಲ್ಲ)"
+        : "ಸಾಧಾರಣ ಗುರು ಗೋಚಾರ",
+      hi: isAshtamaGuru
+        ? "गंभीर अष्टम गुरु"
+        : isVyayaGuru
+        ? "व्यय गुरु प्रभाव"
+        : isGuruBala
+        ? "शुभ गुरु बल"
+        : "सामान्य गुरु प्रभाव",
+      te: isAshtamaGuru ? "తీవ్ర అష్టమ గురు" : isGuruBala ? "శుభ గురు బలం" : "సాధారణ గోచారం",
+      ta: isAshtamaGuru ? "தீவிர அஷ்டம குரு" : isGuruBala ? "சுப குரு பலம்" : "சாதாரண கோசாரம்",
+      en: isAshtamaGuru
+        ? "CRITICAL ASHTAMA GURU"
+        : isVyayaGuru
+        ? "HIGH VYAYA GURU"
+        : isGuruBala
+        ? "AUSPICIOUS GURU BALA"
+        : "MODERATE JUPITER TRANSIT"
+    },
+    technicalDetail: {
+      houseNumbers: [liveJupiterHouseFromMoon],
+      grahasInvolved: ["Jupiter (Live Gochara)"],
+      grahaDegrees: [{ name: "Live Jupiter", rashi: RASHI_NAMES_EN[liveJupiterRashi], degreeFormatted: formatDegMin(liveLongs.jupiter) }],
+      scripturalReference: "ಫಲದೀಪಿಕಾ & ಬೃಹತ್ ಸಂಹಿತಾ - ಗೋಚಾರ ಫಲ (Phaladeepika Ch. 26)",
+      hasBhangaOrMitigation: isGuruBala,
+      bhangaDescription: {
+        kn: isGuruBala
+          ? "ಗುರುವು ೨, ೫, ೭, ೯, ೧೧ನೇ ಭಾವಗಳಲ್ಲಿದ್ದರೆ ದೈವಿಕ 'ಗುರು ಬಲ' ಪ್ರಾಪ್ತವಾಗುತ್ತದೆ."
+          : "ಗುರು ಶಾಂತಿ ಹೋಮ ಹಾಗೂ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣದಿಂದ ದುಷ್ಫಲಗಳು ಶಮನಗೊಳ್ಳುತ್ತವೆ.",
+        en: isGuruBala
+          ? "Transiting 2nd, 5th, 7th, 9th, or 11th bestows sacred Guru Bala protection."
+          : "Mitigated via Brihaspati propitiation and Vishnu Sahasranama recital."
+      }
+    },
+    technicalWhy: {
+      kn: isGocharaGuruAfflicted
+        ? `ಪ್ರಸ್ತುತ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಖಗೋಳದಲ್ಲಿ ${RASHI_NAMES_KN[liveJupiterRashi]} ರಾಶಿಯಲ್ಲಿ (${formatDegMin(liveLongs.jupiter)}) ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${RASHI_NAMES_KN[moonRashiIdx]} ದಿಂದ ನಿಖರವಾಗಿ ${liveJupiterHouseFromMoon}ನೇ ಭಾವದಲ್ಲಿದ್ದಾರೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ${isAshtamaGuru ? "೮ನೇ ಮನೆಯ ಅಷ್ಟಮ ಗುರು ಸ್ಥಾನವು ಧನಹಾನಿ, ಗೌರವಕ್ಕೆ ಧಕ್ಕೆ ಹಾಗೂ ಕಾರ್ಯತಡೆ ಉಂಟುಮಾಡುತ್ತದೆ" : isVyayaGuru ? "೧೨ನೇ ಮನೆಯ ವ್ಯಯ ಗುರು ಸ್ಥಾನವು ಅಧಿಕ ಖರ್ಚು, ಸ್ಥಳಾಂತರ ಹಾಗೂ ಅಶಾಂತಿ ಉಂಟುಮಾಡುತ್ತದೆ" : "ಈ ಸ್ಥಾನವು ಗುರು ಬಲದ ಕೊರತೆಯನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ"}.`
+        : `ಪ್ರಸ್ತುತ ದೇವಗುರುವು ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ${liveJupiterHouseFromMoon}ನೇ ಶುಭ ಭಾವದಲ್ಲಿದ್ದು, ದೈವಿಕ 'ಗುರು ಬಲ' (Guru Bala) ಸಂಪೂರ್ಣ ರಕ್ಷಣೆ ನೀಡುತ್ತಿದೆ.`,
+      hi: isGocharaGuruAfflicted
+        ? `वर्तमान में देवगुरु बृहस्पति गोचर में ${RASHI_NAMES_EN[liveJupiterRashi]} (${formatDegMin(liveLongs.jupiter)}) में भ्रमण करते हुए आपकी जन्म चंद्र राशि से ${liveJupiterHouseFromMoon}वें भाव में स्थित हैं, जो ${isAshtamaGuru ? "अष्टम गुरु" : isVyayaGuru ? "व्यय गुरु" : "प्रतिकूल गुरु"} का निर्माण करता है।`
+        : `गोचर के गुरु चंद्र राशि से ${liveJupiterHouseFromMoon}वें भाव में अनुकूल रहकर शुभ 'गुरु बल' प्रदान कर रहे हैं।`,
+      te: isGocharaGuruAfflicted
+        ? `ప్రస్తుతం దేవగురువు మీ జన్మ చంద్ర రాశి నుండి ${liveJupiterHouseFromMoon}వ భావంలో సంచరిస్తూ ప్రతికూలతలను కలిగిస్తున్నారు.`
+        : `ప్రస్తుతం గురు భగవానుడు జన్మ చంద్రుని నుండి ${liveJupiterHouseFromMoon}వ శుభ స్థానంలో ఉండి సంపూర్ణ గురు బలాన్ని ప్రసాదిస్తున్నారు.`,
+      ta: isGocharaGuruAfflicted
+        ? `தற்போது குரு பகவான் உங்கள் சந்திர ராசிக்கு ${liveJupiterHouseFromMoon} ஆம் வீட்டில் சஞ்சரித்து சுப பலன்களைக் குறைக்கிறார்.`
+        : `தற்போது குரு பகவான் உங்கள் சந்திர ராசிக்கு ${liveJupiterHouseFromMoon} ஆம் சுப ஸ்தானத்தில் அமர்ந்து குரு பலன் தருகிறார்.`,
+      en: isGocharaGuruAfflicted
+        ? `Live astronomical Jupiter is transiting ${RASHI_NAMES_EN[liveJupiterRashi]} at ${formatDegMin(liveLongs.jupiter)}, placing it in the ${liveJupiterHouseFromMoon}th house from your natal Moon (${RASHI_NAMES_EN[moonRashiIdx]}). Classical Jyotisha identifies this as ${isAshtamaGuru ? "Ashtama Guru (financial, professional and reputational headwinds)" : isVyayaGuru ? "Vyaya Guru (unplanned expenditures, mental fatigue and isolation)" : "adverse transit devoid of Guru Bala"}.`
+        : `Transiting Jupiter occupies the auspicious ${liveJupiterHouseFromMoon}th house from natal Moon, conferring divine cosmic shelter (Guru Bala).`
+    },
+    currentLifeProblems: {
+      kn: isAshtamaGuru
+        ? "ಪ್ರಸ್ತುತ ಅಷ್ಟಮ ಗುರು ಪ್ರಭಾವದಿಂದಾಗಿ ಧಾರ್ಮಿಕ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಘ್ನ, ಹಿರಿಯರೊಂದಿಗೆ ವಾಗ್ವಾದ, ಹೂಡಿಕೆಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ನಷ್ಟ, ಗೌರವಕ್ಕೆ ಧಕ್ಕೆ ಹಾಗೂ ಸರಿಯಾದ ಮಾರ್ಗದರ್ಶನ ಸಿಗದೆ ದಾರಿತಪ್ಪಿದಂತಹ ಭಾವನೆ ಕಾಡುತ್ತಿದೆ."
+        : isVyayaGuru
+        ? "ಅನಿರೀಕ್ಷಿತ ಆಸ್ಪತ್ರೆ ಅಥವಾ ಕುಟುಂಬದ ಖರ್ಚುಗಳು, ಕೈಗೆ ಬಂದ ಹಣ ಉಳಿಯದಿರುವುದು, ನಿದ್ರಾಹೀನತೆ ಹಾಗೂ ಅನಗತ್ಯ ಮಾನಸಿಕ ಆತಂಕಗಳು ದಿನನಿತ್ಯದ ನೆಮ್ಮದಿಯನ್ನು ಕದಡುತ್ತಿವೆ."
+        : "ದೈನಂದಿನ ಕಾರ್ಯಗಳಲ್ಲಿ ಗುರು ಬಲದ ಅನುಕೂಲತೆ ಹೆಚ್ಚಾಗಿರುವುದರಿಂದ ದೊಡ್ಡ ಮಟ್ಟದ ಅಡೆತಡೆಗಳಿರುವುದಿಲ್ಲ.",
+      hi: isAshtamaGuru
+        ? "वर्तमान में अष्टम गुरु के कारण धन की अकस्मात हानि, पद-प्रतिष्ठा में चुनौतियां, वरिष्ठों से मतभेद तथा सही निर्णय लेने में मानसिक भ्रम की स्थिति बनी हुई है।"
+        : isVyayaGuru
+        ? "अनावश्यक एवं आकस्मिक व्यय, हाथ में धन का न टिकना तथा अनिद्रा की समस्या बनी हुई है।"
+        : "गुरु कृपा से कार्यक्षेत्र में प्रगति एवं शांति बनी हुई है।",
+      te: isAshtamaGuru
+        ? "ధన నష్టం, పనులలో ఆటంకాలు, గౌరవానికి ఇబ్బందులు మరియు నిర్ణయాలు తీసుకోవడంలో సందిగ్ధత ఎదురవుతున్నాయి."
+        : "ఆకస్మిక ఖర్చులు మరియు మానసిక అశాంతి వేధిస్తున్నాయి.",
+      ta: isAshtamaGuru
+        ? "பண இழப்பு, காரியத்தடை, நற்பெயருக்கு களங்கம் மற்றும் மனக்குழப்பம் போன்ற சிக்கல்கள் ஏற்படுகின்றன."
+        : "எதிர்பாராத விரயச் செலவுகள் ஏற்படுகின்றன.",
+      en: isAshtamaGuru
+        ? "Currently undergoing sudden cash-flow bottlenecks, reputational friction with mentors or superiors, erroneous advisory guidance, and an acute feeling of cosmic isolation."
+        : isVyayaGuru
+        ? "Confronting persistent drains on financial reserves, sleepless restlessness, unreciprocated benefactions, and domestic dislocations."
+        : "Protected by positive divine vibrations; decisions align with wisdom."
+    },
+    dashaResonance: buildDashaResonance([PN.Jupiter], "ಗುರು ಗೋಚಾರ ದೋಷ"),
+    lifeImpact: {
+      kn: isGocharaGuruAfflicted
+        ? `ಗುರು ಗ್ರಹದ ಈ ಪ್ರತಿಕೂಲ ಗೋಚಾರದಿಂದಾಗಿ ಜ್ಞಾನ, ಗೌರವ, ಸಂಪತ್ತು ಮತ್ತು ದಾಂಪತ್ಯ ಸೌಖ್ಯದಲ್ಲಿ ಅಲ್ಪ ಹಿನ್ನಡೆಯಾಗಬಹುದು. ಯಾವುದೇ ಸಾಲ ಕೊಡುವುದು ಅಥವಾ ಜಾಮೀನು ನಿಲ್ಲುವುದನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಬೇಕು.
+ 
+ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ಬೃಹಸ್ಪತಿ ಶಾಂತಿ ಪೂಜೆ, ಗುರುವಾರ ಕಡಲೆಬೇಳೆ ದಾನ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ-ಗುರುಗಳ ಆಶೀರ್ವಾದ ಪಡೆಯುವುದರಿಂದ ದುಷ್ಫಲಗಳು ಶಮನಗೊಂಡು ಶುಭ ಯೋಗ ಆರಂಭವಾಗುತ್ತದೆ.`
+        : "ಗೋಚಾರ ಗುರುವು ನಿಮ್ಮ ಧರ್ಮ ಮತ್ತು ಭಾಗ್ಯಕ್ಕೆ ಸಂಪೂರ್ಣ ಬೆಂಬಲ ನೀಡುತ್ತಿದ್ದಾನೆ.",
+      hi: isGocharaGuruAfflicted
+        ? `इस गोचर में वित्तीय जोखिम या किसी की जमानत लेने से बचें। बृहस्पतिवार को चने की दाल का दान करें और गुरु सेवा करें।`
+        : "गुरु गोचर शुभ एवं कल्याणकारी बना हुआ है।",
+      te: isGocharaGuruAfflicted
+        ? `గురువారం శనగలు దానం చేయడం మరియు గురు స్తోత్రం పఠించడం శ్రేయస్కరం.`
+        : "గురు బలం పరిపూర్ణంగా ఉంది.",
+      ta: isGocharaGuruAfflicted
+        ? `வியாழக்கிழமைகளில் கொண்டைக்கடலை தானம் செய்து தட்சிணாமூர்த்தியை வழிபடவும்.`
+        : "குரு பகவானின் அருள் பூரணமாக உள்ளது.",
+      en: isGocharaGuruAfflicted
+        ? `Tempering financial exposure, avoiding underwriting third-party liabilities, and seeking guidance from verified masters are critical while transit Jupiter traverses adverse angles.
+ 
+Performing Brihaspati Shanti Homa at Gokarna and donating yellow chickpeas on Thursdays converts negative transit pressures into enduring wisdom.`
+        : "Jupiter transit flows benevolently, strengthening moral and worldly fortunes."
+    },
+    recommendedPooja: {
+      kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ 'ಗುರು ಶಾಂತಿ ಮಹಾ ಹವನ' & 'ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ'",
+      hi: "गोकर्ण में 'गुरु शांति महाहवन एवं दक्षिणामूर्ति पूजा'",
+      te: "గోకర్ణంలో 'గురు శాంతి హోమం & దక్షిణామూర్తి పూజ'",
+      ta: "கோகர்ணத்தில் 'குரு சாந்தி மகா ஹோமம் & தட்சிணாமூர்த்தி பூஜை'",
+      en: "Brihaspati Shanti Maha Homa & Sri Dakshinamurthy Archana at Gokarna Kshetra"
+    },
+    remedies: {
+      kn: [
+        "ಪ್ರತಿ ಗುರುವಾರ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಅಥವಾ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿಗಳ ಸನ್ನಿಧಿಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ.",
+        "ಗುರುವಾರ ಹಳದಿ ಬಣ್ಣದ ವಸ್ತ್ರ, ಕಡಲೆಬೇಳೆ ಅಥವಾ ಸಿಹಿ ಪದಾರ್ಥಗಳನ್ನು ದಾನ ಮಾಡಿ.",
+        "ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಸ್ತೋತ್ರ ಅಥವಾ ಗುರು ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ನಿತ್ಯ ೧೦೮ ಬಾರಿ ಜಪಿಸಿ."
+      ],
+      hi: [
+        "प्रति गुरुवार को भगवान दक्षिणामूर्ति अथवा विष्णु मंदिर में शुद्ध घी का दीपक जलाएं।",
+        "पीले वस्त्र, चने की दाल अथवा बेसन के मिष्ठान्न का दान करें।",
+        "श्री विष्णु सहस्रनाम अथवा गुरु गायत्री मंत्र का नित्य जप करें।"
+      ],
+      te: [
+        "ప్రతి గురువారం దక్షిణామూర్తి లేదా రాఘవేంద్ర స్వామి ఆలయంలో నెయ్యితో దీపం వెలిగించండి.",
+        "పసుపు రంగు వస్త్రాలు లేదా శనగలు దానం చేయండి.",
+        "విష్ణు సహస్రనామ స్తోత్రం నిత్యం చదవండి."
+      ],
+      ta: [
+        "வியாழக்கிழமைகளில் தட்சிணாமூர்த்திக்கு நெய் தீபம் ஏற்றி வழிபடவும்.",
+        "மஞ்சள் நிற வஸ்திரம் அல்லது கொண்டைக்கடலை தானம் செய்யவும்.",
+        "விஷ்ணு சஹஸ்ரநாமம் படிக்கவும்."
+      ],
+      en: [
+        "Light a pure cow ghee lamp at a Sri Dakshinamurthy or Raghavendra Swamy sanctum every Thursday.",
+        "Donate yellow chickpeas, yellow cloth, and saffron turmeric to spiritual teachers.",
+        "Chant the sacred Vishnu Sahasranama or Brihaspati Gayatri Mantra daily."
+      ]
+    }
+  });
+
+  // ==========================================================================
+  // 15. GOCHARA RAHU-KETU (ಲೈವ್ ರಾಹು-ಕೇತು ಗೋಚಾರ - ಜನ್ಮ-ಸಪ್ತಮ ಅಥವಾ ಅಷ್ಟಮ ಅಕ್ಷ)
+  // ==========================================================================
+  const liveRahuRashi = Math.floor(liveLongs.rahu / 30);
+  const liveKetuRashi = (liveRahuRashi + 6) % 12;
+  const liveRahuHouseFromMoon = ((liveRahuRashi - moonRashiIdx + 12) % 12) + 1;
+  const liveKetuHouseFromMoon = ((liveKetuRashi - moonRashiIdx + 12) % 12) + 1;
+
+  const isRahuKetu17Axis = liveRahuHouseFromMoon === 1 || liveRahuHouseFromMoon === 7;
+  const isRahuKetu28Axis = liveRahuHouseFromMoon === 8 || liveRahuHouseFromMoon === 2;
+  const isRahuKetu410Axis = liveRahuHouseFromMoon === 4 || liveRahuHouseFromMoon === 10;
+
+  const isGocharaRKAfflicted = isRahuKetu17Axis || isRahuKetu28Axis;
+  const gocharaRKSeverity: DoshaSeverity = isRahuKetu17Axis
+    ? "high"
+    : isRahuKetu28Axis
+    ? "high"
+    : isRahuKetu410Axis
+    ? "moderate"
+    : "none";
+
+  doshasList.push({
+    id: "gochara_rahu_ketu",
+    name: {
+      kn: isRahuKetu17Axis
+        ? "ಜನ್ಮ-ಸಪ್ತಮ ರಾಹು-ಕೇತು ಗೋಚಾರ (Janma-Saptama Transit)"
+        : isRahuKetu28Axis
+        ? "ಅಷ್ಟಮ ರಾಹು-ಕೇತು ಗೋಚಾರ (Ashtama Transit)"
+        : "ರಾಹು-ಕೇತು ಗೋಚಾರ ದರ್ಶನ (Rahu-Ketu Transit)",
+      hi: isRahuKetu17Axis
+        ? "जन्म-सप्तम राहु-केतु गोचर (Janma-Saptama Transit)"
+        : isRahuKetu28Axis
+        ? "अष्टम राहु-केतु गोचर (Ashtama Transit)"
+        : "राहु-केतु गोचर प्रभाव",
+      te: isRahuKetu17Axis ? "జన్మ-సప్తమ రాహు-కేతు గోచారం" : isRahuKetu28Axis ? "అష్టమ రాహు-కేతు గోచారం" : "రాహు-కేతు గోచారం",
+      ta: isRahuKetu17Axis ? "ஜன்ம-சப்தம ராகு-கேது பெயர்ச்சி" : isRahuKetu28Axis ? "அஷ்டம ராகு-கேது பெயர்ச்சி" : "ராகு-கேது பெயர்ச்சி",
+      en: isRahuKetu17Axis
+        ? "Janma-Saptama (1st/7th) Rahu-Ketu Transit Axis"
+        : isRahuKetu28Axis
+        ? "Ashtama-Dhana (8th/2nd) Rahu-Ketu Transit Axis"
+        : "Live Rahu-Ketu Transit Axis"
+    },
+    category: "gochara",
+    isDetected: isGocharaRKAfflicted,
+    severity: gocharaRKSeverity,
+    statusBadge: {
+      kn: isRahuKetu17Axis
+        ? "ಜನ್ಮ-ಸಪ್ತಮ ರಾಹು-ಕೇತು ಅಕ್ಷ"
+        : isRahuKetu28Axis
+        ? "ತೀವ್ರ ಅಷ್ಟಮ ರಾಹು-ಕೇತು ಅಕ್ಷ"
+        : "ಅನುಕೂಲಕರ ರಾಹು-ಕೇತು ಗೋಚಾರ",
+      hi: isRahuKetu17Axis
+        ? "जन्म-सप्तम राहु-केतु अक्ष"
+        : isRahuKetu28Axis
+        ? "अष्टम राहु-केतु अक्ष"
+        : "शुभ राहु-केतु गोचर",
+      te: isRahuKetu17Axis ? "జన్మ-సప్తమ అక్షం" : isRahuKetu28Axis ? "అష్టమ అక్షం" : "శుభ గోచారం",
+      ta: isRahuKetu17Axis ? "ஜன்ம-சப்தம அச்சு" : isRahuKetu28Axis ? "அஷ்டம அச்சு" : "சுப கோசாரம்",
+      en: isRahuKetu17Axis
+        ? "ACTIVE 1ST/7TH AXIS"
+        : isRahuKetu28Axis
+        ? "CRITICAL 8TH/2ND AXIS"
+        : "BENEFIC RAHU-KETU TRANSIT"
+    },
+    technicalDetail: {
+      houseNumbers: [liveRahuHouseFromMoon, liveKetuHouseFromMoon],
+      grahasInvolved: ["Rahu (Live)", "Ketu (Live)"],
+      grahaDegrees: [
+        { name: "Live Rahu", rashi: RASHI_NAMES_EN[liveRahuRashi], degreeFormatted: formatDegMin(liveLongs.rahu) },
+        { name: "Live Ketu", rashi: RASHI_NAMES_EN[liveKetuRashi], degreeFormatted: formatDegMin(liveLongs.ketu) }
+      ],
+      scripturalReference: "ಜಾತಕ ಪಾರಿಜಾತ & ನಾರದ ಸಂಹಿತಾ (Jataka Parijata)",
+      hasBhangaOrMitigation: false,
+      bhangaDescription: {
+        kn: "ನಾಗ ಪ್ರೀತಿ, ಆಶ್ಲೇಷಾ ಬಲಿ ಹಾಗೂ ಸುಬ್ರಹ್ಮಣ್ಯ ಆರಾಧನೆಯಿಂದ ರಾಹು-ಕೇತು ಬಾಧೆಗಳು ತಕ್ಷಣ ನಿವಾರಣೆಯಾಗುತ್ತವೆ.",
+        en: "Subdued through Ashlesha Bali, Naga Pratistha, and Subramanya Kavacha recital."
+      }
+    },
+    technicalWhy: {
+      kn: isGocharaRKAfflicted
+        ? `ಪ್ರಸ್ತುತ ಗೋಚಾರ ರಾಹುವು ${RASHI_NAMES_KN[liveRahuRashi]} ರಾಶಿಯಲ್ಲಿ (${formatDegMin(liveLongs.rahu)}) ಹಾಗೂ ಕೇತುವು ${RASHI_NAMES_KN[liveKetuRashi]} ರಾಶಿಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ${liveRahuHouseFromMoon} ಮತ್ತು ${liveKetuHouseFromMoon}ನೇ ಭಾವಗಳ ಅಕ್ಷವನ್ನು ಆವರಿಸಿದ್ದಾರೆ. ${isRahuKetu17Axis ? "ಜನ್ಮ ಚಂದ್ರ ಅಥವಾ ೭ನೇ ಮನೆಯ ಮೇಲೆ ಛಾಯಾಗ್ರಹಗಳ ನೇರ ಪ್ರಭಾವವು ಮಾನಸಿಕ ಭ್ರಮೆ, ದಾಂಪತ್ಯ ಅಥವಾ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಅತಿಯಾದ ಅಪನಂಬಿಕೆ ಉಂಟುಮಾಡುತ್ತದೆ" : "೮ನೇ ಮತ್ತು ೨ನೇ ಮನೆಯ ಅಕ್ಷವು ಅನಿರೀಕ್ಷಿತ ಆರೋಗ್ಯ ಏರುಪೇರು, ಆರ್ಥಿಕ ಏರುಪೇರು ಹಾಗೂ ವಾಗ್ವಾದವನ್ನು ಸೂಚಿಸುತ್ತದೆ"}.`
+        : `ಪ್ರಸ್ತುತ ರಾಹು ಮತ್ತು ಕೇತುಗಳು ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ಅನುಕೂಲಕರ ಉಪಚಯ ಅಥವಾ ತಟಸ್ಥ ಭಾವಗಳಲ್ಲಿದ್ದು (${liveRahuHouseFromMoon} ಮತ್ತು ${liveKetuHouseFromMoon}ನೇ ಭಾವ), ತೀವ್ರ ದೋಷದ ಬಾಧೆ ಇರುವುದಿಲ್ಲ.`,
+      hi: isGocharaRKAfflicted
+        ? `वर्तमान में गोचर राहु एवं केतु आपकी जन्म चंद्र राशि से ${liveRahuHouseFromMoon} एवं ${liveKetuHouseFromMoon} अक्ष पर स्थित हैं, जो ${isRahuKetu17Axis ? "दाम्पत्य एवं मानसिक शांति में विघ्न" : "आकस्मिक स्वास्थ्य व आर्थिक संकट"} की स्थिति उत्पन्न करते हैं।`
+        : `राहु एवं केतु का गोचर चंद्र राशि से अनुकूल अक्ष पर स्थित है।`,
+      te: isGocharaRKAfflicted
+        ? `ప్రస్తుతం రాహు-కేతువులు మీ జన్మ చంద్రుని నుండి ${liveRahuHouseFromMoon} మరియు ${liveKetuHouseFromMoon}వ స్థానాలలో ఉండి మానసిక ఆందోళనలను పెంచుతున్నారు.`
+        : `రాహు-కేతువుల గోచారం అనుకూలంగా ఉంది.`,
+      ta: isGocharaRKAfflicted
+        ? `தற்போது ராகு-கேது கிரகங்கள் உங்கள் சந்திர ராசிக்கு ${liveRahuHouseFromMoon} மற்றும் ${liveKetuHouseFromMoon} ஆம் அச்சில் சஞ்சரிக்கின்றன.`
+        : `ராகு-கேது பெயர்ச்சி சாதகமாக உள்ளது.`,
+      en: isGocharaRKAfflicted
+        ? `Live astronomical Rahu (${formatDegMin(liveLongs.rahu)} in ${RASHI_NAMES_EN[liveRahuRashi]}) and Ketu traverse the ${liveRahuHouseFromMoon}th / ${liveKetuHouseFromMoon}th house axis relative to your natal Moon. Vedic scriptures warn that this ${isRahuKetu17Axis ? "1st/7th nodal axis induces psychological illusions, paranoia, and severe relational frictions" : "8th/2nd nodal axis precipitates unpredictable medical surprises and financial turbulence"}.`
+        : `Live Rahu and Ketu traverse benign Upachaya or neutral houses (${liveRahuHouseFromMoon}th and ${liveKetuHouseFromMoon}th) from natal Moon.`
+    },
+    currentLifeProblems: {
+      kn: isRahuKetu17Axis
+        ? "ದಾಂಪತ್ಯ ಅಥವಾ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಸಣ್ಣ ವಿಷಯಗಳಿಗೂ ತೀವ್ರ ಸಂಶಯ ಮತ್ತು ಮನಸ್ತಾಪ, ಅನಾವಶ್ಯಕ ಗೊಂದಲ, ತಲೆನೋವು ಹಾಗೂ ಅನಿರೀಕ್ಷಿತ ವಿದೇಶ ಪ್ರವಾಸ ಅಥವಾ ಸ್ಥಳ ಬದಲಾವಣೆಯ ಆತಂಕ ಎದುರಾಗುತ್ತಿದೆ."
+        : isRahuKetu28Axis
+        ? "ಕುಟುಂಬದಲ್ಲಿ ಹಠಾತ್ ಮಾತಿನ ಘರ್ಷಣೆ, ಮುಖ ಅಥವಾ ಕಣ್ಣಿನ ತೊಂದರೆ, ಆಹಾರ ವಿಷಪ್ರಾಶನ ಅಥವಾ ಅಲರ್ಜಿ ಹಾಗೂ ಹೂಡಿಕೆಗಳಲ್ಲಿ ಅಪರಿಚಿತ ವ್ಯಕ್ತಿಗಳಿಂದ ವಂಚನೆಯಾಗುವ ಭೀತಿ ಕಾಡುತ್ತಿದೆ."
+        : "ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಛಾಯಾಗ್ರಹಗಳ ಉಪದ್ರವವಿಲ್ಲದೆ ಕಾರ್ಯಗಳು ಸರಾಗವಾಗಿ ಸಾಗುತ್ತಿವೆ.",
+      hi: isRahuKetu17Axis
+        ? "वैवाहिक जीवन या व्यापारिक साझेदारी में अकारण अविश्वास, मानसिक तनाव, अनिर्णय तथा पारिवारिक अशांति की स्थिति बनी हुई है।"
+        : isRahuKetu28Axis
+        ? "अकस्मात वाणी की कटुता, खान-पान से एलर्जी, संक्रामक व्याधियों का भय तथा वित्तीय धोखाधड़ी का खतरा बना हुआ है।"
+        : "जीवन में स्थिरता एवं सहजता बनी हुई है।",
+      te: isRahuKetu17Axis
+        ? "భార్యాభర్తల మధ్య మనస్పర్థలు, వ్యాపార భాగస్వామ్యంలో అనుమానాలు మరియు మానసిక గందరగోళం ఉన్నాయి."
+        : "ఆహార సంబంధిత అలర్జీలు, ఆకస్మిక ధన నష్టం మరియు కుటుంబంలో కలహాలు ఎదురవుతున్నాయి.",
+      ta: isRahuKetu17Axis
+        ? "தம்பதியர் இடையே தேவையற்ற கருத்து வேறுபாடுகள் மற்றும் மன உளைச்சல் காணப்படுகிறது."
+        : "குடும்பத்தில் வாக்குவாதங்கள் மற்றும் எதிர்பாராத மருத்துவச் செலவுகள் ஏற்படுகின்றன.",
+      en: isRahuKetu17Axis
+        ? "Suffering acute hypersensitivity in intimate partnerships, irrational suspicions, severe insomnia from obsessive looping thoughts, and volatile domestic miscommunications."
+        : isRahuKetu28Axis
+        ? "Experiencing gastrointestinal and inflammatory allergen sensitivities, sharp domestic verbal clashes, and vulnerability to deceitful financial overtures."
+        : "Psychological clarity and worldly associations remain unhindered."
+    },
+    dashaResonance: buildDashaResonance([PN.Rahu, PN.Ketu], "ರಾಹು-ಕೇತು ಗೋಚಾರ ದೋಷ"),
+    lifeImpact: {
+      kn: isGocharaRKAfflicted
+        ? `ಈ ಛಾಯಾಗ್ರಹಗಳ ಗೋಚಾರ ಅವಧಿಯಲ್ಲಿ ಅಪರಿಚಿತರೊಂದಿಗೆ ಹಣಕಾಸಿನ ಒಪ್ಪಂದಗಳು, ಹೊಸ ವ್ಯಕ್ತಿಗಳ ಕುರುಡು ನಂಬಿಕೆ ಹಾಗೂ ಅತಿಯಾದ ಆವೇಶದಿಂದ ವರ್ತಿಸುವುದನ್ನು ನಿಯಂತ್ರಿಸಬೇಕು.
+ 
+ಕುಕ್ಕೆ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಗೋಕರ್ಣದಲ್ಲಿ ಆಶ್ಲೇಷಾ ಬಲಿ, ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಭುಜಂಗ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ಕಪ್ಪು ಉದ್ದಿನ ದಾನವು ಸರ್ಪಗ್ರಹಗಳ ಬಾಧೆಯನ್ನು ಸಂಪೂರ್ಣ ತೊಡೆದುಹಾಕುತ್ತದೆ.`
+        : "ಗೋಚಾರ ರಾಹು-ಕೇತುಗಳು ಯಾವುದೇ ಅಪಾಯಕಾರಿ ಪ್ರಭಾವ ಬೀರುತ್ತಿಲ್ಲ.",
+      hi: isGocharaRKAfflicted
+        ? `अपिरिचित व्यक्तियों पर अंधविश्वास न करें। कुक्के सुब्रह्मण्य अथवा गोकर्ण में आश्लेषा बलि एवं सुब्रह्मण्य उपासना सर्वोत्तम है।`
+        : "राहु-केतु का गोचर शुभ फलदायी है।",
+      te: isGocharaRKAfflicted
+        ? `సుబ్రహ్మణ్య స్వామిని పూజించడం మరియు ఆశ్లేషా బలి పూజ చేయించడం ఉత్తమం.`
+        : "రాహు-కేతు ప్రభావం శాంతంగా ఉంది.",
+      ta: isGocharaRKAfflicted
+        ? `முருகப்பெருமானை வழிபடவும். ஆயில்ய நட்சத்திரத்தன்று பரிகார பூஜை செய்யவும்.`
+        : "ராகு-கேது கோசாரம் நற்பலன் தருகிறது.",
+      en: isGocharaRKAfflicted
+        ? `Refrain from signing opaque contractual alliances or reacting hastily to provocation while the nodal axis grips vital houses.
+ 
+Performing Ashlesha Bali or Sarpa Samskara at Kukke Subramanya or Gokarna Kshetra dissolves karmic fog and restores equilibrium.`
+        : "Nodal transit remains completely dormant."
+    },
+    recommendedPooja: {
+      kn: "ಕುಕ್ಕೆ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ 'ಆಶ್ಲೇಷಾ ಬಲಿ' & 'ಸರ್ಪ ಶಾಂತಿ ಪೂಜೆ'",
+      hi: "कुक्के सुब्रह्मण्य अथवा गोकर्ण में 'आश्लेषा बलि एवं सर्प शांति पूजा'",
+      te: "కుక్కే సుబ్రహ్మణ్య లేదా గోకర్ణంలో 'ఆశ్లేషా బలి పూజ'",
+      ta: "குக்கே சுப்பிரமணியா அல்லது கோகர்ணத்தில் 'ஆயில்ய பலி பூஜை'",
+      en: "Ashlesha Bali & Sarpa Shanti Maha Sankalpa at Kukke Subramanya or Gokarna Kshetra"
+    },
+    remedies: {
+      kn: [
+        "ಪ್ರತಿ ಮಂಗಳವಾರ ಅಥವಾ ಶನಿವಾರ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಯ ದರ್ಶನ ಮಾಡಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ.",
+        "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಕವಚ ಅಥವಾ ನವನಾಗ ಸ್ತೋತ್ರವನ್ನು ದಿನವೂ ಶ್ರದ್ಧೆಯಿಂದ ಪಠಿಸಿ.",
+        "ನಿರ್ಭಾಗ್ಯರಿಗೆ ಕಪ್ಪು ಉದ್ದು, ಕಪ್ಪು ಕಂಬಳಿ ಅಥವಾ ಆಹಾರವನ್ನು ದಾನ ಮಾಡಿ."
+      ],
+      hi: [
+        "प्रत्येक मंगलवार या शनिवार को श्री सुब्रह्मण्य (कार्तिकेय) मंदिर में दर्शन करें।",
+        "सुब्रह्मण्य कवच अथवा नवनाग स्तोत्र का पाठ करें।",
+        "काले उड़द एवं कंबल का दान करें।"
+      ],
+      te: [
+        "మంగళవారం సుబ్రహ్మణ్య స్వామికి దీపం పెట్టండి.",
+        "సుబ్రహ్మణ్య కవచం లేదా నవనాగ స్తోత్రం చదవండి.",
+        "మినుములు దానం చేయండి."
+      ],
+      ta: [
+        "செவ்வாய்க்கிழமைகளில் முருகன் கோவிலுக்குச் சென்று நெய் தீபம் ஏற்றவும்.",
+        "சுப்பிரமணிய புஜங்கம் அல்லது கந்த சஷ்டி கவசம் படிக்கவும்.",
+        "கருப்பு உளுந்து தானம் செய்யவும்."
+      ],
+      en: [
+        "Visit a Sri Subramanya / Kartikeya sanctum on Tuesdays and Saturdays; light a pure cow ghee lamp.",
+        "Recite the Subramanya Kavacham or Navanaga Stotram daily.",
+        "Donate black gram (urad dal) and blankets to underprivileged souls."
+      ]
+    }
+  });
+
+  // ==========================================================================
+  // 16. PANCHANGA TITHI SHUNYA / DAGDHA RASHI DOSHA (ಪಂಚಾಂಗ ತಿಥಿ ಶೂನ್ಯ / ದಗ್ಧ ರಾಶಿ)
+  // ==========================================================================
+  const sunLong = sun ? sun.degree : 0;
+  const moonLong = moon ? moon.degree : 0;
+  const elongation = normalizeDegree(moonLong - sunLong);
+  const tithiIdx = Math.floor(elongation / 12) % 30; // 0..29
+  const tithiNum = (tithiIdx % 15) + 1; // 1 to 15
+  const isKrishnaPaksha = tithiIdx >= 15;
+  const tithiNameObj = TITHI_NAMES_5LANG[tithiNum] || TITHI_NAMES_5LANG[1];
+
+  const dagdhaConfig = TITHI_DAGDHA_RASHIS[tithiNum] || { indices: [], en: "None", kn: "ಯಾವುದೂ ಇಲ್ಲ", hi: "कोई नहीं", te: "ఏదీ లేదు", ta: "எதுவுமில்லை" };
+  const dagdhaIndices = dagdhaConfig.indices;
+
+  const isLagnaDagdha = dagdhaIndices.includes(lagnaRashiIdx);
+  const isMoonDagdha = dagdhaIndices.includes(moonRashiIdx);
+
+  // Check which planets reside in Dagdha Rashis
+  const planetsInDagdha = (kundli.planets || []).filter((p) => dagdhaIndices.includes(p.rashi.index));
+  const isAnyPlanetDagdha = planetsInDagdha.length > 0;
+
+  const isTithiShunyaActive = isLagnaDagdha || isMoonDagdha || (planetsInDagdha.length >= 2);
+  const tithiShunyaSeverity: DoshaSeverity = (isLagnaDagdha && isMoonDagdha)
+    ? "critical"
+    : (isLagnaDagdha || isMoonDagdha)
+    ? "high"
+    : isTithiShunyaActive
+    ? "moderate"
+    : "none";
+
+  doshasList.push({
+    id: "tithi_shunya_dosha",
+    name: {
+      kn: "ತಿಥಿ ಶೂನ್ಯ (ದಗ್ಧ ರಾಶಿ) ದೋಷ - Tithi Shunya Dosha",
+      hi: "तिथि शून्य (दग्ध राशि) दोष",
+      te: "తిథి శూన్య (దగ్ధ రాశి) దోషం",
+      ta: "திதி சூன்ய (தக்த ராசி) தோஷம்",
+      en: "Tithi Shunya / Dagdha Rashi Affliction"
+    },
+    category: "panchanga",
+    isDetected: isTithiShunyaActive,
+    severity: tithiShunyaSeverity,
+    statusBadge: {
+      kn: isTithiShunyaActive ? "ತಿಥಿ ಶೂನ್ಯ ದೋಷ ಸಕ್ರಿಯ" : "ನಿರ್ದೋಷ ತಿಥಿ ಜನನ",
+      hi: isTithiShunyaActive ? "तिथि शून्य दोष सक्रिय" : "दोष रहित तिथि जन्म",
+      te: isTithiShunyaActive ? "తిథి శూన్య దోషం ఉంది" : "శుభ తిథి జననం",
+      ta: isTithiShunyaActive ? "திதி சூன்ய தோஷம் உள்ளது" : "சுப திதி பிறப்பு",
+      en: isTithiShunyaActive ? "ACTIVE TITHI SHUNYA DOSHA" : "BENEFIC UNBURNT TITHI"
+    },
+    technicalDetail: {
+      houseNumbers: [
+        ...(isLagnaDagdha ? [1] : []),
+        ...(isMoonDagdha ? [((moonRashiIdx - lagnaRashiIdx + 12) % 12) + 1] : []),
+        ...planetsInDagdha.map((p) => p.house)
+      ],
+      grahasInvolved: [
+        ...(isMoonDagdha ? ["Moon"] : []),
+        ...planetsInDagdha.map((p) => p.name)
+      ],
+      grahaDegrees: planetsInDagdha.map((p) => ({
+        name: p.name,
+        rashi: RASHI_NAMES_EN[p.rashi.index],
+        degreeFormatted: formatDegMin(p.degree)
+      })),
+      scripturalReference: "ಮುಹೂರ್ತ ಚಿಂತಾಮಣಿ & ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ (Muhurtha Chintamani)",
+      hasBhangaOrMitigation: !isLagnaDagdha && !isMoonDagdha && planetsInDagdha.length === 1,
+      bhangaDescription: {
+        kn: "ಲಗ್ನ ಮತ್ತು ಚಂದ್ರರು ದಗ್ಧ ರಾಶಿಯಲ್ಲಿ ಇಲ್ಲದಿದ್ದಾಗ ದೋಷದ ತೀವ್ರತೆಯು ಬಹುಪಾಲು ಕಡಿಮೆಯಾಗಿರುತ್ತದೆ.",
+        en: "When Lagna and Moon are spared from Dagdha signs, structural integrity is retained."
+      }
+    },
+    technicalWhy: {
+      kn: isTithiShunyaActive
+        ? `ನಿಮ್ಮ ಜನ್ಮ ತಿಥಿಯು ${isKrishnaPaksha ? "ಕೃಷ್ಣ ಪಕ್ಷದ" : "ಶುಕ್ಲ ಪಕ್ಷದ"} ${tithiNameObj.kn} ಆಗಿದ್ದು, ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಈ ತಿಥಿಗೆ '${dagdhaConfig.kn}' ರಾಶಿಗಳು 'ದಗ್ಧ (ಶೂನ್ಯ)' ರಾಶಿಗಳಾಗುತ್ತವೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${isLagnaDagdha ? `ಜನ್ಮ ಲಗ್ನವೇ (${RASHI_NAMES_KN[lagnaRashiIdx]})` : ""}${isLagnaDagdha && isMoonDagdha ? " ಹಾಗೂ " : ""}${isMoonDagdha ? `ಜನ್ಮ ಚಂದ್ರನೇ (${RASHI_NAMES_KN[moonRashiIdx]})` : ""}${!isLagnaDagdha && !isMoonDagdha ? `ಗ್ರಹಗಳಾದ ${planetsInDagdha.map((p) => p.name).join(", ")}` : ""} ಈ ಶೂನ್ಯ ರಾಶಿಯಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದರಿಂದ, ಆ ಭಾವದ ಫಲಗಳು ಭಸ್ಮವಾಗಿ ಅಥವಾ ಫಲ ನೀಡದೆ ನಿಷ್ಪ್ರಯೋಜಕವಾಗುವ 'ತಿಥಿ ಶೂನ್ಯ ದೋಷ' ಉಂಟಾಗಿದೆ.`
+        : `ನಿಮ್ಮ ಜನ್ಮ ತಿಥಿಯಾದ ${tithiNameObj.kn}ಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ದಗ್ಧ ರಾಶಿಗಳಲ್ಲಿ (${dagdhaConfig.kn}) ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾಗಲೀ ಚಂದ್ರನಾಗಲೀ ಸ್ಥಿತವಾಗಿಲ್ಲ. ಆದ್ದರಿಂದ ತಿಥಿ ಶೂನ್ಯ ದೋಷವಿರುವುದಿಲ್ಲ.`,
+      hi: isTithiShunyaActive
+        ? `आपकी जन्म तिथि ${tithiNameObj.hi} है, जिसके लिए '${dagdhaConfig.hi}' दग्ध (शून्य) राशियां हैं। आपकी कुंडली में ${isLagnaDagdha ? "लग्न" : ""} ${isMoonDagdha ? "चंद्र" : ""} इस शून्य राशि में स्थित होने से तिथि शून्य दोष बनता है।`
+        : `जन्म तिथि ${tithiNameObj.hi} की दग्ध राशियों में कोई महत्वपूर्ण केंद्र स्थित नहीं है।`,
+      te: isTithiShunyaActive
+        ? `మీ జన్మ తిథి ${tithiNameObj.te} కు '${dagdhaConfig.te}' దగ్ధ రాశులు. మీ లగ్నం లేదా చంద్రుడు ఇందులో ఉండటం వలన తిథి శూన్య దోషం ఏర్పడింది.`
+        : `తిథి శూన్య దోషం లేదు.`,
+      ta: isTithiShunyaActive
+        ? `உங்கள் பிறந்த திதியான ${tithiNameObj.ta}க்கு '${dagdhaConfig.ta}' தக்த ராசிகளாகும். இதில் லக்னம்/சந்திரன் அமைந்ததால் திதி சூன்ய தோஷம் ஏற்பட்டுள்ளது.`
+        : `திதி சூன்ய தோஷம் இல்லை.`,
+      en: isTithiShunyaActive
+        ? `You were born on ${isKrishnaPaksha ? "Krishna" : "Shukla"} Paksha ${tithiNameObj.en}. According to classical Muhurtha treatises, this tithi causes ${dagdhaConfig.en} to become Dagdha (combust/burnt or shunya). As your ${isLagnaDagdha ? `Ascendant (${RASHI_NAMES_EN[lagnaRashiIdx]})` : ""}${isLagnaDagdha && isMoonDagdha ? " and " : ""}${isMoonDagdha ? `Moon (${RASHI_NAMES_EN[moonRashiIdx]})` : ""}${!isLagnaDagdha && !isMoonDagdha ? `planets (${planetsInDagdha.map((p) => p.name).join(", ")})` : ""} occupy these burnt coordinates, the vitality of those houses becomes drained, generating Tithi Shunya Dosha.`
+        : `Your birth Tithi (${tithiNameObj.en}) Dagdha rashis (${dagdhaConfig.en}) do not afflict your Lagna or Moon; no Tithi Shunya affliction.`
+    },
+    currentLifeProblems: {
+      kn: "ಕೈಗೆ ಬಂದ ತುತ್ತು ಬಾಯಿಗೆ ಬಾರದ ಪರಿಸ್ಥಿತಿ, ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ರದ್ದಾಗುವ ಒಪ್ಪಂದಗಳು, ಅಪಾರ ಶ್ರಮಪಟ್ಟರೂ ಶೂನ್ಯ ಫಲಿತಾಂಶ ಹಾಗೂ ಸಂಬಂಧಪಟ್ಟ ಜೀವನಕ್ಷೇತ್ರದಲ್ಲಿ ಎಲ್ಲವೂ ಇದ್ದರೂ ಅನುಭವಿಸಲಾಗದ ಶೂನ್ಯತೆಯ ಭಾವ ಕಾಡುತ್ತಿದೆ.",
+      hi: "अंतिम क्षण में बनते कार्यों का बिगड़ना, अत्यधिक परिश्रम के उपरांत भी शून्य परिणाम मिलना तथा जीवन के महत्वपूर्ण क्षेत्रों में अभाव व असंतोष की अनुभूति होना।",
+      te: "చివరి క్షణంలో పనులు నిలిచిపోవడం, ఎంత కష్టపడినా ఫలితం శూన్యం కావడం మరియు మానసిక అసంతృప్తి వేధిస్తున్నాయి.",
+      ta: "கடைசி நேரத்தில் காரியங்கள் தடைபடுதல், கடுமையான உழைப்பிற்குப் பின்னும் பலனின்மை போன்ற ஏமாற்றங்கள் ஏற்படுகின்றன.",
+      en: "Laboring endlessly only to watch opportunities evaporate at the eleventh hour, enduring a chronic void in the afflicted life sector, and experiencing unfulfilled efforts despite maximum preparation."
+    },
+    dashaResonance: buildDashaResonance([PN.Sun, PN.Moon], "ತಿಥಿ ಶೂನ್ಯ ದೋಷ"),
+    lifeImpact: {
+      kn: isTithiShunyaActive
+        ? `ತಿಥಿ ಶೂನ್ಯ ದೋಷದ ಪ್ರಭಾವದಿಂದಾಗಿ ಆ ರಾಶಿಗೆ ಸೇರಿದ ಜೀವನದ ವಿಷಯಗಳಲ್ಲಿ (ಧನ, ಸಂತಾನ, ವಿದ್ಯಾ ಅಥವಾ ದಾಂಪತ್ಯ) ಅಡೆತಡೆಗಳು ಉಂಟಾಗಬಹುದು. ಶೂನ್ಯ ರಾಶಿಯ ಅಧಿಪತಿಯನ್ನು ಬಲಪಡಿಸುವುದು ಅತ್ಯಾವಶ್ಯಕ.
+ 
+ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಪಂಚಾಂಗ ಶುದ್ಧಿ ಮಹಾ ಪೂಜೆ, ಶಿವಲಿಂಗಕ್ಕೆ ಪಂಚಾಮೃತಾಭಿಷೇಕ ಹಾಗೂ ದ್ವಾದಶ ಜ್ಯೋತಿರ್ಲಿಂಗ ಸ್ಮರಣೆಯಿಂದ ಶೂನ್ಯ ದೋಷವು ಶಮನಗೊಂಡು ಸಕಲ ಕಾರ್ಯಸಿದ್ಧಿಯಾಗುತ್ತದೆ.`
+        : "ಪಂಚಾಂಗ ತಿಥಿಯು ಸಂಪೂರ್ಣ ಶುಭದಾಯಕವಾಗಿದೆ.",
+      hi: isTithiShunyaActive
+        ? `संबंधित भाव के फलों में बाधाएं आ सकती हैं। गोकर्ण में पंचांग शुद्धि पूजा एवं रुद्राभिषेक से इस दोष का निवारण होता है।`
+        : "तिथि प्रभाव अत्यंत अनुकूल है।",
+      te: isTithiShunyaActive
+        ? `శివాభిషేకం మరియు పstylesాంగ శాంతి పూజలు చేసుకోవడం మంచిది.`
+        : "తిథి శుభప్రదంగా ఉంది.",
+      ta: isTithiShunyaActive
+        ? `சிவபெருமானுக்கு ருத்ராபிஷேகம் செய்து பராசக்தியை வழிபடவும்.`
+        : "திதி பலம் நற்பலன் தருகிறது.",
+      en: isTithiShunyaActive
+        ? `Tithi Shunya drains the vitality of afflicted houses, necessitating spiritual sanctification of the burnt sign's ruling deity.
+ 
+Performing Panchanga Shanti Puja and Rudrabhishekam at Gokarna Mahabaleshwara Kshetra revitalizes the dormant house potentials.`
+        : "Panchanga tithi generates unblemished karmic momentum."
+    },
+    recommendedPooja: {
+      kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ 'ಪಂಚಾಂಗ ಶುದ್ಧಿ ಶಾಂತಿ ಹೋಮ' & 'ರುದ್ರಾಭಿಷೇಕ'",
+      hi: "गोकर्ण में 'पंचांग शुद्धि शांति होम एवं रुद्राभिषेक'",
+      te: "గోకర్ణంలో 'పంచాంగ శుద్ధి శాంతి హోమం & రుద్రాభిషేకం'",
+      ta: "கோகர்ணத்தில் 'பஞ்சாங்க சுத்தி சாந்தி ஹோமம் & ருத்ராபிஷேகம்'",
+      en: "Panchanga Shuddhi Shanti Maha Homa & Consecrated Rudrabhishekam at Gokarna Kshetra"
+    },
+    remedies: {
+      kn: [
+        "ಪ್ರತಿ ಸೋಮವಾರ ಶಿವಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಮಾಡಿ ಬಿಲ್ವಪತ್ರೆ ಅರ್ಪಿಸಿ.",
+        "ಶ್ರೀ ದ್ವಾದಶ ಜ್ಯೋತಿರ್ಲಿಂಗ ಸ್ತೋತ್ರವನ್ನು ದಿನವೂ ಶ್ರದ್ಧೆಯಿಂದ ಪಠಿಸಿ.",
+        "ಹುಣ್ಣಿಮೆ ಅಥವಾ ಅಮಾವಾಸ್ಯೆಯಂದು ಅನ್ನದಾನ ಮಾಡಿ."
+      ],
+      hi: [
+        "प्रति सोमवार शिवलिंग पर कच्चा दूध एवं बेलपत्र अर्पित करें।",
+        "द्वादश ज्योतिर्लिंग स्तोत्र का नित्य पाठ करें।",
+        "पूर्णिमा अथवा अमावस्या पर अन्नदान करें।"
+      ],
+      te: [
+        "సోమవారం శివునికి పాలాభిషేకం చేయండి.",
+        "ద్వాదశ జ్యోతిర్లింగ స్తోత్రం చదవండి.",
+        "అన్నదానం చేయండి."
+      ],
+      ta: [
+        "திங்கட்கிழமைகளில் சிவலிங்கத்திற்கு பாலபிஷேகம் செய்யவும்.",
+        "துவாதச ஜோதிர்லிங்க ஸ்தோத்திரம் படிக்கவும்.",
+        "அன்னதானம் செய்யவும்."
+      ],
+      en: [
+        "Perform raw milk abhishekam on a Shiva Lingam on Mondays and offer Bilva leaves.",
+        "Recite the sacred Dwadasha Jyotirlinga Stotram daily.",
+        "Offer food charity (Annadanam) on Purnima or Amavasya days."
+      ]
+    }
+  });
+
+  // ==========================================================================
+  // 17. PANCHANGA NITYA YOGA DOSHA (ವ್ಯತೀಪಾತ / ವೈಧೃತಿ / ಅತಿಗಂಡ ಯೋಗ ದೋಷ)
+  // ==========================================================================
+  const yogaSum = normalizeDegree(sunLong + moonLong);
+  const yogaIdx = Math.floor(yogaSum / (360 / 27)) % 27; // 0..26
+  const birthYoga = NITYA_YOGA_NAMES[yogaIdx] || NITYA_YOGA_NAMES[0];
+
+  const isVyatipata = yogaIdx === 16; // 17th Yoga (0-indexed 16)
+  const isVaidhrithi = yogaIdx === 26; // 27th Yoga (0-indexed 26)
+  const isAtiganda = yogaIdx === 5;   // 6th Yoga
+  const isShoola = yogaIdx === 8;      // 9th Yoga
+  const isGandaYoga = yogaIdx === 9;   // 10th Yoga
+  const isVyaghata = yogaIdx === 12;   // 13th Yoga
+  const isVajra = yogaIdx === 14;      // 15th Yoga
+
+  const isPanchangaYogaDosha = birthYoga.isMalefic;
+  const yogaDoshaSeverity: DoshaSeverity = (isVyatipata || isVaidhrithi)
+    ? "critical"
+    : (isAtiganda || isShoola || isGandaYoga)
+    ? "high"
+    : isPanchangaYogaDosha
+    ? "moderate"
+    : "none";
+
+  doshasList.push({
+    id: "panchanga_yoga_dosha",
+    name: {
+      kn: isVyatipata
+        ? "ವ್ಯತೀಪಾತ ಯೋಗ ಮಹಾದೋಷ (Vyatipata Yoga)"
+        : isVaidhrithi
+        ? "ವೈಧೃತಿ ಯೋಗ ಮಹಾದೋಷ (Vaidhrithi Yoga)"
+        : isAtiganda
+        ? "ಅತಿಗಂಡ ಯೋಗ ದೋಷ (Atiganda Yoga)"
+        : isShoola
+        ? "ಶೂಲ ಯೋಗ ದೋಷ (Shoola Yoga)"
+        : isGandaYoga
+        ? "ಗಂಡ ಯೋಗ ದೋಷ (Ganda Yoga)"
+        : `ಪಂಚಾಂಗ ನಿತ್ಯ ಯೋಗ ದೋಷ (${birthYoga.en})`,
+      hi: isVyatipata
+        ? "व्यतीपात योग महादोष (Vyatipata Yoga)"
+        : isVaidhrithi
+        ? "वैधृति योग महादोष (Vaidhrithi Yoga)"
+        : `पंचांग योग दोष (${birthYoga.hi})`,
+      te: isVyatipata ? "వ్యతీపాత యోగ మహాదోషం" : isVaidhrithi ? "వైధృతి యోగ మహాదోషం" : `నిత్య యోగ దోషం (${birthYoga.te})`,
+      ta: isVyatipata ? "வியதீபாத யோக தோஷம்" : isVaidhrithi ? "வைதிருதி யோக தோஷம்" : `நித்ய யோக தோஷம் (${birthYoga.ta})`,
+      en: isVyatipata
+        ? "Vyatipata Nitya Yoga Mahadosha (#17)"
+        : isVaidhrithi
+        ? "Vaidhrithi Nitya Yoga Mahadosha (#27)"
+        : `Panchanga Inauspicious Nitya Yoga (${birthYoga.en})`
+    },
+    category: "panchanga",
+    isDetected: isPanchangaYogaDosha,
+    severity: yogaDoshaSeverity,
+    statusBadge: {
+      kn: isVyatipata
+        ? "ತೀವ್ರ ವ್ಯತೀಪಾತ ಮಹಾದೋಷ"
+        : isVaidhrithi
+        ? "ತೀವ್ರ ವೈಧೃತಿ ಮಹಾದೋಷ"
+        : isPanchangaYogaDosha
+        ? "ಪ್ರತಿಕೂಲ ನಿತ್ಯ ಯೋಗ"
+        : "ಶುಭ ನಿತ್ಯ ಯೋಗ ಜನನ",
+      hi: isVyatipata
+        ? "गंभीर व्यतीपात महादोष"
+        : isVaidhrithi
+        ? "गंभीर वैधृति महादोष"
+        : isPanchangaYogaDosha
+        ? "प्रतिकूल योग"
+        : "शुभ योग जन्म",
+      te: isVyatipata ? "తీవ్ర వ్యతీపాత దోషం" : isVaidhrithi ? "తీవ్ర వైధృతి దోషం" : isPanchangaYogaDosha ? "ప్రతికూల యోగం" : "శుభ యోగం",
+      ta: isVyatipata ? "தீவிர வியதீபாத தோஷம்" : isVaidhrithi ? "தீவிர வைதிருதி தோஷம்" : isPanchangaYogaDosha ? "பிரதிகூல யோகம்" : "சுப யோகம்",
+      en: isVyatipata
+        ? "CRITICAL VYATIPATA DOSHA"
+        : isVaidhrithi
+        ? "CRITICAL VAIDHRITHI DOSHA"
+        : isPanchangaYogaDosha
+        ? "MALIFIC NITYA YOGA"
+        : "BENEFIC NITYA YOGA"
+    },
+    technicalDetail: {
+      houseNumbers: [1, 7],
+      grahasInvolved: ["Sun", "Moon"],
+      grahaDegrees: [
+        ...(sun ? [{ name: "Sun", rashi: RASHI_NAMES_EN[sun.rashi.index], degreeFormatted: formatDegMin(sun.degree) }] : []),
+        ...(moon ? [{ name: "Moon", rashi: RASHI_NAMES_EN[moon.rashi.index], degreeFormatted: formatDegMin(moon.degree) }] : [])
+      ],
+      scripturalReference: "ಕಾಳಾಮೃತ & ನಾರದ ಸಂಹಿತಾ - ಯೋಗಾಧ್ಯಾಯ (Kalamrita & Narada Samhita)",
+      hasBhangaOrMitigation: false,
+      bhangaDescription: {
+        kn: "ವ್ಯತೀಪಾತ ಅಥವಾ ವೈಧೃತಿ ಶಾಂತಿ ಹವನ ಮಾಡಿಸುವುದರಿಂದ ಸಮಸ್ತ ದೋಷಗಳು ಪರಿಹಾರವಾಗುತ್ತವೆ.",
+        en: "Requires dedicated Vyatipata/Vaidhrithi Shanti Homa and Surya-Chandra arghya."
+      }
+    },
+    technicalWhy: {
+      kn: isPanchangaYogaDosha
+        ? `ನಿಮ್ಮ ಜನನ ಕಾಲದಲ್ಲಿ ಸೂರ್ಯನ ರೇಖಾಂಶ (${formatDegMin(sunLong)}) ಮತ್ತು ಚಂದ್ರನ ರೇಖಾಂಶಗಳ (${formatDegMin(moonLong)}) ಸಂಕಲನವು ನಿಖರವಾಗಿ ${formatDegMin(yogaSum)} ಆಗಿದ್ದು, ಇದು ೨೭ ನಿತ್ಯ ಯೋಗಗಳಲ್ಲಿ ${birthYoga.num}ನೆಯದಾದ '${birthYoga.kn}' ಯೋಗವಾಗುತ್ತದೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ${isVyatipata ? "ವ್ಯತೀಪಾತ ಯೋಗವು ರುದ್ರ ಕ್ರೋಧದಿಂದ ಜನಿಸಿದ ಮಹಾದೋಷವಾಗಿದ್ದು, ಜೀವನದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ದುರಂತ, ಅಪಘಾತ ಅಥವಾ ವಂಶವೃದ್ಧಿಗೆ ಅಡೆತಡೆ ತರುತ್ತದೆ" : isVaidhrithi ? "ವೈಧೃತಿಯು ಸಮಸ್ತ ಕಾರ್ಯನಾಶಕವಾದ ಅಶುಭ ಯೋಗವಾಗಿದ್ದು, ಆರ್ಥಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆಗೆ ಕಾರಣವಾಗುತ್ತದೆ" : "ಈ ಯೋಗವು ಪಂಚಾಂಗದ ಅಶುಭ ಯೋಗಗಳ ಪಟ್ಟಿಯಲ್ಲಿದ್ದು ದೈವಿಕ ಶಾಂತಿಯನ್ನು ಬಯಸುತ್ತದೆ"}.`
+        : `ನಿಮ್ಮ ಜನನ ಕಾಲದ ನಿತ್ಯ ಯೋಗವು ಶುಭದಾಯಕವಾದ '${birthYoga.kn}' (${birthYoga.en}) ಆಗಿದ್ದು, ಯಾವುದೇ ಪಂಚಾಂಗ ಯೋಗ ದೋಷವಿರುವುದಿಲ್ಲ.`,
+      hi: isPanchangaYogaDosha
+        ? `जन्म के समय सूर्य एवं चंद्र के भोगांशों का योग ${formatDegMin(yogaSum)} है, जो ${birthYoga.num}वें '${birthYoga.hi}' योग का निर्माण करता है। यह ज्योतिषीय दृष्टि से अत्यंत प्रतिकूल योग माना जाता है।`
+        : `जन्म कालीन नित्य योग '${birthYoga.hi}' शुभ एवं कल्याणकारी है।`,
+      te: isPanchangaYogaDosha
+        ? `మీ జన్మ కాలంలో సూర్య చంద్రుల సంయోగం వల్ల '${birthYoga.te}' యోగం ఏర్పడింది. ఇది శాస్త్రరీత్యా దోషకరమైనది.`
+        : `నిత్య యోగం '${birthYoga.te}' శుభప్రదంగా ఉంది.`,
+      ta: isPanchangaYogaDosha
+        ? `பிறந்த நேரத்தில் சூரிய-சந்திர சேர்க்கையால் '${birthYoga.ta}' யோகம் உண்டாகியுள்ளது. இது சாஸ்திரப்படி தோஷமாகும்.`
+        : `நித்ய யோகம் '${birthYoga.ta}' சுபமாக உள்ளது.`,
+      en: isPanchangaYogaDosha
+        ? `At your birth epoch, the sum of solar (${formatDegMin(sunLong)}) and lunar (${formatDegMin(moonLong)}) sidereal longitudes equals ${formatDegMin(yogaSum)}, falling in the ${birthYoga.num}th Nitya Yoga: '${birthYoga.en}'. Classical treatises (Narada Samhita & Kalamrita) identify ${isVyatipata ? "Vyatipata as a fearsome Mahadosha of acute celestial friction, causing catastrophic impediments, chronic restlessness, and health vulnerabilities" : isVaidhrithi ? "Vaidhrithi as a disruptive Mahadosha dissolving material gains and generating existential distress" : "this alignment as an inauspicious Nitya Yoga requiring pacification"}.`
+        : `Your birth Nitya Yoga is the auspicious '${birthYoga.en}'; no Panchanga Yoga affliction.`
+    },
+    currentLifeProblems: {
+      kn: isVyatipata || isVaidhrithi
+        ? "ಅನಿರೀಕ್ಷಿತ ಆಘಾತಗಳು, ಕೈಗೆ ಬಂದ ಅವಕಾಶಗಳು ಕೊನೆ ಗಳಿಗೆಯಲ್ಲಿ ತಪ್ಪಿಹೋಗುವುದು, ದೈಹಿಕ ಶಕ್ತಿಯ ಹಠಾತ್ ಕುಸಿತ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಯಾರೊಂದಿಗೂ ಸಮನ್ವಯತೆ ಸಾಧಿಸಲಾಗದ ಅತೀವ ಒಂಟಿತನ ಕಾಡುತ್ತಿದೆ."
+        : "ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ವಿಳಂಬವಾಗುವುದು ಹಾಗೂ ಅನಾವಶ್ಯಕ ಚಿಂತೆಗಳು ಬಾಧಿಸುತ್ತಿವೆ.",
+      hi: "अकारण अप्रत्याशित संकट, अवसरों का अंतिम क्षण में हाथ से निकलना, ऊर्जा में अचानक कमी तथा मानसिक अशांति का अनुभव होना।",
+      te: "అనుకోని ఆటంకాలు, అవకాశాలు చేజారిపోవడం మరియు విపరీతమైన ఒత్తిడి వేధిస్తున్నాయి.",
+      ta: "எதிர்பாராத சிக்கல்கள், வாய்ப்புகள் நழுவுதல் மற்றும் தீவிர மன உளைச்சல் ஏற்படுகின்றன.",
+      en: "Buffeted by inexplicable sudden upheavals, abrupt career resets just before breakthrough milestones, recurring physical fatigue, and intense inner alienation."
+    },
+    dashaResonance: buildDashaResonance([PN.Sun, PN.Moon, PN.Rahu], "ಯೋಗ ದೋಷ"),
+    lifeImpact: {
+      kn: isPanchangaYogaDosha
+        ? `ವ್ಯತೀಪಾತ ಅಥವಾ ವೈಧೃತಿ ಯೋಗದಲ್ಲಿ ಜನಿಸಿದವರಿಗೆ ಶಾಸ್ತ್ರೋಕ್ತ ಶಾಂತಿ ಮಾಡಿಸುವುದು ಅತ್ಯಂತ ಪುಣ್ಯಪ್ರದ. ಇದು ಜಾತಕನ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ ಮತ್ತು ಸಂತಾನವನ್ನು ರಕ್ಷಿಸುತ್ತದೆ.
+ 
+ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ 'ವ್ಯತೀಪಾತ/ವೈಧೃತಿ ಶಾಂತಿ ಮಹಾ ಹವನ', ಸೂರ್ಯ-ಚಂದ್ರರ ಪ್ರೀತ್ಯರ್ಥ ತರ್ಪಣ ಹಾಗೂ ಗೋದಾನ ಮಾಡುವುದರಿಂದ ಈ ದೋಷವು ಸಂಪೂರ್ಣ ಮುಕ್ತಿ ಹೊಂದುತ್ತದೆ.`
+        : "ನಿತ್ಯ ಯೋಗವು ಸುಖ ಮತ್ತು ಸೌಭಾಗ್ಯವನ್ನು ನೀಡುತ್ತಿದೆ.",
+      hi: isPanchangaYogaDosha
+        ? `गोकर्ण क्षेत्र में व्यतीपात अथवा वैधृति शांति महाहवन एवं सूर्य-चंद्र तर्पण से इस दोष का पूर्ण शमन होता है।`
+        : "दैनिक जीवन में योग का शुभ प्रभाव बना हुआ है।",
+      te: isPanchangaYogaDosha
+        ? `గోకర్ణంలో శాంతి పూజలు చేయించడం మరియు సూర్యునికి అర్ఘ్యం సమర్పించడం శ్రేయస్కరం.`
+        : "యోగం అనుకూలంగా ఉంది.",
+      ta: isPanchangaYogaDosha
+        ? `கோகர்ணத்தில் சாந்தி ஹோமம் செய்வதும் சூரிய-சந்திர வழிபாடு செய்வதும் நலம் தரும்.`
+        : "சுப யோக பலன்கள் தொடர்கின்றன.",
+      en: isPanchangaYogaDosha
+        ? `Classical texts strongly mandate dedicated Shanti rituals for Vyatipata and Vaidhrithi births to shield physical longevity and ancestral continuity.
+ 
+Performing the Vyatipata/Vaidhrithi Shanti Maha Homa and Surya-Chandra Arghya at Gokarna Kshetra transmutes intense friction into spiritual brilliance.`
+        : "Nitya Yoga flows smoothly without celestial turbulence."
+    },
+    recommendedPooja: {
+      kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ 'ವ್ಯತೀಪಾತ / ವೈಧೃತಿ ಶಾಂತಿ ಮಹಾ ಹವನ' & 'ಸೂರ್ಯ-ಚಂದ್ರ ಪ್ರೀತಿ ಪೂಜೆ'",
+      hi: "गोकर्ण में 'व्यतीपात / वैधृति शांति महाहवन एवं सूर्य-चंद्र पूजा'",
+      te: "గోకర్ణంలో 'వ్యతీపాత / వైధృతి శాంతి హోమం'",
+      ta: "கோகர்ணத்தில் 'வியதீபாத / வைதிருதி சாந்தி மகா ஹோமம்'",
+      en: "Vyatipata/Vaidhrithi Shanti Maha Homa & Surya-Chandra Propitiation at Gokarna Kshetra"
+    },
+    remedies: {
+      kn: [
+        "ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯ ಸಮಯದಲ್ಲಿ ತಾಮ್ರದ ಪಾತ್ರೆಯಿಂದ ಸೂರ್ಯ ದೇವರಿಗೆ ಕೆಂಪು ಚಂದನ ಮಿಶ್ರಿತ ಜಲಾರ್ಘ್ಯ ನೀಡಿ.",
+        "ಶ್ರೀ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರವನ್ನು ದಿನವೂ ೩ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ.",
+        "ಗೋವುಗಳಿಗೆ ಬೆಲ್ಲ ಮತ್ತು ಹಸಿರು ಹುಲ್ಲು ಅಥವಾ ಬಾಳೆಹಣ್ಣು ತಿನ್ನಿಸಿ."
+      ],
+      hi: [
+        "प्रतिदिन प्रातः तांबे के लोटे से सूर्य देव को कुमकुम युक्त जल से अर्घ्य दें।",
+        "श्री आदित्य हृदय स्तोत्र का नियमित पाठ करें।",
+        "गाय को गुड़ एवं हरा चारा खिलाएं।"
+      ],
+      te: [
+        "ప్రతిరోజూ సూర్యోదయ సమయంలో సూర్య భగవానునికి అర్ఘ్యం ఇవ్వండి.",
+        "ఆదిత్య హృదయ స్తోత్రం చదవండి.",
+        "గోవులకు బెల్లం మరియు గ్రాసం తినిపించండి."
+      ],
+      ta: [
+        "தினமும் அதிகாலையில் சூரிய பகவானுக்கு செம்பு பாத்திரத்தில் நீர் அர்ப்பணிக்கவும்.",
+        "ஆதித்ய ஹிருதய ஸ்தோத்திரம் படிக்கவும்.",
+        "பசுவுக்கு வெல்லம் மற்றும் அகத்திக்கீரை கொடுக்கவும்."
+      ],
+      en: [
+        "Offer Arghya (consecrated water mixed with red vermillion) to Lord Surya from a copper vessel at dawn daily.",
+        "Recite the sacred Aditya Hridaya Stotram 3 times every Sunday morning.",
+        "Feed jaggery, fresh bananas, and green fodder to sacred cows (Go-Seva)."
+      ]
+    }
+  });
+
+  // ==========================================================================
+  // 18. PANCHANGA VISHTI (BHADRA) KARANA DOSHA (ವಿಷ್ಟಿ / ಭದ್ರಾ ಕರಣ ದೋಷ)
+  // ==========================================================================
+  const halfTithi = Math.floor(elongation / 6) % 60;
+  const isVishtiKarana = (halfTithi >= 1 && halfTithi <= 56 && ((halfTithi - 1) % 7) === 6);
+
+  doshasList.push({
+    id: "panchanga_karana_dosha",
+    name: {
+      kn: "ವಿಷ್ಟಿ (ಭದ್ರಾ) ಕರಣ ದೋಷ - Vishti (Bhadra) Karana Dosha",
+      hi: "विष्टि (भद्रा) करण दोष",
+      te: "విష్టి (భద్రా) కరణ దోషం",
+      ta: "விஷ்டி (பத்ரா) கரண தோஷம்",
+      en: "Vishti (Bhadra) Karana Affliction"
+    },
+    category: "panchanga",
+    isDetected: isVishtiKarana,
+    severity: isVishtiKarana ? "high" : "none",
+    statusBadge: {
+      kn: isVishtiKarana ? "ವಿಷ್ಟಿ (ಭದ್ರಾ) ಕರಣ ದೋಷ ಸಕ್ರಿಯ" : "ಶುಭ ಕರಣ ಜನನ",
+      hi: isVishtiKarana ? "विष्टि (भद्रा) करण दोष सक्रिय" : "शुभ करण जन्म",
+      te: isVishtiKarana ? "విష్టి కరణ దోషం ఉంది" : "శుభ కరణం",
+      ta: isVishtiKarana ? "விஷ்டி கரண தோஷம் உள்ளது" : "சுப கரணம்",
+      en: isVishtiKarana ? "ACTIVE VISHTI (BHADRA) DOSHA" : "BENEFIC KARANA BIRTH"
+    },
+    technicalDetail: {
+      houseNumbers: [8],
+      grahasInvolved: ["Saturn (Lord of Bhadra)", "Yama (Deity)"],
+      grahaDegrees: saturn ? [{ name: "Saturn", rashi: RASHI_NAMES_EN[saturn.rashi.index], degreeFormatted: formatDegMin(saturn.degree) }] : [],
+      scripturalReference: "ಮುಹೂರ್ತ ಗಣಪತಿ & ನಾರದ ಸಂಹಿತಾ (Muhurtha Ganapati)",
+      hasBhangaOrMitigation: false,
+      bhangaDescription: {
+        kn: "ಶಿವಲಿಂಗಕ್ಕೆ ಎಳನೀರು ಅಭಿಷೇಕ ಮತ್ತು ಮೃತ್ಯುಂಜಯ ಜಪದಿಂದ ಭದ್ರಾದೋಷ ಶಮನವಾಗುತ್ತದೆ.",
+        en: "Appeased through Maha Mrityunjaya Japa and tender coconut abhishekam."
+      }
+    },
+    technicalWhy: {
+      kn: isVishtiKarana
+        ? `ನಿಮ್ಮ ಜನನ ಕಾಲದ ಅರ್ಧ-ತಿಥಿ ಗಣನೆಯಂತೆ ಕರಣವು 'ವಿಷ್ಟಿ' (ಭದ್ರಾ) ಆಗಿದೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಭದ್ರೆಯು ಯಮದೇವರ ಹಾಗೂ ಶನಿಯ ಅಧಿದೇವತೆಯಾಗಿದ್ದು, ಕ್ರೂರ ಸ್ವಭಾವದ ಕರಣವಾಗಿದೆ. ವಿಷ್ಟಿ ಕರಣದಲ್ಲಿ ಜನಿಸಿದವರಿಗೆ ಯಾವುದೇ ಶುಭ ಕಾರ್ಯಗಳು ಸುಲಭವಾಗಿ ಈಡೇರುವುದಿಲ್ಲ, ತೀವ್ರ ಕೋಪ, ಹಠಮಾರಿತನ ಹಾಗೂ ದೈಹಿಕ ಅಪಾಯಗಳ ಸಾಧ್ಯತೆ ಇರುತ್ತದೆ. ಇದಕ್ಕೆ 'ಭದ್ರಾ ಶಾಂತಿ' ಮಾಡಿಸುವುದು ಕಡ್ಡಾಯ.`
+        : `ನಿಮ್ಮ ಜನನ ಕಾಲದ ಕರಣವು ಅನುಕೂಲಕರವಾಗಿದ್ದು, ಯಾವುದೇ ವಿಷ್ಟಿ (ಭದ್ರಾ) ಕರಣ ದೋಷವಿರುವುದಿಲ್ಲ.`,
+      hi: isVishtiKarana
+        ? `जन्म के समय 'विष्टि' (भद्रा) करण उपस्थित था। भद्रा को ज्योतिष में उग्र एवं क्रूर करण माना जाता है, जिससे कार्यों में विघ्न एवं स्वभाव में उग्रता आती है।`
+        : `जन्म कालीन करण शुभ एवं सौम्य है।`,
+      te: isVishtiKarana
+        ? `మీ జన్మ కాలంలో 'విష్టి' (భద్రా) కరణం ఉంది. ఇది ఉగ్ర కరణం కావడం వల్ల పనులలో ఆటంకాలు కలుగుతాయి.`
+        : `కరణం శుభకరంగా ఉంది.`,
+      ta: isVishtiKarana
+        ? `பிறந்த நேரத்தில் 'விஷ்டி' (பத்ரா) கரணம் அமைந்திருந்தது. இது காரியத்தடைகளை உருவாக்கும்.`
+        : `கரணம் சுபமாக உள்ளது.`,
+      en: isVishtiKarana
+        ? `At your birth time, the lunar half-tithi (Karana) calculation falls exactly in 'Vishti' (famously known as Bhadra). Ruled by Yama and Saturn, Bhadra is considered a fierce, aggressive Karana in Vedic Muhurtha. Natives born under Vishti face spontaneous road-blocks in endeavors, explosive temperaments, and sudden friction with authorities unless placated.`
+        : `Your birth Karana is gentle and auspicious; free from Vishti (Bhadra) affliction.`
+    },
+    currentLifeProblems: {
+      kn: "ವಿಪರೀತ ಕೋಪ ಮತ್ತು ಹಠಮಾರಿತನ, ಸಣ್ಣ ಮಾತಿಗೆ ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವುದು, ಹೊಸ ಯೋಜನೆಗಳನ್ನು ಪ್ರಾರಂಭಿಸಿದಾಗಲೆಲ್ಲಾ ಅನಿರೀಕ್ಷಿತ ವಿರೋಧ ವ್ಯಕ್ತವಾಗುವುದು ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿ ಇಲ್ಲದಿರುವುದು.",
+      hi: "अत्यधिक क्रोध एवं हठ, संबंधों में अचानक कटुता आना, नए कार्यों में अप्रत्याशित विरोध तथा मानसिक शांति की कमी।",
+      te: "అధిక కోపం, పనులలో అడ్డంకులు మరియు బంధుమిత్రులతో మనస్పర్థలు వేధిస్తున్నాయి.",
+      ta: "முன்கோபம், உறவுகளில் விரிசல் மற்றும் புதிய முயற்சிகளில் எதிர்பாராத தடைகள் ஏற்படுகின்றன.",
+      en: "Prone to abrupt outbursts of destructive anger, alienated relationships from stubborn rigidity, unexpected resistance whenever initiating new milestones, and persistent inner restlessness."
+    },
+    dashaResonance: buildDashaResonance([PN.Saturn, PN.Mars], "ವಿಷ್ಟಿ ಕರಣ ದೋಷ"),
+    lifeImpact: {
+      kn: isVishtiKarana
+        ? `ವಿಷ್ಟಿ ಕರಣ ಜನನದಿಂದ ಉಂಟಾಗುವ ದುಷ್ಪರಿಣಾಮಗಳನ್ನು ತಗ್ಗಿಸಲು ಶಾಂತಿ ಕರ್ಮಗಳನ್ನು ಮಾಡಿಸುವುದು ಅತ್ಯಗತ್ಯ. ಇದು ಮನಸ್ಸಿಗೆ ಶಾಂತಿ ಹಾಗೂ ಆಯಸ್ಸಿಗೆ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.
+ 
+ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ 'ಮಹಾ ಮೃತ್ಯುಂಜಯ ಹವನ', ಕಾಲಭೈರವ ಪೂಜೆ ಹಾಗೂ ಕಪ್ಪು ನಾಯಿಗೆ ಆಹಾರ ನೀಡುವುದರಿಂದ ಭದ್ರಾ ದೋಷವು ಸಂಪೂರ್ಣ ಶಮನವಾಗುತ್ತದೆ.`
+        : "ಕರಣದ ಫಲಗಳು ಮಂಗಳಕರವಾಗಿವೆ.",
+      hi: isVishtiKarana
+        ? `गोकर्ण में महामृत्युंजय हवन एवं भैरव उपासना से भद्रा दोष का निवारण होता है।`
+        : "दैनिक जीवन में करण का शुभ प्रभाव बना हुआ है।",
+      te: isVishtiKarana
+        ? `మహామృత్యుంజయ జపం మరియు భైరవ పూజ చేయించడం మంచిది.`
+        : "కరణ ప్రభావం శుభప్రదం.",
+      ta: isVishtiKarana
+        ? `மகா மிருத்யுஞ்சய ஹோமம் மற்றும் காலபைரவர் வழிபாடு செய்யவும்.`
+        : "கரண தாக்கம் சுபமாக உள்ளது.",
+      en: isVishtiKarana
+        ? `Vishti Karana requires grounding of fiery, aggressive sub-currents through Shiva-Bhairava propitiations to protect domestic and vocational harmony.
+ 
+Performing the Maha Mrityunjaya Homa and Kala Bhairava Archana at Gokarna Kshetra neutralizes the fierce edge of Bhadra.`
+        : "Panchanga Karana radiates gentle support."
+    },
+    recommendedPooja: {
+      kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ 'ಮಹಾ ಮೃತ್ಯುಂಜಯ ಹವನ' & 'ಕಾಲಭೈರವ ಪೂಜೆ'",
+      hi: "गोकर्ण में 'महामृत्युंजय महाहवन एवं कालभैरव पूजा'",
+      te: "గోకర్ణంలో 'మహామృత్యుంజయ హోమం & కాలభైరవ పూజ'",
+      ta: "கோகர்ணத்தில் 'மகா மிருத்யுஞ்சய ஹோமம் & காலபைரவர் பூஜை'",
+      en: "Maha Mrityunjaya Homa & Kala Bhairava Archana at Gokarna Kshetra"
+    },
+    remedies: {
+      kn: [
+        "ಪ್ರತಿದಿನ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರವನ್ನು ೨೧ ಬಾರಿ ಜಪಿಸಿ.",
+        "ಪ್ರತಿ ಶನಿವಾರ ಕಪ್ಪು ನಾಯಿಗೆ ಹಾಲು ಅಥವಾ ರೊಟ್ಟಿಯನ್ನು ಪ್ರೀತಿಯಿಂದ ತಿನ್ನಿಸಿ.",
+        "ಶಿವನಿಗೆ ಜಲಾಭಿಷೇಕ ಮಾಡಿ ಬಿಲ್ವಪತ್ರೆ ಅರ್ಪಿಸಿ."
+      ],
+      hi: [
+        "प्रतिदिन महामृत्युंजय मंत्र का 21 बार जप करें।",
+        "प्रत्येक शनिवार को काले कुत्ते को दूध अथवा रोटी खिलाएं।",
+        "भगवान शिव पर जल अर्पित करें।"
+      ],
+      te: [
+        "రోజూ మహామృత్యుంజయ మంత్రం 21 సార్లు చదవండి.",
+        "శనివారం నల్ల కుక్కకు పాలు లేదా ఆహారం ఇవ్వండి.",
+        "శివునికి జలాభిషేకం చేయండి."
+      ],
+      ta: [
+        "தினமும் மகா மிருத்யுஞ்சய மந்திரத்தை 21 முறை ஜெபிக்கவும்.",
+        "சனிக்கிழமைகளில் கருப்பு நாய்க்கு உணவு அளிக்கவும்.",
+        "சிவனுக்கு வில்வார்ச்சனை செய்யவும்."
+      ],
+      en: [
+        "Chant the sacred Maha Mrityunjaya Mantra 21 times every morning.",
+        "Feed black dogs with milk, bread, or rotis on Saturday evenings.",
+        "Offer pure cool water abhishekam to a consecrated Shiva Lingam."
+      ]
+    }
+  });
+
   // Calculate summary score
   const activeDoshas = doshasList.filter((d) => d.isDetected);
   const criticalCount = activeDoshas.filter((d) => d.severity === "critical").length;
@@ -2008,7 +2964,35 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
       pada: kundli.moonPada || 1,
       currentDashaStr: `${activeMahaPlanet} / ${activeBhuktiPlanet}`,
       runningMahaPlanet: activeMahaPlanet,
-      runningBhuktiPlanet: activeBhuktiPlanet
+      runningBhuktiPlanet: activeBhuktiPlanet,
+      lagnaRashiRecord: {
+        kn: RASHI_NAMES_5LANG[kundli.lagnaRashi.english]?.kn || kundli.lagnaRashi.english,
+        en: RASHI_NAMES_5LANG[kundli.lagnaRashi.english]?.en || kundli.lagnaRashi.english,
+        hi: RASHI_NAMES_5LANG[kundli.lagnaRashi.english]?.hi || kundli.lagnaRashi.english,
+        te: RASHI_NAMES_5LANG[kundli.lagnaRashi.english]?.te || kundli.lagnaRashi.english,
+        ta: RASHI_NAMES_5LANG[kundli.lagnaRashi.english]?.ta || kundli.lagnaRashi.english
+      },
+      moonRashiRecord: {
+        kn: RASHI_NAMES_5LANG[moon?.rashi.english || ""]?.kn || (moon?.rashi.english || "Unknown"),
+        en: RASHI_NAMES_5LANG[moon?.rashi.english || ""]?.en || (moon?.rashi.english || "Unknown"),
+        hi: RASHI_NAMES_5LANG[moon?.rashi.english || ""]?.hi || (moon?.rashi.english || "Unknown"),
+        te: RASHI_NAMES_5LANG[moon?.rashi.english || ""]?.te || (moon?.rashi.english || "Unknown"),
+        ta: RASHI_NAMES_5LANG[moon?.rashi.english || ""]?.ta || (moon?.rashi.english || "Unknown")
+      },
+      nakshatraRecord: {
+        kn: NAKSHATRA_NAMES_5LANG[moon?.nakshatra?.english || ""]?.kn || moon?.nakshatra?.sanskrit || moon?.nakshatra?.english || "Unknown",
+        en: NAKSHATRA_NAMES_5LANG[moon?.nakshatra?.english || ""]?.en || (moon?.nakshatra?.english || "Unknown"),
+        hi: NAKSHATRA_NAMES_5LANG[moon?.nakshatra?.english || ""]?.hi || (moon?.nakshatra?.english || "Unknown"),
+        te: NAKSHATRA_NAMES_5LANG[moon?.nakshatra?.english || ""]?.te || (moon?.nakshatra?.english || "Unknown"),
+        ta: NAKSHATRA_NAMES_5LANG[moon?.nakshatra?.english || ""]?.ta || (moon?.nakshatra?.english || "Unknown")
+      },
+      currentDashaRecord: {
+        kn: `${PLANET_NAMES_5LANG[activeMahaPlanet]?.kn || activeMahaPlanet} / ${PLANET_NAMES_5LANG[activeBhuktiPlanet]?.kn || activeBhuktiPlanet}`,
+        en: `${PLANET_NAMES_5LANG[activeMahaPlanet]?.en || activeMahaPlanet} / ${PLANET_NAMES_5LANG[activeBhuktiPlanet]?.en || activeBhuktiPlanet}`,
+        hi: `${PLANET_NAMES_5LANG[activeMahaPlanet]?.hi || activeMahaPlanet} / ${PLANET_NAMES_5LANG[activeBhuktiPlanet]?.hi || activeBhuktiPlanet}`,
+        te: `${PLANET_NAMES_5LANG[activeMahaPlanet]?.te || activeMahaPlanet} / ${PLANET_NAMES_5LANG[activeBhuktiPlanet]?.te || activeBhuktiPlanet}`,
+        ta: `${PLANET_NAMES_5LANG[activeMahaPlanet]?.ta || activeMahaPlanet} / ${PLANET_NAMES_5LANG[activeBhuktiPlanet]?.ta || activeBhuktiPlanet}`
+      }
     },
     summary: {
       totalEvaluated: doshasList.length,
