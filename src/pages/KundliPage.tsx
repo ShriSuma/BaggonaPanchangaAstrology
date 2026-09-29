@@ -12,6 +12,10 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { translateText } from "../utils/translator";
+import JSZip from "jszip";
+import { prepareBhavishyaV1Data, captureBhavishyaV1Pdf, type BhavishyaV1Payload } from "../features/premiumPdf/bhavishyaV1Service";
+import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
+import type { KundliViewerSession } from "../stores/kundliViewerStore";
 import { patrikaMetaForNakshatraIndex as import_patrikaMetaForNakshatraIndex } from "../core/nakshatraPatrikaMeta";
 import { analytics } from "../core/analytics";
 import { LifeGuidancePage } from "./LifeGuidancePage";
@@ -94,6 +98,18 @@ export default function KundliPage(): JSX.Element {
 
   const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
   const [isGeneratingDashaPdf, setIsGeneratingDashaPdf] = useState(false);
+  const [isGeneratingPremiumBundle, setIsGeneratingPremiumBundle] = useState(false);
+  const [bundleProgress, setBundleProgress] = useState(0);
+  const [bundleStageText, setBundleStageText] = useState("");
+  const [bundleModalOpen, setBundleModalOpen] = useState(false);
+  const [bundleDownloadedPdfs, setBundleDownloadedPdfs] = useState<{
+    panchanga?: { blob: Blob; fileName: string; url: string };
+    remedy?: { blob: Blob; fileName: string; url: string };
+    bhavishya?: { blob: Blob; fileName: string; url: string };
+    zip?: { blob: Blob; fileName: string; url: string };
+  } | null>(null);
+  const [premiumBhavishyaPayload, setPremiumBhavishyaPayload] = useState<BhavishyaV1Payload | null>(null);
+  const premiumBhavishyaPdfRef = useRef<HTMLDivElement>(null);
   const [includePriestCalendar, setIncludePriestCalendar] = useState<boolean>(
     () => initialSession?.includePriestCalendar ?? initialDraft?.includePriestCalendar ?? false
   );
@@ -691,6 +707,32 @@ export default function KundliPage(): JSX.Element {
     return generateKundliRemedyReport(result, input);
   }, [result, birthDatePicker, birthTimeHm, form.latitude, form.longitude, form.name, form.gender, form.gothra, gotraDisplay]);
 
+  const effectiveSession: KundliViewerSession | null = useMemo(() => {
+    if (kundliSession) return kundliSession;
+    if (!result || !birthDatePicker || !birthTimeHm.trim()) return null;
+    const bdYmd = formatPickerDateLocalYmd(birthDatePicker);
+    const btHm = birthTimeHm.trim();
+    const dashaTimeline = dasha || generateDashaTimeline(result);
+    return {
+      result,
+      input: {
+        ...form,
+        birthDate: bdYmd,
+        birthTime: btHm,
+        name: form.name || "Devotee",
+        latitude: form.latitude,
+        longitude: form.longitude
+      },
+      birthDateYmd: bdYmd,
+      birthTimeHm: btHm,
+      homePlaceName,
+      placeLabel: homePlaceName.trim() ? `${homePlaceName.trim()} · ${locationCore}` : locationCore,
+      dasha: dashaTimeline,
+      dailyPrediction: dailyPrediction || "",
+      includePriestCalendar
+    };
+  }, [kundliSession, result, birthDatePicker, birthTimeHm, form, dasha, homePlaceName, locationCore, dailyPrediction, includePriestCalendar]);
+
   const handleDownloadRemedyPdf = async (langToUse?: string) => {
     const chosenLang = langToUse || remedyPdfLanguage || "kn";
     setRemedyPdfLanguage(chosenLang);
@@ -706,6 +748,185 @@ export default function KundliPage(): JSX.Element {
       console.error("Failed to generate Kundli Remedy PDF:", err);
     } finally {
       setIsGeneratingRemedyPdf(false);
+    }
+  };
+
+  const handlePremiumDownload = async () => {
+    if (!result || !birthDatePicker || !birthTimeHm.trim() || isGeneratingPremiumBundle) return;
+    setIsGeneratingPremiumBundle(true);
+    setBundleProgress(5);
+    setBundleModalOpen(true);
+    setBundleDownloadedPdfs(null);
+
+    const safeName = (form.name || "Devotee").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
+    const langNames: Record<string, string> = { kn: "Kannada", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
+    const langName = langNames[pdfLanguage] || "Kannada";
+
+    try {
+      // 1. Baggona Janana Kundali & Dasha PDF
+      setBundleProgress(15);
+      setBundleStageText(
+        pdfLanguage === "kn"
+          ? "೧/೩ ಜನನ ಕುಂಡಲಿ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿ ಪಿಡಿಎಫ್ ರಚನೆ..."
+          : pdfLanguage === "hi"
+          ? "1/3 जन्म कुंडली एवं दशा-भुक्ति पीडीएफ निर्माण..."
+          : "1/3 Generating Baggona Janana Kundali & Dasha PDF..."
+      );
+
+      const el = traditionalExportRef.current;
+      const dashaEl = dashaExportRef.current;
+
+      if (pdfLanguage !== "kn" && traditionalData) {
+        const yoniMeta = import_patrikaMetaForNakshatraIndex(result.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
+        const keys = [
+          "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
+          "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
+        ];
+        const texts = [
+          traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
+          traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
+          yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
+        ];
+        const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
+        const newVals: Record<string, string> = {};
+        keys.forEach((k, i) => newVals[k] = translated[i]);
+        setDynamicValues(newVals);
+        await new Promise(r => setTimeout(r, 400));
+      }
+
+      let pdf1Blob: Blob | null = null;
+      const pdf1FileName = `1_Baggona_Janana_Kundali_${langName}_${safeName}.pdf`;
+
+      if (el && dashaEl) {
+        const pdf1 = await exportPanchangaWithDashaPdf(el, dashaEl, pdf1FileName.replace(/\.pdf$/, ""), false);
+        pdf1Blob = pdf1.output("blob");
+      } else if (el) {
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#fffdf8", logging: false });
+        const pngData = canvas.toDataURL("image/jpeg", 0.75);
+        const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 36;
+        const drawW = pageW - margin * 2;
+        const drawH = (canvas.height * drawW) / canvas.width;
+        pdf.addImage(pngData, "JPEG", margin, margin, drawW, Math.min(drawH, pageH - margin * 2));
+        pdf1Blob = pdf.output("blob");
+      }
+
+      // 2. Daivika Parihara Remedy PDF
+      setBundleProgress(35);
+      setBundleStageText(
+        pdfLanguage === "kn"
+          ? "೨/೩ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ..."
+          : pdfLanguage === "hi"
+          ? "2/3 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण..."
+          : "2/3 Generating Daivika Parihara Remedy Report PDF..."
+      );
+
+      setRemedyPdfLanguage(pdfLanguage);
+      await new Promise(r => setTimeout(r, 400));
+
+      const pdf2FileName = `2_Baggona_Daivika_Parihara_${langName}_${safeName}.pdf`;
+      const pdf2 = await generatePDFFromElement("kundli-remedy-pdf-container", pdf2FileName, false);
+      const pdf2Blob = pdf2.output("blob");
+
+      // 3. Baggona Divya Bhavishya V1 PDF
+      setBundleProgress(55);
+      setBundleStageText(
+        pdfLanguage === "kn"
+          ? "೩/೩ ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 ಸಮಗ್ರ ೧೦-ಅಧ್ಯಾಯಗಳ ಗಣನೆ..."
+          : pdfLanguage === "hi"
+          ? "3/3 बग्गोण दिव्य भविष्य V1 संपूर्ण १०-अध्यायों का विश्लेषण..."
+          : "3/3 Preparing Baggona Divya Bhavishya V1 (10 Chapters)..."
+      );
+
+      if (!effectiveSession) throw new Error("Kundli session not available");
+
+      const geminiKey = useAppStore.getState().geminiApiKey || "";
+      const bhavishyaPayload = await prepareBhavishyaV1Data(
+        effectiveSession,
+        pdfLanguage,
+        geminiKey,
+        {
+          maritalStatus: form.maritalStatus || "general",
+          childrenStatus: "general"
+        },
+        (progress, stageText) => {
+          const scaled = 55 + Math.floor((progress / 100) * 35);
+          setBundleProgress(scaled);
+          setBundleStageText(stageText);
+        }
+      );
+
+      setPremiumBhavishyaPayload(bhavishyaPayload);
+      await new Promise(r => setTimeout(r, 1200));
+
+      if (!premiumBhavishyaPdfRef.current) {
+        throw new Error("Bhavishya PDF container not found");
+      }
+
+      setBundleProgress(92);
+      setBundleStageText(
+        pdfLanguage === "kn"
+          ? "ಅಧಿಕೃತ ಭವಿಷ್ಯ ಮುದ್ರಣ ಪುಟಗಳ ವಿನ್ಯಾಸ..."
+          : pdfLanguage === "hi"
+          ? "आधिकारिक भविष्य मुद्रण पृष्ठ निर्माण..."
+          : "Rendering High-Resolution Baggona Bhavishya V1 Document..."
+      );
+
+      const pdf3FileName = `3_Baggona_Divya_Bhavishya_V1_${langName}_${safeName}.pdf`;
+      const pdf3 = await captureBhavishyaV1Pdf(premiumBhavishyaPdfRef.current, pdf3FileName, false);
+      const pdf3Blob = pdf3.output("blob");
+
+      // 4. Packaging into ZIP
+      setBundleProgress(96);
+      setBundleStageText(
+        pdfLanguage === "kn"
+          ? "ಎಲ್ಲಾ ೩ ಪಿಡಿಎಫ್‌ಗಳನ್ನು ಜಿಪ್ ಕಡತವಾಗಿ ಸಂಯೋಜಿಸಲಾಗುತ್ತಿದೆ..."
+          : pdfLanguage === "hi"
+          ? "तीनों आधिकारिक पीडीएफ का ज़िप बंडल तैयार हो रहा है..."
+          : "Packaging all 3 PDFs into a single ZIP bundle..."
+      );
+
+      const zip = new JSZip();
+      if (pdf1Blob) zip.file(pdf1FileName, pdf1Blob);
+      if (pdf2Blob) zip.file(pdf2FileName, pdf2Blob);
+      if (pdf3Blob) zip.file(pdf3FileName, pdf3Blob);
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const zipFileName = `Baggona_Premium_Bundle_${langName}_${safeName}.zip`;
+
+      const zipUrl = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = zipUrl;
+      a.download = zipFileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (document.body.contains(a)) document.body.removeChild(a);
+      }, 1500);
+
+      setBundleDownloadedPdfs({
+        panchanga: pdf1Blob ? { blob: pdf1Blob, fileName: pdf1FileName, url: URL.createObjectURL(pdf1Blob) } : undefined,
+        remedy: { blob: pdf2Blob, fileName: pdf2FileName, url: URL.createObjectURL(pdf2Blob) },
+        bhavishya: { blob: pdf3Blob, fileName: pdf3FileName, url: URL.createObjectURL(pdf3Blob) },
+        zip: { blob: zipBlob, fileName: zipFileName, url: zipUrl }
+      });
+
+      setBundleProgress(100);
+      setBundleStageText(
+        pdfLanguage === "kn"
+          ? "🎉 ಪ್ರೀಮಿಯಂ ಬಂಡಲ್ ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ!"
+          : pdfLanguage === "hi"
+          ? "🎉 प्रीमियम बंडल डाउनलोड सफलतापूर्वक पूर्ण हुआ!"
+          : "🎉 Baggona Premium Bundle Ready!"
+      );
+    } catch (err: any) {
+      console.error("Premium bundle generation failed:", err);
+      alert(err?.message || "Failed to generate Premium Bundle. Please try again.");
+      setBundleModalOpen(false);
+    } finally {
+      setIsGeneratingPremiumBundle(false);
     }
   };
 
@@ -1381,7 +1602,10 @@ export default function KundliPage(): JSX.Element {
                           name="pdfLanguage"
                           value={lang.code}
                           checked={pdfLanguage === lang.code}
-                          onChange={(e) => setPdfLanguage(e.target.value)}
+                          onChange={(e) => {
+                            setPdfLanguage(e.target.value);
+                            setRemedyPdfLanguage(e.target.value);
+                          }}
                           className="w-4 h-4 text-indigo-600 border-indigo-300 focus:ring-indigo-500"
                         />
                         <span className="text-sm font-medium text-slate-700">{lang.label}</span>
@@ -1390,60 +1614,96 @@ export default function KundliPage(): JSX.Element {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  disabled={isTranslating || isGeneratingDashaPdf}
-                  className={`jk-btn rounded-xl bg-amber-500 px-8 py-4 text-base font-extrabold tracking-wide text-indigo-950 shadow-lg hover:bg-amber-400 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 ${(isTranslating || isGeneratingDashaPdf) ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  onClick={async () => {
-                    const el = traditionalExportRef.current;
-                    const dashaEl = dashaExportRef.current;
-                    
-                    if (el) {
-                      try {
-                        setIsTranslating(true);
-                        
-                        const newVals: Record<string, string> = {};
-                        if (pdfLanguage !== "kn" && traditionalData) {
-                           const yoniMeta = import_patrikaMetaForNakshatraIndex(result.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
-                           
-                           const keys = [
-                             "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
-                             "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
-                           ];
-                           const texts = [
-                             traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
-                             traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
-                             yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
-                           ];
-                           
-                           const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
-                           
-                           keys.forEach((k, i) => newVals[k] = translated[i]);
-                        }
-                        setDynamicValues(newVals);
-                        
-                        // Small wait to ensure template is rendered with new state
-                        await new Promise(r => setTimeout(r, 500));
-                        
-                        if (dashaEl) {
-                          setIsGeneratingDashaPdf(true);
-                          await exportPanchangaWithDashaPdf(el, dashaEl, `baggona-janana-kundali-${form.name || "chart"}`);
+                {/* Download Actions Container */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-2xl px-2">
+                  {/* Royal 3-in-1 Premium Download Button */}
+                  <button
+                    type="button"
+                    disabled={isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf}
+                    className={`w-full sm:w-auto flex-1 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 px-6 py-4 text-white font-extrabold text-base tracking-wide shadow-xl hover:shadow-amber-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-1 border-2 border-amber-300/60 ${
+                      (isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf) ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
+                    onClick={handlePremiumDownload}
+                  >
+                    <div className="flex items-center gap-2 text-base md:text-lg">
+                      {isGeneratingPremiumBundle ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span className="text-xl">👑</span>
+                      )}
+                      <span>
+                        {isGeneratingPremiumBundle
+                          ? `${bundleProgress}% ${i18n.language.startsWith("kn") ? "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating..."}`
+                          : i18n.language.startsWith("kn")
+                          ? "ಪ್ರೀಮಿಯಂ ಡೌನ್‌ಲೋಡ್ (Premium Download)"
+                          : "Premium Download (All 3 PDFs)"}
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold text-amber-100/90 tracking-normal text-center">
+                      {i18n.language.startsWith("kn")
+                        ? "ಜನನ ಕುಂಡಲಿ + ದೈವಿಕ ಪರಿಹಾರ + ದಿವ್ಯ ಭವಿಷ್ಯ (೧-ಕ್ಲಿಕ್ ZIP ಬಂಡಲ್)"
+                        : "Janana Kundali + Divine Remedies + Divya Bhavishya (1-Click ZIP)"}
+                    </span>
+                  </button>
+
+                  {/* Single Janana Kundali Download Button */}
+                  <button
+                    type="button"
+                    disabled={isTranslating || isGeneratingDashaPdf || isGeneratingPremiumBundle}
+                    className={`w-full sm:w-auto rounded-xl bg-slate-900 border border-slate-700 px-5 py-3.5 text-xs md:text-sm font-bold text-amber-300 shadow-md hover:bg-slate-800 transition-all flex items-center justify-center gap-2 ${
+                      (isTranslating || isGeneratingDashaPdf || isGeneratingPremiumBundle) ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
+                    onClick={async () => {
+                      const el = traditionalExportRef.current;
+                      const dashaEl = dashaExportRef.current;
+                      
+                      if (el) {
+                        try {
+                          setIsTranslating(true);
+                          
+                          const newVals: Record<string, string> = {};
+                          if (pdfLanguage !== "kn" && traditionalData) {
+                             const yoniMeta = import_patrikaMetaForNakshatraIndex(result.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
+                             
+                             const keys = [
+                               "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
+                               "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
+                             ];
+                             const texts = [
+                               traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
+                               traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
+                               yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
+                             ];
+                             
+                             const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
+                             
+                             keys.forEach((k, i) => newVals[k] = translated[i]);
+                          }
+                          setDynamicValues(newVals);
+                          
+                          // Small wait to ensure template is rendered with new state
+                          await new Promise(r => setTimeout(r, 500));
+                          
+                          if (dashaEl) {
+                            setIsGeneratingDashaPdf(true);
+                            await exportPanchangaWithDashaPdf(el, dashaEl, `baggona-janana-kundali-${form.name || "chart"}`);
+                            setIsGeneratingDashaPdf(false);
+                          } else {
+                            await exportElementAsPdf(el, `baggona-janana-kundali-${form.name || "chart"}`);
+                          }
+                        } catch (e) {
+                          console.error("PDF generation failed:", e);
                           setIsGeneratingDashaPdf(false);
-                        } else {
-                          await exportElementAsPdf(el, `baggona-janana-kundali-${form.name || "chart"}`);
+                        } finally {
+                          setIsTranslating(false);
                         }
-                      } catch (e) {
-                        console.error("PDF generation failed:", e);
-                        setIsGeneratingDashaPdf(false);
-                      } finally {
-                        setIsTranslating(false);
                       }
-                    }
-                  }}
-                >
-                  {isTranslating ? <div className="w-5 h-5 border-2 border-indigo-950 border-t-transparent rounded-full animate-spin"></div> : null}
-                  {isTranslating ? "Translating..." : "Baggoona Panchanga Janan Kundali Download"}
-                </button>
+                    }}
+                  >
+                    {isTranslating ? <div className="w-4 h-4 border-2 border-amber-300 border-t-transparent rounded-full animate-spin"></div> : <span>📜</span>}
+                    {isTranslating ? "Translating..." : "ಜನನ ಕುಂಡಲಿ ಮಾತ್ರ (Kundali Only)"}
+                  </button>
+                </div>
               </div>
 
               <div className="rounded-2xl border border-indigo-100 bg-white shadow-sm overflow-hidden">
@@ -1582,6 +1842,210 @@ export default function KundliPage(): JSX.Element {
             diagnosis={remedyDiagnosis}
             lang={remedyPdfLanguage}
           />
+        </div>
+      )}
+
+      {/* Hidden Bhavishya V1 PDF Template Conforming to baggona-pdf-layout-guard */}
+      {effectiveSession && premiumBhavishyaPayload && (
+        <div
+          style={{
+            position: "fixed",
+            left: 0,
+            top: 0,
+            width: 900,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -1,
+            overflow: "hidden",
+            height: 0
+          }}
+        >
+          <PdfTemplate
+            ref={premiumBhavishyaPdfRef}
+            theme="sunrise"
+            session={effectiveSession}
+            predictions={premiumBhavishyaPayload.predictions}
+            translations={premiumBhavishyaPayload.translations}
+            deepInsights={premiumBhavishyaPayload.deepInsights}
+            premiumData={premiumBhavishyaPayload.premiumData}
+            ageYears={premiumBhavishyaPayload.ageYears}
+          />
+        </div>
+      )}
+
+      {/* Royal Baggona Premium Bundle Progress & Result Modal */}
+      {bundleModalOpen && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 p-6 md:p-8 text-white shadow-2xl border-2 border-amber-500/50">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-amber-500/20 pb-4 mb-5">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">👑</span>
+                <div>
+                  <h3 className="text-lg md:text-xl font-extrabold text-amber-300">
+                    {i18n.language.startsWith("kn") ? "ಬಗ್ಗೋಣ ಪ್ರೀಮಿಯಂ ಡೌನ್‌ಲೋಡ್" : "Baggona Premium Download"}
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    {form.name || "Devotee"} · {pdfLanguage.toUpperCase()}
+                  </p>
+                </div>
+              </div>
+              {!isGeneratingPremiumBundle && (
+                <button
+                  type="button"
+                  onClick={() => setBundleModalOpen(false)}
+                  className="rounded-full w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* In Progress State */}
+            {isGeneratingPremiumBundle && (
+              <div className="space-y-6 py-4">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full border-4 border-amber-500/30 border-t-amber-400 animate-spin mb-4" />
+                  <p className="text-2xl font-black text-amber-300">{bundleProgress}%</p>
+                  <p className="text-sm font-medium text-slate-300 mt-2 max-w-sm">{bundleStageText}</p>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-amber-500/30 p-0.5">
+                  <div
+                    className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 h-full rounded-full transition-all duration-300 shadow-sm shadow-amber-400"
+                    style={{ width: `${bundleProgress}%` }}
+                  />
+                </div>
+
+                {/* Checklist */}
+                <div className="bg-slate-950/60 rounded-2xl p-4 border border-slate-800 space-y-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span>{bundleProgress >= 35 ? "✅" : "⏳"}</span>
+                    <span className={bundleProgress >= 35 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                      1. Baggona Janana Kundali & Dasha (PDF)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>{bundleProgress >= 55 ? "✅" : "⏳"}</span>
+                    <span className={bundleProgress >= 55 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                      2. Daivika Parihara Remedies Report (PDF)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>{bundleProgress >= 92 ? "✅" : "⏳"}</span>
+                    <span className={bundleProgress >= 92 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                      3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>{bundleProgress >= 100 ? "✅" : "⏳"}</span>
+                    <span className={bundleProgress >= 100 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                      4. High-Compression ZIP Bundle Packaging
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Completed State */}
+            {!isGeneratingPremiumBundle && bundleDownloadedPdfs && (
+              <div className="space-y-5 py-2">
+                <div className="rounded-2xl bg-emerald-950/50 border border-emerald-500/40 p-4 text-center">
+                  <span className="text-3xl block mb-1">🎉</span>
+                  <h4 className="text-base font-bold text-emerald-300">
+                    {i18n.language.startsWith("kn") ? "ZIP ಬಂಡಲ್ ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!" : "ZIP Bundle Downloaded Successfully!"}
+                  </h4>
+                  <p className="text-xs text-emerald-200/80 mt-1">
+                    {i18n.language.startsWith("kn")
+                      ? "ಎಲ್ಲಾ ೩ ಅಧಿಕೃತ ಪಿಡಿಎಫ್‌ಗಳನ್ನು ಒಳಗೊಂಡ ZIP ಕಡತ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ. ಅಗತ್ಯವಿದ್ದಲ್ಲಿ ಪ್ರತ್ಯೇಕ ಪಿಡಿಎಫ್‌ಗಳನ್ನೂ ಕೆಳಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಕೊಳ್ಳಬಹುದು:"
+                      : "All 3 official PDFs are saved in your ZIP bundle. You can also download each individual PDF below:"}
+                  </p>
+                </div>
+
+                {/* Direct Download Links */}
+                <div className="space-y-2.5">
+                  {bundleDownloadedPdfs.zip && (
+                    <a
+                      href={bundleDownloadedPdfs.zip.url}
+                      download={bundleDownloadedPdfs.zip.fileName}
+                      className="flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow-md transition-all active:scale-[0.98]"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-lg">📦</span>
+                        <div className="text-left">
+                          <p className="leading-tight font-extrabold">{i18n.language.startsWith("kn") ? "ಸಂಪೂರ್ಣ ZIP ಬಂಡಲ್ ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್" : "Download ZIP Bundle Again"}</p>
+                          <p className="text-[11px] font-medium opacity-90">{bundleDownloadedPdfs.zip.fileName}</p>
+                        </div>
+                      </div>
+                      <span>⬇️</span>
+                    </a>
+                  )}
+
+                  {bundleDownloadedPdfs.panchanga && (
+                    <a
+                      href={bundleDownloadedPdfs.panchanga.url}
+                      download={bundleDownloadedPdfs.panchanga.fileName}
+                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>📜</span>
+                        <div className="text-left">
+                          <p className="font-semibold text-white">೧. ಜನನ ಕುಂಡಲಿ & ದಶಾ-ಭುಕ್ತಿ (PDF)</p>
+                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.panchanga.fileName}</p>
+                        </div>
+                      </div>
+                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                    </a>
+                  )}
+
+                  {bundleDownloadedPdfs.remedy && (
+                    <a
+                      href={bundleDownloadedPdfs.remedy.url}
+                      download={bundleDownloadedPdfs.remedy.fileName}
+                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>🪔</span>
+                        <div className="text-left">
+                          <p className="font-semibold text-white">೨. ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (PDF)</p>
+                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.remedy.fileName}</p>
+                        </div>
+                      </div>
+                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                    </a>
+                  )}
+
+                  {bundleDownloadedPdfs.bhavishya && (
+                    <a
+                      href={bundleDownloadedPdfs.bhavishya.url}
+                      download={bundleDownloadedPdfs.bhavishya.fileName}
+                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>🔮</span>
+                        <div className="text-left">
+                          <p className="font-semibold text-white">೩. ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 (PDF)</p>
+                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.bhavishya.fileName}</p>
+                        </div>
+                      </div>
+                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                    </a>
+                  )}
+                </div>
+
+                <div className="pt-2 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setBundleModalOpen(false)}
+                    className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all"
+                  >
+                    {i18n.language.startsWith("kn") ? "ಮುಚ್ಚಿ (Close)" : "Close"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

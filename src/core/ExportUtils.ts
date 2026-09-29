@@ -119,7 +119,12 @@ export const exportElementAsPdf = async (element: HTMLElement, fileName: string)
   pdf.save(`${fileName}.pdf`);
   await analytics.track("chart_exported_pdf");
 };
-export const exportPanchangaWithDashaPdf = async (panchangaEl: HTMLElement, dashaEl: HTMLElement, fileName: string): Promise<void> => {
+export const exportPanchangaWithDashaPdf = async (
+  panchangaEl: HTMLElement,
+  dashaEl: HTMLElement,
+  fileName: string,
+  autoSave: boolean = true
+): Promise<jsPDF> => {
   // Capture Panchanga
   const pCanvas = await html2canvas(panchangaEl, {
     scale: 2,
@@ -149,8 +154,11 @@ export const exportPanchangaWithDashaPdf = async (panchangaEl: HTMLElement, dash
   pdf.addPage([pdfW, dH], "p");
   pdf.addImage(dData, "JPEG", 0, 0, pdfW, dH);
 
-  pdf.save(`${fileName}.pdf`);
+  if (autoSave) {
+    pdf.save(`${fileName}.pdf`);
+  }
   await analytics.track("chart_exported_pdf_combined");
+  return pdf;
 };
 
 export const exportDashaPdf = async (dashaEl: HTMLElement, fileName: string): Promise<void> => {

@@ -13,7 +13,11 @@ const A4_HEIGHT_MM = 297;
  * 2. If the element has `.pdf-page` divs → each div = one PDF page.
  * 3. Fallback: capture the whole element and slice vertically into A4 chunks.
  */
-export async function generatePDFFromElement(elementId: string, fileName: string): Promise<void> {
+export async function generatePDFFromElement(
+  elementId: string,
+  fileName: string,
+  autoSave: boolean = true
+): Promise<jsPDF> {
   const container = document.getElementById(elementId);
   if (!container) throw new Error(`Element with ID ${elementId} not found.`);
 
@@ -93,6 +97,8 @@ export async function generatePDFFromElement(elementId: string, fileName: string
       }
     };
 
+    let generatedPdf: jsPDF | null = null;
+
     if (sectionDivs.length > 0) {
       // ── Strategy 1: Smart section packing ────────────────────────────────
       const sectionImages: { dataUrl: string; heightMm: number }[] = [];
@@ -141,7 +147,10 @@ export async function generatePDFFromElement(elementId: string, fileName: string
       flushPage();
 
       if (state.pdf) {
-        savePdfBlob(state.pdf, fileName);
+        generatedPdf = state.pdf;
+        if (autoSave) {
+          savePdfBlob(state.pdf, fileName);
+        }
       }
 
     } else if (pageDivs.length > 0) {
@@ -163,7 +172,10 @@ export async function generatePDFFromElement(elementId: string, fileName: string
         pdf.addImage(imgData, "JPEG", 0, 0, A4_WIDTH_MM, heightMm);
       }
       if (pdf) {
-        savePdfBlob(pdf, fileName);
+        generatedPdf = pdf;
+        if (autoSave) {
+          savePdfBlob(pdf, fileName);
+        }
       }
 
     } else {
@@ -204,23 +216,31 @@ export async function generatePDFFromElement(elementId: string, fileName: string
         pdf.addImage(imgData, "JPEG", 0, 0, A4_WIDTH_MM, sliceHeightMm);
       }
       if (pdf) {
-        savePdfBlob(pdf, fileName);
-        try {
-          // Asynchronously notify admin of PDF download
-          import("../features/notifications/notificationService").then(({ notifyPremiumPdfDownloaded }) => {
-            void notifyPremiumPdfDownloaded({
-              clientName: fileName.replace(/\.pdf$/i, ""),
-              pdfType: "Baggona Astrological PDF Document",
-              language: "kn",
-              pageCount: pdf ? pdf.getNumberOfPages() : 1,
-              priestName: "Shreeram Pandit"
-            });
-          }).catch(() => {});
-        } catch (e) {
-          // Non-blocking notification
+        generatedPdf = pdf;
+        if (autoSave) {
+          savePdfBlob(pdf, fileName);
+          try {
+            // Asynchronously notify admin of PDF download
+            import("../features/notifications/notificationService").then(({ notifyPremiumPdfDownloaded }) => {
+              void notifyPremiumPdfDownloaded({
+                clientName: fileName.replace(/\.pdf$/i, ""),
+                pdfType: "Baggona Astrological PDF Document",
+                language: "kn",
+                pageCount: pdf ? pdf.getNumberOfPages() : 1,
+                priestName: "Shreeram Pandit"
+              });
+            }).catch(() => {});
+          } catch (e) {
+            // Non-blocking notification
+          }
         }
       }
     }
+
+    if (!generatedPdf) {
+      throw new Error(`Failed to generate PDF from element ${elementId}`);
+    }
+    return generatedPdf;
   } catch (renderError) {
     console.error("html2canvas/jsPDF generation failed:", renderError);
     throw renderError;
