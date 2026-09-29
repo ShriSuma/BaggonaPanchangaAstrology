@@ -1100,6 +1100,15 @@ export default function KundliPage(): JSX.Element {
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
+              className="jk-btn rounded-xl bg-gradient-to-r from-red-600 via-amber-600 to-amber-700 hover:from-red-500 hover:to-amber-500 px-5 py-2.5 text-xs md:text-sm font-black tracking-wide text-white shadow-lg transition-all scale-100 active:scale-95 flex items-center gap-2 border border-amber-300/40"
+              onClick={() => useAppStore.getState().setPage("doshas")}
+            >
+              <span className="text-base animate-pulse">🛡️</span>
+              <span>{i18n.language.startsWith("kn") ? "ದೋಷಗಳು & ಪರಿಹಾರ (Doshas)" : "Kundli Doshas & Shanti"}</span>
+              <span className="text-xs">➜</span>
+            </button>
+            <button
+              type="button"
               className="jk-btn rounded-xl bg-amber-500 hover:bg-amber-600 px-5 py-2.5 text-xs md:text-sm font-bold tracking-wide text-neutral-950 shadow-md transition-all scale-100 active:scale-95 flex items-center gap-1.5"
               onClick={() => {
                 useKundliViewerStore.getState().resetResult();
@@ -1212,6 +1221,41 @@ export default function KundliPage(): JSX.Element {
             </button>
           </div>
 
+          {/* 🛡️ Comprehensive Kundli Doshas & Shanti Dossier Banner 🛡️ */}
+          <div className="rounded-3xl border-2 border-red-500/70 bg-gradient-to-r from-red-950 via-slate-950 to-amber-950 p-5 md:p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-center gap-3.5 text-center md:text-left">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-red-400 bg-red-900/60 text-3xl shadow-inner animate-pulse">
+                🛡️
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-red-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-300 border border-amber-400/30">
+                  <span>🔱</span>
+                  <span>{i18n.language.startsWith("kn") ? "ಸಮಗ್ರ ದೋಷ ನಿರ್ಣಯ & ದೈವಿಕ ಶಾಂತಿ" : "Comprehensive Vedic Doshas & Shanti"}</span>
+                </div>
+                <h3 className="text-base md:text-lg font-black text-amber-200 mt-1">
+                  {i18n.language.startsWith("kn")
+                    ? `ಜಾತಕದ ಸಮಗ್ರ ದೋಷಗಳು, ದಶಾ ಸಂಧಿ & ಗೋಚಾರ ವಿಶ್ಲೇಷಣೆ`
+                    : `Complete Kundli Doshas, Dasha Sandhi & Live Gochara Analysis`}
+                </h3>
+                <p className="text-xs text-amber-300/80 mt-0.5">
+                  {i18n.language.startsWith("kn")
+                    ? "ಪಿತೃ ದೋಷ, ನಾರಾಯಣ ಬಲಿ, ಕಾಳಸರ್ಪ, ಗುರು ಚಂಡಾಲ, ಬಾಲಾರಿಷ್ಟ, ಬಾಲ್ಯಗ್ರಹ, ಕುಜ ದೋಷ, ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಮತ್ತು ನಿಖರ ಶಾಸ್ತ್ರೀಯ ತಾಂತ್ರಿಕ ಕಾರಣಗಳು"
+                    : "Pitru Dosha, Narayana Bali, Kala Sarpa, Guru Chandala, Balarishta, Kuja, Dasha Sandhi with precise astronomical 'Why' & Pooja"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => useAppStore.getState().setPage("doshas")}
+              className="w-full md:w-auto shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 via-amber-600 to-amber-500 px-6 py-3.5 text-xs font-black text-white shadow-xl hover:scale-105 transition-all border border-amber-300/50"
+            >
+              <span>🛡️</span>
+              <span>{i18n.language.startsWith("kn") ? "ದೋಷಗಳ ವೀಕ್ಷಣೆ & ಶಾಂತಿ ಪತ್ರ" : "View All Doshas & Shanti"}</span>
+              <span>➜</span>
+            </button>
+          </div>
+
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
             <button
               type="button"
@@ -1234,6 +1278,14 @@ export default function KundliPage(): JSX.Element {
               onClick={() => setActiveView("dasha")}
             >
               Complete Dasha Bhukti
+            </button>
+            <button
+              type="button"
+              className="jk-btn rounded-xl px-6 py-3 text-sm md:text-base font-black tracking-wide shadow-md transition-all bg-gradient-to-r from-red-600 via-amber-600 to-amber-700 text-white hover:brightness-110 flex items-center gap-1.5 border border-amber-300/40"
+              onClick={() => useAppStore.getState().setPage("doshas")}
+            >
+              <span>🛡️</span>
+              <span>{i18n.language.startsWith("kn") ? "ಜಾತಕ ದೋಷಗಳು (Doshas)" : "Kundli Doshas"}</span>
             </button>
             <button
               type="button"

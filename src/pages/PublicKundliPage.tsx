@@ -6,6 +6,8 @@ import { resolvePlaceFromPincode, resolvePlaceOrPincode, GERMAN_MAJOR_CITIES } f
 import { formatPickerDateLocalYmd } from "../core/birthTime";
 import { askGemini } from "../core/GeminiEngine";
 import { useAuthStore } from "../features/auth/authStore";
+import { useAppStore } from "../stores/appStore";
+import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { usePricingConfigStore } from "../features/wallet/pricingConfigStore";
 import { useWalletStore } from "../features/wallet/walletStore";
 import {
@@ -1614,6 +1616,31 @@ ${publicProfile.name}`;
                     )}
                 </div>
               ))}
+
+              {/* 🛡️ Dedicated Doshas & Shanti Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (result) {
+                    useKundliViewerStore.getState().setSession({
+                      result,
+                      input: form,
+                      birthDateYmd: birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : form.birthDate,
+                      birthTimeHm,
+                      homePlaceName: placeDisplay,
+                      placeLabel: placeDisplay,
+                      dasha: dashaList,
+                      dailyPrediction: ""
+                    });
+                  }
+                  useAppStore.getState().setPage("doshas");
+                }}
+                className="px-4 py-2.5 text-xs md:text-sm font-black rounded-xl bg-gradient-to-r from-red-600 via-amber-600 to-amber-700 text-white shadow-lg flex items-center gap-1.5 border border-amber-300/40 hover:brightness-110 active:scale-95 transition-all"
+              >
+                <span className="animate-pulse">🛡️</span>
+                <span>{selectedLang === "kn" ? "ಜಾತಕ ದೋಷಗಳು (Doshas)" : "Kundli Doshas"}</span>
+                <span className="text-[10px]">➜</span>
+              </button>
             </div>
 
             {/* ============================================================== */}

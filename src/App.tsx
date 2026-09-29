@@ -43,6 +43,7 @@ import PublicKundliPage from "./pages/PublicKundliPage";
 import { BaggonaBookPublisherDashboard } from "./features/admin/BaggonaBookPublisherDashboard";
 import QuickCalendarPage from "./pages/QuickCalendarPage";
 import { BaggonaCalendarPage } from "./pages/BaggonaCalendarPage";
+import KundliDoshasPage from "./pages/KundliDoshasPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -123,6 +124,15 @@ export default function App(): JSX.Element {
     window.location.search.includes("page=quick_calendar") ||
     window.location.hash.includes("#/quick-calendar") ||
     window.location.hash.includes("#/quick-seva")
+  );
+
+  const isDoshasRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/doshas") ||
+    window.location.pathname.startsWith("/kundli-doshas") ||
+    window.location.pathname.startsWith("/dosha") ||
+    window.location.search.includes("portal=doshas") ||
+    window.location.search.includes("page=doshas") ||
+    window.location.hash.includes("#/doshas")
   );
 
   const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPublicKundliRoute && (
@@ -238,6 +248,7 @@ export default function App(): JSX.Element {
             isPublisherRoute ||
             isQuickCalendarRoute ||
             isCalendarRoute ||
+            isDoshasRoute ||
             isPriestPortalRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
@@ -256,7 +267,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isPriestPortalRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isPriestPortalRoute]);
 
   if (isPriestPanchangaRoute) {
     return <PriestPanchangaPage />;
@@ -300,6 +311,14 @@ export default function App(): JSX.Element {
         <div className="min-h-screen bg-slate-950 p-2 sm:p-4 text-amber-100">
           <BaggonaBookPublisherDashboard />
         </div>
+      </ErrorBoundary>
+    );
+  }
+
+  if (isDoshasRoute) {
+    return (
+      <ErrorBoundary>
+        <KundliDoshasPage />
       </ErrorBoundary>
     );
   }
@@ -371,6 +390,7 @@ export default function App(): JSX.Element {
         {currentPage === "public_kundli" && <PublicKundliPage />}
         {currentPage === "quick_calendar" && <QuickCalendarPage />}
         {currentPage === "calendar" && <BaggonaCalendarPage />}
+        {currentPage === "doshas" && <KundliDoshasPage />}
       </Layout>
     </ErrorBoundary>
   );
