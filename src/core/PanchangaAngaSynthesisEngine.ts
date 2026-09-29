@@ -20,6 +20,7 @@ import {
 } from "./CurrentLifeAndCareerDiagnosticEngine";
 import {
   generateDashaSandhiAndRoadmap,
+  getNaturalRelationship,
   type DashaSandhiAndRoadmapOutput
 } from "./DashaSandhiAndRoadmapEngine";
 
@@ -28,6 +29,102 @@ export const houseDist = (fromH: number, toH: number): number => ((toH - fromH +
 
 /** Cleans markdown and normalizes astrology text */
 const cleanAstrologyText = (t: string | undefined | null): string => sanitizeAstrologyKannadaText(t || "");
+
+/**
+ * Calculates Parashari dignity and dispositor relationship of a planet in a sign.
+ */
+export function getPlanetDignityInSign(
+  planetName: PlanetName,
+  signIdx: number,
+  kundliPlanet?: { isExalted?: boolean; isDebilitated?: boolean }
+): {
+  dignity: "exalted" | "debilitated" | "own" | "mitra" | "shatru" | "sama";
+  labelKn: string;
+  labelEn: string;
+} {
+  const EXALTATION_MAP: Partial<Record<PlanetName, number>> = {
+    [PlanetName.Sun]: 0, // Mesha (Aries)
+    [PlanetName.Moon]: 1, // Vrishabha (Taurus)
+    [PlanetName.Mars]: 9, // Makara (Capricorn)
+    [PlanetName.Mercury]: 5, // Kanya (Virgo)
+    [PlanetName.Jupiter]: 3, // Karka (Cancer)
+    [PlanetName.Venus]: 11, // Meena (Pisces)
+    [PlanetName.Saturn]: 6, // Tula (Libra)
+    [PlanetName.Rahu]: 1, // Vrishabha
+    [PlanetName.Ketu]: 7 // Vrischika
+  };
+
+  const DEBILITATION_MAP: Partial<Record<PlanetName, number>> = {
+    [PlanetName.Sun]: 6, // Tula
+    [PlanetName.Moon]: 7, // Vrischika
+    [PlanetName.Mars]: 3, // Karka
+    [PlanetName.Mercury]: 11, // Meena
+    [PlanetName.Jupiter]: 9, // Makara
+    [PlanetName.Venus]: 5, // Kanya
+    [PlanetName.Saturn]: 0, // Mesha
+    [PlanetName.Rahu]: 7, // Vrischika
+    [PlanetName.Ketu]: 1 // Vrishabha
+  };
+
+  const OWN_SIGNS_MAP: Partial<Record<PlanetName, number[]>> = {
+    [PlanetName.Sun]: [4],
+    [PlanetName.Moon]: [3],
+    [PlanetName.Mars]: [0, 7],
+    [PlanetName.Mercury]: [2, 5],
+    [PlanetName.Jupiter]: [8, 11],
+    [PlanetName.Venus]: [1, 6],
+    [PlanetName.Saturn]: [9, 10],
+    [PlanetName.Rahu]: [10],
+    [PlanetName.Ketu]: [7]
+  };
+
+  const dispositor = signLord(signIdx);
+
+  if (kundliPlanet?.isExalted || EXALTATION_MAP[planetName] === signIdx) {
+    return {
+      dignity: "exalted",
+      labelKn: "ಉಚ್ಚ ಕ್ಷೇತ್ರ (ಪರಮ ಬಲಸ್ಥಾನ)",
+      labelEn: "exalted dignity (peak cosmic strength)"
+    };
+  }
+
+  if (kundliPlanet?.isDebilitated || DEBILITATION_MAP[planetName] === signIdx) {
+    return {
+      dignity: "debilitated",
+      labelKn: "ನೀಚ ಕ್ಷೇತ್ರ (ಪ್ರತಿಕೂಲ ದುರ್ಬಲತೆ)",
+      labelEn: "debilitated sign (inherent friction and resistance)"
+    };
+  }
+
+  if (OWN_SIGNS_MAP[planetName]?.includes(signIdx)) {
+    return {
+      dignity: "own",
+      labelKn: "ಸ್ವಕ್ಷೇತ್ರ (ಅತ್ಯಂತ ಪ್ರಬಲ ಸ್ವಂತ ಮನೆ)",
+      labelEn: "own sign (commanding domicile power)"
+    };
+  }
+
+  const rel = getNaturalRelationship(planetName, dispositor);
+  if (rel === "mitra") {
+    return {
+      dignity: "mitra",
+      labelKn: "ಮಿತ್ರ ಕ್ಷೇತ್ರ (ಪರಸ್ಪರ ಸೌಹಾರ್ದಯುತ ಅನುಕೂಲ)",
+      labelEn: "friendly sign (harmonious mutual affinity)"
+    };
+  }
+  if (rel === "shatru") {
+    return {
+      dignity: "shatru",
+      labelKn: "ಶತ್ರು ಕ್ಷೇತ್ರ (ಪ್ರತಿಕೂಲ ಶತ್ರುತ್ವದ ಸೆಳೆತ)",
+      labelEn: "inimical sign (underlying resistance and friction)"
+    };
+  }
+  return {
+    dignity: "sama",
+    labelKn: "ಸಮ ಕ್ಷೇತ್ರ (ಮಿಶ್ರ ತಟಸ್ಥ ಬಲ)",
+    labelEn: "neutral sign (balanced disposition)"
+  };
+}
 
 /* ==========================================================================
    1. 27 SOLAR-LUNAR YOGAS TAXONOMY & ENCYCLOPEDIC RULES
@@ -6120,10 +6217,35 @@ export const generateCurrentLifeDiagnosis = (
   // 10th House (Karma) & 2nd/11th House (Dhana)
   const h10LordPlanetName = getHouseLordPlanetName(10);
   const h10LordHouse = h10LordPl?.house ?? 10;
+  const h10SignIdx = getHouseSignIdx(10);
+  const h10LordRashiIdx = h10LordPl ? h10LordPl.rashi.index : h10SignIdx;
+  const h10LordPlacedRashiKn = toKannadaRashi(h10LordRashiIdx);
+  const h10LordDispositor = signLord(h10LordRashiIdx);
+  const h10LordDispositorKn = toKannadaPlanet(h10LordDispositor);
+  const h10Dignity = getPlanetDignityInSign(h10LordPlanetName, h10LordRashiIdx, h10LordPl);
+
   const h2SignKn = getHouseSignKn(2);
   const h2LordKn = getHouseLordKn(2);
   const h11SignKn = getHouseSignKn(11);
   const h11LordKn = getHouseLordKn(11);
+
+  // Lagna Lord & Placement
+  const lagnaLordRashiIdx = lagnaLordPl ? lagnaLordPl.rashi.index : lagnaIdx;
+  const lagnaLordPlacedRashiKn = toKannadaRashi(lagnaLordRashiIdx);
+  const lagnaLordPlacedRashiEn = lagnaLordPl?.rashi.english || lagnaEng;
+  const lagnaLordDispositor = signLord(lagnaLordRashiIdx);
+  const lagnaLordDispositorKn = toKannadaPlanet(lagnaLordDispositor);
+  const lagnaLordDignity = getPlanetDignityInSign(lagnaLord, lagnaLordRashiIdx, lagnaLordPl);
+
+  // Chandra (Moon) & Dispositor
+  const chandraHouse = moon?.house ?? 1;
+  const moonDispositor = signLord(moonRashiIdx);
+  const moonDispositorKn = toKannadaPlanet(moonDispositor);
+  const moonDignity = getPlanetDignityInSign(PlanetName.Moon, moonRashiIdx, moon);
+
+  // 4th House (Sukha / Mind Peace)
+  const h4SignIdx = getHouseSignIdx(4);
+  const h4LordHouse = h4LordPl?.house ?? 4;
 
   // Gender sensitivity
   const isFemale = context.gender?.toLowerCase() === "female" || context.gender?.toLowerCase() === "f" || context.gender === "ಮಹಿಳೆ" || context.gender === "ಸ್ತ್ರೀ";
@@ -6217,35 +6339,49 @@ export const generateCurrentLifeDiagnosis = (
     panchangaTraitKn = `ನಿಮ್ಮ ಜನ್ಮ ಕಾಲದ '${yogaKn}' ಯೋಗದ ಪ್ರಭಾವವು ಮನಸ್ಸಿಗೆ ಧೃತಿ ಮತ್ತು ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ನೀಡಿದೆ.`;
   }
 
+  let lagnaLordDispositorProseKn = "";
+  if (lagnaLordDignity.dignity === "exalted") {
+    lagnaLordDispositorProseKn = `ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಉಚ್ಚ ಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು, ತನ್ನ ಪೂರ್ಣ ದೈವಿಕ ಬಲವನ್ನು ಕುಂಡಲಿಗೆ ಧಾರೆ ಎರೆಯುತ್ತಿದ್ದಾನೆ. ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ಅತ್ಯುತ್ತಮ ಸೌಹಾರ್ದತೆ ಸಾಧಿಸಿದ್ದು, ನಿಮ್ಮ ಆಯುಷ್ಯ, ತೇಜಸ್ಸು ಹಾಗೂ ಎಂಥದ್ದೇ ಸಂಕಷ್ಟ ಎದುರಾದರೂ ಧೃತಿಗೆಡದೆ ಮುನ್ನುಗ್ಗುವ ಅದ್ಭುತ ಚೈತನ್ಯವನ್ನು ಜಾತಕಕ್ಕೆ ನೀಡಿದ್ದಾನೆ.`;
+  } else if (lagnaLordDignity.dignity === "own") {
+    lagnaLordDispositorProseKn = `ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ವಕ್ಷೇತ್ರಸ್ಥನಾಗಿದ್ದು, ಅತ್ಯಂತ ಪ್ರಬಲ ಸ್ವಂತ ಮನೆಯ ಆಡಳಿತ ಬಲವನ್ನು ಹೊಂದಿದ್ದಾನೆ. ಇದು ನಿಮ್ಮಲ್ಲಿ ಅಚಲವಾದ ಆತ್ಮವಿಶ್ವಾಸ, ಸ್ವಾಭಿಮಾನ, ಸ್ವತಂತ್ರ ಆಲೋಚನೆ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಯಾರ ಮುಂದೆಯೂ ತಲೆಬಾಗದೆ ಬದುಕುವ ನಾಯಕತ್ವದ ಗುಣವನ್ನು ರಕ್ತಗತವಾಗಿಸಿದೆ.`;
+  } else if (lagnaLordDignity.dignity === "debilitated") {
+    lagnaLordDispositorProseKn = `ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ನೀಚ ಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು, ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ಪ್ರತಿಕೂಲ ಶತ್ರುತ್ವದ ಸೆಳೆತವನ್ನು ಎದುರಿಸುತ್ತಿದ್ದಾನೆ. ಇದರಿಂದಾಗಿ ನೀವು ಪ್ರಾಮಾಣಿಕವಾಗಿ ಶೇಕಡಾ 100 ರಷ್ಟು ಶ್ರಮಪಟ್ಟರೂ ಆರಂಭದಲ್ಲಿ ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯಕ್ಕೆ ತಕ್ಕ ಸಂಪೂರ್ಣ ಮನ್ನಣೆ ತಕ್ಷಣ ಸಿಗದೆ, ನಿಮ್ಮನ್ನು ನೀವು ಪದೇಪದೇ ಸಾಬೀತುಪಡಿಸಿಕೊಳ್ಳಬೇಕಾದ ಕಠಿಣ ಪರೀಕ್ಷೆಗಳು ಎದುರಾಗುತ್ತಿವೆ.`;
+  } else if (lagnaLordDignity.dignity === "shatru") {
+    lagnaLordDispositorProseKn = `ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಶತ್ರು ಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು, ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ನೈಸರ್ಗಿಕ ಶತ್ರುತ್ವದ ಘರ್ಷಣೆಯನ್ನು ಹೊಂದಿದ್ದಾನೆ. ಈ ಗ್ರಹಾಧಿಪತಿಗಳ ನಡುವಿನ ಆಂತರಿಕ ವೈರುಧ್ಯದಿಂದಾಗಿ, ಯಾವುದೇ ಹೊಸ ಕೆಲಸ ಕೈಗೆತ್ತಿಕೊಂಡರೂ ಆರಂಭದಲ್ಲಿ ವಿರೋಧಗಳು, ಅನಿರೀಕ್ಷಿತ ವಿಳಂಬ ಅಥವಾ ಇತರರ ತಪ್ಪು ಗ್ರಹಿಕೆಗಳು ನಿಮ್ಮ ತಾಳ್ಮೆಯನ್ನು ಪರೀಕ್ಷಿಸುತ್ತವೆ.`;
+  } else if (lagnaLordDignity.dignity === "mitra") {
+    lagnaLordDispositorProseKn = `ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಮಿತ್ರ ಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು, ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ಪರಸ್ಪರ ಸೌಹಾರ್ದಯುತ ಅನುಕೂಲವನ್ನು ಪಡೆದಿದ್ದಾನೆ. ಈ ದೈವಿಕ ಮೈತ್ರಿಯು ನಿಮ್ಮಲ್ಲಿ ಸಾಮಾಜಿಕ ಗೌರವ, ಸಂಕಷ್ಟದ ಸಮಯದಲ್ಲಿ ಸಕಾಲಿಕ ಸಹಾಯ ಹಾಗೂ ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ಬದುಕನ್ನು ಕಟ್ಟಿ ನಿಲ್ಲಿಸುವ ಸ್ಥಿರ ಶಕ್ತಿಯನ್ನು ತುಂಬಿದೆ.`;
+  } else {
+    lagnaLordDispositorProseKn = `ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸಮ ಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು, ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ತಟಸ್ಥ ಬಲವನ್ನು ಹೊಂದಿದ್ದಾನೆ. ಇದು ನಿಮ್ಮ ಬದುಕಿಗೆ ಪ್ರಾಯೋಗಿಕ ಚಿಂತನೆ, ಸಮಚಿತ್ತದ ನಡೆ ಹಾಗೂ ಕಠಿಣ ಸಂದರ್ಭಗಳಲ್ಲೂ ವಿವೇಚನೆಯಿಂದ ಮುನ್ನಡೆಯುವ ವ್ಯವಸ್ಥಿತ ಯೋಜನಾ ಸಾಮರ್ಥ್ಯವನ್ನು ನೀಡಿದೆ.`;
+  }
+
   // --- 1. OPENING ICE-BREAKER ---
   let openingIceBreakerKn = "";
   let openingIceBreakerEn = "";
   if (isInfantUnder6Mo) {
-    openingIceBreakerKn = `ನೋಡಿ, ಈ ಪವಿತ್ರ ಮುದ್ದಾದ ಕಂದಮ್ಮನ ಜಾತಕವನ್ನು ಪ್ರವೇಶಿಸಿದ ತಕ್ಷಣ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ (${moonPada}ನೇ ಪಾದ) ದೈವಿಕ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ಈ ಮಗುವು ಮನೆಗೆ ಬಂದ ನಂತರ ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಸಾತ್ವಿಕ ಕಳೆ ಹಾಗೂ ಲಕ್ಷ್ಮಿ ಕಟಾಕ್ಷ ತುಂಬಿದೆ. ಈ ಕಂದಮ್ಮನ ಮುಖದಲ್ಲಿ ಸಾತ್ವಿಕ ತೇಜಸ್ಸಿದ್ದು, ತಾಯಿಯ ಸಾಮೀಪ್ಯ ಮತ್ತು ಹಾಲಿನ ಪೋಷಣೆಯಿಂದ ಮಾತ್ರ ಪೂರ್ಣ ಶಾಂತಿ ಪಡೆಯುವ ಶುದ್ಧ ದೈವಿಕ ಆತ್ಮವಿದು. ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಹಾಗೂ ಚಂದ್ರನ ಬಲವು ಮಗುವಿಗೆ ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ತಾಯಿಯ ಮಡಿಲ ರಕ್ಷಣೆಯನ್ನು ಕರುಣಿಸಿದೆ.\n\n${amshaTraitKn} ಮಗುವಿನ ಆಗಮನದಿಂದ ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಪೂಜಾ-ಪುನಸ್ಕಾರಗಳ ಸಂಭ್ರಮ ಹಾಗೂ ಪೋಷಕರಲ್ಲಿ ನೂತನ ಧನ್ಯತಾ ಭಾವ ಮೂಡಿದೆ. ನವಜಾತ ಶಿಶುವಿನ ಗ್ರಹ ರಕ್ಷಣೆಯು ಅತ್ಯಂತ ಬಲವಾಗಿದೆ.`;
-    openingIceBreakerEn = `Examining this blessed infant's birth chart, the divine resonance of ${lagnaEng} Ascendant and Moon in ${kundli.moonSign.english} with ${moonNakName} Nakshatra radiates a pure, Sattvic grace. The newborn's arrival brings sacred auspiciousness and Griha Lakshmi blessing into the family. Governed by Lagna lord ${lagnaLord} and the nurturing Moon, the infant thrives on maternal warmth and milk nourishment, carrying robust vitality and divine protection.`;
+    openingIceBreakerKn = `ನೋಡಿ, ಈ ಪವಿತ್ರ ಮುದ್ದಾದ ಕಂದಮ್ಮನ ಜಾತಕ ಕುಂಡಲಿಯನ್ನು ಮುಖತಃ ಪ್ರವೇಶಿಸಿದಾಗ, ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ (${moonPada}ನೇ ಪಾದ) ಸಾತ್ವಿಕ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ಜನ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಆ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${lagnaLordDignity.labelKn} ಪಡೆದಿದ್ದಾನೆ. ${lagnaLordDispositorProseKn} ${amshaTraitKn} ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಈ ಗ್ರಹಗಳ ಸಂಯೋಗವು ನವಜಾತ ಕಂದಮ್ಮನ ಆಯುಷ್ಯ, ರೋಗನಿರೋಧಕ ದೈಹಿಕ ರಕ್ಷಣೆ ಮತ್ತು ಮುಖದ ಸಾತ್ವಿಕ ವರ್ಚಸ್ಸಿಗೆ ಭದ್ರ ಅಡಿಪಾಯವನ್ನು ಹಾಕಿದೆ.\n\nಮಗುವಿನ ಆಗಮನದಿಂದ ನಿಮ್ಮ ಮನೆತನದಲ್ಲಿ ಸಾತ್ವಿಕ ಕಳೆ, ದೈವಿಕ ರಕ್ಷೆ ಹಾಗೂ ಗೃಹಲಕ್ಷ್ಮಿಯ ಕೃಪಾಕಟಾಕ್ಷವು ಸಂಪೂರ್ಣವಾಗಿ ತುಂಬಿಕೊಂಡಿದೆ. ಈ ಕಂದಮ್ಮನ ಮುಖದಲ್ಲಿ ಒಂದು ಪವಿತ್ರ ಶಾಂತಿಯಿದ್ದು, ತಾಯಿಯ ನಿರಂತರ ಸಾಮೀಪ್ಯ ಮತ್ತು ಸ್ತನ್ಯಪಾನದ ಉಷ್ಣತೆಯಿಂದ ಮಾತ್ರ ಮಗು ತೃಪ್ತಿ ಪಡೆಯುವಂತಹ ಅದ್ಭುತ ಸಾತ್ವಿಕ ಆತ್ಮವಿದು. ಸಣ್ಣಪುಟ್ಟ ಶಬ್ದಗಳಿಗೆ ನಿದ್ರೆಯಲ್ಲಿ ಬೆಚ್ಚಿಬೀಳುವುದು ಅಥವಾ ಅಪರಿಚಿತರ ಸ್ಪರ್ಶವಾದಾಗ ಅಳುವುದು ಇದರ ನೈಸರ್ಗಿಕ ಸಂವೇದನೆಯಾಗಿದೆ. ಮಗುವಿನ ಜನ್ಮದಿಂದ ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಪೂಜಾ-ಪುನಸ್ಕಾರಗಳ ಸಂಭ್ರಮ ಹಾಗೂ ಪೋಷಕರಲ್ಲಿ ನೂತನ ಧನ್ಯತಾ ಭಾವ ಮೂಡಿದ್ದು, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಕೃಪೆಯಿಂದ ಮಗುವಿಗೆ ಸಕಲ ಬಾಲಾರಿಷ್ಟ ರಕ್ಷೆ ಲಭಿಸಿದೆ.`;
+    openingIceBreakerEn = `Examining this blessed infant's birth chart, the divine resonance of ${lagnaEng} Ascendant and Moon in ${kundli.moonSign.english} with ${moonNakName} Nakshatra (${moonPada} Pada) radiates a pure, Sattvic grace. Lagna lord ${lagnaLord} resides in House ${lagnaLordHouse} in ${lagnaLordPlacedRashiEn}, sharing ${lagnaLordDignity.labelEn} with its dispositor ${lagnaLordDispositor}. This classical Parashari placement secures robust infant vitality, auric protection, and longevity.\n\nThe newborn's arrival brings sacred auspiciousness and Griha Lakshmi blessings into the household. The infant possesses deep sensory sensitivity, finding complete peace only in maternal warmth and milk nourishment. Gentle prayers and sacred Gokarna protection shield this tender soul against external energies.`;
   } else if (isInfantUnder2Yr) {
-    openingIceBreakerKn = `ನೋಡಿ, ಈ ಮುದ್ದು ಕಂದಮ್ಮನ ಜಾತಕವನ್ನು ನೋಡಿದರೆ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ನೈಸರ್ಗಿಕ ಚುರುಕುತನ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಮಗುವು ಈಗ ತಾನೆ ಅಂಬೆಗಾಲಿಟ್ಟು, ನೂತನ ಹೆಜ್ಜೆಗಳನ್ನಿಡುತ್ತಾ, ತನ್ನದೇ ತೊದಲು ನುಡಿಗಳಿಂದ ಎಲ್ಲರ ಗಮನ ಸೆಳೆಯುವ ಹಂತದಲ್ಲಿದೆ. 2ನೇ ವಾಕ್ ಸ್ಥಾನ ಮತ್ತು ಲಗ್ನದ ಪ್ರಭಾವದಿಂದ ಈ ಮಗುವಿಗೆ ಯಾರಾದರೂ ಗಟ್ಟಿಯಾಗಿ ಮಾತಾಡಿದರೆ ಬೇಗನೆ ಮುನಿಸಿಕೊಳ್ಳುವ ಅಥವಾ ಹೆದರುವ ಸೂಕ್ಷ್ಮತೆ ಇದೆ; ಆದರೆ ಪ್ರೀತಿಯಿಂದ ಕರೆದರೆ ಮುಖದಲ್ಲಿ ನಗು ತುಂಬಿ ತುಳುಕುತ್ತದೆ.\n\n${lagnaElementTraitKn} ಮಗುವಿನ ಗ್ರಹ ಸಂಯೋಜನೆಯು ಕುಟುಂಬದಲ್ಲಿ ಅಪಾರ ಸಂತೋಷ ತಂದಿದ್ದು, ಮಗುವಿನ ಆರೋಗ್ಯ ಮತ್ತು ನೈಸರ್ಗಿಕ ವಿಕಾಸವು ಉತ್ತಮ ಗ್ರಹಬಲದ ರಕ್ಷಣೆಯಲ್ಲಿದೆ.`;
-    openingIceBreakerEn = `Looking into this toddler's horoscope, the energetic resonance of ${lagnaEng} Ascendant and ${kundli.moonSign.english} Moon illuminates early developmental milestones. Taking playful steps, articulating toddler syllables, and captivating the household with curious wonder, the child possesses acute sensitivity—withdrawing if spoken to sternly, yet blossoming radiantly when enveloped with patient love.`;
+    openingIceBreakerKn = `ನೋಡಿ, ಈ ಮುದ್ದು ಕಂದಮ್ಮನ ಜಾತಕ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಗಮನಿಸಿದಾಗ, ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ನೈಸರ್ಗಿಕ ಚುರುಕುತನ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿ) ಇದ್ದು, ಆ ರಾಶ್ಯಾಧಿಪತಿ ${lagnaLordDispositorKn} ಜೊತೆ ${lagnaLordDignity.labelKn} ಪಡೆದಿದ್ದಾನೆ. ${lagnaLordDispositorProseKn} ${lagnaElementTraitKn} 2ನೇ ವಾಕ್ ಸ್ಥಾನ ಮತ್ತು ಲಗ್ನದ ಮೇಲಿರುವ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಗುವು ಈಗ ತಾನೇ ಅಂಬೆಗಾಲಿಟ್ಟು, ನೂತನ ಹೆಜ್ಜೆಗಳನ್ನಿಡುತ್ತಾ, ತನ್ನದೇ ತೊದಲು ನುಡಿಗಳಿಂದ ಮನೆಯವರೆಲ್ಲರ ಗಮನವನ್ನು ತನ್ನತ್ತ ಸೆಳೆಯುವ ಅದ್ಭುತ ಬೆಳವಣಿಗೆಯ ಹಂತದಲ್ಲಿದೆ.\n\nಈ ಮಗುವಿನ ಅಂತರಂಗ ಅತ್ಯಂತ ಸೂಕ್ಷ್ಮವಾಗಿದ್ದು, ಯಾರಾದರೂ ಗಟ್ಟಿಯಾಗಿ ಮಾತಾಡಿದರೆ ಅಥವಾ ಕೋಪ ತೋರಿದರೆ ತಕ್ಷಣ ಮುಖ ಸಣ್ಣದು ಮಾಡಿಕೊಂಡು ಅಳುವ ಅಥವಾ ಮುನಿಸಿಕೊಳ್ಳುವ ಸ್ವಭಾವವಿದೆ; ಅದೇ ಪ್ರೀತಿಯಿಂದ ನಕ್ಕರೆ ತಕ್ಷಣ ಅಪ್ಪಿಕೊಂಡು ನಗುವ ಮುಗ್ಧ ಪ್ರೀತಿ ಮಗುವಿನಲ್ಲಿದೆ. ತನಗೆ ಬೇಕಾದ ಆಟಿಕೆ ಅಥವಾ ವಸ್ತುವನ್ನು ಪಡೆಯಲು ಸಣ್ಣ ಹಠ ಮಾಡುವುದು ಹಾಗೂ ತಾಯಿಯ ಸುತ್ತಲೇ ಗಿರಕಿ ಹೊಡೆಯುವ ಪ್ರವೃತ್ತಿ ಸ್ಪಷ್ಟವಾಗಿದೆ. ಮಗುವಿನ ಗ್ರಹ ಸಂಯೋಜನೆಯು ಕುಟುಂಬದಲ್ಲಿ ಅಪಾರ ನಗು-ಸಂತೋಷವನ್ನು ತಂದಿದ್ದು, ಮಗುವಿನ ಬೆಳವಣಿಗೆ ಮತ್ತು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯು ಉತ್ತಮ ಗ್ರಹಬಲದ ರಕ್ಷಣೆಯಲ್ಲಿದೆ.`;
+    openingIceBreakerEn = `Looking into this toddler's horoscope, the energetic resonance of ${lagnaEng} Ascendant and ${kundli.moonSign.english} Moon illuminates early developmental milestones. Lagna lord ${lagnaLord} occupies House ${lagnaLordHouse} in ${lagnaLordPlacedRashiEn}, harmonizing with dispositor ${lagnaLordDispositor}. The 2nd house of speech and motor coordination indicates a sharp, curious, and playful child.\n\nTaking adventurous toddler steps, articulating syllables, and captivating the family with joyful wonder, the child carries tender emotional sensitivity—withdrawing if scolded sternly, but blossoming radiantly under patient affection. Divine planetary grace ensures physical vigor and joyous childhood development.`;
   } else if (isChild) {
-    openingIceBreakerKn = `ನೋಡಿ, ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕವನ್ನು ನೋಡಿದ ತಕ್ಷಣ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ (${moonPada}ನೇ ಪಾದ) ಗ್ರಹ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ${lagnaElementTraitKn} ಮಗುವಿನ ಮೂಲ ಪ್ರಕೃತಿ ಅತ್ಯಂತ ಮುಗ್ಧ, ಚುರುಕು ಮತ್ತು ಅಪಾರ ಕಲಿಯುವ ಹಂಬಲವನ್ನು ಹೊಂದಿದೆ. ಆದರೆ ಯಾವುದಾದರೂ ವಿಷಯ ಇಷ್ಟವಾಗದಿದ್ದರೆ ತಕ್ಷಣ ಹಠ ಮಾಡುವ ಅಥವಾ ತನ್ನದೇ ಮಾತು ನಡೆಯಬೇಕೆಂಬ ಪುಟ್ಟ ಸ್ವಾಭಿಮಾನ ಮಗುವಿನಲ್ಲಿದೆ.\n\n${amshaTraitKn} ಬಲವಂತವಾಗಿ ಓದಿಸಲು ಕೂರಿಸಿದರೆ ಗಮನ ಚದುರುತ್ತದೆ, ಆದರೆ ಪ್ರೀತಿ-ಮೆಚ್ಚುಗೆಯಿಂದ ಹೇಳಿದರೆ ಆಶ್ಚರ್ಯಕರವಾಗಿ ಶ್ರದ್ಧೆ ತೋರುತ್ತದೆ. ಸರಿಯಾದ ಪ್ರೋತ್ಸಾಹ ನೀಡಿದರೆ ತನ್ನದೇ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಗ್ರಸ್ಥಾನ ಪಡೆಯುವ ಶಕ್ತಿ ಮಗುವಿಗಿದೆ.`;
-    openingIceBreakerEn = `Observing the young student's chart, the ${lagnaEng} Ascendant and ${kundli.moonSign.english} Moon (${moonNakName} Nakshatra) reveal an imaginative, alert, and innocent intellect. While eager to explore new concepts, the child has an independent streak—resisting forced study routines but flourishing remarkably when motivated through encouragement and joyful praise.`;
+    openingIceBreakerKn = `ನೋಡಿ, ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕ ಕುಂಡಲಿಯನ್ನು ನೋಡಿದಾಗ, ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ (${moonPada}ನೇ ಪಾದ) ಗ್ರಹ ಸಂಯೋಜನೆಯು ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ಜನ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ಆ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${lagnaLordDignity.labelKn} ಪಡೆದಿದ್ದಾನೆ. ${lagnaLordDispositorProseKn} ${lagnaElementTraitKn} ${amshaTraitKn} ಈ ಗ್ರಹಗಳ ಸಂಯೋಗವು ಮಗುವಿಗೆ ತೀಕ್ಷ್ಣವಾದ ಬುದ್ಧಿಶಕ್ತಿ, ಹೊಸ ವಿಷಯಗಳನ್ನು ತಕ್ಷಣ ಗ್ರಹಿಸುವ ಕೌಶಲ್ಯ ಹಾಗೂ ಸ್ವತಂತ್ರವಾಗಿ ಯೋಚಿಸುವ ಅದ್ಭುತ ಸಾಮರ್ಥ್ಯವನ್ನು ಕರುಣಿಸಿದೆ.\n\nಮಗುವಿನ ಮೂಲ ಪ್ರಕೃತಿಯನ್ನು ನೋಡಿದರೆ, ಅತ್ಯಂತ ಮುಗ್ಧ ಮತ್ತು ಚುರುಕಾಗಿದ್ದರೂ ತನ್ನದೇ ಆದ ಪುಟ್ಟ ಸ್ವಾಭಿಮಾನ ಮತ್ತು ಹಠದ ಗುಣ ಮಗುವಿನಲ್ಲಿದೆ. ಯಾರಾದರೂ ಅಧಿಕಾರ ಚಲಾಯಿಸಿ ಬಲವಂತವಾಗಿ ಓದಲು ಕೂರಿಸಿದರೆ ಮಗು ತಕ್ಷಣ ವಿರೋಧ ವ್ಯಕ್ತಪಡಿಸುತ್ತದೆ ಅಥವಾ ಗಮನವನ್ನು ಬೇರೆಡೆಗೆ ಹರಿಸುತ್ತದೆ; ಆದರೆ ಅದೇ ಪ್ರೀತಿಯಿಂದ ಪ್ರೋತ್ಸಾಹಿಸಿ, ಬೆನ್ನು ತಟ್ಟಿ ಹೇಳಿದರೆ ಅತ್ಯಂತ ಕಠಿಣವಾದ ಪಾಠವನ್ನೂ ಆಶ್ಚರ್ಯಕರವಾದ ಶ್ರದ್ಧೆಯಿಂದ ಕಲಿಯುತ್ತದೆ. ತನ್ನ ಆಟಿಕೆ ಮತ್ತು ಪುಸ್ತಕಗಳನ್ನು ಇತರರೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳುವಲ್ಲಿ ತನ್ನದೇ ನಿಯಮಗಳನ್ನು ಇಟ್ಟುಕೊಂಡಿದೆ. ಸರಿಯಾದ ಪ್ರೋತ್ಸಾಹ ಮತ್ತು ಮಾರ್ಗದರ್ಶನ ನೀಡಿದರೆ ತನ್ನದೇ ಆಸಕ್ತಿಯ ಶೈಕ್ಷಣಿಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಗ್ರಸ್ಥಾನ ಗಳಿಸುವ ಅಗಾಧ ಪ್ರತಿಭೆ ಮಗುವಿನಲ್ಲಿದೆ.`;
+    openingIceBreakerEn = `Observing the young student's chart, the ${lagnaEng} Ascendant and ${kundli.moonSign.english} Moon (${moonNakName} Nakshatra, Pada ${moonPada}) reveal an imaginative, alert, and innocent intellect. Lagna lord ${lagnaLord} posited in House ${lagnaLordHouse} interacts with dispositor ${lagnaLordDispositor}, infusing curiosity, rapid cognitive grasp, and an independent learning spirit.\n\nWhile inherently bright and responsive, the child possesses natural self-esteem—resisting rigid force or public reprimands, yet excelling with extraordinary focus when approached with gentle praise and structured encouragement. Nurturing their individual talents will lead to distinguished scholastic accomplishments.`;
   } else if (isYouth) {
-    openingIceBreakerKn = `ನೋಡಿ, ನಿಮ್ಮ ಜಾತಕವನ್ನು ಪ್ರವೇಶಿಸಿದ ತಕ್ಷಣ ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ (${moonPada}ನೇ ಪಾದ) ಗ್ರಹ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ${lagnaElementTraitKn} ${lagnaLordTraitKn}\n\n${amshaTraitKn} ${panchangaTraitKn} ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯದ ಬಗ್ಗೆ ನಿಮಗೆ ಬಲವಾದ ನಂಬಿಕೆಯಿದೆ; ಆದರೆ ಭವಿಷ್ಯದ ಸ್ಪರ್ಧಾತ್ಮಕ ಶಿಕ್ಷಣ ಅಥವಾ ವೃತ್ತಿ ದಿಕ್ಕಿನ ಬಗ್ಗೆ ಮನಸ್ಸಿನಲ್ಲಿ ಹತ್ತಾರು ಯೋಜನೆಗಳು ಏಕಕಾಲದಲ್ಲಿ ಓಡುತ್ತಿವೆ. ಪ್ರಸ್ತುತ ನೀವು ನಿಮ್ಮ ಬದುಕಿನ ಪ್ರಮುಖ ವೃತ್ತಿ ಬುನಾದಿಯನ್ನು ರೂಪಿಸಿಕೊಳ್ಳುವ ಕಾಲಘಟ್ಟದಲ್ಲಿದ್ದೀರಿ.`;
-    openingIceBreakerEn = `Reviewing your chart, your ${lagnaEng} Ascendant and Moon in ${kundli.moonSign.english} with ${moonNakName} Nakshatra reflect high ambition, intellectual independence, and a fierce resistance to micro-management. You harbor deep belief in your capabilities, though multiple competing academic and career paths occupy your thoughts. This independent spirit is the engine of your future success.`;
+    openingIceBreakerKn = `ನೋಡಿ, ನಿಮ್ಮ ಜಾತಕ ಕುಂಡಲಿಯನ್ನು ಮುಖತಃ ಪ್ರವೇಶಿಸಿದಾಗ, ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ (${moonPada}ನೇ ಪಾದ) ಗ್ರಹ ಸಂಯೋಜನೆಯು ಅತ್ಯಂತ ಸ್ಪಷ್ಟವಾಗಿ ಎದ್ದು ಕಾಣುತ್ತದೆ. ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${lagnaLordDignity.labelKn} ಹೊಂದಿದೆ. ${lagnaLordDispositorProseKn} ${lagnaLordTraitKn} ${amshaTraitKn} ${panchangaTraitKn} ಈ ಜಾತಕ ಬಲವು ನಿಮ್ಮಲ್ಲಿ ದೊಡ್ಡ ಗುರಿಗಳನ್ನು ಸಾಧಿಸುವ ಆಕಾಂಕ್ಷೆ, ಬೌದ್ಧಿಕ ಸ್ವಾವಲಂಬನೆ ಹಾಗೂ ಯುವ ವಯಸ್ಸಿನ ನೈಸರ್ಗಿಕ ಉತ್ಸಾಹವನ್ನು ಜಾಗೃತಗೊಳಿಸಿದೆ.\n\nನಿಮ್ಮ ಮಾನಸಿಕ ಪ್ರಕೃತಿಯನ್ನು ನೋಡಿದರೆ, ನೀವು ಯಾರ ಮುಂದೆಯೂ ಅನಗತ್ಯವಾಗಿ ಕೈಚಾಚಲು ಇಷ್ಟಪಡದ ಅದಮ್ಯ ಸ್ವಾಭಿಮಾನಿ. ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ನೀವೇ ಸ್ವತಂತ್ರವಾಗಿ ತೆಗೆದುಕೊಳ್ಳಬೇಕೆಂಬ ದೃಢ ಸಂಕಲ್ಪ ನಿಮಗಿದೆ; ಯಾರಾದರೂ ನಿಮ್ಮ ಮೇಲೆ ಅತಿಯಾದ ನಿಯಂತ್ರಣ ಹೇರಲು ಪ್ರಯತ್ನಿಸಿದರೆ ನಿಮ್ಮ ಅಂತರಂಗ ತಕ್ಷಣ ಸಿಡಿದೇಳುತ್ತದೆ ಅಥವಾ ಮೌನವಾಗಿ ದೂರ ಸರಿಯುತ್ತದೆ. ಪ್ರಸ್ತುತ ಸ್ಪರ್ಧಾತ್ಮಕ ಶಿಕ್ಷಣ, ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ ಅಥವಾ ವೃತ್ತಿ ಬುನಾದಿಯ ಬಗ್ಗೆ ಮನಸ್ಸಿನಲ್ಲಿ ಹತ್ತಾರು ಕನಸುಗಳು ಏಕಕಾಲಕ್ಕೆ ಓಡುತ್ತಿವೆ. ನಿಮ್ಮ ಸಾಮರ್ಥ್ಯದ ಮೇಲೆ ನಿಮಗೆ ಬಲವಾದ ನಂಬಿಕೆಯಿದ್ದರೂ, ಭವಿಷ್ಯದ ಅನಿಶ್ಚಿತತೆಯು ಆಗಾಗ ಸಣ್ಣ ಆತಂಕ ತರುತ್ತದೆ. ಆದರೆ ನಿಮ್ಮ ಪರಿಶ್ರಮ ಮತ್ತು ಸ್ವಂತಿಕೆಯು ನಿಮ್ಮನ್ನು ಉನ್ನತ ಸ್ಥಾನಕ್ಕೆ ಕೊಂಡೊಯ್ಯುವುದು ನಿಶ್ಚಿತ.`;
+    openingIceBreakerEn = `Reviewing your chart face-to-face, your ${lagnaEng} Ascendant and Moon in ${kundli.moonSign.english} with ${moonNakName} Nakshatra reflect high ambition, intellectual independence, and a fierce resistance to micromanagement. Your Lagna lord ${lagnaLord} in House ${lagnaLordHouse} in ${lagnaLordPlacedRashiEn} engages in ${lagnaLordDignity.labelEn} with dispositor ${lagnaLordDispositor}, forming a rock-solid foundation for intellectual drive and personal enterprise.\n\nYou harbor an unyielding sense of self-respect, refusing to bow to coercion or beg for unearned favors. You demand autonomy over your life decisions. While competing academic or career aspirations currently trigger occasional subconscious stress, your natural tenacity and analytical grit ensure an eventual breakthrough into leadership.`;
   } else if (isMatureAdult) {
-    openingIceBreakerKn = `ನೋಡಿ, ನಿಮ್ಮ ಜಾತಕವನ್ನು ಪ್ರವೇಶಿಸಿದ ತಕ್ಷಣ ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ ಅನುಭವಪೂರ್ಣ ಗ್ರಹ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ${lagnaElementTraitKn} ${lagnaLordTraitKn}\n\n${amshaTraitKn} ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ನೀವು ಅನೇಕ ಏಳು-ಬೀಳುಗಳನ್ನು ಸ್ವಂತ ಶಕ್ತಿಯಿಂದಲೇ ಎದುರಿಸಿ, ಕುಟುಂಬವನ್ನು ಕಟ್ಟಿ ನಿಲ್ಲಿಸಿದ ಧೀಮಂತ ವ್ಯಕ್ತಿತ್ವ ನಿಮ್ಮದು. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಮಕ್ಕಳ ಭವಿಷ್ಯದ ನೆಲೆ, ಕುಟುಂಬದ ಸುಸ್ಥಿರತೆ ಹಾಗೂ ನಿಮ್ಮದೇ ಆದ ಗೌರವಾನ್ವಿತ, ಪ್ರಶಾಂತ ಜೀವನದ ಧ್ಯೇಯ ನಿಮ್ಮ ಮನಸ್ಸಿನ ಮುಂಚೂಣಿಯಲ್ಲಿದೆ.`;
-    openingIceBreakerEn = `Your ${lagnaEng} Ascendant and ${kundli.moonSign.english} Moon demonstrate a life forged through diligence, self-respect, and family leadership. Having navigated life's crests and troughs through self-reliance without bowing to compromise, your primary focus now centers on your children's successful settlement and preserving enduring family peace.`;
+    openingIceBreakerKn = `ನೋಡಿ, ತಮ್ಮ ಅನುಭವಪೂರ್ಣ ಜಾತಕ ಕುಂಡಲಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ ಗಂಭೀರ ಗ್ರಹ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ತಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಮನೆಯಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಆ ಕ್ಷೇತ್ರದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಜೊತೆ ${lagnaLordDignity.labelKn} ಪಡೆದಿದ್ದಾನೆ. ${lagnaLordDispositorProseKn} ${lagnaLordTraitKn} ${amshaTraitKn} ${lagnaElementTraitKn} ಈ ಗ್ರಹ ಸ್ಥಿತಿಯು ತಮಗೆ ಜೀವಮಾನವಿಡೀ ಎದುರಾದ ಸವಾಲುಗಳನ್ನು ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದಲೇ ಮೆಟ್ಟಿ ನಿಲ್ಲುವ ಅಪಾರ ಮನೋಸ್ಥೈರ್ಯ ಮತ್ತು ಗೌರವಾನ್ವಿತ ನಾಯಕತ್ವವನ್ನು ಕರುಣಿಸಿದೆ.\n\nತಮ್ಮ ಸ್ವಭಾವವನ್ನು ನೋಡಿದರೆ, ತಾವು ಬದುಕಿನಲ್ಲಿ ಯಾರ ಹಂಗಿಗೂ ಒಳಗಾಗದೆ, ಸ್ವಂತ ಬೆವರಿನಿಂದಲೇ ಕುಟುಂಬದ ಪ್ರತಿ ಇಟ್ಟಿಗೆಯನ್ನು ಕಟ್ಟಿ ನಿಲ್ಲಿಸಿದ ಧೀಮಂತ ವ್ಯಕ್ತಿತ್ವ. ಕಷ್ಟದ ದಿನಗಳಲ್ಲಿ ಯಾರೂ ಬೆಂಬಲಕ್ಕೆ ಬಾರದಿದ್ದರೂ ಎದೆಗುಂದದೆ ಕುಟುಂಬದ ಬೆನ್ನೆಲುಬಾಗಿ ನಿಂತು ಸಕಲ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಪೂರೈಸಿದ್ದೀರಿ. ಸಮಾಜದಲ್ಲಿ ತಮ್ಮ ಗೌರವಕ್ಕೆ ಯಾವುದೇ ಕಳಂಕ ಬಾರದಂತೆ ನಡೆದುಕೊಂಡಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ತಮ್ಮ ಮಕ್ಕಳ ನೆಲೆ, ಅವರ ಭವಿಷ್ಯದ ಸುಸ್ಥಿರತೆ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಬೇಕೆಂಬ ಚಿಂತನೆಯೇ ತಮ್ಮ ಮನಸ್ಸಿನ ಮುಂಚೂಣಿಯಲ್ಲಿದೆ. ತಮ್ಮ ಜೀವನದ ಈ ಅನುಭವ ಮತ್ತು ಸಂಸ್ಕಾರವೇ ಇಂದು ಇಡೀ ಕುಟುಂಬಕ್ಕೆ ಶ್ರೀರಕ್ಷೆಯಾಗಿದೆ.`;
+    openingIceBreakerEn = `Examining your mature horoscope, your ${lagnaEng} Ascendant and ${kundli.moonSign.english} Moon demonstrate a life forged through diligence, self-respect, and quiet family leadership. Your Lagna lord ${lagnaLord} occupies House ${lagnaLordHouse} in ${lagnaLordPlacedRashiEn}, sharing ${lagnaLordDignity.labelEn} with dispositor ${lagnaLordDispositor}, reflecting immense endurance through life's trials.\n\nHaving built your home and supported your family through personal sweat without compromising principles, you hold your head high in society. Your current priorities center on ensuring your children's successful settlement and preserving lasting domestic harmony. Your lifelong sacrifices remain an unshakeable protective fortress for your household.`;
   } else if (isSenior) {
-    openingIceBreakerKn = `ನೋಡಿ, ಹಿರಿಯರಾದ ತಮ್ಮ ಜಾತಕವನ್ನು ಪ್ರವೇಶಿಸಿದ ತಕ್ಷಣ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ಶಾಂತ, ಗಂಭೀರ ಹಾಗೂ ಧರ್ಮನಿಷ್ಠ ಪ್ರಭಾವವು ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣುತ್ತದೆ. ${lagnaElementTraitKn} ${lagnaLordTraitKn}\n\n${amshaTraitKn} ತಾವು ತಮ್ಮ ಇಡೀ ಜೀವಮಾನವನ್ನು ಧರ್ಮ, ಪರಿಶ್ರಮ ಮತ್ತು ಕುಟುಂಬದ ರಕ್ಷಣೆಗಾಗಿ ಮುಡಿಪಾಗಿಟ್ಟ ಪುಣ್ಯಜೀವಿ. ಸಮಾಜ ಮತ್ತು ಕುಟುಂಬದಲ್ಲಿ ಅನೇಕ ಕರ್ತವ್ಯಗಳನ್ನು ಪೂರೈಸಿರುವ ತಾವು, ಪ್ರಸ್ತುತ ಪರಮಾತ್ಮನ ಧ್ಯಾನ, ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆ ಹಾಗೂ ಯಾರ ಹಂಗೂ ಇಲ್ಲದ ಗೌರವಾನ್ವಿತ ಜೀವನವನ್ನು ಬಯಸುತ್ತಿದ್ದೀರಿ. ತಮ್ಮ ಅನುಭವವು ಮನೆತನಕ್ಕೆ ಶ್ರೀರಕ್ಷೆಯಾಗಿದೆ.`;
-    openingIceBreakerEn = `In your senior years, your ${lagnaEng} Ascendant and ${kundli.moonSign.english} Moon bestow dignified serenity, deep dharmic wisdom, and detachment from mundane strifes. Having fulfilled your worldly responsibilities, your focus is rightfully anchored upon spiritual quietude, physical ease, and imparting sacred blessings to your children and grandchildren.`;
+    openingIceBreakerKn = `ನೋಡಿ, ಹಿರಿಯರಾದ ತಮ್ಮ ಪವಿತ್ರ ಜಾತಕ ಕುಂಡಲಿಯನ್ನು ನೋಡಿದ ತಕ್ಷಣ, ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ಶಾಂತ, ಗಂಭೀರ ಹಾಗೂ ಧರ್ಮನಿಷ್ಠ ಗ್ರಹ ಪ್ರಭಾವವು ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ತಮ್ಮ ಜನ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಮನೆಯಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿ) ಇದ್ದು, ಆ ರಾಶ್ಯಾಧಿಪತಿ ${lagnaLordDispositorKn} ಜೊತೆ ${lagnaLordDignity.labelKn} ಪಡೆದಿದ್ದಾನೆ. ${lagnaLordDispositorProseKn} ${lagnaLordTraitKn} ${amshaTraitKn} ತಮ್ಮ ಇಡೀ ಜೀವಮಾನವನ್ನು ಧರ್ಮ, ಸತ್ಯ, ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ಕುಟುಂಬ ರಕ್ಷಣೆಗಾಗಿ ಮುಡಿಪಾಗಿಟ್ಟ ಸಾತ್ವಿಕ ಪುಣ್ಯಜೀವಿ ತಾವು.\n\nತಮ್ಮ ಅಂತರಂಗವನ್ನು ನೋಡಿದರೆ, ಲೌಕಿಕ ಜಗತ್ತಿನ ಕೃತಕ ಆಡಂಬರ ಮತ್ತು ವ್ಯಾಮೋಹಗಳಿಂದ ಸಂಪೂರ್ಣ ಮುಕ್ತವಾಗಿ, ಪರಮಾತ್ಮನ ಧ್ಯಾನ ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ನೆಮ್ಮದಿಯನ್ನು ಬಯಸುವ ಉನ್ನತ ಹಂತದಲ್ಲಿದ್ದೀರಿ. ಬದುಕಿನಲ್ಲಿ ಯಾರ ಮೇಲೂ ಹೊರೆಯಾಗಬಾರದು, ಶರೀರದಲ್ಲಿ ಹೆಚ್ಚಿನ ನೋವು-ಯಾತನೆಗಳಿಲ್ಲದೆ ಗೌರವಯುತವಾಗಿ ಕಾಲ ಕಳೆಯಬೇಕೆಂಬುದೇ ತಮ್ಮ ಏಕೈಕ ಆಂತರಿಕ ಪ್ರಾರ್ಥನೆಯಾಗಿದೆ. ತಮ್ಮ ಮಕ್ಕಳು ಮತ್ತು ಮೊಮ್ಮಕ್ಕಳು ಸನ್ಮಾರ್ಗದಲ್ಲಿ ನಡೆದು ಸುಖವಾಗಿರಲಿ ಎಂಬ ತಮ್ಮ ಹೃದಯಪೂರ್ವಕ ಆಶೀರ್ವಾದವೇ ಇಂದು ಅವರ ಪಾಲಿನ ಅತ್ಯುನ್ನತ ಸಂಪತ್ತಾಗಿದೆ. ಭಗವಂತನ ಕೃಪೆಯಿಂದ ತಮಗೆ ಆಯುಷ್ಯ ಮತ್ತು ದೈವಿಕ ಶಾಂತಿ ಸದಾ ಲಭಿಸಲಿದೆ.`;
+    openingIceBreakerEn = `In your venerable golden years, your ${lagnaEng} Ascendant and ${kundli.moonSign.english} Moon radiate serene detachment, deep dharmic wisdom, and spiritual composure. Lagna lord ${lagnaLord} in House ${lagnaLordHouse} in ${lagnaLordPlacedRashiEn} reflects a lifetime anchored in righteousness, sacrifice, and moral uprightness.\n\nDetached from fleeting material vanity, your sole daily aspiration is physical comfort, peaceful meditation, and remaining dignified without becoming a burden to anyone. The unconditional blessings you bestow upon your children and grandchildren are their most powerful cosmic shield.`;
   } else {
     // Prime Adult (25-49)
-    openingIceBreakerKn = `ನೋಡಿ, ನಿಮ್ಮ ಜಾತಕವನ್ನು ಪ್ರವೇಶಿಸಿದ ತಕ್ಷಣ ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ (${moonPada}ನೇ ಪಾದ) ಗ್ರಹ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ${lagnaElementTraitKn} ${lagnaLordTraitKn}\n\n${amshaTraitKn} ${panchangaTraitKn} ${isFemale ? "ಮಹಿಳೆಯಾಗಿ ನಿಮ್ಮ ಗೌರವ ಹಾಗೂ ಕುಟುಂಬದ ಶ್ರೇಯಸ್ಸನ್ನು ಕಾಯ್ದುಕೊಳ್ಳಲು ಯಾರ ಒತ್ತಾಯಕ್ಕೂ ಮಣಿಯುವುದಿಲ್ಲ." : "ಪುರುಷನಾಗಿ ನೀವು ಸಂಸಾರದ ಜವಾಬ್ದಾರಿಯನ್ನು ಹೊತ್ತು, ಯಾರ ಮುಂದೆಯೂ ತಲೆತಗ್ಗಿಸದೆ ಬದುಕುವ ಛಲಗಾರರು."} ಪ್ರಸ್ತುತ ನೀವು ನಿಮ್ಮ ಜೀವನದ ಮಹತ್ತರ ತಿರುವು ಮತ್ತು ಹೊಸ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಕಾಲಘಟ್ಟದಲ್ಲಿದ್ದೀರಿ.`;
-    openingIceBreakerEn = `Looking deeply into your chart, your ${lagnaEng} Ascendant and Moon in ${kundli.moonSign.english} with ${moonNakName} Nakshatra creates a fiercely independent, highly principled, and self-respecting character. You rely on your own diligence and never bow to forced coercion. As a ${isFemale ? "woman of dignity and deep family commitment" : "dedicated provider and determined individual"}, you have come today to understand your genuine planetary strengths and prepare for your upcoming breakthrough.`;
+    openingIceBreakerKn = `ನೋಡಿ, ನಿಮ್ಮ ಜಾತಕ ಕುಂಡಲಿಯನ್ನು ಮುಖತಃ ಪ್ರವೇಶಿಸಿದಾಗ, ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನ ಹಾಗೂ ${moonRashiKn} ರಾಶಿಯ ${moonNakKn} ನಕ್ಷತ್ರದ (${moonPada}ನೇ ಪಾದ) ಗ್ರಹ ಸಂಯೋಜನೆಯು ಎದ್ದು ಕಾಣುತ್ತದೆ. ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿ (${lagnaLordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಈ ಭಾವದ ಅಧಿಪತಿಯಾದ ${lagnaLordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${lagnaLordDignity.labelKn} ಹೊಂದಿದೆ. ${lagnaLordDispositorProseKn} ${lagnaElementTraitKn} ${lagnaLordTraitKn} ${amshaTraitKn} ${panchangaTraitKn} ಈ ಜಾತಕ ಪ್ರಭಾವವು ನಿಮಗೆ ಯಾವುದೇ ಬಿಕ್ಕಟ್ಟನ್ನು ಧೈರ್ಯವಾಗಿ ಎದುರಿಸಿ ಗೆಲ್ಲುವ ಅದ್ಭುತ ಚೇತನ ಮತ್ತು ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ನೀಡಿದೆ.\n\nನಿಮ್ಮ ನೈಜ ಮೂಲ ಪ್ರಕೃತಿಯನ್ನು ಬಿಡಿಸಿ ಹೇಳುವುದಾದರೆ — ನೀವು ಅತ್ಯಂತ ಸ್ವಾಭಿಮಾನಿ, ಯಾರ ಮುಂದೆಯೂ ಅನಗತ್ಯವಾಗಿ ತಲೆತಗ್ಗಿಸದ ಛಲಗಾರರು. ಯಾರಾದರೂ ಪ್ರೀತಿಯಿಂದ, ಗೌರವದಿಂದ ಮಾತನಾಡಿಸಿದರೆ ಪ್ರಾಣವನ್ನಾದರೂ ಕೊಡಲು ಸಿದ್ಧ; ಆದರೆ ಅದೇ ಯಾರಾದರೂ ಅಧಿಕಾರ ಚಲಾಯಿಸಿ ನಿಮ್ಮ ಮೇಲೆ ತಮ್ಮ ಅಭಿಪ್ರಾಯ ಹೇರಲು ಬಂದರೆ ಸಂಪೂರ್ಣವಾಗಿ ಅಂತರ ಕಾಯ್ದುಕೊಳ್ಳುತ್ತೀರಿ. ಕಷ್ಟಗಳು ಬಂದಾಗ ಬೇರೆಯವರ ಮುಂದೆ ಗೋಳಾಡದೆ ಎಲ್ಲವನ್ನೂ ನಿಮ್ಮ ಎದೆಯೊಳಗೇ ಅದುಮಿಟ್ಟುಕೊಂಡು ಒಂಟಿಯಾಗಿ ಹೋರಾಡುತ್ತೀರಿ. ${isFemale ? "ಮಹಿಳೆಯಾಗಿ ಸಂಸಾರದ ಸಮಸ್ತ ಜವಾಬ್ದಾರಿಯನ್ನು ಹೊತ್ತು, ಕುಟುಂಬದ ಗೌರವವನ್ನು ಕಾಪಾಡಲು ಹಗಲಿರುಳು ಶ್ರಮಿಸುತ್ತಿದ್ದೀರಿ." : "ಪುರುಷನಾಗಿ ಸಂಸಾರದ ನೊಗವನ್ನು ಹೊತ್ತು, ಯಾರ ಹಂಗೂ ಇಲ್ಲದೆ ಸ್ವಂತ ಶಕ್ತಿಯಿಂದಲೇ ಮೇಲೆ ಬರಬೇಕೆಂಬ ಹಠ ನಿಮ್ಮಲ್ಲಿದೆ."} ಪ್ರಸ್ತುತ ನೀವು ನಿಮ್ಮ ಬದುಕಿನ ಮಹತ್ತರ ತಿರುವನ್ನು ಎದುರುನೋಡುತ್ತಿರುವ ಪ್ರಮುಖ ಕಾಲಘಟ್ಟದಲ್ಲಿದ್ದೀರಿ.`;
+    openingIceBreakerEn = `Looking deeply into your chart, your ${lagnaEng} Ascendant and Moon in ${kundli.moonSign.english} with ${moonNakName} Nakshatra (${moonPada} Pada) establish a fiercely independent, highly principled, and self-respecting character. Lagna lord ${lagnaLord} sits in House ${lagnaLordHouse} in ${lagnaLordPlacedRashiEn}, sharing ${lagnaLordDignity.labelEn} with dispositor ${lagnaLordDispositor}. This planetary alignment endows you with immense mental resilience, personal dignity, and natural leadership aptitude.\n\nYou rely exclusively on your own grit, refusing to compromise self-worth or submit to high-handed dominance. When treated with genuine affection and honor, you offer boundless loyalty; but when confronted by forced manipulation, you erect unyielding boundaries. Carrying family and professional burdens silently without airing vulnerabilities, you are now poised at a critical crossroads preparing for your major life turnaround.`;
   }
 
   // --- 2. HIDDEN SUBCONSCIOUS WORRY / AGONY ---
-  const chandraHouse = moon?.house ?? 1;
   let chandraHouseWorryKn = "";
   if (chandraHouse === 1) {
     chandraHouseWorryKn = `ಮನಃಕಾರಕ ಚಂದ್ರನು 1ನೇ ಲಗ್ನ ಭಾವದಲ್ಲಿದ್ದು, ನಿಮ್ಮ ಅಂತರಂಗವು ಅತ್ಯಂತ ಸೂಕ್ಷ್ಮವಾಗಿದೆ. ಹೊರಗೆ ಧೈರ್ಯ ತೋರಿದರೂ, ಇತರರು ನಿಮ್ಮ ಬಗ್ಗೆ ಏನು ಅಂದುಕೊಳ್ಳುತ್ತಾರೋ ಎಂಬ ಚಿಂತೆ ಹಾಗೂ ಶಾರೀರಿಕ ಆಯಾಸ ನಿಮ್ಮನ್ನು ಆಗಾಗ ಕಾಡುತ್ತದೆ.`;
@@ -6286,35 +6422,49 @@ export const generateCurrentLifeDiagnosis = (
     gocharaMindStrainKn = `${liveGochara.summaryKn} ಶುಭ ಗ್ರಹಗಳ ಬೆಂಬಲದಿಂದ ಈ ಮಾನಸಿಕ ಒತ್ತಡವು ಶೀಘ್ರದಲ್ಲೇ ಉಪಶಮನಗೊಳ್ಳಲಿದೆ.`;
   }
 
+  let moonDispositorProseKn = "";
+  if (moonDignity.dignity === "debilitated") {
+    moonDispositorProseKn = `ಮನಃಕಾರಕ ಚಂದ್ರನು ${chandraHouse}ನೇ ಭಾವದಲ್ಲಿ (${moonRashiKn} ರಾಶಿಯಲ್ಲಿ) ನೀಚ ಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು, ಆ ರಾಶ್ಯಾಧಿಪತಿಯಾದ ${moonDispositorKn} ಜೊತೆಗಿನ ಈ ಪ್ರತಿಕೂಲತೆಯು ಮನಸ್ಸಿನಲ್ಲಿ ಹಠಾತ್ ಅಭದ್ರತೆ, ಅತಿಯಾದ ಆಲೋಚನೆ ಹಾಗೂ ಆಂತರಿಕ ಆತಂಕದ ಅಲೆಗಳನ್ನು ಎಬ್ಬಿಸುತ್ತಿದೆ.`;
+  } else if (moonDignity.dignity === "shatru") {
+    moonDispositorProseKn = `ಮನಃಕಾರಕ ಚಂದ್ರನು ${chandraHouse}ನೇ ಭಾವದಲ್ಲಿ (${moonRashiKn} ರಾಶಿಯಲ್ಲಿ) ಶತ್ರು ಕ್ಷೇತ್ರದಲ್ಲಿದ್ದು, ಈ ರಾಶ್ಯಾಧಿಪತಿಯಾದ ${moonDispositorKn} ಗ್ರಹದೊಂದಿಗಿನ ಆಂತರಿಕ ವಿರೋಧವು ಮನಸ್ಸಿಗೆ ಶಾಂತಿಯುತ ವಿಶ್ರಾಂತಿ ನೀಡದೆ ನಿರಂತರ ಚಿಂತಾ ತರಂಗಗಳನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿದೆ.`;
+  } else if (moonDignity.dignity === "own" || moonDignity.dignity === "exalted") {
+    moonDispositorProseKn = `ಮನಃಕಾರಕ ಚಂದ್ರನು ${chandraHouse}ನೇ ಭಾವದಲ್ಲಿ (${moonRashiKn} ರಾಶಿಯಲ್ಲಿ) ${moonDignity.labelKn}ದಲ್ಲಿದ್ದು, ಆಳವಾದ ಭಾವನಾತ್ಮಕ ಅಂತಃಪ್ರಜ್ಞೆ ನೀಡಿದ್ದರೂ, 4ನೇ ಸುಖ ಸ್ಥಾನ ಮತ್ತು ಪ್ರಸ್ತುತ ಗೋಚಾರದ ಪ್ರಭಾವವು ಮನಸ್ಸಿನ ಮೇಲೆ ಅಗಾಧ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಯ ಭಾರವನ್ನು ಹೇರಿದೆ.`;
+  } else {
+    moonDispositorProseKn = `ಮನಃಕಾರಕ ಚಂದ್ರನು ${chandraHouse}ನೇ ಭಾವದಲ್ಲಿ (${moonRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಆ ರಾಶ್ಯಾಧಿಪತಿಯಾದ ${moonDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${moonDignity.labelKn} ಪಡೆದು ಮನಸ್ಸಿನ ಸೂಕ್ಷ್ಮ ಸಂವೇದನೆಗಳನ್ನು ನಿರಂತರವಾಗಿ ಜಾಗೃತವಾಗಿಟ್ಟಿದ್ದಾನೆ.`;
+  }
+
   let hiddenSubconsciousWorryKn = "";
   let hiddenSubconsciousWorryEn = "";
   if (isInfantUnder6Mo) {
-    hiddenSubconsciousWorryKn = `ಮಗುವಿನ ಮನಃಕಾರಕ ಚಂದ್ರ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಮಾತೃ ಸ್ಥಾನದ ಗ್ರಹ ಸ್ಥಿತಿಯ ಪ್ರಕಾರ, ಮಗುವಿನ ಅಂತರಂಗ ಅತ್ಯಂತ ಸೂಕ್ಷ್ಮವಾಗಿದೆ. ಹಠಾತ್ ಶಬ್ದಗಳು ಕೇಳಿದಾಗ ನಿದ್ರೆಯಲ್ಲಿ ಬೆಚ್ಚಿಬೀಳುವುದು, ಸಂಜೆ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ ಸಣ್ಣ ವಾಯು ಶೂಲೆ ಅಥವಾ ತಾಯಿಯ ಸಾಮೀಪ್ಯ ಸಿಗದಿದ್ದಾಗ ಮಗು ಅಳುವುದು ಇದರ ಸಹಜ ಲಕ್ಷಣ.\n\nಹೊರಗಿನವರ ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿ (ದೃಷ್ಟಿ ದೋಷ) ಈ ಎಳೆಯ ವಯಸ್ಸಿನಲ್ಲಿ ಬೇಗನೆ ತಗಲುತ್ತದೆ. ತಾಯಿಯ ಪ್ರೀತಿಯ ದೃಷ್ಟಿ ಪರಿಹಾರ ಹಾಗೂ ಸ್ತನ್ಯಪಾನದ ಶಾಂತಿಯು ಮಗುವಿಗೆ ನಿರಾಳ ನಿದ್ರೆ ನೀಡುತ್ತದೆ.`;
-    hiddenSubconsciousWorryEn = `The infant's 4th house and Moon (${chandraHouse}th house) indicate acute sensory sensitivity. Sudden sounds may startle during sleep, and evening digestive wind (colic) or separation from the mother's warmth can induce unrest. Gentle Nazar (evil-eye) cleansing and continuous maternal bonding bring serene sleep.`;
+    hiddenSubconsciousWorryKn = `ಮಗುವಿನ ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ, ${moonRashiKn} ರಾಶಿ) ಹಾಗೂ 4ನೇ ಮಾತೃ ಸ್ಥಾನದ ಗ್ರಹ ಸ್ಥಿತಿಯ ಪ್ರಕಾರ, ಮಗುವಿನ ಅಂತರಂಗ ಅತ್ಯಂತ ಸೂಕ್ಷ್ಮ ಮತ್ತು ಸಂವೇದನಾಶೀಲವಾಗಿದೆ. ಚಂದ್ರನು ಆ ರಾಶ್ಯಾಧಿಪತಿ ${moonDispositorKn} ಜೊತೆ ${moonDignity.labelKn} ಹೊಂದಿದ್ದು, ಹಠಾತ್ ಶಬ್ದಗಳು ಕೇಳಿದಾಗ ನಿದ್ರೆಯಲ್ಲಿ ಬೆಚ್ಚಿಬೀಳುವುದು, ಸಂಜೆ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ ಸಣ್ಣ ವಾಯು ಶೂಲೆ (ಕೊಲಿಕ್) ಅಥವಾ ತಾಯಿಯ ಸಾಮೀಪ್ಯ ತಪ್ಪಿದಾಗ ಮಗು ಅಳುವುದು ಇದರ ಸಹಜ ಲಕ್ಷಣವಾಗಿದೆ.\n\nಹೊರಗಿನವರ ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿ (ನರ ದೃಷ್ಟಿ ದೋಷ) ಈ ಎಳೆಯ ವಯಸ್ಸಿನಲ್ಲಿ ಬೇಗನೆ ತಗಲುತ್ತದೆ. ಮಗುವಿನ ಅಂತರಂಗದ ಈ ಅಂಜಿಕೆಯನ್ನು ಹೋಗಲಾಡಿಸಲು ತಾಯಿಯು ಮಗುವನ್ನು ಎದೆಗೆ ಅಪ್ಪಿಕೊಂಡು ಶಾಂತಗೊಳಿಸುವುದು ಅತ್ಯಗತ್ಯ. ಸಂಜೆ ಕರ್ಪೂರದ ಆರತಿ ಬೆಳಗಿ ದೃಷ್ಟಿ ತೆಗೆಯುವುದು ಹಾಗೂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಾ ಸ್ಮರಣೆ ಮಾಡುವುದರಿಂದ ಮಗುವಿಗೆ ನಿರಾಳ ನಿದ್ರೆ ಮತ್ತು ಆರೋಗ್ಯ ಲಭಿಸಲಿದೆ.`;
+    hiddenSubconsciousWorryEn = `The infant's Moon in House ${chandraHouse} (${kundli.moonSign.english}) and 4th house of maternal comfort reveal intense energetic sensitivity. Moon's interaction with dispositor ${moonDispositor} triggers occasional startle reflexes during nocturnal sleep, twilight colic, and anxiety upon temporary physical separation from the mother.\n\nAt this tender stage, sensitive infant auras absorb ambient energies rapidly. Gentle evening camphor nazar cleansing and maintaining continuous maternal bonding instantly dissolve restlessness and ensure tranquil, restorative slumber.`;
   } else if (isInfantUnder2Yr) {
-    hiddenSubconsciousWorryKn = `ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಚಂದ್ರ ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನವನ್ನು ನೋಡಿದರೆ, ಹೊರಗೆ ಮಗು ಆಡುತ್ತಾ ನಗುತ್ತಿದ್ದರೂ, ನವಗ್ರಹಗಳ ಚಲನೆಯಿಂದಾಗಿ ಕತ್ತಲಾಗುತ್ತಿದ್ದಂತೆ ಅಥವಾ ಹೊಸ ಸ್ಥಳ/ಅಪರಿಚಿತರನ್ನು ಕಂಡಾಗ ಮಗುವಿನಲ್ಲಿ ಸಣ್ಣ ಅಂಜಿಕೆ ಅಥವಾ ತಾಯಿಯ ಸೆರಗನ್ನು ಬಿಡದ ಸ್ವಭಾವ ಕಾಣಿಸುತ್ತದೆ. ಹುಣ್ಣಿಮೆ ಅಥವಾ ಅಮಾವಾಸ್ಯೆಯ ಆಸುಪಾಸಿನಲ್ಲಿ ನಿದ್ರೆಯಲ್ಲಿ ಸಣ್ಣ ಚಡಪಡಿಕೆ ಉಂಟಾಗಬಹುದು.\n\nಮಗುವಿನ ತಲೆಯ ಬಳಿ ಸಣ್ಣ ರಕ್ಷಾ ದಾರ ಅಥವಾ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷೆ ಇಡುವುದರಿಂದ ಈ ಅಂಜಿಕೆ ಸಂಪೂರ್ಣ ಉಪಶಮನಗೊಳ್ಳುತ್ತದೆ.`;
-    hiddenSubconsciousWorryEn = `Governed by the Moon and 4th house, the toddler experiences subconscious separation anxiety when encountering unfamiliar faces or sudden environmental shifts. Restlessness around New/Full Moon is normal. Sacred Gokarna protection resolves all nighttime unease.`;
+    hiddenSubconsciousWorryKn = `ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನವನ್ನು ಪರಿಶೀಲಿಸಿದರೆ, ಹೊರಗೆ ಮಗು ಆಡುತ್ತಾ ನಗುತ್ತಿದ್ದರೂ, ನವಗ್ರಹಗಳ ಚಲನೆಯಿಂದಾಗಿ ಕತ್ತಲಾಗುತ್ತಿದ್ದಂತೆ ಅಥವಾ ಹೊಸ ಸ್ಥಳ/ಅಪರಿಚಿತರನ್ನು ಕಂಡಾಗ ಮಗುವಿನಲ್ಲಿ ಸಣ್ಣ ಅಂಜಿಕೆ ಅಥವಾ ತಾಯಿಯ ಸೆರಗನ್ನು ಬಿಡದ ಸ್ವಭಾವ ಸ್ಪಷ್ಟವಾಗಿ ಕಾಣಿಸುತ್ತದೆ. ಚಂದ್ರನು ${moonDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ಹೊಂದಿರುವ ಗ್ರಹಬಲದ ಪ್ರಕಾರ, ಹುಣ್ಣಿಮೆ ಅಥವಾ ಅಮಾವಾಸ್ಯೆಯ ಆಸುಪಾಸಿನಲ್ಲಿ ನಿದ್ರೆಯಲ್ಲಿ ಸಣ್ಣ ಚಡಪಡಿಕೆ ಉಂಟಾಗಬಹುದು.\n\nಈ ವಯಸ್ಸಿನಲ್ಲಿ ಮಗುವಿಗೆ ಅಪರಿಚಿತ ಜನಜಂಗುಳಿ ಅಥವಾ ಜೋರಾದ ಶಬ್ದಗಳು ಆಂತರಿಕವಾಗಿ ಗಾಬರಿ ತರುತ್ತವೆ. ಮಗುವಿನ ತಲೆಯ ಬಳಿ ಸಣ್ಣ ರಕ್ಷಾ ದಾರ ಅಥವಾ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷೆ ಇಡುವುದರಿಂದ ಹಾಗೂ ಸಂಜೆ ವೇಳೆ ದೃಷ್ಟಿ ಪರಿಹಾರ ಮಾಡುವುದರಿಂದ ಈ ಆಂತರಿಕ ಅಂಜಿಕೆ ಸಂಪೂರ್ಣ ಉಪಶಮನಗೊಂಡು ಮಗು ನೆಮ್ಮದಿಯಿಂದ ನಿದ್ರಿಸಲಿದೆ.`;
+    hiddenSubconsciousWorryEn = `Governed by Moon in House ${chandraHouse} and the 4th house of emotional peace, the toddler experiences subconscious separation anxiety when encountering unfamiliar faces or sudden environmental shifts. Lunar cycles around Full/New Moon induce mild nighttime restlessness.\n\nToddlers absorb energetic vibrations intensely. Placing an energized sacred Gokarna thread or silver protection talisman near the crib and reciting gentle mantras eliminates all nighttime agitation.`;
   } else if (isChild) {
-    hiddenSubconsciousWorryKn = `ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಸುಖ-ಮನೋಭಾವವನ್ನು ನೋಡಿದರೆ, ಮಗು ಹೊರಗೆ ಅತ್ಯಂತ ಧೈರ್ಯಶಾಲಿಯಂತೆ ಕಂಡರೂ, ಒಳಗೆ ಭಾವನಾತ್ಮಕವಾಗಿ ಅಷ್ಟೇ ಮೃದುವಾಗಿದೆ. ಶಾಲೆಯಲ್ಲಿ ಯಾರಾದರೂ ಗದರಿದರೆ, ಅಥವಾ ಇತರ ಮಕ್ಕಳೊಂದಿಗೆ ಹೋಲಿಕೆ ಮಾಡಿದರೆ ಮಗು ಮನಸ್ಸಿನಲ್ಲೇ ಕೊರಗುತ್ತದೆ; ಆದರೆ ಆ ಬೇಸರವನ್ನು ಮುಖದಲ್ಲಿ ತೋರಿಸದೆ ಮೌನವಾಗುತ್ತದೆ ಅಥವಾ ತಿಂಡಿ ತಿನ್ನಲು ಹಠ ಮಾಡುತ್ತದೆ.\n\nಪೋಷಕರು ಮಗುವಿನ ಮಾತನ್ನು ತಾಳ್ಮೆಯಿಂದ ಆಲಿಸಿ, ಆತ್ಮವಿಶ್ವಾಸ ತುಂಬಿದರೆ ಮಗುವಿನ ಆಂತರಿಕ ಭಯ ಸಂಪೂರ್ಣ ಮಾಯವಾಗಿ ಓದಿನಲ್ಲಿ ಉತ್ಸಾಹ ದುಪ್ಪಟ್ಟಾಗುತ್ತದೆ.`;
-    hiddenSubconsciousWorryEn = `Your child's 4th house and Moon reveal tender emotional vulnerability behind an energetic exterior. Peer comparisons or harsh reprimands cause silent withdrawal or stubborn food refusals. Reassuring emotional listening restores their self-esteem instantly.`;
+    hiddenSubconsciousWorryKn = `ನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಸುಖ-ಮನೋಭಾವವನ್ನು ನೋಡಿದರೆ, ಮಗು ಹೊರಗೆ ಅತ್ಯಂತ ಧೈರ್ಯಶಾಲಿಯಂತೆ ಕಂಡರೂ, ಒಳಗೆ ಭಾವನಾತ್ಮಕವಾಗಿ ಅಷ್ಟೇ ಮೃದುವಾಗಿದೆ. ${moonDispositorProseKn} ಶಾಲೆಯಲ್ಲಿ ಯಾರಾದರೂ ಗದರಿದರೆ, ಅಥವಾ ಇತರ ಮಕ್ಕಳೊಂದಿಗೆ ಹೋಲಿಕೆ ಮಾಡಿದರೆ ಮಗು ಮನಸ್ಸಿನಲ್ಲೇ ತೀವ್ರವಾಗಿ ಕೊರಗುತ್ತದೆ; ಆದರೆ ಆ ಬೇಸರವನ್ನು ಮುಖದಲ್ಲಿ ಸ್ಪಷ್ಟವಾಗಿ ತೋರಿಸದೆ ಮೌನವಾಗುತ್ತದೆ ಅಥವಾ ಊಟ-ತಿಂಡಿ ತಿನ್ನಲು ಹಠ ಮಾಡುತ್ತದೆ.\n\nಪೋಷಕರು ಮಗುವಿನ ಮಾತನ್ನು ತಾಳ್ಮೆಯಿಂದ ಆಲಿಸಿ, ಇತರರೊಂದಿಗೆ ಹೋಲಿಸದೆ ಆತ್ಮವಿಶ್ವಾಸ ತುಂಬಿದರೆ ಮಗುವಿನ ಆಂತರಿಕ ಭಯ ಸಂಪೂರ್ಣ ಮಾಯವಾಗುತ್ತದೆ. ತನ್ನನ್ನು ಯಾರೂ ಪ್ರೀತಿಸುತ್ತಿಲ್ಲವೇನೋ ಎಂಬ ಸಣ್ಣ ಕೀಳರಿಮೆ ಮಗುವಿನ ಮನಸ್ಸಿನಲ್ಲಿ ಬಾರದಂತೆ ನೋಡಿಕೊಳ್ಳುವುದು ಅತ್ಯಂತ ಮುಖ್ಯ. ಪ್ರೀತಿಯ ಸಾಮೀಪ್ಯ ಮತ್ತು ಪ್ರೋತ್ಸಾಹವು ಮಗುವಿನ ಆಂತರಿಕ ಆತಂಕವನ್ನು ಕರಗಿಸಿ ಓದಿನಲ್ಲಿ ಉತ್ಸಾಹವನ್ನು ದುಪ್ಪಟ್ಟು ಮಾಡಲಿದೆ.`;
+    hiddenSubconsciousWorryEn = `Your child's 4th house and Moon in House ${chandraHouse} reveal a tender emotional core beneath an energetic exterior. Moon's resonance with dispositor ${moonDispositor} makes the child acutely susceptible to peer comparisons or harsh disciplinary tones, resulting in silent withdrawal or stubborn food refusals.\n\nParents should listen with patient empathy, completely avoiding comparative remarks with classmates. Consistent parental reassurance dissolves hidden self-doubt, restoring radiant scholastic enthusiasm and unshakeable confidence.`;
   } else if (isYouth) {
-    hiddenSubconsciousWorryKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಮನೆಯ ಗ್ರಹ ಪ್ರಭಾವವನ್ನು ನೋಡಿದರೆ, ಹೊರಗೆ ನೀವು ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಕಂಡರೂ, ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಒಂದು ಅತೀವ ಗೌಪ್ಯ ಆತಂಕವಿದೆ. ${chandraHouseWorryKn}\n\n${gocharaMindStrainKn} ಎಲ್ಲವನ್ನೂ ಒಬ್ಬರೇ ನಿಭಾಯಿಸಬೇಕೆಂಬ ಒತ್ತಡ ನಿಮ್ಮನ್ನು ಒಳಗೆ ಕಾಡುತ್ತಿದೆ. ಆದರೆ ನಿಮ್ಮ ಜಾತಕದ ಶುಭ ಗ್ರಹಬಲವು ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ಯೋಗ್ಯ ಸ್ಥಾನವನ್ನು ಕಲ್ಪಿಸಿಕೊಡಲಿದೆ. ಶಿವ ಪಂಚಾಕ್ಷರಿ ಧ್ಯಾನವು ಮಾನಸಿಕ ಸ್ಥಿರತೆ ನೀಡಲಿದೆ.`;
-    hiddenSubconsciousWorryEn = `Under your Moon's placement and 4th house influence, an unspoken concern regarding academic performance and meeting parental expectations periodically disturbs late-night sleep. Meditation on the Shiva Panchakshari dissolves this inner anxiety.`;
+    hiddenSubconsciousWorryKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನವನ್ನು (${h4SignKn} ರಾಶಿ, ಅಧಿಪತಿ ${h4LordKn}) ಪರಿಶೀಲಿಸಿದಾಗ, ಹೊರಗೆ ನೀವು ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಕಂಡರೂ ಮನಸ್ಸಿನ ಅಂತರಾಳದಲ್ಲಿ ಒಂದು ಆಳವಾದ ಗೌಪ್ಯ ಆತಂಕವಿದೆ. ${moonDispositorProseKn} ${chandraHouseWorryKn} ${gocharaMindStrainKn} ಕುಂಡಲಿಯಲ್ಲಿ ಚಂದ್ರನ ಮೇಲಿರುವ ಈ ಗ್ರಹ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ಭವಿಷ್ಯದ ದಿಕ್ಕು, ಪೋಷಕರ ನಿರೀಕ್ಷೆಗಳನ್ನು ತಲುಪುವ ಒತ್ತಡ ಹಾಗೂ ಸ್ವಂತ ಕಾಲ ಮೇಲೆ ನಿಲ್ಲುವ ಹಂಬಲವನ್ನು ತೀವ್ರಗೊಳಿಸಿದೆ.\n\nಹೊರ ಜಗತ್ತಿಗೆ ಎಲ್ಲವೂ ಸರಿಯಾಗಿದೆ ಎಂದು ನಗುತ್ತಾ ತೋರಿಸಿಕೊಂಡರೂ, ರಾತ್ರಿ ಏಕಾಂತದಲ್ಲಿ ನಿದ್ರೆ ಬಾರದೆ ಭವಿಷ್ಯದ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ, ಉದ್ಯೋಗ ಅಥವಾ ವೃತ್ತಿ ನೆಲೆಗಳ ಬಗ್ಗೆ ಅತಿಯಾಗಿ ಯೋಚಿಸುತ್ತೀರಿ. 'ನಾನು ಅಂದುಕೊಂಡ ಗುರಿ ಸಕಾಲಕ್ಕೆ ಕೈಗೂಡುತ್ತದೆಯೇ' ಎಂಬ ಅನಿಶ್ಚಿತತೆಯ ಭಯ ನಿಮ್ಮನ್ನು ಒಳಗೊಳಗೇ ಕಾಡುತ್ತಿದೆ. ಆದರೆ ನಿಮ್ಮ ಜಾತಕದ ಶುಭ ಗ್ರಹಬಲವು ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ಯೋಗ್ಯ ಫಲ ನೀಡಲಿದೆ. ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶಿವ ಪಂಚಾಕ್ಷರಿ ಧ್ಯಾನ ಮಾಡುವುದರಿಂದ ಈ ಮಾನಸಿಕ ಆತಂಕ ಕರಗಿ ಅದ್ಭುತ ಮಾನಸಿಕ ಸ್ಥಿರತೆ ಲಭಿಸಲಿದೆ.`;
+    hiddenSubconsciousWorryEn = `Under your Moon's placement in House ${chandraHouse} and 4th house influence, an unspoken concern regarding academic performance and meeting parental expectations periodically disturbs late-night sleep. Dispositor ${moonDispositor} and current transit pressures fuel analytical overthinking about professional direction.\n\nWhile maintaining a calm exterior before friends, midnight hours bring silent anxiety regarding career security and self-reliance. Chanting the sacred Shiva Panchakshari and anchoring your mind in spiritual discipline will dissolve this restlessness, ensuring clarity and academic triumph.`;
   } else if (isMatureAdult) {
-    hiddenSubconsciousWorryKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನವನ್ನು ನೋಡಿದರೆ, ನೀವು ಹೊರಗೆ ಪ್ರಶಾಂತರಾಗಿ ಕಂಡರೂ, ಒಳಗೆ ಮಕ್ಕಳ ಭವಿಷ್ಯದ ನೆಲೆ, ಅವರ ಸಂಸಾರಿಕ ಸುಖ ಹಾಗೂ ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ನಿಮ್ಮ ಗೌರವಕ್ಕೆ ಯಾವುದೇ ಕುಂದು ಬಾರದಂತೆ ಇರಬೇಕೆಂಬ ಆಳವಾದ ಹಂಬಲವಿದೆ. ${chandraHouseWorryKn}\n\n${gocharaMindStrainKn} ಯಾರ ಮೇಲೂ ಭಾರವಾಗಬಾರದು, ಸ್ವಾವಲಂಬಿಯಾಗಿ ಕೊನೆಯವರೆಗೂ ಬದುಕಬೇಕು ಎಂಬ ನಿಮ್ಮ ಆಂತರಿಕ ಸಂಕಲ್ಪವೇ ನಿಮ್ಮನ್ನು ಆಗಾಗ ಚಿಂತೆಗೀಡುಮಾಡುತ್ತದೆ. ಇಷ್ಟದೇವತಾ ಸ್ಮರಣೆ ಮಾಡುವುದರಿಂದ ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಅಖಂಡ ಶಾಂತಿ ಲಭಿಸಲಿದೆ.`;
-    hiddenSubconsciousWorryEn = `Behind your serene demeanor lies a thoughtful concern for your children's long-term marital and financial security, paired with an unwavering wish to remain completely self-reliant. Spiritual surrender guarantees tranquility.`;
+    hiddenSubconsciousWorryKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ಹೊರಗೆ ಪ್ರಶಾಂತರಾಗಿ ಕಂಡರೂ ಒಳಗೆ ಮಕ್ಕಳ ಭವಿಷ್ಯದ ನೆಲೆ, ಅವರ ಸಂಸಾರಿಕ ಸುಖ ಹಾಗೂ ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಕುಟುಂಬದ ಶಾಂತಿಯ ಬಗ್ಗೆ ಆಳವಾದ ತೊಳಲಾಟವಿದೆ. ${moonDispositorProseKn} ${chandraHouseWorryKn} ${gocharaMindStrainKn} ಜೀವನದಲ್ಲಿ ಇಷ್ಟು ಕಾಲ ಕಷ್ಟಪಟ್ಟು ಎಲ್ಲರಿಗೂ ಆಸರೆಯಾಗಿದ್ದೀರಿ; ಆದರೆ ನಿಮ್ಮ ಸ್ವಂತ ಭವಿಷ್ಯದ ಆರೋಗ್ಯ ಮತ್ತು ನಿವೃತ್ತಿಯ ಬಗ್ಗೆ ಆಂತರಿಕ ಚಿಂತೆಯೊಂದು ಸದಾ ಜಾಗೃತವಾಗಿದೆ.\n\n'ಯಾರ ಮೇಲೂ ಭಾರವಾಗಬಾರದು, ಕೊನೆಯವರೆಗೂ ಸ್ವಾವಲಂಬಿಯಾಗಿ ಗೌರವದಿಂದ ಬದುಕಬೇಕು' ಎಂಬ ನಿಮ್ಮ ಉದಾತ್ತ ಸ್ವಾಭಿಮಾನವೇ ನಿಮ್ಮನ್ನು ರಾತ್ರಿ ವೇಳೆ ನಿದ್ರಾಭಂಗಕ್ಕೀಡುಮಾಡುತ್ತದೆ. ಕುಟುಂಬದ ಎಲ್ಲರ ಹೊಣೆಯನ್ನು ನೀವೇ ಹೆಗಲ ಮೇಲೆ ಹೊತ್ತಿದ್ದೀರಿ, ಆದರೆ ನಿಮ್ಮ ಮನಸ್ಸಿನ ಭಾರವನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ಯಾರೂ ಸಿಗುತ್ತಿಲ್ಲವಲ್ಲ ಎಂಬ ಒಂಟಿತನ ನಿಮ್ಮನ್ನು ಕಾಡುತ್ತಿದೆ. ಇಷ್ಟದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಶಾಶ್ವತ ಶಾಂತಿ ಮತ್ತು ಕುಟುಂಬಕ್ಕೆ ರಕ್ಷೆ ಕರುಣಿಸಲಿದೆ.`;
+    hiddenSubconsciousWorryEn = `Behind your dignified exterior lies a profound, unspoken concern for your children's marital settlement and preserving lasting domestic tranquility. Moon in House ${chandraHouse} alongside transit stresses activates reflective worry over preserving health and financial autonomy.\n\nHaving supported the entire household through personal sacrifices, you harbor a fierce wish never to become dependent upon anyone. Spiritual surrender to sacred Gokarna Mahabaleshwara dissolves this quiet burden, bestowing deep serenity and lasting family peace.`;
   } else if (isSenior) {
-    hiddenSubconsciousWorryKn = `ಹಿರಿಯರಾದ ತಮ್ಮ ಜಾತಕದಲ್ಲಿ ಚಂದ್ರ ಮತ್ತು ಮೋಕ್ಷ ಸ್ಥಾನಗಳ ಪ್ರಭಾವವನ್ನು ನೋಡಿದರೆ, ತಮ್ಮ ಅಂತರಂಗದಲ್ಲಿ ಭೌತಿಕ ಪ್ರಪಂಚದ ಆಸೆಗಳು ತಗ್ಗಿ, ಪರಮಾತ್ಮನ ಪಾದಾರವಿಂದಗಳಲ್ಲಿ ಲೀನವಾಗುವ ಸದಾಶಯವಿದೆ. ತಾವು ಯಾರಿಗೂ ಹೊರೆಯಾಗದೆ, ಶರೀರದಲ್ಲಿ ಹೆಚ್ಚಿನ ನೋವು-ಯಾತನೆಗಳಿಲ್ಲದೆ ಆನಂದವಾಗಿ ಕಾಲ ಕಳೆಯಬೇಕೆಂಬುದೇ ತಮ್ಮ ಏಕೈಕ ಆಂತರಿಕ ಪ್ರಾರ್ಥನೆಯಾಗಿದೆ.\n\n${chandraHouseWorryKn} ತಮ್ಮ ಮಕ್ಕಳು-ಮೊಮ್ಮಕ್ಕಳು ಸುಖವಾಗಿರಲಿ ಎಂಬ ತಮ್ಮ ಹೃದಯಪೂರ್ವಕ ಆಶೀರ್ವಾದವೇ ಇಂದು ಅವರ ಬದುಕಿಗೆ ಶ್ರೀರಕ್ಷೆಯಾಗಿದೆ. ತಮ್ಮ ಮನಸ್ಸಿಗೆ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪವು ನಿತ್ಯ ಶಾಂತಿ ನೀಡಲಿದೆ.`;
-    hiddenSubconsciousWorryEn = `Reflecting serene detachment, your deepest inner aspiration is a graceful, painless life free from becoming a burden upon family members. Chanting Maha Mrityunjaya bestows profound inner peace and radiant health.`;
+    hiddenSubconsciousWorryKn = `ಹಿರಿಯರಾದ ತಮ್ಮ ಜಾತಕದಲ್ಲಿ ಚಂದ್ರನ ಸ್ಥಾನ ಮತ್ತು ಮೋಕ್ಷ ಭಾವಗಳ ಪ್ರಭಾವವನ್ನು ನೋಡಿದರೆ, ತಮ್ಮ ಅಂತರಂಗದಲ್ಲಿ ಭೌತಿಕ ಪ್ರಪಂಚದ ವ್ಯಾಮೋಹಗಳು ತಗ್ಗಿ, ಪರಮಾತ್ಮನ ಪಾದಾರವಿಂದಗಳಲ್ಲಿ ಲೀನವಾಗುವ ಸದಾಶಯವಿದೆ. ${moonDispositorProseKn} ${chandraHouseWorryKn} ತಾವು ಯಾರಿಗೂ ಹೊರೆಯಾಗದೆ, ಶರೀರದಲ್ಲಿ ಹೆಚ್ಚಿನ ನೋವು-ಯಾತನೆಗಳಿಲ್ಲದೆ ಗೌರವಯುತವಾಗಿ ಕಾಲ ಕಳೆಯಬೇಕೆಂಬುದೇ ತಮ್ಮ ಏಕೈಕ ಆಂತರಿಕ ಪ್ರಾರ್ಥನೆಯಾಗಿದೆ.\n\nಹಿಂದೆ ತಾವು ಪಟ್ಟ ಪರಿಶ್ರಮ ಮತ್ತು ತ್ಯಾಗಗಳನ್ನು ನೆನೆಸಿಕೊಂಡಾಗ ಕೆಲವೊಮ್ಮೆ ಮನಸ್ಸಿನಲ್ಲಿ ಸಣ್ಣ ನಿರ್ವೇದ ಮೂಡುವುದು ಸಹಜ; ಆದರೆ ತಮ್ಮ ಮಕ್ಕಳು-ಮೊಮ್ಮಕ್ಕಳು ಸನ್ಮಾರ್ಗದಲ್ಲಿ ಸುಖವಾಗಿರಲಿ ಎಂಬ ತಮ್ಮ ಹೃದಯಪೂರ್ವಕ ಆಶೀರ್ವಾದವೇ ಇಂದು ಅವರ ಬದುಕಿಗೆ ಶ್ರೀರಕ್ಷೆಯಾಗಿದೆ. ತಮ್ಮ ಮನಸ್ಸಿಗೆ ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ ಹಾಗೂ ಈಶ್ವರ ಧ್ಯಾನವು ನಿತ್ಯ ನಿರಾಳ ಶಾಂತಿ ಮತ್ತು ದೈಹಿಕ ನೆಮ್ಮದಿಯನ್ನು ನೀಡಲಿದೆ.`;
+    hiddenSubconsciousWorryEn = `Reflecting serene detachment, your deepest inner aspiration is a graceful, painless life free from becoming a burden upon family members. Moon in House ${chandraHouse} harmonizes with spiritual moksha houses, dissolving mundane attachments into contemplative devotion.\n\nYour quiet prayers for your children's welfare form their greatest celestial armor. Chanting the Maha Mrityunjaya Mantra and offering prayers at Sri Kshetra Gokarna preserves mobility, vitality, and enduring inner tranquility.`;
   } else {
     // Prime Adult (25-49)
-    hiddenSubconsciousWorryKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನವನ್ನು (${h4SignKn} ರಾಶಿ) ನೋಡಿದರೆ, ಹೊರಗೆ ನೀವು ಧೈರ್ಯವಾಗಿ ಕಂಡರೂ ಒಳಗೆ ಯಾರಿಗೂ ಹೇಳಲಾಗದ ಒಂದು ಆಳವಾದ ಚಿಂತೆಯ ಭಾರವಿದೆ. ${chandraHouseWorryKn}\n\n${gocharaMindStrainKn} ${isFemale ? "ಸಂಸಾರದ ಜವಾಬ್ದಾರಿ, ಪತಿಯೊಂದಿಗಿನ ಸಮನ್ವಯ ಹಾಗೂ ಭವಿಷ್ಯದ ಬಗ್ಗೆ ಒಂಟಿಯಾಗಿ ಚಿಂತಿಸುತ್ತೀರಿ." : "ಕುಟುಂಬದ ಆರ್ಥಿಕ ಭದ್ರತೆ, ಪತ್ನಿ-ಮಕ್ಕಳ ಭವಿಷ್ಯ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಗೌರವವನ್ನು ಎತ್ತಿಹಿಡಿಯಲು ನೀವು ಏಕಾಂಗಿಯಾಗಿ ಹೋರಾಡುತ್ತಿದ್ದೀರಿ."} ಎಲ್ಲರನ್ನೂ ತೃಪ್ತಿಪಡಿಸಲು ಹೋಗಿ ನಿಮ್ಮ ಸ್ವಂತ ಸುಖವನ್ನು ತ್ಯಾಗ ಮಾಡಿದ್ದೀರಿ; ಆದರೆ ದೈವಬಲದಿಂದ ಶೀಘ್ರದಲ್ಲೇ ನೆಮ್ಮದಿಯ ತಿರುವು ಲಭಿಸಲಿದೆ.`;
-    hiddenSubconsciousWorryEn = `Your 4th house and Moon reveal that beneath your resilient exterior, you carry the heavy weight of unspoken responsibilities. Striving tirelessly to provide for your ${spouseTermEn} and family, you rarely voice your own exhaustion. Planetary relief will soon reward your steadfast dedication.`;
+    hiddenSubconsciousWorryKn = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮನಃಕಾರಕ ಚಂದ್ರನ ಸ್ಥಾನ (${chandraHouse}ನೇ ಭಾವ) ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನವನ್ನು (${h4SignKn} ರಾಶಿ, ಅಧಿಪತಿ ${h4LordKn}) ನೋಡಿದರೆ, ಹೊರಗೆ ನೀವು ಅತ್ಯಂತ ಧೈರ್ಯಶಾಲಿಯಂತೆ ಕಂಡರೂ ಒಳಗೆ ಯಾರಿಗೂ ಹೇಳಲಾಗದ ಒಂದು ಆಳವಾದ ಚಿಂತೆಯ ಭಾರವಿದೆ. ${moonDispositorProseKn} ${chandraHouseWorryKn} ${gocharaMindStrainKn} ಕುಂಡಲಿಯಲ್ಲಿ ಚಂದ್ರನ ಮೇಲಿರುವ ಈ ಗೋಚಾರ ಹಾಗೂ ಭಾವ ಪ್ರಭಾವಗಳೇ ನಿಮ್ಮ ಅಂತರಂಗದಲ್ಲಿ ವಿಶ್ರಾಂತಿಯಿಲ್ಲದ ಆಲೋಚನಾ ಸರಣಿಗಳನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿವೆ.\n\nಹೊರ ಜಗತ್ತಿಗೆ ನೀವು ಎಲ್ಲವನ್ನೂ ನಗುನಗುತ್ತಾ ನಿಭಾಯಿಸುವ ನಾಯಕರಂತೆ ಕಂಡರೂ, ರಾತ್ರಿ ಏಕಾಂತದಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸನ್ನು ಒಂದು ತೀವ್ರವಾದ ಆತಂಕ ಕೊರೆಯುತ್ತದೆ. ${isFemale ? "ಸಂಸಾರದ ಸಮಸ್ತ ಜವಾಬ್ದಾರಿ, ಪತಿಯೊಂದಿಗಿನ ಸಮನ್ವಯ ಹಾಗೂ ಮಕ್ಕಳ ಭವಿಷ್ಯದ ಬಗ್ಗೆ ಒಂಟಿಯಾಗಿ ಚಿಂತಿಸುತ್ತೀರಿ." : "ಕುಟುಂಬದ ಆರ್ಥಿಕ ಭದ್ರತೆ, ಪತ್ನಿ-ಮಕ್ಕಳ ಭವಿಷ್ಯ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಗೌರವವನ್ನು ಎತ್ತಿಹಿಡಿಯಲು ನೀವು ಏಕಾಂಗಿಯಾಗಿ ಹೋರಾಡುತ್ತಿದ್ದೀರಿ."} ಎಲ್ಲರನ್ನೂ ತೃಪ್ತಿಪಡಿಸಲು ಹೋಗಿ ನಿಮ್ಮ ಸ್ವಂತ ಸುಖ ಮತ್ತು ವಿಶ್ರಾಂತಿಯನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ತ್ಯಾಗ ಮಾಡಿದ್ದೀರಿ. ನಿಮ್ಮ ಹೆಗಲಿಗೆ ಹೆಗಲು ಕೊಡುವವರು ಯಾರೂ ಇಲ್ಲವಲ್ಲ ಎಂಬ ಒಂಟಿತನ ನಿಮ್ಮನ್ನು ಆಗಾಗ ಕಾಡುತ್ತದೆ; ಆದರೆ ದೈವಬಲದಿಂದ ಶೀಘ್ರದಲ್ಲೇ ನೆಮ್ಮದಿಯ ತಿರುವು ಲಭಿಸಲಿದೆ.`;
+    hiddenSubconsciousWorryEn = `Your 4th house and Moon in House ${chandraHouse} reveal that beneath your resilient exterior, you carry the heavy weight of unspoken responsibilities. Moon's relationship with dispositor ${moonDispositor} and running transit stresses create continuous mental waves of analytical concern regarding family security and financial stability.\n\nStriving tirelessly to provide for your ${spouseTermEn} and family, you rarely voice your own exhaustion. Carrying collective burdens in solitude without complaining, you often feel an unspoken emotional loneliness. Sacred Gokarna planetary remedies will soon dissolve these nocturnal worries into lasting inner peace.`;
   }
 
   // --- 3. MAANDI KARMIC NODE IMPACT (99% TASK KNOT) ---
   const mHouse = kundli.maandi ? (((kundli.maandi.rashi.index - kundli.lagnaRashi.index + 12) % 12) + 1) : 1;
-  const mRashiKn = kundli.maandi ? toKannadaRashi(kundli.maandi.rashi.index) : lagnaKn;
+  const mRashiIdx = kundli.maandi ? kundli.maandi.rashi.index : lagnaIdx;
+  const mRashiKn = toKannadaRashi(mRashiIdx);
+  const mHouseLord = signLord(mRashiIdx);
+  const mHouseLordKn = toKannadaPlanet(mHouseLord);
   const isUpachaya = [3, 6, 10, 11].includes(mHouse);
 
   let maandiHouseKnotKn = "";
@@ -6347,23 +6497,24 @@ export const generateCurrentLifeDiagnosis = (
   let maandiP1 = "";
   let maandiEnContext = "";
   if (isInfantUnder6Mo || isInfantUnder2Yr) {
-    maandiP1 = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಛಾಯಾಗ್ರಹವಾದ ಮಾಂದಿಯು ${mHouse}ನೇ ಭಾವದಲ್ಲಿ (${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ಶಿಶು-ಬಾಲಾವಸ್ಥೆಯಲ್ಲಿ ಮಾಂದಿಯ ಈ ಪ್ರಭಾವದಿಂದಾಗಿ, ಮಗುವಿಗೆ ಹಠಾತ್ ದೃಷ್ಟಿ ದೋಷ ತಗಲುವುದು, ಸಂಜೆ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ ಕಾರಣವಿಲ್ಲದೆ ಅಳುವುದು ಅಥವಾ ಸಣ್ಣ ಶೀತ-ಕೆಮ್ಮು ದೀರ್ಘಕಾಲ ಎಳೆಯುವುದು ಕಂಡುಬರುತ್ತದೆ. ಆದರೆ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರಕ್ಷಾ ಸಂಕಲ್ಪದಿಂದ ಈ ಮಾಂದಿ ಛಾಯೆಯು ಸಂಪೂರ್ಣವಾಗಿ ಶಾಂತವಾಗುತ್ತದೆ.`;
-    maandiEnContext = `In early childhood, Maandi in house ${mHouse} can trigger evening colic, sudden crying during twilight, or lingering colds due to sensitive auric permeability. Sacred Gokarna protection neutralizes all negative shadows.`;
+    maandiP1 = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶನಿಯ ಅದೃಶ್ಯ ಛಾಯಾಗ್ರಹವಾದ 'ಮಾಂದಿ' (ಗುಳಿಕ) ${mHouse}ನೇ ಭಾವದಲ್ಲಿ (${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ಈ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${mHouseLordKn} ಗ್ರಹದೊಂದಿಗೆ ಮಾಂದಿಯ ಈ ಸ್ಥಾನವು ಬಾಲಾವಸ್ಥೆಯಲ್ಲಿ ಸೂಕ್ಷ್ಮ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಯ ಆವರಣವನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ. ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮಾಂದಿಯನ್ನು ಛಾಯಾ ಗ್ರಹವೆಂದು ಕರೆಯಲಾಗಿದ್ದು, ಇದು ಮಗುವಿನ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ಮೇಲೆ ಸಣ್ಣ ನೆರಳು ಬೀರಿ, ಕಾರಣವಿಲ್ಲದೆ ಸಂಜೆ ವೇಳೆ ಅಳುವುದು ಅಥವಾ ಸಣ್ಣ ಶೀತ-ಕೆಮ್ಮು ದೀರ್ಘಕಾಲ ಎಳೆಯುವಂತೆ ಮಾಡುತ್ತದೆ.`;
+    maandiEnContext = `In early childhood, Maandi in house ${mHouse} (${mRashiKn}) creates a subtle energetic shadow. Governed by dispositor ${mHouseLordKn}, it manifests as evening colic, sudden crying during twilight, or lingering seasonal colds due to tender auric permeability.`;
   } else if (isChild) {
-    maandiP1 = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು ${mHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದು (${mRashiKn} ರಾಶಿ), ${maandiHouseKnotKn} ಮಗುವಿನ ಶಾಲಾ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ '99% ಚೆನ್ನಾಗಿ ಓದಿದ್ದರೂ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಸಣ್ಣ ತಪ್ಪು ಮಾಡುವುದು' ಇದರ ಪರಿಣಾಮವಾಗಿದೆ. ಮಗುವಿನ ಬುದ್ಧಿ ತೀಕ್ಷ್ಣವಾಗಿದ್ದರೂ ಕೊನೆಯ ಹಂತದಲ್ಲಿ ಫಲಿತಾಂಶ ಕೈತಪ್ಪದಂತೆ ತಡೆಯಲು ಶ್ರೀ ಮಹಾಗಣಪತಿ ಪ್ರಾರ್ಥನೆ ಅತ್ಯಗತ್ಯ.`;
-    maandiEnContext = `Maandi in House ${mHouse} creates the classic 'last-mile glitch'—where careful academic preparation stumbles at the final 1% due to silly exam mistakes or sudden fatigue. Ganapati prayers ensure flawless execution.`;
+    maandiP1 = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಅದೃಶ್ಯ ಛಾಯಾಗ್ರಹವಾದ ಮಾಂದಿಯು ${mHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದು (${mRashiKn} ರಾಶಿ), ಈ ಮನೆಯ ಅಧಿಪತಿ ${mHouseLordKn} ಜೊತೆ ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ${maandiHouseKnotKn} ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮಾಂದಿಯನ್ನು 'ಕಾರ್ಯ ವಿಘ್ನಕಾರಕ' ಎಂದು ಕರೆಯಲಾಗುತ್ತದೆ. ಮಗುವಿನ ಶಾಲಾ ಪರೀಕ್ಷೆ ಅಥವಾ ಸ್ಪರ್ಧೆಗಳಲ್ಲಿ '99% ಚೆನ್ನಾಗಿ ಓದಿದ್ದರೂ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಸಣ್ಣ ತಪ್ಪು ಮಾಡುವುದು' ಅಥವಾ ಪ್ರಶ್ನೆ ಪತ್ರಿಕೆಯಲ್ಲಿ ಸಣ್ಣ ಗೊಂದಲವಾಗಿ 1 ಅಥವಾ 2 ಅಂಕಗಳಿಂದ ರ‍್ಯಾಂಕ್ ತಪ್ಪುವುದು ಈ ಮಾಂದಿ ಕರ್ಮ ಗಂಟಿನ ನೈಜ ಲಕ್ಷಣವಾಗಿದೆ.`;
+    maandiEnContext = `Positioned in House ${mHouse} under dispositor ${mHouseLordKn}, Maandi creates the classic scholastic 'last-mile glitch'—where diligent exam preparation stumbles at the final 1% due to sudden silly mistakes or misplaced exam sheets right at the submission bell.`;
   } else if (isYouth) {
-    maandiP1 = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮಾಂದಿಯು ${mHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದು (${mRashiKn} ರಾಶಿ), ${maandiHouseKnotKn} ಇದು ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ, ಕಾಲೇಜು ಪ್ರವೇಶಾತಿ ಅಥವಾ ಸಂದರ್ಶನಗಳಲ್ಲಿ 'ಕೊನೆಯ ಮೆರಿಟ್ ಲಿಸ್ಟ್‌ನಲ್ಲಿ ಒಂದೆರಡು ಅಂಕಗಳಿಂದ ಅವಕಾಶ ತಪ್ಪುವುದು' ಅಥವಾ ಆಫರ್ ಲೆಟರ್ ಬರುವ ಹೊತ್ತಿಗೆ ವಿಳಂಬವಾಗುವ 99% ಲಾಸ್ಟ್-ಮೈಲ್ ಮಾಂದಿ ಕರ್ಮ ಗಂಟನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ. ಗೋಕರ್ಣ ಮಾಂದಿ ಶಾಂತಿಯು ಈ ಅಂತಿಮ 1% ಅಡೆತಡೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಕರಗಿಸುತ್ತದೆ.`;
-    maandiEnContext = `Positioned in House ${mHouse}, Maandi manifests as narrow misses in competitive rankings or delayed interview offers right at the final gate. Targeted Maandi Shanti dissolves this residual impediment.`;
+    maandiP1 = `ನಿಮ್ಮ ಜಾತಕ ಕುಂಡಲಿಯಲ್ಲಿ ಶನಿಯ ಛಾಯಾ ಪುತ್ರನಾದ 'ಮಾಂದಿ' (ಗುಳಿಕ) ಗ್ರಹವು ${mHouse}ನೇ ಭಾವದಲ್ಲಿ (${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ಈ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${mHouseLordKn} ಗ್ರಹದೊಂದಿಗೆ ಮಾಂದಿಯ ಈ ಸ್ಥಾನವು ${isUpachaya ? "ಉಪಚಯ ಭಾವದಲ್ಲಿದ್ದು (3, 6, 10, 11) ಆರಂಭಿಕ ಹೋರಾಟದ ನಂತರ ಜಯ ತರುವಂತಿದ್ದರೂ," : "ಕೇಂದ್ರ/ತ್ರಿಕೋಣ ಅಥವಾ ತ್ರಿಕ ಭಾವದಲ್ಲಿದ್ದು,"} ಪೂರ್ವಾರ್ಜಿತ ಕರ್ಮದ ಒಂದು ಸೂಕ್ಷ್ಮ ಅದೃಶ್ಯ ತಡೆಯನ್ನು (ಋಣ ಗಂಟು) ಉಂಟುಮಾಡಿದೆ. ${maandiHouseKnotKn} ಇದು ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ, ಕಾಲೇಜು ಪ್ರವೇಶಾತಿ ಅಥವಾ ಸಂದರ್ಶನಗಳಲ್ಲಿ ಕೊನೆಯ ಮೆರಿಟ್ ಲಿಸ್ಟ್‌ನಲ್ಲಿ ಒಂದೆರಡು ಅಂಕಗಳಿಂದ ಅವಕಾಶ ತಪ್ಪುವ ಲಾಸ್ಟ್-ಮೈಲ್ ಮಾಂದಿ ಕರ್ಮ ಗಂಟನ್ನು ಸೃಷ್ಟಿಸುತ್ತದೆ.`;
+    maandiEnContext = `Positioned in House ${mHouse} under dispositor ${mHouseLordKn}, Maandi manifests as narrow misses in competitive rankings or delayed interview offer letters right at the final gate, testing youth patience through unmerited bureaucratic delays.`;
   } else {
-    maandiP1 = `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಅದೃಶ್ಯ ಛಾಯಾಗ್ರಹವಾದ ಮಾಂದಿಯು ${mHouse}ನೇ ಭಾವದಲ್ಲಿ (${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ${maandiHouseKnotKn} ${isUpachaya ? "ಆದರೆ ಮಾಂದಿಯು ಉಪಚಯ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಅಂತಿಮವಾಗಿ ವಿಜಯ ನಿಮ್ಮದೇ ಆಗುತ್ತದೆ." : "ಇದು ದೈನಂದಿನ ಆರ್ಥಿಕ ಹಾಗೂ ವೃತ್ತಿ ಕೆಲಸಗಳಲ್ಲಿ '99% ಆದ ಕೆಲಸ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಕೈತಪ್ಪುವುದು ಅಥವಾ ವಿಳಂಬವಾಗುವ' ಕರ್ಮ ಗಂಟನ್ನು ತರುತ್ತದೆ."}`;
+    maandiP1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಶನಿಯ ಅದೃಶ್ಯ ಛಾಯಾ ಪುತ್ರನಾದ 'ಮಾಂದಿ' (ಗುಳಿಕ) ಗ್ರಹವು ${mHouse}ನೇ ಭಾವದಲ್ಲಿ (${mRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ಈ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${mHouseLordKn} ಗ್ರಹದೊಂದಿಗೆ ಮಾಂದಿಯ ಈ ಸ್ಥಾನವು ${isUpachaya ? "ಉಪಚಯ ಭಾವದಲ್ಲಿದ್ದು (3, 6, 10, 11) ಆರಂಭಿಕ ಕಠಿಣ ಸವಾಲುಗಳ ನಂತರ ಅಂತಿಮ ಜಯ ತರುವಂತಿದ್ದರೂ," : "ಕೇಂದ್ರ/ತ್ರಿಕೋಣ ಅಥವಾ ತ್ರಿಕ ಭಾವದಲ್ಲಿದ್ದು,"} ಪೂರ್ವಾರ್ಜಿತ ಕರ್ಮದ ಒಂದು ಸೂಕ್ಷ್ಮ ಅದೃಶ್ಯ ತಡೆಯನ್ನು (ಋಣ ಗಂಟು) ಉಂಟುಮಾಡಿದೆ. ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮಾಂದಿಯನ್ನು 'ಕಾರ್ಯ ವಿಘ್ನಕಾರಕ' ಎಂದು ಕರೆಯಲಾಗುತ್ತದೆ. ${maandiHouseKnotKn} ಜಾತಕದಲ್ಲಿ ಈ ಮಾಂದಿ ದೋಷವು ಸಕ್ರಿಯವಾಗಿರುವಾಗ, ವ್ಯಕ್ತಿಯಲ್ಲಿ ಅಪಾರ ಸಾಮರ್ಥ್ಯ ಮತ್ತು ಸತತ ಪರಿಶ್ರಮವಿದ್ದರೂ, ಕೊನೆಯ ಗಳಿಗೆಯಲ್ಲಿ ನಿರೀಕ್ಷಿತ ಫಲಿತಾಂಶವು ಕೈತಪ್ಪುವ ಪರಿಸ್ಥಿತಿ ಮರುಕಳಿಸುತ್ತದೆ.`;
     maandiEnContext = isUpachaya
-      ? `Posited in Upachaya House ${mHouse}, Maandi ultimately acts as an invincible armor against detractors, though occasionally producing last-minute delays that resolve into victory.`
-      : `Posited in House ${mHouse}, Maandi generates the classic 99% task hurdle where nearly completed financial and official matters stall right before final sign-off.`;
+      ? `Posited in Upachaya House ${mHouse} under dispositor ${mHouseLordKn}, Maandi acts as an armor against external competitors, yet occasionally triggers stubborn last-minute bureaucratic hurdles that resolve only after repeated follow-ups.`
+      : `Posited in House ${mHouse} under dispositor ${mHouseLordKn}, Maandi generates the classic 99% task hurdle where nearly completed financial settlements, contracts, and official approvals stall right before final execution.`;
   }
-  const maandiP2 = `ಮಾಂದಿ ಛಾಯಾ ಗ್ರಹದ ಶಾಂತಿಗಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಿ. ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ 'ಓಂ ಮಂದಪುತ್ರಾಯ ವಿದ್ಮಹೇ ಮೃತ್ಯುರೂಪಾಯ ಧೀಮಹಿ ತನ್ನೋ ಮಾಂದಿಃ ಪ್ರಚೋದಯಾತ್' ಮಂತ್ರವನ್ನು 11 ಬಾರಿ ಪಠಿಸುವುದರಿಂದ ಸಕಲ ಛಾಯಾ ದೋಷಗಳು ನಿವಾರಣೆಯಾಗುತ್ತವೆ.`;
+
+  const maandiP2 = `ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ನೀವು ಇದನ್ನು ಹಲವು ಬಾರಿ ನೇರವಾಗಿ ಅನುಭವಿಸಿರಬಹುದು — ಯಾವುದೇ ಒಂದು ಮುಖ್ಯವಾದ ಕೆಲಸ ಆರಂಭವಾದಾಗ ಎಲ್ಲವೂ ಸುಸೂತ್ರವಾಗಿ ಮುನ್ನಡೆಯುತ್ತದೆ; ಶೇಕಡಾ 90, 95, 99 ರಷ್ಟು ಕೆಲಸ ಸಲೀಸಾಗಿ ಮುಗಿಯುತ್ತದೆ. ಆದರೆ ಸರಿಯಾಗಿ ಅಂತಿಮ ಘಳಿಗೆಯಲ್ಲಿ, ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಬೀಳುವ ಸಮಯದಲ್ಲಿ, ಸಾಲ ಮಂಜೂರಾಗುವ ಕೊನೆಯ ಹಂತದಲ್ಲಿ, ಪ್ರಮೋಷನ್ ಆರ್ಡರ್ ಅಥವಾ ಹಣ ಕೈಗೆ ಬರುವ ಮುನ್ನಾದಿನ, ಯಾವುದೋ ಒಂದು ಕ್ಷುಲ್ಲಕ ತಾಂತ್ರಿಕ ಕಾರಣದಿಂದ ಅಥವಾ ಮೂರನೆಯವರ ಅನಿರೀಕ್ಷಿತ ಹಸ್ತಕ್ಷೇಪದಿಂದ ಆ ಕೆಲಸ ಹಠಾತ್ ನಿಂತುಹೋಗುತ್ತದೆ ಅಥವಾ ತಿಂಗಳುಗಟ್ಟಲೆ ಎಳೆಯುತ್ತದೆ. 'ಎಲ್ಲವೂ ಕೈಗೆ ಬಂದ ತುತ್ತು ಬಾಯಿಗೆ ಬರಲಿಲ್ಲ' ಎಂಬಂತೆ ಈ ಮಾಂದಿ ಕರ್ಮ ಗಂಟು ನಿಮ್ಮ ತಾಳ್ಮೆಯನ್ನು ಪರೀಕ್ಷಿಸುತ್ತದೆ. ಈ ಅಂತಿಮ 1% ಅಡೆತಡೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಕರಗಿಸಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಾಂದಿ-ಶನಿ ಶಾಂತಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸಬೇಕು. ದಿನನಿತ್ಯ 'ಓಂ ಮಂದಪುತ್ರಾಯ ವಿದ್ಮಹೇ ಮೃತ್ಯುರೂಪಾಯ ಧೀಮಹಿ ತನ್ನೋ ಮಾಂದಿಃ ಪ್ರಚೋದಯಾತ್' ಮಂತ್ರವನ್ನು 11 ಬಾರಿ ಜಪಿಸುವುದರಿಂದ ಈ ಕರ್ಮ ಗಂಟು ಸಂಪೂರ್ಣವಾಗಿ ನಿವಾರಣೆಯಾಗಲಿದೆ.`;
   const maandiKarmicImpactKn = sanitizeAstrologyKannadaText(`${maandiP1}\n\n${maandiP2}`);
-  const maandiKarmicImpactEn = `In your horoscope, subtle shadow planet Maandi is posited in House ${mHouse} (${kundli.maandi?.rashi.english || lagnaEng}). ${maandiEnContext}\n\nPerforming Maandi-Shani Shanti Sankalpa at sacred Gokarna Mahabaleshwara Kshetra provides complete protection.`;
+  const maandiKarmicImpactEn = `In your horoscope, subtle shadow planet Maandi (Gulika) is posited in House ${mHouse} (${kundli.maandi?.rashi.english || lagnaEng}). ${maandiEnContext}\n\nYou have repeatedly observed this agonizing phenomenon: critical undertakings reach 90%, 95%, 99% completion smoothly, only to stall at the 1% threshold due to trivial clerical errors or third-party interference right before final disbursement. Sponsoring Maandi-Shani Shanti Sankalpa at sacred Gokarna Mahabaleshwara Kshetra permanently dissolves this ancestral karmic node.`;
 
   // --- 4. BRIHAT JATAKA CH. 25 ANGA LAKSHANA & DOSHA TEMPERAMENT ---
   const ANGA_LAKSHANA_MAP: Record<number, { partKn: string; partEn: string }> = {
@@ -6436,10 +6587,10 @@ export const generateCurrentLifeDiagnosis = (
     doshaTraitsEn = "sensitive skin, vulnerability to cold/sinus, deep emotional intuition, and fluid balance sensitivity";
   }
 
-  const bodyMarkP1 = `ಬೃಹತ್ ಜಾತಕದ ಅಂಗ ಲಕ್ಷಣ ಶಾಸ್ತ್ರದ (ಅಧ್ಯಾಯ 25) ಪ್ರಕಾರ, ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನದ ಕಾಲಪುರುಷ ಅಂಗ ವಿಭಾಗವನ್ನು ನೋಡಿದರೆ, ನಿಮ್ಮ ಶರೀರದ ${anga.partKn} ಭಾಗದ ${bodySideKn}, ${markNatureKn} ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ಈ ಜನ್ಮ ಗುರುತು ನಿಮ್ಮ ಜಾತಕದ ಸತ್ಯತೆಗೆ ನೈಸರ್ಗಿಕ ಸಾಕ್ಷಿಯಾಗಿದೆ.`;
-  const bodyMarkP2 = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ ಮತ್ತು ಚಂದ್ರನ ತತ್ವದ ಪ್ರಕಾರ, ನಿಮ್ಮ ನೈಸರ್ಗಿಕ ದೇಹ ಪ್ರಕೃತಿಯು '${doshaPrakritiKn}' ಆಗಿದೆ. ಇದು ನಿಮ್ಮಲ್ಲಿ ${doshaTraitsKn} ಉಂಟುಮಾಡುತ್ತದೆ. ಪ್ರಾತಃಕಾಲ ತಾಮ್ರದ ಪಾತ್ರೆಯ ನೀರು ಸೇವನೆ ಹಾಗೂ ಶುದ್ಧ ಗವ್ಯ ತುಪ್ಪದ ಬಳಕೆ ನಿಮ್ಮ ಶರೀರದ ತ್ರಿದೋಷಗಳನ್ನು ಸಮತೋಲನದಲ್ಲಿಡಲಿದೆ.`;
+  const bodyMarkP1 = `ಮಹರ್ಷಿ ವರಾಹಮಿಹಿರರ ಬೃಹತ್ ಜಾತಕದ ಅಂಗ ಲಕ್ಷಣ ಶಾಸ್ತ್ರದ (ಅಧ್ಯಾಯ 25) ಪ್ರಕಾರ, ಕಾಲಪುರುಷನ ಅಂಗ ವಿಭಾಗದಲ್ಲಿ ನಿಮ್ಮ ${lagnaKn} ಲಗ್ನವು ನೇರವಾಗಿ ಶರೀರದ ${anga.partKn} ಪ್ರದೇಶವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತದೆ. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನಾಧಿಪತಿಯಾದ ${lagnaLordKn} ${lagnaLordHouse}ನೇ ಮನೆಯಲ್ಲಿ ಸ್ಥಿತನಾಗಿದ್ದು (${isRightSide ? "ಬೆಸ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಶರೀರದ ಬಲಭಾಗ" : "ಸಮ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಶರೀರದ ಎಡಭಾಗ"}), ನಿಮ್ಮ ದೇಹದ ${anga.partKn} ಭಾಗದ ${bodySideKn}, ${markNatureKn} ಸ್ಪಷ್ಟವಾಗಿ ನೆಲೆಗೊಂಡಿದೆ. ಇದು ಕೇವಲ ಆಕಸ್ಮಿಕ ಶಾರೀರಿಕ ರಚನೆಯಲ್ಲ; ಪ್ರಾಚೀನ ಜ್ಯೋತಿಷ್ಯ ಋಷಿಗಳು ಕುಂಡಲಿಯ ಗ್ರಹ ಸ್ಥಾನವನ್ನು ನೋಡಿ ವ್ಯಕ್ತಿಯ ಶರೀರದ ಹುಟ್ಟು ಕಲೆ ಅಥವಾ ಮಚ್ಚೆಯನ್ನು ಗುರುತಿಸುವ ಈ ಶಾಸ್ತ್ರೋಕ್ತ ಸತ್ಯವು, ನಿಮ್ಮ ಜಾತಕದ ದೈವಿಕ ನಿಖರತೆಗೆ ನಿಮ್ಮ ದೇಹದಲ್ಲೇ ಇರುವ ಜೀವಂತ ಸಾಕ್ಷಿಯಾಗಿದೆ.`;
+  const bodyMarkP2 = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ ಮತ್ತು ಚಂದ್ರನ ತತ್ವ ಸಂಯೋಜನೆಯ ಪ್ರಕಾರ, ನಿಮ್ಮ ನೈಸರ್ಗಿಕ ಆಯುರ್ವೇದ ಶಾರೀರಿಕ ಪ್ರಕೃತಿಯು '${doshaPrakritiKn}' ಆಗಿದೆ. ಇದು ನಿಮ್ಮ ದೇಹದಲ್ಲಿ ${doshaTraitsKn} ಉಂಟುಮಾಡುತ್ತದೆ. ಮಾನಸಿಕ ಆತಂಕ ಅಥವಾ ಅತಿಯಾದ ಕೆಲಸದ ಒತ್ತಡ ಉಂಟಾದಾಗ ಶರೀರದಲ್ಲಿ ಆಯಾಸ, ನಿದ್ರಾಭಂಗ ಹಾಗೂ ಜೀರ್ಣಾಂಗದಲ್ಲಿ ಏರುಪೇರು ಕಾಣಿಸಿಕೊಳ್ಳುವುದು ಇದರ ನೈಸರ್ಗಿಕ ಲಕ್ಷಣವಾಗಿದೆ. ನಿಮ್ಮ ಶರೀರಕ್ಕೆ ನಿಯಮಿತ ಸಮಯಕ್ಕೆ ಊಟ, ರಾತ್ರಿ ಶಾಂತ ನಿದ್ರೆ ಹಾಗೂ ಪ್ರಾತಃಕಾಲ ತಾಮ್ರದ ಪಾತ್ರೆಯಲ್ಲಿಟ್ಟ ಶುದ್ಧ ನೀರು ಮತ್ತು ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ಬಳಕೆ ಅತ್ಯಂತ ಹಿತಕರವಾಗಿದೆ. ಈ ದೈನಂದಿನ ಸಾತ್ವಿಕ ಪದ್ಧತಿಯು ನಿಮ್ಮ ದೇಹದ ನೈಸರ್ಗಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಮತ್ತು ತೇಜಸ್ಸನ್ನು ಸದಾ ಉತ್ತುಂಗದಲ್ಲಿಡಲಿದೆ.`;
   const bodyMarkAndTemperamentKn = `${bodyMarkP1}\n\n${bodyMarkP2}`;
-  const bodyMarkAndTemperamentEn = `According to classical Brihat Jataka Chapter 25 (Anga Lakshana), your ${lagnaEng} Ascendant places a distinctive mark upon the ${anga.partEn} on your ${bodySideEn}—manifesting as ${markNatureEn}. Furthermore, your Ayurvedic constitution is '${doshaPrakritiEn}', governing ${doshaTraitsEn}. Consuming pure water and maintaining metabolic balance will preserve your peak vitality.`;
+  const bodyMarkAndTemperamentEn = `According to classical Brihat Jataka Chapter 25 (Anga Lakshana), the celestial anatomy of your ${lagnaEng} Ascendant governs the ${anga.partEn}. Lagna lord ${lagnaLord} in House ${lagnaLordHouse} points unmistakably to the ${bodySideEn} of this zone, where ${markNatureEn} resides as a natural cosmic signature upon your physical body, proving the chart's empirical validity.\n\nYour metabolic constitution is governed by '${doshaPrakritiEn}', generating ${doshaTraitsEn}. Consuming pure water from a copper vessel at dawn and incorporating pure cow's ghee keeps your metabolic fire balanced, shielding your vitality against stress and fatigue.`;
 
   // --- 5. KARMA & FINANCIAL REALITY ---
   let vocationTraitKn = "";
@@ -6453,29 +6604,38 @@ export const generateCurrentLifeDiagnosis = (
     vocationTraitKn = `10ನೇ ಕರ್ಮ ಸ್ಥಾನವು ${h10SignKn} ರಾಶಿಯಾಗಿದ್ದು, ಅಧಿಪತಿ ${h10LordKn} ${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿರುವುದರಿಂದ ಉತ್ಪಾದನೆ, ವೈದ್ಯಕೀಯ/ಆಹಾರ, ಕೈಗಾರಿಕೆ, ಸಾರಿಗೆ ಅಥವಾ ಸ್ವಂತ ಪರಿಶ್ರಮದ ಸ್ವತಂತ್ರ ಉದ್ಯಮದಲ್ಲಿ ನಿರಂತರ ಪ್ರಗತಿಯಾಗಲಿದೆ.`;
   }
 
-  let dhanaTraitKn = `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಧನ ಸ್ಥಾನವು (${h2SignKn} ರಾಶಿ) ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನವು (${h11SignKn} ರಾಶಿ) ಆರ್ಥಿಕ ಆದಾಯದ ಹರಿವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತಿವೆ. ${h2LordKn} ಹಾಗೂ ${h11LordKn} ಗ್ರಹಗಳ ಶುಭ ದೃಷ್ಟಿಯಿಂದಾಗಿ ಕೈಗೆ ಬಂದ ಆದಾಯವು ಸ್ಥಿರಾಸ್ತಿ ಅಥವಾ ಬಂಗಾರದಲ್ಲಿ ಉಳಿತಾಯವಾಗಲಿದೆ.`;
+  let dhanaTraitKn = `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಧನ ಸ್ಥಾನವು (${h2SignKn} ರಾಶಿ, ಅಧಿಪತಿ ${h2LordKn}) ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನವು (${h11SignKn} ರಾಶಿ, ಅಧಿಪತಿ ${h11LordKn}) ಆರ್ಥಿಕ ಆದಾಯದ ಹರಿವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತಿವೆ.`;
+
+  let h10DispositorProseKn = "";
+  if (h10Dignity.dignity === "shatru" || h10Dignity.dignity === "debilitated") {
+    h10DispositorProseKn = `10ನೇ ಕರ್ಮಾಧಿಪತಿಯಾದ ${h10LordKn} ${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿ (${h10LordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಆ ಭಾವದ ಅಧಿಪತಿಯಾದ ${h10LordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${h10Dignity.labelKn}ದಲ್ಲಿದ್ದಾನೆ. ಈ ಕರ್ಮಾಧಿಪತಿಯು ಶತ್ರು/ಪ್ರತಿಕೂಲ ಕ್ಷೇತ್ರದಲ್ಲಿರುವುದರಿಂದ, ನೀವು ಕಚೇರಿಯಲ್ಲಿ ಅಥವಾ ಉದ್ಯೋಗದಲ್ಲಿ ಎಷ್ಟೇ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಕಷ್ಟಪಟ್ಟು ದುಡಿದರೂ, ಕೆಲಸದ ಪೂರ್ಣ ಕ್ರೆಡಿಟ್ ಸುಲಭವಾಗಿ ಇತರರ ಪಾಲಾಗುವ ಅಥವಾ ಬಡ್ತಿಯು ಕೊನೆಯ ಹಂತದಲ್ಲಿ ವಿಳಂಬವಾಗುವ ಸವಾಲು ಎದುರಾಗಿದೆ.`;
+  } else if (h10Dignity.dignity === "own" || h10Dignity.dignity === "exalted") {
+    h10DispositorProseKn = `10ನೇ ಕರ್ಮಾಧಿಪತಿಯಾದ ${h10LordKn} ${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿ (${h10LordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಆ ಭಾವದ ಅಧಿಪತಿಯಾದ ${h10LordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${h10Dignity.labelKn}ದಲ್ಲಿದ್ದಾನೆ. ಈ ಕರ್ಮಾಧಿಪತಿಯು ಅತ್ಯುನ್ನತ ಬಲಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ, ಯಾರ ಹಂಗೂ ಇಲ್ಲದೆ ಸ್ವತಂತ್ರವಾಗಿ ಅಧಿಕಾರ ಚಲಾಯಿಸುವ, ಗೌರವಾನ್ವಿತ ನಾಯಕತ್ವ ವಹಿಸುವ ಹಾಗೂ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ನಿಮ್ಮದೇ ಆದ ಛಾಪು ಮೂಡಿಸುವ ಅಪೂರ್ವ ಸಾಮರ್ಥ್ಯ ನಿಮ್ಮಲ್ಲಿದೆ.`;
+  } else {
+    h10DispositorProseKn = `10ನೇ ಕರ್ಮಾಧಿಪತಿಯಾದ ${h10LordKn} ${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿ (${h10LordPlacedRashiKn} ರಾಶಿಯಲ್ಲಿ) ಸ್ಥಿತನಾಗಿದ್ದು, ಆ ಭಾವದ ಅಧಿಪತಿಯಾದ ${h10LordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${h10Dignity.labelKn}ದಲ್ಲಿದ್ದಾನೆ. ಈ ಕರ್ಮಾಧಿಪತಿಯ ಸಮತೋಲಿತ ಬಲವು ನಿಮ್ಮ ವೃತ್ತಿಪರ ಪರಿಶ್ರಮಕ್ಕೆ ಹಂತ ಹಂತವಾದ ಪ್ರಗತಿ ಮತ್ತು ಸಮಾಜದಲ್ಲಿ ಗೌರವಯುತ ಸ್ಥಾನಮಾನವನ್ನು ಕಲ್ಪಿಸಿಕೊಡುತ್ತಿದೆ.`;
+  }
 
   let karmaFinancialRealityKn = "";
   let karmaFinancialRealityEn = "";
   if (isInfantUnder6Mo || isInfantUnder2Yr) {
-    karmaFinancialRealityKn = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಮಗುವಿನ ಜನ್ಮ ಲಗ್ನದ 2ನೇ ಧನ ಸ್ಥಾನ ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನವು ತಂದೆ-ತಾಯಿಯ ಭಾಗ್ಯೋದಯಕ್ಕೆ ನೇರ ಸಂಬಂಧ ಹೊಂದಿದೆ. ಈ ಮಗು ಜನಿಸಿದ ನಂತರ ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಲಕ್ಷ್ಮೀ ಕಟಾಕ್ಷ ವೃದ್ಧಿಯಾಗಿದ್ದು, ತಂದೆಯ ವೃತ್ತಿ/ವ್ಯವಹಾರದಲ್ಲಿ ಹೊಸ ಆದಾಯ ಮಾರ್ಗಗಳು ತೆರೆದುಕೊಳ್ಳುವ ಯೋಗವಿದೆ. ಈ ಮಗು ನಿಮ್ಮ ವಂಶಕ್ಕೆ ಭಾಗ್ಯಲಕ್ಷ್ಮಿಯ ಆಗಮನವಾಗಿದೆ.\n\nಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಮಾಡುವ ಸಣ್ಣ ಉಳಿತಾಯ ಅಥವಾ ಚಿನ್ನದ ಹೂಡಿಕೆಯು ಭವಿಷ್ಯದಲ್ಲಿ ಅದ್ಭುತವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿದೆ.`;
-    karmaFinancialRealityEn = `Astrologically, an infant's 2nd and 11th houses directly catalyze the parents' financial elevation. Following this child's birth, auspicious Griha Lakshmi fortune activates new income avenues for the parents. Foundational savings in the child's name will yield immense long-term prosperity.`;
+    karmaFinancialRealityKn = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಮಗುವಿನ ಜನ್ಮ ಲಗ್ನದ 2ನೇ ಧನ ಸ್ಥಾನ ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನವು ತಂದೆ-ತಾಯಿಯ ಭಾಗ್ಯೋದಯಕ್ಕೆ ನೇರ ಸಂಬಂಧ ಹೊಂದಿದೆ. ಈ ಮಗು ಜನಿಸಿದ ನಂತರ ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಲಕ್ಷ್ಮೀ ಕಟಾಕ್ಷ ವೃದ್ಧಿಯಾಗಿದ್ದು, ತಂದೆಯ ವೃತ್ತಿ/ವ್ಯವಹಾರದಲ್ಲಿ ಹೊಸ ಆದಾಯ ಮಾರ್ಗಗಳು ತೆರೆದುಕೊಳ್ಳುವ ಯೋಗವಿದೆ. ಈ ಮಗು ನಿಮ್ಮ ವಂಶಕ್ಕೆ ಭಾಗ್ಯಲಕ್ಷ್ಮಿಯ ಆಗಮನವಾಗಿದೆ.\n\nಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಮಾಡುವ ಸಣ್ಣ ಉಳಿತಾಯ, ಚಿನ್ನದ ಹೂಡಿಕೆ ಅಥವಾ ಸ್ಥಿರಾಸ್ತಿಯ ಸಂಕಲ್ಪವು ಭವಿಷ್ಯದಲ್ಲಿ ಅದ್ಭುತವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿದೆ. ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಧರ್ಮ-ದಾನಗಳನ್ನು ಮಾಡುವುದರಿಂದ ಕುಟುಂಬಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಣೆ ಸದಾ ಸಿಗಲಿದೆ.`;
+    karmaFinancialRealityEn = `Astrologically, an infant's 2nd and 11th houses directly catalyze parental fortune. Following this child's birth, auspicious Griha Lakshmi prosperity activates fresh income streams for the parents.\n\nEstablishing systematic savings or gold assets in the child's name now acts as a generational wealth multiplier, securing future education and lasting family prosperity.`;
   } else if (isChild) {
-    karmaFinancialRealityKn = `ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ 2ನೇ ವಿದ್ಯಾ-ಧನ ಸ್ಥಾನ ಹಾಗೂ 5ನೇ ಪೂರ್ವಪುಣ್ಯ ಸ್ಥಾನದ ಬಲದ ಪ್ರಕಾರ, ಮಗುವಿನ ಜನ್ಮವು ಕುಟುಂಬದ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯನ್ನು ಹಂತ ಹಂತವಾಗಿ ಮೇಲೆತ್ತಿದೆ. ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸಕ್ಕಾಗಿ ಪೋಷಕರು ಮಾಡುವ ಪ್ರತಿ ರೂಪಾಯಿ ಹೂಡಿಕೆಯು ಭವಿಷ್ಯದಲ್ಲಿ ನೂರು ಪಟ್ಟು ಗೌರವ ಮತ್ತು ಐಶ್ವರ್ಯವನ್ನು ಮರಳಿ ತರಲಿದೆ.\n\nಮಗುವಿಗೆ ಸಣ್ಣ ವಯಸ್ಸಿನಿಂದಲೇ ಧರ್ಮ, ದಾನ ಹಾಗೂ ಮಿತವ್ಯಯದ ಸಂಸ್ಕಾರವನ್ನು ಕಲಿಸುವುದು ಭವಿಷ್ಯದ ಆರ್ಥಿಕ ಯಶಸ್ಸಿಗೆ ನಾಂದಿ ಹಾಡಲಿದೆ.`;
-    karmaFinancialRealityEn = `Through the 2nd and 5th houses of learning and merit, the child's academic investments by parents act as powerful karmic multipliers. Cultivating values of thrift and charitable giving early will ensure great prosperity in adulthood.`;
+    karmaFinancialRealityKn = `ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ 2ನೇ ವಿದ್ಯಾ-ಧನ ಸ್ಥಾನ ಹಾಗೂ 5ನೇ ಪೂರ್ವಪುಣ್ಯ ಸ್ಥಾನದ ಬಲದ ಪ್ರಕಾರ, ಮಗುವಿನ ಜನ್ಮವು ಕುಟುಂಬದ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯನ್ನು ಹಂತ ಹಂತವಾಗಿ ಮೇಲೆತ್ತಿದೆ. ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸಕ್ಕಾಗಿ ಪೋಷಕರು ಮಾಡುವ ಪ್ರತಿ ರೂಪಾಯಿ ಹೂಡಿಕೆಯು ಭವಿಷ್ಯದಲ್ಲಿ ನೂರು ಪಟ್ಟು ಗೌರವ ಮತ್ತು ಐಶ್ವರ್ಯವನ್ನು ಮರಳಿ ತರಲಿದೆ.\n\nಮಗುವಿಗೆ ಸಣ್ಣ ವಯಸ್ಸಿನಿಂದಲೇ ಧರ್ಮ, ದಾನ ಹಾಗೂ ಮಿತವ್ಯಯದ ಸಂಸ್ಕಾರವನ್ನು ಕಲಿಸುವುದು ಭವಿಷ್ಯದ ಆರ್ಥಿಕ ಯಶಸ್ಸಿಗೆ ನಾಂದಿ ಹಾಡಲಿದೆ. ಮಗುವಿನ ಬುದ್ಧಿಶಕ್ತಿಯು ಭವಿಷ್ಯದಲ್ಲಿ ಕುಟುಂಬಕ್ಕೆ ದೊಡ್ಡ ಕೀರ್ತಿ ತರಲಿದೆ.`;
+    karmaFinancialRealityEn = `Through the 2nd house of knowledge and 5th house of merit, scholastic investments made by parents multiply exponentially. The child's destiny elevates the household's socioeconomic stature.\n\nInculcating habits of disciplined saving and philanthropic duty early will prepare the child for stellar financial discernment and professional leadership.`;
   } else if (isYouth) {
-    karmaFinancialRealityKn = `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಧನ ಸ್ಥಾನ, 10ನೇ ಕರ್ಮ ಸ್ಥಾನ ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಕೈಯಲ್ಲಿ ಹಣ ನಿಲ್ಲುವುದು ಕೊಂಚ ಕಷ್ಟ; ಖರ್ಚುಗಳು ಸದಾ ಸಿದ್ಧವಾಗಿರುತ್ತವೆ. ಆದರೆ ನೀವು ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದಲೇ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸ್ವಾವಲಂಬಿಗಳಾಗುವ ದೃಢ ಯೋಗವಿದೆ.\n\n${vocationTraitKn} ನಿಮ್ಮ 24-26ನೇ ವಯಸ್ಸಿನ ನಂತರ ಆರ್ಥಿಕವಾಗಿ ಸ್ವಂತ ಕಾಲ ಮೇಲೆ ನಿಂತು ಪೋಷಕರಿಗೆ ಆಸರೆಯಾಗುವ ಸೌಭಾಗ್ಯ ನಿಮ್ಮದಾಗಲಿದೆ. ಕೌಶಲ್ಯಾಭಿವೃದ್ಧಿಯ ಮೇಲಿನ ಹೂಡಿಕೆಯು ನಿಮ್ಮ ಸರ್ವಶ್ರೇಷ್ಠ ಆಸ್ತಿಯಾಗಲಿದೆ.`;
-    karmaFinancialRealityEn = `With active 2nd and 11th houses, financial outlays remain frequent during youth. However, your intrinsic talent creates strong foundations for self-reliance by age 24–26, empowering you to support your family with distinction.`;
+    karmaFinancialRealityKn = `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಧನ ಸ್ಥಾನ (${h2SignKn} ರಾಶಿ), 10ನೇ ಕರ್ಮ ಸ್ಥಾನ (${h10SignKn} ರಾಶಿ) ಹಾಗೂ 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಕೈಯಲ್ಲಿ ಹಣ ನಿಲ್ಲುವುದು ಕೊಂಚ ಕಷ್ಟ; ಖರ್ಚುಗಳು ಸದಾ ಸಿದ್ಧವಾಗಿರುತ್ತವೆ. ಆದರೆ ನೀವು ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದಲೇ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸ್ವಾವಲಂಬಿಗಳಾಗುವ ದೃಢ ಯೋಗವಿದೆ. ${h10DispositorProseKn} ${vocationTraitKn}\n\nನಿಮ್ಮ 24-26ನೇ ವಯಸ್ಸಿನ ನಂತರ ಆರ್ಥಿಕವಾಗಿ ಸ್ವಂತ ಕಾಲ ಮೇಲೆ ನಿಂತು ಪೋಷಕರಿಗೆ ಆಸರೆಯಾಗುವ ಸೌಭಾಗ್ಯ ನಿಮ್ಮದಾಗಲಿದೆ. ಕೌಶಲ್ಯಾಭಿವೃದ್ಧಿಯ ಮೇಲಿನ ಹೂಡಿಕೆಯು ನಿಮ್ಮ ಸರ್ವಶ್ರೇಷ್ಠ ಆಸ್ತಿಯಾಗಲಿದೆ. ಕೈಯಲ್ಲಿ ನಗದು ಹಣ ಇಟ್ಟುಕೊಳ್ಳುವ ಬದಲು ಕೌಶಲ ಮತ್ತು ಉಳಿತಾಯದತ್ತ ಗಮನ ಹರಿಸುವುದು ನಿಮ್ಮ ಭವಿಷ್ಯಕ್ಕೆ ದಾರಿದೀಪ.`;
+    karmaFinancialRealityEn = `With an active 10th house governed by ${h10LordKn} in House ${h10LordHouse} and dynamic 2nd/11th houses, financial outflows remain frequent during youth. However, your intrinsic talent creates strong foundations for self-reliance by age 24–26.\n\nTransforming raw analytical abilities into recognized professional expertise builds your core capital. Investing early in skills rather than speculative distractions secures prompt career independence.`;
   } else if (isMatureAdult) {
-    karmaFinancialRealityKn = `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಹಾಗೂ 11ನೇ ಮನೆಗಳ ಪರಿಶೀಲನೆಯ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜೀವಮಾನದ ಶ್ರಮದಿಂದ ನೀವು ಕುಟುಂಬಕ್ಕೆ ಭದ್ರ ಬುನಾದಿ ಹಾಕಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಸ್ವಂತ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆಗೆ ಯಾವುದೇ ಕೊರತೆಯಿಲ್ಲದಿದ್ದರೂ, ಮಕ್ಕಳ ಶಿಕ್ಷಣ, ವಿವಾಹ ಅಥವಾ ಆಸ್ತಿ ಹಂಚಿಕೆಯ ಜವಾಬ್ದಾರಿಗಳು ನಿಮ್ಮ ಗಮನದಲ್ಲಿವೆ.\n\n${vocationTraitKn} ನಿಮ್ಮ ನಿವೃತ್ತ ಜೀವನಕ್ಕೆ ಸುರಕ್ಷಿತ ಆದಾಯ ಬರುವಂತೆ ಠೇವಣಿಗಳನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಸೂಕ್ತ. ದಾನ-ಧರ್ಮಗಳ ಸದ್ವಿನಿಯೋಗವು ನಿಮ್ಮ ವಂಶಕ್ಕೆ ದೈವಿಕ ಶ್ರೀರಕ್ಷೆ ನೀಡಲಿದೆ.`;
-    karmaFinancialRealityEn = `Having established a resilient family foundation, your 2nd and 11th houses reflect material stability, with primary commitments focused on children's weddings and property consolidations. Preserving secure retirement assets guarantees lifelong dignity.`;
+    karmaFinancialRealityKn = `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಹಾಗೂ 11ನೇ ಮನೆಗಳ ಪರಿಶೀಲನೆಯ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜೀವಮಾನದ ಶ್ರಮದಿಂದ ನೀವು ಕುಟುಂಬಕ್ಕೆ ಭದ್ರ ಬುನಾದಿ ಹಾಕಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಸ್ವಂತ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆಗೆ ಯಾವುದೇ ಕೊರತೆಯಿಲ್ಲದಿದ್ದರೂ, ಮಕ್ಕಳ ಶಿಕ್ಷಣ, ವಿವಾಹ ಅಥವಾ ಆಸ್ತಿ ಹಂಚಿಕೆಯ ಜವಾಬ್ದಾರಿಗಳು ನಿಮ್ಮ ಗಮನದಲ್ಲಿವೆ. ${h10DispositorProseKn} ${vocationTraitKn}\n\nನಿಮ್ಮ ನಿವೃತ್ತ ಜೀವನಕ್ಕೆ ಸುರಕ್ಷಿತ ಆದಾಯ ಬರುವಂತೆ ಠೇವಣಿಗಳನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಸೂಕ್ತ. ಕೈಯಲ್ಲಿ ನಗದು ಹಣ ಇಡುವ ಬದಲು ಸ್ಥಿರಾಸ್ತಿಯಲ್ಲಿ ಸುರಕ್ಷಿತವಾಗಿರಿಸುವುದು ನಿಮ್ಮ ಸಂಪತ್ತನ್ನು ರಕ್ಷಿಸಲಿದೆ. ದಾನ-ಧರ್ಮಗಳ ಸದ್ವಿನಿಯೋಗವು ನಿಮ್ಮ ವಂಶಕ್ಕೆ ದೈವಿಕ ಶ್ರೀರಕ್ಷೆ ನೀಡಲಿದೆ.`;
+    karmaFinancialRealityEn = `Having established a resilient family foundation, your 10th and 2nd/11th houses reflect material stability. Current financial commitments focus on children's weddings and property consolidations.\n\nPreserving secure retirement deposits and tangible land assets rather than extending unsecured personal loans guarantees lifelong peace, autonomy, and dignified leadership.`;
   } else if (isSenior) {
-    karmaFinancialRealityKn = `ಹಿರಿಯರಾದ ತಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಮತ್ತು 12ನೇ ಸ್ಥಾನಗಳು ಧರ್ಮ-ದಾನ ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ತೃಪ್ತಿಯನ್ನು ಸೂಚಿಸುತ್ತವೆ. ಭೌತಿಕ ಧನಕ್ಕಿಂತಲೂ ತಮ್ಮ ಸಂಸ್ಕಾರ, ಆಶೀರ್ವಾದ ಮತ್ತು ಕುಟುಂಬದಲ್ಲಿ ತಂದಿಟ್ಟ ಶಾಂತಿಯೇ ಇಂದಿನ ಶಾಶ್ವತ ಆಸ್ತಿಯಾಗಿದೆ.\n\nತಮ್ಮ ನಿತ್ಯ ಜೀವನದ ಸಕಲ ಅವಶ್ಯಕತೆಗಳಿಗೂ ದೈವಬಲದಿಂದ ಯಾವುದೇ ಕೊರತೆಯಾಗದಂತೆ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನು ರಕ್ಷಿಸುತ್ತಿದ್ದಾನೆ. ತಮ್ಮ ಆಶೀರ್ವಾದವೇ ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಅತಿ ದೊಡ್ಡ ಭಾಗ್ಯ.`;
-    karmaFinancialRealityEn = `In the golden years, the 2nd and 12th houses emphasize dharmic contentment, sacred charity, and detachment from material worries. The blessings and values you bestow upon your progeny remain their greatest wealth.`;
+    karmaFinancialRealityKn = `ಹಿರಿಯರಾದ ತಮ್ಮ ಜಾತಕದಲ್ಲಿ 2ನೇ ಮತ್ತು 12ನೇ ಸ್ಥಾನಗಳು ಧರ್ಮ-ದಾನ ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ತೃಪ್ತಿಯನ್ನು ಸೂಚಿಸುತ್ತವೆ. ಭೌತಿಕ ಧನಕ್ಕಿಂತಲೂ ತಮ್ಮ ಸಂಸ್ಕಾರ, ಆಶೀರ್ವಾದ ಮತ್ತು ಕುಟುಂಬದಲ್ಲಿ ತಂದಿಟ್ಟ ಶಾಂತಿಯೇ ಇಂದಿನ ಶಾಶ್ವತ ಆಸ್ತಿಯಾಗಿದೆ.\n\nತಮ್ಮ ನಿತ್ಯ ಜೀವನದ ಸಕಲ ಅವಶ್ಯಕತೆಗಳಿಗೂ ದೈವಬಲದಿಂದ ಯಾವುದೇ ಕೊರತೆಯಾಗದಂತೆ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನು ರಕ್ಷಿಸುತ್ತಿದ್ದಾನೆ. ತಮ್ಮ ಆಶೀರ್ವಾದವೇ ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಅತಿ ದೊಡ್ಡ ಭಾಗ್ಯವಾಗಿದ್ದು, ದೈವಿಕ ಶಾಂತಿ ಸದಾ ತಮ್ಮೊಂದಿಗಿರಲಿದೆ.`;
+    karmaFinancialRealityEn = `In the golden years, the 2nd and 12th houses emphasize dharmic contentment, sacred charity, and detachment from material worries. The blessings and values you bestow upon your progeny remain their greatest wealth.\n\nDivine grace preserves your physical ease and domestic security, shielding your final chapters with serene tranquility.`;
   } else {
     // Prime Adult (25-49)
-    karmaFinancialRealityKn = `ಕರ್ಮ ಸ್ಥಾನವಾದ 10ನೇ ಮನೆ ಹಾಗೂ ಧನ ಸ್ಥಾನಗಳಾದ 2ನೇ ಮತ್ತು 11ನೇ ಮನೆಗಳ ಗ್ರಹಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ವೃತ್ತಿ ಅಥವಾ ವ್ಯಾಪಾರ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೀವು ಶೇಕಡಾ 100 ರಷ್ಟು ಪರಿಶ್ರಮ ಹಾಕುತ್ತಿದ್ದೀರಿ. ${vocationTraitKn}\n\n${dhanaTraitKn} ${isFemale ? "ಮಹಿಳೆಯಾಗಿ ನೀವು ಮನೆಯ ಆರ್ಥಿಕ ಸುವ್ಯವಸ್ಥೆಯನ್ನು ಕಾಪಾಡಲು ಹಗಲಿರುಳು ಶ್ರಮಿಸುತ್ತಿದ್ದೀರಿ; ನಿಮ್ಮ ಕೈಗುಣದಿಂದ ಕುಟುಂಬದಲ್ಲಿ ಲಕ್ಷ್ಮಿ ನೆಲೆಸಿದ್ದಾಳೆ." : "ಪುರುಷನಾಗಿ ನೀವು ಇಡೀ ಸಂಸಾರದ ಆರ್ಥಿಕ ನೊಗವನ್ನು ಹೊತ್ತು, ಸಾಲ-ಸೋಲಗಳನ್ನು ತೀರಿಸಿ ಸ್ಥಿರ ಆಸ್ತಿ ಮಾಡುವ ಛಲ ಹೊಂದಿದ್ದೀರಿ."} ನಿಮ್ಮ ಕರ್ಮ ಸ್ಥಾನದ ಅಧಿಪತಿಯು ನಿಮ್ಮನ್ನು ವೃತ್ತಿಪರವಾಗಿ ಹದಗೊಳಿಸುತ್ತಿದ್ದಾನೆ; ಈ ಅನುಭವಗಳು ನಿಮ್ಮ ಮಹತ್ತರ ಜಯಕ್ಕೆ ಅಡಿಪಾಯವಾಗಲಿವೆ.`;
-    karmaFinancialRealityEn = `Governed by your 10th house of profession and 2nd/11th houses of wealth, your sustained dedication is building the foundation for enduring career stability and financial growth. Channeling liquid income into real estate and secure gold assets shields your family against volatility.`;
+    karmaFinancialRealityKn = `ಕರ್ಮ ಸ್ಥಾನವಾದ 10ನೇ ಮನೆ (${h10SignKn} ರಾಶಿ) ಮತ್ತು ಧನ-ಲಾಭ ಸ್ಥಾನಗಳಾದ 2ನೇ (${h2SignKn} ರಾಶಿ) ಹಾಗೂ 11ನೇ (${h11SignKn} ರಾಶಿ) ಮನೆಗಳ ಗ್ರಹಬಲದ ಪ್ರಕಾರ ನಿಮ್ಮ ವೃತ್ತಿ ಮತ್ತು ಆರ್ಥಿಕ ರೇಖೆಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ ಕರ್ಮ ಪ್ರವಾಹವು ಸ್ಪಷ್ಟವಾಗುತ್ತದೆ. 10ನೇ ಕರ್ಮಾಧಿಪತಿಯಾದ ${h10LordKn} ${h10LordHouse}ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ಆ ರಾಶ್ಯಾಧಿಪತಿಯಾದ ${h10LordDispositorKn} ಗ್ರಹದೊಂದಿಗೆ ${h10Dignity.labelKn} ಪಡೆದಿದ್ದಾನೆ. ಧನಾಧಿಪತಿ ${h2LordKn} ಹಾಗೂ ಲಾಭಾಧಿಪತಿ ${h11LordKn} ಗ್ರಹಗಳ ಶುಭ-ಅಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ನಿತ್ಯ ಆದಾಯದ ಹರಿವನ್ನು ರೂಪಿಸುತ್ತಿದೆ. ${h10DispositorProseKn} ${vocationTraitKn} ${dhanaTraitKn} ಈ ಗ್ರಹ ಸಂಯೋಜನೆಯು ನಿಮಗೆ ವೃತ್ತಿಯಲ್ಲಿ ಸ್ವಂತ ಕಾಲ ಮೇಲೆ ನಿಲ್ಲುವ ಅಪ್ರತಿಮ ಸಾಮರ್ಥ್ಯ, ಕರ್ತವ್ಯ ನಿಷ್ಠೆ ಹಾಗೂ ವೃತ್ತಿಪರ ನೈಪುಣ್ಯವನ್ನು ಕರುಣಿಸಿದೆ.\n\nನಿಮ್ಮ ವಾಸ್ತವಿಕ ಕರ್ಮ ಜೀವನವನ್ನು ನೋಡಿದರೆ — ನೀವು ಕಾಯಕವೇ ಕೈಲಾಸವೆಂದು ನಂಬಿ ಶೇಕಡಾ 100 ರಷ್ಟು ಪ್ರಾಮಾಣಿಕ ಶ್ರಮವಹಿಸುವವರು. ಆದರೆ ಕಚೇರಿ ರಾಜಕೀಯ, ಮುಖಸ್ತುತಿ ಅಥವಾ ಅನ್ಯಾಯದ ಹೊಂದಾಣಿಕೆಗೆ ನಿಮ್ಮ ಆತ್ಮಸಾಕ್ಷಿ ಒಪ್ಪುವುದಿಲ್ಲ. ಇದರಿಂದಾಗಿ ನೀವು ಮಾಡಿದ ಕೆಲಸದ ಕ್ರೆಡಿಟ್ ಕೆಲವೊಮ್ಮೆ ಇತರರ ಪಾಲಾಗುವ ಅಥವಾ ಬಡ್ತಿ ವಿಳಂಬವಾಗುವ ಕಹಿ ಅನುಭವವನ್ನು ಎದುರಿಸಿದ್ದೀರಿ. ಆರ್ಥಿಕವಾಗಿ ಕೈಗೆ ಸಾಕಷ್ಟು ಆದಾಯ ಬಂದರೂ, ಅದು ಕೈಯಲ್ಲಿ ನಗದು ರೂಪದಲ್ಲಿ ನಿಲ್ಲುವುದು ಕಷ್ಟ. ಕೈಗೆ ಹಣ ಬರುತ್ತಿದ್ದಂತೆ ಯಾವುದೋ ಒಂದು ಅನಿವಾರ್ಯ ಕೌಟುಂಬಿಕ ಹೊಣೆಗಾರಿಕೆ, ಆಕಸ್ಮಿಕ ವೆಚ್ಚ ಅಥವಾ ಸಾಲ ತೀರಿಸಲು ಖರ್ಚಾಗುವ ಆರ್ಥಿಕ ಸೆಳೆತ ನಿಮ್ಮಲ್ಲಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ, ಕೈಯಲ್ಲಿ ಲಿಕ್ವಿಡ್ ನಗದು ಹಣ ಇಟ್ಟುಕೊಳ್ಳುವ ಬದಲು ಚಿನ್ನಾಭರಣ, ಭೂಮಿ ಅಥವಾ ಸ್ಥಿರಾಸ್ತಿಯಲ್ಲಿ ಹೂಡಿಕೆ ಮಾಡಿದರೆ ಮಾತ್ರ ನಿಮ್ಮ ಸಂಪತ್ತು ಅಖಂಡವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿದೆ.`;
+    karmaFinancialRealityEn = `Examining your 10th house of profession (${h10SignKn}) and 2nd/11th houses of wealth, your 10th lord ${h10LordKn} resides in House ${h10LordHouse} in ${h10LordPlacedRashiKn}, sharing ${h10Dignity.labelEn} with dispositor ${h10LordDispositorKn}. This placement grants immense professional capability, unwavering work ethic, and an inability to indulge in flattery or corporate politics.\n\nWhile you contribute 100% genuine effort, workplace sycophants sometimes misappropriate your credit initially. Financially, healthy income flows in, but liquid cash tends to drain quickly into family duties, medical emergencies, or debt clearance. Converting liquid surplus into tangible land, home equity, or gold ensures enduring wealth accumulation.`;
   }
 
   // --- 6. IMMEDIATE TURNING POINT TIMELINE ---
@@ -6483,25 +6643,42 @@ export const generateCurrentLifeDiagnosis = (
   const bhuktiKn = toKannadaPlanet(bhukti);
   const dashaLordHouse = kundli.planets.find((p) => p.name === maha)?.house ?? 1;
   const bhuktiLordHouse = kundli.planets.find((p) => p.name === bhukti)?.house ?? 1;
+  const dashaBhuktiRel = getNaturalRelationship(maha, bhukti);
+  const dashaBhuktiRelKn = dashaBhuktiRel === "mitra"
+    ? "ನೈಸರ್ಗಿಕ ಮಿತ್ರತ್ವ (ಅನುಕೂಲಕರ ಶುಭ ಫಲ)"
+    : dashaBhuktiRel === "shatru"
+    ? "ನೈಸರ್ಗಿಕ ಶತ್ರುತ್ವ (ಸವಾಲಿನ ಘರ್ಷಣಾ ಫಲ)"
+    : "ಸಮತ್ವ (ಮಿಶ್ರ ಫಲ)";
+  const dashaMutualDist = houseDist(dashaLordHouse, bhuktiLordHouse);
+  let dashaMutualDistKn = `${dashaMutualDist}ನೇ ಭಾವದ ಅಂತರ`;
+  if (dashaMutualDist === 6 || dashaMutualDist === 8) {
+    dashaMutualDistKn = "ಷಡಾಷ್ಟಕ (6-8) ದೋಷದ ಅಂತರ (ವಿರೋಧ ಮತ್ತು ಒತ್ತಡದ ಪರಿವರ್ತನೆ)";
+  } else if (dashaMutualDist === 2 || dashaMutualDist === 12) {
+    dashaMutualDistKn = "ದ್ವಿದ್ವಾದಶ (2-12) ವ್ಯಯ ಯೋಗದ ಅಂತರ (ಸ್ಥಾನಪಲ್ಲಟ ಹಾಗೂ ಖರ್ಚು)";
+  } else if (dashaMutualDist === 5 || dashaMutualDist === 9) {
+    dashaMutualDistKn = "ನವಪಂಚಮ (5-9) ರಾಜಯೋಗದ ಅಂತರ (ಭಾಗ್ಯೋದಯ ಮತ್ತು ಯಶಸ್ಸು)";
+  } else if ([1, 4, 7, 10].includes(dashaMutualDist)) {
+    dashaMutualDistKn = "ಕೇಂದ್ರ ಬಾಂಧವ್ಯದ ಅಂತರ (ಕಾರ್ಯಸಾಧನೆ ಮತ್ತು ಅಧಿಕಾರ)";
+  }
 
   let immediateTurningPointKn = "";
   let immediateTurningPointEn = "";
   if (isInfantUnder6Mo || isInfantUnder2Yr) {
-    immediateTurningPointKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯ (${dashaLordHouse}ನೇ ಭಾವ) ${bhuktiKn} ಭುಕ್ತಿಯ (${bhuktiLordHouse}ನೇ ಭಾವ) ಕಾಲಾವಧಿಯ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTiming.timelineKn} ಮಗುವಿನ ದೈಹಿಕ ವಿಕಾಸ, ನೂತನ ಹೆಜ್ಜೆಗಳು, ಹಲ್ಲು ಮೂಡುವಿಕೆ ಹಾಗೂ ಮಾತಿನ ಬೆಳವಣಿಗೆಯಲ್ಲಿ ಅತ್ಯಂತ ಸಂತೋಷದಾಯಕ ಮೈಲಿಗಲ್ಲು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ಮಗುವಿನ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ಸಾತ್ವಿಕ ತೇಜಸ್ಸು ಮತ್ತಷ್ಟು ವೃದ್ಧಿಯಾಗಲಿದೆ.`;
-    immediateTurningPointEn = `Under ongoing ${maha} Mahadasha and ${bhukti} Antardasha, a joyful developmental leap—teething ease, confident motor steps, and speech flowering—will unfold ${dashaTiming.timelineEn}. ${liveGochara.summaryEn}`;
+    immediateTurningPointKn = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ವಿಂಶೋತ್ತರಿ ದಶಾ ಗಣಿತದ ಪ್ರಕಾರ, ಪ್ರಸ್ತುತ ಮಗುವಿಗೆ ${mahaKn} ಮಹಾದಶೆಯ (${dashaLordHouse}ನೇ ಭಾವ) ${bhuktiKn} ಭುಕ್ತಿಯ (${bhuktiLordHouse}ನೇ ಭಾವ) ಕಾಲಾವಧಿ ನಡೆಯುತ್ತಿದೆ. ಈ ಇಬ್ಬರು ಗ್ರಹಗಳ ನಡುವೆ ${dashaBhuktiRelKn} ಇದ್ದು, ಕುಂಡಲಿಯಲ್ಲಿ ${dashaMutualDistKn}ದಲ್ಲಿದ್ದಾರೆ. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿಯ ಚಲನೆಯನ್ನು ತಾಳೆ ನೋಡಿದಾಗ, ಇನ್ನು ${dashaTiming.timelineKn} ಮಗುವಿನ ದೈಹಿಕ ವಿಕಾಸ, ನೂತನ ಹೆಜ್ಜೆಗಳು, ಹಲ್ಲು ಮೂಡುವಿಕೆ ಹಾಗೂ ಮಾತಿನ ಬೆಳವಣಿಗೆಯಲ್ಲಿ ಅತ್ಯಂತ ಸಂತೋಷದಾಯಕ ಮೈಲಿಗಲ್ಲು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ಈ ಮುಂಬರುವ ತಿರುವಿನ ಅವಧಿಯಲ್ಲಿ ಮಗುವಿನ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ಸಾತ್ವಿಕ ತೇಜಸ್ಸು ಮತ್ತಷ್ಟು ವೃದ್ಧಿಯಾಗಲಿದೆ. ಪೋಷಕರಿಗೆ ಇದ್ದ ಸಣ್ಣಪುಟ್ಟ ಆರೋಗ್ಯದ ಆತಂಕಗಳು ನಿವಾರಣೆಯಾಗಿ ಕುಟುಂಬದಲ್ಲಿ ನೆಮ್ಮದಿ ಮತ್ತು ನಗು ತುಂಬಲಿದೆ.`;
+    immediateTurningPointEn = `Under ongoing ${maha} Mahadasha (House ${dashaLordHouse}) and ${bhukti} Antardasha (House ${bhuktiLordHouse}), forming ${dashaMutualDist}th house mutual distance, a joyful developmental leap will unfold ${dashaTiming.timelineEn}. ${liveGochara.summaryEn}\n\nThis upcoming turning point stabilizes infant digestion, motor coordination, and speech flowering, bringing immense relief and domestic joy to parents.`;
   } else if (isChild) {
-    immediateTurningPointKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯ (${dashaLordHouse}ನೇ ಭಾವ) ${bhuktiKn} ಭುಕ್ತಿಯ (${bhuktiLordHouse}ನೇ ಭಾವ) ಪ್ರಕಾರ, ಇನ್ನು ${dashaTiming.timelineKn} ನಿಮ್ಮ ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಗ್ರಹಣ ಶಕ್ತಿ ಹಾಗೂ ಶಾಲಾ ಸಾಧನೆಯಲ್ಲಿ ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ಮಗುವಿನ ಓದಿನಲ್ಲಿ ಆಸಕ್ತಿ ಹೆಚ್ಚಿ, ಪೋಷಕರಿಗೆ ಹೆಮ್ಮೆ ತರುವಂತಹ ಸಾಧನೆ ಹೊರಹೊಮ್ಮಲಿದೆ.`;
-    immediateTurningPointEn = `Within ${dashaTiming.timelineEn}, under ${maha} Mahadasha and ${bhukti} Bhukti, your child will experience an academic and cognitive surge, mastering difficult subjects with renewed curiosity. ${liveGochara.summaryEn}`;
+    immediateTurningPointKn = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ವಿಂಶೋತ್ತರಿ ದಶಾ ಗಣಿತದ ಪ್ರಕಾರ, ಪ್ರಸ್ತುತ ಮಗುವಿಗೆ ${mahaKn} ಮಹಾದಶೆಯ (${dashaLordHouse}ನೇ ಭಾವ) ${bhuktiKn} ಭುಕ್ತಿಯ (${bhuktiLordHouse}ನೇ ಭಾವ) ಕಾಲಾವಧಿ ನಡೆಯುತ್ತಿದೆ. ಈ ಇಬ್ಬರು ಗ್ರಹಗಳ ನಡುವೆ ${dashaBhuktiRelKn} ಇದ್ದು, ಕುಂಡಲಿಯಲ್ಲಿ ${dashaMutualDistKn}ದಲ್ಲಿದ್ದಾರೆ. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿಯ ಸಂಚಾರದ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTiming.timelineKn} ನಿಮ್ಮ ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಗ್ರಹಣ ಶಕ್ತಿ ಹಾಗೂ ಶಾಲಾ ಸಾಧನೆಯಲ್ಲಿ ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ಮಗುವಿನ ಓದಿನಲ್ಲಿ ಆಸಕ್ತಿ ಹೆಚ್ಚಿ, ಗಣಿತ ಅಥವಾ ಭಾಷಾ ವಿಷಯಗಳಲ್ಲಿ ಎದುರಾಗಿದ್ದ ಹಿಂಜರಿಕೆ ಸಂಪೂರ್ಣ ಮಾಯವಾಗಲಿದೆ. ಮುಂಬರುವ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಉತ್ತಮ ಶ್ರೇಣಿ ಪಡೆದು ಪೋಷಕರಿಗೆ ಅಪಾರ ಹೆಮ್ಮೆ ತರುವಂತಹ ಸಾಧನೆ ಹೊರಹೊಮ್ಮಲಿದೆ.`;
+    immediateTurningPointEn = `Within ${dashaTiming.timelineEn}, under ${maha} Mahadasha (House ${dashaLordHouse}) and ${bhukti} Bhukti (House ${bhuktiLordHouse}), your child will experience a cognitive surge. ${liveGochara.summaryEn}\n\nPast academic hesitation or distractions will clear, enabling your child to master complex scholastic concepts with renewed confidence and pride.`;
   } else if (isYouth) {
-    immediateTurningPointKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯ (${dashaLordHouse}ನೇ ಭಾವ) ${bhuktiKn} ಭುಕ್ತಿಯ (${bhuktiLordHouse}ನೇ ಭಾವ) ಮತ್ತು ಗೋಚಾರ ಗ್ರಹಗಳ ಸಂಚಾರದ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTiming.timelineKn} ನಿಮ್ಮ ಶಿಕ್ಷಣ, ಉದ್ಯೋಗ ಪ್ರವೇಶ ಅಥವಾ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಯಲ್ಲಿ ಪ್ರಮುಖ ಶುಭ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ನೂತನ ಅವಕಾಶಗಳ ಹೆಬ್ಬಾಗಿಲು ತೆರೆಯಲಿದೆ.`;
-    immediateTurningPointEn = `A pivotal career and academic turning point is scheduled to unfold ${dashaTiming.timelineEn} under running ${maha}-${bhukti}. ${liveGochara.summaryEn}`;
+    immediateTurningPointKn = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ವಿಂಶೋತ್ತರಿ ದಶಾ ಗಣಿತದ ಪ್ರಕಾರ, ಪ್ರಸ್ತುತ ನಿಮಗೆ ${mahaKn} ಮಹಾದಶೆ ನಡೆಯುತ್ತಿದ್ದು (ದಶಾಧಿಪತಿ ${dashaLordHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾರೆ), ಇದರಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿ (${bhuktiLordHouse}ನೇ ಭಾವ) ಸಕ್ರಿಯವಾಗಿದೆ. ಈ ಇಬ್ಬರು ಗ್ರಹಗಳ ಪರಸ್ಪರ ಸಂಬಂಧವು ${dashaBhuktiRelKn} ಆಗಿದ್ದು, ಕುಂಡಲಿಯಲ್ಲಿ ${dashaMutualDistKn}ದಲ್ಲಿದ್ದಾರೆ. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿಯ ಸಂಚಾರವನ್ನು ಈ ದಶೆಯೊಂದಿಗೆ ತಾಳೆ ನೋಡಿದಾಗ, ಇನ್ನು ${dashaTiming.timelineKn} ನಿಮ್ಮ ಶಿಕ್ಷಣ, ಉದ್ಯೋಗ ಪ್ರವೇಶ ಅಥವಾ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಯಲ್ಲಿ ಪ್ರಮುಖ ಶುಭ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ಕಳೆದ ಹಲವು ತಿಂಗಳುಗಳಿಂದ ನಿಮ್ಮನ್ನು ಕಾಡುತ್ತಿದ್ದ ಅನಿಶ್ಚಿತತೆ ಕರಗಿ, ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ನೂತನ ಅವಕಾಶಗಳ ಹೆಬ್ಬಾಗಿಲು ತೆರೆಯಲಿದೆ. ಇಂಟರ್ವ್ಯೂ ಅಥವಾ ಕಾಲೇಜು ಪ್ರವೇಶಾತಿಯ ಅಂತಿಮ ಕಡತಗಳು ಕ್ಲಿಯರ್ ಆಗಿ, ನಿಮ್ಮ ವೃತ್ತಿ ಬುನಾದಿಗೆ ದೈವಿಕ ಬಲ ಸಿಗಲಿದೆ.`;
+    immediateTurningPointEn = `Calculating the running ${maha} Mahadasha (House ${dashaLordHouse}) and ${bhukti} Antardasha (House ${bhuktiLordHouse}), a pivotal career and academic turning point is scheduled to unfold ${dashaTiming.timelineEn}. ${liveGochara.summaryEn}\n\nLingering doubts regarding professional viability will dissipate as pending examination results and corporate interview calls materialize in your favor.`;
   } else if (isMatureAdult || isSenior) {
-    immediateTurningPointKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯ (${dashaLordHouse}ನೇ ಭಾವ) ${bhuktiKn} ಭುಕ್ತಿಯ (${bhuktiLordHouse}ನೇ ಭಾವ) ಪ್ರಕಾರ, ಇನ್ನು ${dashaTiming.timelineKn} ನಿಮ್ಮ ಕುಟುಂಬದ ಪ್ರಮುಖ ಕಾರ್ಯಗಳು ನಿರ್ವಿಘ್ನವಾಗಿ ನೆರವೇರಲಿದ್ದು, ಮನಸ್ಸಿಗೆ ನೆಮ್ಮದಿ ಮತ್ತು ಆರೋಗ್ಯದಲ್ಲಿ ಸ್ಥಿರತೆ ಲಭಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ದೈವಬಲದಿಂದ ಕೌಟುಂಬಿಕ ಶಾಂತಿ ಹಾಗೂ ಧಾರ್ಮಿಕ ಸಂತೃಪ್ತಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
-    immediateTurningPointEn = `Within ${dashaTiming.timelineEn}, under ${maha}-${bhukti}, family milestones will resolve harmoniously, bringing peace of mind and health stabilization. ${liveGochara.summaryEn}`;
+    immediateTurningPointKn = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ವಿಂಶೋತ್ತರಿ ದಶಾ ಗಣಿತದ ಪ್ರಕಾರ, ಪ್ರಸ್ತುತ ನಿಮಗೆ ${mahaKn} ಮಹಾದಶೆ ನಡೆಯುತ್ತಿದ್ದು (ದಶಾಧಿಪತಿ ${dashaLordHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾರೆ), ಇದರಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿ (${bhuktiLordHouse}ನೇ ಭಾವ) ಸಕ್ರಿಯವಾಗಿದೆ. ಈ ಇಬ್ಬರು ಗ್ರಹಗಳ ಪರಸ್ಪರ ಸಂಬಂಧವು ${dashaBhuktiRelKn} ಆಗಿದ್ದು, ಕುಂಡಲಿಯಲ್ಲಿ ${dashaMutualDistKn}ದಲ್ಲಿದ್ದಾರೆ. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿಯ ಸಂಚಾರದ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTiming.timelineKn} ನಿಮ್ಮ ಕುಟುಂಬದ ಪ್ರಮುಖ ಕಾರ್ಯಗಳು ನಿರ್ವಿಘ್ನವಾಗಿ ನೆರವೇರಲಿದ್ದು, ಮನಸ್ಸಿಗೆ ನೆಮ್ಮದಿ ಮತ್ತು ಆರೋಗ್ಯದಲ್ಲಿ ಸ್ಥಿರತೆ ಲಭಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ದೈವಬಲದಿಂದ ಮಕ್ಕಳ ವಿವಾಹ, ಉದ್ಯೋಗ ಅಥವಾ ಆಸ್ತಿ ಸಂಬಂಧಿತ ಜವಾಬ್ದಾರಿಗಳು ಸಫಲವಾಗಿ ಇತ್ಯರ್ಥವಾಗಲಿವೆ. ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ ನೆಲೆಸಿ, ಹಿರಿಯರಾದ ತಮ್ಮ ಮನಸ್ಸಿಗೆ ಧಾರ್ಮಿಕ ಸಂತೃಪ್ತಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+    immediateTurningPointEn = `Within ${dashaTiming.timelineEn}, under ${maha}-${bhukti} with transits, major familial milestones will resolve harmoniously. ${liveGochara.summaryEn}\n\nPending property matters or children's settlements will reach peaceful closure, restoring health stabilization and spiritual contentment.`;
   } else {
-    // Prime Adult
-    immediateTurningPointKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯ (${dashaLordHouse}ನೇ ಭಾವ) ${bhuktiKn} ಭುಕ್ತಿಯ (${bhuktiLordHouse}ನೇ ಭಾವ) ಮತ್ತು ಮುಂಬರುವ ಗೋಚಾರ ಗ್ರಹಗಳ ಚಲನೆಯ ಪ್ರಕಾರ, ಇನ್ನು ${dashaTiming.timelineKn} ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ.\n\n${liveGochara.summaryKn} ನಿಮ್ಮ ವೃತ್ತಿ ಹಾಗೂ ಸಂಸಾರಿಕ ಪ್ರಯತ್ನಗಳಿಗೆ ಅತ್ಯುತ್ತಮ ಪ್ರತಿಫಲ ಮತ್ತು ನೂತನ ಅವಕಾಶಗಳು ಒದಗಿಬರಲಿವೆ.`;
-    immediateTurningPointEn = `Calculating the running ${maha} Mahadasha and ${bhukti} Antardasha with transits, a major positive turning point will unfold ${dashaTiming.timelineEn}. ${liveGochara.summaryEn}`;
+    // Prime Adult (25-49)
+    immediateTurningPointKn = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ವಿಂಶೋತ್ತರಿ ದಶಾ ಗಣಿತದ ಪ್ರಕಾರ, ಪ್ರಸ್ತುತ ನಿಮಗೆ ${mahaKn} ಮಹಾದಶೆ ನಡೆಯುತ್ತಿದ್ದು (ದಶಾಧಿಪತಿ ${dashaLordHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾರೆ), ಇದರಲ್ಲಿ ${bhuktiKn} ಭುಕ್ತಿ (${bhuktiLordHouse}ನೇ ಭಾವ) ಸಕ್ರಿಯವಾಗಿದೆ. ಈ ಇಬ್ಬರು ಗ್ರಹಗಳ ಪರಸ್ಪರ ಸಂಬಂಧವು ${dashaBhuktiRelKn} ಆಗಿದ್ದು, ಕುಂಡಲಿಯಲ್ಲಿ ${dashaMutualDistKn}ದಲ್ಲಿದ್ದಾರೆ. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿಯ ಸಂಚಾರವನ್ನು ಈ ದಶೆಯೊಂದಿಗೆ ತಾಳೆ ನೋಡಿದಾಗ, ಇನ್ನು ${dashaTiming.timelineKn} ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಮುಖ ಸಕಾರಾತ್ಮಕ ತಿರುವು ನಿಖರವಾಗಿ ಘಟಿಸಲಿದೆ. ${liveGochara.summaryKn}\n\nಈ ಮುಂಬರುವ ತಿರುವಿನ ಕಾಲಘಟ್ಟದಲ್ಲಿ, ಕಳೆದ ಹಲವು ತಿಂಗಳುಗಳಿಂದ ನಿಮ್ಮನ್ನು ಕಾಡುತ್ತಿದ್ದ ಅನಿಶ್ಚಿತತೆ, ಕೆಲಸಗಳ ವಿಳಂಬ ಹಾಗೂ ಮಾನಸಿಕ ಗೊಂದಲಗಳು ಹಂತ ಹಂತವಾಗಿ ಬಗೆಹರಿಯಲಿವೆ. ಸ್ಥಗಿತಗೊಂಡಿದ್ದ ಕಡತಗಳು ಚಲಾವಣೆಗೆ ಬರಲಿವೆ, ಆರ್ಥಿಕ ಮುಗ್ಗಟ್ಟುಗಳು ಸಡಿಲಗೊಂಡು ಹೊಸ ಆದಾಯದ ಅಥವಾ ವೃತ್ತಿ ಬಡ್ತಿಯ ದಾರಿಗಳು ತೆರೆದುಕೊಳ್ಳಲಿವೆ. ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ನ್ಯಾಯಯುತ ಗೌರವ ಮತ್ತು ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಪುನಃ ಸ್ಥಾಪನೆಯಾಗಲಿದೆ. ದೈವದ ಬಲವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗುವ ಸಮಯ ಸನ್ನಿಹಿತವಾಗಿದ್ದು, ಈ ಕಾಲವನ್ನು ಧನಾತ್ಮಕ ಚಿಂತನೆ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಸದ್ವಿನಿಯೋಗಪಡಿಸಿಕೊಳ್ಳಬೇಕು.`;
+    immediateTurningPointEn = `Calculating the running ${maha} Mahadasha (House ${dashaLordHouse}) and ${bhukti} Antardasha (House ${bhuktiLordHouse}) with major Jupiter and Saturn transits, a major positive turning point will unfold ${dashaTiming.timelineEn}. ${liveGochara.summaryEn}\n\nStalled projects, lingering cash-flow bottlenecks, and mental exhaustion will begin resolving in a cascade of positive events. New career prospects or promotions will materialize, returning rightful authority, prosperity, and family peace to your life.`;
   }
 
   // --- 7. SIDDHA PARIHARA REMEDY ---

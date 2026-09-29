@@ -240,6 +240,15 @@ Technical Astrological Placements:
     5. Conduct/Bad Company: ${negShades?.conductDownwardPath.analysisEn || "Clean"}
 - Prescriptions: ${data.prescriptions.rudraksha.nameKn}, ${data.prescriptions.gemstoneRing.primaryGemstoneKn} (${data.prescriptions.gemstoneRing.caratWeight}) on ${data.prescriptions.gemstoneRing.fingerKn}.
 
+Baseline Kundli Astrologer Cards (Deterministic Shastra Calculations):
+- Card 1 (Lagna & Core Nature): ${isKn ? data.currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn : (data.currentDiagnosis.astrologerTalkingPoints.openingIceBreakerEn || data.currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn)}
+- Card 2 (Chandra & Mental Worry): ${isKn ? data.currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn : (data.currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryEn || data.currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn)}
+- Card 3 (Maandi Karma Knot): ${isKn ? data.currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn : (data.currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactEn || data.currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn)}
+- Card 4 (Anga Lakshana & Tridosha): ${isKn ? (data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentKn || "") : (data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentEn || data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentKn || "")}
+- Card 5 (Karma & Financial Reality): ${isKn ? data.currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn : (data.currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityEn || data.currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn)}
+- Card 6 (Dasha Turning Point): ${isKn ? data.currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn : (data.currentDiagnosis.astrologerTalkingPoints.immediateTurningPointEn || data.currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn)}
+- Sacred Remedy: ${isKn ? data.currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn : (data.currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyEn || data.currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn)}
+
 STRICT WRITING & ASTROLOGER PERSONA RULES:
 1. Speak DIRECTLY to the devotee in authoritative, deeply empathetic, face-to-face Vedic Astrologer spoken voice in 100% PURE ${isKn ? "Kannada" : "English"}. NO English words or foreign language mix-up.
 2. Use standard traditional Vedic planetary terminology: 'ರವಿ' (Ravi), 'ಕುಜ' (Kuja), 'ಗುರು' (Guru), 'ಶುಕ್ರ' (Shukra), 'ಶನಿ' (Shani), 'ಬುಧ' (Budha), 'ಚಂದ್ರ' (Chandra), 'ರಾಹು' (Rahu), 'ಕೇತು' (Ketu).
@@ -262,6 +271,13 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
    - If devotee is Female, NEVER use 'ಹೆಂಡತಿ' or 'ಪತ್ನಿ' to describe the native.
    - If devotee is a Child (<14), focus purely on education, health, and parent guidance without adult topics.
    - CRITICAL ZERO FALSE ACCUSATION OF CRIMINALITY/THEFT/VIOLENCE: If native has score <= 15 or Jupiter/benefic shield, you MUST NEVER accuse them of crime, theft, violence, murder, imprisonment, cheating, or sexual misconduct. Acknowledge and praise their clean moral integrity and character shield.
+9. MANDATORY 2-PARAGRAPH DEPTH RULE FOR ALL 6 TALKING POINT CARDS:
+   Every single card ("openingIceBreaker", "hiddenSubconsciousWorry", "maandiKarmicImpact", "bodyMarkAndTemperament", "karmaFinancialReality", "immediateTurningPoint") MUST CONSIST OF EXACTLY TWO PARAGRAPHS separated by \\n\\n.
+   EACH paragraph MUST have AT LEAST 4 to 6 lines (approx. 50-80 words per paragraph, total 100-160 words per card). NEVER write short 1-2 sentence blurbs or single paragraphs!
+   
+   Structure for each card:
+   - Paragraph 1: Direct Kundli Technical Reasoning (ಶಾಸ್ತ್ರೀಯ ಆಧಾರ & ಗ್ರಹ-ಭಾವ ಸ್ಥಿತಿ). Speak as an experienced Vedic Astrologer examining the Kundli diagram face-to-face. Explicitly cite the planet (Graha), the house (Bhava) it occupies, the house lord (Grahadhipati), their mutual relationship & dignity (ಮಿತ್ರ/ಶತ್ರು/ಸಮ/ಸ್ವಕ್ಷೇತ್ರ/ಉಚ್ಛ/ನೀಚ), and classical Parashari rules.
+   - Paragraph 2: Real-Life Psychological, Behavioral & Practical Manifestation (ನಿತ್ಯ ಜೀವನದ ನೈಜ ಅನುಭವ & ಲಕ್ಷಣ). Thoroughly explain the real-world character traits, mental thoughts, daily habits, interpersonal dynamics, emotional struggles, or concrete events the native actually experiences in daily life.
 `;
 
         const promptContextWithJson = `${promptContext}
@@ -275,20 +291,21 @@ Return a valid JSON object matching this schema:
     "Paragraph 3 (Planetary Reality & Turning Point Timeline in English digits)",
     "Paragraph 4 (Practical Remedies, Gemstone, Rudraksha & Gokarna Blessings)"
   ],
-  "openingIceBreaker": "Card 1: 100% authentic Vedic temperament & opening ice-breaker reading in pure ${isKn ? "Kannada with zero English words" : "English"}",
-  "hiddenSubconsciousWorry": "Card 2: Deep inner mental worry & anxiety in pure ${isKn ? "Kannada with zero English words" : "English"}",
-  "maandiKarmicImpact": "Card 3: 99% task hurdle & Maandi knot in pure ${isKn ? "Kannada with zero English words" : "English"}",
-  "bodyMarkAndTemperament": "Card 4: Anga Lakshana mark & Tridosha constitution in pure ${isKn ? "Kannada with zero English words" : "English"}",
-  "karmaFinancialReality": "Card 5: Karma bhava & financial reality in pure ${isKn ? "Kannada with zero English words" : "English"}",
-  "immediateTurningPoint": "Card 6: Dasha turning point timeline in pure ${isKn ? "Kannada with zero English words" : "English"}",
-  "siddhaPariharaRemedy": "Gokarna Siddha Parashari remedy in pure ${isKn ? "Kannada with zero English words" : "English"}"
+  "openingIceBreaker": "Card 1: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Kundli Lagna & Lagna lord house, dispositor relationship & dignity. Para 2: Deep real-life character, self-respect, pride, and daily demeanor in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "hiddenSubconsciousWorry": "Card 2: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Chandra house, dispositor relationship & dignity, 4th house, Gochara. Para 2: Hidden midnight worry, silent resilience, and unexpressed emotional burden in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "maandiKarmicImpact": "Card 3: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Maandi house, sign, dispositor, Upachaya vs Trik, Karya-Vighna classification. Para 2: Real-life 99% task hurdle (stuck right before completion) & Gokarna shanti solution in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "bodyMarkAndTemperament": "Card 4: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Brihat Jataka Ch. 25 Anga Lakshana (body zone, right/left side by lord house, lord texture/mark). Para 2: Tridosha constitution, sleep/digestion, and Ayurvedic lifestyle care in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "karmaFinancialReality": "Card 5: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical 10th house, 10th lord, 2nd & 11th houses, dispositor dignity. Para 2: Workplace ethics, unappreciated credit, and cash flow vs fixed asset preservation in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "immediateTurningPoint": "Card 6: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Mahadasha & Antardasha lords, mutual distance, Gochara, turning-point countdown. Para 2: Dissolution of blockades, renewed vitality, and fresh breakthrough in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "siddhaPariharaRemedy": "Gokarna Siddha Parashari remedy with gemstone, carat, metal, finger, rudraksha, daily mantra, and kshetra sankalpa in pure ${isKn ? "Kannada with zero English words" : "English"}."
 }
 
 STRICT RULES:
 1. Speak DIRECTLY to the devotee in empathetic, authoritative Vedic pandit voice in natural ${isKn ? "Kannada (CRITICAL: ZERO English words or Latin letters in Kannada text)" : "English"}.
 2. NO markdown asterisks (no ** or *).
 3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
-4. Return ONLY raw valid JSON.`;
+4. EVERY SINGLE TALKING POINT CARD MUST CONTAIN AT LEAST TWO PARAGRAPHS SEPARATED BY \\n\\n WITH AT LEAST 4 TO 6 LINES PER PARAGRAPH.
+5. Return ONLY raw valid JSON.`;
 
         const response = await askGemini(
           "Generate comprehensive live life situation reading and 5 astrologer verbal prompts",
@@ -302,17 +319,56 @@ STRICT RULES:
           try {
             const cleanJson = response.replace(/```json/g, "").replace(/```/g, "").trim();
             const parsed = JSON.parse(cleanJson);
+            const tpFallback = data.currentDiagnosis.astrologerTalkingPoints;
+
+            const ensureTwoParagraphs = (aiText: string | undefined, fallbackText: string): string => {
+              if (!aiText || typeof aiText !== "string") return fallbackText;
+              const cleaned = cleanAstrologyText(aiText).trim();
+              const paragraphs = cleaned.split("\n\n").map((p) => p.trim()).filter((p) => p.length > 0);
+              if (paragraphs.length >= 2 && cleaned.length >= 120) {
+                return cleaned;
+              }
+              if (paragraphs.length === 1 && cleaned.length >= 250) {
+                const sentences = cleaned.split(/(?<=[.!?।॥])\s+/);
+                if (sentences.length >= 4) {
+                  const mid = Math.ceil(sentences.length / 2);
+                  return `${sentences.slice(0, mid).join(" ")}\n\n${sentences.slice(mid).join(" ")}`;
+                }
+              }
+              return fallbackText;
+            };
+
             if (parsed.openingIceBreaker && parsed.hiddenSubconsciousWorry) {
               setDynamicTalkingPoints({
-                openingIceBreakerKn: cleanAstrologyText(parsed.openingIceBreaker),
-                hiddenSubconsciousWorryKn: cleanAstrologyText(parsed.hiddenSubconsciousWorry),
-                maandiKarmicImpactKn: cleanAstrologyText(parsed.maandiKarmicImpact || data.currentDiagnosis.astrologerTalkingPoints.maandiKarmicImpactKn),
-                bodyMarkAndTemperamentKn: parsed.bodyMarkAndTemperament ? cleanAstrologyText(parsed.bodyMarkAndTemperament) : (isKn ? data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentKn : (data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentEn || data.currentDiagnosis.astrologerTalkingPoints.bodyMarkAndTemperamentKn)),
-                karmaFinancialRealityKn: cleanAstrologyText(parsed.karmaFinancialReality || data.currentDiagnosis.astrologerTalkingPoints.karmaFinancialRealityKn),
-                immediateTurningPointKn: cleanAstrologyText(parsed.immediateTurningPoint || data.currentDiagnosis.astrologerTalkingPoints.immediateTurningPointKn),
-                siddhaPariharaRemedyKn: cleanAstrologyText(parsed.siddhaPariharaRemedy || data.currentDiagnosis.astrologerTalkingPoints.siddhaPariharaRemedyKn),
-                ageGroupBadge: isKn ? data.currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeKn : (data.currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeEn || data.currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeKn),
-                technicalAspectsCueKn: data.currentDiagnosis.astrologerTalkingPoints.technicalAspectsCueKn
+                openingIceBreakerKn: ensureTwoParagraphs(
+                  parsed.openingIceBreaker,
+                  isKn ? tpFallback.openingIceBreakerKn : (tpFallback.openingIceBreakerEn || tpFallback.openingIceBreakerKn)
+                ),
+                hiddenSubconsciousWorryKn: ensureTwoParagraphs(
+                  parsed.hiddenSubconsciousWorry,
+                  isKn ? tpFallback.hiddenSubconsciousWorryKn : (tpFallback.hiddenSubconsciousWorryEn || tpFallback.hiddenSubconsciousWorryKn)
+                ),
+                maandiKarmicImpactKn: ensureTwoParagraphs(
+                  parsed.maandiKarmicImpact,
+                  isKn ? tpFallback.maandiKarmicImpactKn : (tpFallback.maandiKarmicImpactEn || tpFallback.maandiKarmicImpactKn)
+                ),
+                bodyMarkAndTemperamentKn: ensureTwoParagraphs(
+                  parsed.bodyMarkAndTemperament,
+                  isKn ? (tpFallback.bodyMarkAndTemperamentKn || "") : (tpFallback.bodyMarkAndTemperamentEn || tpFallback.bodyMarkAndTemperamentKn || "")
+                ),
+                karmaFinancialRealityKn: ensureTwoParagraphs(
+                  parsed.karmaFinancialReality,
+                  isKn ? tpFallback.karmaFinancialRealityKn : (tpFallback.karmaFinancialRealityEn || tpFallback.karmaFinancialRealityKn)
+                ),
+                immediateTurningPointKn: ensureTwoParagraphs(
+                  parsed.immediateTurningPoint,
+                  isKn ? tpFallback.immediateTurningPointKn : (tpFallback.immediateTurningPointEn || tpFallback.immediateTurningPointKn)
+                ),
+                siddhaPariharaRemedyKn: cleanAstrologyText(
+                  parsed.siddhaPariharaRemedy || (isKn ? tpFallback.siddhaPariharaRemedyKn : (tpFallback.siddhaPariharaRemedyEn || tpFallback.siddhaPariharaRemedyKn))
+                ),
+                ageGroupBadge: isKn ? tpFallback.ageGroupBadgeKn : (tpFallback.ageGroupBadgeEn || tpFallback.ageGroupBadgeKn),
+                technicalAspectsCueKn: tpFallback.technicalAspectsCueKn
               });
             }
             if (Array.isArray(parsed.executiveReadingParagraphs) && parsed.executiveReadingParagraphs.length >= 2) {
