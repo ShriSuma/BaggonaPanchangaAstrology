@@ -43,8 +43,13 @@ describe("ComprehensiveDoshaEngine Parashari Technical Audit", () => {
     expect(ids).toContain("balarishta");
     expect(ids).toContain("balyagraha");
     expect(ids).toContain("kuja_dosha");
+    expect(ids).toContain("grahan_dosha");
+    expect(ids).toContain("shrapit_dosha");
+    expect(ids).toContain("kemadruma_dosha");
+    expect(ids).toContain("gandanta_dosha");
     expect(ids).toContain("dasha_sandhi");
     expect(ids).toContain("gochara_shani");
+    expect(report.summary.totalEvaluated).toBe(13);
   });
 
   it("provides technical justification ('Why') with exact houses and scriptural authority for each detected dosha", () => {
@@ -63,7 +68,21 @@ describe("ComprehensiveDoshaEngine Parashari Technical Audit", () => {
       expect(dosha.technicalDetail.scripturalReference).toBeDefined();
       expect(dosha.technicalDetail.scripturalReference.length).toBeGreaterThan(5);
 
-      // Must have 2-paragraph life impact
+      // Must have dedicated 1-paragraph current life problems in all 5 languages
+      expect(dosha.currentLifeProblems).toBeDefined();
+      expect(dosha.currentLifeProblems.kn.length).toBeGreaterThan(20);
+      expect(dosha.currentLifeProblems.hi.length).toBeGreaterThan(20);
+      expect(dosha.currentLifeProblems.te.length).toBeGreaterThan(20);
+      expect(dosha.currentLifeProblems.ta.length).toBeGreaterThan(20);
+      expect(dosha.currentLifeProblems.en.length).toBeGreaterThan(20);
+
+      // Must have dasha resonance in all 5 languages
+      expect(dosha.dashaResonance).toBeDefined();
+      expect(dosha.dashaResonance.kn.length).toBeGreaterThan(20);
+      expect(dosha.dashaResonance.hi.length).toBeGreaterThan(20);
+      expect(dosha.dashaResonance.en.length).toBeGreaterThan(20);
+
+      // Must have life impact
       expect(dosha.lifeImpact.kn.length).toBeGreaterThan(20);
       expect(dosha.lifeImpact.en.length).toBeGreaterThan(20);
 
@@ -113,6 +132,34 @@ describe("ComprehensiveDoshaEngine Parashari Technical Audit", () => {
       // Kannada status badge must be non-empty
       expect(dosha.statusBadge.kn.length).toBeGreaterThan(2);
       expect(dosha.statusBadge.hi.length).toBeGreaterThan(2);
+    }
+  });
+
+  it("verifies that only active doshas are displayed and each has a 1-paragraph real-life problem description", () => {
+    const kundli = calculateKundli(sampleInput1, { ayanamsaModel: "lahiri" });
+    const report = calculateComprehensiveDoshas(kundli, sampleInput1, new Date("2026-09-29"));
+
+    const activeDoshas = report.doshas.filter((d) => d.isDetected);
+    const nonActiveDoshas = report.doshas.filter((d) => !d.isDetected);
+
+    // Active doshas must match totalActive count
+    expect(activeDoshas.length).toBe(report.summary.totalActive);
+
+    // Non-active doshas must NOT be displayed in active view
+    for (const d of nonActiveDoshas) {
+      expect(activeDoshas.map((ad) => ad.id)).not.toContain(d.id);
+    }
+
+    // Every active dosha must have acute current life problems and running dasha resonance
+    for (const ad of activeDoshas) {
+      expect(ad.currentLifeProblems.kn.length).toBeGreaterThan(30);
+      expect(ad.currentLifeProblems.hi.length).toBeGreaterThan(30);
+      expect(ad.currentLifeProblems.te.length).toBeGreaterThan(30);
+      expect(ad.currentLifeProblems.ta.length).toBeGreaterThan(30);
+      expect(ad.currentLifeProblems.en.length).toBeGreaterThan(30);
+
+      expect(ad.dashaResonance.kn).toBeDefined();
+      expect(ad.dashaResonance.kn.length).toBeGreaterThan(25);
     }
   });
 });

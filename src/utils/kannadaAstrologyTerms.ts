@@ -361,7 +361,7 @@ export function sanitizeAstrologyKannadaText(text: string): string {
   // Convert Kannada digits to English digits
   const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
   knDigits.forEach((kd, idx) => {
-    cleaned = cleaned.replaceAll(kd, idx.toString());
+    cleaned = cleaned.split(kd).join(idx.toString());
   });
 
   // Replace English & Non-standard planet names in Kannada text
