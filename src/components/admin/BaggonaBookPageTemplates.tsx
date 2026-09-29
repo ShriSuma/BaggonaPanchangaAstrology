@@ -6,6 +6,10 @@ import {
   computeDynamicPanchangaLeftPageData,
   GOKARNA_RASHI_MANA_GHATI
 } from "../../core/BaggonaUniversalBookEngine";
+import {
+  getBaggonaVarshaBhavishyaForYear,
+  type BaggonaVarshaRashiPayload
+} from "../../core/BaggonaVarshaBhavishyaEngine";
 
 interface PageTemplateProps {
   page: UniversalBookPageResponse;
@@ -2028,8 +2032,38 @@ export const Page19JatakaTatvagaluNavagraha: React.FC<PageTemplateProps> = ({ me
   );
 };
 
+/* RASHI BOOK CARD (REUSABLE TWO-COLUMN PANCHANGA BOOK RASHI CELL) */
+const BaggonaRashiBookCard: React.FC<{ rashi: BaggonaVarshaRashiPayload }> = ({ rashi }) => (
+  <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
+    <div>
+      <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
+        <span className="font-black text-[15px]">{rashi.titleKn}</span>
+        <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
+          {rashi.badgeKn}
+        </span>
+      </div>
+      <div className="text-[9px] font-bold text-slate-600 mb-1">
+        ನಕ್ಷತ್ರ ಪಾದಗಳು: {rashi.nakshatraPadasKn}
+      </div>
+      <p className="text-[9.5px] leading-relaxed text-justify">
+        {rashi.bookParagraph1Kn}
+      </p>
+      <p className="text-[9.5px] leading-relaxed text-justify mt-1">
+        {rashi.bookParagraph2Kn}
+      </p>
+    </div>
+    <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
+      ಶಾಂತಿ-ಪರಿಹಾರ: {rashi.shantiPariharaKn}
+    </div>
+  </div>
+);
+
 /* PAGE 20: MESHA & VRISHABHA BHAVISHYA */
 export const Page20MeshaVrishabhaBhavishya: React.FC<PageTemplateProps> = ({ meta }) => {
+  const bhavishya = getBaggonaVarshaBhavishyaForYear(meta.shakaYear, true);
+  const mesha = bhavishya.rashis[0]!;
+  const vrishabha = bhavishya.rashis[1]!;
+
   return (
     <BaggonaLandscapeFrame pageNumber={20}>
       <div className="h-full flex flex-col justify-between p-2 text-black">
@@ -2038,49 +2072,8 @@ export const Page20MeshaVrishabhaBhavishya: React.FC<PageTemplateProps> = ({ met
         </div>
 
         <div className="flex-1 grid grid-cols-2 gap-3 font-serif overflow-hidden">
-          {/* Mesha Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ಮೇಷ ರಾಶಿ (Aries)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೧೪ • ವ್ಯಯ: ೧೧ | ರಾಜಪೂಜ್ಯ: ೪ • ಅವಮಾನ: ೧
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಅಶ್ವಿನಿ ೪, ಭರಣಿ ೪, ಕೃತ್ತಿಕಾ ೧ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                ಪ್ರಾರಂಭದ ಎರಡು ತಿಂಗಳು ಶುಭಗ್ರಹರ ಅನುಕೂಲತೆಯಿಂದ ಆರ್ಥಿಕ ಪ್ರಗತಿ, ನೂತನ ಗೃಹ-ವಾಹನ ಖರೀದಿ ಯೋಗ. ಉದ್ಯೋಗಸ್ಥರಿಗೆ ಬಡ್ತಿ, ವ್ಯಾಪಾರಸ್ಥರಿಗೆ ಹಿತಕರ ಲಾಭ. ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ ಉತ್ತಮವಾಗಿದ್ದರೂ ಶನಿ ಪ್ರಭಾವದಿಂದ ಹಿತಶತ್ರುಗಳ ಕಾಟ ಇರಲಿದೆ. ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಕಠಿಣ ಪರಿಶ್ರಮದಿಂದ ಯಶಸ್ಸು.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ಆರೋಗ್ಯದಲ್ಲಿ ರಕ್ತದೊತ್ತಡ ಹಾಗೂ ಉಷ್ಣ ಬಾಧೆಯ ಬಗ್ಗೆ ಜಾಗ್ರತೆ ಇರಲಿ. ನ್ಯಾಯಾಲಯದ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಸಂಧಾನ ಮಾರ್ಗ ಶ್ರೇಯಸ್ಕರ.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಆರಾಧನೆ, ರುದ್ರಾಭಿಷೇಕ, ಕೆಂಪು ಹವಳ ಧಾರಣೆ ಶುಭ.
-            </div>
-          </div>
-
-          {/* Vrishabha Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ವೃಷಭ ರಾಶಿ (Taurus)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೧೧ • ವ್ಯಯ: ೦೫ | ರಾಜಪೂಜ್ಯ: ೭ • ಅವಮಾನ: ೪
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಕೃತ್ತಿಕಾ ೨,೩,೪, ರೋಹಿಣಿ ೪, ಮೃಗಶಿರಾ ೧,೨ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                ವರ್ಷ ಪೂರ್ತಿ ಗುರು ಬಲದಿಂದ ಸಮಸ್ತ ಕಾರ್ಯಗಳಲ್ಲಿ ಅನುಕೂಲ. ಸಮಾಜದಲ್ಲಿ ಗೌರವ-ಪ್ರತಿಷ್ಠೆ ವೃದ್ಧಿ. ಹಳೆಯ ಬಾಕಿ ವಸೂಲಾತಿ. ಬಂಧು-ಮಿತ್ರರ ಸಹಕಾರದಿಂದ ನೂತನ ಉದ್ಯಮಾರಂಭ. ಭೂಮಿ, ಚಿನ್ನಾಭರಣ ಖರೀದಿ ಯೋಗ. ಅವಿವಾಹಿತರಿಗೆ ಶೀಘ್ರ ವಿವಾಹ ಭಾಗ್ಯ.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ಧಾರ್ಮಿಕ ತೀರ್ಥಕ್ಷೇತ್ರ ದರ್ಶನ ಹಾಗೂ ಸತ್ಕರ್ಮಗಳಲ್ಲಿ ಪಾಲ್ಗೊಳ್ಳುವಿರಿ. ವಿದೇಶ ಪ್ರಯಾಣದ ಅಪೇಕ್ಷೆಯು ಸಾಕಾರಗೊಳ್ಳುವುದು.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ ಪೂಜೆ, ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಣ, ವಜ್ರ/ಶ್ವೇತ ಪುಷ್ಯರಾಗ ಧಾರಣೆ.
-            </div>
-          </div>
+          <BaggonaRashiBookCard rashi={mesha} />
+          <BaggonaRashiBookCard rashi={vrishabha} />
         </div>
 
         <div className="border-t border-black pt-1 text-[9px] text-center font-sans font-bold text-slate-700 mt-1">
@@ -2093,6 +2086,10 @@ export const Page20MeshaVrishabhaBhavishya: React.FC<PageTemplateProps> = ({ met
 
 /* PAGE 21: MITHUNA & KARKATAKA BHAVISHYA */
 export const Page21MithunaKarkatakaBhavishya: React.FC<PageTemplateProps> = ({ meta }) => {
+  const bhavishya = getBaggonaVarshaBhavishyaForYear(meta.shakaYear, true);
+  const mithuna = bhavishya.rashis[2]!;
+  const karkataka = bhavishya.rashis[3]!;
+
   return (
     <BaggonaLandscapeFrame pageNumber={21}>
       <div className="h-full flex flex-col justify-between p-2 text-black">
@@ -2101,49 +2098,8 @@ export const Page21MithunaKarkatakaBhavishya: React.FC<PageTemplateProps> = ({ m
         </div>
 
         <div className="flex-1 grid grid-cols-2 gap-3 font-serif overflow-hidden">
-          {/* Mithuna Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ಮಿಥುನ ರಾಶಿ (Gemini)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೦೫ • ವ್ಯಯ: ೧೧ | ರಾಜಪೂಜ್ಯ: ೧ • ಅವಮಾನ: ೪
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಮೃಗಶಿರಾ ೩,೪, ಆರಿದ್ರಾ ೪, ಪುನರ್ವಸು ೧,೨,೩ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                “ಕಾಯಕವೇ ಕೈಲಾಸ” ಎಂಬ ನುಡಿ ಎಷ್ಟು ಸತ್ಯವೋ “ಆರೋಗ್ಯವೇ ಭಾಗ್ಯ” ಎಂಬುದು ಕೂಡ ಅಷ್ಟೇ ಸತ್ಯವೆನ್ನುವುದು ನೆನಪಿರಲಿ. ಆರ್ಥಿಕ ವಿಷಯಗಳಲ್ಲಿ ಮಿತಿಮೀರಿದ ಸಾಲ ಮಾಡಬೇಡಿ. ರಕ್ತ ವಿಕಾರ, ಅಲರ್ಜಿ, ನೇತ್ರಬಾಧೆ ಇತ್ಯಾದಿಗಳಿಂದ ಎಚ್ಚರ ಅಗತ್ಯ.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ಉದ್ಯೋಗದಲ್ಲಿ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳೊಂದಿಗೆ ಸೌಹಾರ್ದತೆ ಕಾಪಾಡಿಕೊಳ್ಳಿ. ವರ್ಷದ ಉತ್ತರಾರ್ಧದಲ್ಲಿ ಗುರು ಸಂಚಾರದಿಂದ ಕಾರ್ಯಸಿದ್ಧಿ.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಾರಾಯಣ, ಬುಧ ಜಪ, ಪಚ್ಚೆ ರತ್ನ ಧಾರಣೆ ಹಿತಕರ.
-            </div>
-          </div>
-
-          {/* Karkataka Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ಕರ್ಕಾಟಕ ರಾಶಿ (Cancer)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೧೪ • ವ್ಯಯ: ೦೨ | ರಾಜಪೂಜ್ಯ: ೪ • ಅವಮಾನ: ೧
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಪುನರ್ವಸು ೪, ಪುಷ್ಯಾ ೪, ಆಶ್ಲೇಷಾ ೪ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                ಆದಾಯ ಅತ್ಯುತ್ತಮವಾಗಿದ್ದು ಖರ್ಚು ನಿಯಂತ್ರಣದಲ್ಲಿರಲಿದೆ. ಗೃಹ ನಿರ್ಮಾಣ ಕಾರ್ಯಗಳು ಸಾಂಗವಾಗಿ ನೆರವೇರುತ್ತವೆ. ಸಂತಾನ ಸೌಖ್ಯ, ಕೌಟುಂಬಿಕ ಸಮೃದ್ಧಿ. ಹೊಸ ಹೂಡಿಕೆಗಳಿಗೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ವರ್ಷ. ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಮಾತುಗಳಿಗೆ ಗೌರವ ಹೆಚ್ಚುವುದು.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ತಾಯಿಯವರ ಆರೋಗ್ಯದಲ್ಲಿ ಸುಧಾರಣೆ ಕಂಡುಬರುವುದು. ದೂರದ ಊರಿನಿಂದ ಶುಭ ಸಮಾಚಾರ ಪ್ರಾಪ್ತಿ.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ಚಂದ್ರಮೌಳೀಶ್ವರ ಆರಾಧನೆ, ರುದ್ರಾಭಿಷೇಕ, ಶುದ್ಧ ಮುತ್ತು ಧಾರಣೆ ಪ್ರಶಸ್ತ.
-            </div>
-          </div>
+          <BaggonaRashiBookCard rashi={mithuna} />
+          <BaggonaRashiBookCard rashi={karkataka} />
         </div>
 
         <div className="border-t border-black pt-1 text-[9px] text-center font-sans font-bold text-slate-700 mt-1">
@@ -2156,6 +2112,10 @@ export const Page21MithunaKarkatakaBhavishya: React.FC<PageTemplateProps> = ({ m
 
 /* PAGE 22: SIMHA & KANYA BHAVISHYA */
 export const Page22SimhaKanyaBhavishya: React.FC<PageTemplateProps> = ({ meta }) => {
+  const bhavishya = getBaggonaVarshaBhavishyaForYear(meta.shakaYear, true);
+  const simha = bhavishya.rashis[4]!;
+  const kanya = bhavishya.rashis[5]!;
+
   return (
     <BaggonaLandscapeFrame pageNumber={22}>
       <div className="h-full flex flex-col justify-between p-2 text-black">
@@ -2164,49 +2124,8 @@ export const Page22SimhaKanyaBhavishya: React.FC<PageTemplateProps> = ({ meta })
         </div>
 
         <div className="flex-1 grid grid-cols-2 gap-3 font-serif overflow-hidden">
-          {/* Simha Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ಸಿಂಹ ರಾಶಿ (Leo)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೧೧ • ವ್ಯಯ: ೧೧ | ರಾಜಪೂಜ್ಯ: ೭ • ಅವಮಾನ: ೪
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಮಘಾ ೪, ಪುಬ್ಬಾ ೪, ಉತ್ತರಾ ೧ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                ಕೇತು ಹಾಗೂ ಗುರು ವ್ಯಯಭಾವದಲ್ಲಿ ಸಂಚರಿಸುವುದರಿಂದ ಆಧ್ಯಾತ್ಮಿಕ ವಿಷಯಗಳಲ್ಲಿ ಆಸಕ್ತಿ ಬೆಳೆಯುತ್ತದೆ. ತೀರ್ಥಯಾತ್ರೆ, ದೇವತಾ ಕಾರ್ಯಗಳಲ್ಲಿ ಭಾಗವಹಿಸಿ ಮಾನಸಿಕ ನೆಮ್ಮದಿ ಕಾಣುವಿರಿ. ರಾಜಕೀಯ ಹಾಗೂ ಆಡಳಿತ ರಂಗದಲ್ಲಿರುವವರಿಗೆ ಹೆಚ್ಚಿನ ಅಧಿಕಾರ ಲಭ್ಯ.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ಉದ್ಯೋಗದಲ್ಲಿ ಸ್ಥಾನಪಲ್ಲಟ ಸಂಭವ. ಖರ್ಚು-ವೆಚ್ಚಗಳಲ್ಲಿ ಮಿತಿ ಇರಲಿ. ಕಣ್ಣಿನ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ಎಚ್ಚರವಹಿಸಿ.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಣ, ಮಾಣಿಕ್ಯ ರತ್ನ ಧಾರಣೆ.
-            </div>
-          </div>
-
-          {/* Kanya Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ಕನ್ಯಾ ರಾಶಿ (Virgo)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೦೫ • ವ್ಯಯ: ೧೧ | ರಾಜಪೂಜ್ಯ: ೧ • ಅವಮಾನ: ೪
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಉತ್ತರಾ ೨,೩,೪, ಹಸ್ತಾ ೪, ಚಿತ್ತಾ ೧,೨ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                ಉದ್ಯೋಗದಲ್ಲಿ ಬದಲಾವಣೆ ಹಾಗೂ ಹೊಸ ಜವಾಬ್ದಾರಿಗಳು ಎದುರಾಗಲಿವೆ. ಕೌಟುಂಬಿಕ ವಿಚಾರಗಳಲ್ಲಿ ಪರಸ್ಪರ ತಾಳ್ಮೆಯಿಂದ ವರ್ತಿಸುವುದು ಶ್ರೇಯಸ್ಕರ. ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಉತ್ತಮ ಫಲಿತಾಂಶ. ಆಸ್ತಿ ಖರೀದಿ ವಿಚಾರದಲ್ಲಿ ಕಾನೂನು ಸಲಹೆ ಅಗತ್ಯ.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ವಾಹನ ಚಾಲನೆಯಲ್ಲಿ ಜಾಗರೂಕರಾಗಿರಿ. ಅನಿರೀಕ್ಷಿತ ಪ್ರವಾಸಗಳಿಂದ ಆಯಾಸ ಉಂಟಾಗಬಹುದು.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ಮಹಾಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಠಣ, ಗೋಸೇವೆ, ಪಚ್ಚೆ ರತ್ನ ಧಾರಣೆ.
-            </div>
-          </div>
+          <BaggonaRashiBookCard rashi={simha} />
+          <BaggonaRashiBookCard rashi={kanya} />
         </div>
 
         <div className="border-t border-black pt-1 text-[9px] text-center font-sans font-bold text-slate-700 mt-1">
@@ -2219,6 +2138,10 @@ export const Page22SimhaKanyaBhavishya: React.FC<PageTemplateProps> = ({ meta })
 
 /* PAGE 23: TULA & VRISHCHIKA BHAVISHYA */
 export const Page23TulaVrishchikaBhavishya: React.FC<PageTemplateProps> = ({ meta }) => {
+  const bhavishya = getBaggonaVarshaBhavishyaForYear(meta.shakaYear, true);
+  const tula = bhavishya.rashis[6]!;
+  const vrishchika = bhavishya.rashis[7]!;
+
   return (
     <BaggonaLandscapeFrame pageNumber={23}>
       <div className="h-full flex flex-col justify-between p-2 text-black">
@@ -2227,49 +2150,8 @@ export const Page23TulaVrishchikaBhavishya: React.FC<PageTemplateProps> = ({ met
         </div>
 
         <div className="flex-1 grid grid-cols-2 gap-3 font-serif overflow-hidden">
-          {/* Tula Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ತುಲಾ ರಾಶಿ (Libra)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೧೪ • ವ್ಯಯ: ೧೧ | ರಾಜಪೂಜ್ಯ: ೪ • ಅವಮಾನ: ೧
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಚಿತ್ತಾ ೩,೪, ಸ್ವಾತಿ ೪, ವಿಶಾಖಾ ೧,೨,೩ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                ಹಿರಿಯರ ಹಿತನುಡಿಗಳನ್ನು ನೆನಪಿನಲ್ಲಿಟ್ಟುಕೊಂಡು ಮುನ್ನಡೆಯಿರಿ. ಕಳೆದ ವರ್ಷಕ್ಕಿಂತ ಈ ವರ್ಷ ಆರ್ಥಿಕ ಪರಿಸ್ಥಿತಿ ಉತ್ತಮವಾಗಿರುವುದು. ಕೋರ್ಟ್ ವ್ಯಾಜ್ಯಗಳಲ್ಲಿ ಜಯ ಲಭಿಸಲಿದೆ. ಕೃಷಿಕರಿಗೆ ಅಡಿಕೆ, ಭತ್ತ, ತೆಂಗು ಬೆಳೆಗಳಲ್ಲಿ ಹಿತಕರ ಇಳುವರಿ.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ವ್ಯಾಪಾರದಲ್ಲಿ ವಿಸ್ತರಣೆ. ಗೃಹದಲ್ಲಿ ಶುಭ ಮಂಗಲ ಕಾರ್ಯಗಳ ಆಯೋಜನೆ. ನೆರೆಹೊರೆಯವರೊಂದಿಗೆ ಸೌಹಾರ್ದತೆ.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ದುರ್ಗಾ ಸಪ್ತಶತೀ ಪಾರಾಯಣ, ಕುಂಕುಮಾರ್ಚನೆ, ವಜ್ರ ಅಥವಾ ಬೆಳ್ಳಿ ಧಾರಣೆ.
-            </div>
-          </div>
-
-          {/* Vrishchika Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ವೃಶ್ಚಿಕ ರಾಶಿ (Scorpio)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೧೧ • ವ್ಯಯ: ೦೫ | ರಾಜಪೂಜ್ಯ: ೭ • ಅವಮಾನ: ೪
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ವಿಶಾಖಾ ೪, ಅನೂರಾಧಾ ೪, ಜ್ಯೇಷ್ಠಾ ೪ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                ಧನಾಧಿಪತಿ ಬಲದಿಂದ ಆರ್ಥಿಕ ಬಿಕ್ಕಟ್ಟುಗಳು ಪರಿಹಾರವಾಗುತ್ತವೆ. ಸಾಹಸ ಪ್ರವೃತ್ತಿಯಿಂದ ಅಸಾಧ್ಯವೆನಿಸಿದ ಕೆಲಸಗಳನ್ನು ಸಾಧಿಸಿ ಕೀರ್ತಿ ಗಳಿಸುವಿರಿ. ಸ್ನೇಹಿತರಿಂದ ಸೂಕ್ತ ಸಮಯಕ್ಕೆ ಸಾಲ ಮತ್ತು ಸಹಕಾರ ಲಭ್ಯ.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಉನ್ನತ ವ್ಯಾಸಂಗಕ್ಕಾಗಿ ವಿದೇಶ ಪ್ರಯಾಣ ಯೋಗ. ಕೀಲುನೋವು ಹಾಗೂ ಗ್ಯಾಸ್ಟ್ರಿಕ್ ಸಮಸ್ಯೆಯ ಬಗ್ಗೆ ಎಚ್ಚರಿಕೆ.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ಕಾರ್ತಿಕೇಯ (ಸುಬ್ರಹ್ಮಣ್ಯ) ಆರಾಧನೆ, ಮಂಗಳವಾರ ವ್ರತ, ಹವಳ ಧಾರಣೆ.
-            </div>
-          </div>
+          <BaggonaRashiBookCard rashi={tula} />
+          <BaggonaRashiBookCard rashi={vrishchika} />
         </div>
 
         <div className="border-t border-black pt-1 text-[9px] text-center font-sans font-bold text-slate-700 mt-1">
@@ -2282,6 +2164,10 @@ export const Page23TulaVrishchikaBhavishya: React.FC<PageTemplateProps> = ({ met
 
 /* PAGE 24: DHANU & MAKARA BHAVISHYA */
 export const Page24DhanuMakaraBhavishya: React.FC<PageTemplateProps> = ({ meta }) => {
+  const bhavishya = getBaggonaVarshaBhavishyaForYear(meta.shakaYear, true);
+  const dhanu = bhavishya.rashis[8]!;
+  const makara = bhavishya.rashis[9]!;
+
   return (
     <BaggonaLandscapeFrame pageNumber={24}>
       <div className="h-full flex flex-col justify-between p-2 text-black">
@@ -2290,49 +2176,8 @@ export const Page24DhanuMakaraBhavishya: React.FC<PageTemplateProps> = ({ meta }
         </div>
 
         <div className="flex-1 grid grid-cols-2 gap-3 font-serif overflow-hidden">
-          {/* Dhanu Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ಧನು ರಾಶಿ (Sagittarius)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೦೨ • ವ್ಯಯ: ೧೪ | ರಾಜಪೂಜ್ಯ: ೫ • ಅವಮಾನ: ೨
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಮೂಲಾ ೪, ಪೂ.ಷಾಢ ೪, ಉ.ಷಾಢ ೧ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                ಉನ್ನತ ಶಿಕ್ಷಣ, ಸಂಶೋಧನೆ ಹಾಗೂ ಉದ್ಯೋಗಕ್ಕಾಗಿ ವಿದೇಶ ಪ್ರಯಾಣದ ಯೋಗವಿದೆ. ಧನಾಧಿಪತಿಯಾದ ಶನಿಯು ಅನುಕೂಲಕರ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ ಹಠಾತ್ ಧನಲಾಭ. ಅವಿವಾಹಿತರಿಗೆ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ಆದಾಗ್ಯೂ ವ್ಯಯ ಹೆಚ್ಚಿರುವುದರಿಂದ ಅನಗತ್ಯ ದುಂದುವೆಚ್ಚಗಳಿಗೆ ಕಡಿವಾಣ ಹಾಕಿ. ಗಂಟಲು ಬೇನೆ ಹಾಗೂ ಕಫದ ತೊಂದರೆಗೆ ತಕ್ಷಣ ವೈದ್ಯೋಪಚಾರ ಪಡೆಯಿರಿ.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸ್ತೋತ್ರ, ಗುರು ಚರಿತ್ರೆ ಪಾರಾಯಣ, ಕನಕ ಪುಷ್ಯರಾಗ ಧಾರಣೆ.
-            </div>
-          </div>
-
-          {/* Makara Rashi */}
-          <div className="border border-black p-2.5 flex flex-col justify-between bg-white">
-            <div>
-              <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1.5">
-                <span className="font-black text-[15px]">ಮಕರ ರಾಶಿ (Capricorn)</span>
-                <span className="text-[9.5px] font-mono font-bold bg-slate-100 px-2 py-0.5 border border-black">
-                  ಆದಾಯ: ೦೮ • ವ್ಯಯ: ೧೪ | ರಾಜಪೂಜ್ಯ: ೧ • ಅವಮಾನ: ೪
-                </span>
-              </div>
-              <div className="text-[9px] font-bold text-slate-600 mb-1">ನಕ್ಷತ್ರ ಪಾದಗಳು: ಉ.ಷಾಢ ೨,೩,೪, ಶ್ರವಣ ೪, ಧನಿಷ್ಠಾ ೧,೨ನೇ ಪಾದ</div>
-              <p className="text-[9.5px] leading-relaxed text-justify">
-                “ಸಾಹಸೇ ಶ್ರೀಃ ಪ್ರತಿ ವಸತಿ” ಎಂಬುದನ್ನು ಮನಗಾಣುವಿರಿ. ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆಯುವುದು. ಪಾಲುದಾರಿಕೆ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಪಾರದರ್ಶಕತೆ ಕಾಪಾಡಿ. ಕುಟುಂಬದ ಹಿರಿಯರ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ಕಾಳಜಿ ವಹಿಸಬೇಕಾಗುವುದು.
-              </p>
-              <p className="text-[9.5px] leading-relaxed text-justify mt-1">
-                ಶನಿಯ ಸಂಚಾರದಿಂದಾಗಿ ಯಾವುದೇ ಕೆಲಸವನ್ನು ಮುಂದೂಡದೆ ತಕ್ಷಣ ಪೂರೈಸಿಕೊಳ್ಳಿ. ಸಾಲ ಕೊಡುವುದು ಅಥವಾ ಜಾಮೀನು ನಿಲ್ಲುವುದನ್ನು ತಪ್ಪಿಸಿ.
-              </p>
-            </div>
-            <div className="border-t border-black pt-1 mt-1 text-[9px] font-sans font-bold bg-slate-50 p-1">
-              ಶಾಂತಿ-ಪರಿಹಾರ: ಶನಿ ಶಾಂತಿ ಹೋಮ, ಎಳ್ಳೆಣ್ಣೆ ದೀಪಾರಾಧನೆ, ಆಂಜನೇಯ ಸ್ವಾಮಿ ಸ್ತೋತ್ರ, ನೀಲಮಣಿ ಧಾರಣೆ.
-            </div>
-          </div>
+          <BaggonaRashiBookCard rashi={dhanu} />
+          <BaggonaRashiBookCard rashi={makara} />
         </div>
 
         <div className="border-t border-black pt-1 text-[9px] text-center font-sans font-bold text-slate-700 mt-1">
@@ -2345,6 +2190,10 @@ export const Page24DhanuMakaraBhavishya: React.FC<PageTemplateProps> = ({ meta }
 
 /* PAGE 25: KUMBHA, MEENA & MEMORIAL HOMAGE */
 export const Page25KumbhaMeenaAndMemorial: React.FC<PageTemplateProps> = ({ meta }) => {
+  const bhavishya = getBaggonaVarshaBhavishyaForYear(meta.shakaYear, true);
+  const kumbha = bhavishya.rashis[10]!;
+  const meena = bhavishya.rashis[11]!;
+
   return (
     <BaggonaLandscapeFrame pageNumber={25}>
       <div className="h-full flex flex-col justify-between p-2 text-black">
@@ -2359,17 +2208,20 @@ export const Page25KumbhaMeenaAndMemorial: React.FC<PageTemplateProps> = ({ meta
             <div className="border border-black p-2 bg-white flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center border-b border-black pb-0.5 mb-1">
-                  <span className="font-black text-[14px]">ಕುಂಭ ರಾಶಿ (Aquarius)</span>
+                  <span className="font-black text-[14px]">{kumbha.titleKn}</span>
                   <span className="text-[9px] font-mono font-bold bg-slate-100 px-1.5 py-0.5 border border-black">
-                    ಆದಾಯ: ೦೮ • ವ್ಯಯ: ೧೪ | ರಾಜಪೂಜ್ಯ: ೧ • ಅವಮಾನ: ೪
+                    {kumbha.badgeKn}
                   </span>
                 </div>
+                <div className="text-[8.5px] font-bold text-slate-600 mb-0.5">
+                  ನಕ್ಷತ್ರ ಪಾದಗಳು: {kumbha.nakshatraPadasKn}
+                </div>
                 <p className="text-[9px] leading-relaxed text-justify">
-                  ಉನ್ನತ ಶಿಕ್ಷಣ ಬಯಸುವ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಉತ್ತಮ ಪ್ರಗತಿ. ರಾಜಕೀಯ ಹಾಗೂ ಸೇವಾ ಸಂಘಟನೆಗಳಲ್ಲಿ ದುಡಿಯುವವರಿಗೆ ಮನ್ನಣೆ. ಮನೆ, ಭೂಮಿ, ಸೈಟು ಖರೀದಿ ಯೋಗ. ಹಿರಿಯ ಸಹೋದರರೊಂದಿಗೆ ಬಾಂಧವ್ಯ ವೃದ್ಧಿ.
+                  {kumbha.bookParagraph1Kn}
                 </p>
               </div>
               <div className="text-[8.5px] font-bold bg-slate-50 p-1 border-t border-black/40">
-                ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ಆಂಜನೇಯ ಸ್ವಾಮಿಗೆ ಸಿಂಧೂರ ಲೇಪನ, ಶನಿ ಜಪ, ನೀಲ ಧಾರಣೆ.
+                ಶಾಂತಿ-ಪರಿಹಾರ: {kumbha.shantiPariharaKn}
               </div>
             </div>
 
@@ -2377,17 +2229,20 @@ export const Page25KumbhaMeenaAndMemorial: React.FC<PageTemplateProps> = ({ meta
             <div className="border border-black p-2 bg-white flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center border-b border-black pb-0.5 mb-1">
-                  <span className="font-black text-[14px]">ಮೀನ ರಾಶಿ (Pisces)</span>
+                  <span className="font-black text-[14px]">{meena.titleKn}</span>
                   <span className="text-[9px] font-mono font-bold bg-slate-100 px-1.5 py-0.5 border border-black">
-                    ಆದಾಯ: ೧೧ • ವ್ಯಯ: ೦೫ | ರಾಜಪೂಜ್ಯ: ೭ • ಅವಮಾನ: ೪
+                    {meena.badgeKn}
                   </span>
                 </div>
+                <div className="text-[8.5px] font-bold text-slate-600 mb-0.5">
+                  ನಕ್ಷತ್ರ ಪಾದಗಳು: {meena.nakshatraPadasKn}
+                </div>
                 <p className="text-[9px] leading-relaxed text-justify">
-                  ಸರ್ವತೋಮುಖ ಅಭಿವೃದ್ಧಿ. ಸ್ಥಿರಾಸ್ತಿ ವೃದ್ಧಿ, ನೂತನ ವ್ಯಾಪಾರ ಯೋಜನೆಗಳ ಸಾಕಾರ. ಕೌಟುಂಬಿಕ ಸಮೃದ್ಧಿ. ಆಧ್ಯಾತ್ಮಿಕ ಕ್ಷೇತ್ರದ ಸಾಧಕರಿಗೆ ದೈವಿಕ ಅನುಗ್ರಹ. ವಿದೇಶ ಪ್ರವಾಸ ಫಲಪ್ರದ.
+                  {meena.bookParagraph1Kn}
                 </p>
               </div>
               <div className="text-[8.5px] font-bold bg-slate-50 p-1 border-t border-black/40">
-                ಶಾಂತಿ-ಪರಿಹಾರ: ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಆರಾಧನೆ, ಕನಕ ಪುಷ್ಯರಾಗ ಧಾರಣೆ.
+                ಶಾಂತಿ-ಪರಿಹಾರ: {meena.shantiPariharaKn}
               </div>
             </div>
           </div>

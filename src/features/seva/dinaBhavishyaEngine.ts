@@ -865,21 +865,21 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
   let priestBlessing = "";
 
   if (lang === "kn") {
-    overview = `ಇಂದು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${localizedRashi}ಗೆ ಗೋಚಾರ ಚಂದ್ರನು ${chandraBalaInfo.title}ದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು (${chandraBalaInfo.desc}), ನಕ್ಷತ್ರ ತಾರಾ ಬಲವು ${taraBalaInfo.name} (${taraBalaInfo.desc}) ಆಗಿದೆ. ${activeDashaSummary}ಯ ಪ್ರಭಾವದಿಂದಾಗಿ ದಿನವು ${energyScore >= 75 ? "ಅತ್ಯಂತ ಶುಭದಾಯಕ, ವಿಜಯಶಾಲಿ ಹಾಗೂ ಉತ್ಸಾಹಭರಿತವಾಗಿರಲಿದೆ." : energyScore >= 50 ? "ಸ್ಥಿರ ಹಾಗೂ ಸಮತೋಲಿತ ಫಲ ನೀಡಲಿದೆ." : "ಸಾತ್ವಿಕ ಜಪ-ಧ್ಯಾನ ಹಾಗೂ ಎಚ್ಚರಿಕೆಯಿಂದ ಮುನ್ನಡೆಯಲು ಪ್ರಶಸ್ತವಾಗಿದೆ."}`;
+    overview = `ಇಂದು ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಗಣಿತದ ಪ್ರಕಾರ ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${localizedRashi}ಗೆ ಗೋಚಾರ ಚಂದ್ರನು ${chandraBalaInfo.title}ದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು (${chandraBalaInfo.desc}), ನಕ್ಷತ್ರ ತಾರಾ ಬಲವು ${taraBalaInfo.name} (${taraBalaInfo.desc}) ಆಗಿದೆ. ${activeDashaSummary}ಯ ಪ್ರಭಾವದಿಂದಾಗಿ ಇಂದಿನ ದಿನವು ${energyScore >= 75 ? "“ದೈವ ಬಲವೊಂದಿದ್ದರೆ ಎಲ್ಲವೂ ಸುಲಭ” ಎಂಬಂತೆ ಅತ್ಯಂತ ಶುಭದಾಯಕ, ವಿಜಯಶಾಲಿ ಹಾಗೂ ಉತ್ಸಾಹಭರಿತವಾಗಿರಲಿದೆ." : energyScore >= 50 ? "ಸ್ಥಿರ, ಸಮತೋಲಿತ ಹಾಗೂ ಸಮಾಧಾನಕರ ಫಲ ನೀಡಲಿದೆ." : "ಸಾತ್ವಿಕ ಜಪ-ಧ್ಯಾನ ಹಾಗೂ ಹಿರಿಯರ ಮಾರ್ಗದರ್ಶನದಿಂದ ಮುನ್ನಡೆಯಲು ಪ್ರಶಸ್ತವಾಗಿದೆ."}`;
     
     careerAndFinance = chandraBalaInfo.isFavorable
-      ? `ವೃತ್ತಿರಂಗದಲ್ಲಿ ಶ್ರಮಕ್ಕೆ ಗೌರವಯುತ ಮನ್ನಣೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಬೆಂಬಲ ಹಾಗೂ ಧನಾಗಮನ ಲಭಿಸಲಿದೆ. ${activeMaha} ದಶೆಯ ಅನುಗ್ರಹದಿಂದ ಹೊಸ ಆರ್ಥಿಕ ಒಪ್ಪಂದಗಳು ಮತ್ತು ಬಾಕಿ ಹಣ ವಸೂಲಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರ ದಿನ.`
-      : `ಆರ್ಥಿಕ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಆತುರದ ನಿರ್ಧಾರಗಳು ಬೇಡ. ಖರ್ಚುಗಳ ಮೇಲೆ ಹಿಡಿತವಿರಲಿ. ಕಚೇರಿಯಲ್ಲಿ ಅನಗತ್ಯ ವಾದ-ವಿವಾದಗಳಿಂದ ದೂರವಿದ್ದು, ಪೂರ್ವನಿಯೋಜಿತ ಕರ್ತವ್ಯಗಳಿಗೆ ಮಾತ್ರ ಗಮನಹರಿಸಿ.`;
+      ? `“ಸಾಹಸೇ ಶ್ರೀಃ ಪ್ರತಿ ವಸತಿ” ಎಂಬಂತೆ ವೃತ್ತಿರಂಗದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕ ಶ್ರಮಕ್ಕೆ ಗೌರವಯುತ ಮನ್ನಣೆ, ಹಿರಿಯ ಅಧಿಕಾರಿಗಳ ಬೆಂಬಲ ಹಾಗೂ ಧನಾಗಮನ ಲಭಿಸಲಿದೆ. ${activeMaha} ದಶೆಯ ಅನುಗ್ರಹದಿಂದ ಹೊಸ ಆರ್ಥಿಕ ಒಪ್ಪಂದಗಳು, ವ್ಯಾಪಾರ ವೃದ್ಧಿ ಹಾಗೂ ಕೃಷಿ-ತೋಟಗಾರಿಕಾ ಆದಾಯಕ್ಕೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರ ದಿನ.`
+      : `“ಕಾಯಕವೇ ಕೈಲಾಸ” ಎಂಬಂತೆ ದೈನಂದಿನ ಕರ್ತವ್ಯಗಳಲ್ಲಿ ನಿಷ್ಠೆ ಇರಲಿ. ಆರ್ಥಿಕ ವಿಷಯಗಳಲ್ಲಿ ಆತುರದ ಸಾಲ ಅಥವಾ ಹೂಡಿಕೆಗಳು ಬೇಡ. ಖರ್ಚುಗಳ ಮೇಲೆ ಹಿಡಿತವಿರಲಿ; ಕಚೇರಿಯಲ್ಲಿ ಅನಗತ್ಯ ವಾದ-ವಿವಾದಗಳಿಂದ ದೂರವಿದ್ದು ಸಂಯಮ ಕಾಪಾಡಿ.`;
     
     healthAndFamily = chandraBalaHouse === 8
-      ? `ಚಂದ್ರಾಷ್ಟಮ ಸಂಚಾರವಿರುವುದರಿಂದ ಮನಸ್ಸಿನಲ್ಲಿ ಅತಿಯಾದ ಆಲೋಚನೆ ಹಾಗೂ ಆತಂಕ ಕಾಡದಂತೆ ಧ್ಯಾನ ಮತ್ತು ಸಾತ್ವಿಕ ಆಹಾರ ಸೇವಿಸಿ. ಕುಟುಂಬದಲ್ಲಿ ಸಂಯಮದಿಂದ ವರ್ತಿಸಿ, "ಓಂ ನಮಃ ಶಿವಾಯ" ಜಪಿಸಿ.`
-      : `ದೈಹಿಕ ಚೈತನ್ಯ ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಸನ್ನತೆ ಉತ್ತಮವಾಗಿರುತ್ತದೆ. ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ವೃದ್ಧಿಯಾಗಲಿದ್ದು, ಗೃಹದಲ್ಲಿ ಶಾಂತಿಯುತ ಹಾಗೂ ಮಂಗಳಕರ ವಾತಾವರಣ ನೆಲೆಸಲಿದೆ.`;
+      ? `ಚಂದ್ರಾಷ್ಟಮ ಸಂಚಾರವಿರುವುದರಿಂದ “ಆರೋಗ್ಯವೇ ಭಾಗ್ಯ” ಎಂಬುದನ್ನು ನೆನಪಿಡಿ. ಮನಸ್ಸಿನಲ್ಲಿ ಅತಿಯಾದ ಆಲೋಚನೆ ಹಾಗೂ ಆತಂಕ ಕಾಡದಂತೆ ಧ್ಯಾನ ಮತ್ತು ಸಾತ್ವಿಕ ಆಹಾರ ಸೇವಿಸಿ. ಕುಟುಂಬದಲ್ಲಿ ತಾಳ್ಮೆಯಿಂದ ವರ್ತಿಸಿ, ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ "ಓಂ ನಮಃ ಶಿವಾಯ" ಜಪಿಸಿ.`
+      : `ದೈಹಿಕ ಚೈತನ್ಯ ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಸನ್ನತೆ ಉತ್ತಮವಾಗಿರುತ್ತದೆ. “ಧರ್ಮೋ ರಕ್ಷತಿ ರಕ್ಷಿತಃ” ಎಂಬಂತೆ ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ವೃದ್ಧಿಯಾಗಲಿದ್ದು, ಗೃಹದಲ್ಲಿ ಶಾಂತಿಯುತ, ಧಾರ್ಮಿಕ ಹಾಗೂ ಮಂಗಳಕರ ವಾತಾವರಣ ನೆಲೆಸಲಿದೆ.`;
     
     travelAndInitiatives = taraBalaInfo.isGood
-      ? `ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ (${abhijitMuhurtha}) ಕೈಗೊಳ್ಳುವ ಪ್ರಯಾಣ ಹಾಗೂ ನೂತನ ಕಾರ್ಯಾರಂಭಗಳು ಯಶಸ್ವಿಯಾಗಲಿವೆ. ರಾಹು ಕಾಲದಲ್ಲಿ (${kaala.rahu}) ಮಹತ್ವದ ನಿರ್ಧಾರಗಳನ್ನು ಮುಂದೂಡಿ.`
+      ? `ಶುಭ ಅಭಿಜಿತ್ ಮುಹೂರ್ತದಲ್ಲಿ (${abhijitMuhurtha}) ಕೈಗೊಳ್ಳುವ ಪ್ರಯಾಣ ಹಾಗೂ ನೂತನ ಸತ್ಕಾರ್ಯಗಳು ಯಶಸ್ವಿಯಾಗಲಿವೆ. ರಾಹು ಕಾಲದಲ್ಲಿ (${kaala.rahu}) ಮಹತ್ವದ ನಿರ್ಧಾರಗಳನ್ನು ಮುಂದೂಡುವುದು ಕ್ಷೇಮ.`
       : `ಅನಗತ್ಯ ದೂರ ಪ್ರಯಾಣಗಳನ್ನು ಮುಂದೂಡಿ. ದೈನಂದಿನ ವಾಹನ ಚಾಲನೆಯಲ್ಲಿ ಜಾಗರೂಕರಾಗಿರಿ ಹಾಗೂ ರಾಹು ಕಾಲದ (${kaala.rahu}) ಅವಧಿಯಲ್ಲಿ ಎಚ್ಚರ ವಹಿಸಿ.`;
     
-    priestBlessing = `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಿಂದ ${localizedPandit}ರ ಆಶೀರ್ವಚನ: "${devoteeDisplayName} ಅವರಿಗೆ ಇಂದಿನ ${weekdayName}ದಂದು ಸಕಲ ಗ್ರಹದೋಷಗಳು ಶಮನವಾಗಿ, ದೈವಾನುಗ್ರಹದಿಂದ ಮನೋಭೀಷ್ಟಗಳು ಸಿದ್ಧಿಸಲಿ. ॐ ನಮಃ ಶಿವಾಯ."`;
+    priestBlessing = `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಿಂದ ${localizedPandit}ರ ಆಶೀರ್ವಚನ: "${devoteeDisplayName} ಅವರಿಗೆ ಇಂದಿನ ${weekdayName}ದಂದು ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಫಲಾನುಸಾರ ಸಕಲ ಗ್ರಹದೋಷಗಳು ಶಮನವಾಗಿ, ದೈವಾನುಗ್ರಹದಿಂದ ಮನೋಭೀಷ್ಟಗಳು ಸಿದ್ಧಿಸಲಿ. ॐ ನಮಃ ಶಿವಾಯ."`;
   } else if (lang === "hi") {
     overview = `आज आपकी चंद्र राशि ${localizedRashi} के लिए गोचर चंद्रमा ${chandraBalaInfo.title} में गतिशील है (${chandraBalaInfo.desc}) तथा तारा बल ${taraBalaInfo.name} है। ${activeDashaSummary} के प्रभाव से दिन ${energyScore >= 75 ? "अत्यंत शुभ एवं उत्साहवर्धक रहेगा।" : "संतुलित और धैर्य से आगे बढ़ने योग्य रहेगा।"}`;
     careerAndFinance = chandraBalaInfo.isFavorable
@@ -950,7 +950,7 @@ export async function getOrComputeDinaBhavishya(params: DinaBhavishyaParams): Pr
       };
 
       const promptContext = `
-You are a revered, authoritative, deeply compassionate Vedic Astrologer from Sri Gokarna Kshetra providing an in-depth, face-to-face spoken daily horoscope ("ದಿನ ಭವಿಷ್ಯ") to devotee ${devoteeDisplayName}.
+You are a revered, authoritative, deeply compassionate Vedic Astrologer of Baggona Panchanga (ಬಗ್ಗೋಣ ಪಂಚಾಂಗ) from Sri Gokarna Kshetra providing an in-depth, face-to-face spoken daily horoscope ("ದಿನ ಭವಿಷ್ಯ") to devotee ${devoteeDisplayName}.
 
 Cosmic Planetary Alignments for Today (${effectiveDate}, ${weekdayName}):
 - Devotee: ${devoteeDisplayName} (Natal Moon: ${localizedRashi}, Nakshatra: ${localizedNak}${localizedLagna ? `, Lagna: ${localizedLagna}` : ""})
@@ -962,11 +962,11 @@ Cosmic Planetary Alignments for Today (${effectiveDate}, ${weekdayName}):
 - Auspicious Abhijit Muhurtha: ${abhijitMuhurtha}
 - Rahu Kaala: ${kaala.rahu}
 
-TASK: Generate a vivid, spoken, deeply accurate 4-section daily horoscope in pure, natural ${langNames[lang]}.
+TASK: Generate a vivid, spoken, deeply accurate 4-section daily horoscope in pure, natural ${langNames[lang]} in authentic Baggona Panchanga style with warm, reassuring spiritual emotion.
 ${nativeScriptInstructions[lang]}
 
 STRICT RULES:
-1. Speak DIRECTLY to the devotee in a warm, authoritative Pandit voice ("ನೋಡಿ, ಇಂದು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ..."). If starting with a greeting, use pure native script (e.g. "ಹರಿ ಓಂ", "ಶ್ರೀ ಮಹಾಗಣಪತಯೇ ನಮಃ"). NEVER write "Hari Om", "Sri", or any Latin alphabet words.
+1. Speak DIRECTLY to the devotee in a warm, authoritative Baggona Pandit voice ("ನೋಡಿ, ಇಂದು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ..."). Naturally weave authentic traditional proverbs where relevant ("ಕಾಯಕವೇ ಕೈಲಾಸ", "ಸಾಹಸೇ ಶ್ರೀಃ ಪ್ರತಿ ವಸತಿ", "ಆರೋಗ್ಯವೇ ಭಾಗ್ಯ", "ಧರ್ಮೋ ರಕ್ಷತಿ ರಕ್ಷಿತಃ"). If starting with a greeting, use pure native script (e.g. "ಹರಿ ಓಂ", "ಶ್ರೀ ಮಹಾಗಣಪತಯೇ ನಮಃ"). NEVER write "Hari Om", "Sri", or any Latin alphabet words.
 2. DO NOT use markdown bold asterisks (** or *). Output clean, readable text.
 3. ALL numbers must be in English digits (e.g. 1, 2, 3, 11:48 AM, 12:36 PM, 10th house, 11 times).
 4. Output EXACTLY 4 structured sections separated by triple hyphens "---":

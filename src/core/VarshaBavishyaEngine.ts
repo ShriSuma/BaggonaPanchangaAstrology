@@ -1,20 +1,30 @@
 import { siderealLongitudes } from "./EphemerisEngine";
 import { RASHIS, type Rashi } from "./AstroTypes";
+import {
+  getBaggonaVarshaBhavishyaForYear,
+  type BaggonaVarshaRashiPayload,
+  type BaggonaYearlyBhavishyaResult
+} from "./BaggonaVarshaBhavishyaEngine";
 
 export type VarshaPrediction = {
   year: number;
+  shakaYear?: number;
+  samvatsaraKn?: string;
+  samvatsaraEn?: string;
   rashi: Rashi;
   guruHouse: number;
   shaniHouse: number;
   rahuHouse: number;
   ketuHouse: number;
   paragraphs: string[][];
+  baggonaPayload?: BaggonaVarshaRashiPayload;
+  fullYearBhavishya?: BaggonaYearlyBhavishyaResult;
 };
 
 /**
- * Calculates the Varsha Bavishya (Yearly Prediction) for a given year and Rashi.
- * It samples the planetary transits near the middle of the year (July 1st) 
- * as a proxy for the dominant planetary positions of that year.
+ * Calculates the Varsha Bavishya (Yearly Prediction) for a given year and Rashi,
+ * enriched with authentic Baggona Panchanga Aaya-Vyaya, Rajapujya-Avamana,
+ * and Gokarna Kshetra Shanti-Parihara.
  */
 export const calculateVarshaBavishya = (year: number, rashiIndex: number): VarshaPrediction => {
   // Sample date: July 1st of the given year at 12:00 UTC
@@ -48,13 +58,28 @@ export const calculateVarshaBavishya = (year: number, rashiIndex: number): Varsh
   // Paragraph 4: Cautions & Remedies
   paragraphs.push([`varsha.remedy.guru_${guruHouse}`, `varsha.remedy.shani_${shaniHouse}`, `varsha.closing`]);
 
+  // Baggona Panchanga Authentic Yearly Computation
+  const baggonaYear = getBaggonaVarshaBhavishyaForYear(year);
+  const baggonaPayload = baggonaYear.rashis[rashiIndex];
+
   return {
     year,
+    shakaYear: baggonaYear.shakaYear,
+    samvatsaraKn: baggonaYear.samvatsaraKn,
+    samvatsaraEn: baggonaYear.samvatsaraEn,
     rashi: RASHIS[rashiIndex],
     guruHouse,
     shaniHouse,
     rahuHouse,
     ketuHouse,
-    paragraphs
+    paragraphs,
+    baggonaPayload,
+    fullYearBhavishya: baggonaYear
   };
+};
+
+export {
+  getBaggonaVarshaBhavishyaForYear,
+  type BaggonaVarshaRashiPayload,
+  type BaggonaYearlyBhavishyaResult
 };
