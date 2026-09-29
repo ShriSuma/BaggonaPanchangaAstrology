@@ -498,26 +498,26 @@ export const KundliDoshasPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-16 print:bg-white print:text-black print:pb-0">
+    <div className="min-h-screen bg-[#FFFDF7] text-slate-800 font-sans pb-16 print:bg-white print:text-black print:pb-0">
       {/* 🌟 Top Navigation Bar 🌟 */}
-      <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-amber-500/20 px-4 py-3 print:hidden">
+      <header className="sticky top-0 z-30 bg-[#FFFDF9]/95 backdrop-blur-md border-b-2 border-amber-500/30 px-4 py-3 print:hidden shadow-sm">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => setPage("kundli")}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold transition-all border border-amber-500/30"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition-all border border-amber-300 shadow-sm"
             >
               <span>{t("backToKundli")}</span>
             </button>
-            <span className="text-sm font-extrabold text-amber-200 hidden sm:inline">
+            <span className="text-sm font-black text-amber-950 hidden sm:inline">
               {t("pageTitle")}
             </span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* 🌐 5-Language Selector */}
-            <div className="inline-flex rounded-xl bg-slate-800/80 p-0.5 border border-slate-700">
+            <div className="inline-flex rounded-xl bg-amber-50 p-0.5 border border-amber-300">
               {[
                 { code: "kn", label: "ಕನ್ನಡ" },
                 { code: "hi", label: "हिन्दी" },
@@ -531,8 +531,8 @@ export const KundliDoshasPage: React.FC = () => {
                   onClick={() => setSelectedLang(l.code)}
                   className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
                     selectedLang === l.code
-                      ? "bg-amber-500 text-slate-950 shadow-sm font-black"
-                      : "text-slate-300 hover:text-white"
+                      ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-sm font-black"
+                      : "text-slate-700 hover:text-amber-950"
                   }`}
                 >
                   {l.label}
@@ -547,14 +547,14 @@ export const KundliDoshasPage: React.FC = () => {
               disabled={isDownloadingPdf || !doshaReport}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs shadow-md transition-all active:scale-95 ${
                 isDownloadingPdf
-                  ? "bg-amber-600/50 text-slate-300 cursor-wait"
-                  : "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950"
+                  ? "bg-amber-600/50 text-slate-100 cursor-wait"
+                  : "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-700 hover:to-amber-600 text-white border border-amber-600/40"
               }`}
               title={t("downloadPdf")}
             >
               {isDownloadingPdf ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>
                     {selectedLang === "kn"
                       ? "PDF ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
@@ -575,7 +575,7 @@ export const KundliDoshasPage: React.FC = () => {
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs border border-slate-700 transition-all active:scale-95"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300 transition-all active:scale-95 shadow-sm"
               title={t("printPdf")}
             >
               <span>🖨️</span>
@@ -589,8 +589,8 @@ export const KundliDoshasPage: React.FC = () => {
         {/* Loading Spinner */}
         {isLoading && (
           <div className="text-center py-20">
-            <div className="animate-spin inline-block w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full mb-3" />
-            <p className="text-amber-300 text-sm font-semibold">
+            <div className="animate-spin inline-block w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full mb-3" />
+            <p className="text-amber-900 text-sm font-semibold">
               {selectedLang === "kn" ? "ಜಾತಕದ ದೋಷಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..." : "Analyzing Kundli Doshas & Planetary Alignments..."}
             </p>
           </div>
@@ -598,12 +598,12 @@ export const KundliDoshasPage: React.FC = () => {
 
         {/* Empty State when no Kundli is loaded */}
         {!isLoading && !doshaReport && (
-          <div className="rounded-3xl border-2 border-dashed border-amber-500/40 bg-slate-900/60 p-8 sm:p-12 text-center max-w-xl mx-auto space-y-4">
+          <div className="rounded-3xl border-2 border-dashed border-amber-400 bg-white/90 p-8 sm:p-12 text-center max-w-xl mx-auto space-y-4 shadow-md">
             <div className="text-5xl animate-bounce">🛡️</div>
-            <h2 className="text-xl font-bold text-amber-200">
+            <h2 className="text-xl font-bold text-amber-950">
               {selectedLang === "kn" ? "ಯಾವುದೇ ಜಾತಕ ಸಿದ್ಧವಾಗಿಲ್ಲ" : "No Active Kundli Found"}
             </h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               {selectedLang === "kn"
                 ? "ದೋಷ ವಿಶ್ಲೇಷಣೆ ವೀಕ್ಷಿಸಲು ಮೊದಲು 'ಜಾತಕ' ಪುಟದಲ್ಲಿ ಜನ್ಮ ದಿನಾಂಕ, ಸಮಯ ಹಾಗೂ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ ಜಾತಕ ಸಿದ್ಧಪಡಿಸಿ."
                 : "To examine technical Dosha calculations and sacred Vedic remedies, please generate a Kundli first."}
@@ -611,7 +611,7 @@ export const KundliDoshasPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setPage("kundli")}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm shadow-xl transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-black text-sm shadow-md transition-all"
             >
               <span>✨</span>
               <span>{selectedLang === "kn" ? "ಜಾತಕ ಸಿದ್ಧಪಡಿಸಿ (Open Kundli Page)" : "Generate Kundli Now"}</span>
@@ -623,31 +623,31 @@ export const KundliDoshasPage: React.FC = () => {
         {!isLoading && doshaReport && (
           <>
             {/* Header / Devotee Metadata Banner */}
-            <div className="rounded-3xl border-2 border-amber-500/40 bg-gradient-to-br from-amber-950/80 via-slate-900 to-stone-950 p-6 sm:p-8 shadow-2xl relative overflow-hidden print:border-black print:bg-white print:text-black print:p-4">
+            <div className="rounded-3xl border-2 border-amber-600/40 bg-gradient-to-br from-[#FFFDF8] via-[#FEFBF0] to-[#FFF8E7] p-6 sm:p-8 shadow-md relative overflow-hidden print:border-black print:bg-white print:text-black print:p-4">
               <div className="absolute -right-8 -top-8 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6 border-b border-amber-500/20 pb-6 print:border-black">
+              <div className="text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6 border-b-2 border-amber-500/30 pb-6 print:border-black">
                 <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-[11px] font-black uppercase text-amber-300 border border-amber-400/30 print:border-black print:text-black">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-100/90 px-3.5 py-1 text-[11px] font-black uppercase text-amber-900 border border-amber-300 print:border-black print:text-black shadow-sm">
                     <span>🔱</span>
                     <span>॥ ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥</span>
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-amber-100 mt-2 tracking-tight print:text-black">
+                  <h1 className="text-2xl sm:text-3xl font-black text-indigo-950 mt-2 tracking-tight font-serif print:text-black">
                     {t("pageTitle")}
                   </h1>
-                  <p className="text-xs text-amber-200/80 mt-1 print:text-black">
+                  <p className="text-xs text-slate-700 mt-1 font-medium print:text-black">
                     {t("pageSubtitle")}
                   </p>
                 </div>
 
-                <div className="text-center sm:text-right shrink-0 bg-slate-800/80 p-4 rounded-2xl border border-amber-500/30 print:bg-white print:border-black">
-                  <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest print:text-black">
+                <div className="text-center sm:text-right shrink-0 bg-white/90 p-4 rounded-2xl border-2 border-amber-400/50 shadow-sm print:bg-white print:border-black">
+                  <div className="text-[10px] font-bold text-amber-800 uppercase tracking-widest print:text-black">
                     {t("nativeName")}
                   </div>
-                  <div className="text-lg font-black text-amber-200 capitalize mt-0.5 print:text-black">
+                  <div className="text-lg font-black text-indigo-950 capitalize mt-0.5 print:text-black">
                     {doshaReport.devoteeInfo.name}
                   </div>
-                  <div className="text-xs text-slate-300 font-semibold mt-1 print:text-black">
+                  <div className="text-xs text-slate-700 font-semibold mt-1 print:text-black">
                     {doshaReport.devoteeInfo.birthDate} • {doshaReport.devoteeInfo.birthTime}
                   </div>
                 </div>
@@ -655,40 +655,40 @@ export const KundliDoshasPage: React.FC = () => {
 
               {/* Natal Coordinates & Summary Metrics */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-2">
-                <div className="rounded-xl bg-slate-900/60 p-3 border border-amber-500/20 text-center print:border-black">
-                  <div className="text-[10px] uppercase font-bold text-amber-400 print:text-black">
+                <div className="rounded-xl bg-white p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black">
+                  <div className="text-[10px] uppercase font-bold text-amber-800 print:text-black">
                     {t("lagnaLabel")}
                   </div>
-                  <div className="text-sm font-black text-slate-100 mt-0.5 print:text-black">
+                  <div className="text-sm font-black text-indigo-950 mt-0.5 print:text-black">
                     {doshaReport.devoteeInfo.lagnaRashiRecord?.[selectedLang] || doshaReport.devoteeInfo.lagnaRashi}
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-slate-900/60 p-3 border border-amber-500/20 text-center print:border-black">
-                  <div className="text-[10px] uppercase font-bold text-amber-400 print:text-black">
+                <div className="rounded-xl bg-white p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black">
+                  <div className="text-[10px] uppercase font-bold text-amber-800 print:text-black">
                     {t("moonLabel")}
                   </div>
-                  <div className="text-sm font-black text-slate-100 mt-0.5 print:text-black">
+                  <div className="text-sm font-black text-indigo-950 mt-0.5 print:text-black">
                     {doshaReport.devoteeInfo.moonRashiRecord?.[selectedLang] || doshaReport.devoteeInfo.moonRashi} • {doshaReport.devoteeInfo.nakshatraRecord?.[selectedLang] || doshaReport.devoteeInfo.nakshatra} ({doshaReport.devoteeInfo.pada})
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-slate-900/60 p-3 border border-amber-500/20 text-center print:border-black">
-                  <div className="text-[10px] uppercase font-bold text-amber-400 print:text-black">
+                <div className="rounded-xl bg-white p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black">
+                  <div className="text-[10px] uppercase font-bold text-amber-800 print:text-black">
                     {t("activeCountLabel")}
                   </div>
                   <div className={`text-sm font-black mt-0.5 print:text-black ${
-                    activeDoshas.length > 0 ? "text-rose-400" : "text-emerald-400"
+                    activeDoshas.length > 0 ? "text-rose-700" : "text-emerald-700"
                   }`}>
                     {activeDoshas.length} {selectedLang === "kn" ? "ದೋಷಗಳು ಸಕ್ರಿಯ" : "Active Doshas"}
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-slate-900/60 p-3 border border-amber-500/20 text-center print:border-black">
-                  <div className="text-[10px] uppercase font-bold text-amber-400 print:text-black">
+                <div className="rounded-xl bg-white p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black">
+                  <div className="text-[10px] uppercase font-bold text-amber-800 print:text-black">
                     {t("currentDashaLabel")}
                   </div>
-                  <div className="text-sm font-black text-amber-300 mt-0.5 print:text-black">
+                  <div className="text-sm font-black text-amber-900 mt-0.5 print:text-black">
                     {doshaReport.devoteeInfo.currentDashaRecord?.[selectedLang] || doshaReport.devoteeInfo.currentDashaStr}
                   </div>
                 </div>
@@ -696,39 +696,39 @@ export const KundliDoshasPage: React.FC = () => {
             </div>
 
             {/* 🌟 Age Priority Strategy Card 🌟 */}
-            <div className="rounded-3xl border-2 border-amber-500/50 bg-gradient-to-br from-amber-950/70 via-slate-900 to-amber-950/40 p-5 sm:p-6 shadow-xl relative overflow-hidden print:border-black print:bg-white print:text-black">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-4 print:border-black">
+            <div className="rounded-3xl border-2 border-amber-500/50 bg-gradient-to-br from-[#FFFDF9] via-[#FEFBF2] to-[#FFF9EB] p-5 sm:p-6 shadow-md relative overflow-hidden print:border-black print:bg-white print:text-black">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-500/20 pb-4 print:border-black">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/50 bg-amber-500/20 text-2xl">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/60 bg-amber-100 text-amber-900 text-2xl shadow-sm">
                     ⭐
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-black text-amber-200 print:text-black">
+                    <h3 className="text-base sm:text-lg font-black text-amber-950 font-serif print:text-black">
                       {t("ageStrategyCardTitle")}
                     </h3>
-                    <p className="text-xs text-amber-300 font-bold mt-0.5">
+                    <p className="text-xs text-amber-900 font-bold mt-0.5">
                       {doshaReport.devoteeInfo.ageStageNameRecord?.[selectedLang] || doshaReport.devoteeInfo.ageStageKey} • {t("currentAgeLabel")}: {doshaReport.devoteeInfo.currentAge || doshaReport.devoteeInfo.devoteeAge} {selectedLang === "kn" ? "ವರ್ಷ" : "Yrs"}
                     </p>
                   </div>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 text-xs font-black self-start sm:self-auto">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-400 text-xs font-black self-start sm:self-auto shadow-sm">
                   <span>⚡</span>
                   <span>{t("agePriorityBadgeLabel")}</span>
                 </div>
               </div>
 
               <div className="mt-4 space-y-2">
-                <div className="rounded-2xl bg-amber-950/40 border border-amber-500/30 p-4 text-xs sm:text-sm text-amber-100 font-bold leading-relaxed print:bg-white print:text-black print:border-black">
+                <div className="rounded-2xl bg-amber-50/80 border border-amber-300 p-4 text-xs sm:text-sm text-amber-950 font-bold leading-relaxed print:bg-white print:text-black print:border-black">
                   {getLangText(doshaReport.devoteeInfo.currentAgeFocusSummary, "ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಅಗತ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಮೊದಲ ಆದ್ಯತೆಯ ಪರಿಹಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಾವಶ್ಯಕ.")}
                 </div>
-                <p className="text-[11px] text-amber-300/80 italic font-medium px-1 print:text-black">
+                <p className="text-[11px] text-amber-900/80 italic font-medium px-1 print:text-black">
                   {t("ageStrategyNote")}
                 </p>
               </div>
             </div>
 
             {/* 🌟 Top Navigation Bar: Section Tabs (All, Doshas, Gandantara, Fears) 🌟 */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3 print:hidden">
+            <div className="flex flex-wrap items-center gap-2 border-b-2 border-amber-500/20 pb-3 print:hidden">
               {[
                 { id: "all_sections", label: t("viewAllTab"), icon: "📜" },
                 { id: "doshas", label: `${t("doshasTab")} (${activeDoshas.length})`, icon: "🛡️" },
@@ -741,8 +741,8 @@ export const KundliDoshasPage: React.FC = () => {
                   onClick={() => setMainTab(tab.id as any)}
                   className={`px-4 py-2.5 text-xs font-bold rounded-2xl transition-all flex items-center gap-2 ${
                     mainTab === tab.id
-                      ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg font-black scale-[1.02]"
-                      : "bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 hover:text-white"
+                      ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-black scale-[1.02] border border-amber-700"
+                      : "bg-white text-slate-700 hover:bg-amber-50 border border-amber-300 hover:text-amber-950 shadow-sm"
                   }`}
                 >
                   <span className="text-sm">{tab.icon}</span>
@@ -756,11 +756,11 @@ export const KundliDoshasPage: React.FC = () => {
             {/* ========================================================================= */}
             {(mainTab === "all_sections" || mainTab === "doshas") && (
               <section className="space-y-6 pt-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-                  <h2 className="text-base sm:text-lg font-black tracking-wide text-amber-300 flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-500/20 pb-3">
+                  <h2 className="text-base sm:text-lg font-black tracking-wide text-indigo-950 font-serif flex items-center gap-2">
                     <span>🛡️</span>
                     <span>{t("activeDoshasHeading")}</span>
-                    <span className="text-xs bg-rose-500/20 text-rose-300 px-2.5 py-0.5 rounded-full border border-rose-500/40">
+                    <span className="text-xs bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded-full border border-rose-300 font-black shadow-sm">
                       {activeDoshas.length}
                     </span>
                   </h2>
@@ -781,12 +781,12 @@ export const KundliDoshasPage: React.FC = () => {
                           onClick={() => setActiveFilter(tab.id as any)}
                           className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1 ${
                             activeFilter === tab.id
-                              ? "bg-amber-500/20 text-amber-300 border border-amber-400/40 font-black"
-                              : "bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800"
+                              ? "bg-amber-700 text-white border border-amber-800 font-black shadow-sm"
+                              : "bg-white text-slate-700 hover:text-amber-950 border border-amber-300 shadow-sm"
                           }`}
                         >
                           <span>{tab.label}</span>
-                          <span className="text-[10px] opacity-75">({tab.count})</span>
+                          <span className="text-[10px] opacity-80">({tab.count})</span>
                         </button>
                       ))}
                     </div>
@@ -795,15 +795,15 @@ export const KundliDoshasPage: React.FC = () => {
 
                 {/* Auspicious Nir-dosha State if 0 doshas */}
                 {activeDoshas.length === 0 && (
-                  <div className="rounded-3xl border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-950/40 via-slate-900 to-emerald-950/30 p-8 sm:p-12 text-center max-w-3xl mx-auto space-y-5 shadow-2xl">
+                  <div className="rounded-3xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 p-8 sm:p-12 text-center max-w-3xl mx-auto space-y-5 shadow-md">
                     <div className="text-6xl animate-bounce">🕊️</div>
-                    <h3 className="text-2xl sm:text-3xl font-black text-emerald-300 tracking-tight">
+                    <h3 className="text-2xl sm:text-3xl font-black text-emerald-900 tracking-tight font-serif">
                       {t("pureKundliTitle")}
                     </h3>
-                    <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-medium">
+                    <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-medium">
                       {t("pureKundliDesc")}
                     </p>
-                    <div className="pt-4 border-t border-emerald-500/20 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-emerald-400">
+                    <div className="pt-4 border-t border-emerald-200 flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-emerald-800">
                       <span>✓ ಪಿತೃ ದೋಷ ರಹಿತ</span>
                       <span>✓ ಕಾಳಸರ್ಪ ಬಾಧಾ ಮುಕ್ತ</span>
                       <span>✓ ಕುಜ ದೋಷ ಮುಕ್ತ</span>
@@ -816,29 +816,29 @@ export const KundliDoshasPage: React.FC = () => {
                 {filteredDoshas.map((dosha) => {
                   const isCritical = dosha.severity === "critical";
                   const borderClass = isCritical
-                    ? "border-rose-500/60 bg-gradient-to-br from-rose-950/40 via-slate-900 to-slate-900"
-                    : "border-amber-500/40 bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-900";
+                    ? "border-2 border-rose-300/80 bg-gradient-to-br from-white via-rose-50/25 to-white shadow-md"
+                    : "border-2 border-amber-400/60 bg-gradient-to-br from-white via-amber-50/20 to-white shadow-md";
 
                   const badgeBg = isCritical
-                    ? "bg-rose-500/20 text-rose-300 border-rose-500/50"
-                    : "bg-amber-500/20 text-amber-300 border-amber-500/40";
+                    ? "bg-rose-100 text-rose-800 border-rose-300"
+                    : "bg-amber-100 text-amber-900 border-amber-300";
 
                   return (
                     <article
                       key={dosha.id}
-                      className={`rounded-3xl border-2 ${borderClass} p-6 sm:p-7 shadow-xl space-y-5 transition-all print:border-black print:bg-white print:text-black print:p-4 print:break-inside-avoid`}
+                      className={`rounded-3xl ${borderClass} p-6 sm:p-7 shadow-md space-y-5 transition-all print:border-black print:bg-white print:text-black print:p-4 print:break-inside-avoid`}
                     >
                       {/* Header Row */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4 print:border-black">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-200/60 pb-4 print:border-black">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/40 bg-amber-900/40 text-2xl print:border-black">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/60 bg-amber-50 text-2xl print:border-black shadow-sm">
                             {isCritical ? "⚠️" : "⚡"}
                           </div>
                           <div>
-                            <h3 className="text-lg sm:text-xl font-black text-amber-200 print:text-black">
+                            <h3 className="text-lg sm:text-xl font-black text-indigo-950 font-serif print:text-black">
                               {getLangText(dosha.name)}
                             </h3>
-                            <p className="text-[11px] text-slate-400 print:text-black">
+                            <p className="text-[11px] text-slate-500 font-medium print:text-black">
                               {dosha.technicalDetail.scripturalReference}
                             </p>
                           </div>
@@ -847,17 +847,17 @@ export const KundliDoshasPage: React.FC = () => {
                         <div className="flex items-center gap-2 flex-wrap">
                           {/* ⚡ Glowing Age Priority Badge */}
                           <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase shadow-lg border ${
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase shadow-sm border ${
                               isCritical
-                                ? "bg-rose-600 text-white border-rose-400 shadow-rose-900/40"
-                                : "bg-amber-600 text-white border-amber-400 shadow-amber-900/40"
+                                ? "bg-rose-600 text-white border-rose-400"
+                                : "bg-amber-600 text-white border-amber-400"
                             } print:border-black print:text-black`}
                           >
                             <span>⚡</span>
                             <span>{getLangText(dosha.agePriorityBadge, `ಆದ್ಯತೆ #${dosha.agePriorityRank || 1}`)}</span>
                           </span>
 
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase border ${badgeBg} print:border-black print:text-black`}>
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase border shadow-sm ${badgeBg} print:border-black print:text-black`}>
                             <span className="animate-pulse">●</span>
                             <span>{getLangText(dosha.statusBadge)}</span>
                           </span>
@@ -866,32 +866,32 @@ export const KundliDoshasPage: React.FC = () => {
 
                       {/* 📌 Age Priority Reason */}
                       {dosha.agePriorityReason && (
-                        <div className="rounded-xl bg-amber-950/40 border border-amber-500/40 p-3 text-xs text-amber-200 font-medium leading-relaxed print:bg-white print:text-black print:border-black">
-                          <span className="font-black text-amber-300">📌 {t("agePriorityBadgeLabel")}: </span>
+                        <div className="rounded-xl bg-amber-50/80 border border-amber-300 p-3 text-xs text-amber-950 font-medium leading-relaxed print:bg-white print:text-black print:border-black">
+                          <span className="font-black text-amber-900">📌 {t("agePriorityBadgeLabel")}: </span>
                           <span>{getLangText(dosha.agePriorityReason)}</span>
                         </div>
                       )}
 
                       {/* 🎯 MANDATORY ACTIVE HIGHLIGHT: IMMEDIATE ACTION REQUIRED */}
                       {dosha.immediateActionRequired && (
-                        <div className="rounded-2xl border-2 border-rose-500/90 bg-gradient-to-br from-rose-950/60 via-slate-900 to-amber-950/40 p-4 sm:p-5 shadow-2xl space-y-2 ring-2 ring-rose-500/20 print:border-black print:bg-white print:text-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase text-rose-300 tracking-wider print:text-black">
+                        <div className="rounded-2xl border-2 border-rose-400 bg-gradient-to-br from-rose-50 via-white to-amber-50/30 p-4 sm:p-5 shadow-sm space-y-2 ring-1 ring-rose-400/40 print:border-black print:bg-white print:text-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-rose-900 tracking-wider print:text-black">
                             <span className="text-lg">🎯</span>
                             <span>{t("immediateActionTitle")}</span>
                           </div>
-                          <p className="text-sm sm:text-base font-black text-rose-100 leading-relaxed print:text-black">
+                          <p className="text-sm sm:text-base font-black text-rose-950 leading-relaxed print:text-black">
                             {getLangText(dosha.immediateActionRequired)}
                           </p>
                         </div>
                       )}
 
                       {/* ⚠️ SECTION: DEDICATED CURRENT LIFE PROBLEMS PARAGRAPH */}
-                      <div className="rounded-2xl bg-rose-950/30 border border-rose-500/40 p-4 space-y-2 print:bg-white print:border-black">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-rose-300 print:text-black">
+                      <div className="rounded-2xl bg-rose-50/60 border border-rose-200 p-4 space-y-2 print:bg-white print:border-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-rose-900 print:text-black">
                           <span>🚨</span>
                           <span>{t("currentProblemsTitle")}</span>
                         </div>
-                        <p className="text-xs sm:text-sm leading-relaxed text-rose-100/90 font-medium print:text-black">
+                        <p className="text-xs sm:text-sm leading-relaxed text-slate-800 font-medium print:text-black">
                           {Array.isArray((dosha.currentLifeProblems as any)?.[selectedLang])
                             ? (dosha.currentLifeProblems as any)[selectedLang].join(" • ")
                             : getLangText(dosha.currentLifeProblems) || getLangText(dosha.lifeImpact)}
@@ -899,30 +899,30 @@ export const KundliDoshasPage: React.FC = () => {
                       </div>
 
                       {/* 🪐 SECTION: RUNNING DASHA-BHUKTI RESONANCE */}
-                      <div className="rounded-2xl bg-indigo-950/30 border border-indigo-500/30 p-4 space-y-2 print:bg-white print:border-black">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-indigo-300 print:text-black">
+                      <div className="rounded-2xl bg-indigo-50/60 border border-indigo-200 p-4 space-y-2 print:bg-white print:border-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-indigo-950 print:text-black">
                           <span>🪐</span>
                           <span>{t("dashaResonanceTitle")}</span>
                         </div>
-                        <p className="text-xs sm:text-sm leading-relaxed text-indigo-100/90 font-medium print:text-black">
+                        <p className="text-xs sm:text-sm leading-relaxed text-slate-800 font-medium print:text-black">
                           {getLangText(dosha.dashaResonance)}
                         </p>
                       </div>
 
                       {/* 🔍 SECTION: Technical "WHY" Breakdown */}
-                      <div className="rounded-2xl bg-slate-950/60 p-4 border border-slate-800/80 space-y-2 print:bg-white print:border-black">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400 print:text-black">
+                      <div className="rounded-2xl bg-amber-50/40 p-4 border border-amber-200 space-y-2 print:bg-white print:border-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
                           <span>🔍</span>
                           <span>{t("technicalWhyTitle")}</span>
                         </div>
-                        <p className="text-xs sm:text-sm leading-relaxed text-slate-300 font-medium print:text-black">
+                        <p className="text-xs sm:text-sm leading-relaxed text-slate-700 font-medium print:text-black">
                           {getLangText(dosha.technicalWhy)}
                         </p>
 
                         {/* Technical Tags */}
                         <div className="flex flex-wrap items-center gap-2 pt-2">
                           {dosha.technicalDetail.houseNumbers.length > 0 && (
-                            <div className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-amber-300 border border-slate-700 print:border-black print:text-black">
+                            <div className="inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-[11px] font-bold text-amber-950 border border-amber-300 print:border-black print:text-black shadow-sm">
                               <span>🏠</span>
                               <span>
                                 {selectedLang === "kn" ? "ಭಾವಗಳು: " : "Houses: "}
@@ -931,7 +931,7 @@ export const KundliDoshasPage: React.FC = () => {
                             </div>
                           )}
                           {dosha.technicalDetail.grahasInvolved.length > 0 && (
-                            <div className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-amber-300 border border-slate-700 print:border-black print:text-black">
+                            <div className="inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-[11px] font-bold text-amber-950 border border-amber-300 print:border-black print:text-black shadow-sm">
                               <span>🪐</span>
                               <span>
                                 {selectedLang === "kn" ? "ಗ್ರಹಗಳು: " : "Grahas: "}
@@ -940,7 +940,7 @@ export const KundliDoshasPage: React.FC = () => {
                             </div>
                           )}
                           {dosha.technicalDetail.hasBhangaOrMitigation && (
-                            <div className="inline-flex items-center gap-1 rounded-lg bg-emerald-950/80 px-2.5 py-1 text-[11px] font-bold text-emerald-300 border border-emerald-500/40 print:border-black print:text-black">
+                            <div className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-900 border border-emerald-300 print:border-black print:text-black shadow-sm">
                               <span>✨</span>
                               <span>
                                 {selectedLang === "kn" ? "ಭಂಗ / ಪರಿಹಾರಕ ಬಲ: " : "Mitigation: "}
@@ -953,15 +953,15 @@ export const KundliDoshasPage: React.FC = () => {
 
                       {/* ⚡ SECTION: Real-World Life Manifestation (2 Paragraphs) */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400 print:text-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
                           <span>⚡</span>
                           <span>{t("lifeImpactTitle")}</span>
                         </div>
-                        <div className="space-y-2 text-xs sm:text-sm leading-relaxed text-slate-300 print:text-black">
+                        <div className="space-y-2 text-xs sm:text-sm leading-relaxed text-slate-700 print:text-black">
                           {getLangText(dosha.lifeImpact)
                             .split(/\n\n+/)
                             .map((para, idx) => (
-                              <p key={idx} className="bg-slate-900/40 p-3 rounded-xl border border-slate-800/40 print:border-none print:p-0">
+                              <p key={idx} className="bg-slate-50 p-3 rounded-xl border border-slate-200 print:border-none print:p-0">
                                 {para}
                               </p>
                             ))}
@@ -969,20 +969,20 @@ export const KundliDoshasPage: React.FC = () => {
                       </div>
 
                       {/* 🔱 SECTION: Prescribed Vedic Shanti & Parihara */}
-                      <div className="rounded-2xl bg-amber-950/30 border border-amber-500/30 p-4 space-y-3 print:border-black print:bg-white">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400 print:text-black">
+                      <div className="rounded-2xl bg-amber-50/70 border-2 border-amber-400/60 p-4 space-y-3 print:border-black print:bg-white shadow-sm">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-950 print:text-black">
                           <span>🔱</span>
                           <span>{t("shantiRemediesTitle")}</span>
                         </div>
 
                         {/* Sacred Temple / Ritual */}
-                        <div className="rounded-xl bg-slate-900/80 p-3 border border-amber-400/30 flex items-start gap-2.5 print:bg-white print:border-black">
+                        <div className="rounded-xl bg-white p-3 border border-amber-300 flex items-start gap-2.5 print:bg-white print:border-black shadow-sm">
                           <span className="text-xl">🛕</span>
                           <div>
-                            <div className="text-[10px] font-bold uppercase text-amber-400 print:text-black">
+                            <div className="text-[10px] font-bold uppercase text-amber-800 print:text-black">
                               {t("recommendedPoojaLabel")}
                             </div>
-                            <div className="text-xs sm:text-sm font-black text-amber-200 mt-0.5 print:text-black">
+                            <div className="text-xs sm:text-sm font-black text-indigo-950 mt-0.5 print:text-black">
                               {getLangText(dosha.recommendedPooja)}
                             </div>
                           </div>
@@ -990,13 +990,13 @@ export const KundliDoshasPage: React.FC = () => {
 
                         {/* Practical Lifestyle Remedies */}
                         <div className="space-y-1.5 pt-1">
-                          <div className="text-[11px] font-bold text-slate-400 print:text-black">
+                          <div className="text-[11px] font-bold text-slate-600 print:text-black">
                             {t("dailyRemediesLabel")}
                           </div>
                           <ul className="space-y-1">
                             {getLangArray(dosha.remedies).map((rem, rIdx) => (
-                              <li key={rIdx} className="text-xs text-slate-300 flex items-start gap-2 print:text-black">
-                                <span className="text-amber-400 font-bold shrink-0">✦</span>
+                              <li key={rIdx} className="text-xs text-slate-800 flex items-start gap-2 print:text-black">
+                                <span className="text-amber-700 font-bold shrink-0">✦</span>
                                 <span>{rem}</span>
                               </li>
                             ))}
@@ -1013,17 +1013,17 @@ export const KundliDoshasPage: React.FC = () => {
             {/* SECTION 2: GANDANTARAGALU (Critical Life Hazards & Safe Age Limits)       */}
             {/* ========================================================================= */}
             {(mainTab === "all_sections" || mainTab === "gandantara") && (
-              <section className="space-y-6 pt-6 border-t-2 border-slate-800">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+              <section className="space-y-6 pt-6 border-t-2 border-amber-500/20">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-amber-500/20 pb-3">
                   <div>
-                    <h2 className="text-base sm:text-lg font-black tracking-wide text-amber-300 flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-black tracking-wide text-indigo-950 font-serif flex items-center gap-2">
                       <span>⚡</span>
                       <span>{t("gandantaraHeading")}</span>
-                      <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/40">
+                      <span className="text-xs bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 font-bold shadow-sm">
                         {detectedGandantaras.length}
                       </span>
                     </h2>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-600 mt-1">
                       {t("gandantaraSubheading")}
                     </p>
                   </div>
@@ -1031,12 +1031,12 @@ export const KundliDoshasPage: React.FC = () => {
 
                 {/* If 0 Gandantaras detected */}
                 {detectedGandantaras.length === 0 && (
-                  <div className="rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-950/30 via-slate-900 to-slate-900 p-8 text-center max-w-2xl mx-auto space-y-3">
+                  <div className="rounded-3xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 p-8 text-center max-w-2xl mx-auto space-y-3 shadow-md">
                     <div className="text-5xl">🛡️</div>
-                    <h3 className="text-xl font-black text-emerald-300">
+                    <h3 className="text-xl font-black text-emerald-900 font-serif">
                       {t("noGandantaraTitle")}
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
                       {t("noGandantaraDesc")}
                     </p>
                   </div>
@@ -1047,25 +1047,25 @@ export const KundliDoshasPage: React.FC = () => {
                   {detectedGandantaras.map((gandantara) => {
                     const isUnderDanger = gandantara.isCurrentlyInDangerWindow;
                     const cardBorder = isUnderDanger
-                      ? "border-rose-500/60 bg-gradient-to-br from-rose-950/40 via-slate-900 to-slate-900 shadow-rose-950/40"
-                      : "border-emerald-500/40 bg-gradient-to-br from-emerald-950/20 via-slate-900 to-slate-900";
+                      ? "border-2 border-rose-300/80 bg-gradient-to-br from-white via-rose-50/20 to-white shadow-md"
+                      : "border-2 border-emerald-300/80 bg-gradient-to-br from-white via-emerald-50/20 to-white shadow-md";
 
                     return (
                       <article
                         key={gandantara.id}
-                        className={`rounded-3xl border-2 ${cardBorder} p-6 sm:p-7 shadow-xl space-y-5 transition-all print:border-black print:bg-white print:text-black print:p-4 print:break-inside-avoid`}
+                        className={`rounded-3xl ${cardBorder} p-6 sm:p-7 shadow-md space-y-5 transition-all print:border-black print:bg-white print:text-black print:p-4 print:break-inside-avoid`}
                       >
                         {/* Header: Title, Icon, Age Window Status Badge */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4 print:border-black">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-200/60 pb-4 print:border-black">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-400/40 bg-slate-900 text-2xl print:border-black">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-300 bg-amber-50 text-2xl print:border-black shadow-sm">
                               {gandantara.icon}
                             </div>
                             <div>
-                              <h3 className="text-lg sm:text-xl font-black text-amber-200 print:text-black">
+                              <h3 className="text-lg sm:text-xl font-black text-indigo-950 font-serif print:text-black">
                                 {getLangText(gandantara.name)}
                               </h3>
-                              <p className="text-[11px] text-slate-400 print:text-black">
+                              <p className="text-[11px] text-slate-500 font-medium print:text-black">
                                 {gandantara.scripturalReference}
                               </p>
                             </div>
@@ -1074,8 +1074,8 @@ export const KundliDoshasPage: React.FC = () => {
                           <div>
                             <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black uppercase border shadow-sm ${
                               isUnderDanger
-                                ? "bg-rose-500/20 text-rose-300 border-rose-500/50 animate-pulse"
-                                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                                ? "bg-rose-100 text-rose-800 border-rose-300 animate-pulse"
+                                : "bg-emerald-100 text-emerald-800 border-emerald-300"
                             } print:border-black print:text-black`}>
                               <span>{isUnderDanger ? "⚠️" : "✓"}</span>
                               <span>
@@ -1088,8 +1088,8 @@ export const KundliDoshasPage: React.FC = () => {
                         {/* ⚠️ AGE WINDOW CALLOUT BOX */}
                         <div className={`rounded-2xl p-4 border space-y-1.5 ${
                           isUnderDanger
-                            ? "bg-rose-950/40 border-rose-500/50 text-rose-100"
-                            : "bg-emerald-950/30 border-emerald-500/40 text-emerald-100"
+                            ? "bg-rose-50 border-rose-300 text-rose-950"
+                            : "bg-emerald-50 border-emerald-300 text-emerald-950"
                         } print:border-black print:bg-white print:text-black`}>
                           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider">
                             <span>{isUnderDanger ? "🚨" : "🛡️"}</span>
@@ -1101,24 +1101,24 @@ export const KundliDoshasPage: React.FC = () => {
                         </div>
 
                         {/* 🔍 ASTRONOMICAL REASON & HOUSES */}
-                        <div className="rounded-2xl bg-slate-950/60 p-4 border border-slate-800/80 space-y-2 print:bg-white print:border-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400 print:text-black">
+                        <div className="rounded-2xl bg-amber-50/40 p-4 border border-amber-200 space-y-2 print:bg-white print:border-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
                             <span>🔍</span>
                             <span>{t("technicalWhyTitle")}</span>
                           </div>
-                          <p className="text-xs sm:text-sm leading-relaxed text-slate-300 font-medium print:text-black">
+                          <p className="text-xs sm:text-sm leading-relaxed text-slate-700 font-medium print:text-black">
                             {getLangText(gandantara.technicalReason)}
                           </p>
 
                           <div className="flex flex-wrap items-center gap-2 pt-1">
                             {gandantara.houseNumbers.length > 0 && (
-                              <div className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-amber-300 border border-slate-700 print:border-black print:text-black">
+                              <div className="inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-[11px] font-bold text-amber-950 border border-amber-300 print:border-black print:text-black shadow-sm">
                                 <span>🏠</span>
                                 <span>ಭಾವ: {gandantara.houseNumbers.join(", ")}</span>
                               </div>
                             )}
                             {gandantara.grahasInvolved.length > 0 && (
-                              <div className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-amber-300 border border-slate-700 print:border-black print:text-black">
+                              <div className="inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-[11px] font-bold text-amber-950 border border-amber-300 print:border-black print:text-black shadow-sm">
                                 <span>🪐</span>
                                 <span>ಗ್ರಹ: {gandantara.grahasInvolved.join(", ")}</span>
                               </div>
@@ -1127,26 +1127,26 @@ export const KundliDoshasPage: React.FC = () => {
                         </div>
 
                         {/* 🪐 RUNNING DASHA RESONANCE */}
-                        <div className="rounded-2xl bg-indigo-950/30 border border-indigo-500/30 p-4 space-y-2 print:bg-white print:border-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-indigo-300 print:text-black">
+                        <div className="rounded-2xl bg-indigo-50/60 border border-indigo-200 p-4 space-y-2 print:bg-white print:border-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-indigo-950 print:text-black">
                             <span>🪐</span>
                             <span>{t("dashaResonanceTitle")}</span>
                           </div>
-                          <p className="text-xs sm:text-sm leading-relaxed text-indigo-100/90 font-medium print:text-black">
+                          <p className="text-xs sm:text-sm leading-relaxed text-slate-800 font-medium print:text-black">
                             {getLangText(gandantara.dashaResonance)}
                           </p>
                         </div>
 
                         {/* 🛑 PRECAUTIONS & BEHAVIORAL PROHIBITIONS */}
-                        <div className="rounded-2xl bg-amber-950/20 border border-amber-500/30 p-4 space-y-2.5 print:bg-white print:border-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400 print:text-black">
+                        <div className="rounded-2xl bg-amber-50/50 border border-amber-300 p-4 space-y-2.5 print:bg-white print:border-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-950 print:text-black">
                             <span>🛑</span>
                             <span>{t("cautionProhibitionsLabel")}</span>
                           </div>
                           <ul className="space-y-1.5">
                             {getLangArray(gandantara.cautionDirectives).map((dir, dIdx) => (
-                              <li key={dIdx} className="text-xs sm:text-sm text-slate-200 flex items-start gap-2 print:text-black">
-                                <span className="text-rose-400 font-bold shrink-0">⚠️</span>
+                              <li key={dIdx} className="text-xs sm:text-sm text-slate-800 flex items-start gap-2 print:text-black">
+                                <span className="text-rose-600 font-bold shrink-0">⚠️</span>
                                 <span className="font-medium">{dir}</span>
                               </li>
                             ))}
@@ -1154,18 +1154,18 @@ export const KundliDoshasPage: React.FC = () => {
                         </div>
 
                         {/* 🔱 PROTECTIVE PARIHARA & MANTRAS */}
-                        <div className="rounded-2xl bg-slate-900/80 border border-amber-400/30 p-4 space-y-2.5 print:bg-white print:border-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400 print:text-black">
+                        <div className="rounded-2xl bg-white border-2 border-amber-400/50 p-4 space-y-2.5 print:bg-white print:border-black shadow-sm">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
                             <span>🔱</span>
                             <span>{t("protectiveKavachaLabel")}</span>
                           </div>
-                          <div className="text-xs sm:text-sm font-black text-amber-200 print:text-black">
+                          <div className="text-xs sm:text-sm font-black text-indigo-950 print:text-black">
                             {getLangText(gandantara.protectiveParihara)}
                           </div>
                           <div className="space-y-1 pt-1">
                             {getLangArray(gandantara.protectiveMantras).map((man, mIdx) => (
-                              <div key={mIdx} className="text-xs text-slate-300 flex items-center gap-2 print:text-black">
-                                <span className="text-amber-400 font-bold">✦</span>
+                              <div key={mIdx} className="text-xs text-slate-700 flex items-center gap-2 print:text-black">
+                                <span className="text-amber-600 font-bold">✦</span>
                                 <span>{man}</span>
                               </div>
                             ))}
@@ -1182,17 +1182,17 @@ export const KundliDoshasPage: React.FC = () => {
             {/* SECTION 3: INNATE FEARS & PHOBIAS (Subconscious Fears & Phobia Profile)   */}
             {/* ========================================================================= */}
             {(mainTab === "all_sections" || mainTab === "fears") && (
-              <section className="space-y-6 pt-6 border-t-2 border-slate-800">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+              <section className="space-y-6 pt-6 border-t-2 border-amber-500/20">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-amber-500/20 pb-3">
                   <div>
-                    <h2 className="text-base sm:text-lg font-black tracking-wide text-amber-300 flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-black tracking-wide text-indigo-950 font-serif flex items-center gap-2">
                       <span>🧠</span>
                       <span>{t("fearsHeading")}</span>
-                      <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-0.5 rounded-full border border-indigo-500/40">
+                      <span className="text-xs bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full border border-indigo-300 font-bold shadow-sm">
                         {detectedFears.length}
                       </span>
                     </h2>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-600 mt-1">
                       {t("fearsSubheading")}
                     </p>
                   </div>
@@ -1200,12 +1200,12 @@ export const KundliDoshasPage: React.FC = () => {
 
                 {/* If 0 Fears detected */}
                 {detectedFears.length === 0 && (
-                  <div className="rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-950/30 via-slate-900 to-slate-900 p-8 text-center max-w-2xl mx-auto space-y-3">
+                  <div className="rounded-3xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 p-8 text-center max-w-2xl mx-auto space-y-3 shadow-md">
                     <div className="text-5xl">🦁</div>
-                    <h3 className="text-xl font-black text-emerald-300">
+                    <h3 className="text-xl font-black text-emerald-900 font-serif">
                       {t("noFearsTitle")}
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
                       {t("noFearsDesc")}
                     </p>
                   </div>
@@ -1220,21 +1220,21 @@ export const KundliDoshasPage: React.FC = () => {
                       <article
                         key={fear.id}
                         className={`rounded-3xl border-2 ${
-                          isHigh ? "border-rose-500/50 bg-gradient-to-br from-rose-950/30 via-slate-900 to-slate-900" : "border-indigo-500/40 bg-gradient-to-br from-indigo-950/20 via-slate-900 to-slate-900"
-                        } p-5 sm:p-6 shadow-xl space-y-4 transition-all print:border-black print:bg-white print:text-black print:p-4 print:break-inside-avoid`}
+                          isHigh ? "border-rose-300/80 bg-gradient-to-br from-white via-rose-50/20 to-white" : "border-indigo-300/70 bg-gradient-to-br from-white via-indigo-50/20 to-white"
+                        } p-5 sm:p-6 shadow-md space-y-4 transition-all print:border-black print:bg-white print:text-black print:p-4 print:break-inside-avoid`}
                       >
                         {/* Header */}
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3 print:border-black">
+                        <div className="flex items-center justify-between gap-2 border-b-2 border-amber-200/60 pb-3 print:border-black">
                           <div className="flex items-center gap-2.5">
                             <span className="text-2xl">{fear.icon}</span>
-                            <h3 className="text-base font-black text-amber-200 print:text-black">
+                            <h3 className="text-base font-black text-indigo-950 font-serif print:text-black">
                               {getLangText(fear.name)}
                             </h3>
                           </div>
-                          <span className={`text-[10px] uppercase font-black px-2.5 py-1 rounded-full border ${
+                          <span className={`text-[10px] uppercase font-black px-2.5 py-1 rounded-full border shadow-sm ${
                             isHigh
-                              ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
-                              : "bg-indigo-500/20 text-indigo-300 border-indigo-500/40"
+                              ? "bg-rose-100 text-rose-800 border-rose-300"
+                              : "bg-indigo-100 text-indigo-800 border-indigo-300"
                           } print:border-black print:text-black`}>
                             {fear.severity}
                           </span>
@@ -1242,40 +1242,40 @@ export const KundliDoshasPage: React.FC = () => {
 
                         {/* Planetary Trigger */}
                         <div className="space-y-1">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 print:text-black">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900 print:text-black">
                             {selectedLang === "kn" ? "ಗ್ರಹ ಪ್ರೇರಿತ ಕಾರಣ:" : "Astrological Root:"}
                           </div>
-                          <p className="text-xs text-slate-300 font-medium leading-relaxed print:text-black">
+                          <p className="text-xs text-slate-700 font-medium leading-relaxed print:text-black">
                             {getLangText(fear.planetaryTrigger)}
                           </p>
                         </div>
 
                         {/* Psychological & Somatic Symptom */}
-                        <div className="rounded-xl bg-slate-950/60 p-3 border border-slate-800/80 space-y-1 print:bg-white print:border-black">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-rose-300 print:text-black">
+                        <div className="rounded-xl bg-rose-50/60 p-3 border border-rose-200 space-y-1 print:bg-white print:border-black">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-rose-900 print:text-black">
                             {t("symptomLabel")}
                           </div>
-                          <p className="text-xs text-rose-100/90 font-medium leading-relaxed print:text-black">
+                          <p className="text-xs text-rose-950 font-medium leading-relaxed print:text-black">
                             {getLangText(fear.psychologicalSymptom)}
                           </p>
                         </div>
 
                         {/* Real-Life Manifestation */}
                         <div className="space-y-1">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 print:text-black">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 print:text-black">
                             {t("realLifeSymptomLabel")}
                           </div>
-                          <p className="text-xs text-slate-300 font-medium leading-relaxed print:text-black">
+                          <p className="text-xs text-slate-700 font-medium leading-relaxed print:text-black">
                             {getLangText(fear.realLifeManifestation)}
                           </p>
                         </div>
 
                         {/* Mind-Strengthening Remedy */}
-                        <div className="rounded-xl bg-amber-950/20 p-3 border border-amber-500/30 space-y-1 print:bg-white print:border-black">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 print:text-black">
+                        <div className="rounded-xl bg-amber-50/80 p-3 border border-amber-300 space-y-1 print:bg-white print:border-black">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900 print:text-black">
                             {t("mindStrengtheningLabel")}
                           </div>
-                          <p className="text-xs text-amber-200/90 font-medium leading-relaxed print:text-black">
+                          <p className="text-xs text-amber-950 font-medium leading-relaxed print:text-black">
                             {getLangText(fear.strengtheningPractice)}
                           </p>
                         </div>

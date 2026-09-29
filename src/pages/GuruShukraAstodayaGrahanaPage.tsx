@@ -269,22 +269,22 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-16 selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-[#FFFDF7] text-slate-800 font-sans pb-16 selection:bg-amber-400 selection:text-slate-950 print:bg-white print:text-black print:pb-0">
       {/* 👑 Royal Golden Temple Header */}
-      <header className="sticky top-0 z-30 border-b border-amber-500/30 bg-slate-950/95 backdrop-blur-md px-4 py-3 shadow-xl">
+      <header className="sticky top-0 z-30 border-b-2 border-amber-500/30 bg-[#FFFDF9]/95 backdrop-blur-md px-4 py-3 shadow-sm print:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setPage("home")}
-              className="flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/20 hover:border-amber-400 transition-all shadow-sm"
+              className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 text-xs font-bold text-amber-950 transition-all shadow-sm"
               title={txt("backToHome")}
             >
               <span>{txt("backToHome")}</span>
             </button>
             <div className="hidden sm:flex items-center gap-2 pl-2">
               <span className="text-xl">☀️</span>
-              <span className="text-xs font-black tracking-widest text-amber-400 uppercase">
+              <span className="text-xs font-black tracking-widest text-amber-950 uppercase">
                 ಬಗ್ಗೋಣ ಪಂಚಾಂಗ • ಖಗೋಳ & ಗ್ರಹಣ ಮಂಡಲ
               </span>
             </div>
@@ -292,7 +292,7 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
 
           <div className="flex items-center gap-2">
             {/* 5-Language Toggle */}
-            <div className="flex items-center rounded-lg border border-amber-500/40 bg-slate-900 p-0.5 shadow-inner">
+            <div className="flex items-center rounded-lg border border-amber-300 bg-amber-50 p-0.5 shadow-sm">
               {(["kn", "hi", "te", "ta", "en"] as SupportedLanguage[]).map((lang) => (
                 <button
                   key={lang}
@@ -300,8 +300,8 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                   onClick={() => setLanguage(lang)}
                   className={`px-2 py-1 text-xs font-bold uppercase rounded-md transition-all ${
                     currentLang === lang
-                      ? "bg-amber-400 text-slate-950 shadow-md font-black"
-                      : "text-amber-200/70 hover:text-amber-100 hover:bg-amber-500/10"
+                      ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-sm font-black"
+                      : "text-slate-700 hover:text-amber-950 hover:bg-amber-100/60"
                   }`}
                 >
                   {lang}
@@ -313,7 +313,7 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             <button
               type="button"
               onClick={handlePrint}
-              className="flex items-center gap-1 rounded-lg border border-amber-400 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 px-3 py-1.5 text-xs font-black text-slate-950 shadow-md hover:from-amber-300 hover:to-amber-400 transition-all"
+              className="flex items-center gap-1 rounded-lg border border-amber-600/40 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-700 hover:to-amber-600 px-3 py-1.5 text-xs font-black text-white shadow-md transition-all active:scale-95"
             >
               <span>🖨️</span>
               <span className="hidden sm:inline">{txt("printPdf")}</span>
@@ -323,17 +323,17 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
       </header>
 
       {/* 🌟 Hero Banner & Title */}
-      <div className="relative overflow-hidden border-b border-amber-500/20 bg-gradient-to-b from-amber-950/40 via-slate-950 to-slate-950 py-8 px-4 text-center">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent pointer-events-none" />
+      <div className="relative overflow-hidden border-b-2 border-amber-500/30 bg-gradient-to-br from-[#FFFDF8] via-[#FEFBF0] to-[#FFF8E7] py-8 px-4 text-center shadow-sm">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/10 via-transparent to-transparent pointer-events-none" />
         <div className="mx-auto max-w-4xl relative z-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-900/30 px-3.5 py-1 text-xs font-bold text-amber-300 shadow-sm mb-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100/90 px-3.5 py-1 text-xs font-black text-amber-900 shadow-sm mb-3">
             <span>✨</span>
             <span>ದೇವಗುರು-ದೈತ್ಯಗುರು ಮೌಢ್ಯ ನಿರ್ಣಯ & ಸೂರ್ಯ-ಚಂದ್ರ ಗ್ರಹಣ ಸಂಹಿತಾ</span>
           </div>
-          <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-black text-amber-200 drop-shadow-md tracking-wide">
+          <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-black text-indigo-950 tracking-wide">
             {txt("pageTitle")}
           </h1>
-          <p className="mt-2 text-xs sm:text-sm text-amber-200/80 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-2 text-xs sm:text-sm text-slate-700 max-w-2xl mx-auto leading-relaxed font-medium">
             {txt("pageSubtitle")}
           </p>
         </div>
@@ -341,16 +341,16 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         {/* 🎛️ Interactive Year & Location Controller Card */}
-        <section className="mb-6 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950/30 p-4 sm:p-5 shadow-2xl">
+        <section className="mb-6 rounded-2xl border-2 border-amber-500/40 bg-gradient-to-br from-[#FFFDF9] via-[#FEFBF2] to-[#FFF9EB] p-4 sm:p-5 shadow-md">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             {/* Year Selector */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                <label className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                   <span>📅</span>
                   <span>{txt("yearLabel")}</span>
                 </label>
-                <span className="text-[11px] text-amber-400/80 font-mono">
+                <span className="text-[11px] text-amber-900/80 font-mono font-bold">
                   ೧೯೦೦ - ೨೦೫೦+ ನಿಖರ ಖಗೋಳ ಗಣನೆ
                 </span>
               </div>
@@ -358,7 +358,7 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => setSelectedYear((y) => Math.max(1900, y - 1))}
-                  className="rounded-xl border border-amber-500/40 bg-slate-800 px-3 py-2 text-sm font-bold text-amber-300 hover:bg-amber-500/20 active:scale-95 transition-all"
+                  className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-black text-amber-900 hover:bg-amber-100 active:scale-95 transition-all shadow-sm"
                   title="ಹಿಂದಿನ ವರ್ಷ"
                 >
                   ◀
@@ -374,12 +374,12 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       setSelectedYear(val);
                     }
                   }}
-                  className="w-full text-center rounded-xl border border-amber-400/60 bg-slate-950 px-4 py-2 font-mono text-xl font-black text-amber-300 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                  className="w-full text-center rounded-xl border-2 border-amber-400 bg-white px-4 py-2 font-mono text-xl font-black text-indigo-950 shadow-inner focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
                 />
                 <button
                   type="button"
                   onClick={() => setSelectedYear((y) => Math.min(2100, y + 1))}
-                  className="rounded-xl border border-amber-500/40 bg-slate-800 px-3 py-2 text-sm font-bold text-amber-300 hover:bg-amber-500/20 active:scale-95 transition-all"
+                  className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-black text-amber-900 hover:bg-amber-100 active:scale-95 transition-all shadow-sm"
                   title="ಮುಂದಿನ ವರ್ಷ"
                 >
                   ▶
@@ -388,7 +388,7 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
 
               {/* Quick Year Chips */}
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] text-amber-300/70 font-semibold mr-1">ತ್ವರಿತ ಆಯ್ಕೆ:</span>
+                <span className="text-[10px] text-amber-900/80 font-bold mr-1">ತ್ವರಿತ ಆಯ್ಕೆ:</span>
                 {quickYears.map((yr) => (
                   <button
                     key={yr}
@@ -396,8 +396,8 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                     onClick={() => setSelectedYear(yr)}
                     className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
                       selectedYear === yr
-                        ? "bg-amber-400 text-slate-950 font-black shadow-md scale-105 ring-1 ring-amber-300"
-                        : "border border-amber-500/30 bg-slate-800/80 text-amber-200/80 hover:bg-amber-500/20 hover:text-amber-100"
+                        ? "bg-amber-700 text-white font-black shadow-sm scale-105 border border-amber-800"
+                        : "border border-amber-300 bg-white text-slate-700 hover:bg-amber-100/60 hover:text-amber-950"
                     }`}
                   >
                     {yr}
@@ -409,11 +409,11 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             {/* Location Selector Dropdown */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                <label className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                   <span>📍</span>
                   <span>{txt("locationLabel")}</span>
                 </label>
-                <span className="text-[11px] text-emerald-400 font-semibold">
+                <span className="text-[11px] text-emerald-800 font-bold">
                   ವೇಧ-ಸೂತಕ ಸ್ಥಳ ನಿರ್ಣಯ
                 </span>
               </div>
@@ -421,29 +421,29 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                 <select
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full rounded-xl border border-amber-400/60 bg-slate-950 px-4 py-2.5 text-sm font-bold text-amber-200 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 appearance-none cursor-pointer"
+                  className="w-full rounded-xl border-2 border-amber-400 bg-white px-4 py-2.5 text-sm font-bold text-slate-900 shadow-sm focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400/30 appearance-none cursor-pointer"
                 >
                   {LOCATION_PRESETS.map((locPreset) => (
-                    <option key={locPreset.id} value={locPreset.id} className="bg-slate-900 text-amber-100 py-1">
+                    <option key={locPreset.id} value={locPreset.id} className="bg-white text-slate-900 py-1">
                       {loc(locPreset.name)}
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-400">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-700">
                   ▼
                 </div>
               </div>
 
               {/* Status pill of selected location */}
-              <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-950/30 px-3 py-1.5 text-xs text-amber-200">
-                <span className="text-emerald-400 font-bold">✓</span>
+              <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50/90 px-3 py-1.5 text-xs text-amber-950 font-medium shadow-sm">
+                <span className="text-emerald-700 font-black">✓</span>
                 <span>
                   {selectedLocation === "world" ? (
                     <b>ಜಾಗತಿಕ ನೋಟ: ಎಲ್ಲಾ ಸೂರ್ಯ ಮತ್ತು ಚಂದ್ರ ಗ್ರಹಣಗಳು ({report.totalGlobalEclipsesCount})</b>
                   ) : (
                     <>
                       ವೀಕ್ಷಣೆ: <b>{loc(activeLocationPreset.name)}</b> • ಈ ವರ್ಷ{" "}
-                      <span className="text-amber-300 font-bold">
+                      <span className="text-amber-900 font-bold">
                         {report.visibleEclipsesCount} ಗ್ರಹಣಗಳು ಗೋಚರ
                       </span>
                       , {report.totalGlobalEclipsesCount - report.visibleEclipsesCount} ಅದೃಶ್ಯ
@@ -456,14 +456,14 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
         </section>
 
         {/* 📑 Tab Navigation */}
-        <div className="mb-6 flex overflow-x-auto rounded-2xl border border-amber-500/30 bg-slate-900/90 p-1.5 shadow-lg gap-1.5">
+        <div className="mb-6 flex overflow-x-auto rounded-2xl border-2 border-amber-400/50 bg-amber-100/40 p-1.5 shadow-sm gap-1.5">
           <button
             type="button"
             onClick={() => setActiveTab("eclipses")}
             className={`flex-1 min-w-[150px] flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
               activeTab === "eclipses"
-                ? "bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 shadow-md font-black"
-                : "text-amber-200/80 hover:bg-amber-500/10 hover:text-amber-100"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-black border border-amber-700"
+                : "bg-white/80 text-slate-700 hover:bg-amber-50 hover:text-amber-950 border border-amber-200/80"
             }`}
           >
             <span>🌒</span>
@@ -475,8 +475,8 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             onClick={() => setActiveTab("astodaya")}
             className={`flex-1 min-w-[150px] flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
               activeTab === "astodaya"
-                ? "bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 shadow-md font-black"
-                : "text-amber-200/80 hover:bg-amber-500/10 hover:text-amber-100"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-black border border-amber-700"
+                : "bg-white/80 text-slate-700 hover:bg-amber-50 hover:text-amber-950 border border-amber-200/80"
             }`}
           >
             <span>✨</span>
@@ -488,8 +488,8 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             onClick={() => setActiveTab("transits")}
             className={`flex-1 min-w-[150px] flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
               activeTab === "transits"
-                ? "bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 shadow-md font-black"
-                : "text-amber-200/80 hover:bg-amber-500/10 hover:text-amber-100"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-black border border-amber-700"
+                : "bg-white/80 text-slate-700 hover:bg-amber-50 hover:text-amber-950 border border-amber-200/80"
             }`}
           >
             <span>🪐</span>
@@ -501,8 +501,8 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             onClick={() => setActiveTab("rashiphala")}
             className={`flex-1 min-w-[150px] flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
               activeTab === "rashiphala"
-                ? "bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 shadow-md font-black"
-                : "text-amber-200/80 hover:bg-amber-500/10 hover:text-amber-100"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-black border border-amber-700"
+                : "bg-white/80 text-slate-700 hover:bg-amber-50 hover:text-amber-950 border border-amber-200/80"
             }`}
           >
             <span>🛡️</span>
@@ -514,8 +514,8 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             onClick={() => setActiveTab("unified")}
             className={`flex-1 min-w-[150px] flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
               activeTab === "unified"
-                ? "bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 shadow-md font-black"
-                : "text-amber-200/80 hover:bg-amber-500/10 hover:text-amber-100"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-black border border-amber-700"
+                : "bg-white/80 text-slate-700 hover:bg-amber-50 hover:text-amber-950 border border-amber-200/80"
             }`}
           >
             <span>📜</span>
@@ -529,28 +529,28 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
         {activeTab === "eclipses" && (
           <div className="space-y-6">
             {/* Quick summary banner */}
-            <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/60 p-4 text-amber-100 shadow-md">
+            <div className="rounded-2xl border-2 border-amber-500/40 bg-gradient-to-r from-[#FFFDF8] via-[#FEFBF0] to-[#FFF8E7] p-4 text-slate-800 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-400/30">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-2xl border border-amber-300 text-amber-900 shadow-sm">
                     🌒
                   </span>
                   <div>
-                    <h2 className="text-sm sm:text-base font-black text-amber-200 font-serif">
+                    <h2 className="text-sm sm:text-base font-black text-indigo-950 font-serif">
                       {selectedYear} ರಲ್ಲಿ ಜಾಗತಿಕ ಗ್ರಹಣಗಳ ಒಟ್ಟು ಸಂಖ್ಯೆ: {report.totalGlobalEclipsesCount}
                     </h2>
-                    <p className="text-xs text-amber-200/80">
+                    <p className="text-xs text-slate-700 font-medium">
                       ಸೂರ್ಯ ಗ್ರಹಣಗಳು: <b>{report.eclipses.filter((e) => e.type === "surya").length}</b> • ಚಂದ್ರ ಗ್ರಹಣಗಳು: <b>{report.eclipses.filter((e) => e.type === "chandra").length}</b>
                     </p>
                   </div>
                 </div>
-                <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/60 px-3.5 py-1.5 text-xs text-emerald-200 font-bold">
+                <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-1.5 text-xs text-emerald-900 font-bold shadow-sm">
                   {selectedLocation === "world" ? (
                     "🌍 ಸಮಸ್ತ ಜಾಗತಿಕ ಗಣನೆ"
                   ) : (
                     <>
                       {loc(activeLocationPreset.name)}ದಲ್ಲಿ ಗೋಚರ:{" "}
-                      <b className="text-emerald-300">
+                      <b className="text-emerald-800">
                         {report.visibleEclipsesCount} ಗ್ರಹಣ
                       </b>
                     </>
@@ -567,28 +567,28 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                 return (
                   <div
                     key={eclipse.id || idx}
-                    className={`rounded-2xl border-2 transition-all p-5 shadow-xl relative overflow-hidden ${
+                    className={`rounded-2xl border-2 transition-all p-5 shadow-md relative overflow-hidden ${
                       isVisible
-                        ? "border-emerald-500/70 bg-gradient-to-b from-slate-900 via-slate-900 to-emerald-950/20 shadow-emerald-950/20"
-                        : "border-amber-500/30 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 shadow-slate-950/50"
+                        ? "border-emerald-400 bg-gradient-to-br from-white via-emerald-50/20 to-white"
+                        : "border-amber-400/60 bg-gradient-to-br from-white via-amber-50/20 to-white"
                     }`}
                   >
                     {/* Header bar of individual eclipse */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-200/60 pb-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-400/40">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-2xl border border-amber-300 text-amber-900 shadow-sm">
                           {isSolar ? "☀️" : "🌕"}
                         </span>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="rounded-md bg-amber-500/20 px-2 py-0.5 text-[10px] font-black uppercase text-amber-300">
+                            <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-950 border border-amber-300">
                               ಗ್ರಹಣ #{idx + 1}
                             </span>
-                            <span className="text-xs font-bold text-amber-400">
+                            <span className="text-xs font-bold text-amber-900">
                               {eclipse.peakDateStr}
                             </span>
                           </div>
-                          <h3 className="font-serif text-lg sm:text-xl font-black text-amber-100 mt-0.5">
+                          <h3 className="font-serif text-lg sm:text-xl font-black text-indigo-950 mt-0.5">
                             {loc(eclipse.title)}
                           </h3>
                         </div>
@@ -597,11 +597,11 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       {/* Visibility Badge */}
                       <div className="flex flex-wrap items-center gap-2">
                         {isVisible ? (
-                          <div className="rounded-xl border border-emerald-400 bg-emerald-950 px-3 py-1.5 text-xs font-black text-emerald-300 shadow-md">
+                          <div className="rounded-xl border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-900 shadow-sm">
                             <span>{loc(eclipse.visibility.statusBadge, txt("visibleBadge"))}</span>
                           </div>
                         ) : (
-                          <div className="rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-1.5 text-xs font-bold text-slate-300">
+                          <div className="rounded-xl border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700">
                             <span>{loc(eclipse.visibility.statusBadge, txt("invisibleBadge"))}</span>
                           </div>
                         )}
@@ -611,33 +611,33 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                     {/* Grid of Eclipse Details */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
                       {/* Column 1: Contact Timings */}
-                      <div className="rounded-xl border border-amber-500/20 bg-slate-950/60 p-4">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-3">
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5 mb-3">
                           <span>⏱️</span>
                           <span>ಗ್ರಹಣ ಸ್ಪರ್ಶ-ಮೋಕ್ಷ ಕಾಲ (IST & UTC)</span>
                         </h4>
                         <div className="space-y-2.5 text-xs">
-                          <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                            <span className="text-slate-400">{txt("sparsha")}:</span>
-                            <span className="font-mono font-bold text-amber-200">
+                          <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                            <span className="text-slate-600">{txt("sparsha")}:</span>
+                            <span className="font-mono font-bold text-indigo-950">
                               {eclipse.startTimeIst ? `${eclipse.startTimeIst} IST` : "—"}
                             </span>
                           </div>
-                          <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                            <span className="text-slate-400">{txt("madhya")}:</span>
-                            <span className="font-mono font-black text-amber-300">
+                          <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                            <span className="text-slate-600">{txt("madhya")}:</span>
+                            <span className="font-mono font-black text-indigo-950">
                               {eclipse.peakTimeIst} IST ({eclipse.peakTimeUtc} UTC)
                             </span>
                           </div>
-                          <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                            <span className="text-slate-400">{txt("moksha")}:</span>
-                            <span className="font-mono font-bold text-amber-200">
+                          <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                            <span className="text-slate-600">{txt("moksha")}:</span>
+                            <span className="font-mono font-bold text-indigo-950">
                               {eclipse.endTimeIst ? `${eclipse.endTimeIst} IST` : "—"}
                             </span>
                           </div>
                           <div className="flex justify-between pt-1">
-                            <span className="text-slate-400">{txt("duration")}:</span>
-                            <span className="font-mono font-extrabold text-emerald-400">
+                            <span className="text-slate-600">{txt("duration")}:</span>
+                            <span className="font-mono font-extrabold text-emerald-800">
                               {eclipse.durationMinutes} ನಿಮಿಷ ({Math.floor(eclipse.durationMinutes / 60)} ಗಂಟೆ {eclipse.durationMinutes % 60} ನಿಮಿಷ)
                             </span>
                           </div>
@@ -645,33 +645,33 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       </div>
 
                       {/* Column 2: Sidereal Astrological Position */}
-                      <div className="rounded-xl border border-amber-500/20 bg-slate-950/60 p-4">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-3">
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5 mb-3">
                           <span>🪐</span>
                           <span>ಖಗೋಳ ರಾಶಿ & ನಕ್ಷತ್ರ ಗಣನೆ (ಚಿತ್ರಾಪಕ್ಷ)</span>
                         </h4>
                         <div className="space-y-2.5 text-xs">
-                          <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                            <span className="text-slate-400">ರಾಶಿ (Rashi):</span>
-                            <span className="font-bold text-amber-200">
+                          <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                            <span className="text-slate-600">ರಾಶಿ (Rashi):</span>
+                            <span className="font-bold text-indigo-950">
                               {loc(eclipse.rashi)}
                             </span>
                           </div>
-                          <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                            <span className="text-slate-400">ರಾಶಿ ಅಂಶ (Degree):</span>
-                            <span className="font-mono font-bold text-amber-300">
+                          <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                            <span className="text-slate-600">ರಾಶಿ ಅಂಶ (Degree):</span>
+                            <span className="font-mono font-bold text-indigo-950">
                               {eclipse.degreeFormatted}
                             </span>
                           </div>
-                          <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                            <span className="text-slate-400">ನಕ್ಷತ್ರ (Nakshatra):</span>
-                            <span className="font-bold text-amber-200">
+                          <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                            <span className="text-slate-600">ನಕ್ಷತ್ರ (Nakshatra):</span>
+                            <span className="font-bold text-indigo-950">
                               {loc(eclipse.nakshatra)} ({eclipse.pada}ನೇ ಪಾದ)
                             </span>
                           </div>
                           <div className="flex justify-between pt-1">
-                            <span className="text-slate-400">ಪೀಡಿತ ನಕ್ಷತ್ರ:</span>
-                            <span className="font-bold text-amber-300">
+                            <span className="text-slate-600">ಪೀಡಿತ ನಕ್ಷತ್ರ:</span>
+                            <span className="font-bold text-rose-800">
                               {loc(eclipse.impact.afflictedNakshatra)}
                             </span>
                           </div>
@@ -679,34 +679,34 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       </div>
 
                       {/* Column 3: Sutaka & Shastric Rules */}
-                      <div className="rounded-xl border border-amber-500/20 bg-slate-950/60 p-4">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-3">
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5 mb-3">
                           <span>🪔</span>
                           <span>{txt("sutakaRules")}</span>
                         </h4>
                         {isVisible ? (
                           <div className="space-y-2 text-xs">
-                            <div className="rounded-lg bg-amber-950/40 p-2 border border-amber-500/30">
-                              <p className="font-semibold text-amber-300">
+                            <div className="rounded-lg bg-amber-100/70 p-2.5 border border-amber-300 text-amber-950">
+                              <p className="font-bold text-amber-950">
                                 {isSolar ? "ಸೂರ್ಯ ಗ್ರಹಣ ಸೂತಕ (೪ ಯಾಮಗಳು - ೧೨ ಗಂಟೆ ಮೊದಲು)" : "ಚಂದ್ರ ಗ್ರಹಣ ಸೂತಕ (೩ ಯಾಮಗಳು - ೯ ಗಂಟೆ ಮೊದಲು)"}
                               </p>
                               {eclipse.visibility.sutakaStartTimeIst && (
-                                <p className="text-[11px] text-amber-200/90 mt-1 font-mono">
+                                <p className="text-[11px] text-amber-900 mt-1 font-mono">
                                   ಆರಂಭ: <b>{eclipse.visibility.sutakaStartTimeIst} IST</b>
                                 </p>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-300 leading-relaxed">
+                            <p className="text-[11px] text-slate-700 leading-relaxed">
                               {loc(eclipse.vedicInjunctions.sutakaRule)}
                             </p>
                           </div>
                         ) : (
-                          <div className="rounded-lg bg-slate-900/80 p-3 border border-slate-700/60 text-xs">
-                            <div className="flex items-center gap-1.5 text-emerald-400 font-bold mb-1">
+                          <div className="rounded-lg bg-white p-3 border border-slate-200 text-xs shadow-sm">
+                            <div className="flex items-center gap-1.5 text-emerald-800 font-bold mb-1">
                               <span>✓</span>
                               <span>ಸೂತಕ ನಿಯಮಗಳು ಅನ್ವಯಿಸುವುದಿಲ್ಲ</span>
                             </div>
-                            <p className="text-[11px] text-slate-300 leading-relaxed">
+                            <p className="text-[11px] text-slate-700 leading-relaxed">
                               ಧರ್ಮಶಾಸ್ತ್ರ ವಚನ: <i>&quot;ಯಸ್ಯ ದರ್ಶನಂ ತಸ್ಯ ವೇಧಃ&quot;</i> — ಈ ಗ್ರಹಣವು {loc(activeLocationPreset.name)}ದಲ್ಲಿ ಗೋಚರವಾಗದ ಕಾರಣ ಯಾವುದೇ ವೇಧ, ಸೂತಕ, ಉಪವಾಸ, ತರ್ಪಣ ಅಥವಾ ಸ್ನಾನದ ಬಾಧೆ ಇರುವುದಿಲ್ಲ. ನಿತ್ಯ ಪೂಜೆಗಳನ್ನು ಯಥಾವತ್ತಾಗಿ ನಡೆಸಬಹುದು.
                             </p>
                           </div>
@@ -715,23 +715,23 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                     </div>
 
                     {/* Global Visibility Regions & Local Note */}
-                    <div className="mt-4 rounded-xl border border-amber-500/20 bg-slate-950/40 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/30 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                       <div>
-                        <span className="font-bold text-amber-300">🌍 ಜಾಗತಿಕ ಗೋಚರ ಪ್ರದೇಶಗಳು: </span>
-                        <span className="text-slate-300">{loc(eclipse.globalVisibilityNote)}</span>
+                        <span className="font-bold text-amber-950">🌍 ಜಾಗತಿಕ ಗೋಚರ ಪ್ರದೇಶಗಳು: </span>
+                        <span className="text-slate-700">{loc(eclipse.globalVisibilityNote)}</span>
                       </div>
                       {eclipse.visibility.visibilityDetails && (
-                        <div className="text-emerald-300 font-medium sm:text-right shrink-0">
+                        <div className="text-emerald-800 font-medium sm:text-right shrink-0">
                           {loc(eclipse.visibility.visibilityDetails)}
                         </div>
                       )}
                     </div>
 
                     {/* Affected Rashis Quick Strip */}
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800 text-xs">
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-200/80 text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-rose-400">⚠️ ಪೀಡಿತ ರಾಶಿ:</span>
-                        <span className="text-rose-200">
+                        <span className="font-bold text-rose-800">⚠️ ಪೀಡಿತ ರಾಶಿ:</span>
+                        <span className="text-rose-900 font-semibold">
                           {loc(eclipse.impact.afflictedRashi)}
                         </span>
                       </div>
@@ -741,7 +741,7 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                           setSelectedEclipseIndex(idx);
                           setActiveTab("rashiphala");
                         }}
-                        className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-300 hover:bg-amber-500/20 hover:border-amber-400 transition-all"
+                        className="rounded-lg border border-amber-400 bg-amber-100 hover:bg-amber-200 px-3 py-1 text-xs font-bold text-amber-950 transition-all shadow-sm"
                       >
                         ದ್ವಾದಶ ರಾಶಿ ಫಲ ನೋಡಿ →
                       </button>
@@ -759,16 +759,16 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
         {activeTab === "astodaya" && (
           <div className="space-y-6">
             {/* Intro banner about Moudhya */}
-            <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/60 p-5 text-amber-100 shadow-md">
+            <div className="rounded-2xl border-2 border-amber-500/40 bg-gradient-to-r from-[#FFFDF8] via-[#FEFBF0] to-[#FFF8E7] p-5 text-slate-800 shadow-sm">
               <div className="flex items-start gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-400/40 shrink-0">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-2xl border border-amber-300 text-amber-900 shrink-0 shadow-sm">
                   ✨
                 </span>
                 <div>
-                  <h2 className="text-base sm:text-lg font-black text-amber-200 font-serif">
+                  <h2 className="text-base sm:text-lg font-black text-indigo-950 font-serif">
                     {selectedYear} ಗುರು-ಶುಕ್ರ ಅಸ್ತೋದಯ & ಮೌಢ್ಯ ಕಾಲ ನಿರ್ಣಯ
                   </h2>
-                  <p className="mt-1 text-xs text-amber-200/80 leading-relaxed">
+                  <p className="mt-1 text-xs text-slate-700 leading-relaxed font-medium">
                     {loc(report.auspiciousMarriageWindowsSummary)}
                   </p>
                 </div>
@@ -776,28 +776,28 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             </div>
 
             {/* Jupiter Astodaya Card */}
-            <div className="rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950/20 p-5 shadow-xl">
-              <div className="flex items-center justify-between border-b border-amber-500/20 pb-3 mb-4">
+            <div className="rounded-2xl border-2 border-amber-400/60 bg-white p-5 shadow-md">
+              <div className="flex items-center justify-between border-b-2 border-amber-200/60 pb-3 mb-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-xl border border-amber-400/30">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-xl border border-amber-300 text-amber-900 shadow-sm">
                     🪐
                   </span>
                   <div>
-                    <h3 className="font-serif text-lg font-black text-amber-200">
+                    <h3 className="font-serif text-lg font-black text-indigo-950">
                       ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಅಸ್ತೋದಯ (Guru Astodaya)
                     </h3>
-                    <p className="text-xs text-amber-400/80">
+                    <p className="text-xs text-amber-900 font-semibold">
                       ಜ್ಞಾನ, ಸಂತಾನ, ವಿದ್ಯಾ & ಧರ್ಮಕಾರಕ ಗುರುವಿನ ಮೌಢ್ಯ ಕಾಲಾವಧಿ
                     </p>
                   </div>
                 </div>
-                <div className="rounded-lg bg-amber-500/15 border border-amber-400/30 px-3 py-1 text-xs font-bold text-amber-300">
+                <div className="rounded-lg bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-950 shadow-sm">
                   ಗುರು ಮೌಢ್ಯ ವಾರ್ಷಿಕ ಪಟ್ಟಿ ({guruPeriods.length})
                 </div>
               </div>
 
               {guruPeriods.length === 0 ? (
-                <div className="text-center py-6 text-slate-400 text-xs">
+                <div className="text-center py-6 text-slate-600 text-xs font-medium">
                   {selectedYear} ರಲ್ಲಿ ಗುರು ಅಸ್ತೋದಯ ಸಂಭವಿಸುವುದಿಲ್ಲ. ಗುರುವು ವರ್ಷಪೂರ್ತಿ ಶುಭಪ್ರದವಾಗಿ ಉದಯದಲ್ಲಿದ್ದಾನೆ.
                 </div>
               ) : (
@@ -805,51 +805,51 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                   {guruPeriods.map((period, idx) => (
                     <div
                       key={idx}
-                      className="rounded-xl border border-amber-500/30 bg-slate-950/60 p-4 text-xs"
+                      className="rounded-xl border border-amber-300 bg-amber-50/30 p-4 text-xs"
                     >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 border-b border-slate-800 pb-3 mb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 border-b border-amber-200/60 pb-3 mb-3">
                         <div>
-                          <span className="text-slate-400 block">ಅಸ್ತ ಆರಂಭ (Asta Date):</span>
-                          <span className="font-mono font-bold text-amber-300 text-sm">
+                          <span className="text-slate-600 block">ಅಸ್ತ ಆರಂಭ (Asta Date):</span>
+                          <span className="font-mono font-bold text-amber-900 text-sm">
                             {period.astaDateStr}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block">ಉದಯ ಕಾಲ (Udaya Date):</span>
-                          <span className="font-mono font-bold text-emerald-400 text-sm">
+                          <span className="text-slate-600 block">ಉದಯ ಕಾಲ (Udaya Date):</span>
+                          <span className="font-mono font-bold text-emerald-800 text-sm">
                             {period.udayaDateStr}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block">ಒಟ್ಟು ಮೌಢ್ಯ ದಿನಗಳು:</span>
-                          <span className="font-bold text-amber-200 text-sm">
+                          <span className="text-slate-600 block">ಒಟ್ಟು ಮೌಢ್ಯ ದಿನಗಳು:</span>
+                          <span className="font-bold text-indigo-950 text-sm">
                             {period.durationDays} ದಿನಗಳು
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block">ಉದಯ ದಿಕ್ಕು & ರಾಶಿ:</span>
-                          <span className="font-bold text-amber-200 text-sm">
+                          <span className="text-slate-600 block">ಉದಯ ದಿಕ್ಕು & ರಾಶಿ:</span>
+                          <span className="font-bold text-indigo-950 text-sm">
                             {loc(period.direction)} • {loc(period.rashi)}
                           </span>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="rounded-lg bg-rose-950/30 border border-rose-500/30 p-2.5">
-                          <p className="font-bold text-rose-300 mb-1">❌ ನಿಷೇಧಿತ ಕಾರ್ಯಗಳು:</p>
-                          <p className="text-[11px] text-rose-100/90 leading-relaxed">
+                        <div className="rounded-lg bg-rose-50 border border-rose-200 p-2.5">
+                          <p className="font-bold text-rose-900 mb-1">❌ ನಿಷೇಧಿತ ಕಾರ್ಯಗಳು:</p>
+                          <p className="text-[11px] text-rose-950 leading-relaxed">
                             {locArray(period.prohibitions).join(", ")}.
                           </p>
                         </div>
-                        <div className="rounded-lg bg-emerald-950/30 border border-emerald-500/30 p-2.5">
-                          <p className="font-bold text-emerald-300 mb-1">✅ ಧರ್ಮಶಾಸ್ತ್ರ ನಿಯಮಗಳು:</p>
-                          <p className="text-[11px] text-emerald-100/90 leading-relaxed">
+                        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5">
+                          <p className="font-bold text-emerald-900 mb-1">✅ ಧರ್ಮಶಾಸ್ತ್ರ ನಿಯಮಗಳು:</p>
+                          <p className="text-[11px] text-emerald-950 leading-relaxed">
                             {loc(period.shastraRules)}
                           </p>
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-2 border-t border-slate-800 text-[11px] text-amber-300/80 font-mono">
+                      <div className="mt-3 pt-2 border-t border-amber-200/80 text-[11px] text-amber-900 font-mono font-bold">
                         {txt("guruMantra")}
                       </div>
                     </div>
@@ -859,28 +859,28 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             </div>
 
             {/* Venus Astodaya Card */}
-            <div className="rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950/20 p-5 shadow-xl">
-              <div className="flex items-center justify-between border-b border-amber-500/20 pb-3 mb-4">
+            <div className="rounded-2xl border-2 border-amber-400/60 bg-white p-5 shadow-md">
+              <div className="flex items-center justify-between border-b-2 border-amber-200/60 pb-3 mb-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-xl border border-amber-400/30">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-xl border border-amber-300 text-amber-900 shadow-sm">
                     ⭐
                   </span>
                   <div>
-                    <h3 className="font-serif text-lg font-black text-amber-200">
+                    <h3 className="font-serif text-lg font-black text-indigo-950">
                       ದೈತ್ಯಗುರು ಶುಕ್ರ ಅಸ್ತೋದಯ (Shukra Astodaya)
                     </h3>
-                    <p className="text-xs text-amber-400/80">
+                    <p className="text-xs text-amber-900 font-semibold">
                       ವಿವಾಹ, ಸೌಭಾಗ್ಯ, ಕಲಾ & ವೈಭವಕಾರಕ ಶುಕ್ರನ ಮೌಢ್ಯ ಕಾಲಾವಧಿ
                     </p>
                   </div>
                 </div>
-                <div className="rounded-lg bg-amber-500/15 border border-amber-400/30 px-3 py-1 text-xs font-bold text-amber-300">
+                <div className="rounded-lg bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-950 shadow-sm">
                   ಶುಕ್ರ ಮೌಢ್ಯ ವಾರ್ಷಿಕ ಪಟ್ಟಿ ({shukraPeriods.length})
                 </div>
               </div>
 
               {shukraPeriods.length === 0 ? (
-                <div className="text-center py-6 text-slate-400 text-xs">
+                <div className="text-center py-6 text-slate-600 text-xs font-medium">
                   {selectedYear} ರಲ್ಲಿ ಶುಕ್ರ ಅಸ್ತೋದಯ ಸಂಭವಿಸುವುದಿಲ್ಲ. ಶುಕ್ರನು ವರ್ಷಪೂರ್ತಿ ಉದಯದಲ್ಲಿದ್ದಾನೆ.
                 </div>
               ) : (
@@ -888,51 +888,51 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                   {shukraPeriods.map((period, idx) => (
                     <div
                       key={idx}
-                      className="rounded-xl border border-amber-500/30 bg-slate-950/60 p-4 text-xs"
+                      className="rounded-xl border border-amber-300 bg-amber-50/30 p-4 text-xs"
                     >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 border-b border-slate-800 pb-3 mb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 border-b border-amber-200/60 pb-3 mb-3">
                         <div>
-                          <span className="text-slate-400 block">ಅಸ್ತ ಆರಂಭ (Asta Date):</span>
-                          <span className="font-mono font-bold text-amber-300 text-sm">
+                          <span className="text-slate-600 block">ಅಸ್ತ ಆರಂಭ (Asta Date):</span>
+                          <span className="font-mono font-bold text-amber-900 text-sm">
                             {period.astaDateStr}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block">ಉದಯ ಕಾಲ (Udaya Date):</span>
-                          <span className="font-mono font-bold text-emerald-400 text-sm">
+                          <span className="text-slate-600 block">ಉದಯ ಕಾಲ (Udaya Date):</span>
+                          <span className="font-mono font-bold text-emerald-800 text-sm">
                             {period.udayaDateStr}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block">ಒಟ್ಟು ಮೌಢ್ಯ ದಿನಗಳು:</span>
-                          <span className="font-bold text-amber-200 text-sm">
+                          <span className="text-slate-600 block">ಒಟ್ಟು ಮೌಢ್ಯ ದಿನಗಳು:</span>
+                          <span className="font-bold text-indigo-950 text-sm">
                             {period.durationDays} ದಿನಗಳು ({period.durationDays > 30 ? "ಮಾರ್ಗಿ / ದೂರ" : "ವಕ್ರಿ / ಸಮೀಪ"})
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block">ಉದಯ ದಿಕ್ಕು & ರಾಶಿ:</span>
-                          <span className="font-bold text-amber-200 text-sm">
+                          <span className="text-slate-600 block">ಉದಯ ದಿಕ್ಕು & ರಾಶಿ:</span>
+                          <span className="font-bold text-indigo-950 text-sm">
                             {loc(period.direction)} • {loc(period.rashi)}
                           </span>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="rounded-lg bg-rose-950/30 border border-rose-500/30 p-2.5">
-                          <p className="font-bold text-rose-300 mb-1">❌ ನಿಷೇಧಿತ ಕಾರ್ಯಗಳು:</p>
-                          <p className="text-[11px] text-rose-100/90 leading-relaxed">
+                        <div className="rounded-lg bg-rose-50 border border-rose-200 p-2.5">
+                          <p className="font-bold text-rose-900 mb-1">❌ ನಿಷೇಧಿತ ಕಾರ್ಯಗಳು:</p>
+                          <p className="text-[11px] text-rose-950 leading-relaxed">
                             {locArray(period.prohibitions).join(", ")}.
                           </p>
                         </div>
-                        <div className="rounded-lg bg-emerald-950/30 border border-emerald-500/30 p-2.5">
-                          <p className="font-bold text-emerald-300 mb-1">✅ ಧರ್ಮಶಾಸ್ತ್ರ ನಿಯಮಗಳು:</p>
-                          <p className="text-[11px] text-emerald-100/90 leading-relaxed">
+                        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5">
+                          <p className="font-bold text-emerald-900 mb-1">✅ ಧರ್ಮಶಾಸ್ತ್ರ ನಿಯಮಗಳು:</p>
+                          <p className="text-[11px] text-emerald-950 leading-relaxed">
                             {loc(period.shastraRules)}
                           </p>
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-2 border-t border-slate-800 text-[11px] text-amber-300/80 font-mono">
+                      <div className="mt-3 pt-2 border-t border-amber-200/80 text-[11px] text-amber-900 font-mono font-bold">
                         {txt("shukraMantra")}
                       </div>
                     </div>
@@ -942,23 +942,23 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             </div>
 
             {/* Dharmashastra & Shanti Remedies Card */}
-            <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 p-5 shadow-lg">
+            <div className="rounded-2xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-50 via-white to-amber-50 p-5 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h4 className="font-serif text-sm sm:text-base font-black text-amber-200">
+                  <h4 className="font-serif text-sm sm:text-base font-black text-indigo-950">
                     ಗೋಕರ್ಣ ಶ್ರೀ ಕ್ಷೇತ್ರ ಮೌಢ್ಯ ನಿವಾರಣಾ & ನವಗ್ರಹ ಶಾಂತಿ
                   </h4>
-                  <p className="text-xs text-amber-200/80 mt-1 max-w-2xl leading-relaxed">
+                  <p className="text-xs text-slate-700 mt-1 max-w-2xl leading-relaxed font-medium">
                     {txt("gokarnaSevaCallout")}
                   </p>
-                  <p className="text-[11px] text-amber-400 font-mono mt-1">
+                  <p className="text-[11px] text-amber-900 font-mono font-bold mt-1">
                     {txt("priestContact")}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setPage("seva")}
-                  className="rounded-xl border border-amber-400 bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2 text-xs font-black text-slate-950 shadow-md hover:from-amber-300 hover:to-amber-400 transition-all shrink-0"
+                  className="rounded-xl border border-amber-700 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 px-4 py-2 text-xs font-black text-white shadow-md transition-all shrink-0"
                 >
                   ಶಾಂತಿ ಸೇವಾ ಬುಕಿಂಗ್ →
                 </button>
@@ -972,16 +972,16 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
         {/* ======================================================== */}
         {activeTab === "transits" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/60 p-4 text-amber-100 shadow-md">
+            <div className="rounded-2xl border-2 border-amber-500/40 bg-gradient-to-r from-[#FFFDF8] via-[#FEFBF0] to-[#FFF8E7] p-4 text-slate-800 shadow-sm">
               <div className="flex items-center gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-400/30">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-2xl border border-amber-300 text-amber-900 shadow-sm">
                   🪐
                 </span>
                 <div>
-                  <h2 className="text-sm sm:text-base font-black text-amber-200 font-serif">
+                  <h2 className="text-sm sm:text-base font-black text-indigo-950 font-serif">
                     {selectedYear} ರ ಪ್ರಮುಖ ಗ್ರಹಗಳ ರಾಶಿ ಪ್ರವೇಶ (Transit Chronology)
                   </h2>
-                  <p className="text-xs text-amber-200/80">
+                  <p className="text-xs text-slate-700 font-medium">
                     ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಕರ್ಮಾಧಿಪತಿ ಶನಿ ಮಹಾತ್ಮರ ಯುಗಾಂತರಕಾರಿ ರಾಶಿ ಸಂಚಾರಗಳು
                   </p>
                 </div>
@@ -989,7 +989,7 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             </div>
 
             {report.majorTransits.length === 0 ? (
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-400 text-xs">
+              <div className="rounded-2xl border border-amber-200 bg-white p-8 text-center text-slate-600 text-xs shadow-sm">
                 {selectedYear} ರಲ್ಲಿ ಯಾವುದೇ ದೀರ್ಘಕಾಲದ ರಾಶಿ ಸಂಚಾರ ಬದಲಾವಣೆಗಳಿಲ್ಲ (ಗ್ರಹಗಳು ಹಾಲಿ ರಾಶಿಯಲ್ಲೇ ಸಂಚರಿಸಲಿವೆ).
               </div>
             ) : (
@@ -997,20 +997,20 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                 {report.majorTransits.map((transit, idx) => (
                   <div
                     key={idx}
-                    className="rounded-xl border border-amber-500/40 bg-slate-900/90 p-4 shadow-lg text-xs"
+                    className="rounded-xl border-2 border-amber-300/80 bg-white p-4 shadow-sm text-xs"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
-                      <span className="font-serif font-black text-amber-300 text-sm">
+                    <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 mb-2">
+                      <span className="font-serif font-black text-indigo-950 text-sm">
                         {transit.planet === "Jupiter" ? "🪐 ಗುರು ಸಂಚಾರ (Jupiter Ingress)" : "🪐 ಶನಿ ಸಂಚಾರ (Saturn Ingress)"}
                       </span>
-                      <span className="font-mono text-emerald-400 font-bold">
+                      <span className="font-mono text-emerald-800 font-bold">
                         {transit.dateStr}
                       </span>
                     </div>
-                    <div className="text-amber-100 font-bold mb-1">
+                    <div className="text-amber-950 font-bold mb-1">
                       {loc(transit.title)}
                     </div>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                    <p className="text-[11px] text-slate-700 leading-relaxed">
                       {loc(transit.description)}
                     </p>
                   </div>
@@ -1026,8 +1026,8 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
         {activeTab === "rashiphala" && (
           <div className="space-y-6">
             {/* Eclipse Selection Picker for Rashi Phala */}
-            <div className="rounded-2xl border border-amber-500/40 bg-slate-900/90 p-4 shadow-md">
-              <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-2">
+            <div className="rounded-2xl border-2 border-amber-400/50 bg-white p-4 shadow-sm">
+              <label className="block text-xs font-black uppercase tracking-wider text-amber-950 mb-2">
                 ಆಯ್ದ ವರ್ಷದ ಗ್ರಹಣವನ್ನು ಆರಿಸಿ:
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
@@ -1038,20 +1038,20 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                     onClick={() => setSelectedEclipseIndex(idx)}
                     className={`rounded-xl border p-3 text-left transition-all ${
                       selectedEclipseIndex === idx
-                        ? "border-amber-400 bg-amber-500/20 shadow-md ring-1 ring-amber-400"
-                        : "border-slate-800 bg-slate-950/60 hover:bg-slate-800 hover:border-amber-500/30"
+                        ? "border-2 border-amber-600 bg-amber-50 shadow-sm"
+                        : "border border-amber-200 bg-white hover:bg-amber-50/50 text-slate-800"
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-amber-300">
+                      <span className="font-bold text-amber-900">
                         {e.type === "surya" ? "☀️ ಸೂರ್ಯ" : "🌕 ಚಂದ್ರ"} #{idx + 1}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-mono">{e.peakDateStr}</span>
+                      <span className="text-[10px] text-slate-500 font-mono">{e.peakDateStr}</span>
                     </div>
-                    <div className="mt-1 font-serif text-xs font-bold text-amber-100 truncate">
+                    <div className="mt-1 font-serif text-xs font-bold text-indigo-950 truncate">
                       {loc(e.title)}
                     </div>
-                    <div className="mt-1 text-[10px] text-amber-200/80">
+                    <div className="mt-1 text-[10px] text-slate-600 font-medium">
                       {loc(e.rashi)} ({loc(e.nakshatra)})
                     </div>
                   </button>
@@ -1061,31 +1061,31 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
 
             {/* Rashi Phala Matrix for the Selected Eclipse */}
             {currentSelectedEclipse && (
-              <div className="rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950/20 p-5 shadow-xl">
-                <div className="border-b border-amber-500/20 pb-4 mb-5">
+              <div className="rounded-2xl border-2 border-amber-400/60 bg-white p-5 shadow-md">
+                <div className="border-b-2 border-amber-200/60 pb-4 mb-5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xl">
                           {currentSelectedEclipse.type === "surya" ? "☀️" : "🌕"}
                         </span>
-                        <h3 className="font-serif text-lg sm:text-xl font-black text-amber-200">
+                        <h3 className="font-serif text-lg sm:text-xl font-black text-indigo-950">
                           {loc(currentSelectedEclipse.title)} — ದ್ವಾದಶ ರಾಶಿ ಫಲ ನಿರ್ಣಯ
                         </h3>
                       </div>
-                      <p className="text-xs text-amber-200/80 mt-0.5">
+                      <p className="text-xs text-slate-700 mt-0.5 font-medium">
                         ದಿನಾಂಕ: <b>{currentSelectedEclipse.peakDateStr}</b> • ಗ್ರಹಣ ರಾಶಿ:{" "}
                         <b>{loc(currentSelectedEclipse.rashi)}</b> ({loc(currentSelectedEclipse.nakshatra)})
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded-lg">
                         ● ಶುಭ ಫಲ
                       </span>
-                      <span className="flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2.5 py-1 rounded-lg">
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg">
                         ● ಮಧ್ಯಮ
                       </span>
-                      <span className="flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-950/60 border border-rose-500/30 px-2.5 py-1 rounded-lg">
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-rose-900 bg-rose-100 border border-rose-300 px-2.5 py-1 rounded-lg">
                         ● ಅಶುಭ / ಶಾಂತಿ
                       </span>
                     </div>
@@ -1102,30 +1102,30 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                         key={rashi.rashiIndex}
                         className={`rounded-xl border p-3.5 transition-all text-xs flex flex-col justify-between ${
                           isBenefic
-                            ? "border-emerald-500/40 bg-emerald-950/20"
+                            ? "border-emerald-300 bg-emerald-50/50 shadow-sm"
                             : isAdverse
-                            ? "border-rose-500/50 bg-rose-950/25 ring-1 ring-rose-500/30"
-                            : "border-amber-500/30 bg-amber-950/15"
+                            ? "border-rose-300 bg-rose-50/50 ring-1 ring-rose-300/40 shadow-sm"
+                            : "border-amber-300 bg-amber-50/50 shadow-sm"
                         }`}
                       >
                         <div>
-                          <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
-                            <span className="font-serif text-sm font-black text-amber-200">
+                          <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 mb-2">
+                            <span className="font-serif text-sm font-black text-indigo-950">
                               {loc(rashi.rashiName)}
                             </span>
                             <span
-                              className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
+                              className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase border ${
                                 isBenefic
-                                  ? "bg-emerald-500/20 text-emerald-300"
+                                  ? "bg-emerald-100 text-emerald-900 border-emerald-300"
                                   : isAdverse
-                                  ? "bg-rose-500/30 text-rose-300"
-                                  : "bg-amber-500/20 text-amber-300"
+                                  ? "bg-rose-100 text-rose-900 border-rose-300"
+                                  : "bg-amber-100 text-amber-900 border-amber-300"
                               }`}
                             >
                               {loc(rashi.badge)}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-300 leading-relaxed">
+                          <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
                             {loc(rashi.description)}
                           </p>
                         </div>
@@ -1135,20 +1135,20 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                 </div>
 
                 {/* Shanti Box */}
-                <div className="mt-6 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/60 p-4">
+                <div className="mt-6 rounded-xl border-2 border-amber-400/60 bg-amber-50/70 p-4 shadow-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div>
-                      <h4 className="font-serif text-sm font-bold text-amber-200">
+                      <h4 className="font-serif text-sm font-bold text-indigo-950">
                         ಅಶುಭ ರಾಶಿಯವರು ಆಚರಿಸಬೇಕಾದ ಗ್ರಹಣ ಶಾಂತಿ ವಿಧಾನ
                       </h4>
-                      <p className="text-slate-300 mt-1">
+                      <p className="text-slate-700 mt-1 font-medium">
                         {loc(currentSelectedEclipse.vedicInjunctions.gokarnaPooja)}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setPage("seva")}
-                      className="rounded-lg border border-amber-400 bg-amber-400 px-3.5 py-1.5 text-xs font-black text-slate-950 shadow hover:bg-amber-300 transition-all shrink-0"
+                      className="rounded-lg border border-amber-700 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 px-3.5 py-1.5 text-xs font-black text-white shadow-md transition-all shrink-0"
                     >
                       ಗೋಕರ್ಣ ಶಾಂತಿ ಸೇವೆ →
                     </button>
@@ -1165,42 +1165,42 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
         {activeTab === "unified" && (
           <div className="space-y-6 print:space-y-4">
             {/* Unified Printable Report Header */}
-            <div className="rounded-2xl border-2 border-amber-500/60 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 p-6 text-center shadow-2xl relative">
-              <div className="inline-block rounded-full bg-amber-500/20 px-4 py-1 text-xs font-black tracking-widest text-amber-300 uppercase mb-2">
+            <div className="rounded-2xl border-2 border-amber-500/60 bg-gradient-to-br from-[#FFFDF8] via-[#FEFBF0] to-[#FFF8E7] p-6 text-center shadow-md relative">
+              <div className="inline-block rounded-full bg-amber-100 border border-amber-300 px-4 py-1 text-xs font-black tracking-widest text-amber-950 uppercase mb-2 shadow-sm">
                 ॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ • ಅಧಿಕೃತ ಶಾಸ್ತ್ರೀಯ ವರದಿ ॥
               </div>
-              <h2 className="font-serif text-2xl sm:text-3xl font-black text-amber-200">
+              <h2 className="font-serif text-2xl sm:text-3xl font-black text-indigo-950">
                 {selectedYear} ವಾರ್ಷಿಕ ಗ್ರಹಣ & ಗುರು-ಶುಕ್ರ ಅಸ್ತೋದಯ ಸಮಗ್ರ ಪತ್ರ
               </h2>
-              <p className="mt-1 text-xs text-amber-300/80">
+              <p className="mt-1 text-xs text-amber-900/90 font-medium">
                 ಪರಿಗಣಿತ ಪ್ರದೇಶ: <b>{loc(activeLocationPreset.name)}</b> • ಗಣನೆ: ಚಿತ್ರಾಪಕ್ಷ ಅಯನಾಂಶ
               </p>
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-300">
-                <span className="rounded-lg bg-slate-900 border border-amber-500/30 px-3 py-1">
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-800">
+                <span className="rounded-lg bg-white border border-amber-300 px-3 py-1 shadow-sm">
                   ಒಟ್ಟು ಗ್ರಹಣಗಳು: <b>{report.totalGlobalEclipsesCount}</b>
                 </span>
-                <span className="rounded-lg bg-slate-900 border border-amber-500/30 px-3 py-1">
+                <span className="rounded-lg bg-white border border-amber-300 px-3 py-1 shadow-sm">
                   ಸ್ಥಳೀಯ ಗೋಚರ: <b>{report.visibleEclipsesCount}</b>
                 </span>
-                <span className="rounded-lg bg-slate-900 border border-amber-500/30 px-3 py-1">
+                <span className="rounded-lg bg-white border border-amber-300 px-3 py-1 shadow-sm">
                   ಗುರು ಮೌಢ್ಯ ಕಾಲಗಳು: <b>{guruPeriods.length}</b>
                 </span>
-                <span className="rounded-lg bg-slate-900 border border-amber-500/30 px-3 py-1">
+                <span className="rounded-lg bg-white border border-amber-300 px-3 py-1 shadow-sm">
                   ಶುಕ್ರ ಮೌಢ್ಯ ಕಾಲಗಳು: <b>{shukraPeriods.length}</b>
                 </span>
               </div>
             </div>
 
             {/* Unified Section 1: Eclipses Table */}
-            <div className="rounded-2xl border border-amber-500/40 bg-slate-900/90 p-5 shadow-lg">
-              <h3 className="font-serif text-base font-black text-amber-200 border-b border-amber-500/20 pb-2 mb-4 flex items-center gap-2">
+            <div className="rounded-2xl border-2 border-amber-400/60 bg-white p-5 shadow-md">
+              <h3 className="font-serif text-base font-black text-indigo-950 border-b-2 border-amber-200/60 pb-2 mb-4 flex items-center gap-2">
                 <span>🌒</span>
                 <span>{selectedYear} ಸೂರ್ಯ & ಚಂದ್ರ ಗ್ರಹಣಗಳ ಕೋಷ್ಟಕ (Eclipses Table)</span>
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-amber-500/30 bg-amber-500/10 text-amber-300 font-bold">
+                    <tr className="border-b-2 border-amber-300 bg-amber-100/70 text-amber-950 font-black">
                       <th className="py-2.5 px-3">ಕ್ರ.ಸಂ</th>
                       <th className="py-2.5 px-3">ದಿನಾಂಕ</th>
                       <th className="py-2.5 px-3">ಗ್ರಹಣ ಪ್ರಭೇದ</th>
@@ -1210,37 +1210,37 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       <th className="py-2.5 px-3">ಪೀಡಿತ ರಾಶಿ</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800">
+                  <tbody className="divide-y divide-amber-100">
                     {report.eclipses.map((e, idx) => (
-                      <tr key={idx} className="hover:bg-slate-800/40">
-                        <td className="py-2.5 px-3 font-bold text-amber-400">#{idx + 1}</td>
-                        <td className="py-2.5 px-3 font-mono font-medium text-amber-200">
+                      <tr key={idx} className="hover:bg-amber-50/50">
+                        <td className="py-2.5 px-3 font-bold text-amber-900">#{idx + 1}</td>
+                        <td className="py-2.5 px-3 font-mono font-medium text-slate-800">
                           {e.peakDateStr}
                         </td>
                         <td className="py-2.5 px-3">
-                          <span className="font-bold text-amber-100">{loc(e.title)}</span>
+                          <span className="font-bold text-indigo-950">{loc(e.title)}</span>
                         </td>
                         <td className="py-2.5 px-3">
-                          <span className="font-bold text-amber-300">{loc(e.rashi)}</span> ({e.degreeFormatted})<br />
-                          <span className="text-[10px] text-slate-300">{loc(e.nakshatra)} {e.pada} ಪಾದ</span>
+                          <span className="font-bold text-amber-900">{loc(e.rashi)}</span> ({e.degreeFormatted})<br />
+                          <span className="text-[10px] text-slate-600">{loc(e.nakshatra)} {e.pada} ಪಾದ</span>
                         </td>
-                        <td className="py-2.5 px-3 font-mono text-[11px]">
+                        <td className="py-2.5 px-3 font-mono text-[11px] text-slate-700">
                           ಸ್ಪ: {e.startTimeIst || "—"}<br />
                           ಮ: {e.peakTimeIst}<br />
                           ಮೋ: {e.endTimeIst || "—"}
                         </td>
                         <td className="py-2.5 px-3">
                           {e.visibility.isVisibleInSelected ? (
-                            <span className="inline-block rounded bg-emerald-500/20 text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                            <span className="inline-block rounded bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 text-[10px] font-bold">
                               {loc(e.visibility.statusBadge)}
                             </span>
                           ) : (
-                            <span className="inline-block rounded bg-slate-800 text-slate-400 px-2 py-0.5 text-[10px]">
+                            <span className="inline-block rounded bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-[10px]">
                               {loc(e.visibility.statusBadge)}
                             </span>
                           )}
                         </td>
-                        <td className="py-2.5 px-3 text-rose-300 text-[11px]">
+                        <td className="py-2.5 px-3 text-rose-800 font-semibold text-[11px]">
                           {loc(e.impact.afflictedRashi)}
                         </td>
                       </tr>
@@ -1251,15 +1251,15 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             </div>
 
             {/* Unified Section 2: Guru & Shukra Astodaya Table */}
-            <div className="rounded-2xl border border-amber-500/40 bg-slate-900/90 p-5 shadow-lg">
-              <h3 className="font-serif text-base font-black text-amber-200 border-b border-amber-500/20 pb-2 mb-4 flex items-center gap-2">
+            <div className="rounded-2xl border-2 border-amber-400/60 bg-white p-5 shadow-md">
+              <h3 className="font-serif text-base font-black text-indigo-950 border-b-2 border-amber-200/60 pb-2 mb-4 flex items-center gap-2">
                 <span>✨</span>
                 <span>{selectedYear} ಗುರು & ಶುಕ್ರ ಮೌಢ್ಯ ಪಟ್ಟಿ (Combustion Chronology)</span>
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-amber-500/30 bg-amber-500/10 text-amber-300 font-bold">
+                    <tr className="border-b-2 border-amber-300 bg-amber-100/70 text-amber-950 font-black">
                       <th className="py-2.5 px-3">ಗ್ರಹ</th>
                       <th className="py-2.5 px-3">ಅಸ್ತ ದಿನಾಂಕ</th>
                       <th className="py-2.5 px-3">ಉದಯ ದಿನಾಂಕ</th>
@@ -1269,27 +1269,27 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       <th className="py-2.5 px-3">ಮುಖ್ಯ ನಿಷೇಧ</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800">
+                  <tbody className="divide-y divide-amber-100">
                     {guruPeriods.map((p, idx) => (
-                      <tr key={`guru-${idx}`} className="hover:bg-slate-800/40">
-                        <td className="py-2.5 px-3 font-bold text-amber-300">🪐 ಗುರು (Guru)</td>
-                        <td className="py-2.5 px-3 font-mono text-amber-200">{p.astaDateStr}</td>
-                        <td className="py-2.5 px-3 font-mono text-emerald-400 font-bold">{p.udayaDateStr}</td>
-                        <td className="py-2.5 px-3 font-bold">{p.durationDays} ದಿನ</td>
-                        <td className="py-2.5 px-3">{loc(p.direction)}</td>
-                        <td className="py-2.5 px-3">{loc(p.rashi)}</td>
-                        <td className="py-2.5 px-3 text-rose-300">ವಿವಾಹ, ಉಪನಯನ, ಗೃಹಪ್ರವೇಶ ನಿಷೇಧ</td>
+                      <tr key={`guru-${idx}`} className="hover:bg-amber-50/50">
+                        <td className="py-2.5 px-3 font-bold text-amber-900">🪐 ಗುರು (Guru)</td>
+                        <td className="py-2.5 px-3 font-mono text-slate-800">{p.astaDateStr}</td>
+                        <td className="py-2.5 px-3 font-mono text-emerald-800 font-bold">{p.udayaDateStr}</td>
+                        <td className="py-2.5 px-3 font-bold text-slate-800">{p.durationDays} ದಿನ</td>
+                        <td className="py-2.5 px-3 text-slate-700">{loc(p.direction)}</td>
+                        <td className="py-2.5 px-3 text-slate-700">{loc(p.rashi)}</td>
+                        <td className="py-2.5 px-3 text-rose-800 font-medium">ವಿವಾಹ, ಉಪನಯನ, ಗೃಹಪ್ರವೇಶ ನಿಷೇಧ</td>
                       </tr>
                     ))}
                     {shukraPeriods.map((p, idx) => (
-                      <tr key={`shukra-${idx}`} className="hover:bg-slate-800/40">
-                        <td className="py-2.5 px-3 font-bold text-amber-300">⭐ ಶುಕ್ರ (Shukra)</td>
-                        <td className="py-2.5 px-3 font-mono text-amber-200">{p.astaDateStr}</td>
-                        <td className="py-2.5 px-3 font-mono text-emerald-400 font-bold">{p.udayaDateStr}</td>
-                        <td className="py-2.5 px-3 font-bold">{p.durationDays} ದಿನ</td>
-                        <td className="py-2.5 px-3">{loc(p.direction)}</td>
-                        <td className="py-2.5 px-3">{loc(p.rashi)}</td>
-                        <td className="py-2.5 px-3 text-rose-300">ವಿವಾಹ, ವಧು ಪ್ರವೇಶ, ಗೃಹಪ್ರವೇಶ ನಿಷೇಧ</td>
+                      <tr key={`shukra-${idx}`} className="hover:bg-amber-50/50">
+                        <td className="py-2.5 px-3 font-bold text-amber-900">⭐ ಶುಕ್ರ (Shukra)</td>
+                        <td className="py-2.5 px-3 font-mono text-slate-800">{p.astaDateStr}</td>
+                        <td className="py-2.5 px-3 font-mono text-emerald-800 font-bold">{p.udayaDateStr}</td>
+                        <td className="py-2.5 px-3 font-bold text-slate-800">{p.durationDays} ದಿನ</td>
+                        <td className="py-2.5 px-3 text-slate-700">{loc(p.direction)}</td>
+                        <td className="py-2.5 px-3 text-slate-700">{loc(p.rashi)}</td>
+                        <td className="py-2.5 px-3 text-rose-800 font-medium">ವಿವಾಹ, ವಧು ಪ್ರವೇಶ, ಗೃಹಪ್ರವೇಶ ನಿಷೇಧ</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1298,14 +1298,14 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
             </div>
 
             {/* Priest Ashirvada & Footer */}
-            <div className="rounded-2xl border-2 border-amber-500/40 bg-gradient-to-r from-amber-950/50 via-slate-900 to-amber-950/50 p-5 text-center text-xs">
-              <p className="font-serif text-sm font-bold text-amber-200">
+            <div className="rounded-2xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-50 via-white to-amber-50 p-5 text-center text-xs shadow-sm">
+              <p className="font-serif text-sm font-bold text-indigo-950">
                 ॥ ಶುಭಂ ಭವತು • ಸಮಸ್ತ ಸನ್ಮಂಗಳಾನಿ ಭವಂತು ॥
               </p>
-              <p className="text-amber-200/80 mt-1">
+              <p className="text-slate-700 mt-1 font-medium">
                 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ & ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪಾಶೀರ್ವಾದಗಳೊಂದಿಗೆ ಪ್ರಸ್ತುತಪಡಿಸಲಾಗಿದೆ.
               </p>
-              <p className="text-amber-400 font-mono mt-1">
+              <p className="text-amber-900 font-mono font-bold mt-1">
                 {txt("priestContact")}
               </p>
             </div>
