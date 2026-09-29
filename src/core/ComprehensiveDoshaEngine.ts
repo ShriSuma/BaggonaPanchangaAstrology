@@ -42,6 +42,23 @@ import {
 } from "./DashaBhuktiEngine";
 import { toKannadaPlanet } from "../utils/kannadaAstrologyTerms";
 import { rashiIndexInHouse, signLord } from "./KundliInsightsEngine";
+import {
+  calculateGandantaraAndBhaya,
+  type GandantaraAndBhayaReport,
+  type DetectedGandantara,
+  type DetectedFear,
+  type GandantaraType,
+  type FearType
+} from "./GandantaraAndBhayaEngine";
+
+export {
+  calculateGandantaraAndBhaya,
+  type GandantaraAndBhayaReport,
+  type DetectedGandantara,
+  type DetectedFear,
+  type GandantaraType,
+  type FearType
+};
 
 export type DoshaSeverity = "critical" | "high" | "moderate" | "mild" | "none";
 export type DoshaCategory = "natal" | "dasha_sandhi" | "gochara";
@@ -97,6 +114,7 @@ export interface ComprehensiveDoshaReport {
   };
   doshas: DetectedDosha[];
   activeSandhiAlert: DashaSandhiAlert | null;
+  gandantaraAndBhaya: GandantaraAndBhayaReport;
   calculatedAt: string;
 }
 
@@ -1976,6 +1994,8 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
 
   const karmicIndexScore = Math.min(100, criticalCount * 30 + highCount * 20 + moderateCount * 10 + mildCount * 5);
 
+  const gandantaraAndBhaya = calculateGandantaraAndBhaya(kundli, input, currentDate);
+
   return {
     devoteeInfo: {
       name: input.name || "Devotee",
@@ -2001,6 +2021,7 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
     },
     doshas: doshasList,
     activeSandhiAlert: sandhiAlert,
+    gandantaraAndBhaya,
     calculatedAt: new Date().toISOString()
   };
 }
