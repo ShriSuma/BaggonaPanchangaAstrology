@@ -3855,7 +3855,7 @@ export function generateKundliRemedyReport(
     gotra: input.gothra,
     lagnaName: RASHI_NAMES_LOCALE[lagnaRashiName] || { kn: lagnaRashiName, en: lagnaRashiName },
     rashiName: RASHI_NAMES_LOCALE[moonRashiName] || { kn: moonRashiName, en: moonRashiName },
-    nakshatraName: { kn: moonNakName, en: moonNakName, hi: moonNakName, te: moonNakName, ta: moonNakName },
+    nakshatraName: nakshatraData.name,
     primaryStruggle: {
       category: struggleCategory,
       title: primaryStruggleTitle,

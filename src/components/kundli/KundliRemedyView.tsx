@@ -154,11 +154,11 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <span>
                 {isGeneratingPdf
                   ? isKn
-                    ? "⌛ PDF ರಚಿಸಲಾಗುತ್ತಿದೆ..."
-                    : "Generating 2-Page PDF..."
+                    ? "⌛ ೩-ಪುಟಗಳ PDF ರಚಿಸಲಾಗುತ್ತಿದೆ..."
+                    : "Generating 3-Page PDF..."
                   : isKn
-                  ? "ದೈವಿಕ ಪರಿಹಾರ ವರದಿ PDF ಡೌನ್‌ಲೋಡ್ (A4)"
-                  : "Download 2-Page Remedy PDF (A4)"}
+                  ? "ದೈವಿಕ ಪರಿಹಾರ ವರದಿ PDF ಡೌನ್‌ಲೋಡ್ (3-ಪುಟ A4)"
+                  : "Download 3-Page Remedy PDF (A4)"}
               </span>
             </button>
           </div>
