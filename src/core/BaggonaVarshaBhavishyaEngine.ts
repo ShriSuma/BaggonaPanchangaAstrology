@@ -44,6 +44,210 @@ export const BAGGONA_RASHI_NAMES_KN = [
   "ಮೀನ"
 ] as const;
 
+export interface BaggonaNakshatraInfo {
+  index: number; // 0 to 26
+  nameKn: string;
+  nameEn: string;
+  rashiIndex: number;
+  rashiNameKn: string;
+  padasKn: string;
+  padasNumbers: number[];
+  deityKn: string;
+  deityEn: string;
+}
+
+export const ALL_27_NAKSHATRAS_BAGGONA: BaggonaNakshatraInfo[] = [
+  { index: 0, nameKn: "ಅಶ್ವಿನಿ", nameEn: "Ashwini", rashiIndex: 0, rashiNameKn: "ಮೇಷ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಅಶ್ವಿನೀ ದೇವತೆಗಳು", deityEn: "Ashwini Kumaras" },
+  { index: 1, nameKn: "ಭರಣಿ", nameEn: "Bharani", rashiIndex: 0, rashiNameKn: "ಮೇಷ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಯಮಧರ್ಮರಾಜ", deityEn: "Lord Yama" },
+  { index: 2, nameKn: "ಕೃತ್ತಿಕಾ", nameEn: "Krittika", rashiIndex: 0, rashiNameKn: "ಮೇಷ / ವೃಷಭ", padasKn: "೧ನೇ ಪಾದ (ಮೇಷ), ೨, ೩, ೪ನೇ ಪಾದ (ವೃಷಭ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಅಗ್ನಿದೇವ", deityEn: "Lord Agni" },
+  { index: 3, nameKn: "ರೋಹಿಣಿ", nameEn: "Rohini", rashiIndex: 1, rashiNameKn: "ವೃಷಭ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಬ್ರಹ್ಮದೇವ", deityEn: "Lord Brahma" },
+  { index: 4, nameKn: "ಮೃಗಶಿರಾ", nameEn: "Mrigashira", rashiIndex: 1, rashiNameKn: "ವೃಷಭ / ಮಿಥುನ", padasKn: "೧, ೨ನೇ ಪಾದ (ವೃಷಭ), ೩, ೪ನೇ ಪಾದ (ಮಿಥುನ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಚಂದ್ರದೇವ", deityEn: "Soma / Moon God" },
+  { index: 5, nameKn: "ಆರಿದ್ರಾ", nameEn: "Aridra", rashiIndex: 2, rashiNameKn: "ಮಿಥುನ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ರುದ್ರದೇವ", deityEn: "Lord Rudra" },
+  { index: 6, nameKn: "ಪುನರ್ವಸು", nameEn: "Punarvasu", rashiIndex: 2, rashiNameKn: "ಮಿಥುನ / ಕರ್ಕಾಟಕ", padasKn: "೧, ೨, ೩ನೇ ಪಾದ (ಮಿಥುನ), ೪ನೇ ಪಾದ (ಕರ್ಕಾಟಕ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಅದಿತಿ ದೇವಿ", deityEn: "Goddess Aditi" },
+  { index: 7, nameKn: "ಪುಷ್ಯಾ", nameEn: "Pushya", rashiIndex: 3, rashiNameKn: "ಕರ್ಕಾಟಕ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಬೃಹಸ್ಪತಿ", deityEn: "Lord Brihaspati" },
+  { index: 8, nameKn: "ಆಶ್ಲೇಷಾ", nameEn: "Ashlesha", rashiIndex: 3, rashiNameKn: "ಕರ್ಕಾಟಕ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಸರ್ಪದೇವತೆಗಳು (ನಾಗ)", deityEn: "Nagas" },
+  { index: 9, nameKn: "ಮಘಾ", nameEn: "Magha", rashiIndex: 4, rashiNameKn: "ಸಿಂಹ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಪಿತೃದೇವತೆಗಳು", deityEn: "Pitrs" },
+  { index: 10, nameKn: "ಪುಬ್ಬಾ (ಪೂರ್ವ ಫಲ್ಗುಣಿ)", nameEn: "Purva Phalguni", rashiIndex: 4, rashiNameKn: "ಸಿಂಹ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಭಗದೇವ", deityEn: "Bhaga" },
+  { index: 11, nameKn: "ಉತ್ತರಾ (ಉತ್ತರ ಫಲ್ಗುಣಿ)", nameEn: "Uttara Phalguni", rashiIndex: 4, rashiNameKn: "ಸಿಂಹ / ಕನ್ಯಾ", padasKn: "೧ನೇ ಪಾದ (ಸಿಂಹ), ೨, ೩, ೪ನೇ ಪಾದ (ಕನ್ಯಾ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಆರ್ಯಮಾ", deityEn: "Aryaman" },
+  { index: 12, nameKn: "ಹಸ್ತಾ", nameEn: "Hasta", rashiIndex: 5, rashiNameKn: "ಕನ್ಯಾ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಸೂರ್ಯದೇವ", deityEn: "Savitar" },
+  { index: 13, nameKn: "ಚಿತ್ತಾ", nameEn: "Chitta", rashiIndex: 5, rashiNameKn: "ಕನ್ಯಾ / ತುಲಾ", padasKn: "೧, ೨ನೇ ಪಾದ (ಕನ್ಯಾ), ೩, ೪ನೇ ಪಾದ (ತುಲಾ)", padasNumbers: [1, 2, 3, 4], deityKn: "ತ್ವಷ್ಟಾ (ವಿಶ್ವಕರ್ಮ)", deityEn: "Tvashtar" },
+  { index: 14, nameKn: "ಸ್ವಾತಿ", nameEn: "Swati", rashiIndex: 6, rashiNameKn: "ತುಲಾ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ವಾಯುದೇವ", deityEn: "Vayu" },
+  { index: 15, nameKn: "ವಿಶಾಖಾ", nameEn: "Vishakha", rashiIndex: 6, rashiNameKn: "ತುಲಾ / ವೃಶ್ಚಿಕ", padasKn: "೧, ೨, ೩ನೇ ಪಾದ (ತುಲಾ), ೪ನೇ ಪಾದ (ವೃಶ್ಚಿಕ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಇಂದ್ರಾಗ್ನಿ", deityEn: "Indra-Agni" },
+  { index: 16, nameKn: "ಅನೂರಾಧಾ", nameEn: "Anuradha", rashiIndex: 7, rashiNameKn: "ವೃಶ್ಚಿಕ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಮಿತ್ರದೇವ", deityEn: "Mitra" },
+  { index: 17, nameKn: "ಜ್ಯೇಷ್ಠಾ", nameEn: "Jyeshtha", rashiIndex: 7, rashiNameKn: "ವೃಶ್ಚಿಕ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಇಂದ್ರದೇವ", deityEn: "Indra" },
+  { index: 18, nameKn: "ಮೂಲಾ", nameEn: "Mula", rashiIndex: 8, rashiNameKn: "ಧನು", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ನಿರೃತಿ (ಮೂಲ ದೇವತೆ)", deityEn: "Nirriti" },
+  { index: 19, nameKn: "ಪೂರ್ವಾಷಾಢಾ", nameEn: "Purva Ashadha", rashiIndex: 8, rashiNameKn: "ಧನು", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ವರುಣದೇವ (ಜಲದೇವ)", deityEn: "Apas" },
+  { index: 20, nameKn: "ಉತ್ತರಾಷಾಢಾ", nameEn: "Uttara Ashadha", rashiIndex: 8, rashiNameKn: "ಧನು / ಮಕರ", padasKn: "೧ನೇ ಪಾದ (ಧನು), ೨, ೩, ೪ನೇ ಪಾದ (ಮಕರ)", padasNumbers: [1, 2, 3, 4], deityKn: "ವಿಶ್ವೇದೇವತೆಗಳು", deityEn: "Vishvadevas" },
+  { index: 21, nameKn: "ಶ್ರವಣ", nameEn: "Shravana", rashiIndex: 9, rashiNameKn: "ಮಕರ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಮಹಾವಿಷ್ಣು", deityEn: "Lord Vishnu" },
+  { index: 22, nameKn: "ಧನಿಷ್ಠಾ", nameEn: "Dhanishta", rashiIndex: 9, rashiNameKn: "ಮಕರ / ಕುಂಭ", padasKn: "೧, ೨ನೇ ಪಾದ (ಮಕರ), ೩, ೪ನೇ ಪಾದ (ಕುಂಭ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಅಷ್ಟವಸುಗಳು", deityEn: "Ashta Vasus" },
+  { index: 23, nameKn: "ಶತಭಿಷಾ", nameEn: "Shatabhisha", rashiIndex: 10, rashiNameKn: "ಕುಂಭ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ವರುಣದೇವ", deityEn: "Varuna" },
+  { index: 24, nameKn: "ಪೂರ್ವಾಭಾದ್ರಾ", nameEn: "Purva Bhadrapada", rashiIndex: 10, rashiNameKn: "ಕುಂಭ / ಮೀನ", padasKn: "೧, ೨, ೩ನೇ ಪಾದ (ಕುಂಭ), ೪ನೇ ಪಾದ (ಮೀನ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಅಜೈಕಪಾದ", deityEn: "Aja Ekapada" },
+  { index: 25, nameKn: "ಉತ್ತರಾಭಾದ್ರಾ", nameEn: "Uttara Bhadrapada", rashiIndex: 11, rashiNameKn: "ಮೀನ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಅಹಿರ್ಬುಧ್ನ್ಯ", deityEn: "Ahirbudhnya" },
+  { index: 26, nameKn: "ರೇವತಿ", nameEn: "Revati", rashiIndex: 11, rashiNameKn: "ಮೀನ", padasKn: "೧, ೨, ೩, ೪ನೇ ಪಾದ (ಸಂಪೂರ್ಣ)", padasNumbers: [1, 2, 3, 4], deityKn: "ಪೂಷಾದೇವ", deityEn: "Pushan" }
+];
+
+export function getBaggonaRashiIndexForNakshatra(nakshatraIndex: number): BaggonaNakshatraInfo {
+  return ALL_27_NAKSHATRAS_BAGGONA[nakshatraIndex] || ALL_27_NAKSHATRAS_BAGGONA[0];
+}
+
+export const RASHI_SPIRITUAL_ATTRIBUTES: Record<number, {
+  deityKn: string;
+  deityEn: string;
+  gemstoneKn: string;
+  gemstoneEn: string;
+  luckyColorKn: string;
+  luckyColorEn: string;
+  luckyNumber: string;
+  luckyDirectionKn: string;
+  luckyDirectionEn: string;
+  siddhaMantraKn: string;
+}> = {
+  0: {
+    deityKn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ / ಶ್ರೀ ಆಂಜನೇಯ",
+    deityEn: "Lord Subrahmanya / Lord Hanuman",
+    gemstoneKn: "ಕೆಂಪು ಹವಳ (Red Coral)",
+    gemstoneEn: "Red Coral",
+    luckyColorKn: "ಕೆಂಪು & ಕೇಸರಿ",
+    luckyColorEn: "Red & Saffron",
+    luckyNumber: "೯, ೧",
+    luckyDirectionKn: "ಪೂರ್ವ (East)",
+    luckyDirectionEn: "East",
+    siddhaMantraKn: "ॐ ನಮಃ ಶಿವಾಯ • ॐ ಶರವಣಭವಾಯ ನಮಃ"
+  },
+  1: {
+    deityKn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ / ಅನ್ನಪೂರ್ಣೇಶ್ವರಿ",
+    deityEn: "Goddess Mahalakshmi / Annapoorneshwari",
+    gemstoneKn: "ವಜ್ರ / ಶ್ವೇತ ಪುಷ್ಯರಾಗ",
+    gemstoneEn: "Diamond / White Topaz",
+    luckyColorKn: "ಬಿಳಿ & ತಿಳಿ ನೀಲಿ",
+    luckyColorEn: "White & Light Blue",
+    luckyNumber: "೬, ೫",
+    luckyDirectionKn: "ಆಗ್ನೇಯ (South-East)",
+    luckyDirectionEn: "South-East",
+    siddhaMantraKn: "ॐ ಶ್ರೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ"
+  },
+  2: {
+    deityKn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು / ಶಾರದಾಂಬೆ",
+    deityEn: "Lord Maha Vishnu / Goddess Sharada",
+    gemstoneKn: "ಪಚ್ಚೆ (Emerald)",
+    gemstoneEn: "Emerald",
+    luckyColorKn: "ಹಸಿರು (Green)",
+    luckyColorEn: "Green",
+    luckyNumber: "೫, ೩",
+    luckyDirectionKn: "ಉತ್ತರ (North)",
+    luckyDirectionEn: "North",
+    siddhaMantraKn: "ॐ ನಮೋ ನಾರಾಯಣಾಯ • ॐ ಬುಧಾಯ ನಮಃ"
+  },
+  3: {
+    deityKn: "ಶ್ರೀ ಚಂದ್ರಮೌಳೀಶ್ವರ / ಪಾರ್ವತಿದೇವಿ",
+    deityEn: "Lord Chandramouleshwara / Goddess Parvati",
+    gemstoneKn: "ಮುತ್ತು / ಚಂದ್ರಕಾಂತ",
+    gemstoneEn: "Pearl / Moonstone",
+    luckyColorKn: "ಬಿಳಿ & ಬೆಳ್ಳಿ ಬಣ್ಣ",
+    luckyColorEn: "White & Silver",
+    luckyNumber: "೨, ೭",
+    luckyDirectionKn: "ವಾಯುವ್ಯ (North-West)",
+    luckyDirectionEn: "North-West",
+    siddhaMantraKn: "ॐ ಸೋಮಾಯ ನಮಃ • ॐ ನಮಃ ಶಿವಾಯ"
+  },
+  4: {
+    deityKn: "ಶ್ರೀ ಸೂರ್ಯ ನಾರಾಯಣ / ರುದ್ರದೇವ",
+    deityEn: "Lord Surya Narayana / Lord Rudra",
+    gemstoneKn: "ಮಾಣಿಕ್ಯ (Ruby)",
+    gemstoneEn: "Ruby",
+    luckyColorKn: "ಕಿತ್ತಳೆ & ಕೆಂಪು",
+    luckyColorEn: "Orange & Deep Red",
+    luckyNumber: "೧, ೯",
+    luckyDirectionKn: "ಪೂರ್ವ (East)",
+    luckyDirectionEn: "East",
+    siddhaMantraKn: "ॐ ಸೂರ್ಯಾಯ ನಮಃ • ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ"
+  },
+  5: {
+    deityKn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು / ಗಣಪತಿ",
+    deityEn: "Lord Maha Vishnu / Lord Ganesha",
+    gemstoneKn: "ಪಚ್ಚೆ (Emerald)",
+    gemstoneEn: "Emerald",
+    luckyColorKn: "ಪಚ್ಚೆ ಹಸಿರು",
+    luckyColorEn: "Emerald Green",
+    luckyNumber: "೫, ೨",
+    luckyDirectionKn: "ಉತ್ತರ (North)",
+    luckyDirectionEn: "North",
+    siddhaMantraKn: "ॐ ಗಂ ಗಣಪತಯೇ ನಮಃ • ॐ ಬುಧಾಯ ನಮಃ"
+  },
+  6: {
+    deityKn: "ಶ್ರೀ ದುರ್ಗಾ ಪರಮೇಶ್ವರಿ / ಮಹಾಲಕ್ಷ್ಮಿ",
+    deityEn: "Goddess Durga Parameshwari / Mahalakshmi",
+    gemstoneKn: "ವಜ್ರ / ಓಪಲ್ (Diamond/Opal)",
+    gemstoneEn: "Diamond / Opal",
+    luckyColorKn: "ಬಿಳಿ & ಗುಲಾಬಿ",
+    luckyColorEn: "White & Rose Pink",
+    luckyNumber: "೬, ೭",
+    luckyDirectionKn: "ಪಶ್ಚಿಮ (West)",
+    luckyDirectionEn: "West",
+    siddhaMantraKn: "ॐ ದುಂ ದುರ್ಗಾಯೈ ನಮಃ • ॐ ಶುಕ್ರಾಯ ನಮಃ"
+  },
+  7: {
+    deityKn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ / ಕಾಲಭೈರವ",
+    deityEn: "Lord Subrahmanya / Lord Kaalabhairava",
+    gemstoneKn: "ಕೆಂಪು ಹವಳ (Red Coral)",
+    gemstoneEn: "Red Coral",
+    luckyColorKn: "ಕೆಂಪು & ಮರೂನ್",
+    luckyColorEn: "Red & Maroon",
+    luckyNumber: "೯, ೪",
+    luckyDirectionKn: "ದಕ್ಷಿಣ (South)",
+    luckyDirectionEn: "South",
+    siddhaMantraKn: "ॐ ಶರವಣಭವಾಯ ನಮಃ • ॐ ಕಾಲಭೈರವಾಯ ನಮಃ"
+  },
+  8: {
+    deityKn: "ಶ್ರೀ ದಕ್ಷಿಣಾಮೂರ್ತಿ / ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ",
+    deityEn: "Lord Dakshinamurthy / Sri Guru Raghavendra",
+    gemstoneKn: "ಕನಕ ಪುಷ್ಯರಾಗ (Yellow Sapphire)",
+    gemstoneEn: "Yellow Sapphire",
+    luckyColorKn: "ಹಳದಿ & ಬಂಗಾರದ ಬಣ್ಣ",
+    luckyColorEn: "Golden Yellow",
+    luckyNumber: "೩, ೯",
+    luckyDirectionKn: "ಈಶಾನ್ಯ (North-East)",
+    luckyDirectionEn: "North-East",
+    siddhaMantraKn: "ॐ ಗುರವೇ ನಮಃ • ॐ ಬೃಹಸ್ಪತಯೇ ನಮಃ"
+  },
+  9: {
+    deityKn: "ಶ್ರೀ ವೆಂಕಟೇಶ್ವರ ಸ್ವಾಮಿ / ಶನಿ ಮಹಾತ್ಮ",
+    deityEn: "Lord Venkateshwara / Lord Shani",
+    gemstoneKn: "ನೀಲ / ನೀಲಮಣಿ (Blue Sapphire)",
+    gemstoneEn: "Blue Sapphire",
+    luckyColorKn: "ನೀಲಿ & ಕಪ್ಪು",
+    luckyColorEn: "Royal Blue & Black",
+    luckyNumber: "೮, ೪",
+    luckyDirectionKn: "ಪಶ್ಚಿಮ (West)",
+    luckyDirectionEn: "West",
+    siddhaMantraKn: "ॐ ಶಂ ಶನೈಶ್ಚರಾಯ ನಮಃ • ॐ ನಮೋ ವೆಂಕಟೇಶಾಯ"
+  },
+  10: {
+    deityKn: "ಶ್ರೀ ರುದ್ರದೇವ / ಆಂಜನೇಯ ಸ್ವಾಮಿ",
+    deityEn: "Lord Rudradeva / Lord Hanuman",
+    gemstoneKn: "ನೀಲ / ಲಾಪಿಸ್ ಲಾಜುಲಿ",
+    gemstoneEn: "Blue Sapphire / Lapis Lazuli",
+    luckyColorKn: "ಆಕಾಶ ನೀಲಿ & ನೇರಳೆ",
+    luckyColorEn: "Sky Blue & Violet",
+    luckyNumber: "೮, ೭",
+    luckyDirectionKn: "ಪಶ್ಚಿಮ (West)",
+    luckyDirectionEn: "West",
+    siddhaMantraKn: "ॐ ನಮಃ ಶಿವಾಯ • ಹನುಮಾನ್ ಚಾಲೀಸಾ"
+  },
+  11: {
+    deityKn: "ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ / ದತ್ತಾತ್ರೇಯ",
+    deityEn: "Sri Guru Raghavendra / Lord Dattatreya",
+    gemstoneKn: "ಪುಷ್ಯರಾಗ (Yellow Sapphire)",
+    gemstoneEn: "Yellow Sapphire",
+    luckyColorKn: "ಹಳದಿ & ಕೇಸರಿ",
+    luckyColorEn: "Yellow & Saffron",
+    luckyNumber: "೩, ೨",
+    luckyDirectionKn: "ಈಶಾನ್ಯ (North-East)",
+    luckyDirectionEn: "North-East",
+    siddhaMantraKn: "ॐ ಬೃಹಸ್ಪತಯೇ ನಮಃ • ॐ ದ್ರಾಂ ದತ್ತಾತ್ರೇಯಾಯ ನಮಃ"
+  }
+};
+
 export interface BaggonaVarshaRashiPayload {
   rashiIndex: number; // 0 to 11
   rashiKn: string; // e.g. "ಮೇಷ"
@@ -53,6 +257,19 @@ export interface BaggonaVarshaRashiPayload {
   titleEn: string;
   nakshatraPadasKn: string; // e.g. "ಅಶ್ವಿನಿ ೪, ಭರಣಿ ೪, ಕೃತ್ತಿಕಾ ೧ನೇ ಪಾದ"
   nakshatraPadasEn: string;
+  nakshatrasList: BaggonaNakshatraInfo[];
+
+  // Divine & Spiritual Archetypes
+  deityKn: string;
+  deityEn: string;
+  gemstoneKn: string;
+  gemstoneEn: string;
+  luckyColorKn: string;
+  luckyColorEn: string;
+  luckyNumber: string;
+  luckyDirectionKn: string;
+  luckyDirectionEn: string;
+  siddhaMantraKn: string;
 
   // Aaya-Vyaya & Honor metrics
   aaya: number; // 14
@@ -72,9 +289,11 @@ export interface BaggonaVarshaRashiPayload {
   rahuHouse: number; // 1 to 12
   ketuHouse: number; // 1 to 12
   hasGuruBala: boolean;
+  guruBalaSummaryKn: string;
   shaniPhase: "sade_sati" | "ashtama" | "kantaka" | "subha" | "neutral";
   shaniPhaseLabelKn: string;
   shaniPhaseLabelEn: string;
+  shaniSummaryKn: string;
 
   // Book Publisher Layout Paragraphs (concise, fits pages 20-25 perfectly)
   bookParagraph1Kn: string;
@@ -573,6 +792,20 @@ export function getBaggonaVarshaBhavishyaForYear(
     };
 
     const knName = BAGGONA_RASHI_NAMES_KN[idx] || rashiObj.sanskrit;
+    const spiritual = RASHI_SPIRITUAL_ATTRIBUTES[rashiIndex] || RASHI_SPIRITUAL_ATTRIBUTES[0];
+    const nakshatrasList = ALL_27_NAKSHATRAS_BAGGONA.filter((n) => n.rashiIndex === rashiIndex);
+
+    const guruBalaSummaryKn = hasGuruBala
+      ? `ವರ್ಷದ ಪ್ರಮುಖ ಅವಧಿಯಲ್ಲಿ ${toKannadaDigits(guruHouse)}ನೇ ಗುರು ಬಲವಿರುವುದರಿಂದ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ದೈವಬಲ, ಸಮಾಜದಲ್ಲಿ ಗೌರವ-ಪ್ರತಿಷ್ಠೆ ವೃದ್ಧಿ.`
+      : `ಗುರುವು ${toKannadaDigits(guruHouse)}ನೇ ಮನೆಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಗುರು ಆರಾಧನೆ ಮತ್ತು ಸದ್ಗುರುಗಳ ದರ್ಶನದಿಂದ ಕಾರ್ಯಸಿದ್ಧಿ.`;
+
+    const shaniSummaryKn = shaniPhase === "sade_sati"
+      ? `ಶನಿಯು ${toKannadaDigits(shaniHouse)}ನೇ ಮನೆಯಲ್ಲಿ (${shaniPhaseLabelKn}) ಸಂಚರಿಸುತ್ತಿದ್ದು, ಕಾಯಕ ನಿಷ್ಠೆ ಹಾಗೂ ಆಂಜನೇಯ ಸ್ತೋತ್ರ ಶುಭ.`
+      : shaniPhase === "ashtama"
+      ? `ಅಷ್ಟಮ ಶನಿ ಪ್ರಭಾವವಿರುವುದರಿಂದ ಆರೋಗ್ಯ ಮತ್ತು ಪ್ರಯಾಣದಲ್ಲಿ ಜಾಗರೂಕತೆ ಇರಲಿ.`
+      : shaniPhase === "subha"
+      ? `ಶನಿಯು ${toKannadaDigits(shaniHouse)}ನೇ ಶುಭ ಸ್ಥಾನದಲ್ಲಿದ್ದು, ಶತ್ರು ಜಯ ಹಾಗೂ ಆಸ್ತಿ ಲಾಭ ತರಲಿದ್ದಾನೆ.`
+      : `ಸಾಮಾನ್ಯ ಶನಿ ಸಂಚಾರವಿದ್ದು, ಧರ್ಮನಿಷ್ಠೆಯ ಕರ್ಮಗಳಿಂದ ಯಶಸ್ಸು.`;
 
     return {
       rashiIndex,
@@ -583,6 +816,17 @@ export function getBaggonaVarshaBhavishyaForYear(
       titleEn: `${rashiObj.english} (${rashiObj.sanskrit})`,
       nakshatraPadasKn: nakPadas.kn,
       nakshatraPadasEn: nakPadas.en,
+      nakshatrasList,
+      deityKn: spiritual.deityKn,
+      deityEn: spiritual.deityEn,
+      gemstoneKn: spiritual.gemstoneKn,
+      gemstoneEn: spiritual.gemstoneEn,
+      luckyColorKn: spiritual.luckyColorKn,
+      luckyColorEn: spiritual.luckyColorEn,
+      luckyNumber: spiritual.luckyNumber,
+      luckyDirectionKn: spiritual.luckyDirectionKn,
+      luckyDirectionEn: spiritual.luckyDirectionEn,
+      siddhaMantraKn: spiritual.siddhaMantraKn,
       aaya: metrics.aaya,
       vyaya: metrics.vyaya,
       rajapujya: metrics.rajapujya,
@@ -598,9 +842,11 @@ export function getBaggonaVarshaBhavishyaForYear(
       rahuHouse,
       ketuHouse,
       hasGuruBala,
+      guruBalaSummaryKn,
       shaniPhase,
       shaniPhaseLabelKn,
       shaniPhaseLabelEn,
+      shaniSummaryKn,
       bookParagraph1Kn,
       bookParagraph2Kn,
       bookParagraph1En,
