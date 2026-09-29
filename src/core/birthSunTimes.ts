@@ -134,7 +134,8 @@ export const sunTimesSyncForBirth = (
   const ymd = calendarYmdForPanchangPin(birthUtc, lat, lng, pincode);
   const cached = getCachedSunriseSunset(lat, lng, ymd);
   if (cached) {
-    return { sunrise: cached.sunrise, sunset: cached.sunset, source: "api" };
+    const jyotish = resolveSunTimesForJyotish(cached, lat, lng, pincode);
+    return { sunrise: jyotish.sunrise, sunset: jyotish.sunset, source: "api" };
   }
 
   try {
@@ -142,7 +143,8 @@ export const sunTimesSyncForBirth = (
     const anchorDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
     const exact = calculateExactNoaaSunTimes(anchorDate, lat, lng);
     if (exact && !isNaN(exact.sunrise.getTime()) && !isNaN(exact.sunset.getTime())) {
-      return { sunrise: exact.sunrise, sunset: exact.sunset, source: "suncalc" };
+      const jyotish = resolveSunTimesForJyotish(exact, lat, lng, pincode);
+      return { sunrise: jyotish.sunrise, sunset: jyotish.sunset, source: "suncalc" };
     }
   } catch {}
 
@@ -170,7 +172,8 @@ export const resolveBirthSunTimes = async (
   const ymd = calendarYmdForPanchangPin(birthUtc, lat, lng, pincode);
   const api = await fetchSunriseSunsetUtc(lat, lng, ymd);
   if (api) {
-    return { sunrise: api.sunrise, sunset: api.sunset, source: "api" };
+    const jyotish = resolveSunTimesForJyotish(api, lat, lng, pincode);
+    return { sunrise: jyotish.sunrise, sunset: jyotish.sunset, source: "api" };
   }
   return sunTimesSyncForBirth(birthUtc, lat, lng, pincode);
 };

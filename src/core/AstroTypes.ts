@@ -69,6 +69,7 @@ export type KundliOutput = {
     degree: number;
     rashi: Rashi;
     windowLabel: string;
+    navamsha?: number;
   };
   /** Sunrise/sunset at birth place on birth civil day (used for Maandi, patrikā, panchānga). */
   birthSunTimes?: {

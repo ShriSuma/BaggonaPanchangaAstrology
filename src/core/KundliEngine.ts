@@ -136,7 +136,7 @@ export const calculateKundli = (input: KundliInput, options?: CalculateKundliOpt
   let maandi;
   try {
     const m = computeMaandi(birthUtc, input.latitude, input.longitude, pin, ayanamsaModel, sunTimes);
-    maandi = { degree: m.degree, rashi: m.rashi, windowLabel: m.windowLabel };
+    maandi = { degree: m.degree, rashi: m.rashi, windowLabel: m.windowLabel, navamsha: m.navamsha };
   } catch {
     maandi = undefined;
   }
