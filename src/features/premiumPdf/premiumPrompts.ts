@@ -243,48 +243,67 @@ ${JSON_RULE}
   const yogas = `${header(
     input,
     "yogas",
-    "You are a classical scholar of yoga formations who enjoys explaining why a combination is fortunate."
+    "You are an authoritative Vedic scholar of classical yoga formations explaining planetary blessings with profound depth and personal relevance."
   )}
-YOUR TASK
-Take the yogas listed in the chart facts and explain each one properly.
-For EACH yoga write AT LEAST TWO full paragraphs in the 'impact' field: what the combination is,
-which grahas in THIS chart form it, what it has already given this person, and what it can still give.
-If the engine listed no yoga, read the placements above and name the two strongest genuine
-combinations you can actually see. Never invent a yoga the placements do not support.
+CRITICAL STRUCTURAL & CONTENT REQUIREMENT:
+Take the yogas listed in the chart facts above (or identify the 2 to 3 strongest genuine yogas from the placements).
+For EACH yoga in the 'yogas' array, the 'impact' field MUST CONTAIN EXACTLY TWO (2) GENEROUS PARAGRAPHS separated by '\\n\\n'.
+STRICT LENGTH RULE: EACH PARAGRAPH MUST BE AT LEAST 4 TO 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 250+ characters per paragraph, minimum 10 lines total per yoga).
+
+- PARAGRAPH 1 (What the Yoga is & Classical Astrological Explanation):
+  Explain what this specific Yoga is, which exact grahas and houses in THIS chart form it, the classical scriptural/Parashari definition, and the cosmic principles behind this fortunate alignment.
+
+- PARAGRAPH 2 (What this Yoga is Currently Doing in Their Life):
+  Explain what this Yoga is actively doing in their life right now at age ${Math.floor(input.ageYears)}, during their running ${dashaLine}, and under current transits. Detail concrete real-world effects: intellectual clarity, career elevation, financial protection, mental resilience, and social respect.
 
 ${JSON_RULE}
-{"yogas":[{"name":"name of the yoga","impact":"two or more paragraphs"}]}`;
+{"yogas":[{"name":"Name of Yoga","impact":"Paragraph 1: Detailed explanation of what the yoga is (at least 4-5 lines)\\n\\nParagraph 2: Detailed explanation of what this yoga is currently doing in their life (at least 4-5 lines)"}]}`;
 
   const doshas = `${header(
     input,
     "doshas",
-    "You are an astrologer who treats afflictions as solvable problems, never as curses."
+    "You are an empathetic Vedic master who analyzes planetary afflictions (doshas) as solvable karmic opportunities with practical wisdom."
   )}
-YOUR TASK
-Take the doshas listed in the chart facts and explain each one properly.
-For EACH dosha write AT LEAST TWO full paragraphs in the 'impact' field: what the combination is,
-which grahas form it in THIS chart, how it manifests, and what to do about it.
-Name the remedy clearly. If the engine found no dosha, read the chart facts above and describe the
-single strongest planetary challenge in this chart accurately.
+CRITICAL STRUCTURAL & CONTENT REQUIREMENT:
+Take the doshas listed in the chart facts above (or identify the 1 to 2 principal planetary afflictions/karmic challenges from the placements).
+For EACH dosha in the 'doshas' array:
+1. The 'impact' field MUST CONTAIN EXACTLY TWO (2) GENEROUS PARAGRAPHS separated by '\\n\\n'.
+STRICT LENGTH RULE: EACH PARAGRAPH MUST BE AT LEAST 4 TO 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 250+ characters per paragraph, minimum 10 lines total per dosha).
+
+- PARAGRAPH 1 (What the Dosha is & Classical Astrological Explanation):
+  Explain what this specific Dosha/affliction is, which exact grahas, houses, or planetary conflicts in THIS chart create it, and the classical karmic mechanism behind it.
+
+- PARAGRAPH 2 (What this Dosha is Currently Doing in Their Life):
+  Explain what this Dosha is actively doing in their life right now at age ${Math.floor(input.ageYears)}, during their running ${dashaLine}, and under current transits. Detail concrete daily experiences: mental friction, emotional restlessness, delays in specific ventures, relationship tests, or energy drains, without causing fear.
+
+2. The 'remedy' field: Provide a clear, practical Vedic remedy, mantra, or charitable action tailored to pacify this specific dosha.
 
 ${JSON_RULE}
-{"doshas":[{"name":"name of the dosha","impact":"two or more paragraphs","remedy":"practical remedy"}]}`;
+{"doshas":[{"name":"Name of Dosha","impact":"Paragraph 1: Detailed explanation of what the dosha is (at least 4-5 lines)\\n\\nParagraph 2: Detailed explanation of what this dosha is currently doing in their life (at least 4-5 lines)","remedy":"Practical Vedic remedy"}]}`;
 
   const gochara = `${header(
     input,
     "gochara",
-    "You are an astrologer evaluating current transits against the birth Moon."
+    "You are an authoritative Vedic astrologer evaluating live planetary transits against the native's Janma Chandra Rashi with deep psychological and practical insight."
   )}
-YOUR TASK
-Use the transit list in the chart facts — those are the real current positions, counted from
-the birth Chandra rashi. Identify EVERY major effect now running: Sade Sati, Ashtama Shani,
-Guru bala, Kantaka Shani, the Rahu-Ketu axis, and any other that the houses above genuinely show.
-Do not stop at one or two. For each, write AT LEAST TWO paragraphs saying what it means for this
-person right now and how long the feeling lasts, plus one practical remedy.
-The 'name' field must also be in the target language.
+CRITICAL STRUCTURAL & CONTENT REQUIREMENT:
+Evaluate the real live transits from the chart facts counted from their Janma Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}). Cover Saturn (Shani), Jupiter (Guru), and Rahu-Ketu nodal axis transits.
+For EACH transit card in the 'gochara' array:
+1. The 'impact' field MUST CONTAIN EXACTLY TWO (2) GENEROUS PARAGRAPHS separated by '\\n\\n'.
+STRICT LENGTH RULE: EACH PARAGRAPH MUST BE AT LEAST 4 TO 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 250+ characters per paragraph, minimum 10 lines total per transit).
+
+- PARAGRAPH 1 (What the Transit is & Astronomical Movement):
+  Explain the specific celestial transit of this planet (which house it is transiting from Janma Chandra Rashi), the classical nature of this transit house, and its planetary energy.
+
+- PARAGRAPH 2 (What this Transit is Currently Doing in Their Life):
+  Explain what this transit is actively doing in their daily life right now. Detail concrete everyday manifestations: current emotional climate, workplace demands, domestic atmosphere, financial discipline, health habits, or personal decisions.
+
+2. The 'remedy' field: Provide one practical Vedic remedy to balance and harmonize this transit.
+
+The 'name' and 'remedy' fields must be in the target language native script (${input.lang}).
 
 ${JSON_RULE}
-{"gochara":[{"name":"name of the transit effect","impact":"two or more paragraphs","remedy":"one practical remedy"}]}`;
+{"gochara":[{"name":"Name of Transit","impact":"Paragraph 1: Detailed explanation of what the transit is (at least 4-5 lines)\\n\\nParagraph 2: Detailed explanation of what this transit is currently doing in their life (at least 4-5 lines)","remedy":"Practical Vedic remedy"}]}`;
 
   const timeline = `${header(
     input,

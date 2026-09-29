@@ -92,6 +92,13 @@ import {
   type NatalPlacement,
   type TransitPlacement
 } from "../../features/premiumPdf/premiumPrompts";
+import {
+  enrichYogaDescription,
+  enrichDoshaDescription,
+  enrichGocharaDescription,
+  hasTwoSubstantialParagraphs
+} from "../../features/premiumPdf/yogaDoshaGocharaEnricher";
+import { cleanEnglishFromRegionalText } from "../../features/premiumPdf/premiumPdfLocale";
 
 const toGraha = (planet: any): GrahaKey => String(planet) as GrahaKey;
 const asText = (value: string | string[] | undefined): string =>
@@ -153,16 +160,6 @@ function buildKundaliCurrentPhaseFallback(lang: string, lagnaStr: string, moonSt
     return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಹಾಗೂ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಪ್ರಮುಖ ಬದಲಾವಣೆಗಳನ್ನು ಉಂಟುಮಾಡುತ್ತಿದೆ. ಗ್ರಹಗಳ ಪ್ರಚಲಿತ ಸಂಚಾರವು ನಿಮ್ಮ ದೈನಂದಿನ ಕಾರ್ಯಗಳಲ್ಲಿ ಜವಾಬ್ದಾರಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದ್ದು, ಹೊಸ ಅವಕಾಶಗಳಿಗೆ ಹಾದಿ ಮಾಡಿಕೊಡುತ್ತಿದೆ.`;
   }
   return `Based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaStr} Mahadasha and ${bhuktiStr} Bhukti activate significant developments in personal and professional spheres. Daily responsibilities expand while opening doors to long-term growth.`;
-}
-
-function enrichYogaDescription(name: string, impact: string, lang: string, lagnaStr: string = "Lagna", moonStr: string = "Moon Sign"): string {
-  const cleanImpact = (impact || "").trim();
-  if (cleanImpact.length >= 100) return cleanImpact;
-  const baseLang = (lang || "en").split("-")[0];
-  if (baseLang === "kn") {
-    return `${cleanImpact} ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು, ಚಂದ್ರ ಹಾಗೂ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಗ್ರಹಗಳ ಶುಭ ಸ್ಥಿತಿಯಿಂದ ಈ ಯೋಗವು ಸಿದ್ಧಿಸಿದೆ. ಇದರ ಸತ್ಪ್ರಭಾವದಿಂದ ಜೀವನದಲ್ಲಿ ಉನ್ನತ ಗೌರವ, ಕೀರ್ತಿ, ಸ್ಥಿರ ಸಂಪತ್ತು ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳು ಪ್ರಾಪ್ತಿಯಾಗಲಿವೆ.`;
-  }
-  return `${cleanImpact} Auspicious planetary combinations activate this favorable Yoga, bestowing prosperity, wisdom, and success.`;
 }
 
 export type PriestTab =
@@ -1260,7 +1257,7 @@ export const PriestMobilePortal: React.FC = () => {
 
       const finalYogas = (rawYogasArray || []).map((y: any) => ({
         ...y,
-        impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr)
+        impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
       }));
 
       const rawDoshasFallback = await Promise.all(
@@ -1270,9 +1267,14 @@ export const PriestMobilePortal: React.FC = () => {
           remedy: await translateText(d.remedy || result.natalLayer.karmicBaggage.soulPurpose, lang)
         }))
       );
-      const finalDoshas = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
+      const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
         ? dataDoshas.doshas
         : rawDoshasFallback;
+      const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
+        ...d,
+        impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName),
+        remedy: d.remedy ? cleanEnglishFromRegionalText(d.remedy, lang) : undefined
+      }));
 
       const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
       const fallbackTimeline = await Promise.all(
@@ -1299,9 +1301,14 @@ export const PriestMobilePortal: React.FC = () => {
           remedy: await translateText(result.timingLayer.lifeClock.emotionalValidation || "", lang)
         }
       ]);
-      const finalGochara = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
+      const rawGocharaArray = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 10).length > 0
         ? dataGochara.gochara
         : rawGocharaFallback;
+      const finalGochara = (rawGocharaArray || []).map((g: any) => ({
+        name: cleanEnglishFromRegionalText(g.name || "", lang),
+        impact: enrichGocharaDescription(g.name || "", cleanEnglishFromRegionalText(g.impact || "", lang), lang, moonStr, ageYears, dashaName, bhuktiName),
+        remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
+      }));
 
       const premiumDataPayload: PremiumData = {
         characteristics: finalCharacteristics,
