@@ -678,6 +678,40 @@ export default function HomePage(): JSX.Element {
           </div>
         </div>
 
+        {/* ☀️ Featured Innovation: Guru-Shukra Astodaya & Global Eclipses (ಗ್ರಹಣ & ಮೌಢ್ಯ ಮಹಾದರ್ಶನ) */}
+        <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400/90 bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 p-4 text-amber-50 shadow-xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/30 text-2xl border border-amber-400/50 shadow-inner">
+                🌒
+              </span>
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  <span>✨</span> {i18n.language === "en" ? "Astronomy & Shastra Almanac" : "ಗ್ರಹಣ & ಮೌಢ್ಯ ನಿರ್ಣಯ"}
+                </div>
+                <h3 className="font-serif text-sm sm:text-base font-bold text-amber-100 mt-0.5">
+                  {i18n.language === "en"
+                    ? "Guru-Shukra Astodaya & Global Eclipses • Sutaka Rules & 12-Rashi Phala"
+                    : "ಗುರು-ಶುಕ್ರ ಅಸ್ತೋದಯ & ಜಾಗತಿಕ ಗ್ರಹಣಗಳು • ವೇಧ-ಸೂತಕ & ದ್ವಾದಶ ರಾಶಿ ಫಲ"}
+                </h3>
+                <p className="text-[11px] text-amber-200/80 hidden sm:block">
+                  {i18n.language === "en"
+                    ? "Explore Solar & Lunar Eclipses (1900–2050+), local visibility (World/India/Karnataka), Moudhya windows & remedies."
+                    : "೧೯೦೦ ರಿಂದ ೨೦೫೦+ ವರೆಗಿನ ಸೂರ್ಯ-ಚಂದ್ರ ಗ್ರಹಣಗಳು, ಸ್ಥಳೀಯ ಗೋಚರತೆ (ಜಾಗತಿಕ/ಭಾರತ/ಕರ್ನಾಟಕ), ಗುರು-ಶುಕ್ರ ಮೌಢ್ಯ & ಶಾಂತಿ."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage("astodaya_grahana")}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 px-4 py-2 text-xs font-black text-slate-950 shadow-lg hover:shadow-xl transition-all transform active:scale-95 whitespace-nowrap"
+            >
+              <span>{i18n.language === "en" ? "Explore Eclipses & Astodaya" : "ಗ್ರಹಣ & ಅಸ್ತೋದಯ ದರ್ಶನ"}</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
         {/* 🧭 Featured Innovation: Divya Kaala Diksuchi (No-TOB Astrology & Modern World Navigator) */}
         <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/80 bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 p-4 text-amber-50 shadow-xl">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

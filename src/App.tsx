@@ -44,6 +44,7 @@ import { BaggonaBookPublisherDashboard } from "./features/admin/BaggonaBookPubli
 import QuickCalendarPage from "./pages/QuickCalendarPage";
 import { BaggonaCalendarPage } from "./pages/BaggonaCalendarPage";
 import KundliDoshasPage from "./pages/KundliDoshasPage";
+import GuruShukraAstodayaGrahanaPage from "./pages/GuruShukraAstodayaGrahanaPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -133,6 +134,20 @@ export default function App(): JSX.Element {
     window.location.search.includes("portal=doshas") ||
     window.location.search.includes("page=doshas") ||
     window.location.hash.includes("#/doshas")
+  );
+
+  const isAstodayaGrahanaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/astodaya-grahana") ||
+    window.location.pathname.startsWith("/astodaya_grahana") ||
+    window.location.pathname.startsWith("/astodaya") ||
+    window.location.pathname.startsWith("/grahana") ||
+    window.location.pathname.startsWith("/eclipse") ||
+    window.location.search.includes("portal=astodaya") ||
+    window.location.search.includes("portal=grahana") ||
+    window.location.search.includes("page=astodaya_grahana") ||
+    window.location.hash.includes("#/astodaya-grahana") ||
+    window.location.hash.includes("#/grahana") ||
+    window.location.hash.includes("#astodaya_grahana")
   );
 
   const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPublicKundliRoute && (
@@ -249,6 +264,7 @@ export default function App(): JSX.Element {
             isQuickCalendarRoute ||
             isCalendarRoute ||
             isDoshasRoute ||
+            isAstodayaGrahanaRoute ||
             isPriestPortalRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
@@ -323,6 +339,14 @@ export default function App(): JSX.Element {
     );
   }
 
+  if (isAstodayaGrahanaRoute) {
+    return (
+      <ErrorBoundary>
+        <GuruShukraAstodayaGrahanaPage />
+      </ErrorBoundary>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-300">
@@ -391,6 +415,7 @@ export default function App(): JSX.Element {
         {currentPage === "quick_calendar" && <QuickCalendarPage />}
         {currentPage === "calendar" && <BaggonaCalendarPage />}
         {currentPage === "doshas" && <KundliDoshasPage />}
+        {currentPage === "astodaya_grahana" && <GuruShukraAstodayaGrahanaPage />}
       </Layout>
     </ErrorBoundary>
   );

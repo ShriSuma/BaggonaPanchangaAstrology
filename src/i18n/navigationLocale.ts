@@ -204,6 +204,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "తేదీ పంచాంగం & ఆశీర్వాద పత్రం",
     ta: "தேதி பஞ்சாங்கம் & ஆசீர்வாத பத்திரம்"
   },
+  astodaya_grahana: {
+    kn: "ಗ್ರಹಣ & ಗುರು-ಶುಕ್ರ ಅಸ್ತೋದಯ",
+    en: "Eclipses & Guru-Shukra Astodaya",
+    hi: "ग्रहण एवं गुरु-शुक्र अस्तोदय",
+    te: "గ్రహణాలు & గురు-శుక్ర అస్తోదయం",
+    ta: "கிரகணங்கள் & குரு-சுக்கிர அஸ்தோதயம்"
+  },
   superadmindashboard: {
     kn: "ಪ್ರಧಾನ ಆಡಳಿತ ಕೇಂದ್ರ (Super Admin)",
     en: "Super Admin Control Center",

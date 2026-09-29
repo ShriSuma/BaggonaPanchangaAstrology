@@ -336,6 +336,7 @@ export default function Layout({ children }: Props): JSX.Element {
                     <TabButton page="aiaastrologer" icon="🤖" label={getNavLabel("aiaastrologer", language)} onClose={() => setIsDrawerOpen(false)} />
                     <TabButton page="seva" icon="🪔" label={getNavLabel("seva", language)} onClose={() => setIsDrawerOpen(false)} />
                     <TabButton page="quick_calendar" icon="📅" label={getNavLabel("quick_calendar", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <TabButton page="astodaya_grahana" icon="☀️" label={getNavLabel("astodaya_grahana", language)} onClose={() => setIsDrawerOpen(false)} />
                     <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
                   </>
                 )}
