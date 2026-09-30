@@ -240,11 +240,11 @@ describe("Premium PDF V1 - 100% Strict Language Isolation Audit", () => {
         moonPlacement: null,
         isManglik: false,
         spouseDirection: { en: "North", kn: "ಉತ್ತರ", hi: "उत्तर", te: "ఉత్తరం", ta: "வடக்கு" },
-        transitSaturn: { rashiIndex: 10, houseFromMoon: 8 },
-        transitJupiter: { rashiIndex: 1, houseFromMoon: 11 },
+        transitSaturn: { rashiIndex: 10, houseFromMoon: 8, isSadeSati: false, isAshtama: true, isKantaka: false },
+        transitJupiter: { rashiIndex: 1, houseFromMoon: 11, isGuruBala: true },
         transitRahu: { rashiIndex: 11, houseFromMoon: 12 },
         transitKetu: { rashiIndex: 5, houseFromMoon: 6 }
-      });
+      } as any);
 
       expect(timeline).toHaveLength(6);
       for (const item of timeline) {

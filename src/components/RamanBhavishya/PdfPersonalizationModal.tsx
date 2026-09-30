@@ -117,7 +117,7 @@ export default function PdfPersonalizationModal({
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: "general", label: { kn: "ಸಾಮಾನ್ಯ (ಸಾಮಾನ್ಯ)", en: "General (Default)", hi: "सामान्य (Default)", te: "సాధారణం (Default)", ta: "பொதுவானது (Default)" } },
-                  { id: "unmarried", label: { kn: "ಅವಿವಾಹಿತ (ಮದುವೆ)", en: "Unmarried (Single)", hi: "अविवाहित (विवाह)", te: "అవివాహితుడు", ta: "திருமணமாகாதவர்" } },
+                  { id: "unmarried", label: { kn: "ಅವಿವಾಹಿತ (ಮದುವೆ ನಿರೀಕ್ಷೆ)", en: "Unmarried (Single)", hi: "अविवाहित (विवाह प्रत्याशी)", te: "అవివాహితుడు (వివాహం)", ta: "திருமணமாகாதவர் (திருமணம்)" } },
                   { id: "married", label: { kn: "ವಿವಾಹಿತ", en: "Married", hi: "विवाहित", te: "వివాహితుడు", ta: "திருமணமானவர்" } }
                 ].map((opt) => (
                   <button
@@ -125,7 +125,11 @@ export default function PdfPersonalizationModal({
                     type="button"
                     onClick={() => {
                       setMaritalStatus(opt.id as any);
-                      if (opt.id === "unmarried") setChildrenStatus("general");
+                      if (opt.id === "unmarried") {
+                        setChildrenStatus("no_children");
+                      } else if (opt.id === "married" && childrenStatus === "general") {
+                        setChildrenStatus("no_children");
+                      }
                     }}
                     className={`rounded-xl border p-2.5 text-xs font-semibold transition text-center ${
                       maritalStatus === opt.id
@@ -139,34 +143,38 @@ export default function PdfPersonalizationModal({
               </div>
             </div>
 
-            {/* Question 2: Children (shown if Married or General) */}
-            {maritalStatus !== "unmarried" && (
-              <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-amber-900">
-                  {lang === "kn" ? "2. ಸಂತಾನ ವಿವರ (Children Status)" : "2. Children Status"}
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "general", label: { kn: "ಸಾಮಾನ್ಯ (ಸಾಮಾನ್ಯ)", en: "General (Default)", hi: "सामान्य (Default)", te: "సాధారణం (Default)", ta: "பொதுவானது (Default)" } },
-                    { id: "no_children", label: { kn: "ಮಕ್ಕಳಿಲ್ಲ (ಸಂತಾನ ನಿರೀಕ್ಷೆ)", en: "Seeking Progeny", hi: "संतान की आकांक्षा", te: "సంతాన నిరీక్షణ", ta: "குழந்தை பாக்கியம்" } },
-                    { id: "has_children", label: { kn: "ಮಕ್ಕಳಿದ್ದಾರೆ", en: "Has Children", hi: "संतान है", te: "పిల్లలు ఉన్నారు", ta: "குழந்தைகள் உள்ளனர்" } }
-                  ].map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setChildrenStatus(opt.id as any)}
-                      className={`rounded-xl border p-2.5 text-xs font-semibold transition text-center ${
-                        childrenStatus === opt.id
-                          ? "border-amber-700 bg-amber-700 text-white shadow-sm"
-                          : "border-amber-300 bg-white text-amber-900 hover:bg-amber-100/60"
-                      }`}
-                    >
-                      {pick(opt.label, lang)}
-                    </button>
-                  ))}
-                </div>
+            {/* Question 2: Children Status (Always visible, tailored options) */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900">
+                {lang === "kn" ? "2. ಸಂತಾನ ವಿವರ (Children Status)" : "2. Children Status"}
+              </label>
+              <div className={`grid gap-2 ${maritalStatus === "unmarried" ? "grid-cols-2" : "grid-cols-3"}`}>
+                {(maritalStatus === "unmarried"
+                  ? [
+                      { id: "no_children", label: { kn: "ಅವಿವಾಹಿತ ಸಂತಾನವಿಲ್ಲ", en: "Unmarried (No Children)", hi: "अविवाहित (संतान नहीं)", te: "అవివాహితుడు (పిల్లలు లేరు)", ta: "திருமணமாகாதவர் (குழந்தைகள் இல்லை)" } },
+                      { id: "general", label: { kn: "ಸಾಮಾನ್ಯ ವಿವರಣೆ", en: "General Overview", hi: "सामान्य विवरण", te: "సాధారణ అవలోకనం", ta: "பொதுவான விளக்கம்" } }
+                    ]
+                  : [
+                      { id: "no_children", label: { kn: "ವಿವಾಹಿತ ಸಂತಾನವಿಲ್ಲ (ಮಕ್ಕಳ ನಿರೀಕ್ಷೆ)", en: "Married (Seeking Children)", hi: "विवाहित (संतान आकांक्षा)", te: "వివాహితుడు (సంతాన నిరీక్షణ)", ta: "திருமணமானவர் (குழந்தை பாக்கியம்)" } },
+                      { id: "has_children", label: { kn: "ವಿವಾಹಿತ ಸಂತಾನವಿದೆ (ಮಕ್ಕಳಿದ್ದಾರೆ)", en: "Married (Has Children)", hi: "विवाहित (संतान है)", te: "వివాహితుడు (పిల్లలు ఉన్నారు)", ta: "திருமணமானவர் (குழந்தைகள் உள்ளனர்)" } },
+                      { id: "general", label: { kn: "ಸಾಮಾನ್ಯ (Default)", en: "General (Default)", hi: "सामान्य (Default)", te: "సాధారణం (Default)", ta: "பொதுவானது (Default)" } }
+                    ]
+                ).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setChildrenStatus(opt.id as any)}
+                    className={`rounded-xl border p-2.5 text-xs font-semibold transition text-center ${
+                      childrenStatus === opt.id
+                        ? "border-amber-700 bg-amber-700 text-white shadow-sm"
+                        : "border-amber-300 bg-white text-amber-900 hover:bg-amber-100/60"
+                    }`}
+                  >
+                    {pick(opt.label, lang)}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
           </>
         )}
 
