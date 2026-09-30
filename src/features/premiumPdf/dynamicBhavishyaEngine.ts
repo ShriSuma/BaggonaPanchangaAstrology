@@ -18,6 +18,19 @@ import {
   cleanEnglishFromRegionalText
 } from "./premiumPdfLocale";
 import type { NatalPlacement, TransitPlacement } from "./premiumPrompts";
+import { transliterateName } from "../../utils/transliterator";
+
+export function getLocalizedDevoteeName(name: string | undefined | null, lang: string): string {
+  if (!name) return "";
+  const trimmed = name.trim();
+  if (!trimmed) return "";
+  const baseLang = lang.split("-")[0];
+  if (baseLang === "en") return trimmed;
+  if (/[a-zA-Z]/.test(trimmed)) {
+    return transliterateName(trimmed, baseLang);
+  }
+  return trimmed;
+}
 
 export interface KundaliAnalysisInput {
   lagnaRashiIndex: number;
@@ -468,7 +481,8 @@ Your prospective life partner will unmistakably reflect the core planetary quali
 To neutralize subtle planetary friction, dissolve past karmic blockages, and harmonize Kuja/Manglik influences (${chart.isManglik ? "Kuja Dosha is present in your chart and requires dedicated Shanti" : "no severe Kuja Dosha is present, ensuring smooth marital progress"}), performing dedicated Vedic remedies is highly beneficial. Reciting the sacred mantra 'Om Shreem Gauryai Namah' and performing Gauri Pooja alongside Sri Subramanya Seva 108 times during the morning sandhya creates an auspicious energetic shield for domestic bliss. Furthermore, offering archana at Gokarna Mahabaleshwara Kshetra on auspicious Tuesdays or Fridays will remove all lingering impediments, pacify planetary afflictions, and ensure early, blessed marital fulfillment.`;
   } else if (status === "married") {
     if (baseLang === "kn") {
-      const salutation = chart.name ? `${chart.name} ಅವರೇ, ` : "";
+      const locName = getLocalizedDevoteeName(chart.name, "kn");
+      const salutation = locName ? `${locName} ಅವರೇ, ` : "";
       const femaleMangalyaKn = chart.gender === "Female"
         ? `ಮಾಂಗಲ್ಯ ಸ್ಥಾನ ಹಾಗೂ ಜೀವಕಾರಕ ಗುರುವಿನ ಶುಭ ಬಲವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಬಾಂಧವ್ಯವನ್ನು ರಕ್ಷಿಸುತ್ತದೆ. `
         : "";
@@ -488,7 +502,8 @@ To neutralize subtle planetary friction, dissolve past karmic blockages, and har
 ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳ ನಿರಂತರ ವೃದ್ಧಿಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಪ್ರಾರ್ಥಿಸುವುದು ಶ್ರೇಷ್ಠ. ಶ್ರೀ ಲಕ್ಷ್ಮೀ-ನಾರಾಯಣ ಹಾಗೂ ಗೌರಿ-ಶಂಕರ ದೇವಸ್ಥಾನಗಳಲ್ಲಿ ದಂಪತಿ ಸಮೇತರಾಗಿ ಅರ್ಚನೆ ನೆರವೇರಿಸಿ, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸಮರ್ಪಿಸುವುದರಿಂದ ಕೌಟುಂಬಿಕ ವಿಘ್ನಗಳು ಪರಿಹಾರವಾಗಿ ದಾಂಪತ್ಯದಲ್ಲಿ ನಿತ್ಯ ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
     }
     if (baseLang === "hi") {
-      const salutation = chart.name ? `${chart.name} जी, ` : "";
+      const locName = getLocalizedDevoteeName(chart.name, "hi");
+      const salutation = locName ? `${locName} जी, ` : "";
       const femaleMangalyaHi = chart.gender === "Female"
         ? `मांगल्य भाव एवं जीवकारक बृहस्पति का शुभ प्रभाव आपके दांपत्य को सुरक्षा प्रदान करता है। `
         : "";
@@ -508,7 +523,8 @@ To neutralize subtle planetary friction, dissolve past karmic blockages, and har
 गृहस्थी में अखंड शांति, समृद्धि और आरोग्य की वृद्धि हेतु प्रत्येक शुक्रवार को मां महालक्ष्मी तथा श्री गौरी-शंकर का विधिपूर्वक पूजन करें। गोಕರ್ण क्षेत्र में महाबलेश्वर भगवान का अभिषेक एवं लक्ष्मी नारायण स्तोत्र का पाठ करने से समस्त नकारात्मकता समाप्त होकर दांपत्य जीवन में अपार सुख और समृद्धि का वास होगा।`;
     }
     if (baseLang === "te") {
-      const salutation = chart.name ? `${chart.name} గారూ, ` : "";
+      const locName = getLocalizedDevoteeName(chart.name, "te");
+      const salutation = locName ? `${locName} గారూ, ` : "";
       const femaleMangalyaTe = chart.gender === "Female"
         ? `మాంగళ్య స్థానం మరియు జీవకారక గురుగ్రహ శుభ దృష్టి మీ దాంపత్య బంధాన్ని కాపాడుతాయి. `
         : "";
@@ -528,7 +544,8 @@ To neutralize subtle planetary friction, dissolve past karmic blockages, and har
 ఇంట్లో అఖండ శాంతి, సమృద్ధి కోసం ప్రతి శుక్రవారం లక్ష్మీ-నారాయణ మరియు గౌరీ-శంకరులను పూజించండి. గోకర్ణ క్షేత్రంలో మహాబలేశ్వరునికి అభిషేకం చేయడం వల్ల ప్రతికూలతలు తొలగి దాంపత్య జీవితంలో అపారమైన ఆనందం కలుగుతుంది.`;
     }
     if (baseLang === "ta") {
-      const salutation = chart.name ? `${chart.name} அவர்களே, ` : "";
+      const locName = getLocalizedDevoteeName(chart.name, "ta");
+      const salutation = locName ? `${locName} அவர்களே, ` : "";
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} ${h7Where}-ல் அமைந்திருப்பது இல்லற வாழ்வில் ஆழ்ந்த பாசம், அர்ப்பணிப்பு மற்றும் நிலைத்தன்மையை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தம்பதியர் ஒருவருக்கொருவர் பெரும் பலமாக விளங்க உதவும். சுப கிரகங்களின் சேர்க்கை இல்லத்தில் அமைதியை நிலைநிறுத்தும்.
@@ -693,7 +710,8 @@ To awaken photographic recall, mental focus, and academic distinction, reciting 
   // Adult Native (22 to 59 Years): Seeking Progeny vs Has Children vs General
   if (status === "no_children") {
     if (baseLang === "kn") {
-      const salutation = chart.name ? `${chart.name} ಅವರೇ, ` : "";
+      const locName = getLocalizedDevoteeName(chart.name, "kn");
+      const salutation = locName ? `${locName} ಅವರೇ, ` : "";
       return `${salutation}ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ (Jupiter), ಚಂದ್ರ (Moon) ಹಾಗೂ ಕುಜ (ಮಂಗಳ) ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯೋಗವನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಬಹಳ ದಿನಗಳಿಂದ ಮಗುವಿನ ಆಗಮನಕ್ಕಾಗಿ ನೀವು ಮಾಡುತ್ತಿರುವ ಮೂಕ ಪ್ರಾರ್ಥನೆ, ಕಾಯುವಿಕೆಯ ತಲ್ಲಣ ಹಾಗೂ ಹಂಬಲವನ್ನು ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರವು ಸಂಪೂರ್ಣವಾಗಿ ಗೌರವಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ವಂಶಾಭಿವೃದ್ಧಿಯ ಶುಭ ಸಂಕೇತಗಳನ್ನು ಹೊತ್ತುತಂದಿದ್ದು, ಪಂಚಮ ಭಾವದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಬಲವು ನೈಸರ್ಗಿಕ ಗರ್ಭಧಾರಣೆಗೆ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾದ ದಿವ್ಯ ಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.
 
 ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಗೋಚಾರ ಸಂಚಾರ ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಶ್ರೇಷ್ಠ ಕಾಲಘಟ್ಟವನ್ನು ರೂಪಿಸುತ್ತಿದೆ. ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಗ್ರಹಗಳ ಈ ನಿಧಾನಗತಿಯು ನಿರಾಕರಣೆಯಲ್ಲ, ಬದಲಿಗೆ ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಶುದ್ಧೀಕರಣದ ಪ್ರಕ್ರಿಯೆಯಾಗಿದೆ. ಈ ಸೂಕ್ಷ್ಮ ಅವಧಿಯಲ್ಲಿ ದಂಪತಿಗಳು ಯಾವುದೇ ಕೀಳರಿಮೆ ಅಥವಾ ಹೊರಗಿನವರ ಮಾತುಗಳಿಂದ ವಿಚಲಿತರಾಗದೆ, ಪರಸ್ಪರ ಮಾನಸಿಕ ಧೈರ್ಯ ತುಂಬಿಕೊಳ್ಳುವುದು ಮತ್ತು ಸೂಕ್ತ ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಪೌಷ್ಟಿಕ ಜೀವನಶೈಲಿಯನ್ನು ಅನುಸರಿಸುವುದು ಶೀಘ್ರದಲ್ಲೇ ಧನಾತ್ಮಕ ಫಲಿತಾಂಶವನ್ನು ನೀಡಲಿದೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಯಿಂದಾಗಿ ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಮುದ್ದು ಕಂದನ ನಗುವಿನ ಸದ್ದು ಶೀಘ್ರದಲ್ಲೇ ಪ್ರತಿಧ್ವನಿಸಲಿದೆ.
@@ -701,7 +719,8 @@ To awaken photographic recall, mental focus, and academic distinction, reciting 
 ಸಂತಾನ ಪ್ರಾಪ್ತಿಗೆ ಎದುರಾಗುವ ಯಾವುದೇ ಸೂಕ್ಷ್ಮ ಕರ್ಮದೋಷಗಳು ಅಥವಾ ಗ್ರಹಬಾಧೆಗಳ ನಿವಾರಣೆಗೆ ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಪತಿ-ಪತ್ನಿಯರಿಬ್ಬರೂ ಜೊತೆಯಾಗಿ 'ಓಂ ಕ್ಲೀಂ ದೇವಕೀಸುತ ಗೋವಿಂದ ವಾಸುದೇವ ಜಗತ್ಪತೇ, ದೇಹಿ ಮೇ ತನಯಂ ಕೃಷ್ಣ ತ್ವಾಮಹಂ ಶರಣಂ ಗತಃ' ಎಂಬ ಪವಿತ್ರ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಗೋಸೇವೆ (ಹಸುಗಳಿಗೆ ಬೆಲ್ಲ, ಕಡಲೆ ಅಥವಾ ಹಸಿರು ಹುಲ್ಲು ನೀಡುವುದು) ಮಾಡುವುದು ಅಪಾರ ಫಲ ನೀಡುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪವಿತ್ರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ ಹಾಗೂ ನಾಗದೋಷ ಶಾಂತಿ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರದಲ್ಲೇ ಆರೋಗ್ಯವಂತ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
     }
     if (baseLang === "hi") {
-      const salutation = chart.name ? `${chart.name} जी, ` : "";
+      const locName = getLocalizedDevoteeName(chart.name, "hi");
+      const salutation = locName ? `${locName} जी, ` : "";
       return `${salutation}आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति के साथ संतानकारक देवगुरु बृहस्पति, चंद्र एवं मंगल का प्रभाव संतान प्राप्ति के दिव्य योग को पुष्ट करता है। आपके अंतर्मन में शिशु के आगमन की मौन प्रतीक्षा, व्याकुलता और गहन प्रार्थनाओं को वैदिक ज्योतिष पूर्ण आत्मीयता से स्वीकार करता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन में वंश वृद्धि और मातृत्व-पितृत्व के स्वर्णिम अवसरों को जागृत कर रहा है। पंचम भाव में सक्रिय ग्रह ऊर्जा गर्भधारण के लिए अत्यंत अनुकूल वातावरण निर्मित कर रही है।
 
 गोचर में देवगुरु बृहस्पति का शुभ भ्रमण और नवग्रहों की अनुकूल दृष्टि गर्भाधान तथा स्वास्थ्य संवर्धन के लिए एक सशक्त एवं सुरक्षित समय का निर्माण कर रही है। ज्योतिष में ग्रहों का विलंब किसी भी प्रकार का निषेध नहीं, अपितु शारीरिक और मानसिक पुनर्संतुलन की पावन अवधि है। इस संवेदनशील समय में बाहरी व्यक्तियों के प्रश्नों की उपेक्षा करते हुए पति-पत्नी एक-दूसरे का संबल बनें तथा नियमित चिकित्सीय परामर्श के साथ सात्विक जीवनचर्या अपनाएं। ग्रहों की अनुकूलता से आपके घर में नवजात शिशु की किलकारियां गूंजने का शुभ योग शीघ्र बन रहा है।
@@ -709,7 +728,8 @@ To awaken photographic recall, mental focus, and academic distinction, reciting 
 संतान योग में आने वाली किसी भी सूक्ष्म बाधा या दोष के निवारणार्थ प्रतिदिन प्रातःकाल पति-पत्नी मिलकर 'ॐ क्लीं देवकीसुत गोविन्द वासुदेव जगत्पते । देहि मे तनयं कृष्ण त्वामहं शरणं गतः ॥' संतान गोपाल मंत्र का 108 बार श्रद्धापूर्वक जाप करें। प्रत्येक गुरुवार को शुद्ध गोघृत का दीपक जलाएं तथा गोमाता को गुड़ व हरा चारा खिलाकर गो-सेवा करें। इसके साथ ही गोಕರ್ण महाबलेश्वर अथवा बग्गोण क्षेत्र में सुब्रह्मण्य शांति एवं नागदोष निवारण पूजा संपन्न कराने से समस्त ग्रह बाधाएं शांत होकर शीघ्र ही स्वस्थ एवं तेजस्वी संतान का सुख प्राप्त होगा।`;
     }
     if (baseLang === "te") {
-      const salutation = chart.name ? `${chart.name} గారూ, ` : "";
+      const locName = getLocalizedDevoteeName(chart.name, "te");
+      const salutation = locName ? `${locName} గారూ, ` : "";
       return `${salutation}మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} శుభ స్థితితో పాటు పుత్రకారక బృహస్పతి, చంద్ర మరియు కుజ గ్రహాల ప్రభావం సంతాన ప్రాప్తి యోగాన్ని దృఢపరుస్తున్నాయి. మీ హృదయంలో పసిపాప రాకకై ఎంతో కాలంగా ఎదురుచూస్తున్న నిశ్శబ్ద ఆరాటం, నిరీక్షణ మరియు భక్తిపూర్వక ప్రార్థనలను జ్యోతిషశాస్త్రం అత్యంత గౌరవంతో వీక్షిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వంశాభివృద్ధికి మరియు గర్భధారణకు అనుకూలమైన శక్తిని మీ జాతకంలో మేల్కొల్పుతోంది.
 
 గోచారంలో గురు భగవానుని అనుకూల సంచారం గర్భధారణకు మరియు శారీరక పుష్టికి అత్యంత బలమైన కాలాన్ని నిర్మిస్తోంది. జ్యోతిషశాస్త్రంలో గ్రహాల తాత్కాలిక ఆలస్యం నిరాకరణ కాదు, అది శరీర మనస్సుల పరిశుద్ధతకు సమయం మాత్రమే. ఈ సున్నితమైన సమయంలో ఇతరుల ప్రశ్నలకు కలవరపడకుండా, దంపతులిద్దరూ ఒకరికొకరు మానసిక ధైర్యంగా నిలుస్తూ, వైద్య సలహాలు మరియు పౌష్టికాహారాన్ని పాటించడం త్వరలోనే సత్ఫలితాలను ఇస్తుంది. దైవానుగ్రహంతో మీ ఇంట పసిపాప నవ్వులు వెల్లివిరిసే శుభ ఘడియలు సమీపిస్తున్నాయి.
@@ -717,7 +737,8 @@ To awaken photographic recall, mental focus, and academic distinction, reciting 
 సంతాన ప్రాప్తికి అడ్డంకిగా ఉన్న సూక్ష్మ దోషాల నివారణకు ప్రతిరోజూ ఉదయం దంపతులిద్దరూ కలిసి 'ఓం క్లీం దేవకీసుత గోవింద వాసుదేవ జగత్పతే । దేహి మే తనయం కృష్ణ త్వామహం శరణం గతః ॥' అనే పవిత్ర సంతాన గోపాల మంత్రాన్ని 108 సార్లు జపించండి. ప్రతి గురువారం ఆవు నెయ్యితో దీపం వెలిగించి, ఆవులకు బెల్లం లేదా పచ్చగడ్డి తినిపించి గోసేవ చేయడం అద్భుత ఫలితాలనిస్తుంది. గోకర్ణ మహాబలేశ్వర లేదా బగ్గోణ క్షేత్రంలో సుబ్రహ్మణ్య స్వామి పూజ మరియు నాగదోష శాంతి జరిపించడం వలన సమస్త విఘ్నాలు తొలగి త్వరలోనే ఆరోగ్యవంతమైన సంతానం కలుగుతుంది.`;
     }
     if (baseLang === "ta") {
-      const salutation = chart.name ? `${chart.name} அவர்களே, ` : "";
+      const locName = getLocalizedDevoteeName(chart.name, "ta");
+      const salutation = locName ? `${locName} அவர்களே, ` : "";
       return `${salutation}உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் சந்தானகாரக குருவின் சுப பார்வை வம்ச விருத்தி மற்றும் குழந்தை பாக்கிய யோகத்தை பலப்படுத்துகிறது. உங்கள் மனதில் மழலைச் செல்வத்தின் வருகைக்காக இருக்கும் நீண்ட நாள் ஆசை, எதிர்பார்ப்பு மற்றும் மனப்பூர்வமான பிரார்த்தனைகளை ஜோதிட சாஸ்திரம் ஆழமாக உணர்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் மழலைச் செல்வம் பெற சாதகமான நல்வாய்ப்புகளை உருவாக்கித் தருகிறது. 5-ம் பாவத்தில் சுப கிரகங்களின் ஆற்றல் தாயாகும் மற்றும் தந்தையாகும் வரத்தை அளிக்கத் தயாராக உள்ளது.
 
 கோசாரத்தில் குரு பகவானின் அனுகூலமான சஞ்சாரம் கருத்தரிப்புக்கும் நல்ல உடல் ஆரோக்கியத்திற்கும் ஏற்ற காலத்தை உருவாக்குகிறது. சாஸ்திர ரீதியாக இந்த தாமதம் ஒரு மனப்பக்குவத்திற்கான காலமே தவிர நிராகரிப்பு அல்ல. இக்காலகட்டத்தில் மற்றவர்களின் கேள்விகளுக்கு மனமுடைந்து போகாமல், தம்பதியர் ஒருவருக்கொருவர் பக்கபலமாக இருந்து, தகுந்த மருத்துவ ஆலோசனைகள் மற்றும் ஆரோக்கியமான உணவு முறையைக் கடைப்பிடிப்பது விரைவில் நல்ல பலனைத் தரும். குருவின் திருவருளால் உங்கள் இல்லத்தில் மழலை குரல் கேட்கும் சுப யோகம் விரைவில் கைகூடும்.
@@ -1408,7 +1429,7 @@ export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): str
   const isSenior = age >= 60;
   const isYouth = age < 23;
   const isMarriedNoChildren = !isSenior && !isYouth && chart.maritalStatus === "married" && chart.hasChildren === "no_children";
-  const devoteeName = chart.name ? chart.name.trim() : "";
+  const devoteeName = getLocalizedDevoteeName(chart.name, baseLang);
 
   if (baseLang === "kn") {
     const salutation = devoteeName ? `${devoteeName} ಅವರೇ, ` : "";
@@ -1515,7 +1536,7 @@ export function buildDynamicSummaryFallback(chart: ParsedKundaliChart): string {
   const isSenior = age >= 60;
   const isYouth = age < 23;
   const isMarriedNoChildren = !isSenior && !isYouth && chart.maritalStatus === "married" && chart.hasChildren === "no_children";
-  const devoteeName = chart.name ? chart.name.trim() : "";
+  const devoteeName = getLocalizedDevoteeName(chart.name, baseLang);
 
   if (baseLang === "kn") {
     const salutation = devoteeName ? `${devoteeName} ಅವರೇ, ` : "";

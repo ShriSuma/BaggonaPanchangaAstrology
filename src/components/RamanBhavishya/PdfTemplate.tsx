@@ -470,7 +470,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           <span className="text-3xl text-amber-700">✧</span>
         </div>
         <div className="mt-12 text-center text-amber-800 text-base font-bold uppercase pb-8 pt-10 leading-normal border-t border-amber-700/30">
-          Baggona Panchanga Creation
+          {translations.footer || "Baggona Panchanga Publication"}
         </div>
       </div>
     </div>

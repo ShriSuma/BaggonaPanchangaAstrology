@@ -40,8 +40,12 @@ import {
   enrichYogaDescription,
   enrichDoshaDescription,
   enrichGocharaDescription,
-  hasTwoSubstantialParagraphs
+  hasTwoSubstantialParagraphs,
+  localizeYogaName,
+  localizeDoshaName,
+  localizeGocharaName
 } from "../../features/premiumPdf/yogaDoshaGocharaEnricher";
+import { transliterateName } from "../../utils/transliterator";
 import type { PlanetName } from "../../core/AstroTypes";
 import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
@@ -104,22 +108,34 @@ const ensureValidSection = async (
   minChars: number = 10
 ): Promise<{ name?: string; impact: string; remedy?: string; dateRange?: string }[]> => {
   const safeItems = toSafeArray(items);
-  const validItems = safeItems.filter(item => item && (item.impact || item.description || item.trait || "").trim().length >= minChars);
+  const isRegional = targetLang && !targetLang.toLowerCase().startsWith("en");
+  const validItems = safeItems.filter(item => {
+    if (!item) return false;
+    const txt = (item.impact || item.description || item.trait || "").trim();
+    if (txt.length < minChars) return false;
+    // CRITICAL: Reject English AI leaks in regional language downloads
+    if (isRegional && /[a-zA-Z]{3,}/.test(txt)) return false;
+    return true;
+  });
   if (validItems.length > 0) {
-    return validItems;
+    return validItems.map(item => ({
+      ...item,
+      impact: cleanEnglishFromRegionalText(item.impact || item.description || item.trait || "", targetLang),
+      name: item.name ? cleanEnglishFromRegionalText(item.name, targetLang) : undefined
+    }));
   }
   const safeFallback = fallbackText || "";
-  const isTargetEnglish = (targetLang || "en").toLowerCase().startsWith("en");
+  const isTargetEnglish = !isRegional;
   const hasIndicScript = /[\u0900-\u0D7F]/.test(safeFallback);
   // If target is English or fallback is already in Indic script, use directly without network translation
   if (isTargetEnglish || hasIndicScript) {
-    return [{ impact: safeFallback }];
+    return [{ impact: cleanEnglishFromRegionalText(safeFallback, targetLang) }];
   }
   try {
     const translatedFallback = await translateText(safeFallback, targetLang);
-    return [{ impact: translatedFallback || safeFallback }];
+    return [{ impact: cleanEnglishFromRegionalText(translatedFallback || safeFallback, targetLang) }];
   } catch {
-    return [{ impact: safeFallback }];
+    return [{ impact: cleanEnglishFromRegionalText(safeFallback, targetLang) }];
   }
 };
 
@@ -1955,14 +1971,15 @@ Return ONLY this JSON format:
       const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
       const panchanga = calculateTraditionalBaggona(session.birthDateYmd, session.birthTimeHm, session.input.latitude, session.input.longitude);
 
-      const ashirvadaSource = ashirvada
-        || "May the divine forces grant you strength, clarity and peace, and may you trust your own resilience.";
+      const localizedDevoteeName = (lang !== "en" && /[a-zA-Z]/.test(session.input.name))
+        ? transliterateName(session.input.name, lang)
+        : session.input.name;
 
       const translatedData: PdfTranslations = {
         title: tp("title", lang),
         subtitle: tp("subtitle", lang),
         nameLabel: tp("nameLabel", lang),
-        nameValue: session.input.name,
+        nameValue: localizedDevoteeName,
         dobLabel: tp("dobLabel", lang),
         dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
         lagnaLabel: tp("lagnaLabel", lang),
@@ -1977,7 +1994,7 @@ Return ONLY this JSON format:
         dashaPlanetValue: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
         bhuktiPlanetValue: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "",
         ashirvadaTitle: tp("ashirvadaTitle", lang),
-        ashirvadaValue: await translateText(ashirvadaSource, lang),
+        ashirvadaValue: tp("ashirvadaValue", lang),
         footer: tp("footer", lang),
         yogasTitle: tp("yogasTitle", lang),
         doshasTitle: tp("doshasTitle", lang),
@@ -1990,9 +2007,9 @@ Return ONLY this JSON format:
         gocharaTitle: tp("gocharaTitle", lang),
         summaryTitle: tp("summaryTitle", lang),
         introTitle: tp("introTitle", lang),
-        introGreeting: greetingLine(lang, session.input.name),
+        introGreeting: greetingLine(lang, localizedDevoteeName),
         introPrepared: buildComprehensiveIntro(lang, {
-          name: session.input.name,
+          name: localizedDevoteeName,
           lagna: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
           moonSign: pick(RASHI_L5[session.result.moonSign.index], lang),
           nakshatra: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
@@ -2464,7 +2481,7 @@ Return ONLY this JSON format:
       const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
 
       const rawYogasFallback = (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map((y: any) => ({
-        name: y.name,
+        name: localizeYogaName(y.name || "Dasha Yoga", lang),
         impact: enrichYogaDescription(y.name, asText(y.significance) || result.masterSynthesis.overallTone, lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
       }));
       const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
@@ -2472,11 +2489,12 @@ Return ONLY this JSON format:
         : rawYogasFallback;
       const finalYogas = (rawYogasArray || []).map((y: any) => ({
         ...y,
+        name: localizeYogaName(y.name || y.trait || "", lang),
         impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
       }));
 
       const rawDoshasFallback = (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map((d: any) => ({
-        name: d.name,
+        name: localizeDoshaName(d.name || "Karmic Challenge", lang),
         impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
         remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
       }));
@@ -2485,6 +2503,7 @@ Return ONLY this JSON format:
         : rawDoshasFallback;
       const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
         ...d,
+        name: localizeDoshaName(d.name || "", lang),
         impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName),
         remedy: d.remedy ? cleanEnglishFromRegionalText(d.remedy, lang) : undefined
       }));
@@ -2512,7 +2531,7 @@ Return ONLY this JSON format:
 
       let finalGochara = aiGocharaValid ? dataGochara.gochara : rawGocharaFallback;
       finalGochara = finalGochara.map((g: any) => ({
-        name: cleanEnglishFromRegionalText(g.name || "", lang),
+        name: localizeGocharaName(g.name || "", lang),
         impact: enrichGocharaDescription(g.name || "", cleanEnglishFromRegionalText(g.impact || "", lang), lang, moonStr, ageYears, dashaName, bhuktiName),
         remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
       }));

@@ -19,6 +19,7 @@ import {
   NAKSHATRA_L5,
   MONTH_L5
 } from "../seva/sevaLocale";
+import { transliterateName } from "../../utils/transliterator";
 
 export type { L5, SevaLang, GrahaKey };
 export { pick, GRAHA_L5, RASHI_L5, NAKSHATRA_L5, MONTH_L5 };
@@ -192,6 +193,20 @@ export const PDF_T: Record<string, L5> = {
     te: "ఇక క్రింద మీ సంపూర్ణ ఫలితం ప్రారంభమవుతుంది.",
     ta: "இனி கீழே உங்கள் முழுமையான பலன் தொடங்குகிறது.",
     hi: "अब नीचे आपका सम्पूर्ण फल आरम्भ होता है।"
+  },
+  footer: {
+    en: "॥ Baggona Panchanga Publication ॥",
+    kn: "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ ॥",
+    te: "॥ బగ్గోణ పంచాంగ ప్రచురణ ॥",
+    ta: "॥ பக்கோண பஞ்சாங்க வெளியீடு ॥",
+    hi: "॥ बग्गोण पंचांग प्रकाशन ॥"
+  },
+  ashirvadaValue: {
+    en: "May the divine grace of Sri Mukhyaprana and the Nava Grahas bestow upon you steadfast wisdom, health, prosperity, and peace of mind.",
+    kn: "ಶ್ರೀ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ಹಾಗೂ ನವಗ್ರಹಗಳ ದಿವ್ಯ ಕೃಪಾಕಟಾಕ್ಷದಿಂದ ನಿಮಗೆ ಸನ್ಮತಿ, ದೀರ್ಘಾಯುಷ್ಯ, ಸಕಲ ಸೌಭಾಗ್ಯ ಹಾಗೂ ಶಾಶ್ವತ ಮನಶ್ಶಾಂತಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.",
+    te: "శ్రీ ముఖ్యప్రాణ దేవుని మరియు నవగ్రహాల దివ్య కటాక్షంతో మీకు సద్బుద్ధి, దీర్ఘాయుష్షు, సమస్త శుభాలు మరియు శాశ్వత మనశ్శాంతి కలగాలి.",
+    ta: "ஸ்ரீ முக்கியபிராண தேவர் மற்றும் நவக்கிரகங்களின் திவ்ய அருளால் உங்களுக்கு நற்புத்தி, நீண்ட ஆயுள், சகல சௌபாக்கியங்களும் நிலையான மன அமைதியும் உண்டாகட்டும்.",
+    hi: "श्री मुख्यप्राण देव एवं नवग्रहों के दिव्य अनुग्रह से आपको सदबुद्धि, दीर्घायु, सर्व सौभाग्य एवं स्थायी मानसिक शांति की प्राप्ति हो।"
   }
 };
 
@@ -221,12 +236,16 @@ export const runningPeriodSentence = (
     .replace("{maha}", pick(GRAHA_L5[mahaLord], lang))
     .replace("{bhukti}", pick(GRAHA_L5[bhuktiLord], lang));
 
-/** "Namaskara Ramesh," — the comma placement differs by script. */
+/** "Namaskara Ramesh," — the comma placement differs by script; transliterates name if non-English. */
 export const greetingLine = (lang: string, name: string): string => {
   const hello = tp("namaskara", lang);
-  const trimmed = (name || "").trim();
+  let trimmed = (name || "").trim();
   if (!trimmed) return `${hello},`;
-  return lang === "hi" ? `${hello} ${trimmed} जी,` : `${hello} ${trimmed},`;
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang !== "en" && /[a-zA-Z]/.test(trimmed)) {
+    trimmed = transliterateName(trimmed, baseLang);
+  }
+  return baseLang === "hi" ? `${hello} ${trimmed} जी,` : `${hello} ${trimmed},`;
 };
 
 /* ------------------------------------------------------------------ *

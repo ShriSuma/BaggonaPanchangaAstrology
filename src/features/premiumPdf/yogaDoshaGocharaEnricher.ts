@@ -11,6 +11,7 @@
  */
 
 import { cleanEnglishFromRegionalText } from "./premiumPdfLocale";
+import { transliterateName } from "../../utils/transliterator";
 
 export interface EnrichmentContext {
   lang: string;
@@ -573,4 +574,289 @@ export function enrichGocharaDescription(
   const p1 = `The present celestial transit across pivotal houses counted from your natal Moon sign introduces significant planetary currents into your consciousness. Classical astrological principles dictate that transiting planets modulate daily environmental circumstances, mood fluctuations, and immediate opportunities, providing the timing mechanism that awakens dormant natal promises.`;
   const p2 = `In your living reality right now, this planetary transit is actively guiding your daily thoughts and executive choices. It advises steady equilibrium in career duties, vigilant stewardship over finances, and domestic patience. Aligning your daily routine with mindful contemplation ensures that this transit yields its highest constructive blessings.`;
   return formatTwoParagraphs(p1, p2, cleanImpact);
+}
+
+/**
+ * Localizes any Yoga title into pure Indic script for kn, hi, te, ta, and en.
+ * Guarantees zero Latin / English letter leakage into regional language reports.
+ */
+export function localizeYogaName(name: string, lang: string): string {
+  if (!name) return "";
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang === "en") return name;
+  const lower = name.toLowerCase();
+
+  if (lower.includes("gajakesari") || lower.includes("ಗಜಕೇಸರಿ") || lower.includes("गजकेसरी") || lower.includes("గజకేసరి") || lower.includes("கஜகேசரி")) {
+    if (baseLang === "kn") return "ಗಜಕೇಸರಿ ಮಹಾರಾಜಯೋಗ";
+    if (baseLang === "hi") return "गजकेसरी राजयोग";
+    if (baseLang === "te") return "గజకేసరి రాజయోగం";
+    if (baseLang === "ta") return "கஜகேசரி ராஜயோகம்";
+  }
+
+  if (lower.includes("budhaditya") || lower.includes("ಬುಧಾದಿತ್ಯ") || lower.includes("बुधादित्य") || lower.includes("బుధాదిత్య") || lower.includes("புதாதித்ய")) {
+    if (baseLang === "kn") return "ಬುಧಾದಿತ್ಯ ಜ್ಞಾನ ಯೋಗ";
+    if (baseLang === "hi") return "बुधादित्य योग";
+    if (baseLang === "te") return "బుధాదిత్య యోగం";
+    if (baseLang === "ta") return "புதாதித்ய யோகம்";
+  }
+
+  if (lower.includes("amala") || lower.includes("ಅಮಲ") || lower.includes("अमल") || lower.includes("అమల") || lower.includes("அமல")) {
+    if (baseLang === "kn") return "ಅಮಲ ಕೀರ್ತಿ ಯೋಗ";
+    if (baseLang === "hi") return "अमल कीर्ति योग";
+    if (baseLang === "te") return "అమల కీర్తి యోగం";
+    if (baseLang === "ta") return "அமல கீர்த்தி யோகம்";
+  }
+
+  if (lower.includes("ruchaka") || lower.includes("ರುಚಕ") || lower.includes("रुचक") || lower.includes("రుచక") || lower.includes("ருசக")) {
+    if (baseLang === "kn") return "ರುಚಕ ಮಹಾಪುರುಷ ಯೋಗ";
+    if (baseLang === "hi") return "रुचक महापुरुष योग";
+    if (baseLang === "te") return "రుచక మహాపురుష యోగం";
+    if (baseLang === "ta") return "ருசக மகாபுருஷ யோகம்";
+  }
+
+  if (lower.includes("bhadra") || lower.includes("ಭದ್ರ") || lower.includes("भद्र") || lower.includes("భద్ర") || lower.includes("பத்ர")) {
+    if (baseLang === "kn") return "ಭದ್ರ ಮಹಾಪುರುಷ ಯೋಗ";
+    if (baseLang === "hi") return "भद्र महापुरुष योग";
+    if (baseLang === "te") return "భద్ర మహాపురుష యోగం";
+    if (baseLang === "ta") return "பத்ர மகாபுருஷ யோகம்";
+  }
+
+  if (lower.includes("hamsa") || lower.includes("ಹಂಸ") || lower.includes("हंस") || lower.includes("హంస") || lower.includes("ஹம்ச")) {
+    if (baseLang === "kn") return "ಹಂಸ ಮಹಾಪುರುಷ ಯೋಗ";
+    if (baseLang === "hi") return "हंस महापुरुष योग";
+    if (baseLang === "te") return "హంస మహాపురుష యోగం";
+    if (baseLang === "ta") return "ஹம்ச மகாபுருஷ யோகம்";
+  }
+
+  if (lower.includes("malavya") || lower.includes("ಮಾಲವ್ಯ") || lower.includes("मालव्य") || lower.includes("మాలవ్య") || lower.includes("மாளவ்ய")) {
+    if (baseLang === "kn") return "ಮಾಲವ್ಯ ಮಹಾಪುರುಷ ಯೋಗ";
+    if (baseLang === "hi") return "मालव्य महापुरुष योग";
+    if (baseLang === "te") return "మాలవ్య మహాపురుష యోగం";
+    if (baseLang === "ta") return "மாளவ்ய மகாபுருஷ யோகம்";
+  }
+
+  if (lower.includes("shasha") || lower.includes("sasa") || lower.includes("ಶಶ") || lower.includes("शश") || lower.includes("శశ") || lower.includes("சச")) {
+    if (baseLang === "kn") return "ಶಶ ಮಹಾಪುರುಷ ಯೋಗ";
+    if (baseLang === "hi") return "शश महापुरुष योग";
+    if (baseLang === "te") return "శశ మహాపురుష యోగం";
+    if (baseLang === "ta") return "சச மகாபுருஷ யோகம்";
+  }
+
+  if (lower.includes("chandra mangala") || lower.includes("ಚಂದ್ರ ಮಂಗಳ") || lower.includes("चंद्र मंगल") || lower.includes("చంద్ర మంగళ") || lower.includes("சந்திர மங்கள")) {
+    if (baseLang === "kn") return "ಚಂದ್ರ ಮಂಗಳ ಧನಯೋಗ";
+    if (baseLang === "hi") return "चंद्र मंगल धनयोग";
+    if (baseLang === "te") return "చంద్ర మంగళ ధనయోగం";
+    if (baseLang === "ta") return "சந்திர மங்கள தனயோகம்";
+  }
+
+  if (lower.includes("lakshmi") || lower.includes("ಲಕ್ಷ್ಮೀ") || lower.includes("लक्ष्मी") || lower.includes("లక్ష్మీ") || lower.includes("லட்சுமி")) {
+    if (baseLang === "kn") return "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ ಯೋಗ";
+    if (baseLang === "hi") return "श्री महालक्ष्मी योग";
+    if (baseLang === "te") return "శ్రీ మహాలక్ష్మీ యోగం";
+    if (baseLang === "ta") return "ஸ்ரீ மகாலட்சுமி யோகம்";
+  }
+
+  if (lower.includes("saraswati") || lower.includes("ಸರಸ್ವತೀ") || lower.includes("सरस्वती") || lower.includes("సరస్వతీ") || lower.includes("சரஸ்வதி")) {
+    if (baseLang === "kn") return "ಸರಸ್ವತೀ ಜ್ಞಾನ ಯೋಗ";
+    if (baseLang === "hi") return "सरस्वती ज्ञान योग";
+    if (baseLang === "te") return "సరస్వతీ జ్ఞాన యోగం";
+    if (baseLang === "ta") return "சரஸ்வதி ஞான யோகம்";
+  }
+
+  if (lower.includes("obhayachari") || lower.includes("ubhayachari") || lower.includes("ಉಭಯಚಾರಿ") || lower.includes("उभयचारी") || lower.includes("ఉభయచారి") || lower.includes("உபயசாரி")) {
+    if (baseLang === "kn") return "ಉಭಯಚಾರಿ ಶುಭ ಯೋಗ";
+    if (baseLang === "hi") return "उभयचारी शुभ योग";
+    if (baseLang === "te") return "ఉభయచారి శుభ యోగం";
+    if (baseLang === "ta") return "உபயசாரி சுப யோகம்";
+  }
+
+  if (lower.includes("vasi") || lower.includes("ವಾಸಿ") || lower.includes("वासी") || lower.includes("వాసి") || lower.includes("வாசி")) {
+    if (baseLang === "kn") return "ವಾಸಿ ಶುಭ ಯೋಗ";
+    if (baseLang === "hi") return "वासी शुभ योग";
+    if (baseLang === "te") return "వాసి శుభ యోగం";
+    if (baseLang === "ta") return "வாசி சுப யோகம்";
+  }
+
+  if (lower.includes("vesi") || lower.includes("ವೇಸಿ") || lower.includes("वेसी") || lower.includes("వేసి") || lower.includes("வேசி")) {
+    if (baseLang === "kn") return "ವೇಸಿ ಶುಭ ಯೋಗ";
+    if (baseLang === "hi") return "वेसी शुभ योग";
+    if (baseLang === "te") return "వేసి శుభ యోగం";
+    if (baseLang === "ta") return "வேசி சுப யோகம்";
+  }
+
+  if (lower.includes("sunapha") || lower.includes("ಸುನಫಾ") || lower.includes("सुनफा") || lower.includes("సునఫా") || lower.includes("சுனபா")) {
+    if (baseLang === "kn") return "ಸುನಫಾ ಶುಭ ಯೋಗ";
+    if (baseLang === "hi") return "सुनफा शुभ योग";
+    if (baseLang === "te") return "సునఫా శుభ యోగం";
+    if (baseLang === "ta") return "சுனபா சுப யோகம்";
+  }
+
+  if (lower.includes("anapha") || lower.includes("ಅನಫಾ") || lower.includes("अनफा") || lower.includes("అనఫా") || lower.includes("அனபா")) {
+    if (baseLang === "kn") return "ಅನಫಾ ಶುಭ ಯೋಗ";
+    if (baseLang === "hi") return "अनफा शुभ योग";
+    if (baseLang === "te") return "అనఫా శుభ యోగం";
+    if (baseLang === "ta") return "அனபா சுப யோகம்";
+  }
+
+  if (lower.includes("viparita") || lower.includes("ವಿಪರೀತ") || lower.includes("विपरीत") || lower.includes("విపరీత") || lower.includes("விபரீத")) {
+    if (baseLang === "kn") return "ವಿಪರೀತ ರಾಜಯೋಗ";
+    if (baseLang === "hi") return "विपरीत राजयोग";
+    if (baseLang === "te") return "విపరీత రాజయోగం";
+    if (baseLang === "ta") return "விபரீத ராஜயோகம்";
+  }
+
+  if (lower.includes("dhana") || lower.includes("ಧನ") || lower.includes("धन") || lower.includes("ధన") || lower.includes("தன")) {
+    if (baseLang === "kn") return "ಧನ ಸಮೃದ್ಧಿ ಯೋಗ";
+    if (baseLang === "hi") return "धन समृद्धि योग";
+    if (baseLang === "te") return "ధన సమృద్ధి యోగం";
+    if (baseLang === "ta") return "தன சுபிட்ச யோகம்";
+  }
+
+  if (lower.includes("raja") || lower.includes("ರಾಜ") || lower.includes("राज") || lower.includes("రాజ") || lower.includes("ராஜ")) {
+    if (baseLang === "kn") return "ಶ್ರೇಷ್ಠ ರಾಜಯೋಗ";
+    if (baseLang === "hi") return "श्रेष्ठ राजयोग";
+    if (baseLang === "te") return "శ్రేష్ఠ రాజయోగం";
+    if (baseLang === "ta") return "உன்னத ராஜயோகம்";
+  }
+
+  if (/[\u0900-\u0D7F]/.test(name)) {
+    return cleanEnglishFromRegionalText(name, baseLang);
+  }
+
+  if (/[a-zA-Z]/.test(name)) {
+    return transliterateName(name, baseLang);
+  }
+
+  if (baseLang === "kn") return "ವಿಶೇಷ ಗ್ರಹ ಯೋಗ";
+  if (baseLang === "hi") return "विशेष ग्रह योग";
+  if (baseLang === "te") return "విశేష గ్రహ యోగం";
+  if (baseLang === "ta") return "விசேட கிரக யோகம்";
+  return name;
+}
+
+/**
+ * Localizes any Dosha title into pure Indic script for kn, hi, te, ta, and en.
+ * Guarantees zero Latin / English letter leakage into regional language reports.
+ */
+export function localizeDoshaName(name: string, lang: string): string {
+  if (!name) return "";
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang === "en") return name;
+  const lower = name.toLowerCase();
+
+  if (lower.includes("kuja") || lower.includes("manglik") || lower.includes("ಕುಜ") || lower.includes("कुज") || lower.includes("మాంగ్లిక") || lower.includes("செவ்வாய்") || lower.includes("குஜ")) {
+    if (baseLang === "kn") return "ಕುಜ (ಮಂಗಳ) ದೋಷ";
+    if (baseLang === "hi") return "कुज (मांगलिक) दोष";
+    if (baseLang === "te") return "కుజ (మాంగ్లిక) దోషం";
+    if (baseLang === "ta") return "செவ்வாய் (குஜ) தோஷம்";
+  }
+
+  if (lower.includes("kemadruma") || lower.includes("ಕೇಮದ್ರುಮ") || lower.includes("केमद्रुम") || lower.includes("కేమద్రుమ") || lower.includes("கேமத்ரும")) {
+    if (baseLang === "kn") return "ಕೇಮದ್ರುಮ ದೋಷ";
+    if (baseLang === "hi") return "केमद्रुम दोष";
+    if (baseLang === "te") return "కేమద్రుమ దోషం";
+    if (baseLang === "ta") return "கேமத்ரும தோஷம்";
+  }
+
+  if (lower.includes("kala sarpa") || lower.includes("kalasarpa") || lower.includes("sarpa") || lower.includes("ಸರ್ಪ") || lower.includes("सर्प") || lower.includes("సర్ప") || lower.includes("சர்ப்ப")) {
+    if (baseLang === "kn") return "ಕಾಲಸರ್ಪ / ಸರ್ಪ ದೋಷ";
+    if (baseLang === "hi") return "कालसर्प / सर्प दोष";
+    if (baseLang === "te") return "కాలసర్ప / సర్ప దోషం";
+    if (baseLang === "ta") return "காலசர்ப்ப / சர்ப்ப தோஷம்";
+  }
+
+  if (lower.includes("rahu") || lower.includes("ketu") || lower.includes("ರಾಹು") || lower.includes("ಕೇತು") || lower.includes("राहु") || lower.includes("केतु") || lower.includes("రాహు") || lower.includes("కేతు") || lower.includes("ராகு") || lower.includes("கேது")) {
+    if (baseLang === "kn") return "ರಾಹು-ಕೇತು ಪೀಡಾ ದೋಷ";
+    if (baseLang === "hi") return "राहु-केतु पीड़ा दोष";
+    if (baseLang === "te") return "రాహు-కేతు పీడా దోషం";
+    if (baseLang === "ta") return "ராகு-கேது பீடை தோஷம்";
+  }
+
+  if (lower.includes("pitru") || lower.includes("ಪಿತೃ") || lower.includes("पितृ") || lower.includes("పితృ") || lower.includes("பித்ரு")) {
+    if (baseLang === "kn") return "ಪಿತೃ ದೋಷ";
+    if (baseLang === "hi") return "पितृ दोष";
+    if (baseLang === "te") return "పితృ దోషం";
+    if (baseLang === "ta") return "பித்ரு தோஷம்";
+  }
+
+  if (lower.includes("guru chandal") || lower.includes("chandal") || lower.includes("ಚಾಂಡಾಲ") || lower.includes("चांडाल") || lower.includes("చాండాల") || lower.includes("சண்டாள")) {
+    if (baseLang === "kn") return "ಗುರು ಚಾಂಡಾಲ ದೋಷ";
+    if (baseLang === "hi") return "गुरु चांडाल दोष";
+    if (baseLang === "te") return "గురు చాండాల దోషం";
+    if (baseLang === "ta") return "குரு சண்டாள தோஷம்";
+  }
+
+  if (lower.includes("grahan") || lower.includes("ಗ್ರಹಣ") || lower.includes("ग्रहण") || lower.includes("గ్రహణ") || lower.includes("கிரகண")) {
+    if (baseLang === "kn") return "ಗ್ರಹಣ ದೋಷ";
+    if (baseLang === "hi") return "ग्रहण दोष";
+    if (baseLang === "te") return "గ్రహణ దోషం";
+    if (baseLang === "ta") return "கிரகண தோஷம்";
+  }
+
+  if (lower.includes("sade sati") || lower.includes("kantaka") || lower.includes("shani") || lower.includes("ಶನಿ") || lower.includes("शनि") || lower.includes("శని") || lower.includes("சனி")) {
+    if (baseLang === "kn") return "ಶನಿ ಸಾಡೇಸಾತಿ ಪ್ರಭಾವ";
+    if (baseLang === "hi") return "शनि साढ़ेसाती प्रभाव";
+    if (baseLang === "te") return "శని సాడేసాతి ప్రభావం";
+    if (baseLang === "ta") return "சனி ஏழரைச் சனி தாக்கம்";
+  }
+
+  if (/[\u0900-\u0D7F]/.test(name)) {
+    return cleanEnglishFromRegionalText(name, baseLang);
+  }
+
+  if (/[a-zA-Z]/.test(name)) {
+    return transliterateName(name, baseLang);
+  }
+
+  if (baseLang === "kn") return "ಕರ್ಮಿಕ ಸವಾಲು ಹಾಗೂ ಪರಿಹಾರ";
+  if (baseLang === "hi") return "कर्मिक चुनौती एवं परिहार";
+  if (baseLang === "te") return "కర్మిక సవాలు మరియు పరిహారం";
+  if (baseLang === "ta") return "கர்ம சவால் மற்றும் பரிகாரம்";
+  return name;
+}
+
+/**
+ * Localizes any Gochara title into pure Indic script for kn, hi, te, ta, and en.
+ * Guarantees zero Latin / English letter leakage into regional language reports.
+ */
+export function localizeGocharaName(name: string, lang: string): string {
+  if (!name) return "";
+  const baseLang = (lang || "en").split("-")[0];
+  if (baseLang === "en") return name;
+  const lower = name.toLowerCase();
+
+  if (lower.includes("saturn") || lower.includes("shani") || lower.includes("ಶನಿ") || lower.includes("शनि") || lower.includes("శని") || lower.includes("சனி")) {
+    if (baseLang === "kn") return "ಶನಿ ಭಗವಾನರ ಗೋಚಾರ ಫಲ";
+    if (baseLang === "hi") return "शनि देव का गोचर फल";
+    if (baseLang === "te") return "శని భగవానుని గోచార ఫలితం";
+    if (baseLang === "ta") return "சனி பகவானின் கோசார பலன்";
+  }
+
+  if (lower.includes("jupiter") || lower.includes("guru") || lower.includes("ಗುರು") || lower.includes("ಬೃಹಸ್ಪತಿ") || lower.includes("बृहस्पति") || lower.includes("బృహస్పతి") || lower.includes("பிரகஸ்பதி") || lower.includes("குரு")) {
+    if (baseLang === "kn") return "ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಗೋಚಾರ ಫಲ";
+    if (baseLang === "hi") return "देवगुरु बृहस्पति गोचर फल";
+    if (baseLang === "te") return "దేవగురు బృహస్పతి గోచార ఫలితం";
+    if (baseLang === "ta") return "தேவகுரு பிரகஸ்பதி கோசார பலன்";
+  }
+
+  if (lower.includes("rahu") || lower.includes("ketu") || lower.includes("ರಾಹು") || lower.includes("ಕೇತು") || lower.includes("राहु") || lower.includes("केतु") || lower.includes("రాహు") || lower.includes("కేతు") || lower.includes("ராகு") || lower.includes("கேது")) {
+    if (baseLang === "kn") return "ರಾಹು-ಕೇತು ಛಾಯಾಗ್ರಹ ಗೋಚಾರ ಫಲ";
+    if (baseLang === "hi") return "राहु-केतु छायाग्रह गोचर फल";
+    if (baseLang === "te") return "రాహు-కేతు ఛాయాగ్రహ గోచార ఫలితం";
+    if (baseLang === "ta") return "ராகு-கேது நிழல் கிரக கோசார பலன்";
+  }
+
+  if (/[\u0900-\u0D7F]/.test(name)) {
+    return cleanEnglishFromRegionalText(name, baseLang);
+  }
+
+  if (/[a-zA-Z]/.test(name)) {
+    return transliterateName(name, baseLang);
+  }
+
+  if (baseLang === "kn") return "ಪ್ರಮುಖ ಗ್ರಹ ಗೋಚಾರ ಫಲ";
+  if (baseLang === "hi") return "प्रमुख ग्रह गोचर फल";
+  if (baseLang === "te") return "ప్రముఖ గ్రహ గోచార ఫలితం";
+  if (baseLang === "ta") return "முக்கிய கிரக கோசார பலன்";
+  return name;
 }
