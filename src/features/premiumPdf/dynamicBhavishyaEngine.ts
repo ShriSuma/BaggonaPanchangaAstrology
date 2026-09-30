@@ -19,6 +19,7 @@ import {
 } from "./premiumPdfLocale";
 import type { NatalPlacement, TransitPlacement } from "./premiumPrompts";
 import { transliterateName } from "../../utils/transliterator";
+import { siderealLongitudes } from "../../core/EphemerisEngine";
 
 export function getLocalizedDevoteeName(name: string | undefined | null, lang: string): string {
   if (!name) return "";
@@ -1088,7 +1089,17 @@ Under your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} B
 During this active ${chart.mahaLordName} Mahadasha cycle, integrating daily pranayama, mindful hydration from a copper vessel, and consistent physical movement prevents metabolic sluggishness. Chanting the Aditya Hridaya Stotram at sunrise revitalizes ocular vitality and cardiac endurance, while establishing regular sleep rhythms pacifies restless nervous tension. Sponsoring a dedicated Mrityunjaya or Dhanvantari prayer at Gokarna Mahabaleshwara Kshetra dissolves latent health afflictions, surrounding your physical aura with resilient healing protection and robust longevity.`;
 }
 
-export function buildDynamicTimelineFallback(chart: ParsedKundaliChart): Array<{ dateRange: string; impact: string }> {
+export interface DynamicTimelineItem {
+  dateRange: string;
+  impact: string;
+  dashaInfluence?: string;
+  transitSummary?: string;
+  shubhaDinagalu?: string;
+  chandrashtamaDinagalu?: string;
+  monthlyUpasana?: string;
+}
+
+export function buildDynamicTimelineFallback(chart: ParsedKundaliChart): DynamicTimelineItem[] {
   const baseLang = chart.lang.split("-")[0];
   const now = new Date();
   const m = now.getMonth();
@@ -1103,7 +1114,52 @@ export function buildDynamicTimelineFallback(chart: ParsedKundaliChart): Array<{
   const satHouse = chart.transitSaturn?.houseFromMoon ?? 7;
   const jupHouse = chart.transitJupiter?.houseFromMoon ?? 11;
 
-  const result: Array<{ dateRange: string; impact: string }> = [];
+  const monthlyUpasanas = [
+    {
+      kn: "ಶ್ರೀ ಮಹಾಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಠಣ ಹಾಗೂ ಶುಕ್ಲ ಪಕ್ಷದ ಸಂಕಷ್ಟಹರ ಚತುರ್ಥಿ ವ್ರತ ಆಚರಿಸುವುದು ಸರ್ವವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಿ ಮನಸ್ಸಿಗೆ ಶಾಂತಿ ನೀಡಲಿದೆ.",
+      hi: "श्री गणेश अथर्वशीर्ष का पाठ एवं संकष्टी चतुर्थी पर व्रत रखने से सभी मानसिक बाधाएं दूर होकर कार्यों में सफलता मिलेगी।",
+      te: "శ్రీ మహాగణపతి అథర్వశీర్ష పఠనం మరియు సంకష్టహర చతుర్థి వ్రతం ఆచరించడం ద్వారా సర్వ విఘ్నాలు తొలగి కార్యసిద్ధి కలుగుతుంది.",
+      ta: "ஸ்ரீ மகா கணபதி அதர்வஸீர்ஷம் பாராயணம் செய்வதும், சங்கடஹர சதுர்த்தி விரதம் இருப்பதும் காரிய தடைகளை நீக்கி வெற்றியைத் தரும்.",
+      en: "Reciting Sri Maha Ganapati Atharvasheersha and observing Sankashti Chaturthi removes foundational obstacles and restores emotional calm."
+    },
+    {
+      kn: "ಪ್ರತಿ ಶನಿವಾರ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸಿ, ದಶರಥ ಪ್ರೋಕ್ತ ಶನಿ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದು ಶ್ರೇಷ್ಠ.",
+      hi: "प्रत्येक शनिवार तिल के तेल का दीपक जलाकर शनि स्तोत्र का पाठ करें तथा गोಕರ್ಣ महाबलेश्वर मंदिर में रुद्राभिषेक समर्पित करना कल्याणकारी होगा।",
+      te: "ప్రతి శనివారం నువ్వుల నూనె దీపం వెలిగించి, శని స్తోత్ర పారాయణం చేయడం మరియు గోకర్ణ మహాబలేశ్వర స్వామికి క్షీరాభిషేకం చేయించడం శ్రేయస్కరం.",
+      ta: "சனிக்கிழமைகளில் நல்லெண்ணெய் தீபம் ஏற்றி, சனி ஸ்தோத்திரம் பாராயணம் செய்வதும், கோகர்ணம் மகாபலேஸ்வரருக்கு ருத்ராபிஷேகம் செய்வதும் சிறந்தது.",
+      en: "Lighting a sesame oil lamp every Saturday, reciting Dasharatha Shani Stotram, and sponsoring Rudrabhishekam at Gokarna secures vocational stability."
+    },
+    {
+      kn: "ಪ್ರತಿ ಶುಕ್ರವಾರ ಶ್ರೀ ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಅಥವಾ ಶ್ರೀ ಸೂಕ್ತ ಪಠಿಸುವುದು, ಗೋಸೇವೆ ಮಾಡುವುದು ಹಾಗೂ ಮಹಾಲಕ್ಷ್ಮಿ ಆರಾಧನೆ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿಯನ್ನು ತರಲಿದೆ.",
+      hi: "शुक्रवार को कनकधारा स्तोत्र अथवा श्री सूक्त का पाठ करें, गौ-सेवा करें तथा मां महालक्ष्मी की आराधना से स्थिर संपत्ति की वृद्धि होगी।",
+      te: "శుక్రవారం కనకధారా స్తోత్రం లేదా శ్రీ సూక్తం పారాయణం చేయడం, గోసేవ మరియు లక్ష్మీదేవి పూజ ఆర్థికాభివృద్ధిని చేకూరుస్తాయి.",
+      ta: "வெள்ளிக்கிழமைகளில் கனகதாரா ஸ்தோத்திரம் அல்லது ஸ்ரீ சூக்தம் பாராயணம் செய்வதும், பசுவிற்கு அகத்திக்கீரை வழங்குவதும் செல்வ வளத்தைப் பெருக்கும்.",
+      en: "Chanting Sri Kanakadhara Stotram or Sri Suktam on Fridays, feeding cows, and worshiping Goddess Mahalakshmi blesses household wealth."
+    },
+    {
+      kn: "ಪ್ರತಿದಿನ ಶ್ರೀ ರಾಮರಕ್ಷಾ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ಮಂಗಳವಾರ ಸುಂದರಕಾಂಡ ಪಾರಾಯಣವು ಸಂಸಾರದಲ್ಲಿ ಅನ್ಯೋನ್ಯತೆ, ವಿಶ್ವಾಸ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿಯನ್ನು ರಕ್ಷಿಸಲಿದೆ.",
+      hi: "प्रतिदिन श्री रामरक्षा स्तोत्र एवं मंगलवार को सुंदरकांड का पाठ करने से परिवार में परस्पर स्नेह, विश्वास और दांपत्य सौहार्द सुदृढ़ रहेगा।",
+      te: "ప్రతిరోజూ శ్రీ రామరక్షా స్తోత్రం మరియు మంగళవారం సుందరకాండ పారాయణం చేయడం వల్ల కుటుంబంలో శాంతి, అన్యోన్యత మరియు ప్రేమానుబంధాలు పెరుగుతాయి.",
+      ta: "தினமும் ஸ்ரீ ராமரக்ஷா ஸ்தோத்திரம் மற்றும் செவ்வாய்க்கிழமை சுந்தரகாண்டம் பாராயணம் செய்வது குடும்ப ஒற்றுமையையும் தம்பதியர் அன்பையும் பலப்படுத்தும்.",
+      en: "Reciting Sri Rama Raksha Stotram daily and Sundarakanda on Tuesdays protects domestic tranquility and fosters deep interpersonal harmony."
+    },
+    {
+      kn: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು, ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡುವುದು ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪವು ಆರೋಗ್ಯ ಹಾಗೂ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ.",
+      hi: "प्रातःकाल आदित्य हृदय स्तोत्र का पाठ, सूर्य नमस्कार एवं महामृत्युंजय मंत्र का 108 बार जप शारीरिक शक्ति एवं स्वास्थ्य की रक्षा करेगा।",
+      te: "ఉదయాన్నే ఆదిత్య హృదయ స్తోత్రం పఠించడం, సూర్య నమస్కారాలు మరియు మహామృత్యుంజయ మంత్ర జపం సంపూర్ణ ఆరోగ్యాన్ని, దీర్ఘాయువును ప్రసాదిస్తాయి.",
+      ta: "காலையில் ஆதித்ய ஹிருதய ஸ்தோத்திரம், சூர்ய நமஸ்காரம் மற்றும் மகா மிருத்யுஞ்சய மந்திர ஜெபம் உடல் ஆரோக்கியத்தையும் நீண்ட ஆயுளையும் தரும்.",
+      en: "Chanting the Aditya Hridaya Stotram at sunrise, practicing Surya Namaskara, and reciting the Maha Mrityunjaya mantra revitalizes health and immunity."
+    },
+    {
+      kn: "ಏಕಾದಶಿಯಂದು ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಿಸುವುದು, ಸತ್ಯನಾರಾಯಣ ವ್ರತ ಹಾಗೂ ಬಗ್ಗೋಣ ಸನ್ನಿಧಿಗೆ ವಿಶೇಷ ಸೇವೆ ಸಮರ್ಪಿಸುವುದು ಮಹತ್ತರ ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿಯನ್ನು ಕರುಣಿಸಲಿದೆ.",
+      hi: "एकादशी को श्री विष्णु सहस्रनाम का पाठ, सत्यनारायण कथा तथा बग्गोण क्षेत्र में विशेष पूजा समर्पित करने से सभी मनोरथ सिद्ध होंगे।",
+      te: "ఏకాదశి నాడు శ్రీ విష్ణు సహస్రనామ స్తోత్ర పారాయణం, సత్యనారాయణ వ్రతం మరియు బగ్గోణ క్షేత్రంలో పూజలు సర్వ కార్యసిద్ధిని అనుగ్రహిస్తాయి.",
+      ta: "ஏகாதசி அன்று ஸ்ரீ விஷ்ணு சஹஸ்ரநாமம் பாராயணம் செய்வதும், பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வதும் அனைத்து விருப்பங்களையும் நிறைவேற்றும்.",
+      en: "Reciting Sri Vishnu Sahasranama on Ekadashi, observing Satyanarayana Vratha, and offering prayers at Baggona Kshetra brings milestone auspiciousness."
+    }
+  ];
+
+  const result: DynamicTimelineItem[] = [];
 
   for (let i = 0; i < 6; i++) {
     const targetMonthIdx = (m + i) % 12;
@@ -1122,88 +1178,186 @@ export function buildDynamicTimelineFallback(chart: ParsedKundaliChart): Array<{
       dateRange = `${monthNamesEn[targetMonthIdx]} ${targetYear}`;
     }
 
-    let impact = "";
-    if (i === 0) {
-      // Month 1: Mind, Mental Clarity, Dasha-Bhukti Foundation
-      if (baseLang === "kn") {
-        impact = `ಈ ತಿಂಗಳು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ ಆಂತರಿಕ ಚಿಂತನೆ, ಮಾನಸಿಕ ಸಮತೋಲನ ಹಾಗೂ ಜೀವನದ ನೂತನ ನಿರ್ಧಾರಗಳಿಗೆ ಭದ್ರ ಬುನಾದಿ ಹಾಕಲಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶೆಯಲ್ಲಿ ${chart.bhuktiLordName} ಭುಕ್ತಿಯ ಸಕ್ರಿಯ ಪ್ರಭಾವವು ದೈನಂದಿನ ಗೊಂದಲಗಳನ್ನು ನಿವಾರಿಸಿ, ಮುಖ್ಯ ಕೆಲಸಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆಯನ್ನು ನೀಡಲಿದೆ. ಹಿಂದಿನ ಕೆಲವು ತಿಂಗಳುಗಳಿಂದ ಬಾಕಿ ಉಳಿದಿದ್ದ ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು ಅಥವಾ ಆಡಳಿತಾತ್ಮಕ ಕೆಲಸಗಳು ಸಕಾರಾತ್ಮಕವಾಗಿ ಮುಕ್ತಾಯಗೊಳ್ಳಲಿವೆ. ಧಾರ್ಮಿಕ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಪ್ರಶಾಂತ ಮನಸ್ಥಿತಿಯು ಈ ತಿಂಗಳಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ಗಣನೀಯವಾಗಿ ಹೆಚ್ಚಿಸಲಿದೆ.`;
-      } else if (baseLang === "hi") {
-        impact = `यह महीना आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार मानसिक स्थिरता, आंतरिक संकल्प और महत्वपूर्ण निर्णयों की सुदृढ़ आधारशिला रखेगा। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति का प्रभाव पिछले कुछ समय से आ रही मानसिक दुविधाओं को समाप्त करेगा। दैनिक दिनचर्या में अनुशासन बनाए रखने से व्यक्तिगत और पारिवारिक दोनों स्तरों पर अनुकूल परिणाम मिलेंगे। किसी पुराने लंबित कार्य के पूर्ण होने से मन में नया उत्साह और आत्मविश्वास जाग्रत होगा।`;
-      } else if (baseLang === "te") {
-        impact = `ఈ నెల మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ఆధారంగా మానసిక ప్రశాంతత, అంతర్గత శక్తి మరియు కీలక నిర్ణయాలకు బలమైన పునాదిని వేస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి ప్రభావం గత కొంతకాలంగా ఉన్న సందేహాలను నివృత్తి చేసి పనుల్లో స్పష్టతను ఇస్తుంది. కుటుంబంలో మరియు నిత్య జీవితంలో ఎదురయ్యే బాధ్యతలను సమర్థవంతంగా నిర్వహించగలుగుతారు. ఇష్టదైవ ఆరాధన మరియు క్రమశిక్షణతో కూడిన జీవనం ఈ నెలలో మీకు గొప్ప ఫలితాలను అందిస్తాయి.`;
-      } else if (baseLang === "ta") {
-        impact = `இந்த மாதம் உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில் மன அமைதி, தெளிவான சிந்தனை மற்றும் முக்கிய முடிவுகளுக்கு நல்ல அடித்தளத்தை அமைக்கும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி முந்தைய குழப்பங்களை நீக்கி பணிகளில் தெளிவை ஏற்படுத்தும். குடும்பப் பொறுப்புகளையும் அன்றாடக் கடமைகளையும் வெற்றிகரமாக நிறைவேற்றுவீர்கள். ஆன்மீக நாட்டம் மற்றும் நேர்மறை எண்ணங்கள் இந்த மாதத்தில் உங்களுக்கு முழு நற்பலன்களைத் தரும்.`;
-      } else {
-        impact = `This month anchors a pivotal phase of mental clarity, inner equilibrium, and foundational recalibration grounded in your ${chart.lagnaSignName} Lagna and ${chart.moonSignName} Moon sign. The active vibratory current of your ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period dissolves lingering ambivalence, bringing purposeful focus to your immediate objectives. Household matters and pending administrative tasks find constructive resolution through patient dialogue. Allocating quiet morning moments for contemplation strengthens your emotional composure and sharpens decision-making.`;
-      }
-    } else if (i === 1) {
-      // Month 2: Career, Professional Momentum & Saturn Transit
-      if (baseLang === "kn") {
-        impact = `ಈ ತಿಂಗಳು ನಿಮ್ಮ ವೃತ್ತಿಜೀವನ ಮತ್ತು ಕರ್ಮಕ್ಷೇತ್ರದಲ್ಲಿ ಹೊಸ ಚೈತನ್ಯವನ್ನು ತರಲಿದೆ. ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಮನೆಯಾದ ${chart.houses[10].rashiName} ಹಾಗೂ ಕರ್ಮಾಧಿಪತಿ ${chart.houses[10].lordName}ನ ಪ್ರಭಾವದೊಂದಿಗೆ, ಚಂದ್ರನಿಂದ ${satHouse}ನೇ ಭಾವದಲ್ಲಿರುವ ಶನಿಯ ಗೋಚಾರವು ಕೆಲಸದಲ್ಲಿ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ. ಕಚೇರಿಯಲ್ಲಿ ಅಥವಾ ವ್ಯಾಪಾರದಲ್ಲಿ ತಾಳ್ಮೆಯಿಂದ ಕೈಗೊಂಡ ಯೋಜನೆಗಳು ಹಿರಿಯರ ಪ್ರಶಂಸೆಗೆ ಪಾತ್ರವಾಗಲಿವೆ. ಅನಿರೀಕ್ಷಿತ ಕೆಲಸದ ಒತ್ತಡ ಎದುರಾದರೂ ನಿಮ್ಮ ಶಿಸ್ತುಬದ್ಧ ಕಾರ್ಯವೈಖರಿಯು ಜಯ ತಂದುಕೊಡಲಿದೆ. ಹೊಸ ವೃತ್ತಿ ಅವಕಾಶಗಳು ಅಥವಾ ಬಡ್ತಿಯ ಸುಳಿವುಗಳು ಗೋಚರಿಸಲಿವೆ.`;
-      } else if (baseLang === "hi") {
-        impact = `यह महीना आपके कार्यक्षेत्र और आजीविका में सकारात्मक गतिशीलता लाएगा। कुंडली के दशम भाव (${chart.houses[10].rashiName}) और कर्मेश ${chart.houses[10].lordName} तथा चंद्र से ${satHouse}वें भाव में शनि के गोचर से पेशेवर जिम्मेदारियां बढ़ेंगी। आपके द्वारा पूर्व में किए गए कठिन परिश्रम का उचित मूल्यांकन होगा और वरिष्ठों का सहयोग प्राप्त होगा। कार्यस्थल पर धैर्य और अनुशासन बनाए रखना आपके प्रभाव को सुदृढ़ करेगा। व्यापार अथवा नौकरी में नए लाभदायक अवसरों के द्वार खुलेंगे।`;
-      } else if (baseLang === "te") {
-        impact = `ఈ నెల మీ ఉద్యోగ మరియు వ్యాపార రంగాలలో నూతనోత్తేజాన్ని నింపుతుంది. మీ జాతకంలోని 10వ ఇల్లు (${chart.houses[10].rashiName}) మరియు కర్మాధిపతి ${chart.houses[10].lordName} ప్రభావంతో పాటు చంద్రుని నుండి ${satHouse}వ భావంలో శని సంచారం కొత్త బాధ్యతలను తెస్తుంది. మీ పట్టుదల మరియు శ్రమ ఉన్నతాధికారుల మన్ననలను పొందుతాయి. కార్యాలయంలో ఏకాగ్రతతో పనిచేయడం వల్ల దీర్ఘకాలిక విజయాలు లభిస్తాయి. వృత్తిలో ఎదుగుదలకు అనుకూలమైన మార్పులు చోటుచేసుకుంటాయి.`;
-      } else if (baseLang === "ta") {
-        impact = `இந்த மாதம் உங்கள் உத்தியோகம் மற்றும் தொழில் துறையில் புதிய வேகத்தை ஏற்படுத்தும். 10-ம் வீடான ${chart.houses[10].rashiName} மற்றும் 10-ம் அதிபதி ${chart.houses[10].lordName} அமைப்புடன் சந்திரனுக்கு ${satHouse}-ல் சனி பகவானின் சஞ்சாரம் புதிய பொறுப்புகளைக் கொண்டுவரும். கடின உழைப்பிற்கு ஏற்ற அங்கீகாரமும் மேலதிகாரிகளின் பாராட்டும் கிடைக்கும். பணியிடத்தில் நிதானமாக செயல்படுவது நீண்டகால நன்மைகளைத் தரும். தொழில் ரீதியாக புதிய வாய்ப்புகளும் முன்னேற்றங்களும் உருவாகும்.`;
-      } else {
-        impact = `Your professional horizon gains noticeable momentum this month under the guidance of your 10th house (${chart.houses[10].rashiName}) governed by ${chart.houses[10].lordName}. Saturn's live transit in the ${satHouse}th house from your natal Moon demands disciplined execution while simultaneously rewarding persistent diligence with senior recognition. While workplace expectations may feel demanding, your methodical attention to detail converts friction into executive respect. Strategic patience during collaborative negotiations unlocks valuable long-term vocational gains.`;
-      }
-    } else if (i === 2) {
-      // Month 3: Wealth, Finance & Jupiter Transit
-      if (baseLang === "kn") {
-        impact = `ಈ ತಿಂಗಳು ಹಣಕಾಸು ಹಾಗೂ ಸಂಪನ್ಮೂಲಗಳ ಸಮತೋಲನಕ್ಕೆ ಅತ್ಯಂತ ಮಹತ್ವದ್ದಾಗಿದೆ. ನಿಮ್ಮ 2ನೇ ಮನೆಯಾದ ${chart.houses[2].rashiName} (ಅಧಿಪತಿ ${chart.houses[2].lordName}) ಹಾಗೂ ಲಾಭಸ್ಥಾನದ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ${jupHouse}ನೇ ಮನೆಯ ಶುಭ ಗೋಚಾರ ದೃಷ್ಟಿಯು ಆರ್ಥಿಕವಾಗಿ ಶುಭ ಫಲಗಳನ್ನು ನೀಡಲಿದೆ. ಹಿಂದಿನ ಹೂಡಿಕೆಗಳಿಂದ ಅಥವಾ ಸ್ಥಿರಾಸ್ತಿಯಿಂದ ಉತ್ತಮ ಲಾಭದ ಸೂಚನೆಗಳಿವೆ. ಆದಾಗ್ಯೂ, ಮನೆ ನವೀಕರಣ ಅಥವಾ ಕುಟುಂಬದ ಶುಭ ಕಾರ್ಯಗಳಿಗಾಗಿ ಅನಿರೀಕ್ಷಿತ ವೆಚ್ಚಗಳು ಎದುರಾಗಬಹುದು. ಬಜೆಟ್ ಮಿತಿಯಲ್ಲಿ ವ್ಯವಹಾರ ನಡೆಸುವುದು ಆರ್ಥಿಕ ಸುರಕ್ಷತೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಕಾಯ್ದುಕೊಳ್ಳಲಿದೆ.`;
-      } else if (baseLang === "hi") {
-        impact = `यह महीना आर्थिक प्रबंधन, धन संचय और लाभ वृद्धि के लिए विशेष अनुकूल रहेगा। द्वितीय भाव (${chart.houses[2].rashiName}, स्वामी ${chart.houses[2].lordName}) एवं लाभ भाव पर चंद्र से ${jupHouse}वें भाव में गोचरस्थ देवगुरु बृहस्पति की शुभ दृष्टि वित्तीय स्थिति को सुदृढ़ करेगी। पूर्व में किए गए निवेशों से संतोषजनक प्रतिफल प्राप्त होने के योग हैं। पारिवारिक आवश्यकताओं अथवा मांगलिक कार्यों पर कुछ व्यय हो सकता है। आर्थिक अनुशासन बनाए रखने से आपकी बचत में वृद्धि होगी।`;
-      } else if (baseLang === "te") {
-        impact = `ఈ నెల ఆర్థిక స్థిరత్వం, ఆదాయ వృద్ధి మరియు పొదుపు విషయాలలో విశేష పురోగతిని చూపిస్తుంది. 2వ భావం (${chart.houses[2].rashiName}, అధిపతి ${chart.houses[2].lordName}) పై చంద్రుని నుండి ${jupHouse}వ భావంలో ఉన్న గురు భగవానుని అనుకూల గోచారం ధన లాభాలను కలిగిస్తుంది. గతంలో చేసిన పెట్టుబడులు లాభాలను అందిస్తాయి. కుటుంబ అవసరాల నిమిత్తం కొంత ఖర్చు జరిగే అవకాశం ఉన్నప్పటికీ, వివేకవంతమైన ఆర్థిక ప్రణాళిక మీ స్థానాన్ని పటిష్టంగా ఉంచుతుంది.`;
-      } else if (baseLang === "ta") {
-        impact = `இந்த மாதம் பண வரவு, நிதி மேலாண்மை மற்றும் சேமிப்பு ஆகியவற்றிற்கு உகந்ததாக அமையும். 2-ம் வீடான ${chart.houses[2].rashiName} (அதிபதி ${chart.houses[2].lordName}) மீது சந்திரனுக்கு ${jupHouse}-ல் உள்ள குரு பகவானின் சுப பார்வை பொருளாதார நிலையை உயர்த்தும். பழைய முதலீடுகளில் இருந்து நல்ல லாபம் கிடைக்கும். சுப காரியங்களுக்காகவும் குடும்பத்திற்காகவும் சில செலவுகள் வரக்கூடும் என்றாலும், திட்டமிட்ட சேமிப்பு நிதிப் பாதுகாப்பை உறுதி செய்யும்.`;
-      } else {
-        impact = `Financial equilibrium, resource preservation, and asset consolidation define the cosmic atmosphere this month. The activation of your 2nd house (${chart.houses[2].rashiName}, lord ${chart.houses[2].lordName}) alongside Jupiter's transit influence from the ${jupHouse}th house from Chandra creates beneficial windows for revenue fruition and debt liquidation. While domestic enhancements or auspicious family commitments prompt expenditures, sticking to an organized budgetary strategy ensures net fiscal growth.`;
-      }
-    } else if (i === 3) {
-      // Month 4: Relationships, Family Harmony & 7th House
-      if (baseLang === "kn") {
-        impact = `ಈ ತಿಂಗಳು ದಾಂಪತ್ಯ, ಕೌಟುಂಬಿಕ ಒಡನಾಟ ಹಾಗೂ ಸಾಮಾಜಿಕ ಸಂಬಂಧಗಳನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುವ ಕಾಲವಾಗಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ ಭಾವವಾದ ${chart.houses[7].rashiName} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿ ${chart.houses[7].lordName}ನ ಪ್ರಭಾವವು ಸಂಗಾತಿಯೊಂದಿಗೆ ಹಾಗೂ ಆಪ್ತರೊಂದಿಗೆ ಪರಸ್ಪರ ವಿಶ್ವಾಸವನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ. ಮನೆಯಲ್ಲಿ ಹಿರಿಯರೊಂದಿಗೆ ಅಥವಾ ಒಡಹುಟ್ಟಿದವರೊಂದಿಗೆ ಇದ್ದ ಸಣ್ಣಪುಟ್ಟ ಮನಸ್ತಾಪಗಳು ಮುಕ್ತ ಸಂಭಾಷಣೆಯಿಂದ ಬಗೆಹರಿಯಲಿವೆ. ಸಂಸಾರದಲ್ಲಿ ಸಂತಸದ ವಾತಾವರಣ ನೆಲೆಸಲಿದ್ದು, ಜಂಟಿಯಾಗಿ ಕೈಗೊಳ್ಳುವ ಪ್ರಯಾಣ ಅಥವಾ ದೈವಿಕ ಕಾರ್ಯಗಳು ಅಪಾರ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ನೀಡಲಿವೆ.`;
-      } else if (baseLang === "hi") {
-        impact = `यह महीना दांपत्य जीवन, पारिवारिक सौहार्द और सामाजिक संबंधों में मधुरता बढ़ाने वाला सिद्ध होगा। आपकी कुंडली के सप्तम भाव (${chart.houses[7].rashiName}) और सप्तमेश ${chart.houses[7].lordName} के शुभ प्रभाव से जीवनसाथी तथा साझेदारों के साथ परस्पर विश्वास और सामंजस्य प्रगाढ़ होगा। परिवार में चली आ रही किसी पुरानी गलतफहमी का सौहार्दपूर्ण समाधान निकलेगा। संयुक्त रूप से की गई धार्मिक यात्रा या पारिवारिक उत्सव मन को असीम संतोष और शांति प्रदान करेगा।`;
-      } else if (baseLang === "te") {
-        impact = `ఈ నెల దాంపత్య జీవితం, కుటుంబ బంధాలు మరియు ఆప్తుల మధ్య అనుబంధాలను మరింత పటిష్టం చేస్తుంది. మీ జాతకంలో 7వ ఇల్లు (${chart.houses[7].rashiName}) మరియు సప్తమాధిపతి ${chart.houses[7].lordName} అనుగ్రహం వలన భాగస్వామితో పరస్పర అవగాహన పెరుగుతుంది. కుటుంబంలో గతంలో ఉన్న చిన్నపాటి విభేదాలు సామరస్యపూర్వకంగా పరిష్కారమవుతాయి. కుటుంబంతో కలిసి చేసే తీర్థయాత్రలు లేదా శుభకార్యాలు ఇంట్లో ఆనందోత్సాహాలను నింపుతాయి.`;
-      } else if (baseLang === "ta") {
-        impact = `இந்த மாதம் குடும்ப ஒற்றுமை, கணவன்-மனைவி புரிதல் மற்றும் சமூக உறவுகளில் இணக்கத்தை ஏற்படுத்தும். 7-ம் வீடான ${chart.houses[7].rashiName} மற்றும் 7-ம் அதிபதி ${chart.houses[7].lordName} அருளால் உறவினர்கள் மற்றும் நண்பர்களிடையே பரஸ்பர அன்பு பெருகும். குடும்பத்தில் நிலவிய சிறு கருத்து வேறுபாடுகள் சுமூகமாக முடிவுக்கு வரும். குடும்பத்துடன் இணைந்து மேற்கொள்ளும் சுப நிகழ்வுகள் அல்லது ஆலய வழிபாடுகள் மனநிறைவைத் தரும்.`;
-      } else {
-        impact = `Interpersonal dynamics, marital harmony, and domestic understanding come to the forefront this month under the benefic rays of your 7th house (${chart.houses[7].rashiName}) and its lord ${chart.houses[7].lordName}. Openhearted, empathetic dialogue dissolves latent familial misunderstandings, reinstating warm solidarity across your inner circle. Mutual respect in shared household decisions strengthens partnership bonds, while participating jointly in sacred or family gatherings anchors emotional tranquility.`;
-      }
-    } else if (i === 4) {
-      // Month 5: Health Discipline, Vitality & Wellness
-      if (baseLang === "kn") {
-        impact = `ಈ ತಿಂಗಳು ಶಾರೀರಿಕ ಆರೋಗ್ಯ, ಮಾನಸಿಕ ಸಮತೋಲನ ಹಾಗೂ ದಿನನಿತ್ಯದ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯ ಕಡೆಗೆ ವಿಶೇಷ ಗಮನಹರಿಸಬೇಕಾದ ಕಾಲವಾಗಿದೆ. ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ${chart.houses[1].lordName} ಹಾಗೂ 6ನೇ ಮನೆಯಾದ ${chart.houses[6].rashiName} (ಅಧಿಪತಿ ${chart.houses[6].lordName}) ಗ್ರಹಗಳ ಸಂಚಾರವು ಹವಾಮಾನ ಬದಲಾವಣೆ ಅಥವಾ ಆಹಾರದ ವ್ಯತ್ಯಾಸಗಳಿಂದ ಬರುವ ಆಯಾಸವನ್ನು ನಿಯಂತ್ರಿಸಲು ಸೂಚಿಸುತ್ತದೆ. ನಿಯಮಿತ ನಡಿಗೆ, ಯೋಗ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಸಾಕಷ್ಟು ನಿದ್ರೆ ನಿಮ್ಮ ದೇಹಕ್ಕೆ ನವಚೈತನ್ಯ ತುಂಬಲಿದೆ. ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿಯು ನಿಮ್ಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ರಕ್ಷಿಸಲಿದೆ.`;
-      } else if (baseLang === "hi") {
-        impact = `यह महीना शारीरिक आरोग्यता, दैनिक जीवनचर्या और स्वास्थ्य के प्रति सजग रहने का संकेत देता है। लग्नेश ${chart.houses[1].lordName} और षष्ठ भाव (${chart.houses[6].rashiName}, स्वामी ${chart.houses[6].lordName}) के प्रभाव से खान-पान में संयम और मौसमी बदलावों से बचाव रखना आवश्यक होगा। नियमित योग, प्राणायाम तथा पर्याप्त विश्राम आपके शरीर को स्फूर्तिवान बनाए रखेगा। कार्य के दबाव को मानसिक शांति पर हावी न होने देना ही आपके स्वास्थ्य की कुंजी रहेगा।`;
-      } else if (baseLang === "te") {
-        impact = `ఈ నెల శారీరక ఆరోగ్యం, మానసిక ఉల్లాసం మరియు దినచర్యపై శ్రద్ధ వహించాల్సిన సమయం. లగ్నాధిపతి ${chart.houses[1].lordName} మరియు 6వ భావం (${chart.houses[6].rashiName}, అధిపతి ${chart.houses[6].lordName}) ప్రభావాల వల్ల ఆహార నియమాలు మరియు సమయానికి విశ్రాంతి తీసుకోవడం అవసరం. యోగా మరియు ప్రాణాయామం చేయడం వల్ల జీవశక్తి పెరుగుతుంది. పని ఒత్తిడిని సమర్థవంతంగా తగ్గించుకోవడం ద్వారా సంపూర్ణ ఆరోగ్యాన్ని కాపాడుకోవచ్చు.`;
-      } else if (baseLang === "ta") {
-        impact = `இந்த மாதம் உடல் நலம், ஆரோக்கியமான உணவு முறை மற்றும் தினசரி உடற்பயிற்சி ஆகியவற்றில் கவனம் செலுத்த வேண்டிய மாதமாகும். லக்னாதிபதி ${chart.houses[1].lordName} மற்றும் 6-ம் வீடான ${chart.houses[6].rashiName} (அதிபதி ${chart.houses[6].lordName}) தாக்கம் காரணமாக உணவுப் பழக்கங்களிலும் தூக்கத்திலும் கவனம் தேவை. யோகா மற்றும் எளிய உடற்பயிற்சிகள் உடலுக்கு புத்துணர்ச்சி தரும். மன அழுத்தத்தைத் தவிர்த்து அமைதியாக இருப்பது ஆரோக்கியத்தை மேம்படுத்தும்.`;
-      } else {
-        impact = `Physical vitality, holistic rejuvenation, and preventive wellness take center stage this month under the stewardship of your Lagna lord ${chart.houses[1].lordName} and 6th house (${chart.houses[6].rashiName}, lord ${chart.houses[6].lordName}). Attuning your sleep patterns and daily hydration to seasonal rhythms shields your constitution from nervous fatigue and digestive imbalances. Embracing restorative yoga and meditative breathing restores mental agility and builds robust physical stamina.`;
-      }
-    } else {
-      // Month 6: Poorva Punya Fruition, Milestone Success & Kshetra Grace
-      if (baseLang === "kn") {
-        impact = `ಈ ತಿಂಗಳು ನಿಮ್ಮ ದೀರ್ಘಕಾಲದ ಕನಸುಗಳಿಗೆ, ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗಳಿಗೆ ಅದ್ಭುತ ಫಲಿತಾಂಶಗಳನ್ನು ನೀಡುವ ಸಾರ್ಥಕ ಮಾಸವಾಗಿದೆ. 5ನೇ ಮನೆಯಾದ ${chart.houses[5].rashiName} (ಅಧಿಪತಿ ${chart.houses[5].lordName}) ಪೂರ್ವಪುಣ್ಯದ ಫಲವನ್ನು ಜಾಗೃತಗೊಳಿಸಲಿದ್ದು, ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಸದಾ ನಿಮ್ಮೊಂದಿಗೆ ಇರಲಿದೆ. ಹೊಸ ಒಪ್ಪಂದಗಳಿಗೆ ಸಹಿ ಹಾಕುವುದು, ಪರೀಕ್ಷೆ ಅಥವಾ ವೃತ್ತಿ ಸ್ಪರ್ಧೆಗಳಲ್ಲಿ ವಿಜಯ ಸಾಧಿಸುವುದು ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಆಯೋಜನೆಗೆ ಇದು ಅತ್ಯುತ್ತಮ ಸಮಯ. ಬಗ್ಗೋಣ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ದೈವಿಕ ರಕ್ಷೆಯು ನಿಮ್ಮ ಭವಿಷ್ಯವನ್ನು ಸದಾ ಮಂಗಳಕರವಾಗಿಡಲಿದೆ.`;
-      } else if (baseLang === "hi") {
-        impact = `यह महीना आपकी दीर्घकालिक योजनाओं, नवीन उपक्रमों और पूर्वपुण्य के शुभ फल प्राप्त करने का स्वर्णिम काल सिद्ध होगा। पंचम भाव (${chart.houses[5].rashiName}, स्वामी ${chart.houses[5].lordName}) के शुभ प्रभाव से बुद्धि, विवेक और दूरगामी निर्णयों में अद्वितीय सफलता मिलेगी। नए समझौतों, मांगलिक उत्सवों और महत्वपूर्ण संकल्पों की सिद्धि के लिए यह अत्यंत अनुकूल समय है। गोಕರ್ण एवं बग्गोण क्षेत्र का पावन आशीर्वाद आपके जीवन में सुख, शांति और समृद्धि की निरंतर वर्षा करेगा।`;
-      } else if (baseLang === "te") {
-        impact = `ఈ నెల మీ దీర్ఘకాలిక లక్ష్యాలు, నూతన ప్రయత్నాలు మరియు పూర్వపుణ్య ఫలాలను అందుకునే అద్భుత సమయం. 5వ భావం (${chart.houses[5].rashiName}, అధిపతి ${chart.houses[5].lordName}) అనుగ్రహం మీ నిర్ణయాలలో విజయాన్ని, సమాజంలో గౌరవాన్ని తెచ్చిపెడుతుంది. నూతన ఒప్పందాలు చేసుకోవడానికి మరియు కుటుంబంలో శుభకార్యాలు జరుపుకోవడానికి ఇది ఎంతో ప్రశస్తమైన కాలం. బగ్గోణ మరియు గోకర్ణ క్షేత్రాల దైవిక ఆశీస్సులు మీ భవిష్యత్తును విజయపథంలో నడిపిస్తాయి.`;
-      } else if (baseLang === "ta") {
-        impact = `இந்த மாதம் உங்கள் நீண்டகால கனவுகள், புதிய முயற்சிகள் மற்றும் பூர்வ புண்ணிய பலன்கள் கைகூடும் இனிய மாதமாக அமையும். 5-ம் வீடான ${chart.houses[5].rashiName} (அதிபதி ${chart.houses[5].lordName}) அருளால் கல்வி, தொழில் மற்றும் குடும்ப முயற்சிகளில் சிறப்பான வெற்றி கிடைக்கும். சுப காரியங்களை தொடங்குவதற்கும், புதிய திட்டங்களை செயல்படுத்துவதற்கும் இது பொன்னான நேரமாகும். பக்கோண மற்றும் கோகர்ணம் திருத்தலங்களின் தெய்வீக அருள் உங்களுக்கு என்றும் பாதுகாப்பாக இருக்கும்.`;
-      } else {
-        impact = `This concluding month of the half-year cycle brings auspicious fruition, strategic milestone culmination, and heightened creative joy energized by your 5th house (${chart.houses[5].rashiName}, lord ${chart.houses[5].lordName}). Long-gestating personal plans, intellectual endeavors, or family milestones cross decisive finish lines with flying colors. Sponsoring heartfelt prayers at sacred sanctuaries such as Baggona Kshetra and Gokarna Mahabaleshwara surrounds your future endeavors with lasting serenity and divine auspiciousness.`;
+    // Mid-month Sun position
+    const midMonthDate = new Date(Date.UTC(targetYear, targetMonthIdx, 15, 6, 0, 0));
+    const midMonthLongs = siderealLongitudes(midMonthDate, "lahiri");
+    const sunRashiIdx = Math.floor(midMonthLongs.sun / 30);
+    const sunRashiName = pick(RASHI_L5[sunRashiIdx], chart.lang);
+    const sunHouse = ((sunRashiIdx - chart.moonRashiIndex + 12) % 12) + 1;
+
+    // Days in target month & daily Moon computation
+    const daysInMonth = new Date(targetYear, targetMonthIdx + 1, 0).getDate();
+    const chandrashtamaDays: string[] = [];
+    const shubhaDays: string[] = [];
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayDate = new Date(Date.UTC(targetYear, targetMonthIdx, d, 6, 0, 0));
+      const dayLongs = siderealLongitudes(dayDate, "lahiri");
+      const dayMoonRashi = Math.floor(dayLongs.moon / 30);
+      const dayHouseFromChandra = ((dayMoonRashi - chart.moonRashiIndex + 12) % 12) + 1;
+
+      const formattedDay = baseLang === "kn" ? toKnDigits(d) : `${d}`;
+      if (dayHouseFromChandra === 8) {
+        chandrashtamaDays.push(formattedDay);
+      } else if ([3, 6, 10, 11].includes(dayHouseFromChandra)) {
+        shubhaDays.push(formattedDay);
       }
     }
 
-    result.push({ dateRange, impact });
+    const shubhaDatesStr = shubhaDays.slice(0, 6).join(", ");
+    const chandraDatesStr = chandrashtamaDays.join(", ") || (baseLang === "kn" ? "ಯಾವುದೂ ಇಲ್ಲ" : baseLang === "hi" ? "कोई नहीं" : baseLang === "te" ? "లేవు" : baseLang === "ta" ? "இல்லை" : "None");
+    const upasanaObj = monthlyUpasanas[i] || monthlyUpasanas[0];
+    const activeUpasana = (upasanaObj as Record<string, string>)[baseLang] || upasanaObj.en;
+
+    let headerTransit = "";
+    let headerAuspicious = "";
+    let headerCaution = "";
+    let headerUpasana = "";
+
+    if (baseLang === "kn") {
+      headerTransit = `ಗ್ರಹ ಗೋಚಾರ & ದಶಾ: ಸೂರ್ಯ (${sunRashiName} - ${toKnDigits(sunHouse)}ನೇ ಮನೆ), ಗುರು (${toKnDigits(jupHouse)}ನೇ ಮನೆ), ಶನಿ (${toKnDigits(satHouse)}ನೇ ಮನೆ). ಸಕ್ರಿಯ ದಶಾ: ${chart.mahaLordName} - ${chart.bhuktiLordName}.`;
+      headerAuspicious = `ಶುಭ ದಿನಗಳು (ಚಂದ್ರಬಲ): ${shubhaDatesStr}`;
+      headerCaution = `ಚಂದ್ರಾಷ್ಟಮ (ಎಚ್ಚರಿಕೆಯ ದಿನಗಳು): ${chandraDatesStr} (ವಾದ-ವಿವಾದ ಹಾಗೂ ಆತುರದ ಸಾಲದ ನಿರ್ಧಾರಗಳನ್ನು ತಪ್ಪಿಸಿ).`;
+      headerUpasana = `ಮಾಸಿಕ ಉಪಾಸನೆ & ಪರಿಹಾರ: ${activeUpasana}`;
+    } else if (baseLang === "hi") {
+      headerTransit = `ग्रह गोचर एवं दशा: सूर्य (${sunRashiName} - ${sunHouse}वां भाव), गुरु (${jupHouse}वां भाव), शनि (${satHouse}वां भाव)। सक्रिय दशा: ${chart.mahaLordName} - ${chart.bhuktiLordName}।`;
+      headerAuspicious = `शुभ दिन (चंद्रबल): ${shubhaDatesStr}`;
+      headerCaution = `चंद्राष्टम (सावधानी के दिन): ${chandraDatesStr} (वाद-विवाद एवं जोखिम भरे ऋण निर्णयों से बचें)।`;
+      headerUpasana = `मासिक उपासना एवं परिहार: ${activeUpasana}`;
+    } else if (baseLang === "te") {
+      headerTransit = `గ్రహ గోచారం & దశ: సూర్యుడు (${sunRashiName} - ${sunHouse}వ ఇల్లు), గురు (${jupHouse}వ ఇల్లు), శని (${satHouse}వ ఇల్లు). నడుస్తున్న దశ: ${chart.mahaLordName} - ${chart.bhuktiLordName}.`;
+      headerAuspicious = `శుభ దినాలు (చంద్రబలం): ${shubhaDatesStr}`;
+      headerCaution = `చంద్రాష్టమం (జాగ్రత్త పడాల్సిన రోజులు): ${chandraDatesStr} (వాదోపవాదాలు మరియు తొందరపాటు ఆర్థిక నిర్ణయాలు మానుకోండి).`;
+      headerUpasana = `మాసిక ఉపాసన & పరిహారం: ${activeUpasana}`;
+    } else if (baseLang === "ta") {
+      headerTransit = `கிரக சஞ்சாரம் & திசை: சூரியன் (${sunRashiName} - ${sunHouse}-ம் வீடு), குரு (${jupHouse}-ம் வீடு), சனி (${satHouse}-ம் வீடு). நடப்பு திசை: ${chart.mahaLordName} - ${chart.bhuktiLordName}.`;
+      headerAuspicious = `சுப தினங்கள் (சந்திர பலம்): ${shubhaDatesStr}`;
+      headerCaution = `சந்திராஷ்டமம் (எச்சரிக்கையான நாட்கள்): ${chandraDatesStr} (வாக்குவாதங்கள் மற்றும் அவசர நிதி முடிவுகளைத் தவிர்க்கவும்).`;
+      headerUpasana = `மாதாந்திர வழிபாடு & பரிகாரம்: ${activeUpasana}`;
+    } else {
+      headerTransit = `Planetary Transits & Dasha: Sun in ${sunRashiName} (${sunHouse}th house from Moon), Jupiter in ${jupHouse}th, Saturn in ${satHouse}th. Active Period: ${chart.mahaLordName} - ${chart.bhuktiLordName}.`;
+      headerAuspicious = `Auspicious Days (Chandra Bala): ${shubhaDatesStr}`;
+      headerCaution = `Chandrashtama (Caution Days): ${chandraDatesStr} (Exercise restraint in disputes and speculative transactions).`;
+      headerUpasana = `Monthly Upasana & Ritual: ${activeUpasana}`;
+    }
+
+    let narrativePara1 = "";
+    let narrativePara2 = "";
+
+    if (i === 0) {
+      if (baseLang === "kn") {
+        narrativePara1 = `ಈ ತಿಂಗಳು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ ಆಂತರಿಕ ಚಿಂತನೆ, ಮಾನಸಿಕ ಸಮತೋಲನ ಹಾಗೂ ಜೀವನದ ನೂತನ ನಿರ್ಧಾರಗಳಿಗೆ ಭದ್ರ ಬುನಾದಿ ಹಾಕಲಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶೆಯಲ್ಲಿ ${chart.bhuktiLordName} ಭುಕ್ತಿಯ ಸಕ್ರಿಯ ಪ್ರಭಾವವು ದೈನಂದಿನ ಗೊಂದಲಗಳನ್ನು ನಿವಾರಿಸಿ, ಮುಖ್ಯ ಕೆಲಸಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆಯನ್ನು ನೀಡಲಿದೆ.`;
+        narrativePara2 = `ಹಿಂದಿನ ಕೆಲವು ತಿಂಗಳುಗಳಿಂದ ಬಾಕಿ ಉಳಿದಿದ್ದ ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಗಳು ಅಥವಾ ಆಡಳಿತಾತ್ಮಕ ಕೆಲಸಗಳು ಸಕಾರಾತ್ಮಕವಾಗಿ ಮುಕ್ತಾಯಗೊಳ್ಳಲಿವೆ. ಧಾರ್ಮಿಕ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಪ್ರಶಾಂತ ಮನಸ್ಥಿತಿಯು ಈ ತಿಂಗಳಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ಗಣನೀಯವಾಗಿ ಹೆಚ್ಚಿಸಲಿದೆ. ಶುಭ ದಿನಗಳಲ್ಲಿ ಹೊಸ ಪ್ರಯತ್ನಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಉತ್ತಮ ಫಲ ನೀಡಲಿದೆ.`;
+      } else if (baseLang === "hi") {
+        narrativePara1 = `यह महीना आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार मानसिक स्थिरता, आंतरिक संकल्प और महत्वपूर्ण निर्णयों की सुदृढ़ आधारशिला रखेगा। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति का प्रभाव पिछले कुछ समय से आ रही मानसिक दुविधाओं को समाप्त करेगा।`;
+        narrativePara2 = `दैनिक दिनचर्या में अनुशासन बनाए रखने से व्यक्तिगत और पारिवारिक दोनों स्तरों पर अनुकूल परिणाम मिलेंगे। किसी पुराने लंबित कार्य के पूर्ण होने से मन में नया उत्साह और आत्मविश्वास जाग्रत होगा। शुभ तिथियों में किए गए प्रयास विशेष रूप से फलदायी रहेंगे।`;
+      } else if (baseLang === "te") {
+        narrativePara1 = `ఈ నెల మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ఆధారంగా మానసిక ప్రశాంతత, అంతర్గత శక్తి మరియు కీలక నిర్ణయాలకు బలమైన పునాదిని వేస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి ప్రభావం గత కొంతకాలంగా ఉన్న సందేహాలను నివృత్తి చేసి పనుల్లో స్పష్టతను ఇస్తుంది.`;
+        narrativePara2 = `కుటుంబంలో మరియు నిత్య జీవితంలో ఎదురయ్యే బాధ్యతలను సమర్థవంతంగా నిర్వహించగలుగుతారు. ఇష్టదైవ ఆరాధన మరియు క్రమశిక్షణతో కూడిన జీవనం ఈ నెలలో మీకు గొప్ప ఫలితాలను అందిస్తాయి. శుభ దినాలలో చేపట్టిన ముఖ్య పనులు విజయవంతమవుతాయి.`;
+      } else if (baseLang === "ta") {
+        narrativePara1 = `இந்த மாதம் உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில் மன அமைதி, தெளிவான சிந்தனை மற்றும் முக்கிய முடிவுகளுக்கு நல்ல அடித்தளத்தை அமைக்கும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி முந்தைய குழப்பங்களை நீக்கி பணிகளில் தெளிவை ஏற்படுத்தும்.`;
+        narrativePara2 = `குடும்பப் பொறுப்புகளையும் அன்றாடக் கடமைகளையும் வெற்றிகரமாக நிறைவேற்றுவீர்கள். ஆன்மீக நாட்டம் மற்றும் நேர்மறை எண்ணங்கள் இந்த மாதத்தில் உங்களுக்கு முழு நற்பலன்களைத் தரும். சுப தினங்களில் தொடங்கும் முயற்சிகள் சிறந்த வெற்றியைத் தரும்.`;
+      } else {
+        narrativePara1 = `This month anchors a pivotal phase of mental clarity, inner equilibrium, and foundational recalibration grounded in your ${chart.lagnaSignName} Lagna and ${chart.moonSignName} Moon sign. The active vibratory current of your ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period dissolves lingering ambivalence, bringing purposeful focus to your immediate objectives.`;
+        narrativePara2 = `Household matters and pending administrative tasks find constructive resolution through patient dialogue. Allocating quiet morning moments for contemplation strengthens your emotional composure and sharpens decision-making. Initiating critical initiatives on auspicious lunar days yields sustained progress.`;
+      }
+    } else if (i === 1) {
+      if (baseLang === "kn") {
+        narrativePara1 = `ಈ ತಿಂಗಳು ನಿಮ್ಮ ವೃತ್ತಿಜೀವನ ಮತ್ತು ಕರ್ಮಕ್ಷೇತ್ರದಲ್ಲಿ ಹೊಸ ಚೈತನ್ಯವನ್ನು ತರಲಿದೆ. ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಮನೆಯಾದ ${chart.houses[10].rashiName} ಹಾಗೂ ಕರ್ಮಾಧಿಪತಿ ${chart.houses[10].lordName}ನ ಪ್ರಭಾವದೊಂದಿಗೆ, ಚಂದ್ರನಿಂದ ${toKnDigits(satHouse)}ನೇ ಭಾವದಲ್ಲಿರುವ ಶನಿಯ ಗೋಚಾರವು ಕೆಲಸದಲ್ಲಿ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ.`;
+        narrativePara2 = `ಕಚೇರಿಯಲ್ಲಿ ಅಥವಾ ವ್ಯಾಪಾರದಲ್ಲಿ ತಾಳ್ಮೆಯಿಂದ ಕೈಗೊಂಡ ಯೋಜನೆಗಳು ಹಿರಿಯರ ಪ್ರಶಂಸೆಗೆ ಪಾತ್ರವಾಗಲಿವೆ. ಅನಿರೀಕ್ಷಿತ ಕೆಲಸದ ಒತ್ತಡ ಎದುರಾದರೂ ನಿಮ್ಮ ಶಿಸ್ತುಬದ್ಧ ಕಾರ್ಯವೈಖರಿಯು ಜಯ ತಂದುಕೊಡಲಿದೆ. ಹೊಸ ವೃತ್ತಿ ಅವಕಾಶಗಳು ಅಥವಾ ಬಡ್ತಿಯ ಸುಳಿವುಗಳು ಗೋಚರಿಸಲಿವೆ.`;
+      } else if (baseLang === "hi") {
+        narrativePara1 = `यह महीना आपके कार्यक्षेत्र और आजीविका में सकारात्मक गतिशीलता लाएगा। कुंडली के दशम भाव (${chart.houses[10].rashiName}) और कर्मेश ${chart.houses[10].lordName} तथा चंद्र से ${satHouse}वें भाव में शनि के गोचर से पेशेवर जिम्मेदारियां बढ़ेंगी।`;
+        narrativePara2 = `आपके द्वारा पूर्व में किए गए कठिन परिश्रम का उचित मूल्यांकन होगा और वरिष्ठों का सहयोग प्राप्त होगा। कार्यस्थल पर धैर्य और अनुशासन बनाए रखना आपके प्रभाव को सुदृढ़ करेगा। व्यापार अथवा नौकरी में नए लाभदायक अवसरों के द्वार खुलेंगे।`;
+      } else if (baseLang === "te") {
+        narrativePara1 = `ఈ నెల మీ ఉద్యోగ మరియు వ్యాపార రంగాలలో నూతనోత్తేజాన్ని నింపుతుంది. మీ జాతకంలోని 10వ ఇల్లు (${chart.houses[10].rashiName}) మరియు కర్మాధిపతి ${chart.houses[10].lordName} ప్రభావంతో పాటు చంద్రుని నుండి ${satHouse}వ భావంలో శని సంచారం కొత్త బాధ్యతలను తెస్తుంది.`;
+        narrativePara2 = `మీ పట్టుదల మరియు శ్రమ ఉన్నతాధికారుల మన్ననలను పొందుతాయి. కార్యాలయంలో ఏకాగ్రతతో పనిచేయడం వల్ల దీర్ఘకాలిక విజయాలు లభిస్తాయి. వృత్తిలో ఎదుగుదలకు అనుకూలమైన మార్పులు చోటుచేసుకుంటాయి.`;
+      } else if (baseLang === "ta") {
+        narrativePara1 = `இந்த மாதம் உங்கள் உத்தியோகம் மற்றும் தொழில் துறையில் புதிய வேகத்தை ஏற்படுத்தும். 10-ம் வீடான ${chart.houses[10].rashiName} மற்றும் 10-ம் அதிபதி ${chart.houses[10].lordName} அமைப்புடன் சந்திரனுக்கு ${satHouse}-ல் சனி பகவானின் சஞ்சாரம் புதிய பொறுப்புகளைக் கொண்டுவரும்.`;
+        narrativePara2 = `கடின உழைப்பிற்கு ஏற்ற அங்கீகாரமும் மேலதிகாரிகளின் பாராட்டும் கிடைக்கும். பணியிடத்தில் நிதானமாக செயல்படுவது நீண்டகால நன்மைகளைத் தரும். தொழில் ரீதியாக புதிய வாய்ப்புகளும் முன்னேற்றங்களும் உருவாகும்.`;
+      } else {
+        narrativePara1 = `Your professional horizon gains noticeable momentum this month under the guidance of your 10th house (${chart.houses[10].rashiName}) governed by ${chart.houses[10].lordName}. Saturn's live transit in the ${satHouse}th house from your natal Moon demands disciplined execution while simultaneously rewarding persistent diligence with senior recognition.`;
+        narrativePara2 = `While workplace expectations may feel demanding, your methodical attention to detail converts friction into executive respect. Strategic patience during collaborative negotiations unlocks valuable long-term vocational gains.`;
+      }
+    } else if (i === 2) {
+      if (baseLang === "kn") {
+        narrativePara1 = `ಈ ತಿಂಗಳು ಹಣಕಾಸು ಹಾಗೂ ಸಂಪನ್ಮೂಲಗಳ ಸಮತೋಲನಕ್ಕೆ ಅತ್ಯಂತ ಮಹತ್ವದ್ದಾಗಿದೆ. ನಿಮ್ಮ 2ನೇ ಮನೆಯಾದ ${chart.houses[2].rashiName} (ಅಧಿಪತಿ ${chart.houses[2].lordName}) ಹಾಗೂ ಲಾಭಸ್ಥಾನದ ಮೇಲೆ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ${toKnDigits(jupHouse)}ನೇ ಮನೆಯ ಶುಭ ಗೋಚಾರ ದೃಷ್ಟಿಯು ಆರ್ಥಿಕವಾಗಿ ಶುಭ ಫಲಗಳನ್ನು ನೀಡಲಿದೆ.`;
+        narrativePara2 = `ಹಿಂದಿನ ಹೂಡಿಕೆಗಳಿಂದ ಅಥವಾ ಸ್ಥಿರಾಸ್ತಿಯಿಂದ ಉತ್ತಮ ಲಾಭದ ಸೂಚನೆಗಳಿವೆ. ಆದಾಗ್ಯೂ, ಮನೆ ನವೀಕರಣ ಅಥವಾ ಕುಟುಂಬದ ಶುಭ ಕಾರ್ಯಗಳಿಗಾಗಿ ಅನಿರೀಕ್ಷಿತ ವೆಚ್ಚಗಳು ಎದುರಾಗಬಹುದು. ಬಜೆಟ್ ಮಿತಿಯಲ್ಲಿ ವ್ಯವಹಾರ ನಡೆಸುವುದು ಆರ್ಥಿಕ ಸುರಕ್ಷತೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಕಾಯ್ದುಕೊಳ್ಳಲಿದೆ.`;
+      } else if (baseLang === "hi") {
+        narrativePara1 = `यह महीना आर्थिक प्रबंधन, धन संचय और लाभ वृद्धि के लिए विशेष अनुकूल रहेगा। द्वितीय भाव (${chart.houses[2].rashiName}, स्वामी ${chart.houses[2].lordName}) एवं लाभ भाव पर चंद्र से ${jupHouse}वें भाव में गोचरस्थ देवगुरु बृहस्पति की शुभ दृष्टि वित्तीय स्थिति को सुदृढ़ करेगी।`;
+        narrativePara2 = `पूर्व में किए गए निवेशों से संतोषजनक प्रतिफल प्राप्त होने के योग हैं। पारिवारिक आवश्यकताओं अथवा मांगलिक कार्यों पर कुछ व्यय हो सकता है। आर्थिक अनुशासन बनाए रखने से आपकी बचत में वृद्धि होगी।`;
+      } else if (baseLang === "te") {
+        narrativePara1 = `ఈ నెల ఆర్థిక స్థిరత్వం, ఆదాయ వృద్ధి మరియు పొదుపు విషయాలలో విశేష పురోగతిని చూపిస్తుంది. 2వ భావం (${chart.houses[2].rashiName}, అధిపతి ${chart.houses[2].lordName}) పై చంద్రుని నుండి ${jupHouse}వ భావంలో ఉన్న గురు భగవానుని అనుకూల గోచారం ధన లాభాలను కలిగిస్తుంది.`;
+        narrativePara2 = `గతంలో చేసిన పెట్టుబడులు లాభాలను అందిస్తాయి. కుటుంబ అవసరాల నిమిత్తం కొంత ఖర్చు జరిగే అవకాశం ఉన్నప్పటికీ, వివేకవంతమైన ఆర్థిక ప్రణాళిక మీ స్థానాన్ని పటిష్టంగా ఉంచుతుంది.`;
+      } else if (baseLang === "ta") {
+        narrativePara1 = `இந்த மாதம் பண வரவு, நிதி மேலாண்மை மற்றும் சேமிப்பு ஆகியவற்றிற்கு உகந்ததாக அமையும். 2-ம் வீடான ${chart.houses[2].rashiName} (அதிபதி ${chart.houses[2].lordName}) மீது சந்திரனுக்கு ${jupHouse}-ல் உள்ள குரு பகவானின் சுப பார்வை பொருளாதார நிலையை உயர்த்தும்.`;
+        narrativePara2 = `பழைய முதலீடுகளில் இருந்து நல்ல லாபம் கிடைக்கும். சுப காரியங்களுக்காகவும் குடும்பத்திற்காகவும் சில செலவுகள் வரக்கூடும் என்றாலும், திட்டமிட்ட சேமிப்பு நிதிப் பாதுகாப்பை உறுதி செய்யும்.`;
+      } else {
+        narrativePara1 = `Financial equilibrium, resource preservation, and asset consolidation define the cosmic atmosphere this month. The activation of your 2nd house (${chart.houses[2].rashiName}, lord ${chart.houses[2].lordName}) alongside Jupiter's transit influence from the ${jupHouse}th house from Chandra creates beneficial windows for revenue fruition and debt liquidation.`;
+        narrativePara2 = `While domestic enhancements or auspicious family commitments prompt expenditures, sticking to an organized budgetary strategy ensures net fiscal growth.`;
+      }
+    } else if (i === 3) {
+      if (baseLang === "kn") {
+        narrativePara1 = `ಈ ತಿಂಗಳು ದಾಂಪತ್ಯ, ಕೌಟುಂಬಿಕ ಒಡನಾಟ ಹಾಗೂ ಸಾಮಾಜಿಕ ಸಂಬಂಧಗಳನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುವ ಕಾಲವಾಗಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ ಭಾವವಾದ ${chart.houses[7].rashiName} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿ ${chart.houses[7].lordName}ನ ಪ್ರಭಾವವು ಸಂಗಾತಿಯೊಂದಿಗೆ ಹಾಗೂ ಆಪ್ತರೊಂದಿಗೆ ಪರಸ್ಪರ ವಿಶ್ವಾಸವನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ.`;
+        narrativePara2 = `ಮನೆಯಲ್ಲಿ ಹಿರಿಯರೊಂದಿಗೆ ಅಥವಾ ಒಡಹುಟ್ಟಿದವರೊಂದಿಗೆ ಇದ್ದ ಸಣ್ಣಪುಟ್ಟ ಮನಸ್ತಾಪಗಳು ಮುಕ್ತ ಸಂಭಾಷಣೆಯಿಂದ ಬಗೆಹರಿಯಲಿವೆ. ಸಂಸಾರದಲ್ಲಿ ಸಂತಸದ ವಾತಾವರಣ ನೆಲೆಸಲಿದ್ದು, ಜಂಟಿಯಾಗಿ ಕೈಗೊಳ್ಳುವ ಪ್ರಯಾಣ ಅಥವಾ ದೈವಿಕ ಕಾರ್ಯಗಳು ಅಪಾರ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ನೀಡಲಿವೆ.`;
+      } else if (baseLang === "hi") {
+        narrativePara1 = `यह महीना दांपत्य जीवन, पारिवारिक सौहार्द और सामाजिक संबंधों में मधुरता बढ़ाने वाला सिद्ध होगा। आपकी कुंडली के सप्तम भाव (${chart.houses[7].rashiName}) और सप्तमेश ${chart.houses[7].lordName} के शुभ प्रभाव से जीवनसाथी तथा साझेदारों के साथ परस्पर विश्वास और सामंजस्य प्रगाढ़ होगा।`;
+        narrativePara2 = `परिवार में चली आ रही किसी पुरानी गलतफहमी का सौहार्दपूर्ण समाधान निकलेगा। संयुक्त रूप से की गई धार्मिक यात्रा या पारिवारिक उत्सव मन को असीम संतोष और शांति प्रदान करेगा।`;
+      } else if (baseLang === "te") {
+        narrativePara1 = `ఈ నెల దాంపత్య జీవితం, కుటుంబ బంధాలు మరియు ఆప్తుల మధ్య అనుబంధాలను మరింత పటిష్టం చేస్తుంది. మీ జాతకంలో 7వ ఇల్లు (${chart.houses[7].rashiName}) మరియు సప్తమాధిపతి ${chart.houses[7].lordName} అనుగ్రహం వలన భాగస్వామితో పరస్పర అవగాహన పెరుగుతుంది.`;
+        narrativePara2 = `కుటుంబంలో గతంలో ఉన్న చిన్నపాటి విభేదాలు సామరస్యపూర్వకంగా పరిష్కారమవుతాయి. కుటుంబంతో కలిసి చేసే తీర్థయాత్రలు లేదా శుభకార్యాలు ఇంట్లో ఆనందోత్సాహాలను నింపుతాయి.`;
+      } else if (baseLang === "ta") {
+        narrativePara1 = `இந்த மாதம் குடும்ப ஒற்றுமை, கணவன்-மனைவி புரிதல் மற்றும் சமூக உறவுகளில் இணக்கத்தை ஏற்படுத்தும். 7-ம் வீடான ${chart.houses[7].rashiName} மற்றும் 7-ம் அதிபதி ${chart.houses[7].lordName} அருளால் உறவினர்கள் மற்றும் நண்பர்களிடையே பரஸ்பர அன்பு பெருகும்.`;
+        narrativePara2 = `குடும்பத்தில் நிலவிய சிறு கருத்து வேறுபாடுகள் சுமூகமாக முடிவுக்கு வரும். குடும்பத்துடன் இணைந்து மேற்கொள்ளும் சுப நிகழ்வுகள் அல்லது ஆலய வழிபாடுகள் மனநிறைவைத் தரும்.`;
+      } else {
+        narrativePara1 = `Interpersonal dynamics, marital harmony, and domestic understanding come to the forefront this month under the benefic rays of your 7th house (${chart.houses[7].rashiName}) and its lord ${chart.houses[7].lordName}.`;
+        narrativePara2 = `Openhearted, empathetic dialogue dissolves latent familial misunderstandings, reinstating warm solidarity across your inner circle. Mutual respect in shared household decisions strengthens partnership bonds, while participating jointly in sacred or family gatherings anchors emotional tranquility.`;
+      }
+    } else if (i === 4) {
+      if (baseLang === "kn") {
+        narrativePara1 = `ಈ ತಿಂಗಳು ಶಾರೀರಿಕ ಆರೋಗ್ಯ, ಮಾನಸಿಕ ಸಮತೋಲನ ಹಾಗೂ ದಿನನಿತ್ಯದ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯ ಕಡೆಗೆ ವಿಶೇಷ ಗಮನಹರಿಸಬೇಕಾದ ಕಾಲವಾಗಿದೆ. ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ${chart.houses[1].lordName} ಹಾಗೂ 6ನೇ ಮನೆಯಾದ ${chart.houses[6].rashiName} (ಅಧಿಪತಿ ${chart.houses[6].lordName}) ಗ್ರಹಗಳ ಸಂಚಾರವು ಹವಾಮಾನ ಬದಲಾವಣೆ ಅಥವಾ ಆಹಾರದ ವ್ಯತ್ಯಾಸಗಳಿಂದ ಬರುವ ಆಯಾಸವನ್ನು ನಿಯಂತ್ರಿಸಲು ಸೂಚಿಸುತ್ತದೆ.`;
+        narrativePara2 = `ನಿಯಮಿತ ನಡಿಗೆ, ಯೋಗ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಸಾಕಷ್ಟು ನಿದ್ರೆ ನಿಮ್ಮ ದೇಹಕ್ಕೆ ನವಚೈತನ್ಯ ತುಂಬಲಿದೆ. ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿಯು ನಿಮ್ಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ರಕ್ಷಿಸಲಿದೆ.`;
+      } else if (baseLang === "hi") {
+        narrativePara1 = `यह महीना शारीरिक आरोग्यता, दैनिक जीवनचर्या और स्वास्थ्य के प्रति सजग रहने का संकेत देता है। लग्नेश ${chart.houses[1].lordName} और षष्ठ भाव (${chart.houses[6].rashiName}, स्वामी ${chart.houses[6].lordName}) के प्रभाव से खान-पान में संयम और मौसमी बदलावों से बचाव रखना आवश्यक होगा।`;
+        narrativePara2 = `नियमित योग, प्राणायाम तथा पर्याप्त विश्राम आपके शरीर को स्फूर्तिवान बनाए रखेगा। कार्य के दबाव को मानसिक शांति पर हावी न होने देना ही आपके स्वास्थ्य की कुंजी रहेगा।`;
+      } else if (baseLang === "te") {
+        narrativePara1 = `ఈ నెల శారీరక ఆరోగ్యం, మానసిక ఉల్లాసం మరియు దినచర్యపై శ్రద్ధ వహించాల్సిన సమయం. లగ్నాధిపతి ${chart.houses[1].lordName} మరియు 6వ భావం (${chart.houses[6].rashiName}, అధిపతి ${chart.houses[6].lordName}) ప్రభావాల వల్ల ఆహార నియమాలు మరియు సమయానికి విశ్రాంతి తీసుకోవడం అవసరం.`;
+        narrativePara2 = `యోగా మరియు ప్రాణాయామం చేయడం వల్ల జీవశక్తి పెరుగుతుంది. పని ఒత్తిడిని సమర్థవంతంగా తగ్గించుకోవడం ద్వారా సంపూర్ణ ఆరోగ్యాన్ని కాపాడుకోవచ్చు.`;
+      } else if (baseLang === "ta") {
+        narrativePara1 = `இந்த மாதம் உடல் நலம், ஆரோக்கியமான உணவு முறை மற்றும் தினசரி உடற்பயிற்சி ஆகியவற்றில் கவனம் செலுத்த வேண்டிய மாதமாகும். லக்னாதிபதி ${chart.houses[1].lordName} மற்றும் 6-ம் வீடான ${chart.houses[6].rashiName} (அதிபதி ${chart.houses[6].lordName}) தாக்கம் காரணமாக உணவுப் பழக்கங்களிலும் தூக்கத்திலும் கவனம் தேவை.`;
+        narrativePara2 = `யோகா மற்றும் எளிய உடற்பயிற்சிகள் உடலுக்கு புத்துணர்ச்சி தரும். மன அழுத்தத்தைத் தவிர்த்து அமைதியாக இருப்பது ஆரோக்கியத்தை மேம்படுத்தும்.`;
+      } else {
+        narrativePara1 = `Physical vitality, holistic rejuvenation, and preventive wellness take center stage this month under the stewardship of your Lagna lord ${chart.houses[1].lordName} and 6th house (${chart.houses[6].rashiName}, lord ${chart.houses[6].lordName}).`;
+        narrativePara2 = `Attuning your sleep patterns and daily hydration to seasonal rhythms shields your constitution from nervous fatigue and digestive imbalances. Embracing restorative yoga and meditative breathing restores mental agility and builds robust physical stamina.`;
+      }
+    } else {
+      if (baseLang === "kn") {
+        narrativePara1 = `ಈ ತಿಂಗಳು ನಿಮ್ಮ ದೀರ್ಘಕಾಲದ ಕನಸುಗಳಿಗೆ, ಹೊಸ ಯೋಜನೆಗಳಿಗೆ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಸಾಧನೆಗಳಿಗೆ ಅದ್ಭುತ ಫಲಿತಾಂಶಗಳನ್ನು ನೀಡುವ ಸಾರ್ಥಕ ಮಾಸವಾಗಿದೆ. 5ನೇ ಮನೆಯಾದ ${chart.houses[5].rashiName} (ಅಧಿಪತಿ ${chart.houses[5].lordName}) ಪೂರ್ವಪುಣ್ಯದ ಫಲವನ್ನು ಜಾಗೃತಗೊಳಿಸಲಿದ್ದು, ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಸದಾ ನಿಮ್ಮೊಂದಿಗೆ ಇರಲಿದೆ.`;
+        narrativePara2 = `ಹೊಸ ಒಪ್ಪಂದಗಳಿಗೆ ಸಹಿ ಹಾಕುವುದು, ಪರೀಕ್ಷೆ ಅಥವಾ ವೃತ್ತಿ ಸ್ಪರ್ಧೆಗಳಲ್ಲಿ ವಿಜಯ ಸಾಧಿಸುವುದು ಹಾಗೂ ಗೃಹದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಆಯೋಜನೆಗೆ ಇದು ಅತ್ಯುತ್ತಮ ಸಮಯ. ಬಗ್ಗೋಣ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ದೈವಿಕ ರಕ್ಷೆಯು ನಿಮ್ಮ ಭವಿಷ್ಯವನ್ನು ಸದಾ ಮಂಗಳಕರವಾಗಿಡಲಿದೆ.`;
+      } else if (baseLang === "hi") {
+        narrativePara1 = `यह महीना आपकी दीर्घकालिक योजनाओं, नवीन उपक्रमों और पूर्वपुण्य के शुभ फल प्राप्त करने का स्वर्णिम काल सिद्ध होगा। पंचम भाव (${chart.houses[5].rashiName}, स्वामी ${chart.houses[5].lordName}) के शुभ प्रभाव से बुद्धि, विवेक और दूरगामी निर्णयों में अद्वितीय सफलता मिलेगी।`;
+        narrativePara2 = `नए समझौतों, मांगलिक उत्सवों और महत्वपूर्ण संकल्पों की सिद्धि के लिए यह अत्यंत अनुकूल समय है। गोకర్ण एवं बग्गोण क्षेत्र का पावन आशीर्वाद आपके जीवन में सुख, शांति और समृद्धि की निरंतर वर्षा करेगा।`;
+      } else if (baseLang === "te") {
+        narrativePara1 = `ఈ నెల మీ దీర్ఘకాలిక లక్ష్యాలు, నూతన ప్రయత్నాలు మరియు పూర్వపుణ్య ఫలాలను అందుకునే అద్భుత సమయం. 5వ భావం (${chart.houses[5].rashiName}, అధిపతి ${chart.houses[5].lordName}) అనుగ్రహం మీ నిర్ణయాలలో విజయాన్ని, సమాజంలో గౌరవాన్ని తెచ్చిపెడుతుంది.`;
+        narrativePara2 = `నూతన ఒప్పందాలు చేసుకోవడానికి మరియు కుటుంబంలో శుభకార్యాలు జరుపుకోవడానికి ఇది ఎంతో ప్రశస్తమైన కాలం. బగ్గోణ మరియు గోకర్ణ క్షేత్రాల దైవిక ఆశీస్సులు మీ భవిష్యత్తును విజయపథంలో నడిపిస్తాయి.`;
+      } else if (baseLang === "ta") {
+        narrativePara1 = `இந்த மாதம் உங்கள் நீண்டகால கனவுகள், புதிய முயற்சிகள் மற்றும் பூர்வ புண்ணிய பலன்கள் கைகூடும் இனிய மாதமாக அமையும். 5-ம் வீடான ${chart.houses[5].rashiName} (அதிபதி ${chart.houses[5].lordName}) அருளால் கல்வி, தொழில் மற்றும் குடும்ப முயற்சிகளில் சிறப்பான வெற்றி கிடைக்கும்.`;
+        narrativePara2 = `சுப காரியங்களை தொடங்குவதற்கும், புதிய திட்டங்களை செயல்படுத்துவதற்கும் இது பொன்னான நேரமாகும். பக்கோண மற்றும் கோகர்ணம் திருத்தலங்களின் தெய்வீக அருள் உங்களுக்கு என்றும் பாதுகாப்பாக இருக்கும்.`;
+      } else {
+        narrativePara1 = `This concluding month of the half-year cycle brings auspicious fruition, strategic milestone culmination, and heightened creative joy energized by your 5th house (${chart.houses[5].rashiName}, lord ${chart.houses[5].lordName}).`;
+        narrativePara2 = `Long-gestating personal plans, intellectual endeavors, or family milestones cross decisive finish lines with flying colors. Sponsoring heartfelt prayers at sacred sanctuaries such as Baggona Kshetra and Gokarna Mahabaleshwara surrounds your future endeavors with lasting serenity and divine auspiciousness.`;
+      }
+    }
+
+    const fullImpact = `${headerTransit}\n${headerAuspicious}\n${headerCaution}\n\n${narrativePara1}\n\n${narrativePara2}\n\n${headerUpasana}`;
+    result.push({
+      dateRange,
+      impact: fullImpact,
+      dashaInfluence: `${chart.mahaLordName} - ${chart.bhuktiLordName}`,
+      transitSummary: headerTransit,
+      shubhaDinagalu: shubhaDatesStr,
+      chandrashtamaDinagalu: chandraDatesStr,
+      monthlyUpasana: activeUpasana
+    });
   }
 
   return result;

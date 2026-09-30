@@ -512,6 +512,14 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
   // 4. Strip stray non-Indic/non-ASCII characters (e.g. CJK/Chinese/Japanese characters)
   cleaned = cleaned.replace(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f]/g, "");
 
+  // 4b. Strip orphan colons, solitary numbers with colons/crosses/dots left behind after Latin removal (e.g. ": 7 × ..")
+  cleaned = cleaned
+    .replace(/:\s*\d+\s*[×x*•]?\s*[\.]*/g, "")
+    .replace(/[×x*•]\s*[\.]*/g, "")
+    .replace(/\s*:\s*(?=[\s,.\-×*•]|$)/g, "")
+    .replace(/^\s*[:,\.\-×*•]+\s*/gm, "")
+    .replace(/\s*[:,\.\-×*•]+\s*$/gm, "");
+
   // 5. Clean whitespace & punctuation spacing
   cleaned = cleaned
     .replace(/[ \t]{2,}/g, " ")

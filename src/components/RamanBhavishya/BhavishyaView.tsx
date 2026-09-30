@@ -43,8 +43,11 @@ import {
   hasTwoSubstantialParagraphs,
   localizeYogaName,
   localizeDoshaName,
-  localizeGocharaName
+  localizeGocharaName,
+  localizeDoshaRemedy
 } from "../../features/premiumPdf/yogaDoshaGocharaEnricher";
+import { RoyalA4PrintTemplate, type RoyalA4Data } from "./RoyalA4PrintTemplate";
+import QRCode from "qrcode";
 import { transliterateName } from "../../utils/transliterator";
 import type { PlanetName } from "../../core/AstroTypes";
 import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
@@ -548,7 +551,14 @@ export default function BhavishyaView() {
   const [isGeneratingPremiumPdfV1, setIsGeneratingPremiumPdfV1] = useState(false);
   const [v1PdfProgress, setV1PdfProgress] = useState(10);
   const [v1PdfStageText, setV1PdfStageText] = useState("");
-  const [modalTriggerSource, setModalTriggerSource] = useState<"regular" | "v1">("regular");
+  const [modalTriggerSource, setModalTriggerSource] = useState<"regular" | "v1" | "royal-a4">("regular");
+  const [isGeneratingRoyalA4Pdf, setIsGeneratingRoyalA4Pdf] = useState(false);
+  const [royalA4PdfProgress, setRoyalA4PdfProgress] = useState(10);
+  const [royalA4StageText, setRoyalA4StageText] = useState("");
+  const [royalA4Data, setRoyalA4Data] = useState<RoyalA4Data | null>(null);
+  const [royalA4QrCode, setRoyalA4QrCode] = useState<string>("");
+  const royalA4PdfRef = useRef<HTMLDivElement>(null);
+  const [aiFallbackNotification, setAiFallbackNotification] = useState<{ active: boolean; sections: string[]; message: string } | null>(null);
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
   const [pdfLanguage, setPdfLanguage] = useState(language);
   const [premiumDataForPdf, setPremiumDataForPdf] = useState<PremiumData | null>(null);
@@ -1657,18 +1667,39 @@ Return ONLY this JSON format:
       });
 
       // `raw` keeps each chapter's own persona intact instead of burying it under the
-      const safeAsk = async (label: string, prompt: string, temp = 0.3) => {
-        try {
-          const raw = await askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp });
-          if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error"))) {
-            console.warn(`[PDF Generation] Error string detected in AI response for ${label}, ignoring error text.`);
+      const failedAiSectionsRegular: string[] = [];
+      const safeAsk = async (label: string, prompt: string, temp = 0.3, maxAttempts = 5) => {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const raw = await askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp });
+            if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error"))) {
+              if (attempt < maxAttempts) {
+                await new Promise((r) => setTimeout(r, attempt * 350));
+                continue;
+              }
+              failedAiSectionsRegular.push(label);
+              return "";
+            }
+            if (typeof raw === "string" && raw.trim().length > 20) {
+              return raw;
+            }
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, attempt * 350));
+              continue;
+            }
+            failedAiSectionsRegular.push(label);
+            return "";
+          } catch (e) {
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, attempt * 350));
+              continue;
+            }
+            failedAiSectionsRegular.push(label);
             return "";
           }
-          return raw;
-        } catch (e) {
-          console.warn(`[PDF Generation] AI call failed for ${label}, using engine fallback`, e);
-          return "";
         }
+        failedAiSectionsRegular.push(label);
+        return "";
       };
 
       console.log("[PDF Generation] Initiating Batch 1 AI calls (Soul & Personality)...");
@@ -1796,8 +1827,9 @@ Return ONLY this JSON format:
         : rawDoshasFallback;
       const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
         ...d,
-        impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName),
-        remedy: d.remedy ? cleanEnglishFromRegionalText(d.remedy, lang) : undefined
+        name: localizeDoshaName(d.name || "", lang),
+        impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, personalization?.maritalStatus),
+        remedy: d.remedy ? localizeDoshaRemedy(d.name, d.remedy, lang, personalization?.maritalStatus) : undefined
       }));
 
       const v2ParsedKundali = analyzeKundali({
@@ -1880,6 +1912,20 @@ Return ONLY this JSON format:
         premiumDataPayload.summary = [{ impact: rawSummaryFallback }];
         premiumDataPayload.characteristics = [{ impact: charFallbackText }];
         premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
+      }
+
+      if (failedAiSectionsRegular.length > 0) {
+        const uniqueFailed = Array.from(new Set(failedAiSectionsRegular));
+        const alertMsg = lang === "kn"
+          ? `ಗಮನಿಸಿ: 5 ಬಾರಿ ಮರುಪ್ರಯತ್ನಿಸಿದ ನಂತರವೂ AI ಸಂಪರ್ಕದಲ್ಲಿ ವ್ಯತ್ಯಯ ಉಂಟಾಗಿದ್ದರಿಂದ (${uniqueFailed.join(", ")}), ನಿಖರ ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ (Vedic Fallback Engine) ಮೂಲಕ ದೋಷರಹಿತ ಭವಿಷ್ಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ.`
+          : lang === "hi"
+          ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
+          : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
+        setAiFallbackNotification({
+          active: true,
+          sections: uniqueFailed,
+          message: alertMsg
+        });
       }
 
       setPremiumDataForPdf(premiumDataPayload);
@@ -2148,31 +2194,51 @@ Return ONLY this JSON format:
         affairNote
       });
 
-      // Safe AI call with strict 8-second timeout guard to prevent any freezing or hanging
-      const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8000): Promise<string> => {
-        try {
-          const timeoutPromise = new Promise<string>((resolve) =>
-            setTimeout(() => {
-              console.warn(`[V1 PDF] AI call for ${label} reached ${timeoutMs}ms timeout guard, gracefully switching to dynamic Vedic engine.`);
-              resolve("");
-            }, timeoutMs)
-          );
-          const raw = await Promise.race([
-            askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp }),
-            timeoutPromise
-          ]);
-          if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:") || raw.includes("GoogleGenerativeAIError"))) {
-            console.warn(`[V1 PDF] Error string detected for ${label}, using dynamic Vedic fallback.`);
+      // Safe AI call with 5-attempt retry loop and strict 8.5-second timeout guard
+      const failedAiSectionsV1: string[] = [];
+      const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8500, maxAttempts = 5): Promise<string> => {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const timeoutPromise = new Promise<string>((resolve) =>
+              setTimeout(() => {
+                console.warn(`[V1 PDF] AI call for ${label} (attempt ${attempt}/${maxAttempts}) reached ${timeoutMs}ms timeout guard.`);
+                resolve("");
+              }, timeoutMs)
+            );
+            const raw = await Promise.race([
+              askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp }),
+              timeoutPromise
+            ]);
+            if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:") || raw.includes("GoogleGenerativeAIError"))) {
+              console.warn(`[V1 PDF] Error string detected for ${label} (attempt ${attempt}/${maxAttempts}): ${raw}`);
+              if (attempt < maxAttempts) {
+                await new Promise((r) => setTimeout(r, attempt * 350));
+                continue;
+              }
+              failedAiSectionsV1.push(label);
+              return "";
+            }
+            if (typeof raw === "string" && raw.trim().length > 20) {
+              return raw;
+            }
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, attempt * 350));
+              continue;
+            }
+            failedAiSectionsV1.push(label);
+            return "";
+          } catch (e) {
+            console.warn(`[V1 PDF] AI call attempt ${attempt}/${maxAttempts} failed for ${label}:`, e);
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, attempt * 350));
+              continue;
+            }
+            failedAiSectionsV1.push(label);
             return "";
           }
-          if (typeof raw === "string" && raw.trim().length > 20) {
-            return raw;
-          }
-          return "";
-        } catch (e) {
-          console.warn(`[V1 PDF] AI call failed for ${label}, using dynamic Vedic fallback:`, e);
-          return "";
         }
+        failedAiSectionsV1.push(label);
+        return "";
       };
 
       // Batch 1: Characteristics & Dark Secret
@@ -2504,8 +2570,8 @@ Return ONLY this JSON format:
       const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
         ...d,
         name: localizeDoshaName(d.name || "", lang),
-        impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName),
-        remedy: d.remedy ? cleanEnglishFromRegionalText(d.remedy, lang) : undefined
+        impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, parsedKundali.maritalStatus),
+        remedy: d.remedy ? localizeDoshaRemedy(d.name, d.remedy, lang, parsedKundali.maritalStatus) : undefined
       }));
 
       const dynamicTimelineFallback = buildDynamicTimelineFallback(parsedKundali);
@@ -2553,6 +2619,20 @@ Return ONLY this JSON format:
         premiumDataPayload.summary = [{ impact: rawSummaryFallback }];
         premiumDataPayload.characteristics = [{ impact: charFallbackText }];
         premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
+      }
+
+      if (failedAiSectionsV1.length > 0) {
+        const uniqueFailed = Array.from(new Set(failedAiSectionsV1));
+        const alertMsg = lang === "kn"
+          ? `ಗಮನಿಸಿ: 5 ಬಾರಿ ಮರುಪ್ರಯತ್ನಿಸಿದ ನಂತರವೂ AI ಸಂಪರ್ಕದಲ್ಲಿ ವ್ಯತ್ಯಯ ಉಂಟಾಗಿದ್ದರಿಂದ (${uniqueFailed.join(", ")}), ನಿಖರ ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ (Vedic Fallback Engine) ಮೂಲಕ ದೋಷರಹಿತ ಭವಿಷ್ಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ.`
+          : lang === "hi"
+          ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
+          : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
+        setAiFallbackNotification({
+          active: true,
+          sections: uniqueFailed,
+          message: alertMsg
+        });
       }
 
       setPremiumDataForPdf(premiumDataPayload);
@@ -2799,13 +2879,39 @@ Return ONLY this JSON (no extra text before or after):
       const promptSummary = `You are an expert Vedic astrologer. Write a 2-3 paragraph final summary blending Yogas, Doshas, and Timeline. Language: ${pdfLanguage}. Data - Yogas: ${JSON.stringify(result.aiGeneratedNarrative?.yogas || [])}. Return { "summary": [{ "impact": "" }] }.`;
       const promptTimeline = `You are an expert Vedic astrologer. Generate a 6-Month Planetary Influence Timeline. Language: ${pdfLanguage}. Data: ${JSON.stringify(result.timingLayer?.twelveMonthRoadmap?.slice(0, 6) || [])}. Return { "timeline": [{ "dateRange": "", "impact": "" }] }.`;
 
-      const safeAskA4 = async (label: string, prompt: string, temp = 0.3) => {
-        try {
-          return await askGemini(label, prompt, geminiApiKey, pdfLanguage, { raw: true, temperature: temp });
-        } catch (e) {
-          console.warn(`[A4 PDF Generation] AI call failed for ${label}, using engine fallback`, e);
-          return "";
+      const failedAiSectionsA4: string[] = [];
+      const safeAskA4 = async (label: string, prompt: string, temp = 0.3, maxAttempts = 5) => {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const raw = await askGemini(label, prompt, geminiApiKey, pdfLanguage, { raw: true, temperature: temp });
+            if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error"))) {
+              if (attempt < maxAttempts) {
+                await new Promise((r) => setTimeout(r, attempt * 350));
+                continue;
+              }
+              failedAiSectionsA4.push(label);
+              return "";
+            }
+            if (typeof raw === "string" && raw.trim().length > 20) {
+              return raw;
+            }
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, attempt * 350));
+              continue;
+            }
+            failedAiSectionsA4.push(label);
+            return "";
+          } catch (e) {
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, attempt * 350));
+              continue;
+            }
+            failedAiSectionsA4.push(label);
+            return "";
+          }
         }
+        failedAiSectionsA4.push(label);
+        return "";
       };
 
       console.log("[A4 PDF Generation] Initiating Batch 1 AI calls (Characteristics, Secret, Yogas)...");
@@ -2918,15 +3024,41 @@ Return ONLY this JSON (no extra text before or after):
         remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, pdfLanguage) : undefined
       }));
 
+      const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], pdfLanguage) : "";
+      const moonStr = pick(RASHI_L5[session.result.moonSign.index], pdfLanguage);
+      const dashaName = currentBhuktiData?.maha?.planet ? pick(GRAHA_L5[toGraha(currentBhuktiData.maha.planet)], pdfLanguage) : "";
+      const bhuktiName = currentBhuktiData?.bhukti ? pick(GRAHA_L5[toGraha(currentBhuktiData.bhukti)], pdfLanguage) : "";
+
+      const mappedDoshasA4 = finalDoshas.map((d: any) => ({
+        ...d,
+        name: localizeDoshaName(d.name || "", pdfLanguage),
+        impact: enrichDoshaDescription(d.name || "", d.impact || "", pdfLanguage, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, a4ParsedKundali.maritalStatus),
+        remedy: d.remedy ? localizeDoshaRemedy(d.name, d.remedy, pdfLanguage, a4ParsedKundali.maritalStatus) : undefined
+      }));
+
       const premiumDataPayload: PremiumData = {
         characteristics: finalChar,
         darkSecret: finalSecret,
         yogas: finalYogas,
-        doshas: finalDoshas,
+        doshas: mappedDoshasA4,
         timeline: finalTimeline,
         gochara: finalGochara,
         summary: finalSum
       };
+
+      if (failedAiSectionsA4.length > 0) {
+        const uniqueFailed = Array.from(new Set(failedAiSectionsA4));
+        const alertMsg = pdfLanguage === "kn"
+          ? `ಗಮನಿಸಿ: 5 ಬಾರಿ ಮರುಪ್ರಯತ್ನಿಸಿದ ನಂತರವೂ AI ಸಂಪರ್ಕದಲ್ಲಿ ವ್ಯತ್ಯಯ ಉಂಟಾಗಿದ್ದರಿಂದ (${uniqueFailed.join(", ")}), ನಿಖರ ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ (Vedic Fallback Engine) ಮೂಲಕ ದೋಷರಹಿತ ಭವಿಷ್ಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ.`
+          : pdfLanguage === "hi"
+          ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
+          : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
+        setAiFallbackNotification({
+          active: true,
+          sections: uniqueFailed,
+          message: alertMsg
+        });
+      }
 
       setA4PremiumDataForPdf(premiumDataPayload);
 
@@ -2949,6 +3081,456 @@ Return ONLY this JSON (no extra text before or after):
       setA4PremiumDataForPdf(null);
       setA4PdfTranslations(null);
       setA4PdfDeepInsights(null);
+    }
+  };
+
+  // 👑 ₹300 Royal A4 Print Edition: Exact 5-Page A4 Physical Printout Engine
+  const generateRoyalA4Printout = async (personalization?: PersonalizationState) => {
+    if (!session || isGeneratingRoyalA4Pdf) return;
+    setIsGeneratingRoyalA4Pdf(true);
+    setRoyalA4PdfProgress(10);
+    setRoyalA4StageText(
+      pdfLanguage === "kn"
+        ? "೧. ಜಾತಕರ ಜನ್ಮ ಲಗ್ನ, ನವಾಂಶ ಮತ್ತು ಗ್ರಹ ಸ್ಥಿತಿ ಪರಿಶೀಲನೆ..."
+        : pdfLanguage === "hi"
+        ? "1. जातक जन्म लग्न, नवांश एवं ग्रह स्थिति विश्लेषण..."
+        : "1. Calculating Natal Kundali & Planetary Dignities..."
+    );
+
+    const failedAiSectionsRoyal: string[] = [];
+
+    try {
+      const lang = pdfLanguage;
+      const runId = newRunId();
+      const now = new Date();
+      const ageYears = ageDecimalYearsAt(
+        session.input.birthDate,
+        session.input.birthTime,
+        session.input.latitude,
+        session.input.longitude,
+        now
+      );
+
+      const moonPlanet = session.result.planets.find(p => p.name === 'Moon');
+      const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
+      const panchanga = calculateTraditionalBaggona(
+        session.birthDateYmd,
+        session.birthTimeHm,
+        session.input.latitude,
+        session.input.longitude
+      );
+
+      const liveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
+      const transits: TransitPlacement[] = Object.entries(liveTransits).map(([planet, pos]) => ({
+        graha: toGraha(planet),
+        rashiIndex: pos.rashiIndex,
+        houseFromMoon: pos.house
+      }));
+
+      const natalPlanets: NatalPlacement[] = session.result.planets.map(p => ({
+        graha: toGraha(p.name),
+        rashiIndex: p.rashi.index,
+        house: p.house,
+        retrograde: p.isRetrograde,
+        debilitated: p.isDebilitated,
+        exalted: p.isExalted
+      }));
+
+      const mahaLord = currentBhuktiData?.maha ? toGraha(currentBhuktiData.maha.planet) : null;
+      const bhuktiLord = currentBhuktiData?.bhukti ? toGraha(currentBhuktiData.bhukti) : null;
+
+      const parsedKundali = analyzeKundali({
+        lang,
+        name: session.input.name,
+        gender: ((session.input as any)?.gender || "Male") as "Male" | "Female",
+        ageYears,
+        maritalStatus: personalization?.maritalStatus || "general",
+        hasChildren: personalization?.childrenStatus || "general",
+        lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
+        moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        natalPlanets,
+        transits,
+        mahaLord,
+        bhuktiLord
+      });
+
+      // Format birth date
+      let formattedDob = session.input.birthDate;
+      try {
+        const { parseISO, format: dateFnsFormat } = await import("date-fns");
+        formattedDob = dateFnsFormat(parseISO(session.input.birthDate), "dd MMM yyyy");
+      } catch {
+        formattedDob = session.input.birthDate;
+      }
+
+      // Generate verified QR code
+      setRoyalA4PdfProgress(20);
+      setRoyalA4StageText(
+        pdfLanguage === "kn"
+          ? "೨. ಅಧಿಕೃತ ಗೋಕರ್ಣ ಮುದ್ರೆ ಮತ್ತು QR ಕೋಡ್ ರಚನೆ..."
+          : "2. Generating Sacred Gokarna Seal & QR Code..."
+      );
+      let qrCodeUrl = "";
+      try {
+        const qrPayload = `https://baggonapanchanga.web.app/?name=${encodeURIComponent(session.input.name)}&rashi=${session.result.moonSign.index}&nakshatra=${moonPlanet?.nakshatra?.index ?? 0}&priest=9972339362`;
+        qrCodeUrl = await QRCode.toDataURL(qrPayload, {
+          errorCorrectionLevel: "M",
+          margin: 2,
+          width: 240,
+          color: { dark: "#2D1802", light: "#FFFDF8" }
+        });
+        setRoyalA4QrCode(qrCodeUrl);
+      } catch (err) {
+        console.warn("[Royal A4 Printout] QR generation error:", err);
+      }
+
+      // Safe AI call with 5-attempt retry loop and timeout guard
+      const callGeminiRoyal = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8500, maxAttempts = 5): Promise<string> => {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const timeoutPromise = new Promise<string>((resolve) =>
+              setTimeout(() => {
+                console.warn(`[Royal A4 PDF] AI call for ${label} (attempt ${attempt}/${maxAttempts}) reached ${timeoutMs}ms timeout guard.`);
+                resolve("");
+              }, timeoutMs)
+            );
+            const raw = await Promise.race([
+              askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp }),
+              timeoutPromise
+            ]);
+            if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:") || raw.includes("GoogleGenerativeAIError"))) {
+              if (attempt < maxAttempts) {
+                await new Promise((r) => setTimeout(r, attempt * 350));
+                continue;
+              }
+              failedAiSectionsRoyal.push(label);
+              return "";
+            }
+            if (typeof raw === "string" && raw.trim().length > 20) {
+              return raw;
+            }
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, attempt * 350));
+              continue;
+            }
+            failedAiSectionsRoyal.push(label);
+            return "";
+          } catch (e) {
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, attempt * 350));
+              continue;
+            }
+            failedAiSectionsRoyal.push(label);
+            return "";
+          }
+        }
+        failedAiSectionsRoyal.push(label);
+        return "";
+      };
+
+      setRoyalA4PdfProgress(35);
+      setRoyalA4StageText(
+        pdfLanguage === "kn"
+          ? "೩. ಜಾತಕದ ಆಳವಾದ ವಿಶ್ಲೇಷಣೆ & ಮಾಸ್ಟರ್ ಪ್ರೆಡಿಕ್ಷನ್..."
+          : "3. Generating Comprehensive Master Synthesis..."
+      );
+
+      const result = await generateMasterPrediction(
+        session.result,
+        {
+          name: session.input.name,
+          birthDate: session.input.birthDate,
+          birthTime: session.input.birthTime,
+          latitude: session.input.latitude,
+          longitude: session.input.longitude,
+          lang,
+          maritalStatus: personalization?.maritalStatus || parsedKundali.maritalStatus
+        }
+      );
+
+      const prompts = buildPremiumPrompts({
+        lang,
+        runId,
+        name: session.input.name,
+        gender: parsedKundali.gender,
+        ageYears,
+        maritalStatus: (parsedKundali.maritalStatus as "married" | "unmarried" | "general" | undefined) ?? "general",
+        hasChildren: (parsedKundali.hasChildren as "no_children" | "has_children" | "general" | undefined) ?? "general",
+        lagnaRashiIndex: session.result.lagnaRashi?.index ?? null,
+        moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: moonPlanet?.nakshatra?.index ?? null,
+        sunRashiIndex: session.result.sunSign?.index ?? null,
+        natalPlanets,
+        transits,
+        mahaLord,
+        bhuktiLord,
+        bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
+        engineYogas: result.aiGeneratedNarrative?.yogas ?? [],
+        engineDoshas: result.aiGeneratedNarrative?.doshas ?? [],
+        pariharas: (result.pariharas ?? []).map(
+          p => `${p.doshaName}: ${p.poojaName} (${p.whenToDo}, ${p.whereToDo})`
+        ),
+        shadowSelf: result.natalLayer.shadowSelf.bluntTruth,
+        karmicBaggage: result.natalLayer.karmicBaggage.soulPurpose,
+        lifePhase: result.timingLayer.lifeClock.currentPhase,
+        overallTone: stripJayashreeIntro(result.masterSynthesis.overallTone),
+        careerNote: result.masterSynthesis.career,
+        financeNote: result.masterSynthesis.finance,
+        roadmap: result.timingLayer.twelveMonthRoadmap,
+        affairNote: ""
+      });
+
+      // AI Calls with 5-retry capability
+      setRoyalA4PdfProgress(50);
+      setRoyalA4StageText(
+        pdfLanguage === "kn"
+          ? "೪. ವ್ಯಕ್ತಿತ್ವ, ಯೋಗಗಳು ಹಾಗೂ ದಶಾಫಲ ನಿರೂಪಣೆ..."
+          : "4. Synthesizing Yogas, Phase & Personality..."
+      );
+
+      const [resCharacteristics, resCurrentPhase, resYogas, resDoshas] = await Promise.all([
+        callGeminiRoyal("Characteristics", prompts.characteristics, 0.3),
+        callGeminiRoyal("Current Phase", prompts.currentPhase, 0.3),
+        callGeminiRoyal("Yogas", prompts.yogas, 0.4),
+        callGeminiRoyal("Doshas", prompts.doshas, 0.4)
+      ]);
+
+      const [resGochara, resSummary, resBhavishya] = await Promise.all([
+        callGeminiRoyal("Gochara", prompts.gochara, 0.4),
+        callGeminiRoyal("Summary", prompts.summary, 0.3),
+        callGeminiRoyal("Life Areas", prompts.bhavishya, 0.3)
+      ]);
+
+      setRoyalA4PdfProgress(75);
+      setRoyalA4StageText(
+        pdfLanguage === "kn"
+          ? "೫. ಗಣಿತಾಧಾರಿತ ೬-ತಿಂಗಳ ಸಂಕ್ರಮಣ & ಪರಿಹಾರಗಳ ಸಮನ್ವಯ..."
+          : "5. Aligning Astronomical 6-Month Roadmap & Remedies..."
+      );
+
+      // Parse AI or use Vedic Fallbacks
+      const parseGeminiJSON = robustParseGeminiJSON;
+      const dataChar = parseGeminiJSON(resCharacteristics);
+      const dataPhase = parseGeminiJSON(resCurrentPhase);
+      const dataYogas = parseGeminiJSON(resYogas);
+      const dataDoshas = parseGeminiJSON(resDoshas);
+      const dataGochara = parseGeminiJSON(resGochara);
+      const dataSummary = parseGeminiJSON(resSummary);
+      const dataBhavishya = parseGeminiJSON(resBhavishya);
+
+      const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
+      const moonStr = pick(RASHI_L5[session.result.moonSign.index], lang);
+      const dashaName = currentBhuktiData?.maha?.planet ? pick(GRAHA_L5[toGraha(currentBhuktiData.maha.planet)], lang) : "";
+      const bhuktiName = currentBhuktiData?.bhukti ? pick(GRAHA_L5[toGraha(currentBhuktiData.bhukti)], lang) : "";
+
+      // Characteristics
+      const rawCharFallback = `${result.masterSynthesis.overallTone || 'Planetary positions shape a dynamic personality.'}\n\n${result.natalLayer.shadowSelf.bluntTruth || ''}`;
+      const finalCharacteristics = toSafeArray(dataChar.characteristics).filter((c: any) => (c?.impact || "").trim().length > 15).length > 0
+        ? dataChar.characteristics
+        : [{ trait: lang === "kn" ? "ಜನ್ಮ ಲಗ್ನ ಸ್ವಭಾವ" : "Lagna Disposition", impact: cleanEnglishFromRegionalText(rawCharFallback, lang) }];
+
+      // Current Phase
+      const rawPhaseFallback = currentBhuktiData
+        ? runningPeriodSentence(lang, toGraha(currentBhuktiData.maha.planet), toGraha(currentBhuktiData.bhukti))
+        : "Auspicious planetary period underway.";
+      const finalCurrentPhase = toSafeArray(dataPhase.currentPhase).filter((cp: any) => (cp?.impact || "").trim().length > 20).length > 0
+        ? dataPhase.currentPhase
+        : [{ impact: rawPhaseFallback }];
+
+      // Yogas
+      const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
+        ? dataYogas.yogas
+        : (result.aiGeneratedNarrative?.yogas || []).map((y: any) => ({
+            name: y.name || "Dasha Yoga",
+            impact: asText(y.significance) || result.masterSynthesis.overallTone
+          }));
+      const finalYogas = (rawYogasArray || []).map((y: any) => ({
+        ...y,
+        name: localizeYogaName(y.name || y.trait || "", lang),
+        impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
+      }));
+
+      // Doshas & Remedies with marital status & zero punctuation issues
+      const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
+        ? dataDoshas.doshas
+        : (result.aiGeneratedNarrative?.doshas || []).map((d: any) => ({
+            name: d.name || "Karmic Challenge",
+            impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
+            remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
+          }));
+      const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
+        ...d,
+        name: localizeDoshaName(d.name || "", lang),
+        impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, parsedKundali.maritalStatus),
+        remedy: d.remedy ? localizeDoshaRemedy(d.name, d.remedy, lang, parsedKundali.maritalStatus) : undefined
+      }));
+
+      // Gochara
+      const rawGocharaFallback = buildDynamicGocharaFallback(parsedKundali);
+      const finalGochara = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 30).length >= 2
+        ? dataGochara.gochara.map((g: any) => ({
+            name: localizeGocharaName(g.name || "", lang),
+            impact: cleanEnglishFromRegionalText(g.impact || "", lang),
+            remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
+          }))
+        : rawGocharaFallback;
+
+      // 6-Month Timeline using astronomical Vedic computation engine
+      const dynamicTimelineFallback = buildDynamicTimelineFallback(parsedKundali);
+      const finalTimeline = dynamicTimelineFallback.map((item) => ({
+        monthName: item.dateRange,
+        dateRange: item.dateRange,
+        dashaInfluence: item.dashaInfluence || `${dashaName}-${bhuktiName}`,
+        transitSummary: item.transitSummary || "",
+        shubhaDinagalu: item.shubhaDinagalu || (lang === "kn" ? "ತಿಂಗಳ ೨, ೬, ೧೧, ೧೬, ೨೦, ೨೫" : "2, 6, 11, 16, 20, 25"),
+        chandrashtamaDinagalu: item.chandrashtamaDinagalu || (lang === "kn" ? "ತಿಂಗಳ ೧೩, ೧೪, ೧೫" : "13, 14, 15"),
+        forecast: item.impact,
+        monthlyUpasana: item.monthlyUpasana || (lang === "kn" ? "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಾರ್ಥನೆ & ನವಗ್ರಹ ಸ್ತೋತ್ರ" : "Lord Mahabaleshwara & Navagraha Stotram")
+      }));
+
+      // 4 Life Dimensions
+      const careerGuidance = cleanEnglishFromRegionalText(
+        dataBhavishya.career || result.masterSynthesis.career || (lang === "kn" ? "ಉದ್ಯೋಗದಲ್ಲಿ ದೃಢ ಪ್ರಗತಿ ಕಂಡುಬರಲಿದೆ." : "Steady career advancement indicated."),
+        lang
+      );
+      const financeGuidance = cleanEnglishFromRegionalText(
+        dataBhavishya.finance || result.masterSynthesis.finance || (lang === "kn" ? "ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಮತ್ತು ಧನಾಗಮನ ಯೋಗ." : "Financial stability and gains indicated."),
+        lang
+      );
+      const relationshipGuidance = cleanEnglishFromRegionalText(
+        dataBhavishya.marriage || (lang === "kn" ? (parsedKundali.maritalStatus === "married" ? "ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ, ಸಾಮರಸ್ಯ ಹಾಗೂ ಗೌರವ ವೃದ್ಧಿಯಾಗಲಿದೆ." : "ವಿವಾಹ ಸಂಬಂಧಿ ಮಾತುಕತೆಗಳಲ್ಲಿ ಶುಭ ಫಲಗಳು ಗೋಚರಿಸಲಿವೆ.") : "Positive harmony indicated in family relationships."),
+        lang
+      );
+      const healthGuidance = cleanEnglishFromRegionalText(
+        dataBhavishya.health || (lang === "kn" ? "ಆರೋಗ್ಯ ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಮಾನಸಿಕ ನೆಮ್ಮದಿ ಲಭಿಸಲಿದೆ." : "Overall vitality and health remain supported."),
+        lang
+      );
+
+      // Summary & Ashirvada
+      const finalSummary = cleanEnglishFromRegionalText(
+        toSafeArray(dataSummary.summary).map((s: any) => s.impact).join("\n\n") || result.masterSynthesis.overallTone,
+        lang
+      );
+
+      const ashirvadaText = ashirvada || (
+        lang === "kn"
+          ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪೆ ಮತ್ತು ನವಗ್ರಹ ದೇವತೆಗಳ ಆಶೀರ್ವಾದ ಸದಾ ನಿಮ್ಮ ಹಾಗೂ ನಿಮ್ಮ ಕುಟುಂಬದ ಮೇಲಿರಲಿ. ಸಕಲ ಶುಭಗಳು ಪ್ರಾಪ್ತಿಯಾಗಲಿ."
+          : "May the divine grace of Lord Gokarna Mahabaleshwara and the Navagrahas always illuminate and protect your path."
+      );
+
+      // Format birth date
+      const dobFormatted = formatBirthLine(lang, session.input.birthDate, session.input.birthTime).split(",")[0] || session.input.birthDate;
+
+      // Planets Table
+      const planetsTable = session.result.planets.map((p) => {
+        const deg = Math.floor(p.degree % 30);
+        const min = Math.floor((p.degree % 1) * 60);
+        const absLong = (p.rashi.index * 30) + (p.degree % 30);
+        const nakshatraDeg = absLong % (360 / 27);
+        const pada = Math.floor(nakshatraDeg / (360 / 108)) + 1;
+
+        return {
+          name: pick(GRAHA_L5[toGraha(p.name)], lang),
+          rashi: pick(RASHI_L5[p.rashi.index], lang),
+          house: p.house,
+          longitudeStr: `${deg}° ${min}'`,
+          nakshatra: p.nakshatra ? pick(NAKSHATRA_L5[p.nakshatra.index], lang) : "",
+          pada,
+          dignity: p.isExalted
+            ? (lang === "kn" ? "ಉಚ್ಛ" : "Exalted")
+            : p.isDebilitated
+            ? (lang === "kn" ? "ನೀಚ" : "Debilitated")
+            : (lang === "kn" ? "ಸ್ವಕ್ಷೇತ್ರ" : "Own Sign"),
+          isRetrograde: p.isRetrograde
+        };
+      });
+
+      const royalPayload: RoyalA4Data = {
+        title: lang === "kn" ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥" : "Baggona Panchanga Astrology",
+        subtitle: lang === "kn" ? "ರಾಜಮುದ್ರಣ ಜಾತಕ ಫಲ ತಾಳೆಗರಿ ಪ್ರತಿ (Royal A4 Physical Print Edition)" : "Royal A4 Astrological Print Edition",
+        name: session.input.name,
+        dobFormatted,
+        birthTime: session.input.birthTime,
+        birthPlace: (session.input as any)?.place || "Gokarna, India",
+        lagnaName: lagnaStr,
+        lagnaLord: RASHI_LORDS_L5[lang]?.[session.result.lagnaRashi?.index ?? 0] || "Lagna Lord",
+        moonSignName: moonStr,
+        moonLord: RASHI_LORDS_L5[lang]?.[session.result.moonSign.index] || "Moon Lord",
+        nakshatraName: moonPlanet?.nakshatra ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+        nakshatraPada: session.result.moonPada ?? 1,
+        weekdayName: (lang === "kn" ? panchanga.weekdayKn : panchanga.weekday) || pick(WEEKDAY_L5[panchanga.weekdayIndex], lang),
+        tithiName: (lang === "kn" ? panchanga.tithiKn : panchanga.tithi) || "Shukla Pratipat",
+        currentMahaLord: dashaName,
+        currentBhuktiLord: bhuktiName,
+        runningPeriodText: currentBhuktiData ? runningPeriodSentence(lang, toGraha(currentBhuktiData.maha.planet), toGraha(currentBhuktiData.bhukti)) : "",
+        planetsTable,
+        characteristics: finalCharacteristics,
+        currentPhase: finalCurrentPhase,
+        yogas: finalYogas,
+        doshas: finalDoshas,
+        gochara: finalGochara,
+        timeline: finalTimeline,
+        careerGuidance,
+        financeGuidance,
+        relationshipGuidance,
+        healthGuidance,
+        summary: finalSummary,
+        ashirvada: ashirvadaText,
+        shloka: "ॐ असतो मा सद्गमय। तमसो मा ज्योतिर्गमय। मृत्योर्मा अमृतं गमय॥ ॐ शान्तिः शान्तिः शान्तिः॥"
+      };
+
+      setRoyalA4Data(royalPayload);
+
+      // Check if AI fallback was activated
+      if (failedAiSectionsRoyal.length > 0) {
+        const uniqueFailed = Array.from(new Set(failedAiSectionsRoyal));
+        const alertMsg = lang === "kn"
+          ? `ಗಮನಿಸಿ: 5 ಬಾರಿ ಮರುಪ್ರಯತ್ನಿಸಿದ ನಂತರವೂ AI ಸಂಪರ್ಕದಲ್ಲಿ ವ್ಯತ್ಯಯ ಉಂಟಾಗಿದ್ದರಿಂದ (${uniqueFailed.join(", ")}), ನಿಖರ ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ (Vedic Fallback Engine) ಮೂಲಕ ದೋಷರಹಿತ ಭವಿಷ್ಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ.`
+          : lang === "hi"
+          ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
+          : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
+        setAiFallbackNotification({
+          active: true,
+          sections: uniqueFailed,
+          message: alertMsg
+        });
+      }
+
+      setRoyalA4PdfProgress(90);
+      setRoyalA4StageText(
+        pdfLanguage === "kn"
+          ? "೬. ಭೌತಿಕ ಮುದ್ರಣ ಸಿದ್ಧತೆಯೊಂದಿಗೆ ಹೈ-ಡೆಫಿನಿಷನ್ A4 ಪುಟಗಳ ನಿರ್ಮಾಣ..."
+          : "6. Assembling High-Definition Multi-Page A4 PDF..."
+      );
+
+      // Wait for React to render royal template & fonts
+      await new Promise(r => setTimeout(r, 600));
+      await document.fonts.ready;
+      await new Promise(r => setTimeout(r, 400));
+
+      const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
+      const langName = langNames[pdfLanguage] || "Kannada";
+      const fileName = `Baggona_Royal_A4_Print_${langName}_${session.input.name.replace(/\s+/g, "_")}.pdf`;
+
+      await generatePDFFromElement("royal-a4-pdf-container", fileName, true);
+
+      setRoyalA4PdfProgress(100);
+      setRoyalA4StageText(
+        pdfLanguage === "kn"
+          ? "ಅಧಿಕೃತ ರಾಜಮುದ್ರಣ A4 ಭವಿಷ್ಯ ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!"
+          : "Official Baggona Royal A4 Print Edition Downloaded!"
+      );
+      await new Promise(r => setTimeout(r, 600));
+
+    } catch (err: any) {
+      console.error("[Royal A4 PDF Generation Error]", err);
+      alert(err.message || "Failed to generate Royal A4 PDF. Please try again.");
+    } finally {
+      setIsGeneratingRoyalA4Pdf(false);
+      setRoyalA4PdfProgress(0);
+      setRoyalA4StageText("");
+      setRoyalA4Data(null);
     }
   };
 
@@ -3061,28 +3643,49 @@ Return ONLY this JSON (no extra text before or after):
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setModalTriggerSource("v1");
-                  setIsPersonalizationModalOpen(true);
-                }}
-                disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
-                className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:via-yellow-400 hover:to-orange-400 text-slate-950 px-5 py-3.5 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-yellow-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
-                  isGeneratingPremiumPdfV1 ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                <span className="text-xl animate-pulse">📜✨</span>
-                <span>{isGeneratingPremiumPdfV1 ? "Crafting V1 Report..." : "Generate Premium PDF V1"}</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalTriggerSource("v1");
+                    setIsPersonalizationModalOpen(true);
+                  }}
+                  disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
+                  className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:via-yellow-400 hover:to-orange-400 text-slate-950 px-5 py-3.5 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-yellow-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                    isGeneratingPremiumPdfV1 ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <span className="text-xl animate-pulse">📜✨</span>
+                  <span>{isGeneratingPremiumPdfV1 ? "Crafting V1 Report..." : "Generate Premium PDF V1"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalTriggerSource("royal-a4");
+                    setIsPersonalizationModalOpen(true);
+                  }}
+                  disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
+                  className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-500 hover:from-red-600 hover:via-amber-500 hover:to-yellow-400 text-white font-serif px-5 py-3.5 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-amber-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                    isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <span className="text-xl">👑</span>
+                  <span>
+                    {isGeneratingRoyalA4Pdf
+                      ? (pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "hi" ? "राजमुद्रण तैयार हो रहा है..." : "Crafting Royal Print...")
+                      : (pdfLanguage === "kn" ? "👑 ₹೩೦೦ ರಾಜಮುದ್ರಣ ಭವಿಷ್ಯ (A4 Print)" : pdfLanguage === "hi" ? "👑 ₹३०० राजमुद्रण भविष्य (A4 Print)" : "👑 ₹300 Royal A4 Printout")}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Standard 4-Button PDF Generation Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+          {/* Standard 5-Button PDF Generation Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 w-full">
             <button
               onClick={generatePDF}
-              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-amber-400 w-full ${isGeneratingPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
             >
               {isGeneratingPdf ? (
@@ -3100,7 +3703,7 @@ Return ONLY this JSON (no extra text before or after):
                 setModalTriggerSource("regular");
                 setIsPersonalizationModalOpen(true);
               }}
-              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-indigo-400 w-full ${isGeneratingPremiumPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
             >
               {isGeneratingPremiumPdf ? (
@@ -3112,8 +3715,24 @@ Return ONLY this JSON (no extra text before or after):
             </button>
 
             <button
+              onClick={() => {
+                setModalTriggerSource("royal-a4");
+                setIsPersonalizationModalOpen(true);
+              }}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
+              className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-600 hover:from-red-600 hover:to-yellow-500 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-yellow-300 w-full ${isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+            >
+              {isGeneratingRoyalA4Pdf ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="text-base">👑</span>
+              )}
+              <span>{isGeneratingRoyalA4Pdf ? "Crafting Royal..." : "₹300 Royal A4 Print"}</span>
+            </button>
+
+            <button
               onClick={generateA4PDF}
-              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-emerald-400 w-full ${isGeneratingA4Pdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
             >
               {isGeneratingA4Pdf ? (
@@ -3126,7 +3745,7 @@ Return ONLY this JSON (no extra text before or after):
 
             <button
               onClick={generateSummaryPDF}
-              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf}
+              disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
               className={`group flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg border border-amber-400 w-full ${isGeneratingSummaryPdf ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
             >
               {isGeneratingSummaryPdf ? (
@@ -3134,7 +3753,7 @@ Return ONLY this JSON (no extra text before or after):
               ) : (
                 <span className="text-base">📜</span>
               )}
-              <span>{isGeneratingSummaryPdf ? "Crafting..." : "4-Paragraph Summary"}</span>
+              <span>{isGeneratingSummaryPdf ? "Crafting Summary..." : "Summary PDF"}</span>
             </button>
           </div>
 
@@ -3619,6 +4238,32 @@ Return ONLY this JSON (no extra text before or after):
         )}
       </div>
 
+      {/* Hidden Royal A4 5-Page Physical Print Template Container */}
+      <div
+        id="royal-a4-pdf-container"
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          width: 900,
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+          overflow: "hidden",
+          height: 0
+        }}
+      >
+        {session && royalA4Data && (
+          <RoyalA4PrintTemplate
+            ref={royalA4PdfRef}
+            session={session}
+            lang={pdfLanguage}
+            data={royalA4Data}
+            qrCodeUrl={royalA4QrCode}
+          />
+        )}
+      </div>
+
       {/* Interactive PDF Personalization Modal */}
       <PdfPersonalizationModal
         isOpen={isPersonalizationModalOpen}
@@ -3628,6 +4273,8 @@ Return ONLY this JSON (no extra text before or after):
           setIsPersonalizationModalOpen(false);
           if (modalTriggerSource === "v1") {
             generatePremiumPDFV1(personalization);
+          } else if (modalTriggerSource === "royal-a4") {
+            generateRoyalA4Printout(personalization);
           } else {
             generatePremiumPDF(personalization);
           }
@@ -3720,6 +4367,136 @@ Return ONLY this JSON (no extra text before or after):
             <div className="mt-4 pt-3 border-t border-amber-500/30 flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-300/80 font-sans gap-2">
               <span className="italic">॥ ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥</span>
               <span className="font-bold text-amber-400">ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ • ಶ್ರೀ ರಾಮ ಪಂಡಿತ</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-Screen Luxury Blocking Loader for Royal A4 Physical Print Edition */}
+      {isGeneratingRoyalA4Pdf && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fadeIn select-none cursor-wait">
+          {/* Central Sacred Royal Card */}
+          <div className="relative w-full max-w-lg bg-[#0c0a09]/95 border-4 border-yellow-500/90 rounded-3xl p-6 md:p-8 shadow-[0_0_70px_rgba(234,179,8,0.4)] text-amber-100 font-serif overflow-hidden ring-4 ring-amber-400/40">
+            {/* Ambient gold glow elements */}
+            <div className="absolute top-0 right-0 w-36 h-36 bg-yellow-500/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-36 h-36 bg-red-600/20 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Decorative Heritage Corner Marks */}
+            <div className="absolute top-3 left-4 text-xl text-yellow-400/80 select-none">卐</div>
+            <div className="absolute top-3 right-4 text-xl text-yellow-400/80 select-none">卐</div>
+            <div className="absolute bottom-3 left-4 text-xl text-yellow-400/80 select-none">🕉️</div>
+            <div className="absolute bottom-3 right-4 text-xl text-yellow-400/80 select-none">🕉️</div>
+
+            {/* Header Invocations */}
+            <div className="text-center space-y-1.5 pb-4 border-b border-yellow-500/30">
+              <div className="text-xs font-bold tracking-widest text-amber-400 uppercase font-sans">
+                ॥ ಶ್ರೀ ಕುಲದೇವತಾ ಪ್ರಸನ್ನ ॥
+              </div>
+              <h3 className="text-2xl md:text-3xl font-black text-amber-200 tracking-wider font-serif">
+                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
+              </h3>
+              <div className="text-xs font-bold text-yellow-300 font-sans tracking-wide">
+                {pdfLanguage === "kn"
+                  ? "👑 ₹೩೦೦ ರಾಜಮುದ್ರಣ ಭವಿಷ್ಯ (A4 Print Edition)"
+                  : pdfLanguage === "hi"
+                  ? "👑 ₹३०० राजमुद्रण भविष्य (A4 Print Edition)"
+                  : "👑 ₹300 Royal A4 Physical Print Edition"}
+              </div>
+            </div>
+
+            {/* Sacred Rotating Graha Mandala Animation */}
+            <div className="my-6 flex flex-col items-center justify-center relative">
+              <div className="relative w-28 h-28 flex items-center justify-center">
+                {/* Outer spinning celestial mandala */}
+                <div className="absolute inset-0 rounded-full border-4 border-dashed border-yellow-400/70 animate-[spin_8s_linear_infinite]" />
+                {/* Middle counter-rotating ring */}
+                <div className="absolute inset-2 rounded-full border-2 border-dashed border-red-400/60 animate-[spin_6s_linear_infinite_reverse]" />
+                {/* Pulsing inner glow ring */}
+                <div className="absolute inset-4 rounded-full border border-amber-300/50 animate-ping" />
+                {/* Center sacred Royal Crown */}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-600 via-amber-400 to-yellow-200 flex items-center justify-center shadow-lg border-2 border-yellow-300 shadow-yellow-500/60">
+                  <span className="text-3xl animate-bounce">👑</span>
+                </div>
+              </div>
+
+              {/* Real-time Percentage Counter */}
+              <div className="mt-3 text-center">
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-300 to-yellow-100 font-mono tracking-wider">
+                  {royalA4PdfProgress}%
+                </span>
+                <div className="text-[11px] font-bold text-yellow-400 uppercase tracking-widest mt-0.5 font-sans">
+                  {pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಗಣಿತ ಸಂಶ್ಲೇಷಣೆ ಚಾಲ್ತಿಯಲ್ಲಿದೆ..." : "Royal Print Synthesis in Progress..."}
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Stage Progress Bar & Description */}
+            <div className="space-y-3 bg-stone-950/80 p-4 rounded-2xl border border-yellow-500/40 shadow-inner font-sans">
+              <div className="flex justify-between items-center text-xs font-bold text-amber-200">
+                <span className="flex items-center gap-2">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping" />
+                  <span>{pdfLanguage === "kn" ? "ಲೈವ್ ಪ್ರಗತಿ (Live Pipeline):" : "Live Processing Pipeline:"}</span>
+                </span>
+                <span className="font-mono text-yellow-300 bg-amber-950/80 px-2.5 py-0.5 rounded-md border border-yellow-500/50 text-[11px]">
+                  {royalA4PdfProgress >= 90 ? "ಹಂತ ೬/೬ (Page Render)" : royalA4PdfProgress >= 65 ? "ಹಂತ ೪/೬ (Narratives)" : royalA4PdfProgress >= 35 ? "ಹಂತ ೨/೬ (Yogas & Doshas)" : "ಹಂತ ೧/೬ (Astrology Math)"}
+                </span>
+              </div>
+
+              <div className="w-full h-3 bg-black/70 rounded-full overflow-hidden p-0.5 border border-yellow-500/50">
+                <div
+                  className="h-full bg-gradient-to-r from-red-600 via-yellow-400 to-emerald-400 rounded-full transition-all duration-300 shadow-sm"
+                  style={{ width: `${Math.max(royalA4PdfProgress, 8)}%` }}
+                />
+              </div>
+
+              <p className="text-xs text-amber-200/90 font-medium text-center italic min-h-[2.5em] flex items-center justify-center px-2 leading-relaxed">
+                {royalA4StageText || (pdfLanguage === "kn" ? "೧೦೦% ನಿಖರ ಗಣಿತಾಧಾರಿತ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಗ್ರಹ ಸ್ಥಿತಿಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..." : "Synthesizing 100% accurate mathematical Kundali and transit positions...")}
+              </p>
+            </div>
+
+            {/* Bottom Heritage Seal & Priest Information */}
+            <div className="mt-4 pt-3 border-t border-yellow-500/30 flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-300/80 font-sans gap-2">
+              <span className="italic">॥ ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥</span>
+              <span className="font-bold text-yellow-400">ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ • ಶ್ರೀ ರಾಮ ಪಂಡಿತ (+91 9972339362)</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Fallback Alert Modal / Notification */}
+      {aiFallbackNotification?.active && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none">
+          <div className="relative w-full max-w-lg bg-stone-950 border-2 border-amber-500 rounded-2xl p-6 shadow-2xl text-amber-100 font-sans space-y-4">
+            <div className="flex items-center gap-3 border-b border-amber-500/30 pb-3">
+              <span className="text-3xl">ℹ️</span>
+              <div>
+                <h4 className="text-lg font-bold text-amber-200">
+                  {pdfLanguage === "kn"
+                    ? "ಗಮನಿಸಿ: ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ ಬಳಕೆ"
+                    : pdfLanguage === "hi"
+                    ? "सूचना: वैदिक गणितीय प्रणाली से निर्मित"
+                    : "Notice: Authentic Vedic Fallback Applied"}
+                </h4>
+                <p className="text-xs text-amber-400 font-mono">
+                  {pdfLanguage === "kn"
+                    ? "೫ ಬಾರಿ ಮರುಪ್ರಯತ್ನದ ನಂತರ AI ಸಂಪರ್ಕ ವ್ಯತ್ಯಯ"
+                    : pdfLanguage === "hi"
+                    ? "५ प्रयासों के बाद AI विफलता"
+                    : "AI API limit reached after 5 retry attempts"}
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-stone-300 leading-relaxed">
+              {aiFallbackNotification.message}
+            </p>
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setAiFallbackNotification(null)}
+                className="px-5 py-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-bold rounded-xl text-sm transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                {pdfLanguage === "kn" ? "ಸರಿ, ಮುಂದುವರಿಯಿರಿ" : pdfLanguage === "hi" ? "ठीक है" : "Understood"}
+              </button>
             </div>
           </div>
         </div>

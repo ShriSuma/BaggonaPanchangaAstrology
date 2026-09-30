@@ -13,9 +13,10 @@ export interface Parihara {
  * Mathematically evaluates the Kundli to find specific Doshas (afflictions)
  * and assigns specific classical pariharas (remedies) with actionable details.
  */
-export function getPariharas(kundli: KundliOutput): Parihara[] {
+export function getPariharas(kundli: KundliOutput, maritalStatus?: string): Parihara[] {
   const pariharas: Parihara[] = [];
   const planets = kundli.planets;
+  const isMarried = maritalStatus === "married";
   
   // 1. Manglik Dosha (Kuja Dosha)
   const mars = planets.find(p => p.name === PlanetName.Mars);
@@ -23,10 +24,14 @@ export function getPariharas(kundli: KundliOutput): Parihara[] {
     pariharas.push({
       doshaName: "Manglik Dosha (Kuja Dosha)",
       afflictedGraha: PlanetName.Mars,
-      description: `Mars is placed in your ${mars.house} house, which classically causes friction or delays in marriage and partnerships.`,
-      poojaName: "Mangala Gowri Pooja / Subramanya Homa",
-      whereToDo: "Kukke Subramanya Temple (Karnataka) or any major Kartikeya temple.",
-      whenToDo: "On a Tuesday during Shukla Paksha (waxing moon) or on Sashti tithi."
+      description: isMarried
+        ? `Mars is placed in your ${mars.house} house. In married life, this placement brings intense dynamism and passion; practicing patience, mutual respect, and avoiding temperamental arguments ensures enduring domestic peace.`
+        : `Mars is placed in your ${mars.house} house. In classical astrology, this Kuja (Manglik) placement advises patience, thoughtful alliance selection, and emotional composure before marriage.`,
+      poojaName: isMarried ? "Mangala Gowri Pooja / Sri Subramanya Shanti" : "Mangala Gowri Pooja / Subramanya Homa",
+      whereToDo: "Kukke Subramanya Temple (Karnataka) or Gokarna Mahabaleshwara Kshetra.",
+      whenToDo: isMarried
+        ? "On a Tuesday during Shukla Paksha or on Sashti tithi for marital harmony and prosperity."
+        : "On a Tuesday during Shukla Paksha (waxing moon) or on Sashti tithi."
     });
   }
 

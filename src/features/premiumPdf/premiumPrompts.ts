@@ -268,6 +268,8 @@ ${JSON_RULE}
     "You are an empathetic Vedic master who analyzes planetary afflictions (doshas) as solvable karmic opportunities with practical wisdom."
   )}
 CRITICAL STRUCTURAL & CONTENT REQUIREMENT:
+Native Age: ${Math.floor(input.ageYears)} years old. Marital Status: ${(input.maritalStatus || "general").toUpperCase()}.
+${(input.maritalStatus || "general") === "married" ? "IMPORTANT: The native is ALREADY MARRIED. For Kuja/Manglik Dosha or any relational afflictions, you MUST NEVER write 'delay in marriage', 'impediments in finding a partner', or 'difficulty getting married'. Instead, frame it strictly as preserving marital harmony, overcoming temperamental friction, mutual respect, and domestic bliss." : (input.maritalStatus || "general") === "unmarried" ? "The native is UNMARRIED. For Kuja/Manglik Dosha, discuss thoughtful timing, avoiding hasty decisions, and astrological compatibility for marriage alliances." : ""}
 Take the doshas listed in the chart facts above (or identify the 1 to 2 principal planetary afflictions/karmic challenges from the placements).
 For EACH dosha in the 'doshas' array:
 1. The 'impact' field MUST CONTAIN EXACTLY TWO (2) GENEROUS PARAGRAPHS separated by '\\n\\n'.
@@ -279,7 +281,7 @@ STRICT LENGTH RULE: EACH PARAGRAPH MUST BE AT LEAST 4 TO 5 FULL, SUBSTANTIAL LIN
 - PARAGRAPH 2 (What this Dosha is Currently Doing in Their Life):
   Explain what this Dosha is actively doing in their life right now at age ${Math.floor(input.ageYears)}, during their running ${dashaLine}, and under current transits. Detail concrete daily experiences: mental friction, emotional restlessness, delays in specific ventures, relationship tests, or energy drains, without causing fear.
 
-2. The 'remedy' field: Provide a clear, practical Vedic remedy, mantra, or charitable action tailored to pacify this specific dosha.
+2. The 'remedy' field: Provide a clear, practical Vedic remedy, mantra, or sacred temple seva (e.g., Kukke Subramanya, Gokarna Mahabaleshwara) tailored to pacify this specific dosha. Write purely in the target language without English abbreviations or colons.
 
 ${JSON_RULE}
 {"doshas":[{"name":"Name of Dosha","impact":"Paragraph 1: Detailed explanation of what the dosha is (at least 4-5 lines)\\n\\nParagraph 2: Detailed explanation of what this dosha is currently doing in their life (at least 4-5 lines)","remedy":"Practical Vedic remedy"}]}`;

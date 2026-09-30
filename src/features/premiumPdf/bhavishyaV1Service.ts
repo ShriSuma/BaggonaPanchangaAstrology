@@ -42,7 +42,8 @@ import {
   hasTwoSubstantialParagraphs,
   localizeYogaName,
   localizeDoshaName,
-  localizeGocharaName
+  localizeGocharaName,
+  localizeDoshaRemedy
 } from "./yogaDoshaGocharaEnricher";
 import { transliterateName } from "../../utils/transliterator";
 import {
@@ -324,30 +325,45 @@ export async function prepareBhavishyaV1Data(
     affairNote
   });
 
-  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8000): Promise<string> => {
-    try {
-      const timeoutPromise = new Promise<string>((resolve) =>
-        setTimeout(() => {
-          console.warn(`[bhavishyaV1Service] AI call for ${label} reached ${timeoutMs}ms timeout guard, gracefully switching to dynamic Vedic engine.`);
-          resolve("");
-        }, timeoutMs)
-      );
-      const raw = await Promise.race([
-        askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp }),
-        timeoutPromise
-      ]);
-      if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:") || raw.includes("GoogleGenerativeAIError"))) {
-        console.warn(`[bhavishyaV1Service] Error string detected for ${label}, using dynamic Vedic fallback.`);
+  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8000, maxAttempts = 5): Promise<string> => {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const timeoutPromise = new Promise<string>((resolve) =>
+          setTimeout(() => {
+            console.warn(`[bhavishyaV1Service] AI call for ${label} (attempt ${attempt}/${maxAttempts}) reached ${timeoutMs}ms timeout guard.`);
+            resolve("");
+          }, timeoutMs)
+        );
+        const raw = await Promise.race([
+          askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp }),
+          timeoutPromise
+        ]);
+        if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:") || raw.includes("GoogleGenerativeAIError"))) {
+          console.warn(`[bhavishyaV1Service] Error string detected for ${label} (attempt ${attempt}/${maxAttempts}): ${raw}`);
+          if (attempt < maxAttempts) {
+            await new Promise((r) => setTimeout(r, attempt * 350));
+            continue;
+          }
+          return "";
+        }
+        if (typeof raw === "string" && raw.trim().length > 20) {
+          return raw;
+        }
+        if (attempt < maxAttempts) {
+          await new Promise((r) => setTimeout(r, attempt * 350));
+          continue;
+        }
+        return "";
+      } catch (e) {
+        console.warn(`[bhavishyaV1Service] AI call failed for ${label} (attempt ${attempt}/${maxAttempts}):`, e);
+        if (attempt < maxAttempts) {
+          await new Promise((r) => setTimeout(r, attempt * 350));
+          continue;
+        }
         return "";
       }
-      if (typeof raw === "string" && raw.trim().length > 20) {
-        return raw;
-      }
-      return "";
-    } catch (e) {
-      console.warn(`[bhavishyaV1Service] AI call failed for ${label}, using dynamic Vedic fallback:`, e);
-      return "";
     }
+    return "";
   };
 
   // Batch 1: Characteristics & Dark Secret
@@ -652,8 +668,8 @@ export async function prepareBhavishyaV1Data(
   const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
     ...d,
     name: localizeDoshaName(d.name || "", lang),
-    impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName),
-    remedy: d.remedy ? cleanEnglishFromRegionalText(d.remedy, lang) : undefined
+    impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, parsedKundali.maritalStatus),
+    remedy: localizeDoshaRemedy(d.name || "", d.remedy, lang, parsedKundali.maritalStatus)
   }));
 
   const dynamicTimelineFallback = buildDynamicTimelineFallback(parsedKundali);

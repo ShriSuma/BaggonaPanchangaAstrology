@@ -275,14 +275,17 @@ export function enrichDoshaDescription(
   moonStr: string = "Moon Sign",
   ageYears?: number,
   dashaName: string = "Dasha",
-  bhuktiName: string = "Bhukti"
+  bhuktiName: string = "Bhukti",
+  maritalStatus: string = "general"
 ): string {
   const cleanImpact = (impact || "").trim();
   const baseLang = (lang || "en").split("-")[0];
   const lowerName = (name || "").toLowerCase();
+  const isMarried = maritalStatus === "married";
+  const hasMarriageDelayLeak = /delay.*marriage|വിവാഹ|ವಿವಾಹ.*ವಿಳಂಬ|विवाह.*विलंब|వివాహ.*ఆలస్యం|திருமண.*தாமதம்/i.test(cleanImpact);
 
-  // If text already has 2 generous paragraphs with at least 180 chars each, preserve it
-  if (hasTwoSubstantialParagraphs(cleanImpact, 180)) {
+  // If text already has 2 generous paragraphs with at least 180 chars each, preserve it ONLY IF it doesn't violate maritalStatus
+  if (hasTwoSubstantialParagraphs(cleanImpact, 180) && !(isMarried && hasMarriageDelayLeak)) {
     return baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
   }
 
@@ -299,6 +302,31 @@ export function enrichDoshaDescription(
     lowerName.includes("మాంగ్లిక్") ||
     lowerName.includes("செவ்வாய்")
   ) {
+    if (isMarried) {
+      if (baseLang === "kn") {
+        const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಅಂಗಾರಕನಾದ ಕುಜ ಗ್ರಹವು ${lagnaStr ? lagnaStr + " ಆಧಾರಿತ " : ""}ಪ್ರಮುಖ ಕೇಂದ್ರ ಅಥವಾ ತ್ರಿಕ ಭಾವದಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ ಕುಜ (ಮಾಂಗಲಿಕ) ಪ್ರಭಾವವು ಗೋಚರಿಸುತ್ತದೆ. ಜ್ಯೋತಿಷ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಕುಜನು ಅಗ್ನಿತತ್ತ್ವ, ಶೌರ್ಯ, ತೀಕ್ಷ್ಣತೆ ಹಾಗೂ ರಕ್ತದೊತ್ತಡದ ಕಾರಕನಾಗಿದ್ದಾನೆ. ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಈ ಗ್ರಹದ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವವು ವ್ಯಕ್ತಿಯಲ್ಲಿ ಅದಮ್ಯ ಕಾರ್ಯೋತ್ಸಾಹ ಹಾಗೂ ಕುಟುಂಬ ರಕ್ಷಣೆಯ ಛಲವನ್ನು ತುಂಬಿದರೂ, ದೈನಂದಿನ ಮಾತುಕತೆಗಳಲ್ಲಿ ಕೆಲವೊಮ್ಮೆ ಅನಗತ್ಯ ಆತುರ ಮತ್ತು ಸಣ್ಣಪುಟ್ಟ ಸೈದ್ಧಾಂತಿಕ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳಿಗೆ ಕಾರಣವಾಗಬಹುದು.`;
+        const p2 = `ಪ್ರಸ್ತುತ ದಾಂಪತ್ಯ ಜೀವನದ ಈ ಹಂತದಲ್ಲಿ ಈ ಕುಜ ಶಕ್ತಿಯನ್ನು ಶಾಂತಿಯುತವಾಗಿ ಸಮನ್ವಯಗೊಳಿಸುವುದು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ಸಣ್ಣಪುಟ್ಟ ವಿಷಯಗಳಿಗೂ ಅತಿಯಾದ ಆವೇಶಕ್ಕೊಳಗಾಗದೆ, ಸಂಗಾತಿಯ ಅಭಿಪ್ರಾಯಗಳಿಗೆ ಪರಸ್ಪರ ಗೌರವ ನೀಡುವುದು ಮತ್ತು ಶಾಂತಚಿತ್ತದಿಂದ ಸಂಭಾಷಣೆ ನಡೆಸುವುದು ವೈವಾಹಿಕ ಸೌಖ್ಯವನ್ನು ರಕ್ಷಿಸುತ್ತದೆ. ನಿತ್ಯ ಸಂಯಮವನ್ನು ಅಭ್ಯಾಸ ಮಾಡುವುದು, ತರಾತುರಿಯ ನಿರ್ಧಾರಗಳನ್ನು ತಪ್ಪಿಸುವುದು ಹಾಗೂ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಅಥವಾ ಮಂಗಳ ಗೌರಿಯ ಸ್ಮರಣೆ ಮಾಡುವುದರಿಂದ ಈ ತೀಕ್ಷ್ಣ ಶಕ್ತಿಯು ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯಾಗಿ ಬದಲಾಗಿ ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಶ್ವತ ನೆಮ್ಮದಿ ಮತ್ತು ಪರಸ್ಪರ ಅನ್ಯೋನ್ಯತೆಯನ್ನು ತರಲಿದೆ.`;
+        return formatTwoParagraphs(p1, p2, cleanImpact);
+      }
+      if (baseLang === "hi") {
+        const p1 = `आपकी जन्म कुंडली में अग्नितत्व के स्वामी मंगल ग्रह की विशेष भाव स्थिति के कारण कुज (मांगलिक) ऊर्जा का प्रभाव उपस्थित है। वैदिक ज्योतिष के अनुसार मंगल साहस, ऊर्जा, पराक्रम और रक्त के कारक हैं। वैवाहिक जीवन में मंगल का प्रभाव जातक में अत्यधिक निष्ठा और पारिवारिक दायित्व निभाने का दृढ़ संकल्प देता है, परंतु कभी-कभी स्वभाव में उग्रता, जल्दबाजी और दांपत्य चर्चाओं में वैचारिक मतभेद का कारण बन सकता है।`;
+        const p2 = `वर्तमान दांपत्य जीवन में इस मंगल ऊर्जा को धैर्यपूर्वक संतुलित करना अत्यंत आवश्यक है। दैनिक दिनचर्या में जीवनसाथी के दृष्टिकोण का सम्मान करना, क्रोध के क्षणों में मौन रहना तथा शांत मन से संवाद करना दांपत्य में मधुरता बनाए रखेगा। नियमित रूप से हनुमान चालीसा का पाठ, धैर्यपूर्वक सुनने की आदत तथा मां मंगला गौरी की उपासना करने से यह ऊर्जा दांपत्य में सुदृढ़ विश्वास और सुरक्षात्मक प्रेम में परिवर्तित हो जाती है।`;
+        return formatTwoParagraphs(p1, p2, cleanImpact);
+      }
+      if (baseLang === "te") {
+        const p1 = `మీ జన్మ కుండలిలో అంగారకుడైన కుజ గ్రహం కీలకమైన కేంద్ర లేదా త్రిక భావాలలో స్థితి చెందడం వల్ల కుజ (మాంగ్లిక్) ప్రభావం ఏర్పడింది. జ్యోతిష శాస్త్ర ప్రకారం కుజుడు అగ్నితత్త్వం, శౌర్యం, పరాక్రమం మరియు రక్షణ భావనకు కారకుడు. దాంపత్య జీవితంలో ఈ గ్రహ ప్రభావం వ్యక్తిలో కుటుంబం పట్ల అంకితభావాన్ని నింపినప్పటికీ, వ్యక్తిగత సంభాషణలలో అప్పుడప్పుడు తొందరపాటు మరియు తీవ్రమైన అభిప్రాయాలకు దారితీయవచ్చు.`;
+        const p2 = `ప్రస్తుత దాంపత్య జీవితంలో ఈ కుజ శక్తిని సంయమనంతో నడిపించడం చాలా ముఖ్యం. భాగస్వామి అభిప్రాయాలను గౌరవించడం, ఆవేశాన్ని నియంత్రించుకోవడంలో శ్రద్ధ పెట్టడం మరియు ప్రశాంతంగా మాట్లాడటం వల్ల దాంపత్య సౌఖ్యం నిరంతరం వర్ధిల్లుతుంది. ప్రతిరోజూ సుబ్రహ్మణ్య స్వామిని లేదా మంగళ గౌరీ దేవిని ఆరాధించడం వల్ల ఈ తీక్షణ శక్తి కుటుంబంలో శాంతి మరియు అనురాగాలుగా మారుతుంది.`;
+        return formatTwoParagraphs(p1, p2, cleanImpact);
+      }
+      if (baseLang === "ta") {
+        const p1 = `உங்கள் ஜாதகத்தில் அக்னித் தத்துவத்தின் நாயகனான செவ்வாய் பகவான் கேந்திரம் அல்லது திரிக ஸ்தானங்களில் சஞ்சரிப்பதால் செவ்வாய் (மங்களிக) தாக்கம் உண்டாகியுள்ளது. ஜோதிட விதிகளின்படி செவ்வாய் வீரம், ஆளுமை, வேகம் மற்றும் பாதுகாப்பின் காரகர் ஆவார். திருமண வாழ்வில் இந்த கிரக அமைப்பு குடும்பப் பொறுப்புகளில் அசைக்க முடியாத உறுதியை அளித்தாலும், கணவன்-மனைவி விவாதங்களில் சிறு கருத்து வேறுபாடுகளையும் அவசர முடிவுகளையும் ஏற்படுத்தக்கூடும்.`;
+        const p2 = `தற்போதைய இல்லற வாழ்வில் இந்த செவ்வாயின் உக்கிரத்தை அன்புடன் நிதானப்படுத்துவது அவசியமாகும். துணையின் உணர்வுகளுக்கு மதிப்பு அளிப்பது, கோபத்தைத் தவிர்ப்பது மற்றும் அமைதியான உரையாடலைக் கடைப்பிடிப்பது குடும்பத்தில் மகிழ்ச்சியைப் பெருக்கும். தினசரி சுப்பிரமணியர் அல்லது மங்கள கௌரி வழிபாடு செய்வதன் மூலம் இந்த உக்கிர ஆற்றல் குடும்பத்தில் நீடித்த அமைதியையும் பரஸ்பர அன்பையும் வழங்கும்.`;
+        return formatTwoParagraphs(p1, p2, cleanImpact);
+      }
+      const p1 = `The placement of fiery Mars (Kuja) across sensitive angular or dusthana houses creates the classical Kuja (Manglik) influence in your birth chart. Mars governs primal vitality, leadership drive, and dynamic impulse. In married life, this martial vigor bestows deep protective devotion towards family, yet calls for emotional moderation to prevent heated arguments, reactive speech, or unnecessary domestic friction.`;
+      const p2 = `In your current married life, channeling this martial energy through calm dialogue, mutual respect for your spouse's choices, and patient compromise guarantees domestic serenity. Avoiding hasty reactions during stressful moments and practicing mindful listening transforms reactive heat into enduring devotion and protective companionship.`;
+      return formatTwoParagraphs(p1, p2, cleanImpact);
+    }
     if (baseLang === "kn") {
       const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಅಂಗಾರಕನಾದ ಕುಜ ಗ್ರಹವು ಪ್ರಮುಖ ಕೇಂದ್ರ ಅಥವಾ ತ್ರಿಕ ಭಾವದಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದರಿಂದ ಕುಜ (ಮಾಂಗಲಿಕ) ಪ್ರಭಾವವು ಗೋಚರಿಸುತ್ತದೆ. ಜ್ಯೋತಿಷ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಕುಜನು ಅಗ್ನಿತತ್ತ್ವ, ಶೌರ್ಯ, ತೀಕ್ಷ್ಣತೆ ಹಾಗೂ ರಕ್ತದೊತ್ತಡದ ಕಾರಕನಾಗಿದ್ದಾನೆ. ಈ ಗ್ರಹದ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವವು ವ್ಯಕ್ತಿಯಲ್ಲಿ ಅದಮ್ಯ ಕಾರ್ಯೋತ್ಸಾಹವನ್ನು ತುಂಬಿದರೂ, ಸಂಬಂಧಗಳು, ದಾಂಪತ್ಯ ವಿಚಾರಗಳು ಹಾಗೂ ಸಹವರ್ತಿಗಳೊಂದಿಗಿನ ಮಾತುಕತೆಯಲ್ಲಿ ಕೆಲವೊಮ್ಮೆ ಅನಗತ್ಯ ಆತುರ ಮತ್ತು ತೀಕ್ಷ್ಣ ನಿಲುವುಗಳಿಗೆ ಕಾರಣವಾಗಬಹುದು.`;
       const p2 = `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದ ಈ ಹಂತದಲ್ಲಿ ಈ ಕುಜ ಪ್ರಭಾವವು ನಿಮ್ಮ ದೈನಂದಿನ ನಡವಳಿಕೆ ಹಾಗೂ ಮನಸ್ಥಿತಿಯಲ್ಲಿ ನೇರ ಪರಿಣಾಮ ಬೀರುತ್ತಿದೆ. ಸಣ್ಣಪುಟ್ಟ ವಿಷಯಗಳಿಗೂ ಅತಿಯಾದ ಆವೇಶಕ್ಕೊಳಗಾಗುವುದು, ಕಾರ್ಯ ವಿಳಂಬವಾದಾಗ ಅಸಹನೆ ಹೊಂದುವುದು ಅಥವಾ ಸಂಗಾತಿಯೊಂದಿಗೆ ಸೈದ್ಧಾಂತಿಕ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಮೂಡುವುದು ಇದರ ಮುಖ್ಯ ಲಕ್ಷಣವಾಗಿದೆ. ನಿತ್ಯ ಸಂಯಮವನ್ನು ಅಭ್ಯಾಸ ಮಾಡುವುದು, ತರಾತುರಿಯ ನಿರ್ಧಾರಗಳನ್ನು ತಪ್ಪಿಸುವುದು ಹಾಗೂ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಯ ಸ್ಮರಣೆ ಮಾಡುವುದರಿಂದ ಈ ತೀಕ್ಷ್ಣ ಶಕ್ತಿಯು ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯಾಗಿ ಬದಲಾಗಲಿದೆ.`;
@@ -859,4 +887,90 @@ export function localizeGocharaName(name: string, lang: string): string {
   if (baseLang === "te") return "ప్రముఖ గ్రహ గోచార ఫలితం";
   if (baseLang === "ta") return "முக்கிய கிரக கோசார பலன்";
   return name;
+}
+
+/**
+ * Localizes any Dosha Remedy into pure, authentic classical Vedic Parihara.
+ * Guarantees zero Latin/English leak, avoids any stripped ": 7 × .." garble,
+ * and tailors remedies accurately for married vs unmarried status.
+ */
+export function localizeDoshaRemedy(
+  doshaName: string,
+  rawRemedy: string | undefined,
+  lang: string,
+  maritalStatus: string = "general"
+): string {
+  const baseLang = (lang || "en").split("-")[0];
+  const lower = (doshaName || "").toLowerCase();
+  const isMarried = maritalStatus === "married";
+
+  if (baseLang === "en") {
+    if (rawRemedy && rawRemedy.trim().length > 15 && !rawRemedy.includes("Sorry, I encountered") && !rawRemedy.includes("undefined")) {
+      return rawRemedy.trim();
+    }
+    if (lower.includes("kuja") || lower.includes("manglik") || lower.includes("mangal")) {
+      return isMarried
+        ? "To maintain marital harmony and pacify Mars energy, recite Sri Subramanya Ashtaka on Tuesdays. Perform Mangala Gowri Pooja or offer archana at Kukke Subramanya or Gokarna Mahabaleshwara Kshetra during Shukla Paksha Sashti for domestic tranquility."
+        : "To pacify Kuja Dosha and remove marriage alliance obstacles, chant 'Om Shreem Gauryai Namah' 108 times daily. Performing Subramanya Homa or visiting Kukke Subramanya Temple on Tuesdays during Shukla Paksha brings auspicious alliance blessings.";
+    }
+    if (lower.includes("kala sarpa") || lower.includes("kalasarpa") || lower.includes("sarpa") || lower.includes("rahu") || lower.includes("ketu")) {
+      return "Chant the Maha Mrityunjaya Mantra 108 times daily during morning sandhya. Sponsoring Kala Sarpa Shanti or Sarpa Samskara at Gokarna Kotiteertha or Sri Kalahasti pacifies nodal distress and unblocks major life endeavors.";
+    }
+    if (lower.includes("kemadruma")) {
+      return "Perform milk abhishekam to Lord Shiva on Mondays to strengthen Chandra. Observing Sri Satyanarayana Vratha on Poornima (Full Moon) and donating white grains or milk promotes emotional tranquility and financial stability.";
+    }
+    if (lower.includes("guru") || lower.includes("chandal") || lower.includes("chandala")) {
+      return "Recite Sri Dakshinamurthy Stotram on Thursday mornings and offer yellow chana dal to elders or temple deities. Seeking blessings of preceptors and practicing ethical clarity transforms planetary adversity into wisdom.";
+    }
+    return "Perform Navagraha Shanti Homa once a year on your Janma Nakshatra day, and light sesame oil lamps for Lord Shiva or Sri Mahabaleshwara on Saturdays.";
+  }
+
+  // If rawRemedy already has substantial native Indic text (at least 25 Indic chars) and no English letters
+  if (rawRemedy && rawRemedy.trim().length > 25 && /[\u0900-\u0D7F]/.test(rawRemedy) && !/[a-zA-Z]{2,}/.test(rawRemedy)) {
+    const cleaned = cleanEnglishFromRegionalText(rawRemedy, baseLang);
+    if (cleaned.length > 20) return cleaned;
+  }
+
+  // Pure Classical Localized Vedic Remedies
+  if (lower.includes("kuja") || lower.includes("manglik") || lower.includes("mangal") || lower.includes("ಕುಜ") || lower.includes("कुज") || lower.includes("మాంగ్లిక") || lower.includes("செவ்வாய்")) {
+    if (isMarried) {
+      if (baseLang === "kn") return "ದಾಂಪತ್ಯ ಸೌಖ್ಯ ಹಾಗೂ ಕುಜ ದೋಷ ಶಾಂತಿಗಾಗಿ ಪ್ರತಿ ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟಕ ಅಥವಾ ಮಂಗಳ ಗೌರಿ ಸ್ತೋತ್ರ ಪಠಿಸಿ. ಶುಕ್ಲ ಪಕ್ಷದ ಮಂಗಳವಾರ ಕುಕ್ಕೆ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕ್ಷೀರಾಭಿಷೇಕ ಮತ್ತು ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ದಾಂಪತ್ಯದಲ್ಲಿ ಶಾಶ್ವತ ಪ್ರೀತಿ ಮತ್ತು ಸೌಹಾರ್ದತೆಯನ್ನು ಕಾಪಾಡುತ್ತದೆ.";
+      if (baseLang === "hi") return "दांपत्य सौहार्द एवं कुज दोष शांति हेतु प्रति मंगलवार श्री सुब्रह्मण्य अष्टक अथवा हनुमान चालीसा का पाठ करें। शुक्ल पक्ष के मंगलवार को कुक्के सुब्रह्मण्य अथवा गोकर्ण महाबलेश्वर क्षेत्र में मंगला गौरी पूजन एवं अभिषेक कराने से वैवाहिक जीवन में सुख, शांति और परस्पर विश्वास सुदृढ़ होता है।";
+      if (baseLang === "te") return "దాంపత్య సౌఖ్యం మరియు కుజ దోష నివారణ కొరకు ప్రతి మంగళవారం శ్రీ సుబ్రహ్మణ్య అష్టకం లేదా మంగళ గౌరీ స్తోత్రం పఠించండి. కుక్కే సుబ్రహ్మణ్య లేదా గోకర్ణ క్షేత్రంలో క్షీరాభిషేకం నిర్వహించడం వల్ల దాంపత్య బంధంలో శాంతి, అన్యోన్యత వృద్ధి చెందుతాయి.";
+      if (baseLang === "ta") return "குடும்ப ஒற்றுமை மற்றும் செவ்வாய் தோஷ நிவர்த்திக்காக ஒவ்வொரு செவ்வாய்க்கிழமையும் ஸ்ரீ சுப்பிரமணியர் அஷ்டகம் பாராயணம் செய்யுங்கள். சுப தினங்களில் குக்கே சுப்பிரமணியா அல்லது கோகர்ணம் திருத்தலத்தில் மங்கள கௌரி பூஜை மற்றும் அபிஷேகம் செய்வது தம்பதியரிடையே அன்பையும் அமைதியையும் நிலைநிறுத்தும்.";
+    } else {
+      if (baseLang === "kn") return "ಶೀಘ್ರ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿ ಹಾಗೂ ಕುಜ ದೋಷ ಶಾಂತಿಗಾಗಿ ಪ್ರತಿ ಮಂಗಳವಾರ 'ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ' ಮಂತ್ರ ಜಪಿಸಿ. ಶುಕ್ಲ ಪಕ್ಷದ ಮಂಗಳವಾರ ಕುಕ್ಕೆ ಸುಬ್ರಹ್ಮಣ್ಯ ಕ್ಷೇತ್ರ ಅಥವಾ ಸಮೀಪದ ಸುಬ್ರಹ್ಮಣ್ಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಹೋಮ ಅಥವಾ ಮೃತ್ತಿಕಾ ಸೇವೆ ಮಾಡಿಸುವುದು ಕಲ್ಯಾಣ ಕಾರ್ಯಗಳ ವಿಳಂಬವನ್ನು ನಿವಾರಿಸುತ್ತದೆ.";
+      if (baseLang === "hi") return "शीघ्र विवाह योग एवं मंगल दोष शांति हेतु प्रति मंगलवार 'ॐ श्रीं गौर्यै नमः' का जप करें। शुक्ल पक्ष के मंगलवार को कुक्के सुब्रह्मण्य अथवा कार्तिकेय मंदिर में सुब्रह्मण्य होम कराने से विवाह में आने वाली बाधाएं समाप्त होती हैं।";
+      if (baseLang === "te") return "శీఘ్ర వివాహ ప్రాప్తి కొరకు ప్రతి మంగళవారం 'ఓం శ్రీం గౌర్యై నమః' జపించండి. కుక్కే సుబ్రహ్మణ్య లేదా ఘాటీ సుబ్రహ్మణ్య క్షేత్రంలో సుబ్రహ్మణ్య హోమం చేయించడం వల్ల వివాహ యోగం త్వరగా సిద్ధిస్తుంది.";
+      if (baseLang === "ta") return "விரைவில் திருமண வரம் பெற ஒவ்வொரு செவ்வாய்க்கிழமையும் 'ஓம் ஸ்ரீம் கௌர்யை நமஹ' ஜெபியுங்கள். குக்கே சுப்பிரமணியா அல்லது திருச்செந்தூர் முருகன் சந்நிதியில் சுப்பிரமணிய ஹோமம் செய்வது சகல தடைகளையும் போக்கும்.";
+    }
+  }
+
+  if (lower.includes("kala sarpa") || lower.includes("kalasarpa") || lower.includes("sarpa") || lower.includes("ಸರ್ಪ") || lower.includes("सर्प") || lower.includes("సర్ప") || lower.includes("சர்ப்ப") || lower.includes("rahu") || lower.includes("ketu") || lower.includes("ರಾಹು") || lower.includes("ಕೇತು")) {
+    if (baseLang === "kn") return "ರಾಹು-ಕೇತು ಹಾಗೂ ಸರ್ಪ ದೋಷ ಶಾಂತಿಗಾಗಿ ನಿತ್ಯ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಿಸಿ. ಗೋಕರ್ಣದ ಪವಿತ್ರ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಅಥವಾ ಶ್ರೀಕಾಳಹಸ್ತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರ್ಪ ಸಂಸ್ಕಾರ ಅಥವಾ ನಾಗ ಪ್ರತಿಷ್ಠಾಪನೆ ನೆರವೇರಿಸುವುದು ಜೀವನದ ಸಕಲ ಅಡೆತಡೆಗಳನ್ನು ನಿವಾರಿಸಿ ಅಭಿವೃದ್ಧಿ ತರುತ್ತದೆ.";
+    if (baseLang === "hi") return "राहु-केतु एवं सर्प दोष शांति हेतु प्रतिदिन महामृत्युंजय मंत्र का जप करें। गोकर्ण के कोटितीर्थ अथवा कालहस्ती क्षेत्र में कालसर्प शांति एवं रुद्राभिषेक संपन्न कराने से जीवन के सभी अवरोध समाप्त होकर मार्ग प्रशस्त होता है।";
+    if (baseLang === "te") return "రాహు-కేతు దోష నివారణకు రోజూ మహా మృత్యుంజయ మంత్రం జపించండి. గోకర్ణ కోటితీర్థం లేదా శ్రీకాళహస్తి క్షేత్రంలో కాలసర్ప శాంతి మరియు రుద్రాభిషేకం నిర్వహించడం సర్వశుభకరం.";
+    if (baseLang === "ta") return "ராகு-கேது தோஷ நிவர்த்திக்கு தினமும் மகா மிருத்யுஞ்சய மந்திரம் ஜெபியுங்கள். கோகர்ணம் அல்லது காளஹஸ்தி திருத்தலத்தில் சர்ப்ப சாந்தி மற்றும் ருத்ராபிஷேகம் செய்வது தடைகளை நீக்கி வெற்றியைத் தரும்.";
+  }
+
+  if (lower.includes("kemadruma") || lower.includes("ಕೇಮದ್ರುಮ") || lower.includes("केमद्रुम") || lower.includes("కేమద్రుమ") || lower.includes("கேமத்ரும")) {
+    if (baseLang === "kn") return "ಚಂದ್ರ ಬಲ ವೃದ್ಧಿಗಾಗಿ ಪ್ರತಿ ಸೋಮವಾರ ಶಿವಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಮಾಡಿ. ಪೌರ್ಣಮಿಯಂದು ಸತ್ಯನಾರಾಯಣ ವ್ರತ ಆಚರಿಸುವುದು ಹಾಗೂ ಬಿಳಿ ಬಣ್ಣದ ವಸ್ತುಗಳು, ಹಾಲು ಅಥವಾ ಅಕ್ಕಿಯನ್ನು ದಾನ ಮಾಡುವುದು ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಮತ್ತು ಮನಸ್ಸಿಗೆ ನೆಮ್ಮದಿ ನೀಡುತ್ತದೆ.";
+    if (baseLang === "hi") return "चंद्रमा को बलवान करने हेतु प्रत्येक सोमवार शिवलिंग पर कच्चा दूध अर्पित करें। पूर्णिमा के दिन सत्यनारायण कथा का श्रवण एवं श्वेत वस्तुओं का दान करने से आर्थिक समृद्धि और मानसिक शांति प्राप्त होती है।";
+    if (baseLang === "te") return "చంద్ర బలాన్ని పెంపొందించుకోవడానికి సోమవారం శివునికి క్షీరాభిషేకం చేయండి. పౌర్ణమి నాడు శ్రీ సత్యనారాయణ వ్రతం ఆచరించడం మరియు తెలుపు రంగు వస్తువులను దానం చేయడం ఉత్తమ ఫలితాలను ఇస్తుంది.";
+    if (baseLang === "ta") return "சந்திர பலம் பெற திங்கட்கிழமைகளில் சிவபெருமானுக்கு பாலாபிஷேகம் செய்யுங்கள். பௌர்ணமி தினத்தில் சத்யநாராயண பூஜை செய்வதும், வெண்ணிறப் பொருட்களை தானம் செய்வதும் மன அமைதியையும் செல்வ வளத்தையும் தரும்.";
+  }
+
+  if (lower.includes("guru") || lower.includes("chandal") || lower.includes("chandala") || lower.includes("ಗುರು") || lower.includes("चांडाल") || lower.includes("చాండాల") || lower.includes("சண்டாள")) {
+    if (baseLang === "kn") return "ಗುರು ಕೃಪೆ ಪ್ರಾಪ್ತಿಗಾಗಿ ಪ್ರತಿ ಗುರುವಾರ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಅಥವಾ ಗುರು ಚರಿತ್ರೆ ಅಧ್ಯಯನ ಮಾಡಿ. ಶೃಂಗೇರಿ ಶಾರದಾ ಪೀಠ ಅಥವಾ ಸಮೀಪದ ಗುರು ಸನ್ನಿಧಿಯಲ್ಲಿ ಗುರು ಶಾಂತಿ ಸೇವೆ ಸಲ್ಲಿಸಿ ಕಡಲೆಕಾಳು ಹಾಗೂ ಹಳದಿ ಹೂವುಗಳನ್ನು ಸಮರ್ಪಿಸುವುದು ಸಕಲ ಸನ್ಮಂಗಳವನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ.";
+    if (baseLang === "hi") return "गुरु ग्रह के शुभ प्रभाव हेतु प्रति गुरुवार श्री गुरु पादुका स्तोत्र का पाठ करें तथा पीले पुष्प व चने की दाल भगवान विष्णु को अर्पित करें। गुरुजनों एवं माता-पिता का सम्मान करने से भाग्य में वृद्धि होती है।";
+    if (baseLang === "te") return "గురు అనుగ్రహం కొరకు గురువారం దక్షణామూర్తి స్తోత్రం పఠించండి. శృంగేరి శారదా పీఠం లేదా గురు రాఘవేంద్ర స్వామి సన్నిధిలో గురు శాంతి పూజ నిర్వహించడం జ్ఞానాన్ని, ఉన్నత అభివృద్ధిని కలిగిస్తుంది.";
+    if (baseLang === "ta") return "குரு பகவானின் அருள் பெற வியாழக்கிழமைகளில் தட்சிணாமூர்த்தி வழிபாடு செய்யுங்கள். மஞ்சள் நிற மலர்கள் மற்றும் கொண்டைக்கடலை சமர்ப்பித்து வழிபடுவது குடும்பத்தில் அமைதியையும் அறிவையும் பெருக்கும்.";
+  }
+
+  // Default Universal Vedic Upasana
+  if (baseLang === "kn") return "ದೋಷ ಶಾಂತಿ ಹಾಗೂ ಇಷ್ಟಾರ್ಥ ಸಿದ್ಧಿಗಾಗಿ ಜನ್ಮ ನಕ್ಷತ್ರದ ದಿನದಂದು ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಅಥವಾ ಕುಲದೇವತಾ ಸನ್ನಿಧಿಯಲ್ಲಿ ನವಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸಿ. ನಿತ್ಯ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ಗಾಯತ್ರಿ ಜಪವು ಸರ್ವರೀತಿಯ ಗ್ರಹ ಪೀಡೆಗಳನ್ನು ಪರಿಹರಿಸುತ್ತದೆ.";
+  if (baseLang === "hi") return "दोष शांति एवं मनोकामना सिद्धि हेतु जन्म नक्षत्र के दिन गोकर्ण महाबलेश्वर अथवा कुलदेवता मंदिर में नवग्रह शांति एवं रुद्राभिषेक कराएं। नित्य सूर्य नमस्कार एवं गायत्री जप से सभी प्रकार की ग्रह पीड़ाएं शांत होती हैं।";
+  if (baseLang === "te") return "దోష శాంతి కొరకు జన్మ నక్షత్రం నాడు గోకర్ణ మహాబలేశ్వర లేదా కులదైవ సన్నిధిలో నవగ్రహ శాంతి మరియు రుద్రాభిషేకం నిర్వహించండి. రోజూ సూర్య నమస్కారాలు చేయడం వల్ల గ్రహ దోషాలు తొలగిపోతాయి.";
+  if (baseLang === "ta") return "தோஷ நிவர்த்திக்கு உங்கள் ஜென்ம நட்சத்திர நாளில் கோகர்ணம் அல்லது குலதெய்வ கோவிலில் நவக்கிரக சாந்தி மற்றும் ருத்ராபிஷேகம் செய்யுங்கள். தினமும் சூரிய நமஸ்காரம் செய்வது சகல கிரக தோஷங்களையும் போக்கும்.";
+  return "Perform Navagraha Shanti and Rudrabhishekam on your Janma Nakshatra day at a sacred kshetra, and practice daily morning prayer.";
 }

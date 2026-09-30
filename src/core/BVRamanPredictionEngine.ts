@@ -114,9 +114,10 @@ function evaluateDignities(kundli: KundliOutput): BVRamanDignity[] {
   return dignities;
 }
 
-export function evaluateYogasAndDoshas(kundli: KundliOutput): { yogas: BVRamanYoga[], doshas: BVRamanYoga[] } {
+export function evaluateYogasAndDoshas(kundli: KundliOutput, maritalStatus?: string): { yogas: BVRamanYoga[], doshas: BVRamanYoga[] } {
   const yogas: BVRamanYoga[] = [];
   const doshas: BVRamanYoga[] = [];
+  const isMarried = maritalStatus === "married";
   
   const getLord = (h: number) => lordOfHouse(kundli, h);
   const getPos = (pName: PlanetName) => kundli.planets.find((p: PlanetPosition) => p.name === pName);
@@ -519,7 +520,9 @@ export function evaluateYogasAndDoshas(kundli: KundliOutput): { yogas: BVRamanYo
   if (mars && [1, 2, 4, 7, 8, 12].includes(mars.house)) {
     doshas.push({
       name: "Kuja Dosha",
-      description: `Mars is placed in the ${mars.house} house. This forms Kuja (Manglik) Dosha, which can cause challenges or delays in marriage and partnerships.`,
+      description: isMarried
+        ? `Mars is placed in the ${mars.house} house. In married life, this brings dynamic vitality; cultivating mutual patience, empathetic dialogue, and respecting each other's perspective harmonizes domestic tranquility and marital happiness.`
+        : `Mars is placed in the ${mars.house} house. This forms Kuja (Manglik) Dosha, which advises thoughtful astrological compatibility and patience in marriage alliances.`,
       isFavorable: false
     });
   }
@@ -574,9 +577,9 @@ function analyzeDasha(kundli: KundliOutput, mahaLord: PlanetName, bhuktiLord: Pl
   return `The Mahadasha of ${mahaLord} and Bhukti of ${bhuktiLord} will give mixed results based on their mutual relationship (${mutualDistance}th position) in the chart.`;
 }
 
-export function generateBVRamanPrediction(kundli: KundliOutput, mahaLord: PlanetName, bhuktiLord: PlanetName): BVRamanPrediction {
+export function generateBVRamanPrediction(kundli: KundliOutput, mahaLord: PlanetName, bhuktiLord: PlanetName, maritalStatus?: string): BVRamanPrediction {
   const dignities = evaluateDignities(kundli);
-  const { yogas, doshas } = evaluateYogasAndDoshas(kundli);
+  const { yogas, doshas } = evaluateYogasAndDoshas(kundli, maritalStatus);
   const dashaAnalysis = analyzeDasha(kundli, mahaLord, bhuktiLord);
   const gocharaAnalysis = `Baggona Panchanga emphasizes the transit (Gochara) of major slow-moving planets (Saturn and Jupiter) evaluated from your natal Moon sign (${kundli.moonSign.english}).`;
 

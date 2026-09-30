@@ -77,6 +77,7 @@ export interface MasterEngineContext {
   longitude: number;
   gender?: "Male" | "Female" | "Other";
   isMarried?: boolean;
+  maritalStatus?: string;
   hasChildren?: boolean;
   hasJob?: boolean;
   ayanamsaModel?: AyanamsaModel;
@@ -115,10 +116,12 @@ export async function generateMasterPrediction(
 
   // Traditional Core Engines
   const fallbackLord = kundli.planets[0].name; // usually Sun
+  const resolvedMaritalStatus = context.maritalStatus || (context.isMarried ? "married" : undefined);
   const bvRamanCore = generateBVRamanPrediction(
     kundli,
     mahaLord ?? fallbackLord,
-    bhuktiLord ?? fallbackLord
+    bhuktiLord ?? fallbackLord,
+    resolvedMaritalStatus
   );
 
   const jayashreeInsights = await generateJayashreePrediction(
@@ -258,7 +261,7 @@ export async function generateMasterPrediction(
     }
   }
 
-  const pariharas = getPariharas(kundli);
+  const pariharas = getPariharas(kundli, resolvedMaritalStatus);
   const shloka = getRandomShlokaForGraha(mahaLord ?? fallbackLord);
   const aashirvada = getRandomAashirvada();
 

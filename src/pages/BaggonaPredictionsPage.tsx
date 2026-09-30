@@ -704,7 +704,7 @@ export default function BaggonaPredictionsPage(): JSX.Element {
               ) : (
                 <>
                   <span>📄</span>
-                  <span>{isKn ? "ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್ (₹500)" : "Download Premium PDF Blueprint (₹500)"}</span>
+                  <span>{isKn ? "ಪ್ರೀಮಿಯಂ PDF ಡೌನ್‌ಲೋಡ್ (₹300)" : "Download Premium PDF Blueprint (₹300)"}</span>
                 </>
               )}
             </button>
