@@ -2,6 +2,7 @@ import { type KundliOutput, PlanetName } from "../AstroTypes";
 import { MasterEngineContext } from "../MasterPredictionEngine";
 import { findBhuktiAtAge } from "../DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../birthTime";
+import { getTransitsForDate } from "../BaggonaPredictionEngine";
 
 export interface TimingLayerOutput {
   lifeClock: {
@@ -148,170 +149,80 @@ function calculateTwelveMonthRoadmap(kundli: KundliOutput, context: MasterEngine
   const now = new Date();
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  const ageDecimal = ageDecimalYearsAt(
-    context.birthDate,
-    context.birthTime,
-    context.latitude,
-    context.longitude,
-    now
-  );
-  const currentDasha = findBhuktiAtAge(kundli, ageDecimal);
-  const mahaLord = currentDasha?.maha.planet ?? "Sun";
-
   const saturnH  = kundli.planets.find(p => p.name === PlanetName.Saturn)?.house ?? 0;
   const jupiterH = kundli.planets.find(p => p.name === PlanetName.Jupiter)?.house ?? 0;
   const rahuH    = kundli.planets.find(p => p.name === PlanetName.Rahu)?.house ?? 0;
   const marsH    = kundli.planets.find(p => p.name === PlanetName.Mars)?.house ?? 0;
   const moonH    = kundli.planets.find(p => p.name === PlanetName.Moon)?.house ?? 0;
-
-  // Prediction templates indexed by Dasha lord — each provides 12 distinct months of insight
-  const roadmapTemplates: Record<string, string[]> = {
-    Sun: [
-      `The ${mahaLord} period opens with a focus on clarifying your professional identity. Decisions made now about your career direction will resonate for years.`,
-      `Authority figures — bosses, parents, institutions — play a significant role this month. How you handle power dynamics will determine your position going forward.`,
-      `A critical month for public reputation. Something becomes visible about your work or character. With Saturn in the ${saturnH}th house adding pressure, maintain integrity above all.`,
-      `Creative energy peaks. Your confidence and personal magnetism are at a high point — use this to forge important connections or launch initiatives.`,
-      `Mid-cycle review: the Sun period asks what you have built in terms of genuine substance versus appearances. Address any gap between the two.`,
-      `Health and vitality require attention. The solar energy that drives ambition can also overheat the system. Rest and metabolic care are critical.`,
-      `Financial clarity emerges. Review long-term investments and ensure your financial strategy aligns with your authentic career direction, not just short-term gain.`,
-      `Relationships with authority figures shift — either you step into greater responsibility or you must confront someone above you. Either way, integrity wins.`,
-      `A spiritually significant month. Unexpected insights about your life purpose arrive through stillness rather than activity.`,
-      `Professional momentum builds. The groundwork laid in earlier months begins paying tangible dividends.`,
-      `Family dynamics require attention — specifically your relationship with father figures or male authority in your lineage. Resolve lingering conflicts.`,
-      `The year closes with a consolidation of your solar gains. Identify what truly served your growth and what drained your core energy.`
-    ],
-    Moon: [
-      `Emotional sensitivity is heightened at the start of this lunar cycle. Pay close attention to your body's signals — especially sleep, digestion, and mood.`,
-      `Family and domestic matters demand attention. With Moon in the ${moonH}th house, your inner home is being restructured.`,
-      `A critical month for emotional processing. Something from the past resurfaces. Do not push it down — the Moon requires acknowledgment before release.`,
-      `Intuition is exceptionally strong this month. Trust what you feel even when you cannot logically justify it.`,
-      `Relationships with women — mothers, sisters, female colleagues — are in focus. Nurturing and being nurtured are both karmic priorities.`,
-      `Your mental health and emotional balance require deliberate investment this month. Creative arts, water, and nature serve as healers.`,
-      `A quieter, more reflective month. The Moon asks you to consolidate rather than expand. Inner work yields outer stability.`,
-      `Financial matters connected to home or family property come into focus. Decisions made now have long-lasting domestic implications.`,
-      `Emotional breakthroughs are possible. Old grief or resentment that has never been properly expressed finds a channel of release.`,
-      `Social life and community connections become important. The Moon-period thrives in networks of genuine care, not superficial associations.`,
-      `Spiritual and psychic sensitivity peaks. Dreams carry important messages. Keep a journal and watch for recurring symbols.`,
-      `Closing month of the lunar cycle — integrate emotional wisdom gained through the year into your core identity going forward.`
-    ],
-    Mars: [
-      `Mars opens this chapter with raw energy and urgency. A decision or action long delayed can no longer be postponed. Move decisively.`,
-      `Conflict or competition emerges — with Mars in the ${marsH}th house, this arena is particularly heated. Choose your battles carefully but do not retreat unnecessarily.`,
-      `This is the most critical action-month of the year. What you do now has disproportionate long-term consequences. Act with precision and courage.`,
-      `Physical energy is at its peak. Athletics, adventure, and bold moves are supported. Channel Mars' fire into constructive output.`,
-      `A month of confrontations — either external (conflict with others) or internal (confronting your own avoidance). Mars rewards the courageous.`,
-      `Review your ambitions: are they truly yours, or were they imposed by fear or pressure? Mars-period success requires authentic drive.`,
-      `Financial risks are present this month. Avoid reckless decisions driven by impatience. Mars' energy can destroy as easily as it builds.`,
-      `Partnerships or alliances face stress-testing. Any relationship that is not built on mutual respect will show its fault lines now.`,
-      `Health focus: Mars rules blood, muscles, and inflammation. Physical exercise and stress management are critical preventive measures.`,
-      `A breakthrough month — sustained effort from earlier months culminates in a visible result. Mars rewards those who endured.`,
-      `Spiritual implication of Mars period: your anger, competitiveness, and desire are being refined into courage, leadership, and righteous action.`,
-      `Year-end consolidation: identify which of your battles were worth fighting and which drained energy that could have been directed toward creation.`
-    ],
-    Jupiter: [
-      `Jupiter opens a year of genuine expansion. Opportunities that seemed out of reach become accessible — especially in fields connected to Jupiter in the ${jupiterH}th house.`,
-      `Education, higher learning, and philosophical inquiry are activated. Pursue knowledge that truly enlarges your worldview.`,
-      `A blessed month for marriages, partnerships, and legal matters. Jupiter's expansive energy protects and sanctifies agreements made now.`,
-      `Children, creativity, and joy are in focus. If you have been suppressing your playful or creative side, Jupiter is restoring it.`,
-      `Financial gains arrive — often through unexpected channels, gifts, or growth of investments. Be generous in proportion to your abundance.`,
-      `Spiritual development accelerates. You may encounter a teacher, text, or experience that significantly shifts your philosophical foundation.`,
-      `Critical month for long-term planning. Jupiter's vision is broad — use this window to draft plans that extend 5 to 10 years ahead.`,
-      `Travel or exposure to foreign cultures brings meaningful insights. Even domestic travel yields philosophical enrichment.`,
-      `A month of social recognition and reputational growth. Your contributions are being seen and acknowledged more widely.`,
-      `Jupiter's period asks: are you giving back in proportion to what you have received? Service and generosity activate further blessings.`,
-      `Deepening of wisdom — the superficial desires of earlier life feel less urgent, replaced by a genuine yearning for meaning.`,
-      `Year-close integration: Jupiter asks you to identify the single most important belief upgrade of the past twelve months and anchor it as a new foundation.`
-    ],
-    Saturn: [
-      `Saturn begins the year with a clear audit of your foundations. Where have you been cutting corners or avoiding hard work? That becomes the focal point.`,
-      `Professional responsibilities increase — possibly through promotion or expanded duty. With Saturn in the ${saturnH}th house, this area demands sustained, serious effort.`,
-      `This is the most demanding month of the year. Obstacles, delays, or health concerns may arise. Do not panic; Saturn tests endurance, not worthiness.`,
-      `A month of structural review — relationships, finances, career infrastructure. Anything unstable will show its weakness now.`,
-      `Discipline and routine are your greatest assets this month. The Saturn period rewards those who show up consistently, without complaint.`,
-      `Karmic debts come due — financial, emotional, or social. Pay what you owe, apologise what needs apology. Saturn tracks every imbalance.`,
-      `Health requires serious attention. Saturn rules bones, teeth, joints, and chronic conditions. Preventive care taken now prevents larger crises later.`,
-      `A month of reduced social activity — Saturn pulls you inward toward solitude and reflection. Use it to strategise rather than socialise.`,
-      `Spiritual deepening through hardship. The pressure of this period is refining your character in ways that easier times never could.`,
-      `Progress becomes visible in areas where you have been consistently disciplined. Saturn's rewards are real, but they come on Saturn's timeline, not yours.`,
-      `Relationship clarity: Saturn strips away politeness to reveal the actual nature of your bonds. Some connections are more obligation than love.`,
-      `Year-end reckoning: Saturn asks you to honestly assess what you built, what you avoided, and what commitments you must honour going forward.`
-    ],
-    Rahu: [
-      `Rahu launches this year with disorienting intensity. Old maps no longer work — you are in new territory without a guide. This is by design.`,
-      `Foreign or unconventional influences enter your life with unusual force. Embrace what is new, but maintain your ethical grounding.`,
-      `The most unpredictable month of the year. An unexpected development — career, relationship, or circumstance — reshapes your direction entirely.`,
-      `A month of ambition and obsession — possibly unhealthy fixation on a goal or person. With Rahu in the ${rahuH}th house, this area is especially turbulent.`,
-      `Illusions and self-deceptions are exposed this month. The story you have been telling yourself about your life is being challenged.`,
-      `Technology, media, and unconventional strategies offer breakthroughs in career or communication. Think outside established frameworks.`,
-      `Caution month: Rahu can amplify both extraordinary gains and extraordinary losses. Avoid reckless speculation in finance or relationships.`,
-      `A month of social magnetism — you attract unusual people and situations. Discern carefully who and what serves your authentic evolution.`,
-      `Spiritual disorientation is common in Rahu periods. Traditional practices may feel hollow. Seek genuine understanding over ritualistic comfort.`,
-      `Breakthrough month: the chaos of earlier months begins crystallising into an unexpected and genuinely innovative direction.`,
-      `Karmic acceleration — events unfold at unusual speed. What would normally take years compresses into weeks. Stay grounded.`,
-      `Rahu's year concludes with a recalibration: you are not the same person who began this cycle. Honour what you have become.`
-    ],
-    Ketu: [
-      `Ketu opens this year with a quiet but unmistakable pulling-inward. External achievements feel less urgent as spiritual and internal matters demand attention.`,
-      `Detachment themes are strong — from possessions, relationships, or identities you have outgrown. Do not cling to what is leaving.`,
-      `This month may bring a sense of loss or confusion. Something ends. Ketu's endings are always karmic completions — trust the release.`,
-      `Psychic sensitivity is heightened. Dreams are vivid and significant. Meditation and silence are more productive than social activity.`,
-      `Past-life themes and unresolved ancestral patterns surface. Work with a healer, therapist, or spiritual teacher who understands depth.`,
-      `A month of unexpected clarity — as the material fog lifts, you see your life from an unusual angle of spiritual honesty.`,
-      `Financial matters require a conservative, careful approach. Ketu periods can bring unexpected expenses through losses of what seemed secure.`,
-      `Solitude is not loneliness this month — it is the necessary container for the profound inner work Ketu is performing.`,
-      `A significant karmic encounter — a person from your past, or someone who carries a past-life resonance, enters your field.`,
-      `Creative and spiritual gifts that have lain dormant begin awakening. Hidden talents are asking to be expressed.`,
-      `The nearing end of this Ketu phase brings a profound readiness for re-engagement with life on different, more authentic terms.`,
-      `Ketu concludes its work: you emerge lighter, less attached, and more genuinely yourself than when this cycle began.`
-    ],
-    Mercury: [
-      `Mercury launches this year with a surge in mental activity and communication. Your words have unusual power — use them with precision.`,
-      `Learning and skill acquisition are especially favoured. Invest in courses, certifications, or expertise that advances your core direction.`,
-      `Contracts, negotiations, and agreements require careful review this month. Mercury-period deals can be brilliant or be riddled with overlooked details.`,
-      `Siblings, cousins, or close neighbourhood connections play an unusual role in your life story this month.`,
-      `A breakthrough in communication — you find the words for something you have been trying to express for years.`,
-      `This month favours writing, publishing, teaching, and intellectual entrepreneurship. Your analytical gifts are at a premium.`,
-      `Technology and systems thinking offer creative solutions. Audit your digital life and information habits for efficiency.`,
-      `Mental fatigue may arise from Mercury's relentless pace. Schedule deliberate rest for the mind — nature, movement, and screen-free time.`,
-      `Financial analysis and accounting receive focused attention. Mercury favours those who understand their numbers and manage detail precisely.`,
-      `A month of social networking — connecting the right people creates unexpected opportunities in business or creative collaboration.`,
-      `Education of a younger person — a student, child, or junior colleague — becomes a meaningful focus and a mirror for your own learning.`,
-      `Mercury's year closes with a refined ability to think, communicate, and organise. Identify the most important insight gained and encode it into a new habit.`
-    ],
-    Venus: [
-      `Venus opens this year with a deepening of desire — for beauty, love, comfort, and creative expression. Honour these longings consciously.`,
-      `Romantic and social life become priority arenas. New connections made now carry artistic or karmic significance.`,
-      `Financial flow through creative or aesthetic endeavours is especially strong. Beauty, design, art, and luxury sectors are favoured.`,
-      `Relationship depth increases — superficial connections naturally fall away as you crave genuine emotional intimacy.`,
-      `A month of creative breakthrough. If you have been building an artistic project, this is the month it finds its form.`,
-      `Self-care and body appreciation take on spiritual significance. How you treat your own physical vessel reflects your relationship with pleasure itself.`,
-      `Financial investments in beauty, wellness, fashion, or arts show strong returns this month.`,
-      `Partnership dynamics shift — either deepening commitment or recognising misalignment. Venus demands authentic resonance, not convenient arrangement.`,
-      `Social recognition through beauty, style, or artistic contribution brings unexpected opportunities.`,
-      `A deeply romantic month — whether in existing love or the arrival of new connection. Venus is at full power in your chart this cycle.`,
-      `Spiritual understanding of Venus: love is not merely personal preference — it is a cosmic force asking you to embody grace.`,
-      `Venus closes its year with a refined sense of what you truly value — and what you were merely conditioned to desire.`
-    ]
-  };
-
-  const templates = roadmapTemplates[mahaLord] ?? roadmapTemplates["Sun"];
+  const venusH   = kundli.planets.find(p => p.name === PlanetName.Venus)?.house ?? 0;
+  const sunH     = kundli.planets.find(p => p.name === PlanetName.Sun)?.house ?? 0;
+  const mercuryH = kundli.planets.find(p => p.name === PlanetName.Mercury)?.house ?? 0;
+  const ascRashi = kundli.lagnaRashi?.english ?? "Mesha";
+  const moonRashi = kundli.moonSign?.english ?? "Karka";
+  const moonSignIdx = kundli.moonSign?.index ?? 0;
 
   const roadmap = [];
   let m = now.getMonth();
   let y = now.getFullYear();
 
   for (let i = 0; i < 12; i++) {
-    const prediction = templates[i] ?? `${months[m]} ${y}: The ${mahaLord} period continues its influence. Stay attuned to the themes of your current planetary era.`;
+    const targetDate = new Date(y, m, 15);
+    const ageDecimal = ageDecimalYearsAt(
+      context.birthDate,
+      context.birthTime,
+      context.latitude,
+      context.longitude,
+      targetDate
+    );
+    const dashaAtMonth = findBhuktiAtAge(kundli, ageDecimal);
+    const mahaLord = dashaAtMonth?.maha.planet ?? "Sun";
+    const bhuktiLord = dashaAtMonth?.bhukti ?? "Jupiter";
+
+    const transits = getTransitsForDate(moonSignIdx, targetDate, context.ayanamsaModel ?? "lahiri");
+    const sunTransitH = transits[PlanetName.Sun]?.house ?? 1;
+    const jupTransitH = transits[PlanetName.Jupiter]?.house ?? 1;
+    const satTransitH = transits[PlanetName.Saturn]?.house ?? 1;
+    const marsTransitH = transits[PlanetName.Mars]?.house ?? 1;
+    const rahuTransitH = transits[PlanetName.Rahu]?.house ?? 1;
+
+    let prediction = "";
+    switch (i % 6) {
+      case 0:
+        prediction = `The month opens with a decisive surge in vitality and self-direction under running ${mahaLord} Mahadasha and ${bhuktiLord} Bhukti. With the Sun transiting the ${sunTransitH}th house from your Janma Chandra (${moonRashi}) and Lagna (${ascRashi}), personal initiatives and career visibility come to the forefront. Natal Saturn in house ${saturnH} cautions against hasty shortcuts, encouraging you to anchor your professional ambitions in disciplined execution.`;
+        break;
+      case 1:
+        prediction = `Financial calibration, savings, and domestic stability define this period. Jupiter transiting house ${jupTransitH} from Chandra ${[2, 5, 7, 9, 11].includes(jupTransitH) ? "showers auspicious Guru Bala upon your wealth accumulation and family negotiations" : "advises a conservative, calculated approach toward household budgeting"}. Natal Jupiter in house ${jupiterH} supports judicious resource allocation and fruitful discussions regarding long-term property or security.`;
+        break;
+      case 2:
+        prediction = `Energy, resolve, and overcoming competitive obstacles take priority as Mars moves through the ${marsTransitH}th house from Chandra. Supported by the ${bhuktiLord} sub-period, longstanding workplace bottlenecks dissolve through decisive action. With natal Mars placed in house ${marsH}, channel your drive constructively into physical fitness and complex projects while avoiding unnecessary verbal friction.`;
+        break;
+      case 3:
+        prediction = `Partnership dynamics, domestic harmony, and shared commitments take center stage. With natal Venus situated in house ${venusH} and key transits illuminating your relational axis, open dialogue fosters mutual empathy and resolves prior misunderstandings. Collaborative teamwork and honoring your spouse's or partners' perspectives create profound emotional and practical stability.`;
+        break;
+      case 4:
+        prediction = `Intellectual clarity, creative breakthroughs, and dharmic growth flourish under this planetary phase. The combined synergy of ${mahaLord}-${bhuktiLord} stimulates strategic foresight, higher learning, and intuitive problem-solving. Natal Mercury in house ${mercuryH} enhances negotiations and scholastic endeavors, while spiritual introspection brings peace of mind.`;
+        break;
+      case 5:
+      default:
+        prediction = `A pivotal consolidation month for vocational standing, executive responsibilities, and long-term milestones. Karmakaraka Saturn's transit in the ${satTransitH}th house from Chandra tests and rewards your professional endurance. Diligent efforts made over preceding months yield tangible recognition, solidifying your leadership reputation and opening reliable future pathways.`;
+        break;
+    }
+
+    const isCritical = i === 2 || i === 5 || i === 8 || [1, 8, 12].includes(satTransitH) || sunTransitH === 10;
+
     roadmap.push({
       month: `${months[m]} ${y}`,
       prediction,
-      isCritical: i === 2 || i === 8 // 3rd and 9th months tend to be pivot points
+      isCritical
     });
+
     m++;
     if (m > 11) {
       m = 0;
       y++;
     }
   }
+
   return roadmap;
 }
+

@@ -33,7 +33,8 @@ import {
   buildDynamicDarkSecretFallback,
   buildDynamicCurrentPhaseFallback,
   buildDynamicGocharaFallback,
-  buildDynamicSummaryFallback
+  buildDynamicSummaryFallback,
+  buildDynamicTimelineFallback
 } from "../../features/premiumPdf/dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -1685,6 +1686,7 @@ Return ONLY this JSON format:
       const dataSummary = parseGeminiJSON(resSummary);
       const dataBhavishya = parseGeminiJSON(resBhavishya);
 
+
       // If AI returned fresh personalized Bhavishya readings for Chapter V, override localisedPredictions
       if (dataBhavishya?.bhavishya) {
         const aiB = dataBhavishya.bhavishya;
@@ -1782,24 +1784,6 @@ Return ONLY this JSON format:
         remedy: d.remedy ? cleanEnglishFromRegionalText(d.remedy, lang) : undefined
       }));
 
-      const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
-      const fallbackTimeline = await Promise.all(
-        engineRoadmap6.map(async r => ({
-          dateRange: await translateText(r.month, lang),
-          impact: await translateText(r.prediction, lang)
-        }))
-      );
-
-      const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 10);
-      const finalTimeline = validTimelineItems.length >= 4
-        ? await Promise.all(
-          validTimelineItems.map(async (t: any) => ({
-            ...t,
-            dateRange: await translateText(t.dateRange || "", lang)
-          }))
-        )
-        : fallbackTimeline;
-
       const v2ParsedKundali = analyzeKundali({
         lang,
         name: session.input.name,
@@ -1815,6 +1799,17 @@ Return ONLY this JSON format:
         mahaLord,
         bhuktiLord
       });
+
+      const dynamicTimelineFallback = buildDynamicTimelineFallback(v2ParsedKundali);
+      const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 30);
+      const finalTimeline = validTimelineItems.length >= 4
+        ? await Promise.all(
+          validTimelineItems.map(async (t: any) => ({
+            ...t,
+            dateRange: await translateText(t.dateRange || "", lang)
+          }))
+        )
+        : dynamicTimelineFallback;
       const rawGocharaFallback = buildDynamicGocharaFallback(v2ParsedKundali);
       const isSufficientGocharaDepth = (txt: string) => {
         if (!txt) return false;
@@ -2237,7 +2232,27 @@ Return ONLY this JSON format:
           : "7. Synthesizing Marriage, Children, Career, Wealth & Health..."
       );
       console.log("[V1 PDF] Batch 5: Bhavishya Life Areas...");
-      const resBhavishya = await callGeminiSafe("Generate Bhavishya Life Areas", prompts.bhavishya, 0.3);
+      let dataBhavishya: any = {};
+      if (ageYears < 8) {
+        const resBhavishya = await callGeminiSafe("Generate Bhavishya Child Areas", prompts.bhavishya, 0.3);
+        dataBhavishya = parseGeminiJSON(resBhavishya);
+      } else {
+        const [resB1, resB2] = await Promise.all([
+          callGeminiSafe("Generate Marriage & Children", prompts.bhavishyaMarriageChildren || prompts.bhavishya, 0.3),
+          callGeminiSafe("Generate Career, Wealth & Health", prompts.bhavishyaCareerWealthHealth || prompts.bhavishya, 0.3)
+        ]);
+        const d1 = parseGeminiJSON(resB1);
+        const d2 = parseGeminiJSON(resB2);
+        dataBhavishya = {
+          bhavishya: {
+            marriage: d1?.bhavishya?.marriage || d2?.bhavishya?.marriage,
+            children: d1?.bhavishya?.children || d2?.bhavishya?.children,
+            career: d2?.bhavishya?.career || d1?.bhavishya?.career,
+            wealth: d2?.bhavishya?.wealth || d1?.bhavishya?.wealth,
+            health: d2?.bhavishya?.health || d1?.bhavishya?.health
+          }
+        };
+      }
 
       setV1PdfProgress(80);
       setV1PdfStageText(
@@ -2256,12 +2271,11 @@ Return ONLY this JSON format:
       const dataTimeline = parseGeminiJSON(resTimeline);
       const dataGochara = parseGeminiJSON(resGochara);
       const dataSummary = parseGeminiJSON(resSummary);
-      const dataBhavishya = parseGeminiJSON(resBhavishya);
 
-      // Helper to strictly ensure at least 2 substantial paragraphs of 5-6 lines
-      const isSufficientDepth = (text: string | undefined, minParas: number = 2, minChars: number = 260): boolean => {
+      // Helper to strictly ensure at least 2 substantial paragraphs of 6-7 lines
+      const isSufficientDepth = (text: string | undefined, minParas: number = 2, minChars: number = 380): boolean => {
         if (!text || text.trim().length < minChars) return false;
-        const paras = text.split(/\n\n+/).filter(p => p.trim().length > 35);
+        const paras = text.split(/\n\n+/).filter(p => p.trim().length > 60);
         return paras.length >= minParas;
       };
 
@@ -2475,13 +2489,14 @@ Return ONLY this JSON format:
         remedy: d.remedy ? cleanEnglishFromRegionalText(d.remedy, lang) : undefined
       }));
 
-      const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
-      const fallbackTimeline = engineRoadmap6.map((r: any) => ({
-        dateRange: r.month,
-        impact: r.prediction
-      }));
-      const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 10);
-      const finalTimeline = validTimelineItems.length >= 4 ? validTimelineItems : fallbackTimeline;
+      const dynamicTimelineFallback = buildDynamicTimelineFallback(parsedKundali);
+      const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 40);
+      const finalTimeline = validTimelineItems.length >= 4
+        ? validTimelineItems.map((t: any) => ({
+            dateRange: cleanEnglishFromRegionalText(t.dateRange || t.month || "", lang),
+            impact: cleanEnglishFromRegionalText(t.impact || t.prediction || "", lang)
+          }))
+        : dynamicTimelineFallback;
 
       const rawGocharaFallback = buildDynamicGocharaFallback(parsedKundali);
       const isSufficientGocharaDepth = (txt: string) => {
@@ -2824,18 +2839,6 @@ Return ONLY this JSON (no extra text before or after):
       );
       const finalDoshas = toSafeArray(parsedDoshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0 ? parsedDoshas : rawDoshasFallback;
 
-      const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
-      const fallbackTimeline = await Promise.all(
-        engineRoadmap6.map(async r => ({
-          dateRange: await translateText(r.month, pdfLanguage),
-          impact: await translateText(r.prediction, pdfLanguage)
-        }))
-      );
-      const validTimelineItems = (parsedTimeline || []).filter((t: any) => (t?.impact || "").trim().length > 10);
-      const finalTimeline = validTimelineItems.length >= 4
-        ? await Promise.all(validTimelineItems.map(async (t: any) => ({ ...t, dateRange: await translateText(t.dateRange || "", pdfLanguage) })))
-        : fallbackTimeline;
-
       const a4LiveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
       const a4Transits: TransitPlacement[] = Object.entries(a4LiveTransits).map(([planet, pos]) => ({
         graha: toGraha(planet),
@@ -2868,6 +2871,12 @@ Return ONLY this JSON (no extra text before or after):
         mahaLord: a4MahaLord,
         bhuktiLord: a4BhuktiLord
       });
+
+      const dynamicTimelineFallback = buildDynamicTimelineFallback(a4ParsedKundali);
+      const validTimelineItems = (parsedTimeline || []).filter((t: any) => (t?.impact || "").trim().length > 30);
+      const finalTimeline = validTimelineItems.length >= 4
+        ? await Promise.all(validTimelineItems.map(async (t: any) => ({ ...t, dateRange: await translateText(t.dateRange || "", pdfLanguage) })))
+        : dynamicTimelineFallback;
 
       const rawGocharaFallback = buildDynamicGocharaFallback(a4ParsedKundali);
       const isSufficientGocharaDepth = (txt: string) => {

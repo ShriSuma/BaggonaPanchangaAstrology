@@ -32,7 +32,8 @@ import {
   buildDynamicChildActivitiesFallback,
   buildDynamicChildFoundationFallback,
   buildDynamicChildFamilyFallback,
-  buildDynamicChildPediatricHealthFallback
+  buildDynamicChildPediatricHealthFallback,
+  buildDynamicTimelineFallback
 } from "./dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -400,7 +401,27 @@ export async function prepareBhavishyaV1Data(
       ? "7. विवाह, संतान, करियर, धन एवं स्वास्थ्य का गहन विश्लेषण..."
       : "7. Synthesizing Marriage, Children, Career, Wealth & Health..."
   );
-  const resBhavishya = await callGeminiSafe("Generate Bhavishya Life Areas", prompts.bhavishya, 0.3);
+  let dataBhavishya: any = {};
+  if (ageYears < 8) {
+    const resBhavishya = await callGeminiSafe("Generate Bhavishya Child Areas", prompts.bhavishya, 0.3);
+    dataBhavishya = robustParseGeminiJSON(resBhavishya);
+  } else {
+    const [resBhavishya1, resBhavishya2] = await Promise.all([
+      callGeminiSafe("Generate Marriage & Children", prompts.bhavishyaMarriageChildren || prompts.bhavishya, 0.3),
+      callGeminiSafe("Generate Career, Wealth & Health", prompts.bhavishyaCareerWealthHealth || prompts.bhavishya, 0.3)
+    ]);
+    const dataB1 = robustParseGeminiJSON(resBhavishya1);
+    const dataB2 = robustParseGeminiJSON(resBhavishya2);
+    dataBhavishya = {
+      bhavishya: {
+        marriage: dataB1?.bhavishya?.marriage || dataB2?.bhavishya?.marriage,
+        children: dataB1?.bhavishya?.children || dataB2?.bhavishya?.children,
+        career: dataB2?.bhavishya?.career || dataB1?.bhavishya?.career,
+        wealth: dataB2?.bhavishya?.wealth || dataB1?.bhavishya?.wealth,
+        health: dataB2?.bhavishya?.health || dataB1?.bhavishya?.health
+      }
+    };
+  }
 
   onProgress?.(
     80,
@@ -419,11 +440,10 @@ export async function prepareBhavishyaV1Data(
   const dataTimeline = robustParseGeminiJSON(resTimeline);
   const dataGochara = robustParseGeminiJSON(resGochara);
   const dataSummary = robustParseGeminiJSON(resSummary);
-  const dataBhavishya = robustParseGeminiJSON(resBhavishya);
 
-  const isSufficientDepth = (text: string | undefined, minParas: number = 2, minChars: number = 260): boolean => {
+  const isSufficientDepth = (text: string | undefined, minParas: number = 2, minChars: number = 380): boolean => {
     if (!text || text.trim().length < minChars) return false;
-    const paras = text.split(/\n\n+/).filter(p => p.trim().length > 35);
+    const paras = text.split(/\n\n+/).filter(p => p.trim().length > 60);
     return paras.length >= minParas;
   };
 
@@ -446,11 +466,11 @@ export async function prepareBhavishyaV1Data(
     const textAct = isSufficientDepth(asText(aiB.children), 2, 240) ? asText(aiB.children) : buildDynamicChildActivitiesFallback(parsedKundali);
     v1Predictions.push({ category: "Talents, Activities & Sports", translatedCategory: catAct, text: textAct, translatedText: textAct });
 
-    const catFdn = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸ ಹಾಗೂ ಸಂಸ್ಕಾರ" : baseLang === "hi" ? "चरित्र निर्माण एवं संस्कार" : baseLang === "te" ? "వ్యక్తిత్వ వికాసం మరియు ಸಂಸ್ಕಾರಂ" : baseLang === "ta" ? "ஆளுமை வளர்ச்சி மற்றும் நற்பண்புகள்" : "Future Foundation & Character";
+    const catFdn = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸ ಹಾಗೂ ಸಂಸ್ಕಾರ" : baseLang === "hi" ? "चरित्र निर्माण एवं संस्कार" : baseLang === "te" ? "వ్యక్తిత్వ వికాసం మరియు సంస్కారం" : baseLang === "ta" ? "ஆளுமை வளர்ச்சி மற்றும் நற்பண்புகள்" : "Future Foundation & Character";
     const textFdn = isSufficientDepth(asText(aiB.career), 2, 240) ? asText(aiB.career) : buildDynamicChildFoundationFallback(parsedKundali);
     v1Predictions.push({ category: "Future Foundation & Character", translatedCategory: catFdn, text: textFdn, translatedText: textFdn });
 
-    const catFam = baseLang === "kn" ? "ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ ಹಾಗೂ ಪೋಷಣೆ" : baseLang === "hi" ? "पारिवारिक वातावरण एवं लालन-पालन" : baseLang === "te" ? "కుటుంబ ప్రేమ మరియు ಲಾಲನ" : baseLang === "ta" ? "குடும்ப பாசம் மற்றும் வளர்ப்பு" : "Family Environment & Upbringing";
+    const catFam = baseLang === "kn" ? "ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ ಹಾಗೂ ಪೋಷಣೆ" : baseLang === "hi" ? "पारिवारिक वातावरण एवं लालन-पालन" : baseLang === "te" ? "కుటుంబ ప్రేమ మరియు లాలన" : baseLang === "ta" ? "குடும்ப பாசம் மற்றும் வளர்ப்பு" : "Family Environment & Upbringing";
     const textFam = isSufficientDepth(asText(aiB.wealth), 2, 240) ? asText(aiB.wealth) : buildDynamicChildFamilyFallback(parsedKundali);
     v1Predictions.push({ category: "Family Environment & Upbringing", translatedCategory: catFam, text: textFam, translatedText: textFam });
 
@@ -458,70 +478,70 @@ export async function prepareBhavishyaV1Data(
     const textHlt = isSufficientDepth(asText(aiB.health), 2, 240) ? asText(aiB.health) : buildDynamicChildPediatricHealthFallback(parsedKundali);
     v1Predictions.push({ category: "Pediatric Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
   } else if (ageYears >= 60) {
-    const catMar = baseLang === "kn" ? "ಧರ್ಮ ಸಹಚಾರ್ಯ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ" : baseLang === "hi" ? "दांपत्य सौहार्द एवं पारिवारिक शांति" : baseLang === "te" ? "దాంపత్య సౌఖ్యం మరియు కుటుంబ ಪ್ರಶಾಂತತ" : baseLang === "ta" ? "தம்பதியர் நல்லிணக்கம் மற்றும் குடும்ப அமைதி" : "Companionship & Domestic Harmony";
+    const catMar = baseLang === "kn" ? "ಧರ್ಮ ಸಹಚಾರ್ಯ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ" : baseLang === "hi" ? "दांपत्य सौहार्द एवं पारिवारिक शांति" : baseLang === "te" ? "దాంపత్య సౌఖ్యం మరియు కుటుంబ ప్రశాంతత" : baseLang === "ta" ? "தம்பதியர் நல்லிணக்கம் மற்றும் குடும்ப அமைதி" : "Companionship & Domestic Harmony";
     let textMar = asText(aiB.marriage).trim();
-    if (isSufficientDepth(textMar, 2, 280)) {
+    if (isSufficientDepth(textMar, 2, 380)) {
       const mParas = textMar.split("\n").filter((pText: string) => {
         const pLower = pText.toLowerCase();
         return !pLower.includes("ಸಂತಾನ") && !pLower.includes("ಮಕ್ಕಳ") && !pLower.includes("progeny") && !pLower.includes("children");
       });
       textMar = mParas.join("\n\n").trim() || textMar;
     }
-    if (!isSufficientDepth(textMar, 2, 280)) {
+    if (!isSufficientDepth(textMar, 2, 380)) {
       textMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, (personalization?.maritalStatus as ("married" | "unmarried" | "general")) || "married", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
     }
     v1Predictions.push({ category: "Companionship & Domestic Harmony", translatedCategory: catMar, text: textMar, translatedText: textMar });
 
-    const catChd = baseLang === "kn" ? "ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಸೌಖ್ಯ" : baseLang === "hi" ? "वंश वृद्धि एवं पौत्र-पौत्री सुख" : baseLang === "te" ? "వంశాభివృద్ధి మరియు మనವಲು-మనవరాళ్ల సుఖం" : baseLang === "ta" ? "சந்ததி வளர்ச்சி மற்றும் பேரப்பிள்ளைகள் நலம்" : "Family Legacy & Grandchildren";
-    const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 260)
+    const catChd = baseLang === "kn" ? "ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಸೌಖ್ಯ" : baseLang === "hi" ? "वंश वृद्धि एवं पौत्र-पौत्री सुख" : baseLang === "te" ? "వంశాభివృద్ధి మరియు మనవలు-మనవరాళ్ల సుఖం" : baseLang === "ta" ? "சந்ததி வளர்ச்சி மற்றும் பேரப்பிள்ளைகள் நலம்" : "Family Legacy & Grandchildren";
+    const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 380)
       ? asText(aiB.children).trim()
       : buildPersonalizedChildrenText(lang, (personalization?.childrenStatus as ("general" | "no_children" | "has_children")) || "has_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Family Legacy & Grandchildren", translatedCategory: catChd, text: textChd, translatedText: textChd });
 
     const catCar = baseLang === "kn" ? "ಧರ್ಮ ಕಾರ್ಯ, ಸಮಾಜ ಸೇವೆ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ" : baseLang === "hi" ? "धर्मार्थ कार्य एवं सामाजिक मार्गदर्शन" : baseLang === "te" ? "ధర్మ కార్యాలు మరియు సమాజ మార్గదర్శకత్వం" : baseLang === "ta" ? "தர்ம காரியங்கள் மற்றும் சமூக வழிகாட்டுதல்" : "Mentorship & Dharmic Leadership";
-    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 260)
+    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 380)
       ? asText(aiB.career).trim()
       : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Mentorship & Dharmic Leadership", translatedCategory: catCar, text: textCar, translatedText: textCar });
 
     const catWlh = baseLang === "kn" ? "ಸಂಪತ್ತು ಸಂರಕ್ಷಣೆ ಹಾಗೂ ಕುಟುಂಬ ಸಮೃದ್ಧಿ" : baseLang === "hi" ? "संपत्ति सुरक्षा एवं पारिवारिक समृद्धि" : baseLang === "te" ? "సంపద పరిరక్షణ మరియు కుటుంబ సుఖం" : baseLang === "ta" ? "செல்வப் பாதுகாப்பு மற்றும் குடும்ப சுபிட்சம்" : "Wealth Preservation & Estate Peace";
-    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 260)
+    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 380)
       ? asText(aiB.wealth).trim()
       : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Wealth Preservation & Estate Peace", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
 
-    const catHlt = baseLang === "kn" ? "ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಸ್ವಾಸ್ಥ್ಯ ರಕ್ಷಣೆ" : baseLang === "hi" ? "दीर्घायु एवं स्वास्थ्य रक्षा" : baseLang === "te" ? "దీర్ఘాయుష్షు మరియు ఆరోగ్య ರಕ್ಷಣ" : baseLang === "ta" ? "நீண்ட ஆயுள் மற்றும் ஆரோக்கியப் பாதுகாப்பு" : "Longevity & Geriatric Wellness";
-    const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 260)
+    const catHlt = baseLang === "kn" ? "ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಸ್ವಾಸ್ಥ್ಯ ರಕ್ಷಣೆ" : baseLang === "hi" ? "दीर्घायु एवं स्वास्थ्य रक्षा" : baseLang === "te" ? "దీర్ఘాయుష్షు మరియు ఆరోగ్య రక్షణ" : baseLang === "ta" ? "நீண்ட ஆயுள் மற்றும் ஆரோக்கியப் பாதுகாப்பு" : "Longevity & Geriatric Wellness";
+    const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 380)
       ? asText(aiB.health).trim()
       : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Longevity & Geriatric Wellness", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
   } else if (ageYears < 22) {
-    const catMar = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ ಹಾಗೂ ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ" : baseLang === "hi" ? "चरित्र निर्माण एवं मानसिक एकाग्रता" : baseLang === "te" ? "వ్యక్తిత్వ నిర్మాణం మరియు ಏಕಾಗ್ರತ" : baseLang === "ta" ? "ஆளுமை உருவாக்கம் மற்றும் மன உறுதி" : "Character & Mental Focus";
-    const textMar = isSufficientDepth(asText(aiB.marriage).trim(), 2, 280)
+    const catMar = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ ಹಾಗೂ ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ" : baseLang === "hi" ? "चरित्र निर्माण एवं मानसिक एकाग्रता" : baseLang === "te" ? "వ్యక్తిత్వ నిర్మాణం మరియు ఏకాగ్రత" : baseLang === "ta" ? "ஆளுமை உருவாக்கம் மற்றும் மன உறுதி" : "Character & Mental Focus";
+    const textMar = isSufficientDepth(asText(aiB.marriage).trim(), 2, 380)
       ? asText(aiB.marriage).trim()
       : buildPersonalizedMarriageText(lang, lagnaStr, moonStr, "unmarried", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
     v1Predictions.push({ category: "Character & Mental Focus", translatedCategory: catMar, text: textMar, translatedText: textMar });
 
     const catChd = baseLang === "kn" ? "ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆ" : baseLang === "hi" ? "उच्च शिक्षा एवं एकाग्रता" : baseLang === "te" ? "ఉన్నత విద్య మరియు విజ్ఞానం" : baseLang === "ta" ? "உயர்கல்வி மற்றும் ஞானம்" : "Higher Studies & Intellect";
-    const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 260)
+    const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 380)
       ? asText(aiB.children).trim()
       : buildPersonalizedChildrenText(lang, "no_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Higher Studies & Intellect", translatedCategory: catChd, text: textChd, translatedText: textChd });
 
-    const catCar = baseLang === "kn" ? "ಭವಿಷ್ಯದ ವೃತ್ತಿ ಅಡಿಪಾಯ" : baseLang === "hi" ? "भावी करियर की नींव" : baseLang === "te" ? "భవిష్యತ್ కెరీర్ పునాది" : baseLang === "ta" ? "எதிர்கால தொழில் அடித்தளம்" : "Future Career Foundation";
-    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 260)
+    const catCar = baseLang === "kn" ? "ಭವಿಷ್ಯದ ವೃತ್ತಿ ಅಡಿಪಾಯ" : baseLang === "hi" ? "भावी करियर की नींव" : baseLang === "te" ? "భవిష్యత్ కెరీర్ పునాది" : baseLang === "ta" ? "எதிர்கால தொழில் அடித்தளம்" : "Future Career Foundation";
+    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 380)
       ? asText(aiB.career).trim()
       : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Future Career Foundation", translatedCategory: catCar, text: textCar, translatedText: textCar });
 
     const catWlh = baseLang === "kn" ? "ಆರ್ಥಿಕ ಶಿಸ್ತು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳು" : baseLang === "hi" ? "वित्तीय अनुशासन एवं पारिवारिक मूल्य" : baseLang === "te" ? "ఆర్థిక క్రమశిక్షణ మరియు కుటుంబ విలువలు" : baseLang === "ta" ? "நிதி ஒழுக்கம் மற்றும் குடும்ப விழுமியங்கள்" : "Financial Discipline & Values";
-    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 260)
+    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 380)
       ? asText(aiB.wealth).trim()
       : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Financial Discipline & Values", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
 
     const catHlt = baseLang === "kn" ? "ಯುವ ಚೈತನ್ಯ ಹಾಗೂ ದೈಹಿಕ ದೃಢತೆ" : baseLang === "hi" ? "शारीरिक ऊर्जा एवं स्वास्थ्य संतुलन" : baseLang === "te" ? "శారీరక శక్తి మరియు ఆరోగ్య సమతుల్యత" : baseLang === "ta" ? "உடல் வலிமை மற்றும் ஆரோக்கிய சமநிலை" : "Vitality, Fitness & Screen Balance";
-    const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 260)
+    const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 380)
       ? asText(aiB.health).trim()
       : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Vitality, Fitness & Screen Balance", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
@@ -529,40 +549,40 @@ export async function prepareBhavishyaV1Data(
     // Adult
     const catMar = baseLang === "kn" ? "ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧ" : baseLang === "hi" ? "विवाह एवं संबंध" : baseLang === "te" ? "వివాహం మరియు సంబంధ బాంధవ్యాలు" : baseLang === "ta" ? "திருமணம் மற்றும் இல்லற வாழ்க்கை" : "Marriage & Relationships";
     let textMar = asText(aiB.marriage).trim();
-    if (isSufficientDepth(textMar, 2, 280)) {
+    if (isSufficientDepth(textMar, 2, 380)) {
       const mParas = textMar.split("\n").filter((pText: string) => {
         const pLower = pText.toLowerCase();
         return !pLower.includes("ಸಂತಾನ") && !pLower.includes("ಮಕ್ಕಳ") && !pLower.includes("ಪಂಚಮ ಭಾವ") && !pLower.includes("progeny") && !pLower.includes("children");
       });
       textMar = mParas.join("\n\n").trim() || textMar;
     }
-    if (!isSufficientDepth(textMar, 2, 280)) {
+    if (!isSufficientDepth(textMar, 2, 380)) {
       textMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, (personalization?.maritalStatus as ("married" | "unmarried" | "general")) || "general", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
     }
     v1Predictions.push({ category: "Marriage & Relationships", translatedCategory: catMar, text: textMar, translatedText: textMar });
 
     const catChd = baseLang === "kn" ? "ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳು" : baseLang === "hi" ? "संतान एवं बच्चे" : baseLang === "te" ? "సంతానం మరియు పిల్లలు" : baseLang === "ta" ? "சந்ததி மற்றும் குழந்தைகள்" : "Children & Progeny";
     const minChildrenParas = personalization?.childrenStatus === "no_children" ? 3 : 2;
-    const minChildrenChars = personalization?.childrenStatus === "no_children" ? 320 : 260;
+    const minChildrenChars = personalization?.childrenStatus === "no_children" ? 420 : 380;
     const textChd = isSufficientDepth(asText(aiB.children).trim(), minChildrenParas, minChildrenChars)
       ? asText(aiB.children).trim()
       : buildPersonalizedChildrenText(lang, (personalization?.childrenStatus as ("general" | "no_children" | "has_children")) || "general", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Children & Progeny", translatedCategory: catChd, text: textChd, translatedText: textChd });
 
     const catCar = baseLang === "kn" ? "ಉದ್ಯೋಗ ಹಾಗೂ ವೃತ್ತಿ ಏಳಿಗೆ" : baseLang === "hi" ? "करियर एवं पदोन्नति योग" : baseLang === "te" ? "ఉద్యోగం మరియు వృత్తి ఎదుగుదల" : baseLang === "ta" ? "தொழில் மற்றும் உத்தியோக முன்னேற்றம்" : "Career & Profession";
-    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 260)
+    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 380)
       ? asText(aiB.career).trim()
       : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Career & Profession", translatedCategory: catCar, text: textCar, translatedText: textCar });
 
-    const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग" : baseLang === "te" ? "ధన సంపద మరియు ఆర్థిక యోగం" : baseLang === "ta" ? "தன ಲಾபம் மற்றும் பொருளாதார நிலை" : "Wealth & Family Finance";
-    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 260)
+    const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग" : baseLang === "te" ? "ధన సంపద మరియు ఆర్థిక యోగం" : baseLang === "ta" ? "தன லாபம் மற்றும் பொருளாதார நிலை" : "Wealth & Family Finance";
+    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 380)
       ? asText(aiB.wealth).trim()
       : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Wealth & Family Finance", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
 
     const catHlt = baseLang === "kn" ? "ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ" : baseLang === "hi" ? "स्वास्थ्य एवं आरोग्य" : baseLang === "te" ? "ఆరోగ్యం మరియు శారీరక దృఢత్వం" : baseLang === "ta" ? "ஆரோக்கியம் மற்றும் உடல் பலம்" : "Health & Vitality";
-    const textHlt = isSufficientDepth(asText(aiB.health), 2, 260)
+    const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 380)
       ? asText(aiB.health).trim()
       : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     v1Predictions.push({ category: "Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
@@ -616,13 +636,14 @@ export async function prepareBhavishyaV1Data(
     remedy: d.remedy ? cleanEnglishFromRegionalText(d.remedy, lang) : undefined
   }));
 
-  const engineRoadmap6 = result.timingLayer.twelveMonthRoadmap.slice(0, 6);
-  const fallbackTimeline = engineRoadmap6.map((r: any) => ({
-    dateRange: r.month,
-    impact: r.prediction
-  }));
-  const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 10);
-  const finalTimeline = validTimelineItems.length >= 4 ? validTimelineItems : fallbackTimeline;
+  const dynamicTimelineFallback = buildDynamicTimelineFallback(parsedKundali);
+  const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 40);
+  const finalTimeline = validTimelineItems.length >= 4
+    ? validTimelineItems.map((t: any) => ({
+        dateRange: cleanEnglishFromRegionalText(t.dateRange || t.month || "", lang),
+        impact: cleanEnglishFromRegionalText(t.impact || t.prediction || "", lang)
+      }))
+    : dynamicTimelineFallback;
 
   const rawGocharaFallback = buildDynamicGocharaFallback(parsedKundali);
   const isSufficientGocharaDepth = (txt: string) => {
