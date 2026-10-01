@@ -10,6 +10,7 @@ import {
   type MajorTransitEvent,
   type LocationPreset,
 } from "../core/AstodayaGrahanaEngine";
+import { GrahanaDiskVisualizer } from "../components/grahana/GrahanaDiskVisualizer";
 
 // Comprehensive 5-Language UI Dictionary for GuruShukraAstodayaGrahanaPage
 const UI_TEXT: Record<string, Record<string, string>> = {
@@ -202,6 +203,55 @@ const UI_TEXT: Record<string, Record<string, string>> = {
     ta: "சுக்கிர மந்திரம்: ஓம் த்ராம் த்ரீம் த்ரௌம் ஸஹ சுக்ராய நமஹ",
     en: "Shukra Mantra: Om Draam Dreem Draum Sah Shukraya Namah",
   },
+  sparshaDikku: {
+    kn: "ಸ್ಪರ್ಶ ದಿಕ್ಕು (ಆರಂಭ)",
+    hi: "स्पर्श दिशा (प्रारंभ)",
+    te: "స్పర్శ దిశ (ప్రారంభం)",
+    ta: "ஸ்பர்ச திசை (துவக்கம்)",
+    en: "Contact Ingress Direction (Sparsha)",
+  },
+  madhyaDikku: {
+    kn: "ಮಧ್ಯ ಗ್ರಾಸ (ಪರಮಗ್ರಾಸ)",
+    hi: "मध्य ग्रास (परमग्रास)",
+    te: "మధ్య గ్రాసం (పరమగ్రాసం)",
+    ta: "மத்திய கிராசம் (அதிகபட்சம்)",
+    en: "Peak Coverage Direction (Madhya)",
+  },
+  mokshaDikku: {
+    kn: "ಮೋಕ್ಷ ದಿಕ್ಕು (ಬಿಡುಗಡೆ)",
+    hi: "मोक्ष दिशा (मुक्ति/समाप्ति)",
+    te: "మోక్ష దిశ (ముగింపు)",
+    ta: "மோக்ஷ திசை (முடிவு)",
+    en: "Egress Release Direction (Moksha)",
+  },
+  dikkuPathTitle: {
+    kn: "ಖಗೋಳ ದಿಕ್ಸಾಧನ & ಗ್ರಹಣ ಮಂಡಲ ನಕ್ಷೆ",
+    hi: "खगोलीय दिशा साधन एवं ग्रहण मंडल चित्र",
+    te: "ఖగోళ దిక్సాధన & గ్రహణ మండల పటం",
+    ta: "வானியல் திசையமைப்பு & கிரகண வட்ட வரைபடம்",
+    en: "Directional Contact Trajectory & Disk Visualizer",
+  },
+  visibleSectionTitle: {
+    kn: "🌟 ನಿಮ್ಮ ಆಯ್ಕೆಯ ಸ್ಥಳದಲ್ಲಿ ಗೋಚರಿಸುವ ಗ್ರಹಣಗಳು (ಪ್ರಥಮ ಪ್ರಾಶಸ್ತ್ಯ)",
+    hi: "🌟 आपके चयनित स्थान पर दृश्य ग्रहण (प्रथम प्राथमिकता)",
+    te: "🌟 మీ ప్రాంతంలో గోచరించే గ్రహణాలు (ప్రథమ ప్రాధాన్యత)",
+    ta: "🌟 உங்கள் பகுதியில் தென்படும் கிரகணங்கள் (முதன்மைப் பார்வை)",
+    en: "🌟 Eclipses Visible in Your Selected Location (Priority First)",
+  },
+  invisibleSectionTitle: {
+    kn: "🌍 ವಿಶ್ವದ ಇತರೆಡೆ ಗೋಚರ (ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿ ಅದೃಶ್ಯ - ಸೂತಕ ದೋಷವಿಲ್ಲ)",
+    hi: "🌍 विश्व के अन्य भागों में दृश्य (आपके क्षेत्र में अदृश्य - कोई सूतक नहीं)",
+    te: "🌍 ప్రపంచంలోని ఇతర ప్రాంతాల్లో గోచరం (మీ ప్రాంతంలో అదృశ్యం - సూతక దోషం లేదు)",
+    ta: "🌍 உலகின் பிற பகுதிகளில் தென்படும் (உங்கள் பகுதியில் மறைந்தது - சூதகமில்லை)",
+    en: "🌍 Other Global Eclipses (Invisible Locally - Zero Sutaka Applies)",
+  },
+  noVisibleEclipsesNotice: {
+    kn: "ಈ ವರ್ಷ ನಿಮ್ಮ ಆಯ್ಕೆಯ ಸ್ಥಳದಲ್ಲಿ ಯಾವುದೇ ಗ್ರಹಣಗಳು ಗೋಚರಿಸುವುದಿಲ್ಲ. ಧರ್ಮಶಾಸ್ತ್ರ ರೀತ್ಯಾ ಯಾವುದೇ ಸೂತಕ ಅಥವಾ ಶಾಂತಿ ಕರ್ಮಗಳ ಬಾಧೆ ಇರುವುದಿಲ್ಲ. ಸಮಸ್ತ ನಿತ್ಯ-ನೈಮಿತ್ತಿಕ ಶುಭಕಾರ್ಯಗಳು ನಿರ್ವಿಘ್ನವಾಗಿ ನಡೆಯಬಹುದು.",
+    hi: "इस वर्ष आपके चयनित स्थान पर कोई ग्रहण दृश्य नहीं है। धर्मशास्त्र अनुसार कोई सूतक या शांति दोष नहीं है। समस्त शुभ कार्य निर्बाध रूप से संपन्न होंगे।",
+    te: "ఈ సంవత్సరం మీరు ఎంచుకున్న ప్రదేశంలో ఎటువంటి గ్రహణాలు గోచరించవు. ధర్మశాస్త్రం ప్రకారం ఎటువంటి సూతకం లేదా దోషం ఉండదు. శుభకార్యాలు నిరాటంకంగా జరుపుకోవచ్చు.",
+    ta: "இந்த ஆண்டில் உங்கள் பகுதியில் எந்த கிரகணமும் தென்படவில்லை. தர்மசாஸ்திரப்படி எந்த சூதகமும் அல்லது தோஷமும் இல்லை. சுபகாரியங்கள் தடையின்றி நடைபெறும்.",
+    en: "No eclipses are visible in your selected location this year. According to Dharmashastra, zero Sutaka applies and all daily rites and auspicious functions proceed normally.",
+  },
 };
 
 export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
@@ -251,6 +301,20 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
   const shukraPeriods = useMemo(() => {
     return report.astodayaPeriods.filter((p) => p.planet === "Venus");
   }, [report.astodayaPeriods]);
+
+  // Partition eclipses: visible in selected location first at the top, invisible below
+  const { visibleEclipses, invisibleEclipses } = useMemo(() => {
+    const visible: GrahanaEvent[] = [];
+    const invisible: GrahanaEvent[] = [];
+    for (const e of report.eclipses) {
+      if (e.visibility.isVisibleInSelected) {
+        visible.push(e);
+      } else {
+        invisible.push(e);
+      }
+    }
+    return { visibleEclipses: visible, invisibleEclipses: invisible };
+  }, [report.eclipses]);
 
   // Ensure selected eclipse index is safe
   useEffect(() => {
@@ -559,30 +623,47 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
               </div>
             </div>
 
-            {/* List of Eclipses */}
-            <div className="grid grid-cols-1 gap-6">
-              {report.eclipses.map((eclipse, idx) => {
+            {(() => {
+              const renderEclipseCard = (
+                eclipse: GrahanaEvent,
+                globalIndex: number,
+                isPriorityVisible: boolean
+              ) => {
                 const isSolar = eclipse.type === "surya";
                 const isVisible = eclipse.visibility.isVisibleInSelected;
+
                 return (
                   <div
-                    key={eclipse.id || idx}
+                    key={eclipse.id || globalIndex}
                     className={`rounded-2xl border-2 transition-all p-5 shadow-md relative overflow-hidden ${
-                      isVisible
-                        ? "border-emerald-400 bg-gradient-to-br from-white via-emerald-50/20 to-white"
+                      isPriorityVisible || isVisible
+                        ? "border-emerald-500/80 bg-gradient-to-br from-white via-emerald-50/20 to-white ring-1 ring-emerald-400/40"
                         : "border-amber-400/60 bg-gradient-to-br from-white via-amber-50/20 to-white"
                     }`}
                   >
+                    {/* Priority Top Badge for Locally Visible Eclipses */}
+                    {isPriorityVisible && (
+                      <div className="mb-4 -mt-2 -mx-2 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 px-3.5 py-1.5 rounded-xl text-white text-xs font-black shadow-sm">
+                        <div className="flex items-center gap-1.5">
+                          <span>📍</span>
+                          <span>{loc(activeLocationPreset.name)}ದಲ್ಲಿ ಪ್ರತ್ಯಕ್ಷ ಗೋಚರ ಗ್ರಹಣ</span>
+                        </div>
+                        <span className="bg-white/20 border border-white/30 px-2 py-0.5 rounded text-[11px] font-bold">
+                          ವೇಧ-ಸೂತಕ ಪಾಲನೆ ಕಡ್ಡಾಯ
+                        </span>
+                      </div>
+                    )}
+
                     {/* Header bar of individual eclipse */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-200/60 pb-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-2xl border border-amber-300 text-amber-900 shadow-sm">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-2xl border border-amber-300 text-amber-900 shadow-sm shrink-0">
                           {isSolar ? "☀️" : "🌕"}
                         </span>
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-950 border border-amber-300">
-                              ಗ್ರಹಣ #{idx + 1}
+                              ಗ್ರಹಣ #{globalIndex + 1}
                             </span>
                             <span className="text-xs font-bold text-amber-900">
                               {eclipse.peakDateStr}
@@ -597,24 +678,105 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       {/* Visibility Badge */}
                       <div className="flex flex-wrap items-center gap-2">
                         {isVisible ? (
-                          <div className="rounded-xl border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-900 shadow-sm">
+                          <div className="rounded-xl border border-emerald-400 bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-950 shadow-sm flex items-center gap-1">
+                            <span>🟢</span>
                             <span>{loc(eclipse.visibility.statusBadge, txt("visibleBadge"))}</span>
                           </div>
                         ) : (
-                          <div className="rounded-xl border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700">
+                          <div className="rounded-xl border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 flex items-center gap-1">
+                            <span>⚪</span>
                             <span>{loc(eclipse.visibility.statusBadge, txt("invisibleBadge"))}</span>
                           </div>
                         )}
                       </div>
                     </div>
 
+                    {/* 🧭 DIRECTIONAL DISK VISUALIZER & 8-POINT DIKKU NIRNAYA ROW */}
+                    <div className="my-4 rounded-2xl border-2 border-amber-300/80 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/70 p-4 shadow-sm">
+                      <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+                        {/* Interactive SVG Grahana Disk Visualizer */}
+                        <div className="shrink-0 flex flex-col items-center">
+                          <GrahanaDiskVisualizer
+                            type={eclipse.type}
+                            subType={eclipse.subType}
+                            obscurationPercent={eclipse.obscurationPercent}
+                            contactDirections={eclipse.contactDirections}
+                            lang={currentLang}
+                          />
+                        </div>
+
+                        {/* Directional Summary (Dikku Nirnaya) */}
+                        <div className="flex-1 w-full space-y-3">
+                          <div className="flex items-center justify-between border-b border-amber-200/80 pb-2">
+                            <h4 className="text-xs font-black uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+                              <span>🧭</span>
+                              <span>{txt("dikkuPathTitle")}</span>
+                            </h4>
+                            <span className="rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900">
+                              {isSolar ? "ಸೂರ್ಯ ಬಿಂಬ ಆವರಣ" : "ಚಂದ್ರ ಬಿಂಬ ಛಾಯಾ"}
+                            </span>
+                          </div>
+
+                          {/* 3 Contact Direction Badges: Sparsha, Madhya, Moksha */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                            {/* Sparsha */}
+                            <div className="rounded-xl border-2 border-emerald-400 bg-emerald-50/80 p-2.5 shadow-sm">
+                              <span className="text-[10px] font-bold text-emerald-800 uppercase block mb-0.5">
+                                🟢 {txt("sparshaDikku")}
+                              </span>
+                              <span className="font-bold text-emerald-950 text-sm block">
+                                {loc(eclipse.contactDirections?.sparshaDikku?.label)}
+                              </span>
+                              <span className="text-[10px] font-serif text-emerald-800 italic block mt-0.5">
+                                {loc(eclipse.contactDirections?.sparshaDikku?.sanskritName)}
+                              </span>
+                            </div>
+
+                            {/* Madhya */}
+                            <div className="rounded-xl border-2 border-amber-400 bg-amber-50/80 p-2.5 shadow-sm">
+                              <span className="text-[10px] font-bold text-amber-800 uppercase block mb-0.5">
+                                🟡 {txt("madhyaDikku")}
+                              </span>
+                              <span className="font-bold text-amber-950 text-sm block">
+                                {loc(eclipse.contactDirections?.madhyaDirection?.label)}
+                              </span>
+                              <span className="text-[10px] text-amber-800 block mt-0.5 font-medium">
+                                {loc(eclipse.contactDirections?.coverageVisual?.extentDescription)}
+                              </span>
+                            </div>
+
+                            {/* Moksha */}
+                            <div className="rounded-xl border-2 border-cyan-400 bg-cyan-50/80 p-2.5 shadow-sm">
+                              <span className="text-[10px] font-bold text-cyan-800 uppercase block mb-0.5">
+                                🔵 {txt("mokshaDikku")}
+                              </span>
+                              <span className="font-bold text-cyan-950 text-sm block">
+                                {loc(eclipse.contactDirections?.mokshaDikku?.label)}
+                              </span>
+                              <span className="text-[10px] font-serif text-cyan-800 italic block mt-0.5">
+                                {loc(eclipse.contactDirections?.mokshaDikku?.sanskritName)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Shastric Path Description */}
+                          {eclipse.contactDirections?.pathDescription && (
+                            <div className="rounded-xl border border-amber-200 bg-white/90 p-2.5 text-xs text-slate-800 leading-relaxed shadow-xs">
+                              <span className="font-bold text-amber-950">ಖಗೋಳ ದಿಕ್ಪಥ ನಿರ್ಣಯ: </span>
+                              <span>{loc(eclipse.contactDirections.pathDescription)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Grid of Eclipse Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                       {/* Column 1: Contact Timings */}
                       <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
                         <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5 mb-3">
                           <span>⏱️</span>
-                          <span>ಗ್ರಹಣ ಸ್ಪರ್ಶ-ಮೋಕ್ಷ ಕಾಲ (IST & UTC)</span>
+                          <span>ಗ್ರಹಣ ಸ್ಪರ್ಶ-ಮಧ್ಯ-ಮೋಕ್ಷ ಕಾಲ (IST & UTC)</span>
                         </h4>
                         <div className="space-y-2.5 text-xs">
                           <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
@@ -738,7 +900,8 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       <button
                         type="button"
                         onClick={() => {
-                          setSelectedEclipseIndex(idx);
+                          const originalIdx = report.eclipses.indexOf(eclipse);
+                          setSelectedEclipseIndex(originalIdx >= 0 ? originalIdx : globalIndex);
                           setActiveTab("rashiphala");
                         }}
                         className="rounded-lg border border-amber-400 bg-amber-100 hover:bg-amber-200 px-3 py-1 text-xs font-bold text-amber-950 transition-all shadow-sm"
@@ -748,8 +911,101 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                     </div>
                   </div>
                 );
-              })}
-            </div>
+              };
+
+              // Mode 1: Global View (Show all in calendar order)
+              if (selectedLocation === "world") {
+                return (
+                  <div className="grid grid-cols-1 gap-6">
+                    {report.eclipses.map((eclipse, idx) =>
+                      renderEclipseCard(eclipse, idx, false)
+                    )}
+                  </div>
+                );
+              }
+
+              // Mode 2: Local Place Priority View
+              return (
+                <div className="space-y-8">
+                  {/* SECTION 1: Locally Visible Eclipses (PRIORITY FIRST AT TOP) */}
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border-2 border-emerald-500/60 bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-xl border border-emerald-300 text-emerald-950 font-bold shrink-0">
+                          📍
+                        </span>
+                        <div>
+                          <h3 className="font-serif text-base sm:text-lg font-black text-emerald-950">
+                            {txt("visibleSectionTitle")}
+                          </h3>
+                          <p className="text-xs text-emerald-800 font-bold mt-0.5">
+                            ಸ್ಥಳ: <span className="underline decoration-emerald-500 font-black">{loc(activeLocationPreset.name)}</span> • ಗೋಚರ ಸಂಖ್ಯೆ: {visibleEclipses.length}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-emerald-400 bg-emerald-600 px-3 py-1.5 text-xs font-black text-white shadow-sm self-start sm:self-auto">
+                        {visibleEclipses.length > 0 ? "ವೇಧ-ಸೂತಕ ಬಾಧೆ ಅನ್ವಯಿಸುತ್ತದೆ" : "ಸೂತಕ ದೋಷವಿಲ್ಲ"}
+                      </div>
+                    </div>
+
+                    {visibleEclipses.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-6">
+                        {visibleEclipses.map((eclipse) =>
+                          renderEclipseCard(
+                            eclipse,
+                            report.eclipses.indexOf(eclipse),
+                            true
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-6 text-center shadow-xs">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 text-2xl mb-2">
+                          ✓
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-emerald-950 max-w-2xl mx-auto leading-relaxed">
+                          {txt("noVisibleEclipsesNotice")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SECTION 2: Globally Visible Eclipses (Invisible Locally) */}
+                  {invisibleEclipses.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t-2 border-dashed border-amber-300/80">
+                      <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-xl border border-amber-300 text-amber-950 font-bold shrink-0">
+                            🌍
+                          </span>
+                          <div>
+                            <h3 className="font-serif text-base sm:text-lg font-black text-amber-950">
+                              {txt("invisibleSectionTitle")}
+                            </h3>
+                            <p className="text-xs text-amber-900 font-medium mt-0.5">
+                              {loc(activeLocationPreset.name)}ದಲ್ಲಿ ಅದೃಶ್ಯವಾಗಿರುವ ಜಾಗತಿಕ ಗ್ರಹಣಗಳು ({invisibleEclipses.length})
+                            </p>
+                          </div>
+                        </div>
+                        <div className="rounded-xl border border-amber-300 bg-white px-3 py-1 text-xs font-bold text-amber-900 shadow-sm self-start sm:self-auto">
+                          ಧರ್ಮಶಾಸ್ತ್ರ: ಯಸ್ಯ ದರ್ಶನಂ ತಸ್ಯ ವೇಧಃ
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-6">
+                        {invisibleEclipses.map((eclipse) =>
+                          renderEclipseCard(
+                            eclipse,
+                            report.eclipses.indexOf(eclipse),
+                            false
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1206,6 +1462,7 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                       <th className="py-2.5 px-3">ಗ್ರಹಣ ಪ್ರಭೇದ</th>
                       <th className="py-2.5 px-3">ರಾಶಿ & ನಕ್ಷತ್ರ</th>
                       <th className="py-2.5 px-3">ಸ್ಪರ್ಶ-ಮಧ್ಯ-ಮೋಕ್ಷ (IST)</th>
+                      <th className="py-2.5 px-3">ಸ್ಪರ್ಶ & ಮೋಕ್ಷ ದಿಕ್ಕು</th>
                       <th className="py-2.5 px-3">ಸ್ಥಳೀಯ ಗೋಚರತೆ</th>
                       <th className="py-2.5 px-3">ಪೀಡಿತ ರಾಶಿ</th>
                     </tr>
@@ -1228,6 +1485,16 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                           ಸ್ಪ: {e.startTimeIst || "—"}<br />
                           ಮ: {e.peakTimeIst}<br />
                           ಮೋ: {e.endTimeIst || "—"}
+                        </td>
+                        <td className="py-2.5 px-3 text-[11px]">
+                          {e.contactDirections ? (
+                            <>
+                              <span className="text-emerald-800 font-bold">ಸ್ಪರ್ಶ:</span> {loc(e.contactDirections.sparshaDikku.label)}<br />
+                              <span className="text-cyan-800 font-bold">ಮೋಕ್ಷ:</span> {loc(e.contactDirections.mokshaDikku.label)}
+                            </>
+                          ) : (
+                            "—"
+                          )}
                         </td>
                         <td className="py-2.5 px-3">
                           {e.visibility.isVisibleInSelected ? (

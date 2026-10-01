@@ -227,6 +227,81 @@ export const NAKSHATRA_NAMES_5LANG: Record<number, Record<string, string>> = {
   26: { kn: "ರೇವತಿ", en: "Revati", hi: "रेवती", te: "రేవతి", ta: "ரேவதி" }
 };
 
+export type DikkuCode = "E" | "W" | "N" | "S" | "NE" | "SE" | "SW" | "NW";
+
+export interface GrahanaContactDirections {
+  sparshaDikku: {
+    code: DikkuCode;
+    label: Record<string, string>;
+    sanskritName: Record<string, string>;
+  };
+  mokshaDikku: {
+    code: DikkuCode;
+    label: Record<string, string>;
+    sanskritName: Record<string, string>;
+  };
+  madhyaDirection: {
+    code: DikkuCode | "CENTER";
+    label: Record<string, string>;
+  };
+  coverageVisual: {
+    sparshaAngle: number;
+    mokshaAngle: number;
+    extentDescription: Record<string, string>;
+  };
+  pathDescription: Record<string, string>;
+}
+
+export const DIKKU_NAMES_5LANG: Record<
+  DikkuCode,
+  {
+    name: Record<string, string>;
+    sanskrit: Record<string, string>;
+    deg: number;
+  }
+> = {
+  E: {
+    name: { kn: "ಪೂರ್ವ", en: "East", hi: "पूर्व", te: "తూర్పు", ta: "கிழக்கு" },
+    sanskrit: { kn: "ಪ್ರಾಚೀ (ಪೂರ್ವ)", en: "Prachi (East)", hi: "प्राची (पूर्व)", te: "ప్రాచి (తూర్పు)", ta: "பிராசி (கிழக்கு)" },
+    deg: 90
+  },
+  W: {
+    name: { kn: "ಪಶ್ಚಿಮ", en: "West", hi: "पश्चिम", te: "పడమర", ta: "மேற்கு" },
+    sanskrit: { kn: "ಪ್ರತೀಚೀ (ಪಶ್ಚಿಮ)", en: "Prateechi (West)", hi: "प्रतीची (पश्चिम)", te: "ప్రతీచి (పడమర)", ta: "பிரதீசி (மேற்கு)" },
+    deg: 270
+  },
+  N: {
+    name: { kn: "ಉತ್ತರ", en: "North", hi: "उत्तर", te: "ఉత్తరం", ta: "வடக்கு" },
+    sanskrit: { kn: "ಉದೀಚೀ (ಉತ್ತರ)", en: "Udichi (North)", hi: "उदीची (उत्तर)", te: "ఉదీచి (ఉత్తరం)", ta: "உதீசி (வடக்கு)" },
+    deg: 0
+  },
+  S: {
+    name: { kn: "ದಕ್ಷಿಣ", en: "South", hi: "दक्षिण", te: "దక్షిణం", ta: "தெற்கு" },
+    sanskrit: { kn: "ಅವಾಚೀ (ದಕ್ಷಿಣ)", en: "Avachi (South)", hi: "अवाची (दक्षिण)", te: "అవాచీ (దక్షిణ)", ta: "அவாசி (தெற்கு)" },
+    deg: 180
+  },
+  NE: {
+    name: { kn: "ಈಶಾನ್ಯ", en: "North-East", hi: "ईशान", te: "ఈశాన్యం", ta: "ஈசான்யம்" },
+    sanskrit: { kn: "ಐಶಾನೀ (ಈಶಾನ್ಯ)", en: "Aishani (North-East)", hi: "ऐशानी (ईशान)", te: "ఐశాని (ఈశాన్యం)", ta: "ஐசானி (ஈசான்யம்)" },
+    deg: 45
+  },
+  SE: {
+    name: { kn: "ಆಗ್ನೇಯ", en: "South-East", hi: "आग्नेय", te: "ఆగ్నేయం", ta: "ஆக்னேயம்" },
+    sanskrit: { kn: "ಆಗ್ನೇಯೀ (ಆಗ್ನೇಯ)", en: "Agneyi (South-East)", hi: "आग्नेयी (आग्नेय)", te: "ఆగ్నేయి (ఆగ్నేయం)", ta: "ஆக்னேயி (ஆக்னேயம்)" },
+    deg: 135
+  },
+  SW: {
+    name: { kn: "ನೈಋತ್ಯ", en: "South-West", hi: "नैऋत्य", te: "నైరుతి", ta: "நைருதி" },
+    sanskrit: { kn: "ನೈರೃತೀ (ನೈಋತ್ಯ)", en: "Nairiti (South-West)", hi: "नैर्ऋती (नैऋत्य)", te: "నైరృతి (నైరుతి)", ta: "நைருதி (நைருதி)" },
+    deg: 225
+  },
+  NW: {
+    name: { kn: "ವಾಯವ್ಯ", en: "North-West", hi: "वायव्य", te: "వాయువ్యం", ta: "வாயுவ்யம்" },
+    sanskrit: { kn: "ವಾಯವ್ಯೀ (ವಾಯವ್ಯ)", en: "Vayavyi (North-West)", hi: "वायव्यी (वायव्य)", te: "వాయవ్యి (వాయువ్యం)", ta: "வாயுவ்யி (வாயுவ்யம்)" },
+    deg: 315
+  }
+};
+
 export interface AstodayaEvent {
   planet: "Jupiter" | "Venus";
   eventType: "asta" | "udaya";
@@ -314,6 +389,7 @@ export interface GrahanaEvent {
     mantraJapa: Record<string, string>;
     gokarnaPooja: Record<string, string>;
   };
+  contactDirections?: GrahanaContactDirections;
 }
 
 export interface MajorTransitEvent {
@@ -421,7 +497,76 @@ function checkRetrograde(body: Astronomy.Body, date: Date): boolean {
 }
 
 /**
- * Computes Guru & Shukra Astodaya (Combustion & Heliacal Rising) for any given year.
+ * Evaluates daily Kālāṁśas (ಕಾಲಾಂಶ - time degrees: 1° = 4 minutes) and combustion state
+ * for Jupiter and Venus per classical Surya Siddhanta and Drik Ganita.
+ */
+function evaluateDailyKalamsas(
+  body: Astronomy.Body,
+  date: Date,
+  observer: Astronomy.Observer = new Astronomy.Observer(23.18, 75.77, 490) // Avanti / Ujjain Prime Meridian
+): {
+  isCombust: boolean;
+  kalamsas: number;
+  direction: "East" | "West";
+  isRetrograde: boolean;
+  dLon: number;
+  settingTime?: Date;
+  risingTime?: Date;
+} {
+  const midday = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 6, 30, 0));
+  const sunSet = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, 1, midday, 1);
+  const sunRise = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, midday, 1);
+  const planetSet = Astronomy.SearchRiseSet(body, observer, 1, midday, 1);
+  const planetRise = Astronomy.SearchRiseSet(body, observer, -1, midday, 1);
+
+  const sV = Astronomy.GeoVector(Astronomy.Body.Sun, midday, true);
+  const pV = Astronomy.GeoVector(body, midday, true);
+  const sEcl = Astronomy.Ecliptic(sV);
+  const pEcl = Astronomy.Ecliptic(pV);
+  const dLon = ((pEcl.elon - sEcl.elon + 540) % 360) - 180;
+  const isRetro = checkRetrograde(body, midday);
+
+  let kalamsas = 999;
+  let direction: "East" | "West" = "West";
+
+  if (dLon > 0) {
+    direction = "West";
+    if (planetSet && sunSet) {
+      kalamsas = (planetSet.date.getTime() - sunSet.date.getTime()) / 240000;
+    }
+  } else {
+    direction = "East";
+    if (planetRise && sunRise) {
+      kalamsas = (sunRise.date.getTime() - planetRise.date.getTime()) / 240000;
+    }
+  }
+
+  // Classical Surya Siddhanta Kālāṁśa thresholds:
+  // Jupiter (Guru): 11.0 Kalamsas (44 minutes)
+  // Venus (Shukra) Direct: 10.0 Kalamsas (40 minutes)
+  // Venus (Shukra) Retrograde: 8.0 Kalamsas (East / morning udaya) or 10.0 Kalamsas (West / evening asta)
+  let threshold = 10.0;
+  if (body === Astronomy.Body.Jupiter) {
+    threshold = 11.0;
+  } else {
+    threshold = isRetro ? (direction === "East" ? 8.0 : 10.0) : 10.0;
+  }
+
+  const isCombust = Math.abs(dLon) < 22 && kalamsas < threshold && kalamsas >= -2;
+  return {
+    isCombust,
+    kalamsas,
+    direction,
+    isRetrograde: isRetro,
+    dLon,
+    settingTime: planetSet?.date,
+    risingTime: planetRise?.date
+  };
+}
+
+/**
+ * Computes Guru & Shukra Astodaya (Combustion & Heliacal Rising) for any given year
+ * using high-precision horizon Kālāṁśa time-degree standards (Surya Siddhanta & Drik Ganita).
  */
 export function calculateYearlyAstodaya(year: number): {
   events: AstodayaEvent[];
@@ -431,110 +576,95 @@ export function calculateYearlyAstodaya(year: number): {
   const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59));
 
   const allEvents: AstodayaEvent[] = [];
+  const rawTransitions: Array<AstodayaEvent & { transitionKey: string }> = [];
 
   const targets: Array<{
     planet: "Jupiter" | "Venus";
     body: Astronomy.Body;
-    thresholdNormal: number;
-    thresholdRetro: number;
   }> = [
-    { planet: "Jupiter", body: Astronomy.Body.Jupiter, thresholdNormal: 11.0, thresholdRetro: 11.0 },
-    { planet: "Venus", body: Astronomy.Body.Venus, thresholdNormal: 10.0, thresholdRetro: 8.0 }
+    { planet: "Jupiter", body: Astronomy.Body.Jupiter },
+    { planet: "Venus", body: Astronomy.Body.Venus }
   ];
 
   for (const t of targets) {
-    const scanStart = new Date(Date.UTC(year - 1, 11, 10));
-    const scanEnd = new Date(Date.UTC(year + 1, 0, 20));
+    // Scan covering late prior year and early following year for cross-year moudhya windows
+    const scanStart = new Date(Date.UTC(year - 1, 9, 1));
+    const scanEnd = new Date(Date.UTC(year + 1, 2, 1));
 
     let prevCombust: boolean | null = null;
-    let prevDate: Date | null = null;
+    let prevEval: ReturnType<typeof evaluateDailyKalamsas> | null = null;
 
     for (let timeMs = scanStart.getTime(); timeMs <= scanEnd.getTime(); timeMs += 86400000) {
       const d = new Date(timeMs);
-      const sunV = Astronomy.GeoVector(Astronomy.Body.Sun, d, true);
-      const planetV = Astronomy.GeoVector(t.body, d, true);
-      const dist = Astronomy.AngleBetween(sunV, planetV);
+      const evalRes = evaluateDailyKalamsas(t.body, d);
 
-      const isRetro = checkRetrograde(t.body, d);
-      const threshold = isRetro ? t.thresholdRetro : t.thresholdNormal;
-      const isCombust = dist < threshold;
+      if (prevCombust !== null && evalRes.isCombust !== prevCombust) {
+        const isAsta = evalRes.isCombust;
+        const eventTime = isAsta
+          ? (evalRes.settingTime || evalRes.risingTime || d)
+          : (evalRes.risingTime || evalRes.settingTime || d);
 
-      if (prevCombust !== null && isCombust !== prevCombust) {
-        let t1 = prevDate!.getTime();
-        let t2 = d.getTime();
-        for (let step = 0; step < 8; step++) {
-          const midT = (t1 + t2) / 2;
-          const midD = new Date(midT);
-          const sV = Astronomy.GeoVector(Astronomy.Body.Sun, midD, true);
-          const pV = Astronomy.GeoVector(t.body, midD, true);
-          const dAngle = Astronomy.AngleBetween(sV, pV);
-          if ((dAngle < threshold) === prevCombust) {
-            t1 = midT;
-          } else {
-            t2 = midT;
+        const sidereal = getSiderealPosition(eventTime, t.body);
+        const direction = evalRes.direction;
+        const rashiName = RASHI_NAMES_5LANG[sidereal.rashiIndex];
+        const nakName = NAKSHATRA_NAMES_5LANG[sidereal.nakshatraIndex];
+
+        const sV = Astronomy.GeoVector(Astronomy.Body.Sun, eventTime, true);
+        const pV = Astronomy.GeoVector(t.body, eventTime, true);
+        const dist = Astronomy.AngleBetween(sV, pV);
+
+        const ev: AstodayaEvent & { transitionKey: string } = {
+          planet: t.planet,
+          eventType: isAsta ? "asta" : "udaya",
+          date: eventTime,
+          dateStr: toYmdString(eventTime),
+          timeIstStr: toIstString(eventTime),
+          timeUtcStr: toUtcString(eventTime),
+          direction,
+          directionLabel: {
+            kn: direction === "East" ? "ಪೂರ್ವ (ಪ್ರಾಚಿ)" : "ಪಶ್ಚಿಮ (ಪ್ರತೀಚಿ)",
+            hi: direction === "East" ? "पूर्व (प्राची)" : "पश्चिम (प्रतीची)",
+            te: direction === "East" ? "తూర్పు (ప్రాచి)" : "పడమర (ప్రతీచి)",
+            ta: direction === "East" ? "கிழக்கு (பிராசி)" : "மேற்கு (பிரதீசி)",
+            en: direction === "East" ? "East (Morning / Prachi)" : "West (Evening / Prateechi)"
+          },
+          rashiIndex: sidereal.rashiIndex,
+          rashi: rashiName,
+          degreeFormatted: formatDegMin(sidereal.degreeInRashi),
+          nakshatraIndex: sidereal.nakshatraIndex,
+          nakshatra: nakName,
+          pada: sidereal.pada,
+          angDistSun: Math.round(dist * 100) / 100,
+          isRetrograde: evalRes.isRetrograde,
+          transitionKey: `${t.planet}_${isAsta ? "asta" : "udaya"}_${toYmdString(eventTime)}`,
+          significance: {
+            kn: isAsta
+              ? `${t.planet === "Jupiter" ? "ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು" : "ದೈತ್ಯಗುರು ಶುಕ್ರನು"} ${rashiName.kn} ರಾಶಿಯಲ್ಲಿ ಸೂರ್ಯನ ಅತಿಸಮೀಪ ಬಂದು ಮೌಢ್ಯ (ಅಸ್ತ) ಸ್ಥಿತಿಯನ್ನು ತಲುಪಿದ್ದಾರೆ. ಈ ದಿನದಿಂದ ಸಮಸ್ತ ಶುಭ ಕಾರ್ಯಗಳು ನಿಷೇಧಿಸಲ್ಪಡುತ್ತವೆ.`
+              : `${t.planet === "Jupiter" ? "ಗುರು" : "ಶುಕ್ರ"} ಗ್ರಹವು ${rashiName.kn} ರಾಶಿಯಲ್ಲಿ ಮೌಢ್ಯ ಕಳೆದುಕೊಂಡು ${direction === "East" ? "ಪೂರ್ವದಲ್ಲಿ" : "ಪಶ್ಚಿಮದಲ್ಲಿ"} ದೈವಿಕ ಉದಯವನ್ನು ಕಂಡಿದೆ. ಮೌಢ್ಯ ದೋಷ ಮುಕ್ತಾಯವಾಗುತ್ತದೆ.`,
+            hi: isAsta
+              ? `${t.planet === "Jupiter" ? "देवगुरु बृहस्पति" : "शुक्र देव"} ${rashiName.hi} में सूर्य के सन्निकट आकर अस्त (मौढ्य) हो रहे हैं। मांगलिक कार्य वर्जित हैं।`
+              : `${t.planet === "Jupiter" ? "बृहस्पति" : "शुक्र"} का ${direction === "East" ? "पूर्व" : "पश्चिम"} में उदय हो रहा है। शुभ मुहूर्त पुनः प्रारंभ।`,
+            te: isAsta
+              ? `${t.planet === "Jupiter" ? "గురుడు" : "శుక్రుడు"} ${rashiName.te} రాశిలో మౌఢ్య ప్రవేశం చేస్తున్నారు.`
+              : `${t.planet === "Jupiter" ? "గురు" : "శుక్ర"} గ్రహం ఉదయించి మౌఢ్య దోషం ముగుస్తుంది.`,
+            ta: isAsta
+              ? `${t.planet === "Jupiter" ? "குரு" : "சுக்கிரன்"} ${rashiName.ta} ராசியில் அஸ்தமனம் ஆகிறார். சுப நிகழ்வுகள் தவிர்க்கவும்.`
+              : `${t.planet === "Jupiter" ? "குரு" : "சுக்கிரன்"} உதயமாகிறார். சுப முகூர்த்தங்கள் தொடங்கலாம்.`,
+            en: isAsta
+              ? `${t.planet} enters combustion (Moudhya) in ${rashiName.en} at ${formatDegMin(sidereal.degreeInRashi)}. Sacred rites (marriages, upanayana, initiations) are suspended.`
+              : `${t.planet} experiences heliacal rising (Udaya) in the ${direction} in ${rashiName.en}. Moudhya bans conclude; auspicious muhurthas resume.`
           }
-        }
-        const exactDate = new Date((t1 + t2) / 2);
+        };
 
-        if (exactDate >= startOfYear && exactDate <= endOfYear) {
-          const sidereal = getSiderealPosition(exactDate, t.body);
-          const sunSidereal = getSiderealPosition(exactDate, Astronomy.Body.Sun);
-          const eventRetro = checkRetrograde(t.body, exactDate);
+        rawTransitions.push(ev);
 
-          const diffSun = (sidereal.siderealDegree - sunSidereal.siderealDegree + 360) % 360;
-          const isEast = diffSun > 180;
-          const direction: "East" | "West" = isEast ? "East" : "West";
-
-          const isAsta = isCombust;
-          const rashiName = RASHI_NAMES_5LANG[sidereal.rashiIndex];
-          const nakName = NAKSHATRA_NAMES_5LANG[sidereal.nakshatraIndex];
-
-          allEvents.push({
-            planet: t.planet,
-            eventType: isAsta ? "asta" : "udaya",
-            date: exactDate,
-            dateStr: toYmdString(exactDate),
-            timeIstStr: toIstString(exactDate),
-            timeUtcStr: toUtcString(exactDate),
-            direction,
-            directionLabel: {
-              kn: direction === "East" ? "ಪೂರ್ವ (ಪ್ರಾಚಿ)" : "ಪಶ್ಚಿಮ (ಪ್ರತೀಚಿ)",
-              hi: direction === "East" ? "पूर्व (प्राची)" : "पश्चिम (प्रतीची)",
-              te: direction === "East" ? "తూర్పు (ప్రాచి)" : "పడమర (ప్రతీచి)",
-              ta: direction === "East" ? "கிழக்கு (பிராசி)" : "மேற்கு (பிரதீசி)",
-              en: direction === "East" ? "East (Morning / Prachi)" : "West (Evening / Prateechi)"
-            },
-            rashiIndex: sidereal.rashiIndex,
-            rashi: rashiName,
-            degreeFormatted: formatDegMin(sidereal.degreeInRashi),
-            nakshatraIndex: sidereal.nakshatraIndex,
-            nakshatra: nakName,
-            pada: sidereal.pada,
-            angDistSun: dist,
-            isRetrograde: eventRetro,
-            significance: {
-              kn: isAsta
-                ? `${t.planet === "Jupiter" ? "ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು" : "ದೈತ್ಯಗುರು ಶುಕ್ರನು"} ${rashiName.kn} ರಾಶಿಯಲ್ಲಿ ಸೂರ್ಯನ ಅತಿಸಮೀಪ ಬಂದು ಮೌಢ್ಯ (ಅಸ್ತ) ಸ್ಥಿತಿಯನ್ನು ತಲುಪಿದ್ದಾರೆ. ಈ ದಿನದಿಂದ ಸಮಸ್ತ ಶುಭ ಕಾರ್ಯಗಳು ನಿಷೇಧಿಸಲ್ಪಡುತ್ತವೆ.`
-                : `${t.planet === "Jupiter" ? "ಗುರು" : "ಶುಕ್ರ"} ಗ್ರಹವು ${rashiName.kn} ರಾಶಿಯಲ್ಲಿ ಮೌಢ್ಯ ಕಳೆದುಕೊಂಡು ${direction === "East" ? "ಪೂರ್ವದಲ್ಲಿ" : "ಪಶ್ಚಿಮದಲ್ಲಿ"} ದೈವಿಕ ಉದಯವನ್ನು ಕಂಡಿದೆ. ಮೌಢ್ಯ ದೋಷ ಮುಕ್ತಾಯವಾಗುತ್ತದೆ.`,
-              hi: isAsta
-                ? `${t.planet === "Jupiter" ? "देवगुरु बृहस्पति" : "शुक्र देव"} ${rashiName.hi} में सूर्य के सन्निकट आकर अस्त (मौढ्य) हो रहे हैं। मांगलिक कार्य वर्जित हैं।`
-                : `${t.planet === "Jupiter" ? "बृहस्पति" : "शुक्र"} का ${direction === "East" ? "पूर्व" : "पश्चिम"} में उदय हो रहा है। शुभ मुहूर्त पुनः प्रारंभ।`,
-              te: isAsta
-                ? `${t.planet === "Jupiter" ? "గురుడు" : "శుక్రుడు"} ${rashiName.te} రాశిలో మౌఢ్య ప్రవేశం చేస్తున్నారు.`
-                : `${t.planet === "Jupiter" ? "గురు" : "శుక్ర"} గ్రహం ఉదయించి మౌఢ్య దోషం ముగుస్తుంది.`,
-              ta: isAsta
-                ? `${t.planet === "Jupiter" ? "குரு" : "சுக்கிரன்"} ${rashiName.ta} ராசியில் அஸ்தமனம் ஆகிறார். சுப நிகழ்வுகள் தவிர்க்கவும்.`
-                : `${t.planet === "Jupiter" ? "குரு" : "சுக்கிரன்"} உதயமாகிறார். சுப முகூர்த்தங்கள் தொடங்கலாம்.`,
-              en: isAsta
-                ? `${t.planet} enters combustion (Moudhya) in ${rashiName.en} at ${formatDegMin(sidereal.degreeInRashi)}. Sacred rites (marriages, upanayana, initiations) are suspended.`
-                : `${t.planet} experiences heliacal rising (Udaya) in the ${direction} in ${rashiName.en}. Moudhya bans conclude; auspicious muhurthas resume.`
-            }
-          });
+        if (eventTime >= startOfYear && eventTime <= endOfYear) {
+          allEvents.push(ev);
         }
       }
 
-      prevCombust = isCombust;
-      prevDate = d;
+      prevCombust = evalRes.isCombust;
+      prevEval = evalRes;
     }
   }
 
@@ -543,29 +673,31 @@ export function calculateYearlyAstodaya(year: number): {
   const periods: AstodayaPeriod[] = [];
 
   for (const planet of ["Jupiter", "Venus"] as const) {
-    const pEvents = allEvents.filter((e) => e.planet === planet);
-    for (let i = 0; i < pEvents.length; i++) {
-      if (pEvents[i].eventType === "asta") {
-        const udaya = pEvents.find((e, idx) => idx > i && e.eventType === "udaya");
+    const pTransitions = rawTransitions.filter((e) => e.planet === planet);
+    for (let i = 0; i < pTransitions.length; i++) {
+      if (pTransitions[i].eventType === "asta") {
+        const udaya = pTransitions.find((e, idx) => idx > i && e.eventType === "udaya");
         if (udaya) {
-          const duration = Math.max(1, Math.round((udaya.date.getTime() - pEvents[i].date.getTime()) / 86400000));
-          const pRashi = pEvents[i].rashi;
-          periods.push({
-            planet,
-            title: {
-              kn: `${planet === "Jupiter" ? "ಗುರು ಮೌಢ್ಯ ಕಾಲ" : "ಶುಕ್ರ ಮೌಢ್ಯ ಕಾಲ"} (${duration} ದಿನಗಳು)`,
-              hi: `${planet === "Jupiter" ? "गुरु मौढ्य काल" : "शुक्र मौढ्य काल"} (${duration} दिन)`,
-              te: `${planet === "Jupiter" ? "గురు మౌఢ్య కాలం" : "శుక్ర మౌఢ్య కాలం"} (${duration} రోజులు)`,
-              ta: `${planet === "Jupiter" ? "குரு மௌட்டிய காலம்" : "சுக்கிர மௌட்டிய காலம்"} (${duration} நாட்கள்)`,
-              en: `${planet} Combustion Window (${duration} Days)`
-            },
-            astaDate: pEvents[i].date,
-            udayaDate: udaya.date,
-            astaDateStr: pEvents[i].dateStr,
-            udayaDateStr: udaya.dateStr,
-            durationDays: duration,
-            direction: udaya.directionLabel,
-            rashi: pRashi,
+          // Include period if it overlaps with this year
+          if (udaya.date >= startOfYear && pTransitions[i].date <= endOfYear) {
+            const duration = Math.max(1, Math.round((udaya.date.getTime() - pTransitions[i].date.getTime()) / 86400000));
+            const pRashi = pTransitions[i].rashi;
+            periods.push({
+              planet,
+              title: {
+                kn: `${planet === "Jupiter" ? "ಗುರು ಮೌಢ್ಯ ಕಾಲ" : "ಶುಕ್ರ ಮೌಢ್ಯ ಕಾಲ"} (${duration} ದಿನಗಳು)`,
+                hi: `${planet === "Jupiter" ? "गुरु मौढ्य काल" : "शुक्र मौढ्य काल"} (${duration} दिन)`,
+                te: `${planet === "Jupiter" ? "గురు మౌఢ్య కాలం" : "శుక్ర మౌఢ్య కాలం"} (${duration} రోజులు)`,
+                ta: `${planet === "Jupiter" ? "குரு மௌட்டிய காலம்" : "சுக்கிர மௌட்டிய காலம்"} (${duration} நாட்கள்)`,
+                en: `${planet} Combustion Window (${duration} Days)`
+              },
+              astaDate: pTransitions[i].date,
+              udayaDate: udaya.date,
+              astaDateStr: pTransitions[i].dateStr,
+              udayaDateStr: udaya.dateStr,
+              durationDays: duration,
+              direction: udaya.directionLabel,
+              rashi: pRashi,
             shastraRules: {
               kn: `ಜ್ಯೋತಿಷ ಶಾಸ್ತ್ರ ಪ್ರಕಾರ ${planet === "Jupiter" ? "ಗುರು" : "ಶುಕ್ರ"} ಮೌಢ್ಯ ಕಾಲದಲ್ಲಿ ಯಾವುದೇ ಶುಭ ಕರ್ಮಗಳನ್ನು ಮಾಡಬಾರದು. ಈ ಅವಧಿಯಲ್ಲಿ ದೈವಿಕ ಮಂತ್ರ ಜಪ ಮತ್ತು ಈಶ್ವರಾರಾಧನೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`,
               hi: `${planet === "Jupiter" ? "गुरु" : "शुक्र"} मौढ्य के दौरान विवाह, उपनयन, गृहप्रवेश आदि सर्वथा वर्जित हैं। केवल नित्य कर्म व मंत्र जप करें।`,
@@ -619,10 +751,13 @@ export function calculateYearlyAstodaya(year: number): {
                 : "Shukra Shanti and Mahalakshmi Archana at Gokarna Kshetra."
             }
           });
+          }
         }
       }
     }
   }
+
+  periods.sort((a, b) => a.astaDate.getTime() - b.astaDate.getTime());
 
   return { events: allEvents, periods };
 }
@@ -810,6 +945,146 @@ function generate12RashiImpact(eclipseRashiIdx: number): GrahanaPhalaRashi[] {
 }
 
 /**
+ * Calculates authentic Vedic entry (Sparsha), peak (Madhya), and release (Moksha)
+ * directions (ದಿಕ್ಕುಗಳು: ಪೂರ್ವ, ಪಶ್ಚಿಮ, ದಕ್ಷಿಣ, ಉತ್ತರ, ಈಶಾನ್ಯ, ಆಗ್ನೇಯ, ನೈಋತ್ಯ, ವಾಯವ್ಯ)
+ * based on Moon's orbital motion relative to the Sun and Earth's shadow.
+ */
+function calculateGrahanaContactDirections(
+  type: EclipseType,
+  peakDate: Date
+): GrahanaContactDirections {
+  const moonV = Astronomy.GeoVector(Astronomy.Body.Moon, peakDate, true);
+  const mEcl = Astronomy.Ecliptic(moonV);
+  const moonLat = mEcl.elat; // ecliptic latitude in degrees
+
+  if (type === "surya") {
+    // Solar Eclipse: Moon crosses Sun from West to East
+    let sparshaCode: DikkuCode = "W";
+    let mokshaCode: DikkuCode = "E";
+    let sparshaAngle = 270;
+    let mokshaAngle = 90;
+
+    if (moonLat > 0.15) {
+      sparshaCode = "NW";
+      mokshaCode = "SE";
+      sparshaAngle = 315;
+      mokshaAngle = 135;
+    } else if (moonLat < -0.15) {
+      sparshaCode = "SW";
+      mokshaCode = "NE";
+      sparshaAngle = 225;
+      mokshaAngle = 45;
+    }
+
+    const sDikku = DIKKU_NAMES_5LANG[sparshaCode];
+    const mDikku = DIKKU_NAMES_5LANG[mokshaCode];
+
+    return {
+      sparshaDikku: {
+        code: sparshaCode,
+        label: sDikku.name,
+        sanskritName: sDikku.sanskrit
+      },
+      mokshaDikku: {
+        code: mokshaCode,
+        label: mDikku.name,
+        sanskritName: mDikku.sanskrit
+      },
+      madhyaDirection: {
+        code: "CENTER",
+        label: {
+          kn: "ಕೇಂದ್ರ / ಪರಮಗ್ರಾಸ (Center)",
+          hi: "केंद्र / परमग्रास",
+          te: "కేంద్రం / పరమగ్రాసం",
+          ta: "மையம் / அதிகபட்சம்",
+          en: "Center / Greatest Phase"
+        }
+      },
+      coverageVisual: {
+        sparshaAngle,
+        mokshaAngle,
+        extentDescription: {
+          kn: `ಸೂರ್ಯ ಬಿಂಬದ ${sDikku.name.kn} ಭಾಗದಿಂದ ಗ್ರಹಣ ಪ್ರವೇಶಿಸಿ, ${mDikku.name.kn} ಭಾಗದಲ್ಲಿ ಮುಕ್ತಾಯಗೊಳ್ಳುತ್ತದೆ.`,
+          hi: `सूर्य बिंब के ${sDikku.name.hi} भाग से स्पर्श होकर ${mDikku.name.hi} में मोक्ष होगा।`,
+          te: `సూర్య బింబం యొక్క ${sDikku.name.te} భాగం నుండి ప్రవేశించి ${mDikku.name.te} వద్ద మోక్షం జరుగుతుంది.`,
+          ta: `சூரிய வட்டத்தின் ${sDikku.name.ta} பகுதியில் ஆரம்பித்து ${mDikku.name.ta} பகுதியில் முடியும்.`,
+          en: `Eclipse touches solar limb at ${sDikku.name.en} and releases towards ${mDikku.name.en}.`
+        }
+      },
+      pathDescription: {
+        kn: `ಗ್ರಹಣ ಆರಂಭ (ಸ್ಪರ್ಶ): ${sDikku.name.kn} (${sDikku.sanskrit.kn}) | ಗರಿಷ್ಠ ವ್ಯಾಪ್ತಿ (ಮಧ್ಯ): ಕೇಂದ್ರ | ಗ್ರಹಣ ಬಿಡುಗಡೆ (ಮೋಕ್ಷ): ${mDikku.name.kn} (${mDikku.sanskrit.kn})`,
+        hi: `स्पर्श: ${sDikku.name.hi} (${sDikku.sanskrit.hi}) | मध्य: केंद्र | मोक्ष: ${mDikku.name.hi} (${mDikku.sanskrit.hi})`,
+        te: `స్పర్శ: ${sDikku.name.te} | మధ్య: కేంద్రం | మోక్షం: ${mDikku.name.te}`,
+        ta: `ஸ்பர்சம்: ${sDikku.name.ta} | மத்தியம்: மையம் | மோக்ஷம்: ${mDikku.name.ta}`,
+        en: `Ingress (Sparsha): ${sDikku.name.en} (${sDikku.sanskrit.en}) | Peak (Madhya): Center | Egress (Moksha): ${mDikku.name.en} (${mDikku.sanskrit.en})`
+      }
+    };
+  } else {
+    // Lunar Eclipse: Moon enters Earth's shadow from West to East, so East of Moon touches first
+    let sparshaCode: DikkuCode = "E";
+    let mokshaCode: DikkuCode = "W";
+    let sparshaAngle = 90;
+    let mokshaAngle = 270;
+
+    if (moonLat > 0.15) {
+      sparshaCode = "NE";
+      mokshaCode = "SW";
+      sparshaAngle = 45;
+      mokshaAngle = 225;
+    } else if (moonLat < -0.15) {
+      sparshaCode = "SE";
+      mokshaCode = "NW";
+      sparshaAngle = 135;
+      mokshaAngle = 315;
+    }
+
+    const sDikku = DIKKU_NAMES_5LANG[sparshaCode];
+    const mDikku = DIKKU_NAMES_5LANG[mokshaCode];
+
+    return {
+      sparshaDikku: {
+        code: sparshaCode,
+        label: sDikku.name,
+        sanskritName: sDikku.sanskrit
+      },
+      mokshaDikku: {
+        code: mokshaCode,
+        label: mDikku.name,
+        sanskritName: mDikku.sanskrit
+      },
+      madhyaDirection: {
+        code: "CENTER",
+        label: {
+          kn: "ಕೇಂದ್ರ ಛಾಯೆ (Center Umbra)",
+          hi: "केंद्रीय छाया",
+          te: "కేంద్ర ఛాయ",
+          ta: "மைய நிழல்",
+          en: "Center Umbra"
+        }
+      },
+      coverageVisual: {
+        sparshaAngle,
+        mokshaAngle,
+        extentDescription: {
+          kn: `ಚಂದ್ರ ಬಿಂಬದ ${sDikku.name.kn} ಭಾಗದಿಂದ ಭೂಮಿಯ ಛಾಯೆ ಪ್ರವೇಶಿಸಿ, ${mDikku.name.kn} ಭಾಗದಲ್ಲಿ ಮುಕ್ತಾಯಗೊಳ್ಳುತ್ತದೆ.`,
+          hi: `चंद्र बिंब के ${sDikku.name.hi} भाग से छाया प्रवेश करेगी और ${mDikku.name.hi} में मोक्ष होगा।`,
+          te: `చంద్ర బింబం ${sDikku.name.te} నుండి నీడ ప్రారంభమై ${mDikku.name.te} వైపు విముక్తి చెందుతుంది.`,
+          ta: `சந்திர வட்டத்தின் ${sDikku.name.ta} பகுதியில் ஆரம்பித்து ${mDikku.name.ta} பகுதியில் மோக்ஷம் அடையும்.`,
+          en: `Earth shadow touches lunar limb at ${sDikku.name.en} and releases towards ${mDikku.name.en}.`
+        }
+      },
+      pathDescription: {
+        kn: `ಗ್ರಹಣ ಆರಂಭ (ಸ್ಪರ್ಶ): ${sDikku.name.kn} (${sDikku.sanskrit.kn}) | ಗರಿಷ್ಠ ವ್ಯಾಪ್ತಿ (ಮಧ್ಯ): ಕೇಂದ್ರ | ಗ್ರಹಣ ಬಿಡುಗಡೆ (ಮೋಕ್ಷ): ${mDikku.name.kn} (${mDikku.sanskrit.kn})`,
+        hi: `स्पर्श: ${sDikku.name.hi} (${sDikku.sanskrit.hi}) | मध्य: केंद्र | मोक्ष: ${mDikku.name.hi} (${mDikku.sanskrit.hi})`,
+        te: `స్పర్శ: ${sDikku.name.te} | మధ్య: కేంద్రం | మోక్షం: ${mDikku.name.te}`,
+        ta: `ஸ்பர்சம்: ${sDikku.name.ta} | மத்தியம்: மையம் | மோக்ஷம்: ${mDikku.name.ta}`,
+        en: `Ingress (Sparsha): ${sDikku.name.en} (${sDikku.sanskrit.en}) | Peak (Madhya): Center | Egress (Moksha): ${mDikku.name.en} (${mDikku.sanskrit.en})`
+      }
+    };
+  }
+}
+
+/**
  * Searches and evaluates all Solar and Lunar Eclipses for a given year.
  */
 export function calculateYearlyEclipses(
@@ -982,7 +1257,8 @@ export function calculateYearlyEclipses(
               ta: "கோகர்ணத்தில் புண்ணிய ஸ்நானம் மற்றும் ஆத்மலிங்க பூஜை.",
               en: "Consecrated Grahana Snana at Gokarna Koti Tirtha and Mahabaleshwara Atmalinga Kshirabhishekam."
             }
-          }
+          },
+          contactDirections: calculateGrahanaContactDirections("surya", peakDate)
         });
       }
       curTime = new Date(eclipse.peak.date.getTime() + 30 * 86400000);
@@ -1148,7 +1424,8 @@ export function calculateYearlyEclipses(
               ta: "கோகர்ணத்தில் சந்திர சாந்தி மற்றும் ருத்ராபிஷேகம்.",
               en: "Chandra Shanti Puja and Rudrabhishekam at Gokarna Mahabaleshwara Kshetra."
             }
-          }
+          },
+          contactDirections: calculateGrahanaContactDirections("chandra", peakDate)
         });
       }
       curTime = new Date(eclipse.peak.date.getTime() + 30 * 86400000);

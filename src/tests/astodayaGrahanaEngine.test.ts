@@ -98,4 +98,44 @@ describe("AstodayaGrahanaEngine Parashari & Astronomical Precision Audit", () =>
     expect(ids).toContain("maharashtra");
     expect(ids).toContain("tamilnadu");
   });
+
+  it("computes authentic 8-point Dikku contact directions (Sparsha, Madhya, Moksha) for 2026 eclipses", () => {
+    const eclipses = calculateYearlyEclipses(2026, "karnataka");
+    expect(eclipses.length).toBe(4);
+
+    for (const e of eclipses) {
+      expect(e.contactDirections).toBeDefined();
+      const cd = e.contactDirections!;
+      expect(cd.sparshaDikku.code).toBeDefined();
+      expect(cd.sparshaDikku.label.kn).toBeDefined();
+      expect(cd.sparshaDikku.label.en).toBeDefined();
+      expect(cd.mokshaDikku.code).toBeDefined();
+      expect(cd.mokshaDikku.label.kn).toBeDefined();
+      expect(cd.mokshaDikku.label.en).toBeDefined();
+      expect(cd.madhyaDirection.label.kn).toBeDefined();
+      expect(cd.pathDescription.kn).toBeDefined();
+    }
+
+    // In 2026-03-03 total lunar eclipse, lunar eclipse starts from East/SE and exits towards West/NW
+    const marchLunar = eclipses.find((e) => e.peakDateStr.includes("2026-03"));
+    expect(marchLunar).toBeDefined();
+    expect(marchLunar!.contactDirections!.sparshaDikku.code).toBe("SE");
+    expect(marchLunar!.contactDirections!.sparshaDikku.label.kn).toContain("ಆಗ್ನೇಯ");
+    expect(marchLunar!.contactDirections!.mokshaDikku.code).toBe("NW");
+    expect(marchLunar!.contactDirections!.mokshaDikku.label.kn).toContain("ವಾಯವ್ಯ");
+  });
+
+  it("verifies accurate 2026 Venus Asta start date in October using Classical Kālāṁśas", () => {
+    const { events, periods } = calculateYearlyAstodaya(2026);
+    const venOctPeriod = periods.find(
+      (p) => p.planet === "Venus" && p.astaDateStr.includes("2026-10")
+    );
+
+    expect(venOctPeriod).toBeDefined();
+    // Venus Asta starts October 19 and Udaya October 26 (approx 8 days), matching Drik Panchang
+    expect(venOctPeriod!.astaDateStr).toContain("2026-10-19");
+    expect(venOctPeriod!.udayaDateStr).toContain("2026-10-26");
+    expect(venOctPeriod!.durationDays).toBeLessThanOrEqual(10);
+    expect(venOctPeriod!.durationDays).toBeGreaterThanOrEqual(6);
+  });
 });
