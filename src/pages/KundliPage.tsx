@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { KundliInput, KundliOutput } from "../core/AstroTypes";
 import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
@@ -136,6 +137,29 @@ export default function KundliPage(): JSX.Element {
   } | null>(null);
   const [premiumBhavishyaPayload, setPremiumBhavishyaPayload] = useState<BhavishyaV1Payload | null>(null);
   const premiumBhavishyaPdfRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll and listen for Escape key when modals are open
+  useEffect(() => {
+    if (isPackageSelectModalOpen || bundleModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          if (isPackageSelectModalOpen) {
+            setIsPackageSelectModalOpen(false);
+          } else if (bundleModalOpen && !isGeneratingPremiumBundle) {
+            setBundleModalOpen(false);
+          }
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [isPackageSelectModalOpen, bundleModalOpen, isGeneratingPremiumBundle]);
+
   const [includePriestCalendar, setIncludePriestCalendar] = useState<boolean>(
     () => initialSession?.includePriestCalendar ?? initialDraft?.includePriestCalendar ?? false
   );
@@ -2032,18 +2056,25 @@ export default function KundliPage(): JSX.Element {
       )}
 
       {/* Royal Baggona Premium ZIP Package Document Selector Modal */}
-      {isPackageSelectModalOpen && (
-        <div className="fixed inset-0 z-[99998] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-          <div className="relative my-auto w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-3xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 p-5 sm:p-7 text-white shadow-2xl border-2 border-amber-500/50 space-y-4">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">📦</span>
-                <div>
-                  <h3 className="text-lg md:text-xl font-extrabold text-amber-300">
+      {isPackageSelectModalOpen && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsPackageSelectModalOpen(false);
+          }}
+        >
+          <div className="relative my-auto w-full max-w-lg max-h-[88vh] flex flex-col rounded-3xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 text-white shadow-2xl border-2 border-amber-500/50 overflow-hidden">
+            {/* Pinned Header */}
+            <div className="shrink-0 flex items-center justify-between border-b border-amber-500/30 px-5 py-3.5 bg-slate-950/70 backdrop-blur-sm">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-2xl sm:text-3xl shrink-0">📦</span>
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-extrabold text-amber-300 truncate">
                     {pdfLanguage === "kn" ? "ಪ್ರೀಮಿಯಂ ಜಿಪ್ ಬಂಡಲ್ ಆಯ್ಕೆ" : "Select Documents for ZIP Bundle"}
                   </h3>
-                  <p className="text-xs text-slate-300">
+                  <p className="text-xs text-slate-300 truncate">
                     {form.name || "Devotee"} · {pdfLanguage.toUpperCase()}
                   </p>
                 </div>
@@ -2051,283 +2082,297 @@ export default function KundliPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setIsPackageSelectModalOpen(false)}
-                className="rounded-full w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                className="shrink-0 ml-3 rounded-full w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-300 hover:text-white hover:bg-rose-600 border border-slate-700 hover:border-rose-500 transition-colors font-bold text-sm shadow-sm"
+                aria-label="Close"
               >
                 ✕
               </button>
             </div>
 
-            {/* Language Selector Inside Popup */}
-            <div className="rounded-2xl bg-slate-800/80 border border-amber-500/30 p-3 space-y-2">
-              <label className="block text-xs font-bold text-amber-300">
-                {pdfLanguage === "kn" ? "ಪಿಡಿಎಫ್ ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ (Select PDF Language):" : "Select PDF Language:"}
-              </label>
-              <div className="flex flex-wrap items-center gap-2">
-                {[
-                  { code: "kn", label: "ಕನ್ನಡ (Kannada)" },
-                  { code: "en", label: "English" },
-                  { code: "hi", label: "हिन्दी (Hindi)" },
-                  { code: "te", label: "తెలుగు (Telugu)" },
-                  { code: "ta", label: "தமிழ் (Tamil)" }
-                ].map(lang => (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => handleLanguageChange(lang.code)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-                      pdfLanguage === lang.code
-                        ? "bg-amber-500 text-slate-950 border-amber-300 shadow-md shadow-amber-500/30"
-                        : "bg-slate-900/80 text-slate-300 border-slate-700 hover:border-amber-400/50"
-                    }`}
-                  >
-                    <span className={`w-3 h-3 rounded-full border flex items-center justify-center ${
-                      pdfLanguage === lang.code ? "border-slate-950 bg-slate-950" : "border-slate-500"
-                    }`}>
-                      {pdfLanguage === lang.code && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
-                    </span>
-                    <span>{lang.label}</span>
-                  </button>
-                ))}
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 custom-scrollbar">
+              {/* Language Selector Inside Popup */}
+              <div className="rounded-2xl bg-slate-800/80 border border-amber-500/30 p-3 space-y-2">
+                <label className="block text-xs font-bold text-amber-300">
+                  {pdfLanguage === "kn" ? "ಪಿಡಿಎಫ್ ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ (Select PDF Language):" : "Select PDF Language:"}
+                </label>
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  {[
+                    { code: "kn", label: "ಕನ್ನಡ (Kannada)" },
+                    { code: "en", label: "English" },
+                    { code: "hi", label: "हिन्दी (Hindi)" },
+                    { code: "te", label: "తెలుగు (Telugu)" },
+                    { code: "ta", label: "தமிழ் (Tamil)" }
+                  ].map(lang => (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      onClick={() => handleLanguageChange(lang.code)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                        pdfLanguage === lang.code
+                          ? "bg-amber-500 text-slate-950 border-amber-300 shadow-md shadow-amber-500/30"
+                          : "bg-slate-900/80 text-slate-300 border-slate-700 hover:border-amber-400/50"
+                      }`}
+                    >
+                      <span className={`w-2.5 h-2.5 rounded-full border flex items-center justify-center ${
+                        pdfLanguage === lang.code ? "border-slate-950 bg-slate-950" : "border-slate-500"
+                      }`}>
+                        {pdfLanguage === lang.code && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                      </span>
+                      <span>{lang.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <p className="text-xs text-amber-100/90 bg-amber-950/40 border border-amber-500/30 rounded-xl p-3">
-              {pdfLanguage === "kn"
-                ? "ಜಿಪ್ (ZIP) ಕಡತದಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಇಚ್ಛಿಸುವ ಅಧಿಕೃತ ದಾಖಲೆಗಳನ್ನು ಕೆಳಗೆ ಆಯ್ಕೆಮಾಡಿ:"
-                : "Select the official documents you wish to include in the ZIP download package:"}
-            </p>
+              <p className="text-xs text-amber-100/90 bg-amber-950/40 border border-amber-500/30 rounded-xl p-2.5 sm:p-3 leading-relaxed">
+                {pdfLanguage === "kn"
+                  ? "ಜಿಪ್ (ZIP) ಕಡತದಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಇಚ್ಛಿಸುವ ಅಧಿಕೃತ ದಾಖಲೆಗಳನ್ನು ಕೆಳಗೆ ಆಯ್ಕೆಮಾಡಿ:"
+                  : "Select the official documents you wish to include in the ZIP download package:"}
+              </p>
 
-            {/* Checkbox Items - Total 5 Options */}
-            <div className="space-y-2.5">
-              {/* Item 1: Kundli & Dasha */}
-              <label className="flex items-start gap-3 p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
-                <input
-                  type="checkbox"
-                  checked={packageSelectedItems.kundli}
-                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, kundli: e.target.checked }))}
-                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
-                />
-                <div className="text-left text-xs">
-                  <p className="font-bold text-amber-200 text-sm">
-                    {pdfLanguage === "kn" ? "೧. ಜನನ ಕುಂಡಲಿ & ದಶಾ-ಭುಕ್ತಿ (PDF)" : "1. Janana Kundali & Dasha (PDF)"}
-                  </p>
-                  <p className="text-slate-300 mt-0.5">
-                    {pdfLanguage === "kn"
-                      ? "ಸಮಗ್ರ ಗ್ರಹ ಸ್ಥಿತಿ, ನಕ್ಷತ್ರ-ಪಾದ, ಪಂಚಾಂಗ ಅಂಗಗಳು ಮತ್ತು ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ವಿವರಗಳು"
-                      : "Complete planetary positions, Panchanga details, and 120-year Vimshottari Dasha-Bhukti"}
-                  </p>
-                </div>
-              </label>
-
-              {/* Item 2: Daivika Parihara Remedies */}
-              <label className="flex items-start gap-3 p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
-                <input
-                  type="checkbox"
-                  checked={packageSelectedItems.remedy}
-                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, remedy: e.target.checked }))}
-                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
-                />
-                <div className="text-left text-xs">
-                  <p className="font-bold text-amber-200 text-sm">
-                    {pdfLanguage === "kn" ? "೨. ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (PDF)" : "2. Daivika Parihara Remedy Report (PDF)"}
-                  </p>
-                  <p className="text-slate-300 mt-0.5">
-                    {pdfLanguage === "kn"
-                      ? "ಅಧಿಕೃತ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರಗಳು, ಸ್ತೋತ್ರಗಳು, ಮಂತ್ರಗಳು ಹಾಗೂ ಜಪ ವಿಧಾನಗಳು"
-                      : "Authentic temple remedies, shlokas, mantras, and personalized ritual guidelines"}
-                  </p>
-                </div>
-              </label>
-
-              {/* Item 3: Divya Bhavishya V1 */}
-              <label className="flex items-start gap-3 p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
-                <input
-                  type="checkbox"
-                  checked={packageSelectedItems.bhavishya}
-                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, bhavishya: e.target.checked }))}
-                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
-                />
-                <div className="text-left text-xs">
-                  <p className="font-bold text-amber-200 text-sm">
-                    {pdfLanguage === "kn" ? "೩. ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 - ೧೦ ಅಧ್ಯಾಯಗಳು (PDF)" : "3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)"}
-                  </p>
-                  <p className="text-slate-300 mt-0.5">
-                    {pdfLanguage === "kn"
-                      ? "೧೦೦% ಅಧಿಕೃತ AI ನಿರೂಪಣೆ, ಜೀವನದ ೧೦ ಹಂತಗಳ ಸಮಗ್ರ ಭವಿಷ್ಯ ಹಾಗೂ ಪರಿಹಾರಗಳು"
-                      : "100% dynamic AI narrative across 10 life stages with emotional depth & Vedic precision"}
-                  </p>
-                </div>
-              </label>
-
-              {/* Item 4: Kundli Comprehensive Doshas Report */}
-              <label className="flex items-start gap-3 p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
-                <input
-                  type="checkbox"
-                  checked={packageSelectedItems.dosha}
-                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, dosha: e.target.checked }))}
-                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
-                />
-                <div className="text-left text-xs">
-                  <p className="font-bold text-amber-200 text-sm">
-                    {pdfLanguage === "kn" ? "೪. ಕುಂಡಲಿ ಸಮಗ್ರ ದೋಷಗಳ ವರದಿ (PDF)" : "4. Comprehensive Kundli Doshas Report (PDF)"}
-                  </p>
-                  <p className="text-slate-300 mt-0.5">
-                    {pdfLanguage === "kn"
-                      ? "ಪಿತ್ರು, ಕಾಲಸರ್ಪ, ಕುಜ, ಗುರು ಚಂಡಾಲ, ಗ್ರಹಣ, ಗಂಡಾಂತರ ಮುಂತಾದ ಸಮಗ್ರ ದೋಷಗಳ ಪೂರ್ಣ ವರದಿ"
-                      : "Complete analysis of Pitru, Kala Sarpa, Kuja, Guru Chandala, Gandantara & other doshas"}
-                  </p>
-                </div>
-              </label>
-
-              {/* Item 5: 30-Day Auspicious Calendar QR Card */}
-              <label className="flex items-start gap-3 p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
-                <input
-                  type="checkbox"
-                  checked={packageSelectedItems.qrCalendar}
-                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, qrCalendar: e.target.checked }))}
-                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
-                />
-                <div className="text-left text-xs">
-                  <p className="font-bold text-amber-200 text-sm">
-                    {pdfLanguage === "kn" ? "೫. ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ (PDF)" : "5. Next 30-Day Auspicious Calendar QR Card (PDF)"}
-                  </p>
-                  <p className="text-slate-300 mt-0.5">
-                    {pdfLanguage === "kn"
-                      ? "ದಿನನಿತ್ಯದ ಶುಭ ಮುಹೂರ್ತಗಳು, ಗೋಚಾರ ಫಲಗಳು & ಪೂಜ್ಯ ಪುರೋಹಿತರೊಂದಿಗೆ ನೇರ ಸಂಪರ್ಕ QR"
-                      : "Personalized 30-day auspicious calendar with instant priest consultation QR link"}
-                  </p>
-                </div>
-              </label>
-            </div>
-
-            {/* Conditional Priest Database Selector & Editor when Item 5 (QR Calendar) is checked */}
-            {packageSelectedItems.qrCalendar && (
-              <div className="rounded-2xl bg-gradient-to-r from-amber-950/40 via-amber-900/30 to-amber-950/40 border border-amber-500/40 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-amber-300 text-xs font-bold">
-                    <span>📿</span>
-                    <span>
+              {/* Checkbox Items - Total 5 Options */}
+              <div className="space-y-2">
+                {/* Item 1: Kundli & Dasha */}
+                <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                  <input
+                    type="checkbox"
+                    checked={packageSelectedItems.kundli}
+                    onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, kundli: e.target.checked }))}
+                    className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
+                  />
+                  <div className="text-left text-xs min-w-0">
+                    <p className="font-bold text-amber-200 text-sm">
+                      {pdfLanguage === "kn" ? "೧. ಜನನ ಕುಂಡಲಿ & ದಶಾ-ಭುಕ್ತಿ (PDF)" : "1. Janana Kundali & Dasha (PDF)"}
+                    </p>
+                    <p className="text-slate-300 mt-0.5 leading-snug">
                       {pdfLanguage === "kn"
-                        ? "ಪೂಜ್ಯ ಪುರೋಹಿತರ ವಿವರಗಳು (Priest Database Consultation)"
-                        : "Priest Database Consultation Details"}
+                        ? "ಸಮಗ್ರ ಗ್ರಹ ಸ್ಥಿತಿ, ನಕ್ಷತ್ರ-ಪಾದ, ಪಂಚಾಂಗ ಅಂಗಗಳು ಮತ್ತು ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ವಿವರಗಳು"
+                        : "Complete planetary positions, Panchanga details, and 120-year Vimshottari Dasha-Bhukti"}
+                    </p>
+                  </div>
+                </label>
+
+                {/* Item 2: Daivika Parihara Remedies */}
+                <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                  <input
+                    type="checkbox"
+                    checked={packageSelectedItems.remedy}
+                    onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, remedy: e.target.checked }))}
+                    className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
+                  />
+                  <div className="text-left text-xs min-w-0">
+                    <p className="font-bold text-amber-200 text-sm">
+                      {pdfLanguage === "kn" ? "೨. ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (PDF)" : "2. Daivika Parihara Remedy Report (PDF)"}
+                    </p>
+                    <p className="text-slate-300 mt-0.5 leading-snug">
+                      {pdfLanguage === "kn"
+                        ? "ಅಧಿಕೃತ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರಗಳು, ಸ್ತೋತ್ರಗಳು, ಮಂತ್ರಗಳು ಹಾಗೂ ಜಪ ವಿಧಾನಗಳು"
+                        : "Authentic temple remedies, shlokas, mantras, and personalized ritual guidelines"}
+                    </p>
+                  </div>
+                </label>
+
+                {/* Item 3: Divya Bhavishya V1 */}
+                <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                  <input
+                    type="checkbox"
+                    checked={packageSelectedItems.bhavishya}
+                    onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, bhavishya: e.target.checked }))}
+                    className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
+                  />
+                  <div className="text-left text-xs min-w-0">
+                    <p className="font-bold text-amber-200 text-sm">
+                      {pdfLanguage === "kn" ? "೩. ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 - ೧೦ ಅಧ್ಯಾಯಗಳು (PDF)" : "3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)"}
+                    </p>
+                    <p className="text-slate-300 mt-0.5 leading-snug">
+                      {pdfLanguage === "kn"
+                        ? "೧೦೦% ಅಧಿಕೃತ AI ನಿರೂಪಣೆ, ಜೀವನದ ೧೦ ಹಂತಗಳ ಸಮಗ್ರ ಭವಿಷ್ಯ ಹಾಗೂ ಪರಿಹಾರಗಳು"
+                        : "100% dynamic AI narrative across 10 life stages with emotional depth & Vedic precision"}
+                    </p>
+                  </div>
+                </label>
+
+                {/* Item 4: Kundli Comprehensive Doshas Report */}
+                <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                  <input
+                    type="checkbox"
+                    checked={packageSelectedItems.dosha}
+                    onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, dosha: e.target.checked }))}
+                    className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
+                  />
+                  <div className="text-left text-xs min-w-0">
+                    <p className="font-bold text-amber-200 text-sm">
+                      {pdfLanguage === "kn" ? "೪. ಕುಂಡಲಿ ಸಮಗ್ರ ದೋಷಗಳ ವರದಿ (PDF)" : "4. Comprehensive Kundli Doshas Report (PDF)"}
+                    </p>
+                    <p className="text-slate-300 mt-0.5 leading-snug">
+                      {pdfLanguage === "kn"
+                        ? "ಪಿತ್ರು, ಕಾಲಸರ್ಪ, ಕುಜ, ಗುರು ಚಂಡಾಲ, ಗ್ರಹಣ, ಗಂಡಾಂತರ ಮುಂತಾದ ಸಮಗ್ರ ದೋಷಗಳ ಪೂರ್ಣ ವರದಿ"
+                        : "Complete analysis of Pitru, Kala Sarpa, Kuja, Guru Chandala, Gandantara & other doshas"}
+                    </p>
+                  </div>
+                </label>
+
+                {/* Item 5: 30-Day Auspicious Calendar QR Card */}
+                <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                  <input
+                    type="checkbox"
+                    checked={packageSelectedItems.qrCalendar}
+                    onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, qrCalendar: e.target.checked }))}
+                    className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
+                  />
+                  <div className="text-left text-xs min-w-0">
+                    <p className="font-bold text-amber-200 text-sm">
+                      {pdfLanguage === "kn" ? "೫. ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ (PDF)" : "5. Next 30-Day Auspicious Calendar QR Card (PDF)"}
+                    </p>
+                    <p className="text-slate-300 mt-0.5 leading-snug">
+                      {pdfLanguage === "kn"
+                        ? "ದಿನನಿತ್ಯದ ಶುಭ ಮುಹೂರ್ತಗಳು, ಗೋಚಾರ ಫಲಗಳು & ಪೂಜ್ಯ ಪುರೋಹಿತರೊಂದಿಗೆ ನೇರ ಸಂಪರ್ಕ QR"
+                        : "Personalized 30-day auspicious calendar with instant priest consultation QR link"}
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Conditional Priest Database Selector & Editor when Item 5 (QR Calendar) is checked */}
+              {packageSelectedItems.qrCalendar && (
+                <div className="rounded-2xl bg-gradient-to-r from-amber-950/40 via-amber-900/30 to-amber-950/40 border border-amber-500/40 p-3 sm:p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-300 text-xs font-bold">
+                      <span>📿</span>
+                      <span>
+                        {pdfLanguage === "kn"
+                          ? "ಪೂಜ್ಯ ಪುರೋಹಿತರ ವಿವರಗಳು (Priest Database Consultation)"
+                          : "Priest Database Consultation Details"}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-amber-200/80 bg-amber-900/50 px-2 py-0.5 rounded-full border border-amber-500/30 font-semibold">
+                      💾 Auto-Saves to Database
                     </span>
                   </div>
-                  <span className="text-[10px] text-amber-200/80 bg-amber-900/50 px-2 py-0.5 rounded-full border border-amber-500/30 font-semibold">
-                    💾 Auto-Saves to Database
-                  </span>
-                </div>
 
-                <p className="text-[11px] text-amber-100/80 leading-relaxed">
-                  {pdfLanguage === "kn"
-                    ? "ಡೇಟಾಬೇಸ್‌ನಿಂದ ಪುರೋಹಿತರನ್ನು ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ಹೊಸ ಪುರೋಹಿತರನ್ನು ಸೇರಿಸಿ. ಹೆಸರು ಅಥವಾ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ತಿದ್ದುಪಡಿ ಮಾಡಿದರೆ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಉಳಿಯುತ್ತದೆ:"
-                    : "Select an existing priest from database or add a new priest. Any edits to name or phone will automatically update in database:"}
-                </p>
+                  <p className="text-[11px] text-amber-100/80 leading-relaxed">
+                    {pdfLanguage === "kn"
+                      ? "ಡೇಟಾಬೇಸ್‌ನಿಂದ ಪುರೋಹಿತರನ್ನು ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ಹೊಸ ಪುರೋಹಿತರನ್ನು ಸೇರಿಸಿ. ಹೆಸರು ಅಥವಾ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ತಿದ್ದುಪಡಿ ಮಾಡಿದರೆ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಉಳಿಯುತ್ತದೆ:"
+                      : "Select an existing priest from database or add a new priest. Any edits to name or phone will automatically update in database:"}
+                  </p>
 
-                {/* Priest Dropdown from Database */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                    {pdfLanguage === "kn" ? "ಡೇಟಾಬೇಸ್ ಪುರೋಹಿತರ ಪಟ್ಟಿ (Select from Database)" : "Select Priest from Database"}
-                  </label>
-                  <select
-                    value={selectedPriestId}
-                    onChange={(e) => handlePriestSelect(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-amber-500/40 px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
-                  >
-                    {priestsList.map((p) => {
-                      const langKey = (pdfLanguage.split("-")[0] as keyof L5) || "kn";
-                      const pName = p.name[langKey] || p.name.kn || p.name.en;
-                      const pPhone = p.phone ? ` (${p.phone})` : "";
-                      return (
-                        <option key={p.id} value={p.id}>
-                          {pName}{pPhone}
-                        </option>
-                      );
-                    })}
-                    <option value="new_priest">
-                      ➕ {pdfLanguage === "kn" ? "ಹೊಸ ಪುರೋಹಿತರನ್ನು ಸೇರಿಸಿ (+ Add New Priest)" : "+ Add New Priest"}
-                    </option>
-                  </select>
-                </div>
-
-                {/* Priest Name and Phone editable fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Priest Dropdown from Database */}
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                      {pdfLanguage === "kn" ? "ಪುರೋಹಿತರ ಹೆಸರು (Priest Name)" : "Priest Name"}
+                      {pdfLanguage === "kn" ? "ಡೇಟಾಬೇಸ್ ಪುರೋಹಿತರ ಪಟ್ಟಿ (Select from Database)" : "Select Priest from Database"}
                     </label>
-                    <input
-                      type="text"
-                      value={priestNameInput}
-                      onChange={(e) => setPriestNameInput(e.target.value)}
-                      placeholder={pdfLanguage === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "Shreeram Pandit"}
-                      className="w-full rounded-xl bg-slate-900/90 border border-amber-500/40 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                    />
+                    <select
+                      value={selectedPriestId}
+                      onChange={(e) => handlePriestSelect(e.target.value)}
+                      className="w-full rounded-xl bg-slate-900 border border-amber-500/40 px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    >
+                      {priestsList.map((p) => {
+                        const langKey = (pdfLanguage.split("-")[0] as keyof L5) || "kn";
+                        const pName = p.name[langKey] || p.name.kn || p.name.en;
+                        const pPhone = p.phone ? ` (${p.phone})` : "";
+                        return (
+                          <option key={p.id} value={p.id}>
+                            {pName}{pPhone}
+                          </option>
+                        );
+                      })}
+                      <option value="new_priest">
+                        ➕ {pdfLanguage === "kn" ? "ಹೊಸ ಪುರೋಹಿತರನ್ನು ಸೇರಿಸಿ (+ Add New Priest)" : "+ Add New Priest"}
+                      </option>
+                    </select>
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                      {pdfLanguage === "kn" ? "ದೂರವಾಣಿ / WhatsApp ಸಂಖ್ಯೆ" : "Phone / WhatsApp"}
-                    </label>
-                    <input
-                      type="text"
-                      value={priestPhoneInput}
-                      onChange={(e) => setPriestPhoneInput(e.target.value)}
-                      placeholder="9972339362"
-                      className="w-full rounded-xl bg-slate-900/90 border border-amber-500/40 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                    />
+
+                  {/* Priest Name and Phone editable fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                        {pdfLanguage === "kn" ? "ಪುರೋಹಿತರ ಹೆಸರು (Priest Name)" : "Priest Name"}
+                      </label>
+                      <input
+                        type="text"
+                        value={priestNameInput}
+                        onChange={(e) => setPriestNameInput(e.target.value)}
+                        placeholder={pdfLanguage === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "Shreeram Pandit"}
+                        className="w-full rounded-xl bg-slate-900/90 border border-amber-500/40 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                        {pdfLanguage === "kn" ? "ದೂರವಾಣಿ / WhatsApp ಸಂಖ್ಯೆ" : "Phone / WhatsApp"}
+                      </label>
+                      <input
+                        type="text"
+                        value={priestPhoneInput}
+                        onChange={(e) => setPriestPhoneInput(e.target.value)}
+                        placeholder="9972339362"
+                        className="w-full rounded-xl bg-slate-900/90 border border-amber-500/40 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      />
+                    </div>
                   </div>
+
+                  <p className="text-[10px] text-amber-300/80 italic">
+                    {selectedPriestId === "new_priest"
+                      ? (pdfLanguage === "kn"
+                          ? "✨ ಹೊಸ ಪುರೋಹಿತರನ್ನು ನಮೂದಿಸಿದಾಗ ಅವರು ಡೇಟಾಬೇಸ್‌ಗೆ ಹೊಸದಾಗಿ ಸೇರ್ಪಡೆಗೊಳ್ಳುತ್ತಾರೆ."
+                          : "✨ This new priest will be saved into the database for future consultations.")
+                      : (pdfLanguage === "kn"
+                          ? "🔄 ಹೆಸರು ಅಥವಾ ದೂರವಾಣಿ ಸಂಖ್ಯೆ ಬದಲಾಯಿಸಿದರೆ ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ತಕ್ಷಣ ಅಪ್‌ಡೇಟ್ ಆಗುತ್ತದೆ."
+                          : "🔄 Editing name or number will update this existing priest in the database.")}
+                  </p>
                 </div>
+              )}
+            </div>
 
-                <p className="text-[10px] text-amber-300/80 italic">
-                  {selectedPriestId === "new_priest"
-                    ? (pdfLanguage === "kn"
-                        ? "✨ ಹೊಸ ಪುರೋಹಿತರನ್ನು ನಮೂದಿಸಿದಾಗ ಅವರು ಡೇಟಾಬೇಸ್‌ಗೆ ಹೊಸದಾಗಿ ಸೇರ್ಪಡೆಗೊಳ್ಳುತ್ತಾರೆ."
-                        : "✨ This new priest will be saved into the database for future consultations.")
-                    : (pdfLanguage === "kn"
-                        ? "🔄 ಹೆಸರು ಅಥವಾ ದೂರವಾಣಿ ಸಂಖ್ಯೆ ಬದಲಾಯಿಸಿದರೆ ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ತಕ್ಷಣ ಅಪ್‌ಡೇಟ್ ಆಗುತ್ತದೆ."
-                        : "🔄 Editing name or number will update this existing priest in the database.")}
-                </p>
-              </div>
-            )}
-
-            {/* Footer Buttons */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3 border-t border-slate-800">
+            {/* Pinned Footer */}
+            <div className="shrink-0 flex items-center justify-between gap-3 border-t border-slate-800 bg-slate-950/80 px-4 py-3 sm:px-5 sm:py-3.5 backdrop-blur-sm">
               <button
                 type="button"
                 onClick={() => setIsPackageSelectModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
               >
                 {pdfLanguage === "kn" ? "ರದ್ದುಗೊಳಿಸಿ (Cancel)" : "Cancel"}
               </button>
               <button
                 type="button"
                 onClick={handleConfirmPremiumBundleDownload}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
                 <span>📦</span>
                 <span>
                   {pdfLanguage === "kn"
-                    ? "ಆಯ್ಕೆಮಾಡಿದ ಕಡತಗಳ ZIP ಡೌನ್‌ಲೋಡ್"
-                    : "Download Selected Documents ZIP"}
+                    ? `ಆಯ್ಕೆಮಾಡಿದ ZIP ಡೌನ್‌ಲೋಡ್ (${Object.values(packageSelectedItems).filter(Boolean).length})`
+                    : `Download Selected ZIP (${Object.values(packageSelectedItems).filter(Boolean).length})`}
                 </span>
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Royal Baggona Premium Bundle Progress & Result Modal */}
-      {bundleModalOpen && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-          <div className="relative my-auto w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-3xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 p-5 sm:p-7 text-white shadow-2xl border-2 border-amber-500/50">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-amber-500/20 pb-4 mb-5">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">👑</span>
-                <div>
-                  <h3 className="text-lg md:text-xl font-extrabold text-amber-300">
+      {bundleModalOpen && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (!isGeneratingPremiumBundle && e.target === e.currentTarget) {
+              setBundleModalOpen(false);
+            }
+          }}
+        >
+          <div className="relative my-auto w-full max-w-lg max-h-[88vh] flex flex-col rounded-3xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 text-white shadow-2xl border-2 border-amber-500/50 overflow-hidden">
+            {/* Pinned Header */}
+            <div className="shrink-0 flex items-center justify-between border-b border-amber-500/30 px-5 py-3.5 bg-slate-950/70 backdrop-blur-sm">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-2xl sm:text-3xl shrink-0">👑</span>
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-extrabold text-amber-300 truncate">
                     {pdfLanguage === "kn" ? "ಬಗ್ಗೋಣ ಪ್ರೀಮಿಯಂ ಡೌನ್‌ಲೋಡ್" : "Baggona Premium Download"}
                   </h3>
-                  <p className="text-xs text-slate-300">
+                  <p className="text-xs text-slate-300 truncate">
                     {form.name || "Devotee"} · {pdfLanguage.toUpperCase()}
                   </p>
                 </div>
@@ -2336,215 +2381,223 @@ export default function KundliPage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => setBundleModalOpen(false)}
-                  className="rounded-full w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                  className="shrink-0 ml-3 rounded-full w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-300 hover:text-white hover:bg-rose-600 border border-slate-700 hover:border-rose-500 transition-colors font-bold text-sm shadow-sm"
+                  aria-label="Close"
                 >
                   ✕
                 </button>
               )}
             </div>
 
-            {/* In Progress State */}
-            {isGeneratingPremiumBundle && (
-              <div className="space-y-6 py-4">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full border-4 border-amber-500/30 border-t-amber-400 animate-spin mb-4" />
-                  <p className="text-2xl font-black text-amber-300">{bundleProgress}%</p>
-                  <p className="text-sm font-medium text-slate-300 mt-2 max-w-sm">{bundleStageText}</p>
-                </div>
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar">
+              {/* In Progress State */}
+              {isGeneratingPremiumBundle && (
+                <div className="space-y-5 py-2">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-amber-500/30 border-t-amber-400 animate-spin mb-3" />
+                    <p className="text-2xl font-black text-amber-300">{bundleProgress}%</p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-300 mt-1 max-w-sm">{bundleStageText}</p>
+                  </div>
 
-                {/* Progress Bar */}
-                <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-amber-500/30 p-0.5">
-                  <div
-                    className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 h-full rounded-full transition-all duration-300 shadow-sm shadow-amber-400"
-                    style={{ width: `${bundleProgress}%` }}
-                  />
-                </div>
+                  {/* Progress Bar */}
+                  <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-amber-500/30 p-0.5">
+                    <div
+                      className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 h-full rounded-full transition-all duration-300 shadow-sm shadow-amber-400"
+                      style={{ width: `${bundleProgress}%` }}
+                    />
+                  </div>
 
-                {/* Checklist - 5 Options */}
-                <div className="bg-slate-950/60 rounded-2xl p-4 border border-slate-800 space-y-2 text-xs">
-                  {packageSelectedItems.kundli && (
+                  {/* Checklist - 5 Options */}
+                  <div className="bg-slate-950/60 rounded-2xl p-3.5 sm:p-4 border border-slate-800 space-y-2 text-xs">
+                    {packageSelectedItems.kundli && (
+                      <div className="flex items-center gap-2">
+                        <span>{bundleProgress >= 25 ? "✅" : "⏳"}</span>
+                        <span className={bundleProgress >= 25 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                          1. Baggona Janana Kundali & Dasha (PDF)
+                        </span>
+                      </div>
+                    )}
+                    {packageSelectedItems.remedy && (
+                      <div className="flex items-center gap-2">
+                        <span>{bundleProgress >= 45 ? "✅" : "⏳"}</span>
+                        <span className={bundleProgress >= 45 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                          2. Daivika Parihara Remedies Report (PDF)
+                        </span>
+                      </div>
+                    )}
+                    {packageSelectedItems.bhavishya && (
+                      <div className="flex items-center gap-2">
+                        <span>{bundleProgress >= 70 ? "✅" : "⏳"}</span>
+                        <span className={bundleProgress >= 70 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                          3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)
+                        </span>
+                      </div>
+                    )}
+                    {packageSelectedItems.dosha && (
+                      <div className="flex items-center gap-2">
+                        <span>{bundleProgress >= 80 ? "✅" : "⏳"}</span>
+                        <span className={bundleProgress >= 80 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                          4. Kundli Comprehensive Doshas Report (PDF)
+                        </span>
+                      </div>
+                    )}
+                    {packageSelectedItems.qrCalendar && (
+                      <div className="flex items-center gap-2">
+                        <span>{bundleProgress >= 90 ? "✅" : "⏳"}</span>
+                        <span className={bundleProgress >= 90 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                          5. Next 30-Day Auspicious Calendar QR Card (PDF)
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
-                      <span>{bundleProgress >= 25 ? "✅" : "⏳"}</span>
-                      <span className={bundleProgress >= 25 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                        1. Baggona Janana Kundali & Dasha (PDF)
+                      <span>{bundleProgress >= 100 ? "✅" : "⏳"}</span>
+                      <span className={bundleProgress >= 100 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                        6. High-Compression ZIP Bundle Packaging
                       </span>
                     </div>
-                  )}
-                  {packageSelectedItems.remedy && (
-                    <div className="flex items-center gap-2">
-                      <span>{bundleProgress >= 45 ? "✅" : "⏳"}</span>
-                      <span className={bundleProgress >= 45 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                        2. Daivika Parihara Remedies Report (PDF)
-                      </span>
-                    </div>
-                  )}
-                  {packageSelectedItems.bhavishya && (
-                    <div className="flex items-center gap-2">
-                      <span>{bundleProgress >= 70 ? "✅" : "⏳"}</span>
-                      <span className={bundleProgress >= 70 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                        3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)
-                      </span>
-                    </div>
-                  )}
-                  {packageSelectedItems.dosha && (
-                    <div className="flex items-center gap-2">
-                      <span>{bundleProgress >= 80 ? "✅" : "⏳"}</span>
-                      <span className={bundleProgress >= 80 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                        4. Kundli Comprehensive Doshas Report (PDF)
-                      </span>
-                    </div>
-                  )}
-                  {packageSelectedItems.qrCalendar && (
-                    <div className="flex items-center gap-2">
-                      <span>{bundleProgress >= 90 ? "✅" : "⏳"}</span>
-                      <span className={bundleProgress >= 90 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                        5. Next 30-Day Auspicious Calendar QR Card (PDF)
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <span>{bundleProgress >= 100 ? "✅" : "⏳"}</span>
-                    <span className={bundleProgress >= 100 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                      6. High-Compression ZIP Bundle Packaging
-                    </span>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Completed State */}
+              {/* Completed State */}
+              {!isGeneratingPremiumBundle && bundleDownloadedPdfs && (
+                <div className="space-y-4 py-1">
+                  <div className="rounded-2xl bg-emerald-950/50 border border-emerald-500/40 p-3 sm:p-4 text-center">
+                    <span className="text-2xl sm:text-3xl block mb-1">🎉</span>
+                    <h4 className="text-sm sm:text-base font-bold text-emerald-300">
+                      {pdfLanguage === "kn" ? "ZIP ಬಂಡಲ್ ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!" : "ZIP Bundle Downloaded Successfully!"}
+                    </h4>
+                    <p className="text-xs text-emerald-200/80 mt-1">
+                      {pdfLanguage === "kn"
+                        ? "ಆಯ್ಕೆಮಾಡಿದ ಎಲ್ಲಾ ಅಧಿಕೃತ ದಾಖಲೆಗಳು ZIP ಕಡತದಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ. ಅಗತ್ಯವಿದ್ದಲ್ಲಿ ಪ್ರತ್ಯೇಕ ಪಿಡಿಎಫ್‌ಗಳನ್ನೂ ಕೆಳಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಕೊಳ್ಳಬಹುದು:"
+                        : "All selected official documents are saved in your ZIP bundle. You can also download each individual PDF below:"}
+                    </p>
+                  </div>
+
+                  {/* Direct Download Links */}
+                  <div className="space-y-2">
+                    {bundleDownloadedPdfs.zip && (
+                      <a
+                        href={bundleDownloadedPdfs.zip.url}
+                        download={bundleDownloadedPdfs.zip.fileName}
+                        className="flex items-center justify-between p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-[0.98]"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="text-base sm:text-lg shrink-0">📦</span>
+                          <div className="text-left min-w-0 truncate">
+                            <p className="leading-tight font-extrabold truncate">{pdfLanguage === "kn" ? "ಸಂಪೂರ್ಣ ZIP ಬಂಡಲ್ ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್" : "Download ZIP Bundle Again"}</p>
+                            <p className="text-[10px] sm:text-[11px] font-medium opacity-90 truncate">{bundleDownloadedPdfs.zip.fileName}</p>
+                          </div>
+                        </div>
+                        <span className="shrink-0 ml-2">⬇️</span>
+                      </a>
+                    )}
+
+                    {bundleDownloadedPdfs.panchanga && (
+                      <a
+                        href={bundleDownloadedPdfs.panchanga.url}
+                        download={bundleDownloadedPdfs.panchanga.fileName}
+                        className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="shrink-0">📜</span>
+                          <div className="text-left min-w-0 truncate">
+                            <p className="font-semibold text-white truncate">೧. ಜನನ ಕುಂಡಲಿ & ದಶಾ-ಭುಕ್ತಿ (PDF)</p>
+                            <p className="text-[10px] text-slate-400 font-normal truncate">{bundleDownloadedPdfs.panchanga.fileName}</p>
+                          </div>
+                        </div>
+                        <span className="text-amber-400 text-[11px] shrink-0 ml-2">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                      </a>
+                    )}
+
+                    {bundleDownloadedPdfs.remedy && (
+                      <a
+                        href={bundleDownloadedPdfs.remedy.url}
+                        download={bundleDownloadedPdfs.remedy.fileName}
+                        className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="shrink-0">🪔</span>
+                          <div className="text-left min-w-0 truncate">
+                            <p className="font-semibold text-white truncate">೨. ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (PDF)</p>
+                            <p className="text-[10px] text-slate-400 font-normal truncate">{bundleDownloadedPdfs.remedy.fileName}</p>
+                          </div>
+                        </div>
+                        <span className="text-amber-400 text-[11px] shrink-0 ml-2">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                      </a>
+                    )}
+
+                    {bundleDownloadedPdfs.bhavishya && (
+                      <a
+                        href={bundleDownloadedPdfs.bhavishya.url}
+                        download={bundleDownloadedPdfs.bhavishya.fileName}
+                        className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="shrink-0">🔮</span>
+                          <div className="text-left min-w-0 truncate">
+                            <p className="font-semibold text-white truncate">೩. ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 (PDF)</p>
+                            <p className="text-[10px] text-slate-400 font-normal truncate">{bundleDownloadedPdfs.bhavishya.fileName}</p>
+                          </div>
+                        </div>
+                        <span className="text-amber-400 text-[11px] shrink-0 ml-2">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                      </a>
+                    )}
+
+                    {bundleDownloadedPdfs.dosha && (
+                      <a
+                        href={bundleDownloadedPdfs.dosha.url}
+                        download={bundleDownloadedPdfs.dosha.fileName}
+                        className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="shrink-0">🛡️</span>
+                          <div className="text-left min-w-0 truncate">
+                            <p className="font-semibold text-white truncate">೪. ಕುಂಡಲಿ ಸಮಗ್ರ ದೋಷಗಳ ವರದಿ (PDF)</p>
+                            <p className="text-[10px] text-slate-400 font-normal truncate">{bundleDownloadedPdfs.dosha.fileName}</p>
+                          </div>
+                        </div>
+                        <span className="text-amber-400 text-[11px] shrink-0 ml-2">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                      </a>
+                    )}
+
+                    {bundleDownloadedPdfs.qrCalendar && (
+                      <a
+                        href={bundleDownloadedPdfs.qrCalendar.url}
+                        download={bundleDownloadedPdfs.qrCalendar.fileName}
+                        className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="shrink-0">📱</span>
+                          <div className="text-left min-w-0 truncate">
+                            <p className="font-semibold text-white truncate">೫. ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ (PDF)</p>
+                            <p className="text-[10px] text-slate-400 font-normal truncate">{bundleDownloadedPdfs.qrCalendar.fileName}</p>
+                          </div>
+                        </div>
+                        <span className="text-amber-400 text-[11px] shrink-0 ml-2">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Pinned Footer (when completed) */}
             {!isGeneratingPremiumBundle && bundleDownloadedPdfs && (
-              <div className="space-y-5 py-2">
-                <div className="rounded-2xl bg-emerald-950/50 border border-emerald-500/40 p-4 text-center">
-                  <span className="text-3xl block mb-1">🎉</span>
-                  <h4 className="text-base font-bold text-emerald-300">
-                    {pdfLanguage === "kn" ? "ZIP ಬಂಡಲ್ ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!" : "ZIP Bundle Downloaded Successfully!"}
-                  </h4>
-                  <p className="text-xs text-emerald-200/80 mt-1">
-                    {pdfLanguage === "kn"
-                      ? "ಆಯ್ಕೆಮಾಡಿದ ಎಲ್ಲಾ ಅಧಿಕೃತ ದಾಖಲೆಗಳು ZIP ಕಡತದಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ. ಅಗತ್ಯವಿದ್ದಲ್ಲಿ ಪ್ರತ್ಯೇಕ ಪಿಡಿಎಫ್‌ಗಳನ್ನೂ ಕೆಳಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಕೊಳ್ಳಬಹುದು:"
-                      : "All selected official documents are saved in your ZIP bundle. You can also download each individual PDF below:"}
-                  </p>
-                </div>
-
-                {/* Direct Download Links */}
-                <div className="space-y-2.5">
-                  {bundleDownloadedPdfs.zip && (
-                    <a
-                      href={bundleDownloadedPdfs.zip.url}
-                      download={bundleDownloadedPdfs.zip.fileName}
-                      className="flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow-md transition-all active:scale-[0.98]"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-lg">📦</span>
-                        <div className="text-left">
-                          <p className="leading-tight font-extrabold">{pdfLanguage === "kn" ? "ಸಂಪೂರ್ಣ ZIP ಬಂಡಲ್ ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್" : "Download ZIP Bundle Again"}</p>
-                          <p className="text-[11px] font-medium opacity-90">{bundleDownloadedPdfs.zip.fileName}</p>
-                        </div>
-                      </div>
-                      <span>⬇️</span>
-                    </a>
-                  )}
-
-                  {bundleDownloadedPdfs.panchanga && (
-                    <a
-                      href={bundleDownloadedPdfs.panchanga.url}
-                      download={bundleDownloadedPdfs.panchanga.fileName}
-                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>📜</span>
-                        <div className="text-left">
-                          <p className="font-semibold text-white">೧. ಜನನ ಕುಂಡಲಿ & ದಶಾ-ಭುಕ್ತಿ (PDF)</p>
-                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.panchanga.fileName}</p>
-                        </div>
-                      </div>
-                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
-                    </a>
-                  )}
-
-                  {bundleDownloadedPdfs.remedy && (
-                    <a
-                      href={bundleDownloadedPdfs.remedy.url}
-                      download={bundleDownloadedPdfs.remedy.fileName}
-                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>🪔</span>
-                        <div className="text-left">
-                          <p className="font-semibold text-white">೨. ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (PDF)</p>
-                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.remedy.fileName}</p>
-                        </div>
-                      </div>
-                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
-                    </a>
-                  )}
-
-                  {bundleDownloadedPdfs.bhavishya && (
-                    <a
-                      href={bundleDownloadedPdfs.bhavishya.url}
-                      download={bundleDownloadedPdfs.bhavishya.fileName}
-                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>🔮</span>
-                        <div className="text-left">
-                          <p className="font-semibold text-white">೩. ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 (PDF)</p>
-                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.bhavishya.fileName}</p>
-                        </div>
-                      </div>
-                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
-                    </a>
-                  )}
-
-                  {bundleDownloadedPdfs.dosha && (
-                    <a
-                      href={bundleDownloadedPdfs.dosha.url}
-                      download={bundleDownloadedPdfs.dosha.fileName}
-                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>🛡️</span>
-                        <div className="text-left">
-                          <p className="font-semibold text-white">೪. ಕುಂಡಲಿ ಸಮಗ್ರ ದೋಷಗಳ ವರದಿ (PDF)</p>
-                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.dosha.fileName}</p>
-                        </div>
-                      </div>
-                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
-                    </a>
-                  )}
-
-                  {bundleDownloadedPdfs.qrCalendar && (
-                    <a
-                      href={bundleDownloadedPdfs.qrCalendar.url}
-                      download={bundleDownloadedPdfs.qrCalendar.fileName}
-                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>📱</span>
-                        <div className="text-left">
-                          <p className="font-semibold text-white">೫. ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ (PDF)</p>
-                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.qrCalendar.fileName}</p>
-                        </div>
-                      </div>
-                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
-                    </a>
-                  )}
-                </div>
-
-                <div className="pt-2 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => setBundleModalOpen(false)}
-                    className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all"
-                  >
-                    {pdfLanguage === "kn" ? "ಮುಚ್ಚಿ (Close)" : "Close"}
-                  </button>
-                </div>
+              <div className="shrink-0 flex items-center justify-center border-t border-slate-800 bg-slate-950/80 p-3 sm:p-3.5 backdrop-blur-sm">
+                <button
+                  type="button"
+                  onClick={() => setBundleModalOpen(false)}
+                  className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all"
+                >
+                  {pdfLanguage === "kn" ? "ಮುಚ್ಚಿ (Close)" : "Close"}
+                </button>
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Super Admin & Baggona Devotee Database Search Modal */}
