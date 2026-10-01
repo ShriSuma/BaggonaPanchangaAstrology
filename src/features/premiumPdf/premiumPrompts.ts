@@ -514,22 +514,31 @@ ${input.ageYears >= 60 ? "- SENIOR CITIZEN (60+ YEARS): The native is a senior. 
    - 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} is placed ${h10.lordWhere}.
    - Occupants of 10th House: ${h10.occStr}.
    - Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
-   - Write TWO expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph) analyzing career stability, leadership prospects, professional growth, and timing of milestones under running ${dashaLine}.
+   - Write THREE expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph):
+     Paragraph 1: Professional aptitude, career stability, leadership prospects, and timing under running ${dashaLine}.
+     Paragraph 2: Strategic workplace navigation, promotions, skill growth, and financial-professional status.
+     Paragraph 3: Dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 / 【Dosha Analysis & Obstacle Resolution Shanti】 or 【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Benefic Planetary Yoga & Protective Shield】): If Karma/Saturn afflicted, analyze obstacles, remedies, and Gokarna/Baggona shanti pooja. If benefic, detail the protective shield.
 
 4. Wealth & Family Finance:
    - 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
    - 11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
    - Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
-   - Write TWO expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph) on financial accumulation, investments, property gains, family prosperity, and wealth preservation.
+   - Write THREE expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph):
+     Paragraph 1: Financial accumulation, income stability, investments, property gains, and family prosperity.
+     Paragraph 2: Debt management, liquidity planning, wealth preservation, and ancestral assets.
+     Paragraph 3: Dedicated Dosha Analysis or Protective Shield starting with 【...】: If Dhana/financial house afflicted, outline obstacle resolution, Lakshmi Kubera Aradhana, and cow ghee lamp remedy. If benefic, describe the Dhana Yoga protective shield.
 
 5. Health & Vitality:
    - 1st House (Lagna / Physical Constitution): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}).
    - 6th House (Roga Sthana): ${h6.sign} (Lord ${h6.lordStr} ${h6.lordWhere}).
    - Sun (Vitality) and Moon (Mental Equanimity) dignity in chart.
-   - Write TWO expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph) on physical stamina, seasonal wellness precautions, emotional resilience, and Ayurvedic/spiritual remedies.
+   - Write THREE expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph):
+     Paragraph 1: Physical constitution, vital energy, seasonal wellness precautions, and metabolic stamina.
+     Paragraph 2: Emotional resilience, mental peace, stress mitigation, and Ayurvedic daily routines.
+     Paragraph 3: Dedicated Dosha Analysis or Protective Shield starting with 【...】: If Roga/afflictions present, detail healing remedies, Mahamrityunjaya japa, Dhanvantari prayer, and Gokarna Mrityunjaya homa. If benefic, describe the Ayushya Yoga protective shield.
 
 ${JSON_RULE}
-{"bhavishya":{"marriage":"three paragraphs","children":"${childrenSel === "no_children" ? "three paragraphs" : "two paragraphs"}","career":"two paragraphs","wealth":"two paragraphs","health":"two paragraphs"}}`;
+{"bhavishya":{"marriage":"three paragraphs","children":"${childrenSel === "no_children" ? "three paragraphs" : "two to three paragraphs"}","career":"three paragraphs","wealth":"three paragraphs","health":"three paragraphs"}}`;
 
   const bhavishyaMarriageChildren = `${header(
     input,
@@ -590,28 +599,35 @@ ${JSON_RULE}
   )}
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
-For EACH category (Career, Wealth, Health), write STRICTLY AT LEAST 2 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'. Do not write short or generic text.
+For EACH category (Career, Wealth, Health), write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'. Do not write short or generic text.
+Crucially, Paragraph 3 of each domain MUST be a dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【Dosha Analysis & Obstacle Resolution Shanti】 or 【Benefic Planetary Yoga & Protective Shield】 translated into the requested target language).
 
 1. Career & Profession:
    - 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} is placed ${h10.lordWhere}.
    - Occupants of 10th House: ${h10.occStr}.
    - Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
-   - Write TWO expansive paragraphs (minimum 6 to 7 full lines each, at least 75-100 words per paragraph) analyzing career stability, leadership prospects, professional growth, and timing of milestones under running ${dashaLine}.
+   - Paragraph 1: Professional stability, leadership prospects, vocational aptitude, and timing under running ${dashaLine}.
+   - Paragraph 2: Strategic workplace navigation, career growth, transitions, and public reputation.
+   - Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Karma/Saturn dosha or afflictions present, detail delay mechanics, remedies, and Gokarna/Baggona shanti pooja. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
 
 2. Wealth & Family Finance:
    - 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
    - 11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
    - Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
-   - Write TWO expansive paragraphs (minimum 6 to 7 full lines each, at least 75-100 words per paragraph) on financial accumulation, investments, property gains, family prosperity, and wealth preservation.
+   - Paragraph 1: Financial accumulation, investments, property gains, and income growth under running ${dashaLine}.
+   - Paragraph 2: Liquidity planning, family prosperity, asset consolidation, and wealth preservation.
+   - Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Dhana dosha or afflictions present, detail obstacle resolution and Lakshmi Kubera remedies. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
 
 3. Health & Vitality:
    - 1st House (Lagna / Physical Constitution): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}).
    - 6th House (Roga Sthana): ${h6.sign} (Lord ${h6.lordStr} ${h6.lordWhere}).
    - Sun (Vitality) and Moon (Mental Equanimity) dignity in chart.
-   - Write TWO expansive paragraphs (minimum 6 to 7 full lines each, at least 75-100 words per paragraph) on physical stamina, seasonal wellness precautions, emotional resilience, and Ayurvedic/spiritual remedies.
+   - Paragraph 1: Physical constitution, vitality, seasonal wellness precautions, and metabolic stamina.
+   - Paragraph 2: Mental equanimity, stress management, sleep quality, and daily Ayurvedic lifestyle.
+   - Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Roga dosha or afflictions present, detail healing remedies, Mahamrityunjaya japa, and Gokarna Mrityunjaya homa. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
 
 ${JSON_RULE}
-{"bhavishya":{"career":"two paragraphs of 6-7 lines each","wealth":"two paragraphs of 6-7 lines each","health":"two paragraphs of 6-7 lines each"}}`;
+{"bhavishya":{"career":"three paragraphs of 6-7 lines each","wealth":"three paragraphs of 6-7 lines each","health":"three paragraphs of 6-7 lines each"}}`;
 
   const summary = `${header(
     input,

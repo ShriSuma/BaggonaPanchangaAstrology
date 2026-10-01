@@ -59,10 +59,11 @@ interface RoyalA4PrintTemplateProps {
   lang: string;
   data: RoyalA4Data;
   qrCodeUrl?: string;
+  activePage?: "all" | 1 | 2 | 3 | 4 | 5;
 }
 
 export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTemplateProps>(
-  ({ session, lang, data, qrCodeUrl }, ref) => {
+  ({ session, lang, data, qrCodeUrl, activePage = "all" }, ref) => {
     const isKn = lang === "kn";
     const isHi = lang === "hi";
     const isTe = lang === "te";
@@ -107,12 +108,40 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
     const pageBorder = "border-[3px] border-amber-800/60 rounded-lg p-8 relative overflow-hidden";
     const innerDashed = "absolute inset-3 border border-dashed border-amber-600/30 rounded pointer-events-none";
 
+    const renderDomainParas = (text?: string) => {
+      if (!text) return null;
+      const paras = text.split('\n').map(p => p.trim()).filter(Boolean);
+      return (
+        <div className="space-y-1.5 mt-1">
+          {paras.map((para, idx) => {
+            const isDoshaOrShield = para.startsWith('【') || para.startsWith('[');
+            if (isDoshaOrShield) {
+              return (
+                <div
+                  key={idx}
+                  className="bg-rose-50/90 border border-rose-300/80 rounded-lg text-rose-950 p-2 shadow-xs font-serif leading-relaxed text-justify text-[11px]"
+                >
+                  {para}
+                </div>
+              );
+            }
+            return (
+              <p key={idx} className="text-amber-950 font-serif leading-relaxed text-justify text-[11px]">
+                {para}
+              </p>
+            );
+          })}
+        </div>
+      );
+    };
+
     return (
       <div ref={ref} className="bg-[#FFFDF8] text-amber-950 font-serif" style={{ width: "900px" }}>
         
         {/* ==================================================================== */}
         {/* PAGE 1: COVER, DEVOTEE PROFILE, KUNDALI CHART & PLANETS TABLE        */}
         {/* ==================================================================== */}
+        {(!activePage || activePage === "all" || activePage === 1) && (
         <div
           className="pdf-page relative bg-[#FFFDF8]"
           style={{ width: "900px", minHeight: "1273px", boxSizing: "border-box", padding: "40px", pageBreakAfter: "always" }}
@@ -241,10 +270,12 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             </div>
           </div>
         </div>
+        )}
 
         {/* ==================================================================== */}
         {/* PAGE 2: SOUL BLUEPRINT, CURRENT PHASE & AUSPICIOUS YOGAS             */}
         {/* ==================================================================== */}
+        {(!activePage || activePage === "all" || activePage === 2) && (
         <div
           className="pdf-page relative bg-[#FFFDF8]"
           style={{ width: "900px", minHeight: "1273px", boxSizing: "border-box", padding: "40px", pageBreakAfter: "always" }}
@@ -315,10 +346,12 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             </div>
           </div>
         </div>
+        )}
 
         {/* ==================================================================== */}
         {/* PAGE 3: DOSHAS & REMEDIES + REAL-TIME LIVE GOCHARA                   */}
         {/* ==================================================================== */}
+        {(!activePage || activePage === "all" || activePage === 3) && (
         <div
           className="pdf-page relative bg-[#FFFDF8]"
           style={{ width: "900px", minHeight: "1273px", boxSizing: "border-box", padding: "40px", pageBreakAfter: "always" }}
@@ -396,10 +429,12 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             </div>
           </div>
         </div>
+        )}
 
         {/* ==================================================================== */}
         {/* PAGE 4: 6-MONTH ASTROLOGICAL ROADMAP & TIMELINE                      */}
         {/* ==================================================================== */}
+        {(!activePage || activePage === "all" || activePage === 4) && (
         <div
           className="pdf-page relative bg-[#FFFDF8]"
           style={{ width: "900px", minHeight: "1273px", boxSizing: "border-box", padding: "40px", pageBreakAfter: "always" }}
@@ -469,10 +504,12 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             </div>
           </div>
         </div>
+        )}
 
         {/* ==================================================================== */}
         {/* PAGE 5: 4 LIFE DIMENSIONS, ASHIRVADA, SHLOKA & PRIEST QR SEAL       */}
         {/* ==================================================================== */}
+        {(!activePage || activePage === "all" || activePage === 5) && (
         <div
           className="pdf-page relative bg-[#FFFDF8]"
           style={{ width: "900px", minHeight: "1273px", boxSizing: "border-box", padding: "40px", pageBreakAfter: "always" }}
@@ -499,7 +536,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                       <span>💼</span>
                       <span>{isKn ? "ವೃತ್ತಿ & ಉದ್ಯೋಗ ಭಾಗ್ಯ" : "Career & Profession"}</span>
                     </div>
-                    <p className="text-amber-950 font-serif leading-relaxed text-justify">{data.careerGuidance}</p>
+                    {renderDomainParas(data.careerGuidance)}
                   </div>
                   {/* Wealth */}
                   <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-700/30">
@@ -507,7 +544,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                       <span>🪙</span>
                       <span>{isKn ? "ಧನ & ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ" : "Wealth & Finance"}</span>
                     </div>
-                    <p className="text-amber-950 font-serif leading-relaxed text-justify">{data.financeGuidance}</p>
+                    {renderDomainParas(data.financeGuidance)}
                   </div>
                   {/* Marriage & Relationships */}
                   <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-700/30">
@@ -515,7 +552,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                       <span>💍</span>
                       <span>{isKn ? "ವಿವಾಹ & ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ" : "Marriage & Family Harmony"}</span>
                     </div>
-                    <p className="text-amber-950 font-serif leading-relaxed text-justify">{data.relationshipGuidance}</p>
+                    {renderDomainParas(data.relationshipGuidance)}
                   </div>
                   {/* Health */}
                   <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-700/30">
@@ -523,7 +560,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                       <span>🌿</span>
                       <span>{isKn ? "ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ಬಲ" : "Health & Vitality"}</span>
                     </div>
-                    <p className="text-amber-950 font-serif leading-relaxed text-justify">{data.healthGuidance}</p>
+                    {renderDomainParas(data.healthGuidance)}
                   </div>
                 </div>
               </div>
@@ -592,6 +629,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             </div>
           </div>
         </div>
+        )}
 
       </div>
     );

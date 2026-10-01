@@ -307,11 +307,24 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           <div className="space-y-10">
             {preds.map((pred, idx) => (
               <div key={idx} className="space-y-6">
-                {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                    {paragraph}
-                  </p>
-                ))}
+                {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
+                  const isDoshaOrShield = paragraph.trim().startsWith('【') || paragraph.trim().startsWith('[');
+                  if (isDoshaOrShield) {
+                    return (
+                      <div
+                        key={pIdx}
+                        className="bg-rose-50/90 border border-rose-300/80 rounded-xl text-rose-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                      >
+                        {paragraph}
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                      {paragraph}
+                    </p>
+                  );
+                })}
               </div>
             ))}
           </div>

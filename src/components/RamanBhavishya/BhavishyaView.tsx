@@ -47,6 +47,7 @@ import {
   localizeDoshaRemedy
 } from "../../features/premiumPdf/yogaDoshaGocharaEnricher";
 import { RoyalA4PrintTemplate, type RoyalA4Data } from "./RoyalA4PrintTemplate";
+import RoyalA4PreviewModal from "./RoyalA4PreviewModal";
 import QRCode from "qrcode";
 import { transliterateName } from "../../utils/transliterator";
 import type { PlanetName } from "../../core/AstroTypes";
@@ -551,12 +552,13 @@ export default function BhavishyaView() {
   const [isGeneratingPremiumPdfV1, setIsGeneratingPremiumPdfV1] = useState(false);
   const [v1PdfProgress, setV1PdfProgress] = useState(10);
   const [v1PdfStageText, setV1PdfStageText] = useState("");
-  const [modalTriggerSource, setModalTriggerSource] = useState<"regular" | "v1" | "royal-a4">("regular");
+  const [modalTriggerSource, setModalTriggerSource] = useState<"regular" | "v1" | "royal-a4" | "royal-a4-preview">("regular");
   const [isGeneratingRoyalA4Pdf, setIsGeneratingRoyalA4Pdf] = useState(false);
   const [royalA4PdfProgress, setRoyalA4PdfProgress] = useState(10);
   const [royalA4StageText, setRoyalA4StageText] = useState("");
   const [royalA4Data, setRoyalA4Data] = useState<RoyalA4Data | null>(null);
   const [royalA4QrCode, setRoyalA4QrCode] = useState<string>("");
+  const [showRoyalA4Preview, setShowRoyalA4Preview] = useState(false);
   const royalA4PdfRef = useRef<HTMLDivElement>(null);
   const [aiFallbackNotification, setAiFallbackNotification] = useState<{ active: boolean; sections: string[]; message: string } | null>(null);
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
@@ -3085,7 +3087,7 @@ Return ONLY this JSON (no extra text before or after):
   };
 
   // 👑 ₹300 Royal A4 Print Edition: Exact 5-Page A4 Physical Printout Engine
-  const generateRoyalA4Printout = async (personalization?: PersonalizationState) => {
+  const generateRoyalA4Printout = async (personalization?: PersonalizationState, isPreview: boolean = false) => {
     if (!session || isGeneratingRoyalA4Pdf) return;
     setIsGeneratingRoyalA4Pdf(true);
     setRoyalA4PdfProgress(10);
@@ -3385,25 +3387,26 @@ Return ONLY this JSON (no extra text before or after):
         transitSummary: item.transitSummary || "",
         shubhaDinagalu: item.shubhaDinagalu || (lang === "kn" ? "ತಿಂಗಳ ೨, ೬, ೧೧, ೧೬, ೨೦, ೨೫" : "2, 6, 11, 16, 20, 25"),
         chandrashtamaDinagalu: item.chandrashtamaDinagalu || (lang === "kn" ? "ತಿಂಗಳ ೧೩, ೧೪, ೧೫" : "13, 14, 15"),
-        forecast: item.impact,
+        forecast: item.forecast || item.impact,
         monthlyUpasana: item.monthlyUpasana || (lang === "kn" ? "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಾರ್ಥನೆ & ನವಗ್ರಹ ಸ್ತೋತ್ರ" : "Lord Mahabaleshwara & Navagraha Stotram")
       }));
 
       // 4 Life Dimensions
+      const aiB = dataBhavishya?.bhavishya || dataBhavishya || {};
       const careerGuidance = cleanEnglishFromRegionalText(
-        dataBhavishya.career || result.masterSynthesis.career || (lang === "kn" ? "ಉದ್ಯೋಗದಲ್ಲಿ ದೃಢ ಪ್ರಗತಿ ಕಂಡುಬರಲಿದೆ." : "Steady career advancement indicated."),
+        aiB.career || result.masterSynthesis.career || buildDynamicCareerFallback(parsedKundali),
         lang
       );
       const financeGuidance = cleanEnglishFromRegionalText(
-        dataBhavishya.finance || result.masterSynthesis.finance || (lang === "kn" ? "ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಮತ್ತು ಧನಾಗಮನ ಯೋಗ." : "Financial stability and gains indicated."),
+        aiB.wealth || aiB.finance || result.masterSynthesis.finance || buildDynamicWealthFallback(parsedKundali),
         lang
       );
       const relationshipGuidance = cleanEnglishFromRegionalText(
-        dataBhavishya.marriage || (lang === "kn" ? (parsedKundali.maritalStatus === "married" ? "ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ, ಸಾಮರಸ್ಯ ಹಾಗೂ ಗೌರವ ವೃದ್ಧಿಯಾಗಲಿದೆ." : "ವಿವಾಹ ಸಂಬಂಧಿ ಮಾತುಕತೆಗಳಲ್ಲಿ ಶುಭ ಫಲಗಳು ಗೋಚರಿಸಲಿವೆ.") : "Positive harmony indicated in family relationships."),
+        aiB.marriage || buildDynamicMarriageFallback(parsedKundali, parsedKundali.maritalStatus),
         lang
       );
       const healthGuidance = cleanEnglishFromRegionalText(
-        dataBhavishya.health || (lang === "kn" ? "ಆರೋಗ್ಯ ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಮಾನಸಿಕ ನೆಮ್ಮದಿ ಲಭಿಸಲಿದೆ." : "Overall vitality and health remain supported."),
+        aiB.health || buildDynamicHealthFallback(parsedKundali),
         lang
       );
 
@@ -3482,6 +3485,14 @@ Return ONLY this JSON (no extra text before or after):
 
       setRoyalA4Data(royalPayload);
 
+      if (isPreview) {
+        setShowRoyalA4Preview(true);
+        setIsGeneratingRoyalA4Pdf(false);
+        setRoyalA4PdfProgress(0);
+        setRoyalA4StageText("");
+        return;
+      }
+
       // Check if AI fallback was activated
       if (failedAiSectionsRoyal.length > 0) {
         const uniqueFailed = Array.from(new Set(failedAiSectionsRoyal));
@@ -3530,11 +3541,24 @@ Return ONLY this JSON (no extra text before or after):
       setIsGeneratingRoyalA4Pdf(false);
       setRoyalA4PdfProgress(0);
       setRoyalA4StageText("");
-      setRoyalA4Data(null);
     }
   };
 
-
+  const handleDownloadFromPreview = async () => {
+    if (!royalA4Data || !session) return;
+    setIsGeneratingRoyalA4Pdf(true);
+    try {
+      const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
+      const langName = langNames[pdfLanguage] || "Kannada";
+      const fileName = `Baggona_Royal_A4_Print_${langName}_${session.input.name.replace(/\s+/g, "_")}.pdf`;
+      await generatePDFFromElement("royal-a4-pdf-container", fileName, true);
+    } catch (err: any) {
+      console.error("[Royal A4 PDF Download Error]", err);
+      alert(err.message || "Failed to download PDF.");
+    } finally {
+      setIsGeneratingRoyalA4Pdf(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -3675,6 +3699,28 @@ Return ONLY this JSON (no extra text before or after):
                     {isGeneratingRoyalA4Pdf
                       ? (pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "hi" ? "राजमुद्रण तैयार हो रहा है..." : "Crafting Royal Print...")
                       : (pdfLanguage === "kn" ? "👑 ₹೩೦೦ ರಾಜಮುದ್ರಣ ಭವಿಷ್ಯ (A4 Print)" : pdfLanguage === "hi" ? "👑 ₹३०० राजमुद्रण भविष्य (A4 Print)" : "👑 ₹300 Royal A4 Printout")}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (royalA4Data) {
+                      setShowRoyalA4Preview(true);
+                    } else {
+                      setModalTriggerSource("royal-a4-preview");
+                      setIsPersonalizationModalOpen(true);
+                    }
+                  }}
+                  disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
+                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 via-orange-600 to-amber-800 hover:from-amber-600 hover:to-orange-500 text-white font-serif px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg border border-amber-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                    isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title="Interactive Page-by-Page Preview and Direct Print"
+                >
+                  <span className="text-lg">👁️</span>
+                  <span>
+                    {pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಮುನ್ನೋಟ" : pdfLanguage === "hi" ? "राजमुद्रण पूर्वावलोकन" : "Preview & Print"}
                   </span>
                 </button>
               </div>
@@ -4274,12 +4320,28 @@ Return ONLY this JSON (no extra text before or after):
           if (modalTriggerSource === "v1") {
             generatePremiumPDFV1(personalization);
           } else if (modalTriggerSource === "royal-a4") {
-            generateRoyalA4Printout(personalization);
+            generateRoyalA4Printout(personalization, false);
+          } else if (modalTriggerSource === "royal-a4-preview") {
+            generateRoyalA4Printout(personalization, true);
           } else {
             generatePremiumPDF(personalization);
           }
         }}
       />
+
+      {/* Interactive Royal A4 Print Preview Modal */}
+      {session && (
+        <RoyalA4PreviewModal
+          isOpen={showRoyalA4Preview}
+          onClose={() => setShowRoyalA4Preview(false)}
+          session={session}
+          lang={pdfLanguage}
+          data={royalA4Data}
+          qrCodeUrl={royalA4QrCode}
+          onDownloadPdf={handleDownloadFromPreview}
+          isDownloading={isGeneratingRoyalA4Pdf}
+        />
+      )}
 
       {/* Full-Screen Luxury Blocking Loader for Premium PDF V1 */}
       {isGeneratingPremiumPdfV1 && (
