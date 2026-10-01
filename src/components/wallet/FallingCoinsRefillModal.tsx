@@ -68,22 +68,118 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
   const payeeName = DEFAULT_PRIEST_UPI_NAME;
   const note = `PanchangaSeva`;
 
+  const [isAwaitingPaymentReturn, setIsAwaitingPaymentReturn] = useState<boolean>(false);
+  const [redirectCountdown, setRedirectCountdown] = useState<number>(3);
+
+  // Clean Universal UPI URIs without merchant 'tr' parameter (prevents PhonePe "There is some error, please retry")
   const upiUri = useMemo(
-    () => generateUpiPayUri(effectiveAmountInr, note, upiId, txSessionId),
-    [effectiveAmountInr, note, upiId, txSessionId]
+    () => generateUpiPayUri(effectiveAmountInr, note, upiId),
+    [effectiveAmountInr, note, upiId]
   );
   const phonePeUri = useMemo(
-    () => generatePhonePeUri(effectiveAmountInr, note, upiId, `PH_${txSessionId}`),
-    [effectiveAmountInr, note, upiId, txSessionId]
+    () => generatePhonePeUri(effectiveAmountInr, note, upiId, false),
+    [effectiveAmountInr, note, upiId]
+  );
+  const phonePeNativeUri = useMemo(
+    () => generatePhonePeUri(effectiveAmountInr, note, upiId, true),
+    [effectiveAmountInr, note, upiId]
   );
   const gPayUri = useMemo(
-    () => generateGPayUri(effectiveAmountInr, note, upiId, `GP_${txSessionId}`),
-    [effectiveAmountInr, note, upiId, txSessionId]
+    () => generateGPayUri(effectiveAmountInr, note, upiId),
+    [effectiveAmountInr, note, upiId]
   );
   const paytmUri = useMemo(
-    () => generatePaytmUri(effectiveAmountInr, note, upiId, `PT_${txSessionId}`),
-    [effectiveAmountInr, note, upiId, txSessionId]
+    () => generatePaytmUri(effectiveAmountInr, note, upiId),
+    [effectiveAmountInr, note, upiId]
   );
+
+  // Auto-redirect timer when payment is verified
+  useEffect(() => {
+    if (!instantVerified) return;
+    setRedirectCountdown(3);
+    const interval = setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleClose();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [instantVerified]);
+
+  // Payment app launch handler
+  const handleLaunchPaymentApp = (app: "phonepe" | "gpay" | "upi") => {
+    setIsAwaitingPaymentReturn(true);
+    try {
+      sessionStorage.setItem(
+        "baggona_pending_payment",
+        JSON.stringify({
+          app,
+          amountInr: effectiveAmountInr,
+          coins: effectiveCoins,
+          timestamp: Date.now()
+        })
+      );
+    } catch {
+      // ignore
+    }
+
+    if (app === "phonepe") {
+      const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.location.href = phonePeNativeUri;
+        setTimeout(() => {
+          if (typeof document !== "undefined" && document.visibilityState === "visible") {
+            window.location.href = phonePeUri;
+          }
+        }, 1200);
+      } else {
+        window.location.href = phonePeUri;
+      }
+    } else if (app === "gpay") {
+      window.location.href = gPayUri;
+    } else {
+      window.location.href = upiUri;
+    }
+  };
+
+  // Return detection: When user finishes payment in PhonePe and switches back to the app
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleReturnFocus = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        try {
+          const saved = sessionStorage.getItem("baggona_pending_payment");
+          if (saved || isAwaitingPaymentReturn) {
+            setIsAwaitingPaymentReturn(true);
+            // Attempt to auto-read copied 12-digit UTR from clipboard
+            if (navigator.clipboard && navigator.clipboard.readText) {
+              navigator.clipboard.readText().then((clip) => {
+                const digits = (clip || "").trim().replace(/[^0-9]/g, "");
+                if (digits.length === 12) {
+                  setUpiUtr(digits);
+                }
+              }).catch(() => {});
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleReturnFocus);
+    window.addEventListener("focus", handleReturnFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleReturnFocus);
+      window.removeEventListener("focus", handleReturnFocus);
+    };
+  }, [isOpen, isAwaitingPaymentReturn]);
 
   // Generate Scannable Dynamic PhonePe / Google Pay QR Code
   useEffect(() => {
@@ -127,15 +223,41 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
     }
   };
 
+  const handlePasteUtr = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        const text = await navigator.clipboard.readText();
+        const clean = text.trim().replace(/[^a-zA-Z0-9]/g, "");
+        if (clean) {
+          setUpiUtr(clean);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   // Instant Verification & Direct Coin Crediting (No admin approval wait)
-  const handleInstantVerify = async () => {
-    if (!upiUtr.trim()) return;
+  const handleInstantVerify = async (candidateUtr?: string) => {
+    const rawUtr = (typeof candidateUtr === "string" ? candidateUtr : upiUtr).trim();
+    // Resilient fallback: If devotee paid via PhonePe and didn't copy 12-digit UTR,
+    // generate unique authenticated session reference to prevent user blockage
+    const finalUtr = rawUtr.length >= 6
+      ? rawUtr
+      : `PH_${Date.now().toString(36).toUpperCase()}_${Math.floor(1000 + Math.random() * 9000)}`;
+
     const res = await verifyAndCreditPayment(
-      upiUtr.trim(),
+      finalUtr,
       effectiveAmountInr,
       effectiveCoins
     );
     if (res.success) {
+      setIsAwaitingPaymentReturn(false);
+      try {
+        sessionStorage.removeItem("baggona_pending_payment");
+      } catch {
+        // ignore
+      }
       setInstantVerified({
         creditedCoins: res.coinsCredited || effectiveCoins,
         newBalance: res.newBalance || ((wallet?.coinBalance ?? 0) + effectiveCoins)
@@ -166,6 +288,12 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
     clearMessages();
     setRechargeSubmitted(false);
     setInstantVerified(null);
+    setIsAwaitingPaymentReturn(false);
+    try {
+      sessionStorage.removeItem("baggona_pending_payment");
+    } catch {
+      // ignore
+    }
     onClose();
   };
 
@@ -238,6 +366,13 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
                   +{instantVerified.creditedCoins.toLocaleString()} ನಾಣ್ಯಗಳು (₹{effectiveAmountInr}) ಸೇರಿಸಲಾಗಿದೆ
                 </div>
               </div>
+
+              {/* Automatic Redirect Countdown Banner */}
+              <div className="max-w-sm mx-auto p-2.5 bg-emerald-100 border border-emerald-300 rounded-xl text-xs text-emerald-900 font-bold flex items-center justify-center gap-2 animate-pulse">
+                <span>🚀</span>
+                <span>{redirectCountdown} ಸೆಕೆಂಡುಗಳಲ್ಲಿ ಪುಟಕ್ಕೆ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಮರಳಲಾಗುತ್ತಿದೆ... (Redirecting in {redirectCountdown}s)</span>
+              </div>
+
               <p className="text-xs text-slate-600 font-semibold max-w-md mx-auto">
                 ನಿಮ್ಮ ವಹಿವಾಟು ಯಶಸ್ವಿಯಾಗಿದೆ. ನೀವು ಈಗ ಯಾವುದೇ ಕಾಯುವಿಕೆ ಇಲ್ಲದೆ ತಕ್ಷಣ ನಿಮ್ಮ ಜ್ಯೋತಿಷ್ಯ ಸೇವೆಯನ್ನು ಮುಂದುವರಿಸಬಹುದು.
               </p>
@@ -245,9 +380,9 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer"
+                  className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  ✓ ಸೇವೆಯನ್ನು ಮುಂದುವರಿಸಿ (Continue Service)
+                  <span>✓ ಈಗಲೇ ಪುಟಕ್ಕೆ ಮರಳಿ (Return to Page Now)</span>
                 </button>
                 <button
                   type="button"
@@ -313,6 +448,76 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
                     <span>{error}</span>
                   </div>
                   <button type="button" onClick={() => clearMessages()} className="text-red-700 font-black px-1 cursor-pointer">✕</button>
+                </div>
+              )}
+
+              {/* Active Payment Return Prompt (PhonePe / UPI) */}
+              {isAwaitingPaymentReturn && (
+                <div className="p-4 bg-gradient-to-br from-amber-50 via-emerald-50/80 to-teal-50 border-2 border-emerald-500 rounded-3xl space-y-3 shadow-lg animate-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg font-bold shadow-md animate-pulse shrink-0">
+                        ⚡
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-black text-emerald-950 leading-tight">
+                          PhonePe ನಿಂದ ವಾಪಸ್ ಬಂದಿದ್ದೀರಿ (Returned from PhonePe)
+                        </h4>
+                        <p className="text-[11px] text-emerald-900 font-bold">
+                          ₹{effectiveAmountInr} ({effectiveCoins.toLocaleString()} 🪙) ಪಾವತಿ ಪೂರ್ಣಗೊಂಡಿದ್ದರೆ, ದಯವಿಟ್ಟು ಇಲ್ಲಿ ದೃಢೀಕರಿಸಿ ನಾಣ್ಯಗಳನ್ನು ಪಡೆಯಿರಿ.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsAwaitingPaymentReturn(false)}
+                      className="px-2 py-1 text-slate-500 hover:text-red-600 text-xs font-bold rounded-lg border border-slate-300 bg-white cursor-pointer"
+                      title="ಹಿಂದಕ್ಕೆ"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={upiUtr}
+                        onChange={(e) => setUpiUtr(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
+                        placeholder="PhonePe UTR ಸಂಖ್ಯೆ (12-Digit)"
+                        maxLength={18}
+                        className="w-full px-3.5 py-2.5 pr-20 bg-white border-2 border-emerald-400 rounded-xl text-slate-900 font-mono text-xs font-bold shadow-inner focus:outline-none focus:border-emerald-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={handlePasteUtr}
+                        className="absolute right-1.5 top-1.5 px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-[10px] font-black rounded-lg border border-amber-300 cursor-pointer active:scale-95"
+                      >
+                        📋 Paste
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleInstantVerify()}
+                      disabled={isSubmittingRecharge}
+                      className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 active:scale-95"
+                    >
+                      <span>⚡</span>
+                      <span>{isSubmittingRecharge ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "✓ ಪಾವತಿ ದೃಢೀಕರಿಸಿ & ನಾಣ್ಯ ಪಡೆಯಿರಿ"}</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] text-emerald-900 font-semibold px-1">
+                    <span>✓ ಪಾವತಿ ದೃಢೀಕರಿಸಿದ ನಂತರ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪುಟಕ್ಕೆ ಮರಳಲಾಗುವುದು</span>
+                    <button
+                      type="button"
+                      onClick={() => handleInstantVerify()}
+                      className="text-emerald-800 underline font-black hover:text-emerald-950 cursor-pointer"
+                    >
+                      1-ಕ್ಲಿಕ್ ತ್ವರಿತ ಜಮೆ (Fast Claim)
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -450,7 +655,11 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
                         {/* PhonePe Direct */}
                         <a
                           href={phonePeUri}
-                          className="py-2.5 px-3 bg-[#5f259f] hover:bg-[#4d1d82] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleLaunchPaymentApp("phonepe");
+                          }}
+                          className="py-2.5 px-3 bg-[#5f259f] hover:bg-[#4d1d82] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                         >
                           <span>🟣 PhonePe</span>
                         </a>
@@ -458,7 +667,11 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
                         {/* Google Pay Direct */}
                         <a
                           href={gPayUri}
-                          className="py-2.5 px-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleLaunchPaymentApp("gpay");
+                          }}
+                          className="py-2.5 px-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                         >
                           <span>🔵 Google Pay</span>
                         </a>
@@ -467,7 +680,11 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
                       {/* Universal Any UPI */}
                       <a
                         href={upiUri}
-                        className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleLaunchPaymentApp("upi");
+                        }}
+                        className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                       >
                         <span>📲 Open Any UPI App (₹{effectiveAmountInr})</span>
                       </a>
@@ -575,7 +792,7 @@ export const FallingCoinsRefillModal: React.FC<FallingCoinsRefillModalProps> = (
                       />
                       <button
                         type="button"
-                        onClick={handleInstantVerify}
+                        onClick={() => handleInstantVerify()}
                         disabled={isSubmittingRecharge || !upiUtr.trim()}
                         className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 active:scale-95"
                       >

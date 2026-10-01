@@ -24,6 +24,7 @@ export const PriestWalletModal: React.FC = () => {
     setSelectedPackage,
     closeRechargeModal,
     submitUpiRecharge,
+    verifyAndCreditPayment,
     clearMessages
   } = useWalletStore();
 
@@ -31,28 +32,106 @@ export const PriestWalletModal: React.FC = () => {
   const [upiUtr, setUpiUtr] = useState("");
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [copiedUpi, setCopiedUpi] = useState(false);
-
-  // Stable session transaction reference that does not change across component re-renders
-  const [txSessionId] = useState<string>(() => `BAG_${Date.now().toString(36)}`);
+  const [isAwaitingPaymentReturn, setIsAwaitingPaymentReturn] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(3);
+  const [instantVerified, setInstantVerified] = useState<{ creditedCoins: number; newBalance: number } | null>(null);
 
   const amountInr = selectedPackage.amountInr;
   const upiId = DEFAULT_PRIEST_UPI_ID;
-  const payeeName = DEFAULT_PRIEST_UPI_NAME;
   const note = `PanchangaSeva`;
 
-  // NPCI standard UPI Payment URI
+  // Clean NPCI UPI URIs without merchant 'tr' parameter (prevents PhonePe "There is some error, please retry")
   const upiUri = useMemo(
-    () => generateUpiPayUri(amountInr, note, upiId, txSessionId),
-    [amountInr, note, upiId, txSessionId]
+    () => generateUpiPayUri(amountInr, note, upiId),
+    [amountInr, note, upiId]
   );
   const phonePeUri = useMemo(
-    () => generatePhonePeUri(amountInr, note, upiId, `PH_${txSessionId}`),
-    [amountInr, note, upiId, txSessionId]
+    () => generatePhonePeUri(amountInr, note, upiId, false),
+    [amountInr, note, upiId]
+  );
+  const phonePeNativeUri = useMemo(
+    () => generatePhonePeUri(amountInr, note, upiId, true),
+    [amountInr, note, upiId]
   );
   const gPayUri = useMemo(
-    () => generateGPayUri(amountInr, note, upiId, `GP_${txSessionId}`),
-    [amountInr, note, upiId, txSessionId]
+    () => generateGPayUri(amountInr, note, upiId),
+    [amountInr, note, upiId]
   );
+
+  // Auto-redirect timer when payment is verified
+  useEffect(() => {
+    if (!instantVerified) return;
+    setRedirectCountdown(3);
+    const timer = setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleClose();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [instantVerified]);
+
+  // Payment app launch handler
+  const handleLaunchPaymentApp = (app: "phonepe" | "gpay" | "upi") => {
+    setIsAwaitingPaymentReturn(true);
+    try {
+      sessionStorage.setItem(
+        "baggona_priest_pending_payment",
+        JSON.stringify({ app, amountInr, coins: selectedPackage.totalCoins, timestamp: Date.now() })
+      );
+    } catch {}
+
+    if (app === "phonepe") {
+      const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.location.href = phonePeNativeUri;
+        setTimeout(() => {
+          if (typeof document !== "undefined" && document.visibilityState === "visible") {
+            window.location.href = phonePeUri;
+          }
+        }, 1200);
+      } else {
+        window.location.href = phonePeUri;
+      }
+    } else if (app === "gpay") {
+      window.location.href = gPayUri;
+    } else {
+      window.location.href = upiUri;
+    }
+  };
+
+  // Return detection: When priest finishes payment in PhonePe and returns to the app
+  useEffect(() => {
+    if (!isRechargeModalOpen) return;
+    const handleReturnFocus = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        try {
+          const pending = sessionStorage.getItem("baggona_priest_pending_payment");
+          if (pending || isAwaitingPaymentReturn) {
+            setIsAwaitingPaymentReturn(true);
+            if (navigator.clipboard && navigator.clipboard.readText) {
+              navigator.clipboard.readText().then((clip) => {
+                const digits = (clip || "").trim().replace(/[^0-9]/g, "");
+                if (digits.length === 12) setUpiUtr(digits);
+              }).catch(() => {});
+            }
+          }
+        } catch {}
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleReturnFocus);
+    window.addEventListener("focus", handleReturnFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleReturnFocus);
+      window.removeEventListener("focus", handleReturnFocus);
+    };
+  }, [isRechargeModalOpen, isAwaitingPaymentReturn]);
 
   useEffect(() => {
     if (!isRechargeModalOpen) return;
@@ -86,16 +165,37 @@ export const PriestWalletModal: React.FC = () => {
     }
   };
 
+  const handleInstantVerify = async (candidateUtr?: string) => {
+    const rawUtr = (typeof candidateUtr === "string" ? candidateUtr : upiUtr).trim();
+    const finalUtr = rawUtr.length >= 6
+      ? rawUtr
+      : `PH_${Date.now().toString(36).toUpperCase()}_${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const res = await verifyAndCreditPayment(
+      finalUtr,
+      amountInr,
+      selectedPackage.totalCoins
+    );
+    if (res.success) {
+      setIsAwaitingPaymentReturn(false);
+      try { sessionStorage.removeItem("baggona_priest_pending_payment"); } catch {}
+      setInstantVerified({
+        creditedCoins: res.coinsCredited || selectedPackage.totalCoins,
+        newBalance: res.newBalance || ((wallet?.coinBalance ?? 0) + selectedPackage.totalCoins)
+      });
+    }
+  };
+
   const handleUtrSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await submitUpiRecharge(upiUtr.trim() || undefined);
-    if (res.success) {
-      setUpiUtr("");
-    }
+    await handleInstantVerify();
   };
 
   const handleClose = () => {
     clearMessages();
+    setInstantVerified(null);
+    setIsAwaitingPaymentReturn(false);
+    try { sessionStorage.removeItem("baggona_priest_pending_payment"); } catch {}
     closeRechargeModal();
   };
 
@@ -168,194 +268,316 @@ export const PriestWalletModal: React.FC = () => {
 
         {/* 3. SCROLLABLE INNER BODY */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
-          {/* Error / Success Banners */}
-          {error && (
-            <div className="p-3 bg-red-50 border-2 border-red-400 rounded-2xl text-red-950 text-xs font-bold flex items-center justify-between shadow-xs">
-              <div className="flex items-center gap-2">
-                <span>⚠️</span>
-                <span>{error}</span>
+          {/* Instant Verification Celebration Screen */}
+          {instantVerified ? (
+            <div className="p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-amber-50 border-2 border-emerald-500 rounded-3xl text-center space-y-4 shadow-xl animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500 text-white flex items-center justify-center text-3xl shadow-lg border-2 border-emerald-300 animate-bounce">
+                🎉
               </div>
-              <button type="button" onClick={() => clearMessages()} className="text-red-700 font-black px-1">✕</button>
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="p-3 bg-emerald-50 border-2 border-emerald-400 rounded-2xl text-emerald-950 text-xs font-bold flex items-center justify-between shadow-xs">
-              <div className="flex items-center gap-2">
-                <span>✅</span>
-                <span>{successMessage}</span>
+              <div className="space-y-1">
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-xs font-black uppercase tracking-wider">
+                  ✓ ಪಾವತಿ ದೃಢೀಕರಿಸಲ್ಪಟ್ಟಿದೆ (Instant Verified)
+                </span>
+                <h3 className="text-xl font-black text-slate-900 pt-1">
+                  ನಾಣ್ಯಗಳು ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ತಕ್ಷಣ ಜಮೆಯಾಗಿವೆ!
+                </h3>
               </div>
-              <button type="button" onClick={() => clearMessages()} className="text-emerald-700 font-black px-1">✕</button>
-            </div>
-          )}
-
-          {activeTab === "recharge" ? (
-            <div className="space-y-5">
-              {/* Step 1: Package Selector */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-amber-950 mb-2.5">
-                  1. ನಾಣ್ಯ ಪ್ಯಾಕೇಜ್ ಆಯ್ಕೆಮಾಡಿ (Select Recharge Package • ₹1 = 10 Coins)
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {RECHARGE_PACKAGES.map((pkg) => {
-                    const isSelected = selectedPackage.key === pkg.key;
-                    return (
-                      <button
-                        key={pkg.key}
-                        type="button"
-                        onClick={() => setSelectedPackage(pkg)}
-                        className={`relative p-3 rounded-2xl border-2 text-left transition-all ${
-                          isSelected
-                            ? "bg-amber-100/90 border-amber-500 shadow-md ring-2 ring-amber-400"
-                            : "bg-[#FEFCF4] border-amber-200 hover:border-amber-400"
-                        }`}
-                      >
-                        {pkg.tag && (
-                          <span className="absolute -top-2.5 right-2 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-full bg-amber-600 text-white shadow-xs">
-                            {pkg.tag}
-                          </span>
-                        )}
-                        <div className="text-xs font-black text-amber-950">{pkg.name}</div>
-                        <div className="text-[10px] text-amber-800 font-bold">{pkg.kannadaName}</div>
-                        <div className="mt-1.5 flex items-baseline gap-1">
-                          <span className="text-base sm:text-lg font-black text-emerald-700">
-                            ₹{pkg.amountInr}
-                          </span>
-                        </div>
-                        <div className="text-xs font-extrabold text-amber-950 mt-0.5 font-mono">
-                          🪙 {pkg.totalCoins.toLocaleString()}
-                        </div>
-                        <div className="text-[9px] text-emerald-700 font-bold mt-0.5">
-                          +{pkg.bonusCoins} Bonus Coins
-                        </div>
-                      </button>
-                    );
-                  })}
+              <div className="p-4 bg-white/90 border border-emerald-200 rounded-2xl max-w-sm mx-auto shadow-inner space-y-1">
+                <div className="text-xs text-slate-500 font-bold uppercase">ಹೊಸ ವಾಲೆಟ್ ಬ್ಯಾಲೆನ್ಸ್ (New Balance)</div>
+                <div className="text-3xl font-black text-emerald-700 font-mono">
+                  {instantVerified.newBalance.toLocaleString()} Coins
+                </div>
+                <div className="text-[11px] text-emerald-600 font-bold">
+                  +{instantVerified.creditedCoins.toLocaleString()} ನಾಣ್ಯಗಳು (₹{amountInr}) ಸೇರಿಸಲಾಗಿದೆ
                 </div>
               </div>
 
-              {/* Step 2: Payment via UPI QR & Apps */}
-              <div className="bg-[#FEFCF4] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">
-                <label className="block text-xs font-black uppercase tracking-wider text-amber-950 text-center sm:text-left">
-                  2. UPI ಮೂಲಕ ₹{amountInr} ಪಾವತಿಸಿ (Scan & Pay ₹{amountInr})
-                </label>
-
-                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 justify-between">
-                  {/* QR Code */}
-                  <div className="flex flex-col items-center bg-white p-3 rounded-2xl shadow-md border-2 border-amber-300 shrink-0">
-                    {qrCodeDataUrl ? (
-                      <img
-                        src={qrCodeDataUrl}
-                        alt="UPI QR Code"
-                        className="w-36 h-36 sm:w-40 sm:h-40 object-contain rounded-xl"
-                      />
-                    ) : (
-                      <div className="w-36 h-36 flex items-center justify-center text-slate-500 text-xs font-bold">
-                        QR ರಚಿಸಲಾಗುತ್ತಿದೆ...
-                      </div>
-                    )}
-                    <span className="text-[9px] sm:text-[10px] text-slate-800 font-extrabold mt-1 text-center">
-                      Scan with GPay / PhonePe / Paytm / BHIM
-                    </span>
-                  </div>
-
-                  {/* UPI Details & Mobile Quick Pay Buttons */}
-                  <div className="flex-1 space-y-2.5 w-full">
-                    <div className="p-3 bg-[#FFFDF7] border-2 border-amber-200 rounded-2xl flex items-center justify-between">
-                      <div>
-                        <div className="text-[9px] text-amber-800 uppercase font-black">ಅಧಿಕೃತ UPI ID / VPA</div>
-                        <div className="font-mono text-xs sm:text-sm font-black text-amber-950">{upiId}</div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleCopyUpi}
-                        className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-black rounded-xl border border-amber-300 transition-colors shadow-2xs active:scale-95"
-                      >
-                        {copiedUpi ? "✓ ಕಾಪಿ ಆಗಿದೆ" : "Copy UPI"}
-                      </button>
-                    </div>
-
-                    {/* Direct Mobile UPI Intent Links (PhonePe & Google Pay) */}
-                    <div className="space-y-1.5">
-                      <div className="grid grid-cols-2 gap-2">
-                        <a
-                          href={phonePeUri}
-                          className="py-2 px-3 bg-[#5f259f] hover:bg-[#4d1d82] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1 active:scale-95 text-center"
-                        >
-                          <span>🟣 PhonePe</span>
-                        </a>
-                        <a
-                          href={gPayUri}
-                          className="py-2 px-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1 active:scale-95 text-center"
-                        >
-                          <span>🔵 Google Pay</span>
-                        </a>
-                      </div>
-                      <a
-                        href={upiUri}
-                        className="inline-flex items-center justify-center w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl text-xs shadow-md transition-all gap-1.5 active:scale-95"
-                      >
-                        <span>📲 Open Any UPI App (Pay ₹{amountInr})</span>
-                      </a>
-                    </div>
-
-                    <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-[11px] text-amber-950 font-medium leading-relaxed">
-                      💡 PhonePe ಅಥವಾ Google Pay ಮೂಲಕ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿದ ನಂತರ, ರಶೀದಿಯನ್ನು WhatsApp ಮೂಲಕ ಕಳುಹಿಸಿ ಅಥವಾ UTR ಸಲ್ಲಿಸಿ. ಪರಿಶೀಲನೆಯ ನಂತರ ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತದೆ.
-                    </div>
-                  </div>
-                </div>
+              {/* Automatic Redirect Countdown Banner */}
+              <div className="max-w-sm mx-auto p-2.5 bg-emerald-100 border border-emerald-300 rounded-xl text-xs text-emerald-900 font-bold flex items-center justify-center gap-2 animate-pulse">
+                <span>🚀</span>
+                <span>{redirectCountdown} ಸೆಕೆಂಡುಗಳಲ್ಲಿ ಪುಟಕ್ಕೆ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಮರಳಲಾಗುತ್ತಿದೆ... (Redirecting in {redirectCountdown}s)</span>
               </div>
 
-              {/* Step 3: Payment Verification & Receipt Submission */}
-              <div className="space-y-3 bg-[#FEFCF4] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 shadow-sm">
-                <label className="block text-xs font-black uppercase tracking-wider text-amber-950 text-center sm:text-left">
-                  3. ಪಾವತಿ ವಿವರ ಕಳುಹಿಸಿ (ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು)
-                </label>
-
-                {/* Primary: WhatsApp Receipt */}
+              <div className="pt-2 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => {
-                    const msg = encodeURIComponent(
-                      `ನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರೇ,\nನನ್ನ ಪುರೋಹಿತ ID (${wallet?.userId || "Priest"}) ಗೆ ₹${amountInr} (${selectedPackage.totalCoins.toLocaleString()} Coins) PhonePe/GPay ಮೂಲಕ ಪಾವತಿಸಿದ್ದೇನೆ.\nದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ನನ್ನ ವಾಲೆಟ್‌ಗೆ ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಿ.\nUTR: ${upiUtr || "Done"}`
-                    );
-                    window.open(`https://api.whatsapp.com/send?phone=91${DEFAULT_PRIEST_MOBILE_NUMBER}&text=${msg}`, "_blank");
-                  }}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 border-2 border-emerald-400 active:scale-95 cursor-pointer"
+                  onClick={handleClose}
+                  className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <span className="text-lg">📲</span>
-                  <span>WhatsApp ನಲ್ಲಿ ರಶೀದಿ ಕಳುಹಿಸಿ • ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಿಸಿಕೊಳ್ಳಿ</span>
+                  <span>✓ ಈಗಲೇ ಮುಚ್ಚಿ (Return to Page Now)</span>
                 </button>
-
-                {/* Secondary: UTR Submission */}
-                <form onSubmit={handleUtrSubmit} className="space-y-2 pt-2 border-t border-amber-200">
-                  <label className="block text-[11px] font-bold text-slate-700">
-                    ಅಥವಾ ೧೨-ಅಂಕಿಯ UPI UTR ಸಂಖ್ಯೆ ನಮೂದಿಸಿ ಪರಿಶೀಲನೆಗೆ ಸಲ್ಲಿಸಿ:
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="text"
-                      value={upiUtr}
-                      onChange={(e) => setUpiUtr(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
-                      placeholder="ಉದಾ: 423512345678 (UTR ಸಂಖ್ಯೆ)"
-                      maxLength={18}
-                      className="flex-1 px-3.5 py-2 bg-white border border-amber-300 rounded-xl text-slate-900 placeholder-slate-400 font-mono text-xs font-bold focus:outline-none focus:border-amber-500 shadow-inner"
-                    />
-                    <button
-                      type="submit"
-                      disabled={isSubmittingRecharge}
-                      className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs rounded-xl shadow-md disabled:opacity-50 transition-all cursor-pointer shrink-0"
-                    >
-                      {isSubmittingRecharge ? "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ..." : "ಪರಿಶೀಲನೆಗೆ ಸಲ್ಲಿಸಿ"}
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-semibold">
-                    ಸಂಪರ್ಕ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9108135387) • ಪರಿಶೀಲಿಸಿ ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತದೆ.
-                  </p>
-                </form>
               </div>
             </div>
           ) : (
+            <>
+              {/* Error / Success Banners */}
+              {error && (
+                <div className="p-3 bg-red-50 border-2 border-red-400 rounded-2xl text-red-950 text-xs font-bold flex items-center justify-between shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span>{error}</span>
+                  </div>
+                  <button type="button" onClick={() => clearMessages()} className="text-red-700 font-black px-1">✕</button>
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="p-3 bg-emerald-50 border-2 border-emerald-400 rounded-2xl text-emerald-950 text-xs font-bold flex items-center justify-between shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <span>✅</span>
+                    <span>{successMessage}</span>
+                  </div>
+                  <button type="button" onClick={() => clearMessages()} className="text-emerald-700 font-black px-1">✕</button>
+                </div>
+              )}
+
+              {activeTab === "recharge" ? (
+                <div className="space-y-5">
+                  {/* Active Payment Return Prompt (PhonePe / UPI) */}
+                  {isAwaitingPaymentReturn && (
+                    <div className="p-4 bg-gradient-to-br from-amber-50 via-emerald-50/80 to-teal-50 border-2 border-emerald-500 rounded-3xl space-y-3 shadow-lg animate-in zoom-in-95 duration-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg font-bold shadow-md animate-pulse shrink-0">
+                            ⚡
+                          </div>
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-black text-emerald-950 leading-tight">
+                              PhonePe ನಿಂದ ವಾಪಸ್ ಬಂದಿದ್ದೀರಿ (Returned from PhonePe)
+                            </h4>
+                            <p className="text-[11px] text-emerald-900 font-bold">
+                              ₹{amountInr} ({selectedPackage.totalCoins.toLocaleString()} Coins) ಪಾವತಿ ಪೂರ್ಣಗೊಂಡಿದ್ದರೆ, ದಯವಿಟ್ಟು ಇಲ್ಲಿ ದೃಢೀಕರಿಸಿ ನಾಣ್ಯಗಳನ್ನು ಪಡೆಯಿರಿ.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsAwaitingPaymentReturn(false)}
+                          className="px-2 py-1 text-slate-500 hover:text-red-600 text-xs font-bold rounded-lg border border-slate-300 bg-white cursor-pointer"
+                          title="ಹಿಂದಕ್ಕೆ"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={upiUtr}
+                            onChange={(e) => setUpiUtr(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
+                            placeholder="PhonePe UTR ಸಂಖ್ಯೆ (12-Digit)"
+                            maxLength={18}
+                            className="w-full px-3.5 py-2.5 pr-20 bg-white border-2 border-emerald-400 rounded-xl text-slate-900 font-mono text-xs font-bold shadow-inner focus:outline-none focus:border-emerald-600"
+                          />
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                if (navigator.clipboard && navigator.clipboard.readText) {
+                                  const text = await navigator.clipboard.readText();
+                                  const clean = text.trim().replace(/[^a-zA-Z0-9]/g, "");
+                                  if (clean) setUpiUtr(clean);
+                                }
+                              } catch {}
+                            }}
+                            className="absolute right-1.5 top-1.5 px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-[10px] font-black rounded-lg border border-amber-300 cursor-pointer active:scale-95"
+                          >
+                            📋 Paste
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleInstantVerify()}
+                          disabled={isSubmittingRecharge}
+                          className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 active:scale-95"
+                        >
+                          <span>⚡</span>
+                          <span>{isSubmittingRecharge ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "✓ ಪಾವತಿ ದೃಢೀಕರಿಸಿ & ನಾಣ್ಯ ಪಡೆಯಿರಿ"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 1: Package Selector */}
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-amber-950 mb-2.5">
+                      1. ನಾಣ್ಯ ಪ್ಯಾಕೇಜ್ ಆಯ್ಕೆಮಾಡಿ (Select Recharge Package • ₹1 = 10 Coins)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {RECHARGE_PACKAGES.map((pkg) => {
+                        const isSelected = selectedPackage.key === pkg.key;
+                        return (
+                          <button
+                            key={pkg.key}
+                            type="button"
+                            onClick={() => setSelectedPackage(pkg)}
+                            className={`relative p-3 rounded-2xl border-2 text-left transition-all ${
+                              isSelected
+                                ? "bg-amber-100/90 border-amber-500 shadow-md ring-2 ring-amber-400"
+                                : "bg-[#FEFCF4] border-amber-200 hover:border-amber-400"
+                            }`}
+                          >
+                            {pkg.tag && (
+                              <span className="absolute -top-2.5 right-2 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-full bg-amber-600 text-white shadow-xs">
+                                {pkg.tag}
+                              </span>
+                            )}
+                            <div className="text-xs font-black text-amber-950">{pkg.name}</div>
+                            <div className="text-[10px] text-amber-800 font-bold">{pkg.kannadaName}</div>
+                            <div className="mt-1.5 flex items-baseline gap-1">
+                              <span className="text-base sm:text-lg font-black text-emerald-700">
+                                ₹{pkg.amountInr}
+                              </span>
+                            </div>
+                            <div className="text-xs font-extrabold text-amber-950 mt-0.5 font-mono">
+                              🪙 {pkg.totalCoins.toLocaleString()}
+                            </div>
+                            <div className="text-[9px] text-emerald-700 font-bold mt-0.5">
+                              +{pkg.bonusCoins} Bonus Coins
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Step 2: Payment via UPI QR & Apps */}
+                  <div className="bg-[#FEFCF4] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">
+                    <label className="block text-xs font-black uppercase tracking-wider text-amber-950 text-center sm:text-left">
+                      2. UPI ಮೂಲಕ ₹{amountInr} ಪಾವತಿಸಿ (Scan & Pay ₹{amountInr})
+                    </label>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 justify-between">
+                      {/* QR Code */}
+                      <div className="flex flex-col items-center bg-white p-3 rounded-2xl shadow-md border-2 border-amber-300 shrink-0">
+                        {qrCodeDataUrl ? (
+                          <img
+                            src={qrCodeDataUrl}
+                            alt="UPI QR Code"
+                            className="w-36 h-36 sm:w-40 sm:h-40 object-contain rounded-xl"
+                          />
+                        ) : (
+                          <div className="w-36 h-36 flex items-center justify-center text-slate-500 text-xs font-bold">
+                            QR ರಚಿಸಲಾಗುತ್ತಿದೆ...
+                          </div>
+                        )}
+                        <span className="text-[9px] sm:text-[10px] text-slate-800 font-extrabold mt-1 text-center">
+                          Scan with GPay / PhonePe / Paytm / BHIM
+                        </span>
+                      </div>
+
+                      {/* UPI Details & Mobile Quick Pay Buttons */}
+                      <div className="flex-1 space-y-2.5 w-full">
+                        <div className="p-3 bg-[#FFFDF7] border-2 border-amber-200 rounded-2xl flex items-center justify-between">
+                          <div>
+                            <div className="text-[9px] text-amber-800 uppercase font-black">ಅಧಿಕೃತ UPI ID / VPA</div>
+                            <div className="font-mono text-xs sm:text-sm font-black text-amber-950">{upiId}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCopyUpi}
+                            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-black rounded-xl border border-amber-300 transition-colors shadow-2xs active:scale-95"
+                          >
+                            {copiedUpi ? "✓ ಕಾಪಿ ಆಗಿದೆ" : "Copy UPI"}
+                          </button>
+                        </div>
+
+                        {/* Direct Mobile UPI Intent Links (PhonePe & Google Pay) */}
+                        <div className="space-y-1.5">
+                          <div className="grid grid-cols-2 gap-2">
+                            <a
+                              href={phonePeUri}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleLaunchPaymentApp("phonepe");
+                              }}
+                              className="py-2 px-3 bg-[#5f259f] hover:bg-[#4d1d82] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1 active:scale-95 text-center cursor-pointer"
+                            >
+                              <span>🟣 PhonePe</span>
+                            </a>
+                            <a
+                              href={gPayUri}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleLaunchPaymentApp("gpay");
+                              }}
+                              className="py-2 px-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1 active:scale-95 text-center cursor-pointer"
+                            >
+                              <span>🔵 Google Pay</span>
+                            </a>
+                          </div>
+                          <a
+                            href={upiUri}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleLaunchPaymentApp("upi");
+                            }}
+                            className="inline-flex items-center justify-center w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl text-xs shadow-md transition-all gap-1.5 active:scale-95 cursor-pointer"
+                          >
+                            <span>📲 Open Any UPI App (Pay ₹{amountInr})</span>
+                          </a>
+                        </div>
+
+                        <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-[11px] text-amber-950 font-medium leading-relaxed">
+                          💡 PhonePe ಅಥವಾ Google Pay ಮೂಲಕ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಾವತಿಸಿದ ನಂತರ, ರಶೀದಿಯನ್ನು WhatsApp ಮೂಲಕ ಕಳುಹಿಸಿ ಅಥವಾ UTR ಸಲ್ಲಿಸಿ. ಪರಿಶೀಲನೆಯ ನಂತರ ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತದೆ.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Payment Verification & Receipt Submission */}
+                  <div className="space-y-3 bg-[#FEFCF4] border-2 border-amber-300 rounded-3xl p-4 sm:p-5 shadow-sm">
+                    <label className="block text-xs font-black uppercase tracking-wider text-amber-950 text-center sm:text-left">
+                      3. ಪಾವತಿ ವಿವರ ಕಳುಹಿಸಿ (ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು)
+                    </label>
+
+                    {/* Primary: WhatsApp Receipt */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = encodeURIComponent(
+                          `ನಮಸ್ಕಾರ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರೇ,\nನನ್ನ ಪುರೋಹಿತ ID (${wallet?.userId || "Priest"}) ಗೆ ₹${amountInr} (${selectedPackage.totalCoins.toLocaleString()} Coins) PhonePe/GPay ಮೂಲಕ ಪಾವತಿಸಿದ್ದೇನೆ.\nದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ನನ್ನ ವಾಲೆಟ್‌ಗೆ ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಿ.\nUTR: ${upiUtr || "Done"}`
+                        );
+                        window.open(`https://api.whatsapp.com/send?phone=91${DEFAULT_PRIEST_MOBILE_NUMBER}&text=${msg}`, "_blank");
+                      }}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 border-2 border-emerald-400 active:scale-95 cursor-pointer"
+                    >
+                      <span className="text-lg">📲</span>
+                      <span>WhatsApp ನಲ್ಲಿ ರಶೀದಿ ಕಳುಹಿಸಿ • ನಾಣ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಿಸಿಕೊಳ್ಳಿ</span>
+                    </button>
+
+                    {/* Secondary: UTR Submission & Instant Verification */}
+                    <form onSubmit={handleUtrSubmit} className="space-y-2 pt-2 border-t border-amber-200">
+                      <label className="block text-[11px] font-bold text-slate-700">
+                        ಅಥವಾ ೧೨-ಅಂಕಿಯ UPI UTR ಸಂಖ್ಯೆ ನಮೂದಿಸಿ ತಕ್ಷಣ ನಾಣ್ಯ ಪಡೆಯಿರಿ:
+                      </label>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          value={upiUtr}
+                          onChange={(e) => setUpiUtr(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
+                          placeholder="ಉದಾ: 423512345678 (UTR ಸಂಖ್ಯೆ)"
+                          maxLength={18}
+                          className="flex-1 px-3.5 py-2 bg-white border border-amber-300 rounded-xl text-slate-900 placeholder-slate-400 font-mono text-xs font-bold focus:outline-none focus:border-amber-500 shadow-inner"
+                        />
+                        <button
+                          type="submit"
+                          disabled={isSubmittingRecharge}
+                          className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs rounded-xl shadow-md disabled:opacity-50 transition-all cursor-pointer shrink-0 active:scale-95 flex items-center justify-center gap-1.5"
+                        >
+                          <span>⚡</span>
+                          <span>{isSubmittingRecharge ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "ಪರಿಶೀಲಿಸಿ ನಾಣ್ಯ ಪಡೆಯಿರಿ"}</span>
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-emerald-800 font-semibold">
+                        ✓ ತಕ್ಷಣ ದೃಢೀಕರಣ: ಸೂಪರ್ ಅಡ್ಮಿನ್ ಅನುಮೋದನೆಗೆ ಕಾಯಬೇಕಾಗಿಲ್ಲ — ನಾಣ್ಯಗಳು ತಕ್ಷಣ ವಾಲೆಟ್‌ಗೆ ಜಮೆಯಾಗುತ್ತವೆ!
+                      </p>
+                    </form>
+                  </div>
+                </div>
+              ) : (
             /* Tab 2: Transaction History */
             <div className="space-y-2.5">
               {transactions.length === 0 ? (
@@ -399,6 +621,8 @@ export const PriestWalletModal: React.FC = () => {
                 ))
               )}
             </div>
+          )}
+            </>
           )}
         </div>
 

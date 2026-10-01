@@ -25,29 +25,39 @@ describe("UPI Payment Fixes & Instant Coin Crediting Engine", () => {
     expect(DEFAULT_PRIEST_UPI_HANDLES).toContain("9108135387@upi");
   });
 
-  it("generates NPCI-compliant universal upi://pay URI with tr reference", () => {
-    const uri = generateUpiPayUri(50, "PanchangaSeva", "9108135387@ybl");
-    expect(uri).toContain("upi://pay?");
-    expect(uri).toContain("pa=9108135387%40ybl");
-    expect(uri).toContain("pn=Shreeram%20Pandit");
-    expect(uri).toContain("am=50.00");
-    expect(uri).toContain("cu=INR");
-    expect(uri).toContain("tn=PanchangaSeva");
-    expect(uri).toContain("tr=BAG");
+  it("generates NPCI-compliant clean universal upi://pay URI without invalid merchant tr", () => {
+    // 1. Clean P2P URI without tr to prevent PhonePe "There is some error, please retry" rejection
+    const cleanUri = generateUpiPayUri(50, "PanchangaSeva", "9108135387@ybl");
+    expect(cleanUri).toContain("upi://pay?");
+    expect(cleanUri).toContain("pa=9108135387%40ybl");
+    expect(cleanUri).toContain("pn=Shreeram%20Pandit");
+    expect(cleanUri).toContain("am=50.00");
+    expect(cleanUri).toContain("cu=INR");
+    expect(cleanUri).toContain("tn=PanchangaSeva");
+    expect(cleanUri).not.toContain("tr=");
+
+    // 2. Explicit tr reference when specified
+    const uriWithTr = generateUpiPayUri(50, "PanchangaSeva", "9108135387@ybl", "BAG_REF_123");
+    expect(uriWithTr).toContain("tr=BAG_REF_123");
   });
 
-  it("PhonePe and Google Pay intent generators produce universal NPCI URIs without breaking custom schemes", () => {
+  it("PhonePe and Google Pay intent generators produce clean NPCI URIs without invalid merchant tr", () => {
     const phonePeUri = generatePhonePeUri(100, "PanchangaSeva", "9108135387@ibl");
     expect(phonePeUri).toContain("upi://pay?");
     expect(phonePeUri).toContain("pa=9108135387%40ibl");
     expect(phonePeUri).toContain("am=100.00");
-    expect(phonePeUri).toContain("tr=PH");
+    expect(phonePeUri).not.toContain("tr=");
+
+    // Custom scheme for direct mobile launcher
+    const phonePeNative = generatePhonePeUri(100, "PanchangaSeva", "9108135387@ibl", true);
+    expect(phonePeNative).toContain("phonepe://pay?");
+    expect(phonePeNative).toContain("pa=9108135387%40ibl");
 
     const gpayUri = generateGPayUri(250, "PanchangaSeva", "9108135387@axl");
     expect(gpayUri).toContain("upi://pay?");
     expect(gpayUri).toContain("pa=9108135387%40axl");
     expect(gpayUri).toContain("am=250.00");
-    expect(gpayUri).toContain("tr=GP");
+    expect(gpayUri).not.toContain("tr=");
   });
 
   it("verify-payment API endpoint validates UTR, calculates bonus coins, and prevents duplicate UTR fraud", async () => {

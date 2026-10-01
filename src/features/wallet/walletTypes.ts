@@ -301,6 +301,13 @@ export const DEFAULT_PRIEST_UPI_HANDLES = [
 
 /**
  * Standardized NPCI UPI URI with PhonePe & Google Pay compliance
+ *
+ * CRITICAL NPCI / PHONEPE SPECIFICATION:
+ * The 'tr' (Transaction Reference) parameter is strictly reserved for registered Merchant
+ * Category Accounts (mc). Passing 'tr' to an individual P2P VPA (e.g. @ybl, @ibl, @axl)
+ * causes PhonePe to validate against its merchant clearing gateway and reject with:
+ * "There is some error, please retry".
+ * Therefore, for P2P transactions, 'tr' MUST be omitted unless explicitly specified.
  */
 export function generateUpiPayUri(
   amountInr: number,
@@ -311,44 +318,48 @@ export function generateUpiPayUri(
   const cleanAm = Math.max(1, amountInr).toFixed(2);
   const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
   const targetUpi = (upiId || DEFAULT_PRIEST_UPI_ID).trim();
-  const tr = trRef || `BAG_${cleanAm}`;
-  return `upi://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}&tr=${encodeURIComponent(tr)}`;
+  const trParam = trRef ? `&tr=${encodeURIComponent(trRef)}` : "";
+  return `upi://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}${trParam}`;
 }
 
 /**
- * PhonePe Direct Intent URI (Universal NPCI compliant with tr ref)
+ * PhonePe Direct Intent URI (Universal NPCI compliant without merchant tr)
+ * Eliminates PhonePe "There is some error, please retry" rejection.
+ * Supports both universal upi://pay? and proprietary phonepe://pay? schemes.
  */
 export function generatePhonePeUri(
   amountInr: number,
   note: string = "PanchangaSeva",
   upiId: string = DEFAULT_PRIEST_UPI_ID,
-  trRef?: string
+  useCustomScheme: boolean = false
 ): string {
-  return generateUpiPayUri(amountInr, note, upiId, trRef || `PH_${Math.max(1, amountInr)}`);
+  const cleanAm = Math.max(1, amountInr).toFixed(2);
+  const cleanNote = note.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) || "PanchangaSeva";
+  const targetUpi = (upiId || DEFAULT_PRIEST_UPI_ID).trim();
+  const scheme = useCustomScheme ? "phonepe" : "upi";
+  return `${scheme}://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(DEFAULT_PRIEST_UPI_NAME)}&am=${cleanAm}&cu=INR&tn=${encodeURIComponent(cleanNote)}`;
 }
 
 /**
- * Google Pay Direct Intent URI (Universal NPCI compliant with tr ref)
+ * Google Pay Direct Intent URI (Universal NPCI compliant without merchant tr)
  */
 export function generateGPayUri(
   amountInr: number,
   note: string = "PanchangaSeva",
-  upiId: string = DEFAULT_PRIEST_UPI_ID,
-  trRef?: string
+  upiId: string = DEFAULT_PRIEST_UPI_ID
 ): string {
-  return generateUpiPayUri(amountInr, note, upiId, trRef || `GP_${Math.max(1, amountInr)}`);
+  return generateUpiPayUri(amountInr, note, upiId);
 }
 
 /**
- * Paytm Direct Intent URI (Universal NPCI compliant with tr ref)
+ * Paytm Direct Intent URI (Universal NPCI compliant without merchant tr)
  */
 export function generatePaytmUri(
   amountInr: number,
   note: string = "PanchangaSeva",
-  upiId: string = DEFAULT_PRIEST_UPI_ID,
-  trRef?: string
+  upiId: string = DEFAULT_PRIEST_UPI_ID
 ): string {
-  return generateUpiPayUri(amountInr, note, upiId, trRef || `PT_${Math.max(1, amountInr)}`);
+  return generateUpiPayUri(amountInr, note, upiId);
 }
 
 export type AvailableModuleKey = "panchanga" | "sankhyashastra" | "diksuchi" | "purva_janma" | "vahana_muhurtha" | "public_kundli";
