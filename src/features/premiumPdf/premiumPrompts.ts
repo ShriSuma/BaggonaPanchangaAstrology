@@ -232,16 +232,20 @@ Shadow: ${input.shadowSelf}
 Karma: ${input.karmicBaggage}
 ${input.affairNote}
 
-CRITICAL ACCURACY REQUIREMENT:
-Reveal the single deepest hidden pattern of THIS chart — the niguda rahasya (hidden dark secret).
-STRICT LENGTH RULE: Write EXACTLY TWO PARAGRAPHS, and EACH PARAGRAPH MUST CONTAIN AT LEAST 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 10 lines total for the section).
+CRITICAL ACCURACY & DEEP EMOTIONAL CONNECTION REQUIREMENT:
+Reveal the single deepest hidden truth of THIS chart — the niguda rahasya (ನಿಗೂಢ ರಹಸ್ಯ - hidden dark secret).
+STRICT LENGTH RULE: Write EXACTLY TWO PARAGRAPHS, and EACH PARAGRAPH MUST CONTAIN AT LEAST 6 TO 7 FULL, SUBSTANTIAL LINES OF TEXT (minimum 12-14 lines total for the section).
 MUST BE 100% MATHEMATICALLY ACCURATE to the 8th/12th house placements, Rahu/Ketu/Saturn karmic influences, running ${dashaLine}, and planetary transits in THIS chart.
-Paragraph one: The hidden karmic pattern, subconscious vulnerabilities, and secret emotional struggles tied directly to named placements above.
-Paragraph two: How this pattern manifests in daily life, karmic relationships, and the precise spiritual remedy and transformation required to overcome it.
+
+DEEP EMOTIONAL RESONANCE MANDATE:
+Speak directly to ${input.name}. Highlight the reality of what is happening inside them:
+Even though they smile outside, maintain a strong exterior for their family, and appear composed in society, unveil the unspoken emotional struggles, private loneliness, silent sacrifices, and internal vulnerabilities they carry alone and have never disclosed to anyone. When they read this, they must feel profoundly understood: "Yes, this is the nigudha rahasya I have kept locked inside with me, which nobody else sees!"
+Paragraph one: The hidden karmic pattern, subconscious fears, and secret emotional burdens tied directly to named 8th/12th house and Rahu-Ketu placements above.
+Paragraph two: How this pattern manifests under running ${dashaLine}, and the precise, compassionate spiritual remedy, inner reconciliation, and transformative blessing from Baggona Kshetra required to dissolve these silent fears and restore profound peace of mind.
 Do not moralise, do not frighten, end on what can be healed and transformed.
 
 ${JSON_RULE}
-{"darkSecret":[{"impact":"paragraph one\\n\\nparagraph two"}]}`;
+{"darkSecret":[{"impact":"paragraph one (6-7 lines)\\n\\nparagraph two (6-7 lines)"}]}`;
 
   const yogas = `${header(
     input,
@@ -629,6 +633,133 @@ Crucially, Paragraph 3 of each domain MUST be a dedicated Dosha Analysis or Prot
 ${JSON_RULE}
 {"bhavishya":{"career":"three paragraphs of 6-7 lines each","wealth":"three paragraphs of 6-7 lines each","health":"three paragraphs of 6-7 lines each"}}`;
 
+  const bhavishyaMarriage = `${header(
+    input,
+    "bhavishyaMarriage",
+    "You are a revered Vedic master astrologer providing an in-depth, authentic reading on Marriage, Compatibility, and Partnerships for " + input.name + "."
+  )}
+CRITICAL MANDATE:
+Write exhaustive, deeply personalized astrological analysis strictly based on ${input.name}'s Janma Kundali.
+Write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES of text (minimum 350-500 characters per paragraph). Speak directly to 'you'.
+
+Marriage & Partnerships (User Selected Status: ${maritalSel.toUpperCase()}):
+- 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} placed ${h7.lordWhere}.
+- Occupants of 7th House: ${h7.occStr}.
+- Vivahakaraka: ${input.gender === "Female" ? `Guru (Jupiter) placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "in chart"}` : `Shukra (Venus) placed ${venusPlacement ? `in Bhava ${venusPlacement.house}` : "in chart"}`}.
+- Kuja/Manglik: ${isManglik ? `Yes, Mars in Bhava ${marsPlacement?.house} causing Kuja Dosha` : "No Kuja Dosha"}.
+- Direction of Partner: ${spouseDirection}.
+- Running ${dashaLine}.
+${maritalSel === "married"
+    ? `Write EXACTLY THREE detailed paragraphs for MARRIED status:
+      Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
+      Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary, standing as anchors for each other, and facing societal questions together.' : ''}
+      Paragraph 3: Domestic peace, harmonizing occasional differences through empathetic communication, and targeted classical remedies (${isManglik ? "Subramanya / Mangala Pooja" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
+    : maritalSel === "unmarried"
+    ? `Write EXACTLY THREE detailed paragraphs for UNMARRIED status:
+      Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and live transits (${guruTransit?.houseFromMoon}th house Guru, ${shaniTransit?.houseFromMoon}th house Shani). Calculate the exact Vivaha Yoga timing window and reasons for past delays.
+      Paragraph 2: Spouse's characteristics, intellect, moral values, profession, and physical/emotional demeanor derived strictly from 7th house ${h7.sign} and lord ${h7.lordStr}, with arrival indicated from the ${spouseDirection} direction.
+      Paragraph 3: Addressing any planetary friction (${isManglik ? "Kuja/Manglik remedy" : "planetary alignment"}), exact daily mantra ("Om Shreem Gauryai Namah" / "Om Saptamadhipataye Namah"), and auspicious alliance timing.`
+    : `Write EXACTLY THREE detailed paragraphs for GENERAL status:
+      Paragraph 1: Natal analysis of 7th house ${h7.sign}, lord ${h7.lordStr} ${h7.lordWhere}, and running ${dashaLine}.
+      Paragraph 2: Relationship compatibility, emotional bonding, and practical partnerships.
+      Paragraph 3: Remedies for harmony, mutual understanding, and relational longevity.`}
+
+${JSON_RULE}
+{"marriage":"three paragraphs of 6-7 lines each"}`;
+
+  const bhavishyaChildren = `${header(
+    input,
+    "bhavishyaChildren",
+    "You are a revered Vedic master astrologer providing an in-depth, authentic reading on Children and Progeny for " + input.name + "."
+  )}
+CRITICAL MANDATE:
+Write exhaustive, deeply personalized astrological analysis strictly based on ${input.name}'s Janma Kundali.
+Write STRICTLY 2 to 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES of text (minimum 350-500 characters per paragraph). Speak directly to 'you'.
+
+Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
+- 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}.
+- Occupants of 5th House: ${h5.occStr}.
+- Putrakaraka Jupiter (Guru): placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}.
+- Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra. Running ${dashaLine}.
+${childrenSel === "has_children"
+    ? `Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status:
+      Paragraph 1: Detailed analysis of children's intellect, academic excellence, specialized talents, and moral character derived from 5th lord ${h5.lordStr} and Putrakaraka Jupiter.
+      Paragraph 2: Parental guidance, children's future growth, family bonding, and spiritual blessings (Saraswati / Ganapati Atharvashirsha).`
+    : childrenSel === "no_children"
+    ? `Write EXACTLY THREE expansive, deeply empathetic paragraphs for SEEKING PROGENY status addressed to ${input.name}:
+      Paragraph 1: Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child. Analyze 5th house (Santana Bhava) ${h5.sign}, lord ${h5.lordStr} ${h5.lordWhere}, Putrakaraka Jupiter, and running ${dashaLine}. Emphasize that lineage continuity is preserved in their Poorva Punya.
+      Paragraph 2: Astrological window and timing for conception based on Jupiter transit and supportive aspects. Reassure them with warmth that delays are periods of karmic refinement, not denial. Encourage standing united as an emotional anchor, combining medical consultations and balanced lifestyle.
+      Paragraph 3: Sacred Baggona & Vedic remedies: Daily Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times, Thursday Gau-seva (cow ghee lamp and feeding cow), and Subrahmanya / Naga Shanti Pooja at Gokarna Mahabaleshwara / Baggona Kshetra.`
+    : `Write EXACTLY TWO detailed paragraphs for GENERAL status:
+      Paragraph 1: 5th house (Poorva Punya & Intellect) ${h5.sign}, lord ${h5.lordStr}, and Jupiter's influence on intellect and lineage.
+      Paragraph 2: Creative achievements, intellectual legacy, and family blessings.`}
+
+${JSON_RULE}
+{"children":"${childrenSel === "no_children" ? "three paragraphs of 6-7 lines each" : "two to three paragraphs of 6-7 lines each"}"}`;
+
+  const bhavishyaCareer = `${header(
+    input,
+    "bhavishyaCareer",
+    "You are a revered Vedic master astrologer providing an in-depth reading on Career, Vocation, and Professional Ascent for " + input.name + "."
+  )}
+CRITICAL MANDATE:
+Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
+Write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
+Crucially, Paragraph 3 MUST be a dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【Dosha Analysis & Obstacle Resolution Shanti】 or 【Benefic Planetary Yoga & Protective Shield】 translated into the requested target language).
+
+10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} placed ${h10.lordWhere}.
+Occupants of 10th House: ${h10.occStr}.
+Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
+Running period: ${dashaLine}.
+Paragraph 1: Professional stability, leadership prospects, vocational aptitude, and timing under running ${dashaLine}.
+Paragraph 2: Strategic workplace navigation, career growth, transitions, and public reputation.
+Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Karma/Saturn dosha or afflictions present, detail delay mechanics, remedies, and Gokarna/Baggona shanti pooja. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+
+${JSON_RULE}
+{"career":"three paragraphs of 6-7 lines each"}`;
+
+  const bhavishyaWealth = `${header(
+    input,
+    "bhavishyaWealth",
+    "You are a revered Vedic master astrologer providing an in-depth reading on Wealth, Assets, and Financial Destiny for " + input.name + "."
+  )}
+CRITICAL MANDATE:
+Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
+Write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
+Crucially, Paragraph 3 MUST be a dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【Dosha Analysis & Obstacle Resolution Shanti】 or 【Benefic Planetary Yoga & Protective Shield】 translated into the requested target language).
+
+2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
+11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
+Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+Running period: ${dashaLine}.
+Paragraph 1: Financial accumulation, investments, property gains, and income growth under running ${dashaLine}.
+Paragraph 2: Liquidity planning, family prosperity, asset consolidation, and wealth preservation.
+Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Dhana dosha or afflictions present, detail obstacle resolution and Lakshmi Kubera remedies. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+
+${JSON_RULE}
+{"wealth":"three paragraphs of 6-7 lines each"}`;
+
+  const bhavishyaHealth = `${header(
+    input,
+    "bhavishyaHealth",
+    "You are a revered Vedic master astrologer providing an in-depth reading on Health, Vitality, and Longevity for " + input.name + "."
+  )}
+CRITICAL MANDATE:
+Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
+Write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
+Crucially, Paragraph 3 MUST be a dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【Dosha Analysis & Obstacle Resolution Shanti】 or 【Benefic Planetary Yoga & Protective Shield】 translated into the requested target language).
+
+1st House (Lagna / Physical Constitution): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}).
+6th House (Roga Sthana): ${h6.sign} (Lord ${h6.lordStr} ${h6.lordWhere}).
+Sun (Vitality) and Moon (Mental Equanimity) dignity in chart.
+Running period: ${dashaLine}.
+Paragraph 1: Physical constitution, vitality, seasonal wellness precautions, and metabolic stamina.
+Paragraph 2: Mental equanimity, stress management, sleep quality, and daily Ayurvedic lifestyle.
+Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Roga dosha or afflictions present, detail healing remedies, Mahamrityunjaya japa, and Gokarna Mrityunjaya homa. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+
+${JSON_RULE}
+{"health":"three paragraphs of 6-7 lines each"}`;
+
   const summary = `${header(
     input,
     "summary",
@@ -652,6 +783,11 @@ ${JSON_RULE}
     bhavishya,
     bhavishyaMarriageChildren,
     bhavishyaCareerWealthHealth,
+    bhavishyaMarriage,
+    bhavishyaChildren,
+    bhavishyaCareer,
+    bhavishyaWealth,
+    bhavishyaHealth,
     yogas,
     doshas,
     gochara,

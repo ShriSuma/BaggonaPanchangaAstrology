@@ -11,6 +11,7 @@ import { detectAffairIndicators } from "../../core/layers/NatalLayer";
 import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
 import { askGemini } from "../../core/GeminiEngine";
 import { translateText } from "../../utils/translator";
+import { calculateComprehensiveDoshas } from "../../core/ComprehensiveDoshaEngine";
 import {
   robustParseGeminiJSON,
   toSafeArray,
@@ -293,6 +294,38 @@ export async function prepareBhavishyaV1Data(
     ? `The chart carries ${affairResult.confidence}-confidence classical indicators of hidden romantic complexity (${affairResult.indicators.slice(0, 2).join("; ")}). Give this one short paragraph, framed as a karmic soul-pattern in dignified language. Never judgemental.`
     : `This chart shows no confirmed indicator of a secret relationship. Do not raise the subject at all.`;
 
+  // Compute authentic Vedic doshas with 100% mathematical precision via ComprehensiveDoshaEngine
+  let engineDoshaList: any[] = [];
+  try {
+    const doshaReport = calculateComprehensiveDoshas(session.result, session.input, new Date());
+    const detected = (doshaReport.doshas || []).filter((d) => d.isDetected && d.severity !== "none");
+    if (detected.length > 0) {
+      engineDoshaList = detected.map((d) => {
+        const dName = d.name[lang] || d.name["kn"] || d.name["en"] || d.id;
+        const dWhy = d.technicalWhy[lang] || d.technicalWhy["kn"] || d.technicalWhy["en"] || "";
+        const dProblem = d.currentLifeProblems[lang] || d.currentLifeProblems["kn"] || d.currentLifeProblems["en"] || "";
+        const dImpact = d.lifeImpact[lang] || d.lifeImpact["kn"] || d.lifeImpact["en"] || "";
+        const dPooja = d.recommendedPooja[lang] || d.recommendedPooja["kn"] || d.recommendedPooja["en"] || "";
+        const dRemedyList = d.remedies[lang] || d.remedies["kn"] || d.remedies["en"] || [];
+        const fullRemedy = [dPooja, ...(Array.isArray(dRemedyList) ? dRemedyList.slice(0, 2) : [])].filter(Boolean).join(" | ");
+
+        return {
+          name: dName,
+          significance: `${dWhy} ${dProblem}`,
+          impact: [dWhy, dProblem || dImpact].filter(Boolean).join("\n\n"),
+          remedy: fullRemedy,
+          severity: d.severity
+        };
+      });
+    }
+  } catch (doshaErr) {
+    console.warn("[bhavishyaV1Service] calculateComprehensiveDoshas fallback:", doshaErr);
+  }
+
+  const effectiveEngineDoshas = engineDoshaList.length > 0
+    ? engineDoshaList
+    : (result.aiGeneratedNarrative?.doshas ?? []);
+
   const prompts = buildPremiumPrompts({
     lang,
     runId,
@@ -311,7 +344,7 @@ export async function prepareBhavishyaV1Data(
     bhuktiLord,
     bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
     engineYogas: result.aiGeneratedNarrative?.yogas ?? [],
-    engineDoshas: result.aiGeneratedNarrative?.doshas ?? [],
+    engineDoshas: effectiveEngineDoshas,
     pariharas: (result.pariharas ?? []).map(
       (p: any) => `${p.doshaName}: ${p.poojaName} (${p.whenToDo}, ${p.whereToDo})`
     ),
@@ -325,7 +358,8 @@ export async function prepareBhavishyaV1Data(
     affairNote
   });
 
-  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8000, maxAttempts = 5): Promise<string> => {
+  const failedAiSectionsV1: string[] = [];
+  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 25000, maxAttempts = 10): Promise<string> => {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const timeoutPromise = new Promise<string>((resolve) =>
@@ -344,6 +378,7 @@ export async function prepareBhavishyaV1Data(
             await new Promise((r) => setTimeout(r, attempt * 350));
             continue;
           }
+          failedAiSectionsV1.push(label);
           return "";
         }
         if (typeof raw === "string" && raw.trim().length > 20) {
@@ -353,6 +388,7 @@ export async function prepareBhavishyaV1Data(
           await new Promise((r) => setTimeout(r, attempt * 350));
           continue;
         }
+        failedAiSectionsV1.push(label);
         return "";
       } catch (e) {
         console.warn(`[bhavishyaV1Service] AI call failed for ${label} (attempt ${attempt}/${maxAttempts}):`, e);
@@ -360,9 +396,11 @@ export async function prepareBhavishyaV1Data(
           await new Promise((r) => setTimeout(r, attempt * 350));
           continue;
         }
+        failedAiSectionsV1.push(label);
         return "";
       }
     }
+    failedAiSectionsV1.push(label);
     return "";
   };
 
@@ -426,7 +464,7 @@ export async function prepareBhavishyaV1Data(
   ]);
   await new Promise(r => setTimeout(r, 120));
 
-  // Batch 5: Bhavishya Life Areas
+  // Batch 5: Bhavishya Life Areas (Individual Granular Prompts for maximum AI fidelity & depth)
   onProgress?.(
     70,
     lang === "kn"
@@ -440,21 +478,46 @@ export async function prepareBhavishyaV1Data(
     const resBhavishya = await callGeminiSafe("Generate Bhavishya Child Areas", prompts.bhavishya, 0.3);
     dataBhavishya = robustParseGeminiJSON(resBhavishya);
   } else {
-    const [resBhavishya1, resBhavishya2] = await Promise.all([
-      callGeminiSafe("Generate Marriage & Children", prompts.bhavishyaMarriageChildren || prompts.bhavishya, 0.3),
-      callGeminiSafe("Generate Career, Wealth & Health", prompts.bhavishyaCareerWealthHealth || prompts.bhavishya, 0.3)
+    const [resMarriage, resChildren, resCareer, resWealth, resHealth] = await Promise.all([
+      callGeminiSafe("Generate Marriage", prompts.bhavishyaMarriage || prompts.bhavishya, 0.3),
+      callGeminiSafe("Generate Children", prompts.bhavishyaChildren || prompts.bhavishya, 0.3),
+      callGeminiSafe("Generate Career", prompts.bhavishyaCareer || prompts.bhavishya, 0.3),
+      callGeminiSafe("Generate Wealth", prompts.bhavishyaWealth || prompts.bhavishya, 0.3),
+      callGeminiSafe("Generate Health", prompts.bhavishyaHealth || prompts.bhavishya, 0.3)
     ]);
-    const dataB1 = robustParseGeminiJSON(resBhavishya1);
-    const dataB2 = robustParseGeminiJSON(resBhavishya2);
+    const dMar = robustParseGeminiJSON(resMarriage);
+    const dChd = robustParseGeminiJSON(resChildren);
+    const dCar = robustParseGeminiJSON(resCareer);
+    const dWlh = robustParseGeminiJSON(resWealth);
+    const dHlt = robustParseGeminiJSON(resHealth);
     dataBhavishya = {
       bhavishya: {
-        marriage: dataB1?.bhavishya?.marriage || dataB2?.bhavishya?.marriage,
-        children: dataB1?.bhavishya?.children || dataB2?.bhavishya?.children,
-        career: dataB2?.bhavishya?.career || dataB1?.bhavishya?.career,
-        wealth: dataB2?.bhavishya?.wealth || dataB1?.bhavishya?.wealth,
-        health: dataB2?.bhavishya?.health || dataB1?.bhavishya?.health
+        marriage: dMar?.marriage || dMar?.bhavishya?.marriage,
+        children: dChd?.children || dChd?.bhavishya?.children,
+        career: dCar?.career || dCar?.bhavishya?.career,
+        wealth: dWlh?.wealth || dWlh?.bhavishya?.wealth,
+        health: dHlt?.health || dHlt?.bhavishya?.health
       }
     };
+  }
+
+  // 80% AI Threshold Guard: At least 80% of chapters must succeed from AI after 10 attempts
+  const totalExpectedAiSections = ageYears < 8 ? 11 : 13;
+  const failedCount = failedAiSectionsV1.length;
+  const successRate = ((totalExpectedAiSections - failedCount) / totalExpectedAiSections) * 100;
+  if (successRate < 80) {
+    const uniqueFailed = Array.from(new Set(failedAiSectionsV1));
+    const errorMsg = lang === "kn"
+      ? `AI ಸಂಭಾಷಣೆಯ ಕೆಲವು ಭಾಗಗಳು (${uniqueFailed.join(", ")}) ಭರ್ತಿಯಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.`
+      : lang === "hi"
+      ? `AI विश्लेषण के कुछ खंड (${uniqueFailed.join(", ")}) पूरे नहीं हो सके। कृपया पुनः प्रयास करें।`
+      : lang === "te"
+      ? `AI విశ్లేషణలోని కొన్ని విభాగాలు (${uniqueFailed.join(", ")}) పూర్తి కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.`
+      : lang === "ta"
+      ? `AI பகுப்பாய்வின் சில பகுதிகள் (${uniqueFailed.join(", ")}) முழுமையடையவில்லை. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.`
+      : `Some sections (${uniqueFailed.join(", ")}) were not filled with AI narration, please try again.`;
+    console.error(`[bhavishyaV1Service] AI threshold failed: ${successRate.toFixed(1)}% < 80%. Aborting.`);
+    throw new Error(errorMsg);
   }
 
   onProgress?.(
@@ -657,14 +720,27 @@ export async function prepareBhavishyaV1Data(
     impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
   }));
 
-  const rawDoshasFallback = (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map((d: any) => ({
+  const rawDoshasFallback = (effectiveEngineDoshas.length > 0 ? effectiveEngineDoshas : (result.aiGeneratedNarrative?.doshas || [])).map((d: any) => ({
     name: localizeDoshaName(d.name || "Karmic Challenge", lang),
-    impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
-    remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
+    impact: asText(d.impact || d.significance),
+    remedy: d.remedy || ""
   }));
+
+  const safeDoshaFallback = rawDoshasFallback.length > 0
+    ? rawDoshasFallback
+    : [{
+        name: lang === "kn" ? "ಸರ್ವ ದೋಷ ಮುಕ್ತ & ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಕವಚ" : lang === "hi" ? "सर्व दोष मुक्त - शुभ ग्रह रक्षा कवच" : lang === "te" ? "సర్వ దోష రహితం - శుభ గ్రహ రక్షా కవచం" : lang === "ta" ? "தோஷ நிவர்த்தி - சுப கிரக பாதுகாப்பு" : "Benefic Planetary Shield - Free of Major Doshas",
+        impact: lang === "kn"
+          ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಪಿತೃ, ಕಾಲಸರ್ಪ ಅಥವಾ ಬಾಲ್ಯದಾರಿಷ್ಟ ದೋಷಗಳಿಲ್ಲ. ಕೇಂದ್ರ ಮತ್ತು ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಲ್ಲಿ ಶುಭಗ್ರಹರ ಅನುಗ್ರಹವಿದ್ದು, ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಸದಾ ನಿಮ್ಮನ್ನು ಕಾಪಾಡುತ್ತದೆ."
+          : lang === "hi"
+          ? "आपकी कुंडली में कोई गंभीर कालसर्प, पितृ अथवा मांगलिक दोष नहीं है। शुभ ग्रहों की दृष्टि से आपका जीवन सुरक्षित एवं संरक्षित है।"
+          : "Your chart is blessed without severe natal doshas. Auspicious planetary combinations provide a divine protective shield.",
+        remedy: lang === "kn" ? "ನಿತ್ಯ ಶ್ರೀ ಗಾಯತ್ರೀ ಜಪ, ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದರ್ಶನ." : "Daily sacred prayer, Kuladevata worship, and temple gratitude offerings."
+      }];
+
   const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
     ? dataDoshas.doshas
-    : rawDoshasFallback;
+    : safeDoshaFallback;
   const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
     ...d,
     name: localizeDoshaName(d.name || "", lang),

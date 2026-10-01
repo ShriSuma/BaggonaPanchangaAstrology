@@ -74,6 +74,36 @@ import {
   type NatalPlacement,
   type TransitPlacement
 } from "../../features/premiumPdf/premiumPrompts";
+import { calculateComprehensiveDoshas } from "../../core/ComprehensiveDoshaEngine";
+
+export const getEngineDoshasFromKundli = (kundli: any, input: any, lang: string): any[] => {
+  try {
+    if (!kundli || !input) return [];
+    const report = calculateComprehensiveDoshas(kundli, input, new Date());
+    const detected = (report.doshas || []).filter((d) => d.isDetected && d.severity !== "none");
+    if (detected.length > 0) {
+      return detected.map((d) => {
+        const dName = d.name[lang] || d.name["kn"] || d.name["en"] || d.id;
+        const dWhy = d.technicalWhy[lang] || d.technicalWhy["kn"] || d.technicalWhy["en"] || "";
+        const dProblem = d.currentLifeProblems[lang] || d.currentLifeProblems["kn"] || d.currentLifeProblems["en"] || "";
+        const dImpact = d.lifeImpact[lang] || d.lifeImpact["kn"] || d.lifeImpact["en"] || "";
+        const dPooja = d.recommendedPooja[lang] || d.recommendedPooja["kn"] || d.recommendedPooja["en"] || "";
+        const dRemedyList = d.remedies[lang] || d.remedies["kn"] || d.remedies["en"] || [];
+        const fullRemedy = [dPooja, ...(Array.isArray(dRemedyList) ? dRemedyList.slice(0, 2) : [])].filter(Boolean).join(" | ");
+        return {
+          name: dName,
+          significance: `${dWhy} ${dProblem}`,
+          impact: [dWhy, dProblem || dImpact].filter(Boolean).join("\n\n"),
+          remedy: fullRemedy,
+          severity: d.severity
+        };
+      });
+    }
+  } catch (e) {
+    console.warn("[BhavishyaView] getEngineDoshasFromKundli error:", e);
+  }
+  return [];
+};
 
 /** `PlanetName` is a string enum, so it needs a nudge to become the locale key. */
 const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as GrahaKey;
@@ -2164,6 +2194,9 @@ Return ONLY this JSON format:
         ? `The chart carries ${affairResult.confidence}-confidence classical indicators of hidden romantic complexity (${affairResult.indicators.slice(0, 2).join("; ")}). Give this one short paragraph, framed as a karmic soul-pattern in dignified language. Never judgemental.`
         : `This chart shows no confirmed indicator of a secret relationship. Do not raise the subject at all.`;
 
+      const engineDoshaList = getEngineDoshasFromKundli(session.result, session.input, lang);
+      const effectiveEngineDoshas = engineDoshaList.length > 0 ? engineDoshaList : (result.aiGeneratedNarrative?.doshas ?? []);
+
       const prompts = buildPremiumPrompts({
         lang,
         runId,
@@ -2182,7 +2215,7 @@ Return ONLY this JSON format:
         bhuktiLord,
         bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
         engineYogas: result.aiGeneratedNarrative?.yogas ?? [],
-        engineDoshas: result.aiGeneratedNarrative?.doshas ?? [],
+        engineDoshas: effectiveEngineDoshas,
         pariharas: (result.pariharas ?? []).map(
           (p: any) => `${p.doshaName}: ${p.poojaName} (${p.whenToDo}, ${p.whereToDo})`
         ),
@@ -2196,9 +2229,9 @@ Return ONLY this JSON format:
         affairNote
       });
 
-      // Safe AI call with 5-attempt retry loop and strict 8.5-second timeout guard
+      // Safe AI call with 10-attempt retry loop and 25-second timeout guard
       const failedAiSectionsV1: string[] = [];
-      const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8500, maxAttempts = 5): Promise<string> => {
+      const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 25000, maxAttempts = 10): Promise<string> => {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
           try {
             const timeoutPromise = new Promise<string>((resolve) =>
@@ -2307,7 +2340,7 @@ Return ONLY this JSON format:
       ]);
       await new Promise(r => setTimeout(r, 150));
 
-      // Batch 5: Bhavishya Life Areas
+      // Batch 5: Bhavishya Life Areas (Individual Granular Prompts)
       setV1PdfProgress(70);
       setV1PdfStageText(
         pdfLanguage === "kn"
@@ -2322,21 +2355,48 @@ Return ONLY this JSON format:
         const resBhavishya = await callGeminiSafe("Generate Bhavishya Child Areas", prompts.bhavishya, 0.3);
         dataBhavishya = parseGeminiJSON(resBhavishya);
       } else {
-        const [resB1, resB2] = await Promise.all([
-          callGeminiSafe("Generate Marriage & Children", prompts.bhavishyaMarriageChildren || prompts.bhavishya, 0.3),
-          callGeminiSafe("Generate Career, Wealth & Health", prompts.bhavishyaCareerWealthHealth || prompts.bhavishya, 0.3)
+        const [resMarriage, resChildren, resCareer, resWealth, resHealth] = await Promise.all([
+          callGeminiSafe("Generate Marriage", prompts.bhavishyaMarriage || prompts.bhavishya, 0.3),
+          callGeminiSafe("Generate Children", prompts.bhavishyaChildren || prompts.bhavishya, 0.3),
+          callGeminiSafe("Generate Career", prompts.bhavishyaCareer || prompts.bhavishya, 0.3),
+          callGeminiSafe("Generate Wealth", prompts.bhavishyaWealth || prompts.bhavishya, 0.3),
+          callGeminiSafe("Generate Health", prompts.bhavishyaHealth || prompts.bhavishya, 0.3)
         ]);
-        const d1 = parseGeminiJSON(resB1);
-        const d2 = parseGeminiJSON(resB2);
+        const dMar = parseGeminiJSON(resMarriage);
+        const dChd = parseGeminiJSON(resChildren);
+        const dCar = parseGeminiJSON(resCareer);
+        const dWlh = parseGeminiJSON(resWealth);
+        const dHlt = parseGeminiJSON(resHealth);
         dataBhavishya = {
           bhavishya: {
-            marriage: d1?.bhavishya?.marriage || d2?.bhavishya?.marriage,
-            children: d1?.bhavishya?.children || d2?.bhavishya?.children,
-            career: d2?.bhavishya?.career || d1?.bhavishya?.career,
-            wealth: d2?.bhavishya?.wealth || d1?.bhavishya?.wealth,
-            health: d2?.bhavishya?.health || d1?.bhavishya?.health
+            marriage: dMar?.marriage || dMar?.bhavishya?.marriage,
+            children: dChd?.children || dChd?.bhavishya?.children,
+            career: dCar?.career || dCar?.bhavishya?.career,
+            wealth: dWlh?.wealth || dWlh?.bhavishya?.wealth,
+            health: dHlt?.health || dHlt?.bhavishya?.health
           }
         };
+      }
+
+      // 80% AI Threshold Guard: At least 80% of chapters must succeed from AI after 10 attempts
+      const totalExpectedAiSections = ageYears < 8 ? 11 : 13;
+      const failedCount = failedAiSectionsV1.length;
+      const successRate = ((totalExpectedAiSections - failedCount) / totalExpectedAiSections) * 100;
+      if (successRate < 80) {
+        const uniqueFailed = Array.from(new Set(failedAiSectionsV1));
+        const errorMsg = lang === "kn"
+          ? `AI ಸಂಭಾಷಣೆಯ ಕೆಲವು ಭಾಗಗಳು (${uniqueFailed.join(", ")}) ಭರ್ತಿಯಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.`
+          : lang === "hi"
+          ? `AI विश्लेषण के कुछ खंड (${uniqueFailed.join(", ")}) पूरे नहीं हो सके। कृपया पुनः प्रयास करें।`
+          : lang === "te"
+          ? `AI విశ్లేషణలోని కొన్ని విభాగాలు (${uniqueFailed.join(", ")}) పూర్తి కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.`
+          : lang === "ta"
+          ? `AI பகுப்பாய்வின் சில பகுதிகள் (${uniqueFailed.join(", ")}) முழுமையடையவில்லை. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.`
+          : `Some sections (${uniqueFailed.join(", ")}) were not filled with AI narration, please try again.`;
+        alert(errorMsg);
+        setIsGeneratingPremiumPdfV1(false);
+        setV1PdfProgress(0);
+        return;
       }
 
       setV1PdfProgress(80);
@@ -2561,14 +2621,25 @@ Return ONLY this JSON format:
         impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
       }));
 
-      const rawDoshasFallback = (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map((d: any) => ({
+      const rawDoshasFallback = (effectiveEngineDoshas.length > 0 ? effectiveEngineDoshas : (result.aiGeneratedNarrative?.doshas || [])).map((d: any) => ({
         name: localizeDoshaName(d.name || "Karmic Challenge", lang),
-        impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
-        remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
+        impact: asText(d.impact || d.significance),
+        remedy: d.remedy || ""
       }));
+
+      const safeDoshaFallback = rawDoshasFallback.length > 0
+        ? rawDoshasFallback
+        : [{
+            name: lang === "kn" ? "ಸರ್ವ ದೋಷ ಮುಕ್ತ & ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಕವಚ" : lang === "hi" ? "सर्व दोष मुक्त - शुभ ग्रह रक्षा कवच" : "Benefic Planetary Shield - Free of Major Doshas",
+            impact: lang === "kn"
+              ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಪಿತೃ, ಕಾಲಸರ್ಪ ಅಥವಾ ಬಾಲ್ಯದಾರಿಷ್ಟ ದೋಷಗಳಿಲ್ಲ. ಕೇಂದ್ರ ಮತ್ತು ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಲ್ಲಿ ಶುಭಗ್ರಹರ ಅನುಗ್ರಹವಿದ್ದು, ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಸದಾ ನಿಮ್ಮನ್ನು ಕಾಪಾಡುತ್ತದೆ."
+              : "Your chart is blessed without severe natal doshas. Auspicious planetary combinations provide a divine protective shield.",
+            remedy: lang === "kn" ? "ನಿತ್ಯ ಶ್ರೀ ಗಾಯತ್ರೀ ಜಪ, ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದರ್ಶನ." : "Daily sacred prayer, Kuladevata worship, and temple gratitude offerings."
+          }];
+
       const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
         ? dataDoshas.doshas
-        : rawDoshasFallback;
+        : safeDoshaFallback;
       const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
         ...d,
         name: localizeDoshaName(d.name || "", lang),

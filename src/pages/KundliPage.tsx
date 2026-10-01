@@ -39,6 +39,7 @@ import { localizeNarrativeText } from "../services/localizeContent";
 import { BalaVidyaSuite } from "../components/kundli/BalaVidyaSuite";
 import { KundliRemedyView } from "../components/kundli/KundliRemedyView";
 import { KundliRemedyPdfTemplate } from "../components/kundli/KundliRemedyPdfTemplate";
+import { Kundli30DayQrCard, type KundliQrProfile } from "../components/kundli/Kundli30DayQrCard";
 import { generateKundliRemedyReport } from "../features/remedies/kundliRemedyEngine";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
 import { formatPickerDateLocalYmd } from "../core/birthTime";
@@ -101,11 +102,22 @@ export default function KundliPage(): JSX.Element {
   const [isGeneratingPremiumBundle, setIsGeneratingPremiumBundle] = useState(false);
   const [bundleProgress, setBundleProgress] = useState(0);
   const [bundleStageText, setBundleStageText] = useState("");
+  const [isPackageSelectModalOpen, setIsPackageSelectModalOpen] = useState(false);
   const [bundleModalOpen, setBundleModalOpen] = useState(false);
+  const [packageSelectedItems, setPackageSelectedItems] = useState({
+    kundli: true,
+    remedy: true,
+    bhavishya: true,
+    qrCalendar: true
+  });
+  const [priestNameInput, setPriestNameInput] = useState<string>("ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+  const [priestPhoneInput, setPriestPhoneInput] = useState<string>("9972339362");
+
   const [bundleDownloadedPdfs, setBundleDownloadedPdfs] = useState<{
     panchanga?: { blob: Blob; fileName: string; url: string };
     remedy?: { blob: Blob; fileName: string; url: string };
     bhavishya?: { blob: Blob; fileName: string; url: string };
+    qrCalendar?: { blob: Blob; fileName: string; url: string };
     zip?: { blob: Blob; fileName: string; url: string };
   } | null>(null);
   const [premiumBhavishyaPayload, setPremiumBhavishyaPayload] = useState<BhavishyaV1Payload | null>(null);
@@ -751,150 +763,226 @@ export default function KundliPage(): JSX.Element {
     }
   };
 
-  const handlePremiumDownload = async () => {
+  const qrCardProfile: KundliQrProfile = useMemo(() => {
+    const moon = result?.planets.find((p: any) => p.name === "Moon");
+    const dashaTimeline = dasha && dasha.length > 0 ? dasha : (result ? generateDashaTimeline(result) : []);
+    const activeDasha = dashaTimeline?.[0]?.planet || "";
+    const lagnaLabel = result?.lagnaRashi ? (t(`rashis.${result.lagnaRashi.sanskrit}` as any) || result.lagnaRashi.english) : "";
+    const moonSignLabel = result?.moonSign ? (t(`rashis.${result.moonSign.sanskrit}` as any) || result.moonSign.english) : "";
+    const moonNakLabel = moon?.nakshatra ? (t(`nakshatras.${moon.nakshatra.sanskrit}` as any) || moon.nakshatra.english) : "";
+    const moonPadaNum = result?.moonPada ?? 1;
+
+    return {
+      name: form.name || "Devotee",
+      birthDate: effectiveSession?.birthDateYmd || form.birthDate || "",
+      birthTime: effectiveSession?.birthTimeHm || form.birthTime || "",
+      lagnaSign: lagnaLabel,
+      lagnaSanskrit: result?.lagnaRashi?.sanskrit || "",
+      moonSign: moonSignLabel,
+      moonSanskrit: result?.moonSign?.sanskrit || "",
+      moonNakshatra: moonNakLabel,
+      moonPada: `ಪಾದ ${moonPadaNum}`,
+      currentMahadasha: activeDasha,
+      currentBhukti: activeDasha
+    };
+  }, [form, result, dasha, effectiveSession, t]);
+
+  const handleOpenPackageSelection = () => {
+    if (!result || !birthDatePicker || !birthTimeHm.trim()) return;
+    setIsPackageSelectModalOpen(true);
+  };
+
+  const handleConfirmPremiumBundleDownload = async () => {
     if (!result || !birthDatePicker || !birthTimeHm.trim() || isGeneratingPremiumBundle) return;
+
+    const atLeastOne =
+      packageSelectedItems.kundli ||
+      packageSelectedItems.remedy ||
+      packageSelectedItems.bhavishya ||
+      packageSelectedItems.qrCalendar;
+
+    if (!atLeastOne) {
+      alert(
+        i18n.language.startsWith("kn")
+          ? "ದಯವಿಟ್ಟು ಕನಿಷ್ಠ ಒಂದು ದಾಖಲೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ."
+          : "Please select at least one document to include in the package."
+      );
+      return;
+    }
+
+    setIsPackageSelectModalOpen(false);
     setIsGeneratingPremiumBundle(true);
     setBundleProgress(5);
     setBundleModalOpen(true);
     setBundleDownloadedPdfs(null);
 
     const safeName = (form.name || "Devotee").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
+    const safePriest = (priestNameInput || "Shreeram_Pandit").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
+    const todayStr = new Date().toISOString().slice(0, 10);
     const langNames: Record<string, string> = { kn: "Kannada", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
     const langName = langNames[pdfLanguage] || "Kannada";
 
+    const zip = new JSZip();
+    let pdf1Blob: Blob | null = null;
+    let pdf2Blob: Blob | null = null;
+    let pdf3Blob: Blob | null = null;
+    let pdf4Blob: Blob | null = null;
+
+    const pdf1FileName = `1_Baggona_Janana_Kundali_${langName}_${safeName}.pdf`;
+    const pdf2FileName = `2_Baggona_Daivika_Parihara_${langName}_${safeName}.pdf`;
+    const pdf3FileName = `3_Baggona_Divya_Bhavishya_V1_${langName}_${safeName}.pdf`;
+    const pdf4FileName = `4_Baggona_30Day_Muhurtha_QR_${langName}_${safeName}.pdf`;
+
     try {
       // 1. Baggona Janana Kundali & Dasha PDF
-      setBundleProgress(15);
-      setBundleStageText(
-        pdfLanguage === "kn"
-          ? "೧/೩ ಜನನ ಕುಂಡಲಿ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿ ಪಿಡಿಎಫ್ ರಚನೆ..."
-          : pdfLanguage === "hi"
-          ? "1/3 जन्म कुंडली एवं दशा-भुक्ति पीडीएफ निर्माण..."
-          : "1/3 Generating Baggona Janana Kundali & Dasha PDF..."
-      );
+      if (packageSelectedItems.kundli) {
+        setBundleProgress(15);
+        setBundleStageText(
+          pdfLanguage === "kn"
+            ? "೧/೪ ಜನನ ಕುಂಡಲಿ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿ ಪಿಡಿಎಫ್ ರಚನೆ..."
+            : pdfLanguage === "hi"
+            ? "1/4 जन्म कुंडली एवं दशा-भुक्ति पीडीएफ निर्माण..."
+            : "1/4 Generating Baggona Janana Kundali & Dasha PDF..."
+        );
 
-      const el = traditionalExportRef.current;
-      const dashaEl = dashaExportRef.current;
+        const el = traditionalExportRef.current;
+        const dashaEl = dashaExportRef.current;
 
-      if (pdfLanguage !== "kn" && traditionalData) {
-        const yoniMeta = import_patrikaMetaForNakshatraIndex(result.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
-        const keys = [
-          "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
-          "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
-        ];
-        const texts = [
-          traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
-          traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
-          yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
-        ];
-        const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
-        const newVals: Record<string, string> = {};
-        keys.forEach((k, i) => newVals[k] = translated[i]);
-        setDynamicValues(newVals);
-        await new Promise(r => setTimeout(r, 400));
-      }
+        if (pdfLanguage !== "kn" && traditionalData) {
+          const yoniMeta = import_patrikaMetaForNakshatraIndex(result.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
+          const keys = [
+            "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
+            "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
+          ];
+          const texts = [
+            traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
+            traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
+            yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
+          ];
+          const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
+          const newVals: Record<string, string> = {};
+          keys.forEach((k, i) => newVals[k] = translated[i]);
+          setDynamicValues(newVals);
+          await new Promise(r => setTimeout(r, 400));
+        }
 
-      let pdf1Blob: Blob | null = null;
-      const pdf1FileName = `1_Baggona_Janana_Kundali_${langName}_${safeName}.pdf`;
-
-      if (el && dashaEl) {
-        const pdf1 = await exportPanchangaWithDashaPdf(el, dashaEl, pdf1FileName.replace(/\.pdf$/, ""), false);
-        pdf1Blob = pdf1.output("blob");
-      } else if (el) {
-        const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#fffdf8", logging: false });
-        const pngData = canvas.toDataURL("image/jpeg", 0.75);
-        const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
-        const pageW = pdf.internal.pageSize.getWidth();
-        const pageH = pdf.internal.pageSize.getHeight();
-        const margin = 36;
-        const drawW = pageW - margin * 2;
-        const drawH = (canvas.height * drawW) / canvas.width;
-        pdf.addImage(pngData, "JPEG", margin, margin, drawW, Math.min(drawH, pageH - margin * 2));
-        pdf1Blob = pdf.output("blob");
+        if (el && dashaEl) {
+          const pdf1 = await exportPanchangaWithDashaPdf(el, dashaEl, pdf1FileName.replace(/\.pdf$/, ""), false);
+          pdf1Blob = pdf1.output("blob");
+        } else if (el) {
+          const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#fffdf8", logging: false });
+          const pngData = canvas.toDataURL("image/jpeg", 0.75);
+          const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
+          const pageW = pdf.internal.pageSize.getWidth();
+          const pageH = pdf.internal.pageSize.getHeight();
+          const margin = 36;
+          const drawW = pageW - margin * 2;
+          const drawH = (canvas.height * drawW) / canvas.width;
+          pdf.addImage(pngData, "JPEG", margin, margin, drawW, Math.min(drawH, pageH - margin * 2));
+          pdf1Blob = pdf.output("blob");
+        }
       }
 
       // 2. Daivika Parihara Remedy PDF
-      setBundleProgress(35);
-      setBundleStageText(
-        pdfLanguage === "kn"
-          ? "೨/೩ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ..."
-          : pdfLanguage === "hi"
-          ? "2/3 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण..."
-          : "2/3 Generating Daivika Parihara Remedy Report PDF..."
-      );
+      if (packageSelectedItems.remedy) {
+        setBundleProgress(35);
+        setBundleStageText(
+          pdfLanguage === "kn"
+            ? "೨/೪ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ..."
+            : pdfLanguage === "hi"
+            ? "2/4 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण..."
+            : "2/4 Generating Daivika Parihara Remedy Report PDF..."
+        );
 
-      setRemedyPdfLanguage(pdfLanguage);
-      await new Promise(r => setTimeout(r, 400));
+        setRemedyPdfLanguage(pdfLanguage);
+        await new Promise(r => setTimeout(r, 400));
 
-      const pdf2FileName = `2_Baggona_Daivika_Parihara_${langName}_${safeName}.pdf`;
-      const pdf2 = await generatePDFFromElement("kundli-remedy-pdf-container", pdf2FileName, false);
-      const pdf2Blob = pdf2.output("blob");
-
-      // 3. Baggona Divya Bhavishya V1 PDF
-      setBundleProgress(55);
-      setBundleStageText(
-        pdfLanguage === "kn"
-          ? "೩/೩ ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 ಸಮಗ್ರ ೧೦-ಅಧ್ಯಾಯಗಳ ಗಣನೆ..."
-          : pdfLanguage === "hi"
-          ? "3/3 बग्गोण दिव्य भविष्य V1 संपूर्ण १०-अध्यायों का विश्लेषण..."
-          : "3/3 Preparing Baggona Divya Bhavishya V1 (10 Chapters)..."
-      );
-
-      if (!effectiveSession) throw new Error("Kundli session not available");
-
-      const geminiKey = useAppStore.getState().geminiApiKey || "";
-      const bhavishyaPayload = await prepareBhavishyaV1Data(
-        effectiveSession,
-        pdfLanguage,
-        geminiKey,
-        {
-          maritalStatus: form.maritalStatus || "general",
-          childrenStatus: "general"
-        },
-        (progress, stageText) => {
-          const scaled = 55 + Math.floor((progress / 100) * 35);
-          setBundleProgress(scaled);
-          setBundleStageText(stageText);
-        }
-      );
-
-      setPremiumBhavishyaPayload(bhavishyaPayload);
-      await new Promise(r => setTimeout(r, 1200));
-
-      if (!premiumBhavishyaPdfRef.current) {
-        throw new Error("Bhavishya PDF container not found");
+        const pdf2 = await generatePDFFromElement("kundli-remedy-pdf-container", pdf2FileName, false);
+        pdf2Blob = pdf2.output("blob");
       }
 
-      setBundleProgress(92);
+      // 3. Baggona Divya Bhavishya V1 PDF
+      if (packageSelectedItems.bhavishya) {
+        setBundleProgress(55);
+        setBundleStageText(
+          pdfLanguage === "kn"
+            ? "೩/೪ ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 ಸಮಗ್ರ ೧೦-ಅಧ್ಯಾಯಗಳ ಗಣನೆ..."
+            : pdfLanguage === "hi"
+            ? "3/4 बग्गोण दिव्य भविष्य V1 संपूर्ण १०-अध्यायों का विश्लेषण..."
+            : "3/4 Preparing Baggona Divya Bhavishya V1 (10 Chapters)..."
+        );
+
+        if (!effectiveSession) throw new Error("Kundli session not available");
+
+        const geminiKey = useAppStore.getState().geminiApiKey || "";
+        const bhavishyaPayload = await prepareBhavishyaV1Data(
+          effectiveSession,
+          pdfLanguage,
+          geminiKey,
+          {
+            maritalStatus: form.maritalStatus || "general",
+            childrenStatus: "general"
+          },
+          (progress, stageText) => {
+            const scaled = 55 + Math.floor((progress / 100) * 25);
+            setBundleProgress(scaled);
+            setBundleStageText(stageText);
+          }
+        );
+
+        setPremiumBhavishyaPayload(bhavishyaPayload);
+        await new Promise(r => setTimeout(r, 1200));
+
+        if (!premiumBhavishyaPdfRef.current) {
+          throw new Error("Bhavishya PDF container not found");
+        }
+
+        setBundleProgress(80);
+        setBundleStageText(
+          pdfLanguage === "kn"
+            ? "ಅಧಿಕೃತ ಭವಿಷ್ಯ ಮುದ್ರಣ ಪುಟಗಳ ವಿನ್ಯಾಸ..."
+            : pdfLanguage === "hi"
+            ? "आधिकारिक भविष्य मुद्रण पृष्ठ निर्माण..."
+            : "Rendering High-Resolution Baggona Bhavishya V1 Document..."
+        );
+
+        const pdf3 = await captureBhavishyaV1Pdf(premiumBhavishyaPdfRef.current, pdf3FileName, false);
+        pdf3Blob = pdf3.output("blob");
+      }
+
+      // 4. Next 30-Day Auspicious Calendar QR Card PDF
+      if (packageSelectedItems.qrCalendar) {
+        setBundleProgress(88);
+        setBundleStageText(
+          pdfLanguage === "kn"
+            ? "೪/೪ ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ ಮುದ್ರಣ..."
+            : pdfLanguage === "hi"
+            ? "4/4 अगले ३०-दिनों का मुहूर्त क्यूआर कार्ड निर्माण..."
+            : "4/4 Generating 30-Day Auspicious Calendar QR Card PDF..."
+        );
+
+        await new Promise(r => setTimeout(r, 600));
+        const pdf4 = await generatePDFFromElement("kundli-30day-qr-container", pdf4FileName, false);
+        pdf4Blob = pdf4.output("blob");
+      }
+
+      // 5. Packaging into ZIP
+      setBundleProgress(95);
       setBundleStageText(
         pdfLanguage === "kn"
-          ? "ಅಧಿಕೃತ ಭವಿಷ್ಯ ಮುದ್ರಣ ಪುಟಗಳ ವಿನ್ಯಾಸ..."
+          ? "ಆಯ್ಕೆಮಾಡಿದ ಎಲ್ಲಾ ಪಿಡಿಎಫ್‌ಗಳನ್ನು ಜಿಪ್ ಕಡತವಾಗಿ ಸಂಯೋಜಿಸಲಾಗುತ್ತಿದೆ..."
           : pdfLanguage === "hi"
-          ? "आधिकारिक भविष्य मुद्रण पृष्ठ निर्माण..."
-          : "Rendering High-Resolution Baggona Bhavishya V1 Document..."
+          ? "चयनित सभी आधिकारिक पीडीएफ का ज़िप बंडल तैयार हो रहा है..."
+          : "Packaging selected PDFs into a single ZIP bundle..."
       );
 
-      const pdf3FileName = `3_Baggona_Divya_Bhavishya_V1_${langName}_${safeName}.pdf`;
-      const pdf3 = await captureBhavishyaV1Pdf(premiumBhavishyaPdfRef.current, pdf3FileName, false);
-      const pdf3Blob = pdf3.output("blob");
-
-      // 4. Packaging into ZIP
-      setBundleProgress(96);
-      setBundleStageText(
-        pdfLanguage === "kn"
-          ? "ಎಲ್ಲಾ ೩ ಪಿಡಿಎಫ್‌ಗಳನ್ನು ಜಿಪ್ ಕಡತವಾಗಿ ಸಂಯೋಜಿಸಲಾಗುತ್ತಿದೆ..."
-          : pdfLanguage === "hi"
-          ? "तीनों आधिकारिक पीडीएफ का ज़िप बंडल तैयार हो रहा है..."
-          : "Packaging all 3 PDFs into a single ZIP bundle..."
-      );
-
-      const zip = new JSZip();
       if (pdf1Blob) zip.file(pdf1FileName, pdf1Blob);
       if (pdf2Blob) zip.file(pdf2FileName, pdf2Blob);
       if (pdf3Blob) zip.file(pdf3FileName, pdf3Blob);
+      if (pdf4Blob) zip.file(pdf4FileName, pdf4Blob);
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
-      const zipFileName = `Baggona_Premium_Bundle_${langName}_${safeName}.zip`;
+      const zipFileName = `${safeName}_${safePriest}_${todayStr}.zip`;
 
       const zipUrl = URL.createObjectURL(zipBlob);
       const a = document.createElement("a");
@@ -908,8 +996,9 @@ export default function KundliPage(): JSX.Element {
 
       setBundleDownloadedPdfs({
         panchanga: pdf1Blob ? { blob: pdf1Blob, fileName: pdf1FileName, url: URL.createObjectURL(pdf1Blob) } : undefined,
-        remedy: { blob: pdf2Blob, fileName: pdf2FileName, url: URL.createObjectURL(pdf2Blob) },
-        bhavishya: { blob: pdf3Blob, fileName: pdf3FileName, url: URL.createObjectURL(pdf3Blob) },
+        remedy: pdf2Blob ? { blob: pdf2Blob, fileName: pdf2FileName, url: URL.createObjectURL(pdf2Blob) } : undefined,
+        bhavishya: pdf3Blob ? { blob: pdf3Blob, fileName: pdf3FileName, url: URL.createObjectURL(pdf3Blob) } : undefined,
+        qrCalendar: pdf4Blob ? { blob: pdf4Blob, fileName: pdf4FileName, url: URL.createObjectURL(pdf4Blob) } : undefined,
         zip: { blob: zipBlob, fileName: zipFileName, url: zipUrl }
       });
 
@@ -929,6 +1018,8 @@ export default function KundliPage(): JSX.Element {
       setIsGeneratingPremiumBundle(false);
     }
   };
+
+  const handlePremiumDownload = handleOpenPackageSelection;
 
   const narrativeUrlConfigured = Boolean(import.meta.env.VITE_NARRATIVE_API_URL);
   const narrativeReady = narrativeConsent && narrativeUrlConfigured;
@@ -1636,13 +1727,13 @@ export default function KundliPage(): JSX.Element {
                           ? `${bundleProgress}% ${i18n.language.startsWith("kn") ? "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating..."}`
                           : i18n.language.startsWith("kn")
                           ? "ಪ್ರೀಮಿಯಂ ಡೌನ್‌ಲೋಡ್ (Premium Download)"
-                          : "Premium Download (All 3 PDFs)"}
+                          : "Premium Download (ZIP Package)"}
                       </span>
                     </div>
                     <span className="text-xs font-semibold text-amber-100/90 tracking-normal text-center">
                       {i18n.language.startsWith("kn")
-                        ? "ಜನನ ಕುಂಡಲಿ + ದೈವಿಕ ಪರಿಹಾರ + ದಿವ್ಯ ಭವಿಷ್ಯ (೧-ಕ್ಲಿಕ್ ZIP ಬಂಡಲ್)"
-                        : "Janana Kundali + Divine Remedies + Divya Bhavishya (1-Click ZIP)"}
+                        ? "ಕುಂಡಲಿ + ಪರಿಹಾರ + ದಿವ್ಯ ಭವಿಷ್ಯ + 30-ದಿನಗಳ ಮುಹೂರ್ತ QR (ZIP ಪ್ಯಾಕೇಜ್)"
+                        : "Kundli + Remedies + Bhavishya + 30-Day QR (ZIP Package)"}
                     </span>
                   </button>
 
@@ -1873,6 +1964,192 @@ export default function KundliPage(): JSX.Element {
         </div>
       )}
 
+      {/* Royal Baggona Premium ZIP Package Document Selector Modal */}
+      {isPackageSelectModalOpen && (
+        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
+          <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 p-6 md:p-8 text-white shadow-2xl border-2 border-amber-500/50 space-y-5">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-amber-500/20 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">📦</span>
+                <div>
+                  <h3 className="text-lg md:text-xl font-extrabold text-amber-300">
+                    {i18n.language.startsWith("kn") ? "ಪ್ರೀಮಿಯಂ ಜಿಪ್ ಬಂಡಲ್ ಆಯ್ಕೆ" : "Select Documents for ZIP Bundle"}
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    {form.name || "Devotee"} · {pdfLanguage.toUpperCase()}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPackageSelectModalOpen(false)}
+                className="rounded-full w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-amber-100/90 bg-amber-950/40 border border-amber-500/30 rounded-xl p-3">
+              {i18n.language.startsWith("kn")
+                ? "ಜಿಪ್ (ZIP) ಕಡತದಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಇಚ್ಛಿಸುವ ಅಧಿಕೃತ ದಾಖಲೆಗಳನ್ನು ಕೆಳಗೆ ಆಯ್ಕೆಮಾಡಿ:"
+                : "Select the official documents you wish to include in the ZIP download package:"}
+            </p>
+
+            {/* Checkbox Items */}
+            <div className="space-y-3">
+              {/* Item 1: Kundli & Dasha */}
+              <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                <input
+                  type="checkbox"
+                  checked={packageSelectedItems.kundli}
+                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, kundli: e.target.checked }))}
+                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
+                />
+                <div className="text-left text-xs">
+                  <p className="font-bold text-amber-200 text-sm">
+                    {i18n.language.startsWith("kn") ? "೧. ಜನನ ಕುಂಡಲಿ & ದಶಾ-ಭುಕ್ತಿ (PDF)" : "1. Janana Kundali & Dasha (PDF)"}
+                  </p>
+                  <p className="text-slate-300 mt-0.5">
+                    {i18n.language.startsWith("kn")
+                      ? "ಸಮಗ್ರ ಗ್ರಹ ಸ್ಥಿತಿ, ನಕ್ಷತ್ರ-ಪಾದ, ಪಂಚಾಂಗ ಅಂಗಗಳು ಮತ್ತು ವಿಂಶೋತ್ತರಿ ದಶಾ-ಭುಕ್ತಿ ವಿವರಗಳು"
+                      : "Complete planetary positions, Panchanga details, and 120-year Vimshottari Dasha-Bhukti"}
+                  </p>
+                </div>
+              </label>
+
+              {/* Item 2: Daivika Parihara Remedies */}
+              <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                <input
+                  type="checkbox"
+                  checked={packageSelectedItems.remedy}
+                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, remedy: e.target.checked }))}
+                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
+                />
+                <div className="text-left text-xs">
+                  <p className="font-bold text-amber-200 text-sm">
+                    {i18n.language.startsWith("kn") ? "೨. ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (PDF)" : "2. Daivika Parihara Remedy Report (PDF)"}
+                  </p>
+                  <p className="text-slate-300 mt-0.5">
+                    {i18n.language.startsWith("kn")
+                      ? "ಅಧಿಕೃತ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರಗಳು, ಸ್ತೋತ್ರಗಳು, ಮಂತ್ರಗಳು ಹಾಗೂ ಜಪ ವಿಧಾನಗಳು"
+                      : "Authentic temple remedies, shlokas, mantras, and personalized ritual guidelines"}
+                  </p>
+                </div>
+              </label>
+
+              {/* Item 3: Divya Bhavishya V1 */}
+              <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                <input
+                  type="checkbox"
+                  checked={packageSelectedItems.bhavishya}
+                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, bhavishya: e.target.checked }))}
+                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
+                />
+                <div className="text-left text-xs">
+                  <p className="font-bold text-amber-200 text-sm">
+                    {i18n.language.startsWith("kn") ? "೩. ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 - ೧೦ ಅಧ್ಯಾಯಗಳು (PDF)" : "3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)"}
+                  </p>
+                  <p className="text-slate-300 mt-0.5">
+                    {i18n.language.startsWith("kn")
+                      ? "೧೦೦% ಅಧಿಕೃತ AI ನಿರೂಪಣೆ, ಜೀವನದ ೧೦ ಹಂತಗಳ ಸಮಗ್ರ ಭವಿಷ್ಯ ಹಾಗೂ ಪರಿಹಾರಗಳು"
+                      : "100% dynamic AI narrative across 10 life stages with emotional depth & Vedic precision"}
+                  </p>
+                </div>
+              </label>
+
+              {/* Item 4: 30-Day Auspicious Calendar QR Card */}
+              <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                <input
+                  type="checkbox"
+                  checked={packageSelectedItems.qrCalendar}
+                  onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, qrCalendar: e.target.checked }))}
+                  className="mt-1 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400"
+                />
+                <div className="text-left text-xs">
+                  <p className="font-bold text-amber-200 text-sm">
+                    {i18n.language.startsWith("kn") ? "೪. ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ (PDF)" : "4. Next 30-Day Auspicious Calendar QR Card (PDF)"}
+                  </p>
+                  <p className="text-slate-300 mt-0.5">
+                    {i18n.language.startsWith("kn")
+                      ? "ದಿನನಿತ್ಯದ ಶುಭ ಮುಹೂರ್ತಗಳು, ಗೋಚಾರ ಫಲಗಳು & ಪೂಜ್ಯ ಪುರೋಹಿತರೊಂದಿಗೆ ನೇರ ಸಂಪರ್ಕ QR"
+                      : "Personalized 30-day auspicious calendar with instant priest consultation QR link"}
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* Conditional Priest Input Fields when Item 4 (QR Calendar) is checked */}
+            {packageSelectedItems.qrCalendar && (
+              <div className="rounded-2xl bg-gradient-to-r from-amber-950/40 via-amber-900/30 to-amber-950/40 border border-amber-500/40 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-amber-300 text-xs font-bold">
+                  <span>📿</span>
+                  <span>
+                    {i18n.language.startsWith("kn")
+                      ? "ಪೂಜ್ಯ ಪುರೋಹಿತರ ವಿವರಗಳು (Priest Details for QR Consultation)"
+                      : "Priest Details for QR Consultation"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-100/80 leading-relaxed">
+                  {i18n.language.startsWith("kn")
+                    ? "QR ಕಾರ್ಡ್‌ನಲ್ಲಿ ಭಕ್ತರು ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಸಂಪರ್ಕಿಸಲು ಪುರೋಹಿತರ ಹೆಸರು ಮತ್ತು ದೂರವಾಣಿ ಸಂಖ್ಯೆ ಮುದ್ರಿತವಾಗುತ್ತದೆ:"
+                    : "The priest name and contact number will be printed on the QR card for devotee guidance:"}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      {i18n.language.startsWith("kn") ? "ಪುರೋಹಿತರ ಹೆಸರು (Priest Name)" : "Priest Name"}
+                    </label>
+                    <input
+                      type="text"
+                      value={priestNameInput}
+                      onChange={(e) => setPriestNameInput(e.target.value)}
+                      placeholder="Shreeram Pandit"
+                      className="w-full rounded-xl bg-slate-900/90 border border-amber-500/40 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                      {i18n.language.startsWith("kn") ? "ದೂರವಾಣಿ / WhatsApp ಸಂಖ್ಯೆ" : "Phone / WhatsApp"}
+                    </label>
+                    <input
+                      type="text"
+                      value={priestPhoneInput}
+                      onChange={(e) => setPriestPhoneInput(e.target.value)}
+                      placeholder="9972339362"
+                      className="w-full rounded-xl bg-slate-900/90 border border-amber-500/40 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer Buttons */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsPackageSelectModalOpen(false)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
+              >
+                {i18n.language.startsWith("kn") ? "ರದ್ದುಗೊಳಿಸಿ (Cancel)" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmPremiumBundleDownload}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              >
+                <span>📦</span>
+                <span>
+                  {i18n.language.startsWith("kn")
+                    ? "ಆಯ್ಕೆಮಾಡಿದ ಕಡತಗಳ ZIP ಡೌನ್‌ಲೋಡ್"
+                    : "Download Selected Documents ZIP"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Royal Baggona Premium Bundle Progress & Result Modal */}
       {bundleModalOpen && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
@@ -1920,28 +2197,42 @@ export default function KundliPage(): JSX.Element {
 
                 {/* Checklist */}
                 <div className="bg-slate-950/60 rounded-2xl p-4 border border-slate-800 space-y-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span>{bundleProgress >= 35 ? "✅" : "⏳"}</span>
-                    <span className={bundleProgress >= 35 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                      1. Baggona Janana Kundali & Dasha (PDF)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>{bundleProgress >= 55 ? "✅" : "⏳"}</span>
-                    <span className={bundleProgress >= 55 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                      2. Daivika Parihara Remedies Report (PDF)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>{bundleProgress >= 92 ? "✅" : "⏳"}</span>
-                    <span className={bundleProgress >= 92 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                      3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)
-                    </span>
-                  </div>
+                  {packageSelectedItems.kundli && (
+                    <div className="flex items-center gap-2">
+                      <span>{bundleProgress >= 35 ? "✅" : "⏳"}</span>
+                      <span className={bundleProgress >= 35 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                        1. Baggona Janana Kundali & Dasha (PDF)
+                      </span>
+                    </div>
+                  )}
+                  {packageSelectedItems.remedy && (
+                    <div className="flex items-center gap-2">
+                      <span>{bundleProgress >= 55 ? "✅" : "⏳"}</span>
+                      <span className={bundleProgress >= 55 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                        2. Daivika Parihara Remedies Report (PDF)
+                      </span>
+                    </div>
+                  )}
+                  {packageSelectedItems.bhavishya && (
+                    <div className="flex items-center gap-2">
+                      <span>{bundleProgress >= 80 ? "✅" : "⏳"}</span>
+                      <span className={bundleProgress >= 80 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                        3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)
+                      </span>
+                    </div>
+                  )}
+                  {packageSelectedItems.qrCalendar && (
+                    <div className="flex items-center gap-2">
+                      <span>{bundleProgress >= 90 ? "✅" : "⏳"}</span>
+                      <span className={bundleProgress >= 90 ? "text-amber-200 font-semibold" : "text-slate-400"}>
+                        4. Next 30-Day Auspicious Calendar QR Card (PDF)
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <span>{bundleProgress >= 100 ? "✅" : "⏳"}</span>
                     <span className={bundleProgress >= 100 ? "text-amber-200 font-semibold" : "text-slate-400"}>
-                      4. High-Compression ZIP Bundle Packaging
+                      5. High-Compression ZIP Bundle Packaging
                     </span>
                   </div>
                 </div>
@@ -1958,8 +2249,8 @@ export default function KundliPage(): JSX.Element {
                   </h4>
                   <p className="text-xs text-emerald-200/80 mt-1">
                     {i18n.language.startsWith("kn")
-                      ? "ಎಲ್ಲಾ ೩ ಅಧಿಕೃತ ಪಿಡಿಎಫ್‌ಗಳನ್ನು ಒಳಗೊಂಡ ZIP ಕಡತ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ. ಅಗತ್ಯವಿದ್ದಲ್ಲಿ ಪ್ರತ್ಯೇಕ ಪಿಡಿಎಫ್‌ಗಳನ್ನೂ ಕೆಳಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಕೊಳ್ಳಬಹುದು:"
-                      : "All 3 official PDFs are saved in your ZIP bundle. You can also download each individual PDF below:"}
+                      ? "ಆಯ್ಕೆಮಾಡಿದ ಎಲ್ಲಾ ಅಧಿಕೃತ ದಾಖಲೆಗಳು ZIP ಕಡತದಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ. ಅಗತ್ಯವಿದ್ದಲ್ಲಿ ಪ್ರತ್ಯೇಕ ಪಿಡಿಎಫ್‌ಗಳನ್ನೂ ಕೆಳಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಕೊಳ್ಳಬಹುದು:"
+                      : "All selected official documents are saved in your ZIP bundle. You can also download each individual PDF below:"}
                   </p>
                 </div>
 
@@ -2032,6 +2323,23 @@ export default function KundliPage(): JSX.Element {
                       <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
                     </a>
                   )}
+
+                  {bundleDownloadedPdfs.qrCalendar && (
+                    <a
+                      href={bundleDownloadedPdfs.qrCalendar.url}
+                      download={bundleDownloadedPdfs.qrCalendar.fileName}
+                      className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-amber-200 text-xs font-bold transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>📱</span>
+                        <div className="text-left">
+                          <p className="font-semibold text-white">೪. ಮುಂದಿನ 30-ದಿನಗಳ ಮುಹೂರ್ತ QR ಕಾರ್ಡ್ (PDF)</p>
+                          <p className="text-[10px] text-slate-400 font-normal">{bundleDownloadedPdfs.qrCalendar.fileName}</p>
+                        </div>
+                      </div>
+                      <span className="text-amber-400 text-xs">ಡೌನ್‌ಲೋಡ್ ⬇️</span>
+                    </a>
+                  )}
                 </div>
 
                 <div className="pt-2 flex justify-center">
@@ -2056,6 +2364,33 @@ export default function KundliPage(): JSX.Element {
           onClose={() => setIsDevoteeSearchModalOpen(false)}
           onSelect={handleSelectDevoteeFromDb}
         />
+      )}
+
+      {/* Hidden Container for 30-Day Auspicious Calendar QR Card PDF Generation */}
+      {result && (
+        <div
+          id="kundli-30day-qr-container"
+          style={{
+            position: "fixed",
+            left: 0,
+            top: 0,
+            width: 794,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -1,
+            overflow: "hidden",
+            height: 0
+          }}
+        >
+          <Kundli30DayQrCard
+            profile={qrCardProfile}
+            lang={pdfLanguage}
+            panditName={priestNameInput || "Shreeram Pandit"}
+            priestPhone={priestPhoneInput || "9972339362"}
+            placeLabel={homePlaceName.trim() || locationCore || "Gokarna"}
+            pincode="581326"
+          />
+        </div>
       )}
 
     </Card>
