@@ -85,6 +85,8 @@ export type PremiumPromptInput = {
   roadmap: { month: string; prediction: string }[];
 
   affairNote: string;
+  maandiHouse?: number | null;
+  maandiRashiIndex?: number | null;
 };
 
 const rashiName = (index: number | null, lang: string): string =>
@@ -776,6 +778,31 @@ Write TWO TO THREE (2-3) DEEPLY PERSONAL AND INSPIRING PARAGRAPHS synthesizing t
 ${JSON_RULE}
 {"summary":[{"impact":"two or three paragraphs"}]}`;
 
+  const mHouse = input.maandiHouse || 1;
+  const mRashiStr = rashiName(input.maandiRashiIndex ?? null, lang);
+
+  const maandiInquest = `${header(
+    input,
+    "maandiInquest",
+    "You are an enlightened, compassionate Vedic master astrologer providing an emotionally touching, deeply personal karmic soul inquest for devotee " + input.name + "."
+  )}
+CRITICAL MANDATE - READ WITH UTMOST CARE:
+1. STRICTLY FORBIDDEN WORDS: NEVER use the word "Maandi" or "Gulika" or "Upagraha" anywhere in the heading or narrative. Do NOT state that this section is caused by a shadow planet or astrological entity.
+2. DYNAMIC TITLE: Create an evocative, empowering, and deeply personalized title in the target language (${lang}) that mirrors ${input.name}'s real-life perspective and soul journey (for example: based on their ${mHouse}th house themes like inner resilience, financial vigilance, domestic peace, career mastery, or spiritual transcendence).
+3. EMOTIONAL TOUCH & DEPTH: This is a direct, intimate, empathetic dialogue. Write STRICTLY TWO (2) SUBSTANTIAL PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you' (${input.name}).
+4. PARAGRAPH 1 (Lived Reality & Subconscious Struggle): Describe what ${input.name} has been quietly carrying inside their heart—the feeling of running into obstacles right at the 99% mark before completion, the silent emotional weight, solitary battles, and unvoiced burdens they never reveal to the outside world. When they read this, they MUST feel: "Yes, this is exactly what is happening in my life."
+5. PARAGRAPH 2 (Spiritual Breakthrough & Divine Awakening): Reveal the profound silver lining—how this intense pressure is the divine crucible refining their soul, the precise attitude shift and faith needed to dissolve this knot, and the benevolent blessing of Lord Gokarna Mahabaleshwara providing divine armor and peace.
+
+Natal Context:
+- Native Name: ${input.name}
+- Natal Ascendant (Lagna): ${h1.sign}
+- Natal Moon Sign: ${rashiName(input.moonRashiIndex, lang)}
+- Running Period: ${dashaLine}
+- Inquest Focus: ${mHouse}th House (${mRashiStr})
+
+${JSON_RULE}
+{"title": "evocative personal title without the word Maandi or Gulika", "paragraph1": "first paragraph of at least 6-7 lines", "paragraph2": "second paragraph of at least 6-7 lines"}`;
+
   return {
     characteristics,
     darkSecret,
@@ -792,6 +819,7 @@ ${JSON_RULE}
     doshas,
     gochara,
     timeline,
-    summary
+    summary,
+    maandiInquest
   };
 };

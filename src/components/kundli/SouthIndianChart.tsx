@@ -83,11 +83,7 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
             <text x={x + cw - 6} y={y + cw - 8} fontSize="8" fill="#64748b" textAnchor="end">
               {t("kundli.bhavaBadge", { n: house })}
             </text>
-            {isLagna && (
-              <text x={x + cw - 8} y={y + 22} fontSize="9" fill="#b45309" textAnchor="end" fontWeight="700">
-                {t("kundli.lagnaPatrika")}
-              </text>
-            )}
+            {/* Removed duplicate Lagna text at y+22 that clashed with planet list */}
           </g>
         );
       })}
@@ -124,10 +120,10 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
             {formatPatrikaNavamsaOnly(kundli.ascendant, i18n.language)}
           </p>
           {kundli.maandi ? (
-            <p className="text-[9px] text-slate-600">
-              <span className="font-semibold">{t("kundli.maandi")}:</span> {t(rashiTKey(kundli.maandi.rashi.sanskrit) as "rashis.Mesha")}{" "}
+            <p className="text-[9px] text-red-800 font-semibold">
+              <span className="font-bold">{t("kundli.centerMaandi") || t("kundli.maandi")}:</span> {t(rashiTKey(kundli.maandi.rashi.sanskrit) as "rashis.Mesha")}{" "}
               {formatPatrikaNavamsaOnly(kundli.maandi.degree, i18n.language)}
-              <span className="block text-[8px]">({kundli.maandi.windowLabel})</span>
+              <span className="block text-[8px] font-normal text-slate-600">({kundli.maandi.windowLabel})</span>
             </p>
           ) : null}
         </div>
@@ -138,44 +134,103 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
         const cell = getCellForRashiIndex(rashi.index);
         const { x, y } = cellOrigin(cell);
         const lang = i18n.language;
-        const lines: string[] = [];
+
+        interface CellItem {
+          text: string;
+          isLagna?: boolean;
+          isMaandi?: boolean;
+        }
+
+        const items: CellItem[] = [];
         if (rashi.index === lagnaIdx) {
-          lines.push(`${t("kundli.lagnaPatrika")} ${formatPatrikaNavamsaOnly(kundli.ascendant, lang)}`);
+          items.push({
+            text: `${t("kundli.lagnaPatrika")} ${formatPatrikaNavamsaOnly(kundli.ascendant, lang)}`,
+            isLagna: true
+          });
         }
         for (const pl of planetsHere) {
           const label = t(`planets.${pl.name}`) + (pl.isRetrograde ? (lang.startsWith("kn") ? " (ವ)" : " (R)") : "");
-          lines.push(`${label} ${formatPatrikaNavamsaOnly(pl.degree, lang)}`);
+          items.push({
+            text: `${label} ${formatPatrikaNavamsaOnly(pl.degree, lang)}`
+          });
         }
         if (kundli.maandi && kundli.maandi.rashi.index === rashi.index) {
-          lines.push(`${t("kundli.maandiShort")} ${formatPatrikaNavamsaOnly(kundli.maandi.degree, lang)}`);
+          items.push({
+            text: `${t("kundli.maandiShort")} ${formatPatrikaNavamsaOnly(kundli.maandi.degree, lang)}`,
+            isMaandi: true
+          });
         }
-        if (!lines.length) return null;
+        if (!items.length) return null;
 
-        const lineCount = lines.length;
+        const count = items.length;
+
+        // When 4 or more items are in a single house, use a balanced 2-column layout to prevent vertical crowding and overlap
+        if (count >= 4) {
+          const mid = Math.ceil(count / 2);
+          const leftCol = items.slice(0, mid);
+          const rightCol = items.slice(mid);
+
+          const fontSize = count >= 6 ? 6.8 : 7.4;
+          const dy = count >= 6 ? 9.5 : 11;
+          const startY = count >= 6 ? 26 : 28;
+
+          return (
+            <g key={`p-${rashi.index}`} data-testid={`south-house-${rashi.index}`}>
+              <text
+                x={x + cw * 0.28}
+                y={y + startY}
+                fontSize={fontSize}
+                textAnchor="middle"
+                fontWeight="600"
+              >
+                {leftCol.map((item, i) => (
+                  <tspan
+                    key={`l-${i}`}
+                    x={x + cw * 0.28}
+                    dy={i === 0 ? 0 : dy}
+                    fill={item.isMaandi ? "#b91c1c" : item.isLagna ? "#b45309" : "#1e1b4b"}
+                    fontWeight={item.isMaandi || item.isLagna ? "700" : "600"}
+                  >
+                    {item.text}
+                  </tspan>
+                ))}
+              </text>
+              <text
+                x={x + cw * 0.72}
+                y={y + startY}
+                fontSize={fontSize}
+                textAnchor="middle"
+                fontWeight="600"
+              >
+                {rightCol.map((item, i) => (
+                  <tspan
+                    key={`r-${i}`}
+                    x={x + cw * 0.72}
+                    dy={i === 0 ? 0 : dy}
+                    fill={item.isMaandi ? "#b91c1c" : item.isLagna ? "#b45309" : "#1e1b4b"}
+                    fontWeight={item.isMaandi || item.isLagna ? "700" : "600"}
+                  >
+                    {item.text}
+                  </tspan>
+                ))}
+              </text>
+            </g>
+          );
+        }
+
+        // 1 to 3 items: Single centered column with comfortable spacing
         let fontSize = 9.5;
-        let dy = 11;
-        let startY = 32;
+        let dy = 12;
+        let startY = 40;
 
-        if (lineCount === 2) {
+        if (count === 2) {
           fontSize = 9.0;
-          dy = 10.5;
-          startY = 26;
-        } else if (lineCount === 3) {
-          fontSize = 8.5;
-          dy = 9.8;
-          startY = 22;
-        } else if (lineCount === 4) {
-          fontSize = 7.6;
-          dy = 8.8;
-          startY = 18;
-        } else if (lineCount === 5) {
-          fontSize = 7.0;
-          dy = 8.0;
-          startY = 16;
-        } else if (lineCount >= 6) {
-          fontSize = 6.2;
-          dy = 7.2;
-          startY = 15;
+          dy = 12.5;
+          startY = 33;
+        } else if (count === 3) {
+          fontSize = 8.2;
+          dy = 11;
+          startY = 27;
         }
 
         return (
@@ -185,13 +240,18 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
             x={x + cw / 2}
             y={y + startY}
             fontSize={fontSize}
-            fill="#1e1b4b"
             textAnchor="middle"
-            fontWeight="500"
+            fontWeight="600"
           >
-            {lines.map((line, i) => (
-              <tspan key={i} x={x + cw / 2} dy={i === 0 ? 0 : dy}>
-                {line}
+            {items.map((item, i) => (
+              <tspan
+                key={i}
+                x={x + cw / 2}
+                dy={i === 0 ? 0 : dy}
+                fill={item.isMaandi ? "#b91c1c" : item.isLagna ? "#b45309" : "#1e1b4b"}
+                fontWeight={item.isMaandi || item.isLagna ? "700" : "600"}
+              >
+                {item.text}
               </tspan>
             ))}
           </text>

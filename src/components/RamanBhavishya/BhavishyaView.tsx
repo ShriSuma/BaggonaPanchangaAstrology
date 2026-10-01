@@ -75,6 +75,11 @@ import {
   type TransitPlacement
 } from "../../features/premiumPdf/premiumPrompts";
 import { calculateComprehensiveDoshas } from "../../core/ComprehensiveDoshaEngine";
+import {
+  computeMaandi,
+  getMaandiHouseFromLagna,
+  getMaandiPerspectiveInterpretation
+} from "../../core/MaandiEngine";
 
 export const getEngineDoshasFromKundli = (kundli: any, input: any, lang: string): any[] => {
   try {
@@ -2197,6 +2202,19 @@ Return ONLY this JSON format:
       const engineDoshaList = getEngineDoshasFromKundli(session.result, session.input, lang);
       const effectiveEngineDoshas = engineDoshaList.length > 0 ? engineDoshaList : (result.aiGeneratedNarrative?.doshas ?? []);
 
+      let maandi = session.result.maandi;
+      if (!maandi && session.input.birthDate && session.input.birthTime) {
+        try {
+          const bDate = new Date(`${session.input.birthDate}T${session.input.birthTime || "12:00"}:00Z`);
+          const m = computeMaandi(bDate, session.input.latitude || 14.5479, session.input.longitude || 74.3187, session.input.pincode || "581326", "lahiri");
+          maandi = { degree: m.degree, rashi: m.rashi, windowLabel: m.windowLabel, navamsha: m.navamsha };
+        } catch (err) {
+          console.warn("[V1 PDF] fallback computeMaandi:", err);
+        }
+      }
+      const lagnaRashiIdx = session.result.lagnaRashi?.index ?? 0;
+      const maandiHouse = maandi ? getMaandiHouseFromLagna(maandi.rashi.index, lagnaRashiIdx) : 1;
+
       const prompts = buildPremiumPrompts({
         lang,
         runId,
@@ -2209,6 +2227,8 @@ Return ONLY this JSON format:
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
         sunRashiIndex: session.result.sunSign?.index ?? null,
+        maandiHouse,
+        maandiRashiIndex: maandi?.rashi?.index ?? null,
         natalPlanets,
         transits,
         mahaLord,
@@ -2324,19 +2344,20 @@ Return ONLY this JSON format:
       ]);
       await new Promise(r => setTimeout(r, 150));
 
-      // Batch 4: Gochara & Summary
+      // Batch 4: Gochara, Summary & Karmic Inquest
       setV1PdfProgress(62);
       setV1PdfStageText(
         pdfLanguage === "kn"
-          ? "೬. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು ಹಾಗೂ ದೈವಿಕ ಸಂಕ್ಷಿಪ್ತ ಸಾರಾಂಶ..."
+          ? "೬. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು, ಕರ್ಮ ಪಯಣ ಹಾಗೂ ದೈವಿಕ ಸಂಕ್ಷಿಪ್ತ ಸಾರಾಂಶ..."
           : pdfLanguage === "hi"
-          ? "6. लाइव गोचर ग्रह एवं ज्योतिषी सारांश..."
-          : "6. Calculating Live Transits & Astrologer's Summary..."
+          ? "6. लाइव गोचर ग्रह, कर्म यात्रा एवं ज्योतिषी सारांश..."
+          : "6. Calculating Live Transits, Karmic Inquest & Astrologer's Summary..."
       );
-      console.log("[V1 PDF] Batch 4: Gochara & Summary...");
-      const [resGochara, resSummary] = await Promise.all([
+      console.log("[V1 PDF] Batch 4: Gochara, Summary & Karmic Inquest...");
+      const [resGochara, resSummary, resMaandiInquest] = await Promise.all([
         callGeminiSafe("Generate Gochara", prompts.gochara, 0.4),
-        callGeminiSafe("Generate Summary", prompts.summary, 0.3)
+        callGeminiSafe("Generate Summary", prompts.summary, 0.3),
+        callGeminiSafe("Generate Maandi Inquest", prompts.maandiInquest, 0.4)
       ]);
       await new Promise(r => setTimeout(r, 150));
 
@@ -2675,6 +2696,25 @@ Return ONLY this JSON format:
         remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
       }));
 
+      const dataMaandiInquest = parseGeminiJSON(resMaandiInquest);
+      const fallbackMaandi = getMaandiPerspectiveInterpretation(maandiHouse, maandi?.rashi?.index ?? 0, lang, session.input.name);
+
+      let finalMaandiInquest = fallbackMaandi;
+      if (dataMaandiInquest?.paragraph1 && dataMaandiInquest?.paragraph2 && dataMaandiInquest?.title) {
+        const p1 = cleanEnglishFromRegionalText(dataMaandiInquest.paragraph1, lang);
+        const p2 = cleanEnglishFromRegionalText(dataMaandiInquest.paragraph2, lang);
+        const t = cleanEnglishFromRegionalText(dataMaandiInquest.title, lang);
+        const forbidden = /maandi|gulika|ಮಾಂದಿ|ಗುಳಿಕ|मांदी|गुलिक|మాంది|குளிகன்/i;
+        if (!forbidden.test(t) && !forbidden.test(p1) && !forbidden.test(p2) && p1.length > 80 && p2.length > 80) {
+          finalMaandiInquest = {
+            title: t,
+            paragraph1: p1,
+            paragraph2: p2,
+            house: maandiHouse
+          };
+        }
+      }
+
       const premiumDataPayload = {
         characteristics: finalCharacteristics,
         darkSecret: finalDarkSecret,
@@ -2683,7 +2723,8 @@ Return ONLY this JSON format:
         doshas: finalDoshas,
         timeline: finalTimeline,
         gochara: finalGochara,
-        summary: finalSummary
+        summary: finalSummary,
+        maandiInquest: finalMaandiInquest
       };
 
       const payloadAuditStr = JSON.stringify(premiumDataPayload).toLowerCase();
@@ -3322,6 +3363,19 @@ Return ONLY this JSON (no extra text before or after):
         }
       );
 
+      let maandi = session.result.maandi;
+      if (!maandi && session.input.birthDate && session.input.birthTime) {
+        try {
+          const bDate = new Date(`${session.input.birthDate}T${session.input.birthTime || "12:00"}:00Z`);
+          const m = computeMaandi(bDate, session.input.latitude || 14.5479, session.input.longitude || 74.3187, session.input.pincode || "581326", "lahiri");
+          maandi = { degree: m.degree, rashi: m.rashi, windowLabel: m.windowLabel, navamsha: m.navamsha };
+        } catch (err) {
+          console.warn("[Royal A4 PDF] fallback computeMaandi:", err);
+        }
+      }
+      const lagnaRashiIdx = session.result.lagnaRashi?.index ?? 0;
+      const maandiHouse = maandi ? getMaandiHouseFromLagna(maandi.rashi.index, lagnaRashiIdx) : 1;
+
       const prompts = buildPremiumPrompts({
         lang,
         runId,
@@ -3334,6 +3388,8 @@ Return ONLY this JSON (no extra text before or after):
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: moonPlanet?.nakshatra?.index ?? null,
         sunRashiIndex: session.result.sunSign?.index ?? null,
+        maandiHouse,
+        maandiRashiIndex: maandi?.rashi?.index ?? null,
         natalPlanets,
         transits,
         mahaLord,
@@ -3369,10 +3425,11 @@ Return ONLY this JSON (no extra text before or after):
         callGeminiRoyal("Doshas", prompts.doshas, 0.4)
       ]);
 
-      const [resGochara, resSummary, resBhavishya] = await Promise.all([
+      const [resGochara, resSummary, resBhavishya, resMaandiInquest] = await Promise.all([
         callGeminiRoyal("Gochara", prompts.gochara, 0.4),
         callGeminiRoyal("Summary", prompts.summary, 0.3),
-        callGeminiRoyal("Life Areas", prompts.bhavishya, 0.3)
+        callGeminiRoyal("Life Areas", prompts.bhavishya, 0.3),
+        callGeminiRoyal("Maandi Inquest", prompts.maandiInquest, 0.4)
       ]);
 
       setRoyalA4PdfProgress(75);
@@ -3493,6 +3550,26 @@ Return ONLY this JSON (no extra text before or after):
           : "May the divine grace of Lord Gokarna Mahabaleshwara and the Navagrahas always illuminate and protect your path."
       );
 
+      // Maandi Inward Journey (Forbidden to mention "Maandi" or "Gulika" in text)
+      const dataMaandiInquest = parseGeminiJSON(resMaandiInquest);
+      const fallbackMaandi = getMaandiPerspectiveInterpretation(maandiHouse, maandi?.rashi?.index ?? 0, lang, session.input.name);
+
+      let finalMaandiInquest = fallbackMaandi;
+      if (dataMaandiInquest?.paragraph1 && dataMaandiInquest?.paragraph2 && dataMaandiInquest?.title) {
+        const p1 = cleanEnglishFromRegionalText(dataMaandiInquest.paragraph1, lang);
+        const p2 = cleanEnglishFromRegionalText(dataMaandiInquest.paragraph2, lang);
+        const t = cleanEnglishFromRegionalText(dataMaandiInquest.title, lang);
+        const forbidden = /maandi|gulika|ಮಾಂದಿ|ಗುಳಿಕ|मांदी|गुलिक|మాంది|குளிகன்/i;
+        if (!forbidden.test(t) && !forbidden.test(p1) && !forbidden.test(p2) && p1.length > 80 && p2.length > 80) {
+          finalMaandiInquest = {
+            title: t,
+            paragraph1: p1,
+            paragraph2: p2,
+            house: maandiHouse
+          };
+        }
+      }
+
       // Format birth date
       const dobFormatted = formatBirthLine(lang, session.input.birthDate, session.input.birthTime).split(",")[0] || session.input.birthDate;
 
@@ -3519,6 +3596,26 @@ Return ONLY this JSON (no extra text before or after):
           isRetrograde: p.isRetrograde
         };
       });
+
+      if (maandi) {
+        const mDeg = Math.floor(maandi.degree % 30);
+        const mMin = Math.floor((maandi.degree % 1) * 60);
+        const absLong = (maandi.rashi.index * 30) + (maandi.degree % 30);
+        const nakshatraDeg = absLong % (360 / 27);
+        const mPada = Math.floor(nakshatraDeg / (360 / 108)) + 1;
+        const mNakIdx = Math.floor(absLong / (360 / 27));
+
+        planetsTable.push({
+          name: lang === "kn" ? "ಮಾಂದಿ (ಗುಳಿಕ)" : lang === "hi" ? "मांदी (गुलिक)" : lang === "te" ? "మాంది (గుళిక)" : lang === "ta" ? "மாந்தி (குளிகன்)" : "Maandi (Gulika)",
+          rashi: pick(RASHI_L5[maandi.rashi.index], lang),
+          house: maandiHouse,
+          longitudeStr: `${mDeg}° ${mMin}'`,
+          nakshatra: pick(NAKSHATRA_L5[mNakIdx], lang),
+          pada: mPada,
+          dignity: lang === "kn" ? "ಉಪಗ್ರಹ" : lang === "hi" ? "उपग्रह" : lang === "te" ? "ఉపగ్రహం" : lang === "ta" ? "உபகிரகம்" : "Upagraha",
+          isRetrograde: false
+        });
+      }
 
       const royalPayload: RoyalA4Data = {
         title: lang === "kn" ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥" : "Baggona Panchanga Astrology",
@@ -3550,6 +3647,7 @@ Return ONLY this JSON (no extra text before or after):
         relationshipGuidance,
         healthGuidance,
         summary: finalSummary,
+        karmicInwardJourney: finalMaandiInquest,
         ashirvada: ashirvadaText,
         shloka: "ॐ असतो मा सद्गमय। तमसो मा ज्योतिर्गमय। मृत्योर्मा अमृतं गमय॥ ॐ शान्तिः शान्तिः शान्तिः॥"
       };

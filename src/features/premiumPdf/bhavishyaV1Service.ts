@@ -69,6 +69,11 @@ import {
   type TransitPlacement
 } from "./premiumPrompts";
 import type { PlanetName } from "../../core/AstroTypes";
+import {
+  computeMaandi,
+  getMaandiHouseFromLagna,
+  getMaandiPerspectiveInterpretation
+} from "../../core/MaandiEngine";
 
 const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as GrahaKey;
 
@@ -326,6 +331,19 @@ export async function prepareBhavishyaV1Data(
     ? engineDoshaList
     : (result.aiGeneratedNarrative?.doshas ?? []);
 
+  let maandi = session.result.maandi;
+  if (!maandi && session.input.birthDate && session.input.birthTime) {
+    try {
+      const bDate = new Date(`${session.input.birthDate}T${session.input.birthTime || "12:00"}:00Z`);
+      const m = computeMaandi(bDate, session.input.latitude || 14.5479, session.input.longitude || 74.3187, session.input.pincode || "581326", "lahiri");
+      maandi = { degree: m.degree, rashi: m.rashi, windowLabel: m.windowLabel, navamsha: m.navamsha };
+    } catch (err) {
+      console.warn("[bhavishyaV1Service] fallback computeMaandi:", err);
+    }
+  }
+  const lagnaRashiIdx = session.result.lagnaRashi?.index ?? 0;
+  const maandiHouse = maandi ? getMaandiHouseFromLagna(maandi.rashi.index, lagnaRashiIdx) : 1;
+
   const prompts = buildPremiumPrompts({
     lang,
     runId,
@@ -338,6 +356,8 @@ export async function prepareBhavishyaV1Data(
     moonRashiIndex: session.result.moonSign.index,
     moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
     sunRashiIndex: session.result.sunSign?.index ?? null,
+    maandiHouse,
+    maandiRashiIndex: maandi?.rashi?.index ?? null,
     natalPlanets,
     transits,
     mahaLord,
@@ -449,18 +469,19 @@ export async function prepareBhavishyaV1Data(
   ]);
   await new Promise(r => setTimeout(r, 120));
 
-  // Batch 4: Gochara & Summary
+  // Batch 4: Gochara, Summary & Karmic Inquest
   onProgress?.(
     62,
     lang === "kn"
-      ? "೬. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು ಹಾಗೂ ದೈವಿಕ ಸಂಕ್ಷಿಪ್ತ ಸಾರಾಂಶ..."
+      ? "೬. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು, ಕರ್ಮ ಪಯಣ ಹಾಗೂ ದೈವಿಕ ಸಂಕ್ಷಿಪ್ತ ಸಾರಾಂಶ..."
       : lang === "hi"
-      ? "6. लाइव गोचर ग्रह एवं ज्योतिषी सारांश..."
-      : "6. Calculating Live Transits & Astrologer's Summary..."
+      ? "6. लाइव गोचर ग्रह, कर्म यात्रा एवं ज्योतिषी सारांश..."
+      : "6. Calculating Live Transits, Karmic Inquest & Astrologer's Summary..."
   );
-  const [resGochara, resSummary] = await Promise.all([
+  const [resGochara, resSummary, resMaandiInquest] = await Promise.all([
     callGeminiSafe("Generate Gochara", prompts.gochara, 0.4),
-    callGeminiSafe("Generate Summary", prompts.summary, 0.3)
+    callGeminiSafe("Generate Summary", prompts.summary, 0.3),
+    callGeminiSafe("Generate Maandi Inquest", prompts.maandiInquest, 0.4)
   ]);
   await new Promise(r => setTimeout(r, 120));
 
@@ -537,6 +558,24 @@ export async function prepareBhavishyaV1Data(
   const dataTimeline = robustParseGeminiJSON(resTimeline);
   const dataGochara = robustParseGeminiJSON(resGochara);
   const dataSummary = robustParseGeminiJSON(resSummary);
+  const dataMaandiInquest = robustParseGeminiJSON(resMaandiInquest);
+  const fallbackMaandi = getMaandiPerspectiveInterpretation(maandiHouse, maandi?.rashi?.index ?? 0, lang, session.input.name);
+
+  let finalMaandiInquest = fallbackMaandi;
+  if (dataMaandiInquest?.paragraph1 && dataMaandiInquest?.paragraph2 && dataMaandiInquest?.title) {
+    const p1 = cleanEnglishFromRegionalText(dataMaandiInquest.paragraph1, lang);
+    const p2 = cleanEnglishFromRegionalText(dataMaandiInquest.paragraph2, lang);
+    const t = cleanEnglishFromRegionalText(dataMaandiInquest.title, lang);
+    const forbidden = /maandi|gulika|ಮಾಂದಿ|ಗುಳಿಕ|मांदी|गुलिक|మాంది|குளிகன்/i;
+    if (!forbidden.test(t) && !forbidden.test(p1) && !forbidden.test(p2) && p1.length > 80 && p2.length > 80) {
+      finalMaandiInquest = {
+        title: t,
+        paragraph1: p1,
+        paragraph2: p2,
+        house: maandiHouse
+      };
+    }
+  }
 
   const isSufficientDepth = (text: string | undefined, minParas: number = 2, minChars: number = 380): boolean => {
     if (!text || text.trim().length < minChars) return false;
@@ -784,7 +823,8 @@ export async function prepareBhavishyaV1Data(
     doshas: finalDoshas,
     timeline: finalTimeline,
     gochara: finalGochara,
-    summary: finalSummary
+    summary: finalSummary,
+    maandiInquest: finalMaandiInquest
   };
 
   const payloadAuditStr = JSON.stringify(premiumDataPayload).toLowerCase();

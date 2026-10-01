@@ -52,6 +52,11 @@ export interface RoyalA4Data {
   summary: string;
   ashirvada: string;
   shloka: string;
+  karmicInwardJourney?: {
+    title: string;
+    paragraph1: string;
+    paragraph2: string;
+  };
 }
 
 interface RoyalA4PrintTemplateProps {
@@ -243,7 +248,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-amber-700/15">
-                        {data.planetsTable.slice(0, 9).map((p, idx) => (
+                        {data.planetsTable.slice(0, 10).map((p, idx) => (
                           <tr key={idx} className={idx % 2 === 1 ? "bg-amber-50/50" : ""}>
                             <td className="p-1.5 font-bold text-amber-950 flex items-center gap-1">
                               <span>{p.name}</span>
@@ -291,47 +296,65 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
 
               {/* Section 1: Personality Blueprint */}
               <div className="mt-4">
-                <h2 className="text-lg font-black text-amber-900 border-b-2 border-amber-700/40 pb-1 mb-3 flex items-center gap-2">
+                <h2 className="text-lg font-black text-amber-900 border-b-2 border-amber-700/40 pb-1 mb-2.5 flex items-center gap-2">
                   <span>🕉️</span>
                   <span>{labels.personalityTitle}</span>
                 </h2>
-                <div className="space-y-2.5 text-xs leading-relaxed text-amber-950">
-                  {data.characteristics.slice(0, 3).map((c, idx) => (
-                    <div key={idx} className="p-3 bg-amber-50/70 rounded-lg border border-amber-700/20">
-                      {c.trait && <div className="font-bold text-amber-900 text-sm mb-1">{c.trait}</div>}
-                      <p className="text-justify font-serif">{c.impact}</p>
+                <div className="space-y-2 text-xs leading-relaxed text-amber-950">
+                  {data.characteristics.slice(0, 2).map((c, idx) => (
+                    <div key={idx} className="p-2.5 bg-amber-50/70 rounded-lg border border-amber-700/20">
+                      {c.trait && <div className="font-bold text-amber-900 text-xs mb-0.5">{c.trait}</div>}
+                      <p className="text-justify font-serif text-[11px]">{c.impact}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Section 2: Current Dasha-Bhukti Phase */}
-              <div className="mt-5">
-                <h2 className="text-lg font-black text-amber-900 border-b-2 border-amber-700/40 pb-1 mb-3 flex items-center gap-2">
+              <div className="mt-3.5">
+                <h2 className="text-lg font-black text-amber-900 border-b-2 border-amber-700/40 pb-1 mb-2 flex items-center gap-2">
                   <span>⏳</span>
                   <span>{labels.dashaPhaseTitle}</span>
                 </h2>
-                <div className="p-3.5 bg-amber-100/50 rounded-lg border border-amber-700/30 text-xs leading-relaxed text-amber-950 text-justify">
-                  {data.currentPhase.map((cp, idx) => (
-                    <p key={idx} className="mb-2 last:mb-0 font-serif">{cp.impact}</p>
+                <div className="p-3 bg-amber-100/50 rounded-lg border border-amber-700/30 text-[11px] leading-relaxed text-amber-950 text-justify">
+                  {data.currentPhase.slice(0, 1).map((cp, idx) => (
+                    <p key={idx} className="font-serif">{cp.impact}</p>
                   ))}
                 </div>
               </div>
 
+              {/* Karmic Inward Journey (Maandi Perspective Inquest - No Maandi/Gulika word) */}
+              {data.karmicInwardJourney && (
+                <div className="mt-3.5 p-3.5 bg-gradient-to-br from-amber-50/90 via-[#FFFDF8] to-orange-50/70 rounded-xl border border-amber-600/40 shadow-xs relative overflow-hidden">
+                  <div className="flex items-center gap-2 mb-2 pb-1 border-b border-amber-600/30">
+                    <span className="text-amber-800 text-sm">✨</span>
+                    <h3 className="font-bold text-amber-950 font-serif text-sm tracking-wide">
+                      {data.karmicInwardJourney.title}
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-amber-950 font-serif leading-relaxed text-justify mb-2 indent-3">
+                    {data.karmicInwardJourney.paragraph1}
+                  </p>
+                  <p className="text-[11px] text-amber-950 font-serif leading-relaxed text-justify indent-3">
+                    {data.karmicInwardJourney.paragraph2}
+                  </p>
+                </div>
+              )}
+
               {/* Section 3: Auspicious Yogas */}
-              <div className="mt-5">
-                <h2 className="text-lg font-black text-amber-900 border-b-2 border-amber-700/40 pb-1 mb-3 flex items-center gap-2">
+              <div className="mt-3.5">
+                <h2 className="text-lg font-black text-amber-900 border-b-2 border-amber-700/40 pb-1 mb-2 flex items-center gap-2">
                   <span>👑</span>
                   <span>{labels.yogasTitle}</span>
                 </h2>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  {data.yogas.slice(0, 4).map((y, idx) => (
-                    <div key={idx} className="p-3 bg-white/90 rounded-lg border border-amber-600/30 shadow-sm flex flex-col justify-between">
+                <div className="grid grid-cols-2 gap-2.5 text-xs">
+                  {data.yogas.slice(0, 2).map((y, idx) => (
+                    <div key={idx} className="p-2.5 bg-white/90 rounded-lg border border-amber-600/30 shadow-xs flex flex-col justify-between">
                       <div>
-                        <span className="font-black text-amber-900 text-sm bg-amber-100/80 px-2 py-0.5 rounded inline-block mb-1.5">
+                        <span className="font-black text-amber-900 text-xs bg-amber-100/80 px-2 py-0.5 rounded inline-block mb-1">
                           {y.name}
                         </span>
-                        <p className="text-amber-950 text-justify font-serif leading-relaxed line-clamp-6">{y.impact}</p>
+                        <p className="text-amber-950 text-justify font-serif text-[11px] leading-relaxed line-clamp-4">{y.impact}</p>
                       </div>
                     </div>
                   ))}

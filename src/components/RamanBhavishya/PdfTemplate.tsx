@@ -54,6 +54,11 @@ export type PremiumData = {
   timeline?: { dateRange: string; impact: string }[];
   gochara?: { name: string; impact: string; remedy?: string }[];
   summary?: { impact: string }[];
+  maandiInquest?: {
+    title: string;
+    paragraph1: string;
+    paragraph2: string;
+  };
 };
 
 interface Props {
@@ -294,6 +299,29 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 ))}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Sacred Karmic Inquest & Turning Point ─────────────────────────── */}
+      {premiumData?.maandiInquest && (
+        <div className={sectionClass}>
+          <div className="rounded-xl border-2 border-amber-700/60 bg-amber-100/40 p-8 shadow-md relative overflow-hidden">
+            <div className="absolute inset-2 border border-dashed border-amber-700/30 rounded-lg pointer-events-none" />
+            <div className="flex items-center gap-3 border-b-2 border-amber-700/40 pb-3 mb-6 relative z-10">
+              <span className="text-3xl text-amber-800">✧</span>
+              <h2 className={`text-3xl font-extrabold ${primaryColorClass} leading-normal tracking-normal`}>
+                {premiumData.maandiInquest.title}
+              </h2>
+            </div>
+            <div className="space-y-6 relative z-10">
+              <p className="text-xl leading-loose text-amber-950 text-justify font-medium break-words">
+                {premiumData.maandiInquest.paragraph1}
+              </p>
+              <p className="text-xl leading-loose text-amber-950 text-justify font-medium break-words pt-4 border-t border-amber-700/20">
+                {premiumData.maandiInquest.paragraph2}
+              </p>
+            </div>
           </div>
         </div>
       )}
