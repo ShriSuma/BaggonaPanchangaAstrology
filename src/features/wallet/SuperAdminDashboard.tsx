@@ -1373,6 +1373,21 @@ export const SuperAdminDashboard: React.FC = () => {
           await db.users.update(user.id!, { allowedModules: activeModuleSelection });
         }
 
+        // Update useWalletStore state immediately so the table re-renders instantly
+        useWalletStore.setState((state) => ({
+          allPriestWallets: state.allPriestWallets.map((w) =>
+            w.userId === editingPriestModules.userId || w.id === editingPriestModules.id
+              ? { ...w, allowedModules: activeModuleSelection }
+              : w
+          )
+        }));
+        if (
+          viewingPriestProfile &&
+          (viewingPriestProfile.userId === editingPriestModules.userId || viewingPriestProfile.id === editingPriestModules.id)
+        ) {
+          setViewingPriestProfile({ ...viewingPriestProfile, allowedModules: activeModuleSelection });
+        }
+
         setFeedback({
           type: "success",
           text: `ಪುರೋಹಿತರ (${editingPriestModules.priestName}) ಮಾಡ್ಯೂಲ್ ಪ್ರವೇಶಾವಕಾಶಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ (${activeModuleSelection.length} ಮಾಡ್ಯೂಲ್‌ಗಳು ಸಕ್ರಿಯ).`
@@ -5705,9 +5720,9 @@ export const SuperAdminDashboard: React.FC = () => {
 
       {/* 11. PRIEST MODULE PERMISSION EDITOR MODAL */}
       {editingPriestModules && (
-        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+        <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative my-auto bg-[#FFFDF7] border-2 border-amber-400 rounded-3xl p-4 sm:p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[90dvh]">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🛡️</span>
                 <div>
@@ -5726,11 +5741,11 @@ export const SuperAdminDashboard: React.FC = () => {
               </button>
             </div>
 
-            <p className="text-xs text-slate-700 font-semibold leading-relaxed">
+            <p className="text-xs text-slate-700 font-semibold leading-relaxed pt-2 shrink-0">
               ಈ ಪುರೋಹಿತರಿಗೆ ಯಾವೆಲ್ಲಾ ಮಾಡ್ಯೂಲ್‌ಗಳ ಪ್ರವೇಶಾವಕಾಶ ನೀಡಬೇಕೆಂದು ಆಯ್ಕೆಮಾಡಿ. ಇದನ್ನು ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ತಕ್ಷಣವೇ ನವೀಕರಿಸಲಾಗುತ್ತದೆ:
             </p>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 overflow-y-auto flex-1 pr-1.5 my-3">
               {AVAILABLE_MODULES.map((mod) => {
                 const isChecked = activeModuleSelection.includes(mod.key);
                 return (
@@ -5772,7 +5787,7 @@ export const SuperAdminDashboard: React.FC = () => {
               })}
             </div>
 
-            <div className="flex gap-2.5 pt-2 border-t border-amber-200">
+            <div className="flex gap-2.5 pt-3 border-t border-amber-200 shrink-0">
               <button
                 type="button"
                 onClick={() => setEditingPriestModules(null)}

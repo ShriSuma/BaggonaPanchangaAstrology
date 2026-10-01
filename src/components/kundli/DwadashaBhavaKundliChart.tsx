@@ -21,6 +21,21 @@ function toKnNum(num: number | string): string {
   return String(num).replace(/[0-9]/g, (d) => knDigits[parseInt(d, 10)]);
 }
 
+// Compact 5-language Graha names tailored for South Indian Kundli chart grid cells
+const GRAHA_CHART_NAMES_5L: Record<string, Record<string, string>> = {
+  Sun: { kn: "ರವಿ", en: "Ravi", hi: "सूर्य", te: "రవి", ta: "சூரியன்" },
+  Moon: { kn: "ಚಂದ್ರ", en: "Chandra", hi: "चन्द्र", te: "చంద్ర", ta: "சந்திரன்" },
+  Mars: { kn: "ಕುಜ", en: "Kuja", hi: "मंगल", te: "కుజ", ta: "செவ்வாய்" },
+  Mercury: { kn: "ಬುಧ", en: "Budha", hi: "बुध", te: "బుధ", ta: "புதன்" },
+  Jupiter: { kn: "ಗುರು", en: "Guru", hi: "गुरु", te: "గురు", ta: "குரு" },
+  Venus: { kn: "ಶುಕ್ರ", en: "Shukra", hi: "शुक्र", te: "శుక్ర", ta: "சுக்கிரன்" },
+  Saturn: { kn: "ಶನಿ", en: "Shani", hi: "शनि", te: "శని", ta: "சனி" },
+  Rahu: { kn: "ರಾಹು", en: "Rahu", hi: "राहु", te: "రాహు", ta: "ராகு" },
+  Ketu: { kn: "ಕೇತು", en: "Ketu", hi: "केतु", te: "కేతు", ta: "கேது" },
+  Lagna: { kn: "ಲಗ್ನ", en: "Lagna", hi: "लग्न", te: "లగ్నం", ta: "லக்னம்" },
+  Maandi: { kn: "ಮಾಂದಿ", en: "Maandi", hi: "मांदि", te: "మాంది", ta: "மாந்தி" }
+};
+
 /**
  * Authentic 8-Page Premium Dwadasha Bhava Kundali Chart (ದ್ವಾದಶ ಭಾವ ಕುಂಡಲಿ)
  * Exact replica of the royal golden South Indian chart from RoyalBooklet8PageTemplate.tsx
@@ -50,9 +65,13 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
   // Populate standard 9 planets with authentic amshaka
   if (kundli && kundli.planets) {
     for (const p of kundli.planets) {
-      const rIdx = p.rashi ? p.rashi.index : 0;
+      const rIdx = typeof p.rashi?.index === "number" ? p.rashi.index : Math.floor(((p.degree % 360) + 360) % 360 / 30);
       const planetName = p.name;
-      const shortName = (GRAHA_NAMES_5L[planetName] as any)?.[code] || (GRAHA_NAMES_5L[planetName] as any)?.kn || planetName;
+      const shortName =
+        GRAHA_CHART_NAMES_5L[planetName]?.[code] ||
+        (GRAHA_NAMES_5L[planetName] as any)?.[code] ||
+        (GRAHA_NAMES_5L[planetName] as any)?.kn ||
+        planetName;
       const amshakaNum = patrikaNavamshaFromDegree(p.degree);
       const amshakaDisplay = formatChartHouseNumber(amshakaNum, lang);
 
@@ -67,7 +86,7 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
   // Populate Maandi (Gulika) with authentic amshaka
   if (kundli && kundli.maandi) {
     const maandiRIdx = kundli.maandi.rashi ? kundli.maandi.rashi.index : 0;
-    const maandiLabel = isKn ? "ಮಾಂದಿ" : "Maandi";
+    const maandiLabel = GRAHA_CHART_NAMES_5L.Maandi?.[code] || (isKn ? "ಮಾಂದಿ" : "Maandi");
     const amshakaNum = patrikaNavamshaFromDegree(kundli.maandi.degree);
     planetsByRashi[maandiRIdx].push({
       name: maandiLabel,
@@ -81,7 +100,7 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
     ];
     const maandiRashiIdx = RASHI_ORDER_EN.indexOf(profile.maandiRashi);
     if (maandiRashiIdx >= 0) {
-      const maandiLabel = isKn ? "ಮಾಂದಿ" : "Maandi";
+      const maandiLabel = GRAHA_CHART_NAMES_5L.Maandi?.[code] || (isKn ? "ಮಾಂದಿ" : "Maandi");
       const maandiDegNum = typeof (kundli as any)?.maandi?.degree === "number"
         ? (kundli as any).maandi.degree
         : (maandiRashiIdx * 30 + 14);
@@ -94,49 +113,78 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
     }
   }
 
-  // Rashi Cell Renderer
+  // Rashi Cell Renderer with adaptive density and zero Graha clipping
   const renderCell = (rIdx: number) => {
     const rName = (RASHI_L5[rIdx] as any)?.[code] || (RASHI_L5[rIdx] as any)?.kn || "";
     const isLagnaCell = rIdx === lagnaIdx;
     const planetsHere = planetsByRashi[rIdx] || [];
+    const totalItems = (isLagnaCell ? 1 : 0) + planetsHere.length;
+    const isCrowded = totalItems >= 3;
+    const isVeryCrowded = totalItems >= 4;
 
     return (
       <div
         key={rIdx}
-        className={`border border-amber-600/70 p-1.5 flex flex-col justify-start transition-all overflow-hidden relative ${
-          isLagnaCell ? "bg-amber-100/60" : "bg-[#FFFDF7]"
+        className={`border border-amber-600/70 p-1 sm:p-1.5 flex flex-col justify-start transition-all overflow-hidden relative ${
+          isLagnaCell ? "bg-amber-100/70" : "bg-[#FFFDF7]"
         }`}
         style={{ minHeight: "85px" }}
       >
         {/* Rashi Header */}
-        <div className="text-[#78350F] font-extrabold text-[11px] md:text-xs border-b border-amber-200 pb-0.5 mb-1 flex items-center justify-between">
-          <span>{rName}</span>
-          <span className="text-[9px] text-amber-600/70 font-mono">
+        <div className="text-[#78350F] font-black text-[9.5px] sm:text-[11px] md:text-xs border-b border-amber-200 pb-0.5 mb-0.5 flex items-center justify-between shrink-0">
+          <span className="truncate">{rName}</span>
+          <span className="text-[8px] sm:text-[9px] text-amber-700/80 font-mono shrink-0">
             {isKn ? toKnNum(rIdx + 1) : rIdx + 1}
           </span>
         </div>
 
         {/* Lagna Indicator with authentic Amshaka */}
         {isLagnaCell && (
-          <div className="text-[#B91C1C] font-black text-[11px] md:text-xs mb-0.5 flex items-center gap-1.5">
-            <span>🚩 {isKn ? "ಲಗ್ನ" : "Lagna"}</span>
+          <div
+            className={`text-[#B91C1C] font-black leading-tight flex items-center justify-between shrink-0 ${
+              isCrowded ? "text-[8.5px] sm:text-[9.5px] mb-0.5" : "text-[10px] sm:text-[11px] md:text-xs mb-1"
+            }`}
+          >
+            <span className="flex items-center gap-1">
+              <span>🚩</span>
+              <span>{isKn ? "ಲಗ್ನ" : "Lagna"}</span>
+            </span>
             <span className="font-extrabold text-[#B91C1C]">
               {formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.ascendant), lang)}
             </span>
           </div>
         )}
 
-        {/* Occupant Planets with authentic Amshaka placed right next to planet name (e.g. ಶುಕ್ರ ೧, ಕೇತು ೨) */}
-        <div className="space-y-0.5">
+        {/* Occupant Planets with authentic Amshaka placed right next to planet name */}
+        <div
+          className={
+            isVeryCrowded
+              ? "grid grid-cols-2 gap-x-1 gap-y-0.5"
+              : isCrowded
+              ? "grid grid-cols-1 sm:grid-cols-2 gap-x-1 gap-y-0.5"
+              : "space-y-0.5"
+          }
+        >
           {planetsHere.map((pl, idx) => (
             <div
               key={idx}
-              className="text-[#1E3A8A] font-bold text-[10px] md:text-[11px] leading-tight flex items-center gap-1.5"
+              className={`text-[#1E3A8A] font-bold leading-tight flex items-center justify-between ${
+                isVeryCrowded
+                  ? "text-[8px] sm:text-[8.5px]"
+                  : isCrowded
+                  ? "text-[8.5px] sm:text-[9.5px] md:text-[10px]"
+                  : "text-[10px] sm:text-[10.5px] md:text-[11px]"
+              }`}
             >
-              <span>
-                {pl.name} {pl.isRetro && <span className="text-rose-600 font-bold text-[9px]">({isKn ? "ವಕ್ರ" : "Retro"})</span>}
+              <span className="truncate pr-0.5">
+                {pl.name}
+                {pl.isRetro && (
+                  <span className="text-rose-600 font-black text-[7.5px] sm:text-[8px] ml-0.5">
+                    {isKn ? "(ವ)" : "(R)"}
+                  </span>
+                )}
               </span>
-              <span className="text-[11px] md:text-xs font-extrabold text-[#1E3A8A]">{pl.amshaka}</span>
+              <span className="font-black text-[#1E3A8A] shrink-0">{pl.amshaka}</span>
             </div>
           ))}
         </div>
@@ -168,7 +216,7 @@ export const DwadashaBhavaKundliChart: React.FC<DwadashaBhavaKundliChartProps> =
 
       {/* 3. Royal Gold 4x4 Grid Diagram */}
       <div
-        className="w-full aspect-square max-w-[480px] mx-auto border-2 border-[#D97706] rounded-2xl overflow-hidden shadow-2xl grid grid-cols-4 grid-rows-4 bg-[#FFFDF7]"
+        className="w-full min-h-[380px] sm:min-h-[440px] md:min-h-[480px] aspect-square max-w-[480px] mx-auto border-2 border-[#D97706] rounded-2xl overflow-hidden shadow-2xl grid grid-cols-4 grid-rows-4 bg-[#FFFDF7]"
         style={{
           boxShadow: "0 10px 30px -5px rgba(217, 119, 6, 0.25), 0 0 0 1px rgba(217, 119, 6, 0.4)"
         }}

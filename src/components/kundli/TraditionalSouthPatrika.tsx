@@ -422,16 +422,20 @@ export default function TraditionalSouthPatrika({
                 }
                 
                 let textClass = "text-[9.5px]";
+                let gridColsClass = "grid-cols-1";
                 if (cells.length === 2) {
                   textClass = "text-[9.0px]";
                 } else if (cells.length === 3) {
                   textClass = "text-[8.4px]";
                 } else if (cells.length === 4) {
                   textClass = "text-[7.6px]";
+                  gridColsClass = "grid-cols-2 gap-x-1";
                 } else if (cells.length === 5) {
                   textClass = "text-[7.0px]";
+                  gridColsClass = "grid-cols-2 gap-x-1";
                 } else if (cells.length >= 6) {
                   textClass = "text-[6.2px]";
+                  gridColsClass = "grid-cols-2 gap-x-1";
                 }
 
                 return (
@@ -446,7 +450,7 @@ export default function TraditionalSouthPatrika({
                     </span>
                     <div className="flex flex-1 items-center justify-center min-h-0">
                       <div
-                        className={`grid grid-cols-1 w-full gap-y-0.5 justify-center leading-none text-center font-bold ${textClass}`}
+                        className={`grid ${gridColsClass} w-full gap-y-0.5 justify-center leading-none text-center font-bold ${textClass}`}
                       >
                         {cells}
                       </div>

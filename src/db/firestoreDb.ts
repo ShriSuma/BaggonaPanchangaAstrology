@@ -471,36 +471,102 @@ export async function updateUserAllowedModules(
   userId: string,
   allowedModules: string[]
 ): Promise<boolean> {
-  try {
-    // 1. Update wallet doc
-    const walletRef = doc(firestore, WALLETS_COL, userId);
-    const walletSnap = await getDoc(walletRef);
-    if (walletSnap.exists()) {
-      await updateDoc(walletRef, {
-        allowedModules,
-        updatedAt: new Date().toISOString()
-      });
-    }
+  const now = new Date().toISOString();
+  const canonicalId = userId.startsWith("priest_") ? userId : `priest_${userId}`;
+  const bareId = userId.replace(/^(priest_|pandit_)/, "");
+  const idVariants = Array.from(new Set([userId, canonicalId, bareId])).filter(Boolean);
 
-    // 2. Update user profile doc
-    const userRef = doc(firestore, USERS_COL, userId);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      await updateDoc(userRef, {
-        allowedModules,
-        updatedAt: new Date().toISOString()
+  // 1. Update in-memory purohita profile cache
+  for (const id of idVariants) {
+    const cached = memoryPurohitaProfiles.get(id);
+    if (cached) {
+      memoryPurohitaProfiles.set(id, { ...cached, allowedModules, updatedAt: now });
+    }
+  }
+
+  // 2. Update cached wallets in localStorage
+  try {
+    const cachedWalletsStr = localStorage.getItem("baggona_priest_wallets_v2");
+    if (cachedWalletsStr) {
+      const wallets = JSON.parse(cachedWalletsStr) as PriestWalletDoc[];
+      const updated = wallets.map((w) => {
+        if (idVariants.includes(w.userId) || idVariants.includes(w.id || "")) {
+          return { ...w, allowedModules, updatedAt: now };
+        }
+        return w;
       });
-    } else {
-      // Query by username
-      const q = query(collection(firestore, USERS_COL), where("username", "==", userId));
-      const qSnap = await getDocs(q);
-      if (!qSnap.empty) {
-        await updateDoc(qSnap.docs[0].ref, {
-          allowedModules,
-          updatedAt: new Date().toISOString()
-        });
+      localStorage.setItem("baggona_priest_wallets_v2", JSON.stringify(updated));
+    }
+  } catch {
+    // ignore
+  }
+
+  // If firestore is not available (offline / mock) return true
+  if (!firestore) return true;
+
+  try {
+    // 3. Update wallet docs across all ID variants
+    for (const wId of idVariants) {
+      try {
+        const walletRef = doc(firestore, WALLETS_COL, wId);
+        const walletSnap = await getDoc(walletRef);
+        if (walletSnap.exists()) {
+          await updateDoc(walletRef, {
+            allowedModules,
+            updatedAt: now
+          });
+        }
+      } catch (e) {
+        // silent fallback
       }
     }
+
+    // 4. Update user profile doc across all ID variants
+    for (const uId of idVariants) {
+      try {
+        const userRef = doc(firestore, USERS_COL, uId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          await updateDoc(userRef, {
+            allowedModules,
+            updatedAt: now
+          });
+        }
+      } catch (e) {
+        // silent fallback
+      }
+    }
+
+    // Query users by username
+    try {
+      const q = query(collection(firestore, USERS_COL), where("username", "in", idVariants));
+      const qSnap = await getDocs(q);
+      for (const d of qSnap.docs) {
+        await updateDoc(d.ref, {
+          allowedModules,
+          updatedAt: now
+        });
+      }
+    } catch {
+      // silent fallback
+    }
+
+    // 5. Update purohita profile docs across all ID variants
+    for (const pId of idVariants) {
+      try {
+        const pRef = doc(firestore, PUROHITA_PROFILES_COL, pId);
+        const pSnap = await getDoc(pRef);
+        if (pSnap.exists()) {
+          await updateDoc(pRef, {
+            allowedModules,
+            updatedAt: now
+          });
+        }
+      } catch {
+        // silent fallback
+      }
+    }
+
     return true;
   } catch (err) {
     console.error("[Firestore] Failed to update user allowed modules:", err);

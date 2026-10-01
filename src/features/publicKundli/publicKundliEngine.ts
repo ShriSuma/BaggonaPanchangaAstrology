@@ -200,7 +200,7 @@ export const GRAHA_NAMES_5L: Record<string, Record<PublicKundliLang, string>> = 
   Venus: { kn: "ಶುಕ್ರ", en: "Venus (Shukra)", hi: "शुक्र", te: "శుక్రుడు", ta: "சுக்கிரன்" },
   Saturn: { kn: "ಶನಿ", en: "Saturn (Shani)", hi: "शनि", te: "శని", ta: "சனி" },
   Rahu: { kn: "ರಾಹು", en: "Rahu", hi: "राहु", te: "రాహువు", ta: "ராகு" },
-  Ketu: { kn: "ಕೇತು", en: "Ketu", hi: "ಕೆತು", te: "కేతువు", ta: "கேது" },
+  Ketu: { kn: "ಕೇತು", en: "Ketu", hi: "केतु", te: "కేతువు", ta: "கேது" },
   Lagna: { kn: "ಲಗ್ನ", en: "Ascendant (Lagna)", hi: "लग्न", te: "లగ్నం", ta: "லக்னம்" },
   Maandi: { kn: "ಮಾಂದಿ", en: "Maandi (Gulika)", hi: "मांदि", te: "మాంది", ta: "மாந்தி" }
 };
