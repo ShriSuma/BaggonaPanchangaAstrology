@@ -13,6 +13,7 @@ import {
 import type { KundliInput, KundliOutput } from "../core/AstroTypes";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
 import { KundliDoshaPdfTemplate } from "../components/kundli/KundliDoshaPdfTemplate";
+import { askGemini } from "../core/GeminiEngine";
 
 // Comprehensive 5-Language UI Dictionary for KundliDoshasPage
 const UI_TEXT: Record<string, Record<string, string>> = {
@@ -351,6 +352,83 @@ const UI_TEXT: Record<string, Record<string, string>> = {
     te: "ప్రస్తుత మహాదశ-భుక్తి",
     ta: "நடப்பு மகாதிசை-புத்தி",
     en: "Running Dasha-Bhukti",
+  },
+  pitruBannerHeader: {
+    kn: "॥ ಪಿತೃ ದೇವೋ ಭವ - ಪ್ರಧಾನ ಪೂರ್ವಜ ಋಣ ಮೋಚನಾ ಮಹಾ ಸಂಕಲ್ಪ ॥",
+    hi: "॥ पितृ देवो भव - प्रधान पूर्वज ऋण मोचन महा संकल्प ॥",
+    te: "॥ పితృ దేవో భవ - ప్రధాన పూర్వీకుల ఋణ విముక్తి మహా సంకల్పం ॥",
+    ta: "॥ பித்ரு தேவோ பவ - முதன்மை முன்னோர்கள் கடன் தீர்க்கும் மகா சங்கல்பம் ॥",
+    en: "॥ Pitru Devo Bhava - Supreme Ancestral Debt Liberation Guidance ॥",
+  },
+  pitruBannerBadge: {
+    kn: "ಆದ್ಯತೆ #1 • ಪ್ರಧಾನ ಕರ್ತವ್ಯ",
+    hi: "प्राथमिकता #1 • सर्वोच्च कर्तव्य",
+    te: "ప్రాధాన్యత #1 • అత్యున్నత కర్తవ్యం",
+    ta: "முன்னுரிமை #1 • தலையாய கடமை",
+    en: "Priority #1 • Supreme Ancestral Duty",
+  },
+  pitruBannerDesc: {
+    kn: "ಜಾತಕದಲ್ಲಿ ಪಿತೃ ದೋಷವು ಸಕ್ರಿಯವಾಗಿದ್ದು, ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಇದು ಎಲ್ಲಾ ಶುಭ ಕಾರ್ಯಗಳು, ಸಂತಾನ, ವಿದ್ಯಾ ಹಾಗೂ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿಗೆ ಮೂಲ ಅಡೆತಡೆಯಾಗಿರುತ್ತದೆ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕೋಟಿತೀರ್ಥ ಪವಿತ್ರ ಕ್ಷೇತ್ರದಲ್ಲಿ ತಿಲ ಹೋಮ, ನಾರಾಯಣ ಬಲಿ & ಪಿತೃ ತರ್ಪಣ ಕೈಗೊಳ್ಳುವುದು ಪ್ರಪ್ರಥಮ ಕರ್ತವ್ಯ.",
+    hi: "कुंडली में पितृ दोष सक्रिय है। शास्त्रानुसार यह विवाह, संतति, करियर एवं धन वृद्धि में मूल बाधा माना गया है। श्री गोकर्ण महाबलेश्वर कोटितीर्थ क्षेत्र में तिल होम, नारायण बलि एवं पितृ तर्पण संपन्न करना सर्वप्रथम अनिवार्य कर्तव्य है।",
+    te: "జాతకంలో పితృ దోషం సక్రియంగా ఉంది. శాస్త్రం ప్రకారం ఇది వివాహం, సంతానం, విద్య మరియు ధనవృద్ధికి ప్రధాన అడ్డంకి. శ్రీ గోకర్ణ కోటితీర్థంలో తిల హోమం, నారాయణ బలి మరియు పితృ తర్పణం చేయడం ప్రథమ కర్తవ్యం.",
+    ta: "ஜாதகத்தில் பித்ரு தோஷம் தீவிரமாக உள்ளது. சாஸ்திரப்படி இது திருமணம், வம்ச விருத்தி, கல்வி மற்றும் பொருளாதார உயர்வுக்கு முதன்மைத் தடையாகும். கோகர்ண கோடிதீர்த்தத்தில் தில ஹோமம், நாராயண பலி மற்றும் பித்ரு தர்ப்பணம் செய்வது தலையாய கடமை.",
+    en: "Pitru Dosha is actively afflicting the chart. Classically, ancestral debt must be redeemed before any other remedies can bear fruit. Performing Tila Homa, Narayana Bali & Pitru Tarpanam at Sri Gokarna Mahabaleshwara Kotiteertha Kshetra is the foremost priority.",
+  },
+  pitruGokarnaAction: {
+    kn: "ಶ್ರೀ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ತಿಲ ಹೋಮ & ನಾರಾಯಣ ಬಲಿ ಸಂಕಲ್ಪ",
+    hi: "श्री गोकर्ण कोटितीर्थ तिल होम एवं नारायण बलि संकल्प",
+    te: "శ్రీ గోకర్ణ కోటితీర్థ తిల హోమం & నారాయణ బలి సంకల్పం",
+    ta: "ஸ்ரீ கோகர்ண கோடிதீர்த்த தில ஹோமம் & நாராயண பலி சங்கல்பம்",
+    en: "Sri Gokarna Kotiteertha Tila Homa & Narayana Bali Sankalpa",
+  },
+  pitruChiefPriestCall: {
+    kn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು): +91 94486 24477",
+    hi: "श्रीराम पंडित (प्रधान अर्चक): +91 94486 24477",
+    te: "శ్రీరామ్ పండిత్ (ప్రధాన అర్చకులు): +91 94486 24477",
+    ta: "ஸ்ரீராம் பண்டிட் (தலைமை குருக்கள்): +91 94486 24477",
+    en: "Shreeram Pandit (Chief Priest): +91 94486 24477",
+  },
+  supremeAncestralDuty: {
+    kn: "👑 ಪೂರ್ವಜ ಋಣ ಮೋಚನ (Supreme Ancestral Duty)",
+    hi: "👑 पूर्वज ऋण मोचन (Supreme Ancestral Duty)",
+    te: "👑 పూర్వీకుల ఋణ విముక్తి (Supreme Ancestral Duty)",
+    ta: "👑 பித்ரு கடன் நிவர்த்தி (Supreme Ancestral Duty)",
+    en: "👑 Supreme Ancestral Duty (Pitru Mukti)",
+  },
+  aiGuidanceBtn: {
+    kn: "🤖 AI ದೈವಿಕ ವಯೋನುಗುಣ ಮಾರ್ಗದರ್ಶನ",
+    hi: "🤖 AI वैदिक आयु-आधारित मार्गदर्शन",
+    te: "🤖 AI దైవిక వయోనుగుణ మార్గదర్శనం",
+    ta: "🤖 AI தெய்வீக வயது வழிகாட்டுதல்",
+    en: "🤖 AI Divine Life-Stage Directives",
+  },
+  aiParashariFallbackLabel: {
+    kn: "ಪರಾಶರ ಸಿದ್ಧಾಂತ ಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದರ್ಶನ",
+    hi: "पराशर शास्त्रीय मार्गदर्शन",
+    te: "పరాశర శాస్త్రీయ మార్గదర్శనం",
+    ta: "பராசர சாஸ்திர வழிகாட்டுதல்",
+    en: "Classical Parashari Directives",
+  },
+  aiGeneratedLabel: {
+    kn: "✨ AI ಜ್ಯೋತಿಷ್ಯ ವಿಶ್ಲೇಷಣೆ (Gemini 3.5 Flash-Lite)",
+    hi: "✨ AI ज्योतिषीय विश्लेषण (Gemini 3.5 Flash-Lite)",
+    te: "✨ AI జ్యోతిష్య విశ్లేషణ (Gemini 3.5 Flash-Lite)",
+    ta: "✨ AI ஜோதிட ஆய்வு (Gemini 3.5 Flash-Lite)",
+    en: "✨ AI Astrological Analysis (Gemini 3.5 Flash-Lite)",
+  },
+  aiGeneratingLabel: {
+    kn: "AI ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+    hi: "AI विश्लेषण जारी है...",
+    te: "AI విశ్లేషణ జరుగుతోంది...",
+    ta: "AI ஆய்வு செய்கிறது...",
+    en: "Analyzing with AI...",
+  },
+  aiRevertToParashari: {
+    kn: "ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+    hi: "शास्त्रीय सिद्धांत पर लौटें",
+    te: "శాస్త్రీయ సిద్ధాంతానికి తిరిగి వెళ్ళు",
+    ta: "சாஸ்திர முறைக்கு திரும்பு",
+    en: "Revert to Parashari Engine",
   }
 };
 
@@ -456,6 +534,70 @@ export const KundliDoshasPage: React.FC = () => {
     return gandantaraReport.detectedFears;
   }, [gandantaraReport]);
 
+  // Pitru Dosha memo for supreme ancestral highlight
+  const pitruDosha = useMemo(() => activeDoshas.find((d) => d.id === "pitru_dosha"), [activeDoshas]);
+
+  // Gemini API Key for AI Life-Stage Directive
+  const storeApiKey = useAppStore((s) => s.geminiApiKey);
+  const geminiApiKey = storeApiKey || (typeof import.meta !== "undefined" ? (import.meta as any).env?.VITE_GEMINI_API_KEY : "") || "";
+
+  // AI Narrative State with instant fallback to deterministic Parashari engine
+  const [aiNarrative, setAiNarrative] = useState<string | null>(null);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Clear AI narrative on language or native change
+  useEffect(() => {
+    setAiNarrative(null);
+    setAiError(null);
+  }, [selectedLang, doshaReport?.devoteeInfo.name]);
+
+  const handleGenerateAiNarrative = async () => {
+    if (!doshaReport || isGeneratingAi) return;
+    try {
+      setIsGeneratingAi(true);
+      setAiError(null);
+      const age = doshaReport.devoteeInfo.currentAge || doshaReport.devoteeInfo.devoteeAge;
+      const stage = doshaReport.devoteeInfo.ageStageKey;
+      const stageName = doshaReport.devoteeInfo.ageStageNameRecord?.[selectedLang] || stage;
+      const doshaSummaries = activeDoshas
+        .slice(0, 3)
+        .map((d) => `#${d.agePriorityRank}: ${d.name[selectedLang] || d.name.en} (${d.immediateActionRequired?.[selectedLang] || d.immediateActionRequired?.en || ""})`)
+        .join("; ");
+
+      const prompt = `Devotee: ${doshaReport.devoteeInfo.name}, Age: ${age} (${stageName}).
+Active Doshas in order of priority: ${doshaSummaries || "None"}.
+Pitru Dosha Present: ${pitruDosha ? "YES (Foremost Priority, requires Gokarna Kotiteertha Tila Homa & Narayana Bali)" : "NO"}.
+Lagna: ${doshaReport.devoteeInfo.lagnaRashi}, Moon: ${doshaReport.devoteeInfo.moonRashi}.
+
+Write a compassionate, highly authentic Parashari astrological life-stage directive (2 paragraphs) in ${selectedLang === "kn" ? "Kannada" : selectedLang === "hi" ? "Hindi" : selectedLang === "te" ? "Telugu" : selectedLang === "ta" ? "Tamil" : "English"}.
+Focus strictly on:
+1. Why this native's current age demands addressing the #1 priority affliction first.
+2. Sacred ritual guidance at Sri Gokarna Mahabaleshwara Kotiteertha (especially for Pitru dosha / ancestral redemption if active).
+Keep the tone divine, authoritative, and Vedic.`;
+
+      const response = await askGemini(
+        "Divine Life-Stage Priority Directive",
+        prompt,
+        geminiApiKey,
+        selectedLang,
+        { temperature: 0.3 }
+      );
+      if (response && response.trim().length > 20) {
+        setAiNarrative(response.trim());
+      } else {
+        // Fallback to deterministic Parashari engine
+        setAiError("fallback");
+      }
+    } catch (err) {
+      console.warn("AI generation failed, smoothly falling back to deterministic Parashari engine:", err);
+      // Fallback to deterministic Parashari engine
+      setAiError("fallback");
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
+
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const handleDownloadPdf = async () => {
@@ -499,6 +641,60 @@ export const KundliDoshasPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFDF7] text-slate-800 font-sans pb-16 print:bg-white print:text-black print:pb-0">
+      {/* 🖨️ Direct Print Stylesheet for exact 100% A4 portrait print layout with zero cutoff */}
+      <style>{`
+        @media print {
+          body {
+            background: white !important;
+            color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          .dosha-pdf-print-wrapper,
+          .dosha-pdf-print-wrapper *,
+          #kundli-doshas-pdf-container,
+          #kundli-doshas-pdf-container * {
+            visibility: visible !important;
+          }
+          .dosha-pdf-print-wrapper {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            opacity: 1 !important;
+            z-index: 99999 !important;
+            display: block !important;
+          }
+          #kundli-doshas-pdf-container {
+            position: relative !important;
+            width: 100% !important;
+            max-width: 210mm !important;
+            margin: 0 auto !important;
+            display: block !important;
+            background: #FFFDF9 !important;
+          }
+          .pdf-page {
+            page-break-after: always !important;
+            break-after: page !important;
+            width: 100% !important;
+            max-width: 210mm !important;
+            min-height: 297mm !important;
+            height: 297mm !important;
+            margin: 0 auto !important;
+            box-sizing: border-box !important;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+        }
+      `}</style>
+
       {/* 🌟 Top Navigation Bar 🌟 */}
       <header className="sticky top-0 z-30 bg-[#FFFDF9]/95 backdrop-blur-md border-b-2 border-amber-500/30 px-4 py-3 print:hidden shadow-sm">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
@@ -695,7 +891,7 @@ export const KundliDoshasPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 🌟 Age Priority Strategy Card 🌟 */}
+            {/* 🌟 Age Priority Strategy Card with GenAI & Deterministic Parashari Fallback 🌟 */}
             <div className="rounded-3xl border-2 border-amber-500/50 bg-gradient-to-br from-[#FFFDF9] via-[#FEFBF2] to-[#FFF9EB] p-5 sm:p-6 shadow-md relative overflow-hidden print:border-black print:bg-white print:text-black">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-500/20 pb-4 print:border-black">
                 <div className="flex items-center gap-3">
@@ -711,16 +907,75 @@ export const KundliDoshasPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-400 text-xs font-black self-start sm:self-auto shadow-sm">
-                  <span>⚡</span>
-                  <span>{t("agePriorityBadgeLabel")}</span>
+
+                <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-400 text-xs font-black shadow-sm">
+                    <span>⚡</span>
+                    <span>{t("agePriorityBadgeLabel")}</span>
+                  </div>
+
+                  {/* 🤖 GenAI Narrative Button (with instant deterministic Parashari fallback) */}
+                  <button
+                    type="button"
+                    onClick={handleGenerateAiNarrative}
+                    disabled={isGeneratingAi}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-purple-700 via-indigo-700 to-amber-700 hover:from-purple-800 hover:to-amber-800 text-white text-xs font-black shadow-md border border-purple-400/50 transition-all active:scale-95 disabled:opacity-60 print:hidden cursor-pointer"
+                    title={t("aiGuidanceBtn")}
+                  >
+                    {isGeneratingAi ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>{t("aiGeneratingLabel")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🤖</span>
+                        <span>{aiNarrative ? t("aiRevertToParashari") : t("aiGuidanceBtn")}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
 
               <div className="mt-4 space-y-2">
-                <div className="rounded-2xl bg-amber-50/80 border border-amber-300 p-4 text-xs sm:text-sm text-amber-950 font-bold leading-relaxed print:bg-white print:text-black print:border-black">
-                  {getLangText(doshaReport.devoteeInfo.currentAgeFocusSummary, "ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಅಗತ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಮೊದಲ ಆದ್ಯತೆಯ ಪರಿಹಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಾವಶ್ಯಕ.")}
-                </div>
+                {/* When AI narrative is active, display the AI response */}
+                {aiNarrative ? (
+                  <div className="rounded-2xl bg-gradient-to-br from-purple-50/80 via-white to-amber-50/50 border-2 border-purple-300 p-4 sm:p-5 space-y-2.5 shadow-sm print:bg-white print:border-black">
+                    <div className="flex items-center justify-between gap-2 border-b border-purple-200 pb-2">
+                      <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-purple-950">
+                        <span>✨</span>
+                        <span>{t("aiGeneratedLabel")}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAiNarrative(null)}
+                        className="text-[11px] text-purple-800 hover:text-purple-950 font-bold underline print:hidden cursor-pointer"
+                      >
+                        {t("aiRevertToParashari")}
+                      </button>
+                    </div>
+                    <div className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed whitespace-pre-line print:text-black">
+                      {aiNarrative}
+                    </div>
+                  </div>
+                ) : (
+                  /* Classical Deterministic Parashari Engine Directive */
+                  <div className="rounded-2xl bg-amber-50/80 border border-amber-300 p-4 space-y-1.5 print:bg-white print:text-black print:border-black">
+                    <div className="flex items-center gap-1.5 text-[11px] font-black uppercase text-amber-900 print:text-black">
+                      <span>📜</span>
+                      <span>{t("aiParashariFallbackLabel")}</span>
+                      {aiError && (
+                        <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 font-semibold">
+                          (Offline / Deterministic Mode)
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-amber-950 font-bold leading-relaxed print:text-black">
+                      {getLangText(doshaReport.devoteeInfo.currentAgeFocusSummary, "ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಅಗತ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಮೊದಲ ಆದ್ಯತೆಯ ಪರಿಹಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಾವಶ್ಯಕ.")}
+                    </p>
+                  </div>
+                )}
+
                 <p className="text-[11px] text-amber-900/80 italic font-medium px-1 print:text-black">
                   {t("ageStrategyNote")}
                 </p>
@@ -812,14 +1067,88 @@ export const KundliDoshasPage: React.FC = () => {
                   </div>
                 )}
 
+                {/* 🪔 PROMINENT PITRU DOSHA ANCESTRAL SACRED HIGHLIGHT CARD 🪔 */}
+                {pitruDosha && (
+                  <div className="rounded-3xl border-2 border-amber-600 bg-gradient-to-br from-[#FFF9E6] via-[#FFFDF5] to-[#FFF3DC] p-6 sm:p-7 shadow-lg relative overflow-hidden ring-2 ring-amber-500/40 space-y-4 print:border-black print:bg-white print:text-black">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-500/30 pb-4 print:border-black">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-amber-500 bg-amber-500/10 text-amber-950 text-2xl shadow-sm">
+                          🪔
+                        </div>
+                        <div>
+                          <div className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase text-amber-900 tracking-wider">
+                            <span>👑</span>
+                            <span>{t("pitruBannerHeader")}</span>
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-black text-amber-950 font-serif mt-0.5 print:text-black">
+                            {getLangText(pitruDosha.name)} - {t("pitruBannerBadge")}
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 text-white text-xs font-black shadow-md self-start sm:self-auto border border-amber-800">
+                        <span>⚡</span>
+                        <span>{getLangText(pitruDosha.agePriorityBadge, "ಆದ್ಯತೆ #1")}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-amber-950 font-semibold leading-relaxed print:text-black">
+                      {t("pitruBannerDesc")}
+                    </p>
+
+                    {/* Sacred Gokarna Kotiteertha Action Box */}
+                    <div className="rounded-2xl bg-white/90 border-2 border-amber-400 p-4 sm:p-5 shadow-sm space-y-3 print:bg-white print:border-black">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                            <span>🔱</span>
+                            <span>{t("pitruGokarnaAction")}</span>
+                          </div>
+                          <p className="text-xs text-slate-700 font-medium">
+                            {getLangText(pitruDosha.immediateActionRequired)}
+                          </p>
+                        </div>
+
+                        <a
+                          href="tel:+919448624477"
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-black text-xs shadow-md transition-all shrink-0 active:scale-95 print:hidden"
+                        >
+                          <span>📞</span>
+                          <span>{t("pitruChiefPriestCall")}</span>
+                        </a>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-amber-200">
+                        <div className="rounded-xl bg-amber-50 p-2.5 text-center border border-amber-200">
+                          <span className="text-xs font-black text-amber-950">1. ತಿಲ ಹೋಮ (Tila Homa)</span>
+                          <p className="text-[10px] text-amber-900/80 mt-0.5">ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಪ್ರಾಯಶ್ಚಿತ್ತ ಆಹುತಿ</p>
+                        </div>
+                        <div className="rounded-xl bg-amber-50 p-2.5 text-center border border-amber-200">
+                          <span className="text-xs font-black text-amber-950">2. ನಾರಾಯಣ ಬಲಿ (Narayana Bali)</span>
+                          <p className="text-[10px] text-amber-900/80 mt-0.5">ಅತೃಪ್ತ ಪೂರ್ವಜರ ಸದ್ಗತಿ ಮೋಕ್ಷ</p>
+                        </div>
+                        <div className="rounded-xl bg-amber-50 p-2.5 text-center border border-amber-200">
+                          <span className="text-xs font-black text-amber-950">3. ಪಿತೃ ತರ್ಪಣ (Pitru Tarpanam)</span>
+                          <p className="text-[10px] text-amber-900/80 mt-0.5">ಅಮಾವಾಸ್ಯೆ / ಶ್ರಾದ್ಧ ತಿಲ ತರ್ಪಣ</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Doshas Cards List */}
                 {filteredDoshas.map((dosha) => {
+                  const isPitru = dosha.id === "pitru_dosha";
                   const isCritical = dosha.severity === "critical";
-                  const borderClass = isCritical
+
+                  const borderClass = isPitru
+                    ? "border-2 border-amber-600 bg-gradient-to-br from-[#FFFBF0] via-[#FFFDF8] to-[#FFF5EB] shadow-xl ring-2 ring-amber-500/40"
+                    : isCritical
                     ? "border-2 border-rose-300/80 bg-gradient-to-br from-white via-rose-50/25 to-white shadow-md"
                     : "border-2 border-amber-400/60 bg-gradient-to-br from-white via-amber-50/20 to-white shadow-md";
 
-                  const badgeBg = isCritical
+                  const badgeBg = isPitru
+                    ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                    : isCritical
                     ? "bg-rose-100 text-rose-800 border-rose-300"
                     : "bg-amber-100 text-amber-900 border-amber-300";
 
@@ -831,12 +1160,24 @@ export const KundliDoshasPage: React.FC = () => {
                       {/* Header Row */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-200/60 pb-4 print:border-black">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/60 bg-amber-50 text-2xl print:border-black shadow-sm">
-                            {isCritical ? "⚠️" : "⚡"}
+                          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-2xl print:border-black shadow-sm ${
+                            isPitru
+                              ? "border-amber-500 bg-amber-100 text-amber-950"
+                              : isCritical
+                              ? "border-rose-400 bg-rose-50"
+                              : "border-amber-400/60 bg-amber-50"
+                          }`}>
+                            {isPitru ? "🪔" : isCritical ? "⚠️" : "⚡"}
                           </div>
                           <div>
-                            <h3 className="text-lg sm:text-xl font-black text-indigo-950 font-serif print:text-black">
-                              {getLangText(dosha.name)}
+                            <h3 className="text-lg sm:text-xl font-black text-indigo-950 font-serif print:text-black flex items-center gap-2 flex-wrap">
+                              <span>{getLangText(dosha.name)}</span>
+                              {isPitru && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 border border-amber-400 text-[11px] font-black uppercase">
+                                  <span>👑</span>
+                                  <span>{t("supremeAncestralDuty")}</span>
+                                </span>
+                              )}
                             </h3>
                             <p className="text-[11px] text-slate-500 font-medium print:text-black">
                               {dosha.technicalDetail.scripturalReference}
@@ -848,7 +1189,9 @@ export const KundliDoshasPage: React.FC = () => {
                           {/* ⚡ Glowing Age Priority Badge */}
                           <span
                             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase shadow-sm border ${
-                              isCritical
+                              isPitru
+                                ? "bg-amber-600 text-white border-amber-700"
+                                : isCritical
                                 ? "bg-rose-600 text-white border-rose-400"
                                 : "bg-amber-600 text-white border-amber-400"
                             } print:border-black print:text-black`}
@@ -1291,6 +1634,7 @@ export const KundliDoshasPage: React.FC = () => {
 
       {/* 🖨️ Off-screen PDF Container for 1-Click PDF Download (baggona-pdf-layout-guard compliant) */}
       <div
+        className="dosha-pdf-print-wrapper"
         style={{
           position: "fixed",
           left: 0,

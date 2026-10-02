@@ -1029,7 +1029,9 @@ Honoring seasoned preceptors, chanting Brihaspati mantras, and conducting rigoro
     balarishtaReasonsEn.push(`Lagna lord ${lagnaLord.name} resides in Dusthana house ${lagnaLord.house}.`);
   }
 
-  const isBalarishta = balarishtaReasonsKn.length > 0;
+  const isChildhood = currentAge < 12;
+  const rawBalarishta = balarishtaReasonsKn.length > 0;
+  const isBalarishta = isChildhood && rawBalarishta;
   // Balarishta Bhanga: Jupiter in Kendra (1, 4, 7, 10) cancels Balarishta!
   const hasBalarishtaBhanga = jupiter !== undefined && [1, 4, 7, 10].includes(jupiter.house);
   const balarishtaSeverity: DoshaSeverity = isBalarishta ? (hasBalarishtaBhanga ? "mild" : "high") : "none";
@@ -1047,11 +1049,21 @@ Honoring seasoned preceptors, chanting Brihaspati mantras, and conducting rigoro
     isDetected: isBalarishta,
     severity: balarishtaSeverity,
     statusBadge: {
-      kn: isBalarishta ? (hasBalarishtaBhanga ? "ಬಾಲಾರಿಷ್ಟ ಭಂಗ (ರಕ್ಷಿತ)" : "ಬಾಲಾರಿಷ್ಟ ಯೋಗ") : "ದೀರ್ಘಾಯುಷ್ಯ ಯೋಗ",
-      hi: isBalarishta ? (hasBalarishtaBhanga ? "बालारिष्ट भंग योग" : "बालारिष्ट प्रभाव") : "दीर्घायु योग",
-      te: isBalarishta ? "బాలారిష్ట దోషం" : "ఆయుష్షు బలం",
-      ta: isBalarishta ? "பாலாரிஷ்ட தோஷம்" : "தோஷமில்லை",
-      en: isBalarishta ? (hasBalarishtaBhanga ? "BALARISHTA BHANGA (PROTECTED)" : "ACTIVE BALARISHTA") : "VITAL CONSTITUTION"
+      kn: isBalarishta
+        ? (hasBalarishtaBhanga ? "ಬಾಲಾರಿಷ್ಟ ಭಂಗ (ರಕ್ಷಿತ)" : "ಬಾಲಾರಿಷ್ಟ ಯೋಗ")
+        : (isChildhood ? "ದೀರ್ಘಾಯುಷ್ಯ ಯೋಗ" : "ಬಾಲ್ಯಾವಸ್ಥೆ ದಾಟಿದೆ (ಆಯುಷ್ಯ ರಕ್ಷಿತ)"),
+      hi: isBalarishta
+        ? (hasBalarishtaBhanga ? "बालारिष्ट भंग योग" : "बालारिष्ट प्रभाव")
+        : (isChildhood ? "दीर्घायु योग" : "बाल्यावस्था पार (आयुष्य सुरक्षित)"),
+      te: isBalarishta
+        ? "బాలారిష్ట దోషం"
+        : (isChildhood ? "ఆయుష్షు బలం" : "బాల్యావస్థ దాటింది (ఆయుష్షు రక్షితం)"),
+      ta: isBalarishta
+        ? "பாலாரிஷ்ட தோஷம்"
+        : (isChildhood ? "தோஷமில்லை" : "பால்ய பருவம் கடந்தது (ஆயுள் காக்கப்பட்டது)"),
+      en: isBalarishta
+        ? (hasBalarishtaBhanga ? "BALARISHTA BHANGA (PROTECTED)" : "ACTIVE BALARISHTA")
+        : (isChildhood ? "VITAL CONSTITUTION" : "CHILDHOOD SURPASSED (LONGEVITY SECURED)")
     },
     technicalDetail: {
       houseNumbers: Array.from(new Set(balarishtaHouses)),
@@ -1070,19 +1082,29 @@ Honoring seasoned preceptors, chanting Brihaspati mantras, and conducting rigoro
     technicalWhy: {
       kn: isBalarishta
         ? `ಖಗೋಳ ಕಾರಣ: ${balarishtaReasonsKn.join(" ")} ಶಾಸ್ತ್ರಗಳ ಪ್ರಕಾರ ಲಗ್ನ ಅಥವಾ ಚಂದ್ರನಿಗೆ ೬, ೮, ೧೨ನೇ ಮನೆಗಳ ಸಂಬಂಧವು ಶೈಶವಾವಸ್ಥೆಯಲ್ಲಿ ಶೀತ, ಜ್ವರ ಅಥವಾ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯ ಏರುಪೇರನ್ನು ತರಬಹುದು.${hasBalarishtaBhanga ? " ಆದರೆ ಗುರುವು ಕೇಂದ್ರದಲ್ಲಿದ್ದು ಈ ದೋಷವನ್ನು ಪರಿಪೂರ್ಣವಾಗಿ ಭಂಗಗೊಳಿಸಿ ಆಯುರ್ಬಲ ಕರುಣಿಸಿದ್ದಾನೆ." : ""}`
-        : "ಚಂದ್ರ ಮತ್ತು ಲಗ್ನಾಧಿಪತಿ ಬಲಿಷ್ಠ ಕೇಂದ್ರ-ತ್ರಿಕೋಣಗಳಲ್ಲಿದ್ದು ಯಾವುದೇ ಬಾಲಾರಿಷ್ಟ ದೋಷವಿಲ್ಲ.",
+        : (!isChildhood
+            ? "ಜಾತಕರು ೧೨ ವರ್ಷಗಳ ಬಾಲ್ಯಾವಸ್ಥೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ದಾಟಿದ್ದು, ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಬಾಲಾರಿಷ್ಟ ಅವಧಿಯು ಪೂರ್ಣಗೊಂಡಿದೆ. ದೀರ್ಘಾಯುಷ್ಯ ಯೋಗದಿಂದಾಗಿ ಬಾಲ್ಯದ ಸಂಕಷ್ಟಗಳು ಸಂಪೂರ್ಣ ನಿವಾರಣೆಯಾಗಿವೆ."
+            : "ಚಂದ್ರ ಮತ್ತು ಲಗ್ನಾಧಿಪತಿ ಬಲಿಷ್ಠ ಕೇಂದ್ರ-ತ್ರಿಕೋಣಗಳಲ್ಲಿದ್ದು ಯಾವುದೇ ಬಾಲಾರಿಷ್ಟ ದೋಷವಿಲ್ಲ."),
       hi: isBalarishta
         ? `खगोलीय कारण: ${balarishtaReasonsEn.join(" ")} चंद्र अथवा लग्नेश की त्रिक स्थिति प्रारंभिक स्वास्थ्य संवेदनशीलता दर्शाती है।${hasBalarishtaBhanga ? " केंद्र में गुरु की उपस्थिति से बालारिष्ट भंग योग का निर्माण हुआ है।" : ""}`
-        : "चंद्र और लग्नेश पूर्णतः सुरक्षित हैं। बालारिष्ट दोष नहीं है।",
+        : (!isChildhood
+            ? "जातक 12 वर्ष की बाल्यावस्था को सकुशल पार कर चुके हैं। शास्त्रानुसार बालारिष्ट का प्रभाव समाप्त होकर दीर्घायु योग स्थापित हो चुका है।"
+            : "चंद्र और लग्नेश पूर्णतः सुरक्षित हैं। बालारिष्ट दोष नहीं है।"),
       te: isBalarishta
         ? `చంద్రుడు లేదా లగ్నాధిపతి బలహీన స్థానాలలో ఉండటం బాలారిష్టాన్ని సూచిస్తోంది.${hasBalarishtaBhanga ? " గురు బలం వల్ల దోష భంగం జరిగింది." : ""}`
-        : "చంద్రుడు మరియు లగ్నాధిపతి శుభ స్థానాలలో ఉండి ఎలాంటి బాలారిష్ట దోషం లేదు.",
+        : (!isChildhood
+            ? "జాతకుడు 12 ఏళ్ళ బాల్యావస్థను దాటినందున బాలారిష్ట దోషం తొలగి దీర్ఘాయుష్షు ప్రాప్తించింది."
+            : "చంద్రుడు మరియు లగ్నాధిపతి శుభ స్థానాలలో ఉండి ఎలాంటి బాలారిష్ట దోషం లేదు."),
       ta: isBalarishta
         ? `சந்திரன் அல்லது லக்னாதிபதி மறைவு ஸ்தானங்களில் இருப்பதால் சிறுவயது உடல்நலக் குறைபாடுகள் தோன்றி மறையலாம்.`
-        : "சந்திரனும் லக்னாதிபதியும் கேந்திர-திரிகோணங்களில் பலமாக உள்ளதால் பாலாரிஷ்ட தோஷம் இல்லை.",
+        : (!isChildhood
+            ? "ஜாதகர் 12 வயதைக் கடந்துவிட்டதால் சாஸ்திரப்படி பாலாரிஷ்ட தோஷ காலம் முடிவடைந்து தீர்க்காயுள் நிலைபெற்றுள்ளது."
+            : "சந்திரனும் லக்னாதிபதியும் கேந்திர-திரிகோணங்களில் பலமாக உள்ளதால் பாலாரிஷ்ட தோஷம் இல்லை."),
       en: isBalarishta
         ? `Astronomical indicators: ${balarishtaReasonsEn.join(" ")} Vedic tenets hold that placement of Moon or Lagnesha in Dusthanas indicates early childhood immune vulnerability.${hasBalarishtaBhanga ? " Divine preceptor Jupiter in Kendra fully activates Balarishta Bhanga, guaranteeing constitutional longevity." : ""}`
-        : "Ascendant and Moon are vigorously placed in auspicious angles. No Balarishta Dosha present."
+        : (!isChildhood
+            ? "The native has safely surpassed the childhood threshold (age 12+). In classical Jyotisha, Balarishta ceases after childhood, establishing longevity."
+            : "Ascendant and Moon are vigorously placed in auspicious angles. No Balarishta Dosha present.")
     },
     currentLifeProblems: {
       kn: "ಪ್ರಸ್ತುತ ಹವಾಮಾನ ಬದಲಾವಣೆಗಳಿಗೆ ದೇಹವು ತ್ವರಿತವಾಗಿ ತುತ್ತಾಗುವುದು, ಶೀತ-ಜ್ವರ ಅಥವಾ ಜೀರ್ಣಾಂಗಗಳ ದೌರ್ಬಲ್ಯ, ಮಾನಸಿಕವಾಗಿ ಬೇಗನೆ ಆಯಾಸಗೊಳ್ಳುವುದು ಹಾಗೂ ದೈಹಿಕ ಶಕ್ತಿ ಕ್ಷೀಣಿಸಿ ರೋಗನಿರೋಧಕ ಸಾಮರ್ಥ್ಯ ಕುಂಠಿತಗೊಳ್ಳುವಂತಹ ತೊಂದರೆಗಳು ದಿನನಿತ್ಯದ ಚಟುವಟಿಕೆಗಳಿಗೆ ಅಡ್ಡಿಯುಂಟುಮಾಡುತ್ತಿವೆ.",
@@ -1147,9 +1169,10 @@ Cultivating clean Ayurvedic lifestyle habits and Mahamrityunjaya chanting sustai
   // ==========================================================================
   // 6. BALYAGRAHA DOSHA (ಬಾಲ್ಯಗ್ರಹ ದೋಷ)
   // ==========================================================================
-  const isBalyagraha =
+  const rawBalyagraha =
     (mercury && rahu && mercury.house === rahu.house && [6, 8, 12].includes(mercury.house)) ||
     (moon && ketu && moon.house === ketu.house && [6, 8, 12].includes(moon.house));
+  const isBalyagraha = isChildhood && !!rawBalyagraha;
 
   doshasList.push({
     id: "balyagraha",
@@ -1164,11 +1187,21 @@ Cultivating clean Ayurvedic lifestyle habits and Mahamrityunjaya chanting sustai
     isDetected: !!isBalyagraha,
     severity: isBalyagraha ? "moderate" : "none",
     statusBadge: {
-      kn: isBalyagraha ? "ಸಕ್ರಿಯ ಬಾಲ್ಯಗ್ರಹ ಬಾಧೆ" : "ಸ್ಥಿರ ಮನೋಬಲ",
-      hi: isBalyagraha ? "बाल्यग्रह पीड़ा सक्रिय" : "मानसिक स्थिरता",
-      te: isBalyagraha ? "దోషం ఉంది" : "దోష రహితం",
-      ta: isBalyagraha ? "தோஷம் உள்ளது" : "தோஷமில்லை",
-      en: isBalyagraha ? "PSYCHOSOMATIC VULNERABILITY" : "UNAFFLICTED"
+      kn: isBalyagraha
+        ? "ಸಕ್ರಿಯ ಬಾಲ್ಯಗ್ರಹ ಬಾಧೆ"
+        : (isChildhood ? "ಸ್ಥಿರ ಮನೋಬಲ" : "ಬಾಲ್ಯಾವಸ್ಥೆ ದಾಟಿದೆ (ಮನೋಸ್ಥೈರ್ಯ)"),
+      hi: isBalyagraha
+        ? "बाल्यग्रह पीड़ा सक्रिय"
+        : (isChildhood ? "मानसिक स्थिरता" : "बाल्यावस्था पार (स्थिर मनोबल)"),
+      te: isBalyagraha
+        ? "దోషం ఉంది"
+        : (isChildhood ? "దోష రహితం" : "బాల్యావస్థ దాటింది"),
+      ta: isBalyagraha
+        ? "தோஷம் உள்ளது"
+        : (isChildhood ? "தோஷமில்லை" : "பால்ய பருவம் கடந்தது"),
+      en: isBalyagraha
+        ? "PSYCHOSOMATIC VULNERABILITY"
+        : (isChildhood ? "UNAFFLICTED" : "CHILDHOOD SURPASSED (MATURE VITALITY)")
     },
     technicalDetail: {
       houseNumbers: isBalyagraha ? [mercury?.house || moon?.house || 6] : [],
@@ -1183,19 +1216,29 @@ Cultivating clean Ayurvedic lifestyle habits and Mahamrityunjaya chanting sustai
     technicalWhy: {
       kn: isBalyagraha
         ? "ಬುಧ ಅಥವಾ ಚಂದ್ರ ಗ್ರಹವು ಛಾಯಾಗ್ರಹಗಳಾದ ರಾಹು-ಕೇತುಗಳೊಂದಿಗೆ ದುಸ್ಥಾನದಲ್ಲಿ ಯುತಿ ಹೊಂದಿದ್ದು, ಬಾಲ್ಯದಲ್ಲಿ ನರಮಂಡಲ ಅಥವಾ ಭಯದ ಭಾವನೆಗಳನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ."
-        : "ಬುಧ ಮತ್ತು ಚಂದ್ರರು ನಿರ್ಮಲವಾಗಿದ್ದು ಬಾಲ್ಯಗ್ರಹ ದೋಷವಿಲ್ಲ.",
+        : (!isChildhood
+            ? "ಜಾತಕರು ಬಾಲ್ಯಾವಸ್ಥೆಯನ್ನು (೧೨ ವರ್ಷ) ಮೀರಿದ್ದು, ನರಮಂಡಲದ ಸೂಕ್ಷ್ಮತೆ ಶಮನಗೊಂಡು ಸ್ಥಿರ ಮನೋಸ್ಥೈರ್ಯ ಸಿದ್ಧಿಸಿದೆ."
+            : "ಬುಧ ಮತ್ತು ಚಂದ್ರರು ನಿರ್ಮಲವಾಗಿದ್ದು ಬಾಲ್ಯಗ್ರಹ ದೋಷವಿಲ್ಲ."),
       hi: isBalyagraha
         ? "बुध या चंद्र पर छायाग्रहों का प्रभाव बाल्यकाल में घबराहट या संवेदनशीलता उत्पन्न करता है।"
-        : "बुध और चंद्र शुभ हैं।",
+        : (!isChildhood
+            ? "जातक बाल्यावस्था पूर्ण कर चुके हैं, तंत्रिका तंत्र स्थिर एवं मनोबल सुदृढ़ है।"
+            : "बुध और चंद्र शुभ हैं।"),
       te: isBalyagraha
         ? "బుధుడు లేదా చంద్రునిపై రాహు-కేతువుల ప్రభావం బాల్యగ్రహ దోషాన్ని సూచిస్తోంది."
-        : "బుధుడు మరియు చంద్రుడు నిర్మలంగా ఉండి ఎలాంటి బాల్యగ్రహ దోషం లేదు.",
+        : (!isChildhood
+            ? "బాల్యావస్థ పూర్తయినందున మనోస్థైర్యం స్థిరపడింది."
+            : "బుధుడు మరియు చంద్రుడు నిర్మలంగా ఉండి ఎలాంటి బాల్యగ్రహ దోషం లేదు."),
       ta: isBalyagraha
         ? "புதன் அல்லது சந்திரன் நிழல் கிரகங்களால் பாதிக்கப்பட்டுள்ளது."
-        : "புதனும் சந்திரனும் சுப ஸ்தானங்களில் உள்ளதால் பால்யக் கிரக தோஷம் இல்லை.",
+        : (!isChildhood
+            ? "பால்ய பருவம் நிறைவடைந்துள்ளதால் நரம்பு மண்டலம் மற்றும் மனோபலம் சீராக உள்ளது."
+            : "புதனும் சந்திரனும் சுப ஸ்தானங்களில் உள்ளதால் பால்யக் கிரக தோஷம் இல்லை."),
       en: isBalyagraha
-        ? "Affliction of cognitive Mercury or emotive Moon by lunar nodes in Dusthanas induces psychosomatic sensitivity."
-        : "Mercury and Moon are clear of nodal afflictions. No Balyagraha Dosha."
+        ? "Affliction of cognitive Mercury or emotive Moon by lunar nodes in Dusthanas induces psychosomatic sensitivity in childhood."
+        : (!isChildhood
+            ? "Childhood stage (under 12 years) has concluded; nervous system vulnerability from childhood planetary influences has stabilized."
+            : "Mercury and Moon are clear of nodal afflictions. No Balyagraha Dosha.")
     },
     currentLifeProblems: {
       kn: "ಪ್ರಸ್ತುತ ನಿಮ್ಮಲ್ಲಿ ಅತಿಯಾದ ನರಗಳ ಸೂಕ್ಷ್ಮತೆ, ಸಣ್ಣಪುಟ್ಟ ವಿಚಾರಗಳಿಗೂ ಹಠಾತ್ ಎದೆಬಡಿತ ಅಥವಾ ಅಂಜಿಕೆ, ನಿದ್ರಾಹೀನತೆ ಮತ್ತು ಮನಸ್ಸಿನಲ್ಲಿ ಅಕಾರಣ ದುಗುಡ ಉಂಟಾಗುತ್ತಿದ್ದು, ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವಾಗ ಆತ್ಮವಿಶ್ವಾಸದ ಕೊರತೆ ಕಾಡುತ್ತಿದೆ.",
@@ -3169,10 +3212,10 @@ function assignAgeAdaptivePriorities(
     vidya: {
       guru_chandala: 1,
       kemadruma_dosha: 2,
-      grahan_dosha: 3,
-      dasha_sandhi: 4,
-      gandanta_dosha: 5,
-      pitru_dosha: 6,
+      pitru_dosha: 3,
+      grahan_dosha: 4,
+      dasha_sandhi: 5,
+      gandanta_dosha: 6,
       kala_sarpa: 7,
       kuja_dosha: 8,
       shrapit_dosha: 9,
@@ -3181,14 +3224,14 @@ function assignAgeAdaptivePriorities(
       gochara_rahu_ketu: 12,
       gochara_kantaka_ashtama_shani: 13,
       narayana_bali: 14,
-      balarishta: 25,
-      balyagraha: 26,
+      balarishta: 99,
+      balyagraha: 99,
       gochara_guru_atichara: 27
     },
     vivaha_udyoga: {
-      kuja_dosha: 1,
-      kala_sarpa: 2,
-      pitru_dosha: 3,
+      pitru_dosha: 1,
+      kuja_dosha: 2,
+      kala_sarpa: 3,
       narayana_bali: 4,
       dasha_sandhi: 5,
       guru_chandala: 6,
@@ -3200,8 +3243,8 @@ function assignAgeAdaptivePriorities(
       gandanta_dosha: 12,
       panchanga_yoga_dosha: 13,
       gochara_kantaka_ashtama_shani: 14,
-      balarishta: 30,
-      balyagraha: 31,
+      balarishta: 99,
+      balyagraha: 99,
       gochara_guru_atichara: 32
     },
     gruhastha: {
@@ -3219,13 +3262,13 @@ function assignAgeAdaptivePriorities(
       kemadruma_dosha: 12,
       gandanta_dosha: 13,
       panchanga_yoga_dosha: 14,
-      balarishta: 35,
-      balyagraha: 36,
+      balarishta: 99,
+      balyagraha: 99,
       gochara_guru_atichara: 37
     },
     vanaprastha: {
-      narayana_bali: 1,
-      pitru_dosha: 2,
+      pitru_dosha: 1,
+      narayana_bali: 2,
       kemadruma_dosha: 3,
       dasha_sandhi: 4,
       gochara_sade_sati: 5,
@@ -3238,8 +3281,8 @@ function assignAgeAdaptivePriorities(
       kuja_dosha: 12,
       gandanta_dosha: 13,
       panchanga_yoga_dosha: 14,
-      balarishta: 40,
-      balyagraha: 41,
+      balarishta: 99,
+      balyagraha: 99,
       gochara_guru_atichara: 42
     }
   };
@@ -3249,6 +3292,14 @@ function assignAgeAdaptivePriorities(
   // Clone doshas to avoid mutating source array unexpectedly
   const evaluated = doshas.map((d) => {
     let base = stagePriorities[d.id] ?? 20;
+
+    // Strict age guard: If native has passed childhood (currentAge >= 12 / stageKey !== "bala"),
+    // Balarishta and Balyagraha doshas must NEVER be detected or surfaced in active doshas!
+    if (stageKey !== "bala" && (d.id === "balarishta" || d.id === "balyagraha")) {
+      d.isDetected = false;
+      d.severity = "none";
+      base = 9999;
+    }
 
     // Severity adjustment
     if (d.severity === "critical") base -= 0.4;
@@ -3406,6 +3457,16 @@ function getAgePriorityReasonText(
 }
 
 function getImmediateActionText(dosha: DetectedDosha): Record<string, string> {
+  if (dosha.id === "pitru_dosha") {
+    return {
+      kn: "🎯 ಮೊದಲು ಮಾಡಬೇಕಾದ ಕರ್ತವ್ಯ: ಶ್ರೀ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ತಿಲ ಹೋಮ, ನಾರಾಯಣ ಬಲಿ & ಪಿತೃ ತರ್ಪಣ ಸೇವೆ. ಇದು ಸಮಸ್ತ ಪಿತೃ ಋಣಗಳನ್ನು ನಿವಾರಿಸಿ ವಂಶ ರಕ್ಷಣೆ ಹಾಗೂ ಸರ್ವತೋಮುಖ ಭಾಗ್ಯೋದಯ ನೀಡುತ್ತದೆ.",
+      en: "🎯 Immediate Priority Action: Sacred Tila Homa, Narayana Bali & Pitru Tarpanam at Sri Gokarna Kotiteertha to dissolve ancestral obligations and secure lineage blessings.",
+      hi: "🎯 तत्काल आवश्यक कर्तव्य: श्री गोकर्ण कोटितीर्थ में तिल होम, नारायण बलि एवं पितृ तर्पण सेवा। यह समस्त पितृ ऋणों से मुक्ति दिलाकर वंश वृद्धि एवं कार्य सिद्धि करता है।",
+      te: "🎯 ముందుగా చేయవలసిన కర్తవ్యం: శ్రీ గోకర్ణ కోటితీర్థంలో తిల హోమం, నారాయణ బలి & పితృ తర్పణ సేవలు. ఇది పితృ ఋణ విముక్తిని కలిగించి సకల కార్యసిద్ధిని చేకూరుస్తుంది.",
+      ta: "🎯 உடனடியாக செய்ய வேண்டியது: ஸ்ரீ கோகர்ண கோடிதீர்த்தத்தில் தில ஹோமம், நாராயண பலி மற்றும் பித்ரு தர்ப்பண சேவை. இது வம்ச விருத்தி மற்றும் தடையற்ற வெற்றியைத் தரும்."
+    };
+  }
+
   const poojaKn = dosha.recommendedPooja?.kn || "ವಿಧಿಪೂರ್ವಕ ಶಾಂತಿ";
   const poojaEn = dosha.recommendedPooja?.en || "Consecrated Vedic Shanti";
   const poojaHi = dosha.recommendedPooja?.hi || "वैदिक शांति अनुष्ठान";

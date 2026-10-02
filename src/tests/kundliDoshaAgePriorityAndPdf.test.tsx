@@ -90,11 +90,16 @@ describe("Kundli Doshas Age-Adaptive Priority Ordering & PDF Generation Audit", 
 
     const detectedDoshas = report.doshas.filter((d) => d.isDetected);
     const kujaDosha = detectedDoshas.find((d) => d.id === "kuja_dosha");
-    const balarishta = detectedDoshas.find((d) => d.id === "balarishta_dosha");
+    const balarishta = detectedDoshas.find((d) => d.id === "balarishta");
+    const balyagraha = detectedDoshas.find((d) => d.id === "balyagraha");
 
-    // In vivaha stage, kuja dosha should be ranked ahead of balarishta
-    if (kujaDosha && balarishta) {
-      expect(kujaDosha.agePriorityRank).toBeLessThan(balarishta.agePriorityRank ?? 99);
+    // Classical mandate: For adult (26 yrs), Balarishta & Balyagraha must be strictly absent!
+    expect(balarishta).toBeUndefined();
+    expect(balyagraha).toBeUndefined();
+
+    // In vivaha stage, kuja dosha should be high priority if detected
+    if (kujaDosha) {
+      expect(kujaDosha.agePriorityRank).toBeLessThanOrEqual(3);
     }
   });
 
@@ -109,11 +114,16 @@ describe("Kundli Doshas Age-Adaptive Priority Ordering & PDF Generation Audit", 
 
     const detectedDoshas = report.doshas.filter((d) => d.isDetected);
     const pitruDosha = detectedDoshas.find((d) => d.id === "pitru_dosha");
-    const balarishta = detectedDoshas.find((d) => d.id === "balarishta_dosha");
+    const balarishta = detectedDoshas.find((d) => d.id === "balarishta");
+    const balyagraha = detectedDoshas.find((d) => d.id === "balyagraha");
 
-    // In gruhastha stage, pitru dosha should be ranked ahead of balarishta
-    if (pitruDosha && balarishta) {
-      expect(pitruDosha.agePriorityRank).toBeLessThan(balarishta.agePriorityRank ?? 99);
+    // Classical mandate: For adult (45 yrs), Balarishta & Balyagraha must be strictly absent!
+    expect(balarishta).toBeUndefined();
+    expect(balyagraha).toBeUndefined();
+
+    // In gruhastha stage, pitru dosha is supreme priority #1 if detected
+    if (pitruDosha) {
+      expect(pitruDosha.agePriorityRank).toBe(1);
     }
   });
 

@@ -288,6 +288,288 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
   }
 };
 
+interface AgeStageRemedyItem {
+  icon: string;
+  title: string;
+  desc: string;
+  isPriority?: boolean;
+}
+
+const getAgeStageRemedies = (
+  stageKey: string,
+  lang: SupportedLanguage,
+  hasPitru: boolean
+): AgeStageRemedyItem[] => {
+  if (stageKey === "bala") {
+    const titles: Record<SupportedLanguage, string[]> = {
+      kn: ["ಬಾಲಾರಿಷ್ಟ ಶಮನ & ಆಯುಷ್ಯ ವೃದ್ಧಿ ಸೇವೆ:", "ಬಾಲ ಸರಸ್ವತೀ & ಮೇಧಾ ಸೂಕ್ತ ಜಪ:", "ಗೋಮಾತೆಗೆ ಮೇವು & ಬಾಲ ರಕ್ಷಾ ಅನ್ನದಾನ:", "ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಅಥವಾ ರಕ್ಷಾ ಕವಚ:"],
+      hi: ["बालारिष्ट शमन एवं आयुष्य होम:", "बाल सरस्वती एवं मेधा सूक्त जप:", "गोसेवा एवं बाल रक्षा अन्नदान:", "पंचमुखी रुद्राक्ष अथवा रक्षा कवच:"],
+      te: ["బాలారిష్ట శమనం & ఆయుర్వృద్ధి సేవ:", "బాల సరస్వతీ & మేధా సూక్త జపం:", "గోసేవ & బాల రక్షా అన్నదానం:", "పంచముఖి రుద్రాక్ష లేదా రక్షా కవచం:"],
+      ta: ["பாலாரிஷ்ட சமனம் & ஆயுள் விருத்தி சேவை:", "பால சரஸ்வதி & மேதா சூக்த ஜபம்:", "கோசேவை & பால ரக்ஷா அன்னதானம்:", "பஞ்சமுக ருத்ராட்சம் அல்லது ரக்ஷா கவசம்:"],
+      en: ["Balarishta Shanti & Longevity Homa:", "Bala Saraswati & Medha Sukta Chant:", "Cow Feeding & Child Protection Annadaana:", "Panchamukhi Rudraksha or Silver Kavacha:"]
+    };
+    const descs: Record<SupportedLanguage, string[]> = {
+      kn: [
+        "ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ, ಆಯುಷ್ಯ ಸೂಕ್ತ ಹೋಮ, ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಗೋದಾನ.",
+        "ಮಗುವಿನ ವಾಕ್ಶಕ್ತಿ, ಬುದ್ಧಿಮತ್ತೆ ಹಾಗೂ ಉತ್ತಮ ಆರೋಗ್ಯಕ್ಕಾಗಿ ಸರಸ್ವತೀ ಪೂಜೆ.",
+        "ಗೋಮಾತೆಗೆ ಬೆಲ್ಲ-ಮೇವು ಸಮರ್ಪಣೆ ಹಾಗೂ ಮಗುವಿನ ಆಯುಷ್ಯಕ್ಕಾಗಿ ಅನ್ನದಾನ.",
+        "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಭಿಮಂತ್ರಿತ ಶುದ್ಧ ಬೆಳ್ಳಿಯ ರಕ್ಷಾ ಕವಚ ಧಾರಣೆ."
+      ],
+      hi: [
+        "महामृत्युंजय मंत्र जप, आयुष्य सूक्त हवन, रुद्राभिषेक एवं गोदान।",
+        "शिशु की वाणी, बुद्धि एवं स्वास्थ्य संवर्धन हेतु सरस्वती पूजन।",
+        "गोमाता को गुड़-चारा अर्पण एवं दीर्घायु हेतु अन्नदान।",
+        "श्री महाबलेश्वर सान्निध्य में अभिमंत्रित चांदी का रक्षा कवच धारण।"
+      ],
+      te: [
+        "మహామృత్యుంజయ జపం, ఆయుష్య సూక్త హోమం, రుద్రాభిషేకం మరియు గోదానం.",
+        "పిల్లల వాక్శక్తి, బుద్ధి మరియు ఆరోగ్య రక్షణకు సరస్వతీ పూజ.",
+        "గోమాతకు బెల్లం-గడ్డి సమర్పణ మరియు ఆయుష్షు రక్షణకు అన్నదానం.",
+        "శ్రీ మహాబలేశ్వర సన్నిధిలో పూజించిన వెండి రక్షా కవచ ధారణ."
+      ],
+      ta: [
+        "மகா மிருத்யுஞ்ஜய ஜபம், ஆயுஷ்ய சூக்த ஹோமம், ருத்ராபிஷேகம் மற்றும் கோதானம்.",
+        "குழந்தையின் வாக்குவன்மை, புத்தி மற்றும் ஆரோக்கியத்திற்கு சரஸ்வதி பூஜை.",
+        "பசுவிற்கு வெல்லம்-புல் வழங்கி ஆயுள் பலத்திற்கு அன்னதானம்.",
+        "ஸ்ரீ மகாபலேஸ்வரர் சந்நிதியில் பூஜிக்கப்பட்ட வெள்ளி ரக்ஷா கவசம்."
+      ],
+      en: [
+        "Mahamrityunjaya Homa, Ayushya Sukta chant, Rudrabhishekam and Go-Daana.",
+        "Saraswati Pooja and Medha Sukta for intellect, speech fluency, and immunity.",
+        "Cow feeding with jaggery/fodder and temple Annadaana for longevity.",
+        "Consecrated silver protection Kavacha blessed at Sri Gokarna Kshetra."
+      ]
+    };
+    const tList = titles[lang] || titles.kn;
+    const dList = descs[lang] || descs.kn;
+    return [
+      { icon: "🔱", title: tList[0], desc: dList[0] },
+      { icon: "📚", title: tList[1], desc: dList[1] },
+      { icon: "🐄", title: tList[2], desc: dList[2] },
+      { icon: "📿", title: tList[3], desc: dList[3] }
+    ];
+  }
+
+  if (stageKey === "vidya") {
+    const titles: Record<SupportedLanguage, string[]> = {
+      kn: ["ಶ್ರೀ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ & ಸರಸ್ವತೀ ಹೋಮ:", "ಬುಧ-ಗುರು ಶಾಂತಿ & ಗಾಯತ್ರೀ ಜಪ ಸಂಕಲ್ಪ:", hasPitru ? "ಪಿತೃ ತರ್ಪಣ & ವಂಶ ರಕ್ಷಣೆ (ವಿಶೇಷ ಆದ್ಯತೆ):" : "ಗೋಸೇವೆ & ವಿದ್ಯಾ ವಿದ್ಯಾರ್ಥಿ ಅನ್ನದಾನ:", "ಚತುರ್ಮುಖಿ / ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ:"],
+      hi: ["मेधा दक्षिणामूर्ति एवं सरस्वती महाहवन:", "बुध-गुरु शांति एवं गायत्री जप संकल्प:", hasPitru ? "पितृ तर्पण एवं वंश रक्षा (विशेष प्राथमिकता):" : "गोसेवा एवं विद्यार्थी अन्नदान:", "चतुर्मुखी / पंचमुखी रुद्राक्ष धारण:"],
+      te: ["మేధా దక్షిణామూర్తి & సరస్వతీ హోమం:", "బుధ-గురు శాంతి & గాయత్రీ జప సంకల్పం:", hasPitru ? "పితృ తర్పణం & వంశ రక్షణ (ముఖ్య ప్రాధాన్యం):" : "గోసేవ & విద్యా అన్నదానం:", "చతుర్ముఖి / పంచముఖి రుద్రాక్ష ధారణ:"],
+      ta: ["மேதா தட்சிணாமூர்த்தி & சரஸ்வதி ஹோமம்:", "புதன்-குரு சாந்தி & காயத்ரி ஜப சங்கல்பம்:", hasPitru ? "பித்ரு தர்ப்பணம் & வம்ச ரக்ஷை (முன்னுரிமை):" : "கோசேவை & மாணவர் அன்னதானம்:", "சதுர்முக / பஞ்சமுக ருத்ராட்ச தாரணம்:"],
+      en: ["Medha Dakshinamoorthy & Saraswati Homa:", "Budha-Guru Shanti & Gayatri Sankalpa:", hasPitru ? "Ancestral Tarpanam & Lineage Grace (Priority):" : "Cow Feeding & Student Annadaana:", "4-Mukhi / 5-Mukhi Vidya Rudraksha:"]
+    };
+    const descs: Record<SupportedLanguage, string[]> = {
+      kn: [
+        "ಉನ್ನತ ಶಿಕ್ಷಣ, ಏಕಾಗ್ರತೆ, ಗ್ರಹಣಶಕ್ತಿ ಹಾಗೂ ಪರೀಕ್ಷಾ ಯಶಸ್ಸಿಗಾಗಿ ಸರಸ್ವತೀ ಹೋಮ.",
+        "ಬುದ್ಧಿ ದೋಷ ನಿವಾರಣೆ, ಗುರು ಕೃಪೆ ಹಾಗೂ ಉಜ್ವಲ ವೃತ್ತಿ ಭವಿಷ್ಯಕ್ಕಾಗಿ ಸಂಕಲ್ಪ ಪೂಜೆ.",
+        hasPitru
+          ? "ಪೋಷಕರ ಮೂಲಕ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ತಿಲತರ್ಪಣ ನೆರವೇರಿಸಿ ವಿದ್ಯಾಭ್ಯಾಸದ ಅಡೆತಡೆ ನಿವಾರಣೆ."
+          : "ಗೋಮಾತೆಗೆ ಸೇವೆ ಹಾಗೂ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿದ್ಯಾರ್ಥಿ ಅನ್ನದಾನ ಸೇವೆ.",
+        "ಏಕಾಗ್ರತೆ ಹಾಗೂ ಧಾರಣಾ ಶಕ್ತಿ ವೃದ್ಧಿಗೆ ಗೋಕರ್ಣದಲ್ಲಿ ಪೂಜಿಸಿದ ಪವಿತ್ರ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ."
+      ],
+      hi: [
+        "उच्च शिक्षा, एकाग्रता, ग्रहणशक्ति एवं परीक्षा सफलता हेतु सरस्वती हवन।",
+        "बुद्धि भ्रम निवारण, गुरु कृपा एवं उज्ज्वल भविष्य हेतु संकल्प पूजन।",
+        hasPitru
+          ? "गोकर्ण कोटितीर्थ में पितृ तर्पण करवाकर विद्या अध्ययन की रुकावटें दूर करें।"
+          : "गोसेवा एवं गोकर्ण क्षेत्र में जरूरतमंद छात्रों के लिए अन्नदान।",
+        "एकाग्रता एवं स्मरणशक्ति वृद्धि हेतु गोकर्ण पूजित पवित्र रुद्राक्ष धारण।"
+      ],
+      te: [
+        "ఉన్నత విద్య, ఏకాగ్రత మరియు పరీక్షా విజయం కొరకు సరస్వతీ హోమం.",
+        "బుద్ధి వికాసం, గురు కృప మరియు ఉజ్వల భవిష్యత్తు కోసం సంకల్ప పూజ.",
+        hasPitru
+          ? "గోకర్ణ కోటితీర్థంలో పితృ తర్పణం ద్వారా విద్యా ఆటంకాలను తొలగించడం."
+          : "గోసేవ మరియు గోకర్ణంలో విద్యార్థుల అన్నదాన సేవ.",
+        "ఏకాగ్రత మరియు జ్ఞాపకశక్తి పెంపొందించుకోవడానికి పవిత్ర రుద్రాక్ష ధారణ."
+      ],
+      ta: [
+        "உயர்கல்வி, மன ஒருமைப்பாடு மற்றும் தேர்வில் வெற்றி பெற சரஸ்வதி ஹோமம்.",
+        "புத்தி கூர்மை, குருவருள் மற்றும் சிறந்த எதிர்காலத்திற்கான சங்கல்ப பூஜை.",
+        hasPitru
+          ? "கோகர்ண கோடிதீர்த்தத்தில் பித்ரு தர்ப்பணம் செய்து கல்வித் தடைகளை நீக்குதல்."
+          : "கோசேவை மற்றும் கோகர்ண சந்நிதியில் மாணவர்களுக்கு அன்னதானம்.",
+        "கவனக் குவிப்பு மற்றும் நினைவாற்றல் அதிகரிக்க பூஜிக்கப்பட்ட ருத்ராட்சம்."
+      ],
+      en: [
+        "Saraswati Homa and Medha Sukta at Gokarna for sharp focus, memory, and exam excellence.",
+        "Planetary harmonizing for intellectual wisdom, mentor guidance, and academic direction.",
+        hasPitru
+          ? "Parents perform Tila Tarpanam at Gokarna Kotiteertha to remove academic obstacles."
+          : "Cow seva and educational Annadaana for students at Sri Gokarna Temple.",
+        "Consecrated Rudraksha for memory retention, calm confidence, and academic peace."
+      ]
+    };
+    const tList = titles[lang] || titles.kn;
+    const dList = descs[lang] || descs.kn;
+    return [
+      { icon: "📚", title: tList[0], desc: dList[0] },
+      { icon: "🧠", title: tList[1], desc: dList[1] },
+      { icon: hasPitru ? "🪔" : "🐄", title: tList[2], desc: dList[2], isPriority: hasPitru },
+      { icon: "📿", title: tList[3], desc: dList[3] }
+    ];
+  }
+
+  if (stageKey === "vivaha_udyoga") {
+    const titles: Record<SupportedLanguage, string[]> = {
+      kn: ["ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಕುಜ ಶಾಂತಿ & ಕಲ್ಯಾಣ ಸೇವೆ:", "ಗೋಕರ್ಣ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ & ಉದ್ಯೋಗ ಸಿದ್ಧಿ:", hasPitru ? "ಕೋಟಿತೀರ್ಥ ತಿಲ ಹೋಮ & ನಾರಾಯಣ ಬಲಿ (ಪವಿತ್ರ ಆದ್ಯತೆ):" : "ಆಶ್ಲೇಷಾ ಬಲಿ & ಕಾಲಸರ್ಪ ಶಾಂತಿ:", "ಷಣ್ಮುಖಿ / ಸಪ್ತಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಅಥವಾ ಮಹಾಲಕ್ಷ್ಮೀ ಕವಚ:"],
+      hi: ["सुब्रह्मण्य कुज शांति एवं विवाह प्राप्ति:", "गोकर्ण महा रुद्राभिषेक एवं आजीविका सिद्धि:", hasPitru ? "कोटितीर्थ तिल होम एवं नारायण बलि (परम प्राथमिकता):" : "आश्लेषा बलि एवं कालसर्प शांति:", "षण्मुखी / सप्तमुखी रुद्राक्ष अथवा लक्ष्मी कवच:"],
+      te: ["సుబ్రహ్మణ్య కుజ శాంతి & వివాహ ప్రాప్తి:", "గోకర్ణ మహా రుద్రాభిషేకం & ఉద్యోగ సిద్ధి:", hasPitru ? "కోటితీర్థ తిల హోమం & నారాయణ బలి (ముఖ్య ప్రాధాన్యం):" : "ఆశ్లేషా బలి & కాలసర్ప శాంతి:", "షణ్ముఖి / సప్తముఖి రుద్రాక్ష లేదా లక్ష్మీ కవచం:"],
+      ta: ["சுப்பிரமணிய செவ்வாய் சாந்தி & திருமண சேவை:", "கோகர்ண மகா ருத்ராபிஷேகம் & உத்தியோக சித்தி:", hasPitru ? "கோடிதீர்த்த தில ஹோமம் & நாராயண பலி (முன்னுரிமை):" : "ஆயில்ய பலி & காலசர்ப்ப சாந்தி:", "அறுமுக / ஏழுமுக ருத்ராட்சம் அல்லது லட்சுமி கவசம்:"],
+      en: ["Subrahmanya Kuja Shanti & Vivaha Seva:", "Gokarna Rudrabhishekam & Career Seva:", hasPitru ? "Kotiteertha Tila Homa & Narayana Bali (Sacred Priority):" : "Ashlesha Bali & Sarpa Shanti:", "6/7-Mukhi Rudraksha / Lakshmi Talisman:"]
+    };
+    const descs: Record<SupportedLanguage, string[]> = {
+      kn: [
+        "ವಿವಾಹ ವಿಳಂಬ ನಿವಾರಣೆ, ಕಲ್ಯಾಣೋತ್ಸವ ಪ್ರಾಪ್ತಿ ಹಾಗೂ ದಾಂಪತ್ಯ ಸೌಖ್ಯಕ್ಕಾಗಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಶಾಂತಿ.",
+        "ಉದ್ಯೋಗ ಪ್ರಮೋಷನ್, ವ್ಯಾಪಾರ ವೃದ್ಧಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಸಕಲ ಕಾರ್ಯಜಯಕ್ಕೆ ರುದ್ರಾಭಿಷೇಕ.",
+        hasPitru
+          ? "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ತಿಲ ಹೋಮ & ನಾರಾಯಣ ಬಲಿ ಮೂಲಕ ವಿವಾಹ-ವೃತ್ತಿ ಅಡೆತಡೆಗಳ ಶಾಶ್ವತ ನಿವಾರಣೆ."
+          : "ನಾಗದೋಷ, ಕಾಳಸರ್ಪ ಶಮನ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿಗಾಗಿ ಗೋಕರ್ಣದಲ್ಲಿ ಪವಿತ್ರ ಆಶ್ಲೇಷಾ ಬಲಿ.",
+        "ವೃತ್ತಿ ಕೀರ್ತಿ, ಭಾಗ್ಯೋದಯ ಹಾಗೂ ಆರ್ಥಿಕ ಆಕರ್ಷಣೆಗೆ ಅಭಿಮಂತ್ರಿತ ಕವಚ ಧಾರಣೆ."
+      ],
+      hi: [
+        "विवाह विलंब निवारण, दांपत्य सुख एवं मांगलिक दोष शमन हेतु सुब्रह्मण्य पूजा।",
+        "पदोन्नति, व्यापार वृद्धि, आर्थिक स्थिरता एवं कार्य सिद्धि हेतु रुद्राभिषेक।",
+        hasPitru
+          ? "गोकर्ण कोटितीर्थ में तिल होम एवं नारायण बलि द्वारा करियर-विवाह बाधाओं का स्थायी निवारण।"
+          : "नागदोष, कालसर्प शांति एवं वंश रक्षा हेतु गोकर्ण में आश्लेषा बलि।",
+        "करियर में यश, भाग्यवृद्धि एवं आर्थिक स्थिरता हेतु अभिमंत्रित रुद्राक्ष धारण।"
+      ],
+      te: [
+        "వివాహ ఆలస్య నివారణ, దాంపత్య సుఖం కొరకు సుబ్రహ్మణ్య కుజ శాంతి పూజ.",
+        "ఉద్యోగ ప్రమోషన్, వ్యాపార వృద్ధి మరియు కార్యజయం కొరకు రుద్రాభిషేకం.",
+        hasPitru
+          ? "గోకర్ణ కోటితీర్థంలో తిల హోమం & నారాయణ బలి ద్వారా వివాహ-ఉద్యోగ ఆటంకాల నివారణ."
+          : "నాగదోషం, కాలసర్ప శాంతి కొరకు పవిత్ర ఆశ్లేషా బలి పూజ.",
+        "వృత్తిలో కీర్తి, భాగ్యోదయం మరియు ఆర్థిక స్థిరత్వం కొరకు పవిత్ర కవచ ధారణ."
+      ],
+      ta: [
+        "திருமணத் தடை நீங்க, தாம்பத்திய அமைதி பெற சுப்பிரமணிய செவ்வாய் சாந்தி.",
+        "பதவி உயர்வு, தொழில் வளர்ச்சி மற்றும் காரிய வெற்றிக்கு ருத்ராபிஷேகம்.",
+        hasPitru
+          ? "கோகர்ண கோடிதீர்த்தத்தில் தில ஹோமம் & நாராயண பலி மூலம் திருமண-தொழில் தடைகள் நீங்குதல்."
+          : "நாக தோஷம், காலசர்ப்ப தோஷ நிவர்த்திக்கு புனித ஆயில்ய பலி பூஜை.",
+        "தொழில் மேன்மை, அதிர்ஷ்டம் மற்றும் பொருளாதார வளர்ச்சிக்கு லட்சுமி கவசம்."
+      ],
+      en: [
+        "Subrahmanya Kuja Shanti for removing marriage delays and bestowing harmonious wedlock.",
+        "Rudrabhishekam and Navagraha Homa for professional advancement and financial stability.",
+        hasPitru
+          ? "Perform Tila Homa & Narayana Bali at Gokarna Kotiteertha to dissolve career/marriage obstacles."
+          : "Ashlesha Bali at Sri Gokarna Temple for removing Rahu-Ketu and Sarpa afflictions.",
+        "Consecrated Rudraksha or Lakshmi talisman for career expansion and wealth retention."
+      ]
+    };
+    const tList = titles[lang] || titles.kn;
+    const dList = descs[lang] || descs.kn;
+    return [
+      { icon: "💍", title: tList[0], desc: dList[0] },
+      { icon: "⚡", title: tList[1], desc: dList[1] },
+      { icon: hasPitru ? "🪔" : "🌾", title: tList[2], desc: dList[2], isPriority: hasPitru },
+      { icon: "📿", title: tList[3], desc: dList[3] }
+    ];
+  }
+
+  if (stageKey === "gruhastha") {
+    const titles: Record<SupportedLanguage, string[]> = {
+      kn: ["ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ತಿಲ ಹೋಮ & ನಾರಾಯಣ ಬಲಿ:", "ಆತ್ಮಾಲಿಂಗ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ & ಆಶ್ಲೇಷಾ ಬಲಿ:", "ಮಹಾ ಗೋದಾನ & ಸನ್ನಿಧಿ ಅನ್ನದಾನ ಸೇವೆ:", "ಅಷ್ಟಮುಖಿ ರುದ್ರಾಕ್ಷಿ & ರಕ್ಷಾ ಕವಚ:"],
+      hi: ["गोकर्ण कोटितीर्थ तिल होम एवं नारायण बलि:", "आत्मलिंग महा रुद्राभिषेक एवं आश्लेषा बलि:", "महा गोदान एवं सान्निध्य अन्नदान:", "अष्टमुखी रुद्राक्ष एवं रक्षा कवच:"],
+      te: ["గోకర్ణ కోటితీర్థ తిల హోమం & నారాయణ బలి:", "ఆత్మలింగ మహా రుద్రాభిషేకం & ఆశ్లేషా బలి:", "మహా గోదానం & ఆలయ అన్నదానం:", "అష్టముఖి రుద్రాక్ష & రక్షా కవచం:"],
+      ta: ["கோகர்ண கோடிதீர்த்த தில ஹோமம் & நாராயண பலி:", "ஆத்மலிங்க மகா ருத்ராபிஷேகம் & ஆயில்ய பலி:", "மகா கோதானம் & சந்நிதி அன்னதானம்:", "எண்முக ருத்ராட்சம் & ரக்ஷா கவசம்:"],
+      en: ["Gokarna Kotiteertha Tila Homa & Narayana Bali:", "Atmalinga Maha Rudrabhishekam & Ashlesha Bali:", "Maha Go-Daana & Temple Annadaana:", "8-Mukhi Rudraksha & Family Raksha Kavacha:"]
+    };
+    const descs: Record<SupportedLanguage, string[]> = {
+      kn: [
+        "ಪೂರ್ವಜರ ಋಣಮುಕ್ತಿ, ಕುಟುಂಬದ ಶಾಂತಿ, ಸಂತಾನ ಕ್ಷೇಮ ಹಾಗೂ ಸಾಲಬಾಧೆ ನಿವಾರಣೆಗೆ ಶಾಶ್ವತ ಶಾಂತಿ.",
+        "ಗೋಕರ್ಣ ಆತ್ಮಾಲಿಂಗ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾ ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ-ಆರೋಗ್ಯ ರಕ್ಷಣೆಗೆ ಪೂಜೆ.",
+        "ಗೋಮಾತೆಗೆ ಮೇವು-ಬೆಲ್ಲ ಸಮರ್ಪಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ಭಕ್ತರಿಗೆ ಮಹಾ ಅನ್ನದಾನ.",
+        "ವಿಘ್ನ ನಿವಾರಣೆ, ಶನಿ-ರಾಹು ಪೀಡಾ ಶಮನ ಹಾಗೂ ಕುಟುಂಬದ ಸರ್ವತೋಮುಖ ರಕ್ಷಣೆಗೆ ಧಾರಣೆ."
+      ],
+      hi: [
+        "पितृ ऋण मुक्ति, पारिवारिक शांति, संतान सुख एवं ऋण मुक्ति हेतु अनिवार्य अनुष्ठान।",
+        "गोकर्ण आत्मलिंग सान्निध्य में रुद्राभिषेक तथा अचल संपत्ति एवं स्वास्थ्य रक्षा हेतु पूजा।",
+        "गोमाता को चारा-गुड़ अर्पण एवं गोकर्ण क्षेत्र में विशाल अन्नदान सेवा।",
+        "विघ्न निवारण, शनि-राहु पीड़ा शांति तथा पारिवारिक सुरक्षा हेतु कवच धारण।"
+      ],
+      te: [
+        "పితృ ఋణ విముక్తి, కుటుంబ శాంతి, సంతాన రక్షణ మరియు రుణ విముక్తికి శాంతి పూజ.",
+        "గోకర్ణ ఆత్మలింగ సన్నిధిలో మహా రుద్రాభిషేకం మరియు ఆస్తి-ఆరోగ్య రక్షణ పూజలు.",
+        "గోమాతకు గడ్డి-బెల్లం సమర్పణ మరియు గోకర్ణ క్షేత్రంలో అన్నదాన సేవ.",
+        "సకల విఘ్న నివారణ, శని-రాహు దోషాల శమనం కొరకు రక్షా కవచ ధారణ."
+      ],
+      ta: [
+        "பித்ரு கடன் தீர, குடும்ப அமைதி, சந்தான பாக்கியம் மற்றும் கடன் நிவர்த்திக்கு சிறந்த சாந்தி.",
+        "கோகர்ண ஆத்மலிங்க சந்நிதியில் ருத்ராபிஷேகம் மற்றும் சொத்து-உடல்நலப் பாதுகாப்பு வழிபாடு.",
+        "பசுவிற்கு தீவனம் அளித்தல் மற்றும் கோகர்ண சந்நிதியில் பக்தர்களுக்கு அன்னதானம்.",
+        "சகல தடைகள் நீங்க, சனி-ராகு தோஷங்கள் விலக ரக்ஷா கவசம் அணிதல்."
+      ],
+      en: [
+        "Dissolves ancestral debts, relieves financial burdens, and shields family lineage.",
+        "Sacred abhishekam at Gokarna for property security, family vitality, and peace.",
+        "Perpetual cow feeding and Annadaana at Sri Gokarna Temple for generational blessings.",
+        "Vedic talisman and Rudraksha for warding off obstacles and preserving domestic bliss."
+      ]
+    };
+    const tList = titles[lang] || titles.kn;
+    const dList = descs[lang] || descs.kn;
+    return [
+      { icon: "🪔", title: tList[0], desc: dList[0], isPriority: true },
+      { icon: "🔱", title: tList[1], desc: dList[1] },
+      { icon: "🐄", title: tList[2], desc: dList[2] },
+      { icon: "📿", title: tList[3], desc: dList[3] }
+    ];
+  }
+
+  // vanaprastha (56+)
+  const titles: Record<SupportedLanguage, string[]> = {
+    kn: ["ನಾರಾಯಣ ಬಲಿ, ತೀರ್ಥ ಶ್ರಾದ್ಧ & ಮೋಕ್ಷ ಸಂಕಲ್ಪ:", "ಧನ್ವಂತರಿ ಮಹಾ ಆರೋಗ್ಯ ಹೋಮ & ಮೃತ್ಯುಂಜಯ ಜಪ:", "ಗೋಸೇವೆ & ಮಹಾಲಿಂಗ ಅನ್ನದಾನ ಪುಣ್ಯ ಸಂಕಲ್ಪ:", "ಏಕಮುಖಿ / ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಮುಕ್ತಿ ಧಾರಣೆ:"],
+    hi: ["नारायण बलि, तीर्थ श्राद्ध एवं मोक्ष संकल्प:", "धन्वंतरि महा आरोग्य हवन एवं मृत्युंजय जप:", "गोसेवा एवं महालिंग अन्नदान पुण्य संकल्प:", "एकमुखी / पंचमुखी रुद्राक्ष मुक्ति धारण:"],
+    te: ["నారాయణ బలి, తీర్థ శ్రాద్ధం & మోక్ష సంకల్పం:", "ధన్వంతరి మహా ఆరోగ్య హోమం & మృత్యుంజయ జపం:", "గోసేవ & మహా లింగ అన్నదాన పుణ్య సంకల్పం:", "ఏకముఖి / పంచముఖి రుద్రాక్ష ముక్తి ధారణ:"],
+    ta: ["நாராயண பலி, தீர்த்த சிரார்த்தம் & மோட்ச சங்கல்பம்:", "தன்வந்திரி மகா ஆரோக்கிய ஹோமம் & மிருத்யுஞ்ஜய ஜபம்:", "கோசேவை & அன்னதான புண்ணிய சங்கல்பம்:", "ஏகமுக / பஞ்சமுக ருத்ராட்ச முக்தி தாரணம்:"],
+    en: ["Narayana Bali & Ancestral Moksha Sankalpa:", "Dhanvantari Health Homa & Mahamrityunjaya Japa:", "Cow Service & Perpetual Annadaana:", "1-Mukhi / 5-Mukhi Mukti Rudraksha:"]
+  };
+  const descs: Record<SupportedLanguage, string[]> = {
+    kn: [
+      "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ಅತೃಪ್ತ ಪೂರ್ವಜರ ಮುಕ್ತಿಗಾಗಿ ನಾರಾಯಣ ಬಲಿ & ಪವಿತ್ರ ತರ್ಪಣ ಸೇವೆ.",
+      "ದೀರ್ಘಾಯುಷ್ಯ ರಕ್ಷಣೆ, ನರ-ಕೀಲುಗಳ ಸ್ವಾಸ್ಥ್ಯ ಹಾಗೂ ಆರೋಗ್ಯ ಶಾಂತಿಗಾಗಿ ದೈವಿಕ ಹೋಮ.",
+      "ಗೋಮಾತೆಗೆ ಸೇವೆ ಹಾಗೂ ನಿತ್ಯ ಅನ್ನದಾನ ಸೇವೆಗಳ ಮೂಲಕ ಜನ್ಮ ಪುಣ್ಯಾರ್ಜನೆ ಸಂಕಲ್ಪ.",
+      "ಮನಶ್ಶಾಂತಿ, ಈಶ್ವರ ಸಾಕ್ಷಾತ್ಕಾರ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಉನ್ನತಿಗೆ ಪವಿತ್ರ ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ."
+    ],
+    hi: [
+      "गोकर्ण कोटितीर्थ में पूर्वजों की सद्गति एवं मुक्ति हेतु नारायण बलि एवं तर्पण।",
+      "दीर्घायु रक्षा, जोड़ों एवं स्नायुओं के स्वास्थ्य हेतु धन्वंतरि महाहवन।",
+      "गोसेवा एवं नित्य अन्नदान द्वारा अक्षय पुण्य संचय का संकल्प।",
+      "मानसिक शांति, भगवद् साक्षात्कार एवं मोक्ष प्राप्ति हेतु रुद्राक्ष धारण।"
+    ],
+    te: [
+      "గోకర్ణ కోటితీర్థంలో పూర్వీకుల ముక్తి కొరకు నారాయణ బలి మరియు తర్పణ సేవలు.",
+      "దీర్ఘాయుష్షు రక్షణ, కీళ్ళు-నరాల ఆరోగ్యం కొరకు ధన్వంతరి మహా హోమం.",
+      "గోసేవ మరియు నిత్య అన్నదాన సేవల ద్వారా శాశ్వత పుణ్య సంపాదన.",
+      "మనోశాంతి, దైవ సాక్షాత్కారం మరియు మోక్షం కొరకు పవిత్ర రుద్రాక్ష ధారణ."
+    ],
+    ta: [
+      "கோகர்ண கோடிதீர்த்தத்தில் முன்னோர்களின் முக்திக்கு நாராயண பலி மற்றும் தர்ப்பணம்.",
+      "நீண்ட ஆயுள், மூட்டு-நரம்பு நலன் மற்றும் ஆரோக்கிய சாந்திக்கு தன்வந்திரி ஹோமம்.",
+      "கோசேவை மற்றும் தினசரி அன்னதானம் மூலம் புண்ணிய நற்பேறுகளைப் பெறுதல்.",
+      "மன அமைதி, இறை அருள் மற்றும் ஆன்மீக உயர்வுக்கு புனித ருத்ராட்சம் அணிதல்."
+    ],
+    en: [
+      "Narayana Bali and ancestral Shraddha at Gokarna Kotiteertha for ancestral elevation and peace.",
+      "Consecrated health Homa for vitality, physical comfort, and freedom from chronic ailments.",
+      "Sacred Cow protection and Annadaana to accumulate dharmic merits and spiritual grace.",
+      "Blessed Rudraksha bead consecrated at Gokarna for inner peace and divine connection."
+    ]
+  };
+  const tList = titles[lang] || titles.kn;
+  const dList = descs[lang] || descs.kn;
+  return [
+    { icon: "🪔", title: tList[0], desc: dList[0], isPriority: true },
+    { icon: "🌿", title: tList[1], desc: dList[1] },
+    { icon: "🐄", title: tList[2], desc: dList[2] },
+    { icon: "📿", title: tList[3], desc: dList[3] }
+  ];
+};
+
 export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   id = "kundli-doshas-pdf-container",
   report,
@@ -298,6 +580,8 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
   const { devoteeInfo, doshas, gandantaraAndBhaya } = report;
   const activeDoshas = (doshas || []).filter((d) => d.isDetected);
+  const isPitruActive = activeDoshas.some((d) => d.id === "pitru_dosha");
+  const ageStageRemedies = getAgeStageRemedies(devoteeInfo.ageStageKey || "gruhastha", code, isPitruActive);
   const gandantaras = gandantaraAndBhaya?.activeGandantaras || [];
   const fears = gandantaraAndBhaya?.detectedFears || [];
 
@@ -485,10 +769,15 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             ) : (
               page1Doshas.map((dosha) => {
                 const isCritical = dosha.severity === "critical";
-                const cardBorder = isCritical ? "1.5px solid #EF4444" : "1.5px solid #F59E0B";
-                const headerBg = isCritical
-                  ? "linear-gradient(90deg, #FEE2E2 0%, #FEF2F2 100%)"
-                  : "linear-gradient(90deg, #FEF3C7 0%, #FFFBEB 100%)";
+                const isPitru = dosha.id === "pitru_dosha";
+                const cardBorder = isPitru
+                  ? "2px solid #B45309"
+                  : (isCritical ? "1.5px solid #EF4444" : "1.5px solid #F59E0B");
+                const headerBg = isPitru
+                  ? "linear-gradient(90deg, #FEF3C7 0%, #FDE68A 100%)"
+                  : (isCritical
+                    ? "linear-gradient(90deg, #FEE2E2 0%, #FEF2F2 100%)"
+                    : "linear-gradient(90deg, #FEF3C7 0%, #FFFBEB 100%)");
 
                 return (
                   <div
@@ -498,17 +787,36 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       border: cardBorder,
                       borderRadius: "9px",
                       padding: "8px 12px",
-                      boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)",
+                      boxShadow: isPitru ? "0 2px 6px rgba(180, 83, 9, 0.15)" : "0 1.5px 3px rgba(0,0,0,0.05)",
                       display: "flex",
                       flexDirection: "column",
                       gap: "5px"
                     }}
                   >
+                    {isPitru && (
+                      <div
+                        style={{
+                          background: "linear-gradient(90deg, #78350F 0%, #B45309 100%)",
+                          color: "#FEF3C7",
+                          fontSize: "9.5px",
+                          fontWeight: 900,
+                          padding: "2.5px 8px",
+                          borderRadius: "6px",
+                          letterSpacing: "0.4px",
+                          border: "1px solid #FCD34D"
+                        }}
+                      >
+                        {code === "kn"
+                          ? "🪔 ಪವಿತ್ರ ಪಿತೃ ಋಣ ನಿವಾರಣಾ ವಿಶೇಷ ಆದ್ಯತೆ · ಶ್ರೀ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ತಿಲ ಹೋಮ & ನಾರಾಯಣ ಬಲಿ"
+                          : "🪔 Sacred Ancestral Karma Priority · Sri Gokarna Kotiteertha Tila Homa & Narayana Bali"}
+                      </div>
+                    )}
+
                     {/* Header Row */}
                     <div
                       style={{
                         background: headerBg,
-                        border: isCritical ? "1px solid #FCA5A5" : "1px solid #FDE68A",
+                        border: isPitru ? "1.5px solid #F59E0B" : (isCritical ? "1px solid #FCA5A5" : "1px solid #FDE68A"),
                         borderRadius: "7px",
                         padding: "5px 9px",
                         display: "flex",
@@ -517,7 +825,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span style={{ fontSize: "15px" }}>{isCritical ? "⚠️" : "⚡"}</span>
+                        <span style={{ fontSize: "15px" }}>{isPitru ? "🪔" : (isCritical ? "⚠️" : "⚡")}</span>
                         <div>
                           <span style={{ fontSize: "13px", fontWeight: 900, color: isCritical ? "#991B1B" : "#78350F" }}>
                             {getLangVal(dosha.name)}
@@ -695,20 +1003,40 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             {page2Doshas.length > 0 ? (
               page2Doshas.slice(0, 2).map((dosha) => {
                 const isCritical = dosha.severity === "critical";
+                const isPitru = dosha.id === "pitru_dosha";
                 return (
                   <div
                     key={dosha.id}
                     style={{
                       background: "#FFFFFF",
-                      border: isCritical ? "1.5px solid #EF4444" : "1.5px solid #F59E0B",
+                      border: isPitru ? "2px solid #B45309" : (isCritical ? "1.5px solid #EF4444" : "1.5px solid #F59E0B"),
                       borderRadius: "8px",
                       padding: "7px 9px",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+                      boxShadow: isPitru ? "0 2px 5px rgba(180, 83, 9, 0.15)" : "0 1px 3px rgba(0,0,0,0.05)"
                     }}
                   >
+                    {isPitru && (
+                      <div
+                        style={{
+                          background: "linear-gradient(90deg, #78350F 0%, #B45309 100%)",
+                          color: "#FEF3C7",
+                          fontSize: "9px",
+                          fontWeight: 900,
+                          padding: "2px 7px",
+                          borderRadius: "5px",
+                          letterSpacing: "0.3px",
+                          border: "1px solid #FCD34D",
+                          marginBottom: "4px"
+                        }}
+                      >
+                        {code === "kn"
+                          ? "🪔 ಪವಿತ್ರ ಪಿತೃ ಋಣ ನಿವಾರಣಾ ವಿಶೇಷ ಆದ್ಯತೆ · ಶ್ರೀ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ತಿಲ ಹೋಮ & ನಾರಾಯಣ ಬಲಿ"
+                          : "🪔 Sacred Ancestral Karma Priority · Sri Gokarna Kotiteertha Tila Homa & Narayana Bali"}
+                      </div>
+                    )}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #E5E7EB", paddingBottom: "4px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                        <span style={{ fontSize: "14px" }}>{isCritical ? "⚠️" : "⚡"}</span>
+                        <span style={{ fontSize: "14px" }}>{isPitru ? "🪔" : (isCritical ? "⚠️" : "⚡")}</span>
                         <span style={{ fontSize: "12px", fontWeight: 900, color: isCritical ? "#991B1B" : "#78350F" }}>
                           {getLangVal(dosha.name)}
                         </span>
@@ -972,41 +1300,24 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginTop: "6px", fontSize: "10.5px", lineHeight: 1.35 }}>
-              <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "5px 7px" }}>
-                <div style={{ fontWeight: 800, color: "#92400E" }}>🔱 {t.balaSevaTitle}</div>
-                <div style={{ color: "#451A03", marginTop: "2px" }}>
-                  {code === "kn"
-                    ? "ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ, ಆಯುಷ್ಯ ಹೋಮ, ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಗೋದಾನ."
-                    : "Mahamrityunjaya Homa, Ayushya Sukta chant, Rudrabhishekam and Go-Daana."}
+              {ageStageRemedies.map((remedy, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: remedy.isPriority ? "#FEF2F2" : (idx < 2 ? "#FEFCE8" : "#FFFBEB"),
+                    border: remedy.isPriority ? "1.5px solid #F87171" : (idx < 2 ? "1px solid #FDE047" : "1px solid #FCD34D"),
+                    borderRadius: "6px",
+                    padding: "5px 7px"
+                  }}
+                >
+                  <div style={{ fontWeight: 800, color: remedy.isPriority ? "#991B1B" : "#92400E" }}>
+                    {remedy.icon} {remedy.title}
+                  </div>
+                  <div style={{ color: remedy.isPriority ? "#7F1D1D" : "#451A03", marginTop: "2px" }}>
+                    {remedy.desc}
+                  </div>
                 </div>
-              </div>
-
-              <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "5px 7px" }}>
-                <div style={{ fontWeight: 800, color: "#92400E" }}>🌾 {t.gruhasthaSevaTitle}</div>
-                <div style={{ color: "#451A03", marginTop: "2px" }}>
-                  {code === "kn"
-                    ? "ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥದಲ್ಲಿ ತಿಲ ಹೋಮ, ನಾರಾಯಣ ಬಲಿ, ಆಶ್ಲೇಷಾ ಬಲಿ & ಕಾಲಸರ್ಪ ಶಾಂತಿ."
-                    : "Tila Homa, Narayana Bali, Ashlesha Bali & Sarpa Shanti at Gokarna Kotiteertha."}
-                </div>
-              </div>
-
-              <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "6px", padding: "5px 7px" }}>
-                <div style={{ fontWeight: 800, color: "#92400E" }}>🐄 {t.cowSevaLabel}</div>
-                <div style={{ color: "#451A03", marginTop: "2px" }}>
-                  {code === "kn"
-                    ? "ಗೋಮಾತೆಗೆ ಮೇವು, ಬೆಲ್ಲ ಸಮರ್ಪಣೆ ಹಾಗೂ ಕ್ಷೇತ್ರ ಬ್ರಾಹ್ಮಣ ಅನ್ನದಾನ."
-                    : "Cow feeding (Jaggery & fodder) and Annadaana at Sri Gokarna Temple."}
-                </div>
-              </div>
-
-              <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "6px", padding: "5px 7px" }}>
-                <div style={{ fontWeight: 800, color: "#92400E" }}>📿 {t.rudrakshaGemLabel}</div>
-                <div style={{ color: "#451A03", marginTop: "2px" }}>
-                  {code === "kn"
-                    ? "ಜಾತಕಾನುಗುಣ ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಅಥವಾ ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಕವಚ ಧಾರಣೆ."
-                    : "Panchamukhi Rudraksha or silver astrological protection Kavacha."}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
