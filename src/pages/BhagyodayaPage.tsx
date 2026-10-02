@@ -40,7 +40,7 @@ export default function BhagyodayaPage(): JSX.Element {
         name: session.input.name || "Devotee",
         birthDate: session.birthDateYmd || session.input.birthDate || "1990-01-01",
         birthTime: session.birthTimeHm || session.input.birthTime || "10:00",
-        gotra: session.input.gothra || "ಕಾಶ್ಯಪ"
+        gotra: session.input.gothra?.trim() || undefined
       },
       reportLang
     );

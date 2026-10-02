@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from "react";
 import Card from "../ui/Card";
 import type { KundliRemedyDiagnosis, SupportedLanguage } from "../../features/remedies/kundliRemedyEngine";
+import { REMEDY_AI_FALLBACK_MESSAGES } from "../../features/remedies/kundliRemedyAiEngine";
 
 export type KundliRemedyViewProps = {
   diagnosis: KundliRemedyDiagnosis;
   lang: string;
   onDownloadPdf: (selectedLang: string) => void;
   isGeneratingPdf?: boolean;
+  isAiGenerating?: boolean;
 };
 
 export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
   diagnosis,
   lang,
   onDownloadPdf,
-  isGeneratingPdf = false
+  isGeneratingPdf = false,
+  isAiGenerating = false
 }) => {
   const [selectedLang, setSelectedLang] = useState<SupportedLanguage>((lang || "kn").slice(0, 2) as SupportedLanguage);
   const [activeStep, setActiveStep] = useState<number>(1);
@@ -164,6 +167,78 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* AI Narration / 10-Retry Fallback Warning Banner */}
+      {isAiGenerating ? (
+        <div className="rounded-2xl border-2 border-indigo-400 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 p-4 text-white shadow-lg flex items-center gap-3 animate-pulse">
+          <span className="text-2xl animate-spin">⏳</span>
+          <div>
+            <h4 className="font-bold text-xs sm:text-sm text-amber-300">
+              {selectedLang === "kn"
+                ? "AI ದೈವಿಕ ನಿರೂಪಣೆ ಸಿದ್ಧವಾಗುತ್ತಿದೆ (Gemini 3.5 Flash Lite)..."
+                : selectedLang === "hi"
+                ? "AI दैविक विवरण तैयार हो रहा है (Gemini 3.5 Flash Lite)..."
+                : selectedLang === "te"
+                ? "AI దైవిక వివరణ సిద్ధమవుతోంది (Gemini 3.5 Flash Lite)..."
+                : selectedLang === "ta"
+                ? "AI தெய்வீக உரை தயாராகிறது (Gemini 3.5 Flash Lite)..."
+                : "Synthesizing AI Astrological Narration (Gemini 3.5 Flash Lite)..."}
+            </h4>
+            <p className="text-[11px] text-indigo-200">
+              {selectedLang === "kn"
+                ? "ಜಾತಕದ ಗ್ರಹಸ್ಥಿತಿ ಮತ್ತು ದಶಾ ಕಾಲಾವಧಿಗೆ ಅನುಗುಣವಾಗಿ ನಿಖರ ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ (ಗರಿಷ್ಠ ೧೦ ಮರುಪ್ರಯತ್ನಗಳ ಸುರಕ್ಷತೆ)."
+                : "Analyzing natal chart and transit periods with maximum 10 retry resilience."}
+            </p>
+          </div>
+        </div>
+      ) : diagnosis.isAiGenerated && diagnosis.aiNarrationText?.[selectedLang] ? (
+        <div className="rounded-2xl border-2 border-indigo-400/80 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 p-5 text-white shadow-xl">
+          <div className="flex items-center justify-between pb-2 border-b border-indigo-700/60 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">✨</span>
+              <h3 className="font-serif text-base sm:text-lg font-black text-indigo-200">
+                {selectedLang === "kn"
+                  ? "AI ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ (Gemini 3.5 Flash Lite ಸಕ್ರಿಯ)"
+                  : selectedLang === "hi"
+                  ? "AI दैविक ज्योतिष विवरण (Gemini 3.5 Flash Lite सक्रिय)"
+                  : selectedLang === "te"
+                  ? "AI దైవిక జ్యోతిష్య వివరణ (Gemini 3.5 Flash Lite చురుకుగా ఉంది)"
+                  : selectedLang === "ta"
+                  ? "AI தெய்வீக ஜோதிட உரை (Gemini 3.5 Flash Lite செயலில் உள்ளது)"
+                  : "Personalized AI Astrological Narration (Gemini 3.5 Flash Lite Active)"}
+              </h3>
+            </div>
+            <span className="text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+              100% Accurate Chart Analysis
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-indigo-100/95 leading-relaxed font-normal whitespace-pre-line">
+            {diagnosis.aiNarrationText[selectedLang]}
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-2xl border-2 border-amber-500 bg-amber-50 p-4 text-amber-950 shadow-md flex items-start gap-3">
+          <span className="text-2xl shrink-0 mt-0.5">⚠️</span>
+          <div>
+            <h4 className="font-bold text-xs sm:text-sm text-amber-900 mb-0.5">
+              {selectedLang === "kn"
+                ? "ಶಾಸ್ತ್ರೀಯ ವೈದಿಕ ಗಣನೆ (ಸಾಮಾನ್ಯ ನಿರೂಪಣೆ)"
+                : selectedLang === "hi"
+                ? "शास्त्रीय वैदिक गणना (सामान्य विवरण)"
+                : selectedLang === "te"
+                ? "శాస్త్రీయ వైదిక గణన (సాధారణ వివరణ)"
+                : selectedLang === "ta"
+                ? "சாஸ்திர ரீதியான கணக்கீடு (வழக்கமான உரை)"
+                : "Standard Classical Astrological Calculation"}
+            </h4>
+            <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">
+              {diagnosis.aiFallbackMessage?.[selectedLang] ||
+                REMEDY_AI_FALLBACK_MESSAGES[selectedLang] ||
+                REMEDY_AI_FALLBACK_MESSAGES.kn}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ====================================================================== */}
       {/* 1. INSTANT ANGER & STRESS PACIFICATION PROTOCOL (Interactive Guided)  */}

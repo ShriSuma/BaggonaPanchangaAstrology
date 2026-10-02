@@ -2,6 +2,39 @@ import React, { forwardRef } from "react";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import SouthIndianChart from "../kundli/SouthIndianChart";
 
+export interface DashaBhuktiTimelineData {
+  activeMaha: {
+    lord: string;
+    lordLocalized: string;
+    startYear: number | string;
+    endYear: number | string;
+    totalYears: number;
+  };
+  activeBhukti: {
+    lord: string;
+    lordLocalized: string;
+    startDate: string;
+    endDate: string;
+    durationMonths: number | string;
+    badge: string;
+    influenceSummary: string;
+  };
+  upcomingBhuktis: {
+    lord: string;
+    lordLocalized: string;
+    startDate: string;
+    endDate: string;
+    qualityBadge: string;
+    qualityType: "benefic" | "neutral" | "caution";
+  }[];
+  upcomingMaha?: {
+    lord: string;
+    lordLocalized: string;
+    startYear: number | string;
+    endYear: number | string;
+  };
+}
+
 export interface RoyalA4Data {
   title: string;
   subtitle: string;
@@ -20,7 +53,8 @@ export interface RoyalA4Data {
   currentMahaLord: string;
   currentBhuktiLord: string;
   runningPeriodText: string;
-  planetsTable: {
+  dashaBhuktiTimeline?: DashaBhuktiTimelineData;
+  planetsTable?: {
     name: string;
     rashi: string;
     house: number;
@@ -48,6 +82,7 @@ export interface RoyalA4Data {
   careerGuidance: string;
   financeGuidance: string;
   relationshipGuidance: string;
+  childrenGuidance?: string;
   healthGuidance: string;
   summary: string;
   ashirvada: string;
@@ -102,16 +137,50 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
       doshasTitle: isKn ? "೪. ಕರ್ಮ ದೋಷಗಳು ಹಾಗೂ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ ಮಾರ್ಗಗಳು" : isHi ? "4. कर्म दोष एवं शास्त्रोक्त अचूक उपाय" : isTe ? "4. కర్మ దోషాలు & పరిహార మార్గాలు" : isTa ? "4. கிரக தோஷங்கள் & சாஸ்திர பரிகாரங்கள்" : "4. Karmic Planetary Doshas & Authentic Remedies",
       gocharaTitle: isKn ? "೫. ಪ್ರಸ್ತುತ ಪ್ರಮುಖ ಗ್ರಹಗಳ ಗೋಚಾರ ಫಲ (ಗುರು, ಶನಿ, ರಾಹು-ಕೇತು)" : isHi ? "5. वर्तमान प्रमुख ग्रह गोचर फल" : isTe ? "5. ప్రస్తుత గోచార ఫలితాలు" : isTa ? "5. கோச்சார கிரக பலன்கள்" : "5. Real-Time Major Planetary Transits (Gochara)",
       timelineTitle: isKn ? "೬. ಮುಂದಿನ ೬ ತಿಂಗಳ ಸಂಕ್ರಮಣ, ಶುಭ ದಿನಗಳು & ಉಪಾಸನಾ ಮಾರ್ಗಸೂಚಿ" : isHi ? "6. आगामी ६ महीनों का संक्रमण, शुभ तिथियाँ एवं उपासना" : isTe ? "6. రాబోయే 6 నెలల ప్రయాణం & శుభ దినాలు" : isTa ? "6. அடுத்த 6 மாத கால பயணம் & சுப நாட்கள்" : "6. Comprehensive 6-Month Astrological Roadmap & Rituals",
-      lifeAreasTitle: isKn ? "೭. ಜೀವನದ ಚತುರ್ವಿಧ ಪ್ರಮುಖ ಕ್ಷೇತ್ರಗಳ ಭವಿಷ್ಯ ನಿರೂಪಣೆ" : isHi ? "7. जीवन के प्रमुख ४ क्षेत्रों का विस्तृत भविष्यफल" : isTe ? "7. జీవిత ప్రధాన రంగాల విశ్లేషణ" : isTa ? "7. வாழ்வின் 4 முக்கிய துறைகள்" : "7. Quad-Facet Life Dimensions Analysis",
+      lifeAreasTitle: isKn ? "೭. ಜೀವನದ ಪಂಚ ಮಹಾ ಕ್ಷೇತ್ರಗಳ ಭವಿಷ್ಯ ನಿರೂಪಣೆ" : isHi ? "7. जीवन के 5 प्रमुख क्षेत्रों का विस्तृत भविष्यफल" : isTe ? "7. జీవిత పంచ మహా రంగాల సమగ్ర విశ్లేషణ" : isTa ? "7. வாழ்வின் 5 முக்கிய துறைகளின் விரிவான பலன்கள்" : "7. Fivefold Life Domains In-Depth Analysis",
       ashirvadaTitle: isKn ? "ದೈವಜ್ಞರ ಆಶೀರ್ವಾದ & ಶಾಂತಿ ಮಂತ್ರ" : isHi ? "दैवज्ञ आशीर्वाद एवं शांति मंत्र" : isTe ? "దైవజ్ఞ ఆశీర్వాదం & శాంతి మంత్రం" : isTa ? "ஜோதிடரின் ஆசீர்வாதம் & சாந்தி மந்திரம்" : "Astrologer's Benediction (Ashirvada) & Peace Shloka",
       priestOffice: isKn ? "ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ • ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ" : isHi ? "आधिकारिक बग्गोण पंचांग ज्योतिष कार्यालय • गोकर्ण क्षेत्र" : isTe ? "అధికారిక బగ్గోణ పంచాంగ జ్యోతిష్య కార్యాలయం • గోకర్ణ క్షేత్రం" : isTa ? "அதிகாரபூர்வ பக்கோண பஞ்சாங்க ஜோதிட அலுவலகம் • கோகர்ணா" : "Official Baggona Panchanga Astrology Sansthana • Gokarna Kshetra",
-      priestName: isKn ? "ಪ್ರಧಾನ ಆರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : isHi ? "प्रधान ज्योतिषी: श्रीराम पंडित" : isTe ? "ప్రధాన అర్చకులు: శ్రీరామ్ పండితులు" : isTa ? "தலைமை ஜோதிடர்: ஸ்ரீராம் பண்டிதர்" : "Chief Priest: Shreeram Pandit",
+      priestName: isKn ? "ಪ್ರಧಾನ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : isHi ? "प्रधान ज्योतिषी: श्रीराम पंडित" : isTe ? "ప్రధాన అర్చకులు: శ్రీరామ్ పండితులు" : isTa ? "தலைமை ஜோதிடர்: ஸ்ரீராம் பண்டிதர்" : "Chief Priest: Shreeram Pandit",
+      dashaTimelineTitle: isKn
+        ? "ದಶಾ-ಭುಕ್ತಿ ವಿವರವಾದ ಕಾಲಕ್ರಮ & ಪ್ರಭಾವ"
+        : isHi
+        ? "दशा-भुक्ति विस्तृत कालक्रम एवं प्रभाव"
+        : isTe
+        ? "దశా-భుక్తి సమగ్ర కాలక్రమం"
+        : isTa
+        ? "தசா-புக்தி விரிவான காலவரிசை"
+        : "Dasha-Bhukti Detailed Timeline & Impact",
+      pageHeaderTitle: isKn
+        ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ • ರಾಜಮುದ್ರಣ ಆವೃತ್ತಿ ॥"
+        : isHi
+        ? "॥ बग्गोण पंचांग ज्योतिष • राजमुद्रण संस्करण ॥"
+        : isTe
+        ? "॥ బగ్గోణ పంచాంగ జ్యోతిష్యం • రాజముద్రణ సంచిక ॥"
+        : isTa
+        ? "॥ பக்கோண பஞ்சாங்க ஜோதிடம் • ராஜமுத்ரா பதிப்பு ॥"
+        : "॥ Baggona Panchanga Astrology • Royal Print Edition ॥",
+      page2HeaderSub: isKn ? "ಜಾತಕ ವಿಶ್ಲೇಷಣೆ" : isHi ? "कुंडली विश्लेषण" : isTe ? "జాతక విశ్లేషణ" : isTa ? "ஜாதக ஆய்வு" : "Horoscope Analysis",
+      page3HeaderSub: isKn ? "ದೋಷ ಹಾಗೂ ಗೋಚಾರ ವಿಶ್ಲೇಷಣೆ" : isHi ? "दोष एवं गोचर विश्लेषण" : isTe ? "దోష & గోచార విశ్లేషణ" : isTa ? "தோஷ & கோச்சார ஆய்வு" : "Doshas & Planetary Transits",
+      page4HeaderSub: isKn ? "೬ ತಿಂಗಳ ಸಂಕ್ರಮಣ ಮಾರ್ಗಸೂಚಿ" : isHi ? "६ माह का गोचर मार्गदर्शन" : isTe ? "6 నెలల మార్గదర్శనం" : isTa ? "6 மாத கால வழிகாட்டல்" : "6-Month Transit Roadmap",
+      page5HeaderSub: isKn ? "ದೈವಿಕ ಆಶೀರ್ವಾದ & ಪೂರ್ಣ ಫಲ" : isHi ? "दैवीय आशीर्वाद एवं पूर्ण फल" : isTe ? "దైవిక ఆశీర్వాదం & సంపూర్ణ ఫలితం" : isTa ? "தெய்வீக ஆசீர்வாதம் & நற்பலன்" : "Divine Blessings & Life Destiny",
       contactPhone: "+91 9972339362",
       scanHelp: isKn ? "ದಿನದರ್ಶನ & ಕೌಟುಂಬಿಕ ಪೂಜಾ ಸಂಕಲ್ಪಕ್ಕೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ" : isHi ? "दैनिक दर्शन एवं पूजा संकल्प हेतु स्कैन करें" : isTe ? "రోజువారీ దర్శనం కొరకు స్కాన్ చేయండి" : isTa ? "தினசரி தர்சனத்திற்கு ஸ்கேன் செய்யவும்" : "Scan for Daily Darshana & Seva Booking"
     };
 
     const pageBorder = "border-[3px] border-amber-800/60 rounded-lg p-8 relative overflow-hidden";
     const innerDashed = "absolute inset-3 border border-dashed border-amber-600/30 rounded pointer-events-none";
+
+    const pageLabel = (pageNum: number) => {
+      const indicNumKn = ["೧", "೨", "೩", "೪", "೫"][pageNum - 1];
+      const indicNumHi = ["१", "२", "३", "४", "५"][pageNum - 1];
+      const indicNumTe = ["౧", "౨", "౩", "౪", "౫"][pageNum - 1];
+      const indicNumTa = ["௧", "௨", "௩", "௪", "௫"][pageNum - 1];
+      if (isKn) return `ಪುಟ ${indicNumKn}/೫ (Page ${pageNum} of 5)`;
+      if (isHi) return `पृष्ठ ${indicNumHi}/५ (Page ${pageNum} of 5)`;
+      if (isTe) return `పుట ${indicNumTe}/౫ (Page ${pageNum} of 5)`;
+      if (isTa) return `பக்கம் ${indicNumTa}/௫ (Page ${pageNum} of 5)`;
+      return `Page ${pageNum} of 5`;
+    };
 
     const renderDomainParas = (text?: string) => {
       if (!text) return null;
@@ -230,40 +299,109 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                   </div>
                 </div>
 
-                {/* Right: Detailed Planetary Positions Table */}
+                {/* Right: Comprehensive Dasha-Bhukti Detailed Timeline */}
                 <div className="col-span-6">
-                  <div className="text-xs font-bold text-amber-900 mb-1">
-                    {labels.planetsTitle}
+                  <div className="text-xs font-bold text-amber-900 mb-1 flex items-center justify-between">
+                    <span>⏳ {labels.dashaTimelineTitle}</span>
                   </div>
-                  <div className="overflow-hidden rounded-xl border border-amber-700/40 bg-white/80 shadow-sm">
-                    <table className="w-full text-left border-collapse text-[11px]">
-                      <thead>
-                        <tr className="bg-amber-100/90 text-amber-950 font-bold border-b border-amber-700/30">
-                          <th className="p-1.5">{isKn ? "ಗ್ರಹ" : "Planet"}</th>
-                          <th className="p-1.5">{isKn ? "ರಾಶಿ" : "Rashi"}</th>
-                          <th className="p-1.5 text-center">{isKn ? "ಭಾವ" : "House"}</th>
-                          <th className="p-1.5">{isKn ? "ದೀಪ್ತಾಂಶ" : "Deg"}</th>
-                          <th className="p-1.5">{isKn ? "ನಕ್ಷತ್ರ (ಪಾದ)" : "Nak (Pada)"}</th>
-                          <th className="p-1.5">{isKn ? "ಸ್ಥಿತಿ" : "Dignity"}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-amber-700/15">
-                        {data.planetsTable.slice(0, 10).map((p, idx) => (
-                          <tr key={idx} className={idx % 2 === 1 ? "bg-amber-50/50" : ""}>
-                            <td className="p-1.5 font-bold text-amber-950 flex items-center gap-1">
-                              <span>{p.name}</span>
-                              {p.isRetrograde && <span className="text-[9px] text-red-600 font-bold">(ವ)</span>}
-                            </td>
-                            <td className="p-1.5 text-amber-900">{p.rashi}</td>
-                            <td className="p-1.5 text-center font-bold text-amber-950">{p.house}</td>
-                            <td className="p-1.5 font-mono text-[10px] text-amber-800">{p.longitudeStr}</td>
-                            <td className="p-1.5 text-[10px] text-amber-900">{p.nakshatra} ({p.pada})</td>
-                            <td className="p-1.5 text-[10px] font-semibold text-amber-950">{p.dignity}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+
+                  {data.dashaBhuktiTimeline ? (
+                    <div className="space-y-2">
+                      {/* Active Dasha-Bhukti Card */}
+                      <div className="p-2.5 rounded-xl border border-amber-700/50 bg-gradient-to-br from-amber-100/90 via-amber-50 to-orange-50/80 shadow-xs">
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <span className="font-black text-amber-950 text-xs">
+                            {data.dashaBhuktiTimeline.activeMaha.lordLocalized} {isKn ? "ಮಹಾದಶಾ" : isHi ? "महादशा" : isTe ? "మహాదశ" : isTa ? "மகாதிசை" : "Maha Dasha"} / {data.dashaBhuktiTimeline.activeBhukti.lordLocalized} {isKn ? "ಭುಕ್ತಿ" : isHi ? "भुक्ति" : isTe ? "భుక్తి" : isTa ? "புக்தி" : "Bhukti"}
+                          </span>
+                          <span className="text-[9.5px] font-sans font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded-full shrink-0">
+                            {data.dashaBhuktiTimeline.activeBhukti.badge}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10.5px] text-amber-900 font-semibold mb-1 border-b border-amber-700/20 pb-1">
+                          <span>📅 {isKn ? "ಅವಧಿ:" : "Span:"} {data.dashaBhuktiTimeline.activeBhukti.startDate} — {data.dashaBhuktiTimeline.activeBhukti.endDate}</span>
+                          <span className="italic font-sans">({data.dashaBhuktiTimeline.activeBhukti.durationMonths} {isKn ? "ತಿಂಗಳುಗಳು" : isHi ? "माह" : "Months"})</span>
+                        </div>
+
+                        <p className="text-[11px] text-amber-950 font-serif leading-relaxed text-justify">
+                          {data.dashaBhuktiTimeline.activeBhukti.influenceSummary}
+                        </p>
+                      </div>
+
+                      {/* Upcoming Bhuktis Sequence Table */}
+                      <div className="overflow-hidden rounded-xl border border-amber-700/40 bg-white/90 shadow-xs">
+                        <div className="bg-amber-100/90 px-2.5 py-1 text-[11px] font-bold text-amber-950 border-b border-amber-700/20 flex justify-between items-center">
+                          <span>{isKn ? "ಮುಂಬರುವ ಭುಕ್ತಿಗಳ ಸಂಚಾರ & ಫಲ ಸೂಚನೆ" : isHi ? "आगामी भुक्ति क्रम एवं फल संकेत" : isTe ? "రాబోయే భుక్తులు & ఫలితాలు" : isTa ? "வரவிருக்கும் புக்திகள் & பலன்" : "Upcoming Bhukti Sequence & Forecast"}</span>
+                        </div>
+                        <table className="w-full text-left border-collapse text-[10.5px]">
+                          <thead>
+                            <tr className="bg-amber-50 text-amber-900/80 font-bold border-b border-amber-700/20 text-[10px]">
+                              <th className="py-1 px-2">{isKn ? "ಭುಕ್ತಿ ನಾಥ" : "Bhukti"}</th>
+                              <th className="py-1 px-2">{isKn ? "ದಿನಾಂಕ" : "Span"}</th>
+                              <th className="py-1 px-2 text-right">{isKn ? "ಫಲ ಸಂಕೇತ" : "Quality"}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-amber-700/10">
+                            {data.dashaBhuktiTimeline.upcomingBhuktis.slice(0, 4).map((ub, idx) => (
+                              <tr key={idx} className="hover:bg-amber-50/50">
+                                <td className="py-1 px-2 font-bold text-amber-950">
+                                  {ub.lordLocalized} {isKn ? "ಭುಕ್ತಿ" : isHi ? "भुक्ति" : isTe ? "భుక్తి" : isTa ? "புக்தி" : "Bhukti"}
+                                </td>
+                                <td className="py-1 px-2 text-slate-700 font-sans text-[10px]">
+                                  {ub.startDate} - {ub.endDate}
+                                </td>
+                                <td className="py-1 px-2 text-right">
+                                  <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold font-sans ${
+                                    ub.qualityType === "benefic"
+                                      ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                      : ub.qualityType === "caution"
+                                      ? "bg-rose-100 text-rose-800 border border-rose-300"
+                                      : "bg-amber-100 text-amber-800 border border-amber-300"
+                                  }`}>
+                                    {ub.qualityBadge}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+
+                        {data.dashaBhuktiTimeline.upcomingMaha && (
+                          <div className="bg-amber-50/80 px-2 py-1 border-t border-amber-700/20 text-[10px] text-amber-900 font-semibold flex items-center justify-between">
+                            <span>✨ {isKn ? "ಮುಂದಿನ ಮಹಾದಶಾ:" : isHi ? "आगामी महादशा:" : isTe ? "తదుపరి మహాదశ:" : isTa ? "அடுத்த மகாதிசை:" : "Next Mahadasha:"} {data.dashaBhuktiTimeline.upcomingMaha.lordLocalized}</span>
+                            <span className="font-sans">({data.dashaBhuktiTimeline.upcomingMaha.startYear} — {data.dashaBhuktiTimeline.upcomingMaha.endYear})</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    data.planetsTable && (
+                      <div className="overflow-hidden rounded-xl border border-amber-700/40 bg-white/80 shadow-sm">
+                        <table className="w-full text-left border-collapse text-[11px]">
+                          <thead>
+                            <tr className="bg-amber-100/90 text-amber-950 font-bold border-b border-amber-700/30">
+                              <th className="p-1.5">{isKn ? "ಗ್ರಹ" : "Planet"}</th>
+                              <th className="p-1.5">{isKn ? "ರಾಶಿ" : "Rashi"}</th>
+                              <th className="p-1.5 text-center">{isKn ? "ಭಾವ" : "House"}</th>
+                              <th className="p-1.5">{isKn ? "ದೀಪ್ತಾಂಶ" : "Deg"}</th>
+                              <th className="p-1.5">{isKn ? "ಸ್ಥಿತಿ" : "Dignity"}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-amber-700/15">
+                            {data.planetsTable.slice(0, 10).map((p, idx) => (
+                              <tr key={idx} className={idx % 2 === 1 ? "bg-amber-50/50" : ""}>
+                                <td className="p-1.5 font-bold text-amber-950">{p.name}</td>
+                                <td className="p-1.5 text-amber-900">{p.rashi}</td>
+                                <td className="p-1.5 text-center font-bold text-amber-950">{p.house}</td>
+                                <td className="p-1.5 font-mono text-[10px] text-amber-800">{p.longitudeStr}</td>
+                                <td className="p-1.5 text-[10px] font-semibold text-amber-950">{p.dignity}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -271,7 +409,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             {/* Bottom Footer Note */}
             <div className="pt-3 border-t border-amber-800/30 flex justify-between items-center text-[11px] text-amber-800">
               <span>{labels.priestOffice}</span>
-              <span className="font-bold">ಪುಟ ೧/೫ (Page 1 of 5)</span>
+              <span className="font-bold">{pageLabel(1)}</span>
             </div>
           </div>
         </div>
@@ -290,8 +428,8 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             <div>
               {/* Running Page Header */}
               <div className="flex justify-between items-center pb-2 border-b border-amber-800/30 text-[11px] text-amber-800">
-                <span className="font-bold">॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ • ರಾಜಮುದ್ರಣ ಆವೃತ್ತಿ ॥</span>
-                <span>{data.name} — ಜಾತಕ ವಿಶ್ಲೇಷಣೆ</span>
+                <span className="font-bold">{labels.pageHeaderTitle}</span>
+                <span>{data.name} — {labels.page2HeaderSub}</span>
               </div>
 
               {/* Section 1: Personality Blueprint */}
@@ -365,7 +503,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             {/* Bottom Footer Note */}
             <div className="pt-3 border-t border-amber-800/30 flex justify-between items-center text-[11px] text-amber-800">
               <span>{labels.priestOffice}</span>
-              <span className="font-bold">ಪುಟ ೨/೫ (Page 2 of 5)</span>
+              <span className="font-bold">{pageLabel(2)}</span>
             </div>
           </div>
         </div>
@@ -384,8 +522,8 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             <div>
               {/* Running Page Header */}
               <div className="flex justify-between items-center pb-2 border-b border-amber-800/30 text-[11px] text-amber-800">
-                <span className="font-bold">॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ • ರಾಜಮುದ್ರಣ ಆವೃತ್ತಿ ॥</span>
-                <span>{data.name} — ದೋಷ ಹಾಗೂ ಗೋಚಾರ ವಿಶ್ಲೇಷಣೆ</span>
+                <span className="font-bold">{labels.pageHeaderTitle}</span>
+                <span>{data.name} — {labels.page3HeaderSub}</span>
               </div>
 
               {/* Section 4: Doshas and Pariharas */}
@@ -448,7 +586,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             {/* Bottom Footer Note */}
             <div className="pt-3 border-t border-amber-800/30 flex justify-between items-center text-[11px] text-amber-800">
               <span>{labels.priestOffice}</span>
-              <span className="font-bold">ಪುಟ ೩/೫ (Page 3 of 5)</span>
+              <span className="font-bold">{pageLabel(3)}</span>
             </div>
           </div>
         </div>
@@ -467,8 +605,8 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             <div>
               {/* Running Page Header */}
               <div className="flex justify-between items-center pb-2 border-b border-amber-800/30 text-[11px] text-amber-800">
-                <span className="font-bold">॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ • ರಾಜಮುದ್ರಣ ಆವೃತ್ತಿ ॥</span>
-                <span>{data.name} — ೬ ತಿಂಗಳ ಸಂಕ್ರಮಣ ಮಾರ್ಗಸೂಚಿ</span>
+                <span className="font-bold">{labels.pageHeaderTitle}</span>
+                <span>{data.name} — {labels.page4HeaderSub}</span>
               </div>
 
               {/* Section 6: 6-Month Detailed Timeline */}
@@ -523,7 +661,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             {/* Bottom Footer Note */}
             <div className="pt-3 border-t border-amber-800/30 flex justify-between items-center text-[11px] text-amber-800">
               <span>{labels.priestOffice}</span>
-              <span className="font-bold">ಪುಟ ೪/೫ (Page 4 of 5)</span>
+              <span className="font-bold">{pageLabel(4)}</span>
             </div>
           </div>
         </div>
@@ -542,8 +680,8 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             <div>
               {/* Running Page Header */}
               <div className="flex justify-between items-center pb-2 border-b border-amber-800/30 text-[11px] text-amber-800">
-                <span className="font-bold">॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ • ರಾಜಮುದ್ರಣ ಆವೃತ್ತಿ ॥</span>
-                <span>{data.name} — ದೈವಿಕ ಆಶೀರ್ವಾದ & ಪೂರ್ಣ ಫಲ</span>
+                <span className="font-bold">{labels.pageHeaderTitle}</span>
+                <span>{data.name} — {labels.page5HeaderSub}</span>
               </div>
 
               {/* Section 7: 4 Key Life Areas */}
@@ -553,35 +691,47 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                   <span>{labels.lifeAreasTitle}</span>
                 </h2>
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  {/* Career */}
+                  {/* 1. Career & Profession */}
                   <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-700/30">
                     <div className="font-bold text-amber-900 text-sm mb-1 flex items-center gap-1.5">
                       <span>💼</span>
-                      <span>{isKn ? "ವೃತ್ತಿ & ಉದ್ಯೋಗ ಭಾಗ್ಯ" : "Career & Profession"}</span>
+                      <span>{isKn ? "ವೃತ್ತಿ & ಉದ್ಯೋಗ ಭಾಗ್ಯ" : isHi ? "करियर एवं आजीविका" : isTe ? "వృత్తి & ఉద్యోగ భాగ్యం" : isTa ? "தொழில் & உத்தியோகம்" : "Career & Profession"}</span>
                     </div>
                     {renderDomainParas(data.careerGuidance)}
                   </div>
-                  {/* Wealth */}
+
+                  {/* 2. Wealth & Finance */}
                   <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-700/30">
                     <div className="font-bold text-amber-900 text-sm mb-1 flex items-center gap-1.5">
                       <span>🪙</span>
-                      <span>{isKn ? "ಧನ & ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ" : "Wealth & Finance"}</span>
+                      <span>{isKn ? "ಧನ & ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ" : isHi ? "धन एवं आर्थिक समृद्धि" : isTe ? "ధన & ఆర్థిక సమృద్ధి" : isTa ? "தனம் & நிதி நிலை" : "Wealth & Finance"}</span>
                     </div>
                     {renderDomainParas(data.financeGuidance)}
                   </div>
-                  {/* Marriage & Relationships */}
+
+                  {/* 3. Marriage & Relationships */}
                   <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-700/30">
                     <div className="font-bold text-amber-900 text-sm mb-1 flex items-center gap-1.5">
                       <span>💍</span>
-                      <span>{isKn ? "ವಿವಾಹ & ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ" : "Marriage & Family Harmony"}</span>
+                      <span>{isKn ? "ವಿವಾಹ & ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ" : isHi ? "विवाह एवं पारिवारिक सुख" : isTe ? "వివాహ & కుటుంబ సౌఖ్యం" : isTa ? "திருமணம் & குடும்ப வாழ்வு" : "Marriage & Family Harmony"}</span>
                     </div>
                     {renderDomainParas(data.relationshipGuidance)}
                   </div>
-                  {/* Health */}
+
+                  {/* 4. Children & Progeny Legacy */}
                   <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-700/30">
                     <div className="font-bold text-amber-900 text-sm mb-1 flex items-center gap-1.5">
+                      <span>👶</span>
+                      <span>{isKn ? "ಸಂತಾನ ಭಾಗ್ಯ & ವಂಶಾಭಿವೃದ್ಧಿ" : isHi ? "संतान सुख एवं कुल प्रतिष्ठा" : isTe ? "సంతాన భాగ్యం & వంశాభివృద్ధి" : isTa ? "புத்திர பாக்கியம் & சந்ததி" : "Children & Lineage Legacy"}</span>
+                    </div>
+                    {renderDomainParas(data.childrenGuidance || data.relationshipGuidance)}
+                  </div>
+
+                  {/* 5. Health & Vitality (Spanning full width across 2 columns) */}
+                  <div className="col-span-2 p-3 bg-amber-50/70 rounded-xl border border-amber-700/30">
+                    <div className="font-bold text-amber-900 text-sm mb-1 flex items-center gap-1.5">
                       <span>🌿</span>
-                      <span>{isKn ? "ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ಬಲ" : "Health & Vitality"}</span>
+                      <span>{isKn ? "ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ಬಲ" : isHi ? "आरोग्य एवं दीर्घायु" : isTe ? "ఆరోగ్యం & ఆయుర్బలం" : isTa ? "ஆரோக்கியம் & ஆயுள் பலம்" : "Health & Vitality"}</span>
                     </div>
                     {renderDomainParas(data.healthGuidance)}
                   </div>
@@ -648,7 +798,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             {/* Bottom Footer Note */}
             <div className="pt-3 border-t border-amber-800/30 flex justify-between items-center text-[11px] text-amber-800">
               <span>{labels.priestOffice}</span>
-              <span className="font-bold">ಪುಟ ೫/೫ (Page 5 of 5)</span>
+              <span className="font-bold">{pageLabel(5)}</span>
             </div>
           </div>
         </div>

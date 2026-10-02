@@ -22,6 +22,10 @@ export type AskGeminiOptions = {
   raw?: boolean;
   /** Raised above the default to keep repeat downloads from reading the same. */
   temperature?: number;
+  /** Custom retry count (defaults to 3) */
+  retries?: number;
+  /** Custom retry initial delay in ms (defaults to 2000) */
+  retryDelay?: number;
 };
 
 export async function askGemini(
@@ -84,8 +88,8 @@ Respond EXCLUSIVELY in the ${targetLanguage} language.
 Use the native script of the requested language (e.g., Kannada script for Kannada). Absolutely do not use English letters (Latin script) to write in local Indian languages.
 `;
 
-    let retries = 3;
-    let delay = 2000;
+    let retries = options.retries !== undefined ? options.retries : 3;
+    let delay = options.retryDelay !== undefined ? options.retryDelay : 2000;
 
     while (retries > 0) {
       try {

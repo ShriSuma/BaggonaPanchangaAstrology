@@ -7,7 +7,12 @@
 import React, { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import type { PublicKundliProfile } from "../../features/publicKundli/publicKundliEngine";
-import { generateCompactGoogleCalendarUrlForQR } from "../../features/seva/icsCalendarGenerator";
+import {
+  generateQrPayloadByTarget,
+  calculateDeterministicRhythmDay,
+  getSafeProductionOrigin,
+  generateCompactGoogleCalendarUrlForQR
+} from "../../features/seva/icsCalendarGenerator";
 import { getPublicKundliText, type PublicKundliLang } from "../../features/publicKundli/publicKundliLocale";
 
 export interface KundliQrProfile {
@@ -22,6 +27,8 @@ export interface KundliQrProfile {
   moonPada?: string | number;
   currentMahadasha?: string;
   currentBhukti?: string;
+  moonNakshatraIndex?: number;
+  moonRashiIndex?: number;
 }
 
 export interface Kundli30DayQrCardProps {
@@ -172,7 +179,18 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
     }
 
     try {
-      const compactGcalUrl = generateCompactGoogleCalendarUrlForQR({
+      const nakIdx = typeof profile.moonNakshatraIndex === "number" ? profile.moonNakshatraIndex : 0;
+      const rashiIdx = typeof profile.moonRashiIndex === "number" ? profile.moonRashiIndex : 0;
+
+      const rhythmDays = Array.from({ length: 30 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const ymd = d.toISOString().slice(0, 10);
+        return calculateDeterministicRhythmDay(ymd, nakIdx, rashiIdx);
+      });
+
+      const qrPayload = generateQrPayloadByTarget("google", {
+        days: rhythmDays,
         lang: currentLang,
         panditName: panditName || "Shreeram Pandit",
         priestPhone: priestPhone || "9972339362",
@@ -180,11 +198,16 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
         notificationTime: "07:00",
         personName: profile.name,
         pincode: pincode || "581326",
+        lat: 14.54,
+        lng: 74.31,
+        locationName: placeLabel || "Gokarna",
         dob: profile.birthDate,
-        tob: profile.birthTime
+        tob: profile.birthTime,
+        birthNakshatraIndex: nakIdx,
+        birthRashiIndex: rashiIdx
       });
 
-      QRCode.toDataURL(compactGcalUrl, {
+      QRCode.toDataURL(qrPayload, {
         errorCorrectionLevel: "L",
         margin: 2,
         width: 320,
@@ -196,22 +219,24 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
         .then((url) => setGeneratedQr(url))
         .catch((err) => {
           console.warn("[Kundli30DayQrCard] QR generation fallback:", err);
-          const fallback = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Baggona 30-Day Auspicious Calendar")}&details=${encodeURIComponent(`Baggona Panchanga - ${panditName || "Shreeram Pandit"} ${priestPhone || "9972339362"}`)}`;
+          const fallback = `${getSafeProductionOrigin()}/daily?action=ics&lang=${currentLang}&priestPhone=${encodeURIComponent(priestPhone || "9972339362")}`;
           QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 320 }).then(setGeneratedQr);
         });
     } catch (e) {
       console.error("[Kundli30DayQrCard] QR build error:", e);
+      const fallback = `${getSafeProductionOrigin()}/daily?action=ics&lang=${currentLang}&priestPhone=${encodeURIComponent(priestPhone || "9972339362")}`;
+      QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 320 }).then(setGeneratedQr).catch(() => {});
     }
-  }, [externalQr, currentLang, profile, panditName, priestPhone, pincode]);
+  }, [externalQr, currentLang, profile, panditName, priestPhone, pincode, placeLabel]);
 
   return (
     <div
       id="kundli-30day-qr-card"
       className="pdf-page"
       style={{
-        width: "794px",
-        minHeight: "1123px",
-        padding: "36px 40px",
+        width: "900px",
+        minHeight: "1273px",
+        padding: "36px 42px",
         boxSizing: "border-box",
         backgroundColor: "#fffdf8",
         color: "#0f172a",
@@ -228,8 +253,8 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
         style={{
           border: "3px double #b45309",
           borderRadius: "16px",
-          padding: "26px 30px",
-          minHeight: "1050px",
+          padding: "26px 32px",
+          minHeight: "1190px",
           boxSizing: "border-box",
           backgroundColor: "#ffffff",
           display: "flex",

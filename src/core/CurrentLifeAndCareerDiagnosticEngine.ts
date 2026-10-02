@@ -1613,24 +1613,60 @@ export function diagnoseCurrentLifeSituation(
       score: starScore,
       profile: {
         category: "creative_media_stardom",
-        titleKn: "5ನೇ ಕಲಾ-ಪ್ರತಿಭಾ ಸ್ಥಾನ & 10ನೇ ಮಾಧ್ಯಮ ಕೀರ್ತಿ: ಸೃಜನಶೀಲ ವೈಭವ, ಜಾಗತಿಕ ರಸಿಕರ ಪ್ರೀತಿ & ಮನರಂಜನಾ ಸಾಮ್ರಾಜ್ಯ",
-        titleEn: "5th House Artistic Genius & 10th House Fame: Global Entertainment Stardom & Digital Creator Reach",
-        headlineKn: `${h5SignKn} 5ನೇ ಸೃಜನಶೀಲ ಸ್ಥಾನ & 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${venus ? PLANET_KN[PlanetName.Venus] : h5LordKn} ಪ್ರಭಾವ): ಕಲಾ ಜಗತ್ತಿನಲ್ಲಿ ಅಪಾರ ಜನಪ್ರಿಯತೆ, ನೂತನ ಸೃಷ್ಟಿ & ಜಾಗತಿಕ ಅಭಿಮಾನಿಗಳ ವಲಯ`,
-        headlineEn: `5th House (${RASHI_EN[getHouseSignIdx(5)] || "Creativity"}) & 10th House: Creative Stardom, Cinematic/Digital Mastery & Audience Adulation`,
-        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 5ನೇ ಪ್ರತಿಭಾ-ಕಲಾ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn}) ಹಾಗೂ 10ನೇ ಕೀರ್ತಿ-ಖ್ಯಾತಿ ಸ್ಥಾನ (${tenthSignNameKn}, ಅಧಿಪತಿ ${tenthLordNameKn}) ಶುಕ್ರ, ಬುಧ ಹಾಗೂ ರಾಹುವಿನ ಅದ್ಭುತ ಕಲಾತ್ಮಕ ಯೋಗದಿಂದ ಜಾಗೃತಗೊಂಡಿವೆ. ಸಿನೆಮಾ, ಸಂಗೀತ, ಮಾಧ್ಯಮ, ಡಿಜಿಟಲ್ ಕಂಟೆಂಟ್ ಅಥವಾ ಸೃಜನಶೀಲ ಅಭಿವ್ಯಕ್ತಿಯ ಮೂಲಕ ಲಕ್ಷಾಂತರ ಜನರನ್ನು ಆಕರ್ಷಿಸುವ ದೈವಿಕ ಪ್ರತಿಭೆ ನಿಮ್ಮಲ್ಲಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಕಲಾತ್ಮಕ ಯೋಜನೆಗಳು, ಸಾರ್ವಜನಿಕ ಪ್ರದರ್ಶನಗಳು ಹಾಗೂ ಜಾಗತಿಕ ಮಟ್ಟದ ಜನಪ್ರಿಯತೆಯು ಉತ್ತುಂಗದಲ್ಲಿದ್ದು, ಹೊಸ ಕಲಾ ಸೃಷ್ಟಿಯೇ ನಿಮ್ಮ ಜೀವನದ ಮುಖ್ಯ ತಪಸ್ಸಾಗಿದೆ.`,
-        detailedRealityEn: `Currently, you are experiencing an extraordinary phase of creative media stardom and artistic resonance under the 5th house of genius (${RASHI_EN[getHouseSignIdx(5)]}), 10th house of global renown, and Venus/Mercury alignments, commanding millions of viewers, music/cinema fans, and digital audiences worldwide under ${mahaEn}-${bhuktiEn}.`,
-        planetaryCulpritKn: `5ನೇ ಕಲಾ-ಸೃಜನಶೀಲ ಸ್ಥಾನ (${h5SignKn}), ಶುಕ್ರ-ಬುಧರ ಕಲಾ ಯೋಗ ಹಾಗೂ 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ ಮತ್ತು ${guruGocharaTextKn}.`,
-        planetaryCulpritEn: `Artistic radiance powered by 5th house of creativity (${RASHI_EN[getHouseSignIdx(5)]}), Venusian aesthetics, and 10th house public fame.`,
-        symptomsChecklistKn: [
-          `5ನೇ ಕಲಾ ಸ್ಥಾನ (${h5SignKn}) ಪ್ರಭಾವದಿಂದ ನವೀನ ಸೃಜನಶೀಲ ಕಂಟೆಂಟ್, ಸಂಗೀತ, ನಟನೆ ಅಥವಾ ಬರವಣಿಗೆಯ ನಿರಂತರ ಸೃಷ್ಟಿ`,
-          `10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${tenthSignNameKn}) ಹಾಗೂ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದ ಸಾಮಾಜಿಕ ಜಾಲತಾಣಗಳಲ್ಲಿ ಕೋಟ್ಯಂತರ ವೀಕ್ಷಕರು ಮತ್ತು ಜಾಗತಿಕ ಅಭಿಮಾನಿಗಳ ಪ್ರೀತಿ`,
-          `ಬ್ರ್ಯಾಂಡ್ ಸಹಯೋಗಗಳು, ಅಂತಾರಾಷ್ಟ್ರೀಯ ಪ್ರವಾಸಗಳು ಹಾಗೂ ಕಲಾ ರಂಗದಲ್ಲಿ ಹೊಸ ಟ್ರೆಂಡ್‌ಗಳನ್ನು ಹುಟ್ಟುಹಾಕುವ ಶಕ್ತಿ`
-        ],
-        symptomsChecklistEn: [
-          `Relentless creative production across digital media, cinema, music, or high-concept storytelling under 5th house (${RASHI_EN[getHouseSignIdx(5)]})`,
-          `Enormous digital audience engagement, trending viral reach, and passionate global fans under 10th house (${RASHI_EN[tenthSignIdx]}) and Rahu`,
-          `High-value brand endorsements, artistic tours, and pioneering cultural creative benchmarks`
-        ],
+        titleKn: isKnownCelebrityStar
+          ? "5ನೇ ಕಲಾ-ಪ್ರತಿಭಾ ಸ್ಥಾನ & 10ನೇ ಮಾಧ್ಯಮ ಕೀರ್ತಿ: ಸೃಜನಶೀಲ ವೈಭವ, ಜಾಗತಿಕ ರಸಿಕರ ಪ್ರೀತಿ & ಮನರಂಜನಾ ಸಾಮ್ರಾಜ್ಯ"
+          : "10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ & 5ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ: ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ, ಕಲಾತ್ಮಕ ಯೋಜನೆ & ವೃತ್ತಿ ಗೌರವ ಪ್ರಾಪ್ತಿ",
+        titleEn: isKnownCelebrityStar
+          ? "5th House Artistic Genius & 10th House Fame: Global Entertainment Stardom & Digital Creator Reach"
+          : "10th House Fame & 5th House Vision: Public Recognition, Creative Ideation & Professional Acclaim",
+        headlineKn: isKnownCelebrityStar
+          ? `${h5SignKn} 5ನೇ ಸೃಜನಶೀಲ ಸ್ಥಾನ & 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${venus ? PLANET_KN[PlanetName.Venus] : h5LordKn} ಪ್ರಭಾವ): ಕಲಾ ಜಗತ್ತಿನಲ್ಲಿ ಅಪಾರ ಜನಪ್ರಿಯತೆ, ನೂತನ ಸೃಷ್ಟಿ & ಜಾಗತಿಕ ಅಭಿಮಾನಿಗಳ ವಲಯ`
+          : `${tenthSignNameKn} 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ & 5ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ: ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ, ಕಲಾತ್ಮಕ ಯೋಜನೆ & ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅರ್ಹ ಗೌರವದ ಹಂಬಲ`,
+        headlineEn: isKnownCelebrityStar
+          ? `5th House (${RASHI_EN[getHouseSignIdx(5)] || "Creativity"}) & 10th House: Creative Stardom, Cinematic/Digital Mastery & Audience Adulation`
+          : `10th House (${RASHI_EN[tenthSignIdx]} Fame) & 5th House: Public Recognition, Creative Vision & Seeking Professional Acclaim`,
+        detailedRealityKn: isKnownCelebrityStar
+          ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 5ನೇ ಪ್ರತಿಭಾ-ಕಲಾ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn}) ಹಾಗೂ 10ನೇ ಕೀರ್ತಿ-ಖ್ಯಾತಿ ಸ್ಥಾನ (${tenthSignNameKn}, ಅಧಿಪತಿ ${tenthLordNameKn}) ಶುಕ್ರ, ಬುಧ ಹಾಗೂ ರಾಹುವಿನ ಅದ್ಭುತ ಕಲಾತ್ಮಕ ಯೋಗದಿಂದ ಜಾಗೃತಗೊಂಡಿವೆ. ಸಿನೆಮಾ, ಸಂಗೀತ, ಮಾಧ್ಯಮ, ಡಿಜಿಟಲ್ ಕಂಟೆಂಟ್ ಅಥವಾ ಸೃಜನಶೀಲ ಅಭಿವ್ಯಕ್ತಿಯ ಮೂಲಕ ಲಕ್ಷಾಂತರ ಜನರನ್ನು ಆಕರ್ಷಿಸುವ ದೈವಿಕ ಪ್ರತಿಭೆ ನಿಮ್ಮಲ್ಲಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಕಲಾತ್ಮಕ ಯೋಜನೆಗಳು, ಸಾರ್ವಜನಿಕ ಪ್ರದರ್ಶನಗಳು ಹಾಗೂ ಜಾಗತಿಕ ಮಟ್ಟದ ಜನಪ್ರಿಯತೆಯು ಉತ್ತುಂಗದಲ್ಲಿದ್ದು, ಹೊಸ ಕಲಾ ಸೃಷ್ಟಿಯೇ ನಿಮ್ಮ ಜೀವನದ ಮುಖ್ಯ ತಪಸ್ಸಾಗಿದೆ.`
+          : `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 10ನೇ ಕೀರ್ತಿ-ಕರ್ಮ ಸ್ಥಾನ (${tenthSignNameKn}, ಅಧಿಪತಿ ${tenthLordNameKn}) ಹಾಗೂ 5ನೇ ಪ್ರತಿಭಾ-ಬುದ್ಧಿ ಸ್ಥಾನ (${h5SignKn}, ಅಧಿಪತಿ ${h5LordKn}) ಸಕ್ರಿಯಗೊಂಡಿವೆ. ನಿಮ್ಮಲ್ಲಿ ಅಪಾರ ಕಲಾತ್ಮಕ ಯೋಚನೆ, ಸೃಜನಶೀಲ ದೂರದೃಷ್ಟಿ ಹಾಗೂ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಯೋಜನೆಗಳನ್ನು ರೂಪಿಸುವ ಅಸಾಧಾರಣ ಸಾಮರ್ಥ್ಯವಿದೆ. ನೀವು ಕೇವಲ ತೆರೆಮರೆಯಲ್ಲೇ ದುಡಿಯಲು ಇಷ್ಟಪಡದೆ, ಸಮಾಜ ಹಾಗೂ ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ, ಕೀರ್ತಿ ಹಾಗೂ ಅರ್ಹ ಪ್ರಶಂಸೆಯನ್ನು ಪಡೆಯಬೇಕೆಂಬ ತೀವ್ರ ಆಕಾಂಕ್ಷೆ ನಿಮ್ಮಲ್ಲಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಪ್ರತಿಭೆಯನ್ನು ಮುಂಚೂಣಿಗೆ ತಂದು ಜನಮನ ಗೆಲ್ಲುವ ಸುವರ್ಣ ಕಾಲಾವಕಾಶ ಸನ್ನಿಹಿತವಾಗಿದೆ.`,
+        detailedRealityEn: isKnownCelebrityStar
+          ? `Currently, you are experiencing an extraordinary phase of creative media stardom and artistic resonance under the 5th house of genius (${RASHI_EN[getHouseSignIdx(5)]}), 10th house of global renown, and Venus/Mercury alignments, commanding millions of viewers, music/cinema fans, and digital audiences worldwide under ${mahaEn}-${bhuktiEn}.`
+          : `Currently, you are entering a pivotal phase of seeking public recognition, career appreciation, and creative expansion under your 10th house of acclaim (${RASHI_EN[tenthSignIdx]}) and 5th house of vision. Rather than remaining behind the scenes, you desire rightful acknowledgment, respect, and visibility for your talents under ${mahaEn}-${bhuktiEn}.`,
+        externalLifeRealityKn: isKnownCelebrityStar
+          ? `ಜಾಗತಿಕ ಕಲಾ ರಂಗ ಹಾಗೂ ಮಾಧ್ಯಮ ಯೋಜನೆಗಳಲ್ಲಿ ಸಕ್ರಿಯ ಪಾಲ್ಗೊಳ್ಳುವಿಕೆ, ಜನಪ್ರಿಯತೆಯ ಉತ್ತುಂಗ.`
+          : `ವೃತ್ತಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಹೊಸ ಯೋಜನೆಗಳ ನೇತೃತ್ವ ವಹಿಸುವುದು, ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ ಪಡೆಯಲು ಸಿದ್ಧತೆ ಹಾಗೂ ಕಲಾತ್ಮಕ ಯೋಜನೆಗಳ ಅನುಷ್ಠಾನ.`,
+        externalLifeRealityEn: isKnownCelebrityStar
+          ? `Active participation across high-profile creative productions and broad media reach.`
+          : `Spearheading creative ventures, seeking public visibility, and expanding professional reputation.`,
+        internalMindsetKn: isKnownCelebrityStar
+          ? `ಸೃಜನಶೀಲ ಸೃಷ್ಟಿ ಮತ್ತು ಜಾಗತಿಕ ಅಭಿಮಾನಿಗಳ ಪ್ರೀತಿಯನ್ನು ಉಳಿಸಿಕೊಳ್ಳುವ ಧನ್ಯತೆ.`
+          : `ಮನಸ್ಸಿನಲ್ಲಿ ಸಾರ್ವಜನಿಕ ಗಮನ ಸೆಳೆಯುವ, ತಮ್ಮ ಸಾಮರ್ಥ್ಯವನ್ನು ಮುಂಚೂಣಿಗೆ ತರುವ ಹಾಗೂ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅರ್ಹ ಶ್ಲಾಘನೆ ಪಡೆಯುವ ತೀವ್ರ ಆಕಾಂಕ್ಷೆ.`,
+        internalMindsetEn: isKnownCelebrityStar
+          ? `Sustaining artistic integrity and deep connection with a devoted audience.`
+          : `Intense aspiration to step forward, capture public attention, and receive rightful professional appreciation.`,
+        planetaryCulpritKn: `10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${tenthSignNameKn}), 5ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ (${h5SignKn}) ಹಾಗೂ ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Drive for public recognition and creative achievement powered by 10th house (${RASHI_EN[tenthSignIdx]}) and 5th house (${RASHI_EN[getHouseSignIdx(5)]}).`,
+        symptomsChecklistKn: isKnownCelebrityStar
+          ? [
+              `5ನೇ ಕಲಾ ಸ್ಥಾನ (${h5SignKn}) ಪ್ರಭಾವದಿಂದ ನವೀನ ಸೃಜನಶೀಲ ಕಂಟೆಂಟ್, ಸಂಗೀತ, ನಟನೆ ಅಥವಾ ಬರವಣಿಗೆಯ ನಿರಂತರ ಸೃಷ್ಟಿ`,
+              `10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ (${tenthSignNameKn}) ಹಾಗೂ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದ ಸಾಮಾಜಿಕ ಜಾಲತಾಣಗಳಲ್ಲಿ ಕೋಟ್ಯಂತರ ವೀಕ್ಷಕರು ಮತ್ತು ಜಾಗತಿಕ ಅಭಿಮಾನಿಗಳ ಪ್ರೀತಿ`,
+              `ಬ್ರ್ಯಾಂಡ್ ಸಹಯೋಗಗಳು, ಅಂತಾರಾಷ್ಟ್ರೀಯ ಪ್ರವಾಸಗಳು ಹಾಗೂ ಕಲಾ ರಂಗದಲ್ಲಿ ಹೊಸ ಟ್ರೆಂಡ್‌ಗಳನ್ನು ಹುಟ್ಟುಹಾಕುವ ಶಕ್ತಿ`
+            ]
+          : [
+              `ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಕೇವಲ ತೆರೆಮರೆಯಲ್ಲೇ ಇರದೆ ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ, ಕೀರ್ತಿ ಹಾಗೂ ನಾಯಕತ್ವದ ಸ್ಥಾನಕ್ಕೆ ಬರಬೇಕೆಂಬ ಹಂಬಲ`,
+              `ಕಲಾತ್ಮಕ ಯೋಜನೆ, ನವೀನ ಆಲೋಚನೆಗಳು ಹಾಗೂ ಸೃಜನಶೀಲ ಕಾರ್ಯತಂತ್ರಗಳ ಮೂಲಕ ಜನರ ಗಮನ ಸೆಳೆಯುವ ಪ್ರಯತ್ನ`,
+              `ಮಾಡಿದ ಕಠಿಣ ಪರಿಶ್ರಮಕ್ಕೆ ಸಮಾಜ ಮತ್ತು ಸಹೋದ್ಯೋಗಿಗಳಿಂದ ಮುಕ್ತ ಪ್ರಶಂಸೆ ಹಾಗೂ ಗೌರವ ಸಿಗಬೇಕೆಂಬ ಆಂತರಿಕ ಅಪೇಕ್ಷೆ`
+            ],
+        symptomsChecklistEn: isKnownCelebrityStar
+          ? [
+              `Relentless creative production across digital media, cinema, music, or high-concept storytelling under 5th house (${RASHI_EN[getHouseSignIdx(5)]})`,
+              `Enormous digital audience engagement, trending viral reach, and passionate global fans under 10th house (${RASHI_EN[tenthSignIdx]}) and Rahu`,
+              `High-value brand endorsements, artistic tours, and pioneering cultural creative benchmarks`
+            ]
+          : [
+              `Aspiration to step forward into public visibility, leadership, and recognized professional standing rather than staying in shadows`,
+              `Strategic deployment of creative vision, artistic ideation, and intellectual excellence to captivate audiences and peers`,
+              `Deep inner need for genuine public appreciation, career advancement, and rightful credit for past dedication`
+            ],
         severity: "peaceful",
         reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ನಿಮ್ಮ ನೂತನ ಕಲಾ ಯೋಜನೆಗಳು ಜಾಗತಿಕ ಮನ್ನಣೆ ಪಡೆದು, ಕೀರ್ತಿ ಪತಾಕೆ ಮತ್ತಷ್ಟು ಎತ್ತರಕ್ಕೆ ಹಾರಲಿದೆ.`,
         reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, landmark creative releases and unprecedented fan adulation will prevail.`,

@@ -80,12 +80,12 @@ export default function RoyalA4PreviewModal({
     resetZoom: "Reset (100%)",
     fitWidth: isKn ? "ಹೊಂದಿಸು" : "Fit",
     tabs: [
-      { id: "all" as const, label: isKn ? "ಎಲ್ಲಾ ೫ ಪುಟಗಳು (All 1–5)" : isHi ? "सभी ५ पृष्ठ (All 1–5)" : "All Pages (1–5)" },
-      { id: 1 as const, label: isKn ? "೧. ಕುಂಡಲಿ & ಗ್ರಹಗಳು" : isHi ? "१. कुंडली एवं ग्रह" : "Page 1: Kundali & Planets" },
-      { id: 2 as const, label: isKn ? "೨. ಲಗ್ನ ತತ್ವ & ದಶಾ" : isHi ? "२. लग्न तत्व एवं दशा" : "Page 2: Personality & Dasha" },
-      { id: 3 as const, label: isKn ? "೩. ಯೋಗ & ದೋಷ ಶಾಂತಿ" : isHi ? "३. योग एवं दोष शांति" : "Page 3: Yogas & Doshas" },
-      { id: 4 as const, label: isKn ? "೪. ಗೋಚಾರ & ಮಾರ್ಗಸೂಚಿ" : isHi ? "४. गोचर एवं ६-माह मार्ग" : "Page 4: Gochara & Roadmap" },
-      { id: 5 as const, label: isKn ? "೫. ಚತುರ್ವಿಧ ಕ್ಷೇತ್ರ & ಮುದ್ರೆ" : isHi ? "५. ४ प्रमुख क्षेत्र एवं मुहर" : "Page 5: 4 Domains & Seal" }
+      { id: "all" as const, label: isKn ? "ಎಲ್ಲಾ ೫ ಪುಟಗಳು (All 1–5)" : isHi ? "सभी ५ पृष्ठ (All 1–5)" : isTe ? "అన్ని 5 పుటలు (All 1–5)" : isTa ? "அனைத்து 5 பக்கங்கள் (All 1–5)" : "All Pages (1–5)" },
+      { id: 1 as const, label: isKn ? "೧. ಕುಂಡಲಿ & ದಶಾ ಕಾಲಕ್ರಮ" : isHi ? "१. कुंडली एवं दशा कालक्रम" : isTe ? "౧. కుండలి & దశా కాలక్రమం" : isTa ? "௧. குண்டலி & தசா காலவரிசை" : "Page 1: Kundali & Dasha Timeline" },
+      { id: 2 as const, label: isKn ? "೨. ಲಗ್ನ ತತ್ವ & ದಶಾ" : isHi ? "२. लग्न तत्व एवं दशा" : isTe ? "౨. లగ్న తత్వం & దశ" : isTa ? "௨. லக்ன தத்துவம் & தசா" : "Page 2: Personality & Dasha" },
+      { id: 3 as const, label: isKn ? "೩. ಯೋಗ & ದೋಷ ಶಾಂತಿ" : isHi ? "३. योग एवं दोष शांति" : isTe ? "౩. యోగ & దోష శాంతి" : isTa ? "௩. யோக & தோஷ சாந்தி" : "Page 3: Yogas & Doshas" },
+      { id: 4 as const, label: isKn ? "೪. ಗೋಚಾರ & ಮಾರ್ಗಸೂಚಿ" : isHi ? "४. गोचर एवं ६-माह मार्ग" : isTe ? "౪. గోచార & 6-నెలల మార్గం" : isTa ? "௪. கோச்சார & 6 மாத வழி" : "Page 4: Gochara & Roadmap" },
+      { id: 5 as const, label: isKn ? "೫. ಪಂಚ ಕ್ಷೇತ್ರ & ಮುದ್ರೆ" : isHi ? "५. ५ प्रमुख क्षेत्र एवं मुहर" : isTe ? "౫. పంచ క్షేత్రాలు & ముద్ర" : isTa ? "௫. 5 முக்கிய துறைகள் & முத்திரை" : "Page 5: 5 Domains & Seal" }
     ]
   };
 

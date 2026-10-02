@@ -427,62 +427,52 @@ export function buildDynamicMarriageFallback(
     if (baseLang === "kn") {
       const para3Kn = chart.hasKalatraDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಅಥವಾ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ವೃದ್ಧಾಪ್ಯದಲ್ಲಿ ಸಂಗಾತಿಯ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ಕಾಳಜಿ ಅಥವಾ ಸಣ್ಣಪುಟ್ಟ ಕೌಟುಂಬಿಕ ಆತಂಕಗಳು ಎದುರಾಗಬಹುದು. ಈ ಸೂಕ್ಷ್ಮ ಕ್ಲೇಶಗಳ ನಿವಾರಣೆಗೆ ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಗೌರಿ-ಶಂಕರ ಧ್ಯಾನ ಮಾಡುವುದು ಹಾಗೂ ಗೋಸೇವೆ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಸದಾ ನೆಮ್ಮದಿ ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಹಾಗೂ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ವೃದ್ಧಾಪ್ಯದಲ್ಲಿ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ಒದಗಿಸಿವೆ. ಯಾವುದೇ ತೀವ್ರ ಕಳತ್ರ ದೋಷಗಳ ಬಾಧೆಯಿಲ್ಲದೆ ಪರಸ್ಪರ ಗೌರವ, ಪ್ರೀತಿ ಮತ್ತು ಕೌಟುಂಬಿಕ ಶಾಂತಿ ನೆಲೆಸಿದೆ. ಈ ಶುಭ ಶಕ್ತಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಲು ನಿತ್ಯ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ತುಳಸಿ ಪೂಜೆ ಮಾಡುವುದು ಮನೆಯಲ್ಲಿ ಮಂಗಳಕರ ವಾತಾವರಣವನ್ನು ಸದಾ ಕಾಪಾಡಲಿದೆ.`;
+        : "";
 
       const partnerTermKn = chart.gender === "Female" ? "ಧರ್ಮ ಸಹಚರ" : "ಧರ್ಮ ಸಹಚರಿ";
       const mangalyaKn = chart.gender === "Female" ? "ಮಾಂಗಲ್ಯ ಭಾಗ್ಯ" : "ದಾಂಪತ್ಯ ಭಾಗ್ಯ";
 
       return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, 7ನೇ ಮನೆಯಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಸಾಂಗತ್ಯ, ಕೌಟುಂಬಿಕ ರಕ್ಷಣೆ, ಧರ್ಮ ಸಹಚಾರ್ಯ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ದಾಂಪತ್ಯ ಸೌಖ್ಯವನ್ನು ಕರುಣಿಸಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮಾನಸಿಕ ನೆಮ್ಮದಿ, ${mangalyaKn} ಹಾಗೂ ಸಂಸಾರದ ಹಿರಿಯ ಮಾರ್ಗದರ್ಶಕರಾಗಿ ಗೌರವಯುತ ಸ್ಥಾನವನ್ನು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ. ಗೋಚಾರ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಶಾಂತಿಯುತ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.
 
-ಹಿರಿಯ ವಯಸ್ಸಿನ ದಾಂಪತ್ಯದಲ್ಲಿ ನಿಮ್ಮ ${partnerTermKn}ಯೊಂದಿಗೆ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಆರೋಗ್ಯದ ಆರೈಕೆಯೇ ಪರಮ ತಪಸ್ಸಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಶಕಗಳ ನಿಮ್ಮ ಒಡನಾಟವು ಕೌಟುಂಬಿಕ ಏಕತೆಗೆ ಬಲವಾದ ಅಡಿಪಾಯವಾಗಿದೆ. ಮಕ್ಕಳ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಯೋಗಕ್ಷೇಮವನ್ನು ಜೊತೆಯಾಗಿ ಹಾರೈಸುತ್ತಾ, ಸಣ್ಣಪುಟ್ಟ ವ್ಯತ್ಯಾಸಗಳನ್ನು ಸಮಾಧಾನದಿಂದ ಸ್ವೀಕರಿಸುವುದು ನಿಮ್ಮ ಅಂತರಂಗದ ಶಾಂತಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ.
-
-${para3Kn}`;
+ಹಿರಿಯ ವಯಸ್ಸಿನ ದಾಂಪತ್ಯದಲ್ಲಿ ನಿಮ್ಮ ${partnerTermKn}ಯೊಂದಿಗೆ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಆರೋಗ್ಯದ ಆರೈಕೆಯೇ ಪರಮ ತಪಸ್ಸಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಶಕಗಳ ನಿಮ್ಮ ಒಡನಾಟವು ಕೌಟುಂಬಿಕ ಏಕತೆಗೆ ಬಲವಾದ ಅಡಿಪಾಯವಾಗಿದೆ. ಮಕ್ಕಳ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಯೋಗಕ್ಷೇಮವನ್ನು ಜೊತೆಯಾಗಿ ಹಾರೈಸುತ್ತಾ, ಸಣ್ಣಪುಟ್ಟ ವ್ಯತ್ಯಾಸಗಳನ್ನು ಸಮಾಧಾನದಿಂದ ಸ್ವೀಕರಿಸುವುದು ನಿಮ್ಮ ಅಂತರಂಗದ ಶಾಂತಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const partnerTermHi = chart.gender === "Female" ? "धर्म सहचर" : "धर्म सहचरी";
       const para3Hi = chart.hasKalatraDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव अथवा कारक ग्रहों पर क्रूर ग्रहों के प्रभाव से जीवनसाथी के स्वास्थ्य को लेकर चिंता या कभी-कभार विचारों में मतभेद हो सकता है। दांपत्य शांति हेतु प्रत्येक शुक्रवार को मां महालक्ष्मी तथा श्री गौरी-शंकर का पूजन करें एवं देसी गाय को हरा चारा खिलाएं। गोకర్ण क्षेत्र में महाबलेश्वर भगवान का अभिषेक कराने से समस्त मानसिक क्लेश दूर होकर दांपत्य जीवन में अपार शांति प्राप्त होगी।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में सप्तम भाव और कारक ग्रह शुभ ग्रहों के प्रभाव में होकर दांपत्य जीवन में एक अभेद्य सुरक्षा कवच निर्मित कर रहे हैं। बिना किसी गंभीर दोष के आपके पारिवारिक जीवन में परस्पर आदर, स्नेह और शांति का अखंड प्रवाह बना रहेगा। इस सात्विक प्रभाव को बनाए रखने के लिए नित्य प्रातःकाल तुलसी पूजन एवं कुलदेवता का स्मरण करना अत्यंत मंगलकारी सिद्ध होगा।`;
+        : "";
 
       return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तम भाव (${h7Sign}) और सप्तमेश ${h7Lord} की स्थिति आपके जीवन में स्थायी साहचर्य, आत्मीयता एवं आध्यात्मिक दांपत्य शांति को पुष्ट करती है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल जीवन के इस परिपक्व पड़ाव में मानसिक संतोष, परस्पर सहयोग तथा परिवार के सम्मानित मार्गदर्शक के रूप में आपकी प्रतिष्ठा को सुदृढ़ करेगा।
 
-वरिष्ठ जीवन में आपके ${partnerTermHi} के साथ परस्पर समझ, सम्मान और स्वास्थ्य की संयुक्त देखभाल ही दांपत्य का सच्चा आधार है। सप्तमेश ${h7Lord} के शुभ प्रभाव से आपका पारिवारिक जीवन शांतिपूर्ण और सौहार्दपूर्ण रहेगा। संतान एवं पौत्र-पौत्रियों के मंगल की संयुक्त कामना करते हुए एक-दूसरे के विचारों को आदर देना आपके मन को असीम संतुष्टि और प्रसन्नता प्रदान करेगा।
-
-${para3Hi}`;
+वरिष्ठ जीवन में आपके ${partnerTermHi} के साथ परस्पर समझ, सम्मान और स्वास्थ्य की संयुक्त देखभाल ही दांपत्य का सच्चा आधार है। सप्तमेश ${h7Lord} के शुभ प्रभाव से आपका पारिवारिक जीवन शांतिपूर्ण और सौहार्दपूर्ण रहेगा। संतान एवं पौत्र-पौत्रियों के मंगल की संयुक्त कामना करते हुए एक-दूसरे के विचारों को आदर देना आपके मन को असीम संतुष्टि और प्रसन्नता प्रदान करेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const partnerTermTe = chart.gender === "Female" ? "ధర్మ సహచరుడు" : "ధర్మ సహచరి";
       const para3Te = chart.hasKalatraDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇల్లు లేదా కారక గ్రహాలపై పాపగ్రహాల ప్రభావం ఉన్నప్పుడు ఈ వయస్సులో జీవిత భాగస్వామి ఆరోగ్యంపై శ్రద్ధ వహించవలసి ఉంటుంది. దాంపత్య శాంతి కొరకు ప్రతి శుక్రవారం లక్ష్మీ-నారాయణ పూజ చేయడం మరియు గోసేవ చేయడం మంచిది. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో రుద్రాభిషేకం నిర్వహించడం వలన కుటుంబంలో ప్రశాంతత నిలిచి ఉంటుంది.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 7వ ఇల్లు మరియు కారక గ్రహాలు శుభ దృష్టిని కలిగి ఉండి దాంపత్యంలో దైవిక రక్షణను అందిస్తున్నాయి. ఎలాంటి తీవ్ర దోషాలు లేకపోవడం వలన దాంపత్య సౌఖ్యం, పరస్పర గౌరవం నిరంతరం తోడుంటాయి. నిత్యం ఇష్టదైవ ఆరాధన చేయడం వల్ల కుటుంబంలో సదా ఆనందం వెల్లివిరుస్తుంది.`;
+        : "";
 
       return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ ఇల్లు (${h7Sign}) మరియు సప్తమాధిపతి ${h7Lord} గ్రహం ఈ సీనియర్ వయస్సులో దాంపత్య సౌఖ్యం, ఆధ్యాత్మిక సాన్నిహిత్యం మరియు మానసిక ప్రశాంతతను సూచిస్తాయి. మీ ${partnerTermTe}తో మీరిద్దరూ గడిపిన జీవితం కుటుంబానికి ఆదర్శప్రాయం. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం ప్రశాంత జీవనానికి, తీర్థయాత్రలకు అనుకూలమైనది.
 
-ఈ వయస్సులో పరస్పర ఆరోగ్యం పట్ల శ్రద్ధ వహించడం, ఆధ్యాత్మిక సాధనల్లో కలిసి పాల్గొనడం అంతరంగ తృప్తిని కలిగిస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ దాంపత్య జీవితం కుటుంబ సభ్యులందరికీ గౌరవప్రదమైన మార్గదర్శకంగా నిలుస్తుంది.
-
-${para3Te}`;
+ఈ వయస్సులో పరస్పర ఆరోగ్యం పట్ల శ్రద్ధ వహించడం, ఆధ్యాత్మిక సాధనల్లో కలిసి పాల్గొనడం అంతరంగ తృప్తిని కలిగిస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ దాంపత్య జీవితం కుటుంబ సభ్యులందరికీ గౌరవప్రదమైన మార్గదర్శకంగా నిలుస్తుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasKalatraDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது இந்த வயதில் வாழ்க்கைத் துணையின் உடல்நலத்தில் அதிக கவனம் செலுத்த வேண்டும். தம்பதியர் நல்வாழ்விற்காக வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி லட்சுமி நாராயணரை வழிபடுவதும், பசுவிற்கு உணவளிப்பதும் நலம் பயக்கும். கோகர்ணம் திருத்தலத்தில் அபிஷேகம் செய்து வழிபடுவது இல்லத்தில் அமைதியைத் தரும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 7-ம் அதிபதி சுப பலம் பெற்று இல்லற வாழ்வில் தெய்வீக பாதுகாப்புக் கவசத்தை அமைத்துள்ளார். தோஷங்கள் ஏதுமின்றி மாங்கல்ய பலம் மற்றும் தம்பதியர் நல்வாழ்வு நிலைத்திருக்கும். தினமும் காலையில் இஷ்ட தெய்வத்தை வழிபடுவது குடும்பத்தில் மன அமைதியைத் தரும்.`;
+        : "";
 
       return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் வீடான ${h7Sign} மற்றும் 7-ம் அதிபதி ${h7Lord} அமைப்பு முதுமைப் பருவத்தில் தம்பதியர் நல்வாழ்வு, ஆன்மீக பிணைப்பு மற்றும் அமைதியான வாழ்வை உறுதி செய்கிறது. மாங்கல்ய பலம் மற்றும் குடும்ப ஒற்றுமை உங்கள் இல்லத்தில் நிறைந்துள்ளது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி ஆன்மீக யாத்திரைகளுக்கும் அமைதிக்கும் மிகவும் சாதகமானது.
 
-வாழ்க்கைத் துணையுடன் இணைந்து தர்ம காரியங்களில் ஈடுபடுவதும், பேரன்-பேத்திகளுக்கு நல்வழிகாட்டுவதும் அளப்பரிய மன அமைதியைத் தரும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் குடும்ப வாழ்க்கை சமூகத்தில் உயர்ந்த மரியாதையுடன் விளங்கும்.
-
-${para3Ta}`;
+வாழ்க்கைத் துணையுடன் இணைந்து தர்ம காரியங்களில் ஈடுபடுவதும், பேரன்-பேத்திகளுக்கு நல்வழிகாட்டுவதும் அளப்பரிய மன அமைதியைத் தரும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் குடும்ப வாழ்க்கை சமூகத்தில் உயர்ந்த மரியாதையுடன் விளங்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = chart.hasKalatraDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Gentle astrological scrutiny reveals subtle Saturn or Rahu aspects touching the 7th house axis, which during mature retirement years can occasionally translate into heightened sensitivity concerning your spouse's health or energy levels. Pacifying these residual karmic vibrations through simple devotional upasanas preserves unbroken domestic harmony. Reciting the sacred Vishnu Sahasranama together on Fridays and offering prayers at sanctums such as Gokarna Mahabaleshwara Kshetra or Baggona Kshetra neutralizes health stresses, surrounding your elder marital bond with celestial protection and serenity.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal chart displays an exceptionally fortified 7th house and Karaka alignment, bestowing an unbroken celestial shield of marital protection and domestic serenity in your golden years. Free from severe afflictions, your partnership enjoys mutual respect, dignified emotional companionship, and shared spiritual wisdom. To preserve this harmonious shield, maintaining a serene sacred altar at home and offering morning prayers to Lord Lakshmi-Narayana ensures enduring health, reciprocal loyalty, and tranquil joy.`;
+      : "";
 
     const partnerTermEn = chart.gender === "Female" ? "Dharma Sahachara" : "Dharma Sahacharini";
     return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern enduring spiritual companionship, mutual security, and lifelong matrimonial harmony in this golden phase of life. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster mental serenity, shared familial wisdom, and revered status as an elder pillar of the lineage, shielded by favorable planetary transits.
 
-Cultivating deep mutual understanding, respect, and attentive health care with your ${partnerTermEn} forms the sacred cornerstone of senior relationship harmony. Influenced by ${h7Lord}, your decades of shared life journey serve as an inspirational bedrock for children and grandchildren. Honoring emotional needs with compassionate patience enriches this contemplative chapter with genuine fulfillment and domestic grace.
-
-${para3En}`;
+Cultivating deep mutual understanding, respect, and attentive health care with your ${partnerTermEn} forms the sacred cornerstone of senior relationship harmony. Influenced by ${h7Lord}, your decades of shared life journey serve as an inspirational bedrock for children and grandchildren. Honoring emotional needs with compassionate patience enriches this contemplative chapter with genuine fulfillment and domestic grace.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   // Youth & Students (Age < 22): Character Formation, Emotional Poise & Academic Focus
@@ -490,56 +480,46 @@ ${para3En}`;
     if (baseLang === "kn") {
       const para3Kn = chart.hasKalatraDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಅಥವಾ ಶುಕ್ರ ಗ್ರಹದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ಪ್ರಭಾವದಿಂದಾಗಿ ಯೌವನಾವಸ್ಥೆಯಲ್ಲಿ ಅನಗತ್ಯ ಆಕರ್ಷಣೆಗಳು, ಮಾನಸಿಕ ಚಂಚಲತೆ ಅಥವಾ ಅಧ್ಯಯನದಲ್ಲಿ ಏಕಾಗ್ರತೆಯ ಕೊರತೆ ಉಂಟಾಗುವ ಸಾಧ್ಯತೆಯಿದೆ. ಈ ಮಾನಸಿಕ ತೊಳಲಾಟಗಳನ್ನು ಶಮನಗೊಳಿಸಲು ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಹಾಗೂ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸುವುದು ಅಮೋಘ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಬಗ್ಗೋಣ ಸನ್ನಿಧಿಗೆ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಮನಸ್ಸು ಸ್ಥಿಮಿತಕ್ಕೆ ಬಂದು ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಹಾಗೂ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಯೌವನದಲ್ಲಿ ನಿಮ್ಮ ನೈತಿಕ ಚಾರಿತ್ರ್ಯ ಹಾಗೂ ಮನಸ್ಸಿಗೆ ಬಲಿಷ್ಠ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸಿವೆ. ಯಾವುದೇ ಅನಗತ್ಯ ಆಕರ್ಷಣೆಗಳಿಗೆ ಒಳಗಾಗದೆ, ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಗುರಿಗಳತ್ತ ಗಮನ ಹರಿಸಲು ಪೂರ್ಣ ಬೆಂಬಲ ಲಭಿಸಿದೆ. ಈ ಶುಭ ಶಕ್ತಿಯನ್ನು ಉಳಿಸಿಕೊಳ್ಳಲು ನಿತ್ಯ ಸರಸ್ವತಿ ಆರಾಧನೆ ಹಾಗೂ ಹಿರಿಯರ ಮಾರ್ಗದರ್ಶನವನ್ನು ಗೌರವಿಸುವುದು ಅತ್ಯಂತ ಶುಭದಾಯಕ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವವಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹವು ಈ ಯುವ ವಯಸ್ಸಿನಲ್ಲಿ ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ, ಭಾವನಾತ್ಮಕ ಸಮತೋಲನ, ಶಿಸ್ತು ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಪರಿಪಕ್ವತೆಯನ್ನು ಮಾರ್ಗದರ್ಶನ ಮಾಡುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸದ್ಯಕ್ಕೆ ಯಾವುದೇ ಆತುರದ ಸಂಬಂಧಗಳತ್ತ ಗಮನಹರಿಸದೆ, ಸ್ವಾವಲಂಬನೆ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆಯಲ್ಲಿ ನಿಮ್ಮನ್ನು ತೊಡಗಿಸಿಕೊಳ್ಳಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ.
 
-ಉತ್ತಮ ಸ್ನೇಹಿತರ ಸಹವಾಸ, ಗುರು-ಹಿರಿಯರ ಬಗೆಗಿನ ಗೌರವ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ಪರಿಪಾಲನೆಯೇ ಈ ವಯಸ್ಸಿನ ನಿಜವಾದ ಶಕ್ತಿಯಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವಿವೇಕಯುತ ನಡವಳಿಕೆ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಬೆಳೆಸಲಿದೆ. ನಿಮ್ಮ ಯೌವನದ ಅಮೂಲ್ಯ ಸಮಯವನ್ನು ವಿದ್ಯಾಭ್ಯಾಸ, ಕ್ರೀಡೆ ಹಾಗೂ ಕೌಶಲ್ಯ ವೃದ್ಧಿಗಾಗಿ ವಿನಿಯೋಗಿಸುವುದು ಭವಿಷ್ಯದ ಉನ್ನತ ಬದುಕಿಗೆ ಭದ್ರ ಬುನಾದಿಯಾಗಲಿದೆ.
-
-${para3Kn}`;
+ಉತ್ತಮ ಸ್ನೇಹಿತರ ಸಹವಾಸ, ಗುರು-ಹಿರಿಯರ ಬಗೆಗಿನ ಗೌರವ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ಪರಿಪಾಲನೆಯೇ ಈ ವಯಸ್ಸಿನ ನಿಜವಾದ ಶಕ್ತಿಯಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವಿವೇಕಯುತ ನಡವಳಿಕೆ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಬೆಳೆಸಲಿದೆ. ನಿಮ್ಮ ಯೌವನದ ಅಮೂಲ್ಯ ಸಮಯವನ್ನು ವಿದ್ಯಾಭ್ಯಾಸ, ಕ್ರೀಡೆ ಹಾಗೂ ಕೌಶಲ್ಯ ವೃದ್ಧಿಗಾಗಿ ವಿನಿಯೋಗಿಸುವುದು ಭವಿಷ್ಯದ ಉನ್ನತ ಬದುಕಿಗೆ ಭದ್ರ ಬುನಾದಿಯಾಗಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = chart.hasKalatraDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव पर क्रूर ग्रहों के प्रभाव से इस आयु में मानसिक भटकाव, ध्यान में अस्थिरता अथवा अनावश्यक आकर्षण की संभावना बन सकती है। इस ऊर्जा को संतुलित करने के लिए नित्य प्रातःकाल भगवान गणेश एवं मां सरस्वती की आराधना करें। प्रतिदिन गायत्री मंत्र का 11 बार जप तथा मंगलवार को हनुमान चालीसा का पाठ मानसिक एकाग्रता और आत्म-नियंत्रण को सुदृढ़ करेगा।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में सप्तम भाव और कारक ग्रह शुभ स्थिति में होकर युवा अवस्था में आपके चरित्र और एकाग्रता को एक सुरक्षात्मक कवच प्रदान कर रहे हैं। भटकावों से दूर रहकर विद्याध्ययन और कौशल विकास पर ध्यान केंद्रित करना आपके उज्ज्वल भविष्य की नींव रखेगा। नित्य प्रातः माता-पिता का आशीर्वाद लेना और सूर्य नमस्कार करना आपके संकल्प को अडिग रखेगा।`;
+        : "";
 
       return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तम भाव (${h7Sign}) और सप्तमेश ${h7Lord} की स्थिति युवावस्था के इस काल में आपके चारित्रिक निर्माण, भावनात्मक परिपक्वता और सामाजिक विवेक को दिशा देती है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल व्यर्थ के आकर्षणों से दूर रहकर उच्च नैतिक मूल्यों और आत्म-अनुशासन पर ध्यान केंद्रित करने का संकेत देता है।
 
-विद्यार्थी जीवन में परस्पर समझ, बड़ों का सम्मान और सत्संगति आपके भविष्य की सच्ची पूंजी है। सप्तमेश ${h7Lord} के प्रभाव से मित्रों के चयन में विवेकशीलता बरतना आपकी मानसिक एकाग्रता को सुदृढ़ करेगा। अपनी ऊर्जा को ज्ञानार्जन और रचनात्मक विकास में लगाना दीर्घकालिक सफलता का मार्ग प्रशस्त करेगा।
-
-${para3Hi}`;
+विद्यार्थी जीवन में परस्पर समझ, बड़ों का सम्मान और सत्संगति आपके भविष्य की सच्ची पूंजी है। सप्तमेश ${h7Lord} के प्रभाव से मित्रों के चयन में विवेकशीलता बरतना आपकी मानसिक एकाग्रता को सुदृढ़ करेगा। अपनी ऊर्जा को ज्ञानार्जन और रचनात्मक विकास में लगाना दीर्घकालिक सफलता का मार्ग प्रशस्त करेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = chart.hasKalatraDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇంటిపై పాపగ్రహాల సూక్ష్మ ప్రభావం వల్ల చదువులో ఏకాగ్రత తగ్గడం లేదా మానసిక చంచలత ఏర్పడే అవకాశం ఉంది. ఈ పరిస్థితిని అధిగమించడానికి ప్రతిరోజూ ఉదయం గాయత్రీ మంత్రం మరియు హనుమాన్ చాలీసా పారాయణం చేయడం మంచిది. గోకర్ణ క్షేత్ర దర్శనం లేదా గణపతి పూజ మనస్సును నిలకడగా ఉంచుతాయి.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 7వ ఇల్లు మరియు కారక గ్రహాలు శుభ స్థితిలో ఉండి యవ్వన దశలో నైతిక విలువలకు, చదువుకు బలమైన రక్షణను అందిస్తున్నాయి. అనవసర వ్యాపకాలకు దూరంగా ఉంటూ లక్ష్య సాధనపై దృష్టి సారించడం మీ భవిష్యత్తుకు శుభకరం. రోజూ సరస్వతీ స్తోత్రం పఠించడం విద్యా వికాసానికి తోడ్పడుతుంది.`;
+        : "";
 
       return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ ఇల్లు అయిన ${h7Sign} మరియు సప్తమాధిపతి ${h7Lord} స్థితి యవ్వన దశలో మీ నైతిక ప్రవర్తన, వ్యక్తిత్వ నిర్మాణం మరియు భావోద్వేగ పరిపక్వతను సూచిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం అవాంఛనీయ వ్యామోహాలకు దూరంగా ఉండి, క్రమశిక్షణ మరియు ఉన్నత లక్ష్యాలపై దృష్టి పెట్టడానికి అనుకూలంగా ఉంది.
 
-ఈ వయస్సులో పరస్పర అవగాహన, పెద్దల పట్ల గౌరవం మరియు మంచి స్నేహితుల సాంగత్యం మీ ఉన్నతికి తోడ్పడతాయి. సప్తమాధిపతి ${h7Lord} ప్రభావం వలన వివేకవంతమైన ఆలోచనలతో వ్యవహరించడం శ్రేయస్కరం. మీ మానసిక శక్తిని విద్యాభ్యాసం మరియు వ్యక్తిత్వ వికాసానికి ఉపయోగించడం గొప్ప విజయాన్ని తెస్తుంది.
-
-${para3Te}`;
+ఈ వయస్సులో పరస్పర అవగాహన, పెద్దల పట్ల గౌరవం మరియు మంచి స్నేహితుల సాంగత్యం మీ ఉన్నతికి తోడ్పడతాయి. సప్తమాధిపతి ${h7Lord} ప్రభావం వలన వివేకవంతమైన ఆలోచనలతో వ్యవహరించడం శ్రేయస్కరం. మీ మానసిక శక్తిని విద్యాభ్యాసం మరియు వ్యక్తిత్వ వికాసానికి ఉపయోగించడం గొప్ప విజయాన్ని తెస్తుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasKalatraDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகம் மீது அசுப கிரக தாக்கம் இருந்தால் கவனச்சிதறல் அல்லது மன அமைதியின்மை ஏற்படலாம். இந்த பாதிப்புகளை நீக்க தினமும் காலையில் காயத்ரி மந்திரம் மற்றும் அனுமன் சாலிசா பாராயணம் செய்வது நலம் பயக்கும். பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வது மனதை ஒருமுகப்படுத்தி படிப்பில் வெற்றியைத் தரும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 7-ம் அதிபதி சுப பலம் பெற்று இளமைப் பருவத்தில் ஒழுக்கத்திற்கும் கல்விக்கும் தெய்வீக பாதுகாப்புக் கவசத்தை அமைத்துள்ளார். தவறான ஈர்ப்புகளிலிருந்து விலகி படிப்பில் கவனம் செலுத்துவது உங்கள் எதிர்காலத்தை வளமாக்கும். சரஸ்வதி தேவியின் வழிபாடு ஆழ்ந்த ஞானத்தைத் தரும்.`;
+        : "";
 
       return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் வீடான ${h7Sign} மற்றும் 7-ம் அதிபதி ${h7Lord} அமைப்பு இளமைக்காலத்தில் உங்கள் நற்குணங்கள், ஒழுக்கம் மற்றும் மன முதிர்ச்சியை உருவாக்குகிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தேவையற்ற ஈர்ப்புகளைத் தவிர்த்து, சுய ஒழுக்கத்துடன் படிப்பில் கவனம் செலுத்த வழிகாட்டுகிறது.
 
-நல்ல நண்பர்களின் சேர்க்கை, பெரியோர்களை மதித்தல் மற்றும் கடமை உணர்வு ஆகியவை உங்கள் வெற்றிக்கு உறுதுணையாக இருக்கும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் சிந்தனையில் முதிர்ச்சியும் விவேகமும் மேலோங்கும்.
-
-${para3Ta}`;
+நல்ல நண்பர்களின் சேர்க்கை, பெரியோர்களை மதித்தல் மற்றும் கடமை உணர்வு ஆகியவை உங்கள் வெற்றிக்கு உறுதுணையாக இருக்கும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் சிந்தனையில் முதிர்ச்சியும் விவேகமும் மேலோங்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = chart.hasKalatraDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological scrutiny reveals subtle Mars or Rahu influences impacting the 7th house axis, which during youth can occasionally induce mental restlessness, emotional ambivalence, or premature distractions that compromise academic focus. To dissolve this energetic friction, dedicated morning invocations of Lord Ganesha and Lord Subramanya are highly effective. Chanting the sacred Gayatri Mantra alongside the Subramanya Ashtakam on Tuesdays pacifies volatile planetary currents, instilling steadfast willpower and mental discipline. Sponsoring archana at sacred sanctums like Gokarna Mahabaleshwara Kshetra or Baggona Kshetra neutralizes subtle impediments, ensuring noble friendships, moral purity, and academic brilliance.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal chart displays a harmonious 7th house orientation, enveloped in benefic planetary aspects that build an unshakeable protective shield around your moral character and academic concentration. This celestial grace effortlessly deflects premature worldly entanglements, keeping your youthful stamina anchored in self-discipline and honorable aspirations. To maintain this luminous shield, starting each dawn with the sacred Gayatri Mantra and prayers to Goddess Gauri is recommended. Honoring elder guidance and nurturing inspirational companionships guarantees steady character formation and an enviable future trajectory.`;
+      : "";
 
     return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern interpersonal maturity, character formation, academic discipline, and emotional maturity during your youth. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period encourage steering clear of premature distractions and dedicating focused energy toward foundational life preparation and self-mastery.
 
-Developing mutual understanding, respect for elders, and choosing noble, inspiring friendships forms the bedrock of your personal growth under this placement. Influenced by ${h7Lord}, maintaining emotional boundaries and channeling youthful vitality into academic and extracurricular mastery builds an unshakeable relationship with your own higher purpose.
-
-${para3En}`;
+Developing mutual understanding, respect for elders, and choosing noble, inspiring friendships forms the bedrock of your personal growth under this placement. Influenced by ${h7Lord}, maintaining emotional boundaries and channeling youthful vitality into academic and extracurricular mastery builds an unshakeable relationship with your own higher purpose.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   // Adult Native (22 to 59 Years): Unmarried, Married, General
@@ -547,56 +527,46 @@ ${para3En}`;
     if (baseLang === "kn") {
       const para3Kn = (chart.isManglik || chart.hasKalatraDosha)
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ, ಕುಜ ಗ್ರಹ ಅಥವಾ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬ, ಮಾತುಕತೆಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು ಅಥವಾ ಆಂತರಿಕ ಗೊಂದಲಗಳು ಎದುರಾಗುವ ಕರ್ಮಿಕ ಪ್ರವೃತ್ತಿಯಿದೆ. ಕುಜ ದೋಷ ಹಾಗೂ ಕಳತ್ರ ಭಾವದ ಒತ್ತಡವನ್ನು ಪರಿಹರಿಸಲು ವೈದಿಕ ಶಾಂತಿ ಕರ್ಮಗಳು ಅತ್ಯಂತ ಪರಿಣಾಮಕಾರಿಯಾಗಿವೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟೋತ್ತರ ಹಾಗೂ 'ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ' ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದು ವಿವಾಹ ಯೋಗಕ್ಕೆ ಇರುವ ವಿಘ್ನಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ. ಪ್ರತಿ ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಗೆ ಅಭಿಷೇಕ ಹಾಗೂ ಶುಕ್ರವಾರ ಗೌರಿ ಪೂಜೆ ನೆರವೇರಿಸುವುದು ಮಂಗಲ ತರಂಗಗಳನ್ನು ಆಕರ್ಷಿಸುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪವಿತ್ರ ಸಾನ್ನಿಧ್ಯದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕಲ್ಯಾಣ ಸೇವೆ ಮತ್ತು ಕ್ಷೀರಾಭಿಷೇಕ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ವಿಳಂಬಗಳು ಪರಿಹಾರವಾಗಿ ಶೀಘ್ರ ಕಲ್ಯಾಣ ಭಾಗ್ಯ ಲಭಿಸಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಹಾಗೂ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಯಾವುದೇ ತೀವ್ರ ಕಳತ್ರ ಅಥವಾ ಕುಜ ದೋಷಗಳ ಬಾಧೆಯಿಲ್ಲದೆ ವಿವಾಹ ಯೋಗದ ಮಾರ್ಗವು ಸುಗಮ ಹಾಗೂ ಮಂಗಳಕರವಾಗಿದೆ. ಗ್ರಹಗಳ ಸಾತ್ವಿಕ ಸಂಚಾರವು ಯೋಗ್ಯವಾದ ಕೌಟುಂಬಿಕ ಸಂಬಂಧ, ಪರಸ್ಪರ ಪ್ರೀತಿ ಹಾಗೂ ಸೌಭಾಗ್ಯದಾಯಕ ವಿವಾಹ ಪ್ರಸ್ತಾಪಗಳನ್ನು ಆಕರ್ಷಿಸಲು ಪೂರ್ಣ ಬೆಂಬಲ ನೀಡುತ್ತಿದೆ. ಈ ಶುಭ ಶಕ್ತಿಯನ್ನು ಮತ್ತಷ್ಟು ಬಲಪಡಿಸಲು ನಿತ್ಯ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ 'ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ' ಹಾಗೂ 'ಓಂ ಸಪ್ತಮಾಧಿಪತಯೇ ನಮಃ' ಮಂತ್ರಗಳನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚುವುದು ಕಲ್ಯಾಣ ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಹಾಗೂ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಮತ್ತು ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದವು ನಿಮ್ಮ ಮದುವೆ ಮಾತುಕತೆಗಳಿಗೆ ವೇಗ ನೀಡಿ ಶೀಘ್ರ ಯಶಸ್ಸು ತರಲಿದೆ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವವಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ವೈವಾಹಿಕ ಯೋಗದ ಕರ್ಮಿಕ ಸಂರಚನೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. 7ನೇ ಮನೆಯ ಮೇಲೆ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯನ್ನು ಒದಗಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ವಿವಾಹದ ಮಾತುಕತೆಗಳಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿ ಗ್ರಹಗಳ ಅನುಗ್ರಹವು ಈ ಹಿಂದೆ ಎದುರಾಗಿದ್ದ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸಿ, ಕಂಕಣ ಭಾಗ್ಯದ ಸನಿಹಕ್ಕೆ ತರಲಿದೆ.
 
-ನಿಮಗೆ ಒದಗಿಬರುವ ಜೀವನ ಸಂಗಾತಿಯು ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವಕ್ಕೆ ಅನುಗುಣವಾಗಿ ${spouseArchetype} ಗುಣಲಕ್ಷಣಗಳನ್ನು ಹೊಂದಿದ್ದು, ಉನ್ನತ ನೈತಿಕ ಮೌಲ್ಯ ಹಾಗೂ ಕುಟುಂಬ ಪ್ರೇಮವನ್ನು ಹೊಂದಿರುತ್ತಾರೆ. ಕಾರಕ ಗ್ರಹವಾದ ${karakaName} ಗ್ರಹದ ಶುಭ ಸ್ಥಿತಿಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಸಾಮರಸ್ಯ ಹಾಗೂ ಪರಸ್ಪರ ಗೌರವವನ್ನು ಖಾತರಿಪಡಿಸುತ್ತದೆ. ಸಪ್ತಮ ಭಾವದ ದಿಶಾ ಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ${dirName} ದಿಕ್ಕಿನಿಂದ ಯೋಗ್ಯ ಹಾಗೂ ಸಂಸ್ಕಾರಯುತ ವಿವಾಹ ಸಂಬಂಧಗಳು ಕೂಡಿಬರುವ ಅತ್ಯುತ್ತಮ ಯೋಗವಿದೆ.
-
-${para3Kn}`;
+ನಿಮಗೆ ಒದಗಿಬರುವ ಜೀವನ ಸಂಗಾತಿಯು ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವಕ್ಕೆ ಅನುಗುಣವಾಗಿ ${spouseArchetype} ಗುಣಲಕ್ಷಣಗಳನ್ನು ಹೊಂದಿದ್ದು, ಉನ್ನತ ನೈತಿಕ ಮೌಲ್ಯ ಹಾಗೂ ಕುಟುಂಬ ಪ್ರೇಮವನ್ನು ಹೊಂದಿರುತ್ತಾರೆ. ಕಾರಕ ಗ್ರಹವಾದ ${karakaName} ಗ್ರಹದ ಶುಭ ಸ್ಥಿತಿಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಸಾಮರಸ್ಯ ಹಾಗೂ ಪರಸ್ಪರ ಗೌರವವನ್ನು ಖಾತರಿಪಡಿಸುತ್ತದೆ. ಸಪ್ತಮ ಭಾವದ ದಿಶಾ ಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ${dirName} ದಿಕ್ಕಿನಿಂದ ಯೋಗ್ಯ ಹಾಗೂ ಸಂಸ್ಕಾರಯುತ ವಿವಾಹ ಸಂಬಂಧಗಳು ಕೂಡಿಬರುವ ಅತ್ಯುತ್ತಮ ಯೋಗವಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = (chart.isManglik || chart.hasKalatraDosha)
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव अथवा कारक ग्रहों पर क्रूर ग्रहों के प्रभाव से विवाह वार्ताओं में अप्रत्याशित विलंब या बाधाएं आ सकती हैं। मंगल दोष एवं कलत्र दोष निवारणार्थ नित्य प्रातःकाल 'ॐ श्रीं गौर्यै नमः' एवं श्री सुब्रह्मण्य अष्टोत्तर का पाठ करें। मंगलवार को सुब्रह्मण्य स्वामी तथा शुक्रवार को मां गौरी की पूजा करें। गोಕರ್ण क्षेत्र में महाबलेश्वर ज्योतिर्लिंग को रुद्राभिषेक एवं विशेष विवाह बाधा निवारण संकल्प समर्पित करने से समस्त रुकावटें समाप्त होकर शीघ्र शुभ विवाह संपन्न होगा।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में सप्तम भाव और सप्तमेश अत्यंत शुभ स्थिति में होकर शीघ्र विवाह हेतु एक दिव्य सुरक्षा कवच निर्मित कर रहे हैं। बिना किसी गंभीर दोष के योग्य जीवनसाथी की प्राप्ति और मांगलिक कार्य के निर्विघ्न संपन्न होने के प्रबल योग हैं। इस शुभ प्रभाव को बनाए रखने के लिए शुक्रवार को घी का दीपक जलाएं तथा मां गौरी की आराधना करें। गोಕರ್ಣ महाबलेश्वर की कृपा से शीघ्र विवाह का मार्ग प्रशस्त होगा।`;
+        : "";
 
       return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तम भाव (${h7Sign}) तथा सप्तमेश ${h7Lord} की स्थिति आपके वैवाहिक योग की आधारशिला निर्धारित करती है। सप्तम भाव की यह स्थिति दांपत्य जीवन में स्थिरता को संबल प्रदान करती है। वर्तमान में गतिमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल विवाह के शुभ अवसरों को प्रबलता से जागृत कर रहा है। गोचर में गुरु एवं शनि का शुभ प्रभाव पूर्व में आ रहे विलंब को समाप्त कर पारिवारिक वार्ताओं को शीघ्र सफलता की ओर अग्रसर करेगा।
 
-आपके भावी जीवनसाथी में सप्तमेश ${h7Lord} के अनुसार ${spouseArchetype} के विशिष्ट गुण परिलक्षित होंगे। वे उच्च नैतिक मूल्य, बौद्धिक परिपक्वता तथा उत्तरदायित्व की गहरी भावना से युक्त होंगे। कारक ग्रह ${karakaName} की शुभ स्थिति दांपत्य में परस्पर आत्मीयता एवं सुख-शांति को सुनिश्चित करती है। सप्तम भाव के दिशा बल नियमानुसार, आपके जन्मस्थान से ${dirName} दिशा से अत्यंत योग्य एवं प्रतिष्ठित विवाह प्रस्ताव प्राप्त होने के प्रबल योग हैं। जीवनसाथी के आगमन से आपके जीवन में स्थिरता और सौभाग्य का विस्तार होगा।
-
-${para3Hi}`;
+आपके भावी जीवनसाथी में सप्तमेश ${h7Lord} के अनुसार ${spouseArchetype} के विशिष्ट गुण परिलक्षित होंगे। वे उच्च नैतिक मूल्य, बौद्धिक परिपक्वता तथा उत्तरदायित्व की गहरी भावना से युक्त होंगे। कारक ग्रह ${karakaName} की शुभ स्थिति दांपत्य में परस्पर आत्मीयता एवं सुख-शांति को सुनिश्चित करती है। सप्तम भाव के दिशा बल नियमानुसार, आपके जन्मस्थान से ${dirName} दिशा से अत्यंत योग्य एवं प्रतिष्ठित विवाह प्रस्ताव प्राप्त होने के प्रबल योग हैं। जीवनसाथी के आगमन से आपके जीवन में स्थिरता और सौभाग्य का विस्तार होगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = (chart.isManglik || chart.hasKalatraDosha)
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇల్లు లేదా కుజ గ్రహ ప్రభావం వల్ల వివాహ సంబంధాల చర్చల్లో జాప్యం లేదా ఆటంకాలు ఎదురయ్యే అవకాశం ఉంది. కుజ దోష శాంతి కొరకు ప్రతిరోజూ ఉదయం 'ఓం శ్రీం గౌర్యై నమః' మంత్ర జపం మరియు మంగళవారం సుబ్రహ్మణ్య స్వామి పూజ చేయడం శ్రేయస్కరం. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో కళ్యాణోత్సవం మరియు రుద్రాభిషేకం నిర్వహించడం వలన సమస్త అడ్డంకులు తొలగి శీఘ్ర వివాహ ప్రాప్తి కలుగుతుంది.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 7వ ఇల్లు మరియు సప్తమాధిపతి శుభ స్థితిలో ఉండి వివాహ ప్రయత్నాలకు దైవిక రక్షణను అందిస్తున్నారు. ఎలాంటి తీవ్ర దోషాలు లేకపోవడం వలన శీఘ్రమే యోగ్యమైన సంబంధం కుదిరే శుభ యోగం ఉంది. ప్రతి శుక్రవారం నెయ్యి దీపం వెలిగించి గౌరీ పూజ చేయడం వల్ల వివాహ మార్గం సుగమం అవుతుంది.`;
+        : "";
 
       return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ ఇల్లు అయిన ${h7Sign} మరియు సప్తమాధిపతి ${h7Lord} గ్రహస్థితి మీ వివాహ యోగాన్ని నిర్దేశిస్తుంది. 7వ ఇంటిపై శుభగ్రహాల ప్రభావం స్థిరమైన దాంపత్య జీవితానికి బలమైన పునాది వేస్తుంది. ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వివాహ ప్రాప్తికి అనుకూలమైన శుభ సమయాన్ని సూచిస్తోంది. గోచారంలో గురు, శని గ్రహాల సంచారం గతంలో ఎదురైన ఆటంకాలను తొలగించి సంబంధాల చర్చలను వేగవంతం చేస్తుంది.
 
-మీకు లభించే జీవిత భాగస్వామి సప్తమాధిపతి ${h7Lord} ప్రభావంతో ${spouseArchetype} కలిగి, ఉన్నతమైన వ్యక్తిత్వం మరియు బాధ్యతాయుతమైన ప్రవర్తనతో ఉంటారు. కారక గ్రహమైన ${karakaName} స్థితి మీ ఇద్దరి మధ్య పరస్పర అవగాహన మరియు విశ్వాసాన్ని పెంపొందిస్తుంది. సప్తమ భావ దిశా బలం ప్రకారం, మీ జన్మస్థలం నుండి ${dirName} దిశ నుండి యోగ్యమైన మరియు సౌభాగ్యవంతమైన వివాహ సంబంధాలు వచ్చే బలమైన అవకాశాలు ఉన్నాయి.
-
-${para3Te}`;
+మీకు లభించే జీవిత భాగస్వామి సప్తమాధిపతి ${h7Lord} ప్రభావంతో ${spouseArchetype} కలిగి, ఉన్నతమైన వ్యక్తిత్వం మరియు బాధ్యతాయుతమైన ప్రవర్తనతో ఉంటారు. కారక గ్రహమైన ${karakaName} స్థితి మీ ఇద్దరి మధ్య పరస్పర అవగాహన మరియు విశ్వాసాన్ని పెంపొందిస్తుంది. సప్తమ భావ దిశా బలం ప్రకారం, మీ జన్మస్థలం నుండి ${dirName} దిశ నుండి యోగ్యమైన మరియు సౌభాగ్యవంతమైన వివాహ సంబంధాలు వచ్చే బలమైన అవకాశాలు ఉన్నాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = (chart.isManglik || chart.hasKalatraDosha)
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகத்தின் மீது செவ்வாய் அல்லது அசுப கிரக பார்வை இருப்பதால் திருமணப் பேச்சுகளில் தடைகள் அல்லது தாமதம் ஏற்படலாம். செவ்வாய் தோஷ நிவர்த்திக்காக தினமும் காலையில் 'ஓம் ஸ்ரீம் கௌரியை நமஹ' மந்திர ஜெபம் மற்றும் செவ்வாய்க்கிழமைகளில் சுப்ரமணியர் வழிபாடு செய்வது சிறந்தது. கோகர்ணம் அல்லது பக்கோண திருத்தலத்தில் கல்யாண அர்ச்சனை செய்து வழிபட்டால் திருமணத் தடைகள் நீங்கி விரைவில் சுபயோகம் கூடிவரும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 7-ம் அதிபதி சுப பலம் பெற்று திருமண முயற்சிகளுக்கு தெய்வீக பாதுகாப்புக் கவசத்தை அமைத்துள்ளார். கடுமையான தோஷங்கள் ஏதுமின்றி விரைவில் தகுந்த வரன் அமையும் யோகம் உள்ளது. வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி கௌரி தேவியை வழிபடுவது திருமண யோகத்தை விரைவுபடுத்தும்.`;
+        : "";
 
       return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் வீடான ${h7Sign} மற்றும் 7-ம் அதிபதி ${h7Lord} அமைப்பு திருமண யோகத்தை உறுதி செய்கிறது. 7-ம் பாவத்தின் சுப பலம் இல்லற வாழ்விற்கு நல்ல அடித்தளத்தை அமைக்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் திருமண பேச்சுவார்த்தைகளுக்கு மிகவும் சாதகமாக உள்ளது. குரு மற்றும் சனி பகவானின் கோசார பலன்கள் கடந்த கால தாமதங்களை நீக்கி நல்வழியைத் திறக்கும்.
 
-உங்களுக்கு வரவிருக்கும் வாழ்க்கைத் துணை 7-ம் அதிபதி ${h7Lord} அருளால் ${spouseArchetype} குணங்களுடன், சிறந்த குடும்பப் பின்னணி கொண்டவராக இருப்பார். காரக கிரகமான ${karakaName} அமைப்பு இருவரிடையே ஆழ்ந்த அன்பையும் புரிதலையும் உருவாக்கும். உங்கள் பிறந்த இடத்திலிருந்து ${dirName} திசையிலிருந்து தகுந்த வரன் வர அதிக வாய்ப்புள்ளது.
-
-${para3Ta}`;
+உங்களுக்கு வரவிருக்கும் வாழ்க்கைத் துணை 7-ம் அதிபதி ${h7Lord} அருளால் ${spouseArchetype} குணங்களுடன், சிறந்த குடும்பப் பின்னணி கொண்டவராக இருப்பார். காரக கிரகமான ${karakaName} அமைப்பு இருவரிடையே ஆழ்ந்த அன்பையும் புரிதலையும் உருவாக்கும். உங்கள் பிறந்த இடத்திலிருந்து ${dirName} திசையிலிருந்து தகுந்த வரன் வர அதிக வாய்ப்புள்ளது.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = (chart.isManglik || chart.hasKalatraDosha)
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological analysis reveals that Mars or Kalatra Dosha influences touching the 7th house (${h7Sign}) may have induced intermittent delays, sudden cancellations, or mismatched expectations in past alliance negotiations. To dissolve this energetic friction and align with your auspicious Kuja status, reciting the Subramanya Ashtakam alongside prayers to Goddess Gauri ('Om Shreem Gauryai Namah') 108 times at sunrise pacifies karmic friction effectively. Sponsoring a dedicated Subramanya Kalyana seva and milk abhishekam at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra cleanses matrimonial hurdles, accelerating auspicious alliance finalization.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal chart displays an auspicious Vivaha Yoga, protected by benefic planetary rays gracing the 7th house and its ruler. Free from severe Kalatra or Kuja afflictions, the cosmic alignment ensures that your matrimonial search is enveloped in divine grace, filtering out mismatched proposals and drawing noble alliances. To maintain this luminous shield and accelerate wedding negotiations, reciting prayers to Goddess Gauri ('Om Shreem Gauryai Namah') daily and lighting a pure cow-ghee lamp on Fridays at your sacred home altar invites swift divine blessing and domestic bliss.`;
+      : "";
 
     return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern your foundational marriage prospects and timing of matrimonial fruition. The dignified placement of the 7th house creates a harmonious ground for domestic stability and emotional maturity. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period activate strong matrimonial potentials, while the ongoing transits of Jupiter and Saturn dissolve past hesitations, steering alliance proposals toward swift and joyous fruition.
 
-Your destined life partner will embody distinct ${spouseArchetype} characteristics influenced by ${h7Lord}, exhibiting mature discernment, noble cultural values, and an enduring sense of household responsibility. The auspicious placement of ${karakaName} as relationship Karaka guarantees emotional tenderness, reciprocal honor, and enduring loyalty. Furthermore, the directional strength of your 7th house strongly aligns marriage proposals arriving from the ${dirName} direction relative to your birthplace, ushering in auspicious familial expansion.
-
-${para3En}`;
+Your destined life partner will embody distinct ${spouseArchetype} characteristics influenced by ${h7Lord}, exhibiting mature discernment, noble cultural values, and an enduring sense of household responsibility. The auspicious placement of ${karakaName} as relationship Karaka guarantees emotional tenderness, reciprocal honor, and enduring loyalty. Furthermore, the directional strength of your 7th house strongly aligns marriage proposals arriving from the ${dirName} direction relative to your birthplace, ushering in auspicious familial expansion.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   if (status === "married") {
@@ -609,21 +579,17 @@ ${para3En}`;
 
       const para3Kn = (chart.isManglik || chart.hasKalatraDosha)
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಅಥವಾ ಕುಜ ಗ್ರಹದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ಸಂಸಾರದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಅಥವಾ ಸಂವಹನದಲ್ಲಿ ಏರುಪೇರು ಉಂಟಾಗುವ ಕರ್ಮಿಕ ಪ್ರವೃತ್ತಿಯಿದೆ. ದಾಂಪತ್ಯ ಶಾಂತಿಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಗೌರಿ-ಶಂಕರ ಧ್ಯಾನ ಮಾಡುವುದು ಹಾಗೂ ಶ್ರೀ ಸೂಕ್ತ ಪಠಿಸುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ದಂಪತಿ ಸಮೇತರಾಗಿ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಸಮಸ್ತ ಕೌಟುಂಬಿಕ ಕ್ಲೇಶಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿತ್ಯ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಹಾಗೂ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಬಲಿಷ್ಠ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸಿವೆ. ಯಾವುದೇ ತೀವ್ರ ಕಳತ್ರ ದೋಷಗಳಿಲ್ಲದೆ ದಾಂಪತ್ಯದಲ್ಲಿ ಅನ್ಯೋನ್ಯತೆ, ಪ್ರೀತಿ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸಮೃದ್ಧಿಯು ನಿರಂತರವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿದೆ. ಈ ಶುಭ ಶಕ್ತಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಲು ಪ್ರತಿ ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮಿ-ನಾರಾಯಣ ಆರಾಧನೆ ಮಾಡುವುದು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ-ಶಾಂತಿಯನ್ನು ತುಂಬಲಿದೆ.`;
+        : "";
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಪರಸ್ಪರ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${femaleMangalyaKn}ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಸಂಸಾರದಲ್ಲಿ ಒಬ್ಬರಿಗೊಬ್ಬರು ಬಲವಾಗಿ ನಿಲ್ಲುವ ಕಾಲವಾಗಿದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಸಮೃದ್ಧಿಯ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.
 
-ಸಂತಾನ ನಿರೀಕ್ಷೆಯ ಈ ಸೂಕ್ಷ್ಮ ಹಂತದಲ್ಲಿ ಹೊರಗಿನ ಸಮಾಜದ ಮಾತುಗಳಿಗೆ ಕಿವಿಗೊಡದೆ, ನಿಮ್ಮ ಸಂಗಾತಿಯೊಂದಿಗೆ ಪರಸ್ಪರ ಪ್ರೀತಿ ಹಾಗೂ ವಿಶ್ವಾಸದಿಂದ ಒಂದಾಗಿರುವುದು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಇಬ್ಬರೂ ಜೊತೆಯಾಗಿ ಸಮಾಲೋಚಿಸುವುದು ನಿಮ್ಮ ಬಾಂಧವ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.
-
-${para3Kn}`;
+ಸಂತಾನ ನಿರೀಕ್ಷೆಯ ಈ ಸೂಕ್ಷ್ಮ ಹಂತದಲ್ಲಿ ಹೊರಗಿನ ಸಮಾಜದ ಮಾತುಗಳಿಗೆ ಕಿವಿಗೊಡದೆ, ನಿಮ್ಮ ಸಂಗಾತಿಯೊಂದಿಗೆ ಪರಸ್ಪರ ಪ್ರೀತಿ ಹಾಗೂ ವಿಶ್ವಾಸದಿಂದ ಒಂದಾಗಿರುವುದು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಇಬ್ಬರೂ ಜೊತೆಯಾಗಿ ಸಮಾಲೋಚಿಸುವುದು ನಿಮ್ಮ ಬಾಂಧವ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
       }
 
       return `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಪರಸ್ಪರ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${femaleMangalyaKn}ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಸಂಸಾರದಲ್ಲಿ ನೈತಿಕ ಹೊಣೆಗಾರಿಕೆಗಳನ್ನು ಒಟ್ಟಾಗಿ ನಿರ್ವಹಿಸಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಸಮೃದ್ಧಿಯ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.
 
-ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಮುಕ್ತ ಸಂಭಾಷಣೆಯು ನಿಮ್ಮ ಯಶಸ್ಸಿಗೆ ಮುಖ್ಯ ಆಧಾರಸ್ತಂಭಗಳಾಗಿವೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ಪ್ರಗತಿ ಮತ್ತು ಆರ್ಥಿಕ ಹೂಡಿಕೆಗಳ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಂಗಾತಿಯ ವಿವೇಕಯುತ ಸಲಹೆಗಳನ್ನು ಗೌರವಿಸುವುದು ಅದ್ಭುತ ಫಲಗಳನ್ನು ತರಲಿದೆ.
-
-${para3Kn}`;
+ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಮುಕ್ತ ಸಂಭಾಷಣೆಯು ನಿಮ್ಮ ಯಶಸ್ಸಿಗೆ ಮುಖ್ಯ ಆಧಾರಸ್ತಂಭಗಳಾಗಿವೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ಪ್ರಗತಿ ಮತ್ತು ಆರ್ಥಿಕ ಹೂಡಿಕೆಗಳ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಂಗಾತಿಯ ವಿವೇಕಯುತ ಸಲಹೆಗಳನ್ನು ಗೌರವಿಸುವುದು ಅದ್ಭುತ ಫಲಗಳನ್ನು ತರಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const locName = getLocalizedDevoteeName(chart.name, "hi");
@@ -634,21 +600,17 @@ ${para3Kn}`;
 
       const para3Hi = (chart.isManglik || chart.hasKalatraDosha)
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव अथवा कारक ग्रहों पर क्रूर दृष्टि से कभी-कभार विचारों में मतभेद या तनाव उत्पन्न हो सकता है। दांपत्य सौहार्द हेतु शुक्रवार को श्री गौरी-शंकर एवं मां महालक्ष्मी का पूजन करें। गोకర్ण क्षेत्र में महाबलेश्वर भगवान का अभिषेक एवं लक्ष्मी नारायण स्तोत्र का पाठ करने से दांपत्य में मधुरता और सुख-शांति बनी रहेगी।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में सप्तम भाव और कारक ग्रह शुभ ग्रहों के प्रभाव में होकर दांपत्य जीवन को एक अभेद्य सुरक्षा कवच प्रदान कर रहे हैं। बिना किसी गंभीर दोष के आपके गृहस्थ जीवन में निरंतर सुख, शांति और समृद्धि का वास रहेगा। शुक्रवार को घी का दीपक जलाकर लक्ष्मी-नारायण की आराधना करना घर में सुख-समृद्धि बनाए रखेगा।`;
+        : "";
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तमेश ${h7Lord} की स्थिति दांपत्य जीवन में प्रगाढ़ विश्वास, समर्पण और स्थायी सामंजस्य को पुष्ट करती है। ${femaleMangalyaHi}वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आप दोनों का परस्पर भावनात्मक संबल ही गृहस्थी का सबसे बड़ा आधार है।
 
-संतान की प्रतीक्षा के इस संवेदनशील दौर में सामाजिक प्रश्नों से विचलित हुए बिना, पति-पत्नी का एक अटूट स्तंभ बनकर साथ चलना अत्यंत आवश्यक है। सप्तमेश ${h7Lord} के प्रभाव से, वित्तीय योजनाओं और घरेलू निर्णयों में जीवनसाथी के विचारों को महत्व देना गृहस्थी को सुरक्षित और समृद्ध बनाएगा।
-
-${para3Hi}`;
+संतान की प्रतीक्षा के इस संवेदनशील दौर में सामाजिक प्रश्नों से विचलित हुए बिना, पति-पत्नी का एक अटूट स्तंभ बनकर साथ चलना अत्यंत आवश्यक है। सप्तमेश ${h7Lord} के प्रभाव से, वित्तीय योजनाओं और घरेलू निर्णयों में जीवनसाथी के विचारों को महत्व देना गृहस्थी को सुरक्षित और समृद्ध बनाएगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
       }
 
       return `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तमेश ${h7Lord} की स्थिति दांपत्य जीवन में प्रगाढ़ विश्वास, समर्पण और स्थायी सामंजस्य को पुष्ट करती है। ${femaleMangalyaHi}वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति का प्रभाव पारिवारिक उत्तरदायित्वों को गरिमापूर्ण ढंग से निभाने में सहायक सिद्ध होगा।
 
-दांपत्य जीवन में परस्पर समझ, सम्मान और एक-दूसरे की भावनाओं का आदर ही सच्चा बल है। सप्तमेश ${h7Lord} के प्रभाव से, महत्वपूर्ण घरेलू निर्णयों में जीवनसाथी के परामर्श को प्राथमिकता देना गृहस्थी को समृद्ध बनाएगा।
-
-${para3Hi}`;
+दांपत्य जीवन में परस्पर समझ, सम्मान और एक-दूसरे की भावनाओं का आदर ही सच्चा बल है। सप्तमेश ${h7Lord} के प्रभाव से, महत्वपूर्ण घरेलू निर्णयों में जीवनसाथी के परामर्श को प्राथमिकता देना गृहस्थी को समृद्ध बनाएगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const locName = getLocalizedDevoteeName(chart.name, "te");
@@ -656,21 +618,17 @@ ${para3Hi}`;
 
       const para3Te = (chart.isManglik || chart.hasKalatraDosha)
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇల్లు లేదా కుజ గ్రహ ప్రభావం వల్ల కుటుంబంలో చిన్నపాటి అభిప్రాయ భేదాలు తలెత్తవచ్చు. దాంపత్య శాంతి కొరకు ప్రతి శుక్రవారం నెయ్యి దీపం వెలిగించి లక్ష్మీ-నారాయణ పూజ చేయడం శ్రేయస్కరం. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో రుద్రాభిషేకం నిర్వహించడం వలన సర్వ క్లేశాలు తొలగి శాంతి చేకూరుతుంది.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 7వ ఇల్లు మరియు సప్తమాధిపతి శుభ బలం కలిగి ఉండి దాంపత్య జీవితంలో బలమైన దైవిక రక్షణను అందిస్తున్నారు. ఎలాంటి తీవ్ర దోషాలు లేకపోవడం వలన సంసారంలో సదా ఆనందం, అన్యోన్యత వర్ధిల్లుతాయి. ప్రతి శుక్రవారం ఇష్టదైవ ఆరాధన చేయడం శుభకరం.`;
+        : "";
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ అధిపతి ${h7Lord} గ్రహం దాంపత్యంలో ప్రగాఢ విశ్వాసాన్ని, ఆప్యాయతను సూచిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం పరస్పర సహకారానికి తోడ్పడుతుంది.
 
-సంతానం కోసం ఎదురుచూసే ఈ సమయంలో బయటి వారి మాటలను పట్టించుకోకుండా ఇద్దరూ ఒకరికొకరు అండగా నిలవడం ముఖ్యం. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన సంయుక్త నిర్ణయాలు కుటుంబానికి మేలు చేస్తాయి.
-
-${para3Te}`;
+సంతానం కోసం ఎదురుచూసే ఈ సమయంలో బయటి వారి మాటలను పట్టించుకోకుండా ఇద్దరూ ఒకరికొకరు అండగా నిలవడం ముఖ్యం. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన సంయుక్త నిర్ణయాలు కుటుంబానికి మేలు చేస్తాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
       }
 
       return `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ అధిపతి ${h7Lord} గ్రహం దాంపత్యంలో ప్రగాఢ విశ్వాసాన్ని, ఆప్యాయతను మరియు స్థిరత్వాన్ని సూచిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం కుటుంబ బాధ్యతలను విజయవంతంగా నిర్వహించడానికి సహాయపడుతుంది.
 
-దాంపత్యంలో పరస్పర అవగాహన, గౌరవం విజయానికి పునాదులు. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన కుటుంబ నిర్ణయాల్లో భాగస్వామి సలహాలను పాటించడం గొప్ప ఫలితాలను ఇస్తుంది.
-
-${para3Te}`;
+దాంపత్యంలో పరస్పర అవగాహన, గౌరవం విజయానికి పునాదులు. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన కుటుంబ నిర్ణయాల్లో భాగస్వామి సలహాలను పాటించడం గొప్ప ఫలితాలను ఇస్తుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const locName = getLocalizedDevoteeName(chart.name, "ta");
@@ -678,21 +636,17 @@ ${para3Te}`;
 
       const para3Ta = (chart.isManglik || chart.hasKalatraDosha)
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது குடும்பத்தில் அவ்வப்போது கருத்து வேறுபாடுகள் தோன்றலாம். இல்லற அமைதிக்காக வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி லட்சுமி நாராயணர் மற்றும் கௌரி-சங்கரர் வழிபாடு செய்வது சிறந்தது. பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வது குடும்பத்தில் அமைதியைத் தரும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 7-ம் அதிபதி பலம் பெற்றிருப்பதால் இல்லற வாழ்வில் தெய்வீக பாதுகாப்பும் மகிழ்ச்சியும் நிறைந்துள்ளது. கடுமையான தோஷங்கள் ஏதுமின்றி குடும்பத்தில் அமைதியும் அன்பும் தொடர்ந்து நிலைக்கும். வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி வழிபடுவது நலம் பயக்கும்.`;
+        : "";
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} அமைப்பு இல்லற வாழ்வில் ஆழ்ந்த பாசம் மற்றும் அர்ப்பணிப்பை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி குடும்ப ஒற்றுமையை பலப்படுத்தும்.
 
-குழந்தைச் செல்வம் எதிர்பார்த்திருக்கும் இக்காலகட்டத்தில், இருவரும் ஒருவருக்கொருவர் துணையாக விளங்குவது அவசியம். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் இருவரும் இணைந்து எடுக்கும் முடிவுகள் எதிர்காலத்தை வளமாக்கும்.
-
-${para3Ta}`;
+குழந்தைச் செல்வம் எதிர்பார்த்திருக்கும் இக்காலகட்டத்தில், இருவரும் ஒருவருக்கொருவர் துணையாக விளங்குவது அவசியம். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் இருவரும் இணைந்து எடுக்கும் முடிவுகள் எதிர்காலத்தை வளமாக்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
       }
 
       return `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} அமைப்பு இல்லற வாழ்வில் ஆழ்ந்த பாசம், அர்ப்பணிப்பு மற்றும் நிலைத்தன்மையை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி குடும்பப் பொறுப்புகளை நல்ல முறையில் நிர்வகிக்க உதவும்.
 
-இல்லற வாழ்வில் பரஸ்பர புரிதல், மரியாதை மற்றும் சுமுகமான உறவு வெற்றிக்கான மூலமந்திரமாகும். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் வாழ்க்கைத்துணையின் ஆலோசனையை ஏற்பது செல்வத்தையும் புகழையும் பெருக்கும்.
-
-${para3Ta}`;
+இல்லற வாழ்வில் பரஸ்பர புரிதல், மரியாதை மற்றும் சுமுகமான உறவு வெற்றிக்கான மூலமந்திரமாகும். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் வாழ்க்கைத்துணையின் ஆலோசனையை ஏற்பது செல்வத்தையும் புகழையும் பெருக்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const salutation = chart.name ? `Dear ${chart.name}, ` : "";
     const femaleNuanceEn = chart.gender === "Female"
@@ -701,76 +655,62 @@ ${para3Ta}`;
 
     const para3En = (chart.isManglik || chart.hasKalatraDosha)
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Subtle Mars or Kalatra influences impacting the 7th house axis can occasionally introduce friction, stubborn miscommunications, or temporary emotional distance during high-stress phases. To dissolve this energetic static, maintaining a peaceful sacred altar and lighting a cow-ghee lamp on Fridays while invoking Lord Lakshmi-Narayana and Goddess Gauri calms restless vibrations. Sponsoring an archana or milk abhishekam at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra cleanses residual karmic hurdles, anchoring lasting marital peace and reciprocal tenderness.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal 7th house and relationship lords are fortified by benefic planetary aspects, establishing a resilient protective shield around your marital journey and domestic sanctum. Free from severe karmic impediments, your union enjoys sustained goodwill, emotional trust, and collaborative prosperity. To nourish this auspicious shield, offering weekly prayers to Goddess Lakshmi and Lord Narayana on Fridays and fostering open-hearted dialogue ensures lifelong harmony and mutual abundance.`;
+      : "";
 
     if (chart.hasChildren === "no_children") {
       return `${salutation}Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th house lord ${h7Lord} placed in ${h7Where} alongside your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti foster enduring trust, emotional warmth, and domestic sanctuary in your married life.${femaleNuanceEn}
 
-In this tender chapter of waiting for progeny, your spouse stands as your greatest confidant, emotional anchor, and steadfast life companion. Mutual reassurance, empathetic listening, and protecting each other from outside societal or familial questions about children are essential. Reflecting the qualities of ${h7Lord}, uniting as an unwavering team and transparently communicating ensures that emotional pressure dissolves, creating a calm, joyful household atmosphere.
-
-${para3En}`;
+In this tender chapter of waiting for progeny, your spouse stands as your greatest confidant, emotional anchor, and steadfast life companion. Mutual reassurance, empathetic listening, and protecting each other from outside societal or familial questions about children are essential. Reflecting the qualities of ${h7Lord}, uniting as an unwavering team and transparently communicating ensures that emotional pressure dissolves, creating a calm, joyful household atmosphere.${para3En ? `\n\n${para3En}` : ""}`;
     }
 
     return `${salutation}Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th house lord ${h7Lord} placed in ${h7Where} alongside your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti fosters enduring trust, emotional warmth, and domestic stability in your married life.${femaleNuanceEn}
 
-Cultivating deep mutual understanding, respectful communication, and empathy forms the true bedrock of your marital journey. Reflecting the qualities of ${h7Lord}, involving your spouse in pivotal household, financial, and life decisions directly accelerates family prosperity and harmony. Collaborative planning generates constructive milestones for long-term investments and family wellbeing.
-
-${para3En}`;
+Cultivating deep mutual understanding, respectful communication, and empathy forms the true bedrock of your marital journey. Reflecting the qualities of ${h7Lord}, involving your spouse in pivotal household, financial, and life decisions directly accelerates family prosperity and harmony. Collaborative planning generates constructive milestones for long-term investments and family wellbeing.${para3En ? `\n\n${para3En}` : ""}`;
   } else {
     // general
     if (baseLang === "kn") {
       const para3Kn = (chart.isManglik || chart.hasKalatraDosha)
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ಸಂಬಂಧಗಳಲ್ಲಿ ಸೂಕ್ಷ್ಮ ಸಂವಹನ ಅಂತರಗಳು ಅಥವಾ ಆಂತರಿಕ ಗೊಂದಲಗಳು ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ಶಾಂತಿಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಹಾಗೂ ಬಗ್ಗೋಣ ಸನ್ನಿಧಿಗೆ ಸೇವೆ ಸಲ್ಲಿಸುವುದು ಸೌಹಾರ್ದತೆಯನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಹಾಗೂ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಸಂಬಂಧಗಳಲ್ಲಿ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ಹೊಂದಿವೆ. ಸೌಹಾರ್ದತೆ, ನಂಬಿಕೆ ಮತ್ತು ಪರಸ್ಪರ ಗೌರವವು ಸದಾ ನಿಮ್ಮ ಸಂಬಂಧಗಳನ್ನು ರಕ್ಷಿಸಲಿದೆ. ಶುಕ್ರವಾರ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಮನೆಯಲ್ಲಿ ಮಂಗಳಕರ ನೆಮ್ಮದಿಯನ್ನು ಕಾಪಾಡಲಿದೆ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವವಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹವು ಸಂಬಂಧಗಳಲ್ಲಿ ಸಮತೋಲನ, ಗೌರವ ಹಾಗೂ ನೈತಿಕ ಪರಿಪಕ್ವತೆಯನ್ನು ಮಾರ್ಗದರ್ಶನ ಮಾಡುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸಾರ್ವಜನಿಕ ಒಡನಾಟದಲ್ಲಿ ಪ್ರಬುದ್ಧತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.
 
-ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಪ್ರಾಮಾಣಿಕ ಮಾತುಕತೆ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ರಕ್ಷಣೆಯು ಎಲ್ಲಾ ಒಡನಾಟಗಳಲ್ಲಿ ಶಾಶ್ವತ ವಿಶ್ವಾಸವನ್ನು ನೀಡುತ್ತದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸಂಯಮ ಹಾಗೂ ದಾರ್ಶನಿಕ ದೃಷ್ಟಿಯನ್ನು ತುಂಬಲಿದೆ.
-
-${para3Kn}`;
+ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಪ್ರಾಮಾಣಿಕ ಮಾತುಕತೆ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ರಕ್ಷಣೆಯು ಎಲ್ಲಾ ಒಡನಾಟಗಳಲ್ಲಿ ಶಾಶ್ವತ ವಿಶ್ವಾಸವನ್ನು ನೀಡುತ್ತದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸಂಯಮ ಹಾಗೂ ದಾರ್ಶನಿಕ ದೃಷ್ಟಿಯನ್ನು ತುಂಬಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = (chart.isManglik || chart.hasKalatraDosha)
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव पर क्रूर दृष्टि से व्यावहारिक संबंधों में कभी-कभार तनाव उत्पन्न हो सकता है। शुक्रवार को घी का दीपक जलाकर कुलदेवता का स्मरण करना तथा गोకర్ण क्षेत्र में पूजा समर्पित करना संबंधों में सौहार्द लाएगा।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में सप्तम भाव और सप्तमेश शुभ प्रभाव में होकर संबंधों में एक सुदृढ़ रक्षा कवच प्रदान कर रहे हैं। बिना किसी गंभीर दोष के आपके आपसी संबंधों में प्रेम और विश्वास बना रहेगा। कुलदेवता की नित्य आराधना कल्याणकारी होगी।`;
+        : "";
 
       return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तम भाव (${h7Sign}) और सप्तमेश ${h7Lord} की स्थिति संबंधों में संतुलन, परस्पर सम्मान और भावनात्मक परिपक्वता का निर्माण करती है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल व्यावहारिक जीवन में सामंजस्य स्थापित करने में सहायक सिद्ध होगा।
 
-पारस्परिक समझ, स्पष्ट संवाद और नैतिक सिद्धांतों का पालन हर संबंध को स्थायी और विश्वसनीय बनाता है। सप्तमेश ${h7Lord} का प्रभाव आपके व्यवहार में गरिमा और धैर्य का संचार करेगा।
-
-${para3Hi}`;
+पारस्परिक समझ, स्पष्ट संवाद और नैतिक सिद्धांतों का पालन हर संबंध को स्थायी और विश्वसनीय बनाता है। सप्तमेश ${h7Lord} का प्रभाव आपके व्यवहार में गरिमा और धैर्य का संचार करेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = (chart.isManglik || chart.hasKalatraDosha)
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇంటిపై పాపగ్రహాల ప్రభావం ఉన్నప్పుడు సంబంధాలలో అప్పుడప్పుడు అపార్థాలు రావచ్చు. ప్రతి శుక్రవారం నెయ్యి దీపం వెలిగించి ఇష్టదేవతను పూజించడం మరియు బగ్గోణ క్షేత్ర దర్శనం సంబంధాలలో శాంతిని ప్రసాదిస్తాయి.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 7వ ఇల్లు మరియు సప్తమాధిపతి శుభ బలం కలిగి ఉండి సంబంధాలలో దైవిక రక్షణను అందిస్తున్నారు. ఎలాంటి తీవ్ర దోషాలు లేకపోవడం వలన సమాజంలో గౌరవం, స్నేహ సంబంధాలు బలపడతాయి. ప్రతి శుక్రవారం ఇష్టదైవ ఆరాధన శ్రేయస్కరం.`;
+        : "";
 
       return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ ఇల్లు (${h7Sign}) మరియు సప్తమాధిపతి ${h7Lord} స్థితి సంబంధాలలో సమతుల్యత, గౌరవం మరియు పరిపక్వతను కలిగిస్తాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం సామాజిక మరియు వ్యక్తిగత సంబంధాలలో స్థిరత్వాన్ని తెస్తుంది.
 
-పరస్పర అవగాహన, స్పష్టమైన సంభాషణ మరియు నైతిక విలువల పరిరక్షణ సంబంధాలను దృఢపరుస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ ఆలోచనల్లో సహనం మరియు వివేకం పెరుగుతాయి.
-
-${para3Te}`;
+పరస్పర అవగాహన, స్పష్టమైన సంభాషణ మరియు నైతిక విలువల పరిరక్షణ సంబంధాలను దృఢపరుస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ ఆలోచనల్లో సహనం మరియు వివేకం పెరుగుతాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = (chart.isManglik || chart.hasKalatraDosha)
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகம் மீது அசுப பார்வை இருப்பதால் உறவுகளில் அவ்வப்போது கருத்து வேறுபாடுகள் தோன்றக்கூடும். இந்த தோஷ நிவர்த்திக்காக வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி இஷ்ட தெய்வத்தை வழிபடுவது சிறந்தது. பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வது உறவுகளில் அமைதியைத் தரும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 7-ம் அதிபதி பலம் பெற்றிருப்பதால் உறவுகளில் நல்லிணக்கமும் தெய்வீக பாதுகாப்பும் கிடைத்துள்ளது. வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி இஷ்ட தெய்வத்தை வழிபடுவது குடும்பத்தில் அமைதியை நிலைநிறுத்தும்.`;
+        : "";
 
       return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் வீடான ${h7Sign} மற்றும் 7-ம் அதிபதி ${h7Lord} அமைப்பு உறவுகளில் சமநிலை, மரியாதை மற்றும் முதிர்ச்சியை உருவாக்குகிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி நற்பலன்களைத் தரும்.
 
-பரஸ்பர புரிதல், நேர்மையான உரையாடல் மற்றும் நன்னெறிகள் உறவுகளை வலுப்படுத்தும். 7-ம் அதிபதி ${h7Lord} அருளால் அமைதியும் நல்லிணக்கமும் உண்டாகும்.
-
-${para3Ta}`;
+பரஸ்பர புரிதல், நேர்மையான உரையாடல் மற்றும் நன்னெறிகள் உறவுகளை வலுப்படுத்தும். 7-ம் அதிபதி ${h7Lord} அருளால் அமைதியும் நல்லிணக்கமும் உண்டாகும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = (chart.isManglik || chart.hasKalatraDosha)
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological analysis indicates subtle planetary friction or Kalatra afflictions influencing the 7th house of partnerships, which may occasionally generate misunderstandings, contractual hesitations, or delayed agreements. Pacifying these subtle planetary vibrations through regular recitation of the sacred Ishta Devata mantra and lighting a pure cow-ghee lamp on Fridays maintains emotional equilibrium. Sponsoring an archana at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra cleanses residual karmic hurdles, anchoring mutual trust, harmony, and lasting goodwill into your interpersonal sphere.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal 7th house and ruler are harmoniously situated, establishing a resilient protective shield around your social and partnership dynamics. The auspicious cosmic momentum fosters transparent communication, shared integrity, and reciprocal honor. Maintaining an altar of devotion and regularly chanting planetary mantras harmonizes subtle relationship karma and guarantees lifelong companionship and mutual goodwill.`;
+      : "";
 
     return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) governed by ${h7Lord} in ${h7Where} guides partnerships, mutual respect, and emotional maturity. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster balanced relationships, teaching the profound spiritual lessons of collaboration, compromise, and shared purpose across all interpersonal spheres.
 
-Transparent communication, shared ethical values, and mutual honoring of personal boundaries remain the bedrock of successful relationships under this configuration. Daily prayers to your Ishta Devata and lighting a ghee lamp on Fridays ensure enduring relationship harmony and dissolve interpersonal misunderstandings effortlessly.
-
-${para3En}`;
+Transparent communication, shared ethical values, and mutual honoring of personal boundaries remain the bedrock of successful relationships under this configuration. Daily prayers to your Ishta Devata and lighting a ghee lamp on Fridays ensure enduring relationship harmony and dissolve interpersonal misunderstandings effortlessly.${para3En ? `\n\n${para3En}` : ""}`;
   }
 }
 
@@ -793,81 +733,41 @@ export function buildDynamicChildrenFallback(
   // Senior Native (60+ Years): Children's Stability, Grandchildren Joy & Lineage
   if (chart.ageYears >= 60) {
     if (baseLang === "kn") {
-      const para3Hdr = chart.hasSantanaDosha ? "【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 " : "【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ";
-      return `ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ನೆಲೆಸಿರುವ ಶುಭ ಬಲದೊಂದಿಗೆ, ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯದ ಪೂರ್ಣ ಸಾರ್ಥಕತೆಯನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಮಕ್ಕಳು ತಮ್ಮ ತಮ್ಮ ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಉತ್ತಮವಾಗಿ ನೆಲೆನಿಂತು ಕೀರ್ತಿ ತರುವುದನ್ನು ಕಣ್ತುಂಬಿಕೊಳ್ಳುವ ಧನ್ಯತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಸಂಸಾರದ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಧರ್ಮದ ಮಾರ್ಗದಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿ ಮುನ್ನಡೆಸಿ, ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಸದಾ ಆದರ್ಶಪ್ರಾಯವಾದ ಮಾರ್ಗದರ್ಶಕರಾಗಿ ನೀವು ನಿಂತಿರುವ ಈ ಹಂತವು ನಿಜಕ್ಕೂ ಶ್ಲಾಘನೀಯವಾಗಿದೆ. ಗೋಚಾರ ಗ್ರಹಗಳ ಅನುಕೂಲತೆಯು ಮಕ್ಕಳ ಜೀವನದಲ್ಲಿ ಆರ್ಥಿಕ ಹಾಗೂ ವೃತ್ತಿಪರ ಸ್ಥಿರತೆಯನ್ನು ಬಲಪಡಿಸುತ್ತಿದೆ.
-
-ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮೊಮ್ಮಕ್ಕಳ ಮಂದಹಾಸ, ಕೌಟುಂಬಿಕ ಒಡನಾಟ ಹಾಗೂ ವಂಶದ ಮುನ್ನಡೆಯೇ ಪರಮ ಆನಂದವಾಗಿದೆ. ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ದೈವಿಕ ಬಲವು ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಸುಸಂಸ್ಕೃತ ನೈತಿಕ ಪರಂಪರೆ, ಧಾರ್ಮಿಕ ಆಚಾರ-ವಿಚಾರಗಳನ್ನು ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಯಶಸ್ವಿಯಾಗಿ ವರ್ಗಾಯಿಸಿದೆ. ಮಕ್ಕಳು ಮತ್ತು ಮೊಮ್ಮಕ್ಕಳು ನೀಡುವ ಪ್ರೀತಿ, ಗೌರವ ಹಾಗೂ ಅವರ ಶ್ರೇಯಸ್ಸು ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಅಪಾರ ತೃಪ್ತಿಯನ್ನು ನೀಡಲಿದೆ. ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಸಮಾಧಾನಚಿತ್ತದಿಂದ ನಿಭಾಯಿಸಿ, ಹಿರಿಯರಾಗಿ ಸದಾ ಸೌಹಾರ್ದತೆಯ ಆಶೀರ್ವಾದ ನೀಡುವುದು ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಸಮಾಜದಲ್ಲಿ ಸದಾ ಉತ್ತುಂಗದಲ್ಲಿರಿಸುತ್ತದೆ. ನಿಮ್ಮ ಅನುಭವದ ಮಾತುಗಳು ಇಡೀ ಕುಟುಂಬಕ್ಕೆ ದಾರಿದೀಪವಾಗಿ ಮುನ್ನಡೆಸಲಿವೆ.
-
-${para3Hdr}ಕುಟುಂಬದ ದೀರ್ಘಾಯುಷ್ಯ, ಸಕಲ ಸಂತತಿ ರಕ್ಷಣೆ ಹಾಗೂ ವಂಶದ ನಿರಂತರ ಅಭ್ಯುದಯಕ್ಕಾಗಿ ಮನೆಯಲ್ಲಿ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಗಣೇಶ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಂಶಾಭಿವೃದ್ಧಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸುವುದರಿಂದ ಮುಂಬರುವ ಪೀಳಿಗೆಗಳಿಗೆ ನಿರಂತರ ದೈವಿಕ ರಕ್ಷೆ ಮತ್ತು ಸಮೃದ್ಧಿ ಲಭಿಸಲಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ಇಷ್ಟದೈವದ ಧ್ಯಾನ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ಹಿರಿಯರ ಅನುಗ್ರಹ ಸ್ಮರಣೆಯು ಮನೆ-ಮನಗಳಲ್ಲಿ ಮಂಗಳಕರ ಚೈತನ್ಯವನ್ನು ಶಾಶ್ವತವಾಗಿ ಸ್ಥಾಪಿಸುತ್ತದೆ. ಭಗವಂತನ ದಯೆಯಿಂದ ನಿಮ್ಮ ವಂಶವು ಸದಾ ಸತ್ಕೀರ್ತಿಯಿಂದ ಬೆಳಗಲಿದೆ.`;
+      const para3Hdr = chart.hasSantanaDosha ? "【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 " : "";
+      return `${chart.hasSantanaDosha ? `$ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ನೆಲೆಸಿರುವ ಶುಭ ಬಲದೊಂದಿಗೆ, ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯದ ಪೂರ್ಣ ಸಾರ್ಥಕತೆಯನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಮಕ್ಕಳು ತಮ್ಮ ತಮ್ಮ ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಉತ್ತಮವಾಗಿ ನೆಲೆನಿಂತು ಕೀರ್ತಿ ತರುವುದನ್ನು ಕಣ್ತುಂಬಿಕೊಳ್ಳುವ ಧನ್ಯತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಸಂಸಾರದ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಧರ್ಮದ ಮಾರ್ಗದಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿ ಮುನ್ನಡೆಸಿ, ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಸದಾ ಆದರ್ಶಪ್ರಾಯವಾದ ಮಾರ್ಗದರ್ಶಕರಾಗಿ ನೀವು ನಿಂತಿರುವ ಈ ಹಂತವು ನಿಜಕ್ಕೂ ಶ್ಲಾಘನೀಯವಾಗಿದೆ. ಗೋಚಾರ ಗ್ರಹಗಳ ಅನುಕೂಲತೆಯು ಮಕ್ಕಳ ಜೀವನದಲ್ಲಿ ಆರ್ಥಿಕ ಹಾಗೂ ವೃತ್ತಿಪರ ಸ್ಥಿರತೆಯನ್ನು ಬಲಪಡಿಸುತ್ತಿದೆ.\n\n$ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮೊಮ್ಮಕ್ಕಳ ಮಂದಹಾಸ, ಕೌಟುಂಬಿಕ ಒಡನಾಟ ಹಾಗೂ ವಂಶದ ಮುನ್ನಡೆಯೇ ಪರಮ ಆನಂದವಾಗಿದೆ. ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ದೈವಿಕ ಬಲವು ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಸುಸಂಸ್ಕೃತ ನೈತಿಕ ಪರಂಪರೆ, ಧಾರ್ಮಿಕ ಆಚಾರ-ವಿಚಾರಗಳನ್ನು ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಯಶಸ್ವಿಯಾಗಿ ವರ್ಗಾಯಿಸಿದೆ. ಮಕ್ಕಳು ಮತ್ತು ಮೊಮ್ಮಕ್ಕಳು ನೀಡುವ ಪ್ರೀತಿ, ಗೌರವ ಹಾಗೂ ಅವರ ಶ್ರೇಯಸ್ಸು ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಅಪಾರ ತೃಪ್ತಿಯನ್ನು ನೀಡಲಿದೆ. ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಸಮಾಧಾನಚಿತ್ತದಿಂದ ನಿಭಾಯಿಸಿ, ಹಿರಿಯರಾಗಿ ಸದಾ ಸೌಹಾರ್ದತೆಯ ಆಶೀರ್ವಾದ ನೀಡುವುದು ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಸಮಾಜದಲ್ಲಿ ಸದಾ ಉತ್ತುಂಗದಲ್ಲಿರಿಸುತ್ತದೆ. ನಿಮ್ಮ ಅನುಭವದ ಮಾತುಗಳು ಇಡೀ ಕುಟುಂಬಕ್ಕೆ ದಾರಿದೀಪವಾಗಿ ಮುನ್ನಡೆಸಲಿವೆ.\n\n${para3Hdr}ಕುಟುಂಬದ ದೀರ್ಘಾಯುಷ್ಯ, ಸಕಲ ಸಂತತಿ ರಕ್ಷಣೆ ಹಾಗೂ ವಂಶದ ನಿರಂತರ ಅಭ್ಯುದಯಕ್ಕಾಗಿ ಮನೆಯಲ್ಲಿ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಗಣೇಶ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಂಶಾಭಿವೃದ್ಧಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸುವುದರಿಂದ ಮುಂಬರುವ ಪೀಳಿಗೆಗಳಿಗೆ ನಿರಂತರ ದೈವಿಕ ರಕ್ಷೆ ಮತ್ತು ಸಮೃದ್ಧಿ ಲಭಿಸಲಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ಇಷ್ಟದೈವದ ಧ್ಯಾನ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ಹಿರಿಯರ ಅನುಗ್ರಹ ಸ್ಮರಣೆಯು ಮನೆ-ಮನಗಳಲ್ಲಿ ಮಂಗಳಕರ ಚೈತನ್ಯವನ್ನು ಶಾಶ್ವತವಾಗಿ ಸ್ಥಾಪಿಸುತ್ತದೆ. ಭಗವಂತನ ದಯೆಯಿಂದ ನಿಮ್ಮ ವಂಶವು ಸದಾ ಸತ್ಕೀರ್ತಿಯಿಂದ ಬೆಳಗಲಿದೆ.` : `$ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ನೆಲೆಸಿರುವ ಶುಭ ಬಲದೊಂದಿಗೆ, ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯದ ಪೂರ್ಣ ಸಾರ್ಥಕತೆಯನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಮಕ್ಕಳು ತಮ್ಮ ತಮ್ಮ ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಉತ್ತಮವಾಗಿ ನೆಲೆನಿಂತು ಕೀರ್ತಿ ತರುವುದನ್ನು ಕಣ್ತುಂಬಿಕೊಳ್ಳುವ ಧನ್ಯತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಸಂಸಾರದ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಧರ್ಮದ ಮಾರ್ಗದಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿ ಮುನ್ನಡೆಸಿ, ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಸದಾ ಆದರ್ಶಪ್ರಾಯವಾದ ಮಾರ್ಗದರ್ಶಕರಾಗಿ ನೀವು ನಿಂತಿರುವ ಈ ಹಂತವು ನಿಜಕ್ಕೂ ಶ್ಲಾಘನೀಯವಾಗಿದೆ. ಗೋಚಾರ ಗ್ರಹಗಳ ಅನುಕೂಲತೆಯು ಮಕ್ಕಳ ಜೀವನದಲ್ಲಿ ಆರ್ಥಿಕ ಹಾಗೂ ವೃತ್ತಿಪರ ಸ್ಥಿರತೆಯನ್ನು ಬಲಪಡಿಸುತ್ತಿದೆ.\n\n$ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮೊಮ್ಮಕ್ಕಳ ಮಂದಹಾಸ, ಕೌಟುಂಬಿಕ ಒಡನಾಟ ಹಾಗೂ ವಂಶದ ಮುನ್ನಡೆಯೇ ಪರಮ ಆನಂದವಾಗಿದೆ. ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ದೈವಿಕ ಬಲವು ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಸುಸಂಸ್ಕೃತ ನೈತಿಕ ಪರಂಪರೆ, ಧಾರ್ಮಿಕ ಆಚಾರ-ವಿಚಾರಗಳನ್ನು ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಯಶಸ್ವಿಯಾಗಿ ವರ್ಗಾಯಿಸಿದೆ. ಮಕ್ಕಳು ಮತ್ತು ಮೊಮ್ಮಕ್ಕಳು ನೀಡುವ ಪ್ರೀತಿ, ಗೌರವ ಹಾಗೂ ಅವರ ಶ್ರೇಯಸ್ಸು ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಅಪಾರ ತೃಪ್ತಿಯನ್ನು ನೀಡಲಿದೆ. ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಸಮಾಧಾನಚಿತ್ತದಿಂದ ನಿಭಾಯಿಸಿ, ಹಿರಿಯರಾಗಿ ಸದಾ ಸೌಹಾರ್ದತೆಯ ಆಶೀರ್ವಾದ ನೀಡುವುದು ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಸಮಾಜದಲ್ಲಿ ಸದಾ ಉತ್ತುಂಗದಲ್ಲಿರಿಸುತ್ತದೆ. ನಿಮ್ಮ ಅನುಭವದ ಮಾತುಗಳು ಇಡೀ ಕುಟುಂಬಕ್ಕೆ ದಾರಿದೀಪವಾಗಿ ಮುನ್ನಡೆಸಲಿವೆ.`}`;
     }
     if (baseLang === "hi") {
-      const para3Hdr = chart.hasSantanaDosha ? "【दोष विश्लेषण एवं विलंब निवारण शांति】 " : "【शुभ योग एवं दैवीय रक्षा कवच】 ";
-      return `आपकी कुंडली के पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की ${h5Where} में शुभ स्थिति के साथ-साथ संतानकारक देवगुरु बृहस्पति का प्रभाव जीवन के इस पड़ाव में संतान की सुदृढ़ उन्नति और कुल की प्रतिष्ठा को दर्शाता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आपके बच्चे अपने कार्यक्षेत्र, व्यवसाय और व्यक्तिगत जीवन में सुस्थापित होकर परिवार का मान-सम्मान बढ़ाएंगे। पारिवारिक दायित्वों को निष्ठापूर्वक पूरा कर अगली पीढ़ी को सुसंस्कारित मार्ग दिखाने का आपका संकल्प आज फलीभूत हो रहा है। गोचर ग्रहों का अनुकूल सहयोग बच्चों के जीवन में स्थिरता और यश की वृद्धि करेगा।
-
-वरिष्ठ जीवन में पौत्र-पौत्रियों की किलकारियां, परिवार का आत्मीय स्नेह और बच्चों की उन्नति असीम मानसिक शांति प्रदान करती है। पंचमेश ${h5Lord} के प्रभाव से आपके द्वारा दिए गए सद्विचार और नैतिक मूल्य अगली पीढ़ी में स्पष्ट रूप से परिलक्षित होंगे, जिससे समाज में कुल की प्रतिष्ठा निरंतर बढ़ेगी। इस परिपक्व आयु में परिवार के मध्य बैठकर स्नेहपूर्ण मार्गदर्शन देना और छोटी-मोटी बातों में धैर्य बरतना घर में देवतुल्य वातावरण बनाए रखेगा। आपका आशीर्वाद परिवार के लिए सबसे बड़ा रक्षा कवच है।
-
-${para3Hdr}परिवार की निरंतर समृद्धि, आरोग्यता और भावी पीढ़ियों के कल्याणार्थ घर में श्री संतान गोपाल स्तोत्र तथा भगवान श्री गणेश की आराधना करें। गोकर्ण महाबलेश्वर क्षेत्र में परिवार कल्याण एवं वंश वृद्धि संकल्प समर्पित करना समस्त संतति को दीर्घायु, विद्या और यश प्रदान करेगा। नित्य प्रातःकाल सूर्य देव को अर्घ्य देकर तुलसी की परिक्रमा करना घर में सकारात्मक ऊर्जा का संचार करेगा तथा आने वाली पीढ़ियां सदैव धर्म के मार्ग पर अग्रसर रहेंगी।`;
+      const para3Hdr = chart.hasSantanaDosha ? "【दोष विश्लेषण एवं विलंब निवारण शांति】 " : "";
+      return `${chart.hasSantanaDosha ? `$आपकी कुंडली के पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की ${h5Where} में शुभ स्थिति के साथ-साथ संतानकारक देवगुरु बृहस्पति का प्रभाव जीवन के इस पड़ाव में संतान की सुदृढ़ उन्नति और कुल की प्रतिष्ठा को दर्शाता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आपके बच्चे अपने कार्यक्षेत्र, व्यवसाय और व्यक्तिगत जीवन में सुस्थापित होकर परिवार का मान-सम्मान बढ़ाएंगे। पारिवारिक दायित्वों को निष्ठापूर्वक पूरा कर अगली पीढ़ी को सुसंस्कारित मार्ग दिखाने का आपका संकल्प आज फलीभूत हो रहा है। गोचर ग्रहों का अनुकूल सहयोग बच्चों के जीवन में स्थिरता और यश की वृद्धि करेगा।\n\n$वरिष्ठ जीवन में पौत्र-पौत्रियों की किलकारियां, परिवार का आत्मीय स्नेह और बच्चों की उन्नति असीम मानसिक शांति प्रदान करती है। पंचमेश ${h5Lord} के प्रभाव से आपके द्वारा दिए गए सद्विचार और नैतिक मूल्य अगली पीढ़ी में स्पष्ट रूप से परिलक्षित होंगे, जिससे समाज में कुल की प्रतिष्ठा निरंतर बढ़ेगी। इस परिपक्व आयु में परिवार के मध्य बैठकर स्नेहपूर्ण मार्गदर्शन देना और छोटी-मोटी बातों में धैर्य बरतना घर में देवतुल्य वातावरण बनाए रखेगा। आपका आशीर्वाद परिवार के लिए सबसे बड़ा रक्षा कवच है।\n\n${para3Hdr}परिवार की निरंतर समृद्धि, आरोग्यता और भावी पीढ़ियों के कल्याणार्थ घर में श्री संतान गोपाल स्तोत्र तथा भगवान श्री गणेश की आराधना करें। गोकर्ण महाबलेश्वर क्षेत्र में परिवार कल्याण एवं वंश वृद्धि संकल्प समर्पित करना समस्त संतति को दीर्घायु, विद्या और यश प्रदान करेगा। नित्य प्रातःकाल सूर्य देव को अर्घ्य देकर तुलसी की परिक्रमा करना घर में सकारात्मक ऊर्जा का संचार करेगा तथा आने वाली पीढ़ियां सदैव धर्म के मार्ग पर अग्रसर रहेंगी।` : `$आपकी कुंडली के पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की ${h5Where} में शुभ स्थिति के साथ-साथ संतानकारक देवगुरु बृहस्पति का प्रभाव जीवन के इस पड़ाव में संतान की सुदृढ़ उन्नति और कुल की प्रतिष्ठा को दर्शाता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आपके बच्चे अपने कार्यक्षेत्र, व्यवसाय और व्यक्तिगत जीवन में सुस्थापित होकर परिवार का मान-सम्मान बढ़ाएंगे। पारिवारिक दायित्वों को निष्ठापूर्वक पूरा कर अगली पीढ़ी को सुसंस्कारित मार्ग दिखाने का आपका संकल्प आज फलीभूत हो रहा है। गोचर ग्रहों का अनुकूल सहयोग बच्चों के जीवन में स्थिरता और यश की वृद्धि करेगा।\n\n$वरिष्ठ जीवन में पौत्र-पौत्रियों की किलकारियां, परिवार का आत्मीय स्नेह और बच्चों की उन्नति असीम मानसिक शांति प्रदान करती है। पंचमेश ${h5Lord} के प्रभाव से आपके द्वारा दिए गए सद्विचार और नैतिक मूल्य अगली पीढ़ी में स्पष्ट रूप से परिलक्षित होंगे, जिससे समाज में कुल की प्रतिष्ठा निरंतर बढ़ेगी। इस परिपक्व आयु में परिवार के मध्य बैठकर स्नेहपूर्ण मार्गदर्शन देना और छोटी-मोटी बातों में धैर्य बरतना घर में देवतुल्य वातावरण बनाए रखेगा। आपका आशीर्वाद परिवार के लिए सबसे बड़ा रक्षा कवच है।`}`;
     }
     if (baseLang === "te") {
-      const para3Hdr = chart.hasSantanaDosha ? "【దోష విశ్లేషణ & నివారణ శాంతి】 " : "【శుభ యోగం & దైవిక రక్షా కవచం】 ";
-      return `మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} ${h5Where}లో ఉండటం, అలాగే పుత్రకారక గురు గ్రహ అనుగ్రహం మీ వంశాభివృద్ధిని మరియు పిల్లల ఉన్నత స్థానాన్ని సూచిస్తున్నాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ పిల్లలు తమ రంగాల్లో స్థిరపడి సమాజంలో కుటుంబానికి గొప్ప పేరు ప్రఖ్యాతులు తెచ్చే ధన్యతను కలిగిస్తుంది. జీవితకాల బాధ్యతలను ధర్మబద్ధంగా నిర్వర్తించి పిల్లలకు మార్గదర్శకులుగా నిలవడం మీకు గొప్ప సంతృప్తిని ఇస్తుంది. గ్రహాల అనుకూల గోచారం వల్ల పిల్లల జీవితంలో స్థిరత్వం మరింత బలపడుతుంది.
-
-ఈ పరిపక్వ వయస్సులో మనుమలు మరియు మనవరాళ్ళతో గడిపే ఆనందమయ క్షణాలు, కుటుంబ సభ్యుల ఆప్యాయత మీ అంతరంగానికి గొప్ప మానసిక ప్రశాంతతను చేకూరుస్తాయి. పంచమాధిపతి ${h5Lord} శుభ దృష్టి వల్ల మీ సదాచారాలు, విలువలు భావితరాలకు చక్కగా అందుతాయి. కుటుంబంలో ఏవైనా చిన్నపాటి అభిప్రాయ భేదాలు ఎదురైనా ఓర్పుతో పరిష్కరించి, పెద్దలుగా ప్రేమపూర్వక ఆశీస్సులు అందించడం కుటుంబ ఐక్యతను పదిలంగా ఉంచుతుంది. మీ అనుభవం భావితరాలకు దిశానిర్దేశం చేస్తుంది.
-
-${para3Hdr}వంశ రక్షణ, పిల్లల మరియు మనుమల దీర్ఘాయుష్షు కోసం ఇంట్లో శ్రీ సంతాన గోపాల మంత్ర జపం మరియు గణపతి ఆరాధన చేయడం శ్రేష్ఠం. గోకర్ణ మహాబలేశ్వర క్షేత్రంలో వంశ క్షేమ పూజలు నిర్వహించడం వలన భావితరాలకు సకల విఘ్నాలు తొలగి సుఖశాంతులు చేకూరుతాయి. ప్రతిరోజూ ప్రాతఃకాలంలో ఇష్టదైవ ప్రార్థన చేయడం వల్ల కుటుంబంలో సదా ఆనందం, శాంతి వెల్లివిరుస్తాయి.`;
+      const para3Hdr = chart.hasSantanaDosha ? "【దోష విశ్లేషణ & నివారణ శాంతి】 " : "";
+      return `${chart.hasSantanaDosha ? `$మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} ${h5Where}లో ఉండటం, అలాగే పుత్రకారక గురు గ్రహ అనుగ్రహం మీ వంశాభివృద్ధిని మరియు పిల్లల ఉన్నత స్థానాన్ని సూచిస్తున్నాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ పిల్లలు తమ రంగాల్లో స్థిరపడి సమాజంలో కుటుంబానికి గొప్ప పేరు ప్రఖ్యాతులు తెచ్చే ధన్యతను కలిగిస్తుంది. జీవితకాల బాధ్యతలను ధర్మబద్ధంగా నిర్వర్తించి పిల్లలకు మార్గదర్శకులుగా నిలవడం మీకు గొప్ప సంతృప్తిని ఇస్తుంది. గ్రహాల అనుకూల గోచారం వల్ల పిల్లల జీవితంలో స్థిరత్వం మరింత బలపడుతుంది.\n\n$ఈ పరిపక్వ వయస్సులో మనుమలు మరియు మనవరాళ్ళతో గడిపే ఆనందమయ క్షణాలు, కుటుంబ సభ్యుల ఆప్యాయత మీ అంతరంగానికి గొప్ప మానసిక ప్రశాంతతను చేకూరుస్తాయి. పంచమాధిపతి ${h5Lord} శుభ దృష్టి వల్ల మీ సదాచారాలు, విలువలు భావితరాలకు చక్కగా అందుతాయి. కుటుంబంలో ఏవైనా చిన్నపాటి అభిప్రాయ భేదాలు ఎదురైనా ఓర్పుతో పరిష్కరించి, పెద్దలుగా ప్రేమపూర్వక ఆశీస్సులు అందించడం కుటుంబ ఐక్యతను పదిలంగా ఉంచుతుంది. మీ అనుభవం భావితరాలకు దిశానిర్దేశం చేస్తుంది.\n\n${para3Hdr}వంశ రక్షణ, పిల్లల మరియు మనుమల దీర్ఘాయుష్షు కోసం ఇంట్లో శ్రీ సంతాన గోపాల మంత్ర జపం మరియు గణపతి ఆరాధన చేయడం శ్రేష్ఠం. గోకర్ణ మహాబలేశ్వర క్షేత్రంలో వంశ క్షేమ పూజలు నిర్వహించడం వలన భావితరాలకు సకల విఘ్నాలు తొలగి సుఖశాంతులు చేకూరుతాయి. ప్రతిరోజూ ప్రాతఃకాలంలో ఇష్టదైవ ప్రార్థన చేయడం వల్ల కుటుంబంలో సదా ఆనందం, శాంతి వెల్లివిరుస్తాయి.` : `$మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} ${h5Where}లో ఉండటం, అలాగే పుత్రకారక గురు గ్రహ అనుగ్రహం మీ వంశాభివృద్ధిని మరియు పిల్లల ఉన్నత స్థానాన్ని సూచిస్తున్నాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ పిల్లలు తమ రంగాల్లో స్థిరపడి సమాజంలో కుటుంబానికి గొప్ప పేరు ప్రఖ్యాతులు తెచ్చే ధన్యతను కలిగిస్తుంది. జీవితకాల బాధ్యతలను ధర్మబద్ధంగా నిర్వర్తించి పిల్లలకు మార్గదర్శకులుగా నిలవడం మీకు గొప్ప సంతృప్తిని ఇస్తుంది. గ్రహాల అనుకూల గోచారం వల్ల పిల్లల జీవితంలో స్థిరత్వం మరింత బలపడుతుంది.\n\n$ఈ పరిపక్వ వయస్సులో మనుమలు మరియు మనవరాళ్ళతో గడిపే ఆనందమయ క్షణాలు, కుటుంబ సభ్యుల ఆప్యాయత మీ అంతరంగానికి గొప్ప మానసిక ప్రశాంతతను చేకూరుస్తాయి. పంచమాధిపతి ${h5Lord} శుభ దృష్టి వల్ల మీ సదాచారాలు, విలువలు భావితరాలకు చక్కగా అందుతాయి. కుటుంబంలో ఏవైనా చిన్నపాటి అభిప్రాయ భేదాలు ఎదురైనా ఓర్పుతో పరిష్కరించి, పెద్దలుగా ప్రేమపూర్వక ఆశీస్సులు అందించడం కుటుంబ ఐక్యతను పదిలంగా ఉంచుతుంది. మీ అనుభవం భావితరాలకు దిశానిర్దేశం చేస్తుంది.`}`;
     }
     if (baseLang === "ta") {
-      const para3Hdr = chart.hasSantanaDosha ? "【தோஷ ஆய்வு & பரிகார சாந்தி】 " : "【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 ";
-      return `உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} ${h5Where} அமைப்பில் அமர்ந்து, புத்திரகாரகன் குரு பகவானின் சுப பார்வையுடன் இணைந்திருப்பது உங்கள் வம்ச விருத்தியையும் பிள்ளைகளின் நல்வாழ்வையும் உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி உங்கள் பிள்ளைகள் நல்ல உத்தியோகம் மற்றும் குடும்ப வாழ்வில் சீரும் சிறப்புமாக வாழ்ந்து உங்களுக்கு பெருமை சேர்க்கும் காலமாகும். உங்கள் வாழ்நாள் கடமைகளை செவ்வனே முடித்து குடும்பத்திற்கு வழிகாட்டியாக விளங்குவது மனநிறைவைத் தரும்.
-
-பேரக்குழந்தைகளின் மழலைச் சிரிப்பும், குடும்பத்தின் பாசப் பிணைப்பும் இந்த முதுமைப் பருவத்தில் உங்களுக்கு எல்லையற்ற மன அமைதியைத் தரும். 5-ம் அதிபதி ${h5Lord} அருளால் நீங்கள் கற்றுக்கொடுத்த நற்பண்புகளும் கலாச்சார விழுமியங்களும் அடுத்த தலைமுறைக்கு இயல்பாக போய்ச் சேரும். குடும்பத்தில் அவ்வப்போது எழும் சிறிய கருத்து வேறுபாடுகளை அன்போடும் பொறுமையோடும் அணுகி பெரியோர்களின் ஆசீர்வாதத்தை வழங்குவது குடும்பப் பெருமையை உயர்த்தும். உங்கள் அனுபவமே வம்சத்திற்கு நல்ல வழிகாட்டியாகும்.
-
-${para3Hdr}வம்ச விருத்தி, பிள்ளைகள் மற்றும் பேரக்குழந்தைகளின் நீண்ட ஆயுளுக்காக இல்லத்தில் ஸ்ரீ சந்தான கோபாலர் மற்றும் விநாயகர் வழிபாடு செய்வது குடும்பத்திற்கு தொடர்ந்து தெய்வீக பாதுகாப்பைத் தரும். கோகர்ணம் மகாபலேஸ்வரர் சன்னதியில் குடும்ப நல்வாழ்வு அர்ச்சனை செய்வது தலைமுறை தலைமுறையாக சுபிட்சத்தை நிலைநிறுத்தும். தினமும் காலையில் இஷ்ட தெய்வத்தை தியானிப்பது குடும்பத்தில் அமைதியையும் மங்களத்தையும் பெருக்கும்.`;
+      const para3Hdr = chart.hasSantanaDosha ? "【தோஷ ஆய்வு & பரிகார சாந்தி】 " : "";
+      return `${chart.hasSantanaDosha ? `$உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} ${h5Where} அமைப்பில் அமர்ந்து, புத்திரகாரகன் குரு பகவானின் சுப பார்வையுடன் இணைந்திருப்பது உங்கள் வம்ச விருத்தியையும் பிள்ளைகளின் நல்வாழ்வையும் உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி உங்கள் பிள்ளைகள் நல்ல உத்தியோகம் மற்றும் குடும்ப வாழ்வில் சீரும் சிறப்புமாக வாழ்ந்து உங்களுக்கு பெருமை சேர்க்கும் காலமாகும். உங்கள் வாழ்நாள் கடமைகளை செவ்வனே முடித்து குடும்பத்திற்கு வழிகாட்டியாக விளங்குவது மனநிறைவைத் தரும்.\n\n$பேரக்குழந்தைகளின் மழலைச் சிரிப்பும், குடும்பத்தின் பாசப் பிணைப்பும் இந்த முதுமைப் பருவத்தில் உங்களுக்கு எல்லையற்ற மன அமைதியைத் தரும். 5-ம் அதிபதி ${h5Lord} அருளால் நீங்கள் கற்றுக்கொடுத்த நற்பண்புகளும் கலாச்சார விழுமியங்களும் அடுத்த தலைமுறைக்கு இயல்பாக போய்ச் சேரும். குடும்பத்தில் அவ்வப்போது எழும் சிறிய கருத்து வேறுபாடுகளை அன்போடும் பொறுமையோடும் அணுகி பெரியோர்களின் ஆசீர்வாதத்தை வழங்குவது குடும்பப் பெருமையை உயர்த்தும். உங்கள் அனுபவமே வம்சத்திற்கு நல்ல வழிகாட்டியாகும்.\n\n${para3Hdr}வம்ச விருத்தி, பிள்ளைகள் மற்றும் பேரக்குழந்தைகளின் நீண்ட ஆயுளுக்காக இல்லத்தில் ஸ்ரீ சந்தான கோபாலர் மற்றும் விநாயகர் வழிபாடு செய்வது குடும்பத்திற்கு தொடர்ந்து தெய்வீக பாதுகாப்பைத் தரும். கோகர்ணம் மகாபலேஸ்வரர் சன்னதியில் குடும்ப நல்வாழ்வு அர்ச்சனை செய்வது தலைமுறை தலைமுறையாக சுபிட்சத்தை நிலைநிறுத்தும். தினமும் காலையில் இஷ்ட தெய்வத்தை தியானிப்பது குடும்பத்தில் அமைதியையும் மங்களத்தையும் பெருக்கும்.` : `$உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} ${h5Where} அமைப்பில் அமர்ந்து, புத்திரகாரகன் குரு பகவானின் சுப பார்வையுடன் இணைந்திருப்பது உங்கள் வம்ச விருத்தியையும் பிள்ளைகளின் நல்வாழ்வையும் உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி உங்கள் பிள்ளைகள் நல்ல உத்தியோகம் மற்றும் குடும்ப வாழ்வில் சீரும் சிறப்புமாக வாழ்ந்து உங்களுக்கு பெருமை சேர்க்கும் காலமாகும். உங்கள் வாழ்நாள் கடமைகளை செவ்வனே முடித்து குடும்பத்திற்கு வழிகாட்டியாக விளங்குவது மனநிறைவைத் தரும்.\n\n$பேரக்குழந்தைகளின் மழலைச் சிரிப்பும், குடும்பத்தின் பாசப் பிணைப்பும் இந்த முதுமைப் பருவத்தில் உங்களுக்கு எல்லையற்ற மன அமைதியைத் தரும். 5-ம் அதிபதி ${h5Lord} அருளால் நீங்கள் கற்றுக்கொடுத்த நற்பண்புகளும் கலாச்சார விழுமியங்களும் அடுத்த தலைமுறைக்கு இயல்பாக போய்ச் சேரும். குடும்பத்தில் அவ்வப்போது எழும் சிறிய கருத்து வேறுபாடுகளை அன்போடும் பொறுமையோடும் அணுகி பெரியோர்களின் ஆசீர்வாதத்தை வழங்குவது குடும்பப் பெருமையை உயர்த்தும். உங்கள் அனுபவமே வம்சத்திற்கு நல்ல வழிகாட்டியாகும்.`}`;
     }
-    const para3Hdr = chart.hasSantanaDosha ? "【Dosha Analysis & Obstacle Resolution Shanti】 " : "【Benefic Planetary Yoga & Protective Shield】 ";
-    return `In your birth chart, the 5th house (${h5Sign}), 5th lord ${h5Lord} situated in ${h5Where}, and Putrakaraka Jupiter signify the fruitful culmination of Poorva Punya through your distinguished family lineage. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period bring immense pride as you witness your grown children well-established in their vocational callings, carrying forward family honor with Venus (Shukra) grace and distinguished intellect. Having guided your household through earlier decades with unwavering moral duty, stepping into the role of a revered elder and patriarchal or matriarchal beacon represents a deeply fulfilling milestone.
-
-At this mature life milestone, the joyous presence of grandchildren (Poutra-Poutri and Dauhitra sukha) brings deep emotional contentment and spiritual fulfillment. The benefic disposition of ${h5Lord} confirms that your moral guidance, cultural ethos, and family heritage have successfully taken root in the younger generations, preserving ancestral traditions and bringing lasting domestic tranquility. Navigating intergenerational conversations with quiet patience and gentle blessings ensures that your household remains an oasis of harmony and intergenerational respect.
-
-${para3Hdr}To continuously protect your family lineage and invite longevity and prosperity for children and grandchildren, sponsoring regular Ganapati prayers and offering Santana Gopala archana remains deeply meritorious. Prayers offered at Gokarna Mahabaleshwara Kshetra ensure generational grace and uninterrupted auspiciousness. Maintaining daily dawn contemplation and offering grain charity on Thursdays invites divine protection across all generations of your household.`;
+    const para3Hdr = chart.hasSantanaDosha ? "【Dosha Analysis & Obstacle Resolution Shanti】 " : "";
+    return `${chart.hasSantanaDosha ? `$In your birth chart, the 5th house (${h5Sign}), 5th lord ${h5Lord} situated in ${h5Where}, and Putrakaraka Jupiter signify the fruitful culmination of Poorva Punya through your distinguished family lineage. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period bring immense pride as you witness your grown children well-established in their vocational callings, carrying forward family honor with Venus (Shukra) grace and distinguished intellect. Having guided your household through earlier decades with unwavering moral duty, stepping into the role of a revered elder and patriarchal or matriarchal beacon represents a deeply fulfilling milestone.\n\n$At this mature life milestone, the joyous presence of grandchildren (Poutra-Poutri and Dauhitra sukha) brings deep emotional contentment and spiritual fulfillment. The benefic disposition of ${h5Lord} confirms that your moral guidance, cultural ethos, and family heritage have successfully taken root in the younger generations, preserving ancestral traditions and bringing lasting domestic tranquility. Navigating intergenerational conversations with quiet patience and gentle blessings ensures that your household remains an oasis of harmony and intergenerational respect.\n\n${para3Hdr}To continuously protect your family lineage and invite longevity and prosperity for children and grandchildren, sponsoring regular Ganapati prayers and offering Santana Gopala archana remains deeply meritorious. Prayers offered at Gokarna Mahabaleshwara Kshetra ensure generational grace and uninterrupted auspiciousness. Maintaining daily dawn contemplation and offering grain charity on Thursdays invites divine protection across all generations of your household.` : `$In your birth chart, the 5th house (${h5Sign}), 5th lord ${h5Lord} situated in ${h5Where}, and Putrakaraka Jupiter signify the fruitful culmination of Poorva Punya through your distinguished family lineage. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period bring immense pride as you witness your grown children well-established in their vocational callings, carrying forward family honor with Venus (Shukra) grace and distinguished intellect. Having guided your household through earlier decades with unwavering moral duty, stepping into the role of a revered elder and patriarchal or matriarchal beacon represents a deeply fulfilling milestone.\n\n$At this mature life milestone, the joyous presence of grandchildren (Poutra-Poutri and Dauhitra sukha) brings deep emotional contentment and spiritual fulfillment. The benefic disposition of ${h5Lord} confirms that your moral guidance, cultural ethos, and family heritage have successfully taken root in the younger generations, preserving ancestral traditions and bringing lasting domestic tranquility. Navigating intergenerational conversations with quiet patience and gentle blessings ensures that your household remains an oasis of harmony and intergenerational respect.`}`;
   }
 
   // Youth / Student Native (< 22 Years): Buddhi, Memory, Academics & Creativity
   if (chart.ageYears < 22) {
     if (baseLang === "kn") {
-      const para3Hdr = chart.hasSantanaDosha ? "【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 " : "【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ";
-      return `ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಸಂಯೋಗವು ನಿಮ್ಮ ಜನ್ಮಜಾತ ಬುದ್ಧಿಶಕ್ತಿ, ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಪರೀಕ್ಷಾ ಏಕಾಗ್ರತೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 5ನೇ ಮನೆಯು ಪೂರ್ವಪುಣ್ಯ ಹಾಗೂ ಬುದ್ಧಿಸ್ಥಾನವಾಗಿದ್ದು, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಸಾಧನೆಗಳಿಗೆ ಅದ್ಭುತ ಚೈತನ್ಯವನ್ನು ನೀಡಲಿದೆ. ಪಂಚಮ ಭಾವದ ಶುಭ ಬಲವು ನಿಮ್ಮ ಅಧ್ಯಯನದಲ್ಲಿ ಆಳವಾದ ಗ್ರಹಿಕೆಯನ್ನು ಹಾಗೂ ಹೊಸ ಜ್ಞಾನಾರ್ಜನೆಯಲ್ಲಿ ತೀವ್ರ ಆಸಕ್ತಿಯನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ.
-
-ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಚಿಂತನೆ, ಸೃಜನಶೀಲ ಪ್ರತಿಭೆ ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳನ್ನು ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಎದುರಿಸುವ ಶಕ್ತಿಯನ್ನು ತುಂಬುತ್ತದೆ. ಶಿಸ್ತುಬದ್ಧ ಅಧ್ಯಯನ, ನಿಗದಿತ ವೇಳಾಪಟ್ಟಿ ಹಾಗೂ ಸಮಯ ನಿರ್ವಹಣೆಯು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಗುರಿಗಳನ್ನು ನಿರಾಯಾಸವಾಗಿ ತಲುಪಲು ನೆರವಾಗಲಿದೆ. ಪರೀಕ್ಷಾ ಸಮಯದಲ್ಲಿ ಉಂಟಾಗುವ ಸಣ್ಣಪುಟ್ಟ ಆತಂಕಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ನಿರಂತರ ಪರಿಶ್ರಮದಿಂದ ಮುನ್ನಡೆದರೆ ಶೈಕ್ಷಣಿಕ ರಂಗದಲ್ಲಿ ಉನ್ನತ ಶ್ರೇಣಿಯ ಗೌರವ ಮತ್ತು ವಿದ್ಯಾರ್ಥಿವೇತನ ಅಥವಾ ಪ್ರಶಂಸೆಗಳು ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.
-
-ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ನಿರಂತರ ಪ್ರಥಮ ಸ್ಥಾನ, ಜ್ಞಾಪಕ ಶಕ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ಸರಸ್ವತಿ ಕೃಪೆಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ 'ಓಂ ಐಂ ಸರಸ್ವತ್ಯೈ ನಮಃ' ಮಂತ್ರವನ್ನು ಮತ್ತು ಗಾಯತ್ರಿ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದು ಅತ್ಯುತ್ತಮ. ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ವಿಜಯಕ್ಕಾಗಿ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಠಿಸುವುದು ನಿಮ್ಮ ಮಾನಸಿಕ ತೇಜಸ್ಸನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡುವುದು ಮತ್ತು ಓದುವ ಕೋಣೆಯಲ್ಲಿ ಸ್ವಚ್ಛತೆ ಕಾಪಾಡುವುದು ನಿಮ್ಮ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು ಸದಾ ಚುರುಕಾಗಿಡಲಿದೆ.`;
+      const para3Hdr = chart.hasSantanaDosha ? "【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 " : "";
+      return `${chart.hasSantanaDosha ? `$ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಸಂಯೋಗವು ನಿಮ್ಮ ಜನ್ಮಜಾತ ಬುದ್ಧಿಶಕ್ತಿ, ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಪರೀಕ್ಷಾ ಏಕಾಗ್ರತೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 5ನೇ ಮನೆಯು ಪೂರ್ವಪುಣ್ಯ ಹಾಗೂ ಬುದ್ಧಿಸ್ಥಾನವಾಗಿದ್ದು, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಸಾಧನೆಗಳಿಗೆ ಅದ್ಭುತ ಚೈತನ್ಯವನ್ನು ನೀಡಲಿದೆ. ಪಂಚಮ ಭಾವದ ಶುಭ ಬಲವು ನಿಮ್ಮ ಅಧ್ಯಯನದಲ್ಲಿ ಆಳವಾದ ಗ್ರಹಿಕೆಯನ್ನು ಹಾಗೂ ಹೊಸ ಜ್ಞಾನಾರ್ಜನೆಯಲ್ಲಿ ತೀವ್ರ ಆಸಕ್ತಿಯನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ.\n\n$ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಚಿಂತನೆ, ಸೃಜನಶೀಲ ಪ್ರತಿಭೆ ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳನ್ನು ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಎದುರಿಸುವ ಶಕ್ತಿಯನ್ನು ತುಂಬುತ್ತದೆ. ಶಿಸ್ತುಬದ್ಧ ಅಧ್ಯಯನ, ನಿಗದಿತ ವೇಳಾಪಟ್ಟಿ ಹಾಗೂ ಸಮಯ ನಿರ್ವಹಣೆಯು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಗುರಿಗಳನ್ನು ನಿರಾಯಾಸವಾಗಿ ತಲುಪಲು ನೆರವಾಗಲಿದೆ. ಪರೀಕ್ಷಾ ಸಮಯದಲ್ಲಿ ಉಂಟಾಗುವ ಸಣ್ಣಪುಟ್ಟ ಆತಂಕಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ನಿರಂತರ ಪರಿಶ್ರಮದಿಂದ ಮುನ್ನಡೆದರೆ ಶೈಕ್ಷಣಿಕ ರಂಗದಲ್ಲಿ ಉನ್ನತ ಶ್ರೇಣಿಯ ಗೌರವ ಮತ್ತು ವಿದ್ಯಾರ್ಥಿವೇತನ ಅಥವಾ ಪ್ರಶಂಸೆಗಳು ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ನಿರಂತರ ಪ್ರಥಮ ಸ್ಥಾನ, ಜ್ಞಾಪಕ ಶಕ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ಸರಸ್ವತಿ ಕೃಪೆಗಾಗಿ ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ 'ಓಂ ಐಂ ಸರಸ್ವತ್ಯೈ ನಮಃ' ಮಂತ್ರವನ್ನು ಮತ್ತು ಗಾಯತ್ರಿ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದು ಅತ್ಯುತ್ತಮ. ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ವಿಜಯಕ್ಕಾಗಿ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಠಿಸುವುದು ನಿಮ್ಮ ಮಾನಸಿಕ ತೇಜಸ್ಸನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡುವುದು ಮತ್ತು ಓದುವ ಕೋಣೆಯಲ್ಲಿ ಸ್ವಚ್ಛತೆ ಕಾಪಾಡುವುದು ನಿಮ್ಮ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು ಸದಾ ಚುರುಕಾಗಿಡಲಿದೆ.` : `$ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಸಂಯೋಗವು ನಿಮ್ಮ ಜನ್ಮಜಾತ ಬುದ್ಧಿಶಕ್ತಿ, ತೀಕ್ಷ್ಣ ಗ್ರಹಣ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಪರೀಕ್ಷಾ ಏಕಾಗ್ರತೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 5ನೇ ಮನೆಯು ಪೂರ್ವಪುಣ್ಯ ಹಾಗೂ ಬುದ್ಧಿಸ್ಥಾನವಾಗಿದ್ದು, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಸಾಧನೆಗಳಿಗೆ ಅದ್ಭುತ ಚೈತನ್ಯವನ್ನು ನೀಡಲಿದೆ. ಪಂಚಮ ಭಾವದ ಶುಭ ಬಲವು ನಿಮ್ಮ ಅಧ್ಯಯನದಲ್ಲಿ ಆಳವಾದ ಗ್ರಹಿಕೆಯನ್ನು ಹಾಗೂ ಹೊಸ ಜ್ಞಾನಾರ್ಜನೆಯಲ್ಲಿ ತೀವ್ರ ಆಸಕ್ತಿಯನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ.\n\n$ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಚಿಂತನೆ, ಸೃಜನಶೀಲ ಪ್ರತಿಭೆ ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳನ್ನು ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಎದುರಿಸುವ ಶಕ್ತಿಯನ್ನು ತುಂಬುತ್ತದೆ. ಶಿಸ್ತುಬದ್ಧ ಅಧ್ಯಯನ, ನಿಗದಿತ ವೇಳಾಪಟ್ಟಿ ಹಾಗೂ ಸಮಯ ನಿರ್ವಹಣೆಯು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಗುರಿಗಳನ್ನು ನಿರಾಯಾಸವಾಗಿ ತಲುಪಲು ನೆರವಾಗಲಿದೆ. ಪರೀಕ್ಷಾ ಸಮಯದಲ್ಲಿ ಉಂಟಾಗುವ ಸಣ್ಣಪುಟ್ಟ ಆತಂಕಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ನಿರಂತರ ಪರಿಶ್ರಮದಿಂದ ಮುನ್ನಡೆದರೆ ಶೈಕ್ಷಣಿಕ ರಂಗದಲ್ಲಿ ಉನ್ನತ ಶ್ರೇಣಿಯ ಗೌರವ ಮತ್ತು ವಿದ್ಯಾರ್ಥಿವೇತನ ಅಥವಾ ಪ್ರಶಂಸೆಗಳು ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`}`;
     }
     if (baseLang === "hi") {
-      return `आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति बुद्धि, मेधा शक्ति, स्मरण और पूर्वपुण्य का मुख्य केंद्र है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपकी बौद्धिक ग्रहण क्षमता, अध्ययन में एकाग्रता और अकादमिक उत्कृष्टता को नई ऊंचाइयां प्रदान करेगा। पंचम भाव का यह शुभ प्रभाव जटिल विषयों को सरलता से समझने और नवीन ज्ञान को तीव्रता से आत्मसात करने में असाधारण सहायता करता है।
-
-पंचमेश ${h5Lord} के शुभ प्रभाव से आपकी तार्किक क्षमता, विश्लेषणात्मक चिंतन और रचनात्मक प्रतिभा में उल्लेखनीय वृद्धि होगी। नियमित समय सारणी, अनुशासित अध्ययन और सकारात्मक दृष्टिकोण आपको प्रतियोगी परीक्षाओं तथा उच्च शिक्षण संस्थानों में विशिष्ट सफलता दिलाएगा। परीक्षा के दबाव या मानसिक भटकाव से बचकर यदि आप निरंतर अभ्यास करेंगे, तो आपके परिश्रम का उत्कृष्ट फल निश्चित रूप से प्राप्त होगा।
-
-विद्या में अभूतपूर्व सफलता, तीक्ष्ण बुद्धि तथा स्मरण शक्ति संवर्धन हेतु प्रतिदिन प्रातःकाल 'ॐ ऐं सरस्वत्यै नमः' तथा गायत्री मंत्र का 108 बार जाप करें। महत्वपूर्ण परीक्षाओं से पूर्व भगवान श्री गणेश का स्मरण और अथर्वशीर्ष का पाठ आपके आत्मविश्वास को सुदृढ़ करेगा। प्रातःकाल उगते सूर्य को तांबे के लोटे से जल अर्पित करना आपकी एकाग्रता और मानसिक ओज को सदैव प्रखर बनाए रखेगा।`;
+      return `${chart.hasSantanaDosha ? `$आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति बुद्धि, मेधा शक्ति, स्मरण और पूर्वपुण्य का मुख्य केंद्र है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपकी बौद्धिक ग्रहण क्षमता, अध्ययन में एकाग्रता और अकादमिक उत्कृष्टता को नई ऊंचाइयां प्रदान करेगा। पंचम भाव का यह शुभ प्रभाव जटिल विषयों को सरलता से समझने और नवीन ज्ञान को तीव्रता से आत्मसात करने में असाधारण सहायता करता है।\n\n$पंचमेश ${h5Lord} के शुभ प्रभाव से आपकी तार्किक क्षमता, विश्लेषणात्मक चिंतन और रचनात्मक प्रतिभा में उल्लेखनीय वृद्धि होगी। नियमित समय सारणी, अनुशासित अध्ययन और सकारात्मक दृष्टिकोण आपको प्रतियोगी परीक्षाओं तथा उच्च शिक्षण संस्थानों में विशिष्ट सफलता दिलाएगा। परीक्षा के दबाव या मानसिक भटकाव से बचकर यदि आप निरंतर अभ्यास करेंगे, तो आपके परिश्रम का उत्कृष्ट फल निश्चित रूप से प्राप्त होगा।\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 विद्या में अभूतपूर्व सफलता, तीक्ष्ण बुद्धि तथा स्मरण शक्ति संवर्धन हेतु प्रतिदिन प्रातःकाल 'ॐ ऐं सरस्वत्यै नमः' तथा गायत्री मंत्र का 108 बार जाप करें। महत्वपूर्ण परीक्षाओं से पूर्व भगवान श्री गणेश का स्मरण और अथर्वशीर्ष का पाठ आपके आत्मविश्वास को सुदृढ़ करेगा। प्रातःकाल उगते सूर्य को तांबे के लोटे से जल अर्पित करना आपकी एकाग्रता और मानसिक ओज को सदैव प्रखर बनाए रखेगा।` : `$आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति बुद्धि, मेधा शक्ति, स्मरण और पूर्वपुण्य का मुख्य केंद्र है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपकी बौद्धिक ग्रहण क्षमता, अध्ययन में एकाग्रता और अकादमिक उत्कृष्टता को नई ऊंचाइयां प्रदान करेगा। पंचम भाव का यह शुभ प्रभाव जटिल विषयों को सरलता से समझने और नवीन ज्ञान को तीव्रता से आत्मसात करने में असाधारण सहायता करता है।\n\n$पंचमेश ${h5Lord} के शुभ प्रभाव से आपकी तार्किक क्षमता, विश्लेषणात्मक चिंतन और रचनात्मक प्रतिभा में उल्लेखनीय वृद्धि होगी। नियमित समय सारणी, अनुशासित अध्ययन और सकारात्मक दृष्टिकोण आपको प्रतियोगी परीक्षाओं तथा उच्च शिक्षण संस्थानों में विशिष्ट सफलता दिलाएगा। परीक्षा के दबाव या मानसिक भटकाव से बचकर यदि आप निरंतर अभ्यास करेंगे, तो आपके परिश्रम का उत्कृष्ट फल निश्चित रूप से प्राप्त होगा।`}`;
     }
     if (baseLang === "te") {
-      return `మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} మీ జ్ఞాపకశక్తి, గ్రహణశక్తి, ప్రజ్ఞ మరియు విద్యా వికాసానికి మూలస్తంభాలు. జ్యోతిషశాస్త్రంలో 5వ స్థానం పూర్వపుణ్యం మరియు విద్యా బుద్ధి స్థానం. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం ఉన్నత విద్య, ప్రవేశ పరీక్షలు మరియు నూతన విద్యా నైపుణ్యాలలో విజయానికి గొప్ప అవకాశాలను కల్పిస్తోంది. లోతైన విద్యాసక్తి మీకు సహజంగానే అలవడుతుంది.
-
-పంచమాధిపతి ${h5Lord} శుభ దృష్టి మీలో విశ్లేషణాత్మక ఆలోచనను, సృజనాత్మక ప్రతిభను మరియు పరీక్షలను ఆత్మవిశ్వాసంతో ఎదుర్కొనే మానసిక స్థైర్యాన్ని పెంచుతుంది. ప్రణాళికాబద్ధమైన చదువు, సమయపాలన మరియు క్రమశిక్షణతో కూడిన సాధన మీకు ఉత్తమ ఫలితాలను అందిస్తాయి. చదువుపై ఏకాగ్రతను నిలుపుతూ నిరంతర సాధన చేయడం ద్వారా మీరు విద్యా రంగంలో విశిష్ట గుర్తింపును సాధిస్తారు.
-
-విద్యలో నిరంతర విజయం, మేధాశక్తి మరియు సరస్వతీ కటాక్షం కోసం ప్రతిరోజూ ఉదయం 'ఓం ఐం సరస్వత్యై నమః' మరియు గాయత్రీ మంత్రాన్ని జపించడం శ్రేష్ఠం. పరీక్షలలో విజయం కోసం శ్రీ గణపతి అథర్వశీర్ష పారాయణం మానసిక ప్రశాంతతను, ఆత్మవిశ్వాసాన్ని ఇనుమడింపజేస్తుంది. రోజూ సూర్య నమస్కారాలు చేయడం మీ ఏకాగ్రతను మరింత పదును పెడుతుంది.`;
+      return `${chart.hasSantanaDosha ? `$మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} మీ జ్ఞాపకశక్తి, గ్రహణశక్తి, ప్రజ్ఞ మరియు విద్యా వికాసానికి మూలస్తంభాలు. జ్యోతిషశాస్త్రంలో 5వ స్థానం పూర్వపుణ్యం మరియు విద్యా బుద్ధి స్థానం. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం ఉన్నత విద్య, ప్రవేశ పరీక్షలు మరియు నూతన విద్యా నైపుణ్యాలలో విజయానికి గొప్ప అవకాశాలను కల్పిస్తోంది. లోతైన విద్యాసక్తి మీకు సహజంగానే అలవడుతుంది.\n\n$పంచమాధిపతి ${h5Lord} శుభ దృష్టి మీలో విశ్లేషణాత్మక ఆలోచనను, సృజనాత్మక ప్రతిభను మరియు పరీక్షలను ఆత్మవిశ్వాసంతో ఎదుర్కొనే మానసిక స్థైర్యాన్ని పెంచుతుంది. ప్రణాళికాబద్ధమైన చదువు, సమయపాలన మరియు క్రమశిక్షణతో కూడిన సాధన మీకు ఉత్తమ ఫలితాలను అందిస్తాయి. చదువుపై ఏకాగ్రతను నిలుపుతూ నిరంతర సాధన చేయడం ద్వారా మీరు విద్యా రంగంలో విశిష్ట గుర్తింపును సాధిస్తారు.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 విద్యలో నిరంతర విజయం, మేధాశక్తి మరియు సరస్వతీ కటాక్షం కోసం ప్రతిరోజూ ఉదయం 'ఓం ఐం సరస్వత్యై నమః' మరియు గాయత్రీ మంత్రాన్ని జపించడం శ్రేష్ఠం. పరీక్షలలో విజయం కోసం శ్రీ గణపతి అథర్వశీర్ష పారాయణం మానసిక ప్రశాంతతను, ఆత్మవిశ్వాసాన్ని ఇనుమడింపజేస్తుంది. రోజూ సూర్య నమస్కారాలు చేయడం మీ ఏకాగ్రతను మరింత పదును పెడుతుంది.` : `$మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} మీ జ్ఞాపకశక్తి, గ్రహణశక్తి, ప్రజ్ఞ మరియు విద్యా వికాసానికి మూలస్తంభాలు. జ్యోతిషశాస్త్రంలో 5వ స్థానం పూర్వపుణ్యం మరియు విద్యా బుద్ధి స్థానం. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం ఉన్నత విద్య, ప్రవేశ పరీక్షలు మరియు నూతన విద్యా నైపుణ్యాలలో విజయానికి గొప్ప అవకాశాలను కల్పిస్తోంది. లోతైన విద్యాసక్తి మీకు సహజంగానే అలవడుతుంది.\n\n$పంచమాధిపతి ${h5Lord} శుభ దృష్టి మీలో విశ్లేషణాత్మక ఆలోచనను, సృజనాత్మక ప్రతిభను మరియు పరీక్షలను ఆత్మవిశ్వాసంతో ఎదుర్కొనే మానసిక స్థైర్యాన్ని పెంచుతుంది. ప్రణాళికాబద్ధమైన చదువు, సమయపాలన మరియు క్రమశిక్షణతో కూడిన సాధన మీకు ఉత్తమ ఫలితాలను అందిస్తాయి. చదువుపై ఏకాగ్రతను నిలుపుతూ నిరంతర సాధన చేయడం ద్వారా మీరు విద్యా రంగంలో విశిష్ట గుర్తింపును సాధిస్తారు.`}`;
     }
     if (baseLang === "ta") {
-      return `உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்பு ஆழ்ந்த புத்தி கூர்மை, நினைவாற்றல் மற்றும் கல்வித் திறனின் பிரதான இருப்பிடமாகும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உயர்கல்வி, போட்டித் தேர்வுகள் மற்றும் அறிவுசார்ந்த துறைகளில் மகத்தான சாதனைகளை படைக்க உகந்த அருமையான காலமாகும். 5-ம் பாவத்தின் சுப பலம் கடினமான பாடங்களையும் எளிதாகப் புரிந்து கொள்ளும் ஆற்றலைத் தரும்.
-
-5-ம் அதிபதி ${h5Lord} அருளால் உங்கள் தர்க்க சிந்தனை, பகுத்தறிவு மற்றும் ஆக்கப்பூர்வமான திறன்கள் பன்மடங்கு பெருகும். காலந்தவறாமை, திட்டமிட்ட தொடர் படிப்பு மற்றும் கடின உழைப்பு ஆகியவை தேர்வுகளில் முதலிடம் பிடிக்க துணைபுரியும். கவனச்சிதறல்களை தவிர்த்து சீரான பயிற்சிகளை மேற்கொள்வது கல்வியில் உயரிய பட்டங்களையும் பாராட்டுகளையும் பெற்றுத்தரும்.
-
-கல்வியில் தொடர் வெற்றி, ஞானம் மற்றும் அன்னை சரஸ்வதியின் திருவருள் பெற தினமும் காலையில் 'ஓம் ஐம் சரஸ்வத்யை நமஹ' மற்றும் காயத்ரி மந்திரத்தை 108 முறை ஜெபிக்கவும். தேர்வுக்கு முன் முழுமுதற் கடவுளான விநாயகப் பெருமானை வழிபடுவது மன அமைதியையும் உயர்ந்த தன்னம்பிக்கையையும் கொடுக்கும். அதிகாலையில் சூரிய நமஸ்காரம் செய்வது உங்கள் மூளையின் சுறுசுறுப்பை அதிகரிக்கும்.`;
+      return `${chart.hasSantanaDosha ? `$உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்பு ஆழ்ந்த புத்தி கூர்மை, நினைவாற்றல் மற்றும் கல்வித் திறனின் பிரதான இருப்பிடமாகும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உயர்கல்வி, போட்டித் தேர்வுகள் மற்றும் அறிவுசார்ந்த துறைகளில் மகத்தான சாதனைகளை படைக்க உகந்த அருமையான காலமாகும். 5-ம் பாவத்தின் சுப பலம் கடினமான பாடங்களையும் எளிதாகப் புரிந்து கொள்ளும் ஆற்றலைத் தரும்.\n\n$5-ம் அதிபதி ${h5Lord} அருளால் உங்கள் தர்க்க சிந்தனை, பகுத்தறிவு மற்றும் ஆக்கப்பூர்வமான திறன்கள் பன்மடங்கு பெருகும். காலந்தவறாமை, திட்டமிட்ட தொடர் படிப்பு மற்றும் கடின உழைப்பு ஆகியவை தேர்வுகளில் முதலிடம் பிடிக்க துணைபுரியும். கவனச்சிதறல்களை தவிர்த்து சீரான பயிற்சிகளை மேற்கொள்வது கல்வியில் உயரிய பட்டங்களையும் பாராட்டுகளையும் பெற்றுத்தரும்.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 கல்வியில் தொடர் வெற்றி, ஞானம் மற்றும் அன்னை சரஸ்வதியின் திருவருள் பெற தினமும் காலையில் 'ஓம் ஐம் சரஸ்வத்யை நமஹ' மற்றும் காயத்ரி மந்திரத்தை 108 முறை ஜெபிக்கவும். தேர்வுக்கு முன் முழுமுதற் கடவுளான விநாயகப் பெருமானை வழிபடுவது மன அமைதியையும் உயர்ந்த தன்னம்பிக்கையையும் கொடுக்கும். அதிகாலையில் சூரிய நமஸ்காரம் செய்வது உங்கள் மூளையின் சுறுசுறுப்பை அதிகரிக்கும்.` : `$உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்பு ஆழ்ந்த புத்தி கூர்மை, நினைவாற்றல் மற்றும் கல்வித் திறனின் பிரதான இருப்பிடமாகும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உயர்கல்வி, போட்டித் தேர்வுகள் மற்றும் அறிவுசார்ந்த துறைகளில் மகத்தான சாதனைகளை படைக்க உகந்த அருமையான காலமாகும். 5-ம் பாவத்தின் சுப பலம் கடினமான பாடங்களையும் எளிதாகப் புரிந்து கொள்ளும் ஆற்றலைத் தரும்.\n\n$5-ம் அதிபதி ${h5Lord} அருளால் உங்கள் தர்க்க சிந்தனை, பகுத்தறிவு மற்றும் ஆக்கப்பூர்வமான திறன்கள் பன்மடங்கு பெருகும். காலந்தவறாமை, திட்டமிட்ட தொடர் படிப்பு மற்றும் கடின உழைப்பு ஆகியவை தேர்வுகளில் முதலிடம் பிடிக்க துணைபுரியும். கவனச்சிதறல்களை தவிர்த்து சீரான பயிற்சிகளை மேற்கொள்வது கல்வியில் உயரிய பட்டங்களையும் பாராட்டுகளையும் பெற்றுத்தரும்.`}`;
     }
-    return `In your birth chart, the 5th house (${h5Sign}) and 5th lord ${h5Lord} govern higher education, foundational intellect, intellectual acumen, memory retention, academic brilliance, and Poorva Punya. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period awaken vigorous cognitive stamina, scholastic discipline, and intellectual curiosity. The benefic planetary aspects on your 5th house ensure that complex academic subjects, research concepts, and competitive curricula are absorbed with photographic clarity and poise with Venus (Shukra) blessings.
-
-Under the auspicious disposition of ${h5Lord}, your analytical reasoning, creative problem-solving skills, and examination composure during competitive examinations are significantly magnified. Adhering to structured study timetables, minimizing digital distractions, and channeling your youthful vitality into purposeful scholastic pursuits will yield distinguished academic honours and competitive milestones. Cultivating calm inner confidence during entrance examinations transforms your hard work into top-tier institutional success.
-
-To awaken photographic recall, mental focus, and academic distinction, reciting the sacred Saraswati mantra ('Om Aim Saraswatyai Namah') alongside the Gayatri Mantra during morning dawn is highly recommended. Offering daily prayers to Lord Ganesha ensures that all academic hurdles are dissolved, paving the way for scholarly brilliance. Performing regular Surya Namaskars and keeping your study sanctum clean keeps your intellect luminous and energetic.`;
+    return `${chart.hasSantanaDosha ? `$In your birth chart, the 5th house (${h5Sign}) and 5th lord ${h5Lord} govern higher education, foundational intellect, intellectual acumen, memory retention, academic brilliance, and Poorva Punya. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period awaken vigorous cognitive stamina, scholastic discipline, and intellectual curiosity. The benefic planetary aspects on your 5th house ensure that complex academic subjects, research concepts, and competitive curricula are absorbed with photographic clarity and poise with Venus (Shukra) blessings.\n\n$Under the auspicious disposition of ${h5Lord}, your analytical reasoning, creative problem-solving skills, and examination composure during competitive examinations are significantly magnified. Adhering to structured study timetables, minimizing digital distractions, and channeling your youthful vitality into purposeful scholastic pursuits will yield distinguished academic honours and competitive milestones. Cultivating calm inner confidence during entrance examinations transforms your hard work into top-tier institutional success.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 To awaken photographic recall, mental focus, and academic distinction, reciting the sacred Saraswati mantra ('Om Aim Saraswatyai Namah') alongside the Gayatri Mantra during morning dawn is highly recommended. Offering daily prayers to Lord Ganesha ensures that all academic hurdles are dissolved, paving the way for scholarly brilliance. Performing regular Surya Namaskars and keeping your study sanctum clean keeps your intellect luminous and energetic.` : `$In your birth chart, the 5th house (${h5Sign}) and 5th lord ${h5Lord} govern higher education, foundational intellect, intellectual acumen, memory retention, academic brilliance, and Poorva Punya. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period awaken vigorous cognitive stamina, scholastic discipline, and intellectual curiosity. The benefic planetary aspects on your 5th house ensure that complex academic subjects, research concepts, and competitive curricula are absorbed with photographic clarity and poise with Venus (Shukra) blessings.\n\n$Under the auspicious disposition of ${h5Lord}, your analytical reasoning, creative problem-solving skills, and examination composure during competitive examinations are significantly magnified. Adhering to structured study timetables, minimizing digital distractions, and channeling your youthful vitality into purposeful scholastic pursuits will yield distinguished academic honours and competitive milestones. Cultivating calm inner confidence during entrance examinations transforms your hard work into top-tier institutional success.`}`;
   }
 
   // Adult Native (22 to 59 Years): Seeking Progeny vs Has Children vs General
@@ -875,119 +775,59 @@ To awaken photographic recall, mental focus, and academic distinction, reciting 
     if (baseLang === "kn") {
       const locName = getLocalizedDevoteeName(chart.name, "kn");
       const salutation = locName ? `${locName} ಅವರೇ, ` : "";
-      return `${salutation}ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯೋಗವನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಬಹಳ ದಿನಗಳಿಂದ ಮಗುವಿನ ಆಗಮನಕ್ಕಾಗಿ ನೀವು ಮಾಡುತ್ತಿರುವ ಮೂಕ ಪ್ರಾರ್ಥನೆ, ಕಾಯುವಿಕೆಯ ತಲ್ಲಣ ಹಾಗೂ ಹಂಬಲವನ್ನು ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರವು ಸಂಪೂರ್ಣವಾಗಿ ಗೌರವಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ವಂಶಾಭಿವೃದ್ಧಿಯ ಶುಭ ಸಂಕೇತಗಳನ್ನು ಹೊತ್ತುತಂದಿದ್ದು, ಪಂಚಮ ಭಾವದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಬಲವು ನೈಸರ್ಗಿಕ ಗರ್ಭಧಾರಣೆಗೆ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾದ ದಿವ್ಯ ಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.
-
-ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಗೋಚಾರ ಸಂಚಾರ ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಶ್ರೇಷ್ಠ ಕಾಲಘಟ್ಟವನ್ನು ರೂಪಿಸುತ್ತಿದೆ. ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಗ್ರಹಗಳ ಈ ನಿಧಾನಗತಿಯು ನಿರಾಕರಣೆಯಲ್ಲ, ಬದಲಿಗೆ ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಶುದ್ಧೀಕರಣದ ಪ್ರಕ್ರಿಯೆಯಾಗಿದೆ. ಈ ಸೂಕ್ಷ್ಮ ಅವಧಿಯಲ್ಲಿ ದಂಪತಿಗಳು ಯಾವುದೇ ಕೀಳರಿಮೆ ಅಥವಾ ಹೊರಗಿನವರ ಮಾತುಗಳಿಂದ ವಿಚಲಿತರಾಗದೆ, ಪರಸ್ಪರ ಮಾನಸಿಕ ಧೈರ್ಯ ತುಂಬಿಕೊಳ್ಳುವುದು ಮತ್ತು ಸೂಕ್ತ ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಪೌಷ್ಟಿಕ ಜೀವನಶೈಲಿಯನ್ನು ಅನುಸರಿಸುವುದು ಶೀಘ್ರದಲ್ಲೇ ಧನಾತ್ಮಕ ಫಲಿತಾಂಶವನ್ನು ನೀಡಲಿದೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಯಿಂದಾಗಿ ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಮುದ್ದು ಕಂದನ ನಗುವಿನ ಸದ್ದು ಶೀಘ್ರದಲ್ಲೇ ಪ್ರತಿಧ್ವನಿಸಲಿದೆ.
-
-ಸಂತಾನ ಪ್ರಾಪ್ತಿಗೆ ಎದುರಾಗುವ ಯಾವುದೇ ಸೂಕ್ಷ್ಮ ಕರ್ಮದೋಷಗಳು ಅಥವಾ ಗ್ರಹಬಾಧೆಗಳ ನಿವಾರಣೆಗೆ ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಪತಿ-ಪತ್ನಿಯರಿಬ್ಬರೂ ಜೊತೆಯಾಗಿ 'ಓಂ ಕ್ಲೀಂ ದೇವಕೀಸುತ ಗೋವಿಂದ ವಾಸುದೇವ ಜಗತ್ಪತೇ, ದೇಹಿ ಮೇ ತನಯಂ ಕೃಷ್ಣ ತ್ವಾಮಹಂ ಶರಣಂ ಗತಃ' ಎಂಬ ಪವಿತ್ರ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಗೋಸೇವೆ (ಹಸುಗಳಿಗೆ ಬೆಲ್ಲ, ಕಡಲೆ ಅಥವಾ ಹಸಿರು ಹುಲ್ಲು ನೀಡುವುದು) ಮಾಡುವುದು ಅಪಾರ ಫಲ ನೀಡುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪವಿತ್ರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ ಹಾಗೂ ನಾಗದೋಷ ಶಾಂತಿ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರದಲ್ಲೇ ಆರೋಗ್ಯವಂತ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+      return `${chart.hasSantanaDosha ? `$${salutation}ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯೋಗವನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಬಹಳ ದಿನಗಳಿಂದ ಮಗುವಿನ ಆಗಮನಕ್ಕಾಗಿ ನೀವು ಮಾಡುತ್ತಿರುವ ಮೂಕ ಪ್ರಾರ್ಥನೆ, ಕಾಯುವಿಕೆಯ ತಲ್ಲಣ ಹಾಗೂ ಹಂಬಲವನ್ನು ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರವು ಸಂಪೂರ್ಣವಾಗಿ ಗೌರವಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ವಂಶಾಭಿವೃದ್ಧಿಯ ಶುಭ ಸಂಕೇತಗಳನ್ನು ಹೊತ್ತುತಂದಿದ್ದು, ಪಂಚಮ ಭಾವದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಬಲವು ನೈಸರ್ಗಿಕ ಗರ್ಭಧಾರಣೆಗೆ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾದ ದಿವ್ಯ ಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.\n\n$ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಗೋಚಾರ ಸಂಚಾರ ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಶ್ರೇಷ್ಠ ಕಾಲಘಟ್ಟವನ್ನು ರೂಪಿಸುತ್ತಿದೆ. ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಗ್ರಹಗಳ ಈ ನಿಧಾನಗತಿಯು ನಿರಾಕರಣೆಯಲ್ಲ, ಬದಲಿಗೆ ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಶುದ್ಧೀಕರಣದ ಪ್ರಕ್ರಿಯೆಯಾಗಿದೆ. ಈ ಸೂಕ್ಷ್ಮ ಅವಧಿಯಲ್ಲಿ ದಂಪತಿಗಳು ಯಾವುದೇ ಕೀಳರಿಮೆ ಅಥವಾ ಹೊರಗಿನವರ ಮಾತುಗಳಿಂದ ವಿಚಲಿತರಾಗದೆ, ಪರಸ್ಪರ ಮಾನಸಿಕ ಧೈರ್ಯ ತುಂಬಿಕೊಳ್ಳುವುದು ಮತ್ತು ಸೂಕ್ತ ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಪೌಷ್ಟಿಕ ಜೀವನಶೈಲಿಯನ್ನು ಅನುಸರಿಸುವುದು ಶೀಘ್ರದಲ್ಲೇ ಧನಾತ್ಮಕ ಫಲಿತಾಂಶವನ್ನು ನೀಡಲಿದೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಯಿಂದಾಗಿ ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಮುದ್ದು ಕಂದನ ನಗುವಿನ ಸದ್ದು ಶೀಘ್ರದಲ್ಲೇ ಪ್ರತಿಧ್ವನಿಸಲಿದೆ.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಸಂತಾನ ಪ್ರಾಪ್ತಿಗೆ ಎದುರಾಗುವ ಯಾವುದೇ ಸೂಕ್ಷ್ಮ ಕರ್ಮದೋಷಗಳು ಅಥವಾ ಗ್ರಹಬಾಧೆಗಳ ನಿವಾರಣೆಗೆ ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಪತಿ-ಪತ್ನಿಯರಿಬ್ಬರೂ ಜೊತೆಯಾಗಿ 'ಓಂ ಕ್ಲೀಂ ದೇವಕೀಸುತ ಗೋವಿಂದ ವಾಸುದೇವ ಜಗತ್ಪತೇ, ದೇಹಿ ಮೇ ತನಯಂ ಕೃಷ್ಣ ತ್ವಾಮಹಂ ಶರಣಂ ಗತಃ' ಎಂಬ ಪವಿತ್ರ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಗೋಸೇವೆ (ಹಸುಗಳಿಗೆ ಬೆಲ್ಲ, ಕಡಲೆ ಅಥವಾ ಹಸಿರು ಹುಲ್ಲು ನೀಡುವುದು) ಮಾಡುವುದು ಅಪಾರ ಫಲ ನೀಡುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪವಿತ್ರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ ಹಾಗೂ ನಾಗದೋಷ ಶಾಂತಿ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರದಲ್ಲೇ ಆರೋಗ್ಯವಂತ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.` : `$${salutation}ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯೊಂದಿಗೆ ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿ, ಚಂದ್ರ ಹಾಗೂ ಮಂಗಳ ಗ್ರಹಗಳ ಶುಭ ಪ್ರಭಾವವು ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯೋಗವನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಬಹಳ ದಿನಗಳಿಂದ ಮಗುವಿನ ಆಗಮನಕ್ಕಾಗಿ ನೀವು ಮಾಡುತ್ತಿರುವ ಮೂಕ ಪ್ರಾರ್ಥನೆ, ಕಾಯುವಿಕೆಯ ತಲ್ಲಣ ಹಾಗೂ ಹಂಬಲವನ್ನು ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರವು ಸಂಪೂರ್ಣವಾಗಿ ಗೌರವಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಕಾಲವು ವಂಶಾಭಿವೃದ್ಧಿಯ ಶುಭ ಸಂಕೇತಗಳನ್ನು ಹೊತ್ತುತಂದಿದ್ದು, ಪಂಚಮ ಭಾವದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಬಲವು ನೈಸರ್ಗಿಕ ಗರ್ಭಧಾರಣೆಗೆ ಹಾಗೂ ಸಂತಾನ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾದ ದಿವ್ಯ ಶಕ್ತಿಯನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.\n\n$ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಗೋಚಾರ ಸಂಚಾರ ಹಾಗೂ ಶುಭ ಗ್ರಹಗಳ ದೃಷ್ಟಿಯು ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನೋತ್ಪತ್ತಿಗೆ ಶ್ರೇಷ್ಠ ಕಾಲಘಟ್ಟವನ್ನು ರೂಪಿಸುತ್ತಿದೆ. ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಗ್ರಹಗಳ ಈ ನಿಧಾನಗತಿಯು ನಿರಾಕರಣೆಯಲ್ಲ, ಬದಲಿಗೆ ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಶುದ್ಧೀಕರಣದ ಪ್ರಕ್ರಿಯೆಯಾಗಿದೆ. ಈ ಸೂಕ್ಷ್ಮ ಅವಧಿಯಲ್ಲಿ ದಂಪತಿಗಳು ಯಾವುದೇ ಕೀಳರಿಮೆ ಅಥವಾ ಹೊರಗಿನವರ ಮಾತುಗಳಿಂದ ವಿಚಲಿತರಾಗದೆ, ಪರಸ್ಪರ ಮಾನಸಿಕ ಧೈರ್ಯ ತುಂಬಿಕೊಳ್ಳುವುದು ಮತ್ತು ಸೂಕ್ತ ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಪೌಷ್ಟಿಕ ಜೀವನಶೈಲಿಯನ್ನು ಅನುಸರಿಸುವುದು ಶೀಘ್ರದಲ್ಲೇ ಧನಾತ್ಮಕ ಫಲಿತಾಂಶವನ್ನು ನೀಡಲಿದೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಯಿಂದಾಗಿ ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಮುದ್ದು ಕಂದನ ನಗುವಿನ ಸದ್ದು ಶೀಘ್ರದಲ್ಲೇ ಪ್ರತಿಧ್ವನಿಸಲಿದೆ.`}`;
     }
     if (baseLang === "hi") {
       const locName = getLocalizedDevoteeName(chart.name, "hi");
       const salutation = locName ? `${locName} जी, ` : "";
-      return `${salutation}आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति के साथ संतानकारक देवगुरु बृहस्पति, चंद्र एवं मंगल का प्रभाव संतान प्राप्ति के दिव्य योग को पुष्ट करता है। आपके अंतर्मन में शिशु के आगमन की मौन प्रतीक्षा, व्याकुलता और गहन प्रार्थनाओं को वैदिक ज्योतिष पूर्ण आत्मीयता से स्वीकार करता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन में वंश वृद्धि और मातृत्व-पितृत्व के स्वर्णिम अवसरों को जागृत कर रहा है। पंचम भाव में सक्रिय ग्रह ऊर्जा गर्भधारण के लिए अत्यंत अनुकूल वातावरण निर्मित कर रही है।
-
-गोचर में देवगुरु बृहस्पति का शुभ भ्रमण और नवग्रहों की अनुकूल दृष्टि गर्भाधान तथा स्वास्थ्य संवर्धन के लिए एक सशक्त एवं सुरक्षित समय का निर्माण कर रही है। ज्योतिष में ग्रहों का विलंब किसी भी प्रकार का निषेध नहीं, अपितु शारीरिक और मानसिक पुनर्संतुलन की पावन अवधि है। इस संवेदनशील समय में बाहरी व्यक्तियों के प्रश्नों की उपेक्षा करते हुए पति-पत्नी एक-दूसरे का संबल बनें तथा नियमित चिकित्सीय परामर्श के साथ सात्विक जीवनचर्या अपनाएं। ग्रहों की अनुकूलता से आपके घर में नवजात शिशु की किलकारियां गूंजने का शुभ योग शीघ्र बन रहा है।
-
-संतान योग में आने वाली किसी भी सूक्ष्म बाधा या दोष के निवारणार्थ प्रतिदिन प्रातःकाल पति-पत्नी मिलकर 'ॐ क्लीं देवकीसुत गोविन्द वासुदेव जगत्पते । देहि मे तनयं कृष्ण त्वामहं शरणं गतः ॥' संतान गोपाल मंत्र का 108 बार श्रद्धापूर्वक जाप करें। प्रत्येक गुरुवार को शुद्ध गोघृत का दीपक जलाएं तथा गोमाता को गुड़ व हरा चारा खिलाकर गो-सेवा करें। इसके साथ ही गोಕರ್ण महाबलेश्वर अथवा बग्गोण क्षेत्र में सुब्रह्मण्य शांति एवं नागदोष निवारण पूजा संपन्न कराने से समस्त ग्रह बाधाएं शांत होकर शीघ्र ही स्वस्थ एवं तेजस्वी संतान का सुख प्राप्त होगा।`;
+      return `${chart.hasSantanaDosha ? `$${salutation}आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति के साथ संतानकारक देवगुरु बृहस्पति, चंद्र एवं मंगल का प्रभाव संतान प्राप्ति के दिव्य योग को पुष्ट करता है। आपके अंतर्मन में शिशु के आगमन की मौन प्रतीक्षा, व्याकुलता और गहन प्रार्थनाओं को वैदिक ज्योतिष पूर्ण आत्मीयता से स्वीकार करता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन में वंश वृद्धि और मातृत्व-पितृत्व के स्वर्णिम अवसरों को जागृत कर रहा है। पंचम भाव में सक्रिय ग्रह ऊर्जा गर्भधारण के लिए अत्यंत अनुकूल वातावरण निर्मित कर रही है।\n\n$गोचर में देवगुरु बृहस्पति का शुभ भ्रमण और नवग्रहों की अनुकूल दृष्टि गर्भाधान तथा स्वास्थ्य संवर्धन के लिए एक सशक्त एवं सुरक्षित समय का निर्माण कर रही है। ज्योतिष में ग्रहों का विलंब किसी भी प्रकार का निषेध नहीं, अपितु शारीरिक और मानसिक पुनर्संतुलन की पावन अवधि है। इस संवेदनशील समय में बाहरी व्यक्तियों के प्रश्नों की उपेक्षा करते हुए पति-पत्नी एक-दूसरे का संबल बनें तथा नियमित चिकित्सीय परामर्श के साथ सात्विक जीवनचर्या अपनाएं। ग्रहों की अनुकूलता से आपके घर में नवजात शिशु की किलकारियां गूंजने का शुभ योग शीघ्र बन रहा है।\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 संतान योग में आने वाली किसी भी सूक्ष्म बाधा या दोष के निवारणार्थ प्रतिदिन प्रातःकाल पति-पत्नी मिलकर 'ॐ क्लीं देवकीसुत गोविन्द वासुदेव जगत्पते । देहि मे तनयं कृष्ण त्वामहं शरणं गतः ॥' संतान गोपाल मंत्र का 108 बार श्रद्धापूर्वक जाप करें। प्रत्येक गुरुवार को शुद्ध गोघृत का दीपक जलाएं तथा गोमाता को गुड़ व हरा चारा खिलाकर गो-सेवा करें। इसके साथ ही गोಕರ್ण महाबलेश्वर अथवा बग्गोण क्षेत्र में सुब्रह्मण्य शांति एवं नागदोष निवारण पूजा संपन्न कराने से समस्त ग्रह बाधाएं शांत होकर शीघ्र ही स्वस्थ एवं तेजस्वी संतान का सुख प्राप्त होगा।` : `$${salutation}आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति के साथ संतानकारक देवगुरु बृहस्पति, चंद्र एवं मंगल का प्रभाव संतान प्राप्ति के दिव्य योग को पुष्ट करता है। आपके अंतर्मन में शिशु के आगमन की मौन प्रतीक्षा, व्याकुलता और गहन प्रार्थनाओं को वैदिक ज्योतिष पूर्ण आत्मीयता से स्वीकार करता है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन में वंश वृद्धि और मातृत्व-पितृत्व के स्वर्णिम अवसरों को जागृत कर रहा है। पंचम भाव में सक्रिय ग्रह ऊर्जा गर्भधारण के लिए अत्यंत अनुकूल वातावरण निर्मित कर रही है।\n\n$गोचर में देवगुरु बृहस्पति का शुभ भ्रमण और नवग्रहों की अनुकूल दृष्टि गर्भाधान तथा स्वास्थ्य संवर्धन के लिए एक सशक्त एवं सुरक्षित समय का निर्माण कर रही है। ज्योतिष में ग्रहों का विलंब किसी भी प्रकार का निषेध नहीं, अपितु शारीरिक और मानसिक पुनर्संतुलन की पावन अवधि है। इस संवेदनशील समय में बाहरी व्यक्तियों के प्रश्नों की उपेक्षा करते हुए पति-पत्नी एक-दूसरे का संबल बनें तथा नियमित चिकित्सीय परामर्श के साथ सात्विक जीवनचर्या अपनाएं। ग्रहों की अनुकूलता से आपके घर में नवजात शिशु की किलकारियां गूंजने का शुभ योग शीघ्र बन रहा है।`}`;
     }
     if (baseLang === "te") {
       const locName = getLocalizedDevoteeName(chart.name, "te");
       const salutation = locName ? `${locName} గారూ, ` : "";
-      return `${salutation}మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} శుభ స్థితితో పాటు పుత్రకారక బృహస్పతి, చంద్ర మరియు కుజ గ్రహాల ప్రభావం సంతాన ప్రాప్తి యోగాన్ని దృఢపరుస్తున్నాయి. మీ హృదయంలో పసిపాప రాకకై ఎంతో కాలంగా ఎదురుచూస్తున్న నిశ్శబ్ద ఆరాటం, నిరీక్షణ మరియు భక్తిపూర్వక ప్రార్థనలను జ్యోతిషశాస్త్రం అత్యంత గౌరవంతో వీక్షిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వంశాభివృద్ధికి మరియు గర్భధారణకు అనుకూలమైన శక్తిని మీ జాతకంలో మేల్కొల్పుతోంది.
-
-గోచారంలో గురు భగవానుని అనుకూల సంచారం గర్భధారణకు మరియు శారీరక పుష్టికి అత్యంత బలమైన కాలాన్ని నిర్మిస్తోంది. జ్యోతిషశాస్త్రంలో గ్రహాల తాత్కాలిక ఆలస్యం నిరాకరణ కాదు, అది శరీర మనస్సుల పరిశుద్ధతకు సమయం మాత్రమే. ఈ సున్నితమైన సమయంలో ఇతరుల ప్రశ్నలకు కలవరపడకుండా, దంపతులిద్దరూ ఒకరికొకరు మానసిక ధైర్యంగా నిలుస్తూ, వైద్య సలహాలు మరియు పౌష్టికాహారాన్ని పాటించడం త్వరలోనే సత్ఫలితాలను ఇస్తుంది. దైవానుగ్రహంతో మీ ఇంట పసిపాప నవ్వులు వెల్లివిరిసే శుభ ఘడియలు సమీపిస్తున్నాయి.
-
-సంతాన ప్రాప్తికి అడ్డంకిగా ఉన్న సూక్ష్మ దోషాల నివారణకు ప్రతిరోజూ ఉదయం దంపతులిద్దరూ కలిసి 'ఓం క్లీం దేవకీసుత గోవింద వాసుదేవ జగత్పతే । దేహి మే తనయం కృష్ణ త్వామహం శరణం గతః ॥' అనే పవిత్ర సంతాన గోపాల మంత్రాన్ని 108 సార్లు జపించండి. ప్రతి గురువారం ఆవు నెయ్యితో దీపం వెలిగించి, ఆవులకు బెల్లం లేదా పచ్చగడ్డి తినిపించి గోసేవ చేయడం అద్భుత ఫలితాలనిస్తుంది. గోకర్ణ మహాబలేశ్వర లేదా బగ్గోణ క్షేత్రంలో సుబ్రహ్మణ్య స్వామి పూజ మరియు నాగదోష శాంతి జరిపించడం వలన సమస్త విఘ్నాలు తొలగి త్వరలోనే ఆరోగ్యవంతమైన సంతానం కలుగుతుంది.`;
+      return `${chart.hasSantanaDosha ? `$${salutation}మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} శుభ స్థితితో పాటు పుత్రకారక బృహస్పతి, చంద్ర మరియు కుజ గ్రహాల ప్రభావం సంతాన ప్రాప్తి యోగాన్ని దృఢపరుస్తున్నాయి. మీ హృదయంలో పసిపాప రాకకై ఎంతో కాలంగా ఎదురుచూస్తున్న నిశ్శబ్ద ఆరాటం, నిరీక్షణ మరియు భక్తిపూర్వక ప్రార్థనలను జ్యోతిషశాస్త్రం అత్యంత గౌరవంతో వీక్షిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వంశాభివృద్ధికి మరియు గర్భధారణకు అనుకూలమైన శక్తిని మీ జాతకంలో మేల్కొల్పుతోంది.\n\n$గోచారంలో గురు భగవానుని అనుకూల సంచారం గర్భధారణకు మరియు శారీరక పుష్టికి అత్యంత బలమైన కాలాన్ని నిర్మిస్తోంది. జ్యోతిషశాస్త్రంలో గ్రహాల తాత్కాలిక ఆలస్యం నిరాకరణ కాదు, అది శరీర మనస్సుల పరిశుద్ధతకు సమయం మాత్రమే. ఈ సున్నితమైన సమయంలో ఇతరుల ప్రశ్నలకు కలవరపడకుండా, దంపతులిద్దరూ ఒకరికొకరు మానసిక ధైర్యంగా నిలుస్తూ, వైద్య సలహాలు మరియు పౌష్టికాహారాన్ని పాటించడం త్వరలోనే సత్ఫలితాలను ఇస్తుంది. దైవానుగ్రహంతో మీ ఇంట పసిపాప నవ్వులు వెల్లివిరిసే శుభ ఘడియలు సమీపిస్తున్నాయి.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 సంతాన ప్రాప్తికి అడ్డంకిగా ఉన్న సూక్ష్మ దోషాల నివారణకు ప్రతిరోజూ ఉదయం దంపతులిద్దరూ కలిసి 'ఓం క్లీం దేవకీసుత గోవింద వాసుదేవ జగత్పతే । దేహి మే తనయం కృష్ణ త్వామహం శరణం గతః ॥' అనే పవిత్ర సంతాన గోపాల మంత్రాన్ని 108 సార్లు జపించండి. ప్రతి గురువారం ఆవు నెయ్యితో దీపం వెలిగించి, ఆవులకు బెల్లం లేదా పచ్చగడ్డి తినిపించి గోసేవ చేయడం అద్భుత ఫలితాలనిస్తుంది. గోకర్ణ మహాబలేశ్వర లేదా బగ్గోణ క్షేత్రంలో సుబ్రహ్మణ్య స్వామి పూజ మరియు నాగదోష శాంతి జరిపించడం వలన సమస్త విఘ్నాలు తొలగి త్వరలోనే ఆరోగ్యవంతమైన సంతానం కలుగుతుంది.` : `$${salutation}మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} శుభ స్థితితో పాటు పుత్రకారక బృహస్పతి, చంద్ర మరియు కుజ గ్రహాల ప్రభావం సంతాన ప్రాప్తి యోగాన్ని దృఢపరుస్తున్నాయి. మీ హృదయంలో పసిపాప రాకకై ఎంతో కాలంగా ఎదురుచూస్తున్న నిశ్శబ్ద ఆరాటం, నిరీక్షణ మరియు భక్తిపూర్వక ప్రార్థనలను జ్యోతిషశాస్త్రం అత్యంత గౌరవంతో వీక్షిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వంశాభివృద్ధికి మరియు గర్భధారణకు అనుకూలమైన శక్తిని మీ జాతకంలో మేల్కొల్పుతోంది.\n\n$గోచారంలో గురు భగవానుని అనుకూల సంచారం గర్భధారణకు మరియు శారీరక పుష్టికి అత్యంత బలమైన కాలాన్ని నిర్మిస్తోంది. జ్యోతిషశాస్త్రంలో గ్రహాల తాత్కాలిక ఆలస్యం నిరాకరణ కాదు, అది శరీర మనస్సుల పరిశుద్ధతకు సమయం మాత్రమే. ఈ సున్నితమైన సమయంలో ఇతరుల ప్రశ్నలకు కలవరపడకుండా, దంపతులిద్దరూ ఒకరికొకరు మానసిక ధైర్యంగా నిలుస్తూ, వైద్య సలహాలు మరియు పౌష్టికాహారాన్ని పాటించడం త్వరలోనే సత్ఫలితాలను ఇస్తుంది. దైవానుగ్రహంతో మీ ఇంట పసిపాప నవ్వులు వెల్లివిరిసే శుభ ఘడియలు సమీపిస్తున్నాయి.`}`;
     }
     if (baseLang === "ta") {
       const locName = getLocalizedDevoteeName(chart.name, "ta");
       const salutation = locName ? `${locName} அவர்களே, ` : "";
-      return `${salutation}உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் சந்தானகாரக குருவின் சுப பார்வை வம்ச விருத்தி மற்றும் குழந்தை பாக்கிய யோகத்தை பலப்படுத்துகிறது. உங்கள் மனதில் மழலைச் செல்வத்தின் வருகைக்காக இருக்கும் நீண்ட நாள் ஆசை, எதிர்பார்ப்பு மற்றும் மனப்பூர்வமான பிரார்த்தனைகளை ஜோதிட சாஸ்திரம் ஆழமாக உணர்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் மழலைச் செல்வம் பெற சாதகமான நல்வாய்ப்புகளை உருவாக்கித் தருகிறது. 5-ம் பாவத்தில் சுப கிரகங்களின் ஆற்றல் தாயாகும் மற்றும் தந்தையாகும் வரத்தை அளிக்கத் தயாராக உள்ளது.
-
-கோசாரத்தில் குரு பகவானின் அனுகூலமான சஞ்சாரம் கருத்தரிப்புக்கும் நல்ல உடல் ஆரோக்கியத்திற்கும் ஏற்ற காலத்தை உருவாக்குகிறது. சாஸ்திர ரீதியாக இந்த தாமதம் ஒரு மனப்பக்குவத்திற்கான காலமே தவிர நிராகரிப்பு அல்ல. இக்காலகட்டத்தில் மற்றவர்களின் கேள்விகளுக்கு மனமுடைந்து போகாமல், தம்பதியர் ஒருவருக்கொருவர் பக்கபலமாக இருந்து, தகுந்த மருத்துவ ஆலோசனைகள் மற்றும் ஆரோக்கியமான உணவு முறையைக் கடைப்பிடிப்பது விரைவில் நல்ல பலனைத் தரும். குருவின் திருவருளால் உங்கள் இல்லத்தில் மழலை குரல் கேட்கும் சுப யோகம் விரைவில் கைகூடும்.
-
-குழந்தைப் பேற்றுக்கு ஏற்படும் தடைகள் மற்றும் தோஷங்கள் நீங்க தினமும் 'ஓம் க்லீம் தேவகீசுத கோவிந்த வாசுதேவ ஜகத்பதே । தேஹி மே தனயம் கிருஷ்ண த்வாமஹம் சரணம் கத: ॥' என்ற ஸ்ரீ சந்தான கோபால மந்திரத்தை 108 முறை கணவன்-மனைவி இருவரும் சேர்ந்து ஜபிக்கவும். வியாழக்கிழமைகளில் இல்லத்தில் பசு நெய் தீபமேற்றி, பசுவிற்கு அகத்திக்கீரை அல்லது வெல்லம் கொடுத்து பசு சேவை செய்வது பெரும் புண்ணியம் தரும். கோகர்ணம் அல்லது பக்கோண திருத்தலத்தில் சுப்பிரமணிய பூஜை மற்றும் நாக சாந்தி செய்து வழிபட்டால் சர்வ தடைகளும் நீங்கி விரைவில் மழலை பாக்கியம் கிட்டும்.`;
+      return `${chart.hasSantanaDosha ? `$${salutation}உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் சந்தானகாரக குருவின் சுப பார்வை வம்ச விருத்தி மற்றும் குழந்தை பாக்கிய யோகத்தை பலப்படுத்துகிறது. உங்கள் மனதில் மழலைச் செல்வத்தின் வருகைக்காக இருக்கும் நீண்ட நாள் ஆசை, எதிர்பார்ப்பு மற்றும் மனப்பூர்வமான பிரார்த்தனைகளை ஜோதிட சாஸ்திரம் ஆழமாக உணர்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் மழலைச் செல்வம் பெற சாதகமான நல்வாய்ப்புகளை உருவாக்கித் தருகிறது. 5-ம் பாவத்தில் சுப கிரகங்களின் ஆற்றல் தாயாகும் மற்றும் தந்தையாகும் வரத்தை அளிக்கத் தயாராக உள்ளது.\n\n$கோசாரத்தில் குரு பகவானின் அனுகூலமான சஞ்சாரம் கருத்தரிப்புக்கும் நல்ல உடல் ஆரோக்கியத்திற்கும் ஏற்ற காலத்தை உருவாக்குகிறது. சாஸ்திர ரீதியாக இந்த தாமதம் ஒரு மனப்பக்குவத்திற்கான காலமே தவிர நிராகரிப்பு அல்ல. இக்காலகட்டத்தில் மற்றவர்களின் கேள்விகளுக்கு மனமுடைந்து போகாமல், தம்பதியர் ஒருவருக்கொருவர் பக்கபலமாக இருந்து, தகுந்த மருத்துவ ஆலோசனைகள் மற்றும் ஆரோக்கியமான உணவு முறையைக் கடைப்பிடிப்பது விரைவில் நல்ல பலனைத் தரும். குருவின் திருவருளால் உங்கள் இல்லத்தில் மழலை குரல் கேட்கும் சுப யோகம் விரைவில் கைகூடும்.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 குழந்தைப் பேற்றுக்கு ஏற்படும் தடைகள் மற்றும் தோஷங்கள் நீங்க தினமும் 'ஓம் க்லீம் தேவகீசுத கோவிந்த வாசுதேவ ஜகத்பதே । தேஹி மே தனயம் கிருஷ்ண த்வாமஹம் சரணம் கத: ॥' என்ற ஸ்ரீ சந்தான கோபால மந்திரத்தை 108 முறை கணவன்-மனைவி இருவரும் சேர்ந்து ஜபிக்கவும். வியாழக்கிழமைகளில் இல்லத்தில் பசு நெய் தீபமேற்றி, பசுவிற்கு அகத்திக்கீரை அல்லது வெல்லம் கொடுத்து பசு சேவை செய்வது பெரும் புண்ணியம் தரும். கோகர்ணம் அல்லது பக்கோண திருத்தலத்தில் சுப்பிரமணிய பூஜை மற்றும் நாக சாந்தி செய்து வழிபட்டால் சர்வ தடைகளும் நீங்கி விரைவில் மழலை பாக்கியம் கிட்டும்.` : `$${salutation}உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் சந்தானகாரக குருவின் சுப பார்வை வம்ச விருத்தி மற்றும் குழந்தை பாக்கிய யோகத்தை பலப்படுத்துகிறது. உங்கள் மனதில் மழலைச் செல்வத்தின் வருகைக்காக இருக்கும் நீண்ட நாள் ஆசை, எதிர்பார்ப்பு மற்றும் மனப்பூர்வமான பிரார்த்தனைகளை ஜோதிட சாஸ்திரம் ஆழமாக உணர்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் மழலைச் செல்வம் பெற சாதகமான நல்வாய்ப்புகளை உருவாக்கித் தருகிறது. 5-ம் பாவத்தில் சுப கிரகங்களின் ஆற்றல் தாயாகும் மற்றும் தந்தையாகும் வரத்தை அளிக்கத் தயாராக உள்ளது.\n\n$கோசாரத்தில் குரு பகவானின் அனுகூலமான சஞ்சாரம் கருத்தரிப்புக்கும் நல்ல உடல் ஆரோக்கியத்திற்கும் ஏற்ற காலத்தை உருவாக்குகிறது. சாஸ்திர ரீதியாக இந்த தாமதம் ஒரு மனப்பக்குவத்திற்கான காலமே தவிர நிராகரிப்பு அல்ல. இக்காலகட்டத்தில் மற்றவர்களின் கேள்விகளுக்கு மனமுடைந்து போகாமல், தம்பதியர் ஒருவருக்கொருவர் பக்கபலமாக இருந்து, தகுந்த மருத்துவ ஆலோசனைகள் மற்றும் ஆரோக்கியமான உணவு முறையைக் கடைப்பிடிப்பது விரைவில் நல்ல பலனைத் தரும். குருவின் திருவருளால் உங்கள் இல்லத்தில் மழலை குரல் கேட்கும் சுப யோகம் விரைவில் கைகூடும்.`}`;
     }
     const salutation = chart.name ? `Dear ${chart.name}, ` : "";
-    return `${salutation}In your birth chart, the 5th house (${h5Sign}) and 5th lord ${h5Lord} placed in ${h5Where}, along with Putrakaraka Jupiter's benefic disposition in ${jupWhere}, signify strong Santana Yoga (progeny blessings). Vedic astrology deeply understands and honours the quiet emotional longing, private prayers, and tender vulnerability you carry in your heart as you await the arrival of a child. Lineage continuity and creative fruitions are rooted in your Poorva Punya, and your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period actively activate the reproductive and generative houses, creating an auspicious astrological window for conception and parental fulfillment.
-
-The auspicious live transits of Jupiter and supportive planetary aspects establish a fertile and protected window for physical wellbeing, vitality, and conception. In authentic Jyotisha, temporary planetary delays are not denials, but periods of energetic recalibration. During this sensitive phase, safeguarding yourselves from external inquiries, standing united as an unwavering emotional anchor for each other, and combining medical consultations with nourishing lifestyle rhythms will yield exceptionally positive and timely outcomes. With planetary alignments turning favorable, the sacred joy of welcoming a newborn into your home is strongly indicated.
-
-To eliminate subtle energetic blockages or karmic delays, the daily joint recitation of the sacred Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times during the morning hour is deeply transformative. Lighting a pure cow ghee lamp every Thursday and performing Gau-seva (feeding jaggery, chickpeas, or fresh grass to cows) invites immense parental grace. Additionally, sponsoring a Subramanya Pooja or Naga Dosha Nivarana at Gokarna Mahabaleshwara Kshetra and seeking the divine blessings of Baggona Kshetra will harmonize all cosmic vibrations, granting early, healthy, and blessed progeny.`;
+    return `${chart.hasSantanaDosha ? `$${salutation}In your birth chart, the 5th house (${h5Sign}) and 5th lord ${h5Lord} placed in ${h5Where}, along with Putrakaraka Jupiter's benefic disposition in ${jupWhere}, signify strong Santana Yoga (progeny blessings). Vedic astrology deeply understands and honours the quiet emotional longing, private prayers, and tender vulnerability you carry in your heart as you await the arrival of a child. Lineage continuity and creative fruitions are rooted in your Poorva Punya, and your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period actively activate the reproductive and generative houses, creating an auspicious astrological window for conception and parental fulfillment.\n\n$The auspicious live transits of Jupiter and supportive planetary aspects establish a fertile and protected window for physical wellbeing, vitality, and conception. In authentic Jyotisha, temporary planetary delays are not denials, but periods of energetic recalibration. During this sensitive phase, safeguarding yourselves from external inquiries, standing united as an unwavering emotional anchor for each other, and combining medical consultations with nourishing lifestyle rhythms will yield exceptionally positive and timely outcomes. With planetary alignments turning favorable, the sacred joy of welcoming a newborn into your home is strongly indicated.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 To eliminate subtle energetic blockages or karmic delays, the daily joint recitation of the sacred Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times during the morning hour is deeply transformative. Lighting a pure cow ghee lamp every Thursday and performing Gau-seva (feeding jaggery, chickpeas, or fresh grass to cows) invites immense parental grace. Additionally, sponsoring a Subramanya Pooja or Naga Dosha Nivarana at Gokarna Mahabaleshwara Kshetra and seeking the divine blessings of Baggona Kshetra will harmonize all cosmic vibrations, granting early, healthy, and blessed progeny.` : `$${salutation}In your birth chart, the 5th house (${h5Sign}) and 5th lord ${h5Lord} placed in ${h5Where}, along with Putrakaraka Jupiter's benefic disposition in ${jupWhere}, signify strong Santana Yoga (progeny blessings). Vedic astrology deeply understands and honours the quiet emotional longing, private prayers, and tender vulnerability you carry in your heart as you await the arrival of a child. Lineage continuity and creative fruitions are rooted in your Poorva Punya, and your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period actively activate the reproductive and generative houses, creating an auspicious astrological window for conception and parental fulfillment.\n\n$The auspicious live transits of Jupiter and supportive planetary aspects establish a fertile and protected window for physical wellbeing, vitality, and conception. In authentic Jyotisha, temporary planetary delays are not denials, but periods of energetic recalibration. During this sensitive phase, safeguarding yourselves from external inquiries, standing united as an unwavering emotional anchor for each other, and combining medical consultations with nourishing lifestyle rhythms will yield exceptionally positive and timely outcomes. With planetary alignments turning favorable, the sacred joy of welcoming a newborn into your home is strongly indicated.`}`;
   } else if (status === "has_children") {
     if (baseLang === "kn") {
-      return `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದು ಮಕ್ಕಳ ಶೈಕ್ಷಣಿಕ, ಬೌದ್ಧಿಕ ಹಾಗೂ ಸೃಜನಶೀಲ ರಂಗಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಪ್ರತಿಭೆ ಮತ್ತು ಸಾಧನೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಅವರಲ್ಲಿ ನೈಸರ್ಗಿಕ ಜ್ಞಾನದಾಹ, ಸನ್ನಡತೆ ಹಾಗೂ ಉನ್ನತ ಸಂಸ್ಕಾರವನ್ನು ನೆಲೆನಿಲ್ಲಿಸುತ್ತದೆ. ಮಕ್ಕಳ ತೀಕ್ಷ್ಣ ಗ್ರಹಣಶಕ್ತಿ, ಶಿಸ್ತುಬದ್ಧ ಪರಿಶ್ರಮ ಹಾಗೂ ಸ್ವತಂತ್ರ ಚಿಂತನೆಯು ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಸಮಾಜದಲ್ಲಿ ಉನ್ನತೀಕರಿಸಲಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಮಕ್ಕಳ ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸಕ್ಕೆ ಹಾಗೂ ಅವರ ನೈತಿಕ ಬೆಳವಣಿಗೆಗೆ ಅದ್ಭುತ ಸಹಕಾರವನ್ನು ನೀಡಲಿದೆ.
-
-ಮಕ್ಕಳ ಉನ್ನತ ಶಿಕ್ಷಣ, ಕ್ರೀಡೆ, ಕಲೆ ಹಾಗೂ ವೃತ್ತಿಜೀವನದ ಮಹತ್ವದ ಹಂತಗಳಲ್ಲಿ ಪೋಷಕರಾಗಿ ನಿಮ್ಮ ವಾತ್ಸಲ್ಯಪೂರ್ಣ ಮಾರ್ಗದರ್ಶನವು ಪ್ರಮುಖ ಪಾತ್ರ ವಹಿಸಲಿದೆ. ಅವರ ಸುಪ್ತ ಪ್ರತಿಭೆಗಳನ್ನು ಗುರುತಿಸಿ ಪ್ರೋತ್ಸಾಹಿಸುವುದು ಅವರ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸುತ್ತದೆ. ಮಕ್ಕಳೊಂದಿಗೆ ಮುಕ್ತ ಮತ್ತು ಸ್ನೇಹಪರ ಸಂಭಾಷಣೆ ನಡೆಸುವುದು ಅವರ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ಕಾಪಾಡುತ್ತದೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಸಾಧನೆಗಳಿಗೆ ಗಟ್ಟಿ ಅಡಿಪಾಯ ಹಾಕುತ್ತದೆ. ಕಾಲಕಾಲಕ್ಕೆ ಎದುರಾಗುವ ಸಣ್ಣಪುಟ್ಟ ಶೈಕ್ಷಣಿಕ ಗೊಂದಲಗಳನ್ನು ಸಂಯಮದಿಂದ ನಿಭಾಯಿಸುವುದು ಅವರಲ್ಲಿ ಜವಾಬ್ದಾರಿಯುತ ನಾಯಕತ್ವ ಗುಣಗಳನ್ನು ಬೆಳೆಸಲಿದೆ.
-
-ಮಕ್ಕಳ ಸಕಲ ವಿದ್ಯಾಭ್ಯಾಸದ ಜಯ, ಏಕಾಗ್ರತೆ, ಉತ್ತಮ ಆರೋಗ್ಯ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯಕ್ಕಾಗಿ ಮನೆಯಲ್ಲಿ ಶ್ರೀ ಸರಸ್ವತಿ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಾರಾಯಣ ಮಾಡಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ. ಮಕ್ಕಳಿಗೆ ಪ್ರಾತಃಕಾಲ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸುವ ಅಭ್ಯಾಸ ಮಾಡಿಸುವುದು ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆಯಲು ಪ್ರೇರೇಪಿಸುವುದು ಅವರ ಭವಿಷ್ಯವನ್ನು ಸದಾ ಉಜ್ವಲವಾಗಿಡಲಿದೆ. ಗೋಕರ್ಣ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಕ್ಕಳ ಹೆಸರಿನಲ್ಲಿ ಸಂಕಲ್ಪ ಸೇವೆ ಸಲ್ಲಿಸುವುದು ಅವರಿಗೆ ನಿರಂತರ ದೈವಿಕ ರಕ್ಷೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`;
+      return `${chart.hasSantanaDosha ? `$ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದು ಮಕ್ಕಳ ಶೈಕ್ಷಣಿಕ, ಬೌದ್ಧಿಕ ಹಾಗೂ ಸೃಜನಶೀಲ ರಂಗಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಪ್ರತಿಭೆ ಮತ್ತು ಸಾಧನೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಅವರಲ್ಲಿ ನೈಸರ್ಗಿಕ ಜ್ಞಾನದಾಹ, ಸನ್ನಡತೆ ಹಾಗೂ ಉನ್ನತ ಸಂಸ್ಕಾರವನ್ನು ನೆಲೆನಿಲ್ಲಿಸುತ್ತದೆ. ಮಕ್ಕಳ ತೀಕ್ಷ್ಣ ಗ್ರಹಣಶಕ್ತಿ, ಶಿಸ್ತುಬದ್ಧ ಪರಿಶ್ರಮ ಹಾಗೂ ಸ್ವತಂತ್ರ ಚಿಂತನೆಯು ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಸಮಾಜದಲ್ಲಿ ಉನ್ನತೀಕರಿಸಲಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಮಕ್ಕಳ ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸಕ್ಕೆ ಹಾಗೂ ಅವರ ನೈತಿಕ ಬೆಳವಣಿಗೆಗೆ ಅದ್ಭುತ ಸಹಕಾರವನ್ನು ನೀಡಲಿದೆ.\n\n$ಮಕ್ಕಳ ಉನ್ನತ ಶಿಕ್ಷಣ, ಕ್ರೀಡೆ, ಕಲೆ ಹಾಗೂ ವೃತ್ತಿಜೀವನದ ಮಹತ್ವದ ಹಂತಗಳಲ್ಲಿ ಪೋಷಕರಾಗಿ ನಿಮ್ಮ ವಾತ್ಸಲ್ಯಪೂರ್ಣ ಮಾರ್ಗದರ್ಶನವು ಪ್ರಮುಖ ಪಾತ್ರ ವಹಿಸಲಿದೆ. ಅವರ ಸುಪ್ತ ಪ್ರತಿಭೆಗಳನ್ನು ಗುರುತಿಸಿ ಪ್ರೋತ್ಸಾಹಿಸುವುದು ಅವರ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸುತ್ತದೆ. ಮಕ್ಕಳೊಂದಿಗೆ ಮುಕ್ತ ಮತ್ತು ಸ್ನೇಹಪರ ಸಂಭಾಷಣೆ ನಡೆಸುವುದು ಅವರ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ಕಾಪಾಡುತ್ತದೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಸಾಧನೆಗಳಿಗೆ ಗಟ್ಟಿ ಅಡಿಪಾಯ ಹಾಕುತ್ತದೆ. ಕಾಲಕಾಲಕ್ಕೆ ಎದುರಾಗುವ ಸಣ್ಣಪುಟ್ಟ ಶೈಕ್ಷಣಿಕ ಗೊಂದಲಗಳನ್ನು ಸಂಯಮದಿಂದ ನಿಭಾಯಿಸುವುದು ಅವರಲ್ಲಿ ಜವಾಬ್ದಾರಿಯುತ ನಾಯಕತ್ವ ಗುಣಗಳನ್ನು ಬೆಳೆಸಲಿದೆ.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಮಕ್ಕಳ ಸಕಲ ವಿದ್ಯಾಭ್ಯಾಸದ ಜಯ, ಏಕಾಗ್ರತೆ, ಉತ್ತಮ ಆರೋಗ್ಯ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯಕ್ಕಾಗಿ ಮನೆಯಲ್ಲಿ ಶ್ರೀ ಸರಸ್ವತಿ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಾರಾಯಣ ಮಾಡಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ. ಮಕ್ಕಳಿಗೆ ಪ್ರಾತಃಕಾಲ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸುವ ಅಭ್ಯಾಸ ಮಾಡಿಸುವುದು ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆಯಲು ಪ್ರೇರೇಪಿಸುವುದು ಅವರ ಭವಿಷ್ಯವನ್ನು ಸದಾ ಉಜ್ವಲವಾಗಿಡಲಿದೆ. ಗೋಕರ್ಣ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಕ್ಕಳ ಹೆಸರಿನಲ್ಲಿ ಸಂಕಲ್ಪ ಸೇವೆ ಸಲ್ಲಿಸುವುದು ಅವರಿಗೆ ನಿರಂತರ ದೈವಿಕ ರಕ್ಷೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.` : `$ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ಸ್ಥಿತವಾಗಿರುವುದು ಮಕ್ಕಳ ಶೈಕ್ಷಣಿಕ, ಬೌದ್ಧಿಕ ಹಾಗೂ ಸೃಜನಶೀಲ ರಂಗಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಪ್ರತಿಭೆ ಮತ್ತು ಸಾಧನೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಪುತ್ರಕಾರಕ ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ಅವರಲ್ಲಿ ನೈಸರ್ಗಿಕ ಜ್ಞಾನದಾಹ, ಸನ್ನಡತೆ ಹಾಗೂ ಉನ್ನತ ಸಂಸ್ಕಾರವನ್ನು ನೆಲೆನಿಲ್ಲಿಸುತ್ತದೆ. ಮಕ್ಕಳ ತೀಕ್ಷ್ಣ ಗ್ರಹಣಶಕ್ತಿ, ಶಿಸ್ತುಬದ್ಧ ಪರಿಶ್ರಮ ಹಾಗೂ ಸ್ವತಂತ್ರ ಚಿಂತನೆಯು ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಸಮಾಜದಲ್ಲಿ ಉನ್ನತೀಕರಿಸಲಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಮಕ್ಕಳ ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸಕ್ಕೆ ಹಾಗೂ ಅವರ ನೈತಿಕ ಬೆಳವಣಿಗೆಗೆ ಅದ್ಭುತ ಸಹಕಾರವನ್ನು ನೀಡಲಿದೆ.\n\n$ಮಕ್ಕಳ ಉನ್ನತ ಶಿಕ್ಷಣ, ಕ್ರೀಡೆ, ಕಲೆ ಹಾಗೂ ವೃತ್ತಿಜೀವನದ ಮಹತ್ವದ ಹಂತಗಳಲ್ಲಿ ಪೋಷಕರಾಗಿ ನಿಮ್ಮ ವಾತ್ಸಲ್ಯಪೂರ್ಣ ಮಾರ್ಗದರ್ಶನವು ಪ್ರಮುಖ ಪಾತ್ರ ವಹಿಸಲಿದೆ. ಅವರ ಸುಪ್ತ ಪ್ರತಿಭೆಗಳನ್ನು ಗುರುತಿಸಿ ಪ್ರೋತ್ಸಾಹಿಸುವುದು ಅವರ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸುತ್ತದೆ. ಮಕ್ಕಳೊಂದಿಗೆ ಮುಕ್ತ ಮತ್ತು ಸ್ನೇಹಪರ ಸಂಭಾಷಣೆ ನಡೆಸುವುದು ಅವರ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ಕಾಪಾಡುತ್ತದೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಸಾಧನೆಗಳಿಗೆ ಗಟ್ಟಿ ಅಡಿಪಾಯ ಹಾಕುತ್ತದೆ. ಕಾಲಕಾಲಕ್ಕೆ ಎದುರಾಗುವ ಸಣ್ಣಪುಟ್ಟ ಶೈಕ್ಷಣಿಕ ಗೊಂದಲಗಳನ್ನು ಸಂಯಮದಿಂದ ನಿಭಾಯಿಸುವುದು ಅವರಲ್ಲಿ ಜವಾಬ್ದಾರಿಯುತ ನಾಯಕತ್ವ ಗುಣಗಳನ್ನು ಬೆಳೆಸಲಿದೆ.`}`;
     }
     if (baseLang === "hi") {
-      return `आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति तथा देवगुरु बृहस्पति के शुभ प्रभाव से बच्चों के बौद्धिक विकास, उच्च शिक्षा और रचनात्मक क्षेत्रों में सराहनीय उन्नति के प्रबल योग हैं। उनका स्वाभाविक अनुशासन, तीव्र स्मरण शक्ति और संस्कारी स्वभाव परिवार का नाम रोशन करेगा। वे विद्या और व्यावहारिक ज्ञान दोनों में निपुण होकर समाज में अपनी विशिष्ट पहचान बनाएंगे। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल उनके व्यक्तित्व के सर्वांगीण विकास में सकारात्मक भूमिका निभाएगा।
-
-उनकी उच्च शिक्षा, करियर और व्यक्तिगत विकास में माता-पिता के रूप में आपका स्नेहपूर्ण मार्गदर्शन अत्यंत प्रेरणादायी सिद्ध होगा। बच्चों की व्यक्तिगत रुचियों को पहचानकर उन्हें सकारात्मक दिशा में प्रोत्साहित करना उनके आत्मविश्वास को सुदृढ़ करेगा। उनके साथ सौहार्दपूर्ण और मित्रवत संवाद बनाए रखने से पारिवारिक संबंध और अधिक प्रगाढ़ होंगे। किसी भी प्रकार के अनावश्यक दबाव से मुक्त रखकर उन्हें स्वतंत्र निर्णय लेने का अवसर देना उनके भीतर नेतृत्व क्षमता को जागृत करेगा।
-
-बच्चों के सर्वांगीण विकास, तीव्र बुद्धि, उत्तम स्वास्थ्य एवं दीर्घायु हेतु घर में श्री सरस्वती वंदना तथा भगवान श्री गणेश की आराधना करें। बच्चों को नित्य गायत्री मंत्र के उच्चारण की प्रेरणा देना तथा गुरुवार को सात्विक दान करना उनके जीवन में सकारात्मक ऊर्जा का संचार करेगा। गोಕರ್ण क्षेत्र में बच्चों के उज्ज्वल भविष्य हेतु प्रार्थना संकल्प समर्पित करने से समस्त विघ्न दूर होकर निरंतर सफलता का मार्ग प्रशस्त होगा।`;
+      return `${chart.hasSantanaDosha ? `$आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति तथा देवगुरु बृहस्पति के शुभ प्रभाव से बच्चों के बौद्धिक विकास, उच्च शिक्षा और रचनात्मक क्षेत्रों में सराहनीय उन्नति के प्रबल योग हैं। उनका स्वाभाविक अनुशासन, तीव्र स्मरण शक्ति और संस्कारी स्वभाव परिवार का नाम रोशन करेगा। वे विद्या और व्यावहारिक ज्ञान दोनों में निपुण होकर समाज में अपनी विशिष्ट पहचान बनाएंगे। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल उनके व्यक्तित्व के सर्वांगीण विकास में सकारात्मक भूमिका निभाएगा।\n\n$उनकी उच्च शिक्षा, करियर और व्यक्तिगत विकास में माता-पिता के रूप में आपका स्नेहपूर्ण मार्गदर्शन अत्यंत प्रेरणादायी सिद्ध होगा। बच्चों की व्यक्तिगत रुचियों को पहचानकर उन्हें सकारात्मक दिशा में प्रोत्साहित करना उनके आत्मविश्वास को सुदृढ़ करेगा। उनके साथ सौहार्दपूर्ण और मित्रवत संवाद बनाए रखने से पारिवारिक संबंध और अधिक प्रगाढ़ होंगे। किसी भी प्रकार के अनावश्यक दबाव से मुक्त रखकर उन्हें स्वतंत्र निर्णय लेने का अवसर देना उनके भीतर नेतृत्व क्षमता को जागृत करेगा।\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 बच्चों के सर्वांगीण विकास, तीव्र बुद्धि, उत्तम स्वास्थ्य एवं दीर्घायु हेतु घर में श्री सरस्वती वंदना तथा भगवान श्री गणेश की आराधना करें। बच्चों को नित्य गायत्री मंत्र के उच्चारण की प्रेरणा देना तथा गुरुवार को सात्विक दान करना उनके जीवन में सकारात्मक ऊर्जा का संचार करेगा। गोಕರ್ण क्षेत्र में बच्चों के उज्ज्वल भविष्य हेतु प्रार्थना संकल्प समर्पित करने से समस्त विघ्न दूर होकर निरंतर सफलता का मार्ग प्रशस्त होगा।` : `$आपकी कुंडली में पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} की स्थिति तथा देवगुरु बृहस्पति के शुभ प्रभाव से बच्चों के बौद्धिक विकास, उच्च शिक्षा और रचनात्मक क्षेत्रों में सराहनीय उन्नति के प्रबल योग हैं। उनका स्वाभाविक अनुशासन, तीव्र स्मरण शक्ति और संस्कारी स्वभाव परिवार का नाम रोशन करेगा। वे विद्या और व्यावहारिक ज्ञान दोनों में निपुण होकर समाज में अपनी विशिष्ट पहचान बनाएंगे। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल उनके व्यक्तित्व के सर्वांगीण विकास में सकारात्मक भूमिका निभाएगा।\n\n$उनकी उच्च शिक्षा, करियर और व्यक्तिगत विकास में माता-पिता के रूप में आपका स्नेहपूर्ण मार्गदर्शन अत्यंत प्रेरणादायी सिद्ध होगा। बच्चों की व्यक्तिगत रुचियों को पहचानकर उन्हें सकारात्मक दिशा में प्रोत्साहित करना उनके आत्मविश्वास को सुदृढ़ करेगा। उनके साथ सौहार्दपूर्ण और मित्रवत संवाद बनाए रखने से पारिवारिक संबंध और अधिक प्रगाढ़ होंगे। किसी भी प्रकार के अनावश्यक दबाव से मुक्त रखकर उन्हें स्वतंत्र निर्णय लेने का अवसर देना उनके भीतर नेतृत्व क्षमता को जागृत करेगा।`}`;
     }
     if (baseLang === "te") {
-      return `మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} అనుగ్రహం, అలాగే గురు భగవానుని శుభ దృష్టి మీ పిల్లల ఉన్నత విద్యా ప్రగతిని, సృజనాత్మక నైపుణ్యాలను మరియు సంస్కారవంతమైన స్వభావాన్ని సూచిస్తున్నాయి. వారిలోని సహజ జిజ్ఞాస, వినయం మరియు పట్టుదల కుటుంబానికి ఎనలేని గౌరవాన్ని తెచ్చిపెడతాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వారి ఎదుగుదలకు, నైతిక విలువల పెంపునకు అత్యంత అనుకూలంగా ఉంది.
-
-తల్లిదండ్రులుగా మీ ప్రేమపూర్వక ప్రోత్సాహం మరియు మార్గదర్శకత్వం వారి ఉన్నత చదువులు, క్రీడలు లేదా కళారంగాలలో రాణించడానికి బలమైన పునాదిగా నిలుస్తాయి. వారి ప్రత్యేక ప్రతిభను గుర్తించి ప్రోత్సహించడం వారిలో ఆత్మవిశ్వాసాన్ని నింపుతుంది. పిల్లలతో స్నేహపూర్వక సంభాషణలు కొనసాగించడం వల్ల వారి మానసిక ధైర్యం పెరుగుతుంది మరియు జీవితంలోని సవాళ్లను ధైర్యంగా ఎదుర్కొనే సామర్థ్యం లభిస్తుంది.
-
-పిల్లల సంపూర్ణ విజయం, ఏకాగ్రత మరియు ఆయురారోగ్యాల కోసం ఇంట్లో శ్రీ సరస్వతీ దేవి ఆరాధన మరియు గణపతి పూజ చేయడం శ్రేష్ఠం. వారికి రోజూ గాయత్రీ మంత్రాన్ని జపించే అలవాటు చేయడం మరియు గురువులను గౌరవించే సంస్కారాన్ని నేర్పడం వారి భవిష్యత్తును ఉజ్వలంగా తీర్చిదిద్దుతుంది. బగ్గోణ క్షేత్రంలో పిల్లల పేరిట సంకల్ప పూజలు చేయడం వారికి సదా దైవ రక్షణను ప్రసాదిస్తుంది.`;
+      return `${chart.hasSantanaDosha ? `$మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} అనుగ్రహం, అలాగే గురు భగవానుని శుభ దృష్టి మీ పిల్లల ఉన్నత విద్యా ప్రగతిని, సృజనాత్మక నైపుణ్యాలను మరియు సంస్కారవంతమైన స్వభావాన్ని సూచిస్తున్నాయి. వారిలోని సహజ జిజ్ఞాస, వినయం మరియు పట్టుదల కుటుంబానికి ఎనలేని గౌరవాన్ని తెచ్చిపెడతాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వారి ఎదుగుదలకు, నైతిక విలువల పెంపునకు అత్యంత అనుకూలంగా ఉంది.\n\n$తల్లిదండ్రులుగా మీ ప్రేమపూర్వక ప్రోత్సాహం మరియు మార్గదర్శకత్వం వారి ఉన్నత చదువులు, క్రీడలు లేదా కళారంగాలలో రాణించడానికి బలమైన పునాదిగా నిలుస్తాయి. వారి ప్రత్యేక ప్రతిభను గుర్తించి ప్రోత్సహించడం వారిలో ఆత్మవిశ్వాసాన్ని నింపుతుంది. పిల్లలతో స్నేహపూర్వక సంభాషణలు కొనసాగించడం వల్ల వారి మానసిక ధైర్యం పెరుగుతుంది మరియు జీవితంలోని సవాళ్లను ధైర్యంగా ఎదుర్కొనే సామర్థ్యం లభిస్తుంది.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 పిల్లల సంపూర్ణ విజయం, ఏకాగ్రత మరియు ఆయురారోగ్యాల కోసం ఇంట్లో శ్రీ సరస్వతీ దేవి ఆరాధన మరియు గణపతి పూజ చేయడం శ్రేష్ఠం. వారికి రోజూ గాయత్రీ మంత్రాన్ని జపించే అలవాటు చేయడం మరియు గురువులను గౌరవించే సంస్కారాన్ని నేర్పడం వారి భవిష్యత్తును ఉజ్వలంగా తీర్చిదిద్దుతుంది. బగ్గోణ క్షేత్రంలో పిల్లల పేరిట సంకల్ప పూజలు చేయడం వారికి సదా దైవ రక్షణను ప్రసాదిస్తుంది.` : `$మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} అనుగ్రహం, అలాగే గురు భగవానుని శుభ దృష్టి మీ పిల్లల ఉన్నత విద్యా ప్రగతిని, సృజనాత్మక నైపుణ్యాలను మరియు సంస్కారవంతమైన స్వభావాన్ని సూచిస్తున్నాయి. వారిలోని సహజ జిజ్ఞాస, వినయం మరియు పట్టుదల కుటుంబానికి ఎనలేని గౌరవాన్ని తెచ్చిపెడతాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వారి ఎదుగుదలకు, నైతిక విలువల పెంపునకు అత్యంత అనుకూలంగా ఉంది.\n\n$తల్లిదండ్రులుగా మీ ప్రేమపూర్వక ప్రోత్సాహం మరియు మార్గదర్శకత్వం వారి ఉన్నత చదువులు, క్రీడలు లేదా కళారంగాలలో రాణించడానికి బలమైన పునాదిగా నిలుస్తాయి. వారి ప్రత్యేక ప్రతిభను గుర్తించి ప్రోత్సహించడం వారిలో ఆత్మవిశ్వాసాన్ని నింపుతుంది. పిల్లలతో స్నేహపూర్వక సంభాషణలు కొనసాగించడం వల్ల వారి మానసిక ధైర్యం పెరుగుతుంది మరియు జీవితంలోని సవాళ్లను ధైర్యంగా ఎదుర్కొనే సామర్థ్యం లభిస్తుంది.`}`;
     }
     if (baseLang === "ta") {
-      return `உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் குருவின் சுப பார்வை உங்கள் பிள்ளைகளின் கல்வி வளர்ச்சி, அபார நினைவாற்றல் மற்றும் நற்பண்புகளை உறுதி செய்கிறது. அவர்களுடைய கூர்மையான அறிவுத்திறனும் ஒழுக்கமும் குடும்பத்திற்கு சமுதாயத்தில் நற்பெயரையும் மரியாதையையும் பெற்றுத்தரும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் பிள்ளைகளின் எதிர்கால முன்னேற்றத்திற்கும் புதிய வாய்ப்புகளுக்கும் சாதகமாக அமையும்.
-
-பெற்றோராக உங்கள் பாசமும் சரியான வழிகாட்டுதலும் அவர்களின் உயர் கல்வி மற்றும் லட்சியங்களை அடைவதில் முக்கிய பங்கு வகிக்கும். அவர்களின் தனிப்பட்ட திறமைகளை பாராட்டி உற்சாகப்படுத்துவது தன்னம்பிக்கையை வளர்க்கும். பிள்ளைகளுடன் மனந்திறந்து பேசி நட்புடன் பழகுவது குடும்பப் பிணைப்பை பலப்படுத்தும். எந்த ஒரு கடினமான சூழ்நிலையிலும் அவர்களுக்கு உறுதுணையாக இருப்பது அவர்களின் எதிர்கால வெற்றிகளுக்கு உரமாக அமையும்.
-
-பிள்ளைகளின் கல்வி வெற்றி, நல்ல உடல்நலம் மற்றும் நீண்ட ஆயுளுக்காக இல்லத்தில் ஸ்ரீ சரஸ்வதி தேவி வழிபாடு மற்றும் விநாயகர் பூஜை செய்வது மிகவும் நல்லது. தினமும் அவர்களை காயத்ரி மந்திரம் சொல்லி வழிபட ஊக்குவிப்பதும், வியாழக்கிழமைகளில் ஏழை மாணவர்களுக்கு கல்வி உதவி செய்வதும் அவர்களுடைய வாழ்வை பிரகாசமாக்கும். திருத்தலங்களில் பிள்ளைகள் பெயரில் அர்ச்சனை செய்வது சகல நன்மைகளையும் வழங்கும்.`;
+      return `${chart.hasSantanaDosha ? `$உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் குருவின் சுப பார்வை உங்கள் பிள்ளைகளின் கல்வி வளர்ச்சி, அபார நினைவாற்றல் மற்றும் நற்பண்புகளை உறுதி செய்கிறது. அவர்களுடைய கூர்மையான அறிவுத்திறனும் ஒழுக்கமும் குடும்பத்திற்கு சமுதாயத்தில் நற்பெயரையும் மரியாதையையும் பெற்றுத்தரும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் பிள்ளைகளின் எதிர்கால முன்னேற்றத்திற்கும் புதிய வாய்ப்புகளுக்கும் சாதகமாக அமையும்.\n\n$பெற்றோராக உங்கள் பாசமும் சரியான வழிகாட்டுதலும் அவர்களின் உயர் கல்வி மற்றும் லட்சியங்களை அடைவதில் முக்கிய பங்கு வகிக்கும். அவர்களின் தனிப்பட்ட திறமைகளை பாராட்டி உற்சாகப்படுத்துவது தன்னம்பிக்கையை வளர்க்கும். பிள்ளைகளுடன் மனந்திறந்து பேசி நட்புடன் பழகுவது குடும்பப் பிணைப்பை பலப்படுத்தும். எந்த ஒரு கடினமான சூழ்நிலையிலும் அவர்களுக்கு உறுதுணையாக இருப்பது அவர்களின் எதிர்கால வெற்றிகளுக்கு உரமாக அமையும்.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 பிள்ளைகளின் கல்வி வெற்றி, நல்ல உடல்நலம் மற்றும் நீண்ட ஆயுளுக்காக இல்லத்தில் ஸ்ரீ சரஸ்வதி தேவி வழிபாடு மற்றும் விநாயகர் பூஜை செய்வது மிகவும் நல்லது. தினமும் அவர்களை காயத்ரி மந்திரம் சொல்லி வழிபட ஊக்குவிப்பதும், வியாழக்கிழமைகளில் ஏழை மாணவர்களுக்கு கல்வி உதவி செய்வதும் அவர்களுடைய வாழ்வை பிரகாசமாக்கும். திருத்தலங்களில் பிள்ளைகள் பெயரில் அர்ச்சனை செய்வது சகல நன்மைகளையும் வழங்கும்.` : `$உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்புடன் குருவின் சுப பார்வை உங்கள் பிள்ளைகளின் கல்வி வளர்ச்சி, அபார நினைவாற்றல் மற்றும் நற்பண்புகளை உறுதி செய்கிறது. அவர்களுடைய கூர்மையான அறிவுத்திறனும் ஒழுக்கமும் குடும்பத்திற்கு சமுதாயத்தில் நற்பெயரையும் மரியாதையையும் பெற்றுத்தரும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் பிள்ளைகளின் எதிர்கால முன்னேற்றத்திற்கும் புதிய வாய்ப்புகளுக்கும் சாதகமாக அமையும்.\n\n$பெற்றோராக உங்கள் பாசமும் சரியான வழிகாட்டுதலும் அவர்களின் உயர் கல்வி மற்றும் லட்சியங்களை அடைவதில் முக்கிய பங்கு வகிக்கும். அவர்களின் தனிப்பட்ட திறமைகளை பாராட்டி உற்சாகப்படுத்துவது தன்னம்பிக்கையை வளர்க்கும். பிள்ளைகளுடன் மனந்திறந்து பேசி நட்புடன் பழகுவது குடும்பப் பிணைப்பை பலப்படுத்தும். எந்த ஒரு கடினமான சூழ்நிலையிலும் அவர்களுக்கு உறுதுணையாக இருப்பது அவர்களின் எதிர்கால வெற்றிகளுக்கு உரமாக அமையும்.`}`;
     }
-    return `The benefic alignment of your 5th house (${h5Sign}), 5th lord ${h5Lord} in ${h5Where}, and Putrakaraka Jupiter in ${jupWhere} indicates sharp intellect, moral integrity, and commendable academic promise in your children. They possess a natural curiosity, disciplined grasping power, and creative problem-solving abilities that will distinguish them in scholarly and extracurricular pursuits, bringing joy, pride, and honor to the family with Venus (Shukra) blessings. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster healthy psychological maturity and ethical growth across their formative years.
-
-Your loving parental mentorship, patience, and active encouragement will play a pivotal role in shaping their higher educational milestones and career paths. Fostering open, compassionate communication and respecting their individual talents bolsters their inner confidence, equipping them to navigate competitive challenges with dignity and emotional poise. Providing steady emotional reassurance during stressful academic testing periods teaches them resilience and anchors their character in dharmic self-reliance.
-
-To continuously support their academic clarity, cognitive focus, and overall vitality, offering Saraswati prayers and Lord Ganesha Atharvashirsha Abhishekam is highly beneficial. Encouraging them to chant the Gayatri Mantra daily and maintaining an enriching, culturally grounded home environment ensures lifelong success, happiness, and moral brilliance. Sponsoring family archana at sacred kshtras like Gokarna Mahabaleshwara surrounds your children with perpetual divine grace and shields them from untoward influences.`;
+    return `${chart.hasSantanaDosha ? `$The benefic alignment of your 5th house (${h5Sign}), 5th lord ${h5Lord} in ${h5Where}, and Putrakaraka Jupiter in ${jupWhere} indicates sharp intellect, moral integrity, and commendable academic promise in your children. They possess a natural curiosity, disciplined grasping power, and creative problem-solving abilities that will distinguish them in scholarly and extracurricular pursuits, bringing joy, pride, and honor to the family with Venus (Shukra) blessings. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster healthy psychological maturity and ethical growth across their formative years.\n\n$Your loving parental mentorship, patience, and active encouragement will play a pivotal role in shaping their higher educational milestones and career paths. Fostering open, compassionate communication and respecting their individual talents bolsters their inner confidence, equipping them to navigate competitive challenges with dignity and emotional poise. Providing steady emotional reassurance during stressful academic testing periods teaches them resilience and anchors their character in dharmic self-reliance.\n\n【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 To continuously support their academic clarity, cognitive focus, and overall vitality, offering Saraswati prayers and Lord Ganesha Atharvashirsha Abhishekam is highly beneficial. Encouraging them to chant the Gayatri Mantra daily and maintaining an enriching, culturally grounded home environment ensures lifelong success, happiness, and moral brilliance. Sponsoring family archana at sacred kshtras like Gokarna Mahabaleshwara surrounds your children with perpetual divine grace and shields them from untoward influences.` : `$The benefic alignment of your 5th house (${h5Sign}), 5th lord ${h5Lord} in ${h5Where}, and Putrakaraka Jupiter in ${jupWhere} indicates sharp intellect, moral integrity, and commendable academic promise in your children. They possess a natural curiosity, disciplined grasping power, and creative problem-solving abilities that will distinguish them in scholarly and extracurricular pursuits, bringing joy, pride, and honor to the family with Venus (Shukra) blessings. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster healthy psychological maturity and ethical growth across their formative years.\n\n$Your loving parental mentorship, patience, and active encouragement will play a pivotal role in shaping their higher educational milestones and career paths. Fostering open, compassionate communication and respecting their individual talents bolsters their inner confidence, equipping them to navigate competitive challenges with dignity and emotional poise. Providing steady emotional reassurance during stressful academic testing periods teaches them resilience and anchors their character in dharmic self-reliance.`}`;
   } else {
     // general
     if (baseLang === "kn") {
-      const para3Hdr = chart.hasSantanaDosha ? "【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 " : "【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ";
-      return `ನಿಮ್ಮ ಜಾತಕದ 5ನೇ ಮನೆ (${h5Sign}) ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ನೆಲೆಸಿರುವುದು ನಿಮ್ಮ ಜನ್ಮಜಾತ ಬುದ್ಧಿವಂತಿಕೆ, ಪೂರ್ವಪುಣ್ಯ, ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ವಂಶದ ಕೀರ್ತಿಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಬೌದ್ಧಿಕ ಸಾಧನೆಗಳು, ಸೃಜನಶೀಲ ಯಶಸ್ಸು ಹಾಗೂ ಧಾರ್ಮಿಕ ಚಿಂತನೆಗಳಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ನಿಮ್ಮ ವಿವೇಕಯುತ ತೀರ್ಮಾನಗಳು ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಿಗೆ ಗಟ್ಟಿಯಾದ ಅಡಿಪಾಯ ಹಾಕಲಿವೆ.
-
-ಉನ್ನತ ಆದರ್ಶಗಳು, ಸತ್ಕರ್ಮಗಳು ಹಾಗೂ ಧಾರ್ಮಿಕ ಅಧ್ಯಯನವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಪ್ರಗತಿಯನ್ನು ತರಲಿವೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಯು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ದೈವಿಕ ವಿವೇಕವನ್ನು ತುಂಬಲಿದ್ದು, ಸಂಕಷ್ಟದ ಸಮಯಗಳಲ್ಲಿಯೂ ಸರಿಯಾದ ಮಾರ್ಗವನ್ನು ಆಯ್ಕೆ ಮಾಡುವ ಸಾಮರ್ಥ್ಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ. ನಿಸ್ವಾರ್ಥ ಸೇವೆ ಹಾಗೂ ಸಮಾಜಮುಖಿ ಕಾರ್ಯಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವುದು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ಹೆಚ್ಚಿನ ಗೌರವವನ್ನು ತಂದುಕೊಡಲಿದೆ.
-
-${para3Hdr}ನಿತ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸುವುದು ಹಾಗೂ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಅನ್ನದಾನ ಅಥವಾ ಪುಸ್ತಕ ದಾನ ಮಾಡುವುದು ನಿಮ್ಮ ಕುಟುಂಬದ ಯೋಗಕ್ಷೇಮವನ್ನು ವೃದ್ಧಿಸಲಿದೆ. ಮನೆಯಲ್ಲಿ ಶ್ರೀ ಗಣಪತಿ ಮತ್ತು ಇಷ್ಟದೇವತೆಯ ನಿರಂತರ ಆರಾಧನೆಯು ಬುದ್ಧಿಯ ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸಿ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸನ್ನು ಕರುಣಿಸಲಿದೆ. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಗುರುಕೃಪೆಯು ನಿಮ್ಮ ಬಾಳಿನಲ್ಲಿ ಸದಾ ಶಾಂತಿ ಮತ್ತು ಜ್ಞಾನದ ಬೆಳಕನ್ನು ಬೆಳಗಿಸಲಿ.`;
+      const para3Hdr = chart.hasSantanaDosha ? "【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 " : "";
+      return `${chart.hasSantanaDosha ? `$ನಿಮ್ಮ ಜಾತಕದ 5ನೇ ಮನೆ (${h5Sign}) ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ನೆಲೆಸಿರುವುದು ನಿಮ್ಮ ಜನ್ಮಜಾತ ಬುದ್ಧಿವಂತಿಕೆ, ಪೂರ್ವಪುಣ್ಯ, ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ವಂಶದ ಕೀರ್ತಿಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಬೌದ್ಧಿಕ ಸಾಧನೆಗಳು, ಸೃಜನಶೀಲ ಯಶಸ್ಸು ಹಾಗೂ ಧಾರ್ಮಿಕ ಚಿಂತನೆಗಳಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ನಿಮ್ಮ ವಿವೇಕಯುತ ತೀರ್ಮಾನಗಳು ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಿಗೆ ಗಟ್ಟಿಯಾದ ಅಡಿಪಾಯ ಹಾಕಲಿವೆ.\n\n$ಉನ್ನತ ಆದರ್ಶಗಳು, ಸತ್ಕರ್ಮಗಳು ಹಾಗೂ ಧಾರ್ಮಿಕ ಅಧ್ಯಯನವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಪ್ರಗತಿಯನ್ನು ತರಲಿವೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಯು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ದೈವಿಕ ವಿವೇಕವನ್ನು ತುಂಬಲಿದ್ದು, ಸಂಕಷ್ಟದ ಸಮಯಗಳಲ್ಲಿಯೂ ಸರಿಯಾದ ಮಾರ್ಗವನ್ನು ಆಯ್ಕೆ ಮಾಡುವ ಸಾಮರ್ಥ್ಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ. ನಿಸ್ವಾರ್ಥ ಸೇವೆ ಹಾಗೂ ಸಮಾಜಮುಖಿ ಕಾರ್ಯಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವುದು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ಹೆಚ್ಚಿನ ಗೌರವವನ್ನು ತಂದುಕೊಡಲಿದೆ.\n\n${para3Hdr}ನಿತ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸುವುದು ಹಾಗೂ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಅನ್ನದಾನ ಅಥವಾ ಪುಸ್ತಕ ದಾನ ಮಾಡುವುದು ನಿಮ್ಮ ಕುಟುಂಬದ ಯೋಗಕ್ಷೇಮವನ್ನು ವೃದ್ಧಿಸಲಿದೆ. ಮನೆಯಲ್ಲಿ ಶ್ರೀ ಗಣಪತಿ ಮತ್ತು ಇಷ್ಟದೇವತೆಯ ನಿರಂತರ ಆರಾಧನೆಯು ಬುದ್ಧಿಯ ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸಿ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸನ್ನು ಕರುಣಿಸಲಿದೆ. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಗುರುಕೃಪೆಯು ನಿಮ್ಮ ಬಾಳಿನಲ್ಲಿ ಸದಾ ಶಾಂತಿ ಮತ್ತು ಜ್ಞಾನದ ಬೆಳಕನ್ನು ಬೆಳಗಿಸಲಿ.` : `$ನಿಮ್ಮ ಜಾತಕದ 5ನೇ ಮನೆ (${h5Sign}) ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ${h5Where}ದಲ್ಲಿ ನೆಲೆಸಿರುವುದು ನಿಮ್ಮ ಜನ್ಮಜಾತ ಬುದ್ಧಿವಂತಿಕೆ, ಪೂರ್ವಪುಣ್ಯ, ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ವಂಶದ ಕೀರ್ತಿಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಬೌದ್ಧಿಕ ಸಾಧನೆಗಳು, ಸೃಜನಶೀಲ ಯಶಸ್ಸು ಹಾಗೂ ಧಾರ್ಮಿಕ ಚಿಂತನೆಗಳಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ನಿಮ್ಮ ವಿವೇಕಯುತ ತೀರ್ಮಾನಗಳು ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಿಗೆ ಗಟ್ಟಿಯಾದ ಅಡಿಪಾಯ ಹಾಕಲಿವೆ.\n\n$ಉನ್ನತ ಆದರ್ಶಗಳು, ಸತ್ಕರ್ಮಗಳು ಹಾಗೂ ಧಾರ್ಮಿಕ ಅಧ್ಯಯನವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಪ್ರಗತಿಯನ್ನು ತರಲಿವೆ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಕೃಪೆಯು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ದೈವಿಕ ವಿವೇಕವನ್ನು ತುಂಬಲಿದ್ದು, ಸಂಕಷ್ಟದ ಸಮಯಗಳಲ್ಲಿಯೂ ಸರಿಯಾದ ಮಾರ್ಗವನ್ನು ಆಯ್ಕೆ ಮಾಡುವ ಸಾಮರ್ಥ್ಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ. ನಿಸ್ವಾರ್ಥ ಸೇವೆ ಹಾಗೂ ಸಮಾಜಮುಖಿ ಕಾರ್ಯಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವುದು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ಹೆಚ್ಚಿನ ಗೌರವವನ್ನು ತಂದುಕೊಡಲಿದೆ.`}`;
     }
     if (baseLang === "hi") {
-      const para3Hdr = chart.hasSantanaDosha ? "【दोष विश्लेषण एवं विलंब निवारण शांति】 " : "【शुभ योग एवं दैवीय रक्षा कवच】 ";
-      return `आपकी कुंडली का पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} पूर्वपुण्य, प्रज्ञा, अंतर्ज्ञान और रचनात्मक सामर्थ्य के मुख्य स्रोत हैं। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके बौद्धिक कौशल, दूरदर्शिता और आध्यात्मिक अभिरुचि को निखारेगा। आपके द्वारा लिए गए विवेकपूर्ण निर्णय जीवन के प्रत्येक क्षेत्र में दीर्घकालिक उन्नति की मजबूत आधारशिला रखेंगे।
-
-सदाचार, ज्ञान संवर्धन और आध्यात्मिक निष्ठा आपके जीवन में स्थायी समृद्धि का मार्ग प्रशस्त करेगी। देवगुरु बृहस्पति की कृपा से पारिवारिक मान-प्रतिष्ठा में वृद्धि होगी तथा समाज में आपकी बौद्धिक क्षमता का आदर किया जाएगा। लोककल्याणकारी कार्यों में रुचि लेना आपके यश में निरंतर वृद्धि करेगा।
-
-${para3Hdr}नित्य गायत्री मंत्र का जाप तथा निर्धन विद्यार्थियों को शिक्षा सामग्री का दान करना असीम पुण्य फल प्रदान करेगा। घर में नित्य दीपक प्रज्वलित कर भगवान श्री गणेश का ध्यान करना आपके अंतर्मन को शांति और सकारात्मक ऊर्जा से परिपूर्ण रखेगा। पवित्र तीर्थों में सेवा समर्पित करने से समस्त जीवन में कल्याण का संचार होगा।`;
+      const para3Hdr = chart.hasSantanaDosha ? "【दोष विश्लेषण एवं विलंब निवारण शांति】 " : "";
+      return `${chart.hasSantanaDosha ? `$आपकी कुंडली का पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} पूर्वपुण्य, प्रज्ञा, अंतर्ज्ञान और रचनात्मक सामर्थ्य के मुख्य स्रोत हैं। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके बौद्धिक कौशल, दूरदर्शिता और आध्यात्मिक अभिरुचि को निखारेगा। आपके द्वारा लिए गए विवेकपूर्ण निर्णय जीवन के प्रत्येक क्षेत्र में दीर्घकालिक उन्नति की मजबूत आधारशिला रखेंगे।\n\n$सदाचार, ज्ञान संवर्धन और आध्यात्मिक निष्ठा आपके जीवन में स्थायी समृद्धि का मार्ग प्रशस्त करेगी। देवगुरु बृहस्पति की कृपा से पारिवारिक मान-प्रतिष्ठा में वृद्धि होगी तथा समाज में आपकी बौद्धिक क्षमता का आदर किया जाएगा। लोककल्याणकारी कार्यों में रुचि लेना आपके यश में निरंतर वृद्धि करेगा।\n\n${para3Hdr}नित्य गायत्री मंत्र का जाप तथा निर्धन विद्यार्थियों को शिक्षा सामग्री का दान करना असीम पुण्य फल प्रदान करेगा। घर में नित्य दीपक प्रज्वलित कर भगवान श्री गणेश का ध्यान करना आपके अंतर्मन को शांति और सकारात्मक ऊर्जा से परिपूर्ण रखेगा। पवित्र तीर्थों में सेवा समर्पित करने से समस्त जीवन में कल्याण का संचार होगा।` : `$आपकी कुंडली का पंचम भाव (${h5Sign}) और पंचमेश ${h5Lord} पूर्वपुण्य, प्रज्ञा, अंतर्ज्ञान और रचनात्मक सामर्थ्य के मुख्य स्रोत हैं। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके बौद्धिक कौशल, दूरदर्शिता और आध्यात्मिक अभिरुचि को निखारेगा। आपके द्वारा लिए गए विवेकपूर्ण निर्णय जीवन के प्रत्येक क्षेत्र में दीर्घकालिक उन्नति की मजबूत आधारशिला रखेंगे।\n\n$सदाचार, ज्ञान संवर्धन और आध्यात्मिक निष्ठा आपके जीवन में स्थायी समृद्धि का मार्ग प्रशस्त करेगी। देवगुरु बृहस्पति की कृपा से पारिवारिक मान-प्रतिष्ठा में वृद्धि होगी तथा समाज में आपकी बौद्धिक क्षमता का आदर किया जाएगा। लोककल्याणकारी कार्यों में रुचि लेना आपके यश में निरंतर वृद्धि करेगा।`}`;
     }
     if (baseLang === "te") {
-      const para3Hdr = chart.hasSantanaDosha ? "【దోష విశ్లేషణ & నివారణ శాంతి】 " : "【శుభ యోగం & దైవిక రక్షా కవచం】 ";
-      return `మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} పూర్వపుణ్యం, అంతఃప్రజ్ఞ, మేధస్సు మరియు సృజనాత్మక ప్రతిభను సూచిస్తాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి మీ ఆలోచనలను సృజనాత్మకంగా, ధర్మబద్ధంగా మరియు అత్యంత విజయవంతంగా నడిపిస్తాయి. మీ వివేకవంతమైన నిర్ణయాలు భవిష్యత్తుకు బలమైన తోడ్పాటునిస్తాయి.
-
-ధర్మనిష్ఠ, విద్యా వికాసం మరియు సత్కార్యాలు మీ జీవితంలో శాశ్వతమైన ఉన్నతిని చేకూరుస్తాయి. గురు భగవానుని కటాక్షం మీ నిర్ణయాల్లో వివేకాన్ని నింపి, క్లిష్ట సమయాల్లో కూడా సరైన మార్గాన్ని చూపిస్తుంది. సమాజ సేవ మరియు ధార్మిక కార్యక్రమాల్లో పాలుపంచుకోవడం మీకు విశేష గౌరవాన్ని కలిగిస్తుంది.
-
-${para3Hdr}ప్రతిరోజూ గాయత్రీ మంత్రాన్ని జపించడం మరియు పేద విద్యార్థులకు సహాయం చేయడం కుటుంబ శ్రేయస్సుకు తోడ్పడుతుంది. ఇంట్లో గణపతి ఆరాధన చేయడం వల్ల సమస్త విఘ్నాలు తొలగి మనశ్శాంతి లభిస్తుంది. బగ్గోణ క్షేత్ర దర్శనం మరియు దైవారాధన మీ జీవితంలో శాశ్వత సుఖసంతోషాలను నింపుతాయి.`;
+      const para3Hdr = chart.hasSantanaDosha ? "【దోష విశ్లేషణ & నివారణ శాంతి】 " : "";
+      return `${chart.hasSantanaDosha ? `$మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} పూర్వపుణ్యం, అంతఃప్రజ్ఞ, మేధస్సు మరియు సృజనాత్మక ప్రతిభను సూచిస్తాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి మీ ఆలోచనలను సృజనాత్మకంగా, ధర్మబద్ధంగా మరియు అత్యంత విజయవంతంగా నడిపిస్తాయి. మీ వివేకవంతమైన నిర్ణయాలు భవిష్యత్తుకు బలమైన తోడ్పాటునిస్తాయి.\n\n$ధర్మనిష్ఠ, విద్యా వికాసం మరియు సత్కార్యాలు మీ జీవితంలో శాశ్వతమైన ఉన్నతిని చేకూరుస్తాయి. గురు భగవానుని కటాక్షం మీ నిర్ణయాల్లో వివేకాన్ని నింపి, క్లిష్ట సమయాల్లో కూడా సరైన మార్గాన్ని చూపిస్తుంది. సమాజ సేవ మరియు ధార్మిక కార్యక్రమాల్లో పాలుపంచుకోవడం మీకు విశేష గౌరవాన్ని కలిగిస్తుంది.\n\n${para3Hdr}ప్రతిరోజూ గాయత్రీ మంత్రాన్ని జపించడం మరియు పేద విద్యార్థులకు సహాయం చేయడం కుటుంబ శ్రేయస్సుకు తోడ్పడుతుంది. ఇంట్లో గణపతి ఆరాధన చేయడం వల్ల సమస్త విఘ్నాలు తొలగి మనశ్శాంతి లభిస్తుంది. బగ్గోణ క్షేత్ర దర్శనం మరియు దైవారాధన మీ జీవితంలో శాశ్వత సుఖసంతోషాలను నింపుతాయి.` : `$మీ జాతకంలో 5వ ఇల్లు (${h5Sign}) మరియు పంచమాధిపతి ${h5Lord} పూర్వపుణ్యం, అంతఃప్రజ్ఞ, మేధస్సు మరియు సృజనాత్మక ప్రతిభను సూచిస్తాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి మీ ఆలోచనలను సృజనాత్మకంగా, ధర్మబద్ధంగా మరియు అత్యంత విజయవంతంగా నడిపిస్తాయి. మీ వివేకవంతమైన నిర్ణయాలు భవిష్యత్తుకు బలమైన తోడ్పాటునిస్తాయి.\n\n$ధర్మనిష్ఠ, విద్యా వికాసం మరియు సత్కార్యాలు మీ జీవితంలో శాశ్వతమైన ఉన్నతిని చేకూరుస్తాయి. గురు భగవానుని కటాక్షం మీ నిర్ణయాల్లో వివేకాన్ని నింపి, క్లిష్ట సమయాల్లో కూడా సరైన మార్గాన్ని చూపిస్తుంది. సమాజ సేవ మరియు ధార్మిక కార్యక్రమాల్లో పాలుపంచుకోవడం మీకు విశేష గౌరవాన్ని కలిగిస్తుంది.`}`;
     }
     if (baseLang === "ta") {
-      const para3Hdr = chart.hasSantanaDosha ? "【தோஷ ஆய்வு & பரிகார சாந்தி】 " : "【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 ";
-      return `உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்பு பூர்வ புண்ணியம், ஆழ்ந்த அறிவு மற்றும் ஆன்மீக ஞானத்தைக் குறிக்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் அறிவுசார்ந்த சாதனைகளுக்கும், ஆக்கப்பூர்வமான முயற்சிகளுக்கும் மிகவும் உகந்ததாகும். நீங்கள் எடுக்கும் தீர்க்கமான முடிவுகள் எதிர்கால வாழ்விற்கு உன்னதமான அடித்தளத்தை அமைக்கும்.
-
-உயர்ந்த கொள்கைகளும் தர்ம சிந்தனையும் உங்கள் வாழ்வில் தொடர் வெற்றியைத் தரும். குரு பகவானின் அருள் நல்வழியில் வழிநடத்தி, எந்த ஒரு சவாலையும் விவேகத்துடன் கையாளும் ஆற்றலை வழங்கும். பொதுநல தொண்டுகளில் ஈடுபடுவது உங்கள் புகழையும் நன்மதிப்பையும் சமூகத்தில் உயர்த்தும்.
-
-${para3Hdr}தினமும் காயத்ரி மந்திரம் சொல்லி வழிபடுவதும், மாணவர்களுக்கு கல்வி உதவி செய்வதும் பெரும் புண்ணியத்தைத் தரும். இல்லத்தில் விநாயகர் பூஜையும் இஷ்ட தெய்வ வழிபாடும் மனதிற்கு அமைதியை அளிக்கும். புனித ஸ்தலங்களில் வழிபாடு செய்வது வாழ்வில் தடைகளை நீக்கி சுபிட்சத்தை நிலைநிறுத்தும்.`;
+      const para3Hdr = chart.hasSantanaDosha ? "【தோஷ ஆய்வு & பரிகார சாந்தி】 " : "";
+      return `${chart.hasSantanaDosha ? `$உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்பு பூர்வ புண்ணியம், ஆழ்ந்த அறிவு மற்றும் ஆன்மீக ஞானத்தைக் குறிக்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் அறிவுசார்ந்த சாதனைகளுக்கும், ஆக்கப்பூர்வமான முயற்சிகளுக்கும் மிகவும் உகந்ததாகும். நீங்கள் எடுக்கும் தீர்க்கமான முடிவுகள் எதிர்கால வாழ்விற்கு உன்னதமான அடித்தளத்தை அமைக்கும்.\n\n$உயர்ந்த கொள்கைகளும் தர்ம சிந்தனையும் உங்கள் வாழ்வில் தொடர் வெற்றியைத் தரும். குரு பகவானின் அருள் நல்வழியில் வழிநடத்தி, எந்த ஒரு சவாலையும் விவேகத்துடன் கையாளும் ஆற்றலை வழங்கும். பொதுநல தொண்டுகளில் ஈடுபடுவது உங்கள் புகழையும் நன்மதிப்பையும் சமூகத்தில் உயர்த்தும்.\n\n${para3Hdr}தினமும் காயத்ரி மந்திரம் சொல்லி வழிபடுவதும், மாணவர்களுக்கு கல்வி உதவி செய்வதும் பெரும் புண்ணியத்தைத் தரும். இல்லத்தில் விநாயகர் பூஜையும் இஷ்ட தெய்வ வழிபாடும் மனதிற்கு அமைதியை அளிக்கும். புனித ஸ்தலங்களில் வழிபாடு செய்வது வாழ்வில் தடைகளை நீக்கி சுபிட்சத்தை நிலைநிறுத்தும்.` : `$உங்கள் ஜாதகத்தில் 5-ம் வீடான ${h5Sign} மற்றும் 5-ம் அதிபதி ${h5Lord} அமைப்பு பூர்வ புண்ணியம், ஆழ்ந்த அறிவு மற்றும் ஆன்மீக ஞானத்தைக் குறிக்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் அறிவுசார்ந்த சாதனைகளுக்கும், ஆக்கப்பூர்வமான முயற்சிகளுக்கும் மிகவும் உகந்ததாகும். நீங்கள் எடுக்கும் தீர்க்கமான முடிவுகள் எதிர்கால வாழ்விற்கு உன்னதமான அடித்தளத்தை அமைக்கும்.\n\n$உயர்ந்த கொள்கைகளும் தர்ம சிந்தனையும் உங்கள் வாழ்வில் தொடர் வெற்றியைத் தரும். குரு பகவானின் அருள் நல்வழியில் வழிநடத்தி, எந்த ஒரு சவாலையும் விவேகத்துடன் கையாளும் ஆற்றலை வழங்கும். பொதுநல தொண்டுகளில் ஈடுபடுவது உங்கள் புகழையும் நன்மதிப்பையும் சமூகத்தில் உயர்த்தும்.`}`;
     }
-    const para3Hdr = chart.hasSantanaDosha ? "【Dosha Analysis & Obstacle Resolution Shanti】 " : "【Benefic Planetary Yoga & Protective Shield】 ";
-    return `The 5th house (${h5Sign}) and its ruler ${h5Lord} situated in ${h5Where} govern Poorva Punya, intuitive intellect, higher discretion, and creative legacy. The running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti inspire scholarly achievements, strategic foresight, and noble creative endeavors that leave an enduring positive imprint on your lineage. Your deliberate choices today build a fortress of karmic strength that shields your future trajectory from unpredictable external disruptions.
-
-Nurturing noble ideals, philosophical study, and spiritual wisdom activates powerful karmic momentum for enduring prosperity. Influenced by benevolent planetary aspects, your inner moral compass remains razor-sharp, steering you away from hollow shortcuts and toward substantive, honor-based achievements. Engaging in educational mentorship or altruistic community service harmonizes your natal 5th house energies, enhancing your public reputation and inner contentment.
-
-${para3Hdr}To continuously nourish your mental radiance and invite profound cognitive equanimity, daily morning chanting of the sacred Gayatri Mantra is profoundly transformative. Providing educational support or food to deserving students generates immense spiritual merit that protects your household. Sponsoring archana at sacred pilgrimage shrines like Gokarna Mahabaleshwara and Baggona Kshetra aligns your subtle intellect with divine grace, assuring continuous success and tranquility.`;
+    const para3Hdr = chart.hasSantanaDosha ? "【Dosha Analysis & Obstacle Resolution Shanti】 " : "";
+    return `${chart.hasSantanaDosha ? `$The 5th house (${h5Sign}) and its ruler ${h5Lord} situated in ${h5Where} govern Poorva Punya, intuitive intellect, higher discretion, and creative legacy. The running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti inspire scholarly achievements, strategic foresight, and noble creative endeavors that leave an enduring positive imprint on your lineage. Your deliberate choices today build a fortress of karmic strength that shields your future trajectory from unpredictable external disruptions.\n\n$Nurturing noble ideals, philosophical study, and spiritual wisdom activates powerful karmic momentum for enduring prosperity. Influenced by benevolent planetary aspects, your inner moral compass remains razor-sharp, steering you away from hollow shortcuts and toward substantive, honor-based achievements. Engaging in educational mentorship or altruistic community service harmonizes your natal 5th house energies, enhancing your public reputation and inner contentment.\n\n${para3Hdr}To continuously nourish your mental radiance and invite profound cognitive equanimity, daily morning chanting of the sacred Gayatri Mantra is profoundly transformative. Providing educational support or food to deserving students generates immense spiritual merit that protects your household. Sponsoring archana at sacred pilgrimage shrines like Gokarna Mahabaleshwara and Baggona Kshetra aligns your subtle intellect with divine grace, assuring continuous success and tranquility.` : `$The 5th house (${h5Sign}) and its ruler ${h5Lord} situated in ${h5Where} govern Poorva Punya, intuitive intellect, higher discretion, and creative legacy. The running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti inspire scholarly achievements, strategic foresight, and noble creative endeavors that leave an enduring positive imprint on your lineage. Your deliberate choices today build a fortress of karmic strength that shields your future trajectory from unpredictable external disruptions.\n\n$Nurturing noble ideals, philosophical study, and spiritual wisdom activates powerful karmic momentum for enduring prosperity. Influenced by benevolent planetary aspects, your inner moral compass remains razor-sharp, steering you away from hollow shortcuts and toward substantive, honor-based achievements. Engaging in educational mentorship or altruistic community service harmonizes your natal 5th house energies, enhancing your public reputation and inner contentment.`}`;
   }
 }
 
@@ -1005,56 +845,46 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
     if (baseLang === "kn") {
       const para3Kn = chart.hasKarmaDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ದಶಮ ಭಾವ ಅಥವಾ ಶನಿ ಗ್ರಹದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ನಿವೃತ್ತ ಜೀವನದಲ್ಲಿ ಗೌರವಕ್ಕೆ ಧಕ್ಕೆ ಅಥವಾ ಮಾನಸಿಕ ಅಸಮಾಧಾನದ ಸೂಕ್ಷ್ಮ ಸಾಧ್ಯತೆಯಿರುತ್ತದೆ. ಕರ್ಮ ದೋಷ ಶಮನಕ್ಕಾಗಿ ಪ್ರತಿ ಶನಿವಾರ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಚ್ಚಿ ದಶರಥ ಶನಿ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು ಹಾಗೂ ಕಪ್ಪು ಎಳ್ಳು ದಾನ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಸಕಲ ಕರ್ಮ ಕ್ಲೇಶಗಳು ಪರಿಹಾರವಾಗಿ ಸಮಾಜದಲ್ಲಿ ಸದಾ ಗೌರವ ಲಭಿಸಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ದಶಮ ಭಾವ ಹಾಗೂ ಕರ್ಮಾಧಿಪತಿಯು ರಾಜಯೋಗದ ಬಲವನ್ನು ಹೊಂದಿದ್ದು, ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ನಿಮ್ಮ ಗೌರವ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನಕ್ಕೆ ಬಲಿಷ್ಠ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ಒದಗಿಸಿದೆ. ಯಾವುದೇ ಕರ್ಮ ದೋಷಗಳ ಬಾಧೆಯಿಲ್ಲದೆ ನಿಮ್ಮ ಅನುಭವಕ್ಕೆ ಸಮಾಜದಲ್ಲಿ ಪರಮ ಮನ್ನಣೆ ದೊರೆಯಲಿದೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಮನೆಯಲ್ಲಿ ಮಂಗಳಕರ ನೆಮ್ಮದಿಯನ್ನು ಸದಾ ಕಾಪಾಡಲಿದೆ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ 10ನೇ ಮನೆಯಾದ ದಶಮ ಭಾವ (${h10Sign}) ಹಾಗೂ ದಶಮಾಧಿಪತಿಯಾದ ${h10Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ (೬೦+ ವರ್ಷ) ಗೌರವಯುತ ನಿವೃತ್ತ ಜೀವನ, ಸಾಮಾಜಿಕ ಸೇವೆ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಮಾರ್ಗದರ್ಶನವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ನಿಮ್ಮ ಸುದೀರ್ಘ ಕರ್ಮಾನುಭವ ಹಾಗೂ ಕಾರ್ಯಕುಶಲತೆಯು ಯುವ ಪೀಳಿಗೆಗೆ ದಾರಿದೀಪವಾಗಲಿದೆ. ಕರ್ಮಕಾರಕನಾದ ಶನಿ ಗ್ರಹದ ಪ್ರಭಾವವು ಧರ್ಮಾರ್ಥ ಕಾರ್ಯಗಳು ಹಾಗೂ ಸಮಾಜೋಪಯೋಗಿ ಚಟುವಟಿಕೆಗಳಲ್ಲಿ ಸಕ್ರಿಯವಾಗಿ ತೊಡಗಿಸಿಕೊಳ್ಳುವಂತೆ ಪ್ರೇರೇಪಿಸುತ್ತದೆ. ನೀವು ${careerDomain} ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಹಿರಿಯ ಗೌರವಾನ್ವಿತ ಸಲಹೆಗಾರರಾಗಿ ಪೂಜ್ಯ ಸ್ಥಾನವನ್ನು ಅಲಂಕರಿಸಲಿದ್ದೀರಿ.
 
-ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಗೌರವವನ್ನು ಇನ್ನಷ್ಟು ಹೆಚ್ಚಿಸಲಿದೆ. ಕೌಟುಂಬಿಕ ಹಾಗೂ ಸಾಮಾಜಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಮಾರ್ಗದರ್ಶನಕ್ಕೆ ಪ್ರಮುಖ ಮನ್ನಣೆ ದೊರೆಯಲಿದೆ. ಧಾರ್ಮಿಕ ಅಧ್ಯಯನ ಹಾಗೂ ಸತ್ಸಂಗಗಳಲ್ಲಿ ಕಾಲ ಕಳೆಯುವುದು ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಅಪಾರ ಶಾಂತಿಯನ್ನು ತಂದುಕೊಡಲಿದೆ.
-
-${para3Kn}`;
+ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಗೌರವವನ್ನು ಇನ್ನಷ್ಟು ಹೆಚ್ಚಿಸಲಿದೆ. ಕೌಟುಂಬಿಕ ಹಾಗೂ ಸಾಮಾಜಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಮಾರ್ಗದರ್ಶನಕ್ಕೆ ಪ್ರಮುಖ ಮನ್ನಣೆ ದೊರೆಯಲಿದೆ. ಧಾರ್ಮಿಕ ಅಧ್ಯಯನ ಹಾಗೂ ಸತ್ಸಂಗಗಳಲ್ಲಿ ಕಾಲ ಕಳೆಯುವುದು ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಅಪಾರ ಶಾಂತಿಯನ್ನು ತಂದುಕೊಡಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = chart.hasKarmaDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के दशम भाव अथवा शनि पर क्रूर ग्रहों के प्रभाव से सेवानिवृत्त जीवन में कभी-कभार मानसिक खिन्नता या सम्मान में कमी का अनुभव हो सकता है। कर्म दोष शांति हेतु शनिवार को तिल के तेल का दीपक जलाएं तथा दशरथ कृत शनि स्तोत्र का पाठ करें। गोಕರ್ಣ क्षेत्र में भगवान महाबलेश्वर को रुद्राभिषेक समर्पित करने से समस्त विघ्न शांत होकर चिरस्थायी सम्मान प्राप्त होगा।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में दशम भाव और कर्मेश राजयोग से सुशोभित होकर वरिष्ठ जीवन में आपके मान-सम्मान को एक अभेद्य सुरक्षा कवच प्रदान कर रहे हैं। बिना किसी गंभीर कर्म दोष के आपका मार्गदर्शन समाज और परिवार में आदरणीय रहेगा। शनिवार को हनुमान चालीसा का पाठ मानसिक शांति और आत्मिक संतोष प्रदान करेगा।`;
+        : "";
 
       return `आपकी कुंडली के 10वें भाव (दशम भाव ${h10Sign}) और कर्मेश ${h10Lord} की स्थिति वरिष्ठ अवस्था (60+ वर्ष) में सेवानिवृत्ति उपरांत प्रतिष्ठित जीवन, सामाजिक सेवा, मार्गदर्शन तथा आध्यात्मिक नेतृत्व का संकेत देती है। आपका विशाल जीवन अनुभव और कार्यकुशलता युवा पीढ़ी के लिए प्रकाशस्तंभ बनेगी। कर्मकारक शनि का प्रभाव धर्मार्थ कार्यों, परामर्श तथा समाजोपयोगी गतिविधियों में सम्मानजनक सहभागिता का योग बनाता है। आप ${careerDomain} से संबंधित क्षेत्रों में एक सम्मानित वरिष्ठ सलाहकार अथवा मार्गदर्शक के रूप में पूजनीय रहेंगे।
 
-वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आपकी प्रतिष्ठा और सामाजिक आदर में निरंतर वृद्धि होगी। पारिवारिक और सामाजिक मामलों में आपके विचारों को सर्वोच्च प्राथमिकता दी जाएगी। नियमित ईश्वर स्मरण, धार्मिक अध्ययन तथा शनिवार को हनुमान चालीसा का पाठ मानसिक शांति, आत्मिक संतोष और दीर्घकालिक सम्मान प्रदान करेगा।
-
-${para3Hi}`;
+वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आपकी प्रतिष्ठा और सामाजिक आदर में निरंतर वृद्धि होगी। पारिवारिक और सामाजिक मामलों में आपके विचारों को सर्वोच्च प्राथमिकता दी जाएगी। नियमित ईश्वर स्मरण, धार्मिक अध्ययन तथा शनिवार को हनुमान चालीसा का पाठ मानसिक शांति, आत्मिक संतोष और दीर्घकालिक सम्मान प्रदान करेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = chart.hasKarmaDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 10వ ఇల్లు లేదా శనిపై పాపగ్రహాల ప్రభావం ఉన్నప్పుడు విశ్రాంత జీవితంలో చిన్నపాటి అసంతృప్తి కలగవచ్చు. కర్మ దోష నివారణకు శనివారం నువ్వుల నూనె దీపం వెలిగించి శని స్తోత్రం పఠించడం మరియు పేదలకు అన్నదానం చేయడం మంచిది. గోకర్ణ క్షేత్రంలో రుద్రాభిషేకం నిర్వహించడం వలన సర్వ క్లేశాలు తొలగి గౌరవం నిలుస్తుంది.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 10వ ఇల్లు మరియు కర్మాధిపతి శుభ బలం కలిగి ఉండి విశ్రాంత జీవనంలో బలమైన దైవిక రక్షణను అందిస్తున్నారు. ఎలాంటి తీవ్ర దోషాలు లేకపోవడం వలన మీ అనుభవానికి సమాజంలో విశేష గుర్తింపు, ఆదరణ లభిస్తాయి. ప్రతి శనివారం హనుమాన్ ఆరాధన చేయడం శ్రేయస్కరం.`;
+        : "";
 
       return `మీ జాతకంలో 10వ ఇల్లు (దశమ భావం ${h10Sign}) మరియు కర్మాధిపతి ${h10Lord} గ్రహం ఈ సీనియర్ వయస్సులో (60+ సంవత్సరాలు) పదవీ విరమణ తర్వాత గౌరవప్రదమైన విశ్రాంత జీవనం, సమాజ సేవ మరియు ఆధ్యాత్మిక మార్గదర్శకత్వాన్ని సూచిస్తాయి. మీ అపార అనుభవం మరియు పనితీరు యువతరానికి ఆదర్శంగా నిలుస్తాయి. కర్మకారక శని ప్రభావం వల్ల ధార్మిక కార్యక్రమాలు, ట్రస్టులు మరియు సేవా రంగాల్లో మీ పాత్ర విశిష్టంగా ఉంటుంది. మీరు ${careerDomain} రంగాలలో విశేష అనుభవం కలిగిన గౌరవ సలహాదారుగా కొనసాగుతారు.
 
-ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో సమాజంలో మీ గౌరవ మర్యాదలు మరింత పెరుగుతాయి. కుటుంబ సభ్యులు మరియు మిత్రులు కీలక నిర్ణయాల్లో మీ అమూల్యమైన సలహాలను కోరతారు. ఒత్తిడి లేని ధార్మిక జీవనం, ధ్యానం మరియు శనివారం హనుమాన్ చాలీసా పారాయణం చేయడం వల్ల సంపూర్ణ మనశ్శాంతి, ఆరోగ్యం లభిస్తాయి.
-
-${para3Te}`;
+ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో సమాజంలో మీ గౌరవ మర్యాదలు మరింత పెరుగుతాయి. కుటుంబ సభ్యులు మరియు మిత్రులు కీలక నిర్ణయాల్లో మీ అమూల్యమైన సలహాలను కోరతారు. ఒత్తిడి లేని ధార్మిక జీవనం, ధ్యానం మరియు శనివారం హనుమాన్ చాలీసా పారాయణం చేయడం వల్ల సంపూర్ణ మనశ్శాంతి, ఆరోగ్యం లభిస్తాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasKarmaDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 10-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது ஓய்வுக்காலத்தில் அவ்வப்போது மன உளைச்சல் ஏற்படலாம். கர்ம தோஷ நிவர்த்திக்காக சனிக்கிழமைகளில் நல்லெண்ணெய் தீபம் ஏற்றி சனி ஸ்தோத்திரம் பாராயணம் செய்வதும், எள் தானம் செய்வதும் சிறந்தது. கோகர்ணம் திருத்தலத்தில் ருத்ராபிஷேகம் செய்து வழிபடுவது நிலையான மரியாதையைத் தரும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 10-ம் அதிபதி சுப பலம் பெற்று ஓய்வுக்காலத்தில் சமூக மரியாதைக்கு தெய்வீக பாதுகாப்புக் கவசத்தை அமைத்துள்ளார். தோஷங்கள் ஏதுமின்றி உங்கள் வழிகாட்டுதலுக்கு குடும்பத்திலும் சமூகத்திலும் ஆழ்ந்த மதிப்பு கிடைக்கும். அமைதியான ஆன்மீக நாட்டம் நலம் பயக்கும்.`;
+        : "";
 
       return `உங்கள் ஜாதகத்தில் 10-ம் வீடான (தசம ஸ்தானம் ${h10Sign}) மற்றும் 10-ம் அதிபதி ${h10Lord} அமைப்பு இந்த மூத்த வயதில் (60+ வயது) பணி ஓய்விற்குப் பின்னும் சமுதாயத்தில் உயர்ந்த மரியாதை, வழிகாட்டுதல் மற்றும் ஆன்மீக சேவையைத் தரும். உங்களின் நீண்டகால அனுபவமும் ஞானமும் அடுத்த தலைமுறைக்கு கலங்கரை விளக்கமாகத் திகழும். கர்மகாரகன் சனி பகவான் அறக்கட்டளைகள், சமூகத் தொண்டு மற்றும் ஆன்மீகப் பணிகளில் உங்களை வழிநடத்துவார். நீங்கள் ${careerDomain} சார்ந்த துறைகளில் மிகச்சிறந்த ஆலோசகராக மதிக்கப்படுவீர்கள்.
 
-தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் சமுதாயத்தில் உங்கள் நற்பெயரையும் செல்வாக்கையும் மேலும் உயர்த்தும். குடும்பத்திலும் வெளி வட்டாரத்திலும் முக்கிய முடிவுகளில் உங்கள் ஆலோசனைகள் மிகுந்த மரியாதையுடன் ஏற்றுக்கொள்ளப்படும். அமைதியான ஆன்மீக நாட்டம் மற்றும் சனிக்கிழமைகளில் அனுமன் சாலிசா பாராயணம் செய்வது மனதிற்கு ஆழ்ந்த அமைதியையும் திருப்தியையும் தரும்.
-
-${para3Ta}`;
+தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் சமுதாயத்தில் உங்கள் நற்பெயரையும் செல்வாக்கையும் மேலும் உயர்த்தும். குடும்பத்திலும் வெளி வட்டாரத்திலும் முக்கிய முடிவுகளில் உங்கள் ஆலோசனைகள் மிகுந்த மரியாதையுடன் ஏற்றுக்கொள்ளப்படும். அமைதியான ஆன்மீக நாட்டம் மற்றும் சனிக்கிழமைகளில் அனுமன் சாலிசா பாராயணம் செய்வது மனதிற்கு ஆழ்ந்த அமைதியையும் திருப்தியையும் தரும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = chart.hasKarmaDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Gentle astrological scrutiny reveals subtle Saturn or 10th house karmic residues that can occasionally induce feelings of under-appreciation or restless detachment during retirement years. Pacifying these subtle energetic ripples through regular recitation of the Dasharatha Shani Stotram on Saturdays and lighting a sesame oil lamp preserves enduring dignity and peace. Sponsoring a sacred Rudrabhishekam at Gokarna Mahabaleshwara Kshetra dissolves residual career karma, ensuring that your elder years radiate with uninterrupted honor, elder statesman authority, and profound inner fulfillment.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal 10th house is blessed by benefic Raja Yoga configurations, establishing a fortified shield of honorable distinction and senior respect across your community and lineage. Free from disruptive karmic impediments, your wealth of practical wisdom naturally attracts high-level advisory and mentorship requests. To maintain this luminous aura, engaging in educational philanthropy, sharing noble values with youth, and honoring ancestral deities preserves your revered status as a wise elder statesman.`;
+      : "";
 
     return `For elder natives (age 60+), the 10th house (${h10Sign}) and 10th lord ${h10Lord} situated in ${h10Where} signify honorable transition into emeritus mentorship, philanthropic advisory, and community elder statesman leadership rather than aggressive corporate competition. Karmakaraka Saturn positioned in ${saturnWhere} rewards your decades of diligent toil with dignified moral authority, community respect, and an untarnished vocational reputation. Drawing upon your vast acumen, you are revered as a trusted counselor across ${careerDomain} and family circles.
 
-Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period guide you away from high-stress commercial entanglements and toward meaningful consulting, charitable trust governance, and spiritual service. Younger professionals and family members look up to your time-tested discernment for strategic counsel and ethical direction.
-
-${para3En}`;
+Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period guide you away from high-stress commercial entanglements and toward meaningful consulting, charitable trust governance, and spiritual service. Younger professionals and family members look up to your time-tested discernment for strategic counsel and ethical direction.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   // Youth & Students (Age < 22): Foundational Study, Academic Excellence & Competitive Exams
@@ -1062,80 +892,66 @@ ${para3En}`;
     if (baseLang === "kn") {
       const para3Kn = chart.hasKarmaDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ದಶಮ ಭಾವ ಅಥವಾ ಶನಿ ಗ್ರಹದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಆಲಸ್ಯ, ಪರೀಕ್ಷಾ ಭಯ ಅಥವಾ ಶೈಕ್ಷಣಿಕ ದಿಕ್ಕು ನಿರ್ಧರಿಸುವಲ್ಲಿ ಗೊಂದಲಗಳು ಉಂಟಾಗಬಹುದು. ಈ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆಗೆ ಪ್ರತಿ ಶನಿವಾರ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ ಹಾಗೂ ಪಕ್ಷಿಗಳಿಗೆ ಕಾಳು ಹಾಕಿ. ಬಗ್ಗೋಣ ಸನ್ನಿಧಿಗೆ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸುವುದು ಏಕಾಗ್ರತೆಯನ್ನು ಹೆಚ್ಚಿಸಿ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಉನ್ನತ ಯಶಸ್ಸು ನೀಡಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ದಶಮ ಭಾವ ಹಾಗೂ ಕರ್ಮಾಧಿಪತಿಯು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ವಿದ್ಯಾರ್ಥಿ ಜೀವನದಲ್ಲಿ ನಿಮ್ಮ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಬುನಾದಿಗೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸಿದ್ದಾರೆ. ಕಠಿಣ ಪರಿಶ್ರಮ, ಶ್ರದ್ಧೆ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಉತ್ಕೃಷ್ಟತೆಗೆ ಪೂರ್ಣ ಗ್ರಹಬಲ ಲಭಿಸಿದೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸರಸ್ವತಿ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಗುರು ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆಯುವುದು ನಿಮ್ಮ ಭವಿಷ್ಯವನ್ನು ಉಜ್ವಲಗೊಳಿಸಲಿದೆ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜಾತಕದ 10ನೇ ಮನೆಯಾದ ದಶಮ ಭಾವ (${h10Sign}) ಹಾಗೂ ದಶಮಾಧಿಪತಿಯಾದ ${h10Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ಈ ವಿದ್ಯಾರ್ಥಿ ಹಂತದಲ್ಲಿ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಕೌಶಲ್ಯ ವೃದ್ಧಿ ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿಪರ ಬದುಕಿಗೆ ಭದ್ರ ಬುನಾದಿಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಕರ್ಮಕಾರಕ ಶನಿಯ ಪ್ರಭಾವವು ಅಧ್ಯಯನದಲ್ಲಿ ಶಿಸ್ತು, ಪರಿಶ್ರಮ ಹಾಗೂ ಸಮಯದ ಸದ್ಬಳಕೆಯನ್ನು ಪ್ರೇರೇಪಿಸುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲದಿಂದಾಗಿ ಭವಿಷ್ಯದಲ್ಲಿ ನೀವು ${careerDomain} ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಅತ್ಯುನ್ನತ ಯಶಸ್ಸು ಮತ್ತು ಮನ್ನಣೆಯನ್ನು ಗಳಿಸುವ ಅಸಾಧಾರಣ ಪ್ರತಿಭೆಯನ್ನು ಹೊಂದಿದ್ದೀರಿ.
 
-ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು, ಪದವಿ ಶಿಕ್ಷಣ ಹಾಗೂ ವೃತ್ತಿಪರ ಕೋರ್ಸ್‌ಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಸಾಧನೆ ಮಾಡಲು ಅತ್ಯಂತ ಪೂರಕವಾಗಿದೆ. ಅನಾವಶ್ಯಕ ಗೊಂದಲಗಳಿಗೆ ಕಿವಿಗೊಡದೆ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಸಂಪೂರ್ಣವಾಗಿ ತೊಡಗಿಸಿಕೊಳ್ಳುವುದು ಉಜ್ವಲ ಭವಿಷ್ಯವನ್ನು ಖಾತರಿಪಡಿಸಲಿದೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಗಣಪತಿ ಮತ್ತು ಸರಸ್ವತಿ ಆರಾಧನೆ ಮಾಡುವುದು ನಿಮ್ಮ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು ಚುರುಕುಗೊಳಿಸಲಿದೆ.
-
-${para3Kn}`;
+ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು, ಪದವಿ ಶಿಕ್ಷಣ ಹಾಗೂ ವೃತ್ತಿಪರ ಕೋರ್ಸ್‌ಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಸಾಧನೆ ಮಾಡಲು ಅತ್ಯಂತ ಪೂರಕವಾಗಿದೆ. ಅನಾವಶ್ಯಕ ಗೊಂದಲಗಳಿಗೆ ಕಿವಿಗೊಡದೆ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಸಂಪೂರ್ಣವಾಗಿ ತೊಡಗಿಸಿಕೊಳ್ಳುವುದು ಉಜ್ವಲ ಭವಿಷ್ಯವನ್ನು ಖಾತರಿಪಡಿಸಲಿದೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಗಣಪತಿ ಮತ್ತು ಸರಸ್ವತಿ ಆರಾಧನೆ ಮಾಡುವುದು ನಿಮ್ಮ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು ಚುರುಕುಗೊಳಿಸಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = chart.hasKarmaDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के दशम भाव पर क्रूर ग्रहों के प्रभाव से अध्ययन में आलस्य, परीक्षा का भय अथवा लक्ष्य निर्धारण में असमंजस हो सकता है। शनिवार को हनुमान जी की आराधना करें तथा चींटियों को आटा डालें। नित्य सरस्वती वंदना करने से मानसिक एकाग्रता सुदृढ़ होगी तथा प्रतियोगी परीक्षाओं में सफलता का मार्ग प्रशस्त होगा।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में दशम भाव और कर्मेश अनुकूल स्थिति में होकर छात्र जीवन में भविष्य के करियर को एक मजबूत सुरक्षा कवच प्रदान कर रहे हैं। बिना किसी गंभीर दोष के आपकी मेहनत का पूरा फल प्रतियोगी परीक्षाओं और उच्च शिक्षा में मिलेगा। नित्य माता-पिता का आशीर्वाद लेना और सूर्य नमस्कार करना श्रेयस्कर रहेगा।`;
+        : "";
 
       return `आपकी कुंडली का 10वां भाव (दशम भाव ${h10Sign}) और कर्मेश ${h10Lord} की स्थिति इस युवा अवस्था में उच्च शिक्षा, कौशल विकास और भावी करियर की मजबूत नींव का निर्धारण करते हैं। कर्मकारक शनि का प्रभाव अध्ययन में अनुशासन, एकाग्रता और समय के सदुपयोग की प्रेरणा देता है। ग्रहों के शुभ प्रभाव से आप भविष्य में ${careerDomain} के क्षेत्रों में असाधारण सफलता और ख्याति प्राप्त करने की योग्यता रखते हैं।
 
-वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल प्रतियोगी परीक्षाओं, उच्च अध्ययन और करियर की दिशा तय करने के लिए अत्यंत महत्वपूर्ण है। भटकाव से बचकर विद्याध्ययन पर ध्यान केंद्रित करना स्वर्णिम भविष्य की गारंटी देगा। नित्य मां सरस्वती और भगवान गणेश की आराधना बुद्धि और एकाग्रता को प्रखर बनाएगी।
-
-${para3Hi}`;
+वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल प्रतियोगी परीक्षाओं, उच्च अध्ययन और करियर की दिशा तय करने के लिए अत्यंत महत्वपूर्ण है। भटकाव से बचकर विद्याध्ययन पर ध्यान केंद्रित करना स्वर्णिम भविष्य की गारंटी देगा। नित्य मां सरस्वती और भगवान गणेश की आराधना बुद्धि और एकाग्रता को प्रखर बनाएगी।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = chart.hasKarmaDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 10వ ఇంటిపై పాపగ్రహాల ప్రభావం వల్ల చదువులో బద్ధకం లేదా పరీక్షల సమయంలో భయం కలగవచ్చు. ప్రతి శనివారం హనుమాన్ చాలీసా పారాయణం చేయడం మరియు పక్షులకు గింజలు వేయడం మంచిది. గణపతి ఆరాధన పోటీ పరీక్షల్లో విజయాన్ని అందిస్తుంది.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 10వ ఇల్లు మరియు కర్మాధిపతి శుభ బలం కలిగి ఉండి విద్యార్థి జీవితంలో భవిష్యత్ కెరీర్‌కు బలమైన రక్షణను అందిస్తున్నారు. ఎలాంటి ఆటంకాలు లేకుండా ఉన్నత విద్యా ప్రవేశాల్లో ఘన విజయం లభించే శుభ యోగం ఉంది. రోజూ సరస్వతీ దేవిని ప్రార్థించడం శుభకరం.`;
+        : "";
 
       return `మీ జాతకంలో 10వ ఇల్లు (${h10Sign}) మరియు కర్మాధిపతి ${h10Lord} ప్రభావం ఈ విద్యాభ్యాస దశలో ఉన్నత చదువులు, నైపుణ్యాభివృద్ధి మరియు భవిష్యత్ కెరీర్ పునాదిని సూచిస్తాయి. కర్మకారక శని ప్రభావం వల్ల చదువులో క్రమశిక్షణ, ఏకాగ్రత మరియు లక్ష్యంపై పట్టుదల అలవడుతుంది. జాతక రీత్యా మీరు భవిష్యత్తులో ${careerDomain} రంగాలలో అత్యున్నత విజయాలు సాధించే శుభ యోగం ఉంది.
 
-ప్రస్తుత ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం పోటీ పరీక్షలు మరియు ఉన్నత విద్యా ప్రవేశాలకు అనుకూలమైనది. అనవసర వ్యాపకాలకు దూరంగా ఉండి చదువుపై శ్రద్ధ వహించడం ఉజ్వల భవిష్యత్తుకు బాటలు వేస్తుంది. శ్రీ సరస్వతీ దేవిని మరియు గణపతిని ఆరాధించడం జ్ఞాన వికాసానికి తోడ్పడుతుంది.
-
-${para3Te}`;
+ప్రస్తుత ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం పోటీ పరీక్షలు మరియు ఉన్నత విద్యా ప్రవేశాలకు అనుకూలమైనది. అనవసర వ్యాపకాలకు దూరంగా ఉండి చదువుపై శ్రద్ధ వహించడం ఉజ్వల భవిష్యత్తుకు బాటలు వేస్తుంది. శ్రీ సరస్వతీ దేవిని మరియు గణపతిని ఆరాధించడం జ్ఞాన వికాసానికి తోడ్పడుతుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasKarmaDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 10-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது படிப்பில் மந்தநிலை அல்லது குழப்பம் ஏற்படலாம். சனிக்கிழமைகளில் அனுமன் சாலிசா பாராயணம் செய்வதும், எறும்புகளுக்கு உணவளிப்பதும் சிறந்தது. விநாயகர் வழிபாடு போட்டித் தேர்வுகளில் தடையற்ற வெற்றியைத் தரும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 10-ம் அதிபதி சுப பலம் பெற்று இளமைப் பருவத்தில் எதிர்கால தொழிலுக்கு தெய்வீக பாதுகாப்புக் கவசத்தை அமைத்துள்ளார். படிப்பில் எடுக்கும் சீரிய முயற்சிகள் சிறந்த உயர்கல்வி வாய்ப்புகளைத் தரும். தினமும் காலையில் சரஸ்வதி தேவியை வழிபடுவது நலம் பயக்கும்.`;
+        : "";
 
       return `உங்கள் ஜாதகத்தில் 10-ம் வீடான ${h10Sign} மற்றும் 10-ம் அதிபதி ${h10Lord} அமைப்பு இந்த இளமைப் பருவத்தில் உயர்கல்வி, தொழில்முறை திறன் வளர்ச்சி மற்றும் எதிர்கால வாழ்க்கைக்கான அடித்தளத்தைக் குறிக்கிறது. கர்மகாரகன் சனி பகவான் படிப்பில் ஆழ்ந்த ஈடுபாடு, கடின உழைப்பு மற்றும் ஒழுக்கத்தை வழங்குகிறார். ஜாதக அமைப்பின்படி எதிர்காலத்தில் நீங்கள் ${careerDomain} சார்ந்த துறைகளில் பெரும் சாதனைகளைப் படைக்கும் யோகம் உள்ளது.
 
-தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உயர்கல்வி தேர்வுகள் மற்றும் போட்டித் தேர்வுகளில் சிறந்து விளங்க உதவும் பொற்காலமாகும். கவனச்சிதறல்களைத் தவிர்த்து கல்வியில் தீவிர கவனம் செலுத்துவது பிரகாசமான எதிர்காலத்தை அமைத்துத் தரும். சரಸ್வதி தேவியின் வழிபாடு கல்வி வெற்றியைத் தரும்.
-
-${para3Ta}`;
+தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உயர்கல்வி தேர்வுகள் மற்றும் போட்டித் தேர்வுகளில் சிறந்து விளங்க உதவும் பொற்காலமாகும். கவனச்சிதறல்களைத் தவிர்த்து கல்வியில் தீவிர கவனம் செலுத்துவது பிரகாசமான எதிர்காலத்தை அமைத்துத் தரும். சரಸ್வதி தேவியின் வழிபாடு கல்வி வெற்றியைத் தரும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = chart.hasKarmaDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Natal examination detects subtle planetary afflictions near the 10th house or Saturn that can occasionally induce study fatigue, test anxiety, or hesitation during competitive examinations. To dispel these subtle obstacles, chanting the Hanuman Chalisa on Saturdays, feeding birds, and performing daily Ganapati prayer before study sessions restores unwavering concentration. Sponsoring archana at sacred sanctuaries like Baggona Kshetra or Gokarna Mahabaleshwara clears mental fog, paving the way for superior academic laurels.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your birth chart possesses a brilliant Saraswati and Raja Yoga orientation in the 10th house axis, generating a powerful celestial shield over your academic journey and career foundations. Free from severe karmic impediments, your persistent dedication naturally unlocks merit admissions, academic excellence, and distinction in competitive exams. To sustain this cosmic grace, greeting the dawn with Gayatri Mantra recitation and respecting scholarly mentors ensures lifelong vocational preeminence.`;
+      : "";
 
     return `For students and young natives (under age 22), the 10th house (${h10Sign}) and 10th lord ${h10Lord} situated in ${h10Where} govern foundational academic excellence, skill acquisition, and vocational stream selection rather than corporate management. Karmakaraka Saturn positioned in ${saturnWhere} instills scholarly discipline, methodical study habits, and intellectual endurance. Based on your planetary alignment, you are naturally primed to build an outstanding future career in ${careerDomain}, excelling in specialized degree curricula and technical mastery.
 
-Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period signal a pivotal window for decisive success in competitive exams, university admissions, and national certifications. Maintaining unwavering concentration, resisting fleeting distractions, and dedicating deliberate practice to complex subjects will yield coveted academic honors and prestigious career gateways.
-
-${para3En}`;
+Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period signal a pivotal window for decisive success in competitive exams, university admissions, and national certifications. Maintaining unwavering concentration, resisting fleeting distractions, and dedicating deliberate practice to complex subjects will yield coveted academic honors and prestigious career gateways.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   // Adult Native (22 to 59 Years): Professional Growth, Leadership & Milestones
   if (baseLang === "kn") {
     const para3Kn = chart.hasKarmaDosha
       ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ದಶಮ ಭಾವ ಅಥವಾ ಶನಿ ಗ್ರಹದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಆಕಸ್ಮಿಕ ಅಡೆತಡೆಗಳು, ಸಹೋದ್ಯೋಗಿಗಳ ಅಸಹಕಾರ ಅಥವಾ ಸ್ಥಾನ ಬದಲಾವಣೆಯ ಆತಂಕಗಳು ಎದುರಾಗಬಹುದು. ಕರ್ಮ ದೋಷ ಶಮನಕ್ಕಾಗಿ ಪ್ರತಿ ಶನಿವಾರ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಚ್ಚಿ ದಶರಥ ಪ್ರೋಕ್ತ ಶನಿ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು ಹಾಗೂ ಕಪ್ಪು ಎಳ್ಳು ದಾನ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ಉದ್ಯೋಗದಲ್ಲಿ ಸಕಲ ವಿಘ್ನಗಳು ಪರಿಹಾರವಾಗಿ ಉನ್ನತ ಸ್ಥಾನಮಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`
-      : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ದಶಮ ಭಾವ ಹಾಗೂ ಕರ್ಮಾಧಿಪತಿಯು ರಾಜಯೋಗದ ಬಲವನ್ನು ಹೊಂದಿದ್ದು, ವೃತ್ತಿ ರಂಗದಲ್ಲಿ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸಿದೆ. ಯಾವುದೇ ತೀವ್ರ ಕರ್ಮ ದೋಷಗಳ ಬಾಧೆಯಿಲ್ಲದೆ ನಿಮ್ಮ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಹಾಗೂ ಗೌರವ ನಿರಂತರವಾಗಿ ಲಭಿಸಲಿದೆ. ಈ ಶುಭ ಶಕ್ತಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಲು ನಿತ್ಯ ಕರ್ತವ್ಯ ನಿಷ್ಠೆಯ ಜೊತೆಗೆ ಪ್ರತಿ ಶನಿವಾರ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಿಸಿ ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಪಡೆಯಿರಿ. ಬಗ್ಗೋಣ ಹಾಗೂ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯ ದೈವಿಕ ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ವೃತ್ತಿ ಜೀವನವನ್ನು ಸದಾ ಯಶಸ್ಸಿನ ಉತ್ತುಂಗದಲ್ಲಿರಿಸಲಿದೆ.`;
+      : "";
 
     return `ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ 10ನೇ ಮನೆಯಾದ ದಶಮ ಭಾವ (${h10Sign}) ಹಾಗೂ ದಶಮಾಧಿಪತಿಯಾದ ${h10Lord} ಗ್ರಹವು ${h10Where}ದಲ್ಲಿ ನೆಲೆಸಿರುವ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆ, ನಾಯಕತ್ವ ಹಾಗೂ ಗೌರವಯುತ ಸ್ಥಾನಮಾನಗಳನ್ನು ತಂದುಕೊಡುತ್ತದೆ. ಕರ್ಮಕಾರಕನಾದ ಶನಿ ಗ್ರಹವು ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅಪಾರ ತಾಳ್ಮೆ, ಕರ್ತವ್ಯನಿಷ್ಠೆ, ಶಿಸ್ತು ಹಾಗೂ ಸುದೀರ್ಘ ಪರಿಶ್ರಮವನ್ನು ಬೇಡುತ್ತಾನೆ. ನಿಮ್ಮ ಜಾತಕದ ವಿಶಿಷ್ಟ ಸಂರಚನೆಯ ಪ್ರಕಾರ ${careerDomain} ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ನೀವು ಅಸಾಧಾರಣ ಪ್ರತಿಭೆಯನ್ನು ಪ್ರದರ್ಶಿಸಲಿದ್ದು, ಸ್ವತಂತ್ರ ನಿರ್ಧಾರಗಳು ಹಾಗೂ ಕಠಿಣ ಪರಿಶ್ರಮದಿಂದ ಸಂಸ್ಥೆಯಲ್ಲಿ ಉನ್ನತ ಸ್ಥಾನವನ್ನು ಅಲಂಕರಿಸಲಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ವೃತ್ತಿಜೀವನದಲ್ಲಿ ನೂತನ ಯೋಜನೆಗಳು, ಪ್ರಭಾವಿ ವ್ಯಕ್ತಿಗಳ ಒಡನಾಟ ಹಾಗೂ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿಗೆ ಅತ್ಯಂತ ಪ್ರಬಲವಾದ ವೇದಿಕೆಯನ್ನು ನಿರ್ಮಿಸುತ್ತಿದೆ.
 
-ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಹಾಗೂ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಸಂಚಾರವು ನಿಮ್ಮ ದೀರ್ಘಾವಧಿಯ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ, ಬಡ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ಒದಗಿಸಲಿದೆ. ಕಚೇರಿಯಲ್ಲಿ ಸಹೋದ್ಯೋಗಿಗಳೊಂದಿಗೆ ಸೌಹಾರ್ದಯುತ ಬಾಂಧವ್ಯ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಹಾಗೂ ಆತುರದ ತೀರ್ಮಾನಗಳನ್ನು ತ್ಯಜಿಸುವುದು ನಿಮ್ಮ ವೃತ್ತಿಪರ ವರ್ಚಸ್ಸನ್ನು ಮತ್ತಷ್ಟು ವೃದ್ಧಿಸಲಿದೆ.
-
-${para3Kn}`;
+ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಹಾಗೂ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಸಂಚಾರವು ನಿಮ್ಮ ದೀರ್ಘಾವಧಿಯ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ, ಬಡ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ಒದಗಿಸಲಿದೆ. ಕಚೇರಿಯಲ್ಲಿ ಸಹೋದ್ಯೋಗಿಗಳೊಂದಿಗೆ ಸೌಹಾರ್ದಯುತ ಬಾಂಧವ್ಯ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಹಾಗೂ ಆತುರದ ತೀರ್ಮಾನಗಳನ್ನು ತ್ಯಜಿಸುವುದು ನಿಮ್ಮ ವೃತ್ತಿಪರ ವರ್ಚಸ್ಸನ್ನು ಮತ್ತಷ್ಟು ವೃದ್ಧಿಸಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
   }
   if (baseLang === "hi") {
     const para3Hi = chart.hasKarmaDosha
       ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के दशम भाव अथवा शनि पर क्रूर ग्रहों के प्रभाव से कार्यक्षेत्र में अनावश्यक विलंब, पदोन्नति में बाधा अथवा सहकर्मियों के असहयोग का सामना करना पड़ सकता है। कर्म दोष शांति हेतु प्रत्येक शनिवार को तिल के तेल का दीपक जलाएं, दशरथ कृत शनि स्तोत्र का पाठ करें तथा काले तिल का दान करें। गोಕರ್ಣ क्षेत्र में भगवान महाबलेश्वर को रुद्राभिषेक समर्पित करने से कार्यक्षेत्र के समस्त अवरोध समाप्त होकर निरंतर प्रगति और स्थिरता प्राप्त होगी।`
-      : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में दशम भाव और कर्मेश राजयोग से सुशोभित होकर कार्यक्षेत्र में एक मजबूत सुरक्षा कवच का निर्माण कर रहे हैं। बिना किसी गंभीर कर्म दोष के आपके परिश्रम को उचित मान-सम्मान, पदोन्नति एवं स्थायित्व प्राप्त होगा। इस शुभ ऊर्जा को बनाए रखने के लिए शनिवार को हनुमान चालीसा का पाठ करें तथा कार्यस्थल पर सत्यनिष्ठा बनाए रखें। गोಕರ್ಣ एवं बग्गोण क्षेत्र का आशीर्वाद आपके पेशेवर जीवन को निरंतर ऊंचाइयों पर ले जाएगा।`;
+      : "";
 
     return `आपकी कुंडली के 10वें भाव (दशम भाव ${h10Sign}) और कर्मेश ${h10Lord} की स्थिति आपके कार्यक्षेत्र में निरंतर उन्नति, प्रतिष्ठा, प्रशासनिक क्षमता और अधिकार प्राप्ति का स्पष्ट संकेत देती है। कर्मकारक शनि देव आपकी कार्यशैली में अटूट अनुशासन, दूरदर्शिता, अथक परिश्रम और गंभीर उत्तरदायित्व की भावना भरते हैं। आपकी जन्म कुंडली के अनुसार ${careerDomain} के क्षेत्रों में आपकी स्वाभाविक प्रतिभा विशेष रूप से निखरेगी और आप उच्च पद प्राप्त करेंगे। वर्तमान में गतिमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके पेशेवर जीवन में नए अवसरों, दायित्वों में विस्तार तथा सामाजिक मान-सम्मान के स्वर्णिम योग निर्मित कर रहा है।
 
-गोचर में कर्मफलदाता शनि एवं देवगुरु बृहस्पति का शुभ प्रभाव आपके द्वारा किए गए प्रयासों को यथोचित पुरस्कार, पदोन्नति एवं आर्थिक स्थिरता प्रदान करेगा। कार्यस्थल पर सहकर्मियों के साथ तालमेल बनाए रखना, अनावश्यक तर्कों से बचना तथा रणनीतिक धैर्य के साथ आगे बढ़ना दीर्घकालिक सफलता सुनिश्चित करेगा।
-
-${para3Hi}`;
+गोचर में कर्मफलदाता शनि एवं देवगुरु बृहस्पति का शुभ प्रभाव आपके द्वारा किए गए प्रयासों को यथोचित पुरस्कार, पदोन्नति एवं आर्थिक स्थिरता प्रदान करेगा। कार्यस्थल पर सहकर्मियों के साथ तालमेल बनाए रखना, अनावश्यक तर्कों से बचना तथा रणनीतिक धैर्य के साथ आगे बढ़ना दीर्घकालिक सफलता सुनिश्चित करेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
   }
   if (baseLang === "te") {
     const para3Te = chart.hasKarmaDosha
@@ -1144,9 +960,7 @@ ${para3Hi}`;
 
     return `మీ జాతకంలో 10వ ఇల్లు (దశమ భావం ${h10Sign}) మరియు కర్మాధిపతి ${h10Lord} గ్రహం మీ ఉద్యోగం మరియు వృత్తిలో నిరంతర ఎదుగుదల, నాయకత్వ లక్షణాలు మరియు ఉన్నత సామాజిక గౌరవాన్ని సూచిస్తున్నాయి. కర్మకారక శని దేవుని ప్రభావం వల్ల మీ పనితీరులో విశేష క్రమశిక్షణ, నిబద్ధత మరియు బాధ్యతాయుత ప్రవర్తన వెల్లివిరుస్తాయి. జాతక రీత్యా మీరు ${careerDomain} రంగాలలో విశేష నైపుణ్యాన్ని ప్రదర్శించి అత్యున్నత పదవులను అధిరోహించే యోగం ఉంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో వృత్తిపరమైన బాధ్యతలు పెరగడం, పదోన్నతి లభించడం మరియు నూతన అవకాశాలు అందిరావడం ఖాయం.
 
-శని మరియు గురు గ్రహాల అనుకూల గోచారం మీ శ్రమకు తగిన గుర్తింపును, ఆర్థిక స్థిరత్వాన్ని మరియు వ్యాపార విస్తరణను చేకూరుస్తుంది. కార్యాలయంలో ఉన్నతాధికారులతో మరియు సహోద్యోగులతో సత్సంబంధాలు కొనసాగించడం, ఓర్పుతో నిర్ణయాలు తీసుకోవడం మీ విజయానికి మార్గం సుగమం చేస్తాయి.
-
-${para3Te}`;
+శని మరియు గురు గ్రహాల అనుకూల గోచారం మీ శ్రమకు తగిన గుర్తింపును, ఆర్థిక స్థిరత్వాన్ని మరియు వ్యాపార విస్తరణను చేకూరుస్తుంది. కార్యాలయంలో ఉన్నతాధికారులతో మరియు సహోద్యోగులతో సత్సంబంధాలు కొనసాగించడం, ఓర్పుతో నిర్ణయాలు తీసుకోవడం మీ విజయానికి మార్గం సుగమం చేస్తాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
   }
   if (baseLang === "ta") {
     const para3Ta = chart.hasKarmaDosha
@@ -1155,19 +969,15 @@ ${para3Te}`;
 
     return `உங்கள் ஜாதகத்தில் 10-ம் வீடான (தசம ஸ்தானம் ${h10Sign}) மற்றும் 10-ம் அதிபதி ${h10Lord} அமைப்பு உங்கள் தொழில் மற்றும் உத்தியோகத்தில் நிலையான வளர்ச்சி, தலைமைப் பண்பு மற்றும் சமூக அந்தஸ்தைக் குறிக்கிறது. கர்மகாரகன் சனி பகவானின் தாக்கம் உங்கள் பணியில் ஆழ்ந்த ஒழுக்கத்தையும், பொறுமையையும், கடமை உணர்வையும் வளர்க்கிறது. ஜாதகப்படி நீங்கள் ${careerDomain} சார்ந்த துறைகளில் மிகச்சிறந்த வெற்றியையும் உயர் பதவிகளையும் அடைவீர்கள். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் பணியிடத்தில் புதிய பொறுப்புகள், தலைமைப் பதவிகள் மற்றும் நற்பெயரைப் பெறுவதற்கு மிகவும் சாதகமாக உள்ளது.
 
-சனி மற்றும் குரு பகவானின் கோசார பலன்கள் உங்கள் உழைப்பிற்கு ஏற்ற அங்கீகாரத்தையும், ஊதிய உயர்வையும், பொருளாதார முன்னேற்றத்தையும் வழங்கும். பணியிடத்தில் சக ஊழியர்களுடன் சுமூகமான உறவைப் பேணுவதும், தேவையில்லாத விவாதங்களைத் தவிர்ப்பதும் உங்கள் செல்வாக்கை உயர்த்தும்.
-
-${para3Ta}`;
+சனி மற்றும் குரு பகவானின் கோசார பலன்கள் உங்கள் உழைப்பிற்கு ஏற்ற அங்கீகாரத்தையும், ஊதிய உயர்வையும், பொருளாதார முன்னேற்றத்தையும் வழங்கும். பணியிடத்தில் சக ஊழியர்களுடன் சுமூகமான உறவைப் பேணுவதும், தேவையில்லாத விவாதங்களைத் தவிர்ப்பதும் உங்கள் செல்வாக்கை உயர்த்தும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
   }
   const para3En = chart.hasKarmaDosha
     ? `【Dosha Analysis & Obstacle Resolution Shanti】 Planetary friction or afflictions impacting the 10th house or Saturn can occasionally generate professional fatigue, delays in anticipated promotions, or structural realignments at the workplace. To dissolve these vocational hurdles and balance your Karma Sthana, lighting a sesame oil lamp every Saturday, reciting the Dasharatha Shani Stotram, and sponsoring Rudrabhishekam at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra cleanses career impediments, bestowing executive stability, professional distinction, and enduring success.`
-    : `【Benefic Planetary Yoga & Protective Shield】 Your natal 10th house and vocational lord form an auspicious Raja Yoga alignment, constructing an impenetrable protective shield around your executive reputation and professional standing. Free from severe karmic impediments, your dedicated efforts naturally magnetize peer recognition, managerial trust, and progressive leadership milestones. To preserve this celestial grace, reciting the Hanuman Chalisa on Saturdays and honoring organizational mentors maintains steady upward momentum and lifelong vocational fulfillment.`;
+    : "";
 
   return `In your birth chart, the 10th house (${h10Sign}) and 10th lord ${h10Lord} situated in ${h10Where} indicate structured career growth, professional resilience, and executive capabilities. Karmakaraka Saturn positioned in ${saturnWhere} infuses your vocational path with industrious discipline, methodical focus, and strategic stamina. Based on these planetary configurations, you are naturally suited to achieve distinction in ${careerDomain}, where your organizational leadership and integrity command lasting respect. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period bring new milestones, expanding responsibilities, and leadership elevation in your chosen vocational field.
 
-Favorable transits of Saturn and Jupiter ensure that your sustained dedication earns peer recognition, promotion opportunities, and managerial authority. Maintaining strategic patience during workplace transitions, fostering collaborative teamwork, and steering clear of petty workplace politics preserves your professional goodwill.
-
-${para3En}`;
+Favorable transits of Saturn and Jupiter ensure that your sustained dedication earns peer recognition, promotion opportunities, and managerial authority. Maintaining strategic patience during workplace transitions, fostering collaborative teamwork, and steering clear of petty workplace politics preserves your professional goodwill.${para3En ? `\n\n${para3En}` : ""}`;
 }
 
 
@@ -1184,56 +994,46 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
     if (baseLang === "kn") {
       const para3Kn = chart.hasDhanaDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಧನ ಭಾವ ಅಥವಾ ಧನಕಾರಕ ಗ್ರಹಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಅನಗತ್ಯ ಖರ್ಚುಗಳು ಅಥವಾ ಆಸ್ತಿ ನಿರ್ವಹಣೆಯಲ್ಲಿ ಆತಂಕಗಳು ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ಧನಕ್ಷಯ ದೋಷ ಪರಿಹಾರಕ್ಕಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಸೂಕ್ತ ಪಠಿಸುವುದು ಹಾಗೂ ಗೋಸೇವೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹಾಲಕ್ಷ್ಮಿ ಅರ್ಚನೆ ಮಾಡಿಸುವುದರಿಂದ ಆರ್ಥಿಕ ರಕ್ಷಣೆ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸಮೃದ್ಧಿ ಲಭಿಸಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧನ ಹಾಗೂ ಲಾಭ ಭಾವಗಳು ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ಹೊಂದಿದ್ದು, ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಪರಿಪೂರ್ಣ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ ಹಾಗೂ ಗೌರವಯುತ ನೆಮ್ಮದಿಯನ್ನು ಒದಗಿಸಿವೆ. ಯಾವುದೇ ಆರ್ಥಿಕ ಕೊರತೆಯಿಲ್ಲದೆ ನಿಮ್ಮ ಸಂಪತ್ತು ಕುಟುಂಬದ ಕಲ್ಯಾಣಕ್ಕೆ ಆಧಾರವಾಗಿದೆ. ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮಿ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಅನ್ನದಾನ ಮಾಡುವುದು ಸದಾ ಶುಭ ತರಂಗಗಳನ್ನು ಉಂಟುಮಾಡಲಿದೆ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಮನೆ (ಧನ ಭಾವವಾದ ${h2.rashiName}, ಅಧಿಪತಿ ${h2Lord}) ಹಾಗೂ 11ನೇ ಮನೆ (ಲಾಭ ಭಾವವಾದ ${h11.rashiName}, ಅಧಿಪತಿ ${h11Lord}) ಗ್ರಹಗಳ ಸ್ಥಿತಿಯು ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ, ಸ್ಥಿರಾಸ್ತಿಗಳ ಸಂರಕ್ಷಣೆ ಹಾಗೂ ಗೌರವಯುತ ನಿವೃತ್ತ ಜೀವನವನ್ನು ಖಾತರಿಪಡಿಸುತ್ತದೆ. ಧನಕಾರಕ ಬೃಹಸ್ಪತಿಯು ಈ ಹಂತದಲ್ಲಿ ನಿಮ್ಮ ಜೀವಮಾನದ ಉಳಿತಾಯಕ್ಕೆ ದೈವಿಕ ರಕ್ಷೆಯನ್ನು ನೀಡುತ್ತಾನೆ. ನಿಮ್ಮ ವಿವೇಕಯುತ ನಿರ್ಧಾರಗಳು ಹಾಗೂ ಪೂರ್ವಾರ್ಜಿತ ಸಂಪತ್ತು ವೃದ್ಧಾಪ್ಯದಲ್ಲಿ ಯಾವುದೇ ಆರ್ಥಿಕ ಪರಾವಲಂಬನೆ ಇಲ್ಲದೆ ನೆಮ್ಮದಿಯಿಂದ ಇರಲು ಪೂರ್ಣ ಬೆಂಬಲ ನೀಡುತ್ತವೆ.
 
-ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯಲ್ಲಿ ದಾನ-ಧರ್ಮಗಳು, ತೀರ್ಥಯಾತ್ರೆಗಳು ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಉನ್ನತಿಗಾಗಿ ಸಂಪತ್ತನ್ನು ವಿನಿಯೋಗಿಸುವುದು ಅತೀವ ಮಾನಸಿಕ ತೃಪ್ತಿಯನ್ನು ನೀಡಲಿದೆ. ಹಣಕಾಸಿನ ಹೂಡಿಕೆಗಳನ್ನು ಅತ್ಯಂತ ಸುರಕ್ಷಿತ ಯೋಜನೆಗಳಲ್ಲಿ ಮುಂದುವರಿಸುವುದು ಮನಸ್ಸಿಗೆ ನಿರಾಳತೆಯನ್ನು ತರಲಿದೆ.
-
-${para3Kn}`;
+ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯಲ್ಲಿ ದಾನ-ಧರ್ಮಗಳು, ತೀರ್ಥಯಾತ್ರೆಗಳು ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಉನ್ನತಿಗಾಗಿ ಸಂಪತ್ತನ್ನು ವಿನಿಯೋಗಿಸುವುದು ಅತೀವ ಮಾನಸಿಕ ತೃಪ್ತಿಯನ್ನು ನೀಡಲಿದೆ. ಹಣಕಾಸಿನ ಹೂಡಿಕೆಗಳನ್ನು ಅತ್ಯಂತ ಸುರಕ್ಷಿತ ಯೋಜನೆಗಳಲ್ಲಿ ಮುಂದುವರಿಸುವುದು ಮನಸ್ಸಿಗೆ ನಿರಾಳತೆಯನ್ನು ತರಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = chart.hasDhanaDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के द्वितीय भाव अथवा धनकारक ग्रहों पर पापी ग्रहों की दृष्टि से अप्रत्याशित खर्चे या धन संचय में बाधाएं आ सकती हैं। धन दोष निवारणार्थ प्रत्येक शुक्रवार को श्री सूक्त अथवा कनकधारा स्तोत्र का पाठ करें तथा गौ-सेवा करें। गोಕರ್ण अथवा बग्गोण क्षेत्र में मां महालक्ष्मी की विशेष अर्चना करने से समस्त वित्तीय संकट दूर होकर स्थिर संपत्ति में निरंतर वृद्धि होगी।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में द्वितीय और एकादश भाव शुभ ग्रहों के संरक्षण में होकर प्रबल धन योग और आर्थिक सुरक्षा कवच प्रदान कर रहे हैं। बिना किसी गंभीर धन दोष के आपकी संपत्ति में निरंतर वृद्धि और स्थिरता बनी रहेगी। इस शुभ प्रभाव को बनाए रखने के लिए शुक्रवार को मां महालक्ष्मी के समक्ष घी का दीपक जलाएं तथा सामर्थ्यानुसार दान-पुण्य करें।`;
+        : "";
 
       return `आपकी कुंडली का 2रा भाव (${h2.rashiName}, स्वामी ${h2Lord}) और 11वां भाव (${h11.rashiName}, स्वामी ${h11Lord}) वरिष्ठ अवस्था में वित्तीय सुरक्षा, पूंजी संरक्षण और संचित धन की स्थिरता को दर्शाते हैं। धनकारक बृहस्पति आपकी आजीवन संचित संपत्ति को सुरक्षा प्रदान करते हैं। आपकी बचत और परिवार का सहयोग इस उम्र में वित्तीय स्वायत्तता और मानसिक शांति सुनिश्चित करते हैं।
 
-वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में परोपकार, तीर्थयात्रा और परिवार के कल्याणार्थ किए गए कार्य अत्यंत पुण्यदायी सिद्ध होंगे। वित्तीय संसाधनों को सुरक्षित योजनाओं में बनाए रखना मानसिक शांति देगा।
-
-${para3Hi}`;
+वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में परोपकार, तीर्थयात्रा और परिवार के कल्याणार्थ किए गए कार्य अत्यंत पुण्यदायी सिद्ध होंगे। वित्तीय संसाधनों को सुरक्षित योजनाओं में बनाए रखना मानसिक शांति देगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = chart.hasDhanaDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 2వ ఇల్లు లేదా ధనకారక గ్రహాలపై పాపగ్రహాల ప్రభావం ఉన్నప్పుడు అనుకోని ఖర్చులు కలగవచ్చు. ధన దోష నివారణకు ప్రతి శుక్రవారం శ్రీ సూక్తం పారాయణం చేయడం మరియు గోసేవ చేయడం శ్రేయస్కరం. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో మహాలక్ష్మీ పూజ నిర్వహించడం వలన ఆర్థిక ఇబ్బందులు తొలగి స్థిర సంపద వృద్ధి చెందుతుంది.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 2వ మరియు 11వ ఇళ్ళు శుభగ్రహాల ఆధీనంలో ఉండి బలమైన ధన యోగాన్ని, ఆర్థిక రక్షా కవచాన్ని అందిస్తున్నాయి. ఎలాంటి తీవ్ర ధన దోషాలు లేకపోవడం వలన మీ సంపద స్థిరంగా వృద్ధి చెందే శుభ యోగం ఉంది. ప్రతి శుక్రవారం మహాలక్ష్మి ఆరాధన చేయడం మంచిది.`;
+        : "";
 
       return `మీ జాతకంలో 2వ ఇల్లు (${h2.rashiName}, అధిపతి ${h2Lord}) మరియు 11వ ఇల్లు (${h11.rashiName}, అధిపతి ${h11Lord}) ఈ సీనియర్ వయస్సులో ఆర్థిక పరిపూర్ణతను, స్థిరమైన పొదుపును మరియు కుటుంబ ఆస్తుల సురక్షితత్వాన్ని సూచిస్తాయి. గురు భగవానుడు మీ జీవితకాల సంపాదనకు దైవిక రక్షణను అందిస్తుంది. మీ పొదుపు మరియు కుటుంబ తోడ్పాటు ఈ వయస్సులో ఎలాంటి ఆర్థిక ఇబ్బందులు లేకుండా ప్రశాంతంగా జీవించడానికి దోహదపడతాయి.
 
-ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో ధార్మిక కార్యాలు, దానధర్మాలు మరియు మనుమల భవిష్యత్తు కోసం చేసే సంకల్పాలు సత్ఫలితాలను ఇస్తాయి. ప్రతి శుక్రవారం లక్ష్మీ పూజ మరియు గోసేవ చేయడం వల్ల కుటుంబంలో సిరిసంపదలు నిరంతరం వర్ధిల్లుతాయి.
-
-${para3Te}`;
+ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో ధార్మిక కార్యాలు, దానధర్మాలు మరియు మనుమల భవిష్యత్తు కోసం చేసే సంకల్పాలు సత్ఫలితాలను ఇస్తాయి. ప్రతి శుక్రవారం లక్ష్మీ పూజ మరియు గోసేవ చేయడం వల్ల కుటుంబంలో సిరిసంపదలు నిరంతరం వర్ధిల్లుతాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasDhanaDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 2-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது எதிர்பாராத செலவுகள் ஏற்படலாம். தன தோஷ நிவர்த்திக்காக வெள்ளிக்கிழமைகளில் ஸ்ரீ சூக்தம் பாராயணம் செய்வதும், பசுவிற்கு உணவளிப்பதும் சிறந்தது. பக்கோண திருத்தலத்தில் மகாலட்சுமி அர்ச்சனை செய்வதன் மூலம் பொருளாதார சங்கடங்கள் நீங்கும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 2-ம் மற்றும் 11-ம் வீடுகள் சுப கிரகங்களின் ஆதிக்கத்தில் இருந்து வலிமையான தன யோகத்தையும் தெய்வீக நிதிப் பாதுகாப்புக் கவசத்தையும் வழங்குகின்றன. கடுமையான தன தோஷங்கள் ஏதுமின்றி சேமிப்பு பாதுகாப்பாக இருக்கும். வெள்ளிக்கிழமைகளில் மகாலட்சுமி வழிபாடு செய்வது நலம் தரும்.`;
+        : "";
 
       return `உங்கள் ஜாதகத்தில் 2-ம் வீடான (${h2.rashiName}, அதிபதி ${h2Lord}) மற்றும் 11-ம் வீடான (${h11.rashiName}, அதிபதி ${h11Lord}) முதுமைப் பருவத்தில் முழுமையான பொருளாதார பாதுகாப்பு, நிலையான சேமிப்பு மற்றும் பரம்பரை சொத்துக்களின் மேன்மையை உறுதி செய்கிறது. குரு பகவான் நீங்கள் வாழ்நாள் முழுவதும் ஈட்டிய நற்செல்வத்திற்கு தெய்வீக பாதுகாப்பைத் தருகிறார். உங்கள் சேமிப்பும் குடும்ப ஆதரவும் அமைதியான வாழ்க்கைக்கு துணைபுரியும்.
 
-தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தர்ம காரியங்கள், ஆலயத் திருப்பணிகள் மற்றும் பேரக்குழந்தைகளின் சுப நிகழ்வுகளுக்கு உதவும் புண்ணிய காலமாகும். வெள்ளிக்கிழமைகளில் மகாலட்சுமி வழிபாடு செய்வதும், பசுவிற்கு உணவு வழங்குவதும் குடும்பத்தில் வற்றாத செல்வத்தை நிலைநிறுத்தும்.
-
-${para3Ta}`;
+தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தர்ம காரியங்கள், ஆலயத் திருப்பணிகள் மற்றும் பேரக்குழந்தைகளின் சுப நிகழ்வுகளுக்கு உதவும் புண்ணிய காலமாகும். வெள்ளிக்கிழமைகளில் மகாலட்சுமி வழிபாடு செய்வதும், பசுவிற்கு உணவு வழங்குவதும் குடும்பத்தில் வற்றாத செல்வத்தை நிலைநிறுத்தும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = chart.hasDhanaDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological scrutiny identifies subtle afflictions impacting the 2nd house of accumulated reserves, which during retirement years can prompt sudden healthcare outlays or family property deliberations. Pacifying these fiscal vibrations through regular recitation of Sri Kanakadhara Stotram or Sri Suktam on Fridays and supporting temple Annadana preserves lasting financial equilibrium. Sponsoring a dedicated Mahalakshmi archana at Baggona Kshetra or Gokarna sanctums neutralizes monetary impediments, safeguarding multigenerational wealth and family trusts.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal chart displays a fortified Dhana Yoga with Dhanakaraka Jupiter casting an auspicious shield of financial preservation over your ancestral resources and lifelong estate. Free from severe pecuniary afflictions, your mature years unfold with dignified fiscal autonomy, generous domestic peace, and harmonious wealth succession. To maintain this prosperous shield, offering Friday prayers to Goddess Mahalakshmi and supporting sacred dharmic causes guarantees lifelong abundance and quiet serenity.`;
+      : "";
 
     return `For elder natives (age 60+), the 2nd house of accumulated wealth (${h2.rashiName}, ruled by ${h2Lord}) and 11th house of gains (${h11.rashiName}, ruled by ${h11Lord}) signify honorable financial security, capital preservation, and comfortable independence. Dhanakaraka Jupiter placed in ${jupWhere} safeguards your ancestral resources, lifelong accumulated assets and family trusts from unforeseen attrition, ensuring that retirement years unfold with dignified fiscal autonomy and generous domestic peace.
 
-Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period support purposeful dharmic philanthropy, sponsoring community annadana, and pilgrimages that bring immense spiritual joy. Anchoring resources in secure sovereign instruments preserves complete fiscal sovereignty.
-
-${para3En}`;
+Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period support purposeful dharmic philanthropy, sponsoring community annadana, and pilgrimages that bring immense spiritual joy. Anchoring resources in secure sovereign instruments preserves complete fiscal sovereignty.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   // Youth & Students (Age < 22): Financial Literacy, Budgeting, Family Resources
@@ -1241,80 +1041,66 @@ ${para3En}`;
     if (baseLang === "kn") {
       const para3Kn = chart.hasDhanaDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಧನ ಭಾವದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ಅನಗತ್ಯ ದುಂದುವೆಚ್ಚಗಳು ಅಥವಾ ಆರ್ಥಿಕ ಶಿಸ್ತಿನ ಕೊರತೆ ಉಂಟಾಗಬಹುದು. ಶಿಸ್ತಿನ ಉಳಿತಾಯ ಹವ್ಯಾಸ ಬೆಳೆಸಿಕೊಳ್ಳುವುದು ಹಾಗೂ ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮಿ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಹಣಕಾಸಿನ ಸಮೃದ್ಧಿಗೆ ದಾರಿಯಾಗುತ್ತದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧನ ಭಾವ ಹಾಗೂ ಲಾಭ ಭಾವಗಳು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಯೌವನದಲ್ಲಿ ಹಣಕಾಸಿನ ವಿವೇಕಕ್ಕೆ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ಒದಗಿಸಿವೆ. ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ಭವಿಷ್ಯದಲ್ಲಿ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ ಸಾಧಿಸಲು ಪೂರ್ಣ ಗ್ರಹಬಲ ಲಭಿಸಿದೆ. ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮಿ ಸ್ಮರಣೆ ಮಾಡುವುದು ಸದಾ ಶುಭಕರ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜಾತಕದ 2ನೇ ಮನೆ (ಧನ ಭಾವವಾದ ${h2.rashiName}, ಅಧಿಪತಿ ${h2Lord}) ಹಾಗೂ 11ನೇ ಮನೆ (ಲಾಭ ಭಾವವಾದ ${h11.rashiName}, ಅಧಿಪತಿ ${h11Lord}) ಗ್ರಹಗಳ ಸಂಯೋಜನೆಯು ಯುವ ವಯಸ್ಸಿನಲ್ಲಿ ಆರ್ಥಿಕ ಶಿಸ್ತು, ವಿವೇಕಯುತ ಉಳಿತಾಯ ಹಾಗೂ ಪೋಷಕರ ಸಂಪತ್ತಿನ ಮೌಲ್ಯವನ್ನು ಅರಿತುಕೊಳ್ಳುವ ಸದ್ಗುಣವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ಧನಕಾರಕ ಬೃಹಸ್ಪತಿಯು ಭವಿಷ್ಯದಲ್ಲಿ ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ಅತ್ಯುತ್ತಮ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆಯನ್ನು ಸಾಧಿಸುವ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.
 
-ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯಲ್ಲಿ ಅನಗತ್ಯ ದುಂದುವೆಚ್ಚಗಳು ಹಾಗೂ ಟ್ರೆಂಡ್‌ಗಳ ಹಿಂದಿನ ಖರ್ಚುಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ಸಣ್ಣ ಉಳಿತಾಯದ ಹವ್ಯಾಸ ಬೆಳೆಸಿಕೊಳ್ಳುವುದು ಉತ್ತಮ. ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ಜ್ಞಾನಾರ್ಜನೆಯಲ್ಲಿ ಹಣ ಹೂಡುವುದು ಮುಂದೆ ಮಹತ್ತರ ಆರ್ಥಿಕ ಸಂಪತ್ತನ್ನು ತರಲಿದೆ.
-
-${para3Kn}`;
+ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯಲ್ಲಿ ಅನಗತ್ಯ ದುಂದುವೆಚ್ಚಗಳು ಹಾಗೂ ಟ್ರೆಂಡ್‌ಗಳ ಹಿಂದಿನ ಖರ್ಚುಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ಸಣ್ಣ ಉಳಿತಾಯದ ಹವ್ಯಾಸ ಬೆಳೆಸಿಕೊಳ್ಳುವುದು ಉತ್ತಮ. ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ಜ್ಞಾನಾರ್ಜನೆಯಲ್ಲಿ ಹಣ ಹೂಡುವುದು ಮುಂದೆ ಮಹತ್ತರ ಆರ್ಥಿಕ ಸಂಪತ್ತನ್ನು ತರಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = chart.hasDhanaDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के द्वितीय भाव पर क्रूर दृष्टि से युवावस्था में व्यर्थ खर्चे या बजट में असंतुलन हो सकता है। वित्तीय अनुशासन बनाए रखें तथा शुक्रवार को मां महालक्ष्मी की आराधना करें।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में धन और लाभ भाव शुभ स्थिति में होकर युवा अवस्था में आर्थिक विवेक को एक सुरक्षा कवच प्रदान कर रहे हैं। अध्ययन और कौशल में किया गया निवेश भविष्य में अपार समृद्धि देगा।`;
+        : "";
 
       return `आपकी कुंडली का 2रा भाव (धन भाव ${h2.rashiName}, स्वामी ${h2Lord}) और 11वां भाव (लाभ भाव ${h11.rashiName}, स्वामी ${h11Lord}) इस युवा अवस्था में वित्तीय अनुशासन, बजट निर्माण और पारिवारिक संसाधनों के सदुपयोग का संदेश देते हैं। धनकारक बृहस्पति की स्थिति भविष्य में आत्मनिर्भरता और आर्थिक स्थिरता की नींव रखती है।
 
-वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में व्यर्थ के खर्चों से बचकर बचत की आदत डालना और अपने अध्ययन व कौशल विकास पर ध्यान देना भविष्य में उत्कृष्ट आर्थिक परिणाम देगा।
-
-${para3Hi}`;
+वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में व्यर्थ के खर्चों से बचकर बचत की आदत डालना और अपने अध्ययन व कौशल विकास पर ध्यान देना भविष्य में उत्कृष्ट आर्थिक परिणाम देगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = chart.hasDhanaDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 2వ ఇంటిపై పాపగ్రహాల ప్రభావం వల్ల అనవసర ఖర్చులు పెరగవచ్చు. పొదుపు అలవాటు చేసుకోవడం మరియు శుక్రవారం లక్ష్మీ పూజ చేయడం శ్రేయస్కరం.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో 2వ మరియు 11వ ఇళ్ళు శుభ బలం కలిగి ఉండి ఆర్థిక క్రమశిక్షణకు దైవిక రక్షణను అందిస్తున్నాయి. చదువుపై చేసే ఖర్చు భవిష్యత్తులో గొప్ప సంపదగా మారుతుంది.`;
+        : "";
 
       return `మీ జాతకంలో 2వ ఇల్లు (${h2.rashiName}, అధిపతి ${h2Lord}) మరియు 11వ ఇల్లు (${h11.rashiName}, అధిపతి ${h11Lord}) ఈ యవ్వన దశలో ఆర్థిక క్రమశిక్షణ, పొదుపు మరియు కుటుంబ వనరుల సద్వినియోగాన్ని సూచిస్తాయి. ధనకారక గురు గ్రహం భవిష్యత్తులో స్వయం సంపాదనతో ఆర్థిక స్వతంత్రతను సాధించే శక్తిని అందిస్తుంది.
 
-ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో అనవసర ఖర్చులను తగ్గించి, విద్యా సంబంధిత విషయాలపై దృష్టి పెట్టడం ఉత్తమమైన పెట్టుబడిగా మారుతుంది.
-
-${para3Te}`;
+ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో అనవసర ఖర్చులను తగ్గించి, విద్యా సంబంధిత విషయాలపై దృష్టి పెట్టడం ఉత్తమమైన పెట్టుబడిగా మారుతుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasDhanaDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 2-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது தேவையற்ற செலவுகள் ஏற்படலாம். சேமிப்புப் பழக்கத்தைக் கடைப்பிடிப்பதும், வெள்ளிக்கிழமைகளில் மகாலட்சுமி வழிபாடு செய்வதும் நலம் பயக்கும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் 2-ம் மற்றும் 11-ம் வீடுகள் சுப பலம் பெற்று இளமைப் பருவத்தில் நிதி ஒழுக்கத்திற்கு தெய்வீக பாதுகாப்புக் கவசத்தை அமைத்துள்ளன. கல்வியில் செய்யும் முதலீடு எதிர்காலத்தில் பெரும் செல்வத்தைத் தரும்.`;
+        : "";
 
       return `உங்கள் ஜாதகத்தில் 2-ம் வீடான (${h2.rashiName}, அதிபதி ${h2Lord}) மற்றும் 11-ம் வீடான (${h11.rashiName}, அதிபதி ${h11Lord}) இந்த இளமைப் பருவத்தில் நிதி ஒழுக்கம், விவேகமான சேமிப்பு மற்றும் குடும்ப வளங்களை மதிக்கும் பண்பை வளர்க்கின்றன. தனகாரகன் குரு பகவான் எதிர்காலத்தில் சொந்த உழைப்பால் பொருளாதார தன்னிறைவு அடையும் ஆற்றலைத் தருகிறார்.
 
-தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தேவையற்ற ஆடம்பரச் செலவுகளைக் கட்டுப்படுத்தி, கல்வி மற்றும் திறன் மேம்பாட்டில் கவனம் செலுத்துவது எதிர்காலத்தை வளமாக்கும்.
-
-${para3Ta}`;
+தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தேவையற்ற ஆடம்பரச் செலவுகளைக் கட்டுப்படுத்தி, கல்வி மற்றும் திறன் மேம்பாட்டில் கவனம் செலுத்துவது எதிர்காலத்தை வளமாக்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = chart.hasDhanaDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Natal markers indicate subtle planetary friction touching the 2nd house of liquid assets, which during student years can manifest as impulsive expenditure or difficulty with systematic savings habits. To dissolve this fiscal restlessness, practicing conscious budgeting and reciting the sacred Sri Suktam on Fridays balances the Dhana Bhava axis. Honoring family resources and maintaining transparent financial communication with parents ensures unshakeable stability.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your birth chart features an auspicious Dhana Yoga foundation enveloped in Jupiterian grace, building a resilient protective shield around your emerging financial literacy and prospective earning power. Free from severe wealth impediments, your natural prudence keeps family resources well-respected and your future fiscal prospects luminous. Cultivating early disciplined savings and offering prayers to Goddess Mahalakshmi guarantees lifelong financial sovereignty.`;
+      : "";
 
     return `For youth and students (under age 22), the 2nd house (${h2.rashiName}, ruled by ${h2Lord}) and 11th house of gains (${h11.rashiName}, ruled by ${h11Lord}) signify developing foundational budgeting literacy, understanding the value of family resources, and cultivating prudent personal finance habits rather than large capital speculation. Dhanakaraka Jupiter placed in ${jupWhere} instills sound fiscal discernment, ensuring that family educational investments yield rich long-term dividends.
 
-Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period advise resisting impulsive consumer trends, steering clear of speculative peer risks, and embracing disciplined micro-savings. Allocating time and resources toward books, specialized certifications, and technology tools creates the highest financial return on investment.
-
-${para3En}`;
+Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period advise resisting impulsive consumer trends, steering clear of speculative peer risks, and embracing disciplined micro-savings. Allocating time and resources toward books, specialized certifications, and technology tools creates the highest financial return on investment.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   // Adult Native (22 to 59 Years): Wealth Accumulation, Assets, Investments
   if (baseLang === "kn") {
     const para3Kn = chart.hasDhanaDosha
       ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ದ್ವಿತೀಯ ಭಾವ ಅಥವಾ ಧನಕಾರಕ ಗ್ರಹಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿಯಿದ್ದಾಗ ಆಕಸ್ಮಿಕ ಖರ್ಚುಗಳು, ಹಣಕಾಸಿನ ಹರಿವಿನಲ್ಲಿ ಏರಿಳಿತ ಅಥವಾ ಹೂಡಿಕೆಗಳಲ್ಲಿ ವಿಳಂಬ ಉಂಟಾಗುವ ಸಾಧ್ಯತೆಯಿರುತ್ತದೆ. ಧನಕ್ಷಯ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ಶ್ರೀ ಸೂಕ್ತ ಅಥವಾ ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು ಹಾಗೂ ಹಸುವಿಗೆ ಹಸಿರು ಹುಲ್ಲು ಅಥವಾ ಬೆಲ್ಲ ನೀಡುವುದು ಅತ್ಯಂತ ಶುಭದಾಯಕ. ಗೋಕರ್ಣ ಅಥವಾ ಬಗ್ಗೋಣ ಮಹಾಲಕ್ಷ್ಮಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಅರ್ಚನೆ ನೆರವೇರಿಸುವುದರಿಂದ ಆರ್ಥಿಕ ತೊಂದರೆಗಳು ನಿವಾರಣೆಯಾಗಿ ಸ್ಥಿರ ಸಂಪತ್ತು ವೃದ್ಧಿಯಾಗಲಿದೆ.`
-      : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಧನ ಭಾವ ಹಾಗೂ ಲಾಭ ಭಾವಗಳು ಶುಭ ಗ್ರಹಗಳ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಬಲಿಷ್ಠ ಧನ ಯೋಗ ಹಾಗೂ ದೈವಿಕ ಆರ್ಥಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ಹೊಂದಿವೆ. ಯಾವುದೇ ತೀವ್ರ ಧನ ದೋಷಗಳಿಲ್ಲದೆ ನಿಮ್ಮ ಸಂಪತ್ತು ಸತತವಾಗಿ ವೃದ್ಧಿಯಾಗುವ ಮಂಗಳಕರ ಯೋಗವಿದೆ. ಈ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಲು ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಮಹಾಲಕ್ಷ್ಮಿ ಅಷ್ಟಕ ಪಠಿಸಿ ಹಾಗೂ ನಿಯಮಿತವಾಗಿ ಧರ್ಮ ಕಾರ್ಯಗಳಿಗೆ ದಾನ ಮಾಡಿ. ದೈವಿಕ ಅನುಗ್ರಹವು ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಸದಾ ಸುಖ-ಸಮೃದ್ಧಿಗಳನ್ನು ತುಂಬಲಿದೆ.`;
+      : "";
 
     return `ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ 2ನೇ ಮನೆ (ಧನ ಭಾವವಾದ ${h2.rashiName}, ಅಧಿಪತಿ ${h2Lord}) ಹಾಗೂ 11ನೇ ಮನೆ (ಲಾಭ ಭಾವವಾದ ${h11.rashiName}, ಅಧಿಪತಿ ${h11Lord}) ಗ್ರಹಗಳ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ, ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ನಿರಂತರ ಧನಾಗಮನದ ಯೋಗವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಧನಕಾರಕ ಬೃಹಸ್ಪತಿಯು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ರಕ್ಷಿಸುತ್ತಾನೆ. ನಿಮ್ಮ ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ದೂರದೃಷ್ಟಿಯ ಹೂಡಿಕೆಗಳು ದೀರ್ಘಾವಧಿಯಲ್ಲಿ ಸ್ಥಿರವಾದ ಆಸ್ತಿ ಹಾಗೂ ಬ್ಯಾಂಕ್ ಉಳಿತಾಯವನ್ನು ತಂದುಕೊಡಲಿವೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಆರ್ಥಿಕ ಹರಿವನ್ನು ವೃದ್ಧಿಸಲು ಮತ್ತು ನೂತನ ಆದಾಯದ ಮೂಲಗಳನ್ನು ಸೃಷ್ಟಿಸಲು ಪ್ರಬಲ ಬೆಂಬಲ ನೀಡುತ್ತಿದೆ.
 
-ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿಯ ಅನುಕೂಲಕರ ಸ್ಥಿತಿಯು ಸಾಲಗಳಿಂದ ಮುಕ್ತಿ, ಭೂಮಿ ಅಥವಾ ಆಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಭದ್ರತೆಯನ್ನು ಖಾತರಿಪಡಿಸಲಿದೆ. ಆತುರದ ಷೇರು ಹೂಡಿಕೆಗಳು ಅಥವಾ ಅಪಾಯಕಾರಿ ಸಾಲ ವ್ಯವಹಾರಗಳಿಂದ ದೂರವಿರುವುದು ನಿಮ್ಮ ಸಂಪತ್ತನ್ನು ಸುರಕ್ಷಿತವಾಗಿಡಲಿದೆ.
-
-${para3Kn}`;
+ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿಯ ಅನುಕೂಲಕರ ಸ್ಥಿತಿಯು ಸಾಲಗಳಿಂದ ಮುಕ್ತಿ, ಭೂಮಿ ಅಥವಾ ಆಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಭದ್ರತೆಯನ್ನು ಖಾತರಿಪಡಿಸಲಿದೆ. ಆತುರದ ಷೇರು ಹೂಡಿಕೆಗಳು ಅಥವಾ ಅಪಾಯಕಾರಿ ಸಾಲ ವ್ಯವಹಾರಗಳಿಂದ ದೂರವಿರುವುದು ನಿಮ್ಮ ಸಂಪತ್ತನ್ನು ಸುರಕ್ಷಿತವಾಗಿಡಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
   }
   if (baseLang === "hi") {
     const para3Hi = chart.hasDhanaDosha
       ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के द्वितीय भाव अथवा धनकारक ग्रहों पर पापी ग्रहों की दृष्टि से अप्रत्याशित खर्चे, वित्तीय प्रवाह में उतार-चढ़ाव अथवा धन संचय में बाधाएं आ सकती हैं। धन दोष निवारणार्थ प्रत्येक शुक्रवार को श्री सूक्त अथवा कनकधारा स्तोत्र का पाठ करें तथा गौ-सेवा करें। गोಕರ್ಣ अथवा बग्गोण क्षेत्र में मां महालक्ष्मी की विशेष अर्चना करने से समस्त वित्तीय संकट दूर होकर स्थिर संपत्ति में निरंतर वृद्धि होगी।`
-      : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में द्वितीय और एकादश भाव शुभ ग्रहों के संरक्षण में होकर प्रबल धन योग और आर्थिक सुरक्षा कवच प्रदान कर रहे हैं। बिना किसी गंभीर धन दोष के आपकी संपत्ति में निरंतर वृद्धि और स्थिरता बनी रहेगी। इस शुभ प्रभाव को बनाए रखने के लिए शुक्रवार को मां महालक्ष्मी के समक्ष घी का दीपक जलाएं तथा सामर्थ्यानुसार दान-पुण्य करें। गोಕರ್ಣ एवं बग्गोण क्षेत्र की कृपा से आपके घर में अखंड लक्ष्मी का वास रहेगा।`;
+      : "";
 
     return `आपकी कुंडली का द्वितीय भाव (${h2.rashiName}, स्वामी ${h2Lord}) तथा एकादश भाव (${h11.rashiName}, स्वामी ${h11Lord}) वित्तीय संचय, आय के स्रोतों और पारिवारिक संपत्ति की प्रचुरता को दर्शाते हैं। धनकारक बृहस्पति आपकी वित्तीय सुरक्षा को दृढ़ता प्रदान करते हैं। आपकी दूरदर्शिता और परिश्रम से अर्जित आय दीर्घकालिक परिसंपत्तियों और अचल संपत्ति के निर्माण में सहायक होगी। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल नए वित्तीय अवसरों और व्यावसायिक विस्तार के लिए अत्यंत अनुकूल है।
 
-गोचर में गुरु और शनि का शुभ प्रभाव ऋणों से मुक्ति, गृह निर्माण या भूमि क्रय के प्रबल योग बना रहा है। सट्टेबाजी और जोखिम भरे निवेशों से बचते हुए सुरक्षित योजनाओं में धन लगाना आपकी आर्थिक संपन्नता को अक्षुण्ण रखेगा।
-
-${para3Hi}`;
+गोचर में गुरु और शनि का शुभ प्रभाव ऋणों से मुक्ति, गृह निर्माण या भूमि क्रय के प्रबल योग बना रहा है। सट्टेबाजी और जोखिम भरे निवेशों से बचते हुए सुरक्षित योजनाओं में धन लगाना आपकी आर्थिक संपन्नता को अक्षुण्ण रखेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
   }
   if (baseLang === "te") {
     const para3Te = chart.hasDhanaDosha
@@ -1323,9 +1109,7 @@ ${para3Hi}`;
 
     return `మీ జాతకంలో 2వ ఇల్లు (${h2.rashiName}, అధిపతి ${h2Lord}) మరియు 11వ ఇల్లు (${h11.rashiName}, అధిపతి ${h11Lord}) మీ ఆర్థిక పరిపుష్టి, ఆదాయ మార్గాలు మరియు స్థిరాస్తుల సంపాదనను నిర్దేశిస్తాయి. ధనకారక గురు గ్రహం మీ సంపదకు రక్షణగా నిలుస్తుంది. మీ నిరంతర శ్రమ మరియు దీర్ఘకాలిక ప్రణాళికలు కుటుంబానికి పటిష్టమైన ఆర్థిక భద్రతను చేకూరుస్తాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం నూతన ఆదాయ మార్గాలను అన్వేషించడానికి మరియు ఆస్తులు సమకూర్చుకోవడానికి అత్యంత అనుకూలమైనది.
 
-గోచారంలో గురు, శని గ్రహాల శుభ సంచారం అప్పుల బాధలను తొలగించి, నూతన గృహ లేదా స్థల కొనుగోలుకు సహకరిస్తుంది. ఊహాజనిత మరియు అధిక రిస్క్ వ్యాపారాలకు దూరంగా ఉండటం మీ సంపదను కాపాడుతుంది.
-
-${para3Te}`;
+గోచారంలో గురు, శని గ్రహాల శుభ సంచారం అప్పుల బాధలను తొలగించి, నూతన గృహ లేదా స్థల కొనుగోలుకు సహకరిస్తుంది. ఊహాజనిత మరియు అధిక రిస్క్ వ్యాపారాలకు దూరంగా ఉండటం మీ సంపదను కాపాడుతుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
   }
   if (baseLang === "ta") {
     const para3Ta = chart.hasDhanaDosha
@@ -1334,19 +1118,15 @@ ${para3Te}`;
 
     return `உங்கள் ஜாதகத்தில் 2-ம் வீடான (${h2.rashiName}, அதிபதி ${h2Lord}) மற்றும் 11-ம் வீடான (${h11.rashiName}, அதிபதி ${h11Lord}) பொருளாதார முன்னேற்றம், சேமிப்பு மற்றும் நிலையான சொத்து சேர்க்கையை உறுதி செய்கின்றன. தனகாரகன் குரு பகவான் உங்கள் நிதி நிலையை வலுப்படுத்துகிறார். உங்களின் முறையான திட்டமிடலும் விடாமுயற்சியும் குடும்பத்திற்கு சிறந்த நிதிப் பாதுகாப்பை அளிக்கும். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி புதிய வருமான வழிகளை உருவாக்க மிகவும் சாதகமாக உள்ளது.
 
-கோசாரத்தில் குரு மற்றும் சனி பகவானின் அருள் கடன்களை அடைக்கவும், நிலம் அல்லது வீடு வாங்கவும் வழிவகுக்கும். அவசர ஊக வணிகங்களைத் தவிர்த்து, பாதுகாப்பான முதலீடுகளை மேற்கொள்வது உங்கள் பொருளாதார நிலையை மேலும் உயர்த்தும்.
-
-${para3Ta}`;
+கோசாரத்தில் குரு மற்றும் சனி பகவானின் அருள் கடன்களை அடைக்கவும், நிலம் அல்லது வீடு வாங்கவும் வழிவகுக்கும். அவசர ஊக வணிகங்களைத் தவிர்த்து, பாதுகாப்பான முதலீடுகளை மேற்கொள்வது உங்கள் பொருளாதார நிலையை மேலும் உயர்த்தும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
   }
   const para3En = chart.hasDhanaDosha
     ? `【Dosha Analysis & Obstacle Resolution Shanti】 Subtle planetary friction or afflictions impacting the 2nd house of liquid assets or 11th house of gains can periodically stimulate sudden outlays, investment liquidity delays, or cash flow fluctuations. To pacify these fiscal tensions and safeguard accumulated reserves, chanting the Sri Suktam or Sri Kanakadhara Stotram on Fridays and practicing Gau-Seva (feeding cows) are exceptionally potent remedies. Sponsoring a dedicated Mahalakshmi archana at Baggona Kshetra or Gokarna sanctums dissolves monetary obstacles and anchors lasting multigenerational prosperity.`
-    : `【Benefic Planetary Yoga & Protective Shield】 Your natal chart features a fortified Dhana Yoga with auspicious aspects gracing the 2nd and 11th houses, casting an enduring celestial shield over your wealth preservation and liquid assets. Unhampered by severe financial afflictions, your balanced discernment guarantees steady asset appreciation, resilient fiscal security, and fruitful investments. To nourish this protective prosperity shield, lighting a pure ghee lamp on Fridays, reciting the Mahalakshmi Ashtakam, and engaging in regular dharmic charity ensure uninterrupted financial peace and domestic abundance.`;
+    : "";
 
   return `In your birth chart, the 2nd house (${h2.rashiName}, ruled by ${h2Lord}) and 11th house of gains (${h11.rashiName}, ruled by ${h11Lord}) indicate robust wealth-building potential, diversified income streams, and capital appreciation. Dhanakaraka Jupiter positioned in ${jupWhere} anchors your financial judgment in prudent risk management and sustainable expansion. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period stimulate productive fiscal momentum, favoring real estate acquisition, asset appreciation, and systematic retirement reserves.
 
-Auspicious transits of Jupiter and Saturn support debt consolidation, family property stabilization, and milestone financial investments. Steering clear of impulsive speculative markets and focusing on asset-backed instruments secures long-term fiscal sovereignty.
-
-${para3En}`;
+Auspicious transits of Jupiter and Saturn support debt consolidation, family property stabilization, and milestone financial investments. Steering clear of impulsive speculative markets and focusing on asset-backed instruments secures long-term fiscal sovereignty.${para3En ? `\n\n${para3En}` : ""}`;
 }
 
 
@@ -1363,56 +1143,46 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
     if (baseLang === "kn") {
       const para3Kn = chart.hasRogaDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಷಷ್ಠ ಭಾವ ಅಥವಾ ಶನಿ ಗ್ರಹದ ಪ್ರಭಾವವಿದ್ದಾಗ ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಕೀಲು ನೋವು, ವಾತ ಪ್ರಕೋಪ ಅಥವಾ ಜೀರ್ಣಕ್ರಿಯೆಯ ನಿಧಾನಗತಿ ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ರೋಗ ದೋಷ ಶಮನಕ್ಕಾಗಿ ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪಿಸುವುದು ಹಾಗೂ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಅಥವಾ ವಾಕಿಂಗ್ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೃತ್ಯುಂಜಯ ಹೋಮ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಸಮಸ್ತ ಶಾರೀರಿಕ ಬಾಧೆಗಳು ಪರಿಹಾರವಾಗಿ ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಲಗ್ನ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿಯು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ವೃದ್ಧಾಪ್ಯದಲ್ಲಿ ನಿಮ್ಮ ಆರೋಗ್ಯಕ್ಕೆ ಬಲಿಷ್ಠ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸಿದ್ದಾರೆ. ಯಾವುದೇ ತೀವ್ರ ರೋಗ ಬಾಧೆಗಳಿಲ್ಲದೆ ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ ಸುಸ್ಥಿತಿಯಲ್ಲಿರಲಿದೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಸಾತ್ವಿಕ ಆಹಾರ ಸೇವನೆ ಮಾಡುವುದು ನಿಮ್ಮ ಆರೋಗ್ಯವನ್ನು ಸದಾ ಕಾಪಾಡಲಿದೆ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಭಾವವಾದ ${h1.rashiName} (ಅಧಿಪತಿ ${h1Lord}) ಹಾಗೂ ಷಷ್ಠ ಭಾವವಾದ ${h6.rashiName} (ಅಧಿಪತಿ ${h6Lord}) ಗ್ರಹಗಳ ಸ್ಥಿತಿಯು ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಆರೋಗ್ಯ ರಕ್ಷಣೆ, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ದೈನಂದಿನ ದೈಹಿಕ ಚೈತನ್ಯವನ್ನು ಮಾರ್ಗದರ್ಶನ ಮಾಡುತ್ತವೆ. ಆರೋಗ್ಯಕಾರಕ ಸೂರ್ಯ ದೇವನು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ನೈಸರ್ಗಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತಾನೆ. ವಯೋಸಹಜವಾಗಿ ಮೂಳೆಗಳು, ಕೀಲುಗಳ ನಮ್ಯತೆ ಹಾಗೂ ಜೀರ್ಣಾಂಗ ವ್ಯವಸ್ಥೆಯ ಬಗ್ಗೆ ನಿಗಾವಹಿಸುವುದು ಅತ್ಯಂತ ಅವಶ್ಯಕವಾಗಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಒತ್ತಡರಹಿತ ಶಾಂತ ಜೀವನ, ನಿಯಮಿತ ನಡಿಗೆ ಹಾಗೂ ಸಾತ್ವಿಕ ಆಹಾರ ಪದ್ಧತಿಯನ್ನು ಅಳವಡಿಸಿಕೊಳ್ಳಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ.
 
-ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆಯೇ ದೈಹಿಕ ಆರೋಗ್ಯದ ಮೂಲವಾಗಿದೆ. ಪ್ರಾಣಾಯಾಮ, ಲಘು ಯೋಗಾಸನ ಹಾಗೂ ಧ್ಯಾನವು ನರಮಂಡಲವನ್ನು ಶಾಂತಗೊಳಿಸಿ, ಉತ್ತಮ ನಿದ್ರೆಯನ್ನು ತರಲಿದೆ. ತಣ್ಣೀರು ಹಾಗೂ ಅತಿಯಾದ ಎಣ್ಣೆಯುಕ್ತ ಆಹಾರವನ್ನು ತ್ಯಜಿಸಿ, ಹಿತಮಿತವಾದ ಪೌಷ್ಟಿಕ ಆಹಾರ ಸೇವಿಸುವುದು ಆಯುಷ್ಯ ಬಲವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ.
-
-${para3Kn}`;
+ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆಯೇ ದೈಹಿಕ ಆರೋಗ್ಯದ ಮೂಲವಾಗಿದೆ. ಪ್ರಾಣಾಯಾಮ, ಲಘು ಯೋಗಾಸನ ಹಾಗೂ ಧ್ಯಾನವು ನರಮಂಡಲವನ್ನು ಶಾಂತಗೊಳಿಸಿ, ಉತ್ತಮ ನಿದ್ರೆಯನ್ನು ತರಲಿದೆ. ತಣ್ಣೀರು ಹಾಗೂ ಅತಿಯಾದ ಎಣ್ಣೆಯುಕ್ತ ಆಹಾರವನ್ನು ತ್ಯಜಿಸಿ, ಹಿತಮಿತವಾದ ಪೌಷ್ಟಿಕ ಆಹಾರ ಸೇವಿಸುವುದು ಆಯುಷ್ಯ ಬಲವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = chart.hasRogaDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के छठे भाव अथवा शनि के प्रभाव से वरिष्ठ अवस्था में जोड़ों का दर्द, वात विकार अथवा पाचन में शिथिलता आ सकती है। रोग शांति हेतु नित्य प्रातःकाल महामृत्युंजय मंत्र का जप करें तथा सूर्य देव को जल अर्पित करें। गोಕರ್ಣ क्षेत्र में महामृत्युंजय पूजा समर्पित करने से शारीरिक व्याधियां शांत होकर दीर्घायु की प्राप्ति होगी।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में लग्न और लग्नेश शुभ ग्रहों के प्रभाव में होकर वरिष्ठ जीवन में आपके स्वास्थ्य को एक सुदृढ़ सुरक्षा कवच प्रदान कर रहे हैं। बिना किसी गंभीर रोग दोष के उत्तम जीवन शक्ति और दीर्घायु का वरदान प्राप्त है। नित्य प्रातः हल्का प्राणायाम तथा सात्विक दिनचर्या उत्तम स्वास्थ्य बनाए रखेगी।`;
+        : "";
 
       return `आपकी जन्म लग्न (${h1.rashiName}, स्वामी ${h1Lord}) एवं षष्ठ भाव (${h6.rashiName}, स्वामी ${h6Lord}) वरिष्ठ अवस्था में स्वास्थ्य रक्षा, दीर्घायु और शारीरिक संतुलन का संकेत देते हैं। आरोग्यकारक सूर्य देव की स्थिति प्राकृतिक जीवनी शक्ति प्रदान करती है। वृद्धावस्था में जोड़ों के लचीलेपन, हड्डियों के स्वास्थ्य और पाचन क्रिया पर विशेष ध्यान देना आवश्यक है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल तनावमुक्त जीवनशैली और सात्विक आहार की प्रेरणा देता है।
 
-मानसिक शांति ही उत्तम स्वास्थ्य की कुंजी है। नियमित प्राणायाम, हल्का टहलना और ध्यान तंत्रिका तंत्र को शांत रखकर गहरी नींद लाने में सहायक सिद्ध होगा।
-
-${para3Hi}`;
+मानसिक शांति ही उत्तम स्वास्थ्य की कुंजी है। नियमित प्राणायाम, हल्का टहलना और ध्यान तंत्रिका तंत्र को शांत रखकर गहरी नींद लाने में सहायक सिद्ध होगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = chart.hasRogaDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 6వ ఇల్లు లేదా శని ప్రభావం వల్ల కీళ్ల నొప్పులు లేదా వాత సమస్యలు తలెత్తవచ్చు. రోగ దోష నివారణకు రోజూ మహామృత్యుంజయ మంత్ర జపం చేయడం మరియు సూర్య నమస్కారాలు మంచిది. గోకర్ణ క్షేత్రంలో రుద్రాభిషేకం లేదా మృత్యుంజయ పూజ నిర్వహించడం వలన సంపూర్ణ ఆయురారోగ్యాలు సిద్ధిస్తాయి.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో లగ్నం మరియు లగ్నాధిపతి శుభ బలం కలిగి ఉండి ఆరోగ్యానికి బలమైన దైవిక రక్షణను అందిస్తున్నారు. ఎలాంటి తీవ్ర రోగ దోషాలు లేకపోవడం వలన శారీరక ఉల్లాసం, దీర్ఘాయుష్షు తోడుంటాయి. రోజూ ప్రాణాయామం చేయడం శ్రేయస్కరం.`;
+        : "";
 
       return `మీ జాతకంలో లగ్నం (${h1.rashiName}, అధిపతి ${h1Lord}) మరియు 6వ ఇల్లు (${h6.rashiName}, అధిపతి ${h6Lord}) ఈ సీనియర్ వయస్సులో ఆరోగ్య పరిరక్షణ, దీర్ఘాయుష్షు మరియు శారీరక సమతుల్యతను సూచిస్తాయి. ఆరోగ్యకారక సూర్య భగవానుడు సహజ రోగనిరోధక శక్తిని అనుగ్రహిస్తాడు. వయస్సు రీత్యా కీళ్ల కదలికలు మరియు జీర్ణవ్యవస్థ పట్ల జాగ్రత్త వహించడం అవసరం. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం ప్రశాంత జీవనశైలిని అలవర్చుకోవడానికి తోడ్పడుతుంది.
 
-మానసిక ప్రశాంతతే శారీరక ఆరోగ్యానికి మూలస్తంభం. రోజూ ప్రాణాయామం, తేలికపాటి వ్యాయామం నాడీ వ్యవస్థను బలోపేతం చేసి మంచి నిద్రను అందిస్తాయి.
-
-${para3Te}`;
+మానసిక ప్రశాంతతే శారీరక ఆరోగ్యానికి మూలస్తంభం. రోజూ ప్రాణాయామం, తేలికపాటి వ్యాయామం నాడీ వ్యవస్థను బలోపేతం చేసి మంచి నిద్రను అందిస్తాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasRogaDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 6-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது மூட்டு வலி அல்லது செரிமானக் குறைபாடுகள் ஏற்படலாம். ரோக தோஷ நிவர்த்திக்காக தினமும் காலையில் மகா மிருத்யுஞ்சய மந்திர ஜெபம் செய்வதும், சூர்ய நமஸ்காரம் செய்வதும் சிறந்தது. கோகர்ணம் திருத்தலத்தில் மிருத்யுஞ்சய பூஜை செய்வது நீண்ட ஆயுளையும் ஆரோக்கியத்தையும் தரும்.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் லக்னம் மற்றும் லக்னாதிபதி சுப பலம் பெற்று இந்த வயதில் உடலுக்கு தெய்வீக பாதுகாப்புக் கவசத்தை அமைத்துள்ளனர். கடுமையான நோய்கள் ஏதுமின்றி நீண்ட ஆயுளும் ஆரோக்கியமும் நிலைக்கும். காலையில் பிராணாயாமம் செய்வது நலம் பயக்கும்.`;
+        : "";
 
       return `உங்கள் ஜாதகத்தில் லக்னம் (${h1.rashiName}, அதிபதி ${h1Lord}) மற்றும் 6-ம் வீடான (${h6.rashiName}, அதிபதி ${h6Lord}) முதுமைப் பருவத்தில் உடல்நலப் பாதுகாப்பு, நீண்ட ஆயுள் மற்றும் சமநிலையை உறுதி செய்கின்றன. ஆரோக்கியகாரகன் சூரிய பகவான் இயல்பான நோய் எதிர்ப்பு சக்தியைத் தருகிறார். இவ்வயதில் மூட்டு ஆரோக்கியம் மற்றும் செரிமானத்தில் கவனம் செலுத்துவது அவசியம். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் அமைதியான வாழ்விற்கும் சாத்வீக உணவு முறைக்கும் உகந்தது.
 
-மன அமைதியே உடல் நலத்திற்கு அடிப்படை. தினமும் பிராணாயாமம் மற்றும் எளிய நடைப்பயிற்சி நரம்பு மண்டலத்தை அமைதிப்படுத்தி நல்ல உறக்கத்தைத் தரும்.
-
-${para3Ta}`;
+மன அமைதியே உடல் நலத்திற்கு அடிப்படை. தினமும் பிராணாயாமம் மற்றும் எளிய நடைப்பயிற்சி நரம்பு மண்டலத்தை அமைதிப்படுத்தி நல்ல உறக்கத்தைத் தரும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = chart.hasRogaDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological analysis detects subtle Saturnian or Rahu influences impacting the 6th house (Roga Sthana), which during mature years can translate into joint stiffness, arthritic sensitivity, or sluggish digestive metabolism. To dissolve these geriatric wellness hurdles, reciting the sacred Maha Mrityunjaya mantra 108 times at dawn and drinking warm water infused with ginger harmonizes the Vata-Kapha balance. Sponsoring a dedicated Mrityunjaya homa at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra clears latent afflictions, surrounding your physical aura with radiant health and longevity.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal chart displays an auspicious Arogya Yoga orientation with Lagna lord fortified by benefic rays, constructing an enduring protective shield over your longevity, joint mobility, and vital organ function. Free from chronic afflictions, your retirement years unfold with robust vitality and dignified physical autonomy. To nourish this celestial shield, reciting the Maha Mrityunjaya mantra daily, taking gentle morning walks in sunshine, and maintaining mindful dietary rhythms safeguard unbroken health and longevity.`;
+      : "";
 
     return `For elder natives (age 60+), the 1st house (${h1.rashiName}, lord ${h1Lord}) and 6th house of health balance (${h6.rashiName}, lord ${h6Lord}) emphasize proactive geriatric wellness, joint mobility, metabolic equilibrium, and vital longevity rather than aggressive physical exertion. Arogyakaraka Sun positioned in ${sunWhere} provides foundational cellular resistance, while the Moon promotes nervous equanimity. Prioritizing bone density, cardiovascular gentleness, and balanced hydration safeguards uninterrupted physical comfort throughout your golden years.
 
-Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period advocate establishing restorative sleep hygiene, incorporating gentle morning mobility walks in natural sunlight, and consuming freshly prepared, unctuous Ayurvedic meals.
-
-${para3En}`;
+Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period advocate establishing restorative sleep hygiene, incorporating gentle morning mobility walks in natural sunlight, and consuming freshly prepared, unctuous Ayurvedic meals.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   // Youth & Students (Age < 22): Vitality, Screen Strain, Surya Namaskars
@@ -1420,80 +1190,66 @@ ${para3En}`;
     if (baseLang === "kn") {
       const para3Kn = chart.hasRogaDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಷಷ್ಠ ಭಾವದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ಕಣ್ಣಿನ ಆಯಾಸ, ನಿದ್ರಾಹೀನತೆ ಅಥವಾ ತಲೆನೋವು ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡುವುದು ಹಾಗೂ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು ಕಣ್ಣಿನ ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸಿ ಆರೋಗ್ಯವನ್ನು ರಕ್ಷಿಸುತ್ತದೆ.`
-        : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಲಗ್ನ ಹಾಗೂ ಸೂರ್ಯ ಗ್ರಹವು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಯೌವನದಲ್ಲಿ ನಿಮ್ಮ ಆರೋಗ್ಯಕ್ಕೆ ಬಲಿಷ್ಠ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸಿದ್ದಾರೆ. ಅತ್ಯುತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ದೈಹಿಕ ಚೈತನ್ಯ ಸದಾ ನಿಮ್ಮ ಬೆಂಬಲಕ್ಕಿದೆ. ನಿತ್ಯ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ಉತ್ತಮ ನಿದ್ರೆ ಆರೋಗ್ಯವನ್ನು ಇನ್ನಷ್ಟು ಬಲಪಡಿಸಲಿದೆ.`;
+        : "";
 
       return `ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಭಾವವಾದ ${h1.rashiName} (ಅಧಿಪತಿ ${h1Lord}) ಹಾಗೂ ಷಷ್ಠ ಭಾವವಾದ ${h6.rashiName} (ಅಧಿಪತಿ ${h6Lord}) ವಿದ್ಯಾರ್ಥಿ ಜೀವನದಲ್ಲಿ ಉತ್ಸಾಹ, ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ನೈಸರ್ಗಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ನಿರ್ಧರಿಸುತ್ತವೆ. ಆರೋಗ್ಯಕಾರಕ ಸೂರ್ಯನ ಅನುಗ್ರಹವು ನಿಮ್ಮಲ್ಲಿ ಅಪ್ರತಿಮ ಚೈತನ್ಯವನ್ನು ತುಂಬಿದೆ. ಅಧ್ಯಯನದ ಒತ್ತಡ, ದೀರ್ಘಕಾಲದ ಮೊಬೈಲ್ ಅಥವಾ ಕಂಪ್ಯೂಟರ್ ಪರದೆಯ ವೀಕ್ಷಣೆಯಿಂದ ಕಣ್ಣಿನ ಆಯಾಸ ಹಾಗೂ ನಿದ್ರಾಹೀನತೆಯಾಗದಂತೆ ಜಾಗ್ರತೆ ವಹಿಸುವುದು ಅವಶ್ಯಕ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಉತ್ತಮ ಕ್ರೀಡಾ ಚಟುವಟಿಕೆಗಳು ಹಾಗೂ ದೈಹಿಕ ವ್ಯಾಯಾಮಕ್ಕೆ ಪ್ರೇರೇಪಿಸುತ್ತದೆ.
 
-ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಊಟ ಮತ್ತು ಗಾಢ ನಿದ್ರೆಯು ನಿಮ್ಮ ಜ್ಞಾಪಕ ಶಕ್ತಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡುವುದು ಹಾಗೂ ಶುದ್ಧ ನೀರು ಕುಡಿಯುವುದು ದೇಹದ ನವಚೈತನ್ಯವನ್ನು ಸದಾ ಕಾಪಾಡಲಿದೆ.
-
-${para3Kn}`;
+ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಊಟ ಮತ್ತು ಗಾಢ ನಿದ್ರೆಯು ನಿಮ್ಮ ಜ್ಞಾಪಕ ಶಕ್ತಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡುವುದು ಹಾಗೂ ಶುದ್ಧ ನೀರು ಕುಡಿಯುವುದು ದೇಹದ ನವಚೈತನ್ಯವನ್ನು ಸದಾ ಕಾಪಾಡಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
     }
     if (baseLang === "hi") {
       const para3Hi = chart.hasRogaDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के छठे भाव पर क्रूर दृष्टि से नेत्रों में थकान, नींद में व्यवधान या सिरदर्द हो सकता है। प्रातःकाल सूर्य नमस्कार करें तथा आदित्य हृदय स्तोत्र का पाठ करें। स्क्रीन समय सीमित रखना आंखों और मस्तिष्क के लिए अत्यंत हितकारी होगा।`
-        : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में लग्न और सूर्य देव शुभ स्थिति में होकर युवा अवस्था में आरोग्य का सुरक्षा कवच प्रदान कर रहे हैं। प्राकृतिक ऊर्जा और स्फूर्ति भरपूर रहेगी। नित्य सूर्य नमस्कार और पर्याप्त नींद स्वास्थ्य को उत्तम बनाए रखेगी।`;
+        : "";
 
       return `आपकी कुंडली का लग्न भाव (${h1.rashiName}, स्वामी ${h1Lord}) और षष्ठ भाव (${h6.rashiName}, स्वामी ${h6Lord}) युवा अवस्था में जीवन शक्ति, प्राकृतिक प्रतिरोधक क्षमता और स्फूर्ति को निर्धारित करते हैं। सूर्य देव की कृपा से आपके भीतर कार्य करने की उत्कृष्ट ऊर्जा विद्यमान है। अत्यधिक स्क्रीन उपयोग से आंखों के तनाव और अनिद्रा से बचना आवश्यक है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल खेलकूद और शारीरिक व्यायाम के लिए अनुकूल है।
 
-संतुलित दिनचर्या, समय पर पौष्टिक आहार और नियमित विश्राम आपकी एकाग्रता और ऊर्जा को शिखर पर बनाए रखेगा।
-
-${para3Hi}`;
+संतुलित दिनचर्या, समय पर पौष्टिक आहार और नियमित विश्राम आपकी एकाग्रता और ऊर्जा को शिखर पर बनाए रखेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
     }
     if (baseLang === "te") {
       const para3Te = chart.hasRogaDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 6వ ఇంటిపై పాపగ్రహాల ప్రభావం వల్ల కంటి అలసట లేదా నిద్రలేమి కలగవచ్చు. రోజూ సూర్య నమస్కారాలు చేయడం మరియు ఆదిత్య హృదయ స్తోత్రం పఠించడం మంచిది. స్క్రీన్ సమయాన్ని తగ్గించడం ఆరోగ్యానికి మేలు చేస్తుంది.`
-        : `【శుభ యోగం & దైవిక రక్షా కవచం】 మీ జాతకంలో లగ్నం మరియు సూర్య భగవానుడు శుభ బలం కలిగి ఉండి యువ దశలో ఆరోగ్యానికి బలమైన రక్షణను అందిస్తున్నారు. సహజ శక్తి, ఉత్సాహం నిరంతరం తోడుంటాయి. రోజూ సూర్య నమస్కారాలు చేయడం శుభకరం.`;
+        : "";
 
       return `మీ జాతకంలో లగ్నం (${h1.rashiName}, అధిపతి ${h1Lord}) మరియు 6వ ఇల్లు (${h6.rashiName}, అధిపతి ${h6Lord}) విద్యార్థి దశలో సహజ రోగనిరోధక శక్తిని, శారీరక ఉల్లాసాన్ని సూచిస్తాయి. సూర్య భగవానుని అనుగ్రహం వల్ల మీలో అద్భుతమైన జీవశక్తి ఉంది. ఎక్కువ సమయం మొబైల్ లేదా స్క్రీన్ చూడటం వల్ల వచ్చే కంటి అలసటను నివారించడం అవసరం. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం క్రీడలు, వ్యాయామాలకు అనుకూలమైనది.
 
-సరైన సమయానికి నిద్ర మరియు పౌష్టికాహారం మీ జ్ఞాపకశక్తిని, మానసిక ఉల్లాసాన్ని పెంపొందిస్తాయి.
-
-${para3Te}`;
+సరైన సమయానికి నిద్ర మరియు పౌష్టికాహారం మీ జ్ఞాపకశక్తిని, మానసిక ఉల్లాసాన్ని పెంపొందిస్తాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasRogaDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 6-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது கண் சோர்வு அல்லது தூக்கமின்மை ஏற்படலாம். தினமும் காலையில் சூர்ய நமஸ்காரம் செய்வதும், ஆதித்ய ஹிருதய ஸ்தோத்திரம் பாராயணம் செய்வதும் நலம் தரும். திரை நேரத்தைக் குறைப்பது நல்லது.`
-        : `【சுப யோகம் & தெய்வீக பாதுகாப்புக் கவசம்】 உங்கள் ஜாதகத்தில் லக்னம் மற்றும் சூரிய பகவான் சுப பலம் பெற்று இளமைப் பருவத்தில் உடலுக்கு தெய்வீக பாதுகாப்புக் கவசத்தை அமைத்துள்ளனர். நோய் எதிர்ப்பு சக்தியும் புத்துணர்ச்சியும் மேலோங்கும். காலையில் சூர்ய நமஸ்காரம் செய்வது நலம் பயக்கும்.`;
+        : "";
 
       return `உங்கள் ஜாதகத்தில் லக்னம் (${h1.rashiName}, அதிபதி ${h1Lord}) மற்றும் 6-ம் வீடான (${h6.rashiName}, அதிபதி ${h6Lord}) மாணவப் பருவத்தில் புத்துணர்ச்சி, நோய் எதிர்ப்பு சக்தி மற்றும் உடல் வலிமையை உறுதி செய்கின்றன. சூரிய பகவானின் அருள் சிறந்த ஆற்றலைத் தருகிறது. அதிக நேரம் கணினி அல்லது மொபைல் பார்ப்பதால் ஏற்படும் கண் சோர்வைத் தவிர்ப்பது அவசியம். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி விளையாட்டுகளுக்கும் உடற்பயிற்சிக்கும் ஏற்றது.
 
-சரியான உறக்கமும் சத்தான உணவும் உங்கள் நினைவாற்றலையும் உடல் பலத்தையும் பெருக்கும்.
-
-${para3Ta}`;
+சரியான உறக்கமும் சத்தான உணவும் உங்கள் நினைவாற்றலையும் உடல் பலத்தையும் பெருக்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
     }
     const para3En = chart.hasRogaDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Subtle malefic aspects touching the 6th house axis during rigorous academic years can trigger digital eye strain, irregular sleep patterns, or tension headaches from extended screen immersion. To dissolve this energetic fatigue, setting daily screen-free boundaries, practicing conscious eye exercises, and offering early morning Surya Namaskars with Aditya Hridaya chanting swiftly restores metabolic balance and crystal-clear vision. Sponsoring archana at Baggona Kshetra shields academic vitality.`
-      : `【Benefic Planetary Yoga & Protective Shield】 Your natal Lagna and Sun form an exuberant vitality alignment that envelopes your youthful constitution in a luminous protective shield of natural immunity and boundless physical stamina. Free from severe health afflictions, your body easily bounces back from occasional fatigue. Practicing daily morning Surya Namaskars, balancing study hours with outdoor sports, and minimizing nighttime screen strain preserves peak cognitive endurance and radiant health.`;
+      : "";
 
     return `For students and young natives (under age 22), the 1st house (${h1.rashiName}, lord ${h1Lord}) and 6th house (${h6.rashiName}, lord ${h6Lord}) govern vibrant youth stamina, sound immunity, and balancing intense study hours with physical wellbeing. Arogyakaraka Sun situated in ${sunWhere} infuses robust metabolic fire and natural cellular regeneration, while the Moon ensures emotional buoyancy. Mindful habits around digital screen strain, posture ergonomics, and restorative sleep rhythms prevent academic burnout.
 
-Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period encourage pairing scholarly focus with regular outdoor physical activity, proper hydration, and nutritious meals. Integrating regular Surya Namaskars at sunrise revitalizes ocular vitality, sharpens memory retention, and keeps youthful stamina at its peak.
-
-${para3En}`;
+Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period encourage pairing scholarly focus with regular outdoor physical activity, proper hydration, and nutritious meals. Integrating regular Surya Namaskars at sunrise revitalizes ocular vitality, sharpens memory retention, and keeps youthful stamina at its peak.${para3En ? `\n\n${para3En}` : ""}`;
   }
 
   // Adult Native (22 to 59 Years): Physical Stamina, Vitality, Stress Balance
   if (baseLang === "kn") {
     const para3Kn = chart.hasRogaDosha
       ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಷಷ್ಠ ಭಾವ ಅಥವಾ ಲಗ್ನಾಧಿಪತಿಯ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿಯಿದ್ದಾಗ ಕಾಲೋಚಿತ ಅನಾರೋಗ್ಯ, ಜೀರ್ಣಕ್ರಿಯೆಯ ಏರುಪೇರು ಅಥವಾ ಮಾನಸಿಕ ಆತಂಕಗಳು ಬಾಧಿಸುವ ಸಾಧ್ಯತೆಯಿದೆ. ರೋಗ ದೋಷ ಶಮನಕ್ಕಾಗಿ ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು, ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡುವುದು ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪಿಸುವುದು ಅಮೋಘ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೃತ್ಯುಂಜಯ ಹೋಮ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಸಮಸ್ತ ದೈಹಿಕ ಬಾಧೆಗಳು ಪರಿಹಾರವಾಗಿ ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯ ಲಭಿಸಲಿದೆ.`
-      : `【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಲಗ್ನ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿಯು ಶುಭ ಗ್ರಹಗಳ ಅನುಗ್ರಹದಲ್ಲಿದ್ದು, ನೈಸರ್ಗಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ದೈವಿಕ ಆರೋಗ್ಯ ರಕ್ಷಾ ಕವಚವನ್ನು ಹೊಂದಿದ್ದಾರೆ. ಯಾವುದೇ ತೀವ್ರ ರೋಗ ದೋಷಗಳ ಬಾಧೆಯಿಲ್ಲದೆ ಶಾರೀರಿಕ ಚೈತನ್ಯ ಹಾಗೂ ಮಾನಸಿಕ ನೆಮ್ಮದಿ ಸುಸ್ಥಿತಿಯಲ್ಲಿರಲಿದೆ. ಈ ದೈವಿಕ ರಕ್ಷಣೆಯನ್ನು ಬಲಪಡಿಸಲು ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಧ್ಯಾನ ಹಾಗೂ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯನ್ನು ಅನುಸರಿಸಿ. ಭಗವಂತನ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಆಯುಷ್ಯ ಹಾಗೂ ಆರೋಗ್ಯವು ಸದಾ ದೃಢವಾಗಿರಲಿದೆ.`;
+      : "";
 
     return `ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ ಲಗ್ನ ಭಾವವಾದ ${h1.rashiName} (ಅಧಿಪತಿ ${h1Lord}) ಹಾಗೂ ಷಷ್ಠ ಭಾವವಾದ ${h6.rashiName} (ಅಧಿಪತಿ ${h6Lord}) ನಿಮ್ಮ ಶಾರೀರಿಕ ಶಕ್ತಿ, ರೋಗನಿರೋಧಕ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ದೈನಂದಿನ ಚೈತನ್ಯವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತವೆ. ಆರೋಗ್ಯಕಾರಕನಾದ ಸೂರ್ಯ ಗ್ರಹವು ನೈಸರ್ಗಿಕ ಚೈತನ್ಯ ಹಾಗೂ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತಾನೆ. ಕೆಲಸದ ಒತ್ತಡ ಹಾಗೂ ನಿರಂತರ ಕಾರ್ಯನಿರತತೆಯಿಂದ ಜೀರ್ಣಕ್ರಿಯೆ ಮತ್ತು ನಿದ್ರಾಹೀನತೆಯಂತಹ ಸಮಸ್ಯೆಗಳು ಎದುರಾಗದಂತೆ ಎಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಮುಖ್ಯವಾಗಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಒತ್ತಡ ನಿಯಂತ್ರಣ, ಸಮತೋಲಿತ ಆಹಾರ ಹಾಗೂ ನಿಯಮಿತ ವಿಶ್ರಾಂತಿಯನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಪಾಲಿಸಲು ಸೂಚಿಸುತ್ತದೆ.
 
-ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಲಘು ವ್ಯಾಯಾಮ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ತಾಮ್ರದ ಪಾತ್ರೆಯ ನೀರು ಕುಡಿಯುವುದು ಜೀರ್ಣಾಂಗ ವ್ಯವಸ್ಥೆಯನ್ನು ಸುಸ್ಥಿತಿಯಲ್ಲಿಡುತ್ತದೆ. ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ಧ್ಯಾನ ಮತ್ತು ಸಂಗೀತ ಶ್ರವಣವು ಅದ್ಭುತ ಫಲಿತಾಂಶವನ್ನು ನೀಡಲಿದೆ.
-
-${para3Kn}`;
+ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಲಘು ವ್ಯಾಯಾಮ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ತಾಮ್ರದ ಪಾತ್ರೆಯ ನೀರು ಕುಡಿಯುವುದು ಜೀರ್ಣಾಂಗ ವ್ಯವಸ್ಥೆಯನ್ನು ಸುಸ್ಥಿತಿಯಲ್ಲಿಡುತ್ತದೆ. ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ಧ್ಯಾನ ಮತ್ತು ಸಂಗೀತ ಶ್ರವಣವು ಅದ್ಭುತ ಫಲಿತಾಂಶವನ್ನು ನೀಡಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
   }
   if (baseLang === "hi") {
     const para3Hi = chart.hasRogaDosha
       ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के छठे भाव अथवा लग्नेश पर क्रूर ग्रहों के प्रभाव से मौसमी अस्वस्थता, पाचन संबंधी दुर्बलता अथवा मानसिक तनाव की स्थिति बन सकती है। रोग दोष निवारणार्थ नित्य प्रातःकाल आदित्य हृदय स्तोत्र का पाठ करें, सूर्य नमस्कार करें तथा महामृत्युंजय मंत्र का जप करें। गोಕರ್ण क्षेत्र में महामृत्युंजय होम अथवा रुद्राभिषेक समर्पित करने से समस्त स्वास्थ्य कष्ट दूर होकर दीर्घायु और आरोग्य की प्राप्ति होगी।`
-      : `【शुभ योग एवं दैवीय रक्षा कवच】 आपकी कुंडली में लग्न और लग्नेश शुभ ग्रहों के प्रभाव में होकर प्राकृतिक रोग प्रतिरोधक क्षमता और एक सुदृढ़ आरोग्य सुरक्षा कवच का निर्माण कर रहे हैं। बिना किसी गंभीर रोग दोष के शारीरिक स्फूर्ति और मानसिक संतुलन उत्तम बना रहेगा। इस कल्याणकारी ऊर्जा को बनाए रखने के लिए नित्य प्रातः सूर्य नमस्कार, प्राणायाम तथा सात्विक दिनचर्या का पालन करें। प्रभु कृपा से आपका स्वास्थ्य और दीर्घायु सदैव सुरक्षित रहेंगे।`;
+      : "";
 
     return `आपकी जन्म कुंडली का प्रथम भाव (${h1.rashiName}, स्वामी ${h1Lord}) तथा षष्ठ भाव (${h6.rashiName}, स्वामी ${h6Lord}) आपकी शारीरिक शक्ति, रोग प्रतिरोधक क्षमता और दैनिक जीवन शक्ति का नियमन करते हैं। आरोग्यकारक सूर्य देव स्वाभाविक आत्मबल और ऊर्जा प्रदान करते हैं। कार्यभार की अधिकता और तनाव से पाचन क्रिया अथवा अनिद्रा जैसी समस्याओं से बचाव हेतु सजग रहना आवश्यक है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल तनाव प्रबंधन, संतुलित आहार तथा नियमित विश्राम की मांग करता है।
 
-प्रतिदिन प्रातःकाल हल्का व्यायाम, प्राणायाम और तांबे के पात्र का जल ग्रहण करना चयापचय को संतुलित रखेगा। मानसिक शांति के लिए ध्यान अत्यंत लाभकारी सिद्ध होगा।
-
-${para3Hi}`;
+प्रतिदिन प्रातःकाल हल्का व्यायाम, प्राणायाम और तांबे के पात्र का जल ग्रहण करना चयापचय को संतुलित रखेगा। मानसिक शांति के लिए ध्यान अत्यंत लाभकारी सिद्ध होगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
   }
   if (baseLang === "te") {
     const para3Te = chart.hasRogaDosha
@@ -1502,9 +1258,7 @@ ${para3Hi}`;
 
     return `మీ జాతకంలో లగ్న భావం (${h1.rashiName}, అధిపతి ${h1Lord}) మరియు 6వ ఇల్లు (${h6.rashiName}, అధిపతి ${h6Lord}) మీ శారీరక బలం, రోగనిరోధక శక్తి మరియు రోజువారీ ఉత్సాహాన్ని నియంత్రిస్తాయి. ఆరోగ్యకారక సూర్య భగవానుడు సహజ శక్తిని ప్రసాదిస్తాడు. పని ఒత్తిడి వల్ల జీర్ణ సమస్యలు లేదా నిద్రలేమి రాకుండా తగిన జాగ్రత్తలు తీసుకోవడం ముఖ్యం. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం ఒత్తిడిని తగ్గించుకోవడానికి, సమతుల్య ఆహారం మరియు తగిన విశ్రాంతి తీసుకోవడానికి సూచిస్తోంది.
 
-రోజూ ఉదయం వ్యాయామం, ప్రాణాయామం మరియు రాగి పాత్రలోని నీరు త్రాగడం ఆరోగ్యాన్ని సంరక్షిస్తాయి. మానసిక ప్రశాంతత కోసం ధ్యానం చేయడం ఎంతో శ్రేయస్కరం.
-
-${para3Te}`;
+రోజూ ఉదయం వ్యాయామం, ప్రాణాయామం మరియు రాగి పాత్రలోని నీరు త్రాగడం ఆరోగ్యాన్ని సంరక్షిస్తాయి. మానసిక ప్రశాంతత కోసం ధ్యానం చేయడం ఎంతో శ్రేయస్కరం.${para3Te ? `\n\n${para3Te}` : ""}`;
   }
   if (baseLang === "ta") {
     const para3Ta = chart.hasRogaDosha
@@ -1513,19 +1267,15 @@ ${para3Te}`;
 
     return `உங்கள் ஜாதகத்தில் லக்ன பாவகமான (${h1.rashiName}, அதிபதி ${h1Lord}) மற்றும் 6-ம் வீடான (${h6.rashiName}, அதிபதி ${h6Lord}) உங்கள் உடல் வலிமை, நோய் எதிர்ப்பு சக்தி மற்றும் அன்றாட புத்துணர்ச்சியை வழிநடத்துகின்றன. ஆரோக்கியகாரகன் சூரிய பகவான் இயற்கையான ஆற்றலை வழங்குகிறார். பணிச்சுமையால் செரிமானக் கோளாறுகள் அல்லது தூக்கமின்மை ஏற்படாமல் பார்த்துக் கொள்வது அவசியம். தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலத்தை மன அழுத்தமில்லாத வாழ்விற்கும், சத்தான உணவு முறைக்கும் பயன்படுத்துவது சிறந்தது.
 
-தினமும் காலையில் எளிய உடற்பயிற்சி, பிராணாயாமம் மற்றும் செப்புப் பாத்திரத்தில் நீர் அருந்துவது உடலை சமநிலையில் வைக்கும். மன அமைதிக்காக தியானம் செய்வது நற்பலன்களைத் தரும்.
-
-${para3Ta}`;
+தினமும் காலையில் எளிய உடற்பயிற்சி, பிராணாயாமம் மற்றும் செப்புப் பாத்திரத்தில் நீர் அருந்துவது உடலை சமநிலையில் வைக்கும். மன அமைதிக்காக தியானம் செய்வது நற்பலன்களைத் தரும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
   }
   const para3En = chart.hasRogaDosha
     ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological scrutiny indicates subtle planetary friction influencing the 6th house axis or vital lords, which during periods of high stress can manifest as digestive sensitivities, metabolic lethargy, or restless sleep. To pacify these Roga Bhava vibrations, chanting the Aditya Hridaya Stotram at dawn, practicing gentle Surya Namaskars, and reciting the sacred Maha Mrityunjaya Mantra 108 times daily revitalizes cellular vitality and strengthens physical immunity. Sponsoring a sacred Mrityunjaya or Dhanvantari homa at Gokarna Mahabaleshwara Kshetra dissolves latent ailments and bestows robust health and longevity.`
-    : `【Benefic Planetary Yoga & Protective Shield】 Your natal Lagna and ascendant lord receive luminous benefic rays, weaving an unbroken cellular shield and formidable natural immunity around your physical body. Free from chronic afflictions or severe Roga Doshas, your metabolic constitution naturally maintains restorative vitality and mental equanimity. To preserve this vibrant pranic shield, greeting the morning sunrise with Surya Namaskara, practicing conscious pranayama, and observing seasonal dietary balance safeguard complete wellness and long, prosperous life.`;
+    : "";
 
   return `Your Lagna (${h1.rashiName}) and Lagna lord ${h1Lord} govern your foundational constitution, natural vitality, cellular immunity, and physical stamina. The Sun as Arogyakaraka situated in ${sunWhere} bestows intrinsic metabolic vigor and resilience, while the Moon governs emotional equilibrium and mental calmness. The 6th house of health vulnerabilities (${h6.rashiName}, lord ${h6Lord}) advises proactive attentiveness toward digestive fire (Jatharagni), rhythmic sleep hygiene, and managing work-induced nervous fatigue. Maintaining harmonious Tridosha balance (Vata, Pitta, Kapha) through seasonally attuned lifestyles shields your physical body against chronic ailments and promotes cellular longevity.
 
-During this active ${chart.mahaLordName} Mahadasha cycle, integrating daily pranayama, mindful hydration from a copper vessel, and consistent physical movement prevents metabolic sluggishness. Chanting the Aditya Hridaya Stotram at sunrise revitalizes ocular vitality and cardiac endurance, while establishing regular sleep rhythms pacifies restless nervous tension.
-
-${para3En}`;
+During this active ${chart.mahaLordName} Mahadasha cycle, integrating daily pranayama, mindful hydration from a copper vessel, and consistent physical movement prevents metabolic sluggishness. Chanting the Aditya Hridaya Stotram at sunrise revitalizes ocular vitality and cardiac endurance, while establishing regular sleep rhythms pacifies restless nervous tension.${para3En ? `\n\n${para3En}` : ""}`;
 }
 
 

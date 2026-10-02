@@ -422,10 +422,11 @@ ${JSON_RULE}
   const h12 = getHouseInfo(12);
 
   const marsPlacement = input.natalPlanets.find(p => p.graha === "Mars");
-  const isManglik = marsPlacement && [1, 4, 7, 8, 12].includes(marsPlacement.house);
+  const isManglik = marsPlacement && [1, 2, 4, 7, 8, 12].includes(marsPlacement.house);
   const venusPlacement = input.natalPlanets.find(p => p.graha === "Venus");
   const jupiterPlacement = input.natalPlanets.find(p => p.graha === "Jupiter");
   const saturnPlacement = input.natalPlanets.find(p => p.graha === "Saturn");
+  const moonPlacement = input.natalPlanets.find(p => p.graha === "Moon");
 
   const directionsByElement = ["East", "South", "West", "North", "East", "South", "West", "North", "East", "South", "West", "North"];
   const spouseDirection = directionsByElement[h7.signIdx] || "East";
@@ -433,6 +434,57 @@ ${JSON_RULE}
   const isGuruBala = guruTransit && [2, 5, 7, 9, 11].includes(guruTransit.houseFromMoon);
 
   const isChild = input.ageYears < 8;
+  const isChildNative = input.ageYears < 14;
+
+  // Strict Parashari Dosha detection per life category
+  const h7Occupants = input.natalPlanets.filter(p => p.house === 7);
+  const h8Occupants = input.natalPlanets.filter(p => p.house === 8);
+  const hasMarriageDosha = !!(
+    isManglik ||
+    h7Occupants.some(p => ["Rahu", "Ketu", "Saturn", "Mars"].includes(p.graha)) ||
+    h8Occupants.some(p => ["Rahu", "Ketu", "Saturn", "Mars"].includes(p.graha)) ||
+    input.natalPlanets.find(p => p.graha === h7.lord)?.debilitated ||
+    input.engineDoshas.some(d => /kuja|manglik|kalatra|vivaha|7th|8th/i.test(d.name))
+  );
+
+  const h5Occupants = input.natalPlanets.filter(p => p.house === 5);
+  const hasSantanaDosha = !!(
+    h5Occupants.some(p => ["Rahu", "Ketu", "Saturn", "Mars"].includes(p.graha)) ||
+    input.natalPlanets.find(p => p.graha === h5.lord)?.debilitated ||
+    jupiterPlacement?.debilitated ||
+    input.engineDoshas.some(d => /santana|putra|naga|sarpa|pitru|5th/i.test(d.name))
+  );
+
+  const hasBalyaDosha = isChildNative && !!(
+    (moonPlacement && [6, 8, 12].includes(moonPlacement.house)) ||
+    input.natalPlanets.find(p => p.graha === h1.lord)?.debilitated ||
+    input.engineDoshas.some(d => /balarishta|balya|gandanta|arogya|pediatric/i.test(d.name))
+  );
+
+  const h10Occupants = input.natalPlanets.filter(p => p.house === 10);
+  const hasCareerDosha = !!(
+    h10Occupants.some(p => ["Rahu", "Ketu"].includes(p.graha)) ||
+    input.natalPlanets.find(p => p.graha === h10.lord)?.debilitated ||
+    saturnPlacement?.debilitated ||
+    input.engineDoshas.some(d => /karma|shrapit|amavasya|grahan|10th/i.test(d.name))
+  );
+
+  const h2Occupants = input.natalPlanets.filter(p => p.house === 2);
+  const h11Occupants = input.natalPlanets.filter(p => p.house === 11);
+  const hasWealthDosha = !!(
+    h2Occupants.some(p => ["Rahu", "Ketu"].includes(p.graha)) ||
+    h11Occupants.some(p => ["Rahu", "Ketu"].includes(p.graha)) ||
+    input.natalPlanets.find(p => p.graha === h2.lord)?.debilitated ||
+    input.engineDoshas.some(d => /dhana|daridra|kemadruma|2nd|11th/i.test(d.name))
+  );
+
+  const h6Occupants = input.natalPlanets.filter(p => p.house === 6);
+  const hasHealthDosha = !!(
+    h6Occupants.some(p => ["Saturn", "Rahu", "Mars"].includes(p.graha)) ||
+    input.natalPlanets.find(p => p.graha === h6.lord)?.debilitated ||
+    input.natalPlanets.find(p => p.graha === h1.lord)?.debilitated ||
+    input.engineDoshas.some(d => /roga|maraka|mrityu|balarishta|health|arogya/i.test(d.name))
+  );
 
   const bhavishya = isChild ? `${header(
     input,
@@ -446,7 +498,7 @@ Instead, write deep astrological guidance for the child's development across the
 1. Education & Early Intellect (Vidya & Buddhi):
    - 4th House (Vidya): ${getHouseInfo(4).sign} (Lord ${getHouseInfo(4).lordStr} ${getHouseInfo(4).lordWhere}). 5th House (Buddhi): ${h5.sign} (Lord ${h5.lordStr} ${h5.lordWhere}).
    - Mercury (Budha): ${input.natalPlanets.find(p => p.graha === "Mercury") ? `in Bhava ${input.natalPlanets.find(p => p.graha === "Mercury")!.house}` : "present"}. Jupiter (Guru): ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
-   - Write THREE detailed paragraphs detailing memory power, grasping capacity, academic inclination, intellectual focus, and optimal learning environment.
+   - Write TWO detailed paragraphs detailing memory power, grasping capacity, academic inclination, intellectual focus, and optimal learning environment.
 
 2. Talents, Activities & Sports (Kala, Kreeda & Kaushalya):
    - 3rd House (Parakrama): ${getHouseInfo(3).sign}. 5th House: ${h5.sign}. Mars: ${marsPlacement ? `in Bhava ${marsPlacement.house}` : "present"}. Venus: ${venusPlacement ? `in Bhava ${venusPlacement.house}` : "present"}.
@@ -460,10 +512,18 @@ Instead, write deep astrological guidance for the child's development across the
 
 5. Health, Vitality & Pediatric Care (Bala Arogya):
    - 1st House (Lagna): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}). 6th House: ${h6.sign}.
-   - Write TWO detailed paragraphs on pediatric vitality, seasonal immunity care, balanced nutrition, and classical remedies for child health and longevity.
+   ${hasBalyaDosha
+     ? `Write EXACTLY THREE detailed paragraphs (Balarishta/Balya Dosha indicated in chart):
+        Paragraph 1: Physical constitution, seasonal pediatric care, and stamina.
+        Paragraph 2: Mental equanimity and parental reassurance.
+        Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ಬಾಲ್ಯ ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಆಯುಷ್ಯ ರಕ್ಷಾ ಶಾಂತಿ】 / 【Balya Dosha Analysis & Pediatric Health Shanti】): Analyze the subtle Moon/Lagna planetary affliction, and give specific Vedic remedies (Mrityunjaya japa, Dhanvantari prayer, and Gokarna archana).`
+     : `Write EXACTLY TWO detailed paragraphs. NO Balya Dosha is present in this chart; strictly do not mention or invent any affliction.
+        Paragraph 1: Pediatric vitality, natural immunity, and seasonal care.
+        Paragraph 2: Daily nutritious routine, active vitality, and blessings.`
+   }
 
 ${JSON_RULE}
-{"bhavishya":{"marriage":"three paragraphs for education and learning","children":"two paragraphs for activities and creativity","career":"two paragraphs for future foundation","wealth":"two paragraphs for family upbringing","health":"two paragraphs for pediatric health and immunity"}}`
+{"bhavishya":{"marriage":"two paragraphs for education and learning","children":"two paragraphs for activities and creativity","career":"two paragraphs for future foundation","wealth":"two paragraphs for family upbringing","health":"${hasBalyaDosha ? "three paragraphs with dosha analysis" : "two paragraphs for pediatric health"}"}}`
   : `${header(
     input,
     "bhavishya",
@@ -479,72 +539,79 @@ ${input.ageYears >= 60 ? "- SENIOR CITIZEN (60+ YEARS): The native is a senior. 
    - Occupants of 7th House: ${h7.occStr}.
    - Native Gender: ${(input.gender || "Male").toUpperCase()}.
    - Karaka Placement: ${(input.gender || "Male") === "Female" ? `Jupiter (Jeevakaraka) is placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}, 8th House (Mangalya Sthana) is ${h8.sign} with lord ${h8.lordStr}` : `Venus (Shukrakaraka) is placed ${venusPlacement ? `in Bhava ${venusPlacement.house} (${rashiName(venusPlacement.rashiIndex, lang)})` : "in chart"}`}.
-   - Kuja / Manglik Status: ${isManglik ? `Kuja Dosha indicated (Mars in Bhava ${marsPlacement?.house})` : "No Kuja Dosha (Mars is comfortably placed outside 1/4/7/8/12)"}.
+   - Kuja / Manglik Status: ${isManglik ? `Kuja Dosha indicated (Mars in Bhava ${marsPlacement?.house})` : "No Kuja Dosha (Mars is comfortably placed outside 1/2/4/7/8/12)"}.
    - Direction of Spouse Alignment: ${spouseDirection} direction from birthplace.
    - Vivaha Yoga & Transits: Running ${dashaLine}. Jupiter transit: ${guruTransit ? `${guruTransit.houseFromMoon} from Chandra (${isGuruBala ? "Guru Bala active" : "Guru testing"})` : "active"}. Saturn transit: ${shaniTransit ? `${shaniTransit.houseFromMoon} from Chandra` : "active"}.
    - CRITICAL RULE: MUST CONTAIN ONLY MARRIAGE & RELATIONSHIP CONTENT. DO NOT INCLUDE ANY CHILDREN OR PROGENY CONTENT IN THIS ITEM. IF USER SELECTED 'no_children', DO NOT MENTION RAISING CHILDREN, SCHOOLING, OR PARENTING. Focus purely on the deep emotional bond between the couple, mutual trust, and facing external questions as a united front.
-   - ${maritalSel === "married"
-       ? `Write EXACTLY THREE detailed paragraphs for MARRIED status:
-         Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-         Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary and facing societal questions together.' : ''}
-         Paragraph 3: Domestic peace, harmonizing occasional differences through empathetic communication, and targeted classical remedies (${isManglik ? "Subramanya / Mangala Pooja" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
-       : maritalSel === "unmarried"
-       ? `Write EXACTLY THREE detailed paragraphs for UNMARRIED status:
-         Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and live transits (${guruTransit?.houseFromMoon}th house Guru, ${shaniTransit?.houseFromMoon}th house Shani). Calculate the exact Vivaha Yoga timing window and reasons for past delays.
-         Paragraph 2: Spouse's characteristics, intellect, moral values, profession, and physical/emotional demeanor derived strictly from 7th house ${h7.sign} and lord ${h7.lordStr}, with arrival indicated from the ${spouseDirection} direction.
-         Paragraph 3: Addressing any planetary friction (${isManglik ? "Kuja/Manglik remedy" : "planetary alignment"}), exact daily mantra ("Om Shreem Gauryai Namah" / "Om Saptamadhipataye Namah"), and auspicious alliance timing.`
-       : `Write EXACTLY THREE detailed paragraphs for GENERAL status:
-         Paragraph 1: Natal analysis of 7th house ${h7.sign}, lord ${h7.lordStr} ${h7.lordWhere}, and running ${dashaLine}.
-         Paragraph 2: Relationship compatibility, emotional bonding, and practical partnerships.
-         Paragraph 3: Remedies for harmony, mutual understanding, and relational longevity.`}
+   ${hasMarriageDosha
+     ? `CRITICAL DOSHA DETECTED: Write EXACTLY THREE (3) detailed paragraphs:
+        Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
+        Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary, standing as anchors for each other, and facing societal questions together.' : ''}
+        Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿವಾಹ ಶಾಂತಿ】 / 【Dosha Analysis & Relationship Shanti】): Analyze the detected ${isManglik ? "Kuja/Manglik Dosha" : "7th/8th house planetary affliction"} in this chart. ${maritalSel === "married" ? "Since the native is ALREADY MARRIED, strictly focus on domestic harmony, resolving occasional ego friction, and mutual communication—never 'delay in marriage'." : "Discuss alliance selection, avoiding hasty decisions, and favorable timing."} Prescribe specific Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja at Gokarna/Baggona" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
+     : `NO DOSHA PRESENT: Write EXACTLY TWO (2) detailed paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent or mention any dosha.
+        Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
+        Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and harmonious companionship.`
+   }
 
 2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
    - 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} is placed ${h5.lordWhere}.
    - Occupants of 5th House: ${h5.occStr}.
    - Putrakaraka Jupiter (Guru): placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}.
    - Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra. Running ${dashaLine}.
-   - ${childrenSel === "has_children"
-       ? `Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status:
-         Paragraph 1: Detailed analysis of children's intellect, academic excellence, specialized talents, and moral character derived from 5th lord ${h5.lordStr} and Putrakaraka Jupiter.
-         Paragraph 2: Parental guidance, children's future growth, family bonding, and spiritual blessings (Saraswati / Ganapati Atharvashirsha).`
-       : childrenSel === "no_children"
-       ? `Write EXACTLY THREE expansive, deeply empathetic paragraphs for SEEKING PROGENY status addressed to ${input.name}:
-         Paragraph 1: Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child. Analyze 5th house (Santana Bhava) ${h5.sign}, lord ${h5.lordStr} ${h5.lordWhere}, Putrakaraka Jupiter, and running ${dashaLine}. Emphasize that lineage continuity is preserved in their Poorva Punya.
-         Paragraph 2: Astrological window and timing for conception based on Jupiter transit and supportive aspects. Reassure them with warmth that delays are periods of karmic refinement, not denial. Encourage standing united as an emotional anchor, combining medical consultations and balanced lifestyle.
-         Paragraph 3: Sacred Baggona & Vedic remedies: Daily Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times, Thursday Gau-seva (cow ghee lamp and feeding cow), and Subrahmanya / Naga Shanti Pooja at Gokarna Mahabaleshwara / Baggona Kshetra.`
-       : `Write EXACTLY TWO detailed paragraphs for GENERAL status:
-         Paragraph 1: 5th house (Poorva Punya & Intellect) ${h5.sign}, lord ${h5.lordStr}, and Jupiter's influence on intellect and lineage.
-         Paragraph 2: Creative achievements, intellectual legacy, and family blessings.`}
+   ${hasSantanaDosha
+     ? `CRITICAL DOSHA DETECTED (Santana/5th House Affliction): Write EXACTLY THREE (3) detailed paragraphs:
+        Paragraph 1: Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child, emphasizing that lineage continuity is preserved in Poorva Punya.' : ' Analysis of children\'s intellect, academic focus, and moral character.'}
+        Paragraph 2: Astrological timing, transit support, and parental/household guidance.${childrenSel === 'no_children' ? ' Reassure them with warmth that delays are periods of karmic refinement, not denial; encourage standing united.' : ' Children\'s future growth, specialized talents, and spiritual harmony.'}
+        Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಸಂತಾನ ಶಾಂತಿ】 / 【Dosha Analysis & Progeny Shanti】): Analyze the detected 5th house affliction (Naga/Sarpa Dosha, Rahu-Ketu axis, or Saturn influence) and prescribe sacred Baggona & Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Gokarna Mahabaleshwara / Baggona Kshetra.`
+     : `NO DOSHA PRESENT: Write EXACTLY TWO (2) detailed paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent or mention any dosha.
+        Paragraph 1: Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Warm emotional validation of their family aspirations and fertile astrological windows.' : ' Analysis of children\'s intellect, moral values, and family bonding.'}
+        Paragraph 2: Educational support, intellectual legacy, and divine family blessings.`
+   }
 
 3. Career & Profession:
    - 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} is placed ${h10.lordWhere}.
    - Occupants of 10th House: ${h10.occStr}.
    - Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
-   - Write THREE expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph):
-     Paragraph 1: Professional aptitude, career stability, leadership prospects, and timing under running ${dashaLine}.
-     Paragraph 2: Strategic workplace navigation, promotions, skill growth, and financial-professional status.
-     Paragraph 3: Dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 / 【Dosha Analysis & Obstacle Resolution Shanti】 or 【ಶುಭ ಯೋಗ & ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Benefic Planetary Yoga & Protective Shield】): If Karma/Saturn afflicted, analyze obstacles, remedies, and Gokarna/Baggona shanti pooja. If benefic, detail the protective shield.
+   ${hasCareerDosha
+     ? `CRITICAL DOSHA DETECTED: Write EXACTLY THREE (3) expansive paragraphs:
+        Paragraph 1: Professional aptitude, career stability, leadership prospects, and timing under running ${dashaLine}.
+        Paragraph 2: Strategic workplace navigation, promotions, skill growth, and public reputation.
+        Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಕರ್ಮ ಶಾಂತಿ】 / 【Dosha Analysis & Career Remedy】): Analyze the detected 10th house / Karma / Saturn affliction, explain obstacle mechanisms, and detail Shani Shanti pooja, Dasharatha Stotram, and Rudrabhishekam at Gokarna/Baggona.`
+     : `NO DOSHA PRESENT: Write EXACTLY TWO (2) expansive paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent any dosha.
+        Paragraph 1: Professional aptitude, career stability, leadership prospects, and timing under running ${dashaLine}.
+        Paragraph 2: Strategic workplace navigation, promotions, skill growth, and vocational ascent.`
+   }
 
 4. Wealth & Family Finance:
    - 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
    - 11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
    - Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
-   - Write THREE expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph):
-     Paragraph 1: Financial accumulation, income stability, investments, property gains, and family prosperity.
-     Paragraph 2: Debt management, liquidity planning, wealth preservation, and ancestral assets.
-     Paragraph 3: Dedicated Dosha Analysis or Protective Shield starting with 【...】: If Dhana/financial house afflicted, outline obstacle resolution, Lakshmi Kubera Aradhana, and cow ghee lamp remedy. If benefic, describe the Dhana Yoga protective shield.
+   ${hasWealthDosha
+     ? `CRITICAL DOSHA DETECTED: Write EXACTLY THREE (3) expansive paragraphs:
+        Paragraph 1: Financial accumulation, income stability, investments, property gains, and family prosperity.
+        Paragraph 2: Debt management, liquidity planning, wealth preservation, and ancestral assets.
+        Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಧನ ಸಮೃದ್ಧಿ ಶಾಂತಿ】 / 【Dosha Analysis & Financial Shanti】): Analyze the detected financial affliction, obstacle resolution, and prescribe Lakshmi Kubera Aradhana and cow ghee lamp remedy.`
+     : `NO DOSHA PRESENT: Write EXACTLY TWO (2) expansive paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent any dosha.
+        Paragraph 1: Financial accumulation, income stability, investments, property gains, and family prosperity.
+        Paragraph 2: Debt management, liquidity planning, wealth preservation, and ancestral asset growth.`
+   }
 
 5. Health & Vitality:
    - 1st House (Lagna / Physical Constitution): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}).
    - 6th House (Roga Sthana): ${h6.sign} (Lord ${h6.lordStr} ${h6.lordWhere}).
    - Sun (Vitality) and Moon (Mental Equanimity) dignity in chart.
-   - Write THREE expansive paragraphs (minimum 5 to 6 full lines each, at least 75-90 words per paragraph):
-     Paragraph 1: Physical constitution, vital energy, seasonal wellness precautions, and metabolic stamina.
-     Paragraph 2: Emotional resilience, mental peace, stress mitigation, and Ayurvedic daily routines.
-     Paragraph 3: Dedicated Dosha Analysis or Protective Shield starting with 【...】: If Roga/afflictions present, detail healing remedies, Mahamrityunjaya japa, Dhanvantari prayer, and Gokarna Mrityunjaya homa. If benefic, describe the Ayushya Yoga protective shield.
+   ${hasHealthDosha
+     ? `CRITICAL DOSHA DETECTED: Write EXACTLY THREE (3) expansive paragraphs:
+        Paragraph 1: Physical constitution, vital energy, seasonal wellness precautions, and metabolic stamina.
+        Paragraph 2: Emotional resilience, mental peace, stress mitigation, and Ayurvedic daily routines.
+        Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಆರೋಗ್ಯ ರಕ್ಷಾ ಶಾಂತಿ】 / 【Dosha Analysis & Health Shield Shanti】): Analyze the detected 6th/8th house roga affliction, and prescribe Mahamrityunjaya japa, Dhanvantari prayer, and Gokarna Mrityunjaya homa.`
+     : `NO DOSHA PRESENT: Write EXACTLY TWO (2) expansive paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent any dosha.
+        Paragraph 1: Physical constitution, vital energy, seasonal wellness precautions, and metabolic stamina.
+        Paragraph 2: Emotional resilience, mental peace, stress mitigation, and Ayurvedic daily routines.`
+   }
 
 ${JSON_RULE}
-{"bhavishya":{"marriage":"three paragraphs","children":"${childrenSel === "no_children" ? "three paragraphs" : "two to three paragraphs"}","career":"three paragraphs","wealth":"three paragraphs","health":"three paragraphs"}}`;
+{"bhavishya":{"marriage":"${hasMarriageDosha ? "three paragraphs" : "two paragraphs"}","children":"${hasSantanaDosha ? "three paragraphs" : "two paragraphs"}","career":"${hasCareerDosha ? "three paragraphs" : "two paragraphs"}","wealth":"${hasWealthDosha ? "three paragraphs" : "two paragraphs"}","health":"${hasHealthDosha ? "three paragraphs" : "two paragraphs"}"}}`;
 
   const bhavishyaMarriageChildren = `${header(
     input,
@@ -553,7 +620,7 @@ ${JSON_RULE}
   )}
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
-For each category, write STRICTLY AT LEAST 2 to 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'. Do not write short or generic text.
+For each category, write ${hasMarriageDosha || hasSantanaDosha ? "2 to 3 paragraphs (3 paragraphs ONLY when a dosha is present)" : "EXACTLY 2 PARAGRAPHS"}, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'. Do not write short or generic text.
 
 1. Marriage & Partnerships (User Selected Status: ${maritalSel.toUpperCase()}):
    - 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} is placed ${h7.lordWhere}.
@@ -562,41 +629,33 @@ For each category, write STRICTLY AT LEAST 2 to 3 PARAGRAPHS, with EACH PARAGRAP
    - Kuja/Manglik: ${isManglik ? `Yes, Mars in Bhava ${marsPlacement?.house} causing Kuja Dosha` : "No Kuja Dosha"}.
    - Direction of Partner: ${spouseDirection}.
    - Running ${dashaLine}.
-   - ${maritalSel === "married"
-       ? `Write EXACTLY THREE detailed paragraphs for MARRIED status:
-         Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-         Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary and facing societal questions together.' : ''}
-         Paragraph 3: Domestic peace, harmonizing occasional differences through empathetic communication, and targeted classical remedies (${isManglik ? "Subramanya / Mangala Pooja" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
-       : maritalSel === "unmarried"
-       ? `Write EXACTLY THREE detailed paragraphs for UNMARRIED status:
-         Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and live transits (${guruTransit?.houseFromMoon}th house Guru, ${shaniTransit?.houseFromMoon}th house Shani). Calculate the exact Vivaha Yoga timing window and reasons for past delays.
-         Paragraph 2: Spouse's characteristics, intellect, moral values, profession, and physical/emotional demeanor derived strictly from 7th house ${h7.sign} and lord ${h7.lordStr}, with arrival indicated from the ${spouseDirection} direction.
-         Paragraph 3: Addressing any planetary friction (${isManglik ? "Kuja/Manglik remedy" : "planetary alignment"}), exact daily mantra ("Om Shreem Gauryai Namah" / "Om Saptamadhipataye Namah"), and auspicious alliance timing.`
-       : `Write EXACTLY THREE detailed paragraphs for GENERAL status:
-         Paragraph 1: Natal analysis of 7th house ${h7.sign}, lord ${h7.lordStr} ${h7.lordWhere}, and running ${dashaLine}.
-         Paragraph 2: Relationship compatibility, emotional bonding, and practical partnerships.
-         Paragraph 3: Remedies for harmony, mutual understanding, and relational longevity.`}
+   ${hasMarriageDosha
+     ? `CRITICAL DOSHA DETECTED: Write EXACTLY THREE detailed paragraphs:
+        Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
+        Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary, standing as anchors for each other, and facing societal questions together.' : ''}
+        Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿವಾಹ ಶಾಂತಿ】 / 【Dosha Analysis & Relationship Shanti】): Analyze the detected ${isManglik ? "Kuja/Manglik Dosha" : "7th/8th house affliction"} in this chart. ${maritalSel === "married" ? "Since the native is ALREADY MARRIED, strictly focus on domestic harmony, resolving occasional ego friction, and mutual communication—never 'delay in marriage'." : "Discuss alliance selection, avoiding hasty decisions, and favorable timing."} Prescribe specific Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja at Gokarna/Baggona" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
+     : `NO DOSHA PRESENT: Write EXACTLY TWO detailed paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent or mention any dosha.
+        Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
+        Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and domestic harmony.`
+   }
 
 2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
    - 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} is placed ${h5.lordWhere}.
    - Occupants of 5th House: ${h5.occStr}.
    - Putrakaraka Jupiter (Guru): placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}.
    - Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra. Running ${dashaLine}.
-   - ${childrenSel === "has_children"
-       ? `Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status:
-         Paragraph 1: Detailed analysis of children's intellect, academic excellence, specialized talents, and moral character derived from 5th lord ${h5.lordStr} and Putrakaraka Jupiter.
-         Paragraph 2: Parental guidance, children's future growth, family bonding, and spiritual blessings (Saraswati / Ganapati Atharvashirsha).`
-       : childrenSel === "no_children"
-       ? `Write EXACTLY THREE expansive, deeply empathetic paragraphs for SEEKING PROGENY status addressed to ${input.name}:
-         Paragraph 1: Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child. Analyze 5th house (Santana Bhava) ${h5.sign}, lord ${h5.lordStr} ${h5.lordWhere}, Putrakaraka Jupiter, and running ${dashaLine}. Emphasize that lineage continuity is preserved in their Poorva Punya.
-         Paragraph 2: Astrological window and timing for conception based on Jupiter transit and supportive aspects. Reassure them with warmth that delays are periods of karmic refinement, not denial. Encourage standing united as an emotional anchor, combining medical consultations and balanced lifestyle.
-         Paragraph 3: Sacred Baggona & Vedic remedies: Daily Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times, Thursday Gau-seva (cow ghee lamp and feeding cow), and Subrahmanya / Naga Shanti Pooja at Gokarna Mahabaleshwara / Baggona Kshetra.`
-       : `Write EXACTLY TWO detailed paragraphs for GENERAL status:
-         Paragraph 1: 5th house (Poorva Punya & Intellect) ${h5.sign}, lord ${h5.lordStr}, and Jupiter's influence on intellect and lineage.
-         Paragraph 2: Creative achievements, intellectual legacy, and family blessings.`}
+   ${hasSantanaDosha
+     ? `CRITICAL DOSHA DETECTED (Santana/5th House Affliction): Write EXACTLY THREE detailed paragraphs:
+        Paragraph 1: Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child, emphasizing that lineage continuity is preserved in Poorva Punya.' : ' Analysis of children\'s intellect, academic focus, and moral character.'}
+        Paragraph 2: Astrological timing, transit support, and parental/household guidance.${childrenSel === 'no_children' ? ' Reassure them with warmth that delays are periods of karmic refinement, not denial; encourage standing united.' : ' Children\'s future growth, specialized talents, and spiritual harmony.'}
+        Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಸಂತಾನ ಶಾಂತಿ】 / 【Dosha Analysis & Progeny Shanti】): Analyze the detected 5th house affliction (Naga/Sarpa Dosha, Rahu-Ketu axis, or Saturn influence) and prescribe sacred Baggona & Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Gokarna Mahabaleshwara / Baggona Kshetra.`
+     : `NO DOSHA PRESENT: Write EXACTLY TWO detailed paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent or mention any dosha.
+        Paragraph 1: Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Warm emotional validation of their family aspirations and fertile astrological windows.' : ' Analysis of children\'s intellect, moral values, and family bonding.'}
+        Paragraph 2: Educational support, intellectual legacy, and divine family blessings.`
+   }
 
 ${JSON_RULE}
-{"bhavishya":{"marriage":"three paragraphs of 6-7 lines each","children":"${childrenSel === "no_children" ? "three paragraphs of 6-7 lines each" : "two to three paragraphs of 6-7 lines each"}"}}`;
+{"bhavishya":{"marriage":"${hasMarriageDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}","children":"${hasSantanaDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}"}}`;
 
   const bhavishyaCareerWealthHealth = `${header(
     input,
@@ -605,8 +664,7 @@ ${JSON_RULE}
   )}
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
-For EACH category (Career, Wealth, Health), write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'. Do not write short or generic text.
-Crucially, Paragraph 3 of each domain MUST be a dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【Dosha Analysis & Obstacle Resolution Shanti】 or 【Benefic Planetary Yoga & Protective Shield】 translated into the requested target language).
+For each category, write ${hasCareerDosha || hasWealthDosha || hasHealthDosha ? "2 to 3 paragraphs (3 paragraphs ONLY when a dosha is present in that domain)" : "EXACTLY 2 PARAGRAPHS"}, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'. Do not write short or generic text.
 
 1. Career & Profession:
    - 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} is placed ${h10.lordWhere}.
@@ -614,7 +672,10 @@ Crucially, Paragraph 3 of each domain MUST be a dedicated Dosha Analysis or Prot
    - Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
    - Paragraph 1: Professional stability, leadership prospects, vocational aptitude, and timing under running ${dashaLine}.
    - Paragraph 2: Strategic workplace navigation, career growth, transitions, and public reputation.
-   - Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Karma/Saturn dosha or afflictions present, detail delay mechanics, remedies, and Gokarna/Baggona shanti pooja. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+   ${hasCareerDosha
+     ? `- Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಕರ್ಮ ಶಾಂತಿ】 / 【Dosha Analysis & Career Remedy】): Analyze the detected 10th house / Karma dosha, explain obstacle mechanisms, and detail Shani Shanti pooja, Dasharatha Stotram, and Rudrabhishekam at Gokarna/Baggona.`
+     : `- (NO DOSHA PRESENT in 10th house: write only the 2 paragraphs above, do NOT create a 3rd paragraph or mention any dosha).`
+   }
 
 2. Wealth & Family Finance:
    - 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
@@ -622,7 +683,10 @@ Crucially, Paragraph 3 of each domain MUST be a dedicated Dosha Analysis or Prot
    - Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
    - Paragraph 1: Financial accumulation, investments, property gains, and income growth under running ${dashaLine}.
    - Paragraph 2: Liquidity planning, family prosperity, asset consolidation, and wealth preservation.
-   - Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Dhana dosha or afflictions present, detail obstacle resolution and Lakshmi Kubera remedies. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+   ${hasWealthDosha
+     ? `- Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಧನ ಸಮೃದ್ಧಿ ಶಾಂತಿ】 / 【Dosha Analysis & Financial Shanti】): Analyze the detected financial affliction, obstacle resolution, and prescribe Lakshmi Kubera Aradhana and cow ghee lamp remedy.`
+     : `- (NO DOSHA PRESENT in financial houses: write only the 2 paragraphs above, do NOT create a 3rd paragraph or mention any dosha).`
+   }
 
 3. Health & Vitality:
    - 1st House (Lagna / Physical Constitution): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}).
@@ -630,10 +694,13 @@ Crucially, Paragraph 3 of each domain MUST be a dedicated Dosha Analysis or Prot
    - Sun (Vitality) and Moon (Mental Equanimity) dignity in chart.
    - Paragraph 1: Physical constitution, vitality, seasonal wellness precautions, and metabolic stamina.
    - Paragraph 2: Mental equanimity, stress management, sleep quality, and daily Ayurvedic lifestyle.
-   - Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Roga dosha or afflictions present, detail healing remedies, Mahamrityunjaya japa, and Gokarna Mrityunjaya homa. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+   ${hasHealthDosha
+     ? `- Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಆರೋಗ್ಯ ರಕ್ಷಾ ಶಾಂತಿ】 / 【Dosha Analysis & Health Shield Shanti】): Analyze the detected 6th/8th house roga affliction, and prescribe Mahamrityunjaya japa, Dhanvantari prayer, and Gokarna Mrityunjaya homa.`
+     : `- (NO DOSHA PRESENT in health houses: write only the 2 paragraphs above, do NOT create a 3rd paragraph or mention any dosha).`
+   }
 
 ${JSON_RULE}
-{"bhavishya":{"career":"three paragraphs of 6-7 lines each","wealth":"three paragraphs of 6-7 lines each","health":"three paragraphs of 6-7 lines each"}}`;
+{"bhavishya":{"career":"${hasCareerDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}","wealth":"${hasWealthDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}","health":"${hasHealthDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}"}}`;
 
   const bhavishyaMarriage = `${header(
     input,
@@ -642,7 +709,7 @@ ${JSON_RULE}
   )}
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized astrological analysis strictly based on ${input.name}'s Janma Kundali.
-Write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES of text (minimum 350-500 characters per paragraph). Speak directly to 'you'.
+Write ${hasMarriageDosha ? "STRICTLY 3 PARAGRAPHS (Paragraph 3 is dedicated dosha analysis)" : "EXACTLY 2 PARAGRAPHS (NO dosha present)"}, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES of text (minimum 350-500 characters per paragraph). Speak directly to 'you'.
 
 Marriage & Partnerships (User Selected Status: ${maritalSel.toUpperCase()}):
 - 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} placed ${h7.lordWhere}.
@@ -651,23 +718,18 @@ Marriage & Partnerships (User Selected Status: ${maritalSel.toUpperCase()}):
 - Kuja/Manglik: ${isManglik ? `Yes, Mars in Bhava ${marsPlacement?.house} causing Kuja Dosha` : "No Kuja Dosha"}.
 - Direction of Partner: ${spouseDirection}.
 - Running ${dashaLine}.
-${maritalSel === "married"
-    ? `Write EXACTLY THREE detailed paragraphs for MARRIED status:
-      Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-      Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary, standing as anchors for each other, and facing societal questions together.' : ''}
-      Paragraph 3: Domestic peace, harmonizing occasional differences through empathetic communication, and targeted classical remedies (${isManglik ? "Subramanya / Mangala Pooja" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
-    : maritalSel === "unmarried"
-    ? `Write EXACTLY THREE detailed paragraphs for UNMARRIED status:
-      Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and live transits (${guruTransit?.houseFromMoon}th house Guru, ${shaniTransit?.houseFromMoon}th house Shani). Calculate the exact Vivaha Yoga timing window and reasons for past delays.
-      Paragraph 2: Spouse's characteristics, intellect, moral values, profession, and physical/emotional demeanor derived strictly from 7th house ${h7.sign} and lord ${h7.lordStr}, with arrival indicated from the ${spouseDirection} direction.
-      Paragraph 3: Addressing any planetary friction (${isManglik ? "Kuja/Manglik remedy" : "planetary alignment"}), exact daily mantra ("Om Shreem Gauryai Namah" / "Om Saptamadhipataye Namah"), and auspicious alliance timing.`
-    : `Write EXACTLY THREE detailed paragraphs for GENERAL status:
-      Paragraph 1: Natal analysis of 7th house ${h7.sign}, lord ${h7.lordStr} ${h7.lordWhere}, and running ${dashaLine}.
-      Paragraph 2: Relationship compatibility, emotional bonding, and practical partnerships.
-      Paragraph 3: Remedies for harmony, mutual understanding, and relational longevity.`}
+${hasMarriageDosha
+  ? `CRITICAL DOSHA DETECTED: Write EXACTLY THREE detailed paragraphs:
+    Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
+    Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary, standing as anchors for each other, and facing societal questions together.' : ''}
+    Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿವಾಹ ಶಾಂತಿ】 / 【Dosha Analysis & Relationship Shanti】): Analyze the detected ${isManglik ? "Kuja/Manglik Dosha" : "7th/8th house affliction"} in this chart. ${maritalSel === "married" ? "Since the native is ALREADY MARRIED, strictly focus on domestic harmony, resolving occasional ego friction, and mutual communication—never 'delay in marriage'." : "Discuss alliance selection, avoiding hasty decisions, and favorable timing."} Prescribe specific Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja at Gokarna/Baggona" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
+  : `NO DOSHA PRESENT: Write EXACTLY TWO detailed paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent or mention any dosha.
+    Paragraph 1: Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
+    Paragraph 2: Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and domestic harmony.`
+}
 
 ${JSON_RULE}
-{"marriage":"three paragraphs of 6-7 lines each"}`;
+{"marriage":"${hasMarriageDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}"}`;
 
   const bhavishyaChildren = `${header(
     input,
@@ -676,28 +738,25 @@ ${JSON_RULE}
   )}
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized astrological analysis strictly based on ${input.name}'s Janma Kundali.
-Write STRICTLY 2 to 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES of text (minimum 350-500 characters per paragraph). Speak directly to 'you'.
+Write ${hasSantanaDosha ? "STRICTLY 3 PARAGRAPHS (Paragraph 3 is dedicated dosha analysis)" : "EXACTLY 2 PARAGRAPHS (NO dosha present)"}, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES of text (minimum 350-500 characters per paragraph). Speak directly to 'you'.
 
 Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
 - 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}.
 - Occupants of 5th House: ${h5.occStr}.
 - Putrakaraka Jupiter (Guru): placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}.
 - Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra. Running ${dashaLine}.
-${childrenSel === "has_children"
-    ? `Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status:
-      Paragraph 1: Detailed analysis of children's intellect, academic excellence, specialized talents, and moral character derived from 5th lord ${h5.lordStr} and Putrakaraka Jupiter.
-      Paragraph 2: Parental guidance, children's future growth, family bonding, and spiritual blessings (Saraswati / Ganapati Atharvashirsha).`
-    : childrenSel === "no_children"
-    ? `Write EXACTLY THREE expansive, deeply empathetic paragraphs for SEEKING PROGENY status addressed to ${input.name}:
-      Paragraph 1: Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child. Analyze 5th house (Santana Bhava) ${h5.sign}, lord ${h5.lordStr} ${h5.lordWhere}, Putrakaraka Jupiter, and running ${dashaLine}. Emphasize that lineage continuity is preserved in their Poorva Punya.
-      Paragraph 2: Astrological window and timing for conception based on Jupiter transit and supportive aspects. Reassure them with warmth that delays are periods of karmic refinement, not denial. Encourage standing united as an emotional anchor, combining medical consultations and balanced lifestyle.
-      Paragraph 3: Sacred Baggona & Vedic remedies: Daily Santana Gopala Mantra ('Om Kleem Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah') 108 times, Thursday Gau-seva (cow ghee lamp and feeding cow), and Subrahmanya / Naga Shanti Pooja at Gokarna Mahabaleshwara / Baggona Kshetra.`
-    : `Write EXACTLY TWO detailed paragraphs for GENERAL status:
-      Paragraph 1: 5th house (Poorva Punya & Intellect) ${h5.sign}, lord ${h5.lordStr}, and Jupiter's influence on intellect and lineage.
-      Paragraph 2: Creative achievements, intellectual legacy, and family blessings.`}
+${hasSantanaDosha
+  ? `CRITICAL DOSHA DETECTED (Santana/5th House Affliction): Write EXACTLY THREE detailed paragraphs:
+    Paragraph 1: Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child, emphasizing that lineage continuity is preserved in Poorva Punya.' : ' Analysis of children\'s intellect, academic focus, and moral character.'}
+    Paragraph 2: Astrological timing, transit support, and parental/household guidance.${childrenSel === 'no_children' ? ' Reassure them with warmth that delays are periods of karmic refinement, not denial; encourage standing united.' : ' Children\'s future growth, specialized talents, and spiritual harmony.'}
+    Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಸಂತಾನ ಶಾಂತಿ】 / 【Dosha Analysis & Progeny Shanti】): Analyze the detected 5th house affliction (Naga/Sarpa Dosha, Rahu-Ketu axis, or Saturn influence) and prescribe sacred Baggona & Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Gokarna Mahabaleshwara / Baggona Kshetra.`
+  : `NO DOSHA PRESENT: Write EXACTLY TWO detailed paragraphs. Strictly DO NOT write a third paragraph and DO NOT invent or mention any dosha.
+    Paragraph 1: Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Warm emotional validation of their family aspirations and fertile astrological windows.' : ' Analysis of children\'s intellect, moral values, and family bonding.'}
+    Paragraph 2: Educational support, intellectual legacy, and divine family blessings.`
+}
 
 ${JSON_RULE}
-{"children":"${childrenSel === "no_children" ? "three paragraphs of 6-7 lines each" : "two to three paragraphs of 6-7 lines each"}"}`;
+{"children":"${hasSantanaDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}"}`;
 
   const bhavishyaCareer = `${header(
     input,
@@ -706,8 +765,7 @@ ${JSON_RULE}
   )}
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
-Write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
-Crucially, Paragraph 3 MUST be a dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【Dosha Analysis & Obstacle Resolution Shanti】 or 【Benefic Planetary Yoga & Protective Shield】 translated into the requested target language).
+Write ${hasCareerDosha ? "STRICTLY 3 PARAGRAPHS (Paragraph 3 is dedicated dosha analysis)" : "EXACTLY 2 PARAGRAPHS (NO dosha present)"}, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
 
 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} placed ${h10.lordWhere}.
 Occupants of 10th House: ${h10.occStr}.
@@ -715,10 +773,13 @@ Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlaceme
 Running period: ${dashaLine}.
 Paragraph 1: Professional stability, leadership prospects, vocational aptitude, and timing under running ${dashaLine}.
 Paragraph 2: Strategic workplace navigation, career growth, transitions, and public reputation.
-Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Karma/Saturn dosha or afflictions present, detail delay mechanics, remedies, and Gokarna/Baggona shanti pooja. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+${hasCareerDosha
+  ? `Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಕರ್ಮ ಶಾಂತಿ】 / 【Dosha Analysis & Career Remedy】): Analyze the detected 10th house / Karma dosha, explain obstacle mechanisms, and detail Shani Shanti pooja, Dasharatha Stotram, and Rudrabhishekam at Gokarna/Baggona.`
+  : `(NO DOSHA PRESENT in 10th house: write only the 2 paragraphs above, do NOT create a 3rd paragraph or mention any dosha).`
+}
 
 ${JSON_RULE}
-{"career":"three paragraphs of 6-7 lines each"}`;
+{"career":"${hasCareerDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}"}`;
 
   const bhavishyaWealth = `${header(
     input,
@@ -727,8 +788,7 @@ ${JSON_RULE}
   )}
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
-Write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
-Crucially, Paragraph 3 MUST be a dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【Dosha Analysis & Obstacle Resolution Shanti】 or 【Benefic Planetary Yoga & Protective Shield】 translated into the requested target language).
+Write ${hasWealthDosha ? "STRICTLY 3 PARAGRAPHS (Paragraph 3 is dedicated dosha analysis)" : "EXACTLY 2 PARAGRAPHS (NO dosha present)"}, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
 
 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
 11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
@@ -736,10 +796,13 @@ Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` :
 Running period: ${dashaLine}.
 Paragraph 1: Financial accumulation, investments, property gains, and income growth under running ${dashaLine}.
 Paragraph 2: Liquidity planning, family prosperity, asset consolidation, and wealth preservation.
-Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Dhana dosha or afflictions present, detail obstacle resolution and Lakshmi Kubera remedies. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+${hasWealthDosha
+  ? `Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಧನ ಸಮೃದ್ಧಿ ಶಾಂತಿ】 / 【Dosha Analysis & Financial Shanti】): Analyze the detected financial affliction, obstacle resolution, and prescribe Lakshmi Kubera Aradhana and cow ghee lamp remedy.`
+  : `(NO DOSHA PRESENT in financial houses: write only the 2 paragraphs above, do NOT create a 3rd paragraph or mention any dosha).`
+}
 
 ${JSON_RULE}
-{"wealth":"three paragraphs of 6-7 lines each"}`;
+{"wealth":"${hasWealthDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}"}`;
 
   const bhavishyaHealth = `${header(
     input,
@@ -748,8 +811,7 @@ ${JSON_RULE}
   )}
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
-Write STRICTLY 3 PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
-Crucially, Paragraph 3 MUST be a dedicated Dosha Analysis or Protective Shield starting with 【...】 (e.g. 【Dosha Analysis & Obstacle Resolution Shanti】 or 【Benefic Planetary Yoga & Protective Shield】 translated into the requested target language).
+Write ${hasHealthDosha ? "STRICTLY 3 PARAGRAPHS (Paragraph 3 is dedicated dosha analysis)" : "EXACTLY 2 PARAGRAPHS (NO dosha present)"}, with EACH PARAGRAPH containing AT LEAST 6 to 7 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph). Speak directly to 'you'.
 
 1st House (Lagna / Physical Constitution): ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}).
 6th House (Roga Sthana): ${h6.sign} (Lord ${h6.lordStr} ${h6.lordWhere}).
@@ -757,10 +819,13 @@ Sun (Vitality) and Moon (Mental Equanimity) dignity in chart.
 Running period: ${dashaLine}.
 Paragraph 1: Physical constitution, vitality, seasonal wellness precautions, and metabolic stamina.
 Paragraph 2: Mental equanimity, stress management, sleep quality, and daily Ayurvedic lifestyle.
-Paragraph 3: Dedicated Dosha Analysis & Shanti starting with 【...】: If Roga dosha or afflictions present, detail healing remedies, Mahamrityunjaya japa, and Gokarna Mrityunjaya homa. If benefic, detail the Benefic Planetary Yoga & Protective Shield.
+${hasHealthDosha
+  ? `Paragraph 3: DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಆರೋಗ್ಯ ರಕ್ಷಾ ಶಾಂತಿ】 / 【Dosha Analysis & Health Shield Shanti】): Analyze the detected 6th/8th house roga affliction, and prescribe Mahamrityunjaya japa, Dhanvantari prayer, and Gokarna Mrityunjaya homa.`
+  : `(NO DOSHA PRESENT in health houses: write only the 2 paragraphs above, do NOT create a 3rd paragraph or mention any dosha).`
+}
 
 ${JSON_RULE}
-{"health":"three paragraphs of 6-7 lines each"}`;
+{"health":"${hasHealthDosha ? "three paragraphs of 6-7 lines each" : "two paragraphs of 6-7 lines each"}"}`;
 
   const summary = `${header(
     input,

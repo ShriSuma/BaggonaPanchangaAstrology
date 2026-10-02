@@ -55,7 +55,7 @@ const POPULAR_GOTRAS = [
 export default function QuickCalendarPage(): JSX.Element {
   const [lang, setLang] = useState<SevaLang>("kn");
   const [personName, setPersonName] = useState("ಭಕ್ತರು");
-  const [gotra, setGotra] = useState("ಕಾಶ್ಯಪ");
+  const [gotra, setGotra] = useState("");
   const [dob, setDob] = useState(() => {
     const d = new Date();
     d.setFullYear(d.getFullYear() - 30);
@@ -451,7 +451,7 @@ export default function QuickCalendarPage(): JSX.Element {
   // Identity object passed to 5-page PDF templates
   const identity = useMemo(() => ({
     personName: personName.trim() || "ಭಕ್ತರು",
-    gotra: gotra.trim() || "ಕಾಶ್ಯಪ",
+    gotra: gotra.trim() || "",
     rashiIndex: selectedRashi,
     nakshatraIndex: selectedNakshatra,
     placeLabel: locationName,

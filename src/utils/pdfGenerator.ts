@@ -54,7 +54,7 @@ export async function generatePDFFromElement(
     if (el.classList.contains("pdf-page")) {
       el.style.display = "block";
       if (!el.style.width || el.style.width === "100%") {
-        el.style.width = "794px";
+        el.style.width = "900px";
       }
       el.style.pageBreakAfter = "always";
     }

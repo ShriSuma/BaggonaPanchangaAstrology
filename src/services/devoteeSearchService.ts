@@ -97,7 +97,7 @@ export async function fetchDevoteeDatabase(): Promise<DevoteeProfile[]> {
         longitude: rec.longitude ?? existing?.longitude ?? 74.3188,
         placeName: clean(rec.placeName || existing?.placeName || (rec.pincode ? `PIN: ${rec.pincode}` : "Unknown Place")),
         pincode: rec.pincode || existing?.pincode,
-        gothra: rec.gothra || existing?.gothra,
+        gothra: existing ? (existing.gothra?.trim() || undefined) : (rec.gothra?.trim() || undefined),
         gender: (rec as any).gender || existing?.gender || (rec.name?.includes("ಶ್ರೀಮತಿ") || rec.name?.includes("ಕುಮಾರಿ") || rec.name?.toLowerCase().includes("chaitra") || rec.name?.includes("ಚೈತ್ರಾ") ? "Female" : "Male"),
         maritalStatus: (rec as any).maritalStatus || existing?.maritalStatus || undefined,
         rashi: rec.rashi || existing?.rashi,

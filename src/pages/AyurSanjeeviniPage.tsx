@@ -30,7 +30,7 @@ export const AyurSanjeeviniPage: React.FC = () => {
   const [dob, setDob] = useState(() => kundliSession?.birthDateYmd || kundliSession?.input?.birthDate || "1992-06-15");
   const [tob, setTob] = useState(() => kundliSession?.birthTimeHm || kundliSession?.input?.birthTime || "07:30");
   const [pob, setPob] = useState(() => kundliSession?.placeLabel || (pincodeStore ? `${pincodeStore} ${placeLabel}` : "581326 Gokarna"));
-  const [gotra, setGotra] = useState(() => kundliSession?.input?.gothra || "Kashyapa");
+  const [gotra, setGotra] = useState(() => kundliSession?.input?.gothra || "");
   const [customConcern, setCustomConcern] = useState("");
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export const AyurSanjeeviniPage: React.FC = () => {
       dob,
       tob,
       pob: pob.trim() || "Gokarna",
-      gotra: gotra.trim() || "Kashyapa",
+      gotra: gotra.trim() || "",
       customConcern: customConcern.trim(),
       lang: language
     };

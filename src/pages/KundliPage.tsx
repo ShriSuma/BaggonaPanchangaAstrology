@@ -41,11 +41,18 @@ import { BalaVidyaSuite } from "../components/kundli/BalaVidyaSuite";
 import { KundliRemedyView } from "../components/kundli/KundliRemedyView";
 import { KundliRemedyPdfTemplate } from "../components/kundli/KundliRemedyPdfTemplate";
 import { Kundli30DayQrCard, type KundliQrProfile } from "../components/kundli/Kundli30DayQrCard";
+import QRCode from "qrcode";
+import {
+  generateQrPayloadByTarget,
+  calculateDeterministicRhythmDay,
+  getSafeProductionOrigin
+} from "../features/seva/icsCalendarGenerator";
 import { calculateComprehensiveDoshas, type ComprehensiveDoshaReport } from "../core/ComprehensiveDoshaEngine";
 import { KundliDoshaPdfTemplate } from "../components/kundli/KundliDoshaPdfTemplate";
 import { getAllPriests, saveOrUpdatePriestProfile, type PriestProfile } from "../features/seva/sevaPriestDirectory";
 import type { L5 } from "../features/seva/sevaLocale";
-import { generateKundliRemedyReport } from "../features/remedies/kundliRemedyEngine";
+import { generateKundliRemedyReport, type KundliRemedyDiagnosis } from "../features/remedies/kundliRemedyEngine";
+import { generateKundliRemedyWithAi } from "../features/remedies/kundliRemedyAiEngine";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
 import { formatPickerDateLocalYmd } from "../core/birthTime";
 import { GOTRA_OPTIONS, gotraI18nKey } from "../data/gotras";
@@ -98,6 +105,8 @@ export default function KundliPage(): JSX.Element {
   const [pdfLanguage, setPdfLanguage] = useState<string>(i18n.language);
   const [remedyPdfLanguage, setRemedyPdfLanguage] = useState<string>(i18n.language || "kn");
   const [isGeneratingRemedyPdf, setIsGeneratingRemedyPdf] = useState(false);
+  const [aiRemedyDiagnosis, setAiRemedyDiagnosis] = useState<KundliRemedyDiagnosis | null>(null);
+  const [isGeneratingRemedyAi, setIsGeneratingRemedyAi] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const initialSession = useKundliViewerStore.getState().session;
   const initialDraft = useKundliViewerStore.getState().draftInput;
@@ -135,6 +144,7 @@ export default function KundliPage(): JSX.Element {
     qrCalendar?: { blob: Blob; fileName: string; url: string };
     zip?: { blob: Blob; fileName: string; url: string };
   } | null>(null);
+  const [qrCardDataUrl, setQrCardDataUrl] = useState<string>("");
   const [premiumBhavishyaPayload, setPremiumBhavishyaPayload] = useState<BhavishyaV1Payload | null>(null);
   const premiumBhavishyaPdfRef = useRef<HTMLDivElement>(null);
 
@@ -663,7 +673,7 @@ export default function KundliPage(): JSX.Element {
       latitude: payload.latitude,
       longitude: payload.longitude,
       pincode: payload.pincode,
-      gothra: payload.gothra || "Kashyapa",
+      gothra: payload.gothra?.trim() || undefined,
       rashi: output.moonSign.english,
       rashiSanskrit: output.moonSign.sanskrit,
       nakshatra: nakshatraName,
@@ -757,6 +767,55 @@ export default function KundliPage(): JSX.Element {
     return generateKundliRemedyReport(result, input);
   }, [result, birthDatePicker, birthTimeHm, form.latitude, form.longitude, form.name, form.gender, form.gothra, gotraDisplay]);
 
+  const effectiveRemedyDiagnosis = aiRemedyDiagnosis || remedyDiagnosis;
+
+  useEffect(() => {
+    setAiRemedyDiagnosis(null);
+  }, [result]);
+
+  // Trigger AI Narration for remedies with 10 retries
+  useEffect(() => {
+    if (activeView !== "remedy" || !result || !remedyDiagnosis) return;
+    if (aiRemedyDiagnosis?.isAiGenerated && aiRemedyDiagnosis.aiNarrationText?.[remedyPdfLanguage]) return;
+
+    let isMounted = true;
+    setIsGeneratingRemedyAi(true);
+
+    const input: KundliInput = {
+      birthDate: formatPickerDateLocalYmd(birthDatePicker!),
+      birthTime: birthTimeHm.trim(),
+      latitude: form.latitude,
+      longitude: form.longitude,
+      name: form.name || "Devotee",
+      gender: form.gender,
+      gothra: gotraDisplay || form.gothra
+    };
+
+    generateKundliRemedyWithAi({
+      kundli: result,
+      input,
+      lang: remedyPdfLanguage,
+      baseDiagnosis: remedyDiagnosis,
+      maxAttempts: 10
+    })
+      .then((enriched) => {
+        if (isMounted) {
+          setAiRemedyDiagnosis(enriched);
+          setIsGeneratingRemedyAi(false);
+        }
+      })
+      .catch((err) => {
+        console.warn("[KundliPage] Remedy AI generation error:", err);
+        if (isMounted) {
+          setIsGeneratingRemedyAi(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeView, result, remedyDiagnosis, remedyPdfLanguage]);
+
   const effectiveSession: KundliViewerSession | null = useMemo(() => {
     if (kundliSession) return kundliSession;
     if (!result || !birthDatePicker || !birthTimeHm.trim()) return null;
@@ -788,7 +847,29 @@ export default function KundliPage(): JSX.Element {
     setRemedyPdfLanguage(chosenLang);
     setIsGeneratingRemedyPdf(true);
     try {
-      await new Promise((r) => setTimeout(r, 200));
+      let diagToUse = effectiveRemedyDiagnosis;
+      if (result && birthDatePicker && birthTimeHm.trim()) {
+        if (!diagToUse?.isAiGenerated || !diagToUse?.aiNarrationText?.[chosenLang]) {
+          const input: KundliInput = {
+            birthDate: formatPickerDateLocalYmd(birthDatePicker),
+            birthTime: birthTimeHm.trim(),
+            latitude: form.latitude,
+            longitude: form.longitude,
+            name: form.name || "Devotee",
+            gender: form.gender,
+            gothra: gotraDisplay || form.gothra
+          };
+          diagToUse = await generateKundliRemedyWithAi({
+            kundli: result,
+            input,
+            lang: chosenLang,
+            baseDiagnosis: diagToUse,
+            maxAttempts: 10
+          });
+          setAiRemedyDiagnosis(diagToUse);
+        }
+      }
+      await new Promise((r) => setTimeout(r, 400));
       const safeName = (form.name || "Kundli").replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_");
       await generatePDFFromElement(
         "kundli-remedy-pdf-container",
@@ -803,6 +884,8 @@ export default function KundliPage(): JSX.Element {
 
   const qrCardProfile: KundliQrProfile = useMemo(() => {
     const moon = result?.planets.find((p: any) => p.name === "Moon");
+    const moonNakIdx = moon?.nakshatra?.index ?? 0;
+    const moonRashiIdx = result?.moonSign?.index ?? moon?.rashi?.index ?? 0;
     const dashaTimeline = dasha && dasha.length > 0 ? dasha : (result ? generateDashaTimeline(result) : []);
     const activeDasha = dashaTimeline?.[0]?.planet || "";
     const lagnaLabel = result?.lagnaRashi ? (t(`rashis.${result.lagnaRashi.sanskrit}` as any) || result.lagnaRashi.english) : "";
@@ -821,9 +904,56 @@ export default function KundliPage(): JSX.Element {
       moonNakshatra: moonNakLabel,
       moonPada: `ಪಾದ ${moonPadaNum}`,
       currentMahadasha: activeDasha,
-      currentBhukti: activeDasha
+      currentBhukti: activeDasha,
+      moonNakshatraIndex: moonNakIdx,
+      moonRashiIndex: moonRashiIdx
     };
   }, [form, result, dasha, effectiveSession, t]);
+
+  // Pre-generate QR Code data URL for 30-day calendar whenever profile or priest details change
+  useEffect(() => {
+    if (!result) return;
+    try {
+      const nakIdx = qrCardProfile.moonNakshatraIndex ?? 0;
+      const rashiIdx = qrCardProfile.moonRashiIndex ?? 0;
+      const rhythmDays = Array.from({ length: 30 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const ymd = d.toISOString().slice(0, 10);
+        return calculateDeterministicRhythmDay(ymd, nakIdx, rashiIdx);
+      });
+
+      const currentPriestName = priestNameInput || "Shreeram Pandit";
+      const currentPriestPhone = priestPhoneInput || "9972339362";
+
+      const qrPayload = generateQrPayloadByTarget("google", {
+        days: rhythmDays,
+        lang: pdfLanguage,
+        panditName: currentPriestName,
+        priestPhone: currentPriestPhone,
+        overrideCalendarPhone: true,
+        notificationTime: "07:00",
+        personName: qrCardProfile.name,
+        pincode: "581326",
+        lat: 14.54,
+        lng: 74.31,
+        locationName: homePlaceName.trim() || locationCore || "Gokarna",
+        dob: qrCardProfile.birthDate,
+        tob: qrCardProfile.birthTime,
+        birthNakshatraIndex: nakIdx,
+        birthRashiIndex: rashiIdx
+      });
+
+      QRCode.toDataURL(qrPayload, {
+        errorCorrectionLevel: "L",
+        margin: 2,
+        width: 320,
+        color: { dark: "#78350F", light: "#FFFFFF" }
+      }).then((url) => setQrCardDataUrl(url)).catch(() => {});
+    } catch {
+      // Ignored
+    }
+  }, [result, qrCardProfile, pdfLanguage, priestNameInput, priestPhoneInput, homePlaceName, locationCore]);
 
   const doshaReport: ComprehensiveDoshaReport | null = useMemo(() => {
     if (!effectiveSession?.result || !effectiveSession?.input) return null;
@@ -988,14 +1118,36 @@ export default function KundliPage(): JSX.Element {
         setBundleProgress(35);
         setBundleStageText(
           pdfLanguage === "kn"
-            ? "೨/೫ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ..."
+            ? "೨/೫ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ (AI ನಿರೂಪಣೆ ಪರಿಶೀಲನೆ)..."
             : pdfLanguage === "hi"
-            ? "2/5 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण..."
-            : "2/5 Generating Daivika Parihara Remedy Report PDF..."
+            ? "2/5 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण (AI विवरण)..."
+            : "2/5 Generating Daivika Parihara Remedy Report PDF (AI Narration)..."
         );
 
         setRemedyPdfLanguage(pdfLanguage);
-        await new Promise(r => setTimeout(r, 400));
+        let diagToUse = effectiveRemedyDiagnosis;
+        if (result && birthDatePicker && birthTimeHm.trim()) {
+          if (!diagToUse?.isAiGenerated || !diagToUse?.aiNarrationText?.[pdfLanguage]) {
+            const input: KundliInput = {
+              birthDate: formatPickerDateLocalYmd(birthDatePicker),
+              birthTime: birthTimeHm.trim(),
+              latitude: form.latitude,
+              longitude: form.longitude,
+              name: form.name || "Devotee",
+              gender: form.gender,
+              gothra: gotraDisplay || form.gothra
+            };
+            diagToUse = await generateKundliRemedyWithAi({
+              kundli: result,
+              input,
+              lang: pdfLanguage,
+              baseDiagnosis: diagToUse,
+              maxAttempts: 10
+            });
+            setAiRemedyDiagnosis(diagToUse);
+          }
+        }
+        await new Promise((r) => setTimeout(r, 500));
 
         const pdf2 = await generatePDFFromElement("kundli-remedy-pdf-container", pdf2FileName, false);
         pdf2Blob = pdf2.output("blob");
@@ -1076,6 +1228,56 @@ export default function KundliPage(): JSX.Element {
             ? "5/5 अगले ३०-दिनों का मुहूर्त क्यूआर कार्ड निर्माण..."
             : "5/5 Generating 30-Day Auspicious Calendar QR Card PDF..."
         );
+
+        try {
+          const nakIdx = qrCardProfile.moonNakshatraIndex ?? 0;
+          const rashiIdx = qrCardProfile.moonRashiIndex ?? 0;
+          const rhythmDays = Array.from({ length: 30 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            const ymd = d.toISOString().slice(0, 10);
+            return calculateDeterministicRhythmDay(ymd, nakIdx, rashiIdx);
+          });
+
+          const currentPriestName = priestNameInput || "Shreeram Pandit";
+          const currentPriestPhone = priestPhoneInput || "9972339362";
+
+          const qrPayload = generateQrPayloadByTarget("google", {
+            days: rhythmDays,
+            lang: pdfLanguage,
+            panditName: currentPriestName,
+            priestPhone: currentPriestPhone,
+            overrideCalendarPhone: true,
+            notificationTime: "07:00",
+            personName: qrCardProfile.name,
+            pincode: "581326",
+            lat: 14.54,
+            lng: 74.31,
+            locationName: homePlaceName.trim() || locationCore || "Gokarna",
+            dob: qrCardProfile.birthDate,
+            tob: qrCardProfile.birthTime,
+            birthNakshatraIndex: nakIdx,
+            birthRashiIndex: rashiIdx
+          });
+
+          let qrData = "";
+          try {
+            qrData = await QRCode.toDataURL(qrPayload, {
+              errorCorrectionLevel: "L",
+              margin: 2,
+              width: 320,
+              color: { dark: "#78350F", light: "#FFFFFF" }
+            });
+          } catch (qrErr) {
+            console.warn("[KundliPage] QR generation fallback:", qrErr);
+            const fallback = `${getSafeProductionOrigin()}/daily?action=ics&lang=${pdfLanguage}&priestPhone=${encodeURIComponent(currentPriestPhone)}`;
+            qrData = await QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 320 });
+          }
+
+          setQrCardDataUrl(qrData);
+        } catch (e) {
+          console.error("[KundliPage] Error generating QR data URL:", e);
+        }
 
         await new Promise(r => setTimeout(r, 600));
         const pdf5 = await generatePDFFromElement("kundli-30day-qr-container", pdf5FileName, false);
@@ -1752,13 +1954,14 @@ export default function KundliPage(): JSX.Element {
             </button>
           </div>
 
-          {activeView === "remedy" && remedyDiagnosis && (
+          {activeView === "remedy" && effectiveRemedyDiagnosis && (
             <div className="animate-fade-in">
               <KundliRemedyView
-                diagnosis={remedyDiagnosis}
+                diagnosis={effectiveRemedyDiagnosis}
                 lang={remedyPdfLanguage}
                 onDownloadPdf={handleDownloadRemedyPdf}
                 isGeneratingPdf={isGeneratingRemedyPdf}
+                isAiGenerating={isGeneratingRemedyAi}
               />
             </div>
           )}
@@ -2006,7 +2209,7 @@ export default function KundliPage(): JSX.Element {
       ) : null}
 
       {/* Hidden Kundli Remedy PDF Template conforming to baggona-pdf-layout-guard */}
-      {remedyDiagnosis && (
+      {effectiveRemedyDiagnosis && (
         <div
           style={{
             position: "fixed",
@@ -2021,7 +2224,7 @@ export default function KundliPage(): JSX.Element {
           }}
         >
           <KundliRemedyPdfTemplate
-            diagnosis={remedyDiagnosis}
+            diagnosis={effectiveRemedyDiagnosis}
             lang={remedyPdfLanguage}
           />
         </div>
@@ -2641,7 +2844,7 @@ export default function KundliPage(): JSX.Element {
             position: "fixed",
             left: 0,
             top: 0,
-            width: 794,
+            width: 900,
             opacity: 0,
             pointerEvents: "none",
             zIndex: -1,
@@ -2654,6 +2857,7 @@ export default function KundliPage(): JSX.Element {
             lang={pdfLanguage}
             panditName={priestNameInput || "Shreeram Pandit"}
             priestPhone={priestPhoneInput || "9972339362"}
+            qrDataUrl={qrCardDataUrl}
             placeLabel={homePlaceName.trim() || locationCore || "Gokarna"}
             pincode="581326"
           />

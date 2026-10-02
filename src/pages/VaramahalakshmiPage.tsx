@@ -68,7 +68,7 @@ export default function VaramahalakshmiPage(): JSX.Element {
 
   // Devotee info states
   const [personName, setPersonName] = useState(kundliSession?.input?.name || "ಸುಮಾ (Suma)");
-  const [gotra, setGotra] = useState("ಕಶ್ಯಪ (Kashyapa)");
+  const [gotra, setGotra] = useState(() => kundliSession?.input?.gothra || "");
   const [nakshatraIdx, setNakshatraIdx] = useState(3); // Default Rohini
   const [rashiIdx, setRashiIdx] = useState(1); // Default Taurus
 

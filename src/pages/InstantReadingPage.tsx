@@ -11,6 +11,8 @@ import {
   type InstantQAQuestion
 } from "../core/PanchangaAngaSynthesisEngine";
 import { askGemini } from "../core/GeminiEngine";
+import { generateCurrentLifeSituationWithAi } from "../core/instantReadingAiEngine";
+import type { CurrentLifeSituationDiagnosis } from "../core/CurrentLifeAndCareerDiagnosticEngine";
 import { stopAllAudioGlobal } from "../features/audio/globalAudioManager";
 import Card from "../components/ui/Card";
 import GrahaSpinner from "../components/ui/GrahaSpinner";
@@ -72,6 +74,8 @@ export default function InstantReadingPage(): JSX.Element {
     ageGroupBadge?: string;
     technicalAspectsCueKn?: string;
   } | null>(null);
+
+  const [dynamicCurrentLifeSituation, setDynamicCurrentLifeSituation] = useState<CurrentLifeSituationDiagnosis | null>(null);
 
   const [playingPointKey, setPlayingPointKey] = useState<string | null>(null);
 
@@ -170,8 +174,29 @@ export default function InstantReadingPage(): JSX.Element {
     });
 
     setSynthesisData(data);
+    setDynamicCurrentLifeSituation(data.currentDiagnosis.currentLifeSituation || null);
     setAiNarration(data.multiParagraphExecutiveReading.map(cleanAstrologyText));
     setLoading(false);
+
+    // Trigger AI enhanced Current Life Situation generation (with 10-retry loop & impressive header)
+    void (async () => {
+      try {
+        const enhancedCls = await generateCurrentLifeSituationWithAi({
+          session,
+          currentDiagnosis: data.currentDiagnosis,
+          cls: data.currentDiagnosis.currentLifeSituation,
+          apiKey: geminiApiKey,
+          lang: i18n.language
+        });
+        if (enhancedCls) {
+          setDynamicCurrentLifeSituation(enhancedCls);
+          data.currentDiagnosis.currentLifeSituation = enhancedCls;
+          setSynthesisData({ ...data });
+        }
+      } catch (err) {
+        console.warn("[InstantReadingPage] AI CurrentLifeSituation error:", err);
+      }
+    })();
 
     // Trigger AI enhanced live reading with strict formatting instructions
     void (async () => {
@@ -271,13 +296,13 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
    - If devotee is Female, NEVER use 'ಹೆಂಡತಿ' or 'ಪತ್ನಿ' to describe the native.
    - If devotee is a Child (<14), focus purely on education, health, and parent guidance without adult topics.
    - CRITICAL ZERO FALSE ACCUSATION OF CRIMINALITY/THEFT/VIOLENCE: If native has score <= 15 or Jupiter/benefic shield, you MUST NEVER accuse them of crime, theft, violence, murder, imprisonment, cheating, or sexual misconduct. Acknowledge and praise their clean moral integrity and character shield.
-9. MANDATORY 2-PARAGRAPH DEPTH RULE FOR ALL 6 TALKING POINT CARDS:
+9. MANDATORY RATIO (75% PERSONAL LIVED REALITY & 25% TECHNICAL GROUNDING):
    Every single card ("openingIceBreaker", "hiddenSubconsciousWorry", "maandiKarmicImpact", "bodyMarkAndTemperament", "karmaFinancialReality", "immediateTurningPoint") MUST CONSIST OF EXACTLY TWO PARAGRAPHS separated by \\n\\n.
    EACH paragraph MUST have AT LEAST 4 to 6 lines (approx. 50-80 words per paragraph, total 100-160 words per card). NEVER write short 1-2 sentence blurbs or single paragraphs!
    
    Structure for each card:
-   - Paragraph 1: Direct Kundli Technical Reasoning (ಶಾಸ್ತ್ರೀಯ ಆಧಾರ & ಗ್ರಹ-ಭಾವ ಸ್ಥಿತಿ). Speak as an experienced Vedic Astrologer examining the Kundli diagram face-to-face. Explicitly cite the planet (Graha), the house (Bhava) it occupies, the house lord (Grahadhipati), their mutual relationship & dignity (ಮಿತ್ರ/ಶತ್ರು/ಸಮ/ಸ್ವಕ್ಷೇತ್ರ/ಉಚ್ಛ/ನೀಚ), and classical Parashari rules.
-   - Paragraph 2: Real-Life Psychological, Behavioral & Practical Manifestation (ನಿತ್ಯ ಜೀವನದ ನೈಜ ಅನುಭವ & ಲಕ್ಷಣ). Thoroughly explain the real-world character traits, mental thoughts, daily habits, interpersonal dynamics, emotional struggles, or concrete events the native actually experiences in daily life.
+   - Paragraph 1: Start with a concise 25% technical grounding hook (Lagna, Moon, Bhava, dignity). Then IMMEDIATELY transition into personal characteristics, lived reality, daily demeanor, and interpersonal boundaries (loyalty to affection, refusal to be dominated/bossed around).
+   - Paragraph 2: 100% deep lived reality, emotional resilience, daily habits, and practical experiences. For Card 3 (Maandi), vividly describe the agonizing 99% task hurdle (smooth progress until 99%, sudden stall at final signature/disbursement, 'kaiyyaige banda tuttu bayige baralilla', trivial excuses) and prescribe the sacred Gokarna Mahabaleshwara Maandi-Shani Shanti Sankalpa and 11-time Maandi Gayatri chant.
 `;
 
         const promptContextWithJson = `${promptContext}
@@ -291,12 +316,12 @@ Return a valid JSON object matching this schema:
     "Paragraph 3 (Planetary Reality & Turning Point Timeline in English digits)",
     "Paragraph 4 (Practical Remedies, Gemstone, Rudraksha & Gokarna Blessings)"
   ],
-  "openingIceBreaker": "Card 1: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Kundli Lagna & Lagna lord house, dispositor relationship & dignity. Para 2: Deep real-life character, self-respect, pride, and daily demeanor in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "hiddenSubconsciousWorry": "Card 2: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Chandra house, dispositor relationship & dignity, 4th house, Gochara. Para 2: Hidden midnight worry, silent resilience, and unexpressed emotional burden in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "maandiKarmicImpact": "Card 3: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Maandi house, sign, dispositor, Upachaya vs Trik, Karya-Vighna classification. Para 2: Real-life 99% task hurdle (stuck right before completion) & Gokarna shanti solution in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "bodyMarkAndTemperament": "Card 4: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Brihat Jataka Ch. 25 Anga Lakshana (body zone, right/left side by lord house, lord texture/mark). Para 2: Tridosha constitution, sleep/digestion, and Ayurvedic lifestyle care in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "karmaFinancialReality": "Card 5: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical 10th house, 10th lord, 2nd & 11th houses, dispositor dignity. Para 2: Workplace ethics, unappreciated credit, and cash flow vs fixed asset preservation in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "immediateTurningPoint": "Card 6: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. Para 1: Technical Mahadasha & Antardasha lords, mutual distance, Gochara, turning-point countdown. Para 2: Dissolution of blockades, renewed vitality, and fresh breakthrough in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "openingIceBreaker": "Card 1: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% deep real-life character, self-respect, fierce pride, and refusal to be dominated in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "hiddenSubconsciousWorry": "Card 2: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% hidden midnight worry, silent resilience, and unexpressed emotional burden in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "maandiKarmicImpact": "Card 3: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% real-life agonizing 99% task hurdle (stuck right before final signature/approval, 'kaiyyaige banda tuttu') & Gokarna shanti solution in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "bodyMarkAndTemperament": "Card 4: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% physical birthmark validation on body, Tridosha metabolic reality, and Ayurvedic daily regimen in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "karmaFinancialReality": "Card 5: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% workplace ethics, disgust for cheap flattery/office politics, uncredited labor, and liquid cash drainage into fixed assets in pure ${isKn ? "Kannada with zero English words" : "English"}.",
+  "immediateTurningPoint": "Card 6: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% relief timeline countdown in months, dissolution of blockades, and renewed vitality in pure ${isKn ? "Kannada with zero English words" : "English"}.",
   "siddhaPariharaRemedy": "Gokarna Siddha Parashari remedy with gemstone, carat, metal, finger, rudraksha, daily mantra, and kshetra sankalpa in pure ${isKn ? "Kannada with zero English words" : "English"}."
 }
 
@@ -930,7 +955,7 @@ STRICT RULES:
 
           {/* 🚨 0. PRIMARY LIFE FOCUS, CRISIS RESOLUTION OR LIFE PHASE STRATEGY 🚨 */}
           {currentDiagnosis?.primaryLifeChallenge && (() => {
-            const cls = currentDiagnosis.currentLifeSituation;
+            const cls = dynamicCurrentLifeSituation || currentDiagnosis.currentLifeSituation;
             const isAcuteCrisis = cls
               ? (cls.severity === "critical" || cls.severity === "high")
               : [

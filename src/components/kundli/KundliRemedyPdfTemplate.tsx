@@ -423,6 +423,58 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             </div>
           </div>
 
+          {/* AI Narration or 10-Retry Fallback Warning Banner */}
+          {diagnosis.isAiGenerated && diagnosis.aiNarrationText?.[code] ? (
+            <div
+              style={{
+                background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)",
+                border: "1.5px solid #818CF8",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                color: "#FFFFFF",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.06)"
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "4px",
+                  borderBottom: "1px solid rgba(255,255,255,0.2)",
+                  paddingBottom: "2px"
+                }}
+              >
+                <span style={{ fontSize: "11.5px", fontWeight: 900, color: "#FDE68A" }}>
+                  ✨ {code === "kn"
+                    ? "AI ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ (Gemini 3.5 Flash Lite)"
+                    : code === "hi"
+                    ? "AI दैविक ज्योतिष विवरण (Gemini 3.5 Flash Lite)"
+                    : code === "te"
+                    ? "AI దైవిక జ్యోతిష్య వివరణ (Gemini 3.5 Flash Lite)"
+                    : code === "ta"
+                    ? "AI தெய்வீக ஜோதிட உரை (Gemini 3.5 Flash Lite)"
+                    : "AI Divine Astrological Narration (Gemini 3.5 Flash Lite)"}
+                </span>
+                <span
+                  style={{
+                    fontSize: "9px",
+                    background: "rgba(16, 185, 129, 0.25)",
+                    color: "#6EE7B7",
+                    padding: "1px 6px",
+                    borderRadius: "10px",
+                    fontWeight: 800
+                  }}
+                >
+                  {code === "kn" ? "ಖಚಿತ ಜಾತಕ ವಿಶ್ಲೇಷಣೆ" : "Accurate Analysis"}
+                </span>
+              </div>
+              <div style={{ fontSize: "10.5px", color: "#E0E7FF", lineHeight: 1.4, whiteSpace: "pre-line" }}>
+                {diagnosis.aiNarrationText[code]}
+              </div>
+            </div>
+          ) : null}
+
           {/* Section 1: Astrological Diagnosis & Struggle Identification */}
           <div
             style={{

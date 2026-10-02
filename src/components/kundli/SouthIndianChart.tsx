@@ -28,6 +28,38 @@ const southFrameInnerMarkup = (): string => {
   return m?.[1]?.trim() ?? "";
 };
 
+function getSpecialCellBadge(
+  isLagna: boolean,
+  isMoon: boolean,
+  lang: string
+): { badge: string; color: string } | null {
+  if (isLagna && isMoon) {
+    let badge = "✦ Lagna • Rashi (Moon) ✦";
+    if (lang.startsWith("kn")) badge = "✦ ಲಗ್ನ • ರಾಶಿ (ಚಂ) ✦";
+    else if (lang.startsWith("hi")) badge = "✦ लग्न • राशि (चं) ✦";
+    else if (lang.startsWith("te")) badge = "✦ లగ్నం • రాశి (చం) ✦";
+    else if (lang.startsWith("ta")) badge = "✦ லக்னம் • ராசி (சந்) ✦";
+    return { badge, color: "#b45309" };
+  }
+  if (isLagna) {
+    let badge = "✦ Lagna (ASC) ✦";
+    if (lang.startsWith("kn")) badge = "✦ ಲಗ್ನ (ASC) ✦";
+    else if (lang.startsWith("hi")) badge = "✦ लग्न (ASC) ✦";
+    else if (lang.startsWith("te")) badge = "✦ లగ్నం (ASC) ✦";
+    else if (lang.startsWith("ta")) badge = "✦ லக்னம் (ASC) ✦";
+    return { badge, color: "#b45309" };
+  }
+  if (isMoon) {
+    let badge = "☽ Rashi (Moon) ☽";
+    if (lang.startsWith("kn")) badge = "☽ ರಾಶಿ (ಚಂ) ☽";
+    else if (lang.startsWith("hi")) badge = "☽ राशि (चं) ☽";
+    else if (lang.startsWith("te")) badge = "☽ రాశి (చం) ☽";
+    else if (lang.startsWith("ta")) badge = "☽ ராசி (சந்) ☽";
+    return { badge, color: "#1d4ed8" };
+  }
+  return null;
+}
+
 export default function SouthIndianChart({ kundli, personName, gothra }: Props): JSX.Element {
   const { t, i18n } = useTranslation();
   const size = chartViewSize();
@@ -46,6 +78,7 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
   }, [kundli.planets]);
 
   const lagnaIdx = kundli.lagnaRashi.index;
+  const moonRashiIdx = kundli.moonSign.index;
 
   const frameInner = useMemo(() => southFrameInnerMarkup(), []);
 
@@ -58,6 +91,28 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
       aria-label={t("kundli.southChartAria")}
       style={{ colorScheme: "light", background: "#fffdf8" }}
     >
+      <defs>
+        <style>{`
+          @keyframes lagnaGlow {
+            0%, 100% { fill: #FEF3C7; }
+            50% { fill: #FDE68A; }
+          }
+          @keyframes chandraGlow {
+            0%, 100% { fill: #EFF6FF; }
+            50% { fill: #DBEAFE; }
+          }
+          .cell-lagna {
+            animation: lagnaGlow 3s ease-in-out infinite;
+          }
+          .cell-chandra {
+            animation: chandraGlow 3s ease-in-out infinite;
+          }
+          .cell-dual {
+            animation: lagnaGlow 2.5s ease-in-out infinite;
+          }
+        `}</style>
+      </defs>
+
       {/* Static frame: single SVG asset (inlined for PNG/PDF export) */}
       <g data-testid="south-chart-frame" dangerouslySetInnerHTML={{ __html: frameInner }} />
 
@@ -65,7 +120,33 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
         const cell = getCellForRashiIndex(rashi.index);
         const { x, y } = cellOrigin(cell);
         const isLagna = rashi.index === lagnaIdx;
+        const isMoon = rashi.index === moonRashiIdx;
+        const isDual = isLagna && isMoon;
         const house = houseForSign(lagnaIdx, rashi.index);
+        const specialBadge = getSpecialCellBadge(isLagna, isMoon, i18n.language);
+
+        let cellFill = "#ffffff";
+        let cellStroke = "none";
+        let cellStrokeWidth = 0;
+        let animClass = "";
+
+        if (isDual) {
+          cellFill = "#FEF3C7";
+          cellStroke = "#D97706";
+          cellStrokeWidth = 1.5;
+          animClass = "cell-dual";
+        } else if (isLagna) {
+          cellFill = "#FEF3C7";
+          cellStroke = "#D97706";
+          cellStrokeWidth = 1.5;
+          animClass = "cell-lagna";
+        } else if (isMoon) {
+          cellFill = "#EFF6FF";
+          cellStroke = "#2563EB";
+          cellStrokeWidth = 1.5;
+          animClass = "cell-chandra";
+        }
+
         return (
           <g key={rashi.index} data-rashi={rashi.index}>
             <rect
@@ -74,16 +155,29 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
               y={y + 2}
               width={cw - 4}
               height={cw - 4}
-              fill={isLagna ? "#fff8e1" : "#ffffff"}
-              stroke="none"
+              fill={cellFill}
+              stroke={cellStroke}
+              strokeWidth={cellStrokeWidth}
+              className={animClass}
             />
             <text x={x + 6} y={y + 14} fontSize="9" fill="#7f1d1d" fontWeight="600">
               {t(rashiTKey(rashi.sanskrit) as "rashis.Mesha")}
             </text>
+            {specialBadge && (
+              <text
+                x={x + cw - 6}
+                y={y + 14}
+                fontSize="7.5"
+                fill={specialBadge.color}
+                fontWeight="700"
+                textAnchor="end"
+              >
+                {specialBadge.badge}
+              </text>
+            )}
             <text x={x + cw - 6} y={y + cw - 8} fontSize="8" fill="#64748b" textAnchor="end">
               {t("kundli.bhavaBadge", { n: house })}
             </text>
-            {/* Removed duplicate Lagna text at y+22 that clashed with planet list */}
           </g>
         );
       })}
@@ -137,8 +231,11 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
 
         interface CellItem {
           text: string;
+          retroBadge?: string;
+          degreeText?: string;
           isLagna?: boolean;
           isMaandi?: boolean;
+          isRetrograde?: boolean;
         }
 
         const items: CellItem[] = [];
@@ -149,10 +246,21 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
           });
         }
         for (const pl of planetsHere) {
-          const label = t(`planets.${pl.name}`) + (pl.isRetrograde ? (lang.startsWith("kn") ? " (ವ)" : " (R)") : "");
-          items.push({
-            text: `${label} ${formatPatrikaNavamsaOnly(pl.degree, lang)}`
-          });
+          const pName = t(`planets.${pl.name}`);
+          const deg = formatPatrikaNavamsaOnly(pl.degree, lang);
+          if (pl.isRetrograde) {
+            const rBadge = lang.startsWith("kn") ? "(ವ)" : "(R)";
+            items.push({
+              text: `${pName} `,
+              retroBadge: rBadge,
+              degreeText: deg,
+              isRetrograde: true
+            });
+          } else {
+            items.push({
+              text: `${pName} ${deg}`
+            });
+          }
         }
         if (kundli.maandi && kundli.maandi.rashi.index === rashi.index) {
           items.push({
@@ -192,6 +300,12 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
                     fontWeight={item.isMaandi || item.isLagna ? "700" : "600"}
                   >
                     {item.text}
+                    {item.isRetrograde && (
+                      <tspan fill="#dc2626" fontWeight="800">
+                        {item.retroBadge}{" "}
+                      </tspan>
+                    )}
+                    {item.degreeText ? item.degreeText : ""}
                   </tspan>
                 ))}
               </text>
@@ -211,6 +325,12 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
                     fontWeight={item.isMaandi || item.isLagna ? "700" : "600"}
                   >
                     {item.text}
+                    {item.isRetrograde && (
+                      <tspan fill="#dc2626" fontWeight="800">
+                        {item.retroBadge}{" "}
+                      </tspan>
+                    )}
+                    {item.degreeText ? item.degreeText : ""}
                   </tspan>
                 ))}
               </text>
@@ -252,6 +372,12 @@ export default function SouthIndianChart({ kundli, personName, gothra }: Props):
                 fontWeight={item.isMaandi || item.isLagna ? "700" : "600"}
               >
                 {item.text}
+                {item.isRetrograde && (
+                  <tspan fill="#dc2626" fontWeight="800">
+                    {item.retroBadge}{" "}
+                  </tspan>
+                )}
+                {item.degreeText ? item.degreeText : ""}
               </tspan>
             ))}
           </text>

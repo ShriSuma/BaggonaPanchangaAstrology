@@ -11,7 +11,13 @@ import { useKundliViewerStore } from "../../stores/kundliViewerStore";
 import { useAppStore } from "../../stores/appStore";
 import { translateText } from "../../utils/translator";
 import { ageDecimalYearsAt } from "../../core/birthTime";
-import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
+import {
+  findBhuktiAtAge,
+  generateBhuktiTimeline,
+  findMahadashaAtAge,
+  generateDashaTimeline,
+  evaluatePlanetQuality
+} from "../../core/DashaBhuktiEngine";
 import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
 import { detectAffairIndicators } from "../../core/layers/NatalLayer";
 import { askGemini } from "../../core/GeminiEngine";
@@ -46,7 +52,7 @@ import {
   localizeGocharaName,
   localizeDoshaRemedy
 } from "../../features/premiumPdf/yogaDoshaGocharaEnricher";
-import { RoyalA4PrintTemplate, type RoyalA4Data } from "./RoyalA4PrintTemplate";
+import { RoyalA4PrintTemplate, type RoyalA4Data, type DashaBhuktiTimelineData } from "./RoyalA4PrintTemplate";
 import RoyalA4PreviewModal from "./RoyalA4PreviewModal";
 import QRCode from "qrcode";
 import { transliterateName } from "../../utils/transliterator";
@@ -3537,6 +3543,10 @@ Return ONLY this JSON (no extra text before or after):
         aiB.health || buildDynamicHealthFallback(parsedKundali),
         lang
       );
+      const childrenGuidance = cleanEnglishFromRegionalText(
+        aiB.children || buildDynamicChildrenFallback(parsedKundali, (parsedKundali.hasChildren as any) || "general"),
+        lang
+      );
 
       // Summary & Ashirvada
       const finalSummary = cleanEnglishFromRegionalText(
@@ -3617,9 +3627,149 @@ Return ONLY this JSON (no extra text before or after):
         });
       }
 
+      // Construct Dasha-Bhukti Detailed Timeline for Page 1
+      const birthMs = new Date(`${session.input.birthDate}T${session.input.birthTime || "12:00"}:00Z`).getTime();
+      const ageToDate = (age: number) => {
+        const ms = isNaN(birthMs) ? new Date(session.input.birthDate).getTime() : birthMs;
+        return new Date(ms + age * 365.2425 * 86400000);
+      };
+
+      const formatMonthYear = (d: Date, l: string): string => {
+        const m = d.getMonth();
+        const y = d.getFullYear();
+        if (l === "kn") {
+          const knMonths = ["ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್", "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"];
+          return `${knMonths[m]} ${y}`;
+        }
+        if (l === "hi") {
+          const hiMonths = ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"];
+          return `${hiMonths[m]} ${y}`;
+        }
+        if (l === "te") {
+          const teMonths = ["జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్", "జూలై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"];
+          return `${teMonths[m]} ${y}`;
+        }
+        if (l === "ta") {
+          const taMonths = ["ஜனவரி", "பிப்ரவரி", "மார்ச்", "ஏப்ரல்", "மே", "ஜூன்", "ஜூலை", "ஆகஸ்ட்", "செப்டம்பர்", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"];
+          return `${taMonths[m]} ${y}`;
+        }
+        const enMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${enMonths[m]} ${y}`;
+      };
+
+      const allMahas = generateDashaTimeline(session.result, 120);
+      const activeMahaEntry = findMahadashaAtAge(session.result, ageYears) || allMahas[0];
+      const activeMahaLord = activeMahaEntry?.planet || session.result.planets[0]?.name || "Sun";
+      const activeMahaStartYear = activeMahaEntry ? ageToDate(activeMahaEntry.startAge).getFullYear() : 2020;
+      const activeMahaEndYear = activeMahaEntry ? ageToDate(activeMahaEntry.endAge).getFullYear() : 2030;
+      const activeMahaTotalYears = activeMahaEntry ? Math.round(activeMahaEntry.durationYears) : 10;
+
+      const activeBhuktiLord = currentBhuktiData?.bhukti || session.result.planets[1]?.name || "Moon";
+      const bhuktiStartAge = currentBhuktiData?.bhuktiStartAge ?? activeMahaEntry?.startAge ?? 0;
+      const bhuktiEndAge = currentBhuktiData?.bhuktiEndAge ?? activeMahaEntry?.endAge ?? 1;
+      const bhuktiStartDate = formatMonthYear(ageToDate(bhuktiStartAge), lang);
+      const bhuktiEndDate = formatMonthYear(ageToDate(bhuktiEndAge), lang);
+      const durationMonths = Math.max(1, Math.round((bhuktiEndAge - bhuktiStartAge) * 12));
+
+      const activeBhuktiBadge = lang === "kn"
+        ? "🟢 ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ (Active Now)"
+        : lang === "hi"
+        ? "🟢 वर्तमान सक्रिय (Active Now)"
+        : lang === "te"
+        ? "🟢 ప్రస్తుతం సక్రియం (Active Now)"
+        : lang === "ta"
+        ? "🟢 தற்போது இயங்குகிறது (Active Now)"
+        : "🟢 Active Now";
+
+      const influenceSummary = currentBhuktiData
+        ? runningPeriodSentence(lang, toGraha(currentBhuktiData.maha.planet), toGraha(currentBhuktiData.bhukti))
+        : "";
+
+      const allBhuktis = generateBhuktiTimeline(session.result, 120);
+      const activeBhuktiIndex = allBhuktis.findIndex(
+        b => ageYears >= b.startAge - 1e-6 && ageYears < b.endAge - 1e-6
+      );
+      const upcomingRawBhuktis = activeBhuktiIndex >= 0
+        ? allBhuktis.slice(activeBhuktiIndex + 1, activeBhuktiIndex + 5)
+        : allBhuktis.slice(0, 4);
+
+      const upcomingBhuktis = upcomingRawBhuktis.map(b => {
+        const q = evaluatePlanetQuality(b.bhukti, session.result);
+        const qualityType: "benefic" | "neutral" | "caution" = q === "good" ? "benefic" : q === "bad" ? "caution" : "neutral";
+        const qualityBadge = qualityType === "benefic"
+          ? (lang === "kn" ? "ಶುಭ ಫಲ" : lang === "hi" ? "शुभ फल" : lang === "te" ? "శుభ ఫలితం" : lang === "ta" ? "சுப பலன்" : "Benefic Period")
+          : qualityType === "caution"
+          ? (lang === "kn" ? "ಜಾಗ್ರತೆ & ಪರಿಹಾರ" : lang === "hi" ? "सावधानी व शांति" : lang === "te" ? "జాగ్రత్త & పరిహారం" : lang === "ta" ? "கவனம் & பரிகாரம்" : "Caution & Remedies")
+          : (lang === "kn" ? "ಪರಿಶ್ರಮ & ಪ್ರಗತಿ" : lang === "hi" ? "परिश्रम व प्रगति" : lang === "te" ? "పరిశ్రమ & ప్రగతి" : lang === "ta" ? "முயற்சி & முன்னேற்றம்" : "Progress via Effort");
+
+        return {
+          lord: b.bhukti,
+          lordLocalized: pick(GRAHA_L5[toGraha(b.bhukti)], lang),
+          startDate: formatMonthYear(ageToDate(b.startAge), lang),
+          endDate: formatMonthYear(ageToDate(b.endAge), lang),
+          qualityBadge,
+          qualityType
+        };
+      });
+
+      const currentMahaIdx = allMahas.findIndex(
+        m => ageYears >= m.startAge - 1e-6 && ageYears < m.endAge - 1e-6
+      );
+      const nextMaha = currentMahaIdx >= 0 && currentMahaIdx + 1 < allMahas.length
+        ? allMahas[currentMahaIdx + 1]
+        : undefined;
+
+      const upcomingMaha = nextMaha ? {
+        lord: nextMaha.planet,
+        lordLocalized: pick(GRAHA_L5[toGraha(nextMaha.planet)], lang),
+        startYear: ageToDate(nextMaha.startAge).getFullYear(),
+        endYear: ageToDate(nextMaha.endAge).getFullYear()
+      } : undefined;
+
+      const dashaBhuktiTimeline: DashaBhuktiTimelineData = {
+        activeMaha: {
+          lord: activeMahaLord,
+          lordLocalized: pick(GRAHA_L5[toGraha(activeMahaLord)], lang),
+          startYear: activeMahaStartYear,
+          endYear: activeMahaEndYear,
+          totalYears: activeMahaTotalYears
+        },
+        activeBhukti: {
+          lord: activeBhuktiLord,
+          lordLocalized: pick(GRAHA_L5[toGraha(activeBhuktiLord)], lang),
+          startDate: bhuktiStartDate,
+          endDate: bhuktiEndDate,
+          durationMonths,
+          badge: activeBhuktiBadge,
+          influenceSummary
+        },
+        upcomingBhuktis,
+        upcomingMaha
+      };
+
+      const royalTitle = lang === "kn"
+        ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥"
+        : lang === "hi"
+        ? "॥ बग्गोण पंचांग ज्योतिष ॥"
+        : lang === "te"
+        ? "॥ బగ్గోణ పంచాంగ జ్యోతిష్యం ॥"
+        : lang === "ta"
+        ? "॥ பக்கோண பஞ்சாங்க ஜோதிடம் ॥"
+        : "॥ Baggona Panchanga Astrology ॥";
+
+      const royalSubtitle = lang === "kn"
+        ? "ರಾಜಮುದ್ರಣ ಜಾತಕ ಫಲ ತಾಳೆಗರಿ ಪ್ರತಿ (Royal A4 Physical Print Edition)"
+        : lang === "hi"
+        ? "राजमुद्रण जन्मपत्रिका ताड़पत्र प्रति (Royal A4 Physical Print Edition)"
+        : lang === "te"
+        ? "రాజముద్రణ జన్మపత్రిక తాళపత్ర ప్రతి (Royal A4 Physical Print Edition)"
+        : lang === "ta"
+        ? "ராஜமுத்திரை ஜாதக ஏடு பதிப்பு (Royal A4 Physical Print Edition)"
+        : "Royal A4 Astrological Palm-Leaf Print Edition";
+
       const royalPayload: RoyalA4Data = {
-        title: lang === "kn" ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥" : "Baggona Panchanga Astrology",
-        subtitle: lang === "kn" ? "ರಾಜಮುದ್ರಣ ಜಾತಕ ಫಲ ತಾಳೆಗರಿ ಪ್ರತಿ (Royal A4 Physical Print Edition)" : "Royal A4 Astrological Print Edition",
+        title: royalTitle,
+        subtitle: royalSubtitle,
         name: session.input.name,
         dobFormatted,
         birthTime: session.input.birthTime,
@@ -3635,6 +3785,7 @@ Return ONLY this JSON (no extra text before or after):
         currentMahaLord: dashaName,
         currentBhuktiLord: bhuktiName,
         runningPeriodText: currentBhuktiData ? runningPeriodSentence(lang, toGraha(currentBhuktiData.maha.planet), toGraha(currentBhuktiData.bhukti)) : "",
+        dashaBhuktiTimeline,
         planetsTable,
         characteristics: finalCharacteristics,
         currentPhase: finalCurrentPhase,
@@ -3645,6 +3796,7 @@ Return ONLY this JSON (no extra text before or after):
         careerGuidance,
         financeGuidance,
         relationshipGuidance,
+        childrenGuidance,
         healthGuidance,
         summary: finalSummary,
         karmicInwardJourney: finalMaandiInquest,

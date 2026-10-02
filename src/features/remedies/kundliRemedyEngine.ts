@@ -88,6 +88,10 @@ export interface KundliRemedyDiagnosis {
   birthDate: string;
   birthTime: string;
   gotra?: string;
+  isAiGenerated?: boolean;
+  aiNarration?: string;
+  aiFallbackMessage?: Record<SupportedLanguage, string> | Record<string, string>;
+  aiNarrationText?: Record<string, string>;
   lagnaName: Record<string, string>;
   rashiName: Record<string, string>;
   nakshatraName: Record<string, string>;
@@ -597,7 +601,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ सर्पेभ्यो नमः । ॐ ಆಶ್ಲೇಷಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ सर्पेभ्यो नमः । ॐ आश्लेषानक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ಸರ್ಪೇಭ್ಯೋ ನಮಃ । ಓಂ ಆಂ ಆಶ್ಲೇಷಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಅನಂತ, ವಾಸುಕಿ ಮುಂತಾದ ಪವಿತ್ರ ನಾಗದೇವತೆಗಳ ಅನುಗ್ರಹದಿಂದ ಸರ್ಪದೋಷ ಮತ್ತು ವಿಷಭಯ ನಿವಾರಣೆಯಾಗಲಿ.",
@@ -930,7 +934,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ इन्द्राय नमः । ॐ ಜ್ಯೇಷ್ಠಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ इन्द्राय नमः । ॐ ज्येष्ठानक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ಇಂದ್ರಾಯ ನಮಃ । ಓಂ ಜ್ಯೇಂ ಜ್ಯೇಷ್ಠಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಸುರಪತಿ ಇಂದ್ರನ ಅನುಗ್ರಹದಿಂದ ಸಮಾಜದಲ್ಲಿ ಅಧಿಕಾರ, ಕೀರ್ತಿ ಹಾಗೂ ರಕ್ಷಣೆ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.",
@@ -1004,7 +1008,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ अद्भ्यो नमः । ॐ ಪೂಂ ಪೂರ್ವಾಷಾಢಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ अद्भ्यो नमः । ॐ पूं पूर्वाषाढानक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ಅದ್ಭ್ಯೋ ನಮಃ । ಓಂ ಪೂಂ ಪೂರ್ವಾಷಾಢಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಪವಿತ್ರ ಜಲದೇವತೆಗಳ ಕೃಪೆಯಿಂದ ಮನಸ್ಸು ಸದಾ ಶುದ್ಧ, ಶಾಂತ ಹಾಗೂ ಅಪರಾಜಿತವಾಗಿರಲಿ.",
@@ -1041,7 +1045,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ विश्वेभ्यो देवेभ्यो नमः । ॐ ಉಂ ಉತ್ತರಾಷಾಢಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ विश्वेभ्यो देवेभ्यो नमः । ॐ उं उत्तराषाढानक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ವಿಶ್ವೇಭ್ಯೋ ದೇವೇಭ್ಯೋ ನಮಃ । ಓಂ ಉಂ ಉತ್ತರಾಷಾಢಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಸರ್ವಲೋಕ ರಕ್ಷಕರಾದ ವಿಶ್ವೇದೇವತೆಗಳ ಅನುಗ್ರಹದಿಂದ ಸತ್ಯ ಮತ್ತು ಧರ್ಮಕ್ಕೆ ಜಯವಾಗಲಿ.",
@@ -1078,7 +1082,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ विष्णवे नमः । ॐ ಶ್ರುಂ ಶ್ರವಣನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ विष्णवे नमः । ॐ श्रुं श्रवणनक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ವಿಷ್ಣವೇ ನಮಃ । ಓಂ ಶ್ರುಂ ಶ್ರವಣನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಜಗತ್ಪಾಲಕ ಶ್ರೀಮನ್ನಾರಾಯಣನ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಜ್ಞಾನ, ಕೀರ್ತಿ ಹಾಗೂ ಮೋಕ್ಷ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.",
@@ -1115,7 +1119,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ वसुभ्यो नमः । ॐ ಧಂ ಧನಿಷ್ಠಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ वसुभ्यो नमः । ॐ धं धनिष्ठानक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ವಸುಭ್ಯೋ ನಮಃ । ಓಂ ಧಂ ಧನಿಷ್ಠಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಅಷ್ಟವಸುಗಳ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಐಶ್ವರ್ಯ, ಸಂಗೀತ ಕಲೆ ಹಾಗೂ ಧೈರ್ಯ ಸಿದ್ಧಿಸಲಿ.",
@@ -1152,7 +1156,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ वरुणाय नमः । ॐ ಶಂ ಶತಭಿಷಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ वरुणाय नमः । ॐ शं शतभिषानक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ವರುಣಾಯ ನಮಃ । ಓಂ ಶಂ ಶತಭಿಷಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಸಕಲ ಜಲ ಮತ್ತು ಸತ್ಯಗಳ ಪಾಲಕ ವರುಣದೇವನ ಕೃಪೆಯಿಂದ ಸಕಲ ರೋಗಗಳು ದೂರವಾಗಲಿ.",
@@ -1189,7 +1193,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ अजैकपदे नमः । ॐ ಪೂಂ ಪೂರ್ವಭಾದ್ರಪದಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ अजैकपदे नमः । ॐ पूं पूर्वभाद्रपदानक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ಅಜೈಕಪದೇ ನಮಃ । ಓಂ ಪೂಂ ಪೂರ್ವಭಾದ್ರಪದಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಏಕಪಾದ ರುದ್ರನ ಕೃಪೆಯಿಂದ ಆಂತರಿಕ ಉಗ್ರತೆ ಶಾಂತವಾಗಿ ಆಧ್ಯಾತ್ಮಿಕ ತಪಸ್ಸು ಸಿದ್ಧಿಸಲಿ.",
@@ -1226,7 +1230,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ अहिर्बुध्न्याय नमः । ॐ ಉಂ ಉತ್ತರಭಾದ್ರಪದಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ अहिर्बुध्न्याय नमः । ॐ उं उत्तरभाद्रपदानक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ಅಹಿರ್ಬುಧ್ನ್ಯಾಯ ನಮಃ । ಓಂ ಉಂ ಉತ್ತರಭಾದ್ರಪದಾನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಅತಲದ ಕುಂಡಲಿನೀ ರಕ್ಷಕ ಅಹಿರ್ಬುಧ್ನ್ಯನ ಕೃಪೆಯಿಂದ ಸ್ಥಿರ ಶಾಂತಿ ಮತ್ತು ಗಂಭೀರ ವಿವೇಕ ಲಭಿಸಲಿ.",
@@ -1263,7 +1267,7 @@ export const NAKSHATRA_REMEDY_DATA: Record<number, {
       }
     },
     beejaMantra: {
-      sanskrit: "॥ ॐ पूष्णे नमः । ॐ ರೇಂ ರೇವತೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
+      sanskrit: "॥ ॐ पूष्णे नमः । ॐ रें रेवतीनक्षत्रेभ्यो नमः ॥",
       kannada: "॥ ಓಂ ಪೂಷ್ಣೇ ನಮಃ । ಓಂ ರೇಂ ರೇವತೀನಕ್ಷತ್ರೇಭ್ಯೋ ನಮಃ ॥",
       meaning: {
         kn: "ಪ್ರಯಾಣಿಕರ ರಕ್ಷಕ ಪೂಷಾದೇವನ ಕೃಪೆಯಿಂದ ಜೀವಿತ ಪಯಣವು ಕ್ಷೇಮಕರ ಹಾಗೂ ಸುಖಮಯವಾಗಿರಲಿ.",
@@ -2501,7 +2505,7 @@ export function generateKundliRemedyReport(
       kn: "ಸಾಮಾನ್ಯ ಗ್ರಹ ಸಮನ್ವಯ & ಆತ್ಮಶಕ್ತಿ ವರ್ಧನೆ",
       en: "General Planetary Harmonic Balance & Inner Vitality",
       hi: "सामान्य ग्रह सामंजस्य एवं आत्मबल संवर्धन",
-      te: "సాధారణ గ్రహ సమన్వయం & ఆత్మశక్తి ವೃದ್ಧಿ",
+      te: "సాధారణ గ్రహ సమన్వయం & ఆత్మశక్తి వృద్ధి",
       ta: "பொதுவான கிரக சமநிலை & ஆத்ம சக்தி"
     };
     primaryStruggleDesc = {
@@ -2772,7 +2776,7 @@ export function generateKundliRemedyReport(
         name: { kn: "೪. ಸರಸ್ವತೀ & ಮೇಧಾ ಬೀಜ ಜಪ", en: "4. Saraswati & Medha Beeja Japa", hi: "४. सरस्वती एवं मेधा बीज जप", te: "4. సరస్వతీ బీజ మంత్ర జపం", ta: "4. சரஸ்வதி பீஜ மந்திர ஜெபம்" },
         action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ 'ಐಂ' (AIM) ಬೀಜ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಸ್ಪಷ್ಟವಾಗಿ ಉಚ್ಚರಿಸಿ.", en: "Silently recite the divine Saraswati Beeja 'AIM' 11 times with devotion.", hi: "मन में 'ऐं' (AIM) सरस्वती बीज मंत्र का ११ बार जप करें।", te: "'ఐం' బీజ మంత్రాన్ని మనస్సులో 11 సార్లు జపించండి.", ta: "'ஐம்' என்ற பீஜ மந்திரத்தை மனதில் 11 முறை ஜபிக்கவும்." },
         detail: { kn: "ವಾಕ್ ಮತ್ತು ವಿದ್ಯಾಧಿಷ್ಠಾತ್ರಿಯಾದ ಸರಸ್ವತಿಯ ಕೃಪೆಯಿಂದ ಪರೀಕ್ಷಾ ಭಯ ನೀಗಿ ಅದ್ಭುತ ಆತ್ಮವಿಶ್ವಾಸ ಮೂಡುತ್ತದೆ.", en: "Aligns cerebral hemisphere frequencies, infusing calm confidence for academic mastery.", hi: "मां सरस्वती की कृपा से परीक्षा का भय समाप्त होता है।", te: "సరస్వతీ దేవి కృపతో పరీక్షా భయం తొలగుతుంది.", ta: "அம்பிகையின் அருளால் தேர்வு பயம் நீங்கும்." },
-        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషಂ", ta: "1 நிமிடம்" }
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
       }
     ];
     emergencyMantraData = {
@@ -2837,7 +2841,7 @@ export function generateKundliRemedyReport(
         name: { kn: "೪. ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಬೀಜ ಜಪ", en: "4. Swayamvara Parvati Beeja Japa", hi: "४. स्वयंवर पार्वती बीज जप", te: "4. స్వయంవర పార్వతీ జపం", ta: "4. சுயம்வர பார்வதி மந்திர ஜெபம்" },
         action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ.", en: "Silently recite the Swayamvara Parvati marriage blessing mantra 11 times.", hi: "मन ही मन स्वयंवर पार्वती मंत्र का ११ बार जप करें।", te: "మనస్సులో స్వయంవర పార్వతీ మంత్రాన్ని 11 సార్లు జపించండి.", ta: "மனதில் சுயம்வர பார்வதி மந்திரத்தை 11 முறை ஜபிக்கவும்." },
         detail: { kn: "ಜಗನ್ಮಾತೆ ಪಾರ್ವತಿ ಮತ್ತು ಮಹಾದೇವನ ಕೃಪೆಯಿಂದ ಸಕಲ ವಿವಾಹ ದೋಷಗಳು, ಕುಜ ದೋಷದ ಅಡೆತಡೆಗಳು ಶಮನವಾಗುತ್ತವೆ.", en: "Invokes the divine matrimonial grace of Shiva and Parvati to dissolve planetary obstacles.", hi: "मां पार्वती की कृपा से शीघ्र विवाह का मार्ग प्रशस्त होता है।", te: "పార్వతీ పరమేశ్వరుల కృపతో వివాహ ఆటంకాలు తొలగుతాయి.", ta: "சிவபார்வதி அருளால் திருமண தடைகள் நீங்கும்." },
-        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషಂ", ta: "1 நிமிடம்" }
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
       }
     ];
     emergencyMantraData = {
@@ -2886,7 +2890,7 @@ export function generateKundliRemedyReport(
         name: { kn: "೨. ಸೂರ್ಯ ಭೇದನ ಧೈರ್ಯ ಶ್ವಾಸ", en: "2. Surya Bhedana Willpower Breath", hi: "२. सूर्य भेदन प्राण शक्ति श्वास", te: "2. సూర్య భేదన ప్రాణాయామం", ta: "2. சூரிய பேதன பிராணாயாமம்" },
         action: { kn: "ಎಡ ನಾಸಿಕ ಮುಚ್ಚಿ, ಬಲ ನಾಸಿಕದಿಂದ ದೀರ್ಘ ಉಸಿರೆಳೆದು ಎಡದಿಂದ ಬಿಡಿ.", en: "Close left nostril, inhale deeply through right nostril for 4s, exhale left for 6s (Surya Bhedana).", hi: "दाहिने नथुने से श्वास खींचकर बाएं से निकालें।", te: "కుడి నాసిక ద్వారా శ్వాస తీసుకుని ఎడమ వైపు వదలండి.", ta: "வலது நாசி வழியே மூச்சிழுத்து இடது வழியே விடவும்." },
         detail: { kn: "ಆಂತರಿಕ ಧೈರ್ಯ, ಸಂಕಲ್ಪ ಶಕ್ತಿ ಮತ್ತು ಕರ್ಮ ಸಾಮರ್ಥ್ಯವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತದೆ.", en: "Awakens solar resolve and pragmatic problem-solving acumen to tackle debts.", hi: "यह आंतरिक साहस और निर्णय शक्ति को जाग्रत करता है।", te: "ఇది సమస్యలను ఎదుర్కొనే ధైర్యాన్ని ఇస్తుంది.", ta: "இது மனோதிடத்தையும் தைரியத்தையும் தரும்." },
-        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషಂ", ta: "1 நிமிடம்" }
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
       },
       {
         stepNumber: 3,
@@ -2899,10 +2903,10 @@ export function generateKundliRemedyReport(
       {
         stepNumber: 4,
         icon: "🕉️",
-        name: { kn: "೪. ಋಣವಿಮೋಚನ ಅಂಗಾರಕ ಬೀಜ ಜಪ", en: "4. Runa Vimochana Angaraka Beeja Japa", hi: "೪. ऋणविमोचन अंगारक बीज जप", te: "4. రుణవిమోచన మంత్ర జపం", ta: "4. கடன் நிவாரண மந்திர ஜெபம்" },
+        name: { kn: "೪. ಋಣವಿಮೋಚನ ಅಂಗಾರಕ ಬೀಜ ಜಪ", en: "4. Runa Vimochana Angaraka Beeja Japa", hi: "४. ऋणविमोचन अंगारक बीज जप", te: "4. రుణవిమోచన మంత్ర జపం", ta: "4. கடன் நிவாரண மந்திர ஜெபம்" },
         action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಋಣಹರ್ತೃ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಸ್ಪಷ್ಟವಾಗಿ ಜಪಿಸಿ.", en: "Silently chant the sacred Runa Vimochana mantra 11 times.", hi: "मन में ऋणविमोचन अंगारक मंत्र का ११ बार जप करें।", te: "రుణవిమోచన మంత్రాన్ని 11 సార్లు జపించండి.", ta: "கடன் நிவாரண மந்திரத்தை 11 முறை ஜபிக்கவும்." },
         detail: { kn: "ಭೂಮಿಪುತ್ರ ಕುಜ ಮತ್ತು ಲಕ್ಷ್ಮೀ ಕೃಪೆಯಿಂದ ಆರ್ಥಿಕ ಸಂಕಷ್ಟ ಹಾಗೂ ಸಾಲದ ಬಾಧೆಗಳು ಪರಿಹಾರವಾಗುತ್ತವೆ.", en: "Invokes divine planetary dispensations to break cycles of compounded liabilities.", hi: "भूमिपुत्र मंगल एवं लक्ष्मी कृपा से कर्ज से मुक्ति मिलती है।", te: "అంగారకుడి కృపతో అప్పుల బాధలు తొలగుతాయి.", ta: "அங்காரக பகவான் அருளால் கடன்கள் தீரும்." },
-        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషಂ", ta: "1 நிமிடம்" }
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
       }
     ];
     emergencyMantraData = {
@@ -2959,7 +2963,7 @@ export function generateKundliRemedyReport(
         name: { kn: "೩. ಅಮೃತ ಶಿವ ಸಂಕಲ್ಪ", en: "3. Amrita Shiva Healing Stillness", hi: "३. अमृत शिव आरोग्य ध्यान", te: "3. అమృత శివ ఆరోగ్య ధ్యానం", ta: "3. அமிர்த சிவ தியானம்" },
         action: { kn: "ದೇಹದ ಪ್ರತಿಯೊಂದು ಅಂಗದಲ್ಲೂ ಅಮೃತಮಯ ದೈವಿಕ ರಕ್ಷಣೆ ಹರಿಯುತ್ತಿರುವುದನ್ನು ಕಲ್ಪಿಸಿಕೊಳ್ಳಿ.", en: "Visualize cool, nectarous healing light enveloping every cell and tissue.", hi: "शरीर में दिव्य आरोग्यदायिनी ऊर्जा का ध्यान करें।", te: "దివ్య ఆరోగ్య కాంతిని భావిస్తూ ధ్యానించండి.", ta: "ஆரோக்கிய ஒளியை உடலில் தியானிக்கவும்." },
         detail: { kn: "ಭಯವು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಕುಗ್ಗಿಸುತ್ತದೆ; ಮೃತ್ಯುಂಜಯ ಧ್ಯಾನವು ತಕ್ಷಣ ಚೇತರಿಕೆ ನೀಡುತ್ತದೆ.", en: "Clears fear frequencies, triggering intrinsic cellular rejuvenation.", hi: "यह भय को समाप्त कर स्वास्थ्य लाभ कराता है।", te: "భయాన్ని పోగొట్టి ఆరోగ్యాన్ని ఇస్తుంది.", ta: "பயத்தை போக்கி நலம் தரும்." },
-        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిಷಂ", ta: "1 நிமிடம்" }
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
       },
       {
         stepNumber: 4,
@@ -2967,7 +2971,7 @@ export function generateKundliRemedyReport(
         name: { kn: "೪. ಮಹಾಮೃತ್ಯುಂಜಯ ಅಮೃತ ಬೀಜ ಜಪ", en: "4. Mahamrityunjaya Sanjeevini Japa", hi: "४. महामृत्युंजय अमृत मंत्र जप", te: "4. మహామృత్యుంజయ మంత్ర జపం", ta: "4. மகா மிருத்யுஞ்சய மந்திர ஜெபம்" },
         action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ತ್ರ್ಯಂಬಕ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ.", en: "Silently recite the supreme Mahamrityunjaya mantra 11 times.", hi: "मन ही मन महामृत्युंजय मंत्र का ११ बार जप करें।", te: "మహామృత్యుంజయ మంత్రాన్ని 11 సార్లు జపించండి.", ta: "மகா மிருத்யுஞ்சய மந்திரத்தை 11 முறை ஜபிக்கவும்." },
         detail: { kn: "ಭಗವಾನ್ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನ ಕೃಪೆಯಿಂದ ಸಕಲ ರೋಗ ಭಯ, ಅಕಾಲಿಕ ಬಾಧೆಗಳು ದೂರವಾಗಿ ಆಯುಷ್ಯ ವೃದ್ಧಿಯಾಗುತ್ತದೆ.", en: "Invokes Lord Shiva's ultimate restorative grace, shielding against physical and mental afflictions.", hi: "भगवान शिव की कृपा से अकाल कष्ट और रोग दूर होते हैं।", te: "శివుని కృపతో సమస్త రోగాలు నివారించబడతాయి.", ta: "சிவபெருமானின் அருளால் சகல நோய்களும் நீங்கும்." },
-        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిಷಂ", ta: "1 நிமிடம்" }
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
       }
     ];
     emergencyMantraData = {
@@ -3613,7 +3617,7 @@ export function generateKundliRemedyReport(
       kn: "ಗೋಕರ್ಣ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ & ಸರಸ್ವತೀ ವಿದ್ಯಾಪೂಜೆ",
       en: "Gokarna Medha Dakshinamoorthi & Saraswati Vidya Pooja",
       hi: "गोकर्ण मेधा दक्षिणामूर्ति एवं सरस्वती विद्या पूजा",
-      te: "ಗೋಕರ್ಣ ಮೇಧಾ దక్షిణామూర్తి విద్యా పూజ",
+      te: "గోకర్ణ మేధా దక్షిణామూర్తి విద్యా పూజ",
       ta: "கோகர்ண மேதா தட்சிணாமூர்த்தி வித்யா பூஜை"
     };
     sevaSignificance = {
@@ -3632,7 +3636,7 @@ export function generateKundliRemedyReport(
       kn: "ಗೋಕರ್ಣ ಸ್ವಯಂವರ ಪಾರ್ವತಿ & ಕಲ್ಯಾಣೋತ್ಸವ ಸೇವೆ",
       en: "Gokarna Swayamvara Parvati & Kalyana Mahotsava Seva",
       hi: "गोकर्ण स्वयंवर पार्वती एवं कल्याणोत्सव सेवा",
-      te: "ಗೋಕರ್ಣ స్వయంవర పార్వతి & కళ్యాణోత్సవ సేవ",
+      te: "గోకర్ణ స్వయంవర పార్వతి & కళ్యాణోత్సవ సేవ",
       ta: "கோகர்ண சுயம்வர பார்வதி & கல்யாண உற்சவ சேவை"
     };
     sevaSignificance = {
@@ -3670,7 +3674,7 @@ export function generateKundliRemedyReport(
       kn: "ಗೋಕರ್ಣ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ & ಆಯುಷ್ಯ ಶಾಂತಿ",
       en: "Gokarna Mahamrityunjaya Homa & Ayushya Shanti",
       hi: "गोकर्ण महामृत्युंजय होम एवं आयुष्य शांति",
-      te: "గోಕರ್ణ మహామృత్యుంజయ హోమం",
+      te: "గోకర్ణ మహామృత్యుంజయ హోమం",
       ta: "கோகர்ண மகா மிருத்யுஞ்சய ஹோமம்"
     };
     sevaSignificance = {

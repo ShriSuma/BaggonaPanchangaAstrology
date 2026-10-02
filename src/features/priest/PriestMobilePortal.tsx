@@ -313,7 +313,7 @@ export const PriestMobilePortal: React.FC = () => {
 
   // Form State (Janana Kundli) - Restored from localStorage if available
   const [devoteeName, setDevoteeName] = useState(() => savedSession?.devoteeName || "");
-  const [gothra, setGothra] = useState(() => savedSession?.gothra || "ಕಾಶ್ಯಪ");
+  const [gothra, setGothra] = useState(() => savedSession?.gothra || "");
   const [birthDate, setBirthDate] = useState(() => savedSession?.birthDate || new Date().toISOString().split("T")[0]);
   const [birthTime, setBirthTime] = useState(() => savedSession?.birthTime || "12:00");
   const [placeName, setPlaceName] = useState(() => savedSession?.placeName || "ಗೋಕರ್ಣ");
@@ -434,7 +434,7 @@ export const PriestMobilePortal: React.FC = () => {
       localStorage.removeItem(PRIEST_KUNDLI_STORAGE_KEY);
     } catch {}
     setDevoteeName("");
-    setGothra("ಕಾಶ್ಯಪ");
+    setGothra("");
     setBirthDate(new Date().toISOString().split("T")[0]);
     setBirthTime("12:00");
     setPlaceName("ಗೋಕರ್ಣ");
@@ -757,7 +757,7 @@ export const PriestMobilePortal: React.FC = () => {
         latitude,
         longitude,
         timezone: 5.5,
-        gothra: gothra || "ಕಾಶ್ಯಪ"
+        gothra: gothra?.trim() || undefined
       };
 
       const output = await calculateKundliWithPlaceSun(birthPayload, {
@@ -777,7 +777,7 @@ export const PriestMobilePortal: React.FC = () => {
         userId: currentUser || "priest_shreeram",
         priestName: DEFAULT_PRIEST_NAME,
         name: devoteeName || "ಭಕ್ತರು",
-        gothra: gothra || "ಕಾಶ್ಯಪ",
+        gothra: gothra?.trim() || undefined,
         birthDate,
         birthTime,
         placeName,
@@ -1462,7 +1462,7 @@ export const PriestMobilePortal: React.FC = () => {
       const res = await generatePriestConsultationReading({
         kundli: kundliResult!,
         devoteeName: devoteeName || "ಭಕ್ತರು",
-        gothra: gothra || "ಕಾಶ್ಯಪ",
+        gothra: gothra?.trim() || undefined,
         categoryKey: selectedCategoryKey,
         customQuestion: customQuestion.trim(),
         runningDashaText: dashaBhuktiInfo?.runningDasha || "ಶನಿ ಮಹಾದಶಾ"
@@ -2115,7 +2115,7 @@ export const PriestMobilePortal: React.FC = () => {
                   <TraditionalSouthPatrika
                     kundli={kundliResult}
                     personName={devoteeName || "ಭಕ್ತರು"}
-                    gothra={gothra || "ಕಾಶ್ಯಪ"}
+                    gothra={gothra || ""}
                     birthDate={birthDate}
                     birthTime={birthTime || "12:00"}
                     latitude={latitude}
@@ -2835,7 +2835,7 @@ export const PriestMobilePortal: React.FC = () => {
               birthTimeStr={birthTime}
               isDayBirth={isDayBirthComputed}
               panchanga={traditionalData}
-              gothra={gothra || "ಕಾಶ್ಯಪ"}
+              gothra={gothra || ""}
               pdfLanguage={pdfLanguage}
               dynamicValues={jananaDynamicValues}
             />

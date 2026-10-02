@@ -54,6 +54,32 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
 
   const getFirstLetter = (text?: string) => text ? text.charAt(0) : "";
   const getRestOfText = (text?: string) => text ? text.substring(1) : "";
+
+  const renderBhavishyaParagraph = (para: string, key: string) => {
+    const trimmed = (para || "").trim();
+    const isDoshaCallout = trimmed.startsWith("【") || trimmed.startsWith("[");
+    if (isDoshaCallout) {
+      return (
+        <div
+          key={key}
+          style={{
+            backgroundColor: "#fff1f2",
+            borderLeft: "4px solid #e11d48",
+            border: "1px solid #fecdd3",
+            borderRadius: "6px",
+            padding: "10px 14px",
+            margin: "10px 0",
+            fontSize: "13px",
+            lineHeight: "1.65",
+            color: "#881337"
+          }}
+        >
+          <p style={{ margin: 0, fontWeight: 500 }}>{para}</p>
+        </div>
+      );
+    }
+    return <p key={key}>{para}</p>;
+  };
   
   const narrative = prediction.aiGeneratedNarrative || {};
   
@@ -419,35 +445,35 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
             {bhavishya.health && bhavishya.health.length > 0 && (
                 <>
                     <h3>{t.health}</h3>
-                    {bhavishya.health.map((para, idx) => <p key={'h'+idx}>{para}</p>)}
+                    {bhavishya.health.map((para, idx) => renderBhavishyaParagraph(para, 'h'+idx))}
                 </>
             )}
             
             {bhavishya.marriage && bhavishya.marriage.length > 0 && (
                 <>
                     <h3>{t.marriage}</h3>
-                    {bhavishya.marriage.map((para, idx) => <p key={'m'+idx}>{para}</p>)}
+                    {bhavishya.marriage.map((para, idx) => renderBhavishyaParagraph(para, 'm'+idx))}
                 </>
             )}
             
             {bhavishya.children && bhavishya.children.length > 0 && (
                 <>
                     <h3>{t.children}</h3>
-                    {bhavishya.children.map((para, idx) => <p key={'c'+idx}>{para}</p>)}
+                    {bhavishya.children.map((para, idx) => renderBhavishyaParagraph(para, 'c'+idx))}
                 </>
             )}
 
             {bhavishya.career && bhavishya.career.length > 0 && (
                 <>
                     <h3>{t.career}</h3>
-                    {bhavishya.career.map((para, idx) => <p key={'ca'+idx}>{para}</p>)}
+                    {bhavishya.career.map((para, idx) => renderBhavishyaParagraph(para, 'ca'+idx))}
                 </>
             )}
 
             {bhavishya.wealth && bhavishya.wealth.length > 0 && (
                 <>
                     <h3>{t.wealth}</h3>
-                    {bhavishya.wealth.map((para, idx) => <p key={'w'+idx}>{para}</p>)}
+                    {bhavishya.wealth.map((para, idx) => renderBhavishyaParagraph(para, 'w'+idx))}
                 </>
             )}
         </div>
