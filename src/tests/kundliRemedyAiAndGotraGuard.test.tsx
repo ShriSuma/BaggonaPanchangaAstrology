@@ -257,7 +257,8 @@ describe("Kundli Gotra Default Bug Elimination & AI Remedy 10-Retry Guard", () =
       );
 
       const textContent = container.textContent || "";
-      expect(textContent).toContain("AI ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ");
+      expect(textContent).toContain("ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ");
+      expect(textContent).not.toContain("AI ದೈವಿಕ");
       expect(textContent).toContain("ಶ್ರೀ ಗುರುಭ್ಯೋ ನಮಃ");
       expect(textContent).not.toContain("ವಿಫಲವಾಗಿದ್ದರಿಂದ");
     });

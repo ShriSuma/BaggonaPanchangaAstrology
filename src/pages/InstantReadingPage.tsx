@@ -19,6 +19,12 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
 import InstantReadingPdfTemplate from "../components/instantReading/InstantReadingPdfTemplate";
 import { PDF_LANGUAGES, type SupportedPdfLang } from "../components/instantReading/instantReadingPdfLocale";
+import {
+  buildDeterministicFirstSixPoints,
+  parseOrEnhanceTalkingPoints,
+  type FirstSixTalkingPointsStructured,
+  type AstrologerPointItem
+} from "../core/instantReadingTalkingPointsEngine";
 
 const hiddenHost: React.CSSProperties = {
   position: "fixed",
@@ -76,10 +82,11 @@ export default function InstantReadingPage(): JSX.Element {
   } | null>(null);
 
   const [dynamicCurrentLifeSituation, setDynamicCurrentLifeSituation] = useState<CurrentLifeSituationDiagnosis | null>(null);
+  const [structuredTalkingPoints, setStructuredTalkingPoints] = useState<FirstSixTalkingPointsStructured | null>(null);
 
   const [playingPointKey, setPlayingPointKey] = useState<string | null>(null);
 
-  const handlePlayTalkingPoint = (pointKey: string, text: string) => {
+  const handlePlayTalkingPoint = (pointKey: string, content: string | AstrologerPointItem[]) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       alert(isKn ? "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಧ್ವನಿ ಸೌಲಭ್ಯವನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ." : "Audio speech is not supported in this browser.");
       return;
@@ -92,7 +99,10 @@ export default function InstantReadingPage(): JSX.Element {
     }
 
     window.speechSynthesis.cancel();
-    const cleanText = text.replace(/[*#_`]/g, " ").replace(/\s+/g, " ").trim();
+    const rawText = Array.isArray(content)
+      ? content.map((p) => `${p.id}. ${p.text}`).join(". ")
+      : content;
+    const cleanText = rawText.replace(/[*#_`]/g, " ").replace(/\s+/g, " ").trim();
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = isKn ? "kn-IN" : "en-IN";
     utterance.rate = 0.88;
@@ -174,6 +184,8 @@ export default function InstantReadingPage(): JSX.Element {
     });
 
     setSynthesisData(data);
+    const initialStructured = buildDeterministicFirstSixPoints(data, session, isKn);
+    setStructuredTalkingPoints(initialStructured);
     setDynamicCurrentLifeSituation(data.currentDiagnosis.currentLifeSituation || null);
     setAiNarration(data.multiParagraphExecutiveReading.map(cleanAstrologyText));
     setLoading(false);
@@ -296,13 +308,19 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
    - If devotee is Female, NEVER use 'ಹೆಂಡತಿ' or 'ಪತ್ನಿ' to describe the native.
    - If devotee is a Child (<14), focus purely on education, health, and parent guidance without adult topics.
    - CRITICAL ZERO FALSE ACCUSATION OF CRIMINALITY/THEFT/VIOLENCE: If native has score <= 15 or Jupiter/benefic shield, you MUST NEVER accuse them of crime, theft, violence, murder, imprisonment, cheating, or sexual misconduct. Acknowledge and praise their clean moral integrity and character shield.
-9. MANDATORY RATIO (75% PERSONAL LIVED REALITY & 25% TECHNICAL GROUNDING):
-   Every single card ("openingIceBreaker", "hiddenSubconsciousWorry", "maandiKarmicImpact", "bodyMarkAndTemperament", "karmaFinancialReality", "immediateTurningPoint") MUST CONSIST OF EXACTLY TWO PARAGRAPHS separated by \\n\\n.
-   EACH paragraph MUST have AT LEAST 4 to 6 lines (approx. 50-80 words per paragraph, total 100-160 words per card). NEVER write short 1-2 sentence blurbs or single paragraphs!
+9. MANDATORY 10+ STRUCTURED BULLET POINTS FOR THE FIRST 6 SECTIONS:
+   Instead of dense paragraphs, EVERY SINGLE ONE OF THE FIRST 6 SECTIONS MUST HAVE AT LEAST 10 TO 12 STRUCTURED BULLET POINTS with tone classification:
+   - "good": Auspicious qualities, strengths, positive yogas, gains, and protections (highlighted in Green in UI)
+   - "bad": Afflictions, doshas, 99% stalls, anxieties, hurdles, and stresses (highlighted in Red in UI)
+   - "notice": Key turning points, milestones, transition countdown, and vigilance rules (highlighted in Yellow in UI)
+   - "normal": General classical Shastric foundations and factual details (Normal neutral in UI)
    
-   Structure for each card:
-   - Paragraph 1: Start with a concise 25% technical grounding hook (Lagna, Moon, Bhava, dignity). Then IMMEDIATELY transition into personal characteristics, lived reality, daily demeanor, and interpersonal boundaries (loyalty to affection, refusal to be dominated/bossed around).
-   - Paragraph 2: 100% deep lived reality, emotional resilience, daily habits, and practical experiences. For Card 3 (Maandi), vividly describe the agonizing 99% task hurdle (smooth progress until 99%, sudden stall at final signature/disbursement, 'kaiyyaige banda tuttu bayige baralilla', trivial excuses) and prescribe the sacred Gokarna Mahabaleshwara Maandi-Shani Shanti Sankalpa and 11-time Maandi Gayatri chant.
+   Section 1 (openingIceBreakerPoints): At least 10 points on Lagna nature, self-respect, loyalty to affection, and refusal to be dominated.
+   Section 2 (hiddenSubconsciousWorryPoints): At least 10 points on Chandra, midnight overthinking, silent burdens, and intuitive recovery.
+   Section 3 (maandiKarmicImpactPoints): At least 10 points on Maandi house, 99% task hurdle, last-mile glitch, and Gokarna remedy.
+   Section 4 (bodyMarkAndTemperamentPoints): At least 10 points on Brihat Jataka Ch. 25 Anga Lakshana, mole/mark position, and Tridosha metabolism.
+   Section 5 (karmaFinancialRealityPoints): At least 10 points on 10th house karma, workplace ethics, uncredited labor, and liquid cash vs asset reality.
+   Section 6 (immediateTurningPointPoints): At least 10 points on Dasha timeline countdown, Gochara turning point window, and sacred Gokarna Atma Linga remedies.
 `;
 
         const promptContextWithJson = `${promptContext}
@@ -316,20 +334,32 @@ Return a valid JSON object matching this schema:
     "Paragraph 3 (Planetary Reality & Turning Point Timeline in English digits)",
     "Paragraph 4 (Practical Remedies, Gemstone, Rudraksha & Gokarna Blessings)"
   ],
-  "openingIceBreaker": "Card 1: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% deep real-life character, self-respect, fierce pride, and refusal to be dominated in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "hiddenSubconsciousWorry": "Card 2: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% hidden midnight worry, silent resilience, and unexpressed emotional burden in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "maandiKarmicImpact": "Card 3: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% real-life agonizing 99% task hurdle (stuck right before final signature/approval, 'kaiyyaige banda tuttu') & Gokarna shanti solution in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "bodyMarkAndTemperament": "Card 4: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% physical birthmark validation on body, Tridosha metabolic reality, and Ayurvedic daily regimen in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "karmaFinancialReality": "Card 5: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% workplace ethics, disgust for cheap flattery/office politics, uncredited labor, and liquid cash drainage into fixed assets in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "immediateTurningPoint": "Card 6: EXACTLY 2 paragraphs separated by \\n\\n with 4-6 lines each. 25% technical hook + 75% relief timeline countdown in months, dissolution of blockades, and renewed vitality in pure ${isKn ? "Kannada with zero English words" : "English"}.",
-  "siddhaPariharaRemedy": "Gokarna Siddha Parashari remedy with gemstone, carat, metal, finger, rudraksha, daily mantra, and kshetra sankalpa in pure ${isKn ? "Kannada with zero English words" : "English"}."
+  "openingIceBreakerPoints": [
+    { "id": 1, "text": "Point 1 in pure ${isKn ? "Kannada" : "English"}", "tone": "good|bad|notice|normal" }
+  ],
+  "hiddenSubconsciousWorryPoints": [
+    { "id": 1, "text": "Point 1 in pure ${isKn ? "Kannada" : "English"}", "tone": "good|bad|notice|normal" }
+  ],
+  "maandiKarmicImpactPoints": [
+    { "id": 1, "text": "Point 1 in pure ${isKn ? "Kannada" : "English"}", "tone": "good|bad|notice|normal" }
+  ],
+  "bodyMarkAndTemperamentPoints": [
+    { "id": 1, "text": "Point 1 in pure ${isKn ? "Kannada" : "English"}", "tone": "good|bad|notice|normal" }
+  ],
+  "karmaFinancialRealityPoints": [
+    { "id": 1, "text": "Point 1 in pure ${isKn ? "Kannada" : "English"}", "tone": "good|bad|notice|normal" }
+  ],
+  "immediateTurningPointPoints": [
+    { "id": 1, "text": "Point 1 in pure ${isKn ? "Kannada" : "English"}", "tone": "good|bad|notice|normal" }
+  ],
+  "siddhaPariharaRemedy": "Gokarna Siddha Parashari remedy in pure ${isKn ? "Kannada with zero English words" : "English"}."
 }
 
 STRICT RULES:
 1. Speak DIRECTLY to the devotee in empathetic, authoritative Vedic pandit voice in natural ${isKn ? "Kannada (CRITICAL: ZERO English words or Latin letters in Kannada text)" : "English"}.
 2. NO markdown asterisks (no ** or *).
 3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
-4. EVERY SINGLE TALKING POINT CARD MUST CONTAIN AT LEAST TWO PARAGRAPHS SEPARATED BY \\n\\n WITH AT LEAST 4 TO 6 LINES PER PARAGRAPH.
+4. EVERY SINGLE TALKING POINT SECTION MUST CONTAIN AT LEAST 10 DISTINCT BULLET POINTS with tone classification ("good", "bad", "notice", or "normal").
 5. Return ONLY raw valid JSON.`;
 
         const response = await askGemini(
@@ -346,65 +376,28 @@ STRICT RULES:
             const parsed = JSON.parse(cleanJson);
             const tpFallback = data.currentDiagnosis.astrologerTalkingPoints;
 
-            const ensureTwoParagraphs = (aiText: string | undefined, fallbackText: string): string => {
-              if (!aiText || typeof aiText !== "string") return fallbackText;
-              const cleaned = cleanAstrologyText(aiText).trim();
-              const paragraphs = cleaned.split("\n\n").map((p) => p.trim()).filter((p) => p.length > 0);
-              if (paragraphs.length >= 2 && cleaned.length >= 120) {
-                return cleaned;
-              }
-              if (paragraphs.length === 1 && cleaned.length >= 250) {
-                const sentences = cleaned.split(/(?<=[.!?।॥])\s+/);
-                if (sentences.length >= 4) {
-                  const mid = Math.ceil(sentences.length / 2);
-                  return `${sentences.slice(0, mid).join(" ")}\n\n${sentences.slice(mid).join(" ")}`;
-                }
-              }
-              return fallbackText;
-            };
+            const enhanced = parseOrEnhanceTalkingPoints(parsed, initialStructured, isKn);
+            setStructuredTalkingPoints(enhanced);
 
-            if (parsed.openingIceBreaker && parsed.hiddenSubconsciousWorry) {
-              setDynamicTalkingPoints({
-                openingIceBreakerKn: ensureTwoParagraphs(
-                  parsed.openingIceBreaker,
-                  isKn ? tpFallback.openingIceBreakerKn : (tpFallback.openingIceBreakerEn || tpFallback.openingIceBreakerKn)
-                ),
-                hiddenSubconsciousWorryKn: ensureTwoParagraphs(
-                  parsed.hiddenSubconsciousWorry,
-                  isKn ? tpFallback.hiddenSubconsciousWorryKn : (tpFallback.hiddenSubconsciousWorryEn || tpFallback.hiddenSubconsciousWorryKn)
-                ),
-                maandiKarmicImpactKn: ensureTwoParagraphs(
-                  parsed.maandiKarmicImpact,
-                  isKn ? tpFallback.maandiKarmicImpactKn : (tpFallback.maandiKarmicImpactEn || tpFallback.maandiKarmicImpactKn)
-                ),
-                bodyMarkAndTemperamentKn: ensureTwoParagraphs(
-                  parsed.bodyMarkAndTemperament,
-                  isKn ? (tpFallback.bodyMarkAndTemperamentKn || "") : (tpFallback.bodyMarkAndTemperamentEn || tpFallback.bodyMarkAndTemperamentKn || "")
-                ),
-                karmaFinancialRealityKn: ensureTwoParagraphs(
-                  parsed.karmaFinancialReality,
-                  isKn ? tpFallback.karmaFinancialRealityKn : (tpFallback.karmaFinancialRealityEn || tpFallback.karmaFinancialRealityKn)
-                ),
-                immediateTurningPointKn: ensureTwoParagraphs(
-                  parsed.immediateTurningPoint,
-                  isKn ? tpFallback.immediateTurningPointKn : (tpFallback.immediateTurningPointEn || tpFallback.immediateTurningPointKn)
-                ),
-                siddhaPariharaRemedyKn: cleanAstrologyText(
-                  parsed.siddhaPariharaRemedy || (isKn ? tpFallback.siddhaPariharaRemedyKn : (tpFallback.siddhaPariharaRemedyEn || tpFallback.siddhaPariharaRemedyKn))
-                ),
-                ageGroupBadge: isKn ? tpFallback.ageGroupBadgeKn : (tpFallback.ageGroupBadgeEn || tpFallback.ageGroupBadgeKn),
-                technicalAspectsCueKn: tpFallback.technicalAspectsCueKn
-              });
-            }
+            setDynamicTalkingPoints({
+              openingIceBreakerKn: enhanced.openingIceBreaker.map((p) => `${p.id}. ${p.text}`).join("\n\n"),
+              hiddenSubconsciousWorryKn: enhanced.hiddenSubconsciousWorry.map((p) => `${p.id}. ${p.text}`).join("\n\n"),
+              maandiKarmicImpactKn: enhanced.maandiKarmicImpact.map((p) => `${p.id}. ${p.text}`).join("\n\n"),
+              bodyMarkAndTemperamentKn: enhanced.bodyMarkAndTemperament.map((p) => `${p.id}. ${p.text}`).join("\n\n"),
+              karmaFinancialRealityKn: enhanced.karmaFinancialReality.map((p) => `${p.id}. ${p.text}`).join("\n\n"),
+              immediateTurningPointKn: enhanced.immediateTurningPoint.map((p) => `${p.id}. ${p.text}`).join("\n\n"),
+              siddhaPariharaRemedyKn: cleanAstrologyText(
+                parsed.siddhaPariharaRemedy || (isKn ? tpFallback.siddhaPariharaRemedyKn : (tpFallback.siddhaPariharaRemedyEn || tpFallback.siddhaPariharaRemedyKn))
+              ),
+              ageGroupBadge: isKn ? tpFallback.ageGroupBadgeKn : (tpFallback.ageGroupBadgeEn || tpFallback.ageGroupBadgeKn),
+              technicalAspectsCueKn: tpFallback.technicalAspectsCueKn
+            });
+
             if (Array.isArray(parsed.executiveReadingParagraphs) && parsed.executiveReadingParagraphs.length >= 2) {
               setAiNarration(parsed.executiveReadingParagraphs.map(cleanAstrologyText));
             }
           } catch (jsonErr) {
-            const rawParagraphs = response.split("\n\n").filter((p) => p.trim().length > 0);
-            const cleaned = rawParagraphs.map(cleanAstrologyText);
-            if (cleaned.length >= 2) {
-              setAiNarration(cleaned);
-            }
+            console.warn("[InstantReadingPage] JSON parse error in AI talking points:", jsonErr);
           }
         }
       } catch (err) {
@@ -593,6 +586,13 @@ STRICT RULES:
   const { prescriptions, currentDiagnosis, instantQAList, yajnaHawanaPlan } = synthesisData || {};
   const filteredQA = instantQAList?.filter((item) => activeCategory === "all" || item.category === activeCategory) || [];
 
+  const deterministicStructured = synthesisData
+    ? buildDeterministicFirstSixPoints(synthesisData, session, isKn)
+    : null;
+
+  const activeStructuredPoints: FirstSixTalkingPointsStructured | null =
+    structuredTalkingPoints || deterministicStructured;
+
   const activeTalkingPoints = dynamicTalkingPoints || (currentDiagnosis ? {
     openingIceBreakerKn: isKn ? currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn : (currentDiagnosis.astrologerTalkingPoints.openingIceBreakerEn || currentDiagnosis.astrologerTalkingPoints.openingIceBreakerKn),
     hiddenSubconsciousWorryKn: isKn ? currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn : (currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryEn || currentDiagnosis.astrologerTalkingPoints.hiddenSubconsciousWorryKn),
@@ -604,6 +604,88 @@ STRICT RULES:
     ageGroupBadge: isKn ? currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeKn : (currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeEn || currentDiagnosis.astrologerTalkingPoints.ageGroupBadgeKn),
     technicalAspectsCueKn: currentDiagnosis.astrologerTalkingPoints.technicalAspectsCueKn
   } : null);
+
+  const renderPointList = (points: AstrologerPointItem[] | undefined, fallbackText?: string) => {
+    if (!points || points.length === 0) {
+      if (fallbackText) {
+        return (
+          <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
+            {fallbackText}
+          </p>
+        );
+      }
+      return null;
+    }
+    return (
+      <div className="space-y-2 pt-1">
+        {points.map((p) => {
+          let badgeClass = "bg-stone-100 text-stone-700 border-stone-300";
+          let cardClass = "bg-white border-stone-200 text-stone-800 hover:border-stone-400";
+          let indicator = "⚪";
+          let toneBadge = isKn ? "ವಿವರಣೆ" : "Detail";
+
+          if (p.tone === "good") {
+            badgeClass = "bg-emerald-100 text-emerald-950 border-emerald-300 font-black";
+            cardClass = "bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-xs hover:bg-emerald-100/90 ring-1 ring-emerald-200/60";
+            indicator = "🟢";
+            toneBadge = isKn ? "ಶುಭ" : "Good";
+          } else if (p.tone === "bad") {
+            badgeClass = "bg-rose-100 text-rose-950 border-rose-300 font-black";
+            cardClass = "bg-rose-50/90 border-rose-300 text-rose-950 shadow-xs hover:bg-rose-100/90 ring-1 ring-rose-200/60";
+            indicator = "🔴";
+            toneBadge = isKn ? "ಸವಾಲು" : "Challenge";
+          } else if (p.tone === "notice") {
+            badgeClass = "bg-amber-100 text-amber-950 border-yellow-400 font-black";
+            cardClass = "bg-amber-50/90 border-yellow-400 text-amber-950 shadow-xs hover:bg-amber-100/90 ring-1 ring-yellow-300/60";
+            indicator = "🟡";
+            toneBadge = isKn ? "ಗಮನಿಸಿ" : "Notice";
+          }
+
+          return (
+            <div
+              key={p.id}
+              className={`p-3 rounded-xl border transition-all text-xs md:text-sm flex items-start gap-2.5 ${cardClass}`}
+            >
+              {/* Number bullet badge */}
+              <span
+                className={`flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-lg text-xs font-black shadow-xs ${
+                  p.tone === "good"
+                    ? "bg-emerald-600 text-white"
+                    : p.tone === "bad"
+                    ? "bg-rose-600 text-white"
+                    : p.tone === "notice"
+                    ? "bg-amber-500 text-neutral-950 font-black"
+                    : "bg-amber-200 text-amber-950"
+                }`}
+              >
+                {p.id}
+              </span>
+
+              {/* Content & Tag */}
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold">
+                    <span>{indicator}</span>
+                    <span className={`px-2 py-0.5 rounded-full border text-[10px] ${badgeClass}`}>
+                      {toneBadge}
+                    </span>
+                    {p.tagKn && (
+                      <span className="text-[10px] text-stone-500 font-medium">
+                        • {isKn ? p.tagKn : p.tagEn}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <p className="leading-relaxed font-medium">
+                  {p.text}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const handleDownloadPdf = async (chosenLang: SupportedPdfLang) => {
     if (!synthesisData || isGeneratingPdf) return;
@@ -784,19 +866,46 @@ STRICT RULES:
                 </div>
               </div>
 
+              {/* Color Highlight Legend Bar */}
+              <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-amber-50/90 border border-amber-200 text-xs shadow-sm">
+                <span className="font-bold text-amber-950 flex items-center gap-1.5">
+                  <span>🎨</span>
+                  <span>{isKn ? "ಮುಖ್ಯಾಂಶಗಳ ಬಣ್ಣ ವಿನ್ಯಾಸ:" : "Point Color Legend:"}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-950 font-bold border border-emerald-300">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>{isKn ? "ಹಸಿರು (ಶುಭ ಫಲಗಳು / Good)" : "Green (Auspicious / Good)"}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-100 text-rose-950 font-bold border border-rose-300">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                  <span>{isKn ? "ಕೆಂಪು (ದೋಷ / ಸವಾಲು / Bad)" : "Red (Challenge / Bad)"}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-100 text-amber-950 font-bold border border-amber-300">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                  <span>{isKn ? "ಹಳದಿ (ಗಮನಿಸಬೇಕಾದ ಅಂಶ / Notice)" : "Yellow (Notice / Turning Point)"}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white text-stone-800 font-medium border border-stone-200">
+                  <span className="w-2.5 h-2.5 rounded-full bg-stone-400"></span>
+                  <span>{isKn ? "ಬಿಳಿ (ಸಾಮಾನ್ಯ ವಿವರಣೆ / Normal)" : "White (General / Normal)"}</span>
+                </span>
+              </div>
+
               {/* 6 Reading Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 1. Ice-Breaker & Temperament */}
                 <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>🗣️</span>
                         <span>{isKn ? "1. ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ" : "1. Ice-Breaker & Core Temperament"}</span>
+                        <span className="text-[11px] font-normal text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                          ({activeStructuredPoints?.openingIceBreaker?.length || 10}+ {isKn ? "ಅಂಶಗಳು" : "Points"})
+                        </span>
                       </span>
                       <button
                         type="button"
-                        onClick={() => handlePlayTalkingPoint("icebreaker", activeTalkingPoints.openingIceBreakerKn)}
+                        onClick={() => handlePlayTalkingPoint("icebreaker", activeStructuredPoints?.openingIceBreaker || activeTalkingPoints.openingIceBreakerKn)}
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
                           playingPointKey === "icebreaker"
                             ? "bg-rose-600 text-white animate-pulse"
@@ -806,23 +915,24 @@ STRICT RULES:
                         <span>{playingPointKey === "icebreaker" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
                       </button>
                     </div>
-                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
-                      {activeTalkingPoints.openingIceBreakerKn}
-                    </p>
+                    {renderPointList(activeStructuredPoints?.openingIceBreaker, activeTalkingPoints.openingIceBreakerKn)}
                   </div>
                 </div>
 
                 {/* 2. Hidden Subconscious Worry / Agony */}
                 <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>🧠</span>
                         <span>{isKn ? "2. ಅಂತರಂಗದ ಗುಪ್ತ ಆತಂಕ & ಚಿಂತೆ" : "2. Hidden Subconscious Worry / Agony"}</span>
+                        <span className="text-[11px] font-normal text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                          ({activeStructuredPoints?.hiddenSubconsciousWorry?.length || 10}+ {isKn ? "ಅಂಶಗಳು" : "Points"})
+                        </span>
                       </span>
                       <button
                         type="button"
-                        onClick={() => handlePlayTalkingPoint("worry", activeTalkingPoints.hiddenSubconsciousWorryKn)}
+                        onClick={() => handlePlayTalkingPoint("worry", activeStructuredPoints?.hiddenSubconsciousWorry || activeTalkingPoints.hiddenSubconsciousWorryKn)}
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
                           playingPointKey === "worry"
                             ? "bg-rose-600 text-white animate-pulse"
@@ -832,23 +942,24 @@ STRICT RULES:
                         <span>{playingPointKey === "worry" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
                       </button>
                     </div>
-                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
-                      {activeTalkingPoints.hiddenSubconsciousWorryKn}
-                    </p>
+                    {renderPointList(activeStructuredPoints?.hiddenSubconsciousWorry, activeTalkingPoints.hiddenSubconsciousWorryKn)}
                   </div>
                 </div>
 
                 {/* 3. The 99% Last-Mile Knot & Maandi Karma */}
                 <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>🌀</span>
                         <span>{isKn ? "3. 99% ಆದ ಕೆಲಸ ನಿಲ್ಲಿಸುವ 'ಮಾಂದಿ ಕರ್ಮ ಗಂಟು'" : "3. The 99% Last-Mile Knot & Maandi Karma"}</span>
+                        <span className="text-[11px] font-normal text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                          ({activeStructuredPoints?.maandiKarmicImpact?.length || 10}+ {isKn ? "ಅಂಶಗಳು" : "Points"})
+                        </span>
                       </span>
                       <button
                         type="button"
-                        onClick={() => handlePlayTalkingPoint("maandi", activeTalkingPoints.maandiKarmicImpactKn)}
+                        onClick={() => handlePlayTalkingPoint("maandi", activeStructuredPoints?.maandiKarmicImpact || activeTalkingPoints.maandiKarmicImpactKn)}
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
                           playingPointKey === "maandi"
                             ? "bg-rose-600 text-white animate-pulse"
@@ -858,23 +969,24 @@ STRICT RULES:
                         <span>{playingPointKey === "maandi" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
                       </button>
                     </div>
-                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
-                      {activeTalkingPoints.maandiKarmicImpactKn}
-                    </p>
+                    {renderPointList(activeStructuredPoints?.maandiKarmicImpact, activeTalkingPoints.maandiKarmicImpactKn)}
                   </div>
                 </div>
 
                 {/* 4. Classical Anga Lakshana & Tridosha Constitution */}
                 <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>🩺</span>
                         <span>{isKn ? "4. ಶಾರೀರಿಕ ಮಚ್ಚೆ ಗುರುತು & ತ್ರಿದೋಷ ಪ್ರಕೃತಿ" : "4. Physical Sign (Anga Lakshana) & Tridosha"}</span>
+                        <span className="text-[11px] font-normal text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                          ({activeStructuredPoints?.bodyMarkAndTemperament?.length || 10}+ {isKn ? "ಅಂಶಗಳು" : "Points"})
+                        </span>
                       </span>
                       <button
                         type="button"
-                        onClick={() => handlePlayTalkingPoint("bodymark", activeTalkingPoints.bodyMarkAndTemperamentKn || "")}
+                        onClick={() => handlePlayTalkingPoint("bodymark", activeStructuredPoints?.bodyMarkAndTemperament || activeTalkingPoints.bodyMarkAndTemperamentKn || "")}
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
                           playingPointKey === "bodymark"
                             ? "bg-rose-600 text-white animate-pulse"
@@ -884,23 +996,24 @@ STRICT RULES:
                         <span>{playingPointKey === "bodymark" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
                       </button>
                     </div>
-                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
-                      {activeTalkingPoints.bodyMarkAndTemperamentKn || (isKn ? "ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಬಲದಂತೆ ದೇಹ ಪ್ರಕೃತಿ ಸಮತೋಲನದಲ್ಲಿದೆ." : "Ayurvedic constitution and physical markers are balanced.")}
-                    </p>
+                    {renderPointList(activeStructuredPoints?.bodyMarkAndTemperament, activeTalkingPoints.bodyMarkAndTemperamentKn || (isKn ? "ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಬಲದಂತೆ ದೇಹ ಪ್ರಕೃತಿ ಸಮತೋಲನದಲ್ಲಿದೆ." : "Ayurvedic constitution and physical markers are balanced."))}
                   </div>
                 </div>
 
                 {/* 5. Karma & Financial Reality */}
                 <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>💼</span>
                         <span>{isKn ? "5. ಕರ್ಮ ಸ್ಥಾನ & ವಾಸ್ತವಿಕ ಆರ್ಥಿಕ ಸ್ಥಿತಿ" : "5. Karma & Financial Reality"}</span>
+                        <span className="text-[11px] font-normal text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                          ({activeStructuredPoints?.karmaFinancialReality?.length || 10}+ {isKn ? "ಅಂಶಗಳು" : "Points"})
+                        </span>
                       </span>
                       <button
                         type="button"
-                        onClick={() => handlePlayTalkingPoint("finance", activeTalkingPoints.karmaFinancialRealityKn)}
+                        onClick={() => handlePlayTalkingPoint("finance", activeStructuredPoints?.karmaFinancialReality || activeTalkingPoints.karmaFinancialRealityKn)}
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
                           playingPointKey === "finance"
                             ? "bg-rose-600 text-white animate-pulse"
@@ -910,23 +1023,24 @@ STRICT RULES:
                         <span>{playingPointKey === "finance" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
                       </button>
                     </div>
-                    <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
-                      {activeTalkingPoints.karmaFinancialRealityKn}
-                    </p>
+                    {renderPointList(activeStructuredPoints?.karmaFinancialReality, activeTalkingPoints.karmaFinancialRealityKn)}
                   </div>
                 </div>
 
                 {/* 6. Turning Point Countdown & Sacred Remedy */}
                 <div className="rounded-2xl border border-amber-300 bg-white/90 p-5 shadow-md flex flex-col justify-between space-y-3 hover:shadow-lg transition-all">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 border-b border-amber-100 pb-2">
                       <span className="text-sm font-black text-amber-950 flex items-center gap-2">
                         <span>⏳</span>
                         <span>{isKn ? "6. ದಶಾ ತಿರುವು & ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ" : "6. Turning Point & Sacred Gokarna Remedy"}</span>
+                        <span className="text-[11px] font-normal text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                          ({activeStructuredPoints?.immediateTurningPoint?.length || 10}+ {isKn ? "ಅಂಶಗಳು" : "Points"})
+                        </span>
                       </span>
                       <button
                         type="button"
-                        onClick={() => handlePlayTalkingPoint("turningpoint", `${activeTalkingPoints.immediateTurningPointKn}\n\n${activeTalkingPoints.siddhaPariharaRemedyKn}`)}
+                        onClick={() => handlePlayTalkingPoint("turningpoint", activeStructuredPoints?.immediateTurningPoint || `${activeTalkingPoints.immediateTurningPointKn}\n\n${activeTalkingPoints.siddhaPariharaRemedyKn}`)}
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer ${
                           playingPointKey === "turningpoint"
                             ? "bg-rose-600 text-white animate-pulse"
@@ -936,15 +1050,16 @@ STRICT RULES:
                         <span>{playingPointKey === "turningpoint" ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಮುಖತಃ ಓದಿ"}</span>
                       </button>
                     </div>
-                    <div className="space-y-2.5">
-                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
-                        {activeTalkingPoints.immediateTurningPointKn}
-                      </p>
-                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/90 text-xs text-amber-950 leading-relaxed whitespace-pre-line font-semibold">
-                        <span className="text-[10px] text-amber-800 uppercase font-black block mb-1">
-                          {isKn ? "✦ ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ ನಿರ್ದೇಶನ:" : "✦ Sacred Gokarna Siddha Remedy Direction:"}
+                    <div className="space-y-3">
+                      {renderPointList(activeStructuredPoints?.immediateTurningPoint, activeTalkingPoints.immediateTurningPointKn)}
+                      <div className="p-3.5 rounded-xl bg-amber-50 border-2 border-amber-300 text-xs text-amber-950 leading-relaxed font-semibold shadow-sm">
+                        <span className="text-[11px] text-amber-900 uppercase font-black block mb-1.5 flex items-center gap-1.5">
+                          <span>🔱</span>
+                          <span>{isKn ? "✦ ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ ನಿರ್ದೇಶನ (ಪೂಜ್ಯ ಪ್ರಧಾನ ಪರಿಹಾರ):" : "✦ Sacred Gokarna Siddha Remedy Direction (Primary Shastric Solution):"}</span>
                         </span>
-                        {activeTalkingPoints.siddhaPariharaRemedyKn}
+                        <p className="whitespace-pre-line text-stone-800 font-medium">
+                          {activeTalkingPoints.siddhaPariharaRemedyKn}
+                        </p>
                       </div>
                     </div>
                   </div>

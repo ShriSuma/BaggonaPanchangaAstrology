@@ -1290,8 +1290,8 @@ RULES:
       updated.aiNarration = {
         isAiGenerated: true,
         aiModel: "gemini-3.5-flash-lite",
-        statusNoticeKn: "✨ ದೈವಿಕ AI ನಿರೂಪಣೆ ಸಕ್ರಿಯ (Gemini 3.5 Flash-Lite ಪರಿಶೀಲಿತ)",
-        statusNoticeEn: "✨ Verified Divine AI Narration Active (Gemini 3.5 Flash-Lite)",
+        statusNoticeKn: "✨ ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ ಸಕ್ರಿಯ (ಪರಾಶರೀ ಸಿದ್ಧಾಂತ ಪರಿಶೀಲಿತ)",
+        statusNoticeEn: "✨ Verified Divine Astrological Guidance Active",
         varshaphalaNarrative: parsed.varshaphalaNarrative,
         marriageNarrative: parsed.marriageNarrative,
         wealthNarrative: parsed.wealthNarrative,

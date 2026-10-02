@@ -1120,10 +1120,10 @@ export default function KundliPage(): JSX.Element {
         setBundleProgress(35);
         setBundleStageText(
           pdfLanguage === "kn"
-            ? "೨/೫ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ (AI ನಿರೂಪಣೆ ಪರಿಶೀಲನೆ)..."
+            ? "೨/೫ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಪಿಡಿಎಫ್ ಮುದ್ರಣ (ದೈವಿಕ ನಿರೂಪಣೆ ಪರಿಶೀಲನೆ)..."
             : pdfLanguage === "hi"
-            ? "2/5 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण (AI विवरण)..."
-            : "2/5 Generating Daivika Parihara Remedy Report PDF (AI Narration)..."
+            ? "2/5 दैविक परिहार रिपोर्ट पीडीएफ मुद्रण (दैविक विवरण)..."
+            : "2/5 Generating Daivika Parihara Remedy Report PDF (Divine Narration)..."
         );
 
         setRemedyPdfLanguage(pdfLanguage);

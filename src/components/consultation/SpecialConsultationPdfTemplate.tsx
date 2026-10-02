@@ -104,7 +104,7 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
               {isKn ? report.aiNarration.statusNoticeKn : report.aiNarration.statusNoticeEn}
             </span>
             <span style={{ fontSize: "10px", fontWeight: 600, color: report.aiNarration.isAiGenerated ? "#047857" : "#B45309" }}>
-              {report.aiNarration.isAiGenerated ? "Gemini 3.5 Flash-Lite Verified" : "100% Parashari Mathematical Fallback"}
+              {isKn ? "ಪರಾಶರೀ ಸಿದ್ಧಾಂತ ಪರಿಶೀಲಿತ" : "Parashari Shastric Verified"}
             </span>
           </div>
 
@@ -195,7 +195,7 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
               }}
             >
               <div style={{ fontWeight: 800, color: "#92400E", marginBottom: "3px", fontSize: "11.5px" }}>
-                ✨ {isKn ? "ಪಂಡಿತರ AI ದೈವಿಕ ನಿರೂಪಣೆ (Gemini 3.5 Flash-Lite)" : "Priest AI Divine Synthesis (Gemini 3.5 Flash-Lite)"}
+                ✨ {isKn ? "ಪಂಡಿತರ ದೈವಿಕ ನಿರೂಪಣೆ & ಸಂದೇಶ" : "Priest Divine Astrological Guidance"}
               </div>
               <div style={{ whiteSpace: "pre-line" }}>
                 {report.aiNarration.varshaphalaNarrative}

@@ -21,6 +21,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     nakshatra: "ನಕ್ಷತ್ರ:",
     birthDetails: "ಜನನ ವಿವರ:",
     panchangaTithiVara: "ತಿಥಿ & ವಾರ:",
+    narrationHeader: "॥ ಶ್ರೀ ಸನ್ನಿಧಾನದ ವಿಶೇಷ ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ & ಸಂದೇಶ ॥",
+    narrationBadge: "ಅಧಿಕೃತ ಜಾತಕ ವಿಶ್ಲೇಷಣೆ",
     sec1Title: "೧. ಜನ್ಮ ಕುಂಡಲಿ ಗ್ರಹದೋಷ ವಿಶ್ಲೇಷಣೆ & ಮುಖ್ಯ ಸವಾಲು",
     krodhaLabel: "ಕ್ರೋಧ / ಪಿತ್ತ ಶಕ್ತಿ",
     manasLabel: "ಮನೋ ಶಾಂತಿ",
@@ -39,6 +41,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraDirection: "ದಿಕ್ಕು:",
     stotraCount: "ಆವರ್ತನೆ:",
     stotraBenefits: "ಫಲಶೃತಿ:",
+    dailySankalpaTitle: "🪔 ದೈನಂದಿನ ಶಾಂತಿ ಸಂಕಲ್ಪ & ಸನ್ನಿಧಾನದ ನಿಯಮಾವಳಿ",
+    dailySankalpaText: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಮತ್ತು ಸೂರ್ಯಾಸ್ತ ಸಮಯದಲ್ಲಿ ಈ ನಿಯಮಗಳನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಪಾಲಿಸುವುದರಿಂದ ಜಾತಕದಲ್ಲಿನ ಪೀಡಾಕಾರಕ ಗ್ರಹಗಳ ಅಶಾಂತಿ ಶಮನಗೊಂಡು, ಕುಟುಂಬದಲ್ಲಿ ಸೌಹಾರ್ದತೆ ಮತ್ತು ಮನಸ್ಸಿನಲ್ಲಿ ದೈವಿಕ ನೆಮ್ಮದಿ ನೆಲೆಸುತ್ತದೆ.",
     sec6Title: "೬. ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ & ಲೈವ್ ಗೋಚಾರ ಗ್ರಹಫಲ ಪರಿಹಾರ",
     currentDasha: "ಪ್ರಸ್ತುತ ಮಹಾದಶೆ & ಭುಕ್ತಿ:",
     activeKarmicFlow: "ದಶಾ ಪ್ರಭಾವ:",
@@ -68,6 +72,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     nakshatra: "Nakshatra:",
     birthDetails: "Birth Details:",
     panchangaTithiVara: "Tithi & Vara:",
+    narrationHeader: "॥ Sacred Divine Astrological Narration & Astrologer's Guidance ॥",
+    narrationBadge: "Authentic Chart Analysis",
     sec1Title: "1. Kundali Root Cause & Struggle Diagnosis",
     krodhaLabel: "Pitta / Anger Surge",
     manasLabel: "Mental Stability",
@@ -86,6 +92,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraDirection: "Direction:",
     stotraCount: "Count:",
     stotraBenefits: "Spiritual Benefits:",
+    dailySankalpaTitle: "🪔 Daily Sacred Peace Sankalpa & Shastric Discipline",
+    dailySankalpaText: "By observing these daily shastric disciplines at dawn and twilight with devotion, planetary afflictions are pacified, ensuring mental equilibrium, familial harmony, and divine grace.",
     sec6Title: "6. Active Dasha-Bhukti & Gochara (Transit) Shanti",
     currentDasha: "Active Dasha-Bhukti:",
     activeKarmicFlow: "Karmic Effect:",
@@ -115,6 +123,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     nakshatra: "नक्षत्र:",
     birthDetails: "जन्म विवरण:",
     panchangaTithiVara: "तिथि एवं वार:",
+    narrationHeader: "॥ श्री सन्निधान का विशेष दैविक ज्योतिषीय विश्लेषण एवं सन्देश ॥",
+    narrationBadge: "प्रामाणिक कुंडली विश्लेषण",
     sec1Title: "१. कुंडली ग्रहदोष विश्लेषण एवं मुख्य चुनौती",
     krodhaLabel: "क्रोध / पित्त स्तर",
     manasLabel: "मानसिक शांति",
@@ -133,16 +143,18 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraDirection: "दिशा:",
     stotraCount: "आवृत्ति:",
     stotraBenefits: "फलश्रुति:",
-    sec6Title: "६. वर्तमान दशा-भुक्ति एवं गोचर ग्रहफल शांति",
+    dailySankalpaTitle: "🪔 दैनिक शांति संकल्प एवं सन्निधान नियमावली",
+    dailySankalpaText: "प्रतिदिन प्रातःकाल एवं संध्याकाल इन शास्त्रोक्त नियमों का श्रद्धापूर्वक पालन करने से ग्रह दोष शांत होते हैं और मानसिक शांति प्राप्त होती है।",
+    sec6Title: "೬. वर्तमान दशा-भुक्ति एवं गोचर ग्रहफल शांति",
     currentDasha: "वर्तमान महादशा एवं भुक्ति:",
     activeKarmicFlow: "दशा प्रभाव:",
     remedialStep: "उपाय क्रम:",
-    sec7Title: "७. श्री गोकर्ण महाबलेश्वर सन्निधि के पावन उपाय एवं दान",
+    sec7Title: "೭. श्री गोकर्ण महाबलेश्वर सन्निधि के पावन उपाय एवं दान",
     prescribedSeva: "विशेष सेवा:",
     rudraksha: "रुद्राक्ष धारण:",
     gemstone: "रत्न / धातु:",
     daana: "दान एवं गौसेवा:",
-    sec8Title: "८. प्रधान अर्चक का आशीर्वचन एवं गोकर्ण मुद्रा",
+    sec8Title: "೮. प्रधान अर्चक का आशीर्वचन एवं गोकर्ण मुद्रा",
     templeSealLabel: "आधिकारिक मुद्रा",
     priestContact: "संपर्क:",
     page1Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ १/३ (आगे जारी...)",
@@ -162,6 +174,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     nakshatra: "నక్షత్రం:",
     birthDetails: "జన్మ వివరాలు:",
     panchangaTithiVara: "తిథి & వారం:",
+    narrationHeader: "॥ శ్రీ సన్నిధానం విశేష దైవిక జ్యోతిష్య వివరణ & సందేశం ॥",
+    narrationBadge: "ప్రామాణిక జాతక విశ్లేషణ",
     sec1Title: "1. కుండలి గ్రహదోష విశ్లేషణ & ప్రధాన సవాలు",
     krodhaLabel: "క్రోధం / పిత్తం",
     manasLabel: "మనశ్శాంతి",
@@ -180,6 +194,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraDirection: "దిశ:",
     stotraCount: "సంఖ్య:",
     stotraBenefits: "ఫలితం:",
+    dailySankalpaTitle: "🪔 దైనందిన శాంతి సంకల్పం & నియమావళి",
+    dailySankalpaText: "ప్రతిరోజూ ఉదయం మరియు సాయంత్రం ఈ శాస్త్రోక్త నియమాలను శ్రద్ధతో పాటించడం వలన గ్రహ దోషాలు తొలగి, మనశ్శాంతి లభిస్తుంది.",
     sec6Title: "6. ప్రస్తుత దశా-భుక్తి & గోచార గ్రహ పరిహారాలు",
     currentDasha: "ప్రస్తుత మహాదశ & భుక్తి:",
     activeKarmicFlow: "దశా ప్రభావం:",
@@ -209,6 +225,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     nakshatra: "நட்சத்திரம்:",
     birthDetails: "பிறப்பு விவரம்:",
     panchangaTithiVara: "திதி & வாரம்:",
+    narrationHeader: "॥ ஸ்ரீ சந்நிதானத்தின் சிறப்பு தெய்வீக ஜோதிட உரை & செய்தி ॥",
+    narrationBadge: "சாஸ்திர ரீதியான ஜாதக ஆய்வு",
     sec1Title: "1. ஜாதக கிரக தோஷ பகுப்பாய்வு & முக்கிய சவால்",
     krodhaLabel: "கோபம் / பித்தம்",
     manasLabel: "மன அமைதி",
@@ -227,6 +245,8 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraDirection: "திசை:",
     stotraCount: "எண்ணிக்கை:",
     stotraBenefits: "பலன்கள்:",
+    dailySankalpaTitle: "🪔 தினசரி சாந்தி சங்கல்பம் & வழிபாட்டு நெறிமுறை",
+    dailySankalpaText: "தினசரி காலை மற்றும் மாலை வேளைகளில் இந்த சாஸ்திர வழிபாடுகளை பக்தியுடன் கடைப்பிடிப்பதால் கிரக தோஷங்கள் நீங்கி, மன அமைதி உண்டாகும்.",
     sec6Title: "6. நடப்பு திசை-புக்தி & கோசார கிரக பரிகாரங்கள்",
     currentDasha: "நடப்பு மகாதிசை & புக்தி:",
     activeKarmicFlow: "திசை பலன்:",
@@ -244,6 +264,39 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     page3Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 3/3 (முழுமை)"
   }
 };
+
+/** Deterministic Shastric synthesis to guarantee 100% complete narrative if AI is pending or offline */
+function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code: SupportedLanguage): string {
+  const { devoteeName, gotra, lagnaName, rashiName, nakshatraName, primaryStruggle, dashaBhuktiAnalysis, gokarnaTempleRemedies, personalizedStotras } = diagnosis;
+  const stotra = personalizedStotras[0] || personalizedStotras[1];
+  const stotraTitle = stotra?.title[code] || stotra?.title.kn || "";
+  const sevaName = gokarnaTempleRemedies?.prescribedSeva?.name[code] || gokarnaTempleRemedies?.prescribedSeva?.name.kn || "";
+
+  if (code === "en") {
+    return `॥ Sri Gokarna Mahabaleshwara Prasanna ॥\n` +
+      `Upon deep shastric examination of the natal horoscope for ${devoteeName}${gotra ? ` (${gotra} Gotra)` : ""}, born under ${lagnaName.en || lagnaName.kn} Lagna and ${rashiName.en || rashiName.kn} Rashi (${nakshatraName.en || nakshatraName.kn} Nakshatra), the planetary configurations reveal prominent karmic tendencies. Under the current ${dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn} Mahadasha and ${dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn} Bhukti, the key life struggle is ${primaryStruggle.title.en || primaryStruggle.title.kn}.\n` +
+      `By offering the sacred ${sevaName} at Sri Kshetra Gokarna Mahabaleshwara, performing daily ${stotraTitle}, and observing the 4-step pacification protocol, planetary afflictions will be neutralized, granting deep mental tranquility, familial peace, and auspicious progress.`;
+  }
+  if (code === "hi") {
+    return `॥ श्री गोकर्ण महाबलेश्वर प्रसन्न ॥\n` +
+      `जातक ${devoteeName}${gotra ? ` (${gotra} गोत्र)` : ""} की जन्म कुंडली का पाराशरी शास्त्र अनुसार सूक्ष्म विश्लेषण किया गया है। ${lagnaName.hi || lagnaName.kn} लग्न एवं ${rashiName.hi || rashiName.kn} राशि के ${nakshatraName.hi || nakshatraName.kn} नक्षत्र में जन्म होने के कारण, वर्तमान ${dashaBhuktiAnalysis.mahaDashaLabel.hi || dashaBhuktiAnalysis.mahaDashaLabel.kn} महादशा के प्रभाव से जीवन में मुख्य रूप से ${primaryStruggle.title.hi || primaryStruggle.title.kn} की स्थिति उत्पन्न हो रही है।\n` +
+      `श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधि में विहित ${sevaName} सेवा, नित्य ${stotraTitle} का पाठ एवं मनःशांति नियमों का पालन करने से ग्रहपीड़ा शांत होकर सपरिवार सुख-समृद्धि एवं शांति की प्राप्ति होगी।`;
+  }
+  if (code === "te") {
+    return `॥ శ్రీ గోకర్ణ మహాబలేశ్వర ప్రసన్న ॥\n` +
+      `జాతకుడు ${devoteeName}${gotra ? ` (${gotra} గోత్రం)` : ""} గారి జన్మ కుండలిని పారాశరి శాస్త్రోక్త పద్ధతిలో పరిశీలించడమైనది. ${lagnaName.te || lagnaName.kn} లగ్నం మరియు ${rashiName.te || rashiName.kn} రాశి (${nakshatraName.te || nakshatraName.kn} నక్షత్రం) లో జన్మించిన వీరికి, ప్రస్తుత ${dashaBhuktiAnalysis.mahaDashaLabel.te || dashaBhuktiAnalysis.mahaDashaLabel.kn} మహర్దశ ప్రభావంతో ప్రధానంగా ${primaryStruggle.title.te || primaryStruggle.title.kn} ఎదురవుతోంది.\n` +
+      `శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో నిర్దేశించిన ${sevaName}, నిత్యం ${stotraTitle} పఠనం మరియు శాంతి నియమాల ఆచరణ ద్వారా గ్రహదోషాలు నివారణమై సంపూర్ణ మనశ్శాంతి లభిస్తుంది.`;
+  }
+  if (code === "ta") {
+    return `॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் பிரசன்னம் ॥\n` +
+      `ஜாதகர் ${devoteeName}${gotra ? ` (${gotra} கோத்திரம்)` : ""} அவர்களின் ஜாதகத்தை பராசர ஜோதிட முறைப்படி ஆய்வு செய்ததில், ${lagnaName.ta || lagnaName.kn} லக்னம் மற்றும் ${rashiName.ta || rashiName.kn} ராசி (${nakshatraName.ta || nakshatraName.kn} நட்சத்திரம்) அமைந்திருக்கிறது. நடப்பு ${dashaBhuktiAnalysis.mahaDashaLabel.ta || dashaBhuktiAnalysis.mahaDashaLabel.kn} மகாதிசையின் தாக்கத்தால் ${primaryStruggle.title.ta || primaryStruggle.title.kn} சவால் ஏற்படுகிறது.\n` +
+      `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்தில் ${sevaName} பூஜை செய்து, தினமும் ${stotraTitle} பாராயணம் மற்றும் சாந்தி முறைகளை கடைப்பிடிப்பதால் கிரக தோஷங்கள் நீங்கி, மன நிம்மதியும் நல்வாழ்வும் அமையும்.`;
+  }
+  // Kannada default
+  return `॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n` +
+    `ಜಾತಕರಾದ ${devoteeName}${gotra ? ` (${gotra} ಗೋತ್ರ)` : ""} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪರಾಶರೀ ಸಿದ್ಧಾಂತದಂತೆ ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ${lagnaName.kn} ಲಗ್ನ ಮತ್ತು ${rashiName.kn} ರಾಶಿಯ ${nakshatraName.kn} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ ಇವರಿಗೆ, ಪ್ರಸ್ತುತ ${dashaBhuktiAnalysis.mahaDashaLabel.kn} ಮಹಾದಶೆ ಮತ್ತು ${dashaBhuktiAnalysis.bhuktiLabel.kn} ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದ ಮುಖ್ಯವಾಗಿ ${primaryStruggle.title.kn} ಎದುರಾಗುತ್ತಿದೆ.\n` +
+    `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಗದಿತ ${sevaName} ಸೇವೆ, ನಕ್ಷತ್ರ ವೃಕ್ಷದ ಪೂಜೆ ಹಾಗೂ ನಿತ್ಯ ${stotraTitle} ಪಠಣೆಯಿಂದ ಗ್ರಹದೋಷಗಳು ಶಮನಗೊಂಡು, ಸಕಲ ಮನಃಕ್ಲೇಶಗಳು ದೂರವಾಗಿ ದೈವಿಕ ಶಾಂತಿ ಮತ್ತು ಅಭಿವೃದ್ಧಿ ಸಿದ್ಧಿಸುತ್ತದೆ.`;
+}
 
 export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = ({
   diagnosis,
@@ -298,6 +351,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     return bm.kannada;
   };
 
+  // Determine active narration text (AI synthesized or rich deterministic fallback)
+  const narrationText =
+    diagnosis.aiNarrationText?.[code]?.trim() ||
+    (diagnosis.isAiGenerated && typeof diagnosis.aiNarration === "string" ? diagnosis.aiNarration.trim() : "") ||
+    getDeterministicSacredNarration(diagnosis, code);
+
   // Robust Indic font stack with zero-broken vattaksharas
   const fontFamily = isKn
     ? "'Noto Serif Kannada', 'Tiro Kannada', 'Kaveri', 'Segoe UI', serif, sans-serif"
@@ -322,7 +381,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
       }}
     >
       {/* ====================================================================== */}
-      {/* PAGE 1: JANANA KUNDALI, PANCHANGA 5-ANGAS & ROOT STRUGGLE DIAGNOSIS    */}
+      {/* PAGE 1: JANANA KUNDALI, SACRED NARRATION, DIAGNOSIS & 5-ANGAS         */}
       {/* ====================================================================== */}
       <div
         className="pdf-page"
@@ -330,7 +389,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
           width: "900px",
           height: "1273px",
           minHeight: "1273px",
-          padding: "20px 24px",
+          maxHeight: "1273px",
+          padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -341,15 +401,15 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
         <div
           style={{
             width: "100%",
-            height: "1225px",
-            maxHeight: "1225px",
+            height: "1241px",
+            maxHeight: "1241px",
             border: "3px double #92400E",
             outline: "1.5px solid #D97706",
-            outlineOffset: "-6px",
-            borderRadius: "14px",
-            padding: "14px 18px",
+            outlineOffset: "-5px",
+            borderRadius: "12px",
+            padding: "12px 16px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 35%, #FEF3C7 100%)",
+            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -362,19 +422,19 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               textAlign: "center",
               background: "linear-gradient(135deg, #451A03 0%, #78350F 50%, #451A03 100%)",
               borderRadius: "10px",
-              padding: "10px 16px",
+              padding: "9px 16px",
               color: "#FFFFFF",
               border: "2px solid #F59E0B",
               boxShadow: "0 3px 8px rgba(0,0,0,0.12)"
             }}
           >
-            <div style={{ fontSize: "12px", fontWeight: 800, color: "#FDE68A", letterSpacing: "normal" }}>
+            <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#FDE68A", letterSpacing: "normal" }}>
               {i18n.templeBanner}
             </div>
-            <div style={{ fontSize: "17.5px", fontWeight: 900, color: "#FFFFFF", marginTop: "3px", lineHeight: 1.35 }}>
+            <div style={{ fontSize: "17px", fontWeight: 900, color: "#FFFFFF", marginTop: "2px", lineHeight: 1.35 }}>
               {i18n.mainTitle}
             </div>
-            <div style={{ fontSize: "11px", color: "#FEF08A", marginTop: "2px", fontStyle: "italic", lineHeight: 1.4 }}>
+            <div style={{ fontSize: "10.5px", color: "#FEF08A", marginTop: "2px", fontStyle: "italic", lineHeight: 1.35 }}>
               {i18n.dhyanaShloka}
             </div>
           </div>
@@ -385,11 +445,11 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               background: "#FFFFFF",
               border: "1.5px solid #D97706",
               borderRadius: "8px",
-              padding: "9px 14px",
+              padding: "8px 12px",
               display: "grid",
               gridTemplateColumns: "1.4fr 1fr 1fr",
-              gap: "8px",
-              fontSize: "12px",
+              gap: "6px",
+              fontSize: "11.5px",
               alignItems: "center",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
             }}
@@ -423,57 +483,57 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             </div>
           </div>
 
-          {/* AI Narration or 10-Retry Fallback Warning Banner */}
-          {diagnosis.isAiGenerated && diagnosis.aiNarrationText?.[code] ? (
+          {/* Prestigious Astrological Narration Card (Warm Vedic Gold Styling, Zero Tech Jargon) */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #FEFCE8 0%, #FFFBEB 50%, #FEF3C7 100%)",
+              border: "1.5px solid #D97706",
+              borderRadius: "8px",
+              padding: "9px 13px",
+              color: "#451A03",
+              boxShadow: "0 2px 5px rgba(180, 83, 9, 0.08)"
+            }}
+          >
             <div
               style={{
-                background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)",
-                border: "1.5px solid #818CF8",
-                borderRadius: "8px",
-                padding: "8px 12px",
-                color: "#FFFFFF",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.06)"
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "5px",
+                borderBottom: "1px dashed #D97706",
+                paddingBottom: "3px"
               }}
             >
-              <div
+              <span style={{ fontSize: "12px", fontWeight: 900, color: "#78350F" }}>
+                🪔 {i18n.narrationHeader}
+              </span>
+              <span
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "4px",
-                  borderBottom: "1px solid rgba(255,255,255,0.2)",
-                  paddingBottom: "2px"
+                  fontSize: "9.5px",
+                  background: "#DCFCE7",
+                  color: "#166534",
+                  padding: "1px 8px",
+                  borderRadius: "10px",
+                  fontWeight: 800,
+                  border: "1px solid #86EFAC"
                 }}
               >
-                <span style={{ fontSize: "11.5px", fontWeight: 900, color: "#FDE68A" }}>
-                  ✨ {code === "kn"
-                    ? "AI ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ (Gemini 3.5 Flash Lite)"
-                    : code === "hi"
-                    ? "AI दैविक ज्योतिष विवरण (Gemini 3.5 Flash Lite)"
-                    : code === "te"
-                    ? "AI దైవిక జ్యోతిష్య వివరణ (Gemini 3.5 Flash Lite)"
-                    : code === "ta"
-                    ? "AI தெய்வீக ஜோதிட உரை (Gemini 3.5 Flash Lite)"
-                    : "AI Divine Astrological Narration (Gemini 3.5 Flash Lite)"}
-                </span>
-                <span
-                  style={{
-                    fontSize: "9px",
-                    background: "rgba(16, 185, 129, 0.25)",
-                    color: "#6EE7B7",
-                    padding: "1px 6px",
-                    borderRadius: "10px",
-                    fontWeight: 800
-                  }}
-                >
-                  {code === "kn" ? "ಖಚಿತ ಜಾತಕ ವಿಶ್ಲೇಷಣೆ" : "Accurate Analysis"}
-                </span>
-              </div>
-              <div style={{ fontSize: "10.5px", color: "#E0E7FF", lineHeight: 1.4, whiteSpace: "pre-line" }}>
-                {diagnosis.aiNarrationText[code]}
-              </div>
+                {i18n.narrationBadge}
+              </span>
             </div>
-          ) : null}
+            <div
+              style={{
+                fontSize: "11px",
+                color: "#451A03",
+                lineHeight: 1.55,
+                whiteSpace: "pre-line",
+                borderLeft: "3px solid #D97706",
+                paddingLeft: "8px"
+              }}
+            >
+              {narrationText}
+            </div>
+          </div>
 
           {/* Section 1: Astrological Diagnosis & Struggle Identification */}
           <div
@@ -481,18 +541,18 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               background: "#FFFFFF",
               border: "1.5px solid #D97706",
               borderRadius: "9px",
-              padding: "10px 14px",
+              padding: "9px 13px",
               boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
             }}
           >
             <div
               style={{
-                fontSize: "13.5px",
+                fontSize: "13px",
                 fontWeight: 900,
                 color: "#78350F",
                 borderBottom: "1.5px solid #FDE68A",
-                paddingBottom: "5px",
-                marginBottom: "7px",
+                paddingBottom: "4px",
+                marginBottom: "6px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center"
@@ -504,9 +564,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   background: primaryStruggle.intensity === "High" ? "#FEE2E2" : "#FEF3C7",
                   color: primaryStruggle.intensity === "High" ? "#991B1B" : "#92400E",
                   border: `1px solid ${primaryStruggle.intensity === "High" ? "#F87171" : "#FBBF24"}`,
-                  padding: "2px 8px",
+                  padding: "1px 8px",
                   borderRadius: "12px",
-                  fontSize: "11px",
+                  fontSize: "10.5px",
                   fontWeight: 800
                 }}
               >
@@ -514,13 +574,13 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               </span>
             </div>
 
-            <div style={{ fontSize: "12px", color: "#451A03", lineHeight: 1.55, fontWeight: 700 }}>
+            <div style={{ fontSize: "11.5px", color: "#451A03", lineHeight: 1.5, fontWeight: 700 }}>
               <span style={{ color: "#991B1B" }}>• {primaryStruggle.title[code] || primaryStruggle.title.kn}:</span>{" "}
               <span style={{ color: "#27272A", fontWeight: 500 }}>{primaryStruggle.description[code] || primaryStruggle.description.kn}</span>
             </div>
 
             {/* Affliction Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "8px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "6px" }}>
               {afflictionFactors.slice(0, 2).map((af, idx) => (
                 <div
                   key={idx}
@@ -528,9 +588,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     background: "#FFFBEB",
                     border: "1px solid #FCD34D",
                     borderRadius: "6px",
-                    padding: "7px 10px",
-                    fontSize: "11.5px",
-                    lineHeight: 1.5
+                    padding: "6px 9px",
+                    fontSize: "11px",
+                    lineHeight: 1.45
                   }}
                 >
                   <div style={{ fontWeight: 800, color: "#92400E" }}>🔥 {af.title[code] || af.title.kn}</div>
@@ -539,33 +599,45 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               ))}
             </div>
 
-            {/* Psychological & Temperament Meters */}
+            {/* Psychological & Temperament Meters with Progress Bar Visualizations */}
             <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(4, 1fr)",
                 gap: "8px",
-                marginTop: "8px",
+                marginTop: "7px",
                 paddingTop: "6px",
                 borderTop: "1px dashed #E5E7EB",
                 textAlign: "center"
               }}
             >
-              <div style={{ background: "#FEF2F2", padding: "6px 4px", borderRadius: "6px", border: "1px solid #FECACA" }}>
-                <div style={{ color: "#991B1B", fontWeight: 800, fontSize: "11px" }}>{i18n.krodhaLabel}</div>
-                <div style={{ fontSize: "13.5px", fontWeight: 900, color: "#B91C1C", marginTop: "1px" }}>{psychologicalProfile.krodhaLevel}%</div>
+              <div style={{ background: "#FEF2F2", padding: "5px 4px", borderRadius: "6px", border: "1px solid #FECACA" }}>
+                <div style={{ color: "#991B1B", fontWeight: 800, fontSize: "10.5px" }}>{i18n.krodhaLabel}</div>
+                <div style={{ fontSize: "13px", fontWeight: 900, color: "#B91C1C", marginTop: "1px" }}>{psychologicalProfile.krodhaLevel}%</div>
+                <div style={{ width: "100%", height: "4px", background: "#FEE2E2", borderRadius: "2px", marginTop: "3px", overflow: "hidden" }}>
+                  <div style={{ width: `${psychologicalProfile.krodhaLevel}%`, height: "100%", background: "#DC2626" }} />
+                </div>
               </div>
-              <div style={{ background: "#F0FDF4", padding: "6px 4px", borderRadius: "6px", border: "1px solid #BBF7D0" }}>
-                <div style={{ color: "#166534", fontWeight: 800, fontSize: "11px" }}>{i18n.manasLabel}</div>
-                <div style={{ fontSize: "13.5px", fontWeight: 900, color: "#15803D", marginTop: "1px" }}>{psychologicalProfile.manasStability}%</div>
+              <div style={{ background: "#F0FDF4", padding: "5px 4px", borderRadius: "6px", border: "1px solid #BBF7D0" }}>
+                <div style={{ color: "#166534", fontWeight: 800, fontSize: "10.5px" }}>{i18n.manasLabel}</div>
+                <div style={{ fontSize: "13px", fontWeight: 900, color: "#15803D", marginTop: "1px" }}>{psychologicalProfile.manasStability}%</div>
+                <div style={{ width: "100%", height: "4px", background: "#DCFCE7", borderRadius: "2px", marginTop: "3px", overflow: "hidden" }}>
+                  <div style={{ width: `${psychologicalProfile.manasStability}%`, height: "100%", background: "#16A34A" }} />
+                </div>
               </div>
-              <div style={{ background: "#EFF6FF", padding: "6px 4px", borderRadius: "6px", border: "1px solid #BFDBFE" }}>
-                <div style={{ color: "#1E40AF", fontWeight: 800, fontSize: "11px" }}>{i18n.vitalityLabel}</div>
-                <div style={{ fontSize: "13.5px", fontWeight: 900, color: "#1D4ED8", marginTop: "1px" }}>{psychologicalProfile.vitalityScore}%</div>
+              <div style={{ background: "#EFF6FF", padding: "5px 4px", borderRadius: "6px", border: "1px solid #BFDBFE" }}>
+                <div style={{ color: "#1E40AF", fontWeight: 800, fontSize: "10.5px" }}>{i18n.vitalityLabel}</div>
+                <div style={{ fontSize: "13px", fontWeight: 900, color: "#1D4ED8", marginTop: "1px" }}>{psychologicalProfile.vitalityScore}%</div>
+                <div style={{ width: "100%", height: "4px", background: "#DBEAFE", borderRadius: "2px", marginTop: "3px", overflow: "hidden" }}>
+                  <div style={{ width: `${psychologicalProfile.vitalityScore}%`, height: "100%", background: "#2563EB" }} />
+                </div>
               </div>
-              <div style={{ background: "#FAF5FF", padding: "6px 4px", borderRadius: "6px", border: "1px solid #E9D5FF" }}>
-                <div style={{ color: "#6B21A8", fontWeight: 800, fontSize: "11px" }}>{i18n.patienceLabel}</div>
-                <div style={{ fontSize: "13.5px", fontWeight: 900, color: "#7E22CE", marginTop: "1px" }}>{psychologicalProfile.patienceIndex}%</div>
+              <div style={{ background: "#FAF5FF", padding: "5px 4px", borderRadius: "6px", border: "1px solid #E9D5FF" }}>
+                <div style={{ color: "#6B21A8", fontWeight: 800, fontSize: "10.5px" }}>{i18n.patienceLabel}</div>
+                <div style={{ fontSize: "13px", fontWeight: 900, color: "#7E22CE", marginTop: "1px" }}>{psychologicalProfile.patienceIndex}%</div>
+                <div style={{ width: "100%", height: "4px", background: "#F3E8FF", borderRadius: "2px", marginTop: "3px", overflow: "hidden" }}>
+                  <div style={{ width: `${psychologicalProfile.patienceIndex}%`, height: "100%", background: "#9333EA" }} />
+                </div>
               </div>
             </div>
           </div>
@@ -577,18 +649,18 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 background: "#FFFFFF",
                 border: "1.5px solid #D97706",
                 borderRadius: "9px",
-                padding: "10px 14px",
+                padding: "9px 13px",
                 boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
               }}
             >
               <div
                 style={{
-                  fontSize: "13.5px",
+                  fontSize: "13px",
                   fontWeight: 900,
                   color: "#78350F",
                   borderBottom: "1.5px solid #FDE68A",
-                  paddingBottom: "5px",
-                  marginBottom: "7px"
+                  paddingBottom: "4px",
+                  marginBottom: "6px"
                 }}
               >
                 🌿 {i18n.sec2Title}
@@ -600,19 +672,19 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   background: "#F0FDF4",
                   border: "1px solid #86EFAC",
                   borderRadius: "6px",
-                  padding: "8px 10px",
-                  fontSize: "11.5px",
-                  lineHeight: 1.5,
-                  marginBottom: "8px"
+                  padding: "7px 10px",
+                  fontSize: "11px",
+                  lineHeight: 1.45,
+                  marginBottom: "6px"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#166534" }}>
                   <span>⭐ {isKn ? "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪವಿತ್ರ ನಕ್ಷತ್ರ ವೃಕ್ಷ:" : isHi ? "जन्म नक्षत्र एवं पवित्र नक्षत्र वृक्ष:" : isTe ? "జన్మ నక్షత్రం & పవిత్ర వృక్షం:" : isTa ? "ஜன்ம நட்சத்திரம் & புனித மரம்:" : "Birth Nakshatra & Sacred Astral Tree:"} {panchangaRemedies.nakshatraRemedy.nakshatraName[code] || panchangaRemedies.nakshatraRemedy.nakshatraName.en || panchangaRemedies.nakshatraRemedy.nakshatraName.kn} ({isKn ? "ಪಾದ" : isHi ? "चरण" : isTe ? "పాద" : isTa ? "பாதம்" : "Pada"} {panchangaRemedies.nakshatraRemedy.pada})</span>
-                  <span style={{ background: "#DCFCE7", color: "#14532D", padding: "1px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 800 }}>
+                  <span style={{ background: "#DCFCE7", color: "#14532D", padding: "1px 7px", borderRadius: "10px", fontSize: "10.5px", fontWeight: 800 }}>
                     {isKn ? "ದೇವತೆ: " : isHi ? "देवता: " : isTe ? "దేవత: " : isTa ? "தெய்வம்: " : "Deity: "}{panchangaRemedies.nakshatraRemedy.rulingDeity[code] || panchangaRemedies.nakshatraRemedy.rulingDeity.kn}
                   </span>
                 </div>
-                <div style={{ color: "#14532D", marginTop: "3px" }}>
+                <div style={{ color: "#14532D", marginTop: "2px" }}>
                   <span style={{ fontWeight: 800 }}>{isKn ? "• ಪವಿತ್ರ ವೃಕ್ಷ: " : isHi ? "• पवित्र वृक्ष: " : isTe ? "• పవిత్ర వృక్షం: " : isTa ? "• புனித மரம்: " : "• Sacred Tree: "}</span>
                   <span style={{ fontWeight: 900, color: "#166534" }}>{panchangaRemedies.nakshatraRemedy.sacredTree.kannada}</span> ({panchangaRemedies.nakshatraRemedy.sacredTree.botanicalName}) — {panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod[code] || panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod.kn}
                 </div>
@@ -623,61 +695,61 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               </div>
 
               {/* 4 Angas Grid: Tithi, Vara, Yoga, Karana */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
                 {/* Tithi */}
-                <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "7px 10px", fontSize: "11px", lineHeight: 1.5 }}>
+                <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "6px 8px", fontSize: "10.5px", lineHeight: 1.45 }}>
                   <div style={{ fontWeight: 800, color: "#92400E" }}>
                     🌕 {isKn ? "ತಿಥಿ & ಪಕ್ಷ ದೈವಿಕ ಸಾಧನೆ" : isHi ? "तिथि एवं पक्ष दैवीय साधना" : isTe ? "తిథి & పక్ష దైవిక సాధన" : isTa ? "திதி & பட்ச வழிபாட்டு முறை" : "Tithi & Paksha Alignment"}
                   </div>
-                  <div style={{ color: "#451A03", fontWeight: 700, marginTop: "2px" }}>
+                  <div style={{ color: "#451A03", fontWeight: 700, marginTop: "1px" }}>
                     {panchangaRemedies.tithiRemedy.tithiName[code] || panchangaRemedies.tithiRemedy.tithiName.en || panchangaRemedies.tithiRemedy.tithiName.kn} ({panchangaRemedies.tithiRemedy.paksha === "Shukla" ? (isKn ? "ಶುಕ್ಲ ಪಕ್ಷ" : isHi ? "शुक्ल पक्ष" : isTe ? "శుక్ల పక్షం" : isTa ? "சுக்ல பட்சம்" : "Shukla Paksha") : (isKn ? "ಕೃಷ್ಣ ಪಕ್ಷ" : isHi ? "कृष्ण पक्ष" : isTe ? "కృష్ణ పక్షం" : isTa ? "கிருஷ்ண பட்சம்" : "Krishna Paksha")})
                   </div>
-                  <div style={{ color: "#78350F", marginTop: "2px" }}>
+                  <div style={{ color: "#78350F", marginTop: "1px" }}>
                     {panchangaRemedies.tithiRemedy.vrataAndRemedy[code] || panchangaRemedies.tithiRemedy.vrataAndRemedy.kn}
                   </div>
                 </div>
 
                 {/* Vara */}
-                <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "6px", padding: "7px 10px", fontSize: "11px", lineHeight: 1.5 }}>
+                <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "6px", padding: "6px 8px", fontSize: "10.5px", lineHeight: 1.45 }}>
                   <div style={{ fontWeight: 800, color: "#92400E" }}>
                     ☀️ {isKn ? "ಜನ್ಮ ವಾರ & ಗ್ರಹಾಧಿಪತಿ ಸಾಧನೆ" : isHi ? "जन्म वार एवं ग्रह साधना" : isTe ? "జన్మ వారం & గ్రహ సాధన" : isTa ? "ஜன்ம வாரம் & கிரக வழிபாடு" : "Weekday & Planetary Ruler"}
                   </div>
-                  <div style={{ color: "#451A03", fontWeight: 700, marginTop: "2px" }}>
+                  <div style={{ color: "#451A03", fontWeight: 700, marginTop: "1px" }}>
                     {panchangaRemedies.varaRemedy.dayName[code] || panchangaRemedies.varaRemedy.dayName.en || panchangaRemedies.varaRemedy.dayName.kn} · {isKn ? "ಶುಭ ಬಣ್ಣ: " : isHi ? "शुभ रंग: " : isTe ? "శుభ రంగు: " : isTa ? "சுப வண்ணம்: " : "Color: "}<span style={{ color: "#B45309", fontWeight: 900 }}>{panchangaRemedies.varaRemedy.dailyColor[code] || panchangaRemedies.varaRemedy.dailyColor.en || panchangaRemedies.varaRemedy.dailyColor.kn}</span>
                   </div>
-                  <div style={{ color: "#78350F", marginTop: "2px" }}>
+                  <div style={{ color: "#78350F", marginTop: "1px" }}>
                     {panchangaRemedies.varaRemedy.dailySadhana[code] || panchangaRemedies.varaRemedy.dailySadhana.kn}
                   </div>
                 </div>
 
                 {/* Yoga */}
-                <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "6px", padding: "7px 10px", fontSize: "11px", lineHeight: 1.5 }}>
+                <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "6px", padding: "6px 8px", fontSize: "10.5px", lineHeight: 1.45 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#166534" }}>
                     <span>🧘 {isKn ? "ಜನ್ಮ ಯೋಗ: " : isHi ? "जन्म योग: " : isTe ? "జన్మ యోగం: " : isTa ? "ஜன்ம யோகம்: " : "Birth Yoga: "}{panchangaRemedies.yogaRemedy.yogaName[code] || panchangaRemedies.yogaRemedy.yogaName.kn}</span>
-                    <span style={{ fontSize: "10px", background: panchangaRemedies.yogaRemedy.isAuspicious ? "#DCFCE7" : "#FEE2E2", color: panchangaRemedies.yogaRemedy.isAuspicious ? "#15803D" : "#991B1B", padding: "1px 6px", borderRadius: "6px", fontWeight: 800 }}>
+                    <span style={{ fontSize: "9.5px", background: panchangaRemedies.yogaRemedy.isAuspicious ? "#DCFCE7" : "#FEE2E2", color: panchangaRemedies.yogaRemedy.isAuspicious ? "#15803D" : "#991B1B", padding: "1px 5px", borderRadius: "5px", fontWeight: 800 }}>
                       {panchangaRemedies.yogaRemedy.isAuspicious ? (isKn ? "ಶುಭ ಯೋಗ" : isHi ? "शुभ योग" : isTe ? "శుభ యోగం" : isTa ? "சுப யோகம்" : "Auspicious") : (isKn ? "ಶಾಂತಿ ಅಗತ್ಯ" : isHi ? "शांति आवश्यक" : isTe ? "శాంతి అవసరం" : isTa ? "சாந்தி தேவை" : "Shanti Needed")}
                     </span>
                   </div>
-                  <div style={{ color: "#14532D", marginTop: "2px" }}>
+                  <div style={{ color: "#14532D", marginTop: "1px" }}>
                     <span style={{ fontWeight: 800 }}>{isKn ? "• ದೇವತೆ: " : isHi ? "• देवता: " : isTe ? "• దేవత: " : isTa ? "• தெய்வம்: " : "• Deity: "}</span>{panchangaRemedies.yogaRemedy.deity}
                   </div>
-                  <div style={{ color: "#166534", marginTop: "2px" }}>
+                  <div style={{ color: "#166534", marginTop: "1px" }}>
                     {panchangaRemedies.yogaRemedy.shantiPractice[code] || panchangaRemedies.yogaRemedy.shantiPractice.kn}
                   </div>
                 </div>
 
                 {/* Karana */}
-                <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "6px", padding: "7px 10px", fontSize: "11px", lineHeight: 1.5 }}>
+                <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "6px", padding: "6px 8px", fontSize: "10.5px", lineHeight: 1.45 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#1E40AF" }}>
                     <span>⚡ {isKn ? "ಜನ್ಮ ಕರಣ: " : isHi ? "जन्म करण: " : isTe ? "జన్మ కరణం: " : isTa ? "ஜன்ம கரணம்: " : "Birth Karana: "}{panchangaRemedies.karanaRemedy.karanaName[code] || panchangaRemedies.karanaRemedy.karanaName.kn}</span>
-                    <span style={{ fontSize: "10px", background: "#DBEAFE", color: "#1D4ED8", padding: "1px 6px", borderRadius: "6px", fontWeight: 800 }}>
+                    <span style={{ fontSize: "9.5px", background: "#DBEAFE", color: "#1D4ED8", padding: "1px 5px", borderRadius: "5px", fontWeight: 800 }}>
                       {isKn ? "ತತ್ತ್ವ: " : isHi ? "तत्व: " : isTe ? "తత్త్వం: " : isTa ? "தத்துவம்: " : "Element: "}{panchangaRemedies.karanaRemedy.tatva}
                     </span>
                   </div>
-                  <div style={{ color: "#1E3A8A", marginTop: "2px" }}>
+                  <div style={{ color: "#1E3A8A", marginTop: "1px" }}>
                     <span style={{ fontWeight: 800 }}>{isKn ? "• ಅಧಿದೇವತೆ: " : isHi ? "• अधिदेवता: " : isTe ? "• అధిదేవత: " : isTa ? "• அதிதேவதை: " : "• Presiding Deity: "}</span>{panchangaRemedies.karanaRemedy.deity}
                   </div>
-                  <div style={{ color: "#1E40AF", marginTop: "2px" }}>
+                  <div style={{ color: "#1E40AF", marginTop: "1px" }}>
                     {panchangaRemedies.karanaRemedy.karyaShanti[code] || panchangaRemedies.karanaRemedy.karyaShanti.kn}
                   </div>
                 </div>
@@ -693,7 +765,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px solid #D97706",
-              paddingTop: "6px"
+              paddingTop: "5px"
             }}
           >
             {i18n.page1Footer}
@@ -702,7 +774,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
       </div>
 
       {/* ====================================================================== */}
-      {/* PAGE 2: INSTANT ANGER PACIFICATION, DAILY ROUTINE & DESIGNATED STOTRA  */}
+      {/* PAGE 2: INSTANT PACIFICATION, DAILY ROUTINE, STOTRA & SANKALPA         */}
       {/* ====================================================================== */}
       <div
         className="pdf-page"
@@ -710,7 +782,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
           width: "900px",
           height: "1273px",
           minHeight: "1273px",
-          padding: "20px 24px",
+          maxHeight: "1273px",
+          padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -721,15 +794,15 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
         <div
           style={{
             width: "100%",
-            height: "1225px",
-            maxHeight: "1225px",
+            height: "1241px",
+            maxHeight: "1241px",
             border: "3px double #92400E",
             outline: "1.5px solid #D97706",
-            outlineOffset: "-6px",
-            borderRadius: "14px",
-            padding: "14px 18px",
+            outlineOffset: "-5px",
+            borderRadius: "12px",
+            padding: "12px 16px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 35%, #FEF3C7 100%)",
+            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -748,7 +821,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               boxShadow: "0 3px 8px rgba(0,0,0,0.12)"
             }}
           >
-            <div style={{ fontSize: "12px", fontWeight: 800, color: "#FDE68A", letterSpacing: "normal" }}>
+            <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#FDE68A", letterSpacing: "normal" }}>
               {i18n.templeBanner}
             </div>
             <div style={{ fontSize: "16.5px", fontWeight: 900, color: "#FFFFFF", marginTop: "2px", lineHeight: 1.35 }}>
@@ -768,23 +841,23 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
           >
             <div
               style={{
-                fontSize: "13.5px",
+                fontSize: "13px",
                 fontWeight: 900,
                 color: "#78350F",
                 borderBottom: "1.5px solid #FDE68A",
-                paddingBottom: "5px",
-                marginBottom: "6px"
+                paddingBottom: "4px",
+                marginBottom: "5px"
               }}
             >
               ⚡ {i18n.sec3Title}
             </div>
-            <div style={{ fontSize: "11.5px", color: "#92400E", marginBottom: "7px", fontWeight: 700, lineHeight: 1.45 }}>
+            <div style={{ fontSize: "11px", color: "#92400E", marginBottom: "6px", fontWeight: 700, lineHeight: 1.4 }}>
               {instantCalmingProtocol.subtitle[code] || instantCalmingProtocol.subtitle.kn}
             </div>
 
             {/* 4-Step Action Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-              {instantCalmingProtocol.steps.map(step => (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "7px" }}>
+              {instantCalmingProtocol.steps.map((step) => (
                 <div
                   key={step.stepNumber}
                   style={{
@@ -792,20 +865,20 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     border: "1px solid #FDE047",
                     borderRadius: "6px",
                     padding: "7px 10px",
-                    fontSize: "11.5px",
-                    lineHeight: 1.5
+                    fontSize: "11px",
+                    lineHeight: 1.45
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#92400E" }}>
                     <span>{step.icon} {step.name[code] || step.name.kn}</span>
-                    <span style={{ fontSize: "10.5px", background: "#FEF08A", padding: "1px 6px", borderRadius: "8px", color: "#854D0E" }}>
+                    <span style={{ fontSize: "10px", background: "#FEF08A", padding: "1px 6px", borderRadius: "8px", color: "#854D0E" }}>
                       {typeof step.duration === "object" ? step.duration[code] || step.duration.kn : step.duration}
                     </span>
                   </div>
                   <div style={{ color: "#451A03", marginTop: "3px", fontWeight: 700 }}>
                     {step.action[code] || step.action.kn}
                   </div>
-                  <div style={{ color: "#713F12", marginTop: "2px", fontSize: "11px", lineHeight: 1.45 }}>
+                  <div style={{ color: "#713F12", marginTop: "2px", fontSize: "10.5px", lineHeight: 1.4 }}>
                     {step.detail[code] || step.detail.kn}
                   </div>
                 </div>
@@ -815,7 +888,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             {/* Emergency Beeja Japa Box */}
             <div
               style={{
-                marginTop: "8px",
+                marginTop: "7px",
                 background: "linear-gradient(135deg, #451A03 0%, #78350F 100%)",
                 borderRadius: "7px",
                 padding: "8px 12px",
@@ -824,13 +897,13 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 textAlign: "center"
               }}
             >
-              <div style={{ fontSize: "11px", color: "#FDE68A", fontWeight: 800, marginBottom: "2px" }}>
+              <div style={{ fontSize: "10.5px", color: "#FDE68A", fontWeight: 800, marginBottom: "2px" }}>
                 🕉️ {i18n.emergencyMantraTitle}
               </div>
-              <div style={{ fontSize: "13.5px", fontWeight: 900, color: "#FFFFFF", letterSpacing: "normal", lineHeight: 1.6 }}>
+              <div style={{ fontSize: "14px", fontWeight: 900, color: "#FFFFFF", letterSpacing: "normal", lineHeight: 1.5 }}>
                 {getBeejaMantraByLang(instantCalmingProtocol.emergencyBeejaMantra)}
               </div>
-              <div style={{ fontSize: "11px", color: "#FEF08A", marginTop: "2px", lineHeight: 1.45 }}>
+              <div style={{ fontSize: "10.5px", color: "#FEF08A", marginTop: "2px", lineHeight: 1.4 }}>
                 {instantCalmingProtocol.emergencyBeejaMantra.meaning[code] || instantCalmingProtocol.emergencyBeejaMantra.meaning.kn}
               </div>
             </div>
@@ -848,12 +921,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
           >
             <div
               style={{
-                fontSize: "13.5px",
+                fontSize: "13px",
                 fontWeight: 900,
                 color: "#78350F",
                 borderBottom: "1.5px solid #FDE68A",
-                paddingBottom: "5px",
-                marginBottom: "7px"
+                paddingBottom: "4px",
+                marginBottom: "6px"
               }}
             >
               🗓️ {i18n.sec4Title}
@@ -861,12 +934,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
               {/* Morning */}
-              <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "6px", padding: "7px 9px", fontSize: "11.5px", lineHeight: 1.5 }}>
-                <div style={{ fontWeight: 800, color: "#92400E", borderBottom: "1px dashed #FCD34D", paddingBottom: "3px", marginBottom: "4px" }}>
+              <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "6px", padding: "7px 9px", fontSize: "11px", lineHeight: 1.45 }}>
+                <div style={{ fontWeight: 800, color: "#92400E", borderBottom: "1px dashed #FCD34D", paddingBottom: "2px", marginBottom: "4px" }}>
                   {i18n.morningTab}
                 </div>
                 {dailyPacificationRoutine.morning.map((m, idx) => (
-                  <div key={idx} style={{ marginTop: idx === 0 ? "0px" : "5px" }}>
+                  <div key={idx} style={{ marginTop: idx === 0 ? "0px" : "4px" }}>
                     <span style={{ fontWeight: 800, color: "#451A03" }}>{m.icon} {m.title[code] || m.title.kn}:</span>{" "}
                     <span style={{ color: "#78350F" }}>{m.desc[code] || m.desc.kn}</span>
                   </div>
@@ -874,12 +947,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               </div>
 
               {/* Afternoon / Diet */}
-              <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "6px", padding: "7px 9px", fontSize: "11.5px", lineHeight: 1.5 }}>
-                <div style={{ fontWeight: 800, color: "#166534", borderBottom: "1px dashed #86EFAC", paddingBottom: "3px", marginBottom: "4px" }}>
+              <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "6px", padding: "7px 9px", fontSize: "11px", lineHeight: 1.45 }}>
+                <div style={{ fontWeight: 800, color: "#166534", borderBottom: "1px dashed #86EFAC", paddingBottom: "2px", marginBottom: "4px" }}>
                   {i18n.afternoonTab}
                 </div>
                 {dailyPacificationRoutine.afternoonLifestyle.map((a, idx) => (
-                  <div key={idx} style={{ marginTop: idx === 0 ? "0px" : "5px" }}>
+                  <div key={idx} style={{ marginTop: idx === 0 ? "0px" : "4px" }}>
                     <span style={{ fontWeight: 800, color: "#14532D" }}>{a.icon} {a.title[code] || a.title.kn}:</span>{" "}
                     <span style={{ color: "#166534" }}>{a.desc[code] || a.desc.kn}</span>
                   </div>
@@ -887,12 +960,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               </div>
 
               {/* Evening / Night */}
-              <div style={{ background: "#FAF5FF", border: "1px solid #E9D5FF", borderRadius: "6px", padding: "7px 9px", fontSize: "11.5px", lineHeight: 1.5 }}>
-                <div style={{ fontWeight: 800, color: "#6B21A8", borderBottom: "1px dashed #D8B4FE", paddingBottom: "3px", marginBottom: "4px" }}>
+              <div style={{ background: "#FAF5FF", border: "1px solid #E9D5FF", borderRadius: "6px", padding: "7px 9px", fontSize: "11px", lineHeight: 1.45 }}>
+                <div style={{ fontWeight: 800, color: "#6B21A8", borderBottom: "1px dashed #D8B4FE", paddingBottom: "2px", marginBottom: "4px" }}>
                   {i18n.eveningTab}
                 </div>
                 {dailyPacificationRoutine.evening.map((e, idx) => (
-                  <div key={idx} style={{ marginTop: idx === 0 ? "0px" : "5px" }}>
+                  <div key={idx} style={{ marginTop: idx === 0 ? "0px" : "4px" }}>
                     <span style={{ fontWeight: 800, color: "#581C87" }}>{e.icon} {e.title[code] || e.title.kn}:</span>{" "}
                     <span style={{ color: "#6B21A8" }}>{e.desc[code] || e.desc.kn}</span>
                   </div>
@@ -914,24 +987,24 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             >
               <div
                 style={{
-                  fontSize: "13.5px",
+                  fontSize: "13px",
                   fontWeight: 900,
                   color: "#78350F",
                   borderBottom: "1.5px solid #FDE68A",
-                  paddingBottom: "5px",
-                  marginBottom: "7px",
+                  paddingBottom: "4px",
+                  marginBottom: "5px",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center"
                 }}
               >
                 <span>📜 {i18n.sec5Title}</span>
-                <span style={{ fontSize: "11px", color: "#92400E", fontWeight: 800, background: "#FEF08A", padding: "2px 8px", borderRadius: "10px" }}>
+                <span style={{ fontSize: "10.5px", color: "#92400E", fontWeight: 800, background: "#FEF08A", padding: "1px 8px", borderRadius: "10px" }}>
                   {stotra.dedicatedTo[code] || stotra.dedicatedTo.kn}
                 </span>
               </div>
 
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#991B1B", marginBottom: "5px" }}>
+              <div style={{ fontSize: "12.5px", fontWeight: 800, color: "#991B1B", marginBottom: "4px" }}>
                 ✨ {stotra.title[code] || stotra.title.kn}
               </div>
 
@@ -941,12 +1014,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   background: "#FFFBEB",
                   border: "1px solid #FCD34D",
                   borderRadius: "7px",
-                  padding: "8px 12px",
+                  padding: "7px 12px",
                   textAlign: "center",
-                  fontSize: "12.5px",
+                  fontSize: "12px",
                   fontWeight: 800,
                   color: "#451A03",
-                  lineHeight: 1.7,
+                  lineHeight: 1.65,
                   whiteSpace: "pre-line",
                   letterSpacing: "normal"
                 }}
@@ -954,7 +1027,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 {getShlokaByLang(stotra)}
               </div>
 
-              <div style={{ fontSize: "11.5px", color: "#78350F", marginTop: "6px", lineHeight: 1.55 }}>
+              <div style={{ fontSize: "11px", color: "#78350F", marginTop: "5px", lineHeight: 1.5 }}>
                 <span style={{ fontWeight: 800, color: "#92400E" }}>{isKn ? "• ಅರ್ಥ: " : isHi ? "• अर्थ: " : isTe ? "• భావం: " : isTa ? "• பொருள்: " : "• Meaning: "}</span> {stotra.meaning[code] || stotra.meaning.kn}
               </div>
 
@@ -964,10 +1037,10 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   display: "grid",
                   gridTemplateColumns: "1.2fr 1fr 1.3fr",
                   gap: "6px",
-                  marginTop: "6px",
-                  paddingTop: "5px",
+                  marginTop: "5px",
+                  paddingTop: "4px",
                   borderTop: "1px dashed #FDE68A",
-                  fontSize: "11px"
+                  fontSize: "10.5px"
                 }}
               >
                 <div>
@@ -984,12 +1057,31 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 </div>
               </div>
 
-              <div style={{ fontSize: "11.5px", color: "#065F46", marginTop: "4px", fontWeight: 700, lineHeight: 1.5 }}>
+              <div style={{ fontSize: "11px", color: "#065F46", marginTop: "3px", fontWeight: 700, lineHeight: 1.45 }}>
                 <span style={{ fontWeight: 800 }}>🌿 {i18n.stotraBenefits} </span>
                 {stotra.spiritualBenefits[code] || stotra.spiritualBenefits.kn}
               </div>
             </div>
           )}
+
+          {/* Dedicated Daily Peace Sankalpa Card (Guarantees 100% Page Balance & Zero Empty Space) */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #FEFCE8 0%, #FEF3C7 50%, #FFFBEB 100%)",
+              border: "1.5px solid #D97706",
+              borderRadius: "8px",
+              padding: "8px 12px",
+              color: "#78350F",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
+            }}
+          >
+            <div style={{ fontSize: "11.5px", fontWeight: 900, color: "#92400E", marginBottom: "3px" }}>
+              {i18n.dailySankalpaTitle}
+            </div>
+            <div style={{ fontSize: "10.5px", color: "#451A03", lineHeight: 1.5, fontStyle: "italic" }}>
+              {i18n.dailySankalpaText}
+            </div>
+          </div>
 
           {/* Page 2 Footer */}
           <div
@@ -999,7 +1091,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px solid #D97706",
-              paddingTop: "6px"
+              paddingTop: "5px"
             }}
           >
             {i18n.page2Footer}
@@ -1016,7 +1108,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
           width: "900px",
           height: "1273px",
           minHeight: "1273px",
-          padding: "20px 24px",
+          maxHeight: "1273px",
+          padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -1027,15 +1120,15 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
         <div
           style={{
             width: "100%",
-            height: "1225px",
-            maxHeight: "1225px",
+            height: "1241px",
+            maxHeight: "1241px",
             border: "3px double #92400E",
             outline: "1.5px solid #D97706",
-            outlineOffset: "-6px",
-            borderRadius: "14px",
-            padding: "14px 18px",
+            outlineOffset: "-5px",
+            borderRadius: "12px",
+            padding: "12px 16px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 35%, #FEF3C7 100%)",
+            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -1048,7 +1141,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               textAlign: "center",
               background: "linear-gradient(135deg, #451A03 0%, #78350F 50%, #451A03 100%)",
               borderRadius: "8px",
-              padding: "7px 14px",
+              padding: "8px 14px",
               color: "#FFFFFF",
               border: "2px solid #F59E0B",
               boxShadow: "0 2px 6px rgba(0,0,0,0.12)"
@@ -1057,7 +1150,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             <div style={{ fontSize: "11px", fontWeight: 800, color: "#FDE68A", letterSpacing: "normal" }}>
               {i18n.templeBanner}
             </div>
-            <div style={{ fontSize: "14.5px", fontWeight: 900, color: "#FFFFFF", marginTop: "2px", lineHeight: 1.3 }}>
+            <div style={{ fontSize: "15px", fontWeight: 900, color: "#FFFFFF", marginTop: "2px", lineHeight: 1.3 }}>
               {i18n.page3Title}
             </div>
           </div>
@@ -1068,7 +1161,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               background: "#FFFFFF",
               border: "1.5px solid #D97706",
               borderRadius: "8px",
-              padding: "7px 11px",
+              padding: "8px 12px",
               boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
             }}
           >
@@ -1086,12 +1179,18 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             </div>
 
             {/* Dasha Card */}
-            <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "5px 8px", fontSize: "11px", lineHeight: 1.4 }}>
+            <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "6px 9px", fontSize: "11px", lineHeight: 1.4 }}>
               <div style={{ fontWeight: 800, color: "#92400E" }}>
                 <span>⏳ {i18n.currentDasha} </span>
                 <span style={{ color: "#B45309", fontWeight: 900 }}>
                   {isKn
-                    ? `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn}${isKn ? " ಮಹಾದಶೆ — " : isHi ? " महादशा — " : isTe ? " మహర్దశ — " : isTa ? " மகாதிசை — " : " Mahadasha — "}${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn}${isKn ? " ಭುಕ್ತಿ" : isHi ? " भुक्ति" : isTe ? " భుక్తి" : isTa ? " புக்தி" : " Bhukti"}`
+                    ? `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn} ಮಹಾದಶೆ — ${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn} ಭುಕ್ತಿ`
+                    : isHi
+                    ? `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn} महादशा — ${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn} भुक्ति`
+                    : isTe
+                    ? `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn} మహర్దశ — ${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn} భుక్తి`
+                    : isTa
+                    ? `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn} மகாதிசை — ${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn} புக்தி`
                     : `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.en} Dasha — ${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.en} Bhukti`}
                 </span>
               </div>
@@ -1107,10 +1206,10 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
 
             {/* Turnaround Timing Box (ಭಾಗ್ಯೋದಯ ಕಾಲಾವಧಿ) */}
             {lifeTurnaroundTiming && (
-              <div style={{ marginTop: "5px", background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "6px", padding: "5px 8px", fontSize: "11px", lineHeight: 1.4 }}>
+              <div style={{ marginTop: "5px", background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "6px", padding: "5px 9px", fontSize: "11px", lineHeight: 1.4 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 900, color: "#78350F" }}>
                   <span>🌟 {isKn ? "ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ:" : isHi ? "भाग्योदय एवं परिहार समयावधि:" : isTe ? "భాగ్యోదయ & పరిహార సమయం:" : isTa ? "வாழ்வு திருப்பம் & பரிகார காலம்:" : "Turnaround Point & Timing Window:"}</span>
-                  <span style={{ background: "#D97706", color: "#FFFFFF", padding: "1px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 800 }}>
+                  <span style={{ background: "#D97706", color: "#FFFFFF", padding: "1px 8px", borderRadius: "10px", fontSize: "10px", fontWeight: 800 }}>
                     {isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || "Upcoming 3 to 6 months")}
                   </span>
                 </div>
@@ -1122,7 +1221,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                       : `${lifeTurnaroundTiming.catalystGrahaEn || "Catalyst Planet"} · ${lifeTurnaroundTiming.specificSevaEn || "Gokarna Seva"}`}
                   </span>
                 </div>
-                <div style={{ color: "#78350F", marginTop: "1px", fontSize: "10px" }}>
+                <div style={{ color: "#78350F", marginTop: "1px", fontSize: "10.5px" }}>
                   <span style={{ fontWeight: 800 }}>{isKn ? "• ಜ್ಯೋತಿಷ್ಯ ಪ್ರಕ್ರಿಯೆ: " : isHi ? "• ज्योतिषीय प्रक्रिया: " : isTe ? "• జ్యోతిష్య ప్రక్రియ: " : isTa ? "• ஜோதிட திருப்ப முறை: " : "• Breakthrough Mechanism: "}</span>
                   {isKn ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || "Astrological planetary alignment facilitates breakthroughs.")}
                 </div>
@@ -1192,7 +1291,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 {planetaryStrengthRemedies.debilitatedPlanets.length > 0 && (
                   <div style={{ color: "#991B1B" }}>
                     <span style={{ fontWeight: 800 }}>{isKn ? "⚠️ ನೀಚ ಗ್ರಹ: " : isHi ? "⚠️ नीच ग्रह: " : isTe ? "⚠️ నీచ గ్రహం: " : isTa ? "⚠️ நீச கிரகம்: " : "⚠️ Debilitated Planet: "}</span>
-                    {planetaryStrengthRemedies.debilitatedPlanets.map(dp => `${dp.grahaName[code] || dp.grahaName.kn} (${dp.hasNeechaBhanga ? (isKn ? "ನೀಚಭಂಗ ರಾಜಯೋಗ" : isHi ? "नीचभंग राजयोग" : isTe ? "ನೀಚభంగ రాజయోగం" : isTa ? "நீசபங்க ராஜயோகம்" : "Neecha Bhanga Raja Yoga") : (isKn ? "ನೀಚ" : isHi ? "नीच" : isTe ? "ನೀచ" : isTa ? "நீசம்" : "Debilitated")}) - ${dp.gemstoneCaution[code] || dp.gemstoneCaution.kn}`).join("; ")}
+                    {planetaryStrengthRemedies.debilitatedPlanets.map(dp => `${dp.grahaName[code] || dp.grahaName.kn} (${dp.hasNeechaBhanga ? (isKn ? "ನೀಚಭಂಗ ರಾಜಯೋಗ" : isHi ? "नीचभंग राजयोग" : isTe ? "నీచభంగ రాజయోగం" : isTa ? "நீசபங்க ராஜயோகம்" : "Neecha Bhanga Raja Yoga") : (isKn ? "ನೀಚ" : isHi ? "नीच" : isTe ? "ನೀచ" : isTa ? "நீசம்" : "Debilitated")}) - ${dp.gemstoneCaution[code] || dp.gemstoneCaution.kn}`).join("; ")}
                   </div>
                 )}
                 {planetaryStrengthRemedies.exaltedPlanets.length > 0 && (
@@ -1215,7 +1314,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               background: "#FFFFFF",
               border: "1.5px solid #D97706",
               borderRadius: "8px",
-              padding: "7px 11px",
+              padding: "8px 12px",
               boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
             }}
           >
@@ -1234,21 +1333,21 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
               {/* Prescribed Seva */}
-              <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "5px 8px", fontSize: "11px", lineHeight: 1.4 }}>
+              <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "6px 9px", fontSize: "11px", lineHeight: 1.4 }}>
                 <div style={{ fontWeight: 800, color: "#92400E" }}>🔱 {i18n.prescribedSeva}</div>
                 <div style={{ color: "#451A03", fontWeight: 800, marginTop: "1px" }}>
                   {gokarnaTempleRemedies.prescribedSeva.name[code] || gokarnaTempleRemedies.prescribedSeva.name.kn}
                 </div>
-                <div style={{ color: "#78350F", fontSize: "10px", marginTop: "1px" }}>
+                <div style={{ color: "#78350F", fontSize: "10.5px", marginTop: "1px" }}>
                   {gokarnaTempleRemedies.prescribedSeva.temple[code] || gokarnaTempleRemedies.prescribedSeva.temple.kn}
                 </div>
-                <div style={{ color: "#065F46", fontSize: "10px", marginTop: "1px", fontWeight: 700 }}>
+                <div style={{ color: "#065F46", fontSize: "10.5px", marginTop: "1px", fontWeight: 700 }}>
                   📅 {gokarnaTempleRemedies.prescribedSeva.idealDay[code] || gokarnaTempleRemedies.prescribedSeva.idealDay.kn}
                 </div>
               </div>
 
               {/* Rudraksha, Gemstone, Daana */}
-              <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "6px", padding: "5px 8px", fontSize: "11px", lineHeight: 1.4 }}>
+              <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "6px", padding: "6px 9px", fontSize: "11px", lineHeight: 1.4 }}>
                 <div>
                   <span style={{ fontWeight: 800, color: "#92400E" }}>📿 {i18n.rudraksha}</span>{" "}
                   <span style={{ color: "#451A03", fontWeight: 700 }}>
@@ -1277,7 +1376,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               background: "#FFFFFF",
               border: "1.5px solid #D97706",
               borderRadius: "8px",
-              padding: "7px 11px",
+              padding: "8px 12px",
               boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
             }}
           >
@@ -1349,11 +1448,11 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
           <div
             style={{
               textAlign: "center",
-              fontSize: "10px",
+              fontSize: "10.5px",
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px dashed #D97706",
-              paddingTop: "3px"
+              paddingTop: "4px"
             }}
           >
             {i18n.page3Footer}

@@ -574,7 +574,7 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                 <div className="p-4 rounded-2xl bg-amber-50/80 border-2 border-amber-300 shadow-xs">
                   <div className="text-xs font-bold text-amber-950 flex items-center gap-1.5 mb-2">
                     <span>✨</span>
-                    <span>{isKn ? "ಪಂಡಿತರ AI ದೈವಿಕ ನಿರೂಪಣೆ (Gemini 3.5 Flash-Lite)" : "Priest AI Divine Synthesis (Gemini 3.5 Flash-Lite)"}</span>
+                    <span>{isKn ? "ಪಂಡಿತರ ದೈವಿಕ ನಿರೂಪಣೆ & ಸಂದೇಶ" : "Priest Divine Astrological Synthesis"}</span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
                     {report.aiNarration.varshaphalaNarrative}
@@ -771,7 +771,7 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                 <div className="p-4 rounded-2xl bg-amber-50/80 border-2 border-amber-300 shadow-xs">
                   <div className="text-xs font-bold text-amber-950 flex items-center gap-1.5 mb-2">
                     <span>✨</span>
-                    <span>{isKn ? "ಪಂಡಿತರ AI ದೈವಿಕ ಧನ-ವೃತ್ತಿ ನಿರೂಪಣೆ (Gemini 3.5 Flash-Lite)" : "Priest AI Wealth Synthesis (Gemini 3.5 Flash-Lite)"}</span>
+                    <span>{isKn ? "ಪಂಡಿತರ ದೈವಿಕ ಧನ-ವೃತ್ತಿ ನಿರೂಪಣೆ" : "Priest Divine Wealth Synthesis"}</span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
                     {report.aiNarration.wealthNarrative}

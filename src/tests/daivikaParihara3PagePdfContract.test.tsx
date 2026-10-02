@@ -37,7 +37,7 @@ describe("Daivika Parihara 3-Page PDF Contract & Border Containment Audit", () =
     primaryConcern: "career_obstacles"
   };
 
-  it("1. Renders exactly 3 .pdf-page A4 containers with strict 1123px height", () => {
+  it("1. Renders exactly 3 .pdf-page A4 containers with strict 1273px height conforming to baggona-pdf-layout-guard", () => {
     const diagnosis = generateKundliRemedyReport(mockKundli, devoteeInput);
     const { container } = render(<KundliRemedyPdfTemplate diagnosis={diagnosis} lang="kn" />);
 
@@ -46,15 +46,15 @@ describe("Daivika Parihara 3-Page PDF Contract & Border Containment Audit", () =
 
     pages.forEach((page, idx) => {
       const el = page as HTMLElement;
-      expect(el.style.width).toBe("794px");
-      expect(el.style.height).toBe("1123px");
+      expect(el.style.width).toBe("900px");
+      expect(el.style.height).toBe("1273px");
       expect(el.style.overflow).toBe("hidden");
 
-      // Verify the inner double-bordered container exists and is bounded to 1091px
+      // Verify the inner double-bordered container exists and is bounded to 1241px
       const innerBorderDiv = el.firstElementChild as HTMLElement;
       expect(innerBorderDiv).toBeTruthy();
-      expect(innerBorderDiv.style.height).toBe("1091px");
-      expect(innerBorderDiv.style.maxHeight).toBe("1091px");
+      expect(innerBorderDiv.style.height).toBe("1241px");
+      expect(innerBorderDiv.style.maxHeight).toBe("1241px");
       expect(innerBorderDiv.style.overflow).toBe("hidden");
       expect(innerBorderDiv.style.border).toContain("3px double");
     });
