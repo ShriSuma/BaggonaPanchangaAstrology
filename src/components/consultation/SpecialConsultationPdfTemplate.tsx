@@ -47,10 +47,13 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
           className="pdf-page"
           style={{
             width: "900px",
+            height: "1273px",
             minHeight: "1273px",
+            maxHeight: "1273px",
+            overflow: "hidden",
             boxSizing: "border-box",
-            padding: "36px 44px",
-            background: "#FFFDF9",
+            padding: "32px 42px",
+            background: "#FFFDF7",
             position: "relative",
             display: "block",
             pageBreakAfter: "always"
@@ -284,10 +287,13 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
           className="pdf-page"
           style={{
             width: "900px",
+            height: "1273px",
             minHeight: "1273px",
+            maxHeight: "1273px",
+            overflow: "hidden",
             boxSizing: "border-box",
-            padding: "36px 44px",
-            background: "#FFFDF9",
+            padding: "32px 42px",
+            background: "#FFFDF7",
             position: "relative",
             display: "block",
             pageBreakAfter: "always"
@@ -319,7 +325,11 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
             <div style={{ marginBottom: "22px" }}>
               <div style={{ borderBottom: "2px solid #D97706", paddingBottom: "4px", marginBottom: "10px" }}>
                 <h2 style={{ fontSize: "16px", color: "#78350F", fontWeight: 800, margin: 0 }}>
-                  💍 {isKn ? "ವಿವಾಹ ಯೋಗ, ಜೀವನ ಸಂಗಾತಿ & ದಾಂಪತ್ಯ ರಹಸ್ಯ" : "Marriage Destiny, Spouse Profile & Matrimonial Harmony"}
+                  {report.marriageDossier.isMinor
+                    ? (isKn ? "👶 ಬಾಲ್ಯಾವಸ್ಥೆಯ ವಿದ್ಯಾಭ್ಯಾಸ, ಆರೋಗ್ಯ & ಭವಿಷ್ಯದ ಕಲ್ಯಾಣ" : "Childhood Learning, Health & Future Grace")
+                    : report.marriageDossier.isMarried
+                    ? (isKn ? "💍 ದಾಂಪತ್ಯ ಸೌಭಾಗ್ಯ, ಸಂಸಾರ ಸುಖ & ಸುಮಂಗಲೀ ಯೋಗ" : "Marital Bliss, Domestic Harmony & Spousal Longevity")
+                    : (isKn ? "💍 ವಿವಾಹ ಯೋಗ, ಜೀವನ ಸಂಗಾತಿ & ದಾಂಪತ್ಯ ರಹಸ್ಯ" : "Marriage Destiny, Spouse Profile & Matrimonial Harmony")}
                 </h2>
               </div>
 
@@ -338,7 +348,11 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
                   }}
                 >
                   <div style={{ fontWeight: 800, color: "#92400E", marginBottom: "2px", fontSize: "11.5px" }}>
-                    ✨ {isKn ? "ಪಂಡಿತರ AI ದೈವಿಕ ವಿವಾಹ ನಿರೂಪಣೆ" : "Priest AI Marriage Synthesis"}
+                    ✨ {report.marriageDossier.isMinor
+                        ? (isKn ? "ಪಂಡಿತರ AI ವಿದ್ಯಾಭ್ಯಾಸ & ಬಾಲ ಸಂಸ್ಕಾರ ನಿರೂಪಣೆ" : "Priest AI Childhood & Education Synthesis")
+                        : report.marriageDossier.isMarried
+                        ? (isKn ? "ಪಂಡಿತರ AI ದಾಂಪತ್ಯ ಸುಖ & ಸಾಮರಸ್ಯ ನಿರೂಪಣೆ" : "Priest AI Marital Harmony Synthesis")
+                        : (isKn ? "ಪಂಡಿತರ AI ದೈವಿಕ ವಿವಾಹ ನಿರೂಪಣೆ" : "Priest AI Marriage Synthesis")}
                   </div>
                   <div style={{ whiteSpace: "pre-line" }}>
                     {report.aiNarration.marriageNarrative}
@@ -359,18 +373,45 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
                   ✨ {isKn ? report.marriageDossier.verdictTitleKn : report.marriageDossier.verdictTitleEn}
                 </div>
                 <div style={{ fontSize: "12.5px", color: "#451A03", lineHeight: 1.55, marginBottom: "10px" }}>
-                  <strong>{isKn ? "ಪ್ರಶಸ್ತ ವಿವಾಹ ಕಾಲ" : "Matrimonial Timing Window"}:</strong> {isKn ? report.marriageDossier.marriageWindowKn : report.marriageDossier.marriageWindowEn}
+                  <strong>
+                    {report.marriageDossier.isMinor
+                      ? (isKn ? "ಪ್ರಸ್ತುತ ಹಂತ & ಭವಿಷ್ಯದ ಕಾಲ" : "Current Life Phase & Timing Window")
+                      : report.marriageDossier.isMarried
+                      ? (isKn ? "ದಾಂಪತ್ಯ ಸ್ಥಿತಿ" : "Marital Status & Growth")
+                      : (isKn ? "ಪ್ರಶಸ್ತ ವಿವಾಹ ಕಾಲ" : "Matrimonial Timing Window")}:
+                  </strong>{" "}
+                  {isKn ? report.marriageDossier.marriageWindowKn : report.marriageDossier.marriageWindowEn}
                 </div>
 
-                {/* Spouse Profile Subcard */}
+                {/* Subcard (Minor Guidance / Married Harmony / Spouse Profile) */}
                 <div style={{ background: "#FFFBEB", border: "1px dashed #D97706", borderRadius: "8px", padding: "10px 14px", marginBottom: "10px" }}>
                   <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", marginBottom: "4px" }}>
-                    👰 {isKn ? "ಭಾವಿ ಸಂಗಾತಿಯ ಗುಣಲಕ್ಷಣ & ಆಗಮನ ದಿಕ್ಕು" : "Spouse Temperament & Origin"}
+                    {report.marriageDossier.isMinor
+                      ? (isKn ? "👶 ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಆಯುರಾರೋಗ್ಯ & ಸಂಸ್ಕಾರ ಮಾರ್ಗದರ್ಶನ" : "Childhood Education, Health & Moral Guidance")
+                      : report.marriageDossier.isMarried
+                      ? (isKn ? "🏡 ಸಂಸಾರ ಸಾಮರಸ್ಯ, ಪರಸ್ಪರ ಪ್ರೇಮ & ಕೌಟುಂಬಿಕ ಒಗ್ಗಟ್ಟು" : "Family Harmony, Spousal Alignment & Domestic Peace")
+                      : (isKn ? "👰 ಭಾವಿ ಸಂಗಾತಿಯ ಗುಣಲಕ್ಷಣ & ಆಗಮನ ದಿಕ್ಕು" : "Spouse Temperament & Origin")}
                   </div>
                   <div style={{ fontSize: "12px", color: "#451A03", lineHeight: 1.55 }}>
-                    <div><strong>{isKn ? "ಆಗಮನ ದಿಕ್ಕು" : "Direction"}:</strong> {isKn ? report.marriageDossier.spouseProfile.directionKn : report.marriageDossier.spouseProfile.directionEn}</div>
-                    <div><strong>{isKn ? "ವ್ಯಕ್ತಿತ್ವ" : "Personality"}:</strong> {isKn ? report.marriageDossier.spouseProfile.natureKn : report.marriageDossier.spouseProfile.natureEn}</div>
-                    <div><strong>{isKn ? "ವೃತ್ತಿ ಕ್ಷೇತ್ರ" : "Vocation"}:</strong> {isKn ? report.marriageDossier.spouseProfile.professionDomainKn : report.marriageDossier.spouseProfile.professionDomainEn}</div>
+                    {report.marriageDossier.isMinor ? (
+                      <>
+                        <div><strong>{isKn ? "ದೈವಿಕ ಮಾರ್ಗದರ್ಶನ:" : "Holistic Guidance:"}</strong> {isKn ? report.marriageDossier.spouseProfile.natureKn : report.marriageDossier.spouseProfile.natureEn}</div>
+                        <div><strong>{isKn ? "ವಿದ್ಯಾಭ್ಯಾಸ ಕ್ಷೇತ್ರ:" : "Academic Sphere:"}</strong> {isKn ? report.marriageDossier.spouseProfile.professionDomainKn : report.marriageDossier.spouseProfile.professionDomainEn}</div>
+                        <div><strong>{isKn ? "ಭವಿಷ್ಯದ ಸೂಚನೆ:" : "Future Indication:"}</strong> {isKn ? report.marriageDossier.spouseProfile.directionKn : report.marriageDossier.spouseProfile.directionEn}</div>
+                      </>
+                    ) : report.marriageDossier.isMarried ? (
+                      <>
+                        <div><strong>{isKn ? "ದಾಂಪತ್ಯ ಗುಣ:" : "Marital Dynamics:"}</strong> {isKn ? report.marriageDossier.spouseProfile.natureKn : report.marriageDossier.spouseProfile.natureEn}</div>
+                        <div><strong>{isKn ? "ವೃತ್ತಿ & ಆರ್ಥಿಕತೆ:" : "Vocation & Stability:"}</strong> {isKn ? report.marriageDossier.spouseProfile.professionDomainKn : report.marriageDossier.spouseProfile.professionDomainEn}</div>
+                        <div><strong>{isKn ? "ಕೌಟುಂಬಿಕ ಹೊಂದಾಣಿಕೆ:" : "Family Alignment:"}</strong> {isKn ? report.marriageDossier.spouseProfile.directionKn : report.marriageDossier.spouseProfile.directionEn}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div><strong>{isKn ? "ಆಗಮನ ದಿಕ್ಕು:" : "Direction:"}</strong> {isKn ? report.marriageDossier.spouseProfile.directionKn : report.marriageDossier.spouseProfile.directionEn}</div>
+                        <div><strong>{isKn ? "ವ್ಯಕ್ತಿತ್ವ:" : "Personality:"}</strong> {isKn ? report.marriageDossier.spouseProfile.natureKn : report.marriageDossier.spouseProfile.natureEn}</div>
+                        <div><strong>{isKn ? "ವೃತ್ತಿ ಕ್ಷೇತ್ರ:" : "Vocation:"}</strong> {isKn ? report.marriageDossier.spouseProfile.professionDomainKn : report.marriageDossier.spouseProfile.professionDomainEn}</div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -489,10 +530,13 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
           className="pdf-page"
           style={{
             width: "900px",
+            height: "1273px",
             minHeight: "1273px",
+            maxHeight: "1273px",
+            overflow: "hidden",
             boxSizing: "border-box",
-            padding: "36px 44px",
-            background: "#FFFDF9",
+            padding: "32px 42px",
+            background: "#FFFDF7",
             position: "relative",
             display: "block",
             pageBreakAfter: "always"
@@ -719,10 +763,13 @@ export const SpecialConsultationPdfTemplate: React.FC<SpecialConsultationPdfTemp
           className="pdf-page"
           style={{
             width: "900px",
+            height: "1273px",
             minHeight: "1273px",
+            maxHeight: "1273px",
+            overflow: "hidden",
             boxSizing: "border-box",
-            padding: "36px 44px",
-            background: "#FFFDF9",
+            padding: "32px 42px",
+            background: "#FFFDF7",
             position: "relative",
             display: "block",
             pageBreakAfter: "always"

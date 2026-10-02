@@ -142,4 +142,36 @@ describe("Special Divine Consultation Engine Test Suite", () => {
     expect(report.gemstoneRudraksha.prescribedRudraksha.panchangaReasonKn).toBeDefined();
     expect(report.gemstoneRudraksha.prescribedRudraksha.mukhiKn).toMatch(/ಮುಖಿ/);
   });
+
+  it("handles 10-year-old child (minor) accurately without premature marriage predictions", () => {
+    // 10-year old child born in 2016
+    const childReport = generateSpecialConsultationReport(kundli, {
+      devoteeName: "ಕುಮಾರಿ ಅನನ್ಯ",
+      birthDate: "2016-05-15",
+      birthTime: "10:30",
+      maritalStatus: "unmarried"
+    });
+
+    expect(childReport.marriageDossier.isMinor).toBe(true);
+    expect(childReport.marriageDossier.isMarried).toBe(false);
+    expect(childReport.marriageDossier.age).toBeLessThan(18);
+    expect(childReport.marriageDossier.verdictTitleKn).toContain("ಬಾಲ್ಯಾವಸ್ಥೆ");
+    expect(childReport.marriageDossier.marriageWindowKn).toContain("ವಿದ್ಯಾಭ್ಯಾಸ");
+    expect(childReport.marriageDossier.marriageWindowKn).toContain("ವಯಸ್ಕರಾದ ನಂತರ");
+  });
+
+  it("handles married devotee accurately with marital bliss and spousal longevity", () => {
+    const marriedReport = generateSpecialConsultationReport(kundli, {
+      devoteeName: "ಶ್ರೀ ರಾಘವೇಂದ್ರ",
+      birthDate: "1988-11-20",
+      birthTime: "08:15",
+      maritalStatus: "married"
+    });
+
+    expect(marriedReport.marriageDossier.isMinor).toBe(false);
+    expect(marriedReport.marriageDossier.isMarried).toBe(true);
+    expect(marriedReport.marriageDossier.verdictTitleKn).toContain("ದಾಂಪತ್ಯ ಸೌಭಾಗ್ಯ");
+    expect(marriedReport.marriageDossier.marriageWindowKn).toContain("ದಾಂಪತ್ಯ ಜೀವನವು ಸುಖಕರವಾಗಿ ಸಾಗುತ್ತಿದ್ದು");
+  });
 });
+

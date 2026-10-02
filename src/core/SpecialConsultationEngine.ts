@@ -170,6 +170,9 @@ export interface MarriageDossierResult {
   verdictTitleEn: string;
   marriageWindowKn: string;
   marriageWindowEn: string;
+  isMinor?: boolean;
+  isMarried?: boolean;
+  age?: number;
   spouseProfile: {
     directionKn: string;
     directionEn: string;
@@ -817,7 +820,17 @@ function compute12MonthDynamicGochara(moonRashiIdx: number, lagnaIdx: number): T
 // 2. MARRIAGE & RELATIONSHIP DESTINY
 // -------------------------------------------------------------
 function computeMarriageDossier(kundli: KundliOutput, context: any): MarriageDossierResult {
-  const assessment = determineMarriageDestiny(kundli, context);
+  const rawAge = context?.devoteeAge ?? (context?.birthDate ? (new Date().getFullYear() - new Date(context.birthDate).getFullYear()) : 30);
+  const age = Math.max(0, rawAge);
+  const isMinor = age < 18;
+
+  const statusStr = (context?.maritalStatus || "").toLowerCase();
+  const isExplicitlySingle = statusStr.includes("unmarried") || statusStr.includes("single") ||
+    statusStr.includes("celibate") || statusStr.includes("bachelor") ||
+    statusStr.includes("ಬ್ರಹ್ಮಚಾರಿ") || statusStr.includes("ಅವಿವಾಹಿತ");
+  const isMarried = !isExplicitlySingle && (statusStr.includes("married") || statusStr.includes("ವಿವಾಹಿತ"));
+
+  const assessment = determineMarriageDestiny(kundli, { ...context, devoteeAge: age });
   const lagnaIndex = kundli.lagnaRashi ? kundli.lagnaRashi.index : 0;
   const seventhHouseSign = (lagnaIndex + 6) % 12;
 
@@ -853,11 +866,66 @@ function computeMarriageDossier(kundli: KundliOutput, context: any): MarriageDos
   ];
   const dir = directions[seventhHouseSign % directions.length];
 
+  if (isMinor) {
+    return {
+      verdictTitleKn: `ಬಾಲ್ಯಾವಸ್ಥೆ ಹಾಗೂ ವಿದ್ಯಾಭ್ಯಾಸದ ದೈವಿಕ ರಕ್ಷಣೆ (ವಯಸ್ಸು: ${age} ವರ್ಷ)`,
+      verdictTitleEn: `Childhood Educational & Holistic Grace (Age: ${age} yrs)`,
+      marriageWindowKn: "ಪ್ರಸ್ತುತ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸತ್ಸಂಸ್ಕಾರದ ಪ್ರಧಾನ ಹಂತ. ವಯಸ್ಕರಾದ ನಂತರ (೨೪ ರಿಂದ ೨೮ ವರ್ಷಗಳ ಸುಮಾರಿಗೆ) ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಯೋಗ.",
+      marriageWindowEn: "Primary focus is foundational learning and character building. Auspicious marriage window upon adulthood (ages 24 to 28).",
+      isMinor: true,
+      isMarried: false,
+      age,
+      spouseProfile: {
+        directionKn: `ವಯಸ್ಕ ಹಂತದ ದೈವಿಕ ಸೂಚನೆ: ${dir.kn}`,
+        directionEn: `Future adult indication: ${dir.en}`,
+        natureKn: "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗೆ ಪ್ರಥಮ ಆದ್ಯತೆ. ೭ನೇ ಭಾವ ಹಾಗೂ ಶುಕ್ರನ ಶುಭ ಬಲವು ಭವಿಷ್ಯದ ವಯಸ್ಕ ಜೀವನದಲ್ಲಿ ಸದ್ಗುಣ ಸಂಪನ್ನ ಸಂಗಾತಿಯನ್ನು ಒದಗಿಸಲಿದೆ.",
+        natureEn: "Focus is on holistic education, memory, and physical vitality. Auspicious Venus placement guarantees a virtuous companion in adult life.",
+        professionDomainKn: "ಪ್ರಸ್ತುತ ವಿದ್ಯಾಭ್ಯಾಸ, ಶಾಲಾ-ಕಾಲೇಜು ಶಿಕ್ಷಣ ಹಾಗೂ ಪ್ರತಿಭಾಸಂಪನ್ನ ಬೆಳವಣಿಗೆ.",
+        professionDomainEn: "Current phase: Academic learning, talent nurturing, and holistic childhood blossoming."
+      },
+      kujaDoshaStatusKn: kujaKn,
+      kujaDoshaStatusEn: kujaEn,
+      maritalHarmonyAdviceKn: "ಪೋಷಕರ ವಾತ್ಸಲ್ಯ, ಸಕಾರಾತ್ಮಕ ಮನೆ ವಾತಾವರಣ ಮತ್ತು ನಿತ್ಯ ಗಾಯತ್ರಿ/ಸರಸ್ವತಿ ಪ್ರಾರ್ಥನೆಯಿಂದ ಮಗುವಿಗೆ ಉಜ್ವಲ ಭವಿಷ್ಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.",
+      maritalHarmonyAdviceEn: "Loving parental guidance and a calm, spiritual home atmosphere foster great intellectual and emotional brilliance.",
+      sacredRemedyKn: assessment.blessingRemedyKn || "ಮಗುವಿನ ಆಯುರಾರೋಗ್ಯ ಹಾಗೂ ವಿದ್ಯಾಭಿವೃದ್ಧಿಗಾಗಿ ನಿತ್ಯ ವಿದ್ಯಾ ಗಣಪತಿ ಮತ್ತು ಗಾಯತ್ರಿ ಮಂತ್ರ ಸ್ಮರಣೆ.",
+      sacredRemedyEn: assessment.blessingRemedyEn || "Daily prayers to Lord Ganesha and Goddess Saraswati for academic radiance and longevity."
+    };
+  }
+
+  if (isMarried) {
+    return {
+      verdictTitleKn: "ದಾಂಪತ್ಯ ಸೌಭಾಗ್ಯ, ಸಂಸಾರ ಸುಖ & ಸುಮಂಗಲೀ ಯೋಗ",
+      verdictTitleEn: "Marital Bliss, Domestic Harmony & Spousal Longevity",
+      marriageWindowKn: "ದಾಂಪತ್ಯ ಜೀವನವು ಸುಖಕರವಾಗಿ ಸಾಗುತ್ತಿದ್ದು, ದೈವಾನುಗ್ರಹದಿಂದ ಕೌಟುಂಬಿಕ ಶಾಂತಿ ಹಾಗೂ ಪರಸ್ಪರ ಪ್ರೇಮ ವೃದ್ಧಿಯಾಗಲಿದೆ.",
+      marriageWindowEn: "Active matrimony blessed with growing family peace, mutual affection, and auspicious domestic harmony.",
+      isMinor: false,
+      isMarried: true,
+      age,
+      spouseProfile: {
+        directionKn: `ಕೌಟುಂಬಿಕ ಹೊಂದಾಣಿಕೆ: ${dir.kn}`,
+        directionEn: `Family harmony alignment: ${dir.en}`,
+        natureKn: "ಸಂಗಾತಿಯಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೇಮ, ಸಹಬಾಳ್ವೆ, ಕೌಟುಂಬಿಕ ನಿಷ್ಠೆ ಹಾಗೂ ಸುಖ-ದುಃಖಗಳಲ್ಲಿ ಬೆನ್ನೆಲುಬಾಗಿ ನಿಲ್ಲುವ ಉದಾತ್ತ ಗುಣ.",
+        natureEn: "Mutual respect, emotional maturity, patience, and unwavering loyalty towards family welfare.",
+        professionDomainKn: "ಸಂಗಾತಿಯ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅಭಿವೃದ್ಧಿ ಹಾಗೂ ಉಭಯ ಕುಟುಂಬಗಳ ಆರ್ಥಿಕ ಭದ್ರತೆ.",
+        professionDomainEn: "Professional stability and collaborative financial flourishing."
+      },
+      kujaDoshaStatusKn: kujaKn,
+      kujaDoshaStatusEn: kujaEn,
+      maritalHarmonyAdviceKn: "ಪರಸ್ಪರ ಗೌರವ ಮತ್ತು ಮುಕ್ತ ಸಂವಾದವೇ ದಾಂಪತ್ಯದ ಬುನಾದಿ. ಶುಕ್ರವಾರ ದಂಪತಿಗಳು ಒಟ್ಟಾಗಿ ದೇವರ ಪೂಜೆ ನೆರವೇರಿಸುವುದು ಶ್ರೇಷ್ಠ.",
+      maritalHarmonyAdviceEn: "Mutual respect and clear communication ensure harmony. Joint Friday prayers invite Lakshmi-Narayana grace.",
+      sacredRemedyKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ದಂಪತಿ ಸಮೇತ ಉಮಾ-ಮಹೇಶ್ವರ ಪೂಜೆ ಅಥವಾ ಲಕ್ಷ್ಮೀ-ವೆಂಕಟೇಶ್ವರ ಪ್ರಾರ್ಥನೆ.",
+      sacredRemedyEn: "Couples worship of Uma-Maheshwara or Lakshmi-Narayana at Gokarna Kshetra for everlasting marital bliss."
+    };
+  }
+
   return {
     verdictTitleKn: assessment.titleKn || "ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಹಾಗೂ ದಾಂಪತ್ಯ ಯೋಗ",
     verdictTitleEn: assessment.titleEn || "Auspicious Matrimonial Alignment",
     marriageWindowKn: assessment.marriageTimingWindowKn || "ಮುಂದಿನ 18 ರಿಂದ 24 ತಿಂಗಳುಗಳಲ್ಲಿ ಪ್ರಶಸ್ತ ಶುಭ ಕಾಲ",
     marriageWindowEn: assessment.marriageTimingWindowEn || "Favorable window within the next 18 to 24 months",
+    isMinor: false,
+    isMarried: false,
+    age,
     spouseProfile: {
       directionKn: dir.kn,
       directionEn: dir.en,
@@ -1144,11 +1212,23 @@ export async function generateSpecialConsultationAiNarration(
     return updated;
   }
 
+  const devoteeAge = report.marriageDossier.age ?? 30;
+  const isMinor = Boolean(report.marriageDossier.isMinor);
+  const isMarried = Boolean(report.marriageDossier.isMarried);
+
+  const lifeStageDescription = isMinor
+    ? `Minor Child / Student (Age ${devoteeAge} years old). STRICT RULE: This native is a CHILD/STUDENT. Absolutely DO NOT predict marriage, wedding proposals, spouse arrival, or matrimony! Focus 100% on academic education, concentration, physical health, family blessings, and clarify that marriage only pertains to distant adult life after age 24.`
+    : isMarried
+    ? `Happily Married Native. STRICT RULE: This native is ALREADY MARRIED. Absolutely DO NOT predict finding a new spouse, bride/groom search, or marriage proposals! Focus 100% on marital harmony, spouse's wellbeing, domestic prosperity, mutual understanding, and family happiness.`
+    : `Unmarried Adult (Age ${devoteeAge} years old) seeking marriage. Provide authentic matrimonial timing window, spouse temperament, arrival direction, and Kuja Dosha Bhanga blessings.`;
+
   const prompt = `
 You are Sri Shreeram Pandit, Master Astrologer from Gokarna Mahabaleshwara Kshetra (+91 99723 39362).
 You are preparing an official, authoritative, royal executive reading for:
 Devotee: ${report.devoteeName}
 Date of Birth: ${report.birthDate} (${report.birthTime})
+Current Age: ${devoteeAge} years
+Life Stage: ${lifeStageDescription}
 Lagna: ${report.lagnaNameEn} (${report.lagnaNameKn})
 Rashi: ${report.rashiNameEn} (${report.rashiNameKn})
 Nakshatra: ${report.nakshatraNameEn} (Lord: ${report.nakshatraLordEn})
@@ -1160,7 +1240,13 @@ Gochara: ${report.twelveMonthForecast.sadeSatiStatusEn}; ${report.twelveMonthFor
 Provide an authentic, deeply respectful synthesis in JSON format containing 5 sections:
 {
   "varshaphalaNarrative": "A rich 2-paragraph annual overview explaining how transit Gochara and active Dasha will unfold over the next 12 months.",
-  "marriageNarrative": "A detailed paragraph on matrimonial timing, spouse characteristics, and Kuja Dosha Bhanga blessings.",
+  "marriageNarrative": "${
+    isMinor
+      ? "A detailed paragraph on the child's academic flourishing, memory power, health protection, and family guidance (clearly noting that marriage is only for mature adulthood)."
+      : isMarried
+      ? "A detailed paragraph on marital harmony, spousal health, shared domestic happiness, and Uma-Maheshwara blessings."
+      : "A detailed paragraph on matrimonial timing, spouse characteristics, arrival direction, and Kuja Dosha Bhanga blessings."
+  }",
   "wealthNarrative": "A detailed paragraph on wealth accumulation, job vs business success, and debt clearance timeline.",
   "gemstoneNarrative": "A detailed explanation of why the prescribed Gemstone, Red Coral (Havala if Mars), and Mukhi Rudraksha harmonize with their Nakshatra and Panchanga, including wearing cautions.",
   "healthNarrative": "A detailed paragraph on Ayurvedic Tridosha balance, seasonal diet, and Dhanvantari healing remedies."
