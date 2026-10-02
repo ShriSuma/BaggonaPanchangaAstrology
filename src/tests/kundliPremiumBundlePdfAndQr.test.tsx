@@ -148,8 +148,8 @@ describe("Kundli Premium Bundle PDF & QR Code Audit", () => {
       expect(pages.length).toBe(3);
 
       pages.forEach((p) => {
-        expect(p.style.width).toBe("794px");
-        expect(p.style.height).toBe("1123px");
+        expect(p.style.width).toBe("900px");
+        expect(p.style.height).toBe("1273px");
       });
     });
   });

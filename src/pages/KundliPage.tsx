@@ -2241,7 +2241,7 @@ export default function KundliPage(): JSX.Element {
             position: "fixed",
             left: 0,
             top: 0,
-            width: 794,
+            width: 900,
             opacity: 0,
             pointerEvents: "none",
             zIndex: -1,

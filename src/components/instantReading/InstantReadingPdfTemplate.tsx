@@ -62,7 +62,8 @@ const pageStyle: React.CSSProperties = {
   letterSpacing: "normal",
   display: "flex",
   flexDirection: "column",
-  justifyContent: "space-between"
+  justifyContent: "space-between",
+  pageBreakAfter: "always"
 };
 
 export default function InstantReadingPdfTemplate({
@@ -234,7 +235,7 @@ export default function InstantReadingPdfTemplate({
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+    <div style={{ display: "block", width: PAGE_W }}>
       {/* ===================================================================
           PAGE 1: DEVOTEE PROFILE, PANCHANGA 5-ANGAS, DASHA & GOCHARA, EXECUTIVE NARRATION
           =================================================================== */}

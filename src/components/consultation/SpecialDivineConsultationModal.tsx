@@ -1,9 +1,10 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { KundliOutput } from "../../core/AstroTypes";
 import {
   generateSpecialConsultationReport,
+  generateSpecialConsultationAiNarration,
   answerCustomDivineQuestion,
   type SpecialConsultationFullReport,
   type SpecialConsultationLang
@@ -60,6 +61,13 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
   const [customAnswer, setCustomAnswer] = useState<{ question: string; answer: string } | null>(null);
   const [isAskingQuestion, setIsAskingQuestion] = useState(false);
 
+  // AI Narration State
+  const [aiReport, setAiReport] = useState<SpecialConsultationFullReport | null>(null);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiAttemptInfo, setAiAttemptInfo] = useState<{ attempt: number; max: number } | null>(null);
+  const [hasAttemptedAiAuto, setHasAttemptedAiAuto] = useState(false);
+  const [showDignityDetails, setShowDignityDetails] = useState(false);
+
   // PDF Generation State
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfProgress, setPdfProgress] = useState(0);
@@ -67,20 +75,53 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
 
   const offscreenContainerRef = useRef<HTMLDivElement>(null);
 
-  // Generate full astrological consultation data
-  const report: SpecialConsultationFullReport = useMemo(() => {
-    const rep = generateSpecialConsultationReport(kundli, {
+  // Generate base classical astrological consultation data (100% dynamic Parashari fallback)
+  const baseReport: SpecialConsultationFullReport = useMemo(() => {
+    return generateSpecialConsultationReport(kundli, {
       devoteeName: formInput.name || "ಭಕ್ತಾದಿಗಳು",
       birthDate: formInput.birthDate,
       birthTime: formInput.birthTime,
       maritalStatus: formInput.maritalStatus,
       gender: formInput.gender
     });
+  }, [kundli, formInput]);
+
+  // Combined active report (merging AI synthesis if generated)
+  const report: SpecialConsultationFullReport = useMemo(() => {
+    const rep = aiReport ? { ...aiReport } : { ...baseReport };
     if (customAnswer) {
       rep.customQnA = customAnswer;
     }
     return rep;
-  }, [kundli, formInput, customAnswer]);
+  }, [baseReport, aiReport, customAnswer]);
+
+  const handleGenerateAiNarration = async () => {
+    setIsGeneratingAi(true);
+    try {
+      const enriched = await generateSpecialConsultationAiNarration(
+        baseReport,
+        lang,
+        geminiApiKey,
+        (attempt, max) => {
+          setAiAttemptInfo({ attempt, max });
+        }
+      );
+      setAiReport(enriched);
+    } catch (err) {
+      console.error("AI Narration error:", err);
+    } finally {
+      setIsGeneratingAi(false);
+      setAiAttemptInfo(null);
+    }
+  };
+
+  // Auto-attempt AI if geminiApiKey is available when opening modal
+  useEffect(() => {
+    if (isOpen && geminiApiKey && !hasAttemptedAiAuto && !aiReport) {
+      setHasAttemptedAiAuto(true);
+      void handleGenerateAiNarration();
+    }
+  }, [isOpen, geminiApiKey, hasAttemptedAiAuto, aiReport]);
 
   if (!isOpen) return null;
 
@@ -112,6 +153,9 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
     setPdfStageText(isKn ? "ಅಧಿಕೃತ A4 ಪುಟಗಳ ವಿನ್ಯಾಸ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Formatting High-Res A4 Printable Pages...");
 
     try {
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
       await new Promise((r) => setTimeout(r, 600));
 
       const container = offscreenContainerRef.current;
@@ -241,6 +285,129 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
           </div>
         </div>
 
+        {/* Panchanga & Dignity Strip */}
+        <div className="px-4 py-2 bg-slate-900/95 border-b border-amber-500/30 flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs">
+          <div className="flex flex-wrap items-center gap-2.5 text-amber-100">
+            <span>📜 <strong>{isKn ? "ಪಂಚಾಂಗ:" : "Panchanga:"}</strong> {isKn ? report.panchanga.samvatsaraKn : report.panchanga.samvatsaraEn}, {isKn ? report.panchanga.masaKn : report.panchanga.masaEn}, {isKn ? report.panchanga.pakshaKn : report.panchanga.pakshaEn}</span>
+            <span>• <strong>{isKn ? "ತಿಥಿ:" : "Tithi:"}</strong> {isKn ? report.panchanga.tithiKn : report.panchanga.tithiEn}</span>
+            <span>• <strong>{isKn ? "ವಾರ:" : "Vara:"}</strong> {isKn ? report.panchanga.weekdayKn : report.panchanga.weekdayEn}</span>
+            <span>• <strong>{isKn ? "ಯೋಗ:" : "Yoga:"}</strong> {isKn ? report.panchanga.yogaKn : report.panchanga.yogaEn}</span>
+            <span>• <strong>{isKn ? "ಕರಣ:" : "Karana:"}</strong> {isKn ? report.panchanga.karanaKn : report.panchanga.karanaEn}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDignityDetails(!showDignityDetails)}
+            className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold flex items-center gap-1 transition-all"
+          >
+            <span>🪐 {isKn ? "ಗ್ರಹ ಬಲ & ಉಚ್ಚ-ನೀಚ ಸ್ಥಿತಿ" : "Planetary Dignities"}</span>
+            <span>{showDignityDetails ? "▲" : "▼"}</span>
+          </button>
+        </div>
+
+        {/* Collapsible Planetary Dignity Assessment Table */}
+        {showDignityDetails && (
+          <div className="p-3.5 bg-slate-950 border-b border-amber-500/40 animate-fadeIn">
+            <div className="text-xs font-bold text-amber-300 mb-2 flex items-center justify-between">
+              <span>🪐 {isKn ? "ನವಗ್ರಹಗಳ ಶಾಸ್ತ್ರೋಕ್ತ ಸ್ಥಾನ, ಉಚ್ಚ-ನೀಚ & ಬಲ ವಿವರಣೆ" : "Nine Planets Classical Dignity Assessment"}</span>
+              <span className="text-[11px] text-slate-400">{isKn ? "ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ ನಿಯಮಗಳು" : "Parashari Principles"}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
+              {Object.values(report.planetaryDignities).map((d, i) => (
+                <div
+                  key={i}
+                  className={`p-2 rounded-lg border ${
+                    d.dignity === "exalted"
+                      ? "bg-amber-950/30 border-amber-500/60 text-amber-200"
+                      : d.dignity === "debilitated"
+                      ? "bg-rose-950/30 border-rose-500/60 text-rose-200"
+                      : d.dignity === "own"
+                      ? "bg-emerald-950/30 border-emerald-500/60 text-emerald-200"
+                      : "bg-slate-900 border-slate-700 text-slate-300"
+                  }`}
+                >
+                  <div className="font-extrabold flex items-center justify-between">
+                    <span>{isKn ? d.nameKn : d.nameEn}</span>
+                    <span className="text-[10px] font-mono">{d.degree.toFixed(1)}°</span>
+                  </div>
+                  <div className="text-[11px] text-amber-300/90">{isKn ? d.rashiKn : d.rashiEn} ({d.house}H)</div>
+                  <div className="text-[11px] font-bold mt-0.5">
+                    {isKn ? d.dignityLabelKn : d.dignityLabelEn}
+                    {d.isCombust && <span className="text-rose-400 ml-1">({isKn ? "ಅಸ್ತ" : "Combust"})</span>}
+                    {d.isRetrograde && <span className="text-purple-400 ml-1">({isKn ? "ವಕ್ರ" : "Retro"})</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* AI Status / Fallback Notice Banner */}
+        <div className="px-4 pt-3 pb-1">
+          {report.aiNarration.isAiGenerated ? (
+            <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-950/70 via-slate-900 to-emerald-950/70 border border-emerald-500/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-200 shadow-lg">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">✨</span>
+                <div>
+                  <div className="font-extrabold text-emerald-300">
+                    {isKn ? report.aiNarration.statusNoticeKn : report.aiNarration.statusNoticeEn}
+                  </div>
+                  <div className="text-[11px] text-emerald-200/80">
+                    {isKn
+                      ? "ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ದೈವಿಕ ನಿರೂಪಣೆಯನ್ನು ಜೆಮಿನಿ 3.5 ಫ್ಲ್ಯಾಶ್-ಲೈಟ್ ಎಂಜಿನ್ ಮೂಲಕ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ."
+                      : "High-precision AI narrative synthesis generated strictly from your natal chart coordinates."}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isGeneratingAi}
+                onClick={handleGenerateAiNarration}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 font-bold text-xs whitespace-nowrap border border-emerald-400/40 transition-all active:scale-95"
+              >
+                {isGeneratingAi ? (
+                  <span className="flex items-center gap-1.5">
+                    <div className="w-3.5 h-3.5 border-2 border-emerald-200 border-t-transparent rounded-full animate-spin" />
+                    {isKn ? `ರಚನೆಯಾಗುತ್ತಿದೆ (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...` : `Generating (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...`}
+                  </span>
+                ) : (
+                  <span>🔄 {isKn ? "ಮರು ರಚಿಸಿ" : "Regenerate AI"}</span>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/60 border border-amber-500/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-amber-200 shadow-lg">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">⚠️</span>
+                <div>
+                  <div className="font-extrabold text-amber-300">
+                    {isKn ? report.aiNarration.statusNoticeKn : report.aiNarration.statusNoticeEn}
+                  </div>
+                  <div className="text-[11px] text-amber-200/80">
+                    {isKn
+                      ? "ಗಮನಿಸಿ: AI ಸಂಪರ್ಕವಿಲ್ಲದಿದ್ದರೂ, ಎಲ್ಲಾ ಫಲಗಳು ನಿಮ್ಮ ಜನನ ಲಗ್ನ, ನಕ್ಷತ್ರ, ಪಂಚಾಂಗ ಹಾಗೂ ಗ್ರಹಗಳ ಉಚ್ಚ-ನೀಚ ಬಲದ ಗಣಿತದ ಮೇಲೆ ೧೦೦% ನೈಜವಾಗಿವೆ."
+                      : "All astrological predictions remain 100% active and mathematically calculated using classical Parashari rules."}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isGeneratingAi}
+                onClick={handleGenerateAiNarration}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs whitespace-nowrap shadow-lg shadow-amber-500/20 transition-all active:scale-95 disabled:opacity-60"
+              >
+                {isGeneratingAi ? (
+                  <span className="flex items-center gap-1.5">
+                    <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                    {isKn ? `AI ರಚನೆಯಾಗುತ್ತಿದೆ (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...` : `Synthesizing AI (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...`}
+                  </span>
+                ) : (
+                  <span>✨ {isKn ? "ದೈವಿಕ AI ನಿರೂಪಣೆ ಸಕ್ರಿಯಗೊಳಿಸಿ" : "Generate Divine AI Narration"}</span>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Navigation Tabs */}
         <div className="flex overflow-x-auto gap-1.5 p-2 bg-slate-900/90 border-b border-slate-800 scrollbar-none text-xs sm:text-sm">
           <button
@@ -327,6 +494,19 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
           {/* TAB 1: 12-MONTH FORECAST */}
           {activeTab === "varshaphala" && (
             <div className="space-y-4">
+              {/* AI Narrative Synthesis if active */}
+              {report.aiNarration.varshaphalaNarrative && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border-2 border-amber-500/60 shadow-lg">
+                  <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-2">
+                    <span>✨</span>
+                    <span>{isKn ? "ಪಂಡಿತರ AI ದೈವಿಕ ನಿರೂಪಣೆ (Gemini 3.5 Flash-Lite)" : "Priest AI Divine Synthesis (Gemini 3.5 Flash-Lite)"}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-100 leading-relaxed whitespace-pre-line">
+                    {report.aiNarration.varshaphalaNarrative}
+                  </p>
+                </div>
+              )}
+
               <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-500/40">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base sm:text-lg font-extrabold text-amber-300 flex items-center gap-2">
@@ -340,9 +520,19 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                 <p className="text-sm text-amber-100/90 leading-relaxed">
                   {isKn ? report.twelveMonthForecast.yearlyThemeKn : report.twelveMonthForecast.yearlyThemeEn}
                 </p>
-                <div className="mt-2 text-xs text-amber-300/80">
-                  {isKn ? "ವರ್ಷಪತಿ ಗ್ರಹ: " : "Year Ruler: "}
-                  <strong>{isKn ? report.twelveMonthForecast.varshapathiPlanetKn : report.twelveMonthForecast.varshapathiPlanetEn}</strong>
+                <div className="mt-2 text-xs text-amber-300/80 flex flex-wrap gap-4">
+                  <div>
+                    {isKn ? "ವರ್ಷಪತಿ ಗ್ರಹ: " : "Year Ruler: "}
+                    <strong>{isKn ? report.twelveMonthForecast.varshapathiPlanetKn : report.twelveMonthForecast.varshapathiPlanetEn}</strong>
+                  </div>
+                  <div>
+                    {isKn ? "ಸಾಡೇಸಾತಿ: " : "Sade Sati: "}
+                    <strong>{isKn ? report.twelveMonthForecast.sadeSatiStatusKn : report.twelveMonthForecast.sadeSatiStatusEn}</strong>
+                  </div>
+                  <div>
+                    {isKn ? "ಗುರು ಗೋಚಾರ: " : "Guru Transit: "}
+                    <strong>{isKn ? report.twelveMonthForecast.guruGocharaStatusKn : report.twelveMonthForecast.guruGocharaStatusEn}</strong>
+                  </div>
                 </div>
               </div>
 
@@ -361,7 +551,7 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="font-extrabold text-sm text-amber-200">
-                        {idx + 1}. {isKn ? m.monthNameKn : m.monthNameEn}
+                        {idx + 1}. {isKn ? m.monthNameKn : m.monthNameEn} ({isKn ? m.solarMasaKn : m.solarMasaEn})
                       </span>
                       <span
                         className={`text-xs px-2 py-0.5 rounded font-bold ${
@@ -391,6 +581,19 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
           {/* TAB 2: MARRIAGE & RELATIONSHIP DESTINY */}
           {activeTab === "marriage" && (
             <div className="space-y-4">
+              {/* AI Narrative Synthesis if active */}
+              {report.aiNarration.marriageNarrative && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border-2 border-amber-500/60 shadow-lg">
+                  <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-2">
+                    <span>✨</span>
+                    <span>{isKn ? "ಪಂಡಿತರ AI ದೈವಿಕ ವಿವಾಹ ನಿರೂಪಣೆ (Gemini 3.5 Flash-Lite)" : "Priest AI Marriage Synthesis (Gemini 3.5 Flash-Lite)"}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-100 leading-relaxed whitespace-pre-line">
+                    {report.aiNarration.marriageNarrative}
+                  </p>
+                </div>
+              )}
+
               <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-500/40">
                 <h3 className="text-base sm:text-lg font-extrabold text-amber-300 mb-1 flex items-center gap-2">
                   <span>💍</span>
@@ -427,7 +630,7 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
 
                 <div className="text-xs text-slate-300 mb-2">
                   <strong>{isKn ? "ಕುಜ ಗ್ರಹ ಸ್ಥಿತಿ:" : "Mars & Kuja Analysis:"}</strong>{" "}
-                  {isKn ? report.marriageDossier.kujaDoshaAnalysisKn : report.marriageDossier.kujaDoshaAnalysisEn}
+                  {isKn ? report.marriageDossier.kujaDoshaStatusKn : report.marriageDossier.kujaDoshaStatusEn}
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200">
@@ -441,6 +644,19 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
           {/* TAB 3: WEALTH, CAREER & DEBT */}
           {activeTab === "wealth" && (
             <div className="space-y-4">
+              {/* AI Narrative Synthesis if active */}
+              {report.aiNarration.wealthNarrative && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-emerald-950/40 border-2 border-emerald-500/60 shadow-lg">
+                  <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5 mb-2">
+                    <span>✨</span>
+                    <span>{isKn ? "ಪಂಡಿತರ AI ದೈವಿಕ ಧನ-ವೃತ್ತಿ ನಿರೂಪಣೆ (Gemini 3.5 Flash-Lite)" : "Priest AI Wealth Synthesis (Gemini 3.5 Flash-Lite)"}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-100 leading-relaxed whitespace-pre-line">
+                    {report.aiNarration.wealthNarrative}
+                  </p>
+                </div>
+              )}
+
               <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/40">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base sm:text-lg font-extrabold text-emerald-300 flex items-center gap-2">
@@ -487,6 +703,19 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
           {/* TAB 4: GEMSTONE & RUDRAKSHA */}
           {activeTab === "gemstone" && (
             <div className="space-y-4">
+              {/* AI Narrative Synthesis if active */}
+              {report.aiNarration.gemstoneNarrative && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border-2 border-amber-500/60 shadow-lg">
+                  <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-2">
+                    <span>✨</span>
+                    <span>{isKn ? "ಪಂಡಿತರ AI ರತ್ನ & ರುದ್ರಾಕ್ಷಿ ಶಾಸ್ತ್ರೋಕ್ತ ವಿವೇಚನೆ (Gemini 3.5 Flash-Lite)" : "Priest AI Gemstone & Rudraksha Synthesis"}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-100 leading-relaxed whitespace-pre-line">
+                    {report.aiNarration.gemstoneNarrative}
+                  </p>
+                </div>
+              )}
+
               <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-500/40">
                 <h3 className="text-base sm:text-lg font-extrabold text-amber-300 mb-3 flex items-center gap-2">
                   <span>💎</span>
@@ -497,8 +726,11 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                   {/* Life Gem */}
                   <div className="p-3.5 rounded-xl bg-slate-900 border border-amber-500/40">
-                    <div className="text-xs font-bold text-amber-400">
-                      ⭐ {isKn ? report.gemstoneRudraksha.lifeGem.gemTypeKn : report.gemstoneRudraksha.lifeGem.gemTypeEn}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-amber-400">⭐ {isKn ? report.gemstoneRudraksha.lifeGem.gemTypeKn : report.gemstoneRudraksha.lifeGem.gemTypeEn}</span>
+                      <span className="text-[11px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">
+                        {isKn ? report.gemstoneRudraksha.lifeGem.planetaryDignityKn : report.gemstoneRudraksha.lifeGem.planetaryDignityEn}
+                      </span>
                     </div>
                     <div className="text-base font-extrabold text-white my-1">
                       {isKn ? report.gemstoneRudraksha.lifeGem.nameKn : report.gemstoneRudraksha.lifeGem.nameEn}
@@ -507,14 +739,19 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                       <div><strong>{isKn ? "ತೂಕ:" : "Weight:"}</strong> {report.gemstoneRudraksha.lifeGem.recommendedWeight}</div>
                       <div><strong>{isKn ? "ಲೋಹ:" : "Metal:"}</strong> {isKn ? report.gemstoneRudraksha.lifeGem.suitableMetalKn : report.gemstoneRudraksha.lifeGem.suitableMetalEn}</div>
                       <div><strong>{isKn ? "ಬೆರಳು:" : "Finger:"}</strong> {isKn ? report.gemstoneRudraksha.lifeGem.wearingFingerKn : report.gemstoneRudraksha.lifeGem.wearingFingerEn}</div>
+                      <div><strong>{isKn ? "ಶುಭ ದಿನ:" : "Auspicious Day:"}</strong> {isKn ? report.gemstoneRudraksha.lifeGem.auspiciousDayKn : report.gemstoneRudraksha.lifeGem.auspiciousDayEn}</div>
+                      <div><strong>{isKn ? "ತಾರಾ ಬಲ:" : "Tara Bala:"}</strong> {isKn ? report.gemstoneRudraksha.lifeGem.consecrationTaraKn : report.gemstoneRudraksha.lifeGem.consecrationTaraEn}</div>
                       <div className="text-amber-200/90 font-mono text-[11px] mt-1">{isKn ? report.gemstoneRudraksha.lifeGem.mantraKn : report.gemstoneRudraksha.lifeGem.mantraEn}</div>
                     </div>
                   </div>
 
                   {/* Fortune Gem */}
                   <div className="p-3.5 rounded-xl bg-slate-900 border border-amber-500/40">
-                    <div className="text-xs font-bold text-amber-400">
-                      ✨ {isKn ? report.gemstoneRudraksha.fortuneGem.gemTypeKn : report.gemstoneRudraksha.fortuneGem.gemTypeEn}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-amber-400">✨ {isKn ? report.gemstoneRudraksha.fortuneGem.gemTypeKn : report.gemstoneRudraksha.fortuneGem.gemTypeEn}</span>
+                      <span className="text-[11px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">
+                        {isKn ? report.gemstoneRudraksha.fortuneGem.planetaryDignityKn : report.gemstoneRudraksha.fortuneGem.planetaryDignityEn}
+                      </span>
                     </div>
                     <div className="text-base font-extrabold text-white my-1">
                       {isKn ? report.gemstoneRudraksha.fortuneGem.nameKn : report.gemstoneRudraksha.fortuneGem.nameEn}
@@ -523,6 +760,8 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                       <div><strong>{isKn ? "ತೂಕ:" : "Weight:"}</strong> {report.gemstoneRudraksha.fortuneGem.recommendedWeight}</div>
                       <div><strong>{isKn ? "ಲೋಹ:" : "Metal:"}</strong> {isKn ? report.gemstoneRudraksha.fortuneGem.suitableMetalKn : report.gemstoneRudraksha.fortuneGem.suitableMetalEn}</div>
                       <div><strong>{isKn ? "ಬೆರಳು:" : "Finger:"}</strong> {isKn ? report.gemstoneRudraksha.fortuneGem.wearingFingerKn : report.gemstoneRudraksha.fortuneGem.wearingFingerEn}</div>
+                      <div><strong>{isKn ? "ಶುಭ ದಿನ:" : "Auspicious Day:"}</strong> {isKn ? report.gemstoneRudraksha.fortuneGem.auspiciousDayKn : report.gemstoneRudraksha.fortuneGem.auspiciousDayEn}</div>
+                      <div><strong>{isKn ? "ತಾರಾ ಬಲ:" : "Tara Bala:"}</strong> {isKn ? report.gemstoneRudraksha.fortuneGem.consecrationTaraKn : report.gemstoneRudraksha.fortuneGem.consecrationTaraEn}</div>
                       <div className="text-amber-200/90 font-mono text-[11px] mt-1">{isKn ? report.gemstoneRudraksha.fortuneGem.mantraKn : report.gemstoneRudraksha.fortuneGem.mantraEn}</div>
                     </div>
                   </div>
@@ -536,11 +775,14 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                 </div>
 
                 {/* Rudraksha & Yantra */}
-                <div className="p-3 rounded-xl bg-slate-900 border border-purple-500/40 text-xs space-y-1.5">
+                <div className="p-3 rounded-xl bg-slate-900 border border-purple-500/40 text-xs space-y-2">
                   <div>
                     <strong className="text-purple-300">📿 {isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ರುದ್ರಾಕ್ಷಿ:" : "Sacred Rudraksha:"}</strong>{" "}
                     {isKn ? report.gemstoneRudraksha.prescribedRudraksha.mukhiKn : report.gemstoneRudraksha.prescribedRudraksha.mukhiEn} (
                     {isKn ? report.gemstoneRudraksha.prescribedRudraksha.deityKn : report.gemstoneRudraksha.prescribedRudraksha.deityEn})
+                    <div className="text-[11px] text-purple-200/80 mt-1">
+                      {isKn ? report.gemstoneRudraksha.prescribedRudraksha.panchangaReasonKn : report.gemstoneRudraksha.prescribedRudraksha.panchangaReasonEn}
+                    </div>
                   </div>
                   <div>
                     <strong className="text-purple-300">🕉️ {isKn ? "ಪ್ರತಿಷ್ಠಾಪಿಸಬೇಕಾದ ಯಂತ್ರ:" : "Consecrated Yantra:"}</strong>{" "}
@@ -554,6 +796,19 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
           {/* TAB 5: AYUR SANJEEVINI HEALTH */}
           {activeTab === "health" && (
             <div className="space-y-4">
+              {/* AI Narrative Synthesis if active */}
+              {report.aiNarration.healthNarrative && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-emerald-950/40 border-2 border-emerald-500/60 shadow-lg">
+                  <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5 mb-2">
+                    <span>✨</span>
+                    <span>{isKn ? "ಪಂಡಿತರ AI ಆಯುರ್ ಸಂಜೀವಿನಿ ವಿವೇಚನೆ (Gemini 3.5 Flash-Lite)" : "Priest AI Ayur Sanjeevini Synthesis"}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-100 leading-relaxed whitespace-pre-line">
+                    {report.aiNarration.healthNarrative}
+                  </p>
+                </div>
+              )}
+
               <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/40">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base sm:text-lg font-extrabold text-emerald-300 flex items-center gap-2">
@@ -588,8 +843,8 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-200">
-                  <strong>{isKn ? "ಧನ್ವಂತರಿ ಮಂತ್ರ:" : "Healing Mantra:"}</strong>{" "}
-                  {isKn ? report.ayurHealth.healingMantraKn : report.ayurHealth.healingMantraEn}
+                  <strong>{isKn ? "ಧನ್ವಂತರಿ ಮಂತ್ರ & ರಸಾಯನ:" : "Healing Mantra & Rasayana:"}</strong>{" "}
+                  {isKn ? report.ayurHealth.healingMantraKn : report.ayurHealth.healingMantraEn} • {isKn ? report.ayurHealth.ayurvedicRasayanaKn : report.ayurHealth.ayurvedicRasayanaEn}
                 </div>
               </div>
             </div>

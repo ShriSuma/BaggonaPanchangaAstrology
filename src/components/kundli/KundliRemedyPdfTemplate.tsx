@@ -313,9 +313,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     <div
       id="kundli-remedy-pdf-container"
       style={{
-        width: "794px",
-        display: "flex",
-        flexDirection: "column",
+        width: "900px",
+        display: "block",
         background: "#FFFDF7",
         fontFamily,
         color: "#261605",
@@ -328,9 +327,10 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
       <div
         className="pdf-page"
         style={{
-          width: "794px",
-          height: "1123px",
-          padding: "16px",
+          width: "900px",
+          height: "1273px",
+          minHeight: "1273px",
+          padding: "20px 24px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -341,13 +341,13 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
         <div
           style={{
             width: "100%",
-            height: "1091px",
-            maxHeight: "1091px",
+            height: "1225px",
+            maxHeight: "1225px",
             border: "3px double #92400E",
             outline: "1.5px solid #D97706",
             outlineOffset: "-6px",
             borderRadius: "14px",
-            padding: "14px 16px",
+            padding: "14px 18px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 35%, #FEF3C7 100%)",
             display: "flex",
@@ -707,9 +707,10 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
       <div
         className="pdf-page"
         style={{
-          width: "794px",
-          height: "1123px",
-          padding: "16px",
+          width: "900px",
+          height: "1273px",
+          minHeight: "1273px",
+          padding: "20px 24px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -720,13 +721,13 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
         <div
           style={{
             width: "100%",
-            height: "1091px",
-            maxHeight: "1091px",
+            height: "1225px",
+            maxHeight: "1225px",
             border: "3px double #92400E",
             outline: "1.5px solid #D97706",
             outlineOffset: "-6px",
             borderRadius: "14px",
-            padding: "14px 16px",
+            padding: "14px 18px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 35%, #FEF3C7 100%)",
             display: "flex",
@@ -1012,9 +1013,10 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
       <div
         className="pdf-page"
         style={{
-          width: "794px",
-          height: "1123px",
-          padding: "16px",
+          width: "900px",
+          height: "1273px",
+          minHeight: "1273px",
+          padding: "20px 24px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -1025,13 +1027,13 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
         <div
           style={{
             width: "100%",
-            height: "1091px",
-            maxHeight: "1091px",
+            height: "1225px",
+            maxHeight: "1225px",
             border: "3px double #92400E",
             outline: "1.5px solid #D97706",
             outlineOffset: "-6px",
             borderRadius: "14px",
-            padding: "12px 14px",
+            padding: "14px 18px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 35%, #FEF3C7 100%)",
             display: "flex",

@@ -165,7 +165,7 @@ export const PDF_DICT: Record<string, L6> = {
 
   // Page 2 Sections
   secLifeRealityTitle: {
-    kn: "೩. ಹಾಲಿ ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ & ಆಂತರಿಕ ಮನಸ್ಥಿತಿ",
+    kn: "೩. ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ನಡೆಯುತ್ತಿರುವ ನೈಜ ಸಂಗತಿಗಳು & ವಾಸ್ತವ ಸ್ಥಿತಿ (Current Life Reality & Happenings)",
     en: "3. Acute Life Reality & Psychological Weather",
     hi: "३. वर्तमान वास्तविक जीवन स्थिति एवं आंतरिक मनोस्थिति",
     te: "3. ప్రస్తుత వాస్తవ జీవన స్థితి & అంతరంగ ఆలోచనలు",
@@ -173,7 +173,7 @@ export const PDF_DICT: Record<string, L6> = {
     ml: "൩. നിലവിലെ ജീവിത യാഥാർത്ഥ്യം & ആന്തരിക മനഃസ്ഥിതി"
   },
   labelExternalReality: {
-    kn: "ಬಾಹ್ಯ ವಾಸ್ತವ ಸಂಗತಿಗಳು",
+    kn: "ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಏನು ನಡಿತಿದೆ / ಬಾಹ್ಯ ವಾಸ್ತವ ಸಂಗತಿಗಳು",
     en: "External Life Circumstances",
     hi: "बाह्य वास्तविक परिस्थितियां",
     te: "బాహ్య వాస్తవ పరిస్థితులు",

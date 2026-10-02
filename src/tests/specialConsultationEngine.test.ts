@@ -94,4 +94,52 @@ describe("Special Divine Consultation Engine Test Suite", () => {
     expect(res.answer.length).toBeGreaterThan(50);
     expect(res.remedy).toContain("ಗೋಕರ್ಣ");
   });
+
+  it("verifies 100% dynamic Panchanga, Planetary Dignities, and strict fallback message", () => {
+    const report = generateSpecialConsultationReport(kundli, {
+      devoteeName: profile.name,
+      birthDate: profile.birthDate,
+      birthTime: profile.birthTime
+    });
+
+    // 1. Strict Fallback Message contains required user phrase
+    expect(report.aiNarration.isAiGenerated).toBe(false);
+    expect(report.aiNarration.aiModel).toBe("gemini-3.5-flash-lite");
+    expect(report.aiNarration.statusNoticeKn).toContain("from fallback I have getting from the data");
+    expect(report.aiNarration.statusNoticeEn).toContain("from fallback I have getting from the data");
+
+    // 2. Full Panchanga Angas
+    expect(report.panchanga.samvatsaraKn).toBeDefined();
+    expect(report.panchanga.masaKn).toBeDefined();
+    expect(report.panchanga.pakshaKn).toBeDefined();
+    expect(report.panchanga.tithiKn).toBeDefined();
+    expect(report.panchanga.weekdayKn).toBeDefined();
+    expect(report.panchanga.yogaKn).toBeDefined();
+    expect(report.panchanga.karanaKn).toBeDefined();
+
+    // 3. Planetary Dignities for all 9 planets
+    const dignitiesList = Object.values(report.planetaryDignities);
+    expect(dignitiesList.length).toBeGreaterThanOrEqual(9);
+    for (const d of dignitiesList) {
+      expect(d.dignity).toMatch(/exalted|debilitated|own|friendly|enemy|neutral/);
+      expect(d.dignityLabelKn).toBeDefined();
+      expect(typeof d.isCombust).toBe("boolean");
+      expect(typeof d.isRetrograde).toBe("boolean");
+    }
+
+    // 4. Gemstone & Rudraksha strict rules
+    expect(report.gemstoneRudraksha.lifeGem.planetaryDignityKn).toBeDefined();
+    expect(report.gemstoneRudraksha.lifeGem.consecrationTaraKn).toBeDefined();
+    expect(report.gemstoneRudraksha.lifeGem.auspiciousDayKn).toBeDefined();
+    expect(report.gemstoneRudraksha.fortuneGem.planetaryDignityKn).toBeDefined();
+    expect(report.gemstoneRudraksha.fortuneGem.consecrationTaraKn).toBeDefined();
+
+    // Prohibited Gems (lords of 6th, 8th, 12th)
+    expect(report.gemstoneRudraksha.prohibitedGems.gemNamesKn.length).toBeGreaterThan(0);
+    expect(report.gemstoneRudraksha.prohibitedGems.reasonKn).toContain("ಭಾವ");
+
+    // Mukhi Rudraksha with Panchanga reasoning
+    expect(report.gemstoneRudraksha.prescribedRudraksha.panchangaReasonKn).toBeDefined();
+    expect(report.gemstoneRudraksha.prescribedRudraksha.mukhiKn).toMatch(/ಮುಖಿ/);
+  });
 });
