@@ -28,7 +28,7 @@ export interface UnifiedTestProfile {
   // Ground truth expectations
   expectedCareerCodes: string[];
   expectedMarriageVerdict?: "already_married" | "delayed_marriage" | "lifelong_celibacy_denial" | "assured_marriage";
-  expectedIsTeetotaler?: boolean;
+  expectedIsTeetotaler?: boolean | "smoking_only";
   expectedNegativeRisk?: {
     hasAffairRisk?: boolean;
     hasCriminalOrPrisonRisk?: boolean;
@@ -306,11 +306,11 @@ describe("Instant Reading Validation on 20 Random Test Profiles", () => {
       } else if (profile.expectedLifeSituationCategory) {
         dimensionsChecked++;
         const gotCategory = diag.currentLifeSituation?.category;
-        isSituationOrMoralityMatch = gotCategory === profile.expectedLifeSituationCategory || (
+        isSituationOrMoralityMatch = Boolean(gotCategory === profile.expectedLifeSituationCategory || (
           (profile.expectedLifeSituationCategory === "creative_media_stardom" && gotCategory?.includes("creative")) ||
           (profile.expectedLifeSituationCategory === "elite_sports_athletic_triumph" && gotCategory?.includes("sports")) ||
           (profile.expectedLifeSituationCategory === "leadership_expansion_scaling" && gotCategory?.includes("leadership"))
-        );
+        ));
         if (isSituationOrMoralityMatch) {
           dimensionsMatched++;
         } else {

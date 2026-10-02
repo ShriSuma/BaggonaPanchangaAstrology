@@ -62,6 +62,7 @@ import { resolvePlaceFromPincode, GERMAN_MAJOR_CITIES } from "../services/locati
 import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../features/auth/authStore";
 import { DevoteeDatabaseSearchModal } from "../components/kundli/DevoteeDatabaseSearchModal";
 import type { DevoteeProfile } from "../services/devoteeSearchService";
+import { SpecialDivineConsultationModal } from "../components/consultation/SpecialDivineConsultationModal";
 
 const parseYmdToDate = (ymd: string): Date | null => {
   if (!ymd) return null;
@@ -118,6 +119,7 @@ export default function KundliPage(): JSX.Element {
   const [bundleStageText, setBundleStageText] = useState("");
   const [isPackageSelectModalOpen, setIsPackageSelectModalOpen] = useState(false);
   const [bundleModalOpen, setBundleModalOpen] = useState(false);
+  const [isSpecialConsultationOpen, setIsSpecialConsultationOpen] = useState(false);
   const [packageSelectedItems, setPackageSelectedItems] = useState({
     kundli: true,
     remedy: true,
@@ -2000,42 +2002,66 @@ export default function KundliPage(): JSX.Element {
 
 
                 {/* Download Actions Container */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-2xl px-2">
-                  {/* Royal 3-in-1 Premium Download Button */}
-                  <button
-                    type="button"
-                    disabled={isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf}
-                    className={`w-full sm:w-auto flex-1 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 px-6 py-4 text-white font-extrabold text-base tracking-wide shadow-xl hover:shadow-amber-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-1 border-2 border-amber-300/60 ${
-                      (isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf) ? 'opacity-70 cursor-not-allowed' : ''
-                    }`}
-                    onClick={handlePremiumDownload}
-                  >
-                    <div className="flex items-center gap-2 text-base md:text-lg">
-                      {isGeneratingPremiumBundle ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <span className="text-xl">👑</span>
-                      )}
-                      <span>
-                        {isGeneratingPremiumBundle
-                          ? `${bundleProgress}% ${i18n.language.startsWith("kn") ? "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating..."}`
-                          : i18n.language.startsWith("kn")
-                          ? "ಪ್ರೀಮಿಯಂ ಡೌನ್‌ಲೋಡ್ (Premium Download)"
-                          : "Premium Download (ZIP Package)"}
+                <div className="flex flex-col items-center justify-center gap-4 w-full max-w-4xl px-2">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
+                    {/* Special Divine Consultation & Reports Button */}
+                    <button
+                      type="button"
+                      disabled={isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf}
+                      className="w-full sm:w-auto flex-1 rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-950 to-amber-950 px-6 py-4 text-white font-extrabold text-base tracking-wide shadow-xl hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-1 border-2 border-amber-400/90 cursor-pointer"
+                      onClick={() => setIsSpecialConsultationOpen(true)}
+                    >
+                      <div className="flex items-center gap-2 text-base md:text-lg">
+                        <span className="text-xl">✨</span>
+                        <span className="text-amber-300">
+                          {i18n.language.startsWith("kn")
+                            ? "ವಿಶೇಷ ದೈವಿಕ ಸಮಾಲೋಚನೆ & ವರದಿಗಳು"
+                            : "Special Divine Consultation & Reports"}
+                        </span>
+                      </div>
+                      <span className="text-xs font-semibold text-amber-200/90 tracking-normal text-center">
+                        {i18n.language.startsWith("kn")
+                          ? "೧೨-ತಿಂಗಳ ಭವಿಷ್ಯ • ವಿವಾಹ • ವೃತ್ತಿ • ರತ್ನ • ಆಯುರ್ವೇದ • ಪ್ರಶ್ನೋತ್ತರ Q&A"
+                          : "12-Month Forecast • Marriage • Wealth • Gemstones • Health • Custom Q&A"}
                       </span>
-                    </div>
-                    <span className="text-xs font-semibold text-amber-100/90 tracking-normal text-center">
-                      {i18n.language.startsWith("kn")
-                        ? "ಕುಂಡಲಿ + ಪರಿಹಾರ + ದಿವ್ಯ ಭವಿಷ್ಯ + 30-ದಿನಗಳ ಮುಹೂರ್ತ QR (ZIP ಪ್ಯಾಕೇಜ್)"
-                        : "Kundli + Remedies + Bhavishya + 30-Day QR (ZIP Package)"}
-                    </span>
-                  </button>
+                    </button>
+
+                    {/* Royal 3-in-1 Premium Download Button */}
+                    <button
+                      type="button"
+                      disabled={isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf}
+                      className={`w-full sm:w-auto flex-1 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 px-6 py-4 text-white font-extrabold text-base tracking-wide shadow-xl hover:shadow-amber-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-1 border-2 border-amber-300/60 ${
+                        (isGeneratingPremiumBundle || isTranslating || isGeneratingDashaPdf) ? 'opacity-70 cursor-not-allowed' : ''
+                      }`}
+                      onClick={handlePremiumDownload}
+                    >
+                      <div className="flex items-center gap-2 text-base md:text-lg">
+                        {isGeneratingPremiumBundle ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <span className="text-xl">👑</span>
+                        )}
+                        <span>
+                          {isGeneratingPremiumBundle
+                            ? `${bundleProgress}% ${i18n.language.startsWith("kn") ? "ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : "Generating..."}`
+                            : i18n.language.startsWith("kn")
+                            ? "ಪ್ರೀಮಿಯಂ ಡೌನ್‌ಲೋಡ್ (Premium Download)"
+                            : "Premium Download (ZIP Package)"}
+                        </span>
+                      </div>
+                      <span className="text-xs font-semibold text-amber-100/90 tracking-normal text-center">
+                        {i18n.language.startsWith("kn")
+                          ? "ಕುಂಡಲಿ + ಪರಿಹಾರ + ದಿವ್ಯ ಭವಿಷ್ಯ + 30-ದಿನಗಳ ಮುಹೂರ್ತ QR (ZIP ಪ್ಯಾಕೇಜ್)"
+                          : "Kundli + Remedies + Bhavishya + 30-Day QR (ZIP Package)"}
+                      </span>
+                    </button>
+                  </div>
 
                   {/* Single Janana Kundali Download Button */}
                   <button
                     type="button"
                     disabled={isTranslating || isGeneratingDashaPdf || isGeneratingPremiumBundle}
-                    className={`w-full sm:w-auto rounded-xl bg-slate-900 border border-slate-700 px-5 py-3.5 text-xs md:text-sm font-bold text-amber-300 shadow-md hover:bg-slate-800 transition-all flex items-center justify-center gap-2 ${
+                    className={`w-full sm:w-auto rounded-xl bg-slate-900 border border-slate-700 px-5 py-3 text-xs md:text-sm font-bold text-amber-300 shadow-md hover:bg-slate-800 transition-all flex items-center justify-center gap-2 ${
                       (isTranslating || isGeneratingDashaPdf || isGeneratingPremiumBundle) ? 'opacity-70 cursor-not-allowed' : ''
                     }`}
                     onClick={async () => {
@@ -2862,6 +2888,25 @@ export default function KundliPage(): JSX.Element {
             pincode="581326"
           />
         </div>
+      )}
+
+      {/* Special Divine Consultation & Reports Modal */}
+      {isSpecialConsultationOpen && result && (
+        <SpecialDivineConsultationModal
+          isOpen={isSpecialConsultationOpen}
+          onClose={() => setIsSpecialConsultationOpen(false)}
+          kundli={result}
+          formInput={{
+            name: form.name || "ಭಕ್ತಾದಿಗಳು",
+            birthDate: birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : (form.birthDate || "1990-01-01"),
+            birthTime: birthTimeHm.trim() || "12:00",
+            maritalStatus: form.maritalStatus || "general",
+            gender: form.gender
+          }}
+          initialLang={pdfLanguage}
+          priestName={priestNameInput || "ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"}
+          priestPhone={priestPhoneInput || "9972339362"}
+        />
       )}
 
     </Card>
