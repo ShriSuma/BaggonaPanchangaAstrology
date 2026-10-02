@@ -146,7 +146,7 @@ describe("Kundli Doshas Age-Adaptive Priority Ordering & PDF Generation Audit", 
     // Verify Temple banner and Chief Priest identity
     expect(container.textContent).toContain("ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ");
     expect(container.textContent).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-    expect(container.textContent).toContain("+91 94486 24477");
+    expect(container.textContent).toContain("+91 99723 39362");
 
     // Verify Age Strategy Card rendered
     expect(container.textContent).toContain("ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಆದ್ಯತಾ ಸೂಚಿ");

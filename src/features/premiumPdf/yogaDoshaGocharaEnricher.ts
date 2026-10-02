@@ -747,6 +747,13 @@ export function localizeYogaName(name: string, lang: string): string {
     if (baseLang === "ta") return "உன்னத ராஜயோகம்";
   }
 
+  if (lower.includes("dasha") || lower.includes("ದಶಾ") || lower.includes("दशा") || lower.includes("దశ") || lower.includes("தசை")) {
+    if (baseLang === "kn") return "ದಶಾ ಅನುಕೂಲ ಯೋಗ";
+    if (baseLang === "hi") return "दशा अनुकूल योग";
+    if (baseLang === "te") return "దశా అనుకూల యోగం";
+    if (baseLang === "ta") return "தசா சாதக யோகம்";
+  }
+
   if (/[\u0900-\u0D7F]/.test(name)) {
     return cleanEnglishFromRegionalText(name, baseLang);
   }

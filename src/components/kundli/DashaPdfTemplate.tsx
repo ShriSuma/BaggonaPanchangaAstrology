@@ -4,6 +4,7 @@ import { generateDashaTimeline, generateBhuktisInMahadasha } from "../../core/Da
 import { PlanetName } from "../../core/AstroTypes";
 import { format, parseISO, addDays, differenceInDays } from "date-fns";
 import { RASHI_L5, pick } from "../../features/seva/sevaLocale";
+import { formatChartHouseNumber } from "../../core/localeNumbers";
 
 type Props = {
   session: KundliViewerSession;
@@ -46,7 +47,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "ರಾಶಿ:",
     mahadasha: "ಮಹಾದಶೆ",
     bhukti: "ಭುಕ್ತಿ",
-    shubhamastu: "ಶುಭಮಸ್ತು (Shubhamastu)",
+    shubhamastu: "ಶುಭಮಸ್ತು",
     footerAuthor: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು",
   },
   en: {
@@ -82,7 +83,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "రాశి:",
     mahadasha: "మహాదశ",
     bhukti: "భుక్తి",
-    shubhamastu: "శుభమస్తు (Shubhamastu)",
+    shubhamastu: "శుభమస్తు",
     footerAuthor: "బగ్గోణ పంచాంగ కర్తలు",
   },
   ta: {
@@ -100,7 +101,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "ராசி:",
     mahadasha: "மகா தசை",
     bhukti: "புக்தி",
-    shubhamastu: "சுபமஸ்து (Shubhamastu)",
+    shubhamastu: "சுபமஸ்து",
     footerAuthor: "பக்கோன பஞ்சாங்கம் கர்த்தா",
   },
   hi: {
@@ -118,7 +119,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "राशि:",
     mahadasha: "महादशा",
     bhukti: "भुक्ति",
-    shubhamastu: "शुभमस्तु (Shubhamastu)",
+    shubhamastu: "शुभमस्तु",
     footerAuthor: "बग्गोण पंचांग कर्ता",
   },
 };
@@ -135,14 +136,37 @@ const PLANET_NAMES_L5: Record<PlanetName, Record<LangCode, string>> = {
   [PlanetName.Ketu]: { en: "Ketu", kn: "ಕೇತು", te: "కేతు", ta: "கேது", hi: "केतु" },
 };
 
-function formatDateFromAge(birthDateStr: string, ageInYears: number): string {
+const MONTH_NAMES_L5: Record<number, Record<LangCode, string>> = {
+  0: { en: "Jan", kn: "ಜನವರಿ", hi: "जनवरी", te: "జనవరి", ta: "ஜனவரி" },
+  1: { en: "Feb", kn: "ಫೆಬ್ರವರಿ", hi: "फरवरी", te: "ఫిబ్రవరి", ta: "பிப்ரவரி" },
+  2: { en: "Mar", kn: "ಮಾರ್ಚ್", hi: "मार्च", te: "మార్చి", ta: "மார்ச்" },
+  3: { en: "Apr", kn: "ಏಪ್ರಿಲ್", hi: "अप्रैल", te: "ఏప్రిల్", ta: "ஏப்ரல்" },
+  4: { en: "May", kn: "ಮೇ", hi: "मई", te: "మే", ta: "மே" },
+  5: { en: "Jun", kn: "ಜೂನ್", hi: "जून", te: "జూన్", ta: "ஜூன்" },
+  6: { en: "Jul", kn: "ಜುಲೈ", hi: "जुलाई", te: "జూలై", ta: "ஜூலை" },
+  7: { en: "Aug", kn: "ಆಗಸ್ಟ್", hi: "अगस्त", te: "ఆగస్టు", ta: "ஆகஸ்ட்" },
+  8: { en: "Sep", kn: "ಸೆಪ್ಟೆಂಬರ್", hi: "सितंबर", te: "సెప్టెంబర్", ta: "செப்டம்பர்" },
+  9: { en: "Oct", kn: "ಅಕ್ಟೋಬರ್", hi: "अक्टूबर", te: "అక్టోబర్", ta: "அக்டோபர்" },
+  10: { en: "Nov", kn: "ನವೆಂಬರ್", hi: "नवंबर", te: "నవంబర్", ta: "நவம்பர்" },
+  11: { en: "Dec", kn: "ಡಿಸೆಂಬರ್", hi: "दिसंबर", te: "డిసెంబర్", ta: "டிசம்பர்" },
+};
+
+function formatDateFromAge(birthDateStr: string, ageInYears: number, langKey: LangCode = "kn"): string {
   try {
     const dob = parseISO(birthDateStr);
     const daysToAdd = Math.round(ageInYears * 365.2425);
     const targetDate = addDays(dob, daysToAdd);
-    return format(targetDate, "dd MMM yyyy");
+    if (langKey === "en") {
+      return format(targetDate, "dd MMM yyyy");
+    }
+    const day = targetDate.getDate();
+    const month = MONTH_NAMES_L5[targetDate.getMonth()]?.[langKey] || format(targetDate, "MMM");
+    const year = targetDate.getFullYear();
+    const formattedDay = formatChartHouseNumber(day, langKey);
+    const formattedYear = formatChartHouseNumber(year, langKey);
+    return `${formattedDay} ${month} ${formattedYear}`;
   } catch {
-    return `${ageInYears.toFixed(2)} Yrs`;
+    return `${formatChartHouseNumber(Math.round(ageInYears), langKey)} Yrs`;
   }
 }
 
@@ -225,7 +249,7 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
           fontWeight: "bold"
         }}>
           <div>{labels.nameLabel} {session.input.name}</div>
-          <div>{labels.dobLabel} {formatDateFromAge(birthDateStr, 0)}</div>
+          <div>{labels.dobLabel} {formatDateFromAge(birthDateStr, 0, validLang)}</div>
           <div>{labels.lagnaLabel} {lagnaName}</div>
           <div>{labels.rashiLabel} {moonSignName}</div>
         </div>
@@ -266,7 +290,7 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
                     {getPlanetName(maha.planet)} {labels.mahadasha}
                   </div>
                   <div style={{ fontSize: "16px", fontWeight: "bold" }}>
-                    {formatDateFromAge(birthDateStr, maha.startAge)} — {formatDateFromAge(birthDateStr, maha.endAge)}
+                    {formatDateFromAge(birthDateStr, maha.startAge, validLang)} — {formatDateFromAge(birthDateStr, maha.endAge, validLang)}
                   </div>
                 </div>
 
@@ -294,7 +318,7 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
                           {getPlanetName(bhukti.planet)} {labels.bhukti}
                         </div>
                         <div style={{ fontSize: "14px", fontFamily: "monospace", fontWeight: "bold" }}>
-                          {formatDateFromAge(birthDateStr, Math.max(bStart, currentAgeInYears))} - {formatDateFromAge(birthDateStr, bEnd)}
+                          {formatDateFromAge(birthDateStr, Math.max(bStart, currentAgeInYears), validLang)} - {formatDateFromAge(birthDateStr, bEnd, validLang)}
                         </div>
                       </div>
                     );

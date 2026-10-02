@@ -1252,9 +1252,9 @@ export default function KundliPage(): JSX.Element {
             overrideCalendarPhone: true,
             notificationTime: "07:00",
             personName: qrCardProfile.name,
-            pincode: "581326",
-            lat: 14.54,
-            lng: 74.31,
+            pincode: form.pincode || "581326",
+            lat: typeof form.latitude === "number" ? form.latitude : 14.54,
+            lng: typeof form.longitude === "number" ? form.longitude : 74.31,
             locationName: homePlaceName.trim() || locationCore || "Gokarna",
             dob: qrCardProfile.birthDate,
             tob: qrCardProfile.birthTime,
@@ -2885,7 +2885,9 @@ export default function KundliPage(): JSX.Element {
             priestPhone={priestPhoneInput || "9972339362"}
             qrDataUrl={qrCardDataUrl}
             placeLabel={homePlaceName.trim() || locationCore || "Gokarna"}
-            pincode="581326"
+            pincode={form.pincode || "581326"}
+            lat={typeof form.latitude === "number" ? form.latitude : 14.54}
+            lng={typeof form.longitude === "number" ? form.longitude : 74.31}
           />
         </div>
       )}
@@ -2897,7 +2899,7 @@ export default function KundliPage(): JSX.Element {
           onClose={() => setIsSpecialConsultationOpen(false)}
           kundli={result}
           formInput={{
-            name: form.name || "ಭಕ್ತಾದಿಗಳು",
+            name: form.name || (pdfLanguage === "kn" ? "ಭಕ್ತಾದಿಗಳು" : pdfLanguage === "hi" ? "जातक" : pdfLanguage === "te" ? "భక్తులు" : pdfLanguage === "ta" ? "பக்தர்கள்" : "Devotee"),
             birthDate: birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : (form.birthDate || "1990-01-01"),
             birthTime: birthTimeHm.trim() || "12:00",
             maritalStatus: form.maritalStatus || "general",

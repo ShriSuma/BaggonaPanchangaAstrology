@@ -45,7 +45,11 @@ export const localTranslations: Record<string, Record<string, string>> = {
     "Current State of Mind & Life (Present Moment)": "Current State of Mind & Life (Present Moment)",
     "Current Phase (Age, Dasha & Gochara)": "Current Phase (Age, Dasha & Gochara)",
     "Dina": "Dina",
-    "Gata Dina": "Gata Dina"
+    "Gata Dina": "Gata Dina",
+    "Yoni": "Yoni",
+    "Gana": "Gana",
+    "Nadi": "Nadi",
+    "Panchanga Kartaru": "Baggona Panchanga Publication"
   },
   kn: {
     // Categories
@@ -165,7 +169,11 @@ export const localTranslations: Record<string, Record<string, string>> = {
     "Dasha Bhukti": "ದಶಾ ಭುಕ್ತಿ",
     "Dina": "ದಿನ",
     "Gata Dina": "ಗತ ದಿನ",
-    "Pale": "ಪಳೆ"
+    "Pale": "ಪಳೆ",
+    "Yoni": "ಯೋನಿ",
+    "Gana": "ಗಣ",
+    "Nadi": "ನಾಡಿ",
+    "Panchanga Kartaru": "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
   },
   te: {
     "Auspicious Indications": "శుభ సూచనలు",
@@ -261,7 +269,11 @@ export const localTranslations: Record<string, Record<string, string>> = {
     "Dasha Bhukti": "దశ భుక్తి",
     "Dina": "దినం",
     "Gata Dina": "గత దినం",
-    "Pale": "విఘటి"
+    "Pale": "విఘటి",
+    "Yoni": "యోని",
+    "Gana": "గణం",
+    "Nadi": "నాడి",
+    "Panchanga Kartaru": "బగ్గోణ పంచాంగ కర్తలు"
   },
   ta: {
     "Auspicious Indications": "மங்களகரமான அறிகுறிகள்",
@@ -357,7 +369,11 @@ export const localTranslations: Record<string, Record<string, string>> = {
     "Dasha Bhukti": "தசை புக்தி",
     "Dina": "நாள்",
     "Gata Dina": "கத நாள்",
-    "Pale": "விநாடி"
+    "Pale": "விநாடி",
+    "Yoni": "யோனி",
+    "Gana": "கணம்",
+    "Nadi": "நாடி",
+    "Panchanga Kartaru": "பக்கோன பஞ்சாங்க ஆசிரியர்கள்"
   },
   hi: {
     "Name": "नाम",
@@ -388,7 +404,12 @@ export const localTranslations: Record<string, Record<string, string>> = {
     "Janma Kala": "जन्म काल",
     "Dasha Bhukti": "दशा भुक्ति",
     "Dina": "दिन",
-    "Gata Dina": "गत दिन"
+    "Gata Dina": "गत दिन",
+    "Pale": "विघटी",
+    "Yoni": "योनि",
+    "Gana": "गण",
+    "Nadi": "नाड़ी",
+    "Panchanga Kartaru": "बग्गोण पंचांग कर्ता"
   }
 };
 

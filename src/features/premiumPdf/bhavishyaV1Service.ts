@@ -590,8 +590,10 @@ export async function prepareBhavishyaV1Data(
   const lagnaIdx = session.result.lagnaRashi?.index ?? 0;
   const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
   const moonStr = pick(RASHI_L5[session.result.moonSign.index], lang);
-  const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "Dasha";
-  const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti";
+  const dashaWord = baseLang === "kn" ? "ದಶಾ" : baseLang === "hi" ? "दशा" : baseLang === "te" ? "దశ" : baseLang === "ta" ? "தசை" : "Dasha";
+  const bhuktiWord = baseLang === "kn" ? "ಭುಕ್ತಿ" : baseLang === "hi" ? "भुक्ति" : baseLang === "te" ? "భుక్తి" : baseLang === "ta" ? "புக்தி" : "Bhukti";
+  const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], lang) : dashaWord;
+  const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : bhuktiWord;
 
   if (isChild) {
     const catEd = baseLang === "kn" ? "ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಬುದ್ಧಿಶಕ್ತಿ" : baseLang === "hi" ? "शिक्षा एवं बौद्धिक विकास" : baseLang === "te" ? "విద్యాభ్యాసం మరియు మేధో వికాసం" : baseLang === "ta" ? "கல்வி மற்றும் அறிவு வளர்ச்சி" : "Education & Early Intellect";
@@ -768,13 +770,25 @@ export async function prepareBhavishyaV1Data(
   const safeDoshaFallback = rawDoshasFallback.length > 0
     ? rawDoshasFallback
     : [{
-        name: lang === "kn" ? "ಸರ್ವ ದೋಷ ಮುಕ್ತ & ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಕವಚ" : lang === "hi" ? "सर्व दोष मुक्त - शुभ ग्रह रक्षा कवच" : lang === "te" ? "సర్వ దోష రహితం - శుభ గ్రహ రక్షా కవచం" : lang === "ta" ? "தோஷ நிவர்த்தி - சுப கிரக பாதுகாப்பு" : "Benefic Planetary Shield - Free of Major Doshas",
-        impact: lang === "kn"
+        name: baseLang === "kn" ? "ಸರ್ವ ದೋಷ ಮುಕ್ತ & ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಕವಚ" : baseLang === "hi" ? "सर्व दोष मुक्त - शुभ ग्रह रक्षा कवच" : baseLang === "te" ? "సర్వ దోష రహితం - శుభ గ్రహ రక్షా కవచం" : baseLang === "ta" ? "தோஷ நிவர்த்தி - சுப கிரக பாதுகாப்பு" : "Benefic Planetary Shield - Free of Major Doshas",
+        impact: baseLang === "kn"
           ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಪಿತೃ, ಕಾಲಸರ್ಪ ಅಥವಾ ಬಾಲ್ಯದಾರಿಷ್ಟ ದೋಷಗಳಿಲ್ಲ. ಕೇಂದ್ರ ಮತ್ತು ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಲ್ಲಿ ಶುಭಗ್ರಹರ ಅನುಗ್ರಹವಿದ್ದು, ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಸದಾ ನಿಮ್ಮನ್ನು ಕಾಪಾಡುತ್ತದೆ."
-          : lang === "hi"
+          : baseLang === "hi"
           ? "आपकी कुंडली में कोई गंभीर कालसर्प, पितृ अथवा मांगलिक दोष नहीं है। शुभ ग्रहों की दृष्टि से आपका जीवन सुरक्षित एवं संरक्षित है।"
+          : baseLang === "te"
+          ? "మీ జన్మ కుండలిలో ఎటువంటి తీవ్ర కాలసర్ప, పితృ లేదా మాంగళిక దోషాలు లేవు. కేంద్ర, త్రికోణ స్థానాలలో శుభగ్రహాల అనుగ్రహం కలిగి దైవిక రక్షా కవచం మిమ్మల్ని రక్షిస్తుంది."
+          : baseLang === "ta"
+          ? "உங்கள் ஜாதகத்தில் எவ்வித கடுமையான காலசர்ப்ப, பித்ரு அல்லது மாங்கல்ய தோஷங்களும் இல்லை. திரிகோண மற்றும் கேந்திர ஸ்தானங்களில் சுப கிரகங்களின் ஆசியுடன் தெய்வீக பாதுகாப்பு உள்ளது."
           : "Your chart is blessed without severe natal doshas. Auspicious planetary combinations provide a divine protective shield.",
-        remedy: lang === "kn" ? "ನಿತ್ಯ ಶ್ರೀ ಗಾಯತ್ರೀ ಜಪ, ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದರ್ಶನ." : "Daily sacred prayer, Kuladevata worship, and temple gratitude offerings."
+        remedy: baseLang === "kn"
+          ? "ನಿತ್ಯ ಶ್ರೀ ಗಾಯತ್ರೀ ಜಪ, ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದರ್ಶನ."
+          : baseLang === "hi"
+          ? "नित्य गायत्री मंत्र जप, कुलदेवता स्मरण एवं गोकर्ण महाबलेश्वर दर्शन।"
+          : baseLang === "te"
+          ? "నిత్యం గాయత్రీ మంత్ర జపం, కులదేవత స్మరణ మరియు గోకర్ణ మహాబలేశ్వర దర్శనం."
+          : baseLang === "ta"
+          ? "தினசரி காயத்ரி மந்திர ஜபம், குலதெய்வ வழிபாடு மற்றும் கோகர்ண மகாபலேஸ்வரர் தரிசனம்."
+          : "Daily sacred prayer, Kuladevata worship, and temple gratitude offerings."
       }];
 
   const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0

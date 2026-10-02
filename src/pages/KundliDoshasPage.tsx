@@ -382,11 +382,11 @@ const UI_TEXT: Record<string, Record<string, string>> = {
     en: "Sri Gokarna Kotiteertha Tila Homa & Narayana Bali Sankalpa",
   },
   pitruChiefPriestCall: {
-    kn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು): +91 94486 24477",
-    hi: "श्रीराम पंडित (प्रधान अर्चक): +91 94486 24477",
-    te: "శ్రీరామ్ పండిత్ (ప్రధాన అర్చకులు): +91 94486 24477",
-    ta: "ஸ்ரீராம் பண்டிட் (தலைமை குருக்கள்): +91 94486 24477",
-    en: "Shreeram Pandit (Chief Priest): +91 94486 24477",
+    kn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಪ್ರಧಾನ ಅರ್ಚಕರು): +91 99723 39362",
+    hi: "श्रीराम पंडित (प्रधान अर्चक): +91 99723 39362",
+    te: "శ్రీరామ్ పండితులు (ప్రధాన అర్చకులు): +91 99723 39362",
+    ta: "ஸ்ரீராம் பண்டிதர் (தலைமை குருக்கள்): +91 99723 39362",
+    en: "Shreeram Pandit (Chief Priest): +91 99723 39362",
   },
   supremeAncestralDuty: {
     kn: "👑 ಪೂರ್ವಜ ಋಣ ಮೋಚನ (Supreme Ancestral Duty)",
@@ -1109,7 +1109,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                         </div>
 
                         <a
-                          href="tel:+919448624477"
+                          href="tel:+919972339362"
                           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-black text-xs shadow-md transition-all shrink-0 active:scale-95 print:hidden"
                         >
                           <span>📞</span>

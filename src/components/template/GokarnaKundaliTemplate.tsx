@@ -62,10 +62,16 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   
   const getValue = (key: string, fallback: string) => dynamicValues?.[key] || fallback;
 
-  const shakaYear = panchanga ? `೧೯${formatChartHouseNumber(panchanga.shakaYear % 100, pdfLanguage)}` : "೧೯೫೦"; 
-  const samvatsara = getValue("samvatsara", panchanga?.samvatsaraKn || "ಕೀಲಕ ಸಂವತ್ಸರೇ");
-  const masa = getValue("masa", panchanga?.masaKn || "ಚೈತ್ರ ಮಾಸೇ");
-  const paksha = getValue("paksha", panchanga?.pakshaKn || "ಶುಕ್ಲ ಪಕ್ಷೇ");
+  const shakaYear = panchanga 
+    ? formatChartHouseNumber(panchanga.shakaYear, pdfLanguage) 
+    : formatChartHouseNumber(1946, pdfLanguage); 
+  const defaultSamvatsara = pdfLanguage === "kn" ? "ಕೀಲಕ ಸಂವತ್ಸರೇ" : pdfLanguage === "hi" ? "कीलक संवत्सरे" : pdfLanguage === "te" ? "కీలక సంవత్సరే" : pdfLanguage === "ta" ? "கீலக வத்ஸரே" : "Keelaka Samvatsare";
+  const defaultMasa = pdfLanguage === "kn" ? "ಚೈತ್ರ ಮಾಸೇ" : pdfLanguage === "hi" ? "चैत्र मासे" : pdfLanguage === "te" ? "చైత్ర మాసే" : pdfLanguage === "ta" ? "சித்திரை மாஸே" : "Chaitra Mase";
+  const defaultPaksha = pdfLanguage === "kn" ? "ಶುಕ್ಲ ಪಕ್ಷೇ" : pdfLanguage === "hi" ? "शुक्ल पक्षे" : pdfLanguage === "te" ? "శుక్ల పక్షే" : pdfLanguage === "ta" ? "சுக்ல பக்ஷே" : "Shukla Pakshe";
+
+  const samvatsara = getValue("samvatsara", (panchanga ? (pdfLanguage === "kn" ? panchanga.samvatsaraKn : (panchanga.samvatsara || panchanga.samvatsaraKn)) : defaultSamvatsara));
+  const masa = getValue("masa", (panchanga ? (pdfLanguage === "kn" ? panchanga.masaKn : (panchanga.masa || panchanga.masaKn)) : defaultMasa));
+  const paksha = getValue("paksha", (panchanga ? (pdfLanguage === "kn" ? panchanga.pakshaKn : (panchanga.paksha || panchanga.pakshaKn)) : defaultPaksha));
   
   const tithi = panchanga ? <>{getValue("tithi", panchanga.tithiKn)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.tithiGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.tithiVighati, pdfLanguage)}</> : "";
   const vasara = panchanga ? <>{getValue("weekday", panchanga.weekdayKn)} – <b>{getLabel("Ravi Nakshatra")}</b> {getValue("sunNakshatra", panchanga.sunNakshatraKn)}, {getLabel("Ghati")} {formatChartHouseNumber(panchanga.sunNakshatraGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.sunNakshatraVighati, pdfLanguage)}</> : "";
@@ -254,11 +260,11 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
                     >
                       <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
                         <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Name")}</span>
-                        <span>: {personName || "________________"}</span>
+                        <span>: {personName || (pdfLanguage === "kn" ? "ಜಾತಕರು" : pdfLanguage === "hi" ? "जातक" : pdfLanguage === "te" ? "జాతకుడు" : pdfLanguage === "ta" ? "ஜாதகர்" : "Devotee")}</span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
                         <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Gotra")}</span>
-                        <span>: {gothra || "________________"}</span>
+                        <span>: {gothra || "-"}</span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
                         <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Rashi")}</span>
@@ -319,15 +325,15 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
 
         {/* Bottom Details Section */}
         <div style={{ borderTop: "2px solid #000", borderBottom: "2px solid #000", margin: "15px 0", padding: "10px 0", display: "flex", justifyContent: "space-around", fontSize: "15px", fontWeight: "bold" }}>
-          <div>{getValue("label_yoni", "ಯೋನಿ")}: <span>{moonNakshatra ? getValue("yoni", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).yoniKn) : "-"}</span></div>
-          <div>{getValue("label_gana", "ಗಣ")}: <span>{moonNakshatra ? getValue("gana", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).ganaKn) : "-"}</span></div>
-          <div>{getValue("label_nadi", "ನಾಡಿ")}: <span>{moonNakshatra ? getValue("nadi", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).nadiKn) : "-"}</span></div>
+          <div>{getValue("label_yoni", getLabel("Yoni"))}: <span>{moonNakshatra ? getValue("yoni", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).yoniKn) : "-"}</span></div>
+          <div>{getValue("label_gana", getLabel("Gana"))}: <span>{moonNakshatra ? getValue("gana", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).ganaKn) : "-"}</span></div>
+          <div>{getValue("label_nadi", getLabel("Nadi"))}: <span>{moonNakshatra ? getValue("nadi", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).nadiKn) : "-"}</span></div>
         </div>
 
         {/* Footer */}
         <div style={{ textAlign: "center", fontSize: "15px", paddingTop: "5px", color: "#000" }}>
           <div style={{ fontWeight: "bold" }}>
-            {getValue("label_footer", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು")}
+            {getValue("label_footer", getLabel("Panchanga Kartaru"))}
           </div>
         </div>
       </div>

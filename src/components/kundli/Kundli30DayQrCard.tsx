@@ -39,6 +39,8 @@ export interface Kundli30DayQrCardProps {
   qrDataUrl?: string;
   placeLabel?: string;
   pincode?: string;
+  lat?: number;
+  lng?: number;
 }
 
 const I18N: Record<string, Record<string, string>> = {
@@ -166,7 +168,9 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
   priestPhone = "9972339362",
   qrDataUrl: externalQr,
   placeLabel,
-  pincode = "581326"
+  pincode = "581326",
+  lat = 14.54,
+  lng = 74.31
 }) => {
   const currentLang = (lang && I18N[lang]) ? lang : "kn";
   const t = I18N[currentLang];
@@ -198,8 +202,8 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
         notificationTime: "07:00",
         personName: profile.name,
         pincode: pincode || "581326",
-        lat: 14.54,
-        lng: 74.31,
+        lat: typeof lat === "number" && !isNaN(lat) ? lat : 14.54,
+        lng: typeof lng === "number" && !isNaN(lng) ? lng : 74.31,
         locationName: placeLabel || "Gokarna",
         dob: profile.birthDate,
         tob: profile.birthTime,
