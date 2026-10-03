@@ -251,27 +251,48 @@ export async function generatePDFFromElement(
   }
 }
 
-function savePdfBlob(pdf: jsPDF, fileName: string): void {
-  const safeName = fileName.toLowerCase().endsWith(".pdf") ? fileName : `${fileName}.pdf`;
+export function savePdfBlob(pdf: jsPDF, fileName: string): void {
+  // 1. Sanitize filename: strip existing .pdf extension, clean forbidden characters
+  const rawBase = fileName.replace(/\.pdf$/i, "").trim();
+  const cleanBase = rawBase
+    .replace(/[/\\:*?"<>|\x00-\x1F\x7F]+/g, "_")
+    .replace(/\s+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "") || "Baggona_Report";
+  const safeName = `${cleanBase}.pdf`;
+
+  // 2. Primary download strategy: Explicit Blob attached to DOM
+  // CRITICAL ROOT CAUSE FIX: jsPDF's built-in pdf.save() triggers click on an unattached <a> element,
+  // which causes Chrome/Safari/Firefox to ignore the download attribute and save the file
+  // with a generic blob UUID and NO .pdf extension!
   try {
-    pdf.save(safeName);
+    const arrayBuffer = pdf.output("arraybuffer");
+    const blob = new Blob([arrayBuffer], { type: "application/pdf" });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.style.display = "none";
+    a.style.position = "fixed";
+    a.style.left = "-9999px";
+    a.style.top = "-9999px";
+    a.href = blobUrl;
+    a.download = safeName;
+    a.setAttribute("download", safeName);
+    a.setAttribute("type", "application/pdf");
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      if (document.body.contains(a)) {
+        document.body.removeChild(a);
+      }
+      URL.revokeObjectURL(blobUrl);
+    }, 3000);
   } catch (err) {
-    console.warn("Direct pdf.save failed, falling back to Blob download:", err);
+    console.warn("DOM Blob download failed, falling back to direct pdf.save:", err);
     try {
-      const blob = pdf.output("blob");
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = safeName;
-      a.setAttribute("download", safeName);
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        if (document.body.contains(a)) document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
-      }, 1500);
+      pdf.save(safeName);
     } catch (fallbackErr) {
-      console.error("PDF download failed completely:", fallbackErr);
+      console.error("All PDF download mechanisms failed:", fallbackErr);
     }
   }
 }

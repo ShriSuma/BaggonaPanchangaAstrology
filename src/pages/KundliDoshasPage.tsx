@@ -604,8 +604,9 @@ Keep the tone divine, authoritative, and Vedic.`;
     if (isDownloadingPdf || !doshaReport) return;
     try {
       setIsDownloadingPdf(true);
-      const nativeName = (doshaReport.devoteeInfo.name || "Devotee").replace(/\s+/g, "_");
-      const fileName = `${nativeName}_Kundli_Dosha_Report_${selectedLang.toUpperCase()}.pdf`;
+      const rawName = (doshaReport.devoteeInfo.name || "Devotee").trim();
+      const cleanName = rawName.replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_").replace(/_+/g, "_").replace(/^_+|_+$/g, "") || "Devotee";
+      const fileName = `Baggona_Kundli_Dosha_Report_${cleanName}_${selectedLang.toUpperCase()}.pdf`;
       await generatePDFFromElement("kundli-doshas-pdf-container", fileName);
     } catch (err) {
       console.error("Failed to generate Dosha PDF, falling back to window.print:", err);

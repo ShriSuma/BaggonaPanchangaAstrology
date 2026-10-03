@@ -289,10 +289,10 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-stone-950/70 backdrop-blur-sm overflow-hidden">
       {/* Modal Dialog Card in Cream & Gold luxury theme */}
-      <div className="relative w-full max-w-4xl my-auto max-h-[92vh] flex flex-col rounded-3xl bg-[#FFFDF7] border-2 border-amber-400 shadow-[0_12px_45px_rgba(180,83,9,0.22)] text-stone-900 overflow-hidden font-sans">
+      <div className="relative w-full max-w-4xl h-[92vh] max-h-[92vh] flex flex-col rounded-3xl bg-[#FFFDF7] border-2 border-amber-400 shadow-[0_12px_45px_rgba(180,83,9,0.22)] text-stone-900 overflow-hidden font-sans">
         
-        {/* Header - Luxury Cream & Gold */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 border-b-2 border-amber-300 bg-gradient-to-r from-amber-100/90 via-[#FFFDF7] to-amber-100/90">
+        {/* Header - Luxury Cream & Gold (Compact fixed bar) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-4 py-3 sm:px-5 sm:py-3.5 border-b-2 border-amber-300 bg-gradient-to-r from-amber-100/90 via-[#FFFDF7] to-amber-100/90 shrink-0">
           <div className="flex items-center gap-3">
             <span className="text-2xl sm:text-3xl filter drop-shadow">✨</span>
             <div>
@@ -339,146 +339,8 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
           </div>
         </div>
 
-        {/* Devotee Info Badge */}
-        <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
-          <div className="font-extrabold text-amber-950 flex items-center gap-1.5">
-            <span>👤</span>
-            <span>{report.devoteeName}</span>
-            <span className="text-amber-800 font-semibold">({report.birthDate} • {isKn ? `${devoteeAge} ವರ್ಷ` : `${devoteeAge} yrs`})</span>
-          </div>
-          <div className="flex items-center gap-3 text-amber-900 font-semibold">
-            <span><strong>{isKn ? "ಲಗ್ನ:" : "Lagna:"}</strong> {isKn ? report.lagnaNameKn : report.lagnaNameEn}</span>
-            <span><strong>{isKn ? "ರಾಶಿ:" : "Rashi:"}</strong> {isKn ? report.rashiNameKn : report.rashiNameEn}</span>
-            <span><strong>{isKn ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"}</strong> {isKn ? report.nakshatraNameKn : report.nakshatraNameEn}</span>
-            <span><strong>{isKn ? "ದಶಾ:" : "Dasha:"}</strong> {isKn ? report.currentDashaKn : report.currentDashaEn}</span>
-          </div>
-        </div>
-
-        {/* Panchanga & Dignity Strip */}
-        <div className="px-4 py-2 bg-[#FFFDF7] border-b border-amber-200 flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs text-amber-950">
-          <div className="flex flex-wrap items-center gap-2 font-medium">
-            <span>📜 <strong>{isKn ? "ಪಂಚಾಂಗ:" : "Panchanga:"}</strong> {isKn ? report.panchanga.samvatsaraKn : report.panchanga.samvatsaraEn}, {isKn ? report.panchanga.masaKn : report.panchanga.masaEn}, {isKn ? report.panchanga.pakshaKn : report.panchanga.pakshaEn}</span>
-            <span>• <strong>{isKn ? "ತಿಥಿ:" : "Tithi:"}</strong> {isKn ? report.panchanga.tithiKn : report.panchanga.tithiEn}</span>
-            <span>• <strong>{isKn ? "ವಾರ:" : "Vara:"}</strong> {isKn ? report.panchanga.weekdayKn : report.panchanga.weekdayEn}</span>
-            <span>• <strong>{isKn ? "ಯೋಗ:" : "Yoga:"}</strong> {isKn ? report.panchanga.yogaKn : report.panchanga.yogaEn}</span>
-            <span>• <strong>{isKn ? "ಕರಣ:" : "Karana:"}</strong> {isKn ? report.panchanga.karanaKn : report.panchanga.karanaEn}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowDignityDetails(!showDignityDetails)}
-            className="px-2.5 py-1 rounded-lg bg-amber-100/80 hover:bg-amber-200/80 border border-amber-300 text-amber-950 font-bold flex items-center gap-1 transition-all shadow-2xs"
-          >
-            <span>🪐 {isKn ? "ಗ್ರಹ ಬಲ & ಉಚ್ಚ-ನೀಚ ಸ್ಥಿತಿ" : "Planetary Dignities"}</span>
-            <span>{showDignityDetails ? "▲" : "▼"}</span>
-          </button>
-        </div>
-
-        {/* Collapsible Planetary Dignity Assessment Table */}
-        {showDignityDetails && (
-          <div className="p-3.5 bg-amber-50/50 border-b border-amber-200 animate-fadeIn">
-            <div className="text-xs font-bold text-amber-950 mb-2 flex items-center justify-between">
-              <span>🪐 {isKn ? "ನವಗ್ರಹಗಳ ಶಾಸ್ತ್ರೋಕ್ತ ಸ್ಥಾನ, ಉಚ್ಚ-ನೀಚ & ಬಲ ವಿವರಣೆ" : "Nine Planets Classical Dignity Assessment"}</span>
-              <span className="text-[11px] text-amber-800">{isKn ? "ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ ನಿಯಮಗಳು" : "Parashari Principles"}</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
-              {Object.values(report.planetaryDignities).map((d, i) => (
-                <div
-                  key={i}
-                  className={`p-2 rounded-xl border-2 ${
-                    d.dignity === "exalted"
-                      ? "bg-amber-50 border-amber-400 text-amber-950"
-                      : d.dignity === "debilitated"
-                      ? "bg-rose-50 border-rose-300 text-rose-900"
-                      : d.dignity === "own"
-                      ? "bg-emerald-50 border-emerald-400 text-emerald-950"
-                      : "bg-white border-amber-200 text-stone-800"
-                  }`}
-                >
-                  <div className="font-extrabold flex items-center justify-between">
-                    <span>{isKn ? d.nameKn : d.nameEn}</span>
-                    <span className="text-[10px] font-mono text-amber-900">{d.degree.toFixed(1)}°</span>
-                  </div>
-                  <div className="text-[11px] font-semibold text-amber-900">{isKn ? d.rashiKn : d.rashiEn} ({d.house}H)</div>
-                  <div className="text-[11px] font-bold mt-0.5">
-                    {isKn ? d.dignityLabelKn : d.dignityLabelEn}
-                    {d.isCombust && <span className="text-rose-600 ml-1">({isKn ? "ಅಸ್ತ" : "Combust"})</span>}
-                    {d.isRetrograde && <span className="text-purple-700 ml-1">({isKn ? "ವಕ್ರ" : "Retro"})</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* AI Status / Fallback Notice Banner */}
-        <div className="px-4 pt-3 pb-1">
-          {report.aiNarration.isAiGenerated ? (
-            <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-emerald-50 border-2 border-emerald-400 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-950 shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl">✨</span>
-                <div>
-                  <div className="font-extrabold text-emerald-900">
-                    {isKn ? report.aiNarration.statusNoticeKn : report.aiNarration.statusNoticeEn}
-                  </div>
-                  <div className="text-[11px] text-emerald-800 font-medium">
-                    {isKn
-                      ? "ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ದೈವಿಕ ನಿರೂಪಣೆಯನ್ನು ಜೆಮಿನಿ 3.5 ಫ್ಲ್ಯಾಶ್-ಲೈಟ್ ಎಂಜಿನ್ ಮೂಲಕ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ."
-                      : "High-precision AI narrative synthesis generated strictly from your natal chart coordinates."}
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled={isGeneratingAi}
-                onClick={handleGenerateAiNarration}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs whitespace-nowrap shadow-xs transition-all active:scale-95"
-              >
-                {isGeneratingAi ? (
-                  <span className="flex items-center gap-1.5">
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    {isKn ? `ರಚನೆಯಾಗುತ್ತಿದೆ (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...` : `Generating (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...`}
-                  </span>
-                ) : (
-                  <span>🔄 {isKn ? "ಮರು ರಚಿಸಿ" : "Regenerate AI"}</span>
-                )}
-              </button>
-            </div>
-          ) : (
-            <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-50 via-white to-amber-50 border-2 border-amber-400 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-amber-950 shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl">⚠️</span>
-                <div>
-                  <div className="font-extrabold text-amber-950">
-                    {isKn ? report.aiNarration.statusNoticeKn : report.aiNarration.statusNoticeEn}
-                  </div>
-                  <div className="text-[11px] text-amber-900 font-medium">
-                    {isKn
-                      ? "ಗಮನಿಸಿ: AI ಸಂಪರ್ಕವಿಲ್ಲದಿದ್ದರೂ, ಎಲ್ಲಾ ಫಲಗಳು ನಿಮ್ಮ ಜನನ ಲಗ್ನ, ನಕ್ಷತ್ರ, ಪಂಚಾಂಗ ಹಾಗೂ ಗ್ರಹಗಳ ಉಚ್ಚ-ನೀಚ ಬಲದ ಗಣಿತದ ಮೇಲೆ ೧೦೦% ನೈಜವಾಗಿವೆ."
-                      : "All astrological predictions remain 100% active and mathematically calculated using classical Parashari rules."}
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled={isGeneratingAi}
-                onClick={handleGenerateAiNarration}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-extrabold text-xs whitespace-nowrap shadow-md shadow-amber-500/20 transition-all active:scale-95 disabled:opacity-60"
-              >
-                {isGeneratingAi ? (
-                  <span className="flex items-center gap-1.5">
-                    <div className="w-3.5 h-3.5 border-2 border-stone-950 border-t-transparent rounded-full animate-spin" />
-                    {isKn ? `AI ರಚನೆಯಾಗುತ್ತಿದೆ (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...` : `Synthesizing AI (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...`}
-                  </span>
-                ) : (
-                  <span>✨ {isKn ? "ದೈವಿಕ AI ನಿರೂಪಣೆ ಸಕ್ರಿಯಗೊಳಿಸಿ" : "Generate Divine AI Narration"}</span>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Navigation Tabs - Distinct Buttons */}
-        <div className="flex overflow-x-auto gap-1.5 p-2 bg-amber-100/70 border-b-2 border-amber-200 scrollbar-none text-xs sm:text-sm">
+        {/* Navigation Tabs - Fixed Right Below Header for Instant Switching */}
+        <div className="flex overflow-x-auto gap-1.5 px-3 py-2 bg-amber-100/80 border-b-2 border-amber-200 scrollbar-none text-xs sm:text-sm shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab("varshaphala")}
@@ -565,7 +427,148 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
         </div>
 
         {/* Tab Content Body (Scrollable with ref for instant top reset) */}
-        <div ref={scrollBodyRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-[#FFFDF7]">
+        <div
+          ref={scrollBodyRef}
+          className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 bg-[#FFFDF7] overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {/* Devotee Info Badge - Scrollable */}
+          <div className="p-3 bg-amber-50/90 rounded-2xl border border-amber-200 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm shadow-xs">
+            <div className="font-extrabold text-amber-950 flex items-center gap-1.5">
+              <span>👤</span>
+              <span>{report.devoteeName}</span>
+              <span className="text-amber-800 font-semibold">({report.birthDate} • {isKn ? `${devoteeAge} ವರ್ಷ` : `${devoteeAge} yrs`})</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-amber-900 font-semibold">
+              <span><strong>{isKn ? "ಲಗ್ನ:" : "Lagna:"}</strong> {isKn ? report.lagnaNameKn : report.lagnaNameEn}</span>
+              <span><strong>{isKn ? "ರಾಶಿ:" : "Rashi:"}</strong> {isKn ? report.rashiNameKn : report.rashiNameEn}</span>
+              <span><strong>{isKn ? "ನಕ್ಷತ್ರ:" : "Nakshatra:"}</strong> {isKn ? report.nakshatraNameKn : report.nakshatraNameEn}</span>
+              <span><strong>{isKn ? "ದಶಾ:" : "Dasha:"}</strong> {isKn ? report.currentDashaKn : report.currentDashaEn}</span>
+            </div>
+          </div>
+
+          {/* Panchanga & Dignity Strip - Scrollable */}
+          <div className="p-3 bg-white rounded-2xl border border-amber-200 flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs text-amber-950 shadow-xs">
+            <div className="flex flex-wrap items-center gap-2 font-medium">
+              <span>📜 <strong>{isKn ? "ಪಂಚಾಂಗ:" : "Panchanga:"}</strong> {isKn ? report.panchanga.samvatsaraKn : report.panchanga.samvatsaraEn}, {isKn ? report.panchanga.masaKn : report.panchanga.masaEn}, {isKn ? report.panchanga.pakshaKn : report.panchanga.pakshaEn}</span>
+              <span>• <strong>{isKn ? "ತಿಥಿ:" : "Tithi:"}</strong> {isKn ? report.panchanga.tithiKn : report.panchanga.tithiEn}</span>
+              <span>• <strong>{isKn ? "ವಾರ:" : "Vara:"}</strong> {isKn ? report.panchanga.weekdayKn : report.panchanga.weekdayEn}</span>
+              <span>• <strong>{isKn ? "ಯೋಗ:" : "Yoga:"}</strong> {isKn ? report.panchanga.yogaKn : report.panchanga.yogaEn}</span>
+              <span>• <strong>{isKn ? "ಕರಣ:" : "Karana:"}</strong> {isKn ? report.panchanga.karanaKn : report.panchanga.karanaEn}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowDignityDetails(!showDignityDetails)}
+              className="px-2.5 py-1 rounded-lg bg-amber-100/80 hover:bg-amber-200/80 border border-amber-300 text-amber-950 font-bold flex items-center gap-1 transition-all shadow-2xs"
+            >
+              <span>🪐 {isKn ? "ಗ್ರಹ ಬಲ & ಉಚ್ಚ-ನೀಚ ಸ್ಥಿತಿ" : "Planetary Dignities"}</span>
+              <span>{showDignityDetails ? "▲" : "▼"}</span>
+            </button>
+          </div>
+
+          {/* Collapsible Planetary Dignity Assessment Table */}
+          {showDignityDetails && (
+            <div className="p-3.5 bg-amber-50/50 rounded-2xl border border-amber-200 animate-fadeIn">
+              <div className="text-xs font-bold text-amber-950 mb-2 flex items-center justify-between">
+                <span>🪐 {isKn ? "ನವಗ್ರಹಗಳ ಶಾಸ್ತ್ರೋಕ್ತ ಸ್ಥಾನ, ಉಚ್ಚ-ನೀಚ & ಬಲ ವಿವರಣೆ" : "Nine Planets Classical Dignity Assessment"}</span>
+                <span className="text-[11px] text-amber-800">{isKn ? "ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ ನಿಯಮಗಳು" : "Parashari Principles"}</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
+                {Object.values(report.planetaryDignities).map((d, i) => (
+                  <div
+                    key={i}
+                    className={`p-2 rounded-xl border-2 ${
+                      d.dignity === "exalted"
+                        ? "bg-amber-50 border-amber-400 text-amber-950"
+                        : d.dignity === "debilitated"
+                        ? "bg-rose-50 border-rose-300 text-rose-900"
+                        : d.dignity === "own"
+                        ? "bg-emerald-50 border-emerald-400 text-emerald-950"
+                        : "bg-white border-amber-200 text-stone-800"
+                    }`}
+                  >
+                    <div className="font-extrabold flex items-center justify-between">
+                      <span>{isKn ? d.nameKn : d.nameEn}</span>
+                      <span className="text-[10px] font-mono text-amber-900">{d.degree.toFixed(1)}°</span>
+                    </div>
+                    <div className="text-[11px] font-semibold text-amber-900">{isKn ? d.rashiKn : d.rashiEn} ({d.house}H)</div>
+                    <div className="text-[11px] font-bold mt-0.5">
+                      {isKn ? d.dignityLabelKn : d.dignityLabelEn}
+                      {d.isCombust && <span className="text-rose-600 ml-1">({isKn ? "ಅಸ್ತ" : "Combust"})</span>}
+                      {d.isRetrograde && <span className="text-purple-700 ml-1">({isKn ? "ವಕ್ರ" : "Retro"})</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI Status / Fallback Notice Banner */}
+          <div>
+            {report.aiNarration.isAiGenerated ? (
+              <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-emerald-50 border-2 border-emerald-400 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-950 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">✨</span>
+                  <div>
+                    <div className="font-extrabold text-emerald-900">
+                      {isKn ? report.aiNarration.statusNoticeKn : report.aiNarration.statusNoticeEn}
+                    </div>
+                    <div className="text-[11px] text-emerald-800 font-medium">
+                      {isKn
+                        ? "ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ದೈವಿಕ ನಿರೂಪಣೆಯನ್ನು ಜೆಮಿನಿ 3.5 ಫ್ಲ್ಯಾಶ್-ಲೈಟ್ ಎಂಜಿನ್ ಮೂಲಕ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ."
+                        : "High-precision AI narrative synthesis generated strictly from your natal chart coordinates."}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={isGeneratingAi}
+                  onClick={handleGenerateAiNarration}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs whitespace-nowrap shadow-xs transition-all active:scale-95"
+                >
+                  {isGeneratingAi ? (
+                    <span className="flex items-center gap-1.5">
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      {isKn ? `ರಚನೆಯಾಗುತ್ತಿದೆ (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...` : `Generating (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...`}
+                    </span>
+                  ) : (
+                    <span>🔄 {isKn ? "ಮರು ರಚಿಸಿ" : "Regenerate AI"}</span>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-50 via-white to-amber-50 border-2 border-amber-400 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-amber-950 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">⚠️</span>
+                  <div>
+                    <div className="font-extrabold text-amber-950">
+                      {isKn ? report.aiNarration.statusNoticeKn : report.aiNarration.statusNoticeEn}
+                    </div>
+                    <div className="text-[11px] text-amber-900 font-medium">
+                      {isKn
+                        ? "ಗಮನಿಸಿ: AI ಸಂಪರ್ಕವಿಲ್ಲದಿದ್ದರೂ, ಎಲ್ಲಾ ಫಲಗಳು ನಿಮ್ಮ ಜನನ ಲಗ್ನ, ನಕ್ಷತ್ರ, ಪಂಚಾಂಗ ಹಾಗೂ ಗ್ರಹಗಳ ಉಚ್ಚ-ನೀಚ ಬಲದ ಗಣಿತದ ಮೇಲೆ ೧೦೦% ನೈಜವಾಗಿವೆ."
+                        : "All astrological predictions remain 100% active and mathematically calculated using classical Parashari rules."}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={isGeneratingAi}
+                  onClick={handleGenerateAiNarration}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-extrabold text-xs whitespace-nowrap shadow-md shadow-amber-500/20 transition-all active:scale-95 disabled:opacity-60"
+                >
+                  {isGeneratingAi ? (
+                    <span className="flex items-center gap-1.5">
+                      <div className="w-3.5 h-3.5 border-2 border-stone-950 border-t-transparent rounded-full animate-spin" />
+                      {isKn ? `AI ರಚನೆಯಾಗುತ್ತಿದೆ (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...` : `Synthesizing AI (${aiAttemptInfo?.attempt || 1}/${aiAttemptInfo?.max || 3})...`}
+                    </span>
+                  ) : (
+                    <span>✨ {isKn ? "ದೈವಿಕ AI ನಿರೂಪಣೆ ಸಕ್ರಿಯಗೊಳಿಸಿ" : "Generate Divine AI Narration"}</span>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
           {/* TAB 1: 12-MONTH FORECAST */}
           {activeTab === "varshaphala" && (
             <div className="space-y-4">
@@ -1060,7 +1063,7 @@ export const SpecialDivineConsultationModal: React.FC<SpecialDivineConsultationM
         </div>
 
         {/* Footer & A4 PDF Download Bar - Luxury Cream & Gold */}
-        <div className="p-4 bg-gradient-to-r from-amber-100/90 via-[#FFFDF7] to-amber-100/90 border-t-2 border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-100/90 via-[#FFFDF7] to-amber-100/90 border-t-2 border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           {/* Module Selection Checkboxes */}
           <div className="flex flex-wrap items-center gap-2.5 text-xs text-amber-950 font-semibold">
             <span className="font-extrabold text-amber-950">{isKn ? "ಮುದ್ರಣ ಪುಟಗಳು:" : "Include Pages:"}</span>
