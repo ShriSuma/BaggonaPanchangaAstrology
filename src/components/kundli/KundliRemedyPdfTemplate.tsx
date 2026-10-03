@@ -412,7 +412,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
+            gap: "7px",
             overflow: "hidden"
           }}
         >
@@ -765,7 +765,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px solid #D97706",
-              paddingTop: "5px"
+              paddingTop: "5px",
+              marginTop: "auto"
             }}
           >
             {i18n.page1Footer}
@@ -805,7 +806,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
+            gap: "8px",
             overflow: "hidden"
           }}
         >
@@ -1091,7 +1092,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px solid #D97706",
-              paddingTop: "5px"
+              paddingTop: "5px",
+              marginTop: "auto"
             }}
           >
             {i18n.page2Footer}
@@ -1131,7 +1133,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
+            gap: "7px",
             overflow: "hidden"
           }}
         >
@@ -1452,7 +1454,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px dashed #D97706",
-              paddingTop: "4px"
+              paddingTop: "4px",
+              marginTop: "auto"
             }}
           >
             {i18n.page3Footer}

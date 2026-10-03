@@ -2211,8 +2211,8 @@ export default function KundliPage(): JSX.Element {
       ) : null}
       
       {result && birthDatePicker && birthTimeHm.trim() ? (
-        <div style={{ position: "absolute", left: "-9999px", top: "-9999px", width: "794px", minHeight: "1123px" }}>
-          <div ref={traditionalExportRef} style={{ width: "100%", height: "100%", backgroundColor: "#fbf8f1" }}>
+        <div style={{ position: "fixed", left: 0, top: 0, width: 900, opacity: 0, pointerEvents: "none", zIndex: -1, overflow: "hidden", height: 0 }}>
+          <div ref={traditionalExportRef} style={{ width: "900px", minHeight: "1273px", backgroundColor: "#fbf8f1" }}>
             <GokarnaKundaliTemplate
             kundli={result}
             personName={form.name}
@@ -2229,7 +2229,7 @@ export default function KundliPage(): JSX.Element {
       ) : null}
       {/* Hidden Dasha PDF Template Container */}
       {result && birthDatePicker && birthTimeHm.trim() && kundliSession ? (
-        <div className="absolute left-[-9999px] top-[-9999px] opacity-0 pointer-events-none">
+        <div style={{ position: "fixed", left: 0, top: 0, width: 900, opacity: 0, pointerEvents: "none", zIndex: -1, overflow: "hidden", height: 0 }}>
           <DashaPdfTemplate ref={dashaExportRef} session={kundliSession} maxAge={120} pdfLanguage={pdfLanguage} />
         </div>
       ) : null}

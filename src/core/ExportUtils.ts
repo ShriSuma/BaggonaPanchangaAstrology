@@ -1,6 +1,7 @@
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { analytics } from "./analytics";
+import { savePdfBlob } from "../utils/pdfGenerator";
 
 export const exportSvgAsDataUrl = async (svgElement: SVGSVGElement): Promise<string> => {
   const serializer = new XMLSerializer();
@@ -31,17 +32,23 @@ export const exportSvgAsPng = async (svgElement: SVGSVGElement, fileName: string
 
     const pngData = canvas.toDataURL("image/png");
     const anchor = document.createElement("a");
+    anchor.style.display = "none";
     anchor.href = pngData;
     anchor.download = `${fileName}.png`;
+    document.body.appendChild(anchor);
     anchor.click();
+    document.body.removeChild(anchor);
   } catch {
     const fallbackRoot = (svgElement.parentElement ?? svgElement) as unknown as HTMLElement;
     const canvas = await html2canvas(fallbackRoot);
     const pngData = canvas.toDataURL("image/png");
     const anchor = document.createElement("a");
+    anchor.style.display = "none";
     anchor.href = pngData;
     anchor.download = `${fileName}.png`;
+    document.body.appendChild(anchor);
     anchor.click();
+    document.body.removeChild(anchor);
   }
   await analytics.track("chart_exported");
 };
@@ -70,7 +77,7 @@ export const exportSvgAsPdf = async (svgElement: SVGSVGElement, fileName: string
     const drawW = pageW - margin * 2;
     const drawH = (canvas.height * drawW) / canvas.width;
     pdf.addImage(pngData, "JPEG", margin, margin, drawW, drawH);
-    pdf.save(`${fileName}.pdf`);
+    savePdfBlob(pdf, fileName);
   } catch {
     const fallbackRoot = (svgElement.parentElement ?? svgElement) as unknown as HTMLElement;
     const canvas = await html2canvas(fallbackRoot);
@@ -81,7 +88,7 @@ export const exportSvgAsPdf = async (svgElement: SVGSVGElement, fileName: string
     const drawW = pageW - margin * 2;
     const drawH = (canvas.height * drawW) / canvas.width;
     pdf.addImage(pngData, "JPEG", margin, margin, drawW, drawH);
-    pdf.save(`${fileName}.pdf`);
+    savePdfBlob(pdf, fileName);
   }
   await analytics.track("chart_exported_pdf");
 };
@@ -95,9 +102,12 @@ export const exportElementAsPng = async (element: HTMLElement, fileName: string)
   });
   const pngData = canvas.toDataURL("image/png");
   const anchor = document.createElement("a");
+  anchor.style.display = "none";
   anchor.href = pngData;
   anchor.download = `${fileName}.png`;
+  document.body.appendChild(anchor);
   anchor.click();
+  document.body.removeChild(anchor);
   await analytics.track("chart_exported");
 };
 
@@ -116,16 +126,17 @@ export const exportElementAsPdf = async (element: HTMLElement, fileName: string)
   const drawW = pageW - margin * 2;
   const drawH = (canvas.height * drawW) / canvas.width;
   pdf.addImage(pngData, "JPEG", margin, margin, drawW, Math.min(drawH, pageH - margin * 2));
-  pdf.save(`${fileName}.pdf`);
+  savePdfBlob(pdf, fileName);
   await analytics.track("chart_exported_pdf");
 };
+
 export const exportPanchangaWithDashaPdf = async (
   panchangaEl: HTMLElement,
   dashaEl: HTMLElement,
   fileName: string,
   autoSave: boolean = true
 ): Promise<jsPDF> => {
-  // Capture Panchanga
+  // Capture Panchanga (Page 1)
   const pCanvas = await html2canvas(panchangaEl, {
     scale: 2,
     useCORS: true,
@@ -134,13 +145,13 @@ export const exportPanchangaWithDashaPdf = async (
   });
   const pData = pCanvas.toDataURL("image/jpeg", 0.75);
   const pdfW = 210;
-  const pH = (pCanvas.height * pdfW) / pCanvas.width;
+  const pdfH = 297; // Standard A4 (210mm x 297mm)
 
-  // Initialize PDF with Panchanga page size
-  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfW, pH], compress: true });
-  pdf.addImage(pData, "JPEG", 0, 0, pdfW, pH);
+  // Initialize PDF with standard A4 format
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+  pdf.addImage(pData, "JPEG", 0, 0, pdfW, pdfH);
 
-  // Capture Dasha
+  // Capture Dasha (Page 2)
   const dCanvas = await html2canvas(dashaEl, {
     scale: 2,
     useCORS: true,
@@ -148,14 +159,13 @@ export const exportPanchangaWithDashaPdf = async (
     logging: false
   });
   const dData = dCanvas.toDataURL("image/jpeg", 0.75);
-  const dH = (dCanvas.height * pdfW) / dCanvas.width;
 
-  // Add second page for Dasha with its specific size
-  pdf.addPage([pdfW, dH], "p");
-  pdf.addImage(dData, "JPEG", 0, 0, pdfW, dH);
+  // Add second page for Dasha in standard A4 format
+  pdf.addPage("a4", "p");
+  pdf.addImage(dData, "JPEG", 0, 0, pdfW, pdfH);
 
   if (autoSave) {
-    pdf.save(`${fileName}.pdf`);
+    savePdfBlob(pdf, fileName);
   }
   await analytics.track("chart_exported_pdf_combined");
   return pdf;
@@ -170,10 +180,10 @@ export const exportDashaPdf = async (dashaEl: HTMLElement, fileName: string): Pr
   });
   const data = canvas.toDataURL("image/jpeg", 0.75);
   const pdfW = 210;
-  const pH = (canvas.height * pdfW) / canvas.width;
+  const pdfH = 297; // Standard A4 (210mm x 297mm)
 
-  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfW, pH], compress: true });
-  pdf.addImage(data, "JPEG", 0, 0, pdfW, pH);
-  pdf.save(`${fileName}.pdf`);
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+  pdf.addImage(data, "JPEG", 0, 0, pdfW, pdfH);
+  savePdfBlob(pdf, fileName);
   await analytics.track("chart_exported_pdf");
 };

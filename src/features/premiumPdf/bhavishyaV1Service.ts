@@ -1,5 +1,6 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { savePdfBlob } from "../../utils/pdfGenerator";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import type { PdfTranslations, PremiumData } from "../../components/RamanBhavishya/PdfTemplate";
 import type { TranslatedPrediction } from "../../components/RamanBhavishya/usePredictionEngine";
@@ -904,8 +905,7 @@ export async function captureBhavishyaV1Pdf(
   pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
 
   if (autoSave) {
-    const safeName = fileName.endsWith(".pdf") ? fileName : `${fileName}.pdf`;
-    pdf.save(safeName);
+    savePdfBlob(pdf, fileName);
   }
   return pdf;
 }

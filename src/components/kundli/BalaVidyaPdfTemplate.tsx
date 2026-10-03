@@ -68,7 +68,7 @@ export const BalaVidyaPdfTemplate: React.FC<BalaVidyaPdfTemplateProps> = ({
           background: "linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%)",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between"
+          gap: "8px"
         }}
       >
         {/* Header */}
@@ -155,6 +155,7 @@ export const BalaVidyaPdfTemplate: React.FC<BalaVidyaPdfTemplateProps> = ({
         {/* Footer */}
         <div
           style={{
+            marginTop: "auto",
             background: "linear-gradient(180deg, #78350F 0%, #451A03 100%)",
             border: "1.5px solid #D97706",
             borderRadius: "8px",
