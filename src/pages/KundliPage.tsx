@@ -234,6 +234,25 @@ export default function KundliPage(): JSX.Element {
   const [isGurukulaModalOpen, setIsGurukulaModalOpen] = useState(false);
   const [devoteeAutoFillToast, setDevoteeAutoFillToast] = useState<string>("");
 
+  const handleOpenGurukulaPage = () => {
+    if (result) {
+      const activeSession = {
+        name: form.name || (pdfLanguage === "kn" ? "ಜಾತಕರು" : "Devotee"),
+        birthDate: birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : form.birthDate,
+        birthTime: birthTimeHm.trim(),
+        latitude: form.latitude,
+        longitude: form.longitude,
+        gender: form.gender
+      };
+      try {
+        localStorage.setItem("baggona_gurukula_active_kundli", JSON.stringify(activeSession));
+      } catch (e) {
+        console.warn("Storage error:", e);
+      }
+    }
+    useAppStore.getState().setPage("gurukula");
+  };
+
   const handleSelectDevoteeFromDb = (devotee: DevoteeProfile) => {
     setIsDevoteeSearchModalOpen(false);
 
@@ -1847,15 +1866,26 @@ export default function KundliPage(): JSX.Element {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsGurukulaModalOpen(true)}
-                className="w-full md:w-auto shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 px-6 py-3.5 text-xs font-black text-slate-950 shadow-xl hover:scale-105 active:scale-95 transition-all border border-amber-200"
-              >
-                <span>🎓</span>
-                <span>{i18n.language.startsWith("kn") ? "ಕುಂಡಲಿ ವಾಚನ ಕಲಿಯಿರಿ (Learn to Read)" : "Learn to Read This Kundli"}</span>
-                <span>➜</span>
-              </button>
+              <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={handleOpenGurukulaPage}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 px-6 py-3.5 text-xs font-black text-slate-950 shadow-xl hover:scale-105 active:scale-95 transition-all border border-amber-200"
+                >
+                  <span>🎓</span>
+                  <span>{i18n.language.startsWith("kn") ? "ಕುಂಡಲಿ ವಾಚನ ಕಲಿಯಿರಿ (ಪುಟ ನೋಟ)" : "Learn to Read This Kundli"}</span>
+                  <span>➜</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsGurukulaModalOpen(true)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-2xl bg-slate-900/80 px-4 py-3.5 text-xs font-bold text-amber-200 hover:bg-slate-800 transition-all border border-amber-500/40"
+                  title={i18n.language.startsWith("kn") ? "ಪಾಪ್-ಅಪ್ ರೂಪದಲ್ಲಿ ತೆರೆಯಿರಿ" : "Open in Pop-up Modal"}
+                >
+                  <span>🪟</span>
+                  <span>{i18n.language.startsWith("kn") ? "ಪಾಪ್-ಅಪ್" : "Pop-up"}</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -1997,7 +2027,7 @@ export default function KundliPage(): JSX.Element {
               <button
                 type="button"
                 className="jk-btn rounded-xl px-6 py-3 text-sm md:text-base font-black tracking-wide shadow-md transition-all bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 text-white hover:brightness-110 flex items-center gap-1.5 border border-amber-300/50"
-                onClick={() => setIsGurukulaModalOpen(true)}
+                onClick={handleOpenGurukulaPage}
               >
                 <span>🎓</span>
                 <span>{i18n.language.startsWith("kn") ? "ಕುಂಡಲಿ ವಾಚನ ಗುರು (Learn)" : "Kundli Masterclass (Learn)"}</span>

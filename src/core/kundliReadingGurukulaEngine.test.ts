@@ -98,76 +98,101 @@ describe("Kundli Reading Gurukula Engine (ಕುಂಡಲಿ ವಾಚನ ಗು
     expect(report.moonSignKn).toBe("ಕರ್ಕಾಟಕ");
   });
 
-  it("verifies Step 1: Lagna & Lagna Lord focuses on House 1 and Lagna Lord's house", () => {
+  it("calculates live Gochara snapshot relative to Moon and Lagna", () => {
     const report = calculateGurukulaMasterclass(mockKundli, "1990-05-15", "08:30");
-    const step1 = report.steps[0]!;
-
-    expect(step1.stepIndex).toBe(1);
-    expect(step1.stepCode).toBe("lagna_foundation");
-    expect(step1.focusHouses).toContain(1);
-    expect(step1.focusHouses).toContain(10); // Venus is in house 10
-    expect(step1.whereToLookKn.primaryHouseKn).toContain("1ನೇ ಮನೆ");
-    expect(step1.technicalAnalysisKn.shastricRuleKn).toBeTruthy();
-    expect(step1.spokenConsultationScriptKn).toBeTruthy();
-    expect(step1.practicalGuidanceKn).toBeTruthy();
+    expect(report.gochara).toBeDefined();
+    expect(report.gochara.saturnRashiKn).toBeTruthy();
+    expect(report.gochara.jupiterRashiKn).toBeTruthy();
+    expect(typeof report.gochara.hasGuruBala).toBe("boolean");
+    expect(typeof report.gochara.isSadeSati).toBe("boolean");
   });
 
-  it("verifies Step 2: Moon, Rashi & Nakshatra detects Moon in Cancer", () => {
+  it("calculates interactive Q&A combining Kundli + Dasha + Gochara", () => {
     const report = calculateGurukulaMasterclass(mockKundli, "1990-05-15", "08:30");
-    const step2 = report.steps[1]!;
+    expect(report.questions.length).toBeGreaterThanOrEqual(4);
 
-    expect(step2.stepIndex).toBe(2);
-    expect(step2.stepCode).toBe("moon_mind_anchor");
-    expect(step2.whereToLookKn.primaryHouseKn).toContain("3ನೇ ಮನೆ");
-    expect(step2.whereToLookKn.primaryHouseKn).toContain("ಕರ್ಕಾಟಕ");
-    expect(step2.spokenConsultationScriptKn).toContain("ಕರ್ಕಾಟಕ");
+    const careerQ = report.questions.find((q) => q.id === "career_promotion");
+    expect(careerQ).toBeDefined();
+    expect(careerQ?.whereToLookKn.primaryHousesKn).toContain("೧೦ನೇ ಮನೆ");
+    expect(careerQ?.pillar1KundliKn.titleKn).toContain("ಜನ್ಮ ಕುಂಡಲಿ");
+    expect(careerQ?.pillar2DashaKn.titleKn).toContain("ದಶಾ-ಭುಕ್ತಿ");
+    expect(careerQ?.pillar3GocharaKn.titleKn).toContain("ಗೋಚಾರ");
+    expect(careerQ?.synthesisKn.howToCombineKn).toBeTruthy();
+    expect(careerQ?.spokenScriptKn).toBeTruthy();
+
+    const marriageQ = report.questions.find((q) => q.id === "marriage_timing");
+    expect(marriageQ).toBeDefined();
+    expect(marriageQ?.whereToLookKn.primaryHousesKn).toContain("೭ನೇ ಮನೆ");
   });
 
-  it("verifies Step 7: Dusthanas & Maandi identifies House 6, 8, 12 and Maandi", () => {
+  it("evaluates Doshas, Gandantharas, Fears, Secrets and Temperament diagnostics", () => {
     const report = calculateGurukulaMasterclass(mockKundli, "1990-05-15", "08:30");
-    const step7 = report.steps[6]!;
+    const diag = report.diagnostics;
 
-    expect(step7.stepIndex).toBe(7);
-    expect(step7.stepCode).toBe("dusthana_maandi_karma");
-    expect(step7.focusHouses).toEqual([6, 8, 12]);
-    expect(step7.whereToLookKn.occupyingGrahasKn).toContain("ಮಾಂದಿ");
-    expect(step7.spokenConsultationScriptKn).toContain("99%");
+    expect(diag.doshas.length).toBeGreaterThanOrEqual(5);
+    const maandiDosha = diag.doshas.find((d) => d.id === "maandi_dosha");
+    expect(maandiDosha?.isPresent).toBe(true);
+
+    expect(diag.gandantharas.length).toBeGreaterThanOrEqual(4);
+    expect(diag.fears.length).toBeGreaterThanOrEqual(5);
+    expect(diag.innerSecrets.length).toBeGreaterThanOrEqual(2);
+
+    expect(diag.temperament).toBeDefined();
+    expect(["gentle", "cruel_assertive", "mixed"]).toContain(diag.temperament.disposition);
+    expect(diag.temperament.titleKn).toBeTruthy();
+    expect(diag.temperament.shastricRuleKn).toBeTruthy();
+    expect(diag.temperament.spokenAdviceKn).toBeTruthy();
   });
 
-  it("verifies Step 8: Planetary Dignity detects Exalted Saturn and Own-Sign Moon", () => {
+  it("calculates comprehensive Panchanga Angas, Nakshatra, Yoga, Karana, Navatara and Upagrahas", () => {
     const report = calculateGurukulaMasterclass(mockKundli, "1990-05-15", "08:30");
-    const step8 = report.steps[7]!;
+    const pAngas = report.panchangaAngas;
 
-    expect(step8.stepIndex).toBe(8);
-    expect(step8.stepCode).toBe("planetary_dignity_matrix");
-    const saturnDignity = report.dignityMatrix.find((d) => d.planet === PlanetName.Saturn);
-    expect(saturnDignity?.dignityType).toBe("uccha");
-    const moonDignity = report.dignityMatrix.find((d) => d.planet === PlanetName.Moon);
-    expect(moonDignity?.dignityType).toBe("swakshetra");
-  });
+    expect(pAngas).toBeDefined();
 
-  it("verifies Step 10: Vimshottari Dasha calculates running dasha at age", () => {
-    const report = calculateGurukulaMasterclass(mockKundli, "1990-05-15", "08:30");
-    const step10 = report.steps[9]!;
+    // 1. Tithi & Dagdha Rashis
+    expect(pAngas.tithi.index).toBeGreaterThanOrEqual(1);
+    expect(pAngas.tithi.index).toBeLessThanOrEqual(30);
+    expect(pAngas.tithi.nameKn).toBeTruthy();
+    expect(pAngas.tithi.pakshaKn).toMatch(/ಶುಕ್ಲ|ಕೃಷ್ಣ/);
+    expect(Array.isArray(pAngas.tithi.dagdhaRashisKn)).toBe(true);
 
-    expect(step10.stepIndex).toBe(10);
-    expect(step10.stepCode).toBe("vimshottari_dasha_timing");
-    expect(step10.whereToLookKn.primaryHouseKn).toContain("ಮಹಾದಶಾ");
-    expect(step10.spokenConsultationScriptKn).toBeTruthy();
-  });
+    // 2. Vaara
+    expect(pAngas.vaara.weekdayKn).toBeTruthy();
+    expect(pAngas.vaara.lordKn).toBeTruthy();
 
-  it("verifies Step 11: Daivajna Synthesis generates closing consultation script", () => {
-    const report = calculateGurukulaMasterclass(
-      mockKundli,
-      "1990-05-15",
-      "08:30",
-      "ಗಣೇಶ್ ಭಟ್"
-    );
-    const step11 = report.steps[10]!;
+    // 3. Nakshatra Deep Dive
+    expect(pAngas.nakshatra.nameKn).toBeTruthy();
+    expect(pAngas.nakshatra.pada).toBeGreaterThanOrEqual(1);
+    expect(pAngas.nakshatra.pada).toBeLessThanOrEqual(4);
+    expect(pAngas.nakshatra.devataKn).toBeTruthy();
+    expect(pAngas.nakshatra.ganaKn).toBeTruthy();
+    expect(pAngas.nakshatra.yoniKn).toBeTruthy();
+    expect(pAngas.nakshatra.nadiKn).toBeTruthy();
+    expect(pAngas.nakshatra.howNakshatraHelpsKn).toBeTruthy();
 
-    expect(step11.stepIndex).toBe(11);
-    expect(step11.stepCode).toBe("daivajna_synthesis_remedies");
-    expect(step11.spokenConsultationScriptKn).toContain("ಗಣೇಶ್ ಭಟ್");
-    expect(step11.practicalGuidanceKn).toContain("ಗೋಕರ್ಣ");
+    // 4. Yoga
+    expect(pAngas.yoga.nameKn).toBeTruthy();
+    expect(typeof pAngas.yoga.isAuspicious).toBe("boolean");
+    expect(pAngas.yoga.healthImmunityKn).toBeTruthy();
+
+    // 5. Karana
+    expect(pAngas.karana.nameKn).toBeTruthy();
+    expect(typeof pAngas.karana.isVishtiBhadra).toBe("boolean");
+    expect(pAngas.karana.careerActionStaminaKn).toBeTruthy();
+
+    // 6. Navatara Chakra Matrix (9 Taras)
+    expect(pAngas.navataraChakra.length).toBe(9);
+    const vipatTara = pAngas.navataraChakra.find((t) => t.taraIndex === 2);
+    expect(vipatTara?.taraNameKn).toContain("ವಿಪತ್");
+
+    // 7. Upagrahas (10 Upagrahas)
+    expect(pAngas.upagrahas.length).toBe(10);
+    const dhuma = pAngas.upagrahas.find((u) => u.id === "dhuma");
+    expect(dhuma).toBeDefined();
+    expect(dhuma?.nakshatraKn).toBeTruthy();
+
+    // 8. Pushkara Navamshas
+    expect(Array.isArray(pAngas.pushkaraPlacements)).toBe(true);
   });
 });

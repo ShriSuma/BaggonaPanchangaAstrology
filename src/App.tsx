@@ -45,6 +45,7 @@ import QuickCalendarPage from "./pages/QuickCalendarPage";
 import { BaggonaCalendarPage } from "./pages/BaggonaCalendarPage";
 import KundliDoshasPage from "./pages/KundliDoshasPage";
 import GuruShukraAstodayaGrahanaPage from "./pages/GuruShukraAstodayaGrahanaPage";
+import KundliGurukulaPage from "./pages/KundliGurukulaPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -148,6 +149,16 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/astodaya-grahana") ||
     window.location.hash.includes("#/grahana") ||
     window.location.hash.includes("#astodaya_grahana")
+  );
+
+  const isGurukulaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/gurukula") ||
+    window.location.pathname.startsWith("/kundli-gurukula") ||
+    window.location.pathname.startsWith("/kundli-reading-gurukula") ||
+    window.location.search.includes("portal=gurukula") ||
+    window.location.search.includes("page=gurukula") ||
+    window.location.hash.includes("#/gurukula") ||
+    window.location.hash.includes("#gurukula")
   );
 
   const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPublicKundliRoute && (
@@ -347,6 +358,14 @@ export default function App(): JSX.Element {
     );
   }
 
+  if (isGurukulaRoute) {
+    return (
+      <ErrorBoundary>
+        <KundliGurukulaPage />
+      </ErrorBoundary>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-300">
@@ -416,6 +435,7 @@ export default function App(): JSX.Element {
         {currentPage === "calendar" && <BaggonaCalendarPage />}
         {currentPage === "doshas" && <KundliDoshasPage />}
         {currentPage === "astodaya_grahana" && <GuruShukraAstodayaGrahanaPage />}
+        {currentPage === "gurukula" && <KundliGurukulaPage />}
       </Layout>
     </ErrorBoundary>
   );
