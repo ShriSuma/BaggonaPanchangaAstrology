@@ -315,7 +315,7 @@ STRICT WRITING & ASTROLOGER PERSONA RULES:
    - "notice": Key turning points, milestones, transition countdown, and vigilance rules (highlighted in Yellow in UI)
    - "normal": General classical Shastric foundations and factual details (Normal neutral in UI)
    
-   Section 1 (openingIceBreakerPoints): At least 10 points on Lagna nature, self-respect, loyalty to affection, and refusal to be dominated.
+   Section 1 (openingIceBreakerPoints): CRITICAL: STRICTLY ZERO TECHNICAL ASTROLOGICAL JARGON (NEVER mention words like Lagna, Ascendant, Rashi, Moon sign, Nakshatra, Graha, House, Lord, Pada, or planetary names). Every single bullet must describe a CRISP, POINT-TO-POINT, UNQUESTIONABLE PERSONALITY TRAIT, BEHAVIORAL HABIT, OR EMOTIONAL CHARACTERISTIC of this native based on their temperament. Focus on: sovereign self-respect, zero tolerance for bossiness, selective loyalty, inability to forgive betrayal, razor-sharp lie-detector sense, bearing burdens in silence without begging for pity, blunt truth-telling, hatred of sluggishness/carelessness, unadvertised charity, relentless perfectionism, outer smile vs midnight overthinking, and purva-punya resilience. Every point must make the client say 'YES, that is 100% me!'
    Section 2 (hiddenSubconsciousWorryPoints): At least 10 points on Chandra, midnight overthinking, silent burdens, and intuitive recovery.
    Section 3 (maandiKarmicImpactPoints): At least 10 points on Maandi house, 99% task hurdle, last-mile glitch, and Gokarna remedy.
    Section 4 (bodyMarkAndTemperamentPoints): At least 10 points on Brihat Jataka Ch. 25 Anga Lakshana, mole/mark position, and Tridosha metabolism.
@@ -360,7 +360,8 @@ STRICT RULES:
 2. NO markdown asterisks (no ** or *).
 3. ALL NUMBERS MUST BE IN ENGLISH DIGITS (1, 2, 3, 4, 5, etc.).
 4. EVERY SINGLE TALKING POINT SECTION MUST CONTAIN AT LEAST 10 DISTINCT BULLET POINTS with tone classification ("good", "bad", "notice", or "normal").
-5. Return ONLY raw valid JSON.`;
+5. Return ONLY raw valid JSON.
+6. In Section 1 (openingIceBreakerPoints), STRICTLY ZERO TECHNICAL ASTROLOGY WORDS (no Lagna, Rashi, Nakshatra, Graha, House, Lord, Pada, Ascendant). Describe only the native's real psychological characteristics and behavioral realities.`;
 
         const response = await askGemini(
           "Generate comprehensive live life situation reading and 5 astrologer verbal prompts",

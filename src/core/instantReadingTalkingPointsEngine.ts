@@ -105,7 +105,308 @@ export function classifyAstrologyTextTone(text: string): PointTone {
 }
 
 /**
- * Builds 11 deterministic, 100% authentic Shastric points for each of the First Six Sections.
+ * Generates 12 crisp, shocking, technical-free personality bullet points
+ * for Card 1 (Ice-Breaker & Core Temperament) based on the native's
+ * astrological signature (Ascendant, Moon sign, Nakshatra, Gender).
+ *
+ * CRITICAL RULE: STRICTLY ZERO technical jargon (no "Lagna", "Rashi", "Graha",
+ * "House", "Lord", "Nakshatra", "Ascendant", etc.).
+ * Every bullet point describes a vivid, undeniable human personality trait,
+ * behavioral habit, or psychological reality that makes the native nod in shock.
+ */
+export interface CoreTemperamentOptions {
+  lagnaEn: string;
+  moonEn: string;
+  nakshatraEn: string;
+  isFemale: boolean;
+  isKn: boolean;
+  devoteeName?: string;
+}
+
+export function buildCoreTemperamentPoints(options: CoreTemperamentOptions): AstrologerPointItem[] {
+  const lagnaKey = (options.lagnaEn || "Aries").trim().toLowerCase();
+  const nakKey = (options.nakshatraEn || "Ashwini").trim().toLowerCase();
+  const isKn = options.isKn;
+
+  // 12 Ascendant-specific core temperament portraits (Zero technical jargon!)
+  const coreSignKn: Record<string, string> = {
+    aries: "ಇವರು ಯಾರ ಬೆಂಬಲಕ್ಕೂ ಕಾಯದೆ ಸ್ವಂತ ಕಾಲಮೇಲೆ ನಿಲ್ಲುವ ಅದಮ್ಯ ಸ್ವಾಭಿಮಾನಿ; ಸ್ವಂತ ಪರಿಶ್ರಮ ಹಾಗೂ ಛಲದಿಂದಲೇ ಬದುಕಿನಲ್ಲಿ ಮುನ್ನುಗ್ಗುವ ನೈಸರ್ಗಿಕ ನಾಯಕತ್ವ ಇವರ ರಕ್ತದಲ್ಲೇ ಇದೆ.",
+    taurus: "ಹೊರನೋಟಕ್ಕೆ ಅತ್ಯಂತ ಶಾಂತ ಹಾಗೂ ಸಮಾಧಾನಿಯಾಗಿ ಕಂಡರೂ, ಅಂತರಂಗದಲ್ಲಿ ಹಿಮಾಲಯದಂತಹ ಅಚಲ ದೃಢತೆ, ಗಾಂಭೀರ್ಯ ಹಾಗೂ ಸ್ವಾವಲಂಬನೆಯ ಅದಮ್ಯ ಸ್ವಾಭಿಮಾನ ಹೊಂದಿದ ವ್ಯಕ್ತಿತ್ವ.",
+    gemini: "ಅತ್ಯಂತ ತೀಕ್ಷ್ಣ ಬುದ್ಧಿಶಕ್ತಿ, ಕ್ಷಿಪ್ರ ಗ್ರಹಣ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಏಕಕಾಲದಲ್ಲಿ ಹಲವು ಜವಾಬ್ದಾರಿಗಳನ್ನು ನಿಭಾಯಿಸಬಲ್ಲ ಅದ್ಭುತ ಬುದ್ಧಿಚುರುಕು ಇವರ ಹುಟ್ಟುಗುಣ.",
+    cancer: "ಹೊರಗಡೆ ಗಟ್ಟಿಯಾದ ಕವಚ ಧರಿಸಿದ್ದರೂ, ಅಂತರಂಗದಲ್ಲಿ ಅತ್ಯಂತ ಸೂಕ್ಷ್ಮ ಸಂವೇದನೆ, ಅಪಾರ ಪ್ರೀತಿ-ಮಮತೆ ಹಾಗೂ ಕುಟುಂಬವನ್ನು ಪ್ರಾಣಕ್ಕಿಂತ ಹೆಚ್ಚಾಗಿ ರಕ್ಷಿಸುವ ಅಪ್ರತಿಮ ವ್ಯಕ್ತಿತ್ವ.",
+    leo: "ಹುಟ್ಟಿನಿಂದಲೇ ಸಹಜ ರಾಜಗಾಂಭೀರ್ಯ, ಉನ್ನತ ಆತ್ಮಗೌರವ ಹಾಗೂ ಯಾರ ಮುಂದೆಯೂ ತಲೆತಗ್ಗಿಸದೆ ತಲೆಯೆತ್ತಿ ಬಾಳುವ ಅದಮ್ಯ ನಾಯಕತ್ವ ಇವರ ನೈಜ ಗುರುತು.",
+    virgo: "ಅದ್ಭುತ ವಿಶ್ಲೇಷಣಾ ಶಕ್ತಿ, ಪ್ರಾಕ್ಟಿಕಲ್ ಬುದ್ಧಿಮತ್ತೆ ಹಾಗೂ ಕೈಗೆತ್ತಿಕೊಂಡ ಕೆಲಸದಲ್ಲಿ ಶೇಕಡಾ ನೂರರಷ್ಟು ಅಚ್ಚುಕಟ್ಟುತನವನ್ನು ಸಾಧಿಸುವ ಅಪ್ರತಿಮ ಶಿಸ್ತುಬದ್ಧ ವ್ಯಕ್ತಿತ್ವ.",
+    libra: "ಸಭ್ಯ ನಡವಳಿಕೆ, ಶಾಂತಿಪ್ರಿಯತೆ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಎಲ್ಲರೊಂದಿಗೆ ಸಮತೋಲನ ಮತ್ತು ಘನತೆಯಿಂದ ವರ್ತಿಸುವ ಅತ್ಯುನ್ನತ ಸಂಸ್ಕಾರಯುತ ವ್ಯಕ್ತಿತ್ವ.",
+    scorpio: "ಅತ್ಯಂತ ತೀಕ್ಷ್ಣ ಹಾಗೂ ಗಂಭೀರ ವ್ಯಕ್ತಿತ್ವ; ತಮ್ಮ ಅಂತರಂಗದ ಗುಟ್ಟನ್ನು ಯಾರ ಮುಂದೆಯೂ ಸುಲಭವಾಗಿ ಬಿಟ್ಟುಕೊಡದೆ, ಆಳವಾದ ಒಳನೋಟದಿಂದ ಜಗತ್ತನ್ನು ಗ್ರಹಿಸುತ್ತಾರೆ.",
+    sagittarius: "ಮುಕ್ತ ಆಕಾಶದಂತಹ ಸ್ವತಂತ್ರ ಮನೋವೃತ್ತಿ, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ಯಾರ ಮುಲಾಜಿಗೂ ಒಳಗಾಗದೆ ತನ್ನದೇ ಆದ ಉನ್ನತ ತತ್ವಗಳ ಮೇಲೆ ಬದುಕುವ ಧೀರ ವ್ಯಕ್ತಿತ್ವ.",
+    capricorn: "ಚಿಕ್ಕ ವಯಸ್ಸಿನಲ್ಲೇ ದೊಡ್ಡ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಹೊತ್ತು ಬೆಳೆದ ಪಕ್ವ ವ್ಯಕ್ತಿತ್ವ; ಕೇವಲ ಅದೃಷ್ಟವನ್ನು ನೆಚ್ಚಿಕೊಳ್ಳದೆ, ಕಠಿಣ ಶ್ರಮ ಹಾಗೂ ಸಂಯಮದಿಂದಲೇ ಬುನಾದಿ ಕಟ್ಟುವ ಶ್ರಮಜೀವಿ.",
+    aquarius: "ಸಮಾಜದ ಸಾಂಪ್ರದಾಯಿಕ ಕಟ್ಟುಪಾಡುಗಳಿಗೆ ಕುರುಡಾಗಿ ತಲೆಬಾಗದೆ, ತನ್ನದೇ ಆದ ಸ್ವತಂತ್ರ ಚಿಂತನೆ ಹಾಗೂ ಮಾನವೀಯ ದೃಷ್ಟಿಕೋನ ಹೊಂದಿರುವ ಮುಕ್ತ ಚಿಂತಕರು.",
+    pisces: "ಅಪಾರ ಕರುಣೆ, ಪವಿತ್ರ ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ಇತರರ ಸುಖಕ್ಕಾಗಿ ತನ್ನ ಸುಖವನ್ನು ತ್ಯಾಗ ಮಾಡಲು ಸದಾ ಸಿದ್ಧವಿರುವ ಶುದ್ಧ ಸಾತ್ವಿಕ ಹೃದಯದ ವ್ಯಕ್ತಿತ್ವ."
+  };
+
+  const coreSignEn: Record<string, string> = {
+    aries: "Endowed with fierce self-reliance and natural pioneering leadership, determined to forge their own path without leaning on anyone else.",
+    taurus: "Radiates calm stability externally while anchoring an immovable, rock-solid determination and dignified self-reliance within.",
+    gemini: "Possesses razor-sharp intellect, rapid comprehension, and an agile mind capable of mastering diverse challenges simultaneously.",
+    cancer: "Maintains a protective exterior shield while guarding a deeply tender, loyal heart that places family and loved ones above all else.",
+    leo: "Commands innate regal dignity and towering self-respect, refusing to bow down, grovel, or compromise personal sovereignty under any circumstance.",
+    virgo: "Grounded in meticulous practical intelligence, analytical clarity, and an instinctive commitment to impeccable organization.",
+    libra: "Epitomizes poise, cultural refinement, and diplomatic equilibrium, striving for fairness and harmony in every life engagement.",
+    scorpio: "Carries penetrating psychological depth and quiet intensity, keeping personal sanctuaries closely guarded while reading situations effortlessly.",
+    sagittarius: "Driven by an expansive, freedom-loving spirit and unyielding moral principles, charting life solely by personal truth and conviction.",
+    capricorn: "Matured early through heavy responsibilities, constructing long-term security methodically through relentless discipline rather than superficial luck.",
+    aquarius: "An independent visionary who rejects blind social dogmas, guided by progressive ideals and a unique, self-determined worldview.",
+    pisces: "Blessed with intuitive depth, silent empathy, and a noble, selfless spirit that naturally senses and uplifts the burdens of others."
+  };
+
+  // Point 2: Anti-domination by element
+  const isFire = ["aries", "leo", "sagittarius"].includes(lagnaKey);
+  const isEarth = ["taurus", "virgo", "capricorn"].includes(lagnaKey);
+  const isAir = ["gemini", "libra", "aquarius"].includes(lagnaKey);
+
+  let antiDomKn = "";
+  let antiDomEn = "";
+  if (isFire) {
+    antiDomKn = "ಯಾರಾದರೂ ಪ್ರೀತಿಯಿಂದ ಕೇಳಿದರೆ ಪ್ರಾಣವನ್ನಾದರೂ ಕೊಡುತ್ತಾರೆ; ಆದರೆ ಅಧಿಕಾರ ಚಲಾಯಿಸಿ ದರ್ಪ ತೋರಲು ಅಥವಾ ಆಜ್ಞಾಪಿಸಲು ಬಂದರೆ ಕಿಂಚಿತ್ತೂ ಸಹಿಸದೆ ತಕ್ಷಣವೇ ಜ್ವಾಲಾಮುಖಿಯಂತೆ ಸಿಡಿದೇಳುತ್ತಾರೆ.";
+    antiDomEn = "Will go to the ends of the earth when requested with authentic warmth, but reacts with fiery fury if anyone attempts to order them around or act authoritarian.";
+  } else if (isEarth) {
+    antiDomKn = "ಪ್ರೀತಿ-ಗೌರವದಿಂದ ಹೇಳಿದರೆ ಕೆಲಸ ಮಾಡುತ್ತಾರೆ; ಆದರೆ ಯಾರಾದರೂ ದರ್ಪ ತೋರಿ ಬಲವಂತವಾಗಿ ನಿಯಂತ್ರಿಸಲು ಪ್ರಯತ್ನಿಸಿದರೆ, ಕಲ್ಲುಬಂಡೆಯಂತೆ ಪಟ್ಟುಹಿಡಿದು ಅವರ ಅಧಿಕಾರವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ವಿಫಲಗೊಳಿಸುತ್ತಾರೆ.";
+    antiDomEn = "Responds gracefully to reasoned respect, but turns into an immovable stone wall if confronted with arrogance or heavy-handed micromanagement.";
+  } else if (isAir) {
+    antiDomKn = "ಬೌದ್ಧಿಕ ಸ್ವಾತಂತ್ರ್ಯವನ್ನು ಗೌರವಿಸುವವರೊಂದಿಗೆ ಚೆನ್ನಾಗಿರುತ್ತಾರೆ; ಆದರೆ ಯಾರಾದರೂ ಅನಗತ್ಯ ನಿಯಮಗಳನ್ನು ಹೇರಿ ಕೈಕಟ್ಟಿ ಹಾಕಲು ಬಂದರೆ, ಅವರ ಮಾತುಗಳಿಗೆ ಕಿವಿಗೊಡದೆ ಸದ್ದಿಲ್ಲದೆ ಅಲ್ಲಿಂದ ಜಾರಿಕೊಳ್ಳುತ್ತಾರೆ.";
+    antiDomEn = "Thrives under intellectual mutual respect, but coldly dismisses and mentally detaches from anyone trying to impose suffocating boundaries or arbitrary dominance.";
+  } else {
+    antiDomKn = "ಪ್ರೀತಿ-ವಿಶ್ವಾಸಕ್ಕೆ ಇವರು ಸಂಪೂರ್ಣ ಶರಣಾಗುತ್ತಾರೆ; ಆದರೆ ಯಾರಾದರೂ ಕೀಳಾಗಿ ಕಂಡರೆ ಅಥವಾ ಅಧಿಕಾರ ಚಲಾಯಿಸಿದರೆ, ಮುಖತಃ ಜಗಳವಾಡದೆ ತಕ್ಷಣವೇ ಕಠಿಣ ಮೌನಕ್ಕೆ ಜಾರಿ ಸಂಪೂರ್ಣ ಅಂತರ ಕಾಯ್ದುಕೊಳ್ಳುತ್ತಾರೆ.";
+    antiDomEn = "Yields completely to genuine affection, but instantly withdraws behind an impenetrable wall of icy silence if approached with condescension or disrespect.";
+  }
+
+  // Point 5: Innate radar
+  let radarKn = "";
+  let radarEn = "";
+  if (["scorpio", "cancer", "pisces"].includes(lagnaKey) || ["ashlesha", "jyeshtha", "shatabhisha", "revati"].includes(nakKey)) {
+    radarKn = "ಎದುರಿಗಿರುವ ವ್ಯಕ್ತಿಯ ಕಣ್ಣು ಹಾಗೂ ಮುಖಚರ್ಯೆಯಲ್ಲೇ ಅವರ ನೈಜ ಉದ್ದೇಶವನ್ನು ಗ್ರಹಿಸುತ್ತಾರೆ; ಕೃತಕ ನಗು, ಮುಖಸ್ತುತಿ ಅಥವಾ ಒಳಗೊಂದು ಹೊರಗೊಂದು ಇಟ್ಟುಕೊಂಡು ಬರುವವರನ್ನು ಮೊದಲ ಭೇಟಿಯಲ್ಲೇ ಅಳೆದುಬಿಡುತ್ತಾರೆ.";
+    radarEn = "Equipped with an uncannily accurate intuitive radar; detects flattery, subtle deception, and hidden motives within seconds of interaction.";
+  } else if (["gemini", "libra", "aquarius"].includes(lagnaKey)) {
+    radarKn = "ಮಾತುಗಳಲ್ಲಿರುವ ಸಣ್ಣ ವೈರುಧ್ಯ ಅಥವಾ ಅಸಂಬದ್ಧತೆಯನ್ನೂ ಇವರು ಕ್ಷಣಾರ್ಧದಲ್ಲಿ ಹಿಡಿದುಬಿಡುತ್ತಾರೆ; ಬೂಟಾಟಿಕೆ ಹಾಗೂ ನಕಲಿ ಮಾತುಗಾರರನ್ನು ಇವರ ಎದುರು ಸಮರ್ಥಿಸಿಕೊಳ್ಳಲು ಸಾಧ್ಯವೇ ಇಲ್ಲ.";
+    radarEn = "Catches contradictions in spoken arguments instantaneously; exposes intellectual pretenses and insincerity with effortless ease.";
+  } else if (["virgo", "taurus", "capricorn"].includes(lagnaKey)) {
+    radarKn = "ಮಾತಿನ ಆಡಂಬರಕ್ಕಿಂತ ಕೆಲಸದ ನೈಜತೆಯನ್ನು ನಂಬುತ್ತಾರೆ; ಬಾಯಿಮಾತಿನ ಬಡಾಯಿ ಕೊಚ್ಚುವವರನ್ನು ಹಾಗೂ ಭರವಸೆ ಕೊಟ್ಟು ತಪ್ಪಿಸುವವರನ್ನು ಮೊದಲ ನೋಟದಲ್ಲೇ ಪಕ್ಕಕ್ಕೆ ಸರಿಸುತ್ತಾರೆ.";
+    radarEn = "Judges individuals strictly by consistency and execution; instantly filters out loud boasters and unreliable sweet-talkers.";
+  } else {
+    radarKn = "ಯಾರಾದರೂ ಕೃತಕ ಮುಖಸ್ತುತಿ ಮಾಡಿದರೆ ಇವರ ಅಂತರಂಗಕ್ಕೆ ತಕ್ಷಣವೇ ಮುಜುಗರ ಹಾಗೂ ಅಸಹ್ಯವಾಗುತ್ತದೆ; ಕಪಟ ನಾಟಕ ಮಾಡುವವರನ್ನು ಇವರು ಕಿಂಚಿತ್ತೂ ಹತ್ತಿರ ಸೇರಿಸುವುದಿಲ್ಲ.";
+    radarEn = "Deeply repelled by sycophancy and fake flattery; naturally repulses anyone who operates with deceitful or manipulative intentions.";
+  }
+
+  // Point 7: Speech
+  let candorKn = "";
+  let candorEn = "";
+  if (["aries", "leo", "sagittarius", "scorpio"].includes(lagnaKey)) {
+    candorKn = "ಮಾತಿನಲ್ಲಿ ಮುಚ್ಚುಮರೆಯಿಲ್ಲದೆ ನೇರವಾಗಿ ಮುಖಕ್ಕೆ ಹೊಡೆದಂತೆ ಸತ್ಯ ಹೇಳಿಬಿಡುತ್ತಾರೆ; ಇವರ ಈ ಅತಿಯಾದ ನೇರ ನುಡಿಯು ಕೆಲವೊಮ್ಮೆ ಸೌಮ್ಯ ಮನಸ್ಸಿನವರಿಗೆ ಅಥವಾ ಅಪ್ರಾಮಾಣಿಕರಿಗೆ ಕಟುವಾಗಿ ತಟ್ಟುತ್ತದೆ.";
+    candorEn = "Values raw truth far above flattering diplomacy; delivers unvarnished realities directly, which occasionally stings overly sensitive or evasive peers.";
+  } else if (["taurus", "virgo", "capricorn"].includes(lagnaKey)) {
+    candorKn = "ಮಾತನಾಡುವ ಮುನ್ನ ಯೋಚಿಸುತ್ತಾರೆ, ಆದರೆ ಒಮ್ಮೆ ಮಾತನಾಡಿದರೆ ತೂಕಬದ್ಧ ಹಾಗೂ ಖಚಿತ ನುಡಿಗಳನ್ನೇ ಆಡುತ್ತಾರೆ; ಅನಗತ್ಯ ಮಾತು ಅಥವಾ ಹರಟೆಗಳಲ್ಲಿ ಸಮಯ ವ್ಯರ್ಥ ಮಾಡುವುದಿಲ್ಲ.";
+    candorEn = "Speaks with measured economy and undeniable precision, refusing to indulge in frivolous chatter, gossip, or unsubstantiated claims.";
+  } else if (["gemini", "libra", "aquarius"].includes(lagnaKey)) {
+    candorKn = "ಮಾತಿನಲ್ಲಿ ತಾರ್ಕಿಕ ಸ್ಪಷ್ಟತೆ ಹಾಗೂ ಚುರುಕುತನವಿದ್ದು, ವಾದದಲ್ಲಿ ಎದುರಾಳಿಯ ತಪ್ಪುಗಳನ್ನು ಸಲೀಸಾಗಿ ಬಯಲಿಗೆಳೆಯುತ್ತಾರೆ; ಆದರೆ ಅತಿಯಾದ ನಾಟಕೀಯ ಮಾತುಗಳನ್ನು ಇಷ್ಟಪಡುವುದಿಲ್ಲ.";
+    candorEn = "Articulate and intellectually agile; disarms arguments effortlessly with logic and wit, while steering clear of emotional melodrama.";
+  } else {
+    candorKn = "ಸಾಮಾನ್ಯವಾಗಿ ಸೌಮ್ಯವಾಗಿ ಮಾತನಾಡುತ್ತಾರೆ, ಆದರೆ ತಮ್ಮ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಅಥವಾ ಕುಟುಂಬಕ್ಕೆ ಕಳಂಕ ಬರುವ ಸಂದರ್ಭದಲ್ಲಿ ಇವರ ಮಾತು ಅತ್ಯಂತ ತೀಕ್ಷ್ಣವಾಗಿ ಹಾಗೂ ಅನಿರೀಕ್ಷಿತವಾಗಿ ಚುಚ್ಚುತ್ತದೆ.";
+    candorEn = "Habitually gentle and soft-spoken, yet capable of uttering devastatingly sharp, unforgettable truths if pushed beyond their emotional endurance.";
+  }
+
+  // Point 10: Perfectionism
+  let perfKn = "";
+  let perfEn = "";
+  if (["virgo", "capricorn", "taurus"].includes(lagnaKey)) {
+    perfKn = "ಯಾವುದೇ ಕೆಲಸವಾದರೂ ತನ್ನ ಕಣ್ಣಿಗೆ ತೃಪ್ತಿಯಾಗುವವರೆಗೂ ಮನಸ್ಸಿಗೆ ವಿಶ್ರಾಂತಿ ಸಿಗುವುದಿಲ್ಲ; ಇತರರು ಮಾಡಿದ ಕೆಲಸದಲ್ಲಿ ಸಣ್ಣ ಲೋಪ ಕಂಡರೂ ತಾವೇ ಸ್ವತಃ ಕೈಹಾಕಿ ಅಚ್ಚುಕಟ್ಟಾಗಿ ಸರಿಪಡಿಸುವ ಹಠ ಇವರಲ್ಲಿದೆ.";
+    perfEn = "Compelled by an internal urge for perfection; restless until tasks meet exacting standards, often redoing others' haphazard work themselves.";
+  } else if (["aries", "leo", "scorpio"].includes(lagnaKey)) {
+    perfKn = "ಮಾಡಿದರೆ ಶ್ರೇಷ್ಠ ಮಟ್ಟದ ಕೆಲಸ ಮಾಡಬೇಕು, ಇಲ್ಲವಾದರೆ ಕೈಹಾಕಬಾರದು ಎಂಬ ಉನ್ನತ ಛಲ ಇವರಲ್ಲಿದೆ; ಅರ್ಧಂಬರ್ಧ ಕೆಲಸಗಳನ್ನು ಇವರು ಕಿಂಚಿತ್ತೂ ಒಪ್ಪುವುದಿಲ್ಲ.";
+    perfEn = "Operates with an all-or-nothing mindset; demands excellence in everything undertaken and refuses to accept mediocre or half-baked results.";
+  } else {
+    perfKn = "ಕೆಲಸದಲ್ಲಿ ಅಚ್ಚುಕಟ್ಟುತನ, ಕ್ರಮಬದ್ಧತೆ ಹಾಗೂ ಸೌಂದರ್ಯವನ್ನು ಬಯಸುತ್ತಾರೆ; ಕೆಲಸ ಅಸ್ತವ್ಯಸ್ತವಾಗಿದ್ದರೆ ಅಥವಾ ನಿಯಮ ತಪ್ಪಿದ್ದರೆ ಇವರ ಮನಸ್ಸು ಪ್ರಕ್ಷುಬ್ಧಗೊಳ್ಳುತ್ತದೆ.";
+    perfEn = "Deeply attuned to order, harmony, and thoroughness; becomes restless and mentally perturbed when processes are disorganized or chaotic.";
+  }
+
+  if (isKn) {
+    return [
+      {
+        id: 1,
+        text: coreSignKn[lagnaKey] || coreSignKn.aries,
+        tone: "good",
+        tagKn: "ಮೂಲ ಸ್ವಾಭಿಮಾನ",
+        tagEn: "Sovereign Self-Respect"
+      },
+      {
+        id: 2,
+        text: antiDomKn,
+        tone: "bad",
+        tagKn: "ಆಜ್ಞಾಪನೆಗೆ ಅಸಹನೆ",
+        tagEn: "Anti-Domination"
+      },
+      {
+        id: 3,
+        text: "ಇವರಿಗೆ ನೂರಾರು ಜನ ಪರಿಚಿತರಿರಬಹುದು, ಆದರೆ ಹೃದಯಪೂರ್ವಕವಾಗಿ ನಂಬುವುದು ಕೇವಲ ಬೆರಳೆಣಿಕೆಯ ಆಪ್ತರನ್ನು ಮಾತ್ರ; ಆ ಆಯ್ದ ಕೆಲವರಿಗಾಗಿ ಇವರು ಯಾವುದೇ ತ್ಯಾಗಕ್ಕೂ ಸದಾ ಸಿದ್ಧರಾಗಿರುತ್ತಾರೆ.",
+        tone: "good",
+        tagKn: "ಅಂತರಂಗದ ನಿಷ್ಠೆ",
+        tagEn: "Selective Loyalty"
+      },
+      {
+        id: 4,
+        text: "ಹಿಂದೆ ತಾನು ತುಂಬು ಹೃದಯದಿಂದ ನಂಬಿದ ಕೆಲವರು ತುರ್ತು ಸಂದರ್ಭದಲ್ಲಿ ಕೈಕೊಟ್ಟ ಅಥವಾ ಬೆನ್ನಿಗೆ ಚೂರಿ ಹಾಕಿದ ಕಹಿ ಗಾಯ ಇವರ ಮನಸ್ಸಿನಲ್ಲಿದೆ; ಅಂದಿನಿಂದ ಯಾರಾದರೂ ಒಮ್ಮೆ ವಿಶ್ವಾಸ ದ್ರೋಹ ಮಾಡಿದರೆ ಅವರಿಗೆ ಜೀವನದಲ್ಲಿ ಮತ್ತೆ ಎಂದಿಗೂ ಮೊದಲಿನ ಸ್ಥಾನ ನೀಡುವುದಿಲ್ಲ.",
+        tone: "bad",
+        tagKn: "ವಿಶ್ವಾಸಘಾತದ ಗಾಯ",
+        tagEn: "Zero Second Chance"
+      },
+      {
+        id: 5,
+        text: radarKn,
+        tone: "good",
+        tagKn: "ಮುಖವಾಡಗಳ ಪತ್ತೆ",
+        tagEn: "Innate Lie Detector"
+      },
+      {
+        id: 6,
+        text: "ತಮ್ಮ ಜೀವನದಲ್ಲಿ ಎಷ್ಟೇ ದೊಡ್ಡ ಆರ್ಥಿಕ ಅಥವಾ ಮಾನಸಿಕ ಬಿಕ್ಕಟ್ಟು ಬಂದರೂ, ಯಾರ ಮುಂದೆಯೂ ಹೋಗಿ ಕೈಚಾಚುವುದಿಲ್ಲ ಅಥವಾ ಕಣ್ಣೀರು ಹಾಕಿ ಅನುಕಂಪ ಬೇಡುವುದಿಲ್ಲ; ಎಲ್ಲ ನೋವನ್ನೂ ತಮ್ಮ ಎದೆಯೊಳಗೇ ನುಂಗಿಕೊಂಡು ಒಂಟಿಯಾಗಿ ಹೋರಾಡುತ್ತಾರೆ.",
+        tone: "notice",
+        tagKn: "ಮೌನ ಹೋರಾಟ",
+        tagEn: "Silent Struggle"
+      },
+      {
+        id: 7,
+        text: candorKn,
+        tone: "notice",
+        tagKn: "ನೇರ ನುಡಿ",
+        tagEn: "Unfiltered Candor"
+      },
+      {
+        id: 8,
+        text: "ಕೈಗೆತ್ತಿಕೊಂಡ ಕೆಲಸದಲ್ಲಿ ಶ್ರದ್ಧೆ ಹಾಗೂ ಚುರುಕುತನವನ್ನು ನಿರೀಕ್ಷಿಸುತ್ತಾರೆ; ಜೊತೆಯಲ್ಲಿರುವವರು ಸೋಮಾರಿತನ, ನಿಧಾನಗತಿ ಅಥವಾ ಬೇಜವಾಬ್ದಾರಿತನ ತೋರಿದರೆ ಇವರಿಗೆ ಒಳಗೊಳಗೇ ರಕ್ತ ಕುದಿಯುವಷ್ಟು ಕಿರಿಕಿರಿ ಉಂಟಾಗುತ್ತದೆ.",
+        tone: "bad",
+        tagKn: "ಬೇಜವಾಬ್ದಾರಿಗೆ ಅಸಹನೆ",
+        tagEn: "Intolerance to Sluggishness"
+      },
+      {
+        id: 9,
+        text: "ಕಷ್ಟದಲ್ಲಿರುವ ಅರ್ಹ ವ್ಯಕ್ತಿಗಳಿಗೆ ಸದ್ದಿಲ್ಲದೆ ತಮ್ಮ ಕೈಲಾದ ಸಹಾಯ ಮಾಡುತ್ತಾರೆ; ಆದರೆ ಮಾಡಿದ ಉಪಕಾರವನ್ನು ಜಗತ್ತಿಗೆ ಡಂಗೂರ ಸಾರಿಕೊಳ್ಳುವುದು ಅಥವಾ ಪ್ರಚಾರ ಮಾಡಿಕೊಳ್ಳುವುದು ಇವರಿಗೆ ಸುತರಾಂ ಇಷ್ಟವಿಲ್ಲ.",
+        tone: "good",
+        tagKn: "ಸಾತ್ವಿಕ ಸಹಾಯ",
+        tagEn: "Silent Benevolence"
+      },
+      {
+        id: 10,
+        text: perfKn,
+        tone: "notice",
+        tagKn: "ಪರಿಪೂರ್ಣತೆಯ ಹಠ",
+        tagEn: "Relentless Perfectionism"
+      },
+      {
+        id: 11,
+        text: "ಹಗಲಿನಲ್ಲಿ ಎಲ್ಲರ ಮುಂದೆ ನಗುಮುಖದಿಂದ, ಗಟ್ಟಿಯಾಗಿ ಎಲ್ಲಾ ಹೊಣೆಗಾರಿಕೆಗಳನ್ನು ನಿಭಾಯಿಸಿದರೂ, ರಾತ್ರಿಯ ಏಕಾಂತದಲ್ಲಿ ಮನಸ್ಸು ವಿಶ್ರಾಂತಿ ಪಡೆಯದೆ ಭವಿಷ್ಯ, ಸ್ವಾವಲಂಬನೆ ಹಾಗೂ ಕುಟುಂಬದ ಬಗ್ಗೆ ಅತಿಯಾಗಿ ಚಿಂತಿಸುತ್ತದೆ.",
+        tone: "bad",
+        tagKn: "ಏಕಾಂತದ ಅತಿಚಿಂತನೆ",
+        tagEn: "Midnight Overthinking"
+      },
+      {
+        id: 12,
+        text: "ಬದುಕಿನಲ್ಲಿ ಇವರು ಕಂಡ ಏಳು-ಬೀಳುಗಳು ಹಾಗೂ ಎದುರಿಸಿದ ಅಡೆತಡೆಗಳಿಗೆ ಬೇರೆಯವರಾಗಿದ್ದರೆ ಕುಸಿದು ಬೀಳುತ್ತಿದ್ದರು; ಆದರೆ ಇವರಲ್ಲಿರುವ ಅದ್ಭುತ ಆಂತರಿಕ ಮನೋಬಲವು ಪ್ರತಿಯೊಂದು ಪತನದ ನಂತರವೂ ಇವರನ್ನು ಇನ್ನಷ್ಟು ಬಲಿಷ್ಠವಾಗಿ ಎದ್ದು ನಿಲ್ಲುವಂತೆ ಮಾಡಿದೆ.",
+        tone: "good",
+        tagKn: "ಪುನಶ್ಚೇತನ ಶಕ್ತಿ",
+        tagEn: "Unbreakable Resilience"
+      }
+    ];
+  }
+
+  return [
+    {
+      id: 1,
+      text: coreSignEn[lagnaKey] || coreSignEn.aries,
+      tone: "good",
+      tagKn: "ಮೂಲ ಸ್ವಾಭಿಮಾನ",
+      tagEn: "Sovereign Self-Respect"
+    },
+    {
+      id: 2,
+      text: antiDomEn,
+      tone: "bad",
+      tagKn: "ಆಜ್ಞಾಪನೆಗೆ ಅಸಹನೆ",
+      tagEn: "Anti-Domination"
+    },
+    {
+      id: 3,
+      text: "Surrounded by a wide network of acquaintances, yet grants emotional entry only to a rare, rigorously vetted few—for whom they will sacrifice without hesitation.",
+      tone: "good",
+      tagKn: "ಅಂತರಂಗದ ನಿಷ್ಠೆ",
+      tagEn: "Selective Loyalty"
+    },
+    {
+      id: 4,
+      text: "Carries an unhealed scar from past individuals who betrayed unconditional trust at a critical hour; consequently, once a line is crossed, second chances are permanently denied.",
+      tone: "bad",
+      tagKn: "ವಿಶ್ವಾಸಘಾತದ ಗಾಯ",
+      tagEn: "Zero Second Chance"
+    },
+    {
+      id: 5,
+      text: radarEn,
+      tone: "good",
+      tagKn: "ಮುಖವಾಡಗಳ ಪತ್ತೆ",
+      tagEn: "Innate Lie Detector"
+    },
+    {
+      id: 6,
+      text: "Never airs vulnerabilities or begs for external pity during crises; internalizes intense emotional and financial strain, fighting private battles with stoic dignity.",
+      tone: "notice",
+      tagKn: "ಮೌನ ಹೋರಾಟ",
+      tagEn: "Silent Struggle"
+    },
+    {
+      id: 7,
+      text: candorEn,
+      tone: "notice",
+      tagKn: "ನೇರ ನುಡಿ",
+      tagEn: "Unfiltered Candor"
+    },
+    {
+      id: 8,
+      text: "Expects dedication and urgency in shared responsibilities; experiences acute internal frustration when colleagues exhibit sluggishness, procrastination, or careless apathy.",
+      tone: "bad",
+      tagKn: "ಬೇಜವಾಬ್ದಾರಿಗೆ ಅಸಹನೆ",
+      tagEn: "Intolerance to Sluggishness"
+    },
+    {
+      id: 9,
+      text: "Extends quiet financial and emotional help to deserving individuals without seeking public applause, self-promotion, or reciprocal favors.",
+      tone: "good",
+      tagKn: "ಸಾತ್ವಿಕ ಸಹಾಯ",
+      tagEn: "Silent Benevolence"
+    },
+    {
+      id: 10,
+      text: perfEn,
+      tone: "notice",
+      tagKn: "ಪರಿಪೂರ್ಣತೆಯ ಹಠ",
+      tagEn: "Relentless Perfectionism"
+    },
+    {
+      id: 11,
+      text: "Projects seamless composure and smiling competence throughout the day, yet battles an unquiet mind at night, overthinking future contingencies and responsibilities in solitude.",
+      tone: "bad",
+      tagKn: "ಏಕಾಂತದ ಅತಿಚಿಂತನೆ",
+      tagEn: "Midnight Overthinking"
+    },
+    {
+      id: 12,
+      text: "Possesses extraordinary inner resilience; circumstances that would derail ordinary individuals merely forge their resolve, bouncing back stronger from every temporary reversal.",
+      tone: "good",
+      tagKn: "ಪುನಶ್ಚೇತನ ಶಕ್ತಿ",
+      tagEn: "Unbreakable Resilience"
+    }
+  ];
+}
+
+/**
+ * Builds deterministic, 100% authentic Shastric points for each of the First Six Sections.
  * Meets and exceeds the "at least 10 points" requirement under all conditions.
  */
 export function buildDeterministicFirstSixPoints(
@@ -149,167 +450,17 @@ export function buildDeterministicFirstSixPoints(
   const mHouseLordKn = toKannadaPlanet(mHouseLord);
 
   // -------------------------------------------------------------
-  // Card 1: ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ (Ice-Breaker & Core Temperament - 11 points)
+  // Card 1: ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ (Ice-Breaker & Core Temperament - 12 points)
+  // 100% Technical-Free, Deeply Personalized Characteristics
   // -------------------------------------------------------------
-  const card1: AstrologerPointItem[] = isKn
-    ? [
-        {
-          id: 1,
-          text: `ಜಾತಕರ ಜನ್ಮ ಲಗ್ನವು '${lagnaRashiKn}' ಆಗಿದ್ದು, ಜನ್ಮ ರಾಶಿಯು '${moonRashiKn}' ಆಗಿದೆ. ಲಗ್ನಾಧಿಪತಿಯ ಪ್ರಭಾವವು ಜಾತಕರಲ್ಲಿ ಹುಟ್ಟಿನಿಂದಲೇ ಸ್ವಾಭಿಮಾನ ಹಾಗೂ ಘನತೆಯನ್ನು ಮೂಡಿಸಿದೆ.`,
-          tone: "normal",
-          tagKn: "ಜನ್ಮ ಲಗ್ನ ಸತ್ಯ",
-          tagEn: "Lagna Foundation"
-        },
-        {
-          id: 2,
-          text: `ಆಂತರಿಕವಾಗಿ ಉನ್ನತ ಆತ್ಮಗೌರವ ಹಾಗೂ ತೀಕ್ಷ್ಣ ಬುದ್ಧಿಮತ್ತೆ ಹೊಂದಿದ್ದು, ನ್ಯಾಯಯುತ ಪರಿಶ್ರಮದಿಂದಲೇ ಸ್ವಾವಲಂಬಿಯಾಗಿ ಬಾಳಬೇಕೆಂಬ ದೃಢ ಸಂಕಲ್ಪವಿರುತ್ತದೆ.`,
-          tone: "good",
-          tagKn: "ಮೂಲ ಸಾಮರ್ಥ್ಯ",
-          tagEn: "Core Strength"
-        },
-        {
-          id: 3,
-          text: `ಯಾರಾದರೂ ಪ್ರೀತಿ, ವಿಶ್ವಾಸ ಹಾಗೂ ಗೌರವದಿಂದ ಮಾತನಾಡಿಸಿದರೆ ಪ್ರಾಣವನ್ನಾದರೂ ಕೊಡಲು ಸಿದ್ಧವಾಗುವ ಉದಾರ ಹೃದಯ ಹಾಗೂ ನಿಷ್ಠೆ ಜಾತಕರ ನೈಜ ಗುಣ.`,
-          tone: "good",
-          tagKn: "ಪ್ರೀತಿಗೆ ನಿಷ್ಠೆ",
-          tagEn: "Loyalty to Affection"
-        },
-        {
-          id: 4,
-          text: `ಆದರೆ ಯಾರಾದರೂ ಅಧಿಕಾರ ಚಲಾಯಿಸಲು, ಅಹಂಕಾರ ತೋರಲು ಅಥವಾ ಬಾಸ್ ತರಹ ನಿಯಂತ್ರಿಸಲು ಪ್ರಯತ್ನಿಸಿದರೆ ಜಾತಕರ ಮನಸ್ಸು ತೀವ್ರವಾಗಿ ಸಿಡಿಯುತ್ತದೆ.`,
-          tone: "bad",
-          tagKn: "ನಿಯಂತ್ರಣಕ್ಕೆ ಅಸಹನೆ",
-          tagEn: "Anti-Domination"
-        },
-        {
-          id: 5,
-          text: `ನ್ಯಾಯಯುತವಲ್ಲದ ಟೀಕೆ ಅಥವಾ ಸುಳ್ಳು ಆರೋಪಗಳನ್ನು ಜಾತಕರು ಸುತಾರಾಂ ಸಹಿಸುವುದಿಲ್ಲ; ಅಂಥ ಸಂದರ್ಭದಲ್ಲಿ ಹಠಮಾರಿತನ ಅಥವಾ ತೀವ್ರ ಮೌನ ವಹಿಸುತ್ತಾರೆ.`,
-          tone: "bad",
-          tagKn: "ಪ್ರತಿರೋಧ ಪ್ರವೃತ್ತಿ",
-          tagEn: "Resistance to Injustice"
-        },
-        {
-          id: 6,
-          text: `ಯಾವುದೇ ಹೊಸ ವಿಷಯವನ್ನು ಕ್ಷಿಪ್ರವಾಗಿ ಗ್ರಹಿಸುವ ಹಾಗೂ ಪರಿಸ್ಥಿತಿಯ ಒಳಮರ್ಮವನ್ನು ಮೊದಲ ನೋಟದಲ್ಲೇ ಅಳೆಯುವ ನೈಸರ್ಗಿಕ ತೀಕ್ಷ್ಣ ವಿಶ್ಲೇಷಣಾ ಶಕ್ತಿ ಇದೆ.`,
-          tone: "good",
-          tagKn: "ಬುದ್ಧಿಶಕ್ತಿ",
-          tagEn: "Intuitive Intellect"
-        },
-        {
-          id: 7,
-          text: `ಮಾತಿನಲ್ಲಿ ಸ್ಪಷ್ಟತೆ, ನೇರ ನುಡಿ ಹಾಗೂ ಸತ್ಯದ ಧ್ವನಿ ಇರುವುದರಿಂದ ಕೆಲವೊಮ್ಮೆ ಸೌಮ್ಯ ಮನಸ್ಸಿನ ಜನರಿಗೆ ಮಾತು ಸ್ವಲ್ಪ ಕಟು ಅಥವಾ ಹರಿತವಾಗಿ ಕಾಣಬಹುದು.`,
-          tone: "notice",
-          tagKn: "ನೇರ ವಾಕ್ ಪ್ರವೃತ್ತಿ",
-          tagEn: "Blunt Directness"
-        },
-        {
-          id: 8,
-          text: `ಕಷ್ಟದಲ್ಲಿರುವ ಯೋಗ್ಯ ವ್ಯಕ್ತಿಗಳಿಗೆ ಸದ್ದಿಲ್ಲದೆ ಸಹಾಯ ಮಾಡುವ ಹಾಗೂ ಮಾಡಿದ ಉಪಕಾರವನ್ನು ಪ್ರಚಾರ ಮಾಡಿಕೊಳ್ಳದ ಸಾತ್ವಿಕ ಸಂಸ್ಕಾರವಿದೆ.`,
-          tone: "good",
-          tagKn: "ಸಾತ್ವಿಕ ದಾನಶೀಲತೆ",
-          tagEn: "Silent Benevolence"
-        },
-        {
-          id: 9,
-          text: `ಸ್ವಂತ ನಿರ್ಧಾರಗಳಲ್ಲಿ ದೃಢತೆಯಿದ್ದು, ಇತರರ ಅನಾವಶ್ಯಕ ಸಲಹೆಗಳಿಂದ ದಿಕ್ಕು ತಪ್ಪದೆ ತನ್ನದೇ ಆದ ನಿಯಮಗಳ ಮೇಲೆ ಜೀವನ ರೂಪಿಸಿಕೊಳ್ಳುತ್ತಾರೆ.`,
-          tone: "good",
-          tagKn: "ಸ್ವಾವಲಂಬನೆ",
-          tagEn: "Self-Reliance"
-        },
-        {
-          id: 10,
-          text: `ಆಪ್ತ ಸ್ನೇಹಿತರ ಬಳಗವು ಚಿಕ್ಕದಾಗಿದ್ದರೂ, ಅತ್ಯಂತ ನಂಬಿಕಸ್ಥ ಹಾಗೂ ಆಯ್ದ ಕೆಲವರೊಂದಿಗೆ ಮಾತ್ರ ಅಂತರಂಗದ ವಿಷಯಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳುವ ಎಚ್ಚರಿಕೆಯಿದೆ.`,
-          tone: "notice",
-          tagKn: "ಗೋಪ್ಯ ರಕ್ಷಣೆ",
-          tagEn: "Inner Circle Caution"
-        },
-        {
-          id: 11,
-          text: `ದೈವಭಕ್ತಿ ಹಾಗೂ ಪೂರ್ವಪುಣ್ಯದ ಬಲವಿದ್ದು, ಕಷ್ಟಕಾಲದಲ್ಲಿ ಎಷ್ಟೇ ಎಡವಿದರೂ ಮತ್ತೆ ಎದ್ದು ನಿಲ್ಲುವ ಅಪೂರ್ವ ಚೇತರಿಕಾ ಸಾಮರ್ಥ್ಯ ಜಾತಕರಿಗಿದೆ.`,
-          tone: "good",
-          tagKn: "ಪುನಶ್ಚೇತನ ಶಕ್ತಿ",
-          tagEn: "Resilience Yoga"
-        }
-      ]
-    : [
-        {
-          id: 1,
-          text: `Native's Ascendant is '${lagnaRashiEn}' with Moon in '${moonRashiEn}'. Lagna lord's placement imparts strong inherent self-esteem and dignified bearing.`,
-          tone: "normal",
-          tagKn: "Lagna Foundation",
-          tagEn: "Lagna Foundation"
-        },
-        {
-          id: 2,
-          text: `Endowed with sharp intellect and unshakeable pride in earned self-sufficiency, seeking progress solely on merit.`,
-          tone: "good",
-          tagKn: "Core Strength",
-          tagEn: "Core Strength"
-        },
-        {
-          id: 3,
-          text: `Unwavering loyalty and warm devotion when approached with authentic affection, dignity, and sincere respect.`,
-          tone: "good",
-          tagKn: "Loyalty to Affection",
-          tagEn: "Loyalty to Affection"
-        },
-        {
-          id: 4,
-          text: `Absolute zero tolerance for authoritarian intimidation, arrogance, or unwarranted micromanagement by others.`,
-          tone: "bad",
-          tagKn: "Anti-Domination",
-          tagEn: "Anti-Domination"
-        },
-        {
-          id: 5,
-          text: `Prone to stubborn rigidity or deep withdrawal when subjected to unmerited blame, gossip, or false accusations.`,
-          tone: "bad",
-          tagKn: "Resistance to Injustice",
-          tagEn: "Resistance to Injustice"
-        },
-        {
-          id: 6,
-          text: `High innate intuitive faculty capable of reading between the lines and decoding unstated motives in people rapidly.`,
-          tone: "good",
-          tagKn: "Intuitive Intellect",
-          tagEn: "Intuitive Intellect"
-        },
-        {
-          id: 7,
-          text: `Direct, unflinching speech that values truth above diplomacy, which can occasionally appear blunt to sensitive peers.`,
-          tone: "notice",
-          tagKn: "Blunt Directness",
-          tagEn: "Blunt Directness"
-        },
-        {
-          id: 8,
-          text: `Instinctive moral compass to support deserving people quietly without seeking cheap applause or public attention.`,
-          tone: "good",
-          tagKn: "Silent Benevolence",
-          tagEn: "Silent Benevolence"
-        },
-        {
-          id: 9,
-          text: `Strong conviction in personal vision; charts destiny through independent principles rather than following the herd.`,
-          tone: "good",
-          tagKn: "Self-Reliance",
-          tagEn: "Self-Reliance"
-        },
-        {
-          id: 10,
-          text: `Guards an impenetrable inner sanctuary; maintains a strictly selective circle of confidants for emotional safety.`,
-          tone: "notice",
-          tagKn: "Inner Circle Caution",
-          tagEn: "Inner Circle Caution"
-        },
-        {
-          id: 11,
-          text: `Blessed with Purva Punya resilience, bouncing back with renewed vigor from disruptions that break ordinary mortals.`,
-          tone: "good",
-          tagKn: "Resilience Yoga",
-          tagEn: "Resilience Yoga"
-        }
-      ];
+  const card1: AstrologerPointItem[] = buildCoreTemperamentPoints({
+    lagnaEn: lagnaRashiEn,
+    moonEn: moonRashiEn,
+    nakshatraEn: moonNakEn,
+    isFemale,
+    isKn,
+    devoteeName
+  });
 
   // -------------------------------------------------------------
   // Card 2: ಅಂತರಂಗದ ಗುಪ್ತ ಆತಂಕ & ಚಿಂತೆ (Hidden Subconscious Worry - 11 points)
@@ -1199,8 +1350,21 @@ export function parseOrEnhanceTalkingPoints(
         }
 
         if (text.length >= 15) {
+          // STRICT RULE: Section 1 (openingIceBreaker) must NEVER contain technical astrological jargon!
+          if (key === "openingIceBreaker") {
+            const techKnWords = ["ಲಗ್ನ", "ರಾಶಿ", "ನಕ್ಷತ್ರ", "ಗ್ರಹ", "ಭಾವ", "ಅಧಿಪತಿ", "ದಶಾ", "ಕುಂಡಲಿ"];
+            const techEnRegex = /\b(lagna|ascendant|rashi|sign|nakshatra|graha|planet|house|bhava|lord|pada|dasha)\b/i;
+            const hasTechJargon = isKn
+              ? techKnWords.some((w) => text.includes(w))
+              : techEnRegex.test(text);
+
+            if (hasTechJargon) {
+              return; // Skip technical item to keep Card 1 100% human-focused
+            }
+          }
+
           parsedPoints.push({
-            id: idx + 1,
+            id: parsedPoints.length + 1,
             text,
             tone,
             tagKn: getToneLabel(tone, true),
@@ -1230,16 +1394,23 @@ export function parseOrEnhanceTalkingPoints(
         .filter((l) => l.length >= 20);
 
       if (lines.length >= 8) {
-        const parsedPoints: AstrologerPointItem[] = lines.slice(0, 12).map((text, idx) => {
+        const parsedPoints: AstrologerPointItem[] = [];
+        lines.slice(0, 15).forEach((text) => {
           const clean = sanitizeAstrologyKannadaText(text);
+          if (key === "openingIceBreaker") {
+            const techKnWords = ["ಲಗ್ನ", "ರಾಶಿ", "ನಕ್ಷತ್ರ", "ಗ್ರಹ", "ಭಾವ", "ಅಧಿಪತಿ", "ದಶಾ", "ಕುಂಡಲಿ"];
+            const techEnRegex = /\b(lagna|ascendant|rashi|sign|nakshatra|graha|planet|house|bhava|lord|pada|dasha)\b/i;
+            const hasTech = isKn ? techKnWords.some((w) => clean.includes(w)) : techEnRegex.test(clean);
+            if (hasTech) return;
+          }
           const tone = classifyAstrologyTextTone(clean);
-          return {
-            id: idx + 1,
+          parsedPoints.push({
+            id: parsedPoints.length + 1,
             text: clean,
             tone,
             tagKn: getToneLabel(tone, true),
             tagEn: getToneLabel(tone, false)
-          };
+          });
         });
 
         if (parsedPoints.length >= 10) {

@@ -86,4 +86,72 @@ describe("Instant Reading Structured Talking Points Engine", () => {
     expect(parsed.openingIceBreaker[1].text).toBe("ಸ್ವಲ್ಪ ಜಾಗರೂಕರಾಗಿರಿ");
     expect(parsed.openingIceBreaker[1].tone).toBe("notice");
   });
+
+  it("strictly enforces ZERO technical astrological jargon in Card 1 (Ice-Breaker & Core Temperament)", () => {
+    const pointsKn = buildDeterministicFirstSixPoints(synthesis, mockSession, true);
+    const techKnWords = ["ಲಗ್ನ", "ರಾಶಿ", "ನಕ್ಷತ್ರ", "ಗ್ರಹ", "ಭಾವ", "ಅಧಿಪತಿ", "ದಶಾ", "ಕುಂಡಲಿ", "ಪಾದ"];
+
+    expect(pointsKn.openingIceBreaker.length).toBe(12);
+    for (const point of pointsKn.openingIceBreaker) {
+      for (const techWord of techKnWords) {
+        expect(point.text).not.toContain(techWord);
+      }
+    }
+
+    const pointsEn = buildDeterministicFirstSixPoints(synthesis, mockSession, false);
+    const techEnRegex = /\b(lagna|ascendant|rashi|sign|nakshatra|graha|planet|house|bhava|lord|pada|dasha)\b/i;
+
+    expect(pointsEn.openingIceBreaker.length).toBe(12);
+    for (const point of pointsEn.openingIceBreaker) {
+      expect(point.text).not.toMatch(techEnRegex);
+    }
+  });
+
+  it("dynamically differentiates Card 1 traits across different Ascendants with psychological precision", () => {
+    const ariesPoints = buildDeterministicFirstSixPoints(synthesis, {
+      ...mockSession,
+      result: { ...kundli, lagnaRashi: { english: "Aries" } }
+    }, true);
+
+    const scorpioPoints = buildDeterministicFirstSixPoints(synthesis, {
+      ...mockSession,
+      result: { ...kundli, lagnaRashi: { english: "Scorpio" } }
+    }, true);
+
+    const taurusPoints = buildDeterministicFirstSixPoints(synthesis, {
+      ...mockSession,
+      result: { ...kundli, lagnaRashi: { english: "Taurus" } }
+    }, true);
+
+    // Core traits must be completely distinct
+    expect(ariesPoints.openingIceBreaker[0].text).not.toBe(scorpioPoints.openingIceBreaker[0].text);
+    expect(scorpioPoints.openingIceBreaker[0].text).not.toBe(taurusPoints.openingIceBreaker[0].text);
+
+    // Aries highlights pioneering leadership & fire
+    expect(ariesPoints.openingIceBreaker[0].text).toContain("ನಾಯಕತ್ವ");
+    // Taurus highlights rock-solid patience & immovable determination
+    expect(taurusPoints.openingIceBreaker[0].text).toContain("ಹಿಮಾಲಯದಂತಹ ಅಚಲ ದೃಢತೆ");
+    // Scorpio highlights piercing secrets & deep insight
+    expect(scorpioPoints.openingIceBreaker[0].text).toContain("ಅಂತರಂಗದ ಗುಟ್ಟನ್ನು");
+  });
+
+  it("parseOrEnhanceTalkingPoints strictly filters out technical jargon from AI points for Card 1", () => {
+    const deterministic = buildDeterministicFirstSixPoints(synthesis, mockSession, true);
+    const parsed = parseOrEnhanceTalkingPoints(
+      {
+        openingIceBreaker: [
+          { pointNumber: 1, text: "ಜಾತಕರ ಜನ್ಮ ಲಗ್ನವು ಮೇಷ ಆಗಿದೆ ಮತ್ತು ರಾಶಿಯು ವೃಷಭ.", tone: "normal" }, // contains jargon!
+          { pointNumber: 2, text: "ಅತ್ಯಂತ ಸ್ವಾಭಿಮಾನಿ ಹಾಗೂ ಕಷ್ಟದಲ್ಲಿ ಯಾರ ಮುಂದೆಯೂ ಕೈಚಾಚದ ವ್ಯಕ್ತಿತ್ವ.", tone: "good" }, // pure human trait!
+        ]
+      },
+      deterministic,
+      true
+    );
+
+    // Point 1 (which had jargon) must be excluded, clean point 2 accepted, and padded to >= 10 from deterministic
+    expect(parsed.openingIceBreaker.length).toBeGreaterThanOrEqual(10);
+    expect(parsed.openingIceBreaker.some(p => p.text.includes("ಲಗ್ನವು"))).toBe(false);
+    expect(parsed.openingIceBreaker[0].text).toBe("ಅತ್ಯಂತ ಸ್ವಾಭಿಮಾನಿ ಹಾಗೂ ಕಷ್ಟದಲ್ಲಿ ಯಾರ ಮುಂದೆಯೂ ಕೈಚಾಚದ ವ್ಯಕ್ತಿತ್ವ.");
+  });
 });
+
