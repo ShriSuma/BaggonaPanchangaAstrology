@@ -63,6 +63,7 @@ import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../features/auth/authStore"
 import { DevoteeDatabaseSearchModal } from "../components/kundli/DevoteeDatabaseSearchModal";
 import type { DevoteeProfile } from "../services/devoteeSearchService";
 import { SpecialDivineConsultationModal } from "../components/consultation/SpecialDivineConsultationModal";
+import { KundliReadingGurukulaModal } from "../components/kundli/KundliReadingGurukulaModal";
 
 const parseYmdToDate = (ymd: string): Date | null => {
   if (!ymd) return null;
@@ -230,6 +231,7 @@ export default function KundliPage(): JSX.Element {
   }, [role, currentUser]);
 
   const [isDevoteeSearchModalOpen, setIsDevoteeSearchModalOpen] = useState(false);
+  const [isGurukulaModalOpen, setIsGurukulaModalOpen] = useState(false);
   const [devoteeAutoFillToast, setDevoteeAutoFillToast] = useState<string>("");
 
   const handleSelectDevoteeFromDb = (devotee: DevoteeProfile) => {
@@ -1820,6 +1822,43 @@ export default function KundliPage(): JSX.Element {
             </button>
           </div>
 
+          {/* 🎓 Kundli Reading Masterclass / ಜ್ಯೋತಿಷ್ಯ ಗುರು: ಕುಂಡಲಿ ವಾಚನ ಶಿಕ್ಷಣ 🎓 */}
+          {isSuperAdminOrBaggona && (
+            <div className="rounded-3xl border-2 border-amber-500/80 bg-gradient-to-r from-amber-950 via-slate-950 to-amber-900 p-5 md:p-6 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in ring-1 ring-amber-400/40">
+              <div className="flex items-center gap-3.5 text-center md:text-left">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-amber-400 bg-amber-900/60 text-3xl shadow-inner animate-pulse">
+                  🎓
+                </div>
+                <div>
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-300 border border-amber-400/40">
+                    <span>👑</span>
+                    <span>{i18n.language.startsWith("kn") ? "ಬಗ್ಗೋಣ / ಅಡ್ಮಿನ್ ವಿಶೇಷ: ಕುಂಡಲಿ ವಾಚನ ಗುರು" : "Baggona Admin Exclusive: Master Kundli Reading"}</span>
+                  </div>
+                  <h3 className="text-base md:text-lg font-black text-amber-200 mt-1">
+                    {i18n.language.startsWith("kn")
+                      ? "ಕುಂಡಲಿ ವಾಚನ ಕಲಿಯಿರಿ: ಎಲ್ಲಿ ನೋಡಬೇಕು? ಏಕೆ ಈ ಫಲ? ಮುಖತಃ ಏನು ಹೇಳಬೇಕು?"
+                      : "Learn Kundli Reading: Where to Look, Astrological Why & Spoken Script"}
+                  </h3>
+                  <p className="text-xs text-amber-300/80 mt-0.5">
+                    {i18n.language.startsWith("kn")
+                      ? "ಆರಂಭದಿಂದ ಉನ್ನತ ಹಂತದವರೆಗೆ — ಲಗ್ನ, ಚಂದ್ರ, ಕೇಂದ್ರ, ತ್ರಿಕೋಣ, ಗ್ರಹ ಮೈತ್ರಿ (ಉಚ್ಚ-ನೀಚ-ಶತ್ರು-ಮಿತ್ರ), ದಶಾ ಕಾಲಚಕ್ರ ಮತ್ತು ಭಕ್ತರಿಗೆ ನುಡಿಯುವ ನಿಖರ ಮಾತುಗಳು"
+                      : "From scratch to advanced — Lagna, Moon, Kendras, Trikonas, Planetary Dignity (exaltation, enemy/friend), Dasha timing & exact consultation script"}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsGurukulaModalOpen(true)}
+                className="w-full md:w-auto shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 px-6 py-3.5 text-xs font-black text-slate-950 shadow-xl hover:scale-105 active:scale-95 transition-all border border-amber-200"
+              >
+                <span>🎓</span>
+                <span>{i18n.language.startsWith("kn") ? "ಕುಂಡಲಿ ವಾಚನ ಕಲಿಯಿರಿ (Learn to Read)" : "Learn to Read This Kundli"}</span>
+                <span>➜</span>
+              </button>
+            </div>
+          )}
+
           {/* 🔮 Instant Astrologer Live Reading & Q&A Banner 🔮 */}
           <div className="rounded-3xl border-2 border-indigo-400 bg-gradient-to-r from-indigo-950 via-slate-950 to-purple-950 p-5 md:p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in">
             <div className="flex items-center gap-3.5 text-center md:text-left">
@@ -1954,6 +1993,16 @@ export default function KundliPage(): JSX.Element {
             >
               🎓 {i18n.language.startsWith("kn") ? "ಬಾಲ ವಿದ್ಯಾ & ಸಂಸ್ಕಾರ ಮಂಡಲ" : "Bala Vidya & Student Hub"}
             </button>
+            {isSuperAdminOrBaggona && (
+              <button
+                type="button"
+                className="jk-btn rounded-xl px-6 py-3 text-sm md:text-base font-black tracking-wide shadow-md transition-all bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 text-white hover:brightness-110 flex items-center gap-1.5 border border-amber-300/50"
+                onClick={() => setIsGurukulaModalOpen(true)}
+              >
+                <span>🎓</span>
+                <span>{i18n.language.startsWith("kn") ? "ಕುಂಡಲಿ ವಾಚನ ಗುರು (Learn)" : "Kundli Masterclass (Learn)"}</span>
+              </button>
+            )}
           </div>
 
           {activeView === "remedy" && effectiveRemedyDiagnosis && (
@@ -2835,6 +2884,19 @@ export default function KundliPage(): JSX.Element {
           isOpen={isDevoteeSearchModalOpen}
           onClose={() => setIsDevoteeSearchModalOpen(false)}
           onSelect={handleSelectDevoteeFromDb}
+        />
+      )}
+
+      {/* Super Admin & Baggona Kundli Reading Gurukula Modal */}
+      {isSuperAdminOrBaggona && result && (
+        <KundliReadingGurukulaModal
+          isOpen={isGurukulaModalOpen}
+          onClose={() => setIsGurukulaModalOpen(false)}
+          kundli={result}
+          birthDate={birthDatePicker ? formatPickerDateLocalYmd(birthDatePicker) : form.birthDate}
+          birthTime={birthTimeHm.trim()}
+          nativeName={form.name || (pdfLanguage === "kn" ? "ಜಾತಕರು" : "Devotee")}
+          gender={form.gender}
         />
       )}
 
