@@ -33,7 +33,13 @@ import { useAppStore } from "../stores/appStore";
 import { KundliDoshaPdfTemplate } from "../components/kundli/KundliDoshaPdfTemplate";
 import { KundliRemedyPdfTemplate } from "../components/kundli/KundliRemedyPdfTemplate";
 import { PublicKundliPdfDocument } from "../components/kundli/PublicKundliPdfDocument";
-import { SevaLetterPrint } from "../components/seva/pdf/SevaPrintTemplates";
+import {
+  SevaLetterPrint,
+  SevaQRCodePrint,
+  SevaAnugrahaGuidancePrint,
+  SevaRemediesAnnualPrint,
+  SevaPoojaMahatmePrint
+} from "../components/seva/pdf/SevaPrintTemplates";
 import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
 
 /**
@@ -287,10 +293,15 @@ export async function generateSuperAdminBatchPdfs(
         break;
       }
 
-      // ── 5. SEVA PATRA PDF ─────────────────────────────────────────────────
+      // ── 5. 5-PAGE GOKARNA ASHIRVADA PATRA PDF ────────────────────────────
       case "seva_patra": {
-        onProgress?.(stageStartPercent, params.language === "kn" ? "೫/೫ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸೇವಾ ಪತ್ರ..." : "5/5 Generating Seva Patra (Ashirvada Letter)...");
-        const fileName = `Baggona_Seva_Patra_${cleanName}_${langUpper}.pdf`;
+        onProgress?.(
+          stageStartPercent,
+          params.language === "kn"
+            ? "೫/೫ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ೫-ಪುಟಗಳ ಆಶೀರ್ವಾದ ಪತ್ರ ಮುದ್ರಣ..."
+            : "5/5 Generating 5-Page Gokarna Ashirvada Patra PDF..."
+        );
+        const fileName = `Baggona_Ashirvada_Patra_5_Page_${cleanName}_${langUpper}.pdf`;
 
         // Generate QR code data URL
         let qrDataUrl = "";
@@ -349,17 +360,58 @@ export async function generateSuperAdminBatchPdfs(
         };
 
         const component = (
-          <div className="pdf-page" style={{ width: "900px", background: "#ffffff" }}>
-            <SevaLetterPrint
-              lang={params.language}
-              identity={identity as any}
-              primarySeva={primarySeva as any}
-              sevaDate={ymd}
-              rhythm={rhythmResult as any}
-              panditName={params.priestName}
-              qrDataUrl={qrDataUrl}
-              place={`${params.city} (${params.pincode})`}
-            />
+          <div style={{ width: "900px", background: "#ffffff" }}>
+            {/* Page 1: Seva Letter */}
+            <div className="pdf-page" style={{ width: "900px", background: "#ffffff", padding: "10px" }}>
+              <SevaLetterPrint
+                lang={params.language}
+                identity={identity as any}
+                primarySeva={primarySeva as any}
+                sevaDate={ymd}
+                rhythm={rhythmResult as any}
+                panditName={params.priestName}
+                qrDataUrl={qrDataUrl}
+                place={`${params.city} (${params.pincode})`}
+              />
+            </div>
+            {/* Page 2: QR Code & Priest Contact Pass */}
+            <div className="pdf-page" style={{ width: "900px", background: "#ffffff", padding: "10px" }}>
+              <SevaQRCodePrint
+                lang={params.language}
+                identity={identity as any}
+                qrDataUrl={qrDataUrl}
+                target="google"
+                panditName={params.priestName}
+                priestPhone="9972339362"
+              />
+            </div>
+            {/* Page 3: Anugraha Guidance */}
+            <div className="pdf-page" style={{ width: "900px", background: "#ffffff", padding: "10px" }}>
+              <SevaAnugrahaGuidancePrint
+                lang={params.language}
+                identity={identity as any}
+                panditName={params.priestName}
+                rhythm={rhythmResult as any}
+              />
+            </div>
+            {/* Page 4: Remedies Annual Calendar */}
+            <div className="pdf-page" style={{ width: "900px", background: "#ffffff", padding: "10px" }}>
+              <SevaRemediesAnnualPrint
+                lang={params.language}
+                identity={identity as any}
+                panditName={params.priestName}
+                rhythm={rhythmResult as any}
+              />
+            </div>
+            {/* Page 5: Pooja Mahatme & Significance */}
+            <div className="pdf-page" style={{ width: "900px", background: "#ffffff", padding: "10px" }}>
+              <SevaPoojaMahatmePrint
+                lang={params.language}
+                identity={identity as any}
+                panditName={params.priestName}
+                primarySeva={primarySeva as any}
+              />
+            </div>
           </div>
         );
 
@@ -367,7 +419,7 @@ export async function generateSuperAdminBatchPdfs(
         const blob = pdf.output("blob");
         reports.push({
           id: "seva_patra",
-          title: params.language === "kn" ? "ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಸೇವಾ ಪತ್ರ" : "Gokarna Kshetra Seva Patra",
+          title: params.language === "kn" ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಆಶೀರ್ವಾದ ಪತ್ರ (೫ ಪುಟಗಳು)" : "Gokarna Kshetra Ashirvada Patra (5 Pages)",
           fileName,
           blob,
           sizeBytes: blob.size

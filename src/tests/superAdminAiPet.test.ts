@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   isSuperAdminAuthorized,
   executeSuperAdminPetQuery,
+  detectQueryLanguage,
   type SuperAdminPetContext
 } from "../services/superAdminPetEngine";
 import { petSpeechService } from "../services/petSpeechService";
@@ -215,15 +216,21 @@ describe("SuperAdminAiPet Intelligence & Security Suite", () => {
   });
 
   it("detects missing fields when incomplete command is given and requests clarification", () => {
-    const incomplete = "Hi Kamadhenu, please generate a Kundali and download all reports";
-    const res = parseWorkflowInstruction(incomplete, "kn");
+    const incompleteKn = "ಕಾಮಧೇನು, ಜಾತಕ ಸಿದ್ಧಪಡಿಸಿ ಎಲ್ಲಾ ವರದಿಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡು";
+    const resKn = parseWorkflowInstruction(incompleteKn, "kn");
 
-    expect(res.isWorkflow).toBe(true);
-    expect(res.missingFields).toBeDefined();
-    expect(res.missingFields).toContain("name");
-    expect(res.missingFields).toContain("birthDate");
-    expect(res.missingFields).toContain("birthTime");
-    expect(res.questionPrompt).toContain("ಮಾಹಿತಿ ಅಗತ್ಯವಿದೆ");
+    expect(resKn.isWorkflow).toBe(true);
+    expect(resKn.missingFields).toBeDefined();
+    expect(resKn.missingFields).toContain("name");
+    expect(resKn.missingFields).toContain("birthDate");
+    expect(resKn.missingFields).toContain("birthTime");
+    expect(resKn.questionPrompt).toContain("ಮಾಹಿತಿ ಅಗತ್ಯವಿದೆ");
+
+    const incompleteEn = "Hi Kamadhenu, please generate a Kundali and download all reports";
+    const resEn = parseWorkflowInstruction(incompleteEn, "en");
+    expect(resEn.isWorkflow).toBe(true);
+    expect(resEn.missingFields).toContain("name");
+    expect(resEn.questionPrompt).toContain("critical details are needed");
   });
 
   it("executes multi-step background workflow, sets app Kundli session, and packages reports into ZIP", async () => {
@@ -352,5 +359,110 @@ describe("SuperAdminAiPet Intelligence & Security Suite", () => {
 
     superAdminWorkflowRunner.dismissNotification(notifId);
     expect(superAdminWorkflowRunner.getState().notifications.some((n) => n.id === notifId)).toBe(false);
+  });
+
+  it("detects spoken query language dynamically adapting to Kannada, English, Hindi, Telugu, and Tamil", () => {
+    expect(detectQueryLanguage("Tell bhavishya in Kannada")).toBe("kn");
+    expect(detectQueryLanguage("Tell bhavishya in English")).toBe("en");
+    expect(detectQueryLanguage("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ 31 May 1993 ರಂದು ಜನಿಸಿದವರ ಭವಿಷ್ಯ ಹೇಳು")).toBe("kn");
+    expect(detectQueryLanguage("Tell me about application pages and features")).toBe("en");
+    expect(detectQueryLanguage("ಕನ್ನಡದಲ್ಲಿ ತಿಳಿಸಿ")).toBe("kn");
+    expect(detectQueryLanguage("हिंदी में बताओ")).toBe("hi");
+    expect(detectQueryLanguage("తెలుగులో చెప్పండి")).toBe("te");
+    expect(detectQueryLanguage("தமிழில் சொல்லுங்கள்")).toBe("ta");
+  });
+
+  it("computes authentic Bhavishya on-demand when given name and date in Kannada", async () => {
+    const context: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "kn"
+    };
+
+    const res = await executeSuperAdminPetQuery(
+      "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ 31 May 1993 ರಂದು ಬೆಳಿಗ್ಗೆ 9:20 ಕ್ಕೆ ಬೆಂಗಳೂರಿನಲ್ಲಿ ಜನಿಸಿದವರ ಭವಿಷ್ಯ ಹೇಳು",
+      context
+    );
+
+    expect(res.category).toBe("kundli");
+    expect(res.emotion).toBe("remedy");
+    expect(res.text.kn).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    expect(res.text.kn).toContain("ಲಗ್ನ");
+    expect(res.text.kn).toContain("ಚಂದ್ರ ರಾಶಿ");
+    expect(res.text.kn).toContain("ನಕ್ಷತ್ರ");
+    expect(res.text.kn).toContain("ಮಹಾದಶಾ");
+    expect(res.text.kn).toContain("ಉದ್ಯೋಗ");
+    expect(res.text.kn).toContain("ವಿವಾಹ");
+    expect(res.text.kn).toContain("ಆರೋಗ್ಯ");
+    expect(res.text.kn).toContain("ಗೋಕರ್ಣ");
+    expect(res.spokenText.kn).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    expect(res.actions.length).toBeGreaterThanOrEqual(1);
+    expect(res.actions.some((a) => a.targetPage === "kundli" || a.targetPage === "predictions")).toBe(true);
+  });
+
+  it("computes authentic Bhavishya on-demand when given name and date in English", async () => {
+    const context: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "en"
+    };
+
+    const res = await executeSuperAdminPetQuery(
+      "Tell bhavishya for Shriram Pandit born 31 May 1993 at 9:20 AM in Bengaluru",
+      context
+    );
+
+    expect(res.category).toBe("kundli");
+    expect(res.emotion).toBe("remedy");
+    expect(res.text.en).toContain("Shriram Pandit");
+    expect(res.text.en).toContain("Ascendant (Lagna)");
+    expect(res.text.en).toContain("Moon Sign");
+    expect(res.text.en).toContain("Mahadasha");
+    expect(res.text.en).toContain("Career");
+    expect(res.text.en).toContain("Marriage");
+    expect(res.text.en).toContain("Gokarna");
+    expect(res.spokenText.en).toContain("Shriram Pandit");
+    expect(res.actions.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("navigates across all 32 application pages and provides complete sitemap exploration", async () => {
+    const context: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "en"
+    };
+
+    // 1. Sitemap intent
+    const sitemapRes = await executeSuperAdminPetQuery("Show me all pages in the app and site map", context);
+    expect(sitemapRes.category).toBe("navigation");
+    expect(sitemapRes.text.en).toContain("Application Directory (All 32 Pages)");
+    expect(sitemapRes.actions.length).toBeGreaterThanOrEqual(5);
+
+    // 2. Direct page navigation to Palm Reading
+    const palmRes = await executeSuperAdminPetQuery("Take me to Palm Reading page", context);
+    expect(palmRes.category).toBe("navigation");
+    expect(palmRes.actions[0].targetPage).toBe("palmreading");
+
+    // 3. Direct page navigation to Seva & Ashirvada page
+    const sevaRes = await executeSuperAdminPetQuery("ಆಶೀರ್ವಾದ ಪತ್ರ ಸೇವಾ ಪುಟ ತೆರೆ", {
+      ...context,
+      selectedLanguage: "kn"
+    });
+    expect(sevaRes.category).toBe("navigation");
+    expect(sevaRes.actions[0].targetPage).toBe("seva");
+  });
+
+  it("distinguishes Bhavishya on-demand inquiry from a 5-report batch download workflow", () => {
+    // Pure Bhavishya inquiry: should NOT be a workflow download
+    const bhavishyaQuery = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ 31 May 1993 ರಂದು ಜನಿಸಿದವರ ಭವಿಷ್ಯ ಹೇಳು";
+    const bhavishyaCheck = parseWorkflowInstruction(bhavishyaQuery, "kn");
+    expect(bhavishyaCheck.isWorkflow).toBe(false);
+
+    // Download workflow command: SHOULD be recognized as a workflow
+    const downloadCommand = "Generate Kundali for Shriram Pandit, born 31 May 1993 at 9:20 AM in Bengaluru and download 5 reports. Priest Chaitanya Pandit, Pooja Moksha Narayana Bali.";
+    const downloadCheck = parseWorkflowInstruction(downloadCommand, "en");
+    expect(downloadCheck.isWorkflow).toBe(true);
+    expect(downloadCheck.params?.requestedReports).toContain("seva_patra");
+    expect(downloadCheck.params?.requestedReports.length).toBe(5);
   });
 });

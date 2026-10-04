@@ -7,6 +7,7 @@ import { petSpeechService } from "../../services/petSpeechService";
 import {
   executeSuperAdminPetQuery,
   isSuperAdminAuthorized,
+  detectQueryLanguage,
   type PetEmotion,
   type PetActionItem
 } from "../../services/superAdminPetEngine";
@@ -25,6 +26,7 @@ interface ChatMessage {
   sender: "user" | "pet";
   text: string;
   spokenText?: string;
+  lang?: SupportedLanguage;
   actions?: PetActionItem[];
   timestamp: Date;
   emotion?: PetEmotion;
@@ -67,6 +69,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
   // Pre-Flight Confirmation State before launching background workflow
   const [pendingConfirmation, setPendingConfirmation] = useState<WorkflowParams | null>(null);
+  const [confirmationLang, setConfirmationLang] = useState<SupportedLanguage>(() => currentLang);
 
   // Observable Background Workflow Runner State
   const [workflowState, setWorkflowState] = useState<WorkflowState>(() =>
@@ -284,60 +287,66 @@ export function SuperAdminAiPet(): JSX.Element | null {
   };
 
   // Stage confirmation before launching workflow
-  const launchWorkflow = (params: WorkflowParams) => {
+  const launchWorkflow = (params: WorkflowParams, commandLang?: SupportedLanguage) => {
+    const lang = commandLang || currentLang;
+    setConfirmationLang(lang);
     setPendingConfirmation(params);
     setActiveTab("chat");
 
     const nextSlot = superAdminWorkflowRunner.getNextAvailableSlotIndex();
     const knNum = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"][nextSlot] || String(nextSlot);
+    
     const askConfirmText =
-      currentLang === "kn"
-        ? `📋 ಸ್ವಾಮಿ, ${params.name} ಅವರ ಜಾತಕ ಹಾಗೂ ೫ ಅಧಿಕೃತ ವರದಿಗಳ ಗಣನೆಯನ್ನು (ಕಾಮಧೇನು ${knNum}) ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಲು ದೃಢೀಕರಿಸುವಿರಾ? ಕೆಳಗಿನ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಖಚಿತಪಡಿಸಿ.`
-        : `📋 Swami, please review and confirm autonomous background generation for ${params.name} (Kamadhenu ${nextSlot}).`;
+      lang === "kn"
+        ? `📋 **ಸ್ವಾಮಿ, ೫ ಅಧಿಕೃತ ವರದಿಗಳ ಹಿನ್ನೆಲೆ ಡೌನ್‌ಲೋಡ್ ಪೂರ್ವ ಪರಿಶೀಲನೆ (ಕಾಮಧೇನು ${knNum})**\n\nಸ್ವಾಮಿ, ನಾನು ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿದ್ದೇನೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ:\n\n• **ಜಾತಕರ ಹೆಸರು:** ${params.name}\n• **ಜನನ ದಿನಾಂಕ & ಸಮಯ:** ${params.birthDate} | ${params.birthTime}\n• **ಸ್ಥಳ & ಪಿನ್‌ಕೋಡ್:** ${params.city} (PIN: ${params.pincode})\n• **ಅರ್ಚಕರು:** ${params.priestName}\n• **ಪೂಜೆ / ಸೇವೆ:** ${params.poojaName}\n\n📦 **ಡೌನ್‌ಲೋಡ್ ಆಗಲಿರುವ ೫ ಅಧಿಕೃತ ವರದಿಗಳು:**\n1. 📜 **ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ PDF** (ಲಗ್ನ, ನವಾಂಶ, ಗ್ರಹ ಸ್ಪಷ್ಟ & ಅಷ್ಟಕವರ್ಗ)\n2. 📖 **ಪ್ರೀಮಿಯಂ ದಿವ್ಯ ಭವಿಷ್ಯ V1 PDF** (೧೦-ಅಧ್ಯಾಯ ವಿಸ್ತೃತ ಜೀವನ ಭವಿಷ್ಯ ಮಹಾ ವರದಿ)\n3. 🪔 **ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ ವರದಿ PDF** (ಗೋಕರ್ಣ ಪರಿಹಾರ, ರತ್ನ & ಮಂತ್ರ ಶಾಸ್ತ್ರ)\n4. 🔮 **ಸಮಗ್ರ ದೋಷಗಳು & ಗಂಡಾಂತರ ಸ್ಕ್ಯಾನ್ PDF** (ಕಾಳಸರ್ಪ, ಮಾಂಗಲ್ಯ, ಪಿತೃ ದೋಷ)\n5. 🕉️ **ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ೫-ಪುಟಗಳ ಅಧಿಕೃತ ಆಶೀರ್ವಾದ ಪತ್ರ PDF** (ಅರ್ಚಕ ${params.priestName} ಅವರ ಸಂಕಲ್ಪ, ಸ್ಕ್ಯಾನಬಲ್ QR ಕೋಡ್, ದೈವಿಕ ರಕ್ಷಣೆ, ಪೂಜಾ ಮಹಾತ್ಮೆ & ವಾರ್ಷಿಕ ಪರಿಹಾರಗಳು)\n\nಸ್ವಾಮಿ, ಈ ಎಲ್ಲಾ ವರದಿಗಳನ್ನು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಲು ದೃಢೀಕರಿಸುವಿರಾ?`
+        : `📋 **Swami, Pre-Download Verification & Confirmation (Kamadhenu ${nextSlot})**\n\nSwami, I have gathered and verified all details for autonomous generation:\n\n• **Devotee Name:** ${params.name}\n• **Birth Date & Time:** ${params.birthDate} at ${params.birthTime}\n• **Place & Pincode:** ${params.city} (PIN: ${params.pincode})\n• **Priest:** ${params.priestName}\n• **Pooja / Seva:** ${params.poojaName}\n\n📦 **5 Official Reports to be Generated & Downloaded:**\n1. 📜 **Baggona Panchanga Birth Kundli PDF** (Lagna, Navamsha, Graha Sphutas, Ashtakavarga)\n2. 📖 **Premium Divya Bhavishya V1 PDF** (10-Chapter Comprehensive Life Predictions)\n3. 🪔 **Daivika Astrological Parihara & Remedial Guidance PDF** (Gokarna Pariharas & Mantras)\n4. 🔮 **Comprehensive Doshas & Gandantara Scan PDF** (Kalasarpa, Manglik, Pitru Dosha)\n5. 🕉️ **Sri Kshetra Gokarna 5-Page Official Ashirvada Patra PDF** (Priest ${params.priestName} Blessings, Sankalpa, Scannable QR Code, Divine Raksha, Pooja Mahatme & Annual Remedies)\n\nSwami, please confirm to begin background generation!`;
 
     const askConfirmSpoken =
-      currentLang === "kn"
-        ? `ಸ್ವಾಮಿ, ${params.name} ಅವರ ಜಾತಕ ಮತ್ತು ೫ ವರದಿಗಳ ಮುದ್ರಣವನ್ನು ದೃಢೀಕರಿಸುವಿರಾ?`
-        : `Swami, please confirm generating 5 reports for ${params.name}.`;
+      lang === "kn"
+        ? `ಸ್ವಾಮಿ, ${params.city} ಪಿನ್‌ಕೋಡ್ ${params.pincode} ಸ್ಥಳದಲ್ಲಿ ${params.birthDate} ${params.birthTime} ರಂದು ಜನಿಸಿದ ${params.name} ಅವರ ಜಾತಕ ಗಣನೆ, ಅರ್ಚಕ ${params.priestName} ಅವರ ನೇತೃತ್ವದ ${params.poojaName} ಸೇವೆ ಹಾಗೂ ಐದು ಪುಟಗಳ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದ ಪತ್ರ ಸಹಿತ ಒಟ್ಟು ಐದು ಅಧಿಕೃತ ವರದಿಗಳ ಹಿನ್ನೆಲೆ ಡೌನ್‌ಲೋಡ್ ಸಿದ್ಧವಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಖಚಿತಪಡಿಸಿ ಸ್ವಾಮಿ, ತಕ್ಷಣ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸುತ್ತೇನೆ!`
+        : `Swami, I have verified all details for ${params.name}, born on ${params.birthDate} at ${params.birthTime} in ${params.city}, pincode ${params.pincode}. With Priest ${params.priestName} for ${params.poojaName}. I am ready to generate all five official reports including the complete five-page Gokarna Ashirvada Patra in the background. Please review and confirm, Swami!`;
 
     const petMsg: ChatMessage = {
       id: `pet-confirm-prompt-${Date.now()}`,
       sender: "pet",
       text: askConfirmText,
       spokenText: askConfirmSpoken,
+      lang,
       timestamp: new Date(),
       emotion: "thinking"
     };
 
     setMessages((prev) => [...prev, petMsg]);
     setCurrentEmotion("thinking");
-    if (!isMuted) petSpeechService.speak(askConfirmSpoken, currentLang);
+    if (!isMuted) petSpeechService.speak(askConfirmSpoken, lang);
   };
 
   // User confirmed: start in background and immediately close drawer!
   const handleConfirmAndStart = () => {
     if (!pendingConfirmation) return;
     const params = pendingConfirmation;
+    const lang = confirmationLang || currentLang;
     try {
       const inst = superAdminWorkflowRunner.startInstance(params);
       setPendingConfirmation(null);
 
       const knNum = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"][inst.instanceIndex] || String(inst.instanceIndex);
       const startNotice =
-        currentLang === "kn"
-          ? `🚀 **${inst.instanceName}**\n\nಸ್ವಾಮಿ, ${params.name} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ೫ ಅಧಿಕೃತ ವರದಿಗಳ ಡೌನ್‌ಲೋಡ್ ಹಿನ್ನೆಲೆಯಲ್ಲಿ (Background) ಪ್ರಾರಂಭಿಸಲಾಗಿದೆ.\n\n📍 ಸ್ಥಳ: ${params.city} (${params.pincode})\n📅 ಜನನ: ${params.birthDate} ${params.birthTime}\n🕉️ ಅರ್ಚಕರು: ${params.priestName}\n🪔 ಪೂಜೆ: ${params.poojaName}\n\nನೀವು ಮುಕ್ತವಾಗಿ ನಿಮ್ಮ ಪರದೆಯಲ್ಲಿ ಇತರ ಕೆಲಸಗಳನ್ನು ಮುಂದುವರಿಸಬಹುದು. ಕಾರ್ಯ ಪೂರ್ಣಗೊಂಡ ತಕ್ಷಣ ಸ್ಕ್ರೀನ್ ನೋಟಿಫಿಕೇಶನ್ ಬರುತ್ತದೆ ಹಾಗೂ ನೇರವಾಗಿ ನಿಮ್ಮ Downloads ಫೋಲ್ಡರ್‌ಗೆ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತದೆ!`
-          : `🚀 **${inst.instanceName}**\n\nSwami, autonomous generation and download of 5 reports for ${params.name} has started in the background.\n\n📍 Place: ${params.city} (${params.pincode})\n📅 Birth: ${params.birthDate} ${params.birthTime}\n🕉️ Priest: ${params.priestName}\n🪔 Pooja: ${params.poojaName}\n\nRunning in background. Everything will download directly to your Downloads folder!`;
+        lang === "kn"
+          ? `🚀 **${inst.instanceName} ಸಕ್ರಿಯವಾಗಿದೆ!**\n\nಸ್ವಾಮಿ, ${params.name} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ೫ ಅಧಿಕೃತ ವರದಿಗಳ (೫-ಪುಟಗಳ ಆಶೀರ್ವಾದ ಪತ್ರ ಸಹಿತ) ಸ್ವಯಂಚಾಲಿತ ಗಣನೆ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಲಾಗಿದೆ.\n\n📍 ಸ್ಥಳ: ${params.city} (${params.pincode})\n📅 ಜನನ: ${params.birthDate} ${params.birthTime}\n🕉️ ಅರ್ಚಕರು: ${params.priestName}\n🪔 ಪೂಜೆ: ${params.poojaName}\n\nನೀವು ಮುಕ್ತವಾಗಿ ಯಾವುದೇ ಪರದೆಗೆ ಹೋಗಬಹುದು ಅಥವಾ ಇತರ ಕೆಲಸಗಳನ್ನು ಮುಂದುವರಿಸಬಹುದು. ಕಾರ್ಯ ಪೂರ್ಣಗೊಂಡ ತಕ್ಷಣ ನೇರವಾಗಿ ನಿಮ್ಮ Downloads ಫೋಲ್ಡರ್‌ಗೆ ಇಳಿಯುತ್ತದೆ!`
+          : `🚀 **${inst.instanceName} is Active!**\n\nSwami, autonomous background generation of 5 official reports (including the complete 5-page Ashirvada Patra) for ${params.name} has started.\n\n📍 Place: ${params.city} (${params.pincode})\n📅 Birth: ${params.birthDate} ${params.birthTime}\n🕉️ Priest: ${params.priestName}\n🪔 Pooja: ${params.poojaName}\n\nRunning peacefully in the background. You can navigate freely; reports will download directly to your Downloads folder!`;
 
       const startSpoken =
-        currentLang === "kn"
-          ? `ಕಾಮಧೇನು ${knNum}: ${params.name} ಅವರ ಕಾರ್ಯ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭವಾಗಿದೆ. ನಿಮ್ಮ ಕೆಲಸ ಮುಂದುವರಿಸಿ.`
-          : `Kamadhenu ${inst.instanceIndex}: Reports for ${params.name} started in background.`;
+        lang === "kn"
+          ? `ಧನ್ಯವಾದಗಳು ಸ್ವಾಮಿ! ಕಾಮಧೇನು ${knNum}: ${params.name} ಅವರ ಜಾತಕ ಹಾಗೂ ಐದು ಪುಟಗಳ ಆಶೀರ್ವಾದ ಪತ್ರ ಸಹಿತ ಐದೂ ವರದಿಗಳ ಗಣನೆ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭವಾಗಿದೆ. ನೀವು ಮುಕ್ತವಾಗಿ ನಿಮ್ಮ ಕೆಲಸ ಮುಂದುವರಿಸಿ, ಮುಗಿದ ತಕ್ಷಣ ತಿಳಿಸುತ್ತೇನೆ!`
+          : `Thank you Swami! Kamadhenu ${inst.instanceIndex}: Autonomous generation for ${params.name} has started in the background. You can navigate freely; I will notify you once all five reports are downloaded!`;
 
       const petMsg: ChatMessage = {
         id: `pet-wf-start-${Date.now()}`,
         sender: "pet",
         text: startNotice,
         spokenText: startSpoken,
+        lang,
         timestamp: new Date(),
         emotion: "excited"
       };
@@ -346,7 +355,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
       setCurrentEmotion("excited");
 
       if (!isMuted) {
-        petSpeechService.speak(startSpoken, currentLang);
+        petSpeechService.speak(startSpoken, lang);
       }
 
       // 💥 USER SPECIFICATION: "Once I confirm, it will go off and everything it will handle background."
@@ -357,14 +366,16 @@ export function SuperAdminAiPet(): JSX.Element | null {
   };
 
   const handleCancelConfirmation = () => {
+    const lang = confirmationLang || currentLang;
     setPendingConfirmation(null);
     const cancelMsg: ChatMessage = {
       id: `pet-cancel-${Date.now()}`,
       sender: "pet",
       text:
-        currentLang === "kn"
+        lang === "kn"
           ? "ಆಜ್ಞೆಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ಸ್ವಾಮಿ. ಬೇರೆ ಯಾವುದೇ ಸೇವೆಗೆ ನಾನು ಸಿದ್ಧನಿದ್ದೇನೆ."
           : "Command cancelled, Swami. Ready for your next instruction.",
+      lang,
       timestamp: new Date(),
       emotion: "peaceful"
     };
@@ -375,11 +386,15 @@ export function SuperAdminAiPet(): JSX.Element | null {
     const query = (overrideText !== undefined ? overrideText : inputText).trim();
     if (!query || isProcessing) return;
 
+    // Detect language of the query or explicit instruction (e.g. "in English", "in Kannada", Kannada script, etc.)
+    const effectiveLang = detectQueryLanguage(query, currentLang);
+
     // Append user message
     const userMsg: ChatMessage = {
       id: `usr-${Date.now()}`,
       sender: "user",
       text: query,
+      lang: effectiveLang,
       timestamp: new Date()
     };
     setMessages((prev) => [...prev, userMsg]);
@@ -388,36 +403,37 @@ export function SuperAdminAiPet(): JSX.Element | null {
     setCurrentEmotion("thinking");
 
     // 1. CHECK FOR AUTONOMOUS WORKFLOW INSTRUCTION
-    const wfCheck = parseWorkflowInstruction(query, currentLang);
+    const wfCheck = parseWorkflowInstruction(query, effectiveLang);
     if (wfCheck.isWorkflow) {
       setIsProcessing(false);
       if (wfCheck.missingFields && wfCheck.missingFields.length > 0) {
         const text =
           wfCheck.questionPrompt ||
-          (currentLang === "kn"
+          (effectiveLang === "kn"
             ? "ಸ್ವಾಮಿ, ಜಾತಕರ ಜನನ ದಿನಾಂಕ ಅಥವಾ ಸಮಯ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ಹೆಸರು, ದಿನಾಂಕ ಮತ್ತು ಸಮಯವನ್ನು ತಿಳಿಸಿ."
-            : "Swami, please provide the devotee's Name, Date of Birth, and Time of Birth.");
+            : "Swami, please provide the devotee's Name, Date of Birth, and Time of Birth so I can generate all 5 reports.");
         const petMsg: ChatMessage = {
           id: `pet-wf-q-${Date.now()}`,
           sender: "pet",
           text,
           spokenText: text,
+          lang: effectiveLang,
           timestamp: new Date(),
           emotion: "alert"
         };
         setMessages((prev) => [...prev, petMsg]);
         setCurrentEmotion("alert");
-        if (!isMuted) petSpeechService.speak(text, currentLang);
+        if (!isMuted) petSpeechService.speak(text, effectiveLang);
         return;
       }
 
       if (wfCheck.params) {
-        launchWorkflow(wfCheck.params);
+        launchWorkflow(wfCheck.params, effectiveLang);
         return;
       }
     }
 
-    // 2. STANDARD SUPER ADMIN PET QUERIES (Revenue, Marketing, Kundli scan, Diagnostics)
+    // 2. STANDARD SUPER ADMIN PET QUERIES (Bhavishya predictions, All 32 Pages Navigation, Revenue, Marketing, Diagnostics)
     try {
       const resp = await executeSuperAdminPetQuery(query, {
         activePage,
@@ -425,17 +441,18 @@ export function SuperAdminAiPet(): JSX.Element | null {
         coinBalance: wallet?.coinBalance,
         currentUser,
         geminiApiKey,
-        selectedLanguage: currentLang
+        selectedLanguage: effectiveLang
       });
 
-      const localizedText = resp.text[currentLang] || resp.text.kn || resp.text.en;
-      const localizedSpoken = resp.spokenText[currentLang] || resp.spokenText.kn || resp.spokenText.en;
+      const localizedText = resp.text[effectiveLang] || resp.text[currentLang] || resp.text.kn || resp.text.en;
+      const localizedSpoken = resp.spokenText[effectiveLang] || resp.spokenText[currentLang] || resp.spokenText.kn || resp.spokenText.en;
 
       const petMsg: ChatMessage = {
         id: `pet-${Date.now()}`,
         sender: "pet",
         text: localizedText,
         spokenText: localizedSpoken,
+        lang: effectiveLang,
         actions: resp.actions,
         timestamp: new Date(),
         emotion: resp.emotion
@@ -445,14 +462,18 @@ export function SuperAdminAiPet(): JSX.Element | null {
       setCurrentEmotion(resp.emotion);
 
       if (!isMuted) {
-        petSpeechService.speak(localizedSpoken, currentLang);
+        petSpeechService.speak(localizedSpoken, effectiveLang);
       }
     } catch (err) {
       console.error("Pet execution error:", err);
       const fallbackMsg: ChatMessage = {
         id: `pet-err-${Date.now()}`,
         sender: "pet",
-        text: "ಕ್ಷಮಿಸಿ ಸ್ವಾಮಿ, ಗಣನೆಯಲ್ಲಿ ಸಣ್ಣ ತೊಂದರೆಯಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.",
+        text:
+          effectiveLang === "kn"
+            ? "ಕ್ಷಮಿಸಿ ಸ್ವಾಮಿ, ಗಣನೆಯಲ್ಲಿ ಸಣ್ಣ ತೊಂದರೆಯಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಆಜ್ಞಾಪಿಸಿ."
+            : "Apologies Swami, a brief calculation issue occurred. Please command me again.",
+        lang: effectiveLang,
         timestamp: new Date(),
         emotion: "alert"
       };
@@ -478,22 +499,26 @@ export function SuperAdminAiPet(): JSX.Element | null {
       setIsOpen(false);
       const confirmSpeech =
         currentLang === "kn"
-          ? `${action.label.kn} ಪುಟಕ್ಕೆ ಜಂಪ್ ಮಾಡಲಾಗಿದೆ.`
-          : `Navigating to ${action.label.en}.`;
+          ? `${action.label.kn || action.label.en} ಪುಟಕ್ಕೆ ತೆರಳಲಾಗಿದೆ ಸ್ವಾಮಿ.`
+          : `Navigating to ${action.label.en || action.label.kn}, Swami.`;
       if (!isMuted) {
         petSpeechService.speak(confirmSpeech, currentLang);
       }
-    } else if (action.actionType === "run_diagnostic") {
-      handleSend("ಆರೋಗ್ಯ ತಪಾಸಣೆ ಮಾಡು (Check System Health)");
-    } else {
-      const q = action.label[currentLang] || action.label.en;
-      handleSend(q);
+      return;
     }
+
+    if (action.actionType === "run_diagnostic") {
+      handleSend("ಆರೋಗ್ಯ ತಪಾಸಣೆ ಮಾಡು (Check System Health)");
+      return;
+    }
+
+    const q = action.label[currentLang] || action.label.en || action.label.kn;
+    handleSend(q);
   };
 
-  const repeatSpeech = (text?: string) => {
+  const repeatSpeech = (text?: string, msgLang?: SupportedLanguage) => {
     if (!text) return;
-    petSpeechService.speak(text, currentLang);
+    petSpeechService.speak(text, msgLang || currentLang);
   };
 
   // If unauthorized, do not render anything
@@ -915,11 +940,11 @@ export function SuperAdminAiPet(): JSX.Element | null {
                             <div className="mt-2.5 flex items-center justify-between border-t border-amber-100 pt-2 text-[11px] text-amber-900">
                               <button
                                 type="button"
-                                onClick={() => repeatSpeech(msg.spokenText || msg.text)}
+                                onClick={() => repeatSpeech(msg.spokenText || msg.text, msg.lang)}
                                 className="flex items-center gap-1 font-bold text-amber-800 hover:text-amber-950 transition-colors"
                               >
                                 <span>🔊</span>
-                                <span>ಧ್ವನಿ ಕೇಳಿ (Speak again)</span>
+                                <span>{msg.lang === "kn" ? "ಧ್ವನಿ ಕೇಳಿ (Speak again)" : "Speak again (🔊)"}</span>
                               </button>
                               <span className="text-[10px] text-slate-400">
                                 {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -956,60 +981,74 @@ export function SuperAdminAiPet(): JSX.Element | null {
                           <span className="text-xl">📋</span>
                           <div>
                             <h4 className="font-serif font-black text-sm text-amber-950">
-                              {currentLang === "kn" ? "ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ (Confirmation)" : "Confirmation Required"}
+                              {confirmationLang === "kn" ? "ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ (Pre-Download Confirmation)" : "Pre-Download Confirmation Required"}
                             </h4>
                             <span className="text-[10px] text-amber-800 font-bold">
-                              {currentLang === "kn"
+                              {confirmationLang === "kn"
                                 ? `ನಿಯೋಜನೆ: ಕಾಮಧೇನು ${["೦","೧","೨","೩","೪","೫","೬","೭","೮","೯","೧೦"][superAdminWorkflowRunner.getNextAvailableSlotIndex()] || superAdminWorkflowRunner.getNextAvailableSlotIndex()} (ಸ್ಲಾಟ್)`
                                 : `Slot: Kamadhenu ${superAdminWorkflowRunner.getNextAvailableSlotIndex()}`}
                             </span>
                           </div>
                         </div>
                         <span className="rounded-full bg-amber-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
-                          5 Reports
+                          5 Reports (Inc. 5-Page Ashirvada)
                         </span>
                       </div>
 
                       {/* Parsed Details Grid */}
                       <div className="grid grid-cols-2 gap-2 text-xs bg-white/90 p-2.5 rounded-xl border border-amber-200 mb-3 shadow-inner">
                         <div>
-                          <span className="text-[10px] text-slate-500 block font-medium">ಜಾತಕರ ಹೆಸರು (Name):</span>
+                          <span className="text-[10px] text-slate-500 block font-medium">
+                            {confirmationLang === "kn" ? "ಜಾತಕರ ಹೆಸರು (Name):" : "Devotee Name:"}
+                          </span>
                           <span className="font-black text-indigo-950 text-xs sm:text-sm">{pendingConfirmation.name}</span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 block font-medium">ಜನನ ವಿವರ (DOB & TOB):</span>
+                          <span className="text-[10px] text-slate-500 block font-medium">
+                            {confirmationLang === "kn" ? "ಜನನ ವಿವರ (DOB & TOB):" : "Birth (DOB & TOB):"}
+                          </span>
                           <span className="font-bold text-slate-800 text-[11px]">
                             {pendingConfirmation.birthDate} | {pendingConfirmation.birthTime}
                           </span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 block font-medium">ಸ್ಥಳ & ಪಿನ್‌ಕೋಡ್ (Place & PIN):</span>
+                          <span className="text-[10px] text-slate-500 block font-medium">
+                            {confirmationLang === "kn" ? "ಸ್ಥಳ & ಪಿನ್‌ಕೋಡ್ (Place & PIN):" : "Place & PIN:"}
+                          </span>
                           <span className="font-bold text-slate-800 text-[11px]">
                             {pendingConfirmation.city} ({pendingConfirmation.pincode})
                           </span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 block font-medium">ಅರ್ಚಕರು & ಪೂಜೆ (Priest & Pooja):</span>
+                          <span className="text-[10px] text-slate-500 block font-medium">
+                            {confirmationLang === "kn" ? "ಅರ್ಚಕರು & ಪೂಜೆ (Priest & Pooja):" : "Priest & Pooja:"}
+                          </span>
                           <span className="font-bold text-slate-800 text-[11px] truncate block" title={`${pendingConfirmation.priestName} - ${pendingConfirmation.poojaName}`}>
-                            {pendingConfirmation.priestName}
+                            {pendingConfirmation.priestName} ({pendingConfirmation.poojaName})
                           </span>
                         </div>
                       </div>
 
                       {/* 5 Official Reports Included */}
-                      <div className="text-[11px] text-slate-700 bg-amber-100/50 p-2 rounded-xl mb-3 border border-amber-200/80">
-                        <span className="font-bold text-amber-950 block mb-1">📦 ಮುದ್ರಿಸಲ್ಪಡುವ ೫ ಅಧಿಕೃತ ವರದಿಗಳು:</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px]">
-                          <span>✓ ೧. ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ</span>
-                          <span>✓ ೨. ಪ್ರೀಮಿಯಂ ದಿವ್ಯ ಭವಿಷ್ಯ V1 (೧೦-ಅಧ್ಯಾಯ)</span>
-                          <span>✓ ೩. ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ ವರದಿ</span>
-                          <span>✓ ೪. ಸಮಗ್ರ ದೋಷಗಳು & ಗಂಡಾಂತರ</span>
-                          <span className="sm:col-span-2">✓ ೫. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸೇವಾ ಪತ್ರ ({pendingConfirmation.priestName})</span>
+                      <div className="text-[11px] text-slate-700 bg-amber-100/50 p-2.5 rounded-xl mb-3 border border-amber-200/80">
+                        <span className="font-bold text-amber-950 block mb-1">
+                          {confirmationLang === "kn" ? "📦 ಮುದ್ರಿಸಲ್ಪಡುವ ೫ ಅಧಿಕೃತ ವರದಿಗಳು:" : "📦 5 Official Reports to be Generated & Downloaded:"}
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px]">
+                          <span>📜 1. {confirmationLang === "kn" ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ" : "Baggona Panchanga Birth Kundli"}</span>
+                          <span>📖 2. {confirmationLang === "kn" ? "ಪ್ರೀಮಿಯಂ ದಿವ್ಯ ಭವಿಷ್ಯ V1 (೧೦-ಅಧ್ಯಾಯ)" : "Premium Divya Bhavishya V1 (10-Chapter)"}</span>
+                          <span>🪔 3. {confirmationLang === "kn" ? "ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ ವರದಿ" : "Daivika Parihara Remedial Guidance"}</span>
+                          <span>🔮 4. {confirmationLang === "kn" ? "ಸಮಗ್ರ ದೋಷಗಳು & ಗಂಡಾಂತರ ಸ್ಕ್ಯಾನ್" : "Comprehensive Doshas & Gandantara Scan"}</span>
+                          <span className="sm:col-span-2 font-bold text-amber-950">
+                            🕉️ 5. {confirmationLang === "kn"
+                              ? `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ೫-ಪುಟಗಳ ಅಧಿಕೃತ ಆಶೀರ್ವಾದ ಪತ್ರ (${pendingConfirmation.priestName} ಅರ್ಚಕರ ಆಶೀರ್ವಾದ, ಸಂಕಲ್ಪ, QR ಕೋಡ್, ದೈವಿಕ ರಕ್ಷಣೆ & ವಾರ್ಷಿಕ ಪರಿಹಾರಗಳು)`
+                              : `Sri Kshetra Gokarna 5-Page Official Ashirvada Patra (Priest ${pendingConfirmation.priestName} Blessings, Sankalpa, Scannable QR Code, Divine Raksha, Pooja Mahatme & Annual Remedies)`}
+                          </span>
                         </div>
                       </div>
 
                       <p className="text-[10px] text-amber-900 font-medium mb-3 italic">
-                        💡 {currentLang === "kn"
+                        💡 {confirmationLang === "kn"
                           ? "ಖಚಿತಪಡಿಸಿದ ತಕ್ಷಣ ಈ ವಿಂಡೋ ಮುಚ್ಚಲ್ಪಡುತ್ತದೆ ಮತ್ತು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಗಣನೆ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ. ನೀವು ಮುಕ್ತವಾಗಿ ಪರದೆಯಲ್ಲಿ ಯಾವುದೇ ಕಾರ್ಯ ನಿರ್ವಹಿಸಬಹುದು."
                           : "Once confirmed, this window closes and everything runs in the background. You can freely use any screen."}
                       </p>
@@ -1022,14 +1061,14 @@ export function SuperAdminAiPet(): JSX.Element | null {
                           className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs py-2.5 shadow-md transition-all active:scale-95"
                         >
                           <span>✅</span>
-                          <span>ಖಚಿತಪಡಿಸಿ & ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಿ</span>
+                          <span>{confirmationLang === "kn" ? "ಖಚಿತಪಡಿಸಿ & ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಿ" : "Confirm & Start in Background"}</span>
                         </button>
                         <button
                           type="button"
                           onClick={handleCancelConfirmation}
                           className="rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs px-3.5 py-2.5 transition-all active:scale-95"
                         >
-                          <span>❌ ರದ್ದು</span>
+                          <span>❌ {confirmationLang === "kn" ? "ರದ್ದು" : "Cancel"}</span>
                         </button>
                       </div>
                     </div>

@@ -131,7 +131,7 @@ export type WorkflowState = RunnerFleetState;
 // =========================================================================
 // CITY & PINCODE GEO DICTIONARY
 // =========================================================================
-interface GeoEntry {
+export interface GeoEntry {
   pincode: string;
   lat: number;
   lng: number;
@@ -139,7 +139,7 @@ interface GeoEntry {
   englishName: string;
 }
 
-const CITY_DATABASE: Record<string, GeoEntry> = {
+export const CITY_DATABASE: Record<string, GeoEntry> = {
   bengaluru: { pincode: "560001", lat: 12.9716, lng: 77.5946, kannadaName: "ಬೆಂಗಳೂರು", englishName: "Bengaluru" },
   bangalore: { pincode: "560001", lat: 12.9716, lng: 77.5946, kannadaName: "ಬೆಂಗಳೂರು", englishName: "Bengaluru" },
   ಬೆಂಗಳೂರು: { pincode: "560001", lat: 12.9716, lng: 77.5946, kannadaName: "ಬೆಂಗಳೂರು", englishName: "Bengaluru" },
@@ -253,6 +253,17 @@ export function parseWorkflowInstruction(
     lower.includes("ಜನನ");
 
   if (!isAgentInstruction) {
+    return { isWorkflow: false };
+  }
+
+  // If the user specifically asks to tell bhavishya / life prediction without asking to download,
+  // let the dedicated Bhavishya prediction engine handle it!
+  const isBhavishyaOnly =
+    (lower.includes("bhavishya") || lower.includes("ಭವಿಷ್ಯ") || lower.includes("predict")) &&
+    !lower.includes("download") &&
+    !lower.includes("ಡೌನ್‌ಲೋಡ್");
+
+  if (isBhavishyaOnly) {
     return { isWorkflow: false };
   }
 
@@ -378,17 +389,30 @@ export function parseWorkflowInstruction(
     requestedReports.push("seva_patra");
   }
 
-  if (requestedReports.length === 0 || lower.includes("all reports") || lower.includes("these reports") || lower.includes("ಎಲ್ಲಾ")) {
+  if (
+    requestedReports.length === 0 ||
+    lower.includes("all reports") ||
+    lower.includes("these reports") ||
+    lower.includes("5 reports") ||
+    lower.includes("five reports") ||
+    lower.includes("೫ ವರದಿ") ||
+    lower.includes("5 ವರದಿ") ||
+    lower.includes("ಎಲ್ಲಾ") ||
+    lower.includes("ಐದು ವರದಿ")
+  ) {
     requestedReports.push("baggona_kundli", "premium_pdf_v1", "daivika_parihara", "doshagalu", "seva_patra");
   }
 
   // 8. EXTRACT LANGUAGE
   let language: SupportedLanguage = defaultLang;
   if (lower.includes("kannada") || lower.includes("ಕನ್ನಡ")) language = "kn";
-  else if (lower.includes("english")) language = "en";
+  else if (lower.includes("english") || lower.includes("ಆಂಗ್ಲ")) language = "en";
   else if (lower.includes("hindi") || lower.includes("हिंदी") || lower.includes("ಹಿಂದಿ")) language = "hi";
   else if (lower.includes("telugu") || lower.includes("తెలుగు") || lower.includes("ತೆಲುಗು")) language = "te";
   else if (lower.includes("tamil") || lower.includes("தமிழ்") || lower.includes("ತಮಿಳು")) language = "ta";
+  else if (!/[\u0C80-\u0CFF]/.test(text) && /[a-zA-Z]{4,}/.test(text)) {
+    language = "en";
+  }
 
   // 9. EXTRACT REDIRECTION
   let targetRedirectPage: AppPage | undefined = undefined;
