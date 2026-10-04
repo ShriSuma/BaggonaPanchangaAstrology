@@ -30,6 +30,7 @@ import { useKundliViewerStore, type KundliViewerSession } from "../stores/kundli
 import { useAppStore, type SupportedLanguage, type AppPage } from "../stores/appStore";
 import { petSpeechService } from "./petSpeechService";
 import type { KundliInput } from "../core/AstroTypes";
+import { parseWhatsAppKundliText } from "./whatsAppKundliParser";
 
 // =========================================================================
 // TYPES
@@ -39,7 +40,9 @@ export type ReportType =
   | "premium_pdf_v1"
   | "daivika_parihara"
   | "doshagalu"
-  | "seva_patra";
+  | "seva_patra"
+  | "multi_question"
+  | "single_question";
 
 export interface WorkflowParams {
   rawPrompt: string;
@@ -57,6 +60,9 @@ export interface WorkflowParams {
   includeQrCode?: boolean;
   language: SupportedLanguage;
   targetRedirectPage?: AppPage;
+  customQuestions?: string[];
+  questionCategory?: string;
+  pastedRawText?: string;
 }
 
 export interface GeneratedReportItem {
@@ -172,7 +178,19 @@ export const CITY_DATABASE: Record<string, GeoEntry> = {
   pune: { pincode: "411001", lat: 18.5204, lng: 73.8567, kannadaName: "ಪುಣೆ", englishName: "Pune" },
   varanasi: { pincode: "221001", lat: 25.3176, lng: 82.9739, kannadaName: "ವಾರಣಾಸಿ", englishName: "Varanasi" },
   kashi: { pincode: "221001", lat: 25.3176, lng: 82.9739, kannadaName: "ಕಾಶೀ", englishName: "Kashi" },
-  tirupati: { pincode: "517501", lat: 13.6288, lng: 79.4192, kannadaName: "ತಿರುಪತಿ", englishName: "Tirupati" }
+  tirupati: { pincode: "517501", lat: 13.6288, lng: 79.4192, kannadaName: "ತಿರುಪತಿ", englishName: "Tirupati" },
+  sirsi: { pincode: "581401", lat: 14.6195, lng: 74.8354, kannadaName: "ಶಿರಸಿ", englishName: "Sirsi" },
+  ಶಿರಸಿ: { pincode: "581401", lat: 14.6195, lng: 74.8354, kannadaName: "ಶಿರಸಿ", englishName: "Sirsi" },
+  karwar: { pincode: "581301", lat: 14.8136, lng: 74.1298, kannadaName: "ಕಾರವಾರ", englishName: "Karwar" },
+  ಕಾರವಾರ: { pincode: "581301", lat: 14.8136, lng: 74.1298, kannadaName: "ಕಾರವಾರ", englishName: "Karwar" },
+  dharwad: { pincode: "580001", lat: 15.4589, lng: 75.0078, kannadaName: "ಧಾರವಾಡ", englishName: "Dharwad" },
+  ಧಾರವಾಡ: { pincode: "580001", lat: 15.4589, lng: 75.0078, kannadaName: "ಧಾರವಾಡ", englishName: "Dharwad" },
+  tumakuru: { pincode: "572101", lat: 13.3379, lng: 77.1010, kannadaName: "ತುಮಕೂರು", englishName: "Tumakuru" },
+  ತುಮಕೂರು: { pincode: "572101", lat: 13.3379, lng: 77.1010, kannadaName: "ತುಮಕೂರು", englishName: "Tumakuru" },
+  davanagere: { pincode: "577001", lat: 14.4644, lng: 75.9218, kannadaName: "ದಾವಣಗೆರೆ", englishName: "Davanagere" },
+  ದಾವಣಗೆರೆ: { pincode: "577001", lat: 14.4644, lng: 75.9218, kannadaName: "ದಾವಣಗೆರೆ", englishName: "Davanagere" },
+  kalaburagi: { pincode: "585101", lat: 17.3297, lng: 76.8343, kannadaName: "ಕಲಬುರಗಿ", englishName: "Kalaburagi" },
+  ಕಲಬುರಗಿ: { pincode: "585101", lat: 17.3297, lng: 76.8343, kannadaName: "ಕಲಬುರಗಿ", englishName: "Kalaburagi" }
 };
 
 export function resolveCityCoordsAndPincode(
@@ -245,6 +263,8 @@ export function parseWorkflowInstruction(
     priestName?: string;
     priestPhone?: string;
     poojaName?: string;
+    customQuestions?: string[];
+    pastedRawText?: string;
   } | null
 ): {
   isWorkflow: boolean;
@@ -254,6 +274,12 @@ export function parseWorkflowInstruction(
 } {
   const text = input.trim();
   const lower = text.toLowerCase();
+
+  // If raw WhatsApp text is provided either in input or in ambientProfile, parse it!
+  const waFromInput = parseWhatsAppKundliText(text);
+  const waFromAmbient = ambientProfile?.pastedRawText
+    ? parseWhatsAppKundliText(ambientProfile.pastedRawText)
+    : null;
 
   // Check if this is an autonomous agent command
   const isAgentInstruction =
@@ -265,7 +291,24 @@ export function parseWorkflowInstruction(
     lower.includes("ಡೌನ್‌ಲೋಡ್") ||
     lower.includes("born on") ||
     lower.includes("janma") ||
-    lower.includes("ಜನನ");
+    lower.includes("ಜನನ") ||
+    lower.includes("multi-question") ||
+    lower.includes("multi question") ||
+    lower.includes("multiquestion") ||
+    lower.includes("ಬಹುಪ್ರಶ್ನೆ") ||
+    lower.includes("ಬಹುವಿಧ") ||
+    lower.includes("single question") ||
+    lower.includes("ಒಂದೇ ಪ್ರಶ್ನೆ") ||
+    lower.includes("questionnaire") ||
+    lower.includes("question area") ||
+    lower.includes("ask") ||
+    lower.includes("ಕೇಳು") ||
+    lower.includes("report") ||
+    lower.includes("ವರದಿ") ||
+    lower.includes("create") ||
+    lower.includes("ಮಾಡಿಕೊಡು") ||
+    waFromInput.hasData ||
+    Boolean((ambientProfile as any)?.hasData || (ambientProfile as any)?.name);
 
   if (!isAgentInstruction) {
     return { isWorkflow: false };
@@ -276,7 +319,11 @@ export function parseWorkflowInstruction(
   const isBhavishyaOnly =
     (lower.includes("bhavishya") || lower.includes("ಭವಿಷ್ಯ") || lower.includes("predict")) &&
     !lower.includes("download") &&
-    !lower.includes("ಡೌನ್‌ಲೋಡ್");
+    !lower.includes("ಡೌನ್‌ಲೋಡ್") &&
+    !lower.includes("report") &&
+    !lower.includes("ವರದಿ") &&
+    !lower.includes("multi-question") &&
+    !lower.includes("multi question");
 
   if (isBhavishyaOnly) {
     return { isWorkflow: false };
@@ -301,14 +348,20 @@ export function parseWorkflowInstruction(
     }
   }
 
+  // Fallbacks: WhatsApp parsed input -> ambientProfile -> WhatsApp parsed ambient
+  if (!name && waFromInput.hasData && waFromInput.name) {
+    name = waFromInput.name;
+  }
+  if (!name && ambientProfile?.name && ambientProfile.name.trim()) {
+    name = ambientProfile.name.trim();
+  }
+  if (!name && waFromAmbient?.hasData && waFromAmbient.name) {
+    name = waFromAmbient.name;
+  }
+
   // Guard against priest/devotee name collision when both are specified
   if (name.toLowerCase().includes("chaitanya") && text.toLowerCase().includes("shriram pandit")) {
     name = "Shriram Pandit";
-  }
-
-  // Smart ambient fallback: If user already generated Kundli on page, grab their name!
-  if (!name && ambientProfile?.name && ambientProfile.name.trim()) {
-    name = ambientProfile.name.trim();
   }
 
   if (!name) {
@@ -336,9 +389,15 @@ export function parseWorkflowInstruction(
     }
   }
 
-  // Smart ambient fallback: If birthDate was already generated on the page, use it!
+  // Fallbacks: WhatsApp parsed input -> ambientProfile -> WhatsApp parsed ambient
+  if (!birthDate && waFromInput.hasData && waFromInput.birthDate) {
+    birthDate = waFromInput.birthDate;
+  }
   if (!birthDate && ambientProfile?.birthDate) {
     birthDate = ambientProfile.birthDate;
+  }
+  if (!birthDate && waFromAmbient?.hasData && waFromAmbient.birthDate) {
+    birthDate = waFromAmbient.birthDate;
   }
 
   if (!birthDate) {
@@ -369,9 +428,15 @@ export function parseWorkflowInstruction(
     }
   }
 
-  // Smart ambient fallback: If birthTime was already generated on the page, use it!
+  // Fallbacks: WhatsApp parsed input -> ambientProfile -> WhatsApp parsed ambient
+  if (!birthTime && waFromInput.hasData && waFromInput.birthTime) {
+    birthTime = waFromInput.birthTime;
+  }
   if (!birthTime && ambientProfile?.birthTime) {
     birthTime = ambientProfile.birthTime;
+  }
+  if (!birthTime && waFromAmbient?.hasData && waFromAmbient.birthTime) {
+    birthTime = waFromAmbient.birthTime;
   }
 
   if (!birthTime) {
@@ -392,12 +457,23 @@ export function parseWorkflowInstruction(
       }
     }
   }
+  if (!rawCity && waFromInput.hasData && waFromInput.extractedFields.city) {
+    rawCity = waFromInput.extractedFields.city;
+  }
   if (!rawCity && ambientProfile?.city) {
     rawCity = ambientProfile.city;
   }
+  if (!rawCity && waFromAmbient?.hasData && waFromAmbient.extractedFields.city) {
+    rawCity = waFromAmbient.extractedFields.city;
+  }
 
   const pinMatch = text.match(/\b(\d{6})\b/);
-  const explicitPin = pinMatch ? pinMatch[1] : (ambientProfile?.pincode || undefined);
+  const explicitPin = pinMatch
+    ? pinMatch[1]
+    : ((waFromInput.hasData && waFromInput.extractedFields.pincode) ||
+       ambientProfile?.pincode ||
+       (waFromAmbient?.hasData && waFromAmbient.extractedFields.pincode) ||
+       undefined);
   const geo = resolveCityCoordsAndPincode(rawCity || "Bengaluru", explicitPin);
 
   // If ambientProfile has exact geocoordinates, honor them
@@ -407,14 +483,14 @@ export function parseWorkflowInstruction(
   }
 
   // 5. EXTRACT PRIEST NAME (e.g. "priest name is Chaitanya Pandit")
-  let priestName = "Chaitanya Pandit";
+  let priestName = ambientProfile?.priestName || "Chaitanya Pandit";
   const priestMatch = text.match(/priest(?:\s+name)?(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\buse\b|\band\b|\bpooja\b|\bmobile\b|\bphone\b|\bfor\b|$)/i);
   if (priestMatch && priestMatch[1]) {
     priestName = priestMatch[1].trim();
   }
 
   // 5B. EXTRACT PRIEST PHONE / MOBILE NUMBER
-  let priestPhone: string | undefined = undefined;
+  let priestPhone: string | undefined = ambientProfile?.priestPhone;
   const phoneMatch = text.match(/(?:mobile|phone|contact|ನಂಬರ್|ದೂರವಾಣಿ|ಮೊಬೈಲ್)(?:\s+number)?(?:\s+is)?\s*[:=]?\s*(\+?\d[\d\s-]{8,14}\d)/i);
   if (phoneMatch && phoneMatch[1]) {
     priestPhone = phoneMatch[1].trim();
@@ -426,14 +502,63 @@ export function parseWorkflowInstruction(
   }
 
   // 6. EXTRACT POOJA (e.g. "Pooja is Moksha Narayana Bali and Tripindi")
-  let poojaName = "Moksha Narayana Bali and Tripindi";
+  let poojaName = ambientProfile?.poojaName || "Moksha Narayana Bali and Tripindi";
   const poojaMatch = text.match(/pooja(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF\s&]+?)(?:,|\.|\band the place\b|\band the priest\b|\bplace\b|\bdownload\b|\bpriest\b|$)/i);
   if (poojaMatch && poojaMatch[1]) {
     poojaName = poojaMatch[1].trim();
   }
 
-  // 7. EXTRACT REQUESTED REPORTS & QR CODE INTENT
+  // 7. EXTRACT CUSTOM QUESTIONS (Multi-Question / Single-Question Area Tasks)
+  const extractedQuestions: string[] = [];
+  const qPromptMatch = text.match(/(?:ask\s+this\s+question|ask\s+question|on\s+this\s+particular\s+question|question\s*[:=-]|ಪ್ರಶ್ನೆ\s*[:=-])\s*[:=-]?\s*([^.,\n]+)/i);
+  if (qPromptMatch && qPromptMatch[1]) {
+    const q = qPromptMatch[1].replace(/(?:and\s+get|and\s+download|download|report).*/i, "").trim();
+    if (q.length > 3) extractedQuestions.push(q);
+  }
+
+  if (ambientProfile?.customQuestions && Array.isArray(ambientProfile.customQuestions)) {
+    for (const q of ambientProfile.customQuestions) {
+      if (q && !extractedQuestions.includes(q)) extractedQuestions.push(q);
+    }
+  }
+  if (waFromInput.customQuestions.length > 0) {
+    for (const q of waFromInput.customQuestions) {
+      if (q && !extractedQuestions.includes(q)) extractedQuestions.push(q);
+    }
+  }
+  if (waFromAmbient?.customQuestions && waFromAmbient.customQuestions.length > 0) {
+    for (const q of waFromAmbient.customQuestions) {
+      if (q && !extractedQuestions.includes(q)) extractedQuestions.push(q);
+    }
+  }
+
+  // 8. EXTRACT REQUESTED REPORTS & QR CODE INTENT
   const requestedReports: ReportType[] = [];
+
+  const isMultiQuestionReq =
+    lower.includes("multi-question") ||
+    lower.includes("multi question") ||
+    lower.includes("multiquestion") ||
+    lower.includes("ಬಹುಪ್ರಶ್ನೆ") ||
+    lower.includes("ಬಹುವಿಧ ಪ್ರಶ್ನೆ") ||
+    lower.includes("questionnaire") ||
+    lower.includes("question area");
+
+  const isSingleQuestionReq =
+    lower.includes("single question") ||
+    lower.includes("ಒಂದೇ ಪ್ರಶ್ನೆ") ||
+    lower.includes("single-question") ||
+    lower.includes("single questionnaire") ||
+    lower.includes("ask astrologer") ||
+    lower.includes("ಜ್ಯೋತಿಷಿ ಪ್ರಶ್ನೆ");
+
+  if (isMultiQuestionReq) {
+    requestedReports.push("multi_question");
+  }
+  if (isSingleQuestionReq) {
+    requestedReports.push("single_question");
+  }
+
   if (lower.includes("baggona") || lower.includes("kundali") || lower.includes("kundli") || lower.includes("ಕುಂಡಲಿ")) {
     requestedReports.push("baggona_kundli");
   }
@@ -456,21 +581,23 @@ export function parseWorkflowInstruction(
     lower.includes("seva and prasada") ||
     lower.includes("ಸೇವಾ ಮತ್ತು ಪ್ರಸಾದ");
 
-  if (
-    requestedReports.length === 0 ||
+  const wantsAllClassicReports =
     lower.includes("all reports") ||
     lower.includes("these reports") ||
+    lower.includes("this this this this report") ||
+    lower.includes("these these reports") ||
     lower.includes("5 reports") ||
     lower.includes("five reports") ||
     lower.includes("೫ ವರದಿ") ||
     lower.includes("5 ವರದಿ") ||
     lower.includes("ಎಲ್ಲಾ") ||
-    lower.includes("ಐದು ವರದಿ")
-  ) {
+    lower.includes("ಐದು ವರದಿ");
+
+  if (wantsAllClassicReports || (requestedReports.length === 0 && !isMultiQuestionReq && !isSingleQuestionReq)) {
     requestedReports.push("baggona_kundli", "premium_pdf_v1", "daivika_parihara", "doshagalu", "seva_patra");
   }
 
-  // 8. EXTRACT LANGUAGE
+  // 9. EXTRACT LANGUAGE
   let language: SupportedLanguage = defaultLang;
   if (lower.includes("kannada") || lower.includes("ಕನ್ನಡ")) language = "kn";
   else if (lower.includes("english") || lower.includes("ಆಂಗ್ಲ")) language = "en";
@@ -481,10 +608,25 @@ export function parseWorkflowInstruction(
     language = "en";
   }
 
-  // 9. EXTRACT REDIRECTION
+  // 10. EXTRACT REDIRECTION
   let targetRedirectPage: AppPage | undefined = undefined;
-  if (lower.includes("redirect") || lower.includes("ತೆರೆ") || lower.includes("open") || lower.includes("go to")) {
-    if (lower.includes("bhavishya") || lower.includes("ಭವಿಷ್ಯ") || lower.includes("raman")) {
+  if (
+    lower.includes("redirect") ||
+    lower.includes("ತೆರೆ") ||
+    lower.includes("open") ||
+    lower.includes("go to") ||
+    lower.includes("go and ask") ||
+    lower.includes("go")
+  ) {
+    if (
+      lower.includes("bhavishya") ||
+      lower.includes("ಭವಿಷ್ಯ") ||
+      lower.includes("raman") ||
+      lower.includes("multi-question") ||
+      lower.includes("multi question") ||
+      lower.includes("question area") ||
+      lower.includes("questionnaire")
+    ) {
       targetRedirectPage = "ramanbhavishya";
     } else if (lower.includes("kundli") || lower.includes("ಕುಂಡಲಿ")) {
       targetRedirectPage = "kundli";
@@ -498,8 +640,8 @@ export function parseWorkflowInstruction(
   if (missingFields.length > 0) {
     const questionPrompt =
       language === "kn"
-        ? `ಸ್ವಾಮಿ, ಜಾತಕರ ವಿವರಗಳಲ್ಲಿ ಕೆಲವು ಮಾಹಿತಿ ಅಗತ್ಯವಿದೆ: ${missingFields.join(", ")}. ದಯವಿಟ್ಟು ಹೆಸರು, ಜನನ ದಿನಾಂಕ (DOB) ಮತ್ತು ಸಮಯ (TOB) ನೀಡಿ.`
-        : `Swami, some critical details are needed: ${missingFields.join(", ")}. Please provide Devotee Name, Date of Birth, and Time of Birth.`;
+        ? `ಸ್ವಾಮಿ, ಜಾತಕರ ವಿವರಗಳಲ್ಲಿ ಕೆಲವು ಮಾಹಿತಿ ಅಗತ್ಯವಿದೆ: ${missingFields.join(", ")}. ದಯವಿಟ್ಟು ಹೆಸರು, ಜನನ ದಿನಾಂಕ (DOB) ಮತ್ತು ಸಮಯ (TOB) ನೀಡಿ ಅಥವಾ ವಾಟ್ಸಾಪ್/ಟೆಲಿಗ್ರಾಮ್ ಸಂದೇಶವನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ.`
+        : `Swami, some critical details are needed: ${missingFields.join(", ")}. Please provide Devotee Name, Date of Birth, and Time of Birth or paste the WhatsApp/Telegram message.`;
 
     return {
       isWorkflow: true,
@@ -526,7 +668,9 @@ export function parseWorkflowInstruction(
       requestedReports: Array.from(new Set(requestedReports)),
       includeQrCode,
       language,
-      targetRedirectPage
+      targetRedirectPage,
+      customQuestions: extractedQuestions.length > 0 ? extractedQuestions : undefined,
+      pastedRawText: ambientProfile?.pastedRawText || (waFromInput.hasData ? waFromInput.rawText : undefined)
     }
   };
 }

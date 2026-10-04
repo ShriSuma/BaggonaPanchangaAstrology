@@ -242,7 +242,7 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
     name: { kn: "ರಮಣ ಪದ್ಧತಿ ಭವಿಷ್ಯ (Raman Bhavishya)", en: "B.V. Raman 10-Chapter Predictions", hi: "रमण पद्धति भविष्य", te: "రమణ పద్ధతి భవిష్యత్", ta: "ராமன் முறை பலன்கள்" },
     category: "kundli",
     icon: "🌟",
-    keywords: ["raman", "bhavishya", "ramanbhavishya", "ರಮಣ ಭವಿಷ್ಯ", "೧೦ ಅಧ್ಯಾಯ", "ಜೀವಿತ ಭವಿಷ್ಯ", "10 chapters", "life stages"],
+    keywords: ["raman", "bhavishya", "ramanbhavishya", "ರಮಣ ಭವಿಷ್ಯ", "೧೦ ಅಧ್ಯಾಯ", "ಜೀವಿತ ಭವಿಷ್ಯ", "10 chapters", "life stages", "multi-question", "multi question", "questionnaire", "question area", "ಬಹುಪ್ರಶ್ನೆ", "ಪ್ರಶ್ನಾವಳಿ", "single question", "ask astrologer"],
     description: {
       kn: "ಡಾ. ಬಿ.ವಿ. ರಮಣ ಪದ್ಧತಿಯ ೧೦-ಅಧ್ಯಾಯಗಳ ಸಮಗ್ರ ಜೀವನ ಭವಿಷ್ಯ, ಯೋಗಗಳು, ಮತ್ತು ಗೋಚಾರ ಫಲ.",
       en: "Dr. B.V. Raman 10-chapter life stage predictions, yogas, dasha analysis, and transits."

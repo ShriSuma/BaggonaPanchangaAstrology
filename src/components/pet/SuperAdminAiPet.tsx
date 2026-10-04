@@ -27,6 +27,7 @@ import {
   harvestAmbientKundliContext,
   type AmbientKundliProfile
 } from "../../services/ambientKundliHarvester";
+import { parseWhatsAppKundliText, type ParsedWhatsAppKundli } from "../../services/whatsAppKundliParser";
 
 export type PetType = "kamadhenu" | "nandi" | "shuka";
 
@@ -147,6 +148,55 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const [workflowState, setWorkflowState] = useState<WorkflowState>(() =>
     superAdminWorkflowRunner.getState()
   );
+
+  // Dedicated WhatsApp / Telegram Raw Text Box State
+  const [whatsAppText, setWhatsAppText] = useState<string>("");
+  const [parsedKundli, setParsedKundli] = useState<ParsedWhatsAppKundli | null>(null);
+  const [isWhatsAppBoxOpen, setIsWhatsAppBoxOpen] = useState<boolean>(true);
+
+  // Background Task Resumption Memory: remembers which page the user was on before opening the pet drawer
+  const initialPageRef = useRef<AppPage>(activePage);
+  useEffect(() => {
+    if (isOpen) {
+      initialPageRef.current = activePage;
+    }
+  }, [isOpen, activePage]);
+
+  const handleWhatsAppTextChange = (text: string) => {
+    setWhatsAppText(text);
+    const parsed = parseWhatsAppKundliText(text);
+    setParsedKundli(parsed.hasData ? parsed : null);
+    if (parsed.hasData) {
+      setActiveProfile((prev) => ({
+        name: parsed.name || prev?.name || "",
+        birthDate: parsed.birthDate || prev?.birthDate || "",
+        birthTime: parsed.birthTime || prev?.birthTime || "",
+        city: parsed.city || prev?.city || "Bengaluru",
+        pincode: parsed.pincode || prev?.pincode || "560001",
+        latitude: parsed.latitude,
+        longitude: parsed.longitude,
+        ...prev
+      }));
+    }
+  };
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          handleWhatsAppTextChange(text);
+        }
+      }
+    } catch (err) {
+      console.warn("Clipboard access denied or unavailable:", err);
+    }
+  };
+
+  const handleClearWhatsAppBox = () => {
+    setWhatsAppText("");
+    setParsedKundli(null);
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -641,7 +691,12 @@ export function SuperAdminAiPet(): JSX.Element | null {
         }
       }
 
-      // 💥 USER SPECIFICATION: "Once I confirm, it will go off and everything it will handle background."
+      // 💥 USER SPECIFICATION: "if there are any action it can go to the background and I will resume back to what page I was in earlier before starting the conversation"
+      if (params.targetRedirectPage) {
+        setPage(params.targetRedirectPage);
+      } else if (initialPageRef.current) {
+        setPage(initialPageRef.current);
+      }
       setIsOpen(false);
     } catch (err: any) {
       alert(err?.message || "Failed to start background instance");
@@ -745,8 +800,37 @@ export function SuperAdminAiPet(): JSX.Element | null {
     }
 
     // 1. CHECK FOR AUTONOMOUS WORKFLOW INSTRUCTION
-    // Pass ambientProfile to auto-fill missing fields if devotee chart already exists
-    const wfCheck = parseWorkflowInstruction(query, effectiveLang, ambientProfile.hasData ? ambientProfile : null);
+    // Fuse WhatsApp pasted input, activeProfile, and ambientProfile
+    const parsedFromText = !parsedKundli?.hasData ? parseWhatsAppKundliText(whatsAppText || query) : null;
+    const finalAmbient = (parsedKundli && parsedKundli.hasData)
+      ? {
+          hasData: true,
+          name: parsedKundli.name,
+          birthDate: parsedKundli.birthDate,
+          birthTime: parsedKundli.birthTime,
+          city: parsedKundli.city,
+          pincode: parsedKundli.pincode,
+          latitude: parsedKundli.latitude,
+          longitude: parsedKundli.longitude,
+          customQuestions: parsedKundli.customQuestions,
+          pastedRawText: parsedKundli.rawText
+        }
+      : (parsedFromText && parsedFromText.hasData)
+      ? {
+          hasData: true,
+          name: parsedFromText.name,
+          birthDate: parsedFromText.birthDate,
+          birthTime: parsedFromText.birthTime,
+          city: parsedFromText.city,
+          pincode: parsedFromText.pincode,
+          latitude: parsedFromText.latitude,
+          longitude: parsedFromText.longitude,
+          customQuestions: parsedFromText.customQuestions,
+          pastedRawText: parsedFromText.rawText
+        }
+      : (ambientProfile.hasData ? ambientProfile : null);
+
+    const wfCheck = parseWorkflowInstruction(query, effectiveLang, finalAmbient);
     if (wfCheck.isWorkflow) {
       setIsProcessing(false);
       if (wfCheck.missingFields && wfCheck.missingFields.length > 0) {
@@ -1314,6 +1398,135 @@ export function SuperAdminAiPet(): JSX.Element | null {
             {/* TAB 1: CHAT & VOICE INTERFACE */}
             {activeTab === "chat" && (
               <>
+                {/* DEDICATED WHATSAPP / TELEGRAM JANANA KUNDALI RAW TEXT BOX */}
+                <div className="border-b border-amber-300/80 bg-gradient-to-r from-amber-50 via-amber-100/40 to-orange-50/70 p-3 shadow-xs">
+                  <div className="flex items-center justify-between gap-2 pb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-base">📋</span>
+                      <h3 className="text-xs font-black text-amber-950 uppercase tracking-wide">
+                        {currentLang === "kn" ? "ಜನನ ಕುಂಡಲಿ ವಿವರಗಳ ಪೇಸ್ಟ್ ವಿಭಾಗ (WhatsApp / Telegram)" : "Devotee Details Paste Box (WhatsApp / Telegram)"}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={handlePasteFromClipboard}
+                        className="flex items-center gap-1 rounded-lg border border-amber-400 bg-white px-2 py-0.5 text-[11px] font-bold text-amber-950 shadow-2xs hover:bg-amber-100 transition-all active:scale-95"
+                        title="ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ನಿಂದ ಪೇಸ್ಟ್ ಮಾಡಿ / Paste from Clipboard"
+                      >
+                        <span>📋</span>
+                        <span>{currentLang === "kn" ? "ಪೇಸ್ಟ್" : "Paste"}</span>
+                      </button>
+                      {whatsAppText && (
+                        <button
+                          type="button"
+                          onClick={handleClearWhatsAppBox}
+                          className="rounded-lg border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-bold text-slate-700 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
+                          title="ತೆರವುಗೊಳಿಸಿ / Clear"
+                        >
+                          ✕
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsWhatsAppBoxOpen(!isWhatsAppBoxOpen)}
+                        className="text-xs font-bold text-amber-800 hover:text-amber-950 px-1"
+                        title={isWhatsAppBoxOpen ? "Collapse" : "Expand"}
+                      >
+                        {isWhatsAppBoxOpen ? "▲" : "▼"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {isWhatsAppBoxOpen && (
+                    <div className="space-y-2 mt-1">
+                      <textarea
+                        value={whatsAppText}
+                        onChange={(e) => handleWhatsAppTextChange(e.target.value)}
+                        rows={2}
+                        placeholder={
+                          currentLang === "kn"
+                            ? "WhatsApp ಅಥವಾ Telegram ನಿಂದ ಬಂದಿರುವ ಜಾತಕ ವಿವರಗಳನ್ನು ಇಲ್ಲಿ ಪೇಸ್ಟ್ ಮಾಡಿ... (ಹೆಸರು, ದಿನಾಂಕ, ಸಮಯ, ಸ್ಥಳ / ಪ್ರಶ್ನೆಗಳು)"
+                            : "Paste raw devotee text from WhatsApp or Telegram here... (Name, DOB, Time, Place / Questions)"
+                        }
+                        className="w-full rounded-xl border border-amber-300 bg-white/95 p-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-amber-600 focus:ring-1 focus:ring-amber-500 focus:outline-hidden font-mono leading-relaxed"
+                      />
+
+                      {/* Live Extracted Profile Chips */}
+                      {parsedKundli && parsedKundli.hasData ? (
+                        <div className="rounded-xl border border-emerald-300 bg-emerald-50/90 p-2 space-y-1.5 animate-fade-in text-xs">
+                          <div className="flex items-center justify-between border-b border-emerald-200 pb-1 text-[11px] font-black text-emerald-950">
+                            <span className="flex items-center gap-1">
+                              <span className="text-emerald-600">✓</span>
+                              <span>{currentLang === "kn" ? "ಗುರುತಿಸಲಾದ ಜಾತಕ ವಿವರಗಳು" : "Extracted Devotee Profile"}</span>
+                            </span>
+                            <span className="text-emerald-700 font-semibold">{parsedKundli.city} ({parsedKundli.pincode})</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                            {parsedKundli.name && (
+                              <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
+                                👤 {parsedKundli.name}
+                              </span>
+                            )}
+                            {parsedKundli.birthDate && (
+                              <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
+                                📅 {parsedKundli.birthDate}
+                              </span>
+                            )}
+                            {parsedKundli.birthTime && (
+                              <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
+                                ⏰ {parsedKundli.birthTime}
+                              </span>
+                            )}
+                            {parsedKundli.customQuestions.length > 0 && (
+                              <span className="rounded-md border border-purple-400 bg-purple-50 px-2 py-0.5 font-bold text-purple-950">
+                                ❓ {parsedKundli.customQuestions[0].slice(0, 35)}...
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Quick Action Trigger Buttons */}
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleSend(`${parsedKundli.name} ಅವರ ಜಾತಕ ಗಣನೆ ಮಾಡಿ ೫ ಅಧಿಕೃತ ವರದಿಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡು`)}
+                              className="flex items-center gap-1 rounded-lg border border-emerald-600 bg-gradient-to-r from-emerald-600 to-emerald-700 px-2.5 py-1 text-[11px] font-black text-white hover:from-emerald-700 hover:to-emerald-800 shadow-2xs transition-all active:scale-95"
+                            >
+                              <span>🚀</span>
+                              <span>{currentLang === "kn" ? "೫ ಅಧಿಕೃತ ವರದಿಗಳು" : "Download 5 Reports"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSend(`${parsedKundli.name} ಅವರ ಬಹುಪ್ರಶ್ನೆ ವಿಭಾಗದ ವರದಿ ಸಿದ್ಧಪಡಿಸಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡು`)}
+                              className="flex items-center gap-1 rounded-lg border border-purple-400 bg-white px-2.5 py-1 text-[11px] font-bold text-purple-950 hover:bg-purple-100 shadow-2xs transition-all active:scale-95"
+                            >
+                              <span>📑</span>
+                              <span>{currentLang === "kn" ? "ಬಹುಪ್ರಶ್ನೆ ವರದಿ" : "Multi-Question Report"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSend(`${parsedKundli.name} ಅವರ ಪ್ರಶ್ನಾವಳಿ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡು`)}
+                              className="flex items-center gap-1 rounded-lg border border-blue-400 bg-white px-2.5 py-1 text-[11px] font-bold text-blue-950 hover:bg-blue-100 shadow-2xs transition-all active:scale-95"
+                            >
+                              <span>💬</span>
+                              <span>{currentLang === "kn" ? "ಪ್ರಶ್ನೋತ್ತರ ವರದಿ" : "Single Question"}</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-amber-900/80 italic flex items-center gap-1">
+                          <span>🎙️</span>
+                          <span>
+                            {currentLang === "kn"
+                              ? "ವಿವರಗಳನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ, ಕೆಳಗಿನ ಮೈಕ್ ಒತ್ತಿ: 'ಈ ಜಾತಕಕ್ಕೆ ಕುಂಡಲಿ ಹಾಗೂ ವರದಿ ನೀಡು' ಎಂದು ಮಾತನಾಡಿ!"
+                              : "Paste details above, then tap the mic below and speak: 'Generate a kundali for this and give this this this this report'!"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* Quick Action Suggestion Bar */}
                 <div className="flex items-center gap-1.5 overflow-x-auto border-b border-amber-200/40 bg-white/80 px-3 py-2 text-xs scrollbar-none">
                   {ambientProfile.hasData && (

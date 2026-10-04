@@ -17,6 +17,8 @@ import {
 } from "../services/superAdminWorkflowRunner";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { harvestAmbientKundliContext, type AmbientKundliProfile } from "../services/ambientKundliHarvester";
+import { parseWhatsAppKundliText } from "../services/whatsAppKundliParser";
+import { generateSuperAdminBatchPdfs } from "../services/superAdminBatchPdfService";
 
 describe("SuperAdminAiPet Intelligence & Security Suite", () => {
   it("enforces strict access control: authorized ONLY for Super Admin & Master profiles", () => {
@@ -1045,6 +1047,179 @@ describe("SuperAdminAiPet Intelligence & Security Suite", () => {
       expect(res.text.kn).toContain("ವೆಂಕಟೇಶ್ ಭಟ್");
       expect(res.text.kn).toContain("ದೋಷ");
       expect(res.text.kn).toContain("ಗೋಕರ್ಣ");
+    });
+  });
+
+  describe("WhatsApp & Multimodal Voice Fusion + Multi-Question Architecture", () => {
+    it("parses raw Kannada WhatsApp chat forward text into structured devotee profile", () => {
+      const rawWhatsApp = `
+[14/05, 10:20 am] +91 98860 12345:
+ಹೆಸರು: ಶ್ರೀ ರಮೇಶ್ ಭಟ್
+ಹುಟ್ಟಿದ ದಿನಾಂಕ: 18-08-1994
+ಜನನ ಸಮಯ: ಬೆಳಿಗ್ಗೆ 07:15
+ಸ್ಥಳ: ಗೋಕರ್ಣ 581326
+ಪ್ರಶ್ನೆ: ನನ್ನ ವೈವಾಹಿಕ ಜೀವನ ಹಾಗೂ ಉದ್ಯೋಗ ಹೇಗಿರುತ್ತದೆ?
+      `;
+
+      const parsed = parseWhatsAppKundliText(rawWhatsApp);
+      expect(parsed.hasData).toBe(true);
+      expect(parsed.name).toBe("ರಮೇಶ್ ಭಟ್");
+      expect(parsed.birthDate).toBe("1994-08-18");
+      expect(parsed.birthTime).toBe("07:15");
+      expect(parsed.city).toBe("Gokarna");
+      expect(parsed.pincode).toBe("581326");
+      expect(parsed.customQuestions.length).toBeGreaterThanOrEqual(1);
+      expect(parsed.customQuestions[0]).toContain("ವೈವಾಹಿಕ ಜೀವನ");
+    });
+
+    it("parses raw English Telegram chat text with 12h AM/PM time and inquiries", () => {
+      const rawTelegram = `
+Name: Ananya Sharma
+DOB: 24/11/1996
+Time of Birth: 04:45 PM
+Place: Bengaluru
+Query: When will I get a job promotion and foreign travel?
+      `;
+
+      const parsed = parseWhatsAppKundliText(rawTelegram);
+      expect(parsed.hasData).toBe(true);
+      expect(parsed.name).toBe("Ananya Sharma");
+      expect(parsed.birthDate).toBe("1996-11-24");
+      expect(parsed.birthTime).toBe("16:45"); // 4:45 PM -> 16:45
+      expect(parsed.city).toBe("Bengaluru");
+      expect(parsed.customQuestions.length).toBeGreaterThanOrEqual(1);
+      expect(parsed.customQuestions[0]).toContain("job promotion");
+    });
+
+    it("does not mistake simple user command strings for devotee profiles", () => {
+      const cmd = "Generate and download all 5 reports now";
+      const parsed = parseWhatsAppKundliText(cmd);
+      expect(parsed.hasData).toBe(false);
+      expect(parsed.birthDate).toBe("");
+    });
+
+    it("fuses pasted WhatsApp text with spoken mic command: 'generate a kundali for this and give this this this this report'", () => {
+      // 1. Devotee details in pasted WhatsApp box
+      const pastedBox = parseWhatsAppKundliText(`
+ಹೆಸರು: ಸತೀಶ್ ಹೆಗಡೆ
+ದಿನಾಂಕ: 12/03/1991
+ಸಮಯ: ರಾತ್ರಿ 9:30
+ಸ್ಥಳ: ಶಿರಸಿ 581401
+      `);
+      expect(pastedBox.hasData).toBe(true);
+
+      // 2. User opens mic and speaks action command
+      const spokenQuery = "generate a kundali for this and give this this this this report";
+      const wf = parseWorkflowInstruction(spokenQuery, "kn", pastedBox as any);
+
+      expect(wf.isWorkflow).toBe(true);
+      expect(wf.missingFields).toHaveLength(0);
+      expect(wf.params).toBeDefined();
+      expect(wf.params?.name).toBe("ಸತೀಶ್ ಹೆಗಡೆ");
+      expect(wf.params?.birthDate).toBe("1991-03-12");
+      expect(wf.params?.birthTime).toBe("21:30"); // 9:30 PM -> 21:30
+      expect(wf.params?.city).toBe("Sirsi");
+      expect(wf.params?.pincode).toBe("581401");
+      expect(wf.params?.requestedReports).toContain("baggona_kundli");
+      expect(wf.params?.requestedReports).toContain("premium_pdf_v1");
+      expect(wf.params?.requestedReports).toContain("daivika_parihara");
+      expect(wf.params?.requestedReports).toContain("doshagalu");
+      expect(wf.params?.requestedReports).toContain("seva_patra");
+    });
+
+    it("executes multi-question area task: 'in multi question area go and ask this question and get report on this particular question'", () => {
+      const ambientDevotee = {
+        hasData: true,
+        name: "ಕಿರಣ್ ರಾವ್",
+        birthDate: "1990-05-15",
+        birthTime: "10:30",
+        city: "Bengaluru",
+        pincode: "560001"
+      };
+
+      const query = "in multi question area go and ask this question: When will my business expand? and get report on this particular question";
+      const wf = parseWorkflowInstruction(query, "kn", ambientDevotee as any);
+
+      expect(wf.isWorkflow).toBe(true);
+      expect(wf.missingFields).toHaveLength(0);
+      expect(wf.params).toBeDefined();
+      expect(wf.params?.name).toBe("ಕಿರಣ್ ರಾವ್");
+      expect(wf.params?.requestedReports).toContain("multi_question");
+      expect(wf.params?.targetRedirectPage).toBe("ramanbhavishya");
+      expect(wf.params?.customQuestions).toBeDefined();
+      expect(wf.params?.customQuestions?.some((q) => q.includes("business expand"))).toBe(true);
+    });
+
+    it("executes single-question task: 'download from single questionnaire as well'", () => {
+      const ambientDevotee = {
+        hasData: true,
+        name: "ಲಕ್ಷ್ಮಿ ನಾರಾಯಣ",
+        birthDate: "1995-10-20",
+        birthTime: "08:15",
+        city: "Mysuru",
+        pincode: "570001"
+      };
+
+      const query = "download from single questionnaire as well for this devotee";
+      const wf = parseWorkflowInstruction(query, "kn", ambientDevotee as any);
+
+      expect(wf.isWorkflow).toBe(true);
+      expect(wf.missingFields).toHaveLength(0);
+      expect(wf.params).toBeDefined();
+      expect(wf.params?.requestedReports).toContain("single_question");
+    });
+
+    it("generates multi-question and single-question PDF reports in batch service", async () => {
+      const mockSession = {
+        input: {
+          name: "ರಾಘವೇಂದ್ರ",
+          birthDate: "1992-07-15",
+          birthTime: "11:20",
+          city: "Bengaluru",
+          latitude: 12.97,
+          longitude: 77.59,
+          pincode: "560001",
+          gender: "Male"
+        },
+        result: {
+          ascendant: 1,
+          ascendantSign: 1,
+          moonSign: { english: "Mesha", index: 0 },
+          lagnaRashi: { english: "Mesha", index: 0 },
+          planets: [
+            {
+              name: "Moon",
+              degree: 10,
+              rashi: { english: "Mesha", index: 0 },
+              nakshatra: { english: "Ashwini", index: 0 }
+            }
+          ]
+        },
+        dasha: [{ planet: "Jupiter", startAge: 0, endAge: 16, durationYears: 16 }]
+      };
+
+      const params = {
+        rawPrompt: "Multi-question generation",
+        name: "ರಾಘವೇಂದ್ರ",
+        birthDate: "1992-07-15",
+        birthTime: "11:20",
+        city: "Bengaluru",
+        pincode: "560001",
+        latitude: 12.97,
+        longitude: 77.59,
+        priestName: "Chaitanya Pandit",
+        poojaName: "Moksha Narayana Bali",
+        requestedReports: ["multi_question", "single_question"] as any,
+        language: "kn" as any,
+        customQuestions: ["ಉದ್ಯೋಗ ಪ್ರಗತಿ ಹೇಗಿದೆ?", "ವಿವಾಹ ಯೋಗ ಯಾವಾಗ?"]
+      };
+
+      const reports = await generateSuperAdminBatchPdfs(mockSession as any, params as any);
+      expect(reports).toHaveLength(2);
+      expect(reports.some((r) => r.id === "multi_question")).toBe(true);
+      expect(reports.some((r) => r.id === "single_question")).toBe(true);
+      expect(reports[0].blob).toBeDefined();
+      expect(reports[1].blob).toBeDefined();
     });
   });
 });

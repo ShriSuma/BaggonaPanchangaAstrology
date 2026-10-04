@@ -40,7 +40,132 @@ import {
   SevaRemediesAnnualPrint,
   SevaPoojaMahatmePrint
 } from "../components/seva/pdf/SevaPrintTemplates";
-import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
+import { PdfTemplate, type PdfTranslations } from "../components/RamanBhavishya/PdfTemplate";
+import { MultiQuestionPdfTemplate, type MultiQuestionItem } from "../components/RamanBhavishya/MultiQuestionPdfTemplate";
+import { askGemini } from "../core/GeminiEngine";
+
+function buildPdfTranslationsForMultiQuestion(session: KundliViewerSession, lang: string): PdfTranslations {
+  const moon = session.result.planets.find((p) => p.name === "Moon");
+  const isKn = lang === "kn";
+  return {
+    title: isKn ? "ಭಾಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ" : "Baggona Panchanga Astrology",
+    subtitle: isKn ? "ವಿಶೇಷ ಬಹುಪ್ರಶ್ನೆ ಜಾತಕ ಫಲ ಹಾಗೂ ಶಮನ ಪರಿಹಾರ ವರದಿ" : "Special Astrological Consultation & Remedies Report",
+    nameLabel: isKn ? "ಜಾತಕರ ಹೆಸರು" : "Devotee Name",
+    nameValue: session.input.name,
+    dobLabel: isKn ? "ಜನನ ದಿನಾಂಕ" : "Date of Birth",
+    dobValue: `${session.birthDateYmd || session.input.birthDate} ${session.birthTimeHm || session.input.birthTime || ""}`,
+    lagnaLabel: isKn ? "ಲಗ್ನ" : "Lagna",
+    lagnaValue: session.result.lagnaRashi?.english || "Mesha",
+    moonLabel: isKn ? "ರಾಶಿ" : "Rashi",
+    moonValue: session.result.moonSign?.english || "Mesha",
+    nakshatraLabel: isKn ? "ನಕ್ಷತ್ರ" : "Nakshatra",
+    nakshatraValue: moon?.nakshatra?.english || "Ashwini",
+    eraLabel: isKn ? "ದಶಾಕಾಲ" : "Dasha Period",
+    dashaLabel: isKn ? "ಮಹಾದಶಾ" : "Maha Dasha",
+    bhuktiLabel: isKn ? "ಅಂತರ್ದಶಾ" : "Bhukti",
+    dashaPlanetValue: session.dasha?.[0]?.planet || "Jupiter",
+    bhuktiPlanetValue: session.dasha?.[1]?.planet || "Saturn",
+    characteristicsTitle: isKn ? "ವ್ಯಕ್ತಿತ್ವ" : "Personality",
+    darkSecretTitle: isKn ? "ರಹಸ್ಯ ಒಳನೋಟ" : "Deep Insights",
+    ashirvadaTitle: isKn ? "ಗುರು ಆಶೀರ್ವಾದ" : "Divine Blessings",
+    ashirvadaValue: isKn ? "ಸರ್ವೇ ಜನಾಃ ಸುಖಿನೋ ಭವಂತು। ಸಮಸ್ತ ಸನ್ಮಂಗಳಾನಿ ಭವಂತು॥" : "May divine cosmic grace and auspicious blessings guide your destiny.",
+    yogasTitle: isKn ? "ಯೋಗಗಳು" : "Yogas",
+    doshasTitle: isKn ? "ದೋಷಗಳು" : "Doshas",
+    remedyTitle: isKn ? "ವೈದಿಕ ಪರಿಹಾರ" : "Remedies",
+    timelineTitle: isKn ? "ಕಾಲಚಕ್ರ" : "Timeline",
+    gocharaTitle: isKn ? "ಗೋಚಾರ ಫಲ" : "Transits",
+    summaryTitle: isKn ? "ಸಾರಾಂಶ" : "Summary",
+    footer: isKn ? "ಭಾಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ" : "Baggona Panchanga Astrology"
+  };
+}
+
+async function generateMultiQuestionAnswers(
+  session: KundliViewerSession,
+  questions: string[],
+  lang: string
+): Promise<MultiQuestionItem[]> {
+  const geminiApiKey = useAppStore.getState().geminiApiKey || "";
+  const moon = session.result.planets.find((p) => p.name === "Moon");
+  const lagna = session.result.lagnaRashi?.english || "Ascendant";
+  const moonSign = session.result.moonSign?.english || "Moon Sign";
+  const nakshatra = moon?.nakshatra?.english || "Nakshatra";
+  const dasha = session.dasha?.[0]?.planet || "Current Dasha";
+
+  const items: MultiQuestionItem[] = [];
+
+  for (let i = 0; i < questions.length; i++) {
+    const qText = questions[i];
+    let ans = {
+      paragraph1: "",
+      paragraph2: "",
+      paragraph3: "",
+      paragraph4: ""
+    };
+
+    if (geminiApiKey) {
+      const qPrompt = `You are Baggona Master Jyotishi. Devotee: ${session.input.name}, Lagna: ${lagna}, Moon Sign: ${moonSign}, Nakshatra: ${nakshatra}, Dasha: ${dasha}.
+Question: "${qText}".
+Provide a detailed 4-paragraph Vedic astrological analysis in ${lang === "kn" ? "Kannada" : lang === "hi" ? "Hindi" : lang === "te" ? "Telugu" : lang === "ta" ? "Tamil" : "English"}:
+Paragraph 1: House & Kundali Analysis (Natal planetary positions)
+Paragraph 2: Dasha & Gochara Transits (Saturn, Jupiter, Rahu)
+Paragraph 3: Prediction & Specific Timing Window
+Paragraph 4: Vedic Parihara & Remedies (Mantra, temple pooja, charity)
+
+Return JSON ONLY:
+{
+  "p1": "...",
+  "p2": "...",
+  "p3": "...",
+  "p4": "..."
+}`;
+      try {
+        const rawRes = await askGemini(`Multi-Question: ${qText}`, qPrompt, geminiApiKey, lang, { raw: true, temperature: 0.7 });
+        const jsonMatch = rawRes.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          ans = {
+            paragraph1: parsed.p1 || parsed.paragraph1 || "",
+            paragraph2: parsed.p2 || parsed.paragraph2 || "",
+            paragraph3: parsed.p3 || parsed.paragraph3 || "",
+            paragraph4: parsed.p4 || parsed.remedy || parsed.paragraph4 || ""
+          };
+        }
+      } catch (err) {
+        console.warn("[BatchPdfService] Gemini multi-question answer generation fallback:", err);
+      }
+    }
+
+    if (!ans.paragraph1 || ans.paragraph1.length < 50) {
+      // Authentic mathematical & astrological fallback in selected language
+      const isKn = lang === "kn";
+      const p1 = isKn
+        ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಲಗ್ನ (${lagna}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonSign}) ಸ್ಥಿತಿಯು ಈ ಪ್ರಶ್ನೆಗೆ (${qText}) ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಗ್ರಹ ಪ್ರಭಾವವನ್ನು ಬೀರುತ್ತಿದೆ. ಜನ್ಮ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಕೇಂದ್ರ-ತ್ರಿಕೋಣಾಧಿಪತಿಗಳ ಶುಭ ದೃಷ್ಟಿಯು ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತಿದೆ.`
+        : `Analyzing your natal chart with Lagna (${lagna}) and Moon in ${moonSign}, the primary house lords directing their cosmic energy to "${qText}" indicate strong foundational strength and positive momentum.`;
+      const p2 = isKn
+        ? `ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ${dasha} ದಶಾಕಾಲ ಹಾಗೂ ದೇವಗುರು ಗುರು-ಶನಿ ಗೋಚಾರ ಫಲಗಳು ಮುಂಬರುವ ೧೨ ರಿಂದ ೧೮ ತಿಂಗಳುಗಳಲ್ಲಿ ಮಹತ್ತರ ಬೆಳವಣಿಗೆಗಳನ್ನು ತರಲಿವೆ. ತಾಳ್ಮೆ ಮತ್ತು ಸತತ ಪ್ರಯತ್ನಗಳಿಂದ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಲಿವೆ.`
+        : `The prevailing ${dasha} Dasha period synchronized with major planetary transits of Jupiter and Saturn will activate significant breakthroughs over the next 12 to 18 months.`;
+      const p3 = isKn
+        ? `ಗ್ರಹಗಳ ಶುಭ ಸ್ಥಿತಿಯ ಆಧಾರದ ಮೇಲೆ, ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆಯಲಿದ್ದು, ನಿರೀಕ್ಷಿತ ಯಶಸ್ಸು ಮತ್ತು ಶಾಂತಿ ಲಭಿಸಲಿದೆ. ಅವಸರದ ನಿರ್ಧಾರಗಳನ್ನು ತಪ್ಪಿಸಿ ಧರ್ಮಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆಯುವುದು ಶ್ರೇಯಸ್ಕರ.`
+        : `Methodical dedication and avoiding hasty shortcuts will yield enduring success and clarity in this domain. Auspicious timing favors progressive results.`;
+      const p4 = isKn
+        ? `ದೈವಿಕ ಪರಿಹಾರ: ಶ್ರೀ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಪೂರ್ವ ದಿಕ್ಕಿಗೆ ಮುಖಮಾಡಿ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪ ಹಾಗೂ ಶನಿವಾರ ಪಕ್ಷಿ-ಗೋವುಗಳಿಗೆ ಆಹಾರ ನೀಡುವುದು ಶುಭ ಫಲ ನೀಡುತ್ತದೆ.`
+        : `Recommended Vedic Remedies: Morning prayer facing East, regular chanting of the Gayatri Mantra, and performing charity to the deserving on Saturdays to enhance planetary harmony.`;
+
+      ans = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
+    }
+
+    items.push({
+      id: `mq-${i}-${Date.now()}`,
+      topicId: `topic-${i}`,
+      topicLabel: qText.slice(0, 40),
+      questionText: qText,
+      isCustomQuestion: true,
+      answer: ans
+    });
+  }
+
+  return items;
+}
 
 /**
  * Mounts a React component into a hidden off-screen wrapper,
@@ -420,6 +545,60 @@ export async function generateSuperAdminBatchPdfs(
         reports.push({
           id: "seva_patra",
           title: params.language === "kn" ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಆಶೀರ್ವಾದ ಪತ್ರ (೫ ಪುಟಗಳು)" : "Gokarna Kshetra Ashirvada Patra (5 Pages)",
+          fileName,
+          blob,
+          sizeBytes: blob.size
+        });
+        break;
+      }
+
+      // ── 6. MULTI-QUESTION & SINGLE-QUESTION REPORTS ───────────────────────
+      case "multi_question":
+      case "single_question": {
+        const isSingle = reportType === "single_question";
+        onProgress?.(
+          stageStartPercent,
+          params.language === "kn"
+            ? (isSingle ? "ಪ್ರಶ್ನೋತ್ತರ ಜ್ಯೋತಿಷ್ಯ ವರದಿ ಮುದ್ರಣ..." : "ಬಹುಪ್ರಶ್ನೆ ಜಾತಕ ಫಲ & ಪರಿಹಾರ ವರದಿ ಮುದ್ರಣ...")
+            : (isSingle ? "Generating Single Question Astrological Report PDF..." : "Generating Multi-Question Astrological Report PDF...")
+        );
+
+        const fileName = isSingle
+          ? `Baggona_Prashna_Kundali_${cleanName}_${langUpper}.pdf`
+          : `Baggona_Multi_Question_Report_${cleanName}_${langUpper}.pdf`;
+
+        const userQuestions = (params.customQuestions && params.customQuestions.length > 0)
+          ? params.customQuestions
+          : (isSingle
+              ? [params.language === "kn" ? "ಸಾಮಾನ್ಯ ಜೀವನ, ಉದ್ಯೋಗ ಹಾಗೂ ದಾಂಪತ್ಯ ಜೀವನ ಭವಿಷ್ಯ (Career, Marriage & General Life)" : "General Life, Career & Marriage Consultation"]
+              : [
+                  params.language === "kn" ? "ವಿವಾಹ ಮತ್ತು ವೈವಾಹಿಕ ಜೀವನ ಯೋಗ (Marriage & Relationships)" : "Marriage & Relationship Timing",
+                  params.language === "kn" ? "ಉದ್ಯೋಗ, ವೃತ್ತಿ ಬೆಳವಣಿಗೆ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿತಿ (Career, Job & Wealth)" : "Career & Financial Growth",
+                  params.language === "kn" ? "ಆರೋಗ್ಯ, ಆಯಸ್ಸು ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆ (Health & Divine Protection)" : "Health, Vitality & Remedial Parihara"
+                ]
+            );
+
+        const questionsData = await generateMultiQuestionAnswers(session, userQuestions, params.language);
+        const translations = buildPdfTranslationsForMultiQuestion(session, params.language);
+
+        const component = (
+          <div className="pdf-page" style={{ width: "900px", background: "#FFFDF7", padding: "16px" }}>
+            <MultiQuestionPdfTemplate
+              session={session}
+              translations={translations}
+              questionsData={questionsData}
+              lang={params.language}
+            />
+          </div>
+        );
+
+        const pdf = await renderOffscreenToPdf(component, fileName);
+        const blob = pdf.output("blob");
+        reports.push({
+          id: reportType,
+          title: params.language === "kn"
+            ? (isSingle ? "ಪ್ರಶ್ನೋತ್ತರ ಜ್ಯೋತಿಷ್ಯ ವರದಿ" : "ಬಹುಪ್ರಶ್ನೆ ಜಾತಕ ಫಲ & ಪರಿಹಾರ ವರದಿ")
+            : (isSingle ? "Single Question Consultation Report" : "Multi-Question Astrology Report"),
           fileName,
           blob,
           sizeBytes: blob.size
