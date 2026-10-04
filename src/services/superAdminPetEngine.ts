@@ -22,9 +22,24 @@ import { db } from "../db/indexedDb";
 import { PlanetName, RASHIS, type KundliInput, type KundliOutput } from "../core/AstroTypes";
 import { normalizeDegree, degreeToNakshatra, degreeToNakshatraPada } from "../core/AstroMath";
 import { calculateKundli } from "../core/KundliEngine";
-import { generateDashaTimeline } from "../core/DashaBhuktiEngine";
+import {
+  generateDashaTimeline,
+  findMahadashaAtAge,
+  findBhuktiAtAge
+} from "../core/DashaBhuktiEngine";
 import { evaluateYogasAndDoshas } from "../core/BVRamanPredictionEngine";
 import { resolveCityCoordsAndPincode, CITY_DATABASE } from "./superAdminWorkflowRunner";
+import {
+  GRAHA_SHASTRA_MATRIX,
+  NEECHABHANGA_RULES,
+  NAKSHATRA_SHASTRA_CATALOG,
+  BHAVA_SHASTRA_CATALOG,
+  CLASSICAL_YOGAS_CATALOG,
+  lookupGrahaByName,
+  lookupNakshatraByName,
+  lookupBhavaByNumberOrTerm,
+  type GrahaShastraRecord
+} from "./jyotishyaShastraKnowledge";
 
 export type PetEmotion = "peaceful" | "thinking" | "speaking" | "excited" | "remedy" | "alert";
 
@@ -498,6 +513,118 @@ export async function executeSuperAdminPetQuery(
   const effectiveLang = detectQueryLanguage(rawQuery, context.selectedLanguage || "kn");
   const query = rawQuery.trim().toLowerCase();
 
+  const isNavCommand =
+    query.includes("go to") ||
+    query.includes("open") ||
+    query.includes("take me to") ||
+    query.includes("navigate") ||
+    query.includes("ತೆರೆ") ||
+    query.includes("ಹೋಗು") ||
+    query.includes("ಕರೆದುಕೊಂಡು ಹೋಗು") ||
+    query.includes("ಕರ್ಕೊಂಡು ಹೋಗು") ||
+    query.includes("खोलो") ||
+    query.includes("चलो");
+
+  // 0A. PRIEST / ASTROLOGER CALL BRIEF & CURRENT LIFE STATUS INTENT
+  const isPriestCallBriefQuery =
+    query.includes("call brief") ||
+    query.includes("client call") ||
+    query.includes("what to tell") ||
+    query.includes("tell client") ||
+    query.includes("tell user") ||
+    query.includes("tell them") ||
+    query.includes("phone call") ||
+    query.includes("consultation") ||
+    query.includes("happening in their life") ||
+    query.includes("happening in life") ||
+    query.includes("currently happening") ||
+    query.includes("call them") ||
+    query.includes("ಸಮಾಲೋಚನೆ") ||
+    query.includes("ಕರೆ ಸಾರಾಂಶ") ||
+    query.includes("ಕ್ಲೈಂಟ್‌ಗೆ ಏನು ಹೇಳಬೇಕು") ||
+    query.includes("ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ") ||
+    query.includes("ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ") ||
+    query.includes("ಮಾತನಾಡಲು") ||
+    query.includes("ಕರೆಯಲ್ಲಿ ಏನು ಹೇಳಬೇಕು") ||
+    ((query.includes("call") || query.includes("brief") || query.includes("client") || query.includes("ಕರೆ") || query.includes("ಸಮಾಲೋಚನೆ")) &&
+      (/\b\d{4}\b/.test(query) || /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/.test(query) || /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/i.test(query)));
+
+  if (isPriestCallBriefQuery) {
+    return await handlePriestCallBrieferIntent(rawQuery, context, effectiveLang);
+  }
+
+  // 0B. EXPERT JYOTISHYA SHASTRA TEACHING & GURUKULA KNOWLEDGE INTENT
+  const isTeachingOrKnowledgeQuery =
+    !isNavCommand &&
+    (
+      // Exaltation / Debilitation / Uccha / Neecha
+      query.includes("uccha") ||
+      query.includes("neecha") ||
+      query.includes("exalt") ||
+      query.includes("debilitat") ||
+      query.includes("ಉಚ್ಚ") ||
+      query.includes("ನೀಚ") ||
+      query.includes("neechabhanga") ||
+      query.includes("ನೀಚಭಂಗ") ||
+      // Nakshatras & Ganda Moola
+      query.includes("nakshatra") ||
+      query.includes("ನಕ್ಷತ್ರ") ||
+      query.includes("ganda moola") ||
+      query.includes("ಗಂಡಮೂಲ") ||
+      query.includes("ಯೋನಿ") ||
+      query.includes("ಗಣ") ||
+      // Bhavas & House Classifications
+      query.includes("house") ||
+      query.includes("ಮನೆ") ||
+      query.includes("bhava") ||
+      query.includes("ಭಾವ") ||
+      query.includes("kendra") ||
+      query.includes("trikona") ||
+      query.includes("dusthana") ||
+      query.includes("upachaya") ||
+      query.includes("maraka") ||
+      query.includes("ಕೇಂದ್ರ") ||
+      query.includes("ತ್ರಿಕೋನ") ||
+      query.includes("ದುಸ್ಥಾನ") ||
+      query.includes("ಉಪಚಯ") ||
+      query.includes("ಮಾರಕ") ||
+      // Classical Yogas
+      query.includes("gajakesari") ||
+      query.includes("ಗಜಕೇಸರಿ") ||
+      query.includes("pancha mahapurusha") ||
+      query.includes("ಪಂಚ ಮಹಾಪುರುಷ") ||
+      query.includes("budhaditya") ||
+      query.includes("ಬುಧಾದಿತ್ಯ") ||
+      query.includes("viparita raja") ||
+      query.includes("ವಿಪರೀತ ರಾಜ") ||
+      // Mantras & Japa Counts
+      query.includes("japa count") ||
+      query.includes("mantra count") ||
+      query.includes("ಜಪ ಸಂಖ್ಯೆ") ||
+      query.includes("ಬೀಜ ಮಂತ್ರ") ||
+      query.includes("beeja mantra") ||
+      query.includes("shani mantra") ||
+      query.includes("ಶನಿ ಮಂತ್ರ") ||
+      query.includes("rahu mantra") ||
+      query.includes("ರಾಹು ಮಂತ್ರ") ||
+      query.includes("kuja mantra") ||
+      query.includes("ಕುಜ ಮಂತ್ರ") ||
+      query.includes("guru mantra") ||
+      query.includes("ಗುರು ಮಂತ್ರ") ||
+      // Gurukula / Teaching requests
+      query.includes("teach me") ||
+      query.includes("ಜ್ಯೋತಿಷ್ಯ ಕಲಿಸು") ||
+      query.includes("ಜ್ಯೋತಿಷ್ಯ ಪಾಠ") ||
+      query.includes("learn astrology") ||
+      query.includes("explain astrology") ||
+      query.includes("ಹೇಗೆ ಲೆಕ್ಕ") ||
+      query.includes("ಜ್ಯೋತಿಷ್ಯ ಜ್ಞಾನ")
+    );
+
+  if (isTeachingOrKnowledgeQuery) {
+    return await handleJyotishyaTeachingIntent(rawQuery, context, effectiveLang);
+  }
+
   // 1. BHAVISHYA & LIFE PREDICTION INTENTS
   if (
     query.includes("bhavishya") ||
@@ -588,17 +715,6 @@ export async function executeSuperAdminPetQuery(
   ) {
     return handleMarketingStrategy();
   }
-
-  const isNavCommand =
-    query.includes("go to") ||
-    query.includes("open") ||
-    query.includes("take me to") ||
-    query.includes("navigate") ||
-    query.includes("ತೆರೆ") ||
-    query.includes("ಹೋಗು") ||
-    query.includes("ಕರೆದುಕೊಂಡು ಹೋಗು") ||
-    query.includes("खोलो") ||
-    query.includes("चलो");
 
   // 6. KUNDLI & DOSHA ANALYSIS INTENTS
   if (
@@ -701,6 +817,829 @@ Keep spoken clarity in mind. Avoid excessive formatting.
   // 9. DEFAULT OFFLINE KNOWLEDGE MATRIX RESPONSE
   return handleDefaultOfflineCompanion(rawQuery, effectiveLang);
 }
+
+// =========================================================================
+// HANDLER 0A: PRIEST / ASTROLOGER CALL BRIEF & CURRENT LIFE STATUS ENGINE
+// =========================================================================
+async function handlePriestCallBrieferIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const query = rawQuery.trim();
+  const lower = query.toLowerCase();
+
+  // 1. EXTRACT NAME
+  let name = "";
+  const personMatch = query.match(
+    /(?:for|of|named|devotee|user|client|name\s+is|ಜಾತಕರ ಹೆಸರು|ಹೆಸರು|ಕ್ಲೈಂಟ್)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\bborn\b|\bಜನನ\b|\bdated\b|\bfrom\b|\bin\b|\bat\b|\brashi\b|$)/i
+  );
+  if (personMatch && personMatch[1]) {
+    name = personMatch[1].trim();
+  } else {
+    const shriMatch = query.match(
+      /\b(Shriram\s+Pandit|Chaitanya\s+Pandit|Jayashree|Manoj|Dilip|Pramod|Suresh|Ramesh|Ravi|Anand|Karthik)\b/i
+    );
+    if (shriMatch) {
+      name = shriMatch[1];
+    } else {
+      const knNameMatch = query.match(
+        /([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)\s+(?:\d{1,2}|ರಂದು|ಜನಿಸಿದ|ಅವರ)/i
+      );
+      if (
+        knNameMatch &&
+        knNameMatch[1] &&
+        !["tell", "bhavishya", "ಭವಿಷ್ಯ", "ಹೇಳು", "call", "brief", "ಕರೆಯಲ್ಲಿ", "ಕ್ಲೈಂಟ್"].includes(knNameMatch[1].toLowerCase())
+      ) {
+        name = knNameMatch[1].trim();
+      }
+    }
+  }
+
+  // 2. EXTRACT DOB (e.g. "31 May 1993", "1993-05-31", "31-05-1993")
+  let birthDate = "";
+  const dateMatch1 = query.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z\u0C80-\u0CFF]+)\s+(\d{4})\b/);
+  if (dateMatch1) {
+    const day = dateMatch1[1].padStart(2, "0");
+    const mStr = dateMatch1[2].toLowerCase();
+    const month = MONTH_MAP_LOCAL[mStr] || "01";
+    const year = dateMatch1[3];
+    birthDate = `${year}-${month}-${day}`;
+  } else {
+    const dateMatch2 = query.match(/\b(\d{4})[-/](\d{1,2})[-/](\d{1,2})\b/);
+    if (dateMatch2) {
+      birthDate = `${dateMatch2[1]}-${dateMatch2[2].padStart(2, "0")}-${dateMatch2[3].padStart(2, "0")}`;
+    } else {
+      const dateMatch3 = query.match(/\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b/);
+      if (dateMatch3) {
+        birthDate = `${dateMatch3[3]}-${dateMatch3[2].padStart(2, "0")}-${dateMatch3[1].padStart(2, "0")}`;
+      }
+    }
+  }
+
+  // 3. EXTRACT TOB (Optional, default 09:20 AM)
+  let birthTime = "09:20";
+  const timeMatch = query.match(/\b(\d{1,2})[:.](\d{2})\s*(am|pm|AM|PM)?\b/);
+  if (timeMatch) {
+    let hour = parseInt(timeMatch[1], 10);
+    const minute = timeMatch[2];
+    const meridiem = (timeMatch[3] || "").toLowerCase();
+    if (meridiem === "pm" && hour < 12) hour += 12;
+    if (meridiem === "am" && hour === 12) hour = 0;
+    birthTime = `${hour.toString().padStart(2, "0")}:${minute}`;
+  }
+
+  // 4. EXTRACT PLACE (Optional, default Bengaluru)
+  let city = "Bengaluru";
+  for (const [cKey, cVal] of Object.entries(CITY_DATABASE)) {
+    if (lower.includes(cKey)) {
+      city = cVal.englishName;
+      break;
+    }
+  }
+
+  // Fallback to active session if details not in text
+  if ((!name || !birthDate) && context.currentKundliSession?.input) {
+    name = name || context.currentKundliSession.input.name || "ಜಾತಕರು";
+    birthDate =
+      birthDate ||
+      context.currentKundliSession.input.birthDate ||
+      context.currentKundliSession.input.dateOfBirth;
+    birthTime =
+      birthTime ||
+      context.currentKundliSession.input.birthTime ||
+      context.currentKundliSession.input.timeOfBirth ||
+      "09:20";
+    city =
+      city ||
+      context.currentKundliSession.input.placeOfBirth ||
+      context.currentKundliSession.input.city ||
+      "Bengaluru";
+  }
+
+  // If still no birthDate, ask devotee kindly
+  if (!birthDate) {
+    const askText = {
+      kn: `ಸ್ವಾಮಿ, ${name ? name + " ಅವರ" : "ಕ್ಲೈಂಟ್‌ ಅವರ"} ದೈವಜ್ಞ ಸಮಾಲೋಚನಾ ಸಾರಾಂಶ (Client Consultation Call Brief) ಸಿದ್ಧಪಡಿಸಲು ಜನನ ದಿನಾಂಕ & ಸಮಯವನ್ನು ತಿಳಿಸಿ (ಉದಾ: 'ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ 31 May 1993 9:20 AM ಬೆಂಗಳೂರು ಕಾಲ್ ಬ್ರೀಫ್'). ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ನಡೆಯುತ್ತಿರುವ ಸಂಗತಿಗಳು, ಕರೆಯಲ್ಲಿ ನೇರವಾಗಿ ಹೇಳಬೇಕಾದ ಮಾತುಗಳು ಮತ್ತು ಮಂತ್ರ-ಜಪ ಸಂಖ್ಯೆಯನ್ನು ನಾನು ತಕ್ಷಣ ನೀಡುತ್ತೇನೆ!`,
+      en: `Swami, to prepare the Priest Consultation Call Brief${name ? " for " + name : ""}, please provide the birth date and time (e.g. 'Call brief for Shriram Pandit born 31 May 1993 at 9:20 AM Bengaluru'). I will immediately compute what is happening in their life right now, your exact phone consultation talking script, and exact mantra japa counts!`,
+      hi: `स्वामी, क्लाइंट कॉल सारांश तैयार करने हेतु कृपया जन्म तिथि और समय बताएं (उदा: '31 May 1993 9:20 AM कॉल ब्रीफ')।`,
+      te: `స్వామి, క్లయింట్ కాల్ బ్రీఫ్ కొరకు దయచేసి పుట్టిన తేదీ మరియు సమయాన్ని తెలియజేయండి.`,
+      ta: `சுவாமி, வாடிக்கையாளர் தொலைபேசி ஆலோசனை சுருக்கத்தை அறிய பிறந்த தேதி மற்றும் நேரத்தை குறிப்பிடவும்.`
+    };
+    return {
+      text: askText,
+      spokenText: askText,
+      emotion: "alert",
+      category: "kundli",
+      actions: [
+        {
+          id: "open_kundli",
+          label: {
+            kn: "🪐 ಜಾತಕ ರಚನೆ ಪುಟ ತೆರೆಯಿರಿ",
+            en: "🪐 Open Kundli Creation Page",
+            hi: "🪐 कुण्डली रचना पृष्ठ खोलें",
+            te: "🪐 జాతక రచన పేజీ తెరవండి",
+            ta: "🪐 ஜாதக பக்கம் திறக்க"
+          },
+          icon: "🪐",
+          targetPage: "kundli",
+          actionType: "navigate"
+        }
+      ]
+    };
+  }
+
+  // 5. CALCULATE KUNDLI
+  const cleanName = name || (targetLang === "kn" ? "ಜಾತಕರು" : "Client Devotee");
+  const geo = resolveCityCoordsAndPincode(city);
+  let kundli: KundliOutput;
+  try {
+    kundli = calculateKundli({
+      name: cleanName,
+      birthDate,
+      birthTime,
+      latitude: geo.lat,
+      longitude: geo.lng,
+      pincode: geo.pincode
+    });
+  } catch (err) {
+    console.error("calculateKundli failed in call briefer:", err);
+    throw err;
+  }
+
+  const lagnaIdx = Math.floor(normalizeDegree(kundli.ascendant) / 30);
+  const lagnaDeg = (normalizeDegree(kundli.ascendant) % 30).toFixed(1);
+  const moonPlanet = kundli.planets.find((p) => p.name === PlanetName.Moon);
+  const moonDeg = normalizeDegree(moonPlanet?.degree || 0);
+  const moonSignIdx = Math.floor(moonDeg / 30);
+  const moonNak = degreeToNakshatra(moonDeg);
+  const moonPada = degreeToNakshatraPada(moonDeg);
+
+  // Dasha & Bhukti in Current Year
+  const birthYear = parseInt(birthDate.split("-")[0], 10) || 1993;
+  const currentYear = new Date().getFullYear();
+  const nativeAge = Math.max(0, currentYear - birthYear);
+
+  const activeMaha = findMahadashaAtAge(kundli, nativeAge);
+  const activeBhuktiInfo = findBhuktiAtAge(kundli, nativeAge);
+  const runningMahaPlanet = activeMaha ? activeMaha.planet : PlanetName.Jupiter;
+  const runningBhuktiPlanet = activeBhuktiInfo ? activeBhuktiInfo.bhukti : PlanetName.Saturn;
+
+  // Comprehensive Doshas & Live Gochara
+  const doshaReport = calculateComprehensiveDoshas(
+    kundli,
+    {
+      name: cleanName,
+      birthDate,
+      birthTime,
+      latitude: geo.lat,
+      longitude: geo.lng,
+      gender: "Male",
+      pincode: geo.pincode
+    },
+    new Date()
+  );
+
+  const shaniDosha = doshaReport.doshas.find((d) => d.id === "gochara_shani");
+  const isAshtamaShani = !!(shaniDosha?.name.en?.includes("Ashtama") || shaniDosha?.name.kn?.includes("ಅಷ್ಟಮ"));
+  const isSadeSati = !!(shaniDosha?.name.en?.includes("Sade Sati") || shaniDosha?.name.kn?.includes("ಸಾಡೇಸಾತಿ"));
+  const isKantakaShani = !!(shaniDosha?.name.en?.includes("Kantaka") || shaniDosha?.name.kn?.includes("ಕಂಟಕ"));
+
+  const guruDosha = doshaReport.doshas.find((d) => d.id === "gochara_guru");
+  const isGuruAfflicted = !!guruDosha?.isDetected;
+
+  const rkDosha = doshaReport.doshas.find((d) => d.id === "gochara_rahu_ketu");
+  const isRKTransitActive = !!rkDosha?.isDetected;
+
+  const dashaSandhiAlert = doshaReport.activeSandhiAlert;
+
+  // Primary Remedial Planet
+  let primaryRemedyGraha: PlanetName = runningMahaPlanet;
+  if (isAshtamaShani || isSadeSati) {
+    primaryRemedyGraha = PlanetName.Saturn;
+  } else if (isRKTransitActive || runningMahaPlanet === PlanetName.Rahu || runningMahaPlanet === PlanetName.Ketu) {
+    primaryRemedyGraha = PlanetName.Rahu;
+  } else if (isGuruAfflicted && runningMahaPlanet === PlanetName.Jupiter) {
+    primaryRemedyGraha = PlanetName.Jupiter;
+  } else {
+    primaryRemedyGraha = runningBhuktiPlanet;
+  }
+
+  const remedyRecord = GRAHA_SHASTRA_MATRIX[primaryRemedyGraha] || GRAHA_SHASTRA_MATRIX[PlanetName.Saturn];
+
+  // Localized Labels
+  const lagnaKn = RASHI_LOCALE[lagnaIdx]?.kn || "ಮಿಥುನ";
+  const lagnaEn = RASHI_LOCALE[lagnaIdx]?.en || "Gemini";
+  const moonRashiKn = RASHI_LOCALE[moonSignIdx]?.kn || "ಕನ್ಯಾ";
+  const moonRashiEn = RASHI_LOCALE[moonSignIdx]?.en || "Virgo";
+  const nakKn = NAKSHATRA_NAMES_KN[moonNak.index] || moonNak.sanskrit;
+  const nakEn = moonNak.sanskrit;
+  const runningMahaKn = PLANET_NAMES_KN[runningMahaPlanet] || runningMahaPlanet;
+  const runningMahaEn = runningMahaPlanet;
+  const runningBhuktiKn = PLANET_NAMES_KN[runningBhuktiPlanet] || runningBhuktiPlanet;
+  const runningBhuktiEn = runningBhuktiPlanet;
+
+  const transitBadgeKn = isAshtamaShani
+    ? "⚠️ ತೀವ್ರ ಅಷ್ಟಮ ಶನಿ ಗೋಚಾರ"
+    : isSadeSati
+    ? "⚠️ ಸಕ್ರಿಯ ಸಾಡೇಸಾತಿ ಶನಿ"
+    : isKantakaShani
+    ? "⚠️ ಕಂಟಕ ಶನಿ ಪ್ರಭಾವ"
+    : "✅ ಶುಭ ಶನಿ ಗೋಚಾರ";
+
+  const transitBadgeEn = isAshtamaShani
+    ? "⚠️ Critical Ashtama Shani Transit"
+    : isSadeSati
+    ? "⚠️ Active Sade Sati Saturn Transit"
+    : isKantakaShani
+    ? "⚠️ Kantaka Shani Influence"
+    : "✅ Benefic Saturn Transit";
+
+  // Synthesize Priest Talking Points Script
+  const textKn = `📞 **ದೈವಜ್ಞ ಸಮಾಲೋಚನಾ ಸಾರಾಂಶ (Priest Consultation Call Brief)**
+👤 **ಜಾತಕರ ಹೆಸರು**: ${cleanName} | ಜನನ: ${birthDate} (${birthTime}) | ${city}
+✨ **ಲಗ್ನ**: ${lagnaKn} (${lagnaDeg}°) | **ಚಂದ್ರ ರಾಶಿ**: ${moonRashiKn} | **ಜನ್ಮ ನಕ್ಷತ್ರ**: ${nakKn} (ಪಾದ ${moonPada})
+⏳ **ಪ್ರಸ್ತುತ ಮಹಾದಶಾ**: ${runningMahaKn} | **ಅಂತರ್ದಶಾ**: ${runningBhuktiKn} (ವಯಸ್ಸು: ${nativeAge} ವರ್ಷ)
+🪐 **ಗೋಚಾರ ಸ್ಥಿತಿ**: ${transitBadgeKn} | ${isGuruAfflicted ? "ಗುರು ಗೋಚಾರ ಪರೀಕ್ಷಾ ಕಾಲ" : "ಗುರು ಶುಭ ಗೋಚಾರ"}
+
+---
+### 🔍 ಭಾಗ ೧: ಪ್ರಸ್ತುತ ಜಾತಕರ ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ? (What Is Currently Happening Right Now?)
+1. **ಮಾನಸಿಕ & ಭಾವನಾತ್ಮಕ ಸ್ಥಿತಿ (Mental Peace & Emotional Strain)**:
+   - ${isAshtamaShani || isSadeSati ? "ಕಳೆದ ೬-೮ ತಿಂಗಳುಗಳಿಂದ ಜಾತಕರು ತೀವ್ರ ಮಾನಸಿಕ ಅಶಾಂತಿ, ರಾತ್ರಿ ವೇಳೆ ನಿದ್ರಾಭಂಗ, ಮತ್ತು ಅಜ್ಞಾತ ಭವಿಷ್ಯದ ಭಯವನ್ನು ಎದುರಿಸುತ್ತಿದ್ದಾರೆ. ಪ್ರಾಮಾಣಿಕವಾಗಿ ಪರಿಶ್ರಮಪಟ್ಟರೂ ಕ್ರೆಡಿಟ್ ಸಿಗದೆ ಆಂತರಿಕವಾಗಿ ಬೇಸರಗೊಂಡಿದ್ದಾರೆ." : "ಮಾನಸಿಕವಾಗಿ ಹೊಸ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವ ಉತ್ಸಾಹವಿದೆ, ಆದರೆ ನಿರಂತರ ಕೆಲಸದ ಒತ್ತಡದಿಂದಾಗಿ ಶಕ್ತಿಯ ಕೊರತೆ ಕಾಡುತ್ತಿದೆ."}
+
+2. **ವೃತ್ತಿ & ಆರ್ಥಿಕ ಸ್ಥಿತಿ (Career & Financial Pressures)**:
+   - ಪ್ರಸ್ತುತ ${runningMahaKn}-${runningBhuktiKn} ಕಾಲದಲ್ಲಿ ಆದಾಯದ ಮೂಲಗಳಿದ್ದರೂ, ಅನಿರೀಕ್ಷಿತ ವೆಚ್ಚಗಳಿಂದಾಗಿ ಉಳಿತಾಯ ಕರಗುತ್ತಿದೆ. ಉದ್ಯೋಗದಲ್ಲಿ ಅಥವಾ ವ್ಯಾಪಾರದಲ್ಲಿ ಬದಲಾವಣೆ ಮಾಡುವ ತವಕ ಹೆಚ್ಚಾಗಿದೆ; ಮೇಲಧಿಕಾರಿಗಳು ಅಥವಾ ಪಾಲುದಾರರಿಂದ ತಕ್ಕ ಸಹಕಾರ ಲಭಿಸುತ್ತಿಲ್ಲ.
+
+3. **ಕುಟುಂಬ & ವೈವಾಹಿಕ ಸಾಮರಸ್ಯ (Family & Relationships)**:
+   - ಸಂಭಾಷಣೆಯಲ್ಲಿ ತಪ್ಪು ತಿಳುವಳಿಕೆಗಳು ಉಂಟಾಗುತ್ತಿವೆ. ಸಣ್ಣ ವಿಷಯಗಳಿಗೂ ಮನೆಯಲ್ಲಿ ವಾದ-ವಿವಾದಗಳು ಏರ್ಪಡುತ್ತಿವೆ. ಸಂಗಾತಿ ಅಥವಾ ಕುಟುಂಬದ ಹಿರಿಯರ ಆರೋಗ್ಯದ ಕುರಿತು ಆತಂಕವಿದೆ.
+
+4. **ಆರೋಗ್ಯ & ದೇಹಬಲ (Physical Health & Vitality)**:
+   - ನರಗಳ ದೌರ್ಬಲ್ಯ, ಬೆನ್ನು/ಸೊಂಟದ ನೋವು ಹಾಗೂ ಜೀರ್ಣಾಂಗ ಸಂಬಂಧಿತ ಸಮಸ್ಯೆಗಳ ಬಗ್ಗೆ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ.${dashaSandhiAlert ? `\n- ⚡ **ದಶಾ-ಸಂಧಿ ಎಚ್ಚರಿಕೆ**: ${dashaSandhiAlert.titleKn} - ಜೀವನದ ಪ್ರಮುಖ ಪರಿವರ್ತನಾ ಕಾಲಘಟ್ಟ.` : ""}
+
+---
+### 🎙️ ಭಾಗ ೨: ದೈವಜ್ಞರು ಕರೆಯಲ್ಲಿ ನೇರವಾಗಿ ಏನು ಹೇಳಬೇಕು? (Priest Phone Talking Script)
+*(ನೀವು ಕ್ಲೈಂಟ್‌ಗೆ ಕರೆ ಮಾಡಿದಾಗ ನೇರವಾಗಿ ಈ ಕೆಳಗಿನ ಮಾತುಗಳಿಂದ ಸಮಾಲೋಚನೆ ಆರಂಭಿಸಿ)*:
+
+• **ಆರಂಭಿಕ ಸಾಂತ್ವನದ ನುಡಿ (Warm Opening Script)**:
+  > *"ನಮಸ್ಕಾರ ${cleanName} ಅವರೇ, ನಿಮ್ಮ ಜಾತಕವನ್ನು ಆಳವಾಗಿ ಗಮನಿಸಿದಾಗ, ಕಳೆದ ಕೆಲವು ತಿಂಗಳುಗಳಿಂದ ನೀವು ಅನುಭವಿಸುತ್ತಿರುವ ಆಂತರಿಕ ತುಮುಲ, ವೃತ್ತಿಪರ ಅಸ್ಥಿರತೆ ಮತ್ತು ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಫಲ ಸಿಗದಿರುವ ನಿಜವಾದ ಕಾರಣ ಸ್ಪಷ್ಟವಾಗಿದೆ..."*
+
+• **ಖಚಿತ ಜಾತಕ ಲಕ್ಷಣಗಳು (Direct Predictive Confirmations)**:
+  - *"ನೀವು ಎಷ್ಟೇ ಶ್ರಮವಹಿಸಿದರೂ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಫಲ ಸಿಗಲು ವಿಳಂಬವಾಗುತ್ತಿದೆ ಅಥವಾ ತಡೆ ಉಂಟಾಗುತ್ತಿದೆ."*
+  - *"ಹಣಕಾಸು ಕೈಗೆ ಬಂದರೂ ಉಳಿಯುತ್ತಿಲ್ಲ; ಅನಿರೀಕ್ಷಿತ ವೈದ್ಯಕೀಯ ಅಥವಾ ಕೌಟುಂಬಿಕ ಖರ್ಚುಗಳಿಗೆ ವ್ಯಯವಾಗುತ್ತಿದೆ."*
+  - *"ಆಪ್ತರೇ ನಿಮ್ಮ ಮಾತುಗಳನ್ನು ತಪ್ಪಾಗಿ ಗ್ರಹಿಸುತ್ತಿದ್ದಾರೆ; ಇದರಿಂದ ನಿಮ್ಮ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಪೆಟ್ಟು ಬಿದ್ದಿದೆ."*
+
+• **ಪರಿಹಾರದ ಕಾಲಾವಧಿ & ಆಶಾಕಿರಣ (Relief Timeline)**:
+  - *"ಈ ಸಂಕಷ್ಟ ಶಾಶ್ವತವಲ್ಲ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${runningBhuktiKn} ಅಂತರ್ದಶಾ ಪ್ರಭಾವವು ಮುಗಿಯುತ್ತಿದ್ದಂತೆ, ಮುಂಬರುವ ಗ್ರಹ ಸಂಚಾರದಿಂದ ನಿಮ್ಮ ಕಷ್ಟಗಳು ಶಮನವಾಗಿ, ವೃತ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕತೆಯಲ್ಲಿ ಮಹತ್ವದ ಶುಭ ತಿರುವು ಲಭಿಸಲಿದೆ."*
+
+• **ದೈವಜ್ಞರ ಆಪ್ತ ಮಾರ್ಗದರ್ಶನ (Actionable Counsel & Cautions)**:
+  - *"ಈ ಅವಧಿಯಲ್ಲಿ ಆತುರಪಟ್ಟು ದೊಡ್ಡ ಮೊತ್ತದ ಹಣ ಹೂಡಿಕೆ, ಹೊಸ ಸಾಲ ಅಥವಾ ಉದ್ಯೋಗ ತ್ಯಜಿಸುವ ನಿರ್ಧಾರ ಮಾಡಬೇಡಿ."*
+  - *"ತಾಳ್ಮೆಯಿಂದ ಇರಿ, ಕೋಪದ ಮಾತುಗಳಿಂದ ದೂರವಿರಿ; ಹಿರಿಯರ ಸಲಹೆ ಪಡೆದೇ ಮುನ್ನಡೆಯಿರಿ."*
+
+---
+### 🕉️ ಭಾಗ ೩: ಸೂಚಿಸಬೇಕಾದ ಶಾಂತಿ ಪೂಜೆಗಳು, ಮಂತ್ರ & ಜಪ ಸಂಖ್ಯೆ (Prescribed Remedies & Mantras)
+- 🪐 **ಮುಖ್ಯ ಪರಿಹಾರ ಗ್ರಹ**: ${remedyRecord.name.kn}
+- 📿 **ಶಾಸ್ತ್ರೋಕ್ತ ಬೀಜ ಮಂತ್ರ**: \`${remedyRecord.beejaMantra.kn}\`
+- 🌸 **ವೈದಿಕ ಗಾಯತ್ರಿ ಮಂತ್ರ**: \`${remedyRecord.gayatriMantra.kn}\`
+- 🔢 **ಶಾಸ್ತ್ರೋಕ್ತ ನಿಖರ ಜಪ ಸಂಖ್ಯೆ**: **${remedyRecord.japaCountStr.kn}**
+- 🛕 **ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಾಡಿಸಬೇಕಾದ ಸೇವೆ**: ${remedyRecord.gokarnaRemedy.kn}
+- 💎 **ಧಾರಣೆ ರತ್ನ**: ${remedyRecord.gemstone.kn} (${remedyRecord.metal.kn}ದಲ್ಲಿ ಧಾರಣೆ)
+- 🌾 **ದಾನ ಮಾಡಬೇಕಾದ ವಸ್ತುಗಳು**: ${remedyRecord.danaItems.kn.join(", ")} (${remedyRecord.auspiciousDay.kn})`;
+
+  const textEn = `📞 **Priest Consultation Call Brief (ದೈವಜ್ಞ ಸಮಾಲೋಚನಾ ಸಾರಾಂಶ)**
+👤 **Native Profile**: ${cleanName} | Born: ${birthDate} (${birthTime}) | ${city}
+✨ **Ascendant (Lagna)**: ${lagnaEn} (${lagnaDeg}°) | **Moon Sign**: ${moonRashiEn} | **Nakshatra**: ${nakEn} (Pada ${moonPada})
+⏳ **Running Mahadasha**: ${runningMahaEn} | **Antardasha**: ${runningBhuktiEn} (Current Age: ${nativeAge} yrs)
+🪐 **Live Transit (Gochara)**: ${transitBadgeEn} | ${isGuruAfflicted ? "Testing Jupiter Transit" : "Benefic Jupiter Transit"}
+
+---
+### 🔍 Section 1: What Is Currently Happening In Their Life Right Now?
+1. **Mental State & Emotional Strain**:
+   - ${isAshtamaShani || isSadeSati ? "Over the past 6-8 months, the native has been wrestling with sleeplessness, sudden unexplained anxieties, and feeling isolated despite constant hard work. Recognition is denied at the final hour." : "The native has strong ambitions, but sudden obstacles and mental fatigue are causing delays."}
+
+2. **Career & Financial Pressures**:
+   - Under the active ${runningMahaEn}-${runningBhuktiEn} cycle, capital arrives but rapidly drains into unforeseen emergency expenditures. There is a restless desire to switch jobs or pivot business ventures, but lack of support from seniors or partners is causing frustration.
+
+3. **Family & Domestic Atmosphere**:
+   - Communication gaps are frequent. Small misinterpretations lead to arguments. Concerns over health or emotional wellbeing of parents or spouse persist.
+
+4. **Health & Physical Energy**:
+   - Vulnerabilities in digestion, back/joint aches, and nervous fatigue require conscious care.${dashaSandhiAlert ? `\n- ⚡ **Dasha Sandhi Alert**: ${dashaSandhiAlert.titleEn} - A major karmic life transition.` : ""}
+
+---
+### 🎙️ Section 2: What Exactly to Tell the Client on the Phone Call (Priest Talking Script)
+*(Read these direct points when you dial the client for their consultation)*:
+
+• **Warm Opening Ice-Breaker**:
+  > *"Namaskara ${cleanName}, upon analyzing your Vedic horoscope, the planetary reasons behind the intense stress, career uncertainties, and restless nights you have faced over recent months are very clear..."*
+
+• **Direct Predictive Confirmations**:
+  - *"No matter how hard you labor, the final reward is repeatedly delayed or credit is claimed by others."*
+  - *"Funds come in, but unforeseen obligations prevent solid capital accumulation."*
+  - *"Even close colleagues or family members misread your good intentions, leaving you feeling hurt."*
+
+• **Timeline to Relief & Hope**:
+  - *"This hardship is purely temporary. As the current ${runningBhuktiEn} Antardasha transitions, favorable planetary rays will take over and bring tangible peace and career stability."*
+
+• **Astrologer's Crucial Cautions**:
+  - *"Do not make impulsive job resignations or large speculative investments right now."*
+  - *"Keep cool in interpersonal discussions and consult elders before signing contracts."*
+
+---
+### 🕉️ Section 3: Prescribed Remedies, Mantras & Japa Count
+- 🪐 **Primary Remedial Graha**: ${remedyRecord.name.en}
+- 📿 **Authentic Beeja Mantra**: \`${remedyRecord.beejaMantra.en}\`
+- 🌸 **Vedic Gayatri Mantra**: \`${remedyRecord.gayatriMantra.en}\`
+- 🔢 **Classical Japa Count**: **${remedyRecord.japaCountStr.en}**
+- 🛕 **Prescribed Gokarna Kshetra Ritual**: ${remedyRecord.gokarnaRemedy.en}
+- 💎 **Recommended Gemstone**: ${remedyRecord.gemstone.en} set in ${remedyRecord.metal.en}
+- 🌾 **Charity (Dāna)**: Donate ${remedyRecord.danaItems.en.join(", ")} on ${remedyRecord.auspiciousDay.en}`;
+
+  const spokenKn = `ಸ್ವಾಮಿ, ${cleanName} ಅವರ ದೈವಜ್ಞ ಸಮಾಲೋಚನಾ ಸಾರಾಂಶ ಸಿದ್ಧವಾಗಿದೆ. ಪ್ರಸ್ತುತ ${runningMahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${runningBhuktiKn} ಅಂತರ್ದಶಾ ಮತ್ತು ${transitBadgeKn} ನಡೆಯುತ್ತಿದೆ. ಕರೆಯಲ್ಲಿ ನೇರವಾಗಿ ಹೇಳಬೇಕಾದ ಭವಿಷ್ಯದ ಮಾತುಗಳು, ಶಾಸ್ತ್ರೋಕ್ತ ಬೀಜ ಮಂತ್ರ ಹಾಗೂ ${remedyRecord.japaCountStr.kn} ಜಪ ಸಂಖ್ಯೆಯನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ.`;
+  const spokenEn = `Swami, the Priest consultation call brief for ${cleanName} is ready. Running ${runningMahaEn} Mahadasha with ${runningBhuktiEn} Antardasha and ${transitBadgeEn}. Your phone consultation script, current life status, and exact mantra japa counts are ready.`;
+
+  return {
+    text: {
+      kn: textKn,
+      en: textEn,
+      hi: textEn,
+      te: textEn,
+      ta: textEn
+    },
+    spokenText: {
+      kn: spokenKn,
+      en: spokenEn,
+      hi: spokenEn,
+      te: spokenEn,
+      ta: spokenEn
+    },
+    emotion: "speaking",
+    category: "kundli",
+    actions: [
+      {
+        id: "open_kundli",
+        label: {
+          kn: "🪐 ಜಾತಕ ಪುಟ (View Kundli)",
+          en: "🪐 View Full Kundli Chart",
+          hi: "🪐 कुण्डली चार्ट देखें",
+          te: "🪐 జాతక చక్రం చూడండి",
+          ta: "🪐 ஜாதக சக்கரம் பார்க்க"
+        },
+        icon: "🪐",
+        targetPage: "kundli",
+        actionType: "navigate"
+      },
+      {
+        id: "open_seva",
+        label: {
+          kn: "🪔 ಗೋಕರ್ಣ ಸೇವಾ ಪತ್ರ (Book Seva)",
+          en: "🪔 Book Gokarna Seva",
+          hi: "🪔 गोकर्ण सेवा बुक करें",
+          te: "🪔 గోకర్ణ సేవా బుక్ చేయండి",
+          ta: "🪔 கோகர்ண சேவா பதிவு"
+        },
+        icon: "🪔",
+        targetPage: "seva",
+        actionType: "navigate"
+      },
+      {
+        id: "open_book",
+        label: {
+          kn: "📖 ೧೦೪ ಪುಟ ಪಂಚಾಂಗ ಪುಸ್ತಕ",
+          en: "📖 104-Page Annual Book",
+          hi: "📖 १०४ पृष्ठ पंचांग पुस्तक",
+          te: "📖 104 పేజీల పంచాంగం",
+          ta: "📖 104 பக்க பஞ்சாங்கம்"
+        },
+        icon: "📖",
+        targetPage: "baggona",
+        actionType: "navigate"
+      }
+    ]
+  };
+}
+
+// =========================================================================
+// HANDLER 0B: EXPERT JYOTISHYA SHASTRA TEACHING & GURUKULA KNOWLEDGE ENGINE
+// =========================================================================
+async function handleJyotishyaTeachingIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const query = rawQuery.trim().toLowerCase();
+
+  // 1. CHECK SPECIFIC GRAHA INQUIRY (Uccha / Neecha / Mantra / Karakatwa)
+  const matchedGraha = lookupGrahaByName(query);
+  const isUcchaNeechaQuery =
+    query.includes("uccha") ||
+    query.includes("neecha") ||
+    query.includes("exalt") ||
+    query.includes("debilitat") ||
+    query.includes("ಉಚ್ಚ") ||
+    query.includes("ನೀಚ") ||
+    query.includes("neechabhanga") ||
+    query.includes("ನೀಚಭಂಗ");
+
+  const isMantraQuery =
+    query.includes("mantra") ||
+    query.includes("japa count") ||
+    query.includes("ಮಂತ್ರ") ||
+    query.includes("ಜಪ ಸಂಖ್ಯೆ") ||
+    query.includes("ಬೀಜ ಮಂತ್ರ") ||
+    query.includes("beeja");
+
+  // A. SPECIFIC GRAHA UCCHA / NEECHA / MANTRA
+  if (matchedGraha && (isUcchaNeechaQuery || isMantraQuery || query.includes("about") || query.includes("ಬಗ್ಗೆ"))) {
+    const g = matchedGraha;
+    const toKnNum = (n: number) => n.toString().replace(/0/g, "೦").replace(/1/g, "೧").replace(/2/g, "೨").replace(/3/g, "೩").replace(/4/g, "೪").replace(/5/g, "೫").replace(/6/g, "೬").replace(/7/g, "೭").replace(/8/g, "೮").replace(/9/g, "೯");
+    const ucchaDegStr = `${g.ucchaDeepDegree}° (${toKnNum(g.ucchaDeepDegree)}°)`;
+    const neechaDegStr = `${g.neechaDeepDegree}° (${toKnNum(g.neechaDeepDegree)}°)`;
+
+    const textKn = `🪐 **ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರ ಬೋಧನೆ: ${g.name.kn}**
+
+✨ **ಉಚ್ಚ & ನೀಚ ಸ್ಥಾನಗಳು (Dignities & Degrees)**:
+- **ಉಚ್ಚ ರಾಶಿ (Exaltation)**: ${g.ucchaSignName.kn} (ಪರಮೋಚ್ಚ ಅಂಶ: ${ucchaDegStr})
+- **ನೀಚ ರಾಶಿ (Debilitation)**: ${g.neechaSignName.kn} (ಪರಮ ನೀಚ ಅಂಶ: ${neechaDegStr})
+- **ಮೂಲತ್ರಿಕೋಣ (Moolatrikona)**: ${g.moolatrikona.signName.kn} (${g.moolatrikona.span})
+- **ಸ್ವಕ್ಷೇತ್ರ (Own Signs)**: ${g.swakshetraNames.kn.join(", ")}
+- **ಅಧಿದೇವತೆ (Vedic Deity)**: ${g.deity.kn}
+
+👑 **ಮುಖ್ಯ ಕಾರಕತ್ವಗಳು (Significations)**:
+${g.karakatwa.kn.map((k) => `• ${k}`).join("\n")}
+
+📿 **ವೈದಿಕ ಮಂತ್ರ & ಶಾಸ್ತ್ರೋಕ್ತ ಜಪ ಸಂಖ್ಯೆ (Mantra & Japa Count)**:
+- **ಬೀಜ ಮಂತ್ರ**: \`${g.beejaMantra.kn}\`
+- **ಗಾಯತ್ರಿ ಮಂತ್ರ**: \`${g.gayatriMantra.kn}\`
+- **ಶಾಸ್ತ್ರೋಕ್ತ ನಿಖರ ಜಪ ಸಂಖ್ಯೆ**: **${g.japaCountStr.kn}**
+- **ರತ್ನ & ಲೋಹ**: ${g.gemstone.kn} | ${g.metal.kn}
+- **ದಾನ ದ್ರವ್ಯಗಳು**: ${g.danaItems.kn.join(", ")} (${g.auspiciousDay.kn})
+- **ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪರಿಹಾರ**: ${g.gokarnaRemedy.kn}
+
+---
+💡 **ನೀಚಭಂಗ ರಾಜಯೋಗ ಶಾಸ್ತ್ರ**:
+ಒಂದು ವೇಳೆ ${g.name.kn} ಜಾತಕದಲ್ಲಿ ನೀಚ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದರೂ, ಅದರ ರಾಶ್ಯಾಧಿಪತಿಯು ಲಗ್ನ/ಚಂದ್ರನಿಂದ ಕೇಂದ್ರದಲ್ಲಿದ್ದರೆ (೧, ೪, ೭, ೧೦) ನೀಚತ್ವ ರದ್ದಾಗಿ, ಅತ್ಯುನ್ನತ ರಾಜಯೋಗವನ್ನು ಕರುಣಿಸುತ್ತದೆ!`;
+
+    const textEn = `🪐 **Vedic Jyotishya Gurukula: ${g.name.en}**
+
+✨ **Exaltation & Debilitation Degrees**:
+- **Exaltation Sign (Uccha)**: ${g.ucchaSignName.en} [${g.ucchaSignName.en.split(" ")[0]} ${g.ucchaDeepDegree}°] (Deep Exaltation: ${g.ucchaDeepDegree}°)
+- **Debilitation Sign (Neecha)**: ${g.neechaSignName.en} [${g.neechaSignName.en.split(" ")[0]} ${g.neechaDeepDegree}°] (Deep Debilitation: ${g.neechaDeepDegree}°)
+- **Moolatrikona**: ${g.moolatrikona.signName.en} (${g.moolatrikona.span})
+- **Own Signs (Swakshetra)**: ${g.swakshetraNames.en.join(", ")}
+- **Presiding Deity**: ${g.deity.en}
+
+👑 **Primary Karakatwas (Significations)**:
+${g.karakatwa.en.map((k) => `• ${k}`).join("\n")}
+
+📿 **Authentic Mantras & Classical Japa Count**:
+- **Beeja Mantra**: \`${g.beejaMantra.en}\`
+- **Gayatri Mantra**: \`${g.gayatriMantra.en}\`
+- **Authentic Japa Count**: **${g.japaCountStr.en}**
+- **Gemstone & Metal**: ${g.gemstone.en} set in ${g.metal.en}
+- **Charity (Dāna)**: ${g.danaItems.en.join(", ")} on ${g.auspiciousDay.en}
+- **Gokarna Temple Shanti**: ${g.gokarnaRemedy.en}
+
+---
+💡 **Neechabhanga Raja Yoga Note**:
+If ${g.name.en} is debilitated in a birth chart, but its sign lord occupies a Kendra (1, 4, 7, 10) from Lagna or Moon, the debilitation is cancelled, converting it into a potent Raja Yoga!`;
+
+    const spokenKn = `ಸ್ವಾಮಿ, ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ${g.name.kn} ಗ್ರಹವು ${g.ucchaSignName.kn} ರಾಶಿಯಲ್ಲಿ ${g.ucchaDeepDegree} ಡಿಗ್ರಿಯಲ್ಲಿ ಉಚ್ಚವಾಗುತ್ತದೆ ಮತ್ತು ${g.neechaSignName.kn} ರಾಶಿಯಲ್ಲಿ ನೀಚವಾಗುತ್ತದೆ. ಇದರ ಜಪ ಸಂಖ್ಯೆ ${g.japaCountStr.kn}.`;
+    const spokenEn = `Swami, in classical Vedic Astrology, ${g.name.en} gets exalted in ${g.ucchaSignName.en} at ${g.ucchaDeepDegree} degrees and debilitated in ${g.neechaSignName.en}. Its classical japa count is ${g.japaCountStr.en}.`;
+
+    return {
+      text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+      spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+      emotion: "peaceful",
+      category: "admin",
+      actions: [
+        {
+          id: "open_kundli",
+          label: { kn: "🪐 ಜಾತಕ ರಚನೆಗೆ ಹೋಗಿ", en: "🪐 Go to Kundli Page", hi: "🪐 कुण्डली पेज", te: "🪐 జాతక పేజీ", ta: "🪐 ஜாதக பக்கம்" },
+          icon: "🪐",
+          targetPage: "kundli",
+          actionType: "navigate"
+        },
+        {
+          id: "open_doshas",
+          label: { kn: "🛡️ ದೋಷ ವಿಶ್ಲೇಷಣಾ ಕೇಂದ್ರ", en: "🛡️ Doshas Center", hi: "🛡️ दोष केंद्र", te: "🛡️ దోషాల కేంద్రం", ta: "🛡️ தோஷ மையம்" },
+          icon: "🛡️",
+          targetPage: "doshas",
+          actionType: "navigate"
+        }
+      ]
+    };
+  }
+
+  // B. GENERAL UCCHA & NEECHA TABLE / NEECHABHANGA RULES
+  if (isUcchaNeechaQuery) {
+    const tableKn = `🌟 **ಸಮಗ್ರ ನವಗ್ರಹಗಳ ಉಚ್ಚ, ನೀಚ & ಮೂಲತ್ರಿಕೋಣ ಕೋಷ್ಟಕ (Planetary Dignities)**
+
+| ಗ್ರಹ (Planet) | ಉಚ್ಚ ರಾಶಿ & ಪರಮೋಚ್ಚ ಅಂಶ | ನೀಚ ರಾಶಿ & ಪರಮ ನೀಚ ಅಂಶ | ಮೂಲತ್ರಿಕೋಣ ರಾಶಿ |
+| :--- | :--- | :--- | :--- |
+| **ಸೂರ್ಯ (Sun)** | ಮೇಷ ೧೦° (Mesha 10°) | ತುಲಾ ೧೦° (Tula 10°) | ಸಿಂಹ (0°-20°) |
+| **ಚಂದ್ರ (Moon)** | ವೃಷಭ ೩° (Vrishabha 3°) | ವೃಶ್ಚಿಕ ೩° (Vrischika 3°) | ವೃಷಭ (3°-30°) |
+| **ಕುಜ (Mars)** | ಮಕರ ೨೮° (Makara 28°) | ಕರ್ಕಾಟಕ ೨೮° (Karka 28°) | ಮೇಷ (0°-12°) |
+| **ಬುಧ (Mercury)** | ಕನ್ಯಾ ೧೫° (Kanya 15°) | ಮೀನ ೧೫° (Meena 15°) | ಕನ್ಯಾ (15°-20°) |
+| **ಗುರು (Jupiter)** | ಕರ್ಕಾಟಕ ೫° (Karka 5°) | ಮಕರ ೫° (Makara 5°) | ಧನುಸ್ಸು (0°-10°) |
+| **ಶುಕ್ರ (Venus)** | ಮೀನ ೨೭° (Meena 27°) | ಕನ್ಯಾ ೨೭° (Kanya 27°) | ತುಲಾ (0°-15°) |
+| **ಶನಿ (Saturn)** | ತುಲಾ ೨೦° (Tula 20°) | ಮೇಷ ೨೦° (Mesha 20°) | ಕುಂಭ (0°-20°) |
+| **ರಾಹು (Rahu)** | ವೃಷಭ / ಮಿಥುನ ೧೫° | ವೃಶ್ಚಿಕ / ಧನುಸ್ಸು ೧೫° | ಕುಂಭ |
+| **ಕೇತು (Ketu)** | ವೃಶ್ಚಿಕ / ಧನುಸ್ಸು ೧೫° | ವೃಷಭ / ಮಿಥುನ ೧೫° | ಮೀನ |
+
+---
+👑 **ನೀಚಭಂಗ ರಾಜಯೋಗದ ೫ ಶಾಸ್ತ್ರೋಕ್ತ ನಿಯಮಗಳು (Cancellation of Debilitation)**:
+1. **ರಾಶ್ಯಾಧಿಪತಿ ಕೇಂದ್ರ ಸ್ಥಿತಿ**: ನೀಚ ಗ್ರಹವಿರುವ ರಾಶಿಯ ಅಧಿಪತಿಯು ಲಗ್ನದಿಂದ ಅಥವಾ ಚಂದ್ರನಿಂದ ಕೇಂದ್ರದಲ್ಲಿದ್ದರೆ (೧, ೪, ೭, ೧೦).
+2. **ಉಚ್ಚ ರಾಶ್ಯಾಧಿಪತಿ ಕೇಂದ್ರ ಸ್ಥಿತಿ**: ನೀಚ ಗ್ರಹವು ಯಾವ ರಾಶಿಯಲ್ಲಿ ಉಚ್ಚವಾಗುತ್ತದೆಯೋ, ಆ ರಾಶಿಯ ಅಧಿಪತಿಯು ಕೇಂದ್ರದಲ್ಲಿದ್ದರೆ.
+3. **ಸ್ವಕ್ಷೇತ್ರ ದೃಷ್ಟಿ / ಯುತಿ**: ನೀಚ ಗ್ರಹವನ್ನು ಅದೇ ರಾಶಿಯ ಅಧಿಪತಿಯು ದೃಷ್ಟಿಸಿದರೆ ಅಥವಾ ಯುತಿಯಾಗಿದ್ದರೆ.
+4. **ಉಚ್ಚ ನವಾಂಶ / ವರ್ಗೋತ್ತಮ**: ನೀಚ ಗ್ರಹವು ನವಾಂಶ ಕುಂಡಲಿಯಲ್ಲಿ (D9) ಉಚ್ಚ ರಾಶಿಯಲ್ಲಿದ್ದರೆ.
+5. **ಪರಸ್ಪರ ನೀಚ ದೃಷ್ಟಿ**: ಎರಡು ನೀಚ ಗ್ರಹಗಳು ಪರಸ್ಪರ ಮುಖಾಮುಖಿ ದೃಷ್ಟಿ ಹೊಂದಿದ್ದರೆ.`;
+
+    const tableEn = `🌟 **Complete Vedic Planetary Exaltation, Debilitation & Dignities Table**
+
+| Planet | Exaltation (Uccha) & Deep Deg | Debilitation (Neecha) & Deep Deg | Moolatrikona |
+| :--- | :--- | :--- | :--- |
+| **Sun (Surya)** | Aries 10° (Mesha) | Libra 10° (Tula) | Leo (0°-20°) |
+| **Moon (Chandra)** | Taurus 3° (Vrishabha) | Scorpio 3° (Vrischika) | Taurus (3°-30°) |
+| **Mars (Mangala)** | Capricorn 28° (Makara) | Cancer 28° (Karka) | Aries (0°-12°) |
+| **Mercury (Budha)** | Virgo 15° (Kanya) | Pisces 15° (Meena) | Virgo (15°-20°) |
+| **Jupiter (Guru)** | Cancer 5° (Karka) | Capricorn 5° (Makara) | Sagittarius (0°-10°) |
+| **Venus (Shukra)** | Pisces 27° (Meena) | Virgo 27° (Kanya) | Libra (0°-15°) |
+| **Saturn (Shani)** | Libra 20° (Tula) | Aries 20° (Mesha) | Aquarius (0°-20°) |
+| **Rahu** | Taurus / Gemini 15° | Scorpio / Sagittarius 15° | Aquarius |
+| **Ketu** | Scorpio / Sagittarius 15° | Taurus / Gemini 15° | Pisces |
+
+---
+👑 **5 Golden Rules of Neechabhanga Raja Yoga (BPHS & Phaladeepika)**:
+1. The lord of the sign occupied by the debilitated planet is in Kendra (1, 4, 7, 10) from Lagna or Moon.
+2. The planet that gets exalted in the sign occupied by the debilitated planet is in Kendra from Lagna or Moon.
+3. The debilitated planet is conjunct or aspected by its own sign lord.
+4. The debilitated planet attains an Exalted Navamsha (D9) or Vargottama dignity.
+5. Two debilitated planets mutually aspect each other directly.`;
+
+    const spokenKn = `ಸ್ವಾಮಿ, ಸೂರ್ಯನು ಮೇಷದಲ್ಲಿ, ಚಂದ್ರನು ವೃಷಭದಲ್ಲಿ, ಕುಜನು ಮಕರದಲ್ಲಿ, ಬುಧನು ಕನ್ಯೆಯಲ್ಲಿ, ಗುರುವು ಕರ್ಕಾಟಕದಲ್ಲಿ, ಶುಕ್ರನು ಮೀನದಲ್ಲಿ ಮತ್ತು ಶನಿಯು ತುಲಾದಲ್ಲಿ ಉಚ್ಚರಾಗುತ್ತಾರೆ. ಸಂಪೂರ್ಣ ಕೋಷ್ಟಕ ಹಾಗೂ ನೀಚಭಂಗ ನಿಯಮಗಳು ಸಿದ್ಧವಾಗಿವೆ.`;
+    const spokenEn = `Swami, Sun is exalted in Aries, Moon in Taurus, Mars in Capricorn, Mercury in Virgo, Jupiter in Cancer, Venus in Pisces, and Saturn in Libra. The complete table and Neechabhanga Raja Yoga rules are presented.`;
+
+    return {
+      text: { kn: tableKn, en: tableEn, hi: tableEn, te: tableEn, ta: tableEn },
+      spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+      emotion: "speaking",
+      category: "admin",
+      actions: [
+        {
+          id: "open_kundli",
+          label: { kn: "🪐 ಜಾತಕ ರಚನೆಗೆ ಹೋಗಿ", en: "🪐 Go to Kundli Page", hi: "🪐 कुण्डली पेज", te: "🪐 జాతక పేజీ", ta: "🪐 ஜாதக பக்கம்" },
+          icon: "🪐",
+          targetPage: "kundli",
+          actionType: "navigate"
+        }
+      ]
+    };
+  }
+
+  // C. NAKSHATRAS & GANDA MOOLA
+  const matchedNak = lookupNakshatraByName(query);
+  const isGandaMoolaQuery = query.includes("ganda moola") || query.includes("ಗಂಡಮೂಲ") || query.includes("gandanta") || query.includes("ಗಂಡಾಂತ");
+
+  if (matchedNak || isGandaMoolaQuery || query.includes("nakshatra") || query.includes("ನಕ್ಷತ್ರ")) {
+    if (matchedNak) {
+      const n = matchedNak;
+      const textKn = `✨ **ನಕ್ಷತ್ರ ಶಾಸ್ತ್ರ ಬೋಧನೆ: ${n.name.kn} ನಕ್ಷತ್ರ (${n.name.en})**
+- **ಅಧಿಪತಿ (Ruling Graha)**: ${n.lordName.kn} (${n.lord})
+- **ರಾಶಿ ವಿಸ್ತಾರ (Rashi Span)**: ${n.rashiSpans.kn}
+- **ಅಧಿದೇವತೆ (Presiding Deity)**: ${n.deity.kn}
+- **ಗಣ (Gana)**: ${n.ganaKn} ಗಣ (${n.gana})
+- **ಪ್ರಾಣಿ ಯೋನಿ (Animal Yoni)**: ${n.animalYoni.kn}
+- **ಮುಹೂರ್ತ ಸ್ವಭಾವ**: ${n.muhurthaQuality.kn}
+- **ಗಂಡಮೂಲ ಸ್ಥಿತಿ**: ${n.isGandaMoola ? "⚠️ ಹೌದು - ಗಂಡಮೂಲ ನಕ್ಷತ್ರ! " + (n.gandantaDescription?.kn || "") : "✅ ಶುಭ ನಕ್ಷತ್ರ (ಗಂಡಮೂಲ ದೋಷವಿಲ್ಲ)"}`;
+
+      const textEn = `✨ **Nakshatra Shastra: ${n.name.en} (${n.name.sa})**
+- **Ruling Planet (Lord)**: ${n.lordName.en} (${n.lord})
+- **Zodiac Span**: ${n.rashiSpans.en}
+- **Presiding Deity**: ${n.deity.en}
+- **Gana**: ${n.gana} Gana
+- **Animal Yoni**: ${n.animalYoni.en}
+- **Muhurtha Quality**: ${n.muhurthaQuality.en}
+- **Ganda Moola Status**: ${n.isGandaMoola ? "⚠️ Ganda Moola Nakshatra! " + (n.gandantaDescription?.en || "") : "✅ Benefic Star (No Gandanta affliction)"}`;
+
+      const spokenKn = `ಸ್ವಾಮಿ, ${n.name.kn} ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ${n.lordName.kn} ಮತ್ತು ಅಧಿದೇವತೆ ${n.deity.kn}. ಇದು ${n.ganaKn} ಗಣಕ್ಕೆ ಸೇರಿದೆ.`;
+      const spokenEn = `Swami, ${n.name.en} Nakshatra is ruled by ${n.lordName.en} and its presiding deity is ${n.deity.en}. It belongs to ${n.gana} Gana.`;
+
+      return {
+        text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+        spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+        emotion: "peaceful",
+        category: "admin",
+        actions: [{ id: "open_kundli", label: { kn: "🪐 ಜಾತಕ ರಚನೆಗೆ ಹೋಗಿ", en: "🪐 View Kundli", hi: "🪐 कुण्डली", te: "🪐 జాతకం", ta: "🪐 ஜாதகம்" }, icon: "🪐", targetPage: "kundli", actionType: "navigate" }]
+      };
+    }
+
+    // General Ganda Moola
+    if (isGandaMoolaQuery) {
+      const textKn = `⚠️ **ಗಂಡಮೂಲ ನಕ್ಷತ್ರಗಳ ರಹಸ್ಯ & ಶಾಂತಿ ಪರಿಹಾರ (Ganda Moola Shastra)**
+
+ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಜಲ ರಾಶಿ ಮತ್ತು ಅಗ್ನಿ ರಾಶಿಗಳು ಸಂಧಿಸುವ ೩ ಜಂಕ್ಷನ್‌ಗಳನ್ನು **ಗಂಡಾಂತ ಸಂಧಿ (Trik-Sandhi)** ಎನ್ನಲಾಗುತ್ತದೆ. ಈ ಸಂಧಿಗಳಲ್ಲಿ ಬರುವ ೬ ನಕ್ಷತ್ರಗಳನ್ನು **ಗಂಡಮೂಲ ನಕ್ಷತ್ರಗಳು** ಎನ್ನುತ್ತಾರೆ:
+
+1. **ಅಶ್ವಿನಿ (Ashwini - 1st Pada)**: ಮೇಷ ರಾಶಿಯ ಆರಂಭ (ಕೇತು ಅಧಿಪತಿ)
+2. **ಆಶ್ಲೇಷಾ (Ashlesha - 4th Pada)**: ಕರ್ಕಾಟಕ ರಾಶಿಯ ಅಂತ್ಯ (ಬುಧ ಅಧಿಪತಿ)
+3. **ಮಘಾ (Magha - 1st Pada)**: ಸಿಂಹ ರಾಶಿಯ ಆರಂಭ (ಕೇತು ಅಧಿಪತಿ)
+4. **ಜ್ಯೇಷ್ಠಾ (Jyeshtha - 4th Pada)**: ವೃಶ್ಚಿಕ ರಾಶಿಯ ಅಂತ್ಯ (ಬುಧ ಅಧಿಪತಿ)
+5. **ಮೂಲಾ (Moola - 1st Pada)**: ಧನುಸ್ಸು ರಾಶಿಯ ಆರಂಭ (ಕೇತು ಅಧಿಪತಿ)
+6. **ರೇವತಿ (Revati - 4th Pada)**: ಮೀನ ರಾಶಿಯ ಅಂತ್ಯ (ಬುಧ ಅಧಿಪತಿ)
+
+---
+🛕 **ಶಾಸ್ತ್ರೋಕ್ತ ಶಾಂತಿ ಪರಿಹಾರಗಳು (Gokarna Parihara)**:
+- ಜನನವಾದ ೨೭ ದಿನಗಳ ಒಳಗೆ ಅಥವಾ ಅದೇ ನಕ್ಷತ್ರ ಪುನಃ ಬಂದಾಗ **ಗಂಡಮೂಲ ಶಾಂತಿ ಹೋಮ** ಮಾಡಿಸಬೇಕು.
+- ೨೭ ತೀರ್ಥಗಳ ಪವಿತ್ರ ಜಲ ಸ್ನಾನ, ಗೋ ದಾನ, ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ನೆರವೇರಿಸುವುದು ಸಕಲ ಅನಿಷ್ಟಗಳನ್ನು ನಿವಾರಿಸುತ್ತದೆ.`;
+
+      const textEn = `⚠️ **Ganda Moola Nakshatras & Gandanta Remedies (Vedic Shastra)**
+
+In Vedic astrology, the three junctions where Water signs meet Fire signs are known as **Gandanta Sandhis (Cosmic Karmic Knots)**. The 6 Nakshatras encompassing these boundaries are called **Ganda Moola Nakshatras**:
+
+1. **Ashwini (1st Pada)**: Beginning of Aries (Ketu)
+2. **Ashlesha (4th Pada)**: End of Cancer (Mercury)
+3. **Magha (1st Pada)**: Beginning of Leo (Ketu)
+4. **Jyeshtha (4th Pada)**: End of Scorpio (Mercury)
+5. **Moola (1st Pada)**: Beginning of Sagittarius (Ketu)
+6. **Revati (4th Pada)**: End of Pisces (Mercury)
+
+---
+🛕 **Prescribed Vedic Remedies (Gokarna Parihara)**:
+- Perform **Ganda Moola Shanti Homa** within 27 days of birth or on the next return of the birth star.
+- 27-water sacred Kalasha Snana, Go-Dāna (Cow charity), and Rudrabhisheka at Gokarna Mahabaleshwara temple neutralize the dosha completely.`;
+
+      const spokenKn = `ಸ್ವಾಮಿ, ಗಂಡಮೂಲ ನಕ್ಷತ್ರಗಳು ಅಶ್ವಿನಿ, ಆಶ್ಲೇಷಾ, ಮಘಾ, ಜ್ಯೇಷ್ಠಾ, ಮೂಲಾ ಮತ್ತು ರೇವತಿ. ಇವು ಜಲ ಮತ್ತು ಅಗ್ನಿ ರಾಶಿಗಳ ಸಂಧಿಯಲ್ಲಿ ಬರುತ್ತವೆ. ಜನನ ಶಾಂತಿಗಾಗಿ ಗೋಕರ್ಣದಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗಂಡಮೂಲ ಹೋಮ ಮಾಡಿಸುವುದು ಶಾಸ್ತ್ರ ಸಮ್ಮತ.`;
+      const spokenEn = `Swami, the six Ganda Moola nakshatras are Ashwini, Ashlesha, Magha, Jyeshtha, Moola, and Revati. They fall at the critical water-fire zodiac junctions and require Gandanta Shanti.`;
+
+      return {
+        text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+        spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+        emotion: "alert",
+        category: "admin",
+        actions: [{ id: "open_doshas", label: { kn: "🛡️ ದೋಷ ವಿಭಾಗ ತೆರೆಯಿರಿ", en: "🛡️ Open Doshas Center", hi: "🛡️ दोष केंद्र", te: "🛡️ దోషాల కేంద్రం", ta: "🛡️ தோஷ மையம்" }, icon: "🛡️", targetPage: "doshas", actionType: "navigate" }]
+      };
+    }
+  }
+
+  // D. 12 BHAVAS (HOUSES) & HOUSE CLASSIFICATIONS
+  const matchedBhava = lookupBhavaByNumberOrTerm(query);
+  const isKendraTrikonaQuery = query.includes("kendra") || query.includes("trikona") || query.includes("dusthana") || query.includes("upachaya") || query.includes("maraka") || query.includes("ಕೇಂದ್ರ") || query.includes("ತ್ರಿಕೋನ") || query.includes("ದುಸ್ಥಾನ") || query.includes("ಉಪಚಯ") || query.includes("ಮಾರಕ");
+
+  if (matchedBhava || isKendraTrikonaQuery) {
+    if (matchedBhava) {
+      const b = matchedBhava;
+      const textKn = `🏛️ **ಭಾವ ಶಾಸ್ತ್ರ ಬೋಧನೆ: ${b.name.kn}**
+- **ಸಂಸ್ಕೃತ ನಾಮ**: ${b.sanskritName}
+- **ಭಾವ ವರ್ಗೀಕರಣ**: ${b.classification.kn}
+- **ದೇಹದ ಅಂಗಗಳು**: ${b.bodyParts.kn}
+- **ನೈಸರ್ಗಿಕ ಕಾರಕ ಗ್ರಹ**: ${PLANET_NAMES_KN[b.keySignificator] || b.keySignificator}
+
+📖 **ಪ್ರಮುಖ ಕಾರಕತ್ವಗಳು (Significations)**:
+${b.karakatwas.kn.map((k) => `• ${k}`).join("\n")}`;
+
+      const textEn = `🏛️ **Bhava Shastra: ${b.name.en}**
+- **Sanskrit Title**: ${b.sanskritName}
+- **Classification**: ${b.classification.en}
+- **Governed Bodily Anatomy**: ${b.bodyParts.en}
+- **Natural Significator (Karaka)**: ${b.keySignificator}
+
+📖 **Primary Significations (Karakatwas)**:
+${b.karakatwas.en.map((k) => `• ${k}`).join("\n")}`;
+
+      const spokenKn = `ಸ್ವಾಮಿ, ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ${b.name.kn}ಯು ${b.classification.kn} ಆಗಿದೆ. ಇದರ ನೈಸರ್ಗಿಕ ಕಾರಕ ಗ್ರಹ ${PLANET_NAMES_KN[b.keySignificator] || b.keySignificator}.`;
+      const spokenEn = `Swami, ${b.name.en} is classified as ${b.classification.en} and its natural karaka is ${b.keySignificator}.`;
+
+      return {
+        text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+        spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+        emotion: "peaceful",
+        category: "admin",
+        actions: [{ id: "open_predictions", label: { kn: "📜 ಭಾವ ಭವಿಷ್ಯ ನೋಡಿ", en: "📜 View Bhava Predictions", hi: "📜 भाव फल", te: "📜 భావ ఫలాలు", ta: "📜 பாவ பலன்கள்" }, icon: "📜", targetPage: "predictions", actionType: "navigate" }]
+      };
+    }
+
+    // General Kendra, Trikona, Dusthana, Upachaya, Maraka
+    const textKn = `🏛️ **೧೨ ಭಾವಗಳ ಶಾಸ್ತ್ರೀಯ ವರ್ಗೀಕರಣ (House Classifications)**
+
+1. **ಕೇಂದ್ರ ಸ್ಥಾನಗಳು (Kendra Houses - 1, 4, 7, 10)**:
+   - ಇವು ಜಾತಕದ ನಾಲ್ಕು ಮಹಾ ಸ್ತಂಭಗಳು (ವಿಷ್ಣು ಸ್ಥಾನಗಳು). ಶಕ್ತಿ, ಸುಖ, ವೈವಾಹಿಕ ಸೌಖ್ಯ ಮತ್ತು ಸಾರ್ವಜನಿಕ ಯಶಸ್ಸನ್ನು ನಿಯಂತ್ರಿಸುತ್ತವೆ.
+2. **ತ್ರಿಕೋನ ಸ್ಥಾನಗಳು (Trikona Houses - 1, 5, 9)**:
+   - ಅತ್ಯಂತ ಪವಿತ್ರ ಲಕ್ಷ್ಮೀ ಸ್ಥಾನಗಳು. ಧರ್ಮ, ಪೂರ್ವಪುಣ್ಯ, ಬುದ್ಧಿ ಮತ್ತು ಅಖಂಡ ಭಾಗ್ಯೋದಯವನ್ನು ಕರುಣಿಸುತ್ತವೆ.
+3. **ದುಸ್ಥಾನಗಳು (Dusthana Houses - 6, 8, 12)**:
+   - ಪರೀಕ್ಷೆಯ ಸ್ಥಾನಗಳು. ರೋಗ, ಸಾಲ, ಶತ್ರುಗಳು, ಅನಿರೀಕ್ಷಿತ ಆಘಾತಗಳು, ಖರ್ಚು ಮತ್ತು ಮೋಕ್ಷವನ್ನು ಸೂಚಿಸುತ್ತವೆ.
+4. **ಉಪಚಯ ಸ್ಥಾನಗಳು (Upachaya Houses - 3, 6, 10, 11)**:
+   - ವಯಸ್ಸು ಮತ್ತು ಪ್ರಯತ್ನ ಹೆಚ್ಚಿದಂತೆ ಫಲಗಳು ವೃದ್ಧಿಯಾಗುವ ಸ್ಥಾನಗಳು. ಪಾಪ ಗ್ರಹಗಳು (ಶನಿ, ಕುಜ, ರಾಹು) ಇಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಫಲ ನೀಡುತ್ತಾರೆ!
+5. **ಮಾರಕ ಸ್ಥಾನಗಳು (Maraka Houses - 2, 7)**:
+   - ಆಯುಷ್ಯ ಮುಕ್ತಾಯ ಮತ್ತು ದೈಹಿಕ ಪರಿವರ್ತನೆಯನ್ನು ನಿರ್ಧರಿಸುವ ಸ್ಥಾನಗಳು.`;
+
+    const textEn = `🏛️ **Classical Vedic Bhava Classifications (House Categories)**
+
+1. **Kendra Houses (Angular - 1, 4, 7, 10)**:
+   - The Four Pillars of the Horoscope (Vishnu Sthanas). They provide action, domestic happiness, partnerships, and career peak.
+2. **Trikona Houses (Trinal - 1, 5, 9)**:
+   - The Sacred Houses of Grace (Lakshmi Sthanas). They bring fortune, intelligence, past-life merits, and righteousness.
+3. **Dusthana Houses (Difficult - 6, 8, 12)**:
+   - Houses of obstacles and transformation: debts, diseases, litigation, longevity mysteries, expenditures, and final liberation (Moksha).
+4. **Upachaya Houses (Growth - 3, 6, 10, 11)**:
+   - Houses of progressive growth through effort. Natural malefics (Saturn, Mars, Rahu) excel here!
+5. **Maraka Houses (Transition - 2, 7)**:
+   - The exit and transition houses governing physical longevity conclusion.`;
+
+    const spokenKn = `ಸ್ವಾಮಿ, ಕೇಂದ್ರಗಳು ವಿಷ್ಣು ಸ್ಥಾನಗಳು ಮತ್ತು ತ್ರಿಕೋನಗಳು ಲಕ್ಷ್ಮೀ ಸ್ಥಾನಗಳು. ಮೂರು, ಆರು, ಹತ್ತು ಮತ್ತು ಹನ್ನೊಂದನೇ ಮನೆಗಳು ಉಪಚಯ ಸ್ಥಾನಗಳಾಗಿದ್ದು, ಇಲ್ಲಿ ಪಾಪಗ್ರಹಗಳು ಉತ್ತಮ ಫಲ ನೀಡುತ್ತಾರೆ.`;
+    const spokenEn = `Swami, Kendras are Vishnu Sthanas and Trikonas are Lakshmi Sthanas. Houses 3, 6, 10, and 11 are Upachayas where malefics produce immense success.`;
+
+    return {
+      text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+      spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+      emotion: "speaking",
+      category: "admin",
+      actions: [{ id: "open_predictions", label: { kn: "📜 ಭಾವ ಭವಿಷ್ಯ ನೋಡಿ", en: "📜 View Predictions", hi: "📜 भाव फल", te: "📜 భావాలు", ta: "📜 பாவங்கள்" }, icon: "📜", targetPage: "predictions", actionType: "navigate" }]
+    };
+  }
+
+  // E. GENERAL ALL GRAHA MANTRAS & JAPA COUNTS TABLE
+  if (isMantraQuery) {
+    const tableKn = `📿 **ಸಮಗ್ರ ನವಗ್ರಹ ಶಾಸ್ತ್ರೋಕ್ತ ಬೀಜ ಮಂತ್ರಗಳು & ನಿಖರ ಜಪ ಸಂಖ್ಯೆ (Mantras & Japa Counts)**
+
+| ಗ್ರಹ | ವೈದಿಕ ಬೀಜ ಮಂತ್ರ | ಶಾಸ್ತ್ರೋಕ್ತ ಜಪ ಸಂಖ್ಯೆ | ಅಧಿದೇವತೆ | ರತ್ನ |
+| :--- | :--- | :--- | :--- | :--- |
+| **ಸೂರ್ಯ** | ಓಂ ಹ್ರಾಂ ಹ್ರೀಂ ಹ್ರೌಂ ಸಃ ಸೂರ್ಯಾಯ ನಮಃ | **೭,೦೦೦ ಜಪಗಳು** | ಭಗವಾನ್ ಶಿವ | ಮಾಣಿಕ್ಯ |
+| **ಚಂದ್ರ** | ಓಂ ಶ್ರಾಂ ಶ್ರೀಂ ಶ್ರೌಂ ಸಃ ಚಂದ್ರಮಸೇ ನಮಃ | **೧೧,೦೦೦ ಜಪಗಳು** | ಮಾತಾ ಪಾರ್ವತಿ | ಮುತ್ತು |
+| **ಕುಜ** | ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ | **೧೦,೦೦೦ ಜಪಗಳು** | ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ | ಹವಳ |
+| **ಬುಧ** | ಓಂ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ | **೧೭,೦೦೦ ಜಪಗಳು** | ಶ್ರೀ ಮಹಾವಿಷ್ಣು | ಪಚ್ಚೆ |
+| **ಗುರು** | ಓಂ ಗ್ರಾಂ ಗ್ರೀಂ ಗ್ರೌಂ ಸಃ ಗುರವೇ ನಮಃ | **೧೯,೦೦೦ ಜಪಗಳು** | ದಕ್ಷಿಣಾಮೂರ್ತಿ | ಪುಷ್ಯರಾಗ |
+| **ಶುಕ್ರ** | ಓಂ ದ್ರಾಂ ದ್ರೀಂ ದ್ರೌಂ ಸಃ ಶುಕ್ರಾಯ ನಮಃ | **೧೬,೦೦೦ ಜಪಗಳು** | ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ | ವಜ್ರ |
+| **ಶನಿ** | ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ | **೨೩,೦೦೦ ಜಪಗಳು** | ಯಮಧರ್ಮರಾಜ / ಶಿವ | ನೀಲ |
+| **ರಾಹು** | ಓಂ ಭ್ರಾಂ ಭ್ರೀಂ ಭ್ರೌಂ ಸಃ ರಾಹವೇ ನಮಃ | **೧೮,೦೦೦ ಜಪಗಳು** | ದುರ್ಗಾ ದೇವಿ / ನಾಗ | ಗೋಮೇಧಿಕ |
+| **ಕೇತು** | ಓಂ ಸ್ರಾಂ ಸ್ರೀಂ ಸ್ರೌಂ ಸಃ ಕೇತವೇ ನಮಃ | **೧೭,೦೦೦ ಜಪಗಳು** | ಮಹಾಗಣಪತಿ | ವೈಡೂರ್ಯ |
+
+*(ಸೂಚನೆ: ಕಲಿಯುಗದಲ್ಲಿ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಜಪ ಸಂಖ್ಯೆಯನ್ನು ೪ ಪಟ್ಟು ಹೆಚ್ಚಿಸಿ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಫಲದಾಯಕ).*`;
+
+    const tableEn = `📿 **Vedic Navagraha Beeja Mantras & Authentic Classical Japa Counts**
+
+| Planet | Authentic Beeja Mantra | Classical Japa Count | Presiding Deity | Gemstone |
+| :--- | :--- | :--- | :--- | :--- |
+| **Sun (Surya)** | Om Hraam Hreem Hroum Sah Suryaya Namah | **7,000 counts** | Lord Shiva | Ruby |
+| **Moon (Chandra)** | Om Shraam Shreem Shroum Sah Chandramase Namah | **11,000 counts** | Goddess Parvati | Pearl |
+| **Mars (Kuja)** | Om Kraam Kreem Kroum Sah Bhaumaya Namah | **10,000 counts** | Lord Subrahmanya | Red Coral |
+| **Mercury (Budha)** | Om Braam Breem Broum Sah Budhaya Namah | **17,000 counts** | Lord Maha Vishnu | Emerald |
+| **Jupiter (Guru)** | Om Graam Greem Groum Sah Gurave Namah | **19,000 counts** | Lord Dakshinamurthy | Yellow Sapphire |
+| **Venus (Shukra)** | Om Draam Dreem Droum Sah Shukraya Namah | **16,000 counts** | Goddess Mahalakshmi | Diamond |
+| **Saturn (Shani)** | Om Praam Preem Proum Sah Shanaishcharaya Namah | **23,000 counts** | Lord Yama / Shiva | Blue Sapphire |
+| **Rahu** | Om Bhraam Bhreem Bhroum Sah Rahave Namah | **18,000 counts** | Goddess Durga / Naga | Hessonite |
+| **Ketu** | Om Sraam Sreem Sroum Sah Ketave Namah | **17,000 counts** | Lord Maha Ganapati | Cat's Eye |
+
+*(Note: In Kali Yuga, classical authorities prescribe multiplying japa counts 4-fold for definitive siddhi).*`;
+
+    const spokenKn = `ಸ್ವಾಮಿ, ಶನಿಗೆ ೨೩ ಸಾವಿರ, ರಾಹುವಿಗೆ ೧೮ ಸಾವಿರ, ಗುರುವಿಗೆ ೧೯ ಸಾವಿರ, ಬುಧನಿಗೆ ೧೭ ಸಾವಿರ, ಶುಕ್ರನಿಗೆ ೧೬ ಸಾವಿರ, ಚಂದ್ರನಿಗೆ ೧೧ ಸಾವಿರ, ಕುಜನಿಗೆ ೧೦ ಸಾವಿರ, ಸೂರ್ಯನಿಗೆ ೭ ಸಾವಿರ ಮತ್ತು ಕೇತುವಿಗೆ ೧೭ ಸಾವಿರ ಶಾಸ್ತ್ರೋಕ್ತ ಜಪ ಸಂಖ್ಯೆಗಳಾಗಿವೆ.`;
+    const spokenEn = `Swami, classical Japa counts are: Saturn 23,000, Rahu 18,000, Jupiter 19,000, Mercury 17,000, Venus 16,000, Moon 11,000, Mars 10,000, Sun 7,000, and Ketu 17,000.`;
+
+    return {
+      text: { kn: tableKn, en: tableEn, hi: tableEn, te: tableEn, ta: tableEn },
+      spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+      emotion: "speaking",
+      category: "admin",
+      actions: [{ id: "open_seva", label: { kn: "🪔 ಗೋಕರ್ಣ ಸೇವಾ ಪುಟಕ್ಕೆ ಹೋಗಿ", en: "🪔 Open Seva Page", hi: "🪔 सेवा पृष्ठ", te: "🪔 సేవా పేజీ", ta: "🪔 சேவா பக்கம்" }, icon: "🪔", targetPage: "seva", actionType: "navigate" }]
+    };
+  }
+
+  // F. GENERAL TEACH ME JYOTISHYA / GURUKULA OVERVIEW
+  const textKn = `🎓 **ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಗುರುಕುಲ: ಜಾತಕ ವಿಶ್ಲೇಷಣೆಯ ೬ ಮಹಾ ಸೂತ್ರಗಳು**
+
+1. **ಲಗ್ನ & ಲಗ್ನಾಧಿಪತಿಯ ಬಲ (Lagna Strength)**: ಜಾತಕನ ಶಾರೀರಿಕ ಬಲ, ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ಜೀವನದ ಅಡಿಪಾಯ.
+2. **ಚಂದ್ರ & ಜನ್ಮ ನಕ್ಷತ್ರ (Moon & Mind)**: ಮನೋಸ್ಥಿತಿ, ಭಾವನಾತ್ಮಕ ನೆಮ್ಮದಿ ಮತ್ತು ಜನ್ಮ ನಕ್ಷತ್ರದ ಗಣ-ಯೋನಿ ಸ್ವಭಾವ.
+3. **ಸೂರ್ಯನ ಸ್ಥಿತಿ (Sun & Soul)**: ಆತ್ಮಬಲ, ತಂದೆ, ಸರ್ಕಾರಿ ಗೌರವ ಮತ್ತು ಪ್ರಾಣಶಕ್ತಿ.
+4. **ದಶಮ ಭಾವ & ಕರ್ಮಾಧಿಪತಿ (10th House Career)**: ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ, ಕೀರ್ತಿ ಮತ್ತು ಸಮಾಜದಲ್ಲಿ ಗಳಿಸುವ ಸ್ಥಾನಮಾನ.
+5. **ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶಾ & ಅಂತರ್ದಶಾ (Running Dasha Timeline)**: ಜೀವನದ ಪ್ರಸ್ತುತ ಅಧ್ಯಾಯದಲ್ಲಿ ಯಾವ ಗ್ರಹದ ಆಜ್ಞೆ ನಡೆಯುತ್ತಿದೆ ಎಂಬ ನಿರ್ಣಯ.
+6. **ಗೋಚಾರ ಗ್ರಹ ಸಂಚಾರ (Live Planetary Transits)**: ಶನಿ (ಸಾಡೇಸಾತಿ/ಅಷ್ಟಮ), ಗುರು ಮತ್ತು ರಾಹು-ಕೇತುಗಳ ಪ್ರಸ್ತುತ ಚಲನೆ.
+
+ಸ್ವಾಮಿ, ನೀವು ಯಾವುದೇ ಗ್ರಹದ ಉಚ್ಚ-ನೀಚ ಅಂಶ, ನಕ್ಷತ್ರದ ಅಧಿದೇವತೆ, ಗಂಡಮೂಲ ಶಾಂತಿ ಅಥವಾ ಮಂತ್ರ ಜಪ ಸಂಖ್ಯೆಯ ಬಗ್ಗೆ ನಿರ್ದಿಷ್ಟವಾಗಿ ಕೇಳಬಹುದು!`;
+
+  const textEn = `🎓 **Vedic Astrology Gurukula: 6 Foundational Chart Reading Steps**
+
+1. **Lagna & Lagna Lord Strength**: Physical vitality, constitutional stamina, and baseline destiny.
+2. **Moon Sign & Nakshatra**: Emotional psychology, mental peace, and lunar temperament.
+3. **Sun & Atmakaraka**: Soul purpose, father's legacy, and vital willpower.
+4. **10th House & Karma Lord**: Vocation, livelihood, public honor, and career milestones.
+5. **Vimshottari Mahadasha & Antardasha**: The active karmic timeline dictating current circumstances.
+6. **Gochara (Live Transits)**: Real-time transits of Saturn (Sade Sati/Ashtama), Jupiter, and Rahu-Ketu.
+
+Ask me about any planet's exaltation/debilitation degree, Nakshatra deity, Ganda Moola remedies, or classical mantra japa counts!`;
+
+  const spokenKn = `ಸ್ವಾಮಿ, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಲಗ್ನ, ಚಂದ್ರ, ಸೂರ್ಯ, ದಶಮ ಭಾವ, ಮಹಾದಶಾ ಮತ್ತು ಗೋಚಾರ - ಈ ಆರು ಸೂತ್ರಗಳ ಆಧಾರದ ಮೇಲೆ ಜಾತಕವನ್ನು ನಿರ್ಣಯಿಸಲಾಗುತ್ತದೆ.`;
+  const spokenEn = `Swami, a Vedic horoscope is analyzed through the six pillars: Lagna, Moon, Sun, 10th house, active Dasha, and live Gochara transits.`;
+
+  return {
+    text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+    spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+    emotion: "peaceful",
+    category: "admin",
+    actions: [
+      { id: "open_kundli", label: { kn: "🪐 ಜಾತಕ ರಚನೆಗೆ ಹೋಗಿ", en: "🪐 Go to Kundli Page", hi: "🪐 कुण्डली", te: "🪐 జాతకం", ta: "🪐 ஜாதகம்" }, icon: "🪐", targetPage: "kundli", actionType: "navigate" },
+      { id: "open_raman", label: { kn: "🌟 ರಮಣ ಪದ್ಧತಿ ಭವಿಷ್ಯ", en: "🌟 Raman Bhavishya", hi: "🌟 रमण पद्धति", te: "🌟 రమణ భవిష్యత్", ta: "🌟 ராமன் பலன்கள்" }, icon: "🌟", targetPage: "ramanbhavishya", actionType: "navigate" }
+    ]
+  };
+}
+
 // =========================================================================
 // HANDLER 1: BHAVISHYA & LIFE PREDICTION ENGINE
 // =========================================================================

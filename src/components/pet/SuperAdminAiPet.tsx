@@ -464,6 +464,30 @@ export function SuperAdminAiPet(): JSX.Element | null {
       if (!isMuted) {
         petSpeechService.speak(localizedSpoken, effectiveLang);
       }
+
+      // Google Assistant-like Auto-Redirection throughout Panchanga:
+      // If the query was an explicit command to navigate/redirect to a page and the engine returned a target page
+      if (
+        resp.category === "navigation" &&
+        resp.actions.length === 1 &&
+        resp.actions[0].targetPage &&
+        (
+          query.toLowerCase().includes("redirect") ||
+          query.toLowerCase().includes("go to") ||
+          query.toLowerCase().includes("take me") ||
+          query.toLowerCase().includes("open") ||
+          query.toLowerCase().includes("navigate") ||
+          query.toLowerCase().includes("ತೆರೆ") ||
+          query.toLowerCase().includes("ಹೋಗು") ||
+          query.toLowerCase().includes("ಕರ್ಕೊಂಡು ಹೋಗು") ||
+          query.toLowerCase().includes("ಕರೆದುಕೊಂಡು ಹೋಗು") ||
+          query.toLowerCase().includes("खोलो") ||
+          query.toLowerCase().includes("चलो")
+        )
+      ) {
+        setPage(resp.actions[0].targetPage);
+        setIsOpen(false);
+      }
     } catch (err) {
       console.error("Pet execution error:", err);
       const fallbackMsg: ChatMessage = {

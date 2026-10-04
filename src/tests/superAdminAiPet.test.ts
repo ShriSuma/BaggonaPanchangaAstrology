@@ -465,4 +465,187 @@ describe("SuperAdminAiPet Intelligence & Security Suite", () => {
     expect(downloadCheck.params?.requestedReports).toContain("seva_patra");
     expect(downloadCheck.params?.requestedReports.length).toBe(5);
   });
+
+  it("generates an exhaustive Priest Consultation Call Brief with what is happening in client's life, phone talking script, and exact mantra japa counts in Kannada", async () => {
+    const context: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "kn"
+    };
+
+    const res = await executeSuperAdminPetQuery(
+      "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ 31 May 1993 9:20 AM ಬೆಂಗಳೂರು ಕ್ಲೈಂಟ್‌ಗೆ ಕರೆಯಲ್ಲಿ ಏನು ಹೇಳಬೇಕು? ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ?",
+      context
+    );
+
+    expect(res.category).toBe("kundli");
+    expect(res.emotion).toBe("speaking");
+
+    // Check Header & Native details
+    expect(res.text.kn).toContain("ದೈವಜ್ಞ ಸಮಾಲೋಚನಾ ಸಾರಾಂಶ");
+    expect(res.text.kn).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    expect(res.text.kn).toContain("ಲಗ್ನ");
+    expect(res.text.kn).toContain("ಚಂದ್ರ ರಾಶಿ");
+    expect(res.text.kn).toContain("ಮಹಾದಶಾ");
+
+    // Check Section 1: What is currently happening right now
+    expect(res.text.kn).toContain("ಭಾಗ ೧: ಪ್ರಸ್ತುತ ಜಾತಕರ ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ?");
+    expect(res.text.kn).toContain("ಮಾನಸಿಕ & ಭಾವನಾತ್ಮಕ ಸ್ಥಿತಿ");
+    expect(res.text.kn).toContain("ವೃತ್ತಿ & ಆರ್ಥಿಕ ಸ್ಥಿತಿ");
+    expect(res.text.kn).toContain("ಕುಟುಂಬ & ವೈವಾಹಿಕ ಸಾಮರಸ್ಯ");
+    expect(res.text.kn).toContain("ಆರೋಗ್ಯ & ದೇಹಬಲ");
+
+    // Check Section 2: What to tell the client on phone call
+    expect(res.text.kn).toContain("ಭಾಗ ೨: ದೈವಜ್ಞರು ಕರೆಯಲ್ಲಿ ನೇರವಾಗಿ ಏನು ಹೇಳಬೇಕು?");
+    expect(res.text.kn).toContain("ಆರಂಭಿಕ ಸಾಂತ್ವನದ ನುಡಿ");
+    expect(res.text.kn).toContain("ಖಚಿತ ಜಾತಕ ಲಕ್ಷಣಗಳು");
+    expect(res.text.kn).toContain("ಪರಿಹಾರದ ಕಾಲಾವಧಿ & ಆಶಾಕಿರಣ");
+    expect(res.text.kn).toContain("ದೈವಜ್ಞರ ಆಪ್ತ ಮಾರ್ಗದರ್ಶನ");
+
+    // Check Section 3: Remedies, Mantras & Exact Japa Count
+    expect(res.text.kn).toContain("ಭಾಗ ೩: ಸೂಚಿಸಬೇಕಾದ ಶಾಂತಿ ಪೂಜೆಗಳು, ಮಂತ್ರ & ಜಪ ಸಂಖ್ಯೆ");
+    expect(res.text.kn).toContain("ಶಾಸ್ತ್ರೋಕ್ತ ಬೀಜ ಮಂತ್ರ");
+    expect(res.text.kn).toContain("ಶಾಸ್ತ್ರೋಕ್ತ ನಿಖರ ಜಪ ಸಂಖ್ಯೆ");
+    expect(res.text.kn).toContain("ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಾಡಿಸಬೇಕಾದ ಸೇವೆ");
+
+    // Check spoken text
+    expect(res.spokenText.kn).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    expect(res.spokenText.kn).toContain("ದೈವಜ್ಞ ಸಮಾಲೋಚನಾ ಸಾರಾಂಶ");
+
+    // Actions
+    expect(res.actions.length).toBeGreaterThanOrEqual(2);
+    expect(res.actions.some((a) => a.targetPage === "kundli")).toBe(true);
+    expect(res.actions.some((a) => a.targetPage === "seva")).toBe(true);
+  });
+
+  it("generates an exhaustive Priest Consultation Call Brief in English with full talking script and remedy matrix", async () => {
+    const context: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "en"
+    };
+
+    const res = await executeSuperAdminPetQuery(
+      "What is currently happening in their life and what to tell client on call for Shriram Pandit born 31 May 1993 at 9:20 AM in Bengaluru?",
+      context
+    );
+
+    expect(res.category).toBe("kundli");
+    expect(res.text.en).toContain("Priest Consultation Call Brief");
+    expect(res.text.en).toContain("Shriram Pandit");
+    expect(res.text.en).toContain("Section 1: What Is Currently Happening In Their Life Right Now?");
+    expect(res.text.en).toContain("Section 2: What Exactly to Tell the Client on the Phone Call (Priest Talking Script)");
+    expect(res.text.en).toContain("Section 3: Prescribed Remedies, Mantras & Japa Count");
+    expect(res.text.en).toContain("Authentic Beeja Mantra");
+    expect(res.text.en).toContain("Classical Japa Count");
+    expect(res.spokenText.en).toContain("Shriram Pandit");
+  });
+
+  it("acts as a 100% Expert Jyotishi Guru: teaches planetary exaltation (Uccha) & debilitation (Neecha) with exact degrees in Kannada and English", async () => {
+    const contextKn: SuperAdminPetContext = { activePage: "home", currentUser: "superadmin", selectedLanguage: "kn" };
+    const contextEn: SuperAdminPetContext = { activePage: "home", currentUser: "superadmin", selectedLanguage: "en" };
+
+    // 1. Jupiter Uccha & Neecha query in Kannada
+    const jupiterRes = await executeSuperAdminPetQuery("ಗುರು ಎಲ್ಲಿ ಉಚ್ಚನಾಗುತ್ತಾನೆ ಮತ್ತು ನೀಚನಾಗುತ್ತಾನೆ?", contextKn);
+    expect(jupiterRes.category).toBe("admin");
+    expect(jupiterRes.text.kn).toContain("ಕರ್ಕಾಟಕ");
+    expect(jupiterRes.text.kn).toContain("೫°");
+    expect(jupiterRes.text.kn).toContain("ಮಕರ");
+    expect(jupiterRes.text.kn).toContain("ದಕ್ಷಿಣಾಮೂರ್ತಿ");
+    expect(jupiterRes.text.kn).toContain("೧೯,೦೦೦");
+    expect(jupiterRes.text.kn).toContain("ನೀಚಭಂಗ ರಾಜಯೋಗ");
+
+    // 2. Mars Exaltation in English
+    const marsRes = await executeSuperAdminPetQuery("Where is Mars exalted and debilitated? Tell me exact degrees", contextEn);
+    expect(marsRes.category).toBe("admin");
+    expect(marsRes.text.en).toContain("Capricorn 28°");
+    expect(marsRes.text.en).toContain("Cancer 28°");
+    expect(marsRes.text.en).toContain("Red Coral");
+    expect(marsRes.text.en).toContain("10,000 times");
+
+    // 3. Complete Uccha & Neecha Table + Neechabhanga Rules
+    const allDignitiesRes = await executeSuperAdminPetQuery("Tell me all uccha and neecha planets and neechabhanga rules", contextEn);
+    expect(allDignitiesRes.category).toBe("admin");
+    expect(allDignitiesRes.text.en).toContain("Aries 10°");
+    expect(allDignitiesRes.text.en).toContain("Taurus 3°");
+    expect(allDignitiesRes.text.en).toContain("Virgo 15°");
+    expect(allDignitiesRes.text.en).toContain("Libra 20°");
+    expect(allDignitiesRes.text.en).toContain("Pisces 27°");
+    expect(allDignitiesRes.text.en).toContain("5 Golden Rules of Neechabhanga Raja Yoga");
+  });
+
+  it("teaches 27 Nakshatras and explains all 6 Ganda Moola Nakshatras and Gandanta remedies", async () => {
+    const context: SuperAdminPetContext = { activePage: "home", currentUser: "superadmin", selectedLanguage: "kn" };
+
+    // 1. Specific Nakshatra
+    const ashwiniRes = await executeSuperAdminPetQuery("ಅಶ್ವಿನಿ ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ಮತ್ತು ದೇವತೆ ಯಾರು?", context);
+    expect(ashwiniRes.category).toBe("admin");
+    expect(ashwiniRes.text.kn).toContain("ಅಶ್ವಿನಿ ಕುಮಾರರು");
+    expect(ashwiniRes.text.kn).toContain("ಕೇತು");
+    expect(ashwiniRes.text.kn).toContain("ದೇವ");
+    expect(ashwiniRes.text.kn).toContain("ಕುದುರೆ");
+    expect(ashwiniRes.text.kn).toContain("ಗಂಡಮೂಲ");
+
+    // 2. Ganda Moola Nakshatras complete list and Gokarna remedies
+    const gmRes = await executeSuperAdminPetQuery("ಗಂಡಮೂಲ ನಕ್ಷತ್ರಗಳು ಯಾವುವು? ಮತ್ತು ಪರಿಹಾರ ಏನು?", context);
+    expect(gmRes.category).toBe("admin");
+    expect(gmRes.text.kn).toContain("ಅಶ್ವಿನಿ");
+    expect(gmRes.text.kn).toContain("ಆಶ್ಲೇಷಾ");
+    expect(gmRes.text.kn).toContain("ಮಘಾ");
+    expect(gmRes.text.kn).toContain("ಜ್ಯೇಷ್ಠಾ");
+    expect(gmRes.text.kn).toContain("ಮೂಲಾ");
+    expect(gmRes.text.kn).toContain("ರೇವತಿ");
+    expect(gmRes.text.kn).toContain("ರುದ್ರಾಭಿಷೇಕ");
+  });
+
+  it("teaches 12 Bhavas and house classifications (Kendras, Trikonas, Dusthanas, Upachayas)", async () => {
+    const contextEn: SuperAdminPetContext = { activePage: "home", currentUser: "superadmin", selectedLanguage: "en" };
+    const contextKn: SuperAdminPetContext = { activePage: "home", currentUser: "superadmin", selectedLanguage: "kn" };
+
+    // 1. 7th house in English
+    const house7Res = await executeSuperAdminPetQuery("What is the 7th house in astrology?", contextEn);
+    expect(house7Res.category).toBe("admin");
+    expect(house7Res.text.en).toContain("Kalatra Bhava");
+    expect(house7Res.text.en).toContain("Spouse & Marriage");
+    expect(house7Res.text.en).toContain("Kendra & Maraka");
+    expect(house7Res.text.en).toContain("Venus");
+
+    // 2. Kendras and Trikonas in Kannada
+    const kendraRes = await executeSuperAdminPetQuery("ಕೇಂದ್ರ ಮತ್ತು ತ್ರಿಕೋನ ಭಾವಗಳು ಎಂದರೇನು?", contextKn);
+    expect(kendraRes.category).toBe("admin");
+    expect(kendraRes.text.kn).toContain("ವಿಷ್ಣು ಸ್ಥಾನಗಳು");
+    expect(kendraRes.text.kn).toContain("ಲಕ್ಷ್ಮೀ ಸ್ಥಾನಗಳು");
+    expect(kendraRes.text.kn).toContain("ದುಸ್ಥಾನಗಳು");
+    expect(kendraRes.text.kn).toContain("ಉಪಚಯ");
+  });
+
+  it("provides authentic Beeja Mantras and exact classical Japa counts for all 9 Grahas", async () => {
+    const contextKn: SuperAdminPetContext = { activePage: "home", currentUser: "superadmin", selectedLanguage: "kn" };
+    const contextEn: SuperAdminPetContext = { activePage: "home", currentUser: "superadmin", selectedLanguage: "en" };
+
+    // 1. Saturn Mantra in Kannada
+    const shaniRes = await executeSuperAdminPetQuery("ಶನಿ ಮಂತ್ರ ಮತ್ತು ಜಪ ಸಂಖ್ಯೆ ಎಷ್ಟು?", contextKn);
+    expect(shaniRes.category).toBe("admin");
+    expect(shaniRes.text.kn).toContain("ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ");
+    expect(shaniRes.text.kn).toContain("೨೩,೦೦೦ ಜಪಗಳು");
+    expect(shaniRes.text.kn).toContain("ನೀಲ");
+
+    // 2. Rahu Mantra in English
+    const rahuRes = await executeSuperAdminPetQuery("What is the Rahu mantra and japa count?", contextEn);
+    expect(rahuRes.category).toBe("admin");
+    expect(rahuRes.text.en).toContain("Om Bhraam Bhreem Bhroum Sah Rahave Namah");
+    expect(rahuRes.text.en).toContain("18,000 times");
+    expect(rahuRes.text.en).toContain("Durga");
+
+    // 3. All Grahas Mantras Table
+    const allMantrasRes = await executeSuperAdminPetQuery("Show me all navagraha mantras and japa count table", contextEn);
+    expect(allMantrasRes.category).toBe("admin");
+    expect(allMantrasRes.text.en).toContain("7,000 counts"); // Sun
+    expect(allMantrasRes.text.en).toContain("11,000 counts"); // Moon
+    expect(allMantrasRes.text.en).toContain("10,000 counts"); // Mars
+    expect(allMantrasRes.text.en).toContain("17,000 counts"); // Mercury
+    expect(allMantrasRes.text.en).toContain("19,000 counts"); // Jupiter
+    expect(allMantrasRes.text.en).toContain("16,000 counts"); // Venus
+    expect(allMantrasRes.text.en).toContain("23,000 counts"); // Saturn
+  });
 });
