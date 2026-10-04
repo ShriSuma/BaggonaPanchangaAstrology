@@ -87,6 +87,14 @@ export type ActiveProfileContext = {
   lastTopic?: string;
 };
 
+export type ChatTurnContext = {
+  sender: "user" | "pet" | "assistant" | "model";
+  text: string;
+  spokenText?: string;
+  mode?: "text" | "voice";
+  timestamp?: string | Date;
+};
+
 export type SuperAdminPetContext = {
   activePage: AppPage;
   currentKundliSession?: any;
@@ -97,6 +105,7 @@ export type SuperAdminPetContext = {
   geminiApiKey?: string;
   selectedLanguage: SupportedLanguage;
   pendingConfirmation?: any;
+  conversationHistory?: ChatTurnContext[];
 };
 
 /**
@@ -534,6 +543,91 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
 };
 
 /**
+ * Handles conversational memory recall queries across Text Mode and Voice Mode.
+ * Enables user to ask "What did I ask before?", "What did you say in voice mode?", "Continue from what we discussed", etc.
+ */
+function handleConversationMemoryIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  lang: SupportedLanguage
+): PetResponse | null {
+  const history = context.conversationHistory;
+  if (!history || history.length === 0) return null;
+
+  const query = rawQuery.toLowerCase();
+  const isMemoryRecall =
+    query.includes("what did i ask") ||
+    query.includes("what did we discuss") ||
+    query.includes("what did you say") ||
+    query.includes("what was that") ||
+    query.includes("in voice mode") ||
+    query.includes("in text mode") ||
+    query.includes("repeat") ||
+    query.includes("continue") ||
+    query.includes("ಹಿಂದೆ ಏನು ಕೇಳಿದೆ") ||
+    query.includes("ಹಿಂದಿನ ಸಂಭಾಷಣೆ") ||
+    query.includes("ಧ್ವನಿಯಲ್ಲಿ ಏನು ಹೇಳಿದೆ") ||
+    query.includes("ಪಠ್ಯದಲ್ಲಿ ಏನು ಹೇಳಿದೆ") ||
+    query.includes("ಮತ್ತೆ ಹೇಳು") ||
+    query.includes("ಮುಂದುವರಿಸು") ||
+    query.includes("ಮುಂದುವರಿಸಿ") ||
+    query.includes("ಏನು ಹೇಳಿದ್ದೀರಿ") ||
+    query.includes("ಹಿಂದಿನ ಪ್ರಶ್ನೆ");
+
+  if (!isMemoryRecall) return null;
+
+  // Filter out the current query if present in history
+  const priorTurns = history.filter((h) => h.text.trim() !== rawQuery.trim());
+  const priorUserTurns = priorTurns.filter((h) => h.sender === "user");
+  const priorPetTurns = priorTurns.filter(
+    (h) => h.sender === "pet" || h.sender === "assistant" || h.sender === "model"
+  );
+
+  const lastUser = priorUserTurns[priorUserTurns.length - 1];
+  const lastPet = priorPetTurns[priorPetTurns.length - 1];
+
+  if (!lastUser && !lastPet) return null;
+
+  const dName = context.activeProfile?.name || context.ambientProfile?.name || "";
+  const lastUserText = lastUser?.text || "";
+  const lastPetSummary = (lastPet?.text || "")
+    .replace(/[*_#`\n]/g, " ")
+    .replace(/\s+/g, " ")
+    .slice(0, 220);
+
+  const modeLabelKn = lastUser?.mode === "voice" ? "ಧ್ವನಿ ಮೋಡ್‌ನಲ್ಲಿ (Voice Mode)" : "ಪಠ್ಯ ಮೋಡ್‌ನಲ್ಲಿ (Text Mode)";
+  const modeLabelEn = lastUser?.mode === "voice" ? "in Voice Mode" : "in Text Mode";
+
+  const knText = `ಸ್ವಾಮಿ, ನಮ್ಮ ನಿರಂತರ ಸಂಭಾಷಣೆಯಲ್ಲಿ ${dName ? `ಭಕ್ತರಾದ ${dName} ಅವರ ಕುರಿತು` : "ನಾವು"} ಚರ್ಚಿಸಿದ್ದ ವಿವರಗಳು ನನ್ನ ನೆನಪಿನಲ್ಲಿದೆ.\n\n• **ನೀವು ${modeLabelKn} ಕೇಳಿದ್ದು:** "${lastUserText}"\n• **ನಾನು ನೀಡಿದ ಸಾರಾಂಶ:** "${lastPetSummary}..."\n\nಟೆಕ್ಸ್ಟ್ ಹಾಗೂ ವಾಯ್ಸ್ ಮೋಡ್ ಎರಡರ ಸಂಪೂರ್ಣ ಇತಿಹಾಸ ಸಕ್ರಿಯವಾಗಿದೆ. ನೀವು ಮುಂದುವರಿಸಿ ಯಾವುದೇ ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು ಅಥವಾ ವರದಿಗಳನ್ನು ಆದೇಶಿಸಬಹುದು!`;
+  const enText = `Swami, in our continuous conversation ${dName ? `regarding devotee ${dName}` : "we discussed"}, I retain full memory across both Text and Voice modes.\n\n• **You asked (${modeLabelEn}):** "${lastUserText}"\n• **I explained:** "${lastPetSummary}..."\n\nYou can seamlessly continue asking follow-up questions or commanding reports!`;
+
+  const spoken =
+    lang === "kn"
+      ? `ಸ್ವಾಮಿ, ಹಿಂದಿನ ಸಂಭಾಷಣೆಯಲ್ಲಿ "${lastUserText}" ಕುರಿತು ಚರ್ಚಿಸಿದ್ದೆವು. ಟೆಕ್ಸ್ಟ್ ಹಾಗೂ ವಾಯ್ಸ್ ಮೋಡ್ ಎರಡರ ವಿವರಗಳು ನೆನಪಿನಲ್ಲಿದೆ. ಮುಂದಿನ ಆಜ್ಞೆ ನೀಡಿ.`
+      : `Swami, earlier we discussed "${lastUserText}". I retain all details across text and voice modes. Please give your next question.`;
+
+  return {
+    text: {
+      kn: knText,
+      en: enText,
+      hi: enText,
+      te: enText,
+      ta: enText
+    },
+    spokenText: {
+      kn: spoken,
+      en: spoken,
+      hi: spoken,
+      te: spoken,
+      ta: spoken
+    },
+    emotion: "peaceful",
+    category: "general",
+    actions: []
+  };
+}
+
+/**
  * Executes a Super Admin prompt and returns text, spoken voice text, emotion, and executable actions.
  */
 export async function executeSuperAdminPetQuery(
@@ -543,6 +637,12 @@ export async function executeSuperAdminPetQuery(
   const effectiveLang = detectQueryLanguage(rawQuery, context.selectedLanguage || "kn");
   const ambient = context.ambientProfile || harvestAmbientKundliContext(context.currentKundliSession);
   const query = rawQuery.trim().toLowerCase();
+
+  // 0M. CONTINUOUS CONVERSATION MEMORY RECALL (Seamless Text <-> Voice Context)
+  const memoryResp = handleConversationMemoryIntent(rawQuery, context, effectiveLang);
+  if (memoryResp) {
+    return memoryResp;
+  }
 
   const isNavCommand =
     query.includes("go to") ||
@@ -1019,7 +1119,18 @@ If it relates to business, give actionable revenue and marketing tactics for Bag
 Keep spoken clarity in mind. Avoid excessive formatting.
       `.trim();
 
-      const aiText = await askGemini(rawQuery, systemPrompt, activeKey, effectiveLang, { raw: true, temperature: 0.6 });
+      const historyTurns = (context.conversationHistory || [])
+        .slice(-10)
+        .map((t) => ({
+          role: (t.sender === "pet" || t.sender === "assistant" || t.sender === "model" ? "model" : "user") as "user" | "model",
+          text: t.text
+        }));
+
+      const aiText = await askGemini(rawQuery, systemPrompt, activeKey, effectiveLang, {
+        raw: true,
+        temperature: 0.6,
+        conversationHistory: historyTurns
+      });
       if (aiText && aiText.length > 10) {
         return {
           text: {

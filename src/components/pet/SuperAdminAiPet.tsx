@@ -42,6 +42,7 @@ interface ChatMessage {
   timestamp: Date;
   emotion?: PetEmotion;
   workflowResult?: WorkflowState;
+  mode?: "text" | "voice";
 }
 
 export function SuperAdminAiPet(): JSX.Element | null {
@@ -85,6 +86,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const [isAssistantSpeaking, setIsAssistantSpeaking] = useState<boolean>(false);
   const [liveTranscript, setLiveTranscript] = useState<string>("");
   const [lastSpokenAnswer, setLastSpokenAnswer] = useState<string>("");
+  const [isVoiceTranscriptExpanded, setIsVoiceTranscriptExpanded] = useState<boolean>(false);
 
   const isVoiceModeRef = useRef<boolean>(false);
   const isMicMutedRef = useRef<boolean>(false);
@@ -263,10 +265,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
       spokenText: `${record.name} ಅವರ ವಿವರಗಳನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ. ಭಕ್ತರ ಐಡಿ ${record.id}.`,
       lang: currentLang,
       timestamp: new Date(),
-      emotion: "peaceful"
+      emotion: "peaceful",
+      mode: "text"
     };
 
     setMessages((prev) => [...prev, takeMsg]);
+    useDevoteeHistoryStore.getState().appendSessionMessage({
+      sender: "pet",
+      text: takeMsg.text,
+      spokenText: takeMsg.spokenText,
+      mode: "text"
+    });
   };
 
   // Chat Tab Speech-to-Text Dictation (Direct transcription into inputText, no mode switch, no audio auto-reply)
@@ -374,13 +383,15 @@ export function SuperAdminAiPet(): JSX.Element | null {
         id: m.id,
         sender: m.sender,
         text: m.text,
-        spokenText: m.text,
+        spokenText: m.spokenText || m.text,
         lang: currentLang,
         timestamp: new Date(m.timestamp),
+        mode: m.mode || "text",
         emotion: m.sender === "pet" ? "peaceful" : undefined,
         workflowResult: m.workflowResult as any
       }));
       setMessages(restored);
+      useDevoteeHistoryStore.getState().restoreSessionMessages(devotee.messages);
     }
 
     const resumeMsg: ChatMessage = {
@@ -393,10 +404,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
       spokenText: `${devotee.name} ಅವರ ಸಮಾಲೋಚನೆ ಪುನರಾರಂಭಗೊಂಡಿದೆ. ಆಜ್ಞೆ ನೀಡಿ ಸ್ವಾಮಿ.`,
       lang: currentLang,
       timestamp: new Date(),
-      emotion: "peaceful"
+      emotion: "peaceful",
+      mode: "text"
     };
 
     setMessages((prev) => [...prev, resumeMsg]);
+    useDevoteeHistoryStore.getState().appendSessionMessage({
+      sender: "pet",
+      text: resumeMsg.text,
+      spokenText: resumeMsg.spokenText,
+      mode: "text"
+    });
 
     if (targetTab === "voice") {
       enterVoiceMode();
@@ -428,92 +446,109 @@ export function SuperAdminAiPet(): JSX.Element | null {
     return () => clearTimeout(timer);
   }, [workflowState.notifications]);
 
-  // Initial welcome message
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    {
-      id: "welcome-1",
-      sender: "pet",
-      text:
-        currentLang === "kn"
-          ? "ನಮಸ್ಕಾರ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಸ್ವಾಮಿ! ನಾನು ನಿಮ್ಮ ದೈವಿಕ ಕಾಮಧೇನು AI ಸಹಾಯಕ. ನೀವು ಏನು ಆಜ್ಞಾಪಿಸಿದರೂ ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ ನಿರ್ವಹಿಸುತ್ತೇನೆ. ಯಾವುದೇ ವ್ಯಕ್ತಿಯ ಜಾತಕ ಗಣನೆ, ೫ ವರದಿಗಳ ಏಕಕಾಲೀನ ಡೌನ್‌ಲೋಡ್ (ಗರಿಷ್ಠ ೧೦ ಹಿನ್ನೆಲೆ ಕಾರ್ಯಗಳು), ಮಾರ್ಕೆಟಿಂಗ್ ಅಥವಾ ಸಿಸ್ಟಮ್ ತಪಾಸಣೆ - ಏನು ಬೇಕಾದರೂ ಆಜ್ಞಾಪಿಸಿ!"
-          : currentLang === "hi"
-          ? "नमस्ते सुपर एडमिन स्वामी! मैं आपकी सेवा में कामधेनु AI सहायक हूँ। किसी भी व्यक्ति की कुंडली, 5 रिपोर्ट डाउनलोड, मार्केटिंग या सिस्टम स्थिति के बारे में आदेश दें।"
-          : currentLang === "te"
-          ? "నమస్కారం సూపర్ అడ్మిన్ స్వామి! నేను మీ కామధేను AI అసిస్టెంట్. జాతక విశ్లేషణ, 5 రిపోర్టుల డౌన్‌లోడ్ లేదా మార్కెటింగ్ వ్యూహాలను ఆదేశించండి."
-          : currentLang === "ta"
-          ? "வணக்கம் சூப்பர் அட்மின் சுவாமி! நான் உங்கள் காமதேனு AI உதவியாளர். ஜாதக கணிப்பு, 5 அறிக்கைகள் பதிவிறக்கம் அல்லது அமைப்பின் நிலையை அறிய உத்தரவிடுங்கள்."
-          : "Namaskara Super Admin! I am Kamadhenu, your divine AI companion. I have full autonomous execution access to generate Kundalis, batch download all 5 official reports in the background (up to 10 simultaneous instances), and manage marketing playbooks.",
-      spokenText:
-        currentLang === "kn"
-          ? "ನಮಸ್ಕಾರ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಸ್ವಾಮಿ! ನಾನು ನಿಮ್ಮ ದೈವಿಕ ಕಾಮಧೇನು AI ಸಹಾಯಕ. ನೀವು ಏನು ಆಜ್ಞಾಪಿಸಿದರೂ ನಾನು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ತಕ್ಷಣ ನಿರ್ವಹಿಸುತ್ತೇನೆ."
-          : "Namaskara Super Admin! I am Kamadhenu, your divine autonomous companion ready to serve your every command.",
-      timestamp: new Date(),
-      emotion: "peaceful",
-      actions: [
-        {
-          id: "init_shriram_demo",
-          label: {
-            kn: "⚡ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (೫ ವರದಿಗಳ ಸ್ವಯಂಚಾಲಿತ ಡೌನ್‌ಲೋಡ್)",
-            hi: "⚡ श्रीराम पंडित (5 रिपोर्ट स्वचालित डाउनलोड)",
-            te: "⚡ శ్రీరామ్ పండిట్ (5 రిపోర్టుల డౌన్‌లోడ్)",
-            ta: "⚡ ஸ்ரீராம் பண்டிதர் (5 அறிக்கைகள்)",
-            en: "⚡ Shriram Pandit (Auto 5 Reports Download)"
+  // Initial welcome message or restored active session messages (ChatGPT/Claude/Gemini Live parity)
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const persisted = useDevoteeHistoryStore.getState().activeSessionMessages;
+      if (persisted && persisted.length > 0) {
+        return persisted.map((m) => ({
+          id: m.id,
+          sender: m.sender,
+          text: m.text,
+          spokenText: m.spokenText || m.text,
+          timestamp: new Date(m.timestamp),
+          mode: m.mode || "text",
+          workflowResult: m.workflowResult as any
+        }));
+      }
+    } catch {}
+    return [
+      {
+        id: "welcome-1",
+        sender: "pet",
+        mode: "text",
+        text:
+          currentLang === "kn"
+            ? "ನಮಸ್ಕಾರ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಸ್ವಾಮಿ! ನಾನು ನಿಮ್ಮ ದೈವಿಕ ಕಾಮಧೇನು AI ಸಹಾಯಕ. ನೀವು ಏನು ಆಜ್ಞಾಪಿಸಿದರೂ ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ ನಿರ್ವಹಿಸುತ್ತೇನೆ. ಯಾವುದೇ ವ್ಯಕ್ತಿಯ ಜಾತಕ ಗಣನೆ, ೫ ವರದಿಗಳ ಏಕಕಾಲೀನ ಡೌನ್‌ಲೋಡ್ (ಗರಿಷ್ಠ ೧೦ ಹಿನ್ನೆಲೆ ಕಾರ್ಯಗಳು), ಮಾರ್ಕೆಟಿಂಗ್ ಅಥವಾ ಸಿಸ್ಟಮ್ ತಪಾಸಣೆ - ಏನು ಬೇಕಾದರೂ ಆಜ್ಞಾಪಿಸಿ!"
+            : currentLang === "hi"
+            ? "नमस्ते सुपर एडमिन स्वामी! मैं आपकी सेवा में कामधेनु AI सहायक हूँ। किसी भी व्यक्ति की कुंडली, 5 रिपोर्ट डाउनलोड, मार्केटिंग या सिस्टम स्थिति के बारे में आदेश दें।"
+            : currentLang === "te"
+            ? "నమస్కారం సూపర్ అడ్మిన్ స్వామి! నేను మీ కామధేను AI అసిస్టెంట్. జాతక విశ్లేషణ, 5 రిపోర్టుల డౌన్‌లోడ్ లేదా మార్కెటింగ్ వ్యూహాలను ఆదేశించండి."
+            : currentLang === "ta"
+            ? "வணக்கம் சூப்பர் அட்மின் சுவாமி! நான் உங்கள் காமதேனு AI உதவியாளர். ஜாதக கணிப்பு, 5 அறிக்கைகள் பதிவிறக்கம் அல்லது அமைப்பின் நிலையை அறிய உத்தரவிடுங்கள்."
+            : "Namaskara Super Admin! I am Kamadhenu, your divine AI companion. I have full autonomous execution access to generate Kundalis, batch download all 5 official reports in the background (up to 10 simultaneous instances), and manage marketing playbooks.",
+        spokenText:
+          currentLang === "kn"
+            ? "ನಮಸ್ಕಾರ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಸ್ವಾಮಿ! ನಾನು ನಿಮ್ಮ ದೈವಿಕ ಕಾಮಧೇನು AI ಸಹಾಯಕ. ನೀವು ಏನು ಆಜ್ಞಾಪಿಸಿದರೂ ನಾನು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ತಕ್ಷಣ ನಿರ್ವಹಿಸುತ್ತೇನೆ."
+            : "Namaskara Super Admin! I am Kamadhenu, your divine autonomous companion ready to serve your every command.",
+        timestamp: new Date(),
+        emotion: "peaceful",
+        actions: [
+          {
+            id: "init_shriram_demo",
+            label: {
+              kn: "⚡ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (೫ ವರದಿಗಳ ಸ್ವಯಂಚಾಲಿತ ಡೌನ್‌ಲೋಡ್)",
+              hi: "⚡ श्रीराम पंडित (5 रिपोर्ट स्वचालित डाउनलोड)",
+              te: "⚡ శ్రీరామ్ పండిట్ (5 రిపోర్టుల డౌన్‌లోడ్)",
+              ta: "⚡ ஸ்ரீராம் பண்டிதர் (5 அறிக்கைகள்)",
+              en: "⚡ Shriram Pandit (Auto 5 Reports Download)"
+            },
+            icon: "⚡",
+            actionType: "custom"
           },
-          icon: "⚡",
-          actionType: "custom"
-        },
-        {
-          id: "init_earn",
-          label: {
-            kn: "💰 ಹಣ ಗಳಿಸುವುದು ಹೇಗೆ?",
-            hi: "💰 पैसे कैसे कमाएं?",
-            te: "💰 ఆదాయం ఎలా?",
-            ta: "💰 வருமானம் ஈட்டுவது எப்படி?",
-            en: "💰 How to Earn Money?"
+          {
+            id: "init_earn",
+            label: {
+              kn: "💰 ಹಣ ಗಳಿಸುವುದು ಹೇಗೆ?",
+              hi: "💰 पैसे कैसे कमाएं?",
+              te: "💰 ఆదాయం ఎలా?",
+              ta: "💰 வருமானம் ஈட்டுவது எப்படி?",
+              en: "💰 How to Earn Money?"
+            },
+            icon: "💰",
+            actionType: "custom"
           },
-          icon: "💰",
-          actionType: "custom"
-        },
-        {
-          id: "init_market",
-          label: {
-            kn: "📢 ಮಾರ್ಕೆಟಿಂಗ್ ತಂತ್ರಗಳು",
-            hi: "📢 मार्केटिंग रणनीति",
-            te: "📢 మార్కెటింగ్ వ్యూహాలు",
-            ta: "📢 சந்தைப்படுத்தல்",
-            en: "📢 Marketing Strategies"
+          {
+            id: "init_market",
+            label: {
+              kn: "📢 ಮಾರ್ಕೆಟಿಂಗ್ ತಂತ್ರಗಳು",
+              hi: "📢 मार्केटिंग रणनीति",
+              te: "📢 మార్కెటింగ్ వ్యూహాలు",
+              ta: "📢 சந்தைப்படுத்தல்",
+              en: "📢 Marketing Strategies"
+            },
+            icon: "📢",
+            actionType: "custom"
           },
-          icon: "📢",
-          actionType: "custom"
-        },
-        {
-          id: "init_dosha",
-          label: {
-            kn: "🔮 ಜಾತಕ & ದೋಷ ಸ್ಕ್ಯಾನ್",
-            hi: "🔮 कुंडली दोष स्कैन",
-            te: "🔮 జాతక దోషాల తనిఖీ",
-            ta: "🔮 தோஷ ஆய்வு",
-            en: "🔮 Kundli & Dosha Scan"
+          {
+            id: "init_dosha",
+            label: {
+              kn: "🔮 ಜಾತಕ & ದೋಷ ಸ್ಕ್ಯಾನ್",
+              hi: "🔮 कुंडली दोष स्कैन",
+              te: "🔮 జాతక దోషాల ತನಿಖೀ",
+              ta: "🔮 தோஷ ஆய்வு",
+              en: "🔮 Kundli & Dosha Scan"
+            },
+            icon: "🔮",
+            targetPage: "doshas",
+            actionType: "navigate"
           },
-          icon: "🔮",
-          targetPage: "doshas",
-          actionType: "navigate"
-        },
-        {
-          id: "init_health",
-          label: {
-            kn: "🩺 ಸಿಸ್ಟಮ್ ಆರೋಗ್ಯ ತಪಾಸಣೆ",
-            hi: "🩺 सिस्टम स्वास्थ्य जांच",
-            te: "🩺 సిస్టమ్ హెల్త్ చెక్",
-            ta: "🩺 சிஸ்டம் ஆய்வு",
-            en: "🩺 System Diagnostics"
-          },
-          icon: "🩺",
-          actionType: "run_diagnostic"
-        }
-      ]
-    }
-  ]);
+          {
+            id: "init_health",
+            label: {
+              kn: "🩺 ಸಿಸ್ಟಮ್ ಆರೋಗ್ಯ ತಪಾಸಣೆ",
+              hi: "🩺 सिस्टम स्वास्थ्य जांच",
+              te: "🩺 సిస్టమ్ హెల్త్ చెక్",
+              ta: "🩺 சிஸ்டம் ஆய்வு",
+              en: "🩺 System Diagnostics"
+            },
+            icon: "🩺",
+            actionType: "run_diagnostic"
+          }
+        ]
+      }
+    ];
+  });
 
   // Subscribe to speech synthesis state
   useEffect(() => {
@@ -791,6 +826,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
         ? `ಸ್ವಾಮಿ, ${params.city} ಪಿನ್‌ಕೋಡ್ ${params.pincode} ಸ್ಥಳದಲ್ಲಿ ${params.birthDate} ${params.birthTime} ರಂದು ಜನಿಸಿದ ${params.name} ಅವರ ಜಾತಕ ಗಣನೆ, ಅರ್ಚಕ ${params.priestName} ಅವರ ನೇತೃತ್ವದ ${params.poojaName} ಸೇವೆ${params.priestPhone ? ` ಹಾಗೂ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ${params.priestPhone}` : ""}, ಸೇವಾ ಪ್ರಸಾದ ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಗೂ ಐದು ಪುಟಗಳ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದ ಪತ್ರ ಸಹಿತ ಒಟ್ಟು ಐದು ಅಧಿಕೃತ ವರದಿಗಳ ಹಿನ್ನೆಲೆ ಡೌನ್‌ಲೋಡ್ ಸಿದ್ಧವಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಖಚಿತಪಡಿಸಿ ಸ್ವಾಮಿ, ತಕ್ಷಣ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸುತ್ತೇನೆ!`
         : `Swami, I have verified all details for ${params.name}, born on ${params.birthDate} at ${params.birthTime} in ${params.city}, pincode ${params.pincode}. With Priest ${params.priestName}${params.priestPhone ? `, contact ${params.priestPhone}` : ""}, for ${params.poojaName}, with Seva QR code. I am ready to generate all five official reports including the complete five-page Gokarna Ashirvada Patra in the background. Please review and confirm, Swami!`);
 
+    const currentMode = (activeTab === "voice" || isVoiceModeRef.current) ? "voice" : "text";
     const petMsg: ChatMessage = {
       id: `pet-confirm-prompt-${Date.now()}`,
       sender: "pet",
@@ -798,10 +834,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
       spokenText: askConfirmSpoken,
       lang,
       timestamp: new Date(),
-      emotion: "thinking"
+      emotion: "thinking",
+      mode: currentMode
     };
 
     setMessages((prev) => [...prev, petMsg]);
+    useDevoteeHistoryStore.getState().appendSessionMessage({
+      sender: "pet",
+      text: askConfirmText,
+      spokenText: askConfirmSpoken,
+      mode: currentMode
+    });
     setCurrentEmotion("thinking");
     setLastSpokenAnswer(askConfirmSpoken);
 
@@ -851,6 +894,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
           ? `ಧನ್ಯವಾದಗಳು ಸ್ವಾಮಿ! ಕಾಮಧೇನು ${knNum}: ${params.name} ಅವರ ಜಾತಕ ಹಾಗೂ ಐದು ಪುಟಗಳ ಆಶೀರ್ವಾದ ಪತ್ರ ಸಹಿತ ಐದೂ ವರದಿಗಳ ಗಣನೆ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭವಾಗಿದೆ. ನೀವು ಮುಕ್ತವಾಗಿ ನಿಮ್ಮ ಕೆಲಸ ಮುಂದುವರಿಸಿ, ಮುಗಿದ ತಕ್ಷಣ ತಿಳಿಸುತ್ತೇನೆ!`
           : `Thank you Swami! Kamadhenu ${inst.instanceIndex}: Autonomous generation for ${params.name} has started in the background. You can navigate freely; I will notify you once all five reports are downloaded!`;
 
+      const currentMode = (activeTab === "voice" || isVoiceModeRef.current) ? "voice" : "text";
       const petMsg: ChatMessage = {
         id: `pet-wf-start-${Date.now()}`,
         sender: "pet",
@@ -858,10 +902,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
         spokenText: startSpoken,
         lang,
         timestamp: new Date(),
-        emotion: "excited"
+        emotion: "excited",
+        mode: currentMode
       };
 
       setMessages((prev) => [...prev, petMsg]);
+      useDevoteeHistoryStore.getState().appendSessionMessage({
+        sender: "pet",
+        text: startNotice,
+        spokenText: startSpoken,
+        mode: currentMode
+      });
       setCurrentEmotion("excited");
       setLastSpokenAnswer(startSpoken);
 
@@ -905,6 +956,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const handleCancelConfirmation = () => {
     const lang = confirmationLang || currentLang;
     setPendingConfirmation(null);
+    const currentMode = (activeTab === "voice" || isVoiceModeRef.current) ? "voice" : "text";
     const cancelMsg: ChatMessage = {
       id: `pet-cancel-${Date.now()}`,
       sender: "pet",
@@ -918,9 +970,16 @@ export function SuperAdminAiPet(): JSX.Element | null {
           : "Command cancelled, Swami. Awaiting your next command.",
       lang,
       timestamp: new Date(),
-      emotion: "peaceful"
+      emotion: "peaceful",
+      mode: currentMode
     };
     setMessages((prev) => [...prev, cancelMsg]);
+    useDevoteeHistoryStore.getState().appendSessionMessage({
+      sender: "pet",
+      text: cancelMsg.text,
+      spokenText: cancelMsg.spokenText,
+      mode: currentMode
+    });
     setCurrentEmotion("peaceful");
     setLastSpokenAnswer(cancelMsg.spokenText!);
 
@@ -957,15 +1016,23 @@ export function SuperAdminAiPet(): JSX.Element | null {
     // Detect language of the query or explicit instruction (e.g. "in English", "in Kannada", Kannada script, etc.)
     const effectiveLang = detectQueryLanguage(query, currentLang);
 
+    const currentMode: "text" | "voice" = (activeTab === "voice" || isVoiceModeRef.current) ? "voice" : "text";
+
     // Append user message
     const userMsg: ChatMessage = {
       id: `usr-${Date.now()}`,
       sender: "user",
       text: query,
       lang: effectiveLang,
-      timestamp: new Date()
+      timestamp: new Date(),
+      mode: currentMode
     };
     setMessages((prev) => [...prev, userMsg]);
+    useDevoteeHistoryStore.getState().appendSessionMessage({
+      sender: "user",
+      text: query,
+      mode: currentMode
+    });
     setInputText("");
     setLiveTranscript(query);
     setIsProcessing(true);
@@ -1053,10 +1120,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
           spokenText: recallSpoken,
           lang: effectiveLang,
           timestamp: new Date(),
-          emotion: "peaceful"
+          emotion: "peaceful",
+          mode: currentMode
         };
 
         setMessages((prev) => [...prev, petMsg]);
+        useDevoteeHistoryStore.getState().appendSessionMessage({
+          sender: "pet",
+          text: recallText,
+          spokenText: recallSpoken,
+          mode: currentMode
+        });
         setCurrentEmotion("peaceful");
         setLastSpokenAnswer(recallSpoken);
 
@@ -1144,9 +1218,16 @@ export function SuperAdminAiPet(): JSX.Element | null {
           spokenText: text,
           lang: effectiveLang,
           timestamp: new Date(),
-          emotion: "alert"
+          emotion: "alert",
+          mode: currentMode
         };
         setMessages((prev) => [...prev, petMsg]);
+        useDevoteeHistoryStore.getState().appendSessionMessage({
+          sender: "pet",
+          text,
+          spokenText: text,
+          mode: currentMode
+        });
         setCurrentEmotion("alert");
         setLastSpokenAnswer(text);
 
@@ -1214,6 +1295,15 @@ export function SuperAdminAiPet(): JSX.Element | null {
         kundli: currentKundliSession.result
       } : undefined);
 
+      // Build unified cross-modal conversation turns for seamless bi-directional memory
+      const conversationTurns = messages.map((m) => ({
+        sender: m.sender,
+        text: m.text,
+        spokenText: m.spokenText,
+        mode: m.mode || "text",
+        timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : new Date(m.timestamp).toISOString()
+      }));
+
       const resp = await executeSuperAdminPetQuery(query, {
         activePage,
         currentKundliSession,
@@ -1223,7 +1313,8 @@ export function SuperAdminAiPet(): JSX.Element | null {
         currentUser,
         geminiApiKey,
         selectedLanguage: effectiveLang,
-        pendingConfirmation: pendingConfirmation || undefined
+        pendingConfirmation: pendingConfirmation || undefined,
+        conversationHistory: conversationTurns
       });
 
       const localizedText = resp.text[effectiveLang] || resp.text[currentLang] || resp.text.kn || resp.text.en;
@@ -1276,11 +1367,20 @@ export function SuperAdminAiPet(): JSX.Element | null {
         lang: effectiveLang,
         actions: resp.actions,
         timestamp: new Date(),
-        emotion: resp.emotion
+        emotion: resp.emotion,
+        mode: currentMode
       };
 
       setMessages((prev) => [...prev, petMsg]);
       setCurrentEmotion(resp.emotion);
+
+      useDevoteeHistoryStore.getState().appendSessionMessage({
+        sender: "pet",
+        text: fullDisplayText,
+        spokenText: fullVoiceSpeech,
+        mode: currentMode,
+        actions: resp.actions
+      });
 
       // Save to Devotee History Store
       if (finalDevoteeId) {
@@ -1356,9 +1456,16 @@ export function SuperAdminAiPet(): JSX.Element | null {
             : "Apologies Swami, a brief calculation issue occurred. Please command me again.",
         lang: effectiveLang,
         timestamp: new Date(),
-        emotion: "alert"
+        emotion: "alert",
+        mode: currentMode
       };
       setMessages((prev) => [...prev, fallbackMsg]);
+      useDevoteeHistoryStore.getState().appendSessionMessage({
+        sender: "pet",
+        text: fallbackMsg.text,
+        spokenText: fallbackMsg.spokenText,
+        mode: currentMode
+      });
       setCurrentEmotion("alert");
     } finally {
       setIsProcessing(false);
@@ -1921,6 +2028,18 @@ export function SuperAdminAiPet(): JSX.Element | null {
                               : "bg-white border border-amber-300/80 text-slate-800 rounded-tl-none"
                           }`}
                         >
+                          {/* Mode Indicator Badge */}
+                          {msg.mode === "voice" && (
+                            <div className={`mb-1.5 flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
+                              msg.sender === "user"
+                                ? "bg-amber-800/80 text-amber-200 border border-amber-400/40"
+                                : "bg-amber-100 text-amber-900 border border-amber-300/80"
+                            }`}>
+                              <span>🎙️</span>
+                              <span>{currentLang === "kn" ? "ಧ್ವನಿ ಮೋಡ್ (Voice Mode)" : "Voice Mode Turn"}</span>
+                            </div>
+                          )}
+
                           {/* Markdown text representation */}
                           <div className="whitespace-pre-line font-sans font-normal">
                             {msg.text}
@@ -2263,6 +2382,52 @@ export function SuperAdminAiPet(): JSX.Element | null {
                   </div>
                 )}
 
+                {/* Continuous Memory & Thread Sync Bar (ChatGPT / Claude / Gemini Live Parity) */}
+                <div className="mt-2 rounded-xl border border-amber-500/30 bg-black/50 backdrop-blur-xs p-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="font-bold text-amber-300 truncate text-[11px] sm:text-xs">
+                        {currentLang === "kn" ? "🔗 ಸಂಭಾಷಣೆ ಸ್ಮರಣೆ ಸಕ್ರಿಯ" : "🔗 Unified Memory Sync Active"}
+                      </span>
+                      <span className="text-[10px] text-amber-200/70 font-mono">
+                        ({messages.length} {currentLang === "kn" ? "ಸಂದೇಶಗಳು" : "turns"})
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsVoiceTranscriptExpanded(!isVoiceTranscriptExpanded)}
+                      className="text-[10px] font-bold text-amber-400 hover:text-amber-200 underline underline-offset-2 shrink-0 transition-colors"
+                    >
+                      {isVoiceTranscriptExpanded
+                        ? (currentLang === "kn" ? "ಮರೆಮಾಡಿ ▲" : "Hide Thread ▲")
+                        : (currentLang === "kn" ? "ಇತಿಹಾಸ ನೋಡಿ ▼" : "View Thread ▼")}
+                    </button>
+                  </div>
+
+                  {/* Collapsible Shared Cross-Modal Thread */}
+                  {isVoiceTranscriptExpanded && (
+                    <div className="mt-2 pt-2 border-t border-amber-500/20 max-h-36 overflow-y-auto space-y-1.5 scrollbar-thin">
+                      {messages.map((m) => (
+                        <div
+                          key={m.id}
+                          className={`flex items-start gap-1.5 text-[11px] leading-tight ${
+                            m.sender === "user" ? "text-amber-100" : "text-amber-300/90"
+                          }`}
+                        >
+                          <span className="shrink-0 font-bold">
+                            {m.sender === "user" ? (currentLang === "kn" ? "ನೀವು:" : "You:") : "AI:"}
+                          </span>
+                          <span className="shrink-0 rounded bg-white/10 px-1 text-[9px] text-amber-200 font-mono">
+                            {m.mode === "voice" ? "🎙️" : "💬"}
+                          </span>
+                          <p className="line-clamp-2">{m.spokenText || m.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Center Sacred Animated Disc & Frequency Ripples */}
                 <div className="relative flex flex-col items-center justify-center my-auto py-3">
                   {/* Dynamic Sound Wave Aura */}
@@ -2333,6 +2498,15 @@ export function SuperAdminAiPet(): JSX.Element | null {
                       <p className="text-xs text-amber-200/90 leading-relaxed max-h-24 overflow-y-auto">
                         {lastSpokenAnswer}
                       </p>
+                    </div>
+                  ) : messages.length > 1 ? (
+                    <div className="flex items-center gap-1.5 pt-1 text-[11px] text-amber-300/70 border-t border-amber-500/15">
+                      <span>💬</span>
+                      <span>
+                        {currentLang === "kn"
+                          ? "ಪಠ್ಯ ಸಂಭಾಷಣೆಯ ವಿಷಯ ಸ್ಮರಣೆಯಲ್ಲಿದೆ. ನೇರವಾಗಿ ಮಾತನಾಡಿ ಮುಂದುವರಿಸಿ..."
+                          : "Chat history in memory. Speak naturally to continue from where you left off in text..."}
+                      </span>
                     </div>
                   ) : (
                     <p className="text-[11px] text-amber-300/50 text-center italic">

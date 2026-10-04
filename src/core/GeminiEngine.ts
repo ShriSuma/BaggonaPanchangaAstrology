@@ -12,6 +12,12 @@ function inferFeatureFromContext(question: string, contextData: string): "prashn
   return "other";
 }
 
+export type AskGeminiChatTurn = {
+  role?: "user" | "model" | "assistant" | "pet";
+  sender?: "user" | "model" | "assistant" | "pet";
+  text: string;
+};
+
 export type AskGeminiOptions = {
   /**
    * Send `contextData` to the model exactly as written instead of wrapping it in
@@ -26,6 +32,8 @@ export type AskGeminiOptions = {
   retries?: number;
   /** Custom retry initial delay in ms (defaults to 2000) */
   retryDelay?: number;
+  /** Multi-turn conversation history for seamless continuity across text and voice modes */
+  conversationHistory?: AskGeminiChatTurn[];
 };
 
 export async function askGemini(
@@ -93,7 +101,39 @@ Use the native script of the requested language (e.g., Kannada script for Kannad
 
     while (retries > 0) {
       try {
-        const result = await model.generateContent(prompt);
+        let result;
+        if (options.conversationHistory && options.conversationHistory.length > 0) {
+          const contents: Array<{ role: "user" | "model"; parts: Array<{ text: string }> }> = [];
+          let lastRole = "";
+          for (const turn of options.conversationHistory) {
+            const tText = turn.text?.trim();
+            if (!tText) continue;
+            const r: "user" | "model" =
+              turn.role === "assistant" ||
+              turn.role === "model" ||
+              turn.role === "pet" ||
+              turn.sender === "pet" ||
+              turn.sender === "assistant" ||
+              turn.sender === "model"
+                ? "model"
+                : "user";
+            if (r === lastRole && contents.length > 0) {
+              contents[contents.length - 1].parts[0].text += `\n${tText}`;
+            } else {
+              contents.push({ role: r, parts: [{ text: tText }] });
+              lastRole = r;
+            }
+          }
+          if (contents.length > 0 && contents[contents.length - 1].role === "user") {
+            contents[contents.length - 1].parts[0].text += `\n\n${prompt}`;
+          } else {
+            contents.push({ role: "user", parts: [{ text: prompt }] });
+          }
+          result = await model.generateContent({ contents });
+        } else {
+          result = await model.generateContent(prompt);
+        }
+
         const response = await result.response;
         const text = response.text().trim();
         if (text) {

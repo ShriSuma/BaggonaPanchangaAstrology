@@ -5,7 +5,10 @@ export interface DevoteeMessage {
   id: string;
   sender: "user" | "pet";
   text: string;
+  spokenText?: string;
   timestamp: string;
+  mode?: "text" | "voice";
+  actions?: any[];
   workflowResult?: {
     reportType?: string;
     fileName?: string;
@@ -42,6 +45,7 @@ export interface DevoteeRecord {
 interface DevoteeHistoryState {
   records: DevoteeRecord[];
   activeDevoteeId: string | null;
+  activeSessionMessages: DevoteeMessage[];
 
   // Actions
   upsertDevotee: (data: {
@@ -59,8 +63,21 @@ interface DevoteeHistoryState {
 
   appendMessage: (
     devoteeId: string,
-    message: { sender: "user" | "pet"; text: string; workflowResult?: any }
+    message: { sender: "user" | "pet"; text: string; spokenText?: string; mode?: "text" | "voice"; actions?: any[]; workflowResult?: any; id?: string }
   ) => void;
+
+  appendSessionMessage: (msg: {
+    sender: "user" | "pet";
+    text: string;
+    spokenText?: string;
+    mode?: "text" | "voice";
+    actions?: any[];
+    workflowResult?: any;
+    id?: string;
+  }) => DevoteeMessage;
+
+  clearSessionMessages: () => void;
+  restoreSessionMessages: (messages: DevoteeMessage[]) => void;
 
   appendReport: (
     devoteeId: string,
@@ -132,6 +149,7 @@ export const useDevoteeHistoryStore = create<DevoteeHistoryState>()(
     (set, get) => ({
       records: [],
       activeDevoteeId: null,
+      activeSessionMessages: [],
 
       upsertDevotee: (data) => {
         const state = get();
@@ -207,8 +225,18 @@ export const useDevoteeHistoryStore = create<DevoteeHistoryState>()(
 
       appendMessage: (devoteeId, message) => {
         if (!devoteeId) return;
-        const msgId = `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        const msgId = (message as any).id || `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
         const nowIso = new Date().toISOString();
+        const newMsg: DevoteeMessage = {
+          id: msgId,
+          sender: message.sender,
+          text: message.text,
+          spokenText: message.spokenText,
+          mode: message.mode || "text",
+          actions: message.actions,
+          timestamp: nowIso,
+          workflowResult: message.workflowResult
+        };
 
         set((s) => ({
           records: s.records.map((r) => {
@@ -216,19 +244,57 @@ export const useDevoteeHistoryStore = create<DevoteeHistoryState>()(
             return {
               ...r,
               lastAccessedAt: nowIso,
-              messages: [
-                ...r.messages,
-                {
-                  id: msgId,
-                  sender: message.sender,
-                  text: message.text,
-                  timestamp: nowIso,
-                  workflowResult: message.workflowResult
-                }
-              ]
+              messages: [...r.messages, newMsg]
             };
-          })
+          }),
+          activeSessionMessages: s.activeSessionMessages.some((m) => m.id === msgId)
+            ? s.activeSessionMessages
+            : [...s.activeSessionMessages.slice(-50), newMsg]
         }));
+      },
+
+      appendSessionMessage: (msg) => {
+        const msgId = msg.id || `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        const nowIso = new Date().toISOString();
+        const newMsg: DevoteeMessage = {
+          id: msgId,
+          sender: msg.sender,
+          text: msg.text,
+          spokenText: msg.spokenText,
+          mode: msg.mode || "text",
+          actions: msg.actions,
+          timestamp: nowIso,
+          workflowResult: msg.workflowResult
+        };
+
+        set((s) => {
+          const activeDevId = s.activeDevoteeId;
+          const updatedRecords = activeDevId
+            ? s.records.map((r) => {
+                if (r.id !== activeDevId) return r;
+                return {
+                  ...r,
+                  lastAccessedAt: nowIso,
+                  messages: [...r.messages, newMsg]
+                };
+              })
+            : s.records;
+
+          return {
+            records: updatedRecords,
+            activeSessionMessages: [...s.activeSessionMessages.slice(-50), newMsg]
+          };
+        });
+
+        return newMsg;
+      },
+
+      clearSessionMessages: () => {
+        set({ activeSessionMessages: [] });
+      },
+
+      restoreSessionMessages: (messages) => {
+        set({ activeSessionMessages: messages });
       },
 
       appendReport: (devoteeId, report) => {
@@ -296,7 +362,7 @@ export const useDevoteeHistoryStore = create<DevoteeHistoryState>()(
       },
 
       clearAll: () => {
-        set({ records: [], activeDevoteeId: null });
+        set({ records: [], activeDevoteeId: null, activeSessionMessages: [] });
       }
     }),
     {

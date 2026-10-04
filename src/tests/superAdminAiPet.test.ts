@@ -1317,5 +1317,154 @@ Query: When will I get a job promotion and foreign travel?
       expect(reports[0].fileName).toContain("ಪ್ರಮೋದ್_ಕುಡ್ಗಿ");
     });
   });
+
+  describe("Cross-Modal Unified Conversation Memory & Hands-Free Duplex Continuity (ChatGPT / Claude / Gemini Live Parity)", () => {
+    it("persists and synchronizes session turns across both text and voice modes in devoteeHistoryStore", () => {
+      useDevoteeHistoryStore.getState().clearSessionMessages();
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages).toHaveLength(0);
+
+      // 1. Text mode question & answer
+      useDevoteeHistoryStore.getState().appendSessionMessage({
+        sender: "user",
+        text: "ನನ್ನ ೧೦ನೇ ಮನೆ ವೃತ್ತಿಜೀವನ ಮತ್ತು ಉದ್ಯೋಗ ಪ್ರಗತಿ ಹೇಗಿದೆ?",
+        mode: "text"
+      });
+      useDevoteeHistoryStore.getState().appendSessionMessage({
+        sender: "pet",
+        text: "ಸ್ವಾಮಿ, ನಿಮ್ಮ ೧೦ನೇ ಮನೆಯಲ್ಲಿ ಗುರು ಬಲವಿದೆ. ಸೂರ್ಯನ ಅನುಗ್ರಹದಿಂದ ಉನ್ನತ ಪದವಿ ಲಭ್ಯವಿದೆ.",
+        spokenText: "ನಿಮ್ಮ ೧೦ನೇ ಮನೆಯಲ್ಲಿ ಗುರು ಬಲವಿದೆ.",
+        mode: "text"
+      });
+
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages).toHaveLength(2);
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages[0].mode).toBe("text");
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages[1].mode).toBe("text");
+
+      // 2. Seamless transition to Voice mode: user speaks and assistant speaks
+      useDevoteeHistoryStore.getState().appendSessionMessage({
+        sender: "user",
+        text: "ನನಗೆ ಸೂಕ್ತವಾದ ಅದೃಷ್ಟ ರತ್ನ ಯಾವುದು?",
+        spokenText: "ನನಗೆ ಸೂಕ್ತವಾದ ಅದೃಷ್ಟ ರತ್ನ ಯಾವುದು?",
+        mode: "voice"
+      });
+      useDevoteeHistoryStore.getState().appendSessionMessage({
+        sender: "pet",
+        text: "ನಿಮಗೆ ಪುಷ್ಯರಾಗ (Yellow Sapphire) ಅಥವಾ ಮಾಣಿಕ್ಯ ರತ್ನ ಅತ್ಯಂತ ಶುಭಕರ.",
+        spokenText: "ನಿಮಗೆ ಪುಷ್ಯರಾಗ ರತ್ನ ಅತ್ಯಂತ ಶುಭಕರ.",
+        mode: "voice"
+      });
+
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages).toHaveLength(4);
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages[2].mode).toBe("voice");
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages[3].mode).toBe("voice");
+
+      // 3. Verify restoring session messages preserves modes
+      const snapshot = [...useDevoteeHistoryStore.getState().activeSessionMessages];
+      useDevoteeHistoryStore.getState().clearSessionMessages();
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages).toHaveLength(0);
+
+      useDevoteeHistoryStore.getState().restoreSessionMessages(snapshot);
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages).toHaveLength(4);
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages[0].text).toContain("೧೦ನೇ ಮನೆ");
+      expect(useDevoteeHistoryStore.getState().activeSessionMessages[3].mode).toBe("voice");
+    });
+
+    it("recalls past text turns when user switches to Voice Mode and asks about previous queries", async () => {
+      const mockTurns = [
+        {
+          sender: "user" as const,
+          text: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ೧೦ನೇ ಮನೆ ವೃತ್ತಿಜೀವನ ಹೇಗಿದೆ?",
+          mode: "text" as const,
+          timestamp: new Date().toISOString()
+        },
+        {
+          sender: "pet" as const,
+          text: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ೧೦ನೇ ಮನೆ ಗುರು ದೃಷ್ಟಿಯಿಂದಾಗಿ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಯಶಸ್ಸು ತರಲಿದೆ.",
+          spokenText: "೧೦ನೇ ಮನೆ ಗುರು ದೃಷ್ಟಿಯಿಂದಾಗಿ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಯಶಸ್ಸು ತರಲಿದೆ.",
+          mode: "text" as const,
+          timestamp: new Date().toISOString()
+        }
+      ];
+
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "kn",
+        conversationHistory: mockTurns
+      };
+
+      // In Voice Mode, user asks: "ಹಿಂದೆ ಏನು ಕೇಳಿದೆ?" (What did I ask before?)
+      const res = await executeSuperAdminPetQuery("ಹಿಂದೆ ನಾನು ಏನು ಕೇಳಿದೆ?", context);
+
+      expect(res.category).toBe("general");
+      expect(res.text.kn).toContain("೧೦ನೇ ಮನೆ");
+      expect(res.text.kn).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+      expect(res.spokenText.kn).toContain("೧೦ನೇ ಮನೆ");
+    });
+
+    it("recalls voice mode advice when user switches to Text Mode and types questions about voice turns", async () => {
+      const mockTurns = [
+        {
+          sender: "user" as const,
+          text: "ರಮೇಶ್ ಅವರಿಗೆ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಪೂಜೆ ಮಾಡಿಸಬೇಕೇ?",
+          mode: "voice" as const,
+          timestamp: new Date().toISOString()
+        },
+        {
+          sender: "pet" as const,
+          text: "ಹೌದು ಸ್ವಾಮಿ, ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿಗೆ ಗರಿಕಾರ್ಚನೆ ಹಾಗೂ ಸಂಕಷ್ಟಹರ ಗಣಪತಿ ವ್ರತ ಮಾಡಿಸುವುದು ಶ್ರೇಷ್ಠ.",
+          spokenText: "ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿಗೆ ಗರಿಕಾರ್ಚನೆ ಮಾಡಿಸುವುದು ಶ್ರೇಷ್ಠ.",
+          mode: "voice" as const,
+          timestamp: new Date().toISOString()
+        }
+      ];
+
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "kn",
+        conversationHistory: mockTurns
+      };
+
+      // In Text Mode, user asks to continue from voice mode
+      const res = await executeSuperAdminPetQuery("ಮುಂದುವರಿಸಿ, ವಾಯ್ಸ್ ಮೋಡ್‌ನಲ್ಲಿ ನೀವು ಹೇಳಿದ ವಿಷಯವನ್ನು ಮುಂದುವರಿಸಿ", context);
+
+      expect(res.category).toBe("general");
+      expect(res.text.kn).toContain("ಗೋಕರ್ಣ");
+      expect(res.text.kn).toContain("ಗಣಪತಿ");
+    });
+
+    it("maintains English conversation memory continuity when transitioning between modes", async () => {
+      const mockTurns = [
+        {
+          sender: "user" as const,
+          text: "How is my career progression in 2026?",
+          mode: "text" as const,
+          timestamp: new Date().toISOString()
+        },
+        {
+          sender: "pet" as const,
+          text: "Your 10th house is blessed by Jupiter transit, ensuring career elevation in late 2026.",
+          spokenText: "Your 10th house is blessed by Jupiter transit.",
+          mode: "text" as const,
+          timestamp: new Date().toISOString()
+        }
+      ];
+
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en",
+        conversationHistory: mockTurns
+      };
+
+      // Spoken voice query in English
+      const res = await executeSuperAdminPetQuery("What did I ask before? Continue from where we left off.", context);
+
+      expect(res.category).toBe("general");
+      expect(res.text.en).toContain("career");
+      expect(res.text.en).toContain("Jupiter");
+    });
+  });
 });
 
