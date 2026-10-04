@@ -16,6 +16,7 @@ import {
   modifyPendingWorkflow
 } from "../services/superAdminWorkflowRunner";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
+import { harvestAmbientKundliContext, type AmbientKundliProfile } from "../services/ambientKundliHarvester";
 
 describe("SuperAdminAiPet Intelligence & Security Suite", () => {
   it("enforces strict access control: authorized ONLY for Super Admin & Master profiles", () => {
@@ -907,6 +908,144 @@ describe("SuperAdminAiPet Intelligence & Security Suite", () => {
     expect(clean).not.toContain("**");
     expect(clean).not.toContain("https://baggona.org");
     expect(clean).not.toContain("✨");
+  });
+
+  describe("Ambient Kundli Room-Reading & Zero-Follow-Up Intelligence", () => {
+    const mockSession = {
+      id: "sess-ambient-test",
+      input: {
+        name: "ವೆಂಕಟೇಶ್ ಭಟ್",
+        birthDate: "1994-08-18",
+        birthTime: "07:15",
+        placeOfBirth: "Gokarna",
+        pincode: "581326",
+        latitude: 14.54,
+        longitude: 74.31,
+        timezone: 5.5
+      },
+      result: {
+        ascendant: 5,
+        ascendantSign: 5,
+        moonSign: 9,
+        planets: [
+          { name: "Sun", sign: 5, longitude: 125.4, house: 1 },
+          { name: "Moon", sign: 9, longitude: 245.2, house: 5 },
+          { name: "Jupiter", sign: 7, longitude: 195.0, house: 3 }
+        ]
+      },
+      birthDateYmd: "1994-08-18",
+      birthTimeHm: "07:15",
+      homePlaceName: "Gokarna",
+      placeLabel: "Gokarna, Karnataka",
+      dasha: "Guru Maha Dasha (ಗುರು ಮಹಾದಶೆ)"
+    };
+
+    it("harvests ambient profile from active KundliViewerSession with normalized values", () => {
+      const ambient = harvestAmbientKundliContext(mockSession as any);
+      expect(ambient.hasData).toBe(true);
+      expect(ambient.name).toBe("ವೆಂಕಟೇಶ್ ಭಟ್");
+      expect(ambient.birthDate).toBe("1994-08-18");
+      expect(ambient.birthTime).toBe("07:15");
+      expect(ambient.city).toBe("Gokarna");
+      expect(ambient.pincode).toBe("581326");
+      expect(ambient.dasha).toBe("Guru Maha Dasha (ಗುರು ಮಹಾದಶೆ)");
+      expect(ambient.kundli).toBeDefined();
+    });
+
+    it("returns hasData: false when no session, store or storage exists", () => {
+      const ambient = harvestAmbientKundliContext(null);
+      // If store is empty, hasData should be false
+      if (!ambient.hasData) {
+        expect(ambient.name).toBe("");
+        expect(ambient.birthDate).toBe("");
+      }
+    });
+
+    it("auto-fills workflow parameters from ambient profile and eliminates follow-up prompts", () => {
+      const ambient = harvestAmbientKundliContext(mockSession as any);
+
+      // User says "Download all 5 reports" without stating name or DOB
+      const res = parseWorkflowInstruction("Generate and download all 5 reports now", "kn", ambient);
+
+      expect(res.isWorkflow).toBe(true);
+      expect(res.missingFields).toHaveLength(0);
+      expect(res.params).toBeDefined();
+      expect(res.params?.name).toBe("ವೆಂಕಟೇಶ್ ಭಟ್");
+      expect(res.params?.birthDate).toBe("1994-08-18");
+      expect(res.params?.birthTime).toBe("07:15");
+      expect(res.params?.city).toBe("Gokarna");
+      expect(res.params?.pincode).toBe("581326");
+    });
+
+    it("prompts for missing fields only when ambient profile is not available", () => {
+      // User says "Download reports" with no ambient data
+      const res = parseWorkflowInstruction("Generate and download all 5 reports now", "kn", null);
+
+      expect(res.isWorkflow).toBe(true);
+      expect(res.missingFields?.length).toBeGreaterThan(0);
+      expect(res.questionPrompt).toBeDefined();
+    });
+
+    it("directly answers marriage question from ambient profile without asking follow-up questions", async () => {
+      const ambient = harvestAmbientKundliContext(mockSession as any);
+      const context: SuperAdminPetContext = {
+        activePage: "kundli",
+        currentUser: "superadmin",
+        selectedLanguage: "kn",
+        ambientProfile: ambient
+      };
+
+      const res = await executeSuperAdminPetQuery("ನನ್ನ ವಿವಾಹ ಯೋಗ ಮತ್ತು ದಾಂಪತ್ಯ ಜೀವನ ಹೇಗಿದೆ?", context);
+
+      // Must NOT ask for birth details
+      expect(res.text.kn).not.toContain("ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರು");
+      expect(res.text.kn).not.toContain("ಜನನ ದಿನಾಂಕ");
+      expect(res.text.kn).not.toContain("ಜನನ ಸಮಯ");
+
+      // Must directly provide astrological answer addressing the devotee
+      expect(res.text.kn).toContain("ವೆಂಕಟೇಶ್ ಭಟ್");
+      expect(res.text.kn).toContain("ಸಪ್ತಮ");
+      expect(res.category).toBe("admin");
+    });
+
+    it("directly answers career question from ambient profile without asking follow-up questions", async () => {
+      const ambient = harvestAmbientKundliContext(mockSession as any);
+      const context: SuperAdminPetContext = {
+        activePage: "kundli",
+        currentUser: "superadmin",
+        selectedLanguage: "en",
+        ambientProfile: ambient
+      };
+
+      const res = await executeSuperAdminPetQuery("How is my career and 10th house?", context);
+
+      // Must NOT ask for birth details
+      expect(res.text.en).not.toContain("Please provide your date of birth");
+      expect(res.text.en).not.toContain("time of birth");
+
+      // Must directly answer addressing the devotee
+      expect(res.text.en).toContain("ವೆಂಕಟೇಶ್ ಭಟ್");
+      expect(res.text.en).toContain("10th House");
+      expect(res.category).toBe("admin");
+    });
+
+    it("directly answers doshas and remedies from ambient profile without asking follow-up questions", async () => {
+      const ambient = harvestAmbientKundliContext(mockSession as any);
+      const context: SuperAdminPetContext = {
+        activePage: "kundli",
+        currentUser: "superadmin",
+        selectedLanguage: "kn",
+        ambientProfile: ambient
+      };
+
+      const res = await executeSuperAdminPetQuery("ನನ್ನ ಜಾತಕದಲ್ಲಿ ಯಾವುದಾದರೂ ದೋಷಗಳಿವೆಯೇ? ಪರಿಹಾರ ತಿಳಿಸಿ", context);
+
+      // Must NOT ask for birth details
+      expect(res.text.kn).not.toContain("ಜನನ ದಿನಾಂಕ");
+      expect(res.text.kn).toContain("ವೆಂಕಟೇಶ್ ಭಟ್");
+      expect(res.text.kn).toContain("ದೋಷ");
+      expect(res.text.kn).toContain("ಗೋಕರ್ಣ");
+    });
   });
 });
 

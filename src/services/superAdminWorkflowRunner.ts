@@ -232,7 +232,20 @@ const MONTH_MAP: Record<string, string> = {
 
 export function parseWorkflowInstruction(
   input: string,
-  defaultLang: SupportedLanguage = "kn"
+  defaultLang: SupportedLanguage = "kn",
+  ambientProfile?: Partial<WorkflowParams> | {
+    hasData?: boolean;
+    name?: string;
+    birthDate?: string;
+    birthTime?: string;
+    city?: string;
+    pincode?: string;
+    latitude?: number;
+    longitude?: number;
+    priestName?: string;
+    priestPhone?: string;
+    poojaName?: string;
+  } | null
 ): {
   isWorkflow: boolean;
   params?: WorkflowParams;
@@ -293,6 +306,11 @@ export function parseWorkflowInstruction(
     name = "Shriram Pandit";
   }
 
+  // Smart ambient fallback: If user already generated Kundli on page, grab their name!
+  if (!name && ambientProfile?.name && ambientProfile.name.trim()) {
+    name = ambientProfile.name.trim();
+  }
+
   if (!name) {
     missingFields.push("name");
   }
@@ -316,6 +334,11 @@ export function parseWorkflowInstruction(
         birthDate = `${dateMatch3[3]}-${dateMatch3[2].padStart(2, "0")}-${dateMatch3[1].padStart(2, "0")}`;
       }
     }
+  }
+
+  // Smart ambient fallback: If birthDate was already generated on the page, use it!
+  if (!birthDate && ambientProfile?.birthDate) {
+    birthDate = ambientProfile.birthDate;
   }
 
   if (!birthDate) {
@@ -346,6 +369,11 @@ export function parseWorkflowInstruction(
     }
   }
 
+  // Smart ambient fallback: If birthTime was already generated on the page, use it!
+  if (!birthTime && ambientProfile?.birthTime) {
+    birthTime = ambientProfile.birthTime;
+  }
+
   if (!birthTime) {
     missingFields.push("birthTime");
   }
@@ -364,10 +392,19 @@ export function parseWorkflowInstruction(
       }
     }
   }
+  if (!rawCity && ambientProfile?.city) {
+    rawCity = ambientProfile.city;
+  }
 
   const pinMatch = text.match(/\b(\d{6})\b/);
-  const explicitPin = pinMatch ? pinMatch[1] : undefined;
+  const explicitPin = pinMatch ? pinMatch[1] : (ambientProfile?.pincode || undefined);
   const geo = resolveCityCoordsAndPincode(rawCity || "Bengaluru", explicitPin);
+
+  // If ambientProfile has exact geocoordinates, honor them
+  if (ambientProfile?.latitude && ambientProfile?.longitude) {
+    geo.lat = ambientProfile.latitude;
+    geo.lng = ambientProfile.longitude;
+  }
 
   // 5. EXTRACT PRIEST NAME (e.g. "priest name is Chaitanya Pandit")
   let priestName = "Chaitanya Pandit";
@@ -473,6 +510,7 @@ export function parseWorkflowInstruction(
 
   return {
     isWorkflow: true,
+    missingFields: [],
     params: {
       rawPrompt: text,
       name,

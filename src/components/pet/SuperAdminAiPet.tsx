@@ -23,6 +23,10 @@ import {
   type WorkflowState,
   type WorkflowParams
 } from "../../services/superAdminWorkflowRunner";
+import {
+  harvestAmbientKundliContext,
+  type AmbientKundliProfile
+} from "../../services/ambientKundliHarvester";
 
 export type PetType = "kamadhenu" | "nandi" | "shuka";
 
@@ -116,21 +120,28 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const [pendingConfirmation, setPendingConfirmation] = useState<WorkflowParams | null>(null);
   const [confirmationLang, setConfirmationLang] = useState<SupportedLanguage>(() => currentLang);
 
+  // Ambient Kundli Context Harvester (Reads the room across store, localStorage, and DOM)
+  const ambientProfile = useMemo(() => {
+    return harvestAmbientKundliContext(currentKundliSession);
+  }, [currentKundliSession, activePage, isOpen]);
+
   // Devotee Profile Memory for continuous multi-turn live conversation & advisory
   const [activeProfile, setActiveProfile] = useState<ActiveProfileContext | null>(null);
 
-  // Synchronize active profile from current kundli session if loaded
+  // Synchronize active profile from ambient context whenever available
   useEffect(() => {
-    if (currentKundliSession?.input?.name && !activeProfile) {
+    if (ambientProfile.hasData) {
       setActiveProfile({
-        name: currentKundliSession.input.name,
-        birthDate: currentKundliSession.input.birthDate || currentKundliSession.birthDateYmd,
-        birthTime: currentKundliSession.input.birthTime || currentKundliSession.birthTimeHm,
-        city: currentKundliSession.homePlaceName || currentKundliSession.placeLabel || "Bengaluru",
-        kundli: currentKundliSession.result
+        name: ambientProfile.name,
+        birthDate: ambientProfile.birthDate,
+        birthTime: ambientProfile.birthTime,
+        city: ambientProfile.city,
+        pincode: ambientProfile.pincode,
+        kundli: ambientProfile.kundli,
+        dasha: ambientProfile.dasha
       });
     }
-  }, [currentKundliSession, activeProfile]);
+  }, [ambientProfile]);
 
   // Observable Background Workflow Runner State
   const [workflowState, setWorkflowState] = useState<WorkflowState>(() =>
@@ -734,7 +745,8 @@ export function SuperAdminAiPet(): JSX.Element | null {
     }
 
     // 1. CHECK FOR AUTONOMOUS WORKFLOW INSTRUCTION
-    const wfCheck = parseWorkflowInstruction(query, effectiveLang);
+    // Pass ambientProfile to auto-fill missing fields if devotee chart already exists
+    const wfCheck = parseWorkflowInstruction(query, effectiveLang, ambientProfile.hasData ? ambientProfile : null);
     if (wfCheck.isWorkflow) {
       setIsProcessing(false);
       if (wfCheck.missingFields && wfCheck.missingFields.length > 0) {
@@ -793,6 +805,8 @@ export function SuperAdminAiPet(): JSX.Element | null {
           priestName: wfCheck.params!.priestName,
           priestPhone: wfCheck.params!.priestPhone,
           poojaName: wfCheck.params!.poojaName,
+          kundli: ambientProfile.kundli || prev?.kundli,
+          dasha: ambientProfile.dasha || prev?.dasha,
           ...prev
         }));
         launchWorkflow(wfCheck.params, effectiveLang);
@@ -802,7 +816,15 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
     // 2. STANDARD SUPER ADMIN PET QUERIES (Bhavishya predictions, All 32 Pages Navigation, Revenue, Marketing, Diagnostics)
     try {
-      const effectiveProfile = activeProfile || (currentKundliSession ? {
+      const effectiveProfile = activeProfile || (ambientProfile.hasData ? {
+        name: ambientProfile.name,
+        birthDate: ambientProfile.birthDate,
+        birthTime: ambientProfile.birthTime,
+        city: ambientProfile.city,
+        pincode: ambientProfile.pincode,
+        kundli: ambientProfile.kundli,
+        dasha: ambientProfile.dasha
+      } : undefined) || (currentKundliSession ? {
         name: currentKundliSession.input.name,
         birthDate: currentKundliSession.input.birthDate || currentKundliSession.birthDateYmd,
         birthTime: currentKundliSession.input.birthTime || currentKundliSession.birthTimeHm,
@@ -814,6 +836,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
         activePage,
         currentKundliSession,
         activeProfile: effectiveProfile,
+        ambientProfile,
         coinBalance: wallet?.coinBalance,
         currentUser,
         geminiApiKey,
@@ -1260,11 +1283,67 @@ export function SuperAdminAiPet(): JSX.Element | null {
               </div>
             </div>
 
+            {/* Ambient Kundli Context Banner - Reads the room when Kundli is generated */}
+            {ambientProfile.hasData && (
+              <div className="flex items-center justify-between border-b border-amber-300/80 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-50 px-3.5 py-1.5 text-xs text-amber-950 shadow-inner">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-xs">
+                    🪐
+                  </span>
+                  <div className="min-w-0 truncate">
+                    <span className="font-bold text-amber-900">
+                      {currentLang === "kn" ? "ಸಕ್ರಿಯ ಜಾತಕ:" : currentLang === "hi" ? "सक्रिय कुंडली:" : currentLang === "te" ? "యాక్టివ్ జాతకం:" : currentLang === "ta" ? "செயலில் உள்ள ஜாதகம்:" : "Active Chart:"}
+                    </span>{" "}
+                    <span className="font-black text-amber-950 underline decoration-amber-400 decoration-2">
+                      {ambientProfile.name}
+                    </span>
+                    <span className="ml-1 text-[11px] font-medium text-amber-800">
+                      ({ambientProfile.birthDate} · {ambientProfile.birthTime} · {ambientProfile.city})
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-200 animate-pulse" />
+                    {currentLang === "kn" ? "ಸ್ಮಾರ್ಟ್ ಓದುವಿಕೆ" : "Room-Read Active"}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* TAB 1: CHAT & VOICE INTERFACE */}
             {activeTab === "chat" && (
               <>
                 {/* Quick Action Suggestion Bar */}
                 <div className="flex items-center gap-1.5 overflow-x-auto border-b border-amber-200/40 bg-white/80 px-3 py-2 text-xs scrollbar-none">
+                  {ambientProfile.hasData && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleSend(`${ambientProfile.name} ಅವರ ವಿವಾಹ ಯೋಗ ಮತ್ತು ದಾಂಪತ್ಯ ಜೀವನ ಹೇಗಿದೆ?`)}
+                        className="flex items-center gap-1 rounded-xl border border-rose-400 bg-rose-50 px-2.5 py-1 text-xs font-black text-rose-950 hover:bg-rose-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
+                      >
+                        <span>💍</span>
+                        <span>{ambientProfile.name} - ವಿವಾಹ</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSend(`${ambientProfile.name} ಅವರ ಉದ್ಯೋಗ ಮತ್ತು ವೃತ್ತಿ ಭವಿಷ್ಯ ತಿಳಿಸಿ`)}
+                        className="flex items-center gap-1 rounded-xl border border-blue-400 bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-950 hover:bg-blue-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
+                      >
+                        <span>💼</span>
+                        <span>{ambientProfile.name} - ವೃತ್ತಿ</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSend(`${ambientProfile.name} ಅವರ ೫ ಅಧಿಕೃತ ವರದಿಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡು`)}
+                        className="flex items-center gap-1 rounded-xl border border-purple-400 bg-purple-50 px-2.5 py-1 text-xs font-black text-purple-950 hover:bg-purple-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
+                      >
+                        <span>📑</span>
+                        <span>{ambientProfile.name} - ೫ ವರದಿಗಳು</span>
+                      </button>
+                    </>
+                  )}
                   <button
                     type="button"
                     onClick={() =>
@@ -1662,6 +1741,25 @@ export function SuperAdminAiPet(): JSX.Element | null {
                     ))}
                   </div>
                 </div>
+
+                {/* Voice Sanctum Ambient Devotee Badge */}
+                {ambientProfile.hasData && (
+                  <div className="mt-2.5 flex items-center justify-between rounded-xl border border-amber-500/30 bg-black/50 px-3 py-1.5 text-xs text-amber-200 backdrop-blur-xs">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="text-amber-400">🪐</span>
+                      <span className="font-bold text-amber-300">
+                        {currentLang === "kn" ? "ಸಕ್ರಿಯ ಜಾತಕ:" : currentLang === "hi" ? "सक्रिय कुंडली:" : currentLang === "te" ? "యాక్టివ్ జాతకం:" : currentLang === "ta" ? "செயலில் உள்ள ஜாதகம்:" : "Active Chart:"}
+                      </span>
+                      <span className="font-black text-amber-100">{ambientProfile.name}</span>
+                      <span className="text-[11px] text-amber-400/80">
+                        ({ambientProfile.birthDate} · {ambientProfile.birthTime} · {ambientProfile.city})
+                      </span>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.5 text-[9px] font-bold text-emerald-300">
+                      {currentLang === "kn" ? "ನೇರ ಜ್ಯೋತಿಷ್ಯ" : "Direct Shastra"}
+                    </span>
+                  </div>
+                )}
 
                 {/* Center Sacred Animated Disc & Frequency Ripples */}
                 <div className="relative flex flex-col items-center justify-center my-auto py-3">

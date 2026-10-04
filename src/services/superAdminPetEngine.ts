@@ -48,6 +48,7 @@ import {
   HINDINA_JANMA_CATALOG,
   generateProfileImprovements
 } from "./jyotishyaShastraKnowledge";
+import { harvestAmbientKundliContext, type AmbientKundliProfile } from "./ambientKundliHarvester";
 
 export type PetEmotion = "peaceful" | "thinking" | "speaking" | "excited" | "remedy" | "alert";
 
@@ -87,6 +88,7 @@ export type SuperAdminPetContext = {
   activePage: AppPage;
   currentKundliSession?: any;
   activeProfile?: ActiveProfileContext;
+  ambientProfile?: AmbientKundliProfile;
   coinBalance?: number;
   currentUser: string | null;
   geminiApiKey?: string;
@@ -536,6 +538,7 @@ export async function executeSuperAdminPetQuery(
   context: SuperAdminPetContext
 ): Promise<PetResponse> {
   const effectiveLang = detectQueryLanguage(rawQuery, context.selectedLanguage || "kn");
+  const ambient = context.ambientProfile || harvestAmbientKundliContext(context.currentKundliSession);
   const query = rawQuery.trim().toLowerCase();
 
   const isNavCommand =
@@ -674,62 +677,32 @@ export async function executeSuperAdminPetQuery(
     return await handleHindinaJanmaIntent(rawQuery, context, effectiveLang);
   }
 
-  // 0I. ACTIVE PROFILE TECHNICAL DISCUSSION & FOLLOW-UP Q&A (BOSS MULTI-TURN MEMORY)
-  const isActiveProfileFollowUpQuery =
-    !isNavCommand &&
-    !!(context.activeProfile || context.currentKundliSession) &&
-    (query.includes("10th") ||
-      query.includes("7th") ||
-      query.includes("career") ||
-      query.includes("marriage") ||
-      query.includes("dasha") ||
-      query.includes("bhukti") ||
-      query.includes("ಉದ್ಯೋಗ") ||
-      query.includes("ವಿವಾಹ") ||
-      query.includes("ದಶಾ") ||
-      query.includes("technical") ||
-      query.includes("analysis") ||
-      query.includes("tell me more") ||
-      query.includes("more about") ||
-      query.includes("ಮುಂದೆ ಏನು") ||
-      query.includes("ಇವರ"));
+  // 0A. KUNDLI & DOSHA SCAN COMMAND INTENT
+  const isDoshaScanQuery =
+    (query.includes("scan") && (query.includes("dosha") || query.includes("ದೋಷ") || query.includes("kundli") || query.includes("ಕುಂಡಲಿ"))) ||
+    query.includes("ದೋಷ ಪರಿಶೀಲನೆ") ||
+    query.includes("ದೋಷ ಸ್ಕ್ಯಾನ್") ||
+    query.includes("dosha scan");
 
-  if (isActiveProfileFollowUpQuery) {
-    return await handleActiveProfileFollowUpIntent(rawQuery, context, effectiveLang);
+  if (isDoshaScanQuery) {
+    return handleKundliAndDoshaAnalysis(context);
   }
 
-  // 0A. PRIEST / ASTROLOGER CALL BRIEF & CURRENT LIFE STATUS INTENT
-  const isPriestCallBriefQuery =
-    !query.includes("improve") &&
-    !query.includes("improvement") &&
-    !query.includes("ಸುಧಾರಣೆ") &&
-    (query.includes("call brief") ||
-      query.includes("client call") ||
-      query.includes("what to tell") ||
-      query.includes("tell client") ||
-      query.includes("tell user") ||
-      query.includes("tell them") ||
-      query.includes("phone call") ||
-      (query.includes("consultation") && (query.includes("call") || query.includes("brief") || query.includes("tips") || query.includes("how"))) ||
-      query.includes("happening in their life") ||
-      query.includes("happening in life") ||
-      query.includes("currently happening") ||
-      query.includes("call them") ||
-      query.includes("ಸಮಾಲೋಚನೆ") ||
-      query.includes("ಕರೆ ಸಾರಾಂಶ") ||
-      query.includes("ಕ್ಲೈಂಟ್‌ಗೆ ಏನು ಹೇಳಬೇಕು") ||
-      query.includes("ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ") ||
-      query.includes("ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ") ||
-      query.includes("ಮಾತನಾಡಲು") ||
-      query.includes("ಕರೆಯಲ್ಲಿ ಏನು ಹೇಳಬೇಕು") ||
-      ((query.includes("call") || query.includes("brief") || query.includes("client") || query.includes("ಕರೆ") || query.includes("ಸಮಾಲೋಚನೆ")) &&
-        (/\b\d{4}\b/.test(query) || /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/.test(query) || /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/i.test(query))));
+  // 0B. EXPERT JYOTISHYA SHASTRA TEACHING & GURUKULA KNOWLEDGE INTENT (PURE EDUCATIONAL)
+  const hasPersonalIndicator =
+    /\b(my|mine|our|his|her|client|devotee)\b/i.test(query) ||
+    query.includes("ನನ್ನ") ||
+    query.includes("ನನಗೆ") ||
+    query.includes("ಇವರ") ||
+    query.includes("ಅವರ") ||
+    query.includes("ಜಾತಕರ") ||
+    query.includes("ಹೇಗಿದೆ") ||
+    query.includes("ದೋಷಗಳಿವೆಯೇ") ||
+    query.includes("ಪರಿಹಾರ ತಿಳಿಸಿ") ||
+    query.includes("ಹೇಳಿ") ||
+    (!!ambient.name && query.toLowerCase().includes(ambient.name.toLowerCase())) ||
+    (!!context.activeProfile?.name && query.toLowerCase().includes(context.activeProfile.name.toLowerCase()));
 
-  if (isPriestCallBriefQuery) {
-    return await handlePriestCallBrieferIntent(rawQuery, context, effectiveLang);
-  }
-
-  // 0B. EXPERT JYOTISHYA SHASTRA TEACHING & GURUKULA KNOWLEDGE INTENT
   const isTeachingOrKnowledgeQuery =
     !isNavCommand &&
     (
@@ -797,6 +770,100 @@ export async function executeSuperAdminPetQuery(
       query.includes("ಜ್ಯೋತಿಷ್ಯ ಜ್ಞಾನ")
     );
 
+  if (isTeachingOrKnowledgeQuery && !hasPersonalIndicator) {
+    return await handleJyotishyaTeachingIntent(rawQuery, context, effectiveLang);
+  }
+
+  // 0C. PRIEST / ASTROLOGER CALL BRIEF & CURRENT LIFE STATUS INTENT
+  const isPriestCallBriefQuery =
+    !query.includes("improve") &&
+    !query.includes("improvement") &&
+    !query.includes("ಸುಧಾರಣೆ") &&
+    (query.includes("call brief") ||
+      query.includes("client call") ||
+      query.includes("what to tell") ||
+      query.includes("tell client") ||
+      query.includes("tell user") ||
+      query.includes("tell them") ||
+      query.includes("phone call") ||
+      (query.includes("consultation") && (query.includes("call") || query.includes("brief") || query.includes("tips") || query.includes("how"))) ||
+      query.includes("happening in their life") ||
+      query.includes("happening in life") ||
+      query.includes("currently happening") ||
+      query.includes("call them") ||
+      query.includes("ಸಮಾಲೋಚನೆ") ||
+      query.includes("ಕರೆ ಸಾರಾಂಶ") ||
+      query.includes("ಕ್ಲೈಂಟ್‌ಗೆ ಏನು ಹೇಳಬೇಕು") ||
+      query.includes("ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ") ||
+      query.includes("ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ") ||
+      query.includes("ಮಾತನಾಡಲು") ||
+      query.includes("ಕರೆಯಲ್ಲಿ ಏನು ಹೇಳಬೇಕು") ||
+      ((query.includes("call") || query.includes("brief") || query.includes("client") || query.includes("ಕರೆ") || query.includes("ಸಮಾಲೋಚನೆ")) &&
+        (/\b\d{4}\b/.test(query) || /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/.test(query) || /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/i.test(query))));
+
+  if (isPriestCallBriefQuery) {
+    return await handlePriestCallBrieferIntent(rawQuery, context, effectiveLang, ambient);
+  }
+
+  // 0I. ACTIVE PROFILE TECHNICAL DISCUSSION & FOLLOW-UP Q&A (BOSS MULTI-TURN MEMORY)
+  const isActiveProfileFollowUpQuery =
+    !isNavCommand &&
+    (ambient.hasData || !!(context.activeProfile || context.currentKundliSession)) &&
+    (query.includes("10th") ||
+      query.includes("7th") ||
+      query.includes("career") ||
+      query.includes("marriage") ||
+      query.includes("dasha") ||
+      query.includes("bhukti") ||
+      query.includes("ಉದ್ಯೋಗ") ||
+      query.includes("ವಿವಾಹ") ||
+      query.includes("ದಶಾ") ||
+      query.includes("technical") ||
+      query.includes("analysis") ||
+      query.includes("tell me more") ||
+      query.includes("more about") ||
+      query.includes("ಮುಂದೆ ಏನು") ||
+      query.includes("ಇವರ") ||
+      query.includes("wealth") ||
+      query.includes("finance") ||
+      query.includes("money") ||
+      query.includes("dhana") ||
+      query.includes("ಧನ") ||
+      query.includes("ಆರ್ಥಿಕ") ||
+      query.includes("education") ||
+      query.includes("ವಿದ್ಯಾ") ||
+      query.includes("children") ||
+      query.includes("ಸಂತಾನ") ||
+      query.includes("health") ||
+      query.includes("ಆರೋಗ್ಯ") ||
+      query.includes("lagna") ||
+      query.includes("ಲಗ್ನ") ||
+      query.includes("rashi") ||
+      query.includes("ರಾಶಿ") ||
+      query.includes("gemstone") ||
+      query.includes("ರತ್ನ") ||
+      query.includes("lucky") ||
+      query.includes("ಅದೃಷ್ಟ") ||
+      query.includes("dosha") ||
+      query.includes("ದೋಷ") ||
+      query.includes("remedy") ||
+      query.includes("ಪರಿಹಾರ") ||
+      query.includes("pooja") ||
+      query.includes("ಪೂಜೆ") ||
+      query.includes("chart") ||
+      query.includes("kundli") ||
+      query.includes("kundali") ||
+      query.includes("ಜಾತಕ") ||
+      query.includes("ಕುಂಡಲಿ") ||
+      query.includes("ನನ್ನ") ||
+      query.includes("ನನಗೆ") ||
+      query.includes("ಹೇಗಿದೆ") ||
+      hasPersonalIndicator);
+
+  if (isActiveProfileFollowUpQuery) {
+    return await handleActiveProfileFollowUpIntent(rawQuery, context, effectiveLang, ambient);
+  }
+
   if (isTeachingOrKnowledgeQuery) {
     return await handleJyotishyaTeachingIntent(rawQuery, context, effectiveLang);
   }
@@ -813,7 +880,7 @@ export async function executeSuperAdminPetQuery(
     query.includes("horoscope reading") ||
     query.includes("ಜನ್ಮ ಫಲ")
   ) {
-    return await handleBhavishyaPredictionIntent(rawQuery, context, effectiveLang);
+    return await handleBhavishyaPredictionIntent(rawQuery, context, effectiveLang, ambient);
   }
 
   // 2. ALL PAGES / SITEMAP / FEATURES INTENT
@@ -1000,7 +1067,8 @@ Keep spoken clarity in mind. Avoid excessive formatting.
 async function handlePriestCallBrieferIntent(
   rawQuery: string,
   context: SuperAdminPetContext,
-  targetLang: SupportedLanguage = "kn"
+  targetLang: SupportedLanguage = "kn",
+  ambientProfile?: AmbientKundliProfile
 ): Promise<PetResponse> {
   const query = rawQuery.trim();
   const lower = query.toLowerCase();
@@ -1074,8 +1142,15 @@ async function handlePriestCallBrieferIntent(
     }
   }
 
-  // Fallback to active session if details not in text
-  if ((!name || !birthDate) && context.currentKundliSession?.input) {
+  const ambient = ambientProfile || context.ambientProfile || harvestAmbientKundliContext(context.currentKundliSession);
+
+  // Fallback to ambient / active session if details not in text
+  if ((!name || !birthDate) && ambient.hasData) {
+    name = name || ambient.name || "ಜಾತಕರು";
+    birthDate = birthDate || ambient.birthDate;
+    birthTime = birthTime || ambient.birthTime || "09:20";
+    city = city || ambient.city || "Bengaluru";
+  } else if ((!name || !birthDate) && context.currentKundliSession?.input) {
     name = name || context.currentKundliSession.input.name || "ಜಾತಕರು";
     birthDate =
       birthDate ||
@@ -2246,41 +2321,116 @@ ${advisory.points.join("\n\n")}
 async function handleActiveProfileFollowUpIntent(
   rawQuery: string,
   context: SuperAdminPetContext,
-  targetLang: SupportedLanguage = "kn"
+  targetLang: SupportedLanguage = "kn",
+  ambientProfile?: AmbientKundliProfile
 ): Promise<PetResponse> {
   const query = rawQuery.trim();
   const lower = query.toLowerCase();
   const isKn = targetLang === "kn";
+  const ambient = ambientProfile || context.ambientProfile || harvestAmbientKundliContext(context.currentKundliSession);
 
-  const p = context.activeProfile || context.currentKundliSession?.input || {
-    name: "Shriram Pandit",
-    birthDate: "1993-05-31",
-    birthTime: "09:20",
-    city: "Bengaluru",
-    pincode: "560001"
-  };
+  // If no ambient data and no active profile exists in the room, ask kindly
+  if (!ambient.hasData && !context.activeProfile && !context.currentKundliSession) {
+    const missingKn = `ಸ್ವಾಮಿ, ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ ಜಾತಕದ ವಿವರಗಳು ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ಹೆಸರು, ಜನನ ದಿನಾಂಕ (DOB) ಮತ್ತು ಸಮಯ (TOB) ನೀಡಿ (ಅಥವಾ ಕುಂಡಲಿ ಪುಟದಲ್ಲಿ ಜಾತಕ ರಚಿಸಿ). ನಾನು ತಕ್ಷಣವೇ ಸಪ್ತಮ/ದಶಮ ಭಾವ, ದೋಷಗಳು ಮತ್ತು ಸಮಗ್ರ ವಿವರಣೆ ನೀಡುತ್ತೇನೆ.`;
+    const missingEn = `Swami, no active Kundli details were found in the system. Please provide the devotee's Name, Date of Birth, and Time of Birth (or generate a chart on the Kundli page) so I can evaluate their horoscope.`;
+    return {
+      text: { kn: missingKn, en: missingEn, hi: missingEn, te: missingEn, ta: missingEn },
+      spokenText: { kn: missingKn, en: missingEn, hi: missingEn, te: missingEn, ta: missingEn },
+      emotion: "alert",
+      category: "admin",
+      actions: [
+        { id: "open_kundli", label: { kn: "🪐 ಜಾತಕ ರಚಿಸಿ", en: "🪐 Create Kundli", hi: "🪐 कुण्डली", te: "🪐 జాతకం", ta: "🪐 ஜாதகம்" }, icon: "🪐", targetPage: "kundli", actionType: "navigate" }
+      ]
+    };
+  }
 
-  const name = p.name;
+  // Context activeProfile or current session takes precedence over ambient background store cache
+  const name = context.activeProfile?.name || context.currentKundliSession?.input?.name || ambient.name || "Shriram Pandit";
+  const birthDate = context.activeProfile?.birthDate || context.currentKundliSession?.birthDateYmd || context.currentKundliSession?.input?.birthDate || ambient.birthDate || "1993-05-31";
+  const birthTime = context.activeProfile?.birthTime || context.currentKundliSession?.birthTimeHm || context.currentKundliSession?.input?.birthTime || ambient.birthTime || "09:20";
+  const city = context.activeProfile?.city || context.currentKundliSession?.homePlaceName || context.currentKundliSession?.placeLabel || ambient.city || "Bengaluru";
+  const pincode = context.activeProfile?.pincode || ambient.pincode || "560001";
+  const geo = resolveCityCoordsAndPincode(city, pincode);
+
+  // Obtain or calculate live authentic chart
+  let chart: KundliOutput;
+  if (context.activeProfile?.kundli) {
+    chart = context.activeProfile.kundli;
+  } else if (context.currentKundliSession?.result) {
+    chart = context.currentKundliSession.result;
+  } else if (ambient.kundli && ambient.name === name) {
+    chart = ambient.kundli;
+  } else {
+    try {
+      chart = calculateKundli({
+        name,
+        birthDate,
+        birthTime,
+        latitude: geo.lat,
+        longitude: geo.lng,
+        pincode
+      });
+    } catch {
+      chart = calculateKundli({
+        name,
+        birthDate: "1993-05-31",
+        birthTime: "09:20",
+        latitude: 12.9716,
+        longitude: 77.5946,
+        pincode: "560001"
+      });
+    }
+  }
+
+  const lagnaRashi = chart.lagnaRashi?.english || "Aries";
+  const moonRashi = chart.moonSign?.english || "Virgo";
+  const moonPlanet = chart.planets.find((p) => p.name === PlanetName.Moon);
+  const moonNakshatra = moonPlanet?.nakshatra?.english || "Hasta";
+  const marsPlanet = chart.planets.find((p) => p.name === PlanetName.Mars);
+
+  // Active Dasha & Bhukti
+  const birthYear = parseInt(birthDate.split("-")[0], 10) || 1993;
+  const nativeAge = Math.max(0, new Date().getFullYear() - birthYear);
+  const maha = findMahadashaAtAge(chart, nativeAge);
+  const bhukti = findBhuktiAtAge(chart, nativeAge);
+  const runningMaha = maha ? maha.planet : "Jupiter";
+  const runningBhukti = bhukti ? bhukti.bhukti : "Saturn";
+
   let topic = "General Technical Evaluation";
   let explanationKn = "";
   let explanationEn = "";
 
-  if (lower.includes("10th") || lower.includes("career") || lower.includes("ಉದ್ಯೋಗ") || lower.includes("ದಶಮ") || lower.includes("job") || lower.includes("business")) {
+  if (lower.includes("10th") || lower.includes("career") || lower.includes("ಉದ್ಯೋಗ") || lower.includes("ದಶಮ") || lower.includes("job") || lower.includes("business") || lower.includes("ಕೆಲಸ") || lower.includes("ವೃತ್ತಿ")) {
     topic = isKn ? "ದಶಮ ಭಾವ (೧೦ನೇ ಮನೆ - ವೃತ್ತಿ & ಕೀರ್ತಿ)" : "10th House (Career & Professional Ascent)";
-    explanationKn = `೧೦ನೇ ಮನೆಯು ಕರ್ಮ ಸ್ಥಾನವಾಗಿದೆ. ${name} ಅವರಿಗೆ ದಶಮಾಧಿಪತಿಯು ಕೇಂದ್ರದಲ್ಲಿದ್ದು, ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ, ಸಮಾಲೋಚನೆ ಅಥವಾ ನಾಯಕತ್ವ ಸ್ಥಾನಕ್ಕೆ ಅತ್ಯಂತ ಯೋಗ್ಯವಾಗಿದೆ. ೨೦೨೬ರ ಉತ್ತರಾರ್ಧದಲ್ಲಿ ವೃತ್ತಿಯಲ್ಲಿ ಹೊಸ ಹಂತದ ಏಳಿಗೆ ಕಂಡುಬರುತ್ತದೆ.`;
-    explanationEn = `The 10th house is the Karma Bhava. For ${name}, the 10th lord is well-aspected in Kendra, favoring autonomous enterprise, executive advisory, or leadership. Q3/Q4 of 2026 marks a decisive professional breakthrough.`;
-  } else if (lower.includes("7th") || lower.includes("marriage") || lower.includes("ವಿವಾಹ") || lower.includes("ಕಳತ್ರ") || lower.includes("spouse") || lower.includes("ಸಂಗಾತಿ")) {
+    explanationKn = `೧೦ನೇ ಮನೆಯು ಕರ್ಮ ಸ್ಥಾನವಾಗಿದೆ. ${name} ಅವರಿಗೆ ದಶಮಾಧಿಪತಿಯು ಕೇಂದ್ರದಲ್ಲಿದ್ದು, ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ, ಸಮಾಲೋಚನೆ ಅಥವಾ ನಾಯಕತ್ವ ಸ್ಥಾನಕ್ಕೆ ಅತ್ಯಂತ ಯೋಗ್ಯವಾಗಿದೆ. ಪ್ರಸ್ತುತ ${runningMaha} ಮಹಾದಶಾದಲ್ಲಿ ${runningBhukti} ಭುಕ್ತಿ ನಡೆಯುತ್ತಿದ್ದು, ೨೦೨೬ರ ಉತ್ತರಾರ್ಧದಲ್ಲಿ ವೃತ್ತಿಯಲ್ಲಿ ಹೊಸ ಹಂತದ ಏಳಿಗೆ ಮತ್ತು ಜವಾಬ್ದಾರಿಗಳು ಪ್ರಾಪ್ತಿಯಾಗಲಿವೆ.`;
+    explanationEn = `The 10th house is the Karma Bhava. For ${name}, the 10th lord is well-aspected in Kendra, favoring autonomous enterprise, executive advisory, or leadership. Under the current ${runningMaha} Mahadasha and ${runningBhukti} Bhukti, Q3/Q4 of 2026 marks a decisive professional breakthrough.`;
+  } else if (lower.includes("7th") || lower.includes("marriage") || lower.includes("ವಿವಾಹ") || lower.includes("ಕಳತ್ರ") || lower.includes("spouse") || lower.includes("ಸಂಗಾತಿ") || lower.includes("ಮದುವೆ") || lower.includes("ದಾಂಪತ್ಯ")) {
     topic = isKn ? "ಸಪ್ತಮ ಭಾವ (೭ನೇ ಮನೆ - ಕಳತ್ರ & ದಾಂಪತ್ಯ)" : "7th House (Marriage & Partnerships)";
-    explanationKn = `೭ನೇ ಮನೆಯು ಕಳತ್ರ ಸ್ಥಾನ. ಕಳತ್ರ ಕಾರಕ ಶುಕ್ರನ ಸ್ಥಿತಿ ಹಾಗೂ ಗುರುವಿನ ದೃಷ್ಟಿ ಶುಭಕರವಾಗಿದೆ. ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಗೌರವ ಮುಖ್ಯ. ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮೀ ಪೂಜೆಯು ಸಂಬಂಧವನ್ನು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.`;
-    explanationEn = `The 7th house rules marriage and partnership. With Venus as natural significator receiving Jupiterian grace, marital harmony is sustained through mutual respect. Friday Lakshmi rituals safeguard union.`;
+    const marsHouse = marsPlanet?.house || 1;
+    const kujaTextKn = [1, 2, 4, 7, 8, 12].includes(marsHouse) ? "ಕುಜ ಪ್ರಭಾವವು ಸ್ವಲ್ಪ ತೀವ್ರತೆಯಿಂದಿದ್ದು, ಪರಸ್ಪರ ಸಮಾಲೋಚನೆ ಮತ್ತು ಶಾಂತತೆ ಅಗತ್ಯ." : "ಕುಜ ದೋಷದ ಗಂಭೀರ ಬಾಧೆಯಿಲ್ಲದೇ ದಾಂಪತ್ಯ ಜೀವನವು ಸುಗಮವಾಗಿರಲಿದೆ.";
+    const kujaTextEn = [1, 2, 4, 7, 8, 12].includes(marsHouse) ? "Mars exerts energetic influence on partnership axes, requiring mutual consultation." : "No severe Kuja affliction is present, supporting marital harmony.";
+    explanationKn = `೭ನೇ ಮನೆಯು ಕಳತ್ರ ಸ್ಥಾನ. ಕಳತ್ರ ಕಾರಕ ಶುಕ್ರನ ಸ್ಥಿತಿ ಹಾಗೂ ಗುರುವಿನ ದೃಷ್ಟಿ ಶುಭಕರವಾಗಿದೆ. ${kujaTextKn} ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಗೌರವ ಮುಖ್ಯ. ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮೀ ಪೂಜೆಯು ಸಂಬಂಧವನ್ನು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.`;
+    explanationEn = `The 7th house rules marriage and partnership. With Venus as natural significator receiving Jupiterian grace, ${kujaTextEn} Marital harmony is sustained through mutual respect. Friday Lakshmi rituals safeguard union.`;
+  } else if (lower.includes("wealth") || lower.includes("finance") || lower.includes("money") || lower.includes("dhana") || lower.includes("ಆರ್ಥಿಕ") || lower.includes("ಹಣ") || lower.includes("ಆದಾಯ") || lower.includes("ಲಾಭ") || lower.includes("2nd") || lower.includes("11th")) {
+    topic = isKn ? "ಧನ & ಲಾಭ ಭಾವ (೨ನೇ & ೧೧ನೇ ಮನೆ - ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ)" : "2nd & 11th House (Wealth & Financial Inflow)";
+    explanationKn = `೨ನೇ ಧನ ಸ್ಥಾನ ಮತ್ತು ೧೧ನೇ ಲಾಭ ಸ್ಥಾನಗಳ ಆಧಾರದ ಮೇಲೆ, ${name} ಅವರಿಗೆ ಸ್ಥಿರ ಆದಾಯ ಮತ್ತು ಉಳಿತಾಯದ ಯೋಗವಿದೆ. ಗುರು ಮತ್ತು ಬುಧರ ಶುಭ ದೃಷ್ಟಿಯಿಂದಾಗಿ ವ್ಯಾಪಾರ, ಹೂಡಿಕೆ ಅಥವಾ ಸಲಹಾ ವೃತ್ತಿಯಿಂದ ಧನಾಗಮನ ವೃದ್ಧಿಯಾಗಲಿದೆ.`;
+    explanationEn = `Evaluating the 2nd (Dhana) and 11th (Labha) houses, ${name} possesses strong wealth accumulation yogas. Favorable aspects from Jupiter and Mercury indicate growing yields through disciplined investments and enterprise.`;
+  } else if (lower.includes("dosha") || lower.includes("ದೋಷ") || lower.includes("mangal") || lower.includes("kuja") || lower.includes("ಕುಜ") || lower.includes("kaala sarpa") || lower.includes("ಕಾಳಸರ್ಪ") || lower.includes("pitru") || lower.includes("ಪಿತೃ")) {
+    topic = isKn ? "ಕುಂಡಲಿ ದೋಷ & ಗೋಕರ್ಣ ಪರಿಹಾರ ವಿಶ್ಲೇಷಣೆ" : "Dosha & Gokarna Remedial Analysis";
+    explanationKn = `ಜಾತಕದ ಕುಜ, ರಾಹು-ಕೇತು ಮತ್ತು ಶನಿ ಗ್ರಹಗಳ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಯಾವುದೇ ನಕಾರಾತ್ಮಕ ಗ್ರಹ ಬಾಧೆಗಳಿಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನದಲ್ಲಿ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ಸಂಕಲ್ಪವು ಶೀಘ್ರ ಫಲ ನೀಡುತ್ತದೆ.`;
+    explanationEn = `Scanning Mars, Rahu-Ketu, and Saturn placements in the chart, any residual planetary obstacles are neutralized by Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka and Navagraha Shanti Sankalpa.`;
+  } else if (lower.includes("gemstone") || lower.includes("ರತ್ನ") || lower.includes("stone") || lower.includes("lucky") || lower.includes("ಅದೃಷ್ಟ")) {
+    topic = isKn ? "ಅದೃಷ್ಟ ರತ್ನ & ಸಂಖ್ಯಾಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದರ್ಶನ" : "Auspicious Gemstone & Numerology Guidance";
+    explanationKn = `${lagnaRashi} ಲಗ್ನಕ್ಕೆ ಲಗ್ನಾಧಿಪತಿಯ ರತ್ನವು ಜಾತಕರಿಗೆ ಧೈರ್ಯ ಮತ್ತು ಯಶಸ್ಸನ್ನು ತರುತ್ತದೆ. ಜನ್ಮದಿನಾಂಕ ${birthDate} ಆಧಾರದ ಮೇಲೆ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳನ್ನು ಶುಭ ದಿನಗಳಲ್ಲಿ ಕೈಗೊಳ್ಳುವುದು ಹಿತಕರ.`;
+    explanationEn = `For ${lagnaRashi} Lagna, the Lagna Lord's primary gemstone enhances vitality, clarity, and mental focus. Decisions aligned with numerological vibrations from birth date ${birthDate} yield superior outcomes.`;
   } else if (lower.includes("dasha") || lower.includes("ದಶಾ") || lower.includes("bhukti") || lower.includes("ಭುಕ್ತಿ")) {
     topic = isKn ? "ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲಾವಧಿ" : "Vimshottari Dasha Analysis";
-    explanationKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ದಶಾವಧಿಯು ಜಾತಕರಿಗೆ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ ಮತ್ತು ಆರ್ಥಿಕ ಜವಾಬ್ದಾರಿಯನ್ನು ಕಲಿಸುತ್ತಿದೆ. ಮುಂದಿನ ಭುಕ್ತಿ ಪರಿವರ್ತನೆಯ ವೇಳೆಗೆ ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆಯಲಿದೆ.`;
-    explanationEn = `The active Dasha-Bhukti cycle emphasizes pragmatic responsibility and disciplined execution. The upcoming Bhukti transition guarantees rich dividends for their sustained efforts.`;
+    explanationKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${runningMaha} ಮಹಾದಶಾ ಮತ್ತು ${runningBhukti} ಭುಕ್ತಿಯು ಜಾತಕರಿಗೆ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ ಮತ್ತು ಆರ್ಥಿಕ ಜವಾಬ್ದಾರಿಯನ್ನು ಕಲಿಸುತ್ತಿದೆ. ಮುಂದಿನ ಭುಕ್ತಿ ಪರಿವರ್ತನೆಯ ವೇಳೆಗೆ ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆಯಲಿದೆ.`;
+    explanationEn = `The active ${runningMaha} Mahadasha and ${runningBhukti} Bhukti cycle emphasizes pragmatic responsibility and disciplined execution. The upcoming Bhukti transition guarantees rich dividends for their sustained efforts.`;
   } else {
     topic = isKn ? "ಸಮಗ್ರ ಜಾತಕ ತಾಂತ್ರಿಕ ವಿವರಣೆ" : "Comprehensive Technical Chart Analysis";
-    explanationKn = `ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಪ್ರಮುಖ ಗ್ರಹಗಳ ಸ್ಪಷ್ಟತೆಯ ಆಧಾರದ ಮೇಲೆ ${name} ಅವರ ಜಾತಕವು ದೃಢವಾದ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ದೀರ್ಘಾವಧಿ ಯಶಸ್ಸಿನ ಸಾಮರ್ಥ್ಯವನ್ನು ಹೊಂದಿದೆ.`;
-    explanationEn = `Analyzing Lagna, Moon sign, and planetary Sphutas, ${name}'s chart exhibits formidable mental resilience and long-term financial stability.`;
+    explanationKn = `${lagnaRashi} ಲಗ್ನ, ${moonRashi} ಚಂದ್ರ ರಾಶಿ (${moonNakshatra} ನಕ್ಷತ್ರ) ಹಾಗೂ ಪ್ರಮುಖ ಗ್ರಹಗಳ ಸ್ಥಿತಿಯ ಆಧಾರದ ಮೇಲೆ ${name} ಅವರ ಜಾತಕವು ದೃಢವಾದ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ದೀರ್ಘಾವಧಿ ಯಶಸ್ಸಿನ ಸಾಮರ್ಥ್ಯವನ್ನು ಹೊಂದಿದೆ.`;
+    explanationEn = `Analyzing ${lagnaRashi} Lagna, ${moonRashi} Moon sign (${moonNakshatra} Nakshatra), and planetary Sphutas, ${name}'s chart exhibits formidable mental resilience and long-term financial stability.`;
   }
 
   const textKn = `👑 **ಬಾಸ್, ${name} ಅವರ ಪ್ರೊಫೈಲ್ ಮೇಲಿನ ತಾಂತ್ರಿಕ ಚರ್ಚೆ (${topic})**
@@ -2290,7 +2440,8 @@ async function handleActiveProfileFollowUpIntent(
 ${explanationKn}
 
 • **ಜಾತಕರ ಹೆಸರು:** ${name}
-• **ಜನನ ವಿವರ:** ${p.birthDate} ${p.birthTime} (${p.city || "Bengaluru"})
+• **ಜನನ ವಿವರ:** ${birthDate} ${birthTime} (${city})
+• **ಗ್ರಹ ಸ್ಥಿತಿ:** ${lagnaRashi} ಲಗ್ನ | ${moonRashi} ರಾಶಿ | ${moonNakshatra} ನಕ್ಷತ್ರ (ದಶಾ: ${runningMaha}-${runningBhukti})
 • **ದೈವಜ್ಞರ ಕೌನ್ಸೆಲಿಂಗ್ ಟಿಪ್ಸ್:** ಇವರಿಗೆ ಮಾತನಾಡಲು ಕರೆ ಮಾಡಿದಾಗ ಈ ಅಂಶವನ್ನು ನೇರವಾಗಿ ಪ್ರಸ್ತಾಪಿಸಿ ಅವರ ಗಮನ ಸೆಳೆಯಿರಿ.
 
 ---
@@ -2303,7 +2454,8 @@ Boss, right at your service! Here are the technical findings:
 ${explanationEn}
 
 • **Devotee Name:** ${name}
-• **Birth Details:** ${p.birthDate} at ${p.birthTime} (${p.city || "Bengaluru"})
+• **Birth Details:** ${birthDate} at ${birthTime} (${city})
+• **Chart Sphutas:** ${lagnaRashi} Lagna | ${moonRashi} Moon | ${moonNakshatra} Nakshatra (Dasha: ${runningMaha}-${runningBhukti})
 • **Priest Consultation Angle:** Highlight this specific house dynamic during your client consultation call to demonstrate supreme insight.
 
 ---
@@ -2330,7 +2482,8 @@ ${explanationEn}
 async function handleBhavishyaPredictionIntent(
   rawQuery: string,
   context: SuperAdminPetContext,
-  targetLang: SupportedLanguage = "kn"
+  targetLang: SupportedLanguage = "kn",
+  ambientProfile?: AmbientKundliProfile
 ): Promise<PetResponse> {
   const query = rawQuery.trim();
   const lower = query.toLowerCase();
@@ -2404,8 +2557,15 @@ async function handleBhavishyaPredictionIntent(
     }
   }
 
-  // Fallback to active session if details not in text
-  if ((!name || !birthDate) && context.currentKundliSession?.input) {
+  const ambient = ambientProfile || context.ambientProfile || harvestAmbientKundliContext(context.currentKundliSession);
+
+  // Fallback to ambient / active session if details not in text
+  if ((!name || !birthDate) && ambient.hasData) {
+    name = name || ambient.name || "ಜಾತಕರು";
+    birthDate = birthDate || ambient.birthDate;
+    birthTime = birthTime || ambient.birthTime || "09:20";
+    city = city || ambient.city || "Bengaluru";
+  } else if ((!name || !birthDate) && context.currentKundliSession?.input) {
     name = name || context.currentKundliSession.input.name || "ಜಾತಕರು";
     birthDate =
       birthDate ||
