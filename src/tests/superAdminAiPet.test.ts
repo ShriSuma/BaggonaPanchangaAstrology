@@ -19,6 +19,7 @@ import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { harvestAmbientKundliContext, type AmbientKundliProfile } from "../services/ambientKundliHarvester";
 import { parseWhatsAppKundliText } from "../services/whatsAppKundliParser";
 import { generateSuperAdminBatchPdfs } from "../services/superAdminBatchPdfService";
+import { useDevoteeHistoryStore } from "../stores/devoteeHistoryStore";
 
 describe("SuperAdminAiPet Intelligence & Security Suite", () => {
   it("enforces strict access control: authorized ONLY for Super Admin & Master profiles", () => {
@@ -1220,6 +1221,100 @@ Query: When will I get a job promotion and foreign travel?
       expect(reports.some((r) => r.id === "single_question")).toBe(true);
       expect(reports[0].blob).toBeDefined();
       expect(reports[1].blob).toBeDefined();
+    });
+
+    it("manages Devotee Consultation History Store, unique ID generation, and recall", () => {
+      const store = useDevoteeHistoryStore.getState();
+      const rec = store.upsertDevotee({
+        name: "ಸುರೇಶ್ ಭಟ್",
+        birthDate: "1988-11-22",
+        birthTime: "08:45",
+        city: "Shivamogga",
+        pincode: "577201",
+        customQuestions: ["ಮನೆ ನಿರ್ಮಾಣ ಯೋಗ ಯಾವಾಗ?"]
+      });
+
+      expect(rec.id).toBeDefined();
+      expect(rec.id).toMatch(/^DEV-[A-Z0-9]+-[A-Z0-9]+$/);
+      expect(rec.name).toBe("ಸುರೇಶ್ ಭಟ್");
+      expect(rec.city).toBe("Shivamogga");
+      expect(rec.consultationCount).toBe(1);
+
+      // Append messages
+      store.appendMessage(rec.id, { sender: "user", text: "ನನ್ನ ಜಾತಕ ವಿವರ ಹೇಳಿ" });
+      store.appendMessage(rec.id, { sender: "pet", text: "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು ಬಲವಿದೆ." });
+
+      const updated = store.getDevoteeById(rec.id);
+      expect(updated?.messages).toHaveLength(2);
+
+      // Lookup by ID or name
+      const byName = store.getDevoteeByIdOrName("ಸುರೇಶ್ ಭಟ್ ಅವರ ಇತಿಹಾಸ ತನ್ನಿ");
+      expect(byName?.id).toBe(rec.id);
+
+      const byId = store.getDevoteeByIdOrName(`recall ${rec.id}`);
+      expect(byId?.name).toBe("ಸುರೇಶ್ ಭಟ್");
+    });
+
+    it("strictly validates mandatory Seva Patra parameters (place, devotee, priest name & mobile, pooja)", () => {
+      // Incomplete Seva Patra command: missing place, priest, phone, pooja
+      const incomplete = parseWorkflowInstruction("ಕಾಮಧೇನು, ರಮೇಶ್ ಅವರಿಗೆ ಸೇವಾ ಪತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡು", "kn");
+      expect(incomplete.isWorkflow).toBe(true);
+      expect(incomplete.missingFields).toBeDefined();
+      expect(incomplete.missingFields).toContain("place");
+      expect(incomplete.missingFields).toContain("priestName");
+      expect(incomplete.missingFields).toContain("priestPhone");
+      expect(incomplete.missingFields).toContain("poojaName");
+      expect(incomplete.questionPrompt).toContain("ಅಧಿಕೃತ ಸೇವಾ ಪತ್ರವನ್ನು");
+
+      // Complete Seva Patra command: all 5 mandatory parameters provided
+      const completeCmd =
+        "ಕಾಮಧೇನು, ರಮೇಶ್ (ಜನನ 1990-05-15 10:00 AM ಬೆಂಗಳೂರು) ಅವರಿಗೆ ಅರ್ಚಕ ಚೈತನ್ಯ ಪಂಡಿತ್ (ಮೊಬೈಲ್ 9876543210) ಅವರ ನೇತೃತ್ವದ ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಪೂಜೆಯ ಸೇವಾ ಪತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡು";
+      const complete = parseWorkflowInstruction(completeCmd, "kn");
+      expect(complete.isWorkflow).toBe(true);
+      expect(complete.missingFields).toHaveLength(0);
+      expect(complete.params).toBeDefined();
+      expect(complete.params?.name).toBe("ರಮೇಶ್");
+      expect(complete.params?.city).toBe("Bengaluru");
+      expect(complete.params?.priestName).toBe("ಚೈತನ್ಯ ಪಂಡಿತ್");
+      expect(complete.params?.priestPhone).toBe("9876543210");
+      expect(complete.params?.poojaName).toContain("ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ");
+      expect(complete.params?.requestedReports).toContain("seva_patra");
+    });
+
+    it("verifies Seva Patra PDF generation binds devotee personName and avoids Priya alone bug", async () => {
+      const mockSession = {
+        input: { name: "ಪ್ರಮೋದ್ ಕುಡ್ಗಿ", birthDate: "1991-03-12", birthTime: "14:15", city: "Gokarna", gotra: "Kashyapa" },
+        result: {
+          planets: [
+            {
+              name: "Moon",
+              degree: 15,
+              rashi: { english: "Vrishabha", index: 1 },
+              nakshatra: { english: "Rohini", index: 3 }
+            }
+          ]
+        }
+      };
+
+      const params = {
+        rawPrompt: "Seva Patra generation",
+        name: "ಪ್ರಮೋದ್ ಕುಡ್ಗಿ",
+        birthDate: "1991-03-12",
+        birthTime: "14:15",
+        city: "Gokarna",
+        pincode: "581326",
+        priestName: "ಚೈತನ್ಯ ಪಂಡಿತ್",
+        priestPhone: "9972339362",
+        poojaName: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ",
+        requestedReports: ["seva_patra"] as any,
+        language: "kn" as any
+      };
+
+      const reports = await generateSuperAdminBatchPdfs(mockSession as any, params as any);
+      expect(reports).toHaveLength(1);
+      expect(reports[0].id).toBe("seva_patra");
+      expect(reports[0].blob).toBeDefined();
+      expect(reports[0].fileName).toContain("ಪ್ರಮೋದ್_ಕುಡ್ಗಿ");
     });
   });
 });

@@ -457,22 +457,36 @@ export async function generateSuperAdminBatchPdfs(
         };
 
         const identity = {
+          personName: params.name,
           name: params.name,
-          gothra: session.input.gothra || "Kashyapa",
+          gotra: (session.input as any).gotra || (session.input as any).gothra || "Kashyapa",
+          gothra: (session.input as any).gotra || (session.input as any).gothra || "Kashyapa",
+          rashiIndex: rashiIdx,
+          nakshatraIndex: nakIdx,
           nakshatra: moon?.nakshatra?.english || "Ashwini",
           rashi: moon?.rashi?.english || "Mesha",
-          phone: "9972339362"
+          mobile: params.priestPhone || "9972339362",
+          phone: params.priestPhone || "9972339362",
+          place: `${params.city} (${params.pincode})`
         };
 
+        const poojaNameVal = params.poojaName || "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ";
         const primarySeva = {
           id: "moksha_narayana_tripindi",
+          name: {
+            kn: poojaNameVal,
+            en: poojaNameVal,
+            hi: poojaNameVal,
+            te: poojaNameVal,
+            ta: poojaNameVal
+          },
           seva: {
             name: {
-              kn: params.poojaName || "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ",
-              en: params.poojaName || "Moksha Narayana Bali and Tripindi",
-              hi: params.poojaName || "मोक्ष नारायण बलि एवं त्रिपिंडी श्राद्ध",
-              te: params.poojaName || "మోక్ష నారాయణ బలి మరియు త్రిపిండి",
-              ta: params.poojaName || "மோக்ஷ நாராயண பலி மற்றும் திரிபிண்டி"
+              kn: poojaNameVal,
+              en: poojaNameVal,
+              hi: poojaNameVal,
+              te: poojaNameVal,
+              ta: poojaNameVal
             },
             where: {
               kn: `${params.city} (${params.pincode})`,
@@ -507,7 +521,7 @@ export async function generateSuperAdminBatchPdfs(
                 qrDataUrl={qrDataUrl}
                 target="google"
                 panditName={params.priestName}
-                priestPhone="9972339362"
+                priestPhone={params.priestPhone || "9972339362"}
               />
             </div>
             {/* Page 3: Anugraha Guidance */}

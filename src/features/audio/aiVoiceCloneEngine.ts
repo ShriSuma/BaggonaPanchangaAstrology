@@ -239,8 +239,8 @@ export async function handleGenerateAudio(
     : voiceId;
 
   try {
-    // 2. Fetch the audio using our normal TTS POST endpoint with a 12s timeout for reliable neural synthesis
-    const fetchStudioTts = async (voice: string, timeoutMs = 12000): Promise<Response> => {
+    // 2. Fetch the audio using our normal TTS POST endpoint with a 25s timeout for reliable neural synthesis
+    const fetchStudioTts = async (voice: string, timeoutMs = 25000): Promise<Response> => {
       const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
       const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
       try {
@@ -260,18 +260,18 @@ export async function handleGenerateAudio(
 
     let response: Response | null = null;
     try {
-      response = await fetchStudioTts(targetVoiceId, 12000);
+      response = await fetchStudioTts(targetVoiceId, 25000);
     } catch (firstErr) {
       console.warn("[AIVoiceCloneEngine] Primary TTS stream attempt failed or timed out, retrying once with voice_sriram_pandit:", firstErr);
       // Wait brief backoff and retry once
       await new Promise((r) => setTimeout(r, 400));
-      response = await fetchStudioTts("voice_sriram_pandit", 12000);
+      response = await fetchStudioTts("voice_sriram_pandit", 25000);
     }
 
     // If a custom voice ID returns 404, immediately retry with the registered master voice
     if (response.status === 404 && targetVoiceId !== "voice_sriram_pandit") {
       console.warn(`[AIVoiceCloneEngine] Voice "${targetVoiceId}" not found (404), retrying with voice_sriram_pandit`);
-      response = await fetchStudioTts("voice_sriram_pandit", 12000);
+      response = await fetchStudioTts("voice_sriram_pandit", 25000);
     }
 
     if (!response.ok) throw new Error(`TTS Generation failed (${response.status})`);
@@ -719,15 +719,15 @@ export async function synthesizeAndPlayClonedVoice(
     );
   };
 
-  // 12-SECOND TIMEOUT GUARD (User Mandate 2026-09-26):
-  // Wait a full 12000ms for remote neural API synthesis.
-  // Never fire robotic fallback prematurely while API is generating and downloading!
+  // 25-SECOND TIMEOUT GUARD (User Mandate: "If it is delayed for 15 to 20 seconds also fine, but I want the response read by third party API not by default browser one"):
+  // Wait a full 25000ms for remote neural API synthesis.
+  // Never fire robotic browser fallback prematurely while third-party API is generating!
   fallbackWaitTimer = setTimeout(() => {
     if (!apiStreamStarted && !isCancelled && !isFallbackActive) {
-      console.warn("[AIVoiceCloneEngine] API stream did not produce sound within 12000ms. Engaging fallback.");
+      console.warn("[AIVoiceCloneEngine] Third-party API stream did not produce sound within 25000ms. Engaging fallback.");
       void triggerFallback();
     }
-  }, 12000);
+  }, 25000);
 
   try {
     streamCancelFn = streamSentencePipeline(

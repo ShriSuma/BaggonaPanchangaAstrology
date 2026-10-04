@@ -141,7 +141,7 @@ const SheetHeader = ({
       }}
     >
       {[
-        [pick(T.labelName!, lang), (identity as any).aiTransliteratedName || transliterateName(identity.personName, lang)],
+        [pick(T.labelName!, lang), (identity as any).aiTransliteratedName || transliterateName(identity.personName || (identity as any).name || (lang === "kn" ? "ಭಕ್ತರು" : "Devotee"), lang) || (lang === "kn" ? "ಭಕ್ತರು" : "Devotee")],
         [pick(T.labelRashi!, lang), pick(RASHI_L5[identity.rashiIndex]!, lang)],
         [pick(T.labelNakshatra!, lang), pick(NAKSHATRA_L5[identity.nakshatraIndex]!, lang)],
         ...(identity.gotra ? [[pick(T.labelGotra!, lang), transliterateName(identity.gotra, lang)]] : [])
@@ -571,7 +571,7 @@ export const SevaLetterPrint = ({
         <OrnamentRule />
 
         <div style={{ fontSize: 16, fontWeight: 700, marginTop: 6, color: INK }}>
-          {pick(LETTER_L5.salutation!, lang)} {(identity as any).aiTransliteratedName || transliterateName(identity.personName, lang)},
+          {pick(LETTER_L5.salutation!, lang)} {(identity as any).aiTransliteratedName || transliterateName(identity.personName || (identity as any).name || (lang === "kn" ? "ಭಕ್ತರು" : "Devotee"), lang) || (lang === "kn" ? "ಭಕ್ತರು" : "Devotee")},
         </div>
 
         <p style={paragraph}>{pick(LETTER_L5.opening!, lang)}</p>

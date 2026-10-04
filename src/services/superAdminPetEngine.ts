@@ -70,6 +70,7 @@ export type PetResponse = {
 };
 
 export type ActiveProfileContext = {
+  devoteeId?: string;
   name: string;
   birthDate: string;
   birthTime: string;
@@ -78,6 +79,8 @@ export type ActiveProfileContext = {
   priestName?: string;
   priestPhone?: string;
   poojaName?: string;
+  rawText?: string;
+  customQuestions?: string[];
   kundli?: any;
   dasha?: any;
   doshas?: any;

@@ -28,6 +28,7 @@ import {
   type AmbientKundliProfile
 } from "../../services/ambientKundliHarvester";
 import { parseWhatsAppKundliText, type ParsedWhatsAppKundli } from "../../services/whatsAppKundliParser";
+import { useDevoteeHistoryStore, type DevoteeRecord } from "../../stores/devoteeHistoryStore";
 
 export type PetType = "kamadhenu" | "nandi" | "shuka";
 
@@ -75,8 +76,8 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [currentEmotion, setCurrentEmotion] = useState<PetEmotion>("peaceful");
 
-  // Navigation tab inside sanctuary drawer: "chat" vs "voice" vs "tasks"
-  const [activeTab, setActiveTab] = useState<"chat" | "voice" | "tasks">("chat");
+  // Navigation tab inside sanctuary drawer: "chat" vs "voice" vs "history" vs "tasks"
+  const [activeTab, setActiveTab] = useState<"chat" | "voice" | "history" | "tasks">("chat");
 
   // Interactive Live Voice Conversation Mode State (Hands-Free Duplex)
   const [isVoiceMode, setIsVoiceMode] = useState<boolean>(false);
@@ -149,10 +150,30 @@ export function SuperAdminAiPet(): JSX.Element | null {
     superAdminWorkflowRunner.getState()
   );
 
-  // Dedicated WhatsApp / Telegram Raw Text Box State
+  // Dedicated WhatsApp / Telegram Raw Text Box & Modal State
   const [whatsAppText, setWhatsAppText] = useState<string>("");
   const [parsedKundli, setParsedKundli] = useState<ParsedWhatsAppKundli | null>(null);
-  const [isWhatsAppBoxOpen, setIsWhatsAppBoxOpen] = useState<boolean>(true);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState<boolean>(false);
+
+  // Chat Tab Speech-to-Text Dictation State
+  const [isDictatingText, setIsDictatingText] = useState<boolean>(false);
+  const dictationRecognitionRef = useRef<any>(null);
+
+  // Devotee Consultation History Store state
+  const devoteeRecords = useDevoteeHistoryStore((s) => s.records);
+  const [historySearchQuery, setHistorySearchQuery] = useState<string>("");
+
+  const filteredDevotees = useMemo(() => {
+    if (!historySearchQuery.trim()) return devoteeRecords;
+    const q = historySearchQuery.trim().toLowerCase();
+    return devoteeRecords.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.id.toLowerCase().includes(q) ||
+        r.city.toLowerCase().includes(q) ||
+        (r.pincode && r.pincode.includes(q))
+    );
+  }, [devoteeRecords, historySearchQuery]);
 
   // Background Task Resumption Memory: remembers which page the user was on before opening the pet drawer
   const initialPageRef = useRef<AppPage>(activePage);
@@ -196,6 +217,192 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const handleClearWhatsAppBox = () => {
     setWhatsAppText("");
     setParsedKundli(null);
+  };
+
+  // "Take Input" action: Parses text, persists devotee to History Store, assigns ID, updates activeProfile, and closes modal
+  const handleTakeWhatsAppInput = () => {
+    const rawTrim = whatsAppText.trim();
+    if (!rawTrim) return;
+
+    const parsed = parsedKundli?.hasData ? parsedKundli : parseWhatsAppKundliText(whatsAppText);
+    const candidateName = parsed?.hasData && parsed.name ? parsed.name : "ಭಕ್ತರು (Devotee)";
+
+    const record = useDevoteeHistoryStore.getState().upsertDevotee({
+      name: candidateName,
+      birthDate: parsed?.birthDate || "",
+      birthTime: parsed?.birthTime || "",
+      city: parsed?.city || "Bengaluru",
+      pincode: parsed?.pincode || "560001",
+      latitude: parsed?.latitude,
+      longitude: parsed?.longitude,
+      rawText: rawTrim,
+      customQuestions: parsed?.customQuestions || []
+    });
+
+    setActiveProfile({
+      devoteeId: record.id,
+      name: record.name,
+      birthDate: record.birthDate,
+      birthTime: record.birthTime,
+      city: record.city,
+      pincode: record.pincode,
+      rawText: record.rawText,
+      customQuestions: record.customQuestions
+    });
+
+    useDevoteeHistoryStore.getState().setActiveDevoteeId(record.id);
+    setIsWhatsAppModalOpen(false);
+
+    const takeMsg: ChatMessage = {
+      id: `take-${Date.now()}`,
+      sender: "pet",
+      text:
+        currentLang === "kn"
+          ? `📋 **${record.name} ಅವರ ವಿವರಗಳನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ!**\n\n• **ಭಕ್ತರ ಐಡಿ (Devotee ID):** \`${record.id}\`\n• **ಜನನ ವಿವರ:** ${record.birthDate || "ತಿಳಿಸಿಲ್ಲ"} | ${record.birthTime || "ತಿಳಿಸಿಲ್ಲ"}\n• **ಸ್ಥಳ:** ${record.city} (${record.pincode})\n${record.customQuestions && record.customQuestions.length > 0 ? `• **ಪ್ರಶ್ನೆಗಳು:** ${record.customQuestions.join(", ")}\n` : ""}\nಮುಂದಿನ ಸಂಭಾಷಣೆಗೆ ನೀವು ಈ ಭಕ್ತರ ಐಡಿಯನ್ನು ಬಳಸಬಹುದು. ಈಗ ನೀವು ನೇರವಾಗಿ ಯಾವುದೇ ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು ಅಥವಾ ೫ ಅಧಿಕೃತ ವರದಿಗಳನ್ನು ಆದೇಶಿಸಬಹುದು!`
+          : `📋 **Devotee Details Accepted for ${record.name}!**\n\n• **Devotee ID:** \`${record.id}\`\n• **Birth Info:** ${record.birthDate || "Not provided"} at ${record.birthTime || "Not provided"}\n• **Place:** ${record.city} (${record.pincode})\n${record.customQuestions && record.customQuestions.length > 0 ? `• **Questions:** ${record.customQuestions.join(", ")}\n` : ""}\nTo continue in future, you can use this Devotee ID. You can now ask questions or command reports directly.`,
+      spokenText: `${record.name} ಅವರ ವಿವರಗಳನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ. ಭಕ್ತರ ಐಡಿ ${record.id}.`,
+      lang: currentLang,
+      timestamp: new Date(),
+      emotion: "peaceful"
+    };
+
+    setMessages((prev) => [...prev, takeMsg]);
+  };
+
+  // Chat Tab Speech-to-Text Dictation (Direct transcription into inputText, no mode switch, no audio auto-reply)
+  const startChatDictation = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        currentLang === "kn"
+          ? "ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಸ್ಪೀಚ್ ರೆಕಗ್ನಿಷನ್ ಲಭ್ಯವಿಲ್ಲ."
+          : "Speech recognition not supported in your browser."
+      );
+      return;
+    }
+
+    try {
+      safeStopDictation();
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      const langLocales: Record<SupportedLanguage, string> = {
+        kn: "kn-IN",
+        hi: "hi-IN",
+        te: "te-IN",
+        ta: "ta-IN",
+        en: "en-IN"
+      };
+      recognition.lang = langLocales[currentLang] || "kn-IN";
+
+      recognition.onstart = () => {
+        setIsDictatingText(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = "";
+        for (let i = 0; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        const trimmed = transcript.trim();
+        if (trimmed) {
+          setInputText(trimmed);
+        }
+      };
+
+      recognition.onerror = (err: any) => {
+        console.warn("Chat dictation error:", err);
+        setIsDictatingText(false);
+      };
+
+      recognition.onend = () => {
+        setIsDictatingText(false);
+      };
+
+      dictationRecognitionRef.current = recognition;
+      recognition.start();
+      setIsDictatingText(true);
+    } catch (err) {
+      console.error("Chat dictation start failed:", err);
+      setIsDictatingText(false);
+    }
+  };
+
+  const safeStopDictation = () => {
+    if (dictationRecognitionRef.current) {
+      try {
+        dictationRecognitionRef.current.onend = null;
+        dictationRecognitionRef.current.onerror = null;
+        dictationRecognitionRef.current.onresult = null;
+        dictationRecognitionRef.current.stop();
+      } catch {}
+      dictationRecognitionRef.current = null;
+    }
+    setIsDictatingText(false);
+  };
+
+  const toggleChatDictation = () => {
+    if (isDictatingText) {
+      safeStopDictation();
+    } else {
+      startChatDictation();
+    }
+  };
+
+  // Resume past devotee from History Table
+  const handleResumeDevotee = (devotee: DevoteeRecord, targetTab: "chat" | "voice") => {
+    setActiveProfile({
+      devoteeId: devotee.id,
+      name: devotee.name,
+      birthDate: devotee.birthDate,
+      birthTime: devotee.birthTime,
+      city: devotee.city,
+      pincode: devotee.pincode,
+      rawText: devotee.rawText,
+      customQuestions: devotee.customQuestions
+    });
+
+    useDevoteeHistoryStore.getState().setActiveDevoteeId(devotee.id);
+
+    // If devotee has messages, restore them
+    if (devotee.messages.length > 0) {
+      const restored: ChatMessage[] = devotee.messages.map((m) => ({
+        id: m.id,
+        sender: m.sender,
+        text: m.text,
+        spokenText: m.text,
+        lang: currentLang,
+        timestamp: new Date(m.timestamp),
+        emotion: m.sender === "pet" ? "peaceful" : undefined,
+        workflowResult: m.workflowResult as any
+      }));
+      setMessages(restored);
+    }
+
+    const resumeMsg: ChatMessage = {
+      id: `resume-${Date.now()}`,
+      sender: "pet",
+      text:
+        currentLang === "kn"
+          ? `📜 **ಭಕ್ತರಾದ ${devotee.name} ಅವರ ಸಮಾಲೋಚನೆ ಪುನರಾರಂಭಗೊಂಡಿದೆ.**\n\n• **ಭಕ್ತರ ಐಡಿ (Devotee ID):** \`${devotee.id}\`\n• **ಜನನ ವಿವರ:** ${devotee.birthDate || "-"} ${devotee.birthTime || ""} (${devotee.city || ""})\n• **ಹಿಂದಿನ ಸಮಾಲೋಚನೆಗಳು:** ${devotee.consultationCount}\n• **ಡೌನ್‌ಲೋಡ್ ಆದ ವರದಿಗಳು:** ${devotee.reports.length}\n\nಸ್ವಾಮಿ, ನೀವು ಯಾವುದೇ ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು ಅಥವಾ ವರದಿಗಳನ್ನು ಆದೇಶಿಸಬಹುದು!`
+          : `📜 **Consultation resumed for ${devotee.name}.**\n\n• **Devotee ID:** \`${devotee.id}\`\n• **Birth Info:** ${devotee.birthDate || "-"} at ${devotee.birthTime || ""} (${devotee.city || ""})\n• **Past Sessions:** ${devotee.consultationCount}\n• **Reports Generated:** ${devotee.reports.length}\n\nSwami, you can ask any question or command report generation!`,
+      spokenText: `${devotee.name} ಅವರ ಸಮಾಲೋಚನೆ ಪುನರಾರಂಭಗೊಂಡಿದೆ. ಆಜ್ಞೆ ನೀಡಿ ಸ್ವಾಮಿ.`,
+      lang: currentLang,
+      timestamp: new Date(),
+      emotion: "peaceful"
+    };
+
+    setMessages((prev) => [...prev, resumeMsg]);
+
+    if (targetTab === "voice") {
+      enterVoiceMode();
+    } else {
+      setActiveTab("chat");
+    }
   };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -450,7 +657,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
   };
   startListeningRef.current = startListening;
 
-  // Enter Full Interactive Live Voice Mode
+  // Enter Full Interactive Live Voice Mode (Silent, attentive, no repetitive spoken greeting)
   const enterVoiceMode = () => {
     setIsVoiceMode(true);
     isVoiceModeRef.current = true;
@@ -459,27 +666,19 @@ export function SuperAdminAiPet(): JSX.Element | null {
     setActiveTab("voice");
     setIsOpen(true);
 
-    const welcome =
+    const readyStatus =
       currentLang === "kn"
-        ? "ನಮಸ್ಕಾರ ಬಾಸ್, ಕಾಮಧೇನು ಲೈವ್ ವಾಯ್ಸ್ ಮೋಡ್ ಸಕ್ರಿಯವಾಗಿದೆ. ಆಜ್ಞೆ ನೀಡಿ, ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ."
-        : "Namaskara Boss, Live Voice Mode active. Please speak, I am listening.";
+        ? "🎤 ಸಿದ್ಧವಾಗಿದೆ, ಆಜ್ಞೆ ನೀಡಿ..."
+        : "🎤 Ready, listening for your command...";
 
-    setLastSpokenAnswer(welcome);
+    setLiveTranscript(readyStatus);
 
-    petSpeechService.speak(
-      welcome,
-      currentLang,
-      () => {
-        // Hands-free auto-listen once greeting finishes!
-        if (isVoiceModeRef.current && !isMicMutedRef.current) {
-          startListeningRef.current?.();
-        }
-      },
-      () => {
-        setIsAssistantSpeaking(true);
-        isAssistantSpeakingRef.current = true;
+    // Start hands-free listening immediately without talking over the user
+    setTimeout(() => {
+      if (isVoiceModeRef.current && !isMicMutedRef.current) {
+        startListeningRef.current?.();
       }
-    );
+    }, 150);
   };
 
   // Exit Voice Mode back to text chat
@@ -799,6 +998,105 @@ export function SuperAdminAiPet(): JSX.Element | null {
       }
     }
 
+    // 0.5 DEVOTEE CONSULTATION HISTORY RECALL
+    const historyStore = useDevoteeHistoryStore.getState();
+    const isRecallQuery =
+      /\b(history|ಇತಿಹಾಸ|ಹಿಂದಿನ|ಸಂಭಾಷಣೆ|bring\s*back|recall|load|ತನ್ನಿ|ತೋರಿಸು|restore|continue|ಮುಂದುವರಿಸಿ)\b/i.test(query) ||
+      query.toUpperCase().includes("DEV-");
+
+    if (isRecallQuery) {
+      const candidateDevotee = historyStore.getDevoteeByIdOrName(query);
+      if (candidateDevotee) {
+        setIsProcessing(false);
+        isProcessingRef.current = false;
+
+        setActiveProfile({
+          devoteeId: candidateDevotee.id,
+          name: candidateDevotee.name,
+          birthDate: candidateDevotee.birthDate,
+          birthTime: candidateDevotee.birthTime,
+          city: candidateDevotee.city,
+          pincode: candidateDevotee.pincode,
+          rawText: candidateDevotee.rawText,
+          customQuestions: candidateDevotee.customQuestions
+        });
+        historyStore.setActiveDevoteeId(candidateDevotee.id);
+
+        if (candidateDevotee.messages.length > 0) {
+          const restored: ChatMessage[] = candidateDevotee.messages.map((m) => ({
+            id: m.id,
+            sender: m.sender,
+            text: m.text,
+            spokenText: m.text,
+            lang: effectiveLang,
+            timestamp: new Date(m.timestamp),
+            emotion: m.sender === "pet" ? "peaceful" : undefined,
+            workflowResult: m.workflowResult as any
+          }));
+          setMessages(restored);
+        }
+
+        const recallText =
+          effectiveLang === "kn"
+            ? `📜 **ಭಕ್ತರಾದ ${candidateDevotee.name} (ಐಡಿ: \`${candidateDevotee.id}\`) ಅವರ ಹಿಂದಿನ ಸಮಾಲೋಚನೆ ಇತಿಹಾಸವನ್ನು ಮರಳಿ ಪಡೆಯಲಾಗಿದೆ!**\n\n• **ಜನನ ವಿವರ:** ${candidateDevotee.birthDate || "-"} ${candidateDevotee.birthTime || ""}\n• **ಸ್ಥಳ:** ${candidateDevotee.city || "-"} (${candidateDevotee.pincode || ""})\n• **ಸಮಾಲೋಚನೆಗಳು:** ${candidateDevotee.consultationCount} ಬಾರಿ\n• **ವರದಿಗಳು:** ${candidateDevotee.reports.length} ಅಧಿಕೃತ ವರದಿಗಳು\n\nಮುಂದಿನ ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು ಅಥವಾ ಹೊಸ ವರದಿಗಳನ್ನು ಆದೇಶಿಸಬಹುದು.\n\n💡 **ಭಕ್ತರ ಐಡಿ (Devotee ID):** \`${candidateDevotee.id}\` (ಮುಂದೆ ಮುಂದುವರಿಸಲು ಈ ID ಬಳಸಬಹುದು)`
+            : `📜 **Consultation history restored for ${candidateDevotee.name} (ID: \`${candidateDevotee.id}\`)!**\n\n• **Birth Info:** ${candidateDevotee.birthDate || "-"} at ${candidateDevotee.birthTime || ""} (${candidateDevotee.city || ""})\n• **Past Sessions:** ${candidateDevotee.consultationCount} sessions\n• **Reports Generated:** ${candidateDevotee.reports.length} reports\n\nYou can ask any question or command report generation.\n\n💡 **Devotee ID:** \`${candidateDevotee.id}\` (Use this ID to continue in future)`;
+
+        const recallSpoken =
+          effectiveLang === "kn"
+            ? `${candidateDevotee.name} ಅವರ ಹಿಂದಿನ ಸಮಾಲೋಚನೆ ಇತಿಹಾಸವನ್ನು ಮರಳಿ ತರಲಾಗಿದೆ. ಮುಂದಿನ ಆಜ್ಞೆ ನೀಡಿ ಸ್ವಾಮಿ. ಭಕ್ತರ ಐಡಿ ${candidateDevotee.id}.`
+            : `Consultation history restored for ${candidateDevotee.name}. Please give your command, Swami. Devotee ID is ${candidateDevotee.id}.`;
+
+        const petMsg: ChatMessage = {
+          id: `pet-recall-${Date.now()}`,
+          sender: "pet",
+          text: recallText,
+          spokenText: recallSpoken,
+          lang: effectiveLang,
+          timestamp: new Date(),
+          emotion: "peaceful"
+        };
+
+        setMessages((prev) => [...prev, petMsg]);
+        setCurrentEmotion("peaceful");
+        setLastSpokenAnswer(recallSpoken);
+
+        historyStore.appendMessage(candidateDevotee.id, {
+          sender: "user",
+          text: query
+        });
+        historyStore.appendMessage(candidateDevotee.id, {
+          sender: "pet",
+          text: recallText
+        });
+
+        if (activeTab === "voice" && !isMuted) {
+          setIsAssistantSpeaking(true);
+          isAssistantSpeakingRef.current = true;
+          safeStopListening();
+          petSpeechService.speak(
+            recallSpoken,
+            effectiveLang,
+            () => {
+              setIsAssistantSpeaking(false);
+              isAssistantSpeakingRef.current = false;
+              if (isVoiceModeRef.current && !isMicMutedRef.current) {
+                startListeningRef.current?.();
+              }
+            },
+            () => {
+              setIsAssistantSpeaking(true);
+              isAssistantSpeakingRef.current = true;
+            }
+          );
+        } else if (activeTab === "voice") {
+          if (isVoiceModeRef.current && !isMicMutedRef.current) {
+            startListeningRef.current?.();
+          }
+        }
+        return;
+      }
+    }
+
     // 1. CHECK FOR AUTONOMOUS WORKFLOW INSTRUCTION
     // Fuse WhatsApp pasted input, activeProfile, and ambientProfile
     const parsedFromText = !parsedKundli?.hasData ? parseWhatsAppKundliText(whatsAppText || query) : null;
@@ -931,15 +1229,49 @@ export function SuperAdminAiPet(): JSX.Element | null {
       const localizedText = resp.text[effectiveLang] || resp.text[currentLang] || resp.text.kn || resp.text.en;
       const localizedSpoken = resp.spokenText[effectiveLang] || resp.spokenText[currentLang] || resp.spokenText.kn || resp.spokenText.en;
 
-      // USER MANDATE: "voice it should completely talk each and everything"
-      // Speak full comprehensive breakdown clearly through AI Studio Voice!
+      // Devotee ID and session persistence:
+      const activeDevoteeId = activeProfile?.devoteeId || useDevoteeHistoryStore.getState().activeDevoteeId;
+      let finalDevoteeId = activeDevoteeId;
+
+      // If there's an active profile or ambient profile without a devoteeId yet, upsert them now so an ID exists!
+      if (!finalDevoteeId && (effectiveProfile?.name || ambientProfile?.name)) {
+        const dName = effectiveProfile?.name || ambientProfile?.name || "ಭಕ್ತರು";
+        const newRecord = useDevoteeHistoryStore.getState().upsertDevotee({
+          name: dName,
+          birthDate: effectiveProfile?.birthDate || ambientProfile?.birthDate || "",
+          birthTime: effectiveProfile?.birthTime || ambientProfile?.birthTime || "",
+          city: effectiveProfile?.city || ambientProfile?.city || "Bengaluru",
+          pincode: effectiveProfile?.pincode || ambientProfile?.pincode || "560001",
+          customQuestions: effectiveProfile?.customQuestions || ambientProfile?.customQuestions || []
+        });
+        finalDevoteeId = newRecord.id;
+        setActiveProfile((prev) =>
+          prev
+            ? { ...prev, devoteeId: newRecord.id, name: dName }
+            : {
+                devoteeId: newRecord.id,
+                name: dName,
+                birthDate: effectiveProfile?.birthDate || ambientProfile?.birthDate || "",
+                birthTime: effectiveProfile?.birthTime || ambientProfile?.birthTime || "",
+                city: effectiveProfile?.city || ambientProfile?.city || "Bengaluru",
+                pincode: effectiveProfile?.pincode || ambientProfile?.pincode || "560001"
+              }
+        );
+      }
+
+      // Append Devotee ID footer so the user can continue consultation in future
+      const devoteeIdFooter = finalDevoteeId
+        ? `\n\n💡 **${effectiveLang === "kn" ? "ಭಕ್ತರ ಐಡಿ (Devotee ID)" : "Devotee ID"}:** \`${finalDevoteeId}\` (${effectiveLang === "kn" ? "ಮುಂದಿನ ಸಮಾಲೋಚನೆಗೆ ಈ ID ಬಳಸಿ" : "Use this ID to continue in future"})`
+        : "";
+
+      const fullDisplayText = localizedText + devoteeIdFooter;
       const fullVoiceSpeech = localizedText || localizedSpoken;
       setLastSpokenAnswer(fullVoiceSpeech);
 
       const petMsg: ChatMessage = {
         id: `pet-${Date.now()}`,
         sender: "pet",
-        text: localizedText,
+        text: fullDisplayText,
         spokenText: fullVoiceSpeech,
         lang: effectiveLang,
         actions: resp.actions,
@@ -950,7 +1282,20 @@ export function SuperAdminAiPet(): JSX.Element | null {
       setMessages((prev) => [...prev, petMsg]);
       setCurrentEmotion(resp.emotion);
 
-      if (!isMuted) {
+      // Save to Devotee History Store
+      if (finalDevoteeId) {
+        useDevoteeHistoryStore.getState().appendMessage(finalDevoteeId, {
+          sender: "user",
+          text: query
+        });
+        useDevoteeHistoryStore.getState().appendMessage(finalDevoteeId, {
+          sender: "pet",
+          text: fullDisplayText
+        });
+      }
+
+      // ONLY speak out loud if in VOICE tab! If in CHAT tab, it stays text-only on screen!
+      if (activeTab === "voice" && !isMuted) {
         setIsAssistantSpeaking(true);
         isAssistantSpeakingRef.current = true;
         safeStopListening();
@@ -971,7 +1316,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
             isAssistantSpeakingRef.current = true;
           }
         );
-      } else {
+      } else if (activeTab === "voice") {
         if (isVoiceModeRef.current && !isMicMutedRef.current) {
           startListeningRef.current?.();
         }
@@ -1321,6 +1666,28 @@ export function SuperAdminAiPet(): JSX.Element | null {
                   )}
                 </button>
 
+                {/* 📜 DEVOTEE CONSULTATION HISTORY TAB */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isVoiceMode) exitVoiceMode();
+                    setActiveTab("history");
+                  }}
+                  className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1 text-xs font-bold transition-all ${
+                    activeTab === "history"
+                      ? "bg-amber-700 text-white shadow-xs"
+                      : "text-amber-950 hover:bg-amber-200"
+                  }`}
+                >
+                  <span>📜</span>
+                  <span>{currentLang === "kn" ? "ಇತಿಹಾಸ (History)" : "History"}</span>
+                  {devoteeRecords.length > 0 && (
+                    <span className="rounded-full bg-amber-200 px-1.5 py-0.2 text-[9px] font-bold text-amber-900">
+                      {devoteeRecords.length}
+                    </span>
+                  )}
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -1398,133 +1765,51 @@ export function SuperAdminAiPet(): JSX.Element | null {
             {/* TAB 1: CHAT & VOICE INTERFACE */}
             {activeTab === "chat" && (
               <>
-                {/* DEDICATED WHATSAPP / TELEGRAM JANANA KUNDALI RAW TEXT BOX */}
-                <div className="border-b border-amber-300/80 bg-gradient-to-r from-amber-50 via-amber-100/40 to-orange-50/70 p-3 shadow-xs">
-                  <div className="flex items-center justify-between gap-2 pb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-base">📋</span>
-                      <h3 className="text-xs font-black text-amber-950 uppercase tracking-wide">
-                        {currentLang === "kn" ? "ಜನನ ಕುಂಡಲಿ ವಿವರಗಳ ಪೇಸ್ಟ್ ವಿಭಾಗ (WhatsApp / Telegram)" : "Devotee Details Paste Box (WhatsApp / Telegram)"}
-                      </h3>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={handlePasteFromClipboard}
-                        className="flex items-center gap-1 rounded-lg border border-amber-400 bg-white px-2 py-0.5 text-[11px] font-bold text-amber-950 shadow-2xs hover:bg-amber-100 transition-all active:scale-95"
-                        title="ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ನಿಂದ ಪೇಸ್ಟ್ ಮಾಡಿ / Paste from Clipboard"
-                      >
-                        <span>📋</span>
-                        <span>{currentLang === "kn" ? "ಪೇಸ್ಟ್" : "Paste"}</span>
-                      </button>
-                      {whatsAppText && (
-                        <button
-                          type="button"
-                          onClick={handleClearWhatsAppBox}
-                          className="rounded-lg border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-bold text-slate-700 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
-                          title="ತೆರವುಗೊಳಿಸಿ / Clear"
-                        >
-                          ✕
-                        </button>
+                {/* SLIM DEVOTEE STATUS & ON-DEMAND WHATSAPP MODAL TRIGGER BAR */}
+                <div className="flex items-center justify-between border-b border-amber-300/80 bg-gradient-to-r from-amber-50 via-amber-100/40 to-orange-50/70 px-3 py-1.5 shadow-2xs text-xs">
+                  <div className="flex items-center gap-2 min-w-0 truncate">
+                    <span className="text-amber-800 text-sm">👤</span>
+                    <div className="truncate">
+                      {activeProfile?.name ? (
+                        <span className="font-bold text-amber-950">
+                          {activeProfile.name}
+                          {activeProfile.devoteeId && (
+                            <span className="ml-1 font-mono text-[10px] text-amber-700 bg-amber-200/60 px-1 py-0.2 rounded">
+                              {activeProfile.devoteeId}
+                            </span>
+                          )}
+                          <span className="ml-1 text-[11px] text-amber-800 font-normal">
+                            ({activeProfile.city || "Bengaluru"})
+                          </span>
+                        </span>
+                      ) : ambientProfile.hasData ? (
+                        <span className="font-bold text-amber-950">
+                          {ambientProfile.name}
+                          <span className="ml-1 text-[11px] text-amber-800 font-normal">
+                            ({ambientProfile.city || "Bengaluru"})
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-500 italic">
+                          {currentLang === "kn"
+                            ? "ಯಾವುದೇ ಸಕ್ರಿಯ ಭಕ್ತರಿಲ್ಲ (WhatsApp ವಿವರ ಪೇಸ್ಟ್ ಮಾಡಲು ಪಕ್ಕದ ಬಟನ್ ಒತ್ತಿ)"
+                            : "No active devotee selected (Click WhatsApp Details to paste)"}
+                        </span>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => setIsWhatsAppBoxOpen(!isWhatsAppBoxOpen)}
-                        className="text-xs font-bold text-amber-800 hover:text-amber-950 px-1"
-                        title={isWhatsAppBoxOpen ? "Collapse" : "Expand"}
-                      >
-                        {isWhatsAppBoxOpen ? "▲" : "▼"}
-                      </button>
                     </div>
                   </div>
 
-                  {isWhatsAppBoxOpen && (
-                    <div className="space-y-2 mt-1">
-                      <textarea
-                        value={whatsAppText}
-                        onChange={(e) => handleWhatsAppTextChange(e.target.value)}
-                        rows={2}
-                        placeholder={
-                          currentLang === "kn"
-                            ? "WhatsApp ಅಥವಾ Telegram ನಿಂದ ಬಂದಿರುವ ಜಾತಕ ವಿವರಗಳನ್ನು ಇಲ್ಲಿ ಪೇಸ್ಟ್ ಮಾಡಿ... (ಹೆಸರು, ದಿನಾಂಕ, ಸಮಯ, ಸ್ಥಳ / ಪ್ರಶ್ನೆಗಳು)"
-                            : "Paste raw devotee text from WhatsApp or Telegram here... (Name, DOB, Time, Place / Questions)"
-                        }
-                        className="w-full rounded-xl border border-amber-300 bg-white/95 p-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-amber-600 focus:ring-1 focus:ring-amber-500 focus:outline-hidden font-mono leading-relaxed"
-                      />
-
-                      {/* Live Extracted Profile Chips */}
-                      {parsedKundli && parsedKundli.hasData ? (
-                        <div className="rounded-xl border border-emerald-300 bg-emerald-50/90 p-2 space-y-1.5 animate-fade-in text-xs">
-                          <div className="flex items-center justify-between border-b border-emerald-200 pb-1 text-[11px] font-black text-emerald-950">
-                            <span className="flex items-center gap-1">
-                              <span className="text-emerald-600">✓</span>
-                              <span>{currentLang === "kn" ? "ಗುರುತಿಸಲಾದ ಜಾತಕ ವಿವರಗಳು" : "Extracted Devotee Profile"}</span>
-                            </span>
-                            <span className="text-emerald-700 font-semibold">{parsedKundli.city} ({parsedKundli.pincode})</span>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                            {parsedKundli.name && (
-                              <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
-                                👤 {parsedKundli.name}
-                              </span>
-                            )}
-                            {parsedKundli.birthDate && (
-                              <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
-                                📅 {parsedKundli.birthDate}
-                              </span>
-                            )}
-                            {parsedKundli.birthTime && (
-                              <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
-                                ⏰ {parsedKundli.birthTime}
-                              </span>
-                            )}
-                            {parsedKundli.customQuestions.length > 0 && (
-                              <span className="rounded-md border border-purple-400 bg-purple-50 px-2 py-0.5 font-bold text-purple-950">
-                                ❓ {parsedKundli.customQuestions[0].slice(0, 35)}...
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Quick Action Trigger Buttons */}
-                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                            <button
-                              type="button"
-                              onClick={() => handleSend(`${parsedKundli.name} ಅವರ ಜಾತಕ ಗಣನೆ ಮಾಡಿ ೫ ಅಧಿಕೃತ ವರದಿಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡು`)}
-                              className="flex items-center gap-1 rounded-lg border border-emerald-600 bg-gradient-to-r from-emerald-600 to-emerald-700 px-2.5 py-1 text-[11px] font-black text-white hover:from-emerald-700 hover:to-emerald-800 shadow-2xs transition-all active:scale-95"
-                            >
-                              <span>🚀</span>
-                              <span>{currentLang === "kn" ? "೫ ಅಧಿಕೃತ ವರದಿಗಳು" : "Download 5 Reports"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleSend(`${parsedKundli.name} ಅವರ ಬಹುಪ್ರಶ್ನೆ ವಿಭಾಗದ ವರದಿ ಸಿದ್ಧಪಡಿಸಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡು`)}
-                              className="flex items-center gap-1 rounded-lg border border-purple-400 bg-white px-2.5 py-1 text-[11px] font-bold text-purple-950 hover:bg-purple-100 shadow-2xs transition-all active:scale-95"
-                            >
-                              <span>📑</span>
-                              <span>{currentLang === "kn" ? "ಬಹುಪ್ರಶ್ನೆ ವರದಿ" : "Multi-Question Report"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleSend(`${parsedKundli.name} ಅವರ ಪ್ರಶ್ನಾವಳಿ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡು`)}
-                              className="flex items-center gap-1 rounded-lg border border-blue-400 bg-white px-2.5 py-1 text-[11px] font-bold text-blue-950 hover:bg-blue-100 shadow-2xs transition-all active:scale-95"
-                            >
-                              <span>💬</span>
-                              <span>{currentLang === "kn" ? "ಪ್ರಶ್ನೋತ್ತರ ವರದಿ" : "Single Question"}</span>
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-[11px] text-amber-900/80 italic flex items-center gap-1">
-                          <span>🎙️</span>
-                          <span>
-                            {currentLang === "kn"
-                              ? "ವಿವರಗಳನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ, ಕೆಳಗಿನ ಮೈಕ್ ಒತ್ತಿ: 'ಈ ಜಾತಕಕ್ಕೆ ಕುಂಡಲಿ ಹಾಗೂ ವರದಿ ನೀಡು' ಎಂದು ಮಾತನಾಡಿ!"
-                              : "Paste details above, then tap the mic below and speak: 'Generate a kundali for this and give this this this this report'!"}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setIsWhatsAppModalOpen(true)}
+                      className="flex items-center gap-1 rounded-lg border border-amber-500/70 bg-gradient-to-r from-amber-500 to-amber-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:from-amber-600 hover:to-amber-700 transition-all active:scale-95"
+                      title="WhatsApp / Telegram ವಿವರಗಳನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ"
+                    >
+                      <span>📋</span>
+                      <span>{currentLang === "kn" ? "WhatsApp ವಿವರಗಳು" : "WhatsApp Details"}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Quick Action Suggestion Bar */}
@@ -1861,18 +2146,22 @@ export function SuperAdminAiPet(): JSX.Element | null {
                     }}
                     className="flex items-center gap-2"
                   >
-                    {/* Voice Input Microphone Button - Directly launches Live Voice Mode */}
+                    {/* Speech Dictation to Textbox (No mode switch, direct speech typing) */}
                     <button
                       type="button"
-                      onClick={enterVoiceMode}
+                      onClick={toggleChatDictation}
                       className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${
-                        isVoiceMode || isListening
-                          ? "border-rose-500 bg-rose-500 text-white animate-pulse"
+                        isDictatingText
+                          ? "border-rose-500 bg-rose-500 text-white animate-pulse shadow-md"
                           : "border-amber-400 bg-amber-100/80 text-amber-950 hover:bg-amber-200"
                       }`}
-                      title="ಲೈವ್ ವಾಯ್ಸ್ ಸಂಭಾಷಣೆ ಆರಂಭಿಸಿ (Start Live Voice Conversation)"
+                      title={
+                        isDictatingText
+                          ? (currentLang === "kn" ? "ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲಿಸಿ (Stop Dictation)" : "Stop Dictation")
+                          : (currentLang === "kn" ? "ಮಾತನಾಡಿ ಟೈಪ್ ಮಾಡಿ (Dictate to text box)" : "Dictate speech to text")
+                      }
                     >
-                      <span className="text-base">{isVoiceMode || isListening ? "🔴" : "🎙️"}</span>
+                      <span className="text-base">{isDictatingText ? "⏹️" : "🎤"}</span>
                     </button>
 
                     {/* Text input */}
@@ -2103,7 +2392,148 @@ export function SuperAdminAiPet(): JSX.Element | null {
               </div>
             )}
 
-            {/* TAB 2: TASK MANAGER / FLEET MONITOR SCREEN (UP TO 10 INSTANCES) */}
+            {/* TAB 3: DEVOTEE CONSULTATION HISTORY LOG */}
+            {activeTab === "history" && (
+              <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-amber-50/50 via-white to-amber-100/30 p-3 sm:p-4 animate-fade-in">
+                {/* Header & Search */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200 pb-3 mb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📜</span>
+                      <h3 className="font-serif font-black text-sm text-amber-950">
+                        {currentLang === "kn" ? "ಭಕ್ತರ ಸಮಾಲೋಚನೆಗಳ ಇತಿಹಾಸ" : "Devotee Consultation History"}
+                      </h3>
+                      <span className="rounded-full bg-amber-700 px-2 py-0.2 text-[10px] font-bold text-white">
+                        {devoteeRecords.length} {currentLang === "kn" ? "ದಾಖಲೆಗಳು" : "Records"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 mt-0.5">
+                      {currentLang === "kn"
+                        ? "ಹಿಂದಿನ ಎಲ್ಲಾ ಭಕ್ತರ ವಿವರಗಳು, ಕುಂಡಲಿ, ಸಂದೇಶಗಳು ಹಾಗೂ ವರದಿಗಳ ಇತಿಹಾಸ. ಇಲ್ಲಿಂದ ನೇರವಾಗಿ ಚಾಟ್ ಅಥವಾ ವಾಯ್ಸ್ ಮುಂದುವರಿಸಿ!"
+                        : "Past consultations, Kundlis, and generated reports. Resume seamlessly in Chat or Voice mode."}
+                    </p>
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={historySearchQuery}
+                      onChange={(e) => setHistorySearchQuery(e.target.value)}
+                      placeholder={
+                        currentLang === "kn" ? "ಹೆಸರು / ಐಡಿ / ಸ್ಥಳ ಹುಡುಕಿ..." : "Search by Name, ID, City..."
+                      }
+                      className="w-full sm:w-56 rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-amber-600 focus:outline-hidden"
+                    />
+                    {historySearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setHistorySearchQuery("")}
+                        className="absolute right-2 top-1.5 text-xs text-slate-400 hover:text-slate-600"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Devotees List / Table */}
+                <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                  {filteredDevotees.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-48 text-center text-slate-400">
+                      <span className="text-3xl mb-2">📜</span>
+                      <p className="text-xs font-medium">
+                        {historySearchQuery
+                          ? (currentLang === "kn" ? "ಯಾವುದೇ ಫಲಿತಾಂಶ ಸಿಗಲಿಲ್ಲ." : "No devotees match search.")
+                          : (currentLang === "kn"
+                              ? "ಇನ್ನೂ ಯಾವುದೇ ಭಕ್ತರ ವಿವರಗಳನ್ನು ದಾಖಲಿಸಿಲ್ಲ. WhatsApp ಪೇಸ್ಟ್ ಮೂಲಕ ಅಥವಾ ಹೊಸ ಪ್ರಶ್ನೆ ಕೇಳಿ ದಾಖಲಿಸಿ."
+                              : "No devotee consultation records yet.")}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredDevotees.map((devotee) => (
+                      <div
+                        key={devotee.id}
+                        className={`rounded-2xl border p-3 bg-white shadow-xs transition-all ${
+                          activeProfile?.devoteeId === devotee.id
+                            ? "border-amber-600 ring-2 ring-amber-400/40 bg-amber-50/30"
+                            : "border-amber-200 hover:border-amber-400"
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-bold text-sm text-slate-900">{devotee.name}</h4>
+                              <span className="font-mono text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-1.5 py-0.2 rounded-md">
+                                {devotee.id}
+                              </span>
+                              {activeProfile?.devoteeId === devotee.id && (
+                                <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 border border-emerald-300 px-1.5 py-0.2 rounded-md">
+                                  ✓ {currentLang === "kn" ? "ಸಕ್ರಿಯ" : "Active"}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-slate-600">
+                              <span>📅 {devotee.birthDate || "-"} {devotee.birthTime ? `· ${devotee.birthTime}` : ""}</span>
+                              <span>📍 {devotee.city} {devotee.pincode ? `(${devotee.pincode})` : ""}</span>
+                              <span>💬 {devotee.consultationCount} {currentLang === "kn" ? "ಸಮಾಲೋಚನೆಗಳು" : "sessions"}</span>
+                              {devotee.reports.length > 0 && (
+                                <span className="font-semibold text-emerald-800">
+                                  📦 {devotee.reports.length} {currentLang === "kn" ? "ವರದಿಗಳು" : "reports"}
+                                </span>
+                              )}
+                            </div>
+
+                            {devotee.customQuestions && devotee.customQuestions.length > 0 && (
+                              <div className="mt-1.5 text-[11px] text-purple-900 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1">
+                                ❓ {devotee.customQuestions[0]}
+                                {devotee.customQuestions.length > 1 && ` (+${devotee.customQuestions.length - 1} more)`}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleResumeDevotee(devotee, "chat")}
+                              className="flex items-center gap-1 rounded-xl border border-amber-500 bg-gradient-to-r from-amber-500 to-amber-600 px-2.5 py-1 text-xs font-bold text-white shadow-2xs hover:from-amber-600 hover:to-amber-700 active:scale-95 transition-all"
+                              title="ಚಾಟ್‌ನಲ್ಲಿ ಮುಂದುವರಿಸಿ (Resume in Chat)"
+                            >
+                              <span>💬</span>
+                              <span>{currentLang === "kn" ? "ಚಾಟ್" : "Chat"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleResumeDevotee(devotee, "voice")}
+                              className="flex items-center gap-1 rounded-xl border border-emerald-600 bg-gradient-to-r from-emerald-600 to-emerald-700 px-2.5 py-1 text-xs font-bold text-white shadow-2xs hover:from-emerald-700 hover:to-emerald-800 active:scale-95 transition-all"
+                              title="ಲೈವ್ ವಾಯ್ಸ್‌ನಲ್ಲಿ ಮುಂದುವರಿಸಿ (Resume in Voice)"
+                            >
+                              <span>🎙️</span>
+                              <span>{currentLang === "kn" ? "ವಾಯ್ಸ್" : "Voice"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(currentLang === "kn" ? "ಈ ಭಕ್ತರ ದಾಖಲೆಯನ್ನು ಅಳಿಸಲು ಖಚಿತಪಡಿಸಿ?" : "Delete this devotee record?")) {
+                                  useDevoteeHistoryStore.getState().deleteDevotee(devotee.id);
+                                }
+                              }}
+                              className="rounded-xl border border-slate-200 p-1 text-xs text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+                              title="ಅಳಿಸಿ (Delete)"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: TASK MANAGER / FLEET MONITOR SCREEN (UP TO 10 INSTANCES) */}
             {activeTab === "tasks" && (
               <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-[#FFFDF9] via-white to-[#FFFBF0]">
                 {/* Fleet Overview Bar */}
@@ -2323,6 +2753,130 @@ export function SuperAdminAiPet(): JSX.Element | null {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 📋 ON-DEMAND WHATSAPP / TELEGRAM DEVOTEE INPUT MODAL */}
+      {isWhatsAppModalOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="relative flex flex-col w-full max-w-lg rounded-2xl border-2 border-amber-500 bg-[#FFFDF9] text-slate-900 shadow-2xl overflow-hidden animate-slide-up">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-amber-300 bg-gradient-to-r from-amber-600 to-amber-500 px-4 py-3 text-white">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📋</span>
+                <div>
+                  <h4 className="font-serif font-black text-sm sm:text-base tracking-wide">
+                    {currentLang === "kn" ? "WhatsApp / Telegram ವಿವರಗಳ ಪೇಸ್ಟ್" : "Paste Devotee WhatsApp / Telegram Details"}
+                  </h4>
+                  <span className="text-[10px] text-amber-100 font-medium">
+                    {currentLang === "kn" ? "ಹೆಸರು, ದಿನಾಂಕ, ಸಮಯ, ಸ್ಥಳ ಹಾಗೂ ಪ್ರಶ್ನೆಗಳು" : "Name, Date, Time, Place & Questions"}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsWhatsAppModalOpen(false)}
+                className="rounded-full bg-white/20 p-1 text-white hover:bg-white/30 text-sm font-bold leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 space-y-3 max-h-[75vh] overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-amber-950">
+                  {currentLang === "kn" ? "ಸಂದೇಶ ಪೇಸ್ಟ್ ಮಾಡಿ:" : "Paste raw devotee message:"}
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handlePasteFromClipboard}
+                    className="flex items-center gap-1 rounded-lg border border-amber-400 bg-white px-2 py-0.5 text-[11px] font-bold text-amber-950 hover:bg-amber-50 shadow-2xs transition-all active:scale-95"
+                  >
+                    <span>📋</span>
+                    <span>{currentLang === "kn" ? "ಕ್ಲಿಪ್‌ಬೋರ್ಡ್ ಪೇಸ್ಟ್" : "Paste Clipboard"}</span>
+                  </button>
+                  {whatsAppText && (
+                    <button
+                      type="button"
+                      onClick={handleClearWhatsAppBox}
+                      className="rounded-lg border border-slate-300 bg-white px-2 py-0.5 text-[11px] font-bold text-slate-700 hover:bg-red-50 hover:text-red-700 transition-all"
+                    >
+                      {currentLang === "kn" ? "ತೆರವು" : "Clear"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <textarea
+                value={whatsAppText}
+                onChange={(e) => handleWhatsAppTextChange(e.target.value)}
+                rows={4}
+                placeholder={
+                  currentLang === "kn"
+                    ? "WhatsApp ಅಥವಾ Telegram ನಿಂದ ಬಂದಿರುವ ಸಂದೇಶವನ್ನು ಇಲ್ಲಿ ಪೇಸ್ಟ್ ಮಾಡಿ...\nಉದಾಹರಣೆಗೆ:\nಹೆಸರು: ರಮೇಶ್ ಭಟ್\nದಿನಾಂಕ: 15/05/1990\nಸಮಯ: 10:30 AM\nಸ್ಥಳ: ಬೆಂಗಳೂರು\nಪ್ರಶ್ನೆ: ನನ್ನ ಉದ್ಯೋಗ ಮತ್ತು ವಿದೇಶ ಪ್ರಯಾಣ ಯೋಗ ಹೇಗಿದೆ?"
+                    : "Paste raw message here...\nExample:\nName: Ramesh Bhat\nDOB: 15/05/1990\nTime: 10:30 AM\nPlace: Bengaluru\nQuestion: When will I get promotion?"
+                }
+                className="w-full rounded-xl border border-amber-300 bg-white p-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-amber-600 focus:ring-1 focus:ring-amber-500 focus:outline-hidden font-mono leading-relaxed shadow-inner"
+              />
+
+              {/* Extracted Preview Chips */}
+              {parsedKundli && parsedKundli.hasData && (
+                <div className="rounded-xl border border-emerald-300 bg-emerald-50/90 p-2.5 space-y-1.5 text-xs animate-fade-in">
+                  <div className="flex items-center justify-between border-b border-emerald-200 pb-1 text-[11px] font-black text-emerald-950">
+                    <span className="flex items-center gap-1">
+                      <span className="text-emerald-600">✓</span>
+                      <span>{currentLang === "kn" ? "ಗುರುತಿಸಲಾದ ವಿವರಗಳು" : "Extracted Fields"}</span>
+                    </span>
+                    <span className="text-emerald-800 font-semibold">{parsedKundli.city} ({parsedKundli.pincode})</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                    {parsedKundli.name && (
+                      <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
+                        👤 {parsedKundli.name}
+                      </span>
+                    )}
+                    {parsedKundli.birthDate && (
+                      <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
+                        📅 {parsedKundli.birthDate}
+                      </span>
+                    )}
+                    {parsedKundli.birthTime && (
+                      <span className="rounded-md border border-emerald-400 bg-white px-2 py-0.5 font-bold text-emerald-950">
+                        ⏰ {parsedKundli.birthTime}
+                      </span>
+                    )}
+                    {parsedKundli.customQuestions.length > 0 && (
+                      <span className="rounded-md border border-purple-400 bg-purple-50 px-2 py-0.5 font-bold text-purple-950">
+                        ❓ {parsedKundli.customQuestions[0]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Take Input Button */}
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-amber-200">
+                <button
+                  type="button"
+                  onClick={() => setIsWhatsAppModalOpen(false)}
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all"
+                >
+                  {currentLang === "kn" ? "ರದ್ದು" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleTakeWhatsAppInput}
+                  disabled={!whatsAppText.trim()}
+                  className="flex items-center gap-1.5 rounded-xl border border-amber-600 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 px-4 py-2 text-xs font-black text-white shadow-md transition-all disabled:opacity-50 active:scale-95"
+                >
+                  <span>📥</span>
+                  <span>{currentLang === "kn" ? "ವಿವರಗಳನ್ನು ಸ್ವೀಕರಿಸಿ (Take Input)" : "Accept Details (Take Input)"}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -21,6 +21,8 @@ export interface AmbientKundliProfile {
   lagnaName?: string;
   moonSignName?: string;
   nakshatraName?: string;
+  customQuestions?: string[];
+  pastedRawText?: string;
   source: "session" | "draft" | "localStorage" | "dom" | "none";
 }
 

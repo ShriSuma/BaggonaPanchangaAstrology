@@ -63,6 +63,7 @@ export interface WorkflowParams {
   customQuestions?: string[];
   questionCategory?: string;
   pastedRawText?: string;
+  devoteeId?: string;
 }
 
 export interface GeneratedReportItem {
@@ -337,13 +338,18 @@ export function parseWorkflowInstruction(
   if (forBornMatch && forBornMatch[1]) {
     name = forBornMatch[1].trim();
   } else {
-    const personMatch = text.match(/(?:(?<!priest\s+)person(?:\s+name)?(?:\s+is)?|(?<!priest\s+)named|devotee|user|(?<!priest\s+)name\s+is)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\bhe\b|\bshe\b|\bborn\b|\bwant\b|\bfrom\b|$)/i);
-    if (personMatch && personMatch[1]) {
-      name = personMatch[1].trim();
+    const knAvarigeMatch = text.match(/(?:ಕಾಮಧೇನು|ಹಾಯ್|ನಮಸ್ಕಾರ)?[,\s]+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:\s*\((?:ಜನನ|born)|\s+ಅವರಿಗೆ|\s+ಎಂಬ|\s+ಅವರ)/i);
+    if (knAvarigeMatch && knAvarigeMatch[1] && !["ಕಾಮಧೇನು", "ಅರ್ಚಕ", "ಪೂಜೆ", "ಶ್ರೀ", "ಅವರ"].includes(knAvarigeMatch[1].trim())) {
+      name = knAvarigeMatch[1].trim();
     } else {
-      const shriMatch = text.match(/\b(Shriram\s+Pandit|Suresh|Ramesh|Chaitanya)\b/i);
-      if (shriMatch) {
-        name = shriMatch[1];
+      const personMatch = text.match(/(?:(?<!priest\s+)person(?:\s+name)?(?:\s+is)?|(?<!priest\s+)named|devotee|user|(?<!priest\s+)name\s+is)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\bhe\b|\bshe\b|\bborn\b|\bwant\b|\bfrom\b|$)/i);
+      if (personMatch && personMatch[1]) {
+        name = personMatch[1].trim();
+      } else {
+        const shriMatch = text.match(/\b(Shriram\s+Pandit|Suresh|Ramesh|Chaitanya|ರಮೇಶ್|ಸುರೇಶ್|ರಾಘವೇಂದ್ರ|ವೆಂಕಟೇಶ್|ವಿನಾಯಕ್|ಶ್ರೀರಾಮ್\s*ಪಂಡಿತ್)\b/i);
+        if (shriMatch) {
+          name = shriMatch[1];
+        }
       }
     }
   }
@@ -482,9 +488,9 @@ export function parseWorkflowInstruction(
     geo.lng = ambientProfile.longitude;
   }
 
-  // 5. EXTRACT PRIEST NAME (e.g. "priest name is Chaitanya Pandit")
+  // 5. EXTRACT PRIEST NAME (e.g. "priest name is Chaitanya Pandit" or "ಅರ್ಚಕ ಚೈತನ್ಯ ಪಂಡಿತ್")
   let priestName = ambientProfile?.priestName || "Chaitanya Pandit";
-  const priestMatch = text.match(/priest(?:\s+name)?(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\buse\b|\band\b|\bpooja\b|\bmobile\b|\bphone\b|\bfor\b|$)/i);
+  const priestMatch = text.match(/(?:priest(?:\s+name)?(?:\s+is)?|ಅರ್ಚಕ(?:\s+ಹೆಸರು)?(?:\s+ಆದ|ರಾದ|ರು)?)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\buse\b|\band\b|\bpooja\b|\bmobile\b|\bphone\b|\bfor\b|\s*\(|\s+ಅವರ|\s+ನೇತೃತ್ವದ|$)/i);
   if (priestMatch && priestMatch[1]) {
     priestName = priestMatch[1].trim();
   }
@@ -501,10 +507,19 @@ export function parseWorkflowInstruction(
     }
   }
 
-  // 6. EXTRACT POOJA (e.g. "Pooja is Moksha Narayana Bali and Tripindi")
+  // 6. EXTRACT POOJA (e.g. "Pooja is Moksha Narayana Bali and Tripindi" or "... ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಪೂಜೆಯ")
   let poojaName = ambientProfile?.poojaName || "Moksha Narayana Bali and Tripindi";
-  const poojaMatch = text.match(/pooja(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF\s&]+?)(?:,|\.|\band the place\b|\band the priest\b|\bplace\b|\bdownload\b|\bpriest\b|$)/i);
-  if (poojaMatch && poojaMatch[1]) {
+  let poojaMatch = text.match(/pooja(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF\s&]+?)(?:,|\.|\band the place\b|\band the priest\b|\bplace\b|\bdownload\b|\bpriest\b|$)/i);
+  if (!poojaMatch) {
+    const knPooja = text.match(/([A-Za-z\u0C80-\u0CFF\s&]+?)\s+ಪೂಜೆ(?:ಯ)?/i);
+    if (knPooja && knPooja[1]) {
+      const cleaned = knPooja[1].replace(/.*(?:ನೇತೃತ್ವದ|ಆದ|ಸೇವೆ|ಮಾಡಿದ|ಕಾರ್ಯಕ್ರಮದ|ಪೂಜೆಯ|ಅವರ|\))\s*/i, "").trim();
+      if (cleaned.length > 2) {
+        poojaName = cleaned;
+        poojaMatch = knPooja;
+      }
+    }
+  } else if (poojaMatch[1]) {
     poojaName = poojaMatch[1].trim();
   }
 
@@ -637,11 +652,65 @@ export function parseWorkflowInstruction(
     }
   }
 
+  // 11. STRICT SEVA PATRA PARAMETER VALIDATION GUARD
+  // User Mandate: "when we are doing Seva Patra we are properly selecting the place,
+  // properly selecting the devotee name, properly selecting the priest name and number,
+  // properly selecting which Pooja we are doing. Without this input parameter, whatever the download comes,
+  // that is waste. So make sure all these parameters are filled with that request. If you don't have information then ask for it."
+  const isExplicitSevaPatra =
+    !wantsAllClassicReports &&
+    (lower.includes("seva patra") ||
+      lower.includes("ಸೇವಾ ಪತ್ರ") ||
+      lower.includes("ಆಶೀರ್ವಾದ ಪತ್ರ") ||
+      lower.includes("ashirvada patra") ||
+      (lower.includes("seva") && !lower.includes("all reports") && !lower.includes("5 reports") && !lower.includes("ಐದು ವರದಿ") && !lower.includes("these reports")));
+
+  if (isExplicitSevaPatra) {
+    if (!name && !missingFields.includes("name")) missingFields.push("devoteeName");
+    if (!rawCity && !ambientProfile?.city) missingFields.push("place");
+    if (!priestMatch && !text.match(/\b(Chaitanya\s+Pandit|Shreeram\s+Pandit|Shriram\s+Pandit|ಚೈತನ್ಯ\s+ಪಂಡಿತ್|ಶ್ರೀರಾಮ?\s+ಪಂಡಿತ್)\b/i) && !ambientProfile?.priestName) {
+      missingFields.push("priestName");
+    }
+    if (!priestPhone) {
+      missingFields.push("priestPhone");
+    }
+    if (!poojaMatch && !text.toLowerCase().includes("moksha") && !text.toLowerCase().includes("tripindi") && !text.includes("ಮೋಕ್ಷ") && !text.includes("ತ್ರಿಪಿಂಡಿ") && !ambientProfile?.poojaName) {
+      missingFields.push("poojaName");
+    }
+  }
+
   if (missingFields.length > 0) {
+    const fieldLabelsKn: Record<string, string> = {
+      name: "ಜಾತಕರ ಹೆಸರು (Devotee Name)",
+      devoteeName: "ಭಕ್ತರ ಹೆಸರು (Devotee Name)",
+      birthDate: "ಜನನ ದಿನಾಂಕ (DOB)",
+      birthTime: "ಜನನ ಸಮಯ (TOB)",
+      place: "ಸ್ಥಳ (Place / City)",
+      priestName: "ಅರ್ಚಕರ ಹೆಸರು (Priest Name)",
+      priestPhone: "ಅರ್ಚಕರ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (Priest Phone Number)",
+      poojaName: "ಪೂಜೆ ಅಥವಾ ಸೇವೆ (Pooja / Seva Name)"
+    };
+    const fieldLabelsEn: Record<string, string> = {
+      name: "Devotee Name",
+      devoteeName: "Devotee Name",
+      birthDate: "Date of Birth (DOB)",
+      birthTime: "Time of Birth (TOB)",
+      place: "Place / City",
+      priestName: "Priest Name",
+      priestPhone: "Priest Phone Number",
+      poojaName: "Pooja / Seva Name"
+    };
+
+    const labels = missingFields.map((f) => (language === "kn" ? fieldLabelsKn[f] || f : fieldLabelsEn[f] || f));
+
     const questionPrompt =
-      language === "kn"
-        ? `ಸ್ವಾಮಿ, ಜಾತಕರ ವಿವರಗಳಲ್ಲಿ ಕೆಲವು ಮಾಹಿತಿ ಅಗತ್ಯವಿದೆ: ${missingFields.join(", ")}. ದಯವಿಟ್ಟು ಹೆಸರು, ಜನನ ದಿನಾಂಕ (DOB) ಮತ್ತು ಸಮಯ (TOB) ನೀಡಿ ಅಥವಾ ವಾಟ್ಸಾಪ್/ಟೆಲಿಗ್ರಾಮ್ ಸಂದೇಶವನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ.`
-        : `Swami, some critical details are needed: ${missingFields.join(", ")}. Please provide Devotee Name, Date of Birth, and Time of Birth or paste the WhatsApp/Telegram message.`;
+      isExplicitSevaPatra
+        ? language === "kn"
+          ? `ಸ್ವಾಮಿ, ಅಧಿಕೃತ ಸೇವಾ ಪತ್ರವನ್ನು (೫-ಪುಟಗಳ ಆಶೀರ್ವಾದ ಪತ್ರ) ಸಿದ್ಧಪಡಿಸಲು ಈ ಪ್ರಮುಖ ವಿವರಗಳು ಅತ್ಯಗತ್ಯ:\n• ${labels.join("\n• ")}\n\nಈ ವಿವರಗಳಿಲ್ಲದೆ ಸೇವಾ ಪತ್ರ ಅಪೂರ್ಣವಾಗಿರುತ್ತದೆ. ದಯವಿಟ್ಟು ಈ ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ನೀಡಿ, ತಕ್ಷಣ ಅಧಿಕೃತ ಆಶೀರ್ವಾದ ಪತ್ರವನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತೇನೆ.`
+          : `Swami, to generate the official 5-page Seva Patra (Ashirvada Patra), the following required parameters are missing:\n• ${labels.join("\n• ")}\n\nWithout these parameters the report will be incomplete. Please provide these details to proceed.`
+        : language === "kn"
+        ? `ಸ್ವಾಮಿ, ಜಾತಕರ ವಿವರಗಳಲ್ಲಿ ಕೆಲವು ಮಾಹಿತಿ ಅಗತ್ಯವಿದೆ: ${labels.join(", ")}. ದಯವಿಟ್ಟು ಹೆಸರು, ಜನನ ದಿನಾಂಕ (DOB) ಮತ್ತು ಸಮಯ (TOB) ನೀಡಿ ಅಥವಾ ವಾಟ್ಸಾಪ್/ಟೆಲಿಗ್ರಾಮ್ ಸಂದೇಶವನ್ನು ಪೇಸ್ಟ್ ಮಾಡಿ.`
+        : `Swami, some critical details are needed: ${labels.join(", ")}. Please provide Devotee Name, Date of Birth, and Time of Birth or paste the WhatsApp/Telegram message.`;
 
     return {
       isWorkflow: true,
@@ -1087,7 +1156,34 @@ class SuperAdminWorkflowRunner {
         }
       }
 
-      // ── STEP 4: AUTONOMOUS REDIRECTION (IF REQUESTED) ─────────────────────
+      // ── STEP 4: RECORD TO DEVOTEE CONSULTATION HISTORY STORE ──────────────
+      try {
+        const { useDevoteeHistoryStore } = await import("../stores/devoteeHistoryStore");
+        const historyStore = useDevoteeHistoryStore.getState();
+        const devotee = historyStore.upsertDevotee({
+          id: params.devoteeId,
+          name: params.name,
+          birthDate: params.birthDate,
+          birthTime: params.birthTime,
+          city: params.city,
+          pincode: params.pincode,
+          latitude: params.latitude,
+          longitude: params.longitude,
+          customQuestions: params.customQuestions,
+          rawText: params.pastedRawText
+        });
+        for (const rep of generatedReports) {
+          historyStore.appendReport(devotee.id, {
+            reportType: rep.id,
+            title: rep.title,
+            fileName: rep.fileName
+          });
+        }
+      } catch (err) {
+        console.warn("Devotee history report record failed:", err);
+      }
+
+      // ── STEP 5: AUTONOMOUS REDIRECTION (IF REQUESTED) ─────────────────────
       if (params.targetRedirectPage) {
         useAppStore.getState().setPage(params.targetRedirectPage);
       }
