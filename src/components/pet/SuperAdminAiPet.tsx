@@ -9,12 +9,17 @@ import {
   isSuperAdminAuthorized,
   detectQueryLanguage,
   type PetEmotion,
-  type PetActionItem
+  type PetActionItem,
+  type ActiveProfileContext
 } from "../../services/superAdminPetEngine";
 import {
   superAdminWorkflowRunner,
   parseWorkflowInstruction,
   triggerBrowserDownload,
+  isConfirmationAffirmative,
+  isConfirmationCancellation,
+  isConfirmationModification,
+  modifyPendingWorkflow,
   type WorkflowState,
   type WorkflowParams
 } from "../../services/superAdminWorkflowRunner";
@@ -70,6 +75,22 @@ export function SuperAdminAiPet(): JSX.Element | null {
   // Pre-Flight Confirmation State before launching background workflow
   const [pendingConfirmation, setPendingConfirmation] = useState<WorkflowParams | null>(null);
   const [confirmationLang, setConfirmationLang] = useState<SupportedLanguage>(() => currentLang);
+
+  // Devotee Profile Memory for continuous multi-turn live conversation & advisory
+  const [activeProfile, setActiveProfile] = useState<ActiveProfileContext | null>(null);
+
+  // Synchronize active profile from current kundli session if loaded
+  useEffect(() => {
+    if (currentKundliSession?.input?.name && !activeProfile) {
+      setActiveProfile({
+        name: currentKundliSession.input.name,
+        birthDate: currentKundliSession.input.birthDate || currentKundliSession.birthDateYmd,
+        birthTime: currentKundliSession.input.birthTime || currentKundliSession.birthTimeHm,
+        city: currentKundliSession.homePlaceName || currentKundliSession.placeLabel || "Bengaluru",
+        kundli: currentKundliSession.result
+      });
+    }
+  }, [currentKundliSession, activeProfile]);
 
   // Observable Background Workflow Runner State
   const [workflowState, setWorkflowState] = useState<WorkflowState>(() =>
@@ -287,24 +308,51 @@ export function SuperAdminAiPet(): JSX.Element | null {
   };
 
   // Stage confirmation before launching workflow
-  const launchWorkflow = (params: WorkflowParams, commandLang?: SupportedLanguage) => {
+  const launchWorkflow = (
+    params: WorkflowParams,
+    commandLang?: SupportedLanguage,
+    changeNotice?: string
+  ) => {
     const lang = commandLang || currentLang;
     setConfirmationLang(lang);
     setPendingConfirmation(params);
     setActiveTab("chat");
 
+    // Maintain profile in memory for ongoing assistant discussions
+    setActiveProfile((prev) => ({
+      name: params.name,
+      birthDate: params.birthDate,
+      birthTime: params.birthTime,
+      city: params.city,
+      pincode: params.pincode,
+      priestName: params.priestName,
+      priestPhone: params.priestPhone,
+      poojaName: params.poojaName,
+      ...prev
+    }));
+
     const nextSlot = superAdminWorkflowRunner.getNextAvailableSlotIndex();
     const knNum = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"][nextSlot] || String(nextSlot);
     
+    const prefix = changeNotice
+      ? (lang === "kn"
+          ? `🔄 **ವಿವರಗಳನ್ನು ನವೀಕರಿಸಲಾಗಿದೆ ಸ್ವಾಮಿ:**\n• ${changeNotice}\n\n`
+          : `🔄 **Details have been updated, Swami:**\n• ${changeNotice}\n\n`)
+      : "";
+
     const askConfirmText =
-      lang === "kn"
-        ? `📋 **ಸ್ವಾಮಿ, ೫ ಅಧಿಕೃತ ವರದಿಗಳ ಹಿನ್ನೆಲೆ ಡೌನ್‌ಲೋಡ್ ಪೂರ್ವ ಪರಿಶೀಲನೆ (ಕಾಮಧೇನು ${knNum})**\n\nಸ್ವಾಮಿ, ನಾನು ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿದ್ದೇನೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ:\n\n• **ಜಾತಕರ ಹೆಸರು:** ${params.name}\n• **ಜನನ ದಿನಾಂಕ & ಸಮಯ:** ${params.birthDate} | ${params.birthTime}\n• **ಸ್ಥಳ & ಪಿನ್‌ಕೋಡ್:** ${params.city} (PIN: ${params.pincode})\n• **ಅರ್ಚಕರು:** ${params.priestName}\n• **ಪೂಜೆ / ಸೇವೆ:** ${params.poojaName}\n\n📦 **ಡೌನ್‌ಲೋಡ್ ಆಗಲಿರುವ ೫ ಅಧಿಕೃತ ವರದಿಗಳು:**\n1. 📜 **ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ PDF** (ಲಗ್ನ, ನವಾಂಶ, ಗ್ರಹ ಸ್ಪಷ್ಟ & ಅಷ್ಟಕವರ್ಗ)\n2. 📖 **ಪ್ರೀಮಿಯಂ ದಿವ್ಯ ಭವಿಷ್ಯ V1 PDF** (೧೦-ಅಧ್ಯಾಯ ವಿಸ್ತೃತ ಜೀವನ ಭವಿಷ್ಯ ಮಹಾ ವರದಿ)\n3. 🪔 **ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ ವರದಿ PDF** (ಗೋಕರ್ಣ ಪರಿಹಾರ, ರತ್ನ & ಮಂತ್ರ ಶಾಸ್ತ್ರ)\n4. 🔮 **ಸಮಗ್ರ ದೋಷಗಳು & ಗಂಡಾಂತರ ಸ್ಕ್ಯಾನ್ PDF** (ಕಾಳಸರ್ಪ, ಮಾಂಗಲ್ಯ, ಪಿತೃ ದೋಷ)\n5. 🕉️ **ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ೫-ಪುಟಗಳ ಅಧಿಕೃತ ಆಶೀರ್ವಾದ ಪತ್ರ PDF** (ಅರ್ಚಕ ${params.priestName} ಅವರ ಸಂಕಲ್ಪ, ಸ್ಕ್ಯಾನಬಲ್ QR ಕೋಡ್, ದೈವಿಕ ರಕ್ಷಣೆ, ಪೂಜಾ ಮಹಾತ್ಮೆ & ವಾರ್ಷಿಕ ಪರಿಹಾರಗಳು)\n\nಸ್ವಾಮಿ, ಈ ಎಲ್ಲಾ ವರದಿಗಳನ್ನು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಲು ದೃಢೀಕರಿಸುವಿರಾ?`
-        : `📋 **Swami, Pre-Download Verification & Confirmation (Kamadhenu ${nextSlot})**\n\nSwami, I have gathered and verified all details for autonomous generation:\n\n• **Devotee Name:** ${params.name}\n• **Birth Date & Time:** ${params.birthDate} at ${params.birthTime}\n• **Place & Pincode:** ${params.city} (PIN: ${params.pincode})\n• **Priest:** ${params.priestName}\n• **Pooja / Seva:** ${params.poojaName}\n\n📦 **5 Official Reports to be Generated & Downloaded:**\n1. 📜 **Baggona Panchanga Birth Kundli PDF** (Lagna, Navamsha, Graha Sphutas, Ashtakavarga)\n2. 📖 **Premium Divya Bhavishya V1 PDF** (10-Chapter Comprehensive Life Predictions)\n3. 🪔 **Daivika Astrological Parihara & Remedial Guidance PDF** (Gokarna Pariharas & Mantras)\n4. 🔮 **Comprehensive Doshas & Gandantara Scan PDF** (Kalasarpa, Manglik, Pitru Dosha)\n5. 🕉️ **Sri Kshetra Gokarna 5-Page Official Ashirvada Patra PDF** (Priest ${params.priestName} Blessings, Sankalpa, Scannable QR Code, Divine Raksha, Pooja Mahatme & Annual Remedies)\n\nSwami, please confirm to begin background generation!`;
+      prefix +
+      (lang === "kn"
+        ? `📋 **ಸ್ವಾಮಿ, ೫ ಅಧಿಕೃತ ವರದಿಗಳ ಹಿನ್ನೆಲೆ ಡೌನ್‌ಲೋಡ್ ಪೂರ್ವ ಪರಿಶೀಲನೆ (ಕಾಮಧೇನು ${knNum})**\n\nಸ್ವಾಮಿ, ನಾನು ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿದ್ದೇನೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ:\n\n• **ಜಾತಕರ ಹೆಸರು:** ${params.name}\n• **ಜನನ ದಿನಾಂಕ & ಸಮಯ:** ${params.birthDate} | ${params.birthTime}\n• **ಸ್ಥಳ & ಪಿನ್‌ಕೋಡ್:** ${params.city} (PIN: ${params.pincode})\n• **ಅರ್ಚಕರು:** ${params.priestName}\n• **ಅರ್ಚಕರ ಮೊಬೈಲ್:** ${params.priestPhone || "ಸ್ವಯಂಚಾಲಿತ ನಿಯೋಜನೆ"}\n• **ಪೂಜೆ / ಸೇವೆ:** ${params.poojaName}\n• **ಸೇವಾ QR ಕೋಡ್:** ${params.includeQrCode !== false ? "ಹೌದು (ಸೇವಾ & ಪ್ರಸಾದ ಆನ್‌ಲೈನ್ ಸಂಕಲ್ಪ)" : "ಇಲ್ಲ"}\n\n📦 **ಡೌನ್‌ಲೋಡ್ ಆಗಲಿರುವ ೫ ಅಧಿಕೃತ ವರದಿಗಳು:**\n1. 📜 **ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ PDF** (ಲಗ್ನ, ನವಾಂಶ, ಗ್ರಹ ಸ್ಪಷ್ಟ & ಅಷ್ಟಕವರ್ಗ)\n2. 📖 **ಪ್ರೀಮಿಯಂ ದಿವ್ಯ ಭವಿಷ್ಯ V1 PDF** (೧೦-ಅಧ್ಯಾಯ ವಿಸ್ತೃತ ಜೀವನ ಭವಿಷ್ಯ ಮಹಾ ವರದಿ)\n3. 🪔 **ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ ವರದಿ PDF** (ಗೋಕರ್ಣ ಪರಿಹಾರ, ರತ್ನ & ಮಂತ್ರ ಶಾಸ್ತ್ರ)\n4. 🔮 **ಸಮಗ್ರ ದೋಷಗಳು & ಗಂಡಾಂತರ ಸ್ಕ್ಯಾನ್ PDF** (ಕಾಳಸರ್ಪ, ಮಾಂಗಲ್ಯ, ಪಿತೃ ದೋಷ)\n5. 🕉️ **ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ೫-ಪುಟಗಳ ಅಧಿಕೃತ ಆಶೀರ್ವಾದ ಪತ್ರ PDF** (ಅರ್ಚಕ ${params.priestName} ಅವರ ಸಂಕಲ್ಪ, ಸ್ಕ್ಯಾನಬಲ್ QR ಕೋಡ್, ದೈವಿಕ ರಕ್ಷಣೆ, ಪೂಜಾ ಮಹಾತ್ಮೆ & ವಾರ್ಷಿಕ ಪರಿಹಾರಗಳು)\n\nಸ್ವಾಮಿ, ಈ ಎಲ್ಲಾ ವರದಿಗಳನ್ನು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಲು ದೃಢೀಕರಿಸುವಿರಾ? ಅಥವಾ ಏನಾದರೂ ಬದಲಾಯಿಸಬೇಕೇ?`
+        : `📋 **Swami, Pre-Download Verification & Confirmation (Kamadhenu ${nextSlot})**\n\nSwami, I have gathered and verified all details for autonomous generation:\n\n• **Devotee Name:** ${params.name}\n• **Birth Date & Time:** ${params.birthDate} at ${params.birthTime}\n• **Place & Pincode:** ${params.city} (PIN: ${params.pincode})\n• **Priest:** ${params.priestName}\n• **Priest Mobile:** ${params.priestPhone || "Auto-assigned"}\n• **Pooja / Seva:** ${params.poojaName}\n• **Seva QR Code:** ${params.includeQrCode !== false ? "Yes (Live Seva & Prasada Sankalpa)" : "No"}\n\n📦 **5 Official Reports to be Generated & Downloaded:**\n1. 📜 **Baggona Panchanga Birth Kundli PDF** (Lagna, Navamsha, Graha Sphutas, Ashtakavarga)\n2. 📖 **Premium Divya Bhavishya V1 PDF** (10-Chapter Comprehensive Life Predictions)\n3. 🪔 **Daivika Astrological Parihara & Remedial Guidance PDF** (Gokarna Pariharas & Mantras)\n4. 🔮 **Comprehensive Doshas & Gandantara Scan PDF** (Kalasarpa, Manglik, Pitru Dosha)\n5. 🕉️ **Sri Kshetra Gokarna 5-Page Official Ashirvada Patra PDF** (Priest ${params.priestName} Blessings, Sankalpa, Scannable QR Code, Divine Raksha, Pooja Mahatme & Annual Remedies)\n\nSwami, please confirm to begin background generation, or let me know if you would like to change any detail!`);
 
     const askConfirmSpoken =
-      lang === "kn"
-        ? `ಸ್ವಾಮಿ, ${params.city} ಪಿನ್‌ಕೋಡ್ ${params.pincode} ಸ್ಥಳದಲ್ಲಿ ${params.birthDate} ${params.birthTime} ರಂದು ಜನಿಸಿದ ${params.name} ಅವರ ಜಾತಕ ಗಣನೆ, ಅರ್ಚಕ ${params.priestName} ಅವರ ನೇತೃತ್ವದ ${params.poojaName} ಸೇವೆ ಹಾಗೂ ಐದು ಪುಟಗಳ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದ ಪತ್ರ ಸಹಿತ ಒಟ್ಟು ಐದು ಅಧಿಕೃತ ವರದಿಗಳ ಹಿನ್ನೆಲೆ ಡೌನ್‌ಲೋಡ್ ಸಿದ್ಧವಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಖಚಿತಪಡಿಸಿ ಸ್ವಾಮಿ, ತಕ್ಷಣ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸುತ್ತೇನೆ!`
-        : `Swami, I have verified all details for ${params.name}, born on ${params.birthDate} at ${params.birthTime} in ${params.city}, pincode ${params.pincode}. With Priest ${params.priestName} for ${params.poojaName}. I am ready to generate all five official reports including the complete five-page Gokarna Ashirvada Patra in the background. Please review and confirm, Swami!`;
+      (changeNotice
+        ? (lang === "kn" ? "ವಿವರಗಳನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ ಸ್ವಾಮಿ. " : "Details updated, Swami. ")
+        : "") +
+      (lang === "kn"
+        ? `ಸ್ವಾಮಿ, ${params.city} ಪಿನ್‌ಕೋಡ್ ${params.pincode} ಸ್ಥಳದಲ್ಲಿ ${params.birthDate} ${params.birthTime} ರಂದು ಜನಿಸಿದ ${params.name} ಅವರ ಜಾತಕ ಗಣನೆ, ಅರ್ಚಕ ${params.priestName} ಅವರ ನೇತೃತ್ವದ ${params.poojaName} ಸೇವೆ${params.priestPhone ? ` ಹಾಗೂ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ${params.priestPhone}` : ""}, ಸೇವಾ ಪ್ರಸಾದ ಕ್ಯೂಆರ್ ಕೋಡ್ ಹಾಗೂ ಐದು ಪುಟಗಳ ಸಂಪೂರ್ಣ ಆಶೀರ್ವಾದ ಪತ್ರ ಸಹಿತ ಒಟ್ಟು ಐದು ಅಧಿಕೃತ ವರದಿಗಳ ಹಿನ್ನೆಲೆ ಡೌನ್‌ಲೋಡ್ ಸಿದ್ಧವಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಖಚಿತಪಡಿಸಿ ಸ್ವಾಮಿ, ತಕ್ಷಣ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸುತ್ತೇನೆ!`
+        : `Swami, I have verified all details for ${params.name}, born on ${params.birthDate} at ${params.birthTime} in ${params.city}, pincode ${params.pincode}. With Priest ${params.priestName}${params.priestPhone ? `, contact ${params.priestPhone}` : ""}, for ${params.poojaName}, with Seva QR code. I am ready to generate all five official reports including the complete five-page Gokarna Ashirvada Patra in the background. Please review and confirm, Swami!`);
 
     const petMsg: ChatMessage = {
       id: `pet-confirm-prompt-${Date.now()}`,
@@ -375,11 +423,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
         lang === "kn"
           ? "ಆಜ್ಞೆಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ಸ್ವಾಮಿ. ಬೇರೆ ಯಾವುದೇ ಸೇವೆಗೆ ನಾನು ಸಿದ್ಧನಿದ್ದೇನೆ."
           : "Command cancelled, Swami. Ready for your next instruction.",
+      spokenText:
+        lang === "kn"
+          ? "ಆಜ್ಞೆಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ಸ್ವಾಮಿ. ಮುಂದಿನ ಆಜ್ಞೆಯನ್ನು ನೀಡಿ."
+          : "Command cancelled, Swami. Awaiting your next command.",
       lang,
       timestamp: new Date(),
       emotion: "peaceful"
     };
     setMessages((prev) => [...prev, cancelMsg]);
+    setCurrentEmotion("peaceful");
+    if (!isMuted) petSpeechService.speak(cancelMsg.spokenText!, lang);
   };
 
   const handleSend = async (overrideText?: string) => {
@@ -401,6 +455,31 @@ export function SuperAdminAiPet(): JSX.Element | null {
     setInputText("");
     setIsProcessing(true);
     setCurrentEmotion("thinking");
+
+    // 0. IF WAITING FOR CONFIRMATION OF A PENDING WORKFLOW:
+    if (pendingConfirmation) {
+      if (isConfirmationAffirmative(query)) {
+        setIsProcessing(false);
+        handleConfirmAndStart();
+        return;
+      }
+
+      if (isConfirmationCancellation(query)) {
+        setIsProcessing(false);
+        handleCancelConfirmation();
+        return;
+      }
+
+      // Check if user is modifying details (e.g. "change priest name to...", "mobile is...", "pooja is...", "city is...")
+      const { updatedParams, changedFields } = modifyPendingWorkflow(pendingConfirmation, query, effectiveLang);
+      if (changedFields.length > 0 || isConfirmationModification(query)) {
+        setIsProcessing(false);
+        setPendingConfirmation(updatedParams);
+        const changeNotice = changedFields.join("\n• ");
+        launchWorkflow(updatedParams, effectiveLang, changeNotice);
+        return;
+      }
+    }
 
     // 1. CHECK FOR AUTONOMOUS WORKFLOW INSTRUCTION
     const wfCheck = parseWorkflowInstruction(query, effectiveLang);
@@ -428,6 +507,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
       }
 
       if (wfCheck.params) {
+        setActiveProfile((prev) => ({
+          name: wfCheck.params!.name,
+          birthDate: wfCheck.params!.birthDate,
+          birthTime: wfCheck.params!.birthTime,
+          city: wfCheck.params!.city,
+          pincode: wfCheck.params!.pincode,
+          priestName: wfCheck.params!.priestName,
+          priestPhone: wfCheck.params!.priestPhone,
+          poojaName: wfCheck.params!.poojaName,
+          ...prev
+        }));
         launchWorkflow(wfCheck.params, effectiveLang);
         return;
       }
@@ -435,13 +525,23 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
     // 2. STANDARD SUPER ADMIN PET QUERIES (Bhavishya predictions, All 32 Pages Navigation, Revenue, Marketing, Diagnostics)
     try {
+      const effectiveProfile = activeProfile || (currentKundliSession ? {
+        name: currentKundliSession.input.name,
+        birthDate: currentKundliSession.input.birthDate || currentKundliSession.birthDateYmd,
+        birthTime: currentKundliSession.input.birthTime || currentKundliSession.birthTimeHm,
+        city: currentKundliSession.homePlaceName || currentKundliSession.placeLabel || "Bengaluru",
+        kundli: currentKundliSession.result
+      } : undefined);
+
       const resp = await executeSuperAdminPetQuery(query, {
         activePage,
         currentKundliSession,
+        activeProfile: effectiveProfile,
         coinBalance: wallet?.coinBalance,
         currentUser,
         geminiApiKey,
-        selectedLanguage: effectiveLang
+        selectedLanguage: effectiveLang,
+        pendingConfirmation: pendingConfirmation || undefined
       });
 
       const localizedText = resp.text[effectiveLang] || resp.text[currentLang] || resp.text.kn || resp.text.en;
@@ -1049,6 +1149,24 @@ export function SuperAdminAiPet(): JSX.Element | null {
                           </span>
                           <span className="font-bold text-slate-800 text-[11px] truncate block" title={`${pendingConfirmation.priestName} - ${pendingConfirmation.poojaName}`}>
                             {pendingConfirmation.priestName} ({pendingConfirmation.poojaName})
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block font-medium">
+                            {confirmationLang === "kn" ? "ಅರ್ಚಕರ ಮೊಬೈಲ್ (Priest Mobile):" : "Priest Mobile:"}
+                          </span>
+                          <span className="font-bold text-slate-800 text-[11px]">
+                            {pendingConfirmation.priestPhone || (confirmationLang === "kn" ? "ಸ್ವಯಂಚಾಲಿತ ನಿಯೋಜನೆ" : "Auto-assigned")}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block font-medium">
+                            {confirmationLang === "kn" ? "ಸೇವಾ QR ಕೋಡ್ (Seva QR):" : "Seva QR Code:"}
+                          </span>
+                          <span className="font-bold text-slate-800 text-[11px]">
+                            {pendingConfirmation.includeQrCode !== false
+                              ? (confirmationLang === "kn" ? "✅ ಸಕ್ರಿಯ (ಆನ್‌ಲೈನ್ ಸಂಕಲ್ಪ)" : "✅ Active (Live Sankalpa)")
+                              : (confirmationLang === "kn" ? "❌ ಇಲ್ಲ" : "❌ No")}
                           </span>
                         </div>
                       </div>

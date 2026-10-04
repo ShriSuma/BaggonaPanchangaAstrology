@@ -1713,3 +1713,623 @@ export function lookupBhavaByNumberOrTerm(term: string): BhavaShastraRecord | un
 
   return undefined;
 }
+
+// =========================================================================
+// SECTION 6: SANKHYA SHASTRA (Vedic Numerology - Mulank, Bhagyank, Namaank)
+// =========================================================================
+export interface SankhyaNumberRecord {
+  number: number;
+  graha: PlanetName;
+  grahaName: Record<SupportedLanguage, string>;
+  title: Record<SupportedLanguage, string>;
+  qualities: Record<SupportedLanguage, string[]>;
+  friendlyNumbers: number[];
+  enemyNumbers: number[];
+  neutralNumbers: number[];
+  luckyGem: Record<SupportedLanguage, string>;
+  luckyDay: Record<SupportedLanguage, string>;
+  luckyColors: Record<SupportedLanguage, string[]>;
+  careerFields: Record<SupportedLanguage, string[]>;
+  remedy: Record<SupportedLanguage, string>;
+}
+
+export const SANKHYA_SHASTRA_CATALOG: Record<number, SankhyaNumberRecord> = {
+  1: {
+    number: 1,
+    graha: PlanetName.Sun,
+    grahaName: { kn: "ಸೂರ್ಯ", en: "Surya (Sun)", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்" },
+    title: { kn: "ಅಧಿಪತಿ & ನಾಯಕತ್ವ (Leader & Pioneer)", en: "The Leader & Pioneer", hi: "अधिपति व नेता", te: "నాయకత్వం", ta: "தலைவர்" },
+    qualities: {
+      kn: ["ಅಪ್ರತಿಮ ಆತ್ಮವಿಶ್ವಾಸ", "ನಾಯಕತ್ವ ಗುಣ", "ಸ್ವಾಭಿಮಾನ", "ದೃಢ ನಿರ್ಧಾರ", "ಸಾರ್ವಜನಿಕ ಯಶಸ್ಸು"],
+      en: ["Dynamic leadership", "Unshakable self-confidence", "Original thinking", "Commanding authority", "Pioneering spirit"],
+      hi: ["नेतृत्व", "आत्मविश्वास", "दृढ़ निश्चय", "साहस", "तेजस्विता"],
+      te: ["నాయకత్వం", "ఆత్మవిశ్వాసం", "పట్టుదల", "కీర్తి", "శక్తి"],
+      ta: ["தலைமை", "சுயநம்பிக்கை", "ஆற்றல்", "துணிவு", "புகழ்"]
+    },
+    friendlyNumbers: [1, 2, 3, 5, 9],
+    enemyNumbers: [8],
+    neutralNumbers: [4, 6, 7],
+    luckyGem: { kn: "ಮಾಣಿಕ್ಯ (Ruby)", en: "Ruby (Manikya)", hi: "माणिक्य", te: "కెంపు", ta: "மாணிக்கம்" },
+    luckyDay: { kn: "ಭಾನುವಾರ (Sunday)", en: "Sunday", hi: "रविवार", te: "ఆదివారం", ta: "ஞாயிறு" },
+    luckyColors: { kn: ["ಕಿತ್ತಳೆ", "ಚಿನ್ನದ ಹಳದಿ", "ಕೆಂಪು"], en: ["Orange", "Golden Yellow", "Crimson Red"], hi: ["नारंगी", "सुनहरा", "लाल"], te: ["నారింజ", "బంగారు", "ఎరుపు"], ta: ["ஆரஞ்சு", "தங்க நிறம்", "சிவப்பு"] },
+    careerFields: { kn: ["ಆಡಳಿತ", "ರಾಜಕೀಯ", "ಉನ್ನತ ಮ್ಯಾನೇಜ್‌ಮೆಂಟ್", "ಸರ್ಕಾರಿ ಸೇವೆ", "ಸ್ವತಂತ್ರ ಉದ್ಯಮ"], en: ["Administration", "Politics", "Executive Management", "Government", "Entrepreneurship"], hi: ["प्रशासन", "राजनीति", "उद्यम"], te: ["పరిపాలన", "రాజకీయాలు", "వ్యాపారం"], ta: ["நிர்வாகம்", "அரசியல்", "தொழில்"] },
+    remedy: { kn: "ಪ್ರತಿದಿನ ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ತಾಮ್ರದ ಪಾತ್ರೆಯಲ್ಲಿ ನೀರು ಕುಡಿಯುವುದು.", en: "Daily Surya Namaskar, chanting Aditya Hridaya Stotram, and drinking water stored in copper vessel.", hi: "सूर्य नमस्कार व आदित्य हृदय स्तोत्र पाठ।", te: "సూర్య నమస్కారాలు, ఆదిత్య హృదయ స్తోత్రం.", ta: "சூரிய நமஸ்காரம் மற்றும் ஆதித்ய ஹிருதய ஸ்தோத்திரம்." }
+  },
+  2: {
+    number: 2,
+    graha: PlanetName.Moon,
+    grahaName: { kn: "ಚಂದ್ರ", en: "Chandra (Moon)", hi: "चन्द्र", te: "చంద్రుడు", ta: "சந்திரன்" },
+    title: { kn: "ಸಂವೇದನಾಶೀಲ & ಶಾಂತಿಪ್ರಿಯ (Intuitive Peacemaker)", en: "The Intuitive Peacemaker", hi: "संवेदनशील व शान्तिप्रिय", te: "శాంతి కాముకుడు", ta: "அமைதி விரும்பி" },
+    qualities: {
+      kn: ["ತೀಕ್ಷ್ಣ ಕಲ್ಪನಾಶಕ್ತಿ", "ಕೋಮಲ ಹೃದಯ", "ಸಂಧಾನಕಾರ", "ಕಲಾತ್ಮಕತೆ", "ಮಾನಸಿಕ ಅಂತಃಪ್ರಜ್ಞೆ"],
+      en: ["Deep intuition", "Diplomatic charm", "Artistic imagination", "Gentle empathy", "Subconscious perception"],
+      hi: ["कल्पनाशीलता", "कोमल हृदय", "सहानुभूति", "शांतिप्रियता", "कला"],
+      te: ["ఊహాశక్తి", "శాంతి", "కళాత్మకత", "సహానుభూతి", "ఆలోచన"],
+      ta: ["கற்பனைத்திறன்", "அன்பு", "அமைதி", "கலை", "உணர்வு"]
+    },
+    friendlyNumbers: [1, 2, 3, 5],
+    enemyNumbers: [8, 9],
+    neutralNumbers: [4, 6, 7],
+    luckyGem: { kn: "ಮುತ್ತು (Natural Pearl)", en: "Natural Pearl (Mukta)", hi: "मोती", te: "ముత్యం", ta: "முத்து" },
+    luckyDay: { kn: "ಸೋಮವಾರ (Monday)", en: "Monday", hi: "सोमवार", te: "సోమవారం", ta: "திங்கள்" },
+    luckyColors: { kn: ["ಬಿಳಿ", "ಬೆಳ್ಳಿ ಬಣ್ಣ", "ಹಾಲಿನ ಬಣ್ಣ"], en: ["Milky White", "Silver", "Cream"], hi: ["सफेद", "चांदी", "क्रीम"], te: ["తెలుపు", "వెండి", "క్రీమ్"], ta: ["வெள்ளை", "வெள்ளி", "கிரீம்"] },
+    careerFields: { kn: ["ಸಾಹಿತ್ಯ", "ಸಂಗೀತ", "ಮನಃಶಾಸ್ತ್ರ", "ಜಲ & ದ್ರವ ವ್ಯಾಪಾರ", "ಆತಿಥ್ಯ ರಂಗ"], en: ["Literature", "Psychology", "Music & Arts", "Hospitality", "Water & Dairy Trade"], hi: ["साहित्य", "संगीत", "मनोविज्ञान", "डेयरी"], te: ["సాహిత్యం", "సంగీతం", "వైద్యం", "వ్యాపారం"], ta: ["இலக்கியம்", "இசை", "மருத்துவம்", "விருந்தோம்பல்"] },
+    remedy: { kn: "ಸೋಮವಾರ ಶಿವಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ, ಚಂದ್ರ ಗಾಯತ್ರಿ ಜಪ ಹಾಗೂ ತಾಯಿಯ ಆಶೀರ್ವಾದ ಪಡೆಯುವುದು.", en: "Offering milk abhisheka to Shiva Linga on Mondays, Chandra Gayatri japa, and seeking mother's blessings.", hi: "सोमवार को शिवलिंग पर दुग्धाभिषेक व माता का चरण स्पर्श।", te: "సోమవారం శివునికి క్షీరాభిషేకం, తల్లి దీవెనలు.", ta: "திங்கள்கிழமை சிவலிங்கத்திற்கு பாலாபிஷேகம்." }
+  },
+  3: {
+    number: 3,
+    graha: PlanetName.Jupiter,
+    grahaName: { kn: "ಗುರು / ಬೃಹಸ್ಪತಿ", en: "Guru (Jupiter)", hi: "गुरु / बृहस्पति", te: "గురుడు", ta: "குரு" },
+    title: { kn: "ಜ್ಞಾನಿ & ಮಾರ್ಗದರ್ಶಕ (Wisdom Counselor)", en: "The Wisdom Guide & Counselor", hi: "ज्ञानी व परामर्शदाता", te: "జ్ఞాన గురువు", ta: "ஞான வழிகாட்டி" },
+    qualities: {
+      kn: ["ವಿಸ್ತಾರ ಜ್ಞಾನ", "ದೈವಭಕ್ತಿ", "ಉಪದೇಶ ಸಾಮರ್ಥ್ಯ", "ಸತ್ಯನಿಷ್ಠೆ", "ಶುಭ ದೃಷ್ಟಿ"],
+      en: ["Vast wisdom", "Spiritual devotion", "Natural mentorship", "Optimistic vision", "Ethical integrity"],
+      hi: ["विशाल ज्ञान", "परामर्श शक्ति", "धार्मिकता", "उदारता", "सत्यनिष्ठा"],
+      te: ["జ్ఞానం", "సలహాదారు", "ధార్మికత", "ఆశావాదం", "నిజాయితీ"],
+      ta: ["ஞானம்", "வழிகாட்டுதல்", "ஆன்மீகம்", "நேர்மை", "கருணை"]
+    },
+    friendlyNumbers: [1, 2, 3, 9],
+    enemyNumbers: [6],
+    neutralNumbers: [4, 5, 7, 8],
+    luckyGem: { kn: "ಪುಷ್ಯರಾಗ (Yellow Sapphire)", en: "Yellow Sapphire (Pushparaga)", hi: "पुखराज", te: "పుష్యరాగం", ta: "புஷ்பராகம்" },
+    luckyDay: { kn: "ಗುರುವಾರ (Thursday)", en: "Thursday", hi: "गुरुवार", te: "గురువారం", ta: "வியாழன்" },
+    luckyColors: { kn: ["ಹಳದಿ", "ಚಿನ್ನ", "ಕೇಸರಿ"], en: ["Bright Yellow", "Gold", "Saffron"], hi: ["पीला", "स्वर्ण", "केसरिया"], te: ["పసుపు", "బంగారు", "కాషాయం"], ta: ["மஞ்சள்", "தங்கம்", "காவி"] },
+    careerFields: { kn: ["ಶಿಕ್ಷಣ & ಬೋಧನೆ", "ಜ್ಯೋತಿಷ್ಯ", "ನ್ಯಾಯಾಂಗ", "ಬ್ಯಾಂಕಿಂಗ್ & ಹಣಕಾಸು", "ಧಾರ್ಮಿಕ ಕ್ಷೇತ್ರ"], en: ["Education & Academics", "Astrology & Shastras", "Judiciary & Law", "Banking & Finance", "Spiritual Leadership"], hi: ["शिक्षा", "ज्योतिष", "न्याय", "बैंकिंग"], te: ["విద్య", "జ్యోతిష్యం", "న్యాయం", "బ్యాంకింగ్"], ta: ["கல்வி", "ஜோதிடம்", "சட்டம்", "வங்கி"] },
+    remedy: { kn: "ಗುರುವಾರ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸ್ತೋತ್ರ ಪಠಣ, ಕಡಲೆ ಕಾಳು ದಾನ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ/ಗುರುಗಳ ಸೇವೆ.", en: "Chanting Dakshinamurthy Stotram on Thursday, donating chana dal, and serving elders/Gurus.", hi: "गुरुवार को चना दाल दान व गुरु सेवा।", te: "గురువారం శనగల దానం, గురుసేవ.", ta: "வியாழக்கிழமை கடலை தானம் மற்றும் குரு சேவை." }
+  },
+  4: {
+    number: 4,
+    graha: PlanetName.Rahu,
+    grahaName: { kn: "ರಾಹು", en: "Rahu", hi: "राहु", te: "రాహువు", ta: "ராகு" },
+    title: { kn: "ಕ್ರಾಂತಿಕಾರಿ & ತಾಂತ್ರಿಕ ಪ್ರತಿಭೆ (The Revolutionary Innovator)", en: "The Revolutionary Innovator", hi: "क्रांतिकारी व वैज्ञानिक", te: "విప్లవాత్మక ఆవిష్కర్త", ta: "புரட்சிகர கண்டுபிடிப்பாளர்" },
+    qualities: {
+      kn: ["ಅಸಾಮಾನ್ಯ ಯೋಚನೆ", "ತಾಂತ್ರಿಕ ಕುಶಲತೆ", "ಆಕಸ್ಮಿಕ ಯಶಸ್ಸು", "ಸಂಶೋಧನಾ ಮನೋಭಾವ", "ಧೈರ್ಯ"],
+      en: ["Unconventional breakthrough thinking", "Technical genius", "Sudden life shifts", "Courage to challenge orthodoxy", "Practical realism"],
+      hi: ["क्रांतिकारी सोच", "तकनीकी कौशल", "अकस्मात सफलता", "साहस"],
+      te: ["నూతన ఆలోచన", "సాంకేతిక నైపుణ్యం", "ఆకస్మిక మార్పులు"],
+      ta: ["புதுமையான சிந்தனை", "தொழில்நுட்ப மேதை", "திடீர் வளர்ச்சி"]
+    },
+    friendlyNumbers: [1, 5, 6, 7],
+    enemyNumbers: [8],
+    neutralNumbers: [2, 3, 9],
+    luckyGem: { kn: "ಗೋಮೇಧಿಕ (Hessonite)", en: "Hessonite Garnet (Gomedha)", hi: "गोमेद", te: "గోమేధికం", ta: "கோமேதகம்" },
+    luckyDay: { kn: "ಶನಿವಾರ (Saturday)", en: "Saturday", hi: "शनिवार", te: "శనివారం", ta: "சனி" },
+    luckyColors: { kn: ["ನೀಲಿ", "ಬೂದು (Grey)", "ಕಡು ಕಂದು"], en: ["Electric Blue", "Smoke Grey", "Khaki"], hi: ["नीला", "धूसर", "भूरा"], te: ["నీలం", "బూడిద", "గోధుమ"], ta: ["நீலம்", "சாம்பல்", "பழுப்பு"] },
+    careerFields: { kn: ["ಮಾಹಿತಿ ತಂತ್ರಜ್ಞಾನ (IT)", "ಸಂಶೋಧನೆ", "ವಿದೇಶಿ ವ್ಯವಹಾರ", "ವಿದ್ಯುತ್ & ಇಂಜಿನಿಯರಿಂಗ್", "ರಾಜಕೀಯ ತಂತ್ರಗಾರಿಕೆ"], en: ["Software & IT", "Scientific Research", "Foreign Business", "Aviation & Electronics", "Strategic Analytics"], hi: ["आईटी", "इंजीनियरिंग", "विदेशी व्यापार", "रिसर्च"], te: ["ఐటీ", "ఎలక్ట్రానిక్స్", "విదేశీ వ్యాపారం"], ta: ["தகவல் தொழில்நுட்பம்", "வெளிநாட்டு வணிகம்", "ஆராய்ச்சி"] },
+    remedy: { kn: "ಶ್ರೀ ದುರ್ಗಾ ಸಪ್ತಶತಿ ಪಠಣ, ಪಕ್ಷಿಗಳಿಗೆ ನೀರು-ಧಾನ್ಯ ನೀಡುವುದು ಹಾಗೂ ಗೋಕರ್ಣದಲ್ಲಿ ಕಾಳಸರ್ಪ ಶಾಂತಿ.", en: "Durga Saptashati parayana, feeding wild birds daily, and Kalasarpa Shanti at Gokarna.", hi: "दुर्गा चालीसा पाठ व पक्षियों को दाना खिलाना।", te: "దుర్గా దేవి పూజ, పక్షులకు దాణా.", ta: "துர்கா பூஜை மற்றும் பறவைகளுக்கு தானியம் வழங்குதல்." }
+  },
+  5: {
+    number: 5,
+    graha: PlanetName.Mercury,
+    grahaName: { kn: "ಬುಧ", en: "Budha (Mercury)", hi: "बुध", te: "బుధుడు", ta: "புதன்" },
+    title: { kn: "ವಾಕ್ಚತುರ & ವ್ಯಾಪಾರ ಸಾರ್ವಭೌಮ (Master Communicator & Trader)", en: "Master Communicator & Merchant", hi: "वाक्चतुर व व्यापारी", te: "వాక్చాతుర్యం గల వ్యాపారి", ta: "பேச்சுத்திறன் மிக்க வணிகர்" },
+    qualities: {
+      kn: ["ಮಿಂಚಿನ ಬುದ್ಧಿ", "ವಾಕ್ಚಾತುರ್ಯ", "ವ್ಯಾಪಾರ ಜಾಣ್ಮೆ", "ಹೊಂದಿಕೊಳ್ಳುವ ಸ್ವಭಾವ", "ಹಾಸ್ಯಪ್ರಜ್ಞೆ"],
+      en: ["Lightning intellect", "Articulate diplomacy", "Mercantile acumen", "Chameleonic adaptability", "Youthful curiosity"],
+      hi: ["तीव्र बुद्धि", "वाकपटुता", "व्यापारिक कुशलता", "हास्यबोध"],
+      te: ["చురుకైన బుద్ధి", "మాటకారి", "వ్యాపార మెలకువలు"],
+      ta: ["கூர்மையான புத்தி", "பேச்சுத்திறமை", "வணிக அறிவு"]
+    },
+    friendlyNumbers: [1, 5, 6],
+    enemyNumbers: [2],
+    neutralNumbers: [3, 4, 7, 8, 9],
+    luckyGem: { kn: "ಪಚ್ಚೆ (Emerald)", en: "Emerald (Marakatha / Panna)", hi: "पन्ना", te: "పచ్చ", ta: "மரகதம்" },
+    luckyDay: { kn: "ಬುಧವಾರ (Wednesday)", en: "Wednesday", hi: "बुधवार", te: "బుధవారం", ta: "புதன்" },
+    luckyColors: { kn: ["ಹಸಿರು", "ಕಿಳಿ ಹಸಿರು", "ತಿಳಿ ಹಳದಿ"], en: ["Emerald Green", "Parrot Green", "Mint"], hi: ["हरा", "तोतिया", "हल्का पीला"], te: ["ఆకుపచ్చ", "చిలక పచ్చ"], ta: ["பச்சை", "கிளிப்பச்சை"] },
+    careerFields: { kn: ["ವ್ಯಾಪಾರ & ಮಾರ್ಕೆಟಿಂಗ್", "ಪತ್ರಿಕೋದ್ಯಮ", "ಲೆಕ್ಕಪತ್ರ (CA)", "ಸಾಫ್ಟ್‌ವೇರ್", "ಬರವಣಿಗೆ & ಸಂವಹನ"], en: ["Trade & Marketing", "Journalism & Media", "Chartered Accountancy", "Data Science", "Writing & Translation"], hi: ["व्यापार", "मार्केटिंग", "सीए", "पत्रकारिता"], te: ["వ్యాపారం", "మీడియా", "అకౌంటింగ్", "సాఫ్ట్‌వేర్"], ta: ["வணிகம்", "ஊடகம்", "கணக்கியல்", "மென்பொருள்"] },
+    remedy: { kn: "ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ, ಹಸುಗಳಿಗೆ ಹಸಿರು ಹುಲ್ಲು ನೀಡುವುದು ಹಾಗೂ ಹೆಸರು ಕಾಳು ದಾನ.", en: "Vishnu Sahasranama chanting, feeding green grass to holy cows, and green gram donation.", hi: "विष्णु सहस्रनाम पाठ व गाय को हरी घास खिलाना।", te: "విష్ణు సహస్రనామ పారాయణం, గోవుకు పచ్చగడ్డి.", ta: "விஷ்ணு சஹஸ்ரநாமம் மற்றும் பசுவுக்கு அகத்திக்கீரை." }
+  },
+  6: {
+    number: 6,
+    graha: PlanetName.Venus,
+    grahaName: { kn: "ಶುಕ್ರ", en: "Shukra (Venus)", hi: "शुक्र", te: "శుక్రుడు", ta: "சுக்கிரன்" },
+    title: { kn: "ಸೌಂದರ್ಯ & ಭೋಗ ಪ್ರಿಯ (Lover of Luxury & Harmony)", en: "Harmonizer & Luxury Creator", hi: "सौंदर्य व विलासिता प्रेमी", te: "సౌందర్యారాధకుడు", ta: "அழகியல் விரும்பி" },
+    qualities: {
+      kn: ["ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ", "ಕಲಾ ಪ್ರೇಮ", "ಭೋಗ ಭಾಗ್ಯ", "ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ", "ರಾಯಲ್ ಜೀವನಶೈಲಿ"],
+      en: ["Magnetism & charm", "Refined artistic aesthetics", "Opulence & luxury", "Warm familial harmony", "Romantic chivalry"],
+      hi: ["आकर्षक व्यक्तित्व", "कलात्मक रुचि", "विलासिता", "प्रेम व सद्भाव"],
+      te: ["ఆకర్షణీయమైన వ్యక్తిత్వం", "కళాభిరుచి", "విలాసవంతమైన జీవితం"],
+      ta: ["கவர்ச்சியான ஆளுமை", "கலை ஆர்வம்", "ஆடம்பரம்", "குடும்ப அமைதி"]
+    },
+    friendlyNumbers: [1, 4, 5, 6, 7],
+    enemyNumbers: [3],
+    neutralNumbers: [2, 8, 9],
+    luckyGem: { kn: "ವಜ್ರ (Diamond) / ಓಪಲ್ (Opal)", en: "Diamond (Heera) or White Zircon / Opal", hi: "हीरा / ओपल", te: "వజ్రం / ఓపల్", ta: "வைரம் / ஓபல்" },
+    luckyDay: { kn: "ಶುಕ್ರವಾರ (Friday)", en: "Friday", hi: "शुक्रवार", te: "శుక్రవారం", ta: "வெள்ளி" },
+    luckyColors: { kn: ["ಬಿಳಿ", "ಗುಲಾಬಿ (Pink)", "ಆಕಾಶ ನೀಲಿ"], en: ["Bright White", "Pastel Pink", "Sky Blue"], hi: ["सफेद", "गुलाबी", "आसमानी"], te: ["తెలుపు", "గులాబీ", "నీలం"], ta: ["வெள்ளை", "இளஞ்சிவப்பு", "வான நீலம்"] },
+    careerFields: { kn: ["ಸಿನಿಮಾ & ಮನರಂಜನೆ", "ಫ್ಯಾಷನ್ & ಒಡವೆ", "ವಾಸ್ತುಶಿಲ್ಪ", "ಆಟೋಮೊಬೈಲ್", "ಐಷಾರಾಮಿ ಹೋಟೆಲ್"], en: ["Cinema & Entertainment", "Fashion & Jewelry", "Interior Architecture", "Luxury Goods", "Fine Arts & Perfumery"], hi: ["फिल्म व संगीत", "फैशन", "होटल", "गहने"], te: ["చలనచిత్ర రంగం", "ఫ్యాషన్", "హోటల్ వ్యాపారం"], ta: ["திரைத்துறை", "ஆடை வடிவமைப்பு", "நகை வணிகம்"] },
+    remedy: { kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ ಅಷ್ಟಕಂ ಪಠಣ, ಶುಕ್ರವಾರ ಬಿಳಿ ಸಿಹಿ ಹಂಚುವುದು ಹಾಗೂ ಸ್ತ್ರೀಯರನ್ನು ಗೌರವಿಸುವುದು.", en: "Mahalakshmi Ashtakam chanting on Fridays, sharing white sweets, and honoring feminine divinity.", hi: "महालक्ष्मी अष्टकम पाठ व शुक्रवार को सफेद मिष्ठान्न वितरण।", te: "మహాలక్ష్మి పూజ, శుక్రవారం తెల్లటి స్వీట్ల పంపిణీ.", ta: "மகாலட்சுமி அஷ்டகம் மற்றும் வெள்ளிக்கிழமை வெள்ளை இனிப்பு தானம்." }
+  },
+  7: {
+    number: 7,
+    graha: PlanetName.Ketu,
+    grahaName: { kn: "ಕೇತು", en: "Ketu", hi: "केतु", te: "కేతువు", ta: "கேது" },
+    title: { kn: "ಯೋಗಿ & ಸಂಶೋಧಕ (Mystic Sage & Seeker)", en: "The Mystic Seeker & Philosopher", hi: "तपस्वी व गूढ़ शोधकर्ता", te: "యోగి & పరిశోధకుడు", ta: "ஞானி & ஆராய்ச்சியாளர்" },
+    qualities: {
+      kn: ["ಆಧ್ಯಾತ್ಮಿಕ ಒಳನೋಟ", "ಗಂಭೀರ ಸಂಶೋಧನೆ", "ವೈರಾಗ್ಯ ಭಾವ", "ವಿಶ್ಲೇಷಣಾ ಶಕ್ತಿ", "ಅದ್ಭುತ ಕನಸುಗಳು"],
+      en: ["Transcendent spiritual intuition", "Deep analytical research", "Philosophical detachment", "Occult wisdom", "Prophetic dreams"],
+      hi: ["आध्यात्मिक अंतर्दृष्टि", "गूढ़ ज्ञान", "तपस्या", "वैराग्य"],
+      te: ["ఆధ్యాత్మిక దృష్టి", "లోతైన పరిశోధన", "వైరాగ్యం", "జ్ఞానం"],
+      ta: ["ஆன்மீக ஞானம்", "ஆழ்ந்த ஆராய்ச்சி", "பற்றற்ற நிலை", "அறிவு"]
+    },
+    friendlyNumbers: [1, 4, 6, 7],
+    enemyNumbers: [8],
+    neutralNumbers: [2, 3, 5, 9],
+    luckyGem: { kn: "ವೈಡೂರ್ಯ (Cat's Eye)", en: "Cat's Eye Chrysoberyl (Vaidurya)", hi: "लहसुनिया", te: "వైడూర్యం", ta: "வைடூரியம்" },
+    luckyDay: { kn: "ಮಂಗಳವಾರ / ಗುರುವಾರ", en: "Tuesday / Thursday", hi: "मंगलवार / गुरुवार", te: "మంగళవారం / గురువారం", ta: "செவ்வாய் / வியாழன்" },
+    luckyColors: { kn: ["ಬೂದು", "ಹೊಗೆ ಬಣ್ಣ (Smoky)", "ಚಿನ್ನದ ಕಂದು"], en: ["Smoky Grey", "Sea Green", "Golden Brown"], hi: ["धूमिल", "धूसर", "हरा-भूरा"], te: ["బూడిద", "గోధుమ"], ta: ["சாம்பல்", "புகை நிறம்"] },
+    careerFields: { kn: ["ಸಂಶೋಧನೆ & ವಿಜ್ಞಾನ", "ಆಧ್ಯಾತ್ಮ & ಜ್ಯೋತಿಷ್ಯ", "ಮನೋಚಿಕಿತ್ಸೆ", "ಫಿಲಾಸಫಿ", "ಸೈಬರ್ ಭದ್ರತೆ"], en: ["Pure Science & Research", "Occult & Astrology", "Psychotherapy & Healing", "Cyber Security", "Spiritual Authorship"], hi: ["अनुसंधान", "ज्योतिष", "दर्शनशास्त्र", "साइबर सुरक्षा"], te: ["పరిశోధన", "జ్యోతిష్యం", "తత్వశాస్త్రం"], ta: ["ஆராய்ச்சி", "ஜோதிடம்", "மெய்ஞ்ஞானம்"] },
+    remedy: { kn: "ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಪಠಣ, ಬೀದಿ ನಾಯಿಗಳಿಗೆ ರೊಟ್ಟಿ ನೀಡುವುದು ಹಾಗೂ ಧ್ಯಾನ.", en: "Ganapati Atharvashirsha chanting, feeding stray dogs with bread/milk, and daily meditation.", hi: "गणेश अथर्वशीर्ष पाठ व श्वानों को भोजन कराना।", te: "గణపతి అథర్వశీర్ష పారాయణం, కుక్కలకు ఆహారం.", ta: "கணபதி அதர்வசீரிடம் மற்றும் நாய்களுக்கு உணவளித்தல்." }
+  },
+  8: {
+    number: 8,
+    graha: PlanetName.Saturn,
+    grahaName: { kn: "ಶನಿ", en: "Shani (Saturn)", hi: "शनि", te: "శని", ta: "சனி" },
+    title: { kn: "ಕರ್ಮಯೋಗಿ & ನ್ಯಾಯಾಧೀಶ (The Karmic Master of Endurance)", en: "The Karmic Master of Discipline & Legacy", hi: "कर्मयोगी व न्यायप्रिय", te: "కర్మయోగి & న్యాయమూర్తి", ta: "கர்மயோகி & நீதியாளர்" },
+    qualities: {
+      kn: ["ಅಸಾಧಾರಣ ತಾಳ್ಮೆ", "ಕಠಿಣ ಪರಿಶ್ರಮ", "ದೀರ್ಘಾವಧಿ ಯಶಸ್ಸು", "ನ್ಯಾಯಪರತೆ", "ಸ್ಥಿರ ಸಂಪತ್ತು"],
+      en: ["Unyielding endurance", "Relentless discipline", "Delayed yet indestructible success", "Judicial fairness", "Generational empire building"],
+      hi: ["अथक परिश्रम", "धैर्य", "न्यायप्रियता", "चिरस्थायी सफलता"],
+      te: ["అపారమైన ఓర్పు", "కఠిన శ్రమ", "శాశ్వత విజయం", "న్యాయం"],
+      ta: ["கடுமையான உழைப்பு", "பொறுமை", "நிலையான வெற்றி", "நீதி"]
+    },
+    friendlyNumbers: [3, 4, 5, 6, 7],
+    enemyNumbers: [1, 2, 9],
+    neutralNumbers: [],
+    luckyGem: { kn: "ನೀಲ (Blue Sapphire) / ಅಮೆಥಿಸ್ಟ್ (Amethyst)", en: "Blue Sapphire (Neelam) or Amethyst (Jamuniya)", hi: "नीलम / जामुनिया", te: "నీలం", ta: "நீலம்" },
+    luckyDay: { kn: "ಶನಿವಾರ (Saturday)", en: "Saturday", hi: "शनिवार", te: "శనివారం", ta: "சனி" },
+    luckyColors: { kn: ["ಕಡು ನೀಲಿ", "ಕಪ್ಪು", "ಕಡು ಬೂದು"], en: ["Midnight Blue", "Deep Black", "Charcoal Grey"], hi: ["गहरा नीला", "काला", "ग्रे"], te: ["నలుపు", "ముదురు నీలం"], ta: ["கருப்பு", "அடர் நீலம்"] },
+    careerFields: { kn: ["ರಿಯಲ್ ಎಸ್ಟೇಟ್ & ಭೂಮಿ", "ನ್ಯಾಯಾಂಗ", "ಉಕ್ಕು & ಗಣಿಗಾರಿಕೆ", "ದೊಡ್ಡ ಕೈಗಾರಿಕೆಗಳು", "ಸರ್ಕಾರಿ ಇಂಜಿನಿಯರಿಂಗ್"], en: ["Real Estate & Infrastructure", "Judiciary & Law", "Mining, Oil & Steel", "Heavy Manufacturing", "Structural Engineering"], hi: ["भूमि व भवन", "वकालत", "खनिज व लोहा", "उद्योग"], te: ["రియల్ ఎస్టేట్", "న్యాయవాదం", "గనులు", "పరిశ్రమలు"], ta: ["ரியல் எஸ்டேட்", "நீதித்துறை", "சுரங்கம்", "தொழிற்சாலை"] },
+    remedy: { kn: "ಶನಿವಾರ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ, ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸುವುದು ಹಾಗೂ ಬಡವರಿಗೆ/ಶ್ರಮಿಕರಿಗೆ ಅನ್ನದಾನ.", en: "Hanuman Chalisa chanting on Saturdays, lighting sesame oil lamp, and feeding laborers/underprivileged.", hi: "हनुमान चालीसा पाठ, तिल तेल का दीप व गरीबों की सेवा।", te: "హనుమాన్ చాలీసా, నువ్వుల నూనె దీపం, అన్నదానం.", ta: "ஹனுமான் சாலிசா, எள் விளக்கு ஏற்றுதல் மற்றும் அன்னதானம்." }
+  },
+  9: {
+    number: 9,
+    graha: PlanetName.Mars,
+    grahaName: { kn: "ಕುಜ / ಮಂಗಳ", en: "Kuja (Mars)", hi: "मंगल", te: "కుజుడు", ta: "செவ்வாய்" },
+    title: { kn: "ಶೌರ್ಯ & ಯೋಧ (The Valiant Commander)", en: "The Valiant Commander & Humanitarian", hi: "शौर्यवान सेनापति", te: "ధైర్యశాలి సైన్యాధ్యక్షుడు", ta: "வீர தளபதி" },
+    qualities: {
+      kn: ["ಅಗಾಧ ಧೈರ್ಯ", "ಚುರುಕುತನ", "ರಕ್ಷಣಾ ಶಕ್ತಿ", "ಉದಾತ್ತ ತ್ಯಾಗ", "ತಂತ್ರಜ್ಞಾನ ಕುಶಲತೆ"],
+      en: ["Fearless valour", "Dynamism & speed", "Protective leadership", "Generous humanitarian spirit", "Engineering prowess"],
+      hi: ["अदम्य साहस", "तेजस्वी", "परोपकार", "शौर्य व पराक्रम"],
+      te: ["అపారమైన ధైర్యం", "వేగం", "నాయకత్వం", "త్యాగం"],
+      ta: ["வீரம்", "வேகம்", "பாதுகாக்கும் குணம்", "தியாகம்"]
+    },
+    friendlyNumbers: [1, 2, 3, 5],
+    enemyNumbers: [2, 8],
+    neutralNumbers: [4, 6, 7],
+    luckyGem: { kn: "ಹವಳ (Red Coral / Pravala)", en: "Red Coral (Moonga / Pravala)", hi: "मूंगा", te: "పగడం", ta: "பவளம்" },
+    luckyDay: { kn: "ಮಂಗಳವಾರ (Tuesday)", en: "Tuesday", hi: "मंगलवार", te: "మంగళవారం", ta: "செவ்வாய்" },
+    luckyColors: { kn: ["ರಕ್ತ ಕೆಂಪು", "ಮೆರೂನ್", "ಕಿತ್ತಳೆ"], en: ["Blood Red", "Deep Maroon", "Fiery Coral"], hi: ["लाल", "मैरून", "नारंगी"], te: ["ఎరుపు", "మెరూన్"], ta: ["சிவப்பு", "மெரூன்"] },
+    careerFields: { kn: ["ರಕ್ಷಣಾ ಪಡೆ (Army/Navy)", "ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ (Surgeon)", "ಸಿವಿಲ್ & ಮೆಕ್ಯಾನಿಕಲ್ ಇಂಜಿನಿಯರಿಂಗ್", "ಕ್ರೀಡೆ", "ಭೂಮಿ ವ್ಯಾಪಾರ"], en: ["Defense & Armed Forces", "Surgery & Medicine", "Civil & Mechanical Engineering", "Sports & Athletics", "Land Development"], hi: ["सेना व पुलिस", "शल्य चिकित्सा", "इंजीनियरिंग", "खेल"], te: ["రక్షణ రంగం", "సర్జన్", "ఇంజనీరింగ్", "క్రీడలు"], ta: ["ராணுவம்", "அறுவை சிகிச்சை", "பொறியியல்", "விளையாட்டு"] },
+    remedy: { kn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಭುಜಂಗ ಸ್ತೋತ್ರ ಪಠಣ, ಮಂಗಳವಾರ ರಕ್ತದಾನ ಅಥವಾ ತೊಗರಿ ಬೇಳೆ ದಾನ, ಹಾಗೂ ಋಣವಿಮೋಚಕ ಅಂಗಾರಕ ಸ್ತೋತ್ರ.", en: "Subrahmanya Bhujanga Stotram, donating toor dal / blood on Tuesday, and Rinavimochan Angaraka Stotram.", hi: "सुब्रह्मण्य स्वामी पूजा व मसूर दाल दान।", te: "సుబ్రహ్మణ్య స్వామి పూజ, కందుల దానం.", ta: "முருகன் வழிபாடு மற்றும் துவரம் பருப்பு தானம்." }
+  }
+};
+
+/**
+ * Calculates Mulank, Bhagyank, and Namaank with Chaldean numerology.
+ */
+export function calculateSankhyaProfile(dobStr: string, nameStr?: string) {
+  // 1. Calculate Mulank (Birth Root)
+  let dayNum = 1;
+  const isoMatch = dobStr.match(/^\d{4}[-/](\d{1,2})[-/](\d{1,2})/);
+  if (isoMatch) {
+    dayNum = parseInt(isoMatch[2], 10);
+  } else {
+    const ddmmyyyyMatch = dobStr.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (ddmmyyyyMatch) {
+      dayNum = parseInt(ddmmyyyyMatch[1], 10);
+    } else {
+      const dayMatch = dobStr.match(/\b(\d{1,2})\b/);
+      if (dayMatch && dayMatch[1]) {
+        const rawDay = parseInt(dayMatch[1], 10);
+        dayNum = rawDay <= 31 ? rawDay : 1;
+      }
+    }
+  }
+  const reduceToSingle = (n: number): number => {
+    let cur = n;
+    while (cur > 9) {
+      cur = cur.toString().split("").reduce((acc, digit) => acc + parseInt(digit, 10), 0);
+    }
+    return cur || 1;
+  };
+
+  const mulank = reduceToSingle(dayNum);
+
+  // 2. Calculate Bhagyank (Life Path Destiny)
+  const digits = dobStr.replace(/\D/g, "").split("").map((c) => parseInt(c, 10));
+  const dateSum = digits.reduce((acc, d) => acc + d, 0);
+  const bhagyank = reduceToSingle(dateSum);
+
+  // 3. Calculate Namaank (Chaldean System)
+  // Chaldean Letter Values:
+  // 1: A, I, J, Q, Y
+  // 2: B, K, R
+  // 3: C, G, L, S
+  // 4: D, M, T
+  // 5: E, H, N, X
+  // 6: U, V, W
+  // 7: O, Z
+  // 8: F, P
+  const CHALDEAN_MAP: Record<string, number> = {
+    A: 1, I: 1, J: 1, Q: 1, Y: 1,
+    B: 2, K: 2, R: 2,
+    C: 3, G: 3, L: 3, S: 3,
+    D: 4, M: 4, T: 4,
+    E: 5, H: 5, N: 5, X: 5,
+    U: 6, V: 6, W: 6,
+    O: 7, Z: 7,
+    F: 8, P: 8
+  };
+
+  let namaank = mulank;
+  if (nameStr && nameStr.trim()) {
+    const letters = nameStr.toUpperCase().replace(/[^A-Z]/g, "").split("");
+    const nameSum = letters.reduce((acc, char) => acc + (CHALDEAN_MAP[char] || 0), 0);
+    namaank = reduceToSingle(nameSum);
+  }
+
+  const mulankRecord = SANKHYA_SHASTRA_CATALOG[mulank];
+  const bhagyankRecord = SANKHYA_SHASTRA_CATALOG[bhagyank];
+  const namaankRecord = SANKHYA_SHASTRA_CATALOG[namaank];
+
+  const isMulankBhagyankHarmonious =
+    mulankRecord.friendlyNumbers.includes(bhagyank) && !mulankRecord.enemyNumbers.includes(bhagyank);
+
+  return {
+    mulank,
+    bhagyank,
+    namaank,
+    mulankRecord,
+    bhagyankRecord,
+    namaankRecord,
+    isMulankBhagyankHarmonious
+  };
+}
+
+// =========================================================================
+// SECTION 7: HASTA MUDRIKA (Vedic Palmistry Lines, Mounts & Sacred Marks)
+// =========================================================================
+export interface HastaLineRecord {
+  id: string;
+  name: Record<SupportedLanguage, string>;
+  location: Partial<Record<SupportedLanguage, string>> & { kn: string; en: string };
+  significance: Partial<Record<SupportedLanguage, string>> & { kn: string; en: string };
+  auspiciousFeatures: Partial<Record<SupportedLanguage, string[]>> & { kn: string[]; en: string[] };
+  inAuspiciousFeatures: Partial<Record<SupportedLanguage, string[]>> & { kn: string[]; en: string[] };
+}
+
+export const HASTA_MUDRIKA_LINES: HastaLineRecord[] = [
+  {
+    id: "ayushya_rekha",
+    name: { kn: "ಆಯುಷ್ಯ ರೇಖೆ (Life Line)", en: "Life Line (Ayushya Rekha)", hi: "आयु रेखा", te: "ఆయుష్షు రేఖ", ta: "ஆயுள் ரேகை" },
+    location: { kn: "ಗುರು & ಕುಜ ಪರ್ವತದ ಮಧ್ಯದಿಂದ ಆರಂಭವಾಗಿ ಶುಕ್ರ ಪರ್ವತವನ್ನು ಸುತ್ತುವರೆದು ಮಣಿಕಟ್ಟಿನ ಕಡೆ ಸಾಗುತ್ತದೆ.", en: "Originates between Jupiter & Mars mounts, wraps gracefully around Mount of Venus towards wrist." },
+    significance: { kn: "ದೈಹಿಕ ಚೈತನ್ಯ, ರೋಗನಿರೋಧಕ ಶಕ್ತಿ, ಆಯಸ್ಸು ಹಾಗೂ ಜೀವನೋತ್ಸಾಹವನ್ನು ಸೂಚಿಸುತ್ತದೆ.", en: "Governs vital physical prana, cellular resilience, longevity, and biological stamina." },
+    auspiciousFeatures: {
+      kn: ["ಸ್ಪಷ್ಟ, ಆಳವಾದ ಹಾಗೂ ತುಂಡಾಗದ ರೇಖೆ ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ರೋಗಮುಕ್ತ ಆರೋಗ್ಯದ ಸಂಕೇತ.", "ಶುಕ್ರ ಪರ್ವತದ ಕಡೆ ಅಗಲವಾಗಿ ಆವರಿಸಿದರೆ ಅಪಾರ ಜೀವನೋತ್ಸಾಹ."],
+      en: ["Clear, deep unbroken curve indicates robust constitution and enduring longevity.", "Wide sweep around Venus mount signals abundant vitality and passion for life."]
+    },
+    inAuspiciousFeatures: {
+      kn: ["ರೇಖೆಯಲ್ಲಿ ದ್ವೀಪ ಅಥವಾ ಕತ್ತರಿ ಗುರುತು ಆಯಾ ವಯಸ್ಸಿನಲ್ಲಿ ತೀವ್ರ ಅನಾರೋಗ್ಯ ಸೂಚಿಸುತ್ತದೆ.", "ಹಲವು ಅಡ್ಡ ರೇಖೆಗಳು ಕೌಟುಂಬಿಕ ಮಾನಸಿಕ ಒತ್ತಡವನ್ನು ತರುತ್ತವೆ."],
+      en: ["Islands or cross-bars mark periods of acute health challenges or energy depletion.", "Severe breaks indicate major accidents or life crises requiring divine protection."]
+    }
+  },
+  {
+    id: "mastaka_rekha",
+    name: { kn: "ಮಸ್ತಕ ರೇಖೆ / ಬುದ್ಧಿ ರೇಖೆ (Head Line)", en: "Head Line (Mastaka Rekha)", hi: "मस्तिष्क रेखा", te: "మస్తిష్క రేఖ", ta: "புத்தி ரேகை" },
+    location: { kn: "ತೋರುಬೆರಳಿನ ಕೆಳಗಿನಿಂದ ಆರಂಭವಾಗಿ ಹಸ್ತದ ಮಧ್ಯಭಾಗವನ್ನು ದಾಟಿ ಚಂದ್ರ ಅಥವಾ ಕುಜ ಪರ್ವತದತ್ತ ಸಾಗುತ್ತದೆ.", en: "Starts below index finger, runs horizontally across palm towards Mount of Moon or Upper Mars." },
+    significance: { kn: "ಬುದ್ಧಿಶಕ್ತಿ, ಗ್ರಹಣ ಸಾಮರ್ಥ್ಯ, ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ, ತಾರ್ಕಿಕತೆ ಹಾಗೂ ಕಲ್ಪನಾ ಶಕ್ತಿ.", en: "Dictates mental concentration, logical faculty, memory power, and emotional stability under pressure." },
+    auspiciousFeatures: {
+      kn: ["ಸರಳ ಹಾಗೂ ಸ್ಪಷ್ಟ ರೇಖೆ ಪ್ರಖರ ಬುದ್ಧಿ ಮತ್ತು ಲೆಕ್ಕಾಚಾರದ ಜಾಣ್ಮೆಯನ್ನು ನೀಡುತ್ತದೆ.", "ರೇಖೆಯ ಕೊನೆಯಲ್ಲಿ ತ್ರಿಶೂಲ ಅಥವಾ ಕವಲು (Fork) ಇದ್ದರೆ ಅಪ್ರತಿಮ ಲೇಖಕ/ಸಂಶೋಧನಾ ಯೋಗ."],
+      en: ["Long, clearly etched line represents brilliant analytical intellect and laser focus.", "A bifurcated fork ('Writer's Fork') at the end reveals extraordinary literary, business and inventive genius."]
+    },
+    inAuspiciousFeatures: {
+      kn: ["ಅತಿ ಹೆಚ್ಚು ಕೆಳಕ್ಕೆ ಬಾಗಿದ ರೇಖೆ ಅತಿಯಾದ ಚಿಂತೆ ಮತ್ತು ಮಾನಸಿಕ ಖಿನ್ನತೆಗೆ ಕಾರಣವಾಗಬಹುದು.", "ರೇಖೆಯ ಮೇಲೆ ನಕ್ಷತ್ರ ಅಥವಾ ಚುಕ್ಕೆ ತಲೆಗೆ ಪೆಟ್ಟು ಅಥವಾ ನರಗಳ ದೌರ್ಬಲ್ಯ ಸೂಚಿಸುತ್ತದೆ."],
+      en: ["Excessively drooping slope into lower Moon mount warns of depression, over-imagination, or insomnia.", "Islands on the head line correlate with mental exhaustion, eye strain, or migraines."]
+    }
+  },
+  {
+    id: "hridaya_rekha",
+    name: { kn: "ಹೃದಯ ರೇಖೆ (Heart Line)", en: "Heart Line (Hridaya Rekha)", hi: "हृदय रेखा", te: "హృదయ రేఖ", ta: "இதய ரேகை" },
+    location: { kn: "ಕಿರುಬೆರಳಿನ ಕೆಳಗಿನಿಂದ ಆರಂಭವಾಗಿ ಗುರು ಪರ್ವತದ (ತೋರುಬೆರಳು) ಕಡೆಗೆ ಮುಂದುವರಿಯುತ್ತದೆ.", en: "Begins beneath Mercury mount (little finger) and curves upwards towards Mount of Jupiter." },
+    significance: { kn: "ಪ್ರೀತಿ, ಪ್ರೇಮ, ಹೃದಯದ ಆರೋಗ್ಯ, ಭಾವನಾತ್ಮಕ ನಿಷ್ಠೆ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಭಕ್ತಿ.", en: "Rules cardiovascular health, emotional loyalty, romantic bonds, empathy, and spiritual devotion." },
+    auspiciousFeatures: {
+      kn: ["ಗುರು ಪರ್ವತದ ಮೇಲೆ ತಲುಪಿ ಕೊನೆಗೊಳ್ಳುವ ರೇಖೆ ಆದರ್ಶ ದಾಂಪತ್ಯ, ಉನ್ನತ ನೈತಿಕತೆ ಹಾಗೂ ದೈವಭಕ್ತಿಯ ಸಂಕೇತ.", "ಕೊನೆಯಲ್ಲಿ ತ್ರಿಶೂಲ (Trident) ರಚನೆಯಾದರೆ ಶಿವ-ಪಾರ್ವತಿಯರ ಕೃಪೆಯಿಂದ ಸಕಲ ಸೌಭಾಗ್ಯ."],
+      en: ["Terminating squarely on Mount of Jupiter denotes profound moral purity, marital fidelity, and noble spouse.", "Ending in a sacred Trident bestows universal respect, divine grace, and enduring love."]
+    },
+    inAuspiciousFeatures: {
+      kn: ["ಶನಿ ಪರ್ವತದಲ್ಲೇ ಅರ್ಧಕ್ಕೆ ನಿಲ್ಲುವ ರೇಖೆ ಸ್ವಾರ್ಥ ಅಥವಾ ಪ್ರೇಮ ವೈಫಲ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ.", "ಸರಪಳಿಯಾಕಾರದ ರೇಖೆ ಹೃದಯ ದೌರ್ಬಲ್ಯ ಮತ್ತು ರಕ್ತದೊತ್ತಡದ ಎಚ್ಚರಿಕೆ."],
+      en: ["Abrupt termination under Saturn indicates emotional cynicism, isolation, or romantic disillusionment.", "Chained heart line warns of cardiovascular sensitivity and recurring emotional turmoil."]
+    }
+  },
+  {
+    id: "bhagya_rekha",
+    name: { kn: "ಭಾಗ್ಯ ರೇಖೆ / ಶನಿ ರೇಖೆ (Fate / Saturn Line)", en: "Fate Line (Bhagya Rekha)", hi: "भाग्य रेखा / शनि रेखा", te: "భాగ్య రేఖ", ta: "விதி ரேகை / சனி ரேகை" },
+    location: { kn: "ಮಣಿಕಟ್ಟಿನಿಂದ ಅಥವಾ ಚಂದ್ರ ಪರ್ವತದಿಂದ ನೇರವಾಗಿ ಮಧ್ಯದ ಬೆರಳಿನ (ಶನಿ ಪರ್ವತ) ಕೆಳಗೆ ಮೇಲೇರುತ್ತದೆ.", en: "Rises straight from base of palm or Mount of Moon up towards Mount of Saturn (middle finger)." },
+    significance: { kn: "ವೃತ್ತಿಜೀವನ, ಸಂಪತ್ತು ಗಳಿಕೆ, ಅದೃಷ್ಟ, ಸಮಾಜದಲ್ಲಿ ಸ್ಥಾನಮಾನ ಹಾಗೂ ಭಾಗ್ಯೋದಯದ ಕಾಲಾವಧಿ.", en: "Illuminates career trajectory, financial ascent, luck in business, and social prominence." },
+    auspiciousFeatures: {
+      kn: ["ಆಳವಾದ ನೇರ ರೇಖೆ ಶನಿ ಪರ್ವತ ತಲುಪಿದರೆ ದರಿದ್ರನೂ ಮಹಾ ಕೋಟ್ಯಾಧಿಪತಿಯಾಗುವ ಯೋಗ.", "ಚಂದ್ರ ಪರ್ವತದಿಂದ ಆರಂಭವಾದರೆ ಸಾರ್ವಜನಿಕ ಬೆಂಬಲ, ಹೆಂಡತಿಯ ಕಡೆಯಿಂದ ಭಾಗ್ಯೋದಯ ಹಾಗೂ ವಿದೇಶ ಯೋಗ."],
+      en: ["Deep, unhindered ascent to Mount of Saturn promises continuous financial growth and royal legacy.", "Originating from Mount of Moon guarantees fame through public adulation, foreign wealth, and prosperous marriage."]
+    },
+    inAuspiciousFeatures: {
+      kn: ["ಮಸ್ತಕ ರೇಖೆ (೩೫ನೇ ವಯಸ್ಸು) ಅಥವಾ ಹೃದಯ ರೇಖೆಯಲ್ಲಿ (೫೨ನೇ ವಯಸ್ಸು) ನಿಂತರೆ ವೃತ್ತಿಜೀವನದ ದೊಡ್ಡ ಅಡೆತಡೆ.", "ಅಡ್ಡ ಕತ್ತರಿ ರೇಖೆಗಳು ವ್ಯಾಪಾರದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ನಷ್ಟ ತರುತ್ತವೆ."],
+      en: ["Stoppage at Head line marks career obstruction at age 35 through misjudgment.", "Crosses intersecting the line bring unforeseen financial litigation requiring Shani remedies."]
+    }
+  },
+  {
+    id: "surya_rekha",
+    name: { kn: "ಸೂರ್ಯ ರೇಖೆ / ಕೀರ್ತಿ ರೇಖೆ (Sun / Apollo Line)", en: "Sun Line (Surya Rekha / Apollo Line)", hi: "सूर्य रेखा / कीर्ति रेखा", te: "సూర్య రేఖ", ta: "சூரிய ரேகை / கீர்த்தி ரேகை" },
+    location: { kn: "ಉಂಗುರದ ಬೆರಳಿನ (ಸೂರ್ಯ ಪರ್ವತ) ಕೆಳಗೆ ಸಾಗುವ ಲಂಬ ರೇಖೆ.", en: "Runs vertically beneath ring finger towards Mount of Sun." },
+    significance: { kn: "ಖ್ಯಾತಿ, ಸರ್ಕಾರದ ಮನ್ನಣೆ, ರಾಜಯೋಗ, ಕಲಾ ನೈಪುಣ್ಯ ಹಾಗೂ ಅಪ್ರತಿಮ ಜನಪ್ರಿಯತೆ.", en: "Bestows fame, governmental honors, artistic genius, charisma, and wealth beyond lineage." },
+    auspiciousFeatures: {
+      kn: ["ಸ್ಪಷ್ಟ ಸೂರ್ಯ ರೇಖೆ ಉಳ್ಳ ವ್ಯಕ್ತಿಗೆ ಸಮಾಜದಲ್ಲಿ ಅಪಾರ ಗೌರವ ಮತ್ತು ಅಧಿಕಾರ ಲಭಿಸುತ್ತದೆ.", "ಸೂರ್ಯ ಪರ್ವತದಲ್ಲಿ ನಕ್ಷತ್ರ (Star) ಅಥವಾ ತ್ರಿಕೋನವಿದ್ದರೆ ಜಾಗತಿಕ ಖ್ಯಾತಿ."],
+      en: ["Unblemished Sun line confers state awards, political influence, and lasting legacy.", "A star on Mount of Sun indicates world renown and extraordinary fortune."]
+    },
+    inAuspiciousFeatures: {
+      kn: ["ರೇಖೆ ಇಲ್ಲದಿದ್ದರೆ ಎಷ್ಟೇ ಪರಿಶ್ರಮ ಪಟ್ಟರೂ ಅರ್ಹ ಮನ್ನಣೆ ಸಿಗದೆ ತಡವಾಗಬಹುದು.", "ಅಡ್ಡ ಕಲೆಗಳು ಅಪವಾದ ಅಥವಾ ಸಾರ್ವಜನಿಕ ನಿಂದನೆಯ ಎಚ್ಚರಿಕೆ ನೀಡುತ್ತವೆ."],
+      en: ["Absence of Sun line requires double effort to earn public recognition.", "Spots on the line warn of sudden controversies or tax audits requiring Surya Arghya."]
+    }
+  }
+];
+
+export const HASTA_MUDRIKA_SIGNS = [
+  {
+    id: "trishula",
+    name: { kn: "ತ್ರಿಶೂಲ ಚಿಹ್ನೆ (Trident Sign)", en: "Trishula (Sacred Trident Sign)" },
+    significance: {
+      kn: "ಗುರು ಅಥವಾ ಶನಿ ಪರ್ವತದ ಮೇಲೆ ತ್ರಿಶೂಲ ಮೂಡಿದರೆ ಭಗವಾನ್ ಶಿವನ ಸಾಕ್ಷಾತ್ ರಕ್ಷಣೆ, ಅಪಾರ ಆಧ್ಯಾತ್ಮಿಕ ಅಧಿಕಾರ ಹಾಗೂ ರಾಜಯೋಗ ಪ್ರಾಪ್ತಿ.",
+      en: "On Jupiter or Saturn mount, the Trident of Lord Shiva confers supreme authority, unassailable wealth, and divine grace."
+    }
+  },
+  {
+    id: "matsya",
+    name: { kn: "ಮತ್ಸ್ಯ ರೇಖೆ (Fish Sign)", en: "Matsya (Fish Sign)" },
+    significance: {
+      kn: "ಕೇತು ಅಥವಾ ಜೀವ ರೇಖೆಯ ತುದಿಯಲ್ಲಿ ಮೀನಿನ ಆಕಾರವಿದ್ದರೆ ಪೂರ್ವಜನ್ಮದ ಪುಣ್ಯದಿಂದ ಕೋಟ್ಯಂತರ ಆಸ್ತಿ, ತೀರ್ಥಯಾತ್ರೆ ಹಾಗೂ ಮೋಕ್ಷ ಗತಿ.",
+      en: "At base of palm on Mount of Ketu, the Fish sign unlocks sudden inheritance, spiritual enlightenment, and sacred pilgrimage."
+    }
+  },
+  {
+    id: "chatuskona",
+    name: { kn: "ಚತುಷ್ಕೋನ (Square Sign / Divine Raksha)", en: "Square (Divine Shield)" },
+    significance: {
+      kn: "ಯಾವುದೇ ದೋಷಯುಕ್ತ ರೇಖೆಯ ಮೇಲಿರುವ ಚತುಷ್ಕೋನವು ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚವಾಗಿ ಕೆಲಸ ಮಾಡಿ ಪ್ರಾಣಾಪಾಯದಿಂದ ಪಾರುಮಾಡುತ್ತದೆ.",
+      en: "Acts as a mystical armor (Kavacha), neutralizing severe line breaks and shielding from fatal disasters."
+    }
+  }
+];
+
+// =========================================================================
+// SECTION 8: MUKHA MUDRIKA (Vedic Face Reading / Samudrika Shastra)
+// =========================================================================
+export const MUKHA_MUDRIKA_CATALOG = {
+  forehead: {
+    title: { kn: "ಲಲಾಟ ಲಕ್ಷಣ (Forehead - Destiny & Intellect)", en: "Forehead (Lalata - Destiny & Intellect)" },
+    points: {
+      kn: [
+        "ಅಗಲವಾದ ಮತ್ತು ಉಬ್ಬಿದ ಹಣೆ (Broad Forehead): ಉನ್ನತ ಬುದ್ಧಿವಂತಿಕೆ, ಪೂರ್ವಪುಣ್ಯ ಮತ್ತು ರಾಜತಾಂತ್ರಿಕ ಯಶಸ್ಸಿನ ಸಂಕೇತ.",
+        "ಮೂರು ಸ್ಪಷ್ಟ ಅಡ್ಡ ರೇಖೆಗಳು: ಮೊದಲನೆಯದು ಗುರು ರೇಖೆ (ಜ್ಞಾನ), ಎರಡನೆಯದು ಮಂಗಳ ರೇಖೆ (ಧೈರ್ಯ), ಮೂರನೆಯದು ಶನಿ ರೇಖೆ (ದೀರ್ಘಾಯುಷ್ಯ).",
+        "ಮಧ್ಯದಲ್ಲಿ ಮಚ್ಚೆ (Center Mole): ಮಹಾನ್ ದೈವಭಕ್ತಿ, ತೀಕ್ಷ್ಣ ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ೪೦ ವರ್ಷದ ನಂತರ ಅಪಾರ ಸಿರಿವಂತಿಕೆ."
+      ],
+      en: [
+        "Broad, slightly convex forehead indicates supreme administrative brilliance and strong ancestral merit.",
+        "Three distinct horizontal lines correspond to Jupiter (Wisdom), Mars (Courage), and Saturn (Longevity).",
+        "A mole centered on the brow signifies awakened third-eye intuition and substantial wealth after age 40."
+      ]
+    }
+  },
+  eyes: {
+    title: { kn: "ನೇತ್ರ ಲಕ್ಷಣ (Eyes - Soul Mirror & Sun-Moon)", en: "Eyes (Netra - Sun & Moon Balance)" },
+    points: {
+      kn: [
+        "ಬಲಗಣ್ಣು ಸೂರ್ಯ (ಪಿತ್ರಾರ್ಜಿತ ಶಕ್ತಿ) ಮತ್ತು ಎಡಗಣ್ಣು ಚಂದ್ರ (ಮಾತೃ ಶಕ್ತಿ) ದೇವತೆಗಳಿಗೆ ಸಂಬಂಧಿಸಿದೆ.",
+        "ಕಮಲದಳದಂತೆ ಉದ್ದವಾದ ಹೊಳೆಯುವ ಕಣ್ಣುಗಳು ಕರುಣೆ, ಸತ್ಯನಿಷ್ಠೆ ಮತ್ತು ಧಾರ್ಮಿಕ ಮುನ್ನಡೆಯ ಲಕ್ಷಣ.",
+        "ಕಣ್ಣಿನ ಬಿಳಿಭಾಗ ಕೆಂಪಾದ ರೇಖೆಗಳಿಂದ ಕೂಡಿದ್ದರೆ (ಕುಜ ಪ್ರಭಾವ) ತೀವ್ರ ಶೌರ್ಯ, ಅಧಿಕಾರ ಮತ್ತು ನಾಯಕತ್ವ."
+      ],
+      en: [
+        "Right eye is governed by the Sun (soul authority, paternal lineage); Left eye is ruled by the Moon (emotions, maternal grace).",
+        "Lotus petal-shaped, lustrous eyes reveal saintly compassion, truthfulness, and spiritual evolution.",
+        "Fine red micro-vessels in white of eye indicate potent Mars influence, conferring fearless leadership."
+      ]
+    }
+  },
+  nose: {
+    title: { kn: "ನಾಸಿಕ ಲಕ್ಷಣ (Nose - Dhanasthana / Wealth Vault)", en: "Nose (Nasika - Dhanasthana / Wealth Vault)" },
+    points: {
+      kn: [
+        "ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮೂಗು ಜಾತಕದ ಧನಸ್ಥಾನ ಮತ್ತು ಗುರು-ಬುಧರ ಪ್ರಭಾವವನ್ನು ನೇರವಾಗಿ ಪ್ರದರ್ಶಿಸುತ್ತದೆ.",
+        "ನೇರವಾದ ಮೂಗಿನ ಸೇತುವೆ ಹಾಗೂ ದುಂಡಗಾದ ತುದಿ (Rounded Tip): ಕುಬೇರ ಯೋಗ! ಎಂದೂ ಹಣದ ಕೊರತೆ ಬಾರದಂತೆ ನೋಡಿಕೊಳ್ಳುತ್ತದೆ.",
+        "ಮೂಗಿನ ತುದಿಯಲ್ಲಿ ಮಚ್ಚೆ: ಅನಿರೀಕ್ಷಿತ ಧನಾಗಮನ, ಲಾಟರಿ/ಷೇರು ಯಶಸ್ಸು ಮತ್ತು ಐಷಾರಾಮಿ ವಾಹನ ಯೋಗ."
+      ],
+      en: [
+        "In Samudrika Shastra, the nose is the primary barometer of personal wealth, self-esteem, and Jupiterian bounty.",
+        "Straight nasal bridge ending in a fleshy, rounded tip creates Kubera Yoga — lifelong monetary security.",
+        "Mole on the nasal tip indicates sudden windfalls, real estate success, and luxury vehicle acquisitions."
+      ]
+    }
+  },
+  chinAndLips: {
+    title: { kn: "ವದನ & ಚುಬುಕ ಲಕ್ಷಣ (Lips, Speech & Chin Longevity)", en: "Mouth, Lips & Chin (Speech & Longevity)" },
+    points: {
+      kn: [
+        "ಕೆಂಪು ತುಟಿಗಳು ಹಾಗೂ ಸ್ಪಷ್ಟ ಬಾಯಿ: ವಾಕ್-ಸಿದ್ಧಿ, ಪ್ರಭಾವಿ ಉಪನ್ಯಾಸ ಹಾಗೂ ವ್ಯಾಪಾರದಲ್ಲಿ ಲಾಭ.",
+        "ದೃಢವಾದ ಮತ್ತು ಮುಂದಕ್ಕೆ ಚಾಚಿದ ಗದ್ದ (Firm Chin): ಪ್ರಬಲ ಇಚ್ಛಾಶಕ್ತಿ, ನಾಯಕತ್ವ ಮತ್ತು ೬೦ ವರ್ಷದ ನಂತರ ಅತ್ಯುನ್ನತ ಆಸ್ತಿ ಸೌಖ್ಯ.",
+        "ಗಲ್ಲದ ಮಧ್ಯದಲ್ಲಿ ಗುಳಿ (Cleft Chin): ಕಲಾತ್ಮಕ ಆಕರ್ಷಣೆ, ರೊಮ್ಯಾಂಟಿಕ್ ವ್ಯಕ್ತಿತ್ವ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಪ್ರೀತಿ."
+      ],
+      en: [
+        "Naturally reddish, well-proportioned lips bestow Vak-Siddhi (potency of speech) and persuasive commercial acumen.",
+        "A strong, prominently contoured chin ensures iron willpower, robust longevity, and vast landed estate in retirement.",
+        "A cleft chin signifies magnetic artistic charisma, deep emotional loyalty, and immense public adoration."
+      ]
+    }
+  },
+  molesAndMarks: {
+    title: { kn: "ತಿಲ ಲಕ್ಷಣ (Facial Moles & Destiny Indicators)", en: "Mole Astrology (Tila Lakshana - Facial Moles)" },
+    points: {
+      kn: [
+        "ಹಣೆಯ ಮಧ್ಯದಲ್ಲಿ ಮಚ್ಚೆ: ಅಖಂಡ ದೈವಾನುಗ್ರಹ, ಆಡಳಿತಾತ್ಮಕ ನಾಯಕತ್ವ ಮತ್ತು ತೀಕ್ಷ್ಣ ಅಂತಃಪ್ರಜ್ಞೆ.",
+        "ಬಲಗಲ್ಲದ ಮೇಲೆ ಮಚ್ಚೆ: ವಿವಾಹದ ನಂತರ ಅಪಾರ ಆರ್ಥಿಕ ಏಳಿಗೆ ಹಾಗೂ ಸುಖಮಯ ದಾಂಪತ್ಯ.",
+        "ಮೂಗಿನ ತುದಿಯಲ್ಲಿ ಮಚ್ಚೆ: ಕುಬೇರ ಧನಾಗಮನ, ಆಸ್ತಿ ವೃದ್ಧಿ ಮತ್ತು ವ್ಯಾಪಾರ ಜಯ."
+      ],
+      en: [
+        "Center forehead mole indicates supreme spiritual insight and administrative leadership.",
+        "Right cheek mole bestows exponential prosperity post-marriage and affectionate relations.",
+        "Nose tip mole triggers Kubera wealth windfalls and prosperous trade investments."
+      ]
+    }
+  }
+};
+
+// =========================================================================
+// SECTION 9: SATYA SANJEEVINI / AYUR SANJEEVINI (Vedic Health & Medical Astrology)
+// =========================================================================
+export const AYUR_SANJEEVINI_CATALOG = {
+  tridoshaAnalysis: {
+    vata: {
+      title: { kn: "ವಾತ ಪ್ರಕೃತಿ (Vata Dosha - Air & Ether)", en: "Vata Constitution (Air & Ether)" },
+      rashis: { kn: "ಮಿಥುನ, ಕನ್ಯಾ, ತುಲಾ, ಮಕರ, ಕುಂಭ", en: "Gemini, Virgo, Libra, Capricorn, Aquarius" },
+      planets: { kn: "ಶನಿ, ಬುಧ, ರಾಹು", en: "Saturn, Mercury, Rahu" },
+      symptoms: {
+        kn: ["ಕೀಲು ನೋವು & ವಾತ ಬಾಧೆ", "ಒಣ ಚರ್ಮ", "ನಿದ್ರಾಹೀನತೆ & ಅತಿಯಾದ ಯೋಚನೆ", "ನರಗಳ ದೌರ್ಬಲ್ಯ"],
+        en: ["Joint pain & arthritis", "Dry skin & hair", "Anxiety & erratic sleep", "Nervous hypersensitivity"]
+      },
+      ayurvedicRemedies: {
+        kn: ["ಬಿಸಿ ಎಳ್ಳೆಣ್ಣೆ ಮಸಾಜ್ (ಅಭ್ಯಂಗ)", "ಅಶ್ವಗಂಧ ಕ್ಷೀರಪಾಕ", "ಬೆಚ್ಚಗಿನ, ಜಿಡ್ಡಿನ ತಾಜಾ ಆಹಾರ", "ನಿಯಮಿತ ನಿದ್ರೆ"],
+        en: ["Warm sesame oil self-massage (Abhyanga)", "Ashwagandha with warm spiced milk", "Nourishing, grounding warm cooked meals", "Consistent sleep schedule"]
+      }
+    },
+    pitta: {
+      title: { kn: "ಪಿತ್ತ ಪ್ರಕೃತಿ (Pitta Dosha - Fire & Water)", en: "Pitta Constitution (Fire & Water)" },
+      rashis: { kn: "ಮೇಷ, ಸಿಂಹ, ವೃಶ್ಚಿಕ, ಧನುಸ್ಸು", en: "Aries, Leo, Scorpio, Sagittarius" },
+      planets: { kn: "ಸೂರ್ಯ, ಕುಜ, ಕೇತು", en: "Sun, Mars, Ketu" },
+      symptoms: {
+        kn: ["ಅಸಿಡಿಟಿ & ಎದೆಯುರಿ", "ರಕ್ತದೊತ್ತಡ", "ಕೋಪ & ಉದ್ವೇಗ", "ಚರ್ಮದಲ್ಲಿ ತುರಿಕೆ / ಗುಳ್ಳೆಗಳು"],
+        en: ["Hyperacidity & heartburn", "Elevated blood pressure", "Irritability & impatience", "Skin rashes & inflammatory flare-ups"]
+      },
+      ayurvedicRemedies: {
+        kn: ["ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪ ಸೇವನೆ", "ಶತಾವರಿ ಕಷಾಯ", "ತಂಪಾದ ಹಣ್ಣುಗಳು (ದಾಳಿಂಬೆ, ಕಲ್ಲಂಗಡಿ)", "ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ"],
+        en: ["A2 Desi cow ghee daily", "Shatavari root tonic", "Cooling fresh melons and pomegranates", "Mahamrityunjaya Mantra meditation"]
+      }
+    },
+    kapha: {
+      title: { kn: "ಕಫ ಪ್ರಕೃತಿ (Kapha Dosha - Earth & Water)", en: "Kapha Constitution (Earth & Water)" },
+      rashis: { kn: "ವೃಷಭ, ಕರ್ಕಾಟಕ, ಮೀನ", en: "Taurus, Cancer, Pisces" },
+      planets: { kn: "ಚಂದ್ರ, ಗುರು, ಶುಕ್ರ", en: "Moon, Jupiter, Venus" },
+      symptoms: {
+        kn: ["ತೂಕ ಹೆಚ್ಚಳ & ಸ್ಥೂಲಕಾಯ", "ಸೀನುವಿಕೆ, ಕಫ & ಶೀತ", "ಆಲಸ್ಯ & ಅತಿಯಾದ ನಿದ್ರೆ", "ಮಧುಮೇಹ ಸಂಭವ"],
+        en: ["Sluggish metabolism & weight gain", "Excess mucus, sinus congestion", "Lethargy & excessive daytime sleepiness", "Risk of metabolic resistance"]
+      },
+      ayurvedicRemedies: {
+        kn: ["ತ್ರಿಕಟು ಚೂರ್ಣ (ಶುಂಠಿ, ಮೆಣಸು, ಹಿಪ್ಪಲಿ) ಜೇನುತುಪ್ಪದೊಂದಿಗೆ", "ಪ್ರತಿದಿನ ಚುರುಕಾದ ವ್ಯಾಯಾಮ", "ಉಪವಾಸ", "ತುಳಸಿ ಕಷಾಯ"],
+        en: ["Trikatu powder with raw honey", "Vigorous aerobic exercise & Surya Namaskara", "Periodic intermittent fasting", "Warm holy basil (Tulasi) decoction"]
+      }
+    }
+  },
+  gokarnaHealthRemedies: {
+    kn: [
+      "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಹಾಗೂ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಬಿಲ್ವಾರ್ಚನೆ ದೀರ್ಘಕಾಲದ ರೋಗ ನಿವಾರಣೆ ಮಾಡುತ್ತದೆ.",
+      "ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರದ ನಿರಂತರ ಪಠಣದಿಂದ ಕಣ್ಣು ಮತ್ತು ಹೃದಯದ ತೊಂದರೆಗಳು ಶಮನವಾಗುತ್ತವೆ.",
+      "ಪ್ರತಿದಿನ ಮುಂಜಾನೆ ತಾಮ್ರದ ಪಾತ್ರೆಯ ಜಲ ಹಾಗೂ ಗೋಕರ್ಣದ ಪಂಚಾಮೃತ ಪ್ರಸಾದ ಸ್ವೀಕಾರದಿಂದ ಸಕಲ ದೈಹಿಕ ವಿಷಗಳು ಪರಿಹಾರವಾಗುತ್ತವೆ."
+    ],
+    en: [
+      "Performing Maha Mrityunjaya Homa and Bilvarchana at Gokarna Atmalinga cures chronic planetary ailments.",
+      "Chanting Aditya Hridaya Stotram continuously shields against cardiovascular and ophthalmic disorders.",
+      "Drinking morning water stored in pure copper alongside sanctified Gokarna Panchamrita detoxifies bodily tissues."
+    ]
+  }
+};
+
+// =========================================================================
+// SECTION 10: HINDINA JANMA RAHASYA (Past Life Karma Astrology)
+// =========================================================================
+export const HINDINA_JANMA_CATALOG = {
+  karmicHouses: {
+    house12: {
+      title: { kn: "೧೨ನೇ ಭಾವ (Moksha & Past Life Exit)", en: "12th House (Past Life Exit & Subconscious Realm)" },
+      kn: "ಜಾತಕದ ೧೨ನೇ ಭಾವವು ಆತ್ಮವು ಹಿಂದಿನ ಜನ್ಮವನ್ನು ಎಲ್ಲಿ ಮುಗಿಸಿತು ಮತ್ತು ಯಾವ ಪರಿಸರದಿಂದ ಪ್ರಸ್ತುತ ಜನ್ಮಕ್ಕೆ ಬಂದಿದೆ ಎಂಬುದನ್ನು ತಿಳಿಸುತ್ತದೆ. ಶುಭ ಗ್ರಹಗಳಿದ್ದರೆ ಪುಣ್ಯಕ್ಷೇತ್ರ ಅಥವಾ ಸದ್ಗತಿಯಿಂದ ಬಂದ ಆತ್ಮ.",
+      en: "The 12th house reveals the soul's previous departure point, spiritual retreat, and the subconscious memories transported into this incarnation."
+    },
+    house5: {
+      title: { kn: "೫ನೇ ಭಾವ (Purva Punya Bhava - Accrued Merit)", en: "5th House (Purva Punya - Past Life Merit)" },
+      kn: "೫ನೇ ಭಾವವು ಹಿಂದಿನ ಜನ್ಮಗಳಲ್ಲಿ ಸಂಗ್ರಹಿಸಿದ ಪುಣ್ಯದ ಭಂಡಾರ (ಸಂಚಿತ ಶುಭ ಕರ್ಮ). ಪ್ರತಿಭಾವಂತ ಮಕ್ಕಳು, ಅಪ್ರತಿಮ ಜ್ಞಾನ ಮತ್ತು ಹಠಾತ್ ಅದೃಷ್ಟ ಹಿಂದಿನ ಜನ್ಮದ ತಪಸ್ಸಿನ ಫಲ.",
+      en: "The 5th house acts as the spiritual treasury of past life good deeds (Sanchita Subha Karma). Extraordinary intellect and virtuous offspring stem from this house."
+    },
+    house8: {
+      title: { kn: "೮ನೇ ಭಾವ (Runanubandha - Unpaid Karmic Debts)", en: "8th House (Runanubandha - Unresolved Karmic Debts)" },
+      kn: "೮ನೇ ಭಾವವು ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ಮುಗಿಯದೆ ಬಾಕಿ ಉಳಿದ ಋಣಗಳನ್ನು (ಹಣ, ನಂಬಿಕೆ, ಪ್ರೀತಿ ಅಥವಾ ಕರ್ತವ್ಯದ ಸಾಲ) ಸೂಚಿಸುತ್ತದೆ. ಈ ಜನ್ಮದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಸವಾಲುಗಳಾಗಿ ಇದು ಎದುರಾಗುತ್ತದೆ.",
+      en: "The 8th house governs unresolved debts (Runanubandha) across lifespans. Karmic creditors often re-enter life as challenging partners or sudden financial claims."
+    }
+  },
+  rahuKetuAxis: {
+    title: { kn: "ರಾಹು-ಕೇತುಗಳ ಪೂರ್ವಜನ್ಮದ ಅಕ್ಷ (Evolutionary Karmic Axis)", en: "Rahu-Ketu Past Life Evolutionary Axis" },
+    ketuPrinciple: {
+      kn: "ಕೇತುವು ಕುಳಿತ ರಾಶಿ & ಭಾವವು ಹಿಂದಿನ ಜನ್ಮದಲ್ಲಿ ನೀವು ಈಗಾಗಲೇ ಸಂಪೂರ್ಣವಾಗಿ ಕಲಿತು ಕರಗತ ಮಾಡಿಕೊಂಡಿದ್ದ ಜ್ಞಾನ ಮತ್ತು ಕರ್ಮವನ್ನು ತೋರಿಸುತ್ತದೆ. ಇದು ನಿಮ್ಮ ನೈಸರ್ಗಿಕ ಪ್ರತಿಭೆ.",
+      en: "Ketu marks where your soul already mastered spiritual and worldly skills in past lives. It represents instinctual mastery and familiar subconscious territory."
+    },
+    rahuPrinciple: {
+      kn: "ರಾಹುವು ಕುಳಿತ ರಾಶಿ & ಭಾವವು ಈ ಜನ್ಮದಲ್ಲಿ ನಿಮ್ಮ ಆತ್ಮವು ಪೂರೈಸಬೇಕಾದ ಅಪೂರ್ಣ ಕರ್ಮ ಮತ್ತು ನವೀನ ಅನುಭವಗಳನ್ನು ತೋರಿಸುತ್ತದೆ. ಇದು ನಿಮ್ಮ ಜೀವನದ ಮುಖ್ಯ ಗುರಿ.",
+      en: "Rahu represents the evolutionary frontier — the unfulfilled desires and uncharted lessons your soul took birth to master in this lifetime."
+    }
+  },
+  gokarnaKarmicParihara: {
+    kn: [
+      "ಪೂರ್ವಜನ್ಮದ ಋಣಾನುಬಂಧ ಹಾಗೂ ಪಿತೃ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ 'ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ' ಹಾಗೂ 'ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ' ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.",
+      "ಸರ್ಪ ದೋಷ ಅಥವಾ ಹಿಂದಿನ ಜನ್ಮದ ಶಾಪ ನಿವಾರಣೆಗೆ 'ನಾಗಪ್ರತಿಷ್ಠೆ' ಮತ್ತು ರುದ್ರಾಭಿಷೇಕ ಶಾಂತಿ.",
+      "ಗೋ-ದಾನ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ ಭೋಜನದಿಂದ ಹಿಂದಿನ ಜನ್ಮದ ಸಂಚಿತ ಪಾಪಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಭಸ್ಮವಾಗುತ್ತವೆ."
+    ],
+    en: [
+      "To dissolve past-life ancestral debts (Runanubandha), performing Moksha Narayana Bali and Tripindi Shraddha at Gokarna is paramount.",
+      "Naga Pratishthe and Rudrabhisheka dissolve ancient curses and unfulfilled oaths made in prior incarnations.",
+      "Go-Dana (sacred cow charity) and feeding pilgrims at Gokarna Mahabaleshwara purifies deep-rooted karmic debts."
+    ]
+  }
+};
+
+// =========================================================================
+// SECTION 11: PROFILE IMPROVEMENTS & BOSS STRATEGIC ADVISORY
+// =========================================================================
+export function generateProfileImprovements(profile: any, targetLang: SupportedLanguage = "kn") {
+  const isKn = targetLang === "kn";
+  const name = profile?.name || (isKn ? "ಜಾತಕರು" : "Devotee");
+
+  const improvementsKn = [
+    `🎯 **೧. ಶಾಸ್ತ್ರೋಕ್ತ ಮುಹೂರ್ತ ಮತ್ತು ಸಮಯದ ಅನುಕೂಲತೆ:** ${name} ಅವರಿಗೆ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ದಶಾ ಅವಧಿಯಲ್ಲಿ ಯಾವುದೇ ಹೊಸ ವ್ಯಾಪಾರ, ಹೂಡಿಕೆ ಅಥವಾ ವಿವಾಹ ಮಾತುಕತೆಗಳನ್ನು ಗುರುವಾರ ಅಥವಾ ಭಾನುವಾರ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಮಾತ್ರ ಪ್ರಾರಂಭಿಸಲು ಸೂಚಿಸಿ.`,
+    `📿 **೨. ರತ್ನ ಧಾರಣೆ & ಜಪದ ಶಕ್ತಿ:** ಮುಖ್ಯ ದುರ್ಬಲ ಗ್ರಹದ ಬೀಜ ಮಂತ್ರವನ್ನು ನಿತ್ಯ ೧೦೮ ಬಾರಿ ಜಪಿಸಲು ತಿಳಿಸಿ. ನಿಗದಿತ ಶುದ್ಧ ರತ್ನವನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಪ್ರಾಣಪ್ರತಿಷ್ಠಾಪನೆ ಮಾಡಿ ಧರಿಸುವುದರಿಂದ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿ ಶಮನವಾಗುತ್ತದೆ.`,
+    `📞 **೩. ದೈವಜ್ಞರ ಫೋನ್ ಕರೆಯಲ್ಲಿ ಸಮಾಧಾನದ ಕೌನ್ಸೆಲಿಂಗ್:** ಗ್ರಾಹಕರಿಗೆ ಕರೆ ಮಾಡಿದಾಗ, ಅವರ ಸಮಸ್ಯೆಯನ್ನು ಮೊದಲೇ ಗುರುತಿಸಿ ("ನಿಮಗೆ ಇತ್ತೀಚೆಗೆ ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ವೃತ್ತಿಯಲ್ಲಿ ಅನಿಶ್ಚಿತತೆ ಕಾಡುತ್ತಿದೆ ಅಲ್ಲವೇ?") ಎಂದು ಹೇಳಿ ಅವರ ನಂಬಿಕೆಯನ್ನು ಗಳಿಸಿ. ನಂತರ ಶಾಸ್ತ್ರೀಯ ಪರಿಹಾರದ ಕಾಲಾವಧಿ ನೀಡಿ.`,
+    `🛕 **೪. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವಾ ಸಮರ್ಪಣೆ:** ಜಾತಕದಲ್ಲಿರುವ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಅರ್ಚಕರಿಂದ ಸಂಕಲ್ಪ ಮಾಡಿಸಿ, ೫-ಪುಟಗಳ ಅಧಿಕೃತ ಆಶೀರ್ವಾದ ಪತ್ರ ಸಹಿತ ಸೇವಾ ಪ್ರಸಾದವನ್ನು ಅವರ ಮನೆಗೆ ತಲುಪಿಸುವ ವ್ಯವಸ್ಥೆ ಮಾಡಿ.`,
+    `📲 **೫. ಅಪ್ಲಿಕೇಶನ್ ಸ್ವಯಂ-ಕ್ಯಾಲೆಂಡರ್ & QR ಕೋಡ್ ಜೋಡಣೆ:** ಜಾತಕರ ವಾರ್ಷಿಕ ಪೂಜಾ ದಿನಾಂಕಗಳನ್ನು Google Calendar ಗೆ ಸಿಂಕ್ ಮಾಡಲು QR ಕೋಡ್ ಒದಗಿಸಿ, ನಿರಂತರ ಡಿಜಿಟಲ್ ಸಂಪರ್ಕ ಸಾಧಿಸಿ.`
+  ];
+
+  const improvementsEn = [
+    `🎯 **1. Astrological Timing & Auspicious Muhurtha:** Advise ${name} to initiate high-stakes business investments or marriage discussions only during auspicious Muhurthas on Thursdays or Sundays aligned with their beneficial Nakshatra.`,
+    `📿 **2. Gemstone Consecration & Mantra Protocol:** Recommend chanting their primary remedial Beeja Mantra 108 times daily. Consecrating the prescribed gemstone during Shukla Paksha will accelerate protective results.`,
+    `📞 **3. Priest Phone Consultation Delivery:** When placing the call, lead with reassuring validation ("You have felt sudden career pressures and fatigue recently, correct?"). This establishes instant astrological credibility before prescribing relief timelines.`,
+    `🛕 **4. Sri Kshetra Gokarna Remedial Sankalpa:** Perform the dedicated family Sankalpa at Gokarna Mahabaleshwara temple, delivering the 5-page sanctified Ashirvada Patra and Prasada directly to their doorstep.`,
+    `📲 **5. Digital Calendar Sync & QR Code Integration:** Provide a scannable QR code to auto-sync their annual puja reminders into Google Calendar, ensuring continuous client engagement.`
+  ];
+
+  return {
+    title: isKn ? `🌟 ${name} ಅವರ ಜಾತಕ ಹಾಗೂ ಪ್ರೊಫೈಲ್ ಸುಧಾರಣಾ ಕಾರ್ಯತಂತ್ರ (Boss Strategic Advisory)` : `🌟 Strategic Profile Improvements for ${name} (Boss Advisory)`,
+    points: isKn ? improvementsKn : improvementsEn
+  };
+}

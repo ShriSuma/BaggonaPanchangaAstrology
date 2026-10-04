@@ -9,7 +9,11 @@ import { petSpeechService } from "../services/petSpeechService";
 import {
   parseWorkflowInstruction,
   resolveCityCoordsAndPincode,
-  superAdminWorkflowRunner
+  superAdminWorkflowRunner,
+  isConfirmationAffirmative,
+  isConfirmationCancellation,
+  isConfirmationModification,
+  modifyPendingWorkflow
 } from "../services/superAdminWorkflowRunner";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 
@@ -647,5 +651,221 @@ describe("SuperAdminAiPet Intelligence & Security Suite", () => {
     expect(allMantrasRes.text.en).toContain("19,000 counts"); // Jupiter
     expect(allMantrasRes.text.en).toContain("16,000 counts"); // Venus
     expect(allMantrasRes.text.en).toContain("23,000 counts"); // Saturn
+  });
+
+  it("handles interactive confirmation, cancellation, and dynamic field modifications", () => {
+    // 1. Affirmative confirmation detection
+    expect(isConfirmationAffirmative("confirm")).toBe(true);
+    expect(isConfirmationAffirmative("yes")).toBe(true);
+    expect(isConfirmationAffirmative("proceed")).toBe(true);
+    expect(isConfirmationAffirmative("ಖಚಿತಪಡಿಸು")).toBe(true);
+    expect(isConfirmationAffirmative("ಸರಿ")).toBe(true);
+    expect(isConfirmationAffirmative("ಹೌದು")).toBe(true);
+    expect(isConfirmationAffirmative("ಮಾಡಿಕೊಡು")).toBe(true);
+    expect(isConfirmationAffirmative("go ahead")).toBe(true);
+
+    // 2. Cancellation detection
+    expect(isConfirmationCancellation("cancel")).toBe(true);
+    expect(isConfirmationCancellation("stop")).toBe(true);
+    expect(isConfirmationCancellation("ಬೇಡ")).toBe(true);
+    expect(isConfirmationCancellation("ರದ್ದು ಮಾಡು")).toBe(true);
+    expect(isConfirmationCancellation("abort")).toBe(true);
+
+    // 3. Modification detection
+    expect(isConfirmationModification("change priest name to Shreeram Pandit")).toBe(true);
+    expect(isConfirmationModification("ಅರ್ಚಕರ ಹೆಸರು ಬದಲಾಯಿಸು")).toBe(true);
+    expect(isConfirmationModification("update mobile number")).toBe(true);
+    expect(isConfirmationModification("modify pooja to Sarpa Shanti")).toBe(true);
+
+    // 4. modifyPendingWorkflow updates fields dynamically
+    const baseParams = {
+      rawPrompt: "initial prompt",
+      name: "Shriram Pandit",
+      birthDate: "1993-05-31",
+      birthTime: "09:20",
+      city: "Bengaluru",
+      latitude: 12.9716,
+      longitude: 77.5946,
+      pincode: "560001",
+      priestName: "Chaitanya Pandit",
+      poojaName: "Moksha Narayana Bali and Tripindi",
+      requestedReports: ["baggona_kundli" as const, "premium_pdf_v1" as const],
+      language: "kn" as const
+    };
+
+    // Change priest name
+    const mod1 = modifyPendingWorkflow(baseParams, "change priest name to Shreeram Pandit", "kn");
+    expect(mod1.updatedParams.priestName).toBe("Shreeram Pandit");
+    expect(mod1.changedFields.some((f) => f.includes("Shreeram Pandit"))).toBe(true);
+
+    // Change priest mobile number
+    const mod2 = modifyPendingWorkflow(baseParams, "priest mobile number is 9845012345", "en");
+    expect(mod2.updatedParams.priestPhone).toBe("9845012345");
+    expect(mod2.changedFields.some((f) => f.includes("9845012345"))).toBe(true);
+
+    // Change pooja and include QR code
+    const mod3 = modifyPendingWorkflow(baseParams, "change pooja to Sarpa Shanti and include QR code", "en");
+    expect(mod3.updatedParams.poojaName).toBe("Sarpa Shanti");
+    expect(mod3.updatedParams.includeQrCode).toBe(true);
+  });
+
+  it("extracts priest mobile number and QR code intent accurately from user voice/text commands", () => {
+    const rawCommand =
+      "Generate a kundali, download baggona panchanga kundali, download pariharagalo, download doshagalo, download QR code from seva and prasada with the pooja Moksha Narayana bali and Tripindi, priest name is Chaitanya Pandit, his mobile number is 9876543210 for Shriram Pandit born on 31 May 1993 at 9:20 AM in Bengaluru";
+
+    const parsed = parseWorkflowInstruction(rawCommand, "en");
+    expect(parsed.isWorkflow).toBe(true);
+    expect(parsed.params).toBeDefined();
+    expect(parsed.params?.name).toBe("Shriram Pandit");
+    expect(parsed.params?.birthDate).toBe("1993-05-31");
+    expect(parsed.params?.birthTime).toBe("09:20");
+    expect(parsed.params?.city).toBe("Bengaluru");
+    expect(parsed.params?.priestName).toBe("Chaitanya Pandit");
+    expect(parsed.params?.priestPhone).toBe("9876543210");
+    expect(parsed.params?.poojaName?.toLowerCase()).toContain("moksha narayana bali and tripindi");
+    expect(parsed.params?.includeQrCode).toBe(true);
+    expect(parsed.params?.requestedReports).toContain("baggona_kundli");
+    expect(parsed.params?.requestedReports).toContain("daivika_parihara");
+    expect(parsed.params?.requestedReports).toContain("doshagalu");
+  });
+
+  it("handles Sankhya Shastra (Vedic Numerology) calculating Mulank, Bhagyank, and Namaank", async () => {
+    const context: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "kn",
+      activeProfile: {
+        name: "Shriram Pandit",
+        birthDate: "1993-05-31",
+        birthTime: "09:20",
+        city: "Bengaluru"
+      }
+    };
+
+    const numRes = await executeSuperAdminPetQuery("Shriram Pandit ಅವರ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಮೂಲ್ಯಾಂಕ, ಭಾಗ್ಯಾಂಕ ಮತ್ತು ನಾಮಾಂಕ ತಿಳಿಸಿ", context);
+    expect(numRes.category).toBe("admin");
+    expect(numRes.text.kn).toContain("ಸಂಖ್ಯಾಶಾಸ್ತ್ರ");
+    expect(numRes.text.kn).toContain("ಮೂಲಾಂಕ - Mulank): 4");
+    expect(numRes.text.kn).toContain("ಭಾಗ್ಯಾಂಕ - Bhagyank / Life Path): 4");
+    expect(numRes.text.kn).toContain("ರಾಹು");
+    expect(numRes.text.kn).toContain("ಗೋಮೇಧಿಕ");
+    expect(numRes.text.kn).toContain("ಬಾಸ್");
+  });
+
+  it("handles Hasta Mudrika (Vedic Palmistry) explaining Life, Head, Heart lines and Sacred Signs", async () => {
+    const contextEn: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "en"
+    };
+
+    const palmRes = await executeSuperAdminPetQuery("Explain Hasta Mudrika, the Life Line, Fate Line, and Trishula sign on palm", contextEn);
+    expect(palmRes.category).toBe("admin");
+    expect(palmRes.text.en).toContain("Hasta Mudrika");
+    expect(palmRes.text.en).toContain("Life Line");
+    expect(palmRes.text.en).toContain("Fate Line");
+    expect(palmRes.text.en).toContain("Trishula");
+    expect(palmRes.text.en).toContain("Boss");
+  });
+
+  it("handles Mukha Mudrika (Vedic Face Reading) covering Forehead, Nose, and Mole Astrology", async () => {
+    const contextKn: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "kn"
+    };
+
+    const faceRes = await executeSuperAdminPetQuery("ಮುಖ ಸಾಮುದ್ರಿಕಾ ಶಾಸ್ತ್ರ, ಲಲಾಟ, ನಾಸಿಕ ಧನಸ್ಥಾನ ಮತ್ತು ತಿಲ ಲಕ್ಷಣ ತಿಳಿಸಿ", contextKn);
+    expect(faceRes.category).toBe("admin");
+    expect(faceRes.text.kn).toContain("ಮುಖ ಸಾಮುದ್ರಿಕಾ");
+    expect(faceRes.text.kn).toContain("ಲಲಾಟ");
+    expect(faceRes.text.kn).toContain("ಧನಸ್ಥಾನ");
+    expect(faceRes.text.kn).toContain("ತಿಲ ಲಕ್ಷಣ");
+    expect(faceRes.text.kn).toContain("ಬಾಸ್");
+  });
+
+  it("handles Ayur Sanjeevini / Satya Sanjeevini (Medical Astrology & Tridosha)", async () => {
+    const contextEn: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "en"
+    };
+
+    const ayurRes = await executeSuperAdminPetQuery("Explain Satya Sanjeevini Ayur Shastra, Tridosha Vata Pitta Kapha, and 6th house Rogasthana", contextEn);
+    expect(ayurRes.category).toBe("admin");
+    expect(ayurRes.text.en).toContain("Satya Sanjeevini");
+    expect(ayurRes.text.en).toContain("Vata");
+    expect(ayurRes.text.en).toContain("Pitta");
+    expect(ayurRes.text.en).toContain("Kapha");
+    expect(ayurRes.text.en).toContain("6th House");
+    expect(ayurRes.text.en).toContain("Boss");
+  });
+
+  it("handles Hindina Janma Rahasya (Past Life Karma Astrology) and 12th/5th house karmic indicators", async () => {
+    const contextKn: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "kn"
+    };
+
+    const karmaRes = await executeSuperAdminPetQuery("ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯ, ೧೨ನೇ ಭಾವ ಮತ್ತು ಪೂರ್ವ ಪುಣ್ಯ ಕರ್ಮ ಶೇಷ ತಿಳಿಸಿ", contextKn);
+    expect(karmaRes.category).toBe("admin");
+    expect(karmaRes.text.kn).toContain("ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯ");
+    expect(karmaRes.text.kn).toContain("೧೨ನೇ ಭಾವ");
+    expect(karmaRes.text.kn).toContain("೫ನೇ ಭಾವ");
+    expect(karmaRes.text.kn).toContain("ರಾಹು-ಕೇತು");
+    expect(karmaRes.text.kn).toContain("ಗೋಕರ್ಣ");
+    expect(karmaRes.text.kn).toContain("ಬಾಸ್");
+  });
+
+  it("provides Boss Strategic Advisory on 5 concrete improvements for client consultation", async () => {
+    const contextEn: SuperAdminPetContext = {
+      activePage: "home",
+      currentUser: "superadmin",
+      selectedLanguage: "en",
+      activeProfile: {
+        name: "Shriram Pandit",
+        birthDate: "1993-05-31",
+        birthTime: "09:20",
+        city: "Bengaluru"
+      }
+    };
+
+    const impRes = await executeSuperAdminPetQuery("What improvements can I make on Shriram Pandit's consultation profile?", contextEn);
+    expect(impRes.category).toBe("admin");
+    expect(impRes.text.en).toContain("Strategic Profile Improvements");
+    expect(impRes.text.en).toContain("Astrological Timing & Auspicious Muhurtha");
+    expect(impRes.text.en).toContain("Priest Phone Consultation Delivery");
+    expect(impRes.text.en).toContain("Sri Kshetra Gokarna Remedial Sankalpa");
+    expect(impRes.text.en).toContain("Boss");
+  });
+
+  it("supports continuous live multi-turn discussion on active profile career, marriage, and dasha", async () => {
+    const context: SuperAdminPetContext = {
+      activePage: "kundli",
+      currentUser: "superadmin",
+      selectedLanguage: "kn",
+      activeProfile: {
+        name: "Shriram Pandit",
+        birthDate: "1993-05-31",
+        birthTime: "09:20",
+        city: "Bengaluru",
+        pincode: "560001"
+      }
+    };
+
+    // 1. Follow-up on 10th house / career
+    const careerRes = await executeSuperAdminPetQuery("ಇವರ 10th house career ಮತ್ತು ಉದ್ಯೋಗದ ಬಗ್ಗೆ ಹೇಳಿ", context);
+    expect(careerRes.category).toBe("admin");
+    expect(careerRes.text.kn).toContain("Shriram Pandit");
+    expect(careerRes.text.kn).toContain("ದಶಮ ಭಾವ");
+    expect(careerRes.text.kn).toContain("ಬಾಸ್");
+
+    // 2. Follow-up on 7th house / marriage
+    const marriageRes = await executeSuperAdminPetQuery("Tell me about his 7th house and marriage", { ...context, selectedLanguage: "en" });
+    expect(marriageRes.category).toBe("admin");
+    expect(marriageRes.text.en).toContain("Shriram Pandit");
+    expect(marriageRes.text.en).toContain("7th House");
+    expect(marriageRes.text.en).toContain("Boss");
   });
 });

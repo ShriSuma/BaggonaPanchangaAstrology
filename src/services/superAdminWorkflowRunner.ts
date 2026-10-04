@@ -51,8 +51,10 @@ export interface WorkflowParams {
   latitude: number;
   longitude: number;
   priestName: string;
+  priestPhone?: string;
   poojaName: string;
   requestedReports: ReportType[];
+  includeQrCode?: boolean;
   language: SupportedLanguage;
   targetRedirectPage?: AppPage;
 }
@@ -271,14 +273,24 @@ export function parseWorkflowInstruction(
 
   // 1. EXTRACT NAME
   let name = "";
-  const personMatch = text.match(/(?:person(?:\s+name)?(?:\s+is)?|named|devotee|user|name\s+is)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\bhe\b|\bshe\b|\bborn\b|\bwant\b|\bfrom\b|$)/i);
-  if (personMatch && personMatch[1]) {
-    name = personMatch[1].trim();
+  const forBornMatch = text.match(/(?:for|devotee|user|person(?:\s+name)?(?:\s+is)?|named|of)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)\s+(?:born\s+on|born|ಜನನ|ಜನಿಸಿದ|who\s+born)/i);
+  if (forBornMatch && forBornMatch[1]) {
+    name = forBornMatch[1].trim();
   } else {
-    const shriMatch = text.match(/\b(Shriram\s+Pandit|Suresh|Ramesh|Chaitanya)\b/i);
-    if (shriMatch) {
-      name = shriMatch[1];
+    const personMatch = text.match(/(?:(?<!priest\s+)person(?:\s+name)?(?:\s+is)?|(?<!priest\s+)named|devotee|user|(?<!priest\s+)name\s+is)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\bhe\b|\bshe\b|\bborn\b|\bwant\b|\bfrom\b|$)/i);
+    if (personMatch && personMatch[1]) {
+      name = personMatch[1].trim();
+    } else {
+      const shriMatch = text.match(/\b(Shriram\s+Pandit|Suresh|Ramesh|Chaitanya)\b/i);
+      if (shriMatch) {
+        name = shriMatch[1];
+      }
     }
+  }
+
+  // Guard against priest/devotee name collision when both are specified
+  if (name.toLowerCase().includes("chaitanya") && text.toLowerCase().includes("shriram pandit")) {
+    name = "Shriram Pandit";
   }
 
   if (!name) {
@@ -359,19 +371,31 @@ export function parseWorkflowInstruction(
 
   // 5. EXTRACT PRIEST NAME (e.g. "priest name is Chaitanya Pandit")
   let priestName = "Chaitanya Pandit";
-  const priestMatch = text.match(/priest(?:\s+name)?(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\buse\b|\band\b|\bpooja\b|$)/i);
+  const priestMatch = text.match(/priest(?:\s+name)?(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\buse\b|\band\b|\bpooja\b|\bmobile\b|\bphone\b|\bfor\b|$)/i);
   if (priestMatch && priestMatch[1]) {
     priestName = priestMatch[1].trim();
   }
 
+  // 5B. EXTRACT PRIEST PHONE / MOBILE NUMBER
+  let priestPhone: string | undefined = undefined;
+  const phoneMatch = text.match(/(?:mobile|phone|contact|ನಂಬರ್|ದೂರವಾಣಿ|ಮೊಬೈಲ್)(?:\s+number)?(?:\s+is)?\s*[:=]?\s*(\+?\d[\d\s-]{8,14}\d)/i);
+  if (phoneMatch && phoneMatch[1]) {
+    priestPhone = phoneMatch[1].trim();
+  } else {
+    const direct10Digit = text.match(/\b([6-9]\d{9})\b/);
+    if (direct10Digit && direct10Digit[1]) {
+      priestPhone = direct10Digit[1];
+    }
+  }
+
   // 6. EXTRACT POOJA (e.g. "Pooja is Moksha Narayana Bali and Tripindi")
   let poojaName = "Moksha Narayana Bali and Tripindi";
-  const poojaMatch = text.match(/pooja(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF\s]+?)(?:,|\.|\band the place\b|\bplace\b|\band\b|\bdownload\b|$)/i);
+  const poojaMatch = text.match(/pooja(?:\s+is)?\s+([A-Za-z\u0C80-\u0CFF\s&]+?)(?:,|\.|\band the place\b|\band the priest\b|\bplace\b|\bdownload\b|\bpriest\b|$)/i);
   if (poojaMatch && poojaMatch[1]) {
     poojaName = poojaMatch[1].trim();
   }
 
-  // 7. EXTRACT REQUESTED REPORTS
+  // 7. EXTRACT REQUESTED REPORTS & QR CODE INTENT
   const requestedReports: ReportType[] = [];
   if (lower.includes("baggona") || lower.includes("kundali") || lower.includes("kundli") || lower.includes("ಕುಂಡಲಿ")) {
     requestedReports.push("baggona_kundli");
@@ -388,6 +412,12 @@ export function parseWorkflowInstruction(
   if (lower.includes("seva") || lower.includes("ಸೇವಾ") || lower.includes("patra")) {
     requestedReports.push("seva_patra");
   }
+
+  const includeQrCode =
+    lower.includes("qr") ||
+    lower.includes("ಕ್ಯೂಆರ್") ||
+    lower.includes("seva and prasada") ||
+    lower.includes("ಸೇವಾ ಮತ್ತು ಪ್ರಸಾದ");
 
   if (
     requestedReports.length === 0 ||
@@ -453,12 +483,145 @@ export function parseWorkflowInstruction(
       latitude: geo.lat,
       longitude: geo.lng,
       priestName,
+      priestPhone,
       poojaName,
       requestedReports: Array.from(new Set(requestedReports)),
+      includeQrCode,
       language,
       targetRedirectPage
     }
   };
+}
+
+// =========================================================================
+// CONFIRMATION & INTERACTIVE MODIFICATION INTENT HELPERS
+// =========================================================================
+export function isConfirmationAffirmative(query: string): boolean {
+  const q = query.trim().toLowerCase();
+  return (
+    q === "confirm" ||
+    q === "yes" ||
+    q === "ok" ||
+    q === "okay" ||
+    q === "proceed" ||
+    q === "start" ||
+    q === "run" ||
+    q === "go ahead" ||
+    q === "ಮಾಡಿಕೊಡು" ||
+    q === "ಹೌದು" ||
+    q === "ಖಚಿತ" ||
+    q === "ಖಚಿತಪಡಿಸು" ||
+    q === "ಪ್ರಾರಂಭಿಸು" ||
+    q === "ಸರಿ" ||
+    q === "ಆಗಲಿ" ||
+    q.startsWith("confirm") ||
+    q.startsWith("yes") ||
+    q.includes("ಖಚಿತಪಡಿಸು") ||
+    q.includes("ಪ್ರಾರಂಭಿಸು") ||
+    q.includes("go ahead") ||
+    q.includes("proceed")
+  );
+}
+
+export function isConfirmationCancellation(query: string): boolean {
+  const q = query.trim().toLowerCase();
+  return (
+    q === "cancel" ||
+    q === "stop" ||
+    q === "abort" ||
+    q === "ರದ್ದು" ||
+    q === "ರದ್ದುಮಾಡು" ||
+    q === "ಬೇಡ" ||
+    q === "ನಿಲ್ಲಿಸು" ||
+    q.includes("cancel") ||
+    q.includes("ರದ್ದು")
+  );
+}
+
+export function isConfirmationModification(query: string): boolean {
+  const q = query.trim().toLowerCase();
+  return (
+    q.includes("change") ||
+    q.includes("update") ||
+    q.includes("modify") ||
+    q.includes("replace") ||
+    q.includes("instead") ||
+    q.includes("ಬದಲಾಯಿಸು") ||
+    q.includes("ಬದಲು") ||
+    q.includes("ತಿದ್ದು") ||
+    q.includes("ನವೀಕರಿಸು") ||
+    q.includes("ಹಾಕು") ||
+    q.includes("ಸೇರಿಸು") ||
+    q.includes("ತೆಗೆದುಹಾಕು")
+  );
+}
+
+/**
+ * Modifies an existing pending workflow based on the user's natural language edit command.
+ */
+export function modifyPendingWorkflow(
+  existing: WorkflowParams,
+  updatePrompt: string,
+  lang: SupportedLanguage = "kn"
+): { updatedParams: WorkflowParams; changedFields: string[] } {
+  const updated = { ...existing, rawPrompt: `${existing.rawPrompt} | Modified: ${updatePrompt}` };
+  const changedFields: string[] = [];
+  const text = updatePrompt.trim();
+  const lower = text.toLowerCase();
+
+  // 1. Check Priest Name Change
+  const priestMatch = text.match(/(?:priest|ಅರ್ಚಕರು?|ಪಂಡಿತರು?)(?:\s+name)?(?:\s+(?:is|to|as))?\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\buse\b|\band\b|\bpooja\b|\bmobile\b|$)/i);
+  if (priestMatch && priestMatch[1]) {
+    updated.priestName = priestMatch[1].trim();
+    changedFields.push(lang === "kn" ? `ಅರ್ಚಕರ ಹೆಸರು: ${updated.priestName}` : `Priest Name: ${updated.priestName}`);
+  }
+
+  // 2. Check Mobile / Phone Change
+  const phoneMatch = text.match(/(?:mobile|phone|contact|ನಂಬರ್|ದೂರವಾಣಿ|ಮೊಬೈಲ್)(?:\s+number)?(?:\s+(?:is|to|as))?\s*[:=]?\s*(\+?\d[\d\s-]{8,14}\d)/i);
+  if (phoneMatch && phoneMatch[1]) {
+    updated.priestPhone = phoneMatch[1].trim();
+    changedFields.push(lang === "kn" ? `ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: ${updated.priestPhone}` : `Mobile Number: ${updated.priestPhone}`);
+  } else {
+    const direct10Digit = text.match(/\b([6-9]\d{9})\b/);
+    if (direct10Digit && direct10Digit[1]) {
+      updated.priestPhone = direct10Digit[1];
+      changedFields.push(lang === "kn" ? `ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: ${updated.priestPhone}` : `Mobile Number: ${updated.priestPhone}`);
+    }
+  }
+
+  // 3. Check Pooja Name Change
+  const poojaMatch = text.match(/(?:pooja|ಪೂಜೆ|ಸೇವೆ)(?:\s+(?:is|to|as))?\s+([A-Za-z\u0C80-\u0CFF\s]+?)(?:,|\.|\band\b|\bplace\b|$)/i);
+  if (poojaMatch && poojaMatch[1]) {
+    updated.poojaName = poojaMatch[1].trim();
+    changedFields.push(lang === "kn" ? `ಪೂಜೆ / ಸೇವೆ: ${updated.poojaName}` : `Pooja / Seva: ${updated.poojaName}`);
+  }
+
+  // 4. Check City / Place Change
+  const cityMatch = text.match(/(?:place|city|ಸ್ಥಳ|ಊರು)(?:\s+(?:is|to|as))?\s+([A-Za-z\u0C80-\u0CFF]+)/i);
+  if (cityMatch && cityMatch[1]) {
+    const newCity = cityMatch[1].trim();
+    const geo = resolveCityCoordsAndPincode(newCity);
+    updated.city = geo.city;
+    updated.pincode = geo.pincode;
+    updated.latitude = geo.lat;
+    updated.longitude = geo.lng;
+    changedFields.push(lang === "kn" ? `ಸ್ಥಳ & ಪಿನ್‌ಕೋಡ್: ${geo.city} (${geo.pincode})` : `Place & Pincode: ${geo.city} (${geo.pincode})`);
+  }
+
+  // 5. Check Devotee Name Change
+  const nameMatch = text.match(/(?:name|devotee|user|ಜಾತಕರು|ಹೆಸರು)(?:\s+(?:is|to|as))?\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\band\b|$)/i);
+  if (nameMatch && nameMatch[1]) {
+    updated.name = nameMatch[1].trim();
+    changedFields.push(lang === "kn" ? `ಜಾತಕರ ಹೆಸರು: ${updated.name}` : `Devotee Name: ${updated.name}`);
+  }
+
+  // 6. Check QR Code addition
+  if (lower.includes("qr") || lower.includes("ಕ್ಯೂಆರ್") || lower.includes("seva and prasada") || lower.includes("ಸೇವಾ ಮತ್ತು ಪ್ರಸಾದ")) {
+    updated.includeQrCode = true;
+    changedFields.push(lang === "kn" ? `ಸೇವಾ ಮತ್ತು ಪ್ರಸಾದ QR ಕೋಡ್: ಸೇರಿಸಲಾಗಿದೆ` : `Seva & Prasada QR Code: Included`);
+  }
+
+  return { updatedParams: updated, changedFields };
 }
 
 // =========================================================================

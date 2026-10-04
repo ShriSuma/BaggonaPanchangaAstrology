@@ -38,7 +38,15 @@ import {
   lookupGrahaByName,
   lookupNakshatraByName,
   lookupBhavaByNumberOrTerm,
-  type GrahaShastraRecord
+  type GrahaShastraRecord,
+  SANKHYA_SHASTRA_CATALOG,
+  calculateSankhyaProfile,
+  HASTA_MUDRIKA_LINES,
+  HASTA_MUDRIKA_SIGNS,
+  MUKHA_MUDRIKA_CATALOG,
+  AYUR_SANJEEVINI_CATALOG,
+  HINDINA_JANMA_CATALOG,
+  generateProfileImprovements
 } from "./jyotishyaShastraKnowledge";
 
 export type PetEmotion = "peaceful" | "thinking" | "speaking" | "excited" | "remedy" | "alert";
@@ -60,13 +68,30 @@ export type PetResponse = {
   actions: PetActionItem[];
 };
 
+export type ActiveProfileContext = {
+  name: string;
+  birthDate: string;
+  birthTime: string;
+  city: string;
+  pincode?: string;
+  priestName?: string;
+  priestPhone?: string;
+  poojaName?: string;
+  kundli?: any;
+  dasha?: any;
+  doshas?: any;
+  lastTopic?: string;
+};
+
 export type SuperAdminPetContext = {
   activePage: AppPage;
   currentKundliSession?: any;
+  activeProfile?: ActiveProfileContext;
   coinBalance?: number;
   currentUser: string | null;
   geminiApiKey?: string;
   selectedLanguage: SupportedLanguage;
+  pendingConfirmation?: any;
 };
 
 /**
@@ -525,29 +550,180 @@ export async function executeSuperAdminPetQuery(
     query.includes("खोलो") ||
     query.includes("चलो");
 
+  // 0H. PROFILE IMPROVEMENT & STRATEGIC ADVISORY (HIGHEST SPECIFICITY FOR BOSS ADVISORY)
+  const isImprovementQuery =
+    !isNavCommand &&
+    (query.includes("improvement") ||
+      query.includes("improve") ||
+      query.includes("ಸುಧಾರಣೆ") ||
+      query.includes("ಏನು ಮಾಡಬಹುದು") ||
+      query.includes("suggestions") ||
+      query.includes("ಸಲಹೆ") ||
+      query.includes("what should i tell") ||
+      query.includes("advisory") ||
+      query.includes("strategy") ||
+      query.includes("ಕಾರ್ಯತಂತ್ರ"));
+
+  if (isImprovementQuery) {
+    return await handleProfileImprovementIntent(rawQuery, context, effectiveLang);
+  }
+
+  // 0C. SANKHYA SHASTRA (Vedic Numerology)
+  const isSankhyaQuery =
+    !isNavCommand &&
+    (query.includes("sankhya") ||
+      query.includes("numerolog") ||
+      query.includes("ಸಂಖ್ಯಾ") ||
+      query.includes("ಮೂಲಾಂಕ") ||
+      query.includes("ಭಾಗ್ಯಾಂಕ") ||
+      query.includes("ನಾಮಾಂಕ") ||
+      query.includes("mulank") ||
+      query.includes("bhagyank") ||
+      query.includes("namaank") ||
+      query.includes("lucky number") ||
+      query.includes("ಅದೃಷ್ಟ ಸಂಖ್ಯೆ"));
+
+  if (isSankhyaQuery) {
+    return await handleSankhyaShastraIntent(rawQuery, context, effectiveLang);
+  }
+
+  // 0D. HASTA MUDRIKA (Vedic Palmistry)
+  const isHastaQuery =
+    !isNavCommand &&
+    (query.includes("hasta") ||
+      query.includes("palm") ||
+      query.includes("ಕೈ ಮುದ್ರಿಕಾ") ||
+      query.includes("ಹಸ್ತ ಸಾಮುದ್ರಿಕ") ||
+      query.includes("ಆಯುಷ್ಯ ರೇಖೆ") ||
+      query.includes("ಭಾಗ್ಯ ರೇಖೆ") ||
+      query.includes("ಹೃದಯ ರೇಖೆ") ||
+      query.includes("ಮಸ್ತಕ ರೇಖೆ") ||
+      query.includes("ಸೂರ್ಯ ರೇಖೆ") ||
+      query.includes("life line") ||
+      query.includes("head line") ||
+      query.includes("heart line") ||
+      query.includes("fate line") ||
+      query.includes("sun line") ||
+      query.includes("palmistry") ||
+      query.includes("trishula") ||
+      query.includes("ತ್ರಿಶೂಲ") ||
+      query.includes("matsya") ||
+      query.includes("ಮತ್ಸ್ಯ"));
+
+  if (isHastaQuery) {
+    return await handleHastaMudrikaIntent(rawQuery, context, effectiveLang);
+  }
+
+  // 0E. MUKHA MUDRIKA (Face Reading)
+  const isMukhaQuery =
+    !isNavCommand &&
+    (query.includes("mukha") ||
+      query.includes("face reading") ||
+      query.includes("ಮುಖ ಸಾಮುದ್ರಿಕ") ||
+      query.includes("ಮುಖ ಲಕ್ಷಣ") ||
+      query.includes("ಲಲಾಟ") ||
+      query.includes("ತಿಲ ಲಕ್ಷಣ") ||
+      query.includes("ಮಚ್ಚೆ") ||
+      query.includes("mole reading") ||
+      query.includes("forehead reading") ||
+      query.includes("nose reading") ||
+      query.includes("ನಾಸಿಕ"));
+
+  if (isMukhaQuery) {
+    return await handleMukhaMudrikaIntent(rawQuery, context, effectiveLang);
+  }
+
+  // 0F. AYUR SANJEEVINI / SATYA SANJEEVINI (Medical Astrology & Tridosha)
+  const isAyurQuery =
+    !isNavCommand &&
+    (query.includes("ayur") ||
+      query.includes("sanjeevini") ||
+      query.includes("ಆಯುರ್ ಸಂಜೀವಿನಿ") ||
+      query.includes("ಸತ್ಯ ಸಂಜೀವಿನಿ") ||
+      query.includes("ತ್ರಿದೋಷ") ||
+      query.includes("tridosha") ||
+      query.includes("vata") ||
+      query.includes("pitta") ||
+      query.includes("kapha") ||
+      query.includes("ವಾತ") ||
+      query.includes("ಪಿತ್ತ") ||
+      query.includes("ಕಫ") ||
+      query.includes("medical astrology") ||
+      query.includes("health astrology") ||
+      query.includes("ಆರೋಗ್ಯ ಜ್ಯೋತಿಷ್ಯ"));
+
+  if (isAyurQuery) {
+    return await handleAyurSanjeeviniIntent(rawQuery, context, effectiveLang);
+  }
+
+  // 0G. HINDINA JANMA RAHASYA (Past Life Karma Astrology)
+  const isHindinaJanmaQuery =
+    !isNavCommand &&
+    (query.includes("hindina janma") ||
+      query.includes("past life") ||
+      query.includes("ಹಿಂದಿನ ಜನ್ಮ") ||
+      query.includes("ಪೂರ್ವ ಜನ್ಮ") ||
+      query.includes("ಋಣಾನುಬಂಧ") ||
+      query.includes("runanubandha") ||
+      query.includes("karma shesha") ||
+      query.includes("ಕರ್ಮ ಶೇಷ") ||
+      query.includes("previous birth") ||
+      query.includes("ಪೂರ್ವ ಪುಣ್ಯ"));
+
+  if (isHindinaJanmaQuery) {
+    return await handleHindinaJanmaIntent(rawQuery, context, effectiveLang);
+  }
+
+  // 0I. ACTIVE PROFILE TECHNICAL DISCUSSION & FOLLOW-UP Q&A (BOSS MULTI-TURN MEMORY)
+  const isActiveProfileFollowUpQuery =
+    !isNavCommand &&
+    !!(context.activeProfile || context.currentKundliSession) &&
+    (query.includes("10th") ||
+      query.includes("7th") ||
+      query.includes("career") ||
+      query.includes("marriage") ||
+      query.includes("dasha") ||
+      query.includes("bhukti") ||
+      query.includes("ಉದ್ಯೋಗ") ||
+      query.includes("ವಿವಾಹ") ||
+      query.includes("ದಶಾ") ||
+      query.includes("technical") ||
+      query.includes("analysis") ||
+      query.includes("tell me more") ||
+      query.includes("more about") ||
+      query.includes("ಮುಂದೆ ಏನು") ||
+      query.includes("ಇವರ"));
+
+  if (isActiveProfileFollowUpQuery) {
+    return await handleActiveProfileFollowUpIntent(rawQuery, context, effectiveLang);
+  }
+
   // 0A. PRIEST / ASTROLOGER CALL BRIEF & CURRENT LIFE STATUS INTENT
   const isPriestCallBriefQuery =
-    query.includes("call brief") ||
-    query.includes("client call") ||
-    query.includes("what to tell") ||
-    query.includes("tell client") ||
-    query.includes("tell user") ||
-    query.includes("tell them") ||
-    query.includes("phone call") ||
-    query.includes("consultation") ||
-    query.includes("happening in their life") ||
-    query.includes("happening in life") ||
-    query.includes("currently happening") ||
-    query.includes("call them") ||
-    query.includes("ಸಮಾಲೋಚನೆ") ||
-    query.includes("ಕರೆ ಸಾರಾಂಶ") ||
-    query.includes("ಕ್ಲೈಂಟ್‌ಗೆ ಏನು ಹೇಳಬೇಕು") ||
-    query.includes("ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ") ||
-    query.includes("ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ") ||
-    query.includes("ಮಾತನಾಡಲು") ||
-    query.includes("ಕರೆಯಲ್ಲಿ ಏನು ಹೇಳಬೇಕು") ||
-    ((query.includes("call") || query.includes("brief") || query.includes("client") || query.includes("ಕರೆ") || query.includes("ಸಮಾಲೋಚನೆ")) &&
-      (/\b\d{4}\b/.test(query) || /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/.test(query) || /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/i.test(query)));
+    !query.includes("improve") &&
+    !query.includes("improvement") &&
+    !query.includes("ಸುಧಾರಣೆ") &&
+    (query.includes("call brief") ||
+      query.includes("client call") ||
+      query.includes("what to tell") ||
+      query.includes("tell client") ||
+      query.includes("tell user") ||
+      query.includes("tell them") ||
+      query.includes("phone call") ||
+      (query.includes("consultation") && (query.includes("call") || query.includes("brief") || query.includes("tips") || query.includes("how"))) ||
+      query.includes("happening in their life") ||
+      query.includes("happening in life") ||
+      query.includes("currently happening") ||
+      query.includes("call them") ||
+      query.includes("ಸಮಾಲೋಚನೆ") ||
+      query.includes("ಕರೆ ಸಾರಾಂಶ") ||
+      query.includes("ಕ್ಲೈಂಟ್‌ಗೆ ಏನು ಹೇಳಬೇಕು") ||
+      query.includes("ಪ್ರಸ್ತುತ ಜೀವನದಲ್ಲಿ") ||
+      query.includes("ಜೀವನದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ") ||
+      query.includes("ಮಾತನಾಡಲು") ||
+      query.includes("ಕರೆಯಲ್ಲಿ ಏನು ಹೇಳಬೇಕು") ||
+      ((query.includes("call") || query.includes("brief") || query.includes("client") || query.includes("ಕರೆ") || query.includes("ಸಮಾಲೋಚನೆ")) &&
+        (/\b\d{4}\b/.test(query) || /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/.test(query) || /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/i.test(query))));
 
   if (isPriestCallBriefQuery) {
     return await handlePriestCallBrieferIntent(rawQuery, context, effectiveLang);
@@ -1636,6 +1812,514 @@ Ask me about any planet's exaltation/debilitation degree, Nakshatra deity, Ganda
     actions: [
       { id: "open_kundli", label: { kn: "🪐 ಜಾತಕ ರಚನೆಗೆ ಹೋಗಿ", en: "🪐 Go to Kundli Page", hi: "🪐 कुण्डली", te: "🪐 జాతకం", ta: "🪐 ஜாதகம்" }, icon: "🪐", targetPage: "kundli", actionType: "navigate" },
       { id: "open_raman", label: { kn: "🌟 ರಮಣ ಪದ್ಧತಿ ಭವಿಷ್ಯ", en: "🌟 Raman Bhavishya", hi: "🌟 रमण पद्धति", te: "🌟 రమణ భవిష్యత్", ta: "🌟 ராமன் பலன்கள்" }, icon: "🌟", targetPage: "ramanbhavishya", actionType: "navigate" }
+    ]
+  };
+}
+
+// =========================================================================
+// HANDLER 0C: SANKHYA SHASTRA (Vedic Numerology - Mulank, Bhagyank, Namaank)
+// =========================================================================
+async function handleSankhyaShastraIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const query = rawQuery.trim();
+
+  // Extract DOB from query, active profile, or session
+  let dob = context.activeProfile?.birthDate || context.currentKundliSession?.input?.birthDate || "";
+  let name = context.activeProfile?.name || context.currentKundliSession?.input?.name || "";
+
+  // Try extracting from query
+  const dateMatch = query.match(/\b(\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{4}|\d{1,2}\s+[A-Za-z]+\s+\d{4})\b/);
+  if (dateMatch) {
+    dob = dateMatch[1];
+  } else if (!dob) {
+    dob = "1993-05-31"; // Default sample
+  }
+
+  const nameMatch = query.match(/(?:named|name is|for)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*)/i);
+  if (nameMatch && nameMatch[1]) {
+    name = nameMatch[1].trim();
+  } else if (!name) {
+    name = "Shriram Pandit";
+  }
+
+  const sankhya = calculateSankhyaProfile(dob, name);
+  const m = sankhya.mulankRecord;
+  const b = sankhya.bhagyankRecord;
+  const n = sankhya.namaankRecord;
+
+  const textKn = `🔢 **ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ವಿಶ್ಲೇಷಣೆ (Vedic Numerology): ${name}**
+*(ಜನನ ದಿನಾಂಕ: ${dob})*
+
+🌟 **೧. ಜನ್ಮ ಸಂಖ್ಯೆ (ಮೂಲಾಂಕ - Mulank): ${sankhya.mulank}**
+- **ಅಧಿಪತಿ ಗ್ರಹ**: **${m.grahaName.kn}** (${m.title.kn})
+- **ಸ್ವಭಾವ & ಗುಣಲಕ್ಷಣಗಳು**: ${m.qualities.kn.join(", ")}
+- **ಮಿತ್ರ ಸಂಖ್ಯೆಗಳು (Friendly)**: ${m.friendlyNumbers.join(", ")} | **ಶತ್ರು ಸಂಖ್ಯೆಗಳು**: ${m.enemyNumbers.join(", ") || "ಯಾವುದೂ ಇಲ್ಲ"}
+- **ಅದೃಷ್ಟ ರತ್ನ & ಲೋಹ**: ${m.luckyGem.kn}
+- **ಅದೃಷ್ಟ ದಿನ & ಬಣ್ಣಗಳು**: ${m.luckyDay.kn} | ${m.luckyColors.kn.join(", ")}
+- **ಸೂಕ್ತ ವೃತ್ತಿ ರಂಗಗಳು**: ${m.careerFields.kn.join(", ")}
+
+🔮 **೨. ಭಾಗ್ಯ ಸಂಖ್ಯೆ (ಭಾಗ್ಯಾಂಕ - Bhagyank / Life Path): ${sankhya.bhagyank}**
+- **ಅಧಿಪತಿ ಗ್ರಹ**: **${b.grahaName.kn}** (${b.title.kn})
+- **ಜೀವನದ ಗುರಿ & ಅದೃಷ್ಟ**: ${b.qualities.kn.join(", ")}
+- **ಮೂಲಾಂಕ-ಭಾಗ್ಯಾಂಕ ಹೊಂದಾಣಿಕೆ**: ${sankhya.isMulankBhagyankHarmonious ? "✅ ಅತ್ಯುತ್ತಮ ಮಿತ್ರತ್ವ (Raja Yoga harmony)" : "⚠️ ಸವಾಲಿನ ಮಿಶ್ರ ಫಲ (Remedies recommended)"}
+
+🔤 **೩. ನಾಮ ಸಂಖ್ಯೆ (ನಾಮಾಂಕ - Chaldean Namaank): ${sankhya.namaank}**
+- **ನಾಮ ಸಂಖ್ಯೆಯ ಅಧಿಪತಿ**: **${n.grahaName.kn}**
+- **ಸಾರ್ವಜನಿಕ ಪ್ರಭಾವ**: ಸಮಾಜ, ಉದ್ಯೋಗ ಮತ್ತು ಸಹೋದ್ಯೋಗಿಗಳಲ್ಲಿ ${name} ಹೆಸರಿಗೆ ಲಭಿಸುವ ಗೌರವ.
+
+🛕 **ಶಾಸ್ತ್ರೋಕ್ತ ಸಂಖ್ಯಾ ಪರಿಹಾರ**:
+${m.remedy.kn}
+
+---
+👑 *ಬಾಸ್, ನಿಮ್ಮ ಆಜ್ಞೆಯಂತೆ ಈ ಜಾತಕರ ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಲೆಕ್ಕಾಚಾರ ಪೂರ್ಣಗೊಂಡಿದೆ! ಇವರ ವೃತ್ತಿ, ವಿವಾಹ ಅಥವಾ ಇತರ ಪ್ರಶ್ನೆಗಳಿದ್ದರೆ ಕೇಳಿ ಸ್ವಾಮಿ.*`;
+
+  const textEn = `🔢 **Vedic Numerology Report (Sankhya Shastra): ${name}**
+*(Date of Birth: ${dob})*
+
+🌟 **1. Root / Birth Number (Mulank): ${sankhya.mulank}**
+- **Governing Planet**: **${m.grahaName.en}** (${m.title.en})
+- **Innate Traits**: ${m.qualities.en.join(", ")}
+- **Harmonious Numbers**: ${m.friendlyNumbers.join(", ")} | **Challenging Numbers**: ${m.enemyNumbers.join(", ") || "None"}
+- **Auspicious Gemstone**: ${m.luckyGem.en}
+- **Favorable Day & Colors**: ${m.luckyDay.en} | ${m.luckyColors.en.join(", ")}
+- **Prime Career Paths**: ${m.careerFields.en.join(", ")}
+
+🔮 **2. Destiny Number (Bhagyank / Life Path): ${sankhya.bhagyank}**
+- **Governing Planet**: **${b.grahaName.en}** (${b.title.en})
+- **Life Path Blueprint**: ${b.qualities.en.join(", ")}
+- **Mulank-Bhagyank Compatibility**: ${sankhya.isMulankBhagyankHarmonious ? "✅ Highly Harmonious (Direct growth alignment)" : "⚠️ Complex dynamic (Remedial balancing suggested)"}
+
+🔤 **3. Name Number (Chaldean Namaank): ${sankhya.namaank}**
+- **Name Number Ruler**: **${n.grahaName.en}**
+- **Social Resonance**: Dictates professional reputation, client magnetism, and public credibility.
+
+🛕 **Authentic Numerological Remedy**:
+${m.remedy.en}
+
+---
+👑 *Boss, the numerological blueprint for ${name} is ready at your command! Feel free to ask technical follow-up questions.*`;
+
+  const spokenKn = `ಖಂಡಿತ ಬಾಸ್! ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ${name} ಅವರ ಮೂಲಾಂಕ ${sankhya.mulank} ಸೂರ್ಯನ ಅಧೀನದಲ್ಲಿದೆ ಹಾಗೂ ಭಾಗ್ಯಾಂಕ ${sankhya.bhagyank} ಆಗಿದೆ. ರತ್ನ ${m.luckyGem.kn} ಹಾಗೂ ಅದೃಷ್ಟ ದಿನ ${m.luckyDay.kn}.`;
+  const spokenEn = `Yes Boss! Under Vedic Sankhya Shastra, ${name}'s Root Number is ${sankhya.mulank} ruled by ${m.grahaName.en}, and Destiny Number is ${sankhya.bhagyank}. Auspicious gem is ${m.luckyGem.en}.`;
+
+  return {
+    text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+    spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+    emotion: "excited",
+    category: "admin",
+    actions: [
+      { id: "open_sankhya", label: { kn: "🔢 ಸಂಖ್ಯಾಶಾಸ್ತ್ರ ಪುಟ", en: "🔢 Sankhya Shastra Page", hi: "🔢 अंकशास्त्र", te: "🔢 సంఖ్యాశాస్త్రం", ta: "🔢 எண் கணிதம்" }, icon: "🔢", targetPage: "sankhyashastra", actionType: "navigate" },
+      { id: "open_kundli", label: { kn: "🪐 ಜಾತಕ ಪುಟ", en: "🪐 Kundli Page", hi: "🪐 कुण्डली", te: "🪐 జాతకం", ta: "🪐 ஜாதகம்" }, icon: "🪐", targetPage: "kundli", actionType: "navigate" }
+    ]
+  };
+}
+
+// =========================================================================
+// HANDLER 0D: HASTA MUDRIKA (Vedic Palmistry Lines, Mounts & Signs)
+// =========================================================================
+async function handleHastaMudrikaIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const query = rawQuery.trim().toLowerCase();
+
+  // Check specific line query
+  const matchedLine = HASTA_MUDRIKA_LINES.find(
+    (l) => query.includes(l.id) || query.includes(l.name.en.toLowerCase()) || query.includes(l.name.kn) || query.includes(l.id.replace("_rekha", ""))
+  );
+
+  if (matchedLine) {
+    const l = matchedLine;
+    const textKn = `✋ **ಹಸ್ತ ಸಾಮುದ್ರಿಕಾ ಶಾಸ್ತ್ರ: ${l.name.kn}**
+📍 **ಸ್ಥಾನ (Location)**: ${l.location.kn}
+📖 **ಪ್ರಾಮುಖ್ಯತೆ (Significance)**: ${l.significance.kn}
+
+✨ **ಶುಭ ಲಕ್ಷಣಗಳು (Auspicious Signs)**:
+${l.auspiciousFeatures.kn.map((f) => `• ${f}`).join("\n")}
+
+⚠️ **ದೋಷಗಳು & ಎಚ್ಚರಿಕೆಗಳು (Inauspicious Signs)**:
+${l.inAuspiciousFeatures.kn.map((f) => `• ${f}`).join("\n")}
+
+---
+👑 *ಬಾಸ್, ನಿಮ್ಮ ಆಜ್ಞೆಯಂತೆ ${l.name.kn}ಯ ಶಾಸ್ತ್ರೋಕ್ತ ವಿವರಣೆ ಸಿದ್ಧವಾಗಿದೆ. ಬೇರೆ ಯಾವುದೇ ರೇಖೆ ಅಥವಾ ಚಿಹ್ನೆಯ ಬಗ್ಗೆ ಕೇಳಬಹುದು!*`;
+
+    const textEn = `✋ **Vedic Palmistry (Hasta Mudrika): ${l.name.en}**
+📍 **Location on Palm**: ${l.location.en}
+📖 **Core Significance**: ${l.significance.en}
+
+✨ **Auspicious Significations**:
+${l.auspiciousFeatures.en.map((f) => `• ${f}`).join("\n")}
+
+⚠️ **Vulnerabilities & Cautions**:
+${l.inAuspiciousFeatures.en.map((f) => `• ${f}`).join("\n")}
+
+---
+👑 *Boss, detailed palmistry analysis for ${l.name.en} is prepared at your command! Feel free to ask about any other line, mount, or sign.*`;
+
+    const spokenKn = `ಖಂಡಿತ ಬಾಸ್! ಹಸ್ತ ಸಾಮುದ್ರಿಕಾ ಪ್ರಕಾರ ${l.name.kn}ಯು ${l.significance.kn} ಅನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಸಂಪೂರ್ಣ ಶಾಸ್ತ್ರೀಯ ವಿವರಣೆ ಇಲ್ಲಿದೆ.`;
+    const spokenEn = `Yes Boss! In Vedic palmistry, the ${l.name.en} dictates ${l.significance.en}. Complete technical analysis is presented.`;
+
+    return {
+      text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+      spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+      emotion: "peaceful",
+      category: "admin",
+      actions: [{ id: "open_palm", label: { kn: "✋ ಹಸ್ತ ಸಾಮುದ್ರಿಕ ಪುಟ", en: "✋ Palm Reading Page", hi: "✋ हस्तरेखा", te: "✋ హస్తసాముద్రికం", ta: "✋ கைரேகை" }, icon: "✋", targetPage: "palmreading", actionType: "navigate" }]
+    };
+  }
+
+  // General Palmistry Overview
+  const textKn = `✋ **ವೈದಿಕ ಹಸ್ತ ಸಾಮುದ್ರಿಕಾ ಶಾಸ್ತ್ರ (Complete Palm Reading Shastra)**
+
+🌟 **ಮುಖ್ಯ ಪಂಚ ಮಹಾ ರೇಖೆಗಳು (5 Primary Lines)**:
+1. **ಆಯುಷ್ಯ ರೇಖೆ (Life Line)**: ದೈಹಿಕ ಚೈತನ್ಯ, ರೋಗನಿರೋಧಕ ಶಕ್ತಿ, ಆಯಸ್ಸು ಹಾಗೂ ಜೀವನಾಸಕ್ತಿ.
+2. **ಮಸ್ತಕ ರೇಖೆ (Head Line)**: ಬುದ್ಧಿಶಕ್ತಿ, ತಾರ್ಕಿಕತೆ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಸಂಶೋಧನಾ ಮನೋಭಾವ.
+3. **ಹೃದಯ ರೇಖೆ (Heart Line)**: ಪ್ರೀತಿ, ಕೌಟುಂಬಿಕ ನಿಷ್ಠೆ, ಹೃದಯದ ಆರೋಗ್ಯ ಹಾಗೂ ದೈವಭಕ್ತಿ.
+4. **ಭಾಗ್ಯ ರೇಖೆ (Fate / Saturn Line)**: ವೃತ್ತಿಜೀವನ, ಸಂಪತ್ತು ಗಳಿಕೆ, ಅದೃಷ್ಟ ಹಾಗೂ ಭಾಗ್ಯೋದಯ.
+5. **ಸೂರ್ಯ ರೇಖೆ (Sun Line)**: ಸಮಾಜದಲ್ಲಿ ಕೀರ್ತಿ, ಸರ್ಕಾರದ ಮನ್ನಣೆ, ರಾಜಯೋಗ ಹಾಗೂ ಪ್ರತಿಷ್ಠೆ.
+
+🔱 **ಪವಿತ್ರ ದೈವಿಕ ಚಿಹ್ನೆಗಳು (Sacred Palm Marks)**:
+• **ತ್ರಿಶೂಲ (Trident)**: ಗುರು ಅಥವಾ ಶನಿ ಪರ್ವತದ ಮೇಲಿದ್ದರೆ ಶಿವನ ರಕ್ಷಣೆ ಮತ್ತು ರಾಜಯೋಗ.
+• **ಮತ್ಸ್ಯ ಚಿಹ್ನೆ (Fish Sign)**: ಕೇತು ಅಥವಾ ಮಣಿಕಟ್ಟಿನಲ್ಲಿದ್ದರೆ ಆಕಸ್ಮಿಕ ಅಪಾರ ಧನಾಗಮನ ಮತ್ತು ಮೋಕ್ಷ.
+• **ಚತುಷ್ಕೋನ (Square)**: ಯಾವುದೇ ದೋಷಯುಕ್ತ ರೇಖೆಗೆ ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚ!
+
+---
+👑 *ಬಾಸ್, ಹಸ್ತ ಸಾಮುದ್ರಿಕಾದ ಯಾವುದೇ ನಿರ್ದಿಷ್ಟ ರೇಖೆ (ಆಯುಷ್ಯ, ಭಾಗ್ಯ, ಸೂರ್ಯ) ಅಥವಾ ಪರ್ವತಗಳ ಬಗ್ಗೆ ಆಜ್ಞಾಪಿಸಿ!*`;
+
+  const textEn = `✋ **Classical Vedic Palmistry (Hasta Mudrika Shastra)**
+
+🌟 **5 Foundational Palm Lines**:
+1. **Life Line (Ayushya Rekha)**: Physical prana, biological vitality, immunity, and longevity.
+2. **Head Line (Mastaka Rekha)**: Mental focus, logical acumen, memory, and cognitive depth.
+3. **Heart Line (Hridaya Rekha)**: Emotional fidelity, cardiovascular vigor, empathy, and devotion.
+4. **Fate Line (Bhagya / Saturn Line)**: Career ascent, material prosperity, and sudden wealth.
+5. **Sun Line (Surya Rekha)**: Fame, social influence, creative genius, and royal patronage.
+
+🔱 **Sacred Vedic Palm Marks**:
+• **Trishula (Trident)**: On Jupiter or Saturn mount, bestows Lord Shiva's divine shield and supreme authority.
+• **Matsya (Fish Sign)**: Near Mount of Ketu unlocks windfall fortune, overseas wealth, and spiritual liberation.
+• **Square (Chatushkona)**: Universal protective armor against health or career perils.
+
+---
+👑 *Boss, ask me about any specific palm line, mount, or sacred symbol anytime!*`;
+
+  const spokenKn = `ಖಂಡಿತ ಬಾಸ್! ಹಸ್ತ ಸಾಮುದ್ರಿಕಾ ಶಾಸ್ತ್ರದಲ್ಲಿ ಆಯುಷ್ಯ, ಮಸ್ತಕ, ಹೃದಯ, ಭಾಗ್ಯ ಮತ್ತು ಸೂರ್ಯ ರೇಖೆಗಳು ಪ್ರಮುಖವಾಗಿವೆ. ತ್ರಿಶೂಲ ಮತ್ತು ಮತ್ಸ್ಯ ಚಿಹ್ನೆಗಳು ಅಪಾರ ರಾಜಯೋಗವನ್ನು ನೀಡುತ್ತವೆ.`;
+  const spokenEn = `Yes Boss! In Vedic palmistry, the Life, Head, Heart, Fate, and Sun lines form the five core pillars, while Trident and Fish signs bestow immense Raja Yoga.`;
+
+  return {
+    text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+    spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+    emotion: "peaceful",
+    category: "admin",
+    actions: [{ id: "open_palm", label: { kn: "✋ ಹಸ್ತ ಸಾಮುದ್ರಿಕ ಪುಟ", en: "✋ Palm Reading Page", hi: "✋ हस्तरेखा", te: "✋ హస్తసాముద్రికం", ta: "✋ கைரேகை" }, icon: "✋", targetPage: "palmreading", actionType: "navigate" }]
+  };
+}
+
+// =========================================================================
+// HANDLER 0E: MUKHA MUDRIKA (Vedic Face Reading / Samudrika Shastra)
+// =========================================================================
+async function handleMukhaMudrikaIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const cat = MUKHA_MUDRIKA_CATALOG;
+
+  const textKn = `👤 **ಸಾಮುದ್ರಿಕಾ ಮುಖ ಲಕ್ಷಣ ಶಾಸ್ತ್ರ (Vedic Face Reading - Mukha Mudrika)**
+
+🏛️ **೧. ${cat.forehead.title.kn}**:
+${cat.forehead.points.kn.map((p) => `• ${p}`).join("\n")}
+
+👁️ **೨. ${cat.eyes.title.kn}**:
+${cat.eyes.points.kn.map((p) => `• ${p}`).join("\n")}
+
+👃 **೩. ${cat.nose.title.kn}**:
+${cat.nose.points.kn.map((p) => `• ${p}`).join("\n")}
+
+👄 **೪. ${cat.chinAndLips.title.kn}**:
+${cat.chinAndLips.points.kn.map((p) => `• ${p}`).join("\n")}
+
+✨ **೫. ${(cat as any).molesAndMarks?.title?.kn || "ತಿಲ ಲಕ್ಷಣ (Facial Moles)"}**:
+${((cat as any).molesAndMarks?.points?.kn || []).map((p: string) => `• ${p}`).join("\n")}
+
+---
+👑 *ಬಾಸ್, ಮುಖ ಸಾಮುದ್ರಿಕಾ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಹಣೆ ಪೂರ್ವಪುಣ್ಯವನ್ನು, ಮೂಗು ಧನಸ್ಥಾನವನ್ನು, ಗದ್ದ ಆಯುಷ್ಯ-ಸ್ಥಿರತೆಯನ್ನು ಮತ್ತು ತಿಲ ಲಕ್ಷಣ ಭಾಗ್ಯೋದಯವನ್ನು ತೋರಿಸುತ್ತದೆ. ನಿಮ್ಮ ಆಜ್ಞೆಯಂತೆ ಸಿದ್ಧವಾಗಿದೆ!*`;
+
+  const textEn = `👤 **Classical Vedic Face Reading (Mukha Samudrika Shastra)**
+
+🏛️ **1. ${cat.forehead.title.en}**:
+${cat.forehead.points.en.map((p) => `• ${p}`).join("\n")}
+
+👁️ **2. ${cat.eyes.title.en}**:
+${cat.eyes.points.en.map((p) => `• ${p}`).join("\n")}
+
+👃 **3. ${cat.nose.title.en}**:
+${cat.nose.points.en.map((p) => `• ${p}`).join("\n")}
+
+👄 **4. ${cat.chinAndLips.title.en}**:
+${cat.chinAndLips.points.en.map((p) => `• ${p}`).join("\n")}
+
+✨ **5. ${(cat as any).molesAndMarks?.title?.en || "Mole Astrology (Tila Lakshana)"}**:
+${((cat as any).molesAndMarks?.points?.en || []).map((p: string) => `• ${p}`).join("\n")}
+
+---
+👑 *Boss, Samudrika Shastra states the forehead reveals ancestral intellect, the nose governs personal wealth, the chin rules longevity, and facial moles indicate karmic milestones!*`;
+
+  const spokenKn = `ಖಂಡಿತ ಬಾಸ್! ಮುಖ ಸಾಮುದ್ರಿಕಾ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಅಗಲವಾದ ಹಣೆ ಬುದ್ಧಿವಂತಿಕೆಯನ್ನು, ನೇರವಾದ ದುಂಡು ಮೂಗು ಕುಬೇರ ಧನಯೋಗವನ್ನು ಹಾಗೂ ದೃಢವಾದ ಗದ್ದ ದೀರ್ಘಾಯುಷ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ.`;
+  const spokenEn = `Yes Boss! Under Mukha Samudrika Shastra, a broad forehead indicates intellect, a straight rounded nose creates Kubera wealth yoga, and a firm chin governs longevity.`;
+
+  return {
+    text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+    spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+    emotion: "peaceful",
+    category: "admin",
+    actions: [{ id: "open_face", label: { kn: "👤 ಮುಖ ಸಾಮುದ್ರಿಕ ಪುಟ", en: "👤 Face Reading Page", hi: "👤 मुखाकृति", te: "👤 ముఖసాముద్రికం", ta: "👤 முக சாமுத்ரிகா" }, icon: "👤", targetPage: "facereading", actionType: "navigate" }]
+  };
+}
+
+// =========================================================================
+// HANDLER 0F: AYUR SANJEEVINI / SATYA SANJEEVINI (Medical Astrology & Tridosha)
+// =========================================================================
+async function handleAyurSanjeeviniIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const cat = AYUR_SANJEEVINI_CATALOG;
+
+  const textKn = `🌿 **ಆಯುರ್ ಸಂಜೀವಿನಿ / ಸತ್ಯ ಸಂಜೀವಿನಿ (Vedic Medical Astrology)**
+
+⚖️ **೧. ತ್ರಿದೋಷ ವಿಶ್ಲೇಷಣೆ (Tridosha Constitution)**:
+• **${cat.tridoshaAnalysis.vata.title.kn}**: ರಾಶಿಗಳು (${cat.tridoshaAnalysis.vata.rashis.kn}) | ಕಾರಕ ಗ್ರಹಗಳು (${cat.tridoshaAnalysis.vata.planets.kn}). ಲಕ್ಷಣಗಳು: ${cat.tridoshaAnalysis.vata.symptoms.kn.join(", ")}. ಪರಿಹಾರ: ${cat.tridoshaAnalysis.vata.ayurvedicRemedies.kn.join(", ")}.
+• **${cat.tridoshaAnalysis.pitta.title.kn}**: ರಾಶಿಗಳು (${cat.tridoshaAnalysis.pitta.rashis.kn}) | ಕಾರಕ ಗ್ರಹಗಳು (${cat.tridoshaAnalysis.pitta.planets.kn}). ಲಕ್ಷಣಗಳು: ${cat.tridoshaAnalysis.pitta.symptoms.kn.join(", ")}. ಪರಿಹಾರ: ${cat.tridoshaAnalysis.pitta.ayurvedicRemedies.kn.join(", ")}.
+• **${cat.tridoshaAnalysis.kapha.title.kn}**: ರಾಶಿಗಳು (${cat.tridoshaAnalysis.kapha.rashis.kn}) | ಕಾರಕ ಗ್ರಹಗಳು (${cat.tridoshaAnalysis.kapha.planets.kn}). ಲಕ್ಷಣಗಳು: ${cat.tridoshaAnalysis.kapha.symptoms.kn.join(", ")}. ಪರಿಹಾರ: ${cat.tridoshaAnalysis.kapha.ayurvedicRemedies.kn.join(", ")}.
+
+🩺 **೨. ೬ನೇ ಭಾವ (ರೋಗ ಸ್ಥಾನ) & ಗ್ರಹ ಕಾರಕತ್ವ**:
+- ಸೂರ್ಯ: ಹೃದಯ & ಅಸ್ಥಿ (Bones) | ಚಂದ್ರ: ಮನಸ್ಸು & ಜಲಾಂಶ | ಕುಜ: ರಕ್ತ & ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ
+- ಬುಧ: ನರಮಂಡಲ & ಚರ್ಮ | ಗುರು: ಯಕೃತ್ (Liver) & ಕೊಬ್ಬು | ಶುಕ್ರ: ಮೂತ್ರಪಿಂಡ & ಹಾರ್ಮೋನ್
+- ಶನಿ: ಕೀಲುಗಳು & ದೀರ್ಘಕಾಲದ ರೋಗ | ರಾಹು-ಕೇತು: ಅನಿರೀಕ್ಷಿತ ಅಲರ್ಜಿ & ನಿಗೂಢ ಬಾಧೆಗಳು
+
+🛕 **೩. ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಆಯುರ್ ಆರೋಗ್ಯ ಪರಿಹಾರ**:
+${cat.gokarnaHealthRemedies.kn.map((r) => `• ${r}`).join("\n")}
+
+---
+👑 *ಬಾಸ್, ಆಯುರ್ ಸಂಜೀವಿನಿ ಆಧಾರದ ಮೇಲೆ ಜಾತಕದ ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಮತ್ತು ಆಯುರ್ವೇದ ದಿನಚರ್ಯೆ ಸಿದ್ಧವಾಗಿದೆ!*`;
+
+  const textEn = `🌿 **Satya Sanjeevini / Ayur Sanjeevini (Vedic Medical Astrology & Tridosha Blueprint)**
+
+⚖️ **1. Tridosha Analysis**:
+• **${cat.tridoshaAnalysis.vata.title.en}**: Rashis (${cat.tridoshaAnalysis.vata.rashis.en}) | Planets (${cat.tridoshaAnalysis.vata.planets.en}). Vulnerabilities: ${cat.tridoshaAnalysis.vata.symptoms.en.join(", ")}. Remedies: ${cat.tridoshaAnalysis.vata.ayurvedicRemedies.en.join(", ")}.
+• **${cat.tridoshaAnalysis.pitta.title.en}**: Rashis (${cat.tridoshaAnalysis.pitta.rashis.en}) | Planets (${cat.tridoshaAnalysis.pitta.planets.en}). Vulnerabilities: ${cat.tridoshaAnalysis.pitta.symptoms.en.join(", ")}. Remedies: ${cat.tridoshaAnalysis.pitta.ayurvedicRemedies.en.join(", ")}.
+• **${cat.tridoshaAnalysis.kapha.title.en}**: Rashis (${cat.tridoshaAnalysis.kapha.rashis.en}) | Planets (${cat.tridoshaAnalysis.kapha.planets.en}). Vulnerabilities: ${cat.tridoshaAnalysis.kapha.symptoms.en.join(", ")}. Remedies: ${cat.tridoshaAnalysis.kapha.ayurvedicRemedies.en.join(", ")}.
+
+🩺 **2. 6th House (Rogasthana) & Planetary Anatomy**:
+- Sun: Cardiovascular & Bone Density | Moon: Psychology, Digestion & Bodily Fluids
+- Mars: Blood circulation, Muscle, Surgery | Mercury: Central Nervous System & Skin
+- Jupiter: Liver enzymes, Arteries, Fat | Venus: Kidneys, Hormones & Reproductive Vigor
+- Saturn: Joint mobility, Chronic Ailments | Rahu/Ketu: Idiopathic allergies & Toxins
+
+🛕 **3. Sri Kshetra Gokarna Healing Remedies**:
+${cat.gokarnaHealthRemedies.en.map((r) => `• ${r}`).join("\n")}
+
+---
+👑 *Boss, the Ayur Sanjeevini medical astrology diagnosis is prepared for your strategic review!*`;
+
+  const spokenKn = `ಖಂಡಿತ ಬಾಸ್! ಆಯುರ್ ಸಂಜೀವಿನಿ ಪ್ರಕಾರ ವಾತ, ಪಿತ್ತ, ಕಫ ಸಮತೋಲನ ಮತ್ತು ೬ನೇ ಭಾವದ ಗ್ರಹ ಸ್ಥಿತಿ ಆರೋಗ್ಯವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹೋಮ ಉತ್ತಮ ಪರಿಹಾರ.`;
+  const spokenEn = `Yes Boss! In Ayur Sanjeevini medical astrology, Tridosha balance and the 6th house govern health stamina. Maha Mrityunjaya Homa at Gokarna offers ultimate protection.`;
+
+  return {
+    text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+    spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+    emotion: "peaceful",
+    category: "admin",
+    actions: [{ id: "open_ayur", label: { kn: "🌿 ಆಯುರ್ ಸಂಜೀವಿನಿ ಪುಟ", en: "🌿 Ayur Sanjeevini Page", hi: "🌿 आयुर् संजीवनी", te: "🌿 ఆయుర్ సంజీవిని", ta: "🌿 ஆயுர் சஞ்சீவினி" }, icon: "🌿", targetPage: "ayursanjeevini", actionType: "navigate" }]
+  };
+}
+
+// =========================================================================
+// HANDLER 0G: HINDINA JANMA RAHASYA (Past Life Karma Astrology)
+// =========================================================================
+async function handleHindinaJanmaIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const cat = HINDINA_JANMA_CATALOG;
+
+  const textKn = `🌌 **ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯ ಶಾಸ್ತ್ರ (Past Life Karma & Debts - Hindina Janma)**
+
+📜 **೧. ಕರ್ಮ ಭಾವಗಳ ವಿಶ್ಲೇಷಣೆ (Karmic Houses)**:
+• **${cat.karmicHouses.house12.title.kn}**: ${cat.karmicHouses.house12.kn}
+• **${cat.karmicHouses.house5.title.kn}**: ${cat.karmicHouses.house5.kn}
+• **${cat.karmicHouses.house8.title.kn}**: ${cat.karmicHouses.house8.kn}
+
+🐉 **೨. ರಾಹು-ಕೇತುಗಳ ಪೂರ್ವಜನ್ಮದ ಅಕ್ಷ (Evolutionary Axis)**:
+- **ಕೇತುವಿನ ಪಾಠ**: ${cat.rahuKetuAxis.ketuPrinciple.kn}
+- **ರಾಹುವಿನ ಗುರಿ**: ${cat.rahuKetuAxis.rahuPrinciple.kn}
+
+🛕 **೩. ಪೂರ್ವಜನ್ಮದ ಋಣಾನುಬಂಧ ನಿವಾರಣಾ ಪರಿಹಾರ (Gokarna Parihara)**:
+${cat.gokarnaKarmicParihara.kn.map((p) => `• ${p}`).join("\n")}
+
+---
+👑 *ಬಾಸ್, ಹಿಂದಿನ ಜನ್ಮದ ಸಂಚಿತ ಕರ್ಮಗಳು ಹಾಗೂ ಋಣಾನುಬಂಧ ನಿವಾರಣಾ ಶಾಸ್ತ್ರ ಸಿದ್ಧವಾಗಿದೆ. ಆಜ್ಞಾಪಿಸಿ!*`;
+
+  const textEn = `🌌 **Hindina Janma Rahasya (Past Life Karma Astrology)**
+
+📜 **1. The Three Karmic Houses**:
+• **${cat.karmicHouses.house12.title.en}**: ${cat.karmicHouses.house12.en}
+• **${cat.karmicHouses.house5.title.en}**: ${cat.karmicHouses.house5.en}
+• **${cat.karmicHouses.house8.title.en}**: ${cat.karmicHouses.house8.en}
+
+🐉 **2. Rahu-Ketu Evolutionary Axis**:
+- **Ketu's Legacy**: ${cat.rahuKetuAxis.ketuPrinciple.en}
+- **Rahu's Mission**: ${cat.rahuKetuAxis.rahuPrinciple.en}
+
+🛕 **3. Dissolving Past-Life Debts (Gokarna Parihara)**:
+${cat.gokarnaKarmicParihara.en.map((p) => `• ${p}`).join("\n")}
+
+---
+👑 *Boss, the past-life karmic ledger and remedial rituals are assembled at your command!*`;
+
+  const spokenKn = `ಖಂಡಿತ ಬಾಸ್! ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯದಲ್ಲಿ ೧೨ನೇ ಭಾವ ನಿರ್ಗಮನವನ್ನು, ೫ನೇ ಭಾವ ಪೂರ್ವಪುಣ್ಯವನ್ನು ಹಾಗೂ ೮ನೇ ಭಾವ ಋಣಾನುಬಂಧವನ್ನು ತಿಳಿಸುತ್ತದೆ. ಗೋಕರ್ಣದಲ್ಲಿ ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಕರ್ಮ ವಿಮೋಚನೆ ನೀಡುತ್ತದೆ.`;
+  const spokenEn = `Yes Boss! In past-life karma astrology, the 12th house reveals prior incarnation exit, the 5th house stores accrued merit, and Moksha Narayana Bali at Gokarna dissolves karmic debt.`;
+
+  return {
+    text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+    spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+    emotion: "peaceful",
+    category: "admin",
+    actions: [{ id: "open_hindina", label: { kn: "🌌 ಹಿಂದಿನ ಜನ್ಮದ ರಹಸ್ಯ", en: "🌌 Past Life Karma Page", hi: "🌌 पूर्व जन्म रहस्य", te: "🌌 పూర్వ జన్మ రహస్యం", ta: "🌌 முந்தைய பிறவி ரகசியம்" }, icon: "🌌", targetPage: "hindinajanma", actionType: "navigate" }]
+  };
+}
+
+// =========================================================================
+// HANDLER 0H: PROFILE IMPROVEMENTS & BOSS STRATEGIC ADVISORY
+// =========================================================================
+async function handleProfileImprovementIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const profile = context.activeProfile || context.currentKundliSession?.input || { name: "Shriram Pandit" };
+  const advisory = generateProfileImprovements(profile, targetLang);
+
+  const textKn = `👑 **${advisory.title}**
+
+ಸ್ವಾಮಿ / ಬಾಸ್, ನೀವು ಈ ಪ್ರೊಫೈಲ್ ಬಗ್ಗೆ ಕೇಳಿದ ಅತ್ಯುತ್ತಮ ಪ್ರಶ್ನೆ ಇದು. ದೈವಜ್ಞರಾಗಿ ಹಾಗೂ ವ್ಯವಸ್ಥಾಪಕರಾಗಿ ನಾವು ಈ ಕೆಳಗಿನ ೫ ಪ್ರಮುಖ ಸುಧಾರಣೆಗಳನ್ನು ತಕ್ಷಣ ಮಾಡಬಹುದು:
+
+${advisory.points.join("\n\n")}
+
+---
+💡 *ಬಾಸ್, ಈ ಸಲಹೆಗಳನ್ನು ಗ್ರಾಹಕರ ಫೋನ್ ಕರೆಯಲ್ಲಿ ಅಥವಾ ಅಧಿಕೃತ ವರದಿಯಲ್ಲಿ ಅಳವಡಿಸಲು ನಾನು ಸಿದ್ಧನಿದ್ದೇನೆ. ಆಜ್ಞಾಪಿಸಿ!*`;
+
+  const textEn = `👑 **${advisory.title}**
+
+Boss, this is a brilliant strategic question. As your dedicated executive assistant, here are 5 high-impact improvements we can implement for this devotee immediately:
+
+${advisory.points.join("\n\n")}
+
+---
+💡 *Boss, I can incorporate these strategic recommendations directly into the consultation brief or PDF reports at your word!*`;
+
+  const spokenKn = `ಖಂಡಿತ ಬಾಸ್! ಈ ಪ್ರೊಫೈಲ್‌ಗಾಗಿ ಮುಹೂರ್ತ ನಿಗದಿ, ರತ್ನ ಮಂತ್ರ ಪ್ರೋಟೋಕಾಲ್, ಫೋನ್ ಕೌನ್ಸೆಲಿಂಗ್ ಸ್ಕ್ರಿಪ್ಟ್ ಮತ್ತು ಗೋಕರ್ಣ ಸೇವಾ ಆಶೀರ್ವಾದ ಪತ್ರದ ೫ ಪ್ರಮುಖ ಸುಧಾರಣೆಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿದ್ದೇನೆ.`;
+  const spokenEn = `Yes Boss! I have outlined 5 strategic improvements covering Muhurtha timing, mantra consecration, phone counseling script, and Gokarna Seva integration.`;
+
+  return {
+    text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+    spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+    emotion: "excited",
+    category: "admin",
+    actions: [
+      { id: "open_bhavishya", label: { kn: "📖 ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ", en: "📖 Premium Bhavishya", hi: "📖 प्रीमियम भविष्य", te: "📖 ప్రీమియం భవిష్యత్", ta: "📖 பிரீமியம் பலன்கள்" }, icon: "📖", targetPage: "ramanbhavishya", actionType: "navigate" },
+      { id: "open_seva", label: { kn: "🛕 ಸೇವಾ ಬುಕಿಂಗ್", en: "🛕 Seva Booking", hi: "🛕 सेवा बुकिंग", te: "🛕 సేవా బుకింగ్", ta: "🛕 சேவா முன்பதிவு" }, icon: "🛕", targetPage: "seva", actionType: "navigate" }
+    ]
+  };
+}
+
+// =========================================================================
+// HANDLER 0I: ACTIVE PROFILE TECHNICAL FOLLOW-UP & CONTINUOUS LIVE DISCUSSION
+// =========================================================================
+async function handleActiveProfileFollowUpIntent(
+  rawQuery: string,
+  context: SuperAdminPetContext,
+  targetLang: SupportedLanguage = "kn"
+): Promise<PetResponse> {
+  const query = rawQuery.trim();
+  const lower = query.toLowerCase();
+  const isKn = targetLang === "kn";
+
+  const p = context.activeProfile || context.currentKundliSession?.input || {
+    name: "Shriram Pandit",
+    birthDate: "1993-05-31",
+    birthTime: "09:20",
+    city: "Bengaluru",
+    pincode: "560001"
+  };
+
+  const name = p.name;
+  let topic = "General Technical Evaluation";
+  let explanationKn = "";
+  let explanationEn = "";
+
+  if (lower.includes("10th") || lower.includes("career") || lower.includes("ಉದ್ಯೋಗ") || lower.includes("ದಶಮ") || lower.includes("job") || lower.includes("business")) {
+    topic = isKn ? "ದಶಮ ಭಾವ (೧೦ನೇ ಮನೆ - ವೃತ್ತಿ & ಕೀರ್ತಿ)" : "10th House (Career & Professional Ascent)";
+    explanationKn = `೧೦ನೇ ಮನೆಯು ಕರ್ಮ ಸ್ಥಾನವಾಗಿದೆ. ${name} ಅವರಿಗೆ ದಶಮಾಧಿಪತಿಯು ಕೇಂದ್ರದಲ್ಲಿದ್ದು, ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ, ಸಮಾಲೋಚನೆ ಅಥವಾ ನಾಯಕತ್ವ ಸ್ಥಾನಕ್ಕೆ ಅತ್ಯಂತ ಯೋಗ್ಯವಾಗಿದೆ. ೨೦೨೬ರ ಉತ್ತರಾರ್ಧದಲ್ಲಿ ವೃತ್ತಿಯಲ್ಲಿ ಹೊಸ ಹಂತದ ಏಳಿಗೆ ಕಂಡುಬರುತ್ತದೆ.`;
+    explanationEn = `The 10th house is the Karma Bhava. For ${name}, the 10th lord is well-aspected in Kendra, favoring autonomous enterprise, executive advisory, or leadership. Q3/Q4 of 2026 marks a decisive professional breakthrough.`;
+  } else if (lower.includes("7th") || lower.includes("marriage") || lower.includes("ವಿವಾಹ") || lower.includes("ಕಳತ್ರ") || lower.includes("spouse") || lower.includes("ಸಂಗಾತಿ")) {
+    topic = isKn ? "ಸಪ್ತಮ ಭಾವ (೭ನೇ ಮನೆ - ಕಳತ್ರ & ದಾಂಪತ್ಯ)" : "7th House (Marriage & Partnerships)";
+    explanationKn = `೭ನೇ ಮನೆಯು ಕಳತ್ರ ಸ್ಥಾನ. ಕಳತ್ರ ಕಾರಕ ಶುಕ್ರನ ಸ್ಥಿತಿ ಹಾಗೂ ಗುರುವಿನ ದೃಷ್ಟಿ ಶುಭಕರವಾಗಿದೆ. ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಗೌರವ ಮುಖ್ಯ. ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮೀ ಪೂಜೆಯು ಸಂಬಂಧವನ್ನು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.`;
+    explanationEn = `The 7th house rules marriage and partnership. With Venus as natural significator receiving Jupiterian grace, marital harmony is sustained through mutual respect. Friday Lakshmi rituals safeguard union.`;
+  } else if (lower.includes("dasha") || lower.includes("ದಶಾ") || lower.includes("bhukti") || lower.includes("ಭುಕ್ತಿ")) {
+    topic = isKn ? "ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲಾವಧಿ" : "Vimshottari Dasha Analysis";
+    explanationKn = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ದಶಾವಧಿಯು ಜಾತಕರಿಗೆ ಕರ್ತವ್ಯ ಪ್ರಜ್ಞೆ ಮತ್ತು ಆರ್ಥಿಕ ಜವಾಬ್ದಾರಿಯನ್ನು ಕಲಿಸುತ್ತಿದೆ. ಮುಂದಿನ ಭುಕ್ತಿ ಪರಿವರ್ತನೆಯ ವೇಳೆಗೆ ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರತಿಫಲ ದೊರೆಯಲಿದೆ.`;
+    explanationEn = `The active Dasha-Bhukti cycle emphasizes pragmatic responsibility and disciplined execution. The upcoming Bhukti transition guarantees rich dividends for their sustained efforts.`;
+  } else {
+    topic = isKn ? "ಸಮಗ್ರ ಜಾತಕ ತಾಂತ್ರಿಕ ವಿವರಣೆ" : "Comprehensive Technical Chart Analysis";
+    explanationKn = `ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಪ್ರಮುಖ ಗ್ರಹಗಳ ಸ್ಪಷ್ಟತೆಯ ಆಧಾರದ ಮೇಲೆ ${name} ಅವರ ಜಾತಕವು ದೃಢವಾದ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ದೀರ್ಘಾವಧಿ ಯಶಸ್ಸಿನ ಸಾಮರ್ಥ್ಯವನ್ನು ಹೊಂದಿದೆ.`;
+    explanationEn = `Analyzing Lagna, Moon sign, and planetary Sphutas, ${name}'s chart exhibits formidable mental resilience and long-term financial stability.`;
+  }
+
+  const textKn = `👑 **ಬಾಸ್, ${name} ಅವರ ಪ್ರೊಫೈಲ್ ಮೇಲಿನ ತಾಂತ್ರಿಕ ಚರ್ಚೆ (${topic})**
+
+ಸ್ವಾಮಿ, ನಿಮ್ಮ ಆಜ್ಞೆಯಂತೆ ಈ ವಿವರಗಳು ಇಲ್ಲಿವೆ:
+
+${explanationKn}
+
+• **ಜಾತಕರ ಹೆಸರು:** ${name}
+• **ಜನನ ವಿವರ:** ${p.birthDate} ${p.birthTime} (${p.city || "Bengaluru"})
+• **ದೈವಜ್ಞರ ಕೌನ್ಸೆಲಿಂಗ್ ಟಿಪ್ಸ್:** ಇವರಿಗೆ ಮಾತನಾಡಲು ಕರೆ ಮಾಡಿದಾಗ ಈ ಅಂಶವನ್ನು ನೇರವಾಗಿ ಪ್ರಸ್ತಾಪಿಸಿ ಅವರ ಗಮನ ಸೆಳೆಯಿರಿ.
+
+---
+💡 *ಬಾಸ್, ನಾನು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಸಹಾಯಕನಾಗಿ ಇವರ ಜಾತಕದ ಯಾವುದೇ ವಿವರ (ಭಾವ, ದೋಷ, ಸಾಮುದ್ರಿಕಾ, ಸಂಖ್ಯಾಶಾಸ್ತ್ರ) ಚರ್ಚಿಸಲು ಸದಾ ಸಿದ್ಧನಿದ್ದೇನೆ. ಮುಂದೆ ಏನು ತಿಳಿಸಲಿ?*`;
+
+  const textEn = `👑 **Boss, Technical Discussion on ${name}'s Profile (${topic})**
+
+Boss, right at your service! Here are the technical findings:
+
+${explanationEn}
+
+• **Devotee Name:** ${name}
+• **Birth Details:** ${p.birthDate} at ${p.birthTime} (${p.city || "Bengaluru"})
+• **Priest Consultation Angle:** Highlight this specific house dynamic during your client consultation call to demonstrate supreme insight.
+
+---
+💡 *Boss, I am continuously with you as your personal assistant for this profile. What would you like to explore next?*`;
+
+  const spokenKn = `ಖಂಡಿತ ಬಾಸ್! ${name} ಅವರ ${topic} ಬಗ್ಗೆ ನಾನು ತಾಂತ್ರಿಕ ವಿವರಣೆ ಸಿದ್ಧಪಡಿಸಿದ್ದೇನೆ. ನೀವು ಕೇಳಿದ ಯಾವುದೇ ಪ್ರಶ್ನೆಗೂ ಉತ್ತರಿಸಲು ನಾನು ನಿಮ್ಮೊಂದಿಗಿದ್ದೇನೆ!`;
+  const spokenEn = `Yes Boss! I've prepared the technical briefing for ${name} regarding ${topic}. I am right here by your side for any further discussion!`;
+
+  return {
+    text: { kn: textKn, en: textEn, hi: textEn, te: textEn, ta: textEn },
+    spokenText: { kn: spokenKn, en: spokenEn, hi: spokenEn, te: spokenEn, ta: spokenEn },
+    emotion: "peaceful",
+    category: "admin",
+    actions: [
+      { id: "open_kundli", label: { kn: "🪐 ಜಾತಕ ಪರಿಶೀಲಿಸಿ", en: "🪐 Review Kundli", hi: "🪐 कुण्डली", te: "🪐 జాతకం", ta: "🪐 ஜாதகம்" }, icon: "🪐", targetPage: "kundli", actionType: "navigate" },
+      { id: "open_predictions", label: { kn: "📜 ಭಾವ ಭವಿಷ್ಯ", en: "📜 Bhava Predictions", hi: "📜 भाव फल", te: "📜 భావాలు", ta: "📜 பாவ பலன்கள்" }, icon: "📜", targetPage: "predictions", actionType: "navigate" }
     ]
   };
 }
