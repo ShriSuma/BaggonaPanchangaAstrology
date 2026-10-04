@@ -183,11 +183,18 @@ const UI_TEXT: Record<string, Record<string, string>> = {
     en: "Perform sacred Eclipse Shanti & Combustion Pacification Pujas at the holy Gokarna Kshetra shrine.",
   },
   priestContact: {
-    kn: "ಪ್ರಧಾನ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗೋಕರ್ಣ) • ಸಹಾಯವಾಣಿ: +91 94812 77004",
-    hi: "प्रधान अर्चक: श्रीराम पंडित (गोकर्ण) • हेल्पलाइन: +91 94812 77004",
-    te: "ప్రధాన అర్చకులు: శ్రీరామ్ పండిత్ (గోకర్ణ) • హెల్ప్‌లైన్: +91 94812 77004",
-    ta: "தலைமை அர்ச்சகர்: ஸ்ரீராம் பண்டிட் (கோகர்ண) • உதவி எண்: +91 94812 77004",
-    en: "Chief Priest: Shreeram Pandit (Gokarna) • Helpline: +91 94812 77004",
+    kn: "ಪ್ರಧಾನ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗೋಕರ್ಣ) • ಸಹಾಯವಾಣಿ: +91 99723 39362",
+    hi: "प्रधान अर्चक: श्रीराम पंडित (गोकर्ण) • हेल्पलाइन: +91 99723 39362",
+    te: "ప్రధాన అర్చకులు: శ్రీరామ్ పండితులు (గోకర్ణ) • హెల్ప్‌లైన్: +91 99723 39362",
+    ta: "தலைமை அர்ச்சகர்: ஸ்ரீராம் பண்டிதர் (கோகர்ண) • உதவி எண்: +91 99723 39362",
+    en: "Chief Priest: Shreeram Pandit (Gokarna) • Helpline: +91 99723 39362",
+  },
+  offlineBadge: {
+    kn: "೧೦೦% ಆಫ್‌ಲೈನ್ ಖಗೋಳ ಎಂಜಿನ್: ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕವಿಲ್ಲದೆಯೂ ಯಾವುದೇ ವರ್ಷದ (೧೯೦೦ - ೨೧೦೦+) ನಿಖರ ಗ್ರಹಣ & ಮೌಢ್ಯ ಲೆಕ್ಕಾಚಾರ ಲಭ್ಯ.",
+    hi: "१००% ऑफलाइन खगोल इंजन: बिना इंटरनेट किसी भी वर्ष (१९०० - २१००+) की सटीक ग्रहण एवं अस्तोदय गणना उपलब्ध।",
+    te: "100% ఆఫ్‌లైన్ ఖగోళ ఇంజిన్: ఇంటర్నెట్ లేకుండా ఏ సంవత్సరానికైనా (1900 - 2100+) ఖచ్చితమైన గ్రహణ & మౌఢ్య గణనలు లభిస్తాయి.",
+    ta: "100% ஆஃப்லைன் வானியல் எஞ்சின்: இணையம் இன்றி எந்த ஆண்டும் (1900 - 2100+) துல்லியமான கிரகண & மௌட்டிய கணக்கீடுகள் கிடைக்கும்.",
+    en: "100% Offline Astronomical Engine: Zero internet required. Native local calculations for any year (1900–2100+).",
   },
   guruMantra: {
     kn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಮಂತ್ರ: ಓಂ ಗ್ರಾಂ ಗ್ರೀಂ ಗ್ರೌಂ ಸಃ ಗುರವೇ ನಮಃ",
@@ -515,6 +522,17 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                   )}
                 </span>
               </div>
+            </div>
+
+            {/* 100% Offline Engine Dynamic Badge */}
+            <div className="col-span-1 md:col-span-2 mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-emerald-400/80 bg-emerald-50/90 px-3.5 py-2 text-xs text-emerald-950 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="font-bold">{txt("offlineBadge")}</span>
+              </div>
+              <span className="self-start sm:self-center text-[10px] font-mono font-black text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider">
+                100% Offline Client-Side Math
+              </span>
             </div>
           </div>
         </section>
@@ -1207,9 +1225,12 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
                   <p className="text-xs text-slate-700 mt-1 max-w-2xl leading-relaxed font-medium">
                     {txt("gokarnaSevaCallout")}
                   </p>
-                  <p className="text-[11px] text-amber-900 font-mono font-bold mt-1">
-                    {txt("priestContact")}
-                  </p>
+                  <a
+                    href="tel:9972339362"
+                    className="inline-block text-[11px] text-amber-900 hover:text-amber-950 underline font-mono font-bold mt-1 transition-colors"
+                  >
+                    📞 {txt("priestContact")}
+                  </a>
                 </div>
                 <button
                   type="button"
@@ -1572,9 +1593,12 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
               <p className="text-slate-700 mt-1 font-medium">
                 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ & ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪಾಶೀರ್ವಾದಗಳೊಂದಿಗೆ ಪ್ರಸ್ತುತಪಡಿಸಲಾಗಿದೆ.
               </p>
-              <p className="text-amber-900 font-mono font-bold mt-1">
-                {txt("priestContact")}
-              </p>
+              <a
+                href="tel:9972339362"
+                className="inline-block text-amber-900 hover:text-amber-950 underline font-mono font-bold mt-1 transition-colors"
+              >
+                📞 {txt("priestContact")}
+              </a>
             </div>
           </div>
         )}

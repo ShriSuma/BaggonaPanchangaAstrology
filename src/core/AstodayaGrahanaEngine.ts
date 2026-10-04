@@ -496,72 +496,123 @@ function checkRetrograde(body: Astronomy.Body, date: Date): boolean {
   return ((v2 - v1 + 360) % 360) > 180;
 }
 
+const DEFAULT_ASTO_OBSERVER = new Astronomy.Observer(28.61, 77.20, 216); // National Standard Reference (New Delhi / Central India)
+
+function getMorningPlanetRise(body: Astronomy.Body, date: Date, obs: Astronomy.Observer) {
+  // Start search at 18:00 UTC previous day to cover dawn risings (03:00 - 08:00 IST)
+  const tStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - 1, 18, 0));
+  return Astronomy.SearchRiseSet(body, obs, 1, tStart, 1);
+}
+
+function getEveningPlanetSet(body: Astronomy.Body, date: Date, obs: Astronomy.Observer) {
+  // Start search at 06:00 UTC of date to cover dusk settings (17:00 - 23:00 IST)
+  const tStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 6, 0));
+  return Astronomy.SearchRiseSet(body, obs, -1, tStart, 1);
+}
+
 /**
- * Evaluates daily Kālāṁśas (ಕಾಲಾಂಶ - time degrees: 1° = 4 minutes) and combustion state
- * for Jupiter and Venus per classical Surya Siddhanta and Drik Ganita.
+ * Evaluates whether a planet is heliacally visible or combust on a given day.
+ * Uses high-precision Arcus Visionis / Kālāṁśa horizon solar depression criteria
+ * calibrated to classical Surya Siddhanta and Indian Astronomical Ephemeris standards.
  */
-function evaluateDailyKalamsas(
+function evaluatePlanetDay(
   body: Astronomy.Body,
   date: Date,
-  observer: Astronomy.Observer = new Astronomy.Observer(23.18, 75.77, 490) // Avanti / Ujjain Prime Meridian
+  obs: Astronomy.Observer = DEFAULT_ASTO_OBSERVER
 ): {
   isCombust: boolean;
-  kalamsas: number;
+  angDist: number;
   direction: "East" | "West";
-  isRetrograde: boolean;
-  dLon: number;
-  settingTime?: Date;
-  risingTime?: Date;
+  eventTime: Date;
+  isRetro: boolean;
 } {
-  const midday = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 6, 30, 0));
-  const sunSet = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, 1, midday, 1);
-  const sunRise = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, midday, 1);
-  const planetSet = Astronomy.SearchRiseSet(body, observer, 1, midday, 1);
-  const planetRise = Astronomy.SearchRiseSet(body, observer, -1, midday, 1);
+  const sV = Astronomy.GeoVector(Astronomy.Body.Sun, date, true);
+  const pV = Astronomy.GeoVector(body, date, true);
+  const angDist = Astronomy.AngleBetween(sV, pV);
+  const maxZone = body === Astronomy.Body.Jupiter ? 16 : 22;
 
-  const sV = Astronomy.GeoVector(Astronomy.Body.Sun, midday, true);
-  const pV = Astronomy.GeoVector(body, midday, true);
-  const sEcl = Astronomy.Ecliptic(sV);
+  if (angDist > maxZone) {
+    return { isCombust: false, angDist, direction: "East", eventTime: date, isRetro: false };
+  }
+
   const pEcl = Astronomy.Ecliptic(pV);
+  const sEcl = Astronomy.Ecliptic(sV);
   const dLon = ((pEcl.elon - sEcl.elon + 540) % 360) - 180;
-  const isRetro = checkRetrograde(body, midday);
 
-  let kalamsas = 999;
-  let direction: "East" | "West" = "West";
+  const isRetro = checkRetrograde(body, date);
 
-  if (dLon > 0) {
-    direction = "West";
-    if (planetSet && sunSet) {
-      kalamsas = (planetSet.date.getTime() - sunSet.date.getTime()) / 240000;
-    }
-  } else {
-    direction = "East";
-    if (planetRise && sunRise) {
-      kalamsas = (sunRise.date.getTime() - planetRise.date.getTime()) / 240000;
-    }
-  }
-
-  // Classical Surya Siddhanta Kālāṁśa thresholds:
-  // Jupiter (Guru): 11.0 Kalamsas (44 minutes)
-  // Venus (Shukra) Direct: 10.0 Kalamsas (40 minutes)
-  // Venus (Shukra) Retrograde: 8.0 Kalamsas (East / morning udaya) or 10.0 Kalamsas (West / evening asta)
-  let threshold = 10.0;
   if (body === Astronomy.Body.Jupiter) {
-    threshold = 11.0;
+    if (dLon > 0) {
+      // Evening sky in West: sets after sunset
+      const pSet = getEveningPlanetSet(body, date, obs);
+      let eSunAlt = 999;
+      if (pSet) {
+        const sEq = Astronomy.Equator(Astronomy.Body.Sun, pSet.date, obs, true, true);
+        eSunAlt = Astronomy.Horizon(pSet.date, obs, sEq.ra, sEq.dec, "normal").altitude;
+      }
+      const isCombust = eSunAlt > -7.4;
+      return { isCombust, angDist, direction: "West", eventTime: pSet?.date || date, isRetro };
+    } else {
+      // Morning sky in East: rises before sunrise
+      const pRise = getMorningPlanetRise(body, date, obs);
+      let mSunAlt = 999;
+      if (pRise) {
+        const sEq = Astronomy.Equator(Astronomy.Body.Sun, pRise.date, obs, true, true);
+        mSunAlt = Astronomy.Horizon(pRise.date, obs, sEq.ra, sEq.dec, "normal").altitude;
+      }
+      const isCombust = mSunAlt > -9.6;
+      return { isCombust, angDist, direction: "East", eventTime: pRise?.date || date, isRetro };
+    }
   } else {
-    threshold = isRetro ? (direction === "East" ? 8.0 : 10.0) : 10.0;
+    // Venus (Shukra)
+    if (isRetro) {
+      // Inferior Conjunction (Vakri)
+      if (dLon > 0) {
+        // Before inferior conjunction: in West (evening star), sets after sunset
+        const pSet = getEveningPlanetSet(body, date, obs);
+        let eSunAlt = 999;
+        if (pSet) {
+          const sEq = Astronomy.Equator(Astronomy.Body.Sun, pSet.date, obs, true, true);
+          eSunAlt = Astronomy.Horizon(pSet.date, obs, sEq.ra, sEq.dec, "normal").altitude;
+        }
+        const isCombust = eSunAlt > -5.8;
+        return { isCombust, angDist, direction: "West", eventTime: pSet?.date || date, isRetro };
+      } else {
+        // After inferior conjunction: in East (morning star), rises before sunrise
+        const pRise = getMorningPlanetRise(body, date, obs);
+        let mSunAlt = 999;
+        if (pRise) {
+          const sEq = Astronomy.Equator(Astronomy.Body.Sun, pRise.date, obs, true, true);
+          mSunAlt = Astronomy.Horizon(pRise.date, obs, sEq.ra, sEq.dec, "normal").altitude;
+        }
+        const isCombust = mSunAlt > -6.0;
+        return { isCombust, angDist, direction: "East", eventTime: pRise?.date || date, isRetro };
+      }
+    } else {
+      // Superior Conjunction (Margi / Direct)
+      if (dLon < 0) {
+        // Before superior conjunction: in East (morning star), rises before sunrise. Astha in East!
+        const pRise = getMorningPlanetRise(body, date, obs);
+        let mSunAlt = 999;
+        if (pRise) {
+          const sEq = Astronomy.Equator(Astronomy.Body.Sun, pRise.date, obs, true, true);
+          mSunAlt = Astronomy.Horizon(pRise.date, obs, sEq.ra, sEq.dec, "normal").altitude;
+        }
+        const isCombust = mSunAlt > -5.8;
+        return { isCombust, angDist, direction: "East", eventTime: pRise?.date || date, isRetro };
+      } else {
+        // After superior conjunction: in West (evening star), sets after sunset. Udaya in West!
+        const pSet = getEveningPlanetSet(body, date, obs);
+        let eSunAlt = 999;
+        if (pSet) {
+          const sEq = Astronomy.Equator(Astronomy.Body.Sun, pSet.date, obs, true, true);
+          eSunAlt = Astronomy.Horizon(pSet.date, obs, sEq.ra, sEq.dec, "normal").altitude;
+        }
+        const isCombust = eSunAlt > -5.8;
+        return { isCombust, angDist, direction: "West", eventTime: pSet?.date || date, isRetro };
+      }
+    }
   }
-
-  const isCombust = Math.abs(dLon) < 22 && kalamsas < threshold && kalamsas >= -2;
-  return {
-    isCombust,
-    kalamsas,
-    direction,
-    isRetrograde: isRetro,
-    dLon,
-    settingTime: planetSet?.date,
-    risingTime: planetRise?.date
-  };
 }
 
 /**
@@ -588,21 +639,19 @@ export function calculateYearlyAstodaya(year: number): {
 
   for (const t of targets) {
     // Scan covering late prior year and early following year for cross-year moudhya windows
-    const scanStart = new Date(Date.UTC(year - 1, 9, 1));
-    const scanEnd = new Date(Date.UTC(year + 1, 2, 1));
+    const scanStart = new Date(Date.UTC(year - 1, 8, 1));
+    const scanEnd = new Date(Date.UTC(year + 1, 3, 30));
 
     let prevCombust: boolean | null = null;
-    let prevEval: ReturnType<typeof evaluateDailyKalamsas> | null = null;
+    let prevEval: ReturnType<typeof evaluatePlanetDay> | null = null;
 
     for (let timeMs = scanStart.getTime(); timeMs <= scanEnd.getTime(); timeMs += 86400000) {
       const d = new Date(timeMs);
-      const evalRes = evaluateDailyKalamsas(t.body, d);
+      const evalRes = evaluatePlanetDay(t.body, d);
 
       if (prevCombust !== null && evalRes.isCombust !== prevCombust) {
         const isAsta = evalRes.isCombust;
-        const eventTime = isAsta
-          ? (evalRes.settingTime || evalRes.risingTime || d)
-          : (evalRes.risingTime || evalRes.settingTime || d);
+        const eventTime = evalRes.eventTime || d;
 
         const sidereal = getSiderealPosition(eventTime, t.body);
         const direction = evalRes.direction;
@@ -635,7 +684,7 @@ export function calculateYearlyAstodaya(year: number): {
           nakshatra: nakName,
           pada: sidereal.pada,
           angDistSun: Math.round(dist * 100) / 100,
-          isRetrograde: evalRes.isRetrograde,
+          isRetrograde: evalRes.isRetro,
           transitionKey: `${t.planet}_${isAsta ? "asta" : "udaya"}_${toYmdString(eventTime)}`,
           significance: {
             kn: isAsta
