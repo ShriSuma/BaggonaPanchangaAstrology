@@ -2,33 +2,27 @@
  * petSpeechService.ts
  *
  * Dedicated Speech Synthesis and Voice Output Service for the Super Admin AI Pet.
- * Uses the Web Speech API with multilingual voice matching (Kannada, Hindi, Telugu, Tamil, English).
- * Provides callbacks for mouth/soundwave animations and safe mobile audio playback.
+ * Uses the third-party AI Studio streaming voice engine (synthesizeAndPlayClonedVoice with voice_sriram_pandit)
+ * for authentic, high-fidelity Indic speech playback without browser SpeechSynthesis limits or stutter.
+ * Includes automatic resilient fallback to strictly masculine Web Speech DSP when offline.
  */
 
 import type { SupportedLanguage } from "../stores/appStore";
+import type { SevaLang } from "../features/seva/sevaLocale";
+import {
+  synthesizeAndPlayClonedVoice,
+  stopClonedAudio,
+  sanitizeTextForSpeech
+} from "../features/audio/aiVoiceCloneEngine";
 
 export type SpeechStateListener = (isSpeaking: boolean) => void;
 
 class PetSpeechService {
   private isMuted: boolean = false;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
+  private _isSpeaking: boolean = false;
+  private cancelCurrentAudio: (() => void) | null = null;
   private listeners: Set<SpeechStateListener> = new Set();
-  private voiceCache: SpeechSynthesisVoice[] = [];
-
-  constructor() {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      this.loadVoices();
-      window.speechSynthesis.onvoiceschanged = () => {
-        this.loadVoices();
-      };
-    }
-  }
-
-  private loadVoices(): void {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    this.voiceCache = window.speechSynthesis.getVoices() || [];
-  }
+  private voiceId: string = "voice_sriram_pandit";
 
   public subscribe(listener: SpeechStateListener): () => void {
     this.listeners.add(listener);
@@ -36,6 +30,7 @@ class PetSpeechService {
   }
 
   private notify(isSpeaking: boolean): void {
+    this._isSpeaking = isSpeaking;
     this.listeners.forEach((listener) => {
       try {
         listener(isSpeaking);
@@ -43,6 +38,10 @@ class PetSpeechService {
         console.error("PetSpeechService listener error:", err);
       }
     });
+  }
+
+  public isSpeaking(): boolean {
+    return this._isSpeaking;
   }
 
   public setMuted(muted: boolean): void {
@@ -56,109 +55,110 @@ class PetSpeechService {
     return this.isMuted;
   }
 
+  public setVoiceId(id: string): void {
+    if (id) this.voiceId = id;
+  }
+
+  public getVoiceId(): string {
+    return this.voiceId;
+  }
+
   public stop(): void {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+    if (this.cancelCurrentAudio) {
+      try {
+        this.cancelCurrentAudio();
+      } catch {}
+      this.cancelCurrentAudio = null;
     }
-    this.currentUtterance = null;
+    stopClonedAudio();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
     this.notify(false);
   }
 
   /**
-   * Sanitizes text to remove markdown, URLs, symbols and emojis so the browser TTS reads smoothly.
+   * Sanitizes text to remove markdown, URLs, symbols and emojis so the voice engine reads smoothly.
    */
   public cleanTextForSpeech(rawText: string): string {
-    return rawText
-      .replace(/https?:\/\/\S+/g, "") // remove URLs
-      .replace(/[*#_~`>[\]()|]/g, " ") // remove markdown characters
-      .replace(/[\u{1F300}-\u{1F9FF}]/gu, "") // remove emojis
-      .replace(/[\u{2600}-\u{26FF}]/gu, "")
-      .replace(/[\u{2700}-\u{27BF}]/gu, "")
-      .replace(/\s+/g, " ")
-      .trim();
+    if (!rawText) return "";
+    return sanitizeTextForSpeech(
+      rawText
+        .replace(/https?:\/\/\S+/g, "") // remove URLs
+        .replace(/[*#_~`>[\]()|]/g, " ") // remove markdown characters
+        .replace(/[\u{1F300}-\u{1F9FF}]/gu, "") // remove emojis
+        .replace(/[\u{2600}-\u{26FF}]/gu, "")
+        .replace(/[\u{2700}-\u{27BF}]/gu, "")
+        .replace(/\s+/g, " ")
+        .trim()
+    );
   }
 
   /**
-   * Speaks the given text using the best matching voice for the target language.
+   * Speaks the given text using the third-party AI Studio Streaming Voice Engine (voice_sriram_pandit)
+   * with automatic fallback. Full text is spoken clearly and completely.
    */
-  public speak(
+  public async speak(
     text: string,
     lang: SupportedLanguage = "kn",
-    onComplete?: () => void
-  ): void {
-    if (this.isMuted || typeof window === "undefined" || !("speechSynthesis" in window)) {
+    onComplete?: () => void,
+    onStart?: () => void,
+    customVoiceId?: string
+  ): Promise<() => void> {
+    if (this.isMuted) {
       if (onComplete) onComplete();
-      return;
+      return () => {};
     }
 
     const clean = this.cleanTextForSpeech(text);
     if (!clean) {
       if (onComplete) onComplete();
-      return;
+      return () => {};
     }
 
-    // Stop any existing speech
+    // Stop any existing speech before starting new utterance
     this.stop();
 
-    const utterance = new SpeechSynthesisUtterance(clean);
-    this.currentUtterance = utterance;
-
-    // Language prefix mapping
-    const langPrefixes: Record<SupportedLanguage, string[]> = {
-      kn: ["kn-IN", "kn", "hi-IN", "en-IN"],
-      hi: ["hi-IN", "hi", "en-IN"],
-      te: ["te-IN", "te", "hi-IN", "en-IN"],
-      ta: ["ta-IN", "ta", "hi-IN", "en-IN"],
-      en: ["en-IN", "en-GB", "en-US", "en"]
-    };
-
-    const targetPrefixes = langPrefixes[lang] || ["en-IN", "en"];
-    const voices = this.voiceCache.length > 0 ? this.voiceCache : window.speechSynthesis.getVoices() || [];
-
-    // Find best voice match
-    let chosenVoice: SpeechSynthesisVoice | undefined;
-    for (const prefix of targetPrefixes) {
-      chosenVoice = voices.find(
-        (v) => v.lang.toLowerCase().replace("_", "-").startsWith(prefix.toLowerCase())
-      );
-      if (chosenVoice) break;
+    if (typeof window === "undefined") {
+      if (onComplete) onComplete();
+      return () => {};
     }
 
-    if (chosenVoice) {
-      utterance.voice = chosenVoice;
-      utterance.lang = chosenVoice.lang;
-    } else {
-      utterance.lang = targetPrefixes[0];
-    }
+    const sevaLang: SevaLang = (lang === "kn" || lang === "hi" || lang === "te" || lang === "ta" || lang === "en")
+      ? lang
+      : "kn";
 
-    // Tuned for a warm, celestial companion tone
-    utterance.pitch = 1.1; // slightly higher pitch for cute/divine companion feel
-    utterance.rate = 1.0;
-    utterance.volume = 1.0;
-
-    utterance.onstart = () => {
-      this.notify(true);
-    };
-
-    utterance.onend = () => {
-      this.currentUtterance = null;
-      this.notify(false);
-      if (onComplete) onComplete();
-    };
-
-    utterance.onerror = (e) => {
-      console.warn("SpeechSynthesis error:", e);
-      this.currentUtterance = null;
-      this.notify(false);
-      if (onComplete) onComplete();
-    };
+    const targetVoice = customVoiceId || this.voiceId;
 
     try {
-      window.speechSynthesis.speak(utterance);
+      this.notify(true);
+      if (onStart) onStart();
+
+      const cancelFn = await synthesizeAndPlayClonedVoice(
+        clean,
+        sevaLang,
+        targetVoice,
+        () => {
+          this.cancelCurrentAudio = null;
+          this.notify(false);
+          if (onComplete) onComplete();
+        },
+        () => {
+          this.notify(true);
+          if (onStart) onStart();
+        }
+      );
+
+      this.cancelCurrentAudio = cancelFn;
+      return cancelFn;
     } catch (err) {
-      console.error("Failed to speak utterance:", err);
+      console.warn("[PetSpeechService] AI Studio voice synthesis error, notifying end:", err);
+      this.cancelCurrentAudio = null;
       this.notify(false);
       if (onComplete) onComplete();
+      return () => {};
     }
   }
 }

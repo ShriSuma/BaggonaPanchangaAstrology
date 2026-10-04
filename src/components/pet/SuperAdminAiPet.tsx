@@ -44,6 +44,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const setPage = useAppStore((s) => s.setPage);
   const activePage = useAppStore((s) => s.currentPage);
   const currentLang = (useAppStore((s) => s.language) || "kn") as SupportedLanguage;
+  const setLanguage = useAppStore((s) => s.setLanguage);
   const geminiApiKey = useAppStore((s) => s.geminiApiKey);
   const wallet = useWalletStore((s) => s.wallet);
   const currentKundliSession = useKundliViewerStore((s) => s.session);
@@ -69,8 +70,47 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [currentEmotion, setCurrentEmotion] = useState<PetEmotion>("peaceful");
 
-  // Navigation tab inside sanctuary drawer: "chat" vs "tasks"
-  const [activeTab, setActiveTab] = useState<"chat" | "tasks">("chat");
+  // Navigation tab inside sanctuary drawer: "chat" vs "voice" vs "tasks"
+  const [activeTab, setActiveTab] = useState<"chat" | "voice" | "tasks">("chat");
+
+  // Interactive Live Voice Conversation Mode State (Hands-Free Duplex)
+  const [isVoiceMode, setIsVoiceMode] = useState<boolean>(false);
+  const [isMicMuted, setIsMicMuted] = useState<boolean>(false);
+  const [isAssistantSpeaking, setIsAssistantSpeaking] = useState<boolean>(false);
+  const [liveTranscript, setLiveTranscript] = useState<string>("");
+  const [lastSpokenAnswer, setLastSpokenAnswer] = useState<string>("");
+
+  const isVoiceModeRef = useRef<boolean>(false);
+  const isMicMutedRef = useRef<boolean>(false);
+  const isAssistantSpeakingRef = useRef<boolean>(false);
+  const isProcessingRef = useRef<boolean>(false);
+  const startListeningRef = useRef<() => void>(() => {});
+  const safeStopListeningRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    isVoiceModeRef.current = isVoiceMode;
+  }, [isVoiceMode]);
+
+  useEffect(() => {
+    isMicMutedRef.current = isMicMuted;
+  }, [isMicMuted]);
+
+  useEffect(() => {
+    isAssistantSpeakingRef.current = isAssistantSpeaking;
+  }, [isAssistantSpeaking]);
+
+  useEffect(() => {
+    isProcessingRef.current = isProcessing;
+  }, [isProcessing]);
+
+  useEffect(() => {
+    const unsub = petSpeechService.subscribe((speaking) => {
+      setIsSpeaking(speaking);
+      setIsAssistantSpeaking(speaking);
+      isAssistantSpeakingRef.current = speaking;
+    });
+    return unsub;
+  }, []);
 
   // Pre-Flight Confirmation State before launching background workflow
   const [pendingConfirmation, setPendingConfirmation] = useState<WorkflowParams | null>(null);
@@ -222,13 +262,28 @@ export function SuperAdminAiPet(): JSX.Element | null {
     }
   }, [messages, isOpen, activeTab, pendingConfirmation]);
 
-  // Handle Voice Recognition (Microphone)
-  const toggleListening = () => {
-    if (isListening) {
+  // Safely stop recognition without triggering error callbacks
+  const safeStopListening = () => {
+    try {
       if (recognitionRef.current) {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onresult = null;
         recognitionRef.current.stop();
       }
-      setIsListening(false);
+    } catch {}
+    setIsListening(false);
+  };
+  safeStopListeningRef.current = safeStopListening;
+
+  // Start continuous, natural conversation microphone recognition
+  const startListening = () => {
+    // If muted, assistant is talking, or engine is computing, hold listening
+    if (
+      isMicMutedRef.current ||
+      isAssistantSpeakingRef.current ||
+      isProcessingRef.current
+    ) {
       return;
     }
 
@@ -236,14 +291,24 @@ export function SuperAdminAiPet(): JSX.Element | null {
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Voice speech recognition is not supported in this browser. Please use Chrome/Edge or type directly.");
+      console.warn("Speech recognition is not supported in this browser.");
       return;
     }
 
     try {
+      // Disarm any stale instance
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.onend = null;
+          recognitionRef.current.onerror = null;
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.stop();
+        } catch {}
+      }
+
       const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;
+      recognition.interimResults = true;
 
       const langLocales: Record<SupportedLanguage, string> = {
         kn: "kn-IN",
@@ -259,28 +324,140 @@ export function SuperAdminAiPet(): JSX.Element | null {
       };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript) {
-          setInputText(transcript);
-          handleSend(transcript);
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
         }
-        setIsListening(false);
+
+        const displayed = (finalTranscript || interimTranscript).trim();
+        if (displayed) {
+          setLiveTranscript(displayed);
+        }
+
+        if (finalTranscript.trim()) {
+          const spoken = finalTranscript.trim();
+          // Pause listening immediately so assistant's thinking & response isn't picked up
+          safeStopListening();
+          setInputText(spoken);
+          handleSend(spoken);
+        }
       };
 
       recognition.onerror = (err: any) => {
-        console.warn("Speech recognition error:", err);
-        setIsListening(false);
+        console.warn("Speech recognition error:", err?.error || err);
+        // Automatically re-arm if transient network or no-speech glitch in voice mode
+        if (
+          isVoiceModeRef.current &&
+          !isAssistantSpeakingRef.current &&
+          !isMicMutedRef.current &&
+          !isProcessingRef.current
+        ) {
+          setTimeout(() => {
+            startListeningRef.current?.();
+          }, 450);
+        }
       };
 
       recognition.onend = () => {
         setIsListening(false);
+        // Seamless Hands-Free Loop: If browser silence timeout fires, automatically resume!
+        if (
+          isVoiceModeRef.current &&
+          !isAssistantSpeakingRef.current &&
+          !isMicMutedRef.current &&
+          !isProcessingRef.current
+        ) {
+          setTimeout(() => {
+            startListeningRef.current?.();
+          }, 250);
+        }
       };
 
       recognitionRef.current = recognition;
       recognition.start();
+      setIsListening(true);
     } catch (e) {
       console.error("Speech recognition start failed:", e);
       setIsListening(false);
+    }
+  };
+  startListeningRef.current = startListening;
+
+  // Enter Full Interactive Live Voice Mode
+  const enterVoiceMode = () => {
+    setIsVoiceMode(true);
+    isVoiceModeRef.current = true;
+    setIsMicMuted(false);
+    isMicMutedRef.current = false;
+    setActiveTab("voice");
+    setIsOpen(true);
+
+    const welcome =
+      currentLang === "kn"
+        ? "ನಮಸ್ಕಾರ ಬಾಸ್, ಕಾಮಧೇನು ಲೈವ್ ವಾಯ್ಸ್ ಮೋಡ್ ಸಕ್ರಿಯವಾಗಿದೆ. ಆಜ್ಞೆ ನೀಡಿ, ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ."
+        : "Namaskara Boss, Live Voice Mode active. Please speak, I am listening.";
+
+    setLastSpokenAnswer(welcome);
+
+    petSpeechService.speak(
+      welcome,
+      currentLang,
+      () => {
+        // Hands-free auto-listen once greeting finishes!
+        if (isVoiceModeRef.current && !isMicMutedRef.current) {
+          startListeningRef.current?.();
+        }
+      },
+      () => {
+        setIsAssistantSpeaking(true);
+        isAssistantSpeakingRef.current = true;
+      }
+    );
+  };
+
+  // Exit Voice Mode back to text chat
+  const exitVoiceMode = () => {
+    setIsVoiceMode(false);
+    isVoiceModeRef.current = false;
+    safeStopListening();
+    petSpeechService.stop();
+    setActiveTab("chat");
+  };
+
+  // Toggle user's microphone mute without losing permissions
+  const toggleMicMute = () => {
+    const nextMuted = !isMicMuted;
+    setIsMicMuted(nextMuted);
+    isMicMutedRef.current = nextMuted;
+    if (nextMuted) {
+      safeStopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  // Interrupt assistant speech immediately so user can talk
+  const interruptAssistant = () => {
+    petSpeechService.stop();
+    setIsAssistantSpeaking(false);
+    isAssistantSpeakingRef.current = false;
+    if (isVoiceModeRef.current && !isMicMutedRef.current) {
+      startListeningRef.current?.();
+    }
+  };
+
+  // Mic button in chat input toggles Live Voice Mode
+  const toggleListening = () => {
+    if (isVoiceMode || activeTab === "voice") {
+      exitVoiceMode();
+    } else {
+      enterVoiceMode();
     }
   };
 
@@ -366,7 +543,32 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
     setMessages((prev) => [...prev, petMsg]);
     setCurrentEmotion("thinking");
-    if (!isMuted) petSpeechService.speak(askConfirmSpoken, lang);
+    setLastSpokenAnswer(askConfirmSpoken);
+
+    if (!isMuted) {
+      setIsAssistantSpeaking(true);
+      isAssistantSpeakingRef.current = true;
+      safeStopListening();
+      petSpeechService.speak(
+        askConfirmSpoken,
+        lang,
+        () => {
+          setIsAssistantSpeaking(false);
+          isAssistantSpeakingRef.current = false;
+          if (isVoiceModeRef.current && !isMicMutedRef.current) {
+            startListeningRef.current?.();
+          }
+        },
+        () => {
+          setIsAssistantSpeaking(true);
+          isAssistantSpeakingRef.current = true;
+        }
+      );
+    } else {
+      if (isVoiceModeRef.current && !isMicMutedRef.current) {
+        startListeningRef.current?.();
+      }
+    }
   };
 
   // User confirmed: start in background and immediately close drawer!
@@ -401,9 +603,31 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
       setMessages((prev) => [...prev, petMsg]);
       setCurrentEmotion("excited");
+      setLastSpokenAnswer(startSpoken);
 
       if (!isMuted) {
-        petSpeechService.speak(startSpoken, lang);
+        setIsAssistantSpeaking(true);
+        isAssistantSpeakingRef.current = true;
+        safeStopListening();
+        petSpeechService.speak(
+          startSpoken,
+          lang,
+          () => {
+            setIsAssistantSpeaking(false);
+            isAssistantSpeakingRef.current = false;
+            if (isVoiceModeRef.current && !isMicMutedRef.current) {
+              startListeningRef.current?.();
+            }
+          },
+          () => {
+            setIsAssistantSpeaking(true);
+            isAssistantSpeakingRef.current = true;
+          }
+        );
+      } else {
+        if (isVoiceModeRef.current && !isMicMutedRef.current) {
+          startListeningRef.current?.();
+        }
       }
 
       // 💥 USER SPECIFICATION: "Once I confirm, it will go off and everything it will handle background."
@@ -433,7 +657,32 @@ export function SuperAdminAiPet(): JSX.Element | null {
     };
     setMessages((prev) => [...prev, cancelMsg]);
     setCurrentEmotion("peaceful");
-    if (!isMuted) petSpeechService.speak(cancelMsg.spokenText!, lang);
+    setLastSpokenAnswer(cancelMsg.spokenText!);
+
+    if (!isMuted) {
+      setIsAssistantSpeaking(true);
+      isAssistantSpeakingRef.current = true;
+      safeStopListening();
+      petSpeechService.speak(
+        cancelMsg.spokenText!,
+        lang,
+        () => {
+          setIsAssistantSpeaking(false);
+          isAssistantSpeakingRef.current = false;
+          if (isVoiceModeRef.current && !isMicMutedRef.current) {
+            startListeningRef.current?.();
+          }
+        },
+        () => {
+          setIsAssistantSpeaking(true);
+          isAssistantSpeakingRef.current = true;
+        }
+      );
+    } else {
+      if (isVoiceModeRef.current && !isMicMutedRef.current) {
+        startListeningRef.current?.();
+      }
+    }
   };
 
   const handleSend = async (overrideText?: string) => {
@@ -453,7 +702,10 @@ export function SuperAdminAiPet(): JSX.Element | null {
     };
     setMessages((prev) => [...prev, userMsg]);
     setInputText("");
+    setLiveTranscript(query);
     setIsProcessing(true);
+    isProcessingRef.current = true;
+    safeStopListening();
     setCurrentEmotion("thinking");
 
     // 0. IF WAITING FOR CONFIRMATION OF A PENDING WORKFLOW:
@@ -502,7 +754,32 @@ export function SuperAdminAiPet(): JSX.Element | null {
         };
         setMessages((prev) => [...prev, petMsg]);
         setCurrentEmotion("alert");
-        if (!isMuted) petSpeechService.speak(text, effectiveLang);
+        setLastSpokenAnswer(text);
+
+        if (!isMuted) {
+          setIsAssistantSpeaking(true);
+          isAssistantSpeakingRef.current = true;
+          safeStopListening();
+          petSpeechService.speak(
+            text,
+            effectiveLang,
+            () => {
+              setIsAssistantSpeaking(false);
+              isAssistantSpeakingRef.current = false;
+              if (isVoiceModeRef.current && !isMicMutedRef.current) {
+                startListeningRef.current?.();
+              }
+            },
+            () => {
+              setIsAssistantSpeaking(true);
+              isAssistantSpeakingRef.current = true;
+            }
+          );
+        } else {
+          if (isVoiceModeRef.current && !isMicMutedRef.current) {
+            startListeningRef.current?.();
+          }
+        }
         return;
       }
 
@@ -547,11 +824,16 @@ export function SuperAdminAiPet(): JSX.Element | null {
       const localizedText = resp.text[effectiveLang] || resp.text[currentLang] || resp.text.kn || resp.text.en;
       const localizedSpoken = resp.spokenText[effectiveLang] || resp.spokenText[currentLang] || resp.spokenText.kn || resp.spokenText.en;
 
+      // USER MANDATE: "voice it should completely talk each and everything"
+      // Speak full comprehensive breakdown clearly through AI Studio Voice!
+      const fullVoiceSpeech = localizedText || localizedSpoken;
+      setLastSpokenAnswer(fullVoiceSpeech);
+
       const petMsg: ChatMessage = {
         id: `pet-${Date.now()}`,
         sender: "pet",
         text: localizedText,
-        spokenText: localizedSpoken,
+        spokenText: fullVoiceSpeech,
         lang: effectiveLang,
         actions: resp.actions,
         timestamp: new Date(),
@@ -562,7 +844,30 @@ export function SuperAdminAiPet(): JSX.Element | null {
       setCurrentEmotion(resp.emotion);
 
       if (!isMuted) {
-        petSpeechService.speak(localizedSpoken, effectiveLang);
+        setIsAssistantSpeaking(true);
+        isAssistantSpeakingRef.current = true;
+        safeStopListening();
+
+        petSpeechService.speak(
+          fullVoiceSpeech,
+          effectiveLang,
+          () => {
+            setIsAssistantSpeaking(false);
+            isAssistantSpeakingRef.current = false;
+            // In Live Voice Mode, automatically resume listening hands-free!
+            if (isVoiceModeRef.current && !isMicMutedRef.current) {
+              startListeningRef.current?.();
+            }
+          },
+          () => {
+            setIsAssistantSpeaking(true);
+            isAssistantSpeakingRef.current = true;
+          }
+        );
+      } else {
+        if (isVoiceModeRef.current && !isMicMutedRef.current) {
+          startListeningRef.current?.();
+        }
       }
 
       // Google Assistant-like Auto-Redirection throughout Panchanga:
@@ -605,6 +910,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
       setCurrentEmotion("alert");
     } finally {
       setIsProcessing(false);
+      isProcessingRef.current = false;
     }
   };
 
@@ -866,13 +1172,16 @@ export function SuperAdminAiPet(): JSX.Element | null {
               </div>
             </div>
 
-            {/* Navigation Tabs: Chat vs Task Manager Fleet */}
+            {/* Navigation Tabs: Chat vs Live Voice vs Task Manager Fleet */}
             <div className="flex items-center justify-between border-b border-amber-300 bg-amber-100/70 px-3 py-1.5 text-xs">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("chat")}
-                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition-all ${
+                  onClick={() => {
+                    if (isVoiceMode) exitVoiceMode();
+                    setActiveTab("chat");
+                  }}
+                  className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1 text-xs font-bold transition-all ${
                     activeTab === "chat"
                       ? "bg-amber-700 text-white shadow-xs"
                       : "text-amber-950 hover:bg-amber-200"
@@ -881,17 +1190,44 @@ export function SuperAdminAiPet(): JSX.Element | null {
                   <span>💬</span>
                   <span>{currentLang === "kn" ? "ಸಂಭಾಷಣೆ (Chat)" : "Chat"}</span>
                 </button>
+
+                {/* 🎙️ DEDICATED LIVE VOICE CONVERSATION TAB */}
                 <button
                   type="button"
-                  onClick={() => setActiveTab("tasks")}
-                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition-all ${
+                  onClick={() => {
+                    if (!isVoiceMode) {
+                      enterVoiceMode();
+                    } else {
+                      setActiveTab("voice");
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1 text-xs font-bold transition-all ${
+                    activeTab === "voice"
+                      ? "bg-amber-700 text-white shadow-xs"
+                      : "text-amber-950 hover:bg-amber-200"
+                  }`}
+                >
+                  <span className="animate-pulse">🎙️</span>
+                  <span>{currentLang === "kn" ? "ಲೈವ್ ವಾಯ್ಸ್ (Voice)" : "Live Voice"}</span>
+                  {isVoiceMode && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isVoiceMode) exitVoiceMode();
+                    setActiveTab("tasks");
+                  }}
+                  className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1 text-xs font-bold transition-all ${
                     activeTab === "tasks"
                       ? "bg-amber-700 text-white shadow-xs"
                       : "text-amber-950 hover:bg-amber-200"
                   }`}
                 >
                   <span>⚡</span>
-                  <span>{currentLang === "kn" ? "ಕಾರ್ಯ ನಿರ್ವಾಹಕ (Tasks)" : "Fleet Tasks"}</span>
+                  <span>{currentLang === "kn" ? "ಕಾರ್ಯಗಳು (Tasks)" : "Fleet"}</span>
                   {workflowState.activeCount > 0 && (
                     <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[9px] font-black text-white animate-pulse">
                       {workflowState.activeCount}
@@ -1233,18 +1569,18 @@ export function SuperAdminAiPet(): JSX.Element | null {
                     }}
                     className="flex items-center gap-2"
                   >
-                    {/* Voice Input Microphone Button */}
+                    {/* Voice Input Microphone Button - Directly launches Live Voice Mode */}
                     <button
                       type="button"
-                      onClick={toggleListening}
+                      onClick={enterVoiceMode}
                       className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${
-                        isListening
+                        isVoiceMode || isListening
                           ? "border-rose-500 bg-rose-500 text-white animate-pulse"
-                          : "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
+                          : "border-amber-400 bg-amber-100/80 text-amber-950 hover:bg-amber-200"
                       }`}
-                      title="ಧ್ವನಿ ಮೂಲಕ ಆಜ್ಞೆ ನೀಡಿ (Speak via mic)"
+                      title="ಲೈವ್ ವಾಯ್ಸ್ ಸಂಭಾಷಣೆ ಆರಂಭಿಸಿ (Start Live Voice Conversation)"
                     >
-                      <span className="text-base">{isListening ? "🔴" : "🎙️"}</span>
+                      <span className="text-base">{isVoiceMode || isListening ? "🔴" : "🎙️"}</span>
                     </button>
 
                     {/* Text input */}
@@ -1272,6 +1608,188 @@ export function SuperAdminAiPet(): JSX.Element | null {
                   </form>
                 </div>
               </>
+            )}
+
+            {/* TAB 2: INTERACTIVE LIVE VOICE CONVERSATION SANCTUM */}
+            {activeTab === "voice" && (
+              <div className="flex-1 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#181109] via-[#24170C] to-[#0E0702] text-amber-50 p-4 sm:p-6 select-none animate-fade-in">
+                {/* Voice Mode Header Bar */}
+                <div className="flex items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5">
+                  {/* Live Status Badge */}
+                  <div className="flex items-center gap-2">
+                    {isProcessing ? (
+                      <div className="flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-400/50 px-3 py-1 text-xs font-bold text-amber-300 animate-pulse">
+                        <span className="animate-spin text-sm">✨</span>
+                        <span>{currentLang === "kn" ? "ಜ್ಯೋತಿಷ್ಯ ವಿಶ್ಲೇಷಣೆ..." : "Analyzing..."}</span>
+                      </div>
+                    ) : isAssistantSpeaking ? (
+                      <div className="flex items-center gap-1.5 rounded-full bg-amber-400/25 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-200 shadow-md">
+                        <span className="flex gap-0.5 items-end h-3">
+                          <span className="w-1 bg-amber-300 rounded-full animate-bounce [animation-delay:0ms] h-3" />
+                          <span className="w-1 bg-amber-300 rounded-full animate-bounce [animation-delay:150ms] h-2" />
+                          <span className="w-1 bg-amber-300 rounded-full animate-bounce [animation-delay:300ms] h-3.5" />
+                        </span>
+                        <span>{currentLang === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ AI ಧ್ವನಿ (AI Studio Voice)" : "AI Studio Voice Speaking"}</span>
+                      </div>
+                    ) : isMicMuted ? (
+                      <div className="flex items-center gap-1.5 rounded-full bg-rose-950/60 border border-rose-500/60 px-3 py-1 text-xs font-bold text-rose-300">
+                        <span>🔇</span>
+                        <span>{currentLang === "kn" ? "ಮೈಕ್ ಮ್ಯೂಟ್ ಆಗಿದೆ" : "Mic Muted"}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 rounded-full bg-emerald-950/80 border border-emerald-400/60 px-3 py-1 text-xs font-bold text-emerald-300 shadow-lg shadow-emerald-950/40">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                        <span>{currentLang === "kn" ? "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ... ಮಾತನಾಡಿ" : "Listening... Speak now"}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Language Switcher Quick Pills */}
+                  <div className="flex items-center gap-1 bg-black/40 border border-amber-500/30 rounded-full p-0.5">
+                    {(["kn", "en", "hi", "te", "ta"] as SupportedLanguage[]).map((l) => (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => setLanguage(l)}
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase transition-all ${
+                          currentLang === l
+                            ? "bg-amber-500 text-slate-950 shadow-xs"
+                            : "text-amber-200/70 hover:text-amber-100"
+                        }`}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Center Sacred Animated Disc & Frequency Ripples */}
+                <div className="relative flex flex-col items-center justify-center my-auto py-3">
+                  {/* Dynamic Sound Wave Aura */}
+                  <div className="relative flex items-center justify-center">
+                    {/* Pulsing Concentric Aura Rings */}
+                    <div
+                      className={`absolute h-44 w-44 sm:h-52 sm:w-52 rounded-full border-2 border-amber-400/20 transition-all duration-700 ${
+                        isAssistantSpeaking
+                          ? "scale-125 border-amber-400/40 animate-ping"
+                          : isListening && !isMicMuted
+                          ? "scale-110 border-emerald-400/30 animate-pulse"
+                          : "scale-100"
+                      }`}
+                    />
+                    <div
+                      className={`absolute h-36 w-36 sm:h-44 sm:w-44 rounded-full bg-gradient-to-r from-amber-500/10 to-amber-700/10 blur-xl transition-all ${
+                        isAssistantSpeaking ? "scale-125 opacity-100" : "scale-100 opacity-60"
+                      }`}
+                    />
+
+                    {/* Central Mascot Disc */}
+                    <div
+                      className={`relative z-10 flex h-28 w-28 sm:h-32 sm:w-32 items-center justify-center rounded-full border-4 shadow-2xl p-2 transition-all ${
+                        isAssistantSpeaking
+                          ? "border-amber-400 bg-gradient-to-b from-amber-900 to-[#1F1206] shadow-amber-500/40 scale-105"
+                          : isListening && !isMicMuted
+                          ? "border-emerald-400 bg-gradient-to-b from-emerald-950 to-[#120B04] shadow-emerald-500/30"
+                          : "border-amber-600/60 bg-[#1A1208] shadow-amber-950"
+                      }`}
+                    >
+                      <PetIllustration type={petType} emotion={currentEmotion} isSpeaking={isSpeaking} />
+                    </div>
+                  </div>
+
+                  {/* Voice Mode Title */}
+                  <h3 className="mt-3 font-serif font-black text-sm sm:text-base text-amber-200 tracking-wide text-center">
+                    {petTitles[petType][currentLang]}
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-amber-300/80 text-center max-w-sm mt-0.5 font-medium px-2">
+                    {isProcessing
+                      ? (currentLang === "kn" ? "ಗಣನೆ ನಡೆಯುತ್ತಿದೆ..." : "Analyzing astrological shastras...")
+                      : isAssistantSpeaking
+                      ? (currentLang === "kn" ? "ತೃತೀಯ AI Studio ಧ್ವನಿಯಲ್ಲಿ ಸಂಪೂರ್ಣ ವಿವರಣೆ ನೀಡಲಾಗುತ್ತಿದೆ..." : "Explaining full details via AI Studio Voice...")
+                      : isMicMuted
+                      ? (currentLang === "kn" ? "ಮೈಕ್ ಮ್ಯೂಟ್ ಆಗಿದೆ. ಮಾತನಾಡಲು ಮೈಕ್ ಬಟನ್ ಒತ್ತಿ." : "Mic muted. Tap mic to unmute and speak.")
+                      : (currentLang === "kn" ? "ಮೈಕ್ ಆನ್ ಆಗಿದೆ. ಜಾತಕ, ಭವಿಷ್ಯ, ಪಂಚಾಂಗದ ಕುರಿತು ನೇರವಾಗಿ ಮಾತನಾಡಿ." : "Mic is live. Speak naturally like a phone call.")}
+                  </p>
+                </div>
+
+                {/* Live Transcript & Real-Time Answer Glass Card */}
+                <div className="w-full rounded-2xl border border-amber-500/25 bg-black/40 backdrop-blur-md p-3 sm:p-4 max-h-40 overflow-y-auto space-y-2 scrollbar-thin">
+                  {liveTranscript && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-xs font-bold text-amber-400 shrink-0">
+                        {currentLang === "kn" ? "ನೀವು:" : "You:"}
+                      </span>
+                      <p className="text-xs text-amber-100 font-medium leading-relaxed italic">
+                        "{liveTranscript}"
+                      </p>
+                    </div>
+                  )}
+
+                  {lastSpokenAnswer ? (
+                    <div className="flex items-start gap-2 pt-1 border-t border-amber-500/15">
+                      <span className="text-xs font-bold text-emerald-400 shrink-0">
+                        {currentLang === "kn" ? "ಕಾಮಧೇನು:" : "Assistant:"}
+                      </span>
+                      <p className="text-xs text-amber-200/90 leading-relaxed max-h-24 overflow-y-auto">
+                        {lastSpokenAnswer}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-amber-300/50 text-center italic">
+                      {currentLang === "kn"
+                        ? "ಉದಾಹರಣೆ: 'ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಜಾತಕ ತಯಾರಿಸಿ', 'ನನ್ನ ೧೦ನೇ ಮನೆ ವೃತ್ತಿಜೀವನ ಹೇಗಿದೆ?', 'ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನನ್ನ ಅದೃಷ್ಟ ರತ್ನ ಯಾವುದು?'..."
+                        : "e.g. 'Generate kundali for Shriram Pandit', 'How is my 10th house career?', 'What is my lucky gem according to Sankhya Shastra?'..."}
+                    </p>
+                  )}
+                </div>
+
+                {/* Interactive Voice Controls Dock */}
+                <div className="flex items-center justify-between gap-3 pt-3">
+                  {/* Return to Chat Mode */}
+                  <button
+                    type="button"
+                    onClick={exitVoiceMode}
+                    className="flex items-center gap-1 rounded-xl border border-amber-500/40 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-bold text-amber-200 transition-colors"
+                    title="ಪಠ್ಯ ಸಂಭಾಷಣೆಗೆ ಮರಳಿ (Back to Chat)"
+                  >
+                    <span>💬</span>
+                    <span className="hidden sm:inline">{currentLang === "kn" ? "ಪಠ್ಯ ಚಾಟ್" : "Text Chat"}</span>
+                  </button>
+
+                  {/* Main Microphone Button */}
+                  <button
+                    type="button"
+                    onClick={toggleMicMute}
+                    className={`relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 shadow-2xl transition-all transform active:scale-95 ${
+                      !isMicMuted
+                        ? "border-emerald-400 bg-gradient-to-b from-emerald-600 to-emerald-800 text-white shadow-emerald-500/50"
+                        : "border-rose-400 bg-gradient-to-b from-rose-700 to-rose-900 text-rose-100 shadow-rose-900/50"
+                    }`}
+                    title={!isMicMuted ? "ಮೈಕ್ ಮ್ಯೂಟ್ ಮಾಡಿ (Mute mic)" : "ಮೈಕ್ ಅನ್‌ಮ್ಯೂಟ್ ಮಾಡಿ (Unmute mic)"}
+                  >
+                    {!isMicMuted && (
+                      <span className="absolute -inset-1 rounded-full bg-emerald-400/30 animate-ping pointer-events-none" />
+                    )}
+                    <span className="text-2xl">{!isMicMuted ? "🎙️" : "🔇"}</span>
+                  </button>
+
+                  {/* Interrupt / Stop Speech Button */}
+                  <button
+                    type="button"
+                    onClick={interruptAssistant}
+                    disabled={!isAssistantSpeaking}
+                    className={`flex items-center gap-1 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                      isAssistantSpeaking
+                        ? "border-amber-400 bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/30 animate-pulse hover:bg-amber-400"
+                        : "border-white/10 bg-white/5 text-amber-300/40 opacity-40 cursor-not-allowed"
+                    }`}
+                    title="ಮಾತನ್ನು ನಿಲ್ಲಿಸಿ (Interrupt / Stop Speech)"
+                  >
+                    <span>⏹️</span>
+                    <span className="hidden sm:inline">{currentLang === "kn" ? "ನಿಲ್ಲಿಸಿ" : "Interrupt"}</span>
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* TAB 2: TASK MANAGER / FLEET MONITOR SCREEN (UP TO 10 INSTANCES) */}
