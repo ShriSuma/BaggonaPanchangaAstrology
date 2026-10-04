@@ -114,7 +114,8 @@ async function renderOffscreenToPdf(
 export async function generateSuperAdminBatchPdfs(
   session: KundliViewerSession,
   params: WorkflowParams,
-  onProgress?: (percent: number, stageText: string) => void
+  onProgress?: (percent: number, stageText: string) => void,
+  abortSignal?: AbortSignal
 ): Promise<GeneratedReportItem[]> {
   const cleanName = params.name.replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_") || "Devotee";
   const langUpper = params.language.toUpperCase();
@@ -124,6 +125,9 @@ export async function generateSuperAdminBatchPdfs(
   const total = requested.length;
 
   for (let idx = 0; idx < total; idx++) {
+    if (abortSignal?.aborted) {
+      throw new Error("Job cancelled by user");
+    }
     const reportType = requested[idx];
     const stageStartPercent = Math.floor((idx / total) * 100);
 

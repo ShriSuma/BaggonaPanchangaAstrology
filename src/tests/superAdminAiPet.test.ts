@@ -257,4 +257,100 @@ describe("SuperAdminAiPet Intelligence & Security Suite", () => {
     expect(currentSession?.birthDateYmd).toBe("1993-05-31");
     expect(currentSession?.homePlaceName).toBe("Bengaluru");
   });
+
+  it("supports multi-instance concurrent background fleet up to 10 instances (Kamadhenu 1..10)", () => {
+    // Clear any previous state
+    const runnerState = superAdminWorkflowRunner.getState();
+    runnerState.instances.forEach((inst) => superAdminWorkflowRunner.clearJob(inst.instanceId));
+
+    const makeParams = (name: string, index: number) => ({
+      rawPrompt: `Test Devotee ${index}`,
+      name,
+      birthDate: "1993-05-31",
+      birthTime: "09:20",
+      city: "Bengaluru",
+      pincode: "560001",
+      latitude: 12.9716,
+      longitude: 77.5946,
+      priestName: "Chaitanya Pandit",
+      poojaName: "Moksha Narayana Bali",
+      requestedReports: ["baggona_kundli"] as any[],
+      language: "kn" as const
+    });
+
+    // Start instance 1 (Kamadhenu 1)
+    const inst1 = superAdminWorkflowRunner.startInstance(makeParams("Shriram Pandit", 1));
+    expect(inst1.instanceIndex).toBe(1);
+    expect(inst1.instanceName).toContain("ಕಾಮಧೇನು ೧");
+    expect(inst1.status).toBe("running");
+
+    // Start instance 2 (Kamadhenu 2)
+    const inst2 = superAdminWorkflowRunner.startInstance(makeParams("Ravi Kumar", 2));
+    expect(inst2.instanceIndex).toBe(2);
+    expect(inst2.instanceName).toContain("ಕಾಮಧೇನು ೨");
+    expect(inst2.status).toBe("running");
+
+    const state = superAdminWorkflowRunner.getState();
+    expect(state.activeCount).toBeGreaterThanOrEqual(2);
+
+    // Clean up
+    superAdminWorkflowRunner.killJob(inst1.instanceId);
+    superAdminWorkflowRunner.killJob(inst2.instanceId);
+    superAdminWorkflowRunner.clearJob(inst1.instanceId);
+    superAdminWorkflowRunner.clearJob(inst2.instanceId);
+  });
+
+  it("allows immediate termination of any stuck background job via killJob and AbortController", () => {
+    const mockParams = {
+      rawPrompt: "Kill test",
+      name: "Devotee To Kill",
+      birthDate: "1990-01-01",
+      birthTime: "10:00",
+      city: "Gokarna",
+      pincode: "581326",
+      latitude: 14.54,
+      longitude: 74.31,
+      priestName: "Chaitanya Pandit",
+      poojaName: "Tripindi",
+      requestedReports: ["baggona_kundli"] as any[],
+      language: "kn" as const
+    };
+
+    const inst = superAdminWorkflowRunner.startInstance(mockParams);
+    expect(inst.status).toBe("running");
+    expect(inst.abortController?.signal.aborted).toBe(false);
+
+    // Immediately kill the job
+    superAdminWorkflowRunner.killJob(inst.instanceId);
+
+    const found = superAdminWorkflowRunner.getState().instances.find((i) => i.instanceId === inst.instanceId);
+    expect(found?.status).toBe("cancelled");
+    expect(found?.abortController?.signal.aborted).toBe(true);
+    expect(found?.stepTitle).toContain("ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ");
+
+    // Clear the job
+    superAdminWorkflowRunner.clearJob(inst.instanceId);
+    const cleared = superAdminWorkflowRunner.getState().instances.find((i) => i.instanceId === inst.instanceId);
+    expect(cleared).toBeUndefined();
+  });
+
+  it("formats and dismisses on-screen toast notifications cleanly", () => {
+    const notifId = `test_notif_${Date.now()}`;
+    const testNotif = {
+      id: notifId,
+      instanceId: "inst_123",
+      instanceIndex: 1,
+      title: "🎉 ಕಾಮಧೇನು ೧: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      message: "ಕಾಮಧೇನು ೧: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ವಿವರಗಳು ಮತ್ತು ೫ ವರದಿಗಳು ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ!",
+      devoteeName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      timestamp: new Date(),
+      reportsCount: 5
+    };
+
+    superAdminWorkflowRunner.getState().notifications.push(testNotif);
+    expect(superAdminWorkflowRunner.getState().notifications.some((n) => n.id === notifId)).toBe(true);
+
+    superAdminWorkflowRunner.dismissNotification(notifId);
+    expect(superAdminWorkflowRunner.getState().notifications.some((n) => n.id === notifId)).toBe(false);
+  });
 });

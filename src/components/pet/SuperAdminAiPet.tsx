@@ -62,6 +62,12 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [currentEmotion, setCurrentEmotion] = useState<PetEmotion>("peaceful");
 
+  // Navigation tab inside sanctuary drawer: "chat" vs "tasks"
+  const [activeTab, setActiveTab] = useState<"chat" | "tasks">("chat");
+
+  // Pre-Flight Confirmation State before launching background workflow
+  const [pendingConfirmation, setPendingConfirmation] = useState<WorkflowParams | null>(null);
+
   // Observable Background Workflow Runner State
   const [workflowState, setWorkflowState] = useState<WorkflowState>(() =>
     superAdminWorkflowRunner.getState()
@@ -78,6 +84,18 @@ export function SuperAdminAiPet(): JSX.Element | null {
     return unsub;
   }, []);
 
+  // Auto-dismiss on-screen toast notifications after 14 seconds
+  useEffect(() => {
+    if (workflowState.notifications.length === 0) return;
+    const timer = setTimeout(() => {
+      const first = workflowState.notifications[0];
+      if (first) {
+        superAdminWorkflowRunner.dismissNotification(first.id);
+      }
+    }, 14000);
+    return () => clearTimeout(timer);
+  }, [workflowState.notifications]);
+
   // Initial welcome message
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
@@ -85,14 +103,14 @@ export function SuperAdminAiPet(): JSX.Element | null {
       sender: "pet",
       text:
         currentLang === "kn"
-          ? "ನಮಸ್ಕಾರ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಸ್ವಾಮಿ! ನಾನು ನಿಮ್ಮ ದೈವಿಕ ಕಾಮಧೇನು AI ಸಹಾಯಕ. ನೀವು ಏನು ಆಜ್ಞಾಪಿಸಿದರೂ ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ ನಿರ್ವಹಿಸುತ್ತೇನೆ. ಯಾವುದೇ ವ್ಯಕ್ತಿಯ ಜಾತಕ ಗಣನೆ, ೫ ವರದಿಗಳ ಏಕಕಾಲೀನ ಡೌನ್‌ಲೋಡ್, ಮಾರ್ಕೆಟಿಂಗ್ ಅಥವಾ ಸಿಸ್ಟಮ್ ತಪಾಸಣೆ - ಏನು ಬೇಕಾದರೂ ಆಜ್ಞಾಪಿಸಿ!"
+          ? "ನಮಸ್ಕಾರ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಸ್ವಾಮಿ! ನಾನು ನಿಮ್ಮ ದೈವಿಕ ಕಾಮಧೇನು AI ಸಹಾಯಕ. ನೀವು ಏನು ಆಜ್ಞಾಪಿಸಿದರೂ ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ ನಿರ್ವಹಿಸುತ್ತೇನೆ. ಯಾವುದೇ ವ್ಯಕ್ತಿಯ ಜಾತಕ ಗಣನೆ, ೫ ವರದಿಗಳ ಏಕಕಾಲೀನ ಡೌನ್‌ಲೋಡ್ (ಗರಿಷ್ಠ ೧೦ ಹಿನ್ನೆಲೆ ಕಾರ್ಯಗಳು), ಮಾರ್ಕೆಟಿಂಗ್ ಅಥವಾ ಸಿಸ್ಟಮ್ ತಪಾಸಣೆ - ಏನು ಬೇಕಾದರೂ ಆಜ್ಞಾಪಿಸಿ!"
           : currentLang === "hi"
           ? "नमस्ते सुपर एडमिन स्वामी! मैं आपकी सेवा में कामधेनु AI सहायक हूँ। किसी भी व्यक्ति की कुंडली, 5 रिपोर्ट डाउनलोड, मार्केटिंग या सिस्टम स्थिति के बारे में आदेश दें।"
           : currentLang === "te"
-          ? "నమస్కారం సూపర్ అడ్మిన్ స్వామి! నేను మీ కాಮಧೇను AI అసిస్టెంట్. జాతక విశ్లేషణ, 5 రిపోర్టుల డౌన్‌లోడ్ లేదా మార్కెటింగ్ వ్యూహాలను ఆదేశించండి."
+          ? "నమస్కారం సూపర్ అడ్మిన్ స్వామి! నేను మీ కామధేను AI అసిస్టెంట్. జాతక విశ్లేషణ, 5 రిపోర్టుల డౌన్‌లోడ్ లేదా మార్కెటింగ్ వ్యూహాలను ఆదేశించండి."
           : currentLang === "ta"
           ? "வணக்கம் சூப்பர் அட்மின் சுவாமி! நான் உங்கள் காமதேனு AI உதவியாளர். ஜாதக கணிப்பு, 5 அறிக்கைகள் பதிவிறக்கம் அல்லது அமைப்பின் நிலையை அறிய உத்தரவிடுங்கள்."
-          : "Namaskara Super Admin! I am Kamadhenu, your divine AI companion. I have full autonomous execution access to generate Kundalis, batch download all 5 official reports, guide revenue models, and manage marketing playbooks.",
+          : "Namaskara Super Admin! I am Kamadhenu, your divine AI companion. I have full autonomous execution access to generate Kundalis, batch download all 5 official reports in the background (up to 10 simultaneous instances), and manage marketing playbooks.",
       spokenText:
         currentLang === "kn"
           ? "ನಮಸ್ಕಾರ ಸೂಪರ್ ಅಡ್ಮಿನ್ ಸ್ವಾಮಿ! ನಾನು ನಿಮ್ಮ ದೈವಿಕ ಕಾಮಧೇನು AI ಸಹಾಯಕ. ನೀವು ಏನು ಆಜ್ಞಾಪಿಸಿದರೂ ನಾನು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ತಕ್ಷಣ ನಿರ್ವಹಿಸುತ್ತೇನೆ."
@@ -175,10 +193,10 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
   // Auto-scroll chat to bottom
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && activeTab === "chat") {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isOpen, workflowState]);
+  }, [messages, isOpen, activeTab, pendingConfirmation]);
 
   // Handle Voice Recognition (Microphone)
   const toggleListening = () => {
@@ -265,67 +283,92 @@ export function SuperAdminAiPet(): JSX.Element | null {
     petSpeechService.setMuted(nextMuted);
   };
 
-  // Launch background workflow directly
-  const launchWorkflow = async (params: WorkflowParams) => {
-    const startNotice =
-      currentLang === "kn"
-        ? `🙏 ಸ್ವಾಮಿ, ${params.name} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ ಗಣನೆ ಹಾಗೂ ಕೋರಿದ ೫ ಅಧಿಕೃತ ವರದಿಗಳ ಡೌನ್‌ಲೋಡ್ ಪ್ರಕ್ರಿಯೆಯನ್ನು ಹಿನ್ನೆಲೆಯಲ್ಲಿ (Background) ಪ್ರಾರಂಭಿಸಲಾಗಿದೆ.\n\n📍 ಸ್ಥಳ: ${params.city} (ಪಿನ್‌ಕೋಡ್: ${params.pincode})\n📅 ಜನನ: ${params.birthDate} ${params.birthTime}\n🕉️ ಅರ್ಚಕರು: ${params.priestName}\n🪔 ಪೂಜೆ: ${params.poojaName}\n\nನೀವು ಈ ಕಿಟಕಿಯನ್ನು ಮುಚ್ಚಿ ಇತರ ಪುಟಗಳಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸಬಹುದು ಅಥವಾ ಬೇರೆ ಆ್ಯಪ್ ಬಳಸಬಹುದು. ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಕಾರ್ಯ ಪೂರ್ಣಗೊಂಡ ತಕ್ಷಣ ನೇರವಾಗಿ ನಿಮ್ಮ Downloads ಫೋಲ್ಡರ್‌ಗೆ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತದೆ!`
-        : `🙏 Swami, autonomous generation for ${params.name}'s Janma Kundli and requested 5 official reports has started in the background.\n\n📍 Place: ${params.city} (${params.pincode})\n📅 Birth: ${params.birthDate} ${params.birthTime}\n🕉️ Priest: ${params.priestName}\n🪔 Pooja: ${params.poojaName}\n\nYou can close this drawer or switch apps; everything will continue in the background and download directly into your Downloads folder!`;
+  // Stage confirmation before launching workflow
+  const launchWorkflow = (params: WorkflowParams) => {
+    setPendingConfirmation(params);
+    setActiveTab("chat");
 
-    const startSpoken =
+    const nextSlot = superAdminWorkflowRunner.getNextAvailableSlotIndex();
+    const knNum = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"][nextSlot] || String(nextSlot);
+    const askConfirmText =
       currentLang === "kn"
-        ? `ಸ್ವಾಮಿ, ${params.name} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ ಮತ್ತು ೫ ವರದಿಗಳ ಮುದ್ರಣ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭವಾಗಿದೆ. ನೀವು ಇತರ ಕೆಲಸಗಳನ್ನು ಮುಂದುವರಿಸಬಹುದು.`
-        : `Swami, generating Kundli and 5 reports for ${params.name} in the background. You may continue your work.`;
+        ? `📋 ಸ್ವಾಮಿ, ${params.name} ಅವರ ಜಾತಕ ಹಾಗೂ ೫ ಅಧಿಕೃತ ವರದಿಗಳ ಗಣನೆಯನ್ನು (ಕಾಮಧೇನು ${knNum}) ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಲು ದೃಢೀಕರಿಸುವಿರಾ? ಕೆಳಗಿನ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಖಚಿತಪಡಿಸಿ.`
+        : `📋 Swami, please review and confirm autonomous background generation for ${params.name} (Kamadhenu ${nextSlot}).`;
+
+    const askConfirmSpoken =
+      currentLang === "kn"
+        ? `ಸ್ವಾಮಿ, ${params.name} ಅವರ ಜಾತಕ ಮತ್ತು ೫ ವರದಿಗಳ ಮುದ್ರಣವನ್ನು ದೃಢೀಕರಿಸುವಿರಾ?`
+        : `Swami, please confirm generating 5 reports for ${params.name}.`;
 
     const petMsg: ChatMessage = {
-      id: `pet-wf-start-${Date.now()}`,
+      id: `pet-confirm-prompt-${Date.now()}`,
       sender: "pet",
-      text: startNotice,
-      spokenText: startSpoken,
+      text: askConfirmText,
+      spokenText: askConfirmSpoken,
       timestamp: new Date(),
       emotion: "thinking"
     };
 
     setMessages((prev) => [...prev, petMsg]);
     setCurrentEmotion("thinking");
-    if (!isMuted) {
-      petSpeechService.speak(startSpoken, currentLang);
-    }
+    if (!isMuted) petSpeechService.speak(askConfirmSpoken, currentLang);
+  };
 
+  // User confirmed: start in background and immediately close drawer!
+  const handleConfirmAndStart = () => {
+    if (!pendingConfirmation) return;
+    const params = pendingConfirmation;
     try {
-      const finalState = await superAdminWorkflowRunner.executeWorkflow(params);
-      const completeText =
-        currentLang === "kn"
-          ? `🎉 **ಕಾರ್ಯ ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಂಡಿದೆ!**\n\n${params.name} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಎಲ್ಲಾ ೫ ವರದಿಗಳು ಸಿದ್ಧವಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ.\n\n📦 **ಕಡತಗಳು:**\n1. ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ\n2. ಪ್ರೀಮಿಯಂ ದಿವ್ಯ ಭವಿಷ್ಯ V1 (೧೦-ಅಧ್ಯಾಯಗಳು)\n3. ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ ವರದಿ\n4. ಸಮಗ್ರ ದೋಷಗಳು & ಗಂಡಾಂತರ ವರದಿ\n5. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸೇವಾ ಪತ್ರ (ಅರ್ಚಕರು: ${params.priestName})\n\n📁 ನಿಮ್ಮ Downloads ಫೋಲ್ಡರ್‌ನಲ್ಲಿ ಹಾಗೂ ಕೆಳಗಿನ ಜಿಪ್ (ZIP) ಬಂಡಲ್‌ನಲ್ಲಿ ಲಭ್ಯವಿದೆ.`
-          : `🎉 **Autonomous Workflow Complete!**\n\nAll 5 official reports for ${params.name} have been generated and downloaded.\n\n📦 **Files:**\n1. Baggona Panchanga Kundali\n2. Premium Bhavishya V1 (10 Chapters)\n3. Daivika Parihara Report\n4. Comprehensive Doshas & Gandantara\n5. Seva Patra (Priest: ${params.priestName})\n\n📁 Available in your Downloads folder and the ZIP bundle below.`;
+      const inst = superAdminWorkflowRunner.startInstance(params);
+      setPendingConfirmation(null);
 
-      const petDoneMsg: ChatMessage = {
-        id: `pet-wf-done-${Date.now()}`,
-        sender: "pet",
-        text: completeText,
-        timestamp: new Date(),
-        emotion: "excited",
-        workflowResult: finalState
-      };
-      setMessages((prev) => [...prev, petDoneMsg]);
-      setCurrentEmotion("excited");
-    } catch (err: any) {
-      console.error("Workflow failed:", err);
-      const errText =
+      const knNum = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"][inst.instanceIndex] || String(inst.instanceIndex);
+      const startNotice =
         currentLang === "kn"
-          ? `ಕ್ಷಮಿಸಿ ಸ್ವಾಮಿ, ವರದಿ ಸಿದ್ಧಪಡಿಸುವಲ್ಲಿ ದೋಷ ಎದುರಾಗಿದೆ: ${err?.message || "ಅಜ್ಞಾತ ದೋಷ"}`
-          : `Sorry Swami, an error occurred during report generation: ${err?.message || "Unknown error"}`;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `pet-wf-err-${Date.now()}`,
-          sender: "pet",
-          text: errText,
-          timestamp: new Date(),
-          emotion: "alert"
-        }
-      ]);
+          ? `🚀 **${inst.instanceName}**\n\nಸ್ವಾಮಿ, ${params.name} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ೫ ಅಧಿಕೃತ ವರದಿಗಳ ಡೌನ್‌ಲೋಡ್ ಹಿನ್ನೆಲೆಯಲ್ಲಿ (Background) ಪ್ರಾರಂಭಿಸಲಾಗಿದೆ.\n\n📍 ಸ್ಥಳ: ${params.city} (${params.pincode})\n📅 ಜನನ: ${params.birthDate} ${params.birthTime}\n🕉️ ಅರ್ಚಕರು: ${params.priestName}\n🪔 ಪೂಜೆ: ${params.poojaName}\n\nನೀವು ಮುಕ್ತವಾಗಿ ನಿಮ್ಮ ಪರದೆಯಲ್ಲಿ ಇತರ ಕೆಲಸಗಳನ್ನು ಮುಂದುವರಿಸಬಹುದು. ಕಾರ್ಯ ಪೂರ್ಣಗೊಂಡ ತಕ್ಷಣ ಸ್ಕ್ರೀನ್ ನೋಟಿಫಿಕೇಶನ್ ಬರುತ್ತದೆ ಹಾಗೂ ನೇರವಾಗಿ ನಿಮ್ಮ Downloads ಫೋಲ್ಡರ್‌ಗೆ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತದೆ!`
+          : `🚀 **${inst.instanceName}**\n\nSwami, autonomous generation and download of 5 reports for ${params.name} has started in the background.\n\n📍 Place: ${params.city} (${params.pincode})\n📅 Birth: ${params.birthDate} ${params.birthTime}\n🕉️ Priest: ${params.priestName}\n🪔 Pooja: ${params.poojaName}\n\nRunning in background. Everything will download directly to your Downloads folder!`;
+
+      const startSpoken =
+        currentLang === "kn"
+          ? `ಕಾಮಧೇನು ${knNum}: ${params.name} ಅವರ ಕಾರ್ಯ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭವಾಗಿದೆ. ನಿಮ್ಮ ಕೆಲಸ ಮುಂದುವರಿಸಿ.`
+          : `Kamadhenu ${inst.instanceIndex}: Reports for ${params.name} started in background.`;
+
+      const petMsg: ChatMessage = {
+        id: `pet-wf-start-${Date.now()}`,
+        sender: "pet",
+        text: startNotice,
+        spokenText: startSpoken,
+        timestamp: new Date(),
+        emotion: "excited"
+      };
+
+      setMessages((prev) => [...prev, petMsg]);
+      setCurrentEmotion("excited");
+
+      if (!isMuted) {
+        petSpeechService.speak(startSpoken, currentLang);
+      }
+
+      // 💥 USER SPECIFICATION: "Once I confirm, it will go off and everything it will handle background."
+      setIsOpen(false);
+    } catch (err: any) {
+      alert(err?.message || "Failed to start background instance");
     }
+  };
+
+  const handleCancelConfirmation = () => {
+    setPendingConfirmation(null);
+    const cancelMsg: ChatMessage = {
+      id: `pet-cancel-${Date.now()}`,
+      sender: "pet",
+      text:
+        currentLang === "kn"
+          ? "ಆಜ್ಞೆಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ಸ್ವಾಮಿ. ಬೇರೆ ಯಾವುದೇ ಸೇವೆಗೆ ನಾನು ಸಿದ್ಧನಿದ್ದೇನೆ."
+          : "Command cancelled, Swami. Ready for your next instruction.",
+      timestamp: new Date(),
+      emotion: "peaceful"
+    };
+    setMessages((prev) => [...prev, cancelMsg]);
   };
 
   const handleSend = async (overrideText?: string) => {
@@ -485,55 +528,101 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
   return (
     <>
+      {/* 🌟 SCREEN-WIDE FLOATING ON-SCREEN TOAST NOTIFICATIONS (WORKS ACROSS ENTIRE APP) */}
+      {workflowState.notifications.length > 0 && (
+        <div
+          className="fixed top-4 right-4 z-50 flex flex-col gap-2.5 max-w-sm sm:max-w-md w-full pointer-events-none"
+          aria-live="polite"
+        >
+          {workflowState.notifications.map((notif) => (
+            <div
+              key={notif.id}
+              className="pointer-events-auto flex flex-col gap-2 rounded-2xl border-2 border-emerald-500 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md text-slate-900 animate-slide-up"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 font-black text-xs shrink-0">
+                    ✓
+                  </span>
+                  <div>
+                    <h4 className="font-bold text-xs sm:text-sm text-emerald-950">{notif.title}</h4>
+                    <span className="text-[10px] text-slate-400">
+                      {notif.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => superAdminWorkflowRunner.dismissNotification(notif.id)}
+                  className="text-slate-400 hover:text-slate-700 text-sm font-bold p-1 leading-none"
+                  title="ಮುಚ್ಚು / Close"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-xs text-slate-700 leading-snug">{notif.message}</p>
+              <div className="flex items-center gap-2 pt-1 border-t border-emerald-100">
+                {notif.zipBlob && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerBrowserDownload(
+                        notif.zipBlob!,
+                        notif.zipFileName || `Baggona_${notif.devoteeName}_Reports.zip`
+                      );
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] py-1.5 shadow-xs transition-colors"
+                  >
+                    <span>📦</span>
+                    <span>ZIP ಮರು-ಡೌನ್‌ಲೋಡ್</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("tasks");
+                    setIsOpen(true);
+                    superAdminWorkflowRunner.dismissNotification(notif.id);
+                  }}
+                  className="rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] px-2.5 py-1.5 transition-colors"
+                >
+                  <span>ವಿವರಗಳು (Tasks)</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 🌟 DISCREET, SMALLER FLOATING PET COMPANION (Mobile & Desktop) */}
-      {/* Designed strictly to not disturb screen content, popping up as a smaller round icon in the bottom corner */}
       <div
         className="fixed bottom-20 right-3.5 md:bottom-5 md:right-5 z-40 flex flex-col items-end select-none pointer-events-auto"
         aria-label="Super Admin AI Pet Companion"
       >
         <div className="relative group flex items-center gap-2">
-          {/* Active Background Workflow Progress Pill (discreet notification) */}
-          {workflowState.status === "running" && (
+          {/* Active Background Workflow Progress Pill */}
+          {workflowState.activeCount > 0 && (
             <button
               type="button"
-              onClick={() => setIsOpen(true)}
+              onClick={() => {
+                setActiveTab("tasks");
+                setIsOpen(true);
+              }}
               className="flex items-center gap-1.5 rounded-full border border-amber-400 bg-amber-950/95 px-2.5 py-1 text-[11px] font-bold text-amber-300 shadow-xl backdrop-blur-md transition-all hover:bg-amber-900 active:scale-95"
             >
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>⚡ {workflowState.progressPercent}%</span>
+              <span>⚡ {workflowState.activeCount} ಚಾಲನೆಯಲ್ಲಿದೆ</span>
               <span className="hidden sm:inline text-[10px] text-amber-200/90 font-medium">
-                {workflowState.stepTitle}
+                (ಕ್ಲಿಕ್ ಮಾಡಿ ನೋಡಿ)
               </span>
             </button>
           )}
 
           {/* Sleek 44px Round Floating Avatar Button */}
           <div className="relative">
-            {/* Animated Circular SVG Progress Ring when background task is running */}
-            {workflowState.status === "running" && (
-              <svg className="absolute -inset-1.5 h-[56px] w-[56px] -rotate-90 pointer-events-none">
-                <circle
-                  cx="28"
-                  cy="28"
-                  r="24"
-                  stroke="#FDE68A"
-                  strokeWidth="3"
-                  fill="transparent"
-                  opacity="0.3"
-                />
-                <circle
-                  cx="28"
-                  cy="28"
-                  r="24"
-                  stroke="#10B981"
-                  strokeWidth="3.5"
-                  fill="transparent"
-                  strokeDasharray={150.8}
-                  strokeDashoffset={150.8 - (150.8 * workflowState.progressPercent) / 100}
-                  strokeLinecap="round"
-                  className="transition-all duration-300 ease-out"
-                />
-              </svg>
+            {/* Animated Circular SVG Progress Ring when active */}
+            {workflowState.activeCount > 0 && (
+              <span className="absolute -inset-1 rounded-full bg-emerald-400/40 animate-ping pointer-events-none" />
             )}
 
             <button
@@ -556,6 +645,13 @@ export function SuperAdminAiPet(): JSX.Element | null {
               <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-950 border border-amber-300 text-[9px] shadow-sm">
                 👑
               </span>
+
+              {/* Active Jobs Counter Badge */}
+              {workflowState.activeCount > 0 && (
+                <span className="absolute -bottom-1 -left-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-emerald-600 border border-emerald-300 text-[9px] font-black text-white shadow-sm">
+                  {workflowState.activeCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -565,7 +661,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-fade-in">
           {/* Main Pet Container */}
-          <div className="relative flex flex-col h-[90vh] sm:h-[650px] w-full max-w-xl rounded-t-3xl sm:rounded-3xl border-2 border-amber-500/50 bg-[#FFFDF9] text-slate-900 shadow-2xl overflow-hidden animate-slide-up">
+          <div className="relative flex flex-col h-[92vh] sm:h-[680px] w-full max-w-xl rounded-t-3xl sm:rounded-3xl border-2 border-amber-500/50 bg-[#FFFDF9] text-slate-900 shadow-2xl overflow-hidden animate-slide-up">
             {/* Top Royal Banner */}
             <div className="flex items-center justify-between border-b-2 border-amber-500/30 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 px-4 py-3 text-slate-950 shadow-sm">
               <div className="flex items-center gap-2.5">
@@ -582,8 +678,8 @@ export function SuperAdminAiPet(): JSX.Element | null {
                     </span>
                   </div>
                   <p className="text-[10px] text-indigo-950/80 font-medium">
-                    {workflowState.status === "running"
-                      ? `⚡ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಕಾರ್ಯ ನಡೆಯುತ್ತಿದೆ (${workflowState.progressPercent}%)`
+                    {workflowState.activeCount > 0
+                      ? `⚡ ${workflowState.activeCount} ಕಾರ್ಯಗಳು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಚಾಲನೆಯಲ್ಲಿವೆ (${workflowState.instances.length}/10)`
                       : isSpeaking
                       ? "🗣️ ಮಾತನಾಡುತ್ತಿದೆ (Speaking aloud...)"
                       : currentEmotion === "thinking"
@@ -621,278 +717,602 @@ export function SuperAdminAiPet(): JSX.Element | null {
               </div>
             </div>
 
-            {/* Pet Selector Sub-Header */}
-            <div className="flex items-center justify-between border-b border-amber-200/70 bg-amber-50/70 px-4 py-1.5 text-xs">
-              <span className="text-[11px] font-bold text-amber-900">
-                {currentLang === "kn" ? "ಅವತಾರ ಆಯ್ಕೆ:" : "Pet Companion:"}
-              </span>
+            {/* Navigation Tabs: Chat vs Task Manager Fleet */}
+            <div className="flex items-center justify-between border-b border-amber-300 bg-amber-100/70 px-3 py-1.5 text-xs">
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("chat")}
+                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition-all ${
+                    activeTab === "chat"
+                      ? "bg-amber-700 text-white shadow-xs"
+                      : "text-amber-950 hover:bg-amber-200"
+                  }`}
+                >
+                  <span>💬</span>
+                  <span>{currentLang === "kn" ? "ಸಂಭಾಷಣೆ (Chat)" : "Chat"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("tasks")}
+                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition-all ${
+                    activeTab === "tasks"
+                      ? "bg-amber-700 text-white shadow-xs"
+                      : "text-amber-950 hover:bg-amber-200"
+                  }`}
+                >
+                  <span>⚡</span>
+                  <span>{currentLang === "kn" ? "ಕಾರ್ಯ ನಿರ್ವಾಹಕ (Tasks)" : "Fleet Tasks"}</span>
+                  {workflowState.activeCount > 0 && (
+                    <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[9px] font-black text-white animate-pulse">
+                      {workflowState.activeCount}
+                    </span>
+                  )}
+                  {workflowState.instances.length > 0 && workflowState.activeCount === 0 && (
+                    <span className="rounded-full bg-amber-200 px-1.5 py-0.2 text-[9px] font-bold text-amber-900">
+                      {workflowState.instances.length}/10
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Pet Companion Avatar Selector */}
               <div className="flex items-center gap-1">
                 {(["kamadhenu", "nandi", "shuka"] as PetType[]).map((type) => (
                   <button
                     key={type}
                     type="button"
                     onClick={() => handlePetChange(type)}
-                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold transition-all ${
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-all ${
                       petType === type
-                        ? "bg-amber-700 text-white shadow-xs scale-105"
-                        : "bg-amber-100 text-amber-900 hover:bg-amber-200"
+                        ? "bg-amber-800 text-white shadow-xs"
+                        : "bg-amber-200/60 text-amber-950 hover:bg-amber-200"
                     }`}
                   >
-                    {type === "kamadhenu" ? "🐄 ಕಾಮಧೇನು" : type === "nandi" ? "🐂 ನಂದಿ" : "🦜 ಶುಕ"}
+                    {type === "kamadhenu" ? "🐄" : type === "nandi" ? "🐂" : "🦜"}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* LIVE BACKGROUND WORKFLOW STATUS BAR */}
-            {workflowState.status === "running" && (
-              <div className="border-b border-emerald-300/80 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100 px-4 py-2.5 shadow-inner">
-                <div className="flex items-center justify-between text-xs font-bold text-emerald-950 mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
-                    <span>{workflowState.stepTitle}</span>
+            {/* TAB 1: CHAT & VOICE INTERFACE */}
+            {activeTab === "chat" && (
+              <>
+                {/* Quick Action Suggestion Bar */}
+                <div className="flex items-center gap-1.5 overflow-x-auto border-b border-amber-200/40 bg-white/80 px-3 py-2 text-xs scrollbar-none">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleActionClick({
+                        id: "init_shriram_demo",
+                        label: {
+                          kn: "⚡ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+                          hi: "⚡ श्रीराम पंडित",
+                          te: "⚡ శ్రీరామ్ పండిట్",
+                          ta: "⚡ ஸ்ரீராம் பண்டிதர்",
+                          en: "⚡ Shriram Pandit"
+                        },
+                        icon: "⚡",
+                        actionType: "custom"
+                      })
+                    }
+                    className="flex items-center gap-1 rounded-xl border border-emerald-500 bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-950 hover:bg-emerald-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
+                  >
+                    <span>🚀</span>
+                    <span>ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (೫ ವರದಿಗಳು)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSend("ಹಣ ಗಳಿಸುವುದು ಹೇಗೆ? (How to earn money)")}
+                    className="flex items-center gap-1 rounded-xl border border-amber-300 bg-white px-2.5 py-1 text-xs font-bold text-amber-950 hover:bg-amber-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
+                  >
+                    <span>💰</span>
+                    <span>ಆದಾಯ ಯೋಜನೆ</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSend("ಮಾರ್ಕೆಟಿಂಗ್ ತಂತ್ರಗಳು (Marketing strategy)")}
+                    className="flex items-center gap-1 rounded-xl border border-amber-300 bg-white px-2.5 py-1 text-xs font-bold text-amber-950 hover:bg-amber-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
+                  >
+                    <span>📢</span>
+                    <span>ಮಾರ್ಕೆಟಿಂಗ್</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSend("ಸಿಸ್ಟಮ್ ಆರೋಗ್ಯ ತಪಾಸಣೆ ಮಾಡು (System Health Check)")}
+                    className="flex items-center gap-1 rounded-xl border border-amber-300 bg-white px-2.5 py-1 text-xs font-bold text-amber-950 hover:bg-amber-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
+                  >
+                    <span>🩺</span>
+                    <span>ಸಿಸ್ಟಮ್ ಆರೋಗ್ಯ</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPage("superadmindashboard");
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center gap-1 rounded-xl border border-indigo-300 bg-indigo-950 px-2.5 py-1 text-xs font-bold text-amber-300 hover:bg-indigo-900 whitespace-nowrap shadow-xs transition-all active:scale-95"
+                  >
+                    <span>🛡️</span>
+                    <span>ಅಡ್ಮಿನ್ ಸೆಂಟರ್</span>
+                  </button>
+                </div>
+
+                {/* Chat Stream Area */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-[#FFFDF9] via-white to-[#FFFBF0]">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
+                    >
+                      <div className="flex items-start gap-2 max-w-[90%] sm:max-w-[85%]">
+                        {msg.sender === "pet" && (
+                          <div className="h-8 w-8 rounded-full border border-amber-400 bg-amber-100 p-0.5 shrink-0 overflow-hidden flex items-center justify-center">
+                            <PetIllustration type={petType} emotion={msg.emotion || "peaceful"} isSpeaking={isSpeaking} />
+                          </div>
+                        )}
+
+                        <div
+                          className={`rounded-2xl p-3.5 shadow-sm text-xs sm:text-sm leading-relaxed ${
+                            msg.sender === "user"
+                              ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white font-medium rounded-tr-none"
+                              : "bg-white border border-amber-300/80 text-slate-800 rounded-tl-none"
+                          }`}
+                        >
+                          {/* Markdown text representation */}
+                          <div className="whitespace-pre-line font-sans font-normal">
+                            {msg.text}
+                          </div>
+
+                          {/* WORKFLOW DOWNLOAD BUTTONS (If generated reports available) */}
+                          {msg.workflowResult?.reports && msg.workflowResult.reports.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-emerald-200/80 space-y-2">
+                              <div className="text-[11px] font-bold text-emerald-950 flex items-center justify-between">
+                                <span>📥 ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಸಿದ್ಧವಿರುವ ವರದಿಗಳು:</span>
+                                <span className="text-[10px] text-emerald-700">
+                                  {msg.workflowResult.reports.length} Reports
+                                </span>
+                              </div>
+
+                              {/* Individual Download Chips */}
+                              <div className="flex flex-wrap gap-1.5">
+                                {msg.workflowResult.reports.map((rep) => (
+                                  <button
+                                    key={rep.id}
+                                    type="button"
+                                    onClick={() => {
+                                      if (rep.blob) triggerBrowserDownload(rep.blob, rep.fileName);
+                                    }}
+                                    className="flex items-center gap-1 rounded-lg border border-emerald-400 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-950 hover:bg-emerald-100 transition-colors shadow-2xs"
+                                  >
+                                    <span>📄</span>
+                                    <span className="truncate max-w-[150px]">{rep.title}</span>
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Unified ZIP Download Button */}
+                              {msg.workflowResult.zipBlob && msg.workflowResult.zipFileName && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    triggerBrowserDownload(
+                                      msg.workflowResult!.zipBlob!,
+                                      msg.workflowResult!.zipFileName!
+                                    );
+                                  }}
+                                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-amber-500 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 p-2 text-xs font-black text-white shadow-md transition-all active:scale-95"
+                                >
+                                  <span>📦</span>
+                                  <span>ಎಲ್ಲಾ ೫ ವರದಿಗಳ ZIP ಬಂಡಲ್ ಡೌನ್‌ಲೋಡ್ (All 5 Reports .ZIP)</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Repeat Voice Button for Pet Messages */}
+                          {msg.sender === "pet" && (
+                            <div className="mt-2.5 flex items-center justify-between border-t border-amber-100 pt-2 text-[11px] text-amber-900">
+                              <button
+                                type="button"
+                                onClick={() => repeatSpeech(msg.spokenText || msg.text)}
+                                className="flex items-center gap-1 font-bold text-amber-800 hover:text-amber-950 transition-colors"
+                              >
+                                <span>🔊</span>
+                                <span>ಧ್ವನಿ ಕೇಳಿ (Speak again)</span>
+                              </button>
+                              <span className="text-[10px] text-slate-400">
+                                {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Action Buttons ("Do on behalf of me") */}
+                          {msg.actions && msg.actions.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2 pt-1 border-t border-amber-200/60">
+                              {msg.actions.map((act) => (
+                                <button
+                                  key={act.id}
+                                  type="button"
+                                  onClick={() => handleActionClick(act)}
+                                  className="flex items-center gap-1.5 rounded-xl border border-amber-500/70 bg-gradient-to-r from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 px-3 py-1.5 text-xs font-black text-amber-950 shadow-xs transition-all active:scale-95"
+                                >
+                                  <span>{act.icon}</span>
+                                  <span>{act.label[currentLang] || act.label.en}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* 📋 PRE-FLIGHT CONFIRMATION PREVIEW CARD */}
+                  {pendingConfirmation && (
+                    <div className="rounded-2xl border-2 border-amber-500 bg-gradient-to-b from-amber-50 via-white to-amber-100/60 p-4 shadow-xl text-slate-900 animate-slide-up">
+                      <div className="flex items-center justify-between border-b border-amber-300 pb-2 mb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">📋</span>
+                          <div>
+                            <h4 className="font-serif font-black text-sm text-amber-950">
+                              {currentLang === "kn" ? "ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ (Confirmation)" : "Confirmation Required"}
+                            </h4>
+                            <span className="text-[10px] text-amber-800 font-bold">
+                              {currentLang === "kn"
+                                ? `ನಿಯೋಜನೆ: ಕಾಮಧೇನು ${["೦","೧","೨","೩","೪","೫","೬","೭","೮","೯","೧೦"][superAdminWorkflowRunner.getNextAvailableSlotIndex()] || superAdminWorkflowRunner.getNextAvailableSlotIndex()} (ಸ್ಲಾಟ್)`
+                                : `Slot: Kamadhenu ${superAdminWorkflowRunner.getNextAvailableSlotIndex()}`}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="rounded-full bg-amber-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                          5 Reports
+                        </span>
+                      </div>
+
+                      {/* Parsed Details Grid */}
+                      <div className="grid grid-cols-2 gap-2 text-xs bg-white/90 p-2.5 rounded-xl border border-amber-200 mb-3 shadow-inner">
+                        <div>
+                          <span className="text-[10px] text-slate-500 block font-medium">ಜಾತಕರ ಹೆಸರು (Name):</span>
+                          <span className="font-black text-indigo-950 text-xs sm:text-sm">{pendingConfirmation.name}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block font-medium">ಜನನ ವಿವರ (DOB & TOB):</span>
+                          <span className="font-bold text-slate-800 text-[11px]">
+                            {pendingConfirmation.birthDate} | {pendingConfirmation.birthTime}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block font-medium">ಸ್ಥಳ & ಪಿನ್‌ಕೋಡ್ (Place & PIN):</span>
+                          <span className="font-bold text-slate-800 text-[11px]">
+                            {pendingConfirmation.city} ({pendingConfirmation.pincode})
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block font-medium">ಅರ್ಚಕರು & ಪೂಜೆ (Priest & Pooja):</span>
+                          <span className="font-bold text-slate-800 text-[11px] truncate block" title={`${pendingConfirmation.priestName} - ${pendingConfirmation.poojaName}`}>
+                            {pendingConfirmation.priestName}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 5 Official Reports Included */}
+                      <div className="text-[11px] text-slate-700 bg-amber-100/50 p-2 rounded-xl mb-3 border border-amber-200/80">
+                        <span className="font-bold text-amber-950 block mb-1">📦 ಮುದ್ರಿಸಲ್ಪಡುವ ೫ ಅಧಿಕೃತ ವರದಿಗಳು:</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px]">
+                          <span>✓ ೧. ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನ್ಮ ಕುಂಡಲಿ</span>
+                          <span>✓ ೨. ಪ್ರೀಮಿಯಂ ದಿವ್ಯ ಭವಿಷ್ಯ V1 (೧೦-ಅಧ್ಯಾಯ)</span>
+                          <span>✓ ೩. ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ ವರದಿ</span>
+                          <span>✓ ೪. ಸಮಗ್ರ ದೋಷಗಳು & ಗಂಡಾಂತರ</span>
+                          <span className="sm:col-span-2">✓ ೫. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸೇವಾ ಪತ್ರ ({pendingConfirmation.priestName})</span>
+                        </div>
+                      </div>
+
+                      <p className="text-[10px] text-amber-900 font-medium mb-3 italic">
+                        💡 {currentLang === "kn"
+                          ? "ಖಚಿತಪಡಿಸಿದ ತಕ್ಷಣ ಈ ವಿಂಡೋ ಮುಚ್ಚಲ್ಪಡುತ್ತದೆ ಮತ್ತು ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಗಣನೆ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ. ನೀವು ಮುಕ್ತವಾಗಿ ಪರದೆಯಲ್ಲಿ ಯಾವುದೇ ಕಾರ್ಯ ನಿರ್ವಹಿಸಬಹುದು."
+                          : "Once confirmed, this window closes and everything runs in the background. You can freely use any screen."}
+                      </p>
+
+                      {/* Confirmation Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleConfirmAndStart}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs py-2.5 shadow-md transition-all active:scale-95"
+                        >
+                          <span>✅</span>
+                          <span>ಖಚಿತಪಡಿಸಿ & ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಿ</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelConfirmation}
+                          className="rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs px-3.5 py-2.5 transition-all active:scale-95"
+                        >
+                          <span>❌ ರದ್ದು</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isProcessing && (
+                    <div className="flex items-center gap-2 text-xs text-amber-800 font-bold animate-pulse pl-10">
+                      <span>✨ ಕಾಮಧೇನು ಚಿಂತಿಸುತ್ತಿದೆ...</span>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Mobile Touch Input Bar */}
+                <div className="border-t border-amber-300 bg-white p-3">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSend();
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    {/* Voice Input Microphone Button */}
+                    <button
+                      type="button"
+                      onClick={toggleListening}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${
+                        isListening
+                          ? "border-rose-500 bg-rose-500 text-white animate-pulse"
+                          : "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
+                      }`}
+                      title="ಧ್ವನಿ ಮೂಲಕ ಆಜ್ಞೆ ನೀಡಿ (Speak via mic)"
+                    >
+                      <span className="text-base">{isListening ? "🔴" : "🎙️"}</span>
+                    </button>
+
+                    {/* Text input */}
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      placeholder={
+                        currentLang === "kn"
+                          ? "ಆಜ್ಞೆ ನೀಡಿ: ಉದಾ. 'ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ 31 May 1993, 9:20 AM ಬೆಂಗಳೂರು ಜಾತಕ ಸಿದ್ಧಪಡಿಸಿ ೫ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡು'..."
+                          : "Command me: e.g. 'Generate Kundali for Shriram Pandit, born 31 May 1993, 9:20 AM Bengaluru and download 5 reports'..."
+                      }
+                      className="flex-1 rounded-xl border border-amber-300 bg-amber-50/40 px-3.5 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:bg-white focus:outline-hidden"
+                    />
+
+                    {/* Send Button */}
+                    <button
+                      type="submit"
+                      disabled={!inputText.trim() || isProcessing}
+                      className="flex h-10 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-black shadow-md transition-all disabled:opacity-50 active:scale-95"
+                      title="ಕಳುಹಿಸಿ / Send"
+                    >
+                      ➤
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
+
+            {/* TAB 2: TASK MANAGER / FLEET MONITOR SCREEN (UP TO 10 INSTANCES) */}
+            {activeTab === "tasks" && (
+              <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-[#FFFDF9] via-white to-[#FFFBF0]">
+                {/* Fleet Overview Bar */}
+                <div className="flex items-center justify-between border-b border-amber-200/80 bg-amber-50/60 px-4 py-2 text-xs">
+                  <div>
+                    <h4 className="font-bold text-amber-950">
+                      {currentLang === "kn" ? "ದೈವಿಕ ಕಾಮಧೇನು ಕಾರ್ಯ ಫ್ಲೀಟ್" : "Divine Kamadhenu Fleet"}
+                    </h4>
+                    <p className="text-[10px] text-amber-800">
+                      {currentLang === "kn"
+                        ? "ಏಕಕಾಲದಲ್ಲಿ ಗರಿಷ್ಠ ೧೦ ಹಿನ್ನೆಲೆ ಕಾರ್ಯಗಳು (Max 10 Simultaneous Background Instances)"
+                        : "Up to 10 concurrent background instances"}
+                    </p>
                   </div>
-                  <span className="font-mono text-emerald-800">{workflowState.progressPercent}%</span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
+                      ⚡ {workflowState.activeCount} ಚಾಲನೆ
+                    </span>
+                    <span className="rounded-full bg-slate-100 border border-slate-300 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                      {workflowState.instances.length}/10 ಒಟ್ಟು
+                    </span>
+                  </div>
                 </div>
-                {/* Progress bar */}
-                <div className="h-2 w-full rounded-full bg-emerald-200/60 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 transition-all duration-300 ease-out"
-                    style={{ width: `${workflowState.progressPercent}%` }}
-                  />
-                </div>
-                <div className="flex items-center justify-between mt-1 text-[10px] text-emerald-800">
-                  <span className="truncate max-w-[280px]">{workflowState.stepDetail}</span>
-                  <span className="shrink-0 italic text-emerald-700">ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಚಾಲನೆ...</span>
+
+                {/* Instance List */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {workflowState.instances.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-slate-500 space-y-3">
+                      <span className="text-4xl">⚡</span>
+                      <h4 className="font-bold text-slate-700 text-sm">ಯಾವುದೇ ಹಿನ್ನೆಲೆ ಕಾರ್ಯಗಳು ಚಾಲನೆಯಲ್ಲಿಲ್ಲ</h4>
+                      <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+                        ಹೊಸ ಜಾತಕ ಮತ್ತು ೫ ವರದಿಗಳ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು 'ಸಂಭಾಷಣೆ' (Chat) ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಆಜ್ಞೆ ನೀಡಿ (ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್...). ಗರಿಷ್ಠ ೧೦ ಕಾರ್ಯಗಳನ್ನು ಏಕಕಾಲದಲ್ಲಿ ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಚಲಾಯಿಸಬಹುದು.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab("chat");
+                          handleActionClick({
+                            id: "init_shriram_demo",
+                            label: {
+                              kn: "⚡ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+                              hi: "⚡ श्रीराम पंडित",
+                              te: "⚡ శ్రీరామ్ పండిట్",
+                              ta: "⚡ ஸ்ரீராம் பண்டிதர்",
+                              en: "⚡ Shriram Pandit"
+                            },
+                            icon: "⚡",
+                            actionType: "custom"
+                          });
+                        }}
+                        className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 shadow-xs transition-colors"
+                      >
+                        🚀 ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಡೆಮೊ ಪ್ರಾರಂಭಿಸಿ
+                      </button>
+                    </div>
+                  ) : (
+                    workflowState.instances.map((inst) => (
+                      <div
+                        key={inst.instanceId}
+                        className="rounded-2xl border border-amber-300/80 bg-white p-3.5 shadow-sm space-y-2.5"
+                      >
+                        {/* Top Row: Name and Status */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-lg bg-indigo-950 px-2 py-0.5 text-[11px] font-black text-amber-300">
+                              #{inst.instanceIndex}
+                            </span>
+                            <div>
+                              <h4 className="font-serif font-bold text-sm text-slate-900">{inst.instanceName}</h4>
+                              <p className="text-[10px] text-slate-500">
+                                {inst.params.birthDate} {inst.params.birthTime} • {inst.params.city} ({inst.params.pincode})
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Status Badge */}
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold flex items-center gap-1 ${
+                              inst.status === "running"
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                : inst.status === "completed"
+                                ? "bg-teal-100 text-teal-800 border border-teal-300"
+                                : inst.status === "cancelled"
+                                ? "bg-slate-200 text-slate-700 border border-slate-300"
+                                : "bg-rose-100 text-rose-800 border border-rose-300"
+                            }`}
+                          >
+                            {inst.status === "running" && (
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            )}
+                            {inst.status === "running"
+                              ? "ಚಾಲನೆಯಲ್ಲಿದೆ (Running)"
+                              : inst.status === "completed"
+                              ? "ಪೂರ್ಣಗೊಂಡಿದೆ (Completed)"
+                              : inst.status === "cancelled"
+                              ? "ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ (Cancelled)"
+                              : "ದೋಷ (Error)"}
+                          </span>
+                        </div>
+
+                        {/* Progress Bar & Details */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-slate-700 truncate max-w-[280px]">
+                              {inst.stepTitle}
+                            </span>
+                            <span className="font-mono font-bold text-amber-800">{inst.progressPercent}%</span>
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+                            <div
+                              className={`h-full transition-all duration-300 ease-out ${
+                                inst.status === "running"
+                                  ? "bg-gradient-to-r from-emerald-500 to-teal-600"
+                                  : inst.status === "completed"
+                                  ? "bg-teal-600"
+                                  : inst.status === "cancelled"
+                                  ? "bg-slate-400"
+                                  : "bg-rose-500"
+                              }`}
+                              style={{ width: `${inst.progressPercent}%` }}
+                            />
+                          </div>
+                          <p className="text-[10px] text-slate-500 truncate">{inst.stepDetail}</p>
+                        </div>
+
+                        {/* Controls / Actions */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                          {/* If running -> Prominent KILL JOB Button */}
+                          {inst.status === "running" && (
+                            <button
+                              type="button"
+                              onClick={() => superAdminWorkflowRunner.killJob(inst.instanceId)}
+                              className="flex items-center gap-1.5 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-800 font-black text-xs px-3 py-1.5 transition-colors shadow-2xs active:scale-95"
+                              title="ಈ ಕಾರ್ಯವನ್ನು ತಕ್ಷಣ ನಿಲ್ಲಿಸಿ / Kill this job immediately"
+                            >
+                              <span>🛑</span>
+                              <span>ಕಾರ್ಯ ನಿಲ್ಲಿಸಿ (Kill Job)</span>
+                            </button>
+                          )}
+
+                          {/* If completed -> ZIP & Reports download */}
+                          {inst.status === "completed" && (
+                            <div className="flex flex-wrap items-center gap-1.5 w-full">
+                              {inst.zipBlob && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    triggerBrowserDownload(
+                                      inst.zipBlob!,
+                                      inst.zipFileName || `Baggona_${inst.params.name}_Reports.zip`
+                                    );
+                                  }}
+                                  className="flex-1 flex items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs py-1.5 shadow-xs transition-colors"
+                                >
+                                  <span>📦</span>
+                                  <span>ZIP ಡೌನ್‌ಲೋಡ್ (All 5 Reports)</span>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => superAdminWorkflowRunner.clearJob(inst.instanceId)}
+                                className="rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-500 font-medium text-xs px-2.5 py-1.5 transition-colors"
+                                title="ತೆರವುಗೊಳಿಸಿ / Clear"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Individual report chips if completed */}
+                          {inst.status === "completed" && inst.reports.length > 0 && (
+                            <div className="flex flex-wrap gap-1 w-full pt-1">
+                              {inst.reports.map((r) => (
+                                <button
+                                  key={r.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (r.blob) triggerBrowserDownload(r.blob, r.fileName);
+                                  }}
+                                  className="flex items-center gap-1 rounded-lg border border-teal-300 bg-teal-50 px-2 py-0.5 text-[10px] font-bold text-teal-900 hover:bg-teal-100"
+                                >
+                                  <span>📄</span>
+                                  <span className="truncate max-w-[120px]">{r.title}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* If cancelled or error */}
+                          {(inst.status === "cancelled" || inst.status === "error") && (
+                            <div className="flex items-center justify-between w-full">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  superAdminWorkflowRunner.clearJob(inst.instanceId);
+                                  setPendingConfirmation(inst.params);
+                                  setActiveTab("chat");
+                                }}
+                                className="flex items-center gap-1 rounded-xl border border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs px-3 py-1.5 transition-colors"
+                              >
+                                <span>🔄</span>
+                                <span>ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ (Retry)</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => superAdminWorkflowRunner.clearJob(inst.instanceId)}
+                                className="rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-500 font-medium text-xs px-3 py-1.5 transition-colors"
+                              >
+                                🗑️ ತೆರವು (Clear)
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
-
-            {/* Quick Action Suggestion Bar */}
-            <div className="flex items-center gap-1.5 overflow-x-auto border-b border-amber-200/40 bg-white/80 px-3 py-2 text-xs scrollbar-none">
-              <button
-                type="button"
-                onClick={() =>
-                  handleActionClick({
-                    id: "init_shriram_demo",
-                    label: {
-                      kn: "⚡ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-                      hi: "⚡ श्रीराम पंडित",
-                      te: "⚡ శ్రీరామ్ పండిట్",
-                      ta: "⚡ ஸ்ரீராம் பண்டிதர்",
-                      en: "⚡ Shriram Pandit"
-                    },
-                    icon: "⚡",
-                    actionType: "custom"
-                  })
-                }
-                className="flex items-center gap-1 rounded-xl border border-emerald-500 bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-950 hover:bg-emerald-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
-              >
-                <span>🚀</span>
-                <span>ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (೫ ವರದಿಗಳು)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSend("ಹಣ ಗಳಿಸುವುದು ಹೇಗೆ? (How to earn money)")}
-                className="flex items-center gap-1 rounded-xl border border-amber-300 bg-white px-2.5 py-1 text-xs font-bold text-amber-950 hover:bg-amber-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
-              >
-                <span>💰</span>
-                <span>ಆದಾಯ ಯೋಜನೆ</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSend("ಮಾರ್ಕೆಟಿಂಗ್ ತಂತ್ರಗಳು (Marketing strategy)")}
-                className="flex items-center gap-1 rounded-xl border border-amber-300 bg-white px-2.5 py-1 text-xs font-bold text-amber-950 hover:bg-amber-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
-              >
-                <span>📢</span>
-                <span>ಮಾರ್ಕೆಟಿಂಗ್</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSend("ಸಿಸ್ಟಮ್ ಆರೋಗ್ಯ ತಪಾಸಣೆ ಮಾಡು (System Health Check)")}
-                className="flex items-center gap-1 rounded-xl border border-amber-300 bg-white px-2.5 py-1 text-xs font-bold text-amber-950 hover:bg-amber-100 whitespace-nowrap shadow-xs transition-all active:scale-95"
-              >
-                <span>🩺</span>
-                <span>ಸಿಸ್ಟಮ್ ಆರೋಗ್ಯ</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPage("superadmindashboard");
-                  setIsOpen(false);
-                }}
-                className="flex items-center gap-1 rounded-xl border border-indigo-300 bg-indigo-950 px-2.5 py-1 text-xs font-bold text-amber-300 hover:bg-indigo-900 whitespace-nowrap shadow-xs transition-all active:scale-95"
-              >
-                <span>🛡️</span>
-                <span>ಅಡ್ಮಿನ್ ಸೆಂಟರ್</span>
-              </button>
-            </div>
-
-            {/* Chat Stream Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-[#FFFDF9] via-white to-[#FFFBF0]">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
-                >
-                  <div className="flex items-start gap-2 max-w-[90%] sm:max-w-[85%]">
-                    {msg.sender === "pet" && (
-                      <div className="h-8 w-8 rounded-full border border-amber-400 bg-amber-100 p-0.5 shrink-0 overflow-hidden flex items-center justify-center">
-                        <PetIllustration type={petType} emotion={msg.emotion || "peaceful"} isSpeaking={isSpeaking} />
-                      </div>
-                    )}
-
-                    <div
-                      className={`rounded-2xl p-3.5 shadow-sm text-xs sm:text-sm leading-relaxed ${
-                        msg.sender === "user"
-                          ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white font-medium rounded-tr-none"
-                          : "bg-white border border-amber-300/80 text-slate-800 rounded-tl-none"
-                      }`}
-                    >
-                      {/* Markdown text representation */}
-                      <div className="whitespace-pre-line font-sans font-normal">
-                        {msg.text}
-                      </div>
-
-                      {/* WORKFLOW DOWNLOAD BUTTONS (If generated reports available) */}
-                      {msg.workflowResult?.reports && msg.workflowResult.reports.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-emerald-200/80 space-y-2">
-                          <div className="text-[11px] font-bold text-emerald-950 flex items-center justify-between">
-                            <span>📥 ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಸಿದ್ಧವಿರುವ ವರದಿಗಳು:</span>
-                            <span className="text-[10px] text-emerald-700">
-                              {msg.workflowResult.reports.length} Reports
-                            </span>
-                          </div>
-
-                          {/* Individual Download Chips */}
-                          <div className="flex flex-wrap gap-1.5">
-                            {msg.workflowResult.reports.map((rep) => (
-                              <button
-                                key={rep.id}
-                                type="button"
-                                onClick={() => {
-                                  if (rep.blob) triggerBrowserDownload(rep.blob, rep.fileName);
-                                }}
-                                className="flex items-center gap-1 rounded-lg border border-emerald-400 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-950 hover:bg-emerald-100 transition-colors shadow-2xs"
-                              >
-                                <span>📄</span>
-                                <span className="truncate max-w-[150px]">{rep.title}</span>
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Unified ZIP Download Button */}
-                          {msg.workflowResult.zipBlob && msg.workflowResult.zipFileName && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                triggerBrowserDownload(
-                                  msg.workflowResult!.zipBlob!,
-                                  msg.workflowResult!.zipFileName!
-                                );
-                              }}
-                              className="w-full flex items-center justify-center gap-2 rounded-xl border border-amber-500 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 p-2 text-xs font-black text-white shadow-md transition-all active:scale-95"
-                            >
-                              <span>📦</span>
-                              <span>ಎಲ್ಲಾ ೫ ವರದಿಗಳ ZIP ಬಂಡಲ್ ಡೌನ್‌ಲೋಡ್ (All 5 Reports .ZIP)</span>
-                            </button>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Repeat Voice Button for Pet Messages */}
-                      {msg.sender === "pet" && (
-                        <div className="mt-2.5 flex items-center justify-between border-t border-amber-100 pt-2 text-[11px] text-amber-900">
-                          <button
-                            type="button"
-                            onClick={() => repeatSpeech(msg.spokenText || msg.text)}
-                            className="flex items-center gap-1 font-bold text-amber-800 hover:text-amber-950 transition-colors"
-                          >
-                            <span>🔊</span>
-                            <span>ಧ್ವನಿ ಕೇಳಿ (Speak again)</span>
-                          </button>
-                          <span className="text-[10px] text-slate-400">
-                            {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Action Buttons ("Do on behalf of me") */}
-                      {msg.actions && msg.actions.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2 pt-1 border-t border-amber-200/60">
-                          {msg.actions.map((act) => (
-                            <button
-                              key={act.id}
-                              type="button"
-                              onClick={() => handleActionClick(act)}
-                              className="flex items-center gap-1.5 rounded-xl border border-amber-500/70 bg-gradient-to-r from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 px-3 py-1.5 text-xs font-black text-amber-950 shadow-xs transition-all active:scale-95"
-                            >
-                              <span>{act.icon}</span>
-                              <span>{act.label[currentLang] || act.label.en}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {isProcessing && (
-                <div className="flex items-center gap-2 text-xs text-amber-800 font-bold animate-pulse pl-10">
-                  <span>✨ ಕಾಮಧೇನು ಚಿಂತಿಸುತ್ತಿದೆ...</span>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Mobile Touch Input Bar */}
-            <div className="border-t border-amber-300 bg-white p-3">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSend();
-                }}
-                className="flex items-center gap-2"
-              >
-                {/* Voice Input Microphone Button */}
-                <button
-                  type="button"
-                  onClick={toggleListening}
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${
-                    isListening
-                      ? "border-rose-500 bg-rose-500 text-white animate-pulse"
-                      : "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
-                  }`}
-                  title="ಧ್ವನಿ ಮೂಲಕ ಆಜ್ಞೆ ನೀಡಿ (Speak via mic)"
-                >
-                  <span className="text-base">{isListening ? "🔴" : "🎙️"}</span>
-                </button>
-
-                {/* Text input */}
-                <input
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder={
-                    currentLang === "kn"
-                      ? "ಆಜ್ಞೆ ನೀಡಿ: ಉದಾ. 'ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ 31 May 1993, 9:20 AM ಬೆಂಗಳೂರು ಜಾತಕ ಸಿದ್ಧಪಡಿಸಿ ೫ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡು'..."
-                      : "Command me: e.g. 'Generate Kundali for Shriram Pandit, born 31 May 1993, 9:20 AM Bengaluru and download 5 reports'..."
-                  }
-                  className="flex-1 rounded-xl border border-amber-300 bg-amber-50/40 px-3.5 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:bg-white focus:outline-hidden"
-                />
-
-                {/* Send Button */}
-                <button
-                  type="submit"
-                  disabled={!inputText.trim() || isProcessing}
-                  className="flex h-10 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-black shadow-md transition-all disabled:opacity-50 active:scale-95"
-                  title="ಕಳುಹಿಸಿ / Send"
-                >
-                  ➤
-                </button>
-              </form>
-            </div>
           </div>
         </div>
       )}

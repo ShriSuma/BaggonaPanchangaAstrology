@@ -3,8 +3,8 @@
  *
  * Autonomous Multi-Step Background Agent Engine for Super Admin AI Companion (Kamadhenu).
  *
- * Capabilities:
- * 1. Natural Language Instruction Parsing:
+ * Multi-Instance Capabilities (Up to 10 Concurrent Background Instances):
+ * 1. Natural Language Instruction Parsing & Confirmation:
  *    - Parses: Name, DOB (e.g. "31 May 1993"), TOB (e.g. "9:20 AM"), City/Place, Pincode lookup
  *    - Priest Name (e.g. "Chaitanya Pandit"), Pooja Name (e.g. "Moksha Narayana Bali and Tripindi")
  *    - Requested reports list:
@@ -14,16 +14,14 @@
  *      * Doshagalu & Gandantara
  *      * Seva Patra
  *    - Requested language: "kn" | "en" | "hi" | "te" | "ta"
- *    - Redirection instructions: e.g. "redirect to Baggona Divya Bhavishya page"
- *    - Missing information detection & polite clarification requests
+ *    - Confirmation step before execution
  *
- * 2. Background Execution:
- *    - Runs fully in the background even if the user navigates pages or switches apps
- *    - Calculates authentic Kundli & updates global app store (useKundliViewerStore)
- *    - Generates all requested PDF reports in the target language
- *    - Packages into a single ZIP file with JSZip
- *    - Automatically triggers browser downloads
- *    - Synthesizes divine completion chime + speaks aloud with petSpeechService
+ * 2. Multi-Instance Background Execution:
+ *    - Allows up to 10 concurrent background instances ("Kamadhenu 1", "Kamadhenu 2", ..., "Kamadhenu 10")
+ *    - Non-blocking: foreground is 100% free for user to navigate, interact, or switch apps
+ *    - Real-time instance control: query progress, view step details, or KILL / CANCEL stuck jobs
+ *    - On completion: synthesizes divine bell chime, speaks aloud, emits on-screen toast notification
+ *    - Downloads all 5 PDFs + unified ZIP directly into user's Downloads folder
  */
 
 import { calculateKundli } from "../core/KundliEngine";
@@ -68,9 +66,49 @@ export interface GeneratedReportItem {
   downloadUrl?: string;
 }
 
+export type InstanceStatus = "pending" | "running" | "completed" | "cancelled" | "error";
+
+export interface BackgroundJobInstance {
+  instanceId: string;
+  instanceIndex: number; // 1 to 10 ("Kamadhenu 1", "Kamadhenu 2", etc.)
+  instanceName: string;  // e.g. "ಕಾಮಧೇನು ೧ (Kamadhenu 1): Shriram Pandit"
+  params: WorkflowParams;
+  status: InstanceStatus;
+  progressPercent: number;
+  currentStepIndex: number;
+  totalSteps: number;
+  stepTitle: string;
+  stepDetail: string;
+  reports: GeneratedReportItem[];
+  zipBlob?: Blob | null;
+  zipUrl?: string | null;
+  zipFileName?: string | null;
+  error?: string | null;
+  startedAt?: Date | null;
+  completedAt?: Date | null;
+  abortController?: AbortController;
+}
+
+export interface JobNotification {
+  id: string;
+  instanceId: string;
+  instanceIndex: number;
+  title: string;
+  message: string;
+  devoteeName: string;
+  timestamp: Date;
+  zipBlob?: Blob | null;
+  zipFileName?: string | null;
+  reportsCount: number;
+}
+
 export type WorkflowStatus = "idle" | "running" | "completed" | "error";
 
-export interface WorkflowState {
+export interface RunnerFleetState {
+  instances: BackgroundJobInstance[];
+  activeCount: number;
+  notifications: JobNotification[];
+  // Backward compatibility fields for legacy single-runner readers & tests
   jobId: string | null;
   status: WorkflowStatus;
   progressPercent: number;
@@ -87,6 +125,8 @@ export interface WorkflowState {
   startedAt?: Date | null;
   completedAt?: Date | null;
 }
+
+export type WorkflowState = RunnerFleetState;
 
 // =========================================================================
 // CITY & PINCODE GEO DICTIONARY
@@ -220,12 +260,10 @@ export function parseWorkflowInstruction(
 
   // 1. EXTRACT NAME
   let name = "";
-  // Check "person Shriram Pandit", "person named Suresh", "name Suresh"
   const personMatch = text.match(/(?:person(?:\s+name)?(?:\s+is)?|named|devotee|user|name\s+is)\s+([A-Za-z\u0C80-\u0CFF]+(?:\s+[A-Za-z\u0C80-\u0CFF]+)*?)(?:,|\.|\bhe\b|\bshe\b|\bborn\b|\bwant\b|\bfrom\b|$)/i);
   if (personMatch && personMatch[1]) {
     name = personMatch[1].trim();
   } else {
-    // Specific match for "Shriram Pandit" or "Suresh"
     const shriMatch = text.match(/\b(Shriram\s+Pandit|Suresh|Ramesh|Chaitanya)\b/i);
     if (shriMatch) {
       name = shriMatch[1];
@@ -274,7 +312,6 @@ export function parseWorkflowInstruction(
 
     birthTime = `${hour.toString().padStart(2, "0")}:${minute}`;
   } else {
-    // Look for e.g. "at 9 AM" or "at 9.20 AM"
     const dotTimeMatch = text.match(/\b(\d{1,2})\.(\d{2})\s*(am|pm|AM|PM)\b/);
     if (dotTimeMatch) {
       let hour = parseInt(dotTimeMatch[1], 10);
@@ -297,7 +334,6 @@ export function parseWorkflowInstruction(
     rawCity = cityMatch[1].trim();
   }
   if (!rawCity) {
-    // Check known cities in text
     for (const key of Object.keys(CITY_DATABASE)) {
       if (lower.includes(key)) {
         rawCity = key;
@@ -306,10 +342,8 @@ export function parseWorkflowInstruction(
     }
   }
 
-  // Check explicit 6-digit Indian pincode in text
   const pinMatch = text.match(/\b(\d{6})\b/);
   const explicitPin = pinMatch ? pinMatch[1] : undefined;
-
   const geo = resolveCityCoordsAndPincode(rawCity || "Bengaluru", explicitPin);
 
   // 5. EXTRACT PRIEST NAME (e.g. "priest name is Chaitanya Pandit")
@@ -344,7 +378,6 @@ export function parseWorkflowInstruction(
     requestedReports.push("seva_patra");
   }
 
-  // Default to all 5 reports if none specifically isolated or if "all" mentioned
   if (requestedReports.length === 0 || lower.includes("all reports") || lower.includes("these reports") || lower.includes("ಎಲ್ಲಾ")) {
     requestedReports.push("baggona_kundli", "premium_pdf_v1", "daivika_parihara", "doshagalu", "seva_patra");
   }
@@ -371,7 +404,6 @@ export function parseWorkflowInstruction(
     }
   }
 
-  // If missing critical fields
   if (missingFields.length > 0) {
     const questionPrompt =
       language === "kn"
@@ -410,11 +442,11 @@ export function parseWorkflowInstruction(
 // =========================================================================
 export function playCompletionChime(): void {
   try {
+    if (typeof window === "undefined") return;
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
-    
-    // Play warm resonant bell harmonic
+
     const playTone = (freq: number, startDelay: number, duration: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -431,22 +463,25 @@ export function playCompletionChime(): void {
       osc.stop(ctx.currentTime + startDelay + duration);
     };
 
-    // Bell frequencies (Sa - Pa harmonic)
-    playTone(528, 0, 1.2);    // Solfeggio 528Hz Miracle tone
-    playTone(792, 0.15, 1.4);  // Fifth harmonic
-    playTone(1056, 0.3, 1.8);  // Octave harmonic
+    playTone(528, 0, 1.2);
+    playTone(792, 0.15, 1.4);
+    playTone(1056, 0.3, 1.8);
   } catch (err) {
     console.warn("[playCompletionChime] Audio context unavailable:", err);
   }
 }
 
 // =========================================================================
-// OBSERVABLE WORKFLOW RUNNER ENGINE (Background Task Manager)
+// MULTI-INSTANCE OBSERVABLE FLEET ENGINE (Up to 10 Simultaneous Background Jobs)
 // =========================================================================
-type WorkflowListener = (state: WorkflowState) => void;
+type FleetListener = (state: RunnerFleetState) => void;
 
 class SuperAdminWorkflowRunner {
-  private state: WorkflowState = {
+  private fleetState: RunnerFleetState = {
+    instances: [],
+    activeCount: 0,
+    notifications: [],
+    // Legacy single-job mirrors
     jobId: null,
     status: "idle",
     progressPercent: 0,
@@ -464,23 +499,45 @@ class SuperAdminWorkflowRunner {
     completedAt: null
   };
 
-  private listeners: Set<WorkflowListener> = new Set();
+  private listeners: Set<FleetListener> = new Set();
 
-  public subscribe(listener: WorkflowListener): () => void {
+  public subscribe(listener: FleetListener): () => void {
     this.listeners.add(listener);
-    listener(this.state);
+    listener(this.fleetState);
     return () => this.listeners.delete(listener);
   }
 
-  public getState(): WorkflowState {
-    return this.state;
+  public getState(): RunnerFleetState {
+    return this.fleetState;
   }
 
-  private update(patch: Partial<WorkflowState>): void {
-    this.state = { ...this.state, ...patch };
+  private notifyUpdate(): void {
+    const active = this.fleetState.instances.filter((i) => i.status === "running").length;
+    const latest = this.fleetState.instances[this.fleetState.instances.length - 1];
+
+    this.fleetState = {
+      ...this.fleetState,
+      activeCount: active,
+      jobId: latest?.instanceId || null,
+      status: latest?.status === "running" ? "running" : latest?.status === "completed" ? "completed" : latest?.status === "error" ? "error" : "idle",
+      progressPercent: latest?.progressPercent || 0,
+      currentStepIndex: latest?.currentStepIndex || 0,
+      totalSteps: latest?.totalSteps || 7,
+      stepTitle: latest?.stepTitle || "",
+      stepDetail: latest?.stepDetail || "",
+      params: latest?.params || null,
+      reports: latest?.reports || [],
+      zipBlob: latest?.zipBlob || null,
+      zipUrl: latest?.zipUrl || null,
+      zipFileName: latest?.zipFileName || null,
+      error: latest?.error || null,
+      startedAt: latest?.startedAt || null,
+      completedAt: latest?.completedAt || null
+    };
+
     for (const listener of this.listeners) {
       try {
-        listener(this.state);
+        listener(this.fleetState);
       } catch (e) {
         console.error("[WorkflowRunner] Listener error:", e);
       }
@@ -488,36 +545,83 @@ class SuperAdminWorkflowRunner {
   }
 
   /**
-   * Main entry point to launch autonomous workflow in the background.
+   * Finds the lowest available slot number (1 to 10) for naming (e.g. Kamadhenu 1..10)
    */
-  public async executeWorkflow(
-    params: WorkflowParams,
-    onProgressUpdate?: (percent: number, msg: string) => void
-  ): Promise<WorkflowState> {
-    const jobId = `wf_${Date.now()}`;
-    const totalSteps = 2 + params.requestedReports.length + 1; // parse/kundli + each report + zip/finalize
+  public getNextAvailableSlotIndex(): number {
+    const runningIndices = new Set(
+      this.fleetState.instances
+        .filter((i) => i.status === "running" || i.status === "pending")
+        .map((i) => i.instanceIndex)
+    );
 
-    this.update({
-      jobId,
+    for (let slot = 1; slot <= 10; slot++) {
+      if (!runningIndices.has(slot)) {
+        return slot;
+      }
+    }
+    return 1;
+  }
+
+  /**
+   * Starts a new concurrent background job instance (up to 10 simultaneous instances).
+   */
+  public startInstance(params: WorkflowParams): BackgroundJobInstance {
+    const runningCount = this.fleetState.instances.filter((i) => i.status === "running").length;
+    if (runningCount >= 10) {
+      throw new Error("Maximum 10 simultaneous background instances reached. Please wait or cancel an active job.");
+    }
+
+    const slotIndex = this.getNextAvailableSlotIndex();
+    const instanceId = `inst_${Date.now()}_${slotIndex}`;
+    const totalSteps = 2 + params.requestedReports.length + 1;
+    const abortController = new AbortController();
+
+    const knNumeral = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"][slotIndex] || String(slotIndex);
+    const instanceName =
+      params.language === "kn"
+        ? `ಕಾಮಧೇನು ${knNumeral}: ${params.name}`
+        : `Kamadhenu ${slotIndex}: ${params.name}`;
+
+    const newInstance: BackgroundJobInstance = {
+      instanceId,
+      instanceIndex: slotIndex,
+      instanceName,
+      params,
       status: "running",
       progressPercent: 5,
       currentStepIndex: 1,
       totalSteps,
       stepTitle: params.language === "kn" ? "ಕುಂಡಲಿ ಗಣನೆ" : "Calculating Kundli",
       stepDetail: `${params.name} (${params.birthDate} ${params.birthTime}, ${params.city})`,
-      params,
       reports: [],
       zipBlob: null,
       zipUrl: null,
       zipFileName: null,
       error: null,
       startedAt: new Date(),
-      completedAt: null
-    });
+      completedAt: null,
+      abortController
+    };
 
-    onProgressUpdate?.(10, `Calculating Kundli for ${params.name}...`);
+    // Remove any previous completed/cancelled instance occupying the same slot number
+    const filtered = this.fleetState.instances.filter((i) => !(i.instanceIndex === slotIndex && (i.status === "completed" || i.status === "cancelled")));
+    filtered.push(newInstance);
+    this.fleetState.instances = filtered;
+    this.notifyUpdate();
+
+    // Spawn async background processing without blocking caller!
+    this.runInstancePipeline(newInstance);
+
+    return newInstance;
+  }
+
+  private async runInstancePipeline(instance: BackgroundJobInstance): Promise<void> {
+    const params = instance.params;
+    const signal = instance.abortController?.signal;
 
     try {
+      if (signal?.aborted) throw new Error("Job cancelled by user");
+
       // ── STEP 1: AUTHENTIC KUNDLI CALCULATION ──────────────────────────────
       const kundliInput: KundliInput = {
         name: params.name,
@@ -546,37 +650,38 @@ class SuperAdminWorkflowRunner {
       // Set global session so the entire app reflects this Kundli
       useKundliViewerStore.getState().setSession(session);
 
-      this.update({
-        progressPercent: 20,
-        currentStepIndex: 2,
-        stepTitle: params.language === "kn" ? "ವರದಿಗಳ ಸಿದ್ಧತೆ" : "Preparing Batch PDF Generation",
-        stepDetail: `Session established for ${params.name}`
-      });
+      instance.progressPercent = 20;
+      instance.currentStepIndex = 2;
+      instance.stepTitle = params.language === "kn" ? "ವರದಿಗಳ ಸಿದ್ಧತೆ" : "Preparing Batch PDF Generation";
+      instance.stepDetail = `Session established for ${params.name}`;
+      this.notifyUpdate();
+
+      if (signal?.aborted) throw new Error("Job cancelled by user");
 
       // ── STEP 2: BATCH PDF GENERATION ─────────────────────────────────────
-      // Lazy load batch PDF service to avoid bundling weight
       const { generateSuperAdminBatchPdfs } = await import("./superAdminBatchPdfService");
 
       const generatedReports = await generateSuperAdminBatchPdfs(
         session,
         params,
         (progress, stage) => {
+          if (signal?.aborted) return;
           const scaledPercent = 20 + Math.floor((progress / 100) * 70);
-          this.update({
-            progressPercent: scaledPercent,
-            stepTitle: params.language === "kn" ? "ವರದಿ ಮುದ್ರಣ ಪ್ರಕ್ರಿಯೆ" : "Generating PDF Reports",
-            stepDetail: stage
-          });
-          onProgressUpdate?.(scaledPercent, stage);
-        }
+          instance.progressPercent = scaledPercent;
+          instance.stepTitle = params.language === "kn" ? "ವರದಿ ಮುದ್ರಣ ಪ್ರಕ್ರಿಯೆ" : "Generating PDF Reports";
+          instance.stepDetail = stage;
+          this.notifyUpdate();
+        },
+        signal
       );
 
+      if (signal?.aborted) throw new Error("Job cancelled by user");
+
       // ── STEP 3: BUNDLE ALL REPORTS INTO ZIP ───────────────────────────────
-      this.update({
-        progressPercent: 92,
-        stepTitle: params.language === "kn" ? "ಜಿಪ್ ಸಂಯೋಜನೆ" : "Packaging ZIP Bundle",
-        stepDetail: "Creating comprehensive 5-Report ZIP package..."
-      });
+      instance.progressPercent = 92;
+      instance.stepTitle = params.language === "kn" ? "ಜಿಪ್ ಸಂಯೋಜನೆ" : "Packaging ZIP Bundle";
+      instance.stepDetail = "Creating comprehensive 5-Report ZIP package...";
+      this.notifyUpdate();
 
       const JSZip = (await import("jszip")).default;
       const zip = new JSZip();
@@ -595,10 +700,15 @@ class SuperAdminWorkflowRunner {
         ? URL.createObjectURL(zipBlob)
         : `blob:mock/${zipFileName}`;
 
-      // Auto-trigger ZIP download so the user has the complete set in their Downloads folder immediately
+      instance.reports = generatedReports;
+      instance.zipBlob = zipBlob;
+      instance.zipUrl = zipUrl;
+      instance.zipFileName = zipFileName;
+
+      // Auto-trigger ZIP download directly into user's Downloads folder
       triggerBrowserDownload(zipBlob, zipFileName);
 
-      // Also trigger individual report downloads with small staggering delay
+      // Auto-trigger individual report downloads with small staggering delay
       for (let i = 0; i < generatedReports.length; i++) {
         const rep = generatedReports[i];
         if (rep.blob) {
@@ -613,52 +723,150 @@ class SuperAdminWorkflowRunner {
         useAppStore.getState().setPage(params.targetRedirectPage);
       }
 
-      // ── STEP 5: FINALIZATION & AUDIO REPORTING ────────────────────────────
-      this.update({
-        status: "completed",
-        progressPercent: 100,
-        currentStepIndex: totalSteps,
-        stepTitle: params.language === "kn" ? "ಎಲ್ಲಾ ಕಾರ್ಯಗಳು ಯಶಸ್ವಿ!" : "All Reports Ready!",
-        stepDetail: params.language === "kn"
-          ? `ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಕುಂಡಲಿ ಮತ್ತು ಎಲ್ಲಾ ೫ ವರದಿಗಳು ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ.`
-          : `All 5 reports generated and downloaded for ${params.name}.`,
-        reports: generatedReports,
-        zipBlob,
-        zipUrl,
-        zipFileName,
-        completedAt: new Date()
-      });
+      // ── STEP 5: FINALIZATION & TOAST NOTIFICATION ─────────────────────────
+      instance.status = "completed";
+      instance.progressPercent = 100;
+      instance.currentStepIndex = instance.totalSteps;
+      instance.stepTitle = params.language === "kn" ? "ಎಲ್ಲಾ ಕಾರ್ಯಗಳು ಯಶಸ್ವಿ!" : "All Reports Ready!";
+      instance.stepDetail = params.language === "kn"
+        ? `${params.name} ಅವರ ಕುಂಡಲಿ ಮತ್ತು ಎಲ್ಲಾ ೫ ವರದಿಗಳು ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ.`
+        : `All 5 reports generated and downloaded for ${params.name}.`;
+      instance.completedAt = new Date();
 
-      // Play completion chime
+      // Emit on-screen foreground toast notification
+      const notifId = `notif_${Date.now()}`;
+      const knNum = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"][instance.instanceIndex] || String(instance.instanceIndex);
+      const notifTitle =
+        params.language === "kn"
+          ? `🎉 ಕಾಮಧೇನು ${knNum}: ${params.name}`
+          : `🎉 Kamadhenu ${instance.instanceIndex}: ${params.name}`;
+      const notifMessage =
+        params.language === "kn"
+          ? `ಕಾಮಧೇನು ${knNum}: ${params.name} ಅವರ ವಿವರಗಳು ಮತ್ತು ೫ ವರದಿಗಳು ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ!`
+          : `Kamadhenu ${instance.instanceIndex}: ${params.name} details and 5 reports have been downloaded successfully!`;
+
+      this.fleetState.notifications = [
+        ...this.fleetState.notifications,
+        {
+          id: notifId,
+          instanceId: instance.instanceId,
+          instanceIndex: instance.instanceIndex,
+          title: notifTitle,
+          message: notifMessage,
+          devoteeName: params.name,
+          timestamp: new Date(),
+          zipBlob,
+          zipFileName,
+          reportsCount: generatedReports.length
+        }
+      ];
+
+      this.notifyUpdate();
+
+      // Synthesize gentle chime
       playCompletionChime();
 
-      // Speak aloud in requested language
-      const completionSpokenText =
+      // Announce aloud via speech
+      const completionSpeech =
         params.language === "kn"
-          ? `ಸ್ವಾಮಿ, ${params.name} ಅವರ ಜನ್ಮ ಕುಂಡಲಿ, ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ, ದೈವಿಕ ಪರಿಹಾರ, ದೋಷಗಳು ಮತ್ತು ಚೈತನ್ಯ ಪಂಡಿತರ ಸೇವಾ ಪತ್ರ ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ!`
-          : `Swami, Janma Kundli, Premium Bhavishya, Daivika Parihara, Doshagalu, and Seva Patra for ${params.name} have been successfully generated and downloaded!`;
+          ? `ಕಾಮಧೇನು ${knNum}: ${params.name} ಅವರ ವಿವರಗಳು ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿವೆ.`
+          : `Kamadhenu ${instance.instanceIndex}: ${params.name} details have been downloaded successfully.`;
+      petSpeechService.speak(completionSpeech, params.language);
 
-      petSpeechService.speak(completionSpokenText, params.language);
-
-      return this.state;
     } catch (err: any) {
-      console.error("[WorkflowRunner Error]", err);
-      const errMsg = err?.message || "Failed to complete background workflow";
-      this.update({
-        status: "error",
-        error: errMsg,
-        stepTitle: params.language === "kn" ? "ದೋಷ ಎದುರಾಗಿದೆ" : "Workflow Error",
-        stepDetail: errMsg
-      });
+      if (signal?.aborted) {
+        instance.status = "cancelled";
+        instance.stepTitle = params.language === "kn" ? "ಕಾರ್ಯ ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ" : "Job Cancelled";
+        instance.stepDetail = "User terminated this background instance.";
+        this.notifyUpdate();
+        return;
+      }
+
+      console.error(`[WorkflowRunner Error on ${instance.instanceName}]`, err);
+      instance.status = "error";
+      instance.error = err?.message || "Failed to complete background workflow";
+      instance.stepTitle = params.language === "kn" ? "ದೋಷ ಎದುರಾಗಿದೆ" : "Workflow Error";
+      instance.stepDetail = instance.error || "";
+      this.notifyUpdate();
 
       const errorSpeech =
         params.language === "kn"
-          ? `ಕ್ಷಮಿಸಿ ಸ್ವಾಮಿ, ವರದಿ ಸಿದ್ಧಪಡಿಸುವಲ್ಲಿ ದೋಷ ಎದುರಾಗಿದೆ: ${errMsg}`
-          : `Apologies Swami, an error occurred during report generation: ${errMsg}`;
+          ? `ಕ್ಷಮಿಸಿ ಸ್ವಾಮಿ, ಕಾಮಧೇನು ${instance.instanceIndex} ಕಾರ್ಯದಲ್ಲಿ ದೋಷ ಎದುರಾಗಿದೆ: ${instance.error}`
+          : `Apologies Swami, an error occurred in Kamadhenu ${instance.instanceIndex}: ${instance.error}`;
       petSpeechService.speak(errorSpeech, params.language);
-
-      throw err;
     }
+  }
+
+  /**
+   * Kills / aborts an active background job instantaneously.
+   */
+  public killJob(instanceId: string): void {
+    const inst = this.fleetState.instances.find((i) => i.instanceId === instanceId);
+    if (!inst) return;
+
+    if (inst.status === "running") {
+      inst.abortController?.abort();
+      inst.status = "cancelled";
+      inst.stepTitle = inst.params.language === "kn" ? "ಕಾರ್ಯ ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ" : "Job Cancelled";
+      inst.stepDetail = "Terminated by Super Admin.";
+      this.notifyUpdate();
+
+      const killSpeech =
+        inst.params.language === "kn"
+          ? `ಕಾಮಧೇನು ${inst.instanceIndex} ಕಾರ್ಯವನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ.`
+          : `Kamadhenu ${inst.instanceIndex} has been cancelled.`;
+      petSpeechService.speak(killSpeech, inst.params.language);
+    }
+  }
+
+  /**
+   * Clears a completed or cancelled instance from the list.
+   */
+  public clearJob(instanceId: string): void {
+    this.fleetState.instances = this.fleetState.instances.filter((i) => i.instanceId !== instanceId);
+    this.notifyUpdate();
+  }
+
+  /**
+   * Dismisses a foreground toast notification.
+   */
+  public dismissNotification(notifId: string): void {
+    this.fleetState.notifications = this.fleetState.notifications.filter((n) => n.id !== notifId);
+    this.notifyUpdate();
+  }
+
+  /**
+   * Legacy wrapper for single-job execution and unit tests.
+   */
+  public async executeWorkflow(
+    params: WorkflowParams,
+    onProgressUpdate?: (percent: number, msg: string) => void
+  ): Promise<RunnerFleetState> {
+    const inst = this.startInstance(params);
+
+    // Wait for this specific instance to finish
+    await new Promise<void>((resolve, reject) => {
+      const check = setInterval(() => {
+        const found = this.fleetState.instances.find((i) => i.instanceId === inst.instanceId);
+        if (!found) {
+          clearInterval(check);
+          resolve();
+        } else if (found.status === "completed") {
+          clearInterval(check);
+          resolve();
+        } else if (found.status === "cancelled") {
+          clearInterval(check);
+          reject(new Error("Job cancelled by user"));
+        } else if (found.status === "error") {
+          clearInterval(check);
+          reject(new Error(found.error || "Workflow failed"));
+        } else if (found.status === "running") {
+          onProgressUpdate?.(found.progressPercent, found.stepDetail);
+        }
+      }, 250);
+    });
+
+    return this.fleetState;
   }
 }
 
