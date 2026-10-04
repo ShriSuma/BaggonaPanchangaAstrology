@@ -5,6 +5,12 @@ import {
   type SuperAdminPetContext
 } from "../services/superAdminPetEngine";
 import { petSpeechService } from "../services/petSpeechService";
+import {
+  parseWorkflowInstruction,
+  resolveCityCoordsAndPincode,
+  superAdminWorkflowRunner
+} from "../services/superAdminWorkflowRunner";
+import { useKundliViewerStore } from "../stores/kundliViewerStore";
 
 describe("SuperAdminAiPet Intelligence & Security Suite", () => {
   it("enforces strict access control: authorized ONLY for Super Admin & Master profiles", () => {
@@ -160,5 +166,95 @@ describe("SuperAdminAiPet Intelligence & Security Suite", () => {
     expect(clean).not.toContain("**");
     expect(clean).not.toContain("✨");
     expect(clean).toContain("ಪ್ರೀಮಿಯಂ ೧೦೪ ಪುಟಗಳ ಪಂಚಾಂಗ");
+  });
+
+  it("parses user's exact audio voice command: Shriram Pandit 31 May 1993, 9:20 AM Bengaluru 5 reports", () => {
+    const exactVoiceCommand =
+      "Hi Kamadhenu, there is a person Shriram Pandit, he born on 31 May 1993 at 9:20 AM in Bengaluru, so get the Bengaluru pin code, add it in, and generate a Kundali for this particular user. After generating it, download Baggona Panchanga Kundali, and also download Premium PDF V1, download Daivika Parihara, download Doshagalu, and also download Seva Patra. The priest name is Chaitanya Pandit, use that priest name, Pooja is Moksha Narayana Bali and Tripindi, and the place is Bangalore, take the Bangalore pincode, and download these reports, and once done let me know. And if you have any questions also let me know.";
+
+    const parsed = parseWorkflowInstruction(exactVoiceCommand, "kn");
+
+    expect(parsed.isWorkflow).toBe(true);
+    expect(parsed.params).toBeDefined();
+
+    const p = parsed.params!;
+    expect(p.name).toBe("Shriram Pandit");
+    expect(p.birthDate).toBe("1993-05-31");
+    expect(p.birthTime).toBe("09:20");
+    expect(p.city).toBe("Bengaluru");
+    expect(p.pincode).toBe("560001");
+    expect(p.latitude).toBeCloseTo(12.9716, 2);
+    expect(p.longitude).toBeCloseTo(77.5946, 2);
+    expect(p.priestName).toBe("Chaitanya Pandit");
+    expect(p.poojaName).toContain("Moksha Narayana Bali");
+    expect(p.requestedReports).toContain("baggona_kundli");
+    expect(p.requestedReports).toContain("premium_pdf_v1");
+    expect(p.requestedReports).toContain("daivika_parihara");
+    expect(p.requestedReports).toContain("doshagalu");
+    expect(p.requestedReports).toContain("seva_patra");
+    expect(p.requestedReports.length).toBe(5);
+  });
+
+  it("resolves city coordinates and Indian pincodes accurately", () => {
+    const b = resolveCityCoordsAndPincode("Bengaluru");
+    expect(b.city).toBe("Bengaluru");
+    expect(b.pincode).toBe("560001");
+    expect(b.lat).toBeCloseTo(12.9716, 2);
+
+    const g = resolveCityCoordsAndPincode("Gokarna");
+    expect(g.city).toBe("Gokarna");
+    expect(g.pincode).toBe("581326");
+
+    const m = resolveCityCoordsAndPincode("Mumbai");
+    expect(m.city).toBe("Mumbai");
+    expect(m.pincode).toBe("400001");
+
+    // With explicit pincode
+    const custom = resolveCityCoordsAndPincode("Bengaluru", "560034");
+    expect(custom.pincode).toBe("560034");
+  });
+
+  it("detects missing fields when incomplete command is given and requests clarification", () => {
+    const incomplete = "Hi Kamadhenu, please generate a Kundali and download all reports";
+    const res = parseWorkflowInstruction(incomplete, "kn");
+
+    expect(res.isWorkflow).toBe(true);
+    expect(res.missingFields).toBeDefined();
+    expect(res.missingFields).toContain("name");
+    expect(res.missingFields).toContain("birthDate");
+    expect(res.missingFields).toContain("birthTime");
+    expect(res.questionPrompt).toContain("ಮಾಹಿತಿ ಅಗತ್ಯವಿದೆ");
+  });
+
+  it("executes multi-step background workflow, sets app Kundli session, and packages reports into ZIP", async () => {
+    const mockParams = {
+      rawPrompt: "Test Shriram Pandit Workflow",
+      name: "Shriram Pandit",
+      birthDate: "1993-05-31",
+      birthTime: "09:20",
+      city: "Bengaluru",
+      pincode: "560001",
+      latitude: 12.9716,
+      longitude: 77.5946,
+      priestName: "Chaitanya Pandit",
+      poojaName: "Moksha Narayana Bali and Tripindi",
+      requestedReports: ["baggona_kundli", "daivika_parihara", "doshagalu"] as any[],
+      language: "kn" as const
+    };
+
+    const finalState = await superAdminWorkflowRunner.executeWorkflow(mockParams);
+
+    expect(finalState.status).toBe("completed");
+    expect(finalState.progressPercent).toBe(100);
+    expect(finalState.reports.length).toBe(3);
+    expect(finalState.zipBlob).toBeDefined();
+    expect(finalState.zipFileName).toContain("Shriram_Pandit");
+
+    // Verify global app store session was set
+    const currentSession = useKundliViewerStore.getState().session;
+    expect(currentSession).toBeDefined();
+    expect(currentSession?.input.name).toBe("Shriram Pandit");
+    expect(currentSession?.birthDateYmd).toBe("1993-05-31");
+    expect(currentSession?.homePlaceName).toBe("Bengaluru");
   });
 });
