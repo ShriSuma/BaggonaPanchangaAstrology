@@ -17,6 +17,7 @@ import { AdminCoinApprovalModal } from "../features/wallet/AdminCoinApprovalModa
 import { FloatingCoinDeductionBadge } from "./wallet/FloatingCoinDeductionBadge";
 import { getNavLabel } from "../i18n/navigationLocale";
 import InstallPrompt from "./InstallPrompt";
+import { SuperAdminAiPet } from "./pet/SuperAdminAiPet";
 
 type Props = {
   children: ReactNode;
@@ -284,6 +285,9 @@ export default function Layout({ children }: Props): JSX.Element {
       {/* Wallet & Admin Modals */}
       <PriestWalletModal />
       <AdminCoinApprovalModal />
+
+      {/* Super Admin AI Assistant Pet (Kamadhenu) - Accessible strictly to Super Admin */}
+      {isMasterOrSuperAdmin && <SuperAdminAiPet />}
 
       {/* Side Drawer Navigation - STRICTLY ONLY RENDERED FOR MASTER/SUPERADMIN */}
       {isMasterOrSuperAdmin && isDrawerOpen && (
