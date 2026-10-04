@@ -134,7 +134,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       <div className={`absolute inset-8 border border-dashed ${borderColorClass} pointer-events-none opacity-60`} />
 
       {/* ── Cover / Header Section ────────────────────────────────────────── */}
-      <div className="pdf-section text-center mt-10 mb-6 px-16 pt-8 pb-4">
+      <div data-section="cover" className="pdf-section text-center mt-10 mb-6 px-16 pt-8 pb-4">
         <div className="inline-block relative px-12 py-3 mb-4">
           <div className="absolute inset-0 border-y border-amber-700/40 transform -skew-x-12 pointer-events-none" />
           <h1 className={`text-4xl font-extrabold ${primaryColorClass} leading-relaxed tracking-normal`}>
@@ -152,100 +152,104 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       </div>
 
       {/* ── User Details Box (Ultra-Premium Royal Gold Parchment Card) ──────── */}
-      <div className="pdf-section mx-14 mb-8 relative rounded-xl border-2 border-amber-600/60 bg-amber-100/50 p-8 shadow-md overflow-hidden">
-        {/* Ornate Inner Frame */}
-        <div className="absolute inset-2 border border-amber-700/30 rounded-lg pointer-events-none" />
-        <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-lg pointer-events-none" />
+      <div data-section="user-details" className="pdf-section w-full px-14 mb-8">
+        <div className="relative rounded-xl border-2 border-amber-600/60 bg-amber-100/50 p-8 shadow-md overflow-hidden">
+          {/* Ornate Inner Frame */}
+          <div className="absolute inset-2 border border-amber-700/30 rounded-lg pointer-events-none" />
+          <div className="absolute inset-3 border border-dashed border-amber-700/20 rounded-lg pointer-events-none" />
 
-        {/* Decorative corner emblems */}
-        <div className="absolute top-4 left-4 text-sm text-amber-800/50 font-serif">❖</div>
-        <div className="absolute top-4 right-4 text-sm text-amber-800/50 font-serif">❖</div>
-        <div className="absolute bottom-4 left-4 text-sm text-amber-800/50 font-serif">❖</div>
-        <div className="absolute bottom-4 right-4 text-sm text-amber-800/50 font-serif">❖</div>
+          {/* Decorative corner emblems */}
+          <div className="absolute top-4 left-4 text-sm text-amber-800/50 font-serif">❖</div>
+          <div className="absolute top-4 right-4 text-sm text-amber-800/50 font-serif">❖</div>
+          <div className="absolute bottom-4 left-4 text-sm text-amber-800/50 font-serif">❖</div>
+          <div className="absolute bottom-4 right-4 text-sm text-amber-800/50 font-serif">❖</div>
 
-        <div className="grid grid-cols-2 gap-y-7 gap-x-10 relative z-10 px-4 py-2">
-          <div className="flex flex-col border-b border-amber-800/20 pb-3">
-            <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-              {translations.nameLabel}
-            </span>
-            <span className="text-2xl font-black text-amber-950 font-serif tracking-normal leading-relaxed">
-              {translations.nameValue}
-            </span>
-          </div>
-
-          <div className="flex flex-col border-b border-amber-800/20 pb-3">
-            <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-              {translations.dobLabel}
-            </span>
-            <span className="text-2xl font-bold text-amber-950 font-serif tracking-normal leading-relaxed">
-              {translations.dobValue}
-            </span>
-          </div>
-
-          <div className="flex flex-col border-b border-amber-800/20 pb-3">
-            <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-              {translations.lagnaLabel}
-            </span>
-            <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-              {translations.lagnaValue}
-            </span>
-          </div>
-
-          <div className="flex flex-col border-b border-amber-800/20 pb-3">
-            <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-              {translations.moonLabel}
-            </span>
-            <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-              {translations.moonValue}
-            </span>
-          </div>
-
-          <div className="flex flex-col">
-            <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-              {translations.nakshatraLabel}
-            </span>
-            <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-              {translations.nakshatraValue}
-            </span>
-          </div>
-
-          {translations.dashaPlanetValue && translations.bhuktiPlanetValue && (
-            <div className="flex flex-col">
+          <div className="grid grid-cols-2 gap-y-7 gap-x-10 relative z-10 px-4 py-2">
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
               <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {translations.eraLabel}
+                {translations.nameLabel}
               </span>
-              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.dashaPlanetValue} {translations.dashaLabel} / {translations.bhuktiPlanetValue} {translations.bhuktiLabel}
+              <span className="text-2xl font-black text-amber-950 font-serif tracking-normal leading-relaxed">
+                {translations.nameValue}
               </span>
             </div>
-          )}
+
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {translations.dobLabel}
+              </span>
+              <span className="text-2xl font-bold text-amber-950 font-serif tracking-normal leading-relaxed">
+                {translations.dobValue}
+              </span>
+            </div>
+
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {translations.lagnaLabel}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {translations.lagnaValue}
+              </span>
+            </div>
+
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {translations.moonLabel}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {translations.moonValue}
+              </span>
+            </div>
+
+            <div className="flex flex-col">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {translations.nakshatraLabel}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {translations.nakshatraValue}
+              </span>
+            </div>
+
+            {translations.dashaPlanetValue && translations.bhuktiPlanetValue && (
+              <div className="flex flex-col">
+                <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                  {translations.eraLabel}
+                </span>
+                <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                  {translations.dashaPlanetValue} {translations.dashaLabel} / {translations.bhuktiPlanetValue} {translations.bhuktiLabel}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* ── Introduction Block ─────────────────────────────────────────────── */}
       {translations.introPrepared && (
-        <div className={`${sectionClass} mx-14 mt-4 mb-6 p-10 rounded-lg border border-amber-800/30 bg-amber-100/30 relative`}>
-          {translations.introGreeting && (
-            <h2 className="text-3xl font-extrabold text-amber-900 mb-6 tracking-normal leading-relaxed font-sans">
-              {translations.introGreeting}
-            </h2>
-          )}
-          <div className="space-y-5">
-            <p className="text-xl leading-relaxed text-amber-950 font-medium break-words">
-              {translations.introPrepared}
-            </p>
-            {translations.introBegin && (
-              <p className="text-xl leading-relaxed text-amber-900 font-bold italic break-words">
-                {translations.introBegin}
-              </p>
+        <div data-section="intro" className="pdf-section w-full px-14 mt-4 mb-6">
+          <div className="p-10 rounded-lg border border-amber-800/30 bg-amber-100/30 relative">
+            {translations.introGreeting && (
+              <h2 className="text-3xl font-extrabold text-amber-900 mb-6 tracking-normal leading-relaxed font-sans">
+                {translations.introGreeting}
+              </h2>
             )}
+            <div className="space-y-5">
+              <p className="text-xl leading-relaxed text-amber-950 font-medium break-words">
+                {translations.introPrepared}
+              </p>
+              {translations.introBegin && (
+                <p className="text-xl leading-relaxed text-amber-900 font-bold italic break-words">
+                  {translations.introBegin}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {/* ── Characteristics Section ───────────────────────────────────────── */}
       {hasContent(premiumData?.characteristics) && (
-        <div className={sectionClass}>
+        <div data-section="characteristics" className={sectionClass}>
           <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-8`}>
             {translations.characteristicsTitle}
           </h2>
@@ -265,7 +269,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Dark Secret Section (Hidden for children below 8 years old) ───────────────────────────────────────────── */}
       {!isChildUnder8 && hasContent(premiumData?.darkSecret) && (
-        <div className={sectionClass}>
+        <div data-section="dark-secret" className={sectionClass}>
           <h2 className="text-3xl font-bold text-slate-800 leading-normal border-b-2 border-slate-700/30 pb-2 mb-8">
             {translations.darkSecretTitle}
           </h2>
@@ -285,7 +289,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Present Planetary Influence & Divine Guidance Section ───────────────────── */}
       {hasContent(premiumData?.currentPhase) && (
-        <div className={sectionClass}>
+        <div data-section="current-phase" className={sectionClass}>
           <h2 className="text-3xl font-bold text-amber-900 leading-normal border-b-2 border-amber-700/30 pb-2 mb-8">
             {translations.currentPhaseGuidanceTitle || translations.currentPhaseTitle || translations.title || "Present Planetary Influence & Divine Guidance"}
           </h2>
@@ -305,7 +309,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Sacred Karmic Inquest & Turning Point ─────────────────────────── */}
       {premiumData?.maandiInquest && (
-        <div className={sectionClass}>
+        <div data-section="maandi-inquest" className={sectionClass}>
           <div className="rounded-xl border-2 border-amber-700/60 bg-amber-100/40 p-8 shadow-md relative overflow-hidden">
             <div className="absolute inset-2 border border-dashed border-amber-700/30 rounded-lg pointer-events-none" />
             <div className="flex items-center gap-3 border-b-2 border-amber-700/40 pb-3 mb-6 relative z-10">
@@ -328,7 +332,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Life Stage Predictions ────────────────────────────────────────── */}
       {Object.entries(groupedPredictions).map(([category, preds]) => (
-        <div key={category} className={sectionClass}>
+        <div data-section="life-predictions" key={category} className={sectionClass}>
           <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-8`}>
             {category}
           </h2>
@@ -361,7 +365,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Yogas Section ────────────────────────────────────────────────── */}
       {hasContent(premiumData?.yogas) && (
-        <div className={sectionClass}>
+        <div data-section="yogas" className={sectionClass}>
           <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-8`}>
             {translations.yogasTitle}
           </h2>
@@ -382,7 +386,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Doshas Section ───────────────────────────────────────────────── */}
       {hasContent(premiumData?.doshas) && (
-        <div className={sectionClass}>
+        <div data-section="doshas" className={sectionClass}>
           <h2 className="text-3xl font-bold text-rose-900 leading-normal border-b-2 border-rose-700/30 pb-2 mb-8">
             {translations.doshasTitle}
           </h2>
@@ -411,7 +415,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Gochara (Current Planetary Transits) Section ─────────────────── */}
       {hasContent(premiumData?.gochara) && (
-        <div className={sectionClass}>
+        <div data-section="gochara" className={sectionClass}>
           <h2 className="text-3xl font-bold text-rose-900 leading-normal border-b-2 border-rose-700/30 pb-2 mb-8">
             {translations.gocharaTitle}
           </h2>
@@ -440,7 +444,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── 6-Month Planetary Journey Map ────────────────────────────────── */}
       {hasContent(premiumData?.timeline) && (
-        <div className={sectionClass}>
+        <div data-section="timeline" className={sectionClass}>
           <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-10`}>
             {translations.timelineTitle}
           </h2>
@@ -473,7 +477,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Astrologer's Summary ──────────────────────────────────────────── */}
       {hasContent(premiumData?.summary) && (
-        <div className={sectionClass}>
+        <div data-section="summary" id="pdf-section-summary" className={sectionClass}>
           <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-8`}>
             {translations.summaryTitle}
           </h2>
@@ -492,14 +496,16 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       )}
 
       {/* ── Sanskrit Shloka ───────────────────────────────────────────────── */}
-      <div className={`pdf-section my-4 text-center mx-16 px-20 py-14 border-y-[3px] border-double ${borderColorClass} bg-amber-100/30`}>
-        <p className="text-3xl font-bold leading-loose text-amber-900" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>
-          {shloka}
-        </p>
+      <div data-section="shloka" className="pdf-section w-full px-16 my-4">
+        <div className={`text-center px-20 py-14 border-y-[3px] border-double ${borderColorClass} bg-amber-100/30`}>
+          <p className="text-3xl font-bold leading-loose text-amber-900" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>
+            {shloka}
+          </p>
+        </div>
       </div>
 
       {/* ── Astrologer's Blessing ─────────────────────────────────────────── */}
-      <div className="pdf-section mt-4 text-center px-20 pb-20">
+      <div data-section="ashirvada" className="pdf-section mt-4 text-center px-20 pb-20">
         <div className="text-6xl text-amber-600 mb-6 drop-shadow-md opacity-90" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>ॐ</div>
         <h3 className={`text-3xl font-bold mb-8 italic ${primaryColorClass} leading-normal`}>
           {translations.ashirvadaTitle}

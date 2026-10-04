@@ -4,6 +4,12 @@ import { savePdfBlob } from "../../utils/pdfGenerator";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import type { PdfTranslations, PremiumData } from "../../components/RamanBhavishya/PdfTemplate";
 import type { TranslatedPrediction } from "../../components/RamanBhavishya/usePredictionEngine";
+import {
+  validateBhavishyaV1Content,
+  assertBhavishyaV1Integrity,
+  BhavishyaValidationError,
+  type BhavishyaValidationResult
+} from "./bhavishyaV1Validator";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
@@ -850,6 +856,26 @@ export async function prepareBhavishyaV1Data(
     premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
   }
 
+  // Strict non-empty Saramsha (Summary) healing
+  if (
+    !premiumDataPayload.summary ||
+    premiumDataPayload.summary.length === 0 ||
+    !premiumDataPayload.summary.some(s => (s.impact || "").trim().length >= 50)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Saramsha missing or too short. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.summary = [{ impact: rawSummaryFallback }];
+  }
+
+  // Strict non-empty Timeline healing
+  if (
+    !premiumDataPayload.timeline ||
+    premiumDataPayload.timeline.length < 4 ||
+    !premiumDataPayload.timeline.every(t => (t.dateRange || "").trim().length > 0 && (t.impact || "").trim().length >= 20)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Timeline missing or incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.timeline = dynamicTimelineFallback;
+  }
+
   onProgress?.(
     88,
     lang === "kn"
@@ -868,44 +894,226 @@ export async function prepareBhavishyaV1Data(
   };
 }
 
+export interface CaptureV1PdfOptions {
+  payload?: BhavishyaV1Payload | null;
+  lang?: string;
+  onProgress?: (progress: number, stageText: string) => void;
+}
+
+/**
+ * Captures Baggona Divya Bhavishya V1 as a continuous high-fidelity PDF without browser truncation.
+ * Uses a Section-Stitching Continuous Canvas Engine to bypass the browser HTML5 canvas limit (16,384px).
+ * Strictly validates that Saramsha (Astrologer's Summary) and all chapters are present before generating or saving.
+ */
 export async function captureBhavishyaV1Pdf(
   containerEl: HTMLElement,
   fileName: string,
-  autoSave: boolean = true
+  autoSave: boolean = true,
+  options?: CaptureV1PdfOptions
 ): Promise<jsPDF> {
+  const lang = options?.lang || "kn";
   const parentEl = containerEl.parentElement;
   const originalStyle = parentEl?.getAttribute("style") || "";
-  if (parentEl) {
-    parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
+
+  try {
+    if (parentEl) {
+      // Use width 900px, position fixed left 0 top 0 so all Indic fonts and CSS layouts render accurately
+      parentEl.setAttribute(
+        "style",
+        "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFF7ED;"
+      );
+    }
+
+    await document.fonts.ready;
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // MANDATORY AUDIT: Payload & DOM Integrity Check
+    // If Saramsha or any core chapter is missing, throws BhavishyaValidationError and halts download
+    assertBhavishyaV1Integrity(containerEl, options?.payload, lang);
+
+    // Query all individual chapter sections (.pdf-section)
+    const rawSections = Array.from(containerEl.querySelectorAll(".pdf-section")) as HTMLElement[];
+    const sections = rawSections.filter(s => {
+      const rect = s.getBoundingClientRect();
+      return rect.height > 0 && s.style.display !== "none" && s.style.visibility !== "hidden";
+    });
+
+    const baseLang = (lang || "en").split("-")[0];
+
+    if (sections.length < 8) {
+      const msg = baseLang === "kn"
+        ? `ಮುದ್ರಣ ಪುಟಗಳ ಕೊರತೆ (ಕೇವಲ ${sections.length} ಅಧ್ಯಾಯಗಳು ಮಾತ್ರ ಮೂಡಿಬಂದಿವೆ - ಕನಿಷ್ಠ ೧೨ ಅಗತ್ಯವಿದೆ)`
+        : baseLang === "hi"
+        ? `प्रिंट पृष्ठों की कमी (केवल ${sections.length} खंड लोड हुए - न्यूनतम 12 आवश्यक हैं)`
+        : baseLang === "te"
+        ? `ముద్రణ పేజీల కొరత (కేవలం ${sections.length} విభాగాలు మాత్రమే వచ్చాయి - కనీసం 12 అవసరం)`
+        : baseLang === "ta"
+        ? `அச்சுப் பக்கக் குறைபாடு (மட்டும் ${sections.length} பகுதிகள் வந்துள்ளன - குறைந்தபட்சம் 12 தேவை)`
+        : `Insufficient DOM sections (Found ${sections.length}, minimum 12 required)`;
+      throw new BhavishyaValidationError(msg, ["DOM Sections"]);
+    }
+
+    // Verify Saramsha section specifically is in the sections list across all 5 languages
+    const hasSaramshaSection = sections.some(s => {
+      const sectionAttr = s.getAttribute("data-section");
+      const id = s.id;
+      const text = s.innerText || s.textContent || "";
+      return (
+        sectionAttr === "summary" ||
+        id === "pdf-section-summary" ||
+        text.includes("ಸಾರಾಂಶ") ||
+        text.includes("सारांश") ||
+        text.includes("సారాంశం") ||
+        text.includes("சுருக்கம்") ||
+        text.includes("Summary")
+      );
+    });
+
+    if (!hasSaramshaSection) {
+      const errMsg = baseLang === "kn"
+        ? "ದೋಷ: ಮುದ್ರಣ ಪುಟದಲ್ಲಿ ಸಾರಾಂಶ (Astrologer's Summary) ವಿಭಾಗ ಕಂಡುಬಂದಿಲ್ಲ. ಅಪೂರ್ಣ ವರದಿ ಡೌನ್‌ಲೋಡ್ ತಡೆಯಲಾಗಿದೆ."
+        : baseLang === "hi"
+        ? "त्रुटि: प्रिंट पृष्ठ में सारांश (Astrologer's Summary) खंड नहीं मिला। अपूर्ण रिपोर्ट डाउनलोड रोक दी गई है।"
+        : baseLang === "te"
+        ? "లోపం: ముద్రణ పేజీలో సారాంశం (Astrologer's Summary) విభాగం కనుగొనబడలేదు. అసంపూర్ణ నివేదిక డౌన్‌లోడ్ నిలిపివేయబడింది."
+        : baseLang === "ta"
+        ? "பிழை: அச்சுப் பக்கத்தில் சுருக்கம் (Astrologer's Summary) பகுதி காணப்படவில்லை. முழுமையற்ற அறிக்கை பதிவிறக்கம் நிறுத்தப்பட்டது."
+        : "Error: Astrologer's Summary (Saramsha) section is missing in rendered document. PDF generation aborted.";
+      throw new BhavishyaValidationError(errMsg, ["Astrologer's Summary (Saramsha)"]);
+    }
+
+    const pdfWidthMm = 210; // Standard A4 width in mm
+    const renderedSections: { imgData: string; heightMm: number; name: string }[] = [];
+
+    // Render each section to an individual high-DPI canvas (safe from 16,384px dimension limits)
+    for (let i = 0; i < sections.length; i++) {
+      const sectionEl = sections[i];
+      const sectionName = sectionEl.getAttribute("data-section") || sectionEl.id || `section_${i}`;
+
+      const progressVal = 88 + Math.round(((i + 1) / sections.length) * 8);
+      options?.onProgress?.(
+        progressVal,
+        baseLang === "kn"
+          ? `೧೦. ಡಿಜಿಟಲ್ ಪುಟ ರಚನೆ (${i + 1}/${sections.length}): ${sectionName}...`
+          : baseLang === "hi"
+          ? `10. डिजिटल पृष्ठ निर्माण (${i + 1}/${sections.length}): ${sectionName}...`
+          : baseLang === "te"
+          ? `10. డిజిటల్ పేజీల నిర్మాణం (${i + 1}/${sections.length}): ${sectionName}...`
+          : baseLang === "ta"
+          ? `10. டிஜிட்டல் பக்க உருவாக்கம் (${i + 1}/${sections.length}): ${sectionName}...`
+          : `10. Rendering High-Definition Section (${i + 1}/${sections.length})...`
+      );
+
+      const sectionHeight = sectionEl.scrollHeight || sectionEl.offsetHeight;
+      // Defensive scale clamping to never exceed 15,000px canvas dimension
+      const sectionScale = sectionHeight * 2 > 15000 ? Math.max(1, Math.floor(15000 / sectionHeight)) : 2;
+
+      const canvas = await html2canvas(sectionEl, {
+        scale: sectionScale,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#FFF7ED", // Warm royal parchment background
+        allowTaint: true
+      });
+
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        console.warn(`[captureBhavishyaV1Pdf] Empty canvas rendered for section: ${sectionName}`);
+        continue;
+      }
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.92);
+      const heightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+      renderedSections.push({
+        imgData,
+        heightMm,
+        name: sectionName
+      });
+    }
+
+    // Verify at least one section was rendered and Saramsha was rendered
+    const hasRenderedSaramsha = renderedSections.some(s =>
+      s.name.includes("summary") ||
+      s.name.includes("ಸಾರಾಂಶ") ||
+      s.name.includes("सारांश") ||
+      s.name.includes("సారాంశం") ||
+      s.name.includes("சுருக்கம்")
+    );
+    if (!hasRenderedSaramsha) {
+      const domSummaryFound = sections.some(s =>
+        (s.getAttribute("data-section") || "").includes("summary") ||
+        s.id === "pdf-section-summary"
+      );
+      if (domSummaryFound && !renderedSections.some(s => (s.name || "").includes("summary"))) {
+        const errMsg = baseLang === "kn"
+          ? "ದೋಷ: ಸಾರಾಂಶ ಪುಟವನ್ನು ಮುದ್ರಿಸಲು ವಿಫಲವಾಗಿದೆ. ಡೌನ್‌ಲೋಡ್ ತಡೆಹಿಡಿಯಲಾಗಿದೆ."
+          : baseLang === "hi"
+          ? "त्रुटि: सारांश पृष्ठ को रेंडर करने में विफलता। डाउनलोड रोक दिया गया है।"
+          : baseLang === "te"
+          ? "లోపం: సారాంశం పేజీని రెండర్ చేయడంలో విఫలమైంది. డౌన్‌లోడ్ నిలిపివేయబడింది."
+          : baseLang === "ta"
+          ? "பிழை: சுருக்கம் பக்கத்தை உருவாக்க முடியவில்லை. பதிவிறக்கம் நிறுத்தப்பட்டது."
+          : "Error: Failed to render Astrologer's Summary (Saramsha) canvas. PDF download aborted.";
+        throw new BhavishyaValidationError(errMsg, ["Astrologer's Summary (Saramsha)"]);
+      }
+    }
+
+    // Calculate total continuous height in mm
+    const totalPdfHeightMm = renderedSections.reduce((sum, s) => sum + s.heightMm, 0);
+    if (totalPdfHeightMm <= 0) {
+      throw new Error("Calculated PDF height is zero. Cannot generate empty PDF.");
+    }
+
+    // Create continuous scroll jsPDF document
+    const pdf = new jsPDF({
+      orientation: "p",
+      unit: "mm",
+      format: [pdfWidthMm, totalPdfHeightMm],
+      compress: true
+    });
+
+    // 1. Fill continuous background with warm royal parchment (#FFF7ED)
+    pdf.setFillColor(255, 247, 237);
+    pdf.rect(0, 0, pdfWidthMm, totalPdfHeightMm, "F");
+
+    // 2. Add each section seamlessly sequentially
+    let currentYMm = 0;
+    for (const sec of renderedSections) {
+      pdf.addImage(sec.imgData, "JPEG", 0, currentYMm, pdfWidthMm, sec.heightMm, undefined, "FAST");
+      currentYMm += sec.heightMm;
+    }
+
+    // 3. Draw continuous outer & inner royal gold double borders
+    // Outer border: 4mm margin, 0.75mm line, amber-700 (#B45309)
+    pdf.setDrawColor(180, 83, 9);
+    pdf.setLineWidth(0.75);
+    pdf.rect(4, 4, pdfWidthMm - 8, totalPdfHeightMm - 8, "S");
+
+    // Inner border: 6mm margin, 0.25mm dashed line
+    pdf.setDrawColor(180, 83, 9);
+    pdf.setLineWidth(0.25);
+    pdf.rect(6, 6, pdfWidthMm - 12, totalPdfHeightMm - 12, "S");
+
+    options?.onProgress?.(
+      100,
+      baseLang === "kn"
+        ? "ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಭವಿಷ್ಯ ಮುದ್ರಣ ಪೂರ್ಣಗೊಂಡಿದೆ!"
+        : baseLang === "hi"
+        ? "आधिकारिक बग्गोण भविष्य मुद्रण सफलतापूर्वक पूर्ण!"
+        : baseLang === "te"
+        ? "అధికారిక బగ్గోణ భవిష్యత్తు ముద్రణ విజయవంతంగా పూర్తయింది!"
+        : baseLang === "ta"
+        ? "அதிகாரப்பூர்வ பக்கோணா ஜோதிட அறிக்கை பதிவிறக்கம் தயார்!"
+        : "Official Baggona Bhavishya PDF Download Ready!"
+    );
+
+    if (autoSave) {
+      savePdfBlob(pdf, fileName);
+    }
+    return pdf;
+  } finally {
+    if (parentEl) {
+      parentEl.setAttribute("style", originalStyle);
+    }
   }
-
-  await document.fonts.ready;
-  await new Promise(resolve => setTimeout(resolve, 400));
-
-  const domHeight = containerEl.scrollHeight || containerEl.offsetHeight;
-  const safeScale = domHeight > 0 ? Math.min(2, Math.max(1, 30000 / domHeight)) : 2;
-
-  const canvas = await html2canvas(containerEl, {
-    scale: safeScale,
-    useCORS: true,
-    logging: false,
-    backgroundColor: "#FFFFFF",
-    allowTaint: true
-  });
-
-  if (parentEl) {
-    parentEl.setAttribute("style", originalStyle);
-  }
-
-  const imgData = canvas.toDataURL("image/jpeg", 0.75);
-  const pdfWidth = 210;
-  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
-  pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-
-  if (autoSave) {
-    savePdfBlob(pdf, fileName);
-  }
-  return pdf;
 }

@@ -1221,7 +1221,10 @@ export default function KundliPage(): JSX.Element {
             : "Rendering High-Resolution Baggona Bhavishya V1 Document..."
         );
 
-        const pdf3 = await captureBhavishyaV1Pdf(premiumBhavishyaPdfRef.current, pdf3FileName, false);
+        const pdf3 = await captureBhavishyaV1Pdf(premiumBhavishyaPdfRef.current, pdf3FileName, false, {
+          payload: bhavishyaPayload,
+          lang: pdfLanguage
+        });
         pdf3Blob = pdf3.output("blob");
       }
 

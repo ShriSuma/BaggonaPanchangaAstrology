@@ -58,6 +58,11 @@ import QRCode from "qrcode";
 import { transliterateName } from "../../utils/transliterator";
 import type { PlanetName } from "../../core/AstroTypes";
 import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
+import {
+  captureBhavishyaV1Pdf,
+  type BhavishyaV1Payload
+} from "../../features/premiumPdf/bhavishyaV1Service";
+import { BhavishyaValidationError } from "../../features/premiumPdf/bhavishyaV1Validator";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
 import { WEEKDAY_L5 } from "../../features/seva/sevaLocale";
 import {
@@ -1979,45 +1984,15 @@ Return ONLY this JSON format:
       if (!premiumPdfRef.current) throw new Error("Premium PDF ref not found");
 
       const containerEl = premiumPdfRef.current;
-      const parentEl = containerEl.parentElement;
-      const originalStyle = parentEl?.getAttribute("style") || "";
-      if (parentEl) {
-        parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
-      }
-
-      await document.fonts.ready;
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      const domHeight = containerEl.scrollHeight || containerEl.offsetHeight;
-      const safeScale = domHeight > 0 ? Math.min(2, Math.max(1, 30000 / domHeight)) : 2;
-
-      // Generate PDF
-      const canvas = await html2canvas(containerEl, {
-        scale: safeScale,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#FFFFFF",
-        allowTaint: true
-      });
-
-      if (parentEl) {
-        parentEl.setAttribute("style", originalStyle);
-      }
-
-      const imgData = canvas.toDataURL("image/jpeg", 0.75);
-
-      const pdfWidth = 210;
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
-
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
       const langName = langNames[pdfLanguage] || "English";
-      pdf.save(`Baggona_Panchanga_Prediction_${langName}_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`);
+      const fileName = `Baggona_Panchanga_Prediction_${langName}_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`;
 
+      await captureBhavishyaV1Pdf(containerEl, fileName, true, {
+        lang: pdfLanguage
+      });
     } catch (err: any) {
-      console.error(err);
+      console.error("[generatePremiumPDF Error]", err);
       alert(err.message || "Failed to generate Premium PDF. Please try again.");
     } finally {
       setIsGeneratingPremiumPdf(false);
@@ -2741,6 +2716,26 @@ Return ONLY this JSON format:
         premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
       }
 
+      // Strict Saramsha (Summary) healing
+      if (
+        !premiumDataPayload.summary ||
+        premiumDataPayload.summary.length === 0 ||
+        !premiumDataPayload.summary.some(s => (s.impact || "").trim().length >= 50)
+      ) {
+        console.warn("[V1 PDF Quality Audit] Saramsha missing or too short. Healing with dynamic mathematical fallback.");
+        premiumDataPayload.summary = [{ impact: rawSummaryFallback }];
+      }
+
+      // Strict Timeline healing
+      if (
+        !premiumDataPayload.timeline ||
+        premiumDataPayload.timeline.length < 4 ||
+        !premiumDataPayload.timeline.every(t => (t.dateRange || "").trim().length > 0 && (t.impact || "").trim().length >= 20)
+      ) {
+        console.warn("[V1 PDF Quality Audit] Timeline missing or incomplete. Healing with dynamic mathematical fallback.");
+        premiumDataPayload.timeline = dynamicTimelineFallback;
+      }
+
       if (failedAiSectionsV1.length > 0) {
         const uniqueFailed = Array.from(new Set(failedAiSectionsV1));
         const alertMsg = lang === "kn"
@@ -2766,67 +2761,49 @@ Return ONLY this JSON format:
           : "9. Assembling High-Resolution Official Baggona PDF Document..."
       );
 
+      // Wait for React to flush state to the hidden PdfTemplate
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       if (!premiumPdfRef.current) throw new Error("Premium PDF ref not found");
 
       const containerEl = premiumPdfRef.current;
-      const parentEl = containerEl.parentElement;
-      const originalStyle = parentEl?.getAttribute("style") || "";
-      if (parentEl) {
-        parentEl.setAttribute("style", "position: fixed; left: 0; top: 0; z-index: -9999; pointer-events: none; opacity: 1; visibility: visible; width: 900px; background-color: #FFFFFF;");
-      }
-
-      await document.fonts.ready;
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      setV1PdfProgress(94);
-      setV1PdfStageText(
-        pdfLanguage === "kn"
-          ? "೧೦. ಡಿಜಿಟಲ್ ಪುಟಗಳ ವಿನ್ಯಾಸ ಹಾಗೂ ಅಂತಿಮ ಮುದ್ರಣ ರಚನೆ..."
-          : pdfLanguage === "hi"
-          ? "10. डिजिटल पृष्ठ संरचना एवं अंतिम प्रिंट निर्माण..."
-          : "10. Rendering High-Definition Vector Pages..."
-      );
-
-      const domHeight = containerEl.scrollHeight || containerEl.offsetHeight;
-      const safeScale = domHeight > 0 ? Math.min(2, Math.max(1, 30000 / domHeight)) : 2;
-
-      const canvas = await html2canvas(containerEl, {
-        scale: safeScale,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#FFFFFF",
-        allowTaint: true
-      });
-
-      if (parentEl) {
-        parentEl.setAttribute("style", originalStyle);
-      }
-
-      const imgData = canvas.toDataURL("image/jpeg", 0.75);
-      const pdfWidth = 210;
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight], compress: true });
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       const langNames: Record<string, string> = { "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "en": "English" };
       const langName = langNames[pdfLanguage] || "English";
-      pdf.save(`Baggona_Panchanga_Prediction_V1_${langName}_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`);
+      const fileName = `Baggona_Panchanga_Prediction_V1_${langName}_${session?.input.name.replace(/\s+/g, '_') || 'Reading'}.pdf`;
 
-      setV1PdfProgress(100);
-      setV1PdfStageText(
-        pdfLanguage === "kn"
-          ? "ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಭವಿಷ್ಯ ಮುದ್ರಣ ಪೂರ್ಣಗೊಂಡಿದೆ!"
-          : pdfLanguage === "hi"
-          ? "आधिकारिक बग्गोण भविष्य मुद्रण सफलतापूर्वक पूर्ण!"
-          : "Official Baggona Bhavishya PDF Download Ready!"
-      );
+      const v1Payload: BhavishyaV1Payload = {
+        translations: translatedData,
+        premiumData: premiumDataPayload,
+        deepInsights,
+        predictions: cleanedV1Predictions,
+        ageYears
+      };
+
+      // Continuous Section-Stitching PDF capture with full chapter integrity validation
+      await captureBhavishyaV1Pdf(containerEl, fileName, true, {
+        payload: v1Payload,
+        lang: pdfLanguage,
+        onProgress: (progress, stage) => {
+          setV1PdfProgress(progress);
+          setV1PdfStageText(stage);
+        }
+      });
+
       await new Promise(r => setTimeout(r, 600));
 
     } catch (err: any) {
       console.error("[V1 PDF Generation Error]", err);
-      alert(err.message || "Failed to generate Premium PDF V1. Please try again.");
+      const baseLang = (pdfLanguage || "en").split("-")[0];
+      const errorTitle = baseLang === "kn"
+        ? "ಬಗ್ಗೋಣ ಭವಿಷ್ಯ ಮುದ್ರಣ ತಡೆಹಿಡಿಯಲಾಗಿದೆ"
+        : baseLang === "hi"
+        ? "बग्गोण भविष्य मुद्रण रोक दिया गया"
+        : baseLang === "te"
+        ? "బగ్గోణ భవిష్యత్తు ముద్రణ నిలిపివేయబడింది"
+        : baseLang === "ta"
+        ? "பக்கோணா ஜோதிட அறிக்கை பதிவிறக்கம் நிறுத்தப்பட்டது"
+        : "Baggona Bhavishya Download Aborted";
+      alert(`${errorTitle}:\n\n${err.message || "Failed to generate complete Premium PDF V1. Please try again."}`);
     } finally {
       setIsGeneratingPremiumPdfV1(false);
       setV1PdfProgress(0);
