@@ -267,11 +267,52 @@ export default function GuruShukraAstodayaGrahanaPage(): JSX.Element {
   const setPage = useAppStore((s) => s.setPage);
   const setLanguage = useAppStore((s) => s.setLanguage);
 
-  // Default to 2026 (current year context)
-  const [selectedYear, setSelectedYear] = useState<number>(2026);
-  const [selectedLocation, setSelectedLocation] = useState<string>("karnataka");
-  const [activeTab, setActiveTab] = useState<"eclipses" | "astodaya" | "transits" | "rashiphala" | "unified">("eclipses");
+  const pageParams = useAppStore((s) => s.pageParams);
+
+  // Initialize from pageParams if provided by AI Copilot navigation, otherwise fallback to defaults
+  const initialYear = useMemo(() => {
+    if (pageParams?.year) {
+      const yr = Number(pageParams.year);
+      if (!isNaN(yr) && yr >= 1900 && yr <= 2100) return yr;
+    }
+    return 2026;
+  }, [pageParams?.year]);
+
+  const initialTab = useMemo(() => {
+    if (pageParams?.tab && ["eclipses", "astodaya", "transits", "rashiphala", "unified"].includes(pageParams.tab)) {
+      return pageParams.tab as "eclipses" | "astodaya" | "transits" | "rashiphala" | "unified";
+    }
+    return "eclipses";
+  }, [pageParams?.tab]);
+
+  const initialLocation = useMemo(() => {
+    if (pageParams?.location && typeof pageParams.location === "string") {
+      return pageParams.location;
+    }
+    return "karnataka";
+  }, [pageParams?.location]);
+
+  // Default to 2026 or params context
+  const [selectedYear, setSelectedYear] = useState<number>(initialYear);
+  const [selectedLocation, setSelectedLocation] = useState<string>(initialLocation);
+  const [activeTab, setActiveTab] = useState<"eclipses" | "astodaya" | "transits" | "rashiphala" | "unified">(initialTab);
   const [selectedEclipseIndex, setSelectedEclipseIndex] = useState<number>(0);
+
+  // Sync state dynamically when AI copilot triggers page navigation with new parameters
+  useEffect(() => {
+    if (pageParams?.tab && ["eclipses", "astodaya", "transits", "rashiphala", "unified"].includes(pageParams.tab)) {
+      setActiveTab(pageParams.tab as any);
+    }
+    if (pageParams?.year) {
+      const yr = Number(pageParams.year);
+      if (!isNaN(yr) && yr >= 1900 && yr <= 2100) {
+        setSelectedYear(yr);
+      }
+    }
+    if (pageParams?.location && typeof pageParams.location === "string") {
+      setSelectedLocation(pageParams.location);
+    }
+  }, [pageParams]);
 
   const txt = (key: string): string => {
     const entry = UI_TEXT[key];

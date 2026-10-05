@@ -43,7 +43,10 @@ type AppState = {
   ayanamsaModel: AyanamsaModel;
   nodeType: NodeType;
   geminiApiKey: string;
-  setPage: (page: AppPage, skipHistory?: boolean) => void;
+  pageParams: Record<string, any>;
+  setPage: (page: AppPage, skipHistory?: boolean, params?: Record<string, any>) => void;
+  setPageParams: (params: Record<string, any>) => void;
+  clearPageParams: () => void;
   setLanguage: (language: SupportedLanguage) => Promise<void>;
   setChartStyle: (style: "north" | "south") => Promise<void>;
   setConsentResolved: (value: boolean) => void;
@@ -66,6 +69,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       currentPage: "home",
+      pageParams: {},
       language: detectedLanguage,
       chartStyle: "north",
       consentResolved: false,
@@ -79,7 +83,7 @@ export const useAppStore = create<AppState>()(
       ayanamsaModel: "lahiri",
       nodeType: "mean",
       geminiApiKey: "",
-      setPage: (page, skipHistory = false) => {
+      setPage: (page, skipHistory = false, params?: Record<string, any>) => {
         if (!skipHistory && typeof window !== "undefined" && window.history?.pushState) {
           try {
             const currentHash = window.location.hash.replace(/^#\/?/, "");
@@ -90,7 +94,13 @@ export const useAppStore = create<AppState>()(
             /* ignore sandbox */
           }
         }
-        set({ currentPage: page });
+        set({ currentPage: page, pageParams: params || {} });
+      },
+      setPageParams: (params: Record<string, any>) => {
+        set((s) => ({ pageParams: { ...s.pageParams, ...params } }));
+      },
+      clearPageParams: () => {
+        set({ pageParams: {} });
       },
       setLanguage: async (language) => {
         localStorage.setItem("i18nextLng", language);

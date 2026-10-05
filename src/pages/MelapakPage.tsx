@@ -60,7 +60,20 @@ export default function MelapakPage(): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(1);
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
-  const [activeTab, setActiveTab] = useState<"ashtakoota" | "dashakoota" | "kujaAndPapa" | "dashaAndSeva">("ashtakoota");
+  const pageParams = useAppStore((s) => s.pageParams);
+  const [activeTab, setActiveTab] = useState<"ashtakoota" | "dashakoota" | "kujaAndPapa" | "dashaAndSeva">(() => {
+    if (pageParams?.tab && ["ashtakoota", "dashakoota", "kujaAndPapa", "dashaAndSeva"].includes(pageParams.tab)) {
+      return pageParams.tab as any;
+    }
+    return "ashtakoota";
+  });
+
+  useEffect(() => {
+    if (pageParams?.tab && ["ashtakoota", "dashakoota", "kujaAndPapa", "dashaAndSeva"].includes(pageParams.tab)) {
+      setActiveTab(pageParams.tab as any);
+    }
+  }, [pageParams?.tab]);
+
   const [result, setResult] = useState<VivahaMelameliResult | null>(null);
 
   const placeDisplay = useMemo(

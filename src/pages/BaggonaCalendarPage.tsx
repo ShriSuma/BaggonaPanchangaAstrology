@@ -27,7 +27,7 @@ import {
   getLocalizedMasaName,
   type SupportedLang
 } from "../core/festivalLocalization";
-
+import { useAppStore } from "../stores/appStore";
 
 function getRituKn(masaKn: string): string {
   if (!masaKn) return "ವಸಂತ (Vasanta)";
@@ -108,6 +108,23 @@ export const BaggonaCalendarPage: React.FC = () => {
       window.history.replaceState({}, "", url.toString());
     }
   };
+
+  const pageParams = useAppStore((s) => s.pageParams);
+
+  // Sync with AI Copilot pageParams (date / year / month)
+  useEffect(() => {
+    if (pageParams?.date && typeof pageParams.date === "string") {
+      handleDateChange(pageParams.date);
+    } else if (pageParams?.year) {
+      const yr = Number(pageParams.year);
+      if (!isNaN(yr) && yr >= 1900 && yr <= 2100) {
+        const cur = new Date(selectedDate);
+        const m = pageParams.month ? String(pageParams.month).padStart(2, "0") : String(cur.getMonth() + 1).padStart(2, "0");
+        const d = String(cur.getDate()).padStart(2, "0");
+        handleDateChange(`${yr}-${m}-${d}`);
+      }
+    }
+  }, [pageParams]);
 
   // Stepper handlers: Previous Day & Next Day without missing any date
   const handlePreviousDay = () => {

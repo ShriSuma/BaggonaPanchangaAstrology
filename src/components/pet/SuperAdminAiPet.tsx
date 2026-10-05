@@ -1426,24 +1426,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
       // If the query was an explicit command to navigate/redirect to a page and the engine returned a target page
       if (
         resp.category === "navigation" &&
-        resp.actions.length === 1 &&
-        resp.actions[0].targetPage &&
-        (
-          query.toLowerCase().includes("redirect") ||
-          query.toLowerCase().includes("go to") ||
-          query.toLowerCase().includes("take me") ||
-          query.toLowerCase().includes("open") ||
-          query.toLowerCase().includes("navigate") ||
-          query.toLowerCase().includes("ತೆರೆ") ||
-          query.toLowerCase().includes("ಹೋಗು") ||
-          query.toLowerCase().includes("ಕರ್ಕೊಂಡು ಹೋಗು") ||
-          query.toLowerCase().includes("ಕರೆದುಕೊಂಡು ಹೋಗು") ||
-          query.toLowerCase().includes("खोलो") ||
-          query.toLowerCase().includes("चलो")
-        )
+        resp.actions.length >= 1 &&
+        resp.actions[0].targetPage
       ) {
-        setPage(resp.actions[0].targetPage);
-        setIsOpen(false);
+        const navAction = resp.actions[0];
+        if (navAction.targetPage) {
+          setPage(navAction.targetPage, false, navAction.payload);
+          if (navAction.payload) {
+            useAppStore.getState().setPageParams(navAction.payload);
+          }
+          setIsOpen(false);
+        }
       }
     } catch (err) {
       console.error("Pet execution error:", err);
@@ -1484,7 +1477,10 @@ export function SuperAdminAiPet(): JSX.Element | null {
     }
 
     if (action.targetPage) {
-      setPage(action.targetPage);
+      setPage(action.targetPage, false, action.payload);
+      if (action.payload) {
+        useAppStore.getState().setPageParams(action.payload);
+      }
       setIsOpen(false);
       const confirmSpeech =
         currentLang === "kn"

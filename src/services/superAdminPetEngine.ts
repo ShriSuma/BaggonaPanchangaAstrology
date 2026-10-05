@@ -304,7 +304,31 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
     name: { kn: "ಗ್ರಹಣ & ಅಸ್ತೋದಯ (Eclipses & Combustion)", en: "Astodaya & Eclipses Center", hi: "ग्रहण एवं अस्तोदय", te: "గ్రహణ & అస్తోదయ", ta: "கிரகண & அஸ்தோதய" },
     category: "panchanga",
     icon: "🌒",
-    keywords: ["astodaya", "grahana", "eclipse", "moudhya", "combustion", "ಅಸ್ತೋದಯ", "ಗ್ರಹಣ", "ಮೌಢ್ಯ", "ಸೂರ್ಯ ಗ್ರಹಣ", "ಚಂದ್ರ ಗ್ರಹಣ"],
+    keywords: [
+      "astodaya",
+      "grahana",
+      "eclipse",
+      "moudhya",
+      "combustion",
+      "guru shukra",
+      "guru-shukra",
+      "guru shukra astodaya",
+      "guru shukra udaya",
+      "udaya asta",
+      "udaya",
+      "asta",
+      "ಅಸ್ತೋದಯ",
+      "ಗ್ರಹಣ",
+      "ಮೌಢ್ಯ",
+      "ಗುರು ಶುಕ್ರ",
+      "ಗುರು-ಶುಕ್ರ",
+      "ಗುರು ಶುಕ್ರ ಅಸ್ತೋದಯ",
+      "ಉದಯ ಅಸ್ತ",
+      "ಉದಯ",
+      "ಅಸ್ತ",
+      "ಸೂರ್ಯ ಗ್ರಹಣ",
+      "ಚಂದ್ರ ಗ್ರಹಣ"
+    ],
     description: {
       kn: "ಗುರು-ಶುಕ್ರ ಮೌಢ್ಯ (ಅಸ್ತೋದಯ), ಸೂರ್ಯ-ಚಂದ್ರ ಗ್ರಹಣಗಳು, ಸ್ಪರ್ಶ-ಮೋಕ್ಷ ಕಾಲ ಹಾಗೂ ಸೂತಕ ನಿಯಮಗಳು.",
       en: "Guru-Shukra Moudhya combustion dates, solar and lunar eclipses, Sutaka rules and worldwide visibility."
@@ -645,16 +669,29 @@ export async function executeSuperAdminPetQuery(
   }
 
   const isNavCommand =
-    query.includes("go to") ||
-    query.includes("open") ||
-    query.includes("take me to") ||
-    query.includes("navigate") ||
-    query.includes("ತೆರೆ") ||
-    query.includes("ಹೋಗು") ||
-    query.includes("ಕರೆದುಕೊಂಡು ಹೋಗು") ||
-    query.includes("ಕರ್ಕೊಂಡು ಹೋಗು") ||
-    query.includes("खोलो") ||
-    query.includes("चलो");
+    !query.includes("mantra") &&
+    !query.includes("ಮಂತ್ರ") &&
+    (
+      query.includes("go to") ||
+      query.includes("open") ||
+      query.includes("take me to") ||
+      query.includes("navigate") ||
+      query.includes("switch to") ||
+      query.includes("switch") ||
+      query.includes("redirect") ||
+      (query.includes("show") && (query.includes("page") || query.includes("tab") || query.includes("calendar") || query.includes("screen") || query.includes("ಟ್ಯಾಬ್") || query.includes("ಪುಟ") || query.includes("ದರ್ಶನ"))) ||
+      query.includes("ತೆರೆ") ||
+      query.includes("ಹೋಗು") ||
+      query.includes("ಬದಲಾಯಿಸು") ||
+      (query.includes("ತೋರಿಸು") && (query.includes("ಪುಟ") || query.includes("ಟ್ಯಾಬ್") || query.includes("ಕ್ಯಾಲೆಂಡರ್") || query.includes("ಅಸ್ತೋದಯ"))) ||
+      (query.includes("ತೋರಿಸಿ") && (query.includes("ಪುಟ") || query.includes("ಟ್ಯಾಬ್") || query.includes("ಕ್ಯಾಲೆಂಡರ್") || query.includes("ಅಸ್ತೋದಯ"))) ||
+      query.includes("ದರ್ಶನ ಮಾಡಿಸು") ||
+      query.includes("ಕರೆದುಕೊಂಡು ಹೋಗು") ||
+      query.includes("ಕರ್ಕೊಂಡು ಹೋಗು") ||
+      query.includes("खोलो") ||
+      query.includes("चलो") ||
+      query.includes("दिखाओ")
+    );
 
   // 0H. PROFILE IMPROVEMENT & STRATEGIC ADVISORY (HIGHEST SPECIFICITY FOR BOSS ADVISORY)
   const isImprovementQuery =
@@ -850,6 +887,8 @@ export async function executeSuperAdminPetQuery(
       query.includes("viparita raja") ||
       query.includes("ವಿಪರೀತ ರಾಜ") ||
       // Mantras & Japa Counts
+      query.includes("mantra") ||
+      query.includes("ಮಂತ್ರ") ||
       query.includes("japa count") ||
       query.includes("mantra count") ||
       query.includes("ಜಪ ಸಂಖ್ಯೆ") ||
@@ -973,15 +1012,18 @@ export async function executeSuperAdminPetQuery(
 
   // 1. BHAVISHYA & LIFE PREDICTION INTENTS
   if (
-    query.includes("bhavishya") ||
-    query.includes("ಭವಿಷ್ಯ") ||
-    query.includes("भविष्य") ||
-    query.includes("predict") ||
-    query.includes("future") ||
-    query.includes("ಜಾತಕ ಫಲ") ||
-    query.includes("life prediction") ||
-    query.includes("horoscope reading") ||
-    query.includes("ಜನ್ಮ ಫಲ")
+    !isNavCommand &&
+    (
+      query.includes("bhavishya") ||
+      query.includes("ಭವಿಷ್ಯ") ||
+      query.includes("भविष्य") ||
+      query.includes("predict") ||
+      query.includes("future") ||
+      query.includes("ಜಾತಕ ಫಲ") ||
+      query.includes("life prediction") ||
+      query.includes("horoscope reading") ||
+      query.includes("ಜನ್ಮ ಫಲ")
+    )
   ) {
     return await handleBhavishyaPredictionIntent(rawQuery, context, effectiveLang, ambient);
   }
@@ -1091,18 +1133,10 @@ export async function executeSuperAdminPetQuery(
 
   // 7. NAVIGATION INTENTS (All 32 Pages)
   if (
-    query.includes("go to") ||
-    query.includes("open") ||
-    query.includes("take me to") ||
-    query.includes("navigate") ||
-    query.includes("ತೆರೆ") ||
-    query.includes("ಹೋಗು") ||
-    query.includes("ಕರೆದುಕೊಂಡು ಹೋಗು") ||
-    query.includes("खोलो") ||
-    query.includes("चलो") ||
-    Object.values(APPLICATION_PAGES_DIRECTORY).some((p) => p.keywords.some((kw) => query.includes(kw)))
+    isNavCommand ||
+    Object.values(APPLICATION_PAGES_DIRECTORY).some((p) => p.keywords.some((kw) => query.includes(kw.toLowerCase())))
   ) {
-    return handleNavigationIntent(query, effectiveLang);
+    return handleNavigationIntent(rawQuery, effectiveLang);
   }
 
   // 8. ONLINE GEMINI AI BRAIN (if API key available)
@@ -3183,10 +3217,262 @@ function handleAllPagesSitemap(lang: SupportedLanguage = "kn"): PetResponse {
 }
 
 // =========================================================================
-// HANDLER 3: NAVIGATION ENGINE (COVERS ALL 32 PAGES)
+// HANDLER 3: NAVIGATION ENGINE (COVERS ALL 32 PAGES WITH DEEP TAB & PARAMETER CONTROL)
 // =========================================================================
+function normalizeIndicDigits(str: string): string {
+  return str
+    .replace(/[೦०౦௦]/g, "0")
+    .replace(/[೧१౧௧]/g, "1")
+    .replace(/[೨२౨௨]/g, "2")
+    .replace(/[೩३౩௩]/g, "3")
+    .replace(/[೪४౪௪]/g, "4")
+    .replace(/[೫५౫௫]/g, "5")
+    .replace(/[೬६౬௬]/g, "6")
+    .replace(/[೭७౭௭]/g, "7")
+    .replace(/[೮८౮௮]/g, "8")
+    .replace(/[೯९౯௯]/g, "9");
+}
+
+function toIndicDigits(num: number | string, targetLang: SupportedLanguage): string {
+  const s = String(num);
+  if (targetLang === "kn") {
+    const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
+    return s.replace(/\d/g, (d) => knDigits[parseInt(d, 10)]);
+  }
+  if (targetLang === "hi") {
+    const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
+    return s.replace(/\d/g, (d) => hiDigits[parseInt(d, 10)]);
+  }
+  if (targetLang === "te") {
+    const teDigits = ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯"];
+    return s.replace(/\d/g, (d) => teDigits[parseInt(d, 10)]);
+  }
+  if (targetLang === "ta") {
+    const taDigits = ["௦", "௧", "௨", "௩", "௪", "௫", "௬", "௭", "௮", "௯"];
+    return s.replace(/\d/g, (d) => taDigits[parseInt(d, 10)]);
+  }
+  return s;
+}
+
+const NAV_TAB_LOCALIZED_NAMES: Record<
+  string,
+  Record<string, Record<SupportedLanguage, string>>
+> = {
+  astodaya_grahana: {
+    astodaya: {
+      kn: "ಗುರು-ಶುಕ್ರ ಅಸ್ತೋದಯ & ಮೌಢ್ಯ",
+      en: "Guru & Shukra Astodaya & Moudhya",
+      hi: "गुरु-शुक्र अस्तोदय एवं मौढ्य",
+      te: "గురు-శుక్ర అస్తోదయం & మౌఢ్యం",
+      ta: "குரு-சுக்கிர அஸ்தோதயம் & மௌட்யம்"
+    },
+    eclipses: {
+      kn: "ಗ್ರಹಣ ದರ್ಶನ (ಸೂರ್ಯ & ಚಂದ್ರ)",
+      en: "Solar & Lunar Eclipses",
+      hi: "सूर्य एवं चंद्र ग्रहण दर्शन",
+      te: "గ్రహణ దర్శనం",
+      ta: "சூரிய & சந்திர கிரகண தரிசனம்"
+    },
+    transits: {
+      kn: "ಪ್ರಮುಖ ಗ್ರಹ ಗೋಚಾರ ಸಂಚಾರ",
+      en: "Major Planetary Ingresses",
+      hi: "प्रमुख ग्रह गोचर संचरण",
+      te: "గ్రహ గోచార సంచారం",
+      ta: "முக்கிய கிரக பெயர்ச்சி"
+    },
+    rashiphala: {
+      kn: "ದ್ವಾದಶ ರಾಶಿ ಫಲ & ಶಾಂತಿ",
+      en: "12-Rashi Phala & Shanti",
+      hi: "द्वादश राशि फल एवं शांति",
+      te: "ద్వాదశ రాశి ఫలితాలు & శాంతి",
+      ta: "12 ராசி பலன்கள் & பரிகாரம்"
+    },
+    unified: {
+      kn: "ಸಮಗ್ರ ವಾರ್ಷಿಕ ಪಂಚಾಂಗ ಸೂಚಿ",
+      en: "Unified Annual Dossier",
+      hi: "समग्र वार्षिक पंचांग सूची",
+      te: "సమగ్ర వార్షిక పంచాంగ సూచిక",
+      ta: "முழுமையான ஆண்டு பஞ்சாங்கம்"
+    }
+  },
+  melapak: {
+    ashtakoota: { kn: "ಅಷ್ಟಕೂಟ ಮಿಲನ", en: "Ashtakoota Milan", hi: "अष्टकूट मिलान", te: "అష్టకూట మిలనం", ta: "அஷ்டகூட பொருத்தம்" },
+    dashakoota: { kn: "ದಶಕೂಟ ಮಿಲನ", en: "Dashakoota Milan", hi: "दशकूट मिलान", te: "దశకూట మిలనం", ta: "தசகூட பொருத்தம்" },
+    kujaAndPapa: { kn: "ಕುಜ ದೋಷ & ಪಾಪ ಸಾಮ್ಯ", en: "Kuja Dosha & Papa Samya", hi: "कुज दोष एवं पाप साम्य", te: "కుజ దోషం & పాప సామ్యం", ta: "செவ்வாய் தோஷம் & பாவ சாம்யம்" },
+    dashaAndSeva: { kn: "ದಶಾ ಸಂಧಿ & ಪರಿಹಾರ ಸೇವೆ", en: "Dasha Sandhi & Seva", hi: "दशा संधि एवं सेवा", te: "దశా సంధి & సేవ", ta: "தசா சந்தி & சேவை" }
+  },
+  sankhyashastra: {
+    vedic_grid: { kn: "ವೈದಿಕ ಸಂಖ್ಯಾ ಗ್ರಿಡ್", en: "Vedic Numerology Grid", hi: "वैदिक अंक ग्रिड", te: "వైదిక సంఖ్యా గ్రిడ్", ta: "வேத எண் கட்டம்" },
+    prashna: { kn: "ಪ್ರಶ್ನಾ ಸಂಖ್ಯಾ ಶಾಸ್ತ್ರ", en: "Prashna Numerology", hi: "प्रश्न अंक ज्योतिष", te: "ప్రశ్న సంఖ్యా శాస్త్రం", ta: "பிரசன்ன எண் கணிதம்" },
+    match: { kn: "ಸಂಖ್ಯಾ ಹೊಂದಾಣಿಕೆ", en: "Numerology Matching", hi: "अंक मिलान", te: "సంఖ్యా పొంతన", ta: "எண் பொருத்தம்" },
+    boys: { kn: "ಬಾಲಕರ ಶುಭ ನಾಮಗಳು", en: "Boy Auspicious Names", hi: "बालक शुभ नाम", te: "బాలుర శుభ నామాలు", ta: "ஆண் குழந்தைகள் சுப பெயர்கள்" },
+    girls: { kn: "ಬಾಲಕಿಯರ ಶುಭ ನಾಮಗಳು", en: "Girl Auspicious Names", hi: "बालिका शुभ नाम", te: "బాలికల శుభ నామాలు", ta: "பெண் குழந்தைகள் சுப பெயர்கள்" },
+    name: { kn: "ನಾಮ ಸಂಖ್ಯಾ ತಪಾಸಣೆ", en: "Name Number Analysis", hi: "नाम अंक विश्लेषण", te: "పేరు సంఖ్యా విశ్లేషణ", ta: "பெயர் எண் ஆய்வு" },
+    item: { kn: "ವಾಹನ/ವಸ್ತು ಸಂಖ್ಯಾ ಬಲ", en: "Vehicle/Item Numerology", hi: "वाहन/वस्तु अंक", te: "వాహన సంఖ్యా బలం", ta: "வாகன எண் பலம்" },
+    mulank: { kn: "ಮೂಲಾಂಕ & ಭಾಗ್ಯಾಂಕ", en: "Mulank & Bhagyank", hi: "मूलांक एवं भाग्यांक", te: "మూలాంకం & భాగ్యాంకం", ta: "மூலாங்கம் & பாக்யாங்கம்" }
+  },
+  lifeguidance: {
+    career: { kn: "ಉದ್ಯೋಗ & ವೃತ್ತಿ ಮಾರ್ಗದರ್ಶನ", en: "Career & Profession", hi: "करियर मार्गदर्शन", te: "ఉద్యోగ మార్గదర్శనం", ta: "தொழில் வழிகாட்டுதல்" },
+    relationship: { kn: "ವಿವಾಹ & ದಾಂಪತ್ಯ ಮಾರ್ಗದರ್ಶನ", en: "Marriage & Relationship", hi: "विवाह संबंध", te: "వివాహ మార్గదర్శనం", ta: "திருமண வழிகாட்டுதல்" },
+    health: { kn: "ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ಮಾರ್ಗದರ್ಶನ", en: "Health & Vitality", hi: "स्वास्थ्य मार्गदर्शन", te: "ఆరోగ్య మార్గదర్శనం", ta: "சுகாதார வழிகாட்டுதல்" },
+    custom: { kn: "ವಿಶೇಷ ಪ್ರಶ್ನೋತ್ತರ", en: "Special Consultation", hi: "विशेष परामर्श", te: "ప్రత్యేక సంప్రదింపు", ta: "சிறப்பு ஆலோசனை" }
+  },
+  bhagyodaya: {
+    wealth: { kn: "ಧನ & ಐಶ್ವರ್ಯ ಭಾಗ್ಯೋದಯ", en: "Wealth & Prosperity", hi: "धन एवं ऐश्वर्य", te: "ధన భాగ్యోదయం", ta: "தன பாக்யோதயம்" },
+    relationship: { kn: "ವಿವಾಹ & ಸಂತಾನ ಭಾಗ್ಯೋದಯ", en: "Marriage & Family", hi: "विवाह एवं परिवार", te: "వివాహ భాగ్యోదయం", ta: "குடும்ப பாக்யோதயம்" },
+    health: { kn: "ಆರೋಗ್ಯ & ತೇಜಸ್ಸು", en: "Health & Vitality", hi: "स्वास्थ्य एवं तेज", te: "ఆరోగ్యం & తేజస్సు", ta: "ஆரோக்கியம்" },
+    protection: { kn: "ರಕ್ಷಣೆ & ದೃಷ್ಟಿ ನಿವಾರಣೆ", en: "Divine Protection", hi: "दैवीय रक्षा", te: "రక్షణ", ta: "பாதுகாப்பு" },
+    milestones: { kn: "ಜೀವನ ಮೈಲಿಗಲ್ಲುಗಳು", en: "Life Milestones", hi: "जीवन मील के पत्थर", te: "జీవిత మైలురాళ్ళు", ta: "வாழ்க்கை மைல்கற்கள்" },
+    karma: { kn: "ಕರ್ಮ ಶುದ್ಧಿ & ಪುಣ್ಯ ಸಂಚಯ", en: "Karma Purification", hi: "कर्म शुद्धि", te: "కర్మ శుద్ధి", ta: "கர்ம சுத்தி" },
+    temple: { kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆ", en: "Gokarna Kshetra Seva", hi: "गोकर्ण क्षेत्र सेवा", te: "గోకర్ణ క్షేత్ర సేవ", ta: "கோகர்ண க்ஷேத்ர சேவை" }
+  },
+  public_kundli: {
+    patrika: { kn: "ಜನ್ಮ ಕುಂಡಲಿ ಪತ್ರಿಕೆ", en: "Birth Chart Patrika", hi: "जन्म कुण्डली पत्रिका", te: "జన్మ కుండలి పత్రిక", ta: "ஜாதகப் பத்ரிகை" },
+    dasha: { kn: "ವಿಂಶೋತ್ತರಿ ಮಹಾದಶಾ", en: "Vimshottari Dasha", hi: "विंशोत्तरी महादशा", te: "వింశోత్తరి మహాదశ", ta: "விம்சோத்தரி மகா தசை" },
+    personality: { kn: "ಜಾತಕ ಗುಣ & ವ್ಯಕ್ತಿತ್ವ", en: "Personality & Traits", hi: "व्यक्तित्व एवं गुण", te: "వ్యక్తిత్వ లక్షణాలు", ta: "குணநலன்கள்" }
+  }
+};
+
+function buildNavigationResponse(
+  matchedPageKey: AppPage,
+  matchedPage: (typeof APPLICATION_PAGES_DIRECTORY)[AppPage],
+  extractedYear: number | undefined,
+  extractedTab: string | undefined,
+  extractedDate: string | undefined,
+  extractedLocation: string | undefined,
+  lang: SupportedLanguage
+): PetResponse {
+  const pName = matchedPage.name[lang] || matchedPage.name.kn || matchedPage.name.en;
+  const pDesc = matchedPage.description[lang] || matchedPage.description.kn || matchedPage.description.en;
+
+  const tabLocalizedMap = NAV_TAB_LOCALIZED_NAMES[matchedPageKey]?.[extractedTab || ""];
+  const tabName = tabLocalizedMap ? (tabLocalizedMap[lang] || tabLocalizedMap.kn || tabLocalizedMap.en) : "";
+
+  // 1. Text Responses across 5 languages
+  let textKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ "${pName}" ಪುಟವನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+  let textEn = `Understood Super Admin! Navigating on your behalf to "${pName}".`;
+  let textHi = `जी स्वामी! मैं तुरंत आपके लिए "${pName}" पृष्ठ खोल रहा हूँ।`;
+  let textTe = `తప్పకుండా స్వామి! నేను తక్షణమే మీ కోసం "${pName}" పేజీని తెరుస్తున్నాను.`;
+  let textTa = `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்தை திறக்கிறேன்.`;
+
+  if (tabName && extractedYear) {
+    const yrKn = toIndicDigits(extractedYear, "kn");
+    const yrHi = toIndicDigits(extractedYear, "hi");
+    textKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ "${pName}" ಪುಟಕ್ಕೆ ತೆರಳಿ, ${yrKn} ನೇ ವರ್ಷದ '${tabName}' ಟ್ಯಾಬ್ ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    textEn = `Understood Super Admin! Navigating on your behalf to "${pName}" and opening the "${tabName}" tab for year ${extractedYear}.`;
+    textHi = `जी स्वामी! मैं तुरंत आपके लिए "${pName}" पृष्ठ पर जाकर वर्ष ${yrHi} के '${tabName}' टैब को खोल रहा हूँ।`;
+    textTe = `తప్పకుండా స్వామి! నేను తక్షణమే మీ కోసం "${pName}" పేజీకి వెళ్లి, ${extractedYear} సంవత్సరం '${tabName}' ట్యాబ్‌ను తెరుస్తున్నాను.`;
+    textTa = `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்திற்குச் சென்று, ${extractedYear} ஆம் ஆண்டின் '${tabName}' பிரிவைத் திறக்கிறேன்.`;
+  } else if (tabName) {
+    textKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ "${pName}" ಪುಟಕ್ಕೆ ತೆರಳಿ, '${tabName}' ಟ್ಯಾಬ್ ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    textEn = `Understood Super Admin! Navigating on your behalf to "${pName}" and opening the "${tabName}" tab.`;
+    textHi = `जी स्वामी! मैं तुरंत आपके लिए "${pName}" पृष्ठ पर जाकर '${tabName}' टैब खोल रहा हूँ।`;
+    textTe = `తప్పకుండా స్వామి! నేను తక్షణమే మీ కోసం "${pName}" పేజీకి వెళ్లి, '${tabName}' ట్యాబ్‌ను తెరుస్తున్నాను.`;
+    textTa = `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்திற்குச் சென்று, '${tabName}' பிரிவைத் திறக்கிறேன்.`;
+  } else if (extractedDate) {
+    textKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ "${pName}" ಪುಟಕ್ಕೆ ತೆರಳಿ, ${extractedDate} ದಿನಾಂಕದ ವಿವರಗಳನ್ನು ತೋರಿಸುತ್ತಿದ್ದೇನೆ.`;
+    textEn = `Understood Super Admin! Navigating on your behalf to "${pName}" for date ${extractedDate}.`;
+    textHi = `जी स्वामी! मैं तुरंत आपके लिए "${pName}" पृष्ठ पर जाकर दिनांक ${extractedDate} के विवरण दिखा रहा हूँ।`;
+    textTe = `తప్పకుండా స్వామి! నేను తక్షణమే మీ కోసం "${pName}" పేజీకి వెళ్లి, ${extractedDate} తేదీ వివరాలను చూపిస్తున్నాను.`;
+    textTa = `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்திற்குச் சென்று, ${extractedDate} தேதிக்கான விவரங்களைத் திறக்கிறேன்.`;
+  } else if (extractedYear) {
+    const yrKn = toIndicDigits(extractedYear, "kn");
+    const yrHi = toIndicDigits(extractedYear, "hi");
+    textKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ "${pName}" ಪುಟಕ್ಕೆ ತೆರಳಿ, ${yrKn} ನೇ ವರ್ಷದ ವಿವರಗಳನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    textEn = `Understood Super Admin! Navigating on your behalf to "${pName}" for year ${extractedYear}.`;
+    textHi = `जी स्वामी! मैं तुरंत आपके लिए "${pName}" पृष्ठ पर जाकर वर्ष ${yrHi} के विवरण खोल रहा हूँ।`;
+    textTe = `తప్పకుండా స్వామి! నేను తక్షణమే మీ కోసం "${pName}" పేజీకి వెళ్లి, ${extractedYear} సంవత్సరం వివరాలను తెరుస్తున్నాను.`;
+    textTa = `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்திற்குச் சென்று, ${extractedYear} ஆம் ஆண்டிற்கான விவரங்களைத் திறக்கிறேன்.`;
+  }
+
+  textKn += `\n\n📖 **ಪುಟದ ಶಾಸ್ತ್ರೀಯ ವಿವರ**: ${pDesc}\n\nಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ ತಕ್ಷಣ ಆ ಪುಟಕ್ಕೆ ತೆರಳಿ.`;
+  textEn += `\n\n📖 **Module Overview**: ${pDesc}\n\nClick the button below to jump directly to this page.`;
+  textHi += `\n\n📖 **विवरण**: ${pDesc}\n\nनीचे दिए गए बटन पर क्लिक करें।`;
+  textTe += `\n\n📖 **వివరాలు**: ${pDesc}`;
+  textTa += `\n\n📖 **விவரம்**: ${pDesc}`;
+
+  // 2. Spoken Voice Text across 5 languages
+  let spokenKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ${pName} ಪುಟವನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+  let spokenEn = `Navigating on your behalf to ${pName}.`;
+  let spokenHi = `जी स्वामी! मैं तुरंत ${pName} पृष्ठ खोल रहा हूँ।`;
+  let spokenTe = `తప్పకుండా స్వామి! నేను తక్షణమే ${pName} పేజీని తెరుస్తున్నాను.`;
+  let spokenTa = `நிச்சயமாக சுவாமி! நான் ${pName} பக்கத்தை திறக்கிறேன்.`;
+
+  if (tabName && extractedYear) {
+    const yrKn = toIndicDigits(extractedYear, "kn");
+    const yrHi = toIndicDigits(extractedYear, "hi");
+    spokenKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ${pName} ಪುಟಕ್ಕೆ ತೆರಳಿ ${yrKn} ನೇ ವರ್ಷದ ${tabName} ಟ್ಯಾಬ್ ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    spokenEn = `Navigating on your behalf to ${pName} and opening ${tabName} tab for year ${extractedYear}.`;
+    spokenHi = `जी स्वामी! मैं तुरंत ${pName} पृष्ठ पर जाकर वर्ष ${yrHi} के ${tabName} टैब को खोल रहा हूँ।`;
+    spokenTe = `తప్పకుండా స్వామి! నేను తక్షణమే ${pName} పేజీకి వెళ్లి ${extractedYear} సంవత్సరం ${tabName} ట్యాబ్‌ను తెరుస్తున్నాను.`;
+    spokenTa = `நிச்சயமாக சுவாமி! நான் ${pName} பக்கத்திற்குச் சென்று ${extractedYear} ஆம் ஆண்டின் ${tabName} பிரிவைத் திறக்கிறேன்.`;
+  } else if (tabName) {
+    spokenKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ${pName} ಪುಟಕ್ಕೆ ತೆರಳಿ ${tabName} ಟ್ಯಾಬ್ ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    spokenEn = `Navigating on your behalf to ${pName} and opening ${tabName} tab.`;
+    spokenHi = `जी स्वामी! मैं तुरंत ${pName} पृष्ठ पर जाकर ${tabName} टैब खोल रहा हूँ।`;
+    spokenTe = `తప్పకుండా స్వామి! నేను తక్షణమే ${pName} పేజీకి వెళ్లి ${tabName} ట్యాబ్‌ను ತೆరుస్తున్నాను.`;
+    spokenTa = `நிச்சயமாக சுவாமி! நான் ${pName} பக்கத்திற்குச் சென்று ${tabName} பிரிவைத் திறக்கிறேன்.`;
+  } else if (extractedDate) {
+    spokenKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ${pName} ಪುಟಕ್ಕೆ ತೆರಳಿ ${extractedDate} ದಿನಾಂಕದ ವಿವರಗಳನ್ನು ತೋರಿಸುತ್ತಿದ್ದೇನೆ.`;
+    spokenEn = `Navigating on your behalf to ${pName} for date ${extractedDate}.`;
+    spokenHi = `जी स्वामी! मैं तुरंत ${pName} पृष्ठ पर जाकर दिनांक ${extractedDate} खोल रहा हूँ।`;
+    spokenTe = `తప్పకుండా స్వామి! నేను తక్షణమే ${pName} పేజీకి వెళ్లి ${extractedDate} తేదీ వివరాలను చూపిస్తున్నాను.`;
+    spokenTa = `நிச்சயமாக சுவாமி! நான் ${pName} பக்கத்திற்குச் சென்று ${extractedDate} தேதிக்கான ವಿವರங்களைத் திறக்கிறேன்.`;
+  } else if (extractedYear) {
+    const yrKn = toIndicDigits(extractedYear, "kn");
+    const yrHi = toIndicDigits(extractedYear, "hi");
+    spokenKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ${pName} ಪುಟಕ್ಕೆ ತೆರಳಿ ${yrKn} ನೇ ವರ್ಷದ ವಿವರಗಳನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    spokenEn = `Navigating on your behalf to ${pName} for year ${extractedYear}.`;
+    spokenHi = `जी स्वामी! मैं तुरंत ${pName} पृष्ठ पर जाकर वर्ष ${yrHi} खोल रहा हूँ।`;
+    spokenTe = `తప్పకుండా స్వామి! నేను తక్షణమే ${pName} పేజీకి వెళ్లి ${extractedYear} సంవత్సరం ವಿವರాలను ತೆరుస్తున్నాను.`;
+    spokenTa = `நிச்சயமாக சுவாமி! ನಾನು ${pName} பக்கத்திற்குச் சென்று ${extractedYear} ஆம் ஆண்டிற்கான ವಿವರங்களைத் திறக்கிறேன்.`;
+  }
+
+  const payload: Record<string, any> = {};
+  if (extractedYear) payload.year = extractedYear;
+  if (extractedTab) payload.tab = extractedTab;
+  if (extractedDate) payload.date = extractedDate;
+  if (extractedLocation) payload.location = extractedLocation;
+
+  return {
+    text: {
+      kn: textKn,
+      en: textEn,
+      hi: textHi,
+      te: textTe,
+      ta: textTa
+    },
+    spokenText: {
+      kn: spokenKn,
+      en: spokenEn,
+      hi: spokenHi,
+      te: spokenTe,
+      ta: spokenTa
+    },
+    emotion: "excited",
+    category: "navigation",
+    actions: [
+      {
+        id: `navigate_${matchedPageKey}`,
+        label: {
+          kn: `🚀 ${pName} ಪುಟಕ್ಕೆ ಹೋಗಿ`,
+          en: `🚀 Go to ${pName}`,
+          hi: `🚀 ${pName} पृष्ठ पर जाएं`,
+          te: `🚀 ${pName} పేజీకి వెళ్లండి`,
+          ta: `🚀 ${pName} பக்கத்திற்குச் செல்க`
+        },
+        icon: matchedPage.icon,
+        targetPage: matchedPageKey,
+        actionType: "navigate",
+        ...(Object.keys(payload).length > 0 ? { payload } : {})
+      }
+    ]
+  };
+}
+
 function handleNavigationIntent(query: string, lang: SupportedLanguage = "kn"): PetResponse {
-  const lower = query.toLowerCase().trim();
+  const normQuery = normalizeIndicDigits(query);
+  const lower = normQuery.toLowerCase().trim();
   let matchedPageKey: AppPage = "superadmindashboard";
   let matchedPage = APPLICATION_PAGES_DIRECTORY.superadmindashboard;
   let bestScore = 0;
@@ -3215,42 +3501,169 @@ function handleNavigationIntent(query: string, lang: SupportedLanguage = "kn"): 
     }
   }
 
-  const pName = matchedPage.name[lang] || matchedPage.name.kn || matchedPage.name.en;
-  const pDesc = matchedPage.description[lang] || matchedPage.description.kn || matchedPage.description.en;
+  // 1. Extract Year (1900-2100)
+  let extractedYear: number | undefined;
+  const yearMatch = normQuery.match(/(?:^|[^\d])(19\d{2}|20\d{2}|2100)(?:[^\d]|$)/);
+  if (yearMatch) {
+    const yr = parseInt(yearMatch[1], 10);
+    if (yr >= 1900 && yr <= 2100) {
+      extractedYear = yr;
+    }
+  }
 
-  return {
-    text: {
-      kn: `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ "${pName}" ಪುಟವನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.\n\n📖 **ಪುಟದ ಶಾಸ್ತ್ರೀಯ ವಿವರ**: ${pDesc}\n\nಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ ತಕ್ಷಣ ಆ ಪುಟಕ್ಕೆ ತೆರಳಿ.`,
-      en: `Understood Super Admin! Navigating on your behalf to "${pName}".\n\n📖 **Module Overview**: ${pDesc}\n\nClick the button below to jump directly to this page.`,
-      hi: `जी स्वामी! मैं तुरंत आपके लिए "${pName}" पृष्ठ खोल रहा हूँ।\n\n📖 **विवरण**: ${pDesc}\n\nनीचे दिए गए बटन पर क्लिक करें।`,
-      te: `తప్పకుండా స్వామి! నేను తక్షణమే మీ కోసం "${pName}" పేజీని తెరుస్తున్నాను.\n\n📖 **వివరాలు**: ${pDesc}`,
-      ta: `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்தை திறக்கிறேன்.\n\n📖 **விவரம்**: ${pDesc}`
-    },
-    spokenText: {
-      kn: `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ${pName} ಪುಟವನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`,
-      en: `Navigating on your behalf to ${pName}.`,
-      hi: `जी स्वामी! मैं तुरंत ${pName} पृष्ठ खोल रहा हूँ।`,
-      te: `తప్పకుండా స్వామి! నేను తక్షణమే ${pName} పేజీని తెరుస్తున్నాను.`,
-      ta: `நிச்சயமாக சுவாமி! நான் ${pName} பக்கத்தை திறக்கிறேன்.`
-    },
-    emotion: "excited",
-    category: "navigation",
-    actions: [
-      {
-        id: `navigate_${matchedPageKey}`,
-        label: {
-          kn: `🚀 ${pName} ಪುಟಕ್ಕೆ ಹೋಗಿ`,
-          en: `🚀 Go to ${pName}`,
-          hi: `🚀 ${pName} पृष्ठ पर जाएं`,
-          te: `🚀 ${pName} పేజీకి వెళ్లండి`,
-          ta: `🚀 ${pName} பக்கத்திற்குச் செல்க`
-        },
-        icon: matchedPage.icon,
-        targetPage: matchedPageKey,
-        actionType: "navigate"
-      }
-    ]
-  };
+  // 2. Extract Date (ISO YYYY-MM-DD or DMY DD-MM-YYYY)
+  let extractedDate: string | undefined;
+  const isoMatch = normQuery.match(/\b(\d{4}[-/]\d{1,2}[-/]\d{1,2})\b/);
+  if (isoMatch) {
+    extractedDate = isoMatch[1].replace(/\//g, "-");
+  } else {
+    const dmyMatch = normQuery.match(/\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b/);
+    if (dmyMatch) {
+      const d = dmyMatch[1].padStart(2, "0");
+      const m = dmyMatch[2].padStart(2, "0");
+      const y = dmyMatch[3];
+      extractedDate = `${y}-${m}-${d}`;
+    }
+  }
+
+  // 3. Extract Location Filter if present
+  let extractedLocation: string | undefined;
+  if (lower.includes("gokarna") || lower.includes("ಗೋಕರ್ಣ") || lower.includes("गोकर्ण")) extractedLocation = "gokarna";
+  else if (lower.includes("bengaluru") || lower.includes("bangalore") || lower.includes("ಬೆಂಗಳೂರು") || lower.includes("बेंगलुरु")) extractedLocation = "bengaluru";
+  else if (lower.includes("delhi") || lower.includes("ದೆಹಲಿ") || lower.includes("दिल्ली")) extractedLocation = "delhi";
+  else if (lower.includes("mumbai") || lower.includes("ಮುಂಬೈ") || lower.includes("मुंबई")) extractedLocation = "mumbai";
+  else if (lower.includes("varanasi") || lower.includes("ವಾರಣಾಸಿ") || lower.includes("वाराणसी") || lower.includes("kashi") || lower.includes("ಕಾಶಿ")) extractedLocation = "varanasi";
+  else if (lower.includes("chennai") || lower.includes("ಚೆನ್ನೈ") || lower.includes("चेन्नई")) extractedLocation = "chennai";
+  else if (lower.includes("kolkata") || lower.includes("ಕೊಲ್ಕತ್ತ") || lower.includes("कोलकाता")) extractedLocation = "kolkata";
+  else if (lower.includes("london") || lower.includes("ಲಂಡನ್") || lower.includes("लंदन")) extractedLocation = "london";
+  else if (lower.includes("new york") || lower.includes("ನ್ಯೂ ಯಾರ್ಕ್") || lower.includes("न्यूयॉर्क")) extractedLocation = "newyork";
+  else if (lower.includes("tokyo") || lower.includes("ಟೋಕಿಯೋ") || lower.includes("टोक्यो")) extractedLocation = "tokyo";
+
+  // 4. Extract Tab depending on matchedPageKey
+  let extractedTab: string | undefined;
+
+  if (matchedPageKey === "astodaya_grahana") {
+    if (
+      lower.includes("second tab") ||
+      lower.includes("2nd tab") ||
+      lower.includes("tab 2") ||
+      lower.includes("೨ನೇ") ||
+      lower.includes("ಎರಡನೇ") ||
+      lower.includes("ಎರಡನೆಯ") ||
+      lower.includes("दूसरा") ||
+      lower.includes("udaya") ||
+      lower.includes("ಉದಯ") ||
+      lower.includes("asta") ||
+      lower.includes("ಅಸ್ತ") ||
+      lower.includes("astodaya") ||
+      lower.includes("ಅಸ್ತೋದಯ") ||
+      lower.includes("ಗುರು ಶುಕ್ರ") ||
+      lower.includes("guru shukra") ||
+      lower.includes("moudhya") ||
+      lower.includes("ಮೌಢ್ಯ") ||
+      lower.includes("combustion")
+    ) {
+      extractedTab = "astodaya";
+    } else if (
+      lower.includes("first tab") ||
+      lower.includes("1st tab") ||
+      lower.includes("tab 1") ||
+      lower.includes("೧ನೇ") ||
+      lower.includes("ಮೊದಲ") ||
+      lower.includes("पहला") ||
+      lower.includes("eclipse") ||
+      lower.includes("grahana") ||
+      lower.includes("ಗ್ರಹಣ") ||
+      lower.includes("solar") ||
+      lower.includes("lunar")
+    ) {
+      extractedTab = "eclipses";
+    } else if (
+      lower.includes("third tab") ||
+      lower.includes("3rd tab") ||
+      lower.includes("tab 3") ||
+      lower.includes("೩ನೇ") ||
+      lower.includes("ಮೂರನೇ") ||
+      lower.includes("तीसरा") ||
+      lower.includes("transit") ||
+      lower.includes("ingress") ||
+      lower.includes("ಗೋಚಾರ") ||
+      lower.includes("ಸಂಚಾರ")
+    ) {
+      extractedTab = "transits";
+    } else if (
+      lower.includes("fourth tab") ||
+      lower.includes("4th tab") ||
+      lower.includes("tab 4") ||
+      lower.includes("೪ನೇ") ||
+      lower.includes("ನಾಲ್ಕನೇ") ||
+      lower.includes("चौथा") ||
+      lower.includes("rashi") ||
+      lower.includes("ರಾಶಿ ಫಲ") ||
+      lower.includes("ದ್ವಾದಶ")
+    ) {
+      extractedTab = "rashiphala";
+    } else if (
+      lower.includes("fifth tab") ||
+      lower.includes("5th tab") ||
+      lower.includes("tab 5") ||
+      lower.includes("೫ನೇ") ||
+      lower.includes("ಐದನೇ") ||
+      lower.includes("पाँचवाँ") ||
+      lower.includes("unified") ||
+      lower.includes("dossier") ||
+      lower.includes("ಸಮಗ್ರ") ||
+      lower.includes("ಸೂಚಿ")
+    ) {
+      extractedTab = "unified";
+    }
+  } else if (matchedPageKey === "melapak") {
+    if (lower.includes("dashakoota") || lower.includes("ದಶಕೂಟ") || lower.includes("2nd tab") || lower.includes("ಎರಡನೇ")) {
+      extractedTab = "dashakoota";
+    } else if (lower.includes("kuja") || lower.includes("papa") || lower.includes("ಕುಜ") || lower.includes("ಪಾಪ") || lower.includes("3rd tab") || lower.includes("ಮೂರನೇ")) {
+      extractedTab = "kujaAndPapa";
+    } else if (lower.includes("dasha sandhi") || lower.includes("seva") || lower.includes("ದಶಾ ಸಂಧಿ") || lower.includes("ಪರಿಹಾರ") || lower.includes("4th tab") || lower.includes("ನಾಲ್ಕನೇ")) {
+      extractedTab = "dashaAndSeva";
+    } else if (lower.includes("ashtakoota") || lower.includes("ಅಷ್ಟಕೂಟ") || lower.includes("1st tab") || lower.includes("ಮೊದಲ")) {
+      extractedTab = "ashtakoota";
+    }
+  } else if (matchedPageKey === "sankhyashastra") {
+    if (lower.includes("grid") || lower.includes("ಗ್ರಿಡ್") || lower.includes("lo shu")) extractedTab = "vedic_grid";
+    else if (lower.includes("prashna") || lower.includes("ಪ್ರಶ್ನ")) extractedTab = "prashna";
+    else if (lower.includes("match") || lower.includes("ಹೊಂದಾಣಿಕೆ")) extractedTab = "match";
+    else if (lower.includes("boy") || lower.includes("ಬಾಲಕ")) extractedTab = "boys";
+    else if (lower.includes("girl") || lower.includes("ಬಾಲಕಿ")) extractedTab = "girls";
+    else if (lower.includes("name") || lower.includes("ನಾಮ") || lower.includes("ಹೆಸರು")) extractedTab = "name";
+    else if (lower.includes("item") || lower.includes("vehicle") || lower.includes("ವಾಹನ")) extractedTab = "item";
+    else if (lower.includes("mulank") || lower.includes("bhagyank") || lower.includes("ಮೂಲಾಂಕ")) extractedTab = "mulank";
+  } else if (matchedPageKey === "lifeguidance") {
+    if (lower.includes("career") || lower.includes("job") || lower.includes("ವೃತ್ತಿ") || lower.includes("ಉದ್ಯೋಗ")) extractedTab = "career";
+    else if (lower.includes("marriage") || lower.includes("relationship") || lower.includes("ವಿವಾಹ") || lower.includes("ದಾಂಪತ್ಯ")) extractedTab = "relationship";
+    else if (lower.includes("health") || lower.includes("ಆರೋಗ್ಯ")) extractedTab = "health";
+    else if (lower.includes("custom") || lower.includes("ವಿಶೇಷ")) extractedTab = "custom";
+  } else if (matchedPageKey === "bhagyodaya") {
+    if (lower.includes("wealth") || lower.includes("ಧನ") || lower.includes("ಸಂಪತ್ತು")) extractedTab = "wealth";
+    else if (lower.includes("marriage") || lower.includes("family") || lower.includes("ಸಂತಾನ")) extractedTab = "relationship";
+    else if (lower.includes("health") || lower.includes("ಆರೋಗ್ಯ")) extractedTab = "health";
+    else if (lower.includes("protection") || lower.includes("ರಕ್ಷಣೆ")) extractedTab = "protection";
+    else if (lower.includes("milestone") || lower.includes("ಮೈಲಿಗಲ್ಲು")) extractedTab = "milestones";
+    else if (lower.includes("karma") || lower.includes("ಕರ್ಮ")) extractedTab = "karma";
+    else if (lower.includes("temple") || lower.includes("gokarna") || lower.includes("ಗೋಕರ್ಣ")) extractedTab = "temple";
+  } else if (matchedPageKey === "public_kundli") {
+    if (lower.includes("patrika") || lower.includes("ಪತ್ರಿಕೆ")) extractedTab = "patrika";
+    else if (lower.includes("dasha") || lower.includes("ದಶಾ")) extractedTab = "dasha";
+    else if (lower.includes("personality") || lower.includes("ವ್ಯಕ್ತಿತ್ವ")) extractedTab = "personality";
+  }
+
+  return buildNavigationResponse(
+    matchedPageKey,
+    matchedPage,
+    extractedYear,
+    extractedTab,
+    extractedDate,
+    extractedLocation,
+    lang
+  );
 }
 
 // =========================================================================

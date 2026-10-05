@@ -258,10 +258,22 @@ export default function PublicKundliPage(): JSX.Element {
   const [publicProfile, setPublicProfile] = useState<PublicKundliProfile | null>(() => savedSession?.publicProfile || null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const pageParams = useAppStore((s) => s.pageParams);
   // 6. Interactive 3 Restructured Tabs (Patrika default, Dasha-Bhukti, Personality locked 1000 coins)
   const [activeTab, setActiveTab] = useState<
     "patrika" | "dasha" | "personality"
-  >(() => savedSession?.activeTab || "patrika");
+  >(() => {
+    if (pageParams?.tab && ["patrika", "dasha", "personality"].includes(pageParams.tab)) {
+      return pageParams.tab as any;
+    }
+    return savedSession?.activeTab || "patrika";
+  });
+
+  useEffect(() => {
+    if (pageParams?.tab && ["patrika", "dasha", "personality"].includes(pageParams.tab)) {
+      setActiveTab(pageParams.tab as any);
+    }
+  }, [pageParams?.tab]);
   const [isPersonalityUnlocked, setIsPersonalityUnlocked] = useState<boolean>(() => Boolean(savedSession?.isPersonalityUnlocked));
   const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
   const [isUnlocking, setIsUnlocking] = useState<boolean>(false);

@@ -75,8 +75,19 @@ export default function SankhyaShastraPage(): JSX.Element {
 
   const devoteeName = session?.input?.name || (isKn ? "ಶ್ರೀಯುತ ಭಕ್ತರು" : "Devotee");
 
-  // Tab State (Default to saved tab or new Vedic Grid & Dasha Bhavishya)
-  const [activeTab, setActiveTab] = useState<TabType>(() => savedSankhyaSession?.activeTab || "vedic_grid");
+  const pageParams = useAppStore((s) => s.pageParams);
+
+  // Tab State (Default to pageParams, saved tab, or new Vedic Grid & Dasha Bhavishya)
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (pageParams?.tab) return pageParams.tab as TabType;
+    return savedSankhyaSession?.activeTab || "vedic_grid";
+  });
+
+  useEffect(() => {
+    if (pageParams?.tab) {
+      setActiveTab(pageParams.tab as TabType);
+    }
+  }, [pageParams?.tab]);
 
   // ----------------------------------------------------------------------
   // TAB 1: PRASHNA ORACLE STATES

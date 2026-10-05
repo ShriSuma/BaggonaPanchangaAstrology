@@ -1466,5 +1466,102 @@ Query: When will I get a job promotion and foreign travel?
       expect(res.text.en).toContain("Jupiter");
     });
   });
+
+  describe("Autonomous Hands-Free AI Copilot Deep Navigation Suite", () => {
+    it("navigates autonomously to Guru Shukra Astodaya page with astodaya tab and year 2027", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      const res = await executeSuperAdminPetQuery(
+        "open Guru Shukra Astodaya page and open Guru Shukra Udaya and Asta for 2027",
+        context
+      );
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions.length).toBeGreaterThanOrEqual(1);
+      const action = res.actions[0];
+      expect(action.targetPage).toBe("astodaya_grahana");
+      expect(action.payload).toBeDefined();
+      expect(action.payload.tab).toBe("astodaya");
+      expect(action.payload.year).toBe(2027);
+      expect(res.text.en).toContain("Guru & Shukra Astodaya");
+      expect(res.text.en).toContain("2027");
+      expect(res.spokenText.en).toContain("2027");
+    });
+
+    it("handles switch to second tab Guru Shukra Astodaya and select 2027", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "astodaya_grahana",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      const res = await executeSuperAdminPetQuery(
+        "open Guru Shukra Astodaya page, switch to second tab Guru Shukra Astodaya and select 2027",
+        context
+      );
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("astodaya_grahana");
+      expect(res.actions[0].payload?.tab).toBe("astodaya");
+      expect(res.actions[0].payload?.year).toBe(2027);
+    });
+
+    it("handles pure Kannada voice command with Kannada numerals ೨೦೨೭", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "kn"
+      };
+
+      const res = await executeSuperAdminPetQuery(
+        "ಗುರು ಶುಕ್ರ ಅಸ್ತೋದಯ ಪುಟ ತೆರೆದು ೨೦೨೭ ರ ಅಸ್ತೋದಯ ಟ್ಯಾಬ್ ತೋರಿಸು",
+        context
+      );
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("astodaya_grahana");
+      expect(res.actions[0].payload?.tab).toBe("astodaya");
+      expect(res.actions[0].payload?.year).toBe(2027);
+      expect(res.text.kn).toContain("ಗುರು-ಶುಕ್ರ ಅಸ್ತೋದಯ & ಮೌಢ್ಯ");
+      expect(res.text.kn).toContain("೨೦೨೭");
+      expect(res.spokenText.kn).toContain("೨೦೨೭");
+    });
+
+    it("navigates autonomously to calendar with specific ISO date", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      const res = await executeSuperAdminPetQuery("open calendar for 2027-05-15", context);
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("calendar");
+      expect(res.actions[0].payload?.date).toBe("2027-05-15");
+      expect(res.text.en).toContain("2027-05-15");
+      expect(res.spokenText.en).toContain("2027-05-15");
+    });
+
+    it("switches to Melapak Dashakoota tab accurately", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      const res = await executeSuperAdminPetQuery("switch to melapak page and open dashakoota tab", context);
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("melapak");
+      expect(res.actions[0].payload?.tab).toBe("dashakoota");
+      expect(res.text.en).toContain("Dashakoota Milan");
+    });
+  });
 });
+
 

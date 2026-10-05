@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
 import { useAppStore } from "../stores/appStore";
 import { useAuthStore } from "../features/auth/authStore";
@@ -22,7 +22,17 @@ export default function BhagyodayaPage(): JSX.Element {
   const wallet = useWalletStore((s) => s.wallet);
   const deductForService = useWalletStore((s) => s.deductForService);
 
-  const [activeTab, setActiveTab] = useState<TabPillarKey>("all");
+  const pageParams = useAppStore((s) => s.pageParams);
+  const [activeTab, setActiveTab] = useState<TabPillarKey>(() => {
+    if (pageParams?.tab) return pageParams.tab as TabPillarKey;
+    return "all";
+  });
+
+  useEffect(() => {
+    if (pageParams?.tab) {
+      setActiveTab(pageParams.tab as TabPillarKey);
+    }
+  }, [pageParams?.tab]);
   const [reportLang, setReportLang] = useState<BhagyodayaLang>(
     language.startsWith("kn") ? "kn" : language.startsWith("hi") ? "hi" : language.startsWith("ta") ? "ta" : language.startsWith("te") ? "te" : "en"
   );

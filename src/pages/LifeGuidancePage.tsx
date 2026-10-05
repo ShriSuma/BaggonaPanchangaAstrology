@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Card from "../components/ui/Card";
 import {
   executeLifeGuidanceCalculation,
@@ -77,7 +77,19 @@ export const LifeGuidancePage: React.FC<LifeGuidancePageProps> = ({ initialInput
     }
   }, [initialInput]);
 
-  const [activeTab, setActiveTab] = useState<LifeGuidanceTabKey | "custom">("career");
+  const pageParams = useAppStore((s) => s.pageParams);
+  const [activeTab, setActiveTab] = useState<LifeGuidanceTabKey | "custom">(() => {
+    if (pageParams?.tab && ["career", "relationship", "health", "custom"].includes(pageParams.tab)) {
+      return pageParams.tab as any;
+    }
+    return "career";
+  });
+
+  useEffect(() => {
+    if (pageParams?.tab && ["career", "relationship", "health", "custom"].includes(pageParams.tab)) {
+      setActiveTab(pageParams.tab as any);
+    }
+  }, [pageParams?.tab]);
   const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
   const [customQuestion, setCustomQuestion] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(false);
