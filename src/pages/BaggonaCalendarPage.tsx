@@ -109,10 +109,55 @@ export const BaggonaCalendarPage: React.FC = () => {
     }
   };
 
+  // Handle Festival Selection by ID or Date
+  const handleFestivalSelection = (val: string) => {
+    setSelectedDropdownFestival(val);
+    if (!val) return;
+
+    // Check if selecting a multi-day festival group
+    const multiGroup = MULTI_DAY_FESTIVALS.find((g) => g.id === val);
+    if (multiGroup) {
+      setActiveMultiGroup(multiGroup);
+      handleDateChange(multiGroup.startDate);
+      setSearchQuery("");
+      return;
+    }
+
+    // Check individual festival
+    const fest = MASTER_ANNUAL_FESTIVALS.find((f) => f.id === val || f.date === val);
+    if (fest) {
+      handleDateChange(fest.date);
+      if (fest.multiDayGroupId) {
+        const mg = MULTI_DAY_FESTIVALS.find((g) => g.id === fest.multiDayGroupId);
+        if (mg) setActiveMultiGroup(mg);
+      } else {
+        setActiveMultiGroup(null);
+      }
+      setSearchQuery(fest.nameKn);
+    }
+  };
+
   const pageParams = useAppStore((s) => s.pageParams);
 
-  // Sync with AI Copilot pageParams (date / year / month)
+  // Sync with AI Copilot pageParams (festival / search / date / year / month)
   useEffect(() => {
+    if (pageParams?.festival) {
+      handleFestivalSelection(pageParams.festival);
+      setTimeout(() => {
+        document.getElementById("matched-festival-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 200);
+    } else if (pageParams?.search) {
+      const searchRes = searchBaggonaFestivals(pageParams.search);
+      if (searchRes.exactMatch) {
+        handleFestivalSelection(searchRes.exactMatch.id);
+        setTimeout(() => {
+          document.getElementById("matched-festival-banner")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 200);
+      } else if (searchRes.matchedMultiDayGroup) {
+        handleFestivalSelection(searchRes.matchedMultiDayGroup.id);
+      }
+    }
+
     if (pageParams?.date && typeof pageParams.date === "string") {
       handleDateChange(pageParams.date);
     } else if (pageParams?.year) {
@@ -174,31 +219,7 @@ export const BaggonaCalendarPage: React.FC = () => {
 
   // Handle Festival Dropdown Selection
   const handleDropdownSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    setSelectedDropdownFestival(val);
-    if (!val) return;
-
-    // Check if selecting a multi-day festival group
-    const multiGroup = MULTI_DAY_FESTIVALS.find((g) => g.id === val);
-    if (multiGroup) {
-      setActiveMultiGroup(multiGroup);
-      handleDateChange(multiGroup.startDate);
-      setSearchQuery("");
-      return;
-    }
-
-    // Check individual festival
-    const fest = MASTER_ANNUAL_FESTIVALS.find((f) => f.id === val || f.date === val);
-    if (fest) {
-      handleDateChange(fest.date);
-      if (fest.multiDayGroupId) {
-        const mg = MULTI_DAY_FESTIVALS.find((g) => g.id === fest.multiDayGroupId);
-        if (mg) setActiveMultiGroup(mg);
-      } else {
-        setActiveMultiGroup(null);
-      }
-      setSearchQuery(fest.nameKn);
-    }
+    handleFestivalSelection(e.target.value);
   };
 
   // Bilingual Voice Search (Kannada & English)
@@ -868,7 +889,7 @@ export const BaggonaCalendarPage: React.FC = () => {
           const festPujaWindow = getLocalizedPujaWindow(currentFest, lang);
 
           return (
-            <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-100 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 rounded-2xl shadow-sm space-y-2 overflow-hidden">
+            <div id="matched-festival-banner" className="p-3 sm:p-4 bg-gradient-to-r from-amber-100 via-[#FFFDF7] to-amber-50 border-2 border-amber-400 rounded-2xl shadow-sm space-y-2 overflow-hidden ring-2 ring-amber-400/50">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-amber-300 pb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-2xl sm:text-3xl p-1 bg-white rounded-xl border border-amber-300 shadow-2xs shrink-0">🪔</span>

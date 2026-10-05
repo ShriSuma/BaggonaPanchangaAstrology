@@ -49,6 +49,7 @@ import {
   generateProfileImprovements
 } from "./jyotishyaShastraKnowledge";
 import { harvestAmbientKundliContext, type AmbientKundliProfile } from "./ambientKundliHarvester";
+import { searchBaggonaFestivals } from "../core/BaggonaFestivalRegistry";
 
 export type PetEmotion = "peaceful" | "thinking" | "speaking" | "excited" | "remedy" | "alert";
 
@@ -308,7 +309,7 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
     name: { kn: "೯೦ ದಿನಗಳ ರಿದಮ್ ಕ್ಯಾಲೆಂಡರ್ (Calendar)", en: "90-Day Rhythm Energy Calendar", hi: "९०-दिवसीय ऊर्जा कैलेंडर", te: "90 రోజుల క్యాలెండర్", ta: "90 நாள் காலண்டர்" },
     category: "panchanga",
     icon: "📅",
-    keywords: ["calendar", "rhythm", "90 day", "ಕ್ಯಾಲೆಂಡರ್", "೯೦ ದಿನ", "ರಿದಮ್", "ಚಂದ್ರಾಷ್ಟಮ"],
+    keywords: ["calendar", "rhythm", "90 day", "ಕ್ಯಾಲೆಂಡರ್", "೯೦ ದಿನ", "ರಿದಮ್", "ಚಂದ್ರಾಷ್ಟಮ", "baggona calendar", "baggona panchang", "baggona panchanga", "panchanga calendar", "panchang calendar", "ಬಗ್ಗೋಣ ಕ್ಯಾಲೆಂಡರ್", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್", "ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್"],
     description: {
       kn: "ವೈಯಕ್ತಿಕ ಜನ್ಮ ನಕ್ಷತ್ರಾಧಾರಿತ ಹಸಿರು, ಹಳದಿ, ಕೆಂಪು ದಿನಗಳ ೯೦ ದಿನಗಳ ಶಕ್ತಿ ರಿದಮ್ ಕ್ಯಾಲೆಂಡರ್.",
       en: "Personalized 90-day rhythm energy scorecard with Green, Yellow, and Red caution days."
@@ -677,6 +678,7 @@ function handleConversationMemoryIntent(
     query.includes("in text mode") ||
     query.includes("repeat") ||
     query.includes("continue") ||
+    (query.includes("ಹಿಂದೆ") && query.includes("ಕೇಳಿದೆ")) ||
     query.includes("ಹಿಂದೆ ಏನು ಕೇಳಿದೆ") ||
     query.includes("ಹಿಂದಿನ ಸಂಭಾಷಣೆ") ||
     query.includes("ಧ್ವನಿಯಲ್ಲಿ ಏನು ಹೇಳಿದೆ") ||
@@ -772,8 +774,8 @@ export async function executeSuperAdminPetQuery(
       query.includes("ತೆರೆ") ||
       query.includes("ಹೋಗು") ||
       query.includes("ಬದಲಾಯಿಸು") ||
-      (query.includes("ತೋರಿಸು") && (query.includes("ಪುಟ") || query.includes("ಟ್ಯಾಬ್") || query.includes("ಕ್ಯಾಲೆಂಡರ್") || query.includes("ಅಸ್ತೋದಯ"))) ||
-      (query.includes("ತೋರಿಸಿ") && (query.includes("ಪುಟ") || query.includes("ಟ್ಯಾಬ್") || query.includes("ಕ್ಯಾಲೆಂಡರ್") || query.includes("ಅಸ್ತೋದಯ"))) ||
+      (query.includes("ತೋರಿಸು") && (query.includes("ಪುಟ") || query.includes("ಟ್ಯಾಬ್") || query.includes("ಕ್ಯಾಲೆಂಡರ್") || query.includes("ಅಸ್ತೋದಯ") || query.includes("ಹಬ್ಬ") || query.includes("ರಾಮನವಮಿ") || query.includes("ನವಮಿ") || query.includes("ಚತುರ್ಥಿ") || query.includes("ದೀಪಾವಳಿ") || query.includes("ದಸರಾ") || query.includes("ಯುಗಾದಿ"))) ||
+      (query.includes("ತೋರಿಸಿ") && (query.includes("ಪುಟ") || query.includes("ಟ್ಯಾಬ್") || query.includes("ಕ್ಯಾಲೆಂಡರ್") || query.includes("ಅಸ್ತೋದಯ") || query.includes("ಹಬ್ಬ") || query.includes("ರಾಮನವಮಿ") || query.includes("ನವಮಿ") || query.includes("ಚತುರ್ಥಿ") || query.includes("ದೀಪಾವಳಿ") || query.includes("ದಸರಾ") || query.includes("ಯುಗಾದಿ"))) ||
       query.includes("ದರ್ಶನ ಮಾಡಿಸು") ||
       query.includes("ಕರೆದುಕೊಂಡು ಹೋಗು") ||
       query.includes("ಕರ್ಕೊಂಡು ಹೋಗು") ||
@@ -3470,7 +3472,8 @@ function buildNavigationResponse(
   extractedLocation: string | undefined,
   lang: SupportedLanguage,
   extractedLang?: SupportedLanguage,
-  devoteeDetails?: { name?: string; dob?: string; tob?: string; city?: string }
+  devoteeDetails?: { name?: string; dob?: string; tob?: string; city?: string },
+  festival?: { id: string; nameKn: string; nameEn?: string; date: string }
 ): PetResponse {
   const pName = matchedPage.name[lang] || matchedPage.name.kn || matchedPage.name.en;
   const pDesc = matchedPage.description[lang] || matchedPage.description.kn || matchedPage.description.en;
@@ -3494,7 +3497,15 @@ function buildNavigationResponse(
   let textTe = `తప్పకుండా స్వామి! నేను తక్షణమే మీ కోసం "${pName}" పేజీని తెరుస్తున్నాను.`;
   let textTa = `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்தை திறக்கிறேன்.`;
 
-  if (extractedLang) {
+  if (festival) {
+    const fKn = festival.nameKn;
+    const fEn = festival.nameEn || festival.nameKn;
+    textKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ತೆರೆದು "${fKn}" (${festival.date}) ಹಬ್ಬದ ವಿವರಗಳನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    textEn = `Understood Super Admin! Navigating to Baggona Calendar and opening "${fEn}" (${festival.date}).`;
+    textHi = `जी स्वामी! मैं तुरंत बग्गोण पंचांग कैलेंडर खोलकर "${fKn}" (${festival.date}) पर्व के विवरण खोल रहा हूँ।`;
+    textTe = `తప్పకుండా స్వామి! నేను తక్షణమే బగ్గోణ పంచాంగ క్యాలెండర్ తెరిచి "${fKn}" (${festival.date}) పండుగ వివరాలను తెరుస్తున్నాను.`;
+    textTa = `நிச்சயமாக சுவாமி! நான் பக்கோணா காலண்டரைத் திறந்து "${fKn}" (${festival.date}) பண்டிகையின் விவரங்களைத் திறக்கிறேன்.`;
+  } else if (extractedLang) {
     const lKn = langDisplayNames[extractedLang]?.kn || "ಹಿಂದಿ";
     const lEn = langDisplayNames[extractedLang]?.en || "Hindi";
     const lHi = langDisplayNames[extractedLang]?.hi || "हिन्दी";
@@ -3562,7 +3573,15 @@ function buildNavigationResponse(
   let spokenTe = `తప్పకుండా స్వామి! నేను తక్షణమే ${pName} పేజీని తెరుస్తున్నాను.`;
   let spokenTa = `நிச்சயமாக சுவாமி! நான் ${pName} பக்கத்தை திறக்கிறேன்.`;
 
-  if (extractedLang) {
+  if (festival) {
+    const fKn = festival.nameKn;
+    const fEn = festival.nameEn || festival.nameKn;
+    spokenKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ತೆರೆದು ${fKn} ಹಬ್ಬದ ವಿವರಗಳನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    spokenEn = `Navigating on your behalf to Baggona Calendar and opening ${fEn} on ${festival.date}.`;
+    spokenHi = `जी स्वामी! मैं तुरंत बग्गोण पंचांग कैलेंडर खोलकर ${fKn} के विवरण खोल रहा हूँ।`;
+    spokenTe = `తప్పకుండా స్వామి! నేను తక్షణమే బగ్గోణ పంచాంగ క్యాలెండర్ తెరిచి ${fKn} పండుగ వివరాలను తెరుస్తున్నాను.`;
+    spokenTa = `நிச்சயமாக சுவாமி! நான் பக்கோணா காலண்டரைத் திறந்து ${fKn} பண்டிகையின் விவரங்களைத் திறக்கிறேன்.`;
+  } else if (extractedLang) {
     const lKn = langDisplayNames[extractedLang]?.kn || "ಹಿಂದಿ";
     const lEn = langDisplayNames[extractedLang]?.en || "Hindi";
     const lHi = langDisplayNames[extractedLang]?.hi || "हिन्दी";
@@ -3600,6 +3619,11 @@ function buildNavigationResponse(
   }
 
   const payload: Record<string, any> = {};
+  if (festival) {
+    payload.festival = festival.id;
+    payload.date = festival.date;
+    payload.search = festival.nameKn;
+  }
   if (extractedYear) payload.year = extractedYear;
   if (extractedTab) payload.tab = extractedTab;
   if (extractedDate) payload.date = extractedDate;
@@ -3653,6 +3677,31 @@ function handleNavigationIntent(query: string, lang: SupportedLanguage = "kn"): 
   let matchedPage = APPLICATION_PAGES_DIRECTORY.superadmindashboard;
   let bestScore = 0;
 
+  // Check if query mentions any festival or observance from Baggona Festival Registry
+  const festRes = searchBaggonaFestivals(normQuery);
+  let matchedFestival: { id: string; nameKn: string; nameEn?: string; date: string } | undefined;
+  if (festRes.exactMatch) {
+    matchedFestival = {
+      id: festRes.exactMatch.id,
+      nameKn: festRes.exactMatch.nameKn,
+      nameEn: festRes.exactMatch.nameEn,
+      date: festRes.exactMatch.date
+    };
+    matchedPageKey = "calendar";
+    matchedPage = APPLICATION_PAGES_DIRECTORY.calendar;
+    bestScore = 999;
+  } else if (festRes.matchedMultiDayGroup) {
+    matchedFestival = {
+      id: festRes.matchedMultiDayGroup.id,
+      nameKn: festRes.matchedMultiDayGroup.groupNameKn,
+      nameEn: festRes.matchedMultiDayGroup.groupNameEn,
+      date: festRes.matchedMultiDayGroup.startDate
+    };
+    matchedPageKey = "calendar";
+    matchedPage = APPLICATION_PAGES_DIRECTORY.calendar;
+    bestScore = 999;
+  }
+
   for (const [key, page] of Object.entries(APPLICATION_PAGES_DIRECTORY)) {
     // Check if key itself matches
     const keyNorm = key.toLowerCase().replace(/_/g, " ");
@@ -3688,7 +3737,7 @@ function handleNavigationIntent(query: string, lang: SupportedLanguage = "kn"): 
   }
 
   // 2. Extract Date (ISO YYYY-MM-DD or DMY DD-MM-YYYY)
-  let extractedDate: string | undefined;
+  let extractedDate: string | undefined = matchedFestival?.date;
   const isoMatch = normQuery.match(/\b(\d{4}[-/]\d{1,2}[-/]\d{1,2})\b/);
   if (isoMatch) {
     extractedDate = isoMatch[1].replace(/\//g, "-");
@@ -4083,7 +4132,8 @@ function handleNavigationIntent(query: string, lang: SupportedLanguage = "kn"): 
       dob: extractedDate,
       tob: extractedDevoteeTob,
       city: extractedLocation
-    }
+    },
+    matchedFestival
   );
 }
 

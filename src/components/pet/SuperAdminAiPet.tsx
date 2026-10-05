@@ -92,6 +92,8 @@ export function SuperAdminAiPet(): JSX.Element | null {
   const isMicMutedRef = useRef<boolean>(false);
   const isAssistantSpeakingRef = useRef<boolean>(false);
   const isProcessingRef = useRef<boolean>(false);
+  const isListeningRef = useRef<boolean>(false);
+  const currentSpeakingTextRef = useRef<string>("");
   const startListeningRef = useRef<() => void>(() => {});
   const safeStopListeningRef = useRef<() => void>(() => {});
 
@@ -112,10 +114,17 @@ export function SuperAdminAiPet(): JSX.Element | null {
   }, [isProcessing]);
 
   useEffect(() => {
+    isListeningRef.current = isListening;
+  }, [isListening]);
+
+  useEffect(() => {
     const unsub = petSpeechService.subscribe((speaking) => {
       setIsSpeaking(speaking);
       setIsAssistantSpeaking(speaking);
       isAssistantSpeakingRef.current = speaking;
+      if (!speaking) {
+        currentSpeakingTextRef.current = "";
+      }
     });
     return unsub;
   }, []);
@@ -550,14 +559,6 @@ export function SuperAdminAiPet(): JSX.Element | null {
     ];
   });
 
-  // Subscribe to speech synthesis state
-  useEffect(() => {
-    const unsub = petSpeechService.subscribe((speaking) => {
-      setIsSpeaking(speaking);
-    });
-    return unsub;
-  }, []);
-
   // Auto-scroll chat to bottom
   useEffect(() => {
     if (isOpen && activeTab === "chat") {
@@ -576,17 +577,23 @@ export function SuperAdminAiPet(): JSX.Element | null {
       }
     } catch {}
     setIsListening(false);
+    isListeningRef.current = false;
   };
   safeStopListeningRef.current = safeStopListening;
 
   // Start continuous, natural conversation microphone recognition
   const startListening = () => {
-    // If muted, assistant is talking, or engine is computing, hold listening
+    // If muted or engine is computing, hold listening.
+    // In live voice mode, allow microphone to listen while assistant is speaking so user can barge-in and interrupt!
     if (
       isMicMutedRef.current ||
-      isAssistantSpeakingRef.current ||
-      isProcessingRef.current
+      isProcessingRef.current ||
+      (!isVoiceModeRef.current && isAssistantSpeakingRef.current)
     ) {
+      return;
+    }
+
+    if (isListeningRef.current && recognitionRef.current) {
       return;
     }
 
@@ -624,6 +631,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
       recognition.onstart = () => {
         setIsListening(true);
+        isListeningRef.current = true;
       };
 
       recognition.onresult = (event: any) => {
@@ -643,8 +651,42 @@ export function SuperAdminAiPet(): JSX.Element | null {
           setLiveTranscript(displayed);
         }
 
+        // FULL-DUPLEX HANDS-FREE BARGE-IN:
+        // When assistant is speaking in voice mode, if user starts speaking (new words, not echo of current speech),
+        // immediately stop assistant voice playback!
+        if (isVoiceModeRef.current && isAssistantSpeakingRef.current && displayed.length > 0) {
+          const speakingText = (currentSpeakingTextRef.current || "").toLowerCase();
+          const userWords = displayed.toLowerCase();
+          const isSelfEcho = speakingText.length > 5 && speakingText.includes(userWords);
+          if (!isSelfEcho) {
+            petSpeechService.stop();
+            setIsAssistantSpeaking(false);
+            isAssistantSpeakingRef.current = false;
+            currentSpeakingTextRef.current = "";
+          }
+        }
+
         if (finalTranscript.trim()) {
           const spoken = finalTranscript.trim();
+          // Always ensure assistant speech is stopped immediately
+          petSpeechService.stop();
+          setIsAssistantSpeaking(false);
+          isAssistantSpeakingRef.current = false;
+          currentSpeakingTextRef.current = "";
+
+          // Check if it is a pure stop / pause command
+          const isStopCommand = /^(stop|pause|quiet|wait|hold on|ನಿಲ್ಲು|ಸಾಕು|ಶಾಂತ|ಸುಮ್ಮನಿರು|ರೋಕೋ|रुको|बंद करो)$/i.test(spoken);
+          if (isStopCommand) {
+            setLiveTranscript(
+              currentLang === "kn"
+                ? "🛑 ನಿಲ್ಲಿಸಲಾಗಿದೆ. ಮುಂದಿನ ಆಜ್ಞೆಗೆ ಸಿದ್ಧ..."
+                : currentLang === "hi"
+                ? "🛑 रोका गया। अगले आदेश के लिए तैयार..."
+                : "🛑 Stopped. Ready for your next command..."
+            );
+            return;
+          }
+
           // Pause listening immediately so assistant's thinking & response isn't picked up
           safeStopListening();
           setInputText(spoken);
@@ -654,40 +696,43 @@ export function SuperAdminAiPet(): JSX.Element | null {
 
       recognition.onerror = (err: any) => {
         console.warn("Speech recognition error:", err?.error || err);
-        // Automatically re-arm if transient network or no-speech glitch in voice mode
+        setIsListening(false);
+        isListeningRef.current = false;
+        // Automatically re-arm in voice mode
         if (
           isVoiceModeRef.current &&
-          !isAssistantSpeakingRef.current &&
           !isMicMutedRef.current &&
           !isProcessingRef.current
         ) {
           setTimeout(() => {
             startListeningRef.current?.();
-          }, 450);
+          }, 350);
         }
       };
 
       recognition.onend = () => {
         setIsListening(false);
+        isListeningRef.current = false;
         // Seamless Hands-Free Loop: If browser silence timeout fires, automatically resume!
         if (
           isVoiceModeRef.current &&
-          !isAssistantSpeakingRef.current &&
           !isMicMutedRef.current &&
           !isProcessingRef.current
         ) {
           setTimeout(() => {
             startListeningRef.current?.();
-          }, 250);
+          }, 200);
         }
       };
 
       recognitionRef.current = recognition;
       recognition.start();
       setIsListening(true);
+      isListeningRef.current = true;
     } catch (e) {
       console.error("Speech recognition start failed:", e);
       setIsListening(false);
+      isListeningRef.current = false;
     }
   };
   startListeningRef.current = startListening;
@@ -851,13 +896,19 @@ export function SuperAdminAiPet(): JSX.Element | null {
     if (!isMuted) {
       setIsAssistantSpeaking(true);
       isAssistantSpeakingRef.current = true;
-      safeStopListening();
+      currentSpeakingTextRef.current = askConfirmSpoken;
+      if (isVoiceModeRef.current && !isMicMutedRef.current) {
+        startListeningRef.current?.();
+      } else {
+        safeStopListening();
+      }
       petSpeechService.speak(
         askConfirmSpoken,
         lang,
         () => {
           setIsAssistantSpeaking(false);
           isAssistantSpeakingRef.current = false;
+          currentSpeakingTextRef.current = "";
           if (isVoiceModeRef.current && !isMicMutedRef.current) {
             startListeningRef.current?.();
           }
@@ -865,6 +916,9 @@ export function SuperAdminAiPet(): JSX.Element | null {
         () => {
           setIsAssistantSpeaking(true);
           isAssistantSpeakingRef.current = true;
+          if (isVoiceModeRef.current && !isMicMutedRef.current) {
+            startListeningRef.current?.();
+          }
         }
       );
     } else {
@@ -919,13 +973,19 @@ export function SuperAdminAiPet(): JSX.Element | null {
       if (!isMuted) {
         setIsAssistantSpeaking(true);
         isAssistantSpeakingRef.current = true;
-        safeStopListening();
+        currentSpeakingTextRef.current = startSpoken;
+        if (isVoiceModeRef.current && !isMicMutedRef.current) {
+          startListeningRef.current?.();
+        } else {
+          safeStopListening();
+        }
         petSpeechService.speak(
           startSpoken,
           lang,
           () => {
             setIsAssistantSpeaking(false);
             isAssistantSpeakingRef.current = false;
+            currentSpeakingTextRef.current = "";
             if (isVoiceModeRef.current && !isMicMutedRef.current) {
               startListeningRef.current?.();
             }
@@ -933,6 +993,9 @@ export function SuperAdminAiPet(): JSX.Element | null {
           () => {
             setIsAssistantSpeaking(true);
             isAssistantSpeakingRef.current = true;
+            if (isVoiceModeRef.current && !isMicMutedRef.current) {
+              startListeningRef.current?.();
+            }
           }
         );
       } else {
@@ -986,13 +1049,19 @@ export function SuperAdminAiPet(): JSX.Element | null {
     if (!isMuted) {
       setIsAssistantSpeaking(true);
       isAssistantSpeakingRef.current = true;
-      safeStopListening();
+      currentSpeakingTextRef.current = cancelMsg.spokenText!;
+      if (isVoiceModeRef.current && !isMicMutedRef.current) {
+        startListeningRef.current?.();
+      } else {
+        safeStopListening();
+      }
       petSpeechService.speak(
         cancelMsg.spokenText!,
         lang,
         () => {
           setIsAssistantSpeaking(false);
           isAssistantSpeakingRef.current = false;
+          currentSpeakingTextRef.current = "";
           if (isVoiceModeRef.current && !isMicMutedRef.current) {
             startListeningRef.current?.();
           }
@@ -1000,6 +1069,9 @@ export function SuperAdminAiPet(): JSX.Element | null {
         () => {
           setIsAssistantSpeaking(true);
           isAssistantSpeakingRef.current = true;
+          if (isVoiceModeRef.current && !isMicMutedRef.current) {
+            startListeningRef.current?.();
+          }
         }
       );
     } else {
@@ -1146,13 +1218,19 @@ export function SuperAdminAiPet(): JSX.Element | null {
         if (activeTab === "voice" && !isMuted) {
           setIsAssistantSpeaking(true);
           isAssistantSpeakingRef.current = true;
-          safeStopListening();
+          currentSpeakingTextRef.current = recallSpoken;
+          if (isVoiceModeRef.current && !isMicMutedRef.current) {
+            startListeningRef.current?.();
+          } else {
+            safeStopListening();
+          }
           petSpeechService.speak(
             recallSpoken,
             effectiveLang,
             () => {
               setIsAssistantSpeaking(false);
               isAssistantSpeakingRef.current = false;
+              currentSpeakingTextRef.current = "";
               if (isVoiceModeRef.current && !isMicMutedRef.current) {
                 startListeningRef.current?.();
               }
@@ -1160,6 +1238,9 @@ export function SuperAdminAiPet(): JSX.Element | null {
             () => {
               setIsAssistantSpeaking(true);
               isAssistantSpeakingRef.current = true;
+              if (isVoiceModeRef.current && !isMicMutedRef.current) {
+                startListeningRef.current?.();
+              }
             }
           );
         } else if (activeTab === "voice") {
@@ -1234,13 +1315,19 @@ export function SuperAdminAiPet(): JSX.Element | null {
         if (!isMuted) {
           setIsAssistantSpeaking(true);
           isAssistantSpeakingRef.current = true;
-          safeStopListening();
+          currentSpeakingTextRef.current = text;
+          if (isVoiceModeRef.current && !isMicMutedRef.current) {
+            startListeningRef.current?.();
+          } else {
+            safeStopListening();
+          }
           petSpeechService.speak(
             text,
             effectiveLang,
             () => {
               setIsAssistantSpeaking(false);
               isAssistantSpeakingRef.current = false;
+              currentSpeakingTextRef.current = "";
               if (isVoiceModeRef.current && !isMicMutedRef.current) {
                 startListeningRef.current?.();
               }
@@ -1248,6 +1335,9 @@ export function SuperAdminAiPet(): JSX.Element | null {
             () => {
               setIsAssistantSpeaking(true);
               isAssistantSpeakingRef.current = true;
+              if (isVoiceModeRef.current && !isMicMutedRef.current) {
+                startListeningRef.current?.();
+              }
             }
           );
         } else {
@@ -1398,7 +1488,12 @@ export function SuperAdminAiPet(): JSX.Element | null {
       if (activeTab === "voice" && !isMuted) {
         setIsAssistantSpeaking(true);
         isAssistantSpeakingRef.current = true;
-        safeStopListening();
+        currentSpeakingTextRef.current = fullVoiceSpeech;
+        if (isVoiceModeRef.current && !isMicMutedRef.current) {
+          startListeningRef.current?.();
+        } else {
+          safeStopListening();
+        }
 
         petSpeechService.speak(
           fullVoiceSpeech,
@@ -1406,6 +1501,7 @@ export function SuperAdminAiPet(): JSX.Element | null {
           () => {
             setIsAssistantSpeaking(false);
             isAssistantSpeakingRef.current = false;
+            currentSpeakingTextRef.current = "";
             // In Live Voice Mode, automatically resume listening hands-free!
             if (isVoiceModeRef.current && !isMicMutedRef.current) {
               startListeningRef.current?.();
@@ -1414,6 +1510,9 @@ export function SuperAdminAiPet(): JSX.Element | null {
           () => {
             setIsAssistantSpeaking(true);
             isAssistantSpeakingRef.current = true;
+            if (isVoiceModeRef.current && !isMicMutedRef.current) {
+              startListeningRef.current?.();
+            }
           }
         );
       } else if (activeTab === "voice") {
@@ -2414,54 +2513,8 @@ export function SuperAdminAiPet(): JSX.Element | null {
                   </div>
                 )}
 
-                {/* Continuous Memory & Thread Sync Bar (ChatGPT / Claude / Gemini Live Parity) */}
-                <div className="mt-2 rounded-xl border border-amber-500/30 bg-black/50 backdrop-blur-xs p-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="font-bold text-amber-300 truncate text-[11px] sm:text-xs">
-                        {currentLang === "kn" ? "🔗 ಸಂಭಾಷಣೆ ಸ್ಮರಣೆ ಸಕ್ರಿಯ" : "🔗 Unified Memory Sync Active"}
-                      </span>
-                      <span className="text-[10px] text-amber-200/70 font-mono">
-                        ({messages.length} {currentLang === "kn" ? "ಸಂದೇಶಗಳು" : "turns"})
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsVoiceTranscriptExpanded(!isVoiceTranscriptExpanded)}
-                      className="text-[10px] font-bold text-amber-400 hover:text-amber-200 underline underline-offset-2 shrink-0 transition-colors"
-                    >
-                      {isVoiceTranscriptExpanded
-                        ? (currentLang === "kn" ? "ಮರೆಮಾಡಿ ▲" : "Hide Thread ▲")
-                        : (currentLang === "kn" ? "ಇತಿಹಾಸ ನೋಡಿ ▼" : "View Thread ▼")}
-                    </button>
-                  </div>
-
-                  {/* Collapsible Shared Cross-Modal Thread */}
-                  {isVoiceTranscriptExpanded && (
-                    <div className="mt-2 pt-2 border-t border-amber-500/20 max-h-36 overflow-y-auto space-y-1.5 scrollbar-thin">
-                      {messages.map((m) => (
-                        <div
-                          key={m.id}
-                          className={`flex items-start gap-1.5 text-[11px] leading-tight ${
-                            m.sender === "user" ? "text-amber-100" : "text-amber-300/90"
-                          }`}
-                        >
-                          <span className="shrink-0 font-bold">
-                            {m.sender === "user" ? (currentLang === "kn" ? "ನೀವು:" : "You:") : "AI:"}
-                          </span>
-                          <span className="shrink-0 rounded bg-white/10 px-1 text-[9px] text-amber-200 font-mono">
-                            {m.mode === "voice" ? "🎙️" : "💬"}
-                          </span>
-                          <p className="line-clamp-2">{m.spokenText || m.text}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 {/* Center Sacred Animated Disc & Frequency Ripples */}
-                <div className="relative flex flex-col items-center justify-center my-auto py-3">
+                <div className="relative flex flex-col items-center justify-center my-auto py-2">
                   {/* Dynamic Sound Wave Aura */}
                   <div className="relative flex items-center justify-center">
                     {/* Pulsing Concentric Aura Rings */}
@@ -2498,54 +2551,102 @@ export function SuperAdminAiPet(): JSX.Element | null {
                   <h3 className="mt-3 font-serif font-black text-sm sm:text-base text-amber-200 tracking-wide text-center">
                     {petTitles[petType][currentLang]}
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-amber-300/80 text-center max-w-sm mt-0.5 font-medium px-2">
-                    {isProcessing
-                      ? (currentLang === "kn" ? "ಗಣನೆ ನಡೆಯುತ್ತಿದೆ..." : "Analyzing astrological shastras...")
-                      : isAssistantSpeaking
-                      ? (currentLang === "kn" ? "ತೃತೀಯ AI Studio ಧ್ವನಿಯಲ್ಲಿ ಸಂಪೂರ್ಣ ವಿವರಣೆ ನೀಡಲಾಗುತ್ತಿದೆ..." : "Explaining full details via AI Studio Voice...")
-                      : isMicMuted
-                      ? (currentLang === "kn" ? "ಮೈಕ್ ಮ್ಯೂಟ್ ಆಗಿದೆ. ಮಾತನಾಡಲು ಮೈಕ್ ಬಟನ್ ಒತ್ತಿ." : "Mic muted. Tap mic to unmute and speak.")
-                      : (currentLang === "kn" ? "ಮೈಕ್ ಆನ್ ಆಗಿದೆ. ಜಾತಕ, ಭವಿಷ್ಯ, ಪಂಚಾಂಗದ ಕುರಿತು ನೇರವಾಗಿ ಮಾತನಾಡಿ." : "Mic is live. Speak naturally like a phone call.")}
-                  </p>
                 </div>
 
-                {/* Live Transcript & Real-Time Answer Glass Card */}
-                <div className="w-full rounded-2xl border border-amber-500/25 bg-black/40 backdrop-blur-md p-3 sm:p-4 max-h-40 overflow-y-auto space-y-2 scrollbar-thin">
-                  {liveTranscript && (
-                    <div className="flex items-start gap-2">
-                      <span className="text-xs font-bold text-amber-400 shrink-0">
-                        {currentLang === "kn" ? "ನೀವು:" : "You:"}
-                      </span>
-                      <p className="text-xs text-amber-100 font-medium leading-relaxed italic">
-                        "{liveTranscript}"
-                      </p>
+                {/* DYNAMIC SACRED VOICE STATUS & VISUALIZER (Text is hidden for TTS only) */}
+                <div className="w-full flex flex-col items-center justify-center min-h-[110px] my-auto">
+                  {isProcessing ? (
+                    /* 1. DEDICATED SACRED CELESTIAL ROTATING CHAKRA LOADING SYMBOL */
+                    <div className="flex flex-col items-center justify-center p-3 text-center space-y-3 animate-fade-in">
+                      <div className="relative flex items-center justify-center">
+                        <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full border-3 border-amber-400/30 border-t-amber-400 border-r-amber-300 animate-spin" />
+                        <div className="absolute h-10 w-10 sm:h-11 sm:w-11 rounded-full border-2 border-dashed border-amber-300/60 animate-spin [animation-direction:reverse] [animation-duration:3s]" />
+                        <span className="absolute text-lg sm:text-xl animate-pulse">✨</span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="font-serif font-bold text-xs sm:text-sm text-amber-200 tracking-wide animate-pulse">
+                          {currentLang === "kn"
+                            ? "✨ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರಗಳ ಗಣನೆ ನಡೆಯುತ್ತಿದೆ..."
+                            : currentLang === "hi"
+                            ? "✨ ज्योतिषीय गणना एवं दिव्य वाणी उत्तर तैयार हो रहा है..."
+                            : currentLang === "te"
+                            ? "✨ జ్యోతిష్య శాస్త్ర విశ్లేషణ సిద్ధమవుతోంది..."
+                            : currentLang === "ta"
+                            ? "✨ ஜோதிட சாஸ்திர ஆய்வு தயாராகிறது..."
+                            : "✨ Analyzing astrological shastras..."}
+                        </p>
+                        <p className="text-[11px] text-amber-300/70 font-medium">
+                          {currentLang === "kn"
+                            ? "ದೈವಿಕ ಧ್ವನಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ, ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ..."
+                            : currentLang === "hi"
+                            ? "दिव्य वाणी उत्तर तैयार हो रहा है, कृपया प्रतीक्षा करें..."
+                            : currentLang === "te"
+                            ? "దైవిక స్వర ప్రతిస్పందన సిద్ధమవుతోంది..."
+                            : currentLang === "ta"
+                            ? "குரல் பதில் தயாராகிறது..."
+                            : "Preparing divine voice response, please wait..."}
+                        </p>
+                      </div>
                     </div>
-                  )}
-
-                  {lastSpokenAnswer ? (
-                    <div className="flex items-start gap-2 pt-1 border-t border-amber-500/15">
-                      <span className="text-xs font-bold text-emerald-400 shrink-0">
-                        {currentLang === "kn" ? "ಕಾಮಧೇನು:" : "Assistant:"}
-                      </span>
-                      <p className="text-xs text-amber-200/90 leading-relaxed max-h-24 overflow-y-auto">
-                        {lastSpokenAnswer}
-                      </p>
-                    </div>
-                  ) : messages.length > 1 ? (
-                    <div className="flex items-center gap-1.5 pt-1 text-[11px] text-amber-300/70 border-t border-amber-500/15">
-                      <span>💬</span>
-                      <span>
-                        {currentLang === "kn"
-                          ? "ಪಠ್ಯ ಸಂಭಾಷಣೆಯ ವಿಷಯ ಸ್ಮರಣೆಯಲ್ಲಿದೆ. ನೇರವಾಗಿ ಮಾತನಾಡಿ ಮುಂದುವರಿಸಿ..."
-                          : "Chat history in memory. Speak naturally to continue from where you left off in text..."}
-                      </span>
+                  ) : isAssistantSpeaking ? (
+                    /* 2. DANCING AUDIO EQUALIZER / WAVEFORM VISUALIZER */
+                    <div className="flex flex-col items-center justify-center p-3 text-center space-y-2.5 animate-fade-in w-full max-w-sm">
+                      <div className="flex items-center justify-center gap-1 sm:gap-1.5 h-10 px-5 py-2 rounded-full bg-black/60 border border-amber-400/40 shadow-inner">
+                        {[40, 75, 95, 60, 30, 85, 100, 65, 45, 90, 80, 50, 70, 35].map((h, idx) => (
+                          <div
+                            key={idx}
+                            className="w-1 sm:w-1.5 rounded-full bg-gradient-to-t from-amber-500 via-amber-300 to-amber-100 animate-pulse"
+                            style={{
+                              height: `${h}%`,
+                              animationDuration: `${0.45 + (idx % 4) * 0.15}s`,
+                              animationDelay: `${idx * 50}ms`
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 px-3 py-1 text-[11px] font-bold text-amber-200">
+                        <span className="h-2 w-2 rounded-full bg-amber-400 animate-ping" />
+                        <span>
+                          {currentLang === "kn"
+                            ? "🎙️ AI Studio ಧ್ವನಿಯಲ್ಲಿ ವಿವರಣೆ (ನಿಲ್ಲಿಸಲು ನೇರವಾಗಿ ಮಾತನಾಡಿ)"
+                            : currentLang === "hi"
+                            ? "🎙️ AI Studio वाणी विवरण (रोकने के लिए बोलें)"
+                            : currentLang === "te"
+                            ? "🎙️ AI Studio వాయిస్ వివరణ (ఆపడానికి మాట్లాడండి)"
+                            : currentLang === "ta"
+                            ? "🎙️ AI Studio குரல் விளக்கம் (நிறுத்த பேசவும்)"
+                            : "🎙️ AI Studio Voice Speaking (Speak anytime to interrupt)"}
+                        </span>
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-amber-300/50 text-center italic">
-                      {currentLang === "kn"
-                        ? "ಉದಾಹರಣೆ: 'ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಜಾತಕ ತಯಾರಿಸಿ', 'ನನ್ನ ೧೦ನೇ ಮನೆ ವೃತ್ತಿಜೀವನ ಹೇಗಿದೆ?', 'ಸಂಖ್ಯಾಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನನ್ನ ಅದೃಷ್ಟ ರತ್ನ ಯಾವುದು?'..."
-                        : "e.g. 'Generate kundali for Shriram Pandit', 'How is my 10th house career?', 'What is my lucky gem according to Sankhya Shastra?'..."}
-                    </p>
+                    /* 3. LISTENING PULSE & LIVE USER TRANSCRIPT */
+                    <div className="flex flex-col items-center justify-center p-3 text-center space-y-2 animate-fade-in w-full max-w-md">
+                      {liveTranscript ? (
+                        <div className="rounded-xl border border-emerald-400/40 bg-emerald-950/40 backdrop-blur-xs px-4 py-2 text-xs text-emerald-200 shadow-lg shadow-emerald-950/30">
+                          <span className="font-bold text-emerald-300 mr-1.5">
+                            {currentLang === "kn" ? "ನೀವು:" : "You:"}
+                          </span>
+                          <span className="italic font-medium">"{liveTranscript}"</span>
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-950/60 border border-emerald-400/50 px-4 py-1.5 text-xs font-bold text-emerald-300 shadow-md">
+                          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                          <span>
+                            {isMicMuted
+                              ? (currentLang === "kn" ? "🔇 ಮೈಕ್ ಮ್ಯೂಟ್ ಆಗಿದೆ" : "🔇 Mic Muted")
+                              : (currentLang === "kn" ? "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ... ಮಾತನಾಡಿ" : "Listening... Speak now")}
+                          </span>
+                        </div>
+                      )}
+                      <p className="text-[10px] text-amber-300/60 italic max-w-xs text-center">
+                        {currentLang === "kn"
+                          ? "ಉದಾ: 'ಬಗ್ಗೋಣ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ರಾಮನವಮಿ ಓಪನ್ ಮಾಡು', 'ದೋಷ ತನಿಖೆ ಮಾಡು'..."
+                          : currentLang === "hi"
+                          ? "उदा: 'बग्गोण कैलेंडर में रामनवमी खोलो', 'कुंडली दोष स्कैन'..."
+                          : "e.g. 'go to Baggona Calendar and open Ramanavami', 'check doshas'..."}
+                      </p>
+                    </div>
                   )}
                 </div>
 

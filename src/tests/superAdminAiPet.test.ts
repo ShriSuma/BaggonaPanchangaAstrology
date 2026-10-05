@@ -1707,7 +1707,60 @@ Query: When will I get a job promotion and foreign travel?
       // Should have Hindi transliterated filename without Kannada characters
       expect(reports[0].fileName).toContain("श्रीराम_पंडित");
     });
+
+    it("correctly routes festival navigation commands like 'go to Baggona Calendar and open Ramanavami' to Baggona Calendar with festival ID and date", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      // English Command: "go to Baggona Calendar and open Ramanavami"
+      const resEn = await executeSuperAdminPetQuery("go to Baggona Calendar and open Ramanavami", context);
+      expect(resEn.category).toBe("navigation");
+      expect(resEn.actions.length).toBeGreaterThanOrEqual(1);
+      const actionEn = resEn.actions[0];
+      expect(actionEn.targetPage).toBe("calendar");
+      expect(actionEn.payload).toBeDefined();
+      expect(actionEn.payload?.festival).toBe("shri_ramanavami");
+      expect(actionEn.payload?.date).toBe("2026-03-27");
+      expect(actionEn.payload?.search).toContain("ಶ್ರೀರಾಮ");
+      expect(resEn.spokenText.en).toContain("Baggona Calendar");
+      expect(resEn.spokenText.en).toMatch(/Rama\s*Navami/i);
+
+      // Kannada Command: "ಬಗ್ಗೋಣ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ರಾಮನವಮಿ ಓಪನ್ ಮಾಡು"
+      const resKn = await executeSuperAdminPetQuery("ಬಗ್ಗೋಣ ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ರಾಮನವಮಿ ಓಪನ್ ಮಾಡು", {
+        ...context,
+        selectedLanguage: "kn"
+      });
+      expect(resKn.category).toBe("navigation");
+      expect(resKn.actions[0].targetPage).toBe("calendar");
+      expect(resKn.actions[0].payload?.festival).toBe("shri_ramanavami");
+      expect(resKn.actions[0].payload?.date).toBe("2026-03-27");
+      expect(resKn.spokenText.kn).toContain("ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್");
+      expect(resKn.spokenText.kn).toMatch(/ರಾಮನವಮ/);
+    });
+
+    it("routes multi-day and other festival commands like 'open Ganesha Chaturthi' or 'ದೀಪಾವಳಿ ಹಬ್ಬ ತೋರಿಸು' to Baggona Calendar", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "superadmindashboard",
+        currentUser: "superadmin",
+        selectedLanguage: "kn"
+      };
+
+      const resGanesha = await executeSuperAdminPetQuery("open Ganesha Chaturthi in Baggona calendar", context);
+      expect(resGanesha.category).toBe("navigation");
+      expect(resGanesha.actions[0].targetPage).toBe("calendar");
+      expect(resGanesha.actions[0].payload?.festival).toBe("ganesha_chaturthi");
+      expect(resGanesha.actions[0].payload?.date).toBe("2026-09-14");
+
+      const resDeepavali = await executeSuperAdminPetQuery("ದೀಪಾವಳಿ ಹಬ್ಬ ತೋರಿಸು ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ", context);
+      expect(resDeepavali.category).toBe("navigation");
+      expect(resDeepavali.actions[0].targetPage).toBe("calendar");
+      expect(resDeepavali.actions[0].payload?.date).toBeDefined();
+    });
   });
 });
+
 
 

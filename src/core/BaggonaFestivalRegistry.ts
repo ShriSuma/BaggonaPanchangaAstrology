@@ -498,7 +498,7 @@ export const MASTER_ANNUAL_FESTIVALS: MasterFestivalItem[] = [
     descriptionKn: "ಮರ್ಯಾದಾ ಪುರುಷೋತ್ತಮ ಶ್ರೀರಾಮಚಂದ್ರನ ಜನ್ಮೋತ್ಸವ, ವನವಾಸಿ ಸೀತಾರಾಮ ಲಕ್ಷ್ಮಣ ದೇವರ ವರ್ಧಂತಿ.",
     descriptionEn: "Appearance day of Lord Rama, midday celebration and temple abhishekams.",
     multiDayGroupId: "vasanta_navaratri_ramonavami",
-    voiceAliases: ["rama navami", "ram navami", "ರಾಮನವಮಿ", "ಶ್ರೀರಾಮನವಮಿ"]
+    voiceAliases: ["ramanavami", "shri ramanavami", "sri ramanavami", "rama navami", "ram navami", "ramnavami", "ರಾಮನವಮಿ", "ಶ್ರೀರಾಮನವಮಿ"]
   },
   {
     id: "kamada_ekadashi",
@@ -1268,24 +1268,67 @@ export function searchBaggonaFestivals(rawQuery: string): FestivalSearchResult {
     };
   }
 
-  // 1. Check if matches any Multi-Day festival group
-  const matchedMultiDayGroup = MULTI_DAY_FESTIVALS.find((g) => {
-    if (g.id.toLowerCase().includes(queryTerm)) return true;
-    if (g.groupNameKn.toLowerCase().includes(queryTerm)) return true;
-    if (g.groupNameEn.toLowerCase().includes(queryTerm)) return true;
-    return g.voiceAliases.some((alias) => queryTerm.includes(alias) || alias.includes(queryTerm));
-  });
+  const queryNoSpace = queryTerm.replace(/[\s_-]+/g, "");
 
-  // 2. Filter matching individual items
+  // 1. Filter matching individual items (Bidirectional and space-resilient)
   const matchingItems = MASTER_ANNUAL_FESTIVALS.filter((f) => {
-    if (f.nameKn.toLowerCase().includes(queryTerm)) return true;
-    if (f.nameEn.toLowerCase().includes(queryTerm)) return true;
+    const fKn = f.nameKn.toLowerCase();
+    const fEn = f.nameEn.toLowerCase();
+    const fId = f.id.toLowerCase();
+    const fKnNoSpace = fKn.replace(/[\s_-]+/g, "");
+    const fEnNoSpace = fEn.replace(/[\s_-]+/g, "");
+    const fIdNoSpace = fId.replace(/[\s_-]+/g, "");
+
+    if (queryTerm.includes(fId) || fId.includes(queryTerm)) return true;
+    if (queryNoSpace.includes(fIdNoSpace) || fIdNoSpace.includes(queryNoSpace)) return true;
+    if (queryTerm.includes(fEn) || fEn.includes(queryTerm)) return true;
+    if (queryNoSpace.includes(fEnNoSpace) || fEnNoSpace.includes(queryNoSpace)) return true;
+    if (queryTerm.includes(fKn) || fKn.includes(queryTerm)) return true;
+    if (queryNoSpace.includes(fKnNoSpace) || fKnNoSpace.includes(queryNoSpace)) return true;
     if (f.descriptionKn.toLowerCase().includes(queryTerm)) return true;
     if (f.descriptionEn.toLowerCase().includes(queryTerm)) return true;
     if (f.masaKn.toLowerCase().includes(queryTerm)) return true;
     if (f.tithiKn.toLowerCase().includes(queryTerm)) return true;
-    if (f.date.includes(queryTerm)) return true;
-    return f.voiceAliases.some((alias) => queryTerm.includes(alias) || alias.includes(queryTerm));
+    if (f.date === queryTerm) return true;
+
+    return f.voiceAliases.some((alias) => {
+      const a = alias.toLowerCase();
+      const aNoSpace = a.replace(/[\s_-]+/g, "");
+      return (
+        queryTerm.includes(a) ||
+        a.includes(queryTerm) ||
+        queryNoSpace.includes(aNoSpace) ||
+        aNoSpace.includes(queryNoSpace)
+      );
+    });
+  });
+
+  // 2. Check if matches any Multi-Day festival group
+  const matchedMultiDayGroup = MULTI_DAY_FESTIVALS.find((g) => {
+    const gId = g.id.toLowerCase();
+    const gKn = g.groupNameKn.toLowerCase();
+    const gEn = g.groupNameEn.toLowerCase();
+    const gIdNoSpace = gId.replace(/[\s_-]+/g, "");
+    const gKnNoSpace = gKn.replace(/[\s_-]+/g, "");
+    const gEnNoSpace = gEn.replace(/[\s_-]+/g, "");
+
+    if (queryTerm.includes(gId) || gId.includes(queryTerm)) return true;
+    if (queryNoSpace.includes(gIdNoSpace) || gIdNoSpace.includes(queryNoSpace)) return true;
+    if (queryTerm.includes(gKn) || gKn.includes(queryTerm)) return true;
+    if (queryNoSpace.includes(gKnNoSpace) || gKnNoSpace.includes(queryNoSpace)) return true;
+    if (queryTerm.includes(gEn) || gEn.includes(queryTerm)) return true;
+    if (queryNoSpace.includes(gEnNoSpace) || gEnNoSpace.includes(queryNoSpace)) return true;
+
+    return g.voiceAliases.some((alias) => {
+      const a = alias.toLowerCase();
+      const aNoSpace = a.replace(/[\s_-]+/g, "");
+      return (
+        queryTerm.includes(a) ||
+        a.includes(queryTerm) ||
+        queryNoSpace.includes(aNoSpace) ||
+        aNoSpace.includes(queryNoSpace)
+      );
+    });
   });
 
   const exactMatch = matchingItems[0];
