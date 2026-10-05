@@ -50,6 +50,7 @@ import {
 } from "./jyotishyaShastraKnowledge";
 import { harvestAmbientKundliContext, type AmbientKundliProfile } from "./ambientKundliHarvester";
 import { searchBaggonaFestivals } from "../core/BaggonaFestivalRegistry";
+import { isSuperAdminDatabaseIntent, handleSuperAdminDatabaseIntent } from "./superAdminDatabaseEngine";
 
 export type PetEmotion = "peaceful" | "thinking" | "speaking" | "excited" | "remedy" | "alert";
 
@@ -757,6 +758,11 @@ export async function executeSuperAdminPetQuery(
   const memoryResp = handleConversationMemoryIntent(rawQuery, context, effectiveLang);
   if (memoryResp) {
     return memoryResp;
+  }
+
+  // 0DB. REAL-TIME SUPER ADMIN DATABASE & COIN WALLET ENGINE
+  if (isSuperAdminDatabaseIntent(rawQuery)) {
+    return await handleSuperAdminDatabaseIntent(rawQuery, context, effectiveLang);
   }
 
   const isNavCommand =

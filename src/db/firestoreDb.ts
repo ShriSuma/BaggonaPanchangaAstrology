@@ -3051,8 +3051,8 @@ export interface CalendarDailyVisitDoc {
 }
 
 // In-memory fallback stores for tests / offline
-const memoryCalendarRegistrations = new Map<string, CalendarRegistrationDoc>();
-const memoryCalendarDailyVisits = new Map<string, CalendarDailyVisitDoc>();
+export const memoryCalendarRegistrations = new Map<string, CalendarRegistrationDoc>();
+export const memoryCalendarDailyVisits = new Map<string, CalendarDailyVisitDoc>();
 
 /**
  * Save or update a Calendar Registration in Firestore
