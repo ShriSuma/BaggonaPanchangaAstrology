@@ -376,5 +376,33 @@ describe("Instant Reading A4 PDF Export & 6-Language Localization Suite", () => 
     expect(text).toContain("Namaskaram Ganesha Bhat");
     expect(text).not.toContain("ನಮಸ್ಕಾರ ಗಣೇಶ ಭಟ್");
   });
+
+  it("enforces strict golden & cream palette with golden borders, zero red or green backgrounds", () => {
+    const { container } = render(
+      React.createElement(InstantReadingPdfTemplate, {
+        synthesisData: mockSynthesisData,
+        session: mockSession,
+        lang: "kn"
+      })
+    );
+
+    const html = container.innerHTML;
+
+    // Zero red or green backgrounds anywhere in DOM
+    expect(html).not.toContain("#ECFDF5");
+    expect(html).not.toContain("#FEE2E2");
+    expect(html).not.toContain("#F87171");
+    expect(html).not.toContain("#991B1B");
+    expect(html).not.toContain("#065F46");
+    expect(html).not.toContain("background-color: red");
+    expect(html).not.toContain("background-color: green");
+
+    // Must use golden borders (RGB 217, 119, 6 / #D97706)
+    expect(html).toContain("217, 119, 6");
+
+    // Both pages must contain inner royal frame with double golden border
+    const doubleBorders = container.querySelectorAll("[style*='double']");
+    expect(doubleBorders.length).toBeGreaterThanOrEqual(2);
+  });
 });
 
