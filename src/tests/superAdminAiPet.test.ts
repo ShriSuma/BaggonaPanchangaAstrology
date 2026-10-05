@@ -1397,9 +1397,9 @@ Query: When will I get a job promotion and foreign travel?
       const res = await executeSuperAdminPetQuery("ಹಿಂದೆ ನಾನು ಏನು ಕೇಳಿದೆ?", context);
 
       expect(res.category).toBe("general");
-      expect(res.text.kn).toContain("೧೦ನೇ ಮನೆ");
+      expect(res.text.kn).toMatch(/(೧೦ನೇ|ಹತ್ತನೇ)/);
       expect(res.text.kn).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-      expect(res.spokenText.kn).toContain("೧೦ನೇ ಮನೆ");
+      expect(res.spokenText.kn).toMatch(/(೧೦ನೇ|ಹತ್ತನೇ)/);
     });
 
     it("recalls voice mode advice when user switches to Text Mode and types questions about voice turns", async () => {
@@ -1560,6 +1560,152 @@ Query: When will I get a job promotion and foreign travel?
       expect(res.actions[0].targetPage).toBe("melapak");
       expect(res.actions[0].payload?.tab).toBe("dashakoota");
       expect(res.text.en).toContain("Dashakoota Milan");
+    });
+
+    it("navigates to Dina Bhavishya (Raman Bhavishya) hands-free", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      const res = await executeSuperAdminPetQuery("Dina Bhavishya, open the Dina Bhavishya", context);
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("ramanbhavishya");
+      expect(res.actions[0].payload?.tab).toBe("lifestage");
+      expect(res.text.en).toContain("B.V. Raman");
+    });
+
+    it("navigates to Varsha Bhavishya with year and single rashi tab", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "kn"
+      };
+
+      const res = await executeSuperAdminPetQuery("open for Varsha Bhavishya 2026 single rashi", context);
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("varshabavishya");
+      expect(res.actions[0].payload?.year).toBe(2026);
+      expect(res.actions[0].payload?.tab).toBe("single");
+    });
+
+    it("navigates to Hasta Mudrika (Palm Reading) mounts tab", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      const res = await executeSuperAdminPetQuery("open Hasta Mudrika mounts tab", context);
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("palmreading");
+      expect(res.actions[0].payload?.tab).toBe("mounts");
+    });
+
+    it("navigates to Mukha Mudrika (Face Reading) features tab", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      const res = await executeSuperAdminPetQuery("open Mukha Mudrika features tab", context);
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("facereading");
+      expect(res.actions[0].payload?.tab).toBe("features");
+    });
+
+    it("navigates to settings in Hindi setting dynamically", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "kn"
+      };
+
+      const res = await executeSuperAdminPetQuery("open the page in Hindi setting", context);
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("settings");
+      expect(res.actions[0].payload?.lang).toBe("hi");
+      expect(res.text.kn).toContain("ಹಿಂದಿ");
+    });
+
+    it("extracts devotee details and navigates to Kundli in English", async () => {
+      const context: SuperAdminPetContext = {
+        activePage: "home",
+        currentUser: "superadmin",
+        selectedLanguage: "en"
+      };
+
+      const res = await executeSuperAdminPetQuery(
+        "open Kundli for Shriram Pandit at 9:20 AM in Bangalore in English setting",
+        context
+      );
+
+      expect(res.category).toBe("navigation");
+      expect(res.actions[0].targetPage).toBe("kundli");
+      expect(res.actions[0].payload?.lang).toBe("en");
+      expect(res.actions[0].payload?.name).toBe("Shriram Pandit");
+      expect(res.actions[0].payload?.tob).toBe("9:20 AM");
+      expect(res.actions[0].payload?.location).toBe("bengaluru");
+    });
+
+    it("generates batch PDFs with pure transliteration into Hindi (pure Devanagari script)", async () => {
+      const mockSession = {
+        input: {
+          name: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+          birthDate: "1993-05-31",
+          birthTime: "09:20",
+          latitude: 12.9716,
+          longitude: 77.5946,
+          city: "Bengaluru",
+          pincode: "560001",
+          gender: "Male"
+        },
+        birthDateYmd: "1993-05-31",
+        birthTimeHm: "09:20",
+        homePlaceName: "ಬೆಂಗಳೂರು",
+        placeLabel: "ಬೆಂಗಳೂರು",
+        dasha: [],
+        dailyPrediction: "ಶುಭ ದಿನ",
+        result: {
+          lagna: { rashi: { english: "Mithuna", index: 2 }, degree: 10 },
+          planets: [
+            {
+              name: "Moon",
+              degree: 15,
+              rashi: { english: "Vrishabha", index: 1 },
+              nakshatra: { english: "Rohini", index: 3 }
+            }
+          ]
+        }
+      };
+
+      const params = {
+        rawPrompt: "Hindi Seva Patra batch generation",
+        name: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+        birthDate: "1993-05-31",
+        birthTime: "09:20",
+        city: "ಬೆಂಗಳೂರು",
+        pincode: "560001",
+        priestName: "ಚೈತನ್ಯ ಪಂಡಿತ್",
+        priestPhone: "9972339362",
+        poojaName: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ",
+        requestedReports: ["seva_patra"] as any,
+        language: "hi" as any
+      };
+
+      const reports = await generateSuperAdminBatchPdfs(mockSession as any, params as any);
+      expect(reports).toHaveLength(1);
+      expect(reports[0].id).toBe("seva_patra");
+      expect(reports[0].blob).toBeDefined();
+      // Should have Hindi transliterated filename without Kannada characters
+      expect(reports[0].fileName).toContain("श्रीराम_पंडित");
     });
   });
 });

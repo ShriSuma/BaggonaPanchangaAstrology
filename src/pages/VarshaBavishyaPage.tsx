@@ -18,15 +18,26 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../features/audio/aiVoiceCloneEngine";
 import type { SevaLang } from "../features/seva/sevaLocale";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
+import { useAppStore } from "../stores/appStore";
 
 const RASHI_SYMBOLS = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"];
 
 export default function VarshaBavishyaPage() {
   const { t, i18n } = useTranslation();
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
-  const [activeTab, setActiveTab] = useState<"all" | "single">("all");
-  const [selectedRashi, setSelectedRashi] = useState<number>(0);
+  const pageParams = useAppStore((state) => state.pageParams);
+  const [selectedYear, setSelectedYear] = useState<number>(() => {
+    if (pageParams?.year && typeof pageParams.year === "number") return pageParams.year;
+    return currentYear;
+  });
+  const [activeTab, setActiveTab] = useState<"all" | "single">(() => {
+    if (pageParams?.tab === "single" || pageParams?.tab === "all") return pageParams.tab;
+    return "all";
+  });
+  const [selectedRashi, setSelectedRashi] = useState<number>(() => {
+    if (typeof pageParams?.rashi === "number" && pageParams.rashi >= 0 && pageParams.rashi < 12) return pageParams.rashi;
+    return 0;
+  });
   const [selectedNakshatra, setSelectedNakshatra] = useState<number | null>(null);
   const [prediction, setPrediction] = useState<VarshaPrediction | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -34,6 +45,19 @@ export default function VarshaBavishyaPage() {
   const cancelAudioRef = useRef<(() => void) | null>(null);
 
   const singleContentRef = useRef<HTMLDivElement>(null);
+
+  // Synchronize dynamic parameters injected by Pet or deep link
+  useEffect(() => {
+    if (pageParams?.year && typeof pageParams.year === "number") {
+      setSelectedYear(pageParams.year);
+    }
+    if (pageParams?.tab === "all" || pageParams?.tab === "single") {
+      setActiveTab(pageParams.tab);
+    }
+    if (typeof pageParams?.rashi === "number" && pageParams.rashi >= 0 && pageParams.rashi < 12) {
+      setSelectedRashi(pageParams.rashi);
+    }
+  }, [pageParams]);
 
   // Compute authentic Baggona 12-Rashi yearly data whenever selectedYear changes
   const yearlyData: BaggonaYearlyBhavishyaResult = useMemo(() => {

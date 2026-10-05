@@ -307,12 +307,13 @@ export default function FaceReadingPage(): JSX.Element {
   const selectedLang = useAppStore((state) => state.language) || "kn";
   const isKn = selectedLang === "kn";
   const geminiApiKey = useAppStore((state) => state.geminiApiKey) || "";
+  const pageParams = useAppStore((state) => state.pageParams);
 
   const session = useKundliViewerStore((state) => state.session);
 
   // Devotee Name
   const [devoteeName, setDevoteeName] = useState<string>(() => {
-    return session?.input?.name || (isKn ? "ಶ್ರೀಯುತ ಭಕ್ತರು" : "Devotee");
+    return pageParams?.name || session?.input?.name || (isKn ? "ಶ್ರೀಯುತ ಭಕ್ತರು" : "Devotee");
   });
 
   // State for Face Image & Validation
@@ -325,7 +326,22 @@ export default function FaceReadingPage(): JSX.Element {
 
   // Processing & Chat
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<ActiveTab>("reading");
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+    if (pageParams?.tab && ["reading", "features", "chronology", "moles"].includes(pageParams.tab)) {
+      return pageParams.tab as ActiveTab;
+    }
+    return "reading";
+  });
+
+  // Sync pageParams when redirected by AI Pet or deep link
+  useEffect(() => {
+    if (pageParams?.tab && ["reading", "features", "chronology", "moles"].includes(pageParams.tab)) {
+      setActiveTab(pageParams.tab as ActiveTab);
+    }
+    if (pageParams?.name) {
+      setDevoteeName(pageParams.name);
+    }
+  }, [pageParams]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [activeResult, setActiveResult] = useState<FaceReadingResult | null>(null);
   const [followUpInput, setFollowUpInput] = useState<string>("");

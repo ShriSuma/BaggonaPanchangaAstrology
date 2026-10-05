@@ -56,17 +56,36 @@ export default function PalmReadingPage(): JSX.Element {
   const placeLabelStore = useAppStore((s) => s.placeLabel);
   const pincodeStore = useAppStore((s) => s.pincode);
   const ayanamsaModel = useAppStore((s) => s.ayanamsaModel);
+  const pageParams = useAppStore((s) => s.pageParams);
   const session = useKundliViewerStore((s) => s.session);
 
   // Language selector state
-  const [selectedLang, setSelectedLang] = useState<string>(appLanguage || "kn");
+  const [selectedLang, setSelectedLang] = useState<string>(() => pageParams?.lang || appLanguage || "kn");
   const isKn = selectedLang === "kn";
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<TabType>("reading");
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (pageParams?.tab && ["reading", "mounts", "yogas", "remedies"].includes(pageParams.tab)) {
+      return pageParams.tab as TabType;
+    }
+    return "reading";
+  });
 
   // Devotee Name & Details Inputs
-  const [devoteeName, setDevoteeName] = useState<string>(() => session?.input?.name || "");
+  const [devoteeName, setDevoteeName] = useState<string>(() => pageParams?.name || session?.input?.name || "");
+
+  // Sync pageParams when redirected by AI Pet or deep link
+  useEffect(() => {
+    if (pageParams?.tab && ["reading", "mounts", "yogas", "remedies"].includes(pageParams.tab)) {
+      setActiveTab(pageParams.tab as TabType);
+    }
+    if (pageParams?.name) {
+      setDevoteeName(pageParams.name);
+    }
+    if (pageParams?.lang) {
+      setSelectedLang(pageParams.lang);
+    }
+  }, [pageParams]);
   const [gotraInput, setGotraInput] = useState<string>(() => session?.input?.gothra || "");
   const [devoteeGender, setDevoteeGender] = useState<"Male" | "Female">(() => {
     const g = (session?.input as any)?.gender;

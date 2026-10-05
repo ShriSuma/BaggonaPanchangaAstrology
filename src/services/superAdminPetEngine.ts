@@ -254,7 +254,31 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
     name: { kn: "ರಮಣ ಪದ್ಧತಿ ಭವಿಷ್ಯ (Raman Bhavishya)", en: "B.V. Raman 10-Chapter Predictions", hi: "रमण पद्धति भविष्य", te: "రమణ పద్ధతి భవిష్యత్", ta: "ராமன் முறை பலன்கள்" },
     category: "kundli",
     icon: "🌟",
-    keywords: ["raman", "bhavishya", "ramanbhavishya", "ರಮಣ ಭವಿಷ್ಯ", "೧೦ ಅಧ್ಯಾಯ", "ಜೀವಿತ ಭವಿಷ್ಯ", "10 chapters", "life stages", "multi-question", "multi question", "questionnaire", "question area", "ಬಹುಪ್ರಶ್ನೆ", "ಪ್ರಶ್ನಾವಳಿ", "single question", "ask astrologer"],
+    keywords: [
+      "raman",
+      "bhavishya",
+      "ramanbhavishya",
+      "ರಮಣ ಭವಿಷ್ಯ",
+      "೧೦ ಅಧ್ಯಾಯ",
+      "ಜೀವಿತ ಭವಿಷ್ಯ",
+      "10 chapters",
+      "life stages",
+      "multi-question",
+      "multi question",
+      "questionnaire",
+      "question area",
+      "ಬಹುಪ್ರಶ್ನೆ",
+      "ಪ್ರಶ್ನಾವಳಿ",
+      "single question",
+      "ask astrologer",
+      "dina bhavishya",
+      "ದಿನ ಭವಿಷ್ಯ",
+      "ದಿನಭವಿಷ್ಯ",
+      "daily prediction",
+      "daily horoscope",
+      "daily bhavishya",
+      "ದೈನಂದಿನ ಭವಿಷ್ಯ"
+    ],
     description: {
       kn: "ಡಾ. ಬಿ.ವಿ. ರಮಣ ಪದ್ಧತಿಯ ೧೦-ಅಧ್ಯಾಯಗಳ ಸಮಗ್ರ ಜೀವನ ಭವಿಷ್ಯ, ಯೋಗಗಳು, ಮತ್ತು ಗೋಚಾರ ಫಲ.",
       en: "Dr. B.V. Raman 10-chapter life stage predictions, yogas, dasha analysis, and transits."
@@ -378,7 +402,20 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
     name: { kn: "ವಾರ್ಷಿಕ ವರ್ಷ ಭವಿಷ್ಯ (Varshaphala)", en: "Annual Solar Return (Tajika)", hi: "वर्षफल", te: "వార్షిక భవిష్యత్", ta: "வருட பலன்கள்" },
     category: "kundli",
     icon: "🎆",
-    keywords: ["varsha", "varshabavishya", "varshaphala", "tajika", "ವರ್ಷ ಭವಿಷ್ಯ", "ವಾರ್ಷಿಕ ಫಲ"],
+    keywords: [
+      "varsha",
+      "varshabavishya",
+      "varshaphala",
+      "tajika",
+      "ವರ್ಷ ಭವಿಷ್ಯ",
+      "ವರ್ಷಭವಿಷ್ಯ",
+      "ವಾರ್ಷಿಕ ಫಲ",
+      "varsha bhavishya",
+      "yearly prediction",
+      "annual prediction",
+      "varshik bhavishya",
+      "वार्षिक भविष्य"
+    ],
     description: {
       kn: "ತಾಜಿಕ ಪದ್ಧತಿಯ ವಾರ್ಷಿಕ ಸೌರ ಪ್ರವೇಶ ಕುಂಡಲಿ, ವರ್ಷಾಧಿಪತಿ ನಿರ್ಣಯ ಮತ್ತು ಮುಂಬರುವ ವರ್ಷದ ಫಲಗಳು.",
       en: "Tajika system annual solar return horoscope, Varsha Lord, and 12-month event predictions."
@@ -408,7 +445,27 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
     name: { kn: "ಹಸ್ತ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ (Palm Reading)", en: "Hastha Samudrika (Palm Reading)", hi: "हस्तरेखा शास्त्र", te: "హస్త సాముద్రికం", ta: "கைரேகை சாஸ்திரம்" },
     category: "divination",
     icon: "✋",
-    keywords: ["palm", "palmreading", "hastarekha", "ಹಸ್ತ ರೇಖೆ", "ಹಸ್ತ ಸಾಮುದ್ರಿಕ", "ಆಯುಷ್ಯ ರೇಖೆ", "ಭಾಗ್ಯ ರೇಖೆ"],
+    keywords: [
+      "palm",
+      "palmreading",
+      "hastarekha",
+      "ಹಸ್ತ ರೇಖೆ",
+      "ಹಸ್ತ ಸಾಮುದ್ರಿಕ",
+      "ಆಯುಷ್ಯ ರೇಖೆ",
+      "ಭಾಗ್ಯ ರೇಖೆ",
+      "hasta mudrika",
+      "ಹಸ್ತ ಮುದ್ರಿಕಾ",
+      "ಹಸ್ತಮುದ್ರಿಕಾ",
+      "ಕೈ ಮುದ್ರಿಕಾ",
+      "ಕೈ ಮುದ್ರಾ",
+      "ಕೈಮುದ್ರಿಕಾ",
+      "kai mudrama",
+      "kai mudra",
+      "palm reading",
+      "palmistry",
+      "hasta samudrika",
+      "hasta"
+    ],
     description: {
       kn: "ಜೀವನ ರೇಖೆ, ಶಿರೋ ರೇಖೆ, ಹೃದಯ ರೇಖೆ, ಭಾಗ್ಯ ರೇಖೆ ಮತ್ತು ಹಸ್ತ ಪರ್ವತಗಳ ಶಾಸ್ತ್ರೀಯ ವಿಶ್ಲೇಷಣೆ.",
       en: "Hastha Samudrika Shastra palm line inspection, mounts of planets, and destiny signs."
@@ -418,7 +475,20 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
     name: { kn: "ಮುಖ ಸಾಮುದ್ರಿಕ ಶಾಸ್ತ್ರ (Face Reading)", en: "Samudrika Shastra (Face Reading)", hi: "सामुद्रिक मुख लक्षण", te: "ముఖ సాముద్రికం", ta: "முக சாஸ்திரம்" },
     category: "divination",
     icon: "👤",
-    keywords: ["face", "facereading", "samudrika", "ಮುಖ ಲಕ್ಷಣ", "ಸಾಮುದ್ರಿಕ", "ನೆತ್ತಿ ಲಕ್ಷಣ"],
+    keywords: [
+      "face",
+      "facereading",
+      "samudrika",
+      "ಮುಖ ಲಕ್ಷಣ",
+      "ಸಾಮುದ್ರಿಕ",
+      "ನೆತ್ತಿ ಲಕ್ಷಣ",
+      "mukha mudrika",
+      "ಮುಖ ಮುದ್ರಿಕಾ",
+      "ಮುಖಮುದ್ರಿಕಾ",
+      "ಮುಖ ಸಾಮುದ್ರಿಕ",
+      "face reading",
+      "physiognomy"
+    ],
     description: {
       kn: "ನೆತ್ತಿ, ಕಣ್ಣುಗಳು, ಮೂಗು, ತುಟಿಗಳು, ಮತ್ತು ಮುಖ ಲಕ್ಷಣಗಳಿಂದ ಆಯುಷ್ಯ ಮತ್ತು ಭಾಗ್ಯ ನಿರ್ಣಯ.",
       en: "Facial feature destiny analysis, forehead lines, and character indicators."
@@ -548,7 +618,26 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
     name: { kn: "ಸೆಟ್ಟಿಂಗ್ಸ್ & ಭಾಷೆ (Settings)", en: "Settings & Preferences", hi: "सेटिंग्स एवं भाषा", te: "సెట్టింగ్స్", ta: "அமைப்புகள்" },
     category: "admin",
     icon: "⚙️",
-    keywords: ["settings", "preferences", "language", "ayanamsa", "ಸೆಟ್ಟಿಂಗ್ಸ್", "ಭಾಷೆ ಬದಲಾವಣೆ", "ಅಯನಾಂಶ"],
+    keywords: [
+      "settings",
+      "preferences",
+      "language",
+      "ayanamsa",
+      "ಸೆಟ್ಟಿಂಗ್ಸ್",
+      "ಭಾಷೆ ಬದಲಾವಣೆ",
+      "ಅಯನಾಂಶ",
+      "hindi setting",
+      "english setting",
+      "kannada setting",
+      "telugu setting",
+      "tamil setting",
+      "language setting",
+      "ಹಿಂದಿ ಸೆಟ್ಟಿಂಗ್",
+      "ಇಂಗ್ಲಿಷ್ ಸೆಟ್ಟಿಂಗ್",
+      "ಕನ್ನಡ ಸೆಟ್ಟಿಂಗ್",
+      "हिंदी सेटिंग",
+      "अंग्रेजी सेटिंग"
+    ],
     description: {
       kn: "೫ ಭಾಷೆಗಳ ಆಯ್ಕೆ (ಕನ್ನಡ, ಇಂಗ್ಲಿಷ್, ಹಿಂದಿ, ತೆಲುಗು, ತಮಿಳು), ಅಯನಾಂಶ (ಲಾಹಿರಿ / ದೃಕ್) ಮತ್ತು ನೋಟಿಫಿಕೇಶನ್‌ಗಳು.",
       en: "5 Indic languages selector, Ayanamsa toggle (Lahiri vs Drik Ganita), and notification controls."
@@ -690,7 +779,18 @@ export async function executeSuperAdminPetQuery(
       query.includes("ಕರ್ಕೊಂಡು ಹೋಗು") ||
       query.includes("खोलो") ||
       query.includes("चलो") ||
-      query.includes("दिखाओ")
+      query.includes("दिखाओ") ||
+      query.includes("दिखाइए") ||
+      query.includes("दिखाना") ||
+      query.includes("show me") ||
+      query.includes("fill") ||
+      query.includes("ತುಂಬು") ||
+      query.includes("తెరువు") ||
+      query.includes("వెళ్లు") ||
+      query.includes("చూపించు") ||
+      query.includes("திற") ||
+      query.includes("செல்") ||
+      query.includes("காட்டு")
     );
 
   // 0H. PROFILE IMPROVEMENT & STRATEGIC ADVISORY (HIGHEST SPECIFICITY FOR BOSS ADVISORY)
@@ -1032,7 +1132,8 @@ export async function executeSuperAdminPetQuery(
   if (
     query.includes("what pages") ||
     query.includes("all pages") ||
-    query.includes("features") ||
+    query.includes("all features") ||
+    query.includes("what features") ||
     query.includes("sitemap") ||
     query.includes("ಪುಟಗಳು") ||
     query.includes("ಪುಟಗಳಿವೆ") ||
@@ -3330,6 +3431,33 @@ const NAV_TAB_LOCALIZED_NAMES: Record<
     patrika: { kn: "ಜನ್ಮ ಕುಂಡಲಿ ಪತ್ರಿಕೆ", en: "Birth Chart Patrika", hi: "जन्म कुण्डली पत्रिका", te: "జన్మ కుండలి పత్రిక", ta: "ஜாதகப் பத்ரிகை" },
     dasha: { kn: "ವಿಂಶೋತ್ತರಿ ಮಹಾದಶಾ", en: "Vimshottari Dasha", hi: "विंशोत्तरी महादशा", te: "వింశోత్తరి మహాదశ", ta: "விம்சோத்தரி மகா தசை" },
     personality: { kn: "ಜಾತಕ ಗುಣ & ವ್ಯಕ್ತಿತ್ವ", en: "Personality & Traits", hi: "व्यक्तित्व एवं गुण", te: "వ్యక్తిత్వ లక్షణాలు", ta: "குணநலன்கள்" }
+  },
+  palmreading: {
+    reading: { kn: "ಹಸ್ತ ಸ್ಕ್ಯಾನರ್ & ಫಲ", en: "Palm Scanner & Reading", hi: "हस्त स्कैनर व फल", te: "హస్త స్కానర్ & ఫలం", ta: "கைரேகை ஸ்கேனர்" },
+    mounts: { kn: "ಸಪ್ತ ಗ್ರಹ ಪರ್ವತಗಳು", en: "7 Planetary Mounts", hi: "सप्त ग्रह पर्वत", te: "గ్రహ పర్వతాలు", ta: "கிரக மேடுகள்" },
+    yogas: { kn: "ಸಾಮುದ್ರಿಕ ಯೋಗಗಳು", en: "Samudrika Yogas", hi: "सामुद्रिक योग", te: "సాముద్రిక యోగాలు", ta: "சாமுத்ரிகா யோகங்கள்" },
+    remedies: { kn: "ಹಸ್ತ ರೇಖಾ ಪರಿಹಾರ", en: "Palm Remedies", hi: "हस्तरेखा उपाय", te: "హస్తరేఖ పరిహారాలు", ta: "கைரேகை பரிகாரங்கள்" }
+  },
+  facereading: {
+    reading: { kn: "ಮುಖ ಸ್ಕ್ಯಾನರ್ & ಫಲ", en: "Face Scanner & Reading", hi: "मुख स्कैनर व फल", te: "ముఖ స్కానర్ & ఫలం", ta: "முக ஸ்கேனர் & பலன்" },
+    features: { kn: "ಸಪ್ತ ಮುಖ ಲಕ್ಷಣಗಳು", en: "7 Facial Features", hi: "सप्त मुख लक्षण", te: "సప్త ముఖ లక్షణాలు", ta: "ஏழு முக லட்சணங்கள்" },
+    chronology: { kn: "೧೦೦-ವರ್ಷ ಮುಖ ಕಾಲಚಕ್ರ", en: "100-Year Age Map", hi: "100-वर्षीय मुख कालचक्र", te: "100-సంవత్సరాల కాలచక్రం", ta: "100-ஆண்டு காலச்சக்கரம்" },
+    moles: { kn: "ಮಚ್ಚೆ ಶಾಸ್ತ್ರ & ಪರಿಹಾರ", en: "Moles & Remedies", hi: "तिल शास्त्र व उपाय", te: "మచ్చల శాస్త్రం", ta: "மச்ச சாஸ்திரம்" }
+  },
+  varshabavishya: {
+    all: { kn: "ದ್ವಾದಶ ರಾಶಿ ವಾರ್ಷಿಕ ಫಲ", en: "All 12 Rashis Overview", hi: "द्वादश राशि वार्षिक फल", te: "ద్వాదశ రాశుల వార్షిక ఫలం", ta: "12 ராசிகள் வருட பலன்" },
+    single: { kn: "ವೈಯಕ್ತಿಕ ರಾಶಿ & ನಕ್ಷತ್ರ ಫಲ", en: "Single Rashi & Nakshatra", hi: "व्यक्तिगत राशि व नक्षत्र फल", te: "వ్యక్తిగత రాశి ఫలం", ta: "தனி நபர் ராசி பலன்" }
+  },
+  ramanbhavishya: {
+    lifestage: { kn: "೧೦-ಅಧ್ಯಾಯಗಳ ಜೀವಿತ ಭವಿಷ್ಯ", en: "Life Stage Predictions (10 Chapters)", hi: "१०-अध्याय जीवन भविष्य", te: "10-అధ్యాయాల జీవిత భవిష్యత్", ta: "10-அத்தியாய வாழ்க்கை பலன்கள்" },
+    ask: { kn: "ಜ್ಯೋತಿಷಿಗಳಿಗೆ ಪ್ರಶ್ನೆ ಕೇಳಿ", en: "Ask the Astrologer", hi: "ज्योतिषी से प्रश्न पूछें", te: "జ్యోతిష్యుడిని అడగండి", ta: "ஜோதிடரிடம் கேட்கவும்" }
+  },
+  kundli: {
+    jataka: { kn: "ಜನ್ಮ ಕುಂಡಲಿ ಚಾರ್ಟ್", en: "Birth Chart", hi: "जन्म कुण्डली चक्र", te: "జన్మ కుండలి", ta: "ஜாதக சக்கரம்" },
+    dasha: { kn: "ವಿಂಶೋತ್ತರಿ ದಶಾ ಕಾಲ", en: "Vimshottari Dasha", hi: "विंशोत्तरी दशा", te: "వింశోత్తరి దశ", ta: "விம்சோத்தரி தசை" },
+    remedy: { kn: "ದೈವಿಕ ಪರಿಹಾರ ವರದಿ", en: "Remedy & Parihara", hi: "वैदिक उपाय", te: "పరిహార నివేదిక", ta: "பரிகார அறிக்கை" },
+    lifeguidance: { kn: "ಜೀವನ ಮಾರ್ಗದರ್ಶನ", en: "Life Guidance", hi: "जीवन मार्गदर्शन", te: "జీవిత మార్గదర్శనం", ta: "வாழ்க்கை வழிகாட்டல்" },
+    balavidya: { kn: "ಬಾಲವಿದ್ಯಾ ಸೂಟ್", en: "Bala Vidya Suite", hi: "बालविद्या", te: "బాలవిద్య", ta: "பாலவித்யா" }
   }
 };
 
@@ -3340,7 +3468,9 @@ function buildNavigationResponse(
   extractedTab: string | undefined,
   extractedDate: string | undefined,
   extractedLocation: string | undefined,
-  lang: SupportedLanguage
+  lang: SupportedLanguage,
+  extractedLang?: SupportedLanguage,
+  devoteeDetails?: { name?: string; dob?: string; tob?: string; city?: string }
 ): PetResponse {
   const pName = matchedPage.name[lang] || matchedPage.name.kn || matchedPage.name.en;
   const pDesc = matchedPage.description[lang] || matchedPage.description.kn || matchedPage.description.en;
@@ -3349,11 +3479,34 @@ function buildNavigationResponse(
   const tabName = tabLocalizedMap ? (tabLocalizedMap[lang] || tabLocalizedMap.kn || tabLocalizedMap.en) : "";
 
   // 1. Text Responses across 5 languages
+  const langDisplayNames: Record<SupportedLanguage, { kn: string; en: string; hi: string; te: string; ta: string }> = {
+    hi: { kn: "ಹಿಂದಿ", en: "Hindi", hi: "हिन्दी", te: "హిందీ", ta: "இந்தி" },
+    en: { kn: "ಇಂಗ್ಲಿಷ್", en: "English", hi: "अंग्रेजी", te: "ఇంగ్లీష్", ta: "ஆங்கிலம்" },
+    kn: { kn: "ಕನ್ನಡ", en: "Kannada", hi: "कन्नड़", te: "కన్నడ", ta: "கன்னடம்" },
+    te: { kn: "ತೆಲುಗು", en: "Telugu", hi: "तेलुगु", te: "తెలుగు", ta: "తెలుగు" },
+    ta: { kn: "ತಮಿಳು", en: "Tamil", hi: "तमिल", te: "తమిళం", ta: "தமிழ்" }
+  };
+
+  // 1. Text Responses across 5 languages
   let textKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ "${pName}" ಪುಟವನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
   let textEn = `Understood Super Admin! Navigating on your behalf to "${pName}".`;
   let textHi = `जी स्वामी! मैं तुरंत आपके लिए "${pName}" पृष्ठ खोल रहा हूँ।`;
   let textTe = `తప్పకుండా స్వామి! నేను తక్షణమే మీ కోసం "${pName}" పేజీని తెరుస్తున్నాను.`;
   let textTa = `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்தை திறக்கிறேன்.`;
+
+  if (extractedLang) {
+    const lKn = langDisplayNames[extractedLang]?.kn || "ಹಿಂದಿ";
+    const lEn = langDisplayNames[extractedLang]?.en || "Hindi";
+    const lHi = langDisplayNames[extractedLang]?.hi || "हिन्दी";
+    const lTe = langDisplayNames[extractedLang]?.te || "హిందీ";
+    const lTa = langDisplayNames[extractedLang]?.ta || "இந்தி";
+
+    textKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ಭಾಷೆಯನ್ನು '${lKn}' ಗೆ ಬದಲಾಯಿಸಿ, ತಕ್ಷಣ ನಿಮ್ಮ ಪರವಾಗಿ "${pName}" ಪುಟವನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    textEn = `Understood Super Admin! Switching language setting to '${lEn}' and navigating to "${pName}".`;
+    textHi = `जी स्वामी! मैं भाषा को '${lHi}' में बदलकर तुरंत आपके लिए "${pName}" पृष्ठ खोल रहा हूँ।`;
+    textTe = `తప్పకుండా స్వామి! నేను భాషను '${lTe}' కి మార్చి, మీ కోసం "${pName}" పేజీని తెరుస్తున్నాను.`;
+    textTa = `நிச்சயமாக சுவாமி! மொழியை '${lTa}' க்கு மாற்றி, உங்களுக்காக "${pName}" பக்கத்தை திறக்கிறேன்.`;
+  }
 
   if (tabName && extractedYear) {
     const yrKn = toIndicDigits(extractedYear, "kn");
@@ -3385,6 +3538,17 @@ function buildNavigationResponse(
     textTa = `நிச்சயமாக சுவாமி! உடனடியாக உங்களுக்காக "${pName}" பக்கத்திற்குச் சென்று, ${extractedYear} ஆம் ஆண்டிற்கான விவரங்களைத் திறக்கிறேன்.`;
   }
 
+  if (devoteeDetails?.name) {
+    const dName = devoteeDetails.name;
+    const dTime = devoteeDetails.tob ? ` (${devoteeDetails.tob})` : "";
+    const dCity = devoteeDetails.city ? ` - ${devoteeDetails.city}` : "";
+    textKn += `\n\n👤 **ಭಕ್ತರ ವಿವರ**: ${dName}${dTime}${dCity}.`;
+    textEn += `\n\n👤 **Devotee Details**: ${dName}${dTime}${dCity}.`;
+    textHi += `\n\n👤 **भक्त विवरण**: ${dName}${dTime}${dCity}.`;
+    textTe += `\n\n👤 **భక్తుని వివరాలు**: ${dName}${dTime}${dCity}.`;
+    textTa += `\n\n👤 **பக்தர் விவரம்**: ${dName}${dTime}${dCity}.`;
+  }
+
   textKn += `\n\n📖 **ಪುಟದ ಶಾಸ್ತ್ರೀಯ ವಿವರ**: ${pDesc}\n\nಕೆಳಗಿನ ಬಟನ್ ಒತ್ತಿ ತಕ್ಷಣ ಆ ಪುಟಕ್ಕೆ ತೆರಳಿ.`;
   textEn += `\n\n📖 **Module Overview**: ${pDesc}\n\nClick the button below to jump directly to this page.`;
   textHi += `\n\n📖 **विवरण**: ${pDesc}\n\nनीचे दिए गए बटन पर क्लिक करें।`;
@@ -3398,7 +3562,14 @@ function buildNavigationResponse(
   let spokenTe = `తప్పకుండా స్వామి! నేను తక్షణమే ${pName} పేజీని తెరుస్తున్నాను.`;
   let spokenTa = `நிச்சயமாக சுவாமி! நான் ${pName} பக்கத்தை திறக்கிறேன்.`;
 
-  if (tabName && extractedYear) {
+  if (extractedLang) {
+    const lKn = langDisplayNames[extractedLang]?.kn || "ಹಿಂದಿ";
+    const lEn = langDisplayNames[extractedLang]?.en || "Hindi";
+    const lHi = langDisplayNames[extractedLang]?.hi || "हिन्दी";
+    spokenKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ಭಾಷೆಯನ್ನು ${lKn} ಗೆ ಬದಲಾಯಿಸಿ, ${pName} ಪುಟವನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
+    spokenEn = `Switching language setting to ${lEn} and opening ${pName}.`;
+    spokenHi = `जी स्वामी! भाषा को ${lHi} में बदलकर ${pName} पृष्ठ खोल रहा हूँ।`;
+  } else if (tabName && extractedYear) {
     const yrKn = toIndicDigits(extractedYear, "kn");
     const yrHi = toIndicDigits(extractedYear, "hi");
     spokenKn = `ಖಂಡಿತ ಸ್ವಾಮಿ! ನಾನು ತಕ್ಷಣ ${pName} ಪುಟಕ್ಕೆ ತೆರಳಿ ${yrKn} ನೇ ವರ್ಷದ ${tabName} ಟ್ಯಾಬ್ ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`;
@@ -3433,6 +3604,11 @@ function buildNavigationResponse(
   if (extractedTab) payload.tab = extractedTab;
   if (extractedDate) payload.date = extractedDate;
   if (extractedLocation) payload.location = extractedLocation;
+  if (extractedLang) payload.lang = extractedLang;
+  if (devoteeDetails?.name) payload.name = devoteeDetails.name;
+  if (devoteeDetails?.dob) payload.dob = devoteeDetails.dob;
+  if (devoteeDetails?.tob) payload.tob = devoteeDetails.tob;
+  if (devoteeDetails?.city) payload.city = devoteeDetails.city;
 
   return {
     text: {
@@ -3653,6 +3829,244 @@ function handleNavigationIntent(query: string, lang: SupportedLanguage = "kn"): 
     if (lower.includes("patrika") || lower.includes("ಪತ್ರಿಕೆ")) extractedTab = "patrika";
     else if (lower.includes("dasha") || lower.includes("ದಶಾ")) extractedTab = "dasha";
     else if (lower.includes("personality") || lower.includes("ವ್ಯಕ್ತಿತ್ವ")) extractedTab = "personality";
+  } else if (matchedPageKey === "palmreading") {
+    if (
+      lower.includes("mount") ||
+      lower.includes("ಪರ್ವತ") ||
+      lower.includes("ಗ್ರಹ ಪರ್ವತ") ||
+      lower.includes("पर्वत") ||
+      lower.includes("2nd tab") ||
+      lower.includes("ಎರಡನೇ")
+    ) {
+      extractedTab = "mounts";
+    } else if (
+      lower.includes("yoga") ||
+      lower.includes("ಯೋಗ") ||
+      lower.includes("ರೇಖೆ") ||
+      lower.includes("lines") ||
+      lower.includes("3rd tab") ||
+      lower.includes("ಮೂರನೇ")
+    ) {
+      extractedTab = "yogas";
+    } else if (
+      lower.includes("remedy") ||
+      lower.includes("remedies") ||
+      lower.includes("ಪರಿಹಾರ") ||
+      lower.includes("ಶಾಂತಿ") ||
+      lower.includes("उपाय") ||
+      lower.includes("4th tab") ||
+      lower.includes("ನಾಲ್ಕನೇ")
+    ) {
+      extractedTab = "remedies";
+    } else if (
+      lower.includes("reading") ||
+      lower.includes("scanner") ||
+      lower.includes("ಸ್ಕ್ಯಾನರ್") ||
+      lower.includes("ಫಲ") ||
+      lower.includes("1st tab") ||
+      lower.includes("ಮೊದಲ")
+    ) {
+      extractedTab = "reading";
+    }
+  } else if (matchedPageKey === "facereading") {
+    if (
+      lower.includes("feature") ||
+      lower.includes("ಲಕ್ಷಣ") ||
+      lower.includes("ಮುಖ ಲಕ್ಷಣ") ||
+      lower.includes("ಸಪ್ತ") ||
+      lower.includes("लक्षण") ||
+      lower.includes("2nd tab") ||
+      lower.includes("ಎರಡನೇ")
+    ) {
+      extractedTab = "features";
+    } else if (
+      lower.includes("chronology") ||
+      lower.includes("age map") ||
+      lower.includes("ಕಾಲಚಕ್ರ") ||
+      lower.includes("कालचक्र") ||
+      lower.includes("3rd tab") ||
+      lower.includes("ಮೂರನೇ")
+    ) {
+      extractedTab = "chronology";
+    } else if (
+      lower.includes("mole") ||
+      lower.includes("ಮಚ್ಚೆ") ||
+      lower.includes("ತಿಲ") ||
+      lower.includes("तिल") ||
+      lower.includes("4th tab") ||
+      lower.includes("ನಾಲ್ಕನೇ")
+    ) {
+      extractedTab = "moles";
+    } else if (
+      lower.includes("reading") ||
+      lower.includes("scanner") ||
+      lower.includes("ಸ್ಕ್ಯಾನರ್") ||
+      lower.includes("ಫಲ") ||
+      lower.includes("1st tab") ||
+      lower.includes("ಮೊದಲ")
+    ) {
+      extractedTab = "reading";
+    }
+  } else if (matchedPageKey === "varshabavishya") {
+    if (
+      lower.includes("single") ||
+      lower.includes("ವೈಯಕ್ತಿಕ") ||
+      lower.includes("individual") ||
+      lower.includes("nakshatra") ||
+      lower.includes("ನಕ್ಷತ್ರ") ||
+      lower.includes("rashi phala") ||
+      lower.includes("ರಾಶಿ ಫಲ") ||
+      lower.includes("2nd tab") ||
+      lower.includes("ಎರಡನೇ")
+    ) {
+      extractedTab = "single";
+    } else if (
+      lower.includes("all") ||
+      lower.includes("ದ್ವಾದಶ") ||
+      lower.includes("all rashis") ||
+      lower.includes("12 rashi") ||
+      lower.includes("ಎಲ್ಲ ರಾಶಿ") ||
+      lower.includes("द्वादश") ||
+      lower.includes("1st tab") ||
+      lower.includes("ಮೊದಲ")
+    ) {
+      extractedTab = "all";
+    }
+  } else if (matchedPageKey === "ramanbhavishya") {
+    if (
+      lower.includes("ask") ||
+      lower.includes("question") ||
+      lower.includes("ಪ್ರಶ್ನೆ") ||
+      lower.includes("ಜ್ಯೋತಿಷಿ") ||
+      lower.includes("astrologer") ||
+      lower.includes("2nd tab") ||
+      lower.includes("ಎರಡನೇ")
+    ) {
+      extractedTab = "ask";
+    } else if (
+      lower.includes("life") ||
+      lower.includes("chapter") ||
+      lower.includes("ಅಧ್ಯಾಯ") ||
+      lower.includes("ಜೀವಿತ") ||
+      lower.includes("ದಿನ ಭವಿಷ್ಯ") ||
+      lower.includes("dina bhavishya") ||
+      lower.includes("1st tab") ||
+      lower.includes("ಮೊದಲ")
+    ) {
+      extractedTab = "lifestage";
+    }
+  } else if (matchedPageKey === "kundli") {
+    if (
+      lower.includes("dasha") ||
+      lower.includes("ದಶಾ") ||
+      lower.includes("ವಿಂಶೋತ್ತರಿ") ||
+      lower.includes("दशा") ||
+      lower.includes("2nd tab") ||
+      lower.includes("ಎರಡನೇ")
+    ) {
+      extractedTab = "dasha";
+    } else if (
+      lower.includes("remedy") ||
+      lower.includes("ಪರಿಹಾರ") ||
+      lower.includes("ದೈವಿಕ") ||
+      lower.includes("उपाय") ||
+      lower.includes("3rd tab") ||
+      lower.includes("ಮೂರನೇ")
+    ) {
+      extractedTab = "remedy";
+    } else if (
+      lower.includes("guidance") ||
+      lower.includes("ಮಾರ್ಗದರ್ಶನ") ||
+      lower.includes("ಜೀವನ") ||
+      lower.includes("मार्गदर्शन") ||
+      lower.includes("4th tab") ||
+      lower.includes("ನಾಲ್ಕನೇ")
+    ) {
+      extractedTab = "lifeguidance";
+    } else if (
+      lower.includes("balavidya") ||
+      lower.includes("ಬಾಲವಿದ್ಯಾ") ||
+      lower.includes("ಶಿಕ್ಷಣ") ||
+      lower.includes("child") ||
+      lower.includes("5th tab") ||
+      lower.includes("ಐದನೇ")
+    ) {
+      extractedTab = "balavidya";
+    } else if (
+      lower.includes("chart") ||
+      lower.includes("ಜಾತಕ") ||
+      lower.includes("ಕುಂಡಲಿ") ||
+      lower.includes("जन्म") ||
+      lower.includes("1st tab") ||
+      lower.includes("ಮೊದಲ")
+    ) {
+      extractedTab = "jataka";
+    }
+  }
+
+  // 5. Extract Language specification if commanded
+  let extractedLang: SupportedLanguage | undefined;
+  if (
+    lower.includes("hindi") ||
+    lower.includes("ಹಿಂದಿ") ||
+    lower.includes("हिन्दी") ||
+    lower.includes("हिंदी") ||
+    lower.includes("హిందీ") ||
+    lower.includes("ஹிந்தி")
+  ) {
+    extractedLang = "hi";
+  } else if (
+    lower.includes("english") ||
+    lower.includes("ಇಂಗ್ಲಿಷ್") ||
+    lower.includes("ಇಂಗ್ಲೀಷ್") ||
+    lower.includes("अंग्रेजी") ||
+    lower.includes("இங்கிலீஷ்") ||
+    lower.includes("ఇంగ్లీష్")
+  ) {
+    extractedLang = "en";
+  } else if (
+    lower.includes("kannada") ||
+    lower.includes("ಕನ್ನಡ") ||
+    lower.includes("कन्नड़") ||
+    lower.includes("कन्नड") ||
+    lower.includes("కన్నడ") ||
+    lower.includes("கன்னடம்")
+  ) {
+    extractedLang = "kn";
+  } else if (
+    lower.includes("telugu") ||
+    lower.includes("ತೆಲುಗು") ||
+    lower.includes("तेलुगु") ||
+    lower.includes("తెలుగు") ||
+    lower.includes("தெலுங்கு")
+  ) {
+    extractedLang = "te";
+  } else if (
+    lower.includes("tamil") ||
+    lower.includes("ತಮಿಳು") ||
+    lower.includes("तमिल") ||
+    lower.includes("తమిళం") ||
+    lower.includes("தமிழ்")
+  ) {
+    extractedLang = "ta";
+  }
+
+  // 6. Extract Devotee Details (Name, TOB, DOB, City)
+  let extractedDevoteeName: string | undefined;
+  let extractedDevoteeTob: string | undefined;
+
+  const nameMatch = normQuery.match(/(?:name\s+is\s+|devotee\s+|for\s+|ಭಕ್ತ\s*(?:ಹೆಸರು|:)?\s*|ಭಕ್ತರ\s*(?:ಹೆಸರು|:)?\s*|ಹೆಸರು\s*(?:ಇದೆ|ಆಗಿದೆ|:|)\s*|नाम\s*(?:है|:|)\s*|भक्त\s*(?:नाम|:)?\s*)([a-zA-Z\u0C80-\u0CFF\u0900-\u097F]+(?:\s+[a-zA-Z\u0C80-\u0CFF\u0900-\u097F]+)?)/i);
+  if (nameMatch) {
+    const rawN = nameMatch[1].trim();
+    const reservedWords = ["page", "tab", "setting", "settings", "kundli", "hindi", "kannada", "english", "telugu", "tamil", "varsha", "varshabavishya", "dina", "year", "calendar"];
+    if (!reservedWords.includes(rawN.toLowerCase()) && !rawN.toLowerCase().startsWith("varsha")) {
+      extractedDevoteeName = rawN;
+    }
+  }
+
+  const timeMatch = normQuery.match(/\b(\d{1,2}[:.]\d{2}\s*(?:am|pm|AM|PM)?)\b/i);
+  if (timeMatch) {
+    extractedDevoteeTob = timeMatch[1].trim();
   }
 
   return buildNavigationResponse(
@@ -3662,7 +4076,14 @@ function handleNavigationIntent(query: string, lang: SupportedLanguage = "kn"): 
     extractedTab,
     extractedDate,
     extractedLocation,
-    lang
+    lang,
+    extractedLang,
+    {
+      name: extractedDevoteeName,
+      dob: extractedDate,
+      tob: extractedDevoteeTob,
+      city: extractedLocation
+    }
   );
 }
 

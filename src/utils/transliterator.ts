@@ -227,7 +227,78 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "satish": { kn: "ಸತೀಶ್", hi: "सतीश", te: "సతీష్", ta: "சதீஷ்", en: "Satish" },
   "venkat": { kn: "ವೆಂಕಟ್", hi: "वेंकट", te: "వెంకట్", ta: "வெங்கட்", en: "Venkat" },
   "venkataramana": { kn: "ವೆಂಕಟರಮಣ", hi: "वेंकटरमण", te: "వెంకటరమణ", ta: "வேங்கடரமண", en: "Venkataramana" },
-  "chaitra": { kn: "ಚೈತ್ರಾ", hi: "चैत्रा", te: "చైత్ర", ta: "சைத்ரா", en: "Chaitra" }
+  "chaitra": { kn: "ಚೈತ್ರಾ", hi: "चैत्रा", te: "చైత్ర", ta: "சைத்ரா", en: "Chaitra" },
+  // Major Cities & Sacred Places
+  "bengaluru": { kn: "ಬೆಂಗಳೂರು", hi: "बेंगलुरु", te: "బెంగళూరు", ta: "பெங்களூரு", en: "Bengaluru" },
+  "bangalore": { kn: "ಬೆಂಗಳೂರು", hi: "बेंगलुरु", te: "బెంగళూరు", ta: "பெங்களூரு", en: "Bangalore" },
+  "ಬೆಂಗಳೂರು": { kn: "ಬೆಂಗಳೂರು", hi: "बेंगलुरु", te: "బెంగళూరు", ta: "பெங்களூரு", en: "Bengaluru" },
+  "mysuru": { kn: "ಮೈಸೂರು", hi: "मैसूर", te: "మైసూరు", ta: "மைசூரு", en: "Mysuru" },
+  "mysore": { kn: "ಮೈಸೂರು", hi: "मैसूर", te: "మైసూరు", ta: "மைசூரு", en: "Mysore" },
+  "ಮೈಸೂರು": { kn: "ಮೈಸೂರು", hi: "मैसूर", te: "మైసూరు", ta: "மைசூரு", en: "Mysuru" },
+  "hubli": { kn: "ಹುಬ್ಬಳ್ಳಿ", hi: "हुबली", te: "హుబ్లీ", ta: "ஹுப்ளி", en: "Hubli" },
+  "hubballi": { kn: "ಹುಬ್ಬಳ್ಳಿ", hi: "हुबली", te: "హుబ్లీ", ta: "ஹுப்ளி", en: "Hubballi" },
+  "ಹುಬ್ಬಳ್ಳಿ": { kn: "ಹುಬ್ಬಳ್ಳಿ", hi: "हुबली", te: "హుబ్లీ", ta: "ஹுப்ளி", en: "Hubballi" },
+  "mangalore": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "ಮಂಗಳೂರು", ta: "மங்களூரு", en: "Mangalore" },
+  "mangaluru": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "ಮಂಗಳೂರು", ta: "மங்களೂரு", en: "Mangaluru" },
+  "ಮಂಗಳೂರು": { kn: "ಮಂಗಳೂರು", hi: "मंगलुरु", te: "ಮಂಗಳೂರು", ta: "மங்களூரு", en: "Mangaluru" },
+  "udupi": { kn: "ಉಡುಪಿ", hi: "उडुपी", te: "ఉడుపి", ta: "உடுப்பி", en: "Udupi" },
+  "ಉಡುಪಿ": { kn: "ಉಡುಪಿ", hi: "उडुपी", te: "ఉడుపి", ta: "உடுப்பி", en: "Udupi" },
+  "shivamogga": { kn: "ಶಿವಮೊಗ್ಗ", hi: "शिवमोग्गा", te: "శివమొగ్గ", ta: "சிவமொக்கா", en: "Shivamogga" },
+  "shimoga": { kn: "ಶಿವಮೊಗ್ಗ", hi: "शिवमोग्गा", te: "శివమొగ్ಗ", ta: "சிவமொக்கா", en: "Shimoga" },
+  "ಶಿವಮೊಗ್ಗ": { kn: "ಶಿವಮೊಗ್ಗ", hi: "शिवमोग्गा", te: "శివమొగ్ಗ", ta: "சிவமொக்கா", en: "Shivamogga" },
+  "belagavi": { kn: "ಬೆಳಗಾವಿ", hi: "बेलगावी", te: "బెళగావి", ta: "பெலகாவி", en: "Belagavi" },
+  "belgaum": { kn: "ಬೆಳಗಾವಿ", hi: "बेलगावी", te: "బెళగావి", ta: "பெலகாவி", en: "Belagavi" },
+  "ಬೆಳಗಾವಿ": { kn: "ಬೆಳಗಾವಿ", hi: "बेलगावी", te: "బెళగావి", ta: "பெலகாவி", en: "Belagavi" },
+  "dharwad": { kn: "ಧಾರವಾಡ", hi: "धारवाड़", te: "ధార్వాడ్", ta: "தார்வாட்", en: "Dharwad" },
+  "ಧಾರವಾಡ": { kn: "ಧಾರವಾಡ", hi: "धारवाड़", te: "ధార్వాడ్", ta: "தார்வாட்", en: "Dharwad" },
+  "sirsi": { kn: "ಶಿರಸಿ", hi: "सिरसी", te: "శిరసి", ta: "சிரசி", en: "Sirsi" },
+  "ಶಿರಸಿ": { kn: "ಶಿರಸಿ", hi: "सिरसी", te: "శిರಸಿ", ta: "சிரசி", en: "Sirsi" },
+  "kumta": { kn: "ಕುಮಟಾ", hi: "कुमटा", te: "కుమటా", ta: "குமடா", en: "Kumta" },
+  "ಕುಮಟಾ": { kn: "ಕುಮಟಾ", hi: "कुमटा", te: "కుమటా", ta: "குமடா", en: "Kumta" },
+  "karwar": { kn: "ಕಾರವಾರ", hi: "कारवार", te: "కారవార", ta: "கார்வார்", en: "Karwar" },
+  "ಕಾರವಾರ": { kn: "ಕಾರವಾರ", hi: "कारवार", te: "కారవార", ta: "கார்வார்", en: "Karwar" },
+  "baggona": { kn: "ಬಗ್ಗೋಣ", hi: "बग्गोण", te: "బగ్గోణ", ta: "பக்கோணா", en: "Baggona" },
+  "ಬಗ್ಗೋಣ": { kn: "ಬಗ್ಗೋಣ", hi: "बग्गोण", te: "బగ్గోణ", ta: "பக்கோணா", en: "Baggona" },
+  "mumbai": { kn: "ಮುಂಬೈ", hi: "मुंबई", te: "ముంబై", ta: "மும்பை", en: "Mumbai" },
+  "ಮುಂಬೈ": { kn: "ಮುಂಬೈ", hi: "मुंबई", te: "ముంబై", ta: "மும்பை", en: "Mumbai" },
+  "delhi": { kn: "ದೆಹಲಿ", hi: "दिल्ली", te: "ఢిల్లీ", ta: "தில்லி", en: "Delhi" },
+  "ದೆಹಲಿ": { kn: "ದೆಹಲಿ", hi: "दिल्ली", te: "ఢిల్లీ", ta: "தில்லி", en: "Delhi" },
+  "new delhi": { kn: "ನವದೆಹಲಿ", hi: "नई दिल्ली", te: "న్యూఢిల్లీ", ta: "புது தில்லி", en: "New Delhi" },
+  "pune": { kn: "ಪುಣೆ", hi: "पुणे", te: "పుణె", ta: "புனே", en: "Pune" },
+  "ಪುಣೆ": { kn: "ಪುಣೆ", hi: "ಪುಣೆ", te: "పుణె", ta: "புனே", en: "Pune" },
+  "hyderabad": { kn: "ಹೈದರಾಬಾದ್", hi: "हैदराबाद", te: "హైదరాబాద్", ta: "ஹைதராபாத்", en: "Hyderabad" },
+  "ಹೈದರಾಬಾದ್": { kn: "ಹೈದರಾಬಾದ್", hi: "हैदराबाद", te: "హైదరాబాద్", ta: "ஹைதராபாத்", en: "Hyderabad" },
+  "chennai": { kn: "ಚೆನ್ನೈ", hi: "चेन्नई", te: "చెన్నై", ta: "சென்னை", en: "Chennai" },
+  "ಚೆನ್ನೈ": { kn: "ಚೆನ್ನೈ", hi: "चेन्नई", te: "చెన్నై", ta: "சென்னை", en: "Chennai" },
+  "kolkata": { kn: "ಕೋಲ್ಕತ್ತಾ", hi: "कोलकाता", te: "కోల్‌కతా", ta: "கொல்கத்தா", en: "Kolkata" },
+  "kashi": { kn: "ಕಾಶಿ", hi: "काशी", te: "కాశీ", ta: "காசி", en: "Kashi" },
+  "ಕಾಶಿ": { kn: "ಕಾಶಿ", hi: "काशी", te: "కాశీ", ta: "காசி", en: "Kashi" },
+  "varanasi": { kn: "ವಾರಣಾಸಿ", hi: "वाराणसी", te: "వారణాసి", ta: "வாரணாசி", en: "Varanasi" },
+  "ವಾರಣಾಸಿ": { kn: "ವಾರಣಾಸಿ", hi: "वाराणसी", te: "వారణాసి", ta: "வாரணாசி", en: "Varanasi" },
+  "ayodhya": { kn: "ಅಯೋಧ್ಯೆ", hi: "अयोध्या", te: "అయోధ్య", ta: "அயோத்தி", en: "Ayodhya" },
+  "tirupati": { kn: "ತಿರುಪತಿ", hi: "तिरुपति", te: "తిరుపతి", ta: "திருப்பதி", en: "Tirupati" },
+  "ತಿರುಪತಿ": { kn: "ತಿರುಪತಿ", hi: "तिरुपति", te: "తిరుపతి", ta: "திருப்பதி", en: "Tirupati" },
+  // Priests
+  "shriram pandit": { kn: "ಶ್ರೀರಾಮ ಪಂಡಿತ್", hi: "श्रीराम पंडित", te: "శ్రీరామ్ పండిట్", ta: "ஸ்ரீராம் பண்டிட்", en: "Shriram Pandit" },
+  "ಶ್ರೀರಾಮ ಪಂಡಿತ್": { kn: "ಶ್ರೀರಾಮ ಪಂಡಿತ್", hi: "श्रीराम पंडित", te: "శ్రీరామ్ పండిట్", ta: "ஸ்ரீராம் பண்டிட்", en: "Shreeram Pandit" },
+  "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್": { kn: "ಶ್ರೀರಾಮ ಪಂಡಿತ್", hi: "श्रीराम पंडित", te: "శ్రీరామ్ పండిట్", ta: "ஸ்ரீராம் பண்டிட்", en: "Shreeram Pandit" },
+  "pandit shreeram": { kn: "ಪಂಡಿತ್ ಶ್ರೀರಾಮ", hi: "पंडित श्रीराम", te: "పండిట్ శ్రీరామ్", ta: "பண்டிட் ஸ்ரீராம்", en: "Pandit Shreeram" },
+  "pandit shriram": { kn: "ಪಂಡಿತ್ ಶ್ರೀರಾಮ", hi: "पंडित श्रीराम", te: "పండిట్ శ్రీరామ్", ta: "பண்டிట్ ஸ்ரீராம்", en: "Pandit Shriram" },
+  "vedamurthi shriram pandit": { kn: "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್", hi: "वेदमूर्ति श्रीराम पंडित", te: "వేదమూర్తి శ్రీరామ్ పండిట్", ta: "வேதமூர்த்தி ஸ்ரீராம் பண்டிட்", en: "Vedamurthi Shriram Pandit" },
+  "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್": { kn: "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್", hi: "वेदमूर्ति श्रीराम पंडित", te: "వేదమూర్తి శ్రీరామ్ పండిట్", ta: "வேதமூர்த்தி ஸ்ரீராம் பண்டிட்", en: "Vedamurthi Shriram Pandit" },
+  "ಚೈತನ್ಯ ಪಂಡಿತ್": { kn: "ಚೈತನ್ಯ ಪಂಡಿತ್", hi: "चैतन्य पंडित", te: "చైతన్య పండిట్", ta: "சைதன்ய பண்டிட்", en: "Chaitanya Pandit" },
+  "venkatesh bhat": { kn: "ವೆಂಕಟೇಶ್ ಭಟ್", hi: "वेंकटेश भट्ट", te: "వెంకటేష్ భట్", ta: "வெங்கடேஷ் பட்", en: "Venkatesh Bhat" },
+  "ವೆಂಕಟೇಶ್ ಭಟ್": { kn: "ವೆಂಕಟೇಶ್ ಭಟ್", hi: "वेंकटेश भट्ट", te: "వెంకటేష్ భట్", ta: "வெங்கடேஷ் பட்", en: "Venkatesh Bhat" },
+  // Common Poojas & Rituals
+  "moksha narayana bali": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ", hi: "मोक्ष नारायण बलि", te: "మోక్ష నారాయణ బలి", ta: "மோக்ஷ நாராயண பலி", en: "Moksha Narayana Bali" },
+  "moksha narayan bali": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ", hi: "मोक्ष नारायण बलि", te: "మోక్ష నారాయణ బలి", ta: "மோக்ஷ நாராயண பலி", en: "Moksha Narayan Bali" },
+  "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ", hi: "मोक्ष नारायण बलि", te: "మోక్ష నಾರಾಯಣ బలి", ta: "மோக்ஷ நாராயண பலி", en: "Moksha Narayana Bali" },
+  "moksha narayana bali haagoo tripindi shraddha": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "मोक्ष नारायण बलि एवं त्रिपिंडी श्राद्ध", te: "మోక్ష నారాయణ బలి మరియు త్రిపిండి శ్రాద్ధము", ta: "மோக்ஷ நாராயண பலி மற்றும் திரிபிண்டி ஸ்ராத்தம்", en: "Moksha Narayana Bali and Tripindi Shraddha" },
+  "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ": { kn: "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "मोक्ष नारायण बलि एवं त्रिपिंडी श्राद्ध", te: "మోక్ష నారాయణ బలి మరియు త్రిపిండి శ్రాద్ధము", ta: "மோக்ஷ நாராயண பலி மற்றும் திரிபிண்டி ஸ்ராத்தம்", en: "Moksha Narayana Bali and Tripindi Shraddha" },
+  "kala sarpa shanti": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాంతి", ta: "காலசர்ப்ப சாந்தி", en: "Kala Sarpa Shanti" },
+  "ಕಾಳಸರ್ಪ ಶಾಂತಿ": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాంతి", ta: "காலசர்ப்ப சாந்தி", en: "Kalasarpa Shanti" },
+  "ಕಾಲ ಸರ್ಪ ಶಾಂತಿ": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాಂತಿ", ta: "காலசர்ப்ப சாந்தி", en: "Kala Sarpa Shanti" },
+  "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ": { kn: "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "त्रिपिंडी श्राद्ध", te: "త్రిపిండి శ్రాద్ధము", ta: "திரிபிண்டி ஸ்ராத்தம்", en: "Tripindi Shraddha" }
 };
 
 /** Syllabic consonant definitions with inherent vowel 'a' */
@@ -777,3 +848,51 @@ export function transliterateName(inputName: string, targetLang: string): string
   }
   return result;
 }
+
+/**
+ * Converts Western digits to Indic digits for the specified language.
+ */
+export function toIndicDigits(num: number | string, targetLang: string): string {
+  const s = String(num);
+  if (targetLang === "kn") {
+    const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
+    return s.replace(/\d/g, (d) => knDigits[parseInt(d, 10)]);
+  }
+  if (targetLang === "hi") {
+    const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
+    return s.replace(/\d/g, (d) => hiDigits[parseInt(d, 10)]);
+  }
+  if (targetLang === "te") {
+    const teDigits = ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯"];
+    return s.replace(/\d/g, (d) => teDigits[parseInt(d, 10)]);
+  }
+  if (targetLang === "ta") {
+    const taDigits = ["௦", "௧", "௨", "௩", "௪", "௫", "௬", "௭", "௮", "௯"];
+    return s.replace(/\d/g, (d) => taDigits[parseInt(d, 10)]);
+  }
+  return s;
+}
+
+/**
+ * Transliterates all core devotee and ritual fields for pure multilingual PDF generation.
+ */
+export function transliterateAllDevoteeFields(
+  fields: {
+    name?: string;
+    priestName?: string;
+    city?: string;
+    poojaName?: string;
+    pincode?: string;
+  },
+  targetLang: string
+) {
+  const cleanLang = (targetLang || "kn").toLowerCase();
+  return {
+    name: fields.name ? transliterateName(fields.name, cleanLang) : "",
+    priestName: fields.priestName ? transliterateName(fields.priestName, cleanLang) : "",
+    city: fields.city ? transliterateName(fields.city, cleanLang) : "",
+    poojaName: fields.poojaName ? transliterateName(fields.poojaName, cleanLang) : "",
+    pincode: fields.pincode ? toIndicDigits(fields.pincode, cleanLang) : ""
+  };
+}
+

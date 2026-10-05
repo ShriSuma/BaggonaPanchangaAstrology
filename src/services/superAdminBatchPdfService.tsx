@@ -17,6 +17,11 @@ import QRCode from "qrcode";
 import type { KundliViewerSession } from "../stores/kundliViewerStore";
 import type { WorkflowParams, GeneratedReportItem, ReportType } from "./superAdminWorkflowRunner";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
+import {
+  transliterateName,
+  toIndicDigits,
+  transliterateAllDevoteeFields
+} from "../utils/transliterator";
 
 // Core calculation engines
 import { calculateComprehensiveDoshas } from "../core/ComprehensiveDoshaEngine";
@@ -248,8 +253,38 @@ export async function generateSuperAdminBatchPdfs(
   onProgress?: (percent: number, stageText: string) => void,
   abortSignal?: AbortSignal
 ): Promise<GeneratedReportItem[]> {
-  const cleanName = params.name.replace(/[^a-zA-Z0-9_\u0C80-\u0CFF]/g, "_") || "Devotee";
-  const langUpper = params.language.toUpperCase();
+  const targetLang = (params.language || "kn").toLowerCase();
+  const localizedFields = transliterateAllDevoteeFields(
+    {
+      name: params.name,
+      priestName: params.priestName,
+      city: params.city,
+      poojaName: params.poojaName,
+      pincode: params.pincode
+    },
+    targetLang
+  );
+
+  const localizedDevoteeName = localizedFields.name || params.name;
+  const localizedPriestName = localizedFields.priestName || params.priestName;
+  const localizedCity = localizedFields.city || params.city;
+  const localizedPoojaName = localizedFields.poojaName || params.poojaName;
+  const localizedPincode = localizedFields.pincode || params.pincode;
+  const localizedPlaceLabel = `${localizedCity} (${localizedPincode})`;
+
+  // Cloned session with fully localized inputs for pure multilingual report rendering
+  const localizedSession: KundliViewerSession = {
+    ...session,
+    input: {
+      ...session.input,
+      name: localizedDevoteeName
+    },
+    homePlaceName: localizedCity,
+    placeLabel: localizedPlaceLabel
+  };
+
+  const cleanName = localizedDevoteeName.replace(/[^a-zA-Z0-9_\u0900-\u0D7F]/g, "_") || "Devotee";
+  const langUpper = targetLang.toUpperCase();
   const reports: GeneratedReportItem[] = [];
 
   const requested = params.requestedReports;
@@ -269,7 +304,7 @@ export async function generateSuperAdminBatchPdfs(
         const fileName = `Baggona_Panchanga_Kundali_${cleanName}_${langUpper}.pdf`;
 
         const profile = calculatePublicKundliProfile(
-          session.result,
+          localizedSession.result,
           params.birthDate,
           params.birthTime,
           params.latitude,
@@ -278,7 +313,7 @@ export async function generateSuperAdminBatchPdfs(
 
         let insights = null;
         try {
-          insights = generateDynamicLifeInsights(profile, params.language as any);
+          insights = generateDynamicLifeInsights(profile, targetLang as any);
         } catch (e) {
           console.warn("[BatchPdfService] Life insights calculation fallback:", e);
         }
@@ -287,10 +322,10 @@ export async function generateSuperAdminBatchPdfs(
           <div className="pdf-page" style={{ width: "900px", background: "#ffffff", padding: "16px" }}>
             <PublicKundliPdfDocument
               profile={profile}
-              kundli={session.result}
+              kundli={localizedSession.result}
               insights={insights}
-              lang={params.language as any}
-              placeLabel={`${params.city} (${params.pincode})`}
+              lang={targetLang as any}
+              placeLabel={localizedPlaceLabel}
             />
           </div>
         );
@@ -316,7 +351,7 @@ export async function generateSuperAdminBatchPdfs(
         let bhavishyaPayload;
         try {
           bhavishyaPayload = await prepareBhavishyaV1Data(
-            session,
+            localizedSession,
             params.language,
             geminiKey,
             { maritalStatus: "married", childrenStatus: "general" }
@@ -331,7 +366,7 @@ export async function generateSuperAdminBatchPdfs(
             <div className="pdf-page" style={{ width: "900px", background: "#FFF7ED" }}>
               <PdfTemplate
                 theme="sunrise"
-                session={session}
+                session={localizedSession}
                 translations={bhavishyaPayload.translations}
                 predictions={bhavishyaPayload.predictions}
                 premiumData={bhavishyaPayload.premiumData}
@@ -351,7 +386,7 @@ export async function generateSuperAdminBatchPdfs(
         } else {
           // Minimal fallback
           const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
-          doc.text(`Baggona Premium Bhavishya V1 - ${params.name}`, 20, 30);
+          doc.text(`Baggona Premium Bhavishya V1 - ${localizedDevoteeName}`, 20, 30);
           const blob = doc.output("blob");
           reports.push({
             id: "premium_pdf_v1",
@@ -369,7 +404,7 @@ export async function generateSuperAdminBatchPdfs(
         onProgress?.(stageStartPercent, params.language === "kn" ? "೩/೫ ಜನ್ಮ ಕುಂಡಲಿ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ..." : "3/5 Generating Daivika Parihara & Remedy PDF...");
         const fileName = `Baggona_Daivika_Parihara_${cleanName}_${langUpper}.pdf`;
 
-        const remedyDiagnosis = generateKundliRemedyReport(session.result, session.input);
+        const remedyDiagnosis = generateKundliRemedyReport(localizedSession.result, localizedSession.input);
         const component = (
           <div style={{ width: "900px", background: "#FFFDF7" }}>
             <KundliRemedyPdfTemplate
@@ -396,7 +431,7 @@ export async function generateSuperAdminBatchPdfs(
         onProgress?.(stageStartPercent, params.language === "kn" ? "೪/೫ ಸಮಗ್ರ ದೋಷಗಳು & ಗಂಡಾಂತರ ವರದಿ..." : "4/5 Generating Comprehensive Doshas & Gandantara PDF...");
         const fileName = `Baggona_Doshagalu_Gandantara_${cleanName}_${langUpper}.pdf`;
 
-        const doshaReport = calculateComprehensiveDoshas(session.result, session.input);
+        const doshaReport = calculateComprehensiveDoshas(localizedSession.result, localizedSession.input);
         const component = (
           <div style={{ width: "900px", background: "#FFFDF7" }}>
             <KundliDoshaPdfTemplate
@@ -428,10 +463,10 @@ export async function generateSuperAdminBatchPdfs(
         );
         const fileName = `Baggona_Ashirvada_Patra_5_Page_${cleanName}_${langUpper}.pdf`;
 
-        // Generate QR code data URL
+        // Generate QR code data URL with localized names
         let qrDataUrl = "";
         try {
-          const qrText = `https://baggona.com/daily?action=seva&priest=${encodeURIComponent(params.priestName)}&pooja=${encodeURIComponent(params.poojaName)}&native=${encodeURIComponent(params.name)}`;
+          const qrText = `https://baggona.com/daily?action=seva&priest=${encodeURIComponent(localizedPriestName)}&pooja=${encodeURIComponent(localizedPoojaName)}&native=${encodeURIComponent(localizedDevoteeName)}`;
           qrDataUrl = await QRCode.toDataURL(qrText, {
             errorCorrectionLevel: "M",
             margin: 2,
@@ -442,7 +477,7 @@ export async function generateSuperAdminBatchPdfs(
           console.warn("[BatchPdfService] QR generation fallback:", e);
         }
 
-        const moon = session.result.planets.find((p) => p.name === "Moon");
+        const moon = localizedSession.result.planets.find((p) => p.name === "Moon");
         const nakIdx = moon?.nakshatra?.index ?? 0;
         const rashiIdx = moon?.rashi?.index ?? 0;
 
@@ -457,44 +492,35 @@ export async function generateSuperAdminBatchPdfs(
         };
 
         const identity = {
-          personName: params.name,
-          name: params.name,
-          gotra: (session.input as any).gotra || (session.input as any).gothra || "Kashyapa",
-          gothra: (session.input as any).gotra || (session.input as any).gothra || "Kashyapa",
+          personName: localizedDevoteeName,
+          name: localizedDevoteeName,
+          gotra: (localizedSession.input as any).gotra || (localizedSession.input as any).gothra || "Kashyapa",
+          gothra: (localizedSession.input as any).gotra || (localizedSession.input as any).gothra || "Kashyapa",
           rashiIndex: rashiIdx,
           nakshatraIndex: nakIdx,
           nakshatra: moon?.nakshatra?.english || "Ashwini",
           rashi: moon?.rashi?.english || "Mesha",
           mobile: params.priestPhone || "9972339362",
           phone: params.priestPhone || "9972339362",
-          place: `${params.city} (${params.pincode})`
+          place: localizedPlaceLabel
         };
 
-        const poojaNameVal = params.poojaName || "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ";
+        const allLangs = ["kn", "hi", "en", "te", "ta"] as const;
+        const poojaNamesByLang: Record<string, string> = {};
+        const whereByLang: Record<string, string> = {};
+        for (const l of allLangs) {
+          poojaNamesByLang[l] = transliterateName(params.poojaName || "ಮೋಕ್ಷ ನಾರಾಯಣ ಬಲಿ ಹಾಗೂ ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", l);
+          const cityL = transliterateName(params.city, l);
+          const pinL = toIndicDigits(params.pincode, l);
+          whereByLang[l] = `${cityL} (${pinL})`;
+        }
+
         const primarySeva = {
           id: "moksha_narayana_tripindi",
-          name: {
-            kn: poojaNameVal,
-            en: poojaNameVal,
-            hi: poojaNameVal,
-            te: poojaNameVal,
-            ta: poojaNameVal
-          },
+          name: poojaNamesByLang,
           seva: {
-            name: {
-              kn: poojaNameVal,
-              en: poojaNameVal,
-              hi: poojaNameVal,
-              te: poojaNameVal,
-              ta: poojaNameVal
-            },
-            where: {
-              kn: `${params.city} (${params.pincode})`,
-              en: `${params.city} (${params.pincode})`,
-              hi: `${params.city} (${params.pincode})`,
-              te: `${params.city} (${params.pincode})`,
-              ta: `${params.city} (${params.pincode})`
-            }
+            name: poojaNamesByLang,
+            where: whereByLang
           }
         };
 
@@ -508,9 +534,9 @@ export async function generateSuperAdminBatchPdfs(
                 primarySeva={primarySeva as any}
                 sevaDate={ymd}
                 rhythm={rhythmResult as any}
-                panditName={params.priestName}
+                panditName={localizedPriestName}
                 qrDataUrl={qrDataUrl}
-                place={`${params.city} (${params.pincode})`}
+                place={localizedPlaceLabel}
               />
             </div>
             {/* Page 2: QR Code & Priest Contact Pass */}
@@ -520,7 +546,7 @@ export async function generateSuperAdminBatchPdfs(
                 identity={identity as any}
                 qrDataUrl={qrDataUrl}
                 target="google"
-                panditName={params.priestName}
+                panditName={localizedPriestName}
                 priestPhone={params.priestPhone || "9972339362"}
               />
             </div>
@@ -529,7 +555,7 @@ export async function generateSuperAdminBatchPdfs(
               <SevaAnugrahaGuidancePrint
                 lang={params.language}
                 identity={identity as any}
-                panditName={params.priestName}
+                panditName={localizedPriestName}
                 rhythm={rhythmResult as any}
               />
             </div>
@@ -538,7 +564,7 @@ export async function generateSuperAdminBatchPdfs(
               <SevaRemediesAnnualPrint
                 lang={params.language}
                 identity={identity as any}
-                panditName={params.priestName}
+                panditName={localizedPriestName}
                 rhythm={rhythmResult as any}
               />
             </div>
@@ -547,7 +573,7 @@ export async function generateSuperAdminBatchPdfs(
               <SevaPoojaMahatmePrint
                 lang={params.language}
                 identity={identity as any}
-                panditName={params.priestName}
+                panditName={localizedPriestName}
                 primarySeva={primarySeva as any}
               />
             </div>
@@ -592,13 +618,13 @@ export async function generateSuperAdminBatchPdfs(
                 ]
             );
 
-        const questionsData = await generateMultiQuestionAnswers(session, userQuestions, params.language);
-        const translations = buildPdfTranslationsForMultiQuestion(session, params.language);
+        const questionsData = await generateMultiQuestionAnswers(localizedSession, userQuestions, params.language);
+        const translations = buildPdfTranslationsForMultiQuestion(localizedSession, params.language);
 
         const component = (
           <div className="pdf-page" style={{ width: "900px", background: "#FFFDF7", padding: "16px" }}>
             <MultiQuestionPdfTemplate
-              session={session}
+              session={localizedSession}
               translations={translations}
               questionsData={questionsData}
               lang={params.language}

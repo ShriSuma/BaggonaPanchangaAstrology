@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
+import { useAppStore } from "../../stores/appStore";
 import BhavishyaView from "./BhavishyaView";
 import AskAstrologer from "./AskAstrologer";
 
@@ -10,7 +11,19 @@ type Props = {
 
 export default function RamanBhavishyaTab({ session }: Props): JSX.Element {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<"lifestage" | "ask">("lifestage");
+  const pageParams = useAppStore((state) => state.pageParams);
+  const [activeTab, setActiveTab] = useState<"lifestage" | "ask">(() => {
+    if (pageParams?.tab === "ask" || pageParams?.tab === "lifestage") {
+      return pageParams.tab;
+    }
+    return "lifestage";
+  });
+
+  useEffect(() => {
+    if (pageParams?.tab === "ask" || pageParams?.tab === "lifestage") {
+      setActiveTab(pageParams.tab);
+    }
+  }, [pageParams]);
 
   return (
     <div className="flex flex-col gap-6">

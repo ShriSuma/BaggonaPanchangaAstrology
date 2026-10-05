@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
+import { useAppStore } from "../stores/appStore";
 import RamanBhavishyaTab from "../components/RamanBhavishya/RamanBhavishyaTab";
 
 export default function RamanBhavishyaPage(): JSX.Element {
@@ -8,8 +9,14 @@ export default function RamanBhavishyaPage(): JSX.Element {
 
   if (!session) {
     return (
-      <div className="flex h-64 items-center justify-center text-gray-500">
+      <div className="flex flex-col h-64 items-center justify-center text-gray-500 gap-4">
         <p>{t("common.noKundliGenerated", "Please generate a Kundli first to view Baggona Bhavishya.")}</p>
+        <button
+          onClick={() => useAppStore.getState().setPage("kundli")}
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold text-sm shadow hover:shadow-md transition-all"
+        >
+          {t("kundli.generateKundli", "ಜಾತಕ ರಚಿಸಿ / Generate Kundli")}
+        </button>
       </div>
     );
   }

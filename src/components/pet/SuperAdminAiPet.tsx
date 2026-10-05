@@ -1431,10 +1431,28 @@ export function SuperAdminAiPet(): JSX.Element | null {
       ) {
         const navAction = resp.actions[0];
         if (navAction.targetPage) {
-          setPage(navAction.targetPage, false, navAction.payload);
+          if (navAction.payload?.lang) {
+            useAppStore.getState().setLanguage(navAction.payload.lang);
+          }
           if (navAction.payload) {
             useAppStore.getState().setPageParams(navAction.payload);
+            if (navAction.payload.name || navAction.payload.dob || navAction.payload.tob || navAction.payload.city) {
+              useKundliViewerStore.getState().setDraftInput({
+                birthDateYmd: navAction.payload.dob,
+                birthTimeHm: navAction.payload.tob,
+                homePlaceName: navAction.payload.city,
+                placeLabel: navAction.payload.city,
+                input: {
+                  name: navAction.payload.name,
+                  birthDate: navAction.payload.dob || "",
+                  birthTime: navAction.payload.tob || "",
+                  city: navAction.payload.city || "Bengaluru",
+                  gender: "Male"
+                } as any
+              });
+            }
           }
+          setPage(navAction.targetPage, false, navAction.payload);
           setIsOpen(false);
         }
       }
@@ -1477,10 +1495,28 @@ export function SuperAdminAiPet(): JSX.Element | null {
     }
 
     if (action.targetPage) {
-      setPage(action.targetPage, false, action.payload);
+      if (action.payload?.lang) {
+        useAppStore.getState().setLanguage(action.payload.lang);
+      }
       if (action.payload) {
         useAppStore.getState().setPageParams(action.payload);
+        if (action.payload.name || action.payload.dob || action.payload.tob || action.payload.city) {
+          useKundliViewerStore.getState().setDraftInput({
+            birthDateYmd: action.payload.dob,
+            birthTimeHm: action.payload.tob,
+            homePlaceName: action.payload.city,
+            placeLabel: action.payload.city,
+            input: {
+              name: action.payload.name,
+              birthDate: action.payload.dob || "",
+              birthTime: action.payload.tob || "",
+              city: action.payload.city || "Bengaluru",
+              gender: "Male"
+            } as any
+          });
+        }
       }
+      setPage(action.targetPage, false, action.payload);
       setIsOpen(false);
       const confirmSpeech =
         currentLang === "kn"

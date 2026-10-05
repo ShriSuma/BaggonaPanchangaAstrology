@@ -93,6 +93,7 @@ export default function KundliPage(): JSX.Element {
   const ayanamsaModel = useAppStore((s) => s.ayanamsaModel);
   const nodeType = useAppStore((s) => s.nodeType);
   const setPage = useAppStore((s) => s.setPage);
+  const pageParams = useAppStore((s) => s.pageParams);
   const kundliSession = useKundliViewerStore((s) => s.session);
   const draftInput = useKundliViewerStore((s) => s.draftInput);
   const setSession = useKundliViewerStore((s) => s.setSession);
@@ -213,6 +214,38 @@ export default function KundliPage(): JSX.Element {
     () => (homePlaceName.trim() ? `${homePlaceName.trim()} · ${locationCore}` : locationCore),
     [homePlaceName, locationCore]
   );
+
+  // Synchronize dynamic parameters injected by AI Pet or deep link
+  useEffect(() => {
+    if (pageParams?.tab && ["jataka", "dasha", "remedy", "lifeguidance", "balavidya"].includes(pageParams.tab)) {
+      setActiveView(pageParams.tab as any);
+    }
+    if (pageParams?.name) {
+      setForm((prev) => ({ ...prev, name: pageParams.name }));
+    }
+    if (pageParams?.date || pageParams?.dob) {
+      const dStr = pageParams.date || pageParams.dob;
+      const d = parseYmdToDate(dStr);
+      if (d) {
+        setBirthDatePicker(d);
+        setForm((prev) => ({ ...prev, birthDate: dStr }));
+      }
+    }
+    if (pageParams?.tob || pageParams?.time) {
+      const tStr = pageParams.tob || pageParams.time;
+      setBirthTimeHm(tStr);
+      setForm((prev) => ({ ...prev, birthTime: tStr }));
+    }
+    if (pageParams?.city || pageParams?.location) {
+      const cStr = pageParams.city || pageParams.location;
+      setLocationCore(cStr);
+      setHomePlaceName(cStr);
+    }
+    if (pageParams?.lang) {
+      setPdfLanguage(pageParams.lang);
+      setRemedyPdfLanguage(pageParams.lang);
+    }
+  }, [pageParams]);
 
   const pushPlaceToStore = (lat: number, lng: number, core: string, pin?: string) => {
     const label = homePlaceName.trim() ? `${homePlaceName.trim()} · ${core}` : core;
