@@ -143,13 +143,13 @@ export const exportPanchangaWithDashaPdf = async (
     backgroundColor: "#fbf8f1",
     logging: false
   });
-  const pData = pCanvas.toDataURL("image/jpeg", 0.75);
+  const pData = pCanvas.toDataURL("image/jpeg", 0.95);
   const pdfW = 210;
-  const pdfH = 297; // Standard A4 (210mm x 297mm)
+  const pH = (pCanvas.height * pdfW) / pCanvas.width;
 
-  // Initialize PDF with standard A4 format
-  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-  pdf.addImage(pData, "JPEG", 0, 0, pdfW, pdfH);
+  // Initialize PDF with Panchanga page size
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfW, pH], compress: true });
+  pdf.addImage(pData, "JPEG", 0, 0, pdfW, pH);
 
   // Capture Dasha (Page 2)
   const dCanvas = await html2canvas(dashaEl, {
@@ -158,11 +158,12 @@ export const exportPanchangaWithDashaPdf = async (
     backgroundColor: "#ffffff",
     logging: false
   });
-  const dData = dCanvas.toDataURL("image/jpeg", 0.75);
+  const dData = dCanvas.toDataURL("image/jpeg", 0.95);
+  const dH = (dCanvas.height * pdfW) / dCanvas.width;
 
-  // Add second page for Dasha in standard A4 format
-  pdf.addPage("a4", "p");
-  pdf.addImage(dData, "JPEG", 0, 0, pdfW, pdfH);
+  // Add second page for Dasha with its natural aspect ratio
+  pdf.addPage([pdfW, dH], "p");
+  pdf.addImage(dData, "JPEG", 0, 0, pdfW, dH);
 
   if (autoSave) {
     savePdfBlob(pdf, fileName);
@@ -178,12 +179,13 @@ export const exportDashaPdf = async (dashaEl: HTMLElement, fileName: string): Pr
     backgroundColor: "#ffffff",
     logging: false
   });
-  const data = canvas.toDataURL("image/jpeg", 0.75);
+  const data = canvas.toDataURL("image/jpeg", 0.95);
   const pdfW = 210;
-  const pdfH = 297; // Standard A4 (210mm x 297mm)
+  const dH = (canvas.height * pdfW) / canvas.width;
 
-  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-  pdf.addImage(data, "JPEG", 0, 0, pdfW, pdfH);
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfW, dH], compress: true });
+  pdf.addImage(data, "JPEG", 0, 0, pdfW, dH);
   savePdfBlob(pdf, fileName);
   await analytics.track("chart_exported_pdf");
 };
+

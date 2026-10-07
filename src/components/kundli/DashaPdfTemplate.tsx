@@ -198,11 +198,11 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
     <div 
       ref={ref} 
       style={{
-        width: "210mm",
+        width: "900px",
         backgroundColor: "#ffffff",
         padding: "20px",
         boxSizing: "border-box",
-        fontFamily: "'Hind', sans-serif",
+        fontFamily: "'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', sans-serif",
         color: "#000000",
       }}
     >
