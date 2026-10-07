@@ -179,6 +179,14 @@ export default function Layout({ children }: Props): JSX.Element {
             <span>📅</span>
             <span className="hidden sm:inline">ಕ್ಯಾಲೆಂಡರ್</span>
           </button>
+          <button
+            onClick={() => setPage("aiaastrologer")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/25 to-orange-500/25 border border-amber-400/60 text-amber-300 hover:bg-amber-500/35 text-xs font-bold transition-all shadow-xs"
+            title="ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೋತ್ತರ / Ask Astrology Consultation"
+          >
+            <span>🔮</span>
+            <span className="hidden sm:inline">ಪ್ರಶ್ನೋತ್ತರ</span>
+          </button>
           {/* Super Admin Control Center Button */}
           {role === "superadmin" && (
             <button
@@ -320,6 +328,7 @@ export default function Layout({ children }: Props): JSX.Element {
             )}
             <TabButton page="calendar" icon="📅" label={getNavLabel("calendar", language)} onClose={() => setIsDrawerOpen(false)} />
             <TabButton page="public_kundli" icon="🌟" label={getNavLabel("public_kundli", language)} onClose={() => setIsDrawerOpen(false)} />
+            <TabButton page="aiaastrologer" icon="🔮" label={getNavLabel("aiaastrologer", language)} onClose={() => setIsDrawerOpen(false)} />
             <TabButton page="priestdashboard" icon="🪙" label={getNavLabel("priestdashboard", language)} onClose={() => setIsDrawerOpen(false)} />
             
             {hasPanchanga && (

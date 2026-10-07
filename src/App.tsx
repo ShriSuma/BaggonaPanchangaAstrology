@@ -15,6 +15,7 @@ import MuhurthaPage from "./pages/MuhurthaPage";
 import VarshaBavishyaPage from "./pages/VarshaBavishyaPage";
 import RamanBhavishyaPage from "./pages/RamanBhavishyaPage";
 import AIAstrologerPage from "./pages/AIAstrologerPage";
+import BaggonaAstrologyQAPage from "./pages/BaggonaAstrologyQAPage";
 import SevaPage from "./pages/SevaPage";
 import VaramahalakshmiPage from "./pages/VaramahalakshmiPage";
 import SankhyaShastraPage from "./pages/SankhyaShastraPage";
@@ -161,6 +162,21 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#gurukula")
   );
 
+  const isAstrologyQARoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/ask") ||
+    window.location.pathname.startsWith("/ask-astrology") ||
+    window.location.pathname.startsWith("/prashna") ||
+    window.location.pathname.startsWith("/jyotishya-prashne") ||
+    window.location.pathname.startsWith("/ai-astrologer") ||
+    window.location.search.includes("portal=ask_astrology") ||
+    window.location.search.includes("portal=aiaastrologer") ||
+    window.location.search.includes("page=ask_astrology") ||
+    window.location.search.includes("page=aiaastrologer") ||
+    window.location.hash.includes("#/ask") ||
+    window.location.hash.includes("#/prashna") ||
+    window.location.hash.includes("#ask-astrology")
+  );
+
   const isPriestPortalRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPublicKundliRoute && (
     window.location.pathname.startsWith("/priest-portal") ||
     window.location.pathname.startsWith("/priest_portal") ||
@@ -276,6 +292,7 @@ export default function App(): JSX.Element {
             isCalendarRoute ||
             isDoshasRoute ||
             isAstodayaGrahanaRoute ||
+            isAstrologyQARoute ||
             isPriestPortalRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
@@ -294,7 +311,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isPriestPortalRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute]);
 
   if (isPriestPanchangaRoute) {
     return <PriestPanchangaPage />;
@@ -366,6 +383,16 @@ export default function App(): JSX.Element {
     );
   }
 
+  if (isAstrologyQARoute) {
+    return (
+      <ErrorBoundary>
+        <Layout>
+          <BaggonaAstrologyQAPage />
+        </Layout>
+      </ErrorBoundary>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-300">
@@ -414,7 +441,7 @@ export default function App(): JSX.Element {
         {currentPage === "muhurtha" && <MuhurthaPage />}
         {currentPage === "varshabavishya" && <VarshaBavishyaPage />}
         {currentPage === "ramanbhavishya" && <RamanBhavishyaPage />}
-        {currentPage === "aiaastrologer" && <AIAstrologerPage />}
+        {currentPage === "aiaastrologer" && <BaggonaAstrologyQAPage />}
         {currentPage === "seva" && <SevaPage />}
         {currentPage === "varamahalakshmi" && <VaramahalakshmiPage />}
         {currentPage === "sankhyashastra" && <SankhyaShastraPage />}

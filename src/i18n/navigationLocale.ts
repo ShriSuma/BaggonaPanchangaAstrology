@@ -72,11 +72,11 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     ta: "பக்கோண திவ்ய பவிஷ்யா"
   },
   aiaastrologer: {
-    kn: "ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಜ್ಯೋತಿಷಿ",
-    en: "AI Astrologer",
-    hi: "एआई ज्योतिषी",
-    te: "ఏఐ జ్యోతిష్యుడు",
-    ta: "AI ஜோதிடர்"
+    kn: "🔮 ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೋತ್ತರ",
+    en: "🔮 Ask Astrology (Q&A)",
+    hi: "🔮 ज्योतिष प्रश्नोत्तरी",
+    te: "🔮 జ్యోతిష్య ప్రశ్నోత్తరాలు",
+    ta: "🔮 ஜோதிட வினா-விடை"
   },
   seva: {
     kn: "ಸೇವೆ & ಪವಿತ್ರ ಪ್ರಸಾದ",
