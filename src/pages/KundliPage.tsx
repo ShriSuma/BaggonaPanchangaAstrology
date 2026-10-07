@@ -818,16 +818,17 @@ export default function KundliPage(): JSX.Element {
       longitude: form.longitude,
       name: form.name || "Devotee",
       gender: form.gender,
-      gothra: gotraDisplay || form.gothra
+      gothra: gotraDisplay || form.gothra,
+      maritalStatus: form.maritalStatus
     };
     return generateKundliRemedyReport(result, input);
-  }, [result, birthDatePicker, birthTimeHm, form.latitude, form.longitude, form.name, form.gender, form.gothra, gotraDisplay]);
+  }, [result, birthDatePicker, birthTimeHm, form.latitude, form.longitude, form.name, form.gender, form.gothra, gotraDisplay, form.maritalStatus]);
 
   const effectiveRemedyDiagnosis = aiRemedyDiagnosis || remedyDiagnosis;
 
   useEffect(() => {
     setAiRemedyDiagnosis(null);
-  }, [result]);
+  }, [result, form.maritalStatus]);
 
   // Trigger AI Narration for remedies with 10 retries
   useEffect(() => {
@@ -844,7 +845,8 @@ export default function KundliPage(): JSX.Element {
       longitude: form.longitude,
       name: form.name || "Devotee",
       gender: form.gender,
-      gothra: gotraDisplay || form.gothra
+      gothra: gotraDisplay || form.gothra,
+      maritalStatus: form.maritalStatus
     };
 
     generateKundliRemedyWithAi({
@@ -913,7 +915,8 @@ export default function KundliPage(): JSX.Element {
             longitude: form.longitude,
             name: form.name || "Devotee",
             gender: form.gender,
-            gothra: gotraDisplay || form.gothra
+            gothra: gotraDisplay || form.gothra,
+            maritalStatus: form.maritalStatus
           };
           diagToUse = await generateKundliRemedyWithAi({
             kundli: result,
@@ -1191,7 +1194,8 @@ export default function KundliPage(): JSX.Element {
               longitude: form.longitude,
               name: form.name || "Devotee",
               gender: form.gender,
-              gothra: gotraDisplay || form.gothra
+              gothra: gotraDisplay || form.gothra,
+              maritalStatus: form.maritalStatus
             };
             diagToUse = await generateKundliRemedyWithAi({
               kundli: result,

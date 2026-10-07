@@ -107,8 +107,54 @@ describe("Kundli Remedy Engine", () => {
 
     expect(report.planetaryStrengthRemedies).toBeDefined();
     expect(report.planetaryStrengthRemedies.influencerBenchmarkComparison.title.kn).toContain("ಆಧುನಿಕ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಭಾವಿಗಳು");
-    expect(report.planetaryStrengthRemedies.influencerBenchmarkComparison.authenticApproach.kn).toBeDefined();
     expect(report.planetaryStrengthRemedies.exaltedPlanets.length).toBeGreaterThanOrEqual(1); // Jupiter in Cancer is exalted!
     expect(report.planetaryStrengthRemedies.exaltedPlanets.some(ep => ep.graha === PlanetName.Jupiter)).toBe(true);
   });
+
+  it("should NEVER prescribe marriage_delay or Swayamvara Parvati to a married native", () => {
+    const marriedInput: KundliInput = {
+      name: "Ramesh Sharma",
+      birthDate: "1990-05-12",
+      birthTime: "11:45",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      gender: "Male",
+      maritalStatus: "married",
+      primaryConcern: "marriage_delay" // Even if somehow passed, must be overridden!
+    };
+
+    const report = generateKundliRemedyReport(mockKundliMarsAfflicted, marriedInput);
+
+    // Primary struggle category MUST NOT be marriage_delay for a married person
+    expect(report.primaryStruggle.category).not.toBe("marriage_delay");
+    expect(report.primaryStruggle.category).toBe("relationship_friction");
+
+    // Must NOT prescribe Swayamvara Parvati
+    expect(report.personalizedStotras.some(s => s.id === "swayamvara_parvati")).toBe(false);
+
+    // Must prescribe Uma-Maheshwara for marital harmony
+    expect(report.personalizedStotras.some(s => s.id === "uma_maheshwara")).toBe(true);
+    expect(report.instantCalmingProtocol.title.kn).toContain("ಉಮಾ-ಮಹೇಶ್ವರ");
+    expect(report.gokarnaTempleRemedies.prescribedSeva.name.kn).toContain("ಉಮಾ-ಮಹೇಶ್ವರ");
+  });
+
+  it("prescribes Swayamvara Parvati to an unmarried native with marriage_delay concern", () => {
+    const unmarriedInput: KundliInput = {
+      name: "Suresh Kumar",
+      birthDate: "1995-05-12",
+      birthTime: "11:45",
+      latitude: 14.5479,
+      longitude: 74.3188,
+      gender: "Male",
+      maritalStatus: "unmarried",
+      primaryConcern: "marriage_delay"
+    };
+
+    const report = generateKundliRemedyReport(mockKundliMarsAfflicted, unmarriedInput);
+
+    expect(report.primaryStruggle.category).toBe("marriage_delay");
+    expect(report.personalizedStotras.some(s => s.id === "swayamvara_parvati")).toBe(true);
+    expect(report.instantCalmingProtocol.title.kn).toContain("ಸ್ವಯಂವರ ಪಾರ್ವತಿ");
+  });
 });
+

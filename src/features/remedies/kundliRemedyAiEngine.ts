@@ -68,6 +68,7 @@ You are delivering a 100% personalized, compassionate Daivika Parihara (divine a
 
 DEVOTEE CHART PARTICULARS:
 - Name: ${diagnosis.devoteeName} ${gotraMention}
+- Marital Status: ${diagnosis.maritalStatus === "married" ? "Married (ವಿವಾಹಿತರು) - Focus STRICTLY on marital harmony (ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ), spouse relationship, and domestic peace. NEVER advise on marriage delay, finding a spouse, or getting married!" : "Unmarried"}
 - Birth Date & Time: ${diagnosis.birthDate} ${diagnosis.birthTime}
 - Natal Lagna: ${lagnaStr}
 - Chandra Rashi (Moon Sign): ${rashiStr}
@@ -84,6 +85,7 @@ STRICT INSTRUCTIONS:
 3. Tailor the advice directly to the devotee's specific planetary alignment, active Dasha, and diagnosed struggle.
 4. Explain clearly why chanting the designated stotra, performing the instant pacification protocol, and offering seva at Gokarna Mahabaleshwara will neutralize karmic afflictions and bring mental peace.
 5. Maintain a holy, encouraging, and authoritative Vedic priest persona. Do not include markdown headers (###) or bullet points.
+6. If the devotee is married, DO NOT mention marriage delay, finding a match, kankana bala, or getting married under any circumstances. Focus strictly on mutual respect, marital harmony, and family bliss.
 `.trim();
 }
 
@@ -173,7 +175,12 @@ export async function generateKundliRemedyWithAi(
         !raw.includes("GoogleGenerativeAIError") &&
         !raw.includes("Resource has been exhausted")
       ) {
-        narrationResult = raw.trim();
+        narrationResult = raw
+          .replace(/\r\n/g, "\n")
+          .replace(/[#*`_~]/g, "")
+          .replace(/[ \t]{2,}/g, " ")
+          .replace(/\n\s*\n\s*\n+/g, "\n\n")
+          .trim();
         aiSuccess = true;
         void recordAiCallUsage({
           feature: "remedy" as any,

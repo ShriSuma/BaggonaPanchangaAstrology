@@ -352,10 +352,17 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
   };
 
   // Determine active narration text (AI synthesized or rich deterministic fallback)
-  const narrationText =
+  const rawNarrationText =
     diagnosis.aiNarrationText?.[code]?.trim() ||
     (diagnosis.isAiGenerated && typeof diagnosis.aiNarration === "string" ? diagnosis.aiNarration.trim() : "") ||
     getDeterministicSacredNarration(diagnosis, code);
+
+  const narrationText = rawNarrationText
+    .replace(/\r\n/g, "\n")
+    .replace(/[#*`_~]/g, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n\s*\n\s*\n+/g, "\n\n")
+    .trim();
 
   // Robust Indic font stack with zero-broken vattaksharas
   const fontFamily = isKn
@@ -407,12 +414,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             outline: "1.5px solid #D97706",
             outlineOffset: "-5px",
             borderRadius: "12px",
-            padding: "12px 16px",
+            padding: "13px 16px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
-            gap: "7px",
+            justifyContent: "space-between",
             overflow: "hidden"
           }}
         >
@@ -525,13 +532,24 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               style={{
                 fontSize: "11px",
                 color: "#451A03",
-                lineHeight: 1.55,
-                whiteSpace: "pre-line",
+                lineHeight: 1.5,
                 borderLeft: "3px solid #D97706",
                 paddingLeft: "8px"
               }}
             >
-              {narrationText}
+              {narrationText.split(/\n\s*\n/).filter(Boolean).map((para, pIdx) => (
+                <p
+                  key={pIdx}
+                  style={{
+                    margin: pIdx === 0 ? "0 0 4px 0" : "4px 0",
+                    lineHeight: 1.5,
+                    fontSize: "11px",
+                    color: "#451A03"
+                  }}
+                >
+                  {para.trim()}
+                </p>
+              ))}
             </div>
           </div>
 
@@ -765,8 +783,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px solid #D97706",
-              paddingTop: "5px",
-              marginTop: "auto"
+              paddingTop: "5px"
             }}
           >
             {i18n.page1Footer}
@@ -801,12 +818,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             outline: "1.5px solid #D97706",
             outlineOffset: "-5px",
             borderRadius: "12px",
-            padding: "12px 16px",
+            padding: "13px 16px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
-            gap: "8px",
+            justifyContent: "space-between",
             overflow: "hidden"
           }}
         >
@@ -847,10 +864,28 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 color: "#78350F",
                 borderBottom: "1.5px solid #FDE68A",
                 paddingBottom: "4px",
-                marginBottom: "5px"
+                marginBottom: "5px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
               }}
             >
-              ⚡ {i18n.sec3Title}
+              <span>⚡ {i18n.sec3Title}</span>
+              {instantCalmingProtocol.title && (
+                <span
+                  style={{
+                    fontSize: "10px",
+                    background: "#FEF3C7",
+                    color: "#92400E",
+                    padding: "1px 8px",
+                    borderRadius: "10px",
+                    fontWeight: 800,
+                    border: "1px solid #FCD34D"
+                  }}
+                >
+                  {instantCalmingProtocol.title[code] || instantCalmingProtocol.title.kn}
+                </span>
+              )}
             </div>
             <div style={{ fontSize: "11px", color: "#92400E", marginBottom: "6px", fontWeight: 700, lineHeight: 1.4 }}>
               {instantCalmingProtocol.subtitle[code] || instantCalmingProtocol.subtitle.kn}
@@ -1020,12 +1055,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   fontSize: "12px",
                   fontWeight: 800,
                   color: "#451A03",
-                  lineHeight: 1.65,
+                  lineHeight: 1.6,
                   whiteSpace: "pre-line",
                   letterSpacing: "normal"
                 }}
               >
-                {getShlokaByLang(stotra)}
+                {getShlokaByLang(stotra).trim()}
               </div>
 
               <div style={{ fontSize: "11px", color: "#78350F", marginTop: "5px", lineHeight: 1.5 }}>
@@ -1092,8 +1127,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px solid #D97706",
-              paddingTop: "5px",
-              marginTop: "auto"
+              paddingTop: "5px"
             }}
           >
             {i18n.page2Footer}
@@ -1128,12 +1162,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             outline: "1.5px solid #D97706",
             outlineOffset: "-5px",
             borderRadius: "12px",
-            padding: "12px 16px",
+            padding: "13px 16px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
-            gap: "7px",
+            justifyContent: "space-between",
             overflow: "hidden"
           }}
         >
@@ -1454,8 +1488,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1px dashed #D97706",
-              paddingTop: "4px",
-              marginTop: "auto"
+              paddingTop: "4px"
             }}
           >
             {i18n.page3Footer}

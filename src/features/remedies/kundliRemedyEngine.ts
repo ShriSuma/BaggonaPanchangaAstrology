@@ -88,6 +88,7 @@ export interface KundliRemedyDiagnosis {
   birthDate: string;
   birthTime: string;
   gotra?: string;
+  maritalStatus?: string;
   isAiGenerated?: boolean;
   aiNarration?: string;
   aiFallbackMessage?: Record<SupportedLanguage, string> | Record<string, string>;
@@ -2020,8 +2021,54 @@ export const CLASSICAL_STOTRAS_CATALOG = [
     recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ಅಥವಾ ೧೧ ಬಾರಿ", en: "1 or 11 Times Daily", hi: "१ अथवा ११ बार", te: "1 లేదా 11 సార్లు", ta: "1 அல்லது 11 முறை" }
   },
   {
+    id: "uma_maheshwara",
+    forAffliction: ["relationship_friction", "marital_discord", "domestic_peace", "shukra_affliction"],
+    title: {
+      kn: "ಶ್ರೀ ಉಮಾ-ಮಹೇಶ್ವರ ಸ್ತೋತ್ರಂ (ದಾಂಪತ್ಯ ಸೌಹಾರ್ದ)",
+      en: "Sri Uma-Maheshwara Stotram (Marital Harmony)",
+      hi: "श्री उमा-महेश्वर स्तोत्रम् (दांपत्य सौहार्द)",
+      te: "శ్రీ ఉమా-మహేశ్వర స్తోత్రం (దాంపత్య సామరస్యం)",
+      ta: "ஸ்ரீ உமா-மஹேஸ்வர ஸ்தோத்திரம் (தாம்பத்ய ஒற்றுமை)"
+    },
+    dedicatedTo: {
+      kn: "ಭಗವಾನ್ ಶಿವ ಮತ್ತು ಜಗನ್ಮಾತೆ ಪಾರ್ವತಿ (ದಾಂಪತ್ಯ ಸೌಹಾರ್ದ)",
+      en: "Lord Shiva and Goddess Parvati (Marital Harmony)",
+      hi: "भगवान शिव एवं माता पार्वती (दांपत्य सौहार्द)",
+      te: "ఉమా-మహేశ్వరులు",
+      ta: "உமா-மஹேஸ்வரர்"
+    },
+    shlokaSanskrit: `नमः शिवाभ्यां नवयौवनाभ्यां परस्पराश्लिष्टवपुर्धराभ्याम् ।
+नागेन्द्रकन्यावृषकेतनाभ्यां नमो नमः शङ्करपार्वतीभ्याम् ॥`,
+    shlokaKannada: `ನಮಃ ಶಿವಾಭ್ಯಾಂ ನವಯೌವನಾಭ್ಯಾಂ ಪರಸ್ಪರಾಶ್ಲಿಷ್ಟವಪುರ್ಧರಾಭ್ಯಾಮ್ ।
+ನಾಗೇಂದ್ರಕನ್ಯಾವೃಷಕೇತನಾಭ್ಯಾಂ ನಮೋ ನಮಃ ಶಂಕರಪಾರ್ವತೀಭ್ಯಾಮ್ ॥`,
+    shlokaTelugu: `నమః శివాభ్యాం నవయౌవనాభ్యాం పరస్పరాశ్లిష్టవపుర్ధరాభ్యామ్ ।
+నాగేంద్రకన్యావృషకేతనాభ్యాం నమో నమః శంకరపార్వతీభ్యామ్ ॥`,
+    shlokaTamil: `நமஃ சிவாப்யாம் நவயௌவனாப்யாம் பரஸ்பராஸ்லிஷ்டவபுர்தராப்யாம் ।
+நாகேந்த்ரகன்யாவ்ருஷகேதனாப்யாம் நமோ நமஃ சங்கரபார்வதீப்யாம் ॥`,
+    shlokaHindi: `नमः शिवाभ्यां नवयौवनाभ्यां परस्पराश्लिष्टवपुर्धराभ्याम् ।
+नागेन्द्रकन्यावृषकेतनाभ्यां नमो नमः शङ्करपार्वतीभ्याम् ॥`,
+    transliteration: "Namaḥ Śivābhyāṁ Navayauvanābhyāṁ Parasparāśliṣṭavapurdharābhyām | Nāgendrakanyāvṛṣaketanābhyāṁ Namō Namaḥ Śaṅkarapārvatībhyām ||",
+    meaning: {
+      kn: "ಪರಸ್ಪರ ಅವಿನಾಭಾವ ಪ್ರೇಮದಿಂದ ಕಂಗೊಳಿಸುವ ಆದಿದಂಪತಿಗಳಾದ ಉಮಾ-ಮಹೇಶ್ವರರಿಗೆ ನಮಸ್ಕಾರಗಳು. ದಾಂಪತ್ಯದಲ್ಲಿ ಅನ್ಯೋನ್ಯತೆ, ಶಾಂತಿ ಮತ್ತು ಸುಖ-ಸೌಹಾರ್ದತೆಯನ್ನು ಕರುಣಿಸಿ.",
+      en: "Salutations to the primordial divine couple, Uma and Maheshwara, who abide in eternal mutual love. May they bless married life with harmony, deep understanding, peace, and domestic joy.",
+      hi: "परस्पर अगाध प्रेम से युक्त आदिदम्पति उमा-महेश्वर को नमन। दांपत्य जीवन में सामंजस्य, मधुरता और शांति प्रदान करें।",
+      te: "పరస్పర ప్రేమతో విలసిల్లే ఉమా-మహేశ్వరులకు నమస్కారాలు. దాంపత్యంలో సామరస్యం మరియు శాంతిని ప్రసాదించండి.",
+      ta: "அன்யோன்யமான உமா-மஹேஸ்வர தம்பதியருக்கு நமஸ்காரங்கள். இல்லற வாழ்வில் ஒற்றுமையும் அமைதியும் பெருகட்டும்."
+    },
+    spiritualBenefits: {
+      kn: "ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ, ಪತಿ-ಪತ್ನಿ ಅನ್ಯೋನ್ಯತೆ, ಮನಸ್ತಾಪ ನಿವಾರಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ.",
+      en: "Fosters marital harmony, mutual affection between spouses, resolves domestic discord, and blesses peace at home.",
+      hi: "दांपत्य सामंजस्य, पति-पत्नी में प्रगाढ़ प्रेम, गृह क्लेश निवारण एवं सुख-शांति।",
+      te: "దాంపత్య సామరస్యం, భార్యాభర్తల మధ్య అనురాగం, కుటుంబ శాంతి.",
+      ta: "தாம்பத்ய ஒற்றுமை, குடும்ப அமைதி, மனக்கசப்புகள் நீங்கும்."
+    },
+    bestTimeToRecite: { kn: "ಸೋಮವಾರ ಅಥವಾ ಶುಕ್ರವಾರ ಸಂಜೆ", en: "Monday or Friday evening", hi: "सोमवार अथवा शुक्रवार सायं", te: "సోమవారం లేదా శుక్రవారం సాయంత్రం", ta: "திங்கள் அல்லது வெள்ளி மாலை" },
+    facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕು", en: "North or East", hi: "उत्तर अथवा पूर्व", te: "ఉత్తరం లేదా తూర్పు", ta: "வடக்கு அல்லது கிழக்கு" },
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ಅಥವಾ ೧೧ ಬಾರಿ", en: "1 or 11 Times Daily", hi: "१ अथवा ११ बार", te: "1 లేదా 11 ಸార్లు", ta: "1 அல்லது 11 முறை" }
+  },
+  {
     id: "swayamvara_parvati",
-    forAffliction: ["marriage_delay", "relationship_friction", "shukra_affliction"],
+    forAffliction: ["marriage_delay"],
     title: {
       kn: "ಶ್ರೀ ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಸ್ತೋತ್ರಂ & ಮಂತ್ರ",
       en: "Sri Swayamvara Parvati Stotram & Mantra",
@@ -2255,8 +2302,13 @@ export function generateKundliRemedyReport(
     struggleCategory = "student_academic";
     intensity = "High";
   } else if (clsCat === "marriage_delay" || (isDestinyDelayedRemedy && (input.maritalStatus === "unmarried" || (isFemaleRemedy && !isConfirmedMarriedRemedy)) && devoteeAge >= 20 && devoteeAge <= 52)) {
-    struggleCategory = "marriage_delay";
-    intensity = "High";
+    if (isConfirmedMarriedRemedy || input.maritalStatus === "married") {
+      struggleCategory = "relationship_friction";
+      intensity = "Moderate";
+    } else {
+      struggleCategory = "marriage_delay";
+      intensity = "High";
+    }
   } else if (clsCat === "debt_financial_crisis") {
     struggleCategory = "debt_financial";
     intensity = "High";
@@ -2304,6 +2356,12 @@ export function generateKundliRemedyReport(
   if (struggleCategory === "relationship_friction" && (input.maritalStatus === "unmarried" || (isFemaleRemedy && !isConfirmedMarriedRemedy))) {
     struggleCategory = "marriage_delay";
     intensity = "High";
+  }
+
+  // MANDATORY SAFEGUARD: Married natives MUST never be diagnosed with marriage delay or finding a partner!
+  if ((isConfirmedMarriedRemedy || input.maritalStatus === "married") && struggleCategory === "marriage_delay") {
+    struggleCategory = "relationship_friction";
+    intensity = "Moderate";
   }
 
   // 13 Rich Dynamic Category Descriptions
@@ -2860,6 +2918,71 @@ export function generateKundliRemedyReport(
       },
       japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २１ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
     };
+  } else if (struggleCategory === "relationship_friction") {
+    protocolTitle = {
+      kn: "⚡ ಉಮಾ-ಮಹೇಶ್ವರ ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ & ಕೌಟುಂಬಿಕ ಶಾಂತಿ ಸೂತ್ರ",
+      en: "⚡ 4-Step Uma-Maheshwara Marital Harmony & Domestic Peace Protocol",
+      hi: "⚡ उमा-महेश्वर दांपत्य सामंजस्य एवं पारिवारिक शांति सूत्र",
+      te: "⚡ ఉమా-మహేశ్వర దాంపత్య సామరస్య & కుటుంబ శాంతి సూత్రం",
+      ta: "⚡ உமா-மஹேஸ்வர தாம்பத்ய ஒற்றுமை மற்றும் குடும்ப அமைதி விதி"
+    };
+    protocolSubtitle = {
+      kn: "ದಾಂಪತ್ಯದಲ್ಲಿ ಹೊಂದಾಣಿಕೆ ಕೊರತೆ, ವಾದ-ವಿವಾದ ಅಥವಾ ಮನಸ್ತಾಪ ಉಂಟಾದಾಗ ಪರಸ್ಪರ ಶಾಂತಿಗಾಗಿ ಈ ೪ ಕ್ರಮಗಳನ್ನು ತಪ್ಪದೇ ಪಾಲಿಸಿ:",
+      en: "Whenever marital friction, misunderstandings, or domestic disagreements arise, execute these 4 harmony steps:",
+      hi: "दांपत्य जीवन में कलह, मतभेद या गलतफहमी उत्पन्न होने पर तुरंत इन ४ चरणों का पालन करें:",
+      te: "భార్యాభర్తల మధ్య అభిప్రాయ భేదాలు లేదా మనస్పర్ధలు వచ్చినప్పుడు ఈ 4 దశలను పాటించండి:",
+      ta: "தம்பதியரிடையே கருத்து வேறுபாடு அல்லது மனக்கசப்பு ஏற்படும் போது இந்த 4 படிகளை பின்பற்றவும்:"
+    };
+    stepsList = [
+      {
+        stepNumber: 1,
+        icon: "💧",
+        name: { kn: "೧. ಸೌಮ್ಯ ಮೌನ & ಶೀತಲ ಜಲ ಪ್ರಾಶನ", en: "1. Silence Pause & Cool Water Sip", hi: "१. मौन धारण एवं शीतल जल प्राशन", te: "1. మౌన ధారణ & చల్లని నీరు", ta: "1. மௌனம் & குளிர்ந்த நீர்" },
+        action: { kn: "ವಾದ-ವಿವಾದದ ಸಮಯದಲ್ಲಿ ತಕ್ಷಣ ಮಾತನಾಡುವುದನ್ನು ನಿಲ್ಲಿಸಿ, ಒಂದು ಲೋಟ ತಣ್ಣೀರನ್ನು ನಿಧಾನವಾಗಿ ಕುಡಿಯಿರಿ.", en: "Halt reactive speech immediately; sip a glass of cool room-temperature water slowly to lower emotional arousal.", hi: "विवाद के समय तुरंत बोलना बंद कर एक घूंट शीतल जल पिएं।", te: "వాదోపవాదాల సమయంలో మాట్లాడటం ఆపి చల్లని నీరు త్రాగండి.", ta: "வாக்குவாதத்தின் போது உடனே பேசுவதை நிறுத்தி நீர் அருந்தவும்." },
+        detail: { kn: "ಕೋಪದ ಸಮಯದಲ್ಲಿ ಆಡುವ ಕಟು ಮಾತುಗಳು ಸಂಬಂಧಗಳನ್ನು ಹಾಳುಮಾಡುತ್ತವೆ; ಮೌನವು ಶಾಂತಿಗೆ ಮೊದಲ ಹೆಜ್ಜೆ.", en: "Prevents sharp reactive words that cause long-term relational damage, grounding the nervous system.", hi: "यह कटु शब्दों से बचाकर चित्त को शांत करता है।", te: "ఇది కఠినమైన మాటలను నివారించి మనస్సుకు ప్రశాంతతనిస్తుంది.", ta: "கடுஞ்சொற்களை தவிர்த்து அமைதியை தரும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+      },
+      {
+        stepNumber: 2,
+        icon: "🌬️",
+        name: { kn: "೨. ಉಮಾ-ಮಹೇಶ್ವರ ಹೃದಯ ಶ್ವಾಸ", en: "2. Heart-Centered Coherent Breathing", hi: "२. हृदय चक्र अनुलोम श्वास", te: "2. హృదయ చక్ర ధ్యాన శ్వాస", ta: "2. இதய சக்கர பிராணாயாமம்" },
+        action: { kn: "ಎದೆಯ ಮೇಲೆ ಬಲಗೈ ಇಟ್ಟು, ೫ ಸೆಕೆಂಡ್ ದೀರ್ಘ ಉಸಿರೆಳೆದು ೫ ಸೆಕೆಂಡ್ ನಿಧಾನವಾಗಿ ಹೊರಬಿಡಿ (೭ ಆವರ್ತನೆ).", en: "Place right palm over the heart center; inhale gently for 5s, exhale for 5s, practicing 7 rhythmic cycles.", hi: "हृदय पर हाथ रखकर ५ सेकंड श्वास लें और ५ सेकंड में छोड़ें।", te: "గుండెలపై చేయి ఉంచి 7 సార్లు దీర్ఘ శ్వాస తీసుకోండి.", ta: "இதயத்தில் கை வைத்து 7 முறை சீரான மூச்சு விடவும்." },
+        detail: { kn: "ಇದು ಹೃದಯ ಚಕ್ರದಲ್ಲಿ ಅನುಕಂಪ ಮತ್ತು ಸಹನೆಯ ತರಂಗಗಳನ್ನು ಜಾಗೃತಗೊಳಿಸಿ ಅಹಂಕಾರವನ್ನು ಕರಗಿಸುತ್ತದೆ.", en: "Activates vagal brake and heart coherence, replacing defensive ego rigidity with emotional empathy.", hi: "यह अहंकार को शांत कर प्रेम और करुणा का संचार करता है।", te: "ఇది సహనాన్ని పెంచి అహంకారాన్ని తగ్గిస్తుంది.", ta: "இது அகந்தையை போக்கி அன்பை வளர்க்கும்." },
+        duration: { kn: "೧.೫ ನಿಮಿಷ", en: "1.5 Minutes", hi: "१.५ मिनट", te: "1.5 నిమిషాలు", ta: "1.5 நிமிடங்கள்" }
+      },
+      {
+        stepNumber: 3,
+        icon: "🌸",
+        name: { kn: "೩. ಆದಿದಂಪತಿ ಸೌಹಾರ್ದ ಧ್ಯಾನ", en: "3. Uma-Maheshwara Harmony Contemplation", hi: "३. उमा-महेश्वर सामंजस्य ध्यान", te: "3. ఉమా-మహేశ్వర సౌహార్ద ధ్యానం", ta: "3. உமா-மஹேஸ்வர தியானம்" },
+        action: { kn: "ಆದಿದಂಪತಿಗಳಾದ ಶಿವ-ಪಾರ್ವತಿಯರ ಪರಸ್ಪರ ಗೌರವ ಹಾಗೂ ಅನ್ಯೋನ್ಯತೆಯನ್ನು ಮನಸ್ಸಿನಲ್ಲಿ ಧ್ಯಾನಿಸಿ ಸಂಗಾತಿಯ ಶುಭ ಗುಣಗಳನ್ನು ಸ್ಮರಿಸಿ.", en: "Visualize Lord Shiva and Mother Parvati in eternal loving union; recall 3 virtues and past kindness of your spouse.", hi: "शिव-पार्वती के अगाध प्रेम का ध्यान करते हुए जीवनसाथी के गुणों का स्मरण करें।", te: "శివపార్వతుల అనురాగాన్ని ధ్యానిస్తూ జీవిత భాగస్వామి మంచి గుణాలను తలచుకోండి.", ta: "சிவபார்வதி அன்யோன்யத்தை தியானித்து துணையின் நற்குணங்களை நினையுங்கள்." },
+        detail: { kn: "ತಪ್ಪುಗಳನ್ನು ಕ್ಷಮಿಸುವ ದೊಡ್ಡ ಗುಣವು ದಾಂಪತ್ಯವನ್ನು ಭದ್ರಗೊಳಿಸುತ್ತದೆ ಮತ್ತು ನಕಾರಾತ್ಮಕತೆಯನ್ನು ಅಳಿಸುತ್ತದೆ.", en: "Dissolves hyper-focus on partner's flaws and anchors perspective in gratitude and sacred partnership.", hi: "यह क्षमाशीलता को बढ़ाकर दांपत्य को सुदृढ़ बनाता है।", te: "ఇది క్షమాగుణాన్ని పెంపొందిస్తుంది.", ta: "இது மன்னிக்கும் குணத்தை தந்து வாழ்வை காக்கும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+      },
+      {
+        stepNumber: 4,
+        icon: "🕉️",
+        name: { kn: "೪. ಉಮಾ-ಮಹೇಶ್ವರ ಶಾಂತಿ ಬೀಜ ಜಪ", en: "4. Uma-Maheshwara Shanti Mantra Japa", hi: "४. उमा-महेश्वर शांति मंत्र जप", te: "4. ఉమా-మహేశ్వర శాంతి మంత్ర జపం", ta: "4. உமா-மஹேஸ்வர சாந்தி மந்திர ஜெபம்" },
+        action: { kn: "ಮನಸ್ಸಿನಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಶಾಂತಿ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಶ್ರದ್ಧೆಯಿಂದ ಜಪಿಸಿ.", en: "Silently recite the sacred Uma-Maheshwara marital peace mantra 11 times.", hi: "मन ही मन उमा-महेश्वर शांति मंत्र का ११ बार जप करें।", te: "మనస్సులో ఉమా-మహేశ్వర శాంతి మంత్రాన్ని 11 సార్లు జపించండి.", ta: "மனதில் உமா-மஹேஸ்வர சாந்தி மந்திரத்தை 11 முறை ஜபிக்கவும்." },
+        detail: { kn: "ಪಾರ್ವತಿ-ಪರಮೇಶ್ವರರ ಕೃಪೆಯಿಂದ ಮನೆಯಲ್ಲಿ ಕಲಹ ನಿವಾರಣೆಯಾಗಿ ಪ್ರೇಮ, ಶಾಂತಿ ಮತ್ತು ಸೌಭಾಗ್ಯ ನೆಲೆಸುತ್ತದೆ.", en: "Invokes divine marital dispensations, cleansing astral toxicity and restoring sweet affection.", hi: "मां पार्वती और भगवान शिव की कृपा से गृह क्लेश दूर होकर शांति स्थापित होती है।", te: "శివపార్వతుల కృపతో కుటుంబంలో శాంతి వెల్లివిరుస్తుంది.", ta: "சிவபார்வதி அருளால் குடும்பத்தில் மகிழ்ச்சி நிலவும்." },
+        duration: { kn: "೧ ನಿಮಿಷ", en: "1 Minute", hi: "१ मिनट", te: "1 నిమిషం", ta: "1 நிமிடம்" }
+      }
+    ];
+    emergencyMantraData = {
+      sanskrit: "॥ ॐ नमः शिवाभ्यां शङ्करपार्वतीभ्यां नमः । ॐ उमामहेश्वराभ्यां नमः शान्तये ॥",
+      kannada: "॥ ಓಂ ನಮಃ ಶಿವಾಭ್ಯಾಂ ಶಂಕರಪಾರ್ವತೀಭ್ಯಾಂ ನಮಃ । ಓಂ ಉಮಾಮಹೇಶ್ವರಾಭ್ಯಾಂ ನಮಃ ಶಾಂತಯೇ ॥",
+      telugu: "॥ ఓం నమః శివాభ్యాం శంకరపార్వతీభ్యాం నమః । ఓం ఉమామహేశ్వరాభ్యాం నమః శాంతయే ॥",
+      tamil: "॥ ஓம் நமஃ சிவாப்யாம் சங்கரபார்வதீப்யாம் நமஹ । ஓம் உமாமஹேஸ்வராப்யாம் நமஹ சாந்தயே ॥",
+      hindi: "॥ ॐ नमः शिवाभ्यां शङ्करपार्वतीभ्यां नमः । ॐ उमामहेश्वराभ्यां नमः शान्तये ॥",
+      transliteration: "Om Namah Shivabhyam Shankara Parvatibhyam Namaha | Om Uma Maheshwarabhyam Namaha Shantaye",
+      meaning: {
+        kn: "ಆದಿದಂಪತಿಗಳಾದ ಶಿವ-ಪಾರ್ವತಿಯರ ಕೃಪೆಯಿಂದ ಮನಸ್ತಾಪಗಳು ದೂರವಾಗಿ, ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೇಮ, ವಿಶ್ವಾಸ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ನೆಲೆಸಲಿ.",
+        en: "By the grace of the primordial couple Shiva and Parvati, may misunderstandings dissolve, restoring deep mutual affection, trust, and domestic peace.",
+        hi: "आदिदम्पति शिव-पार्वती की कृपा से समस्त मतभेद दूर हों एवं दांपत्य में अगाध प्रेम व शांति बनी रहे।",
+        te: "పార్వతీ పరమేశ్వరుల కృపతో విభేదాలు తొలగి దాంపత్యంలో అనురాగం, శాంతి కలుగుగాక.",
+        ta: "சிவபார்வதி அருளால் கருத்து வேறுபாடுகள் நீங்கி தாம்பத்தியத்தில் அன்பும் அமைதியும் நிலவட்டும்."
+      },
+      japaCount: { kn: "೧೧ ಅಥವಾ ೨೧ ಬಾರಿ", en: "11 or 21 Times", hi: "११ अथवा २१ बार", te: "11 లేదా 21 సార్లు", ta: "11 அல்லது 21 முறை" }
+    };
   } else if (struggleCategory === "debt_financial") {
     protocolTitle = {
       kn: "⚡ ಋಣವಿಮೋಚನ ಅಂಗಾರಕ & ಕನಕಧಾರಾ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ ಸೂತ್ರ",
@@ -3324,6 +3447,9 @@ export function generateKundliRemedyReport(
   } else if (struggleCategory === "marriage_delay") {
     const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "swayamvara_parvati");
     if (s) personalizedStotras.push(s);
+  } else if (struggleCategory === "relationship_friction") {
+    const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "uma_maheshwara");
+    if (s) personalizedStotras.push(s);
   } else if (struggleCategory === "debt_financial") {
     const s = CLASSICAL_STOTRAS_CATALOG.find(st => st.id === "runa_vimochana_angāraka");
     if (s) personalizedStotras.push(s);
@@ -3650,6 +3776,25 @@ export function generateKundliRemedyReport(
     donationItem = { kn: "ಅರಿಶಿನ, ಕುಂಕುಮ, ಹಳದಿ ಸೀರೆ ಅಥವಾ ಕಲ್ಯಾಣ ದ್ರವ್ಯ", en: "Haldi-kumkum, yellow silk, or auspicious bridal offerings", hi: "हल्दी, कुमकुम, पीले वस्त्र अथवा सुहाग सामग्री", te: "పసుపు, కుంకుమ, పసుపు రంగు వస్త్రాలు", ta: "மஞ்சள், குங்குமம் அல்லது மங்கல பொருட்கள்" };
     donationDay = { kn: "ಶುಕ್ರವಾರ", en: "Friday", hi: "शुक्रवार", te: "శుక్రవారం", ta: "வெள்ளிக்கிழமை" };
     donationBeneficiary = { kn: "ಮುತ್ತೈದೆಯರಿಗೆ (ಸುಮಂಗಲಿಯರಿಗೆ) ಅಥವಾ ಬಡ ಕನ್ಯೆಯ ವಿವಾಹಕ್ಕೆ", en: "Married Sumangalis or impoverished bride wedding", hi: "सुहागिन महिलाओं अथवा निर्धन कन्या के विवाह में", te: "సుమంగళి స్త్రీలకు లేదా పేద కన్య వివాహానికి", ta: "சுமங்கலிகளுக்கு அல்லது ஏழை பெண் திருமணத்திற்கு" };
+  } else if (struggleCategory === "relationship_friction") {
+    prescribedSevaName = {
+      kn: "ಗೋಕರ್ಣ ಉಮಾ-ಮಹೇಶ್ವರ ದಾಂಪತ್ಯ ಶಾಂತಿ ಪೂಜೆ & ಕ್ಷೀರಾಭಿಷೇಕ",
+      en: "Gokarna Uma-Maheshwara Marital Harmony Pooja & Ksheerabhisheka",
+      hi: "गोकर्ण उमा-महेश्वर दांपत्य शांति पूजा एवं क्षीराभिषेक",
+      te: "గోకర్ణ ఉమా-మహేశ్వర దాంపత్య శాంతి పూజ & క్షీరాభిషేకం",
+      ta: "கோகர்ண உமா-மஹேஸ்வர தாம்பத்ய சாந்தி பூஜை"
+    };
+    sevaSignificance = {
+      kn: "ದಾಂಪತ್ಯದಲ್ಲಿ ಅನ್ಯೋನ್ಯತೆ, ಮನಸ್ತಾಪ ನಿವಾರಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆಯನ್ನು ಹೆಚ್ಚಿಸಲು ಆದಿದಂಪತಿಗಳಾದ ಶಿವ-ಪಾರ್ವತಿಯರ ವಿಶೇಷ ಆರಾಧನೆ.",
+      en: "Special worship of Shiva-Parvati to dissolve misunderstandings, restore mutual trust, and bless deep marital harmony.",
+      hi: "दांपत्य जीवन में मधुरता, आपसी समझ एवं पारिवारिक शांति हेतु उमा-महेश्वर की विशेष पूजा।",
+      te: "భార్యాభర్తల మధ్య అనురాగం మరియు కుటుంబ శాంతి కొరకు ఉమా-మహేశ్వర పూజ.",
+      ta: "தம்பதியரிடையே ஒற்றுமை மற்றும் குடும்ப அமைதி உண்டாக உமா-மஹேஸ்வர பூஜை."
+    };
+    sevaIdealDay = { kn: "ಸೋಮವಾರ ಅಥವಾ ಶುಕ್ರವಾರ (ಪ್ರದೋಷ ಕಾಲ)", en: "Monday or Friday (Pradosha twilight)", hi: "सोमवार अथवा शुक्रवार (प्रदोष काल)", te: "సోమవారం లేదా శుక్రవారం", ta: "திங்கள் அல்லது வெள்ளிக்கிழமை" };
+    donationItem = { kn: "ಹಾಲಿನ ಪಾಯಸ, ಸಕ್ಕರೆ, ಬಿಳಿ ಹೂವುಗಳು ಅಥವಾ ಸುಮಂಗಲಿಯರಿಗೆ ವಸ್ತ್ರ ದಾನ", en: "Sweet milk kheer, sugar, white fragrant flowers, or clothes to a married couple", hi: "खीर, सफेद पुष्प अथवा दंपति को वस्त्र दान", te: "పాయసం, తెల్లని పూలు లేదా వస్త్ర దానం", ta: "பால் பாயாசம், வெள்ளை பூக்கள் அல்லது வஸ்திர தானம்" };
+    donationDay = { kn: "ಶುಕ್ರವಾರ ಅಥವಾ ಸೋಮವಾರ", en: "Friday or Monday", hi: "शुक्रवार अथवा सोमवार", te: "శుక్రవారం లేదా సోమవారం", ta: "வெள்ளி அல்லது திங்கட்கிழமை" };
+    donationBeneficiary = { kn: "ಆದರ್ಶ ವೃದ್ಧ ದಂಪತಿಗಳಿಗೆ ಅಥವಾ ಸುಮಂಗಲಿಯರಿಗೆ", en: "Venerable elderly married couple or Sumangali", hi: "आदर्श वृद्ध दंपति अथवा सुहागिन स्त्री को", te: "వృద్ధ దంపతులకు లేదా సుమంగళికి", ta: "முதிய தம்பதியருக்கு அல்லது சுமங்கலிக்கு" };
   } else if (struggleCategory === "debt_financial") {
     prescribedSevaName = {
       kn: "ಗೋಕರ್ಣ ಋಣವಿಮೋಚನ ಮಹಾಬಲೇಶ್ವರ ಮಹಾಭಿಷೇಕ",
@@ -3857,6 +4002,7 @@ export function generateKundliRemedyReport(
     birthDate: birthYmd,
     birthTime: birthHm,
     gotra: input.gothra,
+    maritalStatus: input.maritalStatus,
     lagnaName: RASHI_NAMES_LOCALE[lagnaRashiName] || { kn: lagnaRashiName, en: lagnaRashiName },
     rashiName: RASHI_NAMES_LOCALE[moonRashiName] || { kn: moonRashiName, en: moonRashiName },
     nakshatraName: nakshatraData.name,
