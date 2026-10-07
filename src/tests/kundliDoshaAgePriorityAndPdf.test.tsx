@@ -127,7 +127,7 @@ describe("Kundli Doshas Age-Adaptive Priority Ordering & PDF Generation Audit", 
     }
   });
 
-  it("renders KundliDoshaPdfTemplate with 3 A4 pages, priest seal, and age-prioritized highlights", () => {
+  it("renders KundliDoshaPdfTemplate with 2 A4 pages, priest seal, and age-prioritized highlights", () => {
     const kundli = calculateKundli(childInput, { ayanamsaModel: "lahiri" });
     const report = calculateComprehensiveDoshas(kundli, childInput, new Date("2026-09-29"));
 
@@ -139,9 +139,9 @@ describe("Kundli Doshas Age-Adaptive Priority Ordering & PDF Generation Audit", 
       />
     );
 
-    // Rule 2.1 & 3.2: 3 .pdf-page divs matching A4 format
+    // 2 .pdf-page divs matching the A4 master dossier format
     const pages = container.querySelectorAll(".pdf-page");
-    expect(pages.length).toBe(3);
+    expect(pages.length).toBe(2);
 
     // Verify Temple banner and Chief Priest identity
     expect(container.textContent).toContain("ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ");
