@@ -640,10 +640,37 @@ Keep the tone divine, authoritative, and Vedic.`;
     return obj[selectedLang] || obj["en"] || obj["kn"] || [];
   };
 
+  const getLanguageFontFamily = (lang: string) => {
+    switch (lang) {
+      case "kn":
+        return "'Noto Serif Kannada', 'Noto Sans Kannada', 'Anek Kannada', serif, sans-serif";
+      case "te":
+        return "'Noto Sans Telugu', serif, sans-serif";
+      case "ta":
+        return "'Noto Sans Tamil', serif, sans-serif";
+      case "hi":
+        return "'Noto Sans Devanagari', serif, sans-serif";
+      case "en":
+      default:
+        return "'Outfit', 'Cinzel', system-ui, sans-serif";
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#FFFDF7] text-amber-950 font-sans pb-16 print:bg-white print:text-black print:pb-0">
-      {/* 🖨️ Direct Print Stylesheet for exact 100% A4 portrait print layout with zero cutoff */}
+    <div
+      className="min-h-screen bg-[#FFFDF7] text-amber-950 pb-16 print:bg-white print:text-black print:pb-0"
+      style={{
+        fontFamily: getLanguageFontFamily(selectedLang),
+        letterSpacing: "normal"
+      }}
+    >
+      {/* 🖨️ Direct Print Stylesheet & Indic Typography Guard */}
       <style>{`
+        /* Protect all Indic scripts from character/word overlap caused by tracking */
+        h1, h2, h3, h4, p, span, div, button {
+          letter-spacing: normal !important;
+        }
+
         @media print {
           body {
             background: white !important;
@@ -797,7 +824,7 @@ Keep the tone divine, authoritative, and Vedic.`;
         {!isLoading && !doshaReport && (
           <div className="rounded-3xl border-2 border-dashed border-amber-400 bg-[#FFFDF9] p-8 sm:p-12 text-center max-w-xl mx-auto space-y-4 shadow-md">
             <div className="text-5xl animate-bounce">🛡️</div>
-            <h2 className="text-xl font-bold text-amber-950 font-serif">
+            <h2 className="text-xl font-bold text-amber-950 leading-snug">
               {selectedLang === "kn" ? "ಯಾವುದೇ ಜಾತಕ ಸಿದ್ಧವಾಗಿಲ್ಲ" : "No Active Kundli Found"}
             </h2>
             <p className="text-xs text-amber-900/80 leading-relaxed font-medium">
@@ -829,16 +856,16 @@ Keep the tone divine, authoritative, and Vedic.`;
                     <span>🔱</span>
                     <span>॥ ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥</span>
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-amber-950 mt-2 tracking-tight font-serif print:text-black">
+                  <h1 className="text-2xl sm:text-3xl font-black text-amber-950 mt-2 leading-snug print:text-black">
                     {t("pageTitle")}
                   </h1>
-                  <p className="text-xs text-amber-900/80 mt-1 font-medium print:text-black">
+                  <p className="text-xs text-amber-900/80 mt-1 font-medium leading-relaxed print:text-black">
                     {t("pageSubtitle")}
                   </p>
                 </div>
 
                 <div className="text-center sm:text-right shrink-0 bg-[#FFFDF9] p-4 rounded-2xl border-2 border-amber-400/50 shadow-sm print:bg-white print:border-black">
-                  <div className="text-[10px] font-bold text-amber-800 uppercase tracking-widest print:text-black">
+                  <div className="text-[10px] font-bold text-amber-800 uppercase print:text-black">
                     {t("nativeName")}
                   </div>
                   <div className="text-lg font-black text-amber-950 capitalize mt-0.5 print:text-black">
@@ -852,25 +879,25 @@ Keep the tone divine, authoritative, and Vedic.`;
 
               {/* Natal Coordinates & Summary Metrics */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-2">
-                <div className="rounded-xl bg-[#FFFDF9] p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black">
+                <div className="rounded-xl bg-[#FFFDF9] p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black min-w-0">
                   <div className="text-[10px] uppercase font-bold text-amber-800 print:text-black">
                     {t("lagnaLabel")}
                   </div>
-                  <div className="text-sm font-black text-amber-950 mt-0.5 print:text-black">
+                  <div className="text-sm font-black text-amber-950 mt-0.5 print:text-black truncate">
                     {doshaReport.devoteeInfo.lagnaRashiRecord?.[selectedLang] || doshaReport.devoteeInfo.lagnaRashi}
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-[#FFFDF9] p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black">
+                <div className="rounded-xl bg-[#FFFDF9] p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black min-w-0">
                   <div className="text-[10px] uppercase font-bold text-amber-800 print:text-black">
                     {t("moonLabel")}
                   </div>
-                  <div className="text-sm font-black text-amber-950 mt-0.5 print:text-black">
+                  <div className="text-sm font-black text-amber-950 mt-0.5 print:text-black break-words leading-snug">
                     {doshaReport.devoteeInfo.moonRashiRecord?.[selectedLang] || doshaReport.devoteeInfo.moonRashi} • {doshaReport.devoteeInfo.nakshatraRecord?.[selectedLang] || doshaReport.devoteeInfo.nakshatra} ({doshaReport.devoteeInfo.pada})
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-[#FFFDF9] p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black">
+                <div className="rounded-xl bg-[#FFFDF9] p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black min-w-0">
                   <div className="text-[10px] uppercase font-bold text-amber-800 print:text-black">
                     {t("activeCountLabel")}
                   </div>
@@ -879,11 +906,11 @@ Keep the tone divine, authoritative, and Vedic.`;
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-[#FFFDF9] p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black">
+                <div className="rounded-xl bg-[#FFFDF9] p-3 border-2 border-amber-400/40 text-center shadow-sm print:border-black min-w-0">
                   <div className="text-[10px] uppercase font-bold text-amber-800 print:text-black">
                     {t("currentDashaLabel")}
                   </div>
-                  <div className="text-sm font-black text-amber-900 mt-0.5 print:text-black">
+                  <div className="text-sm font-black text-amber-900 mt-0.5 print:text-black truncate">
                     {doshaReport.devoteeInfo.currentDashaRecord?.[selectedLang] || doshaReport.devoteeInfo.currentDashaStr}
                   </div>
                 </div>
@@ -898,7 +925,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                     ⭐
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-black text-amber-950 font-serif print:text-black">
+                    <h3 className="text-base sm:text-lg font-black text-amber-950 leading-snug print:text-black">
                       {t("ageStrategyCardTitle")}
                     </h3>
                     <p className="text-xs text-amber-900 font-bold mt-0.5">
@@ -1011,7 +1038,7 @@ Keep the tone divine, authoritative, and Vedic.`;
             {(mainTab === "all_sections" || mainTab === "doshas") && (
               <section className="space-y-6 pt-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-500/20 pb-3">
-                  <h2 className="text-base sm:text-lg font-black tracking-wide text-amber-950 font-serif flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-amber-950 flex items-center gap-2">
                     <span>🛡️</span>
                     <span>{t("activeDoshasHeading")}</span>
                     <span className="text-xs bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 font-black shadow-sm">
@@ -1051,7 +1078,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                 {activeDoshas.length === 0 && (
                   <div className="rounded-3xl border-2 border-amber-400/80 bg-gradient-to-br from-[#FFFDF9] via-[#FEFBF2] to-[#FFF9EB] p-8 sm:p-12 text-center max-w-3xl mx-auto space-y-5 shadow-md">
                     <div className="text-6xl animate-bounce">🕊️</div>
-                    <h3 className="text-2xl sm:text-3xl font-black text-amber-950 tracking-tight font-serif">
+                    <h3 className="text-2xl sm:text-3xl font-black text-amber-950 leading-snug">
                       {t("pureKundliTitle")}
                     </h3>
                     <p className="text-sm sm:text-base text-amber-900 leading-relaxed font-medium">
@@ -1075,11 +1102,11 @@ Keep the tone divine, authoritative, and Vedic.`;
                           🪔
                         </div>
                         <div>
-                          <div className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase text-amber-900 tracking-wider">
+                          <div className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase text-amber-900">
                             <span>👑</span>
                             <span>{t("pitruBannerHeader")}</span>
                           </div>
-                          <h3 className="text-lg sm:text-xl font-black text-amber-950 font-serif mt-0.5 print:text-black">
+                          <h3 className="text-lg sm:text-xl font-black text-amber-950 mt-0.5 leading-snug print:text-black">
                             {getLangText(pitruDosha.name)} - {t("pitruBannerBadge")}
                           </h3>
                         </div>
@@ -1098,11 +1125,11 @@ Keep the tone divine, authoritative, and Vedic.`;
                     <div className="rounded-2xl bg-[#FFFDF9] border-2 border-amber-400 p-4 sm:p-5 shadow-sm space-y-3 print:bg-white print:border-black">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="space-y-1">
-                          <div className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                          <div className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5">
                             <span>🔱</span>
                             <span>{t("pitruGokarnaAction")}</span>
                           </div>
-                          <p className="text-xs text-amber-900/90 font-medium">
+                          <p className="text-xs text-amber-900/90 font-medium leading-relaxed">
                             {getLangText(pitruDosha.immediateActionRequired)}
                           </p>
                         </div>
@@ -1162,7 +1189,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                             {isPitru ? "🪔" : "⚡"}
                           </div>
                           <div>
-                            <h3 className="text-lg sm:text-xl font-black text-amber-950 font-serif print:text-black flex items-center gap-2 flex-wrap">
+                            <h3 className="text-lg sm:text-xl font-black text-amber-950 leading-snug print:text-black flex items-center gap-2 flex-wrap">
                               <span>{getLangText(dosha.name)}</span>
                               {isPitru && (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 border border-amber-400 text-[11px] font-black uppercase">
@@ -1204,7 +1231,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                       {/* 🎯 MANDATORY ACTIVE HIGHLIGHT: IMMEDIATE ACTION REQUIRED */}
                       {dosha.immediateActionRequired && (
                         <div className="rounded-2xl border-2 border-amber-500 bg-[#FEF9E7] p-4 sm:p-5 shadow-sm space-y-2 ring-1 ring-amber-400/40 print:border-black print:bg-white print:text-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 tracking-wider print:text-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                             <span className="text-lg">🎯</span>
                             <span>{t("immediateActionTitle")}</span>
                           </div>
@@ -1216,7 +1243,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                       {/* ⚠️ SECTION: DEDICATED CURRENT LIFE PROBLEMS PARAGRAPH */}
                       <div className="rounded-2xl bg-[#FFFDF9] border border-amber-300 p-4 space-y-2 print:bg-white print:border-black">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                           <span>🚨</span>
                           <span>{t("currentProblemsTitle")}</span>
                         </div>
@@ -1229,7 +1256,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                       {/* 🪐 SECTION: RUNNING DASHA-BHUKTI RESONANCE */}
                       <div className="rounded-2xl bg-[#FFFDF9] border border-amber-300 p-4 space-y-2 print:bg-white print:border-black">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                           <span>🪐</span>
                           <span>{t("dashaResonanceTitle")}</span>
                         </div>
@@ -1240,7 +1267,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                       {/* 🔍 SECTION: Technical "WHY" Breakdown */}
                       <div className="rounded-2xl bg-[#FFFDF9] p-4 border border-amber-300 space-y-2 print:bg-white print:border-black">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                           <span>🔍</span>
                           <span>{t("technicalWhyTitle")}</span>
                         </div>
@@ -1282,7 +1309,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                       {/* ⚡ SECTION: Real-World Life Manifestation (2 Paragraphs) */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                           <span>⚡</span>
                           <span>{t("lifeImpactTitle")}</span>
                         </div>
@@ -1299,7 +1326,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                       {/* 🔱 SECTION: Prescribed Vedic Shanti & Parihara */}
                       <div className="rounded-2xl bg-gradient-to-br from-[#FFFDF9] via-[#FEFBF2] to-[#FFF9EB] border-2 border-amber-400/70 p-4 space-y-3 print:border-black print:bg-white shadow-sm">
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-950 print:text-black">
+                        <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-950 print:text-black">
                           <span>🔱</span>
                           <span>{t("shantiRemediesTitle")}</span>
                         </div>
@@ -1345,14 +1372,14 @@ Keep the tone divine, authoritative, and Vedic.`;
               <section className="space-y-6 pt-6 border-t-2 border-amber-500/20">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-amber-500/20 pb-3">
                   <div>
-                    <h2 className="text-base sm:text-lg font-black tracking-wide text-amber-950 font-serif flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-black text-amber-950 flex items-center gap-2">
                       <span>⚡</span>
                       <span>{t("gandantaraHeading")}</span>
                       <span className="text-xs bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 font-bold shadow-sm">
                         {detectedGandantaras.length}
                       </span>
                     </h2>
-                    <p className="text-xs text-amber-900/80 mt-1 font-medium">
+                    <p className="text-xs text-amber-900/80 mt-1 font-medium leading-relaxed">
                       {t("gandantaraSubheading")}
                     </p>
                   </div>
@@ -1362,7 +1389,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                 {detectedGandantaras.length === 0 && (
                   <div className="rounded-3xl border-2 border-amber-400/80 bg-gradient-to-br from-[#FFFDF9] via-[#FEFBF2] to-[#FFF9EB] p-8 text-center max-w-2xl mx-auto space-y-3 shadow-md">
                     <div className="text-5xl">🛡️</div>
-                    <h3 className="text-xl font-black text-amber-950 font-serif">
+                    <h3 className="text-xl font-black text-amber-950 leading-snug">
                       {t("noGandantaraTitle")}
                     </h3>
                     <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
@@ -1389,7 +1416,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                               {gandantara.icon}
                             </div>
                             <div>
-                              <h3 className="text-lg sm:text-xl font-black text-amber-950 font-serif print:text-black">
+                              <h3 className="text-lg sm:text-xl font-black text-amber-950 leading-snug print:text-black">
                                 {getLangText(gandantara.name)}
                               </h3>
                               <p className="text-[11px] text-amber-900/70 font-medium print:text-black">
@@ -1414,7 +1441,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* ⚠️ AGE WINDOW CALLOUT BOX */}
                         <div className="rounded-2xl p-4 border-2 border-amber-400/70 bg-[#FEF9E7] text-amber-950 space-y-1.5 print:border-black print:bg-white print:text-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900">
                             <span>{isUnderDanger ? "🚨" : "🛡️"}</span>
                             <span>{getLangText(gandantara.name)} - {isUnderDanger ? "ವಿಶೇಷ ಎಚ್ಚರಿಕೆ ಕಾಲ" : "ಸುರಕ್ಷಿತ ಸ್ಥಿತಿ"}</span>
                           </div>
@@ -1425,7 +1452,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* 🔍 ASTRONOMICAL REASON & HOUSES */}
                         <div className="rounded-2xl bg-[#FFFDF9] p-4 border border-amber-300 space-y-2 print:bg-white print:border-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                             <span>🔍</span>
                             <span>{t("technicalWhyTitle")}</span>
                           </div>
@@ -1451,7 +1478,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* 🪐 RUNNING DASHA RESONANCE */}
                         <div className="rounded-2xl bg-[#FFFDF9] border border-amber-300 p-4 space-y-2 print:bg-white print:border-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                             <span>🪐</span>
                             <span>{t("dashaResonanceTitle")}</span>
                           </div>
@@ -1462,7 +1489,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* 🛑 PRECAUTIONS & BEHAVIORAL PROHIBITIONS */}
                         <div className="rounded-2xl bg-[#FFFDF9] border border-amber-300 p-4 space-y-2.5 print:bg-white print:border-black">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                             <span>🛑</span>
                             <span>{t("cautionProhibitionsLabel")}</span>
                           </div>
@@ -1478,7 +1505,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* 🔱 PROTECTIVE PARIHARA & MANTRAS */}
                         <div className="rounded-2xl bg-[#FFFDF9] border-2 border-amber-400/60 p-4 space-y-2.5 print:bg-white print:border-black shadow-sm">
-                          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900 print:text-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
                             <span>🔱</span>
                             <span>{t("protectiveKavachaLabel")}</span>
                           </div>
@@ -1508,14 +1535,14 @@ Keep the tone divine, authoritative, and Vedic.`;
               <section className="space-y-6 pt-6 border-t-2 border-amber-500/20">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-amber-500/20 pb-3">
                   <div>
-                    <h2 className="text-base sm:text-lg font-black tracking-wide text-amber-950 font-serif flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-black text-amber-950 flex items-center gap-2">
                       <span>🧠</span>
                       <span>{t("fearsHeading")}</span>
                       <span className="text-xs bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 font-bold shadow-sm">
                         {detectedFears.length}
                       </span>
                     </h2>
-                    <p className="text-xs text-amber-900/80 mt-1 font-medium">
+                    <p className="text-xs text-amber-900/80 mt-1 font-medium leading-relaxed">
                       {t("fearsSubheading")}
                     </p>
                   </div>
@@ -1525,7 +1552,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                 {detectedFears.length === 0 && (
                   <div className="rounded-3xl border-2 border-amber-400/80 bg-gradient-to-br from-[#FFFDF9] via-[#FEFBF2] to-[#FFF9EB] p-8 text-center max-w-2xl mx-auto space-y-3 shadow-md">
                     <div className="text-5xl">🦁</div>
-                    <h3 className="text-xl font-black text-amber-950 font-serif">
+                    <h3 className="text-xl font-black text-amber-950 leading-snug">
                       {t("noFearsTitle")}
                     </h3>
                     <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-medium">
@@ -1546,7 +1573,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                         <div className="flex items-center justify-between gap-2 border-b-2 border-amber-200/60 pb-3 print:border-black">
                           <div className="flex items-center gap-2.5">
                             <span className="text-2xl">{fear.icon}</span>
-                            <h3 className="text-base font-black text-amber-950 font-serif print:text-black">
+                            <h3 className="text-base font-black text-amber-950 leading-snug print:text-black">
                               {getLangText(fear.name)}
                             </h3>
                           </div>
@@ -1557,7 +1584,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* Planetary Trigger */}
                         <div className="space-y-1">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900 print:text-black">
+                          <div className="text-[10px] font-bold uppercase text-amber-900 print:text-black">
                             {selectedLang === "kn" ? "ಗ್ರಹ ಪ್ರೇರಿತ ಕಾರಣ:" : "Astrological Root:"}
                           </div>
                           <p className="text-xs text-amber-950 font-medium leading-relaxed print:text-black">
@@ -1567,7 +1594,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* Psychological & Somatic Symptom */}
                         <div className="rounded-xl bg-[#FEF9E7] p-3 border border-amber-300/80 space-y-1 print:bg-white print:border-black">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900 print:text-black">
+                          <div className="text-[10px] font-bold uppercase text-amber-900 print:text-black">
                             {t("symptomLabel")}
                           </div>
                           <p className="text-xs text-amber-950 font-medium leading-relaxed print:text-black">
@@ -1577,7 +1604,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* Real-Life Manifestation */}
                         <div className="space-y-1">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900/70 print:text-black">
+                          <div className="text-[10px] font-bold uppercase text-amber-900/70 print:text-black">
                             {t("realLifeSymptomLabel")}
                           </div>
                           <p className="text-xs text-amber-950 font-medium leading-relaxed print:text-black">
@@ -1587,7 +1614,7 @@ Keep the tone divine, authoritative, and Vedic.`;
 
                         {/* Mind-Strengthening Remedy */}
                         <div className="rounded-xl bg-[#FFFDF9] p-3 border border-amber-300 space-y-1 print:bg-white print:border-black">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900 print:text-black">
+                          <div className="text-[10px] font-bold uppercase text-amber-900 print:text-black">
                             {t("mindStrengtheningLabel")}
                           </div>
                           <p className="text-xs text-amber-950 font-medium leading-relaxed print:text-black">
