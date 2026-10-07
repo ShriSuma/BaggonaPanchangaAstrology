@@ -287,7 +287,7 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
   const getFontFamily = (langCode: string): string => {
     switch (langCode) {
       case "kn":
-        return `'Tiro Kannada', 'Noto Serif Kannada', 'Noto Sans Kannada', serif, sans-serif`;
+        return `'Noto Serif Kannada', 'Noto Sans Kannada', 'Anek Kannada', serif, sans-serif`;
       case "te":
         return `'Noto Sans Telugu', serif, sans-serif`;
       case "ta":
@@ -316,6 +316,7 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
         color: "#0f172a",
         fontFamily: activeFontFamily,
         letterSpacing: "normal",
+        lineHeight: 1.4,
         position: "relative",
         overflow: "hidden",
         display: "block"
@@ -342,13 +343,26 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
       >
         {/* Top Header & Temple Emblem */}
         <div style={{ textAlign: "center", borderBottom: "2px solid #b45309", paddingBottom: "8px" }}>
-          <div style={{ fontSize: "17px", color: "#b45309", letterSpacing: "1.5px", fontWeight: "bold" }}>
-            🕉️ {t.templeBanner}
+          <div
+            style={{
+              fontSize: "15px",
+              color: "#b45309",
+              letterSpacing: "normal",
+              fontWeight: 800,
+              lineHeight: 1.4,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px"
+            }}
+          >
+            <span style={{ fontSize: "16px", flexShrink: 0 }}>🕉️</span>
+            <span>{t.templeBanner}</span>
           </div>
-          <div style={{ fontSize: "18px", fontWeight: 800, color: "#78350f", marginTop: "4px" }}>
+          <div style={{ fontSize: "17.5px", fontWeight: 800, color: "#78350f", marginTop: "4px", lineHeight: 1.35, letterSpacing: "normal" }}>
             {t.cardTitle}
           </div>
-          <div style={{ fontSize: "11.5px", color: "#64748b", marginTop: "3px", maxWidth: "700px", margin: "3px auto 0", lineHeight: 1.35 }}>
+          <div style={{ fontSize: "11px", color: "#64748b", marginTop: "3px", maxWidth: "720px", margin: "3px auto 0", lineHeight: 1.4, letterSpacing: "normal" }}>
             {t.cardSubtitle}
           </div>
         </div>
@@ -461,7 +475,7 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
                 </div>
               )}
             </div>
-            <div style={{ marginTop: "6px", fontSize: "10px", fontWeight: 700, color: "#78350f", letterSpacing: "0.5px" }}>
+            <div style={{ marginTop: "6px", fontSize: "10px", fontWeight: 700, color: "#78350f", letterSpacing: "normal" }}>
               ✦ 100% SCANNABLE GOOGLE CALENDAR QR ✦
             </div>
           </div>
@@ -524,7 +538,7 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
           }}
         >
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "10.5px", fontWeight: 800, color: "#b45309", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "2px" }}>
+            <div style={{ fontSize: "10.5px", fontWeight: 800, color: "#b45309", letterSpacing: "normal", marginBottom: "2px", lineHeight: 1.35 }}>
               {t.priestHeader}
             </div>
             <div style={{ fontSize: "17px", fontWeight: 900, color: "#78350f" }}>
@@ -551,7 +565,7 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
             >
               <span style={{ fontSize: "14px" }}>📞</span>
               <span style={{ fontSize: "11.5px", fontWeight: 700, color: "#78350f" }}>{t.priestPhoneLabel}</span>
-              <span style={{ fontSize: "14px", fontWeight: 900, color: "#047857", letterSpacing: "0.5px" }}>
+              <span style={{ fontSize: "14px", fontWeight: 900, color: "#047857", letterSpacing: "normal" }}>
                 +91 {priestPhone}
               </span>
             </div>
