@@ -44,6 +44,8 @@ export async function generatePDFFromElement(
   clone.style.display = "block";
   clone.style.pointerEvents = "none";
   clone.style.width = "900px";
+  clone.style.height = "auto";
+  clone.style.overflow = "visible";
 
   // ── FIX: Force vertical stacking to prevent "row formation" PDF layout ──
   // Walk every element in the clone and ensure flex/grid containers
@@ -74,6 +76,19 @@ export async function generatePDFFromElement(
     }
     await new Promise((resolve) => setTimeout(resolve, 350));
 
+    // Ensure all images in clone (like QR code data URLs) are fully loaded and decoded
+    const imgs = Array.from(wrapper.querySelectorAll("img"));
+    await Promise.all(
+      imgs.map((img) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          setTimeout(resolve, 800);
+        });
+      })
+    );
+
     const sectionDivs = Array.from(wrapper.querySelectorAll(".pdf-section")) as HTMLElement[];
     const pageDivs = Array.from(wrapper.querySelectorAll(".pdf-page")) as HTMLElement[];
 
@@ -82,7 +97,7 @@ export async function generatePDFFromElement(
       useCORS: true,
       logging: false,
       backgroundColor: "#FFFDF7",
-      allowTaint: false,
+      allowTaint: true,
       imageTimeout: 10000,
       scrollX: 0,
       scrollY: 0,

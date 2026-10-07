@@ -2264,7 +2264,7 @@ export function generateKundliRemedyReport(
   const isConfirmedMarriedRemedy = Boolean(
     input.maritalStatus === "married" ||
     (input.name && /ದಂಪತಿ|ಮತ್ತು|ಸಹಿತ|couple|\band\b/i.test(input.name)) ||
-    currentDiag.marriageDestiny?.verdict === "already_married"
+    (!isFemaleRemedy && input.maritalStatus !== "unmarried" && currentDiag.marriageDestiny?.verdict === "already_married")
   );
   const isDestinyDelayedRemedy = currentDiag.marriageDestiny?.verdict === "delayed_marriage";
 

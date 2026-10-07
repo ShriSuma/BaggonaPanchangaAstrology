@@ -47,7 +47,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "ರಾಶಿ:",
     mahadasha: "ಮಹಾದಶೆ",
     bhukti: "ಭುಕ್ತಿ",
-    shubhamastu: "ಶುಭಮಸ್ತು",
+    shubhamastu: "॥ ಶುಭಮಸ್ತು ॥",
     footerAuthor: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು",
   },
   en: {
@@ -65,7 +65,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "Rashi:",
     mahadasha: "Mahadasha",
     bhukti: "Bhukti",
-    shubhamastu: "Shubhamastu",
+    shubhamastu: "|| Shubhamastu ||",
     footerAuthor: "Baggona Panchanga Author",
   },
   te: {
@@ -83,7 +83,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "రాశి:",
     mahadasha: "మహాదశ",
     bhukti: "భుక్తి",
-    shubhamastu: "శుభమస్తు",
+    shubhamastu: "॥ శుభమస్తు ॥",
     footerAuthor: "బగ్గోణ పంచాంగ కర్తలు",
   },
   ta: {
@@ -101,7 +101,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "ராசி:",
     mahadasha: "மகா தசை",
     bhukti: "புக்தி",
-    shubhamastu: "சுபமஸ்து",
+    shubhamastu: "॥ சுபமஸ்து ॥",
     footerAuthor: "பக்கோன பஞ்சாங்கம் கர்த்தா",
   },
   hi: {
@@ -119,7 +119,7 @@ const DASHA_PDF_I18N: Record<LangCode, {
     rashiLabel: "राशि:",
     mahadasha: "महादशा",
     bhukti: "भुक्ति",
-    shubhamastu: "शुभमस्तु",
+    shubhamastu: "॥ शुभमस्तु ॥",
     footerAuthor: "बग्गोण पंचांग कर्ता",
   },
 };
@@ -194,147 +194,203 @@ export const DashaPdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, ma
   // Filter timeline: keep only Mahadashas that end after current age
   const futureTimeline = timeline.filter(maha => maha.endAge > currentAgeInYears);
 
+  const getFontFamily = (langCode: LangCode): string => {
+    switch (langCode) {
+      case "kn":
+        return `'Tiro Kannada', 'Noto Serif Kannada', 'Noto Sans Kannada', serif, sans-serif`;
+      case "te":
+        return `'Noto Sans Telugu', serif, sans-serif`;
+      case "ta":
+        return `'Noto Sans Tamil', serif, sans-serif`;
+      case "hi":
+        return `'Noto Sans Devanagari', serif, sans-serif`;
+      case "en":
+      default:
+        return `'Outfit', 'Cinzel', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    }
+  };
+
+  // Split futureTimeline into pages of up to 4 Mahadashas each
+  const DASHAS_PER_PAGE = 4;
+  const dashaPages: typeof futureTimeline[] = [];
+  for (let i = 0; i < futureTimeline.length; i += DASHAS_PER_PAGE) {
+    dashaPages.push(futureTimeline.slice(i, i + DASHAS_PER_PAGE));
+  }
+  if (dashaPages.length === 0) {
+    dashaPages.push([]);
+  }
+
   return (
-    <div 
-      ref={ref} 
-      style={{
-        width: "900px",
-        backgroundColor: "#ffffff",
-        padding: "20px",
-        boxSizing: "border-box",
-        fontFamily: "'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', sans-serif",
-        color: "#000000",
-      }}
-    >
-      {/* Outer Border (Ornate Style like Jataka) */}
-      <div
-        style={{
-          border: "6px double #000000",
-          outline: "1px solid #000000",
-          outlineOffset: "-4px",
-          width: "100%",
-          padding: "25px",
-          boxSizing: "border-box",
-        }}
-      >
-        {/* Header Section with Shlokas */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <div style={{ flex: 1, fontSize: "14px", fontWeight: "bold", textAlign: "left", lineHeight: "1.4" }}>
-            {labels.shlokaLeft1}<br/>
-            {labels.shlokaLeft2}<br/>
-            {labels.shlokaLeft3}
-          </div>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ width: "45px", height: "45px", borderRadius: "50%", border: "2px solid #000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "bold", paddingBottom: "4px" }}>
-              <span>{labels.om}</span>
-            </div>
-            <div style={{ fontSize: "18px", fontWeight: "bold", marginTop: "8px" }}>{labels.title}</div>
-          </div>
-          <div style={{ flex: 1, fontSize: "14px", fontWeight: "bold", textAlign: "right", lineHeight: "1.4" }}>
-            {labels.shlokaRight1}<br/>
-            {labels.shlokaRight2}<br/>
-            {labels.shlokaRight3}
-          </div>
-        </div>
+    <div ref={ref} style={{ display: "flex", flexDirection: "column" }}>
+      {dashaPages.map((pageDashas, pIdx) => {
+        const isLastPage = pIdx === dashaPages.length - 1;
+        const isFirstPage = pIdx === 0;
 
-        {/* Basic Info Block */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          borderTop: "2px solid #000",
-          borderBottom: "2px solid #000",
-          padding: "10px 15px",
-          marginBottom: "25px",
-          fontSize: "15px",
-          fontWeight: "bold"
-        }}>
-          <div>{labels.nameLabel} {session.input.name}</div>
-          <div>{labels.dobLabel} {formatDateFromAge(birthDateStr, 0, validLang)}</div>
-          <div>{labels.lagnaLabel} {lagnaName}</div>
-          <div>{labels.rashiLabel} {moonSignName}</div>
-        </div>
-
-        {/* Tabular Content */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {futureTimeline.map((maha) => {
-            const bhuktis = generateBhuktisInMahadasha(maha.planet, maha.durationYears);
-            
-            let currentAge = maha.startAge;
-            const futureBhuktis = bhuktis.map(bhukti => {
-              const bStart = currentAge;
-              const bEnd = currentAge + bhukti.years;
-              currentAge = bEnd;
-              return { ...bhukti, bStart, bEnd };
-            }).filter(b => b.bEnd > currentAgeInYears);
-
-            if (futureBhuktis.length === 0) return null;
-
-            return (
-              <div 
-                key={`${maha.planet}-${maha.startAge}`}
-                style={{ 
-                  breakInside: 'avoid',
-                  border: "1px solid #000",
-                  padding: "15px",
-                }}
-              >
-                {/* Mahadasha Row */}
-                <div style={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  borderBottom: "2px dashed #000",
-                  paddingBottom: "10px",
-                  marginBottom: "10px"
-                }}>
-                  <div style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {getPlanetName(maha.planet)} {labels.mahadasha}
+        return (
+          <div 
+            key={`dasha-page-${pIdx}`} 
+            className="pdf-page"
+            style={{
+              width: "900px",
+              height: "1273px",
+              minHeight: "1273px",
+              maxHeight: "1273px",
+              backgroundColor: "#ffffff",
+              padding: "20px",
+              boxSizing: "border-box",
+              fontFamily: getFontFamily(validLang),
+              letterSpacing: "normal",
+              color: "#000000",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden"
+            }}
+          >
+            {/* Outer Border (Ornate Style like Jataka) */}
+            <div
+              style={{
+                border: "6px double #000000",
+                outline: "1px solid #000000",
+                outlineOffset: "-4px",
+                width: "100%",
+                height: "100%",
+                padding: "25px",
+                boxSizing: "border-box",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between"
+              }}
+            >
+              {/* Header Section with Shlokas */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isFirstPage ? "15px" : "10px" }}>
+                <div style={{ flex: 1, fontSize: "14px", fontWeight: "bold", textAlign: "left", lineHeight: "1.4" }}>
+                  {labels.shlokaLeft1}<br/>
+                  {labels.shlokaLeft2}<br/>
+                  {labels.shlokaLeft3}
+                </div>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: "45px", height: "45px", borderRadius: "50%", border: "2px solid #000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "bold", paddingBottom: "4px" }}>
+                    <span>{labels.om}</span>
                   </div>
-                  <div style={{ fontSize: "16px", fontWeight: "bold" }}>
-                    {formatDateFromAge(birthDateStr, maha.startAge, validLang)} — {formatDateFromAge(birthDateStr, maha.endAge, validLang)}
+                  <div style={{ fontSize: "18px", fontWeight: "bold", marginTop: "6px", textAlign: "center" }}>
+                    {labels.title} {!isFirstPage ? `(${pIdx + 1})` : ""}
                   </div>
                 </div>
-
-                {/* Bhukti List */}
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  columnGap: "30px",
-                  rowGap: "8px"
-                }}>
-                  {futureBhuktis.map((bhukti, i) => {
-                    const { bStart, bEnd } = bhukti;
-
-                    return (
-                      <div 
-                        key={`${bhukti.planet}-${i}`} 
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          borderBottom: "1px solid #eee",
-                          paddingBottom: "4px"
-                        }}
-                      >
-                        <div style={{ fontWeight: "bold", fontSize: "15px" }}>
-                          {getPlanetName(bhukti.planet)} {labels.bhukti}
-                        </div>
-                        <div style={{ fontSize: "14px", fontFamily: "monospace", fontWeight: "bold" }}>
-                          {formatDateFromAge(birthDateStr, Math.max(bStart, currentAgeInYears), validLang)} - {formatDateFromAge(birthDateStr, bEnd, validLang)}
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div style={{ flex: 1, fontSize: "14px", fontWeight: "bold", textAlign: "right", lineHeight: "1.4" }}>
+                  {labels.shlokaRight1}<br/>
+                  {labels.shlokaRight2}<br/>
+                  {labels.shlokaRight3}
                 </div>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Footer */}
-        <div style={{ textAlign: "center", fontSize: "16px", marginTop: "30px", borderTop: "2px solid #000", paddingTop: "10px" }}>
-          <div style={{ fontWeight: "bold" }}>{labels.shubhamastu}</div>
-          <div style={{ fontSize: "14px", marginTop: "5px" }}>{labels.footerAuthor}</div>
-        </div>
-      </div>
+              {/* Basic Info Block (Page 1 only) */}
+              {isFirstPage && (
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  borderTop: "2px solid #000",
+                  borderBottom: "2px solid #000",
+                  padding: "8px 15px",
+                  marginBottom: "15px",
+                  fontSize: "15px",
+                  fontWeight: "bold"
+                }}>
+                  <div>{labels.nameLabel} {session.input.name}</div>
+                  <div>{labels.dobLabel} {formatDateFromAge(birthDateStr, 0, validLang)}</div>
+                  <div>{labels.lagnaLabel} {lagnaName}</div>
+                  <div>{labels.rashiLabel} {moonSignName}</div>
+                </div>
+              )}
+
+              {/* Tabular Content */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
+                {pageDashas.map((maha) => {
+                  const bhuktis = generateBhuktisInMahadasha(maha.planet, maha.durationYears);
+                  
+                  let currentAge = maha.startAge;
+                  const futureBhuktis = bhuktis.map(bhukti => {
+                    const bStart = currentAge;
+                    const bEnd = currentAge + bhukti.years;
+                    currentAge = bEnd;
+                    return { ...bhukti, bStart, bEnd };
+                  }).filter(b => b.bEnd > currentAgeInYears);
+
+                  if (futureBhuktis.length === 0) return null;
+
+                  return (
+                    <div 
+                      key={`${maha.planet}-${maha.startAge}`}
+                      style={{ 
+                        border: "1px solid #000",
+                        padding: "10px 14px",
+                      }}
+                    >
+                      {/* Mahadasha Row */}
+                      <div style={{ 
+                        display: "flex", 
+                        justifyContent: "space-between", 
+                        borderBottom: "2px dashed #000",
+                        paddingBottom: "6px",
+                        marginBottom: "8px"
+                      }}>
+                        <div style={{ fontSize: "17px", fontWeight: "bold" }}>
+                          {getPlanetName(maha.planet)} {labels.mahadasha}
+                        </div>
+                        <div style={{ fontSize: "15px", fontWeight: "bold" }}>
+                          {formatDateFromAge(birthDateStr, maha.startAge, validLang)} — {formatDateFromAge(birthDateStr, maha.endAge, validLang)}
+                        </div>
+                      </div>
+
+                      {/* Bhukti List */}
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        columnGap: "24px",
+                        rowGap: "5px"
+                      }}>
+                        {futureBhuktis.map((bhukti, i) => {
+                          const { bStart, bEnd } = bhukti;
+
+                          return (
+                            <div 
+                              key={`${bhukti.planet}-${i}`} 
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                borderBottom: "1px solid #eee",
+                                paddingBottom: "2px"
+                              }}
+                            >
+                              <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+                                {getPlanetName(bhukti.planet)} {labels.bhukti}
+                              </div>
+                              <div style={{ fontSize: "13px", fontFamily: "monospace", fontWeight: "bold" }}>
+                                {formatDateFromAge(birthDateStr, Math.max(bStart, currentAgeInYears), validLang)} - {formatDateFromAge(birthDateStr, bEnd, validLang)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div style={{ textAlign: "center", fontSize: "15px", marginTop: "15px", borderTop: "2px solid #000", paddingTop: "8px" }}>
+                <div style={{ fontWeight: "bold", fontSize: "16px" }}>{labels.shubhamastu}</div>
+                {isLastPage ? (
+                  <div style={{ fontSize: "14px", marginTop: "4px", fontWeight: "bold" }}>{labels.footerAuthor}</div>
+                ) : (
+                  <div style={{ fontSize: "13px", marginTop: "4px", fontStyle: "italic" }}>
+                    {validLang === "kn" ? "(ಮುಂದುವರಿದಿದೆ...)" : validLang === "hi" ? "(क्रमशः...)" : validLang === "te" ? "(కొనసాగుతుంది...)" : validLang === "ta" ? "(தொடர்கிறது...)" : "(Continued...)"}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 });

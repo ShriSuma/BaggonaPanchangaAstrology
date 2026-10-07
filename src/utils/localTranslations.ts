@@ -148,6 +148,8 @@ export const localTranslations: Record<string, Record<string, string>> = {
     "Ravi Nakshatra": "ರವಿ ನಕ್ಷತ್ರ",
     "Chandra Nakshatra": "ಚಂದ್ರ ನಕ್ಷತ್ರ",
     "Gotra": "ಗೋತ್ರ",
+    "Rashi": "ರಾಶಿ",
+    "Pada": "ಪಾದ",
     "Rashi/Pada": "ರಾಶಿ/ಪಾದ",
     "Shaka Varsha": "ಗತವರ್ಷ",
     "Samvatsara": "ಸಂವತ್ಸರ",

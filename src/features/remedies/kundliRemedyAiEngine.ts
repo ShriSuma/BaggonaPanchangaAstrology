@@ -128,8 +128,8 @@ export async function generateKundliRemedyWithAi(
     ""
   ).trim();
 
-  // If no API key is present at all, immediately set fallback
-  if (!activeKey) {
+  // If no valid API key is present at all, immediately set fallback
+  if (!activeKey || activeKey.startsWith("AQ.")) {
     diagnosis.isAiGenerated = false;
     diagnosis.aiFallbackMessage = REMEDY_AI_FALLBACK_MESSAGES;
     return diagnosis;
@@ -141,7 +141,7 @@ export async function generateKundliRemedyWithAi(
   let aiSuccess = false;
   let narrationResult = "";
   const isTest = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-  const perAttemptTimeout = timeoutMs ?? (isTest ? 4000 : 22000);
+  const perAttemptTimeout = timeoutMs ?? (isTest ? 4000 : 10000);
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     onAttempt?.(attempt, maxAttempts);
@@ -166,6 +166,16 @@ export async function generateKundliRemedyWithAi(
         ),
         timeoutPromise
       ]);
+
+      if (typeof raw === "string" && (raw.includes("check your API key") || raw.includes("API_KEY_INVALID"))) {
+        console.warn(`[kundliRemedyAiEngine] Invalid API key detected on attempt ${attempt}. Halting retries immediately.`);
+        break;
+      }
+
+      if (raw === "") {
+        console.warn(`[kundliRemedyAiEngine] Attempt ${attempt}/${maxAttempts} timed out. Halting retries.`);
+        break;
+      }
 
       if (
         typeof raw === "string" &&

@@ -69,10 +69,29 @@ interface Props {
   deepInsights?: Record<string, string>;
   premiumData?: PremiumData;
   ageYears?: number;
+  lang?: string;
 }
 
-export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predictions, translations, deepInsights, premiumData, ageYears }, ref) => {
+export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predictions, translations, deepInsights, premiumData, ageYears, lang }, ref) => {
   if (!session) return null;
+
+  const langKey = (lang || "kn") as string;
+  const getFontFamily = (l: string): string => {
+    switch (l) {
+      case "kn":
+        return `'Tiro Kannada', 'Noto Serif Kannada', 'Noto Sans Kannada', serif, sans-serif`;
+      case "te":
+        return `'Noto Sans Telugu', serif, sans-serif`;
+      case "ta":
+        return `'Noto Sans Tamil', serif, sans-serif`;
+      case "hi":
+        return `'Noto Sans Devanagari', serif, sans-serif`;
+      case "en":
+      default:
+        return `'Outfit', 'Cinzel', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    }
+  };
+  const activeFontFamily = getFontFamily(langKey);
 
   const nativeAge = ageYears !== undefined ? ageYears : (() => {
     try {
@@ -127,8 +146,8 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   return (
     <div 
       ref={ref}
-      style={{ width: '900px', height: 'max-content' }}
-      className={`${solidBgClass} ${textColorClass} font-serif relative overflow-hidden`}
+      style={{ width: '900px', height: 'max-content', fontFamily: activeFontFamily, letterSpacing: 'normal' }}
+      className={`${solidBgClass} ${textColorClass} relative overflow-hidden`}
     >
       <div className={`absolute inset-6 border-[3px] ${borderColorClass} pointer-events-none rounded-sm opacity-90`} />
       <div className={`absolute inset-8 border border-dashed ${borderColorClass} pointer-events-none opacity-60`} />

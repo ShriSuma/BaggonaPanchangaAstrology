@@ -5,6 +5,7 @@ import { formatChartHouseNumber, patrikaNavamshaFromDegree } from "../../core/lo
 import type { TraditionalBaggonaPanchanga } from "../../core/TraditionalBaggonaEngine";
 import { localTranslations } from "../../utils/localTranslations";
 import { NAKSHATRA_L5, RASHI_L5, pick, getTimeOfDayLabel } from "../../features/seva/sevaLocale";
+import { GOTRA_OPTIONS } from "../../data/gotras";
 
 type Props = {
   kundli: KundliOutput;
@@ -31,6 +32,35 @@ const RASHI_SANSKRIT_NAMES = [
   "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
   "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
 ];
+
+const GANA_L5: Record<string, Record<string, string>> = {
+  Deva: { kn: "ದೇವ", hi: "देव", te: "దేవ", ta: "தேவ", en: "Deva" },
+  Manushya: { kn: "ಮಾನವ", hi: "मानव", te: "మానవ", ta: "மானிட", en: "Manushya" },
+  Rakshasa: { kn: "ರಾಕ್ಷಸ", hi: "राक्षस", te: "రాక్షస", ta: "ராட்சச", en: "Rakshasa" }
+};
+
+const NADI_L5: Record<string, Record<string, string>> = {
+  Adi: { kn: "ಆದಿ", hi: "आदि", te: "ఆది", ta: "ஆதி", en: "Adi" },
+  Madhya: { kn: "ಮಧ್ಯ", hi: "मध्य", te: "మధ్య", ta: "மத்ய", en: "Madhya" },
+  Antya: { kn: "ಅಂತ್ಯ", hi: "अन्त्य", te: "అంత్య", ta: "அந்திய", en: "Antya" }
+};
+
+const YONI_L5: Record<string, Record<string, string>> = {
+  Horse: { kn: "ಅಶ್ವ", hi: "अश्व", te: "అశ్వ", ta: "அசுவம்", en: "Horse" },
+  Elephant: { kn: "ಗಜ", hi: "गज", te: "గజ", ta: "யானை", en: "Elephant" },
+  Goat: { kn: "ಮೇಷ", hi: "मेष", te: "మేష", ta: "ஆடு", en: "Goat" },
+  Serpent: { kn: "ಸರ್ಪ", hi: "सर्प", te: "సర్ప", ta: "பாம்பு", en: "Serpent" },
+  Dog: { kn: "ಶ್ವಾನ", hi: "श्वान", te: "శ్వాన", ta: "நாய்", en: "Dog" },
+  Cat: { kn: "ಮಾರ್ಜಾಲ", hi: "मार्जार", te: "మార్జాల", ta: "பூனை", en: "Cat" },
+  Rat: { kn: "ಮೂಷಕ", hi: "मूषक", te: "మూషక", ta: "எலி", en: "Rat" },
+  Cow: { kn: "ಗೌ", hi: "गौ", te: "గోవు", ta: "பசு", en: "Cow" },
+  Buffalo: { kn: "ಮಹಿಷ", hi: "महिष", te: "మహిష", ta: "எருமை", en: "Buffalo" },
+  Tiger: { kn: "ವ್ಯಾಘ್ರ", hi: "व्याघ्र", te: "వ్యాఘ్ర", ta: "புலி", en: "Tiger" },
+  Deer: { kn: "ಹರಿಣ", hi: "हरिण", te: "హరిణ", ta: "மான்", en: "Deer" },
+  Monkey: { kn: "ವಾನರ", hi: "वानर", te: "వానర", ta: "குரங்கு", en: "Monkey" },
+  Mongoose: { kn: "ನಕುಲ", hi: "नकुल", te: "నకులం", ta: "கீரி", en: "Mongoose" },
+  Lion: { kn: "ಸಿಂಹ", hi: "सिंह", te: "సింహం", ta: "சிங்கம்", en: "Lion" }
+};
 
 export const GokarnaKundaliTemplate: React.FC<Props> = ({
   kundli,
@@ -59,6 +89,23 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
     if (localVal) return localVal;
     return t(key, { lng: pdfLanguage });
   };
+
+  const getFontFamily = (langCode: string): string => {
+    switch (langCode) {
+      case "kn":
+        return `'Tiro Kannada', 'Noto Serif Kannada', 'Noto Sans Kannada', serif, sans-serif`;
+      case "te":
+        return `'Noto Sans Telugu', serif, sans-serif`;
+      case "ta":
+        return `'Noto Sans Tamil', serif, sans-serif`;
+      case "hi":
+        return `'Noto Sans Devanagari', serif, sans-serif`;
+      case "en":
+      default:
+        return `'Outfit', 'Cinzel', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    }
+  };
+  const activeFontFamily = getFontFamily(pdfLanguage);
   
   const getValue = (key: string, fallback: string) => dynamicValues?.[key] || fallback;
 
@@ -73,16 +120,27 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   const masa = getValue("masa", (panchanga ? (pdfLanguage === "kn" ? panchanga.masaKn : (panchanga.masa || panchanga.masaKn)) : defaultMasa));
   const paksha = getValue("paksha", (panchanga ? (pdfLanguage === "kn" ? panchanga.pakshaKn : (panchanga.paksha || panchanga.pakshaKn)) : defaultPaksha));
   
-  const tithi = panchanga ? <>{getValue("tithi", panchanga.tithiKn)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.tithiGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.tithiVighati, pdfLanguage)}</> : "";
-  const vasara = panchanga ? <>{getValue("weekday", panchanga.weekdayKn)} – <b>{getLabel("Ravi Nakshatra")}</b> {getValue("sunNakshatra", panchanga.sunNakshatraKn)}, {getLabel("Ghati")} {formatChartHouseNumber(panchanga.sunNakshatraGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.sunNakshatraVighati, pdfLanguage)}</> : "";
-  const nakshatra = panchanga ? <>{getValue("moonNakshatra", panchanga.moonNakshatraKn)}, {getLabel("Ghati")} {formatChartHouseNumber(panchanga.moonNakshatraGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.moonNakshatraVighati, pdfLanguage)}</> : "";
-  const yoga = panchanga ? <>{getValue("yoga", panchanga.yogaKn)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.yogaGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.yogaVighati, pdfLanguage)}</> : "";
-  const karana = panchanga ? <>{getValue("karana", panchanga.karanaKn)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.karanaGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.karanaVighati, pdfLanguage)}</> : "";
+  const defaultTithi = panchanga ? (pdfLanguage === "kn" ? panchanga.tithiKn : (panchanga.tithi || panchanga.tithiKn)) : "";
+  const tithi = panchanga ? <>{getValue("tithi", defaultTithi)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.tithiGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.tithiVighati, pdfLanguage)}</> : "";
+
+  const defaultWeekday = panchanga ? (pdfLanguage === "kn" ? panchanga.weekdayKn : (panchanga.weekday || panchanga.weekdayKn)) : "";
+  const defaultSunNak = panchanga ? (pdfLanguage === "kn" ? panchanga.sunNakshatraKn : (panchanga.sunNakshatra || panchanga.sunNakshatraKn)) : "";
+  const vasara = panchanga ? <>{getValue("weekday", defaultWeekday)} – <b>{getLabel("Ravi Nakshatra")}</b> {getValue("sunNakshatra", defaultSunNak)}, {getLabel("Ghati")} {formatChartHouseNumber(panchanga.sunNakshatraGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.sunNakshatraVighati, pdfLanguage)}</> : "";
+
+  const defaultMoonNak = panchanga ? (pdfLanguage === "kn" ? panchanga.moonNakshatraKn : (panchanga.moonNakshatra || panchanga.moonNakshatraKn)) : "";
+  const nakshatra = panchanga ? <>{getValue("moonNakshatra", defaultMoonNak)}, {getLabel("Ghati")} {formatChartHouseNumber(panchanga.moonNakshatraGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.moonNakshatraVighati, pdfLanguage)}</> : "";
+
+  const defaultYoga = panchanga ? (pdfLanguage === "kn" ? panchanga.yogaKn : (panchanga.yoga || panchanga.yogaKn)) : "";
+  const yoga = panchanga ? <>{getValue("yoga", defaultYoga)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.yogaGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.yogaVighati, pdfLanguage)}</> : "";
+
+  const defaultKarana = panchanga ? (pdfLanguage === "kn" ? panchanga.karanaKn : (panchanga.karana || panchanga.karanaKn)) : "";
+  const karana = panchanga ? <>{getValue("karana", defaultKarana)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.karanaGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.karanaVighati, pdfLanguage)}</> : "";
   
   const visha = panchanga ? <>{formatChartHouseNumber(panchanga.vishaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.vishaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
   const amruta = panchanga ? <>{formatChartHouseNumber(panchanga.amrithaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.amrithaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
   const diva = panchanga ? <>{formatChartHouseNumber(panchanga.divaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.divaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
-  const sankranti = panchanga ? <>{getValue("sankrantiSign", panchanga.sankrantiSignKn)} {getLabel("Sankranti")}, {getLabel("Gata Dina")} {formatChartHouseNumber(panchanga.sankrantiGataDina, pdfLanguage)}</> : "";
+  const defaultSankrantiSign = panchanga ? (pdfLanguage === "kn" ? panchanga.sankrantiSignKn : (panchanga.sankrantiSign || panchanga.sankrantiSignKn)) : "";
+  const sankranti = panchanga ? <>{getValue("sankrantiSign", defaultSankrantiSign)} {getLabel("Sankranti")}, {getLabel("Gata Dina")} {formatChartHouseNumber(panchanga.sankrantiGataDina, pdfLanguage)}</> : "";
   const parama = panchanga ? <>{formatChartHouseNumber(panchanga.paramaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.paramaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
   const aishya = panchanga ? <>{formatChartHouseNumber(panchanga.ashayaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.ashayaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
   const gata = panchanga ? <>{formatChartHouseNumber(panchanga.ghatadina.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.ghatadina.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
@@ -135,18 +193,39 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
     return `${base}(${amsha})`;
   };
 
+  const localizeGotra = (g?: string): string => {
+    if (!g || !g.trim() || g.trim() === "—") return "—";
+    const clean = g.replace(/gotra|ಗೋತ್ರ|గోత్రం|கோத்திரம்|गोत्र/gi, "").trim();
+    const matched = GOTRA_OPTIONS.find(opt => 
+      opt.toLowerCase() === clean.toLowerCase() || 
+      g.toLowerCase().includes(opt.toLowerCase())
+    );
+    if (matched) {
+      const trans = t(`gotras.${matched}` as any, { lng: pdfLanguage });
+      if (trans && !trans.startsWith("gotras.")) {
+        return trans;
+      }
+    }
+    return g;
+  };
+
   return (
     <div
+      className="pdf-page"
       style={{
-        width: "100%",
-        height: "100%",
+        width: "900px",
+        height: "1273px",
+        minHeight: "1273px",
+        maxHeight: "1273px",
         backgroundColor: "#ffffff",
         padding: "20px",
         boxSizing: "border-box",
-        fontFamily: "'Hind', 'Noto Sans Kannada', sans-serif",
+        fontFamily: activeFontFamily,
+        letterSpacing: "normal",
         color: "#000000",
         display: "flex",
         flexDirection: "column",
+        overflow: "hidden"
       }}
     >
       {/* Outer Border (Ornate Style) */}
@@ -161,6 +240,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
+          justifyContent: "space-between"
         }}
       >
         {/* Header Section (3-column layout) */}
@@ -193,7 +273,8 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
           border: "2px solid #000",
           padding: "8px 12px",
           backgroundColor: "#ffffff",
-          fontFamily: "'Hind', 'Noto Sans Kannada', sans-serif"
+          fontFamily: activeFontFamily,
+          letterSpacing: "normal"
         }}>
           <div><b>{getLabel("Shaka Varsha")}:</b> {shakaYear} {samvatsara}</div>
           <div><b>{getLabel("Masa")}:</b> {masa}</div>
@@ -218,7 +299,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
             <b>{getLabel("Janma Kala")}:</b> ({timeOfDayLabel} {getLabel("Hour")} {displayHKn} {getLabel("Min")} {displayMKn}) <br/> 
             <b>{getLabel("Dasha Bhukti")}:</b> {dashaBalance}
             {parentsName ? <><br/>{parentsName}</> : null}
-            {gothra ? ` | ${getLabel("Gotra")}: ${gothra}` : null}
+            {gothra && localizeGotra(gothra) !== "—" ? ` | ${getLabel("Gotra")}: ${localizeGotra(gothra)}` : null}
           </div>
         </div>
 
@@ -264,7 +345,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
                       </div>
                       <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
                         <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Gotra")}</span>
-                        <span>: {gothra || "-"}</span>
+                        <span>: {localizeGotra(gothra)}</span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap", marginBottom: "4px" }}>
                         <span style={{ width: "95px", display: "inline-block" }}>{getLabel("Rashi")}</span>
@@ -324,16 +405,34 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
         </div>
 
         {/* Bottom Details Section */}
-        <div style={{ borderTop: "2px solid #000", borderBottom: "2px solid #000", margin: "15px 0", padding: "10px 0", display: "flex", justifyContent: "space-around", fontSize: "15px", fontWeight: "bold" }}>
-          <div>{getValue("label_yoni", getLabel("Yoni"))}: <span>{moonNakshatra ? getValue("yoni", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).yoniKn) : "-"}</span></div>
-          <div>{getValue("label_gana", getLabel("Gana"))}: <span>{moonNakshatra ? getValue("gana", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).ganaKn) : "-"}</span></div>
-          <div>{getValue("label_nadi", getLabel("Nadi"))}: <span>{moonNakshatra ? getValue("nadi", patrikaMetaForNakshatraIndex(kundli.planets.find(p => p.name === "Moon")?.nakshatra.index || 0).nadiKn) : "-"}</span></div>
-        </div>
+        {(() => {
+          const yoniMeta = moonPlanet ? patrikaMetaForNakshatraIndex(moonPlanet.nakshatra.index) : null;
+          const yoniVal = yoniMeta
+            ? (YONI_L5[yoniMeta.yoniEn]?.[pdfLanguage] || (pdfLanguage === "kn" ? yoniMeta.yoniKn : yoniMeta.yoniEn))
+            : "—";
+          const ganaVal = yoniMeta
+            ? (GANA_L5[yoniMeta.ganaEn]?.[pdfLanguage] || (pdfLanguage === "kn" ? yoniMeta.ganaKn : yoniMeta.ganaEn))
+            : "—";
+          const nadiVal = yoniMeta
+            ? (NADI_L5[yoniMeta.nadiEn]?.[pdfLanguage] || (pdfLanguage === "kn" ? yoniMeta.nadiKn : yoniMeta.nadiEn))
+            : "—";
+
+          return (
+            <div style={{ borderTop: "2px solid #000", borderBottom: "2px solid #000", margin: "15px 0", padding: "10px 0", display: "flex", justifyContent: "space-around", fontSize: "15px", fontWeight: "bold" }}>
+              <div>{getLabel("Yoni")}: <span>{yoniVal}</span></div>
+              <div>{getLabel("Gana")}: <span>{ganaVal}</span></div>
+              <div>{getLabel("Nadi")}: <span>{nadiVal}</span></div>
+            </div>
+          );
+        })()}
 
         {/* Footer */}
         <div style={{ textAlign: "center", fontSize: "15px", paddingTop: "5px", color: "#000" }}>
+          <div style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "4px" }}>
+            {pdfLanguage === "kn" ? "॥ ಶುಭಮಸ್ತು ॥" : pdfLanguage === "te" ? "॥ శుభమస్తు ॥" : pdfLanguage === "ta" ? "॥ சுபமஸ்து ॥" : pdfLanguage === "hi" ? "॥ शुभमस्तु ॥" : "|| Shubhamastu ||"}
+          </div>
           <div style={{ fontWeight: "bold" }}>
-            {getValue("label_footer", getLabel("Panchanga Kartaru"))}
+            {getLabel("Panchanga Kartaru")}
           </div>
         </div>
       </div>

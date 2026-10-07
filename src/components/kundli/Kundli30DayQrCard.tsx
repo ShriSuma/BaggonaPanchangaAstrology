@@ -73,6 +73,7 @@ const I18N: Record<string, Record<string, string>> = {
     templeAddress: "ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ, ಕರ್ನಾಟಕ - ೫೮೧೩೨೬",
     priestPhoneLabel: "ನೇರ ಸಂಪರ್ಕ & ವಾಟ್ಸಾಪ್ (WhatsApp):",
     priestBlessing: "ಯಾವುದೇ ದೋಷ ಪರಿಹಾರ, ಪೂಜಾ ಸಂಕಲ್ಪ, ಕುಂಡಲಿ ಸಮಾಲೋಚನೆ ಅಥವಾ ಶಾಂತಿ ಹೋಮಗಳಿಗಾಗಿ ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.",
+    templeSealTitle: "॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥",
     templeSealLabel: "ಅಧಿಕೃತ ಸನ್ನಿಧಿ ಮುದ್ರೆ",
     pageFooterBanner: "॥ ಶ್ರೀ ಸದಾಶಿವೋ ರಕ್ಷತು · ಶ್ರೀ ಮಹಾಗಣಪತಿ ಪ್ರಸನ್ನ ॥ · ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ"
   },
@@ -105,6 +106,7 @@ const I18N: Record<string, Record<string, string>> = {
     templeAddress: "Shri Baggona Panchanga Jyotishya Karyalaya, Gokarna Kshetra, Karnataka - 581326",
     priestPhoneLabel: "Direct Call & WhatsApp:",
     priestBlessing: "For personal astrology consultations, dosha parihara sankalpa, temple poojas, or shanti homas, please contact directly.",
+    templeSealTitle: "॥ Gokarna Sannidhi ॥",
     templeSealLabel: "Official Temple Seal",
     pageFooterBanner: "॥ Sri Sadashivo Rakshatu · Sri Mahaganapati Prasanna ॥ · Sri Gokarna Mahabaleshwara Kshetra"
   },
@@ -137,6 +139,7 @@ const I18N: Record<string, Record<string, string>> = {
     templeAddress: "श्री बग्गोण पंचांग ज्योतिष कार्यालय, गोकर्ण क्षेत्र, कर्नाटक - ५८१೩೨೬",
     priestPhoneLabel: "सीधा संपर्क एवं व्हाट्सएप:",
     priestBlessing: "किसी भी दोष परिहार, पूजा संकल्प, कुंडली परामर्श अथवा शांति होम हेतु सीधे संपर्क करें।",
+    templeSealTitle: "॥ गोकर्ण सन्निधि ॥",
     templeSealLabel: "अधिकारिक सन्निधि मुहर",
     pageFooterBanner: "॥ श्री सदाशिवो रक्षतु · श्री महागणपति प्रसन्न ॥ · श्री गोकर्ण महाबलेश्वर सन्निधान"
   },
@@ -169,6 +172,7 @@ const I18N: Record<string, Record<string, string>> = {
     templeAddress: "శ్రీ బగ్గోణ పంచాంగ జ్యోతిష్య కార్యాలయం, గోకర్ణ క్షేత్రం, కర్ణాటక - 581326",
     priestPhoneLabel: "ప్రత్యక్ష సంప్రదింపు & వాట్సాప్:",
     priestBlessing: "దోష పరిహారాలు, పూజా సంకల్పం లేదా జాతక విశ్లేషణ కోసం నేరుగా సంప్రదించండి.",
+    templeSealTitle: "॥ గోకర్ణ సన్నిధి ॥",
     templeSealLabel: "అధికారిక సన్నిధి ముద్ర",
     pageFooterBanner: "॥ శ్రీ సదాశివో రక్షతు · శ్రీ మహాగణపతి ప్రసన్న ॥ · శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం"
   },
@@ -201,6 +205,7 @@ const I18N: Record<string, Record<string, string>> = {
     templeAddress: "ஸ்ரீ பக்ககோண பஞ்சாங்க ஜோதிட நிலையம், கோகர்ணம், கர்நாடகா - 581326",
     priestPhoneLabel: "நேரடி அழைப்பு & வாட்ஸ்அப்:",
     priestBlessing: "தோஷ பரிகாரங்கள், பூஜை சங்கல்பம் அல்லது ஜாதக ஆலோசனைக்கு நேரடியாகத் தொடர்பு கொள்ளவும்.",
+    templeSealTitle: "॥ கோகர்ண சந்நிதி ॥",
     templeSealLabel: "அதிகாரப்பூர்வ சந்நிதி முத்திரை",
     pageFooterBanner: "॥ ஸ்ரீ சதாசிவோ ரக்ஷது · ஸ்ரீ மஹாகணபதி பிரசன்னம் ॥ · ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி"
   }
@@ -220,6 +225,7 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
   const currentLang = (lang && I18N[lang]) ? lang : "kn";
   const t = I18N[currentLang];
   const [generatedQr, setGeneratedQr] = useState<string>(externalQr || "");
+  const activeQr = externalQr || generatedQr;
 
   useEffect(() => {
     if (externalQr) {
@@ -278,6 +284,23 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
     }
   }, [externalQr, currentLang, profile, panditName, priestPhone, pincode, placeLabel, lat, lng]);
 
+  const getFontFamily = (langCode: string): string => {
+    switch (langCode) {
+      case "kn":
+        return `'Tiro Kannada', 'Noto Serif Kannada', 'Noto Sans Kannada', serif, sans-serif`;
+      case "te":
+        return `'Noto Sans Telugu', serif, sans-serif`;
+      case "ta":
+        return `'Noto Sans Tamil', serif, sans-serif`;
+      case "hi":
+        return `'Noto Sans Devanagari', serif, sans-serif`;
+      case "en":
+      default:
+        return `'Outfit', 'Cinzel', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    }
+  };
+  const activeFontFamily = getFontFamily(currentLang);
+
   return (
     <div
       id="kundli-30day-qr-card"
@@ -291,7 +314,8 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
         boxSizing: "border-box",
         backgroundColor: "#fffdfa",
         color: "#0f172a",
-        fontFamily: "'Tiro Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Inter', serif, sans-serif",
+        fontFamily: activeFontFamily,
+        letterSpacing: "normal",
         position: "relative",
         overflow: "hidden",
         display: "block"
@@ -420,13 +444,14 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
                 padding: "8px",
                 borderRadius: "10px",
                 border: "2px solid #b45309",
-                display: "inline-block",
-                boxShadow: "0 3px 10px rgba(180, 83, 9, 0.12)"
+                display: "block",
+                margin: "0 auto",
+                width: "fit-content"
               }}
             >
-              {generatedQr ? (
+              {activeQr ? (
                 <img
-                  src={generatedQr}
+                  src={activeQr}
                   alt="30-Day Baggona Panchanga Google Calendar QR"
                   style={{ width: "180px", height: "180px", display: "block" }}
                 />
@@ -513,7 +538,8 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
             <div
               style={{
                 marginTop: "6px",
-                display: "inline-flex",
+                display: "flex",
+                width: "fit-content",
                 alignItems: "center",
                 gap: "8px",
                 backgroundColor: "#ffffff",
@@ -555,7 +581,7 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
           >
             <div style={{ fontSize: "16px" }}>🕉️</div>
             <div style={{ fontSize: "8.5px", fontWeight: 800, color: "#92400e", lineHeight: 1.2, marginTop: "2px" }}>
-              ॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥
+              {t.templeSealTitle || "॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥"}
             </div>
             <div style={{ fontSize: "7.5px", fontWeight: 700, color: "#b45309", marginTop: "1px" }}>
               {t.templeSealLabel}

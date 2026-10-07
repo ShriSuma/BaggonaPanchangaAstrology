@@ -371,6 +371,7 @@ export async function generateSuperAdminBatchPdfs(
                 predictions={bhavishyaPayload.predictions}
                 premiumData={bhavishyaPayload.premiumData}
                 deepInsights={bhavishyaPayload.deepInsights}
+                lang={params.language}
               />
             </div>
           );

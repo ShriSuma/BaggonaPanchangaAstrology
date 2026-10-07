@@ -4542,6 +4542,7 @@ Return ONLY this JSON (no extra text before or after):
             predictions={(currentMindset ? [currentMindset, ...predictions] : predictions).filter(p => p && p.category !== "Error" && p.translatedCategory !== "Error" && !(p.text || "").includes("Sorry, I encountered an error"))}
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights}
+            lang={pdfLanguage}
           />
         )}
       </div>
@@ -4557,6 +4558,7 @@ Return ONLY this JSON (no extra text before or after):
             translations={pdfTranslations}
             deepInsights={pdfDeepInsights || {}}
             premiumData={premiumDataForPdf}
+            lang={pdfLanguage}
           />
         )}
       </div>
@@ -4572,6 +4574,7 @@ Return ONLY this JSON (no extra text before or after):
             translations={a4PdfTranslations}
             deepInsights={a4PdfDeepInsights}
             premiumData={a4PremiumDataForPdf}
+            lang={pdfLanguage}
           />
         )}
       </div>

@@ -386,7 +386,11 @@ export async function prepareBhavishyaV1Data(
   });
 
   const failedAiSectionsV1: string[] = [];
-  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 25000, maxAttempts = 10): Promise<string> => {
+  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8000, maxAttempts = 2): Promise<string> => {
+    if (!geminiApiKey || geminiApiKey.trim() === "" || geminiApiKey.startsWith("AQ.")) {
+      failedAiSectionsV1.push(label);
+      return "";
+    }
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const timeoutPromise = new Promise<string>((resolve) =>
@@ -401,6 +405,10 @@ export async function prepareBhavishyaV1Data(
         ]);
         if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:") || raw.includes("GoogleGenerativeAIError"))) {
           console.warn(`[bhavishyaV1Service] Error string detected for ${label} (attempt ${attempt}/${maxAttempts}): ${raw}`);
+          if (raw.includes("check your API key") || raw.includes("API_KEY_INVALID")) {
+            failedAiSectionsV1.push(label);
+            return "";
+          }
           if (attempt < maxAttempts) {
             await new Promise((r) => setTimeout(r, attempt * 350));
             continue;
@@ -410,6 +418,10 @@ export async function prepareBhavishyaV1Data(
         }
         if (typeof raw === "string" && raw.trim().length > 20) {
           return raw;
+        }
+        if (raw === "") {
+          failedAiSectionsV1.push(label);
+          return "";
         }
         if (attempt < maxAttempts) {
           await new Promise((r) => setTimeout(r, attempt * 350));
@@ -1099,35 +1111,63 @@ export async function captureBhavishyaV1Pdf(
       throw new Error("Calculated PDF height is zero. Cannot generate empty PDF.");
     }
 
-    // Create continuous scroll jsPDF document
+    // Partition rendered sections across pages to strictly stay below jsPDF's hard 14,400 userUnit (5080mm) limit
+    const MAX_SAFE_PAGE_HEIGHT_MM = 3800;
+    const pages: { sections: typeof renderedSections; heightMm: number }[] = [];
+    let currentPageSections: typeof renderedSections = [];
+    let currentPageHeightMm = 0;
+
+    for (const sec of renderedSections) {
+      if (currentPageSections.length > 0 && currentPageHeightMm + sec.heightMm > MAX_SAFE_PAGE_HEIGHT_MM) {
+        pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
+        currentPageSections = [sec];
+        currentPageHeightMm = sec.heightMm;
+      } else {
+        currentPageSections.push(sec);
+        currentPageHeightMm += sec.heightMm;
+      }
+    }
+    if (currentPageSections.length > 0) {
+      pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
+    }
+
+    // Create jsPDF document with the first page height
+    const firstPage = pages[0];
     const pdf = new jsPDF({
       orientation: "p",
       unit: "mm",
-      format: [pdfWidthMm, totalPdfHeightMm],
+      format: [pdfWidthMm, firstPage.heightMm],
       compress: true
     });
 
-    // 1. Fill continuous background with warm royal parchment (#FFF7ED)
-    pdf.setFillColor(255, 247, 237);
-    pdf.rect(0, 0, pdfWidthMm, totalPdfHeightMm, "F");
+    for (let pIdx = 0; pIdx < pages.length; pIdx++) {
+      const page = pages[pIdx];
+      if (pIdx > 0) {
+        pdf.addPage([pdfWidthMm, page.heightMm], "p");
+      }
 
-    // 2. Add each section seamlessly sequentially
-    let currentYMm = 0;
-    for (const sec of renderedSections) {
-      pdf.addImage(sec.imgData, "JPEG", 0, currentYMm, pdfWidthMm, sec.heightMm, undefined, "FAST");
-      currentYMm += sec.heightMm;
+      // 1. Fill background with warm royal parchment (#FFF7ED)
+      pdf.setFillColor(255, 247, 237);
+      pdf.rect(0, 0, pdfWidthMm, page.heightMm, "F");
+
+      // 2. Add each section seamlessly sequentially on this page
+      let currentYMm = 0;
+      for (const sec of page.sections) {
+        pdf.addImage(sec.imgData, "JPEG", 0, currentYMm, pdfWidthMm, sec.heightMm, undefined, "FAST");
+        currentYMm += sec.heightMm;
+      }
+
+      // 3. Draw outer & inner royal gold double borders for this page
+      // Outer border: 4mm margin, 0.75mm line, amber-700 (#B45309)
+      pdf.setDrawColor(180, 83, 9);
+      pdf.setLineWidth(0.75);
+      pdf.rect(4, 4, pdfWidthMm - 8, page.heightMm - 8, "S");
+
+      // Inner border: 6mm margin, 0.25mm dashed line
+      pdf.setDrawColor(180, 83, 9);
+      pdf.setLineWidth(0.25);
+      pdf.rect(6, 6, pdfWidthMm - 12, page.heightMm - 12, "S");
     }
-
-    // 3. Draw continuous outer & inner royal gold double borders
-    // Outer border: 4mm margin, 0.75mm line, amber-700 (#B45309)
-    pdf.setDrawColor(180, 83, 9);
-    pdf.setLineWidth(0.75);
-    pdf.rect(4, 4, pdfWidthMm - 8, totalPdfHeightMm - 8, "S");
-
-    // Inner border: 6mm margin, 0.25mm dashed line
-    pdf.setDrawColor(180, 83, 9);
-    pdf.setLineWidth(0.25);
-    pdf.rect(6, 6, pdfWidthMm - 12, totalPdfHeightMm - 12, "S");
 
     options?.onProgress?.(
       100,

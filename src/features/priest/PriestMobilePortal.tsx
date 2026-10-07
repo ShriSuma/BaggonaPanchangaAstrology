@@ -2871,6 +2871,7 @@ export const PriestMobilePortal: React.FC = () => {
             translations={premiumPdfTranslations}
             deepInsights={premiumPdfDeepInsights || {}}
             premiumData={premiumDataForPdf}
+            lang={pdfLanguage}
           />
         )}
       </div>

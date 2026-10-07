@@ -82,6 +82,7 @@ const parseYmdToDate = (ymd: string): Date | null => {
 
 export default function KundliPage(): JSX.Element {
   const { t, i18n } = useTranslation();
+  const appLanguage = useAppStore((s) => s.language);
   const chartStyle = useAppStore((s) => s.chartStyle);
   const setChartStyle = useAppStore((s) => s.setChartStyle);
   const defaultLat = useAppStore((s) => s.defaultLat);
@@ -246,6 +247,12 @@ export default function KundliPage(): JSX.Element {
       setRemedyPdfLanguage(pageParams.lang);
     }
   }, [pageParams]);
+
+  useEffect(() => {
+    const target = pageParams?.lang || appLanguage || i18n.language || "kn";
+    setPdfLanguage(target);
+    setRemedyPdfLanguage(target);
+  }, [pageParams, appLanguage, i18n.language]);
 
   const pushPlaceToStore = (lat: number, lng: number, core: string, pin?: string) => {
     const label = homePlaceName.trim() ? `${homePlaceName.trim()} · ${core}` : core;
@@ -1137,23 +1144,9 @@ export default function KundliPage(): JSX.Element {
         const el = traditionalExportRef.current;
         const dashaEl = dashaExportRef.current;
 
-        if (pdfLanguage !== "kn" && traditionalData) {
-          const yoniMeta = import_patrikaMetaForNakshatraIndex(result.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
-          const keys = [
-            "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
-            "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
-          ];
-          const texts = [
-            traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
-            traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
-            yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
-          ];
-          const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
-          const newVals: Record<string, string> = {};
-          keys.forEach((k, i) => newVals[k] = translated[i]);
-          setDynamicValues(newVals);
-          await new Promise(r => setTimeout(r, 400));
-        }
+        setDynamicValues({});
+        await new Promise(r => setTimeout(r, 100));
+
 
         if (el && dashaEl) {
           const pdf1 = await exportPanchangaWithDashaPdf(el, dashaEl, pdf1FileName.replace(/\.pdf$/, ""), false);
@@ -1437,9 +1430,14 @@ export default function KundliPage(): JSX.Element {
       name: "Shreeram Pandit",
       birthDate: "1993-05-31",
       birthTime: "09:25",
+      pincode: "581326",
+      latitude: 14.5479,
+      longitude: 74.3188,
       gothra: "Vasishtha",
       gender: "Male"
     }));
+    setLocationCore("Gokarna (581326)");
+    setHomePlaceName("Gokarna");
     setBirthDatePicker(testDate);
     setBirthTimeHm("09:25");
   };
@@ -2122,6 +2120,33 @@ export default function KundliPage(): JSX.Element {
 
                 {/* Download Actions Container */}
                 <div className="flex flex-col items-center justify-center gap-4 w-full max-w-4xl px-2">
+                  {/* PDF Language Selector Bar */}
+                  <div className="flex flex-wrap items-center justify-center gap-2 p-2 rounded-2xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-500/30 backdrop-blur-sm shadow-sm w-full max-w-md">
+                    <span className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                      {pdfLanguage === "kn" ? "ಪಿಡಿಎಫ್ ಭಾಷೆ:" : "PDF Language:"}
+                    </span>
+                    {[
+                      { code: "kn", label: "ಕನ್ನಡ" },
+                      { code: "en", label: "English" },
+                      { code: "hi", label: "हिन्दी" },
+                      { code: "te", label: "తెలుగు" },
+                      { code: "ta", label: "தமிழ்" }
+                    ].map(lang => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => handleLanguageChange(lang.code)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                          pdfLanguage === lang.code
+                            ? "bg-amber-600 text-white shadow-amber-600/30 ring-2 ring-amber-400"
+                            : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-amber-300/40 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                        }`}
+                      >
+                        {lang.label}
+                      </button>
+                    ))}
+                  </div>
+
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
                     {/* Special Divine Consultation & Reports Button */}
                     <button
@@ -2191,28 +2216,9 @@ export default function KundliPage(): JSX.Element {
                         try {
                           setIsTranslating(true);
                           
-                          const newVals: Record<string, string> = {};
-                          if (pdfLanguage !== "kn" && traditionalData) {
-                             const yoniMeta = import_patrikaMetaForNakshatraIndex(result.planets.find((p: any) => p.name === "Moon")?.nakshatra.index || 0);
-                             
-                             const keys = [
-                               "samvatsara", "masa", "paksha", "tithi", "weekday", "sunNakshatra", "moonNakshatra", "yoga", "karana", "sankrantiSign",
-                               "yoni", "gana", "nadi", "label_yoni", "label_gana", "label_nadi", "label_footer"
-                             ];
-                             const texts = [
-                               traditionalData.samvatsaraKn, traditionalData.masaKn, traditionalData.pakshaKn, traditionalData.tithiKn, traditionalData.weekdayKn, 
-                               traditionalData.sunNakshatraKn, traditionalData.moonNakshatraKn, traditionalData.yogaKn, traditionalData.karanaKn, traditionalData.sankrantiSignKn,
-                               yoniMeta.yoniKn, yoniMeta.ganaKn, yoniMeta.nadiKn, "ಯೋನಿ", "ಗಣ", "ನಾಡಿ", "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕರ್ತರು"
-                             ];
-                             
-                             const translated = await Promise.all(texts.map(txt => translateText(txt, pdfLanguage === "en" ? "en-US" : pdfLanguage + "-IN")));
-                             
-                             keys.forEach((k, i) => newVals[k] = translated[i]);
-                          }
-                          setDynamicValues(newVals);
-                          
-                          // Small wait to ensure template is rendered with new state
-                          await new Promise(r => setTimeout(r, 500));
+                          setDynamicValues({});
+                          await new Promise(r => setTimeout(r, 100));
+
                           
                           if (dashaEl) {
                             setIsGeneratingDashaPdf(true);
@@ -2331,7 +2337,7 @@ export default function KundliPage(): JSX.Element {
       
       {result && birthDatePicker && birthTimeHm.trim() ? (
         <div style={{ position: "fixed", left: 0, top: 0, width: 900, opacity: 0, pointerEvents: "none", zIndex: -1, overflow: "hidden", height: 0 }}>
-          <div ref={traditionalExportRef} style={{ width: "900px", minHeight: "1273px", backgroundColor: "#fbf8f1" }}>
+          <div ref={traditionalExportRef} style={{ width: "900px", height: "1273px", minHeight: "1273px", maxHeight: "1273px", backgroundColor: "#ffffff", overflow: "hidden" }}>
             <GokarnaKundaliTemplate
             kundli={result}
             personName={form.name}
@@ -2399,6 +2405,7 @@ export default function KundliPage(): JSX.Element {
             deepInsights={premiumBhavishyaPayload.deepInsights}
             premiumData={premiumBhavishyaPayload.premiumData}
             ageYears={premiumBhavishyaPayload.ageYears}
+            lang={pdfLanguage}
           />
         </div>
       )}
