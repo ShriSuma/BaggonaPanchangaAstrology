@@ -132,10 +132,20 @@ describe("AstodayaGrahanaEngine Parashari & Astronomical Precision Audit", () =>
     );
 
     expect(venOctPeriod).toBeDefined();
-    // Venus Asta starts October 12, 2026 and Udaya October 29, 2026 (inferior conjunction), matching Drik Panchang
-    expect(venOctPeriod!.astaDateStr).toBe("2026-10-12");
+    // Venus Asta starts October 19, 2026 and Udaya October 29, 2026 (inferior conjunction), matching Drik Panchang exactly
+    expect(venOctPeriod!.astaDateStr).toBe("2026-10-19");
     expect(venOctPeriod!.udayaDateStr).toBe("2026-10-29");
-    expect([16, 17]).toContain(venOctPeriod!.durationDays);
+    expect(venOctPeriod!.durationDays).toBe(10);
+    expect(venOctPeriod!.direction.en).toContain("East");
+  });
+
+  it("verifies accurate 2026 Jupiter Astha/Udaya in Cancer", () => {
+    const { periods } = calculateYearlyAstodaya(2026);
+    const jupPeriod = periods.find((p) => p.planet === "Jupiter" && p.astaDateStr.includes("2026-07"));
+    expect(jupPeriod).toBeDefined();
+    expect(jupPeriod!.astaDateStr).toBe("2026-07-15");
+    expect(jupPeriod!.udayaDateStr).toBe("2026-08-12");
+    expect(jupPeriod!.direction.en).toContain("East");
   });
 
   it("verifies accurate 2027 Guru Astha/Udaya and Shukra Astha/Udaya requested by user", () => {
@@ -144,7 +154,7 @@ describe("AstodayaGrahanaEngine Parashari & Astronomical Precision Audit", () =>
     // Guru (Jupiter) 2027
     const guruPeriod = periods.find((p) => p.planet === "Jupiter" && p.astaDateStr.includes("2027-08"));
     expect(guruPeriod).toBeDefined();
-    // Jupiter Asta on Aug 17, 2027; Udaya on Sep 13/14, 2027 (matching Drik Panchang)
+    // Jupiter Asta on Aug 17, 2027; Udaya on Sep 13, 2027 (matching Drik Panchang)
     expect(guruPeriod!.astaDateStr).toBe("2027-08-17");
     expect(["2027-09-13", "2027-09-14"]).toContain(guruPeriod!.udayaDateStr);
     expect(guruPeriod!.direction.en).toContain("East");
@@ -152,9 +162,37 @@ describe("AstodayaGrahanaEngine Parashari & Astronomical Precision Audit", () =>
     // Shukra (Venus) 2027
     const shukraPeriod = periods.find((p) => p.planet === "Venus" && p.astaDateStr.includes("2027-07"));
     expect(shukraPeriod).toBeDefined();
-    // Venus Asta on July 21/22, 2027; Udaya on Sep 09, 2027 (Superior conjunction, Udaya in West)
+    // Venus Asta on July 21, 2027; Udaya on Sep 09, 2027 (Superior conjunction, Udaya in West)
     expect(["2027-07-21", "2027-07-22"]).toContain(shukraPeriod!.astaDateStr);
     expect(shukraPeriod!.udayaDateStr).toBe("2027-09-09");
     expect(shukraPeriod!.direction.en).toContain("West");
+  });
+
+  it("verifies multi-year ephemeris benchmarks for 2024 and 2025", () => {
+    // 2024 Guru: May 07 -> June 06
+    const y2024 = calculateYearlyAstodaya(2024);
+    const guru2024 = y2024.periods.find((p) => p.planet === "Jupiter");
+    expect(guru2024).toBeDefined();
+    expect(guru2024!.astaDateStr).toBe("2024-05-07");
+    expect(guru2024!.udayaDateStr).toBe("2024-06-06");
+
+    // 2024 Shukra: April 25 -> June 29
+    const shukra2024 = y2024.periods.find((p) => p.planet === "Venus");
+    expect(shukra2024).toBeDefined();
+    expect(shukra2024!.astaDateStr).toBe("2024-04-25");
+    expect(shukra2024!.udayaDateStr).toBe("2024-06-29");
+
+    // 2025 Guru: June 12 -> July 10
+    const y2025 = calculateYearlyAstodaya(2025);
+    const guru2025 = y2025.periods.find((p) => p.planet === "Jupiter");
+    expect(guru2025).toBeDefined();
+    expect(guru2025!.astaDateStr).toBe("2025-06-12");
+    expect(guru2025!.udayaDateStr).toBe("2025-07-10");
+
+    // 2025 Shukra (Inferior): March 19 -> March 24
+    const shukra2025Inf = y2025.periods.find((p) => p.planet === "Venus" && p.astaDateStr.includes("2025-03"));
+    expect(shukra2025Inf).toBeDefined();
+    expect(shukra2025Inf!.astaDateStr).toBe("2025-03-19");
+    expect(shukra2025Inf!.udayaDateStr).toBe("2025-03-24");
   });
 });

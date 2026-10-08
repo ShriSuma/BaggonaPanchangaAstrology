@@ -529,11 +529,6 @@ function evaluatePlanetDay(
   const sV = Astronomy.GeoVector(Astronomy.Body.Sun, date, true);
   const pV = Astronomy.GeoVector(body, date, true);
   const angDist = Astronomy.AngleBetween(sV, pV);
-  const maxZone = body === Astronomy.Body.Jupiter ? 16 : 22;
-
-  if (angDist > maxZone) {
-    return { isCombust: false, angDist, direction: "East", eventTime: date, isRetro: false };
-  }
 
   const pEcl = Astronomy.Ecliptic(pV);
   const sEcl = Astronomy.Ecliptic(sV);
@@ -542,6 +537,10 @@ function evaluatePlanetDay(
   const isRetro = checkRetrograde(body, date);
 
   if (body === Astronomy.Body.Jupiter) {
+    // Surya Siddhanta classical Jupiter combustion limit = 11°-14° (Diptamsha 11°)
+    if (angDist > 14.5) {
+      return { isCombust: false, angDist, direction: "East", eventTime: date, isRetro };
+    }
     if (dLon > 0) {
       // Evening sky in West: sets after sunset
       const pSet = getEveningPlanetSet(body, date, obs);
@@ -550,7 +549,7 @@ function evaluatePlanetDay(
         const sEq = Astronomy.Equator(Astronomy.Body.Sun, pSet.date, obs, true, true);
         eSunAlt = Astronomy.Horizon(pSet.date, obs, sEq.ra, sEq.dec, "normal").altitude;
       }
-      const isCombust = eSunAlt > -7.4;
+      const isCombust = eSunAlt > -7.58;
       return { isCombust, angDist, direction: "West", eventTime: pSet?.date || date, isRetro };
     } else {
       // Morning sky in East: rises before sunrise
@@ -560,13 +559,16 @@ function evaluatePlanetDay(
         const sEq = Astronomy.Equator(Astronomy.Body.Sun, pRise.date, obs, true, true);
         mSunAlt = Astronomy.Horizon(pRise.date, obs, sEq.ra, sEq.dec, "normal").altitude;
       }
-      const isCombust = mSunAlt > -9.6;
+      const isCombust = mSunAlt > -9.20;
       return { isCombust, angDist, direction: "East", eventTime: pRise?.date || date, isRetro };
     }
   } else {
     // Venus (Shukra)
     if (isRetro) {
-      // Inferior Conjunction (Vakri)
+      // Inferior Conjunction (Vakri) - Surya Siddhanta Diptamsha is 8°-10°
+      if (angDist > 11.0) {
+        return { isCombust: false, angDist, direction: dLon > 0 ? "West" : "East", eventTime: date, isRetro };
+      }
       if (dLon > 0) {
         // Before inferior conjunction: in West (evening star), sets after sunset
         const pSet = getEveningPlanetSet(body, date, obs);
@@ -575,7 +577,8 @@ function evaluatePlanetDay(
           const sEq = Astronomy.Equator(Astronomy.Body.Sun, pSet.date, obs, true, true);
           eSunAlt = Astronomy.Horizon(pSet.date, obs, sEq.ra, sEq.dec, "normal").altitude;
         }
-        const isCombust = eSunAlt > -5.8;
+        // Venus sets before sunset or within narrow twilight lag (< 20 mins)
+        const isCombust = eSunAlt > -0.05 || (angDist < 10.8 && eSunAlt > -6.38);
         return { isCombust, angDist, direction: "West", eventTime: pSet?.date || date, isRetro };
       } else {
         // After inferior conjunction: in East (morning star), rises before sunrise
@@ -585,11 +588,14 @@ function evaluatePlanetDay(
           const sEq = Astronomy.Equator(Astronomy.Body.Sun, pRise.date, obs, true, true);
           mSunAlt = Astronomy.Horizon(pRise.date, obs, sEq.ra, sEq.dec, "normal").altitude;
         }
-        const isCombust = mSunAlt > -6.0;
+        const isCombust = mSunAlt > -6.60;
         return { isCombust, angDist, direction: "East", eventTime: pRise?.date || date, isRetro };
       }
     } else {
-      // Superior Conjunction (Margi / Direct)
+      // Superior Conjunction (Margi / Direct) - Surya Siddhanta Diptamsha is 10° (up to 12°)
+      if (angDist > 12.0) {
+        return { isCombust: false, angDist, direction: dLon < 0 ? "East" : "West", eventTime: date, isRetro };
+      }
       if (dLon < 0) {
         // Before superior conjunction: in East (morning star), rises before sunrise. Astha in East!
         const pRise = getMorningPlanetRise(body, date, obs);
@@ -598,7 +604,7 @@ function evaluatePlanetDay(
           const sEq = Astronomy.Equator(Astronomy.Body.Sun, pRise.date, obs, true, true);
           mSunAlt = Astronomy.Horizon(pRise.date, obs, sEq.ra, sEq.dec, "normal").altitude;
         }
-        const isCombust = mSunAlt > -5.8;
+        const isCombust = mSunAlt > -5.85;
         return { isCombust, angDist, direction: "East", eventTime: pRise?.date || date, isRetro };
       } else {
         // After superior conjunction: in West (evening star), sets after sunset. Udaya in West!
@@ -608,7 +614,7 @@ function evaluatePlanetDay(
           const sEq = Astronomy.Equator(Astronomy.Body.Sun, pSet.date, obs, true, true);
           eSunAlt = Astronomy.Horizon(pSet.date, obs, sEq.ra, sEq.dec, "normal").altitude;
         }
-        const isCombust = eSunAlt > -5.8;
+        const isCombust = eSunAlt > -5.75;
         return { isCombust, angDist, direction: "West", eventTime: pSet?.date || date, isRetro };
       }
     }
