@@ -25,6 +25,8 @@ import {
   resumeGuidedPoojaAudio,
   playTempleBellChime
 } from "../../features/pooja/guidedPoojaAudioNarrator";
+import { DevoteeContactCaptureModal } from "../darshana/DevoteeContactCaptureModal";
+import type { DevoteeUserRecord } from "../../features/seva/devoteeUserService";
 
 export interface GuidedPoojaDevoteeViewProps {
   poojaKeys?: string[];
@@ -33,6 +35,8 @@ export interface GuidedPoojaDevoteeViewProps {
   sankalpaKey?: SankalpaPurposeKey;
   customGoal?: string;
   devoteeName?: string;
+  devoteePhone?: string;
+  devoteeEmail?: string;
   gotra?: string;
   lang?: SevaLang;
   priestName?: string;
@@ -40,12 +44,14 @@ export interface GuidedPoojaDevoteeViewProps {
 }
 
 export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
-  poojaKeys = [...GUIDED_POOJA_KEYS],
-  vrataKeys = [...GUIDED_VRATA_KEYS],
+  poojaKeys,
+  vrataKeys,
   initialCategory = "poojas",
   sankalpaKey = "kutumba",
   customGoal,
   devoteeName = "ಭಕ್ತರು",
+  devoteePhone,
+  devoteeEmail,
   gotra = "ಕಾಶ್ಯಪ",
   lang = "kn",
   priestName = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
@@ -54,17 +60,117 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
   // Real-time language state: initialized from URL/prop, dynamically switchable on screen
   const [currentLang, setCurrentLang] = useState<SevaLang>(lang);
 
+  // Devotee contact state
+  const [currentDevoteeName, setCurrentDevoteeName] = useState<string>(devoteeName);
+  const [currentDevoteePhone, setCurrentDevoteePhone] = useState<string>(devoteePhone || "");
+  const [currentDevoteeEmail, setCurrentDevoteeEmail] = useState<string>(devoteeEmail || "");
+  const [isContactModalOpen, setIsContactModalOpen] = useState<boolean>(false);
+
   useEffect(() => {
     if (lang) {
       setCurrentLang(lang);
     }
   }, [lang]);
 
-  // Category state: Poojas (ನಿತ್ಯ ಪೂಜೆಗಳು) vs Vratas (ಪುಣ್ಯ ವ್ರತಗಳು)
-  const [activeCategory, setActiveCategory] = useState<"poojas" | "vratas">(initialCategory);
+  useEffect(() => {
+    if (devoteeName && devoteeName !== "ಭಕ್ತರು") {
+      setCurrentDevoteeName(devoteeName);
+    }
+  }, [devoteeName]);
 
-  const activePoojas = useMemo(() => filterGuidedPoojas(poojaKeys), [poojaKeys]);
-  const activeVratas = useMemo(() => filterGuidedVratas(vrataKeys), [vrataKeys]);
+  useEffect(() => {
+    if (devoteePhone) setCurrentDevoteePhone(devoteePhone);
+  }, [devoteePhone]);
+
+  useEffect(() => {
+    if (devoteeEmail) setCurrentDevoteeEmail(devoteeEmail);
+  }, [devoteeEmail]);
+
+  // Prompt devotee on first visit if contact details (phone/email) are not provided
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (devoteePhone?.trim() || devoteeEmail?.trim()) return;
+
+    const storedUserRaw = localStorage.getItem("baggona_devotee_user_profile");
+    if (storedUserRaw) {
+      try {
+        const parsed = JSON.parse(storedUserRaw);
+        if (parsed?.phone || parsed?.email) {
+          if (parsed.name && currentDevoteeName === "ಭಕ್ತರು") {
+            setCurrentDevoteeName(parsed.name);
+          }
+          if (parsed.phone) setCurrentDevoteePhone(parsed.phone);
+          if (parsed.email) setCurrentDevoteeEmail(parsed.email);
+          return;
+        }
+      } catch {}
+    }
+
+    const isDismissed = sessionStorage.getItem("baggona_contact_dismissed_pooja") === "true";
+    const isCollected = localStorage.getItem("baggona_contact_collected_pooja") === "true" ||
+      localStorage.getItem("baggona_contact_collected_global") === "true";
+
+    if (!isDismissed && !isCollected) {
+      const timer = setTimeout(() => {
+        setIsContactModalOpen(true);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [devoteePhone, devoteeEmail]);
+
+  const handleContactSuccess = (updatedUser: DevoteeUserRecord) => {
+    setIsContactModalOpen(false);
+    if (updatedUser.name) setCurrentDevoteeName(updatedUser.name);
+    if (updatedUser.phone) setCurrentDevoteePhone(updatedUser.phone);
+    if (updatedUser.email) setCurrentDevoteeEmail(updatedUser.email);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("baggona_contact_collected_pooja", "true");
+      localStorage.setItem("baggona_contact_collected_global", "true");
+    }
+  };
+
+  const handleContactClose = () => {
+    setIsContactModalOpen(false);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("baggona_contact_dismissed_pooja", "true");
+    }
+  };
+
+  const resolvedPoojaKeys = useMemo(() => {
+    if (poojaKeys === undefined && vrataKeys === undefined) {
+      return [...GUIDED_POOJA_KEYS];
+    }
+    return poojaKeys ?? [];
+  }, [poojaKeys, vrataKeys]);
+
+  const resolvedVrataKeys = useMemo(() => {
+    if (poojaKeys === undefined && vrataKeys === undefined) {
+      return [...GUIDED_VRATA_KEYS];
+    }
+    return vrataKeys ?? [];
+  }, [poojaKeys, vrataKeys]);
+
+  const activePoojas = useMemo(() => filterGuidedPoojas(resolvedPoojaKeys), [resolvedPoojaKeys]);
+  const activeVratas = useMemo(() => filterGuidedVratas(resolvedVrataKeys), [resolvedVrataKeys]);
+
+  // Category state: Poojas (ನಿತ್ಯ ಪೂಜೆಗಳು) vs Vratas (ಪುಣ್ಯ ವ್ರತಗಳು)
+  // Strictly enforce category based on selected rituals (e.g. if only Vratas, activeCategory is 'vratas')
+  const initialResolvedCategory: "poojas" | "vratas" = useMemo(() => {
+    if (activePoojas.length === 0 && activeVratas.length > 0) return "vratas";
+    if (activeVratas.length === 0 && activePoojas.length > 0) return "poojas";
+    return initialCategory;
+  }, [activePoojas.length, activeVratas.length, initialCategory]);
+
+  const [activeCategory, setActiveCategory] = useState<"poojas" | "vratas">(initialResolvedCategory);
+
+  useEffect(() => {
+    if (activePoojas.length === 0 && activeVratas.length > 0) {
+      setActiveCategory("vratas");
+    } else if (activeVratas.length === 0 && activePoojas.length > 0) {
+      setActiveCategory("poojas");
+    }
+  }, [activePoojas.length, activeVratas.length]);
 
   const [selectedPoojaKey, setSelectedPoojaKey] = useState<string>(() => {
     return activePoojas[0]?.key || "sandhyavandana";
@@ -123,10 +229,24 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
 
   const activeCancelRef = useRef<(() => void) | null>(null);
 
+  // Stale-closure prevention refs for reliable step-by-step audio sequencing
+  const currentStepIndexRef = useRef<number>(currentStepIndex);
+  currentStepIndexRef.current = currentStepIndex;
+
+  const currentRitualItemRef = useRef(currentRitualItem);
+  currentRitualItemRef.current = currentRitualItem;
+
+  const currentLangRef = useRef<SevaLang>(currentLang);
+  currentLangRef.current = currentLang;
+
+  const autoAdvanceRef = useRef<boolean>(autoAdvance);
+  autoAdvanceRef.current = autoAdvance;
+
   // Reset step index and audio when switching category or ritual
   useEffect(() => {
     stopCurrentAudio();
     setCurrentStepIndex(0);
+    currentStepIndexRef.current = 0;
     setCurrentJapaCount(0);
     setIsFinished(false);
   }, [activeCategory, selectedPoojaKey, selectedVrataKey]);
@@ -154,25 +274,35 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
     setIsPlayingSankalpa(false);
   };
 
-  const handlePlayCurrentStep = async () => {
-    if (!currentStep) return;
+  /**
+   * Deterministic step-by-step audio player:
+   * Accepts explicit target step index to eliminate closure stale-state bugs where
+   * the same step audio was previously repeated indefinitely.
+   */
+  const playStepAtIndex = async (index: number) => {
+    const ritual = currentRitualItemRef.current;
+    if (!ritual || !ritual.steps || index < 0 || index >= ritual.steps.length) return;
 
-    if (isPaused) {
-      await resumeGuidedPoojaAudio();
-      setIsPaused(false);
-      setIsPlaying(true);
-      return;
-    }
+    const stepToPlay = ritual.steps[index];
+    if (!stepToPlay) return;
+
+    setCurrentStepIndex(index);
+    currentStepIndexRef.current = index;
+    setCurrentJapaCount(0);
 
     stopCurrentAudio();
     playTempleBellChime();
 
+    setIsLoadingAudio(true);
+    setIsPlaying(false);
+    setIsPaused(false);
+
     // Pure priest tone: instructions in selected language + all mantras strictly in pure Sanskrit (Devanagari)
-    const speechText = getStepSpokenAudio(currentStep, currentLang);
+    const speechText = getStepSpokenAudio(stepToPlay, currentLangRef.current);
 
     activeCancelRef.current = await speakGuidedPoojaStep(
       speechText,
-      currentLang,
+      currentLangRef.current,
       {
         onStart: () => {
           setIsLoadingAudio(false);
@@ -186,25 +316,38 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
           setIsPlaying(false);
           setIsPaused(false);
           setIsLoadingAudio(false);
-          markStepCompleted(currentStep.step);
+          markStepCompleted(stepToPlay.step);
 
-          // If auto advance is on and not last step, move forward
-          if (autoAdvance && currentRitualItem && currentStepIndex < currentRitualItem.steps.length - 1) {
+          // If auto advance is on and not last step, advance to next step
+          const latestRitual = currentRitualItemRef.current;
+          const nextIndex = index + 1;
+          if (autoAdvanceRef.current && latestRitual && nextIndex < latestRitual.steps.length) {
             setTimeout(() => {
-              handleNextStep(true);
-            }, 1200);
-          } else if (currentStepIndex === (currentRitualItem?.steps.length || 0) - 1) {
+              void playStepAtIndex(nextIndex);
+            }, 1000);
+          } else if (latestRitual && nextIndex >= latestRitual.steps.length) {
             setIsFinished(true);
             playTempleBellChime();
           }
         },
         onError: (err) => {
-          console.warn("[GuidedPooja] Playback warning:", err);
+          console.warn("[GuidedPooja] Playback notice:", err);
           setIsLoadingAudio(false);
           setIsPlaying(false);
         }
       }
     );
+  };
+
+  const handlePlayCurrentStep = async () => {
+    if (isPaused) {
+      await resumeGuidedPoojaAudio();
+      setIsPaused(false);
+      setIsPlaying(true);
+      return;
+    }
+
+    void playStepAtIndex(currentStepIndex);
   };
 
   const handlePause = () => {
@@ -214,14 +357,17 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
   };
 
   const handleNextStep = (autoPlayNext = false) => {
-    if (!currentRitualItem) return;
-    if (currentStepIndex < currentRitualItem.steps.length - 1) {
+    const ritual = currentRitualItemRef.current;
+    if (!ritual) return;
+    const nextIdx = currentStepIndex + 1;
+    if (nextIdx < ritual.steps.length) {
       stopCurrentAudio();
-      setCurrentStepIndex((prev) => prev + 1);
+      setCurrentStepIndex(nextIdx);
+      currentStepIndexRef.current = nextIdx;
       setCurrentJapaCount(0);
       if (autoPlayNext) {
         setTimeout(() => {
-          void handlePlayCurrentStep();
+          void playStepAtIndex(nextIdx);
         }, 300);
       }
     } else {
@@ -232,8 +378,10 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
 
   const handlePrevStep = () => {
     if (currentStepIndex > 0) {
+      const prevIdx = currentStepIndex - 1;
       stopCurrentAudio();
-      setCurrentStepIndex((prev) => prev - 1);
+      setCurrentStepIndex(prevIdx);
+      currentStepIndexRef.current = prevIdx;
       setCurrentJapaCount(0);
     }
   };
@@ -241,6 +389,7 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
   const handleJumpToStep = (index: number) => {
     stopCurrentAudio();
     setCurrentStepIndex(index);
+    currentStepIndexRef.current = index;
     setCurrentJapaCount(0);
     setIsFinished(false);
   };
@@ -283,7 +432,7 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
     setIsPlayingSankalpa(true);
 
     const sanskritMantra = buildSanskritSankalpaMantra({
-      devoteeName,
+      devoteeName: currentDevoteeName,
       gotra,
       purposeKey: sankalpaKey,
       customGoal,
@@ -291,14 +440,14 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
     });
 
     const localizedIntro = currentLang === "en"
-      ? `Now reciting your personal Vedic Sankalpa on behalf of devotee ${devoteeName}.`
+      ? `Now reciting your personal Vedic Sankalpa on behalf of devotee ${currentDevoteeName}.`
       : currentLang === "te"
-      ? `ఇప్పుడు భక్తులు ${devoteeName} గారి తరపున వైదిక దేశ-కాల సంకల్ప పఠనం.`
+      ? `ఇప్పుడు భక్తులు ${currentDevoteeName} గారి తరపున వైదిక దేశ-కాల సంకల్ప పఠనం.`
       : currentLang === "ta"
-      ? `இப்போது பக்தர் ${devoteeName} அவர்களின் சார்பில் வைதீக சங்கல்ப பாராயணம்.`
+      ? `இப்போது பக்தர் ${currentDevoteeName} அவர்களின் சார்பில் வைதீக சங்கல்ப பாராயணம்.`
       : currentLang === "hi"
-      ? `अब भक्त ${devoteeName} के निमित्त वैदिक देश-काल संकल्प पाठ।`
-      : `ಈಗ ಭಕ್ತರಾದ ${devoteeName} ಅವರ ಪರವಾಗಿ ವೈದಿಕ ದೇಶ-ಕಾಲ ಸಂಕಲ್ಪ ಪಠಣ.`;
+      ? `अब भक्त ${currentDevoteeName} के निमित्त वैदिक देश-काल संकल्प पाठ।`
+      : `ಈಗ ಭಕ್ತರಾದ ${currentDevoteeName} ಅವರ ಪರವಾಗಿ ವೈದಿಕ ದೇಶ-ಕಾಲ ಸಂಕಲ್ಪ ಪಠಣ.`;
 
     const fullSankalpaSpoken = `${localizedIntro}\n\n${sanskritMantra}`;
 
@@ -371,7 +520,7 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
                 </h1>
               </div>
               <p className="text-[10px] text-amber-800/80 font-bold">
-                🙏 {currentLang === "en" ? "Priest" : "ಪುರೋಹಿತರು"}: {priestName} · {currentLang === "en" ? "Devotee" : "ಭಕ್ತರು"}: {devoteeName} ({gotra} {currentLang === "en" ? "Gotra" : "ಗೋತ್ರ"})
+                🙏 {currentLang === "en" ? "Priest" : "ಪುರೋಹಿತರು"}: {priestName} · {currentLang === "en" ? "Devotee" : "ಭಕ್ತರು"}: {currentDevoteeName} ({gotra} {currentLang === "en" ? "Gotra" : "ಗೋತ್ರ"})
               </p>
             </div>
           </div>
@@ -422,34 +571,36 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
           </div>
         </div>
 
-        {/* 3. DUAL MAIN CATEGORY SWITCHER: 🪔 ನಿತ್ಯ ಪೂಜೆಗಳು | 🌸 ಪುಣ್ಯ ವ್ರತಗಳು */}
-        <div className="mt-2 grid grid-cols-2 gap-1.5 p-1 bg-[#FFF8DC] border-2 border-amber-400/80 rounded-2xl shadow-inner">
-          <button
-            type="button"
-            onClick={() => setActiveCategory("poojas")}
-            className={`py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 active:scale-95 ${
-              activeCategory === "poojas"
-                ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md ring-2 ring-amber-500/50 scale-[1.02]"
-                : "text-amber-900 bg-amber-50/80 hover:bg-amber-100 border border-amber-300/40"
-            }`}
-          >
-            <span>🪔</span>
-            <span>{currentLang === "en" ? `Daily Poojas (${activePoojas.length})` : `ನಿತ್ಯ ಪೂಜಾ ವಿಧಿ (${activePoojas.length})`}</span>
-          </button>
+        {/* 3. DUAL MAIN CATEGORY SWITCHER: 🪔 ನಿತ್ಯ ಪೂಜೆಗಳು | 🌸 ಪುಣ್ಯ ವ್ರತಗಳು (Shown only if both are active) */}
+        {activePoojas.length > 0 && activeVratas.length > 0 && (
+          <div className="mt-2 grid grid-cols-2 gap-1.5 p-1 bg-[#FFF8DC] border-2 border-amber-400/80 rounded-2xl shadow-inner">
+            <button
+              type="button"
+              onClick={() => setActiveCategory("poojas")}
+              className={`py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 active:scale-95 ${
+                activeCategory === "poojas"
+                  ? "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 text-slate-950 shadow-md ring-2 ring-amber-500/50 scale-[1.02]"
+                  : "text-amber-900 bg-amber-50/80 hover:bg-amber-100 border border-amber-300/40"
+              }`}
+            >
+              <span>🪔</span>
+              <span>{currentLang === "en" ? `Daily Poojas (${activePoojas.length})` : `ನಿತ್ಯ ಪೂಜಾ ವಿಧಿ (${activePoojas.length})`}</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveCategory("vratas")}
-            className={`py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 active:scale-95 ${
-              activeCategory === "vratas"
-                ? "bg-gradient-to-r from-pink-600 via-rose-500 to-amber-500 text-white shadow-md ring-2 ring-pink-500/50 scale-[1.02]"
-                : "text-amber-900 bg-amber-50/80 hover:bg-amber-100 border border-amber-300/40"
-            }`}
-          >
-            <span>🌸</span>
-            <span>{currentLang === "en" ? `Sacred Vratas (${activeVratas.length})` : `ವ್ರತ ಮಹಾವಿಧಿ (${activeVratas.length})`}</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => setActiveCategory("vratas")}
+              className={`py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 active:scale-95 ${
+                activeCategory === "vratas"
+                  ? "bg-gradient-to-r from-pink-600 via-rose-500 to-amber-500 text-white shadow-md ring-2 ring-pink-500/50 scale-[1.02]"
+                  : "text-amber-900 bg-amber-50/80 hover:bg-amber-100 border border-amber-300/40"
+              }`}
+            >
+              <span>🌸</span>
+              <span>{currentLang === "en" ? `Sacred Vratas (${activeVratas.length})` : `ವ್ರತ ಮಹಾವಿಧಿ (${activeVratas.length})`}</span>
+            </button>
+          </div>
+        )}
 
         {/* 4. DYNAMIC SUBCATEGORY TABS (Cream & Gold Pill Slider) */}
         <div className="mt-2">
@@ -958,6 +1109,19 @@ export const GuidedPoojaDevoteeView: React.FC<GuidedPoojaDevoteeViewProps> = ({
           </button>
         </div>
       </footer>
+
+      {/* Devotee Contact Capture Modal (First-time Name, Phone, Email Prompt) */}
+      <DevoteeContactCaptureModal
+        isOpen={isContactModalOpen}
+        onClose={handleContactClose}
+        devoteeId="devotee_pooja"
+        devoteeName={currentDevoteeName}
+        gotra={gotra}
+        lang={currentLang}
+        initialPhone={currentDevoteePhone}
+        initialEmail={currentDevoteeEmail}
+        onSuccess={handleContactSuccess}
+      />
     </div>
   );
 };

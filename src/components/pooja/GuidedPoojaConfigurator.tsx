@@ -36,13 +36,13 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
   onCancel
 }) => {
   const [selectedPoojaKeys, setSelectedPoojaKeys] = useState<GuidedPoojaKey[]>(() => {
-    return initialConfig?.poojaKeys && initialConfig.poojaKeys.length > 0
+    return initialConfig?.poojaKeys !== undefined
       ? initialConfig.poojaKeys
       : [...GUIDED_POOJA_KEYS];
   });
 
   const [selectedVrataKeys, setSelectedVrataKeys] = useState<GuidedVrataKey[]>(() => {
-    return initialConfig?.vrataKeys && initialConfig.vrataKeys.length > 0
+    return initialConfig?.vrataKeys !== undefined
       ? initialConfig.vrataKeys
       : [...GUIDED_VRATA_KEYS];
   });
@@ -59,6 +59,8 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
   );
 
   const [devoteeName, setDevoteeName] = useState<string>(() => initialConfig?.devoteeName || "ಭಕ್ತರು");
+  const [devoteePhone, setDevoteePhone] = useState<string>(() => initialConfig?.devoteePhone || "");
+  const [devoteeEmail, setDevoteeEmail] = useState<string>(() => initialConfig?.devoteeEmail || "");
   const [gotra, setGotra] = useState<string>(() => initialConfig?.gotra || "ಕಾಶ್ಯಪ");
   const [priestName, setPriestName] = useState<string>(() => initialConfig?.priestName || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
   const [lang, setLang] = useState<SevaLang>(() => initialConfig?.lang || "kn");
@@ -76,6 +78,8 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
       sankalpaKey,
       customGoal: sankalpaKey === "custom" ? customGoal : undefined,
       devoteeName,
+      devoteePhone: devoteePhone.trim() || undefined,
+      devoteeEmail: devoteeEmail.trim() || undefined,
       gotra,
       lang,
       priestName
@@ -90,12 +94,13 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
     })
       .then((qr) => setQrCodeDataUrl(qr))
       .catch((err) => console.warn("[GuidedPoojaConfigurator] QR error:", err));
-  }, [selectedPoojaKeys, selectedVrataKeys, activeTab, sankalpaKey, customGoal, devoteeName, gotra, lang, priestName]);
+  }, [selectedPoojaKeys, selectedVrataKeys, activeTab, sankalpaKey, customGoal, devoteeName, devoteePhone, devoteeEmail, gotra, lang, priestName]);
 
   const handleTogglePooja = (key: GuidedPoojaKey) => {
     setSelectedPoojaKeys((prev) => {
       if (prev.includes(key)) {
-        if (prev.length === 1) return prev;
+        // Can only remove if there's still at least 1 other pooja OR at least 1 vrata selected
+        if (prev.length === 1 && selectedVrataKeys.length === 0) return prev;
         return prev.filter((k) => k !== key);
       } else {
         return [...prev, key];
@@ -106,7 +111,8 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
   const handleToggleVrata = (key: GuidedVrataKey) => {
     setSelectedVrataKeys((prev) => {
       if (prev.includes(key)) {
-        if (prev.length === 1) return prev;
+        // Can only remove if there's still at least 1 other vrata OR at least 1 pooja selected
+        if (prev.length === 1 && selectedPoojaKeys.length === 0) return prev;
         return prev.filter((k) => k !== key);
       } else {
         return [...prev, key];
@@ -114,12 +120,36 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
     });
   };
 
+  const handleSelectOnlyPooja = (key: GuidedPoojaKey) => {
+    setSelectedPoojaKeys([key]);
+    setSelectedVrataKeys([]);
+    setActiveTab("poojas");
+  };
+
+  const handleSelectOnlyVrata = (key: GuidedVrataKey) => {
+    setSelectedVrataKeys([key]);
+    setSelectedPoojaKeys([]);
+    setActiveTab("vratas");
+  };
+
   const handleSelectAllPoojas = () => {
     setSelectedPoojaKeys([...GUIDED_POOJA_KEYS]);
   };
 
+  const handleClearPoojas = () => {
+    if (selectedVrataKeys.length > 0) {
+      setSelectedPoojaKeys([]);
+    }
+  };
+
   const handleSelectAllVratas = () => {
     setSelectedVrataKeys([...GUIDED_VRATA_KEYS]);
+  };
+
+  const handleClearVratas = () => {
+    if (selectedPoojaKeys.length > 0) {
+      setSelectedVrataKeys([]);
+    }
   };
 
   const handleCopyLink = async () => {
@@ -156,6 +186,8 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
       sankalpaKey,
       customGoal: sankalpaKey === "custom" ? customGoal : undefined,
       devoteeName,
+      devoteePhone: devoteePhone.trim() || undefined,
+      devoteeEmail: devoteeEmail.trim() || undefined,
       gotra,
       lang,
       priestName
@@ -268,15 +300,26 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-amber-900">
-              ಪೂಜೆಗಳ ಪಟ್ಟಿ (ಕನಿಷ್ಠ ೧ ಆಯ್ಕೆಮಾಡಿ):
+              ಪೂಜೆಗಳ ಪಟ್ಟಿ ({selectedPoojaKeys.length} ಆಯ್ಕೆ):
             </span>
-            <button
-              type="button"
-              onClick={handleSelectAllPoojas}
-              className="text-[11px] font-bold text-amber-700 hover:text-amber-950 underline"
-            >
-              ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSelectAllPoojas}
+                className="text-[11px] font-bold text-amber-700 hover:text-amber-950 underline"
+              >
+                ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ
+              </button>
+              {selectedVrataKeys.length > 0 && selectedPoojaKeys.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearPoojas}
+                  className="text-[11px] font-bold text-red-700 hover:text-red-950 underline"
+                >
+                  ತೆರವುಗೊಳಿಸಿ
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5 max-h-52 overflow-y-auto no-scrollbar">
@@ -284,29 +327,39 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
               const item = GUIDED_POOJAS[key];
               const isChecked = selectedPoojaKeys.includes(key);
               return (
-                <label
+                <div
                   key={key}
-                  className={`flex items-center gap-2.5 p-2 rounded-2xl border transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 p-2 rounded-2xl border transition-all ${
                     isChecked
                       ? "bg-[#FFFBEA] border-amber-400 text-amber-950 shadow-xs"
                       : "bg-white/70 border-amber-200/80 text-amber-800/80 hover:bg-amber-50"
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => handleTogglePooja(key)}
-                    className="h-4 w-4 rounded text-amber-600 focus:ring-amber-500 accent-amber-600"
-                  />
-                  <span className="text-base">{item.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-black truncate">{item.titleKn}</div>
-                    <div className="text-[10px] text-amber-700 truncate">{item.subtitleKn}</div>
-                  </div>
-                  <span className="text-[10px] font-black text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded-full border border-amber-300">
-                    {item.steps.length} ಹಂತ
-                  </span>
-                </label>
+                  <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => handleTogglePooja(key)}
+                      className="h-4 w-4 rounded text-amber-600 focus:ring-amber-500 accent-amber-600 shrink-0"
+                    />
+                    <span className="text-base shrink-0">{item.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-black truncate">{item.titleKn}</div>
+                      <div className="text-[10px] text-amber-700 truncate">{item.subtitleKn}</div>
+                    </div>
+                    <span className="text-[10px] font-black text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded-full border border-amber-300 shrink-0">
+                      {item.steps.length} ಹಂತ
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectOnlyPooja(key)}
+                    className="text-[9px] font-black px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 shrink-0 transition-colors"
+                    title="ಕೇವಲ ಈ ಪೂಜೆ ಮಾತ್ರ ಆಯ್ಕೆಮಾಡಿ (1 Tab)"
+                  >
+                    ಕೇವಲ ಇದು
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -315,15 +368,26 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-pink-900">
-              ವ್ರತಗಳ ಪಟ್ಟಿ (ಕನಿಷ್ಠ ೧ ಆಯ್ಕೆಮಾಡಿ):
+              ವ್ರತಗಳ ಪಟ್ಟಿ ({selectedVrataKeys.length} ಆಯ್ಕೆ):
             </span>
-            <button
-              type="button"
-              onClick={handleSelectAllVratas}
-              className="text-[11px] font-bold text-pink-700 hover:text-pink-950 underline"
-            >
-              ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSelectAllVratas}
+                className="text-[11px] font-bold text-pink-700 hover:text-pink-950 underline"
+              >
+                ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ
+              </button>
+              {selectedPoojaKeys.length > 0 && selectedVrataKeys.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearVratas}
+                  className="text-[11px] font-bold text-red-700 hover:text-red-950 underline"
+                >
+                  ತೆರವುಗೊಳಿಸಿ
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5 max-h-52 overflow-y-auto no-scrollbar">
@@ -331,29 +395,39 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
               const item = GUIDED_VRATAS[key];
               const isChecked = selectedVrataKeys.includes(key);
               return (
-                <label
+                <div
                   key={key}
-                  className={`flex items-center gap-2.5 p-2 rounded-2xl border transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 p-2 rounded-2xl border transition-all ${
                     isChecked
                       ? "bg-pink-50/90 border-pink-400 text-pink-950 shadow-xs"
                       : "bg-white/70 border-amber-200/80 text-amber-800/80 hover:bg-pink-50/50"
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => handleToggleVrata(key)}
-                    className="h-4 w-4 rounded text-pink-600 focus:ring-pink-500 accent-pink-600"
-                  />
-                  <span className="text-base">{item.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-black truncate">{item.titleKn}</div>
-                    <div className="text-[10px] text-pink-800 truncate">{item.subtitleKn}</div>
-                  </div>
-                  <span className="text-[10px] font-black text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded-full border border-pink-300">
-                    {item.steps.length} ಹಂತ
-                  </span>
-                </label>
+                  <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => handleToggleVrata(key)}
+                      className="h-4 w-4 rounded text-pink-600 focus:ring-pink-500 accent-pink-600 shrink-0"
+                    />
+                    <span className="text-base shrink-0">{item.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-black truncate">{item.titleKn}</div>
+                      <div className="text-[10px] text-pink-800 truncate">{item.subtitleKn}</div>
+                    </div>
+                    <span className="text-[10px] font-black text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded-full border border-pink-300 shrink-0">
+                      {item.steps.length} ಹಂತ
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectOnlyVrata(key)}
+                    className="text-[9px] font-black px-2 py-1 rounded-lg bg-pink-100 hover:bg-pink-200 text-pink-900 border border-pink-300 shrink-0 transition-colors"
+                    title="ಕೇವಲ ಈ ವ್ರತ ಮಾತ್ರ ಆಯ್ಕೆಮಾಡಿ (1 Tab)"
+                  >
+                    ಕೇವಲ ಇದು
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -372,6 +446,32 @@ export const GuidedPoojaConfigurator: React.FC<GuidedPoojaConfiguratorProps> = (
             onChange={(e) => setDevoteeName(e.target.value)}
             className="w-full px-2.5 py-1.5 rounded-xl border border-amber-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-semibold"
             placeholder="ಹೆಸರು"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold text-amber-900 mb-1">
+            📱 ಮೊಬೈಲ್ (Phone):
+          </label>
+          <input
+            type="tel"
+            value={devoteePhone}
+            onChange={(e) => setDevoteePhone(e.target.value)}
+            className="w-full px-2.5 py-1.5 rounded-xl border border-amber-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-semibold"
+            placeholder="ಮೊಬೈಲ್ ಸಂಖ್ಯೆ"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold text-amber-900 mb-1">
+            ✉️ ಇಮೇಲ್ (Email):
+          </label>
+          <input
+            type="email"
+            value={devoteeEmail}
+            onChange={(e) => setDevoteeEmail(e.target.value)}
+            className="w-full px-2.5 py-1.5 rounded-xl border border-amber-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-semibold"
+            placeholder="ಇಮೇಲ್ ವಿಳಾಸ"
           />
         </div>
 

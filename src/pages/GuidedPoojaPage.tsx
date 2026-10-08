@@ -51,8 +51,16 @@ export const GuidedPoojaPage: React.FC = () => {
     // Update browser URL silently without reloading
     if (typeof window !== "undefined" && window.history) {
       const params = new URLSearchParams(window.location.search);
-      params.set("poojas", newConfig.poojaKeys.join(","));
-      params.set("vratas", newConfig.vrataKeys.join(","));
+      if (newConfig.poojaKeys && newConfig.poojaKeys.length > 0) {
+        params.set("poojas", newConfig.poojaKeys.join(","));
+      } else {
+        params.delete("poojas");
+      }
+      if (newConfig.vrataKeys && newConfig.vrataKeys.length > 0) {
+        params.set("vratas", newConfig.vrataKeys.join(","));
+      } else {
+        params.delete("vratas");
+      }
       if (newConfig.activeCategory && newConfig.activeCategory !== "poojas") {
         params.set("tab", newConfig.activeCategory);
       }
@@ -64,6 +72,16 @@ export const GuidedPoojaPage: React.FC = () => {
       }
       if (newConfig.devoteeName && newConfig.devoteeName !== "ಭಕ್ತರು") {
         params.set("name", newConfig.devoteeName);
+      }
+      if (newConfig.devoteePhone && newConfig.devoteePhone.trim()) {
+        params.set("phone", newConfig.devoteePhone.trim());
+      } else {
+        params.delete("phone");
+      }
+      if (newConfig.devoteeEmail && newConfig.devoteeEmail.trim()) {
+        params.set("email", newConfig.devoteeEmail.trim());
+      } else {
+        params.delete("email");
       }
       if (newConfig.gotra && newConfig.gotra !== "ಕಾಶ್ಯಪ") {
         params.set("gotra", newConfig.gotra);
@@ -95,6 +113,8 @@ export const GuidedPoojaPage: React.FC = () => {
             sankalpaKey={config.sankalpaKey}
             customGoal={config.customGoal}
             devoteeName={config.devoteeName}
+            devoteePhone={config.devoteePhone}
+            devoteeEmail={config.devoteeEmail}
             gotra={config.gotra}
             lang={config.lang}
             priestName={config.priestName}

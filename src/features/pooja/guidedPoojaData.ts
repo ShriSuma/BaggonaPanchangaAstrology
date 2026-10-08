@@ -1538,8 +1538,9 @@ export function getAllGuidedPoojas(): GuidedPoojaItem[] {
   return GUIDED_POOJA_KEYS.map((k) => GUIDED_POOJAS[k]);
 }
 
-export function filterGuidedPoojas(keys: string[]): GuidedPoojaItem[] {
-  if (!keys || keys.length === 0) return getAllGuidedPoojas();
+export function filterGuidedPoojas(keys?: string[]): GuidedPoojaItem[] {
+  if (keys === undefined) return getAllGuidedPoojas();
+  if (keys.length === 0) return [];
   const matched: GuidedPoojaItem[] = [];
   for (const k of keys) {
     const item = GUIDED_POOJAS[k as GuidedPoojaKey];
@@ -1547,5 +1548,5 @@ export function filterGuidedPoojas(keys: string[]): GuidedPoojaItem[] {
       matched.push(item);
     }
   }
-  return matched.length > 0 ? matched : getAllGuidedPoojas();
+  return matched;
 }

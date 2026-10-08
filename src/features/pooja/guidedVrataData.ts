@@ -2478,9 +2478,12 @@ Shri Shaaradaambaa Supreetaa Varadaa Bhavatu ||`,
 /**
  * Filter vratas by selected keys
  */
-export function filterGuidedVratas(keys: string[]): GuidedVrataItem[] {
-  if (!keys || keys.length === 0) {
+export function filterGuidedVratas(keys?: string[]): GuidedVrataItem[] {
+  if (keys === undefined) {
     return GUIDED_VRATA_KEYS.map((k) => GUIDED_VRATAS[k]);
+  }
+  if (keys.length === 0) {
+    return [];
   }
   const items: GuidedVrataItem[] = [];
   for (const k of keys) {
@@ -2488,5 +2491,5 @@ export function filterGuidedVratas(keys: string[]): GuidedVrataItem[] {
       items.push(GUIDED_VRATAS[k as GuidedVrataKey]);
     }
   }
-  return items.length > 0 ? items : GUIDED_VRATA_KEYS.map((k) => GUIDED_VRATAS[k]);
+  return items;
 }

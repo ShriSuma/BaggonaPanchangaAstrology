@@ -730,9 +730,8 @@ export async function synthesizeAndPlayClonedVoice(
   }, 25000);
 
   try {
-    streamCancelFn = streamSentencePipeline(
+    const audioPromise = handleGenerateAudio(
       text,
-      _lang,
       targetVoiceId,
       () => {
         if (fallbackWaitTimer) {
@@ -750,22 +749,28 @@ export async function synthesizeAndPlayClonedVoice(
         if (!isCancelled && onStart) onStart();
       },
       (err) => {
-        console.warn("[AIVoiceCloneEngine] Initial API stream notice (waiting for 12s window):", err);
-        // Fast-fail if client is completely offline or media source is fundamentally invalid/unsupported
-        const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
-        const isFatalMedia = err && (err.code === 4 || err.code === 2);
-        if (isOffline || isFatalMedia) {
-          console.warn("[AIVoiceCloneEngine] Fatal stream failure detected, engaging fallback immediately.");
-          if (fallbackWaitTimer) {
-            clearTimeout(fallbackWaitTimer);
-            fallbackWaitTimer = null;
-          }
+        console.warn("[AIVoiceCloneEngine] handleGenerateAudio error:", err);
+        if (fallbackWaitTimer) {
+          clearTimeout(fallbackWaitTimer);
+          fallbackWaitTimer = null;
+        }
+        if (!apiStreamStarted && !isCancelled) {
           void triggerFallback();
         }
       }
     );
+
+    void audioPromise.then((audio) => {
+      if (!audio && !apiStreamStarted && !isCancelled) {
+        if (fallbackWaitTimer) {
+          clearTimeout(fallbackWaitTimer);
+          fallbackWaitTimer = null;
+        }
+        void triggerFallback();
+      }
+    });
   } catch (err) {
-    console.warn("[AIVoiceCloneEngine] Error launching progressive stream pipeline:", err);
+    console.warn("[AIVoiceCloneEngine] Error launching neural audio generation:", err);
     if (fallbackWaitTimer) {
       clearTimeout(fallbackWaitTimer);
       fallbackWaitTimer = null;

@@ -20,6 +20,8 @@ export interface GuidedPoojaConfig {
   activeCategory: "poojas" | "vratas";
   selectedItemKey?: string;
   devoteeName?: string;
+  devoteePhone?: string;
+  devoteeEmail?: string;
   gotra?: string;
   lang?: SevaLang;
   priestName?: string;
@@ -80,21 +82,19 @@ export function generateGuidedPoojaShareUrl(
   const merged: GuidedPoojaConfig = {
     ...DEFAULT_GUIDED_POOJA_CONFIG,
     ...config,
-    poojaKeys: (config.poojaKeys && config.poojaKeys.length > 0)
-      ? config.poojaKeys
-      : [...GUIDED_POOJA_KEYS],
-    vrataKeys: (config.vrataKeys && config.vrataKeys.length > 0)
-      ? config.vrataKeys
-      : [...GUIDED_VRATA_KEYS]
+    poojaKeys: config.poojaKeys !== undefined ? config.poojaKeys : [...GUIDED_POOJA_KEYS],
+    vrataKeys: config.vrataKeys !== undefined ? config.vrataKeys : [...GUIDED_VRATA_KEYS]
   };
 
   const baseOrigin = origin || (typeof window !== "undefined" ? window.location.origin : "https://baggona.com");
   const params = new URLSearchParams();
 
-  // Readable poojas parameter
-  params.set("poojas", merged.poojaKeys.join(","));
+  // Readable poojas parameter (only if poojas are selected)
+  if (merged.poojaKeys && merged.poojaKeys.length > 0) {
+    params.set("poojas", merged.poojaKeys.join(","));
+  }
 
-  // Readable vratas parameter
+  // Readable vratas parameter (only if vratas are selected)
   if (merged.vrataKeys && merged.vrataKeys.length > 0) {
     params.set("vratas", merged.vrataKeys.join(","));
   }
@@ -124,6 +124,12 @@ export function generateGuidedPoojaShareUrl(
   if (merged.devoteeName && merged.devoteeName.trim() && merged.devoteeName !== "ಭಕ್ತರು") {
     params.set("name", merged.devoteeName.trim());
   }
+  if (merged.devoteePhone && merged.devoteePhone.trim()) {
+    params.set("phone", merged.devoteePhone.trim());
+  }
+  if (merged.devoteeEmail && merged.devoteeEmail.trim()) {
+    params.set("email", merged.devoteeEmail.trim());
+  }
   if (merged.gotra && merged.gotra.trim() && merged.gotra !== "ಕಾಶ್ಯಪ") {
     params.set("gotra", merged.gotra.trim());
   }
@@ -140,6 +146,8 @@ export function generateGuidedPoojaShareUrl(
     cg: merged.customGoal,
     it: merged.selectedItemKey,
     n: merged.devoteeName,
+    ph: merged.devoteePhone,
+    em: merged.devoteeEmail,
     g: merged.gotra,
     l: merged.lang,
     pr: merged.priestName
@@ -166,41 +174,19 @@ export function parseGuidedPoojaFromUrl(searchOrUrl?: string): GuidedPoojaConfig
       if (!search && window.location.hash.includes("?")) {
         search = window.location.hash.substring(window.location.hash.indexOf("?"));
       }
+    } else if (search.includes("?")) {
+      search = search.substring(search.indexOf("?"));
     }
 
     const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
 
     // Check if encoded token exists
     const pToken = params.get("pToken") || params.get("poojaToken");
+    let tokenParsed: any = null;
     if (pToken) {
       try {
         const decodedStr = fromBase64Url(pToken);
-        const parsed = JSON.parse(decodedStr);
-        if (parsed && typeof parsed === "object") {
-          const tokenPoojaKeys = (parsed.p && Array.isArray(parsed.p))
-            ? (parsed.p as GuidedPoojaKey[]).filter((k) => GUIDED_POOJA_KEYS.includes(k))
-            : [];
-          const tokenVrataKeys = (parsed.v && Array.isArray(parsed.v))
-            ? (parsed.v as GuidedVrataKey[]).filter((k) => GUIDED_VRATA_KEYS.includes(k))
-            : [];
-
-          const resolvedSankalpa = (parsed.sk && parsed.sk in SANKALPA_PURPOSES)
-            ? (parsed.sk as SankalpaPurposeKey)
-            : fallback.sankalpaKey;
-
-          return {
-            poojaKeys: tokenPoojaKeys.length > 0 ? tokenPoojaKeys : [...GUIDED_POOJA_KEYS],
-            vrataKeys: tokenVrataKeys.length > 0 ? tokenVrataKeys : [...GUIDED_VRATA_KEYS],
-            sankalpaKey: resolvedSankalpa,
-            customGoal: parsed.cg || params.get("goal") || undefined,
-            activeCategory: parsed.cat === "vratas" ? "vratas" : "poojas",
-            selectedItemKey: parsed.it || params.get("item") || undefined,
-            devoteeName: parsed.n || params.get("name") || fallback.devoteeName,
-            gotra: parsed.g || params.get("gotra") || fallback.gotra,
-            lang: (parsed.l || params.get("lang") || fallback.lang) as SevaLang,
-            priestName: parsed.pr || params.get("priest") || fallback.priestName
-          };
-        }
+        tokenParsed = JSON.parse(decodedStr);
       } catch (err) {
         console.warn("[GuidedPoojaUrl] Token decode warning, falling back to params:", err);
       }
@@ -227,6 +213,8 @@ export function parseGuidedPoojaFromUrl(searchOrUrl?: string): GuidedPoojaConfig
           resolvedPoojaKeys.push("shiva_pooja");
         }
       }
+    } else if (tokenParsed && Array.isArray(tokenParsed.p)) {
+      resolvedPoojaKeys = (tokenParsed.p as GuidedPoojaKey[]).filter((k) => GUIDED_POOJA_KEYS.includes(k));
     }
 
     // Check direct query parameters for Vratas
@@ -252,36 +240,75 @@ export function parseGuidedPoojaFromUrl(searchOrUrl?: string): GuidedPoojaConfig
           resolvedVrataKeys.push("saraswati_medha_vrata");
         }
       }
+    } else if (tokenParsed && Array.isArray(tokenParsed.v)) {
+      resolvedVrataKeys = (tokenParsed.v as GuidedVrataKey[]).filter((k) => GUIDED_VRATA_KEYS.includes(k));
+    }
+
+    // STRICT USER MANDATE:
+    // If only Vrata(s) were selected in the URL, create ONLY the Vrata tab(s) - zero default poojas!
+    // If only Pooja(s) were selected in the URL, create ONLY the Pooja tab(s) - zero default vratas!
+    // If both or neither, reflect both.
+    const hasExplicitVratas = Boolean(vratasParam) || (tokenParsed && Array.isArray(tokenParsed.v) && tokenParsed.v.length > 0);
+    const hasExplicitPoojas = Boolean(poojasParam) || (tokenParsed && Array.isArray(tokenParsed.p) && tokenParsed.p.length > 0);
+
+    let finalPoojaKeys: GuidedPoojaKey[];
+    let finalVrataKeys: GuidedVrataKey[];
+
+    if (hasExplicitVratas && !hasExplicitPoojas) {
+      finalVrataKeys = resolvedVrataKeys.length > 0 ? resolvedVrataKeys : [...GUIDED_VRATA_KEYS];
+      finalPoojaKeys = [];
+    } else if (hasExplicitPoojas && !hasExplicitVratas) {
+      finalPoojaKeys = resolvedPoojaKeys.length > 0 ? resolvedPoojaKeys : [...GUIDED_POOJA_KEYS];
+      finalVrataKeys = [];
+    } else if (hasExplicitPoojas && hasExplicitVratas) {
+      finalPoojaKeys = resolvedPoojaKeys.length > 0 ? resolvedPoojaKeys : [...GUIDED_POOJA_KEYS];
+      finalVrataKeys = resolvedVrataKeys.length > 0 ? resolvedVrataKeys : [...GUIDED_VRATA_KEYS];
+    } else {
+      // Default initial state: all poojas and vratas available
+      finalPoojaKeys = [...GUIDED_POOJA_KEYS];
+      finalVrataKeys = [...GUIDED_VRATA_KEYS];
     }
 
     // Sankalpa purpose
-    const sankalpaParam = (params.get("sankalpa") || params.get("purpose") || "kutumba").toLowerCase();
+    const rawSankalpa = params.get("sankalpa") || params.get("purpose") || tokenParsed?.sk || "kutumba";
+    const sankalpaParam = String(rawSankalpa).toLowerCase();
     const sankalpaKey: SankalpaPurposeKey = (sankalpaParam in SANKALPA_PURPOSES)
       ? (sankalpaParam as SankalpaPurposeKey)
       : (sankalpaParam.includes("marri") || sankalpaParam.includes("viva") ? "vivaha" : "kutumba");
 
-    const customGoal = params.get("goal") || params.get("wish") || undefined;
+    const customGoal = params.get("goal") || params.get("wish") || tokenParsed?.cg || undefined;
 
     // Active Category (Tab)
-    const tabParam = (params.get("tab") || params.get("category") || params.get("mode") || "").toLowerCase();
-    const activeCategory = (tabParam === "vrata" || tabParam === "vratas" || params.has("vratas"))
-      ? "vratas"
-      : "poojas";
+    const tabParam = (params.get("tab") || params.get("category") || params.get("mode") || tokenParsed?.cat || "").toLowerCase();
+    let activeCategory: "poojas" | "vratas" = "poojas";
+    if (finalPoojaKeys.length === 0 && finalVrataKeys.length > 0) {
+      activeCategory = "vratas";
+    } else if (finalVrataKeys.length === 0 && finalPoojaKeys.length > 0) {
+      activeCategory = "poojas";
+    } else if (tabParam === "vrata" || tabParam === "vratas" || hasExplicitVratas) {
+      activeCategory = "vratas";
+    } else {
+      activeCategory = "poojas";
+    }
 
-    const selectedItemKey = params.get("item") || undefined;
-    const devoteeName = params.get("name") || params.get("devotee") || fallback.devoteeName;
-    const gotra = params.get("gotra") || fallback.gotra;
-    const lang = (params.get("lang") || fallback.lang) as SevaLang;
-    const priestName = params.get("priest") || fallback.priestName;
+    const selectedItemKey = params.get("item") || tokenParsed?.it || undefined;
+    const devoteeName = params.get("name") || params.get("devotee") || tokenParsed?.n || fallback.devoteeName;
+    const devoteePhone = params.get("phone") || params.get("ph") || tokenParsed?.ph || undefined;
+    const devoteeEmail = params.get("email") || params.get("em") || tokenParsed?.em || undefined;
+    const gotra = params.get("gotra") || tokenParsed?.g || fallback.gotra;
+    const lang = (params.get("lang") || tokenParsed?.l || fallback.lang) as SevaLang;
+    const priestName = params.get("priest") || tokenParsed?.pr || fallback.priestName;
 
     return {
-      poojaKeys: resolvedPoojaKeys.length > 0 ? resolvedPoojaKeys : [...GUIDED_POOJA_KEYS],
-      vrataKeys: resolvedVrataKeys.length > 0 ? resolvedVrataKeys : [...GUIDED_VRATA_KEYS],
+      poojaKeys: finalPoojaKeys,
+      vrataKeys: finalVrataKeys,
       sankalpaKey,
       customGoal,
       activeCategory,
       selectedItemKey,
       devoteeName,
+      devoteePhone,
+      devoteeEmail,
       gotra,
       lang,
       priestName
