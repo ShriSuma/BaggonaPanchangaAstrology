@@ -654,6 +654,16 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       kn: "ಪ್ರೆಸ್-ರೆಡಿ ೧೦೪ ಪುಟಗಳ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಸಂವತ್ಸರ ಪಂಚಾಂಗ ಪುಸ್ತಕ ಡೌನ್‌ಲೋಡ್.",
       en: "Press-ready, exact-replica 104-page annual Panchanga book generator for any Samvatsara."
     }
+  },
+  guided_pooja: {
+    name: { kn: "ಪುರೋಹಿತ ಮಾರ್ಗದರ್ಶಿತ ಪೂಜಾ ವಿಧಿ (Guided Pooja)", en: "Priest-Guided Vedic Pooja & Mantras", hi: "पुरोहित मार्गदर्शित पूजा विधि", te: "పురోహిత పూజా విధానం", ta: "புரோகிதர் பூஜை முறை" },
+    category: "seva",
+    icon: "🪔",
+    keywords: ["guided pooja", "pooja vidhi", "mantra", "sandhyavandana", "gayatri", "shiva pooja", "ganapati pooja", "ಪೂಜಾ ವಿಧಿ", "ವೇದ ಮಂತ್ರ", "ಸಂಧ್ಯಾವಂದನ", "ಗಾಯತ್ರೀ", "ಶಿವ ಪೂಜೆ"],
+    description: {
+      kn: "೫೦ ವರ್ಷಗಳ ಅನುಭವಿ ಪುರೋಹಿತರ ನೇರ ಧ್ವನಿ ಮಾರ್ಗದರ್ಶನ, ಆಚಮನ, ಪ್ರಾಣಾಯಾಮ, ಸಂಧ್ಯಾವಂದನ, ೧೬ ಉಪಚಾರ ದೇವತಾ ಪೂಜೆ ಮತ್ತು ಮಂತ್ರ ಜಪ.",
+      en: "Real-time authentic priest voice-guided Vedic rituals: Sandhyavandana, Morning Deva Pooja, Evening Arathi, Ganesha & Shiva Pooja with Japa."
+    }
   }
 };
 

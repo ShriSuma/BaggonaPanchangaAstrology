@@ -218,6 +218,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "సూపర్ అడ్మిన్ నియంత్రణ కేంద్రం",
     ta: "சூப்பர் அட்மின் கட்டுப்பாட்டு மையம்"
   },
+  guided_pooja: {
+    kn: "🪔 ಪೂಜಾ ವಿಧಿ & ವೇದ ಮಂತ್ರ",
+    en: "🪔 Guided Pooja & Vedic Mantras",
+    hi: "🪔 पूजा विधि एवं वैदिक मन्त्र",
+    te: "🪔 పూజా విధానం & వేద మంత్రాలు",
+    ta: "🪔 பூஜை முறை & வேத மந்திரங்கள்"
+  },
   signOut: {
     kn: "ನಿರ್ಗಮಿಸಿ",
     en: "Sign Out",

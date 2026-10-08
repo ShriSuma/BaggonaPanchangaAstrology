@@ -47,6 +47,7 @@ import { BaggonaCalendarPage } from "./pages/BaggonaCalendarPage";
 import KundliDoshasPage from "./pages/KundliDoshasPage";
 import GuruShukraAstodayaGrahanaPage from "./pages/GuruShukraAstodayaGrahanaPage";
 import KundliGurukulaPage from "./pages/KundliGurukulaPage";
+import GuidedPoojaPage from "./pages/GuidedPoojaPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -192,6 +193,24 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/sankhya")
   );
 
+  const isGuidedPoojaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/guided-pooja") ||
+    window.location.pathname.startsWith("/guided_pooja") ||
+    window.location.pathname.startsWith("/pooja-vidhi") ||
+    window.location.pathname.startsWith("/pooja_vidhi") ||
+    window.location.pathname.startsWith("/mantra-pooja") ||
+    window.location.pathname.startsWith("/pooja") ||
+    window.location.pathname.startsWith("/mantra") ||
+    window.location.search.includes("portal=guided_pooja") ||
+    window.location.search.includes("portal=pooja") ||
+    window.location.search.includes("page=guided_pooja") ||
+    window.location.search.includes("poojaToken=") ||
+    window.location.search.includes("pToken=") ||
+    window.location.search.includes("poojas=") ||
+    window.location.hash.includes("#/guided-pooja") ||
+    window.location.hash.includes("#guided-pooja")
+  );
+
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -293,7 +312,8 @@ export default function App(): JSX.Element {
             isDoshasRoute ||
             isAstodayaGrahanaRoute ||
             isAstrologyQARoute ||
-            isPriestPortalRoute
+            isPriestPortalRoute ||
+            isGuidedPoojaRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
             setConsentResolved(true);
@@ -311,7 +331,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute]);
 
   if (isPriestPanchangaRoute) {
     return <PriestPanchangaPage />;
@@ -379,6 +399,14 @@ export default function App(): JSX.Element {
     return (
       <ErrorBoundary>
         <KundliGurukulaPage />
+      </ErrorBoundary>
+    );
+  }
+
+  if (isGuidedPoojaRoute) {
+    return (
+      <ErrorBoundary>
+        <GuidedPoojaPage />
       </ErrorBoundary>
     );
   }
@@ -463,6 +491,7 @@ export default function App(): JSX.Element {
         {currentPage === "doshas" && <KundliDoshasPage />}
         {currentPage === "astodaya_grahana" && <GuruShukraAstodayaGrahanaPage />}
         {currentPage === "gurukula" && <KundliGurukulaPage />}
+        {currentPage === "guided_pooja" && <GuidedPoojaPage />}
       </Layout>
     </ErrorBoundary>
   );

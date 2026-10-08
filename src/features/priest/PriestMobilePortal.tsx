@@ -57,6 +57,7 @@ import { SankhyaShastraPriestPortal } from "./SankhyaShastraPriestPortal";
 import { DivyaKaalaDiksuchiPage } from "../../pages/DivyaKaalaDiksuchiPage";
 import { HindinaJanmaPage } from "../../pages/HindinaJanmaPage";
 import PublicKundliPage from "../../pages/PublicKundliPage";
+import GuidedPoojaPage from "../../pages/GuidedPoojaPage";
 import { FloatingCoinDeductionBadge } from "../../components/wallet/FloatingCoinDeductionBadge";
 import { KundliChakraLoader } from "../../components/loaders/KundliChakraLoader";
 import { BhavishyaMasterLoader } from "../../components/loaders/BhavishyaMasterLoader";
@@ -170,6 +171,7 @@ export type PriestTab =
   | "diksuchi"
   | "purva_janma"
   | "vahana_muhurtha"
+  | "guided_pooja"
   | "wallet";
 
 const PRIEST_KUNDLI_STORAGE_KEY = "baggona_priest_kundli_active_session";
@@ -264,6 +266,8 @@ export const PriestMobilePortal: React.FC = () => {
     if (allowedModules.includes("vahana_muhurtha")) {
       tabs.push({ id: "vahana_muhurtha", label: "ವಾಹನ ಮುಹೂರ್ತ", icon: "🚗" });
     }
+    // Sacred Guided Pooja Desk
+    tabs.push({ id: "guided_pooja", label: "ಪೂಜಾ ಮಾರ್ಗದರ್ಶನ", icon: "🪔" });
     // Always include Wallet tab
     tabs.push({ id: "wallet", label: "ವಾಲೆಟ್", icon: "🪙" });
     return tabs;
@@ -2579,6 +2583,13 @@ export const PriestMobilePortal: React.FC = () => {
       {activeTab === "vahana_muhurtha" && (
         <div className="px-2 sm:px-4 mt-2">
           <VahanaKharidiMuhurthaTab currentUser={currentUser || undefined} defaultPriestName={activePriestDisplayName || undefined} />
+        </div>
+      )}
+
+      {/* Guided Pooja & Vedic Mantra Desk */}
+      {activeTab === "guided_pooja" && (
+        <div className="px-1 mt-2">
+          <GuidedPoojaPage />
         </div>
       )}
 
