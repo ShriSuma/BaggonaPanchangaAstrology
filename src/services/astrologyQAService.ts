@@ -121,13 +121,105 @@ function inspectQuestionIntent(question: string): {
 }
 
 /**
+ * Strips raw markdown artifacts (stars, slashes, hashtags) and normalizes formatting
+ * into clean, natural Indic/English prose.
+ */
+export function sanitizeAstrologyText(text: string, lang: SupportedLanguage = "kn"): string {
+  if (!text) return "";
+  let cleaned = text;
+
+  // 1. Remove bold/italic markdown stars (**bold**, *italic*, __bold__, _italic_)
+  cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, "$1");
+  cleaned = cleaned.replace(/\*(.*?)\*/g, "$1");
+  cleaned = cleaned.replace(/__(.*?)__/g, "$1");
+  cleaned = cleaned.replace(/_(.*?)_/g, "$1");
+
+  // 2. Remove markdown header markers at start of lines (###, ##, #)
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, "");
+
+  // 3. Replace awkward raw slashes between words with natural conjunctions
+  if (lang === "kn") {
+    cleaned = cleaned.replace(/\s*\/\s*/g, " ಮತ್ತು ");
+  } else if (lang === "hi") {
+    cleaned = cleaned.replace(/\s*\/\s*/g, " और ");
+  } else if (lang === "te") {
+    cleaned = cleaned.replace(/\s*\/\s*/g, " మరియు ");
+  } else if (lang === "ta") {
+    cleaned = cleaned.replace(/\s*\/\s*/g, " மற்றும் ");
+  } else {
+    cleaned = cleaned.replace(/\s*\/\s*/g, " and ");
+  }
+
+  // 4. Clean bullet markdown tokens (* bullet, - bullet) at line starts
+  cleaned = cleaned.replace(/^[*\-•]\s+/gm, "");
+
+  // 5. Clean any lingering raw asterisks or hash symbols
+  cleaned = cleaned.replace(/[*#]/g, "");
+
+  // 6. Clean multiple spaces but keep line breaks intact
+  cleaned = cleaned
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+/g, " ").trim())
+    .join("\n");
+
+  return cleaned.trim();
+}
+
+/**
+ * Formulates a serene, natural spoken narration for text-to-speech audio playback.
+ * Removes all bullet symbols, numbering, and technical debris so it sounds like a living
+ * master Daivajna speaking live wisdom to the devotee.
+ */
+export function buildSpokenAstrologyNarrative(
+  sections: AstrologyQASection[],
+  lang: SupportedLanguage
+): string {
+  if (!sections || sections.length === 0) return "";
+
+  const cleanSpoken = (txt: string) =>
+    txt
+      .replace(/^[೧೨೩೪1234]\.\s*/gm, "")
+      .replace(/^[*\-•]\s*/gm, "")
+      .replace(/[#*`_~]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const parts: string[] = [];
+
+  // 1. Spoken philosophical analysis
+  if (sections[0]?.content) {
+    const p1 = sections[0].content.split("\n").filter((l) => l.trim().length > 0)[0] || "";
+    if (p1) parts.push(cleanSpoken(p1));
+  }
+
+  // 2. Spoken timing counsel
+  if (sections[1]?.content) {
+    const p2 = sections[1].content.split("\n").filter((l) => l.trim().length > 0)[0] || "";
+    if (p2) parts.push(cleanSpoken(p2));
+  }
+
+  // 3. Spoken priest blessing & verdict
+  if (sections[3]?.content) {
+    const p4 = cleanSpoken(sections[3].content);
+    if (p4) parts.push(p4);
+  }
+
+  return parts.join(". ");
+}
+
+/**
  * Parses raw markdown response into structured royal cards
  */
 function parseAstrologyAnswerSections(rawText: string, lang: SupportedLanguage): AstrologyQASection[] {
   const sections: AstrologyQASection[] = [];
 
-  // Split by markdown headings or numbered sections
-  const rawParts = rawText.split(/(?:^|\n)(?:###|\*\*|##)\s*(?:[೧೨೩೪1234]\.|\d\.)\s*/);
+  // First try splitting by markdown headings with section numbers
+  let rawParts = rawText.split(/(?:^|\n)(?:###|\*\*|##)\s*(?:[೧೨೩೪1234]\.|\d\.)\s*/);
+
+  // If no markdown tokens were present, split by top-level numbered headings separated by double newlines
+  if (rawParts.length < 4) {
+    rawParts = rawText.split(/(?:^|\n\s*\n)\s*(?:[೧೨೩೪1234]\.|\d\.)\s*/);
+  }
 
   const defaultTitles: Record<SupportedLanguage, [string, string, string, string]> = {
     kn: [
@@ -181,8 +273,8 @@ function parseAstrologyAnswerSections(rawText: string, lang: SupportedLanguage):
       }
 
       sections.push({
-        title,
-        content: content.replace(/^[*#\s]+/, "").trim(),
+        title: title.replace(/[*#]/g, "").trim(),
+        content: sanitizeAstrologyText(content, lang),
         icon: icons[i - 1]
       });
     }
@@ -195,14 +287,14 @@ function parseAstrologyAnswerSections(rawText: string, lang: SupportedLanguage):
       for (let i = 0; i < 4; i++) {
         sections.push({
           title: titles[i],
-          content: paragraphs[i].trim(),
+          content: sanitizeAstrologyText(paragraphs[i], lang),
           icon: icons[i]
         });
       }
     } else {
       sections.push({
         title: titles[0],
-        content: rawText.trim(),
+        content: sanitizeAstrologyText(rawText, lang),
         icon: "📜"
       });
     }
@@ -433,6 +525,18 @@ ${
     : "Write in clear, authoritative, empathetic English with standard Vedic astrological Sanskrit terms in parentheses."
 }
 
+PERSONA & NARRATION:
+Adopt the persona of a revered, warm, deeply learned master Vedic Daivajna (Priest Shreeram Pandit of Baggona).
+Speak directly to the devotee as if sharing live spoken wisdom from your profound astrological knowledge, not reading from a textbook.
+Begin Section 1 with a respectful, warm address: 'ಆತ್ಮೀಯ ಭಕ್ತರೇ,' (or 'Dear Devotee,' in English).
+
+CRITICAL FORMATTING INSTRUCTIONS (STRICT):
+1. NEVER USE RAW ASTERISKS (**bold** or *italic* or * bullets).
+2. NEVER USE RAW SLASHES (/); replace slashes with natural words like 'ಮತ್ತು' (and) or 'ಅಥವಾ' (or).
+3. DO NOT USE RAW HASHES (#, ##) inside the body text.
+4. For numbered points in Section 2 and Section 3, write clean numbers like '೧. [ಶೀರ್ಷಿಕೆ]: [ವಿವರಣೆ]' or '1. [Title]: [Description]' without asterisks.
+5. The explanation must flow smoothly and naturally like an enlightened master astrologer giving oral counsel.
+
 THE USER'S QUESTION:
 "${question}"
 
@@ -456,7 +560,7 @@ You must provide a deeply learned, comprehensive, clear, and reassuring response
 
 ### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
 (For English: ### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas)
-- Give 3 practical, authentic, classical Vedic remedies (Parihara / Shanti).
+- Give 3 practical, authentic, classical Vedic remedies (Parihara / Shanti) as clean numbered lines without asterisks.
 - E.g. for Mula 1st Pada: Mula Shanti Homa, 27 Kalasha Snana, Gau-seva, Ghee vessel face viewing by father.
 - E.g. for Vehicle: Lord Ganesha & Hanuman Vahana Pooja with lemon and coconut.
 - E.g. for Marriage: Katyayani Mantra Japa, Gokarna Mahabaleshwara Rudrabhisheka, Ganapati Homa.
@@ -490,13 +594,8 @@ You must provide a deeply learned, comprehensive, clear, and reassuring response
   // Parse structured sections
   const sections = parseAstrologyAnswerSections(responseText, language);
 
-  // Generate spoken text for audio synthesis (clean first 2 paragraphs without markdown hashes)
-  const spokenText = responseText
-    .replace(/[#*`_~]/g, "")
-    .split("\n")
-    .filter((l) => l.trim().length > 0)
-    .slice(0, 4)
-    .join(". ");
+  // Generate spoken text for audio synthesis
+  const spokenText = buildSpokenAstrologyNarrative(sections, language);
 
   return {
     id: `qa_${Date.now()}`,
@@ -523,30 +622,30 @@ function generateDeterministicVedicFallback(
   if (analysis.isMulaNakshatra) {
     if (lang === "kn") {
       return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
-ಮೂಲಾ ನಕ್ಷತ್ರವು ಕೇತು ಗ್ರಹದ ಅಧಿಪತ್ಯದಲ್ಲಿದ್ದು, ವೃಶ್ಚಿಕ ರಾಶಿಯ ಜಲತತ್ವ ಹಾಗೂ ಧನು ರಾಶಿಯ ಅಗ್ನಿತತ್ವದ ಸಂಧಿಯಲ್ಲಿ ಬರುತ್ತದೆ. ಮೊದಲನೇ ಪಾದವು (೦° ರಿಂದ ೩°೨೦' ಧನು) 'ಅಭುಕ್ತ ಮೂಲಾ' ಅಥವಾ 'ಗಂಡಾಂತ ಸಂಧಿ' ಎಂದು ಕರೆಯಲ್ಪಡುತ್ತದೆ. ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಮೊದಲ ಪಾದದಲ್ಲಿ ಜನನವಾದಾಗ ಪೋಷಕರಿಗೆ ವಿಶೇಷವಾಗಿ ತಂದೆಯ ಆರೋಗ್ಯ ಮತ್ತು ವ್ಯವಹಾರದಲ್ಲಿ ಆರಂಭಿಕ ಸವಾಲುಗಳು ಉಂಟಾಗಬಹುದು. ಆದರೆ ಇದು ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಶಾಶ್ವತವಾದ ಅಪಾಯ ಅಥವಾ ಹೆದರಿಕೆಯ ವಿಷಯವಲ್ಲ. ಶಾಸ್ತ್ರದಲ್ಲಿ ಇದಕ್ಕೆ ಸ್ಪಷ್ಟ ಮತ್ತು ಶಕ್ತಿಯುತ ಪರಿಹಾರಗಳನ್ನು ನೀಡಲಾಗಿದೆ.
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರ ಹಾಗೂ ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಸಿದ್ಧಾಂತದ ಆಧಾರದಲ್ಲಿ ಆಳವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ಮೂಲಾ ನಕ್ಷತ್ರವು ಕೇತು ಗ್ರಹದ ಅಧಿಪತ್ಯದಲ್ಲಿದ್ದು, ವೃಶ್ಚಿಕ ರಾಶಿಯ ಜಲತತ್ವ ಮತ್ತು ಧನು ರಾಶಿಯ ಅಗ್ನಿತತ್ವದ ಸಂಧಿಯಲ್ಲಿ ಬರುತ್ತದೆ. ಮೊದಲನೇ ಪಾದವು (೦° ರಿಂದ ೩°೨೦' ಧನು) ಅಭುಕ್ತ ಮೂಲಾ ಅಥವಾ ಗಂಡಾಂತ ಸಂಧಿ ಎಂದು ಕರೆಯಲ್ಪಡುತ್ತದೆ. ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಮೊದಲ ಪಾದದಲ್ಲಿ ಜನನವಾದಾಗ ಪೋಷಕರಿಗೆ ವಿಶೇಷವಾಗಿ ತಂದೆಯ ಆರೋಗ್ಯ ಮತ್ತು ವ್ಯವಹಾರದಲ್ಲಿ ಆರಂಭಿಕ ಸವಾಲುಗಳು ಉಂಟಾಗಬಹುದು. ಆದರೆ ಇದು ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಶಾಶ್ವತವಾದ ಅಪಾಯ ಅಥವಾ ಹೆದರಿಕೆಯ ವಿಷಯವಲ್ಲ. ವೈದಿಕ ಶಾಸ್ತ್ರದಲ್ಲಿ ಇದಕ್ಕೆ ಸ್ಪಷ್ಟ ಮತ್ತು ಶಕ್ತಿಯುತ ಪರಿಹಾರಗಳನ್ನು ನೀಡಲಾಗಿದೆ. ಶಾಸ್ತ್ರೋಕ್ತ ಶಾಂತಿಯ ನಂತರ ಈ ದೋಷವು ಸಂಪೂರ್ಣವಾಗಿ ನಿವಾರಣೆಯಾಗುತ್ತದೆ.
 
 ### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
-ಶಿಶು ಜನಿಸಿದ ೨೭ನೇ ದಿನದಂದು (ಚಂದ್ರನು ಪುನಃ ಮೂಲಾ ನಕ್ಷತ್ರಕ್ಕೆ ಪ್ರವೇಶಿಸಿದಾಗ) ಅಥವಾ ಮುಂದಿನ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನದಂದು ಶಾಂತಿ ಮುಹೂರ್ತವನ್ನು ನಿಗದಿಪಡಿಸಬೇಕು. ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಬ್ರಹ್ಮ ಮುಹೂರ್ತ ಅಥವಾ ಅಭಿಜಿತ್ ಮುಹೂರ್ತದ ಸಮಯ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾಗಿದೆ. ರಾಹುಕಾಲ, ಯಮಗಂಡ ಕಾಲ ಮತ್ತು ಭದ್ರಾ ಕರಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಬೇಕು.
+ಶಿಶು ಜನಿಸಿದ ೨೭ನೇ ದಿನದಂದು (ಚಂದ್ರನು ಪುನಃ ಮೂಲಾ ನಕ್ಷತ್ರಕ್ಕೆ ಪ್ರವೇಶಿಸಿದಾಗ) ಅಥವಾ ಮುಂದಿನ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನದಂದು ಮೂಲಾ ಶಾಂತಿ ಮುಹೂರ್ತ ನಿಗದಿಪಡಿಸಬೇಕು. ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಬ್ರಹ್ಮ ಮುಹೂರ್ತ ಅಥವಾ ಅಭಿಜಿತ್ ಮುಹೂರ್ತದ ಸಮಯ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾಗಿದೆ. ರಾಹುಕಾಲ, ಯಮಗಂಡ ಕಾಲ ಮತ್ತು ಭದ್ರಾ ಕರಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಬೇಕು.
 
 ### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
-೧. **ಮೂಲಾ ನಕ್ಷತ್ರ ಶಾಂತಿ ಹೋಮ**: ೨೭ ತೀರ್ಥಕ್ಷೇತ್ರಗಳ ಜಲದಿಂದ ೨೭ ನಕ್ಷತ್ರ ಕಲಶ ಸ್ನಾನ ಮಾಡಿಸುವುದು.
-೨. **ತುಪ್ಪದ ಪಾತ್ರೆಯಲ್ಲಿ ಮುಖ ದರ್ಶನ**: ಶಾಂತಿ ಪೂಜೆ ಮುಗಿಯುವವರೆಗೆ ತಂದೆ ಮಗುವನ್ನು ನೇರವಾಗಿ ನೋಡದೆ, ಕಂಚಿನ ಪಾತ್ರೆಯಲ್ಲಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪ ತುಂಬಿ ಅದರಲ್ಲಿ ಮಗುವಿನ ಮುಖದ ಪ್ರತಿಬಿಂಬವನ್ನು ನೋಡಿ ದೃಷ್ಟಿದೋಷ ನಿವಾರಿಸಿಕೊಳ್ಳಬೇಕು.
-೩. **ಗೋ-ದಾನ & ರುದ್ರಾಭಿಷೇಕ**: ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗೋಮಾತೆಯ ಸೇವೆ ಮಾಡಿಸುವುದು ಅತ್ಯಂತ ಶುಭಪ್ರದ.
+೧. ಮೂಲಾ ನಕ್ಷತ್ರ ಶಾಂತಿ ಹೋಮ: ೨೭ ತೀರ್ಥಕ್ಷೇತ್ರಗಳ ಪವಿತ್ರ ಜಲದಿಂದ ೨೭ ನಕ್ಷತ್ರ ಕಲಶ ಸ್ನಾನ ಮಾಡಿಸುವುದು.
+೨. ತುಪ್ಪದ ಪಾತ್ರೆಯಲ್ಲಿ ಮುಖ ದರ್ಶನ: ಶಾಂತಿ ಪೂಜೆ ಮುಗಿಯುವವರೆಗೆ ತಂದೆ ಮಗುವನ್ನು ನೇರವಾಗಿ ನೋಡದೆ, ಕಂಚಿನ ಪಾತ್ರೆಯಲ್ಲಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪ ತುಂಬಿಸಿ ಅದರಲ್ಲಿ ಮಗುವಿನ ಮುಖದ ಪ್ರತಿಬಿಂಬವನ್ನು ನೋಡಿ ದೃಷ್ಟಿದೋಷ ನಿವಾರಿಸಿಕೊಳ್ಳಬೇಕು.
+೩. ಗೋ-ದಾನ ಮತ್ತು ರುದ್ರಾಭಿಷೇಕ: ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗೋಮಾತೆಯ ಸೇವೆ ಮಾಡಿಸುವುದು ಅತ್ಯಂತ ಶುಭಪ್ರದ.
 
 ### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
 ಮೂಲಾ ನಕ್ಷತ್ರ ೧ನೇ ಪಾದದ ಮಕ್ಕಳು ಶಾಂತಿ ಹೋಮದ ನಂತರ ಅತ್ಯಂತ ಧೈರ್ಯಶಾಲಿಗಳಾಗಿ, ಉನ್ನತ ನಾಯಕತ್ವ ಮತ್ತು ತೀಕ್ಷ್ಣ ಬುದ್ಧಿವಂತಿಕೆಯನ್ನು ಪಡೆದು ಕುಟುಂಬಕ್ಕೆ ಕೀರ್ತಿ ತರುತ್ತಾರೆ. ಹೆದರುವ ಅಗತ್ಯವಿಲ್ಲ, ಶಾಸ್ತ್ರೋಕ್ತ ಶಾಂತಿ ನೆರವೇರಿಸಿ.
 ॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
     } else {
       return `### 1. Classical Shastra & Technical Analysis
-Mula Nakshatra is ruled by Ketu and presiding deity Nirriti, placed at the critical Gandanta junction between Scorpio (water) and Sagittarius (fire). The 1st Pada (0°00' - 3°20' Sagittarius) is known as Abhukta Moola Gandanta. Classical texts like Brihat Parashara note that an unpropitiated birth in this pada can bring temporary hurdles to the father or elders. However, this is NOT a permanent curse or incurable danger; classical Vedic Shastra provides comprehensive Shanti rites that completely dissolve all negative influences.
+Dear Devotee, based on classical Brihat Parashara Hora Shastra and the sacred Baggona tradition, your inquiry has been deeply evaluated. Mula Nakshatra is ruled by Ketu and presiding deity Nirriti, placed at the critical Gandanta junction between Scorpio (water) and Sagittarius (fire). The 1st Pada (0°00' to 3°20' Sagittarius) is known as Abhukta Moola Gandanta. Classical texts like Brihat Parashara note that an unpropitiated birth in this pada can bring temporary hurdles to the father or elders. However, this is NOT a permanent curse or incurable danger; classical Vedic Shastra provides comprehensive Shanti rites that completely dissolve all negative influences and awaken immense spiritual strength.
 
 ### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
 The Shanti ceremony should ideally be conducted on the 27th day after birth when the Moon returns to Mula Nakshatra, or during an auspicious Shukla Paksha morning in Abhijit Muhurtha. Avoid Rahu Kaalam, Yamagandam, and Vishti Karana.
 
 ### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
-1. **Mula Nakshatra Shanti Homa**: Sacred 27-Kalasha herbal water bath (Abhisheka).
-2. **Father's Ghee Reflection Ritual**: The father first views the infant's reflection in a bronze vessel filled with pure clarified butter before looking at the baby directly.
-3. **Gau Seva & Gokarna Rudrabhisheka**: Perform Rudrabhisheka at Gokarna Mahabaleshwara temple and offer feed to cows.
+1. Mula Nakshatra Shanti Homa: Sacred 27-Kalasha herbal water bath and Navagraha Homa.
+2. Father Ghee Reflection Ritual: The father first views the infant reflection in a bronze vessel filled with pure clarified butter before looking at the baby directly.
+3. Cow Service and Gokarna Rudrabhisheka: Perform Rudrabhisheka at Gokarna Mahabaleshwara temple and offer feed to cows.
 
 ### 4. Astrologer's Verdict & Sacred Blessing
 Once proper Shanti is performed, children born in Mula 1st Pada develop fearless leadership, brilliant intellectual acumen, and deep wisdom. May Lord Mahabaleshwara and Lord Ganesha bless the child.
@@ -557,31 +656,31 @@ Once proper Shanti is performed, children born in Mula 1st Pada develop fearless
   if (analysis.isVahanaMuhurtha) {
     if (lang === "kn") {
       return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
-ವಾಹನ ಖರೀದಿಗೆ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ೪ನೇ ಭಾವ (ವಾಹನ ಮತ್ತು ಸುಖ ಸ್ಥಾನ) ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಬಲ ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ರೇವತಿ ನಕ್ಷತ್ರ ಹಾಗೂ ಮೀನ ರಾಶಿಯವರಿಗೆ ಶುಕ್ರನು ಕಾರಕನಾಗಿದ್ದು, ಚರ ಮತ್ತು ಮೃದು ನಕ್ಷತ್ರಗಳಾದ ರೇವತಿ, ಅಶ್ವಿನಿ, ರೋಹಿಣಿ, ಪುನರ್ವಸು, ಪುಷ್ಯ, ಹಸ್ತ, ಸ್ವಾತಿ, ಶ್ರವಣ ನಕ್ಷತ್ರಗಳು ಅತ್ಯಂತ ಶುಭವಾಗಿವೆ. ಚಂದ್ರಬಲವು ೧, ೩, ೬, ೭, ೧೦, ೧೧ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ಅಷ್ಟಮ ಚಂದ್ರ (ಚಂದ್ರಷ್ಟಮ) ಇಲ್ಲದ ದಿನವನ್ನು ಆರಿಸಬೇಕು.
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ವಾಹನ ಖರೀದಿಗೆ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ೪ನೇ ಭಾವ (ವಾಹನ ಮತ್ತು ಸುಖ ಸ್ಥಾನ) ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಬಲ ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ರೇವತಿ ನಕ್ಷತ್ರ ಹಾಗೂ ಮೀನ ರಾಶಿಯವರಿಗೆ ಶುಕ್ರನು ಕಾರಕನಾಗಿದ್ದು, ಚರ ಮತ್ತು ಮೃದು ನಕ್ಷತ್ರಗಳಾದ ರೇವತಿ, ಅಶ್ವಿನಿ, ರೋಹಿಣಿ, ಪುನರ್ವಸು, ಪುಷ್ಯ, ಹಸ್ತ, ಸ್ವಾತಿ, ಶ್ರವಣ ನಕ್ಷತ್ರಗಳು ಅತ್ಯಂತ ಶುಭವಾಗಿವೆ. ಚಂದ್ರಬಲವು ೧, ೩, ೬, ೭, ೧೦, ೧೧ನೇ ಮನೆಯಲ್ಲಿದ್ದು, ಅಷ್ಟಮ ಚಂದ್ರ (ಚಂದ್ರಷ್ಟಮ) ಇಲ್ಲದ ದಿನವನ್ನು ಆರಿಸಬೇಕು.
 
 ### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
 ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ವಾಹನ ಖರೀದಿಗೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತ ದಿನಗಳು:
-- **ಶುಕ್ರವಾರ & ಗುರುವಾರ**: ಶುಕ್ರವಾರ ಬೆಳಿಗ್ಗೆ ೯:೩೦ ರಿಂದ ೧೦:೪೫ (ಅಮೃತ ಕಾಲ) ಅಥವಾ ಮಧ್ಯಾಹ್ನ ೧೨:೦೦ ರಿಂದ ೧೨:೪೫ (ಅಭಿಜಿತ್ ಮುಹೂರ್ತ).
-- **ಬುಧವಾರ**: ರೇವತಿ ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ಬುಧನಾಗಿದ್ದರಿಂದ, ಬುಧವಾರದ ಮುಹೂರ್ತವೂ ರೇವತಿ ನಕ್ಷತ್ರದವರಿಗೆ ಅತ್ಯಂತ ಶುಭಪ್ರದ.
-- **ವರ್ಜ್ಯ ಸಮಯ**: ರಾಹುಕಾಲ (ಶುಕ್ರವಾರ ಬೆಳಿಗ್ಗೆ ೧೦:೩೦ - ೧೨:೦೦), ಯಮಗಂಡ ಕಾಲ ಮತ್ತು ಭದ್ರಾ ಕರಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ಬಿಡಬೇಕು.
+೧. ಶುಕ್ರವಾರ ಮತ್ತು ಗುರುವಾರ: ಶುಕ್ರವಾರ ಬೆಳಿಗ್ಗೆ ೯:೩೦ ರಿಂದ ೧೦:೪೫ (ಅಮೃತ ಕಾಲ) ಅಥವಾ ಮಧ್ಯಾಹ್ನ ೧೨:೦೦ ರಿಂದ ೧೨:೪೫ (ಅಭಿಜಿತ್ ಮುಹೂರ್ತ).
+೨. ಬುಧವಾರ: ರೇವತಿ ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ಬುಧನಾಗಿದ್ದರಿಂದ, ಬುಧವಾರದ ಮುಹೂರ್ತವೂ ರೇವತಿ ನಕ್ಷತ್ರದವರಿಗೆ ಅತ್ಯಂತ ಶುಭಪ್ರದ.
+೩. ವರ್ಜ್ಯ ಸಮಯ: ರಾಹುಕಾಲ (ಶುಕ್ರವಾರ ಬೆಳಿಗ್ಗೆ ೧೦:೩೦ ರಿಂದ ೧೨:೦೦), ಯಮಗಂಡ ಕಾಲ ಮತ್ತು ಭದ್ರಾ ಕರಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ಬಿಡಬೇಕು.
 
 ### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
-೧. **ದೇವಸ್ಥಾನದಲ್ಲಿ ವಾಹನ ಪೂಜೆ**: ವಾಹನವನ್ನು ಮನೆಗೆ ತರುವ ಮುನ್ನ ಸಮೀಪದ ಗಣಪತಿ ಅಥವಾ ಆಂಜನೇಯ ಸ್ವಾಮಿ ದೇವಸ್ಥಾನದಲ್ಲಿ ವಾಹನ ಪೂಜೆ ನೆರವೇರಿಸಿ.
-೨. **ನಿಂಬೆಹಣ್ಣು & ತೆಂಗಿನಕಾಯಿ**: ನಾಲ್ಕು ಚಕ್ರಗಳ ಕೆಳಗೆ ನಿಂಬೆಹಣ್ಣುಗಳನ್ನು ಇರಿಸಿ ವಾಹನ ಚಲಾಯಿಸುವುದು ಮತ್ತು ದೃಷ್ಟಿದೋಷ ನಿವಾರಣೆಗೆ ವಾಹನದ ಮುಂದೆ ಕಾಯಿ ಒಡೆಯುವುದು.
-೩. **ಓಂ ನಮೋ ಭಗವತೇ ವಾಸುದೇವಾಯ ಜಪ**: ವಾಹನದಲ್ಲಿ ಕುಳಿತು ೧೨ ಬಾರಿ ಈ ಮಂತ್ರವನ್ನು ಪಠಿಸಿ ಮೊದಲ ಪ್ರಯಾಣ ಆರಂಭಿಸಿ.
+೧. ದೇವಸ್ಥಾನದಲ್ಲಿ ವಾಹನ ಪೂಜೆ: ವಾಹನವನ್ನು ಮನೆಗೆ ತರುವ ಮುನ್ನ ಸಮೀಪದ ಗಣಪತಿ ಅಥವಾ ಆಂಜನೇಯ ಸ್ವಾಮಿ ದೇವಸ್ಥಾನದಲ್ಲಿ ವಾಹನ ಪೂಜೆ ನೆರವೇರಿಸಿ.
+೨. ನಿಂಬೆಹಣ್ಣು ಮತ್ತು ತೆಂಗಿನಕಾಯಿ: ನಾಲ್ಕು ಚಕ್ರಗಳ ಕೆಳಗೆ ನಿಂಬೆಹಣ್ಣುಗಳನ್ನು ಇರಿಸಿ ವಾಹನ ಚಲಾಯಿಸುವುದು ಮತ್ತು ದೃಷ್ಟಿದೋಷ ನಿವಾರಣೆಗೆ ವಾಹನದ ಮುಂದೆ ಕಾಯಿ ಒಡೆಯುವುದು.
+೩. ಓಂ ನಮೋ ಭಗವತೇ ವಾಸುದೇವಾಯ ಜಪ: ವಾಹನದಲ್ಲಿ ಕುಳಿತು ೧೨ ಬಾರಿ ಈ ಮಂತ್ರವನ್ನು ಪಠಿಸಿ ಮೊದಲ ಪ್ರಯಾಣ ಆರಂಭಿಸಿ.
 
 ### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
 ರೇವತಿ ನಕ್ಷತ್ರ ಮೀನ ರಾಶಿಯವರಿಗೆ ಈ ಮುಹೂರ್ತದಲ್ಲಿ ಖರೀದಿಸುವ ವಾಹನವು ದೀರ್ಘಕಾಲಿಕ ಸುಖ, ಸುರಕ್ಷತೆ ಮತ್ತು ಸಂಪತ್ತನ್ನು ತರಲಿದೆ.
 ॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
     } else {
       return `### 1. Classical Shastra & Technical Analysis
-For vehicle purchase, the 4th House (Sukha & Vahana Bhava) and Lord Venus (Shukra) are primary significators. For Revati Nakshatra and Meena Rashi, Mercury and Jupiter provide guidance. Movable and soft nakshatras like Revati, Rohini, Punarvasu, Pushya, Hasta, Swati, and Shravana are considered supremely auspicious. Chandra Bala must be favorable (avoiding 8th house Chandrashtama).
+Dear Devotee, for vehicle purchase, the 4th House (Sukha and Vahana Bhava) and Lord Venus are primary significators. For Revati Nakshatra and Meena Rashi, Mercury and Jupiter provide guidance. Movable and soft nakshatras like Revati, Rohini, Punarvasu, Pushya, Hasta, Swati, and Shravana are considered supremely auspicious. Chandra Bala must be favorable, avoiding 8th house Chandrashtama.
 
 ### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
 According to Baggona Panchanga:
-- Recommended Days: Fridays (Venus), Thursdays (Jupiter), and Wednesdays (Mercury).
-- Favorable Hours: Abhijit Muhurtha (11:55 AM - 12:45 PM) or morning Amrita Kaala.
-- Strictly Avoid: Rahu Kaalam, Yamagandam, and Vishti Karana.
+1. Recommended Days: Fridays (Venus), Thursdays (Jupiter), and Wednesdays (Mercury).
+2. Favorable Hours: Abhijit Muhurtha (11:55 AM to 12:45 PM) or morning Amrita Kaala.
+3. Strictly Avoid: Rahu Kaalam, Yamagandam, and Vishti Karana.
 
 ### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
 1. Temple Vahana Pooja: Conduct a dedicated Pooja to Lord Ganesha and Lord Hanuman before driving home.
@@ -597,12 +696,12 @@ A vehicle acquired during these aligned planetary hours will bring safety, prosp
   // General Vedic Astrological Fallback
   if (lang === "kn") {
     return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
-ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಮತ್ತು ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸಿದ್ಧಾಂತದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದ ಗ್ರಹಗಳು, ಭಾವಗಳು ಮತ್ತು ನಕ್ಷತ್ರ ಸಂಯೋಗಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ${
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಮತ್ತು ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸಿದ್ಧಾಂತದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದ ಗ್ರಹಗಳು, ಭಾವಗಳು ಮತ್ತು ನಕ್ಷತ್ರ ಸಂಯೋಗಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ${
       chartData ? `ನಿಮ್ಮ ಲಗ್ನ: ${chartData.lagna}, ರಾಶಿ: ${chartData.moonSign}, ನಕ್ಷತ್ರ: ${chartData.nakshatra}, ಪ್ರಸ್ತುತ ದಶಾ: ${chartData.dashaText}.` : ""
     } ಗ್ರಹಗಳ ಶುಭ ದೃಷ್ಟಿ ಮತ್ತು ಕಾರಕತ್ವಗಳು ಸಕಾರಾತ್ಮಕ ಫಲಗಳನ್ನು ಸೂಚಿಸುತ್ತಿವೆ.
 
 ### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
-ಪ್ರಸ್ತುತ ಗುರು ಮತ್ತು ಶನಿ ಗೋಚಾರ ಫಲಗಳು ಕರ್ಮ ಮತ್ತು ಫಲ ಸಮತೋಲನವನ್ನು ತರುತ್ತಿವೆ. ಮುಂಬರುವ ತಿಂಗಳುಗಳಲ್ಲಿ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ತಿಥಿಗಳು ಹಾಗೂ ಗುರು/ಶುಕ್ರವಾರಗಳ ದಿನಗಳು ನಿಮ್ಮ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳಿಗೆ ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಿವೆ. ರಾಹುಕಾಲ ಹಾಗೂ ಚಂದ್ರಷ್ಟಮ ದಿನಗಳನ್ನು ಹೊರತುಪಡಿಸಿ ಮುಂದುವರಿಯಿರಿ.
+ಪ್ರಸ್ತುತ ಗುರು ಮತ್ತು ಶನಿ ಗೋಚಾರ ಫಲಗಳು ಕರ್ಮ ಮತ್ತು ಫಲ ಸಮತೋಲನವನ್ನು ತರುತ್ತಿವೆ. ಮುಂಬರುವ ತಿಂಗಳುಗಳಲ್ಲಿ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ತಿಥಿಗಳು ಹಾಗೂ ಗುರು, ಶುಕ್ರವಾರಗಳ ದಿನಗಳು ನಿಮ್ಮ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳಿಗೆ ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಿವೆ. ರಾಹುಕಾಲ ಹಾಗೂ ಚಂದ್ರಷ್ಟಮ ದಿನಗಳನ್ನು ಹೊರತುಪಡಿಸಿ ಮುಂದುವರಿಯಿರಿ.
 
 ### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
 ೧. ನಿತ್ಯ ಗಾಯತ್ರೀ ಮಂತ್ರ ಜಪ (೧೦೮ ಬಾರಿ) ಹಾಗೂ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ.
@@ -614,12 +713,12 @@ A vehicle acquired during these aligned planetary hours will bring safety, prosp
 ॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
   } else {
     return `### 1. Classical Shastra & Technical Analysis
-According to classical Vedic Siddhanta and Baggona Panchanga traditions, the planetary positions and relevant houses for your query indicate positive spiritual and material alignments. ${
+Dear Devotee, according to classical Vedic Siddhanta and Baggona Panchanga traditions, the planetary positions and relevant houses for your query indicate positive spiritual and material alignments. ${
       chartData ? `Lagna: ${chartData.lagna}, Rashi: ${chartData.moonSign}, Nakshatra: ${chartData.nakshatra}, Running Period: ${chartData.dashaText}.` : ""
     } Benefic aspects support steady progress.
 
 ### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
-Jupiter's transit offers grace, while Saturn encourages disciplined effort. Favorable timing is supported in the coming months during Shukla Paksha on Thursdays and Fridays, avoiding Rahu Kaalam.
+Jupiter transit offers grace, while Saturn encourages disciplined effort. Favorable timing is supported in the coming months during Shukla Paksha on Thursdays and Fridays, avoiding Rahu Kaalam.
 
 ### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
 1. Daily Gayatri Mantra chanting (108 times) and Kuladevata remembrance.

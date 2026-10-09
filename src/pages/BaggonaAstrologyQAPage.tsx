@@ -6,6 +6,7 @@ import { useDevoteeHistoryStore } from "../stores/devoteeHistoryStore";
 import {
   askBaggonaAstrology,
   type AstrologyQAResponse,
+  type AstrologyQASection,
   type BirthDetailsInput
 } from "../services/astrologyQAService";
 import type { AskGeminiChatTurn } from "../core/GeminiEngine";
@@ -17,6 +18,228 @@ interface ChatTurnItem {
   response?: AstrologyQAResponse;
   rawText?: string;
   timestamp: string;
+}
+
+/**
+ * Returns an authentic Vedic celestial symbol for each planetary highlight item
+ */
+function getPlanetaryHighlightIcon(highlight: string): string {
+  const hLower = highlight.toLowerCase();
+  if (hLower.includes("lagna") || hLower.includes("ಲಗ್ನ")) return "☀️";
+  if (hLower.includes("moon") || hLower.includes("ರಾಶಿ")) return "🌙";
+  if (hLower.includes("nakshatra") || hLower.includes("ನಕ್ಷತ್ರ")) return "⭐";
+  if (hLower.includes("dasha") || hLower.includes("ದಶಾ")) return "⏳";
+  if (hLower.includes("7th") || hLower.includes("marriage") || hLower.includes("ವಿವಾಹ")) return "💍";
+  if (hLower.includes("4th") || hLower.includes("vehicle") || hLower.includes("ವಾಹನ")) return "🚗";
+  if (hLower.includes("10th") || hLower.includes("career") || hLower.includes("ವೃತ್ತಿ")) return "💼";
+  return "✨";
+}
+
+/**
+ * Formats section content with luxury Indic book typography and structured visual elements
+ */
+function renderSectionContent(
+  sec: AstrologyQASection,
+  sIdx: number,
+  lang: SupportedLanguage
+): JSX.Element {
+  // Strip any lingering markdown formatting debris
+  const cleanRaw = sec.content
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/[*#]/g, "")
+    .trim();
+
+  // 1. Section 2: Sacred Remedies (ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ)
+  if (sIdx === 2) {
+    // Check if the content contains numbered items like ೧., ೨., ೩. or 1., 2., 3.
+    const itemRegex = /(?:^|\n)\s*([೧೨೩೪1234]\.|\d\.)\s*/;
+    const parts = cleanRaw.split(itemRegex).filter((p) => p.trim().length > 0);
+
+    if (parts.length >= 2) {
+      const remedies: { num: string; title: string; body: string }[] = [];
+      for (let i = 0; i < parts.length; i += 2) {
+        const num = (parts[i] || "").replace(".", "").trim();
+        const rawBody = (parts[i + 1] || "").trim();
+        if (!num || !rawBody) continue;
+
+        const colonIdx = rawBody.indexOf(":");
+        let title = "";
+        let body = rawBody;
+        if (colonIdx !== -1 && colonIdx < 60) {
+          title = rawBody.substring(0, colonIdx).trim();
+          body = rawBody.substring(colonIdx + 1).trim();
+        } else {
+          const firstPeriod = rawBody.indexOf(".");
+          if (firstPeriod !== -1 && firstPeriod < 50) {
+            title = rawBody.substring(0, firstPeriod).trim();
+            body = rawBody.substring(firstPeriod + 1).trim();
+          } else {
+            title = rawBody;
+            body = "";
+          }
+        }
+        remedies.push({ num, title, body });
+      }
+
+      if (remedies.length > 0) {
+        return (
+          <div className="space-y-3 mt-2">
+            {remedies.map((rem, remIdx) => {
+              const isTempleSeva = /ಗೋಕರ್ಣ|ಇಡಗುಂಜಿ|ಸುಬ್ರಹ್ಮಣ್ಯ|Gokarna|Idagunji|Subramanya|ದೇವಸ್ಥಾನ|Temple/i.test(
+                rem.title + " " + rem.body
+              );
+
+              return (
+                <div
+                  key={remIdx}
+                  className="rounded-xl border border-amber-300/70 dark:border-amber-800/70 bg-white/90 dark:bg-slate-900/90 p-3.5 sm:p-4 shadow-xs transition-all hover:border-amber-400 dark:hover:border-amber-600"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 text-white font-bold font-serif text-xs sm:text-sm flex items-center justify-center shadow-xs">
+                      {rem.num}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <h6 className="text-sm sm:text-base font-bold text-amber-950 dark:text-amber-100 font-serif baggona-book-typography">
+                          {rem.title}
+                        </h6>
+                        {isTempleSeva && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-300/50">
+                            🛕 {lang === "kn" ? "ಕ್ಷೇತ್ರ ಸೇವೆ" : "Temple Seva"}
+                          </span>
+                        )}
+                      </div>
+                      {rem.body && (
+                        <p className="text-xs sm:text-sm text-stone-800 dark:text-stone-200 leading-relaxed font-serif baggona-book-typography mt-1">
+                          {rem.body}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+    }
+  }
+
+  // 2. Section 1: Timing & Muhurtha (ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ)
+  if (sIdx === 1) {
+    const lines = cleanRaw.split("\n").filter((l) => l.trim().length > 0);
+    return (
+      <div className="space-y-2.5 mt-2">
+        {lines.map((line, lIdx) => {
+          const isAvoid = /ವರ್ಜ್ಯ|ತ್ಯಜಿಸ|ಬಿಡಬೇಕು|avoid|rahu|ರಾಹುಕಾಲ|ಯಮಗಂಡ/i.test(line);
+          const colonIdx = line.indexOf(":");
+          const hasColon = colonIdx !== -1 && colonIdx < 50;
+
+          if (isAvoid) {
+            return (
+              <div
+                key={lIdx}
+                className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/70 dark:bg-rose-950/30 p-3 sm:p-3.5 flex items-start gap-2.5 text-xs sm:text-sm text-rose-950 dark:text-rose-200 font-serif baggona-book-typography leading-relaxed"
+              >
+                <span className="text-base flex-shrink-0">⚠️</span>
+                <div>
+                  <span className="font-bold text-rose-900 dark:text-rose-300 mr-1.5">
+                    {lang === "kn" ? "ವರ್ಜ್ಯ ಕಾಲ:" : "Times to Avoid:"}
+                  </span>
+                  <span>{line.replace(/^[೧೨೩೪1234]\.\s*/, "").replace(/^ವರ್ಜ್ಯ ಸಮಯ:\s*/, "")}</span>
+                </div>
+              </div>
+            );
+          }
+
+          if (hasColon) {
+            const label = line.substring(0, colonIdx).replace(/^[೧೨೩೪1234]\.\s*/, "").trim();
+            const val = line.substring(colonIdx + 1).trim();
+            return (
+              <div
+                key={lIdx}
+                className="rounded-xl border border-emerald-200/80 dark:border-emerald-900/50 bg-white/80 dark:bg-slate-900/80 p-3 sm:p-3.5 flex items-start gap-2.5 shadow-xs"
+              >
+                <span className="text-base flex-shrink-0">🗓️</span>
+                <div className="text-xs sm:text-sm font-serif baggona-book-typography leading-relaxed text-stone-800 dark:text-stone-200">
+                  <span className="font-bold text-amber-950 dark:text-amber-200 mr-1.5">{label}:</span>
+                  <span>{val}</span>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <p
+              key={lIdx}
+              className="text-xs sm:text-sm font-serif baggona-book-typography leading-relaxed text-stone-800 dark:text-stone-200"
+            >
+              {line}
+            </p>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // 3. Section 3: Priest Verdict & Blessing (ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ)
+  if (sIdx === 3) {
+    const sealMatch = cleanRaw.match(/॥\s*(.+?)\s*॥/);
+    const blessingSeal = sealMatch ? `॥ ${sealMatch[1]} ॥` : "॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥";
+    const bodyWithoutSeal = cleanRaw.replace(/॥\s*(.+?)\s*॥/g, "").trim();
+
+    return (
+      <div className="space-y-4 mt-2">
+        <p className="text-sm sm:text-base font-serif baggona-book-typography leading-relaxed text-amber-950 dark:text-amber-100 italic">
+          "{bodyWithoutSeal}"
+        </p>
+
+        {/* Sacred Priest Seal */}
+        <div className="pt-3 border-t border-amber-300/60 dark:border-amber-700/60 text-center">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-500/15 border border-amber-400/50 text-xs sm:text-sm font-bold font-serif text-amber-900 dark:text-amber-300 tracking-wider shadow-xs">
+            {blessingSeal}
+          </div>
+          <div className="mt-2.5 flex items-center justify-center gap-3 text-xs text-amber-900/80 dark:text-amber-400">
+            <a
+              href="tel:9972339362"
+              className="inline-flex items-center gap-1 font-semibold hover:underline"
+            >
+              <span>📞</span>
+              <span>{lang === "kn" ? "ಪಂಡಿತರ ಸಂಪರ್ಕ: 9972339362" : "Priest Contact: 9972339362"}</span>
+            </a>
+            <span>•</span>
+            <a
+              href="https://wa.me/919972339362"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-semibold hover:underline text-emerald-700 dark:text-emerald-400"
+            >
+              <span>💬</span>
+              <span>WhatsApp</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. Default Section 0: Classical Shastra (ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ)
+  const paragraphs = cleanRaw.split(/\n+/).filter((p) => p.trim().length > 0);
+  return (
+    <div className="space-y-3 mt-2">
+      {paragraphs.map((para, pIdx) => {
+        return (
+          <p
+            key={pIdx}
+            className="text-xs sm:text-sm font-serif baggona-book-typography leading-[1.85] text-stone-900 dark:text-stone-100"
+          >
+            {para}
+          </p>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function BaggonaAstrologyQAPage(): JSX.Element {
@@ -529,52 +752,68 @@ export default function BaggonaAstrologyQAPage(): JSX.Element {
               ) : (
                 /* Astrologer Response Card */
                 <div className="flex justify-start mb-6">
-                  <div className="w-full max-w-4xl rounded-3xl border border-amber-300 dark:border-amber-700/60 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+                  <div className="w-full max-w-4xl rounded-3xl border-2 border-amber-300/80 dark:border-amber-700/80 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden transition-all">
                     
                     {/* Header with Priest Attribution & Actions */}
-                    <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 px-6 py-4 border-b border-amber-200/80 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-2xl">🕉️</span>
+                    <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 dark:from-amber-950/60 dark:via-slate-900 dark:to-slate-950 px-5 sm:px-6 py-4 border-b border-amber-200/80 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center text-xl shadow-md border border-amber-300/60 flex-shrink-0">
+                          🕉️
+                        </div>
                         <div>
-                          <h4 className="text-sm font-bold text-amber-950 dark:text-amber-200 font-serif">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm sm:text-base font-bold text-amber-950 dark:text-amber-100 font-serif baggona-book-typography">
+                              {activeLang === "kn"
+                                ? "ಬಗ್ಗೋಣ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರೀಯ ತೀರ್ಪು"
+                                : "Baggona Vedic Astrological Verdict"}
+                            </h4>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/60">
+                              ✓ {activeLang === "kn" ? "ಶಾಸ್ತ್ರೋಕ್ತ ನಿಖರತೆ" : "100% Shastra"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-amber-800/90 dark:text-amber-400 font-medium font-serif baggona-book-typography">
                             {activeLang === "kn"
-                              ? "ಬಗ್ಗೋಣ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರೀಯ ತೀರ್ಪು"
-                              : "Baggona Vedic Astrological Verdict"}
-                          </h4>
-                          <p className="text-[11px] text-amber-800/80 dark:text-amber-400 font-medium">
-                            {activeLang === "kn"
-                              ? "ಮಾರ್ಗದರ್ಶನ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಬಗ್ಗೋಣ ಪಂಚಾಂಗ)"
-                              : "Guided by Priest Shreeram Pandit (Baggona Panchanga)"}
+                              ? "ಮಾರ್ಗದರ್ಶನ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಿಕ ಸೇವೆ)"
+                              : "Guided by Priest Shreeram Pandit (Baggona Panchanga Tradition)"}
                           </p>
                         </div>
                       </div>
 
-                      {/* Controls: Audio Listen, Copy, Timestamp */}
-                      <div className="flex items-center gap-2">
+                      {/* Controls: Audio Listen, Copy, WhatsApp */}
+                      <div className="flex items-center gap-2 flex-wrap">
                         {item.response && (
                           <button
                             type="button"
                             onClick={() => handlePlayAudio(item.response!.spokenText, item.id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
                               playingItemId === item.id
-                                ? "bg-red-600 text-white animate-pulse"
-                                : "bg-amber-100 dark:bg-slate-800 text-amber-900 dark:text-amber-300 hover:bg-amber-200"
+                                ? "bg-red-600 text-white animate-pulse shadow-md"
+                                : "bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-950/60 dark:to-slate-800 text-amber-950 dark:text-amber-200 border border-amber-300/70 dark:border-amber-700/60 hover:bg-amber-200"
                             }`}
-                            title="ಧ್ವನಿ ಮೂಲಕ ಆಲಿಸಿ / Listen to response"
+                            title="ದೈವಜ್ಞರ ಧ್ವನಿ ಆಲಿಸಿ / Listen to response"
                           >
-                            <span>{playingItemId === item.id ? "⏹️" : "🔊"}</span>
-                            <span>
-                              {playingItemId === item.id
-                                ? activeLang === "kn" ? "ನಿಲ್ಲಿಸಿ" : "Stop"
-                                : activeLang === "kn" ? "ಧ್ವನಿ ಆಲಿಸಿ" : "Listen"}
-                            </span>
+                            {playingItemId === item.id ? (
+                              <>
+                                <span className="flex items-center gap-0.5 h-3">
+                                  <span className="w-0.5 h-3 bg-white animate-pulse" />
+                                  <span className="w-0.5 h-2 bg-white animate-pulse delay-75" />
+                                  <span className="w-0.5 h-3.5 bg-white animate-pulse delay-150" />
+                                </span>
+                                <span>{activeLang === "kn" ? "ನಿಲ್ಲಿಸಿ" : "Stop"}</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>🔊</span>
+                                <span>{activeLang === "kn" ? "ಧ್ವನಿ ಆಲಿಸಿ" : "Listen"}</span>
+                              </>
+                            )}
                           </button>
                         )}
 
                         <button
                           type="button"
                           onClick={() => handleCopy(item.response?.fullAnswer || "", item.id)}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 shadow-2xs"
                           title="ಪ್ರತಿಯನ್ನು ನಕಲಿಸಿ / Copy"
                         >
                           <span>{copySuccessId === item.id ? "✓" : "📋"}</span>
@@ -587,41 +826,96 @@ export default function BaggonaAstrologyQAPage(): JSX.Element {
                       </div>
                     </div>
 
-                    {/* Technical Kundali Badge if present */}
+                    {/* Technical Kundali Badge strip if present */}
                     {item.response?.chartData && (
-                      <div className="bg-amber-100/40 dark:bg-slate-800/50 px-6 py-2.5 border-b border-amber-200/50 dark:border-slate-800 flex flex-wrap gap-2 text-[11px] font-semibold text-amber-900 dark:text-amber-300">
+                      <div className="bg-amber-100/50 dark:bg-slate-800/60 px-5 sm:px-6 py-3 border-b border-amber-200/60 dark:border-slate-800 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-amber-950 dark:text-amber-300 font-serif baggona-book-typography">
+                        <span className="text-[11px] font-bold text-amber-900 dark:text-amber-300 mr-1 flex items-center gap-1">
+                          <span>✨</span>
+                          <span>{activeLang === "kn" ? "ಕುಂಡಲಿ ವಿವರಣೆ:" : "Chart Highlights:"}</span>
+                        </span>
                         {item.response.chartData.technicalHighlights.map((th, thIdx) => (
                           <span
                             key={thIdx}
-                            className="bg-white/80 dark:bg-slate-900/80 px-2.5 py-0.5 rounded-lg border border-amber-300/40"
+                            className="bg-white dark:bg-slate-900/90 px-3 py-1 rounded-xl border border-amber-300/60 dark:border-slate-700 shadow-2xs flex items-center gap-1.5"
                           >
-                            {th}
+                            <span>{getPlanetaryHighlightIcon(th)}</span>
+                            <span>{th}</span>
                           </span>
                         ))}
                       </div>
                     )}
 
                     {/* Thematic Structured Cards */}
-                    <div className="p-6 space-y-4">
-                      {item.response?.sections.map((sec, sIdx) => (
-                        <div
-                          key={sIdx}
-                          className="rounded-2xl border border-amber-200/80 dark:border-slate-800 bg-amber-50/30 dark:bg-slate-800/40 p-4 transition-all hover:border-amber-400"
-                        >
-                          <h5 className="text-sm font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-2 mb-2 font-serif border-b border-amber-200/40 pb-1.5">
-                            <span className="text-base">{sec.icon}</span>
-                            <span>{sec.title}</span>
-                          </h5>
-                          <div className="text-xs sm:text-sm leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap font-sans">
-                            {sec.content}
+                    <div className="p-5 sm:p-6 space-y-4">
+                      {item.response?.sections.map((sec, sIdx) => {
+                        // Section card visual themes:
+                        // 0: Classical Shastra (Amber parchment)
+                        // 1: Timing & Muhurtha (Emerald timing)
+                        // 2: Sacred Remedies (Amber gold temple)
+                        // 3: Priest Blessing (Royal blessing parchment)
+                        const themeClass =
+                          sIdx === 0
+                            ? "rounded-2xl border border-amber-300/80 dark:border-amber-800/80 bg-gradient-to-br from-amber-50/70 via-orange-50/20 to-amber-50/60 dark:from-slate-850 dark:to-slate-900 p-4 sm:p-5 shadow-xs border-l-4 border-l-amber-500"
+                            : sIdx === 1
+                            ? "rounded-2xl border border-emerald-300/80 dark:border-emerald-800/80 bg-gradient-to-br from-emerald-50/40 via-amber-50/20 to-emerald-50/30 dark:from-slate-850 dark:to-slate-900 p-4 sm:p-5 shadow-xs border-l-4 border-l-emerald-600"
+                            : sIdx === 2
+                            ? "rounded-2xl border border-amber-300 dark:border-amber-700/80 bg-gradient-to-br from-amber-50/80 via-yellow-50/30 to-amber-100/40 dark:from-slate-850 dark:to-slate-900 p-4 sm:p-5 shadow-xs border-l-4 border-l-amber-600"
+                            : "rounded-2xl border-2 border-amber-400/90 dark:border-amber-500/70 bg-gradient-to-br from-amber-100/70 via-orange-50/40 to-amber-50 dark:from-amber-950/40 dark:via-slate-900 dark:to-slate-950 p-5 sm:p-6 shadow-md";
+
+                        const headerColor =
+                          sIdx === 1
+                            ? "text-emerald-950 dark:text-emerald-100"
+                            : "text-amber-950 dark:text-amber-100";
+
+                        const iconBg =
+                          sIdx === 1
+                            ? "bg-emerald-100 dark:bg-emerald-950/80 border-emerald-300/60"
+                            : sIdx === 3
+                            ? "bg-amber-200/80 dark:bg-amber-900/60 border-amber-400"
+                            : "bg-amber-100 dark:bg-amber-950/80 border-amber-300/60";
+
+                        return (
+                          <div key={sIdx} className={`${themeClass} transition-all`}>
+                            <h5
+                              className={`text-sm sm:text-base font-bold ${headerColor} flex items-center gap-2.5 mb-2 font-serif baggona-book-typography border-b border-amber-200/50 dark:border-slate-800 pb-2`}
+                            >
+                              <span
+                                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl ${iconBg} border flex items-center justify-center text-sm sm:text-base shadow-2xs flex-shrink-0`}
+                              >
+                                {sec.icon}
+                              </span>
+                              <span>{sec.title}</span>
+                            </h5>
+                            {renderSectionContent(sec, sIdx, activeLang)}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
-                    {/* Footer attribution */}
-                    <div className="bg-amber-50/60 dark:bg-slate-950/60 px-6 py-3 border-t border-amber-200/60 dark:border-slate-800 text-center text-[11px] text-amber-900/70 dark:text-amber-400/70 font-semibold font-serif">
-                      ॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಿಕ ಸೇವೆ • ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ • 9972339362 ॥
+                    {/* Footer attribution & quick contact */}
+                    <div className="bg-gradient-to-r from-amber-50 via-amber-100/50 to-amber-50 dark:bg-slate-950/80 px-5 sm:px-6 py-3.5 border-t border-amber-200/70 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap text-center sm:text-left text-[11px] text-amber-950/80 dark:text-amber-400 font-serif baggona-book-typography">
+                      <div className="mx-auto sm:mx-0">
+                        ॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಿಕ ಸೇವೆ • ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ • 9972339362 ॥
+                      </div>
+                      <div className="mx-auto sm:mx-0 flex items-center gap-3">
+                        <a
+                          href="tel:9972339362"
+                          className="inline-flex items-center gap-1 font-bold text-amber-900 dark:text-amber-300 hover:underline"
+                        >
+                          <span>📞</span>
+                          <span>{activeLang === "kn" ? "ಕರೆ ಮಾಡಿ" : "Call"}</span>
+                        </a>
+                        <span>•</span>
+                        <a
+                          href="https://wa.me/919972339362"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+                        >
+                          <span>💬</span>
+                          <span>WhatsApp</span>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
