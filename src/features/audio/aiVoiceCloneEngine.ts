@@ -230,7 +230,7 @@ export async function handleGenerateAudio(
 
   // Silent MP3 base64 string to unlock autoplay immediately upon click
   audio.src = SILENT_MP3_UNLOCK;
-  audio.play().catch(() => {});
+  audio.play()?.catch(() => {});
 
   // The custom studio server registered voice is "voice_sriram_pandit".
   // Map any legacy IDs ("voice_shrisuma_master", "default", etc.) to "voice_sriram_pandit"

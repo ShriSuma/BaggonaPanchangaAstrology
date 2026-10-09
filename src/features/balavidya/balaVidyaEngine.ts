@@ -128,7 +128,7 @@ export type BalaVidyaResult = {
 // -------------------------------------------------------------------------------------------------
 // 27 NAKSHATRAS X 4 PADAS AUTHENTIC SYLLABLE DICTIONARY
 // -------------------------------------------------------------------------------------------------
-const NAKSHATRA_SYLLABLE_TABLE: Record<string, { padas: [string[], string[], string[], string[]]; mascotKn: string; mascotEn: string; emoji: string; deityKn: string; deityEn: string; planetKn: string; planetEn: string }> = {
+export const NAKSHATRA_SYLLABLE_TABLE: Record<string, { padas: [string[], string[], string[], string[]]; mascotKn: string; mascotEn: string; emoji: string; deityKn: string; deityEn: string; planetKn: string; planetEn: string }> = {
   "Ashwini": {
     padas: [["ಚು (Chu)"], ["ಚೇ (Che)"], ["ಚೋ (Cho)"], ["ಲಾ (La)"]],
     mascotKn: "ದಿವ್ಯ ಅಶ್ವ (Divine Winged Horse)",

@@ -435,6 +435,7 @@ export function buildDeterministicFirstSixPoints(
   const cls = synthesisData?.currentDiagnosis?.currentLifeSituation;
   const prof = synthesisData?.currentDiagnosis?.accurateProfession;
   const remedies = synthesisData?.prescriptions;
+  const catalysts = synthesisData?.destinyCatalysts;
 
   const gemstoneNameKn = remedies?.gemstoneRing?.primaryGemstoneKn || "ಮಾಣಿಕ್ಯ/ಕನಕ ಪುಷ್ಯರಾಗ";
   const gemstoneWeight = remedies?.gemstoneRing?.caratWeight || "4.25 ಕ್ಯಾರಟ್";
@@ -1156,41 +1157,62 @@ export function buildDeterministicFirstSixPoints(
         },
         {
           id: 6,
-          text: `ಶಾಸ್ತ್ರೋಕ್ತ ರತ್ನ ಧಾರಣೆ: ${gemstoneNameKn} (${gemstoneWeight}) ರತ್ನವನ್ನು ${gemstoneFingerKn} ಬೆರಳಿಗೆ ಧರಿಸುವುದರಿಂದ ಗ್ರಹಬಲ ವೃದ್ಧಿ.`,
+          text: `ಯೋಗಕಾರಕ ರತ್ನ & ಉಂಗುರದ ಪ್ರಭಾವ: ${catalysts?.gemstoneRingCatalyst?.yogakarakaGemstoneKn || gemstoneNameKn} (${gemstoneWeight}) ರತ್ನವನ್ನು ${catalysts?.gemstoneRingCatalyst?.prescribedRingFingerKn || gemstoneFingerKn} ಬೆರಳಿಗೆ ಧರಿಸುವುದರಿಂದ ${catalysts?.gemstoneRingCatalyst?.catalyticImpactKn || "ಗ್ರಹಬಲ ವೃದ್ಧಿ"}.`,
           tone: "good",
           tagKn: "ಸಿದ್ಧ ರತ್ನ ಧಾರಣೆ",
-          tagEn: "Sacred Gemstone"
+          tagEn: "Yogakaraka Gemstone"
         },
         {
           id: 7,
+          text: `ಕಳತ್ರ ಭಾಗ್ಯೋದಯ (ವಿವಾಹದ ನಂತರ ಅದೃಷ್ಟ): ${catalysts?.marriageBhagya?.detailedExplanationKn || "ವಿವಾಹದ ನಂತರ ಜೀವನ ಸಂಗಾತಿಯ ಆಗಮನದಿಂದ ಭಾಗ್ಯದ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ."}`,
+          tone: "good",
+          tagKn: "ಕಳತ್ರ ಭಾಗ್ಯೋದಯ",
+          tagEn: "Marriage Destiny Awakening"
+        },
+        {
+          id: 8,
+          text: `ಪುತ್ರಿ ಭಾಗ್ಯ & ಗೃಹಲಕ್ಷ್ಮೀ ಆಗಮನ: ${catalysts?.daughterBhagya?.lakshmiArrivalImpactKn || "ಗೃಹದಲ್ಲಿ ಹೆಣ್ಣು ಮಗುವಿನ ಆಗಮನದಿಂದ ಸಾಕ್ಷಾತ್ ಮಹಾಲಕ್ಷ್ಮಿಯ ಕೃಪೆ ಲಭಿಸಿ ಅಭಿವೃದ್ಧಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ."}`,
+          tone: "good",
+          tagKn: "ಗೃಹಲಕ್ಷ್ಮೀ ಯೋಗ",
+          tagEn: "Daughter Fortune"
+        },
+        {
+          id: 9,
+          text: `ನಾಮಾಕ್ಷರ ಕಂಪನ & ಧ್ವನಿ ತರಂಗಾಂತರ: ${catalysts?.nameSoundVibration?.vibrationHarmonyAnalysisKn || "ಜನ್ಮ ನಕ್ಷತ್ರದ ಪಾದಕ್ಕೆ ಅನುಗುಣವಾಗಿ ನಾಮ ಧ್ವನಿ ಕಂಪನವನ್ನು ಜೋಡಿಸುವುದು ನಿರಂತರ ಯಶಸ್ಸಿನ ರಹಸ್ಯ."}`,
+          tone: "good",
+          tagKn: "ನಾಮಾಕ್ಷರ ಕಂಪನ",
+          tagEn: "Name Frequency"
+        },
+        {
+          id: 10,
           text: `ದೈವಿಕ ರುದ್ರಾಕ್ಷಿ: ${rudrakshaNameKn} ರುದ್ರಾಕ್ಷಿಯನ್ನು ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ ಶುದ್ಧ ಮನಸ್ಸಿನಿಂದ ಧಾರಣೆ ಮಾಡುವುದು ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗೆ ಶ್ರೀರಕ್ಷೆ.`,
           tone: "good",
           tagKn: "ಪವಿತ್ರ ರುದ್ರಾಕ್ಷಿ",
           tagEn: "Sacred Rudraksha"
         },
         {
-          id: 8,
+          id: 11,
           text: `ಪ್ರತಿದಿನ ಮುಂಜಾನೆ ಸೂರ್ಯೋದಯಕ್ಕೆ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಜಪ ಅಥವಾ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆಯನ್ನು 108 ಬಾರಿ ತಪ್ಪದೆ ನೆರವೇರಿಸುವುದು ಶಾಂತಿ ತರುತ್ತದೆ.`,
           tone: "notice",
           tagKn: "ನಿತ್ಯ ಮಂತ್ರ ನಿಯಮ",
           tagEn: "Daily Chanting"
         },
         {
-          id: 9,
+          id: 12,
           text: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಆತ್ಮಲಿಂಗಕ್ಕೆ ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಮಾಂದಿ-ಶನಿ ದೋಷ ಶಾಂತಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`,
           tone: "good",
           tagKn: "ಗೋಕರ್ಣ ಮಹಾ ಸಂಕಲ್ಪ",
           tagEn: "Gokarna Atma Linga Seva"
         },
         {
-          id: 10,
+          id: 13,
           text: `ಪರಿಹಾರಗಳ ಆಚರಣೆಯ ನಂತರ ಮನಸ್ಸಿನ ಭಾರ ಕಡಿಮೆಯಾಗಿ, ವೃತ್ತಿ ಮತ್ತು ಕುಟುಂಬದಲ್ಲಿ ನವ ಚೈತನ್ಯ ಹಾಗೂ ಉತ್ಸಾಹ ಮರುಕಳಿಸುವುದು ಗ್ಯಾರಂಟಿ.`,
           tone: "good",
           tagKn: "ನವ ಚೈತನ್ಯ ಪ್ರಾಪ್ತಿ",
           tagEn: "Renewed Vitality"
         },
         {
-          id: 11,
+          id: 14,
           text: `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹವು ಜಾತಕರಿಗೆ ಸದಾ ಶ್ರೀರಕ್ಷೆಯಾಗಿದ್ದು, ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಶುಭ ಫಲಗಳು ಕೈಗೂಡಲಿವೆ.`,
           tone: "good",
           tagKn: "ಸನ್ನಿಧಾನದ ಆಶೀರ್ವಾದ",
@@ -1235,41 +1257,62 @@ export function buildDeterministicFirstSixPoints(
         },
         {
           id: 6,
-          text: `Sacred Gemstone: ${gemstoneNameEn} (${gemstoneWeight}) set on ${gemstoneFingerEn} to amplify benefic radiation.`,
+          text: `Yogakaraka Gemstone Catalyst: Wearing ${catalysts?.gemstoneRingCatalyst?.yogakarakaGemstoneEn || gemstoneNameEn} (${gemstoneWeight}) on ${catalysts?.gemstoneRingCatalyst?.prescribedRingFingerEn || gemstoneFingerEn}: ${catalysts?.gemstoneRingCatalyst?.catalyticImpactEn || "strengthens prime benefic rays"}.`,
           tone: "good",
           tagKn: "Sacred Gemstone",
           tagEn: "Sacred Gemstone"
         },
         {
           id: 7,
+          text: `Post-Marriage Destiny Awakening (Kalatra Bhagya): ${catalysts?.marriageBhagya?.detailedExplanationEn || "Arrival of your life partner unleashes dormant fortune and domestic prosperity."}`,
+          tone: "good",
+          tagKn: "Kalatra Bhagya",
+          tagEn: "Kalatra Bhagya"
+        },
+        {
+          id: 8,
+          text: `Grihalakshmi Daughter Bhagya: ${catalysts?.daughterBhagya?.lakshmiArrivalImpactEn || "The arrival of a daughter acts as an auspicious celestial turning point, ushering family prosperity."}`,
+          tone: "good",
+          tagKn: "Daughter Fortune",
+          tagEn: "Daughter Fortune"
+        },
+        {
+          id: 9,
+          text: `Acoustic Name Frequency & Harmonization: ${catalysts?.nameSoundVibration?.vibrationHarmonyAnalysisEn || "Phonetic alignment of official name and signature with Nakshatra Pada syllables dissolves obstacles."}`,
+          tone: "good",
+          tagKn: "Name Frequency",
+          tagEn: "Name Frequency"
+        },
+        {
+          id: 10,
           text: `Sacred Rudraksha: Auspicious ${rudrakshaNameEn} sanctified and worn on Monday morning for psychic armor.`,
           tone: "good",
           tagKn: "Sacred Rudraksha",
           tagEn: "Sacred Rudraksha"
         },
         {
-          id: 8,
+          id: 11,
           text: `Daily morning discipline: Chanting the Shiva Panchakshari Mantra 108 times at dawn to stabilize emotional equanimity.`,
           tone: "notice",
           tagKn: "Daily Chanting",
           tagEn: "Daily Chanting"
         },
         {
-          id: 9,
+          id: 12,
           text: `Sponsoring a Rudrabhisheka & Maandi-Shani Shanti Sankalpa at sacred Gokarna Mahabaleshwara Atma Linga Kshetra permanently clears the path.`,
           tone: "good",
           tagKn: "Gokarna Atma Linga Seva",
           tagEn: "Gokarna Atma Linga Seva"
         },
         {
-          id: 10,
+          id: 13,
           text: `Post-remedy observance rapidly dissolves psychic heaviness, unlocking career prestige and domestic harmony.`,
           tone: "good",
           tagKn: "Renewed Vitality",
           tagEn: "Renewed Vitality"
         },
         {
-          id: 11,
+          id: 14,
           text: `The eternal protective grace of Lord Mahabaleshwara shields the native, guaranteeing victorious turning points ahead.`,
           tone: "good",
           tagKn: "Divine Grace",

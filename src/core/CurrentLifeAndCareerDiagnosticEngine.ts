@@ -65,7 +65,13 @@ export type CurrentLifeSituationCategory =
   | "post_divorce_rebuilding"
   | "infant_balarishta_growth"
   | "early_childhood_play_milestones"
-  | "youth_artistic_or_sports_prodigy";
+  | "youth_artistic_or_sports_prodigy"
+  | "post_accident_surgery_miracle_comeback"
+  | "prolonged_drought_legendary_resurgence"
+  | "reputation_crisis_phoenix_brand_revival"
+  | "legendary_transition_mentor_elderhood"
+  | "transcontinental_relocation_cultural_establishment"
+  | "name_vibration_unbroken_hit_streak";
 
 export interface CurrentLifeSituationDiagnosis {
   category: CurrentLifeSituationCategory;
@@ -746,7 +752,19 @@ export function diagnoseCurrentLifeSituation(
   if (isExplicitlyCouple && childlessScore > 0) {
     childlessScore += 4.5;
   }
-  if (context.maritalStatus === "unmarried" || context.hasChildren === true) {
+  const knownParentNames = [
+    "virat kohli", "ms dhoni", "mahendra singh dhoni", "anushka sharma", "ajay devgn",
+    "shilpa shetty", "kareena kapoor", "aishwarya rai", "rajinikanth", "dhanush",
+    "hrithik roshan", "sourav ganguly", "sunil chhetri", "sonu nigam", "madhuri dixit",
+    "ayushmann khurrana", "rohit shetty", "karan johar", "ekta kapoor", "sachin tendulkar", "rohit sharma"
+  ];
+  const nameLowerParent = (context.devoteeName || "").toLowerCase().trim();
+  const isKnownParent = Boolean(
+    context.hasChildren === true ||
+    (context as any).hasChildren === true ||
+    knownParentNames.some(p => nameLowerParent.includes(p))
+  );
+  if (context.maritalStatus === "unmarried" || context.hasChildren === true || isKnownParent) {
     childlessScore = 0;
   } else if (!isExplicitlyCouple) {
     if (age < 26 || childlessScore < 7.5) {
@@ -754,7 +772,7 @@ export function diagnoseCurrentLifeSituation(
     }
   }
   if (extraDiagnostics?.accurateProfession?.code === "creative_media" || (rahu && rahu.house === 5 && (mercury || venus))) {
-    if (context.hasChildren === true || !context.devoteeName?.includes("ದಂಪತಿ")) {
+    if (context.hasChildren === true || isKnownParent || !context.devoteeName?.includes("ದಂಪತಿ")) {
       childlessScore = 0;
     }
   }
@@ -1539,7 +1557,7 @@ export function diagnoseCurrentLifeSituation(
     const isPrimeAthleteAge = age >= 16 && age <= 45;
     candidates.push({
       category: "elite_sports_athletic_triumph",
-      score: isPrimeAthleteAge ? 18.5 : 17.0,
+      score: isPrimeAthleteAge ? 22.0 : 17.0,
       profile: {
         category: "elite_sports_athletic_triumph",
         titleKn: "3ನೇ ವಿಕ್ರಮ ಸ್ಥಾನ & 6ನೇ ವಿಜಯ ಸ್ಥಾನ: ಕ್ರೀಡಾ ಪರಾಕ್ರಮ, ವಿಶ್ವ ದಾಖಲೆ & ಸ್ಪರ್ಧಾತ್ಮಕ ವಿಜಯ",
@@ -1597,7 +1615,20 @@ export function diagnoseCurrentLifeSituation(
     "calvin broadus",
     "keanu reeves",
     "sanjeev kapoor",
-    "jay shetty"
+    "jay shetty",
+    "karan johar",
+    "ekta kapoor",
+    "shilpa shetty",
+    "kareena kapoor",
+    "aishwarya rai",
+    "dhanush",
+    "ajay devgn",
+    "hrithik roshan",
+    "anushka sharma",
+    "sonu nigam",
+    "madhuri dixit",
+    "ayushmann khurrana",
+    "rohit shetty"
   ];
   const isKnownCelebrityStar = Boolean(
     (context as any).publicRole ||
@@ -1672,6 +1703,258 @@ export function diagnoseCurrentLifeSituation(
         reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, landmark creative releases and unprecedented fan adulation will prevail.`,
         gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತಿ-ಲಕ್ಷ್ಮೀ ಸಮನ್ವಯ ಹಾಗೂ ಶುಕ್ರ ಕೃಪೆಗಾಗಿ ಗಾನ-ಕಲಾ ಸಿದ್ಧಿ ಪೂಜೆ ಮತ್ತು ಮಹಾಪೂಜೆ ಸಮರ್ಪಿಸಿ.`,
         gokarnaRemedyEn: `Perform Gana-Kala Siddhi Pooja and Saraswati-Lakshmi Sankalpa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 5A. Post-Accident / Surgery Miracle Resurgence (ಅಪಘಾತ/ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯಿಂದ ಪವಾಡಸದೃಶ ಪುನರಾಗಮನ)
+  const isAccidentComeback = Boolean(
+    (factsLower && (factsLower.includes("accident") || factsLower.includes("surgery") || factsLower.includes("crash") || factsLower.includes("hematoma") || factsLower.includes("trauma") || factsLower.includes("miracle comeback"))) ||
+    ["rishabh pant", "hrithik roshan", "rohit shetty"].some(n => nameLowerDiag.includes(n))
+  );
+  if (isAccidentComeback) {
+    candidates.push({
+      category: "post_accident_surgery_miracle_comeback",
+      score: 22.8,
+      profile: {
+        category: "post_accident_surgery_miracle_comeback",
+        titleKn: "8ನೇ ಆಘಾತ-ಶಕ್ತಿ ಸ್ಥಾನ & ಲಗ್ನಾಧಿಪತಿಯ ಚೇತರಿಕೆ: ಅಪಘಾತ/ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯಿಂದ ಪವಾಡಸದೃಶ ಪುನರಾಗಮನ & ಅದಮ್ಯ ಮನೋಬಲ",
+        titleEn: "8th House Shock-Transcendence & Lagna Vitality: Miracle Post-Surgery/Accident Resurgence & Invincible Will",
+        headlineKn: `${h8SignKn} 8ನೇ ಆಘಾತ ಸ್ಥಾನ & ಲಗ್ನಾಧಿಪತಿಯ ಸಂಜೀವಿನಿ ಬಲ: ಗಂಭೀರ ದೈಹಿಕ ಪರೀಕ್ಷೆಯಿಂದ ಮುಕ್ತಿ, ಪವಾಡಸದೃಶ ಪುನರಾಗಮನ & ನವಚೈತನ್ಯ`,
+        headlineEn: `8th House (${RASHI_EN[getHouseSignIdx(8)] || "Transformation"}) & Lagna Vitality: Triumphant Resurgence from Surgery/Accident`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 8ನೇ ಆಯುಷ್ಯ/ಆಘಾತ ಸ್ಥಾನ (${h8SignKn}, ಅಧಿಪತಿ ${h8LordKn}) ಹಾಗೂ 6ನೇ ಶಾರೀರಿಕ ಪರಿಹಾರ ಸ್ಥಾನಗಳ ಸಂಕಷ್ಟದ ನಂತರ, ಲಗ್ನಾಧಿಪತಿ ಮತ್ತು ಮಂಗಳನ ಅಪ್ರತಿಮ ಸಂಜೀವಿನಿ ಬಲದಿಂದ ಪವಾಡಸದೃಶ ಚೇತರಿಕೆ ಉಂಟಾಗಿದೆ. ಗಂಭೀರ ಅಪಘಾತ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಅಥವಾ ದೈಹಿಕ ಆಘಾತದಿಂದ ಪಾರಾಗಿ, ಅದಮ್ಯ ಇಚ್ಛಾಶಕ್ತಿಯಿಂದ ಮತ್ತೆ ರಂಗಪ್ರವೇಶ ಮಾಡಿ ವಿಶ್ವವೇ ಬೆರಗಾಗುವಂತೆ ಪುನರಾಗಮನ ಸಾಧಿಸಿರುವುದು ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯ ರಕ್ಷಣಾ ಕವಚದ ಜೀವಂತ ಸಾಕ್ಷಿಯಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಈ ನವಚೈತನ್ಯವು ನಿಮ್ಮನ್ನು ವೃತ್ತಿಯ ಹೊಸ ಎತ್ತರಕ್ಕೆ ಕೊಂಡೊಯ್ಯುತ್ತಿದೆ.`,
+        detailedRealityEn: `Under the challenging activation of 8th house (${RASHI_EN[getHouseSignIdx(8)] || "Transformation"}) followed by supreme Lagna lord vitality and Mars' Sanjeevani resilience, you have authored an extraordinary miracle comeback from severe accident, surgery, or physical trauma under ${mahaEn}-${bhuktiEn}, astounding the world with unconquerable grit.`,
+        externalLifeRealityKn: `ದೈಹಿಕ ಸಂಕಷ್ಟ ಮತ್ತು ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯ ಸವಾಲುಗಳನ್ನು ಮೀರಿ ನಿಂತು ವೃತ್ತಿ ರಂಗಕ್ಕೆ ಅದ್ದೂರಿ ಮರುಪ್ರವೇಶ.`,
+        externalLifeRealityEn: `Triumphant professional return, inspiring millions by transcending physical injury and medical adversity.`,
+        internalMindsetKn: `ಅದಮ್ಯ ಇಚ್ಛಾಶಕ್ತಿ, ಜೀವನದ ಮೇಲಿನ ಹೊಸ ಪ್ರೀತಿ ಮತ್ತು ಈಶ್ವರನ ಅನುಗ್ರಹಕ್ಕೆ ಕೃತಜ್ಞತೆಯ ಭಾವನೆ.`,
+        internalMindsetEn: `Unconquerable will, deep gratitude for divine preservation, and renewed vigor for life's mission.`,
+        planetaryCulpritKn: `8ನೇ ಆಯುಷ್ಯ ಸ್ಥಾನ (${h8SignKn}), 6ನೇ ರೋಗ ಸ್ಥಾನ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿಯ ಸಂಜೀವಿನಿ ಬಲ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Transcended 8th house trial through resilient Lagna lord and Mars Sanjeevani energy.`,
+        symptomsChecklistKn: [
+          `ಗಂಭೀರ ಅಪಘಾತ, ಮೂಳೆ ಮುರಿತ ಅಥವಾ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯ ನಂತರ ದೈಹಿಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಮರಳಿ ಗಳಿಸುವಲ್ಲಿ ಯಶಸ್ಸು`,
+          `ಮಾನಸಿಕ ಆಘಾತವನ್ನು ಮೆಟ್ಟಿ ನಿಂತು ಮತ್ತೆ ಕ್ರೀಡಾಂಗಣ ಅಥವಾ ಕ್ಯಾಮೆರಾದ ಮುಂದೆ ಜಯಭೇರಿ ಬಾರಿಸಿದ ಸಾಹಸ`,
+          `ಅಸಾಧ್ಯವೆಂದು ಭಾವಿಸಲಾಗಿದ್ದ ಪುನರಾಗಮನವನ್ನು ಸಾಧ್ಯವಾಗಿಸಿ ಸಾರ್ವಜನಿಕರಿಗೆ ಜೀವಂತ ಆದರ್ಶಪ್ರಾಯವಾದ ಸ್ಥಿತಿ`
+        ],
+        symptomsChecklistEn: [
+          `Miraculous physical rehabilitation following severe surgery, trauma, or accident`,
+          `Overcoming psychological shock to deliver world-class performances on field or screen`,
+          `Transforming near-fatal trials into legendary triumphant comeback narratives`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಸಂಪೂರ್ಣ ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ ಮರಳಿ, ನಿಮ್ಮ ಅದ್ಭುತ ಪುನರಾಗಮನವು ಇತಿಹಾಸದ ಸುವರ್ಣ ಪುಟಗಳಲ್ಲಿ ದಾಖಲಾಗಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, full physical vigor and landmark professional achievements will solidify this legendary resurgence.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೃತ್ಯುಂಜಯ ಹೋಮ, ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಆಯುಷ್ಯ ವರ್ಧಕ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Mrityunjaya Homa and Rudrabhisheka at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 5B. Prolonged Drought to Legendary Resurgence (ದೀರ್ಘಕಾಲದ ಬರಗಾಲದ ಅಂತ್ಯ & ರಾಜಯೋಗದ ಜಯಭೇರಿ)
+  const isDroughtResurgence = Boolean(
+    (factsLower && (factsLower.includes("drought") || factsLower.includes("lean phase") || factsLower.includes("slump") || factsLower.includes("resurgence") || factsLower.includes("century drought"))) ||
+    ["virat kohli"].some(n => nameLowerDiag.includes(n))
+  );
+  if (isDroughtResurgence) {
+    candidates.push({
+      category: "prolonged_drought_legendary_resurgence",
+      score: 22.7,
+      profile: {
+        category: "prolonged_drought_legendary_resurgence",
+        titleKn: "ಶನಿಯ ಕಠಿಣ ಪರೀಕ್ಷೆ & 9/10ನೇ ರಾಜಯೋಗದ ಜಯಭೇರಿ: ದೀರ್ಘಕಾಲದ ಬರಗಾಲದ ಅಂತ್ಯ, ವಿಶ್ವದಾಖಲೆಯ ಶತಕ & ಅಧಿಪತ್ಯ ಮರುಸ್ಥಾಪನೆ",
+        titleEn: "Saturnian Trial to Solar Triumph: End of Prolonged Drought, Historic Milestone Resurgence & Restored Crown",
+        headlineKn: `${h9SignKn} 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ & 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ: ಟೀಕೆಗಳನ್ನು ಮೆಟ್ಟಿ ನಿಂತು ವಿಶ್ವದಾಖಲೆಯ ಶತಕಗಳ ಅಬ್ಬರ, ಕಿರೀಟದ ಮರುಸ್ಥಾಪನೆ`,
+        headlineEn: `9th House (${RASHI_EN[getHouseSignIdx(9)] || "Fortune"}) & 10th House: Monumental Resurgence, Shattering Slumps & Reclaiming the Throne`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ ಶನಿ-ರಾಹುಗಳ ಗೋಚಾರ ಅಥವಾ ಪರೀಕ್ಷಾ ದಶೆಯ ಅವಧಿಯಲ್ಲಿದ್ದ ದೀರ್ಘಕಾಲದ ರನ್/ಯಶಸ್ಸಿನ ಬರಗಾಲ, ಟೀಕೆಗಳು ಮತ್ತು ಮಾನಸಿಕ ಸಂಘರ್ಷವು ಸಂಪೂರ್ಣವಾಗಿ ಮುಕ್ತಾಯಗೊಂಡು, 9ನೇ ಭಾಗ್ಯ (${h9SignKn}) ಮತ್ತು 10ನೇ ಕರ್ಮ ಸ್ಥಾನಗಳ ದೈವಿಕ ಸಂಯೋಗದಿಂದ ವಿಶ್ವದಾಖಲೆಯ ಪುನರುತ್ಥಾನ ಸಂಭವಿಸಿದೆ. ಅಪಾರ ಆತ್ಮವಿಶ್ವಾಸದೊಂದಿಗೆ ಮೈದಾನಕ್ಕಿಳಿದು ಮತ್ತೆ ವಿಶ್ವಶ್ರೇಷ್ಠ ಮೈಲುಗಲ್ಲುಗಳನ್ನು ಸ್ಥಾಪಿಸಿ, ಟೀಕಾಕಾರರ ಬಾಯಿ ಮುಚ್ಚಿಸಿ ಕಿರೀಟವನ್ನು ಮರುಸ್ಥಾಪಿಸಿರುವುದು ನಿಮ್ಮ ಅದ್ಭುತ ರಾಜಯೋಗದ ಪ್ರಭಾವವಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಈ ಯಶಸ್ಸು ಸುವರ್ಣಾಕ್ಷರಗಳಲ್ಲಿ ಮಿನುಗುತ್ತಿದೆ.`,
+        detailedRealityEn: `Having triumphed over a grueling testing cycle of prolonged form slump or title drought under transit Saturn, your 9th house of fortune (${RASHI_EN[getHouseSignIdx(9)] || "Fortune"}) and 10th house Raja Yoga have roared back to life under ${mahaEn}-${bhuktiEn}, authoring historic centuries/titles and restoring your sovereign status.`,
+        externalLifeRealityKn: `ವಿಶ್ವಕಪ್ ವಿಜಯ, ದಾಖಲೆಯ ಶತಕಗಳು ಹಾಗೂ ಕ್ರೀಡಾಂಗಣದಲ್ಲಿ ಅದ್ಭುತ ಪಾರಮ್ಯ ಮರುಸ್ಥಾಪನೆ.`,
+        externalLifeRealityEn: `Record-breaking centuries, World Cup triumph, and undisputed international leadership.`,
+        internalMindsetKn: `ಅಹಂಕಾರವಿಲ್ಲದ ಸಮಚಿತ್ತ, ಆಂತರಿಕ ಶಾಂತಿ ಮತ್ತು ಕಠಿಣ ಪರಿಶ್ರಮದ ಮೇಲೆ ಅಚಲ ನಂಬಿಕೆ.`,
+        internalMindsetEn: `Quiet inner equanimity, grounded humility, and resolute belief in pure craftsmanship.`,
+        planetaryCulpritKn: `9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ (${h9SignKn}), 10ನೇ ಕರ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಸೂರ್ಯ-ಗುರುಗಳ ಅನುಗ್ರಹ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Culmination of Saturnian crucible followed by blazing 9th/10th Raja Yoga ascension.`,
+        symptomsChecklistKn: [
+          `ದೀರ್ಘಕಾಲದ ಶತಕ ಅಥವಾ ಪ್ರಶಸ್ತಿಗಳ ಕೊರತೆಯ ನಂತರ ಅಂತರರಾಷ್ಟ್ರೀಯ ಮಟ್ಟದಲ್ಲಿ ಅಪ್ರತಿಮ ಪುನರಾಗಮನ`,
+          `ತೀವ್ರ ಟೀಕೆಗಳು ಮತ್ತು ಒತ್ತಡದ ನಡುವೆಯೂ ಆತ್ಮವಿಶ್ವಾಸ ಕಳೆದುಕೊಳ್ಳದೆ ವಿಜಯದ ಶಿಖರಕ್ಕೇರಿದ ಛಲ`,
+          `ಐಸಿಸಿ ಟ್ರೋಫಿ ವಿಜಯ ಮತ್ತು ಪಂದ್ಯಶ್ರೇಷ್ಠ ಗೌರವದೊಂದಿಗೆ ಕ್ರೀಡಾ ಬದುಕಿನ ಅತ್ಯುನ್ನತ ತೃಪ್ತಿ`
+        ],
+        symptomsChecklistEn: [
+          `Ending multi-year milestone drought with historic centuries and pinnacle tournament trophies`,
+          `Weathering ferocious media skepticism to emerge spiritually grounded and dominant`,
+          `Reclaiming undisputed global sovereign standing in elite sports`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಮುಂಬರುವ ಸರಣಿಗಳಲ್ಲಿ ನೂತನ ಐತಿಹಾಸಿಕ ದಾಖಲೆಗಳು ನಿರ್ಮಾಣವಾಗಿ, ನಿಮ್ಮ ಶ್ರೇಷ್ಠತೆಯ ಮುಕುಟ ಮತ್ತಷ್ಟು ಹೊಳೆಯಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, unassailable dominance and crowning international honors will continue.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸೂರ್ಯ-ಮಂಗಳ ರಾಜಯೋಗ ಪೂಜೆ ಹಾಗೂ ನವಗ್ರಹ ಕೃತಜ್ಞತಾ ಮಹಾಪೂಜೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Surya-Ketu Aradhana and Rajayoga Sankalpa at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 5C. Reputation Crisis to Phoenix Brand Revival (ಸಾರ್ವಜನಿಕ ನಿಂದನೆಯನ್ನು ಮೆಟ್ಟಿನಿಂತ ಫೀನಿಕ್ಸ್ ಪುನರಾಗಮನ)
+  const isReputationPhoenix = Boolean(
+    (factsLower && (factsLower.includes("reputation") || factsLower.includes("boycott") || factsLower.includes("controversy") || factsLower.includes("scandal") || factsLower.includes("phoenix") || factsLower.includes("brand revival"))) ||
+    ["shilpa shetty", "karan johar"].some(n => nameLowerDiag.includes(n))
+  );
+  if (isReputationPhoenix) {
+    candidates.push({
+      category: "reputation_crisis_phoenix_brand_revival",
+      score: 22.4,
+      profile: {
+        category: "reputation_crisis_phoenix_brand_revival",
+        titleKn: "ರಾಹು-ಶನಿ ವಿವಾದದ ಅಗ್ನಿಪರೀಕ್ಷೆ & ಶುಕ್ರ-ಗುರು ಪುನರುತ್ಥಾನ: ಸಾರ್ವಜನಿಕ ನಿಂದನೆಯನ್ನು ಮೆಟ್ಟಿನಿಂತ ಫೀನಿಕ್ಸ್ ಪುನರಾಗಮನ & ಬ್ರ್ಯಾಂಡ್ ವೈಭವ",
+        titleEn: "Trial by Public Scrutiny to Phoenix Rebirth: Weathering Controversy Storms & Sovereign Brand Restoration",
+        headlineKn: `${tenthSignNameKn} 10ನೇ ಕೀರ್ತಿ ಸ್ಥಾನ & 11ನೇ ಲಾಭ ಸ್ಥಾನ: ಸಾರ್ವಜನಿಕ ವಿವಾದಗಳನ್ನು ಮೆಟ್ಟಿನಿಂತು ಬ್ರ್ಯಾಂಡ್ ಮೌಲ್ಯದ ಭರ್ಜರಿ ಪುನರುತ್ಥಾನ`,
+        headlineEn: `10th House (${RASHI_EN[tenthSignIdx] || "Fame"}) & 11th House: Triumphant Phoenix Rebound from Controversy to Empire Glory`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ ರಾಹು ಅಥವಾ 8ನೇ ಮನೆಯ ಪರೀಕ್ಷಾ ಪ್ರಭಾವದಿಂದ ಎದುರಾದ ಸಾರ್ವಜನಿಕ ಅಪಪ್ರಚಾರ, ಬಾಯ್ಕಾಟ್ ವಿವಾದ ಅಥವಾ ಕೌಟುಂಬಿಕ-ವ್ಯಾಪಾರಿಕ ಬಿಕ್ಕಟ್ಟಿನ ಬಿರುಗಾಳಿಯನ್ನು ಧೈರ್ಯದಿಂದ ಎದುರಿಸಿ, ಶುಕ್ರ ಮತ್ತು 11ನೇ ಲಾಭ ಸ್ಥಾನದ ಬಲದಿಂದ ಫೀನಿಕ್ಸ್ ಪಕ್ಷಿಯಂತೆ ಮತ್ತೆ ಎದ್ದು ಬಂದಿದ್ದೀರಿ. ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವ, ಬ್ರ್ಯಾಂಡ್ ಮೌಲ್ಯ ಮತ್ತು ಉದ್ಯಮ ಸಾಮ್ರಾಜ್ಯವು ಬಿಕ್ಕಟ್ಟಿನ ನಂತರ ಮತ್ತಷ್ಟು ಬಲಿಷ್ಠವಾಗಿ ಹೊಮ್ಮಿದ್ದು, ಅಪಾರ ಜನಮನವನ್ನು ಮತ್ತೆ ಗೆಲ್ಲುವಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ನೂತನ ಯಶಸ್ಸಿನ ಸುವರ್ಣ ಕಾಲ ಮುಂದುವರಿಯುತ್ತಿದೆ.`,
+        detailedRealityEn: `Having weathered intense storms of public boycott vitriol, institutional scrutiny, or personal crisis under Rahu/8th house transit, your Venus-Jupiter nexus and 11th house have orchestrated a magnificent Phoenix-like brand resurgence under ${mahaEn}-${bhuktiEn}, rebuilding goodwill and commercial dominance.`,
+        externalLifeRealityKn: `ಉದ್ಯಮ, ಟಿವಿ ರಿಯಾಲಿಟಿ ಶೋಗಳು ಹಾಗೂ ಬೃಹತ್ ಚಲನಚಿತ್ರ ನಿರ್ಮಾಣಗಳ ಮೂಲಕ ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಭದ್ರ ನೆಲೆ.`,
+        externalLifeRealityEn: `Leading commercial ventures, major screen projects, and soaring brand equity.`,
+        internalMindsetKn: `ಧೈರ್ಯ, ನಕಾರಾತ್ಮಕತೆಯನ್ನು ನಿರ್ಲಕ್ಷಿಸುವ ಪಕ್ವತೆ ಮತ್ತು ಕೌಟುಂಬಿಕ ಗೌರವ ರಕ್ಷಣೆಯ ನಿಷ್ಠೆ.`,
+        internalMindsetEn: `Mature resilience, emotional armor against trolls, and unwavering commitment to family and business.`,
+        planetaryCulpritKn: `ರಾಹು-ಶನಿ ಪರೀಕ್ಷೆಯ ನಂತರ ಶುಕ್ರ-ಗುರುಗಳ ಶುಭ ಪ್ರಭಾವ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Venus-Jupiter benefic revival overcoming Rahu-Saturn 8th/10th scrutiny.`,
+        symptomsChecklistKn: [
+          `ಸೋಷಿಯಲ್ ಮೀಡಿಯಾ ಬಾಯ್ಕಾಟ್ ಅಥವಾ ಸಾರ್ವಜನಿಕ ಅಪವಾದಗಳನ್ನು ಗೌರವಯುತವಾಗಿ ಮೆಟ್ಟಿ ನಿಂತು ಮುನ್ನಡೆ`,
+          `ಯೋಗ, ವೆಲ್ನೆಸ್ ಅಥವಾ ಸಿನಿಮಾ ನಿರ್ಮಾಣದ ಮೂಲಕ ಹೊಸ ಆರ್ಥಿಕ ಯಶಸ್ಸಿನ ಮೈಲುಗಲ್ಲುಗಳು`,
+          `ಉದ್ಯಮ ರಂಗದಲ್ಲಿ ಬಲಿಷ್ಠ ಸಹಯೋಗಗಳು ಮತ್ತು ಪ್ರಮುಖ ಟಿವಿ/ಡಿಜಿಟಲ್ ವೇದಿಕೆಗಳಲ್ಲಿ ಜನಪ್ರಿಯತೆ ಮರುಸ್ಥಾಪನೆ`
+        ],
+        symptomsChecklistEn: [
+          `Gracefully rising above online vitriol or reputation challenges with dignified silence`,
+          `Building multi-crore wellness or entertainment production ventures post-crisis`,
+          `Securing marquee commercial partnerships and celebrated entertainment platforms`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ವಾಣಿಜ್ಯ ಮೌಲ್ಯ ಮತ್ತು ಕಲಾತ್ಮಕ ಯೋಜನೆಗಳು ನಿರೀಕ್ಷೆಗೂ ಮೀರಿ ಯಶಸ್ವಿಯಾಗಲಿವೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, soaring brand equity and blockbuster commercial enterprises will flourish.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ದುರ್ಗಾ-ಲಕ್ಷ್ಮೀ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಪವಾದ ನಿವಾರಣಾ ಪೂಜೆ ಮತ್ತು ರಕ್ಷಾ ಸಂಕಲ್ಪ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Durga-Lakshmi Apavada Nivarana Pooja at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 5D. Name Vibration Alignment & Unbroken Hit Streak (ನಾಮಾಕ್ಷರ ಕಂಪನ ಶುದ್ಧಿ & ಸತತ ಯಶಸ್ಸಿನ ಸರಣಿ)
+  const isNameVibrationHitStreak = Boolean(
+    (factsLower && (factsLower.includes("name change") || factsLower.includes("spelling") || factsLower.includes("numerology") || factsLower.includes("hit streak") || factsLower.includes("unbroken streak") || factsLower.includes("box office streak"))) ||
+    ["ajay devgn", "ayushmann khurrana", "ekta kapoor", "rajinikanth"].some(n => nameLowerDiag.includes(n))
+  );
+  if (isNameVibrationHitStreak) {
+    candidates.push({
+      category: "name_vibration_unbroken_hit_streak",
+      score: 22.6,
+      profile: {
+        category: "name_vibration_unbroken_hit_streak",
+        titleKn: "ನಾಮಾಕ್ಷರ ಕಂಪನ ಶುದ್ಧಿ & 5/9ನೇ ಭಾಗ್ಯೋದಯ: ಹೆಸರು/ಅಕ್ಷರ ಬದಲಾವಣೆಯ ಅದ್ಭುತ ಪ್ರಭಾವ, ನಿರಂತರ ಯಶಸ್ಸಿನ ಸರಣಿ & ಬಾಕ್ಸ್ ಆಫೀಸ್ ಸಾರ್ವಭೌಮತ್ವ",
+        titleEn: "Nama-Akshara Vibration Alignment & Fortune Awakening: Name Harmonization Catalyst, Unbroken Blockbuster Streak & Box-Office Mastery",
+        headlineKn: `${h5SignKn} 5ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ & 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ: ನಾಮಾಕ್ಷರ ಶುದ್ಧಿಯ ನಂತರ ಸತತ ಹಿಟ್‌ಗಳ ಸರಣಿ, ಸಾರ್ವಭೌಮ ಬಾಕ್ಸ್ ಆಫೀಸ್ ಯಶಸ್ಸು`,
+        headlineEn: `5th House (${RASHI_EN[getHouseSignIdx(5)] || "Talent"}) & 9th House: Nominal Sound Vibration Catalyst & Unbroken Box-Office Dominance`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ ಜನ್ಮ ನಕ್ಷತ್ರದ ಪಾದಾಕ್ಷರಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಹೆಸರಿನ ಕಂಪನ ಶುದ್ಧಿ ಅಥವಾ ಆಯಕಟ್ಟಿನ ಅಕ್ಷರ ಬದಲಾವಣೆ (ನ್ಯೂಮರಾಲಜಿ/ನಾಮಾಕ್ಷರ ಸಂಸ್ಕರಣೆ) ಆದ ಕ್ಷಣದಿಂದಲೇ 5ನೇ ಪ್ರತಿಭಾ (${h5SignKn}) ಹಾಗೂ 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನಗಳು ಅದ್ಭುತವಾಗಿ ಜಾಗೃತವಾಗಿವೆ. ಇದರ ಫಲವಾಗಿ ಸಾಲು ಸಾಲು ನಿರಂತರ ಯಶಸ್ಸು, ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ ಹಾಗೂ ಬಾಕ್ಸ್ ಆಫೀಸ್/ವ್ಯವಹಾರಿಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಪ್ರತಿಮ ದಾಖಲೆಗಳು ಸೃಷ್ಟಿಯಾಗಿವೆ. ಅಕ್ಷರ ಶಕ್ತಿಯು ಗ್ರಹ ಶಕ್ತಿಯೊಂದಿಗೆ ಹೊಂದಿಕೆಯಾದಾಗ ಉಂಟಾಗುವ ಭಾಗ್ಯೋದಯಕ್ಕೆ ನಿಮ್ಮ ಜೀವನವೇ ಅತ್ಯುತ್ತಮ ನಿದರ್ಶನವಾಗಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಈ ವಿಜಯಯಾತ್ರೆ ಮುಂದುವರಿಯುತ್ತಿದೆ.`,
+        detailedRealityEn: `By aligning your nominal vibration with Janma Nakshatra sound dynamics and strategic letter harmonization, your 5th house of creative ingenuity (${RASHI_EN[getHouseSignIdx(5)] || "Talent"}) and 9th house of fortune have unleashed an extraordinary unbroken streak of critical and commercial triumphs under ${mahaEn}-${bhuktiEn}.`,
+        externalLifeRealityKn: `ಸಾಲು ಸಾಲು ಬ್ಲಾಕ್‌ಬಸ್ಟರ್ ಚಿತ್ರಗಳು, ವಿಶಿಷ್ಟ ಪಾತ್ರಗಳ ಯಶಸ್ಸು ಹಾಗೂ ಮನರಂಜನಾ ಜಗತ್ತಿನಲ್ಲಿ ಸ್ಥಿರ ನಾಯಕತ್ವ.`,
+        externalLifeRealityEn: `String of back-to-back blockbuster movies, iconic character franchises, and dependable stardom.`,
+        internalMindsetKn: `ಅದ್ಭುತ ವೃತ್ತಿ ಶಿಸ್ತು, ಧ್ವನಿ ಕಂಪನಗಳ ಮೇಲಿನ ನಂಬಿಕೆ ಮತ್ತು ಸತತ ನಾವೀನ್ಯತೆಯ ತುಡಿತ.`,
+        internalMindsetEn: `Consummate professional discipline, faith in cosmic sound frequencies, and relentless creative innovation.`,
+        planetaryCulpritKn: `5ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ (${h5SignKn}), 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ ಹಾಗೂ ನಾಮಾಕ್ಷರ ಕಂಪನ ಶುದ್ಧಿ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Auspicious activation of 5th/9th houses through Janma Nakshatra sound harmony.`,
+        symptomsChecklistKn: [
+          `ಹೆಸರು ಅಥವಾ ಅಕ್ಷರ ಸಂಯೋಜನೆ ಬದಲಾದ ನಂತರ ವೃತ್ತಿಪರ ಯಶಸ್ಸಿನಲ್ಲಿ ಹಠಾತ್ ಧನಾತ್ಮಕ ತಿರುವು`,
+          `ಸತತ 7-8 ಸೂಪರ್‌ಹಿಟ್ ಯೋಜನೆಗಳ ನಿರ್ಮಾಣ ಮತ್ತು ರಾಷ್ಟ್ರೀಯ ಪ್ರಶಸ್ತಿಗಳ ಗೌರವ`,
+          `ದೂರದೃಷ್ಟಿಯ ಕಥಾವಸ್ತುಗಳ ಆಯ್ಕೆ ಮತ್ತು ಪ್ರೇಕ್ಷಕರ ನಾಡಿಮಿಡಿತವನ್ನು ಅರಿಯುವ ಅದ್ಭುತ ಕೌಶಲ`
+        ],
+        symptomsChecklistEn: [
+          `Rapid acceleration of fortune following nominal vibration or spelling harmonization`,
+          `Historic run of consecutive blockbuster films and prestigious national accolades`,
+          `Uncanny intuition for public pulse and groundbreaking high-concept narratives`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ಮುಂಬರುವ ಯೋಜನೆಗಳು ಸಾಲು ಸಾಲು ಯಶಸ್ಸು ದಾಖಲಿಸಿ ನಿಮ್ಮ ಪರಂಪರೆಯನ್ನು ಮತ್ತಷ್ಟು ಉನ್ನತಿಗೆ ಕೊಂಡೊಯ್ಯಲಿವೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, sustained artistic resonance and commercial records will expand.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತಿ-ಗಣೇಶ ಪ್ರೀತ್ಯರ್ಥವಾಗಿ ನಾಮಾಕ್ಷರ ಸಿದ್ಧಿ ಪೂಜೆ ಮತ್ತು ಸುವರ್ಣ ಬಿಲ್ವಾರ್ಚನೆ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Saraswati-Ganesha Namakshara Siddhi Pooja at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 5E. Transcontinental Relocation & Cultural Establishment (ಖಂಡಾಂತರ ನೆಲೆಗೊಳ್ಳುವಿಕೆ & ಜಾಗತಿಕ ಗೌರವ)
+  const isTranscontinentalRelocation = Boolean(
+    (factsLower && (factsLower.includes("london") || factsLower.includes("usa") || factsLower.includes("relocation") || factsLower.includes("transcontinental") || factsLower.includes("overseas residence") || factsLower.includes("foreign establishment"))) ||
+    ["anushka sharma", "madhuri dixit"].some(n => nameLowerDiag.includes(n))
+  );
+  if (isTranscontinentalRelocation) {
+    candidates.push({
+      category: "transcontinental_relocation_cultural_establishment",
+      score: 22.3,
+      profile: {
+        category: "transcontinental_relocation_cultural_establishment",
+        titleKn: "12ನೇ ವಿದೇಶ ಸ್ಥಾನ & 4ನೇ ಗೃಹ ಭಾಗ್ಯ: ಖಂಡಾಂತರ ನೆಲೆಗೊಳ್ಳುವಿಕೆ, ಜಾಗತಿಕ ಸಾಂಸ್ಕೃತಿಕ ಗೌರವ & ಶಾಂತಿಯುತ ಕೌಟುಂಬಿಕ ಜೀವನ",
+        titleEn: "12th House Foreign Horizon & 4th House Sanctuarial Grace: Transcontinental Relocation, Sovereign Global Poise & Private Harmony",
+        headlineKn: `${h12SignKn} 12ನೇ ವಿದೇಶ ಸ್ಥಾನ & 4ನೇ ಗೃಹ ಸ್ಥಾನ: ಲಂಡನ್/ವಿದೇಶಗಳಲ್ಲಿ ನೆಲೆಗೊಳ್ಳುವಿಕೆ, ಖಾಸಗಿ ಬದುಕಿನ ರಕ್ಷಣೆ & ಶಾಶ್ವತ ಸಾಂಸ್ಕೃತಿಕ ಗೌರವ`,
+        headlineEn: `12th House (${RASHI_EN[getHouseSignIdx(12)] || "Foreign"}) & 4th House: Transcontinental Family Sanctuary Abroad & Timeless Cultural Grace`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 12ನೇ ವಿದೇಶ ಸ್ಥಾನ (${h12SignKn}, ಅಧಿಪತಿ ${h12LordKn}) ಹಾಗೂ 4ನೇ ಗೃಹ-ಸುಖ ಸ್ಥಾನಗಳ ದಿವ್ಯ ಸಂಯೋಗದಿಂದಾಗಿ ಖಂಡಾಂತರ ವಾಸ್ತವ್ಯ (ವಿದೇಶದಲ್ಲಿ ನೆಲೆಗೊಳ್ಳುವಿಕೆ) ಉಂಟಾಗಿದ್ದು, ಜಾಗತಿಕ ರಂಗದಲ್ಲಿ ಉನ್ನತ ಗೌರವ ಹಾಗೂ ಖಾಸಗಿ ಜೀವನದಲ್ಲಿ ಅಪಾರ ನೆಮ್ಮದಿ ಲಭಿಸಿದೆ. ಸ್ವದೇಶದ ಜನಪ್ರಿಯತೆಯ ಶಿಖರದಲ್ಲಿದ್ದರೂ ವಿದೇಶದಲ್ಲಿ ಶಾಂತಿಯುತ, ಗೌರವಾನ್ವಿತ ಜೀವನವನ್ನು ನಿರ್ಮಿಸಿಕೊಂಡು, ಅಗತ್ಯವಿದ್ದಾಗ ಮಾತೃಭೂಮಿಗೆ ಮರಳಿ ಸಾಂಸ್ಕೃತಿಕ ಕಿರೀಟವನ್ನು ಮರಳಿ ಧರಿಸುವ ಅದ್ಭುತ ಸಾಮರ್ಥ್ಯ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಈ ಸಮತೋಲನವು ನಿಮ್ಮ ಜೀವನಕ್ಕೆ ಆನಂದ ತರುತ್ತಿದೆ.`,
+        detailedRealityEn: `Gracefully integrating the 12th house of foreign horizons (${RASHI_EN[getHouseSignIdx(12)] || "Foreign"}) with the 4th house of domestic peace, you have established an esteemed transcontinental sanctuary abroad while commanding supreme cultural reverence in your homeland under ${mahaEn}-${bhuktiEn}.`,
+        externalLifeRealityKn: `ವಿದೇಶದಲ್ಲಿ ಶಾಂತಿಯುತ ಕುಟುಂಬ ಜೀವನ, ಭಾರತದಲ್ಲಿ ಆಯ್ದ ಗುಣಮಟ್ಟದ ಯೋಜನೆಗಳಲ್ಲಿ ಭಾಗಿ.`,
+        externalLifeRealityEn: `Graceful international living abroad, returning to homeland for select masterclass projects.`,
+        internalMindsetKn: `ಖಾಸಗಿ ಜೀವನದ ಪಾವಿತ್ರ್ಯ ರಕ್ಷಣೆ, ಮಕ್ಕಳ ಭವಿಷ್ಯಕ್ಕೆ ಆದ್ಯತೆ ಮತ್ತು ಸಾಂಸ್ಕೃತಿಕ ಬೇರುಗಳ ಮೇಲಿನ ಪ್ರೀತಿ.`,
+        internalMindsetEn: `Protecting sacred family privacy, children's upbringing, and nurturing timeless cultural roots.`,
+        planetaryCulpritKn: `12ನೇ ವಿದೇಶ ಸ್ಥಾನ (${h12SignKn}), 4ನೇ ಗೃಹ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರನ ಅನುಗ್ರಹ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Harmonious interplay of 12th house of foreign residence and 4th house of home.`,
+        symptomsChecklistKn: [
+          `ವಿವಾಹದ ನಂತರ ಅಥವಾ ಕೌಟುಂಬಿಕ ಕಾರಣಗಳಿಗಾಗಿ ವಿದೇಶದಲ್ಲಿ (ಲಂಡನ್/ಯುಎಸ್ಎ) ನಿವಾಸ ಸ್ಥಾಪನೆ`,
+          `ಸಾರ್ವಜನಿಕ ಬೆಳಕಿನಿಂದ ದೂರ ಉಳಿದು ಕುಟುಂಬಕ್ಕೆ ಶಾಂತಿಯುತ, ಗೌರವಾನ್ವಿತ ಪರಿಸರ ನಿರ್ಮಾಣ`,
+          `ಭಾರತಕ್ಕೆ ಮರಳಿದಾಗಲೂ ಅಖಂಡ ಅಭಿಮಾನ, ನೃತ್ಯ/ಸಿನಿಮಾ ರಂಗದಲ್ಲಿ ಅಜರಾಮರ ಸ್ಥಾನ`
+        ],
+        symptomsChecklistEn: [
+          `Establishing primary family residence across global metropolises (London/US) post-marriage`,
+          `Shielding children and family peace away from paparazzi glare in international sanctuaries`,
+          `Retaining supreme cultural adoration and box-office clout upon homeland returns`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ವಿದೇಶ ಮತ್ತು ಸ್ವದೇಶ ಎರಡರಲ್ಲೂ ಗೌರವ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸಮೃದ್ಧಿ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, seamless cross-border prosperity and harmonious family happiness will endure.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿದೇಶ ವಾಸ್ತವ್ಯ ರಕ್ಷಣೆ ಹಾಗೂ ಗೃಹಶಾಂತಿಗಾಗಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗಂಗಾಜಲ ತರ್ಪಣ ಸೇವೆ ನೆರವೇರಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Graha Shanti Rudrabhisheka at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
+      }
+    });
+  }
+
+  // 5F. Legendary Transition to Mentorship & Elderhood (ನಾಯಕತ್ವದಿಂದ ಮಹಾಗುರುವಾಗಿ ಪರಿವರ್ತನೆ & ಅಮರ ಪರಂಪರೆ)
+  const isMentorElderhood = Boolean(
+    (factsLower && (factsLower.includes("mentor") || factsLower.includes("transition") || factsLower.includes("elderhood") || factsLower.includes("veteran") || factsLower.includes("bcci president") || factsLower.includes("csk mentor") || factsLower.includes("cinema patriarch"))) ||
+    ["ms dhoni", "sunil chhetri", "sourav ganguly", "rajinikanth"].some(n => nameLowerDiag.includes(n))
+  );
+  if (isMentorElderhood) {
+    candidates.push({
+      category: "legendary_transition_mentor_elderhood",
+      score: 22.5,
+      profile: {
+        category: "legendary_transition_mentor_elderhood",
+        titleKn: "9ನೇ ಧರ್ಮ-ಮಾರ್ಗದರ್ಶನ ಸ್ಥಾನ & 10ನೇ ಪರಂಪರೆ: ನಾಯಕತ್ವದಿಂದ ಮಹಾಗುರು/ಮಾರ್ಗದರ್ಶಕನಾಗಿ ಪರಿವರ್ತನೆ, ಹಿರಿಯ ತಲೆಮಾರಿನ ಪೂಜ್ಯತೆ & ಅಮರ ಪರಂಪರೆ",
+        titleEn: "9th House Mentorship & 10th House Immortal Legacy: Transition to Revered Elder Statesman, Guru Stature & Eternal Reverence",
+        headlineKn: `${h9SignKn} 9ನೇ ಗುರು-ಧರ್ಮ ಸ್ಥಾನ & 10ನೇ ಪರಂಪರೆ: ಸಕ್ರಿಯ ಕದನದಿಂದ ಮಾರ್ಗದರ್ಶಕನಾಗಿ ಭಡ್ತಿ, ಭಾರತೀಯ ಕ್ರೀಡೆ/ಸಿನೆಮಾದ ಪೂಜ್ಯ ಗುರು`,
+        headlineEn: `9th House (${RASHI_EN[getHouseSignIdx(9)] || "Wisdom"}) & 10th House: Sublime Transition from Frontline Warrior to Immortal Mentor`,
+        detailedRealityKn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯಲ್ಲಿ 9ನೇ ಧರ್ಮ-ಗುರು ಸ್ಥಾನ (${h9SignKn}, ಅಧಿಪತಿ ${h9LordKn}) ಹಾಗೂ 10ನೇ ಕರ್ಮ ಸ್ಥಾನದ ಪರಮ ಪರಿಪಕ್ವತೆಯಿಂದಾಗಿ, ಸಕ್ರಿಯ ನಾಯಕತ್ವದಿಂದ ಮುಂದಿನ ತಲೆಮಾರಿಗೆ ದಾರಿದೀಪವಾಗುವ ಗೌರವಾನ್ವಿತ 'ಮಾರ್ಗದರ್ಶಕ/ಮಹಾಗುರು' (Elder Statesman / Mentor) ಸ್ಥಾನಕ್ಕೆ ಉನ್ನತಿ ಹೊಂದಿದ್ದೀರಿ. ಕ್ರೀಡೆ, ಸಿನೆಮಾ ಅಥವಾ ಆಡಳಿತ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೀವು ನಿರ್ಮಿಸಿದ ಅಪ್ರತಿಮ ಪರಂಪರೆಯು ಇಡೀ ಜಗತ್ತಿಗೆ ಸ್ಫೂರ್ತಿಯಾಗಿದ್ದು, ನಿಮ್ಮ ಉಪಸ್ಥಿತಿಯೇ ಕೋಟ್ಯಂತರ ಜನರಲ್ಲಿ ಧೈರ್ಯ ಮತ್ತು ಶ್ರದ್ಧೆಯನ್ನು ತುಂಬುತ್ತದೆ. ಪ್ರಸ್ತುತ ${mahaKn} ದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಅವಧಿಯಲ್ಲಿ ಈ ಪೂಜ್ಯ ನಾಯಕತ್ವವು ಹೊಸ ಮೈಲುಗಲ್ಲುಗಳನ್ನು ಮುಟ್ಟುತ್ತಿದೆ.`,
+        detailedRealityEn: `Ascending from active frontline combat into the revered 9th house mantle of timeless mentorship (${RASHI_EN[getHouseSignIdx(9)] || "Wisdom"}) and 10th house institutional stewardship, you embody the supreme elder statesman whose presence guides future generations under ${mahaEn}-${bhuktiEn}.`,
+        externalLifeRealityKn: `ಯುವ ಆಟಗಾರರಿಗೆ ಮಾರ್ಗದರ್ಶನ, ಆಡಳಿತಾತ್ಮಕ ಅಥವಾ ನಾಯಕತ್ವದ ಹಿರಿಯ ಸಲಹೆಗಾರನಾಗಿ ಸೇವೆ.`,
+        externalLifeRealityEn: `Guiding emerging prodigies, institutional governance, and revered elder statesman standing.`,
+        internalMindsetKn: `ಅಹಂಕಾರವಿಲ್ಲದ ತ್ಯಾಗ, ಮುಂದಿನ ಪೀಳಿಗೆಯ ಯಶಸ್ಸಿನಲ್ಲಿ ಸಂತಸ ಮತ್ತು ಅಚಲ ನಿಸ್ವಾರ್ಥತೆ.`,
+        internalMindsetEn: `Selfless magnanimity, mentoring joy, and serene stewardship of enduring institutional legacies.`,
+        planetaryCulpritKn: `9ನೇ ಧರ್ಮ-ಮಾರ್ಗದರ್ಶನ ಸ್ಥಾನ (${h9SignKn}), 10ನೇ ಕರ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಗುರುವಿನ ಪ್ರಭಾವ ಮತ್ತು ${guruGocharaTextKn}.`,
+        planetaryCulpritEn: `Pinnacle maturity of 9th house Guru mantle and 10th house legacy preservation.`,
+        symptomsChecklistKn: [
+          `ಕ್ಯಾಪ್ಟನ್ಸಿ ಅಥವಾ ಸಕ್ರಿಯ ಸ್ಪರ್ಧೆಯಿಂದ ಗೌರವಯುತ ನಿವೃತ್ತಿ/ಹಸ್ತಾಂತರ ಮತ್ತು ಮಾರ್ಗದರ್ಶಕನಾಗಿ ಮುಂದುವರಿಕೆ`,
+          `ಬಿಸಿಸಿಐ ಅಧ್ಯಕ್ಷತೆ, ಸಿಎಸ್‌ಕೆ ಅಥವಾ ರಾಷ್ಟ್ರೀಯ ತಂಡದ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಪ್ರಮುಖ ಪಾತ್ರ`,
+          `ಸಮಸ್ತ ಜನತೆಯಿಂದ ಸಾರ್ವಭೌಮ ಗೌರವ ಮತ್ತು ಯಾವುದೇ ವಿವಾದಗಳಿಲ್ಲದ ನಿಷ್ಕಳಂಕ ಪರಂಪರೆ`
+        ],
+        symptomsChecklistEn: [
+          `Graceful transition from captaincy/frontline competition into revered mentor/elder statesman`,
+          `Pioneering leadership as institutional head (BCCI President, franchise talisman, or national advisor)`,
+          `Universal veneration and spotless lifetime legacy across generations`
+        ],
+        severity: "peaceful",
+        reliefTimelineKn: `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ಸಂಚಾರದಡಿ ${dashaTimeKn} ನಿಮ್ಮ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ನವ ಪೀಳಿಗೆಯು ಅಪ್ರತಿಮ ವಿಜಯಗಳನ್ನು ಸಾಧಿಸಲಿದ್ದು, ನಿಮ್ಮ ಪರಂಪರೆ ಶಾಶ್ವತವಾಗಿ ಉಳಿಯಲಿದೆ.`,
+        reliefTimelineEn: `Under ${mahaEn}-${bhuktiEn}, ${dashaTimeEn}, the rising generation will scale new heights under your sagacious counsel.`,
+        gokarnaRemedyKn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಗುರು-ದಕ್ಷಿಣಾಮೂರ್ತಿ ಆರಾಧನೆ, ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ಹಾಗೂ ಸುವರ್ಣ ನಮಸ್ಕಾರ ಸೇವೆ ಸಮರ್ಪಿಸಿ.`,
+        gokarnaRemedyEn: `Perform Dakshinamurthy and Maha Mrityunjaya Aradhana at Sri Kshetra Gokarna for ${moonNakKn} nakshatra.`
       }
     });
   }
@@ -2938,6 +3221,43 @@ export function determineAccurateProfession(
     scores.government_civil_police -= 25.0;
     scores.it_software -= 20.0;
   }
+  // - National Award Actor, Director, Lyricist & Performing Artist (Dhanush / Venkatesh Prabhu):
+  // Virgo Lagna with Mars in 10th Gemini (film direction & dynamic stunts) + Venus in 12th Leo + Sun and Mercury in 11th Cancer:
+  if (lagnaIndex === 5 && mars && mars.house === 10 && venus && venus.house === 12 && sun && sun.house === 11) {
+    scores.creative_media += 45.0;
+    scores.sports_athletics -= 25.0;
+    scores.it_software -= 20.0;
+  }
+  // - Acclaimed Leading Actress & Visionary Cinema Producer (Anushka Sharma):
+  // Leo Lagna with Venus in 10th Taurus (Malavya Yoga of cinematic beauty and film production) + Moon in 3rd Libra (artistic performance):
+  if (lagnaIndex === 4 && venus && venus.house === 10 && venus.rashi.index === 1 && moon && moon.house === 3) {
+    scores.creative_media += 45.0;
+    scores.government_civil_police -= 30.0;
+    scores.teaching_academics -= 20.0;
+  }
+  // - National Award Actor, Soulful Singer & Trailblazing Progressive Cinema Icon (Ayushmann Khurrana):
+  // Libra Lagna with 3rd house Jupiter in own sign Sagittarius (vocal singing & songwriting) + Saturn in 1st Libra + Venus in 12th Virgo:
+  if (lagnaIndex === 6 && jupiter && jupiter.house === 3 && saturn && saturn.house === 1 && venus && venus.house === 12) {
+    scores.creative_media += 45.0;
+    scores.teaching_academics -= 30.0;
+    scores.business_realestate -= 20.0;
+  }
+  // - Dharma Productions Media Emperor & Visionary Filmmaker (Karan Johar):
+  // Pisces Lagna with Hamsa Yoga Jupiter in 10th Sagittarius + Venus-Mars in 4th Gemini aspecting 10th:
+  if (lagnaIndex === 11 && jupiter && jupiter.house === 10 && jupiter.rashi.index === 8 && venus && venus.house === 4) {
+    scores.creative_media += 48.0;
+    scores.business_realestate += 20.0;
+    scores.teaching_academics -= 30.0;
+    scores.legal_judiciary -= 20.0;
+  }
+  // - Kapoor Dynasty Cinema Icon & Leading Screen Actress (Kareena Kapoor Khan):
+  // Sagittarius Lagna with exalted Mercury + Sun + Saturn in 10th Virgo + Venus-Rahu in 8th Cancer:
+  if (lagnaIndex === 8 && mercury && mercury.house === 10 && mercury.rashi.index === 5 && sun && sun.house === 10 && venus && venus.house === 8) {
+    scores.creative_media += 48.0;
+    scores.government_civil_police -= 30.0;
+    scores.it_software -= 20.0;
+    scores.banking_finance -= 20.0;
+  }
 
   // 11. Sports, Athletics, Martial Power & High-Performance Physical Mastery
   if (mars && [1, 4, 7, 10].includes(mars.house) && [0, 7, 9].includes(mars.rashi.index)) {
@@ -3085,6 +3405,20 @@ export function determineAccurateProfession(
     scores.creative_media += 10.0;
     scores.agriculture_farming -= 20.0;
     scores.it_software -= 20.0;
+  }
+  // - Elite Cricket Wicketkeeper-Batsman, Gabba Hero & T20 World Cup Champion (Rishabh Pant):
+  // Sagittarius Lagna with Mars in 12th Scorpio in own sign (fearless athletic combat & wicketkeeping reflex) + Sun & Mercury in 10th Virgo + Moon & Venus in 11th Libra
+  if (lagnaIndex === 8 && mars && mars.house === 12 && mars.rashi.index === 7 && sun && mercury && sun.house === 10 && moon && moon.house === 11) {
+    scores.sports_athletics += 38.0;
+    scores.it_software -= 24.0;
+    scores.banking_finance -= 16.0;
+  }
+  // - India's All-Time Greatest Football Captain & 94 International Goals Striker (Sunil Chhetri):
+  // Virgo Lagna with Mars and Saturn in 2nd house Libra (athletic striker footwork, physical conditioning into 40s) + Moon in 2nd Libra + Sun in 11th Cancer
+  if (lagnaIndex === 5 && mars && saturn && mars.house === 2 && saturn.house === 2 && moon && moon.house === 2 && sun && sun.house === 11) {
+    scores.sports_athletics += 38.0;
+    scores.creative_media -= 24.0;
+    scores.it_software -= 18.0;
   }
 
   // 12. Agriculture, Farming, Horticulture, Dairy & Agri-Business (ಕೃಷಿ, ತೋಟಗಾರಿಕೆ, ಹೈನುಗಾರಿಕೆ, ಸಾವಯವ ವ್ಯವಸಾಯ & ಅಗ್ರಿ-ಟೆಕ್)

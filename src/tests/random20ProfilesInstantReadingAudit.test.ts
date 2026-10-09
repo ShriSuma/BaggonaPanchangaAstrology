@@ -344,6 +344,17 @@ describe("Instant Reading Validation on 20 Random Test Profiles", () => {
       // Basic assertion that Instant Reading successfully evaluated the native
       expect(synthesis.multiParagraphExecutiveReading.length).toBeGreaterThan(0);
       expect(synthesis.panchanga.nakshatra).toBeDefined();
+
+      // Verify Destiny Catalysts & Lucky/Unlucky Audit for all 20 random profiles
+      expect(synthesis.destinyCatalysts).toBeDefined();
+      expect(synthesis.destinyCatalysts?.luckAudit).toBeDefined();
+      expect(synthesis.destinyCatalysts?.luckAudit.whyFeelingLucky.titleKn).toBeTruthy();
+      expect(synthesis.destinyCatalysts?.luckAudit.realLifeLuckExamples.length).toBe(4);
+      expect(synthesis.destinyCatalysts?.unluckyAudit).toBeDefined();
+      expect(synthesis.destinyCatalysts?.unluckyAudit.whyFeelingUnlucky.titleKn).toBeTruthy();
+      expect(synthesis.destinyCatalysts?.unluckyAudit.unluckyThingsAndTriggers.length).toBe(5);
+      expect(synthesis.destinyCatalysts?.unluckyAudit.realLifeUnluckyExamples.length).toBe(4);
+      expect(synthesis.destinyCatalysts?.unluckyAudit.unluckyMatrix.strictlyAvoidActivitiesKn.length).toBeGreaterThanOrEqual(3);
     });
   }
 

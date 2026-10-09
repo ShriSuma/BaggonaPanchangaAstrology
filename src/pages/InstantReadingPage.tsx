@@ -127,6 +127,7 @@ export default function InstantReadingPage(): JSX.Element {
   const [activeCategory, setActiveCategory] = useState<"all" | "career" | "marriage" | "children" | "mind" | "wealth">("all");
   const [selectedQA, setSelectedQA] = useState<InstantQAQuestion | null>(null);
   const [personalityTab, setPersonalityTab] = useState<"all" | "strengths" | "challenges" | "integrity">("all");
+  const [destinyAuditTab, setDestinyAuditTab] = useState<"all" | "lucky" | "unlucky" | "examples" | "matrix">("all");
   const [selectedBhuktiTab, setSelectedBhuktiTab] = useState<number>(0);
 
   // Custom Q&A State
@@ -584,7 +585,7 @@ STRICT RULES:
     );
   }
 
-  const { prescriptions, currentDiagnosis, instantQAList, yajnaHawanaPlan } = synthesisData || {};
+  const { prescriptions, currentDiagnosis, destinyCatalysts, instantQAList, yajnaHawanaPlan } = synthesisData || {};
   const filteredQA = instantQAList?.filter((item) => activeCategory === "all" || item.category === activeCategory) || [];
 
   const deterministicStructured = synthesisData
@@ -2983,6 +2984,790 @@ STRICT RULES:
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* 4.5 DESTINY CATALYSTS & LUCKY/UNLUCKY AUDIT HUB */}
+          {destinyCatalysts && (
+            <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/95 via-white to-amber-50/60 p-6 md:p-8 shadow-xl space-y-7">
+              {/* HEADER WITH BADGE, TITLE, AUDIO & 5-TAB CONTROLLER */}
+              <div className="border-b border-amber-200 pb-5 space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider">
+                      ॥ ಭಾಗ್ಯೋದಯದ ರಹಸ್ಯ & ಅದೃಷ್ಟ-ದುರದೃಷ್ಟ ಸಮಗ್ರ ಲೆಕ್ಕಾಚಾರ (LUCKY & UNLUCKY AUDIT) ॥
+                    </span>
+                    <h3 className="text-lg md:text-xl font-black text-amber-950 font-serif">
+                      {isKn
+                        ? `${session.input.name || (isChild ? "ಮಗುವಿನ" : "ಜಾತಕರ")} ಅದೃಷ್ಟದ ರಹಸ್ಯ, ದುರದೃಷ್ಟ ಎಚ್ಚರಿಕೆಗಳು & ಸಮಗ್ರ ಸಾಧನಗಳ ಪಟ್ಟಿ`
+                        : `${session.input.name ? `${session.input.name}'s ` : ""}Complete Lucky & Unlucky Audit, Destiny Catalysts & Protective Shield`}
+                    </h3>
+                    <p className="text-xs text-amber-900/80 mt-0.5">
+                      {isKn
+                        ? "ಯಾವ ಅಂಶಗಳು ಅದೃಷ್ಟ ತರುತ್ತವೆ • ಯಾವ ವಿಚಾರಗಳಲ್ಲಿ ದುರದೃಷ್ಟ ಕಾಡಬಹುದು • ಜನ್ಮ ಕುಂಡಲಿ, ಗೋಚಾರ & ದಶಾಭುಕ್ತಿ ಕಾರಣಗಳು • ನೈಜ ಜೀವನದ ಉದಾಹರಣೆಗಳು • ವರ್ಜ್ಯ & ರಕ್ಷಾ ಕವಚ"
+                        : "What triggers luck • What triggers misfortune • Astrological root causes (Natal, Transit, Dasha) • Real-life scenarios • Avoid matrix & Gokarna shield"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const luckAudit = destinyCatalysts.luckAudit;
+                        const unluckyAudit = destinyCatalysts.unluckyAudit;
+                        const text = isKn
+                          ? `ಭಾಗ್ಯೋದಯದ ರಹಸ್ಯ ಮತ್ತು ಅದೃಷ್ಟ-ದುರದೃಷ್ಟ ಸಮಗ್ರ ಲೆಕ್ಕಾಚಾರ. ಮೊದಲನೆಯದಾಗಿ, ಜಾತಕನಿಗೆ ಯಾವ ಅಂಶಗಳು ಅದೃಷ್ಟ ತರುತ್ತವೆ: ${luckAudit?.whyFeelingLucky.overviewKn || destinyCatalysts.whyLuckUnlocksNow.explanationKn}. ಯೋಗಕಾರಕ ರತ್ನ ${destinyCatalysts.gemstoneRingCatalyst.yogakarakaGemstoneKn} ಮತ್ತು ಕಳತ್ರ ಭಾಗ್ಯೋದಯ ${destinyCatalysts.marriageBhagya.detailedExplanationKn}. ಎರಡನೆಯದಾಗಿ, ಯಾವ ವಿಚಾರಗಳಲ್ಲಿ ದುರದೃಷ್ಟ ಕಾಡಬಹುದು: ${unluckyAudit?.whyFeelingUnlucky.overviewKn || destinyCatalysts.whyFeltUnlucky.explanationKn}. ಜಾತಕದಲ್ಲಿ ದುರದೃಷ್ಟ ಕಾಡಲು ಜನ್ಮ ಕುಂಡಲಿಯ ಕಾರಣ: ${unluckyAudit?.whyFeelingUnlucky.janmaKundliCauseKn || destinyCatalysts.whyFeltUnlucky.astrologicalReasonKn}. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಪ್ರಭಾವ: ${unluckyAudit?.whyFeelingUnlucky.gocharaTransitCauseKn || "ಗೋಚಾರ ಶನಿ ಪ್ರಭಾವ"}. ಪ್ರಸ್ತುತ ದಶಾಭುಕ್ತಿ ಪ್ರಭಾವ: ${unluckyAudit?.whyFeelingUnlucky.dashaBhuktiCauseKn || "ದಶಾಭುಕ್ತಿ ಪ್ರಭಾವ"}. ಮೂರನೆಯದಾಗಿ, ದುರದೃಷ್ಟದ ನೈಜ ಉದಾಹರಣೆ: 99% ರವರೆಗೆ ಬಂದ ಕೆಲಸ ಕೊನೆ ಕ್ಷಣದಲ್ಲಿ ಮುಗ್ಗರಿಸುವುದು ಮತ್ತು ಕೈಸಾಲ ಅಥವಾ ಜಾಮೀನು ನಿಂತು ನಷ್ಟ ಅನುಭವಿಸುವುದು. ನಾಲ್ಕನೆಯದಾಗಿ, ಎಚ್ಚರಿಕೆ ಹಾಗೂ ವರ್ಜ್ಯ ಸಾಧನಗಳು: ಶಡಾಷ್ಟಕ ಅಶುಭ ರಾಶಿಗಳು ${unluckyAudit?.unluckyMatrix?.inimicalRashisKn?.join(", ") || "ವರ್ಜ್ಯ ರಾಶಿಗಳು"}. ಅಶುಭ ದಿನಗಳು ${unluckyAudit?.unluckyMatrix?.unluckyDaysKn?.join(", ") || "ಮಂಗಳವಾರ"}. ಐದನೆಯದಾಗಿ, ಅದೃಷ್ಟ ಸಾಧನಗಳು: ಭಾಗ್ಯೋದಯ ವಯಸ್ಸು ${destinyCatalysts.luckyMatrix.ageOfAwakeningKn}. ಅದೃಷ್ಟ ಸಂಖ್ಯೆಗಳು ${destinyCatalysts.luckyMatrix.luckyNumbers.join(", ")}. ಪರಿಹಾರ ಕ್ಷೇತ್ರ: ${destinyCatalysts.spiritualTempleCatalyst.templeKn}. ರಕ್ಷಾ ಪರಿಹಾರ: ${unluckyAudit?.unluckyRemediesAndShields?.protectiveKshetraKn || destinyCatalysts.spiritualTempleCatalyst.remedyDetailsKn}.`
+                          : `Complete Destiny Blueprint, Lucky and Unlucky Audit. First, what makes you lucky: ${luckAudit?.whyFeelingLucky.overviewEn || destinyCatalysts.whyLuckUnlocksNow.explanationEn}. Yogakaraka gemstone is ${destinyCatalysts.gemstoneRingCatalyst.yogakarakaGemstoneEn}. Second, what and all can trigger bad luck: ${unluckyAudit?.whyFeelingUnlucky.overviewEn || destinyCatalysts.whyFeltUnlucky.explanationEn}. Astrological root causes: Natal factor: ${unluckyAudit?.whyFeelingUnlucky.janmaKundliCauseEn || destinyCatalysts.whyFeltUnlucky.astrologicalReasonEn}. Live transit factor: ${unluckyAudit?.whyFeelingUnlucky.gocharaTransitCauseEn || "Saturn transit"}. Running dasha factor: ${unluckyAudit?.whyFeelingUnlucky.dashaBhuktiCauseEn || "Dasha transit"}. Third, real-life unlucky examples: 99% finish line stall and compassion loan guarantee entrapment. Fourth, inimical signs to avoid: ${unluckyAudit?.unluckyMatrix?.inimicalRashisEn?.join(", ") || "Inimical signs"}. Avoid days: ${unluckyAudit?.unluckyMatrix?.unluckyDaysEn?.join(", ") || "Tuesday"}. Fifth, lucky charms: Awakening age ${destinyCatalysts.luckyMatrix.ageOfAwakening}. Lucky numbers ${destinyCatalysts.luckyMatrix.luckyNumbers.join(", ")}. Temple remedy: ${destinyCatalysts.spiritualTempleCatalyst.templeEn}. Gokarna protection shield: ${unluckyAudit?.unluckyRemediesAndShields?.protectiveKshetraEn || destinyCatalysts.spiritualTempleCatalyst.remedyDetailsEn}.`;
+                        handlePlayTalkingPoint("destiny_catalysts", text);
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition shadow-sm ${
+                        playingPointKey === "destiny_catalysts"
+                          ? "bg-amber-600 text-white animate-pulse"
+                          : "bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300"
+                      }`}
+                      title={isKn ? "ಅದೃಷ್ಟ ಮತ್ತು ದುರದೃಷ್ಟ ವಿವರಗಳನ್ನು ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ" : "Listen to Lucky & Unlucky Audit"}
+                    >
+                      <span>{playingPointKey === "destiny_catalysts" ? "🔊 ನಿಲ್ಲಿಸಿ" : "🎙️ ಧ್ವನಿ ವಿವರಣೆ"}</span>
+                    </button>
+                    <span className="text-2xl">✨</span>
+                  </div>
+                </div>
+
+                {/* 5-TAB PILL SWITCHER */}
+                <div className="flex flex-wrap items-center gap-1.5 bg-amber-100/90 p-1.5 rounded-2xl border border-amber-300 shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setDestinyAuditTab("all")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      destinyAuditTab === "all"
+                        ? "bg-amber-500 text-neutral-950 shadow-xs"
+                        : "text-amber-900 hover:bg-amber-200/60"
+                    }`}
+                  >
+                    {isKn ? "ಎಲ್ಲವೂ (All)" : "All"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDestinyAuditTab("lucky")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      destinyAuditTab === "lucky"
+                        ? "bg-emerald-600 text-white shadow-xs"
+                        : "text-emerald-950 hover:bg-emerald-100/60"
+                    }`}
+                  >
+                    {isKn ? "🌟 1. ಅದೃಷ್ಟ ಲೆಕ್ಕಾಚಾರ (Luck)" : "🌟 1. Luck Audit"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDestinyAuditTab("unlucky")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      destinyAuditTab === "unlucky"
+                        ? "bg-rose-700 text-white shadow-xs"
+                        : "text-rose-950 hover:bg-rose-100/60"
+                    }`}
+                  >
+                    {isKn ? "⚡ 2. ದುರದೃಷ್ಟ ಎಚ್ಚರಿಕೆಗಳು (Unluck)" : "⚡ 2. Unluck Triggers"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDestinyAuditTab("examples")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      destinyAuditTab === "examples"
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "text-indigo-950 hover:bg-indigo-100/60"
+                    }`}
+                  >
+                    {isKn ? "📖 3. ನೈಜ ಉದಾಹರಣೆಗಳು (Real Scenarios)" : "📖 3. Real Scenarios"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDestinyAuditTab("matrix")}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      destinyAuditTab === "matrix"
+                        ? "bg-amber-600 text-white shadow-xs"
+                        : "text-amber-950 hover:bg-amber-200/60"
+                    }`}
+                  >
+                    {isKn ? "🛡️ 4. ಸಾಧನಗಳು & ರಕ್ಷಾ ಕವಚ (Charms & Shield)" : "🛡️ 4. Charms & Shield"}
+                  </button>
+                </div>
+              </div>
+
+              {/* PILLAR 1: WHAT MAKES YOU LUCKY? (LUCK AUDIT & DESTINY CATALYSTS) */}
+              {(destinyAuditTab === "all" || destinyAuditTab === "lucky") && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm md:text-base font-black text-emerald-950 bg-emerald-100/90 px-3 py-1 rounded-xl border border-emerald-300">
+                      🌟 1. {isKn ? "ಯಾವ ಅಂಶಗಳು ಜಾತಕನಿಗೆ ನಿಖರ ಅದೃಷ್ಟ ತರುತ್ತವೆ? (Luck Audit & Catalysts)" : "1. What Will Make You Lucky? (Luck Audit & Catalysts)"}
+                    </span>
+                    <span className="text-xs text-stone-500 font-medium hidden sm:inline">
+                      {isKn ? "(ರತ್ನ, ಕಳತ್ರ, ಪುತ್ರಿ, ಪರಸ್ಥಳ, ನಾಮಾಕ್ಷರ ಕಂಪನ & ಭಾಗ್ಯೋದಯ ಸ್ತಂಭಗಳು)" : "(Gemstone, Marriage, Daughter, Relocation & Fortune Pillars)"}
+                    </span>
+                  </div>
+
+                  {/* LUCK AUDIT HERO SUMMARY BANNER */}
+                  {destinyCatalysts.luckAudit && (
+                    <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-2 border-emerald-300 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs md:text-sm font-black text-emerald-950">
+                          ☀️ {isKn ? destinyCatalysts.luckAudit.whyFeelingLucky.titleKn : destinyCatalysts.luckAudit.whyFeelingLucky.titleEn}
+                        </span>
+                        <span className="text-[10px] bg-emerald-200 text-emerald-950 px-2 py-0.5 rounded-full font-bold">
+                          {isKn ? "ಸುಪ್ತ ಭಾಗ್ಯೋದಯ" : "Fortune Catalysts"}
+                        </span>
+                      </div>
+                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                        {isKn ? destinyCatalysts.luckAudit.whyFeelingLucky.overviewKn : destinyCatalysts.luckAudit.whyFeelingLucky.overviewEn}
+                      </p>
+                      <div className="p-3 rounded-xl bg-white/90 border border-emerald-200 text-xs text-emerald-950 font-semibold leading-relaxed space-y-1.5">
+                        <div>
+                          <b>✨ {isKn ? "ಜನ್ಮ ಕುಂಡಲಿ ಭಾಗ್ಯ ಬಲ:" : "Janma Kundli Grace:"}</b>{" "}
+                          {isKn ? destinyCatalysts.luckAudit.whyFeelingLucky.janmaKundliGraceKn : destinyCatalysts.luckAudit.whyFeelingLucky.janmaKundliGraceEn}
+                        </div>
+                        <div>
+                          <b>🪐 {isKn ? "ಗೋಚಾರ & ದಶಾಭುಕ್ತಿ ಅನುಗ್ರಹ:" : "Transit & Dasha Grace:"}</b>{" "}
+                          {isKn
+                            ? `${destinyCatalysts.luckAudit.whyFeelingLucky.gocharaTransitGraceKn} • ${destinyCatalysts.luckAudit.whyFeelingLucky.dashaBhuktiGraceKn}`
+                            : `${destinyCatalysts.luckAudit.whyFeelingLucky.gocharaTransitGraceEn} • ${destinyCatalysts.luckAudit.whyFeelingLucky.dashaBhuktiGraceEn}`}
+                        </div>
+                      </div>
+
+                      {/* PRIMARY LUCKY CATALYSTS TAGS */}
+                      {destinyCatalysts.luckAudit.primaryLuckyCatalystsKn && destinyCatalysts.luckAudit.primaryLuckyCatalystsKn.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          <span className="text-[11px] font-bold text-emerald-950">
+                            {isKn ? "ಮುಖ್ಯ ಅದೃಷ್ಟ ಸಾಧನಗಳು:" : "Primary Catalysts:"}
+                          </span>
+                          {(isKn ? destinyCatalysts.luckAudit.primaryLuckyCatalystsKn : destinyCatalysts.luckAudit.primaryLuckyCatalystsEn).map((cat, idx) => (
+                            <span key={idx} className="px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-200 text-[10px] font-bold text-emerald-900">
+                              ✓ {cat}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* 1. GEMSTONE RING CATALYST */}
+                    <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-sm space-y-2.5 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                            <span>💍</span>
+                            <span>{isKn ? "ಯೋಗಕಾರಕ ರತ್ನ & ಉಂಗುರ:" : "Gemstone & Ring Catalyst:"}</span>
+                          </div>
+                          <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                            {isKn ? "ಲಗ್ನ & ಕರ್ಮ ಬಲ" : "Yogakaraka Force"}
+                          </span>
+                        </div>
+                        <div className="text-xs text-stone-700 space-y-1">
+                          <p>
+                            <b>{isKn ? "ಮುಖ್ಯ ಯೋಗಕಾರಕ ರತ್ನ:" : "Primary Gem:"}</b>{" "}
+                            <span className="font-black text-indigo-950 text-sm">
+                              {isKn ? destinyCatalysts.gemstoneRingCatalyst.yogakarakaGemstoneKn : destinyCatalysts.gemstoneRingCatalyst.yogakarakaGemstoneEn}
+                            </span>
+                          </p>
+                          <p>
+                            <b>{isKn ? "ಭಾಗ್ಯ ರತ್ನ ಪರ್ಯಾಯ:" : "Bhagya Gem Alternative:"}</b>{" "}
+                            <span className="font-semibold text-amber-950">
+                              {isKn ? destinyCatalysts.gemstoneRingCatalyst.bhagyaGemstoneKn : destinyCatalysts.gemstoneRingCatalyst.bhagyaGemstoneEn}
+                            </span>
+                          </p>
+                          <p className="text-[11px] text-stone-600">
+                            <b>{isKn ? "ಧಾರಣೆ ಬೆರಳು & ಲೋಹ:" : "Finger & Metal:"}</b>{" "}
+                            {isKn ? destinyCatalysts.gemstoneRingCatalyst.prescribedRingFingerKn : destinyCatalysts.gemstoneRingCatalyst.prescribedRingFingerEn} •{" "}
+                            {isKn ? destinyCatalysts.gemstoneRingCatalyst.prescribedMetalKn : destinyCatalysts.gemstoneRingCatalyst.prescribedMetalEn}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-amber-950 bg-amber-50/90 p-2.5 rounded-xl border border-amber-100 leading-relaxed mt-2">
+                        ⚡ <b>{isKn ? "ಅದೃಷ್ಟದ ಪ್ರಭಾವ:" : "Catalytic Impact:"}</b>{" "}
+                        {isKn ? destinyCatalysts.gemstoneRingCatalyst.catalyticImpactKn : destinyCatalysts.gemstoneRingCatalyst.catalyticImpactEn}
+                      </p>
+                    </div>
+
+                    {/* 2. MARRIAGE BHAGYA (KALATRA BHAGYA) */}
+                    <div className="p-4 rounded-2xl bg-white border border-rose-200 shadow-sm space-y-2.5 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-rose-900 font-bold text-sm">
+                            <span>💑</span>
+                            <span>{isKn ? "ವಿವಾಹದ ನಂತರ ಭಾಗ್ಯೋದಯ:" : "Post-Marriage Fortune:"}</span>
+                          </div>
+                          <span className="text-[10px] bg-rose-100 text-rose-900 px-2 py-0.5 rounded-full font-bold">
+                            {isKn ? destinyCatalysts.marriageBhagya.bhagyaIntensityKn : destinyCatalysts.marriageBhagya.bhagyaIntensityEn}
+                          </span>
+                        </div>
+                        <p className="text-xs text-stone-600">
+                          <b>{isKn ? "ಸಕ್ರಿಯ ವಯೋಮಾನ:" : "Activation Phase:"}</b>{" "}
+                          <span className="text-stone-900 font-semibold">
+                            {isKn ? destinyCatalysts.marriageBhagya.activationAgeRangeKn : destinyCatalysts.marriageBhagya.activationAgeRangeEn}
+                          </span>
+                        </p>
+                      </div>
+                      <p className="text-xs text-rose-950 bg-rose-50/80 p-2.5 rounded-xl border border-rose-100 leading-relaxed mt-2">
+                        🌺 <b>{isKn ? "ಕಳತ್ರ ಭಾಗ್ಯ ರಹಸ್ಯ:" : "Spouse Catalyst:"}</b>{" "}
+                        {isKn ? destinyCatalysts.marriageBhagya.detailedExplanationKn : destinyCatalysts.marriageBhagya.detailedExplanationEn}
+                      </p>
+                    </div>
+
+                    {/* 3. DAUGHTER BHAGYA (GRIHALAKSHMI YOGA) */}
+                    <div className="p-4 rounded-2xl bg-white border border-emerald-200 shadow-sm space-y-2.5 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
+                            <span>👧</span>
+                            <span>{isKn ? "ಪುತ್ರಿ ಭಾಗ್ಯ & ಗೃಹಲಕ್ಷ್ಮಿ:" : "Daughter Grace (Grihalakshmi):"}</span>
+                          </div>
+                          <span className="text-[10px] bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+                            {isKn ? "ಗೃಹಲಕ್ಷ್ಮೀ ಯೋಗ ಸಕ್ರಿಯ" : "Grihalakshmi Active"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-emerald-950 bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-100 leading-relaxed">
+                          ✨ <b>{isKn ? "ಲಕ್ಷ್ಮೀ ಆಗಮನ ಫಲ:" : "Lakshmi Impact:"}</b>{" "}
+                          {isKn ? destinyCatalysts.daughterBhagya.lakshmiArrivalImpactKn : destinyCatalysts.daughterBhagya.lakshmiArrivalImpactEn}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-stone-500 pt-1 border-t border-emerald-100">
+                        <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b>{" "}
+                        {isKn ? destinyCatalysts.daughterBhagya.astrologicalBasisKn : destinyCatalysts.daughterBhagya.astrologicalBasisEn}
+                      </p>
+                    </div>
+
+                    {/* 4. RELOCATION BHAGYA (DESHANTARA BHAGYA) */}
+                    <div className="p-4 rounded-2xl bg-white border border-cyan-200 shadow-sm space-y-2.5 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-cyan-900 font-bold text-sm">
+                            <span>✈️</span>
+                            <span>{isKn ? "ವಿದೇಶ & ಪರಸ್ಥಳ ಭಾಗ್ಯ:" : "Relocation & Distant City:"}</span>
+                          </div>
+                          <span className="text-[10px] bg-cyan-100 text-cyan-900 px-2 py-0.5 rounded-full font-bold">
+                            {isKn ? "ದೇಶಾಂತರ ಭಾಗ್ಯ ಸಕ್ರಿಯ" : "Deshantara Active"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-cyan-950 bg-cyan-50/80 p-2.5 rounded-xl border border-cyan-100 leading-relaxed">
+                          🌍 <b>{isKn ? "ಪರಸ್ಥಳದಲ್ಲಿ ಮಹಾ ಉನ್ನತಿ:" : "Distant Base Catalyst:"}</b>{" "}
+                          {isKn ? destinyCatalysts.relocationBhagya.explanationKn : destinyCatalysts.relocationBhagya.explanationEn}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-cyan-900 font-semibold pt-1 border-t border-cyan-100">
+                        🧭 <b>{isKn ? "ಅನುಕೂಲಕರ ದಿಕ್ಕುಗಳು:" : "Favorable Directions:"}</b>{" "}
+                        {isKn ? destinyCatalysts.relocationBhagya.favorableDirectionsKn : destinyCatalysts.relocationBhagya.favorableDirectionsEn}
+                      </p>
+                    </div>
+
+                    {/* 5. NAME SOUND VIBRATION */}
+                    <div className="p-4 rounded-2xl bg-white border border-indigo-200 shadow-sm space-y-2.5 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-indigo-900 font-bold text-sm">
+                            <span>🔤</span>
+                            <span>{isKn ? "ನಾಮಾಕ್ಷರ ಕಂಪನ & ಧ್ವನಿ:" : "Name Frequency Tuning:"}</span>
+                          </div>
+                          <span className="text-[10px] bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded-full font-bold">
+                            {isKn ? `ಜನ್ಮ ಪಾದ ${destinyCatalysts.nameSoundVibration.janmaPadaNumber}` : `Pada ${destinyCatalysts.nameSoundVibration.janmaPadaNumber}`}
+                          </span>
+                        </div>
+                        <div className="text-xs text-stone-700">
+                          <span className="text-stone-500 font-bold">{isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ನಾಮಾಕ್ಷರಗಳು:" : "Resonant Syllables:"} </span>
+                          <span className="font-black text-indigo-950 text-sm">
+                            {isKn
+                              ? destinyCatalysts.nameSoundVibration.recommendedStartingSyllablesKn.join(", ")
+                              : destinyCatalysts.nameSoundVibration.recommendedStartingSyllablesEn.join(", ")}
+                          </span>
+                        </div>
+                        <p className="text-xs text-indigo-950 bg-indigo-50/80 p-2.5 rounded-xl border border-indigo-100 leading-relaxed">
+                          🔔 <b>{isKn ? "ಧ್ವನಿ ಸಾಮರಸ್ಯ ವಿಶ್ಲೇಷಣೆ:" : "Acoustic Tuning:"}</b>{" "}
+                          {isKn ? destinyCatalysts.nameSoundVibration.vibrationHarmonyAnalysisKn : destinyCatalysts.nameSoundVibration.vibrationHarmonyAnalysisEn}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-indigo-900 font-medium pt-1 border-t border-indigo-100">
+                        🎯 <b>{isKn ? "ಹೆಸರು ತಿದ್ದುಪಡಿ ಫಲ:" : "Tuning Effect:"}</b>{" "}
+                        {isKn ? destinyCatalysts.nameSoundVibration.nameCorrectionImpactKn : destinyCatalysts.nameSoundVibration.nameCorrectionImpactEn}
+                      </p>
+                    </div>
+
+                    {/* 6. STREE BHAGYA (AUSPICIOUS FEMININE GRACE) */}
+                    <div className="p-4 rounded-2xl bg-white border border-purple-200 shadow-sm space-y-2.5 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-purple-900 font-bold text-sm">
+                            <span>🪷</span>
+                            <span>{isKn ? "ಸ್ತ್ರೀ ಭಾಗ್ಯೋದಯ (ತ್ರಿಶಕ್ತಿ):" : "Auspicious Feminine Grace:"}</span>
+                          </div>
+                          <span className="text-[10px] bg-purple-100 text-purple-900 px-2 py-0.5 rounded-full font-bold">
+                            {isKn ? "ಸ್ತ್ರೀ ಭಾಗ್ಯ ಯೋಗ" : "Stree Bhagya Active"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-purple-950 bg-purple-50/80 p-2.5 rounded-xl border border-purple-100 leading-relaxed">
+                          🌸 <b>{isKn ? "ಮಹಿಳೆಯರ ಆಶೀರ್ವಾದದ ಪ್ರಭಾವ:" : "Feminine Pillars:"}</b>{" "}
+                          {isKn ? destinyCatalysts.streeBhagya.explanationKn : destinyCatalysts.streeBhagya.explanationEn}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-purple-900 font-bold pt-1 border-t border-purple-100">
+                        👑 <b>{isKn ? "ಅದೃಷ್ಟದ ವ್ಯಕ್ತಿಗಳು:" : "Key Benefactors:"}</b>{" "}
+                        {isKn ? destinyCatalysts.streeBhagya.luckyPersonKn : destinyCatalysts.streeBhagya.luckyPersonEn}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* PILLAR 2: WHAT CAN MAKE YOU UNLUCKY? (UNLUCKY AUDIT & ROOT CAUSES) */}
+              {(destinyAuditTab === "all" || destinyAuditTab === "unlucky") && (
+                <div className="space-y-4 pt-3 border-t border-amber-200/80">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm md:text-base font-black text-rose-950 bg-rose-100/90 px-3 py-1 rounded-xl border border-rose-300">
+                      ⚡ 2. {isKn ? "ಯಾವ ಮತ್ತು ಯಾರ ಜೊತೆ ದುರದೃಷ್ಟ ಕಾಡಬಹುದು? (Unlucky Audit & Warnings)" : "2. What & With Whom Can You Feel Unlucky? (Unlucky Audit & Warnings)"}
+                    </span>
+                    <span className="text-xs text-stone-500 font-medium hidden sm:inline">
+                      {isKn ? "(ಪಾಲುದಾರಿಕೆ, ಜಾಮೀನು, ಸಟ್ಟಾ ವ್ಯಾಪಾರ, ಜನ್ಮ ಕುಂಡಲಿ, ಗೋಚಾರ & ದಶಾಭುಕ್ತಿ ವಿಶ್ಲೇಷಣೆ)" : "(Partnership, Surety, Speculation, Natal Karma, Transits & Dasha)"}
+                    </span>
+                  </div>
+
+                  {/* UNLUCKY AUDIT HERO WARNING BANNER */}
+                  {destinyCatalysts.unluckyAudit && (
+                    <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-r from-rose-50 via-red-50/70 to-rose-50 border-2 border-rose-300 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs md:text-sm font-black text-rose-950 flex items-center gap-1.5">
+                          ⚠️ {isKn ? destinyCatalysts.unluckyAudit.whyFeelingUnlucky.titleKn : destinyCatalysts.unluckyAudit.whyFeelingUnlucky.titleEn}
+                        </span>
+                        <span className="text-[10px] bg-rose-200 text-rose-950 px-2 py-0.5 rounded-full font-bold">
+                          {isKn ? "ಅನಿರೀಕ್ಷಿತ ಆಘಾತ ಮುನ್ನೆಚ್ಚರಿಕೆ" : "Misfortune Audit"}
+                        </span>
+                      </div>
+                      <p className="text-xs md:text-sm text-stone-800 leading-relaxed font-medium">
+                        {isKn ? destinyCatalysts.unluckyAudit.whyFeelingUnlucky.overviewKn : destinyCatalysts.unluckyAudit.whyFeelingUnlucky.overviewEn}
+                      </p>
+                      <div className="p-3 rounded-xl bg-white/90 border border-rose-200 text-xs text-rose-950 font-semibold leading-relaxed">
+                        <b>🌧️ {isKn ? "ದುರದೃಷ್ಟ ಮತ್ತು ಅಡೆತಡೆಗಳು ಕಾಡಲು ಕರ್ಮ ಕಾರಣ:" : "Why Native Felt Roadblocks & Unluck:"}</b>{" "}
+                        {isKn ? destinyCatalysts.unluckyAudit.whyFeelingUnlucky.karmicCrucibleKn : destinyCatalysts.unluckyAudit.whyFeelingUnlucky.karmicCrucibleEn}
+                      </div>
+
+                      {/* 3-FOLD ASTROLOGICAL ROOT CAUSES (JANMA KUNDLI, LIVE GOCHARA, RUNNING DASHA-BHUKTI) */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                        {/* 1. JANMA KUNDLI CAUSE */}
+                        <div className="p-3 rounded-xl bg-white border border-rose-200/90 shadow-2xs space-y-1.5">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-rose-950">
+                            <span>🪐</span>
+                            <span>{isKn ? "1. ಜನ್ಮ ಕುಂಡಲಿ ಮೂಲ (Natal Karma):" : "1. Natal Karma Basis:"}</span>
+                          </div>
+                          <p className="text-[11px] text-stone-700 leading-snug">
+                            {isKn ? destinyCatalysts.unluckyAudit.whyFeelingUnlucky.janmaKundliCauseKn : destinyCatalysts.unluckyAudit.whyFeelingUnlucky.janmaKundliCauseEn}
+                          </p>
+                        </div>
+
+                        {/* 2. LIVE GOCHARA CAUSE */}
+                        <div className="p-3 rounded-xl bg-white border border-amber-300 shadow-2xs space-y-1.5">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-950">
+                            <span>🛰️</span>
+                            <span>{isKn ? "2. ಪ್ರಸ್ತುತ ಲೈವ್ ಗೋಚಾರ (Live Transit):" : "2. Live Transit Factor:"}</span>
+                          </div>
+                          <p className="text-[11px] text-stone-700 leading-snug">
+                            {isKn ? destinyCatalysts.unluckyAudit.whyFeelingUnlucky.gocharaTransitCauseKn : destinyCatalysts.unluckyAudit.whyFeelingUnlucky.gocharaTransitCauseEn}
+                          </p>
+                        </div>
+
+                        {/* 3. RUNNING DASHA-BHUKTI CAUSE */}
+                        <div className="p-3 rounded-xl bg-white border border-indigo-200 shadow-2xs space-y-1.5">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-950">
+                            <span>⏳</span>
+                            <span>{isKn ? "3. ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ (Running Dasha):" : "3. Running Dasha Factor:"}</span>
+                          </div>
+                          <p className="text-[11px] text-stone-700 leading-snug">
+                            {isKn ? destinyCatalysts.unluckyAudit.whyFeelingUnlucky.dashaBhuktiCauseKn : destinyCatalysts.unluckyAudit.whyFeelingUnlucky.dashaBhuktiCauseEn}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5 VULNERABLE LIFE SECTORS & TRIGGER POINTS */}
+                  {destinyCatalysts.unluckyAudit?.unluckyThingsAndTriggers && (
+                    <div className="space-y-2.5">
+                      <span className="text-xs font-bold text-stone-700 block">
+                        🚨 {isKn ? "ದುರದೃಷ್ಟಕ್ಕೆ ಎಡೆಮಾಡಿಕೊಡುವ 5 ಸೂಕ್ಷ್ಮ ರಂಗಗಳು & ಮುನ್ನೆಚ್ಚರಿಕೆಗಳು:" : "5 High-Risk Life Sectors & Vulnerable Trigger Points:"}
+                      </span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {destinyCatalysts.unluckyAudit.unluckyThingsAndTriggers.map((trig, idx) => (
+                          <div key={idx} className="p-3.5 rounded-2xl bg-white border border-rose-200 shadow-xs flex flex-col justify-between space-y-2">
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="font-bold text-xs text-rose-950 flex items-center gap-1">
+                                  <span>{trig.icon}</span>
+                                  <span>{isKn ? trig.itemKn : trig.itemEn}</span>
+                                </span>
+                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${
+                                  trig.severity === "critical"
+                                    ? "bg-rose-700 text-white animate-pulse"
+                                    : "bg-amber-600 text-white"
+                                }`}>
+                                  {trig.severity.toUpperCase()}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-bold text-stone-500 block">
+                                {isKn ? trig.categoryKn : trig.categoryEn}
+                              </span>
+                              <p className="text-[11px] text-stone-700 leading-snug">
+                                {isKn ? trig.warningDetailKn : trig.warningDetailEn}
+                              </p>
+                            </div>
+                            <div className="space-y-1 pt-1.5 border-t border-rose-100">
+                              <span className="text-[10px] text-stone-500 block">
+                                🔍 <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : "Astrological Basis:"}</b> {isKn ? trig.astrologicalBasisKn : trig.astrologicalBasisEn}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* PILLAR 3: REAL-LIFE SCENARIOS: LUCK VS UNLUCK (ನೈಜ ಜೀವನದ ಉದಾಹರಣೆಗಳು) */}
+              {(destinyAuditTab === "all" || destinyAuditTab === "examples") && (
+                <div className="space-y-4 pt-3 border-t border-amber-200/80">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm md:text-base font-black text-indigo-950 bg-indigo-100/90 px-3 py-1 rounded-xl border border-indigo-300">
+                      📖 3. {isKn ? "ನೈಜ ಜೀವನದ ಉದಾಹರಣೆಗಳು: ಅದೃಷ್ಟ vs ದುರದೃಷ್ಟ (Real-Life Scenarios: Luck vs Unluck)" : "3. Real-Life Scenarios: Luck vs Unluck"}
+                    </span>
+                    <span className="text-xs text-stone-500 font-medium hidden sm:inline">
+                      {isKn ? "(ಯಾವ ಸಂದರ್ಭಗಳಲ್ಲಿ ಆಕಸ್ಮಿಕ ಅದೃಷ್ಟ ಒಲಿಯಿತು & ಯಾವ ಸಂದರ್ಭಗಳಲ್ಲಿ ದುರದೃಷ್ಟ ಕಾಡಿತು?)" : "(Case Studies: Miracle Turns vs Painful Roadblocks)"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {/* LEFT COLUMN: REAL-LIFE LUCK SCENARIOS (4 EXAMPLES) */}
+                    <div className="space-y-3 p-4 md:p-5 rounded-2xl bg-gradient-to-b from-emerald-50/80 via-white to-stone-50 border-2 border-emerald-300 shadow-sm">
+                      <div className="flex items-center justify-between pb-2 border-b border-emerald-200">
+                        <div className="flex items-center gap-2 text-emerald-950 font-bold text-sm">
+                          <span>🌟</span>
+                          <span>{isKn ? "ಅದೃಷ್ಟದ ನೈಜ ಉದಾಹರಣೆಗಳು (Real-Life Luck Scenarios):" : "Real-Life Luck Scenarios:"}</span>
+                        </div>
+                        <span className="text-[10px] bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+                          {isKn ? "4 ಸ್ವರ್ಣ ನಿದರ್ಶನಗಳು" : "4 Golden Milestones"}
+                        </span>
+                      </div>
+
+                      {destinyCatalysts.luckAudit?.realLifeLuckExamples && destinyCatalysts.luckAudit.realLifeLuckExamples.length > 0 ? (
+                        destinyCatalysts.luckAudit.realLifeLuckExamples.map((ex, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-white border border-emerald-200/90 shadow-2xs space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-emerald-950 flex items-center gap-1">
+                                <span>{ex.icon}</span>
+                                <span>{isKn ? ex.titleKn : ex.titleEn}</span>
+                              </span>
+                              <span className="text-[9px] bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full font-semibold uppercase">
+                                {ex.category}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-stone-700 leading-snug">
+                              {isKn ? ex.scenarioKn : ex.scenarioEn}
+                            </p>
+                            <div className="text-[10px] text-emerald-900 pt-1 border-t border-emerald-100 font-medium">
+                              <b>{isKn ? "ಜ್ಯೋತಿಷ್ಯ ಪ್ರೇರಕ:" : "Astrological Trigger:"}</b> {isKn ? ex.triggerKn : ex.triggerEn}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-xs text-stone-500 italic">
+                          {isKn ? "ಅದೃಷ್ಟ ನಿದರ್ಶನಗಳು ಲೆಕ್ಕಹಾಕಲ್ಪಡುತ್ತಿವೆ..." : "Computing real-life luck scenarios..."}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* RIGHT COLUMN: REAL-LIFE UNLUCKY SCENARIOS (4 EXAMPLES) */}
+                    <div className="space-y-3 p-4 md:p-5 rounded-2xl bg-gradient-to-b from-rose-50/80 via-white to-stone-50 border-2 border-rose-300 shadow-sm">
+                      <div className="flex items-center justify-between pb-2 border-b border-rose-200">
+                        <div className="flex items-center gap-2 text-rose-950 font-bold text-sm">
+                          <span>⚡</span>
+                          <span>{isKn ? "ದುರದೃಷ್ಟದ ನೈಜ ಉದಾಹರಣೆಗಳು (Real-Life Unlucky Scenarios):" : "Real-Life Unlucky Scenarios:"}</span>
+                        </div>
+                        <span className="text-[10px] bg-rose-100 text-rose-900 px-2 py-0.5 rounded-full font-bold">
+                          {isKn ? "4 ಎಚ್ಚರಿಕೆಯ ನಿದರ್ಶನಗಳು" : "4 Critical Roadblocks"}
+                        </span>
+                      </div>
+
+                      {destinyCatalysts.unluckyAudit?.realLifeUnluckyExamples && destinyCatalysts.unluckyAudit.realLifeUnluckyExamples.length > 0 ? (
+                        destinyCatalysts.unluckyAudit.realLifeUnluckyExamples.map((ex, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-white border border-rose-200/90 shadow-2xs space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-rose-950 flex items-center gap-1">
+                                <span>{ex.icon}</span>
+                                <span>{isKn ? ex.titleKn : ex.titleEn}</span>
+                              </span>
+                              <span className="text-[9px] bg-rose-100 text-rose-900 px-2 py-0.5 rounded-full font-semibold uppercase">
+                                {ex.category}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-stone-700 leading-snug">
+                              {isKn ? ex.scenarioKn : ex.scenarioEn}
+                            </p>
+                            <div className="text-[10px] text-rose-900 pt-1 border-t border-rose-100 font-medium">
+                              <b>{isKn ? "ಜ್ಯೋತಿಷ್ಯ ಪ್ರೇರಕ:" : "Astrological Trigger:"}</b> {isKn ? ex.triggerKn : ex.triggerEn}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-xs text-stone-500 italic">
+                          {isKn ? "ದುರದೃಷ್ಟ ನಿದರ್ಶನಗಳು ಲೆಕ್ಕಹಾಕಲ್ಪಡುತ್ತಿವೆ..." : "Computing real-life unlucky scenarios..."}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* PILLAR 4: LUCKY CHARMS MATRIX & SACRED GOKARNA SHIELD */}
+              {(destinyAuditTab === "all" || destinyAuditTab === "matrix") && (
+                <div className="space-y-5 pt-3 border-t border-amber-200/80">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm md:text-base font-black text-amber-950 bg-amber-200/90 px-3 py-1 rounded-xl border border-amber-300">
+                      🛡️ 4. {isKn ? "ಅದೃಷ್ಟ ಸಾಧನಗಳ ಪಟ್ಟಿ vs ಅಶುಭ ವರ್ಜ್ಯ ಸಾಧನಗಳು & ಗೋಕರ್ಣ ರಕ್ಷಾ ಕವಚ" : "4. Lucky Charms Matrix vs Avoid Matrix & Sacred Gokarna Shield"}
+                    </span>
+                    <span className="text-xs text-stone-500 font-medium hidden sm:inline">
+                      {isKn ? "(ಅದೃಷ್ಟ ವೃದ್ಧಿಸುವ ಶುಭ ಅಂಶಗಳು ಹಾಗೂ ದುರದೃಷ್ಟದಿಂದ ಶಾಶ್ವತ ರಕ್ಷಣೆ ನೀಡುವ ಪರಿಹಾರಗಳು)" : "(Auspicious Charms vs Inimical Avoid Attributes & Gokarna Shield)"}
+                    </span>
+                  </div>
+
+                  {/* PART A: 8 LUCKY CHARMS CARDS */}
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                      🍀 {isKn ? "ಭಾಗ್ಯೋದಯ ವೃದ್ಧಿಸುವ ಅದೃಷ್ಟ ಸಾಧನಗಳ ಪಟ್ಟಿ (Auspicious Charms):" : "Auspicious Lucky Charms Matrix:"}
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {/* 1. Awakening Age */}
+                      <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-xs space-y-1">
+                        <span className="text-[10px] text-stone-500 font-bold uppercase block">
+                          ⏳ {isKn ? "ಭಾಗ್ಯೋದಯ ವಯಸ್ಸು" : "Awakening Age"}
+                        </span>
+                        <span className="font-black text-amber-950 text-sm block">
+                          {isKn ? destinyCatalysts.luckyMatrix.ageOfAwakeningKn : `Age ${destinyCatalysts.luckyMatrix.ageOfAwakening}`}
+                        </span>
+                        <span className="text-[10px] text-stone-500 block">
+                          {isKn ? "ಭಾಗ್ಯಾಧಿಪತಿಯ ಸಹಜ ಕಾಲ" : "Planetary activation cycle"}
+                        </span>
+                      </div>
+
+                      {/* 2. Lucky Person */}
+                      <div className="p-3.5 rounded-2xl bg-white border border-rose-200 shadow-xs space-y-1">
+                        <span className="text-[10px] text-stone-500 font-bold uppercase block">
+                          🛡️ {isKn ? "ಅದೃಷ್ಟ ತರುವ ವ್ಯಕ್ತಿ" : "Lucky Person"}
+                        </span>
+                        <span className="font-black text-rose-950 text-sm block truncate" title={isKn ? destinyCatalysts.luckyMatrix.luckyPersonKn : destinyCatalysts.luckyMatrix.luckyPersonEn}>
+                          {isKn ? destinyCatalysts.luckyMatrix.luckyPersonKn : destinyCatalysts.luckyMatrix.luckyPersonEn}
+                        </span>
+                        <span className="text-[10px] text-stone-500 block">
+                          {isKn ? "ಭಾಗ್ಯೋದಯದ ರಕ್ಷಾ ಕವಚ" : "Primary fortune catalyst"}
+                        </span>
+                      </div>
+
+                      {/* 3. Lucky Numbers */}
+                      <div className="p-3.5 rounded-2xl bg-white border border-indigo-200 shadow-xs space-y-1">
+                        <span className="text-[10px] text-stone-500 font-bold uppercase block">
+                          🔢 {isKn ? "ಅದೃಷ್ಟ ಸಂಖ್ಯೆಗಳು" : "Lucky Numbers"}
+                        </span>
+                        <span className="font-black text-indigo-950 text-sm block">
+                          {destinyCatalysts.luckyMatrix.luckyNumbers.join(", ")}
+                        </span>
+                        <span className="text-[10px] text-stone-500 block">
+                          {isKn ? "ದಿನಾಂಕ & ನಿರ್ಧಾರಗಳಿಗೆ ಶುಭ" : "Auspicious numeric roots"}
+                        </span>
+                      </div>
+
+                      {/* 4. Lucky Days */}
+                      <div className="p-3.5 rounded-2xl bg-white border border-emerald-200 shadow-xs space-y-1">
+                        <span className="text-[10px] text-stone-500 font-bold uppercase block">
+                          🗓️ {isKn ? "ಅದೃಷ್ಟ ವಾರಗಳು" : "Lucky Days"}
+                        </span>
+                        <span className="font-black text-emerald-950 text-sm block truncate">
+                          {isKn ? destinyCatalysts.luckyMatrix.luckyDaysKn.join(", ") : destinyCatalysts.luckyMatrix.luckyDaysEn.join(", ")}
+                        </span>
+                        <span className="text-[10px] text-stone-500 block">
+                          {isKn ? "ಹೊಸ ಆರಂಭ & ಒಪ್ಪಂದಕ್ಕೆ ಶುಭ" : "Auspicious for milestones"}
+                        </span>
+                      </div>
+
+                      {/* 5. Lucky Direction */}
+                      <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-xs space-y-1">
+                        <span className="text-[10px] text-stone-500 font-bold uppercase block">
+                          🧭 {isKn ? "ಅದೃಷ್ಟ ದಿಕ್ಕುಗಳು" : "Lucky Directions"}
+                        </span>
+                        <span className="font-black text-amber-900 text-sm block truncate">
+                          {isKn ? destinyCatalysts.luckyMatrix.luckyDirectionsKn.join(", ") : destinyCatalysts.luckyMatrix.luckyDirectionsEn.join(", ")}
+                        </span>
+                        <span className="text-[10px] text-stone-500 block">
+                          {isKn ? "ಪ್ರಯಾಣ & ಕಾರ್ಯಾರಂಭಕ್ಕೆ ಶುಭ" : "Travel & trade alignment"}
+                        </span>
+                      </div>
+
+                      {/* 6. Vehicle Colors */}
+                      <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-xs space-y-1">
+                        <span className="text-[10px] text-stone-500 font-bold uppercase block">
+                          🚗 {isKn ? "ವಾಹನ & ವಸ್ತ್ರ ಬಣ್ಣಗಳು" : "Lucky Colors"}
+                        </span>
+                        <span className="font-black text-amber-950 text-sm block truncate">
+                          {isKn ? destinyCatalysts.luckyMatrix.vehicleColorsKn.join(", ") : destinyCatalysts.luckyMatrix.vehicleColorsEn.join(", ")}
+                        </span>
+                        <span className="text-[10px] text-stone-500 block">
+                          {isKn ? "ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿ ವೃದ್ಧಿ" : "Resonant aura colors"}
+                        </span>
+                      </div>
+
+                      {/* 7. Avoid Colors */}
+                      <div className="p-3.5 rounded-2xl bg-white border border-rose-200 shadow-xs space-y-1">
+                        <span className="text-[10px] text-stone-500 font-bold uppercase block">
+                          🚫 {isKn ? "ವರ್ಜಿಸಬೇಕಾದ ಬಣ್ಣಗಳು" : "Avoid Colors"}
+                        </span>
+                        <span className="font-black text-rose-900 text-sm block truncate">
+                          {isKn ? destinyCatalysts.luckyMatrix.avoidColorsKn.join(", ") : destinyCatalysts.luckyMatrix.avoidColorsEn.join(", ")}
+                        </span>
+                        <span className="text-[10px] text-stone-500 block">
+                          {isKn ? "ಮುಖ್ಯ ಕಾರ್ಯಗಳಲ್ಲಿ ತ್ಯಜಿಸಿ" : "Avoid on key milestones"}
+                        </span>
+                      </div>
+
+                      {/* 8. Sacred Temple Remedy */}
+                      <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-300 shadow-xs space-y-1">
+                        <span className="text-[10px] text-amber-800 font-bold uppercase block">
+                          🛕 {isKn ? "ದೈವಿಕ ಕ್ಷೇತ್ರ ಪರಿಹಾರ" : "Sacred Temple"}
+                        </span>
+                        <span className="font-black text-amber-950 text-sm block truncate" title={isKn ? destinyCatalysts.spiritualTempleCatalyst.templeKn : destinyCatalysts.spiritualTempleCatalyst.templeEn}>
+                          {isKn ? destinyCatalysts.spiritualTempleCatalyst.templeKn : destinyCatalysts.spiritualTempleCatalyst.templeEn}
+                        </span>
+                        <span className="text-[10px] text-stone-600 block line-clamp-1" title={isKn ? destinyCatalysts.spiritualTempleCatalyst.remedyDetailsKn : destinyCatalysts.spiritualTempleCatalyst.remedyDetailsEn}>
+                          {isKn ? destinyCatalysts.spiritualTempleCatalyst.remedyDetailsKn : destinyCatalysts.spiritualTempleCatalyst.remedyDetailsEn}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PART B: UNLUCKY AVOID MATRIX & SACRED GOKARNA SHIELD */}
+                  {destinyCatalysts.unluckyAudit?.unluckyMatrix && (
+                    <div className="space-y-3 pt-2">
+                      <span className="text-xs font-bold text-rose-950 flex items-center gap-1.5">
+                        ⚠️ {isKn ? "ಅಶುಭ ವರ್ಜ್ಯ ಸಾಧನಗಳ ಪಟ್ಟಿ & ಗೋಕರ್ಣ ರಕ್ಷಾ ಕವಚ (Inimical Matrix & Protection Shield):" : "Inimical Avoid Matrix & Gokarna Protection Shield:"}
+                      </span>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                        {/* 1. Inimical Shadashtaka Signs */}
+                        <div className="p-3 rounded-2xl bg-rose-50/90 border border-rose-300 shadow-xs space-y-1">
+                          <span className="text-[10px] text-rose-900 font-bold uppercase block">
+                            ⚡ {isKn ? "ಅಶುಭ ಶಡಾಷ್ಟಕ ರಾಶಿಗಳು" : "Inimical Signs"}
+                          </span>
+                          <span className="font-black text-rose-950 text-xs block">
+                            {isKn ? destinyCatalysts.unluckyAudit.unluckyMatrix.inimicalRashisKn.join(", ") : destinyCatalysts.unluckyAudit.unluckyMatrix.inimicalRashisEn.join(", ")}
+                          </span>
+                          <span className="text-[10px] text-stone-600 block leading-tight">
+                            {isKn ? "ಪಾಲುದಾರಿಕೆ & ಸಾಲಕ್ಕೆ ವರ್ಜ್ಯ" : "Avoid partnering & lending"}
+                          </span>
+                        </div>
+
+                        {/* 2. Unlucky Days */}
+                        <div className="p-3 rounded-2xl bg-rose-50/90 border border-rose-300 shadow-xs space-y-1">
+                          <span className="text-[10px] text-rose-900 font-bold uppercase block">
+                            🗓️ {isKn ? "ಅಶುಭ ವಾರಗಳು" : "Avoid Days"}
+                          </span>
+                          <span className="font-black text-rose-950 text-xs block">
+                            {isKn ? destinyCatalysts.unluckyAudit.unluckyMatrix.unluckyDaysKn.join(", ") : destinyCatalysts.unluckyAudit.unluckyMatrix.unluckyDaysEn.join(", ")}
+                          </span>
+                          <span className="text-[10px] text-stone-600 block leading-tight">
+                            {isKn ? "ಹೊಸ ಹೂಡಿಕೆಗೆ ವರ್ಜ್ಯ" : "Avoid starting contracts"}
+                          </span>
+                        </div>
+
+                        {/* 3. Unlucky Directions */}
+                        <div className="p-3 rounded-2xl bg-rose-50/90 border border-rose-300 shadow-xs space-y-1">
+                          <span className="text-[10px] text-rose-900 font-bold uppercase block">
+                            🧭 {isKn ? "ಅಶುಭ ದಿಕ್ಕುಗಳು" : "Avoid Directions"}
+                          </span>
+                          <span className="font-black text-rose-950 text-xs block">
+                            {isKn ? destinyCatalysts.unluckyAudit.unluckyMatrix.unluckyDirectionsKn.join(", ") : destinyCatalysts.unluckyAudit.unluckyMatrix.unluckyDirectionsEn.join(", ")}
+                          </span>
+                          <span className="text-[10px] text-stone-600 block leading-tight">
+                            {isKn ? "ದೀರ್ಘ ಪ್ರಯಾಣಕ್ಕೆ ವರ್ಜ್ಯ" : "Avoid travel orientation"}
+                          </span>
+                        </div>
+
+                        {/* 4. Strictly Avoid Numbers */}
+                        <div className="p-3 rounded-2xl bg-rose-50/90 border border-rose-300 shadow-xs space-y-1">
+                          <span className="text-[10px] text-rose-900 font-bold uppercase block">
+                            🔢 {isKn ? "ವರ್ಜಿಸಬೇಕಾದ ಸಂಖ್ಯೆ" : "Avoid Numbers"}
+                          </span>
+                          <span className="font-black text-rose-950 text-xs block">
+                            {destinyCatalysts.unluckyAudit.unluckyMatrix.avoidNumbers.join(", ")}
+                          </span>
+                          <span className="text-[10px] text-stone-600 block leading-tight">
+                            {isKn ? "ಖಾತೆ, ವಾಹನ ಸಂಖ್ಯೆಗೆ ತ್ಯಜಿಸಿ" : "Avoid in key registrations"}
+                          </span>
+                        </div>
+
+                        {/* 5. Strictly Avoid Colors */}
+                        <div className="p-3 rounded-2xl bg-rose-50/90 border border-rose-300 shadow-xs space-y-1">
+                          <span className="text-[10px] text-rose-900 font-bold uppercase block">
+                            🎨 {isKn ? "ವರ್ಜಿಸಬೇಕಾದ ಬಣ್ಣ" : "Avoid Colors"}
+                          </span>
+                          <span className="font-black text-rose-950 text-xs block">
+                            {isKn ? destinyCatalysts.unluckyAudit.unluckyMatrix.unluckyColorsKn.join(", ") : destinyCatalysts.unluckyAudit.unluckyMatrix.unluckyColorsEn.join(", ")}
+                          </span>
+                          <span className="text-[10px] text-stone-600 block leading-tight">
+                            {isKn ? "ಶುಭ ಸಂದರ್ಭಗಳಲ್ಲಿ ತ್ಯಜಿಸಿ" : "Avoid in key gatherings"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* STRICT DO-NOTS & SACRED REMEDIES (2 LARGE CARDS) */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        {/* 1. STRICT PROHIBITIONS */}
+                        <div className="p-4 rounded-2xl bg-rose-50/80 border-2 border-rose-200/90 space-y-2">
+                          <span className="text-xs font-bold text-rose-950 block">
+                            🚫 {isKn ? "ಜೀವನದಲ್ಲಿ ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಬೇಕಾದ ಎಚ್ಚರಿಕೆಗಳು:" : "Mandatory Prohibitions to Ward Off Misfortune:"}
+                          </span>
+                          <ul className="text-xs text-stone-800 space-y-1.5 list-disc list-inside">
+                            {(isKn
+                              ? destinyCatalysts.unluckyAudit.unluckyMatrix.strictlyAvoidActivitiesKn
+                              : destinyCatalysts.unluckyAudit.unluckyMatrix.strictlyAvoidActivitiesEn
+                            ).map((rule: string, idx: number) => (
+                              <li key={idx} className="leading-snug">{rule}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* 2. PROTECTIVE MANTRA & GOKARNA SHANTI REMEDY */}
+                        <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-100/70 via-white to-amber-50 border-2 border-amber-300 shadow-xs space-y-3">
+                          <div className="space-y-1">
+                            <span className="text-[10px] uppercase font-black text-amber-900 tracking-wider block">
+                              🛡️ {isKn ? "ದಿನನಿತ್ಯದ ರಕ್ಷಾ ಮಂತ್ರ (Daily Protective Mantra)" : "Daily Protective Mantra"}
+                            </span>
+                            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300/80 text-xs font-black text-amber-950 leading-relaxed font-serif">
+                              {isKn ? destinyCatalysts.unluckyAudit.unluckyRemediesAndShields.protectiveMantraKn : destinyCatalysts.unluckyAudit.unluckyRemediesAndShields.protectiveMantraEn}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1 pt-1 border-t border-amber-200">
+                            <span className="text-[10px] uppercase font-black text-amber-900 tracking-wider block">
+                              🛕 {isKn ? "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಾ ಪರಿಹಾರ (Gokarna Shanti Seva)" : "Gokarna Kshetra Shanti Seva"}
+                            </span>
+                            <p className="text-xs text-stone-800 font-medium leading-relaxed">
+                              {isKn ? destinyCatalysts.unluckyAudit.unluckyRemediesAndShields.protectiveKshetraKn : destinyCatalysts.unluckyAudit.unluckyRemediesAndShields.protectiveKshetraEn}
+                            </p>
+                          </div>
+
+                          <div className="space-y-1 pt-1 border-t border-amber-200 text-xs text-stone-700">
+                            <span className="text-[10px] uppercase font-black text-amber-900 tracking-wider block">
+                              🛡️ {isKn ? "ದಿನನಿತ್ಯದ ರಕ್ಷಾ ಕ್ರಮ" : "Daily Shield Habit"}
+                            </span>
+                            <p className="text-[11px] leading-snug">
+                              {isKn ? destinyCatalysts.unluckyAudit.unluckyRemediesAndShields.dailyShieldHabitKn : destinyCatalysts.unluckyAudit.unluckyRemediesAndShields.dailyShieldHabitEn}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

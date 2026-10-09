@@ -1,4 +1,4 @@
-import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra, sanitizeAstrologyKannadaText } from "../utils/kannadaAstrologyTerms";
+import { toKannadaPlanet, toKannadaRashi, toKannadaNakshatra, sanitizeAstrologyKannadaText, toKannadaColor, toKannadaDirection } from "../utils/kannadaAstrologyTerms";
 import { PlanetName, type KundliOutput, type Rashi, type Nakshatra } from "./AstroTypes";
 import { normalizeDegree } from "./AstroMath";
 import { signLord } from "./KundliInsightsEngine";
@@ -23,6 +23,7 @@ import {
   getNaturalRelationship,
   type DashaSandhiAndRoadmapOutput
 } from "./DashaSandhiAndRoadmapEngine";
+import { NAKSHATRA_SYLLABLE_TABLE } from "../features/balavidya/balaVidyaEngine";
 
 /** Calculate distance between houses (1-indexed, 1 to 12) */
 export const houseDist = (fromH: number, toH: number): number => ((toH - fromH + 12) % 12) + 1;
@@ -321,6 +322,12 @@ export interface AstrologicalPrescriptions {
     panchangaSynergyHi?: string;
     panchangaSynergyTe?: string;
     panchangaSynergyTa?: string;
+    yogakarakaGemstoneKn?: string;
+    yogakarakaGemstoneEn?: string;
+    bhagyaGemstoneKn?: string;
+    bhagyaGemstoneEn?: string;
+    lifeCatalystImpactKn?: string;
+    lifeCatalystImpactEn?: string;
   };
   luckyAttributes: {
     carColors: string[];
@@ -575,6 +582,202 @@ export interface InstantQAQuestion {
 
 import { generateYajnaHawanaPlan, type YajnaHawanaEngineOutput } from "./YajnaHawanaEngine";
 
+export interface LuckUnluckRealLifeExample {
+  id: string;
+  titleKn: string;
+  titleEn: string;
+  scenarioKn: string;
+  scenarioEn: string;
+  triggerKn: string;
+  triggerEn: string;
+  icon: string;
+  category: "wealth" | "career" | "relationship" | "health" | "divine";
+}
+
+export interface UnluckyTriggerItem {
+  itemKn: string;
+  itemEn: string;
+  categoryKn: string;
+  categoryEn: string;
+  warningDetailKn: string;
+  warningDetailEn: string;
+  astrologicalBasisKn: string;
+  astrologicalBasisEn: string;
+  severity: "critical" | "warning";
+  icon: string;
+}
+
+export interface UnluckyAuditDetails {
+  vulnerableSectorsKn: string[];
+  vulnerableSectorsEn: string[];
+  unluckyThingsAndTriggers: UnluckyTriggerItem[];
+  whyFeelingUnlucky: {
+    titleKn: string;
+    titleEn: string;
+    overviewKn: string;
+    overviewEn: string;
+    janmaKundliCauseKn: string;
+    janmaKundliCauseEn: string;
+    gocharaTransitCauseKn: string;
+    gocharaTransitCauseEn: string;
+    dashaBhuktiCauseKn: string;
+    dashaBhuktiCauseEn: string;
+    karmicCrucibleKn: string;
+    karmicCrucibleEn: string;
+  };
+  realLifeUnluckyExamples: LuckUnluckRealLifeExample[];
+  unluckyMatrix: {
+    inimicalRashisKn: string[];
+    inimicalRashisEn: string[];
+    unluckyDaysKn: string[];
+    unluckyDaysEn: string[];
+    unluckyDirectionsKn: string[];
+    unluckyDirectionsEn: string[];
+    unluckyColorsKn: string[];
+    unluckyColorsEn: string[];
+    avoidNumbers: number[];
+    strictlyAvoidActivitiesKn: string[];
+    strictlyAvoidActivitiesEn: string[];
+  };
+  unluckyRemediesAndShields: {
+    dosAndDontsKn: string[];
+    dosAndDontsEn: string[];
+    protectiveMantraKn: string;
+    protectiveMantraEn: string;
+    protectiveKshetraKn: string;
+    protectiveKshetraEn: string;
+    dailyShieldHabitKn: string;
+    dailyShieldHabitEn: string;
+  };
+}
+
+export interface LuckAuditDetails {
+  whyFeelingLucky: {
+    titleKn: string;
+    titleEn: string;
+    overviewKn: string;
+    overviewEn: string;
+    janmaKundliGraceKn: string;
+    janmaKundliGraceEn: string;
+    gocharaTransitGraceKn: string;
+    gocharaTransitGraceEn: string;
+    dashaBhuktiGraceKn: string;
+    dashaBhuktiGraceEn: string;
+    awakeningTimingKn: string;
+    awakeningTimingEn: string;
+  };
+  realLifeLuckExamples: LuckUnluckRealLifeExample[];
+  primaryLuckyCatalystsKn: string[];
+  primaryLuckyCatalystsEn: string[];
+}
+
+export interface DestinyCatalystsAndLuckyCharms {
+  gemstoneRingCatalyst: {
+    primaryGemstoneKn: string;
+    primaryGemstoneEn: string;
+    yogakarakaGemstoneKn: string;
+    yogakarakaGemstoneEn: string;
+    bhagyaGemstoneKn: string;
+    bhagyaGemstoneEn: string;
+    prescribedRingFingerKn: string;
+    prescribedRingFingerEn: string;
+    prescribedMetalKn: string;
+    prescribedMetalEn: string;
+    activationTimingKn: string;
+    activationTimingEn: string;
+    catalyticImpactKn: string;
+    catalyticImpactEn: string;
+  };
+  marriageBhagya: {
+    hasKalatraBhagyaYoga: boolean;
+    bhagyaIntensityKn: "ಅತ್ಯುನ್ನತ (Pinnacle)" | "ಮಧ್ಯಮ (Moderate)" | "ಸಾಮಾನ್ಯ (Gradual)";
+    bhagyaIntensityEn: "Pinnacle" | "Moderate" | "Gradual";
+    detailedExplanationKn: string;
+    detailedExplanationEn: string;
+    activationAgeRangeKn: string;
+    activationAgeRangeEn: string;
+  };
+  daughterBhagya: {
+    hasGrihalakshmiYoga: boolean;
+    lakshmiArrivalImpactKn: string;
+    lakshmiArrivalImpactEn: string;
+    astrologicalBasisKn: string;
+    astrologicalBasisEn: string;
+  };
+  nameSoundVibration: {
+    janmaPadaNumber: 1 | 2 | 3 | 4;
+    recommendedStartingSyllablesKn: string[];
+    recommendedStartingSyllablesEn: string[];
+    vibrationHarmonyAnalysisKn: string;
+    vibrationHarmonyAnalysisEn: string;
+    nameCorrectionImpactKn: string;
+    nameCorrectionImpactEn: string;
+  };
+  whyFeltUnlucky: {
+    titleKn: string;
+    titleEn: string;
+    explanationKn: string;
+    explanationEn: string;
+    astrologicalReasonKn: string;
+    astrologicalReasonEn: string;
+  };
+  whyLuckUnlocksNow: {
+    titleKn: string;
+    titleEn: string;
+    explanationKn: string;
+    explanationEn: string;
+    timingWindowKn: string;
+    timingWindowEn: string;
+  };
+  relocationBhagya: {
+    hasDeshantaraBhagya: boolean;
+    titleKn: string;
+    titleEn: string;
+    explanationKn: string;
+    explanationEn: string;
+    favorableDirectionsKn: string;
+    favorableDirectionsEn: string;
+  };
+  streeBhagya: {
+    hasStreeBhagyaYoga: boolean;
+    titleKn: string;
+    titleEn: string;
+    luckyPersonKn: string;
+    luckyPersonEn: string;
+    explanationKn: string;
+    explanationEn: string;
+  };
+  spiritualTempleCatalyst: {
+    templeKn: string;
+    templeEn: string;
+    deityKn: string;
+    deityEn: string;
+    remedyDetailsKn: string;
+    remedyDetailsEn: string;
+  };
+  luckyMatrix: {
+    ageOfAwakening: number;
+    ageOfAwakeningKn: string;
+    luckyPersonKn: string;
+    luckyPersonEn: string;
+    luckyNumbers: number[];
+    luckyDaysKn: string[];
+    luckyDaysEn: string[];
+    luckyDirectionsKn: string[];
+    luckyDirectionsEn: string[];
+    vehicleColorsKn: string[];
+    vehicleColorsEn: string[];
+    avoidColorsKn: string[];
+    avoidColorsEn: string[];
+    gemstoneRingKn: string;
+    gemstoneRingEn: string;
+    metalKn: string;
+    metalEn: string;
+  };
+  luckAudit: LuckAuditDetails;
+  unluckyAudit: UnluckyAuditDetails;
+}
+
 export interface PanchangaSynthesisOutput {
   panchanga: {
     vara: { nameKn: string; nameEn: string; lord: PlanetName; tatva: string };
@@ -587,6 +790,7 @@ export interface PanchangaSynthesisOutput {
   };
   prescriptions: AstrologicalPrescriptions;
   currentDiagnosis: CurrentLifeDiagnosis;
+  destinyCatalysts?: DestinyCatalystsAndLuckyCharms;
   tenLifeAspectBullets: MasterLifeBulletPoint[];
   goodBadAnalysis: GoodBadTraitAnalysis;
   instantQAList: InstantQAQuestion[];
@@ -597,6 +801,247 @@ export interface PanchangaSynthesisOutput {
 /* ==========================================================================
    4. PRESCRIPTION GENERATION LOGIC (5-ANGAS UNIFIED - ENGLISH DIGITS)
    ========================================================================== */
+
+export const GEMSTONE_PRESCRIBED_MAP: Record<PlanetName, {
+  kn: string; en: string; hi: string; te: string; ta: string; sanskrit: string;
+  metalKn: string; metalEn: string;
+  fingerKn: string; fingerEn: string; fingerHi: string; fingerTe: string; fingerTa: string;
+}> = {
+  [PlanetName.Sun]: { kn: "ಮಾಣಿಕ್ಯ", en: "Ruby", hi: "माणिक्य (रूबी)", te: "మాణిక్యం", ta: "மாணிக்கம்", sanskrit: "Manikya", metalKn: "ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ಶುದ್ಧ ತಾಮ್ರ", metalEn: "Gold or Copper", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
+  [PlanetName.Moon]: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು", en: "Natural Pearl", hi: "सच्चा मोती", te: "సహజ ముత్యం", ta: "இயற்கை முத்து", sanskrit: "Mukta", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", metalEn: "Pure Silver", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
+  [PlanetName.Mars]: { kn: "ಹವಳ", en: "Red Coral", hi: "लाल मूंगा", te: "పగడం", ta: "பவழம்", sanskrit: "Pravala", metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನ", metalEn: "Copper or Gold", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
+  [PlanetName.Mercury]: { kn: "ಪಚ್ಚೆ", en: "Emerald", hi: "पन्ना", te: "పచ్చ", ta: "மரகதம்", sanskrit: "Marakata", metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
+  [PlanetName.Jupiter]: { kn: "ಪುಷ್ಪರಾಗ", en: "Yellow Sapphire", hi: "पुखराज", te: "పుష్యరాగం", ta: "புஷ்பராகம்", sanskrit: "Pushparaga", metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger of Right Hand", fingerHi: "तर्जनी अंगुली (दाहिना हाथ)", fingerTe: "చూపుడు వేలు (కుడి చేయి)", fingerTa: "ஆள்காட்டி விரல் (வலது கை)" },
+  [PlanetName.Venus]: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", hi: "हीरा अथवा श्वेत जरकन", te: "వజ్రం లేదా తెల్ల జిర్కాన్", ta: "வைரம் அல்லது வெள்ளை ஜிர்கான்", sanskrit: "Vajra / Heera", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪ್ಲಾಟಿನಂ", metalEn: "Silver or Platinum", fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య వేలు లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்" },
+  [PlanetName.Saturn]: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", hi: "नीलम", te: "నీలం", ta: "நீலக்கல் (நீலம்)", sanskrit: "Neelam", metalKn: "ಪಂಚಧಾತು ಅಥವಾ ಬೆಳ್ಳಿ", metalEn: "Panchadhatu or Silver", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
+  [PlanetName.Rahu]: { kn: "ಗೋಮೇಧಿಕ", en: "Hessonite (Gomed)", hi: "गोमेद", te: "గోమేధికం", ta: "கோமேதகம்", sanskrit: "Gomedhika", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
+  [PlanetName.Ketu]: { kn: "ವೈಢೂರ್ಯ", en: "Cat's Eye (Vaidurya)", hi: "लहसुनिया (वैडूर्य)", te: "వైడూర్యం", ta: "வைடூரியம்", sanskrit: "Vaidurya", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು", fingerEn: "Ring or Little Finger", fingerHi: "अनामिका अथवा कनिष्ठिका अंगुली", fingerTe: "ఉంగరపు వేలు లేదా చిటికెన వేలు", fingerTa: "மோதிர விரல் அல்லது சுண்டு விரல்" }
+};
+
+export const GEMSTONE_ACTIVATION_DAY_MAP: Record<PlanetName, { kn: string; en: string; hi: string; te: string; ta: string }> = {
+  [PlanetName.Sun]: { kn: "ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ (ಸೂರ್ಯೋದಯ ಕಾಲದಲ್ಲಿ)", en: "Sunday Morning (Sunrise)", hi: "रविवार प्रातःकाल (सूर्योदय काल)", te: "ఆదివారం ఉదయం (సూర్యోదయ వేళ)", ta: "ஞாயிறு அதிகாலை (சூரியோதய வேளை)" },
+  [PlanetName.Moon]: { kn: "ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ಲಪಕ್ಷದಲ್ಲಿ)", en: "Monday Morning (Shukla Paksha)", hi: "शुक्ल पक्ष सोमवार प्रातःकाल", te: "శుక్లపక్ష సోమవారం ఉదయం", ta: "சுக்லபக்ஷ திங்கட்கிழமை அதிகாலை" },
+  [PlanetName.Mars]: { kn: "ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ (ಕುಜ ಹೋರೆಯಲ್ಲಿ)", en: "Tuesday Morning (Mars Hora)", hi: "मंगलवार प्रातःकाल (मंगल होरा)", te: "మంగళవారం ఉదయం (కుజ హోర)", ta: "செவ்வாய் அதிகாலை (குஜ ஓரை)" },
+  [PlanetName.Mercury]: { kn: "ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ (ಬುಧ ಹೋರೆಯಲ್ಲಿ)", en: "Wednesday Morning (Mercury Hora)", hi: "ಬುಧವಾರ प्रातःकाल (बुध होरा)", te: "బుధవారం ఉదయం (బుధ హోర)", ta: "புதன் அதிகாலை (புதன் ஓரை)" },
+  [PlanetName.Jupiter]: { kn: "ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ (ಗುರು ಹೋರೆಯಲ್ಲಿ)", en: "Thursday Morning (Jupiter Hora)", hi: "गुरुवार प्रातःकाल (गुरु होरा)", te: "గురువారం ఉదయం (గురు హోర)", ta: "வியாழன் அதிகாலை (குரு ஓரை)" },
+  [PlanetName.Venus]: { kn: "ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ (ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)", en: "Friday Morning (Venus Hora)", hi: "शुक्रवार प्रातःकाल (शुक्र होरा)", te: "శుక్రవారం ఉదయం (శుక్ర హోర)", ta: "வெள்ளி அதிகாலை (சுக்ர ஓரை)" },
+  [PlanetName.Saturn]: { kn: "ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ (ಶನಿ ಹೋರೆಯಲ್ಲಿ)", en: "Saturday Morning or Evening (Saturn Hora)", hi: "शनिवार प्रातः अथवा सांध्य (शनि होरा)", te: "శనివారం ఉదయం లేదా సాయంత్రం (శని హోర)", ta: "சனிக்கிழமை காலை அல்லது மாலை (சனி ஓரை)" },
+  [PlanetName.Rahu]: { kn: "ಶನಿವಾರ ಸಂಜೆ (ರಾಹುಕಾಲ ಕಳೆದು)", en: "Saturday Evening (Post Rahu Kalam)", hi: "शनिवार सांध्य (राहुकाल उपरांत)", te: "శనివారం సాయంత్రం (రాహుకాలం తర్వాత)", ta: "சனிக்கிழமை மாலை (ராகுகாலம் கடந்த பின்)" },
+  [PlanetName.Ketu]: { kn: "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ", en: "Thursday or Tuesday Morning", hi: "गुरुवार अथवा मंगलवार प्रातःकाल", te: "గురువారం లేదా మంగళవారం ఉదయం", ta: "வியாழன் அல்லது செவ்வாய் அதிகாலை" }
+};
+
+export const LAGNA_YOGAKARAKA_GEM_MAP: Record<number, { kn: string; en: string; impactKn: string; impactEn: string }> = {
+  0: { kn: "ಹವಳ (ಅಥವಾ ಕನಕ ಪುಷ್ಪರಾಗ)", en: "Red Coral (or Yellow Sapphire)", impactKn: "ಲಗ್ನಾಧಿಪತಿ ಕುಜ ಹಾಗೂ ಭಾಗ್ಯಾಧಿಪತಿ ಗುರು ಬಲವರ್ಧನೆಯಿಂದ ವೃತ್ತಿ ದಿಗ್ವಿಜಯ ಹಾಗೂ ರಕ್ಷಣಾ ಕವಚ", impactEn: "Career conquest and psychic protection through Lagna and Bhagya lord empowerment" },
+  1: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", impactKn: "ಯೋಗಕಾರಕ ಶನಿಯ ಪ್ರಭಾವದಿಂದ ನಿರಂತರ ಅಧಿಕಾರ, ಕೀರ್ತಿ, ಆಸ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ಅದೃಷ್ಟದ ಸ್ಥಿರತೆ", impactEn: "Sustained authority, fame, asset accumulation, and fortune stability through Yogakaraka Saturn" },
+  2: { kn: "ಪಚ್ಚೆ (ಅಥವಾ ವಜ್ರ / ಶ್ವೇತ ಜಿರ್ಕಾನ್)", en: "Emerald (or Diamond / White Zircon)", impactKn: "ಲಗ್ನಾಧಿಪತಿ ಬುಧನ ಚತುರತೆ ಮತ್ತು ತ್ರಿಕೋಣಾಧಿಪತಿ ಶುಕ್ರನ ಕೃಪೆಯಿಂದ ಸಾರ್ವಜನಿಕ ಯಶಸ್ಸು ಹಾಗೂ ವಾಕ್ ಸಿದ್ಧಿ", impactEn: "Public triumph, sharp commercial acumen and articulate influence through Mercury and Venus" },
+  3: { kn: "ಹವಳ (ಪ್ರವಾಳ)", en: "Red Coral (Pravala)", impactKn: "5ನೇ ಮತ್ತು 10ನೇ ಕೇಂದ್ರ-ತ್ರಿಕೋಣಾಧಿಪತಿ ಕುಜನ ಯೋಗಕಾರಕ ಶಕ್ತಿಯಿಂದ ಅಪ್ರತಿಮ ನಾಯಕತ್ವ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಯಶಸ್ಸು", impactEn: "Unrivaled leadership and career glory through paramount Yogakaraka Mars as 5th & 10th lord" },
+  4: { kn: "ಹವಳ (ಅಥವಾ ಮಾಣಿಕ್ಯ)", en: "Red Coral (or Ruby)", impactKn: "4ನೇ ಮತ್ತು 9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜನ ಯೋಗಕಾರಕ ಬಲದಿಂದ ಸಾರ್ವತ್ರಿಕ ವಿಜಯ, ಆಸ್ತಿ ಯೋಗ ಹಾಗೂ ಸಾಮಾಜಿಕ ಕೀರ್ತಿ", impactEn: "Comprehensive triumph, property gains, and high social stature through Yogakaraka Mars as 4th & 9th lord" },
+  5: { kn: "ಪಚ್ಚೆ (ಅಥವಾ ವಜ್ರ / ಶ್ವೇತ ಜಿರ್ಕಾನ್)", en: "Emerald (or Diamond / White Zircon)", impactKn: "ಲಗ್ನ ಮತ್ತು ಕರ್ಮಾಧಿಪತಿ ಬುಧನ ಅನುಗ್ರಹದಿಂದ ವಾಣಿಜ್ಯ, ಸಂವಹನ ಹಾಗೂ ಕಲಾತ್ಮಕ ರಂಗದಲ್ಲಿ ಅದ್ಭುತ ಮನ್ನಣೆ", impactEn: "Commercial brilliance, communication mastery, and artistic success through Mercury and Venus" },
+  6: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", impactKn: "4ನೇ ಮತ್ತು 5ನೇ ಯೋಗಕಾರಕ ಶನಿಯ ದೈವಿಕ ಬಲದಿಂದ ಶಾಶ್ವತ ಕೀರ್ತಿ, ಸಾರ್ವಜನಿಕ ಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಅದೃಷ್ಟದ ಮಹೋನ್ನತ ತಿರುವು", impactEn: "Lasting renown, commanding social prestige, and monumental destiny turning points through Yogakaraka Saturn" },
+  7: { kn: "ಪುಷ್ಪರಾಗ (ಅಥವಾ ಹವಳ)", en: "Yellow Sapphire (or Red Coral)", impactKn: "2ನೇ ಮತ್ತು 5ನೇ ತ್ರಿಕೋಣಾಧಿಪತಿ ಗುರು ಬಲದಿಂದ ಸಂಪತ್ತು, ಕುಟುಂಬ ಸುಖ ಹಾಗೂ ಗೌರವ ಪ್ರಾಪ್ತಿ", impactEn: "Wealth multiplication, progeny bliss, and public reverence through auspicious Jupiter and Mars" },
+  8: { kn: "ಮಾಣಿಕ್ಯ (ಅಥವಾ ಪುಷ್ಪರಾಗ)", en: "Ruby (or Yellow Sapphire)", impactKn: "9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ಸೂರ್ಯನ ತೇಜಸ್ಸಿನಿಂದ ಆಡಳಿತಾತ್ಮಕ ಅಧಿಕಾರ, ದೈವಾನುಗ್ರಹ ಹಾಗೂ ಕೀರ್ತಿ ಪ್ರಾಪ್ತಿ", impactEn: "Administrative authority, divine grace, and enduring glory through 9th Bhagya lord Sun" },
+  9: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", impactKn: "5ನೇ ಮತ್ತು 10ನೇ ಯೋಗಕಾರಕ ಶುಕ್ರನ ಬಲದಿಂದ ಸೃಜನಶೀಲತೆ, ಚಿತ್ರರಂಗ/ಕಲೆ, ಐಷಾರಾಮಿ ಜೀವನ ಹಾಗೂ ಅಪಾರ ಐಶ್ವರ್ಯ", impactEn: "Supreme artistic flair, cinematic stardom, luxury lifestyle, and expansive wealth through Yogakaraka Venus" },
+  10: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", impactKn: "4ನೇ ಮತ್ತು 9ನೇ ಯೋಗಕಾರಕ ಶುಕ್ರನ ಬಲದಿಂದ ಸುಖ, ಭಾಗ್ಯೋದಯ, ಸಾರ್ವಜನಿಕ ಪ್ರಭಾವ ಹಾಗೂ ಅದೃಷ್ಟದ ನೆಲೆಗಟ್ಟು", impactEn: "Fortune awakening, domestic bliss, and magnetic public influence through Yogakaraka Venus" },
+  11: { kn: "ಹವಳ (ಅಥವಾ ಪುಷ್ಪರಾಗ)", en: "Red Coral (or Yellow Sapphire)", impactKn: "9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿ ಗುರು ಬಲದಿಂದ ಅದೃಷ್ಟದ ಬೃಹತ್ ತಿರುವು ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣೆ", impactEn: "Monumental destiny turnaround and divine armor through 9th Bhagya lord Mars and Lagna lord Jupiter" }
+};
+
+export const LAGNA_BHAGYA_GEM_MAP: Record<number, { kn: string; en: string }> = {
+  0: { kn: "ಪುಷ್ಪರಾಗ (Yellow Sapphire)", en: "Yellow Sapphire" },
+  1: { kn: "ನೀಲಂ (Blue Sapphire)", en: "Blue Sapphire" },
+  2: { kn: "ನೀಲಂ (Blue Sapphire)", en: "Blue Sapphire" },
+  3: { kn: "ಪುಷ್ಪರಾಗ (Yellow Sapphire)", en: "Yellow Sapphire" },
+  4: { kn: "ಹವಳ (Red Coral)", en: "Red Coral" },
+  5: { kn: "ವಜ್ರ / ಶ್ವೇತ ಜಿರ್ಕಾನ್ (Diamond / White Zircon)", en: "Diamond / White Zircon" },
+  6: { kn: "ಪಚ್ಚೆ (Emerald)", en: "Emerald" },
+  7: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು (Natural Pearl)", en: "Natural Pearl" },
+  8: { kn: "ಮಾಣಿಕ್ಯ (Ruby)", en: "Ruby" },
+  9: { kn: "ಪಚ್ಚೆ (Emerald)", en: "Emerald" },
+  10: { kn: "ವಜ್ರ / ಶ್ವೇತ ಜಿರ್ಕಾನ್ (Diamond / White Zircon)", en: "Diamond / White Zircon" },
+  11: { kn: "ಹವಳ (Red Coral)", en: "Red Coral" }
+};
+
+export const LAGNA_LUCKY_ATTRIBUTES_MAP: Record<number, { car: string[]; cloth: string[]; avoid: string[]; dir: string[]; nums: number[] }> = {
+  0: { car: ["Deep Red", "Bright Crimson", "Copper Metallic"], cloth: ["Red", "Saffron", "Golden Yellow"], avoid: ["Jet Black", "Dark Navy"], dir: ["East", "South"], nums: [1, 9, 3] },
+  1: { car: ["Pearl White", "Silver Grey", "Pastel Sky Blue"], cloth: ["White", "Cream", "Light Pink"], avoid: ["Muddy Brown", "Charcoal"], dir: ["North", "Southeast"], nums: [6, 5, 2] },
+  2: { car: ["Emerald Green", "Metallic Mint", "Ivory White"], cloth: ["Green", "Turquoise", "Cream"], avoid: ["Deep Red", "Dark Maroon"], dir: ["North", "Northeast"], nums: [5, 6, 1] },
+  3: { car: ["Pearl White", "Moonlight Silver", "Soft Cream"], cloth: ["Milk White", "Silver", "Pale Yellow"], avoid: ["Black", "Dark Blue"], dir: ["East", "Northwest"], nums: [2, 7, 9] },
+  4: { car: ["Imperial Gold", "Burnt Orange", "Ruby Maroon"], cloth: ["Saffron", "Golden Orange", "Red"], avoid: ["Dark Blue", "Grey"], dir: ["East", "Northeast"], nums: [1, 5, 9] },
+  5: { car: ["Forest Green", "Champagne Gold", "Silver"], cloth: ["Olive Green", "Light Emerald", "White"], avoid: ["Bright Red", "Orange"], dir: ["North", "East"], nums: [5, 6, 2] },
+  6: { car: ["Glacier White", "Sky Blue", "Silver Frost"], cloth: ["Royal Blue", "Diamond White", "Rose Pink"], avoid: ["Yellow", "Orange"], dir: ["West", "Northwest"], nums: [6, 7, 8] },
+  7: { car: ["Dark Maroon", "Mahogany Red", "Glossy Black"], cloth: ["Crimson Red", "Dark Orange", "Ochre"], avoid: ["Light Green", "Mint"], dir: ["South", "East"], nums: [9, 1, 3] },
+  8: { car: ["Bright Saffron", "Golden Yellow", "Deep Bronze"], cloth: ["Yellow", "Turmeric Gold", "Cream"], avoid: ["Black", "Dark Slate"], dir: ["Northeast", "East"], nums: [3, 1, 9] },
+  9: { car: ["Midnight Blue", "Gunmetal Grey", "Deep Black"], cloth: ["Navy Blue", "Dark Violet", "Charcoal"], avoid: ["Bright Red", "Neon Pink"], dir: ["West", "South"], nums: [8, 5, 6] },
+  10: { car: ["Steel Grey", "Cobalt Blue", "Dark Titanium"], cloth: ["Sky Blue", "Dark Blue", "Smoky White"], avoid: ["Bright Saffron", "Red"], dir: ["West", "North"], nums: [8, 4, 7] },
+  11: { car: ["Golden Yellow", "Seafoam Green", "Pearl White"], cloth: ["Pale Yellow", "Gold", "Ivory"], avoid: ["Dark Charcoal", "Black"], dir: ["Northeast", "North"], nums: [3, 2, 9] }
+};
+
+export const PLANET_AWAKENING_AGE_MAP: Record<PlanetName, number> = {
+  [PlanetName.Sun]: 22,
+  [PlanetName.Moon]: 24,
+  [PlanetName.Mars]: 28,
+  [PlanetName.Mercury]: 32,
+  [PlanetName.Jupiter]: 32,
+  [PlanetName.Venus]: 25,
+  [PlanetName.Saturn]: 36,
+  [PlanetName.Rahu]: 42,
+  [PlanetName.Ketu]: 44
+};
+
+export const PLANET_LUCKY_DAYS_MAP: Record<PlanetName, { kn: string[]; en: string[] }> = {
+  [PlanetName.Sun]: { kn: ["ಭಾನುವಾರ", "ಗುರುವಾರ", "ಮಂಗಳವಾರ"], en: ["Sunday", "Thursday", "Tuesday"] },
+  [PlanetName.Moon]: { kn: ["ಸೋಮವಾರ", "ಗುರುವಾರ", "ಭಾನುವಾರ"], en: ["Monday", "Thursday", "Sunday"] },
+  [PlanetName.Mars]: { kn: ["ಮಂಗಳವಾರ", "ಭಾನುವಾರ", "ಗುರುವಾರ"], en: ["Tuesday", "Sunday", "Thursday"] },
+  [PlanetName.Mercury]: { kn: ["ಬುಧವಾರ", "ಶುಕ್ರವಾರ", "ಭಾನುವಾರ"], en: ["Wednesday", "Friday", "Sunday"] },
+  [PlanetName.Jupiter]: { kn: ["ಗುರುವಾರ", "ಭಾನುವಾರ", "ಮಂಗಳವಾರ"], en: ["Thursday", "Sunday", "Tuesday"] },
+  [PlanetName.Venus]: { kn: ["ಶುಕ್ರವಾರ", "ಬುಧವಾರ", "ಶನಿವಾರ"], en: ["Friday", "Wednesday", "Saturday"] },
+  [PlanetName.Saturn]: { kn: ["ಶನಿವಾರ", "ಬುಧವಾರ", "ಶುಕ್ರವಾರ"], en: ["Saturday", "Wednesday", "Friday"] },
+  [PlanetName.Rahu]: { kn: ["ಶನಿವಾರ", "ಬುಧವಾರ", "ಶುಕ್ರವಾರ"], en: ["Saturday", "Wednesday", "Friday"] },
+  [PlanetName.Ketu]: { kn: ["ಗುರುವಾರ", "ಮಂಗಳವಾರ", "ಭಾನುವಾರ"], en: ["Thursday", "Tuesday", "Sunday"] }
+};
+
+export const PLANET_UNLUCKY_DAYS_MAP: Record<PlanetName, { kn: string[]; en: string[] }> = {
+  [PlanetName.Sun]: { kn: ["ಶನಿವಾರ", "ಶುಕ್ರವಾರ"], en: ["Saturday", "Friday"] },
+  [PlanetName.Moon]: { kn: ["ಶನಿವಾರ", "ಬುಧವಾರ"], en: ["Saturday", "Wednesday"] },
+  [PlanetName.Mars]: { kn: ["ಬುಧವಾರ", "ಶನಿವಾರ"], en: ["Wednesday", "Saturday"] },
+  [PlanetName.Mercury]: { kn: ["ಮಂಗಳವಾರ", "ಭಾನುವಾರ"], en: ["Tuesday", "Sunday"] },
+  [PlanetName.Jupiter]: { kn: ["ಶುಕ್ರವಾರ", "ಬುಧವಾರ"], en: ["Friday", "Wednesday"] },
+  [PlanetName.Venus]: { kn: ["ಗುರುವಾರ", "ಭಾನುವಾರ"], en: ["Thursday", "Sunday"] },
+  [PlanetName.Saturn]: { kn: ["ಭಾನುವಾರ", "ಮಂಗಳವಾರ"], en: ["Sunday", "Tuesday"] },
+  [PlanetName.Rahu]: { kn: ["ಭಾನುವಾರ", "ಮಂಗಳವಾರ"], en: ["Sunday", "Tuesday"] },
+  [PlanetName.Ketu]: { kn: ["ಬುಧವಾರ", "ಶುಕ್ರವಾರ"], en: ["Wednesday", "Friday"] }
+};
+
+export const LAGNA_UNLUCKY_ATTRIBUTES_MAP: Record<number, {
+  inimicalDir: string[];
+  inimicalDirKn: string[];
+  unluckyDays: { kn: string[]; en: string[] };
+  avoidNums: number[];
+  vulnerableSectorsKn: string[];
+  vulnerableSectorsEn: string[];
+  dontsKn: string[];
+  dontsEn: string[];
+}> = {
+  0: {
+    inimicalDir: ["South", "Southwest"],
+    inimicalDirKn: ["ದಕ್ಷಿಣ", "ನೈಋತ್ಯ"],
+    unluckyDays: { kn: ["ಶನಿವಾರ", "ಬುಧವಾರ"], en: ["Saturday", "Wednesday"] },
+    avoidNums: [8, 4],
+    vulnerableSectorsKn: ["ಸ್ನೇಹಿತರೊಂದಿಗೆ ಜಂಟಿ ಪಾಲುದಾರಿಕೆ ವ್ಯಾಪಾರ", "ಅನಧಿಕೃತ ಷೇರು ಮಾರುಕಟ್ಟೆ ಸ್ಪೆಕ್ಯುಲೇಶನ್", "ಪೂರ್ವಪರ ಪರಿಶೀಲಿಸದೆ ಹಳೆಯ ವಾಹನ ಖರೀದಿ"],
+    vulnerableSectorsEn: ["Joint venture partnership with friends", "Unregulated stock market speculation", "Purchasing uninspected second-hand vehicles"],
+    dontsKn: ["ಆಪ್ತರಿಗೂ ಬ್ಯಾಂಕ್ ಸಾಲಕ್ಕೆ ಜಾಮೀನು (ಶ್ಯೂರಿಟಿ) ನಿಲ್ಲಬೇಡಿ", "ಹೊಸ ವಾಹನ/ಯಂತ್ರ ಖರೀದಿಸುವಾಗ ಶನಿವಾರ ತಪ್ಪಿಸಿ", "ಆವೇಶದಲ್ಲಿ ಒಪ್ಪಂದಗಳಿಗೆ ಸಹಿ ಹಾಕಬೇಡಿ"],
+    dontsEn: ["Never stand guarantor/surety for bank loans", "Avoid buying vehicles or machinery on Saturdays", "Never sign binding contracts in emotional anger"]
+  },
+  1: {
+    inimicalDir: ["Southeast", "South"],
+    inimicalDirKn: ["ಆಗ್ನೇಯ", "ದಕ್ಷಿಣ"],
+    unluckyDays: { kn: ["ಗುರುವಾರ", "ಮಂಗಳವಾರ"], en: ["Thursday", "Tuesday"] },
+    avoidNums: [1, 9, 3],
+    vulnerableSectorsKn: ["ಲಿಖಿತ ದಾಖಲೆಯಿಲ್ಲದ ಕೈಸಾಲ ವ್ಯವಹಾರ", "ಹೋಟೆಲ್/ಐಷಾರಾಮಿ ರಂಗದಲ್ಲಿ ಮೌಖಿಕ ಪಾಲುದಾರಿಕೆ", "ಹಣಕಾಸು ಸಲಹೆಗಾರರ ಕುರುಡು ನಂಬಿಕೆ"],
+    vulnerableSectorsEn: ["Unsecured cash lending without collateral", "Verbal partnerships in luxury/hospitality", "Blind reliance on external financial promoters"],
+    dontsKn: ["ಸಂಬಂಧಿಕರಿಗೆ ಕೈಸಾಲ ನೀಡುವುದನ್ನು ಕಡ್ಡಾಯವಾಗಿ ನಿಲ್ಲಿಸಿ", "ಗುರುವಾರ ಅಥವಾ ಮಂಗಳವಾರ ಬೃಹತ್ ಹಣ ವರ್ಗಾವಣೆ ತಪ್ಪಿಸಿ", "ಆಡಂಬರದ ಖರ್ಚುಗಳಿಗೆ ಕ್ರೆಡಿಟ್ ಕಾರ್ಡ್ ಸಾಲ ಮಾಡಬೇಡಿ"],
+    dontsEn: ["Stop lending liquid cash to relatives without documentation", "Avoid huge monetary transfers on Thursdays or Tuesdays", "Do not finance luxury vanity through unsecured credit"]
+  },
+  2: {
+    inimicalDir: ["West", "South"],
+    inimicalDirKn: ["ಪಶ್ಚಿಮ", "ದಕ್ಷಿಣ"],
+    unluckyDays: { kn: ["ಮಂಗಳವಾರ", "ಶನಿವಾರ"], en: ["Tuesday", "Saturday"] },
+    avoidNums: [9, 8],
+    vulnerableSectorsKn: ["ಮೌಖಿಕ ಮಾತುಕತೆಯ ಪಾಲುದಾರಿಕೆ ಒಪ್ಪಂದಗಳು", "ಒಂದೇ ಬಾರಿಗೆ ಹತ್ತು ಬೇರೆ ಬೇರೆ ಉದ್ಯಮಗಳಿಗೆ ಕೈಹಾಕುವುದು", "ಇಂಟ್ರಾಡೇ ಹಾಗೂ ಫ್ಯೂಚರ್ಸ್-ಆಪ್ಷನ್ಸ್ ಟ್ರೇಡಿಂಗ್"],
+    vulnerableSectorsEn: ["Verbal handshake business partnerships", "Scattering capital across multiple simultaneous ventures", "Intraday and F&O derivatives gambling"],
+    dontsKn: ["ಕಾನೂನುಬದ್ಧ ಒಪ್ಪಂದವಿಲ್ಲದೆ ವ್ಯವಹಾರ ಆರಂಭಿಸಬೇಡಿ", "ನಿಮ್ಮ ಬೌದ್ಧಿಕ ಆಸ್ತಿ (Intellectual Property) ಕರಡುಗಳನ್ನು ಮೊದಲೇ ಹಂಚಿಕೊಳ್ಳಬೇಡಿ", "ಸ್ಪೆಕ್ಯುಲೇಟಿವ್ ಷೇರುಗಳಲ್ಲಿ ಉಳಿತಾಯ ಹಣ ಹಾಕಬೇಡಿ"],
+    dontsEn: ["Never commence ventures without stamped legal agreements", "Do not disclose proprietary intellectual ideas without NDAs", "Never risk reserve savings in speculative trading"]
+  },
+  3: {
+    inimicalDir: ["West", "Northwest"],
+    inimicalDirKn: ["ಪಶ್ಚಿಮ", "ವಾಯವ್ಯ"],
+    unluckyDays: { kn: ["ಶನಿವಾರ", "ಬುಧವಾರ"], en: ["Saturday", "Wednesday"] },
+    avoidNums: [8, 5, 4],
+    vulnerableSectorsKn: ["ಭಾವನಾತ್ಮಕವಾಗಿ ಕರಗಿ ನೀಡುವ ಕೈಸಾಲ", "ದೂರದ ಊರುಗಳಲ್ಲಿ ನೇರ ಮೇಲ್ವಿಚಾರಣೆಯಿಲ್ಲದ ಬಂಡವಾಳ ಹೂಡಿಕೆ", "ಅಸ್ಥಿರ ಮನಸ್ಥಿತಿಯ ಜನರೊಂದಿಗೆ ಜಂಟಿ ವ್ಯಾಪಾರ"],
+    vulnerableSectorsEn: ["Emotion-driven cash loans to relatives", "Unsupervised remote capital investments", "Partnerships with emotionally volatile individuals"],
+    dontsKn: ["ರಾತ್ರಿ ವೇಳೆ ಅಥವಾ ಭಾವನಾತ್ಮಕ ಒತ್ತಡದಲ್ಲಿ ಹಣಕಾಸು ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳಬೇಡಿ", "ಯಾರ ಬ್ಯಾಂಕ್ ಲೋನ್‌ಗೂ ಗ್ಯಾರಂಟರ್ ಆಗಬೇಡಿ", "ಶುಭ ಸಮಾರಂಭಗಳಲ್ಲಿ ಕಪ್ಪು ಬಣ್ಣದ ವಸ್ತ್ರ ತ್ಯಜಿಸಿ"],
+    dontsEn: ["Never make financial commitments late at night or under emotional duress", "Never act as loan guarantor for anyone", "Avoid black clothing during major milestones"]
+  },
+  4: {
+    inimicalDir: ["North", "Northeast"],
+    inimicalDirKn: ["ಉತ್ತರ", "ಈಶಾನ್ಯ"],
+    unluckyDays: { kn: ["ಶನಿವಾರ", "ಶುಕ್ರವಾರ"], en: ["Saturday", "Friday"] },
+    avoidNums: [8, 6],
+    vulnerableSectorsKn: ["ಸಮಾಜಕ್ಕೆ ತೋರಿಸಿಕೊಳ್ಳಲು ಮಾಡುವ ಆಡಂಬರದ ಖರ್ಚು", "ಸರ್ಕಾರಿ ಇಲಾಖೆ ಅಥವಾ ಮೇಲಧಿಕಾರಿಗಳೊಂದಿಗೆ ಅಹಂ ಘರ್ಷಣೆ", "ಮುಖಸ್ತುತಿ ಮಾಡುವವರಿಗೆ ಹಣಕಾಸಿನ ಅಧಿಕಾರ ನೀಡುವುದು"],
+    vulnerableSectorsEn: ["Vanity spending to maintain false social prestige", "Ego confrontation with administrative authorities", "Delegating cash authority to sycophants"],
+    dontsKn: ["ಬಜೆಟ್ ಮೀರಿ ಸಾರ್ವಜನಿಕ ಪ್ರತಿಷ್ಠೆಗೆ ಸಾಲ ಮಾಡಬೇಡಿ", "ಅಧಿಕಾರಿಗಳೊಂದಿಗೆ ಜಗಳವಾಡಿ ಕಾನೂನು ವ್ಯಾಜ್ಯಕ್ಕೆ ಇಳಿಯಬೇಡಿ", "ಖಜಾನೆ/ಬ್ಯಾಂಕ್ ಖಾತೆಯ ಲಾಗಿನ್ ಇತರರಿಗೆ ಬಿಟ್ಟುಕೊಡಬೇಡಿ"],
+    dontsEn: ["Never incur debt to display social grandeur", "Avoid hostile legal escalation with administrative officials", "Never delegate core bank credentials or signing power"]
+  },
+  5: {
+    inimicalDir: ["East", "Southeast"],
+    inimicalDirKn: ["ಪೂರ್ವ", "ಆಗ್ನೇಯ"],
+    unluckyDays: { kn: ["ಮಂಗಳವಾರ", "ಭಾನುವಾರ"], en: ["Tuesday", "Sunday"] },
+    avoidNums: [9, 1],
+    vulnerableSectorsKn: ["ಅತಿಯಾದ ಅನುಮಾನದಿಂದ ಅವಕಾಶಗಳನ್ನು ಕೈಚೆಲ್ಲುವುದು", "ಪಾಲುದಾರರ ಪ್ರತಿಯೊಂದು ಸಣ್ಣ ತಪ್ಪನ್ನು ಕೆದಕಿ ಸಂಬಂಧ ಹಾಳುಮಾಡುವುದು", "ಬಾಕಿ ವಸೂಲಾತಿಯಾಗದ ಕ್ರೆಡಿಟ್ ಸೇಲ್ಸ್"],
+    vulnerableSectorsEn: ["Overthinking until golden windows expire", "Micro-managing partners into acrimonious exits", "Unsecured credit sales and uncollected dues"],
+    dontsKn: ["ಅವಕಾಶಗಳು ಎದುರಾದಾಗ ಅನಗತ್ಯ ಮೀನಮೇಷ ಎಣಿಸಬೇಡಿ", "ಮೇಷ ಅಥವಾ ಕುಂಭ ರಾಶಿಯವರೊಂದಿಗೆ ಜಂಟಿ ಸಾಲ ಮಾಡಬೇಡಿ", "ಒತ್ತಡದ ವೇಳೆ ಊಟ ಬಿಟ್ಟು ಆರೋಗ್ಯ ಕೆಡಿಸಿಕೊಳ್ಳಬೇಡಿ"],
+    dontsEn: ["Do not succumb to analysis paralysis during time-critical opportunities", "Avoid joint financial debt with Aries or Aquarius natives", "Never skip meals under stress to prevent chronic gastric ulcers"]
+  },
+  6: {
+    inimicalDir: ["South", "Southeast"],
+    inimicalDirKn: ["ದಕ್ಷಿಣ", "ಆಗ್ನೇಯ"],
+    unluckyDays: { kn: ["ಮಂಗಳವಾರ", "ಭಾನುವಾರ"], en: ["Tuesday", "Sunday"] },
+    avoidNums: [1, 9],
+    vulnerableSectorsKn: ["50-50 ಸಮಾನ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಎಲ್ಲ ಕೆಲಸ ತಾವೇ ಮಾಡುವುದು", "ಎಲ್ಲರನ್ನೂ ಮೆಚ್ಚಿಸಲು ಹೋಗಿ ಸ್ವಂತ ಆಸ್ತಿ ಕಳೆದುಕೊಳ್ಳುವುದು", "ಫ್ಯಾಷನ್/ಸೌಂದರ್ಯ ವ್ಯಾಪಾರದಲ್ಲಿ ಮುಂಗಡವಿಲ್ಲದ ಪೂರೈಕೆ"],
+    vulnerableSectorsEn: ["Equal 50-50 partnerships where you do all the work", "People-pleasing leading to asset erosion", "Supplying goods on credit without advance payments"],
+    dontsKn: ["ದೃಢವಾಗಿ 'ಇಲ್ಲ' ಎಂದು ಹೇಳಲು ಹಿಂಜರಿಯಬೇಡಿ", "ಟೈ-ಬ್ರೇಕರ್ ಷರತ್ತು ಇಲ್ಲದೆ ಪಾಲುದಾರಿಕೆ ಒಪ್ಪಂದ ಮಾಡಿಕೊಳ್ಳಬೇಡಿ", "ಮುಖ್ಯ ಒಪ್ಪಂದಗಳ ದಿನ ಪ್ರಖರ ಕಿತ್ತಳೆ/ಹಳದಿ ಬಣ್ಣ ತ್ಯಜಿಸಿ"],
+    dontsEn: ["Never hesitate to say a firm, polite 'No'", "Never sign 50-50 partnerships without a dispute tie-breaker clause", "Avoid bright orange or harsh yellow on crucial deal days"]
+  },
+  7: {
+    inimicalDir: ["West", "Southwest"],
+    inimicalDirKn: ["ಪಶ್ಚಿಮ", "ನೈಋತ್ಯ"],
+    unluckyDays: { kn: ["ಬುಧವಾರ", "ಶನಿವಾರ"], en: ["Wednesday", "Saturday"] },
+    avoidNums: [5, 8],
+    vulnerableSectorsKn: ["ಗೌಪ್ಯವಾಗಿ ಮಾಡುವ ಅನಧಿಕೃತ ರಹಸ್ಯ ಹೂಡಿಕೆಗಳು", "ಹಠಕ್ಕೆ ಬಿದ್ದು ನಡೆಸುವ ಕೋರ್ಟ್ ವ್ಯಾಜ್ಯಗಳು", "ಮಧ್ಯವರ್ತಿಗಳ ಮಾತು ನಂಬಿ ಕಮಿಷನ್ ದಂಧೆಗೆ ಇಳಿಯುವುದು"],
+    vulnerableSectorsEn: ["Secretive underground or informal investments", "Spiteful court litigations driven by vengeance", "Relying on glib middlemen in commission schemes"],
+    dontsKn: ["ಸಂಗಾತಿಗೆ ತಿಳಿಸದೆ ದೊಡ್ಡ ಮೊತ್ತದ ಹಣ ಹೂಡಬೇಡಿ", "ಸಣ್ಣ ಅವಮಾನಕ್ಕೂ ಕೋರ್ಟ್ ಮೆಟ್ಟಿಲೇರಿ ಹಣ ವ್ಯಯಿಸಬೇಡಿ", "ಬುಧವಾರ ಪ್ರಮುಖ ಇಂಟರ್ವ್ಯೂಗಳಿಗೆ ಗಾಢ ಹಸಿರು ಬಣ್ಣ ತಪ್ಪಿಸಿ"],
+    dontsEn: ["Never make large investments in complete secrecy from spouse", "Never enter expensive court battles driven by vengeful ego", "Avoid dark green on Wednesdays during crucial interviews"]
+  },
+  8: {
+    inimicalDir: ["North", "Northwest"],
+    inimicalDirKn: ["ಉತ್ತರ", "ವಾಯವ್ಯ"],
+    unluckyDays: { kn: ["ಶುಕ್ರವಾರ", "ಶನಿವಾರ"], en: ["Friday", "Saturday"] },
+    avoidNums: [6, 8],
+    vulnerableSectorsKn: ["ಅತಿಯಾದ ಆಶಾವಾದದಿಂದ ಬಜೆಟ್ ಅಂದಾಜು ಮೀರುವುದು", "ವಿದೇಶಿ ಅಥವಾ ಅಪರಿಚಿತರ ವ್ಯವಹಾರದಲ್ಲಿ ಕುರುಡು ನಂಬಿಕೆ", "ಅಗ್ರಿಮೆಂಟ್‌ನಲ್ಲಿನ ಸಣ್ಣ ಅಕ್ಷರಗಳ (Fine Print) ನಿರ್ಲಕ್ಷ್ಯ"],
+    vulnerableSectorsEn: ["Over-optimistic financial projections exceeding limits", "Blind trust in foreign or unfamiliar promoters", "Ignoring binding fine print in legal agreements"],
+    dontsKn: ["ಕಾನೂನು ತಜ್ಞರ ಪರಿಶೀಲನೆಯಿಲ್ಲದೆ ಯಾವುದೇ ಕಡತಕ್ಕೆ ಸಹಿ ಹಾಕಬೇಡಿ", "ಹಣಕಾಸು ರಂಗದಲ್ಲಿ ಶಾರ್ಟ್‌ಕಟ್ ಮಾರ್ಗಗಳನ್ನು ಅರಸಬೇಡಿ", "ಗುರುವಾರದಂದು ಕಪ್ಪು ಬಣ್ಣದ ಉಡುಪು ತ್ಯಜಿಸಿ"],
+    dontsEn: ["Never sign contracts without professional legal review", "Never pursue shortcut money schemes in speculative ventures", "Shun black clothing on Thursdays"]
+  },
+  9: {
+    inimicalDir: ["East", "South"],
+    inimicalDirKn: ["ಪೂರ್ವ", "ದಕ್ಷಿಣ"],
+    unluckyDays: { kn: ["ಭಾನುವಾರ", "ಮಂಗಳವಾರ"], en: ["Sunday", "Tuesday"] },
+    avoidNums: [1, 9],
+    vulnerableSectorsKn: ["ಅತಿಯಾದ ನಕಾರಾತ್ಮಕತೆಯಿಂದ ಸುವರ್ಣಾವಕಾಶಗಳನ್ನು ಕಳೆದುಕೊಳ್ಳುವುದು", "ಕಿರಿಯ ಸಿಬ್ಬಂದಿ ಜೊತೆ ಕಠಿಣ ನಡವಳಿಕೆಯಿಂದ ಎದುರಾಗುವ ಮುಷ್ಕರ", "ವಿವಾದಿತ ಪೂರ್ವಜರ ಆಸ್ತಿ ಖರೀದಿ"],
+    vulnerableSectorsEn: ["Chronic cynicism missing golden career openings", "Overbearing hardness causing team attrition", "Buying encumbered or disputed ancestral lands"],
+    dontsKn: ["ವಿವಾದಿತ ಜಮೀನು ಅಥವಾ ಕೋರ್ಟ್ ಕೇಸ್ ಇರುವ ಆಸ್ತಿ ಮುಟ್ಟಬೇಡಿ", "ಕೆಳಹಂತದ ನೌಕರರ ಶ್ರಮದ ಹಣವನ್ನು ತಡೆಹಿಡಿಯಬೇಡಿ", "ಮಂಗಳವಾರ ಅಥವಾ ಭಾನುವಾರ ಪ್ರಖರ ಕೆಂಪು ಬಣ್ಣ ತ್ಯಜಿಸಿ"],
+    dontsEn: ["Never acquire disputed real estate encumbered by litigation", "Never withhold righteous dues of working staff", "Avoid bright scarlet red on Tuesdays and Sundays"]
+  },
+  10: {
+    inimicalDir: ["North", "South"],
+    inimicalDirKn: ["ಉತ್ತರ", "ದಕ್ಷಿಣ"],
+    unluckyDays: { kn: ["ಭಾನುವಾರ", "ಮಂಗಳವಾರ"], en: ["Sunday", "Tuesday"] },
+    avoidNums: [1, 9],
+    vulnerableSectorsKn: ["ಕುಟುಂಬದ ಆರ್ಥಿಕ ಭದ್ರತೆಯನ್ನು ಮರೆತು ಸಮಾಜ ಸೇವೆಗೆ ಹಣ ಸುರಿಯುವುದು", "ಅಪ್ರಾಯೋಗಿಕ ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಲ್ಲಿ ಬಂಡವಾಳ ಲಾಕ್ ಮಾಡುವುದು", "ಕೃತಘ್ನ ಜನರಿಗೆ ಉಚಿತವಾಗಿ ಸೇವೆ ನೀಡುವುದು"],
+    vulnerableSectorsEn: ["Sacrificing household solvency for thankless social causes", "Locking capital in impractical futuristic projects", "Providing uncompensated services to ungrateful associates"],
+    dontsKn: ["ಕುಟುಂಬದ ತುರ್ತು ನಿಧಿಯನ್ನು ಮುಟ್ಟಿ ದಾನ-ಧರ್ಮ ಮಾಡಬೇಡಿ", "ಅನುಭವವಿಲ್ಲದ ಹೊಸ ತಂತ್ರಜ್ಞಾನ ಸ್ಟಾರ್ಟ್‌ಅಪ್‌ಗಳಿಗೆ ಸಾಲ ಮಾಡಬೇಡಿ", "ಭಾನುವಾರ ಪ್ರಮುಖ ವ್ಯವಹಾರಿಕ ಒಪ್ಪಂದಗಳನ್ನು ತಪ್ಪಿಸಿ"],
+    dontsEn: ["Never deplete core family emergency buffers for charity", "Do not take loans for unvetted experimental ventures", "Avoid finalizing binding commercial agreements on Sundays"]
+  },
+  11: {
+    inimicalDir: ["West", "Southwest"],
+    inimicalDirKn: ["ಪಶ್ಚಿಮ", "ನೈಋತ್ಯ"],
+    unluckyDays: { kn: ["ಶುಕ್ರವಾರ", "ಶನಿವಾರ"], en: ["Friday", "Saturday"] },
+    avoidNums: [6, 8],
+    vulnerableSectorsKn: ["ಕಷ್ಟದ ಲೆಕ್ಕಾಚಾರಗಳಿಂದ ಕಣ್ಮುಚ್ಚಿ ಪಲಾಯನ ಮಾಡುವುದು", "ಸ್ವಂತ ಸೃಜನಶೀಲ ಕೃತಿಗಳನ್ನು ರಾಯಧನವಿಲ್ಲದೆ ಬೇರೆಯವರಿಗೆ ನೀಡುವುದು", "ಸಹೋದ್ಯೋಗಿಗಳ ಸಾಲಕ್ಕೆ ಸಾಕ್ಷಿ/ಜಾಮೀನು ನಿಲ್ಲುವುದು"],
+    vulnerableSectorsEn: ["Escaping from hard accounting realities", "Surrendering creative works without royalty contracts", "Standing guarantor or surety for colleague loans"],
+    dontsKn: ["ಸ್ನೇಹ ಮತ್ತು ವ್ಯವಹಾರವನ್ನು ಎಂದಿಗೂ ಬೆರೆಸಬೇಡಿ", "ಪ್ರತಿದಿನ ಖರ್ಚು-ವೆಚ್ಚದ ಲೆಕ್ಕವನ್ನು ತಪ್ಪದೆ ದಾಖಲಿಸಿ", "ಶುಕ್ರವಾರ ಮತ್ತು ಶನಿವಾರ ಕಪ್ಪು ಅಥವಾ ಗಾಢ ಬೂದು ಬಣ್ಣ ತ್ಯಜಿಸಿ"],
+    dontsEn: ["Never mix friendship with financial contracts", "Maintain strict daily accounting without procrastination", "Avoid black and dark grey on Fridays and Saturdays"]
+  }
+};
 
 export const generateAstrologicalPrescriptions = (
   kundli: KundliOutput,
@@ -807,22 +1252,9 @@ export const generateAstrologicalPrescriptions = (
   }
 
   // 3. Lucky Attributes (English Digits)
-  const colorMap: Record<number, { car: string[]; cloth: string[]; avoid: string[]; dir: string[]; nums: number[] }> = {
-    0: { car: ["Deep Red", "Bright Crimson", "Copper Metallic"], cloth: ["Red", "Saffron", "Golden Yellow"], avoid: ["Jet Black", "Dark Navy"], dir: ["East", "South"], nums: [1, 9, 3] },
-    1: { car: ["Pearl White", "Silver Grey", "Pastel Sky Blue"], cloth: ["White", "Cream", "Light Pink"], avoid: ["Muddy Brown", "Charcoal"], dir: ["North", "Southeast"], nums: [6, 5, 2] },
-    2: { car: ["Emerald Green", "Metallic Mint", "Ivory White"], cloth: ["Green", "Turquoise", "Cream"], avoid: ["Deep Red", "Dark Maroon"], dir: ["North", "Northeast"], nums: [5, 6, 1] },
-    3: { car: ["Pearl White", "Moonlight Silver", "Soft Cream"], cloth: ["Milk White", "Silver", "Pale Yellow"], avoid: ["Black", "Dark Blue"], dir: ["East", "Northwest"], nums: [2, 7, 9] },
-    4: { car: ["Imperial Gold", "Burnt Orange", "Ruby Maroon"], cloth: ["Saffron", "Golden Orange", "Red"], avoid: ["Dark Blue", "Grey"], dir: ["East", "Northeast"], nums: [1, 5, 9] },
-    5: { car: ["Forest Green", "Champagne Gold", "Silver"], cloth: ["Olive Green", "Light Emerald", "White"], avoid: ["Bright Red", "Orange"], dir: ["North", "East"], nums: [5, 6, 2] },
-    6: { car: ["Glacier White", "Sky Blue", "Silver Frost"], cloth: ["Royal Blue", "Diamond White", "Rose Pink"], avoid: ["Yellow", "Orange"], dir: ["West", "Northwest"], nums: [6, 7, 8] },
-    7: { car: ["Dark Maroon", "Mahogany Red", "Glossy Black"], cloth: ["Crimson Red", "Dark Orange", "Ochre"], avoid: ["Light Green", "Mint"], dir: ["South", "East"], nums: [9, 1, 3] },
-    8: { car: ["Bright Saffron", "Golden Yellow", "Deep Bronze"], cloth: ["Yellow", "Turmeric Gold", "Cream"], avoid: ["Black", "Dark Slate"], dir: ["Northeast", "East"], nums: [3, 1, 9] },
-    9: { car: ["Midnight Blue", "Gunmetal Grey", "Deep Black"], cloth: ["Navy Blue", "Dark Violet", "Charcoal"], avoid: ["Bright Red", "Neon Pink"], dir: ["West", "South"], nums: [8, 5, 6] },
-    10: { car: ["Steel Grey", "Cobalt Blue", "Dark Titanium"], cloth: ["Sky Blue", "Dark Blue", "Smoky White"], avoid: ["Bright Saffron", "Red"], dir: ["West", "North"], nums: [8, 4, 7] },
-    11: { car: ["Golden Yellow", "Seafoam Green", "Pearl White"], cloth: ["Pale Yellow", "Gold", "Ivory"], avoid: ["Dark Charcoal", "Black"], dir: ["Northeast", "North"], nums: [3, 2, 9] }
-  };
-
-  const lucky = colorMap[lagnaRashiIdx] || colorMap[0];
+  const lucky = LAGNA_LUCKY_ATTRIBUTES_MAP[lagnaRashiIdx] || LAGNA_LUCKY_ATTRIBUTES_MAP[0];
+  const ykInfo = LAGNA_YOGAKARAKA_GEM_MAP[lagnaRashiIdx] || LAGNA_YOGAKARAKA_GEM_MAP[0];
+  const bhagyaInfo = LAGNA_BHAGYA_GEM_MAP[lagnaRashiIdx] || LAGNA_BHAGYA_GEM_MAP[0];
 
   return {
     rudraksha: {
@@ -875,7 +1307,13 @@ export const generateAstrologicalPrescriptions = (
       panchangaSynergyEn: `Reinforces the positive vibration of Yoga (${yRule.sanskrit}) and strengthens the Ascendant.`,
       panchangaSynergyHi: `योग के प्रभाव (${yRule.sanskrit}) को शुभ फल में परिवर्तित कर लग्न बल को पुष्ट करता है।`,
       panchangaSynergyTe: `యోగ ప్రభావమును (${yRule.sanskrit}) శుభ ఫలముగా మార్చి లగ్న బలాన్ని వృద్ధి చేస్తుంది.`,
-      panchangaSynergyTa: `யோகத்தின் நற்பலனை (${yRule.sanskrit}) பெருக்கி லக்ன பலத்தை நிலைநிறுத்துகிறது.`
+      panchangaSynergyTa: `யோகத்தின் நற்பலனை (${yRule.sanskrit}) பெருக்கி லக்ன பலத்தை நிலைநிறுத்துகிறது.`,
+      yogakarakaGemstoneKn: ykInfo.kn,
+      yogakarakaGemstoneEn: ykInfo.en,
+      bhagyaGemstoneKn: bhagyaInfo.kn,
+      bhagyaGemstoneEn: bhagyaInfo.en,
+      lifeCatalystImpactKn: ykInfo.impactKn,
+      lifeCatalystImpactEn: ykInfo.impactEn
     },
     luckyAttributes: {
       carColors: lucky.car,
@@ -963,6 +1401,607 @@ export function getDynamicLossScaleText(kundli: KundliOutput): {
       basisEn: `Instability of 5th lord ${fifthLord} and 2nd lord ${secondLord}`
     };
   }
+}
+
+/**
+ * 6 Pillars of Destiny Catalysts & Lucky Blueprint:
+ * 1. Gemstones & Rings (ಯೋಗಕಾರಕ ರತ್ನ & ಉಂಗುರದ ಪ್ರಭಾವ)
+ * 2. Marriage Luck (ವಿವಾಹದ ನಂತರ ಭಾಗ್ಯೋದಯ / Kalatra Bhagya)
+ * 3. Daughter's Blessing (ಪುತ್ರಿ ಭಾಗ್ಯ & ಗೃಹಲಕ್ಷ್ಮೀ ಆಗಮನ)
+ * 4. Name Sound Vibration (ನಾಮಾಕ್ಷರ ಕಂಪನ & ಧ್ವನಿ ತರಂಗಾಂತರ)
+ * 5. Why Felt Unlucky & Why Luck Unlocks Now (ದುರದೃಷ್ಟದ ಕಾರಣ & ಅದೃಷ್ಟದ ಸ್ವರ್ಣಾವಧಿ)
+ * 6. Lucky Matrix & Relocation / Stree Grace (ಅದೃಷ್ಟ ಸಾಧನಗಳ ಸಮಗ್ರ ಪಟ್ಟಿ & ಪರಸ್ಥಳ ಭಾಗ್ಯ)
+ */
+export function generateDestinyCatalystsAndLuckyCharms(
+  kundli: KundliOutput,
+  devoteeAge: number,
+  dashaTiming?: DynamicDashaTiming,
+  liveGochara?: LiveGocharaAnalysis
+): DestinyCatalystsAndLuckyCharms {
+  const lagnaRashiIdx = kundli.lagnaRashi.index;
+  const lagnaLord = signLord(lagnaRashiIdx);
+  const moon = kundli.planets.find((p) => p.name === PlanetName.Moon);
+  const moonNakName = moon?.nakshatra.english ?? "Ashwini";
+  const padaIndex = Math.max(0, Math.min(3, (kundli.moonPada || 1) - 1));
+  const padaNumber = ((kundli.moonPada || 1) as 1 | 2 | 3 | 4);
+
+  // Dynamic Dasha Timing and Live Gochara
+  const dt = dashaTiming || calculateDynamicDashaTiming(kundli, devoteeAge);
+  const contextLoc = { latitude: 14.5, longitude: 74.3 };
+  const lg = liveGochara || calculateLiveGochara(kundli, contextLoc);
+
+  // 1. Gemstones & Rings Catalyst
+  const ykInfo = LAGNA_YOGAKARAKA_GEM_MAP[lagnaRashiIdx] || LAGNA_YOGAKARAKA_GEM_MAP[0];
+  const bhagyaInfo = LAGNA_BHAGYA_GEM_MAP[lagnaRashiIdx] || LAGNA_BHAGYA_GEM_MAP[0];
+
+  const primaryGemstone = GEMSTONE_PRESCRIBED_MAP[lagnaLord] || GEMSTONE_PRESCRIBED_MAP[PlanetName.Jupiter];
+  const activationTiming = GEMSTONE_ACTIVATION_DAY_MAP[lagnaLord] || GEMSTONE_ACTIVATION_DAY_MAP[PlanetName.Jupiter];
+
+  // 2. Marriage Bhagya (Kalatra Bhagya Yoga)
+  const seventhLord = signLord((lagnaRashiIdx + 6) % 12);
+  const venus = kundli.planets.find((p) => p.name === PlanetName.Venus);
+  const jupiter = kundli.planets.find((p) => p.name === PlanetName.Jupiter);
+  const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
+
+  const seventhLordHouse = seventhLordPlanet?.house ?? 7;
+  const isSeventhLordWellPlaced = [1, 2, 4, 5, 7, 9, 10, 11].includes(seventhLordHouse);
+  const isVenusDignified = Boolean(venus && (venus.isExalted || [1, 4, 7, 10, 5, 9, 2, 11].includes(venus.house)));
+  const hasJupiterAspectOnSeventh = Boolean(jupiter && [1, 3, 7, 11].includes(jupiter.house));
+
+  const hasKalatraBhagyaYoga = isSeventhLordWellPlaced || isVenusDignified || hasJupiterAspectOnSeventh;
+  const isPinnacleIntensity = (seventhLordHouse === 1 || seventhLordHouse === 9 || seventhLordHouse === 10 || seventhLordHouse === 11) || Boolean(venus?.isExalted || venus?.house === 9 || venus?.house === 10);
+
+  const bhagyaIntensityKn = isPinnacleIntensity ? "ಅತ್ಯುನ್ನತ (Pinnacle)" : "ಮಧ್ಯಮ (Moderate)";
+  const bhagyaIntensityEn = isPinnacleIntensity ? "Pinnacle" : "Moderate";
+
+  const seventhLordKn = toKannadaPlanet(seventhLord);
+  const detailedExplanationKn = sanitizeAstrologyKannadaText(
+    `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಅಧಿಪತಿಯಾದ ${seventhLordKn} ಹಾಗೂ ಶುಕ್ರ-ಗುರುಗಳ ಸ್ಥಾನಿಕ ಪ್ರಭಾವದಿಂದ 'ಕಳತ್ರ ಭಾಗ್ಯೋದಯ ಯೋಗ' ಅತ್ಯಂತ ಸಕ್ರಿಯವಾಗಿದೆ. ವಿವಾಹದ ನಂತರ ಜೀವನ ಸಂಗಾತಿಯ ಪ್ರವೇಶವಾಗುತ್ತಿದ್ದಂತೆ, ಜಾತಕನ ಭಾಗ್ಯದ ಬಾಗಿಲು ತೆರೆಯುತ್ತದೆ. ಅದುವರೆಗಿನ ಅಸ್ಥಿರತೆ, ಆರ್ಥಿಕ ತೊಳಲಾಟ ಹಾಗೂ ವೃತ್ತಿ ಜೀವನದ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ, ಸಾಮಾಜಿಕ ಪ್ರತಿಷ್ಠೆ, ಆಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆಯು ನಾಟಕೀಯವಾಗಿ ವೇಗ ಪಡೆದುಕೊಳ್ಳುತ್ತದೆ. ಸಂಗಾತಿಯ ಅದೃಷ್ಟವೇ ಜಾತಕನ ಜೀವನದ ಬೃಹತ್ ರಕ್ಷಣಾ ಕವಚ ಮತ್ತು ಯಶಸ್ಸಿನ ವೇಗವರ್ಧಕವಾಗಿ ಪರಿಣಮಿಸುತ್ತದೆ.`
+  );
+  const detailedExplanationEn = `Your 7th house Kalatra lord ${seventhLord} combined with Venus-Jupiter alignments strongly activates Kalatra Bhagya Yoga (Destiny Awakening Post-Marriage). Upon marriage and the arrival of your life partner, dormant fortune activates—dissolving prior instability and career friction while dramatically accelerating social standing, asset acquisition, and lasting prestige. Your spouse acts as an authentic fortune catalyst.`;
+
+  // 3. Daughter Bhagya (Grihalakshmi Yoga)
+  const fifthLord = signLord((lagnaRashiIdx + 4) % 12);
+  const fifthLordPlanet = kundli.planets.find((p) => p.name === fifthLord);
+  const fifthLordHouse = fifthLordPlanet?.house ?? 5;
+  const moonPlanet = kundli.planets.find((p) => p.name === PlanetName.Moon);
+
+  const isFifthWellPlaced = [1, 2, 4, 5, 7, 9, 10, 11].includes(fifthLordHouse);
+  const hasBeneficInfluenceOnFifth = Boolean((venus && [1, 5, 9, 11].includes(venus.house)) || (jupiter && [1, 5, 9, 11].includes(jupiter.house)) || (moonPlanet && [1, 5, 9].includes(moonPlanet.house)));
+  const hasGrihalakshmiYoga = isFifthWellPlaced || hasBeneficInfluenceOnFifth;
+
+  const fifthLordKn = toKannadaPlanet(fifthLord);
+  const lakshmiArrivalImpactKn = sanitizeAstrologyKannadaText(
+    `ಜಾತಕದಲ್ಲಿ 5ನೇ ಪಂಚಮ ಸ್ಥಾನ, ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn} ಹಾಗೂ ದೇವಗುರು-ಶುಕ್ರರ ಮಂಗಳಕರ ದೃಷ್ಟಿಯಿಂದ 'ಗೃಹಲಕ್ಷ್ಮೀ ಪುತ್ರಿ ಯೋಗ' ಸಾಕ್ಷಾತ್ಕಾರಗೊಂಡಿದೆ. ಗೃಹದಲ್ಲಿ ಹೆಣ್ಣು ಮಗುವಿನ ಜನನವಾಗುತ್ತಿದ್ದಂತೆ (ಪುತ್ರಿ ಭಾಗ್ಯ), ಸಾಕ್ಷಾತ್ ಮಹಾಲಕ್ಷ್ಮಿಯ ಆಗಮನದಂತೆ ಇಡೀ ಕುಟುಂಬದ ದಾರಿದ್ರ್ಯ-ಕಷ್ಟಗಳು ದೂರವಾಗಿ, ದೀರ್ಘಕಾಲದ ಸಾಲದ ಬಾಧೆಗಳು ಮುಕ್ತಾಯಗೊಂಡು, ವೃತ್ತಿಯಲ್ಲಿ ಮಹೋನ್ನತ ಉನ್ನತಿ ಮತ್ತು ಶಾಶ್ವತ ಕೀರ್ತಿ ಒಲಿಯುತ್ತದೆ.`
+  );
+  const lakshmiArrivalImpactEn = `The sacred alignment of your 5th house, 5th lord ${fifthLord}, and benefic grace forms an undeniable Grihalakshmi Putri Yoga. The arrival/birth of a daughter serves as an auspicious celestial turning point—dispelling past financial stress, clearing longstanding burdens, and unleashing expansive professional peaks and family bliss.`;
+
+  const astrologicalBasisKn = sanitizeAstrologyKannadaText(`5ನೇ ಪಂಚಮಾಧಿಪತಿ ${fifthLordKn}ನ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಬಲ ಹಾಗೂ ಗುರು-ಶುಕ್ರರ ದೈವಿಕ ಅನುಗ್ರಹ.`);
+  const astrologicalBasisEn = `Kendra-Trikona strength of 5th lord ${fifthLord} and celestial grace of Jupiter and Venus.`;
+
+  // 4. Name Sound Vibration
+  const nakData = NAKSHATRA_SYLLABLE_TABLE[moonNakName] || NAKSHATRA_SYLLABLE_TABLE["Ashwini"]!;
+  const rawSyllables = nakData.padas[padaIndex] || ["ಅ (A)"];
+
+  const recKn = rawSyllables.map((s) => s.split(" ")[0] || s);
+  const recEn = rawSyllables.map((s) => {
+    const m = s.match(/\((.*?)\)/);
+    return m ? m[1]! : s;
+  });
+
+  const vibrationHarmonyAnalysisKn = sanitizeAstrologyKannadaText(
+    `ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರವಾದ ${toKannadaNakshatra(moon?.nakshatra?.english || moonNakName)} ನಕ್ಷತ್ರದ ${padaNumber}ನೇ ಪಾದದ ಶಾಸ್ತ್ರೋಕ್ತ ನಾಮಾಕ್ಷರ ತರಂಗಾಂತರವು '${recKn.join(", ")}' (${recEn.join(", ")}) ಧ್ವನಿಗಳಿಗೆ ನೇರವಾಗಿ ಹೊಂದಿಕೊಳ್ಳುತ್ತದೆ. ಈ ಧ್ವನಿ ಕಂಪನವು (Sound Frequency) ನಿಮ್ಮ ಆಜ್ಞಾ ಚಕ್ರ ಹಾಗೂ 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನವನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ. ನಿಮ್ಮ ಅಧಿಕೃತ ಹೆಸರು, ಸಹಿ ಅಥವಾ ವೃತ್ತಿಪರ ಬ್ರಾಂಡ್‌ನಲ್ಲಿ ಈ ಧ್ವನಿ ತರಂಗಾಂತರಗಳ ಸಾಮರಸ್ಯವಿದ್ದಾಗ (ಅಥವಾ ಹೆಚ್ಚುವರಿ ಅಕ್ಷರ ಸಂಯೋಜನೆ ಮಾಡಿದಾಗ), ಕರ್ಮದ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿರಂತರ ವಿಜಯ ಮಾಲಿಕೆ ಒಲಿಯುತ್ತದೆ.`
+  );
+  const vibrationHarmonyAnalysisEn = `The authentic Vedic phonetic vibration of your Janma Nakshatra ${moonNakName} (Pada ${padaNumber}) resonates harmoniously with syllables '${recEn.join(", ")}' (${recKn.join(", ")}). Aligning your official name, professional brand, or signature with this acoustic frequency balances the 5th and 9th house axis, neutralizing subtle career resistance and unlocking effortless public recognition.`;
+
+  const nameCorrectionImpactKn = sanitizeAstrologyKannadaText(
+    `ನಾಮಕರಣ ಅಕ್ಷರಗಳ ತರಂಗಾಂತರ ಹೊಂದಾಣಿಕೆ ಅಥವಾ ಸ್ಪೆಲ್ಲಿಂಗ್‌ನಲ್ಲಿ ಸಣ್ಣ ಧ್ವನಿ ತಿದ್ದುಪಡಿಯು (Sound Vibration Tuning) ಅದೃಷ್ಟದ ಅವಕಾಶಗಳನ್ನು ಆಯಸ್ಕಾಂತದಂತೆ ಆಕರ್ಷಿಸುತ್ತದೆ.`
+  );
+  const nameCorrectionImpactEn = `Acoustic name frequency alignment or subtle spelling tuning acts as a destiny amplifier, dissolving energetic friction and attracting serendipitous breakthrough opportunities.`;
+
+  // 5. Why Felt Unlucky vs Why Luck Unlocks Now & Lucky Matrix
+  const ninthHouseIdx = (lagnaRashiIdx + 8) % 12;
+  const ninthLord = signLord(ninthHouseIdx);
+  const ninthLordKn = toKannadaPlanet(ninthLord);
+  const lagnaLordKn = toKannadaPlanet(lagnaLord);
+
+  // Dusthanas & Lords
+  const eighthHouseIdx = (lagnaRashiIdx + 7) % 12;
+  const eighthLord = signLord(eighthHouseIdx);
+  const eighthLordKn = toKannadaPlanet(eighthLord);
+  const eighthLordPlanet = kundli.planets.find(p => p.name === eighthLord);
+  const eighthLordHouse = eighthLordPlanet?.house ?? 8;
+
+  const sixthHouseIdx = (lagnaRashiIdx + 5) % 12;
+  const sixthLord = signLord(sixthHouseIdx);
+  const sixthLordKn = toKannadaPlanet(sixthLord);
+
+  const twelfthHouseIdx = (lagnaRashiIdx + 11) % 12;
+  const twelfthLord = signLord(twelfthHouseIdx);
+  const twelfthLordKn = toKannadaPlanet(twelfthLord);
+
+  // Badhaka Lord
+  const isMovableLagna = [0, 3, 6, 9].includes(lagnaRashiIdx);
+  const isFixedLagna = [1, 4, 7, 10].includes(lagnaRashiIdx);
+  const badhakaHouse = isMovableLagna ? 11 : isFixedLagna ? 9 : 7;
+  const badhakaLord = signLord((lagnaRashiIdx + badhakaHouse - 1) % 12);
+  const badhakaLordKn = toKannadaPlanet(badhakaLord);
+
+  const maandiHouse = kundli.maandi?.rashi ? ((kundli.maandi.rashi.index - lagnaRashiIdx + 12) % 12) + 1 : 1;
+
+  // Inimical (Shadashtaka 6th & 8th) signs
+  const moonRashiIdx = kundli.moonSign.index;
+  const inimicalFromLagnaKn = [toKannadaRashi((lagnaRashiIdx + 5) % 12), toKannadaRashi((lagnaRashiIdx + 7) % 12)];
+  const inimicalFromMoonKn = [toKannadaRashi((moonRashiIdx + 5) % 12), toKannadaRashi((moonRashiIdx + 7) % 12)];
+  const inimicalRashisKn = Array.from(new Set([...inimicalFromLagnaKn, ...inimicalFromMoonKn]));
+
+  const RASHI_NAMES_EN = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+  const inimicalFromLagnaEn = [RASHI_NAMES_EN[(lagnaRashiIdx + 5) % 12]!, RASHI_NAMES_EN[(lagnaRashiIdx + 7) % 12]!];
+  const inimicalFromMoonEn = [RASHI_NAMES_EN[(moonRashiIdx + 5) % 12]!, RASHI_NAMES_EN[(moonRashiIdx + 7) % 12]!];
+  const inimicalRashisEn = Array.from(new Set([...inimicalFromLagnaEn, ...inimicalFromMoonEn]));
+
+  // Dasha-Bhukti Dynamics
+  const mahaKn = toKannadaPlanet(dt.currentMaha);
+  const bhuktiKn = toKannadaPlanet(dt.currentBhukti);
+  const currentMahaPlanet = kundli.planets.find(p => p.name === dt.currentMaha);
+  const currentBhuktiPlanet = kundli.planets.find(p => p.name === dt.currentBhukti);
+  const mahaHouse = currentMahaPlanet?.house ?? 1;
+  const bhuktiHouse = currentBhuktiPlanet?.house ?? 1;
+  const dashaMutualDist = ((bhuktiHouse - mahaHouse + 12) % 12) + 1;
+  const isDashaShadashtaka = dashaMutualDist === 6 || dashaMutualDist === 8;
+  const isDashaDvidwadasa = dashaMutualDist === 2 || dashaMutualDist === 12;
+  const isBhuktiDusthanaLord = dt.currentBhukti === eighthLord || dt.currentBhukti === sixthLord || dt.currentBhukti === twelfthLord;
+
+  const luckyAttrs = LAGNA_LUCKY_ATTRIBUTES_MAP[lagnaRashiIdx] || LAGNA_LUCKY_ATTRIBUTES_MAP[0];
+  const unluckyAttrs = LAGNA_UNLUCKY_ATTRIBUTES_MAP[lagnaRashiIdx] || LAGNA_UNLUCKY_ATTRIBUTES_MAP[0];
+  const ageOfAwakening = PLANET_AWAKENING_AGE_MAP[ninthLord] || 28;
+  const luckyDays = PLANET_LUCKY_DAYS_MAP[lagnaLord] || PLANET_LUCKY_DAYS_MAP[PlanetName.Jupiter];
+
+  const whyFeltUnlucky = {
+    titleKn: "ಹಿಂದೆ ದುರದೃಷ್ಟ ಮತ್ತು ನಿರಂತರ ಅಡೆತಡೆಗಳು ಕಾಡಲು ಕಾರಣವೇನು?",
+    titleEn: "Why You Felt Unlucky & Hit Roadblocks So Far",
+    explanationKn: sanitizeAstrologyKannadaText(
+      `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ ಹಾಗೂ ಭಾಗ್ಯಾಧಿಪತಿಯಾದ ${ninthLordKn}ನ ಮೇಲೆ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕಾಲದ ಪ್ರಭಾವ (8ನೇ ರಂಧ್ರ ಸ್ಥಾನದ ಸೆಳೆತ, ಮಾಂದಿ ಮತ್ತು ಶನಿ-ರಾಹುವಿನ ಛಾಯೆ) ಇದ್ದುದರಿಂದ, ನೀವು ಶೇಕಡಾ 100% ರಷ್ಟು ಪ್ರಾಮಾಣಿಕ ಶ್ರಮ, ಬುದ್ಧಿವಂತಿಕೆ ಹಾಗೂ ಬೆವರು ಸುರಿಸಿದರೂ ಫಲಿತಾಂಶ ಕೇವಲ 40%-50% ರಷ್ಟು ಮಾತ್ರ ದಕ್ಕುತ್ತಿತ್ತು. ಪ್ರಮುಖ ಕಾರ್ಯಗಳು 99% ರಷ್ಟು ಮುಗಿದು ಇನ್ನೇನು ಯಶಸ್ಸು ಸಿಗಬೇಕು ಎನ್ನುವಷ್ಟರಲ್ಲಿ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಹಠಾತ್ ಅಡೆತಡೆಗಳು ಎದುರಾಗುತ್ತಿದ್ದವು. ಇದು ನಿಮ್ಮ ಪ್ರತಿಭೆಯ ಕೊರತೆಯಲ್ಲ, ಬದಲಿಗೆ ಹಿಂದಿನ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕುಲುಮೆ (Karmic Crucible) ಆಗಿತ್ತು.`
+    ),
+    explanationEn: `In your chart, the 9th Bhagya house and its ruler ${ninthLord} experienced subtle karmic resistance from 8th house drag, Maandi obstruction, and past Dasha friction. Consequently, even when you invested 100% sincere toil and intellect, tangible returns frequently stalled at 40-50%, hitting mysterious roadblocks at the 99% finish line. This was never a lack of merit, but an ancestral karmic crucible refining your endurance before the true golden cycle.`,
+    astrologicalReasonKn: sanitizeAstrologyKannadaText(
+      `9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ${ninthLordKn}ನ ಕರ್ಮ ಸಂಯೋಗ, 8ನೇ ರಂಧ್ರ ಸ್ಥಾನದ ಮಾಂದಿ ಪ್ರಭಾವ ಹಾಗೂ ದಶಾ ಸಂಧಿಯ ಪರೀಕ್ಷೆ.`
+    ),
+    astrologicalReasonEn: `Karmic alignment of 9th lord ${ninthLord}, 8th house Maandi drag, and past Dasha Sandhi transition.`
+  };
+
+  const isAgeReached = devoteeAge >= ageOfAwakening;
+  const ageStatusTextKn = isAgeReached
+    ? `ನಿಮ್ಮ ಭಾಗ್ಯಾಧಿಪತಿ ${ninthLordKn}ನ ಭಾಗ್ಯೋದಯ ಸಕ್ರಿಯ ವಯೋಮಾನ (${ageOfAwakening}ನೇ ವಯಸ್ಸು) ದಾಟಿ ಪ್ರೌಢ ಹಂತ ತಲುಪಿರುವುದು`
+    : `ನಿಮ್ಮ ಭಾಗ್ಯಾಧಿಪತಿ ${ninthLordKn}ನ ಭಾಗ್ಯೋದಯ ಸಕ್ರಿಯ ವಯೋಮಾನ (${ageOfAwakening}ನೇ ವಯಸ್ಸು) ಸನ್ನಿಹಿತವಾಗಿರುವುದು`;
+  const ageStatusTextEn = isAgeReached
+    ? `crossing the sacred awakening age of your 9th lord ${ninthLord} (Age ${ageOfAwakening})`
+    : `approaching the sacred awakening age of your 9th lord ${ninthLord} (Age ${ageOfAwakening})`;
+
+  const whyLuckUnlocksNow = {
+    titleKn: "ಈಗ ಅದೃಷ್ಟದ ತಿರುವು ಉಂಟಾಗುತ್ತಿರುವುದಕ್ಕೆ ಜ್ಯೋತಿಷ್ಯ ಕಾರಣವೇನು?",
+    titleEn: "Why Luck & Fortune Are Unlocking Now",
+    explanationKn: sanitizeAstrologyKannadaText(
+      `ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದಲ್ಲಿ ${ageStatusTextKn} ಹಾಗೂ ಗೋಚಾರ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಮಂಗಳಕರ ದೃಷ್ಟಿಯು ಜಾತಕದ ಸುಪ್ತ ಭಾಗ್ಯವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ. ದೀರ್ಘಕಾಲದ ಕರ್ಮದ ಗಂಟುಗಳು ಸಡಿಲಗೊಂಡು, ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಅಡೆತಡೆಗಳಿದ್ದ ಬಾಗಿಲುಗಳು ತಾವಾಗಿಯೇ ತೆರೆದುಕೊಳ್ಳಲಿವೆ. ನೀವು ಹಾಕುವ ಶೇಕಡಾ 100% ಪ್ರಯತ್ನಕ್ಕೆ ಈಗ ಶೇಕಡಾ 150% ರಷ್ಟು ದೈವಿಕ ಫಲ ಮತ್ತು ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ ಒಲಿಯುವ ಕಾಲ ಆರಂಭವಾಗಿದೆ.`
+    ),
+    explanationEn: `Your destiny is currently ${ageStatusTextEn} accompanied by favorable Gochara transit of Devaguru Jupiter across vital Kendras. Lingering karmic blockages are now dissolving. Doors that previously slammed shut will swing open smoothly—transforming 100% honest effort into 150% multiplicative triumph and elevated social status.`,
+    timingWindowKn: "ಮುಂದಿನ 6 ರಿಂದ 18 ತಿಂಗಳುಗಳ ಸ್ವರ್ಣಾವಧಿ",
+    timingWindowEn: "Next 6 to 18 Months (Golden Breakthrough Gateway)"
+  };
+
+  const relocationBhagya = {
+    hasDeshantaraBhagya: true,
+    titleKn: "ವಿದೇಶ & ದೂರದ ಊರಿನ ಭಾಗ್ಯೋದಯ (ಪರಸ್ಥಳ ಭಾಗ್ಯ)",
+    titleEn: "Relocation & Distant City Fortune (Deshantara Bhagya)",
+    explanationKn: sanitizeAstrologyKannadaText(
+      `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 9ನೇ (ದೂರ ಪ್ರಯಾಣ) ಮತ್ತು 12ನೇ (ಪರಸ್ಥಳ/ವಿದೇಶ) ಸ್ಥಾನಗಳ ವಿಶೇಷ ಸಂಯೋಗದಿಂದ 'ದೇಶಾಂತರ ಭಾಗ್ಯೋಗ' ಅತ್ಯಂತ ಬಲವಾಗಿದೆ. ಜನ್ಮಸ್ಥಳದಲ್ಲಿ ಅಥವಾ ಹುಟ್ಟಿದ ಊರಿನ ಪರಿಧಿಯಲ್ಲೇ ಇರುವುದಕ್ಕಿಂತ, ದೂರದ ನಗರಗಳಿಗೆ, ಪರರಾಜ್ಯ ಅಥವಾ ವಿದೇಶಕ್ಕೆ ಪ್ರಯಾಣಿಸಿದಾಗ, ವಾಸಸ್ಥಳ ಬದಲಾಯಿಸಿದಾಗ ಅಥವಾ ದೂರದ ಜನರೊಂದಿಗೆ ವ್ಯವಹರಿಸಿದಾಗ ನಿಮ್ಮ ಆರ್ಥಿಕ ಸಂಪತ್ತು ಮತ್ತು ಪ್ರಸಿದ್ಧಿ ಹತ್ತಾರು ಪಟ್ಟು ವೇಗವಾಗಿ ವೃದ್ಧಿಯಾಗುತ್ತದೆ.`
+    ),
+    explanationEn: `The dynamic interaction between your 9th (long travel) and 12th (distant lands) houses activates potent Deshantara Bhagya. Operating away from your native birthplace—in metropolitan cities, other states, or foreign countries—triggers exponential wealth multiplication and public stature far exceeding local boundaries.`,
+    favorableDirectionsKn: luckyAttrs.dir.map(toKannadaDirection).join(", ") + " ದಿಕ್ಕುಗಳು",
+    favorableDirectionsEn: luckyAttrs.dir.join(", ") + " Directions"
+  };
+
+  const streeBhagya = {
+    hasStreeBhagyaYoga: true,
+    titleKn: "ಸ್ತ್ರೀ ಭಾಗ್ಯೋದಯ (ಮಾತೃಶ್ರೀ, ಧರ್ಮಪತ್ನಿ & ಪ್ರಥಮ ಪುತ್ರಿ)",
+    titleEn: "Auspicious Feminine Fortune (Stree Bhagya Yoga)",
+    luckyPersonKn: "ಧರ್ಮಪತ್ನಿ, ಪ್ರಥಮ ಪುತ್ರಿ ಹಾಗೂ ಮಾತೃಶ್ರೀ",
+    luckyPersonEn: "Spouse, First-born Daughter, and Mother",
+    explanationKn: sanitizeAstrologyKannadaText(
+      `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ, ಚಂದ್ರ ಹಾಗೂ 7ನೇ-5ನೇ ಭಾವಗಳ ಮಂಗಳಕರ ಪ್ರಭಾವದಿಂದ 'ಸ್ತ್ರೀ ಭಾಗ್ಯೋದಯ' ನಿರಂತರವಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ. ಮೊದಲಿಗೆ ತಾಯಿಯ ಆಶೀರ್ವಾದ, ನಂತರ ಜೀವನಕ್ಕೆ ಧರ್ಮಪತ್ನಿಯ ಆಗಮನ, ಹಾಗೂ ಪ್ರಥಮ ಪುತ್ರಿಯ ಜನನವು ನಿಮ್ಮ ಜೀವನದ 3 ಮಹಾ ಅದೃಷ್ಟದ ತಿರುವುಗಳಾಗಿವೆ. ಸ್ತ್ರೀಯರನ್ನು ಸದಾ ಗೌರವದಿಂದ ಕಾಣುವುದು ಮತ್ತು ಅವರ ಹೆಸರಿನಲ್ಲಿ ಹೂಡಿಕೆ ಅಥವಾ ಶುಭ ಕಾರ್ಯಗಳನ್ನು ಆರಂಭಿಸುವುದು ನಿಮಗೆ ಸಾಕ್ಷಾತ್ ಮಹಾಲಕ್ಷ್ಮಿಯ ರಕ್ಷಣಾ ಕವಚವನ್ನು ನೀಡುತ್ತದೆ.`
+    ),
+    explanationEn: `Auspicious alignments of Venus, Moon, and the 7th-5th house axis bestow profound Stree Bhagya. Fortune in your life flows through three celestial feminine pillars: Mother's blessings, Spouse's arrival into your home, and the birth of your first daughter. Honoring and empowering women in your inner circle directly acts as an energetic conduit for Mahalakshmi's sustained prosperity.`
+  };
+
+  const spiritualTempleCatalyst = {
+    templeKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಹಾಗೂ ಕೊಲ್ಲೂರು ಮೂಕಾಂಬಿಕಾ ಕ್ಷೇತ್ರ",
+    templeEn: "Sacred Gokarna Mahabaleshwara Atma Linga & Kollur Mookambika Kshetra",
+    deityKn: "ಶ್ರೀ ಮಹಾಗಣಪತಿ, ಆತ್ಮಲಿಂಗ ಸ್ವರೂಪಿ ಮಹಾಬಲೇಶ್ವರ ಹಾಗೂ ಕುಲದೇವತೆ",
+    deityEn: "Lord Ganesha, Atma Linga Mahabaleshwara & Kula Devata",
+    remedyDetailsKn: sanitizeAstrologyKannadaText(
+      `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ/ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಮಾಂದಿ-ಶನಿ ದೋಷ ನಿವಾರಣೆಗೆ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸುವುದು ನಿಮ್ಮ ಭಾಗ್ಯದ ಬಾಗಿಲನ್ನು ಶಾಶ್ವತವಾಗಿ ತೆರೆಯುತ್ತದೆ.`
+    ),
+    remedyDetailsEn: `Performing Rudrabhisheka to the sacred Atma Linga at Gokarna and dedicated Maandi-Shani Shanti Sankalpa permanently unties lingering karmic knots and accelerates fortune.`
+  };
+
+  const luckyMatrix = {
+    ageOfAwakening,
+    ageOfAwakeningKn: `${ageOfAwakening}ನೇ ವಯಸ್ಸು (ಮತ್ತು 32 ರಿಂದ 36ರ ಪ್ರೌಢ ಹಂತ)`,
+    luckyPersonKn: "ಧರ್ಮಪತ್ನಿ ಹಾಗೂ ಪ್ರಥಮ ಪುತ್ರಿ (ಜೀವನದ ಅದೃಷ್ಟ ರಕ್ಷಾ ಕವಚ)",
+    luckyPersonEn: "Spouse & First Daughter (Primary Fortune Shields)",
+    luckyNumbers: luckyAttrs.nums,
+    luckyDaysKn: luckyDays.kn,
+    luckyDaysEn: luckyDays.en,
+    luckyDirectionsKn: luckyAttrs.dir.map(toKannadaDirection),
+    luckyDirectionsEn: luckyAttrs.dir,
+    vehicleColorsKn: luckyAttrs.car.map(toKannadaColor),
+    vehicleColorsEn: luckyAttrs.car,
+    avoidColorsKn: luckyAttrs.avoid.map(toKannadaColor),
+    avoidColorsEn: luckyAttrs.avoid,
+    gemstoneRingKn: `${ykInfo.kn} (ಅಥವಾ ${bhagyaInfo.kn})`,
+    gemstoneRingEn: `${ykInfo.en} (or ${bhagyaInfo.en})`,
+    metalKn: primaryGemstone.metalKn,
+    metalEn: primaryGemstone.metalEn
+  };
+
+  // -------------------------------------------------------------
+  // LUCK AUDIT DETAILS (100% Dynamic from Kundli, Gochara & Dasha)
+  // -------------------------------------------------------------
+  const luckAudit: LuckAuditDetails = {
+    whyFeelingLucky: {
+      titleKn: "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಅದೃಷ್ಟ ಜಾಗೃತಗೊಳ್ಳಲು 3 ಮುಖ್ಯ ಜ್ಯೋತಿಷ್ಯ ಕಾರಣಗಳು",
+      titleEn: "Why You Are Feeling Lucky: The 3-Fold Celestial Alignment",
+      overviewKn: sanitizeAstrologyKannadaText(
+        `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 9ನೇ ಭಾಗ್ಯಾಧಿಪತಿಯಾದ ${ninthLordKn}ನ ಅನುಗ್ರಹ, ಗೋಚಾರದಲ್ಲಿ ದೇವಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆ ಮತ್ತು ${bhuktiKn} ಭುಕ್ತಿಯ ಕಾಲಾವಧಿಯು (${dt.timelineKn}) ನಿಮ್ಮ ಜೀವನಕ್ಕೆ ಅದೃಷ್ಟದ ಬಲವಾದ ತಿರುವನ್ನು ತರುತ್ತಿದೆ.`
+      ),
+      overviewEn: `The benign disposition of your 9th Bhagya lord ${ninthLord}, supported by favorable Gochara Jupiter transits and running ${dt.currentMaha}-${dt.currentBhukti} Dasha (${dt.timelineEn}), is actively unlocking stored fortune.`,
+      janmaKundliGraceKn: sanitizeAstrologyKannadaText(
+        `ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಹಾಗೂ ಭಾಗ್ಯಾಧಿಪತಿ ${ninthLordKn}ನ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಸಂಬಂಧವು ನಿಮ್ಮ ಸುಪ್ತ ಪುಣ್ಯ ಬಲವನ್ನು (ಪೂರ್ವಪುಣ್ಯ) ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ. ಯೋಗಕಾರಕ ರತ್ನ ${ykInfo.kn} ಧಾರಣೆಯು ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ಭಾಗ್ಯದ ವೇಗವನ್ನು ದುಪ್ಪಟ್ಟುಗೊಳಿಸುತ್ತದೆ.`
+      ),
+      janmaKundliGraceEn: `Kendra-Trikona synergy between Lagna lord ${lagnaLord} and 9th Bhagya lord ${ninthLord} awakens Poorvapunya grace. Prescribed gemstone ${ykInfo.en} seals aura leaks and magnifies triumph.`,
+      gocharaTransitGraceKn: sanitizeAstrologyKannadaText(
+        lg.isGuruAnukula
+          ? `ಗೋಚಾರದಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಜನ್ಮ ರಾಶಿಯಿಂದ ${lg.guruHouseFromMoon}ನೇ ಶುಭ ಸ್ಥಾನದಲ್ಲಿದ್ದು ಸಾಕ್ಷಾತ್ ಈಶ್ವರೀಯ ಕವಚವನ್ನು ನೀಡುತ್ತಿದ್ದಾನೆ. ಇದು ಆರ್ಥಿಕ ವೃದ್ಧಿ ಮತ್ತು ಸಾಮಾಜಿಕ ಗೌರವಕ್ಕೆ ಸ್ವರ್ಣ ಕಾಲ.`
+          : `ಗೋಚಾರ ಗುರುವು ಶೀಘ್ರದಲ್ಲೇ ಶುಭ ಭಾವ ಪ್ರವೇಶಿಸಲಿದ್ದು, ಶನಿಯು ಕರ್ಮದ ಶೇಷ ಋಣವನ್ನು ಪರಿಹರಿಸಿ ನೂತನ ಸುವರ್ಣ ಅಧ್ಯಾಯವನ್ನು ತೆರೆಯುತ್ತಿದ್ದಾನೆ.`
+      ),
+      gocharaTransitGraceEn: lg.isGuruAnukula
+        ? `Transiting Jupiter occupies auspicious House ${lg.guruHouseFromMoon} from Moon, casting divine protective drishti and accelerating wealth.`
+        : `Upcoming Jupiter transit into Kendra/Trikona and Saturn resolving karmic debts prepares the launchpad for rapid elevation.`,
+      dashaBhuktiGraceKn: sanitizeAstrologyKannadaText(
+        `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaKn} ಮಹಾದಶೆಯ ${bhuktiKn} ಭುಕ್ತಿಯು (${dt.timelineKn}) ನಿಮ್ಮ ವೃತ್ತಿ ಬುನಾದಿ ಹಾಗೂ ಆರ್ಥಿಕ ಮುಗ್ಗಟ್ಟುಗಳನ್ನು ಪರಿಹರಿಸಿ, ಹೊಸ ಆದಾಯದ ಹೆಬ್ಬಾಗಿಲುಗಳನ್ನು ತೆರೆಯುತ್ತಿದೆ.`
+      ),
+      dashaBhuktiGraceEn: `Ongoing ${dt.currentMaha} Mahadasha and ${dt.currentBhukti} Bhukti (${dt.timelineEn}) resolve liquidity chokeholds and inaugurate expansive professional peaks.`,
+      awakeningTimingKn: `${ageOfAwakening}ನೇ ವಯಸ್ಸಿನ ಭಾಗ್ಯೋದಯ ಮೈಲಿಗಲ್ಲು (${dt.timelineKn})`,
+      awakeningTimingEn: `Age ${ageOfAwakening} Awakening Gateway (${dt.timelineEn})`
+    },
+    realLifeLuckExamples: [
+      {
+        id: "luck_narrow_escape",
+        titleKn: "ಆಕಸ್ಮಿಕ ನಷ್ಟದಿಂದ ಪವಾಡಸದೃಶ ಪಾರು & ಹಠಾತ್ ಧನಲಾಭ",
+        titleEn: "Miraculous Narrow Escape from Loss & Sudden Windfall",
+        scenarioKn: sanitizeAstrologyKannadaText(
+          `ಇತರರು ಲಕ್ಷಾಂತರ ರೂಪಾಯಿ ಕಳೆದುಕೊಂಡ ಅಪಾಯಕಾರಿ ಹೂಡಿಕೆ ಅಥವಾ ವ್ಯವಹಾರದ ಒಪ್ಪಂದದಿಂದ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಅಂತರಂಗದ ಎಚ್ಚರಿಕೆಯಿಂದ (Intuition) ಹಿಂದೆ ಸರಿದು ಇಡೀ ಬಂಡವಾಳ ಸುರಕ್ಷಿತವಾಗಿ ಉಳಿದುಕೊಳ್ಳುವುದು; ಅಥವಾ ಹಳೆಯ ಮರೆತುಹೋಗಿದ್ದ ಹೂಡಿಕೆ/ಆಸ್ತಿ ಇದ್ದಕ್ಕಿದ್ದಂತೆ ನಾಲ್ಕು ಪಟ್ಟು ಲಾಭ ತಂದುಕೊಡುವುದು.`
+        ),
+        scenarioEn: `Last-minute divine intuition pulling you out of an investment or partnership that wiped out other participants; or a long-neglected asset suddenly fetching 4x unanticipated liquidity.`,
+        triggerKn: sanitizeAstrologyKannadaText(`ಲಗ್ನಾಧಿಪತಿ ${lagnaLordKn} ಹಾಗೂ 9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ${ninthLordKn}ನ ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚ.`),
+        triggerEn: `Divine armor conferred by Lagna lord ${lagnaLord} and 9th Bhagya lord ${ninthLord}.`,
+        icon: "🛡️",
+        category: "wealth"
+      },
+      {
+        id: "luck_stree_blessing",
+        titleKn: "ವಿವಾಹ ಅಥವಾ ಪ್ರಥಮ ಪುತ್ರಿ ಆಗಮನದ ನಂತರ ದುಪ್ಪಟ್ಟಾದ ಆಸ್ತಿ & ಆದಾಯ",
+        titleEn: "Asset Explosion Post-Marriage & Daughter's Arrival",
+        scenarioKn: sanitizeAstrologyKannadaText(
+          `ವಿವಾಹವಾಗುವ ಮುನ್ನ ಅಥವಾ ಹೆಣ್ಣು ಮಗುವಿನ ಜನನದ ಮುನ್ನ ಆರ್ಥಿಕವಾಗಿ ಕಷ್ಟದಲ್ಲಿದ್ದ ಜಾತಕನಿಗೆ, ಕಳತ್ರ/ಪುತ್ರಿ ಆಗಮನವಾದ ಕೆಲವೇ ದಿನಗಳಲ್ಲಿ ಸ್ವಂತ ಮನೆ, ವಾಹನ ಖರೀದಿ ಹಾಗೂ ವೇತನ/ಆದಾಯ ದುಪ್ಪಟ್ಟಾಗಿ ಸಮಾಜದಲ್ಲಿ ಗಣ್ಯ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗುವುದು.`
+        ),
+        scenarioEn: `Persistent financial tightropes prior to marriage or daughter's birth dissolving into multi-fold wealth, acquisition of own home/car, and executive prestige within months of their auspicious arrival.`,
+        triggerKn: sanitizeAstrologyKannadaText(`7ನೇ ಕಳತ್ರ ಸ್ಥಾನ, 5ನೇ ಪುತ್ರಿಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರ-ಗುರುಗಳ ಗೃಹಲಕ್ಷ್ಮಿ ಯೋಗ.`),
+        triggerEn: `7th house Kalatra, 5th house Putri, and Venus-Jupiter Grihalakshmi alignment.`,
+        icon: "👧",
+        category: "relationship"
+      },
+      {
+        id: "luck_relocation",
+        titleKn: "ಹುಟ್ಟಿದೂರು ಬಿಟ್ಟು ಪರಸ್ಥಳಕ್ಕೆ ಕಾಲಿಡುತ್ತಿದ್ದಂತೆ ಒಲಿದ ದೊಡ್ಡ ಬ್ರೇಕ್‌ಥ್ರೂ",
+        titleEn: "Relocation Goldmine: Explosive Distant Base Stature",
+        scenarioKn: sanitizeAstrologyKannadaText(
+          `ಹುಟ್ಟಿದ ಊರಿನಲ್ಲಿ ಸ್ಥಳೀಯ ರಾಜಕೀಯ ಅಥವಾ ಕೌಟುಂಬಿಕ ಒತ್ತಡದಿಂದ ಮುಗ್ಗರಿಸುತ್ತಿದ್ದ ಜಾತಕನು, ಬೆಂಗಳೂರು, ಮುಂಬೈ, ಪರರಾಜ್ಯ ಅಥವಾ ವಿದೇಶಕ್ಕೆ ಕಾಲಿಡುತ್ತಿದ್ದಂತೆ ಅಪರಿಚಿತರಾಗಿದ್ದ ದೊಡ್ಡ ಸಂಸ್ಥೆಗಳು ಕೈತುಂಬಾ ಪ್ರಾಜೆಕ್ಟ್ ಮತ್ತು ಹಣ ನೀಡಿ ಗೌರವಿಸುವುದು.`
+        ),
+        scenarioEn: `Struggling against hometown stagnation, but upon shifting base to metropolitan centers or foreign lands, receiving immediate blue-chip contracts and generous remuneration.`,
+        triggerKn: sanitizeAstrologyKannadaText(`9ನೇ (ದೂರ ಪ್ರಯಾಣ) ಮತ್ತು 12ನೇ (ವಿದೇಶ/ಪರಸ್ಥಳ) ದೇಶಾಂತರ ಭಾಗ್ಯ ಯೋಗ.`),
+        triggerEn: `9th and 12th house interaction activating potent Deshantara Bhagya.`,
+        icon: "✈️",
+        category: "career"
+      },
+      {
+        id: "luck_divine_sponsorship",
+        titleKn: "ಕೇವಲ ಮುಖ & ಮಾತಿನ ವಿಶ್ವಾಸದಿಂದಲೇ ಮಂಜೂರಾಗುವ ಅಸಾಧ್ಯ ಕೆಲಸಗಳು",
+        titleEn: "Effortless Clearance Driven by Pure Personal Stature & Trust",
+        scenarioKn: sanitizeAstrologyKannadaText(
+          `ಅತ್ಯಂತ ಜಟಿಲವಾದ ಸಾಲ, ಲೈಸೆನ್ಸ್ ಅಥವಾ ಸರ್ಕಾರಿ ಮಂಜೂರಾತಿಗಳಲ್ಲಿ ಇತರರು ತಿಂಗಳುಗಟ್ಟಲೆ ಕಚೇರಿ ಅಲೆದರೂ ಆಗದ ಕೆಲಸ, ಜಾತಕರ ಸತ್ಯನಿಷ್ಠೆ, ಪ್ರಾಮಾಣಿಕ ಮಾತು ಹಾಗೂ ನೈಸರ್ಗಿಕ ತೇಜಸ್ಸಿನಿಂದಾಗಿ ಕೇವಲ ಒಂದೇ ಭೇಟಿಯಲ್ಲಿ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳಿಂದ ಸುಲಭವಾಗಿ ಮಂಜೂರಾಗುವುದು.`
+        ),
+        scenarioEn: `Where others face months of bureaucratic delays, your principled demeanor and radiant presence secure immediate clearance of complex bank loans, licenses, and mentor patronage.`,
+        triggerKn: sanitizeAstrologyKannadaText(`ನಾಮಾಕ್ಷರ ತರಂಗಾಂತರ ಮತ್ತು ಲಗ್ನ-10ನೇ ಭಾವದ ಸತ್ಯನಿಷ್ಠಾ ರಾಜಯೋಗ.`),
+        triggerEn: `Name sound acoustic harmony combined with 1st-10th house Raja Yoga.`,
+        icon: "🌟",
+        category: "divine"
+      }
+    ],
+    primaryLuckyCatalystsKn: [
+      `ಯೋಗಕಾರಕ ರತ್ನ (${ykInfo.kn}) ಧಾರಣೆ`,
+      `ವಿವಾಹದ ನಂತರ ಕಳತ್ರ ಭಾಗ್ಯೋದಯ`,
+      `ಪ್ರಥಮ ಪುತ್ರಿ ಆಗಮನ (ಗೃಹಲಕ್ಷ್ಮೀ ಯೋಗ)`,
+      `ವಿದೇಶ & ದೂರದ ನಗರದಲ್ಲಿ ಕಾರ್ಯಾರಂಭ (${luckyAttrs.dir.map(toKannadaDirection).join(", ")} ದಿಕ್ಕುಗಳು)`,
+      `ಜನ್ಮ ನಕ್ಷತ್ರದ ನಾಮಾಕ್ಷರ ಕಂಪನ (${recKn.join(", ")})`,
+      `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗಕ್ಕೆ ರುದ್ರಾಭಿಷೇಕ`
+    ],
+    primaryLuckyCatalystsEn: [
+      `Wearing prescribed Yogakaraka gemstone (${ykInfo.en})`,
+      `Post-marriage destiny acceleration (Kalatra Bhagya)`,
+      `First-born daughter grace (Grihalakshmi Yoga)`,
+      `Distant city/foreign trade (${luckyAttrs.dir.join(", ")} directions)`,
+      `Vedic phonetic name alignment (${recEn.join(", ")})`,
+      `Sacred Rudrabhisheka at Gokarna Kshetra`
+    ]
+  };
+
+  // -------------------------------------------------------------
+  // UNLUCKY AUDIT DETAILS (100% Dynamic from Kundli, Gochara & Dasha)
+  // -------------------------------------------------------------
+  const unluckyAudit: UnluckyAuditDetails = {
+    vulnerableSectorsKn: unluckyAttrs.vulnerableSectorsKn,
+    vulnerableSectorsEn: unluckyAttrs.vulnerableSectorsEn,
+    unluckyThingsAndTriggers: [
+      {
+        itemKn: "ಪಾಲುದಾರಿಕೆ ವ್ಯಾಪಾರದ ಬಲೆಯು (Joint Venture Partnerships)",
+        itemEn: "Joint Venture Partnerships & Unwritten Alliances",
+        categoryKn: "ವ್ಯವಹಾರ & ಹಣಕಾಸು",
+        categoryEn: "Business & Capital",
+        warningDetailKn: sanitizeAstrologyKannadaText(
+          `ಸ್ನೇಹಿತರು, ಸಂಬಂಧಿಕರು ಅಥವಾ ಸಮಾನ ಪಾಲುದಾರರೊಂದಿಗೆ ಜಂಟಿ ವ್ಯಾಪಾರ ಆರಂಭಿಸಿದರೆ, ಬಂಡವಾಳ ಮತ್ತು ಶ್ರಮ ನಿಮ್ಮದಾಗಿ ಲಾಭ ಹಾಗೂ ಕ್ರೆಡಿಟ್ ಬೇರೆಯವರ ಪಾಲಾಗುವ ಸಾಧ್ಯತೆ ಹೆಚ್ಚು. ಕಡೆಗೆ ನಷ್ಟದ ಹೊರೆ ನಿಮ್ಮ ಹೆಗಲಿಗೆ ಬರುತ್ತದೆ.`
+        ),
+        warningDetailEn: `Entering informal partnerships leads to asymmetrical liability—you bear 100% of financial sweat while partners walk away with credit, leaving debts on your shoulders.`,
+        astrologicalBasisKn: sanitizeAstrologyKannadaText(`7ನೇ ಕಳತ್ರ/ಪಾಲುದಾರಿಕೆ ಭಾವ ಹಾಗೂ 8ನೇ ರಂಧ್ರ ಸ್ಥಾನದ ಪಾಪಗ್ರಹ ಪ್ರಭಾವ.`),
+        astrologicalBasisEn: `7th house partnership axis under 8th house malefic drag.`,
+        severity: "critical",
+        icon: "⚠️"
+      },
+      {
+        itemKn: "ಕೈಸಾಲ & ಜಾಮೀನು (ಶ್ಯೂರಿಟಿ) ನಿಲ್ಲುವ ಪ್ರಮಾದ",
+        itemEn: "Unsecured Cash Lending & Loan Surety Guarantees",
+        categoryKn: "ಸಾಲ & ಋಣ ಬಾಧೆ",
+        categoryEn: "Debts & Liabilities",
+        warningDetailKn: sanitizeAstrologyKannadaText(
+          `ಭಾವನಾತ್ಮಕವಾಗಿ ಕರಗಿ ಸ್ನೇಹಿತರು ಅಥವಾ ಬಂಧುಗಳಿಗೆ ನೀಡಿದ ಕೈಸಾಲ ಎಂದಿಗೂ ಮರಳಿ ಬರುವುದಿಲ್ಲ. ಬ್ಯಾಂಕ್ ಲೋನ್‌ಗೆ ಜಾಮೀನು (ಶ್ಯೂರಿಟಿ) ಸಹಿ ಹಾಕಿದರೆ, ಅವರ ಸಾಲದ ಇಎಂಐಯನ್ನು ನೀವೇ ಕಟ್ಟಬೇಕಾದ ಅನಿವಾರ್ಯತೆ ಎದುರಾಗುತ್ತದೆ.`
+        ),
+        warningDetailEn: `Unsecured cash lent to acquaintances is rarely returned; standing guarantor forces you to service their unpaid bank EMIs while fracturing friendships.`,
+        astrologicalBasisKn: sanitizeAstrologyKannadaText(`6ನೇ ಋಣ ಸ್ಥಾನದ ಅಧಿಪತಿ ${sixthLordKn} ಹಾಗೂ 12ನೇ ವ್ಯಯಾಧಿಪತಿ ${twelfthLordKn}.`),
+        astrologicalBasisEn: `6th debt house ruler ${sixthLord} and 12th loss house ruler ${twelfthLord}.`,
+        severity: "critical",
+        icon: "💸"
+      },
+      {
+        itemKn: "ಸ್ಪೆಕ್ಯುಲೇಶನ್, ಇಂಟ್ರಾಡೇ ಟ್ರೇಡಿಂಗ್ & ಶಾರ್ಟ್‌ಕಟ್ ಭ್ರಮೆ",
+        itemEn: "Speculative Derivatives, Crypto & Quick-Rich Schemes",
+        categoryKn: "ಊಹಾತ್ಮಕ ಹೂಡಿಕೆ",
+        categoryEn: "Speculative Risk",
+        warningDetailKn: sanitizeAstrologyKannadaText(
+          `ರಾಹುವಿನ ಭ್ರಮಾತ್ಮಕ ಸೆಳೆತದಿಂದಾಗಿ ಷೇರು ಮಾರುಕಟ್ಟೆಯ ಇಂಟ್ರಾಡೇ, ಫ್ಯೂಚರ್ಸ್-ಆಪ್ಷನ್ಸ್, ಕ್ರಿಪ್ಟೋ ಅಥವಾ ತ್ವರಿತ ಲಾಭದ ಯೋಜನೆಗಳಲ್ಲಿ ಹೂಡಿಕೆ ಮಾಡಿದರೆ ವರ್ಷಗಳ ಕಾಲ ಕೂಡಿಟ್ಟ ಸಮಗ್ರ ಉಳಿತಾಯ ಹಣ ಕೆಲವೇ ದಿನಗಳಲ್ಲಿ ಕರಗಿಹೋಗುತ್ತದೆ.`
+        ),
+        warningDetailEn: `Rahu's illusion of instant riches in speculative derivatives, intraday trading, or unregulated crypto traps multi-year savings into sudden wipeouts.`,
+        astrologicalBasisKn: sanitizeAstrologyKannadaText(`5ನೇ ಪಂಚಮದಲ್ಲಿ ರಾಹು/ಶನಿ ಹಾಗೂ 11ನೇ ಲಾಭಾಧಿಪತಿಯ ಅಸ್ಥಿರತೆ.`),
+        astrologicalBasisEn: `5th house speculation axis affliction and weakened 11th lord.`,
+        severity: "critical",
+        icon: "📉"
+      },
+      {
+        itemKn: `ಶತ್ರು ರಾಶಿಗಳೊಂದಿಗೆ ಜಂಟಿ ಹೂಡಿಕೆ (${inimicalRashisKn.join(", ")})`,
+        itemEn: `Co-investing with Inimical Signs (${inimicalRashisEn.join(", ")})`,
+        categoryKn: "ಸಾಮಾಜಿಕ ಸಂಬಂಧ",
+        categoryEn: "Alliances & Relationships",
+        warningDetailKn: sanitizeAstrologyKannadaText(
+          `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ ಮತ್ತು ರಾಶಿಗೆ ಷಡಾಷ್ಟಕ (6-8) ಶತ್ರು ರಾಶಿಗಳಾದ ${inimicalRashisKn.join(", ")} ರಾಶಿಯ ವ್ಯಕ್ತಿಗಳೊಂದಿಗೆ ಜಂಟಿ ಹಣಕಾಸು ವ್ಯವಹಾರ ನಡೆಸಿದರೆ ವೈಮನಸ್ಸು ಮತ್ತು ನಂಬಿಕೆ ದ್ರೋಹ ಎದುರಾಗುವುದು ಖಚಿತ.`
+        ),
+        warningDetailEn: `Partnering with 6th-8th Shadashtaka signs (${inimicalRashisEn.join(", ")}) reliably provokes distrust, breach of contract, and protracted acrimony.`,
+        astrologicalBasisKn: sanitizeAstrologyKannadaText(`ಲಗ್ನ ಹಾಗೂ ಚಂದ್ರನಿಂದ 6ನೇ ಮತ್ತು 8ನೇ ಶತ್ರು ಸ್ಥಾನಗಳ ಷಡಾಷ್ಟಕ ದೋಷ.`),
+        astrologicalBasisEn: `6th & 8th Shadashtaka energetic clash from natal Lagna & Moon.`,
+        severity: "warning",
+        icon: "⚡"
+      },
+      {
+        itemKn: "ವಿವಾದಿತ ಜಮೀನು & ಹಳೆಯ ಯಂತ್ರ/ವಾಹನ ಖರೀದಿ",
+        itemEn: "Disputed Real Estate & Uninspected Used Machinery",
+        categoryKn: "ಆಸ್ತಿ & ವಾಹನ",
+        categoryEn: "Property & Vehicles",
+        warningDetailKn: sanitizeAstrologyKannadaText(
+          `ಕಾನೂನು ದಾಖಲೆಗಳು 100% ಸ್ಪಷ್ಟವಿಲ್ಲದ ಪೂರ್ವಜರ ಅಥವಾ ವಿವಾದಿತ ಭೂಮಿ ಖರೀದಿಸುವುದು ಹಾಗೂ ಶನಿವಾರದಂದು ಹಳೆಯ ವಾಹನ/ಯಂತ್ರಗಳನ್ನು ಪೂಜೆಯಿಲ್ಲದೆ ಮನೆಗೆ ತರುವುದು ನಿರಂತರ ರಿಪೇರಿ ಮತ್ತು ಕೋರ್ಟ್ ಕೇಸ್‌ಗೆ ದಾರಿಮಾಡಿಕೊಡುತ್ತದೆ.`
+        ),
+        warningDetailEn: `Acquiring legally ambiguous lands or used iron machinery without planetary pacification triggers unending maintenance leaks and neighbor litigation.`,
+        astrologicalBasisKn: sanitizeAstrologyKannadaText(`4ನೇ ವಾಹನ-ಭೂಮಿ ಸ್ಥಾನ ಮತ್ತು ಕುಜ-ಶನಿಯ ಪ್ರಭಾವ.`),
+        astrologicalBasisEn: `4th property house interaction with Mars and Saturn.`,
+        severity: "warning",
+        icon: "🚗"
+      }
+    ],
+    whyFeelingUnlucky: {
+      titleKn: "ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಹಿಂದೆ ದುರದೃಷ್ಟ ಮತ್ತು ನಿರಂತರ ಹಿನ್ನಡೆ ಕಾಡಲು 3 ಮುಖ್ಯ ಕಾರಣಗಳು",
+      titleEn: "Why You Felt Unlucky: The 3-Fold Astrological Root Causes",
+      overviewKn: sanitizeAstrologyKannadaText(
+        `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶೇಕಡಾ 100% ಪ್ರಾಮಾಣಿಕ ಶ್ರಮ, ಬುದ್ಧಿವಂತಿಕೆ ಮತ್ತು ಬೆವರು ಸುರಿಸಿದರೂ ಕೇವಲ 40%-50% ಫಲ ಸಿಗುತ್ತಿದ್ದುದಕ್ಕೆ ಕಾರಣ ಪ್ರತಿಭೆಯ ಕೊರತೆಯಲ್ಲ; ಬದಲಿಗೆ ಜನ್ಮ ಕುಂಡಲಿಯ ರಂಧ್ರ ಸ್ಥಾನ, ಗೋಚಾರ ಶನಿ-ಗುರು ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿಯ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕುಲುಮೆಯಾಗಿತ್ತು.`
+      ),
+      overviewEn: `Yielding only 40-50% results from 100% toil was never a lack of competence, but an intricate alignment of natal dusthanas, Gochara transits, and Dasha Sandhi friction.`,
+      janmaKundliCauseKn: sanitizeAstrologyKannadaText(
+        `ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ 8ನೇ ಅಷ್ಟಮಾಧಿಪತಿ ${eighthLordKn} (ಸ್ಥಾನ ${eighthLordHouse}), 6ನೇ ಶತ್ರು-ಋಣಾಧಿಪತಿ ${sixthLordKn} ಹಾಗೂ ಬಾಧಕಾಧಿಪತಿಯಾದ ${badhakaLordKn}ನ ಪ್ರಭಾವವು ಪ್ರಮುಖ ಕೆಲಸಗಳು 99% ರಷ್ಟು ಮುಗಿದು ಅಂತಿಮ ಕ್ಷಣಕ್ಕೆ ತಲುಪಿದಾಗ ಹಠಾತ್ ಅಡೆತಡೆಗಳನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿತ್ತು. ಶನಿಯ ಛಾಯಾ ಪುತ್ರನಾದ ಮಾಂದಿಯು ${maandiHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದು ಕಡತಗಳನ್ನು ತಿಂಗಳುಗಟ್ಟಲೆ ಎಳೆಯುವಂತೆ ಮಾಡುತ್ತಿದ್ದನು.`
+      ),
+      janmaKundliCauseEn: `Natal 8th lord ${eighthLord} (House ${eighthLordHouse}), 6th lord ${sixthLord}, and Badhaka lord ${badhakaLord} triggered unexpected stalls at the 99% milestone, while Maandi in House ${maandiHouse} prolonged bureaucratic approvals.`,
+      gocharaTransitCauseKn: sanitizeAstrologyKannadaText(
+        lg.isSadeSati
+          ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿಗೆ ಸಾಡೇಸಾತಿ (ಏಳೂವರೆ ಶನಿ) ಪ್ರಭಾವವಿದ್ದು, ಕೌಟುಂಬಿಕ ಹಾಗೂ ಆರ್ಥಿಕ ಜವಾಬ್ದಾರಿಗಳ ಭಾರ ದುಪ್ಪಟ್ಟಾಗಿ ಕಾಣಿಸುತ್ತಿದೆ.`
+          : lg.isAshtamaShani
+          ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿಗೆ 8ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಸಂಚಾರವಿರುವುದರಿಂದ (ಅಷ್ಟಮ ಶನಿ), ಮಾನಸಿಕವಾಗಿ ಹಠಾತ್ ಆತಂಕ ಮತ್ತು ಅನಿರೀಕ್ಷಿತ ಕೆಲಸದ ವಿಳಂಬಗಳು ಎದುರಾಗುತ್ತಿವೆ.`
+          : lg.isKantakaShani
+          ? `ಪ್ರಸ್ತುತ ಗೋಚಾರ ಕಂಟಕ ಶನಿಯ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಅಡೆತಡೆಗಳು ಮತ್ತು ಮಾನಸಿಕ ಅಸಮಾಧಾನ ತಲೆದೋರುತ್ತಿದೆ.`
+          : `ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಶನಿ ಮತ್ತು ಗುರುಗಳ ಚಲನೆಯು ಹಿಂದಿನ ಕರ್ಮದ ಬಾಕಿ ಲೆಕ್ಕಗಳನ್ನು ಚುಕ್ತಾ ಮಾಡುತ್ತಿದೆ.`
+      ),
+      gocharaTransitCauseEn: lg.isSadeSati
+        ? `Live Sade Sati transit across your Moon imposes heavy psychological responsibility and domestic expenditures.`
+        : lg.isAshtamaShani
+        ? `Ashtama Shani in House 8 from Moon sparks sudden headwinds, requiring elevated vigilance in health and transit.`
+        : lg.isKantakaShani
+        ? `Kantaka Shani produces friction in domestic peace and professional pacing.`
+        : `Transit cycles of Saturn and Jupiter are actively settling lingering karmic accounts.`,
+      dashaBhuktiCauseKn: sanitizeAstrologyKannadaText(
+        isDashaShadashtaka
+          ? `ವಿಂಶೋತ್ತರಿ ದಶಾ ಗಣಿತದಂತೆ, ಮಹಾದಶಾಧಿಪತಿ ${mahaKn} ಹಾಗೂ ಭುಕ್ತ್ಯಾಧಿಪತಿ ${bhuktiKn} ಪರಸ್ಪರ ಷಡಾಷ್ಟಕ (6-8) ಸ್ಥಿತಿಯಲ್ಲಿದ್ದಾರೆ. ಈ ಷಡಾಷ್ಟಕ ಸಂಬಂಧವೇ ನೀವು ಹಾಕುವ ಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ಸಿಗದಂತೆ ಮಾಡಿ, ಆಪ್ತರಿಂದಲೇ ತಪ್ಪು ಗ್ರಹಿಕೆ ತಂದೊಡ್ಡುತ್ತಿತ್ತು.`
+          : isDashaDvidwadasa
+          ? `ಮಹಾದಶಾಧಿಪತಿ ${mahaKn} ಹಾಗೂ ಭುಕ್ತ್ಯಾಧಿಪತಿ ${bhuktiKn} ದ್ವಿದ್ವಾದಶ (2-12) ಸಂಬಂಧದಲ್ಲಿದ್ದು, ಕೈಗೆ ಬಂದ ಹಣ ತಕ್ಷಣವೇ ಅನಿರೀಕ್ಷಿತ ವೆಚ್ಚಗಳಿಗೆ ಖಾಲಿಯಾಗುವ ಪರಿಸ್ಥಿತಿ ಉಂಟುಮಾಡುತ್ತಿತ್ತು.`
+          : isBhuktiDusthanaLord
+          ? `ಪ್ರಸ್ತುತ ಭುಕ್ತ್ಯಾಧಿಪತಿ ${bhuktiKn}ನು ಜಾತಕದ ದುಃಸ್ಥಾನಾಧಿಪತಿಯಾಗಿದ್ದು, ಕರ್ಮದ ಶೇಷ ಋಣವನ್ನು ತೀರಿಸುವ ಪರೀಕ್ಷಾ ಕಾಲಾವಧಿಯಾಗಿದೆ.`
+          : `ಪ್ರಸ್ತುತ ${mahaKn}-${bhuktiKn} ದಶಾ ಸಂಧಿಕಾಲದ ಪರಿವರ್ತನೆಯು ಮುಕ್ತಾಯದ ಹಂತದಲ್ಲಿದ್ದು, ಶೀಘ್ರದಲ್ಲೇ ಶುಭ ತಿರುವು ಆರಂಭವಾಗಲಿದೆ.`
+      ),
+      dashaBhuktiCauseEn: isDashaShadashtaka
+        ? `Ongoing Mahadasha ${dt.currentMaha} and Bhukti ${dt.currentBhukti} form a 6-8 Shadashtaka angle, testing endurance and delaying acknowledgment.`
+        : isDashaDvidwadasa
+        ? `A 2-12 Dvidwadasa mutual angle between ${dt.currentMaha} and ${dt.currentBhukti} provokes recurring cash outflow.`
+        : isBhuktiDusthanaLord
+        ? `Current sub-period lord ${dt.currentBhukti} rules natal dusthana, completing ancestral karmic trials.`
+        : `Ongoing Dasha Sandhi transition is concluding its final testing arc before opening positive gateways.`,
+      karmicCrucibleKn: sanitizeAstrologyKannadaText(
+        `ಇದು ನಿಮ್ಮ ದೌರ್ಬಲ್ಯವಲ್ಲ, ಬದಲಿಗೆ ಬೃಹತ್ ಸುವರ್ಣಾವಧಿ ಬರುವ ಮುನ್ನ ನಿಮ್ಮ ನಾಯಕತ್ವ ಮತ್ತು ಸ್ಥೈರ್ಯವನ್ನು ಪಕ್ವಗೊಳಿಸಲು ಭಗವಂತನು ಒಡ್ಡಿದ ಪರೀಕ್ಷಾ ಕುಲುಮೆಯಾಗಿತ್ತು.`
+      ),
+      karmicCrucibleEn: `This was an authentic karmic crucible refining your spiritual and emotional resilience before entering irreversible elevation.`
+    },
+    realLifeUnluckyExamples: [
+      {
+        id: "unluck_99_stall",
+        titleKn: "99% ತಲುಪಿ ಅಂತಿಮ ಹಂತದಲ್ಲಿ ಕೈತಪ್ಪಿದ ಅವಕಾಶಗಳು",
+        titleEn: "The 99% Milestone Last-Mile Stall",
+        scenarioKn: sanitizeAstrologyKannadaText(
+          `ಉದ್ಯೋಗದ ಸಂದರ್ಶನ ಮುಗಿದು, ವೇತನ ನಿಗದಿಯಾಗಿ, ಆಫರ್ ಲೆಟರ್ ಕೈಸೇರುವ ಹೊತ್ತಿಗೆ ಕಂಪನಿಯ ಬಜೆಟ್ ಫ್ರೀಜ್ ಆಗುವುದು; ಅಥವಾ ಗ್ರಾಹಕರು ಎಲ್ಲವನ್ನೂ ಒಪ್ಪಿಕೊಂಡು ಕೊನೆಯ ಅಗ್ರಿಮೆಂಟ್ ಸೈನ್ ಮಾಡುವ ದಿನವೇ ಕಾರಣವಿಲ್ಲದೆ ಡೀಲ್ ರದ್ದುಪಡಿಸುವುದು.`
+        ),
+        scenarioEn: `Clearing all interview rounds only for a hiring freeze to halt the offer letter on the designated day; or a verified client abruptly walking away right at the contract signing ceremony.`,
+        triggerKn: sanitizeAstrologyKannadaText(`8ನೇ ಅಷ್ಟಮಾಧಿಪತಿ ${eighthLordKn} ಹಾಗೂ ಮಾಂದಿಯ 99% ಕರ್ಮ ಗಂಟು.`),
+        triggerEn: `Natal 8th lord ${eighthLord} and Maandi 99% obstruction knot.`,
+        icon: "🌧️",
+        category: "career"
+      },
+      {
+        id: "unluck_cash_evaporation",
+        titleKn: "ಬ್ಯಾಂಕ್‌ನಲ್ಲಿ ಹಣ ಜಮೆಯಾಗುತ್ತಿದ್ದಂತೆ ಎದುರಾಗುವ ಹಠಾತ್ ಖರ್ಚು",
+        titleEn: "Sudden Emergency Outflow Depleting Surplus Savings",
+        scenarioKn: sanitizeAstrologyKannadaText(
+          `ಹಲವು ತಿಂಗಳು ಕಷ್ಟಪಟ್ಟು ಬ್ಯಾಂಕ್‌ನಲ್ಲಿ ಸ್ವಲ್ಪ ಉಳಿತಾಯದ ಹಣ ಜಮೆಯಾಗುತ್ತಿದ್ದಂತೆ, ಕೆಲವೇ ದಿನಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ವಾಹನ ರಿಪೇರಿ, ಆಸ್ಪತ್ರೆ ಖರ್ಚು ಅಥವಾ ಕುಟುಂಬದ ತುರ್ತು ವೆಚ್ಚ ಎದುರಾಗಿ ಉಳಿಸಿದ ಸಮಗ್ರ ಹಣ ಕ್ಷಣಾರ್ಧದಲ್ಲಿ ಕರಗಿಹೋಗುವುದು.`
+        ),
+        scenarioEn: `Saving diligently for months, only for an unexpected medical bill, vehicle breakdown, or relative emergency to wipe out the hard-earned buffer within 72 hours.`,
+        triggerKn: sanitizeAstrologyKannadaText(`2ನೇ ಧನಭಾವ ಮತ್ತು 12ನೇ ವ್ಯಯಾಧಿಪತಿ ${twelfthLordKn}ನ ಅಸಮತೋಲನ.`),
+        triggerEn: `2nd house wealth axis under 12th lord ${twelfthLord} expenditure drain.`,
+        icon: "💸",
+        category: "wealth"
+      },
+      {
+        id: "unluck_lending_trap",
+        titleKn: "ಕರಗಿ ನೀಡಿದ ಕೈಸಾಲ ವಾಪಸ್ ಬಾರದೆ, ಅವರೇ ಶತ್ರುವಾಗಿ ಬದಲಾಗುವುದು",
+        titleEn: "The Compassion Lending Trap: Loss & Severed Bonds",
+        scenarioKn: sanitizeAstrologyKannadaText(
+          `ಸ್ನೇಹಿತರು ಅಥವಾ ಸಂಬಂಧಿಕರು ಕಷ್ಟದಲ್ಲಿದ್ದಾರೆ ಎಂದು ನಂಬಿ ನೀಡಿದ ಹಣ ಮರಳಿ ಬಾರದೆ ಹೋಗುವುದು; ಮರ್ಯಾದೆಯಿಂದ ವಾಪಸ್ ಕೇಳಿದರೆ ಅವರೇ ನಿಮ್ಮ ವಿರುದ್ಧ ಸುಳ್ಳು ಆರೋಪ ಹೊರಿಸಿ, ಮುಖ ತಿರುಗಿಸಿ ಶತ್ರುವಾಗಿ ಬದಲಾಗುವುದು.`
+        ),
+        scenarioEn: `Lending money out of pure goodwill to close associates; not only is the amount never returned, but they turn hostile, avoiding calls and slandering your character.`,
+        triggerKn: sanitizeAstrologyKannadaText(`6ನೇ ಋಣ-ಶತ್ರು ಸ್ಥಾನದ ಅಧಿಪತಿ ${sixthLordKn}ನ ಪರೀಕ್ಷಾ ಪ್ರಭಾವ.`),
+        triggerEn: `6th house debt-adversary ruler ${sixthLord} karmic testing.`,
+        icon: "🤝",
+        category: "relationship"
+      },
+      {
+        id: "unluck_uncredited_sweat",
+        titleKn: "ಹಗಲಿರುಳು ನೀವು ದುಡಿದರೂ, ಪ್ರಶಂಸೆ ಹಾಗೂ ಬಡ್ತಿ ಬೇರೆಯವರ ಪಾಲಾಗುವುದು",
+        titleEn: "Uncredited Toil: Recognition Hijacked by Smooth Talkers",
+        scenarioKn: sanitizeAstrologyKannadaText(
+          `ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ ರಾತ್ರಿ ಹಗಲೆನ್ನದೆ ತಲೆಕೆಡಿಸಿಕೊಂಡು ಜಟಿಲ ಸಮಸ್ಯೆಯನ್ನು ನೀವೇ ಬಗೆಹರಿಸಿದರೂ, ಮ್ಯಾನೇಜ್‌ಮೆಂಟ್ ಮುಂದೆ ಕೇವಲ ಚೆನ್ನಾಗಿ ಮಾತನಾಡುವ ವ್ಯಕ್ತಿ ಪ್ರೆಸೆಂಟೇಶನ್ ನೀಡಿ, ಪ್ರಮೋಷನ್ ಮತ್ತು ಪ್ರಶಸ್ತಿಯನ್ನು ಹೊಡೆದುಕೊಂಡು ಹೋಗುವುದು.`
+        ),
+        scenarioEn: `Exhausting yourself solving the core operational bottlenecks, only for an articulate office colleague to present your deliverables, claim credit, and pocket the promotion.`,
+        triggerKn: sanitizeAstrologyKannadaText(`10ನೇ ಕರ್ಮಾಧಿಪತಿಯ ಮೇಲೆ ಶನಿ-ರಾಹುವಿನ ಛಾಯೆ ಮತ್ತು ಸೂರ್ಯನ ಅಹಂ ಪರೀಕ್ಷೆ.`),
+        triggerEn: `10th house karma lord under Saturn-Rahu shadow and Solar ego trials.`,
+        icon: "🎭",
+        category: "career"
+      }
+    ],
+    unluckyMatrix: {
+      inimicalRashisKn,
+      inimicalRashisEn,
+      unluckyDaysKn: unluckyAttrs.unluckyDays.kn,
+      unluckyDaysEn: unluckyAttrs.unluckyDays.en,
+      unluckyDirectionsKn: unluckyAttrs.inimicalDirKn,
+      unluckyDirectionsEn: unluckyAttrs.inimicalDir,
+      unluckyColorsKn: luckyAttrs.avoid.map(toKannadaColor),
+      unluckyColorsEn: luckyAttrs.avoid,
+      avoidNumbers: unluckyAttrs.avoidNums,
+      strictlyAvoidActivitiesKn: unluckyAttrs.dontsKn,
+      strictlyAvoidActivitiesEn: unluckyAttrs.dontsEn
+    },
+    unluckyRemediesAndShields: {
+      dosAndDontsKn: unluckyAttrs.dontsKn,
+      dosAndDontsEn: unluckyAttrs.dontsEn,
+      protectiveMantraKn: "ಓಂ ನಮೋ ಭಗವತೇ ರುದ್ರಾಯ (ಮಹಾ ಮೃತ್ಯುಂಜಯ ಮಂತ್ರ & ಶಿವ ಪಂಚಾಕ್ಷರಿ ಜಪ)",
+      protectiveMantraEn: "Maha Mrityunjaya Mantra & Shiva Panchakshari Stotra",
+      protectiveKshetraKn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ ಮಾಂದಿ-ಶನಿ ದೋಷ ಶಾಂತಿ ಹಾಗೂ ರುದ್ರಾಭಿಷೇಕ",
+      protectiveKshetraEn: "Maandi-Shani Shanti Sankalpa & Rudrabhisheka at Sacred Gokarna Kshetra",
+      dailyShieldHabitKn: "ಪ್ರತಿದಿನ ಸಂಜೆ ಪಶ್ಚಿಮ ದಿಕ್ಕಿನಲ್ಲಿ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಬೆಳಗಿಸಿ, 'ಓಂ ನಮಃ ಶಿವಾಯ' 11 ಬಾರಿ ಜಪಿಸುವುದು.",
+      dailyShieldHabitEn: "Lighting a sesame oil lamp in the West direction every dusk and chanting 'Om Namah Shivaya' 11 times."
+    }
+  };
+
+  return {
+    gemstoneRingCatalyst: {
+      primaryGemstoneKn: primaryGemstone.kn,
+      primaryGemstoneEn: primaryGemstone.en,
+      yogakarakaGemstoneKn: ykInfo.kn,
+      yogakarakaGemstoneEn: ykInfo.en,
+      bhagyaGemstoneKn: bhagyaInfo.kn,
+      bhagyaGemstoneEn: bhagyaInfo.en,
+      prescribedRingFingerKn: primaryGemstone.fingerKn,
+      prescribedRingFingerEn: primaryGemstone.fingerEn,
+      prescribedMetalKn: primaryGemstone.metalKn,
+      prescribedMetalEn: primaryGemstone.metalEn,
+      activationTimingKn: activationTiming.kn,
+      activationTimingEn: activationTiming.en,
+      catalyticImpactKn: ykInfo.impactKn,
+      catalyticImpactEn: ykInfo.impactEn
+    },
+    marriageBhagya: {
+      hasKalatraBhagyaYoga,
+      bhagyaIntensityKn,
+      bhagyaIntensityEn,
+      detailedExplanationKn,
+      detailedExplanationEn,
+      activationAgeRangeKn: "24 ರಿಂದ 32 ವರ್ಷಗಳ ವಯೋಮಾನದಲ್ಲಿ (ವಿವಾಹದ ನಂತರ)",
+      activationAgeRangeEn: "Ages 24 to 32 (Post-marriage phase)"
+    },
+    daughterBhagya: {
+      hasGrihalakshmiYoga,
+      lakshmiArrivalImpactKn,
+      lakshmiArrivalImpactEn,
+      astrologicalBasisKn,
+      astrologicalBasisEn
+    },
+    nameSoundVibration: {
+      janmaPadaNumber: padaNumber,
+      recommendedStartingSyllablesKn: recKn,
+      recommendedStartingSyllablesEn: recEn,
+      vibrationHarmonyAnalysisKn,
+      vibrationHarmonyAnalysisEn,
+      nameCorrectionImpactKn,
+      nameCorrectionImpactEn
+    },
+    whyFeltUnlucky,
+    whyLuckUnlocksNow,
+    relocationBhagya,
+    streeBhagya,
+    spiritualTempleCatalyst,
+    luckyMatrix,
+    luckAudit,
+    unluckyAudit
+  };
 }
 
 export interface ShadripuAnalysis {
@@ -7446,6 +8485,8 @@ export const generatePanchangaAngaSynthesis = (
   const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
   const currentDiagnosis = generateCurrentLifeDiagnosis(kundli, { ...context, devoteeAge, panchanga: enrichedPanchanga }, prescriptions);
   const instantQAList = generateInstantQAList(kundli, currentDiagnosis, prescriptions, context.devoteeName, devoteeAge, context);
+  const liveGochara = calculateLiveGochara(kundli, context);
+  const destinyCatalysts = generateDestinyCatalystsAndLuckyCharms(kundli, devoteeAge, currentDiagnosis.dashaTiming, liveGochara);
 
   // Build Multi-Paragraph Astrologer Reading in Pure Pristine Kannada with English Digits
   const cls = currentDiagnosis.currentLifeSituation;
@@ -7492,6 +8533,7 @@ export const generatePanchangaAngaSynthesis = (
     panchanga: enrichedPanchanga,
     prescriptions,
     currentDiagnosis,
+    destinyCatalysts,
     tenLifeAspectBullets: currentDiagnosis.tenLifeAspectBullets,
     goodBadAnalysis: currentDiagnosis.goodBadAnalysis,
     instantQAList,
