@@ -225,6 +225,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "🪔 పూజా విధానం & వేద మంత్రాలు",
     ta: "🪔 பூஜை முறை & வேத மந்திரங்கள்"
   },
+  pooja_estimate: {
+    kn: "📜 ಪೂಜಾ ಯೋಜನೆ & ವೆಚ್ಚ ವಿವರ",
+    en: "📜 Pooja Estimate & Samagri Plan",
+    hi: "📜 पूजा योजना एवं व्यय विवरण",
+    te: "📜 పూజా ప్రణాళిక & ఖర్చుల వివరాలు",
+    ta: "📜 பூஜை மதிப்பீடு & செலவு விவரம்"
+  },
   signOut: {
     kn: "ನಿರ್ಗಮಿಸಿ",
     en: "Sign Out",

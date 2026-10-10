@@ -517,8 +517,9 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     .replace(/:\s*\d+\s*[×x*•]?\s*[\.]*/g, "")
     .replace(/[×x*•]\s*[\.]*/g, "")
     .replace(/\s*:\s*(?=[\s,.\-×*•]|$)/g, "")
-    .replace(/^\s*[:,\.\-×*•]+\s*/gm, "")
-    .replace(/\s*[:,\.\-×*•]+\s*$/gm, "");
+    .replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gm, "")
+    .replace(/[\s:,\.\-–—×*•~|]+$/gm, "")
+    .replace(/^[\s:,\.\-–—×*•~|]+$/gm, "");
 
   // 5. Clean whitespace & punctuation spacing
   cleaned = cleaned
@@ -526,6 +527,8 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     .replace(/ \./g, ".")
     .replace(/ ,/g, ",")
     .replace(/\n{3,}/g, "\n\n")
+    .replace(/^[\s:,\.\-–—×*•~|]+/gu, "")
+    .replace(/[\s:,\.\-–—×*•~|]+$/gu, "")
     .trim();
 
   return cleaned;

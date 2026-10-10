@@ -907,7 +907,9 @@ export default function KundliPage(): JSX.Element {
     };
   }, [kundliSession, result, birthDatePicker, birthTimeHm, form, dasha, homePlaceName, locationCore, dailyPrediction, includePriestCalendar]);
 
-  const handleDownloadRemedyPdf = async (langToUse?: string) => {
+  const handleDownloadRemedyPdf = async (langToUse?: string, overridePriestName?: string, overridePriestPhone?: string) => {
+    if (overridePriestName) setPriestNameInput(overridePriestName);
+    if (overridePriestPhone) setPriestPhoneInput(overridePriestPhone);
     const chosenLang = langToUse || remedyPdfLanguage || "kn";
     setRemedyPdfLanguage(chosenLang);
     setIsGeneratingRemedyPdf(true);
@@ -2081,6 +2083,13 @@ export default function KundliPage(): JSX.Element {
                 onDownloadPdf={handleDownloadRemedyPdf}
                 isGeneratingPdf={isGeneratingRemedyPdf}
                 isAiGenerating={isGeneratingRemedyAi}
+                initialPriestId={selectedPriestId}
+                initialPriestName={priestNameInput}
+                initialPriestPhone={priestPhoneInput}
+                onPriestChange={(name, phone) => {
+                  setPriestNameInput(name);
+                  setPriestPhoneInput(phone);
+                }}
               />
             </div>
           )}
@@ -2377,6 +2386,8 @@ export default function KundliPage(): JSX.Element {
           <KundliRemedyPdfTemplate
             diagnosis={effectiveRemedyDiagnosis}
             lang={remedyPdfLanguage}
+            overridePriestName={priestNameInput}
+            overridePriestPhone={priestPhoneInput}
           />
         </div>
       )}

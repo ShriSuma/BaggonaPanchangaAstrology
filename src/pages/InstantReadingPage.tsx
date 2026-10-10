@@ -48,6 +48,132 @@ export function cleanAstrologyText(text: string): string {
   return sanitizeAstrologyKannadaText(text);
 }
 
+export type InstantReadingTabKey =
+  | "dossier"
+  | "current_phase"
+  | "dasha_roadmap"
+  | "career_education"
+  | "marriage_destiny"
+  | "personality"
+  | "destiny_remedies"
+  | "client_qa"
+  | "all";
+
+export interface InstantReadingTabItem {
+  id: InstantReadingTabKey;
+  icon: string;
+  labelKn: string;
+  labelEn: string;
+  descKn: string;
+  descEn: string;
+  badgeKn: string;
+  badgeEn: string;
+}
+
+export const INSTANT_READING_TABS: InstantReadingTabItem[] = [
+  {
+    id: "dossier",
+    icon: "🔮",
+    labelKn: "ಮುಖಾಮುಖಿ ರಹಸ್ಯ",
+    labelEn: "Dossier",
+    descKn: "ದೈವಜ್ಞ ಗೋಪ್ಯ ಮುಖಾಮುಖಿ ರಹಸ್ಯ ದರ್ಶನ (6 ಪ್ರಮುಖ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಖ್ಯಾಂಶಗಳು)",
+    descEn: "Face-to-Face Astrologer's Mind-Reading Dossier (6 Consultation Points)",
+    badgeKn: "6 ಮುಖ್ಯಾಂಶ",
+    badgeEn: "6 Points"
+  },
+  {
+    id: "current_phase",
+    icon: "🚨",
+    labelKn: "ವಾಸ್ತವ ಸ್ಥಿತಿ & ಪರಿಹಾರ",
+    labelEn: "Life Reality",
+    descKn: "ಹಾಲಿ ಜೀವನ ಸ್ಥಿತಿ, ಯೋಚನಾ ಲಹರಿ, ಗ್ರಹಗಳ ಕಾರಣ & ಬಿಕ್ಕಟ್ಟು ಪರಿಹಾರ",
+    descEn: "Current Life Reality, Psychological Mindset & Crisis Resolution Strategy",
+    badgeKn: "ಹಾಲಿ ಸ್ಥಿತಿ",
+    badgeEn: "Current"
+  },
+  {
+    id: "dasha_roadmap",
+    icon: "⚡",
+    labelKn: "ದಶಾ-ಭುಕ್ತಿ ಭವಿಷ್ಯ",
+    labelEn: "Dasha Roadmap",
+    descKn: "ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಎಚ್ಚರಿಕೆ & ಮುಂದಿನ 2 ಭುಕ್ತಿಗಳ ಫಲಿತ ದರ್ಶನ",
+    descEn: "Dasha-Bhukti Sandhi Alert & Next 2 Bhuktis Deep Roadmap",
+    badgeKn: "ಸಂಧಿ & ಫಲಿತ",
+    badgeEn: "Sandhi"
+  },
+  {
+    id: "career_education",
+    icon: "💼",
+    labelKn: "ವೃತ್ತಿ & ಶಿಕ್ಷಣ",
+    labelEn: "Career & Studies",
+    descKn: "ಜಾತಕರು ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ ವೃತ್ತಿ ರಂಗಗಳು & ಶೈಕ್ಷಣಿಕ ಪ್ರತಿಭೆ",
+    descEn: "Career Fields Where Native Will Shine & Academic Aptitudes",
+    badgeKn: "ಉನ್ನತ ರಂಗ",
+    badgeEn: "Top Fields"
+  },
+  {
+    id: "marriage_destiny",
+    icon: "💍",
+    labelKn: "ವಿವಾಹ ಯೋಗ",
+    labelEn: "Marriage Destiny",
+    descKn: "ಜೀವಿತಾವಧಿಯ ವಿವಾಹ ಯೋಗ ನಿರ್ಣಯ & ದಾಂಪತ್ಯ ಮಾರ್ಗದರ್ಶನ",
+    descEn: "Lifetime Marriage Destiny Determination & Relationship Guidance",
+    badgeKn: "ಯೋಗ ನಿರ್ಣಯ",
+    badgeEn: "Destiny"
+  },
+  {
+    id: "personality",
+    icon: "🧘",
+    labelKn: "ವ್ಯಕ್ತಿತ್ವ & ಸತ್ಯಾಂಶ",
+    labelEn: "Personality",
+    descKn: "ಸಮಗ್ರ ವ್ಯಕ್ತಿತ್ವ, ಸಾಮರ್ಥ್ಯಗಳು & 11 ಪ್ರಮುಖ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು",
+    descEn: "Comprehensive Personality, Moral Strengths & 11 Master Revelations",
+    badgeKn: "11 ಸತ್ಯಾಂಶ",
+    badgeEn: "11 Truths"
+  },
+  {
+    id: "destiny_remedies",
+    icon: "🕉️",
+    labelKn: "ಭಾಗ್ಯ & ಯಜ್ಞ ಪರಿಹಾರ",
+    labelEn: "Destiny & Yajna",
+    descKn: "ಪಂಚಾಂಗ ರಕ್ಷಾ ಕವಚ, ಅದೃಷ್ಟ-ದುರದೃಷ್ಟ ನಿರ್ಣಯ & ಪಿತೃ/ದೇವತಾ ಯಜ್ಞ",
+    descEn: "5-Angas Prescriptions, Lucky Catalysts & Yajna/Hawana Hub",
+    badgeKn: "ರಕ್ಷಾ ಕವಚ",
+    badgeEn: "Remedies"
+  },
+  {
+    id: "client_qa",
+    icon: "💬",
+    labelKn: "ಪ್ರಶ್ನೋತ್ತರ & ಧ್ವನಿ",
+    labelEn: "Client Q&A",
+    descKn: "1-ಕ್ಲಿಕ್ ತ್ವರಿತ ಪ್ರಶ್ನೋತ್ತರಗಳು & ಧ್ವನಿ ಸಮಾಲೋಚನೆ",
+    descEn: "1-Click Categorized Questions & Astrologer Voice Q&A",
+    badgeKn: "1-ಕ್ಲಿಕ್ ಉತ್ತರ",
+    badgeEn: "Voice Q&A"
+  },
+  {
+    id: "all",
+    icon: "🌟",
+    labelKn: "ಸಮಗ್ರ ದರ್ಶನ (View All)",
+    labelEn: "View All",
+    descKn: "ಎಲ್ಲಾ 8 ವಿಭಾಗಗಳನ್ನು ಒಂದೇ ಪುಟದಲ್ಲಿ ಅನುಕ್ರಮವಾಗಿ ವೀಕ್ಷಿಸಿ",
+    descEn: "View all 8 sections sequentially in a single comprehensive page",
+    badgeKn: "ಸಂಪೂರ್ಣ",
+    badgeEn: "Full View"
+  }
+];
+
+export const PRIMARY_TAB_KEYS: InstantReadingTabKey[] = [
+  "dossier",
+  "current_phase",
+  "dasha_roadmap",
+  "career_education",
+  "marriage_destiny",
+  "personality",
+  "destiny_remedies",
+  "client_qa"
+];
+
 export default function InstantReadingPage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const setPage = useAppStore((s) => s.setPage);
@@ -129,6 +255,17 @@ export default function InstantReadingPage(): JSX.Element {
   const [personalityTab, setPersonalityTab] = useState<"all" | "strengths" | "challenges" | "integrity">("all");
   const [destinyAuditTab, setDestinyAuditTab] = useState<"all" | "lucky" | "unlucky" | "examples" | "matrix">("all");
   const [selectedBhuktiTab, setSelectedBhuktiTab] = useState<number>(0);
+
+  // Top-Level 8-Tab Navigator State
+  const [activeTab, setActiveTab] = useState<InstantReadingTabKey>("dossier");
+  const tabBarRef = useRef<HTMLDivElement>(null);
+
+  const handleTabChange = (newTab: InstantReadingTabKey) => {
+    setActiveTab(newTab);
+    if (tabBarRef.current) {
+      tabBarRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   // Custom Q&A State
   const [questionInput, setQuestionInput] = useState("");
@@ -720,6 +857,11 @@ STRICT RULES:
     }
   };
 
+  const currentTabIndex = PRIMARY_TAB_KEYS.indexOf(activeTab);
+  const prevTabKey = currentTabIndex > 0 ? PRIMARY_TAB_KEYS[currentTabIndex - 1] : null;
+  const nextTabKey = currentTabIndex >= 0 && currentTabIndex < PRIMARY_TAB_KEYS.length - 1 ? PRIMARY_TAB_KEYS[currentTabIndex + 1] : null;
+  const currentTabInfo = INSTANT_READING_TABS.find((t) => t.id === activeTab);
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl space-y-6 animate-fade-in pb-16">
       {/* TOP NAVIGATION & MODE BAR */}
@@ -834,8 +976,119 @@ STRICT RULES:
         </Card>
       ) : (
         <>
-          {/* 🔮 ದೈವಜ್ಞ ಗೋಪ್ಯ ಮುಖಾಮುಖಿ ರಹಸ್ಯ ದರ್ಶನ (Face-to-Face Astrologer's Mind-Reading Dossier) 🔮 */}
-          {activeTalkingPoints && (
+          {/* ── 8-TAB LUXURY GOLD & WHITE CONTROLLER ── */}
+          <div ref={tabBarRef} className="space-y-3 pt-2">
+            <div className="flex items-center justify-between gap-2 px-1 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/20 text-amber-900 border border-amber-400/50 text-xs font-black">
+                  📑
+                </span>
+                <span className="text-xs font-black text-amber-950 uppercase tracking-wider">
+                  {isKn ? "ಪಂಚಾಂಗ ಫಲಿತ ವಿಭಾಗಗಳು (Panchanga Sections):" : "Instant Reading Sections:"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {activeTab !== "all" ? (
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-[11px] font-black">
+                    {isKn ? `ವಿಭಾಗ ${currentTabIndex + 1} / 8` : `Section ${currentTabIndex + 1} of 8`}
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-neutral-950 text-[11px] font-black">
+                    {isKn ? "ಸಮಗ್ರ ವೀಕ್ಷಣೆ (All)" : "Viewing All"}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleTabChange(activeTab === "all" ? "dossier" : "all")}
+                  className="text-[11px] px-3 py-1 rounded-full font-bold border transition-all cursor-pointer bg-white text-stone-700 border-amber-300 hover:bg-amber-100 hover:border-amber-400 shadow-xs"
+                >
+                  {activeTab === "all" ? (isKn ? "📱 ಟ್ಯಾಬ್ ಮೋಡ್‌ಗೆ ಬದಲಿಸಿ" : "Switch to Tabs") : (isKn ? "🌟 ಸಮಗ್ರ ದರ್ಶನ (All)" : "View All")}
+                </button>
+              </div>
+            </div>
+
+            {/* Horizontal scrollable tab buttons */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none scroll-smooth">
+              {INSTANT_READING_TABS.map((tab) => {
+                const isSelected = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`flex items-center gap-2 whitespace-nowrap rounded-2xl px-3.5 py-2 md:px-4 md:py-2.5 text-xs font-black transition-all cursor-pointer flex-shrink-0 ${
+                      isSelected
+                        ? "bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-stone-950 shadow-md ring-2 ring-amber-400/80 scale-102 border border-amber-600"
+                        : "bg-white text-stone-800 border-2 border-amber-200 hover:bg-amber-50/80 hover:border-amber-400 hover:text-amber-950 shadow-sm"
+                    }`}
+                  >
+                    <span className="text-base">{tab.icon}</span>
+                    <span>{isKn ? tab.labelKn : tab.labelEn}</span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
+                        isSelected
+                          ? "bg-stone-950/20 text-stone-950"
+                          : "bg-amber-100 text-amber-900 border border-amber-300/60"
+                      }`}
+                    >
+                      {isKn ? tab.badgeKn : tab.badgeEn}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Tab Header Card (single tab mode) */}
+          {activeTab !== "all" && currentTabInfo && (
+            <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-100/60 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-stone-900">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-400 text-stone-950 text-2xl shadow-sm border border-amber-300 flex-shrink-0">
+                  {currentTabInfo.icon}
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-900">
+                      {isKn ? `ವಿಭಾಗ ${currentTabIndex + 1} / 8 • ${currentTabInfo.badgeKn}` : `Section ${currentTabIndex + 1} of 8 • ${currentTabInfo.badgeEn}`}
+                    </span>
+                  </div>
+                  <h2 className="text-base md:text-lg font-black text-amber-950 font-serif">
+                    {isKn ? currentTabInfo.labelKn : currentTabInfo.labelEn}
+                  </h2>
+                  <p className="text-xs text-stone-600 font-medium">
+                    {isKn ? currentTabInfo.descKn : currentTabInfo.descEn}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+                {prevTabKey && (
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange(prevTabKey)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-950 text-xs font-bold hover:bg-amber-100 transition-all shadow-xs cursor-pointer"
+                  >
+                    <span>←</span>
+                    <span>{isKn ? "ಹಿಂದಿನದು" : "Prev"}</span>
+                  </button>
+                )}
+                {nextTabKey && (
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange(nextTabKey)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 border border-amber-500 text-stone-950 text-xs font-black hover:scale-105 transition-all shadow-xs cursor-pointer"
+                  >
+                    <span>{isKn ? "ಮುಂದಿನದು" : "Next"}</span>
+                    <span>→</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 🔮 1. ದೈವಜ್ಞ ಗೋಪ್ಯ ಮುಖಾಮುಖಿ ರಹಸ್ಯ ದರ್ಶನ (Face-to-Face Astrologer's Mind-Reading Dossier) 🔮 */}
+          {(activeTab === "all" || activeTab === "dossier") && activeTalkingPoints && (
             <div className="rounded-3xl border-2 border-amber-500/70 bg-gradient-to-br from-amber-50/95 via-yellow-50/60 to-amber-100/50 p-6 md:p-8 shadow-2xl space-y-6 relative overflow-hidden ring-2 ring-amber-400/40">
               {/* Header Bar */}
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-amber-300 pb-5">
@@ -1070,8 +1323,8 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 🚨 0. PRIMARY LIFE FOCUS, CRISIS RESOLUTION OR LIFE PHASE STRATEGY 🚨 */}
-          {currentDiagnosis?.primaryLifeChallenge && (() => {
+          {/* 🚨 2. PRIMARY LIFE FOCUS, CRISIS RESOLUTION OR LIFE PHASE STRATEGY 🚨 */}
+          {(activeTab === "all" || activeTab === "current_phase") && currentDiagnosis?.primaryLifeChallenge && (() => {
             const cls = dynamicCurrentLifeSituation || currentDiagnosis.currentLifeSituation;
             const isAcuteCrisis = cls
               ? (cls.severity === "critical" || cls.severity === "high")
@@ -1369,8 +1622,8 @@ STRICT RULES:
             );
           })()}
 
-          {/* ⚡ 2. DEDICATED SECTION: DASHA-BHUKTI SANDHI ALERT & NEXT 2 BHUKTIS ROADMAP (ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಎಚ್ಚರಿಕೆ & ಮುಂದಿನ 2 ಭುಕ್ತಿಗಳ ಫಲಿತ ದರ್ಶನ) ⚡ */}
-          {currentDiagnosis?.dashaSandhiAndRoadmap && (() => {
+          {/* ⚡ 3. DEDICATED SECTION: DASHA-BHUKTI SANDHI ALERT & NEXT 2 BHUKTIS ROADMAP (ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ಎಚ್ಚರಿಕೆ & ಮುಂದಿನ 2 ಭುಕ್ತಿಗಳ ಫಲಿತ ದರ್ಶನ) ⚡ */}
+          {(activeTab === "all" || activeTab === "dasha_roadmap") && currentDiagnosis?.dashaSandhiAndRoadmap && (() => {
             const dsr = currentDiagnosis.dashaSandhiAndRoadmap;
             const sandhi = dsr.primarySandhiDisplay;
             const activeBhukti = dsr.roadmapList[selectedBhuktiTab] || dsr.currentBhukti;
@@ -1726,8 +1979,8 @@ STRICT RULES:
             );
           })()}
 
-          {/* 🌟 1. DEDICATED SECTION: CAREER FIELDS WHERE NATIVE WILL SHINE & FLOURISH (ಜಾತಕರು ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ & ಗರಿಷ್ಠ ಯಶಸ್ಸು ಕಾಣುವ ವೃತ್ತಿ ರಂಗಗಳು) 🌟 */}
-          {currentDiagnosis?.accurateProfession && (() => {
+          {/* 🌟 4. DEDICATED SECTION: CAREER FIELDS WHERE NATIVE WILL SHINE & FLOURISH (ಜಾತಕರು ಅತ್ಯುನ್ನತವಾಗಿ ಶೈನ್ ಆಗುವ & ಗರಿಷ್ಠ ಯಶಸ್ಸು ಕಾಣುವ ವೃತ್ತಿ ರಂಗಗಳು) 🌟 */}
+          {(activeTab === "all" || activeTab === "career_education") && currentDiagnosis?.accurateProfession && (() => {
             const prof = currentDiagnosis.accurateProfession;
             const fieldsToDisplay = prof.topSuitableFields && prof.topSuitableFields.length > 0
               ? prof.topSuitableFields
@@ -2010,8 +2263,8 @@ STRICT RULES:
             );
           })()}
 
-          {/* 💍 3. DEDICATED SECTION: LIFETIME MARRIAGE DESTINY DETERMINATION (ಜೀವಿತಾವಧಿಯ ವಿವಾಹ ಯೋಗ ನಿರ್ಣಯ: ಜೀವಿತಾವಧಿಯಲ್ಲಿ ವಿವಾಹ ಯೋಗವಿದೆಯೇ?) 💍 */}
-          {currentDiagnosis?.marriageDestiny && (() => {
+          {/* 💍 5. DEDICATED SECTION: LIFETIME MARRIAGE DESTINY DETERMINATION (ಜೀವಿತಾವಧಿಯ ವಿವಾಹ ಯೋಗ ನಿರ್ಣಯ: ಜೀವಿತಾವಧಿಯಲ್ಲಿ ವಿವಾಹ ಯೋಗವಿದೆಯೇ?) 💍 */}
+          {(activeTab === "all" || activeTab === "marriage_destiny") && currentDiagnosis?.marriageDestiny && (() => {
             const md = currentDiagnosis.marriageDestiny;
             const isDelayed = md.verdict === "delayed_marriage";
 
@@ -2169,8 +2422,8 @@ STRICT RULES:
             );
           })()}
 
-          {/* 🧘 2. MASTER SECTION: COMPREHENSIVE PERSONALITY, STRENGTHS & MORAL INTEGRITY (ಸಮಗ್ರ ವ್ಯಕ್ತಿತ್ವ, ಸಾಮರ್ಥ್ಯಗಳು & ನೈತಿಕ ಸದಾಚಾರ ದರ್ಶನ) 🧘 */}
-          {(currentDiagnosis?.goodBadAnalysis || currentDiagnosis?.negativeShades) && (
+          {/* 🧘 6. MASTER SECTION: COMPREHENSIVE PERSONALITY, STRENGTHS & MORAL INTEGRITY (ಸಮಗ್ರ ವ್ಯಕ್ತಿತ್ವ, ಸಾಮರ್ಥ್ಯಗಳು & ನೈತಿಕ ಸದಾಚಾರ ದರ್ಶನ) 🧘 */}
+          {(activeTab === "all" || activeTab === "personality") && (currentDiagnosis?.goodBadAnalysis || currentDiagnosis?.negativeShades) && (
             <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
               {/* MASTER SECTION HEADER */}
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-amber-300 pb-4">
@@ -2688,8 +2941,8 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 🌟 3. 11 MASTER ASTROLOGICAL LIFE REVELATIONS (11 ಪ್ರಮುಖ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
-          {synthesisData?.tenLifeAspectBullets && (
+          {/* 🌟 6.2 11 MASTER ASTROLOGICAL LIFE REVELATIONS (11 ಪ್ರಮುಖ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಜ್ಯೋತಿಷ್ಯ ಸತ್ಯಾಂಶಗಳು) 🌟 */}
+          {(activeTab === "all" || activeTab === "personality") && synthesisData?.tenLifeAspectBullets && (
             <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
                 <div className="flex items-center gap-3">
@@ -2804,8 +3057,9 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 4. ONE-TAP CATEGORIZED QUESTIONS (INSTANT CLIENT Q&A CARDS) */}
-          <div className="rounded-3xl border border-indigo-200 bg-white p-6 md:p-8 shadow-lg space-y-4">
+          {/* 8A. ONE-TAP CATEGORIZED QUESTIONS (INSTANT CLIENT Q&A CARDS) */}
+          {(activeTab === "all" || activeTab === "client_qa") && (
+            <div className="rounded-3xl border border-indigo-200 bg-white p-6 md:p-8 shadow-lg space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-indigo-100 gap-2">
               <div>
                 <span className="text-[10px] font-black uppercase text-indigo-900 tracking-wider block">
@@ -2899,9 +3153,10 @@ STRICT RULES:
               ))}
             </div>
           </div>
+          )}
 
-          {/* 4. 5-ANGAS UNIFIED PRESCRIPTION HUB (RUDRAKSHA, GEMSTONE RING, CAR/CLOTH COLORS) */}
-          {prescriptions && (
+          {/* 7A. 5-ANGAS UNIFIED PRESCRIPTION HUB (RUDRAKSHA, GEMSTONE RING, CAR/CLOTH COLORS) */}
+          {(activeTab === "all" || activeTab === "destiny_remedies") && prescriptions && (
             <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/90 via-white to-amber-50/50 p-6 md:p-8 shadow-xl space-y-6">
               <div className="border-b border-amber-200 pb-3 flex items-center justify-between">
                 <div>
@@ -2987,8 +3242,8 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 4.5 DESTINY CATALYSTS & LUCKY/UNLUCKY AUDIT HUB */}
-          {destinyCatalysts && (
+          {/* 7B. DESTINY CATALYSTS & LUCKY/UNLUCKY AUDIT HUB */}
+          {(activeTab === "all" || activeTab === "destiny_remedies") && destinyCatalysts && (
             <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/95 via-white to-amber-50/60 p-6 md:p-8 shadow-xl space-y-7">
               {/* HEADER WITH BADGE, TITLE, AUDIO & 5-TAB CONTROLLER */}
               <div className="border-b border-amber-200 pb-5 space-y-4">
@@ -3771,8 +4026,8 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 5. YAJNA, HAWANA, SANDHI & PITRU DOSHA PARIHARA HUB - WHITE & GOLD THEME */}
-          {yajnaHawanaPlan && (
+          {/* 7C. YAJNA, HAWANA, SANDHI & PITRU DOSHA PARIHARA HUB - WHITE & GOLD THEME */}
+          {(activeTab === "all" || activeTab === "destiny_remedies") && yajnaHawanaPlan && (
             <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/80 via-white to-amber-50/40 p-6 md:p-8 text-stone-950 shadow-xl space-y-7">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-amber-300 pb-4">
                 <div className="flex items-center gap-3">
@@ -4091,8 +4346,9 @@ STRICT RULES:
             </div>
           )}
 
-          {/* 6. INTERACTIVE VOICE & CUSTOM QUESTION BOX - WHITE & GOLD THEME */}
-          <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-100/70 via-white to-amber-50 p-6 md:p-8 text-stone-950 shadow-xl space-y-5">
+          {/* 8B. INTERACTIVE VOICE & CUSTOM QUESTION BOX - WHITE & GOLD THEME */}
+          {(activeTab === "all" || activeTab === "client_qa") && (
+            <div className="rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-100/70 via-white to-amber-50 p-6 md:p-8 text-stone-950 shadow-xl space-y-5">
             <div>
               <span className="inline-block px-3 py-0.5 rounded-full bg-amber-200 text-amber-950 text-[10px] font-black uppercase tracking-wider mb-1.5 border border-amber-400">
                 🎙️ {isKn ? "ದೈವಜ್ಞ ನೇರ ಪ್ರಶ್ನೋತ್ತರ ಪೆಟ್ಟಿಗೆ" : "Direct Astrologer Q&A"}
@@ -4192,16 +4448,53 @@ STRICT RULES:
               </div>
             )}
           </div>
+          )}
 
-          {/* BOTTOM RETURN TO KUNDLI BAR */}
-          <div className="flex items-center justify-center pt-6">
-            <button
-              onClick={() => setPage("kundli")}
-              className="inline-flex items-center gap-3 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-neutral-950 font-black text-sm md:text-base shadow-xl hover:scale-105 transition-all border-2 border-amber-300 cursor-pointer"
-            >
-              <span>←</span>
-              <span>{isKn ? "ಕುಂಡಲಿಗೆ ಹಿಂತಿರುಗಿ (Back to Kundali)" : "Back to Kundali Chart"}</span>
-            </button>
+          {/* ── TAB BOTTOM NAVIGATION BAR ── */}
+          <div className="rounded-3xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-white to-amber-50 p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
+            <div>
+              {prevTabKey && (
+                <button
+                  type="button"
+                  onClick={() => handleTabChange(prevTabKey)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border-2 border-amber-300 text-amber-950 text-xs font-black hover:bg-amber-100 hover:border-amber-400 transition-all shadow-sm cursor-pointer"
+                >
+                  <span>←</span>
+                  <span>{isKn ? `ಹಿಂದಿನದು: ${INSTANT_READING_TABS.find((t) => t.id === prevTabKey)?.labelKn}` : `Prev: ${INSTANT_READING_TABS.find((t) => t.id === prevTabKey)?.labelEn}`}</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setPage("kundli")}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-neutral-950 font-black text-xs md:text-sm shadow-md hover:scale-105 transition-all border border-amber-400 cursor-pointer"
+              >
+                <span>←</span>
+                <span>{isKn ? "ಕುಂಡಲಿಗೆ ಹಿಂತಿರುಗಿ (Back to Kundali)" : "Back to Kundali Chart"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTabChange(activeTab === "all" ? "dossier" : "all")}
+                className="text-xs px-3.5 py-2 rounded-2xl font-bold border transition-all cursor-pointer bg-white text-stone-700 border-amber-300 hover:bg-amber-100 shadow-xs"
+              >
+                {activeTab === "all" ? (isKn ? "📱 ಟ್ಯಾಬ್ ಮೋಡ್‌ಗೆ ಬದಲಿಸಿ" : "Switch to Tabs") : (isKn ? "🌟 ಸಮಗ್ರ ದರ್ಶನ (All)" : "View All")}
+              </button>
+            </div>
+
+            <div>
+              {nextTabKey && (
+                <button
+                  type="button"
+                  onClick={() => handleTabChange(nextTabKey)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-400 text-stone-950 text-xs font-black hover:scale-105 transition-all shadow-md border border-amber-500 cursor-pointer"
+                >
+                  <span>{isKn ? `ಮುಂದಿನದು: ${INSTANT_READING_TABS.find((t) => t.id === nextTabKey)?.labelKn}` : `Next: ${INSTANT_READING_TABS.find((t) => t.id === nextTabKey)?.labelEn}`}</span>
+                  <span>→</span>
+                </button>
+              )}
+            </div>
           </div>
         </>
       )}

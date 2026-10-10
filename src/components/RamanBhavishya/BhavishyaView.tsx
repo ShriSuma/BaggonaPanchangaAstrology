@@ -2598,19 +2598,29 @@ Return ONLY this JSON format:
       const finalDarkSecret = isChild ? [] : await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
       const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang, 250);
       const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
-
       const rawYogasFallback = (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map((y: any) => ({
         name: localizeYogaName(y.name || "Dasha Yoga", lang),
-        impact: enrichYogaDescription(y.name, asText(y.significance) || result.masterSynthesis.overallTone, lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
+        impact: (asText(y.significance) || result.masterSynthesis.overallTone || "").trim()
       }));
       const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
         ? dataYogas.yogas
         : rawYogasFallback;
-      const finalYogas = (rawYogasArray || []).map((y: any) => ({
-        ...y,
-        name: localizeYogaName(y.name || y.trait || "", lang),
-        impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
-      }));
+      const finalYogas = (rawYogasArray || []).map((y: any) => {
+        const rawImpact = (y.impact || y.significance || "").trim();
+        const enriched = enrichYogaDescription(y.name || y.trait || "", rawImpact, lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName);
+        const cleanImpact = enriched
+          .replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "")
+          .replace(/^[\s:,\.\-–—×*•~|]+/gu, "")
+          .trim();
+        const cleanName = localizeYogaName(y.name || y.trait || "", lang)
+          .replace(/^[\s:,\.\-–—×*•~|]+/gu, "")
+          .trim();
+        return {
+          ...y,
+          name: cleanName,
+          impact: cleanImpact
+        };
+      });
 
       const rawDoshasFallback = (effectiveEngineDoshas.length > 0 ? effectiveEngineDoshas : (result.aiGeneratedNarrative?.doshas || [])).map((d: any) => ({
         name: localizeDoshaName(d.name || "Karmic Challenge", lang),
@@ -2724,7 +2734,7 @@ Return ONLY this JSON format:
       if (
         !premiumDataPayload.summary ||
         premiumDataPayload.summary.length === 0 ||
-        !premiumDataPayload.summary.some(s => (s.impact || "").trim().length >= 50)
+        !premiumDataPayload.summary.some((s: any) => (s.impact || "").trim().length >= 50)
       ) {
         console.warn("[V1 PDF Quality Audit] Saramsha missing or too short. Healing with dynamic mathematical fallback.");
         premiumDataPayload.summary = [{ impact: rawSummaryFallback }];

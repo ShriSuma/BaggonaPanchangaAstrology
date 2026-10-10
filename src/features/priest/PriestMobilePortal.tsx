@@ -1259,10 +1259,13 @@ export const PriestMobilePortal: React.FC = () => {
         ? dataYogas.yogas
         : rawYogasFallback;
 
-      const finalYogas = (rawYogasArray || []).map((y: any) => ({
-        ...y,
-        impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
-      }));
+      const finalYogas = (rawYogasArray || []).map((y: any) => {
+        const enriched = enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName);
+        return {
+          ...y,
+          impact: enriched.replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "").replace(/^[\s:,\.\-–—×*•~|]+/gu, "").trim()
+        };
+      });
 
       const rawDoshasFallback = await Promise.all(
         (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(async d => ({

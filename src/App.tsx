@@ -48,6 +48,7 @@ import KundliDoshasPage from "./pages/KundliDoshasPage";
 import GuruShukraAstodayaGrahanaPage from "./pages/GuruShukraAstodayaGrahanaPage";
 import KundliGurukulaPage from "./pages/KundliGurukulaPage";
 import GuidedPoojaPage from "./pages/GuidedPoojaPage";
+import PoojaEstimatePage from "./pages/PoojaEstimatePage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -193,7 +194,26 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/sankhya")
   );
 
-  const isGuidedPoojaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+  const isPoojaEstimateRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/pooja-estimate") ||
+    window.location.pathname.startsWith("/pooja_estimate") ||
+    window.location.pathname.startsWith("/pooja-cost") ||
+    window.location.pathname.startsWith("/pooja_cost") ||
+    window.location.pathname.startsWith("/pooja-packages") ||
+    window.location.pathname.startsWith("/pooja_packages") ||
+    window.location.pathname.startsWith("/pooja-samagri") ||
+    window.location.pathname.startsWith("/pooja_samagri") ||
+    window.location.search.includes("portal=pooja_estimate") ||
+    window.location.search.includes("portal=pooja-estimate") ||
+    window.location.search.includes("portal=pooja_cost") ||
+    window.location.search.includes("portal=estimate") ||
+    window.location.search.includes("page=pooja_estimate") ||
+    (window.location.search.includes("poojas=") && window.location.search.includes("tier=")) ||
+    window.location.hash.includes("#/pooja-estimate") ||
+    window.location.hash.includes("#pooja-estimate")
+  );
+
+  const isGuidedPoojaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && !isPoojaEstimateRoute && (
     window.location.pathname.startsWith("/guided-pooja") ||
     window.location.pathname.startsWith("/guided_pooja") ||
     window.location.pathname.startsWith("/pooja-vidhi") ||
@@ -403,6 +423,14 @@ export default function App(): JSX.Element {
     );
   }
 
+  if (isPoojaEstimateRoute) {
+    return (
+      <ErrorBoundary>
+        <PoojaEstimatePage />
+      </ErrorBoundary>
+    );
+  }
+
   if (isGuidedPoojaRoute) {
     return (
       <ErrorBoundary>
@@ -492,6 +520,7 @@ export default function App(): JSX.Element {
         {currentPage === "astodaya_grahana" && <GuruShukraAstodayaGrahanaPage />}
         {currentPage === "gurukula" && <KundliGurukulaPage />}
         {currentPage === "guided_pooja" && <GuidedPoojaPage />}
+        {currentPage === "pooja_estimate" && <PoojaEstimatePage />}
       </Layout>
     </ErrorBoundary>
   );

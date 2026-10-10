@@ -490,9 +490,11 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                     <div key={idx} className="p-2.5 bg-white/90 rounded-lg border border-amber-600/30 shadow-xs flex flex-col justify-between">
                       <div>
                         <span className="font-black text-amber-900 text-xs bg-amber-100/80 px-2 py-0.5 rounded inline-block mb-1">
-                          {y.name}
+                          {y.name.replace(/^[\s:,\.\-–—×*•~|]+/gu, "")}
                         </span>
-                        <p className="text-amber-950 text-justify font-serif text-[11px] leading-relaxed line-clamp-4">{y.impact}</p>
+                        <p className="text-amber-950 text-justify font-serif text-[11px] leading-relaxed line-clamp-4">
+                          {(y.impact || "").replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "").replace(/^[\s:,\.\-–—×*•~|]+/gu, "")}
+                        </p>
                       </div>
                     </div>
                   ))}

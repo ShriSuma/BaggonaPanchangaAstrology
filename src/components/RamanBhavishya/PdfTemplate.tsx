@@ -391,12 +391,16 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           <div className="space-y-10">
             {premiumData!.yogas!.map((yoga, idx) => (
               <div key={idx} className="space-y-6">
-                <h3 className="text-2xl font-bold text-amber-900 mb-2 bg-amber-200/60 inline-block px-3 py-1 rounded shadow-sm">{yoga.name}</h3>
-                {(yoga.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                    {paragraph}
-                  </p>
-                ))}
+                <h3 className="text-2xl font-bold text-amber-900 mb-2 bg-amber-200/60 inline-block px-3 py-1 rounded shadow-sm">{yoga.name.replace(/^[\s:,\.\-–—×*•~|]+/gu, "")}</h3>
+                {(yoga.impact || "")
+                  .split('\n')
+                  .map(p => p.replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "").replace(/^[\s:,\.\-–—×*•~|]+/gu, "").trim())
+                  .filter(p => p.length > 0)
+                  .map((paragraph, pIdx) => (
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                      {paragraph}
+                    </p>
+                  ))}
               </div>
             ))}
           </div>

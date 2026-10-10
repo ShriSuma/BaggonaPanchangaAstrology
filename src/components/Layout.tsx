@@ -187,6 +187,14 @@ export default function Layout({ children }: Props): JSX.Element {
             <span>🔮</span>
             <span className="hidden sm:inline">ಪ್ರಶ್ನೋತ್ತರ</span>
           </button>
+          <button
+            onClick={() => setPage("pooja_estimate")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-500/30 text-xs font-bold transition-all shadow-xs"
+            title="ಪೂಜಾ ಯೋಜನೆ & ವೆಚ್ಚ ವಿವರ / Pooja Packages & Estimate"
+          >
+            <span>📜</span>
+            <span className="hidden md:inline">ಪೂಜಾ ಯೋಜನೆ</span>
+          </button>
           {/* Super Admin Control Center Button */}
           {role === "superadmin" && (
             <button
@@ -349,6 +357,7 @@ export default function Layout({ children }: Props): JSX.Element {
                     <TabButton page="aiaastrologer" icon="🤖" label={getNavLabel("aiaastrologer", language)} onClose={() => setIsDrawerOpen(false)} />
                     <TabButton page="seva" icon="🪔" label={getNavLabel("seva", language)} onClose={() => setIsDrawerOpen(false)} />
                     <TabButton page="guided_pooja" icon="🕉️" label={getNavLabel("guided_pooja", language)} onClose={() => setIsDrawerOpen(false)} />
+                    <TabButton page="pooja_estimate" icon="📜" label={getNavLabel("pooja_estimate", language)} onClose={() => setIsDrawerOpen(false)} />
                     <TabButton page="quick_calendar" icon="📅" label={getNavLabel("quick_calendar", language)} onClose={() => setIsDrawerOpen(false)} />
                     <TabButton page="astodaya_grahana" icon="☀️" label={getNavLabel("astodaya_grahana", language)} onClose={() => setIsDrawerOpen(false)} />
                     <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>

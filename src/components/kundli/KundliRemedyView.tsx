@@ -2,13 +2,23 @@ import React, { useState, useEffect } from "react";
 import Card from "../ui/Card";
 import type { KundliRemedyDiagnosis, SupportedLanguage } from "../../features/remedies/kundliRemedyEngine";
 import { REMEDY_AI_FALLBACK_MESSAGES } from "../../features/remedies/kundliRemedyAiEngine";
+import {
+  getAllPriests,
+  saveOrUpdatePriestProfile,
+  type PriestProfile
+} from "../../features/seva/sevaPriestDirectory";
+import type { L5, SevaLang } from "../../features/seva/sevaLocale";
 
 export type KundliRemedyViewProps = {
   diagnosis: KundliRemedyDiagnosis;
   lang: string;
-  onDownloadPdf: (selectedLang: string) => void;
+  onDownloadPdf: (selectedLang: string, priestName?: string, priestPhone?: string) => void;
   isGeneratingPdf?: boolean;
   isAiGenerating?: boolean;
+  initialPriestId?: string;
+  initialPriestName?: string;
+  initialPriestPhone?: string;
+  onPriestChange?: (priestName: string, priestPhone: string) => void;
 };
 
 export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
@@ -16,13 +26,84 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
   lang,
   onDownloadPdf,
   isGeneratingPdf = false,
-  isAiGenerating = false
+  isAiGenerating = false,
+  initialPriestId,
+  initialPriestName,
+  initialPriestPhone,
+  onPriestChange
 }) => {
   const [selectedLang, setSelectedLang] = useState<SupportedLanguage>((lang || "kn").slice(0, 2) as SupportedLanguage);
   const [activeStep, setActiveStep] = useState<number>(1);
   const [timerSeconds, setTimerSeconds] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
   const [activeStotraId, setActiveStotraId] = useState<string>(diagnosis.personalizedStotras[0]?.id || "chandrashekhara_ashtakam");
+
+  // Priest Attribution & Firebase DB Selection State
+  const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
+  const [selectedPriestId, setSelectedPriestId] = useState<string>(initialPriestId || "shreeram-pandit");
+  const [priestNameInput, setPriestNameInput] = useState<string>(() => {
+    if (initialPriestName) return initialPriestName;
+    const p = getAllPriests().find(pr => pr.id === (initialPriestId || "shreeram-pandit"));
+    return p?.name.kn || "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+  });
+  const [priestPhoneInput, setPriestPhoneInput] = useState<string>(() => {
+    if (initialPriestPhone) return initialPriestPhone;
+    const p = getAllPriests().find(pr => pr.id === (initialPriestId || "shreeram-pandit"));
+    return p?.phone || "9972339362";
+  });
+  const [isSavingPriest, setIsSavingPriest] = useState(false);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState("");
+
+  const handlePriestSelect = (id: string) => {
+    setSelectedPriestId(id);
+    if (id === "new_priest") {
+      setPriestNameInput("");
+      setPriestPhoneInput("");
+      onPriestChange?.("", "");
+    } else {
+      const p = priestsList.find(pr => pr.id === id);
+      if (p) {
+        const langKey = ((selectedLang as unknown) as SevaLang) || "kn";
+        const nameToUse = (p.name as Record<string, string>)[langKey] || p.name.kn || p.name.en || "";
+        const phoneToUse = p.phone || "";
+        setPriestNameInput(nameToUse);
+        setPriestPhoneInput(phoneToUse);
+        onPriestChange?.(nameToUse, phoneToUse);
+      }
+    }
+  };
+
+  const handleSavePriestToDb = async () => {
+    const cleanName = priestNameInput.trim();
+    const cleanPhone = priestPhoneInput.trim();
+    if (!cleanName && !cleanPhone) return;
+
+    setIsSavingPriest(true);
+    try {
+      const res = await saveOrUpdatePriestProfile({
+        id: selectedPriestId === "new_priest" ? undefined : selectedPriestId,
+        name: cleanName,
+        phone: cleanPhone,
+        lang: selectedLang
+      });
+      const updatedList = getAllPriests();
+      setPriestsList(updatedList);
+      if (res.profile?.id) {
+        setSelectedPriestId(res.profile.id);
+      }
+      setSaveSuccessMsg(
+        selectedLang === "kn"
+          ? "✓ ಪುರೋಹಿತರ ವಿವರಗಳು Firebase ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿದಿವೆ!"
+          : "✓ Priest details saved into Firebase database successfully!"
+      );
+      setTimeout(() => setSaveSuccessMsg(""), 4000);
+      onPriestChange?.(cleanName, cleanPhone);
+    } catch (err) {
+      console.warn("Failed to persist priest details:", err);
+    } finally {
+      setIsSavingPriest(false);
+    }
+  };
 
   const isKn = selectedLang === "kn";
 
@@ -149,7 +230,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
             {/* 1-Click PDF Download Button */}
             <button
               type="button"
-              onClick={() => onDownloadPdf(selectedLang)}
+              onClick={() => onDownloadPdf(selectedLang, priestNameInput, priestPhoneInput)}
               disabled={isGeneratingPdf}
               className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 px-5 py-2.5 text-xs sm:text-sm font-black text-amber-950 shadow-lg hover:from-amber-300 hover:to-amber-400 active:scale-95 transition disabled:opacity-60 cursor-pointer"
             >
@@ -888,14 +969,123 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
           </div>
         </div>
 
+        {/* Priest Contact Override & Firebase Persistence Control */}
+        <div className="rounded-2xl bg-gradient-to-r from-amber-950/70 via-amber-900/60 to-amber-950/70 border-2 border-amber-500/50 p-4 sm:p-5 shadow-lg space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/30 pb-2.5">
+            <div className="flex items-center gap-2 text-amber-200 text-sm font-black">
+              <span className="text-xl">📿</span>
+              <span>
+                {isKn
+                  ? "ದೈವಿಕ ಪರಿಹಾರ ಮಾರ್ಗದರ್ಶಕ ಪುರೋಹಿತರ ಆಯ್ಕೆ (Priest Selection)"
+                  : "Divine Remedies Priest Attribution & Override"}
+              </span>
+            </div>
+            <span className="text-[10px] text-amber-300 bg-amber-900/80 px-2.5 py-1 rounded-full border border-amber-500/40 font-bold self-start sm:self-auto">
+              🔥 Firebase Cloud Synced
+            </span>
+          </div>
+
+          <p className="text-xs text-amber-100/90 leading-relaxed">
+            {isKn
+              ? "ದೈವಿಕ ಪರಿಹಾರಗಳಿಗಾಗಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬದಲು ಇತರ ಪುರೋಹಿತರನ್ನು ಆಯ್ಕೆ ಮಾಡಿ ಅಥವಾ ಹೊಸ ಪುರೋಹಿತರನ್ನು ಸೇರಿಸಿ. ಉಳಿಸಿದಾಗ ವಿವರಗಳು ನೇರವಾಗಿ Firebase ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಸೇರ್ಪಡೆಗೊಳ್ಳುತ್ತವೆ ಮತ್ತು ಭವಿಷ್ಯದಲ್ಲಿ ಲಭ್ಯವಿರುತ್ತವೆ:"
+              : "Select a priest from the database or add a new priest with phone number. Any new priest or edits will persist directly into Firebase database for future access:"}
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Dropdown */}
+            <div>
+              <label className="block text-[11px] font-bold text-amber-200 mb-1">
+                {isKn ? "ಪುರೋಹಿತರ ಆಯ್ಕೆ (Select Priest)" : "Select Priest from Database"}
+              </label>
+              <select
+                id="remedy-priest-select"
+                data-testid="remedy-priest-select"
+                value={selectedPriestId}
+                onChange={(e) => handlePriestSelect(e.target.value)}
+                className="w-full rounded-xl bg-slate-900 border border-amber-500/50 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              >
+                {priestsList.map((p) => {
+                  const langKey = ((selectedLang as unknown) as SevaLang) || "kn";
+                  const pName = (p.name as Record<string, string>)[langKey] || p.name.kn || p.name.en;
+                  const pPhone = p.phone ? ` (${p.phone})` : "";
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {pName}{pPhone}
+                    </option>
+                  );
+                })}
+                <option value="new_priest">
+                  ➕ {isKn ? "ಹೊಸ ಪುರೋಹಿತರನ್ನು ಸೇರಿಸಿ (+ Add New Priest)" : "+ Add New Priest"}
+                </option>
+              </select>
+            </div>
+
+            {/* Name Input */}
+            <div>
+              <label className="block text-[11px] font-bold text-amber-200 mb-1">
+                {isKn ? "ಪುರೋಹಿತರ ಹೆಸರು (Priest Name)" : "Priest Name"}
+              </label>
+              <input
+                id="remedy-priest-name-input"
+                data-testid="remedy-priest-name-input"
+                type="text"
+                value={priestNameInput}
+                onChange={(e) => {
+                  setPriestNameInput(e.target.value);
+                  onPriestChange?.(e.target.value, priestPhoneInput);
+                }}
+                placeholder={isKn ? "ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : "e.g. Shreeram Pandit"}
+                className="w-full rounded-xl bg-slate-900/90 border border-amber-500/50 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+            </div>
+
+            {/* Phone Input */}
+            <div>
+              <label className="block text-[11px] font-bold text-amber-200 mb-1">
+                {isKn ? "ಮೊಬೈಲ್ / WhatsApp ಸಂಖ್ಯೆ" : "Mobile / WhatsApp Number"}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="remedy-priest-phone-input"
+                  data-testid="remedy-priest-phone-input"
+                  type="text"
+                  value={priestPhoneInput}
+                  onChange={(e) => {
+                    setPriestPhoneInput(e.target.value);
+                    onPriestChange?.(priestNameInput, e.target.value);
+                  }}
+                  placeholder="9972339362"
+                  className="w-full rounded-xl bg-slate-900/90 border border-amber-500/50 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+                <button
+                  type="button"
+                  id="save-priest-to-firebase-btn"
+                  data-testid="save-priest-to-firebase-btn"
+                  onClick={handleSavePriestToDb}
+                  disabled={isSavingPriest}
+                  className="shrink-0 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
+                >
+                  {isSavingPriest ? "⏳..." : isKn ? "💾 ಉಳಿಸಿ" : "💾 Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {saveSuccessMsg && (
+            <div className="p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-400 text-emerald-300 text-xs font-bold text-center animate-fade-in shadow-md">
+              {saveSuccessMsg}
+            </div>
+          )}
+        </div>
+
         {/* Chief Priest Blessing Box */}
         <div className="rounded-xl bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 p-4 text-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 border border-amber-400">
           <div className="space-y-1">
             <div className="text-xs font-black text-amber-200">
-              🙏 {chiefPriestBlessing.priestName[selectedLang] || chiefPriestBlessing.priestName.kn}
+              🙏 {priestNameInput || chiefPriestBlessing.priestName[selectedLang] || chiefPriestBlessing.priestName.kn}
             </div>
             <div className="text-[10px] text-amber-100/90">
-              {chiefPriestBlessing.priestTitle[selectedLang] || chiefPriestBlessing.priestTitle.kn} · {chiefPriestBlessing.phone}
+              {chiefPriestBlessing.priestTitle[selectedLang] || chiefPriestBlessing.priestTitle.kn} · {priestPhoneInput || chiefPriestBlessing.phone}
             </div>
             <p className="text-xs text-amber-100 font-serif italic pt-1 leading-relaxed">
               "{chiefPriestBlessing.ashirvadaMeaning[selectedLang] || chiefPriestBlessing.ashirvadaMeaning.kn}"

@@ -33,13 +33,53 @@ export function hasTwoSubstantialParagraphs(text: string | undefined, minCharsPe
 }
 
 /**
+ * Strips leading dots, commas, colons, bullets, and stray non-word characters.
+ */
+export function cleanPunctuationArtifacts(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "")
+    .replace(/^[\s:,\.\-–—×*•~|]+/gu, "")
+    .trim();
+}
+
+/**
  * Formats exactly two paragraphs separated by \n\n.
- * If a prior short text exists, it is merged into Paragraph 1 (what it is), ensuring the 2-paragraph contract is never broken.
+ * If a prior short text exists, it is merged into Paragraph 1 ONLY IF it is authentic,
+ * substantial (>= 25 chars), and does NOT contain broken punctuation residue (e.g. ".. ,").
  */
 function formatTwoParagraphs(p1: string, p2: string, cleanImpact?: string): string {
-  const shortText = (cleanImpact || "").replace(/[\r\n]+/g, " ").trim();
-  const para1 = shortText && !p1.includes(shortText) ? `${shortText} ${p1}` : p1;
-  return `${para1}\n\n${p2}`;
+  const p1Clean = cleanPunctuationArtifacts(p1);
+  const p2Clean = cleanPunctuationArtifacts(p2);
+
+  const rawShort = cleanPunctuationArtifacts((cleanImpact || "").replace(/[\r\n]+/g, " "));
+
+  // Detect script requirements:
+  const isKnScript = /[\u0C80-\u0CFF]/.test(p1Clean);
+  const isHiScript = /[\u0900-\u097F]/.test(p1Clean);
+  const isTeScript = /[\u0C00-\u0C7F]/.test(p1Clean);
+  const isTaScript = /[\u0B80-\u0BFF]/.test(p1Clean);
+
+  let isValidShortText = false;
+  if (rawShort.length >= 25 && !p1Clean.includes(rawShort)) {
+    if (isKnScript) {
+      isValidShortText = /[\u0C80-\u0CFF]{4,}/.test(rawShort) && !/^[.,\s\-–—:]+/.test(rawShort);
+    } else if (isHiScript) {
+      isValidShortText = /[\u0900-\u097F]{4,}/.test(rawShort) && !/^[.,\s\-–—:]+/.test(rawShort);
+    } else if (isTeScript) {
+      isValidShortText = /[\u0C00-\u0C7F]{4,}/.test(rawShort) && !/^[.,\s\-–—:]+/.test(rawShort);
+    } else if (isTaScript) {
+      isValidShortText = /[\u0B80-\u0BFF]{4,}/.test(rawShort) && !/^[.,\s\-–—:]+/.test(rawShort);
+    } else {
+      isValidShortText = /[a-zA-Z]{3,}/.test(rawShort);
+    }
+  }
+
+  const para1 = isValidShortText
+    ? `${rawShort}${/[.!?|।॥]$/.test(rawShort) ? " " : ". "}${p1Clean}`
+    : p1Clean;
+
+  return `${cleanPunctuationArtifacts(para1)}\n\n${p2Clean}`;
 }
 
 /**
@@ -57,13 +97,14 @@ export function enrichYogaDescription(
   dashaName: string = "Dasha",
   bhuktiName: string = "Bhukti"
 ): string {
-  const cleanImpact = (impact || "").trim();
+  const cleanImpact = cleanPunctuationArtifacts(impact || "");
   const baseLang = (lang || "en").split("-")[0];
   const lowerName = (name || "").toLowerCase();
 
   // If text already has 2 generous paragraphs with at least 180 chars each, preserve it
   if (hasTwoSubstantialParagraphs(cleanImpact, 180)) {
-    return baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
+    const preserved = baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
+    return cleanPunctuationArtifacts(preserved);
   }
 
   // 1. GAJAKESARI YOGA

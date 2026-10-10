@@ -664,6 +664,16 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       kn: "೫೦ ವರ್ಷಗಳ ಅನುಭವಿ ಪುರೋಹಿತರ ನೇರ ಧ್ವನಿ ಮಾರ್ಗದರ್ಶನ, ಆಚಮನ, ಪ್ರಾಣಾಯಾಮ, ಸಂಧ್ಯಾವಂದನ, ೧೬ ಉಪಚಾರ ದೇವತಾ ಪೂಜೆ ಮತ್ತು ಮಂತ್ರ ಜಪ.",
       en: "Real-time authentic priest voice-guided Vedic rituals: Sandhyavandana, Morning Deva Pooja, Evening Arathi, Ganesha & Shiva Pooja with Japa."
     }
+  },
+  pooja_estimate: {
+    name: { kn: "ಶಾಸ್ತ್ರೋಕ್ತ ಪೂಜಾ ಯೋಜನೆ & ವೆಚ್ಚ ವಿವರ (Pooja Estimate)", en: "Pooja Estimate, Packages & Samagri Plan", hi: "पूजा योजना एवं व्यय विवरण", te: "పూజా ప్రణాళిక & ఖర్చుల వివరాలు", ta: "பூஜை மதிப்பீடு & செலவு விவரம்" },
+    category: "seva",
+    icon: "📜",
+    keywords: ["pooja estimate", "pooja packages", "narayana bali", "pretoddhara", "tripindi", "homa dravya", "samagri list", "priest food", "ಪೂಜಾ ಯೋಜನೆ", "ವೆಚ್ಚ ವಿವರ", "ಸಾಮಗ್ರಿ ಪಟ್ಟಿ", "ನಾರಾಯಣ ಬಲಿ", "ಪ್ರೇತೋದ್ಧಾರ", "ಹೋಮ ವೆಚ್ಚ", "ಬ್ರಾಹ್ಮಣ ಭೋಜನ"],
+    description: {
+      kn: "ನಾರಾಯಣ ಬಲಿ, ಪ್ರೇತೋದ್ಧಾರ, ತ್ರಿಪಿಂಡಿ, ಹೋಮಗಳ ಸಾಮಗ್ರಿ ಪಟ್ಟಿ, ಋತ್ವಿಜರ ಸಂಖ್ಯೆ, ಹೋಮ ದ್ರವ್ಯ, ಭೋಜನ ಹಾಗೂ ಪಾರದರ್ಶಕ ಶಾಸ್ತ್ರೋಕ್ತ ವೆಚ್ಚ ವಿವರ.",
+      en: "Complete Vedic ritual packages (Low, Medium, High tiers), comprehensive samagri lists, priest requirements, homa havis, priest meals, and transparent cost breakdown in Kannada."
+    }
   }
 };
 

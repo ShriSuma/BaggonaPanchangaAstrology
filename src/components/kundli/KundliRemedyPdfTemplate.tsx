@@ -4,6 +4,8 @@ import type { KundliRemedyDiagnosis, SupportedLanguage } from "../../features/re
 export type KundliRemedyPdfTemplateProps = {
   diagnosis: KundliRemedyDiagnosis;
   lang?: string;
+  overridePriestName?: string;
+  overridePriestPhone?: string;
 };
 
 // UI Localization Dictionary for PDF (5 Languages)
@@ -300,7 +302,9 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
 
 export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = ({
   diagnosis,
-  lang = "kn"
+  lang = "kn",
+  overridePriestName,
+  overridePriestPhone
 }) => {
   const code = (lang || "kn").slice(0, 2) as SupportedLanguage;
   const isKn = code === "kn";
@@ -1438,10 +1442,10 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             >
               <div>
                 <div style={{ fontSize: "12.5px", fontWeight: 900, color: "#78350F" }}>
-                  {chiefPriestBlessing.priestName[code] || chiefPriestBlessing.priestName.kn}
+                  {overridePriestName || chiefPriestBlessing.priestName[code] || chiefPriestBlessing.priestName.kn}
                 </div>
                 <div style={{ fontSize: "10.5px", color: "#92400E", fontWeight: 700 }}>
-                  {chiefPriestBlessing.priestTitle[code] || chiefPriestBlessing.priestTitle.kn} · {i18n.priestContact} {chiefPriestBlessing.phone}
+                  {chiefPriestBlessing.priestTitle[code] || chiefPriestBlessing.priestTitle.kn} · {i18n.priestContact} {overridePriestPhone || chiefPriestBlessing.phone}
                 </div>
                 <div style={{ fontSize: "11px", color: "#991B1B", fontWeight: 800, marginTop: "2px", lineHeight: 1.4 }}>
                   {chiefPriestBlessing.sanskritAshirvada}
