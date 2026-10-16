@@ -49,6 +49,7 @@ import GuruShukraAstodayaGrahanaPage from "./pages/GuruShukraAstodayaGrahanaPage
 import KundliGurukulaPage from "./pages/KundliGurukulaPage";
 import GuidedPoojaPage from "./pages/GuidedPoojaPage";
 import PoojaEstimatePage from "./pages/PoojaEstimatePage";
+import DevoteePackageDownloadPage from "./pages/DevoteePackageDownloadPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -231,6 +232,25 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#guided-pooja")
   );
 
+  const isPackageDownloadRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/package-download") ||
+    window.location.pathname.startsWith("/package_download") ||
+    window.location.pathname.startsWith("/devotee-package") ||
+    window.location.pathname.startsWith("/devotee_package") ||
+    window.location.pathname.startsWith("/download-package") ||
+    window.location.pathname.startsWith("/complete-package") ||
+    window.location.pathname.startsWith("/download-hub") ||
+    window.location.search.includes("portal=package_download") ||
+    window.location.search.includes("portal=package") ||
+    window.location.search.includes("portal=devotee_package") ||
+    window.location.search.includes("portal=download") ||
+    window.location.search.includes("page=package_download") ||
+    window.location.search.includes("page=devotee_package") ||
+    window.location.hash.includes("#/package-download") ||
+    window.location.hash.includes("#/devotee-package") ||
+    window.location.hash.includes("#package-download")
+  );
+
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -333,7 +353,8 @@ export default function App(): JSX.Element {
             isAstodayaGrahanaRoute ||
             isAstrologyQARoute ||
             isPriestPortalRoute ||
-            isGuidedPoojaRoute
+            isGuidedPoojaRoute ||
+            isPackageDownloadRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
             setConsentResolved(true);
@@ -449,6 +470,16 @@ export default function App(): JSX.Element {
     );
   }
 
+  if (isPackageDownloadRoute) {
+    return (
+      <ErrorBoundary>
+        <Layout>
+          <DevoteePackageDownloadPage />
+        </Layout>
+      </ErrorBoundary>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-300">
@@ -521,6 +552,7 @@ export default function App(): JSX.Element {
         {currentPage === "gurukula" && <KundliGurukulaPage />}
         {currentPage === "guided_pooja" && <GuidedPoojaPage />}
         {currentPage === "pooja_estimate" && <PoojaEstimatePage />}
+        {currentPage === "package_download" && <DevoteePackageDownloadPage />}
       </Layout>
     </ErrorBoundary>
   );

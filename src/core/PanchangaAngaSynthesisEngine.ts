@@ -291,6 +291,27 @@ export interface AstrologicalPrescriptions {
     panchangaSynergyHi?: string;
     panchangaSynergyTe?: string;
     panchangaSynergyTa?: string;
+    // Nakshatra-aligned Rudraksha
+    nakshatraNameKn?: string;
+    nakshatraNameEn?: string;
+    nakshatraNameHi?: string;
+    nakshatraNameTe?: string;
+    nakshatraNameTa?: string;
+    nakshatraLordKn?: string;
+    nakshatraLordEn?: string;
+    nakshatraMukhi?: number;
+    nakshatraRudrakshaKn?: string;
+    nakshatraRudrakshaEn?: string;
+    nakshatraRudrakshaHi?: string;
+    nakshatraRudrakshaTe?: string;
+    nakshatraRudrakshaTa?: string;
+    nakshatraDeityKn?: string;
+    nakshatraDeityEn?: string;
+    nakshatraWearingMethodKn?: string;
+    nakshatraWearingMethodEn?: string;
+    nakshatraWearingMethodHi?: string;
+    nakshatraWearingMethodTe?: string;
+    nakshatraWearingMethodTa?: string;
   };
   gemstoneRing: {
     primaryGemstoneKn: string;
@@ -306,6 +327,9 @@ export interface AstrologicalPrescriptions {
     caratWeightTa?: string;
     metalKn: string;
     metalEn: string;
+    metalHi?: string;
+    metalTe?: string;
+    metalTa?: string;
     fingerKn: string;
     fingerEn: string;
     fingerHi?: string;
@@ -328,6 +352,18 @@ export interface AstrologicalPrescriptions {
     bhagyaGemstoneEn?: string;
     lifeCatalystImpactKn?: string;
     lifeCatalystImpactEn?: string;
+    // Havala (Pravala / Red Coral) and Tara Bala Consecration
+    isHavalaRecommended?: boolean;
+    havalaPrescriptionKn?: string;
+    havalaPrescriptionEn?: string;
+    havalaPrescriptionHi?: string;
+    havalaPrescriptionTe?: string;
+    havalaPrescriptionTa?: string;
+    consecrationTarasKn?: string;
+    consecrationTarasEn?: string;
+    consecrationTarasHi?: string;
+    consecrationTarasTe?: string;
+    consecrationTarasTa?: string;
   };
   luckyAttributes: {
     carColors: string[];
@@ -1043,6 +1079,45 @@ export const LAGNA_UNLUCKY_ATTRIBUTES_MAP: Record<number, {
   }
 };
 
+
+const NAKSHATRA_NAMES_5L: Record<string, { kn: string; en: string; hi: string; te: string; ta: string }> = {
+  Ashwini: { kn: "ಅಶ್ವಿನಿ", en: "Ashwini", hi: "अश्विनी", te: "అశ్విని", ta: "அஸ்வினி" },
+  Bharani: { kn: "ಭರಣಿ", en: "Bharani", hi: "भरणी", te: "భరణి", ta: "பரணி" },
+  Krittika: { kn: "ಕೃತ್ತಿಕಾ", en: "Krittika", hi: "कृत्तिका", te: "కృత్తిక", ta: "கார்த்திகை" },
+  Rohini: { kn: "ರೋಹಿಣಿ", en: "Rohini", hi: "रोहिणी", te: "రోహిణి", ta: "ரோகிணி" },
+  Mrigashira: { kn: "ಮೃಗಶಿರಾ", en: "Mrigashira", hi: "मृगशिरा", te: "మృగశిర", ta: "மிருகசீரிஷம்" },
+  Ardra: { kn: "ಆರ್ದ್ರಾ", en: "Ardra", hi: "आर्द्रा", te: "ఆరుద్ర", ta: "திருவாதிரை" },
+  Punarvasu: { kn: "ಪುನರ್ವಸು", en: "Punarvasu", hi: "पुनर्वसु", te: "పునర్వసు", ta: "புனர்பூசம்" },
+  Pushya: { kn: "ತಿಷ್ಯ", en: "Pushya", hi: "पुष्य", te: "పుష్యమి", ta: "பூசம்" },
+  Ashlesha: { kn: "ಆಶ್ಲೇಷಾ", en: "Ashlesha", hi: "आश्लेषा", te: "ఆశ్లేష", ta: "ஆயில்யம்" },
+  Magha: { kn: "ಮಘೆ", en: "Magha", hi: "मघा", te: "మఖ", ta: "மகம்" },
+  "Purva Phalguni": { kn: "ಹುಬ್ಬೆ", en: "Purva Phalguni", hi: "पूर्वाफाल्गुनी", te: "పూర్వఫల్గుణి", ta: "பூரம்" },
+  "Uttara Phalguni": { kn: "ಉತ್ತರ", en: "Uttara Phalguni", hi: "उत्तराफाल्गुनी", te: "ఉత్తరఫల్గుణి", ta: "உத்திரம்" },
+  Hasta: { kn: "ಹಸ್ತಾ", en: "Hasta", hi: "हस्त", te: "హస్త", ta: "ஹஸ்தம்" },
+  Chitra: { kn: "ಚಿತ್ರಾ", en: "Chitra", hi: "चित्रा", te: "చిత్త", ta: "சித்திரை" },
+  Swati: { kn: "ಸ್ವಾತಿ", en: "Swati", hi: "स्वाति", te: "స్వాతి", ta: "சுவாதி" },
+  Vishakha: { kn: "ವಿಶಾಖಾ", en: "Vishakha", hi: "विशाखा", te: "విశాఖ", ta: "விசாகம்" },
+  Anuradha: { kn: "ಅನುರಾಧಾ", en: "Anuradha", hi: "अनुराधा", te: "అనూరాధ", ta: "அனுஷம்" },
+  Jyeshtha: { kn: "ಜ್ಯೇಷ್ಠಾ", en: "Jyeshtha", hi: "ज्येष्ठा", te: "జ్యేష్ఠ", ta: "கேட்டை" },
+  Mula: { kn: "ಮೂಲಾ", en: "Mula", hi: "मूल", te: "మూల", ta: "மூலம்" },
+  "Purva Ashadha": { kn: "ಪೂರ್ವಾಷಾಢಾ", en: "Purva Ashadha", hi: "पूर्वाषाढ़ा", te: "పూర్వాషాఢ", ta: "பூராடம்" },
+  "Uttara Ashadha": { kn: "ಉತ್ತರಾಷಾಢಾ", en: "Uttara Ashadha", hi: "उत्तराषाढ़ा", te: "ఉత్తరాషాఢ", ta: "உத்திராடம்" },
+  Shravana: { kn: "ಶ್ರವಣ", en: "Shravana", hi: "श्रवण", te: "శ్రవణం", ta: "திருவோணம்" },
+  Dhanishta: { kn: "ಧನಿಷ್ಠಾ", en: "Dhanishta", hi: "धनिष्ठा", te: "ధనిష్ఠ", ta: "அவிட்டம்" },
+  Shatabhisha: { kn: "ಶತಭಿಷಾ", en: "Shatabhisha", hi: "शतभिषा", te: "శతభిషం", ta: "சதயம்" },
+  "Purva Bhadrapada": { kn: "ಪೂರ್ವಾಭಾದ್ರ", en: "Purva Bhadrapada", hi: "पूर्वाभाद्रपद", te: "పూర్వాభాద్ర", ta: "பூரட்டாதி" },
+  "Uttara Bhadrapada": { kn: "ಉತ್ತರಾಭಾದ್ರ", en: "Uttara Bhadrapada", hi: "उत्तराभाद्रपद", te: "ఉత్తరాభాద్ర", ta: "உத்திரட்டாதி" },
+  Revati: { kn: "ರೇವತಿ", en: "Revati", hi: "रेवती", te: "రేవతి", ta: "ரேவதி" }
+};
+
+const ORDERED_NAKSHATRAS_27 = [
+  "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
+  "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni",
+  "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
+  "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha",
+  "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"
+];
+
 export const generateAstrologicalPrescriptions = (
   kundli: KundliOutput,
   yogaRule?: YogaRule,
@@ -1162,18 +1237,18 @@ export const generateAstrologicalPrescriptions = (
   // 2. Gemstone Ring Selection (ಉಂಗುರ / ರತ್ನ - 5 Languages)
   const gemstoneMap: Record<PlanetName, {
     kn: string; en: string; hi: string; te: string; ta: string; sanskrit: string;
-    metalKn: string; metalEn: string;
+    metalKn: string; metalEn: string; metalHi: string; metalTe: string; metalTa: string;
     fingerKn: string; fingerEn: string; fingerHi: string; fingerTe: string; fingerTa: string;
   }> = {
-    [PlanetName.Sun]: { kn: "ಮಾಣಿಕ್ಯ", en: "Ruby", hi: "माणिक्य (रूबी)", te: "మాణిక్యం", ta: "மாணிக்கம்", sanskrit: "Manikya", metalKn: "ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ಶುದ್ಧ ತಾಮ್ರ", metalEn: "Gold or Copper", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
-    [PlanetName.Moon]: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು", en: "Natural Pearl", hi: "सच्चा मोती", te: "సహజ ముత్యం", ta: "இயற்கை முத்து", sanskrit: "Mukta", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", metalEn: "Pure Silver", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
-    [PlanetName.Mars]: { kn: "ಹವಳ", en: "Red Coral", hi: "लाल मूंगा", te: "పగడం", ta: "பவழம்", sanskrit: "Pravala", metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನ", metalEn: "Copper or Gold", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
-    [PlanetName.Mercury]: { kn: "ಪಚ್ಚೆ", en: "Emerald", hi: "पन्ना", te: "పచ్చ", ta: "மரகதம்", sanskrit: "Marakata", metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
-    [PlanetName.Jupiter]: { kn: "ಪುಷ್ಪರಾಗ", en: "Yellow Sapphire", hi: "पुखराज", te: "పుష్యరాగం", ta: "புஷ்பராகம்", sanskrit: "Pushparaga", metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger of Right Hand", fingerHi: "तर्जनी अंगुली (दाहिना हाथ)", fingerTe: "చూపుడు వేలు (కుడి చేయి)", fingerTa: "ஆள்காட்டி விரல் (வலது கை)" },
-    [PlanetName.Venus]: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", hi: "हीरा अथवा श्वेत जरकन", te: "వజ్రం లేదా తెల్ల జిర్కాన్", ta: "வைரம் அல்லது வெள்ளை ஜிர்கான்", sanskrit: "Vajra / Heera", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪ್ಲಾಟಿನಂ", metalEn: "Silver or Platinum", fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య వేలు లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்" },
-    [PlanetName.Saturn]: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", hi: "नीलम", te: "నీలం", ta: "நீலக்கல் (நீலம்)", sanskrit: "Neelam", metalKn: "ಪಂಚಧಾತು ಅಥವಾ ಬೆಳ್ಳಿ", metalEn: "Panchadhatu or Silver", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
-    [PlanetName.Rahu]: { kn: "ಗೋಮೇಧಿಕ", en: "Hessonite (Gomed)", hi: "गोमेद", te: "గోమేధికం", ta: "கோமேதகம்", sanskrit: "Gomedhika", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
-    [PlanetName.Ketu]: { kn: "ವೈಢೂರ್ಯ", en: "Cat's Eye (Vaidurya)", hi: "लहसुनिया (वैडूर्य)", te: "వైడూర్యం", ta: "வைடூரியம்", sanskrit: "Vaidurya", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", fingerKn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು", fingerEn: "Ring or Little Finger", fingerHi: "अनामिका अथवा कनिष्ठिका अंगुली", fingerTe: "ఉంగరపు వేలు లేదా చిటికెన వేలు", fingerTa: "மோதிர விரல் அல்லது சுண்டு விரல்" }
+    [PlanetName.Sun]: { kn: "ಮಾಣಿಕ್ಯ", en: "Ruby", hi: "माणिक्य (रूबी)", te: "మాణిక్యం", ta: "மாணிக்கம்", sanskrit: "Manikya", metalKn: "ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ಶುದ್ಧ ತಾಮ್ರ", metalEn: "Gold or Copper", metalHi: "स्वर्ण अथवा शुद्ध तांबा", metalTe: "బంగారం లేదా స్వచ్ఛమైన రాగి", metalTa: "தங்கம் அல்லது தூய தாமிரம்", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
+    [PlanetName.Moon]: { kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು", en: "Natural Pearl", hi: "सच्चा मोती", te: "సహజ ముత్యం", ta: "இயற்கை முத்து", sanskrit: "Mukta", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ", metalEn: "Pure Silver", metalHi: "शुद्ध चांदी", metalTe: "స్వచ్ఛమైన వెండి", metalTa: "தூய வெள்ளி", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
+    [PlanetName.Mars]: { kn: "ಹವಳ", en: "Red Coral", hi: "लाल मूंगा", te: "పగడం", ta: "பவழம்", sanskrit: "Pravala", metalKn: "ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನ", metalEn: "Pure Copper or Gold", metalHi: "शुद्ध तांबा अथवा स्वर्ण", metalTe: "స్వచ్ఛమైన రాగి లేదా బంగారం", metalTa: "தூய தாமிரம் அல்லது தங்கம்", fingerKn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)", fingerEn: "Ring Finger of Right Hand", fingerHi: "अनामिका अंगुली (दाहिना हाथ)", fingerTe: "ఉంగరపు వేలు (కుడి చేయి)", fingerTa: "மோதிர விரல் (வலது கை)" },
+    [PlanetName.Mercury]: { kn: "ಪಚ್ಚೆ", en: "Emerald", hi: "पन्ना", te: "పచ్చ", ta: "மரகதம்", sanskrit: "Marakata", metalKn: "ಚಿನ್ನ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Gold or Panchadhatu", metalHi: "स्वर्ण अथवा पंचधातु", metalTe: "బంగారం లేదా పంచలోహం", metalTa: "தங்கம் அல்லது பஞ்சலோகம்", fingerKn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)", fingerEn: "Little Finger of Right Hand", fingerHi: "कनिष्ठिका अंगुली (दाहिना हाथ)", fingerTe: "చిటికెన వేలు (కుడి చేయి)", fingerTa: "சுண்டு விரல் (வலது கை)" },
+    [PlanetName.Jupiter]: { kn: "ಪುಷ್ಪರಾಗ", en: "Yellow Sapphire", hi: "पुखराज", te: "పుష్యరాగం", ta: "புஷ்பராகம்", sanskrit: "Pushparaga", metalKn: "ಅಪ್ಪಟ ಶುದ್ಧ ಚಿನ್ನ", metalEn: "Pure Gold", metalHi: "अति शुद्ध स्वर्ण", metalTe: "స్వచ్ఛమైన బంగారం", metalTa: "தூய தங்கம்", fingerKn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)", fingerEn: "Index Finger of Right Hand", fingerHi: "तर्जनी अंगुली (दाहिना हाथ)", fingerTe: "చూపుడు వేలు (కుడి చేయి)", fingerTa: "ஆள்காட்டி விரல் (வலது கை)" },
+    [PlanetName.Venus]: { kn: "ವಜ್ರ ಅಥವಾ ಶ್ವೇತ ಜಿರ್ಕಾನ್", en: "Diamond or White Zircon", hi: "हीरा अथवा श्वेत जरकन", te: "వజ్రం లేదా తెల్ల జిర్కాన్", ta: "வைரம் அல்லது வெள்ளை ஜிர்கான்", sanskrit: "Vajra / Heera", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪ್ಲಾಟಿನಂ", metalEn: "Silver or Platinum", metalHi: "चांदी अथवा प्लेटिनम", metalTe: "వెండి లేదా ప్లాటినం", metalTa: "வெள்ளி அல்லது பிளாட்டினம்", fingerKn: "ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು", fingerEn: "Middle or Ring Finger", fingerHi: "मध्यमा अथवा अनामिका अंगुली", fingerTe: "మధ్య వేలు లేదా ఉంగరపు వేలు", fingerTa: "நடுவிரல் அல்லது மோதிர விரல்" },
+    [PlanetName.Saturn]: { kn: "ಇಂದ್ರನೀಲಂ (ನೀಲಂ)", en: "Blue Sapphire (Neelam)", hi: "नीलम", te: "నీలం", ta: "நீலக்கல் (நீலம்)", sanskrit: "Neelam", metalKn: "ಪಂಚಧಾತು ಅಥವಾ ಬೆಳ್ಳಿ", metalEn: "Panchadhatu or Silver", metalHi: "पंचधातु अथवा चांदी", metalTe: "పంచలోహం లేదా వెండి", metalTa: "பஞ்சலோகம் அல்லது வெள்ளி", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
+    [PlanetName.Rahu]: { kn: "ಗೋಮೇಧಿಕ", en: "Hessonite (Gomed)", hi: "गोमेद", te: "గోమేధికం", ta: "கோமேதகம்", sanskrit: "Gomedhika", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", metalHi: "चांदी अथवा पंचधातु", metalTe: "వెండి లేదా పంచలోహం", metalTa: "வெள்ளி அல்லது பஞ்சலோகம்", fingerKn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)", fingerEn: "Middle Finger of Right Hand", fingerHi: "मध्यमा अंगुली (दाहिना हाथ)", fingerTe: "మధ్య వేలు (కుడి చేయి)", fingerTa: "நடுவிரல் (வலது கை)" },
+    [PlanetName.Ketu]: { kn: "ವೈಢೂರ್ಯ", en: "Cat's Eye (Vaidurya)", hi: "लहसुनिया (वैडूर्य)", te: "వైడూర్యం", ta: "வைடூரியம்", sanskrit: "Vaidurya", metalKn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು", metalEn: "Silver or Panchadhatu", metalHi: "चांदी अथवा पंचधातु", metalTe: "వెండి లేదా పంచలోహం", metalTa: "வெள்ளி அல்லது பஞ்சலோகம்", fingerKn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು", fingerEn: "Ring or Little Finger", fingerHi: "अनामिका अथवा कनिष्ठिका अंगुली", fingerTe: "ఉంగరపు వేలు లేదా చిటికెన వేలు", fingerTa: "மோதிர விரல் அல்லது சுண்டு விரல்" }
   };
 
   const selectedGem = gemstoneMap[lagnaLord] || gemstoneMap[PlanetName.Jupiter];
@@ -1251,10 +1326,50 @@ export const generateAstrologicalPrescriptions = (
     shantiPurpose = "ಗುರು ಬಲವರ್ಧನೆ, ಜ್ಞಾನ ಸಿದ್ಧಿ, ದೈವಾನುಗ್ರಹ ಮತ್ತು ಗೌರವಯುತ ಯಶಸ್ಸು.";
   }
 
-  // 3. Lucky Attributes (English Digits)
+  // 3. Lucky Attributes, Nakshatra-aligned Rudraksha & Havala Calculation
   const lucky = LAGNA_LUCKY_ATTRIBUTES_MAP[lagnaRashiIdx] || LAGNA_LUCKY_ATTRIBUTES_MAP[0];
   const ykInfo = LAGNA_YOGAKARAKA_GEM_MAP[lagnaRashiIdx] || LAGNA_YOGAKARAKA_GEM_MAP[0];
   const bhagyaInfo = LAGNA_BHAGYA_GEM_MAP[lagnaRashiIdx] || LAGNA_BHAGYA_GEM_MAP[0];
+
+  // Nakshatra-aligned Rudraksha Calculation
+  const nakNameEn = moon?.nakshatra.english ?? "Ashwini";
+  const nakObj = NAKSHATRA_NAMES_5L[nakNameEn] || { kn: toKannadaNakshatra(nakNameEn), en: nakNameEn, hi: nakNameEn, te: nakNameEn, ta: nakNameEn };
+  const selectedNakRudraksha = rudrakshaMap[nakLord] || rudrakshaMap[PlanetName.Mars];
+  const selectedNakRudrakshaWearing = rudrakshaWearingMap[nakLord] || rudrakshaWearingMap[PlanetName.Mars];
+  const nakDeityKn = NAKSHATRA_DEITIES_KN[nakNameEn] || "ಇಷ್ಟದೇವತೆ";
+  const nakDeityEn = NAKSHATRA_DEITIES_EN[nakNameEn] || "Ishta Devata";
+
+  // Auspicious Consecration Tara Bala Nakshatras Calculation (Sampat 2, Kshema 4, Sadhana 6, Mitra 8)
+  const sampatIdx = (nakIndex + 1) % 27;
+  const kshemaIdx = (nakIndex + 3) % 27;
+  const sadhanaIdx = (nakIndex + 5) % 27;
+  const mitraIdx = (nakIndex + 7) % 27;
+
+  const sampatObj = NAKSHATRA_NAMES_5L[ORDERED_NAKSHATRAS_27[sampatIdx]] || { kn: "ರೋಹಿಣಿ", en: "Rohini", hi: "रोहिणी", te: "రోహిణి", ta: "ரோகிணி" };
+  const kshemaObj = NAKSHATRA_NAMES_5L[ORDERED_NAKSHATRAS_27[kshemaIdx]] || { kn: "ಆರ್ದ್ರಾ", en: "Ardra", hi: "आर्द्रा", te: "ఆరుద్ర", ta: "திருவாதிரை" };
+  const sadhanaObj = NAKSHATRA_NAMES_5L[ORDERED_NAKSHATRAS_27[sadhanaIdx]] || { kn: "ಪುಷ್ಯ", en: "Pushya", hi: "पुष्य", te: "పుష్యమి", ta: "பூசம்" };
+  const mitraObj = NAKSHATRA_NAMES_5L[ORDERED_NAKSHATRAS_27[mitraIdx]] || { kn: "ಮಘೆ", en: "Magha", hi: "मघा", te: "మఖ", ta: "மகம்" };
+
+  const consecrationTarasKn = `ಸಂಪತ್ ತಾರೆ (${sampatObj.kn}), ಕ್ಷೇಮ ತಾರೆ (${kshemaObj.kn}), ಸಾಧನ ತಾರೆ (${sadhanaObj.kn}), ಮಿತ್ರ ತಾರೆ (${mitraObj.kn})`;
+  const consecrationTarasEn = `Sampat Tara (${sampatObj.en}), Kshema Tara (${kshemaObj.en}), Sadhana Tara (${sadhanaObj.en}), Mitra Tara (${mitraObj.en})`;
+  const consecrationTarasHi = `संपत तारा (${sampatObj.hi}), क्षेम तारा (${kshemaObj.hi}), साधना तारा (${sadhanaObj.hi}), मित्र तारा (${mitraObj.hi})`;
+  const consecrationTarasTe = `సంపత్ తార (${sampatObj.te}), క్షేమ తార (${kshemaObj.te}), సాధన తార (${sadhanaObj.te}), మిత్ర తార (${mitraObj.te})`;
+  const consecrationTarasTa = `சம்பத் தாரை (${sampatObj.ta}), க்ஷேம தாரை (${kshemaObj.ta}), சாதன தாரை (${sadhanaObj.ta}), மித்ர தாரை (${mitraObj.ta})`;
+
+  // Mars / Havala Check
+  const mars = kundli.planets.find((p) => p.name === PlanetName.Mars);
+  const marsRashiIdx = mars ? mars.rashi.index : 0;
+  const marsHouseFromLagna = ((marsRashiIdx - lagnaRashiIdx + 12) % 12) + 1;
+  const isMarsDusthana = [6, 8, 12].includes(marsHouseFromLagna);
+  const isMarsBeneficLagna = [0, 3, 4, 7, 8, 11].includes(lagnaRashiIdx);
+  const isKujaNakshatra = (nakIndex % 9) === 4;
+  const isHavalaRecommended = isKujaNakshatra || (isMarsBeneficLagna && !isMarsDusthana);
+
+  const havalaPrescriptionKn = `ರತ್ನ: ಹವಳ (ಶುದ್ಧ ಪ್ರವಾಳ, ೪.೫ - ೬.೦ ಕ್ಯಾರಟ್). ಲೋಹ: ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಅಪ್ಪಟ ಚಿನ್ನ. ಧರಿಸುವ ಬೆರಳು: ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ). ಶುಭ ದಿನ & ಕಾಲ: ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ. ಪ್ರಾಣಪ್ರತಿಷ್ಠಾಪನೆಗೆ ಶುಭ ತಾರಾಬಲ ನಕ್ಷತ್ರಗಳು: ${consecrationTarasKn}. ಮಂತ್ರ: "ಓಂ ಭೌಮಾಯ ನಮಃ" (೧೦೮ ಬಾರಿ).`;
+  const havalaPrescriptionEn = `Gemstone: Red Coral (Pure Pravala, 4.5 - 6.0 Carats). Metal: Pure Copper or Gold. Wearing Finger: Ring Finger of Right Hand (Anamika). Auspicious Time: Tuesday Morning during Mars Hora. Consecration Tara Bala Nakshatras: ${consecrationTarasEn}. Mantra: "Om Bhaumaya Namaha" (108 times).`;
+  const havalaPrescriptionHi = `रत्न: लाल मूंगा (शुद्ध प्रवाल, 4.5 - 6.0 कैरेट)। धातु: शुद्ध तांबा अथवा स्वर्ण। धारण अंगुली: दाहिने हाथ की अनामिका अंगुली। शुभ दिन एवं समय: मंगलवार प्रातः मंगल होरा में। प्राण प्रतिष्ठा हेतु शुभ ताराबल नक्षत्र: ${consecrationTarasHi}। मंत्र: "ॐ भौमाय नमः" (108 बार)।`;
+  const havalaPrescriptionTe = `రత్నం: పగడం (శుద్ధ ప్రవాళం, 4.5 - 6.0 క్యారెట్లు). లోహం: స్వచ్ఛమైన రాగి లేదా బంగారం. ధరించే వేలు: కుడి చేయి ఉంగరపు వేలు (అనామిక). శుభ సమయం: మంగళవారం ఉదయం కుజ హోరలో. ప్రాణ ప్రతిష్ఠకు శుభ తారాబల నక్షత్రాలు: ${consecrationTarasTe}. మంత్రం: "ఓం భౌమాయ నమః" (108 సార్లు).`;
+  const havalaPrescriptionTa = `ரத்தினம்: பவழம் (தூய பிரவாளம், 4.5 - 6.0 கேரட்). உலோகம்: தூய தாமிரம் அல்லது தங்கம். அணியும் விரல்: வலது கை மோதிர விரல் (அநாமிகா). சுப நாள் & நேரம்: செவ்வாய்க்கிழமை காலை குஜ ஓரையில். பிராண பிரதிஷ்டைக்கான சுப தாராபல நட்சத்திரங்கள்: ${consecrationTarasTa}. மந்திரம்: "ஓம் பௌமாய நமஹ" (108 முறை).`;
 
   return {
     rudraksha: {
@@ -1276,7 +1391,28 @@ export const generateAstrologicalPrescriptions = (
       panchangaSynergyEn: `Harmonizes with your Janma Nakshatra lord (${nakLord}) and Karana Tatva (${kRule.tatva}).`,
       panchangaSynergyHi: `जन्म नक्षत्र स्वामी (${nakLord}) और करण तत्व (${kRule.tatva}) के साथ दिव्य समन्वय स्थापित करता है।`,
       panchangaSynergyTe: `జన్మ నక్షత్రాధిపతి (${nakLord}) మరియు కరణ తత్వముతో (${kRule.tatva}) దివ్య సమన్వయం సాధిస్తుంది.`,
-      panchangaSynergyTa: `ஜன்ம நட்சத்திர அதிபதி (${nakLord}) மற்றும் கரண தத்துவத்துடன் (${kRule.tatva}) அற்புத ஒருங்கிணைப்பை ஏற்படுத்துகிறது.`
+      panchangaSynergyTa: `ஜன்ம நட்சத்திர அதிபதி (${nakLord}) மற்றும் கரண தத்துவத்துடன் (${kRule.tatva}) அற்புத ஒருங்கிணைப்பை ஏற்படுத்துகிறது.`,
+      // Nakshatra-aligned Rudraksha
+      nakshatraNameKn: nakObj.kn,
+      nakshatraNameEn: nakObj.en,
+      nakshatraNameHi: nakObj.hi,
+      nakshatraNameTe: nakObj.te,
+      nakshatraNameTa: nakObj.ta,
+      nakshatraLordKn: toKannadaPlanet(nakLord),
+      nakshatraLordEn: nakLord,
+      nakshatraMukhi: selectedNakRudraksha.mukhi,
+      nakshatraRudrakshaKn: selectedNakRudraksha.nameKn,
+      nakshatraRudrakshaEn: selectedNakRudraksha.nameEn,
+      nakshatraRudrakshaHi: selectedNakRudraksha.nameHi,
+      nakshatraRudrakshaTe: selectedNakRudraksha.nameTe,
+      nakshatraRudrakshaTa: selectedNakRudraksha.nameTa,
+      nakshatraDeityKn: nakDeityKn,
+      nakshatraDeityEn: nakDeityEn,
+      nakshatraWearingMethodKn: selectedNakRudrakshaWearing.kn,
+      nakshatraWearingMethodEn: selectedNakRudrakshaWearing.en,
+      nakshatraWearingMethodHi: selectedNakRudrakshaWearing.hi,
+      nakshatraWearingMethodTe: selectedNakRudrakshaWearing.te,
+      nakshatraWearingMethodTa: selectedNakRudrakshaWearing.ta
     },
     gemstoneRing: {
       primaryGemstoneKn: selectedGem.kn,
@@ -1292,6 +1428,9 @@ export const generateAstrologicalPrescriptions = (
       caratWeightTa: dynamicCaratTa,
       metalKn: selectedGem.metalKn,
       metalEn: selectedGem.metalEn,
+      metalHi: selectedGem.metalHi,
+      metalTe: selectedGem.metalTe,
+      metalTa: selectedGem.metalTa,
       fingerKn: selectedGem.fingerKn,
       fingerEn: selectedGem.fingerEn,
       fingerHi: selectedGem.fingerHi,
@@ -1313,7 +1452,19 @@ export const generateAstrologicalPrescriptions = (
       bhagyaGemstoneKn: bhagyaInfo.kn,
       bhagyaGemstoneEn: bhagyaInfo.en,
       lifeCatalystImpactKn: ykInfo.impactKn,
-      lifeCatalystImpactEn: ykInfo.impactEn
+      lifeCatalystImpactEn: ykInfo.impactEn,
+      // Havala and Tara Bala fields
+      isHavalaRecommended,
+      havalaPrescriptionKn,
+      havalaPrescriptionEn,
+      havalaPrescriptionHi,
+      havalaPrescriptionTe,
+      havalaPrescriptionTa,
+      consecrationTarasKn,
+      consecrationTarasEn,
+      consecrationTarasHi,
+      consecrationTarasTe,
+      consecrationTarasTa
     },
     luckyAttributes: {
       carColors: lucky.car,

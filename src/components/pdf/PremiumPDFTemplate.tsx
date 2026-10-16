@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { stripJayashreeIntro } from "../../features/premiumPdf/premiumPdfLocale";
 import { generatePanchangaAngaSynthesis } from "../../core/PanchangaAngaSynthesisEngine";
+import { cleanDegreesFromText } from "../../features/premiumPdf/yogaDoshaGocharaEnricher";
 
 interface PremiumPDFTemplateProps {
   prediction: MasterPredictionResult;
@@ -644,7 +645,9 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
             {yogas.map((y: any, idx: number) => (
                 <div className="yoga-entry" key={`yoga-${idx}`}>
                     <span className="yoga-name">{y.name}</span>
-                    {Array.isArray(y.significance) ? y.significance.map((p: string, i: number) => <p key={i}>{p}</p>) : <p>{y.significance}</p>}
+                    {Array.isArray(y.significance) 
+                      ? y.significance.map((p: string, i: number) => <p key={i}>{cleanDegreesFromText(p)}</p>) 
+                      : <p>{cleanDegreesFromText(y.significance || y.impact || "")}</p>}
                 </div>
             ))}
         </div>
@@ -659,9 +662,11 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
             {doshas.map((d: any, idx: number) => (
                 <div className="yoga-entry" key={`dosha-${idx}`}>
                     <span className="yoga-name">{d.name}</span>
-                    {Array.isArray(d.significance) ? d.significance.map((p: string, i: number) => <p key={i}>{p}</p>) : <p>{d.significance}</p>}
+                    {Array.isArray(d.significance) 
+                      ? d.significance.map((p: string, i: number) => <p key={i}>{cleanDegreesFromText(p)}</p>) 
+                      : <p>{cleanDegreesFromText(d.significance || d.impact || "")}</p>}
                     {d.remedy && (
-                        <p><span style={{fontWeight: "bold", color: "var(--primary-dark)"}}>{t.remedy}</span> {d.remedy}</p>
+                        <p><span style={{fontWeight: "bold", color: "var(--primary-dark)"}}>{t.remedy}</span> {cleanDegreesFromText(d.remedy)}</p>
                     )}
                 </div>
             ))}
@@ -709,41 +714,83 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
           <h2>{isKn ? "ಪಂಚಾಂಗ ಸಮಗ್ರ ರಕ್ಷಾ ಕವಚ & ಭಾಗ್ಯ ರತ್ನ" : activeLang === "hi" ? "पंचांग समग्र रक्षा कवच एवं भाग्य रत्न" : activeLang === "te" ? "పంచాంగ సమగ్ర రక్షా కవచం & భాగ్య రత్నం" : activeLang === "ta" ? "பஞ்சாங்க பாதுகாப்பு கவசம் & அதிர்ஷ்ட ரத்தினம்" : "Panchanga Prescriptions & Sacred Armor"}</h2>
           
           <div style={{ marginTop: "20px" }}>
-            <div className="yoga-entry" style={{ marginBottom: "25px", borderLeft: "4px solid var(--gold)", paddingLeft: "15px" }}>
-              <span className="yoga-name" style={{ fontSize: "14pt", color: "var(--gold)" }}>
-                📿 {isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ರುದ್ರಾಕ್ಷಿ:" : activeLang === "hi" ? "अनुशंसित रुद्राक्ष:" : activeLang === "te" ? "సిఫార్సు చేయబడిన రుద్రాక్ష:" : activeLang === "ta" ? "பரிந்துரைக்கப்பட்ட ருத்ராட்சம்:" : "Prescribed Rudraksha:"} {synthesis.prescriptions.rudraksha.nameKn}
+            {/* 1. Primary Lagna-Lord Rudraksha */}
+            <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid var(--gold)", paddingLeft: "15px" }}>
+              <span className="yoga-name" style={{ fontSize: "13pt", color: "var(--gold)" }}>
+                📿 {isKn ? "ಶಿಫಾರಸು ಮಾಡಿದ ರುದ್ರಾಕ್ಷಿ:" : activeLang === "hi" ? "अनुशंसित रुद्राक्ष:" : activeLang === "te" ? "సిఫార్సు చేయబడిన రుద్రాక్ష:" : activeLang === "ta" ? "பரிந்துரைக்கப்பட்ட ருத்ராட்சம்:" : "Prescribed Rudraksha:"}{" "}
+                {activeLang === "kn" ? synthesis.prescriptions.rudraksha.nameKn : activeLang === "hi" ? (synthesis.prescriptions.rudraksha.nameHi || synthesis.prescriptions.rudraksha.nameEn) : activeLang === "te" ? (synthesis.prescriptions.rudraksha.nameTe || synthesis.prescriptions.rudraksha.nameEn) : activeLang === "ta" ? (synthesis.prescriptions.rudraksha.nameTa || synthesis.prescriptions.rudraksha.nameEn) : synthesis.prescriptions.rudraksha.nameEn}
               </span>
-              <p style={{ textIndent: 0, marginTop: "8px" }}>
+              <p style={{ textIndent: 0, marginTop: "6px" }}>
                 <b>{isKn ? "ಅಧಿಪತಿ ದೇವತೆ:" : activeLang === "hi" ? "अधिपति देवता:" : activeLang === "te" ? "అధిపతి దేవత:" : activeLang === "ta" ? "அதிபதி தெய்வம்:" : "Ruling Deity:"}</b> {synthesis.prescriptions.rudraksha.deity} • <b>{isKn ? "ಗ್ರಹ:" : activeLang === "hi" ? "ग्रह:" : activeLang === "te" ? "గ్రహం:" : activeLang === "ta" ? "கிரகம்:" : "Planet:"}</b> {synthesis.prescriptions.rudraksha.planet}
               </p>
               <p style={{ textIndent: 0 }}>
                 <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : activeLang === "hi" ? "शास्त्रीय कारण:" : activeLang === "te" ? "శాస్త్రీయ కారణం:" : activeLang === "ta" ? "சாஸ்திர காரணம்:" : "Astrological Reason:"}</b> {synthesis.prescriptions.rudraksha.astrologicalReason}
               </p>
-              <p style={{ textIndent: 0, fontSize: "11pt", color: "#2f855a" }}>
-                ✨ <b>{isKn ? "ಪಂಚಾಂಗ ಸಮನ್ವಯ:" : activeLang === "hi" ? "पंचांग समन्वय:" : activeLang === "te" ? "పంచాంగ సమన్వయం:" : activeLang === "ta" ? "பஞ்சாங்க ஒருங்கிணைப்பு:" : "Panchanga Synergy:"}</b> {synthesis.prescriptions.rudraksha.panchangaSynergy}
+              <p style={{ textIndent: 0, fontSize: "10.5pt", color: "#2f855a" }}>
+                ✨ <b>{isKn ? "ಪಂಚಾಂಗ ಸಮನ್ವಯ:" : activeLang === "hi" ? "पंचांग समन्वय:" : activeLang === "te" ? "పంచాంగ సమన్వయం:" : activeLang === "ta" ? "பஞ்சாங்க ஒருங்கிணைப்பு:" : "Panchanga Synergy:"}</b>{" "}
+                {activeLang === "kn" ? synthesis.prescriptions.rudraksha.panchangaSynergy : activeLang === "hi" ? (synthesis.prescriptions.rudraksha.panchangaSynergyHi || synthesis.prescriptions.rudraksha.panchangaSynergyEn) : activeLang === "te" ? (synthesis.prescriptions.rudraksha.panchangaSynergyTe || synthesis.prescriptions.rudraksha.panchangaSynergyEn) : activeLang === "ta" ? (synthesis.prescriptions.rudraksha.panchangaSynergyTa || synthesis.prescriptions.rudraksha.panchangaSynergyEn) : (synthesis.prescriptions.rudraksha.panchangaSynergyEn || synthesis.prescriptions.rudraksha.panchangaSynergy)}
               </p>
-              <p style={{ textIndent: 0, fontSize: "11pt", color: "#4a5568" }}>
-                <b>{isKn ? "ಧರಿಸುವ ವಿಧಾನ:" : activeLang === "hi" ? "धारण विधि:" : activeLang === "te" ? "ధారణ విధానం:" : activeLang === "ta" ? "அணியும் முறை:" : "Wearing Method:"}</b> {synthesis.prescriptions.rudraksha.wearingMethod}
+              <p style={{ textIndent: 0, fontSize: "10.5pt", color: "#4a5568" }}>
+                <b>{isKn ? "ಧರಿಸುವ ವಿಧಾನ:" : activeLang === "hi" ? "धारण विधि:" : activeLang === "te" ? "ధారణ విధానం:" : activeLang === "ta" ? "அணியும் முறை:" : "Wearing Method:"}</b>{" "}
+                {activeLang === "kn" ? synthesis.prescriptions.rudraksha.wearingMethod : activeLang === "hi" ? (synthesis.prescriptions.rudraksha.wearingMethodHi || synthesis.prescriptions.rudraksha.wearingMethodEn) : activeLang === "te" ? (synthesis.prescriptions.rudraksha.wearingMethodTe || synthesis.prescriptions.rudraksha.wearingMethodEn) : activeLang === "ta" ? (synthesis.prescriptions.rudraksha.wearingMethodTa || synthesis.prescriptions.rudraksha.wearingMethodEn) : (synthesis.prescriptions.rudraksha.wearingMethodEn || synthesis.prescriptions.rudraksha.wearingMethod)}
               </p>
             </div>
 
-            <div className="yoga-entry" style={{ marginBottom: "25px", borderLeft: "4px solid var(--gold)", paddingLeft: "15px" }}>
-              <span className="yoga-name" style={{ fontSize: "14pt", color: "var(--gold)" }}>
-                💍 {isKn ? "ಭಾಗ್ಯ ರತ್ನ ಉಂಗುರ:" : activeLang === "hi" ? "भाग्य रत्न अंगूठी:" : activeLang === "te" ? "భాగ్య రత్న ఉంగరం:" : activeLang === "ta" ? "அதிர்ஷ்ட ரத்தின மோதிரம்:" : "Prescribed Gemstone Ring:"} {synthesis.prescriptions.gemstoneRing.primaryGemstoneKn}
+            {/* 2. Nakshatra-Aligned Rudraksha */}
+            {synthesis.prescriptions.rudraksha.nakshatraRudrakshaKn && (
+              <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid #b7791f", paddingLeft: "15px", backgroundColor: "rgba(245, 158, 11, 0.05)", borderRadius: "0 6px 6px 0", padding: "10px 15px" }}>
+                <span className="yoga-name" style={{ fontSize: "13pt", color: "#b7791f" }}>
+                  🌟 {isKn ? `ಜನ್ಮ ನಕ್ಷತ್ರಾನುಗುಣ ರುದ್ರಾಕ್ಷಿ (${synthesis.prescriptions.rudraksha.nakshatraNameKn || ""}):` : activeLang === "hi" ? `जन्म नक्षत्र रुद्राक्ष (${synthesis.prescriptions.rudraksha.nakshatraNameHi || ""}):` : activeLang === "te" ? `జన్మ నక్షత్ర రుద్రాక్ష (${synthesis.prescriptions.rudraksha.nakshatraNameTe || ""}):` : activeLang === "ta" ? `ஜென்ம நட்சத்திர ருத்ராட்சம் (${synthesis.prescriptions.rudraksha.nakshatraNameTa || ""}):` : `Janma Nakshatra Aligned Rudraksha (${synthesis.prescriptions.rudraksha.nakshatraNameEn || ""}):`}{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.rudraksha.nakshatraRudrakshaKn : activeLang === "hi" ? (synthesis.prescriptions.rudraksha.nakshatraRudrakshaHi || synthesis.prescriptions.rudraksha.nakshatraRudrakshaEn) : activeLang === "te" ? (synthesis.prescriptions.rudraksha.nakshatraRudrakshaTe || synthesis.prescriptions.rudraksha.nakshatraRudrakshaEn) : activeLang === "ta" ? (synthesis.prescriptions.rudraksha.nakshatraRudrakshaTa || synthesis.prescriptions.rudraksha.nakshatraRudrakshaEn) : synthesis.prescriptions.rudraksha.nakshatraRudrakshaEn}
+                </span>
+                <p style={{ textIndent: 0, marginTop: "6px" }}>
+                  <b>{isKn ? "ನಕ್ಷತ್ರ ಅಧಿಪತಿ & ದೇವತೆ:" : activeLang === "hi" ? "नक्षत्र स्वामी एवं अधिष्ठाता देवता:" : activeLang === "te" ? "నక్షత్రాధిపతి & అధిష్టాన దేవత:" : activeLang === "ta" ? "நட்சத்திர அதிபதி & தெய்வம்:" : "Nakshatra Lord & Presiding Deity:"}</b>{" "}
+                  {activeLang === "kn" ? `${synthesis.prescriptions.rudraksha.nakshatraLordKn} • ${synthesis.prescriptions.rudraksha.nakshatraDeityKn}` : `${synthesis.prescriptions.rudraksha.nakshatraLordEn} • ${synthesis.prescriptions.rudraksha.nakshatraDeityEn}`}
+                </p>
+                <p style={{ textIndent: 0, fontSize: "10.5pt", color: "#4a5568" }}>
+                  <b>{isKn ? "ಧರಿಸುವ ವಿಧಾನ:" : activeLang === "hi" ? "धारण विधि:" : activeLang === "te" ? "ధారణ విధానం:" : activeLang === "ta" ? "அணியும் முறை:" : "Wearing Method:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.rudraksha.nakshatraWearingMethodKn : activeLang === "hi" ? (synthesis.prescriptions.rudraksha.nakshatraWearingMethodHi || synthesis.prescriptions.rudraksha.nakshatraWearingMethodEn) : activeLang === "te" ? (synthesis.prescriptions.rudraksha.nakshatraWearingMethodTe || synthesis.prescriptions.rudraksha.nakshatraWearingMethodEn) : activeLang === "ta" ? (synthesis.prescriptions.rudraksha.nakshatraWearingMethodTa || synthesis.prescriptions.rudraksha.nakshatraWearingMethodEn) : (synthesis.prescriptions.rudraksha.nakshatraWearingMethodEn || synthesis.prescriptions.rudraksha.nakshatraWearingMethodKn)}
+                </p>
+              </div>
+            )}
+
+            {/* 3. Primary Bhagya Gemstone Ring */}
+            <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid var(--gold)", paddingLeft: "15px" }}>
+              <span className="yoga-name" style={{ fontSize: "13pt", color: "var(--gold)" }}>
+                💍 {isKn ? "ಭಾಗ್ಯ ರತ್ನ ಉಂಗುರ:" : activeLang === "hi" ? "भाग्य रत्न अंगूठी:" : activeLang === "te" ? "భాగ్య రత్న ఉంగరం:" : activeLang === "ta" ? "அதிர்ஷ்ட ரத்தின மோதிரம்:" : "Prescribed Gemstone Ring:"}{" "}
+                {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.primaryGemstoneKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.primaryGemstoneHi || synthesis.prescriptions.gemstoneRing.primaryGemstoneEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.primaryGemstoneTe || synthesis.prescriptions.gemstoneRing.primaryGemstoneEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.primaryGemstoneTa || synthesis.prescriptions.gemstoneRing.primaryGemstoneEn) : synthesis.prescriptions.gemstoneRing.primaryGemstoneEn}
               </span>
-              <p style={{ textIndent: 0, marginTop: "8px" }}>
-                <b>{isKn ? "ತೂಕ & ಲೋಹ:" : activeLang === "hi" ? "भार एवं धातु:" : activeLang === "te" ? "బరువు & లోహం:" : activeLang === "ta" ? "எடை & உலோகம்:" : "Weight & Metal:"}</b> {synthesis.prescriptions.gemstoneRing.caratWeight} • {synthesis.prescriptions.gemstoneRing.metalKn}
+              <p style={{ textIndent: 0, marginTop: "6px" }}>
+                <b>{isKn ? "ತೂಕ & ಲೋಹ:" : activeLang === "hi" ? "भार एवं धातु:" : activeLang === "te" ? "బరువు & లోహం:" : activeLang === "ta" ? "எடை & உலோகம்:" : "Weight & Metal:"}</b>{" "}
+                {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.caratWeight : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.caratWeightHi || synthesis.prescriptions.gemstoneRing.caratWeightEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.caratWeightTe || synthesis.prescriptions.gemstoneRing.caratWeightEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.caratWeightTa || synthesis.prescriptions.gemstoneRing.caratWeightEn) : synthesis.prescriptions.gemstoneRing.caratWeightEn} •{" "}
+                {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.metalKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.metalHi || synthesis.prescriptions.gemstoneRing.metalEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.metalTe || synthesis.prescriptions.gemstoneRing.metalEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.metalTa || synthesis.prescriptions.gemstoneRing.metalEn) : synthesis.prescriptions.gemstoneRing.metalEn}
               </p>
               <p style={{ textIndent: 0 }}>
-                <b>{isKn ? "ಬೆರಳು & ಶುಭ ಕಾಲ:" : activeLang === "hi" ? "अंगुली एवं शुभ दिन:" : activeLang === "te" ? "వేలు & శుభ దినం:" : activeLang === "ta" ? "விரல் & சுப நாள்:" : "Finger & Day:"}</b> {synthesis.prescriptions.gemstoneRing.fingerKn} ({synthesis.prescriptions.gemstoneRing.activationDay})
+                <b>{isKn ? "ಬೆರಳು & ಶುಭ ಕಾಲ:" : activeLang === "hi" ? "अंगुली एवं शुभ दिन:" : activeLang === "te" ? "వేలు & శుభ దినం:" : activeLang === "ta" ? "விரல் & சுப நாள்:" : "Finger & Day:"}</b>{" "}
+                {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.fingerKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.fingerHi || synthesis.prescriptions.gemstoneRing.fingerEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.fingerTe || synthesis.prescriptions.gemstoneRing.fingerEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.fingerTa || synthesis.prescriptions.gemstoneRing.fingerEn) : synthesis.prescriptions.gemstoneRing.fingerEn} (
+                {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.activationDay : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.activationDayHi || synthesis.prescriptions.gemstoneRing.activationDayEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.activationDayTe || synthesis.prescriptions.gemstoneRing.activationDayEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.activationDayTa || synthesis.prescriptions.gemstoneRing.activationDayEn) : synthesis.prescriptions.gemstoneRing.activationDayEn})
               </p>
               <p style={{ textIndent: 0 }}>
                 <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಕಾರಣ:" : activeLang === "hi" ? "शास्त्रीय कारण:" : activeLang === "te" ? "శాస్త్రీయ కారణం:" : activeLang === "ta" ? "சாஸ்திர காரணம்:" : "Astrological Reason:"}</b> {synthesis.prescriptions.gemstoneRing.astrologicalReason}
               </p>
-              <p style={{ textIndent: 0, fontSize: "11pt", color: "#2f855a" }}>
-                ✨ <b>{isKn ? "ಪಂಚಾಂಗ ಸಮನ್ವಯ:" : activeLang === "hi" ? "पंचांग समन्वय:" : activeLang === "te" ? "పంచాంగ సమన్వయం:" : activeLang === "ta" ? "பஞ்சாங்க ஒருங்கிணைப்பு:" : "Panchanga Synergy:"}</b> {synthesis.prescriptions.gemstoneRing.panchangaSynergy}
+              <p style={{ textIndent: 0, fontSize: "10.5pt", color: "#2f855a" }}>
+                ✨ <b>{isKn ? "ಪಂಚಾಂಗ ಸಮನ್ವಯ:" : activeLang === "hi" ? "पंचांग समन्वय:" : activeLang === "te" ? "పంచాంగ సమన్వయం:" : activeLang === "ta" ? "பஞ்சாங்க ஒருங்கிணைப்பு:" : "Panchanga Synergy:"}</b>{" "}
+                {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.panchangaSynergy : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.panchangaSynergyHi || synthesis.prescriptions.gemstoneRing.panchangaSynergyEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.panchangaSynergyTe || synthesis.prescriptions.gemstoneRing.panchangaSynergyEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.panchangaSynergyTa || synthesis.prescriptions.gemstoneRing.panchangaSynergyEn) : (synthesis.prescriptions.gemstoneRing.panchangaSynergyEn || synthesis.prescriptions.gemstoneRing.panchangaSynergy)}
               </p>
             </div>
+
+            {/* 4. Sacred Havala (Pravala / Red Coral) Recommendation Card */}
+            {synthesis.prescriptions.gemstoneRing.isHavalaRecommended && (
+              <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid #c53030", paddingLeft: "15px", backgroundColor: "rgba(239, 68, 68, 0.05)", borderRadius: "0 6px 6px 0", padding: "12px 16px" }}>
+                <span className="yoga-name" style={{ fontSize: "13pt", color: "#c53030" }}>
+                  🔴 {isKn ? "ಕುಜಾನುಗ್ರಹ ಹವಳ ರತ್ನ ಉಂಗುರ (ಪ್ರವಾಳ):" : activeLang === "hi" ? "कुजानुग्रह लाल मूंगा अंगूठी (प्रवाल):" : activeLang === "te" ? "కుజానుగ్రహ పగడపు ఉంగరం (ప్రవాళం):" : activeLang === "ta" ? "குஜானுக்ரஹ பவழ மோதிரம் (பிரவாளம்):" : "Sacred Mars Red Coral Ring (Pravala):"}
+                </span>
+                <p style={{ textIndent: 0, marginTop: "6px" }}>
+                  <b>{isKn ? "ಧರಿಸುವ ವಿವರ:" : activeLang === "hi" ? "धारण विवरण:" : activeLang === "te" ? "ధారణ వివరాలు:" : activeLang === "ta" ? "அணியும் விவரம்:" : "Wearing Specifications:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.havalaPrescriptionKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.havalaPrescriptionHi || synthesis.prescriptions.gemstoneRing.havalaPrescriptionEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.havalaPrescriptionTe || synthesis.prescriptions.gemstoneRing.havalaPrescriptionEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.havalaPrescriptionTa || synthesis.prescriptions.gemstoneRing.havalaPrescriptionEn) : synthesis.prescriptions.gemstoneRing.havalaPrescriptionEn}
+                </p>
+              </div>
+            )}
 
             <div style={{ background: "var(--gold-light)", padding: "15px 20px", borderRadius: "8px", border: "1px solid rgba(183, 144, 67, 0.3)", marginTop: "20px" }}>
               <h3 style={{ fontSize: "12pt", margin: "0 0 10px 0", color: "var(--primary-dark)" }}>

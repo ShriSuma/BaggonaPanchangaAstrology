@@ -14,6 +14,7 @@ import type { KundliInput, KundliOutput } from "../core/AstroTypes";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
 import { KundliDoshaPdfTemplate } from "../components/kundli/KundliDoshaPdfTemplate";
 import { askGemini } from "../core/GeminiEngine";
+import { cleanDegreesFromText } from "../features/premiumPdf/yogaDoshaGocharaEnricher";
 
 // Comprehensive 5-Language UI Dictionary for KundliDoshasPage
 const UI_TEXT: Record<string, Record<string, string>> = {
@@ -1272,7 +1273,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                           <span>{t("technicalWhyTitle")}</span>
                         </div>
                         <p className="text-xs sm:text-sm leading-relaxed text-amber-950 font-medium print:text-black">
-                          {getLangText(dosha.technicalWhy)}
+                          {cleanDegreesFromText(getLangText(dosha.technicalWhy))}
                         </p>
 
                         {/* Technical Tags */}
@@ -1457,7 +1458,7 @@ Keep the tone divine, authoritative, and Vedic.`;
                             <span>{t("technicalWhyTitle")}</span>
                           </div>
                           <p className="text-xs sm:text-sm leading-relaxed text-amber-950 font-medium print:text-black">
-                            {getLangText(gandantara.technicalReason)}
+                            {cleanDegreesFromText(getLangText(gandantara.technicalReason))}
                           </p>
 
                           <div className="flex flex-wrap items-center gap-2 pt-1">

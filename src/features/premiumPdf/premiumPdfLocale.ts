@@ -89,6 +89,56 @@ export const PDF_T: Record<string, L5> = {
   },
   bhuktiLabel: { en: "Bhukti", kn: "ಭುಕ್ತಿ", te: "భుక్తి", ta: "புக்தி", hi: "भुक्ति" },
 
+  padaLabel: { en: "Pada", kn: "ಪಾದ", te: "పాదం", ta: "பாதம்", hi: "पाद" },
+  lagnaLordLabel: { en: "Lagna Lord", kn: "ಲಗ್ನಾಧಿಪತಿ", te: "లగ్నాధిపతి", ta: "லக்னாதிபதி", hi: "लग्नेश" },
+  moonLordLabel: { en: "Rashi Lord", kn: "ರಾಶ್ಯಾಧಿಪತಿ", te: "రాశ్యాధిపతి", ta: "ராசியாதிபதி", hi: "राशीश" },
+  tithiLabel: { en: "Birth Tithi", kn: "ಜನ್ಮ ತಿಥಿ", te: "జన్మ తిథి", ta: "ஜென்ம திதி", hi: "जन्म तिथि" },
+  weekdayLabel: { en: "Birth Day", kn: "ಜನ್ಮ ವಾರ", te: "జన్మ వారం", ta: "ஜென்ம வாரம்", hi: "जन्म वार" },
+
+  prescriptionsTitle: {
+    en: "Royal Astro-Vedic Prescriptions & Sacred Alignments",
+    kn: "ರಾಜ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ರಕ್ಷೆ ಹಾಗೂ ಪವಿತ್ರ ಶುಭ ಸಾನ್ನಿಧ್ಯಗಳು",
+    te: "రాజ వైదిక జ్యోతిష రక్ష మరియు పవిత్ర శుభ సాన్నిధ్యాలు",
+    ta: "ராஜ வைதிக ஜோதிட ரக்ஷை மற்றும் புனித சுப தொடர்புகள்",
+    hi: "राज वैदिक ज्योतिषीय रक्षा एवं पवित्र शुभ सान्निध्य"
+  },
+  gemstoneLabel: { en: "Lucky Gemstone", kn: "ಅದೃಷ್ಟ ರತ್ನ", te: "అదృష్ట రత్నం", ta: "அதிர்ஷ்ட ரத்தினம்", hi: "भाग्य रत्न" },
+  rudrakshaLabel: { en: "Sacred Rudraksha", kn: "ಪವಿತ್ರ ರುದ್ರಾಕ್ಷಿ", te: "పవిత్ర రుద్రాక్ష", ta: "புனித ருத்ராட்சம்", hi: "पवित्र रुद्राक्ष" },
+  ishtaDevataLabel: { en: "Ishta Devata", kn: "ಇಷ್ಟ ದೇವತೆ", te: "ఇష్ట దైవం", ta: "இஷ்ட தெய்வம்", hi: "इष्ट देवता" },
+  luckyColorsLabel: { en: "Auspicious Colors", kn: "ಶುಭ ವರ್ಣಗಳು", te: "శుభ వర్ణాలు", ta: "சுப நிறங்கள்", hi: "शुभ रंग" },
+  luckyDaysLabel: { en: "Auspicious Days", kn: "ಶುಭ ವಾರಗಳು", te: "శుభ వారాలు", ta: "சுப கிழமைகள்", hi: "शुभ वार" },
+  luckyNumbersLabel: { en: "Auspicious Numbers", kn: "ಅದೃಷ್ಟ ಸಂಖ್ಯೆಗಳು", te: "అదృష్ట సంఖ్యలు", ta: "அதிர்ஷ்ட எண்கள்", hi: "शुभ अंक" },
+  luckyDirectionLabel: { en: "Auspicious Direction", kn: "ಶುಭ ದಿಕ್ಕು", te: "శుభ దిశ", ta: "சுப திசை", hi: "शुभ दिशा" },
+
+  soulMirrorTitle: {
+    en: "The Sacred Soul Mirror: Sovereign Truths & Cosmic Vitality",
+    kn: "ಅಧ್ಯಾಯ ೧: ಅಂತರಂಗದ ತ್ರಿವಿಧ ಸತ್ಯಗಳು ಹಾಗೂ ಪಂಚಭೂತ ಚೇತನ ಶಕ್ತಿ",
+    te: "అధ్యాయం 1: అంతరంగ త్రివిధ సత్యాలు & పంచభూత చేతన శక్తి",
+    ta: "அத்தியாயம் 1: அந்தரங்கத்தின் மும்மை உண்மைகள் & பஞ்சபூத ஜீவசக்தி",
+    hi: "अध्याय १: अंतर्मन के त्रिविध सत्य एवं पंचभूत चेतना शक्ति"
+  },
+  elementalBalanceTitle: {
+    en: "Cosmic Elemental Balance (Pancha Bhoota)",
+    kn: "ಪಂಚಭೂತ ತತ್ವ ಸಮತೋಲನ",
+    te: "పంచభూత తత్త్వ సమతుల్యత",
+    ta: "பஞ்சபூத தத்துவ சமநிலை",
+    hi: "पंचभूत तत्त्व संतुलन"
+  },
+  cosmicShieldTitle: {
+    en: "Cosmic Shield Graha (Protective Guardian)",
+    kn: "ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ ಗ್ರಹ",
+    te: "జాతక రక్షా కవచ గ్రహం",
+    ta: "ஜாதக ரக்ஷா கவச கிரகம்",
+    hi: "कुंडली रक्षा कवच ग्रह"
+  },
+  mindVitalityTitle: {
+    en: "Mind Vitality & Lunar Radiance (Chandra Bala)",
+    kn: "ಚೇತನ ಶಕ್ತಿ ಹಾಗೂ ಚಂದ್ರ ಬಲ",
+    te: "చేతన శక్తి & చంద్ర బలం",
+    ta: "ஜீவசக்தி மற்றும் சந்திர பலம்",
+    hi: "चेतना शक्ति एवं चंद्र बल"
+  },
+
   characteristicsTitle: {
     en: "Characteristics of the Person",
     kn: "ವ್ಯಕ್ತಿತ್ವದ ಗುಣಲಕ್ಷಣಗಳು",
@@ -158,6 +208,20 @@ export const PDF_T: Record<string, L5> = {
     te: "జ్యోతిష్కుని సారాంశం",
     ta: "ஜோதிடரின் சுருக்கம்",
     hi: "ज्योतिषी का सारांश"
+  },
+  cosmicAuraTitle: {
+    en: "Sacred Planetary Sovereign Sphere & Cosmic Dasha-Gochara Shield",
+    kn: "ದೈವಿಕ ಗ್ರಹ ಚೇತನ ಹಾಗೂ ದಶಾ-ಗೋಚಾರ ಸಂರಕ್ಷಣಾ ಕವಚ",
+    te: "దైవిక గ్రహ చేతన మరియు దశా-గోచార సంరక్షణా కవచం",
+    ta: "தெய்வீக கிரகப் பேரொளி மற்றும் தசா-கோசார பாதுகாப்புக் கவசம்",
+    hi: "दैवीय ग्रह चेतना एवं दशा-गोचर सुरक्षा कवच"
+  },
+  annualForecastTitle: {
+    en: "Next 1-Year Master Forecast & Cosmic Dasha-Gochara Vision",
+    kn: "ಮುಂದಿನ ೧ ವರ್ಷದ ಮಹತ್ವದ ಭವಿಷ್ಯ ಹಾಗೂ ಗೋಚಾರ-ದಶಾಫಲ",
+    te: "రాబోయే 1 సంవత్సర సమగ్ర భవిష్యత్తు మరియు గోచార-దశాఫలితం",
+    ta: "அடுத்த 1 ஆண்டு முக்கிய பலன்கள் மற்றும் கோசார-தசா பலன்",
+    hi: "आगामी १ वर्ष का महत्वपूर्ण भविष्यफल एवं गोचर-दशाफल"
   },
   ashirvadaTitle: {
     en: "Blessing",
@@ -517,9 +581,9 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     .replace(/:\s*\d+\s*[×x*•]?\s*[\.]*/g, "")
     .replace(/[×x*•]\s*[\.]*/g, "")
     .replace(/\s*:\s*(?=[\s,.\-×*•]|$)/g, "")
-    .replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gm, "")
-    .replace(/[\s:,\.\-–—×*•~|]+$/gm, "")
-    .replace(/^[\s:,\.\-–—×*•~|]+$/gm, "");
+    .replace(/^[ \t:,\.\-–—×*•~|]+(?=[^ \t\r\n:,\.\-–—×*•~|])/gm, "")
+    .replace(/[ \t:,\.\-–—×*•~|]+$/gm, "")
+    .replace(/^[ \t:,\.\-–—×*•~|]+$/gm, "");
 
   // 5. Clean whitespace & punctuation spacing
   cleaned = cleaned

@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { TranslatedPrediction } from './usePredictionEngine';
 import type { KundliViewerSession } from '../../stores/kundliViewerStore';
+import { CosmicDashaAuraVisual } from './CosmicDashaAuraVisual';
 
 export type PdfTranslations = {
   title: string;
@@ -20,6 +21,28 @@ export type PdfTranslations = {
   nakshatraValue: string;
   dashaPlanetValue: string;
   bhuktiPlanetValue: string;
+  padaLabel?: string;
+  padaValue?: string;
+  lagnaLordLabel?: string;
+  lagnaLordValue?: string;
+  moonLordLabel?: string;
+  moonLordValue?: string;
+  tithiLabel?: string;
+  tithiValue?: string;
+  weekdayLabel?: string;
+  weekdayValue?: string;
+  prescriptionsTitle?: string;
+  gemstoneLabel?: string;
+  rudrakshaLabel?: string;
+  ishtaDevataLabel?: string;
+  luckyColorsLabel?: string;
+  luckyDaysLabel?: string;
+  luckyNumbersLabel?: string;
+  luckyDirectionLabel?: string;
+  soulMirrorTitle?: string;
+  elementalBalanceTitle?: string;
+  cosmicShieldTitle?: string;
+  mindVitalityTitle?: string;
   characteristicsTitle: string;
   darkSecretTitle: string;
   currentPhaseTitle?: string;
@@ -33,6 +56,8 @@ export type PdfTranslations = {
   timelineTitle: string;
   gocharaTitle: string;
   summaryTitle: string;
+  cosmicAuraTitle?: string;
+  annualForecastTitle?: string;
   footer: string;
   /**
    * Opening greeting. Optional so the older non-premium exports, which do not
@@ -46,18 +71,52 @@ export type PdfTranslations = {
 };
 
 export type PremiumData = {
+  soulMirror?: {
+    elemental: {
+      firePercent: number;
+      earthPercent: number;
+      airPercent: number;
+      waterPercent: number;
+      dominantElementKey: "Agni" | "Prithvi" | "Vayu" | "Jala";
+      dominantElementName: string;
+      dominantElementTrait: string;
+      shieldGraha: string;
+      shieldGrahaName: string;
+      shieldGrahaWhy: string;
+      moonPaksha: string;
+      moonVitalityTrait: string;
+    };
+    truth1Title: string;
+    truth1Text: string;
+    truth2Title: string;
+    truth2Text: string;
+    truth3Title: string;
+    truth3Text: string;
+    synthesisTitle?: string;
+    synthesisText?: string;
+  };
   characteristics?: { impact: string }[];
   darkSecret?: { impact: string }[];
   currentPhase?: { impact: string }[];
   yogas: { name: string; impact: string }[];
   doshas: { name: string; impact: string; remedy?: string }[];
   timeline?: { dateRange: string; impact: string }[];
+  annualForecast?: { impact: string }[];
   gochara?: { name: string; impact: string; remedy?: string }[];
   summary?: { impact: string }[];
   maandiInquest?: {
     title: string;
     paragraph1: string;
     paragraph2: string;
+  };
+  prescriptions?: {
+    gemstone: string;
+    rudraksha: string;
+    ishtaDevata: string;
+    luckyColors: string;
+    luckyDays: string;
+    luckyNumbers: string;
+    luckyDirection: string;
   };
 };
 
@@ -207,7 +266,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {translations.lagnaLabel}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.lagnaValue}
+                {translations.lagnaValue} {translations.lagnaLordValue ? `(${translations.lagnaLordLabel || "Lord"}: ${translations.lagnaLordValue})` : ""}
               </span>
             </div>
 
@@ -216,21 +275,30 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {translations.moonLabel}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.moonValue}
+                {translations.moonValue} {translations.moonLordValue ? `(${translations.moonLordLabel || "Lord"}: ${translations.moonLordValue})` : ""}
               </span>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
               <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
                 {translations.nakshatraLabel}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.nakshatraValue}
+                {translations.nakshatraValue} {translations.padaValue ? `(${translations.padaLabel || "Pada"} ${translations.padaValue})` : ""}
+              </span>
+            </div>
+
+            <div className="flex flex-col border-b border-amber-800/20 pb-3">
+              <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
+                {translations.tithiLabel || "Tithi"} / {translations.weekdayLabel || "Vaara"}
+              </span>
+              <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
+                {[translations.tithiValue, translations.weekdayValue].filter(Boolean).join(" • ") || "—"}
               </span>
             </div>
 
             {translations.dashaPlanetValue && translations.bhuktiPlanetValue && (
-              <div className="flex flex-col">
+              <div className="flex flex-col col-span-2 pt-1">
                 <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
                   {translations.eraLabel}
                 </span>
@@ -265,6 +333,200 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           </div>
         </div>
       )}
+
+      {/* ── Chapter 1: The Sacred Soul Mirror & Cosmic Elemental Vitality ──────────────── */}
+      {premiumData?.soulMirror && (
+        <div data-section="soul-mirror" className={sectionClass}>
+          {/* Main Chapter Heading */}
+          <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-8">
+            <span className="text-3xl text-amber-800">✦</span>
+            <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
+              {translations.soulMirrorTitle || (langKey === 'kn' ? "ಅಧ್ಯಾಯ ೧: ಅಂತರಂಗದ ತ್ರಿವಿಧ ಸತ್ಯಗಳು ಹಾಗೂ ಪಂಚಭೂತ ಚೇತನ ಶಕ್ತಿ" : "Chapter 1: The Sacred Soul Mirror & Cosmic Elemental Vitality")}
+            </h2>
+          </div>
+
+          <div className="space-y-8">
+            {/* Part 1: Cosmic Elemental Balance & Mind Vitality Dashboard */}
+            {premiumData.soulMirror.elemental && (
+              <div className="rounded-xl border-2 border-amber-700/40 bg-amber-100/40 p-6 shadow-sm relative overflow-hidden">
+                <div className="border-b border-amber-700/20 pb-4 mb-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-2xl font-bold text-amber-900 flex items-center gap-2">
+                      <span>☸</span>
+                      <span>{translations.elementalBalanceTitle || (langKey === 'kn' ? "ಪಂಚಭೂತ ತತ್ವ ಸಮತೋಲನ" : "Cosmic Elemental Balance")}</span>
+                    </h3>
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-800/10 text-amber-950 rounded-full border border-amber-800/30">
+                      <span className="text-sm font-semibold opacity-80">
+                        {langKey === 'kn' ? "ಪ್ರಮುಖ ತತ್ವ:" : langKey === 'hi' ? "प्रमुख तत्व:" : langKey === 'te' ? "ప్రధాన తత్త్వం:" : langKey === 'ta' ? "முக்கிய தத்துவம்:" : "Dominant Element:"}
+                      </span>
+                      <span className="text-base font-bold">
+                        {premiumData.soulMirror.elemental.dominantElementName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4 Elemental Meters */}
+                <div className="grid grid-cols-4 gap-4 mb-5">
+                  {/* Fire */}
+                  <div className="bg-amber-50/90 border border-amber-300/80 rounded-lg p-3 text-center shadow-xs">
+                    <span className="text-base font-bold text-amber-900 block mb-1.5 leading-normal tracking-normal">
+                      {langKey === 'kn' ? "ಬೆಂಕಿ (ಅಗ್ನಿ)" : langKey === 'hi' ? "अग्नि (आग)" : langKey === 'te' ? "అగ్ని (నిప్పు)" : langKey === 'ta' ? "நெருப்பு (அக்னி)" : "Fire (Agni)"}
+                    </span>
+                    <span className="text-2xl font-extrabold text-amber-950 font-serif block">
+                      {premiumData.soulMirror.elemental.firePercent}%
+                    </span>
+                  </div>
+                  {/* Earth */}
+                  <div className="bg-amber-50/90 border border-amber-300/80 rounded-lg p-3 text-center shadow-xs">
+                    <span className="text-base font-bold text-amber-900 block mb-1.5 leading-normal tracking-normal">
+                      {langKey === 'kn' ? "ಭೂಮಿ (ಪೃಥ್ವಿ)" : langKey === 'hi' ? "पृथ्वी (भूमि)" : langKey === 'te' ? "భూమి (పృథ్వి)" : langKey === 'ta' ? "பூமி (நிலம்)" : "Earth (Prithvi)"}
+                    </span>
+                    <span className="text-2xl font-extrabold text-amber-950 font-serif block">
+                      {premiumData.soulMirror.elemental.earthPercent}%
+                    </span>
+                  </div>
+                  {/* Air */}
+                  <div className="bg-amber-50/90 border border-amber-300/80 rounded-lg p-3 text-center shadow-xs">
+                    <span className="text-base font-bold text-amber-900 block mb-1.5 leading-normal tracking-normal">
+                      {langKey === 'kn' ? "ಗಾಳಿ (ವಾಯು)" : langKey === 'hi' ? "वायु (हवा)" : langKey === 'te' ? "వాయువు (గాలి)" : langKey === 'ta' ? "காற்று (வாயு)" : "Air (Vayu)"}
+                    </span>
+                    <span className="text-2xl font-extrabold text-amber-950 font-serif block">
+                      {premiumData.soulMirror.elemental.airPercent}%
+                    </span>
+                  </div>
+                  {/* Water */}
+                  <div className="bg-amber-50/90 border border-amber-300/80 rounded-lg p-3 text-center shadow-xs">
+                    <span className="text-base font-bold text-amber-900 block mb-1.5 leading-normal tracking-normal">
+                      {langKey === 'kn' ? "ನೀರು (ಜಲ)" : langKey === 'hi' ? "जल (पानी)" : langKey === 'te' ? "జలం (నీరు)" : langKey === 'ta' ? "நீர் (ஜலம்)" : "Water (Jala)"}
+                    </span>
+                    <span className="text-2xl font-extrabold text-amber-950 font-serif block">
+                      {premiumData.soulMirror.elemental.waterPercent}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dominant Element Trait */}
+                <p className="text-lg leading-relaxed text-amber-950 font-medium break-words mb-5 bg-white/60 p-4 rounded-lg border border-amber-700/15">
+                  {premiumData.soulMirror.elemental.dominantElementTrait}
+                </p>
+
+                {/* 2 Complementary Shield & Vitality Pillars */}
+                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-amber-700/20">
+                  {/* Shield Graha */}
+                  <div className="bg-amber-200/40 border border-amber-700/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl text-amber-800">🛡️</span>
+                      <span className="text-base font-bold text-amber-900">
+                        {translations.cosmicShieldTitle || (langKey === 'kn' ? "ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ ಗ್ರಹ" : "Cosmic Shield Graha")}:
+                      </span>
+                      <span className="text-lg font-extrabold text-amber-950 font-serif">
+                        {premiumData.soulMirror.elemental.shieldGrahaName}
+                      </span>
+                    </div>
+                    <p className="text-base leading-relaxed text-amber-950 font-medium break-words">
+                      {premiumData.soulMirror.elemental.shieldGrahaWhy}
+                    </p>
+                  </div>
+
+                  {/* Lunar Vitality Meter */}
+                  <div className="bg-amber-200/40 border border-amber-700/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl text-amber-800">🌙</span>
+                      <span className="text-base font-bold text-amber-900">
+                        {translations.mindVitalityTitle || (langKey === 'kn' ? "ಚೇತನ ಶಕ್ತಿ ಹಾಗೂ ಚಂದ್ರ ಬಲ" : "Mind Vitality")}:
+                      </span>
+                      <span className="text-lg font-extrabold text-amber-950 font-serif">
+                        {premiumData.soulMirror.elemental.moonPaksha}
+                      </span>
+                    </div>
+                    <p className="text-base leading-relaxed text-amber-950 font-medium break-words">
+                      {premiumData.soulMirror.elemental.moonVitalityTrait}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Part 2: The 3 Sovereign Truths of Your Soul */}
+            <div className="space-y-6">
+              {/* Truth 1 Card */}
+              {premiumData.soulMirror.truth1Text && (
+                <div className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm">
+                  <h3 className="text-2xl font-bold text-amber-900 mb-3 flex items-center gap-2">
+                    <span className="text-amber-700">①</span>
+                    <span>{premiumData.soulMirror.truth1Title}</span>
+                  </h3>
+                  <div className="space-y-3">
+                    {premiumData.soulMirror.truth1Text.split('\n').filter(p => p.trim() !== '').map((para, pIdx) => (
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Truth 2 Card */}
+              {premiumData.soulMirror.truth2Text && (
+                <div className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm">
+                  <h3 className="text-2xl font-bold text-amber-900 mb-3 flex items-center gap-2">
+                    <span className="text-amber-700">②</span>
+                    <span>{premiumData.soulMirror.truth2Title}</span>
+                  </h3>
+                  <div className="space-y-3">
+                    {premiumData.soulMirror.truth2Text.split('\n').filter(p => p.trim() !== '').map((para, pIdx) => (
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Truth 3 Card */}
+              {premiumData.soulMirror.truth3Text && (
+                <div className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm">
+                  <h3 className="text-2xl font-bold text-amber-900 mb-3 flex items-center gap-2">
+                    <span className="text-amber-700">③</span>
+                    <span>{premiumData.soulMirror.truth3Title}</span>
+                  </h3>
+                  <div className="space-y-3">
+                    {premiumData.soulMirror.truth3Text.split('\n').filter(p => p.trim() !== '').map((para, pIdx) => (
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Sacred Cosmic Dasha-Gochara Aura & Astral Shield ────────────── */}
+      <div data-section="cosmic-aura" className={sectionClass}>
+        <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-6">
+          <span className="text-3xl text-amber-800">🪐</span>
+          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
+            {translations.cosmicAuraTitle || (langKey === 'kn' ? "ದೈವಿಕ ಗ್ರಹ ಚೇತನ ಹಾಗೂ ದಶಾ-ಗೋಚಾರ ಸಂರಕ್ಷಣಾ ಕವಚ" : "Sacred Planetary Sovereign Sphere & Cosmic Dasha-Gochara Shield")}
+          </h2>
+        </div>
+        <CosmicDashaAuraVisual
+          lagnaName={translations.lagnaValue}
+          lagnaIndex={session.result.lagnaRashi?.index ?? 0}
+          lagnaLordName={translations.lagnaLordValue}
+          moonName={translations.moonValue}
+          moonIndex={session.result.moonSign?.index ?? 0}
+          nakshatraName={translations.nakshatraValue}
+          pada={translations.padaValue}
+          mahaLord={translations.dashaPlanetValue}
+          bhuktiLord={translations.bhuktiPlanetValue}
+          elementName={premiumData?.soulMirror?.elemental?.dominantElementName}
+          lang={langKey}
+        />
+      </div>
 
       {/* ── Characteristics Section ───────────────────────────────────────── */}
       {hasContent(premiumData?.characteristics) && (
@@ -359,12 +621,17 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             {preds.map((pred, idx) => (
               <div key={idx} className="space-y-6">
                 {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const isDoshaOrShield = paragraph.trim().startsWith('【') || paragraph.trim().startsWith('[');
+                  const trimmed = paragraph.trim();
+                  const isDoshaOrShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isDoshaOrShield) {
+                    const isBenefic = /ಶುಭ|ಧನಲಕ್ಷ್ಮಿ|ಆರೋಗ್ಯ ಭಾಗ್ಯ|Benefic|Auspicious|Grace|Shield|कवच|యోగం|நன்மை/i.test(trimmed);
+                    const boxStyle = isBenefic
+                      ? "bg-emerald-50/90 border border-emerald-300/80 rounded-xl text-emerald-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                      : "bg-rose-50/90 border border-rose-300/80 rounded-xl text-rose-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap";
                     return (
                       <div
                         key={pIdx}
-                        className="bg-rose-50/90 border border-rose-300/80 rounded-xl text-rose-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                        className={boxStyle}
                       >
                         {paragraph}
                       </div>
@@ -498,6 +765,52 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
+      {/* ── Next 1-Year Master Forecast & Cosmic Dasha-Gochara Vision ─────── */}
+      {hasContent(premiumData?.annualForecast) && (
+        <div data-section="annual-forecast" className={sectionClass}>
+          <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-8">
+            <span className="text-3xl text-amber-800">✦</span>
+            <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
+              {translations.annualForecastTitle || (langKey === 'kn' ? "ಮುಂದಿನ ೧ ವರ್ಷದ ಮಹತ್ವದ ಭವಿಷ್ಯ ಹಾಗೂ ಗೋಚಾರ-ದಶಾಫಲ" : "Next 1-Year Master Forecast & Cosmic Dasha-Gochara Vision")}
+            </h2>
+          </div>
+          <div className="space-y-6">
+            {premiumData!.annualForecast!.map((item, idx) => (
+              <div key={idx} className="space-y-6">
+                {(item.impact || "").split(/\n\n+/).filter(p => p.trim() !== '').map((paragraph, pIdx) => {
+                  const trimmed = paragraph.trim();
+                  const isHeader = trimmed.startsWith("【") && trimmed.includes("】");
+                  if (isHeader) {
+                    const headerEnd = trimmed.indexOf("】") + 1;
+                    const headerPart = trimmed.substring(0, headerEnd);
+                    const restPart = trimmed.substring(headerEnd).trim();
+                    return (
+                      <div key={pIdx} className="p-6 rounded-xl border-2 border-amber-600/50 bg-gradient-to-br from-amber-100/70 via-orange-50/50 to-amber-100/50 shadow-md relative overflow-hidden">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-amber-900 font-bold text-2xl font-serif">{headerPart}</span>
+                        </div>
+                        {restPart && (
+                          <p className="text-xl leading-loose text-amber-950 font-medium text-left break-words whitespace-pre-wrap">
+                            {restPart}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={pIdx} className="p-6 rounded-xl border border-amber-800/30 bg-amber-100/30 shadow-sm">
+                      <p className="text-xl leading-loose text-amber-950 font-medium text-left break-words whitespace-pre-wrap">
+                        {trimmed}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Astrologer's Summary ──────────────────────────────────────────── */}
       {hasContent(premiumData?.summary) && (
         <div data-section="summary" id="pdf-section-summary" className={sectionClass}>
@@ -514,6 +827,98 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 ))}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Royal Astro-Vedic Prescriptions ─────────────────────────────────── */}
+      {premiumData?.prescriptions && (
+        <div data-section="prescriptions" className={sectionClass}>
+          <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-8">
+            <span className="text-3xl text-amber-700">❖</span>
+            <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
+              {translations.prescriptionsTitle || "Royal Astro-Vedic Prescriptions & Sacred Alignments"}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-5 mb-4">
+            {/* Lucky Gemstone */}
+            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl text-amber-800">💎</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
+                  {translations.gemstoneLabel || "Lucky Gemstone"}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.gemstone}
+              </p>
+            </div>
+
+            {/* Sacred Rudraksha */}
+            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl text-amber-800">📿</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
+                  {translations.rudrakshaLabel || "Sacred Rudraksha"}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.rudraksha}
+              </p>
+            </div>
+
+            {/* Ishta Devata */}
+            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl text-amber-800">🔱</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
+                  {translations.ishtaDevataLabel || "Ishta Devata"}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.ishtaDevata}
+              </p>
+            </div>
+
+            {/* Auspicious Colors */}
+            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl text-amber-800">🎨</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
+                  {translations.luckyColorsLabel || "Auspicious Colors"}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.luckyColors}
+              </p>
+            </div>
+
+            {/* Auspicious Days */}
+            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl text-amber-800">🗓️</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
+                  {translations.luckyDaysLabel || "Auspicious Days"}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.luckyDays}
+              </p>
+            </div>
+
+            {/* Auspicious Numbers & Direction */}
+            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl text-amber-800">🧭</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
+                  {translations.luckyNumbersLabel || "Auspicious Numbers"} &amp; {translations.luckyDirectionLabel || "Direction"}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.luckyNumbers} • {premiumData.prescriptions.luckyDirection}
+              </p>
+            </div>
           </div>
         </div>
       )}

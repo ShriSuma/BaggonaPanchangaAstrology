@@ -5,6 +5,7 @@ import type {
   DetectedGandantara,
   DetectedFear
 } from "../../core/ComprehensiveDoshaEngine";
+import { cleanDegreesFromText } from "../../features/premiumPdf/yogaDoshaGocharaEnricher";
 
 export type SupportedLanguage = "kn" | "hi" | "te" | "ta" | "en";
 
@@ -721,7 +722,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       <div style={{ background: "#FFFDF8", border: "1px solid #E5C378", borderRadius: "6px", padding: "5px 8px", minWidth: 0 }}>
                         <div style={{ fontWeight: 800, color: "#78350F", lineHeight: 1.4 }}>🔍 {t.technicalRootLabel}</div>
                         <div style={{ color: "#451A03", marginTop: "2px", lineHeight: 1.45 }}>
-                          {getLangVal(dosha.technicalWhy)}
+                          {cleanDegreesFromText(getLangVal(dosha.technicalWhy))}
                         </div>
                       </div>
 
@@ -1008,7 +1009,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                     </div>
 
                     <div style={{ color: "#92400E", fontWeight: 700, marginTop: "2px", lineHeight: 1.45 }}>
-                      ⛔ {t.mandatoryPrecautionLabel} {getLangArr(g.cautionDirectives).slice(0, 2).join(" • ") || getLangVal(g.technicalReason)}
+                      ⛔ {t.mandatoryPrecautionLabel} {getLangArr(g.cautionDirectives).slice(0, 2).join(" • ") || cleanDegreesFromText(getLangVal(g.technicalReason))}
                     </div>
 
                     <div style={{ color: "#451A03", fontWeight: 700, marginTop: "2px", lineHeight: 1.45 }}>

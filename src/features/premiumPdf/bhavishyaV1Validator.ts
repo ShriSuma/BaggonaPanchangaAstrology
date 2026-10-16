@@ -49,6 +49,13 @@ function getLocalizedSectionName(key: string, baseLang: string): string {
       ta: "ஜென்ம ராசி (Moon Sign)",
       en: "Moon Sign"
     },
+    soulMirror: {
+      kn: "ಅಧ್ಯಾಯ ೧: ಅಂತರಂಗದ ತ್ರಿವಿಧ ಸತ್ಯಗಳು ಹಾಗೂ ಪಂಚಭೂತ ಚೇತನ ಶಕ್ತಿ (Soul Mirror & Cosmic Vitality)",
+      hi: "अध्याय १: अंतर्मन के त्रिविध सत्य एवं पंचभूत चेतना शक्ति (Soul Mirror & Cosmic Vitality)",
+      te: "అధ్యాయం 1: అంతరంగ త్రివిధ సత్యాలు & పంచభూత చేతన శక్తి (Soul Mirror & Cosmic Vitality)",
+      ta: "அத்தியாயம் 1: அந்தரங்கத்தின் மும்மை உண்மைகள் & பஞ்சபூத ஜீவசக்தி (Soul Mirror & Cosmic Vitality)",
+      en: "Chapter 1: The Sacred Soul Mirror & Cosmic Elemental Vitality"
+    },
     characteristics: {
       kn: "ಅಧ್ಯಾಯ ೨: ಜನ್ಮ ಲಗ್ನ ವ್ಯಕ್ತಿತ್ವ (Characteristics)",
       hi: "अध्याय २: जन्म लग्न व्यक्तित्व (Characteristics)",
@@ -119,6 +126,20 @@ function getLocalizedSectionName(key: string, baseLang: string): string {
       ta: "அத்தியாயம் 9: அடுத்த 6 மாத காலச்சக்கரம் (6-Month Timeline)",
       en: "Chapter 9: The Next 6 Months Planetary Timeline"
     },
+    cosmicAura: {
+      kn: "ದೈವಿಕ ಗ್ರಹ ಚೇತನ ಹಾಗೂ ದಶಾ-ಗೋಚಾರ ಸಂರಕ್ಷಣಾ ಕವಚ (Cosmic Aura & Astral Shield)",
+      hi: "दैवीय ग्रह चेतना एवं दशा-गोचर सुरक्षा कवच (Cosmic Aura & Astral Shield)",
+      te: "దైవిక గ్రహ చేతన మరియు దశా-గోచార సంరక్షణా కవచం (Cosmic Aura & Astral Shield)",
+      ta: "தெய்வீக கிரகப் பேரொளி மற்றும் தசா-கோசார பாதுகாப்புக் கவசம் (Cosmic Aura & Astral Shield)",
+      en: "Sacred Planetary Sovereign Sphere & Cosmic Dasha-Gochara Shield"
+    },
+    annualForecast: {
+      kn: "ಮುಂದಿನ ೧ ವರ್ಷದ ಮಹತ್ವದ ಭವಿಷ್ಯ ಹಾಗೂ ಗೋಚಾರ-ದಶಾಫಲ (Next 1-Year Master Forecast)",
+      hi: "आगामी १ वर्ष का महत्वपूर्ण भविष्यफल एवं गोचर-दशाफल (Next 1-Year Master Forecast)",
+      te: "రాబోయే 1 సంవత్సర సమగ్ర భవిష్యత్తు మరియు గోచార-దశాఫలితం (Next 1-Year Master Forecast)",
+      ta: "அடுத்த 1 ஆண்டு முக்கிய பலன்கள் மற்றும் கோசார-தசா பலன் (Next 1-Year Master Forecast)",
+      en: "Next 1-Year Master Forecast & Cosmic Alignment"
+    },
     summary: {
       kn: "ಅಧ್ಯಾಯ ೧೦: ಜ್ಯೋತಿಷಿಯ ಸಾರಾಂಶ (Astrologer's Summary / Saramsha)",
       hi: "अध्याय १०: ज्योतिषी का सारांश (Astrologer's Summary / Saramsha)",
@@ -181,6 +202,18 @@ export function validateBhavishyaV1Content(
     }
 
     if (pd) {
+      // A1. Chapter 1: The Sacred Soul Mirror & Cosmic Elemental Vitality
+      const sm = pd.soulMirror;
+      const hasSoulMirror = sm &&
+        (sm.truth1Text || "").trim().length >= 80 &&
+        (sm.truth2Text || "").trim().length >= 80 &&
+        (sm.truth3Text || "").trim().length >= 80 &&
+        sm.elemental &&
+        (sm.elemental.dominantElementName || "").trim().length > 0;
+      if (!hasSoulMirror) {
+        missing.push(getLocalizedSectionName("soulMirror", baseLang));
+      }
+
       // B. Chapter 2: Characteristics
       const hasCharacteristics = pd.characteristics &&
         pd.characteristics.length > 0 &&
@@ -258,6 +291,14 @@ export function validateBhavishyaV1Content(
         missing.push(getLocalizedSectionName("timeline", baseLang));
       }
 
+      // J1. Next 1-Year Master Forecast
+      const hasAnnual = pd.annualForecast &&
+        pd.annualForecast.length > 0 &&
+        pd.annualForecast.some(a => (a.impact || "").trim().length >= 100);
+      if (!hasAnnual) {
+        missing.push(getLocalizedSectionName("annualForecast", baseLang));
+      }
+
       // K. Chapter 10: Astrologer's Summary (Saramsha) - STRICT CRITICAL VALIDATION
       const hasSummary = pd.summary &&
         pd.summary.length > 0 &&
@@ -304,6 +345,12 @@ export function validateBhavishyaV1Content(
         ? `அறிக்கை பக்க வடிவமைப்பு முழுமையடையவில்லை (உயரம்: ${domHeight}px - குறைந்தபட்சம் 3500px தேவை)`
         : `Rendered DOM height too short (${domHeight}px, minimum 3500px required)`;
       missing.push(msg);
+    }
+
+    // Explicitly verify Soul Mirror in the rendered DOM across all 5 languages
+    const soulMirrorSection = containerEl.querySelector('[data-section="soul-mirror"]');
+    if (!soulMirrorSection) {
+      missing.push(getLocalizedSectionName("soulMirror", baseLang));
     }
 
     // Explicitly verify Saramsha (Astrologer's Summary) in the rendered DOM across all 5 languages

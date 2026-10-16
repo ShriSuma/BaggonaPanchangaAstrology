@@ -47,6 +47,7 @@ import { notifyPasswordResetCompleted, notifySystemFailureAlert, notifyPremiumPd
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
 import { translateText } from "../../utils/translator";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
+import { ensureAtLeastThreeParagraphs } from "../premiumPdf/bhavishyaV1Service";
 import { PdfTemplate, type PdfTranslations, type PremiumData } from "../../components/RamanBhavishya/PdfTemplate";
 import { GokarnaKundaliTemplate } from "../../components/template/GokarnaKundaliTemplate";
 import { DashaPdfTemplate } from "../../components/kundli/DashaPdfTemplate";
@@ -121,7 +122,10 @@ const ensureValidSection = async (
   const safeItems = toSafeArray(items);
   const validItems = safeItems.filter(item => item && (item.impact || item.description || item.trait || "").trim().length > 10);
   if (validItems.length > 0) {
-    return validItems;
+    return validItems.map(item => ({
+      ...item,
+      impact: ensureAtLeastThreeParagraphs(item.impact || item.description || item.trait || "", fallbackText, 3)
+    }));
   }
   const translatedFallback = await translateText(fallbackText, targetLang);
   return [{ impact: translatedFallback }];

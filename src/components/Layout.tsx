@@ -18,32 +18,10 @@ import { FloatingCoinDeductionBadge } from "./wallet/FloatingCoinDeductionBadge"
 import { getNavLabel } from "../i18n/navigationLocale";
 import InstallPrompt from "./InstallPrompt";
 import { SuperAdminAiPet } from "./pet/SuperAdminAiPet";
+import CategorizedNavDrawer from "./navigation/CategorizedNavDrawer";
 
 type Props = {
   children: ReactNode;
-};
-
-const TabButton = ({ page, icon, label, onClose }: { page: AppPage; icon: string; label: string; onClose?: () => void }) => {
-  const currentPage = useAppStore((s) => s.currentPage);
-  const setPage = useAppStore((s) => s.setPage);
-  const active = currentPage === page;
-  return (
-    <button
-      type="button"
-      className={`flex items-center w-full px-6 py-4 text-left transition-colors ${
-        active 
-          ? "bg-amber-50 dark:bg-amber-900/20 text-[color:var(--jk-accent)] border-r-4 border-[color:var(--jk-accent)]" 
-          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-      }`}
-      onClick={() => {
-        setPage(page);
-        onClose?.();
-      }}
-    >
-      <span className="w-8 text-xl" aria-hidden>{icon}</span>
-      <span className="font-medium">{label}</span>
-    </button>
-  );
 };
 
 export default function Layout({ children }: Props): JSX.Element {
@@ -195,6 +173,14 @@ export default function Layout({ children }: Props): JSX.Element {
             <span>📜</span>
             <span className="hidden md:inline">ಪೂಜಾ ಯೋಜನೆ</span>
           </button>
+          <button
+            onClick={() => setPage("package_download")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/30 to-yellow-500/30 border border-amber-300 text-amber-200 hover:bg-amber-500/40 text-xs font-bold transition-all shadow-xs"
+            title="ಸಂಪೂರ್ಣ ಜಾತಕ & ಪರಿಹಾರ ಸಂಪುಟ / Devotee Complete Astrology & Remedy Package"
+          >
+            <span>📦</span>
+            <span className="hidden sm:inline">ಸಂಪುಟ ಡೌನ್‌ಲೋಡ್</span>
+          </button>
           {/* Super Admin Control Center Button */}
           {role === "superadmin" && (
             <button
@@ -305,117 +291,23 @@ export default function Layout({ children }: Props): JSX.Element {
       {/* Super Admin AI Assistant Pet (Kamadhenu) - Accessible strictly to Super Admin */}
       {isMasterOrSuperAdmin && <SuperAdminAiPet />}
 
-      {/* Side Drawer Navigation - STRICTLY ONLY RENDERED FOR MASTER/SUPERADMIN */}
-      {isMasterOrSuperAdmin && isDrawerOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity" 
-          onClick={() => setIsDrawerOpen(false)}
-        />
-      )}
-      
+      {/* Smart, Categorized Navigation Drawer with Headings, Subtopics & Search */}
       {isMasterOrSuperAdmin && (
-        <div 
-          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${
-            isDrawerOpen ? "translate-x-0" : "-translate-x-full"
-          } flex flex-col overflow-hidden`}
-        >
-          <div className="p-6 border-b border-amber-100 dark:border-slate-800 bg-amber-50/50 dark:bg-slate-900 flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-bold text-amber-900 dark:text-amber-100">{t("app.title")}</h2>
-              <p className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-1 font-medium tracking-wide">{getNavLabel("menuHeader", language)}</p>
-            </div>
-            <button onClick={() => setIsDrawerOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </div>
-          
-          <nav className="flex-1 overflow-y-auto py-2">
-            <TabButton page="home" icon="⌂" label={getNavLabel("home", language)} onClose={() => setIsDrawerOpen(false)} />
-            {role === "superadmin" && (
-              <TabButton page="superadmindashboard" icon="🛡️" label={getNavLabel("superadmindashboard", language)} onClose={() => setIsDrawerOpen(false)} />
-            )}
-            <TabButton page="calendar" icon="📅" label={getNavLabel("calendar", language)} onClose={() => setIsDrawerOpen(false)} />
-            <TabButton page="public_kundli" icon="🌟" label={getNavLabel("public_kundli", language)} onClose={() => setIsDrawerOpen(false)} />
-            <TabButton page="aiaastrologer" icon="🔮" label={getNavLabel("aiaastrologer", language)} onClose={() => setIsDrawerOpen(false)} />
-            <TabButton page="priestdashboard" icon="🪙" label={getNavLabel("priestdashboard", language)} onClose={() => setIsDrawerOpen(false)} />
-            
-            {hasPanchanga && (
-              <>
-                <TabButton page="varamahalakshmi" icon="🌸" label={getNavLabel("varamahalakshmi", language)} onClose={() => setIsDrawerOpen(false)} />
-                <TabButton page="kundli" icon="◈" label={getNavLabel("kundli", language)} onClose={() => setIsDrawerOpen(false)} />
-                
-                {(session || isMasterOrSuperAdmin) && (
-                  <>
-                    <div className="px-6 py-3 mt-2 mb-1 text-xs font-bold text-amber-700/80 dark:text-amber-500/80 uppercase tracking-widest bg-amber-50/30 dark:bg-slate-800/30">
-                      {getNavLabel("premiumSection", language)}
-                    </div>
-                    <TabButton page="baggona" icon="📜" label={getNavLabel("baggona", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="bhagyodaya" icon="🌟" label={getNavLabel("bhagyodaya", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="predictions" icon="✦" label={getNavLabel("predictions", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="insights" icon="☍" label={getNavLabel("insights", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="ramanbhavishya" icon="📖" label={getNavLabel("ramanbhavishya", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="aiaastrologer" icon="🤖" label={getNavLabel("aiaastrologer", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="seva" icon="🪔" label={getNavLabel("seva", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="guided_pooja" icon="🕉️" label={getNavLabel("guided_pooja", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="pooja_estimate" icon="📜" label={getNavLabel("pooja_estimate", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="quick_calendar" icon="📅" label={getNavLabel("quick_calendar", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <TabButton page="astodaya_grahana" icon="☀️" label={getNavLabel("astodaya_grahana", language)} onClose={() => setIsDrawerOpen(false)} />
-                    <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-                  </>
-                )}
-                
-                <TabButton page="muhurtha" icon="🔔" label={getNavLabel("muhurtha", language)} onClose={() => setIsDrawerOpen(false)} />
-              </>
-            )}
-
-            {hasSankhya && (
-              <TabButton page="sankhyashastra" icon="🔢" label={getNavLabel("sankhyashastra", language)} onClose={() => setIsDrawerOpen(false)} />
-            )}
-
-            {hasPanchanga && (
-              <>
-                <TabButton page="palmreading" icon="✋" label={getNavLabel("palmreading", language)} onClose={() => setIsDrawerOpen(false)} />
-                <TabButton page="facereading" icon="👤" label={getNavLabel("facereading", language)} onClose={() => setIsDrawerOpen(false)} />
-                <TabButton page="maranottara" icon="🪔" label={getNavLabel("maranottara", language)} onClose={() => setIsDrawerOpen(false)} />
-              </>
-            )}
-
-            {hasPurvaJanma && (
-              <TabButton page="hindinajanma" icon="🕉️" label={getNavLabel("hindinajanma", language)} onClose={() => setIsDrawerOpen(false)} />
-            )}
-
-            {hasPanchanga && (
-              <TabButton page="lifeguidance" icon="🔮" label={getNavLabel("lifeguidance", language)} onClose={() => setIsDrawerOpen(false)} />
-            )}
-
-            {hasDiksuchi && (
-              <TabButton page="kaaladiksuchi" icon="🧭" label={getNavLabel("kaaladiksuchi", language)} onClose={() => setIsDrawerOpen(false)} />
-            )}
-
-            {hasPanchanga && (
-              <>
-                <TabButton page="ayursanjeevini" icon="🛡️" label={getNavLabel("ayursanjeevini", language)} onClose={() => setIsDrawerOpen(false)} />
-                <TabButton page="astrogames" icon="🎮" label={getNavLabel("astrogames", language)} onClose={() => setIsDrawerOpen(false)} />
-                <TabButton page="varshabavishya" icon="🔮" label={getNavLabel("varshabavishya", language)} onClose={() => setIsDrawerOpen(false)} />
-                <TabButton page="melapak" icon="💞" label={getNavLabel("melapak", language)} onClose={() => setIsDrawerOpen(false)} />
-              </>
-            )}
-            <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-            <TabButton page="settings" icon="⚙" label={getNavLabel("settings", language)} onClose={() => setIsDrawerOpen(false)} />
-            <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-            <button
-              type="button"
-              onClick={() => {
-                setIsDrawerOpen(false);
-                useAuthStore.getState().logout();
-              }}
-              className="flex items-center w-full px-6 py-4 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors font-medium"
-            >
-              <span className="w-8 text-xl" aria-hidden>🚪</span>
-              <span>{getNavLabel("signOut", language)}</span>
-            </button>
-          </nav>
-        </div>
+        <CategorizedNavDrawer
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          role={role}
+          isMasterOrSuperAdmin={isMasterOrSuperAdmin}
+          language={language}
+          currentUser={currentUser}
+          priestName={wallet?.priestName}
+          hasPanchanga={hasPanchanga}
+          hasSankhya={hasSankhya}
+          hasDiksuchi={hasDiksuchi}
+          hasPurvaJanma={hasPurvaJanma}
+          hasPublicKundli={hasPublicKundli}
+          session={session}
+        />
       )}
     </div>
   );

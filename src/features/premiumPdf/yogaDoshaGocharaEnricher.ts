@@ -44,15 +44,69 @@ export function cleanPunctuationArtifacts(text: string): string {
 }
 
 /**
+ * Strips technical degree coordinates, minutes, degree symbols, and technical orbital jargon
+ * from end-user facing text across all 5 languages (kn, hi, te, ta, en).
+ * Converts technical phrases into smooth, devotional, easily understood sentences.
+ */
+export function cleanDegreesFromText(text: string): string {
+  if (!text) return "";
+  let s = text;
+
+  // Specific Kannada coordinate patterns:
+  s = s.replace(/ಸೂರ್ಯನ\s*ರೇಖಾಂಶ[^.,]*?ಮತ್ತು\s*ಚಂದ್ರನ\s*ರೇಖಾಂಶ[^.,]*?ಸಂಕಲನವು[^.,]*?ಆಗಿದ್ದು,?\s*(?:ಸಂಕಲನವು\s*ನಿಖರವಾಗಿ\s*)?/gu, "ಸೂರ್ಯ ಮತ್ತು ಚಂದ್ರ ಗ್ರಹಗಳ ಸಂಯೋಗದಿಂದ ");
+  s = s.replace(/ಸೂರ್ಯನ\s*ರೇಖಾಂಶ\s*\([^)]*\)\s*ಮತ್ತು\s*ಚಂದ್ರನ\s*ರೇಖಾಂಶಗಳ\s*\([^)]*\)\s*ಸಂಕಲನವು\s*ನಿಖರವಾಗಿ\s*[^,\s]+\s*ಆಗಿದ್ದು/gu, "ಸೂರ್ಯ ಮತ್ತು ಚಂದ್ರ ಗ್ರಹಗಳ ಸಂಯೋಗದಿಂದ ");
+  s = s.replace(/ಸೂರ್ಯನ\s*ರೇಖಾಂಶ\s*ಮತ್ತು\s*ಚಂದ್ರನ\s*ರೇಖಾಂಶಗಳ\s*ಸಂಕಲನವು\s*ನಿಖರವಾಗಿ\s*[^,\s]+\s*ಆಗಿದ್ದು/gu, "ಸೂರ್ಯ ಮತ್ತು ಚಂದ್ರ ಗ್ರಹಗಳ ಸಂಯೋಗದಿಂದ ");
+  s = s.replace(/(?:ಸೂರ್ಯನ|ಚಂದ್ರನ)?\s*ರೇಖಾಂಶ(?:ಗಳ)?\s*(?:\([^)]*\)|[\d\.\s°'′೦-೯]+)?/gu, "");
+  s = s.replace(/ನಿಖರವಾಗಿ\s*[\d\.\s°'′೦-೯]+\s*ಆಗಿದ್ದು,?\s*/gu, "");
+  s = s.replace(/ಸಂಕಲನವು\s*ನಿಖರವಾಗಿ\s*/gu, "");
+
+  // Hindi coordinate patterns:
+  s = s.replace(/सूर्य\s*एवं\s*चंद्र\s*के\s*भोगांशों\s*का\s*योग[^.,]*?है,?\s*/gu, "सूर्य एवं चंद्र के योग से ");
+  s = s.replace(/(?:सूर्य|चंद्र)?\s*के?\s*भोगांश(?:ों)?\s*(?:\([^)]*\)|[\d\.\s°'′०-९]+)?/gu, "");
+
+  // English coordinate patterns:
+  s = s.replace(/sum\s+of\s+solar\s*(?:\([^)]*\))?\s*and\s+lunar\s*(?:\([^)]*\))?\s*sidereal\s+longitudes\s+equals\s+[^,.]+/gi, "celestial alignment of Sun and Moon");
+  s = s.replace(/sidereal\s+longitudes?\s*(?:\([^)]*\)|[\d\.\s°'′]+)?/gi, "");
+  s = s.replace(/within\s+a?\s*close\s+[\d\.]+°\s+orb/gi, "in close conjunction");
+  s = s.replace(/within\s+[\d\.]+°\s+orb/gi, "in close conjunction");
+  s = s.replace(/\bat\s+\d+°\d+['′]?/gi, "");
+
+  // Bracketed degree coordinates like: (ಕರ್ಕಾಟಕ - 23°14'), (23°14'), (Aries at 10°00'), (15°56')
+  s = s.replace(/\(\s*([^\d°)\n]+)\s*[-–—]\s*[\d೦-೯०-९]+°(?:\s*[\d೦-೯०-९]+['′]?)?\s*\)/gu, "($1)");
+  s = s.replace(/\(\s*([A-Za-z\s]+)\s+at\s+\d+°(?:\d+['′]?)?\s*\)/gu, "($1)");
+  s = s.replace(/\(\s*[\d೦-೯०-९]+(?:\.[\d೦-೯०-९]+)?°(?:\s*[\d೦-೯०-९]+['′]?)?\s*\)/gu, "");
+  s = s.replace(/\(\s*[\d\.\s°'′\-–—೦-೯०-९]+\s*\)/gu, "");
+
+  // Standalone degree symbols or words:
+  s = s.replace(/[\d೦-೯०-९]+(?:\.[\d೦-೯०-९]+)?°(?:\s*[\d೦-೯०-९]+['′]?)?/gu, "");
+  s = s.replace(/°/g, "");
+  s = s.replace(/\b[\d೦-೯]+\s*ಡಿಗ್ರಿ(?:ಗಿಂತ)?\b/gu, "");
+  s = s.replace(/\b[\d०-९]+\s*डिग्री\b/gu, "");
+  s = s.replace(/\b\d+\s*degree(?:s)?\b/gi, "");
+  s = s.replace(/೧೮೦\s*ಡಿಗ್ರಿ\s*ಅಕ್ಷದ/gu, "ಅಕ್ಷದ");
+  s = s.replace(/೧೨\s*ಡಿಗ್ರಿಗಿಂತ\s*ಹೆಚ್ಚು\s*ಅಂತರವಿರುವುದರಿಂದ/gu, "ಸಾಕಷ್ಟು ಅಂತರವಿರುವುದರಿಂದ");
+
+  // Clean dangling spaces, punctuation around stripped items (preserving paragraph newlines)
+  s = s.replace(/\([^\S\r\n]*-[^\S\r\n]*\)/g, "");
+  s = s.replace(/\([^\S\r\n]*\)/g, "");
+  s = s.replace(/[^\S\r\n]{2,}/g, " ");
+  s = s.replace(/[^\S\r\n]+([,.:;!?])/g, "$1");
+  s = s.replace(/([(\[{])[^\S\r\n]+/g, "$1");
+  s = s.replace(/[^\S\r\n]+([)\]}])/g, "$1");
+
+  return s.trim();
+}
+
+/**
  * Formats exactly two paragraphs separated by \n\n.
  * If a prior short text exists, it is merged into Paragraph 1 ONLY IF it is authentic,
  * substantial (>= 25 chars), and does NOT contain broken punctuation residue (e.g. ".. ,").
  */
 function formatTwoParagraphs(p1: string, p2: string, cleanImpact?: string): string {
-  const p1Clean = cleanPunctuationArtifacts(p1);
-  const p2Clean = cleanPunctuationArtifacts(p2);
+  const p1Clean = cleanDegreesFromText(cleanPunctuationArtifacts(p1));
+  const p2Clean = cleanDegreesFromText(cleanPunctuationArtifacts(p2));
 
-  const rawShort = cleanPunctuationArtifacts((cleanImpact || "").replace(/[\r\n]+/g, " "));
+  const rawShort = cleanDegreesFromText(cleanPunctuationArtifacts((cleanImpact || "").replace(/[\r\n]+/g, " ")));
 
   // Detect script requirements:
   const isKnScript = /[\u0C80-\u0CFF]/.test(p1Clean);
@@ -79,7 +133,7 @@ function formatTwoParagraphs(p1: string, p2: string, cleanImpact?: string): stri
     ? `${rawShort}${/[.!?|।॥]$/.test(rawShort) ? " " : ". "}${p1Clean}`
     : p1Clean;
 
-  return `${cleanPunctuationArtifacts(para1)}\n\n${p2Clean}`;
+  return cleanDegreesFromText(`${cleanPunctuationArtifacts(para1)}\n\n${p2Clean}`);
 }
 
 /**
@@ -104,7 +158,7 @@ export function enrichYogaDescription(
   // If text already has 2 generous paragraphs with at least 180 chars each, preserve it
   if (hasTwoSubstantialParagraphs(cleanImpact, 180)) {
     const preserved = baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
-    return cleanPunctuationArtifacts(preserved);
+    return cleanDegreesFromText(cleanPunctuationArtifacts(preserved));
   }
 
   // 1. GAJAKESARI YOGA
@@ -327,7 +381,7 @@ export function enrichDoshaDescription(
 
   // If text already has 2 generous paragraphs with at least 180 chars each, preserve it ONLY IF it doesn't violate maritalStatus
   if (hasTwoSubstantialParagraphs(cleanImpact, 180) && !(isMarried && hasMarriageDelayLeak)) {
-    return baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
+    return cleanDegreesFromText(baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang));
   }
 
   // 1. KUJA DOSHA / MANGLIK DOSHA
@@ -448,7 +502,7 @@ export function enrichDoshaDescription(
       return formatTwoParagraphs(p1, p2, cleanImpact);
     }
     if (baseLang === "te") {
-      const p1 = `మీ జన్మ కుండలిలో ధర్మకారకుడైన దేవగురు బృహస్పతి మరియు భ్రమకారకుడైన రాహువు కలయిక వల్ల గురు చండాల దోషం ఏర్పడింది. గురుడు సంప్రదాయ విజ్ఞానం, నైతిక విలువలు మరియు దైవభక్తికి ప్రతీక కాగా, రాహువు సంప్రదాయాలను ప్రశ్నించే వినూత్న శక్తులకు మూలం. ఈ సంయోగం ఆలోచనలలో అసాంప్రదాయిక దృక్పథాన్ని, అంతర్గత సందేహాలను మరియు పెద్దలతో వైचारिक విభేదాలను కలుగజేసే అవకాశముంది.`;
+      const p1 = `మీ జన్మ కుండలిలో ధర్మకారకుడైన దేవగురు బృహస్పతి మరియు భ్రమకారకుడైన రాహువు కలయిక వల్ల గురు చండాల దోషం ఏర్పడింది. గురుడు సంప్రదాయ విజ్ఞానం, నైతిక విలువలు మరియు దైవభక్తికి ప్రతీక కాగా, రాహువు సంప్రదాయాలను ప్రశ్నించే వినూత్న శక్తులకు మూలం. ఈ సంయోగం ఆలోచనలలో అసాంప్రదాయిక దృక్పథాన్ని, అంతర్గత సందేహాలను మరియు పెద్దలతో వైచారిక విభేదాలను కలుగజేసే అవకాశముంది.`;
       const p2 = `ప్రస్తుతం మీ దైనందిన జీవితంలో ఈ దోష ప్రభావం వలన నిర్ణయాలలో తికమక కలగడం లేదా అనుభవజ్ఞుల సలహాలను పక్కనబెట్టే ధోరణి కనిపించవచ్చు. త్వరగా సంపాదించాలనే ఆలోచనతో తొందరపడి పెట్టుబడులు పెట్టడం శ్రేయస్కరం కాదు. రోజూ గురు చరిత్ర పారాయణం చేయడం, గురువులను గౌరవించడం మరియు ముఖ్యమైన నిర్ణయాలలో పెద్దల ఆశీస్సులు తీసుకోవడం వల్ల ఈ ప్రతికూలతలు తొలగి ఆలోచనలలో దివ్యమైన వివేకం కలుగుతుంది.`;
       return formatTwoParagraphs(p1, p2, cleanImpact);
     }
@@ -509,7 +563,7 @@ export function enrichGocharaDescription(
 
   // If text already has 2 generous paragraphs with at least 180 chars each, preserve it
   if (hasTwoSubstantialParagraphs(cleanImpact, 180)) {
-    return baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
+    return cleanDegreesFromText(baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang));
   }
 
   // 1. SATURN (Shani) TRANSIT

@@ -173,7 +173,7 @@ describe('PDF Report Contract & Regression Test Suite', () => {
       } as any);
 
       expect(marriedPrompts.bhavishya).toContain("Write EXACTLY THREE detailed paragraphs for MARRIED status");
-      expect(marriedPrompts.bhavishya).toContain("Write EXACTLY TWO detailed paragraphs for HAS CHILDREN status");
+      expect(marriedPrompts.bhavishya).toContain("Write STRICTLY THREE (3) expansive paragraphs for HAS CHILDREN status");
 
       // Test general / default prompt
       const generalPrompts = buildPremiumPrompts({
@@ -207,7 +207,7 @@ describe('PDF Report Contract & Regression Test Suite', () => {
       } as any);
 
       expect(generalPrompts.bhavishya).toContain("Write EXACTLY THREE detailed paragraphs for GENERAL status");
-      expect(generalPrompts.bhavishya).toContain("Write EXACTLY TWO detailed paragraphs for GENERAL status");
+      expect(generalPrompts.bhavishya).toContain("Write STRICTLY THREE (3) expansive paragraphs for GENERAL status");
     });
   });
 

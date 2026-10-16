@@ -411,68 +411,78 @@ export function buildDynamicMarriageFallback(
 ): string {
   const baseLang = chart.lang.split("-")[0];
   const h7 = chart.houses[7];
-  const h7Lord = h7.lordName;
-  const h7Sign = h7.rashiName;
-  const h7Where = `Bhava ${h7.lordHouse} (${h7.lordRashiName})`;
+  const h7Lord = h7?.lordName || "7th Lord";
+  const h7Sign = h7?.rashiName || "7th House";
+  const h7Where = h7 ? `Bhava ${h7.lordHouse} (${h7.lordRashiName})` : `${h7Sign}`;
 
   const karakaName = chart.gender === "Female"
     ? (baseLang === "kn" ? "ಗುರು" : baseLang === "hi" ? "गुरु" : baseLang === "te" ? "గురు" : baseLang === "ta" ? "குரு" : "Jupiter (Guru)")
     : (baseLang === "kn" ? "ಶುಕ್ರ" : baseLang === "hi" ? "शुक्र" : baseLang === "te" ? "శుక్ర" : baseLang === "ta" ? "சுக்கிரன்" : "Venus (Shukra)");
 
-  const dirName = chart.spouseDirection[baseLang as keyof typeof chart.spouseDirection] || chart.spouseDirection.en;
-  const spouseArchetype = getSpouseArchetypeByLord(h7.lordGraha, baseLang);
+  const dirName = chart.spouseDirection?.[baseLang as keyof typeof chart.spouseDirection] || chart.spouseDirection?.en || "North/East";
+  const spouseArchetype = h7?.lordGraha ? getSpouseArchetypeByLord(h7.lordGraha, baseLang) : "Dignified and supportive";
 
   // Senior Native (60+ Years): Emotional Companionship, Mutual Care & Spiritual Bond
   if (chart.ageYears >= 60) {
     if (baseLang === "kn") {
       const para3Kn = chart.hasKalatraDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಅಥವಾ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ವೃದ್ಧಾಪ್ಯದಲ್ಲಿ ಸಂಗಾತಿಯ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ಕಾಳಜಿ ಅಥವಾ ಸಣ್ಣಪುಟ್ಟ ಕೌಟುಂಬಿಕ ಆತಂಕಗಳು ಎದುರಾಗಬಹುದು. ಈ ಸೂಕ್ಷ್ಮ ಕ್ಲೇಶಗಳ ನಿವಾರಣೆಗೆ ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಗೌರಿ-ಶಂಕರ ಧ್ಯಾನ ಮಾಡುವುದು ಹಾಗೂ ಗೋಸೇವೆ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಸದಾ ನೆಮ್ಮದಿ ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸಲಿದೆ.`
-        : "";
+        : `【ದಾಂಪತ್ಯ ಸೌಹಾರ್ದತೆ & ಸೌಭಾಗ್ಯ ರಕ್ಷಾ ಉಪಾಸನೆ】 ಹಿರಿಯ ವಯಸ್ಸಿನ ಈ ಪವಿತ್ರ ಹಂತದಲ್ಲಿ ದಾಂಪತ್ಯ ಸೌಖ್ಯ, ಪರಸ್ಪರ ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಹಾಗೂ ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಲಕ್ಷ್ಮೀ-ನಾರಾಯಣ ಹಾಗೂ ಗೌರಿ-ಶಂಕರರ ಧ್ಯಾನ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ದಾಂಪತ್ಯದಲ್ಲಿ ಸದಾ ನೆಮ್ಮದಿ ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸಲಿದೆ.`;
 
       const partnerTermKn = chart.gender === "Female" ? "ಧರ್ಮ ಸಹಚರ" : "ಧರ್ಮ ಸಹಚರಿ";
       const mangalyaKn = chart.gender === "Female" ? "ಮಾಂಗಲ್ಯ ಭಾಗ್ಯ" : "ದಾಂಪತ್ಯ ಭಾಗ್ಯ";
 
       return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, 7ನೇ ಮನೆಯಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಸಾಂಗತ್ಯ, ಕೌಟುಂಬಿಕ ರಕ್ಷಣೆ, ಧರ್ಮ ಸಹಚಾರ್ಯ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ದಾಂಪತ್ಯ ಸೌಖ್ಯವನ್ನು ಕರುಣಿಸಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮಾನಸಿಕ ನೆಮ್ಮದಿ, ${mangalyaKn} ಹಾಗೂ ಸಂಸಾರದ ಹಿರಿಯ ಮಾರ್ಗದರ್ಶಕರಾಗಿ ಗೌರವಯುತ ಸ್ಥಾನವನ್ನು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ. ಗೋಚಾರ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಶಾಂತಿಯುತ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.
 
-ಹಿರಿಯ ವಯಸ್ಸಿನ ದಾಂಪತ್ಯದಲ್ಲಿ ನಿಮ್ಮ ${partnerTermKn}ಯೊಂದಿಗೆ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಆರೋಗ್ಯದ ಆರೈಕೆಯೇ ಪರಮ ತಪಸ್ಸಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಶಕಗಳ ನಿಮ್ಮ ಒಡನಾಟವು ಕೌಟುಂಬಿಕ ಏಕತೆಗೆ ಬಲವಾದ ಅಡಿಪಾಯವಾಗಿದೆ. ಮಕ್ಕಳ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಯೋಗಕ್ಷೇಮವನ್ನು ಜೊತೆಯಾಗಿ ಹಾರೈಸುತ್ತಾ, ಸಣ್ಣಪುಟ್ಟ ವ್ಯತ್ಯಾಸಗಳನ್ನು ಸಮಾಧಾನದಿಂದ ಸ್ವೀಕರಿಸುವುದು ನಿಮ್ಮ ಅಂತರಂಗದ ಶಾಂತಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
+ಹಿರಿಯ ವಯಸ್ಸಿನ ದಾಂಪತ್ಯದಲ್ಲಿ ನಿಮ್ಮ ${partnerTermKn}ಯೊಂದಿಗೆ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಆರೋಗ್ಯದ ಆರೈಕೆಯೇ ಪರಮ ತಪಸ್ಸಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಶಕಗಳ ನಿಮ್ಮ ಒಡನಾಟವು ಕೌಟುಂಬಿಕ ಏಕತೆಗೆ ಬಲವಾದ ಅಡಿಪಾಯವಾಗಿದೆ. ಮಕ್ಕಳ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಯೋಗಕ್ಷೇಮವನ್ನು ಜೊತೆಯಾಗಿ ಹಾರೈಸುತ್ತಾ, ಸಣ್ಣಪುಟ್ಟ ವ್ಯತ್ಯಾಸಗಳನ್ನು ಸಮಾಧಾನದಿಂದ ಸ್ವೀಕರಿಸುವುದು ನಿಮ್ಮ ಅಂತರಂಗದ ಶಾಂತಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ.
+
+${para3Kn}`;
     }
     if (baseLang === "hi") {
       const partnerTermHi = chart.gender === "Female" ? "धर्म सहचर" : "धर्म सहचरी";
       const para3Hi = chart.hasKalatraDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव अथवा कारक ग्रहों पर क्रूर ग्रहों के प्रभाव से जीवनसाथी के स्वास्थ्य को लेकर चिंता या कभी-कभार विचारों में मतभेद हो सकता है। दांपत्य शांति हेतु प्रत्येक शुक्रवार को मां महालक्ष्मी तथा श्री गौरी-शंकर का पूजन करें एवं देसी गाय को हरा चारा खिलाएं। गोకర్ण क्षेत्र में महाबलेश्वर भगवान का अभिषेक कराने से समस्त मानसिक क्लेश दूर होकर दांपत्य जीवन में अपार शांति प्राप्त होगी।`
-        : "";
+        : `【दांपत्य सौहार्द एवं सौभाग्य रक्षा उपासना】 जीवन के इस परिपक्व पड़ाव में उत्तम स्वास्थ्य, परस्पर देखभाल एवं मानसिक शांति हेतु प्रत्येक शुक्रवार को मां महालक्ष्मी तथा श्री लक्ष्मीनारायण का ध्यान करें। गोకర్ण क्षेत्र में महाबलेश्वर भगवान का अभिषेक कराने से समस्त मानसिक क्लेश दूर होकर दांपत्य जीवन में अपार शांति प्राप्त होगी।`;
 
       return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तम भाव (${h7Sign}) और सप्तमेश ${h7Lord} की स्थिति आपके जीवन में स्थायी साहचर्य, आत्मीयता एवं आध्यात्मिक दांपत्य शांति को पुष्ट करती है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल जीवन के इस परिपक्व पड़ाव में मानसिक संतोष, परस्पर सहयोग तथा परिवार के सम्मानित मार्गदर्शक के रूप में आपकी प्रतिष्ठा को सुदृढ़ करेगा।
 
-वरिष्ठ जीवन में आपके ${partnerTermHi} के साथ परस्पर समझ, सम्मान और स्वास्थ्य की संयुक्त देखभाल ही दांपत्य का सच्चा आधार है। सप्तमेश ${h7Lord} के शुभ प्रभाव से आपका पारिवारिक जीवन शांतिपूर्ण और सौहार्दपूर्ण रहेगा। संतान एवं पौत्र-पौत्रियों के मंगल की संयुक्त कामना करते हुए एक-दूसरे के विचारों को आदर देना आपके मन को असीम संतुष्टि और प्रसन्नता प्रदान करेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
+वरिष्ठ जीवन में आपके ${partnerTermHi} के साथ परस्पर समझ, सम्मान और स्वास्थ्य की संयुक्त देखभाल ही दांपत्य का सच्चा आधार है। सप्तमेश ${h7Lord} के शुभ प्रभाव से आपका पारिवारिक जीवन शांतिपूर्ण और सौहार्दपूर्ण रहेगा। संतान एवं पौत्र-पौत्रियों के मंगल की संयुक्त कामना करते हुए एक-दूसरे के विचारों को आदर देना आपके मन को असीम संतुष्टि और प्रसन्नता प्रदान करेगा।
+
+${para3Hi}`;
     }
     if (baseLang === "te") {
       const partnerTermTe = chart.gender === "Female" ? "ధర్మ సహచరుడు" : "ధర్మ సహచరి";
       const para3Te = chart.hasKalatraDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇల్లు లేదా కారక గ్రహాలపై పాపగ్రహాల ప్రభావం ఉన్నప్పుడు ఈ వయస్సులో జీవిత భాగస్వామి ఆరోగ్యంపై శ్రద్ధ వహించవలసి ఉంటుంది. దాంపత్య శాంతి కొరకు ప్రతి శుక్రవారం లక్ష్మీ-నారాయణ పూజ చేయడం మరియు గోసేవ చేయడం మంచిది. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో రుద్రాభిషేకం నిర్వహించడం వలన కుటుంబంలో ప్రశాంతత నిలిచి ఉంటుంది.`
-        : "";
+        : `【దాంపత్య సౌహార్దత & సౌభాగ్య రక్షా ఉపాసన】 ఈ సీనియర్ వయస్సులో పరస్పర ఆరోగ్యం, ప్రశాంతత మరియు ఆధ్యాత్మిక బలం కొరకు ప్రతి శుక్రవారం లక్ష్మీ-నారాయణ పూజ చేయడం మంచిది. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో రుద్రాభిషేకం నిర్వహించడం వలన కుటుంబంలో ప్రశాంతత నిలిచి ఉంటుంది.`;
 
       return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ ఇల్లు (${h7Sign}) మరియు సప్తమాధిపతి ${h7Lord} గ్రహం ఈ సీనియర్ వయస్సులో దాంపత్య సౌఖ్యం, ఆధ్యాత్మిక సాన్నిహిత్యం మరియు మానసిక ప్రశాంతతను సూచిస్తాయి. మీ ${partnerTermTe}తో మీరిద్దరూ గడిపిన జీవితం కుటుంబానికి ఆదర్శప్రాయం. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం ప్రశాంత జీవనానికి, తీర్థయాత్రలకు అనుకూలమైనది.
 
-ఈ వయస్సులో పరస్పర ఆరోగ్యం పట్ల శ్రద్ధ వహించడం, ఆధ్యాత్మిక సాధనల్లో కలిసి పాల్గొనడం అంతరంగ తృప్తిని కలిగిస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ దాంపత్య జీవితం కుటుంబ సభ్యులందరికీ గౌరవప్రదమైన మార్గదర్శకంగా నిలుస్తుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
+ఈ వయస్సులో పరస్పర ఆరోగ్యం పట్ల శ్రద్ధ వహించడం, ఆధ్యాత్మిక సాధనల్లో కలిసి పాల్గొనడం అంతరంగ తృప్తిని కలిగిస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ దాంపత్య జీవితం కుటుంబ సభ్యులందరికీ గౌరవప్రదమైన మార్గదర్శకంగా నిలుస్తుంది.
+
+${para3Te}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasKalatraDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது இந்த வயதில் வாழ்க்கைத் துணையின் உடல்நலத்தில் அதிக கவனம் செலுத்த வேண்டும். தம்பதியர் நல்வாழ்விற்காக வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி லட்சுமி நாராயணரை வழிபடுவதும், பசுவிற்கு உணவளிப்பதும் நலம் பயக்கும். கோகர்ணம் திருத்தலத்தில் அபிஷேகம் செய்து வழிபடுவது இல்லத்தில் அமைதியைத் தரும்.`
-        : "";
+        : `【தம்பதியர் நல்லிணக்கம் & சௌபாக்கிய பாதுகாப்பு வழிபாடு】 இந்த வயதில் தம்பதியர் நல்வாழ்வு, ஆரோக்கியம் மற்றும் மன அமைதிக்காக வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி லட்சுமி நாராயணரை வழிபடுவது நலம் பயக்கும். கோகர்ணம் திருத்தலத்தில் அபிஷேகம் செய்து வழிபடுவது இல்லத்தில் அமைதியைத் தரும்.`;
 
       return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் வீடான ${h7Sign} மற்றும் 7-ம் அதிபதி ${h7Lord} அமைப்பு முதுமைப் பருவத்தில் தம்பதியர் நல்வாழ்வு, ஆன்மீக பிணைப்பு மற்றும் அமைதியான வாழ்வை உறுதி செய்கிறது. மாங்கல்ய பலம் மற்றும் குடும்ப ஒற்றுமை உங்கள் இல்லத்தில் நிறைந்துள்ளது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி ஆன்மீக யாத்திரைகளுக்கும் அமைதிக்கும் மிகவும் சாதகமானது.
 
-வாழ்க்கைத் துணையுடன் இணைந்து தர்ம காரியங்களில் ஈடுபடுவதும், பேரன்-பேத்திகளுக்கு நல்வழிகாட்டுவதும் அளப்பரிய மன அமைதியைத் தரும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் குடும்ப வாழ்க்கை சமூகத்தில் உயர்ந்த மரியாதையுடன் விளங்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
+வாழ்க்கைத் துணையுடன் இணைந்து தர்ம காரியங்களில் ஈடுபடுவதும், பேரன்-பேத்திகளுக்கு நல்வழிகாட்டுவதும் அளப்பரிய மன அமைதியைத் தரும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் குடும்ப வாழ்க்கை சமூகத்தில் உயர்ந்த மரியாதையுடன் விளங்கும்.
+
+${para3Ta}`;
     }
     const para3En = chart.hasKalatraDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Gentle astrological scrutiny reveals subtle Saturn or Rahu aspects touching the 7th house axis, which during mature retirement years can occasionally translate into heightened sensitivity concerning your spouse's health or energy levels. Pacifying these residual karmic vibrations through simple devotional upasanas preserves unbroken domestic harmony. Reciting the sacred Vishnu Sahasranama together on Fridays and offering prayers at sanctums such as Gokarna Mahabaleshwara Kshetra or Baggona Kshetra neutralizes health stresses, surrounding your elder marital bond with celestial protection and serenity.`
-      : "";
+      : `【Marital Harmony & Sovereign Grace Upasana】 In this graceful golden phase of life, nurturing quiet mental tranquility, reciprocal healthcare, and spiritual togetherness through weekly prayers to Lord Lakshmi-Narayana preserves unbroken domestic harmony. Sponsoring a peaceful prayer at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra surrounds your elder marital bond with celestial protection and serenity.`;
 
     const partnerTermEn = chart.gender === "Female" ? "Dharma Sahachara" : "Dharma Sahacharini";
     return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern enduring spiritual companionship, mutual security, and lifelong matrimonial harmony in this golden phase of life. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster mental serenity, shared familial wisdom, and revered status as an elder pillar of the lineage, shielded by favorable planetary transits.
 
-Cultivating deep mutual understanding, respect, and attentive health care with your ${partnerTermEn} forms the sacred cornerstone of senior relationship harmony. Influenced by ${h7Lord}, your decades of shared life journey serve as an inspirational bedrock for children and grandchildren. Honoring emotional needs with compassionate patience enriches this contemplative chapter with genuine fulfillment and domestic grace.${para3En ? `\n\n${para3En}` : ""}`;
+Cultivating deep mutual understanding, respect, and attentive health care with your ${partnerTermEn} forms the sacred cornerstone of senior relationship harmony. Influenced by ${h7Lord}, your decades of shared life journey serve as an inspirational bedrock for children and grandchildren. Honoring emotional needs with compassionate patience enriches this contemplative chapter with genuine fulfillment and domestic grace.
+
+${para3En}`;
   }
 
   // Youth & Students (Age < 22): Character Formation, Emotional Poise & Academic Focus
@@ -480,46 +490,56 @@ Cultivating deep mutual understanding, respect, and attentive health care with y
     if (baseLang === "kn") {
       const para3Kn = chart.hasKalatraDosha
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಅಥವಾ ಶುಕ್ರ ಗ್ರಹದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ಪ್ರಭಾವದಿಂದಾಗಿ ಯೌವನಾವಸ್ಥೆಯಲ್ಲಿ ಅನಗತ್ಯ ಆಕರ್ಷಣೆಗಳು, ಮಾನಸಿಕ ಚಂಚಲತೆ ಅಥವಾ ಅಧ್ಯಯನದಲ್ಲಿ ಏಕಾಗ್ರತೆಯ ಕೊರತೆ ಉಂಟಾಗುವ ಸಾಧ್ಯತೆಯಿದೆ. ಈ ಮಾನಸಿಕ ತೊಳಲಾಟಗಳನ್ನು ಶಮನಗೊಳಿಸಲು ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಹಾಗೂ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸುವುದು ಅಮೋಘ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಬಗ್ಗೋಣ ಸನ್ನಿಧಿಗೆ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಮನಸ್ಸು ಸ್ಥಿಮಿತಕ್ಕೆ ಬಂದು ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ.`
-        : "";
+        : `【ವಿದ್ಯಾ ಸಿದ್ಧಿ & ಏಕಾಗ್ರತಾ ಉಪಾಸನೆ】 ಯುವ ವಯಸ್ಸಿನ ಈ ಮಹತ್ವದ ಹಂತದಲ್ಲಿ ಮಾನಸಿಕ ಸ್ಥೈರ್ಯ, ಶೈಕ್ಷಣಿಕ ಏಕಾಗ್ರತೆ ಹಾಗೂ ಉನ್ನತ ನಡವಳಿಕೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಲು ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಹಾಗೂ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪಿಸುವುದು ಅಮೋಘ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಬಗ್ಗೋಣ ಸನ್ನಿಧಿಗೆ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಮನಸ್ಸು ಸ್ಥಿಮಿತಕ್ಕೆ ಬಂದು ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ.`;
 
       return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವವಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹವು ಈ ಯುವ ವಯಸ್ಸಿನಲ್ಲಿ ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ, ಭಾವನಾತ್ಮಕ ಸಮತೋಲನ, ಶಿಸ್ತು ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಪರಿಪಕ್ವತೆಯನ್ನು ಮಾರ್ಗದರ್ಶನ ಮಾಡುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸದ್ಯಕ್ಕೆ ಯಾವುದೇ ಆತುರದ ಸಂಬಂಧಗಳತ್ತ ಗಮನಹರಿಸದೆ, ಸ್ವಾವಲಂಬನೆ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆಯಲ್ಲಿ ನಿಮ್ಮನ್ನು ತೊಡಗಿಸಿಕೊಳ್ಳಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ.
 
-ಉತ್ತಮ ಸ್ನೇಹಿತರ ಸಹವಾಸ, ಗುರು-ಹಿರಿಯರ ಬಗೆಗಿನ ಗೌರವ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ಪರಿಪಾಲನೆಯೇ ಈ ವಯಸ್ಸಿನ ನಿಜವಾದ ಶಕ್ತಿಯಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವಿವೇಕಯುತ ನಡವಳಿಕೆ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಬೆಳೆಸಲಿದೆ. ನಿಮ್ಮ ಯೌವನದ ಅಮೂಲ್ಯ ಸಮಯವನ್ನು ವಿದ್ಯಾಭ್ಯಾಸ, ಕ್ರೀಡೆ ಹಾಗೂ ಕೌಶಲ್ಯ ವೃದ್ಧಿಗಾಗಿ ವಿನಿಯೋಗಿಸುವುದು ಭವಿಷ್ಯದ ಉನ್ನತ ಬದುಕಿಗೆ ಭದ್ರ ಬುನಾದಿಯಾಗಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
+ಉತ್ತಮ ಸ್ನೇಹಿತರ ಸಹವಾಸ, ಗುರು-ಹಿರಿಯರ ಬಗೆಗಿನ ಗೌರವ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ಪರಿಪಾಲನೆಯೇ ಈ ವಯಸ್ಸಿನ ನಿಜವಾದ ಶಕ್ತಿಯಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವಿವೇಕಯುತ ನಡವಳಿಕೆ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಬೆಳೆಸಲಿದೆ. ನಿಮ್ಮ ಯೌವನದ ಅಮೂಲ್ಯ ಸಮಯವನ್ನು ವಿದ್ಯಾಭ್ಯಾಸ, ಕ್ರೀಡೆ ಹಾಗೂ ಕೌಶಲ್ಯ ವೃದ್ಧಿಗಾಗಿ ವಿನಿಯೋಗಿಸುವುದು ಭವಿಷ್ಯದ ಉನ್ನತ ಬದುಕಿಗೆ ಭದ್ರ ಬುನಾದಿಯಾಗಲಿದೆ.
+
+${para3Kn}`;
     }
     if (baseLang === "hi") {
       const para3Hi = chart.hasKalatraDosha
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव पर क्रूर ग्रहों के प्रभाव से इस आयु में मानसिक भटकाव, ध्यान में अस्थिरता अथवा अनावश्यक आकर्षण की संभावना बन सकती है। इस ऊर्जा को संतुलित करने के लिए नित्य प्रातःकाल भगवान गणेश एवं मां सरस्वती की आराधना करें। प्रतिदिन गायत्री मंत्र का 11 बार जप तथा मंगलवार को हनुमान चालीसा का पाठ मानसिक एकाग्रता और आत्म-नियंत्रण को सुदृढ़ करेगा।`
-        : "";
+        : `【विद्या सिद्धि एवं एकाग्रता उपासना】 युवावस्था के इस काल में मानसिक संतुलन, एकाग्रता और उत्कृष्ट चारित्रिक गठन हेतु नित्य प्रातःकाल भगवान गणेश एवं मां सरस्वती की आराधना करें। प्रतिदिन गायत्री मंत्र का 11 बार जप तथा मंगलवार को हनुमान चालीसा का पाठ मानसिक एकाग्रता और आत्म-नियंत्रण को सुदृढ़ करेगा।`;
 
       return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तम भाव (${h7Sign}) और सप्तमेश ${h7Lord} की स्थिति युवावस्था के इस काल में आपके चारित्रिक निर्माण, भावनात्मक परिपक्वता और सामाजिक विवेक को दिशा देती है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल व्यर्थ के आकर्षणों से दूर रहकर उच्च नैतिक मूल्यों और आत्म-अनुशासन पर ध्यान केंद्रित करने का संकेत देता है।
 
-विद्यार्थी जीवन में परस्पर समझ, बड़ों का सम्मान और सत्संगति आपके भविष्य की सच्ची पूंजी है। सप्तमेश ${h7Lord} के प्रभाव से मित्रों के चयन में विवेकशीलता बरतना आपकी मानसिक एकाग्रता को सुदृढ़ करेगा। अपनी ऊर्जा को ज्ञानार्जन और रचनात्मक विकास में लगाना दीर्घकालिक सफलता का मार्ग प्रशस्त करेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
+विद्यार्थी जीवन में परस्पर समझ, बड़ों का सम्मान और सत्संगति आपके भविष्य की सच्ची पूंजी है। सप्तमेश ${h7Lord} के प्रभाव से मित्रों के चयन में विवेकशीलता बरतना आपकी मानसिक एकाग्रता को सुदृढ़ करेगा। अपनी ऊर्जा को ज्ञानार्जन और रचनात्मक विकास में लगाना दीर्घकालिक सफलता का मार्ग प्रशस्त करेगा।
+
+${para3Hi}`;
     }
     if (baseLang === "te") {
       const para3Te = chart.hasKalatraDosha
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇంటిపై పాపగ్రహాల సూక్ష్మ ప్రభావం వల్ల చదువులో ఏకాగ్రత తగ్గడం లేదా మానసిక చంచలత ఏర్పడే అవకాశం ఉంది. ఈ పరిస్థితిని అధిగమించడానికి ప్రతిరోజూ ఉదయం గాయత్రీ మంత్రం మరియు హనుమాన్ చాలీసా పారాయణం చేయడం మంచిది. గోకర్ణ క్షేత్ర దర్శనం లేదా గణపతి పూజ మనస్సును నిలకడగా ఉంచుతాయి.`
-        : "";
+        : `【విద్యా సిద్ధి & ఏకాగ్రత ఉపాసన】 యవ్వన దశలో మానసిక స్థిరత్వం, చదువులో ఏకాగ్రత మరియు వ్యక్తిత్వ వికాసం కొరకు ప్రతిరోజూ ఉదయం గాయత్రీ మంత్రం మరియు హనుమాన్ చాలీసా పారాయణం చేయడం మంచిది. గోకర్ణ క్షేత్ర దర్శనం లేదా గణపతి పూజ మనస్సును నిలకడగా ఉంచుతాయి.`;
 
       return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ ఇల్లు అయిన ${h7Sign} మరియు సప్తమాధిపతి ${h7Lord} స్థితి యవ్వన దశలో మీ నైతిక ప్రవర్తన, వ్యక్తిత్వ నిర్మాణం మరియు భావోద్వేగ పరిపక్వతను సూచిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం అవాంఛనీయ వ్యామోహాలకు దూరంగా ఉండి, క్రమశిక్షణ మరియు ఉన్నత లక్ష్యాలపై దృష్టి పెట్టడానికి అనుకూలంగా ఉంది.
 
-ఈ వయస్సులో పరస్పర అవగాహన, పెద్దల పట్ల గౌరవం మరియు మంచి స్నేహితుల సాంగత్యం మీ ఉన్నతికి తోడ్పడతాయి. సప్తమాధిపతి ${h7Lord} ప్రభావం వలన వివేకవంతమైన ఆలోచనలతో వ్యవహరించడం శ్రేయస్కరం. మీ మానసిక శక్తిని విద్యాభ్యాసం మరియు వ్యక్తిత్వ వికాసానికి ఉపయోగించడం గొప్ప విజయాన్ని తెస్తుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
+ఈ వయస్సులో పరస్పర అవగాహన, పెద్దల పట్ల గౌరవం మరియు మంచి స్నేహితుల సాంగత్యం మీ ఉన్నతికి తోడ్పడతాయి. సప్తమాధిపతి ${h7Lord} ప్రభావం వలన వివేకవంతమైన ఆలోచనలతో వ్యవహరించడం శ్రేయస్కరం. మీ మానసిక శక్తిని విద్యాభ్యాసం మరియు వ్యక్తిత్వ వికాసానికి ఉపయోగించడం గొప్ప విజయాన్ని తెస్తుంది.
+
+${para3Te}`;
     }
     if (baseLang === "ta") {
       const para3Ta = chart.hasKalatraDosha
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகம் மீது அசுப கிரக தாக்கம் இருந்தால் கவனச்சிதறல் அல்லது மன அமைதியின்மை ஏற்படலாம். இந்த பாதிப்புகளை நீக்க தினமும் காலையில் காயத்ரி மந்திரம் மற்றும் அனுமன் சாலிசா பாராயணம் செய்வது நலம் பயக்கும். பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வது மனதை ஒருமுகப்படுத்தி படிப்பில் வெற்றியைத் தரும்.`
-        : "";
+        : `【கல்வி மேன்மை & மன ஒருமுகப்பாடு வழிபாடு】 இளமைக்காலத்தில் மன உறுதி, கல்வியில் சிறந்து விளங்குதல் மற்றும் ஒழுக்கத்தை வளர்க்க தினமும் காலையில் காயத்ரி மந்திரம் மற்றும் அனுமன் சாலிசா பாராயணம் செய்வது நலம் பயக்கும். பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வது மனதை ஒருமுகப்படுத்தி படிப்பில் வெற்றியைத் தரும்.`;
 
       return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் வீடான ${h7Sign} மற்றும் 7-ம் அதிபதி ${h7Lord} அமைப்பு இளமைக்காலத்தில் உங்கள் நற்குணங்கள், ஒழுக்கம் மற்றும் மன முதிர்ச்சியை உருவாக்குகிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தேவையற்ற ஈர்ப்புகளைத் தவிர்த்து, சுய ஒழுக்கத்துடன் படிப்பில் கவனம் செலுத்த வழிகாட்டுகிறது.
 
-நல்ல நண்பர்களின் சேர்க்கை, பெரியோர்களை மதித்தல் மற்றும் கடமை உணர்வு ஆகியவை உங்கள் வெற்றிக்கு உறுதுணையாக இருக்கும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் சிந்தனையில் முதிர்ச்சியும் விவேகமும் மேலோங்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
+நல்ல நண்பர்களின் சேர்க்கை, பெரியோர்களை மதித்தல் மற்றும் கடமை உணர்வு ஆகியவை உங்கள் வெற்றிக்கு உறுதுணையாக இருக்கும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் சிந்தனையில் முதிர்ச்சியும் விவேகமும் மேலோங்கும்.
+
+${para3Ta}`;
     }
     const para3En = chart.hasKalatraDosha
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological scrutiny reveals subtle Mars or Rahu influences impacting the 7th house axis, which during youth can occasionally induce mental restlessness, emotional ambivalence, or premature distractions that compromise academic focus. To dissolve this energetic friction, dedicated morning invocations of Lord Ganesha and Lord Subramanya are highly effective. Chanting the sacred Gayatri Mantra alongside the Subramanya Ashtakam on Tuesdays pacifies volatile planetary currents, instilling steadfast willpower and mental discipline. Sponsoring archana at sacred sanctums like Gokarna Mahabaleshwara Kshetra or Baggona Kshetra neutralizes subtle impediments, ensuring noble friendships, moral purity, and academic brilliance.`
-      : "";
+      : `【Wisdom Cultivation & Focus Upasana】 During formative student years, anchoring emotional serenity, mental focus, and moral poise through morning invocations of Lord Ganesha and the sacred Gayatri Mantra instills steadfast discipline. Chanting the Subramanya Ashtakam on Tuesdays pacifies volatile youthful impulses, ensuring inspiring friendships and academic brilliance supported by blessings from Baggona Kshetra.`;
 
     return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern interpersonal maturity, character formation, academic discipline, and emotional maturity during your youth. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period encourage steering clear of premature distractions and dedicating focused energy toward foundational life preparation and self-mastery.
 
-Developing mutual understanding, respect for elders, and choosing noble, inspiring friendships forms the bedrock of your personal growth under this placement. Influenced by ${h7Lord}, maintaining emotional boundaries and channeling youthful vitality into academic and extracurricular mastery builds an unshakeable relationship with your own higher purpose.${para3En ? `\n\n${para3En}` : ""}`;
+Developing mutual understanding, respect for elders, and choosing noble, inspiring friendships forms the bedrock of your personal growth under this placement. Influenced by ${h7Lord}, maintaining emotional boundaries and channeling youthful vitality into academic and extracurricular mastery builds an unshakeable relationship with your own higher purpose.
+
+${para3En}`;
   }
 
   // Adult Native (22 to 59 Years): Unmarried, Married, General
@@ -527,46 +547,56 @@ Developing mutual understanding, respect for elders, and choosing noble, inspiri
     if (baseLang === "kn") {
       const para3Kn = (chart.isManglik || chart.hasKalatraDosha)
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ, ಕುಜ ಗ್ರಹ ಅಥವಾ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬ, ಮಾತುಕತೆಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು ಅಥವಾ ಆಂತರಿಕ ಗೊಂದಲಗಳು ಎದುರಾಗುವ ಕರ್ಮಿಕ ಪ್ರವೃತ್ತಿಯಿದೆ. ಕುಜ ದೋಷ ಹಾಗೂ ಕಳತ್ರ ಭಾವದ ಒತ್ತಡವನ್ನು ಪರಿಹರಿಸಲು ವೈದಿಕ ಶಾಂತಿ ಕರ್ಮಗಳು ಅತ್ಯಂತ ಪರಿಣಾಮಕಾರಿಯಾಗಿವೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟೋತ್ತರ ಹಾಗೂ 'ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ' ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದು ವಿವಾಹ ಯೋಗಕ್ಕೆ ಇರುವ ವಿಘ್ನಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ. ಪ್ರತಿ ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಗೆ ಅಭಿಷೇಕ ಹಾಗೂ ಶುಕ್ರವಾರ ಗೌರಿ ಪೂಜೆ ನೆರವೇರಿಸುವುದು ಮಂಗಲ ತರಂಗಗಳನ್ನು ಆಕರ್ಷಿಸುತ್ತದೆ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪವಿತ್ರ ಸಾನ್ನಿಧ್ಯದಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕಲ್ಯಾಣ ಸೇವೆ ಮತ್ತು ಕ್ಷೀರಾಭಿಷೇಕ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ವಿಳಂಬಗಳು ಪರಿಹಾರವಾಗಿ ಶೀಘ್ರ ಕಲ್ಯಾಣ ಭಾಗ್ಯ ಲಭಿಸಲಿದೆ.`
-        : "";
+        : `【ಕಲ್ಯಾಣ ಸಿದ್ಧಿ & ದೈವಿಕ ಅನುಗ್ರಹ ಉಪಾಸನೆ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಸ್ಥಾನವು ಶುಭ ಸಂಯೋಗವನ್ನು ಹೊಂದಿದ್ದು, ಯೋಗ್ಯ ಕಾಲದಲ್ಲಿ ಸುಸಂಸ್ಕೃತ ಜೀವನ ಸಂಗಾತಿಯ ಪ್ರಾಪ್ತಿಗೆ ದೈವಬಲವಿದೆ. ವಿವಾಹ ನಿಶ್ಚಯದ ಪ್ರಕ್ರಿಯೆಗಳು ಶೀಘ್ರವಾಗಿ ಹಾಗೂ ನಿರ್ವಿಘ್ನವಾಗಿ ನೆರವೇರಲು ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟೋತ್ತರ ಹಾಗೂ 'ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ' ಮಂತ್ರ ಜಪಿಸುವುದು ಮಂಗಳಕರ. ಶುಕ್ರವಾರ ಗೌರಿ ಪೂಜೆ ಹಾಗೂ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಥವಾ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಶೀಘ್ರ ಕಲ್ಯಾಣ ಯೋಗವನ್ನು ಸಿದ್ಧಿಸುವುದು.`;
 
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವವಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ವೈವಾಹಿಕ ಯೋಗದ ಕರ್ಮಿಕ ಸಂರಚನೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. 7ನೇ ಮನೆಯ ಮೇಲೆ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯನ್ನು ಒದಗಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ವಿವಾಹದ ಮಾತುಕತೆಗಳಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿ ಗ್ರಹಗಳ ಅನುಗ್ರಹವು ಈ ಹಿಂದೆ ಎದುರಾಗಿದ್ದ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸಿ, ಕಂಕಣ ಭಾಗ್ಯದ ಸನಿಹಕ್ಕೆ ತರಲಿದೆ.
+      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, 7ನೇ ಮನೆಯಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ವೈವಾಹಿಕ ಯೋಗದ ಕರ್ಮಿಕ ಸಂರಚನೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. 7ನೇ ಮನೆಯ ಮೇಲೆ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯನ್ನು ಒದಗಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ವಿವಾಹದ ಮಾತುಕತೆಗಳಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿ ಗ್ರಹಗಳ ಅನುಗ್ರಹವು ಈ ಹಿಂದೆ ಎದುರಾಗಿದ್ದ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸಿ, ಕಂಕಣ ಭಾಗ್ಯದ ಸನಿಹಕ್ಕೆ ತರಲಿದೆ.
 
-ನಿಮಗೆ ಒದಗಿಬರುವ ಜೀವನ ಸಂಗಾತಿಯು ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವಕ್ಕೆ ಅನುಗುಣವಾಗಿ ${spouseArchetype} ಗುಣಲಕ್ಷಣಗಳನ್ನು ಹೊಂದಿದ್ದು, ಉನ್ನತ ನೈತಿಕ ಮೌಲ್ಯ ಹಾಗೂ ಕುಟುಂಬ ಪ್ರೇಮವನ್ನು ಹೊಂದಿರುತ್ತಾರೆ. ಕಾರಕ ಗ್ರಹವಾದ ${karakaName} ಗ್ರಹದ ಶುಭ ಸ್ಥಿತಿಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಸಾಮರಸ್ಯ ಹಾಗೂ ಪರಸ್ಪರ ಗೌರವವನ್ನು ಖಾತರಿಪಡಿಸುತ್ತದೆ. ಸಪ್ತಮ ಭಾವದ ದಿಶಾ ಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ${dirName} ದಿಕ್ಕಿನಿಂದ ಯೋಗ್ಯ ಹಾಗೂ ಸಂಸ್ಕಾರಯುತ ವಿವಾಹ ಸಂಬಂಧಗಳು ಕೂಡಿಬರುವ ಅತ್ಯುತ್ತಮ ಯೋಗವಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
+ನಿಮಗೆ ಒದಗಿಬರುವ ಜೀವನ ಸಂಗಾತಿಯು ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವಕ್ಕೆ ಅನುಗುಣವಾಗಿ ${spouseArchetype} ಗುಣಲಕ್ಷಣಗಳನ್ನು ಹೊಂದಿದ್ದು, ಉನ್ನತ ನೈತಿಕ ಮೌಲ್ಯ ಹಾಗೂ ಕುಟುಂಬ ಪ್ರೇಮವನ್ನು ಹೊಂದಿರುತ್ತಾರೆ. ಕಾರಕ ಗ್ರಹವಾದ ${karakaName} ಗ್ರಹದ ಶುಭ ಸ್ಥಿತಿಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಸಾಮರಸ್ಯ ಹಾಗೂ ಪರಸ್ಪರ ಗೌರವವನ್ನು ಖಾತರಿಪಡಿಸುತ್ತದೆ. ಸಪ್ತಮ ಭಾವದ ದಿಶಾ ಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ${dirName} ದಿಕ್ಕಿನಿಂದ ಯೋಗ್ಯ ಹಾಗೂ ಸಂಸ್ಕಾರಯುತ ವಿವಾಹ ಸಂಬಂಧಗಳು ಕೂಡಿಬರುವ ಅತ್ಯುತ್ತಮ ಯೋಗವಿದೆ.
+
+${para3Kn}`;
     }
     if (baseLang === "hi") {
       const para3Hi = (chart.isManglik || chart.hasKalatraDosha)
-        ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव अथवा कारक ग्रहों पर क्रूर ग्रहों के प्रभाव से विवाह वार्ताओं में अप्रत्याशित विलंब या बाधाएं आ सकती हैं। मंगल दोष एवं कलत्र दोष निवारणार्थ नित्य प्रातःकाल 'ॐ श्रीं गौर्यै नमः' एवं श्री सुब्रह्मण्य अष्टोत्तर का पाठ करें। मंगलवार को सुब्रह्मण्य स्वामी तथा शुक्रवार को मां गौरी की पूजा करें। गोಕರ್ण क्षेत्र में महाबलेश्वर ज्योतिर्लिंग को रुद्राभिषेक एवं विशेष विवाह बाधा निवारण संकल्प समर्पित करने से समस्त रुकावटें समाप्त होकर शीघ्र शुभ विवाह संपन्न होगा।`
-        : "";
+        ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव अथवा कारक ग्रहों पर क्रूर ग्रहों के प्रभाव से विवाह वार्ताओं में अप्रत्याशित विलंब या बाधाएं आ सकती हैं। मंगल दोष एवं कलत्र दोष निवारणार्थ नित्य प्रातःकाल 'ॐ श्रीं गौर्यै नमः' एवं श्री सुब्रह्मण्य अष्टोत्तर का पाठ करें। मंगलवार को सुब्रह्मण्य स्वामी तथा शुक्रवार को मां गौरी की पूजा करें। गोకర్ण क्षेत्र में महाबलेश्वर ज्योतिर्लिंग को रुद्राभिषेक एवं विशेष विवाह बाधा निवारण संकल्प समर्पित करने से समस्त रुकावटें समाप्त होकर शीघ्र शुभ विवाह संपन्न होगा।`
+        : `【कल्याण सिद्धि एवं दैवीय अनुग्रह उपासना】 आपकी कुंडली में सप्तम भाव एवं सप्तमेश ${h7Lord} का शुभ प्रभाव समय पर सुसंस्कृत जीवनसाथी की प्राप्ति के लिए अनुकूल ऊर्जा प्रदान करता है। विवाह वार्ताओं को निर्विघ्न रूप से शीघ्र सफल बनाने हेतु नित्य प्रातःकाल 'ॐ श्रीं गौर्यै नमः' मंत्र का 108 बार जप एवं श्री सुब्रह्मण्य अष्टोत्तर का पाठ अत्यंत मंगलकारी है। शुक्रवार को मां गौरी की पूजा तथा गोకర్ण क्षेत्र अथवा बग्गोण क्षेत्र में संकल्प पूजा कराने से शीघ्र शुभ विवाह के योग प्रशस्त होते हैं।`;
 
       return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तम भाव (${h7Sign}) तथा सप्तमेश ${h7Lord} की स्थिति आपके वैवाहिक योग की आधारशिला निर्धारित करती है। सप्तम भाव की यह स्थिति दांपत्य जीवन में स्थिरता को संबल प्रदान करती है। वर्तमान में गतिमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल विवाह के शुभ अवसरों को प्रबलता से जागृत कर रहा है। गोचर में गुरु एवं शनि का शुभ प्रभाव पूर्व में आ रहे विलंब को समाप्त कर पारिवारिक वार्ताओं को शीघ्र सफलता की ओर अग्रसर करेगा।
 
-आपके भावी जीवनसाथी में सप्तमेश ${h7Lord} के अनुसार ${spouseArchetype} के विशिष्ट गुण परिलक्षित होंगे। वे उच्च नैतिक मूल्य, बौद्धिक परिपक्वता तथा उत्तरदायित्व की गहरी भावना से युक्त होंगे। कारक ग्रह ${karakaName} की शुभ स्थिति दांपत्य में परस्पर आत्मीयता एवं सुख-शांति को सुनिश्चित करती है। सप्तम भाव के दिशा बल नियमानुसार, आपके जन्मस्थान से ${dirName} दिशा से अत्यंत योग्य एवं प्रतिष्ठित विवाह प्रस्ताव प्राप्त होने के प्रबल योग हैं। जीवनसाथी के आगमन से आपके जीवन में स्थिरता और सौभाग्य का विस्तार होगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
+आपके भावी जीवनसाथी में सप्तमेश ${h7Lord} के अनुसार ${spouseArchetype} के विशिष्ट गुण परिलक्षित होंगे। वे उच्च नैतिक मूल्य, बौद्धिक परिपक्वता तथा उत्तरदायित्व की गहरी भावना से युक्त होंगे। कारक ग्रह ${karakaName} की शुभ स्थिति दांपत्य में परस्पर आत्मीयता एवं सुख-शांति को सुनिश्चित करती है। सप्तम भाव के दिशा बल नियमानुसार, आपके जन्मस्थान से ${dirName} दिशा से अत्यंत योग्य एवं प्रतिष्ठित विवाह प्रस्ताव प्राप्त होने के प्रबल योग हैं। जीवनसाथी के आगमन से आपके जीवन में स्थिरता और सौभाग्य का विस्तार होगा।
+
+${para3Hi}`;
     }
     if (baseLang === "te") {
       const para3Te = (chart.isManglik || chart.hasKalatraDosha)
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇల్లు లేదా కుజ గ్రహ ప్రభావం వల్ల వివాహ సంబంధాల చర్చల్లో జాప్యం లేదా ఆటంకాలు ఎదురయ్యే అవకాశం ఉంది. కుజ దోష శాంతి కొరకు ప్రతిరోజూ ఉదయం 'ఓం శ్రీం గౌర్యై నమః' మంత్ర జపం మరియు మంగళవారం సుబ్రహ్మణ్య స్వామి పూజ చేయడం శ్రేయస్కరం. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో కళ్యాణోత్సవం మరియు రుద్రాభిషేకం నిర్వహించడం వలన సమస్త అడ్డంకులు తొలగి శీఘ్ర వివాహ ప్రాప్తి కలుగుతుంది.`
-        : "";
+        : `【కళ్యాణ సిద్ధి & దైవానుగ్రహ ఉపాసన】 మీ జాతకంలో 7వ ఇల్లు మరియు సప్తమాధిపతి ${h7Lord} అనుకూల స్థితి వివాహ ప్రాప్తికి శుభకరమైన शक्तिని అందిస్తున్నాయి. వివాహ సంబంధాల చర్చలు శీఘ్రంగా మరియు నిర్విఘ్నంగా ఫలించడానికి ప్రతిరోజూ ఉదయం 'ఓం శ్రీం గౌర్యై నమః' మంత్ర జపం మరియు మంగళవారం సుబ్రహ్మణ్య స్వామి ఆరాధన చేయడం ఎంతో శ్రేయస్కరం. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో సంకల్ప పూజ నిర్వహించడం వలన శీఘ్ర వివాహ యోగం సిద్ధిస్తుంది.`;
 
       return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ ఇల్లు అయిన ${h7Sign} మరియు సప్తమాధిపతి ${h7Lord} గ్రహస్థితి మీ వివాహ యోగాన్ని నిర్దేశిస్తుంది. 7వ ఇంటిపై శుభగ్రహాల ప్రభావం స్థిరమైన దాంపత్య జీవితానికి బలమైన పునాది వేస్తుంది. ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం వివాహ ప్రాప్తికి అనుకూలమైన శుభ సమయాన్ని సూచిస్తోంది. గోచారంలో గురు, శని గ్రహాల సంచారం గతంలో ఎదురైన ఆటంకాలను తొలగించి సంబంధాల చర్చలను వేగవంతం చేస్తుంది.
 
-మీకు లభించే జీవిత భాగస్వామి సప్తమాధిపతి ${h7Lord} ప్రభావంతో ${spouseArchetype} కలిగి, ఉన్నతమైన వ్యక్తిత్వం మరియు బాధ్యతాయుతమైన ప్రవర్తనతో ఉంటారు. కారక గ్రహమైన ${karakaName} స్థితి మీ ఇద్దరి మధ్య పరస్పర అవగాహన మరియు విశ్వాసాన్ని పెంపొందిస్తుంది. సప్తమ భావ దిశా బలం ప్రకారం, మీ జన్మస్థలం నుండి ${dirName} దిశ నుండి యోగ్యమైన మరియు సౌభాగ్యవంతమైన వివాహ సంబంధాలు వచ్చే బలమైన అవకాశాలు ఉన్నాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
+మీకు లభించే జీవిత భాగస్వామి సప్తమాధిపతి ${h7Lord} ప్రభావంతో ${spouseArchetype} కలిగి, ఉన్నతమైన వ్యక్తిత్వం మరియు బాధ్యతాయుతమైన ప్రవర్తనతో ఉంటారు. కారక గ్రహమైన ${karakaName} స్థితి మీ ఇద్దరి మధ్య పరస్పర అవగాహన మరియు విశ్వాసాన్ని పెంపొందిస్తుంది. సప్తమ భావ దిశా బలం ప్రకారం, మీ జన్మస్థలం నుండి ${dirName} దిశ నుండి యోగ్యమైన మరియు సౌభాగ్యవంతమైన వివాహ సంబంధాలు వచ్చే బలమైన అవకాశాలు ఉన్నాయి.
+
+${para3Te}`;
     }
     if (baseLang === "ta") {
       const para3Ta = (chart.isManglik || chart.hasKalatraDosha)
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகத்தின் மீது செவ்வாய் அல்லது அசுப கிரக பார்வை இருப்பதால் திருமணப் பேச்சுகளில் தடைகள் அல்லது தாமதம் ஏற்படலாம். செவ்வாய் தோஷ நிவர்த்திக்காக தினமும் காலையில் 'ஓம் ஸ்ரீம் கௌரியை நமஹ' மந்திர ஜெபம் மற்றும் செவ்வாய்க்கிழமைகளில் சுப்ரமணியர் வழிபாடு செய்வது சிறந்தது. கோகர்ணம் அல்லது பக்கோண திருத்தலத்தில் கல்யாண அர்ச்சனை செய்து வழிபட்டால் திருமணத் தடைகள் நீங்கி விரைவில் சுபயோகம் கூடிவரும்.`
-        : "";
+        : `【கல்யாண சித்தி & தெய்வ அருள் வழிபாடு】 உங்கள் ஜாதகத்தில் 7-ம் பாவகம் மற்றும் 7-ம் அதிபதி ${h7Lord} சுப பலம் பெற்று திருமண யோகத்திற்கு நல்ல ஆதரவைத் தருகின்றன. திருமணப் பேச்சுவார்த்தைகள் தடையின்றி விரைந்து முடிவடைய தினமும் காலையில் 'ஓம் ஸ்ரீம் கௌரியை நமஹ' மந்திர ஜெபம் மற்றும் செவ்வாய்க்கிழமைகளில் சுப்ரமணியர் வழிபாடு செய்வது மிகவும் நல்லது. கோகர்ணம் அல்லது பக்கோண திருத்தலத்தில் அர்ச்சனை செய்து வழிபட்டால் விரைவில் நன்மணம் கூடிவரும்.`;
 
       return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் வீடான ${h7Sign} மற்றும் 7-ம் அதிபதி ${h7Lord} அமைப்பு திருமண யோகத்தை உறுதி செய்கிறது. 7-ம் பாவத்தின் சுப பலம் இல்லற வாழ்விற்கு நல்ல அடித்தளத்தை அமைக்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் திருமண பேச்சுவார்த்தைகளுக்கு மிகவும் சாதகமாக உள்ளது. குரு மற்றும் சனி பகவானின் கோசார பலன்கள் கடந்த கால தாமதங்களை நீக்கி நல்வழியைத் திறக்கும்.
 
-உங்களுக்கு வரவிருக்கும் வாழ்க்கைத் துணை 7-ம் அதிபதி ${h7Lord} அருளால் ${spouseArchetype} குணங்களுடன், சிறந்த குடும்பப் பின்னணி கொண்டவராக இருப்பார். காரக கிரகமான ${karakaName} அமைப்பு இருவரிடையே ஆழ்ந்த அன்பையும் புரிதலையும் உருவாக்கும். உங்கள் பிறந்த இடத்திலிருந்து ${dirName} திசையிலிருந்து தகுந்த வரன் வர அதிக வாய்ப்புள்ளது.${para3Ta ? `\n\n${para3Ta}` : ""}`;
+உங்களுக்கு வரவிருக்கும் வாழ்க்கைத் துணை 7-ம் அதிபதி ${h7Lord} அருளால் ${spouseArchetype} குணங்களுடன், சிறந்த குடும்பப் பின்னணி கொண்டவராக இருப்பார். காரக கிரகமான ${karakaName} அமைப்பு இருவரிடையே ஆழ்ந்த அன்பையும் புரிதலையும் உருவாக்கும். உங்கள் பிறந்த இடத்திலிருந்து ${dirName} திசையிலிருந்து தகுந்த வரன் வர அதிக வாய்ப்புள்ளது.
+
+${para3Ta}`;
     }
     const para3En = (chart.isManglik || chart.hasKalatraDosha)
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological analysis reveals that Mars or Kalatra Dosha influences touching the 7th house (${h7Sign}) may have induced intermittent delays, sudden cancellations, or mismatched expectations in past alliance negotiations. To dissolve this energetic friction and align with your auspicious Kuja status, reciting the Subramanya Ashtakam alongside prayers to Goddess Gauri ('Om Shreem Gauryai Namah') 108 times at sunrise pacifies karmic friction effectively. Sponsoring a dedicated Subramanya Kalyana seva and milk abhishekam at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra cleanses matrimonial hurdles, accelerating auspicious alliance finalization.`
-      : "";
+      : `【Matrimonial Fruition & Divine Grace Upasana】 Astrological analysis indicates that the 7th house (${h7Sign}) and 7th lord ${h7Lord} carry favorable karmic momentum for timely matrimonial fruition. To invite unbroken celestial harmony and hasten alliance finalization, reciting the Subramanya Ashtakam alongside devotional prayers to Goddess Gauri ('Om Shreem Gauryai Namah') at sunrise attracts auspicious marital vibrations. Sponsoring a sacred archana or seva at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra anchors divine blessings for a joyful, lifelong union.`;
 
     return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern your foundational marriage prospects and timing of matrimonial fruition. The dignified placement of the 7th house creates a harmonious ground for domestic stability and emotional maturity. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period activate strong matrimonial potentials, while the ongoing transits of Jupiter and Saturn dissolve past hesitations, steering alliance proposals toward swift and joyous fruition.
 
-Your destined life partner will embody distinct ${spouseArchetype} characteristics influenced by ${h7Lord}, exhibiting mature discernment, noble cultural values, and an enduring sense of household responsibility. The auspicious placement of ${karakaName} as relationship Karaka guarantees emotional tenderness, reciprocal honor, and enduring loyalty. Furthermore, the directional strength of your 7th house strongly aligns marriage proposals arriving from the ${dirName} direction relative to your birthplace, ushering in auspicious familial expansion.${para3En ? `\n\n${para3En}` : ""}`;
+Your destined life partner will embody distinct ${spouseArchetype} characteristics influenced by ${h7Lord}, exhibiting mature discernment, noble cultural values, and an enduring sense of household responsibility. The auspicious placement of ${karakaName} as relationship Karaka guarantees emotional tenderness, reciprocal honor, and enduring loyalty. Furthermore, the directional strength of your 7th house strongly aligns marriage proposals arriving from the ${dirName} direction relative to your birthplace, ushering in auspicious familial expansion.
+
+${para3En}`;
   }
 
   if (status === "married") {
@@ -579,17 +609,21 @@ Your destined life partner will embody distinct ${spouseArchetype} characteristi
 
       const para3Kn = (chart.isManglik || chart.hasKalatraDosha)
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಅಥವಾ ಕುಜ ಗ್ರಹದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ಸಂಸಾರದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಅಥವಾ ಸಂವಹನದಲ್ಲಿ ಏರುಪೇರು ಉಂಟಾಗುವ ಕರ್ಮಿಕ ಪ್ರವೃತ್ತಿಯಿದೆ. ದಾಂಪತ್ಯ ಶಾಂತಿಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಗೌರಿ-ಶಂಕರ ಧ್ಯಾನ ಮಾಡುವುದು ಹಾಗೂ ಶ್ರೀ ಸೂಕ್ತ ಪಠಿಸುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ದಂಪತಿ ಸಮೇತರಾಗಿ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಸಮಸ್ತ ಕೌಟುಂಬಿಕ ಕ್ಲೇಶಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿತ್ಯ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`
-        : "";
+        : `【ದಾಂಪತ್ಯ ಸೌಹಾರ್ದತೆ & ಸೌಭಾಗ್ಯ ರಕ್ಷಾ ಉಪಾಸನೆ】 ನಿಮ್ಮ ಗೃಹಸ್ಥ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಸುಖ-ಶಾಂತಿ ಹಾಗೂ ಪರಸ್ಪರ ಸಾಮರಸ್ಯವನ್ನು ಸದಾ ಜಾಗೃತವಾಗಿಡಲು ಶುಕ್ರವಾರದ ದಿನ ಮನೆಯ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ಶುದ್ಧ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಶ್ರೀ ಲಕ್ಷ್ಮೀ-ನಾರಾಯಣ ಹಾಗೂ ಗೌರಿ-ಶಂಕರರ ಧ್ಯಾನ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ. ಸಂಸಾರದಲ್ಲಿ ಪ್ರೇಮ, ವಿಶ್ವಾಸ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಏಳಿಗೆಯು ನಿರಂತರವಾಗಿ ನೆಲೆಸಲು ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಅಥವಾ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ದಂಪತಿ ಸಮೇತರಾಗಿ ಸಂಕಲ್ಪ ಪೂಜೆ ಸಲ್ಲಿಸುವುದು ಮಂಗಳಕರ ಫಲಗಳನ್ನು ನೀಡಲಿದೆ.`;
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಪರಸ್ಪರ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${femaleMangalyaKn}ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಸಂಸಾರದಲ್ಲಿ ಒಬ್ಬರಿಗೊಬ್ಬರು ಬಲವಾಗಿ ನಿಲ್ಲುವ ಕಾಲವಾಗಿದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಸಮೃದ್ಧಿಯ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.
 
-ಸಂತಾನ ನಿರೀಕ್ಷೆಯ ಈ ಸೂಕ್ಷ್ಮ ಹಂತದಲ್ಲಿ ಹೊರಗಿನ ಸಮಾಜದ ಮಾತುಗಳಿಗೆ ಕಿವಿಗೊಡದೆ, ನಿಮ್ಮ ಸಂಗಾತಿಯೊಂದಿಗೆ ಪರಸ್ಪರ ಪ್ರೀತಿ ಹಾಗೂ ವಿಶ್ವಾಸದಿಂದ ಒಂದಾಗಿರುವುದು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಇಬ್ಬರೂ ಜೊತೆಯಾಗಿ ಸಮಾಲೋಚಿಸುವುದು ನಿಮ್ಮ ಬಾಂಧವ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
+ಸಂತಾನ ನಿರೀಕ್ಷೆಯ ಈ ಸೂಕ್ಷ್ಮ ಹಂತದಲ್ಲಿ ಹೊರಗಿನ ಸಮಾಜದ ಮಾತುಗಳಿಗೆ ಕಿವಿಗೊಡದೆ, ನಿಮ್ಮ ಸಂಗಾತಿಯೊಂದಿಗೆ ಪರಸ್ಪರ ಪ್ರೀತಿ, ತಿಳುವಳಿಕೆ ಹಾಗೂ ವಿಶ್ವಾಸದಿಂದ ಒಂದಾಗಿರುವುದು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಇಬ್ಬರೂ ಜೊತೆಯಾಗಿ ಸಮಾಲೋಚಿಸುವುದು ನಿಮ್ಮ ಬಾಂಧವ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ.
+
+${para3Kn}`;
       }
 
       return `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಪರಸ್ಪರ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${femaleMangalyaKn}ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಸಂಸಾರದಲ್ಲಿ ನೈತಿಕ ಹೊಣೆಗಾರಿಕೆಗಳನ್ನು ಒಟ್ಟಾಗಿ ನಿರ್ವಹಿಸಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಸಮೃದ್ಧಿಯ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.
 
-ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಮುಕ್ತ ಸಂಭಾಷಣೆಯು ನಿಮ್ಮ ಯಶಸ್ಸಿಗೆ ಮುಖ್ಯ ಆಧಾರಸ್ತಂಭಗಳಾಗಿವೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ಪ್ರಗತಿ ಮತ್ತು ಆರ್ಥಿಕ ಹೂಡಿಕೆಗಳ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಂಗಾತಿಯ ವಿವೇಕಯುತ ಸಲಹೆಗಳನ್ನು ಗೌರವಿಸುವುದು ಅದ್ಭುತ ಫಲಗಳನ್ನು ತರಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
+ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಮುಕ್ತ ಸಂಭಾಷಣೆಯು ನಿಮ್ಮ ಯಶಸ್ಸಿಗೆ ಮುಖ್ಯ ಆಧಾರಸ್ತಂಭಗಳಾಗಿವೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ಪ್ರಗತಿ ಮತ್ತು ಆರ್ಥಿಕ ಹೂಡಿಕೆಗಳ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಂಗಾತಿಯ ವಿವೇಕಯುತ ಸಲಹೆಗಳನ್ನು ಗೌರವಿಸುವುದು ಅದ್ಭುತ ಫಲಗಳನ್ನು ತರಲಿದೆ.
+
+${para3Kn}`;
     }
     if (baseLang === "hi") {
       const locName = getLocalizedDevoteeName(chart.name, "hi");
@@ -600,17 +634,21 @@ Your destined life partner will embody distinct ${spouseArchetype} characteristi
 
       const para3Hi = (chart.isManglik || chart.hasKalatraDosha)
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव अथवा कारक ग्रहों पर क्रूर दृष्टि से कभी-कभार विचारों में मतभेद या तनाव उत्पन्न हो सकता है। दांपत्य सौहार्द हेतु शुक्रवार को श्री गौरी-शंकर एवं मां महालक्ष्मी का पूजन करें। गोకర్ण क्षेत्र में महाबलेश्वर भगवान का अभिषेक एवं लक्ष्मी नारायण स्तोत्र का पाठ करने से दांपत्य में मधुरता और सुख-शांति बनी रहेगी।`
-        : "";
+        : `【दांपत्य सौहार्द एवं सौभाग्य रक्षा उपासना】 आपके गृहस्थ जीवन में निरंतर सुख, शांति एवं परस्पर सामंजस्य बनाए रखने हेतु प्रत्येक शुक्रवार को घर के मंदिर में गाय के शुद्ध घी का दीपक जलाकर श्री लक्ष्मी-नारायण एवं मां महालक्ष्मी का ध्यान करें। परिवार में प्रेम, विश्वास एवं समृद्धि की वृद्धि हेतु गोకర్ण क्षेत्र अथवा बग्गोण क्षेत्र में दंपति सहित संकल्प पूजा समर्पित करने से दांपत्य में सदैव मधुरता एवं दैवीय सुरक्षा बनी रहती है।`;
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तमेश ${h7Lord} की स्थिति दांपत्य जीवन में प्रगाढ़ विश्वास, समर्पण और स्थायी सामंजस्य को पुष्ट करती है। ${femaleMangalyaHi}वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आप दोनों का परस्पर भावनात्मक संबल ही गृहस्थी का सबसे बड़ा आधार है।
 
-संतान की प्रतीक्षा के इस संवेदनशील दौर में सामाजिक प्रश्नों से विचलित हुए बिना, पति-पत्नी का एक अटूट स्तंभ बनकर साथ चलना अत्यंत आवश्यक है। सप्तमेश ${h7Lord} के प्रभाव से, वित्तीय योजनाओं और घरेलू निर्णयों में जीवनसाथी के विचारों को महत्व देना गृहस्थी को सुरक्षित और समृद्ध बनाएगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
+संतान की प्रतीक्षा के इस संवेदनशील दौर में सामाजिक प्रश्नों से विचलित हुए बिना, पति-पत्नी का एक अटूट स्तंभ बनकर साथ चलना तथा परस्पर समझ और विश्वास बनाए रखना अत्यंत आवश्यक है। सप्तमेश ${h7Lord} के प्रभाव से, वित्तीय योजनाओं और घरेलू निर्णयों में जीवनसाथी के विचारों को महत्व देना गृहस्थी को सुरक्षित और समृद्ध बनाएगा।
+
+${para3Hi}`;
       }
 
       return `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तमेश ${h7Lord} की स्थिति दांपत्य जीवन में प्रगाढ़ विश्वास, समर्पण और स्थायी सामंजस्य को पुष्ट करती है। ${femaleMangalyaHi}वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति का प्रभाव पारिवारिक उत्तरदायित्वों को गरिमापूर्ण ढंग से निभाने में सहायक सिद्ध होगा।
 
-दांपत्य जीवन में परस्पर समझ, सम्मान और एक-दूसरे की भावनाओं का आदर ही सच्चा बल है। सप्तमेश ${h7Lord} के प्रभाव से, महत्वपूर्ण घरेलू निर्णयों में जीवनसाथी के परामर्श को प्राथमिकता देना गृहस्थी को समृद्ध बनाएगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
+दांपत्य जीवन में परस्पर समझ, सम्मान और एक-दूसरे की भावनाओं का आदर ही सच्चा बल है। सप्तमेश ${h7Lord} के प्रभाव से, महत्वपूर्ण घरेलू निर्णयों में जीवनसाथी के परामर्श को प्राथमिकता देना गृहस्थी को समृद्ध बनाएगा।
+
+${para3Hi}`;
     }
     if (baseLang === "te") {
       const locName = getLocalizedDevoteeName(chart.name, "te");
@@ -618,17 +656,21 @@ Your destined life partner will embody distinct ${spouseArchetype} characteristi
 
       const para3Te = (chart.isManglik || chart.hasKalatraDosha)
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇల్లు లేదా కుజ గ్రహ ప్రభావం వల్ల కుటుంబంలో చిన్నపాటి అభిప్రాయ భేదాలు తలెత్తవచ్చు. దాంపత్య శాంతి కొరకు ప్రతి శుక్రవారం నెయ్యి దీపం వెలిగించి లక్ష్మీ-నారాయణ పూజ చేయడం శ్రేయస్కరం. గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో రుద్రాభిషేకం నిర్వహించడం వలన సర్వ క్లేశాలు తొలగి శాంతి చేకూరుతుంది.`
-        : "";
+        : `【దాంపత్య సౌహార్దత & సౌభాగ్య రక్షా ఉపాసన】 మీ గృహస్థ జీవితంలో నిరంతర సుఖశాంతులు, పరస్పర అనురాగం నిలకడగా ఉండటానికి ప్రతి శుక్రవారం ఇంట్లో నెయ్యి దీపం వెలిగించి శ్రీ లక్ష్మీ-నారాయణ మరియు గౌరీ-శంకరులను ఆరాధించడం శ్రేయస్కరం. కుటుంబంలో ప్రేమ, విశ్వాసం మరియు సంతోషం వర్ధిల్లడానికి గోకర్ణ లేదా బగ్గోణ క్షేత్రంలో దంపతులుగా సంకల్ప పూజ చేయడం విశేష శుభఫలాలను ఇస్తుంది.`;
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ అధిపతి ${h7Lord} గ్రహం దాంపత్యంలో ప్రగాఢ విశ్వాసాన్ని, ఆప్యాయతను సూచిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం పరస్పర సహకారానికి తోడ్పడుతుంది.
 
-సంతానం కోసం ఎదురుచూసే ఈ సమయంలో బయటి వారి మాటలను పట్టించుకోకుండా ఇద్దరూ ఒకరికొకరు అండగా నిలవడం ముఖ్యం. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన సంయుక్త నిర్ణయాలు కుటుంబానికి మేలు చేస్తాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
+సంతానం కోసం ఎదురుచూసే ఈ సమయంలో బయటి వారి మాటలను పట్టించుకోకుండా ఇద్దరూ ఒకరికొకరు అండగా నిలవడం మరియు పరస్పర అవగాహన కలిగి ఉండటం ముఖ్యం. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన సంయుక్త నిర్ణయాలు కుటుంబానికి మేలు చేస్తాయి.
+
+${para3Te}`;
       }
 
       return `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ అధిపతి ${h7Lord} గ్రహం దాంపత్యంలో ప్రగాఢ విశ్వాసాన్ని, ఆప్యాయతను మరియు స్థిరత్వాన్ని సూచిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం కుటుంబ బాధ్యతలను విజయవంతంగా నిర్వహించడానికి సహాయపడుతుంది.
 
-దాంపత్యంలో పరస్పర అవగాహన, గౌరవం విజయానికి పునాదులు. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన కుటుంబ నిర్ణయాల్లో భాగస్వామి సలహాలను పాటించడం గొప్ప ఫలితాలను ఇస్తుంది.${para3Te ? `\n\n${para3Te}` : ""}`;
+దాంపత్యంలో పరస్పర అవగాహన, గౌరవం విజయానికి పునాదులు. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన కుటుంబ నిర్ణయాల్లో భాగస్వామి సలహాలను పాటించడం గొప్ప ఫలితాలను ఇస్తుంది.
+
+${para3Te}`;
     }
     if (baseLang === "ta") {
       const locName = getLocalizedDevoteeName(chart.name, "ta");
@@ -636,17 +678,21 @@ Your destined life partner will embody distinct ${spouseArchetype} characteristi
 
       const para3Ta = (chart.isManglik || chart.hasKalatraDosha)
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகம் மீது அசுப பார்வை இருக்கும்போது குடும்பத்தில் அவ்வப்போது கருத்து வேறுபாடுகள் தோன்றலாம். இல்லற அமைதிக்காக வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி லட்சுமி நாராயணர் மற்றும் கௌரி-சங்கரர் வழிபாடு செய்வது சிறந்தது. பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வது குடும்பத்தில் அமைதியைத் தரும்.`
-        : "";
+        : `【தம்பதியர் நல்லிணக்கம் & சௌபாக்கிய பாதுகாப்பு வழிபாடு】 உங்கள் இல்லற வாழ்வில் எப்போதும் அமைதி, மகிழ்ச்சி மற்றும் பரஸ்பர அன்பு நிறைந்திருக்க ஒவ்வொரு வெள்ளிக்கிழமையும் நெய் தீபமேற்றி ஸ்ரீ லட்சுமி நாராயணர் மற்றும் கௌரி-சங்கரரை வழிபடுவது மிகவும் சிறந்தது. குடும்பத்தில் ஒற்றுமையும் செல்வ வளமும் பெருக கோகர்ணம் அல்லது பக்கோண திருத்தலத்தில் தம்பதியராக சங்கல்ப அர்ச்சனை செய்வது மங்களகரமான பலன்களைத் தரும்.`;
 
       if (chart.hasChildren === "no_children") {
         return `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} அமைப்பு இல்லற வாழ்வில் ஆழ்ந்த பாசம் மற்றும் அர்ப்பணிப்பை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி குடும்ப ஒற்றுமையை பலப்படுத்தும்.
 
-குழந்தைச் செல்வம் எதிர்பார்த்திருக்கும் இக்காலகட்டத்தில், இருவரும் ஒருவருக்கொருவர் துணையாக விளங்குவது அவசியம். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் இருவரும் இணைந்து எடுக்கும் முடிவுகள் எதிர்காலத்தை வளமாக்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
+குழந்தைச் செல்வம் எதிர்பார்த்திருக்கும் இக்காலகட்டத்தில், இருவரும் பரஸ்பர புரிதலுடன் ஒருவருக்கொருவர் துணையாக விளங்குவது அவசியம். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் இருவரும் இணைந்து எடுக்கும் முடிவுகள் எதிர்காலத்தை வளமாக்கும்.
+
+${para3Ta}`;
       }
 
       return `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} அமைப்பு இல்லற வாழ்வில் ஆழ்ந்த பாசம், அர்ப்பணிப்பு மற்றும் நிலைத்தன்மையை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி குடும்பப் பொறுப்புகளை நல்ல முறையில் நிர்வகிக்க உதவும்.
 
-இல்லற வாழ்வில் பரஸ்பர புரிதல், மரியாதை மற்றும் சுமுகமான உறவு வெற்றிக்கான மூலமந்திரமாகும். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் வாழ்க்கைத்துணையின் ஆலோசனையை ஏற்பது செல்வத்தையும் புகழையும் பெருக்கும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
+இல்லற வாழ்வில் பரஸ்பர புரிதல், மரியாதை மற்றும் சுமுகமான உறவு வெற்றிக்கான மூலமந்திரமாகும். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் வாழ்க்கைத்துணையின் ஆலோசனையை ஏற்பது செல்வத்தையும் புகழையும் பெருக்கும்.
+
+${para3Ta}`;
     }
     const salutation = chart.name ? `Dear ${chart.name}, ` : "";
     const femaleNuanceEn = chart.gender === "Female"
@@ -655,62 +701,76 @@ Your destined life partner will embody distinct ${spouseArchetype} characteristi
 
     const para3En = (chart.isManglik || chart.hasKalatraDosha)
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Subtle Mars or Kalatra influences impacting the 7th house axis can occasionally introduce friction, stubborn miscommunications, or temporary emotional distance during high-stress phases. To dissolve this energetic static, maintaining a peaceful sacred altar and lighting a cow-ghee lamp on Fridays while invoking Lord Lakshmi-Narayana and Goddess Gauri calms restless vibrations. Sponsoring an archana or milk abhishekam at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra cleanses residual karmic hurdles, anchoring lasting marital peace and reciprocal tenderness.`
-      : "";
+      : `【Marital Harmony & Sovereign Grace Upasana】 To preserve perpetual domestic tranquility, mutual affection, and reciprocal devotion within your household, lighting a pure cow-ghee lamp on Fridays while invoking Lord Lakshmi-Narayana and Goddess Gauri invites auspicious celestial blessings. Sponsoring an archana or seva as a couple at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra anchors domestic contentment, protecting the sacred bond of marriage with divine serenity.`;
 
     if (chart.hasChildren === "no_children") {
       return `${salutation}Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th house lord ${h7Lord} placed in ${h7Where} alongside your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti foster enduring trust, emotional warmth, and domestic sanctuary in your married life.${femaleNuanceEn}
 
-In this tender chapter of waiting for progeny, your spouse stands as your greatest confidant, emotional anchor, and steadfast life companion. Mutual reassurance, empathetic listening, and protecting each other from outside societal or familial questions about children are essential. Reflecting the qualities of ${h7Lord}, uniting as an unwavering team and transparently communicating ensures that emotional pressure dissolves, creating a calm, joyful household atmosphere.${para3En ? `\n\n${para3En}` : ""}`;
+In this tender chapter of waiting for progeny, your spouse stands as your greatest confidant, emotional anchor, and steadfast life companion. Mutual understanding, reassurance, empathetic listening, and protecting each other from outside societal or familial questions about children are essential. Reflecting the qualities of ${h7Lord}, uniting as an unwavering team and transparently communicating ensures that emotional pressure dissolves, creating a calm, joyful household atmosphere.
+
+${para3En}`;
     }
 
     return `${salutation}Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th house lord ${h7Lord} placed in ${h7Where} alongside your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti fosters enduring trust, emotional warmth, and domestic stability in your married life.${femaleNuanceEn}
 
-Cultivating deep mutual understanding, respectful communication, and empathy forms the true bedrock of your marital journey. Reflecting the qualities of ${h7Lord}, involving your spouse in pivotal household, financial, and life decisions directly accelerates family prosperity and harmony. Collaborative planning generates constructive milestones for long-term investments and family wellbeing.${para3En ? `\n\n${para3En}` : ""}`;
+Cultivating deep mutual understanding, respectful communication, and empathy forms the true bedrock of your marital journey. Reflecting the qualities of ${h7Lord}, involving your spouse in pivotal household, financial, and life decisions directly accelerates family prosperity and harmony. Collaborative planning generates constructive milestones for long-term investments and family wellbeing.
+
+${para3En}`;
   } else {
     // general
     if (baseLang === "kn") {
       const para3Kn = (chart.isManglik || chart.hasKalatraDosha)
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿಳಂಬ ನಿವಾರಣಾ ಶಾಂತಿ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವದ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿದ್ದಾಗ ಸಂಬಂಧಗಳಲ್ಲಿ ಸೂಕ್ಷ್ಮ ಸಂವಹನ ಅಂತರಗಳು ಅಥವಾ ಆಂತರಿಕ ಗೊಂದಲಗಳು ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು. ಶಾಂತಿಗಾಗಿ ಪ್ರತಿ ಶುಕ್ರವಾರ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಹಾಗೂ ಬಗ್ಗೋಣ ಸನ್ನಿಧಿಗೆ ಸೇವೆ ಸಲ್ಲಿಸುವುದು ಸೌಹಾರ್ದತೆಯನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ.`
-        : "";
+        : `【ಸಂಬಂಧ ಸೌಹಾರ್ದತೆ & ದೈವಿಕ ರಕ್ಷಾ ಉಪಾಸನೆ】 ಸಾರ್ವಜನಿಕ ಒಡನಾಟ ಹಾಗೂ ವೃತ್ತಿ ಸಂಬಂಧಗಳಲ್ಲಿ ಸೌಹಾರ್ದತೆ, ಪರಸ್ಪರ ಗೌರವ ಹಾಗೂ ವಿಶ್ವಾಸವನ್ನು ಹೆಚ್ಚಿಸಲು ಪ್ರತಿ ಶುಕ್ರವಾರ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಶ್ರೇಷ್ಠ. ಬಗ್ಗೋಣ ಸನ್ನಿಧಿಗೆ ಅಥವಾ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಕ್ಷೇತ್ರಕ್ಕೆ ಸೇವೆ ಸಲ್ಲಿಸುವುದರಿಂದ ಎಲ್ಲಾ ಒಡನಾಟಗಳಲ್ಲಿ ಸೌಹಾರ್ದತೆ ನೆಲೆಸಲಿದೆ.`;
 
-      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮ ಭಾವವಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹವು ಸಂಬಂಧಗಳಲ್ಲಿ ಸಮತೋಲನ, ಗೌರವ ಹಾಗೂ ನೈತಿಕ ಪರಿಪಕ್ವತೆಯನ್ನು ಮಾರ್ಗದರ್ಶನ ಮಾಡುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸಾರ್ವಜನಿಕ ಒಡನಾಟದಲ್ಲಿ ಪ್ರಬುದ್ಧತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.
+      return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, 7ನೇ ಮನೆಯಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹವು ಸಂಬಂಧಗಳಲ್ಲಿ ಸಮತೋಲನ, ಗೌರವ ಹಾಗೂ ನೈತಿಕ ಪರಿಪಕ್ವತೆಯನ್ನು ಮಾರ್ಗದರ್ಶನ ಮಾಡುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸಾರ್ವಜನಿಕ ಒಡನಾಟದಲ್ಲಿ ಪ್ರಬುದ್ಧತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.
 
-ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಪ್ರಾಮಾಣಿಕ ಮಾತುಕತೆ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ರಕ್ಷಣೆಯು ಎಲ್ಲಾ ಒಡನಾಟಗಳಲ್ಲಿ ಶಾಶ್ವತ ವಿಶ್ವಾಸವನ್ನು ನೀಡುತ್ತದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸಂಯಮ ಹಾಗೂ ದಾರ್ಶನಿಕ ದೃಷ್ಟಿಯನ್ನು ತುಂಬಲಿದೆ.${para3Kn ? `\n\n${para3Kn}` : ""}`;
+ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಪ್ರಾಮಾಣಿಕ ಮಾತುಕತೆ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ರಕ್ಷಣೆಯು ಎಲ್ಲಾ ಒಡನಾಟಗಳಲ್ಲಿ ಶಾಶ್ವತ ವಿಶ್ವಾಸವನ್ನು ನೀಡುತ್ತದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸಂಯಮ ಹಾಗೂ ದಾರ್ಶನಿಕ ದೃಷ್ಟಿಯನ್ನು ತುಂಬಲಿದೆ.
+
+${para3Kn}`;
     }
     if (baseLang === "hi") {
       const para3Hi = (chart.isManglik || chart.hasKalatraDosha)
         ? `【दोष विश्लेषण एवं विलंब निवारण शांति】 कुंडली के सप्तम भाव पर क्रूर दृष्टि से व्यावहारिक संबंधों में कभी-कभार तनाव उत्पन्न हो सकता है। शुक्रवार को घी का दीपक जलाकर कुलदेवता का स्मरण करना तथा गोకర్ण क्षेत्र में पूजा समर्पित करना संबंधों में सौहार्द लाएगा।`
-        : "";
+        : `【संबंध सौहार्द एवं दैवीय सुरक्षा उपासना】 सामाजिक एवं व्यावसायिक संबंधों में परस्पर विश्वास, सम्मान और संतुलन बनाए रखने हेतु प्रत्येक शुक्रवार को घी का दीपक जलाकर कुलदेवता का स्मरण करें। गोకర్ण क्षेत्र अथवा बग्गोण क्षेत्र में पूजा समर्पित करना संबंधों में प्रगाढ़ सौहार्द स्थापित करता है।`;
 
       return `आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तम भाव (${h7Sign}) और सप्तमेश ${h7Lord} की स्थिति संबंधों में संतुलन, परस्पर सम्मान और भावनात्मक परिपक्वता का निर्माण करती है। वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल व्यावहारिक जीवन में सामंजस्य स्थापित करने में सहायक सिद्ध होगा।
 
-पारस्परिक समझ, स्पष्ट संवाद और नैतिक सिद्धांतों का पालन हर संबंध को स्थायी और विश्वसनीय बनाता है। सप्तमेश ${h7Lord} का प्रभाव आपके व्यवहार में गरिमा और धैर्य का संचार करेगा।${para3Hi ? `\n\n${para3Hi}` : ""}`;
+पारस्परिक समझ, स्पष्ट संवाद और नैतिक सिद्धांतों का पालन हर संबंध को स्थायी और विश्वसनीय बनाता है। सप्तमेश ${h7Lord} का प्रभाव आपके व्यवहार में गरिमा और धैर्य का संचार करेगा।
+
+${para3Hi}`;
     }
     if (baseLang === "te") {
       const para3Te = (chart.isManglik || chart.hasKalatraDosha)
         ? `【దోష విశ్లేషణ & నివారణ శాంతి】 జాతకంలో 7వ ఇంటిపై పాపగ్రహాల ప్రభావం ఉన్నప్పుడు సంబంధాలలో అప్పుడప్పుడు అపార్థాలు రావచ్చు. ప్రతి శుక్రవారం నెయ్యి దీపం వెలిగించి ఇష్టదేవతను పూజించడం మరియు బగ్గోణ క్షేత్ర దర్శనం సంబంధాలలో శాంతిని ప్రసాదిస్తాయి.`
-        : "";
+        : `【సంబంధాల సౌహార్దత & దైవిక రక్షా ఉపాసన】 సామాజిక మరియు వ్యక్తిగత సంబంధాలలో విశ్వాసం, గౌరవం మరియు సామరస్యాన్ని పెంపొందించడానికి ప్రతి శుక్రవారం నెయ్యి దీపం వెలిగించి ఇష్టదేవతను పూజించడం మంచిది. బగ్గోణ క్షేత్ర దర్శనం లేదా గోకర్ణ క్షేత్ర దర్శనం సంబంధాలలో శాంతిని ప్రసాదిస్తాయి.`;
 
       return `మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ ఇల్లు (${h7Sign}) మరియు సప్తమాధిపతి ${h7Lord} స్థితి సంబంధాలలో సమతుల్యత, గౌరవం మరియు పరిపక్వతను కలిగిస్తాయి. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం సామాజిక మరియు వ్యక్తిగత సంబంధాలలో స్థిరత్వాన్ని తెస్తుంది.
 
-పరస్పర అవగాహన, స్పష్టమైన సంభాషణ మరియు నైతిక విలువల పరిరక్షణ సంబంధాలను దృఢపరుస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ ఆలోచనల్లో సహనం మరియు వివేకం పెరుగుతాయి.${para3Te ? `\n\n${para3Te}` : ""}`;
+పరస్పర అవగాహన, స్పష్టమైన సంభాషణ మరియు నైతిక విలువల పరిరక్షణ సంబంధాలను దృఢపరుస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ ఆలోచనల్లో సహనం మరియు వివేకం పెరుగుతాయి.
+
+${para3Te}`;
     }
     if (baseLang === "ta") {
       const para3Ta = (chart.isManglik || chart.hasKalatraDosha)
         ? `【தோஷ ஆய்வு & பரிகார சாந்தி】 ஜாதகத்தில் 7-ம் பாவகம் மீது அசுப பார்வை இருப்பதால் உறவுகளில் அவ்வப்போது கருத்து வேறுபாடுகள் தோன்றக்கூடும். இந்த தோஷ நிவர்த்திக்காக வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி இஷ்ட தெய்வத்தை வழிபடுவது சிறந்தது. பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வது உறவுகளில் அமைதியைத் தரும்.`
-        : "";
+        : `【உறவு நல்லிணக்கம் & தெய்வ பாதுகாப்பு வழிபாடு】 சமூக மற்றும் தொழில்முறை உறவுகளில் பரஸ்பர மரியாதை, நம்பிக்கை மற்றும் அமைதியை வளர்க்க வெள்ளிக்கிழமைகளில் நெய் தீபமேற்றி இஷ்ட தெய்வத்தை வழிபடுவது சிறந்தது. பக்கோண திருத்தலத்தில் அர்ச்சனை செய்வது உறவுகளில் நல்லிணக்கத்தைத் தரும்.`;
 
       return `உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் வீடான ${h7Sign} மற்றும் 7-ம் அதிபதி ${h7Lord} அமைப்பு உறவுகளில் சமநிலை, மரியாதை மற்றும் முதிர்ச்சியை உருவாக்குகிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி நற்பலன்களைத் தரும்.
 
-பரஸ்பர புரிதல், நேர்மையான உரையாடல் மற்றும் நன்னெறிகள் உறவுகளை வலுப்படுத்தும். 7-ம் அதிபதி ${h7Lord} அருளால் அமைதியும் நல்லிணக்கமும் உண்டாகும்.${para3Ta ? `\n\n${para3Ta}` : ""}`;
+பரஸ்பர புரிதல், நேர்மையான உரையாடல் மற்றும் நன்னெறிகள் உறவுகளை வலுப்படுத்தும். 7-ம் அதிபதி ${h7Lord} அருளால் அமைதியும் நல்லிணக்கமும் உண்டாகும்.
+
+${para3Ta}`;
     }
     const para3En = (chart.isManglik || chart.hasKalatraDosha)
       ? `【Dosha Analysis & Obstacle Resolution Shanti】 Astrological analysis indicates subtle planetary friction or Kalatra afflictions influencing the 7th house of partnerships, which may occasionally generate misunderstandings, contractual hesitations, or delayed agreements. Pacifying these subtle planetary vibrations through regular recitation of the sacred Ishta Devata mantra and lighting a pure cow-ghee lamp on Fridays maintains emotional equilibrium. Sponsoring an archana at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra cleanses residual karmic hurdles, anchoring mutual trust, harmony, and lasting goodwill into your interpersonal sphere.`
-      : "";
+      : `【Interpersonal Harmony & Grace Upasana】 To foster enduring goodwill, balanced communication, and reciprocal trust across all interpersonal spheres, regular prayers to your Ishta Devata and lighting a pure cow-ghee lamp on Fridays anchors emotional composure. Sponsoring a prayer at Gokarna Mahabaleshwara Kshetra or Baggona Kshetra clears subtle friction, ensuring harmonious relationships effortlessly.`;
 
     return `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) governed by ${h7Lord} in ${h7Where} guides partnerships, mutual respect, and emotional maturity. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster balanced relationships, teaching the profound spiritual lessons of collaboration, compromise, and shared purpose across all interpersonal spheres.
 
-Transparent communication, shared ethical values, and mutual honoring of personal boundaries remain the bedrock of successful relationships under this configuration. Daily prayers to your Ishta Devata and lighting a ghee lamp on Fridays ensure enduring relationship harmony and dissolve interpersonal misunderstandings effortlessly.${para3En ? `\n\n${para3En}` : ""}`;
+Transparent communication, shared ethical values, and mutual honoring of personal boundaries remain the bedrock of successful relationships under this configuration. Daily prayers to your Ishta Devata and lighting a ghee lamp on Fridays ensure enduring relationship harmony and dissolve interpersonal misunderstandings effortlessly.
+
+${para3En}`;
   }
 }
 
@@ -2164,4 +2224,447 @@ export function buildDynamicGocharaFallback(chart: ParsedKundaliChart): Array<{ 
   items.push({ name: rkCleanName, impact: rkImpact, remedy: rkCleanRemedy });
 
   return items;
+}
+
+export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): string {
+  const baseLang = chart.lang.split("-")[0];
+  const devoteeName = getLocalizedDevoteeName(chart.name, baseLang);
+
+  if (baseLang === "kn") {
+    const salutation = devoteeName ? `${devoteeName} ಅವರೇ, ` : "";
+    const p1 = `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಜನ್ಮ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಕಳೆದ ಕೆಲ ಸಮಯಗಳಿಂದ ನೀವು ಹೊತ್ತು ಸಾಗುತ್ತಿರುವ ಆಂತರಿಕ ಆತಂಕಗಳು, ನಿಶ್ಯಬ್ದ ಹೋರಾಟಗಳು ಹಾಗೂ ಮಾನಸಿಕ ದಣಿವನ್ನು ಗ್ರಹಗಳ ಪ್ರಸ್ತುತ ಚಲನೆಯು ಸಂಪೂರ್ಣವಾಗಿ ಅರ್ಥೈಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ಆರಂಭವಾಗಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯ ಪವಿತ್ರ ಕಾಲಘಟ್ಟವು ಬರುವ ೧೨ ತಿಂಗಳುಗಳಲ್ಲಿ (ಮುಂದಿನ ೧ ವರ್ಷ) ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ಹೊಸ ಚೇತನ, ಆಶಾಭಾವನೆ ಮತ್ತು ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ತುಂಬಲಿದೆ. ಈ ಅವಧಿಯು ಕೇವಲ ಬಾಹ್ಯ ಬದಲಾವಣೆಗಳನ್ನಷ್ಟೇ ಅಲ್ಲದೆ, ನಿಮ್ಮ ಅಂತರಂಗದ ಗೊಂದಲಗಳನ್ನು ನಿವಾರಿಸಿ, ಭವಿಷ್ಯದ ಬಗ್ಗೆ ದೃಢವಾದ ಮತ್ತು ಶಾಂತಿಯುತವಾದ ಸ್ಪಷ್ಟತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`;
+
+    const p2 = `ವೃತ್ತಿ ಮತ್ತು ಆರ್ಥಿಕ ರಂಗದಲ್ಲಿ ಮುಂದಿನ ಒಂದು ವರ್ಷವು ಮಹತ್ವದ ತಿರುವುಗಳನ್ನು ತರಲಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಶನಿ ಮಹಾತ್ಮನ ಶಿಸ್ತುಬದ್ಧ ಸಂಚಾರವು ನಿಮ್ಮ ದೀರ್ಘಕಾಲದ ಪರಿಶ್ರಮಕ್ಕೆ ಯೋಗ್ಯ ಫಲ ನೀಡಲು ಸಿದ್ಧವಾಗಿವೆ. ಉದ್ಯೋಗದಲ್ಲಿ ನಿರೀಕ್ಷಿತ ಬಡ್ತಿ, ವ್ಯಾಪಾರ-ವ್ಯವಹಾರಗಳಲ್ಲಿ ನೂತನ ಗ್ರಾಹಕರ ಸಂಪರ್ಕ ಹಾಗೂ ಹೊಸ ಯೋಜನೆಗಳ ಆರಂಭಕ್ಕೆ ಮುಂದಿನ ೪ ರಿಂದ ೮ ತಿಂಗಳುಗಳು ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾಗಿವೆ. ಅನಗತ್ಯ ಸಾಲದ ಹೊರೆಗಳಿಂದ ಮುಕ್ತಿ ಹೊಂದಲು ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಆಸ್ತಿ-ಪಾಸ್ತಿ ಅಥವಾ ಸುರಕ್ಷಿತ ಹೂಡಿಕೆಗಳಿಗೆ ಈ ವರ್ಷವು ಭದ್ರ ಬುನಾದಿಯನ್ನು ಹಾಕಲಿದೆ.`;
+
+    const p3 = `ಕೌಟುಂಬಿಕ ವಲಯದಲ್ಲಿ ಹಿಂದಿನ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಹಾಗೂ ಸಂವಹನದ ಕೊರತೆಗಳು ನಿಧಾನವಾಗಿ ಬಗೆಹರಿದು ಪರಸ್ಪರ ಪ್ರೀತಿ ಮತ್ತು ವಿಶ್ವಾಸ ವೃದ್ಧಿಯಾಗಲಿದೆ. ಮನೆಯಲ್ಲಿ ಶುಭ ಕಾರ್ಯಗಳ ಸಿದ್ಧತೆ, ಹಿರಿಯರ ಆರೋಗ್ಯದಲ್ಲಿ ಸುಧಾರಣೆ ಹಾಗೂ ಬಂಧು-ಮಿತ್ರರ ಸಹಕಾರವು ನಿಮ್ಮ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ದೈಹಿಕ ಆರೋಗ್ಯದ ದೃಷ್ಟಿಯಿಂದ ನಿಯಮಿತ ದಿನಚರಿ, ಸಾತ್ವಿಕ ಆಹಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ನಿದ್ರೆಯ ಸಮತೋಲನವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ನರಮಂಡಲ ಮತ್ತು ಜೀರ್ಣಕ್ರಿಯೆಗೆ ರಕ್ಷಣೆ ನೀಡಲಿದೆ. ಋತುಮಾನಕ್ಕೆ ತಕ್ಕಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.`;
+
+    const p4 = `【ಮುಂದಿನ ೧ ವರ್ಷದ ದೈವಿಕ ಸಂಕಲ್ಪ & ವಿಜಯ ಸಾಧನೆ】 ಮುಂದಿನ ೧೨ ತಿಂಗಳ ಪಯಣದಲ್ಲಿ ಬರುವ ೫ನೇ ಮತ್ತು ೯ನೇ ತಿಂಗಳುಗಳು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳಿಗೆ (ಹೂಡಿಕೆ, ಸ್ಥಳ ಬದಲಾವಣೆ ಅಥವಾ ನೂತನ ಒಪ್ಪಂದಗಳು) ದೈವಿಕ ಸಂಕೇತಗಳನ್ನು ನೀಡಲಿವೆ. ಯಾವುದೇ ಆತುರದ ಭಾವನಾತ್ಮಕ ನಿರ್ಧಾರಗಳನ್ನು ತಡೆದು, ವಿವೇಕದಿಂದ ಹೆಜ್ಜೆ ಇಡುವುದು ನಿಮ್ಮನ್ನು ಯಶಸ್ಸಿನತ್ತ ಮುನ್ನಡೆಸಲಿದೆ. ನಿಮ್ಮ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ, ನಿತ್ಯ ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಪರಮ ಪಾವನ ಸಾನ್ನಿಧ್ಯದ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳಿಗೆ ರಕ್ಷಾ ಕವಚವಾಗಿ ನಿಲ್ಲಲಿವೆ. ಈ ವರ್ಷವು ನಿಮ್ಮ ಕರ್ಮದ ಸತ್ಫಲಗಳನ್ನು ಅನುಭವಿಸುವ ಪುಣ್ಯ ವರ್ಷವಾಗಲಿ ಎಂದು ಹಾರೈಸುತ್ತೇವೆ.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+    return cleanEnglishFromRegionalText(full, "kn");
+  }
+
+  if (baseLang === "hi") {
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, पिछले कुछ समय से आप जिन मानसिक चिंताओं, मौन संघर्षों और भावनात्मक थकावट को वहन करते आ रहे हैं, आगामी 12 महीनों (1 वर्ष) में उन पर ग्रहों की सकारात्मक कृपा बरसने जा रही है। वर्तमान गतिमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके अंतर्मन को नवऊर्जा, आंतरिक आत्मविश्वास और मानसिक शांति प्रदान करेगा। यह समयावधि अनिश्चितता के बादलों को छांटकर आपके विचारों को स्थिरता और स्पष्ट दूरदर्शिता से परिपूर्ण करेगी।`;
+
+    const p2 = `आगामी एक वर्ष आपके पेशेवर और वित्तीय जीवन के लिए अत्यंत महत्वपूर्ण साबित होने वाला है। गोचर में देवगुरु बृहस्पति की अमृतमयी दृष्टि तथा कर्मफलदाता शनि देव का अनुशासन आपकी वर्षों की कड़ी मेहनत को सार्थक फल में परिवर्तित करेगा। नौकरी में बहुप्रतीक्षित पदोन्नति, व्यापार में नए अवसरों का सृजन तथा आजीविका के साधनों में मजबूती आने के प्रबल योग हैं। आगामी 4 से 8 महीनों की अवधि नए उपक्रमों, सुरक्षित निवेशों एवं भूमि या भवन से संबंधित महत्वपूर्ण निर्णयों के लिए अत्यंत श्रेयस्कर रहेगी।`;
+
+    const p3 = `पारिवारिक परिवेश में पहले से चले आ रहे वैचारिक मतभेद एवं संवादहीनता अब समाप्त होकर आपसी विश्वास और प्रेम में परिवर्तित होगी। घर में मांगलिक आयोजनों की रूपरेखा बनेगी तथा जीवनसाथी व परिजनों का पूर्ण सहयोग आपके मनोबल को ऊंचा रखेगा। स्वास्थ्य की दृष्टि से नित्य प्राणायाम, सूर्य नमस्कार और संतुलित सात्विक खानपान आपकी रोग प्रतिरोधक क्षमता को सुदृढ़ रखेगा। कार्य के दबाव में आकर अनिद्रा या मानसिक तनाव से बचें और प्राकृतिक जीवनशैली को अपनाएं।`;
+
+    const p4 = `【आगामी 1 वर्ष का दैवीय संकल्प एवं विजय साधना】 आगामी 12 महीनों के इस कालखंड में पांचवां और नौवां महीना आपके जीवन के कई महत्वपूर्ण फैसलों के लिए अत्यंत शुभ और निर्णायक सिद्ध होंगे। किसी भी जल्दबाजी या भावनात्मक आवेश से बचते हुए विवेकपूर्ण ढंग से निर्णय लेना आपको विजय दिलाएगा। नित्य अपने इष्टदेव का स्मरण, कुलदेवता की आराधना तथा बग्गोण क्षेत्र के पवित्र साकल्य से आपके समस्त मनोरथ निर्विघ्न संपन्न होंगे। यह वर्ष आपकी साधना और शुभ कर्मों के श्रेष्ठतम फलों को प्राप्त करने का एक स्वर्णिम अवसर सिद्ध होगा।`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+    return cleanEnglishFromRegionalText(full, "hi");
+  }
+
+  if (baseLang === "te") {
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు జన్మ రాశి (${chart.moonSignName}) ఆధారంగా, గత కొంతకాలంగా మీరు అనుభవిస్తున్న మానసిక అలసట, నిశ్శబ్ద పోరాటాలు మరియు అంతర్గత ఆందోళనలకు రాబోయే 12 నెలల కాలంలో ఉపశమనం లభించనుంది. ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ అంతరంగానికి సరికొత్త ఆత్మవిశ్వాసాన్ని, ఉత్సాహాన్ని మరియు మానసిక ప్రశాంతతను అందిస్తాయి. ఈ కాలం మీ ఆలోచనల్లోని సందిగ్ధతలను తొలగించి, భవిష్యత్తుపై స్పష్టమైన, ఆశాజనకమైన దృక్పథాన్ని కలుగజేస్తుంది.`;
+
+    const p2 = `వృత్తిపరమైన మరియు ఆర్థిక రంగాలలో రాబోయే సంవత్సరం అద్భుతమైన మార్పులను తీసుకురానుంది. గోచారంలో బృహస్పతి అనుకూల వీక్షణ మరియు శని భగవానుడి క్రమశిక్షణతో కూడిన సంచారం మీ దీర్ఘకాలిక శ్రమకు తగిన గుర్తింపును, ప్రతిఫలాన్ని ఇస్తాయి. ఉద్యోగంలో పదోన్నతి, వ్యాపారంలో నూతన భాగస్వామ్యాలు మరియు ఆర్థిక లాభాల సాధనకు రాబోయే 4 నుండి 8 నెలల కాలం అత్యంత అనుకూలంగా ఉంది. సురక్షితమైన పెట్టుబడులు మరియు ఆస్తి కొనుగోలుకు బలమైన పునాది ఏర్పడుతుంది.`;
+
+    const p3 = `కుటుంబ వాతావరణంలో గతంలో ఏర్పడిన చిన్నపాటి అపార్థాలు తొలగిపోయి ఆప్యాయతలు, పరస్పర గౌరవం బలపడతాయి. గృహంలో శుభకార్యాల ప్రయత్నాలు వేగవంతమవుతాయి. జీవిత భాగస్వామి మరియు పిల్లల సహకారం మీ ఉల్లాసాన్ని రెట్టింపు చేస్తుంది. శారీరక ఆరోగ్యం విషయంలో క్రమబద్ధమైన దినచర్య, సమతుల్య ఆహారం మరియు ధ్యానం మీ నాడీ వ్యవస్థకు, జీర్ణవ్యవస్థకు మేలు చేస్తాయి. పని ఒత్తిడిని సమర్థవంతంగా నిర్వహించడం మానసిక ఉల్లాసానికి తోడ్పడుతుంది.`;
+
+    const p4 = `【రాబోయే 1 సంవత్సర దైవిక సంకల్పం & విజయ సాధన】 రాబోయే 12 నెలల కాలంలో 5వ మరియు 9వ నెలలు మీ జీవితంలో ముఖ్యమైన నిర్ణయాలకు (నూతన ప్రాజెక్టులు, పెట్టుబడులు లేదా ఒప్పందాలు) అత్యంత కీలకమైన మలుపులుగా నిలుస్తాయి. తొందరపాటు నిర్ణయాలకు తావివ్వకుండా, అనుభవజ్ఞుల సలహాలతో ముందడుగు వేయడం విశేష ఫలితాలను ఇస్తుంది. ఇష్టదైవ ఆరాధన, నిత్య ప్రార్థన మరియు బగ్గోణ క్షేత్ర పవిత్ర ఆశీర్వాదాలు మీ సకల సత్సంకల్పాలకు దివ్య రక్షణగా నిలుస్తాయి.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+    return cleanEnglishFromRegionalText(full, "te");
+  }
+
+  if (baseLang === "ta") {
+    const salutation = devoteeName ? `${devoteeName}, ` : "";
+    const p1 = `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், கடந்த சில காலமாக நீங்கள் சந்தித்து வந்த மன உளைச்சல், அமைதியான போராட்டங்கள் மற்றும் சோர்வுகளுக்கு வரவிருக்கும் 12 மாத காலப்பகுதியில் முழுமையான நிவாரணம் கிடைக்கவுள்ளது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உங்கள் மனதிற்கு புதிய புத்துணர்ச்சியையும், ஆழ்ந்த தன்னம்பிக்கையையும், மன அமைதியையும் வழங்கும். இந்த காலம் உங்கள் தயக்கங்களை நீக்கி எதிர்காலத்தைப் பற்றிய தெளிவான பார்வையை உருவாக்கும்.`;
+
+    const p2 = `தொழில் மற்றும் பொருளாதார ரீதியாக வரவிருக்கும் ஒரு வருடம் குறிப்பிடத்தக்க திருப்புமுனைகளை ஏற்படுத்தும். கோசாரத்தில் குரு பகவானின் அருட்பார்வையும் சனி பகவானின் ஒழுங்குபடுத்தும் அமைப்பும் உங்கள் நீண்ட கால உழைப்பிற்கு ஏற்ற நற்பலன்களைத் தரவுள்ளன. உத்தியோகத்தில் பதவி உயர்வு, தொழிலில் புதிய வாடிக்கையாளர்கள் மற்றும் புதிய திட்டங்களைத் தொடங்க அடுத்த 4 முதல் 8 மாதங்கள் மிகவும் சாதகமாக உள்ளன. கடன் சுமைகளிலிருந்து விடுபடவும் பாதுகாப்பான முதலீடுகளைச் செய்யவும் இது நல்ல நேரமாகும்.`;
+
+    const p3 = `குடும்பச் சூழலில் கடந்த கால கருத்து வேறுபாடுகள் மறைந்து அன்பும் பரஸ்பர புரிதலும் மேலோங்கும். வீட்டில் சுப காரியங்களுக்கான முயற்சிகள் கைகூடும். வாழ்க்கைத் துணை மற்றும் குடும்பத்தினரின் ஒத்துழைப்பு உங்கள் உற்சாகத்தை அதிகரிக்கும். ஆரோக்கியத்தைப் பொறுத்தவரை முறையான உடற்பயிற்சி, சாத்வீக உணவு மற்றும் தியானம் உங்கள் நரம்பு மண்டலத்தையும் செரிமானத்தையும் சமநிலையில் வைத்திருக்கும். பருவநிலை மாற்றங்களுக்கு ஏற்ப உணவுப் பழக்கங்களை அமைத்துக் கொள்வது நல்லது.`;
+
+    const p4 = `【வரவிருக்கும் 1 வருட தெய்வீக சங்கல்பம் & வெற்றி சாதனை】 வரவிருக்கும் 12 மாத பயணத்தில் 5-வது மற்றும் 9-வது மாதங்கள் உங்கள் வாழ்க்கையின் முக்கிய முடிவுகளுக்கு (முதலீடு, புதிய பொறுப்புகள் அல்லது ஒப்பந்தங்கள்) மிக முக்கியமான திருப்புமுனைகளாக அமையும். அவசர முடிவுகளைத் தவிர்த்து பொறுமையுடன் செயல்படுவது வெற்றியைத் தரும். உங்கள் இஷ்ட தெய்வ வழிபாடு மற்றும் பக்கோண திருத்தலத்தின் தெய்வீக அருளாசி உங்கள் அனைத்து நற்செயல்களுக்கும் பாதுகாப்பு கவசமாக விளங்கும். இந்த வருடம் உங்கள் நல்வினைகளின் பயனை அறுவடை செய்யும் ஆண்டாக அமைய வாழ்த்துகிறோம்.`;
+
+    const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+    return cleanEnglishFromRegionalText(full, "ta");
+  }
+
+  // English fallback
+  const salutation = chart.name ? `Dear ${chart.name}, ` : "";
+  const p1 = `${salutation}Reflecting upon your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), cosmic configurations deeply acknowledge the silent emotional burdens, fatigue, and persevering resilience you have sustained over recent months. Your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti cycle inaugurates a potent 12-month healing transition, shifting your mindset from lingering ambiguity to grounded self-assurance and emotional calm. This sacred alignment dissolves inner exhaustion and equips you with authentic clarity to navigate the year ahead.`;
+
+  const p2 = `In the material and professional sphere, the upcoming 12 months present a sequence of pivotal breakthroughs and stabilization. Fortified by the benevolent glance of transiting Jupiter (Guru) and the structuring discipline of Saturn (Shani), your sustained efforts over prior seasons will begin yielding tangible rewards. The window spanning months 4 through 8 is exceptionally primed for professional expansion, client acquisitions, or decisive career elevation. Disciplined financial budgeting during this phase establishes a durable foundation for long-term assets and family security.`;
+
+  const p3 = `Within your domestic sphere, subtle communication strains and familial anxieties will steadily resolve into mutual understanding, warmth, and renewed companionship. Anticipated celebratory events or auspicious milestones will brighten the household sanctuary, reinforcing emotional trust among family members. On the wellness front, honoring mindful daily rhythms, seasonal nutrition, and restorative pranayama will safeguard your nervous and metabolic vitality. Embracing calm restorative practices shields your physical constitution against work-induced fatigue.`;
+
+  const p4 = `【Next 1-Year Divine Resolve & Cosmic Breakthrough】 Across this 12-month trajectory, months 5 and 9 emerge as significant inflection thresholds for pivotal life choices, contracts, or transformative investments. Exercising measured discernment over impulsive reactions will ensure consistent victory. Anchoring your daily life in devotion to your Ishta Devata, honoring ancestral roots, and receiving the divine blessings of Baggona Kshetra provide an impenetrable armor of grace and prosperity. May this upcoming year unfold as a deeply fulfilling chapter of triumph and peace.`;
+
+  return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
+}
+
+/* ==========================================================================
+   DYNAMIC SOUL MIRROR & PRESCRIPTION FALLBACK GENERATORS
+   ========================================================================== */
+
+export interface DynamicSoulMirrorResult {
+  elemental: {
+    firePercent: number;
+    earthPercent: number;
+    airPercent: number;
+    waterPercent: number;
+    dominantElementKey: "Agni" | "Prithvi" | "Vayu" | "Jala";
+    dominantElementName: string;
+    dominantElementTrait: string;
+    shieldGraha: string;
+    shieldGrahaName: string;
+    shieldGrahaWhy: string;
+    moonPaksha: string;
+    moonVitalityTrait: string;
+  };
+  truth1Title: string;
+  truth1Text: string;
+  truth2Title: string;
+  truth2Text: string;
+  truth3Title: string;
+  truth3Text: string;
+  synthesisTitle?: string;
+  synthesisText?: string;
+}
+
+export function buildDynamicSoulMirrorFallback(chart: ParsedKundaliChart): DynamicSoulMirrorResult {
+  const baseLang = chart.lang.split("-")[0];
+
+  // 1. Calculate elemental counts across Lagna + 9 Natal Grahas (10 points total)
+  let fireCount = 0;
+  let earthCount = 0;
+  let airCount = 0;
+  let waterCount = 0;
+
+  const points: number[] = [chart.lagnaRashiIndex];
+  if (chart.sunPlacement) points.push(chart.sunPlacement.rashiIndex);
+  if (chart.moonPlacement) points.push(chart.moonPlacement.rashiIndex);
+  if (chart.marsPlacement) points.push(chart.marsPlacement.rashiIndex);
+  if (chart.mercuryPlacement) points.push(chart.mercuryPlacement.rashiIndex);
+  if (chart.jupiterPlacement) points.push(chart.jupiterPlacement.rashiIndex);
+  if (chart.venusPlacement) points.push(chart.venusPlacement.rashiIndex);
+  if (chart.saturnPlacement) points.push(chart.saturnPlacement.rashiIndex);
+
+  // If houses exist, find Rahu & Ketu rashis
+  for (let h = 1; h <= 12; h++) {
+    const house = chart.houses[h];
+    if (house && house.occupants) {
+      for (const occ of house.occupants) {
+        if (occ.graha === "Rahu" || occ.graha === "Ketu") {
+          points.push(occ.rashiIndex);
+        }
+      }
+    }
+  }
+
+  // Ensure exactly 10 points
+  while (points.length < 10) {
+    points.push(chart.lagnaRashiIndex);
+  }
+
+  const sample10 = points.slice(0, 10);
+  for (const r of sample10) {
+    const rem = ((r % 12) + 12) % 12;
+    if (rem === 0 || rem === 4 || rem === 8) fireCount++;
+    else if (rem === 1 || rem === 5 || rem === 9) earthCount++;
+    else if (rem === 2 || rem === 6 || rem === 10) airCount++;
+    else waterCount++;
+  }
+
+  const firePercent = fireCount * 10;
+  const earthPercent = earthCount * 10;
+  const airPercent = airCount * 10;
+  const waterPercent = 100 - (firePercent + earthPercent + airPercent);
+
+  // Determine dominant element
+  const counts = [
+    { key: "Agni" as const, val: firePercent },
+    { key: "Prithvi" as const, val: earthPercent },
+    { key: "Vayu" as const, val: airPercent },
+    { key: "Jala" as const, val: waterPercent }
+  ];
+  counts.sort((a, b) => b.val - a.val);
+  const dominantElementKey = counts[0].key;
+
+  // Localized Element Names & Traits
+  const ELEMENT_INFO: Record<string, Record<string, { name: string; trait: string }>> = {
+    Agni: {
+      kn: { name: "ಅಗ್ನಿ ತತ್ವ (ತೇಜಸ್ಸು ಹಾಗೂ ನಾಯಕತ್ವ)", trait: "ಸ್ವಾಭಾವಿಕ ನಾಯಕತ್ವ ಗುಣ, ತೇಜಸ್ಸು ಹಾಗೂ ಗುರಿ ಸಾಧನೆಯ ಅದಮ್ಯ ಛಲ." },
+      hi: { name: "अग्नि तत्व (तेज एवं नेतृत्व)", trait: "स्वाभाविक नेतृत्व क्षमता, तेजस्विता एवं लक्ष्य प्राप्ति की अदम्य इच्छाशक्ति।" },
+      te: { name: "అగ్ని తత్వము (తేజస్సు & నాయకత్వం)", trait: "సహజ నాయకత్వ లక్షణాలు, తేజస్సు మరియు లక్ష్య సాధనలో అచంచల దీక్ష." },
+      ta: { name: "அக்னி தத்துவம் (தேஜஸ் & தலைமைத்துவம்)", trait: "இயற்கையான தலைமைப் பண்பு, கம்பீரம் மற்றும் இலக்கை அடையும் அசைக்க முடியாத உறுதி." },
+      en: { name: "Agni (Fire Element - Radiant Leadership)", trait: "Inherent leadership presence, dynamic executive drive, and unwavering perseverance toward monumental triumphs." }
+    },
+    Prithvi: {
+      kn: { name: "ಪೃಥ್ವಿ ತತ್ವ (ಸ್ಥಿರತೆ ಹಾಗೂ ಧೈರ್ಯ)", trait: "ಅಚಲ ಸ್ಥಿರತೆ, ವ್ಯವಸ್ಥಿತ ಕಾರ್ಯವೈಖರಿ ಹಾಗೂ ನೈತಿಕ ಶಿಸ್ತಿನ ಜೀವನಶೈಲಿ." },
+      hi: { name: "पृथ्वी तत्व (स्थिरता एवं धैर्य)", trait: "अटल स्थिरता, सुव्यवस्थित कार्यशैली एवं नैतिक अनुशासन से परिपूर्ण जीवन।" },
+      te: { name: "పృథ్వీ తత్వము (స్థిరత్వం & సహనం)", trait: "నిశ్చలమైన స్థిరత్వం, క్రమబద్ధమైన పనితీరు మరియు నైతిక క్రమశిక్షణ." },
+      ta: { name: "பிருத்வி தத்துவம் (ஸ்திரத்தன்மை & அமைதி)", trait: "உறுதியான ஸ்திரத்தன்மை, முறையான செயல்பாடு மற்றும் ஒழுக்கமான வாழ்வியல்." },
+      en: { name: "Prithvi (Earth Element - Enduring Stability)", trait: "Steadfast grounding, methodical practical wisdom, and uncompromising structural integrity." }
+    },
+    Vayu: {
+      kn: { name: "ವಾಯು ತತ್ವ (ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಚಲನಶೀಲತೆ)", trait: "ತೀಕ್ಷ್ಣ ಗ್ರಹಣಶಕ್ತಿ, ನವೀನ ಆಲೋಚನೆಗಳು ಹಾಗೂ ಸೃಜನಶೀಲ ಸಂವಹನ ಕಲೆ." },
+      hi: { name: "वायु तत्व (बुद्धि एवं गतिशीलता)", trait: "तीक्ष्ण बौद्धिक क्षमता, नवीन विचार एवं रचनात्मक अभिव्यक्ति।" },
+      te: { name: "వాయు తత్వము (బుద్ధిబలం & క్రియాశీలత)", trait: "చురుకైన గ్రహణశక్తి, నూతన ఆలోచనలు మరియు సృజనాత్మక నైపుణ్యం." },
+      ta: { name: "வாயு தத்துவம் (அறிவுக்கூர்மை & வேகம்)", trait: "கூர்மையான அறிவுக்கூர்மை, புதிய சிந்தனைகள் மற்றும் ஆக்கப்பூர்வமான தொடர்புத் திறன்." },
+      en: { name: "Vayu (Air Element - Intellectual Velocity)", trait: "Agile intellectual brilliance, innovative multidimensional perspective, and visionary communicative eloquence." }
+    },
+    Jala: {
+      kn: { name: "ಜಲ ತತ್ವ (ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ಭಾವನಾತ್ಮಕ ಶಾಂತಿ)", trait: "ಆಳವಾದ ಸಹಾನುಭೂತಿ, ಅಂತರಂಗದ ಶುದ್ಧ ಪ್ರಜ್ಞೆ ಹಾಗೂ ಪ್ರಶಾಂತ ಮನೋಭಾವ." },
+      hi: { name: "जल तत्व (अंतर्ज्ञान एवं भावनात्मक शांति)", trait: "गहन संवेदनशीलता, अंतर्मन की पावन चेतना एवं शांत मनोवृत्ति।" },
+      te: { name: "జల తత్వము (అంతర్దృష్టి & భావోద్వేగ శాంతి)", trait: "గాఢమైన సానుభూతి, అంతరంగ స్వచ్ఛత మరియు ప్రశాంత మనస్తత్వం." },
+      ta: { name: "ஜல தத்துவம் (உள்ளுணர்வு & மன அமைதி)", trait: "ஆழ்ந்த கருணை, அந்தரங்க தூய்மை மற்றும் அமைதியான மனநிலை." },
+      en: { name: "Jala (Water Element - Intuitive Tranquility)", trait: "Profound intuitive empathy, emotional equilibrium, and contemplative spiritual depth." }
+    }
+  };
+
+  const elemLoc = ELEMENT_INFO[dominantElementKey][baseLang] || ELEMENT_INFO[dominantElementKey].en;
+  const dominantElementName = elemLoc.name;
+  const dominantElementTrait = elemLoc.trait;
+
+  // Shield Graha
+  const shieldGraha = "Jupiter";
+  const SHIELD_NAMES: Record<string, string> = {
+    kn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿ",
+    hi: "देवगुरु बृहस्पति",
+    te: "దేవగురు బృహస్పతి",
+    ta: "தேவகுரு பிரகஸ்பதி",
+    en: "Jupiter (Devaguru Brihaspati)"
+  };
+  const SHIELD_WHYS: Record<string, string> = {
+    kn: "ಲಗ್ನ ಕೇಂದ್ರದಲ್ಲಿ ಶುಭ ದೃಷ್ಟಿ ಹೊಂದಿದ್ದು ಸಕಲ ದೋಷಗಳನ್ನು ನಿವಾರಿಸುವ ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚವಾಗಿ ನಿಲ್ಲುತ್ತದೆ.",
+    hi: "लग्न एवं केंद्र भाव पर शुभ दृष्टि डालकर समस्त विघ्नों का शमन करने वाला परम रक्षा कवच है।",
+    te: "లగ్నం మరియు కేంద్ర స్థానాలపై శుభ దృష్టిని ప్రసరిస్తూ సకల దోషాలను తొలగించే దివ్య రక్షా కవచం.",
+    ta: "லக்னம் மற்றும் கேந்திர ஸ்தானங்களில் சுப பார்வை செலுத்தி சர்வ தோஷங்களையும் நீக்கும் தெய்வீக கவசம்.",
+    en: "Projects a benevolent protective grace across angular houses, dissolving karmic obstacles and safeguarding destiny."
+  };
+  const shieldGrahaName = SHIELD_NAMES[baseLang] || SHIELD_NAMES.en;
+  const shieldGrahaWhy = SHIELD_WHYS[baseLang] || SHIELD_WHYS.en;
+
+  // Moon Paksha
+  let isShukla = true;
+  if (chart.sunPlacement && chart.moonPlacement) {
+    const diff = (chart.moonPlacement.rashiIndex - chart.sunPlacement.rashiIndex + 12) % 12;
+    isShukla = diff < 6;
+  }
+  const PAKSHA_NAMES: Record<string, string> = {
+    kn: isShukla ? "ಶುಕ್ಲ ಪಕ್ಷ" : "ಕೃಷ್ಣ ಪಕ್ಷ",
+    hi: isShukla ? "शुक्ल पक्ष" : "कृष्ण पक्ष",
+    te: isShukla ? "శుక్ల పక్షం" : "కృష్ణ పక్షం",
+    ta: isShukla ? "சுக்ல பக்ஷம்" : "கிருஷ்ண பக்ஷம்",
+    en: isShukla ? "Shukla Paksha" : "Krishna Paksha"
+  };
+  const moonPaksha = PAKSHA_NAMES[baseLang] || PAKSHA_NAMES.en;
+
+  const MOON_VITALITIES: Record<string, string> = {
+    kn: "ಸ್ಥಿರ ಭಾವನಾತ್ಮಕ ಸ್ಥೈರ್ಯ, ಶಾಂತ ಮನೋಬಲ ಹಾಗೂ ಅಂತಃಪ್ರಜ್ಞೆಯ ಚೇತನ ಶಕ್ತಿ.",
+    hi: "स्थिर भावनात्मक संतुलन, शांत मनोबल एवं गहन अंतःप्रज्ञा की शक्ति।",
+    te: "స్థిరమైన భావోద్వేగ బలం, ప్రశాంత మనోధైర్యం మరియు అంతఃచేతన శక్తి.",
+    ta: "ஸ்திரமான மன உறுதி, அமைதியான மனோபலம் மற்றும் உள்ளுணர்வு ஜீவசக்தி.",
+    en: "Unshakeable emotional poise, tranquil mental fortitude, and deep intuitive awareness."
+  };
+  const moonVitalityTrait = MOON_VITALITIES[baseLang] || MOON_VITALITIES.en;
+
+  // Truth Titles
+  const TRUTH_TITLES: Record<string, [string, string, string]> = {
+    kn: [
+      "೧. ಬಾಹ್ಯ ಗಾಂಭೀರ್ಯ ಹಾಗೂ ಆಂತರಿಕ ಮೌನ",
+      "೨. ಅಚಲ ಸ್ವಾಭಿಮಾನ & ವಿಶ್ವಾಸಾರ್ಹತೆಯ ಗಡಿ",
+      "೩. ಪೂರ್ವಪುಣ್ಯ ರಕ್ಷೆ & ೧೧ನೇ ಗಂಟೆಯ ದೈವಕೃಪೆ"
+    ],
+    hi: [
+      "१. बाह्य गांभीर्य एवं आंतरिक मौन",
+      "२. अडिग स्वाभिमान एवं विश्वास की सीमा",
+      "३. पूर्वपुण्य रक्षा एवं दैवीय कृपा"
+    ],
+    te: [
+      "1. బాహ్య గాంభీర్యం మరియు అంతర్గత మౌనం",
+      "2. అచల స్వాభిమానం & విశ్వసనీయత సరిహద్దు",
+      "3. పూర్వపుణ్య రక్ష & దైవానుగ్రహం"
+    ],
+    ta: [
+      "1. வெளிப்படையான கம்பீரம் மற்றும் உள்ளார்ந்த அமைதி",
+      "2. அசைக்க முடியாத சுயமரியாதை & நம்பிக்கையின் எல்லை",
+      "3. பூர்வபுண்ணிய ரக்ஷை & தெய்வீக அருள்"
+    ],
+    en: [
+      "1. Outer Strength and Inner Quiet",
+      "2. Unyielding Dignity and Boundaries of Trust",
+      "3. Purva Punya Armor & Eleventh-Hour Grace"
+    ]
+  };
+  const titles = TRUTH_TITLES[baseLang] || TRUTH_TITLES.en;
+
+  // Truth Texts (All strictly >= 80 characters)
+  let truth1Text = "";
+  let truth2Text = "";
+  let truth3Text = "";
+
+  if (baseLang === "kn") {
+    truth1Text = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಗ್ರಹಗಳ ಸಂಯೋಗವು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದಲ್ಲಿ ಬಾಹ್ಯ ಗಾಂಭೀರ್ಯ ಹಾಗೂ ಅಂತರಂಗದ ಶಾಂತತೆಯನ್ನು ಸಮ್ಮಿಲನಗೊಳಿಸಿದೆ. ಜಗತ್ತಿನ ಎದುರು ಎಷ್ಟೇ ಜವಾಬ್ದಾರಿಗಳು ಎದುರಾದರೂ ನಿಮ್ಮ ಆಂತರಿಕ ಏಕಾಂತದಲ್ಲಿ ಅಪಾರ ಶಕ್ತಿ ಅಡಗಿದೆ.`;
+    truth2Text = "ನಿಮ್ಮ ಜೀವನ ಸೂತ್ರದಲ್ಲಿ ಅಚಲ ಸ್ವಾಭಿಮಾನ ಹಾಗೂ ನಂಬಿಕೆಯು ಪರಮ ಮೌಲ್ಯಗಳಾಗಿವೆ. ಮುಗ್ಧತೆಯಿಂದ ಮಾಡಿದ ತಪ್ಪುಗಳನ್ನು ದೊಡ್ಡ ಗುಣದಿಂದ ಕ್ಷಮಿಸುವ ನೀವು, ಉದ್ದೇಶಪೂರ್ವಕ ನಂಬಿಕೆದ್ರೋಹ ಅಥವಾ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಧಕ್ಕೆ ಬಂದರೆ ಆ ಸಂಬಂಧಗಳಿಂದ ತಕ್ಷಣ ಶಾಂತವಾಗಿ ನಿರ್ಗಮಿಸುತ್ತೀರಿ.";
+    truth3Text = "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಪೂರ್ವಪುಣ್ಯ ಬಲವು ನಿಮ್ಮ ಜೀವನದ ಅಗೋಚರ ರಕ್ಷಾ ಕವಚವಾಗಿದೆ. ಅನಿರೀಕ್ಷಿತ ಸಂಕಷ್ಟಗಳು ಎದುರಾದಾಗಲೂ ೧೧ನೇ ಗಂಟೆಯಲ್ಲಿ ದೈವಕೃಪೆಯು ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸುತ್ತದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ನಿಮ್ಮ ಕುಲದೇವರ ಆಶೀರ್ವಾದ ಸದಾ ಜೊತೆಗಿದೆ.";
+  } else if (baseLang === "hi") {
+    truth1Text = `आपकी जन्म लग्न ${chart.lagnaSignName} एवं चंद्र राशि ${chart.moonSignName} का दिव्य संयोग आपके व्यक्तित्व में बाह्य दृढ़ता एवं अंतर्मन की शांत गंभीरता को स्थापित करता है। संसार के सम्मुख आप अत्यंत गरिमामयी रहते हैं और आपका आंतरिक एकांत आपकी परम शक्ति है।`;
+    truth2Text = "आपके जीवन दर्शन में अडिग स्वाभिमान और परस्पर विश्वास का सर्वोच्च स्थान है। अज्ञानवश की गई त्रुटियों को आप उदारतापूर्वक क्षमा कर देते हैं, किंतु जानबूझकर किए गए विश्वासघात अथवा आत्मसम्मान पर प्रहार को आप कभी स्वीकार नहीं करते।";
+    truth3Text = "आपकी जन्म कुंडली का पूर्वपुण्य भाव आपके जीवन का अदृश्य सुरक्षा कवच है। जब भी कोई आकस्मिक संकट सम्मुख आता है, अंतिम क्षण में दैवीय कृपा से मार्ग प्रशस्त हो जाता है। श्री क्षेत्र बग्गोण के गणपति एवं आपके कुलदेवता का पावन आशीर्वाद सदैव आपके साथ है।";
+  } else if (baseLang === "te") {
+    truth1Text = `మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName}ల గ్రహ సంయోగం మీ వ్యక్తిత్వంలో బాహ్య గాంభీర్యాన్ని మరియు అంతర్గత ప్రశాంతతను సమ్మేళనం చేసింది. బాహ్య ప్రపంచం ముందు బాధ్యతలను నిర్వర్తిస్తూనే మీ అంతరంగం దృఢమైన ఆత్మబలాన్ని కలిగి ఉంటుంది.`;
+    truth2Text = "మీ జీవన విధానంలో ఆత్మగౌరవం మరియు పరస్పర నమ్మకం అత్యంత కీలకమైన అంశాలు. తెలియక చేసిన పొరపాట్లను పెద్ద మనసుతో క్షమించే మీరు, ఉద్దేశపూర్వక నమ్మకద్రోహాన్ని లేదా ఆత్మగౌరవానికి భంగం కలిగించే అంశాలను ఎట్టిపరిస్థితుల్లోనూ సహించరు.";
+    truth3Text = "మీ జన్మ కుండలిలోని పూర్వపుణ్య బలం మీ జీవితానికి అదృశ్య రక్షా కవచంగా నిలుస్తుంది. అనుకోని కష్టాలు ఎదురైనప్పటికీ చివరి క్షణంలో దైవానుగ్రహం మీకు సరియైన మార్గాన్ని చూపుతుంది. శ్రీ క్షేత్ర బగ్గోణ మహాగణపతి ఆశీస్సులు మీకు సదా తోడుంటాయి.";
+  } else if (baseLang === "ta") {
+    truth1Text = `உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} ஆகியவற்றின் சேர்க்கை உங்கள் ஆளுமையில் கம்பீரத்தையும் உள்ளார்ந்த அமைதியையும் உருவாக்குகிறது. உலகிற்கு முன் அசைக்க முடியாத பொறுப்புணர்வோடு திகழ்ந்தாலும், உங்கள் தனிமையில் அபாரமான ஆன்மீக சக்தி குடியிருக்கிறது.`;
+    truth2Text = "உங்கள் வாழ்க்கைத் தத்துவத்தில் சுயமரியாதையும் பரஸ்பர நம்பிக்கையும் உன்னதமான விழுமியங்கள். அறியாமையினால் செய்யும் தவறுகளை பெருந்தன்மையுடன் மன்னிக்கும் நீங்கள், திட்டமிட்ட துரோகத்தையோ அல்லது சுயமரியாதைக்கு ஏற்படும் இழுக்கையோ ஒருபோதும் ஏற்பதில்லை.";
+    truth3Text = "உங்கள் ஜென்ம ஜாதகத்தின் பூர்வபுண்ணிய பலம் உங்கள் வாழ்க்கையின் அருவமான பாதுகாப்பு கவசமாகும். எதிர்பாராத நெருக்கடிகள் சூழும்போது கூட, கடைசி கணத்தில் தெய்வீக அருள் உங்களை பாதுகாத்து நல்வழி காட்டும். ஸ்ரீ க்ஷேத்ர பக்கோண கணபதியின் பரிபூரண ஆசி எப்போதும் உண்டு.";
+  } else {
+    truth1Text = `The celestial alignment of your natal Ascendant (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}) weaves a commanding outer presence harmonized with a serene, contemplative inner sanctuary. While projecting unwavering strength and poise to the outer world, your solitary reflections remain your greatest fountain of resilience.`;
+    truth2Text = "At the core of your dharmic code lies an adamantine self-respect and an unshakeable boundary of trust. While your noble nature effortlessly pardons genuine human mistakes born of innocence, calculated betrayal or violations of personal dignity are met with immediate, dignified emotional detachment.";
+    truth3Text = "The accumulated merits of your past lifetimes (Purva Punya) operate as an invisible cosmic armor throughout your earthly journey. Even amidst complex predicaments, miraculous eleventh-hour interventions restore equilibrium. The divine grace of Sri Kshetra Baggona continuously blesses your life with triumph.";
+  }
+
+  return {
+    elemental: {
+      firePercent,
+      earthPercent,
+      airPercent,
+      waterPercent,
+      dominantElementKey,
+      dominantElementName,
+      dominantElementTrait,
+      shieldGraha,
+      shieldGrahaName,
+      shieldGrahaWhy,
+      moonPaksha,
+      moonVitalityTrait
+    },
+    truth1Title: titles[0],
+    truth1Text,
+    truth2Title: titles[1],
+    truth2Text,
+    truth3Title: titles[2],
+    truth3Text
+  };
+}
+
+export interface DynamicPrescriptionsResult {
+  gemstone: string;
+  rudraksha: string;
+  ishtaDevata: string;
+  luckyColors: string;
+  luckyDays: string;
+  luckyNumbers: string;
+  luckyDirection: string;
+}
+
+export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPrescriptionsResult {
+  const baseLang = chart.lang.split("-")[0];
+  const lagnaRashiIdx = chart.lagnaRashiIndex;
+
+  // Mars / Havala check
+  const marsPlacement = chart.marsPlacement;
+  const marsHouse = marsPlacement ? marsPlacement.house : 1;
+  const isMarsDusthana = [6, 8, 12].includes(marsHouse);
+  const isMarsBenefic = [0, 3, 4, 7, 8, 11].includes(lagnaRashiIdx); // Aries, Cancer, Leo, Scorpio, Sagittarius, Pisces
+  const moonNakIdx = chart.houses[1]?.rashiIndex ?? 0;
+  const isKujaNak = (moonNakIdx % 9) === 4;
+  const isHavalaRecommended = isKujaNak || (isMarsBenefic && !isMarsDusthana);
+
+  // Gemstone in 5 languages
+  let gemstone = "";
+  if (baseLang === "kn") {
+    gemstone = isHavalaRecommended
+      ? "ಹವಳ (ಶುದ್ಧ ಪ್ರವಾಳ, ೪.೫ - ೬.೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು ಅನಾಮಿಕಾ, ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನದಲ್ಲಿ, ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ)"
+      : "ಕನಕ ಪುಷ್ಯರಾಗ ಅಥವಾ ಮಾಣಿಕ್ಯ (೪.೨೫ - ೫.೫೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ತೋರುಬೆರಳು, ಅಪ್ಪಟ ಚಿನ್ನದಲ್ಲಿ, ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ)";
+  } else if (baseLang === "hi") {
+    gemstone = isHavalaRecommended
+      ? "लाल मूंगा (शुद्ध प्रवाल, 4.5 - 6.0 कैरेट - दाहिने हाथ की अनामिका अंगुली, तांबा अथवा स्वर्ण में, मंगलवार प्रातः मंगल होरा में)"
+      : "पुखराज अथवा माणिक्य (4.25 - 5.50 कैरेट - तर्जनी अंगुली, शुद्ध स्वर्ण में, गुरुवार प्रातःकाल)";
+  } else if (baseLang === "te") {
+    gemstone = isHavalaRecommended
+      ? "పగడం (శుద్ధ ప్రవాళం, 4.5 - 6.0 క్యారెట్లు - కుడి చేయి ఉంగరపు వేలు అనామిక, రాగి లేదా బంగారంలో, మంగళవారం ఉదయం కుజ హోరలో)"
+      : "పుష్యరాగం లేదా మాణిక్యం (4.25 - 5.50 క్యారెట్లు - చూపుడు వేలు, బంగారంలో, గురువారం ఉదయం)";
+  } else if (baseLang === "ta") {
+    gemstone = isHavalaRecommended
+      ? "பவழம் (தூய பிரவாளம், 4.5 - 6.0 கேரட் - வலது கை மோதிர விரல் அநாமிகா, தாமிரம் அல்லது தங்கத்தில், செவ்வாய்க்கிழமை காலை குஜ ஓரையில்)"
+      : "புஷ்பராகம் அல்லது மாணிக்கம் (4.25 - 5.50 கேரட் - ஆள்காட்டி விரல், தங்கத்தில், வியாழக்கிழமை காலை)";
+  } else {
+    gemstone = isHavalaRecommended
+      ? "Red Coral (Pure Pravala, 4.5 - 6.0 Carats - Ring Finger of Right Hand in Pure Copper or Gold, Tuesday Morning during Mars Hora)"
+      : "Yellow Sapphire or Ruby (4.25 - 5.50 Carats - Index Finger of Right Hand in Pure Gold, Thursday Morning)";
+  }
+
+  // Rudraksha in 5 languages (matching Lagna Lord / Nakshatra Lord)
+  let rudraksha = "";
+  if (baseLang === "kn") {
+    rudraksha = isHavalaRecommended
+      ? "3 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಅಗ್ನಿ ತತ್ವ - ಕುಜ ದೋಷ ನಿವಾರಣೆ, ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಮಂತ್ರದೊಂದಿಗೆ ಧಾರಣೆ)"
+      : "5 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಕಾಲಾಗ್ನಿ ರುದ್ರ ತತ್ವ - ಗುರು ಬಲವರ್ಧನೆ, ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)";
+  } else if (baseLang === "hi") {
+    rudraksha = isHavalaRecommended
+      ? "3 मुखी रुद्राक्ष (अग्नि तत्व - कुज दोष निवारण, मंगलवार प्रातः मंगल मंत्र के साथ धारण)"
+      : "5 मुखी रुद्राक्ष (कालाग्नि रुद्र तत्व - गुरु बल संवर्धन, गुरुवार प्रातःकाल धारण)";
+  } else if (baseLang === "te") {
+    rudraksha = isHavalaRecommended
+      ? "3 ముఖి రుద్రాక్ష (అగ్ని తత్వము - కుజ దోష నివారణ, మంగళవారం ఉదయం కుజ మంత్రంతో ధారణ)"
+      : "5 ముఖి రుద్రాక్ష (కాలాగ్ని రుద్ర తత్వము - గురు బలాభివృద్ధి, గురువారం ఉదయం ధారణ)";
+  } else if (baseLang === "ta") {
+    rudraksha = isHavalaRecommended
+      ? "3 முக ருத்ராட்சம் (அக்னி தத்துவம் - செவ்வாய் தோஷ நிவாரணம், செவ்வாய்க்கிழமை காலை அணிதல்)"
+      : "5 முக ருத்ராட்சம் (காலாக்கி ருத்ர தத்துவம் - குரு பலம் பெற, வியாழக்கிழமை காலை அணிதல்)";
+  } else {
+    rudraksha = isHavalaRecommended
+      ? "3 Mukhi Rudraksha (Lord Agni Tatva - Harmonizes Mars energy, wear on Tuesday morning)"
+      : "5 Mukhi Rudraksha (Lord Kalagni Rudra - Auspicious Jupiter grace, wear on Thursday morning)";
+  }
+
+  // Ishta Devata
+  const DEITIES: Record<string, string> = {
+    kn: isHavalaRecommended ? "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಮಹಾಗಣಪತಿ" : "ಶ್ರೀ ಮಹಾವಿಷ್ಣು & ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಮುಖ್ಯಪ್ರಾಣ ದೇವರು",
+    hi: isHavalaRecommended ? "श्री सुब्रह्मण्य स्वामी एवं श्री क्षेत्र बग्गोण महागणपति" : "श्री महाविष्णु एवं श्री क्षेत्र बग्गोण मुख्यप्राण देव",
+    te: isHavalaRecommended ? "శ్రీ సుబ్రహ్మణ్య స్వామి & శ్రీ క్షేత్ర బగ్గోణ మహాగణపతి" : "శ్రీ మహావిష్ణువు & శ్రీ క్షేత్ర బగ్గోణ ముఖ్యప్రాణ దేవుడు",
+    ta: isHavalaRecommended ? "ஸ்ரீ சுப்ரமணிய சுவாமி & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி" : "ஸ்ரீ மகாவிஷ்ணு & ஸ்ரீ க்ஷேத்ர பக்கோண முக்யபிராண தேவர்",
+    en: isHavalaRecommended ? "Lord Subrahmanya & Sri Kshetra Baggona Maha Ganapati" : "Lord Maha Vishnu & Sri Kshetra Baggona Mukhyaprana Deva"
+  };
+  const ishtaDevata = DEITIES[baseLang] || DEITIES.en;
+
+  // Lucky Colors, Days, Numbers, Direction
+  const COLORS: Record<string, string> = {
+    kn: "ಕೇಸರಿ, ಹಳದಿ, ಬಿಳಿ ಹಾಗೂ ನೈಸರ್ಗಿಕ ತಾಮ್ರ ವರ್ಣ",
+    hi: "केसरिया, पीला, श्वेत एवं ताम्र वर्ण",
+    te: "కాషాయం, పసుపు, తెలుపు మరియు రాగి రంగు",
+    ta: "காவி, மஞ்சள், வெள்ளை மற்றும் தாமிர நிறம்",
+    en: "Saffron, Golden Yellow, Pure White, and Radiant Copper"
+  };
+  const DAYS: Record<string, string> = {
+    kn: isHavalaRecommended ? "ಮಂಗಳವಾರ, ಗುರುವಾರ ಹಾಗೂ ಭಾನುವಾರ" : "ಗುರುವಾರ, ಭಾನುವಾರ ಹಾಗೂ ಸೋಮವಾರ",
+    hi: isHavalaRecommended ? "मंगलवार, गुरुवार एवं रविवार" : "गुरुवार, रविवार एवं सोमवार",
+    te: isHavalaRecommended ? "మంగళవారం, గురువారం మరియు ఆదివారం" : "గురువారం, ఆదివారం మరియు సోమవారం",
+    ta: isHavalaRecommended ? "செவ்வாய், வியாழன் மற்றும் ஞாயிறு" : "வியாழன், ஞாயிறு மற்றும் திங்கள்",
+    en: isHavalaRecommended ? "Tuesday, Thursday, and Sunday" : "Thursday, Sunday, and Monday"
+  };
+  const NUMBERS: Record<string, string> = {
+    kn: isHavalaRecommended ? "೯, ೧, ೩" : "೩, ೧, ೯",
+    hi: isHavalaRecommended ? "9, 1, 3" : "3, 1, 9",
+    te: isHavalaRecommended ? "9, 1, 3" : "3, 1, 9",
+    ta: isHavalaRecommended ? "9, 1, 3" : "3, 1, 9",
+    en: isHavalaRecommended ? "9, 1, 3" : "3, 1, 9"
+  };
+  const DIRECTIONS: Record<string, string> = {
+    kn: chart.spouseDirection.kn || "ಪೂರ್ವ ಹಾಗೂ ದಕ್ಷಿಣ",
+    hi: chart.spouseDirection.hi || "पूर्व एवं दक्षिण",
+    te: chart.spouseDirection.te || "తూర్పు మరియు దక్షిణం",
+    ta: chart.spouseDirection.ta || "கிழக்கு மற்றும் தெற்கு",
+    en: chart.spouseDirection.en || "East and South"
+  };
+
+  return {
+    gemstone,
+    rudraksha,
+    ishtaDevata,
+    luckyColors: COLORS[baseLang] || COLORS.en,
+    luckyDays: DAYS[baseLang] || DAYS.en,
+    luckyNumbers: NUMBERS[baseLang] || NUMBERS.en,
+    luckyDirection: DIRECTIONS[baseLang] || DIRECTIONS.en
+  };
 }

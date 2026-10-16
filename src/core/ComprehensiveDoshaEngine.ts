@@ -411,11 +411,11 @@ export function calculateComprehensiveDoshas(
     pitruHouses.push(sun.house);
     pitruGrahas.push("Sun", "Rahu");
     const diff = Math.abs(sun.degree - rahu.degree);
-    pitruReasonsKn.push(`ಪಿತೃಕಾರಕ ಸೂರ್ಯ ಮತ್ತು ರಾಹು ${sun.house}ನೇ ಮನೆಯಲ್ಲಿ ${diff.toFixed(1)}° ಅಂತರದಲ್ಲಿ ಯುತಿ ಹೊಂದಿ ಸೂರ್ಯ ಗ್ರಹಣ ಪಿತೃದೋಷ ನಿರ್ಮಿಸಿರುವುದು.`);
+    pitruReasonsKn.push(`ಪಿತೃಕಾರಕ ಸೂರ್ಯ ಮತ್ತು ರಾಹು ${sun.house}ನೇ ಮನೆಯಲ್ಲಿ ಅತಿಸಮೀಪ ಯುತಿ ಹೊಂದಿ ಸೂರ್ಯ ಗ್ರಹಣ ಪಿತೃದೋಷ ನಿರ್ಮಿಸಿರುವುದು.`);
     pitruReasonsHi.push(`पितृकारक सूर्य एवं राहु का ${sun.house}वें भाव में युति संबंध होना।`);
     pitruReasonsTe.push(`సూర్యుడు మరియు రాహువు ${sun.house}వ స్థానంలో కలసి ఉండటం.`);
     pitruReasonsTa.push(`சூரியனும் ராகுவும் ${sun.house} ஆம் வீட்டில் இணைந்து சஞ்சரிப்பது.`);
-    pitruReasonsEn.push(`Sun (Pitrukaraka) is conjunct Rahu in the ${sun.house}th house within ${diff.toFixed(1)}° orb.`);
+    pitruReasonsEn.push(`Sun (Pitrukaraka) is closely conjunct Rahu in the ${sun.house}th house forming Surya Grahan Pitru Dosha.`);
   }
 
   if (sun && saturn && sun.rashi.index === saturn.rashi.index) {
@@ -807,7 +807,7 @@ Performing the sacred Narayana Bali rites dissolves these ancestral burdens, tra
     },
     technicalWhy: {
       kn: isKalaSarpa && rahu && ketu
-        ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ರಾಹುವು ${rahu.house}ನೇ ಮನೆಯಲ್ಲಿ (${RASHI_NAMES_KN[rahu.rashi.index]} - ${formatDegMin(rahu.degree)}) ಹಾಗೂ ಕೇತುವು ${ketu.house}ನೇ ಮನೆಯಲ್ಲಿ (${RASHI_NAMES_KN[ketu.rashi.index]} - ${formatDegMin(ketu.degree)}) ಸ್ಥಿತರಾಗಿದ್ದು, ಸೂರ್ಯ, ಚಂದ್ರ, ಕುಜ, ಬುಧ, ಗುರು, ಶುಕ್ರ, ಶನಿ ಎಂಬ ಸಪ್ತ ಗ್ರಹಗಳೆಲ್ಲವೂ ಈ ರಾಹು-ಕೇತುಗಳ ೧೮೦ ಡಿಗ್ರಿ ಅಕ್ಷದ ಒಂದೇ ಬದಿಯಲ್ಲಿ ಬಂಧಿತವಾಗಿವೆ. ರಾಹುವು ${rahu.house}ನೇ ಮನೆಯಲ್ಲಿರುವುದರಿಂದ ಶಾಸ್ತ್ರ ಪ್ರಕಾರ ಇದು ನಿಖರವಾಗಿ '${kalaSarpaTypeObj.kn}' ದೋಷವಾಗಿದೆ.`
+        ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ರಾಹುವು ${rahu.house}ನೇ ಮನೆಯಲ್ಲಿ (${RASHI_NAMES_KN[rahu.rashi.index]} ರಾಶಿ) ಹಾಗೂ ಕೇತುವು ${ketu.house}ನೇ ಮನೆಯಲ್ಲಿ (${RASHI_NAMES_KN[ketu.rashi.index]} ರಾಶಿ) ಸ್ಥಿತರಾಗಿದ್ದು, ಸೂರ್ಯ, ಚಂದ್ರ, ಕುಜ, ಬುಧ, ಗುರು, ಶುಕ್ರ, ಶನಿ ಎಂಬ ಸಪ್ತ ಗ್ರಹಗಳೆಲ್ಲವೂ ಈ ರಾಹು-ಕೇತುಗಳ ಅಕ್ಷದ ಒಂದೇ ಬದಿಯಲ್ಲಿ ಬಂಧಿತವಾಗಿವೆ. ರಾಹುವು ${rahu.house}ನೇ ಮನೆಯಲ್ಲಿರುವುದರಿಂದ ಶಾಸ್ತ್ರ ಪ್ರಕಾರ ಇದು ನಿಖರವಾಗಿ '${kalaSarpaTypeObj.kn}' ದೋಷವಾಗಿದೆ.`
         : "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಪ್ತ ಗ್ರಹಗಳು ರಾಹು ಮತ್ತು ಕೇತುಗಳ ಅಕ್ಷದ ಎರಡೂ ಬದಿಗಳಲ್ಲಿ ಹರಡಿಕೊಂಡಿದ್ದು, ಯಾವುದೇ ಕಾಳಸರ್ಪ ದೋಷವಿರುವುದಿಲ್ಲ.",
       hi: isKalaSarpa && rahu && ketu
         ? `कुंडली में राहु ${rahu.house}वें भाव एवं केतु ${ketu.house}वें भाव में स्थित हैं। समस्त सातों ग्रह (सूर्य से शनि) राहु-केतु अक्ष के मध्य स्थित होने से '${kalaSarpaTypeObj.hi}' का निर्माण होता है।`
@@ -819,7 +819,7 @@ Performing the sacred Narayana Bali rites dissolves these ancestral burdens, tra
         ? `ராகு ${rahu.house} ஆம் இடத்திலும் கேது ${ketu.house} ஆம் இடத்திலும் இருந்து, மற்ற 7 கிரகங்களும் இவர்களின் பிடியில் உள்ளதால் '${kalaSarpaTypeObj.ta}' உண்டாகியுள்ளது.`
         : "ஏழு கிரகங்களும் ராகு-கேதுவின் இருபுறமும் பரவி இருப்பதால் காலசர்ப்ப தோஷம் இல்லை.",
       en: isKalaSarpa && rahu && ketu
-        ? `All seven classical planets (Sun through Saturn) are hemmed between the serpentine axis of Rahu (${rahu.house}th house, ${formatDegMin(rahu.degree)}) and Ketu (${ketu.house}th house, ${formatDegMin(ketu.degree)}). As Rahu occupies house ${rahu.house}, this classical formation is classified as '${kalaSarpaTypeObj.en}'.`
+        ? `All seven classical planets (Sun through Saturn) are hemmed between the serpentine axis of Rahu (${rahu.house}th house, ${RASHI_NAMES_EN[rahu.rashi.index]}) and Ketu (${ketu.house}th house, ${RASHI_NAMES_EN[ketu.rashi.index]}). As Rahu occupies house ${rahu.house}, this classical formation is classified as '${kalaSarpaTypeObj.en}'.`
         : "The natal planets span both sides of the lunar nodal axis; no Kala Sarpa confinement exists."
     },
     currentLifeProblems: {
@@ -924,16 +924,16 @@ Propitiating Lord Shiva via formal Kala Sarpa Shanti harmonizes the nodal axis, 
       scripturalReference: "ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ, ಯೋಗಾಧ್ಯಾಯ (BPHS, Yogadhyaya)",
       hasBhangaOrMitigation: !isGuruChandalTight && guruChandalDist > 12.0,
       bhangaDescription: {
-        kn: guruChandalDist > 12.0 ? "ಗುರು ಮತ್ತು ರಾಹುವಿನ ನಡುವೆ ೧೨ ಡಿಗ್ರಿಗಿಂತ ಹೆಚ್ಚು ಅಂತರವಿರುವುದರಿಂದ ದೋಷದ ತೀವ್ರತೆ ಗಣನೀಯವಾಗಿ ಕಡಿಮೆಯಾಗಿದೆ." : "ಯಾವುದೇ ರದ್ದತಿಯಿಲ್ಲ.",
-        en: guruChandalDist > 12.0 ? "Planetary orb exceeds 12 degrees, muting malefic shadow contagion." : "Tight orb; unmitigated."
+        kn: guruChandalDist > 12.0 ? "ಗುರು ಮತ್ತು ರಾಹುವಿನ ನಡುವೆ ಸಾಕಷ್ಟು ಅಂತರವಿರುವುದರಿಂದ ದೋಷದ ತೀವ್ರತೆ ಗಣನೀಯವಾಗಿ ಕಡಿಮೆಯಾಗಿದೆ." : "ಯಾವುದೇ ರದ್ದತಿಯಿಲ್ಲ.",
+        en: guruChandalDist > 12.0 ? "Planetary separation is sufficient to mute malefic shadow contagion." : "Tight conjunction; unmitigated."
       }
     },
     technicalWhy: {
       kn: isGuruChandal && jupiterPlanet && rahu
-        ? `ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿ (${formatDegMin(jupiterPlanet.degree)}) ಹಾಗೂ ಛಾಯಾಗ್ರಹ ರಾಹು (${formatDegMin(rahu.degree)}) ಇಬ್ಬರೂ ${jupiterPlanet.house}ನೇ ಮನೆಯಾದ ${RASHI_NAMES_KN[jupiterPlanet.rashi.index]} ರಾಶಿಯಲ್ಲಿ ${guruChandalDist.toFixed(1)}° ಅಂತರದ ಅತಿಸಮೀಪ ಯುತಿ ಹೊಂದಿದ್ದಾರೆ. ಗುರುವು ಧರ್ಮ, ಜ್ಞಾನ, ನೀತಿ ಮತ್ತು ಸದ್ಬುದ್ಧಿಯ ಕಾರಕನಾಗಿದ್ದು, ರಾಹುವು ಭ್ರಮೆ, ಅಸಾಂಪ್ರದಾಯಿಕತೆ ಹಾಗೂ ಆತುರದ ಕಾರಕನಾಗಿದ್ದಾನೆ. ಈ ಸಂಯೋಗವು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ 'ಗುರು ಚಂಡಾಲ ದೋಷ'ವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.`
+        ? `ನಿಮ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಹಾಗೂ ಛಾಯಾಗ್ರಹ ರಾಹು ಇಬ್ಬರೂ ${jupiterPlanet.house}ನೇ ಮನೆಯಾದ ${RASHI_NAMES_KN[jupiterPlanet.rashi.index]} ರಾಶಿಯಲ್ಲಿ ಅತಿಸಮೀಪ ಯುತಿ ಹೊಂದಿದ್ದಾರೆ. ಗುರುವು ಧರ್ಮ, ಜ್ಞಾನ, ನೀತಿ ಮತ್ತು ಸದ್ಬುದ್ಧಿಯ ಕಾರಕನಾಗಿದ್ದು, ರಾಹುವು ಭ್ರಮೆ, ಅಸಾಂಪ್ರದಾಯಿಕತೆ ಹಾಗೂ ಆತುರದ ಕಾರಕನಾಗಿದ್ದಾನೆ. ಈ ಸಂಯೋಗವು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ 'ಗುರು ಚಂಡಾಲ ದೋಷ'ವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.`
         : "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು ಮತ್ತು ರಾಹು ಪ್ರತ್ಯೇಕ ರಾಶಿಗಳಲ್ಲಿದ್ದು ಯಾವುದೇ ಗುರುಚಂಡಾಲ ದೋಷ ಉಂಟಾಗಿರುವುದಿಲ್ಲ.",
       hi: isGuruChandal && jupiterPlanet && rahu
-        ? `देवगुरु बृहस्पति एवं राहु दोनों ${jupiterPlanet.house}वें भाव (${RASHI_NAMES_EN[jupiterPlanet.rashi.index]}) में मात्र ${guruChandalDist.toFixed(1)}° के अंतर पर युति कर रहे हैं, जिससे गुरु चांडाल योग का निर्माण होता है।`
+        ? `देवगुरु बृहस्पति एवं राहु दोनों ${jupiterPlanet.house}वें भाव (${RASHI_NAMES_EN[jupiterPlanet.rashi.index]}) में अत्यंत निकट युति कर रहे हैं, जिससे गुरु चांडाल योग का निर्माण होता है।`
         : "गुरु और राहु का कोई अशुभ युति संबंध नहीं है।",
       te: isGuruChandal && jupiterPlanet && rahu
         ? `మీ జాతకంలో గురుడు మరియు రాహువు ${jupiterPlanet.house}వ స్థానంలో కలసి స్థితి చెందడం వల్ల గురు చండాల దోషం ఏర్పడింది.`
@@ -942,7 +942,7 @@ Propitiating Lord Shiva via formal Kala Sarpa Shanti harmonizes the nodal axis, 
         ? `குருவும் ராகுவும் ${jupiterPlanet.house} ஆம் வீட்டில் இணைந்து சஞ்சரிப்பதால் குரு சண்டாள தோஷம் உண்டாகியுள்ளது.`
         : "ஜாதகத்தில் குருவும் ராகுவும் தனித்தனி ராசிகளில் உள்ளதால் குரு சண்டாள தோஷம் இல்லை.",
       en: isGuruChandal && jupiterPlanet && rahu
-        ? `Jupiter (${formatDegMin(jupiterPlanet.degree)}) and Rahu (${formatDegMin(rahu.degree)}) are co-present in the ${jupiterPlanet.house}th house (${RASHI_NAMES_EN[jupiterPlanet.rashi.index]}) within a close ${guruChandalDist.toFixed(1)}° orb. While Jupiter presides over higher ethical wisdom, Rahu introduces rebellious unorthodox momentum, establishing classical Guru Chandala Dosha.`
+        ? `Jupiter and Rahu are co-present in the ${jupiterPlanet.house}th house (${RASHI_NAMES_EN[jupiterPlanet.rashi.index]}) in close conjunction. While Jupiter presides over higher ethical wisdom, Rahu introduces rebellious unorthodox momentum, establishing classical Guru Chandala Dosha.`
         : "Jupiter and Rahu occupy distinct signs without afflictive conjunction. No Guru Chandala Dosha is present."
     },
     currentLifeProblems: {
@@ -1340,7 +1340,7 @@ Cultivating clean Ayurvedic lifestyle habits and Mahamrityunjaya chanting sustai
     },
     technicalWhy: {
       kn: isKujaDosha && mars
-        ? `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಕುಜ ಗ್ರಹವು ${mars.house}ನೇ ಮನೆಯಲ್ಲಿ (${RASHI_NAMES_KN[mars.rashi.index]} - ${formatDegMin(mars.degree)}) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ಜ್ಯೋತಿಷ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಲಗ್ನ, ೨, ೪, ೭, ೮, ೧೨ನೇ ಮನೆಗಳಲ್ಲಿ ಕುಜನು ನೆಲೆಸಿದಾಗ ಮಾಂಗಲಿಕ ದೋಷವು ಸಿದ್ಧಿಸುತ್ತದೆ.${isKujaBhanga ? " ಆದರೆ ಶಾಸ್ತ್ರೋಕ್ತ ರದ್ದತಿ ನಿಯಮಗಳಿಂದ ಇದು ಭಂಗಗೊಂಡಿದೆ." : ""}`
+        ? `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಕುಜ ಗ್ರಹವು ${mars.house}ನೇ ಮನೆಯಲ್ಲಿ (${RASHI_NAMES_KN[mars.rashi.index]} ರಾಶಿ) ಸ್ಥಿತನಾಗಿದ್ದಾನೆ. ಜ್ಯೋತಿಷ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಲಗ್ನ, ೨, ೪, ೭, ೮, ೧೨ನೇ ಮನೆಗಳಲ್ಲಿ ಕುಜನು ನೆಲೆಸಿದಾಗ ಮಾಂಗಲಿಕ ದೋಷವು ಸಿದ್ಧಿಸುತ್ತದೆ.${isKujaBhanga ? " ಆದರೆ ಶಾಸ್ತ್ರೋಕ್ತ ರದ್ದತಿ ನಿಯಮಗಳಿಂದ ಇದು ಭಂಗಗೊಂಡಿದೆ." : ""}`
         : "ಕುಜನು ಮಂಗಳಕರವಾದ ಕೇಂದ್ರ/ತ್ರಿಕೋಣಗಳಲ್ಲಿ ನೆಲೆಸಿದ್ದು ಮಾಂಗಲಿಕ ದೋಷವಿರುವುದಿಲ್ಲ.",
       hi: isKujaDosha && mars
         ? `जन्म लग्न से मंगल ${mars.house}वें भाव (${RASHI_NAMES_EN[mars.rashi.index]}) में स्थित है, जिससे मांगलिक दोष का निर्माण होता है।${isKujaBhanga ? " यद्यपि शास्त्रीय नियमों से दोष भंग हो गया है।" : ""}`
@@ -1352,7 +1352,7 @@ Cultivating clean Ayurvedic lifestyle habits and Mahamrityunjaya chanting sustai
         ? `லக்னத்திலிருந்து செவ்வாய் ${mars.house} ஆம் வீட்டில் சஞ்சரிப்பதால் செவ்வாய் தோஷம் உண்டாகியுள்ளது.`
         : "செவ்வாய் பகவான் சுப ஸ்தானங்களில் அமர்ந்துள்ளதால் எவ்வித மாங்கல்ய தோஷமும் இல்லை.",
       en: isKujaDosha && mars
-        ? `Mars occupies the ${mars.house}th house (${RASHI_NAMES_EN[mars.rashi.index]} at ${formatDegMin(mars.degree)}) from Lagna. Placement across houses 1, 2, 4, 7, 8, or 12 triggers classical Manglik energy.${isKujaBhanga ? " Scriptural cancellation criteria apply, greatly mitigating domestic severity." : ""}`
+        ? `Mars occupies the ${mars.house}th house (${RASHI_NAMES_EN[mars.rashi.index]}) from Lagna. Placement across houses 1, 2, 4, 7, 8, or 12 triggers classical Manglik energy.${isKujaBhanga ? " Scriptural cancellation criteria apply, greatly mitigating domestic severity." : ""}`
         : "Mars is positioned outside sensitive marital houses. No Manglik Dosha present."
     },
     currentLifeProblems: {
@@ -2274,10 +2274,10 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
     },
     technicalWhy: {
       kn: isGocharaGuruAfflicted
-        ? `ಪ್ರಸ್ತುತ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಖಗೋಳದಲ್ಲಿ ${RASHI_NAMES_KN[liveJupiterRashi]} ರಾಶಿಯಲ್ಲಿ (${formatDegMin(liveLongs.jupiter)}) ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${RASHI_NAMES_KN[moonRashiIdx]} ದಿಂದ ನಿಖರವಾಗಿ ${liveJupiterHouseFromMoon}ನೇ ಭಾವದಲ್ಲಿದ್ದಾರೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ${isAshtamaGuru ? "೮ನೇ ಮನೆಯ ಅಷ್ಟಮ ಗುರು ಸ್ಥಾನವು ಧನಹಾನಿ, ಗೌರವಕ್ಕೆ ಧಕ್ಕೆ ಹಾಗೂ ಕಾರ್ಯತಡೆ ಉಂಟುಮಾಡುತ್ತದೆ" : isVyayaGuru ? "೧೨ನೇ ಮನೆಯ ವ್ಯಯ ಗುರು ಸ್ಥಾನವು ಅಧಿಕ ಖರ್ಚು, ಸ್ಥಳಾಂತರ ಹಾಗೂ ಅಶಾಂತಿ ಉಂಟುಮಾಡುತ್ತದೆ" : "ಈ ಸ್ಥಾನವು ಗುರು ಬಲದ ಕೊರತೆಯನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ"}.`
+        ? `ಪ್ರಸ್ತುತ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಖಗೋಳದಲ್ಲಿ ${RASHI_NAMES_KN[liveJupiterRashi]} ರಾಶಿಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರ ರಾಶಿಯಾದ ${RASHI_NAMES_KN[moonRashiIdx]} ದಿಂದ ನಿಖರವಾಗಿ ${liveJupiterHouseFromMoon}ನೇ ಭಾವದಲ್ಲಿದ್ದಾರೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ${isAshtamaGuru ? "೮ನೇ ಮನೆಯ ಅಷ್ಟಮ ಗುರು ಸ್ಥಾನವು ಧನಹಾನಿ, ಗೌರವಕ್ಕೆ ಧಕ್ಕೆ ಹಾಗೂ ಕಾರ್ಯತಡೆ ಉಂಟುಮಾಡುತ್ತದೆ" : isVyayaGuru ? "೧೨ನೇ ಮನೆಯ ವ್ಯಯ ಗುರು ಸ್ಥಾನವು ಅಧಿಕ ಖರ್ಚು, ಸ್ಥಳಾಂತರ ಹಾಗೂ ಅಶಾಂತಿ ಉಂಟುಮಾಡುತ್ತದೆ" : "ಈ ಸ್ಥಾನವು ಗುರು ಬಲದ ಕೊರತೆಯನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ"}.`
         : `ಪ್ರಸ್ತುತ ದೇವಗುರುವು ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ${liveJupiterHouseFromMoon}ನೇ ಶುಭ ಭಾವದಲ್ಲಿದ್ದು, ದೈವಿಕ 'ಗುರು ಬಲ' (Guru Bala) ಸಂಪೂರ್ಣ ರಕ್ಷಣೆ ನೀಡುತ್ತಿದೆ.`,
       hi: isGocharaGuruAfflicted
-        ? `वर्तमान में देवगुरु बृहस्पति गोचर में ${RASHI_NAMES_EN[liveJupiterRashi]} (${formatDegMin(liveLongs.jupiter)}) में भ्रमण करते हुए आपकी जन्म चंद्र राशि से ${liveJupiterHouseFromMoon}वें भाव में स्थित हैं, जो ${isAshtamaGuru ? "अष्टम गुरु" : isVyayaGuru ? "व्यय गुरु" : "प्रतिकूल गुरु"} का निर्माण करता है।`
+        ? `वर्तमान में देवगुरु बृहस्पति गोचर में ${RASHI_NAMES_EN[liveJupiterRashi]} में भ्रमण करते हुए आपकी जन्म चंद्र राशि से ${liveJupiterHouseFromMoon}वें भाव में स्थित हैं, जो ${isAshtamaGuru ? "अष्टम गुरु" : isVyayaGuru ? "व्यय गुरु" : "प्रतिकूल गुरु"} का निर्माण करता है।`
         : `गोचर के गुरु चंद्र राशि से ${liveJupiterHouseFromMoon}वें भाव में अनुकूल रहकर शुभ 'गुरु बल' प्रदान कर रहे हैं।`,
       te: isGocharaGuruAfflicted
         ? `ప్రస్తుతం దేవగురువు మీ జన్మ చంద్ర రాశి నుండి ${liveJupiterHouseFromMoon}వ భావంలో సంచరిస్తూ ప్రతికూలతలను కలిగిస్తున్నారు.`
@@ -2286,7 +2286,7 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
         ? `தற்போது குரு பகவான் உங்கள் சந்திர ராசிக்கு ${liveJupiterHouseFromMoon} ஆம் வீட்டில் சஞ்சரித்து சுப பலன்களைக் குறைக்கிறார்.`
         : `தற்போது குரு பகவான் உங்கள் சந்திர ராசிக்கு ${liveJupiterHouseFromMoon} ஆம் சுப ஸ்தானத்தில் அமர்ந்து குரு பலன் தருகிறார்.`,
       en: isGocharaGuruAfflicted
-        ? `Live astronomical Jupiter is transiting ${RASHI_NAMES_EN[liveJupiterRashi]} at ${formatDegMin(liveLongs.jupiter)}, placing it in the ${liveJupiterHouseFromMoon}th house from your natal Moon (${RASHI_NAMES_EN[moonRashiIdx]}). Classical Jyotisha identifies this as ${isAshtamaGuru ? "Ashtama Guru (financial, professional and reputational headwinds)" : isVyayaGuru ? "Vyaya Guru (unplanned expenditures, mental fatigue and isolation)" : "adverse transit devoid of Guru Bala"}.`
+        ? `Live astronomical Jupiter is transiting ${RASHI_NAMES_EN[liveJupiterRashi]}, placing it in the ${liveJupiterHouseFromMoon}th house from your natal Moon (${RASHI_NAMES_EN[moonRashiIdx]}). Classical Jyotisha identifies this as ${isAshtamaGuru ? "Ashtama Guru (financial, professional and reputational headwinds)" : isVyayaGuru ? "Vyaya Guru (unplanned expenditures, mental fatigue and isolation)" : "adverse transit devoid of Guru Bala"}.`
         : `Transiting Jupiter occupies the auspicious ${liveJupiterHouseFromMoon}th house from natal Moon, conferring divine cosmic shelter (Guru Bala).`
     },
     currentLifeProblems: {
@@ -2450,7 +2450,7 @@ Performing Brihaspati Shanti Homa at Gokarna and donating yellow chickpeas on Th
     },
     technicalWhy: {
       kn: isGocharaRKAfflicted
-        ? `ಪ್ರಸ್ತುತ ಗೋಚಾರ ರಾಹುವು ${RASHI_NAMES_KN[liveRahuRashi]} ರಾಶಿಯಲ್ಲಿ (${formatDegMin(liveLongs.rahu)}) ಹಾಗೂ ಕೇತುವು ${RASHI_NAMES_KN[liveKetuRashi]} ರಾಶಿಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ${liveRahuHouseFromMoon} ಮತ್ತು ${liveKetuHouseFromMoon}ನೇ ಭಾವಗಳ ಅಕ್ಷವನ್ನು ಆವರಿಸಿದ್ದಾರೆ. ${isRahuKetu17Axis ? "ಜನ್ಮ ಚಂದ್ರ ಅಥವಾ ೭ನೇ ಮನೆಯ ಮೇಲೆ ಛಾಯಾಗ್ರಹಗಳ ನೇರ ಪ್ರಭಾವವು ಮಾನಸಿಕ ಭ್ರಮೆ, ದಾಂಪತ್ಯ ಅಥವಾ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಅತಿಯಾದ ಅಪನಂಬಿಕೆ ಉಂಟುಮಾಡುತ್ತದೆ" : "೮ನೇ ಮತ್ತು ೨ನೇ ಮನೆಯ ಅಕ್ಷವು ಅನಿರೀಕ್ಷಿತ ಆರೋಗ್ಯ ಏರುಪೇರು, ಆರ್ಥಿಕ ಏರುಪೇರು ಹಾಗೂ ವಾಗ್ವಾದವನ್ನು ಸೂಚಿಸುತ್ತದೆ"}.`
+        ? `ಪ್ರಸ್ತುತ ಗೋಚಾರ ರಾಹುವು ${RASHI_NAMES_KN[liveRahuRashi]} ರಾಶಿಯಲ್ಲಿ ಹಾಗೂ ಕೇತುವು ${RASHI_NAMES_KN[liveKetuRashi]} ರಾಶಿಯಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ${liveRahuHouseFromMoon} ಮತ್ತು ${liveKetuHouseFromMoon}ನೇ ಭಾವಗಳ ಅಕ್ಷವನ್ನು ಆವರಿಸಿದ್ದಾರೆ. ${isRahuKetu17Axis ? "ಜನ್ಮ ಚಂದ್ರ ಅಥವಾ ೭ನೇ ಮನೆಯ ಮೇಲೆ ಛಾಯಾಗ್ರಹಗಳ ನೇರ ಪ್ರಭಾವವು ಮಾನಸಿಕ ಭ್ರಮೆ, ದಾಂಪತ್ಯ ಅಥವಾ ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ಅತಿಯಾದ ಅಪನಂಬಿಕೆ ಉಂಟುಮಾಡುತ್ತದೆ" : "೮ನೇ ಮತ್ತು ೨ನೇ ಮನೆಯ ಅಕ್ಷವು ಅನಿರೀಕ್ಷಿತ ಆರೋಗ್ಯ ಏರುಪೇರು, ಆರ್ಥಿಕ ಏರುಪೇರು ಹಾಗೂ ವಾಗ್ವಾದವನ್ನು ಸೂಚಿಸುತ್ತದೆ"}.`
         : `ಪ್ರಸ್ತುತ ರಾಹು ಮತ್ತು ಕೇತುಗಳು ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ಅನುಕೂಲಕರ ಉಪಚಯ ಅಥವಾ ತಟಸ್ಥ ಭಾವಗಳಲ್ಲಿದ್ದು (${liveRahuHouseFromMoon} ಮತ್ತು ${liveKetuHouseFromMoon}ನೇ ಭಾವ), ತೀವ್ರ ದೋಷದ ಬಾಧೆ ಇರುವುದಿಲ್ಲ.`,
       hi: isGocharaRKAfflicted
         ? `वर्तमान में गोचर राहु एवं केतु आपकी जन्म चंद्र राशि से ${liveRahuHouseFromMoon} एवं ${liveKetuHouseFromMoon} अक्ष पर स्थित हैं, जो ${isRahuKetu17Axis ? "दाम्पत्य एवं मानसिक शांति में विघ्न" : "आकस्मिक स्वास्थ्य व आर्थिक संकट"} की स्थिति उत्पन्न करते हैं।`
@@ -2462,7 +2462,7 @@ Performing Brihaspati Shanti Homa at Gokarna and donating yellow chickpeas on Th
         ? `தற்போது ராகு-கேது கிரகங்கள் உங்கள் சந்திர ராசிக்கு ${liveRahuHouseFromMoon} மற்றும் ${liveKetuHouseFromMoon} ஆம் அச்சில் சஞ்சரிக்கின்றன.`
         : `ராகு-கேது பெயர்ச்சி சாதகமாக உள்ளது.`,
       en: isGocharaRKAfflicted
-        ? `Live astronomical Rahu (${formatDegMin(liveLongs.rahu)} in ${RASHI_NAMES_EN[liveRahuRashi]}) and Ketu traverse the ${liveRahuHouseFromMoon}th / ${liveKetuHouseFromMoon}th house axis relative to your natal Moon. Vedic scriptures warn that this ${isRahuKetu17Axis ? "1st/7th nodal axis induces psychological illusions, paranoia, and severe relational frictions" : "8th/2nd nodal axis precipitates unpredictable medical surprises and financial turbulence"}.`
+        ? `Live astronomical Rahu (in ${RASHI_NAMES_EN[liveRahuRashi]}) and Ketu traverse the ${liveRahuHouseFromMoon}th / ${liveKetuHouseFromMoon}th house axis relative to your natal Moon. Vedic scriptures warn that this ${isRahuKetu17Axis ? "1st/7th nodal axis induces psychological illusions, paranoia, and severe relational frictions" : "8th/2nd nodal axis precipitates unpredictable medical surprises and financial turbulence"}.`
         : `Live Rahu and Ketu traverse benign Upachaya or neutral houses (${liveRahuHouseFromMoon}th and ${liveKetuHouseFromMoon}th) from natal Moon.`
     },
     currentLifeProblems: {
@@ -2794,10 +2794,10 @@ Performing Panchanga Shanti Puja and Rudrabhishekam at Gokarna Mahabaleshwara Ks
     },
     technicalWhy: {
       kn: isPanchangaYogaDosha
-        ? `ನಿಮ್ಮ ಜನನ ಕಾಲದಲ್ಲಿ ಸೂರ್ಯನ ರೇಖಾಂಶ (${formatDegMin(sunLong)}) ಮತ್ತು ಚಂದ್ರನ ರೇಖಾಂಶಗಳ (${formatDegMin(moonLong)}) ಸಂಕಲನವು ನಿಖರವಾಗಿ ${formatDegMin(yogaSum)} ಆಗಿದ್ದು, ಇದು ೨೭ ನಿತ್ಯ ಯೋಗಗಳಲ್ಲಿ ${birthYoga.num}ನೆಯದಾದ '${birthYoga.kn}' ಯೋಗವಾಗುತ್ತದೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ${isVyatipata ? "ವ್ಯತೀಪಾತ ಯೋಗವು ರುದ್ರ ಕ್ರೋಧದಿಂದ ಜನಿಸಿದ ಮಹಾದೋಷವಾಗಿದ್ದು, ಜೀವನದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ದುರಂತ, ಅಪಘಾತ ಅಥವಾ ವಂಶವೃದ್ಧಿಗೆ ಅಡೆತಡೆ ತರುತ್ತದೆ" : isVaidhrithi ? "ವೈಧೃತಿಯು ಸಮಸ್ತ ಕಾರ್ಯನಾಶಕವಾದ ಅಶುಭ ಯೋಗವಾಗಿದ್ದು, ಆರ್ಥಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆಗೆ ಕಾರಣವಾಗುತ್ತದೆ" : "ಈ ಯೋಗವು ಪಂಚಾಂಗದ ಅಶುಭ ಯೋಗಗಳ ಪಟ್ಟಿಯಲ್ಲಿದ್ದು ದೈವಿಕ ಶಾಂತಿಯನ್ನು ಬಯಸುತ್ತದೆ"}.`
+        ? `ನಿಮ್ಮ ಜನನ ಕಾಲದಲ್ಲಿ ಸೂರ್ಯ ಮತ್ತು ಚಂದ್ರ ಗ್ರಹಗಳ ಸಂಯೋಗದಿಂದ ೨೭ ನಿತ್ಯ ಯೋಗಗಳಲ್ಲಿ ${birthYoga.num}ನೆಯದಾದ '${birthYoga.kn}' ಯೋಗವು ಉಂಟಾಗಿದೆ. ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ${isVyatipata ? "ವ್ಯತೀಪಾತ ಯೋಗವು ರುದ್ರ ಕ್ರೋಧದಿಂದ ಜನಿಸಿದ ಮಹಾದೋಷವಾಗಿದ್ದು, ಜೀವನದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ದುರಂತ, ಅಪಘಾತ ಅಥವಾ ವಂಶವೃದ್ಧಿಗೆ ಅಡೆತಡೆ ತರುತ್ತದೆ" : isVaidhrithi ? "ವೈಧೃತಿಯು ಸಮಸ್ತ ಕಾರ್ಯನಾಶಕವಾದ ಅಶುಭ ಯೋಗವಾಗಿದ್ದು, ಆರ್ಥಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆಗೆ ಕಾರಣವಾಗುತ್ತದೆ" : "ಈ ಯೋಗವು ಪಂಚಾಂಗದ ಅಶುಭ ಯೋಗಗಳ ಪಟ್ಟಿಯಲ್ಲಿದ್ದು ದೈವಿಕ ಶಾಂತಿಯನ್ನು ಬಯಸುತ್ತದೆ"}.`
         : `ನಿಮ್ಮ ಜನನ ಕಾಲದ ನಿತ್ಯ ಯೋಗವು ಶುಭದಾಯಕವಾದ '${birthYoga.kn}' (${birthYoga.en}) ಆಗಿದ್ದು, ಯಾವುದೇ ಪಂಚಾಂಗ ಯೋಗ ದೋಷವಿರುವುದಿಲ್ಲ.`,
       hi: isPanchangaYogaDosha
-        ? `जन्म के समय सूर्य एवं चंद्र के भोगांशों का योग ${formatDegMin(yogaSum)} है, जो ${birthYoga.num}वें '${birthYoga.hi}' योग का निर्माण करता है। यह ज्योतिषीय दृष्टि से अत्यंत प्रतिकूल योग माना जाता है।`
+        ? `जन्म के समय सूर्य एवं चंद्र के योग से ${birthYoga.num}वें '${birthYoga.hi}' योग का निर्माण होता है। यह ज्योतिषीय दृष्टि से अत्यंत प्रतिकूल योग माना जाता है।`
         : `जन्म कालीन नित्य योग '${birthYoga.hi}' शुभ एवं कल्याणकारी है।`,
       te: isPanchangaYogaDosha
         ? `మీ జన్మ కాలంలో సూర్య చంద్రుల సంయోగం వల్ల '${birthYoga.te}' యోగం ఏర్పడింది. ఇది శాస్త్రరీత్యా దోషకరమైనది.`
@@ -2806,7 +2806,7 @@ Performing Panchanga Shanti Puja and Rudrabhishekam at Gokarna Mahabaleshwara Ks
         ? `பிறந்த நேரத்தில் சூரிய-சந்திர சேர்க்கையால் '${birthYoga.ta}' யோகம் உண்டாகியுள்ளது. இது சாஸ்திரப்படி தோஷமாகும்.`
         : `நித்ய யோகம் '${birthYoga.ta}' சுபமாக உள்ளது.`,
       en: isPanchangaYogaDosha
-        ? `At your birth epoch, the sum of solar (${formatDegMin(sunLong)}) and lunar (${formatDegMin(moonLong)}) sidereal longitudes equals ${formatDegMin(yogaSum)}, falling in the ${birthYoga.num}th Nitya Yoga: '${birthYoga.en}'. Classical treatises (Narada Samhita & Kalamrita) identify ${isVyatipata ? "Vyatipata as a fearsome Mahadosha of acute celestial friction, causing catastrophic impediments, chronic restlessness, and health vulnerabilities" : isVaidhrithi ? "Vaidhrithi as a disruptive Mahadosha dissolving material gains and generating existential distress" : "this alignment as an inauspicious Nitya Yoga requiring pacification"}.`
+        ? `At your birth epoch, the celestial alignment of Sun and Moon forms the ${birthYoga.num}th Nitya Yoga: '${birthYoga.en}'. Classical treatises (Narada Samhita & Kalamrita) identify ${isVyatipata ? "Vyatipata as a fearsome Mahadosha of acute celestial friction, causing catastrophic impediments, chronic restlessness, and health vulnerabilities" : isVaidhrithi ? "Vaidhrithi as a disruptive Mahadosha dissolving material gains and generating existential distress" : "this alignment as an inauspicious Nitya Yoga requiring pacification"}.`
         : `Your birth Nitya Yoga is the auspicious '${birthYoga.en}'; no Panchanga Yoga affliction.`
     },
     currentLifeProblems: {

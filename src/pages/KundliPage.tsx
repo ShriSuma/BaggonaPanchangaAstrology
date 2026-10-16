@@ -190,6 +190,7 @@ export default function KundliPage(): JSX.Element {
       gothra: "",
       gender: "Male",
       maritalStatus: undefined,
+      childrenStatus: ((initialSession as any)?.input as any)?.childrenStatus ?? ((initialDraft as any)?.input as any)?.childrenStatus ?? undefined,
       pincode: pincodeStore || undefined
     };
   });
@@ -1228,7 +1229,7 @@ export default function KundliPage(): JSX.Element {
           geminiKey,
           {
             maritalStatus: form.maritalStatus || "general",
-            childrenStatus: "general"
+            childrenStatus: form.childrenStatus || "general"
           },
           (progress, stageText) => {
             const scaled = 55 + Math.floor((progress / 100) * 15);
@@ -1633,6 +1634,42 @@ export default function KundliPage(): JSX.Element {
                   className="text-amber-600 focus:ring-amber-500 w-4 h-4"
                 />
                 <span className="text-sm text-slate-700 font-medium">⚡ {t("maritalStatus.separated", "ಪ್ರತ್ಯೇಕಿತರು (Separated)")}</span>
+              </label>
+            </div>
+            <div className="md:col-span-2 flex flex-wrap gap-4 items-center bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-200/50">
+              <label className="text-sm font-semibold text-emerald-950 mr-1">{t("kundli.childrenStatus", "ಸಂತಾನ ಸ್ಥಿತಿ (Children)")}:</label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="childrenStatus"
+                  value="unspecified"
+                  checked={!form.childrenStatus || form.childrenStatus === "unspecified"}
+                  onChange={() => setForm((f) => ({ ...f, childrenStatus: undefined }))}
+                  className="text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">❓ {t("childrenStatus.unspecified", "ತಿಳಿದಿಲ್ಲ / ನೀಡಲಾಗಿಲ್ಲ (Not Specified)")}</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="childrenStatus"
+                  value="has_children"
+                  checked={form.childrenStatus === "has_children"}
+                  onChange={() => setForm((f) => ({ ...f, childrenStatus: "has_children" }))}
+                  className="text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">👶 {t("childrenStatus.has_children", "ಮಕ್ಕಳು ಇದ್ದಾರೆ (Has Children)")}</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="childrenStatus"
+                  value="no_children"
+                  checked={form.childrenStatus === "no_children"}
+                  onChange={() => setForm((f) => ({ ...f, childrenStatus: "no_children" }))}
+                  className="text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">🙏 {t("childrenStatus.no_children", "ಮಕ್ಕಳ ನಿರೀಕ್ಷೆಯಲ್ಲಿದ್ದಾರೆ (Seeking Children / No Children)")}</span>
               </label>
             </div>
             <div className="md:col-span-2">

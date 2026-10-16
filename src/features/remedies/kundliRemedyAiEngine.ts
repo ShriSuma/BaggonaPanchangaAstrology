@@ -129,7 +129,7 @@ export async function generateKundliRemedyWithAi(
   ).trim();
 
   // If no valid API key is present at all, immediately set fallback
-  if (!activeKey || activeKey.startsWith("AQ.")) {
+  if (!activeKey) {
     diagnosis.isAiGenerated = false;
     diagnosis.aiFallbackMessage = REMEDY_AI_FALLBACK_MESSAGES;
     return diagnosis;

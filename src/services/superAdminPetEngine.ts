@@ -674,6 +674,35 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       kn: "ನಾರಾಯಣ ಬಲಿ, ಪ್ರೇತೋದ್ಧಾರ, ತ್ರಿಪಿಂಡಿ, ಹೋಮಗಳ ಸಾಮಗ್ರಿ ಪಟ್ಟಿ, ಋತ್ವಿಜರ ಸಂಖ್ಯೆ, ಹೋಮ ದ್ರವ್ಯ, ಭೋಜನ ಹಾಗೂ ಪಾರದರ್ಶಕ ಶಾಸ್ತ್ರೋಕ್ತ ವೆಚ್ಚ ವಿವರ.",
       en: "Complete Vedic ritual packages (Low, Medium, High tiers), comprehensive samagri lists, priest requirements, homa havis, priest meals, and transparent cost breakdown in Kannada."
     }
+  },
+  package_download: {
+    name: {
+      kn: "ಭಕ್ತರ ಸಮಗ್ರ ವರದಿ & QR ಡೌನ್‌ಲೋಡ್ (Package Download)",
+      en: "Devotee Package & QR Download Hub",
+      hi: "भक्त संपूर्ण पैकेज एवं क्यूआर डाउनलोड",
+      te: "భక్తుల ప్యాకేజీ & QR డౌన్‌లోడ్",
+      ta: "பக்தர் முழு தொகுப்பு & QR பதிவிறக்கம்"
+    },
+    category: "admin",
+    icon: "📦",
+    keywords: [
+      "package download",
+      "zip download",
+      "all reports",
+      "qr code card",
+      "janana kundali pdf",
+      "current life status",
+      "ದೋಷಗಳು",
+      "ದೈವಿಕ ಪರಿಹಾರ",
+      "ಪ್ರಶ್ನೋತ್ತರ",
+      "ದಿವ್ಯ ಭವಿಷ್ಯ",
+      "ಪ್ಯಾಕೇಜ್ ಡೌನ್‌ಲೋಡ್",
+      "ಜಿಪ್ ಫೈಲ್"
+    ],
+    description: {
+      kn: "ಜನನ ಕುಂಡಲಿ, ೧೦-ಅಧ್ಯಾಯ ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ, ಪರಿಹಾರ, ದೋಷಗಳು, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಮತ್ತು ೩೦/೯೦/೧೨೦ ದಿನಗಳ ಅರ್ಚಕರ QR ಕೋಡ್‌ಗಳನ್ನು ಒಂದೇ ಜಿಪ್ (ZIP) ಫೈಲ್‌ನಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
+      en: "Download complete 7-report Vedic package and 30/90/120 days Priest QR codes in a single bundled ZIP file."
+    }
   }
 };
 

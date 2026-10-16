@@ -37,6 +37,7 @@ export type KundliInput = {
   name: string;
   gender?: "Male" | "Female" | "Other";
   maritalStatus?: "married" | "unmarried" | "divorced" | "separated" | string;
+  childrenStatus?: "has_children" | "no_children" | "unspecified" | string;
   gothra?: string;
   primaryConcern?: string;
   pincode?: string;

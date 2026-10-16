@@ -1,6 +1,7 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { savePdfBlob } from "../../utils/pdfGenerator";
+import { useAppStore } from "../../stores/appStore";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import type { PdfTranslations, PremiumData } from "../../components/RamanBhavishya/PdfTemplate";
 import type { TranslatedPrediction } from "../../components/RamanBhavishya/usePredictionEngine";
@@ -41,7 +42,9 @@ import {
   buildDynamicChildFoundationFallback,
   buildDynamicChildFamilyFallback,
   buildDynamicChildPediatricHealthFallback,
-  buildDynamicTimelineFallback
+  buildDynamicTimelineFallback,
+  buildDynamicSoulMirrorFallback,
+  buildDynamicAnnualForecastFallback
 } from "./dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -51,7 +54,8 @@ import {
   localizeYogaName,
   localizeDoshaName,
   localizeGocharaName,
-  localizeDoshaRemedy
+  localizeDoshaRemedy,
+  cleanDegreesFromText
 } from "./yogaDoshaGocharaEnricher";
 import { transliterateName } from "../../utils/transliterator";
 import {
@@ -84,8 +88,63 @@ import {
 
 const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as GrahaKey;
 
-const asText = (value: string | string[] | undefined): string =>
-  Array.isArray(value) ? value.join(" ") : value ?? "";
+export const asText = (value: string | string[] | undefined): string =>
+  Array.isArray(value) ? value.join("\n\n") : (value ?? "");
+
+export function ensureAtLeastThreeParagraphs(
+  aiText: string | string[] | undefined,
+  fallbackText: string,
+  minParagraphs: number = 3
+): string {
+  const rawText = (Array.isArray(aiText) ? aiText.join("\n\n") : (aiText || "")).trim();
+  let paras = rawText
+    ? rawText
+        .split(/\n\s*\n/)
+        .map(p => p.trim())
+        .filter(p => p.length > 25)
+    : [];
+
+  if (paras.length < minParagraphs && rawText.includes("\n")) {
+    const singleLineParas = rawText
+      .split(/\n+/)
+      .map(p => p.trim())
+      .filter(p => p.length > 25);
+    if (singleLineParas.length >= paras.length) {
+      paras = singleLineParas;
+    }
+  }
+
+  const fallbackParas = fallbackText
+    ? fallbackText
+        .split(/\n\s*\n/)
+        .map(p => p.trim())
+        .filter(p => p.length > 25)
+    : [];
+
+  if (paras.length >= minParagraphs) {
+    return paras.join("\n\n");
+  }
+
+  if (paras.length > 0) {
+    const combined = [...paras];
+    for (const fbP of fallbackParas) {
+      if (combined.length >= minParagraphs) break;
+      if (!combined.some(cp => cp.slice(0, 30) === fbP.slice(0, 30))) {
+        combined.push(fbP);
+      }
+    }
+    while (combined.length < minParagraphs && fallbackParas.length > 0) {
+      combined.push(fallbackParas[combined.length % fallbackParas.length]);
+      break;
+    }
+    return combined.join("\n\n");
+  }
+
+  if (fallbackParas.length >= minParagraphs) {
+    return fallbackParas.join("\n\n");
+  }
+  return fallbackText || "";
+}
 
 export const ensureValidSection = async (
   items: any,
@@ -99,16 +158,23 @@ export const ensureValidSection = async (
     if (!item) return false;
     const txt = (item.impact || item.description || item.trait || "").trim();
     if (txt.length < minChars) return false;
-    // CRITICAL: Reject English AI leaks in regional language downloads
-    if (isRegional && /[a-zA-Z]{3,}/.test(txt)) return false;
+    // Sanitize English AI leaks in regional language downloads; reject only if predominantly English
+    if (isRegional) {
+      const engWords = txt.match(/[a-zA-Z]{3,}/g) || [];
+      if (engWords.length > 3) return false;
+    }
     return true;
   });
   if (validItems.length > 0) {
-    return validItems.map(item => ({
-      ...item,
-      impact: cleanEnglishFromRegionalText(item.impact || item.description || item.trait || "", targetLang),
-      name: item.name ? cleanEnglishFromRegionalText(item.name, targetLang) : undefined
-    }));
+    return validItems.map(item => {
+      const rawImpact = cleanEnglishFromRegionalText(item.impact || item.description || item.trait || "", targetLang);
+      const guaranteedImpact = ensureAtLeastThreeParagraphs(rawImpact, fallbackText, 3);
+      return {
+        ...item,
+        impact: guaranteedImpact,
+        name: item.name ? cleanEnglishFromRegionalText(item.name, targetLang) : undefined
+      };
+    });
   }
   const safeFallback = fallbackText || "";
   const isTargetEnglish = !isRegional;
@@ -190,6 +256,7 @@ export async function prepareBhavishyaV1Data(
     ashirvadaTitle: tp("ashirvadaTitle", lang),
     ashirvadaValue: tp("ashirvadaValue", lang),
     footer: tp("footer", lang),
+    soulMirrorTitle: tp("soulMirrorTitle", lang),
     yogasTitle: tp("yogasTitle", lang),
     doshasTitle: tp("doshasTitle", lang),
     remedyTitle: tp("remedyTitle", lang),
@@ -199,6 +266,7 @@ export async function prepareBhavishyaV1Data(
     currentPhaseGuidanceTitle: tp("currentPhaseGuidanceTitle", lang),
     timelineTitle: tp("timelineTitle", lang),
     gocharaTitle: tp("gocharaTitle", lang),
+    annualForecastTitle: tp("annualForecastTitle", lang),
     summaryTitle: tp("summaryTitle", lang),
     introTitle: tp("introTitle", lang),
     introGreeting: greetingLine(lang, localizedDevoteeName),
@@ -323,9 +391,9 @@ export async function prepareBhavishyaV1Data(
 
         return {
           name: dName,
-          significance: `${dWhy} ${dProblem}`,
-          impact: [dWhy, dProblem || dImpact].filter(Boolean).join("\n\n"),
-          remedy: fullRemedy,
+          significance: cleanDegreesFromText(`${dWhy} ${dProblem}`),
+          impact: cleanDegreesFromText([dWhy, dProblem || dImpact].filter(Boolean).join("\n\n")),
+          remedy: cleanDegreesFromText(fullRemedy),
           severity: d.severity
         };
       });
@@ -385,9 +453,18 @@ export async function prepareBhavishyaV1Data(
     affairNote
   });
 
+  const effectiveGeminiApiKey = (
+    geminiApiKey !== undefined
+      ? geminiApiKey
+      : (typeof window !== "undefined" && (window as any).__GEMINI_API_KEY__) ||
+        useAppStore.getState().geminiApiKey ||
+        (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+        ""
+  ).trim();
+
   const failedAiSectionsV1: string[] = [];
-  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 8000, maxAttempts = 2): Promise<string> => {
-    if (!geminiApiKey || geminiApiKey.trim() === "" || geminiApiKey.startsWith("AQ.")) {
+  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 9000, maxAttempts = 2): Promise<string> => {
+    if (!effectiveGeminiApiKey || effectiveGeminiApiKey === "none" || effectiveGeminiApiKey === "mock" || effectiveGeminiApiKey.trim() === "") {
       failedAiSectionsV1.push(label);
       return "";
     }
@@ -400,7 +477,7 @@ export async function prepareBhavishyaV1Data(
           }, timeoutMs)
         );
         const raw = await Promise.race([
-          askGemini(label, prompt, geminiApiKey, lang, { raw: true, temperature: temp }),
+          askGemini(label, prompt, effectiveGeminiApiKey, lang, { raw: true, temperature: temp }),
           timeoutPromise
         ]);
         if (typeof raw === "string" && (raw.includes("Sorry, I encountered an error") || raw.includes("check your API key") || raw.includes("Error:") || raw.includes("GoogleGenerativeAIError"))) {
@@ -410,7 +487,7 @@ export async function prepareBhavishyaV1Data(
             return "";
           }
           if (attempt < maxAttempts) {
-            await new Promise((r) => setTimeout(r, attempt * 350));
+            await new Promise((r) => setTimeout(r, attempt * 400));
             continue;
           }
           failedAiSectionsV1.push(label);
@@ -419,12 +496,10 @@ export async function prepareBhavishyaV1Data(
         if (typeof raw === "string" && raw.trim().length > 20) {
           return raw;
         }
-        if (raw === "") {
-          failedAiSectionsV1.push(label);
-          return "";
-        }
+        // If raw is empty or too short (e.g. timeout resolved to ""), retry if attempt < maxAttempts
         if (attempt < maxAttempts) {
-          await new Promise((r) => setTimeout(r, attempt * 350));
+          console.warn(`[bhavishyaV1Service] AI call for ${label} returned empty/short on attempt ${attempt}/${maxAttempts}. Retrying...`);
+          await new Promise((r) => setTimeout(r, attempt * 400));
           continue;
         }
         failedAiSectionsV1.push(label);
@@ -432,7 +507,7 @@ export async function prepareBhavishyaV1Data(
       } catch (e) {
         console.warn(`[bhavishyaV1Service] AI call failed for ${label} (attempt ${attempt}/${maxAttempts}):`, e);
         if (attempt < maxAttempts) {
-          await new Promise((r) => setTimeout(r, attempt * 350));
+          await new Promise((r) => setTimeout(r, attempt * 400));
           continue;
         }
         failedAiSectionsV1.push(label);
@@ -443,16 +518,20 @@ export async function prepareBhavishyaV1Data(
     return "";
   };
 
-  // Batch 1: Characteristics & Dark Secret
+  // Batch 1: Soul Mirror, Characteristics & Dark Secret
   onProgress?.(
     38,
     lang === "kn"
-      ? "೩. ಆತ್ಮಾನ್ವೇಷಣೆ ಹಾಗೂ ಜನ್ಮ ಲಗ್ನ ವ್ಯಕ್ತಿತ್ವ ಅಧ್ಯಾಯಗಳ ಸಂಶ್ಲೇಷಣೆ..."
+      ? "೩. ಅಂತರಂಗದ ಸತ್ಯಗಳು ಹಾಗೂ ಜನ್ಮ ಲಗ್ನ ವ್ಯಕ್ತಿತ್ವ ಅಧ್ಯಾಯಗಳ ಸಂಶ್ಲೇಷಣೆ..."
       : lang === "hi"
-      ? "3. आत्मा एवं जन्म लग्न व्यक्तित्व अध्यायों का सटीक विश्लेषण..."
-      : "3. Synthesizing Soul & Personality Chapters..."
+      ? "3. आत्मा के सत्य एवं जन्म लग्न व्यक्तित्व अध्यायों का सटीक विश्लेषण..."
+      : "3. Synthesizing Soul Mirror & Personality Chapters..."
   );
-  const [resCharacteristics, resDarkSecret] = await Promise.all([
+  let resSoulMirror = "";
+  let resCharacteristics = "";
+  let resDarkSecret = "";
+  [resSoulMirror, resCharacteristics, resDarkSecret] = await Promise.all([
+    callGeminiSafe("Generate Soul Mirror", prompts.soulMirror, 0.3),
     callGeminiSafe("Generate Characteristics", prompts.characteristics, 0.3),
     ageYears < 8 ? Promise.resolve('{"darkSecret":[]}') : callGeminiSafe("Generate Dark Secret", prompts.darkSecret, 0.3)
   ]);
@@ -497,10 +576,11 @@ export async function prepareBhavishyaV1Data(
       ? "6. लाइव गोचर ग्रह, कर्म यात्रा एवं ज्योतिषी सारांश..."
       : "6. Calculating Live Transits, Karmic Inquest & Astrologer's Summary..."
   );
-  const [resGochara, resSummary, resMaandiInquest] = await Promise.all([
+  const [resGochara, resSummary, resMaandiInquest, resAnnualForecast] = await Promise.all([
     callGeminiSafe("Generate Gochara", prompts.gochara, 0.4),
     callGeminiSafe("Generate Summary", prompts.summary, 0.3),
-    callGeminiSafe("Generate Maandi Inquest", prompts.maandiInquest, 0.4)
+    callGeminiSafe("Generate Maandi Inquest", prompts.maandiInquest, 0.4),
+    callGeminiSafe("Generate Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35)
   ]);
   await new Promise(r => setTimeout(r, 120));
 
@@ -513,23 +593,238 @@ export async function prepareBhavishyaV1Data(
       ? "7. विवाह, संतान, करियर, धन एवं स्वास्थ्य का गहन विश्लेषण..."
       : "7. Synthesizing Marriage, Children, Career, Wealth & Health..."
   );
-  let dataBhavishya: any = {};
+  let resBhavishya = "";
+  let resMarriage = "";
+  let resChildren = "";
+  let resCareer = "";
+  let resWealth = "";
+  let resHealth = "";
+
   if (ageYears < 8) {
-    const resBhavishya = await callGeminiSafe("Generate Bhavishya Child Areas", prompts.bhavishya, 0.3);
-    dataBhavishya = robustParseGeminiJSON(resBhavishya);
+    resBhavishya = await callGeminiSafe("Generate Bhavishya Child Areas", prompts.bhavishya, 0.3);
   } else {
-    const [resMarriage, resChildren, resCareer, resWealth, resHealth] = await Promise.all([
+    [resMarriage, resChildren, resCareer, resWealth, resHealth] = await Promise.all([
       callGeminiSafe("Generate Marriage", prompts.bhavishyaMarriage || prompts.bhavishya, 0.3),
       callGeminiSafe("Generate Children", prompts.bhavishyaChildren || prompts.bhavishya, 0.3),
       callGeminiSafe("Generate Career", prompts.bhavishyaCareer || prompts.bhavishya, 0.3),
       callGeminiSafe("Generate Wealth", prompts.bhavishyaWealth || prompts.bhavishya, 0.3),
       callGeminiSafe("Generate Health", prompts.bhavishyaHealth || prompts.bhavishya, 0.3)
     ]);
-    const dMar = robustParseGeminiJSON(resMarriage);
-    const dChd = robustParseGeminiJSON(resChildren);
-    const dCar = robustParseGeminiJSON(resCareer);
-    const dWlh = robustParseGeminiJSON(resWealth);
-    const dHlt = robustParseGeminiJSON(resHealth);
+  }
+
+  // Parse initial responses for quality validation
+  let dataSoulMirror = robustParseGeminiJSON(resSoulMirror);
+  let dataCharacteristics = robustParseGeminiJSON(resCharacteristics);
+  let dataDarkSecret = robustParseGeminiJSON(resDarkSecret);
+  let dataCurrentPhase = robustParseGeminiJSON(resCurrentPhase);
+  let dataYogas = robustParseGeminiJSON(resYogas);
+  let dataDoshas = robustParseGeminiJSON(resDoshas);
+  let dataTimeline = robustParseGeminiJSON(resTimeline);
+  let dataGochara = robustParseGeminiJSON(resGochara);
+  let dataSummary = robustParseGeminiJSON(resSummary);
+  let dataMaandiInquest = robustParseGeminiJSON(resMaandiInquest);
+  let dataAnnualForecast = robustParseGeminiJSON(resAnnualForecast);
+
+  let dChildBhavishya = ageYears < 8 ? robustParseGeminiJSON(resBhavishya) : null;
+  let dMar = ageYears >= 8 ? robustParseGeminiJSON(resMarriage) : null;
+  let dChd = ageYears >= 8 ? robustParseGeminiJSON(resChildren) : null;
+  let dCar = ageYears >= 8 ? robustParseGeminiJSON(resCareer) : null;
+  let dWlh = ageYears >= 8 ? robustParseGeminiJSON(resWealth) : null;
+  let dHlt = ageYears >= 8 ? robustParseGeminiJSON(resHealth) : null;
+
+  const isSoulMirrorValid = (d: any) =>
+    Boolean(d && (d.truth1Text || "").trim().length >= 80 && (d.truth2Text || "").trim().length >= 80 && (d.truth3Text || "").trim().length >= 80);
+
+  const isCharacteristicsValid = (d: any) =>
+    Boolean(d?.characteristics && toSafeArray(d.characteristics).some((c: any) => (c.impact || c.description || c.trait || "").trim().length >= 20));
+
+  const isDarkSecretValid = (d: any) =>
+    ageYears < 8 || Boolean(d?.darkSecret && toSafeArray(d.darkSecret).some((s: any) => (s.impact || s.description || s.trait || "").trim().length >= 20));
+
+  const isCurrentPhaseValid = (d: any) =>
+    Boolean(d?.currentPhase && toSafeArray(d.currentPhase).some((p: any) => (p.impact || p.description || "").trim().length >= 100));
+
+  const isYogasValid = (d: any) =>
+    Boolean(d?.yogas && toSafeArray(d.yogas).some((y: any) => (y.impact || y.significance || "").trim().length >= 20));
+
+  const isDoshasValid = (d: any) =>
+    Boolean(d?.doshas && toSafeArray(d.doshas).some((ds: any) => (ds.impact || ds.significance || "").trim().length >= 20));
+
+  const isTimelineValid = (d: any) =>
+    Boolean(d?.timeline && toSafeArray(d.timeline).length >= 4 && toSafeArray(d.timeline).some((t: any) => (t.impact || t.prediction || "").trim().length >= 20));
+
+  const isGocharaValid = (d: any) =>
+    Boolean(d?.gochara && toSafeArray(d.gochara).filter((g: any) => (g.impact || "").trim().length >= 100).length >= 2);
+
+  const isSummaryValid = (d: any) =>
+    Boolean(d?.summary && toSafeArray(d.summary).some((s: any) => (s.impact || "").trim().length >= 50));
+
+  const isAnnualForecastValid = (d: any) => {
+    if (!d) return false;
+    if (typeof d.annualForecast === "string" && d.annualForecast.trim().length >= 100) return true;
+    if (Array.isArray(d.annualForecast) && d.annualForecast.some((a: any) => (a.impact || a.forecast || "").trim().length >= 100)) return true;
+    return false;
+  };
+
+  const isLifeAreaValid = (area: any) => {
+    const text = asText(area);
+    return text.trim().length >= 80;
+  };
+
+  // TARGETED PARALLEL AUTO-RETRY: Retry ONLY missing/incomplete sections
+  if (effectiveGeminiApiKey) {
+    const retryTasks: Promise<void>[] = [];
+
+    if (!isSoulMirrorValid(dataSoulMirror)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Soul Mirror", prompts.soulMirror, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isSoulMirrorValid(parsed)) dataSoulMirror = parsed;
+        })
+      );
+    }
+    if (!isCharacteristicsValid(dataCharacteristics)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Characteristics", prompts.characteristics, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isCharacteristicsValid(parsed)) dataCharacteristics = parsed;
+        })
+      );
+    }
+    if (ageYears >= 8 && !isDarkSecretValid(dataDarkSecret)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Dark Secret", prompts.darkSecret, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isDarkSecretValid(parsed)) dataDarkSecret = parsed;
+        })
+      );
+    }
+    if (!isCurrentPhaseValid(dataCurrentPhase)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Current Phase", prompts.currentPhase, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isCurrentPhaseValid(parsed)) dataCurrentPhase = parsed;
+        })
+      );
+    }
+    if (!isYogasValid(dataYogas)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Yogas", prompts.yogas, 0.4, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isYogasValid(parsed)) dataYogas = parsed;
+        })
+      );
+    }
+    if (!isDoshasValid(dataDoshas)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Doshas", prompts.doshas, 0.4, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isDoshasValid(parsed)) dataDoshas = parsed;
+        })
+      );
+    }
+    if (!isTimelineValid(dataTimeline)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Timeline", prompts.timeline, 0.4, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isTimelineValid(parsed)) dataTimeline = parsed;
+        })
+      );
+    }
+    if (!isGocharaValid(dataGochara)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Gochara", prompts.gochara, 0.4, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isGocharaValid(parsed)) dataGochara = parsed;
+        })
+      );
+    }
+    if (!isSummaryValid(dataSummary)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Summary", prompts.summary, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isSummaryValid(parsed)) dataSummary = parsed;
+        })
+      );
+    }
+    if (!isAnnualForecastValid(dataAnnualForecast)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isAnnualForecastValid(parsed)) dataAnnualForecast = parsed;
+        })
+      );
+    }
+    if (ageYears < 8) {
+      if (!dChildBhavishya || !dChildBhavishya.marriage) {
+        retryTasks.push(
+          callGeminiSafe("Retry Child Bhavishya", prompts.bhavishya, 0.35, 9000, 2).then((res) => {
+            const parsed = robustParseGeminiJSON(res);
+            if (parsed) dChildBhavishya = parsed;
+          })
+        );
+      }
+    } else {
+      if (!isLifeAreaValid(dMar?.marriage || dMar?.bhavishya?.marriage)) {
+        retryTasks.push(
+          callGeminiSafe("Retry Marriage", prompts.bhavishyaMarriage || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
+            const parsed = robustParseGeminiJSON(res);
+            if (parsed) dMar = parsed;
+          })
+        );
+      }
+      if (!isLifeAreaValid(dChd?.children || dChd?.bhavishya?.children)) {
+        retryTasks.push(
+          callGeminiSafe("Retry Children", prompts.bhavishyaChildren || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
+            const parsed = robustParseGeminiJSON(res);
+            if (parsed) dChd = parsed;
+          })
+        );
+      }
+      if (!isLifeAreaValid(dCar?.career || dCar?.bhavishya?.career)) {
+        retryTasks.push(
+          callGeminiSafe("Retry Career", prompts.bhavishyaCareer || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
+            const parsed = robustParseGeminiJSON(res);
+            if (parsed) dCar = parsed;
+          })
+        );
+      }
+      if (!isLifeAreaValid(dWlh?.wealth || dWlh?.bhavishya?.wealth)) {
+        retryTasks.push(
+          callGeminiSafe("Retry Wealth", prompts.bhavishyaWealth || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
+            const parsed = robustParseGeminiJSON(res);
+            if (parsed) dWlh = parsed;
+          })
+        );
+      }
+      if (!isLifeAreaValid(dHlt?.health || dHlt?.bhavishya?.health)) {
+        retryTasks.push(
+          callGeminiSafe("Retry Health", prompts.bhavishyaHealth || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
+            const parsed = robustParseGeminiJSON(res);
+            if (parsed) dHlt = parsed;
+          })
+        );
+      }
+    }
+
+    if (retryTasks.length > 0) {
+      console.log(`[bhavishyaV1Service] Parallel retrying ${retryTasks.length} failed/incomplete sections...`);
+      onProgress?.(
+        76,
+        lang === "kn"
+          ? `೭.೨. ಅಪೂರ್ಣ ಅಧ್ಯಾಯಗಳ ಮರು-ಪ್ರಯತ್ನ (${retryTasks.length} ವಿಭಾಗಗಳು)...`
+          : lang === "hi"
+          ? `7.2. अपूर्ण अध्यायों का समानांतर पुनः-प्रयास (${retryTasks.length} खंड)...`
+          : `7.2. Retrying ${retryTasks.length} missing sections in parallel...`
+      );
+      await Promise.all(retryTasks);
+    }
+  }
+
+  let dataBhavishya: any = {};
+  if (ageYears < 8) {
+    dataBhavishya = dChildBhavishya || {};
+  } else {
     dataBhavishya = {
       bhavishya: {
         marriage: dMar?.marriage || dMar?.bhavishya?.marriage,
@@ -556,15 +851,6 @@ export async function prepareBhavishyaV1Data(
       : "8. Verifying 10-Chapter Astrological Integrity & Alignment..."
   );
 
-  const dataCharacteristics = robustParseGeminiJSON(resCharacteristics);
-  const dataDarkSecret = robustParseGeminiJSON(resDarkSecret);
-  const dataCurrentPhase = robustParseGeminiJSON(resCurrentPhase);
-  const dataYogas = robustParseGeminiJSON(resYogas);
-  const dataDoshas = robustParseGeminiJSON(resDoshas);
-  const dataTimeline = robustParseGeminiJSON(resTimeline);
-  const dataGochara = robustParseGeminiJSON(resGochara);
-  const dataSummary = robustParseGeminiJSON(resSummary);
-  const dataMaandiInquest = robustParseGeminiJSON(resMaandiInquest);
   const fallbackMaandi = getMaandiPerspectiveInterpretation(maandiHouse, maandi?.rashi?.index ?? 0, lang, session.input.name);
 
   let finalMaandiInquest = fallbackMaandi;
@@ -583,12 +869,6 @@ export async function prepareBhavishyaV1Data(
     }
   }
 
-  const isSufficientDepth = (text: string | undefined, minParas: number = 2, minChars: number = 380): boolean => {
-    if (!text || text.trim().length < minChars) return false;
-    const paras = text.split(/\n\n+/).filter(p => p.trim().length > 60);
-    return paras.length >= minParas;
-  };
-
   const isChild = ageYears < 8;
   const v1Predictions: TranslatedPrediction[] = [];
   const aiB = dataBhavishya?.bhavishya || {};
@@ -597,138 +877,105 @@ export async function prepareBhavishyaV1Data(
   const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
   const moonStr = pick(RASHI_L5[session.result.moonSign.index], lang);
   const dashaWord = baseLang === "kn" ? "ದಶಾ" : baseLang === "hi" ? "दशा" : baseLang === "te" ? "దశ" : baseLang === "ta" ? "தசை" : "Dasha";
-  const bhuktiWord = baseLang === "kn" ? "ಭುಕ್ತಿ" : baseLang === "hi" ? "भुक्ति" : baseLang === "te" ? "భుక్తి" : baseLang === "ta" ? "புக்தி" : "Bhukti";
+  const bhuktiWord = baseLang === "kn" ? "ಭುಕ್ತಿ" : baseLang === "hi" ? "भुक्ति" : baseLang === "te" ? "భుక్తి" : baseLang === "ta" ? "புக்தಿ" : "Bhukti";
   const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], lang) : dashaWord;
   const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : bhuktiWord;
 
   if (isChild) {
     const catEd = baseLang === "kn" ? "ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಬುದ್ಧಿಶಕ್ತಿ" : baseLang === "hi" ? "शिक्षा एवं बौद्धिक विकास" : baseLang === "te" ? "విద్యాభ్యాసం మరియు మేధో వికాసం" : baseLang === "ta" ? "கல்வி மற்றும் அறிவு வளர்ச்சி" : "Education & Early Intellect";
-    const textEd = isSufficientDepth(asText(aiB.marriage), 2, 240) ? asText(aiB.marriage) : buildDynamicChildEducationFallback(parsedKundali);
+    const textEd = ensureAtLeastThreeParagraphs(asText(aiB.marriage), buildDynamicChildEducationFallback(parsedKundali), 3);
     v1Predictions.push({ category: "Education & Early Intellect", translatedCategory: catEd, text: textEd, translatedText: textEd });
 
     const catAct = baseLang === "kn" ? "ಪ್ರತಿಭೆ, ಕ್ರೀಡೆ ಹಾಗೂ ಸೃಜನಶೀಲತೆ" : baseLang === "hi" ? "प्रतिभा, खेल एवं रचनात्मकता" : baseLang === "te" ? "ప్రతిభ, క్రీడలు మరియు సృజనాత్మకత" : baseLang === "ta" ? "திறமை, விளையாட்டு மற்றும் படைப்பாற்றல்" : "Talents, Activities & Sports";
-    const textAct = isSufficientDepth(asText(aiB.children), 2, 240) ? asText(aiB.children) : buildDynamicChildActivitiesFallback(parsedKundali);
+    const textAct = ensureAtLeastThreeParagraphs(asText(aiB.children), buildDynamicChildActivitiesFallback(parsedKundali), 3);
     v1Predictions.push({ category: "Talents, Activities & Sports", translatedCategory: catAct, text: textAct, translatedText: textAct });
 
     const catFdn = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸ ಹಾಗೂ ಸಂಸ್ಕಾರ" : baseLang === "hi" ? "चरित्र निर्माण एवं संस्कार" : baseLang === "te" ? "వ్యక్తిత్వ వికాసం మరియు సంస్కారం" : baseLang === "ta" ? "ஆளுமை வளர்ச்சி மற்றும் நற்பண்புகள்" : "Future Foundation & Character";
-    const textFdn = isSufficientDepth(asText(aiB.career), 2, 240) ? asText(aiB.career) : buildDynamicChildFoundationFallback(parsedKundali);
+    const textFdn = ensureAtLeastThreeParagraphs(asText(aiB.career), buildDynamicChildFoundationFallback(parsedKundali), 3);
     v1Predictions.push({ category: "Future Foundation & Character", translatedCategory: catFdn, text: textFdn, translatedText: textFdn });
 
     const catFam = baseLang === "kn" ? "ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ ಹಾಗೂ ಪೋಷಣೆ" : baseLang === "hi" ? "पारिवारिक वातावरण एवं लालन-पालन" : baseLang === "te" ? "కుటుంబ ప్రేమ మరియు లాలన" : baseLang === "ta" ? "குடும்ப பாசம் மற்றும் வளர்ப்பு" : "Family Environment & Upbringing";
-    const textFam = isSufficientDepth(asText(aiB.wealth), 2, 240) ? asText(aiB.wealth) : buildDynamicChildFamilyFallback(parsedKundali);
+    const textFam = ensureAtLeastThreeParagraphs(asText(aiB.wealth), buildDynamicChildFamilyFallback(parsedKundali), 3);
     v1Predictions.push({ category: "Family Environment & Upbringing", translatedCategory: catFam, text: textFam, translatedText: textFam });
 
     const catHlt = baseLang === "kn" ? "ಬಾಲ ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ" : baseLang === "hi" ? "बाल स्वास्थ्य एवं रोग प्रतिरोधक क्षमता" : baseLang === "te" ? "బాల ఆరోగ్యం మరియు రక్షణ" : baseLang === "ta" ? "குழந்தை நலம் மற்றும் ஆரோக்கியம்" : "Pediatric Health & Vitality";
-    const textHlt = isSufficientDepth(asText(aiB.health), 2, 240) ? asText(aiB.health) : buildDynamicChildPediatricHealthFallback(parsedKundali);
+    const textHlt = ensureAtLeastThreeParagraphs(asText(aiB.health), buildDynamicChildPediatricHealthFallback(parsedKundali), 3);
     v1Predictions.push({ category: "Pediatric Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
   } else if (ageYears >= 60) {
     const catMar = baseLang === "kn" ? "ಧರ್ಮ ಸಹಚಾರ್ಯ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ" : baseLang === "hi" ? "दांपत्य सौहार्द एवं पारिवारिक शांति" : baseLang === "te" ? "దాంపత్య సౌఖ్యం మరియు కుటుంబ ప్రశాంతత" : baseLang === "ta" ? "தம்பதியர் நல்லிணக்கம் மற்றும் குடும்ப அமைதி" : "Companionship & Domestic Harmony";
-    let textMar = asText(aiB.marriage).trim();
-    if (isSufficientDepth(textMar, 2, 380)) {
-      const mParas = textMar.split("\n").filter((pText: string) => {
-        const pLower = pText.toLowerCase();
-        return !pLower.includes("ಸಂತಾನ") && !pLower.includes("ಮಕ್ಕಳ") && !pLower.includes("progeny") && !pLower.includes("children");
-      });
-      textMar = mParas.join("\n\n").trim() || textMar;
-    }
-    if (!isSufficientDepth(textMar, 2, 380)) {
-      textMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, (personalization?.maritalStatus as ("married" | "unmarried" | "general")) || "married", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
-    }
+    const fbMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, (personalization?.maritalStatus as ("married" | "unmarried" | "general")) || "married", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
+    const textMar = ensureAtLeastThreeParagraphs(asText(aiB.marriage), fbMar, 3);
     v1Predictions.push({ category: "Companionship & Domestic Harmony", translatedCategory: catMar, text: textMar, translatedText: textMar });
 
     const catChd = baseLang === "kn" ? "ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಸೌಖ್ಯ" : baseLang === "hi" ? "वंश वृद्धि एवं पौत्र-पौत्री सुख" : baseLang === "te" ? "వంశాభివృద్ధి మరియు మనవలు-మనవరాళ్ల సుఖం" : baseLang === "ta" ? "சந்ததி வளர்ச்சி மற்றும் பேரப்பிள்ளைகள் நலம்" : "Family Legacy & Grandchildren";
-    const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 380)
-      ? asText(aiB.children).trim()
-      : buildPersonalizedChildrenText(lang, (personalization?.childrenStatus as ("general" | "no_children" | "has_children")) || "has_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbChd = buildPersonalizedChildrenText(lang, (personalization?.childrenStatus as ("general" | "no_children" | "has_children")) || "has_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textChd = ensureAtLeastThreeParagraphs(asText(aiB.children), fbChd, 3);
     v1Predictions.push({ category: "Family Legacy & Grandchildren", translatedCategory: catChd, text: textChd, translatedText: textChd });
 
     const catCar = baseLang === "kn" ? "ಧರ್ಮ ಕಾರ್ಯ, ಸಮಾಜ ಸೇವೆ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ" : baseLang === "hi" ? "धर्मार्थ कार्य एवं सामाजिक मार्गदर्शन" : baseLang === "te" ? "ధర్మ కార్యాలు మరియు సమాజ మార్గదర్శకత్వం" : baseLang === "ta" ? "தர்ம காரியங்கள் மற்றும் சமூக வழிகாட்டுதல்" : "Mentorship & Dharmic Leadership";
-    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 380)
-      ? asText(aiB.career).trim()
-      : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbCar = buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textCar = ensureAtLeastThreeParagraphs(asText(aiB.career), fbCar, 3);
     v1Predictions.push({ category: "Mentorship & Dharmic Leadership", translatedCategory: catCar, text: textCar, translatedText: textCar });
 
     const catWlh = baseLang === "kn" ? "ಸಂಪತ್ತು ಸಂರಕ್ಷಣೆ ಹಾಗೂ ಕುಟುಂಬ ಸಮೃದ್ಧಿ" : baseLang === "hi" ? "संपत्ति सुरक्षा एवं पारिवारिक समृद्धि" : baseLang === "te" ? "సంపద పరిరక్షణ మరియు కుటుంబ సుఖం" : baseLang === "ta" ? "செல்வப் பாதுகாப்பு மற்றும் குடும்ப சுபிட்சம்" : "Wealth Preservation & Estate Peace";
-    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 380)
-      ? asText(aiB.wealth).trim()
-      : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbWlh = buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textWlh = ensureAtLeastThreeParagraphs(asText(aiB.wealth), fbWlh, 3);
     v1Predictions.push({ category: "Wealth Preservation & Estate Peace", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
 
     const catHlt = baseLang === "kn" ? "ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಸ್ವಾಸ್ಥ್ಯ ರಕ್ಷಣೆ" : baseLang === "hi" ? "दीर्घायु एवं स्वास्थ्य रक्षा" : baseLang === "te" ? "దీర్ఘాయుష్షు మరియు ఆరోగ్య రక్షణ" : baseLang === "ta" ? "நீண்ட ஆயுள் மற்றும் ஆரோக்கியப் பாதுகாப்பு" : "Longevity & Geriatric Wellness";
-    const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 380)
-      ? asText(aiB.health).trim()
-      : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbHlt = buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textHlt = ensureAtLeastThreeParagraphs(asText(aiB.health), fbHlt, 3);
     v1Predictions.push({ category: "Longevity & Geriatric Wellness", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
   } else if (ageYears < 22) {
     const catMar = baseLang === "kn" ? "ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ ಹಾಗೂ ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ" : baseLang === "hi" ? "चरित्र निर्माण एवं मानसिक एकाग्रता" : baseLang === "te" ? "వ్యక్తిత్వ నిర్మాణం మరియు ఏకాగ్రత" : baseLang === "ta" ? "ஆளுமை உருவாக்கம் மற்றும் மன உறுதி" : "Character & Mental Focus";
-    const textMar = isSufficientDepth(asText(aiB.marriage).trim(), 2, 380)
-      ? asText(aiB.marriage).trim()
-      : buildPersonalizedMarriageText(lang, lagnaStr, moonStr, "unmarried", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
+    const fbMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, "unmarried", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
+    const textMar = ensureAtLeastThreeParagraphs(asText(aiB.marriage), fbMar, 3);
     v1Predictions.push({ category: "Character & Mental Focus", translatedCategory: catMar, text: textMar, translatedText: textMar });
 
     const catChd = baseLang === "kn" ? "ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆ" : baseLang === "hi" ? "उच्च शिक्षा एवं एकाग्रता" : baseLang === "te" ? "ఉన్నత విద్య మరియు విజ్ఞానం" : baseLang === "ta" ? "உயர்கல்வி மற்றும் ஞானம்" : "Higher Studies & Intellect";
-    const textChd = isSufficientDepth(asText(aiB.children).trim(), 2, 380)
-      ? asText(aiB.children).trim()
-      : buildPersonalizedChildrenText(lang, "no_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbChd = buildPersonalizedChildrenText(lang, "no_children", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textChd = ensureAtLeastThreeParagraphs(asText(aiB.children), fbChd, 3);
     v1Predictions.push({ category: "Higher Studies & Intellect", translatedCategory: catChd, text: textChd, translatedText: textChd });
 
-    const catCar = baseLang === "kn" ? "ಭವಿಷ್ಯದ ವೃತ್ತಿ ಅಡಿಪಾಯ" : baseLang === "hi" ? "भावी करियर की नींव" : baseLang === "te" ? "భవిష్యత్ కెరీర్ పునాది" : baseLang === "ta" ? "எதிர்கால தொழில் அடித்தளம்" : "Future Career Foundation";
-    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 380)
-      ? asText(aiB.career).trim()
-      : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const catCar = baseLang === "kn" ? "ಭವಿಷ್ಯದ ವೃತ್ತಿ ಅಡಿಪಾಯ" : baseLang === "hi" ? "भावी करियर की नींव" : baseLang === "te" ? "భవిష్యత్ కెరీర్ పునాది" : baseLang === "ta" ? "எதிர்கಾಲ தொழில் அடித்தளம்" : "Future Career Foundation";
+    const fbCar = buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textCar = ensureAtLeastThreeParagraphs(asText(aiB.career), fbCar, 3);
     v1Predictions.push({ category: "Future Career Foundation", translatedCategory: catCar, text: textCar, translatedText: textCar });
 
     const catWlh = baseLang === "kn" ? "ಆರ್ಥಿಕ ಶಿಸ್ತು ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳು" : baseLang === "hi" ? "वित्तीय अनुशासन एवं पारिवारिक मूल्य" : baseLang === "te" ? "ఆర్థిక క్రమశిక్షణ మరియు కుటుంబ విలువలు" : baseLang === "ta" ? "நிதி ஒழுக்கம் மற்றும் குடும்ப விழுமியங்கள்" : "Financial Discipline & Values";
-    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 380)
-      ? asText(aiB.wealth).trim()
-      : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbWlh = buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textWlh = ensureAtLeastThreeParagraphs(asText(aiB.wealth), fbWlh, 3);
     v1Predictions.push({ category: "Financial Discipline & Values", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
 
     const catHlt = baseLang === "kn" ? "ಯುವ ಚೈತನ್ಯ ಹಾಗೂ ದೈಹಿಕ ದೃಢತೆ" : baseLang === "hi" ? "शारीरिक ऊर्जा एवं स्वास्थ्य संतुलन" : baseLang === "te" ? "శారీరక శక్తి మరియు ఆరోగ్య సమతుల్యత" : baseLang === "ta" ? "உடல் வலிமை மற்றும் ஆரோக்கிய சமநிலை" : "Vitality, Fitness & Screen Balance";
-    const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 380)
-      ? asText(aiB.health).trim()
-      : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbHlt = buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textHlt = ensureAtLeastThreeParagraphs(asText(aiB.health), fbHlt, 3);
     v1Predictions.push({ category: "Vitality, Fitness & Screen Balance", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
   } else {
     // Adult
     const catMar = baseLang === "kn" ? "ವಿವಾಹ ಹಾಗೂ ಸಂಬಂಧ" : baseLang === "hi" ? "विवाह एवं संबंध" : baseLang === "te" ? "వివాహం మరియు సంబంధ బాంధవ్యాలు" : baseLang === "ta" ? "திருமணம் மற்றும் இல்லற வாழ்க்கை" : "Marriage & Relationships";
-    let textMar = asText(aiB.marriage).trim();
-    if (isSufficientDepth(textMar, 2, 380)) {
-      const mParas = textMar.split("\n").filter((pText: string) => {
-        const pLower = pText.toLowerCase();
-        return !pLower.includes("ಸಂತಾನ") && !pLower.includes("ಮಕ್ಕಳ") && !pLower.includes("ಪಂಚಮ ಭಾವ") && !pLower.includes("progeny") && !pLower.includes("children");
-      });
-      textMar = mParas.join("\n\n").trim() || textMar;
-    }
-    if (!isSufficientDepth(textMar, 2, 380)) {
-      textMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, (personalization?.maritalStatus as ("married" | "unmarried" | "general")) || "general", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
-    }
+    const fbMar = buildPersonalizedMarriageText(lang, lagnaStr, moonStr, (personalization?.maritalStatus as ("married" | "unmarried" | "general")) || "general", lagnaIdx, dashaName, bhuktiName, userGender as "Male" | "Female", dynamicCtx);
+    const textMar = ensureAtLeastThreeParagraphs(asText(aiB.marriage), fbMar, 3);
     v1Predictions.push({ category: "Marriage & Relationships", translatedCategory: catMar, text: textMar, translatedText: textMar });
 
     const catChd = baseLang === "kn" ? "ಸಂತಾನ ಹಾಗೂ ಮಕ್ಕಳು" : baseLang === "hi" ? "संतान एवं बच्चे" : baseLang === "te" ? "సంతానం మరియు పిల్లలు" : baseLang === "ta" ? "சந்ததி மற்றும் குழந்தைகள்" : "Children & Progeny";
-    const minChildrenParas = personalization?.childrenStatus === "no_children" ? 3 : 2;
-    const minChildrenChars = personalization?.childrenStatus === "no_children" ? 420 : 380;
-    const textChd = isSufficientDepth(asText(aiB.children).trim(), minChildrenParas, minChildrenChars)
-      ? asText(aiB.children).trim()
-      : buildPersonalizedChildrenText(lang, (personalization?.childrenStatus as ("general" | "no_children" | "has_children")) || "general", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbChd = buildPersonalizedChildrenText(lang, (personalization?.childrenStatus as ("general" | "no_children" | "has_children")) || "general", lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textChd = ensureAtLeastThreeParagraphs(asText(aiB.children), fbChd, 3);
     v1Predictions.push({ category: "Children & Progeny", translatedCategory: catChd, text: textChd, translatedText: textChd });
 
     const catCar = baseLang === "kn" ? "ಉದ್ಯೋಗ ಹಾಗೂ ವೃತ್ತಿ ಏಳಿಗೆ" : baseLang === "hi" ? "करियर एवं पदोन्नति योग" : baseLang === "te" ? "ఉద్యోగం మరియు వృత్తి ఎదుగుదల" : baseLang === "ta" ? "தொழில் மற்றும் உத்தியோக முன்னேற்றம்" : "Career & Profession";
-    const textCar = isSufficientDepth(asText(aiB.career).trim(), 2, 380)
-      ? asText(aiB.career).trim()
-      : buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbCar = buildPersonalizedCareerText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textCar = ensureAtLeastThreeParagraphs(asText(aiB.career), fbCar, 3);
     v1Predictions.push({ category: "Career & Profession", translatedCategory: catCar, text: textCar, translatedText: textCar });
 
-    const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग" : baseLang === "te" ? "ధన సంపద మరియు ఆర్థిక యోగం" : baseLang === "ta" ? "தன லாபம் மற்றும் பொருளாதார நிலை" : "Wealth & Family Finance";
-    const textWlh = isSufficientDepth(asText(aiB.wealth).trim(), 2, 380)
-      ? asText(aiB.wealth).trim()
-      : buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग" : baseLang === "te" ? "ధన సంపద మరియు ఆర్థిక యోగం" : baseLang === "ta" ? "தன ಲಾபம் மற்றும் பொருளாதார நிலை" : "Wealth & Family Finance";
+    const fbWlh = buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textWlh = ensureAtLeastThreeParagraphs(asText(aiB.wealth), fbWlh, 3);
     v1Predictions.push({ category: "Wealth & Family Finance", translatedCategory: catWlh, text: textWlh, translatedText: textWlh });
 
     const catHlt = baseLang === "kn" ? "ಆರೋಗ್ಯ ಹಾಗೂ ಚೈತನ್ಯ" : baseLang === "hi" ? "स्वास्थ्य एवं आरोग्य" : baseLang === "te" ? "ఆరోగ్యం మరియు శారీరక దృఢత్వం" : baseLang === "ta" ? "ஆரோக்கியம் மற்றும் உடல் பலம்" : "Health & Vitality";
-    const textHlt = isSufficientDepth(asText(aiB.health).trim(), 2, 380)
-      ? asText(aiB.health).trim()
-      : buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const fbHlt = buildPersonalizedHealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
+    const textHlt = ensureAtLeastThreeParagraphs(asText(aiB.health), fbHlt, 3);
     v1Predictions.push({ category: "Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
   }
 
@@ -748,11 +995,23 @@ export async function prepareBhavishyaV1Data(
   const secretFallbackText = buildDynamicDarkSecretFallback(parsedKundali);
   const currentPhaseFallbackText = buildDynamicCurrentPhaseFallback(parsedKundali);
   const rawSummaryFallback = buildDynamicSummaryFallback(parsedKundali);
+  const annualFallbackText = buildDynamicAnnualForecastFallback(parsedKundali);
 
   const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
   const finalDarkSecret = isChild ? [] : await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
   const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang, 250);
   const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
+
+  let rawAnnualInput: any = dataAnnualForecast?.annualForecast;
+  if (typeof rawAnnualInput === "string") {
+    rawAnnualInput = [{ impact: rawAnnualInput }];
+  } else if (Array.isArray(rawAnnualInput)) {
+    rawAnnualInput = rawAnnualInput.map((item: any) => {
+      if (typeof item === "string") return { impact: item };
+      return { impact: item?.impact || item?.forecast || "" };
+    });
+  }
+  const finalAnnualForecast = await ensureValidSection(rawAnnualInput, annualFallbackText, lang, 100);
 
   const rawYogasFallback = (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map((y: any) => ({
     name: localizeYogaName(y.name || "Dasha Yoga", lang),
@@ -764,17 +1023,19 @@ export async function prepareBhavishyaV1Data(
   const finalYogas = (rawYogasArray || []).map((y: any) => {
     const rawImpact = (y.impact || y.significance || "").trim();
     const enriched = enrichYogaDescription(y.name || y.trait || "", rawImpact, lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName);
-    const cleanImpact = enriched
+    const cleanImpact = cleanDegreesFromText(enriched
       .replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "")
       .replace(/^[\s:,\.\-–—×*•~|]+/gu, "")
-      .trim();
+      .trim());
     const cleanName = localizeYogaName(y.name || y.trait || "", lang)
       .replace(/^[\s:,\.\-–—×*•~|]+/gu, "")
       .trim();
+    const paras = cleanImpact.split(/\n\n+/).filter(Boolean);
     return {
       ...y,
       name: cleanName,
-      impact: cleanImpact
+      impact: cleanImpact,
+      significance: paras.length > 0 ? paras : cleanImpact
     };
   });
 
@@ -811,12 +1072,19 @@ export async function prepareBhavishyaV1Data(
   const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
     ? dataDoshas.doshas
     : safeDoshaFallback;
-  const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
-    ...d,
-    name: localizeDoshaName(d.name || "", lang),
-    impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, parsedKundali.maritalStatus),
-    remedy: localizeDoshaRemedy(d.name || "", d.remedy, lang, parsedKundali.maritalStatus)
-  }));
+  const finalDoshas = (rawDoshasArray || []).map((d: any) => {
+    const rawImpact = d.impact || d.significance || "";
+    const enrichedImpact = cleanDegreesFromText(enrichDoshaDescription(d.name || "", rawImpact, lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, parsedKundali.maritalStatus));
+    const cleanRemedy = cleanDegreesFromText(localizeDoshaRemedy(d.name || "", d.remedy, lang, parsedKundali.maritalStatus));
+    const paras = enrichedImpact.split(/\n\n+/).filter(Boolean);
+    return {
+      ...d,
+      name: localizeDoshaName(d.name || "", lang),
+      impact: enrichedImpact,
+      significance: paras.length > 0 ? paras : enrichedImpact,
+      remedy: cleanRemedy
+    };
+  });
 
   const dynamicTimelineFallback = buildDynamicTimelineFallback(parsedKundali);
   const rawAiTimeline = toSafeArray(dataTimeline.timeline);
@@ -857,17 +1125,35 @@ export async function prepareBhavishyaV1Data(
   let finalGochara = aiGocharaValid ? dataGochara.gochara : rawGocharaFallback;
   finalGochara = finalGochara.map((g: any) => ({
     name: localizeGocharaName(g.name || "", lang),
-    impact: enrichGocharaDescription(g.name || "", cleanEnglishFromRegionalText(g.impact || "", lang), lang, moonStr, ageYears, dashaName, bhuktiName),
-    remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
+    impact: cleanDegreesFromText(enrichGocharaDescription(g.name || "", cleanEnglishFromRegionalText(g.impact || "", lang), lang, moonStr, ageYears, dashaName, bhuktiName)),
+    remedy: g.remedy ? cleanDegreesFromText(cleanEnglishFromRegionalText(g.remedy, lang)) : undefined
   }));
 
+  const dynamicSoulMirror = buildDynamicSoulMirrorFallback(parsedKundali);
+  let finalSoulMirror = { ...dynamicSoulMirror };
+  if (dataSoulMirror) {
+    const t1 = cleanEnglishFromRegionalText(dataSoulMirror.truth1Text || "", lang).trim();
+    const t2 = cleanEnglishFromRegionalText(dataSoulMirror.truth2Text || "", lang).trim();
+    const t3 = cleanEnglishFromRegionalText(dataSoulMirror.truth3Text || "", lang).trim();
+    if (t1.length >= 80 && t2.length >= 80 && t3.length >= 80) {
+      finalSoulMirror.truth1Text = t1;
+      finalSoulMirror.truth2Text = t2;
+      finalSoulMirror.truth3Text = t3;
+      if (dataSoulMirror.truth1Title) finalSoulMirror.truth1Title = cleanEnglishFromRegionalText(dataSoulMirror.truth1Title, lang).trim();
+      if (dataSoulMirror.truth2Title) finalSoulMirror.truth2Title = cleanEnglishFromRegionalText(dataSoulMirror.truth2Title, lang).trim();
+      if (dataSoulMirror.truth3Title) finalSoulMirror.truth3Title = cleanEnglishFromRegionalText(dataSoulMirror.truth3Title, lang).trim();
+    }
+  }
+
   const premiumDataPayload: PremiumData = {
+    soulMirror: finalSoulMirror,
     characteristics: finalCharacteristics,
     darkSecret: finalDarkSecret,
     currentPhase: finalCurrentPhase,
     yogas: finalYogas,
     doshas: finalDoshas,
     timeline: finalTimeline,
+    annualForecast: finalAnnualForecast,
     gochara: finalGochara,
     summary: finalSummary,
     maandiInquest: finalMaandiInquest
@@ -877,8 +1163,97 @@ export async function prepareBhavishyaV1Data(
   if (payloadAuditStr.includes("sorry, i encountered an error") || payloadAuditStr.includes("check your api key")) {
     console.error("[bhavishyaV1Service Quality Audit] Error detected in payload. Healing with dynamic mathematical fallbacks.");
     premiumDataPayload.summary = [{ impact: rawSummaryFallback }];
+    premiumDataPayload.annualForecast = [{ impact: annualFallbackText }];
     premiumDataPayload.characteristics = [{ impact: charFallbackText }];
     premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
+    premiumDataPayload.soulMirror = dynamicSoulMirror;
+  }
+
+  // Strict non-empty Soul Mirror healing
+  if (
+    !premiumDataPayload.soulMirror ||
+    !premiumDataPayload.soulMirror.elemental ||
+    (premiumDataPayload.soulMirror.truth1Text || "").trim().length < 80 ||
+    (premiumDataPayload.soulMirror.truth2Text || "").trim().length < 80 ||
+    (premiumDataPayload.soulMirror.truth3Text || "").trim().length < 80
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Soul Mirror incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.soulMirror = dynamicSoulMirror;
+  }
+
+  // Strict non-empty Characteristics healing
+  if (
+    !premiumDataPayload.characteristics ||
+    premiumDataPayload.characteristics.length === 0 ||
+    !premiumDataPayload.characteristics.some(c => (c.impact || "").trim().length >= 20)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Characteristics incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.characteristics = [{ impact: charFallbackText }];
+  }
+
+  // Strict non-empty Dark Secret healing
+  if (ageYears >= 8) {
+    if (
+      !premiumDataPayload.darkSecret ||
+      premiumDataPayload.darkSecret.length === 0 ||
+      !premiumDataPayload.darkSecret.some(d => (d.impact || "").trim().length >= 20)
+    ) {
+      console.warn("[bhavishyaV1Service Quality Audit] Dark Secret incomplete. Healing with dynamic mathematical fallback.");
+      premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
+    }
+  }
+
+  // Strict non-empty Current Phase healing
+  if (
+    !premiumDataPayload.currentPhase ||
+    premiumDataPayload.currentPhase.length === 0 ||
+    !premiumDataPayload.currentPhase.some(p => (p.impact || "").trim().length >= 100)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Current Phase incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.currentPhase = [{ impact: currentPhaseFallbackText }];
+  }
+
+  // Strict non-empty Yogas healing
+  if (
+    !premiumDataPayload.yogas ||
+    premiumDataPayload.yogas.length === 0 ||
+    !premiumDataPayload.yogas.some(y => (y.impact || "").trim().length >= 20)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Yogas incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.yogas = rawYogasFallback.map((y: any) => ({
+      name: y.name,
+      impact: y.impact,
+      significance: y.impact.split(/\n\n+/).filter(Boolean)
+    }));
+  }
+
+  // Strict non-empty Doshas healing
+  if (
+    !premiumDataPayload.doshas ||
+    premiumDataPayload.doshas.length === 0 ||
+    !premiumDataPayload.doshas.some(d => (d.impact || "").trim().length >= 20)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Doshas incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.doshas = safeDoshaFallback.map((d: any) => ({
+      name: d.name,
+      impact: d.impact,
+      significance: d.impact.split(/\n\n+/).filter(Boolean),
+      remedy: d.remedy
+    }));
+  }
+
+  // Strict non-empty Gochara healing
+  if (
+    !premiumDataPayload.gochara ||
+    premiumDataPayload.gochara.length < 2 ||
+    !premiumDataPayload.gochara.every(g => (g.impact || "").trim().length >= 50)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Gochara incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.gochara = rawGocharaFallback.map((g: any) => ({
+      name: localizeGocharaName(g.name || "", lang),
+      impact: cleanDegreesFromText(enrichGocharaDescription(g.name || "", cleanEnglishFromRegionalText(g.impact || "", lang), lang, moonStr, ageYears, dashaName, bhuktiName)),
+      remedy: g.remedy ? cleanDegreesFromText(cleanEnglishFromRegionalText(g.remedy, lang)) : undefined
+    }));
   }
 
   // Strict non-empty Saramsha (Summary) healing
@@ -899,6 +1274,16 @@ export async function prepareBhavishyaV1Data(
   ) {
     console.warn("[bhavishyaV1Service Quality Audit] Timeline incomplete. Healing with dynamic mathematical fallback.");
     premiumDataPayload.timeline = dynamicTimelineFallback;
+  }
+
+  // Strict non-empty Annual Forecast healing
+  if (
+    !premiumDataPayload.annualForecast ||
+    premiumDataPayload.annualForecast.length === 0 ||
+    !premiumDataPayload.annualForecast.some(a => (a.impact || "").trim().length >= 100)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Annual Forecast incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.annualForecast = [{ impact: annualFallbackText }];
   }
 
   onProgress?.(
