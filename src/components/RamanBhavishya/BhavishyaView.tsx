@@ -523,7 +523,7 @@ export function buildKundaliCurrentPhaseFallback(
 
     const p2 = `ಭಾವನಾತ್ಮಕವಾಗಿ, ಪ್ರಸ್ತುತ ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಸಹನೆ ಮತ್ತು ಆಂತರಿಕ ನಿಗ್ರಹ ಶಕ್ತಿಯನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದೆ. ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಷಣವೇ ಪ್ರತಿಫಲ ಸಿಗುತ್ತಿಲ್ಲವೆಂಬ ಸಣ್ಣಪುಟ್ಟ ಆತಂಕ ಮೂಡಿದರೂ, ದೇವಗುರು ಹಾಗೂ ಶನಿ ಭಗವಾನರ ಅನುಗ್ರಹವು ನಿಮಗೆ ಧೈರ್ಯ ಮತ್ತು ಸ್ಥಿರತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`;
     const p3 = `ಅಂತರಂಗದ ಮಟ್ಟದಲ್ಲಿ, ನೀವು ಭವಿಷ್ಯದ ಭದ್ರತೆ, ಸಾಲ-ಹೊಣೆಗಾರಿಕೆಗಳ ನಿವಾರಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಭ್ಯುದಯದ ಕುರಿತು ಆಳವಾಗಿ ಆಲೋಚಿಸುತ್ತಿದ್ದೀರಿ. ಹಳೆಯ ಸಮಸ್ಯೆಗಳನ್ನು ಬಗೆಹರಿಸಿ ಶಾಂತಿಯುತ ಹೊಸ ಆರಂಭವನ್ನು ಮಾಡಲು ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಸಿದ್ಧವಾಗುತ್ತಿದೆ.`;
-    const p4 = `ಸತ್ಕರ್ಮಗಳ ಪಾಲನೆ, ನಿತ್ಯ ಮುಂಜಾನೆ ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಸಂಜೆ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸುವುದು ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದವನ್ನು ಪಡೆಯುವುದರಿಂದ ಈ ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿರಂತರ ಸಿದ್ಧಿ ಲಭಿಸಲಿದೆ. ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ಶ್ರೀ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ದಿವ್ಯ ಆಶೀರ್ವಾದವು ಸದಾ ನಿಮ್ಮ ರಕ್ಷಣೆಗೆ ನಿಂತಿದೆ.`;
+    const p4 = `ಸತ್ಕರ್ಮಗಳ ಪಾಲನೆ, ನಿತ್ಯ ಮುಂಜಾನೆ ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಸಂಜೆ ದೇವರ ಕೋಣೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸುವುದು ಹಾಗೂ ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದವನ್ನು ಪಡೆಯುವುದರಿಂದ ಈ ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದ ಸಕಲ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿರಂತರ ಸಿದ್ಧಿ ಲಭಿಸಲಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಹಾಗೂ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ದಿವ್ಯ ಆಶೀರ್ವಾದವು ಸದಾ ನಿಮ್ಮ ರಕ್ಷಣೆಗೆ ನಿಂತಿದೆ.`;
     return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
   }
   if (baseLang === "hi") {
@@ -536,7 +536,7 @@ export function buildKundaliCurrentPhaseFallback(
 
     const p2 = `इस समय मानसिक रूप से कभी-कभी अधीरता या चिंता का अनुभव हो सकता है। परंतु गुरु एवं शनि के गोचर प्रभाव से आपको धैर्य, आत्मबल और मानसिक स्पष्टता प्राप्त होगी।`;
     const p3 = `आंतरिक स्तर पर, आप भविष्य की सुरक्षा एवं पारिवारिक उन्नति के विषय में गंभीर विचार कर रहे हैं। पुरानी समस्याओं को सुलझाकर नए क्षितिज की ओर बढ़ने की दिशा बन रही है।`;
-    const p4 = `नित्य पूजन, धर्म पालन एवं बड़ों के आशीर्वाद से वर्तमान समय की समस्त बाधाएं दूर होकर पूर्ण सफलता सिद्ध होगी। बग्गोण क्षेत्र का दिव्य आशीर्वाद सदैव आपकी रक्षा करेगा।`;
+    const p4 = `नित्य पूजन, धर्म पालन एवं बड़ों के आशीर्वाद से वर्तमान समय की समस्त बाधाएं दूर होकर पूर्ण सफलता सिद्ध होगी। श्री क्षेत्र गोकर्ण का दिव्य आशीर्वाद सदैव आपकी रक्षा करेगा।`;
     return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
   }
   const nameSalutation = name ? `Dear ${name}, ` : "";
@@ -548,7 +548,7 @@ export function buildKundaliCurrentPhaseFallback(
 
   const p2 = `Mentally, you may experience transient moments of impatience or fatigue regarding your efforts. Favorable aspects from Jupiter and Saturn foster internal resilience and strategic clarity.`;
   const p3 = `At a subconscious level, your primary focus revolves around long-term stability and family prosperity. Your inner self is preparing to resolve lingering issues and embrace constructive new beginnings.`;
-  const p4 = `Consistent spiritual practices, disciplined action, and honoring mentors will neutralize minor planetary friction and ensure steady success during this phase. May the sacred grace of Baggona Kshetra continually guide and protect you.`;
+  const p4 = `Consistent spiritual practices, disciplined action, and honoring mentors will neutralize minor planetary friction and ensure steady success during this phase. May the sacred grace of Sri Kshetra Gokarna continually guide and protect you.`;
   return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
 }
 
@@ -828,7 +828,7 @@ Return ONLY this JSON format:
           lang
         );
         const p4 = await translateText(
-          `Recommended Vedic Remedy: Recite your Ishta Devata mantra and the Navagraha Stotram 108 times daily during morning Brahmi Muhurtha. Light a pure cow ghee or sesame oil lamp facing East in your household altar, offer yellow flowers or sweet offerings on auspicious days, and engage in selfless service (Seva) to cows or the needy. May the divine grace of Baggona Kshetra bestow peace, protection, and auspicious victory upon your path.`,
+          `Recommended Vedic Remedy: Recite your Ishta Devata mantra and the Navagraha Stotram 108 times daily during morning Brahmi Muhurtha. Light a pure cow ghee or sesame oil lamp facing East in your household altar, offer yellow flowers or sweet offerings on auspicious days, and engage in selfless service (Seva) to cows or the needy. May the divine grace of Sri Kshetra Gokarna bestow peace, protection, and auspicious victory upon your path.`,
           lang
         );
         parsedSummary = { paragraph1: p1, paragraph2: p2, paragraph3: p3, paragraph4: p4 };
@@ -1243,7 +1243,7 @@ REQUIRED 4 PARAGRAPHS STRUCTURE:
 PARAGRAPH 1 (Current Living Reality & Dasha-Bhukti State): Address ${session.input.name} directly. Detail the core planetary theme and current psychological/life chapter governed by ${currentBhuktiData?.maha.planet} Mahadasha and ${currentBhuktiData?.bhukti} Bhukti right now.
 PARAGRAPH 2 (Gochara Planetary Transits): Detail how current major transits (Gochara - Saturn, Jupiter, Rahu/Ketu) are influencing their Moon sign and birth planets currently.
 PARAGRAPH 3 (Immediate Life Outlook & Timing): Describe what is currently manifesting in their immediate life (career/finance/family/health) during this exact phase. Give key timing advice tailored to their life stage.
-PARAGRAPH 4 (Remedial Guidance & Blessing): Provide 2 practical remedies (Parihara/Mantra/Charity) and an encouraging Baggona Kshetra blessing for their current phase.
+PARAGRAPH 4 (Remedial Guidance & Blessing): Provide 2 practical remedies (Parihara/Mantra/Charity) and an encouraging Sri Kshetra Gokarna blessing for their current phase.
 
 Return ONLY this JSON format:
 {

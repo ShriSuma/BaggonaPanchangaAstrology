@@ -53,8 +53,8 @@ describe("Current Phase & Summary Deep Personalization Test Suite", () => {
       // Must contain Dasha and live transits
       expect(text).toContain("ಗುರು");
       expect(text).toContain("ಶನಿ");
-      // Must contain Baggona Kshetra blessings
-      expect(text).toContain("ಬಗ್ಗೋಣ");
+      // Must contain Sri Kshetra Gokarna blessings
+      expect(text).toContain("ಗೋಕರ್ಣ");
 
       // Verify exactly 4 paragraphs
       const paragraphs = text.split("\n\n").filter(p => p.trim().length > 0);
@@ -68,7 +68,7 @@ describe("Current Phase & Summary Deep Personalization Test Suite", () => {
       expect(text).toContain("ಗೋಪಾಲಕೃಷ್ಣ ಭಟ್");
       // Must contain senior-specific themes
       expect(text).toMatch(/ಆರೋಗ್ಯ|ಮನಸ್ಸಿನ ಶಾಂತಿ|ಮೊಮ್ಮಕ್ಕಳ|ಅಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆ|ಲೌಕಿಕ ಪೈಪೋಟಿ/);
-      expect(text).toContain("ಬಗ್ಗೋಣ");
+      expect(text).toContain("ಗೋಕರ್ಣ");
 
       const paragraphs = text.split("\n\n").filter(p => p.trim().length > 0);
       expect(paragraphs.length).toBe(4);
@@ -127,7 +127,7 @@ describe("Current Phase & Summary Deep Personalization Test Suite", () => {
       expect(text).toContain("ಶ್ರೀದೇವಿ");
       expect(text).toContain("ಗುರು");
       expect(text).toContain("ಶನಿ");
-      expect(text).toContain("ಬಗ್ಗೋಣ");
+      expect(text).toContain("ಗೋಕರ್ಣ");
 
       const paragraphs = text.split("\n\n").filter(p => p.trim().length > 0);
       expect(paragraphs.length).toBe(3);
@@ -198,7 +198,7 @@ describe("Current Phase & Summary Deep Personalization Test Suite", () => {
       expect(prompts.summary).toContain("ವೆಂಕಟೇಶ್ ಭಟ್");
       expect(prompts.summary).toContain("Do NOT write academic descriptions of astrological houses");
       expect(prompts.summary).toContain("ONE single most important life focus for the coming year");
-      expect(prompts.summary).toContain("Baggona Kshetra");
+      expect(prompts.summary).toContain("Gokarna");
 
       // timeline prompt checks
       expect(prompts.timeline).toContain("ವೆಂಕಟೇಶ್ ಭಟ್");
@@ -223,7 +223,7 @@ describe("Current Phase & Summary Deep Personalization Test Suite", () => {
       expect(text).toContain("ಬುಧ");
       expect(text).toContain("ಶುಕ್ರ");
       expect(text).toMatch(/ಆರೋಗ್ಯ|ಮನಸ್ಸಿನ ಶಾಂತಿ|ಮೊಮ್ಮಕ್ಕಳ|ಅಧ್ಯಾತ್ಮಿಕ/);
-      expect(text).toContain("ಬಗ್ಗೋಣ");
+      expect(text).toContain("ಗೋಕರ್ಣ");
 
       const paragraphs = text.split("\n\n").filter(p => p.trim().length > 0);
       expect(paragraphs.length).toBe(4);

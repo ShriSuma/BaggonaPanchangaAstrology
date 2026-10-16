@@ -309,7 +309,7 @@ describe("Bhavishya V1 Validation & Anti-Truncation Suite", () => {
     const summaryKn = buildDynamicSummaryFallback(parsedKundaliKn);
     expect(summaryKn).toBeDefined();
     expect(summaryKn.length).toBeGreaterThan(250);
-    expect(summaryKn).toContain("ಬಗ್ಗೋಣ");
+    expect(summaryKn).toContain("ಗೋಕರ್ಣ");
 
     // Test Hindi fallback
     const parsedKundaliHi = analyzeKundali({
@@ -319,7 +319,7 @@ describe("Bhavishya V1 Validation & Anti-Truncation Suite", () => {
     const summaryHi = buildDynamicSummaryFallback(parsedKundaliHi);
     expect(summaryHi).toBeDefined();
     expect(summaryHi.length).toBeGreaterThan(250);
-    expect(summaryHi).toContain("बग्गोण");
+    expect(summaryHi).toContain("गोकर्ण");
 
     // Test Telugu fallback
     const parsedKundaliTe = analyzeKundali({
@@ -329,7 +329,7 @@ describe("Bhavishya V1 Validation & Anti-Truncation Suite", () => {
     const summaryTe = buildDynamicSummaryFallback(parsedKundaliTe);
     expect(summaryTe).toBeDefined();
     expect(summaryTe.length).toBeGreaterThan(250);
-    expect(summaryTe).toContain("బగ్గోణ");
+    expect(summaryTe).toContain("గోకర్ణ");
 
     // Test Tamil fallback
     const parsedKundaliTa = analyzeKundali({
@@ -339,7 +339,7 @@ describe("Bhavishya V1 Validation & Anti-Truncation Suite", () => {
     const summaryTa = buildDynamicSummaryFallback(parsedKundaliTa);
     expect(summaryTa).toBeDefined();
     expect(summaryTa.length).toBeGreaterThan(250);
-    expect(summaryTa).toContain("பக்கோண");
+    expect(summaryTa).toContain("கோகர்ண");
 
     // Test English fallback
     const parsedKundaliEn = analyzeKundali({
@@ -349,7 +349,7 @@ describe("Bhavishya V1 Validation & Anti-Truncation Suite", () => {
     const summaryEn = buildDynamicSummaryFallback(parsedKundaliEn);
     expect(summaryEn).toBeDefined();
     expect(summaryEn.length).toBeGreaterThan(250);
-    expect(summaryEn).toContain("Baggona");
+    expect(summaryEn).toContain("Gokarna");
 
     const timeline = buildDynamicTimelineFallback(parsedKundaliKn);
     expect(timeline.length).toBeGreaterThanOrEqual(6);
