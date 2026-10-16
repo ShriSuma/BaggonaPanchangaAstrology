@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { usePredictionEngine } from "./usePredictionEngine";
@@ -614,11 +614,42 @@ export default function BhavishyaView() {
   const royalA4PdfRef = useRef<HTMLDivElement>(null);
   const [aiFallbackNotification, setAiFallbackNotification] = useState<{ active: boolean; sections: string[]; message: string } | null>(null);
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
+  const [liveMaritalStatus, setLiveMaritalStatus] = useState<"married" | "unmarried" | "general">("general");
+  const [liveChildrenStatus, setLiveChildrenStatus] = useState<"has_children" | "no_children" | "general">("general");
+  const [activeLivePreviewTab, setActiveLivePreviewTab] = useState<"marriage" | "children">("marriage");
   const [pdfLanguage, setPdfLanguage] = useState(language);
   const [premiumDataForPdf, setPremiumDataForPdf] = useState<PremiumData | null>(null);
   const [premiumPredictions, setPremiumPredictions] = useState<TranslatedPrediction[] | null>(null);
   const geminiApiKey = useAppStore((state) => state.geminiApiKey);
   const ayanamsaModel = useAppStore((state) => state.ayanamsaModel);
+
+  // Live Dynamic Narrations updating instantly on option selection
+  const liveMarriageNarration = useMemo(() => {
+    if (!session) return "";
+    const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], pdfLanguage) : "";
+    const moonStr = pick(RASHI_L5[session.result.moonSign.index], pdfLanguage);
+    const lagnaIdx = session.result.lagnaRashi?.index ?? 0;
+    const age = (session as any).ageYears ?? 30;
+    const currentBhuktiData = findBhuktiAtAge(session.result, age);
+    const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
+    const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+    const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], pdfLanguage) : "Dasha";
+    const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], pdfLanguage) : "Bhukti";
+    const userGender = (((session.input as any)?.gender || "Male") as "Male" | "Female");
+    return buildPersonalizedMarriageText(pdfLanguage, lagnaStr, moonStr, liveMaritalStatus, lagnaIdx, dashaName, bhuktiName, userGender);
+  }, [session, pdfLanguage, liveMaritalStatus]);
+
+  const liveChildrenNarration = useMemo(() => {
+    if (!session) return "";
+    const lagnaIdx = session.result.lagnaRashi?.index ?? 0;
+    const age = (session as any).ageYears ?? 30;
+    const currentBhuktiData = findBhuktiAtAge(session.result, age);
+    const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
+    const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+    const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], pdfLanguage) : "Dasha";
+    const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], pdfLanguage) : "Bhukti";
+    return buildPersonalizedChildrenText(pdfLanguage, liveChildrenStatus, lagnaIdx, dashaName, bhuktiName);
+  }, [session, pdfLanguage, liveChildrenStatus]);
 
   // Follow the app language until the reader picks a PDF language of their own,
   // then leave their choice alone.
@@ -3353,27 +3384,27 @@ Return ONLY this JSON (no extra text before or after):
             ))}
           </div>
 
-          {/* Dedicated Executive Feature Card: 100% Dynamic Premium PDF V1 Engine (Separated from standard PDF buttons) */}
-          <div className="w-full bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-amber-400/90 rounded-2xl p-4 sm:p-5 shadow-xl relative overflow-hidden mb-4 ring-2 ring-amber-400/20">
-            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+          {/* Dedicated Executive Feature Card: 100% Dynamic Premium PDF V1 Engine with Live Personalization & Instant Narration */}
+          <div className="w-full bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-amber-400/90 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden mb-6 ring-2 ring-amber-400/20 text-amber-50 space-y-5">
+            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="space-y-1.5 text-center md:text-left">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/40 px-3 py-0.5 rounded-full text-[10px] font-extrabold text-amber-300 uppercase tracking-widest">
+              <div className="space-y-1 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/50 px-3 py-1 rounded-full text-[10px] font-extrabold text-amber-300 uppercase tracking-widest shadow-sm">
                   <span>✨ ಅಧಿಕೃತ V1 ಪ್ರಕಾಶನ • 100% Dynamic Engine</span>
                 </div>
-                <h4 className="text-base sm:text-lg font-black text-amber-100 font-serif tracking-wide">
+                <h4 className="text-lg sm:text-xl font-black text-amber-100 font-serif tracking-wide">
                   {pdfLanguage === "kn"
                     ? "ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವಿಸ್ತೃತ ಜೀವಮಾನ ಭವಿಷ್ಯವಾಣಿ (V1 Engine)"
                     : pdfLanguage === "hi"
                     ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
                     : "Comprehensive 10-Chapter Astrological Life Forecast (V1 Engine)"}
                 </h4>
-                <p className="text-xs text-amber-200/80 font-sans max-w-2xl leading-relaxed">
+                <p className="text-xs text-amber-200/90 font-sans max-w-2xl leading-relaxed">
                   {pdfLanguage === "kn"
-                    ? "ನಿಖರ ಜನ್ಮ ಕುಂಡಲಿ, ಸಪ್ತಮ/ಪಂಚಮ ಭಾವ, ನವಾಂಶ, ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ನೈಜ ಸಮಯದ ಗ್ರಹ ಗೋಚಾರದ ಆಧಾರದಲ್ಲಿ ರಚಿಸಲಾಗುವ ಪರಿಪೂರ್ಣ ಭವಿಷ್ಯ ವರದಿ. ಕನಿಷ್ಠ ೨-೩ ವಿಸ್ತೃತ ಪರಿಚ್ಛೇದಗಳೊಂದಿಗೆ ೧೦೦% ಗಣಿತಾಧಾರಿತ ನಿರೂಪಣೆ."
+                    ? "ನಿಖರ ಜನ್ಮ ಕುಂಡಲಿ, ಸಪ್ತಮ/ಪಂಚಮ ಭಾವ, ನವಾಂಶ, ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ನೈಜ ಸಮಯದ ಗ್ರಹ ಗೋಚಾರದ ಆಧಾರದಲ್ಲಿ ರಚಿಸಲಾಗುವ ಪರಿಪೂರ್ಣ ಭವಿಷ್ಯ ವರದಿ. ಕನಿಷ್ಠ ೩ ವಿಸ್ತೃತ ಪರಿಚ್ಛೇದಗಳು (ಪ್ರತಿಯೊಂದೂ ೫-೬ ಸಾಲುಗಳು) ಪ್ರತಿಯೊಂದು ಅಧ್ಯಾಯಕ್ಕೂ."
                     : pdfLanguage === "hi"
-                    ? "सटीक जन्म कुंडली, सप्तम/पंचम भाव, नवांश, दशा-भुक्ति एवं लाइव गोचर पर आधारित संपूर्ण भविष्यफल रिपोर्ट। प्रत्येक अध्याय में विस्तृत २-३ पैराग्राफ।"
-                    : "100% mathematically calculated from your exact birth chart, 7th/5th house lords, Navamsha, Vimshottari Dasha, and live transits. Every chapter features minimum 2-3 substantial paragraphs with strict 5-6 lines."}
+                    ? "सटीक जन्म कुंडली, सप्तम/पंचम भाव, नवांश, दशा-भुक्ति एवं लाइव गोचर पर आधारित संपूर्ण भविष्यफल रिपोर्ट। प्रत्येक अध्याय में न्यूनतम ३ विस्तृत पैराग्राफ (प्रत्येक ५-६ पंक्तियां)।"
+                    : "100% mathematically calculated from your exact birth chart, 7th/5th house lords, Navamsha, Vimshottari Dasha, and live transits. Every chapter features strictly minimum 3 substantial paragraphs with 5-6 lines each."}
                 </p>
               </div>
 
@@ -3381,11 +3412,10 @@ Return ONLY this JSON (no extra text before or after):
                 <button
                   type="button"
                   onClick={() => {
-                    setModalTriggerSource("v1");
-                    setIsPersonalizationModalOpen(true);
+                    generatePremiumPDFV1({ maritalStatus: liveMaritalStatus, childrenStatus: liveChildrenStatus });
                   }}
                   disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
-                  className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:via-yellow-400 hover:to-orange-400 text-slate-950 px-5 py-3.5 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-yellow-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                  className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:via-yellow-400 hover:to-orange-400 text-slate-950 px-6 py-4 rounded-xl font-black text-sm transition-all duration-300 shadow-2xl border-2 border-yellow-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
                     isGeneratingPremiumPdfV1 ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -3400,11 +3430,11 @@ Return ONLY this JSON (no extra text before or after):
                     setIsPersonalizationModalOpen(true);
                   }}
                   disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
-                  className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-500 hover:from-red-600 hover:via-amber-500 hover:to-yellow-400 text-white font-serif px-5 py-3.5 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-amber-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-500 hover:from-red-600 hover:via-amber-500 hover:to-yellow-400 text-white font-serif px-5 py-4 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-amber-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
                     isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
-                  <span className="text-xl">👑</span>
+                  <span className="text-lg">👑</span>
                   <span>
                     {isGeneratingRoyalA4Pdf
                       ? (pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "hi" ? "राजमुद्रण तैयार हो रहा है..." : "Crafting Royal Print...")
@@ -3423,7 +3453,7 @@ Return ONLY this JSON (no extra text before or after):
                     }
                   }}
                   disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
-                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 via-orange-600 to-amber-800 hover:from-amber-600 hover:to-orange-500 text-white font-serif px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg border border-amber-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-800 via-orange-700 to-amber-900 hover:from-amber-700 hover:to-orange-600 text-white font-serif px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg border border-amber-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
                     isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   title="Interactive Page-by-Page Preview and Direct Print"
@@ -3433,6 +3463,156 @@ Return ONLY this JSON (no extra text before or after):
                     {pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಮುನ್ನೋಟ" : pdfLanguage === "hi" ? "राजमुद्रण पूर्वावलोकन" : "Preview & Print"}
                   </span>
                 </button>
+              </div>
+            </div>
+
+            {/* Interactive Live Personalization Bar & Real-time Dynamic Narration */}
+            <div className="relative z-10 bg-black/40 border border-amber-500/40 rounded-2xl p-4 md:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/30 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400 text-base">⚙️</span>
+                  <span className="text-xs sm:text-sm font-extrabold text-amber-200 tracking-wide uppercase">
+                    {pdfLanguage === "kn"
+                      ? "ಜಾತಕ ಗ್ರಾಹಕೀಕರಣ (ವೈವಾಹಿಕ & ಸಂತಾನ ಸ್ಥಿತಿ ಆಯ್ಕೆ)"
+                      : pdfLanguage === "hi"
+                      ? "कुंडली कस्टमाइज़ेशन (वैवाहिक एवं संतान स्थिति चयन)"
+                      : "Horoscope Personalization (Marital & Children Status)"}
+                  </span>
+                </div>
+                <div className="text-[11px] text-amber-400 font-medium italic">
+                  ⚡ {pdfLanguage === "kn" ? "ಆಯ್ಕೆ ಕ್ಲಿಕ್ ಮಾಡಿದ ತಕ್ಷಣ ಕೆಳಗೆ ಲೈವ್ ನಿರೂಪಣೆ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ" : "Narration dynamically updates live below on click"}
+                </div>
+              </div>
+
+              {/* Two Selector Rows: Marital Status & Children Status */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 1. Marital Status */}
+                <div className="space-y-1.5 bg-amber-950/40 p-3 rounded-xl border border-amber-500/20">
+                  <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                    {pdfLanguage === "kn" ? "೧. ವೈವಾಹಿಕ ಸ್ಥಿತಿ (Marital Status):" : "1. Marital Status:"}
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "married", label: { kn: "💍 ವಿವಾಹಿತರು", en: "💍 Married", hi: "💍 विवाहित", te: "💍 వివాహితులు", ta: "💍 திருமணமானவர்" } },
+                      { id: "unmarried", label: { kn: "🌸 ಅವಿವಾಹಿತರು", en: "🌸 Unmarried", hi: "🌸 अविवाहित", te: "🌸 అవివాహితులు", ta: "🌸 திருமணமாகாதவர்" } },
+                      { id: "general", label: { kn: "❓ ಸಾಮಾನ್ಯ", en: "❓ Samanya", hi: "❓ सामान्य", te: "❓ సాధారణం", ta: "❓ பொதுவானது" } }
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setLiveMaritalStatus(opt.id as any);
+                          setActiveLivePreviewTab("marriage");
+                        }}
+                        className={`rounded-lg py-2 px-1 text-xs font-bold transition text-center cursor-pointer ${
+                          liveMaritalStatus === opt.id
+                            ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md ring-2 ring-yellow-300 font-black scale-[1.02]"
+                            : "bg-white/10 hover:bg-white/20 text-amber-100 border border-amber-500/30"
+                        }`}
+                      >
+                        {pick(opt.label, pdfLanguage)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Children Status */}
+                <div className="space-y-1.5 bg-amber-950/40 p-3 rounded-xl border border-amber-500/20">
+                  <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                    {pdfLanguage === "kn" ? "೨. ಸಂತಾನ ಸ್ಥಿತಿ (Children Status):" : "2. Children Status:"}
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "has_children", label: { kn: "👶 ಸಂತಾನವಿದೆ", en: "👶 Has Children", hi: "👶 संतान है", te: "👶 పిల్లలు ఉన్నారు", ta: "👶 குழந்தைகள் உள்ளனர்" } },
+                      { id: "no_children", label: { kn: "🙏 ಸಂತಾನವಿಲ್ಲ", en: "🙏 Not Has Children", hi: "🙏 संतान नहीं", te: "🙏 సంతానం లేదు", ta: "🙏 குழந்தைகள் இல்லை" } },
+                      { id: "general", label: { kn: "❓ ಸಾಮಾನ್ಯ", en: "❓ Samanya", hi: "❓ सामान्य", te: "❓ సాధారణం", ta: "❓ பொதுவானது" } }
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setLiveChildrenStatus(opt.id as any);
+                          setActiveLivePreviewTab("children");
+                        }}
+                        className={`rounded-lg py-2 px-1 text-xs font-bold transition text-center cursor-pointer ${
+                          liveChildrenStatus === opt.id
+                            ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md ring-2 ring-yellow-300 font-black scale-[1.02]"
+                            : "bg-white/10 hover:bg-white/20 text-amber-100 border border-amber-500/30"
+                        }`}
+                      >
+                        {pick(opt.label, pdfLanguage)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Live Narration Dynamic Preview Container */}
+              <div className="bg-black/50 border border-amber-500/50 rounded-xl p-3.5 md:p-4.5 space-y-3">
+                <div className="flex items-center justify-between border-b border-amber-500/30 pb-2 flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-xs font-extrabold text-amber-300 uppercase tracking-wide">
+                      {pdfLanguage === "kn"
+                        ? "ಲೈವ್ ನಿರೂಪಣೆ (Live Chapter Narration Preview)"
+                        : "Live Personalized Chapter Narration Preview"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveLivePreviewTab("marriage")}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        activeLivePreviewTab === "marriage"
+                          ? "bg-amber-400 text-slate-950 shadow-md font-black"
+                          : "bg-white/10 text-amber-200 hover:bg-white/20"
+                      }`}
+                    >
+                      {pdfLanguage === "kn" ? "💍 ವಿವಾಹ ಅಧ್ಯಾಯ" : "💍 Marriage"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveLivePreviewTab("children")}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        activeLivePreviewTab === "children"
+                          ? "bg-amber-400 text-slate-950 shadow-md font-black"
+                          : "bg-white/10 text-amber-200 hover:bg-white/20"
+                      }`}
+                    >
+                      {pdfLanguage === "kn" ? "👶 ಸಂತಾನ ಅಧ್ಯಾಯ" : "👶 Children"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* The 3 Paragraphs (5-6 lines each) */}
+                <div className="space-y-2.5 max-h-60 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-amber-600 font-sans text-xs sm:text-[13px] leading-relaxed">
+                  {(activeLivePreviewTab === "marriage" ? liveMarriageNarration : liveChildrenNarration)
+                    .split("\n\n")
+                    .map((para: string, idx: number) => (
+                      <div key={idx} className="bg-stone-900/80 p-3 rounded-xl border border-amber-500/30 shadow-sm text-amber-100">
+                        <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block mb-1">
+                          {pdfLanguage === "kn" ? `✦ ಪರಿಚ್ಛೇದ ${idx + 1} (೫-೬ ಸಾಲುಗಳು):` : `✦ Paragraph ${idx + 1} (5-6 Lines):`}
+                        </span>
+                        <p className="text-amber-100/90 leading-relaxed whitespace-pre-line">{para}</p>
+                      </div>
+                    ))}
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-amber-300/80 pt-1 border-t border-amber-500/20">
+                  <span className="text-emerald-300 font-semibold">
+                    ✓ {pdfLanguage === "kn" ? "ಖಚಿತ ಕನಿಷ್ಠ ೩ ಪರಿಚ್ಛೇದಗಳು (೫-೬ ಸಾಲುಗಳು)" : "Guaranteed Minimum 3 Paragraphs (5-6 Lines Each)"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalTriggerSource("v1");
+                      setIsPersonalizationModalOpen(true);
+                    }}
+                    className="text-amber-300 underline hover:text-amber-100 font-bold cursor-pointer"
+                  >
+                    {pdfLanguage === "kn" ? "⚙️ ಪಾಪ್-ಅಪ್ ಸಂವಾದದಲ್ಲಿ ಕಸ್ಟಮೈಸ್ ಮಾಡಿ" : "⚙️ Open In Modal"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -4027,9 +4207,13 @@ Return ONLY this JSON (no extra text before or after):
       <PdfPersonalizationModal
         isOpen={isPersonalizationModalOpen}
         lang={pdfLanguage}
+        initialMaritalStatus={liveMaritalStatus}
+        initialChildrenStatus={liveChildrenStatus}
         onClose={() => setIsPersonalizationModalOpen(false)}
         onConfirm={(personalization) => {
           setIsPersonalizationModalOpen(false);
+          setLiveMaritalStatus(personalization.maritalStatus);
+          setLiveChildrenStatus(personalization.childrenStatus);
           if (modalTriggerSource === "v1") {
             generatePremiumPDFV1(personalization);
           } else if (modalTriggerSource === "royal-a4") {

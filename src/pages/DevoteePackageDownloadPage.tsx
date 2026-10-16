@@ -16,7 +16,13 @@ import {
   generateCompactGoogleCalendarUrlForQR,
   calculateDeterministicRhythmDay
 } from "../features/seva/icsCalendarGenerator";
-import { RASHI_L5, NAKSHATRA_L5 } from "../features/premiumPdf/premiumPdfLocale";
+import {
+  RASHI_L5,
+  NAKSHATRA_L5,
+  GRAHA_L5,
+  pick,
+  type GrahaKey
+} from "../features/premiumPdf/premiumPdfLocale";
 import { PACKAGE_LOCALES, type PackageLang, type PackageLocaleDict } from "../components/packageDownload/packageDownloadLocale";
 import { JananaKundaliPrintTemplate } from "../components/packageDownload/JananaKundaliPrintTemplate";
 import { CurrentLifeStatusPdfTemplate } from "../components/packageDownload/CurrentLifeStatusPdfTemplate";
@@ -25,6 +31,14 @@ import { DivyaBhavishyaQnaPdfTemplate, type PackageQuestionItem } from "../compo
 import { generateAnswerForQuestion } from "../components/packageDownload/packageAnswerEngine";
 import { prepareBhavishyaV1Data, captureBhavishyaV1Pdf } from "../features/premiumPdf/bhavishyaV1Service";
 import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
+import { ageDecimalYearsAt } from "../core/birthTime";
+import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
+import {
+  buildPersonalizedMarriageText,
+  buildPersonalizedChildrenText
+} from "../components/RamanBhavishya/BhavishyaView";
+
+const toGrahaKey = (planet: any): GrahaKey => String(planet) as GrahaKey;
 
 export default function DevoteePackageDownloadPage(): JSX.Element {
   const { t } = useTranslation();
@@ -53,14 +67,19 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
   const [gotra, setGotra] = useState<string>(activeSession?.input?.gothra || "Shiva / Kashyapa");
   const [latitude, setLatitude] = useState<number>(activeSession?.input?.latitude ?? 14.5479);
   const [longitude, setLongitude] = useState<number>(activeSession?.input?.longitude ?? 74.3187);
-  const [maritalStatus, setMaritalStatus] = useState<"married" | "unmarried">(() => {
-    return activeSession?.input?.maritalStatus === "unmarried" ? "unmarried" : "married";
+  const [maritalStatus, setMaritalStatus] = useState<"married" | "unmarried" | "general">(() => {
+    const ms = activeSession?.input?.maritalStatus;
+    if (ms === "married" || ms === "unmarried" || ms === "general") return ms;
+    return "married";
   });
-  const [childrenStatus, setChildrenStatus] = useState<"has_children" | "no_children" | "unspecified">(() => {
+  const [childrenStatus, setChildrenStatus] = useState<"has_children" | "no_children" | "general">(() => {
     const cs = (activeSession?.input as any)?.childrenStatus;
-    if (cs === "no_children" || cs === "has_children" || cs === "unspecified") return cs;
+    if (cs === "no_children" || cs === "has_children" || cs === "general" || cs === "unspecified") {
+      return cs === "unspecified" ? "general" : cs;
+    }
     return "has_children";
   });
+  const [activePreviewTab, setActivePreviewTab] = useState<"marriage" | "children">("marriage");
 
   // 3. Priest & Pooja Details State
   const [priestName, setPriestName] = useState<string>("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
@@ -185,6 +204,33 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
     });
   }, [kundliResult, devoteeName, birthDate, birthTime, latitude, longitude, gender]);
 
+  // Dynamic Real-Time Narrations updating immediately on option click (3 paragraphs, 5-6 lines each)
+  const liveMarriageNarration = useMemo(() => {
+    const lagnaIdx = kundliResult?.lagnaRashi?.index ?? 0;
+    const lagnaStr = kundliResult?.lagnaRashi ? pick(RASHI_L5[lagnaIdx], selectedLang) : "";
+    const moonIdx = kundliResult?.moonSign?.index ?? 0;
+    const moonStr = pick(RASHI_L5[moonIdx], selectedLang);
+    const age = ageDecimalYearsAt(birthDate || "1993-03-16", birthTime || "01:40", latitude, longitude, new Date());
+    const currentBhuktiData = findBhuktiAtAge(kundliResult, age);
+    const mahaLord = currentBhuktiData?.maha?.planet ? toGrahaKey(currentBhuktiData.maha.planet) : null;
+    const bhuktiLord = currentBhuktiData?.bhukti ? toGrahaKey(currentBhuktiData.bhukti) : null;
+    const dashaName = mahaLord && GRAHA_L5[mahaLord] ? pick(GRAHA_L5[mahaLord], selectedLang) : "Dasha";
+    const bhuktiName = bhuktiLord && GRAHA_L5[bhuktiLord] ? pick(GRAHA_L5[bhuktiLord], selectedLang) : "Bhukti";
+    const userGender = gender === "female" ? "Female" : "Male";
+    return buildPersonalizedMarriageText(selectedLang, lagnaStr, moonStr, maritalStatus, lagnaIdx, dashaName, bhuktiName, userGender);
+  }, [kundliResult, selectedLang, maritalStatus, birthDate, birthTime, latitude, longitude, gender]);
+
+  const liveChildrenNarration = useMemo(() => {
+    const lagnaIdx = kundliResult?.lagnaRashi?.index ?? 0;
+    const age = ageDecimalYearsAt(birthDate || "1993-03-16", birthTime || "01:40", latitude, longitude, new Date());
+    const currentBhuktiData = findBhuktiAtAge(kundliResult, age);
+    const mahaLord = currentBhuktiData?.maha?.planet ? toGrahaKey(currentBhuktiData.maha.planet) : null;
+    const bhuktiLord = currentBhuktiData?.bhukti ? toGrahaKey(currentBhuktiData.bhukti) : null;
+    const dashaName = mahaLord && GRAHA_L5[mahaLord] ? pick(GRAHA_L5[mahaLord], selectedLang) : "Dasha";
+    const bhuktiName = bhuktiLord && GRAHA_L5[bhuktiLord] ? pick(GRAHA_L5[bhuktiLord], selectedLang) : "Bhukti";
+    return buildPersonalizedChildrenText(selectedLang, childrenStatus, lagnaIdx, dashaName, bhuktiName);
+  }, [kundliResult, selectedLang, childrenStatus, birthDate, birthTime, latitude, longitude]);
+
   // Generate QR codes for 30, 90, and 120 Days
   useEffect(() => {
     let isCancelled = false;
@@ -278,11 +324,12 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
     if (typeof activeSession.input.latitude === "number") setLatitude(activeSession.input.latitude);
     if (typeof activeSession.input.longitude === "number") setLongitude(activeSession.input.longitude);
     if (activeSession.input.maritalStatus) {
-      setMaritalStatus(activeSession.input.maritalStatus === "unmarried" ? "unmarried" : "married");
+      const ms = activeSession.input.maritalStatus;
+      setMaritalStatus(ms === "unmarried" ? "unmarried" : ms === "general" ? "general" : "married");
     }
     const cs = (activeSession.input as any)?.childrenStatus;
-    if (cs === "no_children" || cs === "has_children" || cs === "unspecified") {
-      setChildrenStatus(cs);
+    if (cs === "no_children" || cs === "has_children" || cs === "general" || cs === "unspecified") {
+      setChildrenStatus(cs === "unspecified" ? "general" : cs);
     }
   };
 
@@ -803,7 +850,7 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                 {selectedLang === "kn"
-                  ? "ವಿವಾಹ ಸ್ಥಿತಿ (Marital Status)"
+                  ? "ವೈವಾಹಿಕ ಸ್ಥಿತಿ (Marital Status)"
                   : selectedLang === "hi"
                   ? "वैवाहिक स्थिति (Marital Status)"
                   : selectedLang === "te"
@@ -812,7 +859,7 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
                   ? "திருமண நிலை (Marital Status)"
                   : "Marital Status"}
               </label>
-              <div className="flex items-center gap-3 py-2">
+              <div className="flex flex-wrap items-center gap-3 py-1.5">
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="radio"
@@ -853,6 +900,26 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
                       : "🌸 Unmarried"}
                   </span>
                 </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="maritalStatus"
+                    value="general"
+                    checked={maritalStatus === "general"}
+                    onChange={() => setMaritalStatus("general")}
+                  />
+                  <span>
+                    {selectedLang === "kn"
+                      ? "❓ ಸಾಮಾನ್ಯ (Samanya / General)"
+                      : selectedLang === "hi"
+                      ? "❓ सामान्य (Samanya / General)"
+                      : selectedLang === "te"
+                      ? "❓ సాధారణం (Samanya / General)"
+                      : selectedLang === "ta"
+                      ? "❓ பொதுவானது (Samanya / General)"
+                      : "❓ Samanya / General"}
+                  </span>
+                </label>
               </div>
             </div>
 
@@ -880,7 +947,7 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
                   />
                   <span>
                     {selectedLang === "kn"
-                      ? "👶 ಮಕ್ಕಳು ಇದ್ದಾರೆ (Has Children)"
+                      ? "👶 ಸಂತಾನವಿದೆ / ಮಕ್ಕಳು ಇದ್ದಾರೆ (Has Children)"
                       : selectedLang === "hi"
                       ? "👶 संतान है (Has Children)"
                       : selectedLang === "te"
@@ -900,36 +967,108 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
                   />
                   <span>
                     {selectedLang === "kn"
-                      ? "🙏 ಮಕ್ಕಳ ನಿರೀಕ್ಷೆಯಲ್ಲಿದ್ದಾರೆ (Seeking Children)"
+                      ? "🙏 ಸಂತಾನವಿಲ್ಲ / ಮಕ್ಕಳ ನಿರೀಕ್ಷೆ (Not Has Children / Seeking Children)"
                       : selectedLang === "hi"
-                      ? "🙏 संतान प्राप्ति प्रयासरत (Seeking Children)"
+                      ? "🙏 संतान प्राप्ति प्रयासरत (Not Has Children / Seeking Children)"
                       : selectedLang === "te"
-                      ? "🙏 సంతాన నిరీక్షణ (Seeking Children)"
+                      ? "🙏 సంతాన నిరీక్షణ (Not Has Children / Seeking Children)"
                       : selectedLang === "ta"
-                      ? "🙏 குழந்தை பாக்கியம் எதிர்நோக்கும் (Seeking Children)"
-                      : "🙏 Seeking Children"}
+                      ? "🙏 குழந்தை பாக்கியம் எதிர்நோக்கும் (Not Has Children / Seeking Children)"
+                      : "🙏 Not Has Children / Seeking Children"}
                   </span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="radio"
                     name="childrenStatus"
-                    value="unspecified"
-                    checked={childrenStatus === "unspecified"}
-                    onChange={() => setChildrenStatus("unspecified")}
+                    value="general"
+                    checked={childrenStatus === "general"}
+                    onChange={() => setChildrenStatus("general")}
                   />
                   <span>
                     {selectedLang === "kn"
-                      ? "❓ ಸಾಮಾನ್ಯ (General)"
+                      ? "❓ ಸಾಮಾನ್ಯ (Samanya / General)"
                       : selectedLang === "hi"
-                      ? "❓ सामान्य (General)"
+                      ? "❓ सामान्य (Samanya / General)"
                       : selectedLang === "te"
-                      ? "❓ సాధారణం (General)"
+                      ? "❓ సాధారణం (Samanya / General)"
                       : selectedLang === "ta"
-                      ? "❓ பொதுவானது (General)"
-                      : "❓ General"}
+                      ? "❓ பொதுவானது (Samanya / General)"
+                      : "❓ Samanya / General"}
                   </span>
                 </label>
+              </div>
+            </div>
+
+            {/* Dynamic Live Narration Preview Box */}
+            <div className="col-span-full rounded-2xl bg-gradient-to-br from-amber-950/40 via-amber-900/30 to-amber-950/40 border border-amber-500/40 p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400 font-black text-sm">✨</span>
+                  <span className="font-bold text-xs uppercase tracking-wider text-amber-200">
+                    {selectedLang === "kn"
+                      ? "ನೇರ ನಿರೂಪಣೆ ಮುನ್ನೋಟ (Live Narration Dynamic Preview)"
+                      : selectedLang === "hi"
+                      ? "सजीव विवरण पूर्वावलोकन (Live Dynamic Preview)"
+                      : selectedLang === "te"
+                      ? "ప్రత్యక్ష కథనం ప్రివ్యూ (Live Dynamic Preview)"
+                      : selectedLang === "ta"
+                      ? "நேரடி விவரிப்பு முன்னோட்டம் (Live Dynamic Preview)"
+                      : "Live Dynamic Narration Preview"}
+                  </span>
+                  <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
+                    {selectedLang === "kn" ? "ಆಯ್ಕೆಗೆ ತಕ್ಕಂತೆ ತಕ್ಷಣ ಬದಲಾಗುತ್ತದೆ" : "Instant On Click"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActivePreviewTab("marriage")}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      activePreviewTab === "marriage"
+                        ? "bg-amber-400 text-slate-950 shadow-md font-black"
+                        : "bg-white/10 text-amber-200 hover:bg-white/20"
+                    }`}
+                  >
+                    {selectedLang === "kn" ? "💍 ವಿವಾಹ ಅಧ್ಯಾಯ" : "💍 Marriage"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActivePreviewTab("children")}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      activePreviewTab === "children"
+                        ? "bg-amber-400 text-slate-950 shadow-md font-black"
+                        : "bg-white/10 text-amber-200 hover:bg-white/20"
+                    }`}
+                  >
+                    {selectedLang === "kn" ? "👶 ಸಂತಾನ ಅಧ್ಯಾಯ" : "👶 Children"}
+                  </button>
+                </div>
+              </div>
+
+              {/* The 3 Paragraphs (5-6 lines each) */}
+              <div className="space-y-2.5 max-h-56 overflow-y-auto pr-2 font-sans text-xs sm:text-[13px] leading-relaxed">
+                {(activePreviewTab === "marriage" ? liveMarriageNarration : liveChildrenNarration)
+                  .split("\n\n")
+                  .map((para: string, idx: number) => (
+                    <div key={idx} className="bg-stone-900/80 p-3 rounded-xl border border-amber-500/30 shadow-sm text-amber-100">
+                      <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block mb-1">
+                        {selectedLang === "kn" ? `✦ ಪರಿಚ್ಛೇದ ${idx + 1} (೫-೬ ಸಾಲುಗಳು):` : `✦ Paragraph ${idx + 1} (5-6 Lines):`}
+                      </span>
+                      <p className="text-amber-100/90 leading-relaxed whitespace-pre-line">{para}</p>
+                    </div>
+                  ))}
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-amber-300/80 pt-1 border-t border-amber-500/20">
+                <span className="text-emerald-300 font-semibold">
+                  ✓ {selectedLang === "kn" ? "ಖಚಿತ ಕನಿಷ್ಠ ೩ ಪರಿಚ್ಛೇದಗಳು (೫-೬ ಸಾಲುಗಳು)" : "Guaranteed Minimum 3 Paragraphs (5-6 Lines Each)"}
+                </span>
+                <span className="text-amber-200/70 text-[10px]">
+                  {activePreviewTab === "marriage"
+                    ? `${maritalStatus === "married" ? "💍 Married" : maritalStatus === "unmarried" ? "🌸 Unmarried" : "❓ Samanya"} Mode`
+                    : `${childrenStatus === "has_children" ? "👶 Has Children" : childrenStatus === "no_children" ? "🙏 Not Has Children" : "❓ Samanya"} Mode`}
+                </span>
               </div>
             </div>
 

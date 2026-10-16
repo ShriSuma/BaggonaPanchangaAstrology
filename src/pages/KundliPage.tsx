@@ -16,6 +16,15 @@ import { translateText } from "../utils/translator";
 import JSZip from "jszip";
 import { prepareBhavishyaV1Data, captureBhavishyaV1Pdf, type BhavishyaV1Payload } from "../features/premiumPdf/bhavishyaV1Service";
 import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
+import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
+import { ageDecimalYearsAt } from "../core/birthTime";
+import { GRAHA_L5, RASHI_L5, pick, type GrahaKey } from "../features/premiumPdf/premiumPdfLocale";
+import {
+  buildPersonalizedMarriageText,
+  buildPersonalizedChildrenText
+} from "../components/RamanBhavishya/BhavishyaView";
+
+const toGrahaKey = (planet: any): GrahaKey => String(planet) as GrahaKey;
 import type { KundliViewerSession } from "../stores/kundliViewerStore";
 import { patrikaMetaForNakshatraIndex as import_patrikaMetaForNakshatraIndex } from "../core/nakshatraPatrikaMeta";
 import { analytics } from "../core/analytics";
@@ -216,6 +225,39 @@ export default function KundliPage(): JSX.Element {
     () => (homePlaceName.trim() ? `${homePlaceName.trim()} · ${locationCore}` : locationCore),
     [homePlaceName, locationCore]
   );
+
+  const [activePreviewTab, setActivePreviewTab] = useState<"marriage" | "children">("marriage");
+
+  // Dynamic Real-Time Narrations updating immediately on option selection (3 paragraphs, 5-6 lines each)
+  const liveMarriageNarration = useMemo(() => {
+    const lagnaIdx = result?.lagnaRashi?.index ?? 0;
+    const lagnaStr = result?.lagnaRashi ? pick(RASHI_L5[lagnaIdx], pdfLanguage) : pick(RASHI_L5[0], pdfLanguage);
+    const moonIdx = result?.moonSign?.index ?? 3;
+    const moonStr = pick(RASHI_L5[moonIdx], pdfLanguage);
+    const birthDateYmd = birthDatePicker ? format(birthDatePicker, "yyyy-MM-dd") : (form.birthDate || "1993-03-16");
+    const age = ageDecimalYearsAt(birthDateYmd, birthTimeHm || form.birthTime || "01:40", form.latitude || 14.5479, form.longitude || 74.3187, new Date());
+    const currentBhuktiData = result ? findBhuktiAtAge(result, age) : null;
+    const mahaLord = currentBhuktiData?.maha?.planet ? toGrahaKey(currentBhuktiData.maha.planet) : null;
+    const bhuktiLord = currentBhuktiData?.bhukti ? toGrahaKey(currentBhuktiData.bhukti) : null;
+    const dashaName = mahaLord && GRAHA_L5[mahaLord] ? pick(GRAHA_L5[mahaLord], pdfLanguage) : "Dasha";
+    const bhuktiName = bhuktiLord && GRAHA_L5[bhuktiLord] ? pick(GRAHA_L5[bhuktiLord], pdfLanguage) : "Bhukti";
+    const userGender = form.gender === "Female" ? "Female" : "Male";
+    const status = (form.maritalStatus === "married" || form.maritalStatus === "unmarried" || form.maritalStatus === "general") ? form.maritalStatus : "general";
+    return buildPersonalizedMarriageText(pdfLanguage, lagnaStr, moonStr, status as any, lagnaIdx, dashaName, bhuktiName, userGender);
+  }, [result, pdfLanguage, form.maritalStatus, birthDatePicker, form.birthDate, birthTimeHm, form.birthTime, form.latitude, form.longitude, form.gender]);
+
+  const liveChildrenNarration = useMemo(() => {
+    const lagnaIdx = result?.lagnaRashi?.index ?? 0;
+    const birthDateYmd = birthDatePicker ? format(birthDatePicker, "yyyy-MM-dd") : (form.birthDate || "1993-03-16");
+    const age = ageDecimalYearsAt(birthDateYmd, birthTimeHm || form.birthTime || "01:40", form.latitude || 14.5479, form.longitude || 74.3187, new Date());
+    const currentBhuktiData = result ? findBhuktiAtAge(result, age) : null;
+    const mahaLord = currentBhuktiData?.maha?.planet ? toGrahaKey(currentBhuktiData.maha.planet) : null;
+    const bhuktiLord = currentBhuktiData?.bhukti ? toGrahaKey(currentBhuktiData.bhukti) : null;
+    const dashaName = mahaLord && GRAHA_L5[mahaLord] ? pick(GRAHA_L5[mahaLord], pdfLanguage) : "Dasha";
+    const bhuktiName = bhuktiLord && GRAHA_L5[bhuktiLord] ? pick(GRAHA_L5[bhuktiLord], pdfLanguage) : "Bhukti";
+    const status = (form.childrenStatus === "has_children" || form.childrenStatus === "no_children" || form.childrenStatus === "general") ? form.childrenStatus : "general";
+    return buildPersonalizedChildrenText(pdfLanguage, status as any, lagnaIdx, dashaName, bhuktiName);
+  }, [result, pdfLanguage, form.childrenStatus, birthDatePicker, form.birthDate, birthTimeHm, form.birthTime, form.latitude, form.longitude]);
 
   // Synchronize dynamic parameters injected by AI Pet or deep link
   useEffect(() => {
@@ -1595,17 +1637,6 @@ export default function KundliPage(): JSX.Element {
                 <input
                   type="radio"
                   name="maritalStatus"
-                  value="unspecified"
-                  checked={!form.maritalStatus || form.maritalStatus === "unspecified"}
-                  onChange={() => setForm((f) => ({ ...f, maritalStatus: undefined }))}
-                  className="text-amber-600 focus:ring-amber-500 w-4 h-4"
-                />
-                <span className="text-sm text-slate-700 font-medium">❓ {t("maritalStatus.unspecified", "ತಿಳಿದಿಲ್ಲ / ನೀಡಲಾಗಿಲ್ಲ (Not Specified)")}</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="maritalStatus"
                   value="married"
                   checked={form.maritalStatus === "married"}
                   onChange={() => setForm((f) => ({ ...f, maritalStatus: "married" }))}
@@ -1628,6 +1659,17 @@ export default function KundliPage(): JSX.Element {
                 <input
                   type="radio"
                   name="maritalStatus"
+                  value="general"
+                  checked={!form.maritalStatus || form.maritalStatus === "unspecified" || form.maritalStatus === "general"}
+                  onChange={() => setForm((f) => ({ ...f, maritalStatus: "general" }))}
+                  className="text-amber-600 focus:ring-amber-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">❓ {t("maritalStatus.general", "ಸಾಮಾನ್ಯ (Samanya / General)")}</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="maritalStatus"
                   value="separated"
                   checked={form.maritalStatus === "separated"}
                   onChange={() => setForm((f) => ({ ...f, maritalStatus: "separated" }))}
@@ -1642,23 +1684,12 @@ export default function KundliPage(): JSX.Element {
                 <input
                   type="radio"
                   name="childrenStatus"
-                  value="unspecified"
-                  checked={!form.childrenStatus || form.childrenStatus === "unspecified"}
-                  onChange={() => setForm((f) => ({ ...f, childrenStatus: undefined }))}
-                  className="text-emerald-600 focus:ring-emerald-500 w-4 h-4"
-                />
-                <span className="text-sm text-slate-700 font-medium">❓ {t("childrenStatus.unspecified", "ತಿಳಿದಿಲ್ಲ / ನೀಡಲಾಗಿಲ್ಲ (Not Specified)")}</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="childrenStatus"
                   value="has_children"
                   checked={form.childrenStatus === "has_children"}
                   onChange={() => setForm((f) => ({ ...f, childrenStatus: "has_children" }))}
                   className="text-emerald-600 focus:ring-emerald-500 w-4 h-4"
                 />
-                <span className="text-sm text-slate-700 font-medium">👶 {t("childrenStatus.has_children", "ಮಕ್ಕಳು ಇದ್ದಾರೆ (Has Children)")}</span>
+                <span className="text-sm text-slate-700 font-medium">👶 {t("childrenStatus.has_children", "ಸಂತಾನವಿದೆ / ಮಕ್ಕಳು ಇದ್ದಾರೆ (Has Children)")}</span>
               </label>
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
@@ -1669,8 +1700,91 @@ export default function KundliPage(): JSX.Element {
                   onChange={() => setForm((f) => ({ ...f, childrenStatus: "no_children" }))}
                   className="text-emerald-600 focus:ring-emerald-500 w-4 h-4"
                 />
-                <span className="text-sm text-slate-700 font-medium">🙏 {t("childrenStatus.no_children", "ಮಕ್ಕಳ ನಿರೀಕ್ಷೆಯಲ್ಲಿದ್ದಾರೆ (Seeking Children / No Children)")}</span>
+                <span className="text-sm text-slate-700 font-medium">🙏 {t("childrenStatus.no_children", "ಸಂತಾನವಿಲ್ಲ / ಮಕ್ಕಳ ನಿರೀಕ್ಷೆ (Not Has Children / Seeking Children)")}</span>
               </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="childrenStatus"
+                  value="general"
+                  checked={!form.childrenStatus || form.childrenStatus === "unspecified" || form.childrenStatus === "general"}
+                  onChange={() => setForm((f) => ({ ...f, childrenStatus: "general" }))}
+                  className="text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                />
+                <span className="text-sm text-slate-700 font-medium">❓ {t("childrenStatus.general", "ಸಾಮಾನ್ಯ (Samanya / General)")}</span>
+              </label>
+            </div>
+
+            {/* Dynamic Live Narration Preview Box for Kundli Page */}
+            <div className="md:col-span-2 rounded-2xl bg-gradient-to-br from-amber-950/40 via-amber-900/30 to-amber-950/40 border border-amber-500/40 p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400 font-black text-sm">✨</span>
+                  <span className="font-bold text-xs uppercase tracking-wider text-amber-200">
+                    {pdfLanguage === "kn"
+                      ? "ನೇರ ನಿರೂಪಣೆ ಮುನ್ನೋಟ (Live Narration Dynamic Preview)"
+                      : pdfLanguage === "hi"
+                      ? "सजीव विवरण पूर्वावलोकन (Live Dynamic Preview)"
+                      : pdfLanguage === "te"
+                      ? "ప్రత్యక్ష కథనం ప్రివ్యూ (Live Dynamic Preview)"
+                      : pdfLanguage === "ta"
+                      ? "நேரடி விவரிப்பு முன்னோட்டம் (Live Dynamic Preview)"
+                      : "Live Dynamic Narration Preview"}
+                  </span>
+                  <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
+                    {pdfLanguage === "kn" ? "ಆಯ್ಕೆಗೆ ತಕ್ಕಂತೆ ತಕ್ಷಣ ಬದಲಾಗುತ್ತದೆ" : "Instant On Click"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActivePreviewTab("marriage")}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      activePreviewTab === "marriage"
+                        ? "bg-amber-400 text-slate-950 shadow-md font-black"
+                        : "bg-white/10 text-amber-200 hover:bg-white/20"
+                    }`}
+                  >
+                    {pdfLanguage === "kn" ? "💍 ವಿವಾಹ ಅಧ್ಯಾಯ" : "💍 Marriage"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActivePreviewTab("children")}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      activePreviewTab === "children"
+                        ? "bg-amber-400 text-slate-950 shadow-md font-black"
+                        : "bg-white/10 text-amber-200 hover:bg-white/20"
+                    }`}
+                  >
+                    {pdfLanguage === "kn" ? "👶 ಸಂತಾನ ಅಧ್ಯಾಯ" : "👶 Children"}
+                  </button>
+                </div>
+              </div>
+
+              {/* The 3 Paragraphs (5-6 lines each) */}
+              <div className="space-y-2.5 max-h-56 overflow-y-auto pr-2 font-sans text-xs sm:text-[13px] leading-relaxed">
+                {(activePreviewTab === "marriage" ? liveMarriageNarration : liveChildrenNarration)
+                  .split("\n\n")
+                  .map((para: string, idx: number) => (
+                    <div key={idx} className="bg-stone-900/80 p-3 rounded-xl border border-amber-500/30 shadow-sm text-amber-100">
+                      <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block mb-1">
+                        {pdfLanguage === "kn" ? `✦ ಪರಿಚ್ಛೇದ ${idx + 1} (೫-೬ ಸಾಲುಗಳು):` : `✦ Paragraph ${idx + 1} (5-6 Lines):`}
+                      </span>
+                      <p className="text-amber-100/90 leading-relaxed whitespace-pre-line">{para}</p>
+                    </div>
+                  ))}
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-amber-300/80 pt-1 border-t border-amber-500/20">
+                <span className="text-emerald-300 font-semibold">
+                  ✓ {pdfLanguage === "kn" ? "ಖಚಿತ ಕನಿಷ್ಠ ೩ ಪರಿಚ್ಛೇದಗಳು (೫-೬ ಸಾಲುಗಳು)" : "Guaranteed Minimum 3 Paragraphs (5-6 Lines Each)"}
+                </span>
+                <span className="text-amber-200/70 text-[10px]">
+                  {activePreviewTab === "marriage"
+                    ? `${form.maritalStatus === "married" ? "💍 Married" : form.maritalStatus === "unmarried" ? "🌸 Unmarried" : "❓ Samanya"} Mode`
+                    : `${form.childrenStatus === "has_children" ? "👶 Has Children" : form.childrenStatus === "no_children" ? "🙏 Not Has Children" : "❓ Samanya"} Mode`}
+                </span>
+              </div>
             </div>
             <div className="md:col-span-2">
               <div className="flex justify-between items-end mb-1">
@@ -2577,24 +2691,179 @@ export default function KundliPage(): JSX.Element {
                 </label>
 
                 {/* Item 3: Divya Bhavishya V1 */}
-                <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
-                  <input
-                    type="checkbox"
-                    checked={packageSelectedItems.bhavishya}
-                    onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, bhavishya: e.target.checked }))}
-                    className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
-                  />
-                  <div className="text-left text-xs min-w-0">
-                    <p className="font-bold text-amber-200 text-sm">
-                      {pdfLanguage === "kn" ? "೩. ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 - ೧೦ ಅಧ್ಯಾಯಗಳು (PDF)" : "3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)"}
-                    </p>
-                    <p className="text-slate-300 mt-0.5 leading-snug">
-                      {pdfLanguage === "kn"
-                        ? "೧೦೦% ಅಧಿಕೃತ AI ನಿರೂಪಣೆ, ಜೀವನದ ೧೦ ಹಂತಗಳ ಸಮಗ್ರ ಭವಿಷ್ಯ ಹಾಗೂ ಪರಿಹಾರಗಳು"
-                        : "100% dynamic AI narrative across 10 life stages with emotional depth & Vedic precision"}
-                    </p>
-                  </div>
-                </label>
+                <div className="space-y-2">
+                  <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
+                    <input
+                      type="checkbox"
+                      checked={packageSelectedItems.bhavishya}
+                      onChange={(e) => setPackageSelectedItems(prev => ({ ...prev, bhavishya: e.target.checked }))}
+                      className="mt-0.5 h-5 w-5 rounded border-slate-600 text-amber-500 focus:ring-amber-400 shrink-0"
+                    />
+                    <div className="text-left text-xs min-w-0">
+                      <p className="font-bold text-amber-200 text-sm">
+                        {pdfLanguage === "kn" ? "೩. ಬಗ್ಗೋಣ ದಿವ್ಯ ಭವಿಷ್ಯ V1 - ೧೦ ಅಧ್ಯಾಯಗಳು (PDF)" : "3. Baggona Divya Bhavishya V1 - 10 Chapters (PDF)"}
+                      </p>
+                      <p className="text-slate-300 mt-0.5 leading-snug">
+                        {pdfLanguage === "kn"
+                          ? "೧೦೦% ಅಧಿಕೃತ AI ನಿರೂಪಣೆ, ಜೀವನದ ೧೦ ಹಂತಗಳ ಸಮಗ್ರ ಭವಿಷ್ಯ ಹಾಗೂ ಪರಿಹಾರಗಳು"
+                          : "100% dynamic AI narrative across 10 life stages with emotional depth & Vedic precision"}
+                      </p>
+                    </div>
+                  </label>
+
+                  {packageSelectedItems.bhavishya && (
+                    <div className="rounded-2xl bg-gradient-to-r from-amber-950/40 via-amber-900/30 to-amber-950/40 border border-amber-500/40 p-3 sm:p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-amber-300 text-xs font-bold">
+                          <span>✨</span>
+                          <span>
+                            {pdfLanguage === "kn"
+                              ? "ದಿವ್ಯ ಭವಿಷ್ಯ V1 ಕಸ್ಟಮೈಸೇಶನ್ & ಲೈವ್ ಮುನ್ನೋಟ"
+                              : "Divya Bhavishya V1 Personalization & Live Preview"}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-amber-200/80 bg-amber-900/50 px-2 py-0.5 rounded-full border border-amber-500/30 font-semibold">
+                          {pdfLanguage === "kn" ? "ಖಚಿತ ೩ ಪರಿಚ್ಛೇದಗಳು (೫-೬ ಸಾಲುಗಳು)" : "3 Paras Guaranteed"}
+                        </span>
+                      </div>
+
+                      {/* Marital Status Selector */}
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                          {pdfLanguage === "kn"
+                            ? "ವೈವಾಹಿಕ ಸ್ಥಿತಿ (Marital Status)"
+                            : pdfLanguage === "hi"
+                            ? "वैवाहिक स्थिति (Marital Status)"
+                            : pdfLanguage === "te"
+                            ? "వైవాహిక స్థితి (Marital Status)"
+                            : pdfLanguage === "ta"
+                            ? "திருமண நிலை (Marital Status)"
+                            : "Marital Status"}
+                        </label>
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <label className="flex items-center gap-1.5 cursor-pointer bg-slate-900/70 px-2.5 py-1 rounded-lg border border-slate-700">
+                            <input
+                              type="radio"
+                              name="modalMaritalStatus"
+                              value="married"
+                              checked={form.maritalStatus === "married"}
+                              onChange={() => setForm((f) => ({ ...f, maritalStatus: "married" }))}
+                            />
+                            <span className="text-amber-200">{pdfLanguage === "kn" ? "💍 ವಿವಾಹಿತರು" : "💍 Married"}</span>
+                          </label>
+                          <label className="flex items-center gap-1.5 cursor-pointer bg-slate-900/70 px-2.5 py-1 rounded-lg border border-slate-700">
+                            <input
+                              type="radio"
+                              name="modalMaritalStatus"
+                              value="unmarried"
+                              checked={form.maritalStatus === "unmarried"}
+                              onChange={() => setForm((f) => ({ ...f, maritalStatus: "unmarried" }))}
+                            />
+                            <span className="text-amber-200">{pdfLanguage === "kn" ? "🌸 ಅವಿವಾಹಿತರು" : "🌸 Unmarried"}</span>
+                          </label>
+                          <label className="flex items-center gap-1.5 cursor-pointer bg-slate-900/70 px-2.5 py-1 rounded-lg border border-slate-700">
+                            <input
+                              type="radio"
+                              name="modalMaritalStatus"
+                              value="general"
+                              checked={!form.maritalStatus || form.maritalStatus === "unspecified" || form.maritalStatus === "general"}
+                              onChange={() => setForm((f) => ({ ...f, maritalStatus: "general" }))}
+                            />
+                            <span className="text-amber-200">{pdfLanguage === "kn" ? "❓ ಸಾಮಾನ್ಯ" : "❓ Samanya / General"}</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Children Status Selector */}
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                          {pdfLanguage === "kn"
+                            ? "ಸಂತಾನ ಸ್ಥಿತಿ (Children Status)"
+                            : pdfLanguage === "hi"
+                            ? "संतान स्थिति (Children Status)"
+                            : pdfLanguage === "te"
+                            ? "సంతాన స్థితి (Children Status)"
+                            : pdfLanguage === "ta"
+                            ? "குழந்தைப் பேறு நிலை (Children Status)"
+                            : "Children Status"}
+                        </label>
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <label className="flex items-center gap-1.5 cursor-pointer bg-slate-900/70 px-2.5 py-1 rounded-lg border border-slate-700">
+                            <input
+                              type="radio"
+                              name="modalChildrenStatus"
+                              value="has_children"
+                              checked={form.childrenStatus === "has_children"}
+                              onChange={() => setForm((f) => ({ ...f, childrenStatus: "has_children" }))}
+                            />
+                            <span className="text-amber-200">{pdfLanguage === "kn" ? "👶 ಸಂತಾನವಿದೆ" : "👶 Has Children"}</span>
+                          </label>
+                          <label className="flex items-center gap-1.5 cursor-pointer bg-slate-900/70 px-2.5 py-1 rounded-lg border border-slate-700">
+                            <input
+                              type="radio"
+                              name="modalChildrenStatus"
+                              value="no_children"
+                              checked={form.childrenStatus === "no_children"}
+                              onChange={() => setForm((f) => ({ ...f, childrenStatus: "no_children" }))}
+                            />
+                            <span className="text-amber-200">{pdfLanguage === "kn" ? "🙏 ಸಂತಾನವಿಲ್ಲ" : "🙏 Not Has Children"}</span>
+                          </label>
+                          <label className="flex items-center gap-1.5 cursor-pointer bg-slate-900/70 px-2.5 py-1 rounded-lg border border-slate-700">
+                            <input
+                              type="radio"
+                              name="modalChildrenStatus"
+                              value="general"
+                              checked={!form.childrenStatus || form.childrenStatus === "unspecified" || form.childrenStatus === "general"}
+                              onChange={() => setForm((f) => ({ ...f, childrenStatus: "general" }))}
+                            />
+                            <span className="text-amber-200">{pdfLanguage === "kn" ? "❓ ಸಾಮಾನ್ಯ" : "❓ Samanya / General"}</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Modal Mini Live Narration Box */}
+                      <div className="space-y-2 bg-slate-900/80 p-3 rounded-xl border border-amber-500/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-amber-300">
+                            {pdfLanguage === "kn" ? "ನೇರ ನಿರೂಪಣೆ (೩ ಪರಿಚ್ಛೇದಗಳು, ೫-೬ ಸಾಲುಗಳು):" : "Live Narration Preview (3 Paras, 5-6 Lines):"}
+                          </span>
+                          <div className="flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setActivePreviewTab("marriage")}
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
+                                activePreviewTab === "marriage" ? "bg-amber-400 text-slate-950" : "bg-slate-800 text-amber-200"
+                              }`}
+                            >
+                              {pdfLanguage === "kn" ? "💍 ವಿವಾಹ" : "Marriage"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setActivePreviewTab("children")}
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
+                                activePreviewTab === "children" ? "bg-amber-400 text-slate-950" : "bg-slate-800 text-amber-200"
+                              }`}
+                            >
+                              {pdfLanguage === "kn" ? "👶 ಸಂತಾನ" : "Children"}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="max-h-36 overflow-y-auto space-y-1.5 text-[11px] text-amber-100/90 leading-relaxed pr-1 scrollbar-thin">
+                          {(activePreviewTab === "marriage" ? liveMarriageNarration : liveChildrenNarration)
+                            .split("\n\n")
+                            .map((p: string, i: number) => (
+                              <p key={i} className="bg-slate-950/60 p-2 rounded border border-amber-500/10">
+                                <span className="text-[9px] font-bold text-amber-400 block mb-0.5">
+                                  {pdfLanguage === "kn" ? `✦ ಪರಿಚ್ಛೇದ ${i + 1}:` : `✦ Para ${i + 1}:`}
+                                </span>
+                                {p}
+                              </p>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Item 4: Kundli Comprehensive Doshas Report */}
                 <label className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-800/80 border border-slate-700 hover:border-amber-400/50 cursor-pointer transition-all">
