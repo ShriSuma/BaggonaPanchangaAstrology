@@ -593,24 +593,25 @@ export async function prepareBhavishyaV1Data(
       ? "7. विवाह, संतान, करियर, धन एवं स्वास्थ्य का गहन विश्लेषण..."
       : "7. Synthesizing Marriage, Children, Career, Wealth & Health..."
   );
-  let resBhavishya = "";
   let resMarriage = "";
   let resChildren = "";
   let resCareer = "";
   let resWealth = "";
   let resHealth = "";
 
-  if (ageYears < 8) {
-    resBhavishya = await callGeminiSafe("Generate Bhavishya Child Areas", prompts.bhavishya, 0.3);
-  } else {
-    [resMarriage, resChildren, resCareer, resWealth, resHealth] = await Promise.all([
-      callGeminiSafe("Generate Marriage", prompts.bhavishyaMarriage || prompts.bhavishya, 0.3),
-      callGeminiSafe("Generate Children", prompts.bhavishyaChildren || prompts.bhavishya, 0.3),
-      callGeminiSafe("Generate Career", prompts.bhavishyaCareer || prompts.bhavishya, 0.3),
-      callGeminiSafe("Generate Wealth", prompts.bhavishyaWealth || prompts.bhavishya, 0.3),
-      callGeminiSafe("Generate Health", prompts.bhavishyaHealth || prompts.bhavishya, 0.3)
-    ]);
-  }
+  const marLabel = ageYears < 12 ? "Generate Child Education" : ageYears >= 60 ? "Generate Senior Companionship" : ageYears < 22 ? "Generate Youth Focus" : "Generate Marriage";
+  const chdLabel = ageYears < 12 ? "Generate Child Activities" : ageYears >= 60 ? "Generate Senior Legacy" : ageYears < 22 ? "Generate Youth Studies" : "Generate Children";
+  const carLabel = ageYears < 12 ? "Generate Child Foundation" : ageYears >= 60 ? "Generate Senior Mentorship" : ageYears < 22 ? "Generate Youth Career Foundation" : "Generate Career";
+  const wlhLabel = ageYears < 12 ? "Generate Child Family" : ageYears >= 60 ? "Generate Senior Wealth Preservation" : ageYears < 22 ? "Generate Youth Financial Discipline" : "Generate Wealth";
+  const hltLabel = ageYears < 12 ? "Generate Child Pediatric Health" : ageYears >= 60 ? "Generate Senior Longevity" : ageYears < 22 ? "Generate Youth Fitness" : "Generate Health";
+
+  [resMarriage, resChildren, resCareer, resWealth, resHealth] = await Promise.all([
+    callGeminiSafe(marLabel, prompts.bhavishyaMarriage, 0.3),
+    callGeminiSafe(chdLabel, prompts.bhavishyaChildren, 0.3),
+    callGeminiSafe(carLabel, prompts.bhavishyaCareer, 0.3),
+    callGeminiSafe(wlhLabel, prompts.bhavishyaWealth, 0.3),
+    callGeminiSafe(hltLabel, prompts.bhavishyaHealth, 0.3)
+  ]);
 
   // Parse initial responses for quality validation
   let dataSoulMirror = robustParseGeminiJSON(resSoulMirror);
@@ -625,12 +626,22 @@ export async function prepareBhavishyaV1Data(
   let dataMaandiInquest = robustParseGeminiJSON(resMaandiInquest);
   let dataAnnualForecast = robustParseGeminiJSON(resAnnualForecast);
 
-  let dChildBhavishya = ageYears < 8 ? robustParseGeminiJSON(resBhavishya) : null;
-  let dMar = ageYears >= 8 ? robustParseGeminiJSON(resMarriage) : null;
-  let dChd = ageYears >= 8 ? robustParseGeminiJSON(resChildren) : null;
-  let dCar = ageYears >= 8 ? robustParseGeminiJSON(resCareer) : null;
-  let dWlh = ageYears >= 8 ? robustParseGeminiJSON(resWealth) : null;
-  let dHlt = ageYears >= 8 ? robustParseGeminiJSON(resHealth) : null;
+  let dMar = robustParseGeminiJSON(resMarriage);
+  let dChd = robustParseGeminiJSON(resChildren);
+  let dCar = robustParseGeminiJSON(resCareer);
+  let dWlh = robustParseGeminiJSON(resWealth);
+  let dHlt = robustParseGeminiJSON(resHealth);
+
+  const extractChapterText = (obj: any, candidateKeys: string[]): string => {
+    if (!obj || typeof obj !== "object") return "";
+    for (const k of candidateKeys) {
+      if (typeof obj[k] === "string" && obj[k].trim().length > 0) return obj[k];
+      if (obj.bhavishya && typeof obj.bhavishya[k] === "string" && obj.bhavishya[k].trim().length > 0) return obj.bhavishya[k];
+    }
+    if (typeof obj.text === "string" && obj.text.trim().length > 0) return obj.text;
+    if (typeof obj.prediction === "string" && obj.prediction.trim().length > 0) return obj.prediction;
+    return "";
+  };
 
   const isSoulMirrorValid = (d: any) =>
     Boolean(d && (d.truth1Text || "").trim().length >= 80 && (d.truth2Text || "").trim().length >= 80 && (d.truth3Text || "").trim().length >= 80);
@@ -755,56 +766,51 @@ export async function prepareBhavishyaV1Data(
         })
       );
     }
-    if (ageYears < 8) {
-      if (!dChildBhavishya || !dChildBhavishya.marriage) {
-        retryTasks.push(
-          callGeminiSafe("Retry Child Bhavishya", prompts.bhavishya, 0.35, 9000, 2).then((res) => {
-            const parsed = robustParseGeminiJSON(res);
-            if (parsed) dChildBhavishya = parsed;
-          })
-        );
-      }
-    } else {
-      if (!isLifeAreaValid(dMar?.marriage || dMar?.bhavishya?.marriage)) {
-        retryTasks.push(
-          callGeminiSafe("Retry Marriage", prompts.bhavishyaMarriage || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
-            const parsed = robustParseGeminiJSON(res);
-            if (parsed) dMar = parsed;
-          })
-        );
-      }
-      if (!isLifeAreaValid(dChd?.children || dChd?.bhavishya?.children)) {
-        retryTasks.push(
-          callGeminiSafe("Retry Children", prompts.bhavishyaChildren || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
-            const parsed = robustParseGeminiJSON(res);
-            if (parsed) dChd = parsed;
-          })
-        );
-      }
-      if (!isLifeAreaValid(dCar?.career || dCar?.bhavishya?.career)) {
-        retryTasks.push(
-          callGeminiSafe("Retry Career", prompts.bhavishyaCareer || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
-            const parsed = robustParseGeminiJSON(res);
-            if (parsed) dCar = parsed;
-          })
-        );
-      }
-      if (!isLifeAreaValid(dWlh?.wealth || dWlh?.bhavishya?.wealth)) {
-        retryTasks.push(
-          callGeminiSafe("Retry Wealth", prompts.bhavishyaWealth || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
-            const parsed = robustParseGeminiJSON(res);
-            if (parsed) dWlh = parsed;
-          })
-        );
-      }
-      if (!isLifeAreaValid(dHlt?.health || dHlt?.bhavishya?.health)) {
-        retryTasks.push(
-          callGeminiSafe("Retry Health", prompts.bhavishyaHealth || prompts.bhavishya, 0.35, 9000, 2).then((res) => {
-            const parsed = robustParseGeminiJSON(res);
-            if (parsed) dHlt = parsed;
-          })
-        );
-      }
+    const marCandidateKeys = ["marriage", "childEducation", "education", "vidya", "companionship", "focus"];
+    const chdCandidateKeys = ["children", "childActivities", "activities", "sports", "legacy", "studies"];
+    const carCandidateKeys = ["career", "childFoundation", "foundation", "character", "mentorship", "leadership"];
+    const wlhCandidateKeys = ["wealth", "childFamily", "family", "wealthPreservation", "preservation", "finance", "discipline"];
+    const hltCandidateKeys = ["health", "childHealth", "pediatricHealth", "longevity", "vitality", "fitness"];
+
+    if (!isLifeAreaValid(extractChapterText(dMar, marCandidateKeys))) {
+      retryTasks.push(
+        callGeminiSafe(`Retry ${marLabel}`, prompts.bhavishyaMarriage, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (parsed) dMar = parsed;
+        })
+      );
+    }
+    if (!isLifeAreaValid(extractChapterText(dChd, chdCandidateKeys))) {
+      retryTasks.push(
+        callGeminiSafe(`Retry ${chdLabel}`, prompts.bhavishyaChildren, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (parsed) dChd = parsed;
+        })
+      );
+    }
+    if (!isLifeAreaValid(extractChapterText(dCar, carCandidateKeys))) {
+      retryTasks.push(
+        callGeminiSafe(`Retry ${carLabel}`, prompts.bhavishyaCareer, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (parsed) dCar = parsed;
+        })
+      );
+    }
+    if (!isLifeAreaValid(extractChapterText(dWlh, wlhCandidateKeys))) {
+      retryTasks.push(
+        callGeminiSafe(`Retry ${wlhLabel}`, prompts.bhavishyaWealth, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (parsed) dWlh = parsed;
+        })
+      );
+    }
+    if (!isLifeAreaValid(extractChapterText(dHlt, hltCandidateKeys))) {
+      retryTasks.push(
+        callGeminiSafe(`Retry ${hltLabel}`, prompts.bhavishyaHealth, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (parsed) dHlt = parsed;
+        })
+      );
     }
 
     if (retryTasks.length > 0) {
@@ -821,20 +827,21 @@ export async function prepareBhavishyaV1Data(
     }
   }
 
-  let dataBhavishya: any = {};
-  if (ageYears < 8) {
-    dataBhavishya = dChildBhavishya || {};
-  } else {
-    dataBhavishya = {
-      bhavishya: {
-        marriage: dMar?.marriage || dMar?.bhavishya?.marriage,
-        children: dChd?.children || dChd?.bhavishya?.children,
-        career: dCar?.career || dCar?.bhavishya?.career,
-        wealth: dWlh?.wealth || dWlh?.bhavishya?.wealth,
-        health: dHlt?.health || dHlt?.bhavishya?.health
-      }
-    };
-  }
+  const marCandidateKeys = ["marriage", "childEducation", "education", "vidya", "companionship", "focus"];
+  const chdCandidateKeys = ["children", "childActivities", "activities", "sports", "legacy", "studies"];
+  const carCandidateKeys = ["career", "childFoundation", "foundation", "character", "mentorship", "leadership"];
+  const wlhCandidateKeys = ["wealth", "childFamily", "family", "wealthPreservation", "preservation", "finance", "discipline"];
+  const hltCandidateKeys = ["health", "childHealth", "pediatricHealth", "longevity", "vitality", "fitness"];
+
+  const dataBhavishya = {
+    bhavishya: {
+      marriage: extractChapterText(dMar, marCandidateKeys),
+      children: extractChapterText(dChd, chdCandidateKeys),
+      career: extractChapterText(dCar, carCandidateKeys),
+      wealth: extractChapterText(dWlh, wlhCandidateKeys),
+      health: extractChapterText(dHlt, hltCandidateKeys)
+    }
+  };
 
   // AI Chapter Quality Check: Log any missing AI sections so they heal seamlessly via authentic Vedic math
   if (failedAiSectionsV1.length > 0) {

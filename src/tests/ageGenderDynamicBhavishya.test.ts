@@ -85,8 +85,8 @@ describe('Age & Gender Dynamic Bhavishya Precision Tests', () => {
       // 5. Health: Geriatric wellness, longevity, joint mobility
       expect(health).toContain("longevity");
       expect(health).toContain("joint mobility");
-      // When no roga dosha is present, exactly 2 paragraphs are returned without fabricated dosha/remedy
-      expect(health.split("\n\n").length).toBe(2);
+      // When no roga dosha is present, exactly 3 paragraphs are returned without fabricated dosha/remedy (100% personal native health reality in para 3)
+      expect(health.split("\n\n").length).toBe(3);
     });
 
     it('generates Dharma Sahachara and Mangalya Sthana for Senior Female in Kannada', () => {

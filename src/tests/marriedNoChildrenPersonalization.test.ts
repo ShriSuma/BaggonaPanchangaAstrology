@@ -70,13 +70,13 @@ describe('Married + No Children (Seeking Progeny) Personalization Tests', () => 
     expect(textEn).toContain("emotional anchor");
   });
 
-  it('Children section for no_children generates 3 expansive paragraphs addressing devotee with remedies', () => {
+  it('Children section for no_children generates 3 expansive paragraphs addressing devotee with personal reality (no-dosha) and remedies (with dosha)', () => {
+    // 1. Without Santana Dosha: 100% personal reality and family outlook, zero remedies
     const textKn = buildPersonalizedChildrenText('kn', 'no_children', 0, 'ಗುರು', 'ಶುಕ್ರ', ctxKn);
     const parasKn = textKn.split(/\n\n+/).filter(p => p.trim().length > 30);
     expect(parasKn.length).toBe(3);
     expect(textKn).toContain("ರಾಘವೇಂದ್ರ ಅವರೇ");
-    expect(textKn).toContain("ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ");
-    expect(textKn).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ");
+    expect(textKn).toContain("ಸಂತಾನ ಯೋಗ & ಕೌಟುಂಬಿಕ ನಿರೀಕ್ಷೆ");
 
     const cleanedKn = cleanEnglishFromRegionalText(textKn, 'kn');
     // Ensure no stray Latin letters in Kannada text
@@ -87,9 +87,34 @@ describe('Married + No Children (Seeking Progeny) Personalization Tests', () => 
     const parasEn = textEn.split(/\n\n+/).filter(p => p.trim().length > 30);
     expect(parasEn.length).toBe(3);
     expect(textEn).toContain("Dear Raghavendra");
-    expect(textEn).toContain("Santana Yoga");
-    expect(textEn).toContain("Santana Gopala Mantra");
-    expect(textEn).toContain("Gau-seva");
+    expect(textEn).toContain("Progeny Horizons & Family Expansion");
+
+    // 2. With Santana Dosha (e.g. Ketu / Rahu / Saturn in 5th house): triggers authentic parihara at Gokarna
+    const ctxDoshaKn: DynamicChartContext = {
+      ...ctxKn,
+      planets: [
+        ...(ctxKn.planets || []).filter(p => p.house !== 5),
+        { name: "Ketu", house: 5, rashiIndex: 4 }
+      ]
+    };
+    const ctxDoshaEn: DynamicChartContext = {
+      ...ctxEn,
+      planets: [
+        ...(ctxEn.planets || []).filter(p => p.house !== 5),
+        { name: "Ketu", house: 5, rashiIndex: 4 }
+      ]
+    };
+
+    const textDoshaKn = buildPersonalizedChildrenText('kn', 'no_children', 0, 'ಗುರು', 'ಶುಕ್ರ', ctxDoshaKn);
+    expect(textDoshaKn).toContain("ರಾಘವೇಂದ್ರ ಅವರೇ");
+    expect(textDoshaKn).toContain("ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ");
+    expect(textDoshaKn).toContain("ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ");
+
+    const textDoshaEn = buildPersonalizedChildrenText('en', 'no_children', 0, 'Jupiter', 'Venus', ctxDoshaEn);
+    expect(textDoshaEn).toContain("Dear Raghavendra");
+    expect(textDoshaEn).toContain("Santana Gopala Mantra");
+    expect(textDoshaEn).toContain("Gau-seva");
+    expect(textDoshaEn).toContain("Gokarna Mahabaleshwara");
   });
 
   it('buildDynamicCurrentPhaseFallback reflects adult marriage + no_children living reality', () => {

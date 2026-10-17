@@ -17,11 +17,30 @@ describe('PDF Report Contract & Regression Test Suite', () => {
         expect(paragraphs.length).toBe(3);
       }
 
-      // Check key Marriage details
+      // Check key Marriage details for no-dosha (personal readiness & fruition)
       expect(textKn.toLowerCase()).toContain('7ನೇ ಮನೆ');
-      expect(textKn.toLowerCase()).toContain('ಸುಬ್ರಹ್ಮಣ್ಯ');
+      expect(textKn).toContain('ಕಲ್ಯಾಣ ಸಿದ್ಧಿ');
       expect(textEn.toLowerCase()).toContain('7th house');
-      expect(textEn.toLowerCase()).toContain('gauri');
+      expect(textEn).toContain('Matrimonial Fruition');
+
+      // Check dosha chart triggers authentic parihara (Subramanya / Gauri at Gokarna)
+      const ctxWithKuja = {
+        name: "Test Native",
+        gender: "Male" as const,
+        ageYears: 28,
+        planets: [
+          { name: "Mars", house: 7, rashiIndex: 9 }, // Mars in 7th => Manglik & Kalatra Dosha
+          { name: "Sun", house: 1, rashiIndex: 3 },
+          { name: "Moon", house: 4, rashiIndex: 6 }
+        ]
+      };
+      const textKnDosha = buildPersonalizedMarriageText('kn', 'ಕರ್ಕ (Karka)', 'ತುಲಾ (Tula)', 'unmarried', 3, 'ಶುಕ್ರ (Venus)', 'ರಾಹು (Rahu)', 'Male', ctxWithKuja);
+      const textEnDosha = buildPersonalizedMarriageText('en', 'Cancer', 'Libra', 'unmarried', 3, 'Venus', 'Rahu', 'Male', ctxWithKuja);
+
+      expect(textKnDosha).toContain('ಸುಬ್ರಹ್ಮಣ್ಯ');
+      expect(textKnDosha).toContain('ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ');
+      expect(textEnDosha).toContain('Gauri');
+      expect(textEnDosha).toContain('Gokarna Mahabaleshwara');
     });
 
     it('enforces EXACTLY 3 detailed paragraphs for MARRIED status across Kannada, Hindi, Telugu, Tamil, English', () => {
