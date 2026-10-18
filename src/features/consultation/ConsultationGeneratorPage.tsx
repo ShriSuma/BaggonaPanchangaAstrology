@@ -28,6 +28,7 @@ import {
   DEFAULT_PRIEST_CONTACT
 } from "./consultationTypes";
 import { resolvePlaceFromPincode } from "../../services/locationApi";
+import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../auth/authStore";
 
 const POPULAR_PLACES = [
   { name: "ಗೋಕರ್ಣ (Gokarna)", lat: 14.5479, lng: 74.3188 },
@@ -42,6 +43,17 @@ const POPULAR_PLACES = [
 ];
 
 export const ConsultationGeneratorPage: React.FC = () => {
+  // STRICT SUPER ADMIN SECURITY GUARD
+  const { currentUser, role, isAuthenticated } = useAuthStore();
+  const isSuperAdmin =
+    isAuthenticated &&
+    (role === "superadmin" ||
+      currentUser?.toLowerCase() === "baggona" ||
+      currentUser?.toLowerCase() === "shrisuma" ||
+      currentUser === "$hriSuma" ||
+      currentUser?.toLowerCase() === "superadmin" ||
+      Boolean(currentUser && SUPER_ADMIN_USERNAMES.some((u) => u.toLowerCase() === currentUser.toLowerCase() || u === currentUser)));
+
   // Form State
   const [name, setName] = useState("");
   const [dob, setDob] = useState("1995-05-15");
@@ -204,6 +216,31 @@ export const ConsultationGeneratorPage: React.FC = () => {
     const uri = `https://wa.me/?text=${encodeURIComponent(msg)}`;
     window.open(uri, "_blank");
   };
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-[#FAF6EE] text-amber-950 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white border-2 border-red-500 rounded-3xl p-6 shadow-xl text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-red-100 border border-red-300 text-red-700 flex items-center justify-center text-3xl">
+            🛡️
+          </div>
+          <h2 className="text-xl font-bold font-serif text-red-900">
+            ಅನಧಿಕೃತ ಪ್ರವೇಶ (Super Admin Only)
+          </h2>
+          <p className="text-xs text-stone-700 leading-relaxed">
+            ೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ರಚಿಸುವ ಅಧಿಕಾರವು ಕೇವಲ ಸೂಪರ್ ಅಡ್ಮಿನ್‌ಗೆ ಮಾತ್ರ ಲಭ್ಯವಿದೆ.
+            (20-Minute consultation link generation is strictly restricted to Super Admin).
+          </p>
+          <a
+            href="/"
+            className="inline-block bg-amber-800 hover:bg-amber-900 text-white font-bold py-2.5 px-5 rounded-xl shadow-md text-xs transition"
+          >
+            ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ (Go Home)
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF6EE] text-stone-900 p-3 sm:p-6 font-sans">

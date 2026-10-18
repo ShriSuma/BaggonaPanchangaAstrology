@@ -462,7 +462,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   // Handle Send Message
   const handleSendMessage = async (textToSend?: string) => {
     const question = (textToSend || inputText).trim();
-    if (!question || !session || isGenerating || session.status === "expired") return;
+    if (!question || !session || isGenerating || session.status !== "active" || remainingSeconds <= 0) return;
 
     // Check expiry
     if (remainingSeconds <= 0) {
@@ -1112,7 +1112,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </div>
           )}
 
-          {/* Expired Ribbon */}
+          {/* Locked Expired Ribbon or Active Input Bar */}
           {isExpired ? (
             <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 text-center space-y-2">
               <p className="text-xs font-bold text-red-900">

@@ -274,12 +274,14 @@ export const PriestMobilePortal: React.FC = () => {
     }
     // Sacred Guided Pooja Desk
     tabs.push({ id: "guided_pooja", label: "ಪೂಜಾ ಮಾರ್ಗದರ್ಶನ", icon: "🪔" });
-    // 20-Minute Consultation Link Generator Desk
-    tabs.push({ id: "consultation_generator", label: "೨೦-ನಿಮಿಷ ಚಾಟ್", icon: "🔗" });
+    // 20-Minute Consultation Link Generator Desk (Strictly Super Admin Only)
+    if (isSuperAdmin) {
+      tabs.push({ id: "consultation_generator", label: "೨೦-ನಿಮಿಷ ಚಾಟ್", icon: "🔗" });
+    }
     // Always include Wallet tab
     tabs.push({ id: "wallet", label: "ವಾಲೆಟ್", icon: "🪙" });
     return tabs;
-  }, [allowedModules]);
+  }, [allowedModules, isSuperAdmin]);
 
   // Load Saved Session from localStorage (Anti-Reset Guard for Refresh / Mobile Disconnects)
   const savedSession = useMemo(() => loadSavedPriestKundliState(), []);

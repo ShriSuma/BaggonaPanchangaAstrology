@@ -137,7 +137,7 @@ export default function CategorizedNavDrawer({
         accentColor: "text-sky-400 border-sky-500/40",
         headerBg: "bg-sky-950/40 hover:bg-sky-950/60 text-sky-200",
         items: [
-          { page: "consultation_generator", icon: "🔗", labelKey: "consultation_generator", badge: "20-MIN", badgeColor: "bg-emerald-500 text-slate-950 font-bold", visible: true, keywords: ["consultation", "link", "chat", "20", "generator", "token", "pincode"] },
+          { page: "consultation_generator", icon: "🔗", labelKey: "consultation_generator", badge: "20-MIN", badgeColor: "bg-emerald-500 text-slate-950 font-bold", visible: role === "superadmin", keywords: ["consultation", "link", "chat", "20", "generator", "token", "pincode"] },
           { page: "superadmindashboard", icon: "🛡️", labelKey: "superadmindashboard", badge: "ADMIN", badgeColor: "bg-amber-500 text-slate-950 font-bold", visible: role === "superadmin", keywords: ["superadmin", "admin", "dashboard", "control"] },
           { page: "priestdashboard", icon: "🪙", labelKey: "priestdashboard", visible: true, keywords: ["priest", "coins", "wallet", "portal"] },
           { page: "settings", icon: "⚙", labelKey: "settings", visible: true, keywords: ["settings", "location", "language", "theme"] }
