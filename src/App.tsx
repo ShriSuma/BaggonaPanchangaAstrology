@@ -626,8 +626,12 @@ export default function App(): JSX.Element {
         {currentPage === "kaaladiksuchi" && <DivyaKaalaDiksuchiPage />}
         {currentPage === "hindinajanma" && <HindinaJanmaPage />}
         {currentPage === "ayursanjeevini" && <AyurSanjeeviniPage />}
-        {currentPage === "priestdashboard" && <PriestDashboard />}
-        {currentPage === "superadmindashboard" && <SuperAdminDashboard />}
+        {currentPage === "priestdashboard" && (
+          (role === "priest" || isMasterOrSuperAdmin) ? <PriestDashboard /> : <LoginPage />
+        )}
+        {currentPage === "superadmindashboard" && (
+          isMasterOrSuperAdmin ? <SuperAdminDashboard /> : <LoginPage />
+        )}
         {currentPage === "priest_panchanga" && <PriestPanchangaPage />}
         {currentPage === "instant_reading" && <InstantReadingPage />}
         {currentPage === "public_kundli" && <PublicKundliPage />}

@@ -537,6 +537,12 @@ export async function addConsultationMessage(
   const current = await getConsultationSession(id);
   if (!current) return;
 
+  // Strict Security Sandbox: Expired sessions cannot accept new messages
+  if (current.status === "expired" || (current.expiresAt && Date.now() > new Date(current.expiresAt).getTime())) {
+    console.warn(`[consultationDb] Security Guard: Rejected message append for expired session ${id}`);
+    throw new Error(`Consultation session has expired. New messages are strictly rejected.`);
+  }
+
   current.messages.push(message);
   saveLocalSession(current);
 

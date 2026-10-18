@@ -38,6 +38,8 @@ export type ConsultationQuestionCategory =
   | "INTERPERSONAL_CONFLICT"
   | "DOMESTIC_OMEN_VASTU"
   | "CELEBRITY_FANTASY"
+  | "SECRET_INTIMATE_TABOO"
+  | "SILLY_TROLLING_MOCKERY"
   | "PROVOCATIVE_TABOO"
   | "LIFE_OVERVIEW_EXISTENTIAL"
   | "CONVERSATIONAL_GREETING";
@@ -77,6 +79,53 @@ export function senseAndCategorizeQuestion(
     ageYears < 28 ? "YOUTH" : ageYears <= 48 ? "MID_CAREER" : "SENIOR";
 
   // 2. Category Detection via Linguistic Rules (Kannada, English, Hindi, Transliteration)
+
+  // 1. Silly, Childish Trolling, Cartoon/Superhero, Aliens, Jokes, or Nonsense Gibberish
+  const isSillyTrolling =
+    // Fictional characters & superheroes
+    /ಬ್ಯಾಟ್‌ಮ್ಯಾನ್|batman|ಸ್ಪೈಡರ್‌ಮ್ಯಾನ್|spiderman|spider-man|ಸೂಪರ್‌ಮ್ಯಾನ್|superman|ಶ್ರೆಕ್|shrek|ಡೊನಾಲ್ಡ್ ಡಕ್|donald duck|ಮಿಕ್ಕಿ ಮೌಸ್|mickey mouse|ಅಯರ್ನ್ ಮ್ಯಾನ್|iron man|ironman|ಹಲ್ಕ್|hulk|ಟಾಮ್ ಅಂಡ್ ಜೆರ್ರಿ|tom and jerry|ಅವೆಂಜರ್ಸ್|avengers|alien|ಏಲಿಯನ್|ಯುಎಫ್‌ಓ|ufo|ಮಂಗಳ ಗ್ರಹದಲ್ಲಿ ನೀರು|ಮಂಗಳ ಗ್ರಹದಲ್ಲಿ ಪಿಜ್ಜಾ|ಪಿಜ್ಜಾ|pizza|ಬರ್ಗರ್|burger|ಐಸ್‌ಕ್ರೀಮ್|ice cream/i.test(q) ||
+    // Jokes, comedy, laughter, comedy tests
+    /funny joke|tell.*joke|jokes|chutkula|चुटकुला|ಮಜವಾದ ಜೋಕ್|ತಮಾಷೆ ಜೋಕ್|ಕಾಮಿಡಿ ಜೋಕ್|comedy|funny story|joke haha|lol|rofl|lmao|ಹಾಡು ಹೇಳು|ಡ್ಯಾನ್ಸ್ ಮಾಡು|make me laugh|who is better messi or ronaldo|can my dog talk|am i a robot|are you an ai|are you real|what is 2\+2|what color is an orange/i.test(q) ||
+    /tell me a joke|sing a song|sing me a song|say a joke|tell a joke|comedy ಹೇಳಿ|ಜೋಕ್ ಹೇಳಿ|ತಮಾಷೆ|ಕಾಮಿಡಿ/i.test(q) ||
+    // Repetitive character spam (e.g. "aaaaaaa", "zzzzzzzz")
+    /(.)\1{5,}/.test(q) ||
+    // Keyboard smash gibberish (e.g. "asdfghjklqwerty zxcvbnm")
+    /asdfghjkl|qwerty|zxcvbnm/i.test(q) ||
+    // Pure keyboard smash gibberish without spaces or vowels
+    (/^[bcdfghjklmnpqrstvwxyz]{6,}$/i.test(q) || /^[asdfghjklqwertyuiopzxcvbnm]{10,}$/i.test(q));
+
+  if (isSillyTrolling) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "SILLY_TROLLING_MOCKERY",
+      categoryLabel: "ಅರ್ಥಹೀನ / ಹಾಸ್ಯಾಸ್ಪದ ಪ್ರಶ್ನೆ (Frivolous / Silly Mockery Query)",
+      detectedTopicSnippet: "Silly / Trolling / Mockery Query",
+      priestPersonaTone: "gentle_wisdom"
+    };
+  }
+
+  // 2. Secret, Intimate, Taboo, Extramarital, or "Dirty" Questions (Vedic Kama / 7th, 8th & 12th Bhava)
+  const isSecretIntimateTaboo =
+    // Secret affair, extramarital, cheating, forbidden attraction (Kannada, Hindi, English)
+    /ಅಕ್ರಮ ಸಂಬಂಧ|ಬೇರೊಬ್ಬರ ಮೇಲೆ ಆಕರ್ಷಣೆ|ರಹಸ್ಯ ಪ್ರೇಮ|ಬೇರೆ ಹೆಂಗಸು|ಬೇರೆ ಗಂಡಸು|ಪರಸ್ತ್ರೀ|ಪರಪುರುಷ|ಪರಸ್ತ್ರೀಯ|ಅನೈತಿಕ ಸಂಬಂಧ|extra[ -]?marital|affair|cheating|secret relationship|hidden relationship|secret love|forbidden love|infidelity|adultery|secret partner|hidden love|attracted to married|crush on married|secret lover|ರಹಸ್ಯ ಗೆಳೆಯ|ರಹಸ್ಯ ಗೆಳತಿ|ಗುಪ್ತ ಸಂಬಂಧ|गुप्त संबंध|अवैध संबंध|वासना|कामुक|कामुकता|परस्त्री|दूसरे से संबंध|गुप्त प्रेम|व्यभिचार|गुप्त आकर्षण|गुप्त इಷ್ಟಾರ್ಥ|ರಹಸ್ಯ ಆಕರ್ಷಣೆ|ಗುಪ್ತ ಆಕರ್ಷಣೆ/i.test(q) ||
+    // Intimate sexual queries, vitality, masturbation, libido, bedroom desires ("dirty questions")
+    /ಸೆಕ್ಸ್|sex|ಕಾಮ|ಕಾಮನೆ|ಲೈಂಗಿಕ|ದೈಹಿಕ ಸುಖ|ವ್ಯಾಮೋಹ|ರಹಸ್ಯ ಕಾಮ|ಗುಪ್ತ ವಿಚಾರ|ಶಿಶ್ನ|ಯೋನಿ|ವೀರ್ಯ|ಸ್ಖಲನ|ಶೀಘ್ರಸ್ಖಲನ|ಹಸ್ತಮೈಥುನ|ಅಶ್ಲೀಲ|ಬೂತು|ಬೆತ್ತಲೆ|dirty question|intimacy|sexual|libido|erection|premature ejaculation|masturbation|bed pleasure|bedroom secret|physical desire|lust|private organ|intimate problem|sexual weakness|sexual power|intercourse|संभोग|हस्तमैथुन|यौन/i.test(q) ||
+    // Secret guilt, hidden desires, fear of scandal
+    /ರಹಸ್ಯವಾಗಿ ಇಷ್ಟಪಡುತ್ತೇನೆ|ಯಾರಿಗೂ ಹೇಳೋಕೆ ಆಗ್ತಿಲ್ಲ|ಯಾರಿಗೂ ಹೇಳಲಾಗದ ರಹಸ್ಯ|ಮನಸ್ಸಿನಲ್ಲಿ ಕೆಟ್ಟ ಆಲೋಚನೆ|ಕೆಟ್ಟ ಕಾಮನೆ|can't tell anyone|private secret|dirty secret|guilty desire|taboo desire|secret crush/i.test(q);
+
+  if (isSecretIntimateTaboo) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "SECRET_INTIMATE_TABOO",
+      categoryLabel: "ರಹಸ್ಯ ಹಾಗೂ ಅಂತರಂಗ ಕಾಮ ಭಾವ ವಿಚಾರ (Secret, Intimate & Relationship Counsel)",
+      detectedTopicSnippet: "Secret / Intimate / Kama Query",
+      priestPersonaTone: "compassionate_grounding"
+    };
+  }
 
   // A. Celebrity Fantasy (Aishwarya Rai, heroines, actresses, models)
   const isCelebrityFantasy =
@@ -287,22 +336,7 @@ export async function presentConsultationReply(params: {
 
   let responseText = "";
 
-  try {
-    responseText = await askGemini(
-      userQuestion,
-      presenterPrompt,
-      apiKey || "",
-      session.language,
-      {
-        raw: true,
-        temperature: 0.35,
-        retries: 3,
-        retryDelay: 2000,
-        conversationHistory
-      }
-    );
-  } catch (err) {
-    console.warn("[consultationPresenterEngine] Gemini call failed, engaging specialized deterministic fallback:", err);
+  if (!apiKey || !apiKey.trim()) {
     responseText = generateSpecializedFallbackReply({
       session,
       userQuestion,
@@ -312,6 +346,33 @@ export async function presentConsultationReply(params: {
       nakshatra,
       currentDashaText
     });
+  } else {
+    try {
+      responseText = await askGemini(
+        userQuestion,
+        presenterPrompt,
+        apiKey,
+        session.language,
+        {
+          raw: true,
+          temperature: 0.35,
+          retries: 3,
+          retryDelay: 2000,
+          conversationHistory
+        }
+      );
+    } catch (err) {
+      console.warn("[consultationPresenterEngine] Gemini call failed, engaging specialized deterministic fallback:", err);
+      responseText = generateSpecializedFallbackReply({
+        session,
+        userQuestion,
+        sensed,
+        lagnaName,
+        moonRashi,
+        nakshatra,
+        currentDashaText
+      });
+    }
   }
 
   // Clean formatting artifacts
@@ -374,6 +435,43 @@ function buildPresenterPrompt(params: {
   let categorySpecificInstructions = "";
 
   switch (sensed.category) {
+    case "SECRET_INTIMATE_TABOO":
+      categorySpecificInstructions = `
+SPECIFIC GUIDANCE FOR SECRET, INTIMATE, TABOO, EXTRAMARITAL, OR "DIRTY" QUESTIONS:
+The devotee is opening their heart about an intensely private, confidential, sexual, extramarital, or taboo question:
+- Devotee Age: ${sensed.ageYears} years old (${sensed.lifeStage}).
+- Janma Lagna: ${lagnaName}, Moon Sign: ${moonRashi}, Current Running Dasha: ${currentDashaText}.
+- PRIEST PROTOCOL:
+  1. Address them with fatherly warmth, non-judgmental dignity, and saintly compassion (ಮಗುವೇ / ಪ್ರಿಯ ಸೋದರನೇ).
+  2. Speak with absolute discretion and understanding: In Vedic Jyotisha, Kama (ಕಾಮ - desire) is recognized as one of the four sacred Purusharthas (Dharma, Artha, Kama, Moksha). Human physical desire and attraction are natural cosmic energies governed by planetary transits, not unforgivable sins.
+  3. Ground the explanation in the native's chart:
+     - Venus (ಶುಕ್ರ - Shukra) governs love, sexual desire, and shukra dhatu (vitality).
+     - Rahu (ರಾಹು) creates intense Maya (illusion), obsessive cravings, taboo attractions, and clandestine impulses.
+     - Kuja / Mars (ಕುಜ) fuels blood-heat, passion, and restlessness.
+     - 7th House (ಸಪ್ತಮ ಭಾವ / ಕಳತ್ರ ಸ್ಥಾನ) represents lawful marriage and reciprocal affection.
+     - 8th House (ಅಷ್ಟಮ / ಗುಪ್ತ ಭಾವ) rules confidential secrets, private organs, hidden affairs, and vulnerability to scandal/humiliation (ಕೀರ್ತಿಭಂಗ).
+     - 12th House (ದ್ವಾದಶ ಭಾವ) rules bed pleasures (ಶಯನ ಸುಖ), subconscious guilt, and secret indulgences.
+  4. Provide clear Dharmic and practical counsel:
+     - If it involves an extramarital or forbidden affair: Gently remind the native that while Rahu's illusion gives momentary excitement, its 8th-house karmic retribution inevitably brings scandal, loss of honor, and destroys domestic peace. Advise taking a firm, dignified step back to protect their family integrity.
+     - If it involves physical vitality, sexual anxiety, or masturbation guilt: Reassure them that vitality is naturally restored through a pure sattvic diet, Pranayama, and healthy lifestyle habits. Self-hatred and mental guilt harm the body and mind far more than the act itself.
+  5. Prescribe Gokarna Pariharas:
+     - Gokarna Sri Mahabaleshwara Rudrabhisheka (ರುದ್ರಾಭಿಷೇಕ) to cool internal heat and bring mental tranquility.
+     - Rahu-Shukra Shanti or Navagraha Prarthana.
+     - Daily chanting of Shiva Panchakshari ("ಓಂ ನಮಃ ಶಿವಾಯ") or Gayatri Mantra to fortify mental discipline and inner peace.`;
+      break;
+
+    case "SILLY_TROLLING_MOCKERY":
+      categorySpecificInstructions = `
+SPECIFIC GUIDANCE FOR SILLY, CHILDISH TROLLING, CARTOON/SUPERHERO, OR MOCKERY QUESTIONS:
+The devotee or visitor has submitted a frivolous, absurd, comedic, or mocking question (e.g. asking about Batman, aliens eating pizza, tell a joke, sing a song, or random gibberish):
+- PRIEST PROTOCOL:
+  1. STRICTLY REFUSE TO ANSWER OR ENTERTAIN THE SILLY INQUIRY.
+  2. Absolutely DO NOT talk about fictional superheroes, cartoons, alien food, jokes, or mockery.
+  3. Respond with solemn, resolute, dignified priestly authority and fatherly composure.
+  4. Remind the devotee that this sacred 20-minute Gokarna consultation room is consecrated strictly for authentic Vedic horoscope analysis, genuine life dilemmas, and spiritual counsel.
+  5. Calmly advise them not to squander this precious time and invite them to ask sincere questions about their real life, family, career, health, or spiritual path.`;
+      break;
+
     case "CELEBRITY_FANTASY":
       categorySpecificInstructions = `
 SPECIFIC GUIDANCE FOR CELEBRITY / HEROINE MARRIAGE FANTASY:
@@ -511,6 +609,44 @@ function generateSpecializedFallbackReply(params: {
   const isEn = session.language === "en";
 
   switch (sensed.category) {
+    case "SECRET_INTIMATE_TABOO":
+      switch (session.language) {
+        case "en":
+          return `Namaste ${session.name}. Speaking as a senior Vedic priest in the sacred sanctum of Sri Kshetra Gokarna, I receive your intimate, secret question with utmost confidentiality, fatherly compassion, and profound Vedic understanding.\n\nIn Vedic Jyotisha, human desire (Kama) and intimate physical energies are acknowledged as natural celestial currents rather than something to be judged with shame. In your horoscope, Venus (Shukra) governs love, sexual vitality, and physical attraction, while Rahu creates intense fascination, secret attachments, and taboo illusions. The interplay of your 7th House (partnerships), 8th House (confidential secrets and vitality), and 12th House (bedroom pleasures and guilt) governs these deep private stirrings.\n\nDo not torment your mind with self-hatred, but let wisdom (Viveka) guide your conduct. Remember that clandestine or forbidden affairs may feel thrilling initially, but their karmic repercussion invariably brings mental unrest and loss of honor. If your question relates to physical vitality or intimacy anxieties, know that Shukra dhatu is naturally restored through a sattvic diet, Pranayama, and healthy lifestyle habits.\n\nTo balance these planetary currents and regain serene clarity, offering a Rudrabhisheka to Lord Mahabaleshwara at Sri Kshetra Gokarna and chanting the sacred Shiva Panchakshari ('Om Namah Shivaya') or Gayatri Mantra daily will bring tranquility and divine grace.`;
+        case "hi":
+          return `नमस्कार ${session.name} जी। श्री क्षेत्र गोकर्ण के पवित्र सान्निध्य में एक वरिष्ठ दैवज्ञ के रूप में, मैं आपके इस अत्यंत गुप्त और अंतरंग प्रश्न को पूर्ण गोपनीयता और वात्सल्य के साथ स्वीकार करता हूँ।\n\nवैदिक ज्योतिष शास्त्र में काम (Kama) और शारीरिक आकर्षण को पाप मानकर नकारा नहीं गया है, बल्कि इसके ग्रहीय कारणों का गहन विश्लेषण किया गया है। कुंडली में शुक्र (Venus) प्रेम, सौंदर्य और शारीरिक वीर्य/ऊर्जा का कारक है, जबकि राहु (Rahu) तीव्र आकर्षण, गुप्त संबंध और कामुक भ्रम उत्पन्न करता है। आपकी कुंडली के सप्तम (कलत्र), अष्टम (गुप्त स्थान) और द्वादश (शयन सुख) भावों के प्रभाव से मन में ऐसे गुप्त विचार और भावनाएं जागृत होती हैं।\n\nअत्यधिक अपराधबोध में न डूबें, किंतु धर्म की मर्यादा कभी न भूलें। अनैतिक या गुप्त संबंध क्षणिक सुख देते हैं, परंतु अंत में अष्टम भाव के प्रभाव से अपयश और अशांति लाते हैं। यदि शारीरिक दुर्बलता या यौन चिंता का विषय है, तो सात्विक आहार और प्राणायाम से शुक्र धातु को पुष्ट करें।\n\nगोकर्ण के महाबलेश्वर स्वामी को रुद्राभिषेक कराने तथा नित्य 'ॐ नमः शिवाय' या गायत्री मंत्र का जप करने से मानसिक काम-वेग शांत होता है और अंतर्मन को शांति प्राप्त होती है।`;
+        case "te":
+          return `నమస్కారం ${session.name} గారూ. శ్రీ క్షేత్ర గోకర్ణ పవిత్ర సన్నిధిలో ఒక అనుభవజ్ఞుడైన పురోహితుడిగా, మీ అంతరంగిక రహస్య ప్రశ్నను అత్యంత గోప్యంగా మరియు వాత్సల్యంతో స్వీకరిస్తున్నాను.\n\nవైదిక జ్యోతిష శాస్త్రంలో సహజమైన కోరికలు (కామము) మరియు శారీరక ఆకర్షణలను కేవలం తప్పుగా చూడకుండా, వాటికి కారణమైన గ్రహ స్థితులను విశ్లేషించారు. జాతకంలో శుక్రుడు (Venus) ప్రేమ, ఆకర్షణ మరియు వీర్య శక్తికి కారకుడు కాగా, రాహువు (Rahu) రహస్య ఆకర్షణలు మరియు భ్రమలను కలుగజేస్తాడు. మీ సప్తమ, అష్టమ మరియు ద్వాదశ (శయన సుఖ) భావాల కలయిక వల్ల ఇటువంటి రహస్య ఆలోచనలు ఏర్పడతాయి.\n\nఅపరాధ భావంతో కృంగిపోకండి, కానీ ధర్మ మార్గాన్ని దాటకండి. రహస్య సంబంధాలు ప్రారంభంలో ఆనందాన్ని ఇచ్చినా, చివరకు అపకీర్తికి దారితీస్తాయి. శారీరక లోపాలు లేదా లైంగిక ఆందోళనలు ఉంటే, సాత్విక ఆహారం మరియు ప్రాణాయామం ద్వారా శుక్ర ధాతువును పటిష్టం చేసుకోండి.\n\nగోకర్ణ మహాబలేశ్వర స్వామికి రుద్రాభిషేకం చేయడం మరియు నిత్యం 'ఓం నమః శివాయ' జపించడం వల్ల మానసిక కామోద్రేకాలు శమించి సకల శాంతి కలుగుతుంది.`;
+        case "ta":
+          return `வணக்கம் ${session.name} அவர்களே. ஸ்ரீ க்ஷேத்ர கோகர்ணத்தின் புனித சந்நிதானத்தில் ஒரு மூத்த ஜோதிடராக, உங்கள் அந்தரங்க இரகசியக் கேள்வியை மிகுந்த கனிவோடும் இரகசியத்தோடும் அணுகுகிறேன்.\n\nவேத ஜோதிடத்தில் மனித இயல்பான ஆசைகளும் (காமம்) உடலின் ஈர்ப்புகளும் கிரக நிலைகளின் வழியே விளக்கப்படுகின்றன. ஜாதகத்தில் சுக்கிரன் (Venus) காதல், அழகு மற்றும் உடல் சக்திக்கு அதிபதியாகவும், ராகு (Rahu) அதீத மோகம் மற்றும் இரகசிய ஈர்ப்புகளுக்குக் காரணமாகவும் அமைகிறார்கள். உங்கள் 7ஆம் (களத்திரம்), 8ஆம் (மறைவு ஸ்தானம்), மற்றும் 12ஆம் (சயன சுகம்) பாவங்களின் சேர்க்கையால் இதுபோன்ற உணர்வுகள் எழுகின்றன.\n\nகுற்ற உணர்ச்சியால் துவளாதீர்கள், ஆனால் தர்ம நெறியைக் கைவிடாதீர்கள். இரகசிய அல்லது முறையற்ற உறவுகள் இறுதியில் அவப்பெயரையும் நிம்மதியின்மையையும் தரும். உடல் நலக் குறைபாடுகள் இருந்தால், சாத்விக உணவு மற்றும் யோகப் பயிற்சிகள் மூலம் சுக்கிர பலத்தைப் பெறுங்கள்.\n\nகோகர்ண மகாபலேஸ்வர சுவாமிக்கு ருத்ராபிஷேகம் செய்து, தினமும் 'ஓம் நம சிவாய' அல்லது காயத்ரி மந்திரத்தை ஜபிப்பது மனதை அமைதிப்படுத்தி நல்வாழ்வை அருளும்.`;
+        case "ml":
+          return `നമസ്കാരം ${session.name}. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണത്തിന്റെ പുണ്യസന്നിധിയിൽ വെച്ച് ഒരു മുതിർന്ന ജ്യോത്സ്യനായി നിങ്ങളുടെ ഈ രഹസ്യ ചോദ്യത്തെ അതീവ രഹസ്യമായും വാത്സല്യത്തോടും സ്വീകരിക്കുന്നു.\n\nവേദ ജ്യോതിഷത്തിൽ മനുഷ്യസഹജമായ കാമത്തെയും ആകർഷണങ്ങളെയും ഗ്രഹനിലകളുടെ പശ്ചാത്തലത്തിൽ വിശദീകരിക്കുന്നുണ്ട്. ശുക്രൻ പ്രണയത്തിന്റെയും ലൈംഗിക ഊർജ്ജത്തിന്റെയും കാരകനാണ്; രാഹുവാകട്ടെ കടുത്ത മോഹങ്ങളും അവിഹിതമായ ആകർഷണങ്ങളും സൃഷ്ടിക്കുന്നു. ഏഴാം, എട്ടാം, പന്ത്രണ്ടാം (ശയന സുഖം) ഭാവങ്ങളുടെ സ്വാധീനമാണ് ഇത്തരം ചിന്തകൾക്ക് പിന്നിൽ.\n\nകുറ്റബോധത്താൽ തളരരുത്, എന്നാൽ ധർമ്മം കൈവിടാതിരിക്കുക. രഹസ്യ ബന്ധങ്ങൾ ഒടുവിൽ മനഃസമാധാനക്കേടിലേക്കും അപമാനത്തിലേക്കും വഴിതുറക്കും. ശാരീരിക ബലഹീനതകൾ ഉണ്ടെങ്കിൽ സാത്വിക ഭക്ഷണവും യോഗയും വഴി ശുക്രധാതുവിനെ ശുദ്ധീകരിക്കുക.\n\nഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിക്ക് രുദ്രാഭിഷേകം നടത്തുകയും നിത്യവും 'ഓം നമഃ ശിവായ' ജപിക്കുകയും ചെയ്യുന്നത് മനസ്സിനെ ശുദ്ധീകരിക്കുകയും ശാന്തി നൽകുകയും ചെയ്യും.`;
+        case "mr":
+          return `नमस्कार ${session.name} जी. श्री क्षेत्र गोकर्णच्या पवित्र सान्निध्यात एक ज्येष्ठ दैवज्ञ म्हणून मी तुमच्या या अतिशय गुप्त व वैयक्तिक प्रश्नाचा पूर्ण गोपनीयतेने व वात्सल्याने स्वीकार करतो.\n\nवैदिक ज्योतिषात माणसाच्या नैसर्गिक कामवासनांना पाप न मानता त्यांच्या ग्रहांच्या प्रभावाचा सखोल विचार केला आहे. पत्रिकेत शुक्र (Venus) हा प्रेम, शारीरिक ऊर्जा व कामशक्तीचा कारक आहे, तर राहू (Rahu) अनावर आकर्षण, गुप्त संबंध व कामुक भ्रम निर्माण करतो. तुमच्या पत्रिकेतील सप्तम (कलत्र), अष्टम (गुप्त स्थान) व द्वादश (शयन सुख) भावांमुळे अशा प्रकारच्या गुप्त भावना जागृत होतात.\n\nअति अपराधीपणाची भावना मनात ठेवू नका, परंतु धर्माची मर्यादा कधीही ओलांडू नका. अनैतिक संबंध क्षणिक आकर्षण देतात, परंतु नंतर अष्टम भावाच्या प्रभावामुळे अपयश व मानसिक अशांती येते. शारीरिक चिंता असल्यास सात्त्विक आहार व प्राणायामाने शुक्र बलवान करा.\n\nगोकर्णच्या महाबळेश्वर महादेवाला रुद्राभिषेक केल्याने आणि नित्य 'ॐ नमः शिवाय' जप केल्याने मानसिक चंचलता शमून शांतता प्राप्त होते.`;
+        case "kn":
+        default:
+          return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ, ನಿಮ್ಮ ಅಂತರಂಗದ ಈ ರಹಸ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಅತ್ಯಂತ ಗೌಪ್ಯವಾಗಿ ಹಾಗೂ ವಾತ್ಸಲ್ಯಪೂರ್ಣವಾಗಿ ಸ್ವೀಕರಿಸುತ್ತೇನೆ.\n\nವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮಾನವ ಸಹಜವಾದ ಕಾಮನೆ (Kama) ಹಾಗೂ ದೈಹಿಕ ಆಕರ್ಷಣೆಗಳನ್ನು ಪಾಪವೆಂದು ನಿರಾಕರಿಸದೆ, ಅವುಗಳ ಗ್ರಹಸ್ಥಿತಿಯ ಮೂಲವನ್ನು ಸವಿಸ್ತಾರವಾಗಿ ವಿವರಿಸಲಾಗಿದೆ. ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ (Venus) ಗ್ರಹವು ಪ್ರೇಮ, ಸೌಂದರ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ಶಕ್ತಿಯ (ಶುಕ್ರ ಧಾತು) ಕಾರಕನಾಗಿದ್ದು, ರಾಹು (Rahu) ಗ್ರಹವು ತೀವ್ರವಾದ ಭ್ರಮೆ, ರಹಸ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಅತಿಯಾದ ವ್ಯಾಮೋಹವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಾನೆ. ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ (ಕಳತ್ರ), ಅಷ್ಟಮ (ಗುಪ್ತ ಸ್ಥಾನ) ಹಾಗೂ ದ್ವಾದಶ (ಶಯನ ಸುಖ) ಭಾವಗಳ ಸಂಯೋಗದಿಂದ ಇಂತಹ ತೀವ್ರ ರಹಸ್ಯ ಭಾವನೆಗಳು ಅಥವಾ ಗೊಂದಲಗಳು ಉಂಟಾಗುತ್ತವೆ.\n\nಇಂತಹ ವಿಷಯಗಳಲ್ಲಿ ಅತಿಯಾದ ಅಪರಾಧಿ ಭಾವನೆಯಿಂದ ಕುಗ್ಗಬೇಡಿ; ಆದರೆ ಧರ್ಮದ ಗೆರೆಯನ್ನು ಎಂದಿಗೂ ದಾಟಬೇಡಿ. ರಹಸ್ಯ ಅಥವಾ ಅನೈತಿಕ ಸಂಬಂಧಗಳು ಆರಂಭದಲ್ಲಿ ಆಕರ್ಷಕವಾಗಿ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಅಷ್ಟಮ ಭಾವದ ಪ್ರಭಾವದಿಂದ ಕೀರ್ತಿಭಂಗ ಹಾಗೂ ಮಾನಸಿಕ ಅಶಾಂತಿಗೆ ಕಾರಣವಾಗುತ್ತವೆ. ದೈಹಿಕ ದೌರ್ಬಲ್ಯ ಅಥವಾ ಲೈಂಗಿಕ ಚಿಂತೆಗಳಿದ್ದರೆ, ಸಾತ್ವಿಕ ಆಹಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಆಯುರ್ವೇದ ಪದ್ಧತಿಯಿಂದ ಶುಕ್ರ ಧಾತುವನ್ನು ಬಲಪಡಿಸಿಕೊಳ್ಳಿ.\n\nಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಹಾಗೂ ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸುವುದರಿಂದ ಮನಸ್ಸಿನ ಕಾಮಾಗ್ನಿಯು ಶಮನವಾಗಿ, ಸಕಲ ಶುಭ ಹಾಗೂ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.`;
+      }
+
+    case "SILLY_TROLLING_MOCKERY":
+      switch (session.language) {
+        case "en":
+          return `Dear devotee, this sacred 20-minute consultation room of Sri Kshetra Gokarna is consecrated exclusively for authentic Vedic horoscope analysis, genuine life dilemmas, and spiritual counsel.\n\nFrivolous, fictional, comedic, or mocking inquiries have no place in Vedic Shastra and will not be entertained.\n\nPlease do not squander this precious consultation time; kindly ask sincere questions regarding your real life, family, career, health, or spiritual welfare.`;
+        case "hi":
+          return `प्रिय भक्त, श्री क्षेत्र गोकर्ण का यह पवित्र 20 मिनट का परामर्श समय आपके वास्तविक जीवन की समस्याओं, कुंडली, भविष्य और आध्यात्मिक मार्गदर्शन के लिए समर्पित है।\n\nकाल्पनिक पात्रों, हास्यास्पद, व्यंग्यात्मक या अर्थहीन प्रश्नों के लिए वैदिक शास्त्र में कोई स्थान नहीं है और न ही इनका उत्तर दिया जाएगा।\n\nकृपया इस अमूल्य समय को व्यर्थ न करें और अपने वास्तविक जीवन, परिवार, आजीविका, स्वास्थ्य अथवा आध्यात्मिक कल्याण से संबंधित गंभीर एवं सार्थक प्रश्न पूछें।`;
+        case "te":
+          return `ప్రియ భక్తుడా, శ్రీ క్షేత్ర గోకర్ణ యొక్క ఈ పవిత్ర 20 నిమిషాల సంభాషణ సమయం మీ వాస్తవ జీవిత సమస్యలు, జాతకం, భవిష్యత్తు మరియు ఆధ్యాత్మిక మార్గదర్శనం కోసం కేటాయించబడింది.\n\nకాల్పనిక పాత్రలు, పరిహాసాలు లేదా అర్థం లేని ప్రశ్నలకు వైదిక శాస్త్రంలో ఎటువంటి తావు లేదు, వీటికి సమాధానం ఇవ్వబడదు.\n\nదయచేసి ఈ విలువైన సమయాన్ని వృధా చేయకుండా, మీ జీవితం, కుటుంబం, ఆరోగ్యం లేదా ఉద్యోగానికి సంబంధించిన వాస్తవిక ప్రశ్నలను అడగండి.`;
+        case "ta":
+          return `அன்பான பக்தரே, ஸ்ரீ க்ஷேத்ர கோகர்ணத்தின் இந்த 20 நிமிட கலந்தாய்வு நேரம் உங்கள் உண்மையான வாழ்க்கைச் சிக்கல்கள், ஜாதகம் மற்றும் ஆன்மீக வழிகாட்டலுக்கு மட்டுமே உரியது.\n\nகற்பனைக் கதைகள், நகைச்சுவை அல்லது அர்த்தமற்ற கேலி கேள்விகளுக்கு வேத சாஸ்திரத்தில் எந்த இடமும் இல்லை, இவற்றுக்கு விடை அளிக்கப்படாது.\n\nதயவுசெய்து இந்த விலைமதிப்பற்ற நேரத்தை வீணடிக்காமல், உங்கள் வாழ்க்கை, குடும்பம், தொழில் அல்லது ஆரோக்கியம் சார்ந்த பயனுள்ள கேள்விகளைக் கேளுங்கள்.`;
+        case "ml":
+          return `പ്രിയ ഭക്തരേ, ശ്രീ ക്ഷേത്ര ഗോകർണ്ണത്തിലെ ഈ 20 മിനിറ്റ് പുണ്യ സമാലോചനാ സമയം നിങ്ങളുടെ ജീവിത പ്രശ്നങ്ങൾ, ജാതകം, ഭാവി എന്നിവയ്ക്കുള്ള ആധികാരിക മാർഗ്ഗദർശനത്തിനായുള്ളതാണ്.\n\nഅർത്ഥശൂന്യമായ ചോദ്യങ്ങൾക്കോ സാങ്കൽപ്പിക കഥാപാത്രങ്ങൾക്കോ പരിഹാസങ്ങൾക്കോ വേദശാസ്ത്രത്തിൽ മറുപടിയില്ല.\n\nദയവായി ഈ വിലപ്പെട്ട സമയം പാഴാക്കാതെ നിങ്ങളുടെ കുടുംബം, കരിയർ, ആരോഗ്യം എന്നിവയെക്കുറിച്ചുള്ള ആത്മാർത്ഥമായ ചോദ്യങ്ങൾ ചോദിക്കുക.`;
+        case "mr":
+          return `प्रिय भक्ता, श्री क्षेत्र गोकर्णचा हा पवित्र 20 मिनिटांचा सल्ला मसलतीचा वेळ तुमच्या जीवनातील वास्तव समस्या, कुंडली व अध्यात्मिक मार्गदर्शनासाठी राखीव आहे.\n\nकाल्पनिक पात्रांवर आधारित, उपहासात्मक किंवा निरर्थक प्रश्नांना वैदिक शास्त्रात कोणतेही स्थान नाही व त्यांचे उत्तर दिले जाणार नाही.\n\nकृपया हा मौल्यवान वेळ वाया न घालवता आपले कुटुंब, नोकरी, आरोग्य किंवा जीवनातील महत्त्वाच्या विषयांवर प्रामाणिकपणे प्रश्न विचारा.`;
+        case "kn":
+        default:
+          return `ಭಕ್ತರೇ, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಈ ಪವಿತ್ರ ೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನಾ ಕೊಠಡಿಯು ಭಕ್ತರ ನೈಜ ಜೀವನದ ಸಮಸ್ಯೆಗಳು, ಜಾತಕ, ಭವಿಷ್ಯ ಹಾಗೂ ಧಾರ್ಮಿಕ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮಾತ್ರ ಮುಡಿಪಾಗಿದೆ.\n\nಇಂತಹ ಕಟ್ಟುಕತೆ, ಚಲನಚಿತ್ರದ ಪಾತ್ರಗಳು, ಹಾಸ್ಯಾಸ್ಪದ ಅಥವಾ ಅರ್ಥಹೀನ ಪ್ರಶ್ನೆಗಳಿಗೆ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಯಾವುದೇ ಉತ್ತರವಿಲ್ಲ ಹಾಗೂ ಇವುಗಳಿಗೆ ಉತ್ತರ ನೀಡುವುದಿಲ್ಲ.\n\nದಯವಿಟ್ಟು ಈ ಅಮೂಲ್ಯವಾದ ಕಾಲಾವಕಾಶವನ್ನು ವ್ಯರ್ಥಮಾಡದೆ, ನಿಮ್ಮ ಜೀವನ, ಕುಟುಂಬ, ಆರೋಗ್ಯ, ವೃತ್ತಿ ಅಥವಾ ಆಧ್ಯಾತ್ಮಿಕ ಶ್ರೇಯಸ್ಸಿನ ಕುರಿತು ಸದ್ಭಾವನೆಯಿಂದ ಹಾಗೂ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಿ.`;
+      }
+
     case "CELEBRITY_FANTASY":
       if (isEn) {
         return `Namaste ${session.name}. Listening to your question with fatherly affection, let me guide you with gentle truth and Vedic wisdom.\n\nFirst, recognize the reality of this world: the celebrity or actress you speak of is already happily married, with her own established family and life journey. Spending your precious mental energy and youthful years pursuing unattainable daydreams will only bring disillusionment.\n\nLook closely at the accomplished, hardworking individuals who achieve great heights in life. If you wish to attract a high-stature and noble partner, you must first build exceptional character, work diligently, earn an honorable livelihood, and establish respect in society. Your birth chart (${lagnaName} Lagna) shows strong inner resilience. Channel your energy away from screen illusions into your real-world career and self-growth, and by divine grace, you will be blessed with a loving and virtuous life partner suited for your real life.`;

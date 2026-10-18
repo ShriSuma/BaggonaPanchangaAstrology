@@ -854,23 +854,25 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               </div>
             )}
 
-            {/* General Navigation Buttons */}
-            <div className="flex flex-col gap-2 pt-1">
-              <button
-                type="button"
-                onClick={handleGoToKundli}
-                className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs text-xs transition flex items-center justify-center gap-1.5"
-              >
-                <span>📊</span> ಜಾತಕಕ್ಕೆ ಹಿಂತಿರುಗಿ (Back to Kundali)
-              </button>
-              <button
-                type="button"
-                onClick={handleGoHome}
-                className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5"
-              >
-                <span>🏠</span> ಮುಖಪುಟಕ್ಕೆ ತೆರಳಿ (Go to Home)
-              </button>
-            </div>
+            {/* General Navigation Buttons (Only visible to verified Super Admin, never end-users) */}
+            {isMasterOrSuperAdmin && (
+              <div className="flex flex-col gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleGoToKundli}
+                  className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs text-xs transition flex items-center justify-center gap-1.5"
+                >
+                  <span>📊</span> ಜಾತಕಕ್ಕೆ ಹಿಂತಿರುಗಿ (Back to Kundali)
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGoHome}
+                  className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5"
+                >
+                  <span>🏠</span> ಮುಖಪುಟಕ್ಕೆ ತೆರಳಿ (Go to Home)
+                </button>
+              </div>
+            )}
 
             <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900">
               <p className="font-bold">ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ</p>
@@ -1051,7 +1053,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               </div>
             )}
 
-            {/* General Navigation Buttons */}
+            {/* General Navigation Buttons (Only visible to verified Super Admin, never end-users) */}
             <div className="flex flex-col gap-2 pt-1">
               {!noTokenProvided && (
                 <button
@@ -1062,20 +1064,24 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   🔄 ಮರುಪ್ರಯತ್ನಿಸಿ (Retry Loading)
                 </button>
               )}
-              <button
-                type="button"
-                onClick={handleGoToKundli}
-                className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs text-xs transition flex items-center justify-center gap-1.5"
-              >
-                <span>📊</span> ಜಾತಕಕ್ಕೆ ಹಿಂತಿರುಗಿ (Back to Kundali)
-              </button>
-              <button
-                type="button"
-                onClick={handleGoHome}
-                className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5"
-              >
-                <span>🏠</span> ಮುಖಪುಟಕ್ಕೆ ತೆರಳಿ (Go to Home)
-              </button>
+              {isMasterOrSuperAdmin && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGoToKundli}
+                    className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs text-xs transition flex items-center justify-center gap-1.5"
+                  >
+                    <span>📊</span> ಜಾತಕಕ್ಕೆ ಹಿಂತಿರುಗಿ (Back to Kundali)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGoHome}
+                    className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5"
+                  >
+                    <span>🏠</span> ಮುಖಪುಟಕ್ಕೆ ತೆರಳಿ (Go to Home)
+                  </button>
+                </>
+              )}
             </div>
 
             <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 mt-2">

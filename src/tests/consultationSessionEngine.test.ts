@@ -1098,7 +1098,7 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       const knAstro = await computeDevoteeKundli({ ...baseDevotee, language: "kn" });
       expect(knAstro.lagnaName).toBe("ಕರ್ಕಾಟಕ");
       expect(knAstro.moonRashi).toBe("ಸಿಂಹ");
-      expect(knAstro.nakshatra).toBe("ಪುನರ್ವಸು");
+      expect(knAstro.nakshatra).toBe("ಮಘಾ");
       expect(knAstro.currentDashaText).toContain("ಮಹಾದಶಾ");
       expect(knAstro.lagnaName).not.toMatch(/[a-zA-Z]/);
 
@@ -1141,6 +1141,129 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       const enAstro = await computeDevoteeKundli({ ...baseDevotee, language: "en" });
       expect(enAstro.lagnaName).toContain("Cancer");
       expect(enAstro.currentDashaText).toContain("Mahadasha");
+    });
+  });
+
+  describe("10. Secret / Intimate ('Dirty') Queries & Frivolous / Silly Mockery Guard", () => {
+    const mockSession: ConsultationSession = {
+      id: "sec-test-sess-10",
+      name: "Sincere Seeker",
+      dob: "1992-04-10",
+      tob: "14:15",
+      place: "Bangalore",
+      lat: 12.9716,
+      lng: 77.5946,
+      timezone: 5.5,
+      language: "en",
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 20 * 60 * 1000).toISOString(),
+      status: "active",
+      hasProvidedContact: false,
+      bonusMinuteClaimed: false,
+      durationMinutes: 20,
+      graceDeleteMinutes: 20,
+      messages: [],
+      priestName: "Shreeram Pandit",
+      priestPhone: "9972339362"
+    };
+
+    it("should accurately categorize secret, intimate, taboo, or extramarital queries as SECRET_INTIMATE_TABOO", () => {
+      expect(senseAndCategorizeQuestion("I am having a secret affair outside marriage, will I get caught?", mockSession).category).toBe("SECRET_INTIMATE_TABOO");
+      expect(senseAndCategorizeQuestion("Struggling with sexual addiction, pornography, and low vitality, what does my horoscope say?", mockSession).category).toBe("SECRET_INTIMATE_TABOO");
+      expect(senseAndCategorizeQuestion("ನಾನು ರಹಸ್ಯ ಪ್ರೇಮ ಸಂಬಂಧದಲ್ಲಿದ್ದೇನೆ, ಗುಪ್ತ ಇಷ್ಟಾರ್ಥಗಳು ಕಾಡುತ್ತಿವೆ", mockSession).category).toBe("SECRET_INTIMATE_TABOO");
+      expect(senseAndCategorizeQuestion("मेरा गुप्त संबंध है और वासना मन को अशांत कर रही है", mockSession).category).toBe("SECRET_INTIMATE_TABOO");
+      expect(senseAndCategorizeQuestion("Is my partner having a clandestine affair? My 7th house and Shukra condition?", mockSession).category).toBe("SECRET_INTIMATE_TABOO");
+    });
+
+    it("should accurately categorize frivolous, absurd, trolling, and cartoon queries as SILLY_TROLLING_MOCKERY", () => {
+      expect(senseAndCategorizeQuestion("Tell me a funny joke haha lol", mockSession).category).toBe("SILLY_TROLLING_MOCKERY");
+      expect(senseAndCategorizeQuestion("Can Superman defeat Batman according to Jyotisha?", mockSession).category).toBe("SILLY_TROLLING_MOCKERY");
+      expect(senseAndCategorizeQuestion("Will aliens eat pizza on Mars tomorrow? rofl", mockSession).category).toBe("SILLY_TROLLING_MOCKERY");
+      expect(senseAndCategorizeQuestion("ನನಗೆ ಕಾಮಿಡಿ ಕಥೆ ಅಥವಾ ತಮಾಷೆ ಜೋಕ್ ಹೇಳಿ", mockSession).category).toBe("SILLY_TROLLING_MOCKERY");
+      expect(senseAndCategorizeQuestion("asdfghjklqwerty zxcvbnm", mockSession).category).toBe("SILLY_TROLLING_MOCKERY");
+    });
+
+    it("should provide compassionate, fatherly Vedic guidance (7th/8th/12th houses, Shukra, Gokarna Rudrabhisheka) for SECRET_INTIMATE_TABOO queries", async () => {
+      const reply = await presentConsultationReply({
+        session: mockSession,
+        userQuestion: "I am having a secret affair and feel guilty, how to resolve this through Jyotisha?"
+      });
+
+      expect(reply.sensedContext.category).toBe("SECRET_INTIMATE_TABOO");
+      // Must refer to Vedic astrological houses/planets (7th, 8th, Shukra, Rahu)
+      expect(reply.fullText.toLowerCase()).toMatch(/(shukra|venus|7th|8th|12th|rahu|kama|vitality|gokarna)/);
+      // Must include Gokarna spiritual remedy
+      expect(reply.fullText.toLowerCase()).toMatch(/(rudrabhisheka|gokarna|shiva|parameshwara|sankalpa)/);
+      // Must NOT be an automated refusal or scolding
+      expect(reply.fullText.toLowerCase()).not.toContain("cannot assist");
+      expect(reply.fullText.toLowerCase()).not.toContain("i am an ai");
+    });
+
+    it("should firmly refuse frivolous/silly queries and protect the sacred 20-minute Gokarna consultation room", async () => {
+      const reply = await presentConsultationReply({
+        session: mockSession,
+        userQuestion: "Can Batman beat Spiderman in a fight? lol"
+      });
+
+      expect(reply.sensedContext.category).toBe("SILLY_TROLLING_MOCKERY");
+      // Priest firmly instructs devotee to ask sincere questions
+      expect(reply.fullText.toLowerCase()).toMatch(/(sacred|frivolous|consecrated|genuine|sincere|20-minute|dilemma|gokarna)/);
+      // Must not validate the cartoon question with fake horoscope
+      expect(reply.fullText.toLowerCase()).not.toContain("batman's lagna is");
+    });
+
+    it("should provide pure Indic responses without English leakage for both categories in Kannada and Hindi", async () => {
+      const knSession: ConsultationSession = { ...mockSession, language: "kn" };
+      const hiSession: ConsultationSession = { ...mockSession, language: "hi" };
+
+      // Kannada secret query
+      const knSecret = await presentConsultationReply({
+        session: knSession,
+        userQuestion: "ಗುಪ್ತ ಆಕರ್ಷಣೆ ಮತ್ತು ಕಾಮ ವಾಸನೆಗಳ ಪರಿಹಾರವೇನು?"
+      });
+      expect(knSecret.sensedContext.category).toBe("SECRET_INTIMATE_TABOO");
+      expect(knSecret.fullText).toMatch(/(ಶುಕ್ರ|ರಾಹು|ಕಳತ್ರ|ಗೋಕರ್ಣ|ರುದ್ರಾಭಿಷೇಕ)/);
+
+      // Kannada silly query
+      const knSilly = await presentConsultationReply({
+        session: knSession,
+        userQuestion: "ತಮಾಷೆ ಜೋಕ್ ಹೇಳಿ lol"
+      });
+      expect(knSilly.sensedContext.category).toBe("SILLY_TROLLING_MOCKERY");
+      expect(knSilly.fullText).toMatch(/(ಪವಿತ್ರ|ಹಾಸ್ಯ|ಗಂಭೀರ|ಪ್ರಶ್ನೆ|ಗೋಕರ್ಣ)/);
+
+      // Hindi silly query
+      const hiSilly = await presentConsultationReply({
+        session: hiSession,
+        userQuestion: "मजेदार चुटकुला सुनाओ हाहा lol"
+      });
+      expect(hiSilly.sensedContext.category).toBe("SILLY_TROLLING_MOCKERY");
+      expect(hiSilly.fullText).toMatch(/(पवित्र|गंभीर|गोकर्ण|सच्ची)/);
+    });
+
+    it("should enforce impenetrable security sandbox: expired session strictly rejects new messages in DB", async () => {
+      const created = await createConsultationSession({
+        name: "Late Devotee",
+        dob: "1990-01-01",
+        tob: "10:00",
+        place: "Gokarna",
+        lat: 14.54,
+        lng: 74.31,
+        timezone: 5.5,
+        language: "en"
+      });
+      await expireConsultationSession(created.id);
+
+      const postExpiryMessage = {
+        id: "msg-post-expiry",
+        sender: "user" as const,
+        text: "Can I still ask after 20 minutes?",
+        timestamp: new Date().toISOString()
+      };
+
+      await expect(addConsultationMessage(created.id, postExpiryMessage)).rejects.toThrow(
+        /Consultation session has expired/
+      );
     });
   });
 });
