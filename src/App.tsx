@@ -50,6 +50,9 @@ import KundliGurukulaPage from "./pages/KundliGurukulaPage";
 import GuidedPoojaPage from "./pages/GuidedPoojaPage";
 import PoojaEstimatePage from "./pages/PoojaEstimatePage";
 import DevoteePackageDownloadPage from "./pages/DevoteePackageDownloadPage";
+import ConsultationChatPage from "./features/consultation/ConsultationChatPage";
+import ConsultationGeneratorPage from "./features/consultation/ConsultationGeneratorPage";
+import { SandhyavandanaPage } from "./features/sandhyavandana/SandhyavandanaPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -72,14 +75,36 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/purohita")
   );
 
-  const isAcademyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && (
+  const isConsultationRoute = typeof window !== "undefined" && (
+    window.location.pathname.startsWith("/consultation") ||
+    window.location.pathname.startsWith("/chat-session") ||
+    window.location.pathname.startsWith("/astrology-chat") ||
+    window.location.search.includes("portal=consultation") ||
+    window.location.search.includes("portal=chat_session") ||
+    window.location.search.includes("portal=chat") ||
+    window.location.search.includes("session=") ||
+    window.location.hash.includes("#/consultation") ||
+    window.location.hash.includes("#/chat-session") ||
+    window.location.hash.includes("#consultation")
+  );
+
+  const isConsultationGeneratorRoute = typeof window !== "undefined" && !isConsultationRoute && (
+    window.location.pathname.startsWith("/consultation-generator") ||
+    window.location.pathname.startsWith("/link-generator") ||
+    window.location.search.includes("portal=consultation_generator") ||
+    window.location.search.includes("portal=link_generator") ||
+    window.location.hash.includes("#/consultation-generator") ||
+    window.location.hash.includes("#consultation-generator")
+  );
+
+  const isAcademyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (
     window.location.pathname.startsWith("/academy") ||
     window.location.pathname.startsWith("/learnkundli") ||
     window.location.search.includes("academyToken=") ||
     (window.location.search.includes("game=learnkundli") && window.location.search.includes("mode=standalone"))
   );
 
-  const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && (
+  const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (
     window.location.pathname.startsWith("/daily") ||
     window.location.pathname.startsWith("/darshana") ||
     window.location.search.includes("token=") ||
@@ -251,6 +276,21 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#package-download")
   );
 
+  const isSandhyavandanaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
+    window.location.pathname.startsWith("/sandhyavandana") ||
+    window.location.pathname.startsWith("/sandhya-vandana") ||
+    window.location.pathname.startsWith("/sandhya") ||
+    window.location.search.includes("portal=sandhyavandana") ||
+    window.location.search.includes("portal=sandhya") ||
+    window.location.search.includes("page=sandhyavandana") ||
+    window.location.search.includes("page=sandhya") ||
+    window.location.search.includes("svToken=") ||
+    window.location.search.includes("token=bgn_sv_") ||
+    window.location.hash.includes("#/sandhyavandana") ||
+    window.location.hash.includes("#sandhyavandana") ||
+    window.location.hash.includes("#/sandhya")
+  );
+
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -343,6 +383,9 @@ export default function App(): JSX.Element {
             urlParams.has("portal") ||
             urlParams.has("fromCal") ||
             urlParams.has("reset") ||
+            urlParams.has("session") ||
+            isConsultationRoute ||
+            isConsultationGeneratorRoute ||
             isDailyRoute ||
             isAcademyRoute ||
             isPublicKundliRoute ||
@@ -372,7 +415,26 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute]);
+
+  if (isConsultationRoute) {
+    return (
+      <ErrorBoundary>
+        <ConsultationChatPage />
+      </ErrorBoundary>
+    );
+  }
+
+  if (isConsultationGeneratorRoute) {
+    if (!isAuthenticated) {
+      return <LoginPage />;
+    }
+    return (
+      <ErrorBoundary>
+        <ConsultationGeneratorPage />
+      </ErrorBoundary>
+    );
+  }
 
   if (isPriestPanchangaRoute) {
     return <PriestPanchangaPage />;
@@ -480,6 +542,14 @@ export default function App(): JSX.Element {
     );
   }
 
+  if (isSandhyavandanaRoute) {
+    return (
+      <ErrorBoundary>
+        <SandhyavandanaPage />
+      </ErrorBoundary>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-300">
@@ -553,6 +623,7 @@ export default function App(): JSX.Element {
         {currentPage === "guided_pooja" && <GuidedPoojaPage />}
         {currentPage === "pooja_estimate" && <PoojaEstimatePage />}
         {currentPage === "package_download" && <DevoteePackageDownloadPage />}
+        {currentPage === "sandhyavandana" && <SandhyavandanaPage />}
       </Layout>
     </ErrorBoundary>
   );

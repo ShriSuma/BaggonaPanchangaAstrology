@@ -59,6 +59,7 @@ import { DivyaKaalaDiksuchiPage } from "../../pages/DivyaKaalaDiksuchiPage";
 import { HindinaJanmaPage } from "../../pages/HindinaJanmaPage";
 import PublicKundliPage from "../../pages/PublicKundliPage";
 import GuidedPoojaPage from "../../pages/GuidedPoojaPage";
+import { ConsultationGeneratorPage } from "../consultation/ConsultationGeneratorPage";
 import { FloatingCoinDeductionBadge } from "../../components/wallet/FloatingCoinDeductionBadge";
 import { KundliChakraLoader } from "../../components/loaders/KundliChakraLoader";
 import { BhavishyaMasterLoader } from "../../components/loaders/BhavishyaMasterLoader";
@@ -176,6 +177,7 @@ export type PriestTab =
   | "purva_janma"
   | "vahana_muhurtha"
   | "guided_pooja"
+  | "consultation_generator"
   | "wallet";
 
 const PRIEST_KUNDLI_STORAGE_KEY = "baggona_priest_kundli_active_session";
@@ -272,6 +274,8 @@ export const PriestMobilePortal: React.FC = () => {
     }
     // Sacred Guided Pooja Desk
     tabs.push({ id: "guided_pooja", label: "ಪೂಜಾ ಮಾರ್ಗದರ್ಶನ", icon: "🪔" });
+    // 20-Minute Consultation Link Generator Desk
+    tabs.push({ id: "consultation_generator", label: "೨೦-ನಿಮಿಷ ಚಾಟ್", icon: "🔗" });
     // Always include Wallet tab
     tabs.push({ id: "wallet", label: "ವಾಲೆಟ್", icon: "🪙" });
     return tabs;
@@ -2597,6 +2601,13 @@ export const PriestMobilePortal: React.FC = () => {
       {activeTab === "guided_pooja" && (
         <div className="px-1 mt-2">
           <GuidedPoojaPage />
+        </div>
+      )}
+
+      {/* 20-Minute Consultation Link Generator Desk */}
+      {activeTab === "consultation_generator" && (
+        <div className="px-1 mt-2">
+          <ConsultationGeneratorPage />
         </div>
       )}
 

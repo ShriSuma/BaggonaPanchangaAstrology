@@ -49,7 +49,8 @@ export async function askGemini(
     "kn": "Kannada",
     "te": "Telugu",
     "ta": "Tamil",
-    "ml": "Malayalam"
+    "ml": "Malayalam",
+    "mr": "Marathi"
   };
   
   const targetLanguage = languageNames[language.split('-')[0]] || "English";

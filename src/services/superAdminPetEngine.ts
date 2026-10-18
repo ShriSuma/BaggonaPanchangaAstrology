@@ -703,6 +703,43 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       kn: "ಜನನ ಕುಂಡಲಿ, ೧೦-ಅಧ್ಯಾಯ ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ, ಪರಿಹಾರ, ದೋಷಗಳು, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಮತ್ತು ೩೦/೯೦/೧೨೦ ದಿನಗಳ ಅರ್ಚಕರ QR ಕೋಡ್‌ಗಳನ್ನು ಒಂದೇ ಜಿಪ್ (ZIP) ಫೈಲ್‌ನಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
       en: "Download complete 7-report Vedic package and 30/90/120 days Priest QR codes in a single bundled ZIP file."
     }
+  },
+  sandhyavandana: {
+    name: {
+      kn: "ಸಂಧ್ಯಾ ವಂದನಾ ಮಹಾವಿಧಿ (Sandhyavandana)",
+      en: "Vedic Sandhyavandana Ritual & Mantras",
+      hi: "त्रिकाल संध्या वंदन महाविधि",
+      te: "సంధ్యావందనం మహావిధి",
+      ta: "சந்த்யாவந்தனம் மஹாவிதி"
+    },
+    category: "wisdom",
+    icon: "🕉️",
+    keywords: [
+      "sandhyavandana",
+      "sandhya",
+      "pratah sandhya",
+      "madhyahna sandhya",
+      "sayam sandhya",
+      "gayatri",
+      "gayatri japa",
+      "arghya",
+      "achamana",
+      "bhasma",
+      "gotra pravara",
+      "abhivadana",
+      "ಸಂಧ್ಯಾ ವಂದನೆ",
+      "ಸಂಧ್ಯಾ",
+      "ಗಾಯತ್ರಿ",
+      "ಅರ್ಘ್ಯ",
+      "ಆಚಮನ",
+      "ಭಸ್ಮ",
+      "ಪ್ರವರ",
+      "ಗೋತ್ರ"
+    ],
+    description: {
+      kn: "ಕರ್ನಾಟಕ ಉತ್ತರ ಕನ್ನಡ ಗೋಕರ್ಣ ಸಂಪ್ರದಾಯದ ತ್ರಿಕಾಲ ಸಂಧ್ಯಾವಂದನೆ, ೧೪ ಹಂತಗಳ ಕೈಕರಣ ವಿಧಿ, ಮಂತ್ರಗಳು, ೧೬+ ಗೋತ್ರ ಪ್ರವರ ಮತ್ತು ೪ ಮಹಾಮಂತ್ರಗಳ ಕಲಿಕೆ.",
+      en: "Authentic Karnataka Vedic Trikaala Sandhyavandana, 14 ritual steps with Kaikarana, 16+ Gotra Pravara Abhivadana, and 4 sacred Mahamantras."
+    }
   }
 };
 

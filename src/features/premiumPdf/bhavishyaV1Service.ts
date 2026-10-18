@@ -507,11 +507,12 @@ export async function prepareBhavishyaV1Data(
   ).trim();
 
   const failedAiSectionsV1: string[] = [];
-  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 9000, maxAttempts = 2): Promise<string> => {
+  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 10000, maxAttempts = 3): Promise<string> => {
     if (!effectiveGeminiApiKey || effectiveGeminiApiKey === "none" || effectiveGeminiApiKey === "mock" || effectiveGeminiApiKey.trim() === "") {
       failedAiSectionsV1.push(label);
       return "";
     }
+    const cleanLabel = label.replace(/^(Generate|Retry)\s*/i, "");
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const timeoutPromise = new Promise<string>((resolve) =>
@@ -531,7 +532,13 @@ export async function prepareBhavishyaV1Data(
             return "";
           }
           if (attempt < maxAttempts) {
-            await new Promise((r) => setTimeout(r, attempt * 400));
+            const retryNotice = lang === "kn"
+              ? `ಗಮನಿಸಿ: '${cleanLabel}' ವಿಭಾಗದಲ್ಲಿ ಮರು-ಪ್ರಯತ್ನಿಸಲಾಗುತ್ತಿದೆ (ಪ್ರಯತ್ನ ${attempt + 1}/${maxAttempts})...`
+              : lang === "hi"
+              ? `सूचना: '${cleanLabel}' खंड में पुनः प्रयास किया जा रहा है (${attempt + 1}/${maxAttempts})...`
+              : `Notice: Retrying '${cleanLabel}' AI narration (Attempt ${attempt + 1}/${maxAttempts})...`;
+            onProgress?.(Math.min(85, Math.max(35, 30 + attempt * 12)), retryNotice);
+            await new Promise((r) => setTimeout(r, attempt * 600));
             continue;
           }
           failedAiSectionsV1.push(label);
@@ -542,8 +549,14 @@ export async function prepareBhavishyaV1Data(
         }
         // If raw is empty or too short (e.g. timeout resolved to ""), retry if attempt < maxAttempts
         if (attempt < maxAttempts) {
-          console.warn(`[bhavishyaV1Service] AI call for ${label} returned empty/short on attempt ${attempt}/${maxAttempts}. Retrying...`);
-          await new Promise((r) => setTimeout(r, attempt * 400));
+          const retryNotice = lang === "kn"
+            ? `ಗಮನಿಸಿ: '${cleanLabel}' ವಿಭಾಗದಲ್ಲಿ ಮರು-ಪ್ರಯತ್ನಿಸಲಾಗುತ್ತಿದೆ (ಪ್ರಯತ್ನ ${attempt + 1}/${maxAttempts})...`
+            : lang === "hi"
+            ? `सूचना: '${cleanLabel}' खंड में पुनः प्रयास किया जा रहा है (${attempt + 1}/${maxAttempts})...`
+            : `Notice: Retrying '${cleanLabel}' AI narration (Attempt ${attempt + 1}/${maxAttempts})...`;
+          console.warn(`[bhavishyaV1Service] AI call for ${label} returned empty/short on attempt ${attempt}/${maxAttempts}. ${retryNotice}`);
+          onProgress?.(Math.min(85, Math.max(35, 30 + attempt * 12)), retryNotice);
+          await new Promise((r) => setTimeout(r, attempt * 600));
           continue;
         }
         failedAiSectionsV1.push(label);
@@ -551,7 +564,13 @@ export async function prepareBhavishyaV1Data(
       } catch (e) {
         console.warn(`[bhavishyaV1Service] AI call failed for ${label} (attempt ${attempt}/${maxAttempts}):`, e);
         if (attempt < maxAttempts) {
-          await new Promise((r) => setTimeout(r, attempt * 400));
+          const retryNotice = lang === "kn"
+            ? `ಗಮನಿಸಿ: '${cleanLabel}' ವಿಭಾಗದಲ್ಲಿ ಮರು-ಪ್ರಯತ್ನಿಸಲಾಗುತ್ತಿದೆ (ಪ್ರಯತ್ನ ${attempt + 1}/${maxAttempts})...`
+            : lang === "hi"
+            ? `सूचना: '${cleanLabel}' खंड में पुनः प्रयास किया जा रहा है (${attempt + 1}/${maxAttempts})...`
+            : `Notice: Retrying '${cleanLabel}' AI narration (Attempt ${attempt + 1}/${maxAttempts})...`;
+          onProgress?.(Math.min(85, Math.max(35, 30 + attempt * 12)), retryNotice);
+          await new Promise((r) => setTimeout(r, attempt * 600));
           continue;
         }
         failedAiSectionsV1.push(label);
@@ -1548,21 +1567,47 @@ export async function captureBhavishyaV1Pdf(
       s.name.includes("சுருக்கம்")
     );
     if (!hasRenderedSaramsha) {
-      const domSummaryFound = sections.some(s =>
+      console.warn("[captureBhavishyaV1Pdf] Saramsha section canvas was not detected in primary pass. Attempting graceful recovery...");
+      const domSummaryEl = sections.find(s =>
         (s.getAttribute("data-section") || "").includes("summary") ||
         s.id === "pdf-section-summary"
       );
-      if (domSummaryFound && !renderedSections.some(s => (s.name || "").includes("summary"))) {
-        const errMsg = baseLang === "kn"
-          ? "ದೋಷ: ಸಾರಾಂಶ ಪುಟವನ್ನು ಮುದ್ರಿಸಲು ವಿಫಲವಾಗಿದೆ. ಡೌನ್‌ಲೋಡ್ ತಡೆಹಿಡಿಯಲಾಗಿದೆ."
-          : baseLang === "hi"
-          ? "त्रुटि: सारांश पृष्ठ को रेंडर करने में विफलता। डाउनलोड रोक दिया गया है।"
-          : baseLang === "te"
-          ? "లోపం: సారాంశం పేజీని రెండర్ చేయడంలో విఫలమైంది. డౌన్‌లోడ్ నిలిపివేయబడింది."
-          : baseLang === "ta"
-          ? "பிழை: சுருக்கம் பக்கத்தை உருவாக்க முடியவில்லை. பதிவிறக்கம் நிறுத்தப்பட்டது."
-          : "Error: Failed to render Astrologer's Summary (Saramsha) canvas. PDF download aborted.";
-        throw new BhavishyaValidationError(errMsg, ["Astrologer's Summary (Saramsha)"]);
+      if (domSummaryEl) {
+        try {
+          const tempSummaryBox = document.createElement("div");
+          tempSummaryBox.style.position = "absolute";
+          tempSummaryBox.style.left = "-9999px";
+          tempSummaryBox.style.top = "0";
+          tempSummaryBox.style.width = "900px";
+          tempSummaryBox.className = "bg-orange-50 text-amber-950 font-serif";
+
+          const summaryClone = domSummaryEl.cloneNode(true) as HTMLElement;
+          summaryClone.style.display = "block";
+          summaryClone.style.width = "100%";
+          tempSummaryBox.appendChild(summaryClone);
+          document.body.appendChild(tempSummaryBox);
+
+          const sumCanvas = await html2canvas(tempSummaryBox, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: "#FFF7ED",
+            allowTaint: true,
+            windowWidth: 900
+          });
+          document.body.removeChild(tempSummaryBox);
+
+          if (sumCanvas && sumCanvas.width > 0 && sumCanvas.height > 0) {
+            renderedSections.push({
+              imgData: sumCanvas.toDataURL("image/jpeg", 0.95),
+              heightMm: (sumCanvas.height * pdfWidthMm) / sumCanvas.width,
+              name: "summary-recovered"
+            });
+            console.log("[captureBhavishyaV1Pdf] Successfully recovered Saramsha section canvas.");
+          }
+        } catch (sumErr) {
+          console.warn("[captureBhavishyaV1Pdf] Summary recovery pass failed, proceeding with all rendered chapters:", sumErr);
+        }
       }
     }
 
