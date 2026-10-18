@@ -22,12 +22,12 @@ import {
 } from "./sandhyavandanaData";
 import type { SandhyaPeriod, SandhyaStep, GotraItem, FeaturedMantraItem, SandhyavandanaSession } from "./sandhyavandanaTypes";
 import {
-  createSandhyavandanaSession,
   getSandhyavandanaSession,
   updateSandhyavandanaProgress,
   decodeSecureSandhyavandanaToken
 } from "./sandhyavandanaDbService";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../audio/aiVoiceCloneEngine";
+import type { SevaLang } from "../seva/sevaLocale";
 
 export const SandhyavandanaPage: React.FC = () => {
   // Navigation State
@@ -54,10 +54,6 @@ export const SandhyavandanaPage: React.FC = () => {
   const [loadingSession, setLoadingSession] = useState<boolean>(false);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const [daysRemaining, setDaysRemaining] = useState<number>(90);
-  const [showShareModal, setShowShareModal] = useState<boolean>(false);
-  const [sharePhoneInput, setSharePhoneInput] = useState<string>("");
-  const [copiedLink, setCopiedLink] = useState<boolean>(false);
-  const [isCreatingLink, setIsCreatingLink] = useState<boolean>(false);
 
   // Auto-detect current Sandhya period on load
   useEffect(() => {
@@ -146,7 +142,7 @@ export const SandhyavandanaPage: React.FC = () => {
   // -------------------------------------------------------------
   // Audio Narrator Controller (Priest Voice)
   // -------------------------------------------------------------
-  const playPriestAudio = async (textToSpeak: string, itemId: string) => {
+  const playPriestAudio = async (textToSpeak: string, itemId: string, lang: SevaLang | "sa" = "kn") => {
     if (isPlayingAudio && playingItemId === itemId) {
       stopClonedAudio();
       if (activeVoiceCancelRef.current) {
@@ -170,7 +166,7 @@ export const SandhyavandanaPage: React.FC = () => {
     try {
       const cancelFn = await synthesizeAndPlayClonedVoice(
         textToSpeak,
-        "kn",
+        lang,
         "voice_sriram_pandit",
         () => {
           setIsPlayingAudio(false);
@@ -221,43 +217,6 @@ export const SandhyavandanaPage: React.FC = () => {
     }
   };
 
-  // -------------------------------------------------------------
-  // Create 3-Month Shareable Link
-  // -------------------------------------------------------------
-  const handleCreateShareLink = async () => {
-    setIsCreatingLink(true);
-    try {
-      const newSession = await createSandhyavandanaSession({
-        devoteeName: devoteeNameInput.trim() || "ದೇವದತ್ತ",
-        devoteePhone: sharePhoneInput.trim() || undefined,
-        devoteeGotraId: selectedGotraId,
-        sharmaName: `${devoteeNameInput.trim()} ಶರ್ಮ`,
-        preferredPeriod: selectedPeriod
-      });
-
-      setSession(newSession);
-      setDaysRemaining(90);
-      setSessionExpired(false);
-      setIsCreatingLink(false);
-    } catch (e) {
-      console.error("Failed to generate Sandhyavandana session link:", e);
-      setIsCreatingLink(false);
-    }
-  };
-
-  const shareableUrl = session
-    ? `${window.location.origin}/sandhyavandana?token=${session.token}`
-    : typeof window !== "undefined"
-    ? `${window.location.origin}/sandhyavandana`
-    : "";
-
-  const handleCopyLink = () => {
-    if (!shareableUrl) return;
-    navigator.clipboard.writeText(shareableUrl);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 3000);
-  };
-
   const personalizedAbhivadana = buildPersonalizedAbhivadana(selectedGotraId, devoteeNameInput);
   const activePeriodMeta = SANDHYA_PERIODS[selectedPeriod];
 
@@ -283,12 +242,7 @@ export const SandhyavandanaPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowShareModal(true)}
-              className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-serif text-xs font-bold px-3 py-1.5 rounded-xl border border-amber-300 shadow-md active:scale-95 transition flex items-center gap-1.5"
-            >
-              <span>🔗 ೩ ತಿಂಗಳ ಲಿಂಕ್</span>
-            </button>
+
             <a
               href="tel:9972339362"
               className="bg-amber-900/90 hover:bg-amber-950 text-amber-200 font-serif text-xs font-bold px-3 py-1.5 rounded-xl border border-amber-400/50 shadow-xs transition"
@@ -304,7 +258,7 @@ export const SandhyavandanaPage: React.FC = () => {
           ------------------------------------------------------------- */}
       {sessionExpired ? (
         <div className="w-full bg-red-100 border-b-2 border-red-400 p-3 text-center text-red-900 text-xs font-bold animate-in fade-in">
-          ⚠️ ಈ ಸಂಧ್ಯಾವಂದನಾ ಲಿಂಕ್‌ನ ೩ ತಿಂಗಳ (೯೦ ದಿನಗಳ) ಮಾನ್ಯತೆಯ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಹೊಸ ಲಿಂಕ್ ರಚಿಸಿಕೊಳ್ಳಲು '೩ ತಿಂಗಳ ಲಿಂಕ್' ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ.
+          ⚠️ ಈ ಸಂಧ್ಯಾವಂದನಾ ಲಿಂಕ್‌ನ ೩ ತಿಂಗಳ (೯೦ ದಿನಗಳ) ಮಾನ್ಯತೆಯ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಹೊಸ ಲಿಂಕ್ ಪಡೆಯಲು ದಯವಿಟ್ಟು ಮುಖ್ಯ ಅರ್ಚಕರನ್ನು ಸಂಪರ್ಕಿಸಿ: <a href="tel:9972339362" className="underline font-black">9972339362</a>.
         </div>
       ) : session ? (
         <div className="w-full bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 border-b border-amber-300 px-3 py-1.5 text-xs text-amber-900 flex items-center justify-between max-w-4xl mx-auto">
@@ -835,95 +789,6 @@ export const SandhyavandanaPage: React.FC = () => {
         )}
       </div>
 
-      {/* -------------------------------------------------------------
-          3-Month Shareable Link Generator Modal
-          ------------------------------------------------------------- */}
-      {showShareModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[#FAF6EE] border-3 border-amber-400 rounded-3xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="text-center space-y-1">
-              <div className="w-12 h-12 mx-auto rounded-2xl bg-amber-500 text-white text-2xl flex items-center justify-center shadow-md border border-amber-300">
-                🔗
-              </div>
-              <h3 className="text-lg font-serif font-black text-amber-950">
-                ೩ ತಿಂಗಳ ಸಂಧ್ಯಾವಂದನಾ ಶೇರಬಲ್ ಲಿಂಕ್
-              </h3>
-              <p className="text-xs text-amber-800 font-medium">
-                ಈ ಲಿಂಕ್ ೯೦ ದಿನಗಳ ಕಾಲ (೩ ತಿಂಗಳು) ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಮಾನ್ಯವಾಗಿರುತ್ತದೆ.
-              </p>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-amber-900 block">ಭಕ್ತರ ಹೆಸರು:</label>
-                <input
-                  type="text"
-                  value={devoteeNameInput}
-                  onChange={(e) => setDevoteeNameInput(e.target.value)}
-                  className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs text-amber-950 font-serif"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-amber-900 block">ಮೊಬೈಲ್ ನಂಬರ್ (ಐಚ್ಛಿಕ):</label>
-                <input
-                  type="tel"
-                  value={sharePhoneInput}
-                  onChange={(e) => setSharePhoneInput(e.target.value)}
-                  placeholder="ಉದಾ: 9876543210"
-                  className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs text-amber-950 font-serif"
-                />
-              </div>
-
-              {session ? (
-                <div className="space-y-2 pt-2">
-                  <div className="bg-amber-100/70 border border-amber-300 rounded-xl p-2.5 text-[11px] font-mono break-all text-amber-950">
-                    {shareableUrl}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleCopyLink}
-                      className="flex-1 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs py-2 rounded-xl shadow-xs transition"
-                    >
-                      {copiedLink ? "✓ ಲಿಂಕ್ ಕಾಪಿಯಾಗಿದೆ!" : "📋 ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ"}
-                    </button>
-                    <a
-                      href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                        `॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸಂಧ್ಯಾವಂದನಾ ಕಾರ್ಯಕ್ರಮ ॥\nವೈದಿಕ ಸಂಧ್ಯಾವಂದನೆ ಕಲಿಯಲು ಈ ಲಿಂಕ್ ಬಳಸಿ (೩ ತಿಂಗಳು ಮಾನ್ಯ):\n${shareableUrl}`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded-xl shadow-xs transition"
-                    >
-                      ವಾಟ್ಸಾಪ್
-                    </a>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleCreateShareLink}
-                  disabled={isCreatingLink}
-                  className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition disabled:opacity-50"
-                >
-                  {isCreatingLink ? "ಲಿಂಕ್ ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "✨ ೩ ತಿಂಗಳ ಲಿಂಕ್ ರಚಿಸಿ"}
-                </button>
-              )}
-            </div>
-
-            <div className="pt-2 text-center">
-              <button
-                type="button"
-                onClick={() => setShowShareModal(false)}
-                className="text-xs text-stone-500 hover:text-stone-800 font-bold"
-              >
-                ಮುಚ್ಚಿರಿ
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

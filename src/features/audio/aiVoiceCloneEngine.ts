@@ -289,6 +289,7 @@ export async function handleGenerateAudio(
     }
 
     audio.src = audioUrl;
+    audio.playbackRate = 0.90;
 
     let hasStarted = false;
     const notifyStart = () => {
@@ -352,7 +353,7 @@ export async function handleGenerateAudio(
 /**
  * Resolves the ultra-fast Indian Language male voice ID with RAM cache
  */
-export function getVoiceIdForLanguage(lang: SevaLang = "kn", customVoiceId?: string): string {
+export function getVoiceIdForLanguage(lang: SevaLang | "sa" = "kn", customVoiceId?: string): string {
   if (customVoiceId &&
       customVoiceId !== "voice_sriram_pandit" &&
       customVoiceId !== "voice_shrisuma_master" &&
@@ -366,6 +367,7 @@ export function getVoiceIdForLanguage(lang: SevaLang = "kn", customVoiceId?: str
     case "te": return "voice_telugu_male";
     case "ta": return "voice_tamil_male";
     case "hi": return "voice_hindi_male";
+    case "sa": return "voice_sriram_pandit";
     case "en":
     default: return "voice_kannada_male";
   }
@@ -427,7 +429,7 @@ export function splitTextIntoSentences(text: string): string[] {
  */
 export function streamSentencePipeline(
   text: string,
-  lang: SevaLang = "kn",
+  lang: SevaLang | "sa" = "kn",
   voiceId?: string,
   onEnd?: () => void,
   onStart?: () => void,
@@ -490,6 +492,7 @@ export function streamSentencePipeline(
     const url = buildVoiceStreamUrl(sentences[index], targetVoiceId);
     const cachedUrl = sentenceAudioMemoryCache.get(url);
     audio.src = cachedUrl || url;
+    audio.playbackRate = 0.90;
     audio.preload = "auto";
 
     // Speculatively pre-warm next sentences into server RAM cache and local memory cache
@@ -673,7 +676,7 @@ export function seekClonedAudio(deltaSeconds: number): void {
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
-  _lang: SevaLang = "kn",
+  _lang: SevaLang | "sa" = "kn",
   voiceId?: string,
   onEnd?: () => void,
   onStart?: () => void,
@@ -857,15 +860,16 @@ export async function prewarmIndicAudio(text: string, lang: SevaLang = "kn"): Pr
  */
 export function resolveBestVedicVoice(
   voices: SpeechSynthesisVoice[],
-  lang: SevaLang
+  lang: SevaLang | "sa"
 ): SpeechSynthesisVoice | null {
   if (!voices || voices.length === 0) return null;
 
-  const langPrefixes: Record<SevaLang, string[]> = {
+  const langPrefixes: Record<SevaLang | "sa", string[]> = {
     kn: ["kn-in", "kn_in", "kn"],
     hi: ["hi-in", "hi_in", "hi"],
     te: ["te-in", "te_in", "te"],
     ta: ["ta-in", "ta_in", "ta"],
+    sa: ["sa-in", "sa_in", "sa", "hi-in", "hi_in", "hi"],
     en: ["en-in", "en_in", "en-gb", "en-us", "en"]
   };
 
@@ -970,7 +974,7 @@ function playSacredChimeTone(): void {
  */
 export async function playStrictlyMaleWebSpeechDSP(
   text: string,
-  lang: SevaLang,
+  lang: SevaLang | "sa",
   profile: PriestVoiceProfile,
   onEnd?: () => void,
   config?: VoiceCloneConfig,
@@ -995,11 +999,12 @@ export async function playStrictlyMaleWebSpeechDSP(
   if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
 
   // Check if browser has any voice matching target language
-  const langPrefixes: Record<SevaLang, string[]> = {
+  const langPrefixes: Record<SevaLang | "sa", string[]> = {
     kn: ["kn-in", "kn_in", "kn"],
     hi: ["hi-in", "hi_in", "hi"],
     te: ["te-in", "te_in", "te"],
     ta: ["ta-in", "ta_in", "ta"],
+    sa: ["sa-in", "sa_in", "sa", "hi-in", "hi_in", "hi"],
     en: ["en-in", "en_in", "en-gb", "en-us", "en"]
   };
   const prefixes = langPrefixes[lang] || ["en-in", "en"];
@@ -1040,13 +1045,14 @@ export async function playStrictlyMaleWebSpeechDSP(
       else if (lang === "hi") utterance.lang = "hi-IN";
       else if (lang === "te") utterance.lang = "te-IN";
       else if (lang === "ta") utterance.lang = "ta-IN";
+      else if (lang === "sa") utterance.lang = "hi-IN";
       else utterance.lang = "en-IN";
     } else {
       utterance.lang = chosenVoice?.lang || "en-IN";
     }
 
-    utterance.pitch = config?.preferredPitch || profile.voicePitch || 0.76;
-    utterance.rate = config?.preferredRate || profile.voiceRate || 0.88;
+    utterance.pitch = config?.preferredPitch || profile.voicePitch || 0.74;
+    utterance.rate = config?.preferredRate || profile.voiceRate || 0.82;
     utterance.volume = 1.0;
 
     if (chosenVoice) {
