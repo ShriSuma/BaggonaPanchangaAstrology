@@ -41,6 +41,11 @@ import {
   LANGUAGE_SPEECH_LOCALES
 } from "../features/consultation/consultationSpeechService";
 import {
+  senseAndCategorizeQuestion,
+  presentConsultationReply,
+  type ConsultationQuestionCategory
+} from "../features/consultation/consultationPresenterEngine";
+import {
   computeDevoteePanchangaProfile,
   VAARA_I18N,
   TITHI_NAMES_I18N,
@@ -646,6 +651,223 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       expect(careerAnswer.fullText).toMatch(/9972339362|೯೯೭೨೩೩೯೩೬೨/);
     });
   });
+
+  describe("9. Senior Priest Presenter & Intelligent Sensing Engine", () => {
+    const mockDevoteeSession: ConsultationSession = {
+      id: "bgn_cst_presenter_test",
+      name: "ಆನಂದ ಹೆಗಡೆ (Anand Hegde)",
+      dob: "1998-08-20", // Youth (~28 years old)
+      tob: "10:15",
+      place: "ಶಿರಸಿ (Sirsi, Karnataka)",
+      lat: 14.6196,
+      lng: 74.8354,
+      timezone: 5.5,
+      language: "kn" as ConsultationLanguage,
+      durationMinutes: 20,
+      graceDeleteMinutes: 20,
+      createdAt: new Date().toISOString(),
+      status: "active" as const,
+      hasProvidedContact: true,
+      bonusMinuteClaimed: false,
+      messages: [],
+      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      priestPhone: "9972339362"
+    };
+
+    it("senses devotee age, life stage, and location accurately", () => {
+      const sensed = senseAndCategorizeQuestion(
+        "ನನ್ನ ಜೀವನದಲ್ಲಿ ಈಗ ಏನು ನಡೀತಿದೆ ಹೇಳು?",
+        mockDevoteeSession
+      );
+
+      expect(sensed.ageYears).toBeGreaterThanOrEqual(27);
+      expect(sensed.lifeStage).toBe("MID_CAREER");
+      expect(sensed.place).toBe("ಶಿರಸಿ (Sirsi, Karnataka)");
+      expect(sensed.category).toBe("LIFE_OVERVIEW_EXISTENTIAL");
+    });
+
+    it("accurately categorizes all the specific questions stated by user", () => {
+      // 1. "nanna eega en naditida nanna jeevandalli helu"
+      const q1 = senseAndCategorizeQuestion(
+        "ನನ್ನ ಈಗ ಏನು ನಡೀತಿದೆ ನನ್ನ ಜೀವನದಲ್ಲಿ ಹೇಳು?",
+        mockDevoteeSession
+      );
+      expect(q1.category).toBe("LIFE_OVERVIEW_EXISTENTIAL");
+
+      // 2. "naan en maadli eega? Naanu naale trip-ge hogbeku antiddini en maadtia?"
+      const q2 = senseAndCategorizeQuestion(
+        "ನಾನು ಏನು ಮಾಡ್ಲಿ ಈಗ? ನಾನು ನಾಳೆ ಟ್ರಿಪ್‌ಗೆ ಹೋಗ್ಬೇಕು ಅಂತಿದ್ದೀನಿ ಏನು ಮಾಡ್ತೀಯಾ?",
+        mockDevoteeSession
+      );
+      expect(q2.category).toBe("DAILY_TRIP_TRAVEL");
+
+      // 3. "nange avange fight aytu, naanu avanige en maadli?"
+      const q3 = senseAndCategorizeQuestion(
+        "ನನಗೂ ಅವನಿಗೂ ಫೈಟ್ ಆಯಿತು, ನಾನು ಅವನಿಗೆ ಏನು ಮಾಡ್ಲಿ?",
+        mockDevoteeSession
+      );
+      expect(q3.category).toBe("INTERPERSONAL_CONFLICT");
+
+      // 4. "namma maneyalli ivattu hale paatre sikkide, ellinda sikkirbahudu? Yaake sikkirbahudu? Namma mane ee mooleli ondeeno sikkide, aa mooleli eno sikkide"
+      const q4 = senseAndCategorizeQuestion(
+        "ನಮ್ಮ ಮನೆಯಲ್ಲಿ ಇವತ್ತು ಹಳೆ ಪಾತ್ರೆ ಸಿಕ್ಕಿದೆ, ಎಲ್ಲಿಂದ ಸಿಕ್ಕಿರಬಹುದು? ಯಾಕೆ ಸಿಕ್ಕಿರಬಹುದು? ನಮ್ಮ ಮನೆ ಈ ಮೂಲೇಲಿ ಒಂದೇನೋ ಸಿಕ್ಕಿದೆ, ಆ ಮೂಲೇಲಿ ಏನೋ ಸಿಕ್ಕಿದೆ",
+        mockDevoteeSession
+      );
+      expect(q4.category).toBe("DOMESTIC_OMEN_VASTU");
+
+      // 5. "Naanu Aishwarya Rai na maduve aagbouda? Naanu heroine na maduve aagbouda?"
+      const q5 = senseAndCategorizeQuestion(
+        "ನಾನು ಐಶ್ವರ್ಯ ರೈ ನ ಮದುವೆ ಆಗಬಹುದಾ? ನಾನು ಹೀರೋಯಿನ್ ನ ಮದುವೆ ಆಗಬಹುದಾ?",
+        mockDevoteeSession
+      );
+      expect(q5.category).toBe("CELEBRITY_FANTASY");
+
+      // 6. "Naanu pornstar na maduve aagbouda?"
+      const q6 = senseAndCategorizeQuestion(
+        "ನಾನು pornstar ನ ಮದುವೆ ಆಗಬಹುದಾ?",
+        mockDevoteeSession
+      );
+      expect(q6.category).toBe("PROVOCATIVE_TABOO");
+
+      // 7. Normal Greeting
+      const q7 = senseAndCategorizeQuestion(
+        "ನಮಸ್ಕಾರ ಸ್ವಾಮಿ ಹೇಗಿದ್ದೀರಿ?",
+        mockDevoteeSession
+      );
+      expect(q7.category).toBe("CONVERSATIONAL_GREETING");
+
+      // 8. Deep Astrological
+      const q8 = senseAndCategorizeQuestion(
+        "ನನ್ನ ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷ ಮತ್ತು ಕಂಕಣ ಬಲ ಹೇಗಿದೆ?",
+        mockDevoteeSession
+      );
+      expect(q8.category).toBe("ASTROLOGICAL_DEEP");
+    });
+
+    it("generates dignified, fatherly, compassionate response for celebrity fantasy (Aishwarya Rai)", async () => {
+      const response = await presentConsultationReply({
+        session: mockDevoteeSession,
+        userQuestion: "ನಾನು ಐಶ್ವರ್ಯ ರೈ ನ ಮದುವೆ ಆಗಬಹುದಾ?",
+        conversationHistory: [],
+        apiKey: ""
+      });
+
+      expect(response.sensedContext.category).toBe("CELEBRITY_FANTASY");
+      expect(response.fullText).toContain("ಆನಂದ");
+      // Must gently clarify that she is already married / has family
+      expect(
+        response.fullText.includes("ಸಂಸಾರ") ||
+        response.fullText.includes("ವಿವಾಹಿತ") ||
+        response.fullText.includes("ಕುಟುಂಬ") ||
+        response.fullText.includes("ಗೃಹಿಣಿ") ||
+        response.fullText.includes("ಮದುವೆ")
+      ).toBe(true);
+      // Must encourage hard work, earning livelihood, character building & real-life partner
+      expect(
+        response.fullText.includes("ಪರಿಶ್ರಮ") ||
+        response.fullText.includes("ಸಾಧನೆ") ||
+        response.fullText.includes("ಶ್ರಮಿಸಿ") ||
+        response.fullText.includes("ಯಶಸ್ಸು") ||
+        response.fullText.includes("ಗುಣ")
+      ).toBe(true);
+      expect(
+        response.fullText.includes("ಬಾಳಸಂಗಾತಿ") ||
+        response.fullText.includes("ಸಪ್ತಮ ಭಾವ") ||
+        response.fullText.includes("ಸಂಗಾತಿ") ||
+        response.fullText.includes("ಜೀವನ ಸಂಗಾತಿ")
+      ).toBe(true);
+      // Zero harshness, zero AI robotic disclaimer
+      expect(response.fullText).not.toContain("I am an AI");
+      expect(response.fullText).not.toContain("ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ");
+    });
+
+    it("generates sacred travel muhurtha and Kuladevata blessing for trip planning query", async () => {
+      const response = await presentConsultationReply({
+        session: mockDevoteeSession,
+        userQuestion: "ನಾನು ನಾಳೆ ಟ್ರಿಪ್‌ಗೆ ಹೋಗ್ಬೇಕು ಅಂತಿದ್ದೀನಿ ಏನು ಮಾಡ್ತೀಯಾ?",
+        conversationHistory: [],
+        apiKey: ""
+      });
+
+      expect(response.sensedContext.category).toBe("DAILY_TRIP_TRAVEL");
+      expect(
+        response.fullText.includes("ರಾಹು ಕಾಲ") ||
+        response.fullText.includes("ರಾಹುಕಾಲ") ||
+        response.fullText.includes("ಪ್ರವಾಸ") ||
+        response.fullText.includes("ಪ್ರಯಾಣ") ||
+        response.fullText.includes("ಮುಹೂರ್ತ")
+      ).toBe(true);
+      expect(
+        response.fullText.includes("ಗಣಪತಿ") ||
+        response.fullText.includes("ಕುಲದೇವತೆ") ||
+        response.fullText.includes("ಮಹಾಬಲೇಶ್ವರ") ||
+        response.fullText.includes("ಆಶೀರ್ವಾದ") ||
+        response.fullText.includes("ರಕ್ಷಣೆ")
+      ).toBe(true);
+    });
+
+    it("generates soothing Vedic counsel and Shanti for interpersonal conflict query", async () => {
+      const response = await presentConsultationReply({
+        session: mockDevoteeSession,
+        userQuestion: "ನನಗೂ ಅವನಿಗೂ ಫೈಟ್ ಆಯಿತು, ನಾನು ಅವನಿಗೆ ಏನು ಮಾಡ್ಲಿ?",
+        conversationHistory: [],
+        apiKey: ""
+      });
+
+      expect(response.sensedContext.category).toBe("INTERPERSONAL_CONFLICT");
+      expect(
+        response.fullText.includes("ಕೋಪ") ||
+        response.fullText.includes("ಕ್ರೋಧ") ||
+        response.fullText.includes("ಕುಜ")
+      ).toBe(true);
+      expect(
+        response.fullText.includes("ತಾಳ್ಮೆ") ||
+        response.fullText.includes("ಶಾಂತಿ")
+      ).toBe(true);
+    });
+
+    it("generates Nimitta Shastra and Vastu corner purification without superstition for domestic finding", async () => {
+      const response = await presentConsultationReply({
+        session: mockDevoteeSession,
+        userQuestion: "ನಮ್ಮ ಮನೇಲಿ ಇವತ್ತು ಹಳೆ ಪಾತ್ರೆ ಸಿಕ್ಕಿದೆ, ಮೂಲೆಲಿ ಏನೋ ಸಿಕ್ಕಿದೆ...",
+        conversationHistory: [],
+        apiKey: ""
+      });
+
+      expect(response.sensedContext.category).toBe("DOMESTIC_OMEN_VASTU");
+      expect(
+        response.fullText.includes("ವಾಸ್ತು") ||
+        response.fullText.includes("ಮೂಲೆ") ||
+        response.fullText.includes("ಪಾತ್ರೆ")
+      ).toBe(true);
+      // Must advise purification (lamp, prayer, Tulasi or Ganga-jala)
+      expect(
+        response.fullText.includes("ದೀಪ") ||
+        response.fullText.includes("ಶುದ್ಧ") ||
+        response.fullText.includes("ಪ್ರಾರ್ಥನೆ")
+      ).toBe(true);
+    });
+
+    it("generates calm, dignified redirection for provocative/taboo questions", async () => {
+      const response = await presentConsultationReply({
+        session: mockDevoteeSession,
+        userQuestion: "ನಾನು pornstar ನ ಮದುವೆ ಆಗಬಹುದಾ?",
+        conversationHistory: [],
+        apiKey: ""
+      });
+
+      expect(response.sensedContext.category).toBe("PROVOCATIVE_TABOO");
+      expect(
+        response.fullText.includes("ಇಂದ್ರಿಯ ನಿಗ್ರಹ") ||
+        response.fullText.includes("ಸದ್ಗುಣ") ||
+        response.fullText.includes("ಗೌರವಯುತ")
+      ).toBe(true);
+      // No vulgarity or harsh rebuke
+      expect(response.fullText).not.toContain("stupid");
+      expect(response.fullText).not.toContain("fool");
+    });
+  });
 });
+
 
 

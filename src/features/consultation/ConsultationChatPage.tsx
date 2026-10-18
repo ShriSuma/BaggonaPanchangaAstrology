@@ -45,6 +45,7 @@ import {
   generateConsultationAnswer,
   computeDevoteeKundli
 } from "./consultationAIEngine";
+import { presentConsultationReply } from "./consultationPresenterEngine";
 import {
   computeDevoteePanchangaProfile,
   type DevoteePanchangaProfile
@@ -496,7 +497,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         text: m.text
       }));
 
-      const reading = await generateConsultationAnswer({
+      const reading = await presentConsultationReply({
         session,
         userQuestion: question,
         conversationHistory: chatTurns.slice(-6),
@@ -510,7 +511,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         timestamp: new Date().toISOString(),
         hasDosha: reading.hasDosha,
         doshaName: reading.doshaName,
-        doshaParihara: reading.doshaParihara
+        doshaParihara: reading.doshaParihara,
+        intent: reading.sensedContext?.categoryLabel
       };
 
       setMessages((prev) => [...prev, astrologerMsg]);
@@ -525,6 +527,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         userPhone: session.userPhone || "",
         userEmail: session.userEmail || "",
         question,
+        category: reading.sensedContext?.category,
         answerSnippet:
           reading.fullText.slice(0, 300) + (reading.fullText.length > 300 ? "..." : ""),
         hasDosha: reading.hasDosha || false,

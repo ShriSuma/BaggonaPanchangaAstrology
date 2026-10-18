@@ -157,6 +157,7 @@ export interface ConsultationQuestionRecord {
   userEmail?: string;
   question: string;
   answerSnippet: string;
+  category?: string;
   hasDosha: boolean;
   doshaName?: string;
   doshaParihara?: string;
