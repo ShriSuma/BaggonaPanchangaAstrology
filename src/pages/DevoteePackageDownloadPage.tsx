@@ -1772,7 +1772,7 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
                 latitude,
                 longitude,
                 gender: gender === "female" ? "Female" : "Male",
-                maritalStatus: "married"
+                maritalStatus: maritalStatus || "married"
               },
               birthDateYmd: birthDate,
               birthTimeHm: birthTime,

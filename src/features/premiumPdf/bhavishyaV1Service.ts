@@ -44,7 +44,9 @@ import {
   buildDynamicChildPediatricHealthFallback,
   buildDynamicTimelineFallback,
   buildDynamicSoulMirrorFallback,
-  buildDynamicAnnualForecastFallback
+  buildDynamicAnnualForecastFallback,
+  buildDynamicPrescriptions,
+  toKnDigits
 } from "./dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -73,7 +75,7 @@ import {
   newRunId,
   stripJayashreeIntro
 } from "./premiumPdfLocale";
-import { WEEKDAY_L5 } from "../seva/sevaLocale";
+import { WEEKDAY_L5, TITHI_L5, PURNIMA_L5, AMAVASYA_L5, PAKSHA_L5 } from "../seva/sevaLocale";
 import {
   buildPremiumPrompts,
   type NatalPlacement,
@@ -235,6 +237,27 @@ export async function prepareBhavishyaV1Data(
     ? transliterateName(session.input.name, lang)
     : session.input.name;
 
+  const sunPlanet = session.result.planets.find(p => p.name === 'Sun');
+  const moonLong = moonPlanet ? (moonPlanet.rashi.index * 30 + moonPlanet.degree) : 0;
+  const sunLong = sunPlanet ? (sunPlanet.rashi.index * 30 + sunPlanet.degree) : 0;
+  const tithiDiff = (moonPlanet && sunPlanet) ? ((moonLong - sunLong + 360) % 360) : 0;
+  const tithiIdx = Math.floor(tithiDiff / 12) % 30;
+
+  const RASHI_LORDS: GrahaKey[] = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"];
+  const lagnaLordKey = session.result.lagnaRashi ? RASHI_LORDS[((session.result.lagnaRashi.index % 12) + 12) % 12] : "Sun";
+  const moonLordKey = RASHI_LORDS[((session.result.moonSign.index % 12) + 12) % 12];
+
+  const getTithiDisplay = (idx: number, l: string): string => {
+    if (idx === 14) return pick(PURNIMA_L5, l);
+    if (idx === 29) return pick(AMAVASYA_L5, l);
+    if (idx < 14) {
+      const p = pick(PAKSHA_L5.shukla, l).split(" ")[0];
+      return `${p} ${pick(TITHI_L5[idx], l)}`;
+    }
+    const p = pick(PAKSHA_L5.krishna, l).split(" ")[0];
+    return `${p} ${pick(TITHI_L5[idx - 15], l)}`;
+  };
+
   const translatedData: PdfTranslations = {
     title: tp("title", lang),
     subtitle: tp("subtitle", lang),
@@ -244,15 +267,36 @@ export async function prepareBhavishyaV1Data(
     dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
     lagnaLabel: tp("lagnaLabel", lang),
     lagnaValue: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
+    lagnaLordLabel: tp("lagnaLordLabel", lang),
+    lagnaLordValue: session.result.lagnaRashi ? pick(GRAHA_L5[lagnaLordKey], lang) : "",
     moonLabel: tp("moonLabel", lang),
     moonValue: pick(RASHI_L5[session.result.moonSign.index], lang),
+    moonLordLabel: tp("moonLordLabel", lang),
+    moonLordValue: pick(GRAHA_L5[moonLordKey], lang),
     nakshatraLabel: tp("nakshatraLabel", lang),
     nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
+    padaLabel: tp("padaLabel", lang),
+    padaValue: session.result.moonPada ? (lang === "kn" ? toKnDigits(session.result.moonPada) : String(session.result.moonPada)) : "",
+    tithiLabel: tp("tithiLabel", lang),
+    tithiValue: getTithiDisplay(tithiIdx, lang),
+    weekdayLabel: tp("weekdayLabel", lang),
+    weekdayValue: pick(WEEKDAY_L5[panchanga.weekdayIndex], lang),
     eraLabel: tp("eraLabel", lang),
     dashaLabel: tp("dashaLabel", lang),
     bhuktiLabel: tp("bhuktiLabel", lang),
     dashaPlanetValue: mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "",
     bhuktiPlanetValue: bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "",
+    prescriptionsTitle: tp("prescriptionsTitle", lang),
+    gemstoneLabel: tp("gemstoneLabel", lang),
+    rudrakshaLabel: tp("rudrakshaLabel", lang),
+    ishtaDevataLabel: tp("ishtaDevataLabel", lang),
+    luckyColorsLabel: tp("luckyColorsLabel", lang),
+    luckyDaysLabel: tp("luckyDaysLabel", lang),
+    luckyNumbersLabel: tp("luckyNumbersLabel", lang),
+    luckyDirectionLabel: tp("luckyDirectionLabel", lang),
+    elementalBalanceTitle: tp("elementalBalanceTitle", lang),
+    cosmicShieldTitle: tp("cosmicShieldTitle", lang),
+    mindVitalityTitle: tp("mindVitalityTitle", lang),
     ashirvadaTitle: tp("ashirvadaTitle", lang),
     ashirvadaValue: tp("ashirvadaValue", lang),
     footer: tp("footer", lang),
@@ -1152,6 +1196,8 @@ export async function prepareBhavishyaV1Data(
     }
   }
 
+  const dynamicPrescriptions = buildDynamicPrescriptions(parsedKundali);
+
   const premiumDataPayload: PremiumData = {
     soulMirror: finalSoulMirror,
     characteristics: finalCharacteristics,
@@ -1163,7 +1209,8 @@ export async function prepareBhavishyaV1Data(
     annualForecast: finalAnnualForecast,
     gochara: finalGochara,
     summary: finalSummary,
-    maandiInquest: finalMaandiInquest
+    maandiInquest: finalMaandiInquest,
+    prescriptions: dynamicPrescriptions
   };
 
   const payloadAuditStr = JSON.stringify(premiumDataPayload).toLowerCase();
@@ -1174,6 +1221,7 @@ export async function prepareBhavishyaV1Data(
     premiumDataPayload.characteristics = [{ impact: charFallbackText }];
     premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
     premiumDataPayload.soulMirror = dynamicSoulMirror;
+    premiumDataPayload.prescriptions = dynamicPrescriptions;
   }
 
   // Strict non-empty Soul Mirror healing
@@ -1291,6 +1339,16 @@ export async function prepareBhavishyaV1Data(
   ) {
     console.warn("[bhavishyaV1Service Quality Audit] Annual Forecast incomplete. Healing with dynamic mathematical fallback.");
     premiumDataPayload.annualForecast = [{ impact: annualFallbackText }];
+  }
+
+  // Strict non-empty Prescriptions healing
+  if (
+    !premiumDataPayload.prescriptions ||
+    !premiumDataPayload.prescriptions.gemstone ||
+    !premiumDataPayload.prescriptions.luckyColors
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Prescriptions incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.prescriptions = dynamicPrescriptions;
   }
 
   onProgress?.(

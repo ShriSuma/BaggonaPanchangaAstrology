@@ -137,8 +137,23 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
 
   const mahaLordKey = input.mahaLord || null;
   const bhuktiLordKey = input.bhuktiLord || null;
-  const mahaLordName = mahaLordKey ? pick(GRAHA_L5[mahaLordKey], lang) : "Dasha Lord";
-  const bhuktiLordName = bhuktiLordKey ? pick(GRAHA_L5[bhuktiLordKey], lang) : "Bhukti Lord";
+  const DEFAULT_MAHA_L5: Record<string, string> = {
+    kn: "ದಶಾಧಿಪತಿ",
+    hi: "दशाधिपति",
+    te: "దశాధిపతి",
+    ta: "திசாதிபதி",
+    en: "Dasha Lord"
+  };
+  const DEFAULT_BHUKTI_L5: Record<string, string> = {
+    kn: "ಭುಕ್ತ್ಯಾಧಿಪತಿ",
+    hi: "भुक्ति स्वामी",
+    te: "భుక్తి అధిపతి",
+    ta: "புக்தி அதிபதி",
+    en: "Bhukti Lord"
+  };
+  const baseL = (lang || "en").split("-")[0];
+  const mahaLordName = mahaLordKey ? pick(GRAHA_L5[mahaLordKey], lang) : (DEFAULT_MAHA_L5[baseL] || DEFAULT_MAHA_L5.en);
+  const bhuktiLordName = bhuktiLordKey ? pick(GRAHA_L5[bhuktiLordKey], lang) : (DEFAULT_BHUKTI_L5[baseL] || DEFAULT_BHUKTI_L5.en);
   const dashaSummary = `${mahaLordName} - ${bhuktiLordName}`;
 
   // Analyze all 12 houses from Lagna
@@ -2159,9 +2174,11 @@ export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): str
       ? `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ಗೃಹಸ್ಥ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಮಹತ್ವದ ಹಾಗೂ ಪರಿವರ್ತನೀಯ ಘಟ್ಟವಾಗಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿ, ಆರ್ಥಿಕ ಭದ್ರತೆ ಹಾಗೂ ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ-ವಿಶ್ವಾಸದೊಂದಿಗೆ ವಂಶಾಭಿವೃದ್ಧಿಯ ಸತ್ಸಂಕಲ್ಪವನ್ನು ಸಾಕಾರಗೊಳಿಸುವ ಚಿಂತನೆಯು ನಿಮ್ಮ ಕೇಂದ್ರ ಧ್ಯೇಯವಾಗಿದೆ.`
       : `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ಸಾಗುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ಪ್ರೌಢ ಜೀವನದಲ್ಲಿ ಅತ್ಯಂತ ಮಹತ್ವದ ಹಾಗೂ ಪರಿವರ್ತನೀಯ ಘಟ್ಟವಾಗಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿ, ಕುಟುಂಬದ ಬಜೆಟ್ ನಿರ್ವಹಣೆ, ದೈನಂದಿನ ಕರ್ತವ್ಯ ಹಾಗೂ ಆರ್ಥಿಕ ಭದ್ರತೆಯು ನಿಮ್ಮ ಕೇಂದ್ರ ಚಿಂತನೆಯಾಗಿರಲಿದೆ.`;
 
-    const p2 = `ಗೋಚಾರ ಗ್ರಹಗಳಾದ ದೇವಗುರು ಹಾಗೂ ಶನಿ ಮಹಾತ್ಮರ ಪ್ರಸ್ತುತ ಸಂಚಾರವು ನಿಮ್ಮ ದೃಢ ಪರಿಶ್ರಮ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಧರ್ಮನಿಷ್ಠೆಗೆ ತಕ್ಕ ಸತ್ಫಲಗಳನ್ನು ನೀಡಲು ಸನ್ನದ್ಧವಾಗಿವೆ. ಜೀವನದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಜಂಜಾಟಗಳು ಅಥವಾ ನಿಧಾನಗತಿ ಎದುರಾದರೂ ಧೃತಿಗೆಡದೆ, ತಾಳ್ಮೆ ಮತ್ತು ಸಂಯಮದಿಂದ ಕರ್ತವ್ಯಗಳನ್ನು ನಿರ್ವಹಿಸುವುದು ಅಪಾರ ಯಶಸ್ಸಿಗೆ ನಾಂದಿ ಹಾಡಲಿದೆ.`;
+    const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+    const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+    const p2 = `ಗೋಚಾರ ಗ್ರಹಗಳಾದ ದೇವಗುರು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ ${jupH}ನೇ ಭಾವದಲ್ಲಿ ಹಾಗೂ ಶನಿ ಮಹಾತ್ಮರು ${satH}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ದೃಢ ಪರಿಶ್ರಮ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಧರ್ಮನಿಷ್ಠೆಗೆ ತಕ್ಕ ಸತ್ಫಲಗಳನ್ನು ನೀಡಲು ಸನ್ನದ್ಧವಾಗಿವೆ. ಜೀವನದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಜಂಜಾಟಗಳು ಅಥವಾ ನಿಧಾನಗತಿ ಎದುರಾದರೂ ಧೃತಿಗೆಡದೆ, ತಾಳ್ಮೆ ಮತ್ತು ಸಂಯಮದಿಂದ ಕರ್ತವ್ಯಗಳನ್ನು ನಿರ್ವಹಿಸುವುದು ಅಪಾರ ಯಶಸ್ಸಿಗೆ ನಾಂದಿ ಹಾಡಲಿದೆ.`;
 
-    const p3 = `ಆಂತರಿಕವಾಗಿ ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಭವಿಷ್ಯದ ಸುಭದ್ರತೆ, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ಹಾಗೂ ಸಾಲ-ಹೊಣೆಗಾರಿಕೆಗಳ ಶಾಶ್ವತ ಮುಕ್ತಿಯ ಬಗ್ಗೆ ಗಾಢವಾಗಿ ಚಿಂತಿಸುತ್ತಿದೆ. ಹಳೆಯ ಕಹಿ ನೆನಪುಗಳನ್ನು ಮರೆತು, ಹೊಸ ಭರವಸೆಯೊಂದಿಗೆ ಕರ್ತವ್ಯ ಪಥದಲ್ಲಿ ಮುನ್ನಡೆಯಲು ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದೆ.`;
+    const p3 = `ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದ, ಆಂತರಿಕವಾಗಿ ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಭವಿಷ್ಯದ ಸುಭದ್ರತೆ, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ಹಾಗೂ ಸಾಲ-ಹೊಣೆಗಾರಿಕೆಗಳ ಶಾಶ್ವತ ಮುಕ್ತಿಯ ಬಗ್ಗೆ ಗಾಢವಾಗಿ ಚಿಂತಿಸುತ್ತಿದೆ. ಹಳೆಯ ಕಹಿ ನೆನಪುಗಳನ್ನು ಮರೆತು, ಹೊಸ ಭರವಸೆಯೊಂದಿಗೆ ಕರ್ತವ್ಯ ಪಥದಲ್ಲಿ ಮುನ್ನಡೆಯಲು ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದೆ.`;
 
     const p4 = `ಗುರು-ಹಿರಿಯರ ಮಾರ್ಗದರ್ಶನವನ್ನು ಗೌರವಿಸುವುದು, ನಿತ್ಯ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಹಾಗೂ ಸತ್ಪಾತ್ರರಿಗೆ ದಾನ ನೀಡುವುದು ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಲಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪರಮ ಪಾವನ ಶ್ರೀ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ದಿವ್ಯ ಆಶೀರ್ವಾದವು ಸದಾ ನಿಮ್ಮ ರಕ್ಷಣೆಗೆ ನಿಂತು, ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಶಾಂತಿ, ಸಕಲ ಸೌಭಾಗ್ಯ ಮತ್ತು ಆಯುರಾರೋಗ್ಯವನ್ನು ಕರುಣಿಸಲಿ.`;
 
@@ -2179,9 +2196,11 @@ export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): str
       ? `${salutation}आपकी जन्म लग्न ${chart.lagnaSignName} और चंद्र राशि ${chart.moonSignName} के विश्लेषण से स्पष्ट होता है कि वर्तमान में संचालित ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके दांपत्य जीवन का एक अत्यंत महत्वपूर्ण और परिवर्तनकारी मोड़ सिद्ध हो रहा है। कार्यक्षेत्र में व्यावसायिक जिम्मेदारियां, आर्थिक स्थिरता और जीवनसाथी के साथ सामंजस्य बनाकर परिवार विस्तार के शुभ संकल्प को सिद्ध करना इस समय आपकी केंद्रीय धुरी है।`
       : `${salutation}आपकी जन्म लग्न ${chart.lagnaSignName} और चंद्र राशि ${chart.moonSignName} के विश्लेषण से स्पष्ट होता है कि वर्तमान में संचालित ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके जीवन का एक अत्यंत महत्वपूर्ण और परिवर्तनकारी मोड़ सिद्ध हो रहा है। कार्यक्षेत्र में व्यावसायिक जिम्मेदारियां, पारिवारिक बजट का प्रबंधन और आर्थिक सुरक्षा इस समय आपकी केंद्रीय धुरी हैं।`;
 
-    const p2 = `गोचर में देवगुरु बृहस्पति और शनि देव की चाल आपके धैर्य, अनुशासन और धर्मनिष्ठ कर्मों का उत्तम प्रतिफल देने के लिए तत्पर है। यदि मार्ग में क्षणिक बाधाएं आएं, तो भी विचलित हुए बिना कर्तव्य पथ पर अडिग रहना ही आपकी सबसे बड़ी शक्ति होगी।`;
+    const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+    const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+    const p2 = `गोचर में चंद्र से ${jupH}वें भाव में देवगुरु बृहस्पति तथा ${satH}वें भाव में शनि देव का संचरण आपके धैर्य, अनुशासन और धर्मनिष्ठ कर्मों का उत्तम प्रतिफल देने के लिए तत्पर है। यदि मार्ग में क्षणिक बाधाएं आएं, तो भी विचलित हुए बिना कर्तव्य पथ पर अडिग रहना ही आपकी सबसे बड़ी शक्ति होगी।`;
 
-    const p3 = `आंतरिक स्तर पर, आपका अवचेतन मन भविष्य की सुरक्षा, संचित धन और पारिवारिक सुख-शांति के विषय में गंभीर विचार कर रहा है। पुरानी चिंताओं को त्यागकर नए संकल्पों के साथ आगे बढ़ने के लिए ग्रहों का शुभ बल प्राप्त हो रहा है।`;
+    const p3 = `वर्तमान गतिमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल के प्रभाव से, आपका अवचेतन मन भविष्य की सुरक्षा, संचित धन और पारिवारिक सुख-शांति के विषय में गंभीर विचार कर रहा है। पुरानी चिंताओं को त्यागकर नए संकल्पों के साथ आगे बढ़ने के लिए ग्रहों का शुभ बल प्राप्त हो रहा है।`;
 
     const p4 = `माता-पिता का आशीर्वाद, नित्य भगवद् आराधना तथा सात्विक आचरण मार्ग की समस्त रुकावटों को समाप्त करेगा। श्री क्षेत्र गोकर्ण के पावन आशीर्वाद से आपके जीवन में निरंतर स्वास्थ्य, संपन्नता और शांति बनी रहे।`;
 
@@ -2199,9 +2218,11 @@ export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): str
       ? `${salutation}మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName} ఆధారంగా, ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ దాంపత్య జీవితంలో అత్యంత కీలకమైన సమయం. ఈ దశలో వృత్తిపరమైన బాధ్యతలు, ఆర్థిక భద్రత మరియు జీవిత భాగస్వామితో కలిసి కుటుంబ విస్తరణ మరియు వంశాభివృద్ధి సంకల్పాన్ని సాకారం చేసుకోవడమే మీ ముఖ్య లక్ష్యం.`
       : `${salutation}మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName} ఆధారంగా, ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ జీవితంలో వృత్తిపరమైన బాధ్యతలు, కుటుంబ బడ్జెట్ నిర్వహణ మరియు ఆర్థిక భద్రతను పటిష్టం చేసే కీలకమైన సమయం.`;
 
-    const p2 = `గోచారంలో గురు మరియు శని గ్రహాల సంచారం మీ కష్టానికి తగిన ప్రతిఫలాన్ని మరియు స్థిరత్వాన్ని అందించేందుకు అనుకూలంగా ఉన్నాయి. చిన్నపాటి ఆటంకాలు ఎదురైనా అధైర్యపడకుండా సంయమనంతో వ్యవహరిస్తే తిరుగులేని విజయాలు సాధిస్తారు.`;
+    const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+    const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+    const p2 = `గోచారంలో చంద్రుని నుండి ${jupH}వ స్థానంలో గురు మరియు ${satH}వ స్థానంలో శని గ్రహాల సంచారం మీ కష్టానికి తగిన ప్రతిఫలాన్ని మరియు స్థిరత్వాన్ని అందించేందుకు అనుకూలంగా ఉన్నాయి. చిన్నపాటి ఆటంకాలు ఎదురైనా అధైర్యపడకుండా సంయమనంతో వ్యవహరిస్తే తిరుగులేని విజయాలు సాధిస్తారు.`;
 
-    const p3 = `అంతరంగంలో మీ మనస్సు భవిష్యత్ ఆర్థిక స్థిరత్వం, కుటుంబ శ్రేయస్సు మరియు రుణ విముక్తి గురించి లోతుగా ఆలోచిస్తోంది. పాత సమస్యలను పరిష్కరించి ప్రశాంతమైన జీవనాన్ని ప్రారంభించడానికి గ్రహ బలం తోడ్పడుతుంది.`;
+    const p3 = `ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి ప్రభావంతో, అంతరంగంలో మీ మనస్సు భవిష్యత్ ఆర్థిక స్థిరత్వం, కుటుంబ శ్రేయస్సు మరియు రుణ విముక్తి గురించి లోతుగా ఆలోచిస్తోంది. పాత సమస్యలను పరిష్కరించి ప్రశాంతమైన జీవనాన్ని ప్రారంభించడానికి గ్రహ బలం తోడ్పడుతుంది.`;
 
     const p4 = `పెద్దల ఆశీర్వాదాలు తీసుకోవడం, నిత్య ఇష్టదైవ ప్రార్థన చేయడం వల్ల గ్రహ దోషాలు తొలగిపోతాయి. శ్రీ క్షేత్ర గోకర్ణ ఆశీస్సులతో మీ జీవితంలో ఆయురారోగ్యాలు, శాశ్వత శాంతి మరియు సర్వతోముఖాభివృద్ధి చేకూరుతాయి.`;
 
@@ -2219,9 +2240,11 @@ export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): str
       ? `${salutation}உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} அடிப்படையில், தற்பொழுது நடைபெறும் ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உங்கள் இல்லற வாழ்வில் மிக முக்கியமான திருப்பமாகும். தொழில்முறைப் பொறுப்புகள், நிதிப் பாதுகாப்பு மற்றும் வாழ்க்கைத்துணையுடன் இணைந்து குடும்ப வளர்ச்சி மற்றும் வம்ச விருத்தி நன்மையை எட்டுவதே உங்கள் பிரதான நோக்கமாகும்.`
       : `${salutation}உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} அடிப்படையில், தற்பொழுது நடைபெறும் ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உங்கள் வாழ்வில் தொழில்முறைப் பொறுப்புகள், குடும்ப வரவு-செலவு மேலாண்மை மற்றும் நிதிப் பாதுகாப்பை உறுதிப்படுத்தும் முக்கியத் தருணமாகும்.`;
 
-    const p2 = `கோசாரத்தில் குரு பகவான் மற்றும் சனி பகவானின் சஞ்சாரம் உங்கள் உண்மையான உழைப்பிற்கும் நேர்மைக்கும் ஏற்ற நற்பலன்களை வாரி வழங்கக் காத்திருக்கின்றன. தற்காலிகத் தடைகள் தோன்றினாலும் தளராமல் விவேகத்துடன் செயல்படுவது வெற்றியைத் தரும்.`;
+    const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+    const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+    const p2 = `கோசாரத்தில் சந்திரனிலிருந்து ${jupH}-ஆம் இடத்தில் குரு பகவானும், ${satH}-ஆம் இடத்தில் சனி பகவானும் சஞ்சரிப்பது உங்கள் உண்மையான உழைப்பிற்கும் நேர்மைக்கும் ஏற்ற நற்பலன்களை வாரி வழங்கக் காத்திருக்கின்றன. தற்காலிகத் தடைகள் தோன்றினாலும் தளராமல் விவேகத்துடன் செயல்படுவது வெற்றியைத் தரும்.`;
 
-    const p3 = `ஆழ்மனதில் நீங்கள் எதிர்காலப் பாதுகாப்பு, குடும்ப நலம் மற்றும் கடன்களிலிருந்து விடுபடுவது குறித்து ஆழமாகச் சிந்திக்கிறீர்கள். பழைய கவலைகளை மறந்து புது நம்பிக்கையுடன் செயல்பட கிரகங்களின் அருள் துணைநிற்கிறது.`;
+    const p3 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி தாக்கத்தால், ஆழ்மனதில் நீங்கள் எதிர்காலப் பாதுகாப்பு, குடும்ப நலம் மற்றும் கடன்களிலிருந்து விடுபடுவது குறித்து ஆழமாகச் சிந்திக்கிறீர்கள். பழைய கவலைகளை மறந்து புது நம்பிக்கையுடன் செயல்பட கிரகங்களின் அருள் துணைநிற்கிறது.`;
 
     const p4 = `பெரியோர்களின் ஆசிகளைப் பெறுவதும் தினசரி வழிபாடும் அனைத்து தோஷங்களையும் போக்கும். ஸ்ரீ க்ஷேத்திர கோகர்ண திருத்தலத்தின் திவ்ய ஆசியுடன் உங்கள் வாழ்வில் நீண்ட ஆயுள், ஆரோக்கியம் மற்றும் நிலையான மன அமைதி நிறையும்.`;
 
@@ -2239,9 +2262,11 @@ export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): str
     ? `${salutation}synthesized through your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period inaugurate a deeply transformative, consequential chapter in your married life. Balancing vocational responsibilities, financial security, and walking hand-in-hand with your spouse toward your shared prayers for family expansion define your daily strategic focus.`
     : `${salutation}synthesized through your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period inaugurate a deeply transformative, consequential life chapter. Balancing vocational leadership, prudent domestic budgeting, and steadfast economic resilience defines your daily strategic focus.`;
 
-  const p2 = `Live transits of Saturn and Jupiter converge to reward unyielding perseverance, ethical discipline, and professional integrity. Even if transient hurdles arise, greeting them with meditative poise and calculated patience converts apparent friction into substantial stepping stones.`;
+  const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+  const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+  const p2 = `Live transits, with Jupiter activating the ${jupH}th house and Saturn structuring the ${satH}th house from your natal Moon, converge to reward unyielding perseverance, ethical discipline, and professional integrity. Even if transient hurdles arise, greeting them with meditative poise and calculated patience converts apparent friction into substantial stepping stones.`;
 
-  const p3 = `At a deeper subconscious tier, your focus centers on long-term family security, dissolving residual liabilities, and orchestrating stable new beginnings. Harmonic planetary placements provide the fortitude and moral clarity needed to transcend historical anxieties.`;
+  const p3 = `Under your unfolding ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti, at a deeper subconscious tier, your focus centers on long-term family security, dissolving residual liabilities, and orchestrating stable new beginnings. Harmonic planetary placements provide the fortitude and moral clarity needed to transcend historical anxieties.`;
 
   const p4 = `Consistent spiritual grounding, honoring mentors, and maintaining benevolent deeds will harmonize cosmic forces. Showered with the divine grace of the Sri Kshetra Gokarna sacred sanctum, may your path be perpetually blessed with health, peace, and compounding holistic prosperity.`;
 
@@ -2545,7 +2570,9 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
     const salutation = devoteeName ? `${devoteeName} ಅವರೇ, ` : "";
     const p1 = `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಜನ್ಮ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಕಳೆದ ಕೆಲ ಸಮಯಗಳಿಂದ ನೀವು ಹೊತ್ತು ಸಾಗುತ್ತಿರುವ ಆಂತರಿಕ ಆತಂಕಗಳು, ನಿಶ್ಯಬ್ದ ಹೋರಾಟಗಳು ಹಾಗೂ ಮಾನಸಿಕ ದಣಿವನ್ನು ಗ್ರಹಗಳ ಪ್ರಸ್ತುತ ಚಲನೆಯು ಸಂಪೂರ್ಣವಾಗಿ ಅರ್ಥೈಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ಆರಂಭವಾಗಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯ ಪವಿತ್ರ ಕಾಲಘಟ್ಟವು ಬರುವ ೧೨ ತಿಂಗಳುಗಳಲ್ಲಿ (ಮುಂದಿನ ೧ ವರ್ಷ) ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ಹೊಸ ಚೇತನ, ಆಶಾಭಾವನೆ ಮತ್ತು ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ತುಂಬಲಿದೆ. ಈ ಅವಧಿಯು ಕೇವಲ ಬಾಹ್ಯ ಬದಲಾವಣೆಗಳನ್ನಷ್ಟೇ ಅಲ್ಲದೆ, ನಿಮ್ಮ ಅಂತರಂಗದ ಗೊಂದಲಗಳನ್ನು ನಿವಾರಿಸಿ, ಭವಿಷ್ಯದ ಬಗ್ಗೆ ದೃಢವಾದ ಮತ್ತು ಶಾಂತಿಯುತವಾದ ಸ್ಪಷ್ಟತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`;
 
-    const p2 = `ವೃತ್ತಿ ಮತ್ತು ಆರ್ಥಿಕ ರಂಗದಲ್ಲಿ ಮುಂದಿನ ಒಂದು ವರ್ಷವು ಮಹತ್ವದ ತಿರುವುಗಳನ್ನು ತರಲಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಶನಿ ಮಹಾತ್ಮನ ಶಿಸ್ತುಬದ್ಧ ಸಂಚಾರವು ನಿಮ್ಮ ದೀರ್ಘಕಾಲದ ಪರಿಶ್ರಮಕ್ಕೆ ಯೋಗ್ಯ ಫಲ ನೀಡಲು ಸಿದ್ಧವಾಗಿವೆ. ಉದ್ಯೋಗದಲ್ಲಿ ನಿರೀಕ್ಷಿತ ಬಡ್ತಿ, ವ್ಯಾಪಾರ-ವ್ಯವಹಾರಗಳಲ್ಲಿ ನೂತನ ಗ್ರಾಹಕರ ಸಂಪರ್ಕ ಹಾಗೂ ಹೊಸ ಯೋಜನೆಗಳ ಆರಂಭಕ್ಕೆ ಮುಂದಿನ ೪ ರಿಂದ ೮ ತಿಂಗಳುಗಳು ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾಗಿವೆ. ಅನಗತ್ಯ ಸಾಲದ ಹೊರೆಗಳಿಂದ ಮುಕ್ತಿ ಹೊಂದಲು ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಆಸ್ತಿ-ಪಾಸ್ತಿ ಅಥವಾ ಸುರಕ್ಷಿತ ಹೂಡಿಕೆಗಳಿಗೆ ಈ ವರ್ಷವು ಭದ್ರ ಬುನಾದಿಯನ್ನು ಹಾಕಲಿದೆ.`;
+    const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+    const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+    const p2 = `ವೃತ್ತಿ ಮತ್ತು ಆರ್ಥಿಕ ರಂಗದಲ್ಲಿ ನಿಮ್ಮ ${chart.lagnaSignName} ಲಗ್ನಕ್ಕೆ ಮುಂದಿನ ಒಂದು ವರ್ಷವು ಮಹತ್ವದ ತಿರುವುಗಳನ್ನು ತರಲಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಚಂದ್ರನಿಂದ ${jupH}ನೇ ಮನೆಯ ಶುಭ ದೃಷ್ಟಿ ಹಾಗೂ ಶನಿ ಮಹಾತ್ಮನ ${satH}ನೇ ಮನೆಯ ಶಿಸ್ತುಬದ್ಧ ಸಂಚಾರವು ನಿಮ್ಮ ದೀರ್ಘಕಾಲದ ಪರಿಶ್ರಮಕ್ಕೆ ಯೋಗ್ಯ ಫಲ ನೀಡಲು ಸಿದ್ಧವಾಗಿವೆ. ಉದ್ಯೋಗದಲ್ಲಿ ನಿರೀಕ್ಷಿತ ಬಡ್ತಿ, ವ್ಯಾಪಾರ-ವ್ಯವಹಾರಗಳಲ್ಲಿ ನೂತನ ಗ್ರಾಹಕರ ಸಂಪರ್ಕ ಹಾಗೂ ಹೊಸ ಯೋಜನೆಗಳ ಆರಂಭಕ್ಕೆ ಮುಂದಿನ ೪ ರಿಂದ ೮ ತಿಂಗಳುಗಳು ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾಗಿವೆ. ಅನಗತ್ಯ ಸಾಲದ ಹೊರೆಗಳಿಂದ ಮುಕ್ತಿ ಹೊಂದಲು ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಆಸ್ತಿ-ಪಾಸ್ತಿ ಅಥವಾ ಸುರಕ್ಷಿತ ಹೂಡಿಕೆಗಳಿಗೆ ಈ ವರ್ಷವು ಭದ್ರ ಬುನಾದಿಯನ್ನು ಹಾಕಲಿದೆ.`;
 
     const p3 = `ಕೌಟುಂಬಿಕ ವಲಯದಲ್ಲಿ ಹಿಂದಿನ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಹಾಗೂ ಸಂವಹನದ ಕೊರತೆಗಳು ನಿಧಾನವಾಗಿ ಬಗೆಹರಿದು ಪರಸ್ಪರ ಪ್ರೀತಿ ಮತ್ತು ವಿಶ್ವಾಸ ವೃದ್ಧಿಯಾಗಲಿದೆ. ಮನೆಯಲ್ಲಿ ಶುಭ ಕಾರ್ಯಗಳ ಸಿದ್ಧತೆ, ಹಿರಿಯರ ಆರೋಗ್ಯದಲ್ಲಿ ಸುಧಾರಣೆ ಹಾಗೂ ಬಂಧು-ಮಿತ್ರರ ಸಹಕಾರವು ನಿಮ್ಮ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ದೈಹಿಕ ಆರೋಗ್ಯದ ದೃಷ್ಟಿಯಿಂದ ನಿಯಮಿತ ದಿನಚರಿ, ಸಾತ್ವಿಕ ಆಹಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ನಿದ್ರೆಯ ಸಮತೋಲನವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ನರಮಂಡಲ ಮತ್ತು ಜೀರ್ಣಕ್ರಿಯೆಗೆ ರಕ್ಷಣೆ ನೀಡಲಿದೆ. ಋತುಮಾನಕ್ಕೆ ತಕ್ಕಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.`;
 
@@ -2559,7 +2586,9 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
     const salutation = devoteeName ? `${devoteeName}, ` : "";
     const p1 = `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, पिछले कुछ समय से आप जिन मानसिक चिंताओं, मौन संघर्षों और भावनात्मक थकावट को वहन करते आ रहे हैं, आगामी 12 महीनों (1 वर्ष) में उन पर ग्रहों की सकारात्मक कृपा बरसने जा रही है। वर्तमान गतिमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके अंतर्मन को नवऊर्जा, आंतरिक आत्मविश्वास और मानसिक शांति प्रदान करेगा। यह समयावधि अनिश्चितता के बादलों को छांटकर आपके विचारों को स्थिरता और स्पष्ट दूरदर्शिता से परिपूर्ण करेगी।`;
 
-    const p2 = `आगामी एक वर्ष आपके पेशेवर और वित्तीय जीवन के लिए अत्यंत महत्वपूर्ण साबित होने वाला है। गोचर में देवगुरु बृहस्पति की अमृतमयी दृष्टि तथा कर्मफलदाता शनि देव का अनुशासन आपकी वर्षों की कड़ी मेहनत को सार्थक फल में परिवर्तित करेगा। नौकरी में बहुप्रतीक्षित पदोन्नति, व्यापार में नए अवसरों का सृजन तथा आजीविका के साधनों में मजबूती आने के प्रबल योग हैं। आगामी 4 से 8 महीनों की अवधि नए उपक्रमों, सुरक्षित निवेशों एवं भूमि या भवन से संबंधित महत्वपूर्ण निर्णयों के लिए अत्यंत श्रेयस्कर रहेगी।`;
+    const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+    const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+    const p2 = `आगामी एक वर्ष आपके ${chart.lagnaSignName} लग्न के पेशेवर और वित्तीय जीवन के लिए अत्यंत महत्वपूर्ण साबित होने वाला है। गोचर में चंद्र से ${jupH}वें भाव में देवगुरु बृहस्पति की अमृतमयी दृष्टि तथा ${satH}वें भाव में कर्मफलदाता शनि देव का अनुशासन आपकी वर्षों की कड़ी मेहनत को सार्थक फल में परिवर्तित करेगा। नौकरी में बहुप्रतीक्षित पदोन्नति, व्यापार में नए अवसरों का सृजन तथा आजीविका के साधनों में मजबूती आने के प्रबल योग हैं। आगामी 4 से 8 महीनों की अवधि नए उपक्रमों, सुरक्षित निवेशों एवं भूमि या भवन से संबंधित महत्वपूर्ण निर्णयों के लिए अत्यंत श्रेयस्कर रहेगी।`;
 
     const p3 = `पारिवारिक परिवेश में पहले से चले आ रहे वैचारिक मतभेद एवं संवादहीनता अब समाप्त होकर आपसी विश्वास और प्रेम में परिवर्तित होगी। घर में मांगलिक आयोजनों की रूपरेखा बनेगी तथा जीवनसाथी व परिजनों का पूर्ण सहयोग आपके मनोबल को ऊंचा रखेगा। स्वास्थ्य की दृष्टि से नित्य प्राणायाम, सूर्य नमस्कार और संतुलित सात्विक खानपान आपकी रोग प्रतिरोधक क्षमता को सुदृढ़ रखेगा। कार्य के दबाव में आकर अनिद्रा या मानसिक तनाव से बचें और प्राकृतिक जीवनशैली को अपनाएं।`;
 
@@ -2573,7 +2602,9 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
     const salutation = devoteeName ? `${devoteeName}, ` : "";
     const p1 = `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు జన్మ రాశి (${chart.moonSignName}) ఆధారంగా, గత కొంతకాలంగా మీరు అనుభవిస్తున్న మానసిక అలసట, నిశ్శబ్ద పోరాటాలు మరియు అంతర్గత ఆందోళనలకు రాబోయే 12 నెలల కాలంలో ఉపశమనం లభించనుంది. ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం మీ అంతరంగానికి సరికొత్త ఆత్మవిశ్వాసాన్ని, ఉత్సాహాన్ని మరియు మానసిక ప్రశాంతతను అందిస్తాయి. ఈ కాలం మీ ఆలోచనల్లోని సందిగ్ధతలను తొలగించి, భవిష్యత్తుపై స్పష్టమైన, ఆశాజనకమైన దృక్పథాన్ని కలుగజేస్తుంది.`;
 
-    const p2 = `వృత్తిపరమైన మరియు ఆర్థిక రంగాలలో రాబోయే సంవత్సరం అద్భుతమైన మార్పులను తీసుకురానుంది. గోచారంలో బృహస్పతి అనుకూల వీక్షణ మరియు శని భగవానుడి క్రమశిక్షణతో కూడిన సంచారం మీ దీర్ఘకాలిక శ్రమకు తగిన గుర్తింపును, ప్రతిఫలాన్ని ఇస్తాయి. ఉద్యోగంలో పదోన్నతి, వ్యాపారంలో నూతన భాగస్వామ్యాలు మరియు ఆర్థిక లాభాల సాధనకు రాబోయే 4 నుండి 8 నెలల కాలం అత్యంత అనుకూలంగా ఉంది. సురక్షితమైన పెట్టుబడులు మరియు ఆస్తి కొనుగోలుకు బలమైన పునాది ఏర్పడుతుంది.`;
+    const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+    const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+    const p2 = `వృత్తిపరమైన మరియు ఆర్థిక రంగాలలో మీ ${chart.lagnaSignName} లగ్నానికి రాబోయే సంవత్సరం అద్భుతమైన మార్పులను తీసుకురానుంది. గోచారంలో చంద్రుని నుండి ${jupH}వ స్థానంలో బృహస్పతి అనుకూల వీక్షణ మరియు ${satH}వ స్థానంలో శని భగవానుడి క్రమశిక్షణతో కూడిన సంచారం మీ దీర్ఘకాలిక శ్రమకు తగిన గుర్తింపును, ప్రతిఫలాన్ని ఇస్తాయి. ఉద్యోగంలో పదోన్నతి, వ్యాపారంలో నూతన భాగస్వామ్యాలు మరియు ఆర్థిక లాభాల సాధనకు రాబోయే 4 నుండి 8 నెలల కాలం అత్యంత అనుకూలంగా ఉంది.`;
 
     const p3 = `కుటుంబ వాతావరణంలో గతంలో ఏర్పడిన చిన్నపాటి అపార్థాలు తొలగిపోయి ఆప్యాయతలు, పరస్పర గౌరవం బలపడతాయి. గృహంలో శుభకార్యాల ప్రయత్నాలు వేగవంతమవుతాయి. జీవిత భాగస్వామి మరియు పిల్లల సహకారం మీ ఉల్లాసాన్ని రెట్టింపు చేస్తుంది. శారీరక ఆరోగ్యం విషయంలో క్రమబద్ధమైన దినచర్య, సమతుల్య ఆహారం మరియు ధ్యానం మీ నాడీ వ్యవస్థకు, జీర్ణవ్యవస్థకు మేలు చేస్తాయి. పని ఒత్తిడిని సమర్థవంతంగా నిర్వహించడం మానసిక ఉల్లాసానికి తోడ్పడుతుంది.`;
 
@@ -2587,7 +2618,9 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
     const salutation = devoteeName ? `${devoteeName}, ` : "";
     const p1 = `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், கடந்த சில காலமாக நீங்கள் சந்தித்து வந்த மன உளைச்சல், அமைதியான போராட்டங்கள் மற்றும் சோர்வுகளுக்கு வரவிருக்கும் 12 மாத காலப்பகுதியில் முழுமையான நிவாரணம் கிடைக்கவுள்ளது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உங்கள் மனதிற்கு புதிய புத்துணர்ச்சியையும், ஆழ்ந்த தன்னம்பிக்கையையும், மன அமைதியையும் வழங்கும். இந்த காலம் உங்கள் தயக்கங்களை நீக்கி எதிர்காலத்தைப் பற்றிய தெளிவான பார்வையை உருவாக்கும்.`;
 
-    const p2 = `தொழில் மற்றும் பொருளாதார ரீதியாக வரவிருக்கும் ஒரு வருடம் குறிப்பிடத்தக்க திருப்புமுனைகளை ஏற்படுத்தும். கோசாரத்தில் குரு பகவானின் அருட்பார்வையும் சனி பகவானின் ஒழுங்குபடுத்தும் அமைப்பும் உங்கள் நீண்ட கால உழைப்பிற்கு ஏற்ற நற்பலன்களைத் தரவுள்ளன. உத்தியோகத்தில் பதவி உயர்வு, தொழிலில் புதிய வாடிக்கையாளர்கள் மற்றும் புதிய திட்டங்களைத் தொடங்க அடுத்த 4 முதல் 8 மாதங்கள் மிகவும் சாதகமாக உள்ளன. கடன் சுமைகளிலிருந்து விடுபடவும் பாதுகாப்பான முதலீடுகளைச் செய்யவும் இது நல்ல நேரமாகும்.`;
+    const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+    const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+    const p2 = `தொழில் மற்றும் பொருளாதார ரீதியாக உங்கள் ${chart.lagnaSignName} லக்னத்திற்கு வரவிருக்கும் ஒரு வருடம் குறிப்பிடத்தக்க திருப்புமுனைகளை ஏற்படுத்தும். கோசாரத்தில் சந்திரனுக்கு ${jupH}-ஆம் இடத்தில் குரு பகவானின் அருட்பார்வையும் ${satH}-ஆம் இடத்தில் சனி பகவானின் அமைப்பும் உங்கள் நீண்ட கால உழைப்பிற்கு ஏற்ற நற்பலன்களைத் தரவுள்ளன. உத்தியோகத்தில் பதவி உயர்வு, தொழிலில் புதிய வாடிக்கையாளர்கள் மற்றும் புதிய திட்டங்களைத் தொடங்க அடுத்த 4 முதல் 8 மாதங்கள் மிகவும் சாதகமாக உள்ளன.`;
 
     const p3 = `குடும்பச் சூழலில் கடந்த கால கருத்து வேறுபாடுகள் மறைந்து அன்பும் பரஸ்பர புரிதலும் மேலோங்கும். வீட்டில் சுப காரியங்களுக்கான முயற்சிகள் கைகூடும். வாழ்க்கைத் துணை மற்றும் குடும்பத்தினரின் ஒத்துழைப்பு உங்கள் உற்சாகத்தை அதிகரிக்கும். ஆரோக்கியத்தைப் பொறுத்தவரை முறையான உடற்பயிற்சி, சாத்வீக உணவு மற்றும் தியானம் உங்கள் நரம்பு மண்டலத்தையும் செரிமானத்தையும் சமநிலையில் வைத்திருக்கும். பருவநிலை மாற்றங்களுக்கு ஏற்ப உணவுப் பழக்கங்களை அமைத்துக் கொள்வது நல்லது.`;
 
@@ -2601,7 +2634,9 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
   const salutation = chart.name ? `Dear ${chart.name}, ` : "";
   const p1 = `${salutation}Reflecting upon your natal Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), cosmic configurations deeply acknowledge the silent emotional burdens, fatigue, and persevering resilience you have sustained over recent months. Your active ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti cycle inaugurates a potent 12-month healing transition, shifting your mindset from lingering ambiguity to grounded self-assurance and emotional calm. This sacred alignment dissolves inner exhaustion and equips you with authentic clarity to navigate the year ahead.`;
 
-  const p2 = `In the material and professional sphere, the upcoming 12 months present a sequence of pivotal breakthroughs and stabilization. Fortified by the benevolent glance of transiting Jupiter (Guru) and the structuring discipline of Saturn (Shani), your sustained efforts over prior seasons will begin yielding tangible rewards. The window spanning months 4 through 8 is exceptionally primed for professional expansion, client acquisitions, or decisive career elevation. Disciplined financial budgeting during this phase establishes a durable foundation for long-term assets and family security.`;
+  const jupH = chart.transitJupiter?.houseFromMoon ?? 11;
+  const satH = chart.transitSaturn?.houseFromMoon ?? 7;
+  const p2 = `In the material and professional sphere for your ${chart.lagnaSignName} Ascendant, the upcoming 12 months present a sequence of pivotal breakthroughs and stabilization. Fortified by transiting Jupiter activating the ${jupH}th house and the structuring discipline of Saturn in the ${satH}th house from your natal Moon, your sustained efforts over prior seasons will begin yielding tangible rewards. The window spanning months 4 through 8 is exceptionally primed for professional expansion, client acquisitions, or decisive career elevation. Disciplined financial budgeting during this phase establishes a durable foundation for long-term assets and family security.`;
 
   const p3 = `Within your domestic sphere, subtle communication strains and familial anxieties will steadily resolve into mutual understanding, warmth, and renewed companionship. Anticipated celebratory events or auspicious milestones will brighten the household sanctuary, reinforcing emotional trust among family members. On the wellness front, honoring mindful daily rhythms, seasonal nutrition, and restorative pranayama will safeguard your nervous and metabolic vitality. Embracing calm restorative practices shields your physical constitution against work-induced fatigue.`;
 
@@ -2734,26 +2769,164 @@ export function buildDynamicSoulMirrorFallback(chart: ParsedKundaliChart): Dynam
   const dominantElementName = elemLoc.name;
   const dominantElementTrait = elemLoc.trait;
 
-  // Shield Graha
-  const shieldGraha = "Jupiter";
-  const SHIELD_NAMES: Record<string, string> = {
-    kn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿ",
-    hi: "देवगुरु बृहस्पति",
-    te: "దేవగురు బృహస్పతి",
-    ta: "தேவகுரு பிரகஸ்பதி",
-    en: "Jupiter (Devaguru Brihaspati)"
-  };
-  const SHIELD_WHYS: Record<string, string> = {
-    kn: "ಲಗ್ನ ಕೇಂದ್ರದಲ್ಲಿ ಶುಭ ದೃಷ್ಟಿ ಹೊಂದಿದ್ದು ಸಕಲ ದೋಷಗಳನ್ನು ನಿವಾರಿಸುವ ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚವಾಗಿ ನಿಲ್ಲುತ್ತದೆ.",
-    hi: "लग्न एवं केंद्र भाव पर शुभ दृष्टि डालकर समस्त विघ्नों का शमन करने वाला परम रक्षा कवच है।",
-    te: "లగ్నం మరియు కేంద్ర స్థానాలపై శుభ దృష్టిని ప్రసరిస్తూ సకల దోషాలను తొలగించే దివ్య రక్షా కవచం.",
-    ta: "லக்னம் மற்றும் கேந்திர ஸ்தானங்களில் சுப பார்வை செலுத்தி சர்வ தோஷங்களையும் நீக்கும் தெய்வீக கவசம்.",
-    en: "Projects a benevolent protective grace across angular houses, dissolving karmic obstacles and safeguarding destiny."
-  };
-  const shieldGrahaName = SHIELD_NAMES[baseLang] || SHIELD_NAMES.en;
-  const shieldGrahaWhy = SHIELD_WHYS[baseLang] || SHIELD_WHYS.en;
+  // DYNAMIC SHIELD GRAHA ALGORITHM: Evaluate 7 classical grahas
+  const candidates: Array<{ graha: GrahaKey; score: number }> = [];
+  const grahasToEvaluate: GrahaKey[] = ["Jupiter", "Venus", "Mercury", "Sun", "Mars", "Moon", "Saturn"];
+  const h1Lord = chart.houses[1]?.lordGraha;
+  const h9Lord = chart.houses[9]?.lordGraha;
+  const h5Lord = chart.houses[5]?.lordGraha;
 
-  // Moon Paksha
+  for (const g of grahasToEvaluate) {
+    let score = 0;
+    if (g === h1Lord) score += 6;
+    if (g === h9Lord) score += 5;
+    if (g === h5Lord) score += 4;
+    if (g === "Jupiter") score += 5;
+    else if (g === "Venus") score += 4;
+    else if (g === "Mercury") score += 3;
+    else if (g === "Moon") score += 2;
+
+    const pl = g === "Sun" ? chart.sunPlacement
+      : g === "Moon" ? chart.moonPlacement
+      : g === "Mars" ? chart.marsPlacement
+      : g === "Mercury" ? chart.mercuryPlacement
+      : g === "Jupiter" ? chart.jupiterPlacement
+      : g === "Venus" ? chart.venusPlacement
+      : g === "Saturn" ? chart.saturnPlacement
+      : null;
+    if (pl) {
+      if ([1, 4, 7, 10].includes(pl.house)) score += 4;
+      if ([5, 9].includes(pl.house)) score += 5;
+      if ([6, 8, 12].includes(pl.house)) score -= 4;
+      if (pl.exalted) score += 5;
+      if (pl.debilitated) score -= 5;
+    }
+    candidates.push({ graha: g, score });
+  }
+  candidates.sort((a, b) => b.score - a.score);
+  const bestGraha = candidates[0]?.graha || "Jupiter";
+  const shieldGraha = bestGraha;
+
+  const SHIELD_DATA: Record<string, { name: Record<string, string>; why: Record<string, string> }> = {
+    Jupiter: {
+      name: {
+        kn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿ",
+        hi: "देवगुरु बृहस्पति",
+        te: "దేవగురు బృహస్పతి",
+        ta: "தேவகுரு பிரகஸ்பதி",
+        en: "Jupiter (Devaguru Brihaspati)"
+      },
+      why: {
+        kn: "ಲಗ್ನ ಹಾಗೂ ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಲ್ಲಿ ಪರಮ ಶುಭ ದೃಷ್ಟಿ ಹೊಂದಿದ್ದು ಸಕಲ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸುವ ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚವಾಗಿದೆ.",
+        hi: "कुंडली में अत्यंत शुभ स्थिति में रहकर दैवीय सुरक्षा कवच के रूप में समस्त विघ्नों का शमन करता है।",
+        te: "కుండలిలో శుభ స్థానంలో ఉంటూ దివ్య రక్షా కవచంగా సమస్త దోషాలను నివారించి భాగ్యాన్ని కాపాడుతుంది.",
+        ta: "ஜாதகத்தில் சுப ஸ்தானத்தில் அமர்ந்து தெய்வீக பாதுகாப்பு கவசமாக அனைத்து தோஷங்களையும் நீக்குகிறது.",
+        en: "Projects a benevolent protective grace across key angles, dissolving karmic friction and safeguarding destiny."
+      }
+    },
+    Venus: {
+      name: {
+        kn: "ದೈತ್ಯಗುರು ಶುಕ್ರ ಭಗವಾನ್",
+        hi: "दैत्यगुरु शुक्राचार्य",
+        te: "దైత్యగురు శుక్ర భగవానుడు",
+        ta: "சுக்கிர பகவான்",
+        en: "Venus (Shukra Bhagavan)"
+      },
+      why: {
+        kn: "ಜೀವನದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ, ಮಾನಸಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ಸಕಲ ಸೌಭಾಗ್ಯಗಳನ್ನು ರಕ್ಷಿಸುವ ಕಲ್ಯಾಣಕಾರಕ ರಕ್ಷಾ ಕವಚ.",
+        hi: "जीवन में सुख-शांति, भावनात्मक संतुलन एवं ऐश्वर्य की रक्षा करने वाला परम कल्याणकारी सुरक्षा कवच।",
+        te: "జీవితంలో సుఖ-శాంతులు, మానసిక ప్రశాంతత మరియు సౌభాగ్యాలను కాపాడే దివ్య రక్షా కవచం.",
+        ta: "வாழ்வில் சுக அமைதி, மன நிம்மதி மற்றும் சகல சௌபாக்கியங்களையும் பாதுகாக்கும் சுப கவசம்.",
+        en: "Anchors harmonious emotional equilibrium, domestic grace, and expansive material prosperity."
+      }
+    },
+    Mercury: {
+      name: {
+        kn: "ಬುಧ ಭಗವಾನ್ (ಜ್ಞಾನಕಾರಕ)",
+        hi: "बुध देव (ज्ञानकारक)",
+        te: "బుధ భగవానుడు (జ్ఞానకారకుడు)",
+        ta: "புதன் பகவான் (ஞானகாரகன்)",
+        en: "Mercury (Budha Bhagavan)"
+      },
+      why: {
+        kn: "ತೀಕ್ಷ್ಣ ವಿವೇಕ, ಸಮಯಪ್ರಜ್ಞೆ ಹಾಗೂ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆ ನೀಡಿ ಸಂಕಷ್ಟಗಳಿಂದ ಪಾರುಮಾಡುವ ಜ್ಞಾನ ಕವಚ.",
+        hi: "तीक्ष्ण विवेक, त्वरित निर्णय क्षमता एवं संकटों से रक्षा करने वाला बौद्धिक सुरक्षा कवच।",
+        te: "తీక్షణమైన వివేకం, సమయస్ఫూర్తి మరియు సరైన నిర్ణయాలతో ఆపదల నుండి రక్షించే జ్ఞాన కవచం.",
+        ta: "கூர்மையான புத்தி கூர்மை மற்றும் சரியான முடிவெடுக்கும் ஆற்றலால் காக்கும் அறிவு கவசம்.",
+        en: "Confers analytical agility, eloquent diplomacy, and intellectual armor against deceit and error."
+      }
+    },
+    Sun: {
+      name: {
+        kn: "ಸೂರ್ಯ ನಾರಾಯಣ (ಆತ್ಮಕಾರಕ)",
+        hi: "सूर्य नारायण (आत्मकारक)",
+        te: "సూర్య నారాయణ (ఆత్మకారకుడు)",
+        ta: "சூரிய நாராயணன் (ஆத்மகாரகன்)",
+        en: "Sun (Surya Narayana)"
+      },
+      why: {
+        kn: "ಅದಮ್ಯ ಆತ್ಮಸ್ಥೈರ್ಯ, ಆರೋಗ್ಯ ರಕ್ಷೆ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಗೌರವ-ಪ್ರತಿಷ್ಠೆಗಳನ್ನು ಕಾಪಾಡುವ ತೇಜಸ್ವಿ ಕವಚ.",
+        hi: "अदम्य आत्मविश्वास, आरोग्य संवर्धन एवं सामाजिक प्रतिष्ठा की रक्षा करने वाला तेजोमय सुरक्षा कवच।",
+        te: "అచంచల ఆత్మవిశ్వాసం, ఆరోగ్య రక్షణ మరియు సమాజంలో గౌరవ మర్యాదలను కాపాడే దివ్య రక్షా కవచం.",
+        ta: "அசைக்க முடியாத தன்னம்பிக்கை, உடல் நலம் மற்றும் சமூக அந்தஸ்தைப் பாதுகாக்கும் தேஜஸ் கவசம்.",
+        en: "Radiates unshakeable soul confidence, regal dignity, and immune vitality against adversity."
+      }
+    },
+    Mars: {
+      name: {
+        kn: "ಕುಜ ಭಗವಾನ್ (ಶೌರ್ಯಕಾರಕ)",
+        hi: "मंगल देव (शौर्यकारक)",
+        te: "కుజ భగవానుడు (ధైర్యకారకుడు)",
+        ta: "செவ்வாய் பகவான் (வீரியகாரகன்)",
+        en: "Mars (Mangala Bhagavan)"
+      },
+      why: {
+        kn: "ಸಂಕಷ್ಟಗಳನ್ನು ಎದುರಿಸುವ ಅದ್ಭುತ ಧೈರ್ಯ, ಶತ್ರು-ವಿಘ್ನ ನಿವಾರಣೆ ಹಾಗೂ ಕರ್ಮ ರಕ್ಷಣೆ ಮಾಡುವ ಶೌರ್ಯ ಕವಚ.",
+        hi: "कठिनाइयों से जूझने का अदम्य साहस, शत्रु-बाधा निवारण एवं कर्म क्षेत्र की रक्षा करने वाला शौर्य कवच।",
+        te: "కష్టాలను ఎదుర్కొనే ధైర్యం, శత్రు విఘ్నాల నివారణ మరియు కర్మ రక్షణ అందించే పరాక్రమ కవచం.",
+        ta: "தடைகளை உடைக்கும் அபார தைரியம், சத்ரு சம்ஹாரம் மற்றும் செயல் பாதுகாப்பை அளிக்கும் வீர கவசம்.",
+        en: "Infuses resolute courage, strategic initiative, and impenetrable protective vigor against friction."
+      }
+    },
+    Moon: {
+      name: {
+        kn: "ಚಂದ್ರ ಭಗವಾನ್ (ಮನಃಕಾರಕ)",
+        hi: "चंद्र देव (मनःकारक)",
+        te: "చంద్ర భగవానుడు (మనఃకారకుడు)",
+        ta: "சந்திர பகவான் (மனோகாரகன்)",
+        en: "Moon (Chandra Bhagavan)"
+      },
+      why: {
+        kn: "ಪ್ರಶಾಂತ ಮನಸ್ಸು, ಮಾತೃವಾತ್ಸಲ್ಯ ಹಾಗೂ ಅಂತರಂಗದ ಶುದ್ಧ ಅಂತಃಪ್ರಜ್ಞೆಯನ್ನು ಕಾಪಾಡುವ ಅಮೃತ ಕವಚ.",
+        hi: "शांत मनोबल, मातृकृपा एवं अंतर्मन की पावन चेतना को पोषित करने वाला अमृतमय सुरक्षा कवच।",
+        te: "ప్రశాంతమైన మనస్తత్వం, మాతృవాత్సల్యం మరియు అంతరంగ పవిత్రతను కాపాడే అమృత రక్షా కవచం.",
+        ta: "அமைதியான மனநிலை, தாய்வழி ஆசீர்வாதம் மற்றும் உள்ளுணர்வு ஞானத்தை வளர்க்கும் அமிர்த கவசம்.",
+        en: "Nurtures tranquil mental composure, maternal protective grace, and heightened empathetic wisdom."
+      }
+    },
+    Saturn: {
+      name: {
+        kn: "ಶನಿ ಮಹಾತ್ಮ (ನ್ಯಾಯಾಧಿಪತಿ)",
+        hi: "शनि देव (न्यायाधिपति)",
+        te: "శని మహాత్ముడు (న్యాయాధిపతి)",
+        ta: "சனி பகவான் (நீதிமான்)",
+        en: "Saturn (Shani Mahatma)"
+      },
+      why: {
+        kn: "ದೃಢ ಶಿಸ್ತು, ನ್ಯಾಯನಿಷ್ಠೆ ಹಾಗೂ ಧರ್ಮ ಮಾರ್ಗದಲ್ಲಿ ಕರ್ಮ ರಕ್ಷಣೆ ನೀಡುವ ಅಚಲ ಕವಚ.",
+        hi: "दृढ़ अनुशासन, सत्यनिष्ठा एवं धर्म के मार्ग पर चलने वाले साधकों की रक्षा करने वाला सुरक्षा कवच।",
+        te: "దృఢమైన క్రమశిక్షణ, న్యాయం మరియు ధర్మ మార్గంలో నడిపించే అచంచల రక్షా కవచం.",
+        ta: "உறுதியான ஒழுக்கம், நீதி மற்றும் தர்ம வழியில் நடப்போரைக் காக்கும் அசைக்க முடியாத கவசம்.",
+        en: "Imparts unbending structural fortitude, righteous discernment, and endurance against life trials."
+      }
+    }
+  };
+
+  const sData = SHIELD_DATA[shieldGraha] || SHIELD_DATA.Jupiter;
+  const shieldGrahaName = sData.name[baseLang] || sData.name.en;
+  const shieldGrahaWhy = sData.why[baseLang] || sData.why.en;
+
+  // Dynamic Moon Paksha & Vitality Trait
   let isShukla = true;
   if (chart.sunPlacement && chart.moonPlacement) {
     const diff = (chart.moonPlacement.rashiIndex - chart.sunPlacement.rashiIndex + 12) % 12;
@@ -2768,14 +2941,86 @@ export function buildDynamicSoulMirrorFallback(chart: ParsedKundaliChart): Dynam
   };
   const moonPaksha = PAKSHA_NAMES[baseLang] || PAKSHA_NAMES.en;
 
-  const MOON_VITALITIES: Record<string, string> = {
-    kn: "ಸ್ಥಿರ ಭಾವನಾತ್ಮಕ ಸ್ಥೈರ್ಯ, ಶಾಂತ ಮನೋಬಲ ಹಾಗೂ ಅಂತಃಪ್ರಜ್ಞೆಯ ಚೇತನ ಶಕ್ತಿ.",
-    hi: "स्थिर भावनात्मक संतुलन, शांत मनोबल एवं गहन अंतःप्रज्ञा की शक्ति।",
-    te: "స్థిరమైన భావోద్వేగ బలం, ప్రశాంత మనోధైర్యం మరియు అంతఃచేతన శక్తి.",
-    ta: "ஸ்திரமான மன உறுதி, அமைதியான மனோபலம் மற்றும் உள்ளுணர்வு ஜீவசக்தி.",
-    en: "Unshakeable emotional poise, tranquil mental fortitude, and deep intuitive awareness."
+  // Dynamic Moon Vitality Trait across 8 combinations (Moon Element x Paksha)
+  const moonRashi = ((chart.moonRashiIndex % 12) + 12) % 12;
+  const moonElem = (moonRashi === 0 || moonRashi === 4 || moonRashi === 8)
+    ? "fire"
+    : (moonRashi === 1 || moonRashi === 5 || moonRashi === 9)
+    ? "earth"
+    : (moonRashi === 2 || moonRashi === 6 || moonRashi === 10)
+    ? "air"
+    : "water";
+
+  const MOON_TRAITS_BY_ELEM: Record<string, { shukla: Record<string, string>; krishna: Record<string, string> }> = {
+    fire: {
+      shukla: {
+        kn: "ಪ್ರಕಾಶಮಾನವಾದ ಆತ್ಮವಿಶ್ವಾಸ, ಧೈರ್ಯಶಾಲಿ ನಿರ್ಧಾರ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ನಿರಂತರ ಉತ್ಸಾಹದ ಚೇತನ ಶಕ್ತಿ.",
+        hi: "प्रदीप्त आत्मविश्वास, साहसी निर्णय क्षमता एवं निरंतर नवऊर्जा से परिपूर्ण चैतन्य शक्ति।",
+        te: "ప్రకాశవంతమైన ఆత్మవిశ్వాసం, సాహసోపేతమైన నిర్ణయాలు మరియు నిరంతర ఉత్సాహం.",
+        ta: "பிரகாசமான தன்னம்பிக்கை, துணிச்சலான முடிவெடுக்கும் ஆற்றல் மற்றும் உற்சாக ஜீவசக்தி.",
+        en: "Radiant self-assurance, daring decision-making clarity, and an inexhaustible fountain of vitality."
+      },
+      krishna: {
+        kn: "ನಿಯಂತ್ರಿತ ನಾಯಕತ್ವ, ಆಂತರಿಕ ಸಂಯಮ ಹಾಗೂ ಕಠಿಣ ಸಂದರ್ಭಗಳಲ್ಲಿ ದೃತಿಗೆಡದ ಶಾಂತ ಸ್ಥೈರ್ಯ.",
+        hi: "नियंत्रित नेतृत्व क्षमता, आंतरिक संयम एवं विषम परिस्थितियों में अडिग मानसिक शांति।",
+        te: "నియంత్రిత నాయకత్వం, అంతర్గత సంయమనం మరియు క్లిష్ట సమయాల్లో చెదరని మనోధైర్యం.",
+        ta: "கட்டுப்படுத்தப்பட்ட தலைமைத்துவம், உள்ளார்ந்த அமைதி மற்றும் இக்கட்டான சூழலில் தளராத உறுதி.",
+        en: "Calibrated executive authority, introspective discipline, and tranquil composure under pressure."
+      }
+    },
+    earth: {
+      shukla: {
+        kn: "ಅಚಲ ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ, ವ್ಯವಸ್ಥಿತ ಯೋಚನೆ ಹಾಗೂ ವಾಸ್ತವಿಕ ಗುರಿಗಳ ಸಿದ್ಧಿಗೆ ಅಪಾರ ಕಾರ್ಯಕ್ಷಮತೆ.",
+        hi: "अटल भावनात्मक स्थिरता, सुव्यवस्थित चिंतन एवं व्यावहारिक लक्ष्यों की सिद्धि हेतु अगाध कार्यकुशलता।",
+        te: "నిశ్చలమైన భావోద్వేగ స్థిరత్వం, క్రమబద్ధమైన ఆలోచన మరియు ఆచరణాత్మక కార్యాచరణ.",
+        ta: "உறுதியான உணர்ச்சி ஸ்திரத்தன்மை, முறையான சிந்தனை மற்றும் நடைமுறை லட்சியங்களை அடையும் திறன்.",
+        en: "Rock-solid emotional stability, methodical foresight, and profound pragmatic execution."
+      },
+      krishna: {
+        kn: "ಗಾಢವಾದ ತಾಳ್ಮೆ, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲದ ಜವಾಬ್ದಾರಿಗಳನ್ನು ನಿಷ್ಠೆಯಿಂದ ನಿರ್ವಹಿಸುವ ನೈತಿಕ ಬಲ.",
+        hi: "गहन धैर्य, सत्यनिष्ठा एवं दीर्घकालिक दायित्वों को निष्ठापूर्वक निभाने का नैतिक बल।",
+        te: "గాఢమైన ఓర్పు, నిజాయితీ మరియు దీర్ఘకాలిక బాధ్యతలను నిర్వర్తించే నైతిక స్థైర్యం.",
+        ta: "ஆழ்ந்த பொறுமை, நேர்மை மற்றும் நீண்ட கால பொறுப்புகளை நிறைவேற்றும் அறநெறி பலம்.",
+        en: "Enduring patience, unimpeachable integrity, and unyielding stamina for monumental commitments."
+      }
+    },
+    air: {
+      shukla: {
+        kn: "ತೀಕ್ಷ್ಣ ಕಲ್ಪನಾಶಕ್ತಿ, ನವೀನ ವೈಚಾರಿಕತೆ ಹಾಗೂ ಸಮಾಜದೊಂದಿಗೆ ಆಕರ್ಷಕವಾಗಿ ಬೆರೆಯುವ ವಾಕ್ಚಾತುರ್ಯ.",
+        hi: "तीक्ष्ण कल्पनाशक्ति, नवीन वैचारिकता एवं सामाजिक परिवेश में सम्मोहक वाकपटुता।",
+        te: "చురుకైన ఊహాశక్తి, నూతన దృక్పథం మరియు ఆకర్షణీయమైన సంభాషణా చాతుర్యం.",
+        ta: "கூர்மையான கற்பனைத்திறன், நவீன சிந்தனை மற்றும் பிறரை ஈர்க்கும் கவர்ச்சிகரமான பேச்சுத்திறன்.",
+        en: "Nimble conceptual brilliance, visionary imagination, and sparkling communicative charisma."
+      },
+      krishna: {
+        kn: "ಆಳವಾದ ತಾತ್ವಿಕ ವಿವೇಚನೆ, ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ಮೌನದಲ್ಲಿ ಸತ್ಯವನ್ನು ಶೋಧಿಸುವ ಬುದ್ಧಿಬಲ.",
+        hi: "गहन दार्शनिक विवेक, विश्लेषणात्मक अंतर्दृष्टि एवं मौन में सत्य की खोज करने की बौद्धिक क्षमता।",
+        te: "లోతైన తాత్విక వివేకం, విశ్లేషణాత్మక అంతర్దృష్టి మరియు మౌనంలో సత్యాన్ని శోధించే మేధాశక్తి.",
+        ta: "ஆழ்ந்த தத்துவ ஞானம், பகுப்பாய்வு உள்ளுணர்வு மற்றும் மௌனத்தில் உண்மையை அறியும் அறிவுத்திறன்.",
+        en: "Deep philosophical discernment, rigorous analytical depth, and meditative contemplative focus."
+      }
+    },
+    water: {
+      shukla: {
+        kn: "ಅಗಾಧ ಸಹಾನುಭೂತಿ, ಪವಿತ್ರ ಅಂತಃಪ್ರಜ್ಞೆ ಹಾಗೂ ಎಲ್ಲರನ್ನೂ ಪ್ರೀತಿಯಿಂದ ಸೆಳೆಯುವ ಉದಾತ್ತ ಭಾವನಾಶಕ್ತಿ.",
+        hi: "अगाध संवेदनशीलता, पावन अंतर्ज्ञान एवं सभी को स्नेह से आकर्षित करने वाली उदार भावनात्मक शक्ति।",
+        te: "గాఢమైన సానుభూతి, పవిత్ర అంతర్దృష్టి మరియు అందరినీ ఆప్యాయంగా ఆకట్టుకునే భావోద్వేగ శక్తి.",
+        ta: "ஆழ்ந்த கருணை, புனிதமான உள்ளுணர்வு மற்றும் அனைவரையும் அன்பால் அரவணைக்கும் உன்னத மனப்பாங்கு.",
+        en: "Expansive emotional empathy, luminous intuitive wisdom, and universally welcoming warmth."
+      },
+      krishna: {
+        kn: "ಅಂತರಂಗದ ಆಧ್ಯಾತ್ಮಿಕ ಶಾಂತಿ, ನಿಗೂಢ ರಹಸ್ಯಗಳನ್ನು ಗ್ರಹಿಸುವ ದಿವ್ಯ ಶಕ್ತಿ ಹಾಗೂ ಅಚಲ ಮಾನಸಿಕ ತೃಪ್ತಿ.",
+        hi: "आंतरिक आध्यात्मिक शांति, गूढ़ रहस्यों को समझने की अंतर्दृष्टि एवं निश्चल मानसिक संतोष।",
+        te: "అంతర్గత ఆధ్యాత్మిక శాంతి, నిగూఢ రహస్యాలను గ్రహించే దివ్య శక్తి మరియు సంపూర్ణ మానసిక సంతృప్తి.",
+        ta: "உள்ளார்ந்த ஆன்மீக அமைதி, ஆழமான உண்மைகளை உணரும் ஞான சக்தி மற்றும் மனத்திருப்தி.",
+        en: "Profound spiritual equanimity, mystical perceptive depth, and unwavering inner contentment."
+      }
+    }
   };
-  const moonVitalityTrait = MOON_VITALITIES[baseLang] || MOON_VITALITIES.en;
+
+  const vGroup = MOON_TRAITS_BY_ELEM[moonElem] || MOON_TRAITS_BY_ELEM.earth;
+  const vObj = isShukla ? vGroup.shukla : vGroup.krishna;
+  const moonVitalityTrait = (vObj as Record<string, string>)[baseLang] || vObj.en;
 
   // Truth Titles
   const TRUTH_TITLES: Record<string, [string, string, string]> = {
@@ -2807,31 +3052,35 @@ export function buildDynamicSoulMirrorFallback(chart: ParsedKundaliChart): Dynam
   };
   const titles = TRUTH_TITLES[baseLang] || TRUTH_TITLES.en;
 
-  // Truth Texts (All strictly >= 80 characters)
+  // Truth Texts (Grounded mathematically in native's chart)
   let truth1Text = "";
   let truth2Text = "";
   let truth3Text = "";
 
+  const lagnaLordName = chart.houses[1]?.lordName || (baseLang === "kn" ? "ಲಗ್ನಾಧಿಪತಿ" : baseLang === "hi" ? "लग्नेश" : baseLang === "te" ? "లగ్నాధిపతి" : baseLang === "ta" ? "லக்னாதிபதி" : "Ascendant Lord");
+  const bhagyaLordName = chart.houses[9]?.lordName || (baseLang === "kn" ? "ಭಾಗ್ಯಾಧಿಪತಿ" : baseLang === "hi" ? "भाग्येश" : baseLang === "te" ? "భాగ్యాధిపతి" : baseLang === "ta" ? "பாக்கியாதிபதி" : "9th Lord");
+  const bhagyaRashiName = chart.houses[9]?.rashiName || (baseLang === "kn" ? "೯ನೇ ಮನೆ" : baseLang === "hi" ? "नवम भाव" : baseLang === "te" ? "9వ ఇల్లు" : baseLang === "ta" ? "9-ஆம் பாவம்" : "9th House");
+
   if (baseLang === "kn") {
     truth1Text = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿಯಾದ ${chart.moonSignName} ಗ್ರಹಗಳ ಸಂಯೋಗವು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದಲ್ಲಿ ಬಾಹ್ಯ ಗಾಂಭೀರ್ಯ ಹಾಗೂ ಅಂತರಂಗದ ಶಾಂತತೆಯನ್ನು ಸಮ್ಮಿಲನಗೊಳಿಸಿದೆ. ಜಗತ್ತಿನ ಎದುರು ಎಷ್ಟೇ ಜವಾಬ್ದಾರಿಗಳು ಎದುರಾದರೂ ನಿಮ್ಮ ಆಂತರಿಕ ಏಕಾಂತದಲ್ಲಿ ಅಪಾರ ಶಕ್ತಿ ಅಡಗಿದೆ.`;
-    truth2Text = "ನಿಮ್ಮ ಜೀವನ ಸೂತ್ರದಲ್ಲಿ ಅಚಲ ಸ್ವಾಭಿಮಾನ ಹಾಗೂ ನಂಬಿಕೆಯು ಪರಮ ಮೌಲ್ಯಗಳಾಗಿವೆ. ಮುಗ್ಧತೆಯಿಂದ ಮಾಡಿದ ತಪ್ಪುಗಳನ್ನು ದೊಡ್ಡ ಗುಣದಿಂದ ಕ್ಷಮಿಸುವ ನೀವು, ಉದ್ದೇಶಪೂರ್ವಕ ನಂಬಿಕೆದ್ರೋಹ ಅಥವಾ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಧಕ್ಕೆ ಬಂದರೆ ಆ ಸಂಬಂಧಗಳಿಂದ ತಕ್ಷಣ ಶಾಂತವಾಗಿ ನಿರ್ಗಮಿಸುತ್ತೀರಿ.";
-    truth3Text = "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಪೂರ್ವಪುಣ್ಯ ಬಲವು ನಿಮ್ಮ ಜೀವನದ ಅಗೋಚರ ರಕ್ಷಾ ಕವಚವಾಗಿದೆ. ಅನಿರೀಕ್ಷಿತ ಸಂಕಷ್ಟಗಳು ಎದುರಾದಾಗಲೂ ೧೧ನೇ ಗಂಟೆಯಲ್ಲಿ ದೈವಕೃಪೆಯು ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸುತ್ತದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ನಿಮ್ಮ ಕುಲದೇವರ ಆಶೀರ್ವಾದ ಸದಾ ಜೊತೆಗಿದೆ.";
+    truth2Text = `ನಿಮ್ಮ ${chart.lagnaSignName} ಲಗ್ನದ ಅಧಿಪತಿಯಾದ ${lagnaLordName} ಹಾಗೂ ${dominantElementName} ನಿಮ್ಮ ಜೀವನ ಸೂತ್ರದಲ್ಲಿ ಅಚಲ ಸ್ವಾಭಿಮಾನ ಹಾಗೂ ನಂಬಿಕೆಯನ್ನು ಪರಮ ಮೌಲ್ಯಗಳನ್ನಾಗಿ ರೂಪಿಸಿವೆ. ಮುಗ್ಧತೆಯಿಂದ ಮಾಡಿದ ತಪ್ಪುಗಳನ್ನು ದೊಡ್ಡ ಗುಣದಿಂದ ಕ್ಷಮಿಸುವ ನೀವು, ಉದ್ದೇಶಪೂರ್ವಕ ನಂಬಿಕೆದ್ರೋಹ ಅಥವಾ ಸ್ವಾಭಿಮಾನಕ್ಕೆ ಧಕ್ಕೆ ಬಂದರೆ ಆ ಸಂಬಂಧಗಳಿಂದ ತಕ್ಷಣ ಶಾಂತವಾಗಿ ನಿರ್ಗಮಿಸುತ್ತೀರಿ.`;
+    truth3Text = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೯ನೇ ಭಾಗ್ಯಸ್ಥಾನವಾದ ${bhagyaRashiName} ಹಾಗೂ ಭಾಗ್ಯಾಧಿಪತಿ ${bhagyaLordName}ರ ಪೂರ್ವಪುಣ್ಯ ಬಲವು ನಿಮ್ಮ ಜೀವನದ ಅಗೋಚರ ರಕ್ಷಾ ಕವಚವಾಗಿದೆ. ಪ್ರಸ್ತುತ ${chart.mahaLordName} ದಶಾ ಕಾಲದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಸಂಕಷ್ಟಗಳು ಎದುರಾದಾಗಲೂ ೧೧ನೇ ಗಂಟೆಯಲ್ಲಿ ದೈವಕೃಪೆಯು ನಿಮ್ಮನ್ನು ರಕ್ಷಿಸುತ್ತದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ನಿಮ್ಮ ಕುಲದೇವರ ಆಶೀರ್ವಾದ ಸದಾ ನಿಮ್ಮೊಂದಿಗಿದೆ.`;
   } else if (baseLang === "hi") {
     truth1Text = `आपकी जन्म लग्न ${chart.lagnaSignName} एवं चंद्र राशि ${chart.moonSignName} का दिव्य संयोग आपके व्यक्तित्व में बाह्य दृढ़ता एवं अंतर्मन की शांत गंभीरता को स्थापित करता है। संसार के सम्मुख आप अत्यंत गरिमामयी रहते हैं और आपका आंतरिक एकांत आपकी परम शक्ति है।`;
-    truth2Text = "आपके जीवन दर्शन में अडिग स्वाभिमान और परस्पर विश्वास का सर्वोच्च स्थान है। अज्ञानवश की गई त्रुटियों को आप उदारतापूर्वक क्षमा कर देते हैं, किंतु जानबूझकर किए गए विश्वासघात अथवा आत्मसम्मान पर प्रहार को आप कभी स्वीकार नहीं करते।";
-    truth3Text = "आपकी जन्म कुंडली का पूर्वपुण्य भाव आपके जीवन का अदृश्य सुरक्षा कवच है। जब भी कोई आकस्मिक संकट सम्मुख आता है, अंतिम क्षण में दैवीय कृपा से मार्ग प्रशस्त हो जाता है। श्री क्षेत्र गोकर्ण के गणपति एवं आपके कुलदेवता का पावन आशीर्वाद सदैव आपके साथ है।";
+    truth2Text = `आपके ${chart.lagnaSignName} लग्न के स्वामी ${lagnaLordName} एवं ${dominantElementName} आपके जीवन दर्शन में अडिग स्वाभिमान और परस्पर विश्वास को सर्वोच्च स्थान देते हैं। अज्ञानवश की गई त्रुटियों को आप उदारतापूर्वक क्षमा कर देते हैं, किंतु जानबूझकर किए गए विश्वासघात अथवा आत्मसम्मान पर प्रहार को आप कभी स्वीकार नहीं करते।`;
+    truth3Text = `आपकी जन्म कुंडली के नवम भाग्य भाव (${bhagyaRashiName}) एवं भाग्येश ${bhagyaLordName} का पूर्वपुण्य बल आपके जीवन का अदृश्य सुरक्षा कवच है। गतिमान ${chart.mahaLordName} महादशा में जब भी कोई आकस्मिक संकट सम्मुख आता है, अंतिम क्षण में दैवीय कृपा से मार्ग प्रशस्त हो जाता है। श्री क्षेत्र गोकर्ण के गणपति एवं आपके कुलदेवता का पावन आशीर्वाद सदैव आपके साथ है।`;
   } else if (baseLang === "te") {
     truth1Text = `మీ జన్మ లగ్నం ${chart.lagnaSignName} మరియు చంద్ర రాశి ${chart.moonSignName}ల గ్రహ సంయోగం మీ వ్యక్తిత్వంలో బాహ్య గాంభీర్యాన్ని మరియు అంతర్గత ప్రశాంతతను సమ్మేళనం చేసింది. బాహ్య ప్రపంచం ముందు బాధ్యతలను నిర్వర్తిస్తూనే మీ అంతరంగం దృఢమైన ఆత్మబలాన్ని కలిగి ఉంటుంది.`;
-    truth2Text = "మీ జీవన విధానంలో ఆత్మగౌరవం మరియు పరస్పర నమ్మకం అత్యంత కీలకమైన అంశాలు. తెలియక చేసిన పొరపాట్లను పెద్ద మనసుతో క్షమించే మీరు, ఉద్దేశపూర్వక నమ్మకద్రోహాన్ని లేదా ఆత్మగౌరవానికి భంగం కలిగించే అంశాలను ఎట్టిపరిస్థితుల్లోనూ సహించరు.";
-    truth3Text = "మీ జన్మ కుండలిలోని పూర్వపుణ్య బలం మీ జీవితానికి అదృశ్య రక్షా కవచంగా నిలుస్తుంది. అనుకోని కష్టాలు ఎదురైనప్పటికీ చివరి క్షణంలో దైవానుగ్రహం మీకు సరియైన మార్గాన్ని చూపుతుంది. శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి ఆశీస్సులు మీకు సదా తోడుంటాయి.";
+    truth2Text = `మీ ${chart.lagnaSignName} లగ్నాధిపతి ${lagnaLordName} మరియు ${dominantElementName} మీ జీవన విధానంలో ఆత్మగౌరవం మరియు పరస్పర నమ్మకాన్ని అత్యంత కీలకమైన అంశాలుగా తీర్చిదిద్దాయి. తెలియక చేసిన పొరపాట్లను పెద్ద మనసుతో క్షమించే మీరు, ఉద్దేశపూర్వక నమ్మకద్రోహాన్ని లేదా ఆత్మగౌరవానికి భంగం కలిగించే అంశాలను ఎట్టిపరిస్థితుల్లోనూ సహించరు.`;
+    truth3Text = `మీ జన్మ కుండలిలోని 9వ భాగ్య స్థానమైన ${bhagyaRashiName} మరియు భాగ్యాధిపతి ${bhagyaLordName} పూర్వపుణ్య బలం మీ జీవితానికి అదృశ్య రక్షా కవచంగా నిలుస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశలో అనుకోని కష్టాలు ఎదురైనప్పటికీ చివరి క్షణంలో దైవానుగ్రహం మీకు సరియైన మార్గాన్ని చూపుతుంది. శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి ఆశీస్సులు మీకు సదా తోడుంటాయి.`;
   } else if (baseLang === "ta") {
     truth1Text = `உங்கள் ஜென்ம லக்னம் ${chart.lagnaSignName} மற்றும் சந்திர ராசி ${chart.moonSignName} ஆகியவற்றின் சேர்க்கை உங்கள் ஆளுமையில் கம்பீரத்தையும் உள்ளார்ந்த அமைதியையும் உருவாக்குகிறது. உலகிற்கு முன் அசைக்க முடியாத பொறுப்புணர்வோடு திகழ்ந்தாலும், உங்கள் தனிமையில் அபாரமான ஆன்மீக சக்தி குடியிருக்கிறது.`;
-    truth2Text = "உங்கள் வாழ்க்கைத் தத்துவத்தில் சுயமரியாதையும் பரஸ்பர நம்பிக்கையும் உன்னதமான விழுமியங்கள். அறியாமையினால் செய்யும் தவறுகளை பெருந்தன்மையுடன் மன்னிக்கும் நீங்கள், திட்டமிட்ட துரோகத்தையோ அல்லது சுயமரியாதைக்கு ஏற்படும் இழுக்கையோ ஒருபோதும் ஏற்பதில்லை.";
-    truth3Text = "உங்கள் ஜென்ம ஜாதகத்தின் பூர்வபுண்ணிய பலம் உங்கள் வாழ்க்கையின் அருவமான பாதுகாப்பு கவசமாகும். எதிர்பாராத நெருக்கடிகள் சூழும்போது கூட, கடைசி கணத்தில் தெய்வீக அருள் உங்களை பாதுகாத்து நல்வழி காட்டும். ஸ்ரீ க்ஷேத்ர பக்கோண கணபதியின் பரிபூரண ஆசி எப்போதும் உண்டு.";
+    truth2Text = `உங்கள் ${chart.lagnaSignName} லக்னாதிபதி ${lagnaLordName} மற்றும் ${dominantElementName} உங்கள் வாழ்க்கைத் தத்துவத்தில் சுயமரியாதையையும் பரஸ்பர நம்பிக்கையையும் உன்னதமான விழுமியங்களாக அமைத்துள்ளன. அறியாமையினால் செய்யும் தவறுகளை பெருந்தன்மையுடன் மன்னிக்கும் நீங்கள், திட்டமிட்ட துரோகத்தையோ அல்லது சுயமரியாதைக்கு ஏற்படும் இழுக்கையோ ஒருபோதும் ஏற்பதில்லை.`;
+    truth3Text = `உங்கள் ஜென்ம ஜாதகத்தின் 9-ஆம் பாக்கிய ஸ்தானமான ${bhagyaRashiName} மற்றும் பாக்கியாதிபதி ${bhagyaLordName} பூர்வபுண்ணிய பலம் உங்கள் வாழ்க்கையின் அருவமான பாதுகாப்பு கவசமாகும். நடப்பு ${chart.mahaLordName} திசையில் எதிர்பாராத நெருக்கடிகள் சூழும்போது கூட, கடைசி கணத்தில் தெய்வீக அருள் உங்களை பாதுகாத்து நல்வழி காட்டும். ஸ்ரீ க்ஷேத்ர பக்கோண கணபதியின் பரிபூரண ஆசி எப்போதும் உண்டு.`;
   } else {
     truth1Text = `The celestial alignment of your natal Ascendant (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}) weaves a commanding outer presence harmonized with a serene, contemplative inner sanctuary. While projecting unwavering strength and poise to the outer world, your solitary reflections remain your greatest fountain of resilience.`;
-    truth2Text = "At the core of your dharmic code lies an adamantine self-respect and an unshakeable boundary of trust. While your noble nature effortlessly pardons genuine human mistakes born of innocence, calculated betrayal or violations of personal dignity are met with immediate, dignified emotional detachment.";
-    truth3Text = "The accumulated merits of your past lifetimes (Purva Punya) operate as an invisible cosmic armor throughout your earthly journey. Even amidst complex predicaments, miraculous eleventh-hour interventions restore equilibrium. The divine grace of Sri Kshetra Gokarna continuously blesses your life with triumph.";
+    truth2Text = `Presided over by your Ascendant lord ${lagnaLordName} and reinforced by your predominant ${dominantElementName}, an adamantine self-respect and an unshakeable boundary of trust anchor your conduct. While your noble nature effortlessly pardons genuine human mistakes born of innocence, calculated betrayal or violations of personal dignity are met with immediate, dignified emotional detachment.`;
+    truth3Text = `The accumulated merits of your 9th house of fortune (${bhagyaRashiName}) governed by ${bhagyaLordName} operate as an invisible cosmic armor throughout your earthly journey. Under your active ${chart.mahaLordName} Mahadasha cycle, even amidst complex predicaments, miraculous eleventh-hour interventions restore equilibrium. The divine grace of Sri Kshetra Gokarna continuously blesses your life with triumph.`;
   }
 
   return {
@@ -2850,11 +3099,11 @@ export function buildDynamicSoulMirrorFallback(chart: ParsedKundaliChart): Dynam
       moonVitalityTrait
     },
     truth1Title: titles[0],
-    truth1Text,
+    truth1Text: baseLang === "en" ? truth1Text : cleanEnglishFromRegionalText(truth1Text, baseLang),
     truth2Title: titles[1],
-    truth2Text,
+    truth2Text: baseLang === "en" ? truth2Text : cleanEnglishFromRegionalText(truth2Text, baseLang),
     truth3Title: titles[2],
-    truth3Text
+    truth3Text: baseLang === "en" ? truth3Text : cleanEnglishFromRegionalText(truth3Text, baseLang)
   };
 }
 
@@ -2870,112 +3119,404 @@ export interface DynamicPrescriptionsResult {
 
 export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPrescriptionsResult {
   const baseLang = chart.lang.split("-")[0];
-  const lagnaRashiIdx = chart.lagnaRashiIndex;
+  const lagnaRashiIdx = ((chart.lagnaRashiIndex % 12) + 12) % 12;
 
-  // Mars / Havala check
-  const marsPlacement = chart.marsPlacement;
-  const marsHouse = marsPlacement ? marsPlacement.house : 1;
-  const isMarsDusthana = [6, 8, 12].includes(marsHouse);
-  const isMarsBenefic = [0, 3, 4, 7, 8, 11].includes(lagnaRashiIdx); // Aries, Cancer, Leo, Scorpio, Sagittarius, Pisces
-  const moonNakIdx = chart.houses[1]?.rashiIndex ?? 0;
-  const isKujaNak = (moonNakIdx % 9) === 4;
-  const isHavalaRecommended = isKujaNak || (isMarsBenefic && !isMarsDusthana);
+  // Map 12 Lagnas to their authentic presiding Graha
+  const LAGNA_PRESIDING_GRAHAS: GrahaKey[] = [
+    "Mars",    // 0: Aries (Mesha)
+    "Venus",   // 1: Taurus (Vrishabha)
+    "Mercury", // 2: Gemini (Mithuna)
+    "Moon",    // 3: Cancer (Karka)
+    "Sun",     // 4: Leo (Simha)
+    "Mercury", // 5: Virgo (Kanya)
+    "Venus",   // 6: Libra (Tula)
+    "Mars",    // 7: Scorpio (Vrishchika)
+    "Jupiter", // 8: Sagittarius (Dhanus)
+    "Saturn",  // 9: Capricorn (Makara)
+    "Saturn",  // 10: Aquarius (Kumbha)
+    "Jupiter"  // 11: Pisces (Meena)
+  ];
 
-  // Gemstone in 5 languages
-  let gemstone = "";
-  if (baseLang === "kn") {
-    gemstone = isHavalaRecommended
-      ? "ಹವಳ (ಶುದ್ಧ ಪ್ರವಾಳ, ೪.೫ - ೬.೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು ಅನಾಮಿಕಾ, ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನದಲ್ಲಿ, ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ)"
-      : "ಕನಕ ಪುಷ್ಯರಾಗ ಅಥವಾ ಮಾಣಿಕ್ಯ (೪.೨೫ - ೫.೫೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ತೋರುಬೆರಳು, ಅಪ್ಪಟ ಚಿನ್ನದಲ್ಲಿ, ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ)";
-  } else if (baseLang === "hi") {
-    gemstone = isHavalaRecommended
-      ? "लाल मूंगा (शुद्ध प्रवाल, 4.5 - 6.0 कैरेट - दाहिने हाथ की अनामिका अंगुली, तांबा अथवा स्वर्ण में, मंगलवार प्रातः मंगल होरा में)"
-      : "पुखराज अथवा माणिक्य (4.25 - 5.50 कैरेट - तर्जनी अंगुली, शुद्ध स्वर्ण में, गुरुवार प्रातःकाल)";
-  } else if (baseLang === "te") {
-    gemstone = isHavalaRecommended
-      ? "పగడం (శుద్ధ ప్రవాళం, 4.5 - 6.0 క్యారెట్లు - కుడి చేయి ఉంగరపు వేలు అనామిక, రాగి లేదా బంగారంలో, మంగళవారం ఉదయం కుజ హోరలో)"
-      : "పుష్యరాగం లేదా మాణిక్యం (4.25 - 5.50 క్యారెట్లు - చూపుడు వేలు, బంగారంలో, గురువారం ఉదయం)";
-  } else if (baseLang === "ta") {
-    gemstone = isHavalaRecommended
-      ? "பவழம் (தூய பிரவாளம், 4.5 - 6.0 கேரட் - வலது கை மோதிர விரல் அநாமிகா, தாமிரம் அல்லது தங்கத்தில், செவ்வாய்க்கிழமை காலை குஜ ஓரையில்)"
-      : "புஷ்பராகம் அல்லது மாணிக்கம் (4.25 - 5.50 கேரட் - ஆள்காட்டி விரல், தங்கத்தில், வியாழக்கிழமை காலை)";
-  } else {
-    gemstone = isHavalaRecommended
-      ? "Red Coral (Pure Pravala, 4.5 - 6.0 Carats - Ring Finger of Right Hand in Pure Copper or Gold, Tuesday Morning during Mars Hora)"
-      : "Yellow Sapphire or Ruby (4.25 - 5.50 Carats - Index Finger of Right Hand in Pure Gold, Thursday Morning)";
-  }
+  const presidingGraha = LAGNA_PRESIDING_GRAHAS[lagnaRashiIdx] || "Jupiter";
 
-  // Rudraksha in 5 languages (matching Lagna Lord / Nakshatra Lord)
-  let rudraksha = "";
-  if (baseLang === "kn") {
-    rudraksha = isHavalaRecommended
-      ? "3 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಅಗ್ನಿ ತತ್ವ - ಕುಜ ದೋಷ ನಿವಾರಣೆ, ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಮಂತ್ರದೊಂದಿಗೆ ಧಾರಣೆ)"
-      : "5 ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಕಾಲಾಗ್ನಿ ರುದ್ರ ತತ್ವ - ಗುರು ಬಲವರ್ಧನೆ, ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)";
-  } else if (baseLang === "hi") {
-    rudraksha = isHavalaRecommended
-      ? "3 मुखी रुद्राक्ष (अग्नि तत्व - कुज दोष निवारण, मंगलवार प्रातः मंगल मंत्र के साथ धारण)"
-      : "5 मुखी रुद्राक्ष (कालाग्नि रुद्र तत्व - गुरु बल संवर्धन, गुरुवार प्रातःकाल धारण)";
-  } else if (baseLang === "te") {
-    rudraksha = isHavalaRecommended
-      ? "3 ముఖి రుద్రాక్ష (అగ్ని తత్వము - కుజ దోష నివారణ, మంగళవారం ఉదయం కుజ మంత్రంతో ధారణ)"
-      : "5 ముఖి రుద్రాక్ష (కాలాగ్ని రుద్ర తత్వము - గురు బలాభివృద్ధి, గురువారం ఉదయం ధారణ)";
-  } else if (baseLang === "ta") {
-    rudraksha = isHavalaRecommended
-      ? "3 முக ருத்ராட்சம் (அக்னி தத்துவம் - செவ்வாய் தோஷ நிவாரணம், செவ்வாய்க்கிழமை காலை அணிதல்)"
-      : "5 முக ருத்ராட்சம் (காலாக்கி ருத்ர தத்துவம் - குரு பலம் பெற, வியாழக்கிழமை காலை அணிதல்)";
-  } else {
-    rudraksha = isHavalaRecommended
-      ? "3 Mukhi Rudraksha (Lord Agni Tatva - Harmonizes Mars energy, wear on Tuesday morning)"
-      : "5 Mukhi Rudraksha (Lord Kalagni Rudra - Auspicious Jupiter grace, wear on Thursday morning)";
-  }
+  // Comprehensive 5-Language Prescriptions Dataset for all 7 Presiding Grahas
+  const PRESCRIPTIONS_BY_GRAHA: Record<string, {
+    gemstone: Record<string, string>;
+    rudraksha: Record<string, string>;
+    ishtaDevata: Record<string, string>;
+    colors: Record<string, string>;
+    days: Record<string, string>;
+    numbers: Record<string, string>;
+    direction: Record<string, string>;
+  }> = {
+    Sun: {
+      gemstone: {
+        kn: "ಮಾಣಿಕ್ಯ (ರೂಬಿ, ೪.೨೫ - ೫.೫೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು ಅನಾಮಿಕಾ, ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ತಾಮ್ರದಲ್ಲಿ, ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯ ವೇಳೆಯಲ್ಲಿ ಧಾರಣೆ)",
+        hi: "माणिक्य (रूबी, 4.25 - 5.50 कैरेट - दाहिने हाथ की अनामिका अंगुली, शुद्ध स्वर्ण अथवा तांबे में, रविवार प्रातः सूर्योदय वेला में धारण)",
+        te: "మాణిక్యం (రూబీ, 4.25 - 5.50 క్యారెట్లు - కుడి చేయి ఉంగరపు వేలు అనామిక, బంగారంలో లేదా రాగిలో, ఆదివారం ఉదయం సూర్యోదయ సమయంలో ధారణ)",
+        ta: "மாணிக்கம் (4.25 - 5.50 கேரட் - வலது கை மோதிர விரல் அநாமிகா, தங்கம் அல்லது தாமிரத்தில், ஞாயிற்றுக்கிழமை காலை சூரிய உதய வேளையில் அணியவும்)",
+        en: "Natural Ruby (Manikya, 4.25 - 5.50 Carats - Ring finger of right hand set in pure Gold or Copper, worn Sunday morning at sunrise during Surya Hora)"
+      },
+      rudraksha: {
+        kn: "೧ ಮುಖಿ ಅಥವಾ ೧೨ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಸೂರ್ಯ ತತ್ವ - ತೇಜಸ್ಸು ಹಾಗೂ ಆತ್ಮಸ್ಥೈರ್ಯ ವರ್ಧನೆ, ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ಗಾಯತ್ರಿಯೊಂದಿಗೆ ಧಾರಣೆ)",
+        hi: "1 मुखी अथवा 12 मुखी रुद्राक्ष (सूर्य तत्व - तेज एवं आत्मविश्वास संवर्धन, रविवार प्रातः सूर्य गायत्री के साथ धारण)",
+        te: "1 ముఖి లేదా 12 ముఖి రుద్రాక్ష (సూర్య తత్వము - తేజస్సు మరియు ఆత్మవిశ్వాసం, ఆదివారం ఉదయం సూర్య గాయత్రితో ధారణ)",
+        ta: "1 முக அல்லது 12 முக ருத்ராட்சம் (சூரிய தத்துவம் - தேஜஸ் மற்றும் தன்னம்பிக்கை பெருக்கம், ஞாயிறு காலை அணியவும்)",
+        en: "1 Mukhi or 12 Mukhi Rudraksha (Surya Tatva - enhances soul vitality and executive presence, energized Sunday morning)"
+      },
+      ishtaDevata: {
+        kn: "ಶ್ರೀ ಸೂರ್ಯ ನಾರಾಯಣ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ",
+        hi: "श्री सूर्य नारायण एवं श्री क्षेत्र गोकर्ण महागणपति",
+        te: "శ్రీ సూర్య నారాయణ & శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి",
+        ta: "ஸ்ரீ சூரிய நாராயணன் & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி",
+        en: "Lord Surya Narayana & Sri Kshetra Gokarna Maha Ganapati"
+      },
+      colors: {
+        kn: "ತೇಜಸ್ವಿ ಕೇಸರಿ, ರಕ್ತವರ್ಣ ಹಾಗೂ ಅಪ್ಪಟ ಸುವರ್ಣ ಬಣ್ಣ",
+        hi: "तेजस्वी केसरिया, लाल एवं शुद्ध स्वर्णिम वर्ण",
+        te: "కాషాయం, ఎరుపు మరియు స్వచ్ఛమైన బంగారు రంగు",
+        ta: "காவி, சிவப்பு மற்றும் தங்க நிறம்",
+        en: "Radiant Saffron, Royal Crimson, and Pure Golden Hue"
+      },
+      days: {
+        kn: "ಭಾನುವಾರ, ಮಂಗಳವಾರ ಹಾಗೂ ಗುರುವಾರ",
+        hi: "रविवार, मंगलवार एवं गुरुवार",
+        te: "ఆదివారం, మంగళవారం మరియు గురువారం",
+        ta: "ஞாயிறு, செவ்வாய் மற்றும் வியாழன்",
+        en: "Sunday, Tuesday, and Thursday"
+      },
+      numbers: {
+        kn: "೧, ೯, ೩",
+        hi: "1, 9, 3",
+        te: "1, 9, 3",
+        ta: "1, 9, 3",
+        en: "1, 9, 3"
+      },
+      direction: {
+        kn: "ಪೂರ್ವ ಹಾಗೂ ಈಶಾನ್ಯ",
+        hi: "पूर्व एवं ईशान",
+        te: "తూర్పు మరియు ఈశాన్యం",
+        ta: "கிழக்கு மற்றும் ஈசானியம்",
+        en: "East and North-East"
+      }
+    },
+    Moon: {
+      gemstone: {
+        kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು (೪.೫ - ೬.೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಕಿರುಬೆರಳು ಕನಿಷ್ಠಿಕಾ, ಶುದ್ಧ ಬೆಳ್ಳಿಯಲ್ಲಿ, ಸೋಮವಾರ ಸಂಜೆ ಚಂದ್ರೋದಯ ವೇಳೆಯಲ್ಲಿ ಧಾರಣೆ)",
+        hi: "सच्चा मोती (4.5 - 6.0 कैरेट - दाहिने हाथ की कनिष्ठिका अंगुली, शुद्ध चांदी में, सोमवार सायंकाल चंद्रोदय वेला में धारण)",
+        te: "సహజ ముత్యం (4.5 - 6.0 క్యారెట్లు - కుడి చేయి చిటికెన వేలు, వెండిలో, సోమవారం సాయంత్రం చంద్రోదయ సమయంలో ధారణ)",
+        ta: "இயற்கை முத்து (4.5 - 6.0 கேரட் - வலது கை சுண்டு விரல், வெள்ளியில், திங்கட்கிழமை மாலை சந்திரோதய வேளையில் அணியவும்)",
+        en: "Natural South Sea Pearl (Mukta, 4.5 - 6.0 Carats - Little finger of right hand set in pure Silver, worn Monday evening at Moonrise)"
+      },
+      rudraksha: {
+        kn: "೨ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಅರ್ಧನಾರೀಶ್ವರ ತತ್ವ - ಮನಃಶಾಂತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ, ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ ಶಿವ ಮಂತ್ರದೊಂದಿಗೆ ಧಾರಣೆ)",
+        hi: "2 मुखी रुद्राक्ष (अर्धनारीश्वर तत्व - मानसिक शांति एवं पारिवारिक सौहार्द, सोमवार प्रातः शिव मंत्र के साथ धारण)",
+        te: "2 ముఖి రుద్రాక్ష (అర్థనారీశ్వర తత్వము - మనశ్శాంతి మరియు కుటుంబ సఖ్యత, సోమవారం ఉదయం శివ మంత్రంతో ధారణ)",
+        ta: "2 முக ருத்ராட்சம் (அர்த்தநாரீஸ்வர தத்துவம் - மன அமைதி மற்றும் குடும்ப ஒற்றுமை, திங்கள் காலை அணியவும்)",
+        en: "2 Mukhi Rudraksha (Ardhanarishvara Tatva - brings emotional tranquility and relationship harmony, energized Monday morning)"
+      },
+      ishtaDevata: {
+        kn: "ಶ್ರೀ ಲಲಿತಾ ತ್ರಿಪುರಸುಂದರಿ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ",
+        hi: "श्री ललिता त्रिपुरासुंदरी एवं श्री क्षेत्र गोकर्ण महागणपति",
+        te: "శ్రీ లలితా త్రిపురసుందరి & శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి",
+        ta: "ஸ்ரீ லலிதா திரிபுரசுந்தரி & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி",
+        en: "Goddess Lalita Tripura Sundari & Sri Kshetra Gokarna Maha Ganapati"
+      },
+      colors: {
+        kn: "ಶುದ್ಧ ಶ್ವೇತವರ್ಣ, ಕೆನೆ ಬಣ್ಣ ಹಾಗೂ ನೈಸರ್ಗಿಕ ಬೆಳ್ಳಿಯ ಛಾಯೆ",
+        hi: "शुद्ध श्वेत वर्ण, मलाईदार क्रीम एवं प्राकृतिक चांदी की आभा",
+        te: "స్వచ్ఛమైన తెలుపు, క్రీమ్ మరియు వెండి రంగు",
+        ta: "வெள்ளை, கிரீம் மற்றும் வெள்ளி நிறம்",
+        en: "Luminous Pure White, Pearl Cream, and Silvery Sheen"
+      },
+      days: {
+        kn: "ಸೋಮವಾರ, ಗುರುವಾರ ಹಾಗೂ ಭಾನುವಾರ",
+        hi: "सोमवार, गुरुवार एवं रविवार",
+        te: "సోమవారం, గురువారం మరియు ఆదివారం",
+        ta: "திங்கள், வியாழன் மற்றும் ஞாயிறு",
+        en: "Monday, Thursday, and Sunday"
+      },
+      numbers: {
+        kn: "೨, ೭, ೯",
+        hi: "2, 7, 9",
+        te: "2, 7, 9",
+        ta: "2, 7, 9",
+        en: "2, 7, 9"
+      },
+      direction: {
+        kn: "ವಾಯುವ್ಯ ಹಾಗೂ ಉತ್ತರ",
+        hi: "वायव्य एवं उत्तर",
+        te: "వాయువ్యం మరియు ఉత్తరం",
+        ta: "வாயுவியம் மற்றும் வடக்கு",
+        en: "North-West and North"
+      }
+    },
+    Mars: {
+      gemstone: {
+        kn: "ಹವಳ (ಶುದ್ಧ ಪ್ರವಾಳ, ೪.೫ - ೬.೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು ಅನಾಮಿಕಾ, ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನದಲ್ಲಿ, ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ)",
+        hi: "लाल मूंगा (शुद्ध प्रवाल, 4.5 - 6.0 कैरेट - दाहिने हाथ की अनामिका अंगुली, तांबा अथवा स्वर्ण में, मंगलवार प्रातः मंगल होरा में)",
+        te: "పగడం (శుద్ధ ప్రవాళం, 4.5 - 6.0 క్యారెట్లు - కుడి చేయి ఉంగరపు వేలు అనామిక, రాగి లేదా బంగారంలో, మంగళవారం ఉదయం కుజ హోరలో)",
+        ta: "பவழம் (தூய பிரவாளம், 4.5 - 6.0 கேரட் - வலது கை மோதிர விரல் அநாமிகா, தாமிரம் அல்லது தங்கத்தில், செவ்வாய்க்கிழமை காலை குஜ ஓரையில்)",
+        en: "Red Coral (Pure Pravala, 4.5 - 6.0 Carats - Ring finger of right hand set in Copper or Gold, worn Tuesday morning during Mars Hora)"
+      },
+      rudraksha: {
+        kn: "೩ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಅಗ್ನಿ ತತ್ವ - ಶೌರ್ಯ ವರ್ಧನೆ ಹಾಗೂ ಕುಜ ದೋಷ ಶಮನ, ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
+        hi: "3 मुखी रुद्राक्ष (अग्नि तत्व - पराक्रम संवर्धन एवं मंगल दोष शमन, मंगलवार प्रातः धारण)",
+        te: "3 ముఖి రుద్రాక్ష (అగ్ని తత్వము - ధైర్యం మరియు కుజ దోష నివారణ, మంగళవారం ఉదయం ధారణ)",
+        ta: "3 முக ருத்ராட்சம் (அக்னி தத்துவம் - வீர உணர்வு மற்றும் செவ்வாய் தோஷ நிவாரணம், செவ்வாய் காலை அணியவும்)",
+        en: "3 Mukhi Rudraksha (Agni Tatva - energizes courage, vitality, and clears Martian affliction, worn Tuesday morning)"
+      },
+      ishtaDevata: {
+        kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ",
+        hi: "श्री सुब्रह्मण्य स्वामी एवं श्री क्षेत्र गोकर्ण महागणपति",
+        te: "శ్రీ సుబ్రహ్మణ్య స్వామి & శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి",
+        ta: "ஸ்ரீ சுப்ரமணிய சுவாமி & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி",
+        en: "Lord Subrahmanya (Kartikeya) & Sri Kshetra Gokarna Maha Ganapati"
+      },
+      colors: {
+        kn: "ರಕ್ತ ಕೆಂಪು, ಕೇಸರಿ ಹಾಗೂ ನೈಸರ್ಗಿಕ ತಾಮ್ರ ವರ್ಣ",
+        hi: "गहरा लाल, केसरिया एवं तांबई वर्ण",
+        te: "ఎరుపు, కాషాయం మరియు రాగి రంగు",
+        ta: "சிவப்பு, காவி மற்றும் தாமிர நிறம்",
+        en: "Deep Crimson Red, Brilliant Saffron, and Natural Copper"
+      },
+      days: {
+        kn: "ಮಂಗಳವಾರ, ಗುರುವಾರ ಹಾಗೂ ಭಾನುವಾರ",
+        hi: "मंगलवार, गुरुवार एवं रविवार",
+        te: "మంగళవారం, గురువారం మరియు ఆదివారం",
+        ta: "செவ்வாய், வியாழன் மற்றும் ஞாயிறு",
+        en: "Tuesday, Thursday, and Sunday"
+      },
+      numbers: {
+        kn: "೯, ೧, ೩",
+        hi: "9, 1, 3",
+        te: "9, 1, 3",
+        ta: "9, 1, 3",
+        en: "9, 1, 3"
+      },
+      direction: {
+        kn: "ದಕ್ಷಿಣ ಹಾಗೂ ಪೂರ್ವ",
+        hi: "दक्षिण एवं पूर्व",
+        te: "దక్షిణం మరియు తూర్పు",
+        ta: "தெற்கு மற்றும் கிழக்கு",
+        en: "South and East"
+      }
+    },
+    Mercury: {
+      gemstone: {
+        kn: "ಪಚ್ಚೆ (ಮರಕತ ಮಣಿ, ೩.೫ - ೫.೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಕಿರುಬೆರಳು ಕನಿಷ್ಠಿಕಾ, ಶುದ್ಧ ಚಿನ್ನ ಅಥವಾ ಪಂಚಲೋಹದಲ್ಲಿ, ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ ಬುಧ ಹೋರೆಯಲ್ಲಿ)",
+        hi: "पन्ना (एमराल्ड, 3.5 - 5.0 कैरेट - दाहिने हाथ की कनिष्ठिका अंगुली, स्वर्ण अथवा पंचधातु में, बुधवार प्रातःकाल बुध होरा में)",
+        te: "మరకత పచ్చ (3.5 - 5.0 క్యారెట్లు - కుడి చేయి చిటికెన వేలు, బంగారం లేదా పంచలోహంలో, బుధవారం ఉదయం బుధ హోరలో)",
+        ta: "மரகதம் (3.5 - 5.0 கேரட் - வலது கை சுண்டு விரல், தங்கம் அல்லது பஞ்சலோகத்தில், புதன்கிழமை காலை புதன் ஓரையில்)",
+        en: "Emerald (Panna, 3.5 - 5.0 Carats - Little finger of right hand set in pure Gold or Panchadhatu, worn Wednesday morning during Mercury Hora)"
+      },
+      rudraksha: {
+        kn: "೪ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಬ್ರಹ್ಮ ತತ್ವ - ಬುದ್ಧಿಶಕ್ತಿ, ವಾಗ್ವೈಖರಿ ಹಾಗೂ ಜ್ಞಾನ ವೃದ್ಧಿ, ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
+        hi: "4 मुखी रुद्राक्ष (ब्रह्म तत्व - बुद्धि, वाणी एवं ज्ञान संवर्धन, बुधवार प्रातःकाल धारण)",
+        te: "4 ముఖి రుద్రాక్ష (బ్రహ్మ తత్వము - మేధాశక్తి, వాక్చాతుర్యం మరియు విద్యాభివృద్ధి, బుధవారం ఉదయం ధారణ)",
+        ta: "4 முக ருத்ராட்சம் (பிரம்மா தத்துவம் - அறிவுத்திறன், வாக்கு வன்மை மற்றும் ஞான வளர்ச்சி, புதன் காலை அணியவும்)",
+        en: "4 Mukhi Rudraksha (Brahma Tatva - augments analytical clarity, oratorical eloquence, and memory, energized Wednesday)"
+      },
+      ishtaDevata: {
+        kn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ",
+        hi: "श्री महाविष्णु एवं श्री क्षेत्र गोकर्ण महागणपति",
+        te: "శ్రీ మహావిష్ణువు & శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి",
+        ta: "ஸ்ரீ மகாவிஷ்ணு & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி",
+        en: "Lord Maha Vishnu & Sri Kshetra Gokarna Maha Ganapati"
+      },
+      colors: {
+        kn: "ಗಿಳಿ ಹಸಿರು, ತಿಳಿ ಹಸಿರು ಹಾಗೂ ಎಲೆಯ ಬಣ್ಣ",
+        hi: "पन्ना हरा, तोते जैसा हरा एवं हल्का हरित वर्ण",
+        te: "చిలుక పచ్చ, లేత పచ్చ మరియు ఆకుపచ్చ రంగు",
+        ta: "பச்சை, கிளிப்பச்சை மற்றும் மெல்லிய பச்சை நிறம்",
+        en: "Emerald Green, Parakeet Green, and Vibrant Mint"
+      },
+      days: {
+        kn: "ಬುಧವಾರ, ಶುಕ್ರವಾರ ಹಾಗೂ ಶನಿವಾರ",
+        hi: "बुधवार, शुक्रवार एवं शनिवार",
+        te: "బుధవారం, శుక్రవారం మరియు శనివారం",
+        ta: "புதன், வெள்ளி மற்றும் சனி",
+        en: "Wednesday, Friday, and Saturday"
+      },
+      numbers: {
+        kn: "೫, ೬, ೧",
+        hi: "5, 6, 1",
+        te: "5, 6, 1",
+        ta: "5, 6, 1",
+        en: "5, 6, 1"
+      },
+      direction: {
+        kn: "ಉತ್ತರ ಹಾಗೂ ಈಶಾನ್ಯ",
+        hi: "उत्तर एवं ईशान",
+        te: "ఉత్తరం మరియు ఈశాన్యం",
+        ta: "வடக்கு மற்றும் ஈசானியம்",
+        en: "North and North-East"
+      }
+    },
+    Jupiter: {
+      gemstone: {
+        kn: "ಕನಕ ಪುಷ್ಯರಾಗ (೪.೨೫ - ೫.೫೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ತೋರುಬೆರಳು ತರ್ಜನಿ, ಅಪ್ಪಟ ಚಿನ್ನದಲ್ಲಿ, ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಗುರು ಹೋರೆಯಲ್ಲಿ ಧಾರಣೆ)",
+        hi: "पुखराज (येलो नीलम, 4.25 - 5.50 कैरेट - दाहिने हाथ की तर्जनी अंगुली, शुद्ध स्वर्ण में, गुरुवार प्रातःकाल गुरु होरा में)",
+        te: "కనక పుష్యరాగం (4.25 - 5.50 క్యారెట్లు - కుడి చేయి చూపుడు వేలు, బంగారంలో, గురువారం ఉదయం గురు హోరలో)",
+        ta: "கனக புஷ்பராகம் (4.25 - 5.50 கேரட் - வலது கை ஆள்காட்டி விரல், தங்கத்தில், வியாழக்கிழமை காலை குரு ஓரையில்)",
+        en: "Yellow Sapphire (Pushparaga, 4.25 - 5.50 Carats - Index finger of right hand set in pure Gold, worn Thursday morning during Jupiter Hora)"
+      },
+      rudraksha: {
+        kn: "೫ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಕಾಲಾಗ್ನಿ ರುದ್ರ ತತ್ವ - ಗುರು ಬಲವರ್ಧನೆ, ಆರೋಗ್ಯ ಹಾಗೂ ಸರ್ವ ಕಲ್ಯಾಣ, ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
+        hi: "5 मुखी रुद्राक्ष (कालाग्नि रुद्र तत्व - गुरु बल संवर्धन, आरोग्य एवं सर्वकल्याण, गुरुवार प्रातःकाल धारण)",
+        te: "5 ముఖి రుద్రాక్ష (కాలాగ్ని రుద్ర తత్వము - గురు బలం, సంపూర్ణ ఆరోగ్యం, గురువారం ఉదయం ధారణ)",
+        ta: "5 முக ருத்ராட்சம் (காலாக்னி ருத்ர தத்துவம் - குரு பலம் மற்றும் சகல நன்மைகள், வியாழன் காலை அணியவும்)",
+        en: "5 Mukhi Rudraksha (Kalagni Rudra Tatva - enhances divine wisdom, spiritual shield, and holistic vitality, energized Thursday)"
+      },
+      ishtaDevata: {
+        kn: "ಶ್ರೀ ದಕ್ಷಿಣಾಮೂರ್ತಿ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ",
+        hi: "श्री दक्षिणामूर्ति एवं श्री क्षेत्र गोकर्ण महागणपति",
+        te: "శ్రీ దక్షిణామూర్తి & శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి",
+        ta: "ஸ்ரீ தட்சிணாமூர்த்தி & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி",
+        en: "Lord Dakshinamurthy & Sri Kshetra Gokarna Maha Ganapati"
+      },
+      colors: {
+        kn: "ಅರಿಶಿನ ಹಳದಿ, ಕನಕ ಸುವರ್ಣ ಹಾಗೂ ತಿಳಿ ಕೇಸರಿ",
+        hi: "हल्दी पीला, स्वर्णिम पीला एवं हल्का केसरिया",
+        te: "పసుపు, బంగారు పసుపు మరియు లేత కాషాయం",
+        ta: "மஞ்சள், தங்க நிறம் மற்றும் இளங்காவி",
+        en: "Auspicious Golden Yellow, Turmeric Saffron, and Honey Amber"
+      },
+      days: {
+        kn: "ಗುರುವಾರ, ಭಾನುವಾರ ಹಾಗೂ ಮಂಗಳವಾರ",
+        hi: "गुरुवार, रविवार एवं मंगलवार",
+        te: "గురువారం, ఆదివారం మరియు మంగళవారం",
+        ta: "வியாழன், ஞாயிறு மற்றும் செவ்வாய்",
+        en: "Thursday, Sunday, and Tuesday"
+      },
+      numbers: {
+        kn: "೩, ೧, ೯",
+        hi: "3, 1, 9",
+        te: "3, 1, 9",
+        ta: "3, 1, 9",
+        en: "3, 1, 9"
+      },
+      direction: {
+        kn: "ಈಶಾನ್ಯ ಹಾಗೂ ಪೂರ್ವ",
+        hi: "ईशान एवं पूर्व",
+        te: "ఈశాన్యం మరియు తూర్పు",
+        ta: "ஈசானியம் மற்றும் கிழக்கு",
+        en: "North-East and East"
+      }
+    },
+    Venus: {
+      gemstone: {
+        kn: "ವಜ್ರ ಅಥವಾ ಶುದ್ಧ ಬಿಳಿ ಜಿರ್ಕಾನ್ (೧.೦ - ೨.೫ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು, ಪ್ಲಾಟಿನಂ ಅಥವಾ ಬೆಳ್ಳಿಯಲ್ಲಿ, ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ)",
+        hi: "हीरा अथवा श्वेत जरकन (1.0 - 2.5 कैरेट - दाहिने हाथ की मध्यमा अथवा कनिष्ठिका, प्लैटिनम अथवा चांदी में, शुक्रवार प्रातःकाल शुक्र होरा में)",
+        te: "వజ్రం లేదా తెల్ల జిర్కాన్ (1.0 - 2.5 క్యారెట్లు - కుడి చేయి మధ్య వేలు లేదా చిటికెన వేలు, వెండి లేదా ప్లాటినంలో, శుక్రవారం ఉదయం శుక్ర హోరలో)",
+        ta: "வைரம் அல்லது வெள்ளை ஜிர்கான் (1.0 - 2.5 கேரட் - வலது கை நடுவிரல் அல்லது சுண்டு விரல், வெள்ளி அல்லது பிளாட்டினத்தில், வெள்ளிக்கிழமை காலை)",
+        en: "Diamond or Natural White Zircon (1.0 - 2.5 Carats - Middle or Little finger of right hand set in White Gold or Silver, worn Friday morning during Venus Hora)"
+      },
+      rudraksha: {
+        kn: "೬ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಕಾರ್ತಿಕೇಯ ತತ್ವ - ಆಕರ್ಷಣೆ, ಸೌಭಾಗ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯ ಸುಖ ವೃದ್ಧಿ, ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
+        hi: "6 मुखी रुद्राक्ष (कार्तिकेय तत्व - आकर्षण, ऐश्वर्य एवं दांपत्य सुख संवर्धन, शुक्रवार प्रातःकाल धारण)",
+        te: "6 ముఖి రుద్రాక్ష (కార్తికేయ తత్వము - ఆకర్షణ, సౌభాగ్యం మరియు దాంపత్య సుఖం, శుక్రవారం ఉదయం ధారణ)",
+        ta: "6 முக ருத்ராட்சம் (கார்த்திகேய தத்துவம் - கவர்ச்சி, ஐஸ்வர்யம் மற்றும் தாம்பத்திய சுகம், வெள்ளி காலை அணியவும்)",
+        en: "6 Mukhi Rudraksha (Kartikeya Tatva - bestows refined aesthetic grace, marital concord, and material prosperity, energized Friday)"
+      },
+      ishtaDevata: {
+        kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ",
+        hi: "श्री महालक्ष्मी एवं श्री क्षेत्र गोकर्ण महागणपति",
+        te: "శ్రీ మహాలక్ష్మి & శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి",
+        ta: "ஸ்ரீ மகாலட்சுமி & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி",
+        en: "Goddess Mahalakshmi & Sri Kshetra Gokarna Maha Ganapati"
+      },
+      colors: {
+        kn: "ಪ್ರಕಾಶಮಾನ ಬಿಳಿ, ತಿಳಿ ಗುಲಾಬಿ ಹಾಗೂ ಕ್ರೀಮ್ ಬಣ್ಣ",
+        hi: "चमकीला श्वेत, हल्का गुलाबी एवं मलाईदार क्रीम",
+        te: "మెరిసే తెలుపు, లేత గులాబీ మరియు క్రీమ్ రంగు",
+        ta: "பளிங்கு வெள்ளை, இளஞ்சிவப்பு மற்றும் கிரீம் நிறம்",
+        en: "Dazzling Diamond White, Pastel Blossom Pink, and Cream"
+      },
+      days: {
+        kn: "ಶುಕ್ರವಾರ, ಬುಧವಾರ ಹಾಗೂ ಶನಿವಾರ",
+        hi: "शुक्रवार, बुधवार एवं शनिवार",
+        te: "శుక్రవారం, బుధవారం మరియు శనివారం",
+        ta: "வெள்ளி, புதன் மற்றும் சனி",
+        en: "Friday, Wednesday, and Saturday"
+      },
+      numbers: {
+        kn: "೬, ೫, ೮",
+        hi: "6, 5, 8",
+        te: "6, 5, 8",
+        ta: "6, 5, 8",
+        en: "6, 5, 8"
+      },
+      direction: {
+        kn: "ಆಗ್ನೇಯ ಹಾಗೂ ಉತ್ತರ",
+        hi: "आग्नेय एवं उत्तर",
+        te: "ఆగ్నేయం మరియు ఉత్తరం",
+        ta: "ஆக்னேயம் மற்றும் வடக்கு",
+        en: "South-East and North"
+      }
+    },
+    Saturn: {
+      gemstone: {
+        kn: "ನೀಲಮಣಿ ಅಥವಾ ಶುದ್ಧ ಜಾಂಬವಂತ (೪.೫ - ೬.೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಮಧ್ಯದ ಬೆರಳು ಮಧ್ಯಮಾ, ಪಂಚಲೋಹ ಅಥವಾ ಬೆಳ್ಳಿಯಲ್ಲಿ, ಶನಿವಾರ ಸಂಜೆ ಶನಿ ಹೋರೆಯಲ್ಲಿ)",
+        hi: "नीलम अथवा जामुनिया (4.5 - 6.0 कैरेट - दाहिने हाथ की मध्यमा अंगुली, पंचधातु अथवा चांदी में, शनिवार सायंकाल शनि होरा में)",
+        te: "నీలమణి లేదా అమెథిస్ట్ (4.5 - 6.0 క్యారెట్లు - కుడి చేయి మధ్య వేలు, పంచలోహం లేదా వెండిలో, శనివారం సాయంత్రం శని హోరలో)",
+        ta: "நீலக்கல் அல்லது அமேதிஸ்ட் (4.5 - 6.0 கேரட் - வலது கை நடுவிரல், பஞ்சலோகம் அல்லது வெள்ளியில், சனிக்கிழமை மாலை சனி ஓரையில்)",
+        en: "Blue Sapphire or Natural Amethyst (Neelam, 4.5 - 6.0 Carats - Middle finger of right hand set in Panchadhatu or Silver, worn Saturday evening during Saturn Hora)"
+      },
+      rudraksha: {
+        kn: "೭ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಮಹಾಲಕ್ಷ್ಮಿ ತತ್ವ - ಶನಿ ದೋಷ ನಿವಾರಣೆ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯ, ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
+        hi: "7 मुखी रुद्राक्ष (महालक्ष्मी तत्व - शनि पीड़ा निवारण, आर्थिक स्थिरता एवं दीर्घायु, शनिवार प्रातःकाल धारण)",
+        te: "7 ముఖి రుద్రాక్ష (మహాలక్ష్మి తత్వము - శని దోష నివారణ, ఆర్థిక స్థిరత్వం మరియు దీర్ఘాయువు, శనివారం ఉదయం ధారణ)",
+        ta: "7 முக ருத்ராட்சம் (மகாலட்சுமி தத்துவம் - சனி தோஷ நிவாரணம், நிதி ஸ்திரத்தன்மை மற்றும் நீண்ட ஆயுள், சனி காலை அணியவும்)",
+        en: "7 Mukhi Rudraksha (Mahalakshmi Tatva - harmonizes Saturnian karmic discipline, anchors material stability, energized Saturday)"
+      },
+      ishtaDevata: {
+        kn: "ಶ್ರೀ ಮುಖ್ಯಪ್ರಾಣ (ಹನುಮಂತ) & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ",
+        hi: "श्री मुख्यप्राण (हनुमान जी) एवं श्री क्षेत्र गोकर्ण महागणपति",
+        te: "శ్రీ ముఖ్యప్రాణ (హనుమంతుడు) & శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి",
+        ta: "ஸ்ரீ முக்யபிராணர் (அனுமன்) & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி",
+        en: "Lord Mukhyaprana (Hanuman) & Sri Kshetra Gokarna Maha Ganapati"
+      },
+      colors: {
+        kn: "ಕಡು ನೀಲಿ, ಕಪ್ಪು ಹಾಗೂ ನೇರಳೆ ವರ್ಣ",
+        hi: "गहरा नीला, श्याम वर्ण एवं जामुनी",
+        te: "ముదురు నీలం, నలుపు మరియు ఊదా రంగు",
+        ta: "அடர் நீலம், கருப்பு மற்றும் ஊதா நிறம்",
+        en: "Midnight Royal Blue, Deep Charcoal, and Majestic Indigo"
+      },
+      days: {
+        kn: "ಶನಿವಾರ, ಬುಧವಾರ ಹಾಗೂ ಶುಕ್ರವಾರ",
+        hi: "शनिवार, बुधवार एवं शुक्रवार",
+        te: "శనివారం, బుధవారం మరియు శుక్రవారం",
+        ta: "சனி, புதன் மற்றும் வெள்ளி",
+        en: "Saturday, Wednesday, and Friday"
+      },
+      numbers: {
+        kn: "೮, ೫, ೬",
+        hi: "8, 5, 6",
+        te: "8, 5, 6",
+        ta: "8, 5, 6",
+        en: "8, 5, 6"
+      },
+      direction: {
+        kn: "ಪಶ್ಚಿಮ ಹಾಗೂ ದಕ್ಷಿಣ",
+        hi: "पश्चिम एवं दक्षिण",
+        te: "పశ్చిమం మరియు దక్షిణం",
+        ta: "மேற்கு மற்றும் தெற்கு",
+        en: "West and South"
+      }
+    }
+  };
 
-  // Ishta Devata
-  const DEITIES: Record<string, string> = {
-    kn: isHavalaRecommended ? "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ" : "ಶ್ರೀ ಮಹಾವಿಷ್ಣು & ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮುಖ್ಯಪ್ರಾಣ ದೇವರು",
-    hi: isHavalaRecommended ? "श्री सुब्रह्मण्य स्वामी एवं श्री क्षेत्र गोकर्ण महागणपति" : "श्री महाविष्णु एवं श्री क्षेत्र गोकर्ण मुख्यप्राण देव",
-    te: isHavalaRecommended ? "శ్రీ సుబ్రహ్మణ్య స్వామి & శ్రీ క్షేత్ర గోకర్ణ మహాగణపతి" : "శ్రీ మహావిష్ణువు & శ్రీ క్షేత్ర గోకర్ణ ముఖ్యప్రాణ దేవుడు",
-    ta: isHavalaRecommended ? "ஸ்ரீ சுப்ரமணிய சுவாமி & ஸ்ரீ க்ஷேத்ர பக்கோண மகா கணபதி" : "ஸ்ரீ மகாவிஷ்ணு & ஸ்ரீ க்ஷேத்ர பக்கோண முக்யபிராண தேவர்",
-    en: isHavalaRecommended ? "Lord Subrahmanya & Sri Kshetra Gokarna Maha Ganapati" : "Lord Maha Vishnu & Sri Kshetra Gokarna Mukhyaprana Deva"
-  };
-  const ishtaDevata = DEITIES[baseLang] || DEITIES.en;
-
-  // Lucky Colors, Days, Numbers, Direction
-  const COLORS: Record<string, string> = {
-    kn: "ಕೇಸರಿ, ಹಳದಿ, ಬಿಳಿ ಹಾಗೂ ನೈಸರ್ಗಿಕ ತಾಮ್ರ ವರ್ಣ",
-    hi: "केसरिया, पीला, श्वेत एवं ताम्र वर्ण",
-    te: "కాషాయం, పసుపు, తెలుపు మరియు రాగి రంగు",
-    ta: "காவி, மஞ்சள், வெள்ளை மற்றும் தாமிர நிறம்",
-    en: "Saffron, Golden Yellow, Pure White, and Radiant Copper"
-  };
-  const DAYS: Record<string, string> = {
-    kn: isHavalaRecommended ? "ಮಂಗಳವಾರ, ಗುರುವಾರ ಹಾಗೂ ಭಾನುವಾರ" : "ಗುರುವಾರ, ಭಾನುವಾರ ಹಾಗೂ ಸೋಮವಾರ",
-    hi: isHavalaRecommended ? "मंगलवार, गुरुवार एवं रविवार" : "गुरुवार, रविवार एवं सोमवार",
-    te: isHavalaRecommended ? "మంగళవారం, గురువారం మరియు ఆదివారం" : "గురువారం, ఆదివారం మరియు సోమవారం",
-    ta: isHavalaRecommended ? "செவ்வாய், வியாழன் மற்றும் ஞாயிறு" : "வியாழன், ஞாயிறு மற்றும் திங்கள்",
-    en: isHavalaRecommended ? "Tuesday, Thursday, and Sunday" : "Thursday, Sunday, and Monday"
-  };
-  const NUMBERS: Record<string, string> = {
-    kn: isHavalaRecommended ? "೯, ೧, ೩" : "೩, ೧, ೯",
-    hi: isHavalaRecommended ? "9, 1, 3" : "3, 1, 9",
-    te: isHavalaRecommended ? "9, 1, 3" : "3, 1, 9",
-    ta: isHavalaRecommended ? "9, 1, 3" : "3, 1, 9",
-    en: isHavalaRecommended ? "9, 1, 3" : "3, 1, 9"
-  };
-  const DIRECTIONS: Record<string, string> = {
-    kn: chart.spouseDirection.kn || "ಪೂರ್ವ ಹಾಗೂ ದಕ್ಷಿಣ",
-    hi: chart.spouseDirection.hi || "पूर्व एवं दक्षिण",
-    te: chart.spouseDirection.te || "తూర్పు మరియు దక్షిణం",
-    ta: chart.spouseDirection.ta || "கிழக்கு மற்றும் தெற்கு",
-    en: chart.spouseDirection.en || "East and South"
-  };
+  const rx = PRESCRIPTIONS_BY_GRAHA[presidingGraha] || PRESCRIPTIONS_BY_GRAHA.Jupiter;
 
   return {
-    gemstone,
-    rudraksha,
-    ishtaDevata,
-    luckyColors: COLORS[baseLang] || COLORS.en,
-    luckyDays: DAYS[baseLang] || DAYS.en,
-    luckyNumbers: NUMBERS[baseLang] || NUMBERS.en,
-    luckyDirection: DIRECTIONS[baseLang] || DIRECTIONS.en
+    gemstone: rx.gemstone[baseLang] || rx.gemstone.en,
+    rudraksha: rx.rudraksha[baseLang] || rx.rudraksha.en,
+    ishtaDevata: rx.ishtaDevata[baseLang] || rx.ishtaDevata.en,
+    luckyColors: rx.colors[baseLang] || rx.colors.en,
+    luckyDays: rx.days[baseLang] || rx.days.en,
+    luckyNumbers: rx.numbers[baseLang] || rx.numbers.en,
+    luckyDirection: rx.direction[baseLang] || rx.direction.en
   };
 }
