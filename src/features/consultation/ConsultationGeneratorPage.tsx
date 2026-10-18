@@ -167,10 +167,12 @@ export const ConsultationGeneratorPage: React.FC = () => {
       const session = await createConsultationSession(input);
       setGeneratedSession(session);
 
-      // Build Encrypted Secure Link URL
-      const origin = typeof window !== "undefined" ? window.location.origin : "https://baggona-panchanga.web.app";
+      // Build Encrypted Secure Link URL (Double resilient: encrypted token in id, raw session ID in session)
+      const origin = typeof window !== "undefined" && window.location.origin
+        ? window.location.origin
+        : "https://baggona-panchanga.web.app";
       const secureToken = encodeSecureConsultationToken(session.id);
-      const fullUrl = `${origin}/consultation?id=${secureToken}`;
+      const fullUrl = `${origin}/consultation?id=${encodeURIComponent(secureToken)}&session=${session.id}`;
       setGeneratedUrl(fullUrl);
 
       // Generate QR Code
@@ -584,7 +586,7 @@ export const ConsultationGeneratorPage: React.FC = () => {
               {recentSessions.map((item) => {
                 const origin = typeof window !== "undefined" ? window.location.origin : "";
                 const secureToken = encodeSecureConsultationToken(item.id);
-                const link = `${origin}/consultation?id=${secureToken}`;
+                const link = `${origin}/consultation?id=${encodeURIComponent(secureToken)}&session=${item.id}`;
 
                 let statusBadge = (
                   <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">

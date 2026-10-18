@@ -83,9 +83,13 @@ export default function App(): JSX.Element {
     window.location.search.includes("portal=chat_session") ||
     window.location.search.includes("portal=chat") ||
     window.location.search.includes("session=") ||
+    window.location.search.includes("id=bgn_") ||
+    window.location.search.includes("token=bgn_") ||
     window.location.hash.includes("#/consultation") ||
     window.location.hash.includes("#/chat-session") ||
-    window.location.hash.includes("#consultation")
+    window.location.hash.includes("#consultation") ||
+    window.location.hash.includes("id=bgn_") ||
+    window.location.hash.includes("session=bgn_")
   );
 
   const isConsultationGeneratorRoute = typeof window !== "undefined" && !isConsultationRoute && (

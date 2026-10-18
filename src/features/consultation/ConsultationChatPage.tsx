@@ -70,10 +70,15 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   const rawToken = sessionId || (() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
+    const hashQuery = window.location.hash.includes("?") ? window.location.hash.split("?")[1] : "";
+    const hashParams = new URLSearchParams(hashQuery);
     return (
       params.get("id") ||
+      hashParams.get("id") ||
       params.get("session") ||
+      hashParams.get("session") ||
       params.get("token") ||
+      hashParams.get("token") ||
       window.location.hash.replace(/^#\/?(consultation\/|chat-session\/)?/, "").split("?")[0] ||
       ""
     );
@@ -152,14 +157,32 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       const activeSessionId = decoded.sessionId;
 
       try {
-        const data = await getConsultationSession(activeSessionId);
+        let data: ConsultationSession | null = null;
+        let attempts = 0;
+        // Automatic resilient retry (up to 3 attempts with 600ms backoff) to account for Firestore network propagation
+        while (attempts < 3 && !data && isMounted) {
+          try {
+            data = await getConsultationSession(activeSessionId);
+          } catch (fetchErr) {
+            console.warn(`[ConsultationChatPage] Attempt ${attempts + 1} fetch notice:`, fetchErr);
+          }
+          if (!data && attempts < 2 && isMounted) {
+            await new Promise((res) => setTimeout(res, 600));
+          }
+          attempts++;
+        }
+
         if (!isMounted) return;
 
-        if (!data || data.status === "deleted") {
-          setSessionError("The consultation link has expired and been removed. Please contact admin.");
+        if (!data) {
+          setSessionError("ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಸೂಪರ್ ಅಡ್ಮಿನ್ ನೀಡಿದ ಅಧಿಕೃತ ಲಿಂಕ್ ಬಳಸಿ ಅಥವಾ ಮರುಪ್ರಯತ್ನಿಸಿ. (Consultation session not found in database. Please verify your link or retry).");
+          setSession(null);
+        } else if (data.status === "deleted") {
+          setSessionError("ಈ ಸಮಾಲೋಚನೆ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡು ಡೇಟಾಬೇಸ್‌ನಿಂದ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ತೆರವುಗೊಂಡಿದೆ. (This consultation link has expired and has been purged from database).");
           setSession(null);
         } else {
           setSession(data);
+          setSessionError(null);
           setMessages(data.messages || []);
           if (data.userPhone) setContactPhone(data.userPhone);
           if (data.userEmail) setContactEmail(data.userEmail);
@@ -361,6 +384,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     try {
       const updated = await startConsultationTimer(session.id);
       setSession(updated);
+      setMessages(updated.messages || []);
       setShowTimerModal(false);
       setRemainingSeconds(1200);
     } catch (err: any) {
@@ -391,6 +415,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       }
       const updated = await startConsultationTimer(currentSession.id);
       setSession(updated);
+      setMessages(updated.messages || []);
       setRemainingSeconds(1200);
       setShowContactModal(false);
       setShowTimerModal(false);
@@ -722,12 +747,31 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             🕉️
           </div>
           <h2 className="text-xl font-bold font-serif text-amber-950">
-            {currentI18n.sessionEndedTitle}
+            {isTampered
+              ? currentI18n.tamperedLinkTitle
+              : sessionError
+              ? "ಸಮಾಲೋಚನೆ ಸ್ಥಿತಿ (Consultation Status)"
+              : currentI18n.sessionEndedTitle}
           </h2>
           <p className="text-sm text-stone-700 leading-relaxed">
             {sessionError || currentI18n.sessionEndedMsg}
           </p>
-          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900">
+          <div className="flex flex-col gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs text-xs transition"
+            >
+              🔄 ಮರುಪ್ರಯತ್ನಿಸಿ (Retry Loading)
+            </button>
+            <a
+              href="/"
+              className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2 px-4 rounded-xl text-xs transition border border-stone-300"
+            >
+              🏠 ಮುಖಪುಟಕ್ಕೆ ತೆರಳಿ (Go to Baggona Home)
+            </a>
+          </div>
+          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 mt-2">
             <p className="font-bold">ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ</p>
             <p className="mt-1">ಪಂಡಿತರು: {DEFAULT_PRIEST_CONTACT.name}</p>
           </div>

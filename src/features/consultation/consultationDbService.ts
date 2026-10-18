@@ -27,6 +27,7 @@ import type {
   DevoteeQuestionGroup,
   ConsultationTelemetry
 } from "./consultationTypes";
+import { getInitialPriestGreeting } from "./consultationTypes";
 
 const SESSIONS_COL = "consultation_sessions";
 const QUESTIONS_COL = "consultation_questions";
@@ -107,7 +108,15 @@ export function decodeSecureConsultationToken(rawToken: string): {
     return { isValid: false, sessionId: null, error: "Empty token" };
   }
 
-  const trimmed = rawToken.trim();
+  let trimmed = rawToken.trim();
+  try {
+    trimmed = decodeURIComponent(trimmed);
+  } catch {
+    // Keep trimmed
+  }
+
+  // Strip query param prefixes if passed (e.g. "id=bgn_cst_..." or "session=bgn_...")
+  trimmed = trimmed.replace(/^(id|session|token)=/, "");
 
   // Encrypted secure token format: bgn_cst_<payload>.<checksum>
   if (trimmed.startsWith("bgn_cst_")) {
@@ -148,9 +157,12 @@ export function decodeSecureConsultationToken(rawToken: string): {
     }
   }
 
-  // Fallback for raw session tokens e.g. bgn_abcdef123 (if not altered)
+  // Fallback for raw session tokens e.g. bgn_abcdef123 or session=bgn_... (strictly when not bgn_cst_)
   if (trimmed.startsWith("bgn_") && !trimmed.includes(".")) {
-    return { isValid: true, sessionId: trimmed };
+    const cleanId = trimmed.toLowerCase();
+    if (/^bgn_[a-z0-9]{8,15}$/.test(cleanId)) {
+      return { isValid: true, sessionId: cleanId };
+    }
   }
 
   return { isValid: false, sessionId: null, error: "Unrecognized token format" };
@@ -187,17 +199,26 @@ function sanitize<T extends Record<string, any>>(obj: T): T {
 }
 
 /**
- * Stores session in local storage for resilient offline caching
+ * Stores session in local storage and session storage for resilient offline caching
  */
 function saveLocalSession(session: ConsultationSession): void {
   try {
-    localStorage.setItem(LOCAL_STORAGE_PREFIX + session.id, JSON.stringify(session));
-    const rawIndex = localStorage.getItem(LOCAL_RECENT_INDEX_KEY);
-    let ids: string[] = rawIndex ? JSON.parse(rawIndex) : [];
-    if (!ids.includes(session.id)) {
-      ids.unshift(session.id);
-      if (ids.length > 50) ids = ids.slice(0, 50);
-      localStorage.setItem(LOCAL_RECENT_INDEX_KEY, JSON.stringify(ids));
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem(LOCAL_STORAGE_PREFIX + session.id, JSON.stringify(session));
+    }
+  } catch {
+    // Ignore error
+  }
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(LOCAL_STORAGE_PREFIX + session.id, JSON.stringify(session));
+      const rawIndex = localStorage.getItem(LOCAL_RECENT_INDEX_KEY);
+      let ids: string[] = rawIndex ? JSON.parse(rawIndex) : [];
+      if (!ids.includes(session.id)) {
+        ids.unshift(session.id);
+        if (ids.length > 50) ids = ids.slice(0, 50);
+        localStorage.setItem(LOCAL_RECENT_INDEX_KEY, JSON.stringify(ids));
+      }
     }
   } catch (err) {
     console.warn("[consultationDb] LocalStorage cache write failed:", err);
@@ -205,12 +226,22 @@ function saveLocalSession(session: ConsultationSession): void {
 }
 
 /**
- * Retrieves session from local storage cache
+ * Retrieves session from session storage or local storage cache
  */
 function getLocalSession(id: string): ConsultationSession | null {
   try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_PREFIX + id);
-    if (raw) return JSON.parse(raw);
+    if (typeof sessionStorage !== "undefined") {
+      const rawSession = sessionStorage.getItem(LOCAL_STORAGE_PREFIX + id);
+      if (rawSession) return JSON.parse(rawSession);
+    }
+  } catch {
+    // Ignore error
+  }
+  try {
+    if (typeof localStorage !== "undefined") {
+      const raw = localStorage.getItem(LOCAL_STORAGE_PREFIX + id);
+      if (raw) return JSON.parse(raw);
+    }
   } catch {
     // Ignore error
   }
@@ -222,12 +253,21 @@ function getLocalSession(id: string): ConsultationSession | null {
  */
 function removeLocalSession(id: string): void {
   try {
-    localStorage.removeItem(LOCAL_STORAGE_PREFIX + id);
-    const rawIndex = localStorage.getItem(LOCAL_RECENT_INDEX_KEY);
-    if (rawIndex) {
-      let ids: string[] = JSON.parse(rawIndex);
-      ids = ids.filter((item) => item !== id);
-      localStorage.setItem(LOCAL_RECENT_INDEX_KEY, JSON.stringify(ids));
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.removeItem(LOCAL_STORAGE_PREFIX + id);
+    }
+  } catch {
+    // Ignore error
+  }
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem(LOCAL_STORAGE_PREFIX + id);
+      const rawIndex = localStorage.getItem(LOCAL_RECENT_INDEX_KEY);
+      if (rawIndex) {
+        let ids: string[] = JSON.parse(rawIndex);
+        ids = ids.filter((item) => item !== id);
+        localStorage.setItem(LOCAL_RECENT_INDEX_KEY, JSON.stringify(ids));
+      }
     }
   } catch {
     // Ignore error
@@ -236,10 +276,16 @@ function removeLocalSession(id: string): void {
 
 /**
  * Evaluates session lifecycle timings:
+ * - Pending sessions are NEVER expired or deleted
  * - If now >= deleteAt (20m after expiry), deletes from Firestore and local cache
  * - If active and now >= expiresAt (20m after start), sets status = expired
  */
 async function processSessionLifecycle(session: ConsultationSession): Promise<ConsultationSession> {
+  // CRITICAL GUARD: Pending sessions MUST NEVER be expired or deleted!
+  if (session.status === "pending") {
+    return session;
+  }
+
   const now = Date.now();
 
   // 1. Check if 40 minutes have elapsed since start (20m session + 20m grace) -> Auto-delete!
@@ -412,6 +458,18 @@ export async function startConsultationTimer(id: string): Promise<ConsultationSe
   current.deleteAt = deleteAtDate.toISOString();
   current.status = "active";
 
+  // Automatically insert the personalized priest welcome greeting if empty
+  if (!current.messages || current.messages.length === 0) {
+    const greetingText = getInitialPriestGreeting(current.language, current.name);
+    const welcomeMsg: ConsultationChatMessage = {
+      id: `welcome_${Date.now()}`,
+      sender: "astrologer",
+      text: greetingText,
+      timestamp: startedAtDate.toISOString()
+    };
+    current.messages = [welcomeMsg];
+  }
+
   try {
     if (firestore) {
       const docRef = doc(firestore, SESSIONS_COL, id);
@@ -419,7 +477,8 @@ export async function startConsultationTimer(id: string): Promise<ConsultationSe
         startedAt: current.startedAt,
         expiresAt: current.expiresAt,
         deleteAt: current.deleteAt,
-        status: "active"
+        status: "active",
+        messages: current.messages
       });
     }
   } catch (err) {

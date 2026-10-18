@@ -867,6 +867,101 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       expect(response.fullText).not.toContain("fool");
     });
   });
+
+  describe("Personalized Initial Priest Greeting & Token Resilience", () => {
+    it("generates personalized initial priest greeting addressing devotee by name in all 7 languages", async () => {
+      const { getInitialPriestGreeting } = await import("../features/consultation/consultationTypes");
+
+      // Kannada
+      const knGreeting = getInitialPriestGreeting("kn", "ರಮೇಶ್ ಕುಮಾರ್");
+      expect(knGreeting).toContain("ನಮಸ್ಕಾರ ರಮೇಶ್ ಕುಮಾರ್ ಅವರೇ");
+      expect(knGreeting).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+      expect(knGreeting).toContain("ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ");
+      expect(knGreeting).toContain("೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆ");
+
+      // English
+      const enGreeting = getInitialPriestGreeting("en", "Ramesh Kumar");
+      expect(enGreeting).toContain("Namaskara Ramesh Kumar ji");
+      expect(enGreeting).toContain("Shreeram Pandit");
+      expect(enGreeting).toContain("Gokarna");
+      expect(enGreeting).toContain("20-minute private consultation");
+
+      // Hindi
+      const hiGreeting = getInitialPriestGreeting("hi", "रमेश कुमार");
+      expect(hiGreeting).toContain("नमस्कार रमेश कुमार जी");
+      expect(hiGreeting).toContain("श्रीराम पंडित");
+
+      // Telugu
+      const teGreeting = getInitialPriestGreeting("te", "రమేష్ కుమార్");
+      expect(teGreeting).toContain("నమస్కారం రమేష్ కుమార్ గారూ");
+      expect(teGreeting).toContain("శ్రీరామ్ పండిత్");
+
+      // Tamil
+      const taGreeting = getInitialPriestGreeting("ta", "ரமேஷ்");
+      expect(taGreeting).toContain("வணக்கம் ரமேஷ் அவர்களே");
+      expect(taGreeting).toContain("ஸ்ரீராம் பண்டிட்");
+
+      // Malayalam
+      const mlGreeting = getInitialPriestGreeting("ml", "രമേഷ്");
+      expect(mlGreeting).toContain("നമസ്കാരം രമേഷ്");
+      expect(mlGreeting).toContain("ശ്രീറാം പണ്ഡിറ്റ്");
+
+      // Marathi
+      const mrGreeting = getInitialPriestGreeting("mr", "रमेश");
+      expect(mrGreeting).toContain("नमस्कार रमेश जी");
+      expect(mrGreeting).toContain("श्रीराम पंडित");
+    });
+
+    it("automatically inserts the personalized greeting when consultation timer is started", async () => {
+      const session = await createConsultationSession({
+        name: "ವಿನಾಯಕ ಭಟ್",
+        dob: "1994-06-20",
+        tob: "08:15",
+        place: "Gokarna",
+        language: "kn"
+      });
+
+      expect(session.status).toBe("pending");
+      expect(session.messages.length).toBe(0);
+
+      const activeSession = await startConsultationTimer(session.id);
+      expect(activeSession.status).toBe("active");
+      expect(activeSession.messages.length).toBe(1);
+      expect(activeSession.messages[0].sender).toBe("astrologer");
+      expect(activeSession.messages[0].text).toContain("ನಮಸ್ಕಾರ ವಿನಾಯಕ ಭಟ್ ಅವರೇ");
+      expect(activeSession.messages[0].text).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    });
+
+    it("resiliently decodes secure tokens, raw session tokens, and query parameter strings", () => {
+      const rawId = "bgn_7a8b9c0d1e";
+      const secureToken = encodeSecureConsultationToken(rawId);
+
+      // 1. Standard secure token
+      const res1 = decodeSecureConsultationToken(secureToken);
+      expect(res1.isValid).toBe(true);
+      expect(res1.sessionId).toBe(rawId);
+
+      // 2. URL-encoded secure token
+      const res2 = decodeSecureConsultationToken(encodeURIComponent(secureToken));
+      expect(res2.isValid).toBe(true);
+      expect(res2.sessionId).toBe(rawId);
+
+      // 3. String with id= prefix
+      const res3 = decodeSecureConsultationToken(`id=${secureToken}`);
+      expect(res3.isValid).toBe(true);
+      expect(res3.sessionId).toBe(rawId);
+
+      // 4. Raw session ID
+      const res4 = decodeSecureConsultationToken(rawId);
+      expect(res4.isValid).toBe(true);
+      expect(res4.sessionId).toBe(rawId);
+
+      // 5. String with session= prefix
+      const res5 = decodeSecureConsultationToken(`session=${rawId}`);
+      expect(res5.isValid).toBe(true);
+      expect(res5.sessionId).toBe(rawId);
+    });
+  });
 });
 
 
