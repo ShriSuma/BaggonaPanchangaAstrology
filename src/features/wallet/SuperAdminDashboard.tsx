@@ -105,9 +105,10 @@ import { UserIdSuggestionChips } from "../../components/ui/UserIdSuggestionChips
 import { generateSmartUserIdSuggestions } from "../../utils/userIdSuggestionEngine";
 import { ServicePricingManager } from "../../components/wallet/ServicePricingManager";
 import { BaggonaBookPublisherDashboard } from "../admin/BaggonaBookPublisherDashboard";
+import { ConsultationGeneratorPage } from "../consultation/ConsultationGeneratorPage";
 import { getIndianStandardDateStr } from "../../core/placeTime";
 
-export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "book_publisher" | "voice_db" | "pricing";
+export type AdminTab = "wallets" | "kundlis" | "ashirvada" | "audit" | "mindmap" | "panchanga_engine" | "book_publisher" | "consultation_generator" | "voice_db" | "pricing";
 
 /* -------------------------------------------------------------------------- */
 /* 360° COMPLETE CIRCULAR PROGRESS RING COMPONENT (Visual Telemetry Gauge)    */
@@ -1982,6 +1983,22 @@ export const SuperAdminDashboard: React.FC = () => {
             <span>೧೦೪-ಪುಟಗಳ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ (Book Publisher)</span>
             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-950 border border-emerald-300">
               1-Click Print
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("consultation_generator")}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              activeTab === "consultation_generator"
+                ? "bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-md scale-100 ring-2 ring-emerald-400"
+                : "text-amber-950 hover:bg-amber-100"
+            }`}
+          >
+            <span>🔗</span>
+            <span>೨೦-ನಿಮಿಷ ಚಾಟ್ ಲಿಂಕ್ (20-Min Link)</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-950 border border-emerald-300">
+              Live Q&A
             </span>
           </button>
 
@@ -4920,6 +4937,13 @@ export const SuperAdminDashboard: React.FC = () => {
       {/* TAB: 104-PAGE BAGGONA PANCHANGA BOOK PUBLISHER (Super Admin Exclusive) */}
       {activeTab === "book_publisher" && (
         <BaggonaBookPublisherDashboard />
+      )}
+
+      {/* TAB: 20-MINUTE DEVOTEE CONSULTATION LINK GENERATOR */}
+      {activeTab === "consultation_generator" && (
+        <div className="bg-white border-2 border-amber-300 rounded-3xl p-2 sm:p-4 shadow-sm">
+          <ConsultationGeneratorPage />
+        </div>
       )}
 
       {/* 8. TAB CONTENT: PRIEST VOICE DATABASE & VOICE CLONE VAULT (SuperAdmin Only) */}

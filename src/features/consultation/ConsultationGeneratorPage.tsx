@@ -27,6 +27,7 @@ import {
   CONSULTATION_LANGUAGES,
   DEFAULT_PRIEST_CONTACT
 } from "./consultationTypes";
+import { resolvePlaceFromPincode } from "../../services/locationApi";
 
 const POPULAR_PLACES = [
   { name: "ಗೋಕರ್ಣ (Gokarna)", lat: 14.5479, lng: 74.3188 },
@@ -46,6 +47,8 @@ export const ConsultationGeneratorPage: React.FC = () => {
   const [dob, setDob] = useState("1995-05-15");
   const [tob, setTob] = useState("10:30");
   const [place, setPlace] = useState("Gokarna");
+  const [pincode, setPincode] = useState("581326");
+  const [isResolvingPin, setIsResolvingPin] = useState(false);
   const [selectedLat, setSelectedLat] = useState(14.5479);
   const [selectedLng, setSelectedLng] = useState(74.3188);
   const [language, setLanguage] = useState<ConsultationLanguage>("kn");
@@ -106,6 +109,27 @@ export const ConsultationGeneratorPage: React.FC = () => {
       void refreshTelemetry();
     }
   }, [activeTab]);
+
+  // Handle Pincode Auto-Resolution
+  const handlePincodeChange = async (val: string) => {
+    setPincode(val);
+    const clean = val.replace(/\D/g, "").slice(0, 6);
+    if (clean.length === 6) {
+      setIsResolvingPin(true);
+      try {
+        const res = await resolvePlaceFromPincode(clean);
+        if (res) {
+          setPlace(`${res.villageName} (${res.pincode})`);
+          setSelectedLat(res.lat);
+          setSelectedLng(res.lng);
+        }
+      } catch (err) {
+        console.warn("[Generator] Pincode resolution notice:", err);
+      } finally {
+        setIsResolvingPin(false);
+      }
+    }
+  };
 
   // Handle Generate Action
   const handleGenerateLink = async (e: React.FormEvent) => {
@@ -291,19 +315,42 @@ export const ConsultationGeneratorPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Place of Birth */}
-            <div>
-              <label className="block text-xs font-bold text-amber-950 mb-1">
-                📍 ಜನ್ಮ ಸ್ಥಳ (Place of Birth) *
-              </label>
-              <input
-                type="text"
-                required
-                value={place}
-                onChange={(e) => setPlace(e.target.value)}
-                placeholder="ಉದಾ: Gokarna, Bengaluru, Sirsi..."
-                className="w-full bg-[#FAF6EE] border-2 border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2.5 text-sm font-medium text-stone-900 focus:outline-hidden transition mb-2"
-              />
+            {/* Place of Birth & Pincode */}
+            <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-amber-950 mb-1">
+                    📍 ಜನ್ಮ ಸ್ಥಳ / ಊರು (Place of Birth) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={place}
+                    onChange={(e) => setPlace(e.target.value)}
+                    placeholder="ಉದಾ: Gokarna, Bengaluru, Sirsi..."
+                    className="w-full bg-[#FAF6EE] border-2 border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2.5 text-sm font-medium text-stone-900 focus:outline-hidden transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-amber-950 mb-1">
+                    📮 ಪಿನ್‌ಕೋಡ್ (Pincode)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={pincode}
+                      onChange={(e) => void handlePincodeChange(e.target.value)}
+                      placeholder="581326"
+                      className="w-full bg-[#FAF6EE] border-2 border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-stone-900 focus:outline-hidden transition"
+                    />
+                    {isResolvingPin && (
+                      <div className="absolute right-3 top-3 w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                    )}
+                  </div>
+                </div>
+              </div>
 
               {/* Quick Places Chips */}
               <div className="flex flex-wrap items-center gap-1.5 pt-1">

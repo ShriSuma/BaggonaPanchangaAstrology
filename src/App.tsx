@@ -427,9 +427,6 @@ export default function App(): JSX.Element {
   }
 
   if (isConsultationGeneratorRoute) {
-    if (!isAuthenticated) {
-      return <LoginPage />;
-    }
     return (
       <ErrorBoundary>
         <ConsultationGeneratorPage />
@@ -625,6 +622,7 @@ export default function App(): JSX.Element {
         {currentPage === "pooja_estimate" && <PoojaEstimatePage />}
         {currentPage === "package_download" && <DevoteePackageDownloadPage />}
         {currentPage === "sandhyavandana" && <SandhyavandanaPage />}
+        {currentPage === "consultation_generator" && <ConsultationGeneratorPage />}
       </Layout>
     </ErrorBoundary>
   );

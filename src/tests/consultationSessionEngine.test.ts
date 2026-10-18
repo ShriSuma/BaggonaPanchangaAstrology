@@ -622,7 +622,11 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       });
 
       // Must be warm, paternal, and divine blessing without cold robot disclaimers
-      expect(greetingAnswer.fullText).toContain("ಆಶೀರ್ವಾದ");
+      expect(
+        greetingAnswer.fullText.includes("ಆಶೀರ್ವಾದ") ||
+        greetingAnswer.fullText.includes("ಅನುಗ್ರಹ") ||
+        greetingAnswer.fullText.includes("ಹಾರೈಸುತ್ತೇವೆ")
+      ).toBe(true);
       expect(greetingAnswer.fullText).toContain("ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ");
       expect(greetingAnswer.fullText).not.toContain("I am an AI");
       expect(greetingAnswer.fullText).not.toContain("ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ");

@@ -260,6 +260,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "కుండలి దోషాలు & పరిహారం",
     ta: "ஜாதக தோஷங்கள் & பரிகாரம்"
   },
+  consultation_generator: {
+    kn: "೨೦-ನಿಮಿಷ ಚಾಟ್ ಲಿಂಕ್ ಜನರೇಟರ್",
+    en: "20-Min Consultation Link Generator",
+    hi: "२०-मिनट परामर्श लिंक जनरेटर",
+    te: "20-నిమిషాల సంప్రదింపు లింక్ జనరేటర్",
+    ta: "20-நிமிட ஆலோசனை இணைப்பு ஜெனரேட்டர்"
+  },
   cat_panchanga_calendar: {
     kn: "ಪಂಚಾಂಗ & ದಿನದರ್ಶನ",
     en: "Panchanga & Calendar",

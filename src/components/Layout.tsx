@@ -166,6 +166,14 @@ export default function Layout({ children }: Props): JSX.Element {
             <span className="hidden sm:inline">ಪ್ರಶ್ನೋತ್ತರ</span>
           </button>
           <button
+            onClick={() => setPage("consultation_generator")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/25 to-teal-500/25 border border-emerald-400/60 text-emerald-300 hover:bg-emerald-500/35 text-xs font-bold transition-all shadow-xs"
+            title="೨೦-ನಿಮಿಷ ಚಾಟ್ ಲಿಂಕ್ ಜನರೇಟರ್ / 20-Min Devotee Consultation Link Generator"
+          >
+            <span>🔗</span>
+            <span className="hidden sm:inline">೨೦-ನಿಮಿಷ ಲಿಂಕ್</span>
+          </button>
+          <button
             onClick={() => setPage("pooja_estimate")}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-500/30 text-xs font-bold transition-all shadow-xs"
             title="ಪೂಜಾ ಯೋಜನೆ & ವೆಚ್ಚ ವಿವರ / Pooja Packages & Estimate"

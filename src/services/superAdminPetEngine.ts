@@ -740,6 +740,31 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       kn: "ಕರ್ನಾಟಕ ಉತ್ತರ ಕನ್ನಡ ಗೋಕರ್ಣ ಸಂಪ್ರದಾಯದ ತ್ರಿಕಾಲ ಸಂಧ್ಯಾವಂದನೆ, ೧೪ ಹಂತಗಳ ಕೈಕರಣ ವಿಧಿ, ಮಂತ್ರಗಳು, ೧೬+ ಗೋತ್ರ ಪ್ರವರ ಮತ್ತು ೪ ಮಹಾಮಂತ್ರಗಳ ಕಲಿಕೆ.",
       en: "Authentic Karnataka Vedic Trikaala Sandhyavandana, 14 ritual steps with Kaikarana, 16+ Gotra Pravara Abhivadana, and 4 sacred Mahamantras."
     }
+  },
+  consultation_generator: {
+    name: {
+      kn: "೨೦-ನಿಮಿಷ ಚಾಟ್ ಲಿಂಕ್ ಜನರೇಟರ್ (20-Min Link)",
+      en: "20-Minute Consultation Link Generator",
+      hi: "२०-मिनट परामर्श लिंक जनरेटर",
+      te: "20-నిమిషాల సంప్రదింపు లింక్ జనరేటర్",
+      ta: "20-நிமிட ஆலோசனை இணைப்பு ஜெனரேட்டர்"
+    },
+    category: "admin",
+    icon: "🔗",
+    keywords: [
+      "consultation",
+      "link generator",
+      "20 minute",
+      "chat session",
+      "devotee link",
+      "ಸಮಾಲೋಚನೆ ಲಿಂಕ್",
+      "ಚಾಟ್ ಲಿಂಕ್",
+      "೨೦ ನಿಮಿಷ"
+    ],
+    description: {
+      kn: "ಭಕ್ತರ ಜನ್ಮ ವಿವರಗಳು ಮತ್ತು ಪಿನ್‌ಕೋಡ್ ನಮೂದಿಸಿ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೌನ್ಸಿಲಿಂಗ್ ಲಿಂಕ್ ಮತ್ತು ಕ್ಯೂಆರ್ ಕೋಡ್ ರಚಿಸಿ.",
+      en: "Generate secure 20-minute live astrology consultation links with QR code for devotees with full birth Kundli and timing controls."
+    }
   }
 };
 
