@@ -22,6 +22,11 @@ import {
   type DetectedDosha
 } from "../../core/ComprehensiveDoshaEngine";
 import type { ConsultationSession, ConsultationLanguage } from "./consultationTypes";
+import {
+  RASHIS_I18N,
+  NAKSHATRAS_I18N,
+  PLANET_NAMES_I18N
+} from "./consultationPanchangaService";
 
 export interface ConsultationReadingResult {
   fullText: string;
@@ -53,14 +58,19 @@ export const CONSULTATION_LANG_NAMES: Record<ConsultationLanguage, string> = {
 
 /**
  * Calculates full Kundli and astronomical metrics for the devotee
+ * Strictly localizes Lagna, Rashi, Nakshatra, and Dasha in the chosen language.
  */
 export async function computeDevoteeKundli(session: ConsultationSession): Promise<{
   kundli: KundliOutput;
   lagnaName: string;
+  lagnaNameEn: string;
   moonRashi: string;
+  moonRashiEn: string;
   nakshatra: string;
+  nakshatraEn: string;
   pada: number;
   currentDashaText: string;
+  currentDashaTextEn: string;
   planetsSummary: string;
   ageYears: number;
 }> {
@@ -78,22 +88,47 @@ export async function computeDevoteeKundli(session: ConsultationSession): Promis
     ayanamsaModel: "lahiri"
   });
 
-  const lagnaName = kundli.lagnaRashi.sanskrit || kundli.lagnaRashi.english;
-  const moonRashi = kundli.moonSign.sanskrit || kundli.moonSign.english;
-  const moonPlanet = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Moon);
-  const nakshatra = moonPlanet?.nakshatra?.sanskrit || moonPlanet?.nakshatra?.english || "ಅಶ್ವಿನಿ";
-  const pada = kundli.moonPada || 1;
+  const lang: ConsultationLanguage = session.language || "kn";
 
-  // Age & Dasha Calculation
+  // 1. Lagna (Ascendant) - Strictly localized according to chosen language
+  const lagnaDeg = kundli.ascendant;
+  const lagnaIdx = Math.floor(((lagnaDeg % 360) + 360) % 360 / 30) % 12;
+  const lagnaName = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[lagnaIdx];
+  const lagnaNameEn = RASHIS_I18N.en[lagnaIdx];
+
+  // 2. Moon Sign (Rashi) - Strictly localized
+  const moonPlanet = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Moon);
+  const moonSidereal = (((moonPlanet?.degree ?? kundli.ascendant) % 360) + 360) % 360;
+  const rashiIdx = kundli.moonSign?.index !== undefined ? kundli.moonSign.index : Math.floor(moonSidereal / 30) % 12;
+  const moonRashi = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[rashiIdx];
+  const moonRashiEn = RASHIS_I18N.en[rashiIdx];
+
+  // 3. Nakshatra & Pada - Strictly localized
+  const nakIdx = Math.min(26, Math.floor(moonSidereal / (360 / 27)));
+  const nakshatra = (NAKSHATRAS_I18N[lang] || NAKSHATRAS_I18N.kn)[nakIdx];
+  const nakshatraEn = NAKSHATRAS_I18N.en[nakIdx];
+  const pada = kundli.moonPada || Math.min(4, Math.floor((moonSidereal % (360 / 27)) / (360 / 108)) + 1);
+
+  // 4. Age & Dasha Calculation - Strictly localized planet and dasha terms
   const ageYears = ageDecimalYearsAt(session.dob, session.tob || "12:00", lat, lng, new Date());
-  let currentDashaText = "ಮಹಾದಶಾ ನಡೆಯುತ್ತಿದೆ (Running Dasha)";
+  let currentDashaText = "";
+  let currentDashaTextEn = "";
   try {
     const bhukti = findBhuktiAtAge(kundli, ageYears);
     if (bhukti) {
-      currentDashaText = `${bhukti.maha.planet} Mahadasha - ${bhukti.bhukti} Antardasha`;
+      const pDict = PLANET_NAMES_I18N[lang] || PLANET_NAMES_I18N.kn;
+      const mahaName = pDict[bhukti.maha.planet] || bhukti.maha.planet;
+      const antarName = pDict[bhukti.bhukti] || bhukti.bhukti;
+      currentDashaText = `${mahaName} ${pDict.Mahadasha} - ${antarName} ${pDict.Antardasha}`;
+      currentDashaTextEn = `${bhukti.maha.planet} Mahadasha - ${bhukti.bhukti} Antardasha`;
     }
   } catch (e) {
     console.warn("[consultationAIEngine] Dasha calculation notice:", e);
+  }
+
+  if (!currentDashaText) {
+    currentDashaText = lang === "kn" ? "ಶುಭ ಮಹಾದಶಾ ಕಾಲ" : (lang === "en" ? "Active Planetary Dasha" : "शुभ महादशा काल");
+    currentDashaTextEn = "Active Planetary Dasha";
   }
 
   // Planetary Summary text
@@ -104,10 +139,14 @@ export async function computeDevoteeKundli(session: ConsultationSession): Promis
   return {
     kundli,
     lagnaName,
+    lagnaNameEn,
     moonRashi,
+    moonRashiEn,
     nakshatra,
+    nakshatraEn,
     pada,
     currentDashaText,
+    currentDashaTextEn,
     planetsSummary,
     ageYears
   };

@@ -312,7 +312,8 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       expect(result.nakshatra).toBeTruthy();
       expect(result.pada).toBeGreaterThanOrEqual(1);
       expect(result.pada).toBeLessThanOrEqual(4);
-      expect(result.currentDashaText).toContain("Mahadasha");
+      expect(result.currentDashaText.includes("ಮಹಾದಶಾ") || result.currentDashaText.includes("Mahadasha")).toBe(true);
+      expect(result.currentDashaTextEn).toContain("Mahadasha");
       expect(result.planetsSummary.length).toBeGreaterThan(50);
     });
 
@@ -1069,8 +1070,81 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
 
       expect(resolvedSessionId).toBe(validSessionId);
     });
+
+    it("verifies computeDevoteeKundli strictly localizes Lagna, Rashi, Nakshatra, and Dasha in all 7 languages without English leakage", async () => {
+      // Devotee born 1994-06-15 08:30 in Kumta has Karkataka (Cancer) Lagna
+      const baseDevotee: ConsultationSession = {
+        id: "bgn_karkataka_test",
+        name: "ಆನಂದ ಹೆಗಡೆ",
+        dob: "1994-06-15",
+        tob: "08:30",
+        place: "Kumta, Karnataka",
+        lat: 14.4258,
+        lng: 74.4174,
+        timezone: 5.5,
+        language: "kn",
+        durationMinutes: 20,
+        graceDeleteMinutes: 20,
+        createdAt: new Date().toISOString(),
+        status: "pending",
+        hasProvidedContact: false,
+        bonusMinuteClaimed: false,
+        messages: [],
+        priestName: "Shreeram Pandit",
+        priestPhone: "9972339362"
+      };
+
+      // 1. Kannada: Must be "ಕರ್ಕಾಟಕ", not "Cancer" or "Karka"
+      const knAstro = await computeDevoteeKundli({ ...baseDevotee, language: "kn" });
+      expect(knAstro.lagnaName).toBe("ಕರ್ಕಾಟಕ");
+      expect(knAstro.moonRashi).toBe("ಸಿಂಹ");
+      expect(knAstro.nakshatra).toBe("ಪುನರ್ವಸು");
+      expect(knAstro.currentDashaText).toContain("ಮಹಾದಶಾ");
+      expect(knAstro.lagnaName).not.toMatch(/[a-zA-Z]/);
+
+      // 2. Hindi: Must be "कर्क"
+      const hiAstro = await computeDevoteeKundli({ ...baseDevotee, language: "hi" });
+      expect(hiAstro.lagnaName).toBe("कर्क");
+      expect(hiAstro.moonRashi).toBe("सिंह");
+      expect(hiAstro.currentDashaText).toContain("महादशा");
+      expect(hiAstro.lagnaName).not.toMatch(/[a-zA-Z]/);
+
+      // 3. Telugu: Must be "కర్కాటకం"
+      const teAstro = await computeDevoteeKundli({ ...baseDevotee, language: "te" });
+      expect(teAstro.lagnaName).toBe("కర్కాటకం");
+      expect(teAstro.moonRashi).toBe("సింహం");
+      expect(teAstro.currentDashaText).toContain("మహాదశ");
+      expect(teAstro.lagnaName).not.toMatch(/[a-zA-Z]/);
+
+      // 4. Tamil: Must be "கடகம்"
+      const taAstro = await computeDevoteeKundli({ ...baseDevotee, language: "ta" });
+      expect(taAstro.lagnaName).toBe("கடகம்");
+      expect(taAstro.moonRashi).toBe("சிம்மம்");
+      expect(taAstro.currentDashaText).toContain("மகாதிசை");
+      expect(taAstro.lagnaName).not.toMatch(/[a-zA-Z]/);
+
+      // 5. Malayalam: Must be "കർക്കിടകം"
+      const mlAstro = await computeDevoteeKundli({ ...baseDevotee, language: "ml" });
+      expect(mlAstro.lagnaName).toBe("കർക്കിടകം");
+      expect(mlAstro.moonRashi).toBe("ചിങ്ങം");
+      expect(mlAstro.currentDashaText).toContain("മഹാദശ");
+      expect(mlAstro.lagnaName).not.toMatch(/[a-zA-Z]/);
+
+      // 6. Marathi: Must be "कर्क"
+      const mrAstro = await computeDevoteeKundli({ ...baseDevotee, language: "mr" });
+      expect(mrAstro.lagnaName).toBe("कर्क");
+      expect(mrAstro.moonRashi).toBe("सिंह");
+      expect(mrAstro.currentDashaText).toContain("महादशा");
+      expect(mrAstro.lagnaName).not.toMatch(/[a-zA-Z]/);
+
+      // 7. English: Contains Sanskrit and English
+      const enAstro = await computeDevoteeKundli({ ...baseDevotee, language: "en" });
+      expect(enAstro.lagnaName).toContain("Cancer");
+      expect(enAstro.currentDashaText).toContain("Mahadasha");
+    });
   });
 });
+
 
 
 
