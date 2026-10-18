@@ -430,6 +430,20 @@ export default function CategorizedNavDrawer({
                             onClick={() => {
                               setPage(item.page);
                               onClose();
+                              if (typeof window !== "undefined") {
+                                if (item.page === "consultation_generator") {
+                                  if (window.location.pathname !== "/consultation-generator") {
+                                    window.location.href = "/consultation-generator";
+                                  }
+                                } else if (
+                                  window.location.pathname.startsWith("/consultation") ||
+                                  window.location.pathname.startsWith("/chat-session") ||
+                                  window.location.pathname.startsWith("/sandhyavandana") ||
+                                  window.location.pathname.startsWith("/consultation-generator")
+                                ) {
+                                  window.location.href = "/";
+                                }
+                              }
                             }}
                             className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs transition-all duration-150 ${
                               isActive

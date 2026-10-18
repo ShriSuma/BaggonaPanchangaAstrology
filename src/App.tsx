@@ -75,30 +75,41 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/purohita")
   );
 
-  const isConsultationRoute = typeof window !== "undefined" && (
-    window.location.pathname.startsWith("/consultation") ||
-    window.location.pathname.startsWith("/chat-session") ||
-    window.location.pathname.startsWith("/astrology-chat") ||
+  const isConsultationGeneratorRoute = typeof window !== "undefined" && (
+    window.location.pathname === "/consultation-generator" ||
+    window.location.pathname.startsWith("/consultation-generator/") ||
+    window.location.pathname.startsWith("/link-generator") ||
+    window.location.pathname.startsWith("/consultation_generator") ||
+    window.location.search.includes("portal=consultation_generator") ||
+    window.location.search.includes("portal=link_generator") ||
+    window.location.search.includes("page=consultation_generator") ||
+    window.location.hash.includes("#/consultation-generator") ||
+    window.location.hash.includes("#consultation-generator") ||
+    window.location.hash.includes("#/link-generator") ||
+    window.location.hash.includes("#link-generator")
+  );
+
+  const isConsultationRoute = typeof window !== "undefined" && !isConsultationGeneratorRoute && (
+    window.location.pathname === "/consultation" ||
+    window.location.pathname.startsWith("/consultation/") ||
+    window.location.pathname === "/chat-session" ||
+    window.location.pathname.startsWith("/chat-session/") ||
+    window.location.pathname === "/astrology-chat" ||
+    window.location.pathname.startsWith("/astrology-chat/") ||
     window.location.search.includes("portal=consultation") ||
     window.location.search.includes("portal=chat_session") ||
     window.location.search.includes("portal=chat") ||
-    window.location.search.includes("session=") ||
+    window.location.search.includes("session=bgn_") ||
     window.location.search.includes("id=bgn_") ||
     window.location.search.includes("token=bgn_") ||
-    window.location.hash.includes("#/consultation") ||
-    window.location.hash.includes("#/chat-session") ||
-    window.location.hash.includes("#consultation") ||
+    window.location.hash.startsWith("#/consultation?") ||
+    window.location.hash === "#/consultation" ||
+    window.location.hash.startsWith("#/consultation/") ||
+    window.location.hash === "#consultation" ||
+    window.location.hash.startsWith("#consultation?") ||
+    window.location.hash.startsWith("#/chat-session") ||
     window.location.hash.includes("id=bgn_") ||
     window.location.hash.includes("session=bgn_")
-  );
-
-  const isConsultationGeneratorRoute = typeof window !== "undefined" && !isConsultationRoute && (
-    window.location.pathname.startsWith("/consultation-generator") ||
-    window.location.pathname.startsWith("/link-generator") ||
-    window.location.search.includes("portal=consultation_generator") ||
-    window.location.search.includes("portal=link_generator") ||
-    window.location.hash.includes("#/consultation-generator") ||
-    window.location.hash.includes("#consultation-generator")
   );
 
   const isSandhyavandanaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (

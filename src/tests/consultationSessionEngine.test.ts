@@ -961,6 +961,114 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       expect(res5.isValid).toBe(true);
       expect(res5.sessionId).toBe(rawId);
     });
+
+    it("strictly separates /consultation-generator from /consultation chat route", () => {
+      function evaluateConsultationRoutes(pathname: string, search: string = "", hash: string = "") {
+        const isConsultationGeneratorRoute = (
+          pathname === "/consultation-generator" ||
+          pathname.startsWith("/consultation-generator/") ||
+          pathname.startsWith("/link-generator") ||
+          pathname.startsWith("/consultation_generator") ||
+          search.includes("portal=consultation_generator") ||
+          search.includes("portal=link_generator") ||
+          search.includes("page=consultation_generator") ||
+          hash.includes("#/consultation-generator") ||
+          hash.includes("#consultation-generator") ||
+          hash.includes("#/link-generator") ||
+          hash.includes("#link-generator")
+        );
+
+        const isConsultationRoute = !isConsultationGeneratorRoute && (
+          pathname === "/consultation" ||
+          pathname.startsWith("/consultation/") ||
+          pathname === "/chat-session" ||
+          pathname.startsWith("/chat-session/") ||
+          pathname === "/astrology-chat" ||
+          pathname.startsWith("/astrology-chat/") ||
+          search.includes("portal=consultation") ||
+          search.includes("portal=chat_session") ||
+          search.includes("portal=chat") ||
+          search.includes("session=bgn_") ||
+          search.includes("id=bgn_") ||
+          search.includes("token=bgn_") ||
+          hash.startsWith("#/consultation?") ||
+          hash === "#/consultation" ||
+          hash.startsWith("#/consultation/") ||
+          hash === "#consultation" ||
+          hash.startsWith("#consultation?") ||
+          hash.startsWith("#/chat-session") ||
+          hash.includes("id=bgn_") ||
+          hash.includes("session=bgn_")
+        );
+
+        return { isConsultationGeneratorRoute, isConsultationRoute };
+      }
+
+      // /consultation-generator MUST NOT trigger isConsultationRoute
+      const gen1 = evaluateConsultationRoutes("/consultation-generator");
+      expect(gen1.isConsultationGeneratorRoute).toBe(true);
+      expect(gen1.isConsultationRoute).toBe(false);
+
+      const gen2 = evaluateConsultationRoutes("/consultation-generator/");
+      expect(gen2.isConsultationGeneratorRoute).toBe(true);
+      expect(gen2.isConsultationRoute).toBe(false);
+
+      const gen3 = evaluateConsultationRoutes("/", "", "#/consultation-generator");
+      expect(gen3.isConsultationGeneratorRoute).toBe(true);
+      expect(gen3.isConsultationRoute).toBe(false);
+
+      const gen4 = evaluateConsultationRoutes("/", "?portal=consultation_generator");
+      expect(gen4.isConsultationGeneratorRoute).toBe(true);
+      expect(gen4.isConsultationRoute).toBe(false);
+
+      // /consultation MUST trigger isConsultationRoute
+      const chat1 = evaluateConsultationRoutes("/consultation", "?id=bgn_cst_abc.123");
+      expect(chat1.isConsultationGeneratorRoute).toBe(false);
+      expect(chat1.isConsultationRoute).toBe(true);
+
+      const chat2 = evaluateConsultationRoutes("/consultation", "?session=bgn_abcdef1234");
+      expect(chat2.isConsultationGeneratorRoute).toBe(false);
+      expect(chat2.isConsultationRoute).toBe(true);
+
+      const chat3 = evaluateConsultationRoutes("/", "", "#/consultation?id=bgn_cst_abc.123");
+      expect(chat3.isConsultationGeneratorRoute).toBe(false);
+      expect(chat3.isConsultationRoute).toBe(true);
+    });
+
+    it("resolves session ID when id parameter is corrupted but session parameter is valid", () => {
+      const validSessionId = "bgn_9k8j7h6g5f";
+      const corruptedIdParam = "bgn_cst_TAMPERED_STRING.invalidhash";
+
+      const candidateTokens = [
+        corruptedIdParam,
+        validSessionId
+      ];
+
+      let resolvedSessionId: string | null = null;
+
+      // Pass 1: Try decodeSecureConsultationToken
+      for (const token of candidateTokens) {
+        const decoded = decodeSecureConsultationToken(token);
+        if (decoded.isValid && decoded.sessionId) {
+          resolvedSessionId = decoded.sessionId;
+          break;
+        }
+      }
+
+      // Pass 2: Fallback for bgn_ pattern
+      if (!resolvedSessionId) {
+        for (const token of candidateTokens) {
+          let clean = token.trim().toLowerCase().replace(/^(id|session|token)=/, "");
+          try { clean = decodeURIComponent(clean); } catch {}
+          if (/^bgn_[a-z0-9]{8,16}$/.test(clean)) {
+            resolvedSessionId = clean;
+            break;
+          }
+        }
+      }
+
+      expect(resolvedSessionId).toBe(validSessionId);
+    });
   });
 });
 
