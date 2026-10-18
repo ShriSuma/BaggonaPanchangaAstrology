@@ -97,17 +97,33 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#consultation-generator")
   );
 
-  const isAcademyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (
+  const isSandhyavandanaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (
+    window.location.pathname.startsWith("/sandhyavandana") ||
+    window.location.pathname.startsWith("/sandhya-vandana") ||
+    window.location.pathname.startsWith("/sandhyavandane") ||
+    window.location.pathname.startsWith("/sandhya") ||
+    window.location.search.includes("portal=sandhyavandana") ||
+    window.location.search.includes("portal=sandhya") ||
+    window.location.search.includes("page=sandhyavandana") ||
+    window.location.search.includes("page=sandhya") ||
+    window.location.search.includes("svToken=") ||
+    window.location.search.includes("token=bgn_sv_") ||
+    window.location.hash.includes("#/sandhyavandana") ||
+    window.location.hash.includes("#sandhyavandana") ||
+    window.location.hash.includes("#/sandhya")
+  );
+
+  const isAcademyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && (
     window.location.pathname.startsWith("/academy") ||
     window.location.pathname.startsWith("/learnkundli") ||
     window.location.search.includes("academyToken=") ||
     (window.location.search.includes("game=learnkundli") && window.location.search.includes("mode=standalone"))
   );
 
-  const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (
+  const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && (
     window.location.pathname.startsWith("/daily") ||
     window.location.pathname.startsWith("/darshana") ||
-    window.location.search.includes("token=") ||
+    (window.location.search.includes("token=") && !window.location.search.includes("token=bgn_sv_") && !window.location.pathname.startsWith("/sandhya") && !window.location.search.includes("portal=sandhya") && !window.location.search.includes("page=sandhya")) ||
     window.location.search.includes("fromCal=") ||
     window.location.search.includes("action=ics")
   );
@@ -276,21 +292,6 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#package-download")
   );
 
-  const isSandhyavandanaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isDailyRoute && (
-    window.location.pathname.startsWith("/sandhyavandana") ||
-    window.location.pathname.startsWith("/sandhya-vandana") ||
-    window.location.pathname.startsWith("/sandhya") ||
-    window.location.search.includes("portal=sandhyavandana") ||
-    window.location.search.includes("portal=sandhya") ||
-    window.location.search.includes("page=sandhyavandana") ||
-    window.location.search.includes("page=sandhya") ||
-    window.location.search.includes("svToken=") ||
-    window.location.search.includes("token=bgn_sv_") ||
-    window.location.hash.includes("#/sandhyavandana") ||
-    window.location.hash.includes("#sandhyavandana") ||
-    window.location.hash.includes("#/sandhya")
-  );
-
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -440,6 +441,14 @@ export default function App(): JSX.Element {
     return <PriestPanchangaPage />;
   }
 
+  if (isSandhyavandanaRoute) {
+    return (
+      <ErrorBoundary>
+        <SandhyavandanaPage />
+      </ErrorBoundary>
+    );
+  }
+
   if (isAcademyRoute) {
     return <KundliAcademyStandalonePage />;
   }
@@ -538,14 +547,6 @@ export default function App(): JSX.Element {
         <Layout>
           <DevoteePackageDownloadPage />
         </Layout>
-      </ErrorBoundary>
-    );
-  }
-
-  if (isSandhyavandanaRoute) {
-    return (
-      <ErrorBoundary>
-        <SandhyavandanaPage />
       </ErrorBoundary>
     );
   }

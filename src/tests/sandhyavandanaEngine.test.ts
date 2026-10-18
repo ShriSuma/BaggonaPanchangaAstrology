@@ -239,4 +239,62 @@ describe("Authentic Karnataka Vedic Sandhyavandana Master Engine", () => {
       expect(retrieved?.japaCountCompleted).toBe(28);
     });
   });
+
+  describe("6. Routing Isolation & Token Conflict Guard (Strict Separation from Daily Darshana)", () => {
+    function evaluateRoutes(pathname: string, search: string, hash: string = "") {
+      const isPriestPanchangaRoute = pathname.startsWith("/priest-panchanga");
+      const isConsultationRoute = pathname.startsWith("/consultation");
+      const isConsultationGeneratorRoute = pathname.startsWith("/consultation-generator");
+
+      const isSandhyavandanaRoute = !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (
+        pathname.startsWith("/sandhyavandana") ||
+        pathname.startsWith("/sandhya-vandana") ||
+        pathname.startsWith("/sandhyavandane") ||
+        pathname.startsWith("/sandhya") ||
+        search.includes("portal=sandhyavandana") ||
+        search.includes("portal=sandhya") ||
+        search.includes("page=sandhyavandana") ||
+        search.includes("page=sandhya") ||
+        search.includes("svToken=") ||
+        search.includes("token=bgn_sv_") ||
+        hash.includes("#/sandhyavandana") ||
+        hash.includes("#sandhyavandana") ||
+        hash.includes("#/sandhya")
+      );
+
+      const isDailyRoute = !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && (
+        pathname.startsWith("/daily") ||
+        pathname.startsWith("/darshana") ||
+        (search.includes("token=") && !search.includes("token=bgn_sv_") && !pathname.startsWith("/sandhya") && !search.includes("portal=sandhya") && !search.includes("page=sandhya")) ||
+        search.includes("fromCal=") ||
+        search.includes("action=ics")
+      );
+
+      return { isSandhyavandanaRoute, isDailyRoute };
+    }
+
+    it("routes /sandhyavandana?token=bgn_sv_... to Sandhyavandana and NEVER Daily Darshana", () => {
+      const routes = evaluateRoutes("/sandhyavandana", "?token=bgn_sv_test123");
+      expect(routes.isSandhyavandanaRoute).toBe(true);
+      expect(routes.isDailyRoute).toBe(false);
+    });
+
+    it("routes /?portal=sandhyavandana&token=bgn_sv_... to Sandhyavandana and NEVER Daily Darshana", () => {
+      const routes = evaluateRoutes("/", "?portal=sandhyavandana&token=bgn_sv_test123");
+      expect(routes.isSandhyavandanaRoute).toBe(true);
+      expect(routes.isDailyRoute).toBe(false);
+    });
+
+    it("routes /sandhya to Sandhyavandana and NEVER Daily Darshana", () => {
+      const routes = evaluateRoutes("/sandhya", "");
+      expect(routes.isSandhyavandanaRoute).toBe(true);
+      expect(routes.isDailyRoute).toBe(false);
+    });
+
+    it("routes /daily?token=abc123 to Daily Darshana and NEVER Sandhyavandana", () => {
+      const routes = evaluateRoutes("/daily", "?token=abc123");
+      expect(routes.isDailyRoute).toBe(true);
+      expect(routes.isSandhyavandanaRoute).toBe(false);
+    });
+  });
 });
