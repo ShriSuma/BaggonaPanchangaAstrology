@@ -127,11 +127,11 @@ function getLocalizedSectionName(key: string, baseLang: string): string {
       en: "Chapter 9: The Next 6 Months Planetary Timeline"
     },
     cosmicAura: {
-      kn: "ದೈವಿಕ ಗ್ರಹ ಚೇತನ ಹಾಗೂ ದಶಾ-ಗೋಚಾರ ಸಂರಕ್ಷಣಾ ಕವಚ (Cosmic Aura & Astral Shield)",
-      hi: "दैवीय ग्रह चेतना एवं दशा-गोचर सुरक्षा कवच (Cosmic Aura & Astral Shield)",
-      te: "దైవిక గ్రహ చేతన మరియు దశా-గోచార సంరక్షణా కవచం (Cosmic Aura & Astral Shield)",
-      ta: "தெய்வீக கிரகப் பேரொளி மற்றும் தசா-கோசார பாதுகாப்புக் கவசம் (Cosmic Aura & Astral Shield)",
-      en: "Sacred Planetary Sovereign Sphere & Cosmic Dasha-Gochara Shield"
+      kn: "ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ನಡೆಸುತ್ತಿರುವ ದಶಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಜನ್ಮ ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ (Active Ruling Planet & Natal Shield)",
+      hi: "वर्तमान में आपका मार्गदर्शन करने वाला दशाधिपति ग्रह एवं जन्म कुंडली रक्षा कवच (Active Ruling Planet & Natal Shield)",
+      te: "ప్రస్తుతం మిమ్మల్ని నడిపిస్తున్న దశాధిపతి గ్రహం & జన్మ కుండలి రక్షా కవచం (Active Ruling Planet & Natal Shield)",
+      ta: "தற்போது உங்களை வழிநடத்தும் தசாநாத கிரகமும் ஜென்ம ஜாதக பாதுகாப்புக் கவசமும் (Active Ruling Planet & Natal Shield)",
+      en: "Your Active Ruling Mahadasha Planet & Natal Protective Shield"
     },
     annualForecast: {
       kn: "ಮುಂದಿನ ೧ ವರ್ಷದ ಮಹತ್ವದ ಭವಿಷ್ಯ ಹಾಗೂ ಗೋಚಾರ-ದಶಾಫಲ (Next 1-Year Master Forecast)",

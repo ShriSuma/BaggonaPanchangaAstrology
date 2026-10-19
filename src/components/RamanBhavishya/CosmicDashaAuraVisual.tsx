@@ -1161,7 +1161,7 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
       <div className="absolute bottom-2 right-2 text-amber-700 text-lg opacity-40 select-none">❖</div>
 
       {/* Header Banner */}
-      <div className="text-center pb-5 mb-6 border-b border-amber-700/30">
+      <div className="text-center pb-5 mb-5 border-b border-amber-700/30">
         <div
           style={{ letterSpacing: "normal" }}
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-800/10 border border-amber-700/30 text-amber-950 text-sm font-bold mb-2"
@@ -1169,14 +1169,14 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
           <span>✧</span>
           <span>
             {baseLang === "kn"
-              ? "ಜನ್ಮ ಕುಂಡಲಿ, ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ಗೋಚಾರ ಚೇತನ ಕವಚ"
+              ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ & ಪ್ರಸ್ತುತ ಗ್ರಹ ಬಲದ ದರ್ಶನ"
               : baseLang === "hi"
-              ? "जन्म कुंडली, दशा-भुक्ति एवं गोचर चेतना कवच"
+              ? "जन्म कुंडली एवं वर्तमान ग्रह शक्ति दर्शन"
               : baseLang === "te"
-              ? "జన్మ కుండలి, దశా-భుక్తి మరియు గోచార చేతన కవచం"
+              ? "జన్మ కుండలి & ప్రస్తుత గ్రహ శక్తి దర్శనం"
               : baseLang === "ta"
-              ? "ஜென்ம ஜாதகம், தசா-புக்தி & கோசார ஜீவக் கவசம்"
-              : "Celestial Janma Kundali & Dasha-Gochara Astral Aura"}
+              ? "ஜென்ம ஜாதகம் & தற்போதைய கிரக பல தரிசனம்"
+              : "Janma Kundali & Active Planetary Energy"}
           </span>
           <span>✧</span>
         </div>
@@ -1185,20 +1185,49 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
           className="text-2xl md:text-3xl font-extrabold text-amber-950 leading-relaxed"
         >
           {baseLang === "kn"
-            ? `${dashaLordDisplayName} ಗ್ರಹ ಚೇತನ ಕವಚ`
+            ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ಮುನ್ನಡೆಸುತ್ತಿರುವ ಪ್ರಧಾನ ಗ್ರಹ: ${dashaLordDisplayName}`
             : baseLang === "hi"
-            ? `${dashaLordDisplayName} ग्रह चेतना कवच`
+            ? `वर्तमान में आपको संचालित करने वाले प्रमुख ग्रह: ${dashaLordDisplayName}`
             : baseLang === "te"
-            ? `${dashaLordDisplayName} గ్రహ చేతన కవచం`
+            ? `ప్రస్తుతం మిమ్మల్ని నడిపిస్తున్న ప్రధాన గ్రహం: ${dashaLordDisplayName}`
             : baseLang === "ta"
-            ? `${dashaLordDisplayName} கிரக ஜீவக் கவசம்`
-            : `${dashaLordDisplayName} Sovereign Planetary Protective Shield`}
+            ? `தற்போது உங்களை வழிநடத்தும் முதன்மை கிரகம்: ${dashaLordDisplayName}`
+            : `Your Active Ruling Mahadasha Lord: ${dashaLordDisplayName}`}
         </h3>
         <p
           style={{ letterSpacing: "normal" }}
           className="text-base font-semibold text-amber-800 mt-1 leading-normal"
         >
           {divineArchetype}
+        </p>
+      </div>
+
+      {/* Visual Significance & Purpose Explanation Card */}
+      <div className="bg-white/85 border border-amber-700/30 rounded-xl p-4 md:p-5 mb-6 shadow-sm text-left">
+        <div className="flex items-center gap-2 mb-2 text-amber-900 font-bold text-sm md:text-base border-b border-amber-600/20 pb-1.5">
+          <span>✦</span>
+          <span>
+            {baseLang === "kn"
+              ? "ಈ ವಿಭಾಗ ಹಾಗೂ ಚಿತ್ರದ ಮಹತ್ವ (Significance of this Section)"
+              : baseLang === "hi"
+              ? "इस अनुभाग एवं दिव्य मंडल का महत्व (Significance of this Section)"
+              : baseLang === "te"
+              ? "ఈ విభాగం మరియు దివ్య చిత్రం యొక్క ప్రాముఖ్యత (Significance of this Section)"
+              : baseLang === "ta"
+              ? "இப்பகுதி மற்றும் தெய்வீகப் படத்தின் முக்கியத்துவம் (Significance of this Section)"
+              : "Significance of this Section & Celestial Mandala"}
+          </span>
+        </div>
+        <p className="text-xs md:text-sm text-amber-950/90 leading-relaxed font-medium">
+          {baseLang === "kn"
+            ? "ಪ್ರತಿಯೊಬ್ಬರ ಜೀವನದಲ್ಲೂ ಜನ್ಮ ಲಗ್ನ ಮತ್ತು ಚಂದ್ರ ರಾಶಿಯ ಜೊತೆಗೆ, ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಒಬ್ಬ ಪ್ರಮುಖ ಗ್ರಹವು ನಿಮ್ಮ ಸಂಪೂರ್ಣ ಜೀವನವನ್ನು (ಆರೋಗ್ಯ, ವೃತ್ತಿ, ಬುದ್ಧಿ ಮತ್ತು ಮನಸ್ಸು) ಮುನ್ನಡೆಸುತ್ತಿರುತ್ತದೆ. ಇದನ್ನೇ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ 'ಮಹಾದಶಾಧಿಪತಿ' ಎನ್ನಲಾಗುತ್ತದೆ. ಮೇಲಿನ ದೈವಿಕ ಮಂಡಲ ಚಿತ್ರದಲ್ಲಿ, ನಿಮ್ಮನ್ನು ಪ್ರಸ್ತುತ ರಕ್ಷಿಸಿ ಮುನ್ನಡೆಸುತ್ತಿರುವ ಪ್ರಧಾನ ಗ್ರಹವನ್ನು ಕೇಂದ್ರದಲ್ಲೂ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ ಹಾಗೂ ರಾಶಿಯ ಶಕ್ತಿಗಳನ್ನು ಸುತ್ತಲೂ ಚಿತ್ರಿಸಲಾಗಿದೆ. ಈ ಗ್ರಹದ ಮಂತ್ರ ಮತ್ತು ಸತ್ಕರ್ಮಗಳನ್ನು ಅನುಸರಿಸುವುದರಿಂದ ದೋಷಗಳು ದೂರವಾಗಿ, ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಕಾಲವು ಸದಾ ಶುಭದಾಯಕವೂ ಸುರಕ್ಷಿತವೂ ಆಗಿರುತ್ತದೆ."
+            : baseLang === "hi"
+            ? "वैदिक ज्योतिष में जन्म लग्न और चंद्र राशि के साथ-साथ, वर्तमान जीवन काल को एक प्रमुख ग्रह संचालित करता है जिसे 'महादशाधिपति' कहा जाता है। ऊपर दिए गए दिव्य चित्र में आपके वर्तमान मार्गदर्शक ग्रह को केंद्र में तथा आपके लग्न व राशि की शक्तियों को चारों ओर दर्शाया गया है। इस ग्रह के बीज मंत्र का स्मरण एवं सत्कर्म आपके जीवन के समस्त कष्टों को दूर कर सर्वत्र रक्षा प्रदान करते हैं।"
+            : baseLang === "te"
+            ? "వైదిక జ్యోతిషంలో జన్మ లగ్నం మరియు చంద్ర రాశితో పాటు, ప్రస్తుత మీ జీవిత కాలాన్ని ఒక ప్రధాన గ్రహం నడిపిస్తుంది, దీనినే 'మహాదశాధిపతి' అంటారు. పై దివ్య చిత్రంలో మీ ప్రస్తుత మార్గదర్శక గ్రహాన్ని మధ్యలోను, మీ లగ్న మరియు రాశి శక్తులను చుట్టూ దర్శింపజేయబడింది. ఈ గ్రహ మంత్ర జపం మరియు సత్కర్మల ద్వారా దోషాలు తొలగి, జీవితంలో సంపూర్ణ రక్షణ మరియు శుభ ఫలితాలు లభిస్తాయి."
+            : baseLang === "ta"
+            ? "வேத ஜோதிடத்தில் உங்கள் ஜென்ம லக்னம் மற்றும் சந்திர ராசியுடன், உங்கள் தற்போதைய வாழ்க்கைப் பாதையை இயக்கும் முதன்மை கிரகம் 'மகாதிசா நாதர்' ஆவார். மேலே உள்ள தெய்வீகப் படத்தில் உங்களை வழிநடத்தும் தலைமை கிரகம் மையத்திலும், உங்கள் லக்னம் மற்றும் ராசியின் ஆற்றல்கள் சுற்றிலும் சித்தரிக்கப்பட்டுள்ளன. இந்த கிரகத்தின் மூல மந்திரத்தை உச்சரித்து நற்செயல்களைச் செய்வதன் மூலம் தடைகள் நீங்கி, வாழ்வில் தெய்வீகப் பாதுகாப்பு நிலைத்திருக்கும்."
+            : "In Vedic astrology, beyond your birth ascendant and moon sign, your current life phase is directly governed and steered by a primary planetary ruler known as the Mahadasha Lord. The celestial mandala visual above reveals your active ruling planet at the core, enveloped by your natal ascendant (Lagna) and emotional core (Moon). Honoring this governing planet through its sacred Beeja Mantra and dharmic conduct dissipates afflictions and sustains lifelong protection."}
         </p>
       </div>
 

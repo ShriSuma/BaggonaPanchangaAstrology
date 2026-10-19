@@ -510,7 +510,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-6">
           <span className="text-3xl text-amber-800">🪐</span>
           <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
-            {translations.cosmicAuraTitle || (langKey === 'kn' ? "ದೈವಿಕ ಗ್ರಹ ಚೇತನ ಹಾಗೂ ದಶಾ-ಗೋಚಾರ ಸಂರಕ್ಷಣಾ ಕವಚ" : "Sacred Planetary Sovereign Sphere & Cosmic Dasha-Gochara Shield")}
+            {translations.cosmicAuraTitle || (langKey === 'kn' ? "ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ನಡೆಸುತ್ತಿರುವ ದಶಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಜನ್ಮ ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ" : "Your Active Ruling Mahadasha Planet & Natal Protective Shield")}
           </h2>
         </div>
         <CosmicDashaAuraVisual
@@ -624,7 +624,8 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   const trimmed = paragraph.trim();
                   const isDoshaOrShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isDoshaOrShield) {
-                    const isBenefic = /ಶುಭ|ಧನಲಕ್ಷ್ಮಿ|ಆರೋಗ್ಯ ಭಾಗ್ಯ|Benefic|Auspicious|Grace|Shield|कवच|యోగం|நன்மை/i.test(trimmed);
+                    const isAffliction = /ದೋಷ|ಅರಿಷ್ಟ|ಪೀಡಾ|ಬಾಧೆ|Dosha|Affliction|Obstacle|Remedy|Dosh|दोष|దోష|தோஷ/i.test(trimmed);
+                    const isBenefic = !isAffliction;
                     const boxStyle = isBenefic
                       ? "bg-emerald-50/90 border border-emerald-300/80 rounded-xl text-emerald-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
                       : "bg-rose-50/90 border border-rose-300/80 rounded-xl text-rose-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap";

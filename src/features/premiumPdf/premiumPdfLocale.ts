@@ -210,11 +210,11 @@ export const PDF_T: Record<string, L5> = {
     hi: "ज्योतिषी का सारांश"
   },
   cosmicAuraTitle: {
-    en: "Sacred Planetary Sovereign Sphere & Cosmic Dasha-Gochara Shield",
-    kn: "ದೈವಿಕ ಗ್ರಹ ಚೇತನ ಹಾಗೂ ದಶಾ-ಗೋಚಾರ ಸಂರಕ್ಷಣಾ ಕವಚ",
-    te: "దైవిక గ్రహ చేతన మరియు దశా-గోచార సంరక్షణా కవచం",
-    ta: "தெய்வீக கிரகப் பேரொளி மற்றும் தசா-கோசார பாதுகாப்புக் கவசம்",
-    hi: "दैवीय ग्रह चेतना एवं दशा-गोचर सुरक्षा कवच"
+    en: "Your Active Ruling Mahadasha Planet & Natal Protective Shield",
+    kn: "ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ನಡೆಸುತ್ತಿರುವ ದಶಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಜನ್ಮ ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ",
+    te: "ప్రస్తుతం మిమ్మల్ని నడిపిస్తున్న దశాధిపతి గ్రహం & జన్మ కుండలి రక్షా కవచం",
+    ta: "தற்போது உங்களை வழிநடத்தும் தசாநாத கிரகமும் ஜென்ம ஜாதக பாதுகாப்புக் கவசமும்",
+    hi: "वर्तमान में आपका मार्गदर्शन करने वाला दशाधिपति ग्रह एवं जन्म कुंडली रक्षा कवच"
   },
   annualForecastTitle: {
     en: "Next 1-Year Master Forecast & Cosmic Dasha-Gochara Vision",

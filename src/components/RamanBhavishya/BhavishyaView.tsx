@@ -4068,13 +4068,27 @@ Return ONLY this JSON (no extra text before or after):
                 >
                   <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100/50 rounded-full blur-3xl group-hover:bg-amber-200/50 transition-colors pointer-events-none"></div>
                   
-                  <div className="relative z-10 space-y-4">
-                    {pred.translatedText.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                      <p key={pIdx} className="text-slate-700 leading-relaxed text-[17px] font-medium whitespace-pre-line">
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
+                    {pred.translatedText.split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
+                      const trimmed = paragraph.trim();
+                      const isDoshaOrShield = trimmed.startsWith('【') || trimmed.startsWith('[');
+                      if (isDoshaOrShield) {
+                        const isAffliction = /ದೋಷ|ಅರಿಷ್ಟ|ಪೀಡಾ|ಬಾಧೆ|Dosha|Affliction|Obstacle|Remedy|Dosh|दोष|దోష|தோஷ/i.test(trimmed);
+                        const isBenefic = !isAffliction;
+                        const boxStyle = isBenefic
+                          ? "bg-emerald-50/90 border border-emerald-300/80 rounded-2xl text-emerald-950 p-6 shadow-sm text-[16px] leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
+                          : "bg-rose-50/90 border border-rose-300/80 rounded-2xl text-rose-950 p-6 shadow-sm text-[16px] leading-relaxed text-left font-medium break-words whitespace-pre-wrap";
+                        return (
+                          <div key={pIdx} className={boxStyle}>
+                            {paragraph}
+                          </div>
+                        );
+                      }
+                      return (
+                        <p key={pIdx} className="text-slate-700 leading-relaxed text-[17px] font-medium whitespace-pre-line">
+                          {paragraph}
+                        </p>
+                      );
+                    })}
                 </div>
               ))}
             </div>

@@ -123,28 +123,44 @@ export function ensureAtLeastThreeParagraphs(
         .filter(p => p.length > 25)
     : [];
 
-  if (paras.length >= minParagraphs) {
-    return paras.join("\n\n");
+  const isCallout = (p: string) => p.startsWith("【") || p.startsWith("[");
+
+  const narrativeParas = paras.filter(p => !isCallout(p));
+  const calloutParas = paras.filter(p => isCallout(p));
+
+  const fallbackNarrative = fallbackParas.filter(p => !isCallout(p));
+  const fallbackCallout = fallbackParas.filter(p => isCallout(p));
+
+  // Ensure at least minParagraphs (default 3) full narrative paragraphs
+  const combinedNarrative = [...narrativeParas];
+  for (const fbP of fallbackNarrative) {
+    if (combinedNarrative.length >= minParagraphs) break;
+    if (!combinedNarrative.some(cp => cp.slice(0, 30) === fbP.slice(0, 30))) {
+      combinedNarrative.push(fbP);
+    }
+  }
+  let fbIdx = 0;
+  while (combinedNarrative.length < minParagraphs && fallbackNarrative.length > 0 && fbIdx < fallbackNarrative.length) {
+    const candidate = fallbackNarrative[fbIdx % fallbackNarrative.length];
+    if (!combinedNarrative.includes(candidate)) {
+      combinedNarrative.push(candidate);
+    }
+    fbIdx++;
   }
 
-  if (paras.length > 0) {
-    const combined = [...paras];
-    for (const fbP of fallbackParas) {
-      if (combined.length >= minParagraphs) break;
-      if (!combined.some(cp => cp.slice(0, 30) === fbP.slice(0, 30))) {
-        combined.push(fbP);
-      }
-    }
-    while (combined.length < minParagraphs && fallbackParas.length > 0) {
-      combined.push(fallbackParas[combined.length % fallbackParas.length]);
-      break;
-    }
-    return combined.join("\n\n");
+  // Ensure 1 callout box paragraph if callout exists in fallback or AI text
+  const finalCallout: string[] = [];
+  if (calloutParas.length > 0) {
+    finalCallout.push(calloutParas[0]);
+  } else if (fallbackCallout.length > 0) {
+    finalCallout.push(fallbackCallout[0]);
   }
 
-  if (fallbackParas.length >= minParagraphs) {
-    return fallbackParas.join("\n\n");
+  const resultParas = [...combinedNarrative, ...finalCallout];
+  if (resultParas.length > 0) {
+    return resultParas.join("\n\n");
   }
+
   return fallbackText || "";
 }
 
@@ -742,7 +758,9 @@ export async function prepareBhavishyaV1Data(
 
   const isLifeAreaValid = (area: any) => {
     const text = asText(area);
-    return text.trim().length >= 80;
+    if (text.trim().length < 350) return false;
+    const parts = text.split(/\n+/).map(p => p.trim()).filter(p => p.length > 25);
+    return parts.length >= 3;
   };
 
   // TARGETED PARALLEL AUTO-RETRY: Retry ONLY missing/incomplete sections
