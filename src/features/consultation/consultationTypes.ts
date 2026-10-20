@@ -84,6 +84,16 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
   }
 ];
 
+export interface ActiveDoshaCardData {
+  doshaId: string;
+  doshaName: string;
+  technicalWhy: string;
+  currentLifeProblems: string;
+  recommendedPooja: string;
+  priestName: string;
+  priestPhone: string;
+}
+
 export interface ConsultationChatMessage {
   id: string;
   sender: "user" | "astrologer";
@@ -94,6 +104,7 @@ export interface ConsultationChatMessage {
   hasDosha?: boolean;
   doshaName?: string;
   doshaParihara?: string;
+  activeDoshaCard?: ActiveDoshaCardData;
 }
 
 export interface ConsultationSession {
@@ -145,7 +156,8 @@ export const DEFAULT_PRIEST_CONTACT = {
   name: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Shreeram Pandit)",
   phone: "9972339362",
   gokarnaLocation: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ (Baggona Panchanga, Gokarna)",
-  callUri: "tel:9972339362"
+  callUri: "tel:9972339362",
+  whatsappUri: "https://wa.me/919972339362"
 };
 
 export interface ConsultationQuestionRecord {

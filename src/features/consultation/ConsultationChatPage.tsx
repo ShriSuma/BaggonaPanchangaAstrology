@@ -586,11 +586,19 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         text: m.text
       }));
 
+      const effectiveKey = (
+        geminiApiKey ||
+        (typeof import.meta !== "undefined"
+          ? (import.meta as any).env?.VITE_GEMINI_API_KEY
+          : "") ||
+        ""
+      ).trim();
+
       const reading = await presentConsultationReply({
         session,
         userQuestion: question,
         conversationHistory: chatTurns.slice(-6),
-        apiKey: geminiApiKey || ""
+        apiKey: effectiveKey
       });
 
       const astrologerMsg: ConsultationChatMessage = {
@@ -601,6 +609,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         hasDosha: reading.hasDosha,
         doshaName: reading.doshaName,
         doshaParihara: reading.doshaParihara,
+        activeDoshaCard: reading.activeDoshaCard,
         intent: reading.sensedContext?.categoryLabel
       };
 
@@ -1299,8 +1308,70 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   </p>
                 ))}
 
-                {/* Astrologer Dosha Chapter Badge */}
-                {!isUser && msg.hasDosha && (
+                {/* Dedicated Luxury Gold Dosha & Karma Insight Card */}
+                {!isUser && msg.activeDoshaCard && (
+                  <div className="mt-3 mb-2 p-3.5 bg-gradient-to-br from-amber-50 via-orange-50/80 to-amber-100/90 border-2 border-amber-400/90 rounded-2xl shadow-md text-amber-950 font-serif space-y-2.5">
+                    <div className="flex items-center justify-between border-b border-amber-300 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🪐</span>
+                        <span className="font-bold text-amber-950 text-xs md:text-sm tracking-wide">
+                          ॥ ಜಾತಕ ದೋಷ / ಕರ್ಮ ಸಂಬಂಧಿತ ಒಳನೋಟ ॥
+                        </span>
+                      </div>
+                      <span className="bg-red-700 text-white text-[10px] font-sans font-bold px-2 py-0.5 rounded-full shadow-2xs animate-pulse">
+                        ವಿಶೇಷ ಪರಿಹಾರ
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex items-start gap-2">
+                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">⚡ ದೋಷ / ಬಾಧೆ:</span>
+                        <span className="text-red-900 font-bold text-[12px]">{msg.activeDoshaCard.doshaName}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">🪐 ಗ್ರಹ ಸಂಯೋಗ:</span>
+                        <span className="text-amber-900 leading-relaxed text-[11px]">{msg.activeDoshaCard.technicalWhy}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">⚠️ ಪ್ರಸ್ತುತ ಪರಿಣಾಮ:</span>
+                        <span className="text-amber-950 leading-relaxed text-[11px]">{msg.activeDoshaCard.currentLifeProblems}</span>
+                      </div>
+                      <div className="flex items-start gap-2 bg-amber-100/80 p-2 rounded-xl border border-amber-300">
+                        <span className="text-amber-900 font-bold whitespace-nowrap text-[11px]">🛕 ಪರಿಹಾರ ಸಂಕಲ್ಪ:</span>
+                        <span className="text-amber-950 font-medium leading-relaxed text-[11px]">{msg.activeDoshaCard.recommendedPooja}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-amber-300 flex items-center justify-between gap-2 flex-wrap">
+                      <div className="text-[10px] text-amber-900 font-sans">
+                        <span>ಆಚಾರ್ಯರು: </span>
+                        <span className="font-bold">{msg.activeDoshaCard.priestName || DEFAULT_PRIEST_CONTACT.name}</span>
+                        <span className="block text-[9px] text-amber-800/80">ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <a
+                          href={`tel:${msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone}`}
+                          className="bg-red-700 hover:bg-red-800 text-white font-sans text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1"
+                        >
+                          <span>📞 ನೇರ ಕರೆ</span>
+                          <span className="text-[10px] opacity-90">({msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone})</span>
+                        </a>
+                        <a
+                          href={DEFAULT_PRIEST_CONTACT.whatsappUri}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-xs font-bold px-2.5 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1"
+                          title="WhatsApp ನಲ್ಲಿ ಸಂಪರ್ಕಿಸಿ"
+                        >
+                          <span>💬</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Astrologer Dosha Chapter Badge (Fallback if no full card) */}
+                {!isUser && !msg.activeDoshaCard && msg.hasDosha && (
                   <div className="mt-2 mb-1 p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-400 rounded-xl flex items-center justify-between text-xs text-amber-950 font-serif shadow-2xs">
                     <div className="flex items-center gap-2">
                       <span className="text-base">⚡</span>

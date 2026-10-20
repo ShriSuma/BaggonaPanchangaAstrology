@@ -1266,6 +1266,126 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       );
     });
   });
+
+  describe("11. 50+ Year Revered Priest Intelligence: Career Frustration, GK, Silly Inquiries & Active Dosha Card", () => {
+    const mockDevoteeCareer: ConsultationSession = {
+      id: "bgn_career_seeker_50",
+      name: "ವಿನಾಯಕ್ ಭಟ್",
+      dob: "1988-11-20",
+      tob: "16:45",
+      place: "Sirsi, Karnataka",
+      lat: 14.6195,
+      lng: 74.8354,
+      timezone: 5.5,
+      language: "kn",
+      durationMinutes: 20,
+      graceDeleteMinutes: 20,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 20 * 60 * 1000).toISOString(),
+      status: "active",
+      hasProvidedContact: false,
+      bonusMinuteClaimed: false,
+      messages: [],
+      priestName: "Shreeram Pandit",
+      priestPhone: "9972339362"
+    };
+
+    it("accurately categorizes career frustration, general knowledge, and playful inquiries", () => {
+      // 1. Career Frustration queries
+      const c1 = senseAndCategorizeQuestion("ಉದ್ಯೋಗದಲ್ಲಿ ವಿಪರೀತ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆ ಇದೆ, ಯಾಕೆ ಹೀಗಾಗುತ್ತಿದೆ?", mockDevoteeCareer);
+      expect(c1.category).toBe("CAREER_FRUSTRATION_DISTRESS");
+
+      const c2 = senseAndCategorizeQuestion("I feel completely stuck and frustrated in my career and job", { ...mockDevoteeCareer, language: "en" });
+      expect(c2.category).toBe("CAREER_FRUSTRATION_DISTRESS");
+
+      const c3 = senseAndCategorizeQuestion("करियर और व्यापार में बहुत रुकावट और फ्रस्ट्रेशन है", { ...mockDevoteeCareer, language: "hi" });
+      expect(c3.category).toBe("CAREER_FRUSTRATION_DISTRESS");
+
+      // 2. General Knowledge / Worldly Inquiries
+      const gk1 = senseAndCategorizeQuestion("What is the speed of light in physics?", mockDevoteeCareer);
+      expect(gk1.category).toBe("GENERAL_KNOWLEDGE_WORLDLY");
+
+      const gk2 = senseAndCategorizeQuestion("What is the capital of France?", mockDevoteeCareer);
+      expect(gk2.category).toBe("GENERAL_KNOWLEDGE_WORLDLY");
+
+      const gk3 = senseAndCategorizeQuestion("ಭಾರತದ ಸಂವಿಧಾನವನ್ನು ಬರೆದವರು ಯಾರು?", mockDevoteeCareer);
+      expect(gk3.category).toBe("GENERAL_KNOWLEDGE_WORLDLY");
+
+      // 3. Silly / Playful / Comic Inquiries
+      const s1 = senseAndCategorizeQuestion("Who would win between Batman and Ironman in a comic fight?", mockDevoteeCareer);
+      expect(s1.category).toBe("SILLY_TROLLING_MOCKERY");
+
+      const s2 = senseAndCategorizeQuestion("Can Superman lift a black hole? haha lol", mockDevoteeCareer);
+      expect(s2.category).toBe("SILLY_TROLLING_MOCKERY");
+    });
+
+    it("generates deeply emotional career counsel with 10th house karmasthana, Shani transit, turning point timeline, and activeDoshaCard", async () => {
+      const reply = await presentConsultationReply({
+        session: mockDevoteeCareer,
+        userQuestion: "ನನ್ನ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ವಿಪರೀತ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆ ಇದೆ, ಏಕೆ ಹೀಗಾಗುತ್ತಿದೆ?",
+        apiKey: ""
+      });
+
+      // Must be routed to career frustration
+      expect(reply.sensedContext.category).toBe("CAREER_FRUSTRATION_DISTRESS");
+
+      // 1. Emotional connection with fatherly warmth
+      expect(reply.fullText).toMatch(/(ಮಗುವೇ|ಕಳವಳ|ಹತಾಶೆ|ಗ್ರಹಿಸಬಲ್ಲೆ|ಅರ್ಥಮಾಡಿಕೊಳ್ಳಬಲ್ಲೆ)/);
+
+      // 2. Exact astrological root cause (10th house Karmasthana, Dasha, Shani Gochara)
+      expect(reply.fullText).toMatch(/(ಕರ್ಮಸ್ಥಾನ|೧೦ನೇ|ಶನಿ|ದಶಾ|ಗೋಚಾರ|ಲಗ್ನ)/);
+
+      // 3. Clear turning point timeline & practical remedies
+      expect(reply.fullText).toMatch(/(ಗೋಚಾರ|ತಿರುಗಲಿದ್ದು|ತಾಳ್ಮೆ|ಶಿವಪಂಚಾಕ್ಷರೀ|ಗಾಯತ್ರೀ|ದೀಪ)/);
+
+      // 4. Must populate dedicated activeDoshaCard with priest Shreeram Pandit
+      expect(reply.activeDoshaCard).toBeDefined();
+      expect(reply.activeDoshaCard?.doshaName).toBeDefined();
+      expect(reply.activeDoshaCard?.technicalWhy).toBeDefined();
+      expect(reply.activeDoshaCard?.currentLifeProblems).toBeDefined();
+      expect(reply.activeDoshaCard?.recommendedPooja).toContain("ಗೋಕರ್ಣ");
+      expect(reply.activeDoshaCard?.priestPhone).toBe("9972339362");
+      expect(reply.activeDoshaCard?.priestName).toContain("ಪಂಡಿತ್");
+    });
+
+    it("answers general knowledge inquiries factually without hallucinating horoscope into pure worldly facts", async () => {
+      const reply = await presentConsultationReply({
+        session: { ...mockDevoteeCareer, language: "en" },
+        userQuestion: "What is the capital of France and how does GDP work?",
+        apiKey: ""
+      });
+
+      expect(reply.sensedContext.category).toBe("GENERAL_KNOWLEDGE_WORLDLY");
+
+      // Must address worldly knowledge intellectually
+      expect(reply.fullText.toLowerCase()).toMatch(/(knowledge|intellect|sciences?|mercury|jupiter|vijnana|worldly)/);
+
+      // Must NOT hallucinate Paris having a Lagna or Dasha
+      expect(reply.fullText.toLowerCase()).not.toContain("france's lagna is");
+      expect(reply.fullText.toLowerCase()).not.toContain("paris moon sign");
+
+      // Warm fatherly invitation to personal consultation
+      expect(reply.fullText.toLowerCase()).toMatch(/(20-minute|gokarna|career|life|consultation)/);
+    });
+
+    it("answers silly/playful questions with witty details, fatherly smile, and gentle pivot to real-life guidance", async () => {
+      const reply = await presentConsultationReply({
+        session: { ...mockDevoteeCareer, language: "en" },
+        userQuestion: "Can Superman beat Batman in a fight? lol",
+        apiKey: ""
+      });
+
+      expect(reply.sensedContext.category).toBe("SILLY_TROLLING_MOCKERY");
+
+      // Must respond with witty details & fatherly smile, NOT cold refusal
+      expect(reply.fullText.toLowerCase()).toMatch(/(smile|playful|superheroes|humor|imagination|powers)/);
+      expect(reply.fullText.toLowerCase()).not.toContain("i cannot answer this");
+      expect(reply.fullText.toLowerCase()).not.toContain("strictly forbidden");
+
+      // Gentle pivot to real-life dilemma
+      expect(reply.fullText.toLowerCase()).toMatch(/(real life|studies|career|dilemmas|consultation)/);
+    });
+  });
 });
 
 
