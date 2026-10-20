@@ -1386,6 +1386,124 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       expect(reply.fullText.toLowerCase()).toMatch(/(real life|studies|career|dilemmas|consultation)/);
     });
   });
+
+  describe("12. Devotee Psychological Character Profiling, Minor Child Parent Protocol & Sensitive Inquiries", () => {
+    const mock12YearChild: ConsultationSession = {
+      id: "bgn_cst_child_12yr",
+      name: "ಆರವ್ ಶರ್ಮಾ (Aarav)",
+      dob: "2014-05-10", // 12-year-old child
+      tob: "10:15",
+      place: "Bengaluru",
+      lat: 12.9716,
+      lng: 77.5946,
+      timezone: 5.5,
+      language: "kn",
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 1200000).toISOString(),
+      status: "active",
+      durationMinutes: 20,
+      graceDeleteMinutes: 20,
+      messages: [],
+      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      priestPhone: "9972339362"
+    };
+
+    const mockAdultProgenySeeker: ConsultationSession = {
+      id: "bgn_cst_progeny_adult",
+      name: "ಸುರೇಶ್ & ರೇಖಾ (Suresh & Rekha)",
+      dob: "1992-08-15",
+      tob: "06:30",
+      place: "Gokarna",
+      lat: 14.5479,
+      lng: 74.3188,
+      timezone: 5.5,
+      language: "kn",
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 1200000).toISOString(),
+      status: "active",
+      durationMinutes: 20,
+      graceDeleteMinutes: 20,
+      messages: [],
+      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      priestPhone: "9972339362"
+    };
+
+    it("accurately computes inborn character temperament and 4th/5th houses from Janma Kundali", async () => {
+      const astro = await computeDevoteeKundli(mock12YearChild);
+      expect(astro.characterProfile).toBeDefined();
+      expect(astro.characterProfile.tatva).toBeTruthy();
+      expect(astro.characterProfile.gana).toBeTruthy();
+      expect(astro.characterProfile.psychologicalNature).toBeTruthy();
+      expect(astro.isMinorChild).toBe(true);
+
+      // 4th house (Vidya) & 5th house (Santhana/Buddhi)
+      expect(astro.house4VidyaSign).toBeTruthy();
+      expect(astro.house4VidyaLord).toBeTruthy();
+      expect(astro.house5SanthanaSign).toBeTruthy();
+      expect(astro.house5SanthanaLord).toBeTruthy();
+    });
+
+    it("minor child profile (< 18 yrs) addresses the PARENTS reverently and focuses on education/health with zero adult romance", async () => {
+      const replyKn = await presentConsultationReply({
+        session: mock12YearChild,
+        userQuestion: "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ಏಕಾಗ್ರತೆ ಹೇಗಿದೆ?",
+        apiKey: ""
+      });
+
+      expect(replyKn.sensedContext.category).toBe("CHILD_PARENT_INQUIRY");
+      // Must address the parent with reverence
+      expect(replyKn.fullText).toMatch(/(ಆತ್ಮೀಯ ಪೋಷಕರೇ|ಪಾಲಕರೇ|ಮಗುವಿನ)/);
+      // Focus on 4th & 5th houses
+      expect(replyKn.fullText).toMatch(/(ವಿದ್ಯಾ|ಬುದ್ಧಿ|ಏಕಾಗ್ರತೆ|ಗ್ರಹಣ ಶಕ್ತಿ|ದಿನಚರಿ)/);
+      // Must NOT contain adult romance or marriage advice
+      expect(replyKn.fullText).not.toContain("ಕಂಕಣ ಭಾಗ್ಯ");
+      expect(replyKn.fullText).not.toContain("ಲವ್ ಮ್ಯಾರೇಜ್");
+      expect(replyKn.fullText).not.toContain("ರಾಜೀನಾಮೆ");
+
+      // Verify English language minor child parent reply
+      const replyEn = await presentConsultationReply({
+        session: { ...mock12YearChild, language: "en" },
+        userQuestion: "How is my child's concentration and academic performance?",
+        apiKey: ""
+      });
+
+      expect(replyEn.sensedContext.category).toBe("CHILD_PARENT_INQUIRY");
+      expect(replyEn.fullText.toLowerCase()).toContain("dear parents");
+      expect(replyEn.fullText.toLowerCase()).toMatch(/(learning|education|intellect|concentration|memory)/);
+      expect(replyEn.fullText.toLowerCase()).not.toContain("marriage partner");
+      expect(replyEn.fullText.toLowerCase()).not.toContain("job resignation");
+    });
+
+    it("santhana & progeny inquiry provides compassionate parental guidance, 5th house clarity and Gokarna Santhana Gopala Parihara", async () => {
+      const reply = await presentConsultationReply({
+        session: mockAdultProgenySeeker,
+        userQuestion: "ಸಂತಾನ ಭಾಗ್ಯ ಯಾವಾಗ? ಪುತ್ರ ಪ್ರಾಪ್ತಿಗೆ ಏನು ಪರಿಹಾರ?",
+        apiKey: ""
+      });
+
+      expect(reply.sensedContext.category).toBe("SANTHANA_PROGENY_SENSITIVE");
+      expect(reply.fullText).toMatch(/(ಸಂತಾನ|ಪುತ್ರ|ಪಂಚಮ|ಗುರು|ದಾಂಪತ್ಯ|ಗೋಪಾಲ)/);
+
+      // Must generate dedicated activeDoshaCard for Progeny / Santhana Obstruction (e.g. Pitru Dosha or Santhana Dosha)
+      expect(reply.activeDoshaCard).toBeDefined();
+      expect(reply.activeDoshaCard?.doshaName).toMatch(/(ಸಂತಾನ|ಪಿತೃ|ದೋಷ)/);
+      expect(reply.activeDoshaCard?.recommendedPooja).toMatch(/(ಸಂತಾನ ಗೋಪಾಲ|ನಾರಾಯಣ ಬಲಿ|ತಿಲ ಹೋಮ|ಮಹಾರುದ್ರಾಭಿಷೇಕ)/);
+      expect(reply.activeDoshaCard?.priestPhone).toBe("9972339362");
+      expect(reply.activeDoshaCard?.priestName).toContain("ಪಂಡಿತ್");
+    });
+
+    it("sensitive intimate query provides compassionate non-judgmental guidance on Shukra Dhatu and bedroom peace without guilt", async () => {
+      const reply = await presentConsultationReply({
+        session: mockAdultProgenySeeker,
+        userQuestion: "ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ, ಲೈಂಗಿಕ ಚೈತನ್ಯ ಹಾಗೂ ರಹಸ್ಯ ಆತಂಕಗಳಿಗೆ ಆಯುರ್ವೇದ-ವೈದಿಕ ಪರಿಹಾರವೇನು?",
+        apiKey: ""
+      });
+
+      expect(reply.sensedContext.category).toBe("SECRET_INTIMATE_TABOO");
+      expect(reply.fullText).toMatch(/(ಕಾಮ|ಶುಕ್ರ|ಧಾತು|ಅಂತರಂಗ|ಸಪ್ತಮ|ಅಷ್ಟಮ|ಶಾಂತಿ)/);
+      expect(reply.fullText).toMatch(/(ಅಶ್ವಗಂಧ|ಹಾಲು|ಪ್ರಾಣಾಯಾಮ|ಗೋಕರ್ಣ|ಮಹಾಬಲೇಶ್ವರ|ರುದ್ರಾಭಿಷೇಕ)/);
+    });
+  });
 });
 
 

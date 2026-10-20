@@ -39,6 +39,8 @@ import { useAppStore } from "../../stores/appStore";
 export type ConsultationQuestionCategory =
   | "CAREER_FRUSTRATION_DISTRESS"
   | "EMOTIONAL_DISTRESS_LIFE"
+  | "CHILD_PARENT_INQUIRY"
+  | "SANTHANA_PROGENY_SENSITIVE"
   | "GENERAL_KNOWLEDGE_WORLDLY"
   | "SILLY_TROLLING_MOCKERY"
   | "SECRET_INTIMATE_TABOO"
@@ -108,60 +110,7 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 3. Career, Work, Profession, Business & Financial Frustration / Roadblocks
-  const isCareerFrustration =
-    // Kannada career & frustration patterns
-    /(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ವ್ಯಾಪಾರ|ಬಡ್ತಿ|ಸಂಬಳ|ಹಣಕಾಸು|ಸಾಲ).*(ಕಿರಿಕಿರಿ|ಬೇಸರ|ಹತಾಶೆ|ಸಮಸ್ಯೆ|ತೊಂದರೆ|ನಷ್ಟ|ವಿಳಂಬ|ಯಾಕೆ|ಕಾರಣ|ಆಗ್ತಿಲ್ಲ|ಫ್ರಸ್ಟ್ರೇಷನ್|ಶಾಂತಿ ಇಲ್ಲ|ಅಡೆತಡೆ|ಆತಂಕ)/i.test(
-      q
-    ) ||
-    /(ಕಿರಿಕಿರಿ|ಬೇಸರ|ಹತಾಶೆ|ಫ್ರಸ್ಟ್ರೇಷನ್).*(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ವ್ಯಾಪಾರ|ಜೀವನ)/i.test(q) ||
-    // English career frustration patterns
-    /(frustrat|stress|depress|hate|trouble|issue|stagnant|stuck|lose|loss|delay|why.*happen|struggl).*(job|work|career|business|promotion|income|salary|wealth|debt)/i.test(
-      q
-    ) ||
-    /(job|work|career|business|promotion|income|salary|finances?).*(frustrat|stress|trouble|issue|stagnant|stuck|loss|delay|ruin|fail|headache)/i.test(
-      q
-    ) ||
-    // Hindi
-    /(नौकरी|काम|करियर|व्यापार|रोजगार).*(परेशानी|तनाव|समस्या|नुकसान|फ्रस्ट्रेशन|रुकावट|क्यों)/i.test(
-      q
-    );
-
-  if (isCareerFrustration) {
-    return {
-      ageYears,
-      lifeStage,
-      place: session.place,
-      category: "CAREER_FRUSTRATION_DISTRESS",
-      categoryLabel: "ವೃತ್ತಿ ಹತಾಶೆ ಹಾಗೂ ಕರ್ಮಸ್ಥಾನ ವಿಶ್ಲೇಷಣೆ (Career Frustration & Karmic Guidance)",
-      detectedTopicSnippet: "Career Frustration / Work Stress",
-      priestPersonaTone: "compassionate_grounding"
-    };
-  }
-
-  // 4. Deep Emotional Distress, Grief, Depression, Crying, Helplessness
-  const isEmotionalDistress =
-    /ಮನಸ್ಸಿಗೆ ನೆಮ್ಮದಿ ಇಲ್ಲ|ತುಂಬಾ ಬೇಸರ|ಖಿನ್ನತೆ|ಆತಂಕ|ಸಾಯಬೇಕು ಅನ್ನಿಸ್ತಿದೆ|ಬದುಕು ಸಾಕು|ಕಣ್ಣೀರು|ಯಾಕೆ ಇಷ್ಟು ಕಷ್ಟ|ನನ್ನ ಜೀವನ ಹಾಳಾಗಿದೆ|ಏನು ಮಾಡ್ಲಿ ತಿಳಿಯುತ್ತಿಲ್ಲ|ಅಳುತ್ತಿದ್ದೇನೆ/i.test(
-      q
-    ) ||
-    /(depress|hopeless|suicid|cry|breakdown|lost in life|heartbroken|mental agony|deep sorrow|sleepless night|can't take it anymore|why so much pain)/i.test(
-      q
-    ) ||
-    /(डिप्रेशन|मानसिक तनाव|जीने की इच्छा नहीं|रो रहा|बहुत दर्द|शांति नहीं)/i.test(q);
-
-  if (isEmotionalDistress) {
-    return {
-      ageYears,
-      lifeStage,
-      place: session.place,
-      category: "EMOTIONAL_DISTRESS_LIFE",
-      categoryLabel: "ಮಾನಸಿಕ ಸಾಂತ್ವನ ಹಾಗೂ ದೈವ ರಕ್ಷಣೆ (Deep Emotional Solace & Solitude)",
-      detectedTopicSnippet: "Emotional Grief / Mental Suffering",
-      priestPersonaTone: "compassionate_grounding"
-    };
-  }
-
-  // 5. Silly, Childish Trolling, Cartoon/Superhero, Aliens, Jokes, or Nonsense Gibberish
+  // 3. Silly, Childish Trolling, Cartoon/Superhero, Aliens, Jokes, or Nonsense Gibberish
   const isSillyTrolling =
     // Fictional characters & superheroes
     /ಬ್ಯಾಟ್‌ಮ್ಯಾನ್|batman|ಸ್ಪೈಡರ್‌ಮ್ಯಾನ್|spiderman|spider-man|ಸೂಪರ್‌ಮ್ಯಾನ್|superman|ಶ್ರೆಕ್|shrek|ಡೊನಾಲ್ಡ್ ಡಕ್|donald duck|ಮಿಕ್ಕಿ ಮೌಸ್|mickey mouse|ಅಯರ್ನ್ ಮ್ಯಾನ್|iron man|ironman|ಹಲ್ಕ್|hulk|ಟಾಮ್ ಅಂಡ್ ಜೆರ್ರಿ|tom and jerry|ಅವೆಂಜರ್ಸ್|avengers|alien|ಏಲಿಯನ್|ಯುಎಫ್‌ಓ|ufo|ಮಂಗಳ ಗ್ರಹದಲ್ಲಿ ನೀರು|ಮಂಗಳ ಗ್ರಹದಲ್ಲಿ ಪಿಜ್ಜಾ|ಪಿಜ್ಜಾ|pizza|ಬರ್ಗರ್|burger|ಐಸ್‌ಕ್ರೀಮ್|ice cream/i.test(
@@ -194,7 +143,157 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 6. General Knowledge, Science, Geography, History, Sports, Technology (Worldly Inquiry)
+  // 4. Minor Child Native (< 18 yrs) OR Parent Child Education/Health Inquiry
+  const isChildParentInquiry =
+    ageYears < 18 ||
+    /ಮಗು|ಮಗುವಿನ|ಮಗನ|ಮಗಳ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಏಕಾಗ್ರತೆ|ಬಾಲಾರಿಷ್ಟ|child|children|education|study|studies|concentration|memory|exam|marks|board exam/i.test(
+      q
+    );
+
+  if (isChildParentInquiry) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "CHILD_PARENT_INQUIRY",
+      categoryLabel: "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಪೋಷಕರ ಮಾರ್ಗದರ್ಶನ (Child Education & Parental Guidance)",
+      detectedTopicSnippet: "Child Education / Parenting / Health",
+      priestPersonaTone: "gentle_wisdom"
+    };
+  }
+
+  // 5. Progeny, Santhana, Childbirth, Son / Daughter Desire
+  const isSanthana =
+    /ಸಂತಾನ|ಪುತ್ರ|ಗರ್ಭ|pregnancy|progeny|conception|conceive|son|daughter|ಮಕ್ಕಳಾಗುತ್ತಿಲ್ಲ|ಸಂತಾನ ವಿಳಂಬ|baby|infant|childbirth/i.test(
+      q
+    ) && !/ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಪರೀಕ್ಷೆ|school|exam|study/i.test(q);
+
+  if (isSanthana) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "SANTHANA_PROGENY_SENSITIVE",
+      categoryLabel: "ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ಪಂಚಮ ಭಾವ ವಿಚಾರಣೆ (Progeny & Santhana Blessings)",
+      detectedTopicSnippet: "Progeny / Santhana Inquiry",
+      priestPersonaTone: "compassionate_grounding"
+    };
+  }
+
+  // 6. Secret, Intimate, Taboo, Extramarital, Bedroom Intimacy & Vitality Questions
+  const isSecretIntimateTaboo =
+    /ಅಕ್ರಮ ಸಂಬಂಧ|ಬೇರೊಬ್ಬರ ಮೇಲೆ ಆಕರ್ಷಣೆ|ರಹಸ್ಯ ಪ್ರೇಮ|ಬೇರೆ ಹೆಂಗಸು|ಬೇರೆ ಗಂಡಸು|ಪರಸ್ತ್ರೀ|ಪರಪುರುಷ|ಪರಸ್ತ್ರೀಯ|ಅನೈತಿಕ ಸಂಬಂಧ|extra[ -]?marital|affair|cheating|secret relationship|hidden relationship|secret love|forbidden love|infidelity|adultery|secret partner|hidden love|attracted to married|crush on married|secret lover|ರಹಸ್ಯ ಗೆಳೆಯ|ರಹಸ್ಯ ಗೆಳತಿ|ಗುಪ್ತ ಸಂಬಂಧ|गुप्त संबंध|अवैध संबंध|वासना|काಮುಕ|कामुकता|परस्त्री|दूसरे से संबंध|गुप्त प्रेम|व्यभिचार|गुप्त आकर्षण|गुप्त ಇಷ್ಟಾರ್ಥ|ರಹಸ್ಯ ಆಕರ್ಷಣೆ|ಗುಪ್ತ ಆಕರ್ಷಣೆ/i.test(
+      q
+    ) ||
+    /ಸೆಕ್ಸ್|sex|ಕಾಮ|ಕಾಮನೆ|ಲೈಂಗಿಕ|ದೈಹಿಕ ಸುಖ|ವ್ಯಾಮೋಹ|ರಹಸ್ಯ ಕಾಮ|ಗುಪ್ತ ವಿಚಾರ|ಶಿಶ್ನ|ಯೋನಿ|ವೀರ್ಯ|ಸ್ಖಲನ|ಶೀಘ್ರಸ್ಖಲನ|ಹಸ್ತಮೈಥುನ|ಅಶ್ಲೀಲ|ಬೂತು|ಬೆತ್ತಲೆ|dirty question|intimacy|sexual|libido|erection|premature ejaculation|masturbation|bed pleasure|bedroom secret|physical desire|lust|private organ|intimate problem|sexual weakness|sexual power|intercourse|ಸಂಭೋಗ|हस्तमैथुन|यौन|ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ/i.test(
+      q
+    ) ||
+    /ರಹಸ್ಯವಾಗಿ ಇಷ್ಟಪಡುತ್ತೇನೆ|ಯಾರಿಗೂ ಹೇಳೋಕೆ ಆಗ್ತಿಲ್ಲ|ಯಾರಿಗೂ ಹೇಳಲಾಗದ ರಹಸ್ಯ|ಮನಸ್ಸಿನಲ್ಲಿ ಕೆಟ್ಟ ಆಲೋಚನೆ|ಕೆಟ್ಟ ಕಾಮನೆ|can't tell anyone|private secret|dirty secret|guilty desire|taboo desire|secret crush/i.test(
+      q
+    );
+
+  if (isSecretIntimateTaboo) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "SECRET_INTIMATE_TABOO",
+      categoryLabel: "ರಹಸ್ಯ ಹಾಗೂ ಅಂತರಂಗ ಕಾಮ ಭಾವ ವಿಚಾರ (Secret, Intimate & Relationship Counsel)",
+      detectedTopicSnippet: "Secret / Intimate / Kama Query",
+      priestPersonaTone: "compassionate_grounding"
+    };
+  }
+
+  // 7. Celebrity Fantasy (Aishwarya Rai, heroines, actresses, models)
+  const isCelebrityFantasy =
+    /ಐಶ್ವರ್ಯ|aishwarya|aiswarya|ಹೀರೋಯಿನ್|heroine|ನಟಿ|actress|ಸೆಲೆಬ್ರಿಟಿ|celebrity|ದೀಪಿಕಾ|deepika|ಕತ್ರಿನಾ|katrina|ಸಮಂತಾ|samantha|ರಶ್ಮಿಕಾ|rashmika|ಪೂಜಾ|pooja hegde|ತಾರೆ|ಸಿನಿಮಾ ನಟಿ/i.test(
+      q
+    ) && /ಮದುವೆ|marry|wedding|ಲವ್|love|ಪ್ರೀತಿಸ|ಆಗಬಹುದಾ|possible/i.test(q);
+
+  if (isCelebrityFantasy) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "CELEBRITY_FANTASY",
+      categoryLabel: "ಸೆಲೆಬ್ರಿಟಿ ವಿವಾಹ / ಕಲ್ಪನಾ ವಿಚಾರ (Celebrity Fantasy)",
+      detectedTopicSnippet: "Celebrity Marriage Fantasy",
+      priestPersonaTone: "compassionate_grounding"
+    };
+  }
+
+  // 8. Provocative / Taboo / Adult Star / Vulgar Testing
+  const isProvocativeTaboo =
+    /porn|pornstar|ಪಾಪ್|ಕಾಮ|ಬೂತು|adult star|ಸೆಕ್ಸ್|sex|blue film|ಅಶ್ಲೀಲ|vulgar|ಬೆತ್ತಲೆ|nude/i.test(
+      q
+    );
+
+  if (isProvocativeTaboo) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "PROVOCATIVE_TABOO",
+      categoryLabel: "ಇಂದ್ರಿಯ ನಿಗ್ರಹ / ಪಾವಿತ್ರ್ಯ ಮಾರ್ಗದರ್ಶನ (Spiritual Purity & Discipline)",
+      detectedTopicSnippet: "Taboo or Provocative Query",
+      priestPersonaTone: "gentle_wisdom"
+    };
+  }
+
+  // 9. Career, Work, Profession, Business & Financial Frustration / Roadblocks
+  const isCareerFrustration =
+    // Kannada career & frustration patterns
+    /(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ವ್ಯಾಪಾರ|ಬಡ್ತಿ|ಸಂಬಳ|ಹಣಕಾಸು|ಸಾಲ).*(ಕಿರಿಕಿರಿ|ಬೇಸರ|ಹತಾಶೆ|ಸಮಸ್ಯೆ|ತೊಂದರೆ|ನಷ್ಟ|ವಿಳಂಬ|ಯಾಕೆ|ಕಾರಣ|ಆಗ್ತಿಲ್ಲ|ಫ್ರಸ್ಟ್ರೇಷನ್|ಶಾಂತಿ ಇಲ್ಲ|ಅಡೆತಡೆ|ಆತಂಕ)/i.test(
+      q
+    ) ||
+    /(ಕಿರಿಕಿರಿ|ಬೇಸರ|ಹತಾಶೆ|ಫ್ರಸ್ಟ್ರೇಷನ್).*(ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ವ್ಯಾಪಾರ|ಜೀವನ)/i.test(q) ||
+    // English career frustration patterns
+    /(frustrat|stress|depress|hate|trouble|issue|stagnant|stuck|lose|loss|delay|why.*happen|struggl).*(job|work|career|business|promotion|income|salary|wealth|debt)/i.test(
+      q
+    ) ||
+    /(job|work|career|business|promotion|income|salary|finances?).*(frustrat|stress|trouble|issue|stagnant|stuck|loss|delay|ruin|fail|headache)/i.test(
+      q
+    ) ||
+    // Hindi
+    /(नौकरी|काम|करियर|व्यापार|रोजगार).*(परेशानी|तनाव|समस्या|नुकसान|फ्रस्ट्रेशन|रुकावट|क्यों)/i.test(
+      q
+    );
+
+  if (isCareerFrustration) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "CAREER_FRUSTRATION_DISTRESS",
+      categoryLabel: "ವೃತ್ತಿ ಹತಾಶೆ ಹಾಗೂ ಕರ್ಮಸ್ಥಾನ ವಿಶ್ಲೇಷಣೆ (Career Frustration & Karmic Guidance)",
+      detectedTopicSnippet: "Career Frustration / Work Stress",
+      priestPersonaTone: "compassionate_grounding"
+    };
+  }
+
+  // 10. Deep Emotional Distress, Grief, Depression, Crying, Helplessness
+  const isEmotionalDistress =
+    /ಮನಸ್ಸಿಗೆ ನೆಮ್ಮದಿ ಇಲ್ಲ|ತುಂಬಾ ಬೇಸರ|ಖಿನ್ನತೆ|(ತೀವ್ರ|ವಿಪರೀತ|ಮಾನಸಿಕ)?\s*ಆತಂಕ|ಸಾಯಬೇಕು ಅನ್ನಿಸ್ತಿದೆ|ಬದುಕು ಸಾಕು|ಕಣ್ಣೀರು|ಯಾಕೆ ಇಷ್ಟು ಕಷ್ಟ|ನನ್ನ ಜೀವನ ಹಾಳಾಗಿದೆ|ಏನು ಮಾಡ್ಲಿ ತಿಳಿಯುತ್ತಿಲ್ಲ|ಅಳುತ್ತಿದ್ದೇನೆ/i.test(
+      q
+    ) ||
+    /(depress|hopeless|suicid|cry|breakdown|lost in life|heartbroken|mental agony|deep sorrow|sleepless night|can't take it anymore|why so much pain)/i.test(
+      q
+    ) ||
+    /(डिप्रेशन|मानसिक तनाव|जीने की इच्छा नहीं|रो रहा|बहुत दर्द|शांति नहीं)/i.test(q);
+
+  if (isEmotionalDistress) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "EMOTIONAL_DISTRESS_LIFE",
+      categoryLabel: "ಮಾನಸಿಕ ಸಾಂತ್ವನ ಹಾಗೂ ದೈವ ರಕ್ಷಣೆ (Deep Emotional Solace & Solitude)",
+      detectedTopicSnippet: "Emotional Grief / Mental Suffering",
+      priestPersonaTone: "compassionate_grounding"
+    };
+  }
+
+  // 11. General Knowledge, Science, Geography, History, Sports, Technology (Worldly Inquiry)
   const isGeneralKnowledge =
     /what is the capital of|who invented|who is the prime minister|who is the president|how does .* work|speed of light|photosynthesis|quantum|who won the|what is the formula of|currency of|how many states in india|what is gdp|solar system|black hole|gravity|world war|olympics|cricket score|how many days in a year|temperature of sun|tallest mountain|longest river|distance from earth to|is earth round|who discovered|who wrote the constitution/i.test(
       q
@@ -218,67 +317,7 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 7. Secret, Intimate, Taboo, Extramarital, or "Dirty" Questions (Vedic Kama / 7th, 8th & 12th Bhava)
-  const isSecretIntimateTaboo =
-    /ಅಕ್ರಮ ಸಂಬಂಧ|ಬೇರೊಬ್ಬರ ಮೇಲೆ ಆಕರ್ಷಣೆ|ರಹಸ್ಯ ಪ್ರೇಮ|ಬೇರೆ ಹೆಂಗಸು|ಬೇರೆ ಗಂಡಸು|ಪರಸ್ತ್ರೀ|ಪರಪುರುಷ|ಪರಸ್ತ್ರೀಯ|ಅನೈತಿಕ ಸಂಬಂಧ|extra[ -]?marital|affair|cheating|secret relationship|hidden relationship|secret love|forbidden love|infidelity|adultery|secret partner|hidden love|attracted to married|crush on married|secret lover|ರಹಸ್ಯ ಗೆಳೆಯ|ರಹಸ್ಯ ಗೆಳತಿ|ಗುಪ್ತ ಸಂಬಂಧ|गुप्त संबंध|अवैध संबंध|वासना|कामुक|कामुकता|परस्त्री|दूसरे से संबंध|गुप्त प्रेम|व्यभिचार|गुप्त आकर्षण|गुप्त ಇಷ್ಟಾರ್ಥ|ರಹಸ್ಯ ಆಕರ್ಷಣೆ|ಗುಪ್ತ ಆಕರ್ಷಣೆ/i.test(
-      q
-    ) ||
-    /ಸೆಕ್ಸ್|sex|ಕಾಮ|ಕಾಮನೆ|ಲೈಂಗಿಕ|ದೈಹಿಕ ಸುಖ|ವ್ಯಾಮೋಹ|ರಹಸ್ಯ ಕಾಮ|ಗುಪ್ತ ವಿಚಾರ|ಶಿಶ್ನ|ಯೋನಿ|ವೀರ್ಯ|ಸ್ಖಲನ|ಶೀಘ್ರಸ್ಖಲನ|ಹಸ್ತಮೈಥುನ|ಅಶ್ಲೀಲ|ಬೂತು|ಬೆತ್ತಲೆ|dirty question|intimacy|sexual|libido|erection|premature ejaculation|masturbation|bed pleasure|bedroom secret|physical desire|lust|private organ|intimate problem|sexual weakness|sexual power|intercourse|संभोग|हस्तमैथुन|यौन/i.test(
-      q
-    ) ||
-    /ರಹಸ್ಯವಾಗಿ ಇಷ್ಟಪಡುತ್ತೇನೆ|ಯಾರಿಗೂ ಹೇಳೋಕೆ ಆಗ್ತಿಲ್ಲ|ಯಾರಿಗೂ ಹೇಳಲಾಗದ ರಹಸ್ಯ|ಮನಸ್ಸಿನಲ್ಲಿ ಕೆಟ್ಟ ಆಲೋಚನೆ|ಕೆಟ್ಟ ಕಾಮನೆ|can't tell anyone|private secret|dirty secret|guilty desire|taboo desire|secret crush/i.test(
-      q
-    );
-
-  if (isSecretIntimateTaboo) {
-    return {
-      ageYears,
-      lifeStage,
-      place: session.place,
-      category: "SECRET_INTIMATE_TABOO",
-      categoryLabel: "ರಹಸ್ಯ ಹಾಗೂ ಅಂತರಂಗ ಕಾಮ ಭಾವ ವಿಚಾರ (Secret, Intimate & Relationship Counsel)",
-      detectedTopicSnippet: "Secret / Intimate / Kama Query",
-      priestPersonaTone: "compassionate_grounding"
-    };
-  }
-
-  // 8. Celebrity Fantasy (Aishwarya Rai, heroines, actresses, models)
-  const isCelebrityFantasy =
-    /ಐಶ್ವರ್ಯ|aishwarya|aiswarya|ಹೀರೋಯಿನ್|heroine|ನಟಿ|actress|ಸೆಲೆಬ್ರಿಟಿ|celebrity|ದೀಪಿಕಾ|deepika|ಕತ್ರಿನಾ|katrina|ಸಮಂತಾ|samantha|ರಶ್ಮಿಕಾ|rashmika|ಪೂಜಾ|pooja hegde|ತಾರೆ|ಸಿನಿಮಾ ನಟಿ/i.test(
-      q
-    ) && /ಮದುವೆ|marry|wedding|ಲವ್|love|ಪ್ರೀತಿಸ|ಆಗಬಹುದಾ|possible/i.test(q);
-
-  if (isCelebrityFantasy) {
-    return {
-      ageYears,
-      lifeStage,
-      place: session.place,
-      category: "CELEBRITY_FANTASY",
-      categoryLabel: "ಸೆಲೆಬ್ರಿಟಿ ವಿವಾಹ / ಕಲ್ಪನಾ ವಿಚಾರ (Celebrity Fantasy)",
-      detectedTopicSnippet: "Celebrity Marriage Fantasy",
-      priestPersonaTone: "compassionate_grounding"
-    };
-  }
-
-  // 9. Provocative / Taboo / Adult Star / Vulgar Testing
-  const isProvocativeTaboo =
-    /porn|pornstar|ಪಾಪ್|ಕಾಮ|ಬೂತು|adult star|ಸೆಕ್ಸ್|sex|blue film|ಅಶ್ಲೀಲ|vulgar|ಬೆತ್ತಲೆ|nude/i.test(
-      q
-    );
-
-  if (isProvocativeTaboo) {
-    return {
-      ageYears,
-      lifeStage,
-      place: session.place,
-      category: "PROVOCATIVE_TABOO",
-      categoryLabel: "ಇಂದ್ರಿಯ ನಿಗ್ರಹ / ಪಾವಿತ್ರ್ಯ ಮಾರ್ಗದರ್ಶನ (Spiritual Purity & Discipline)",
-      detectedTopicSnippet: "Taboo or Provocative Query",
-      priestPersonaTone: "gentle_wisdom"
-    };
-  }
-
-  // 10. Domestic Omens & Vastu (Old vessel found, corner findings, strange domestic occurrences)
+  // 12. Domestic Omens & Vastu (Old vessel found, corner findings, strange domestic occurrences)
   const isDomesticOmen =
     /ಪಾತ್ರೆ|ಪಾತ್ರೆ ಸಿಕ್ಕಿದೆ|ಹಳೆ ಪಾತ್ರೆ|vessel|pot|ತಾಮ್ರದ ಪಾತ್ರೆ|ಹಿತ್ತಾಳೆ ಪಾತ್ರೆ|old vessel|utensil|ಮೂಲೆ|ಮೂಲೆಯಲ್ಲಿ|ಈ ಮೂಲೇಲಿ|ಆ ಮೂಲೇಲಿ|corner|ಖುಣಿ/i.test(
       q
@@ -299,7 +338,7 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 11. Daily Trip & Travel (Going on a trip tomorrow, journey, travel muhurtha)
+  // 13. Daily Trip & Travel (Going on a trip tomorrow, journey, travel muhurtha)
   const isDailyTrip =
     /ಟ್ರಿಪ್|trip|ಪ್ರವಾಸ|travel|ನಾಳೆ.*ಹೋಗ್ಬೇಕು|ನಾಳೆ.*ಹೋಗ|ಹೋಗಬಹುದಾ|journey|tour|ನಾಳೆ ಟ್ರಿಪ್|ಪ್ರಯಾಣ|ಹೊರಡ|vehicle/i.test(
       q
@@ -317,7 +356,7 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 12. Interpersonal Conflict & Anger (Fights, quarrels, dispute with someone)
+  // 14. Interpersonal Conflict & Anger (Fights, quarrels, dispute with someone)
   const isConflict =
     /ಫೈಟ್|fight|ಜಗಳ|quarrel|ಹೊಡೆದಾಟ|ದ್ವೇಷ|ಕೋಪ|ನನಗೂ ಅವನಿಗೂ|ಅವನಿಗೆ ಏನು ಮಾಡ್ಲಿ|ಅವಳಿಗೆ ಏನು ಮಾಡ್ಲಿ|enemy|conflict|argument|dispute|ಶತ್ರು|ಮನಸ್ತಾಪ/i.test(
       q
@@ -335,7 +374,7 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 13. Life Overview & Existential Query ("What is happening in my life now?")
+  // 15. Life Overview & Existential Query ("What is happening in my life now?")
   const isLifeOverview =
     /ಏನು ನಡೀತಿದೆ|ಏನು ನಡೆಯುತ್ತಿದೆ|ನನ್ನ ಜೀವನದಲ್ಲಿ|ಜೀವನದಲ್ಲಿ ಏನು|what is happening in my life|how is my life|ನನ್ನ ಬದುಕು|ದಾರಿ ಕಾಣ್ತಿಲ್ಲ|lost in life|ಏನು ಮಾಡ್ಲಿ ಈಗ|ಏನ್ ಮಾಡ್ಲಿ/i.test(
       q
@@ -385,10 +424,12 @@ export async function presentConsultationReply(params: {
     `[consultationPresenterEngine] Devotee "${session.name}" (Age: ${sensed.ageYears}, ${sensed.lifeStage}) -> Category: ${sensed.category}`
   );
 
-  // If question is pure deep astrological OR career frustration, delegate directly to the deep chart math engine
+  // If question is pure deep astrological, career frustration, child inquiry, or Santhana, delegate directly to the deep chart math engine
   if (
     sensed.category === "ASTROLOGICAL_DEEP" ||
-    sensed.category === "CAREER_FRUSTRATION_DISTRESS"
+    sensed.category === "CAREER_FRUSTRATION_DISTRESS" ||
+    sensed.category === "CHILD_PARENT_INQUIRY" ||
+    sensed.category === "SANTHANA_PROGENY_SENSITIVE"
   ) {
     const reading = await generateConsultationAnswer({
       session,
@@ -565,6 +606,29 @@ The devotee is expressing deep mental agony, grief, feeling lost, crying, or hop
   2. Reassure them that life's trials are temporary churning (ಮಂಥನ) and the divine grace of Gokarna will protect them.
   3. Ground their feelings in Moon (Chandra - Manokaraka) afflictions and advise calming spiritual practices: daily chanting of Om Namah Shivaya or Mahamrityunjaya, pranayama, and walking in fresh air.
   4. Assure them that this dark phase will pass, and their life is precious and destined for recovery.`;
+      break;
+
+    case "CHILD_PARENT_INQUIRY":
+      categorySpecificInstructions = `
+SPECIFIC GUIDANCE FOR MINOR CHILD & PARENTAL INQUIRY (EDUCATION, CONCENTRATION, HEALTH):
+The profile is a minor child (${sensed.ageYears} years old) or parent asking about their child:
+- PRIEST PROTOCOL:
+  1. ADDRESS THE PARENTS WITH PATERNAL REVERENCE ("ಆತ್ಮೀಯ ಪೋಷಕರೇ / ಪಾಲಕರೇ...", "Dear Parents...").
+  2. FOCUS ON 4TH HOUSE (VIDYA) AND 5TH HOUSE (BUDDHI): Analyze the child's academic grasping power, concentration, and memory.
+  3. REASSURE PARENTS & GUIDE THEM: Explain how to nurture the child's inborn nature without harsh comparison or pressure.
+  4. BLESSING & REMEDY: Prescribe Medha Sukta, Maha Saraswati Gayatri, and Gokarna Mahaganapati prayer.
+  5. STRICT PROHIBITION: Never discuss adult romance, marriage, or adult career anxieties for a child.`;
+      break;
+
+    case "SANTHANA_PROGENY_SENSITIVE":
+      categorySpecificInstructions = `
+SPECIFIC GUIDANCE FOR PROGENY, SANTHANA & CHILDBIRTH:
+The devotee is seeking divine guidance regarding conceiving a child, delay in progeny, or blessing of a son:
+- PRIEST PROTOCOL:
+  1. Address the couple with deep fatherly compassion; remove all feelings of guilt, hopelessness, and societal pressure.
+  2. Analyze 5th House of progeny, Putrakaraka Jupiter (Guru), and 9th House of fortune.
+  3. Explain that conception requires both medical health and celestial blessing (Daiva Bala).
+  4. Prescribe Sri Kshetra Gokarna Santhana Gopala Maha Homa and Naga Pratishtha, and direct them to contact Shreeram Pandit at 9972339362.`;
       break;
 
     case "GENERAL_KNOWLEDGE_WORLDLY":
@@ -756,6 +820,18 @@ function generateSpecializedFallbackReply(params: {
         return `My child ${session.name}, wipe away your tears and breathe in peace. Sitting in the divine presence of Sri Kshetra Gokarna, I reassure you with fatherly warmth that you are never alone.\n\nLife sometimes feels like an overwhelming storm, but remember that dark clouds can never extinguish the sun. In Vedic astrology, emotional pain is tied to the waxing and waning of the Moon (Chandra - ruler of the mind). This phase of mental sorrow is temporary and is clearing past karmic impressions to make way for renewal.\n\nDo not lose faith. Take care of your health, drink pure water, walk in fresh air, and recite the holy mantra 'Om Namah Shivaya'. Lord Mahabaleshwara is watching over you, and divine grace will soon restore peace, light, and happiness to your soul.`;
       }
       return `ಮಗುವೇ ${session.name}, ನಿಮ್ಮ ಕಣ್ಣೀರನ್ನು ಒರೆಸಿಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ನಿಮಗೆ ಧೈರ್ಯ ಹೇಳುತ್ತೇನೆ; ನೀವು ಎಂದಿಗೂ ಒಬ್ಬಂಟಿಯಲ್ಲ.\n\nಜೀವನದಲ್ಲಿ ಕೆಲವೊಮ್ಮೆ ಎಲ್ಲ ದಾರಿಗಳೂ ಮುಚ್ಚಿದಂತೆ, ಕತ್ತಲು ಆವರಿಸಿದಂತೆ ಅನ್ನಿಸುವುದು ಸಹಜ. ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಮನಸ್ಸಿಗೆ ಕಾರಕನಾದ ಚಂದ್ರ ಗ್ರಹದ ಮೇಲಿನ ಅಶುಭ ಪ್ರಭಾವದಿಂದ ಇಂತಹ ತೀವ್ರ ಖಿನ್ನತೆ ಮತ್ತು ನೋವು ಉಂಟಾಗುತ್ತದೆ. ಆದರೆ ನೆನಪಿಡಿ, ಕತ್ತಲು ಎಷ್ಟು ದಟ್ಟವಾಗಿದ್ದರೂ ಮುಂಜಾನೆಯ ಸೂರ್ಯೋದಯವನ್ನು ತಡೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ.\n\nಧೃತಿಗೆಡಬೇಡಿ. ನಿಮ್ಮ ಜೀವ ಅತ್ಯಂತ ಅಮೂಲ್ಯವಾದದ್ದು. ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ತಾಜಾ ಗಾಳಿಯಲ್ಲಿ ನಡೆದಾಡಿ ಸಕಾರಾತ್ಮಕವಾಗಿರಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಶೀಘ್ರದಲ್ಲೇ ಈ ಕಷ್ಟದ ಮೋಡಗಳು ಕರಗಿ, ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
+
+    case "CHILD_PARENT_INQUIRY":
+      if (isEn) {
+        return `Dear Parents of ${session.name}, examining the birth chart of your child (${lagnaName} Lagna, ${moonRashi} Moon Sign), the child is endowed with keen natural curiosity and sharp cognitive potential.\n\nRegarding your inquiry on "${userQuestion}", the child's 4th house of learning and 5th house of intellect indicate strong grasping abilities, though occasional restlessness or playfulness is natural at this developmental stage. As loving parents, guiding them with patient encouragement rather than comparative academic pressure will inspire them to achieve excellence.\n\nFor concentration and memory power, lighting a pure ghee lamp during study hours and offering prayers to Lord Mahaganapati at Sri Kshetra Gokarna will bestow academic success and protection.`;
+      }
+      return `ಆತ್ಮೀಯ ಪೋಷಕರೇ, ನಿಮ್ಮ ಮಗುವಿನ (${session.name}) ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು (${lagnaName} ಲಗ್ನ, ${moonRashi} ರಾಶಿ) ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಮಗುವಿನಲ್ಲಿ ಉತ್ತಮ ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಕಲಿಯುವ ಅಪಾರ ಆಸಕ್ತಿ ಕಂಡುಬರುತ್ತದೆ.\n\nನಿಮ್ಮ "${userQuestion}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಮಗುವಿನ ಜಾತಕದ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ ಮತ್ತು ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳು ಚೇತನವಾಗಿದ್ದು, ಮಗುವಿಗೆ ವಿಷಯಗಳನ್ನು ಬೇಗನೆ ಗ್ರಹಿಸುವ ಶಕ್ತಿಯಿದೆ. ಆದರೆ ಮನಸ್ಸು ಒಮ್ಮೊಮ್ಮೆ ಆಟದ ಕಡೆಗೆ ಚಂಚಲಗೊಳ್ಳುವುದು ಸಹಜ. ಪೋಷಕರಾಗಿ ನೀವು ಮಗುವಿನ ಮೇಲೆ ಕಠಿಣ ಒತ್ತಡ ಹೇರದೆ, ಪ್ರೀತಿ ಮತ್ತು ಸಮಾಧಾನದಿಂದ ನಿಗದಿತ ಅಧ್ಯಯನ ದಿನಚರಿಯನ್ನು ರೂಪಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.\n\nಮಗುವಿನ ವಿದ್ಯಾ ಏಕಾಗ್ರತೆ ಹಾಗೂ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗಾಗಿ, ಸಂಜೆ ಮನೆಯಲ್ಲಿ ದೀಪ ಹಚ್ಚಿ ಸರಸ್ವತೀ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಪ್ರಾರ್ಥನೆ ಮಾಡಿಸಿ.`;
+
+    case "SANTHANA_PROGENY_SENSITIVE":
+      if (isEn) {
+        return `My child ${session.name}, I deeply understand the longing, emotional prayers, and societal sensitivity surrounding progeny and childbirth in your marriage. As a senior priest, I receive your inquiry with complete compassion.\n\nAccording to your birth chart (${lagnaName} Lagna, ${moonRashi} Moon Sign), your 5th house of progeny and Putrakaraka Jupiter (Guru) are undergoing a temporary karmic transit delay. Remove all self-doubt and marital stress; Vedic tradition teaches that parenthood requires the sacred alignment of health and divine grace (Daiva Bala).\n\nUpcoming planetary transits favor family growth. Chanting the sacred Sri Santhana Gopala Mantra daily and performing the Santhana Gopala Homa and Naga Pratishtha at Sri Kshetra Gokarna with chief priest Shreeram Pandit (9972339362) will dissolve obstacles and bring joyous parenthood blessings.`;
+      }
+      return `ಮಗುವೇ ${session.name}, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಆಳವಾದ ಕಳವಳ ಹಾಗೂ ನಿರೀಕ್ಷೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಸಮಾಜದಲ್ಲಿ ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಈ ವಿಚಾರವು ಸೂಕ್ಷ್ಮವೂ ಹಾಗೂ ಭಾವನಾತ್ಮಕವೂ ಆಗಿರುವುದು ಸಹಜ.\n\nಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ನಿಮ್ಮ ಜಾತಕದ (${lagnaName} ಲಗ್ನ, ${moonRashi} ರಾಶಿ) ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನ ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು ತಾತ್ಕಾಲಿಕ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡುತ್ತಿವೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ನಿರಾಶೆ ಹೊಂದಬೇಡಿ. ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯ ಜೊತೆಗೆ ದೈವಾನುಗ್ರಹವು ಜೋಡಿಯಾದಾಗ ಸೃಷ್ಟಿಯ ಭಾಗ್ಯವು ಖಂಡಿತವಾಗಿಯೂ ಸಿದ್ಧಿಸಲಿದೆ.\n\nದಂಪತಿಗಳಿಬ್ಬರೂ ಪ್ರತಿ ಗುರುವಾರ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಪೂಜೆಯನ್ನು ಮುಖ್ಯ ಪುರೋಹಿತರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ಶೀಘ್ರವೇ ಸಂತಾನ ಭಾಗ್ಯದ ಶುಭ ಸುದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
 
     case "SECRET_INTIMATE_TABOO":
       if (isEn) {

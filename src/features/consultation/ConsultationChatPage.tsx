@@ -14,7 +14,7 @@
  * - 2-3 paragraphs (5-6 lines each) of 100% accurate Vedic readings in 7 languages
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   getConsultationSession,
   startConsultationTimer,
@@ -156,7 +156,139 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
   const geminiApiKey = useAppStore((state) => state.geminiApiKey);
 
-  // 1. Decode Token and Load Session from Firestore
+  // Compute Devotee Age & Intelligent Age-Adaptive FAQ Chips
+  const devoteeAgeYears = useMemo(() => {
+    if (!session?.dob) return 30;
+    try {
+      const [y, m, d] = session.dob.split("-").map(Number);
+      const birthDate = new Date(y, (m || 1) - 1, d || 1);
+      const now = new Date();
+      const diffMs = now.getTime() - birthDate.getTime();
+      return Math.max(1, Math.floor(diffMs / (365.25 * 24 * 60 * 60 * 1000)));
+    } catch {
+      return 30;
+    }
+  }, [session?.dob]);
+
+  const isMinorChildDevotee = devoteeAgeYears < 18;
+
+  const quickFaqChips = useMemo(() => {
+    const isEn = session?.language === "en";
+    if (isMinorChildDevotee) {
+      return [
+        {
+          label: isEn ? "📚 Education & Focus" : "📚 ವಿದ್ಯಾಭ್ಯಾಸ & ಏಕಾಗ್ರತೆ",
+          question: isEn
+            ? "How are my child's academic prospects, memory retention, and concentration?"
+            : "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಏಕಾಗ್ರತೆ ಹೆಚ್ಚಿಸಲು ಜಾತಕದ ಪ್ರಕಾರ ಏನು ಮಾಡಬೇಕು?"
+        },
+        {
+          label: isEn ? "🛡️ Health & Balarishta" : "🛡️ ಬಾಲಾರಿಷ್ಟ & ಆರೋಗ್ಯ",
+          question: isEn
+            ? "What Vedic remedies protect the child's health and shield against evil eye?"
+            : "ಮಗುವಿನ ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಹಾಗೂ ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆಗೆ ಪರಿಹಾರವೇನು?"
+        },
+        {
+          label: isEn ? "🌟 Talent & Future Path" : "🌟 ಪ್ರತಿಭೆ & ಉಜ್ವಲ ಭವಿಷ್ಯ",
+          question: isEn
+            ? "In which field will the child's natural talents and future shine best?"
+            : "ಮಗುವಿನ ಸಹಜ ಪ್ರತಿಭೆ ಯಾವ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯಂತ ಉಜ್ವಲವಾಗಿ ಬೆಳಗಲಿದೆ?"
+        },
+        {
+          label: isEn ? "🧘 Parenting Temperament" : "🧘 ಪೋಷಕರ ಮಾರ್ಗದರ್ಶನ",
+          question: isEn
+            ? "How should parents nurture and handle the child's natural temperament?"
+            : "ಮಗುವಿನ ಹಠ ಹಾಗೂ ಚಂಚಲ ಸ್ವಭಾವವನ್ನು ಪ್ರೀತಿಯಿಂದ ಸರಿಪಡಿಸುವುದು ಹೇಗೆ?"
+        }
+      ];
+    }
+
+    if (devoteeAgeYears <= 28) {
+      return [
+        {
+          label: isEn ? "💍 Marriage Timing" : "💍 ಕಂಕಣ ಭಾಗ್ಯ & ವಿವಾಹ",
+          question: isEn
+            ? "When is my marriage indicated? Will it be a love marriage or arranged?"
+            : "ನನ್ನ ವಿವಾಹ ಕಾಲ ಯಾವಾಗ? ಲವ್ ಮ್ಯಾರೇಜ್ ಆಗುತ್ತದೆಯೇ ಅಥವಾ ಅರೇಂಜ್ಡ್?"
+        },
+        {
+          label: isEn ? "💼 Career & Growth" : "💼 ವೃತ್ತಿ & ಧನಾಗಮನ",
+          question: isEn
+            ? "How is my career progression and financial stability in the coming months?"
+            : "ನನ್ನ ವೃತ್ತಿಜೀವನದ ಮುಂಬರುವ ಬೆಳವಣಿಗೆ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
+        },
+        {
+          label: isEn ? "⚡ Vitality & Wellness" : "⚡ ಲೈಂಗಿಕ ಸಾಮರ್ಥ್ಯ & ಅಂತರಂಗ",
+          question: isEn
+            ? "What Ayurvedic and Vedic guidance restores vitality, stamina, and inner confidence?"
+            : "ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ, ಲೈಂಗಿಕ ಚೈತನ್ಯ ಹಾಗೂ ರಹಸ್ಯ ಆತಂಕಗಳಿಗೆ ಆಯುರ್ವೇದ-ವೈದಿಕ ಪರಿಹಾರವೇನು?"
+        },
+        {
+          label: isEn ? "🕉️ Gokarna Parihara" : "🕉️ ಗೋಕರ್ಣ ದೋಷ ಪರಿಹಾರ",
+          question: isEn
+            ? "Which sacred pooja or parihara at Gokarna is recommended for my current Dasha?"
+            : "ನನ್ನ ಜಾತಕದಲ್ಲಿ ಯಾವುದಾದರೂ ದೋಷವಿದೆಯೇ? ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಪೂಜೆ ಶ್ರೇಷ್ಠ?"
+        }
+      ];
+    }
+
+    if (devoteeAgeYears <= 48) {
+      return [
+        {
+          label: isEn ? "👶 Progeny & Santhana" : "👶 ಸಂತಾನ ಭಾಗ್ಯ & ಪುತ್ರ ಪ್ರಾಪ್ತಿ",
+          question: isEn
+            ? "When is progeny indicated in our marriage, and what is the Gokarna Santhana Gopala remedy?"
+            : "ದಾಂಪತ್ಯದಲ್ಲಿ ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯಾವಾಗ? ಗೋಕರ್ಣದ ಸಂತಾನ ಗೋಪಾಲ ಪೂಜೆಯ ಬಗ್ಗೆ ತಿಳಿಸಿ."
+        },
+        {
+          label: isEn ? "💼 Career Frustration Relief" : "💼 ಕೆಲಸದಲ್ಲಿ ಕಿರಿಕಿರಿ & ಮುಕ್ತಿ",
+          question: isEn
+            ? "I feel persistent frustration, stagnation, and politics at work. When will this clear?"
+            : "ಕೆಲಸದಲ್ಲಿ ನಿರಂತರ ಕಿರಿಕಿರಿ, ಬೇಸರ ಮತ್ತು ಹತಾಶೆ ಎದುರಾಗುತ್ತಿದೆ. ಇದರಿಂದ ಮುಕ್ತಿ ಯಾವಾಗ?"
+        },
+        {
+          label: isEn ? "💰 Debt Relief & Wealth" : "💰 ಸಾಲ ಮುಕ್ತಿ & ಆರ್ಥಿಕ ನೆಮ್ಮದಿ",
+          question: isEn
+            ? "How can I overcome financial burdens, debts, and attract lasting prosperity?"
+            : "ಸಾಲ ಮತ್ತು ಆರ್ಥಿಕ ನಷ್ಟದಿಂದ ಹೊರಬರಲು ಜಾತಕದ ಪ್ರಕಾರ ಏನು ಪರಿಹಾರ?"
+        },
+        {
+          label: isEn ? "🕊️ Marital Peace & Intimacy" : "🕊️ ದಾಂಪತ್ಯ ಶಾಂತಿ & ಶಯನ ಸುಖ",
+          question: isEn
+            ? "How can we restore bedroom tranquility, mutual affection, and marital harmony?"
+            : "ದಾಂಪತ್ಯದಲ್ಲಿ ಸಾಮರಸ್ಯ ಹಾಗೂ ಅಂತರಂಗದ ನೆಮ್ಮದಿ ಕಾಪಾಡಿಕೊಳ್ಳಲು ಮಾರ್ಗದರ್ಶನವೇನು?"
+        }
+      ];
+    }
+
+    // Seniors 49+
+    return [
+      {
+        label: isEn ? "🏡 Children's Future" : "🏡 ಮಕ್ಕಳ ಭವಿಷ್ಯ & ಶಾಂತಿ",
+        question: isEn
+          ? "How is my children's future and prosperity, and how can family harmony be ensured?"
+          : "ನನ್ನ ಮಕ್ಕಳ ಭವಿಷ್ಯ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲು ಏನು ಮಾಡಬೇಕು?"
+      },
+      {
+        label: isEn ? "🌿 Health & Longevity" : "🌿 ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ವೃದ್ಧಿ",
+        question: isEn
+          ? "What astrological remedies support good health, mental peace, and longevity?"
+          : "ಆರೋಗ್ಯ, ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ಮಾನಸಿಕ ನೆಮ್ಮದಿಗೆ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರವೇನು?"
+      },
+      {
+        label: isEn ? "🕉️ Gokarna Mahabaleshwara" : "🕉️ ಗೋಕರ್ಣ ಮಹಾರುದ್ರಾಭಿಷೇಕ",
+        question: isEn
+          ? "Which sacred pooja or parihara at Sri Kshetra Gokarna will bestow divine grace?"
+          : "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಪೂಜೆ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದು ಶ್ರೇಷ್ಠ?"
+      },
+      {
+        label: isEn ? "🕊️ Spiritual Path & Moksha" : "🕊️ ಆಧ್ಯಾತ್ಮಿಕ ಮಾರ್ಗ & ಮುಕ್ತಿ",
+        question: isEn
+          ? "What spiritual practices and daily sadhana are most auspicious for this stage of life?"
+          : "ಜೀವನದ ಈ ಹಂತದಲ್ಲಿ ಮನಸ್ಸಿನ ನೆಮ್ಮದಿಗೆ ಯಾವ ದೈವಿಕ ಧ್ಯಾನ ಮತ್ತು ಸಾಧನೆ ಶ್ರೇಷ್ಠ?"
+      }
+    ];
+  }, [devoteeAgeYears, isMinorChildDevotee, session?.language]);
   useEffect(() => {
     let isMounted = true;
 
@@ -1356,15 +1488,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                           <span>📞 ನೇರ ಕರೆ</span>
                           <span className="text-[10px] opacity-90">({msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone})</span>
                         </a>
-                        <a
-                          href={DEFAULT_PRIEST_CONTACT.whatsappUri}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-xs font-bold px-2.5 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1"
-                          title="WhatsApp ನಲ್ಲಿ ಸಂಪರ್ಕಿಸಿ"
-                        >
-                          <span>💬</span>
-                        </a>
                       </div>
                     </div>
                   </div>
@@ -1438,48 +1561,39 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           ------------------------------------------------------------- */}
       <footer className="w-full bg-[#FAF6EE] border-t-2 border-amber-300/80 sticky bottom-0 z-20 p-2 sm:p-3 shadow-lg">
         <div className="max-w-2xl mx-auto space-y-2">
-          {/* Quick Questions Chips */}
-          {!isExpired && messages.length <= 2 && (
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
-              <button
-                type="button"
-                onClick={() =>
-                  handleSendMessage(
-                    session.language === "en"
-                      ? "How is my career growth and financial stability in the coming months?"
-                      : "ನನ್ನ ವೃತ್ತಿಜೀವನದ ಮುಂಬರುವ ಬೆಳವಣಿಗೆ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
-                  )
-                }
-                className="whitespace-nowrap bg-white hover:bg-amber-100 border border-amber-300 text-amber-950 px-2.5 py-1 rounded-full shadow-2xs font-medium transition"
-              >
-                💼 ವೃತ್ತಿ & ಧನಾಗಮನ
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  handleSendMessage(
-                    session.language === "en"
-                      ? "What does my chart indicate about marriage, family harmony, and relationships?"
-                      : "ನನ್ನ ವಿವಾಹ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಶಾಂತಿಯ ಬಗ್ಗೆ ಜಾತಕವೇನು ಹೇಳುತ್ತದೆ?"
-                  )
-                }
-                className="whitespace-nowrap bg-white hover:bg-amber-100 border border-amber-300 text-amber-950 px-2.5 py-1 rounded-full shadow-2xs font-medium transition"
-              >
-                💍 ವಿವಾಹ & ಸಂಬಂಧ
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  handleSendMessage(
-                    session.language === "en"
-                      ? "Which sacred pooja or parihara at Gokarna is recommended for my current Dasha?"
-                      : "ನನ್ನ ಪ್ರಸ್ತುತ ದಶಾ ಶಾಂತಿಗಾಗಿ ಗೋಕರ್ಣದ ಯಾವ ಪೂಜೆ ಅಥವಾ ಪರಿಹಾರ ಶ್ರೇಷ್ಠ?"
-                  )
-                }
-                className="whitespace-nowrap bg-white hover:bg-amber-100 border border-amber-300 text-amber-950 px-2.5 py-1 rounded-full shadow-2xs font-medium transition"
-              >
-                🕉️ ಗೋಕರ್ಣ ಪರಿಹಾರ
-              </button>
+          {/* Quick Questions Age-Adaptive Luxury FAQ Dock */}
+          {!isExpired && (
+            <div className="pt-0.5 pb-1">
+              <div className="flex items-center justify-between text-[11px] text-amber-900 font-serif mb-1 px-1">
+                <span className="flex items-center gap-1 font-semibold">
+                  <span>✨</span>
+                  <span>
+                    {isMinorChildDevotee
+                      ? session.language === "en"
+                        ? "Child Guidance & Education FAQs (1-Tap)"
+                        : "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ & ಪೋಷಕರ ಪ್ರಶ್ನಾವಳಿ (೧-ಟ್ಯಾಪ್)"
+                      : session.language === "en"
+                      ? "Frequently Asked Questions (1-Tap)"
+                      : "ಜನಪ್ರಿಯ ಪ್ರಶ್ನಾವಳಿ (೧-ಟ್ಯಾಪ್)"}
+                  </span>
+                </span>
+                <span className="text-[10px] text-amber-800/70 font-sans">
+                  {isMinorChildDevotee ? "👶 Minor Child" : `👤 ${devoteeAgeYears} yrs`}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
+                {quickFaqChips.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={isGenerating}
+                    onClick={() => handleSendMessage(chip.question)}
+                    className="whitespace-nowrap bg-white hover:bg-amber-100 active:scale-95 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-full shadow-2xs font-medium transition flex items-center gap-1 disabled:opacity-50"
+                  >
+                    <span>{chip.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

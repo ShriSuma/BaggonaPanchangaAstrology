@@ -156,8 +156,7 @@ export const DEFAULT_PRIEST_CONTACT = {
   name: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (Shreeram Pandit)",
   phone: "9972339362",
   gokarnaLocation: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ (Baggona Panchanga, Gokarna)",
-  callUri: "tel:9972339362",
-  whatsappUri: "https://wa.me/919972339362"
+  callUri: "tel:9972339362"
 };
 
 export interface ConsultationQuestionRecord {
