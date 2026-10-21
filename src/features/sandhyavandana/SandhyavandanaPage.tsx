@@ -28,6 +28,7 @@ import {
 } from "./sandhyavandanaDbService";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../audio/aiVoiceCloneEngine";
 import type { SevaLang } from "../seva/sevaLocale";
+import { playTempleBellChime } from "../seva/priestAudioNarrator";
 import { SandhyavandanaShareLinkModal } from "./SandhyavandanaShareLinkModal";
 
 export const SandhyavandanaPage: React.FC = () => {
@@ -767,28 +768,48 @@ export const SandhyavandanaPage: React.FC = () => {
                         </span>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (japaCurrentCount < japaTarget) {
-                            setJapaCurrentCount(japaCurrentCount + 1);
-                          } else {
-                            alert(`ಅಭಿನಂದನೆಗಳು! ${japaTarget} ಬಾರಿ ಜಪ ಸಂಪೂರ್ಣವಾಯಿತು.`);
-                            setJapaCurrentCount(0);
-                          }
-                        }}
-                        className="bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md active:scale-90 transition flex items-center gap-1.5"
-                      >
-                        <span>📿 ಜಪ ಮಣಿ ಎಣಿಸಿ (+1)</span>
-                      </button>
+                      {japaCurrentCount >= japaTarget ? (
+                        <div className="flex items-center gap-3 bg-emerald-100 border border-emerald-400 px-3.5 py-2 rounded-xl animate-fade-in">
+                          <span className="text-xl">✨</span>
+                          <div>
+                            <span className="text-xs font-bold text-emerald-900 block">
+                              {japaTarget} ಬಾರಿ ಜಪ ಸಿದ್ಧಿಯಾಗಿದೆ!
+                            </span>
+                            <span className="text-[10px] text-emerald-700">ದೇವತಾ ಕೃಪೆ ಪ್ರಾಪ್ತಿಯಾಗಲಿ</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setJapaCurrentCount(0)}
+                            className="ml-2 text-xs font-bold text-amber-800 bg-amber-200/80 hover:bg-amber-300 px-2.5 py-1 rounded-lg transition"
+                          >
+                            🔄 ಮತ್ತೊಮ್ಮೆ
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playTempleBellChime();
+                              if (typeof navigator !== "undefined" && navigator.vibrate) {
+                                navigator.vibrate(20);
+                              }
+                              setJapaCurrentCount((prev) => prev + 1);
+                            }}
+                            className="bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md active:scale-90 transition flex items-center gap-1.5"
+                          >
+                            <span>📿 ಜಪ ಮಣಿ ಎಣಿಸಿ (+1)</span>
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => setJapaCurrentCount(0)}
-                        className="text-[11px] text-stone-500 hover:text-stone-700 underline"
-                      >
-                        ರೀಸೆಟ್
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => setJapaCurrentCount(0)}
+                            className="text-[11px] text-stone-500 hover:text-stone-700 underline"
+                          >
+                            ರೀಸೆಟ್
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
