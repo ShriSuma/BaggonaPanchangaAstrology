@@ -58,6 +58,8 @@ export type PdfTranslations = {
   summaryTitle: string;
   cosmicAuraTitle?: string;
   annualForecastTitle?: string;
+  dashaGocharaCompassTitle?: string;
+  dashaGocharaCompassSubtitle?: string;
   footer: string;
   /**
    * Opening greeting. Optional so the older non-premium exports, which do not
@@ -68,6 +70,42 @@ export type PdfTranslations = {
   introPrepared?: string;
   introRunning?: string;
   introBegin?: string;
+};
+
+export type DashaGocharaCompassData = {
+  title: string;
+  subtitle: string;
+  shaniBadge: {
+    title: string;
+    status: string;
+    houseText: string;
+    isAdverse: boolean;
+  };
+  guruBadge: {
+    title: string;
+    status: string;
+    houseText: string;
+    isBenefic: boolean;
+  };
+  dashaBadge: {
+    title: string;
+    eraText: string;
+    confluenceText: string;
+  };
+  pariharaBadge: {
+    title: string;
+    sankalpaText: string;
+    templeText: string;
+  };
+  pillars: {
+    career: { title: string; text: string };
+    wealth: { title: string; text: string };
+    family: { title: string; text: string };
+    shield: { title: string; text: string };
+  };
+  paragraph1: string;
+  paragraph2: string;
+  paragraph3: string;
 };
 
 export type PremiumData = {
@@ -103,6 +141,7 @@ export type PremiumData = {
   timeline?: { dateRange: string; impact: string }[];
   annualForecast?: { impact: string }[];
   gochara?: { name: string; impact: string; remedy?: string }[];
+  dashaGocharaCompass?: DashaGocharaCompassData;
   summary?: { impact: string }[];
   maandiInquest?: {
     title: string;
@@ -729,6 +768,129 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Sovereign Dasha-Gochara Synthesis: Shani-Guru Compass & Golden Windows ── */}
+      {premiumData?.dashaGocharaCompass && (
+        <div data-section="dasha-gochara-compass" className={sectionClass}>
+          <div className="border-b-2 border-amber-700/30 pb-3 mb-8">
+            <h2 className="text-3xl font-bold text-amber-950 leading-normal flex items-center justify-between">
+              <span>{translations.dashaGocharaCompassTitle || premiumData.dashaGocharaCompass.title}</span>
+              <span className="text-xl font-normal text-amber-800 bg-amber-100/70 border border-amber-900/10 px-3 py-1 rounded-full shadow-sm">
+                {translations.dashaGocharaCompassSubtitle || premiumData.dashaGocharaCompass.subtitle}
+              </span>
+            </h2>
+          </div>
+
+          {/* 4 Cosmic Badges Grid */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            {/* Shani Gochara Badge */}
+            <div className={`p-4 rounded-xl border ${premiumData.dashaGocharaCompass.shaniBadge.isAdverse ? 'bg-amber-50/90 border-amber-700/30' : 'bg-amber-50/60 border-amber-900/20'} shadow-sm`}>
+              <div className="text-xs uppercase tracking-wider font-bold text-amber-800 mb-1">
+                {premiumData.dashaGocharaCompass.shaniBadge.title}
+              </div>
+              <div className="text-2xl font-bold text-amber-950 mb-1">
+                {premiumData.dashaGocharaCompass.shaniBadge.status}
+              </div>
+              <div className="text-sm font-medium text-amber-900/80">
+                {premiumData.dashaGocharaCompass.shaniBadge.houseText}
+              </div>
+            </div>
+
+            {/* Guru Bala Badge */}
+            <div className={`p-4 rounded-xl border ${premiumData.dashaGocharaCompass.guruBadge.isBenefic ? 'bg-amber-100/60 border-amber-600/40' : 'bg-stone-50 border-stone-300'} shadow-sm`}>
+              <div className="text-xs uppercase tracking-wider font-bold text-amber-800 mb-1">
+                {premiumData.dashaGocharaCompass.guruBadge.title}
+              </div>
+              <div className="text-2xl font-bold text-amber-950 mb-1">
+                {premiumData.dashaGocharaCompass.guruBadge.status}
+              </div>
+              <div className="text-sm font-medium text-amber-900/80">
+                {premiumData.dashaGocharaCompass.guruBadge.houseText}
+              </div>
+            </div>
+
+            {/* Dasha Synergy Badge */}
+            <div className="p-4 rounded-xl border border-amber-900/20 bg-amber-50/60 shadow-sm">
+              <div className="text-xs uppercase tracking-wider font-bold text-amber-800 mb-1">
+                {premiumData.dashaGocharaCompass.dashaBadge.title}
+              </div>
+              <div className="text-xl font-bold text-amber-950 mb-1">
+                {premiumData.dashaGocharaCompass.dashaBadge.eraText}
+              </div>
+              <div className="text-sm font-medium text-amber-900/80">
+                {premiumData.dashaGocharaCompass.dashaBadge.confluenceText}
+              </div>
+            </div>
+
+            {/* Sri Gokarna Sacred Shield & Parihara Badge */}
+            <div className="p-4 rounded-xl border border-amber-700/30 bg-amber-100/40 shadow-sm">
+              <div className="text-xs uppercase tracking-wider font-bold text-amber-900 mb-1">
+                {premiumData.dashaGocharaCompass.pariharaBadge.title}
+              </div>
+              <div className="text-xl font-bold text-amber-950 mb-1">
+                {premiumData.dashaGocharaCompass.pariharaBadge.sankalpaText}
+              </div>
+              <div className="text-sm font-medium text-amber-900/80">
+                {premiumData.dashaGocharaCompass.pariharaBadge.templeText}
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Golden Life Pillars Grid */}
+          <div className="mb-8">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-5 rounded-xl border border-amber-900/20 bg-white/70 shadow-sm">
+                <h4 className="text-lg font-bold text-amber-900 mb-2 border-b border-amber-900/10 pb-1">
+                  {premiumData.dashaGocharaCompass.pillars.career.title}
+                </h4>
+                <p className="text-base leading-relaxed text-amber-950 font-medium">
+                  {premiumData.dashaGocharaCompass.pillars.career.text}
+                </p>
+              </div>
+
+              <div className="p-5 rounded-xl border border-amber-900/20 bg-white/70 shadow-sm">
+                <h4 className="text-lg font-bold text-amber-900 mb-2 border-b border-amber-900/10 pb-1">
+                  {premiumData.dashaGocharaCompass.pillars.wealth.title}
+                </h4>
+                <p className="text-base leading-relaxed text-amber-950 font-medium">
+                  {premiumData.dashaGocharaCompass.pillars.wealth.text}
+                </p>
+              </div>
+
+              <div className="p-5 rounded-xl border border-amber-900/20 bg-white/70 shadow-sm">
+                <h4 className="text-lg font-bold text-amber-900 mb-2 border-b border-amber-900/10 pb-1">
+                  {premiumData.dashaGocharaCompass.pillars.family.title}
+                </h4>
+                <p className="text-base leading-relaxed text-amber-950 font-medium">
+                  {premiumData.dashaGocharaCompass.pillars.family.text}
+                </p>
+              </div>
+
+              <div className="p-5 rounded-xl border border-amber-900/20 bg-white/70 shadow-sm">
+                <h4 className="text-lg font-bold text-amber-900 mb-2 border-b border-amber-900/10 pb-1">
+                  {premiumData.dashaGocharaCompass.pillars.shield.title}
+                </h4>
+                <p className="text-base leading-relaxed text-amber-950 font-medium">
+                  {premiumData.dashaGocharaCompass.pillars.shield.text}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 3 Deep Vedic Narrative Paragraphs */}
+          <div className="space-y-6">
+            <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+              {premiumData.dashaGocharaCompass.paragraph1}
+            </p>
+            <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+              {premiumData.dashaGocharaCompass.paragraph2}
+            </p>
+            <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+              {premiumData.dashaGocharaCompass.paragraph3}
+            </p>
           </div>
         </div>
       )}

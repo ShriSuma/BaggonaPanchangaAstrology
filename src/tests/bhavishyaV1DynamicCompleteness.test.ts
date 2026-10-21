@@ -199,5 +199,93 @@ describe("Bhavishya V1 Dynamic Completeness & Zero-Hardcoding Differential Test"
     const saturnCard = gA.find(item => item.name.includes("ಶನಿ"));
     expect(saturnCard).toBeDefined();
     expect(saturnCard?.impact.length).toBeGreaterThan(50);
+
+    // ── ASSERTION 7: SOVEREIGN DASHA-GOCHARA SYNTHESIS & COMPASS ──────────
+    const dgcA = payloadA.premiumData.dashaGocharaCompass;
+    const dgcB = payloadB.premiumData.dashaGocharaCompass;
+    const dgcC = payloadC.premiumData.dashaGocharaCompass;
+
+    expect(dgcA).toBeDefined();
+    expect(dgcB).toBeDefined();
+    expect(dgcC).toBeDefined();
+
+    // Badges must be populated
+    expect(dgcA?.shaniBadge.status).toBeDefined();
+    expect(dgcA?.guruBadge.status).toBeDefined();
+    expect(dgcA?.dashaBadge.eraText).toBeDefined();
+    expect(dgcA?.pariharaBadge.sankalpaText).toBeDefined();
+
+    // 4 Golden Pillars must have deep, substantial text
+    expect(dgcA?.pillars.career.text.length).toBeGreaterThan(40);
+    expect(dgcA?.pillars.wealth.text.length).toBeGreaterThan(40);
+    expect(dgcA?.pillars.family.text.length).toBeGreaterThan(40);
+    expect(dgcA?.pillars.shield.text.length).toBeGreaterThan(40);
+
+    // 3 In-Depth Analytical Paragraphs must be substantial
+    expect(dgcA?.paragraph1.length).toBeGreaterThan(100);
+    expect(dgcA?.paragraph2.length).toBeGreaterThan(100);
+    expect(dgcA?.paragraph3.length).toBeGreaterThan(100);
+
+    // Content must be 100% dynamically distinct between charts
+    expect(dgcA?.paragraph1).not.toBe(dgcB?.paragraph1);
+    expect(dgcB?.paragraph1).not.toBe(dgcC?.paragraph1);
+    expect(dgcA?.pillars.career.text).not.toBe(dgcB?.pillars.career.text);
+  }, 60000);
+
+  it("verifies 100% pure script localization for Dasha-Gochara Compass across all 5 languages", async () => {
+    const devotee = calculateKundli({
+      name: "ವಿದ್ಯಾಧರ ಭಟ್",
+      birthDate: "1988-11-12",
+      birthTime: "10:20",
+      latitude: 14.5479,
+      longitude: 74.3187
+    });
+
+    const session: any = {
+      result: devotee,
+      birthDateYmd: "1988-11-12",
+      birthTimeHm: "10:20",
+      input: {
+        name: "ವಿದ್ಯಾಧರ ಭಟ್",
+        birthDate: "1988-11-12",
+        birthTime: "10:20",
+        latitude: 14.5479,
+        longitude: 74.3187,
+        gender: "Male"
+      }
+    };
+
+    const languages = [
+      { code: "kn", scriptRegex: /[\u0C80-\u0CFF]/, name: "Kannada" },
+      { code: "hi", scriptRegex: /[\u0900-\u097F]/, name: "Hindi" },
+      { code: "te", scriptRegex: /[\u0C00-\u0C7F]/, name: "Telugu" },
+      { code: "ta", scriptRegex: /[\u0B80-\u0BFF]/, name: "Tamil" },
+      { code: "en", scriptRegex: /[a-zA-Z]/, name: "English" }
+    ];
+
+    for (const langObj of languages) {
+      const payload = await prepareBhavishyaV1Data(session, langObj.code, "");
+      const compass = payload.premiumData.dashaGocharaCompass;
+
+      expect(compass).toBeDefined();
+      expect(compass?.title).toBeDefined();
+      expect(compass?.shaniBadge.status).toBeDefined();
+      expect(compass?.guruBadge.status).toBeDefined();
+      expect(compass?.pillars.career.text).toBeDefined();
+      expect(compass?.paragraph1.length).toBeGreaterThan(80);
+
+      // Verify correct script presence
+      expect(langObj.scriptRegex.test(compass!.title)).toBe(true);
+      expect(langObj.scriptRegex.test(compass!.paragraph1)).toBe(true);
+      expect(langObj.scriptRegex.test(compass!.paragraph2)).toBe(true);
+      expect(langObj.scriptRegex.test(compass!.paragraph3)).toBe(true);
+
+      // For regional Indic scripts, verify ZERO English token leakage in paragraphs
+      if (langObj.code !== "en") {
+        expect(/[a-zA-Z]{4,}/.test(compass!.paragraph1)).toBe(false);
+        expect(/[a-zA-Z]{4,}/.test(compass!.paragraph2)).toBe(false);
+        expect(/[a-zA-Z]{4,}/.test(compass!.paragraph3)).toBe(false);
+      }
+    }
   }, 60000);
 });

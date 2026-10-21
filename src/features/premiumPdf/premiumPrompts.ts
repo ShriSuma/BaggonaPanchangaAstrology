@@ -1367,6 +1367,40 @@ Natal Context:
 ${JSON_RULE}
 {"title": "evocative personal title without the word Maandi or Gulika", "paragraph1": "first paragraph of at least 6-7 lines", "paragraph2": "second paragraph of at least 6-7 lines"}`;
 
+  const dashaGocharaCompass = `${header(
+    input,
+    "dashaGocharaCompass",
+    "You are a revered master Vedic astrologer of Baggona Panchanga rooted in Sri Kshetra Gokarna, revealing the Sovereign Dasha-Gochara Synthesis: Shani-Guru Transit Compass & Golden Karma Windows."
+  )}
+CRITICAL MANDATE:
+Synthesize the native's birth chart (Lagna: ${h1.sign}, Moon: ${rashiName(input.moonRashiIndex, lang)}), running period (${dashaLine}), and live sky transits (Saturn and Jupiter).
+Provide a complete JSON response strictly in the target language (${lang}) with:
+1. "title": Evocative master title for the chapter.
+2. "subtitle": Auspicious Sanskrit or devotional phrase.
+3. "shaniBadge": {"title": "title", "status": "transit status", "houseText": "house details", "isAdverse": true/false}
+4. "guruBadge": {"title": "title", "status": "guru bala status", "houseText": "house details", "isBenefic": true/false}
+5. "dashaBadge": {"title": "title", "eraText": "active mahadasha-bhukti", "confluenceText": "astrological synergy"}
+6. "pariharaBadge": {"title": "title", "sankalpaText": "revered temple seva at Sri Kshetra Gokarna", "templeText": "sanctorum name"}
+7. "pillars": {
+     "career": {"title": "title", "text": "career guidance"},
+     "wealth": {"title": "title", "text": "wealth guidance"},
+     "family": {"title": "title", "text": "family guidance"},
+     "shield": {"title": "title", "text": "protection guidance"}
+   }
+8. "paragraph1": In-depth narrative of at least 6-8 lines synthesizing Lagna, Moon, Dasha, and Saturn.
+9. "paragraph2": In-depth narrative of at least 6-8 lines explaining Jupiter Guru Bala and planetary synergy.
+10. "paragraph3": In-depth narrative of at least 6-8 lines with actionable guidance, golden karma windows, and Sri Kshetra Gokarna blessings.
+
+Natal & Transit Context:
+- Native Name: ${input.name}
+- Natal Lagna: ${h1.sign}
+- Natal Moon Sign: ${rashiName(input.moonRashiIndex, lang)}
+- Running Period: ${dashaLine}
+- Transits: ${input.transits.map(t => `${grahaName(t.graha, lang)} in ${rashiName(t.rashiIndex, lang)} (${t.houseFromMoon}th from Moon)`).join(", ")}
+
+${JSON_RULE}
+{"title": "string", "subtitle": "string", "shaniBadge": {"title": "string", "status": "string", "houseText": "string", "isAdverse": false}, "guruBadge": {"title": "string", "status": "string", "houseText": "string", "isBenefic": true}, "dashaBadge": {"title": "string", "eraText": "string", "confluenceText": "string"}, "pariharaBadge": {"title": "string", "sankalpaText": "string", "templeText": "string"}, "pillars": {"career": {"title": "string", "text": "string"}, "wealth": {"title": "string", "text": "string"}, "family": {"title": "string", "text": "string"}, "shield": {"title": "string", "text": "string"}}, "paragraph1": "string", "paragraph2": "string", "paragraph3": "string"}`;
+
   return {
     soulMirror,
     characteristics,
@@ -1384,6 +1418,7 @@ ${JSON_RULE}
     yogas,
     doshas,
     gochara,
+    dashaGocharaCompass,
     timeline,
     summary,
     maandiInquest

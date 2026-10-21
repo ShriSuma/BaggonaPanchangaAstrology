@@ -45,6 +45,7 @@ import {
   buildDynamicTimelineFallback,
   buildDynamicSoulMirrorFallback,
   buildDynamicAnnualForecastFallback,
+  buildDynamicDashaGocharaCompassFallback,
   buildDynamicPrescriptions,
   toKnDigits
 } from "./dynamicBhavishyaEngine";
@@ -327,6 +328,8 @@ export async function prepareBhavishyaV1Data(
     timelineTitle: tp("timelineTitle", lang),
     gocharaTitle: tp("gocharaTitle", lang),
     annualForecastTitle: tp("annualForecastTitle", lang),
+    dashaGocharaCompassTitle: tp("dashaGocharaCompassTitle", lang),
+    dashaGocharaCompassSubtitle: tp("dashaGocharaCompassSubtitle", lang),
     summaryTitle: tp("summaryTitle", lang),
     introTitle: tp("introTitle", lang),
     introGreeting: greetingLine(lang, localizedDevoteeName),
@@ -655,8 +658,9 @@ export async function prepareBhavishyaV1Data(
       ? "6. लाइव गोचर ग्रह, कर्म यात्रा एवं ज्योतिषी सारांश..."
       : "6. Calculating Live Transits, Karmic Inquest & Astrologer's Summary..."
   );
-  const [resGochara, resSummary, resMaandiInquest, resAnnualForecast] = await Promise.all([
+  const [resGochara, resDashaGocharaCompass, resSummary, resMaandiInquest, resAnnualForecast] = await Promise.all([
     callGeminiSafe("Generate Gochara", prompts.gochara, 0.4),
+    callGeminiSafe("Generate Dasha-Gochara Compass", prompts.dashaGocharaCompass, 0.35),
     callGeminiSafe("Generate Summary", prompts.summary, 0.3),
     callGeminiSafe("Generate Maandi Inquest", prompts.maandiInquest, 0.4),
     callGeminiSafe("Generate Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35)
@@ -701,6 +705,7 @@ export async function prepareBhavishyaV1Data(
   let dataDoshas = robustParseGeminiJSON(resDoshas);
   let dataTimeline = robustParseGeminiJSON(resTimeline);
   let dataGochara = robustParseGeminiJSON(resGochara);
+  let dataDashaGocharaCompass = robustParseGeminiJSON(resDashaGocharaCompass);
   let dataSummary = robustParseGeminiJSON(resSummary);
   let dataMaandiInquest = robustParseGeminiJSON(resMaandiInquest);
   let dataAnnualForecast = robustParseGeminiJSON(resAnnualForecast);
@@ -745,6 +750,9 @@ export async function prepareBhavishyaV1Data(
 
   const isGocharaValid = (d: any) =>
     Boolean(d?.gochara && toSafeArray(d.gochara).filter((g: any) => (g.impact || "").trim().length >= 100).length >= 2);
+
+  const isDashaGocharaCompassValid = (d: any) =>
+    Boolean(d && (d.paragraph1 || "").trim().length >= 60 && (d.paragraph2 || "").trim().length >= 60 && (d.paragraph3 || "").trim().length >= 60 && d.pillars);
 
   const isSummaryValid = (d: any) =>
     Boolean(d?.summary && toSafeArray(d.summary).some((s: any) => (s.impact || "").trim().length >= 50));
@@ -828,6 +836,14 @@ export async function prepareBhavishyaV1Data(
         callGeminiSafe("Retry Gochara", prompts.gochara, 0.4, 9000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isGocharaValid(parsed)) dataGochara = parsed;
+        })
+      );
+    }
+    if (!isDashaGocharaCompassValid(dataDashaGocharaCompass)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Dasha-Gochara Compass", prompts.dashaGocharaCompass, 0.35, 9000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isDashaGocharaCompassValid(parsed)) dataDashaGocharaCompass = parsed;
         })
       );
     }
@@ -1233,6 +1249,45 @@ export async function prepareBhavishyaV1Data(
     }
   }
 
+  const dynamicCompassFallback = buildDynamicDashaGocharaCompassFallback(parsedKundali);
+  let finalDashaGocharaCompass = { ...dynamicCompassFallback };
+  if (isDashaGocharaCompassValid(dataDashaGocharaCompass)) {
+    const p1 = cleanEnglishFromRegionalText(dataDashaGocharaCompass.paragraph1 || "", lang).trim();
+    const p2 = cleanEnglishFromRegionalText(dataDashaGocharaCompass.paragraph2 || "", lang).trim();
+    const p3 = cleanEnglishFromRegionalText(dataDashaGocharaCompass.paragraph3 || "", lang).trim();
+    if (p1.length >= 60 && p2.length >= 60 && p3.length >= 60) {
+      finalDashaGocharaCompass.paragraph1 = p1;
+      finalDashaGocharaCompass.paragraph2 = p2;
+      finalDashaGocharaCompass.paragraph3 = p3;
+      if (dataDashaGocharaCompass.title) finalDashaGocharaCompass.title = cleanEnglishFromRegionalText(dataDashaGocharaCompass.title, lang).trim();
+      if (dataDashaGocharaCompass.subtitle) finalDashaGocharaCompass.subtitle = cleanEnglishFromRegionalText(dataDashaGocharaCompass.subtitle, lang).trim();
+      if (dataDashaGocharaCompass.shaniBadge?.status) {
+        finalDashaGocharaCompass.shaniBadge.status = cleanEnglishFromRegionalText(dataDashaGocharaCompass.shaniBadge.status, lang).trim();
+      }
+      if (dataDashaGocharaCompass.guruBadge?.status) {
+        finalDashaGocharaCompass.guruBadge.status = cleanEnglishFromRegionalText(dataDashaGocharaCompass.guruBadge.status, lang).trim();
+      }
+      if (dataDashaGocharaCompass.dashaBadge?.confluenceText) {
+        finalDashaGocharaCompass.dashaBadge.confluenceText = cleanEnglishFromRegionalText(dataDashaGocharaCompass.dashaBadge.confluenceText, lang).trim();
+      }
+      if (dataDashaGocharaCompass.pariharaBadge?.sankalpaText) {
+        finalDashaGocharaCompass.pariharaBadge.sankalpaText = cleanEnglishFromRegionalText(dataDashaGocharaCompass.pariharaBadge.sankalpaText, lang).trim();
+      }
+      if (dataDashaGocharaCompass.pillars?.career?.text) {
+        finalDashaGocharaCompass.pillars.career.text = cleanEnglishFromRegionalText(dataDashaGocharaCompass.pillars.career.text, lang).trim();
+      }
+      if (dataDashaGocharaCompass.pillars?.wealth?.text) {
+        finalDashaGocharaCompass.pillars.wealth.text = cleanEnglishFromRegionalText(dataDashaGocharaCompass.pillars.wealth.text, lang).trim();
+      }
+      if (dataDashaGocharaCompass.pillars?.family?.text) {
+        finalDashaGocharaCompass.pillars.family.text = cleanEnglishFromRegionalText(dataDashaGocharaCompass.pillars.family.text, lang).trim();
+      }
+      if (dataDashaGocharaCompass.pillars?.shield?.text) {
+        finalDashaGocharaCompass.pillars.shield.text = cleanEnglishFromRegionalText(dataDashaGocharaCompass.pillars.shield.text, lang).trim();
+      }
+    }
+  }
+
   const dynamicPrescriptions = buildDynamicPrescriptions(parsedKundali);
 
   const premiumDataPayload: PremiumData = {
@@ -1245,6 +1300,7 @@ export async function prepareBhavishyaV1Data(
     timeline: finalTimeline,
     annualForecast: finalAnnualForecast,
     gochara: finalGochara,
+    dashaGocharaCompass: finalDashaGocharaCompass,
     summary: finalSummary,
     maandiInquest: finalMaandiInquest,
     prescriptions: dynamicPrescriptions
@@ -1258,6 +1314,7 @@ export async function prepareBhavishyaV1Data(
     premiumDataPayload.characteristics = [{ impact: charFallbackText }];
     premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
     premiumDataPayload.soulMirror = dynamicSoulMirror;
+    premiumDataPayload.dashaGocharaCompass = dynamicCompassFallback;
     premiumDataPayload.prescriptions = dynamicPrescriptions;
   }
 
@@ -1376,6 +1433,17 @@ export async function prepareBhavishyaV1Data(
   ) {
     console.warn("[bhavishyaV1Service Quality Audit] Annual Forecast incomplete. Healing with dynamic mathematical fallback.");
     premiumDataPayload.annualForecast = [{ impact: annualFallbackText }];
+  }
+
+  // Strict non-empty Dasha-Gochara Compass healing
+  if (
+    !premiumDataPayload.dashaGocharaCompass ||
+    !premiumDataPayload.dashaGocharaCompass.paragraph1 ||
+    !premiumDataPayload.dashaGocharaCompass.pillars ||
+    (premiumDataPayload.dashaGocharaCompass.paragraph1 || "").trim().length < 50
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Dasha-Gochara Compass incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.dashaGocharaCompass = dynamicCompassFallback;
   }
 
   // Strict non-empty Prescriptions healing

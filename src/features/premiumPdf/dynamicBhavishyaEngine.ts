@@ -3536,3 +3536,487 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
     luckyDirection: rx.direction[baseLang] || rx.direction.en
   };
 }
+
+export interface DynamicDashaGocharaCompassResult {
+  title: string;
+  subtitle: string;
+  shaniBadge: {
+    title: string;
+    status: string;
+    houseText: string;
+    isAdverse: boolean;
+  };
+  guruBadge: {
+    title: string;
+    status: string;
+    houseText: string;
+    isBenefic: boolean;
+  };
+  dashaBadge: {
+    title: string;
+    eraText: string;
+    confluenceText: string;
+  };
+  pariharaBadge: {
+    title: string;
+    sankalpaText: string;
+    templeText: string;
+  };
+  pillars: {
+    career: { title: string; text: string };
+    wealth: { title: string; text: string };
+    family: { title: string; text: string };
+    shield: { title: string; text: string };
+  };
+  paragraph1: string;
+  paragraph2: string;
+  paragraph3: string;
+}
+
+export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChart): DynamicDashaGocharaCompassResult {
+  const baseLang = chart.lang.split("-")[0];
+
+  const s = chart.transitSaturn || {
+    houseFromMoon: 11,
+    isSadeSati: false,
+    isAshtama: false,
+    isKantaka: false
+  };
+
+  const j = chart.transitJupiter || {
+    houseFromMoon: 9,
+    isGuruBala: true
+  };
+
+  const mahaName = chart.mahaLordName || (baseLang === "kn" ? "ಗುರು" : baseLang === "hi" ? "गुरु" : baseLang === "te" ? "గురు" : baseLang === "ta" ? "குரு" : "Jupiter");
+  const bhuktiName = chart.bhuktiLordName || (baseLang === "kn" ? "ಶುಕ್ರ" : baseLang === "hi" ? "शुक्र" : baseLang === "te" ? "శుక్ర" : baseLang === "ta" ? "சுக்கிரன்" : "Venus");
+  const lagnaStr = chart.lagnaSignName;
+  const moonStr = chart.moonSignName;
+  const nakshatraStr = chart.nakshatraName || "";
+
+  const isUpachayaShani = [3, 6, 11].includes(s.houseFromMoon);
+
+  if (baseLang === "kn") {
+    let shaniTitle = "ಶನಿ ಭಗವಾನರ ಗೋಚಾರ ಚಕ್ರ";
+    let shaniStatus = "ಶುಭ ಶನಿ ಗೋಚಾರ ಬಲ";
+    let shaniHouse = `ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚಾರ`;
+    let shaniAdverse = false;
+
+    if (s.isSadeSati) {
+      shaniStatus = "ಏಳರೆ ಶನಿ ಪ್ರಭಾವ (ಮಹತ್ವದ ಪರಿವರ್ತನೆ)";
+      shaniHouse = `ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಸ್ಥಾನ (ಸಾಡೇ ಸಾತಿ ಕಾಲ)`;
+      shaniAdverse = true;
+    } else if (s.isKantaka) {
+      shaniStatus = "ಕಂಟಕ ಶನಿ ಗೋಚಾರ (ಕೇಂದ್ರ ಪರಿಶ್ರಮ)";
+      shaniHouse = `ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಕೇಂದ್ರ ಸ್ಥಾನದಲ್ಲಿ ಸಂಚಾರ`;
+      shaniAdverse = true;
+    } else if (s.isAshtama) {
+      shaniStatus = "ಅಷ್ಟಮ ಶನಿ ಗೋಚಾರ (ಆತ್ಮ ರಕ್ಷಣಾ ಕಾಲ)";
+      shaniHouse = `ಜನ್ಮ ರಾಶಿಯಿಂದ ೮ನೇ ಆಯುರ್ಸ್ಥಾನದಲ್ಲಿ ಸಂಚಾರ`;
+      shaniAdverse = true;
+    } else if (isUpachayaShani) {
+      shaniStatus = "ವಿಜಯಪ್ರದ ಶನಿ ಬಲ (ಉಪಚಯ ಸಿದ್ಧಿ)";
+      shaniHouse = `ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಉಪಚಯ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಸಂಚಾರ`;
+      shaniAdverse = false;
+    } else {
+      shaniStatus = "ಸ್ಥಿರ ಶನಿ ಗೋಚಾರ (ಸಮ ಕರ್ಮ ಫಲ)";
+      shaniHouse = `ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಕರ್ಮ ಸಂಚಾರ`;
+      shaniAdverse = false;
+    }
+
+    const guruTitle = "ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಗೋಚಾರ";
+    const guruStatus = j.isGuruBala ? "ಸಂಪೂರ್ಣ ಗುರು ಬಲ ಸಿದ್ಧಿ" : "ಅಂತರ್ಮುಖಿ ಸಾಧನಾ ಕಾಲ";
+    const guruHouse = `ಜನ್ಮ ರಾಶಿಯಿಂದ ${j.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ${j.isGuruBala ? "ಶುಭ ದೃಷ್ಟಿ" : "ಸಂಚಾರ"}`;
+    const guruBenefic = j.isGuruBala;
+
+    const dashaTitle = "ಸಕ್ರಿಯ ದಶಾ-ಗೋಚಾರ ಸಮನ್ವಯ";
+    const dashaEra = `${mahaName} ಮಹಾದಶಾ - ${bhuktiName} ಭುಕ್ತಿ`;
+    const dashaConfluence = j.isGuruBala
+      ? "ದೈವಿಕ ಗುರು ಕೃಪೆಯೊಂದಿಗೆ ಕರ್ಮಸಿದ್ಧಿ ಯೋಗ"
+      : "ಆಂತರಿಕ ಶಿಸ್ತು ಹಾಗೂ ಧರ್ಮ ಪಾಲನೆಯ ಕಾಲ";
+
+    const pariharaTitle = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ರಕ್ಷಾ ಸಂಕಲ್ಪ";
+    const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
+      ? "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ರುದ್ರಾಭಿಷೇಕ & ತಿಲ ದೀಪ ಸೇವೆ"
+      : "ಶ್ರೀ ಮುಖ್ಯಪ್ರಾಣ ತೈಲಾಭಿಷೇಕ & ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಪೂಜೆ";
+    const pariharaTemple = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಆತ್ಮಲಿಂಗ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ";
+
+    const pillarCareer = {
+      title: "೧. ಕಾರ್ಯ ಸಿದ್ಧಿ & ವೃತ್ತಿ ವಿಸ್ತರಣೆ (೧೦ನೇ ಕರ್ಮಸ್ಥಾನ)",
+      text: `${lagnaStr} ಲಗ್ನದ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ${mahaName} ದಶಾ ಪ್ರಭಾವ ಮತ್ತು ಶನಿಯ ${s.houseFromMoon}ನೇ ಭಾವ ಸಂಚಾರವು ಉದ್ಯೋಗ ಹಾಗೂ ಕರ್ಮರಂಗದಲ್ಲಿ ಹೊಸ ಹೊಣೆಗಾರಿಕೆಗಳನ್ನು ತರಲಿದೆ. ${j.isGuruBala ? "ಗುರು ಬಲವು ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕ ಪರಿಶ್ರಮಕ್ಕೆ ಹಿರಿಯ ಅಧಿಕಾರಿಗಳು ಹಾಗೂ ಸಂಸ್ಥೆಯ ಪೂರ್ಣ ಮನ್ನಣೆ ದೊರಕಿಸಿಕೊಡಲಿದೆ." : "ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ಹಿರಿಯರ ಅನುಭವವನ್ನು ಅಳವಡಿಸಿಕೊಂಡು ಮುನ್ನಡೆಯುವುದು ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಜಯ ನೀಡಲಿದೆ."}`
+    };
+
+    const pillarWealth = {
+      title: "೨. ಧನ ಹಾಗೂ ಭಾಗ್ಯ ವೃದ್ಧಿ (೨ & ೧೧ನೇ ಭಾವಗಳು)",
+      text: `ಧನಕಾರಕ ಗುರು ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಅನುಗ್ರಹದಿಂದ ನಿಮ್ಮ ಆರ್ಥಿಕ ಯೋಜನೆಗಳಲ್ಲಿ ಕ್ರಮೇಣ ಸಮತೋಲನ ಮೂಡಲಿದೆ. ${s.isSadeSati || s.isAshtama ? "ಅನಾವಶ್ಯಕ ಖರ್ಚುಗಳು ಹಾಗೂ ಊಹಾತ್ಮಕ ಹೂಡಿಕೆಗಳಿಂದ ದೂರವಿದ್ದು, ಭೂಮಿ ಅಥವಾ ದೀರ್ಘಕಾಲೀನ ಉಳಿತಾಯ ಯೋಜನೆಗಳಿಗೆ ಆದ್ಯತೆ ನೀಡಿ." : "ಹಣಕಾಸಿನ ಹರಿವು ನಿರಂತರವಾಗಿದ್ದು, ಹಳೆಯ ಸಾಲಬಾಧೆಗಳು ಕಡಿಮೆಯಾಗುವ ಶುಭ ಸಂದರ್ಭ ಸೃಷ್ಟಿಯಾಗಲಿದೆ."}`
+    };
+
+    const pillarFamily = {
+      title: "೩. ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ & ಗೃಹ ನೆಮ್ಮದಿ (೪ & ೭ನೇ ಭಾವಗಳು)",
+      text: `ಚಂದ್ರ ರಾಶಿಯಾದ ${moonStr} ಮತ್ತು ${bhuktiName} ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದ ಕುಟುಂಬ ಸದಸ್ಯರ ನಡುವೆ ನಂಬಿಕೆ ಹಾಗೂ ಬಾಂಧವ್ಯ ಸುಧಾರಿಸಲಿದೆ. ಸಂವಹನದಲ್ಲಿ ಸೌಮ್ಯತೆ ಹಾಗೂ ಪರಸ್ಪರ ಗೌರವವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದರಿಂದ ಗೃಹದಲ್ಲಿ ದೈವಿಕ ಶಾಂತಿ ಹಾಗೂ ಮಂಗಳ ಕಾರ್ಯಗಳಿಗೆ ಕಾಲ ಪಕ್ವವಾಗಲಿದೆ.`
+    };
+
+    const pillarShield = {
+      title: "೪. ದೈವಿಕ ರಕ್ಷಾ ಕವಚ & ಜಾಗರೂಕತೆಯ ಅವಧಿ",
+      text: `${s.isAshtama ? "ಪ್ರಯಾಣದ ವೇಳೆ ಸಂಯಮ ಪಾಲಿಸಿ, ಆಹಾರ ಪಥ್ಯ ಮತ್ತು ಆರೋಗ್ಯದ ಕಡೆ ನಿತ್ಯ ಗಮನವಿರಲಿ." : s.isKantaka ? "ವ್ಯಾಪಾರ-ವಹಿವಾಟುಗಳ ಕಾಗದಪತ್ರಗಳಲ್ಲಿ ನಿಖರತೆ ಹಾಗೂ ಸ್ಪಷ್ಟತೆಯನ್ನು ಕಾಯ್ದುಕೊಳ್ಳಿ." : "ನಿತ್ಯ ಪ್ರಾರ್ಥನೆ, ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ಬಡವರಿಗೆ ಅನ್ನದಾನ ಮಾಡುವುದು ಸಕಲ ಗ್ರಹದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ ನಿರಂತರ ರಕ್ಷೆ ನೀಡಲಿದೆ."}`
+    };
+
+    const paragraph1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಲಗ್ನವಾದ ${lagnaStr} ಮತ್ತು ಜನ್ಮ ರಾಶಿಯಾದ ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " ನಕ್ಷತ್ರ)" : ""} ಹಿನ್ನೆಲೆಯಲ್ಲಿ, ಪ್ರಸ್ತುತ ಆಕಾಶ ಮಂಡಲದಲ್ಲಿ ಚಲಿಸುತ್ತಿರುವ ಶನಿ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ಗೋಚಾರವು ನಿಮ್ಮ ಜೀವನದ ಕರ್ಮ ಪ್ರವಾಹದೊಂದಿಗೆ ನೇರ ಸಂಪರ್ಕ ಸಾಧಿಸಿದೆ. ಜನ್ಮ ಕುಂಡಲಿಯು ನಿಮ್ಮ ಮೂಲ ಸಂಚಿತ ಕರ್ಮ ಮತ್ತು ಸಾಮರ್ಥ್ಯದ ನಕ್ಷೆಯಾದರೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaName} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiName} ಭುಕ್ತಿಯು ಆ ಬೀಜಗಳು ಫಲ ನೀಡುವ ಸಮಯವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಆಕಾಶದಲ್ಲಿ ಶನಿ ಭಗವಾನರು ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿರುವುದು ನಿಮ್ಮ ತಾಳ್ಮೆ, ಕರ್ತವ್ಯನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲೀನ ಗುರಿಗಳಿಗೆ ಭದ್ರ ಅಡಿಪಾಯ ಹಾಕಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ.`;
+
+    const paragraph2 = `ಗೋಚಾರ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಜನ್ಮ ರಾಶಿಯಿಂದ ${j.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿದ್ದು, ${j.isGuruBala ? "ನಿಮಗೆ ಅತ್ಯಂತ ಮಂಗಳಕರವಾದ 'ಗುರು ಬಲ'ವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಧಾರೆ ಎರೆಯುತ್ತಿದ್ದಾನೆ. ಈ ಶುಭ ದೃಷ್ಟಿಯು ದಶಾನಾಥನ ಶಕ್ತಿಯನ್ನು ದ್ವಿಗುಣಗೊಳಿಸಿ, ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಗೌರವ, ಕುಟುಂಬದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಸಿದ್ಧಿ ಹಾಗೂ ಆರ್ಥಿಕ ಭದ್ರತೆಯನ್ನು ಉನ್ನತ ಹಂತಕ್ಕೆ ಕೊಂಡೊಯ್ಯುತ್ತದೆ." : "ನಿಮ್ಮನ್ನು ಆಂತರಿಕ ಚಿಂತನೆ, ಆತ್ಮಾವಲೋಕನ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಅರಿವಿನ ಕಡೆಗೆ ಮುನ್ನಡೆಸುತ್ತಿದ್ದಾನೆ. ಈ ಕಾಲಘಟ್ಟದಲ್ಲಿ ನೀವು ಗಳಿಸುವ ಜ್ಞಾನ ಮತ್ತು ಶಿಸ್ತು ಮುಂದಿನ ಭಾಗ್ಯೋದಯಕ್ಕೆ ದಿವ್ಯ ಸೋಪಾನವಾಗಲಿದೆ."} ಕರ್ಮಕಾರಕ ಶನಿಯ ಶಿಸ್ತು ಮತ್ತು ಜ್ಞಾನಕಾರಕ ಗುರುವಿನ ಮಾರ್ಗದರ್ಶನ ಒಟ್ಟಿಗೆ ಸೇರಿ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅಸ್ಥಿರತೆಯನ್ನು ತೊಡೆದುಹಾಕಿ ಶಾಶ್ವತ ಯಶಸ್ಸನ್ನು ನಿರ್ಮಿಸುತ್ತಿವೆ.`;
+
+    const paragraph3 = `ಸುವರ್ಣ ಕರ್ಮಾವಧಿಯ ಈ ಪ್ರಶಸ್ತ ಕಾಲದಲ್ಲಿ ನೀವು ಕೈಗೊಳ್ಳುವ ಯಾವುದೇ ಸತ್ಕಾರ್ಯಕ್ಕೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಹಾಗೂ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ದಿವ್ಯ ಕೃಪೆ ಶ್ರೀರಕ್ಷೆಯಾಗಿ ನಿಲ್ಲಲಿದೆ. ಶನಿ-ಗುರು ಗೋಚಾರ ಸಮನ್ವಯವು ನಿಮ್ಮ ೧೦ನೇ ಕರ್ಮಸ್ಥಾನ ಮತ್ತು ೨ನೇ ಧನಸ್ಥಾನವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸುತ್ತಿರುವುದರಿಂದ, ನಿರಾಶೆ ಅಥವಾ ಅಂಜಿಕೆಗೆ ಎಡೆಗೊಡದೆ ಧರ್ಮಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆಯಿರಿ. ಶ್ರೀ ಕ್ಷೇತ್ರದ ಸಂಕಲ್ಪ ಪೂಜೆ ಮತ್ತು ನಿತ್ಯದ ಇಷ್ಟದೇವತಾ ಸ್ಮರಣೆಯು ನಿಮ್ಮ ಸಂಕಲ್ಪಗಳನ್ನು ಸಿದ್ಧಿಯತ್ತ ಕೊಂಡೊಯ್ದು, ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿಜಯವನ್ನು ತಂದುಕೊಡಲಿದೆ.`;
+
+    return {
+      title: "ದಶಾ-ಗೋಚಾರ ಸುವರ್ಣ ಸಮನ್ವಯ: ಶನಿ-ಗುರು ಗೋಚಾರ ಚಕ್ರ ಹಾಗೂ ಸುವರ್ಣ ಕರ್ಮಾವಧಿ",
+      subtitle: "॥ ಗೋಚಾರ-ದಶಾ ಸಮನ್ವಯೇನ ಸರ್ವಕಾರ್ಯ ಸಿದ್ಧಿಃ ॥",
+      shaniBadge: { title: shaniTitle, status: shaniStatus, houseText: shaniHouse, isAdverse: shaniAdverse },
+      guruBadge: { title: guruTitle, status: guruStatus, houseText: guruHouse, isBenefic: guruBenefic },
+      dashaBadge: { title: dashaTitle, eraText: dashaEra, confluenceText: dashaConfluence },
+      pariharaBadge: { title: pariharaTitle, sankalpaText: pariharaSankalpa, templeText: pariharaTemple },
+      pillars: { career: pillarCareer, wealth: pillarWealth, family: pillarFamily, shield: pillarShield },
+      paragraph1,
+      paragraph2,
+      paragraph3
+    };
+  }
+
+  if (baseLang === "hi") {
+    let shaniTitle = "शनि देव का गोचर चक्र";
+    let shaniStatus = "शुभ शनि गोचर बल";
+    let shaniHouse = `चंद्र राशि से ${s.houseFromMoon}वें भाव में गोचर`;
+    let shaniAdverse = false;
+
+    if (s.isSadeSati) {
+      shaniStatus = "साढ़ेसाती का प्रभाव (परिवर्तन काल)";
+      shaniHouse = `चंद्र राशि से ${s.houseFromMoon}वें भाव में गोचर`;
+      shaniAdverse = true;
+    } else if (s.isKantaka) {
+      shaniStatus = "कंटक शनि गोचर (धैर्य एवं कर्म परीक्षा)";
+      shaniHouse = `चंद्र राशि से ${s.houseFromMoon}वें केंद्र भाव में गोचर`;
+      shaniAdverse = true;
+    } else if (s.isAshtama) {
+      shaniStatus = "अष्टम शनि गोचर (आत्मरक्षा एवं संयम)";
+      shaniHouse = `चंद्र राशि से ८वें आयुर्भाव में गोचर`;
+      shaniAdverse = true;
+    } else if (isUpachayaShani) {
+      shaniStatus = "विजयप्रद शनि बल (उपचय सिद्धि)";
+      shaniHouse = `चंद्र राशि से ${s.houseFromMoon}वें उपचय भाव में शुभ गोचर`;
+      shaniAdverse = false;
+    } else {
+      shaniStatus = "स्थिर शनि गोचर (सम कर्म फल)";
+      shaniHouse = `चंद्र राशि से ${s.houseFromMoon}वें भाव में गोचर`;
+      shaniAdverse = false;
+    }
+
+    const guruTitle = "देवगुरु बृहस्पति गोचर";
+    const guruStatus = j.isGuruBala ? "पूर्ण गुरु बल सिद्धि" : "साधना एवं संयम काल";
+    const guruHouse = `चंद्र राशि से ${j.houseFromMoon}वें भाव में ${j.isGuruBala ? "शुभ अमृत दृष्टि" : "गोचर"}`;
+    const guruBenefic = j.isGuruBala;
+
+    const dashaTitle = "सक्रिय दशा-गोचर समन्वय";
+    const dashaEra = `${mahaName} महादशा - ${bhuktiName} अंतर्दशा`;
+    const dashaConfluence = j.isGuruBala
+      ? "दैवीय गुरु कृपा से कार्यसिद्धि योग"
+      : "आंतरिक अनुशासन एवं धर्म पालन काल";
+
+    const pariharaTitle = "श्री क्षेत्र गोकर्ण रक्षा संकल्प";
+    const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
+      ? "श्री महाबलेश्वर रुद्राभिषेक एवं तिल दीप सेवा"
+      : "श्री मुख्यप्राण तैलाभिषेक एवं नवग्रह पूजा";
+    const pariharaTemple = "श्री क्षेत्र गोकर्ण आत्मलिंग महाबलेश्वर सन्निधि";
+
+    const pillarCareer = {
+      title: "१. कार्य सिद्धि एवं आजीविका विस्तार (१०वां कर्म भाव)",
+      text: `${lagnaStr} लग्न की आपकी कुंडली में वर्तमान ${mahaName} महादशा और शनि का ${s.houseFromMoon}वें भाव में गोचर कार्यक्षेत्र में नई जिम्मेदारियां लेकर आ रहा है। ${j.isGuruBala ? "देवगुरु का पूर्ण गुरु बल आपके प्रयासों को सामाजिक प्रतिष्ठा और वरिष्ठों का सहयोग प्रदान करेगा।" : "धैर्यपूर्वक योजनाबद्ध तरीके से काम करें, सफलता निश्चित मिलेगी।"}`
+    };
+
+    const pillarWealth = {
+      title: "२. धन एवं भाग्य वृद्धि (२ एवं ११वां भाव)",
+      text: `धनकारक गुरु और लग्नेश की कृपा से आपकी आर्थिक स्थिति में स्थायित्व आएगा। ${s.isSadeSati || s.isAshtama ? "अनावश्यक व्यय और सट्टा बाजार से दूर रहकर दीर्घकालिक निवेश पर ध्यान केंद्रित करें।" : "आय के नए स्रोत विकसित होंगे तथा पुराने रुके हुए धन की प्राप्ति के शुभ योग निर्मित हो रहे हैं।"}`
+    };
+
+    const pillarFamily = {
+      title: "३. पारिवारिक सौहार्द एवं गृह शांति (४ एवं ७वां भाव)",
+      text: `चंद्र राशि ${moonStr} और ${bhuktiName} अंतर्दशा के प्रभाव से पारिवारिक संबंधों में विश्वास और आत्मीयता बढ़ेगी। वाणी में मधुरता बनाए रखने से घर में मांगलिक कार्यों की रूपरेखा बनेगी।`
+    };
+
+    const pillarShield = {
+      title: "४. दैवीय रक्षा कवच एवं सतर्कता अवधि",
+      text: `${s.isAshtama ? "यात्रा के समय सतर्क रहें तथा खान-पान और स्वास्थ्य पर विशेष ध्यान दें।" : s.isKantaka ? "व्यापारिक समझौतों और दस्तावेजों पर हस्ताक्षर करते समय पूर्ण सावधानी बरतें।" : "नित्य सूर्य नमस्कार, गायत्री मंत्र जप तथा निर्धनों को अन्नदान करने से सभी ग्रह दोष शांत रहेंगे।"}`
+    };
+
+    const paragraph1 = `आपकी जन्म कुंडली के लग्न ${lagnaStr} एवं चंद्र राशि ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " नक्षत्र)" : ""} के आधार पर वर्तमान में आकाश मंडल में चल रहे शनि और गुरु का गोचर आपके जीवन की दिशा तय कर रहा है। जन्म कुंडली यदि आपके प्रारब्ध और क्षमताओं का मूल मानचित्र है, तो सक्रिय ${mahaName} महादशा और ${bhuktiName} अंतर्दशा वह कालखंड है जब वे फल प्रत्यक्ष रूप से प्रकट होते हैं। शनि देव का आपकी चंद्र राशि से ${s.houseFromMoon}वें भाव में संचरण आपको कर्मठता, अनुशासन और दीर्घकालिक लक्ष्यों की प्राप्ति के लिए प्रेरित कर रहा है।`;
+
+    const paragraph2 = `गोचर में देवगुरु बृहस्पति आपकी चंद्र राशि से ${j.houseFromMoon}वें भाव में विराजमान होकर ${j.isGuruBala ? "आपको अत्यंत शुभ 'गुरु बल' प्रदान कर रहे हैं। गुरु की यह अमृत दृष्टि दशानाथ के शुभ प्रभावों को सशक्त बनाकर समाज में मान-सम्मान, परिवार में मांगलिक कार्य एवं आर्थिक स्थिरता का मार्ग प्रशस्त करती है।" : "आपको आत्म-चिंतन और ज्ञान अर्जन की ओर प्रेरित कर रहे हैं। इस अवधि में अर्जित अनुभव आने वाले समय में आपके भाग्योदय का आधार बनेगा।"} कर्मफलदाता शनि का अनुशासन और ज्ञानदाता गुरु की कृपा मिलकर आपके जीवन में स्थिरता और सफलता का निर्माण कर रहे हैं।`;
+
+    const paragraph3 = `इस स्वर्णिम कर्म कालखंड में आपके प्रत्येक सत्प्रयास को श्री क्षेत्र गोकर्ण के आत्मलिंग महाबलेश्वर एवं मुख्यप्राण भगवान का दिव्य रक्षा कवच प्राप्त है। शनि-गुरु का यह अद्भुत समन्वय आपके कर्म और धन भावों को ऊर्जावान बना रहा है। किसी भी प्रकार के संशय को त्यागकर अपने कर्तव्य पथ पर आगे बढ़ें। श्री क्षेत्र में किया गया संकल्प और नित्य इष्टदेव स्मरण आपको समस्त बाधाओं से पार पाकर निश्चित विजय प्रदान करेगा।`;
+
+    return {
+      title: "दशा-गोचर स्वर्णिम समन्वय: शनि-गुरु गोचर चक्र एवं शुभ कर्म कालखंड",
+      subtitle: "॥ गोचार-दशा समन्वयेन सर्वकार्य सिद्धिः ॥",
+      shaniBadge: { title: shaniTitle, status: shaniStatus, houseText: shaniHouse, isAdverse: shaniAdverse },
+      guruBadge: { title: guruTitle, status: guruStatus, houseText: guruHouse, isBenefic: guruBenefic },
+      dashaBadge: { title: dashaTitle, eraText: dashaEra, confluenceText: dashaConfluence },
+      pariharaBadge: { title: pariharaTitle, sankalpaText: pariharaSankalpa, templeText: pariharaTemple },
+      pillars: { career: pillarCareer, wealth: pillarWealth, family: pillarFamily, shield: pillarShield },
+      paragraph1,
+      paragraph2,
+      paragraph3
+    };
+  }
+
+  if (baseLang === "te") {
+    let shaniTitle = "శని భగవానుని గోచార చక్రం";
+    let shaniStatus = "శుభ శని గోచార బలం";
+    let shaniHouse = `చంద్ర రాశి నుండి ${s.houseFromMoon}వ స్థానంలో సంచారం`;
+    let shaniAdverse = false;
+
+    if (s.isSadeSati) {
+      shaniStatus = "ఏలినాటి శని ప్రభావం (పరివర్తన సమయం)";
+      shaniHouse = `చంద్ర రాశి నుండి ${s.houseFromMoon}వ స్థానంలో గోచారం`;
+      shaniAdverse = true;
+    } else if (s.isKantaka) {
+      shaniStatus = "కంటక శని గోచారం (కేంద్ర పరీక్షా కాలం)";
+      shaniHouse = `చంద్ర రాశి నుండి ${s.houseFromMoon}వ కేంద్ర స్థానంలో సంచారం`;
+      shaniAdverse = true;
+    } else if (s.isAshtama) {
+      shaniStatus = "అష్టమ శని గోచారం (ఆత్మరక్షణ & సంయమనం)";
+      shaniHouse = `చంద్ర రాశి నుండి 8వ ఆయుర్స్థానంలో సంచారం`;
+      shaniAdverse = true;
+    } else if (isUpachayaShani) {
+      shaniStatus = "విజయప్రద శని బలం (ఉపచయ సిద్ధి)";
+      shaniHouse = `చంద్ర రాశి నుండి ${s.houseFromMoon}వ ఉపచయ స్థానంలో శుభ సంచారం`;
+      shaniAdverse = false;
+    } else {
+      shaniStatus = "స్థిర శని గోచారం (సమ కర్మ ఫలం)";
+      shaniHouse = `చంద్ర రాశి నుండి ${s.houseFromMoon}వ స్థానంలో సంచారం`;
+      shaniAdverse = false;
+    }
+
+    const guruTitle = "దేవగురు బృహస్పతి గోచారం";
+    const guruStatus = j.isGuruBala ? "సంపూర్ణ గురు బల సిద్ధి" : "ఆధ్యాత్మిక సాధనా కాలం";
+    const guruHouse = `చంద్ర రాశి నుండి ${j.houseFromMoon}వ స్థానంలో ${j.isGuruBala ? "శుభ దృష్టి" : "సంచారం"}`;
+    const guruBenefic = j.isGuruBala;
+
+    const dashaTitle = "ప్రస్తుత దశా-గోచార సమన్వయం";
+    const dashaEra = `${mahaName} మహాదశ - ${bhuktiName} భుక్తి`;
+    const dashaConfluence = j.isGuruBala
+      ? "దైవిక గురు కృపతో కార్యసిద్ధి యోగం"
+      : "క్రమశిక్షణ మరియు ధర్మ పాలనా సమయం";
+
+    const pariharaTitle = "శ్రీ క్షేత్ర గోకర్ణ రక్షా సంకల్పం";
+    const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
+      ? "శ్రీ మహాబలేశ్వర రుద్రాభిషేకం & నువ్వుల దీప సేవ"
+      : "శ్రీ ముఖ్యప్రాణ తైలాభిషేకం & నవగ్రహ పూజ";
+    const pariharaTemple = "శ్రీ క్షేత్ర గోకర్ణ ఆత్మలింగ మహాబలేశ్వర సన్నిధి";
+
+    const pillarCareer = {
+      title: "1. కార్య సిద్ధి & వృత్తి విస్తరణ (10వ కర్మ స్థానం)",
+      text: `${lagnaStr} లగ్నం కలిగిన మీ జాతకంలో ప్రస్తుత ${mahaName} దశ మరియు శని ${s.houseFromMoon}వ స్థాన సంచారం వృత్తిలో నూతన బాధ్యతలను తీసుకువస్తుంది. ${j.isGuruBala ? "గురు బలం మీ కష్టానికి ఉన్నతాధికారుల మన్నన మరియు సమాజంలో గౌరవాన్ని ప్రసాదిస్తుంది." : "ఓర్పుతో వ్యవహరిస్తూ అనుభవజ్ఞుల సలహాలు తీసుకోవడం వల్ల విజయం లభిస్తుంది."}`
+    };
+
+    const pillarWealth = {
+      title: "2. ధన & భాగ్య వృద్ధి (2 & 11వ స్థానాలు)",
+      text: `ధనకారక గురువు మరియు లగ్నాధిపతి అనుగ్రహంతో మీ ఆర్థిక స్థితి స్థిరపడుతుంది. ${s.isSadeSati || s.isAshtama ? "అనవసర ఖర్చులు తగ్గించి, దీర్ఘకాలిక పొదుపు పథకాలపై దృష్టి పెట్టండి." : "ఆదాయ మార్గాలు బలపడతాయి మరియు పాత బాకీలు వసూలయ్యే అవకాశాలు మెండుగా ఉన్నాయి."}`
+    };
+
+    const pillarFamily = {
+      title: "3. కుటుంబ సామరస్యం & శాంతి (4 & 7వ స్థానాలు)",
+      text: `చంద్ర రాశి అయిన ${moonStr} మరియు ${bhuktiName} భుక్తి ప్రభావంతో కుటుంబ సభ్యుల మధ్య పరస్పర నమ్మకం పెరుగుతుంది. మాటలలో సంయమనం పాటిస్తే గృహంలో శాంతి నెలకొంటుంది.`
+    };
+
+    const pillarShield = {
+      title: "4. దైవిక రక్షా కవచం & జాగ్రత్తల కాలం",
+      text: `${s.isAshtama ? "ప్రయాణాలలో జాగ్రత్త వహించండి, ఆరోగ్యంపై దృష్టి పెట్టండి." : s.isKantaka ? "వ్యాపార ఒప్పందాలలో పత్రాలను క్షుణ్ణంగా పరిశీలించండి." : "నిత్య గాయత్రీ జపం మరియు పేదలకు అన్నదానం చేయడం సర్వ గ్రహ దోషాలను నివారిస్తుంది."}`
+    };
+
+    const paragraph1 = `మీ జన్మ లగ్నం ${lagnaStr} మరియు జన్మ రాశి ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " నక్షత్రం)" : ""} ఆధారంగా ప్రస్తుతం ఆకాశ మండలంలో శని మరియు గురు గ్రహాల సంచారం మీ జీవిత గమనాన్ని నిర్దేశిస్తోంది. జన్మ కుండలి మీ కర్మ సామర్థ్యాల పునాది అయితే, నడుస్తున్న ${mahaName} మహాదశ మరియు ${bhuktiName} భుక్తి ఆ ఫలితాలను అనుభవించే సమయాన్ని సూచిస్తాయి. శని భగవానుడు మీ చంద్ర రాశి నుండి ${s.houseFromMoon}వ స్థానంలో సంచరిస్తూ మీలో పట్టుదల, క్రమశిక్షణలను పెంచుతున్నారు.`;
+
+    const paragraph2 = `గోచారంలో దేవగురువు బృహస్పతి చంద్ర రాశి నుండి ${j.houseFromMoon}వ స్థానంలో ఉంటూ ${j.isGuruBala ? "మీకు అద్భుతమైన 'గురు బలాన్ని' ప్రసాదిస్తున్నారు. ఈ శుభ దృష్టి దశాధిపతి శక్తులను ఇనుమడింపజేసి, వృత్తిలో గుర్తింపు, కుటుంబంలో శుభకార్యాలు మరియు ఆర్థిక ఉన్నతిని చేకూరుస్తుంది." : "మిమ్మల్ని ఆత్మపరిశీలన మరియు ఆధ్యాత్మిక సాధనల వైపు నడిపిస్తున్నారు. ఈ కాలంలో సంపాదించిన అనుభవం భవిష్యత్తు విజయాలకు మార్గదర్శకం అవుతుంది."} శని క్రమశిక్షణ, గురువు అనుగ్రహం కలిసి మీ జీవితానికి స్థిరత్వాన్ని చేకూరుస్తాయి.`;
+
+    const paragraph3 = `ఈ సువర్ణ కర్మ కాలంలో మీరు చేసే ప్రతి మంచి పనికి శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర ఆత్మలింగం మరియు ముఖ్యప్రాణ దేవుని సంపూర్ణ ఆశీస్సులు రక్షగా నిలుస్తాయి. శని-గురు గోచార కలయిక మీ కర్మ, ధన స్థానాలను చైతన్యవంతం చేస్తోంది. సందేహాలను వీడి ధర్మ మార్గంలో ముందుకు సాగండి. శ్రీ క్షేత్ర దర్శనం మరియు నిత్య ప్రార్థనలు మీ సమస్త సంకల్పాలను విజయవంతం చేస్తాయి.`;
+
+    return {
+      title: "దశా-గోచార సువర్ణ సమన్వయం: శని-గురు గోచార చక్రం & శుభ కర్మ కాలం",
+      subtitle: "॥ గోచార-దశా సమన్వయేన సర్వకార్య సిద్ధిః ॥",
+      shaniBadge: { title: shaniTitle, status: shaniStatus, houseText: shaniHouse, isAdverse: shaniAdverse },
+      guruBadge: { title: guruTitle, status: guruStatus, houseText: guruHouse, isBenefic: guruBenefic },
+      dashaBadge: { title: dashaTitle, eraText: dashaEra, confluenceText: dashaConfluence },
+      pariharaBadge: { title: pariharaTitle, sankalpaText: pariharaSankalpa, templeText: pariharaTemple },
+      pillars: { career: pillarCareer, wealth: pillarWealth, family: pillarFamily, shield: pillarShield },
+      paragraph1,
+      paragraph2,
+      paragraph3
+    };
+  }
+
+  if (baseLang === "ta") {
+    let shaniTitle = "சனி பகவானின் கோச்சார சக்கரம்";
+    let shaniStatus = "சுபச் சனி கோச்சார பலம்";
+    let shaniHouse = `சந்திர ராசியில் இருந்து ${s.houseFromMoon}ஆம் இடத்தில் சஞ்சாரம்`;
+    let shaniAdverse = false;
+
+    if (s.isSadeSati) {
+      shaniStatus = "ஏழரை சனி தாக்கம் (மாபெரும் திருப்பம்)";
+      shaniHouse = `சந்திர ராசியில் இருந்து ${s.houseFromMoon}ஆம் இடம் (ஏழரை சனி)`;
+      shaniAdverse = true;
+    } else if (s.isKantaka) {
+      shaniStatus = "கண்டகச் சனி கோச்சாரம் (கேந்திர முயற்சி)";
+      shaniHouse = `சந்திர ராசியில் இருந்து ${s.houseFromMoon}ஆம் கேந்திரத்தில் சஞ்சாரம்`;
+      shaniAdverse = true;
+    } else if (s.isAshtama) {
+      shaniStatus = "அஷ்டமச் சனி கோச்சாரம் (பாதுகாப்பு காலம்)";
+      shaniHouse = `சந்திர ராசியில் இருந்து 8ஆம் ஆயுள் ஸ்தானத்தில் சஞ்சாரம்`;
+      shaniAdverse = true;
+    } else if (isUpachayaShani) {
+      shaniStatus = "வெற்றி தரும் சனி பலம் (உபசய சித்தி)";
+      shaniHouse = `சந்திர ராசியில் இருந்து ${s.houseFromMoon}ஆம் உபசய இடத்தில் சுப சஞ்சாரம்`;
+      shaniAdverse = false;
+    } else {
+      shaniStatus = "நிலையான சனி கோச்சாரம் (சம கர்ம பலன்)";
+      shaniHouse = `சந்திர ராசியில் இருந்து ${s.houseFromMoon}ஆம் இடத்தில் சஞ்சாரம்`;
+      shaniAdverse = false;
+    }
+
+    const guruTitle = "தேவகுரு பிரகஸ்பதி கோச்சாரம்";
+    const guruStatus = j.isGuruBala ? "முழு குரு பல சித்தி" : "ஆன்மீக சாதனை காலம்";
+    const guruHouse = `சந்திர ராசியில் இருந்து ${j.houseFromMoon}ஆம் இடத்தில் ${j.isGuruBala ? "சுபப் பார்வை" : "சஞ்சாரம்"}`;
+    const guruBenefic = j.isGuruBala;
+
+    const dashaTitle = "தற்போதைய திசா-கோச்சார ஒருங்கிணைப்பு";
+    const dashaEra = `${mahaName} மகாதசை - ${bhuktiName} புத்தி`;
+    const dashaConfluence = j.isGuruBala
+      ? "தெய்வீக குரு அருளால் காரிய சித்தி யோகம்"
+      : "ஒழுக்கம் மற்றும் தர்ம நெறி வழிநடத்தல்";
+
+    const pariharaTitle = "ஸ்ரீ க்ஷேத்ர கோகர்ண பாதுகாப்பு சங்கல்பம்";
+    const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
+      ? "ஸ்ரீ மகாபலேஸ்வரர் ருத்ராபிஷேகம் & எள் தீப சேவை"
+      : "ஸ்ரீ முக்கியபிராண தைலாபிஷேகம் & நவக்கிரக அர்ச்சனை";
+    const pariharaTemple = "ஸ்ரீ க்ஷேத்ர கோகர்ண ஆத்மலிங்க மகாபலேஸ்வரர் சன்னதி";
+
+    const pillarCareer = {
+      title: "1. காரிய சித்தி & தொழில் முன்னேற்றம் (10ஆம் கர்ம ஸ்தானம்)",
+      text: `${lagnaStr} லக்னத்தில் பிறந்த உங்களுக்கு நடப்பு ${mahaName} தசை மற்றும் சனியின் ${s.houseFromMoon}ஆம் இடத்து சஞ்சாரம் தொழிலில் புதிய பொறுப்புகளைக் கொடுக்கும். ${j.isGuruBala ? "குரு பலம் உங்கள் உழைப்புக்குரிய அங்கீகாரத்தையும் சமூக நன்மதிப்பையும் பெற்றுத் தரும்." : "அமைதியாகவும் நிதானமாகவும் திட்டமிட்டு செயல்படுவது சிறந்த வெற்றியைத் தரும்."}`
+    };
+
+    const pillarWealth = {
+      title: "2. தன மற்றும் பாக்கிய விருத்தி (2 & 11ஆம் ஸ்தானங்கள்)",
+      text: `தனகாரகன் குரு மற்றும் லக்னாதிபதியின் அருளால் பொருளாதார நிலை சீராகும். ${s.isSadeSati || s.isAshtama ? "தேவையற்ற செலவுகளைத் தவிர்த்து, நீண்டகால சேமிப்பில் கவனம் செலுத்துங்கள்." : "வருமான வாய்ப்புகள் பெருகும், பழைய பாக்கிகள் வசூலாகும் சுப காலம் இது."}`
+    };
+
+    const pillarFamily = {
+      title: "3. குடும்ப அமைதி & இல்லற நல்லிணக்கம் (4 & 7ஆம் ஸ்தானங்கள்)",
+      text: `சந்திர ராசியான ${moonStr} மற்றும் ${bhuktiName} புத்தியின் ஆசியால் குடும்பத்தில் ஒற்றுமையும் பாசமும் கூடும். பேச்சில் கனிவு இருந்தால் வீட்டில் சுப காரியங்கள் இனிதே நிறைவேறும்.`
+    };
+
+    const pillarShield = {
+      title: "4. தெய்வீகக் கவசம் & எச்சரிக்கைக் காலம்",
+      text: `${s.isAshtama ? "பயணங்களில் நிதானம் காக்கவும், உடல் ஆரோக்கியத்தில் கூடுதல் கவனம் தேவை." : s.isKantaka ? "வியாபார ஒப்பந்தங்களில் விழிப்புடன் இருக்கவும்." : "தினசரி காயத்ரி ஜபம் மற்றும் அன்னதானம் செய்வது அனைத்து கிரக தோஷங்களையும் போக்கி நலம் தரும்."}`
+    };
+
+    const paragraph1 = `உங்கள் ஜென்ம லக்னம் ${lagnaStr} மற்றும் ஜென்ம ராசி ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " நட்சத்திரம்)" : ""} அமைப்பின்படி, தற்போதைய வானியல் கோளத்தில் சனி மற்றும் குருவின் சஞ்சாரம் உங்கள் வாழ்க்கைப் பாதையை வடிவமைக்கிறது. ஜென்ம ஜாதகம் உங்கள் பூர்வ கர்மாவின் வரைபடமாக அமைய, நடப்பு ${mahaName} மகாதசையும் ${bhuktiName} புத்தியும் அதன் பலன்கள் வெளிப்படும் காலத்தை உணர்த்துகின்றன. சனி பகவான் உங்கள் சந்திர ராசிக்கு ${s.houseFromMoon}ஆம் இடத்தில் சஞ்சரிப்பது உங்கள் பொறுமையையும் கடமை உணர்வையும் வளர்க்கிறது.`;
+
+    const paragraph2 = `கோச்சார தேவகுரு வியாழன் உங்கள் சந்திர ராசிக்கு ${j.houseFromMoon}ஆம் இடத்தில் அமர்ந்து ${j.isGuruBala ? "உங்களுக்குச் சிறந்த 'குரு பலத்தை' அருளுகிறார். இந்த சுப பார்வை தசாநாதனின் பலத்தை உயர்த்தி, சமூகத்தில் நன்மதிப்பு, குடும்பத்தில் சுப நிகழ்வுகள் மற்றும் பொருளாதார ஸ்திரத்தன்மையை வழங்குகிறது." : "உங்களை ஆன்மீகத் தேடலிலும் சுய பரிசீலனையிலும் வழிநடத்துகிறார். இக்காலத்தில் பெறும் அனுபவங்கள் எதிர்கால வெற்றிகளுக்கு அடித்தளமாகும்."} சனியின் ஒழுக்கமும் குருவின் வழிகாட்டுதலும் இணைந்து உங்கள் வாழ்வில் நீடித்த வெற்றியை உருவாக்குகின்றன.`;
+
+    const paragraph3 = `இந்த சுப கர்ம காலத்தில் நீங்கள் மேற்கொள்ளும் நற்காரியங்களுக்கு ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வர ஆத்மலிங்கம் மற்றும் முக்கியபிராண பெருமானின் அருள் எப்போதும் பாதுகாப்பாக இருக்கும். சனி-குரு கோச்சார இணைவு உங்கள் தொழில் மற்றும் தன ஸ்தானங்களை வலுப்படுத்துகிறது. தயக்கமின்றி தர்ம நெறியில் முன்னேறுங்கள். ஸ்ரீ க்ஷேத்ர வழிபாடு உங்கள் அனைத்து லட்சியங்களையும் நிறைவேற்றி வைக்கும்.`;
+
+    return {
+      title: "திசா-கோச்சார பொன் ஒருங்கிணைப்பு: சனி-குரு கோச்சார சக்கரமும் சுப கர்ம காலமும்",
+      subtitle: "॥ கோச்சார-திசா ஒருங்கிணைப்பால் சர்வகாரிய சித்தி ॥",
+      shaniBadge: { title: shaniTitle, status: shaniStatus, houseText: shaniHouse, isAdverse: shaniAdverse },
+      guruBadge: { title: guruTitle, status: guruStatus, houseText: guruHouse, isBenefic: guruBenefic },
+      dashaBadge: { title: dashaTitle, eraText: dashaEra, confluenceText: dashaConfluence },
+      pariharaBadge: { title: pariharaTitle, sankalpaText: pariharaSankalpa, templeText: pariharaTemple },
+      pillars: { career: pillarCareer, wealth: pillarWealth, family: pillarFamily, shield: pillarShield },
+      paragraph1,
+      paragraph2,
+      paragraph3
+    };
+  }
+
+  // Default: English (en)
+  let shaniTitle = "Saturn (Shani) Live Transit Compass";
+  let shaniStatus = "Auspicious Saturn Transit";
+  let shaniHouse = `Transiting House ${s.houseFromMoon} from Natal Moon`;
+  let shaniAdverse = false;
+
+  if (s.isSadeSati) {
+    shaniStatus = "Sade Sati Phase (Karmic Metamorphosis)";
+    shaniHouse = `House ${s.houseFromMoon} from Moon (Rising/Peak/Setting)`;
+    shaniAdverse = true;
+  } else if (s.isKantaka) {
+    shaniStatus = "Kantaka Saturn Phase (Foundational Testing)";
+    shaniHouse = `Angular House ${s.houseFromMoon} from Moon`;
+    shaniAdverse = true;
+  } else if (s.isAshtama) {
+    shaniStatus = "Ashtama Saturn Phase (Introspection & Prudence)";
+    shaniHouse = `8th House of Transformation from Moon`;
+    shaniAdverse = true;
+  } else if (isUpachayaShani) {
+    shaniStatus = "Elevation & Victory (Upachaya House)";
+    shaniHouse = `House ${s.houseFromMoon} from Moon (Benefic Transit)`;
+    shaniAdverse = false;
+  } else {
+    shaniStatus = "Balanced Karmic Transit";
+    shaniHouse = `House ${s.houseFromMoon} from Moon`;
+    shaniAdverse = false;
+  }
+
+  const guruTitle = "Jupiter (Brihaspati) Celestial Alignment";
+  const guruStatus = j.isGuruBala ? "Active Sovereign Guru Bala" : "Introspective Dharmic Phase";
+  const guruHouse = `Transiting House ${j.houseFromMoon} from Moon (${j.isGuruBala ? "Amrita Drishti" : "Preparatory Transit"})`;
+  const guruBenefic = j.isGuruBala;
+
+  const dashaTitle = "Active Dasha-Transit Confluence";
+  const dashaEra = `${mahaName} Mahadasha - ${bhuktiName} Bhukti`;
+  const dashaConfluence = j.isGuruBala
+    ? "Harmonious Cosmic Elevation & Dharmic Siddhi"
+    : "Disciplined Karmic Maturation & Inner Awakening";
+
+  const pariharaTitle = "Sri Kshetra Gokarna Sacred Shield";
+  const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
+    ? "Sri Mahabaleshwara Rudrabhisheka & Sesame Oil Deepa Seva"
+    : "Sri Mukhyaprana Tailabhisheka & Navagraha Archana";
+  const pariharaTemple = "Sri Kshetra Gokarna Atmalinga Mahabaleshwara Sanctorum";
+
+  const pillarCareer = {
+    title: "1. Karya Siddhi & Professional Mastery (10th House)",
+    text: `With your ${lagnaStr} Lagna, the active ${mahaName} Mahadasha and Saturn's transit in house ${s.houseFromMoon} brings pivotal structural milestones. ${j.isGuruBala ? "Active Guru Bala ensures executive recognition, senior patronage, and steady professional advancement." : "Disciplined patience and methodical planning will convert current responsibilities into permanent career equity."}`
+  };
+
+  const pillarWealth = {
+    title: "2. Wealth Preservation & Inflow (2nd & 11th Houses)",
+    text: `The benefic rays of Jupiter combined with your Lagna Lord foster sustainable financial consolidation. ${s.isSadeSati || s.isAshtama ? "Exercise prudence against speculative risks; prioritize foundational assets and debt consolidation." : "Anticipate balanced cash flows and favorable settlements of legacy dues."}`
+  };
+
+  const pillarFamily = {
+    title: "3. Domestic Harmony & Relationship Sanctity (4th & 7th Houses)",
+    text: `Your natal Moon in ${moonStr} interacting with the ${bhuktiName} sub-period deepens emotional empathy and family bonds. Gentle communication and reciprocal trust will dissolve lingering ambiguities.`
+  };
+
+  const pillarShield = {
+    title: "4. Divine Protective Shield & Cautionary Windows",
+    text: `${s.isAshtama ? "Exercise vigilance during transit travel; maintain balanced nutrition and mindful physical rest." : s.isKantaka ? "Verify documentation thoroughly before entering commercial covenants." : "Daily sacred meditation, Surya Namaskar, and charitable feeding to the underprivileged neutralize lingering planetary friction."}`
+  };
+
+  const paragraph1 = `In your authentic Vedic birth chart, your Ascendant (${lagnaStr}) and Moon sign (${moonStr}${nakshatraStr ? ", " + nakshatraStr + " Nakshatra" : ""}) form the foundational crucible through which cosmic energies manifest. While your natal Kundali reveals your innate karmic reservoir, the running ${mahaName} Mahadasha and ${bhuktiName} Bhukti represent the active season of fruition. Saturn's current transit through house ${s.houseFromMoon} from your natal Moon serves as the cosmic taskmaster, instilling perseverance, reality-tested judgment, and unwavering clarity.`;
+
+  const paragraph2 = `Simultaneously, Devaguru Jupiter transiting house ${j.houseFromMoon} from your Moon sign ${j.isGuruBala ? "confers the celebrated 'Guru Bala' benediction. Jupiter's benevolent amrita gaze actively illuminates your career aspirations, fosters familial auspiciousness, and mitigates transit frictions." : "activates a reflective spiritual retreat, refining your philosophical insight and strategic foresight for the next growth cycle."} Together, the disciplined rigor of Saturn and the sovereign benevolence of Jupiter establish an unshakable equilibrium across your life path.`;
+
+  const paragraph3 = `During this golden karmic window, your constructive endeavors are enveloped by the divine guardianship of Lord Mahabaleshwara Atmalinga and Mukhyaprana at Sri Kshetra Gokarna. Because this transit synergy energizes your 10th Karmasthana and 2nd Dhanasthana, approach every enterprise with dharmic integrity and absolute faith. Sincere prayer and sacred temple sankalpa will unlock lasting tranquility, abundance, and triumphant fulfillment.`;
+
+  return {
+    title: "Sovereign Dasha-Gochara Synthesis: Shani-Guru Transit Compass & Golden Karma Windows",
+    subtitle: "॥ Gochara-Dasha Samanvayena Sarvakarya Siddhih ॥",
+    shaniBadge: { title: shaniTitle, status: shaniStatus, houseText: shaniHouse, isAdverse: shaniAdverse },
+    guruBadge: { title: guruTitle, status: guruStatus, houseText: guruHouse, isBenefic: guruBenefic },
+    dashaBadge: { title: dashaTitle, eraText: dashaEra, confluenceText: dashaConfluence },
+    pariharaBadge: { title: pariharaTitle, sankalpaText: pariharaSankalpa, templeText: pariharaTemple },
+    pillars: { career: pillarCareer, wealth: pillarWealth, family: pillarFamily, shield: pillarShield },
+    paragraph1,
+    paragraph2,
+    paragraph3
+  };
+}

@@ -140,6 +140,13 @@ function getLocalizedSectionName(key: string, baseLang: string): string {
       ta: "அடுத்த 1 ஆண்டு முக்கிய பலன்கள் மற்றும் கோசார-தசா பலன் (Next 1-Year Master Forecast)",
       en: "Next 1-Year Master Forecast & Cosmic Alignment"
     },
+    dashaGocharaCompass: {
+      kn: "ದಶಾ-ಗೋಚಾರ ಸುವರ್ಣ ಸಮನ್ವಯ: ಶನಿ-ಗುರು ಗೋಚಾರ ಚಕ್ರ ಹಾಗೂ ಸುವರ್ಣ ಕರ್ಮಾವಧಿ (Dasha-Gochara Compass)",
+      hi: "दशा-गोचर स्वर्णिम समन्वय: शनि-गुरु गोचर चक्र एवं शुभ कर्म कालखंड (Dasha-Gochara Compass)",
+      te: "దశా-గోచార సువర్ణ సమన్వయం: శని-గురు గోచార చక్రం & శుభ కర్మ కాలం (Dasha-Gochara Compass)",
+      ta: "திசா-கோச்சார பொன் ஒருங்கிணைப்பு: சனி-குரு கோச்சார சக்கரமும் சுப கர்ம காலமும் (Dasha-Gochara Compass)",
+      en: "Sovereign Dasha-Gochara Synthesis: Shani-Guru Compass & Golden Windows"
+    },
     summary: {
       kn: "ಅಧ್ಯಾಯ ೧೦: ಜ್ಯೋತಿಷಿಯ ಸಾರಾಂಶ (Astrologer's Summary / Saramsha)",
       hi: "अध्याय १०: ज्योतिषी का सारांश (Astrologer's Summary / Saramsha)",
@@ -281,6 +288,23 @@ export function validateBhavishyaV1Content(
         pd.gochara.some(g => (g.impact || "").trim().length >= 10);
       if (!hasGochara) {
         missing.push(getLocalizedSectionName("gochara", baseLang));
+      }
+
+      // I1. Sovereign Dasha-Gochara Synthesis & Compass
+      if (pd.dashaGocharaCompass !== undefined) {
+        const dgc = pd.dashaGocharaCompass;
+        const hasDashaCompass = Boolean(
+          dgc &&
+          (dgc.paragraph1 || "").trim().length >= 30 &&
+          (dgc.paragraph2 || "").trim().length >= 30 &&
+          (dgc.paragraph3 || "").trim().length >= 30 &&
+          dgc.shaniBadge &&
+          dgc.guruBadge &&
+          dgc.pillars
+        );
+        if (!hasDashaCompass) {
+          missing.push(getLocalizedSectionName("dashaGocharaCompass", baseLang));
+        }
       }
 
       // J. Chapter 9: 6-Month Planetary Journey Map / Timeline
