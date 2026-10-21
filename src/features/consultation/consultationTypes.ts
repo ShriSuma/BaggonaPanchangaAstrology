@@ -515,6 +515,580 @@ export function getInitialPriestGreeting(lang: ConsultationLanguage, devoteeName
       return `नमस्कार ${name} जी, मी श्री क्षेत्र गोकर्ण येथील मुख्य ज्योतिषी श्रीराम पंडित. मी आपल्या जन्मपत्रिकेचे, लग्नाचे आणि ग्रहांचे सखोल विश्लेषण केले आहे. या २० मिनिटांच्या खाजगी संवादात आपल्या करिअर, विवाह, कुटुंब किंवा इतर कोणत्याही प्रश्नांवर मोकळेपणाने चर्चा करूया; शास्त्रोक्त मार्गदर्शन आणि उपाय शोधूया. आपला पहिला प्रश्न काय आहे?`;
     default:
       return `ನಮಸ್ಕಾರ ${name} ಅವರೇ, ನಾನು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮುಖ್ಯ ದೈವಜ್ಞ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ, ರಾಶಿ ಹಾಗೂ ಜಾತಕವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ವಿಶ್ಲೇಷಿಸಿದ್ದೇನೆ. ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ಯಾವುದೇ ಪ್ರಶ್ನೆಗಳಿದ್ದರೂ ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ; ನಾವಿಬ್ಬರೂ ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಸಮಾಲೋಚನೆ ನಡೆಸೋಣ. ನಿಮ್ಮ ಮೊದಲ ಪ್ರಶ್ನೆ ಏನು?`;
+}
+}
+
+/**
+ * Multilingual UI translations for Consultation Chat Page elements
+ * Eliminates all hardcoded strings and supports all 7 languages natively:
+ * kn (Kannada), en (English), hi (Hindi), te (Telugu), ta (Tamil), ml (Malayalam), mr (Marathi)
+ */
+export interface ConsultationChatUiI18n {
+  patrikaLoading: string;
+  devoteeSenderTag: string;
+  astrologerSenderTag: string;
+  doshaCardTitle: string;
+  specialPariharaBadge: string;
+  doshaAfflictionLabel: string;
+  planetaryCauseLabel: string;
+  currentImpactLabel: string;
+  remedySankalpaLabel: string;
+  priestLabel: string;
+  gokarnaLocationLabel: string;
+  directCallBtn: string;
+  doshaBadgeFallback: string;
+  specialDoshaFallback: string;
+  callRemedyBtn: string;
+  astrologerFooterNote: string;
+  stopAudio: string;
+  listenAudio: string;
+  typingAstrologer: string;
+  synthesizingAnswer: string;
+  faqDockHeader: string;
+  minorChildBadge: string;
+  yearsAgeBadge: string;
+  micTooltip: string;
+  sendTooltip: string;
+  confirmingContact: string;
+  startingSession: string;
+  reviewLaterBtn: string;
+  submittingReview: string;
+  devoteeNameLabel: string;
+  birthDetailsLabel: string;
+  contactSummaryLabel: string;
+  languageSummaryLabel: string;
+  ratingLevels: [string, string, string, string, string];
+}
+
+export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, ConsultationChatUiI18n> = {
+  kn: {
+    patrikaLoading: "ಪಂಚಾಂಗ ಹಾಗೂ ಜಾತಕ ವಿವರಗಳನ್ನು ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತಿದೆ...",
+    devoteeSenderTag: "ನೀವು (ಭಕ್ತರು)",
+    astrologerSenderTag: "ದೈವಜ್ಞರು (ಮುಖ್ಯ ಜ್ಯೋತಿಷಿ, ಗೋಕರ್ಣ)",
+    doshaCardTitle: "॥ ಜಾತಕ ದೋಷ / ಕರ್ಮ ಸಂಬಂಧಿತ ಒಳನೋಟ ॥",
+    specialPariharaBadge: "ವಿಶೇಷ ಪರಿಹಾರ",
+    doshaAfflictionLabel: "⚡ ದೋಷ / ಬಾಧೆ:",
+    planetaryCauseLabel: "🪐 ಗ್ರಹ ಸಂಯೋಗ:",
+    currentImpactLabel: "⚠️ ಪ್ರಸ್ತುತ ಪರಿಣಾಮ:",
+    remedySankalpaLabel: "🛕 ಪರಿಹಾರ ಸಂಕಲ್ಪ:",
+    priestLabel: "ಆಚಾರ್ಯರು: ",
+    gokarnaLocationLabel: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ",
+    directCallBtn: "📞 ನೇರ ಕರೆ",
+    doshaBadgeFallback: "ದೋಷ ಪರಿಹಾರ ಅಧ್ಯಾಯ:",
+    specialDoshaFallback: "ವಿಶೇಷ ಜಾತಕ ದೋಷ",
+    callRemedyBtn: "📞 ಪರಿಹಾರ ಕರೆ",
+    astrologerFooterNote: "ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ದೈವಜ್ಞ ಉತ್ತರ",
+    stopAudio: "⏹️ ನಿಲ್ಲಿಸಿ",
+    listenAudio: "🔊 ಆಲಿಸಿ",
+    typingAstrologer: "ದೈವಜ್ಞರು (ಮುಖ್ಯ ಜ್ಯೋತಿಷಿ, ಗೋಕರ್ಣ)",
+    synthesizingAnswer: "ಜನ್ಮಕುಂಡಲಿ & ದಶಾ-ಗೋಚಾರ ಗಣಿತ ಸಂಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+    faqDockHeader: "ಜನಪ್ರಿಯ ಪ್ರಶ್ನಾವಳಿ (೧-ಟ್ಯಾಪ್)",
+    minorChildBadge: "👶 ಬಾಲಕ/ಬಾಲಕಿ (ಪೋಷಕರ ಮಾರ್ಗದರ್ಶನ)",
+    yearsAgeBadge: "ವರ್ಷ",
+    micTooltip: "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (3-4 ನಿಮಿಷ ಮಾತನಾಡಬಹುದು)",
+    sendTooltip: "ಪ್ರಶ್ನೆ ಕಳುಹಿಸಿ",
+    confirmingContact: "ದೃಢೀಕರಿಸಲಾಗುತ್ತಿದೆ...",
+    startingSession: "ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ...",
+    reviewLaterBtn: "ನಂತರ ಪ್ರಾರಂಭಿಸಿ (ಮುಚ್ಚಿ)",
+    submittingReview: "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
+    devoteeNameLabel: "ಭಕ್ತರ ಹೆಸರು (Name):",
+    birthDetailsLabel: "ಜನ್ಮ ವಿವರಗಳು:",
+    contactSummaryLabel: "ಸಂಪರ್ಕ:",
+    languageSummaryLabel: "ಭಾಷೆ (Language):",
+    ratingLevels: [
+      "⭐ ಅತೃಪ್ತಿ (1/5)",
+      "⭐⭐ ಸುಧಾರಣೆ ಅಗತ್ಯ (2/5)",
+      "⭐⭐⭐ ತೃಪ್ತಿಕರ (3/5)",
+      "⭐⭐⭐⭐ ಬಹಳ ಒಳ್ಳೆಯದು (4/5)",
+      "⭐⭐⭐⭐⭐ ಅತ್ಯುತ್ತಮ (5/5)"
+    ]
+  },
+  en: {
+    patrikaLoading: "Calculating sacred Panchanga and birth chart coordinates...",
+    devoteeSenderTag: "You (Devotee)",
+    astrologerSenderTag: "Chief Astrologer (Gokarna)",
+    doshaCardTitle: "॥ Horoscope Dosha & Karmic Influence Insight ॥",
+    specialPariharaBadge: "Sacred Parihara",
+    doshaAfflictionLabel: "⚡ Identified Dosha:",
+    planetaryCauseLabel: "🪐 Planetary Combination:",
+    currentImpactLabel: "⚠️ Current Life Hardships:",
+    remedySankalpaLabel: "🛕 Prescribed Remedy:",
+    priestLabel: "Chief Priest: ",
+    gokarnaLocationLabel: "Sri Kshetra Gokarna",
+    directCallBtn: "📞 Direct Call",
+    doshaBadgeFallback: "Dosha Parihara Chapter:",
+    specialDoshaFallback: "Vedic Horoscope Dosha",
+    callRemedyBtn: "📞 Call for Parihara",
+    astrologerFooterNote: "Baggona Panchanga Astrological Oracle Guidance",
+    stopAudio: "⏹️ Stop",
+    listenAudio: "🔊 Listen",
+    typingAstrologer: "Chief Astrologer (Gokarna)",
+    synthesizingAnswer: "Synthesizing birth chart, Dasha & Gochara planetary transits...",
+    faqDockHeader: "Frequently Asked Questions (1-Tap)",
+    minorChildBadge: "👶 Minor Child (Parent Protocol)",
+    yearsAgeBadge: "yrs",
+    micTooltip: "Ask question by voice (speak continuously for 3-4 mins)",
+    sendTooltip: "Send Question",
+    confirmingContact: "Confirming...",
+    startingSession: "Starting...",
+    reviewLaterBtn: "Start Later (Review Later)",
+    submittingReview: "Submitting...",
+    devoteeNameLabel: "Devotee Name:",
+    birthDetailsLabel: "Birth Details:",
+    contactSummaryLabel: "Contact:",
+    languageSummaryLabel: "Language:",
+    ratingLevels: [
+      "⭐ Needs Attention (1/5)",
+      "⭐⭐ Fair (2/5)",
+      "⭐⭐⭐ Good (3/5)",
+      "⭐⭐⭐⭐ Very Good (4/5)",
+      "⭐⭐⭐⭐⭐ Excellent (5/5)"
+    ]
+  },
+  hi: {
+    patrikaLoading: "पंचांग एवं जन्म कुंडली विवरणों की गणना की जा रही है...",
+    devoteeSenderTag: "आप (भक्त)",
+    astrologerSenderTag: "दैवज्ञ (मुख्य ज्योतिषी, गोकर्ण)",
+    doshaCardTitle: "॥ जन्मकुंडली दोष एवं कर्म प्रभाव ॥",
+    specialPariharaBadge: "विशेष परिहार",
+    doshaAfflictionLabel: "⚡ दोष / बाधा:",
+    planetaryCauseLabel: "🪐 ग्रह संयोग:",
+    currentImpactLabel: "⚠️ वर्तमान प्रभाव:",
+    remedySankalpaLabel: "🛕 परिहार संकल्प:",
+    priestLabel: "आचार्य: ",
+    gokarnaLocationLabel: "श्री क्षेत्र गोकर्ण",
+    directCallBtn: "📞 सीधे कॉल करें",
+    doshaBadgeFallback: "दोष परिहार अध्याय:",
+    specialDoshaFallback: "विशेष जन्मकुंडली दोष",
+    callRemedyBtn: "📞 परिहार कॉल",
+    astrologerFooterNote: "श्री बग्गोण पंचांग दैवज्ञ उत्तर",
+    stopAudio: "⏹️ रोकें",
+    listenAudio: "🔊 सुनें",
+    typingAstrologer: "दैवज्ञ (मुख्य ज्योतिषी, गोकर्ण)",
+    synthesizingAnswer: "जन्मकुंडली, दशा एवं गोचर ग्रहों का विश्लेषण हो रहा है...",
+    faqDockHeader: "लोकप्रिय प्रश्न (१-टैप)",
+    minorChildBadge: "👶 बाल जातक (माता-पिता मार्गदर्शन)",
+    yearsAgeBadge: "वर्ष",
+    micTooltip: "आवाज से प्रश्न पूछें (3-4 मिनट निरंतर बोल सकते हैं)",
+    sendTooltip: "प्रश्न भेजें",
+    confirmingContact: "सत्यापित किया जा रहा है...",
+    startingSession: "प्रारंभ हो रहा है...",
+    reviewLaterBtn: "बाद में प्रारंभ करें",
+    submittingReview: "जमा किया जा रहा है...",
+    devoteeNameLabel: "भक्त का नाम:",
+    birthDetailsLabel: "जन्म विवरण:",
+    contactSummaryLabel: "संपर्क:",
+    languageSummaryLabel: "भाषा:",
+    ratingLevels: [
+      "⭐ असंतोषजनक (1/5)",
+      "⭐⭐ सुधार आवश्यक (2/5)",
+      "⭐⭐⭐ संतोषजनक (3/5)",
+      "⭐⭐⭐⭐ बहुत अच्छा (4/5)",
+      "⭐⭐⭐⭐⭐ उत्कृष्ट (5/5)"
+    ]
+  },
+  te: {
+    patrikaLoading: "పంచాంగం మరియు జాతక వివరాలు లెక్కించబడుతున్నాయి...",
+    devoteeSenderTag: "మీరు (భక్తులు)",
+    astrologerSenderTag: "దైవజ్ఞులు (ప్రధాన జ్యోతిష్యులు, గోకర్ణ)",
+    doshaCardTitle: "॥ జాతక దోషం / కర్మ సంబంధిత సమాచారం ॥",
+    specialPariharaBadge: "ప్రత్యేక పరిహారం",
+    doshaAfflictionLabel: "⚡ దోషం / బాధ:",
+    planetaryCauseLabel: "🪐 గ్రహ కలయిక:",
+    currentImpactLabel: "⚠️ ప్రస్తుత ప్రభావం:",
+    remedySankalpaLabel: "🛕 పరిహార సంకల్పం:",
+    priestLabel: "ఆచార్యులు: ",
+    gokarnaLocationLabel: "శ్రీ క్షేత్ర గోకర్ణ",
+    directCallBtn: "📞 నేరుగా కాల్ చేయండి",
+    doshaBadgeFallback: "దోష పరిహార అధ్యాయం:",
+    specialDoshaFallback: "ప్రత్యేక జాతక దోషం",
+    callRemedyBtn: "📞 పరిహార కాల్",
+    astrologerFooterNote: "శ్రీ బగ్గోణ పంచాంగ దైవజ్ఞ సమాధానం",
+    stopAudio: "⏹️ ఆపండి",
+    listenAudio: "🔊 వినండి",
+    typingAstrologer: "దైవజ్ఞులు (ప్రధాన జ్యోతిష్యులు, గోకర్ణ)",
+    synthesizingAnswer: "జన్మకుండలి, దశా మరియు గోచార గ్రహాల విశ్లేషణ జరుగుతోంది...",
+    faqDockHeader: "తరచుగా అడిగే ప్రశ్నలు (1-ట్యాప్)",
+    minorChildBadge: "👶 బాల జాతకుడు (తల్లిదండ్రుల మార్గదర్శకత్వం)",
+    yearsAgeBadge: "సంవత్సరాలు",
+    micTooltip: "వాయిస్ ద్వారా ప్రశ్న అడగండి (3-4 నిమిషాలు మాట్లాడవచ్చు)",
+    sendTooltip: "ప్రశ్న పంపండి",
+    confirmingContact: "ధృవీకరిస్తోంది...",
+    startingSession: "ప్రారంభమవుతోంది...",
+    reviewLaterBtn: "తరువాత ప్రారంభించండి",
+    submittingReview: "సమర్పిస్తోంది...",
+    devoteeNameLabel: "భక్తుని పేరు:",
+    birthDetailsLabel: "జన్మ వివరాలు:",
+    contactSummaryLabel: "సంప్రదింపు:",
+    languageSummaryLabel: "భాష:",
+    ratingLevels: [
+      "⭐ అసంతృప్తి (1/5)",
+      "⭐⭐ మెరుగుదల అవసరం (2/5)",
+      "⭐⭐⭐ సంతృప్తికరం (3/5)",
+      "⭐⭐⭐⭐ చాలా బాగుంది (4/5)",
+      "⭐⭐⭐⭐⭐ అద్భుతం (5/5)"
+    ]
+  },
+  ta: {
+    patrikaLoading: "பஞ்சாங்கம் மற்றும் ஜாதக விவரங்கள் கணக்கிடப்படுகின்றன...",
+    devoteeSenderTag: "நீங்கள் (பக்தர்)",
+    astrologerSenderTag: "ஜோதிடர் (தலைமை ஜோதிடர், கோகர்ணம்)",
+    doshaCardTitle: "॥ ஜாதக தோஷம் / கர்ம தாக்கம் ॥",
+    specialPariharaBadge: "சிறப்பு பரிகாரம்",
+    doshaAfflictionLabel: "⚡ தோஷம் / பாதிப்பு:",
+    planetaryCauseLabel: "🪐 கிரக சேர்க்கை:",
+    currentImpactLabel: "⚠️ தற்போதைய தாக்கம்:",
+    remedySankalpaLabel: "🛕 பரிகார சங்கல்பம்:",
+    priestLabel: "ஆசாரியர்: ",
+    gokarnaLocationLabel: "ஸ்ரீ க்ஷேத்ர கோகர்ணம்",
+    directCallBtn: "📞 நேரடி அழைப்பு",
+    doshaBadgeFallback: "தோஷ பரிகார அத்தியாயம்:",
+    specialDoshaFallback: "சிறப்பு ஜாதக தோஷம்",
+    callRemedyBtn: "📞 பரிகார அழைப்பு",
+    astrologerFooterNote: "ஸ்ரீ பக்கவணா பஞ்சாங்க ஜோதிட பதில்",
+    stopAudio: "⏹️ நிறுத்து",
+    listenAudio: "🔊 கேளுங்கள்",
+    typingAstrologer: "ஜோதிடர் (தலைமை ஜோதிடர், கோகர்ணம்)",
+    synthesizingAnswer: "ஜாதகம், தசா மற்றும் கோச்சார கிரகங்களின் கணிப்பு நடைபெறுகிறது...",
+    faqDockHeader: "அடிக்கடி கேட்கப்படும் கேள்விகள் (1-தட்டல்)",
+    minorChildBadge: "👶 குழந்தை ஜாதகம் (பெற்றோர் வழிகாட்டல்)",
+    yearsAgeBadge: "வயது",
+    micTooltip: "குரல் மூலம் கேள்வி கேளுங்கள் (3-4 நிமிடங்கள் பேசலாம்)",
+    sendTooltip: "கேள்வி அனுப்பவும்",
+    confirmingContact: "உறுதிப்படுத்தப்படுகிறது...",
+    startingSession: "தொடங்குகிறது...",
+    reviewLaterBtn: "பிறகு தொடங்கவும்",
+    submittingReview: "சமர்ப்பிக்கப்படுகிறது...",
+    devoteeNameLabel: "பக்தர் பெயர்:",
+    birthDetailsLabel: "பிறந்த விவரங்கள்:",
+    contactSummaryLabel: "தொடர்பு:",
+    languageSummaryLabel: "மொழி:",
+    ratingLevels: [
+      "⭐ திருப்தியற்றது (1/5)",
+      "⭐⭐ முன்னேற்றம் தேவை (2/5)",
+      "⭐⭐⭐ திருப்திகரம் (3/5)",
+      "⭐⭐⭐⭐ மிக நன்று (4/5)",
+      "⭐⭐⭐⭐⭐ மிகச்சிறந்தது (5/5)"
+    ]
+  },
+  ml: {
+    patrikaLoading: "പഞ്ചാംഗവും ജാതക വിവരങ്ങളും കണക്കാക്കുന്നു...",
+    devoteeSenderTag: "നിങ്ങൾ (ഭക്തൻ)",
+    astrologerSenderTag: "ജ്യോതിഷി (പ്രധാന ജ്യോതിഷി, ഗോകർണ്ണം)",
+    doshaCardTitle: "॥ ജാതക ദോഷം / കർമ്മ സ്വാധീനം ॥",
+    specialPariharaBadge: "പ്രത്യേക പരിഹാരം",
+    doshaAfflictionLabel: "⚡ ദോഷം / ബാധ:",
+    planetaryCauseLabel: "🪐 ഗ്രഹ സംയോഗം:",
+    currentImpactLabel: "⚠️ നിലവിലെ സ്വാധീനം:",
+    remedySankalpaLabel: "🛕 പരിഹാര സങ്കല്പം:",
+    priestLabel: "ആചാര്യൻ: ",
+    gokarnaLocationLabel: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം",
+    directCallBtn: "📞 നേരിട്ട് വിളിക്കുക",
+    doshaBadgeFallback: "ദോഷ പരിഹാര അധ്യായം:",
+    specialDoshaFallback: "പ്രത്യേക ജാതക ദോഷം",
+    callRemedyBtn: "📞 പരിഹാര കോൾ",
+    astrologerFooterNote: "ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ ജ്യോതിഷ മറുപടി",
+    stopAudio: "⏹️ നിർത്തുക",
+    listenAudio: "🔊 കേൾക്കുക",
+    typingAstrologer: "ജ്യോതിഷി (പ്രധാന ജ്യോതിഷി, ഗോകർണ്ണം)",
+    synthesizingAnswer: "ജാതകവും ദശാ-ഗോചാര ഗ്രഹനിലയും വിശകലനം ചെയ്യുന്നു...",
+    faqDockHeader: "സാധാരണ ചോദ്യങ്ങൾ (1-ടാപ്പ്)",
+    minorChildBadge: "👶 കുട്ടി ജാതകം (രക്ഷിതാക്കളുടെ മാർഗ്ഗനിർദ്ദേശം)",
+    yearsAgeBadge: "വയസ്സ്",
+    micTooltip: "ശബ്ദത്തിലൂടെ ചോദ്യം ചോദിക്കുക (3-4 മിനിറ്റ് സംസാരിക്കാം)",
+    sendTooltip: "ചോദ്യം അയക്കുക",
+    confirmingContact: "സ്ഥിരീകരിക്കുന്നു...",
+    startingSession: "ആരംഭിക്കുന്നു...",
+    reviewLaterBtn: "പിന്നീട് ആരംഭിക്കുക",
+    submittingReview: "സമർപ്പിക്കുന്നു...",
+    devoteeNameLabel: "ഭക്തന്റെ പേര്:",
+    birthDetailsLabel: "ജനന വിവരങ്ങൾ:",
+    contactSummaryLabel: "സമ്പർക്കം:",
+    languageSummaryLabel: "ഭാഷ:",
+    ratingLevels: [
+      "⭐ തൃപ്തികരമല്ല (1/5)",
+      "⭐⭐ മെച്ചപ്പെടുത്തണം (2/5)",
+      "⭐⭐⭐ തൃപ്തികരം (3/5)",
+      "⭐⭐⭐⭐ വളരെ നല്ലത് (4/5)",
+      "⭐⭐⭐⭐⭐ ഉത്തമം (5/5)"
+    ]
+  },
+  mr: {
+    patrikaLoading: "पंचांग आणि जन्मपत्रिका तपशीलांची गणना केली जात आहे...",
+    devoteeSenderTag: "तुम्ही (भक्त)",
+    astrologerSenderTag: "दैवज्ञ (मुख्य ज्योतिषी, गोकर्ण)",
+    doshaCardTitle: "॥ जन्मपत्रिका दोष व कर्म प्रभाव ॥",
+    specialPariharaBadge: "विशेष परिहार",
+    doshaAfflictionLabel: "⚡ दोष / बाधा:",
+    planetaryCauseLabel: "🪐 ग्रह संयोग:",
+    currentImpactLabel: "⚠️ वर्तमान परिणाम:",
+    remedySankalpaLabel: "🛕 परिहार संकल्प:",
+    priestLabel: "आचार्य: ",
+    gokarnaLocationLabel: "श्री क्षेत्र गोकर्ण",
+    directCallBtn: "📞 थेट कॉल करा",
+    doshaBadgeFallback: "दोष परिहार अध्याय:",
+    specialDoshaFallback: "विशेष जन्मपत्रिका दोष",
+    callRemedyBtn: "📞 परिहार कॉल",
+    astrologerFooterNote: "श्री बग्गोण पंचांग दैवज्ञ उत्तर",
+    stopAudio: "⏹️ थांबवा",
+    listenAudio: "🔊 ऐका",
+    typingAstrologer: "दैवज्ञ (मुख्य ज्योतिषी, गोकर्ण)",
+    synthesizingAnswer: "जन्मपत्रिका, दशा व गोचर ग्रहांचे विश्लेषण सुरू आहे...",
+    faqDockHeader: "वारंवार विचारले जाणारे प्रश्न (१-टॅप)",
+    minorChildBadge: "👶 बाल जातक (पालक मार्गदर्शन)",
+    yearsAgeBadge: "वर्षे",
+    micTooltip: "आवाजाद्वारे प्रश्न विचारा (3-4 मिनिटे बोलू शकता)",
+    sendTooltip: "प्रश्न पाठवा",
+    confirmingContact: "पुष्टी केली जात आहे...",
+    startingSession: "सुरू होत आहे...",
+    reviewLaterBtn: "नंतर सुरू करा",
+    submittingReview: "सबमिट करत आहे...",
+    devoteeNameLabel: "भक्ताचे नाव:",
+    birthDetailsLabel: "जन्म तपशील:",
+    contactSummaryLabel: "संपर्क:",
+    languageSummaryLabel: "भाषा:",
+    ratingLevels: [
+      "⭐ असमाधानकारक (1/5)",
+      "⭐⭐ सुधारणा आवश्यक (2/5)",
+      "⭐⭐⭐ समाधानकारक (3/5)",
+      "⭐⭐⭐⭐ खूप छान (4/5)",
+      "⭐⭐⭐⭐⭐ सर्वोत्कृष्ट (5/5)"
+    ]
+  }
+};
+
+export interface QuickFaqChip {
+  label: string;
+  question: string;
+}
+
+/**
+ * Returns authentic, age-adaptive Quick Suggestion FAQ Chips
+ * fully localized across all 7 supported languages without hardcoding
+ */
+export function getLocalizedQuickFaqChips(
+  lang: ConsultationLanguage,
+  ageYears: number
+): QuickFaqChip[] {
+  const isMinor = ageYears < 18;
+
+  if (isMinor) {
+    switch (lang) {
+      case "en":
+        return [
+          { label: "📚 Education & Focus", question: "How are my child's academic prospects, memory retention, and concentration?" },
+          { label: "🛡️ Health & Protection", question: "What Vedic remedies protect the child's health and shield against evil eye?" },
+          { label: "🌟 Talent & Future", question: "In which field will the child's natural talents and future shine best?" },
+          { label: "🧘 Parenting Guidance", question: "How should parents nurture and handle the child's natural temperament?" }
+        ];
+      case "hi":
+        return [
+          { label: "📚 शिक्षा एवं एकाग्रता", question: "बच्चे की शिक्षा, स्मरण शक्ति और एकाग्रता बढ़ाने के लिए कुंडली अनुसार क्या करें?" },
+          { label: "🛡️ बालारिष्ट एवं स्वास्थ्य", question: "बच्चे के स्वास्थ्य की रक्षा और नजर दोष निवारण हेतु क्या वैदिक उपाय हैं?" },
+          { label: "🌟 प्रतिभा एवं भविष्य", question: "बच्चे की जन्मजात प्रतिभा किस क्षेत्र में सबसे अधिक चमकेगी?" },
+          { label: "🧘 अभिभावक मार्गदर्शन", question: "माता-पिता को बच्चे के स्वभाव को सकारात्मक दिशा देने के लिए क्या करना चाहिए?" }
+        ];
+      case "te":
+        return [
+          { label: "📚 విద్యాభ్యాసం & ఏకాగ్రత", question: "పిల్లల విద్యాభ్యాసం, జ్ఞాపకశక్తి మరియు ఏకాగ్రత పెరగడానికి జాతకరీత్యా పరిహారాలేమిటి?" },
+          { label: "🛡️ బాలారిష్ట & ఆరోగ్యం", question: "పిల్లల ఆరోగ్య రక్షణ మరియు దిష్టి దోష నివారణకు ఎలాంటి పూజలు చేయాలి?" },
+          { label: "🌟 ప్రతిభ & భవిష్యత్తు", question: "పిల్లల సహజ ప్రతిభ ఏ రంగంలో అత్యున్నతంగా రాణిస్తుంది?" },
+          { label: "🧘 తల్లిదండ్రుల మార్గదర్శకత్వం", question: "పిల్లల చంచల స్వభావాన్ని సరిదిద్దడానికి తల్లిదండ్రులు పాటించాల్సిన నియమాలేమిటి?" }
+        ];
+      case "ta":
+        return [
+          { label: "📚 கல்வி & கவனம்", question: "குழந்தையின் கல்வி, நினைவாற்றல் மற்றும் கவனத்தை அதிகரிக்க ஜாதகப்படி என்ன செய்ய வேண்டும்?" },
+          { label: "🛡️ பாலாரிஷ்டம் & உடல்நலம்", question: "குழந்தையின் உடல்நலப் பாதுகாப்பு மற்றும் கண் திருஷ்டி நீங்க பரிகாரம் என்ன?" },
+          { label: "🌟 திறமை & எதிர்காலம்", question: "குழந்தையின் இயற்கையான திறமை எந்த துறையில் சிறப்பாக மிளிரும்?" },
+          { label: "🧘 பெற்றோர் வழிகாட்டல்", question: "குழந்தையின் பிடிவாத குணத்தை அன்புடன் நல்வழிப்படுத்த வழிகாட்டல் என்ன?" }
+        ];
+      case "ml":
+        return [
+          { label: "📚 വിദ്യാഭ്യാസം & ഏകാഗ്രത", question: "കുട്ടിയുടെ വിദ്യാഭ്യാസവും ഏകാഗ്രതയും വർദ്ധിപ്പിക്കാൻ ജാതകപ്രകാരം എന്ത് പരിഹാരമാണ് ചെയ്യേണ്ടത്?" },
+          { label: "🛡️ ബാലാരിഷ്ടം & ആരോഗ്യം", question: "കുട്ടിയുടെ ആരോഗ്യ സംരക്ഷണത്തിനും കണ്ണേറ് ദോഷങ്ങൾക്കും ഉള്ള പരിഹാരം എന്താണ്?" },
+          { label: "🌟 പ്രതിഭ & ഭാവി", question: "കുട്ടിയുടെ സ്വാഭാവിക കഴിവുകൾ ഏത് മേഖലയിലാണ് തിളങ്ങുക?" },
+          { label: "🧘 രക്ഷാകർതൃ മാർഗ്ഗനിർദ്ദേശം", question: "കുട്ടിയുടെ വാശി മാറ്റി നല്ല ശീലങ്ങൾ വളർത്താൻ മാതാപിതാക്കൾ എന്താണ് ചെയ്യേണ്ടത്?" }
+        ];
+      case "mr":
+        return [
+          { label: "📚 शिक्षण व एकाग्रता", question: "मुलाचे शिक्षण, स्मरणशक्ती आणि एकाग्रता वाढवण्यासाठी कुंडलीनुसार काय उपाय करावेत?" },
+          { label: "🛡️ बालारिष्ट व आरोग्य", question: "मुलाच्या आरोग्याचे रक्षण आणि दृष्ट दोष निवारणासाठी कोणते वैदिक उपाय आहेत?" },
+          { label: "🌟 प्रतिभा व भविष्य", question: "मुलाची उपजत प्रतिभा कोणत्या क्षेत्रात सर्वात जास्त चमकेल?" },
+          { label: "🧘 पालक मार्गदर्शन", question: "पालकांनी मुलाच्या हट्टी स्वभावाला प्रेमाने योग्य वळण कसे लावावे?" }
+        ];
+      case "kn":
+      default:
+        return [
+          { label: "📚 ವಿದ್ಯಾಭ್ಯಾಸ & ಏಕಾಗ್ರತೆ", question: "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಏಕಾಗ್ರತೆ ಹೆಚ್ಚಿಸಲು ಜಾತಕದ ಪ್ರಕಾರ ಏನು ಮಾಡಬೇಕು?" },
+          { label: "🛡️ ಬಾಲಾರಿಷ್ಟ & ಆರೋಗ್ಯ", question: "ಮಗುವಿನ ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಹಾಗೂ ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆಗೆ ಪರಿಹಾರವೇನು?" },
+          { label: "🌟 ಪ್ರತಿಭೆ & ಉಜ್ವಲ ಭವಿಷ್ಯ", question: "ಮಗುವಿನ ಸಹಜ ಪ್ರತಿಭೆ ಯಾವ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯಂತ ಉಜ್ವಲವಾಗಿ ಬೆಳಗಲಿದೆ?" },
+          { label: "🧘 ಪೋಷಕರ ಮಾರ್ಗದರ್ಶನ", question: "ಮಗುವಿನ ಹಠ ಹಾಗೂ ಚಂಚಲ ಸ್ವಭಾವವನ್ನು ಪ್ರೀತಿಯಿಂದ ಸರಿಪಡಿಸುವುದು ಹೇಗೆ?" }
+        ];
+    }
+  }
+
+  if (ageYears <= 28) {
+    switch (lang) {
+      case "en":
+        return [
+          { label: "💍 Marriage Timing", question: "When is my marriage indicated? Will it be a love marriage or arranged?" },
+          { label: "💼 Career & Growth", question: "How is my career progression and financial stability in the coming months?" },
+          { label: "⚡ Vitality & Confidence", question: "What Ayurvedic and Vedic guidance restores vitality, stamina, and inner confidence?" },
+          { label: "🕉️ Gokarna Parihara", question: "Which sacred pooja or parihara at Gokarna is recommended for my current Dasha?" }
+        ];
+      case "hi":
+        return [
+          { label: "💍 विवाह योग एवं समय", question: "मेरा विवाह कब होगा? क्या यह प्रेम विवाह होगा या अरेंज्ड विवाह?" },
+          { label: "💼 आजीविका एवं नौकरी", question: "आने वाले महीनों में मेरा करियर, नौकरी में तरक्की और आर्थिक स्थिति कैसी रहेगी?" },
+          { label: "⚡ ऊर्जा एवं आत्मविश्वास", question: "शारीरिक स्फूर्ति, आंतरिक आत्मविश्वास और मानसिक शांति के लिए क्या वैदिक उपाय हैं?" },
+          { label: "🕉️ गोकर्ण दोष परिहार", question: "वर्तमान दशा अनुसार श्री क्षेत्र गोकर्ण में कौन सी शांति पूजा कराना श्रेष्ठ है?" }
+        ];
+      case "te":
+        return [
+          { label: "💍 వివాహ సమయం & యోగం", question: "నా వివాహం ఎప్పుడు అవుతుంది? ప్రేమ వివాహమా లేక పెద్దలు కుదిర్చిన వివాహమా?" },
+          { label: "💼 ఉద్యోగం & ఎదుగుదల", question: "వచ్చే నెలల్లో నా కెరీర్, ఉద్యోగ పురోగతి మరియు ఆర్థిక పరిస్థితి ఎలా ఉండబోతోంది?" },
+          { label: "⚡ తేజస్సు & ఆత్మవిశ్వాసం", question: "శారీరక బలం, మానసిక ఉత్సాహం మరియు ఆత్మవిశ్వాసం పెంచుకోవడానికి పరిహారమేమిటి?" },
+          { label: "🕉️ గోకర్ణ దోష పరిహారం", question: "ప్రస్తుత దశా ప్రకారం గోకర్ణంలో ఏ శాంతి పూజ చేయించడం మంచిది?" }
+        ];
+      case "ta":
+        return [
+          { label: "💍 திருமண காலம்", question: "எனக்கு திருமணம் எப்போது நடைபெறும்? காதல் திருமணமா அல்லது பெற்றோர் பார்த்த திருமணமா?" },
+          { label: "💼 வேலை & தொழில்", question: "வரும் மாதங்களில் எனது வேலைவாய்ப்பு, தொழில் வளர்ச்சி மற்றும் நிதி நிலைமை எப்படி இருக்கும்?" },
+          { label: "⚡ நல்வாழ்வு & தன்னம்பிக்கை", question: "உடல் நலம், தன்னம்பிக்கை மற்றும் மன அமைதியைப் பெற சாஸ்திர வழிகாட்டல் என்ன?" },
+          { label: "🕉️ கோகர்ண தோஷ பரிகாரம்", question: "எனது தசா நிலைக்கு கோகர்ணத்தில் எந்த சாந்தி பூஜை செய்வது சிறந்தது?" }
+        ];
+      case "ml":
+        return [
+          { label: "💍 വിവാഹ സമയം", question: "എന്റെ വിവാഹം എപ്പോൾ നടക്കും? പ്രണയവിവാഹമാണോ അതോ വീട്ടുകാർ ഉറപ്പിക്കുന്നതാണോ?" },
+          { label: "💼 ജോലിയും കരിയറും", question: "വരും മാസങ്ങളിൽ എന്റെ കരിയർ വളർച്ചയും സാമ്പത്തിക സ്ഥിതിയും എങ്ങനെയായിരിക്കും?" },
+          { label: "⚡ ഉന്മേഷവും ആത്മവിശ്വാസവും", question: "ആരോഗ്യവും ആത്മവിശ്വാസവും വീണ്ടെടുക്കാൻ വേദ-ആയുർവേദ പരിഹാരം എന്താണ്?" },
+          { label: "🕉️ ഗോകർണ്ണ ദോഷ പരിഹാരം", question: "നിലവിലെ ദശ പ്രകാരം ഗോകർണ്ണത്തിൽ ഏത് ശാന്തി പൂജയാണ് അനുയോജ്യം?" }
+        ];
+      case "mr":
+        return [
+          { label: "💍 विवाह योग व काळ", question: "माझा विवाह केव्हा होईल? प्रेमविवाह होईल की ठरवून केलेला विवाह?" },
+          { label: "💼 करिअर व नोकरी", question: "पुढील काही महिन्यांत माझ्या नोकरीतील प्रगती आणि आर्थिक परिस्थिती कशी राहील?" },
+          { label: "⚡ ऊर्जा व आत्मविश्वास", question: "शारीरिक स्वास्थ्य, आंतरिक आत्मविश्वास आणि मानसिक समाधानासाठी काय उपाय करावेत?" },
+          { label: "🕉️ गोकर्ण दोष परिहार", question: "चालू दशा काळानुसार श्री क्षेत्र गोकर्ण येथे कोणती शांती पूजा करावी?" }
+        ];
+      case "kn":
+      default:
+        return [
+          { label: "💍 ಕಂಕಣ ಭಾಗ್ಯ & ವಿವಾಹ", question: "ನನ್ನ ವಿವಾಹ ಕಾಲ ಯಾವಾಗ? ಲವ್ ಮ್ಯಾರೇಜ್ ಆಗುತ್ತದೆಯೇ ಅಥವಾ ಅರೇಂಜ್ಡ್?" },
+          { label: "💼 ವೃತ್ತಿ & ಧನಾಗಮನ", question: "ನನ್ನ ವೃತ್ತಿಜೀವನದ ಮುಂಬರುವ ಬೆಳವಣಿಗೆ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?" },
+          { label: "⚡ ಲೈಂಗಿಕ ಸಾಮರ್ಥ್ಯ & ಅಂತರಂಗ", question: "ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ, ಲೈಂಗಿಕ ಚೈತನ್ಯ ಹಾಗೂ ರಹಸ್ಯ ಆತಂಕಗಳಿಗೆ ಆಯುರ್ವೇದ-ವೈದಿಕ ಪರಿಹಾರವೇನು?" },
+          { label: "🕉️ ಗೋಕರ್ಣ ದೋಷ ಪರಿಹಾರ", question: "ನನ್ನ ಜಾತಕದಲ್ಲಿ ಯಾವುದಾದರೂ ದೋಷವಿದೆಯೇ? ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಪೂಜೆ ಶ್ರೇಷ್ಠ?" }
+        ];
+    }
+  }
+
+  if (ageYears <= 48) {
+    switch (lang) {
+      case "en":
+        return [
+          { label: "👶 Progeny & Family", question: "When is progeny indicated in our marriage, and what is the Gokarna Santhana Gopala remedy?" },
+          { label: "💼 Career Frustration Relief", question: "I feel persistent frustration, stagnation, and politics at work. When will this clear?" },
+          { label: "💰 Debt Relief & Wealth", question: "How can I overcome financial burdens, debts, and attract lasting prosperity?" },
+          { label: "🕊️ Marital Harmony", question: "How can we restore tranquility, mutual affection, and bedroom harmony in marriage?" }
+        ];
+      case "hi":
+        return [
+          { label: "👶 संतान प्राप्ति योग", question: "दाम्पत्य में संतान योग कब है और गोकर्ण संतान गोपाल पूजा का क्या महत्व है?" },
+          { label: "💼 कार्यक्षेत्र तनाव मुक्ति", question: "नौकरी व व्यवसाय में लगातार अड़चनें और मानसिक तनाव आ रहा है, इससे कब मुक्ति मिलेगी?" },
+          { label: "💰 ऋण मुक्ति एवं धन समृद्धि", question: "कर्ज व आर्थिक तंगी से बाहर निकलने के लिए कुंडली अनुसार क्या उपाय करना चाहिए?" },
+          { label: "🕊️ दांपत्य सुख एवं शांति", question: "वैवाहिक जीवन में आपसी समझ, सौहार्द और शांति बनाए रखने के लिए क्या मार्गदर्शन है?" }
+        ];
+      case "te":
+        return [
+          { label: "👶 సంతాన ప్రాప్తి యోగం", question: "దాంపత్యంలో సంతాన భాగ్యం ఎప్పుడు కలుగుతుంది? గోకర్ణ సంతాన గోపాల పూజ గురించి చెప్పండి." },
+          { label: "💼 ఉద్యోగ ఒత్తిడి నివారణ", question: "ఉద్యోగంలో నిరంతర చికాకులు, ఒత్తిడి ఎదురవుతున్నాయి. దీని నుండి ఎప్పుడు ఉపశమనం లభిస్తుంది?" },
+          { label: "💰 రుణ విముక్తి & సంపద", question: "అప్పులు, ఆర్థిక నష్టాల నుండి బయటపడటానికి జాతకరీత్యా పరిహారమేమిటి?" },
+          { label: "🕊️ దాంపత్య సౌఖ్యం", question: "దాంపత్య జీవితంలో శాంతి, అన్యోన్యతను కాపాడుకోవడానికి మార్గదర్శకత్వమేమిటి?" }
+        ];
+      case "ta":
+        return [
+          { label: "👶 குழந்தை பாக்கியம்", question: "தம்பதியினருக்கு குழந்தை பாக்கியம் எப்போது உண்டாகும்? கோகர்ண சந்தான கோபால பூஜை பற்றி கூறுங்கள்." },
+          { label: "💼 வேலை மனஅழுத்தம் தீர்வு", question: "வேலையில் தொடர் தடைகளும் மன அழுத்தமும் உள்ளது, இதிலிருந்து எப்போது விடுதலை கிடைக்கும்?" },
+          { label: "💰 கடன் நிவாரணம் & செல்வம்", question: "கடன் சுமை மற்றும் நிதி இழப்பிலிருந்து விடுபட ஜாதகப்படி என்ன பரிகாரம் செய்ய வேண்டும்?" },
+          { label: "🕊️ குடும்ப அமைதி", question: "திருமண வாழ்க்கையில் அமைதி, பரஸ்பர அன்பு நிலைக்க வழிகாட்டல் என்ன?" }
+        ];
+      case "ml":
+        return [
+          { label: "👶 സന്താന ഭാഗ്യം", question: "വിവാഹജീവിതത്തിൽ സന്താനഭാഗ്യം എപ്പോഴാണ് ഉണ്ടാകുക? ഗോകർണ്ണ സന്താന ഗോപാല പൂജയെക്കുറിച്ച് പറയുക." },
+          { label: "💼 ജോലി സമ്മർദ്ദത്തിൽ ആശ്വാസം", question: "ജോലിസ്ഥലത്ത് നിരന്തരമായ തടസ്സങ്ങളും മടുപ്പും അനുഭവപ്പെടുന്നു, ഇതിൽ നിന്ന് എപ്പോൾ മോചനം ലഭിക്കും?" },
+          { label: "💰 കടബാധ്യത മുക്തി", question: "കടബാധ്യതയിൽ നിന്നും സാമ്പത്തിക ഞെരുക്കത്തിൽ നിന്നും കരകയറാൻ എന്ത് പരിഹാരമാണ് ചെയ്യേണ്ടത്?" },
+          { label: "🕊️ ദാമ്പത്യ സൗഖ്യം", question: "ദാമ്പത്യത്തിൽ പരസ്പര സ്നേഹവും സമാധാനവും നിലനിർത്താൻ എന്ത് മാർഗ്ഗനിർദ്ദേശമാണുള്ളത്?" }
+        ];
+      case "mr":
+        return [
+          { label: "👶 संतान प्राप्ती योग", question: "वैवाहिक जीवनात संतान योग केव्हा आहे आणि गोकर्ण संतान गोपाल पूजेबद्दल माहिती द्या." },
+          { label: "💼 नोकरीतील ताणतणाव मुक्ती", question: "कामात सतत अडथळे आणि नैराश्य येत आहे. यातून मुक्ती कधी मिळेल?" },
+          { label: "💰 कर्जमुक्ती व धनलाभ", question: "कर्ज आणि आर्थिक अडचणींतून बाहेर पडण्यासाठी जन्मपत्रिकेनुसार काय उपाय आहेत?" },
+          { label: "🕊️ वैवाहिक सुख व शांतता", question: "दांपत्य जीवनात सुसंवाद आणि शांतता राखण्यासाठी काय मार्गदर्शन कराल?" }
+        ];
+      case "kn":
+      default:
+        return [
+          { label: "👶 ಸಂತಾನ ಭಾಗ್ಯ & ಪುತ್ರ ಪ್ರಾಪ್ತಿ", question: "ದಾಂಪತ್ಯದಲ್ಲಿ ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯಾವಾಗ? ಗೋಕರ್ಣದ ಸಂತಾನ ಗೋಪಾಲ ಪೂಜೆಯ ಬಗ್ಗೆ ತಿಳಿಸಿ." },
+          { label: "💼 ಕೆಲಸದಲ್ಲಿ ಕಿರಿಕಿರಿ & ಮುಕ್ತಿ", question: "ಕೆಲಸದಲ್ಲಿ ನಿರಂತರ ಕಿರಿಕಿರಿ, ಬೇಸರ ಮತ್ತು ಹತಾಶೆ ಎದುರಾಗುತ್ತಿದೆ. ಇದರಿಂದ ಮುಕ್ತಿ ಯಾವಾಗ?" },
+          { label: "💰 ಸಾಲ ಮುಕ್ತಿ & ಆರ್ಥಿಕ ನೆಮ್ಮದಿ", question: "ಸಾಲ ಮತ್ತು ಆರ್ಥಿಕ ನಷ್ಟದಿಂದ ಹೊರಬರಲು ಜಾತಕದ ಪ್ರಕಾರ ಏನು ಪರಿಹಾರ?" },
+          { label: "🕊️ ದಾಂಪತ್ಯ ಶಾಂತಿ & ಶಯನ ಸುಖ", question: "ದಾಂಪತ್ಯದಲ್ಲಿ ಸಾಮರಸ್ಯ ಹಾಗೂ ಅಂತರಂಗದ ನೆಮ್ಮದಿ ಕಾಪಾಡಿಕೊಳ್ಳಲು ಮಾರ್ಗದರ್ಶನವೇನು?" }
+        ];
+    }
+  }
+
+  // Seniors (49+)
+  switch (lang) {
+    case "en":
+      return [
+        { label: "🏡 Children's Prosperity", question: "How is my children's future and prosperity, and how can family harmony be ensured?" },
+        { label: "🌿 Health & Longevity", question: "What astrological remedies support good health, mental peace, and longevity?" },
+        { label: "🕉️ Gokarna Mahabaleshwara", question: "Which sacred pooja or parihara at Sri Kshetra Gokarna will bestow divine grace?" },
+        { label: "🕊️ Spiritual Path & Peace", question: "What spiritual practices and daily sadhana are most auspicious for this stage of life?" }
+      ];
+    case "hi":
+      return [
+        { label: "🏡 बच्चों का भविष्य", question: "मेरे बच्चों का भविष्य कैसा रहेगा और परिवार में सुख-शांति कैसे बनी रहे?" },
+        { label: "🌿 स्वास्थ्य एवं दीर्घायु", question: "स्वास्थ्य, दीर्घायु और मानसिक शांति के लिए शास्त्रोक्त उपाय क्या हैं?" },
+        { label: "🕉️ गोकर्ण महारुद्राभिषेक", question: "श्री क्षेत्र गोकर्ण में कौन सी पूजा या रुद्राभिषेक कराने से दिव्य कृपा प्राप्त होगी?" },
+        { label: "🕊️ आध्यात्मिक शांति", question: "जीवन के इस पड़ाव पर मन की शांति के लिए कौन सी दैनिक साधना श्रेष्ठ है?" }
+      ];
+    case "te":
+      return [
+        { label: "🏡 పిల్లల భవిష్యత్తు", question: "నా పిల్లల భవిష్యత్తు మరియు కుటుంబంలో సుఖశాంతులు వెల్లివిరియడానికి ఏమి చేయాలి?" },
+        { label: "🌿 ఆరోగ్యం & దీర్ఘాయుష్షు", question: "ఆరోగ్యం, దీర్ఘాయుష్షు మరియు మానసిక ప్రశాంతతకు వేద పరిహారాలేమిటి?" },
+        { label: "🕉️ గోకర్ణ మహారుద్రాభిషేకం", question: "గోకర్ణ క్షేత్రంలో ఏ శాంతి పూజ లేదా రుద్రాభిషేకం చేయించడం శ్రేయస్కరం?" },
+        { label: "🕊️ ఆధ్యాత్మిక ప్రశాంతత", question: "జీవితంలోని ఈ దశలో మనశ్శాంతికి ఏ ఆధ్యాత్మిక సాధన శ్రేష్టమైనది?" }
+      ];
+    case "ta":
+      return [
+        { label: "🏡 குழந்தைகளின் எதிர்காலம்", question: "என் குழந்தைகளின் எதிர்காலம் மற்றும் குடும்பத்தில் நிம்மதி நிலவ என்ன செய்ய வேண்டும்?" },
+        { label: "🌿 உடல்நலம் & ஆயுள்", question: "உடல் நலம், நீண்ட ஆயுள் மற்றும் மன அமைதிக்கான சாஸ்திர பரிகாரங்கள் என்ன?" },
+        { label: "🕉️ கோகர்ண ருத்ராபிஷேகம்", question: "ஸ்ரீ க்ஷேத்ர கோகர்ணத்தில் எந்த சாந்தி பூஜை அல்லது ருத்ராபிஷேகம் செய்வது உத்தமம்?" },
+        { label: "🕊️ ஆன்மீக அமைதி", question: "வாழ்க்கையின் இந்த காலகட்டத்தில் மன அமைதிக்கு எந்த ஆன்மீக வழிபாடு சிறந்தது?" }
+      ];
+    case "ml":
+      return [
+        { label: "🏡 മക്കളുടെ ഭാവി", question: "മക്കളുടെ ഭാവിയും കുടുംബത്തിൽ സമാധാനവും ഉണ്ടാകാൻ എന്താണ് ചെയ്യേണ്ടത്?" },
+        { label: "🌿 ആരോഗ്യവും ദീർഘായുസ്സും", question: "ആരോഗ്യത്തിനും ദീർഘായുസ്സിനും മനശ്ശാന്തിക്കും അനുയോജ്യമായ പരിഹാരം എന്താണ്?" },
+        { label: "🕉️ ഗോകർണ്ണ മഹാരുദ്രാഭിഷേകം", question: "ഗോകർണ്ണ ക്ഷേത്രത്തിൽ ഏത് ശാന്തി പൂജയോ രുദ്രാഭിഷേകമോ ആണ് ദിവ്യകൃപ നൽകുക?" },
+        { label: "🕊️ ആത്മീയ ശാന്തി", question: "ജീവിതത്തിന്റെ ഈ ഘട്ടത്തിൽ മനസ്സിന്റെ സമാധാനത്തിന് ഏത് ആത്മീയ സാധനയാണ് ഉത്തമം?" }
+      ];
+    case "mr":
+      return [
+        { label: "🏡 मुलांचे भविष्य", question: "माझ्या मुलांचे भविष्य आणि कुटुंबात सुख-शांती राहण्यासाठी काय करावे?" },
+        { label: "🌿 आरोग्य व दीर्घायुष्य", question: "उत्तम आरोग्य, दीर्घायुष्य आणि मानसिक शांततेसाठी कोणते उपाय आहेत?" },
+        { label: "🕉️ गोकर्ण महारुद्राभिषेक", question: "श्री क्षेत्र गोकर्ण येथे कोणती शांती पूजा किंवा रुद्राभिषेक करणे श्रेयस्कर ठरेल?" },
+        { label: "🕊️ आध्यात्मिक शांतता", question: "आयुष्याच्या या टप्प्यावर मानसिक समाधानासाठी कोणती साधना करावी?" }
+      ];
+    case "kn":
+    default:
+      return [
+        { label: "🏡 ಮಕ್ಕಳ ಭವಿಷ್ಯ & ಶಾಂತಿ", question: "ನನ್ನ ಮಕ್ಕಳ ಭವಿಷ್ಯ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲು ಏನು ಮಾಡಬೇಕು?" },
+        { label: "🌿 ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ವೃದ್ಧಿ", question: "ಆರೋಗ್ಯ, ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ಮಾನಸಿಕ ನೆಮ್ಮದಿಗೆ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರವೇನು?" },
+        { label: "🕉️ ಗೋಕರ್ಣ ಮಹಾರುದ್ರಾಭಿಷೇಕ", question: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಪೂಜೆ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದು ಶ್ರೇಷ್ಠ?" },
+        { label: "🕊️ ಆಧ್ಯಾತ್ಮಿಕ ಮಾರ್ಗ & ಮುಕ್ತಿ", question: "ಜೀವನದ ಈ ಹಂತದಲ್ಲಿ ಮನಸ್ಸಿನ ನೆಮ್ಮದಿಗೆ ಯಾವ ದೈವಿಕ ಧ್ಯಾನ ಮತ್ತು ಸಾಧನೆ ಶ್ರೇಷ್ಠ?" }
+      ];
   }
 }
 

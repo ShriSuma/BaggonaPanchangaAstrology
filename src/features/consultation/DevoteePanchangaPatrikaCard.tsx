@@ -156,7 +156,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
         <div className="space-y-2 mb-5">
           <div className="text-xs font-serif font-bold text-amber-900 flex items-center gap-1.5 px-1">
             <span>✨</span>
-            <span>ವೈದಿಕ ಜನ್ಮ ಪಂಚಾಂಗ ಅಂಗಗಳು (Panchanga Limbs & Coordinates)</span>
+            <span>{labels.limbsTitle}</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -261,7 +261,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
                 type="tel"
                 value={phoneInput}
                 onChange={(e) => onPhoneInputChange(e.target.value)}
-                placeholder="ಉದಾ: 9876543210 / +91..."
+                placeholder={labels.phonePlaceholder}
                 className="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-sm text-stone-900 focus:outline-hidden focus:ring-2 focus:ring-amber-500 font-sans"
               />
             </div>
@@ -274,7 +274,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
             className="w-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-serif font-black text-sm sm:text-base py-3.5 px-6 rounded-2xl shadow-lg border border-amber-400 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <span>🪔</span>
-            <span>{isStarting ? "ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ..." : labels.startConsultationBtn}</span>
+            <span>{isStarting ? labels.startingBtn : labels.startConsultationBtn}</span>
             <span>➔</span>
           </button>
 
@@ -286,7 +286,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
         {/* Priest & Sansthana Footer Note */}
         <div className="mt-4 pt-3 border-t border-amber-200/90 flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-900/80 font-serif">
           <span>{labels.priestTitle}</span>
-          <span className="font-bold">ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ • ನೇರ ದೂರವಾಣಿ: 9972339362</span>
+          <span className="font-bold">{labels.priestLocationPhone}</span>
         </div>
       </div>
     </div>

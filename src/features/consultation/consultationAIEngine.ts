@@ -881,8 +881,14 @@ export async function generateConsultationAnswer(params: {
   const targetLang = CONSULTATION_LANG_NAMES[session.language] || "Kannada";
 
   // 4. Construct Authoritative Vedic Astrological Prompt with Conditional 4th Paragraph
+  const asksAboutDoshaDirectly =
+    /ದೋಷ|ಪರಿಹಾರ|ತೊಂದರೆ|ವಿಳಂಬ|ಯಾಕೆ|ಕಾರಣ|ಅಡೆತಡೆ|ಕಷ್ಟ|ಕರ್ಮ|dosha|curse|parihara|remedy|delay|obstacle|hurdle|why|karma/i.test(
+      userQuestion
+    );
+  const includeFullDoshaChapter = (!isSubsequent || asksAboutDoshaDirectly) && activeDosha.hasDosha;
+
   let doshaSectionPrompt = "";
-  if (activeDosha.hasDosha) {
+  if (includeFullDoshaChapter) {
     doshaSectionPrompt = `
 ACTIVE DOSHA / KARMIC INFLUENCE IDENTIFIED IN NATIVE'S BIRTH CHART RELEVANT TO QUESTION:
 - Identified Dosha/Karma: ${activeDosha.doshaName} (${activeDosha.doshaId})
@@ -908,6 +914,15 @@ ${
   * Explain what sacred Vedic Parihara Pooja must be performed at Sri Kshetra Gokarna (${activeDosha.recommendedPooja}) to neutralize this Dosha.
   * Connect emotionally and reassuringly with the devotee: assure them with absolute certainty that upon performing this sacred Gokarna pooja, they will surely witness genuine relief and positive improvement in their life.
   * Explicitly instruct them to contact chief priest Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and perform this parihara.`;
+  } else if (activeDosha.hasDosha && !includeFullDoshaChapter) {
+    doshaSectionPrompt = `
+CRITICAL PARAGRAPH STRUCTURE RULE (EXACTLY 3 PARAGRAPHS - ZERO REPETITION OF DOSHA CHAPTER):
+This is question #${qNum} (a follow-up question). The devotee was already informed about the ${activeDosha.doshaName} in question #1.
+DO NOT write a 4th paragraph re-explaining the dosha! DO NOT repeat the 6-line dosha parihara ritual!
+You MUST provide EXACTLY 3 well-developed, comprehensive paragraphs:
+- Paragraph 1: Direct astrological answer addressing THIS NEW QUESTION ("${userQuestion}") based on the relevant Bhavas and planetary placements. ZERO greetings ("ನಮಸ್ಕಾರ / Hello"). ZERO repeating Lagna, Tatva, Gana, or inborn character profiling. Jump straight into the answer!
+- Paragraph 2: In-depth evaluation of the running Vimshottari Dasha-Bhukti (${currentDashaText}) and live Gochara planetary transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}) specifically regarding "${userQuestion}".
+- Paragraph 3: Future progression, auspicious timing, and practical advice specifically for "${userQuestion}". Conclude gracefully with a brief, single comforting sentence that the previously noted Gokarna parihara remedies will ensure steady progress and divine protection.`;
   } else {
     doshaSectionPrompt = `
 CRITICAL PARAGRAPH STRUCTURE RULE (EXACTLY 3 PARAGRAPHS - MANDATORY):
@@ -1107,13 +1122,15 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
 
+  const shouldAttachCard = (!isSubsequent || asksAboutDoshaDirectly) && activeDosha.hasDosha;
+
   return {
     fullText: cleaned,
     paragraphs: paragraphs.length > 0 ? paragraphs : [cleaned],
     hasDosha: activeDosha.hasDosha,
     doshaName: activeDosha.doshaName,
     doshaParihara: activeDosha.recommendedPooja,
-    activeDoshaCard: activeDosha.cardData,
+    activeDoshaCard: shouldAttachCard ? activeDosha.cardData : undefined,
     astrologicalHighlights: {
       lagna: lagnaName,
       moonSign: moonRashi,
@@ -1166,6 +1183,12 @@ function generateDeterministicFallbackReading(
       q
     );
 
+  const asksAboutDosha =
+    /ದೋಷ|ಪರಿಹಾರ|ತೊಂದರೆ|ವಿಳಂಬ|ಯಾಕೆ|ಕಾರಣ|ಅಡೆತಡೆ|ಕಷ್ಟ|ಕರ್ಮ|dosha|curse|parihara|remedy|delay|obstacle|hurdle|why|karma/i.test(
+      q
+    );
+  const includeFullDosha = (!isSubsequent || asksAboutDosha) && activeDosha.hasDosha;
+
   const isMinorChild = !!astroData?.isMinorChild;
   const tatva = astroData?.characterProfile?.tatva || "ಸ್ಥಿರ";
   const tatvaEn = astroData?.characterProfile?.tatvaEn || "Steadfast";
@@ -1198,6 +1221,9 @@ function generateDeterministicFallbackReading(
       const p3Child = `For physical immunity, academic sharpness, and protection against the evil eye (drishti dosha), lighting a pure cow-ghee lamp at study time and chanting the sacred Maha Saraswati Gayatri or Medha Sukta is highly auspicious. Offering prayers at Sri Kshetra Gokarna Mahaganapati for the child's well-being will bestow razor-sharp concentration, academic success, and long life.`;
 
       if (activeDosha.hasDosha) {
+        if (!includeFullDosha) {
+          return `${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nAs previously noted in the child's astrological analysis, the prevailing ${activeDosha.doshaName} is harmonized through sacred prayers and divine blessings at Sri Kshetra Gokarna.`;
+        }
         const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination reveals the presence of ${
           activeDosha.doshaName || "Karmic Dosha"
         }. This dosha arose because of specific planetary tensions in the child's chart (${
@@ -1220,6 +1246,9 @@ function generateDeterministicFallbackReading(
       const p3Santhana = `Upcoming planetary transits over the next lunar cycles indicate a fertile and auspicious turning point. Maintain physical vitality through pure sattvic nourishment and mutual affection. For divine blessings of noble progeny, chanting the Sri Santhana Gopala Mantra daily with devotion will dissolve all reproductive anxieties and herald joyous news.`;
 
       if (activeDosha.hasDosha) {
+        if (!includeFullDosha) {
+          return `${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nAs noted earlier, the energetic influences of ${activeDosha.doshaName} are completely addressed through sincere prayers and divine grace at Sri Kshetra Gokarna.`;
+        }
         const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
           activeDosha.doshaName || "Santhana Obstacle & 5th House Progeny Constraint"
         }. This dosha arose because of specific planetary tensions in your chart (${
@@ -1242,6 +1271,9 @@ function generateDeterministicFallbackReading(
       const p3Intimate = `Over the upcoming transit cycle, emotional bonding with your partner will deepen. Approach intimacy with calm affection rather than pressure. Offering sacred cow-milk prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna will harmonize hormonal balance, bestow peaceful sleep, and restore deep romantic harmony in your relationship.`;
 
       if (activeDosha.hasDosha) {
+        if (!includeFullDosha) {
+          return `${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nAs previously guided, honoring the sacred parihara for ${activeDosha.doshaName} will restore inner peace and tranquility.`;
+        }
         const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: An examination of your chart reveals the presence of ${
           activeDosha.doshaName || "Karmic Dosha"
         } (${activeDosha.technicalWhy || "planetary stress on cardinal houses"}). To restore tranquil intimacy and vitality, our scriptures prescribe the sacred ${
@@ -1261,6 +1293,9 @@ function generateDeterministicFallbackReading(
       const p3Career = `The planetary transits over the coming lunar cycles indicate a progressive turning point. When Jupiter casts its divine benefic aspect upon your key natal houses, the confusion that clouding your decisions will dissolve into crystalline clarity. Continue your earnest efforts with disciplined patience, for the cosmic timing is aligning to reward your dedication.`;
 
       if (activeDosha.hasDosha) {
+        if (!includeFullDosha) {
+          return `${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nAs noted in your chart, the obstacles of ${activeDosha.doshaName} are mitigated by maintaining patience and receiving the sacred blessings of Sri Kshetra Gokarna.`;
+        }
         const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
           activeDosha.doshaName || "Karmic Dosha"
         }. This dosha arose because of specific planetary tensions in your chart (${
@@ -1281,6 +1316,9 @@ function generateDeterministicFallbackReading(
     const baseP3 = `The planetary transits over the coming lunar cycles indicate a progressive turning point. When Jupiter casts its divine benefic aspect upon your key natal houses, the confusion that clouding your decisions will dissolve into crystalline clarity. Continue your earnest efforts with disciplined patience, for the cosmic timing is aligning to reward your dedication.`;
 
     if (activeDosha.hasDosha) {
+      if (!includeFullDosha) {
+        return `${baseP1}\n\n${baseP2}\n\n${baseP3}\n\nAs noted in your horoscope, the karmic influences of ${activeDosha.doshaName} are neutralized through dedicated prayers at Sri Kshetra Gokarna.`;
+      }
       const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: A thorough examination of your horoscope reveals the presence of ${
         activeDosha.doshaName || "Kuja/Manglik Dosha"
       }. This dosha arose because of specific planetary tensions in your chart (${
@@ -1312,6 +1350,9 @@ function generateDeterministicFallbackReading(
     const p3Child = `ಮಗುವಿನ ಆರೋಗ್ಯ ರಕ್ಷಣೆ, ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಏಕಾಗ್ರತೆಗಾಗಿ, ಪ್ರತಿದಿನ ಸಂಜೆ ಮನೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಮಹಾಸರಸ್ವತೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಸಂಕಲ್ಪ ಮಾಡಿ ದೂರ್ವಾ ಅರ್ಚನೆ ಮಾಡಿಸುವುದರಿಂದ ಮಗುವಿನ ಜ್ಞಾಪಕ ಶಕ್ತಿ ವೃದ್ಧಿಸಿ, ಶೈಕ್ಷಣಿಕ ವಿಜಯ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿದೆ.`;
 
     if (activeDosha.hasDosha) {
+      if (!includeFullDosha) {
+        return `${p1Child}\n\n${p2Child}\n\n${p3Child}\n\nನಿಮ್ಮ ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಮಗುವಿಗೆ ಉತ್ತಮ ಆರೋಗ್ಯ ಮತ್ತು ವಿದ್ಯಾಭ್ಯಾಸ ಲಭಿಸಲಿದೆ.`;
+      }
       const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nಮಗುವಿನ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
         activeDosha.doshaName || "ಬಾಲ ಸಂಸ್ಕಾರ ಹಾಗೂ ವಿದ್ಯಾ ದೋಷ"
       }" ಕಂಡುಬಂದಿದೆ. ಜಾತಕದಲ್ಲಿ ${
@@ -1335,6 +1376,9 @@ function generateDeterministicFallbackReading(
     const p3Santhana = `ಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಸಂತಾನ ಸ್ಥಾನದ ಮೇಲೆ ಬೀಳುವ ಸಂದರ್ಭದಲ್ಲಿ ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನ ಯೋಗವು ಪ್ರಬಲವಾಗಿ ಸಿದ್ಧಿಸಲಿದೆ. ದಂಪತಿಗಳಿಬ್ಬರೂ ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಸುವಿನ ಹಾಲಿನಿಂದ ಮಾಡಿದ ನೈವೇದ್ಯವನ್ನು ಸಮರ್ಪಿಸಿ, ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಮನಸ್ಸಿನಲ್ಲಿ ಧನಾತ್ಮಕ ವಿಶ್ವಾಸವಿರಲಿ.`;
 
     if (activeDosha.hasDosha) {
+      if (!includeFullDosha) {
+        return `${p1Santhana}\n\n${p2Santhana}\n\n${p3Santhana}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರವೇ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+      }
       const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
         activeDosha.doshaName || "ಸಂತಾನ ತಡೆ ಹಾಗೂ ಪಂಚಮ ಭಾವ ಕರ್ಮ ದೋಷ"
       }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
@@ -1359,6 +1403,9 @@ function generateDeterministicFallbackReading(
     const p3Intimate = `ಮನಸ್ಸಿನ ಆತಂಕವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಕಳಚಿಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಧ್ಯಾನ ಹಾಗೂ ಸೋಮವಾರದ ರುದ್ರಾಭಿಷೇಕವು ಮನಸ್ಸಿಗೆ ಶಾಂತಿ ನೀಡಿ, ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಚೈತನ್ಯವನ್ನು ಮರಳಿ ತರಲಿದೆ. ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ, ಗೌರವ ಮತ್ತು ಮುಕ್ತ ಸಂವಹನವನ್ನು ಹೆಚ್ಚಿಸಿಕೊಳ್ಳಿ.`;
 
     if (activeDosha.hasDosha) {
+      if (!includeFullDosha) {
+        return `${p1Intimate}\n\n${p2Intimate}\n\n${p3Intimate}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಂತರಂಗದ ಕ್ಲೇಶಗಳೂ ನಿವಾರಣೆಯಾಗಿ ನೆಮ್ಮದಿ ಸಿಗಲಿದೆ.`;
+      }
       const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
         activeDosha.doshaName || "ಶುಕ್ರ ಧಾತು ಹಾಗೂ ಅಂತರಂಗ ಕ್ಲೇಶ ದೋಷ"
       }" ಕಂಡುಬಂದಿದೆ. ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
@@ -1377,6 +1424,9 @@ function generateDeterministicFallbackReading(
     const p3Career = `ಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ಕತ್ತಲೆ ಕರಗಿ ನಿಧಾನವಾಗಿ ಹೊಸ ಅವಕಾಶಗಳ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ. ಅಲ್ಲಿಯವರೆಗೂ ಶಾಂತಚಿತ್ತದಿಂದ ನಿಮ್ಮ ಕಾರ್ಯವನ್ನು ನಿಷ್ಠೆಯಿಂದ ಮುಂದುವರಿಸಿ. ಪ್ರತಿದಿನ ಶಿವಪಂಚಾಕ್ಷರೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ಪ್ರತಿ ಶನಿವಾರ ಅಥವಾ ಸೋಮವಾರ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸುವುದರಿಂದ ಮಾನಸಿಕ ಧೈರ್ಯ ಹೆಚ್ಚಿ, ಸಕಲ ವಿಘ್ನಗಳೂ ದೂರವಾಗಲಿವೆ.`;
 
     if (activeDosha.hasDosha) {
+      if (!includeFullDosha) {
+        return `${p1Career}\n\n${p2Career}\n\n${p3Career}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ಅಡೆತಡೆಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಉದ್ಯೋಗ-ವೃತ್ತಿಯಲ್ಲಿ ಯಶಸ್ಸು ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`;
+      }
       const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
         activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
       }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${
@@ -1403,6 +1453,9 @@ function generateDeterministicFallbackReading(
   const p3 = `ಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಿಗೆ ಬಲವನ್ನು ನೀಡಲಿದ್ದು, ಹೊಸ ಕಾರ್ಯಾರಂಭಕ್ಕೆ ಯೋಗ್ಯ ಕಾಲಾವಕಾಶ ಸೃಷ್ಟಿಯಾಗಲಿದೆ. ತಾಳ್ಮೆ ಮತ್ತು ಸತತ ಪ್ರಯತ್ನಗಳಿಂದ ನಿಮ್ಮ ನಿರೀಕ್ಷಿತ ಗುರಿಗಳನ್ನು ತಲುಪಲು ಸಾಧ್ಯವಾಗಲಿದ್ದು, ದೈವಾನುಗ್ರಹದಿಂದ ನಿಧಾನವಾಗಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ. ಯಾವುದೇ ನಕಾರಾತ್ಮಕ ಚಿಂತನೆಗಳಿಗೆ ಎಡೆಕೊಡದೆ ಶುಭ ಸಂಕಲ್ಪದೊಂದಿಗೆ ಹೆಜ್ಜೆಯಿಡಿ.`;
 
   if (activeDosha.hasDosha) {
+    if (!includeFullDosha) {
+      return `${p1}\n\n${p2}\n\n${p3}\n\nನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಮೊದಲೇ ತಿಳಿಸಿದಂತೆ ${activeDosha.doshaName} ಪ್ರಭಾವವಿದ್ದು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪವಿತ್ರ ಸಂಕಲ್ಪ ಹಾಗೂ ಪೂಜೆಯಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರವೇ ಶುಭ ಫಲಗಳು ಲಭಿಸಲಿವೆ.`;
+    }
     const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ "${
       activeDosha.doshaName || "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ"
     }" ದೃಢಪಟ್ಟಿದೆ. ಜಾತಕದಲ್ಲಿ ${

@@ -68,6 +68,10 @@ export interface PanchangaPatrikaLabels {
   phonePromptLabel: string;
   sacredNotice: string;
   priestTitle: string;
+  limbsTitle: string;
+  phonePlaceholder: string;
+  startingBtn: string;
+  priestLocationPhone: string;
 }
 
 // -------------------------------------------------------------
@@ -332,7 +336,11 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     startConsultationBtn: "ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆ ಆರಂಭಿಸಿ",
     phonePromptLabel: "ಸಮಾಲೋಚನೆಗೆ ಮುಂದುವರಿಯಲು ನಿಮ್ಮ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ಖಚಿತಪಡಿಸಿ:",
     sacredNotice: "ಗಮನಿಸಿ: ನೀವು 'ಆರಂಭಿಸಿ' ಕ್ಲಿಕ್ ಮಾಡಿದ ಕ್ಷಣದಿಂದ ನಿಖರ ೨೦ ನಿಮಿಷಗಳ ಲೈವ್ ದೈವಜ್ಞ ಸಮಾಲೋಚನಾ ಟೈಮರ್ ಆರಂಭವಾಗುತ್ತದೆ.",
-    priestTitle: "ಮುಖ್ಯ ದೈವಜ್ಞರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ)"
+    priestTitle: "ಮುಖ್ಯ ದೈವಜ್ಞರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ)",
+    limbsTitle: "ವೈದಿಕ ಜನ್ಮ ಪಂಚಾಂಗ ಅಂಗಗಳು & ಜಾತಕ ವಿವರಗಳು",
+    phonePlaceholder: "ಉದಾ: 9876543210 / +91...",
+    startingBtn: "ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ...",
+    priestLocationPhone: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ • ನೇರ ದೂರವಾಣಿ: 9972339362"
   },
   en: {
     cardTitle: "॥ Vedic Birth Chart & Panchanga Patrika ॥",
@@ -355,7 +363,11 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     startConsultationBtn: "Start 20-Min Astrologer Consultation",
     phonePromptLabel: "Please confirm your phone number to begin:",
     sacredNotice: "Important: Your 20-minute live private consultation countdown starts immediately upon clicking.",
-    priestTitle: "Chief Astrologer: Shreeram Pandit (Sri Kshetra Gokarna)"
+    priestTitle: "Chief Astrologer: Shreeram Pandit (Sri Kshetra Gokarna)",
+    limbsTitle: "Vedic Birth Panchanga Limbs & Astronomical Coordinates",
+    phonePlaceholder: "e.g. 9876543210 / +91...",
+    startingBtn: "Starting...",
+    priestLocationPhone: "Sri Kshetra Gokarna • Direct Phone: 9972339362"
   },
   hi: {
     cardTitle: "॥ वैदिक जन्म कुंडली एवं पंचांग पत्रिका ॥",
@@ -378,7 +390,11 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     startConsultationBtn: "20 मिनट दैवज्ञ परामर्श प्रारंभ करें",
     phonePromptLabel: "परामर्श प्रारंभ करने हेतु अपना मोबाइल नंबर दर्ज करें:",
     sacredNotice: "ध्यान दें: 'प्रारंभ करें' पर क्लिक करते ही 20 मिनट का पवित्र परामर्श टाइमर शुरू हो जाएगा।",
-    priestTitle: "मुख्य ज्योतिषी: श्रीराम पंडित (श्री क्षेत्र गोकर्ण)"
+    priestTitle: "मुख्य ज्योतिषी: श्रीराम पंडित (श्री क्षेत्र गोकर्ण)",
+    limbsTitle: "वैदिक जन्म पंचांग अंग एवं खगोलीय स्थिति",
+    phonePlaceholder: "उदा: 9876543210 / +91...",
+    startingBtn: "प्रारंभ हो रहा है...",
+    priestLocationPhone: "श्री क्षेत्र गोकर्ण • सीधा फोन: 9972339362"
   },
   te: {
     cardTitle: "॥ వేద జన్మ కుండలి & పంచాంగ పత్రిక ॥",
@@ -401,7 +417,11 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     startConsultationBtn: "20 నిమిషాల జ్యోతిష్య సంప్రదింపు ప్రారంభించండి",
     phonePromptLabel: "సంప్రదింపు ప్రారంభించడానికి మీ మొబైల్ నంబర్ నిర్ధారించండి:",
     sacredNotice: "గమనిక: ప్రారంభించు బటన్ నొక్కగానే 20 నిమిషాల సమయం ప్రారంభమౌతుంది.",
-    priestTitle: "ప్రధాన దైవజ్ఞులు: శ్రీరామ్ పండిత్ (శ్రీ క్షేత్ర గోకర్ణ)"
+    priestTitle: "ప్రధాన దైవజ్ఞులు: శ్రీరామ్ పండిత్ (శ్రీ క్షేత్ర గోకర్ణ)",
+    limbsTitle: "వైదిక జన్మ పంచాంగ అంగాలు & గ్రహ స్థితులు",
+    phonePlaceholder: "ఉదా: 9876543210 / +91...",
+    startingBtn: "ప్రారంభమవుతోంది...",
+    priestLocationPhone: "శ్రీ క్షేత్ర గోకర్ణ • నేరుగా ఫోన్: 9972339362"
   },
   ta: {
     cardTitle: "॥ வேத ஜென்ம ஜாதகம் மற்றும் பஞ்சாங்க பத்ரிகை ॥",
@@ -424,7 +444,11 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     startConsultationBtn: "20 நிமிட ஜோதிட ஆலோசனையைத் தொடங்குங்கள்",
     phonePromptLabel: "ஆலோசனையைத் தொடங்க உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்:",
     sacredNotice: "குறிப்பு: நீங்கள் கிளிக் செய்தவுடன் 20 நிமிட கவுண்ட்டவுன் உடனடியாக தொடங்கும்.",
-    priestTitle: "தலைமை ஜோதிடர்: ஸ்ரீராம் பண்டிட் (ஸ்ரீ க்ஷேத்ர கோகர்ணா)"
+    priestTitle: "தலைமை ஜோதிடர்: ஸ்ரீராம் பண்டிட் (ஸ்ரீ க்ஷேத்ர கோகர்ணா)",
+    limbsTitle: "வேத கால பஞ்சாங்க அங்கங்கள் & கிரக நிலைகள்",
+    phonePlaceholder: "எ.கா: 9876543210 / +91...",
+    startingBtn: "தொடங்குகிறது...",
+    priestLocationPhone: "ஸ்ரீ க்ஷேத்ர கோகர்ணம் • நேரடி தொலைபேசி: 9972339362"
   },
   ml: {
     cardTitle: "॥ വേദ ജന്മ ജാതകം & പഞ്ചാംഗ പത്രിക ॥",
@@ -447,7 +471,11 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     startConsultationBtn: "20 മിനിറ്റ് ജ്യോതിഷ കൺസൾട്ടേഷൻ ആരംഭിക്കുക",
     phonePromptLabel: "തുടങ്ങുന്നതിനായി നിങ്ങളുടെ മൊബൈൽ നമ്പർ നൽകുക:",
     sacredNotice: "ശ്രദ്ധിക്കുക: ആരംഭിക്കുക ക്ലിക്ക് ചെയ്യുമ്പോൾ തന്നെ 20 മിനിറ്റ് സമയം ആരംഭിക്കും.",
-    priestTitle: "മുഖ്യ ജ്യോത്സ്യൻ: ശ്രീരാം പണ്ഡിറ്റ് (ശ്രീ ക്ഷേത്ര ഗോകർണം)"
+    priestTitle: "മുഖ്യ ജ്യോത്സ്യൻ: ശ്രീരാം പണ്ഡിറ്റ് (ശ്രീ ക്ഷേത്ര ഗോകർണം)",
+    limbsTitle: "വൈദിക ജനന പഞ്ചാംഗ അംഗങ്ങളും ഗ്രഹനിലയും",
+    phonePlaceholder: "ഉദാ: 9876543210 / +91...",
+    startingBtn: "ആരംഭിക്കുന്നു...",
+    priestLocationPhone: "ശ്രീ ക്ഷേത്ര ഗോകർണ്ണം • നേരിട്ടുള്ള ഫോൺ: 9972339362"
   },
   mr: {
     cardTitle: "॥ वैदिक जन्म कुंडली आणि पंचांग पत्रिका ॥",
@@ -470,7 +498,11 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     startConsultationBtn: "२० मिनिटे दैवज्ञ सल्लामसलत सुरू करा",
     phonePromptLabel: "सल्लामसलत सुरू करण्यासाठी आपला मोबाईल नंबर टाका:",
     sacredNotice: "सूचना: 'सुरू करा' वर क्लिक करताच २० मिनिटांचा कालावधी सुरू होईल.",
-    priestTitle: "मुख्य ज्योतिषी: श्रीराम पंडित (श्री क्षेत्र गोकर्ण)"
+    priestTitle: "मुख्य ज्योतिषी: श्रीराम पंडित (श्री क्षेत्र गोकर्ण)",
+    limbsTitle: "वैदिक जन्म पंचांग अंगे व ग्रह स्थिती",
+    phonePlaceholder: "उदा: 9876543210 / +91...",
+    startingBtn: "सुरू होत आहे...",
+    priestLocationPhone: "श्री क्षेत्र गोकर्ण • थेट फोन: 9972339362"
   }
 };
 

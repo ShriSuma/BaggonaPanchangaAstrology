@@ -39,7 +39,9 @@ import type {
 import {
   CONSULTATION_LANGUAGES,
   DEFAULT_PRIEST_CONTACT,
-  CONSULTATION_MODAL_I18N
+  CONSULTATION_MODAL_I18N,
+  CONSULTATION_CHAT_UI_I18N,
+  getLocalizedQuickFaqChips
 } from "./consultationTypes";
 import {
   generateConsultationAnswer,
@@ -172,123 +174,58 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
   const isMinorChildDevotee = devoteeAgeYears < 18;
 
+  const currentLang = session?.language || "kn";
+  const rawFaqChips = useMemo(() => {
+    return getLocalizedQuickFaqChips(currentLang, devoteeAgeYears);
+  }, [currentLang, devoteeAgeYears]);
+
+  // Dynamically filter out chips that have already been asked by the user in this session,
+  // preventing repeated questions and dock clutter
+  const askedQuestionsSet = useMemo(() => {
+    return new Set(
+      messages
+        .filter((m) => m.sender === "user")
+        .map((m) => m.text.trim().toLowerCase())
+    );
+  }, [messages]);
+
   const quickFaqChips = useMemo(() => {
-    const isEn = session?.language === "en";
-    if (isMinorChildDevotee) {
-      return [
-        {
-          label: isEn ? "📚 Education & Focus" : "📚 ವಿದ್ಯಾಭ್ಯಾಸ & ಏಕಾಗ್ರತೆ",
-          question: isEn
-            ? "How are my child's academic prospects, memory retention, and concentration?"
-            : "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಏಕಾಗ್ರತೆ ಹೆಚ್ಚಿಸಲು ಜಾತಕದ ಪ್ರಕಾರ ಏನು ಮಾಡಬೇಕು?"
-        },
-        {
-          label: isEn ? "🛡️ Health & Balarishta" : "🛡️ ಬಾಲಾರಿಷ್ಟ & ಆರೋಗ್ಯ",
-          question: isEn
-            ? "What Vedic remedies protect the child's health and shield against evil eye?"
-            : "ಮಗುವಿನ ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಹಾಗೂ ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆಗೆ ಪರಿಹಾರವೇನು?"
-        },
-        {
-          label: isEn ? "🌟 Talent & Future Path" : "🌟 ಪ್ರತಿಭೆ & ಉಜ್ವಲ ಭವಿಷ್ಯ",
-          question: isEn
-            ? "In which field will the child's natural talents and future shine best?"
-            : "ಮಗುವಿನ ಸಹಜ ಪ್ರತಿಭೆ ಯಾವ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯಂತ ಉಜ್ವಲವಾಗಿ ಬೆಳಗಲಿದೆ?"
-        },
-        {
-          label: isEn ? "🧘 Parenting Temperament" : "🧘 ಪೋಷಕರ ಮಾರ್ಗದರ್ಶನ",
-          question: isEn
-            ? "How should parents nurture and handle the child's natural temperament?"
-            : "ಮಗುವಿನ ಹಠ ಹಾಗೂ ಚಂಚಲ ಸ್ವಭಾವವನ್ನು ಪ್ರೀತಿಯಿಂದ ಸರಿಪಡಿಸುವುದು ಹೇಗೆ?"
+    return rawFaqChips.filter((chip) => {
+      const qLower = chip.question.trim().toLowerCase();
+      for (const asked of askedQuestionsSet) {
+        if (asked.includes(qLower) || qLower.includes(asked)) {
+          return false;
         }
-      ];
-    }
-
-    if (devoteeAgeYears <= 28) {
-      return [
-        {
-          label: isEn ? "💍 Marriage Timing" : "💍 ಕಂಕಣ ಭಾಗ್ಯ & ವಿವಾಹ",
-          question: isEn
-            ? "When is my marriage indicated? Will it be a love marriage or arranged?"
-            : "ನನ್ನ ವಿವಾಹ ಕಾಲ ಯಾವಾಗ? ಲವ್ ಮ್ಯಾರೇಜ್ ಆಗುತ್ತದೆಯೇ ಅಥವಾ ಅರೇಂಜ್ಡ್?"
-        },
-        {
-          label: isEn ? "💼 Career & Growth" : "💼 ವೃತ್ತಿ & ಧನಾಗಮನ",
-          question: isEn
-            ? "How is my career progression and financial stability in the coming months?"
-            : "ನನ್ನ ವೃತ್ತಿಜೀವನದ ಮುಂಬರುವ ಬೆಳವಣಿಗೆ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿತಿ ಹೇಗಿದೆ?"
-        },
-        {
-          label: isEn ? "⚡ Vitality & Wellness" : "⚡ ಲೈಂಗಿಕ ಸಾಮರ್ಥ್ಯ & ಅಂತರಂಗ",
-          question: isEn
-            ? "What Ayurvedic and Vedic guidance restores vitality, stamina, and inner confidence?"
-            : "ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ, ಲೈಂಗಿಕ ಚೈತನ್ಯ ಹಾಗೂ ರಹಸ್ಯ ಆತಂಕಗಳಿಗೆ ಆಯುರ್ವೇದ-ವೈದಿಕ ಪರಿಹಾರವೇನು?"
-        },
-        {
-          label: isEn ? "🕉️ Gokarna Parihara" : "🕉️ ಗೋಕರ್ಣ ದೋಷ ಪರಿಹಾರ",
-          question: isEn
-            ? "Which sacred pooja or parihara at Gokarna is recommended for my current Dasha?"
-            : "ನನ್ನ ಜಾತಕದಲ್ಲಿ ಯಾವುದಾದರೂ ದೋಷವಿದೆಯೇ? ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಪೂಜೆ ಶ್ರೇಷ್ಠ?"
-        }
-      ];
-    }
-
-    if (devoteeAgeYears <= 48) {
-      return [
-        {
-          label: isEn ? "👶 Progeny & Santhana" : "👶 ಸಂತಾನ ಭಾಗ್ಯ & ಪುತ್ರ ಪ್ರಾಪ್ತಿ",
-          question: isEn
-            ? "When is progeny indicated in our marriage, and what is the Gokarna Santhana Gopala remedy?"
-            : "ದಾಂಪತ್ಯದಲ್ಲಿ ಸಂತಾನ ಪ್ರಾಪ್ತಿ ಯಾವಾಗ? ಗೋಕರ್ಣದ ಸಂತಾನ ಗೋಪಾಲ ಪೂಜೆಯ ಬಗ್ಗೆ ತಿಳಿಸಿ."
-        },
-        {
-          label: isEn ? "💼 Career Frustration Relief" : "💼 ಕೆಲಸದಲ್ಲಿ ಕಿರಿಕಿರಿ & ಮುಕ್ತಿ",
-          question: isEn
-            ? "I feel persistent frustration, stagnation, and politics at work. When will this clear?"
-            : "ಕೆಲಸದಲ್ಲಿ ನಿರಂತರ ಕಿರಿಕಿರಿ, ಬೇಸರ ಮತ್ತು ಹತಾಶೆ ಎದುರಾಗುತ್ತಿದೆ. ಇದರಿಂದ ಮುಕ್ತಿ ಯಾವಾಗ?"
-        },
-        {
-          label: isEn ? "💰 Debt Relief & Wealth" : "💰 ಸಾಲ ಮುಕ್ತಿ & ಆರ್ಥಿಕ ನೆಮ್ಮದಿ",
-          question: isEn
-            ? "How can I overcome financial burdens, debts, and attract lasting prosperity?"
-            : "ಸಾಲ ಮತ್ತು ಆರ್ಥಿಕ ನಷ್ಟದಿಂದ ಹೊರಬರಲು ಜಾತಕದ ಪ್ರಕಾರ ಏನು ಪರಿಹಾರ?"
-        },
-        {
-          label: isEn ? "🕊️ Marital Peace & Intimacy" : "🕊️ ದಾಂಪತ್ಯ ಶಾಂತಿ & ಶಯನ ಸುಖ",
-          question: isEn
-            ? "How can we restore bedroom tranquility, mutual affection, and marital harmony?"
-            : "ದಾಂಪತ್ಯದಲ್ಲಿ ಸಾಮರಸ್ಯ ಹಾಗೂ ಅಂತರಂಗದ ನೆಮ್ಮದಿ ಕಾಪಾಡಿಕೊಳ್ಳಲು ಮಾರ್ಗದರ್ಶನವೇನು?"
-        }
-      ];
-    }
-
-    // Seniors 49+
-    return [
-      {
-        label: isEn ? "🏡 Children's Future" : "🏡 ಮಕ್ಕಳ ಭವಿಷ್ಯ & ಶಾಂತಿ",
-        question: isEn
-          ? "How is my children's future and prosperity, and how can family harmony be ensured?"
-          : "ನನ್ನ ಮಕ್ಕಳ ಭವಿಷ್ಯ ಹಾಗೂ ಕುಟುಂಬದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲು ಏನು ಮಾಡಬೇಕು?"
-      },
-      {
-        label: isEn ? "🌿 Health & Longevity" : "🌿 ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ವೃದ್ಧಿ",
-        question: isEn
-          ? "What astrological remedies support good health, mental peace, and longevity?"
-          : "ಆರೋಗ್ಯ, ದೀರ್ಘಾಯುಷ್ಯ ಮತ್ತು ಮಾನಸಿಕ ನೆಮ್ಮದಿಗೆ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರವೇನು?"
-      },
-      {
-        label: isEn ? "🕉️ Gokarna Mahabaleshwara" : "🕉️ ಗೋಕರ್ಣ ಮಹಾರುದ್ರಾಭಿಷೇಕ",
-        question: isEn
-          ? "Which sacred pooja or parihara at Sri Kshetra Gokarna will bestow divine grace?"
-          : "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಪೂಜೆ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದು ಶ್ರೇಷ್ಠ?"
-      },
-      {
-        label: isEn ? "🕊️ Spiritual Path & Moksha" : "🕊️ ಆಧ್ಯಾತ್ಮಿಕ ಮಾರ್ಗ & ಮುಕ್ತಿ",
-        question: isEn
-          ? "What spiritual practices and daily sadhana are most auspicious for this stage of life?"
-          : "ಜೀವನದ ಈ ಹಂತದಲ್ಲಿ ಮನಸ್ಸಿನ ನೆಮ್ಮದಿಗೆ ಯಾವ ದೈವಿಕ ಧ್ಯಾನ ಮತ್ತು ಸಾಧನೆ ಶ್ರೇಷ್ಠ?"
       }
-    ];
-  }, [devoteeAgeYears, isMinorChildDevotee, session?.language]);
+      return true;
+    });
+  }, [rawFaqChips, askedQuestionsSet]);
+
+  // Track first occurrence of each unique dosha so that duplicate dosha cards
+  // are never stacked repeatedly across consecutive user questions
+  const isDoshaCardFirstOccurrence = useMemo(() => {
+    const seen = new Set<string>();
+    const map: Record<string, boolean> = {};
+    for (const m of messages) {
+      if (m.activeDoshaCard?.doshaId) {
+        if (!seen.has(m.activeDoshaCard.doshaId)) {
+          seen.add(m.activeDoshaCard.doshaId);
+          map[m.id] = true;
+        } else {
+          map[m.id] = false;
+        }
+      } else if (m.activeDoshaCard) {
+        const nameKey = m.activeDoshaCard.doshaName || "general_dosha";
+        if (!seen.has(nameKey)) {
+          seen.add(nameKey);
+          map[m.id] = true;
+        } else {
+          map[m.id] = false;
+        }
+      }
+    }
+    return map;
+  }, [messages]);
   useEffect(() => {
     let isMounted = true;
 
@@ -783,10 +720,25 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       };
       void recordConsultationQuestion(questionRecord);
     } catch (err: any) {
+      const errText =
+        currentLang === "en"
+          ? `Namaste ${session.name}. We are analyzing your horoscope and planetary Dasha periods. Please ask your question again, or directly call our head priest at Gokarna: 9972339362.`
+          : currentLang === "hi"
+          ? `नमस्ते ${session.name} जी। आपकी जन्मकुंडली और वर्तमान दशा का विश्लेषण किया जा रहा है। कृपया अपना प्रश्न पुनः पूछें या सीधे श्री क्षेत्र गोकर्ण के मुख्य पुरोहित से संपर्क करें: 9972339362.`
+          : currentLang === "te"
+          ? `నమస్కారం ${session.name} గారు. మీ ಜಾತಕ లగ్నం మరియు దశా భుక్తుల పరిశీలన జరుగుతోంది. ದಯచేసి ಮళ్లీ ప్రశ్నించండి లేదా నేరుగా ಗೋಕರ್ಣ ಪಂಡಿతులను ಸಂಪ್ರದించండి: 9972339362.`
+          : currentLang === "ta"
+          ? `வணக்கம் ${session.name}. உங்கள் ஜாதக தசைகள் கணிக்கப்படுகின்றன. தயவுசெய்து மீண்டும் கேளுங்கள் அல்லது நேரடியாக கோகர்ணா பண்டிதரை தொடர்பு கொள்ளவும்: 9972339362.`
+          : currentLang === "ml"
+          ? `നമസ്കാരം ${session.name}. നിങ്ങളുടെ ജാതക ദശാ വിശകലനം നടക്കുന്നു. ദയവായി വീണ്ടും ചോദിക്കുക അല്ലെങ്കിൽ നേരിട്ട് ഗോകർണ പുരോഹിതനെ വിളിക്കുക: 9972339362.`
+          : currentLang === "mr"
+          ? `नमस्कार ${session.name} जी. आपल्या पत्रिकेचे विश्लेषण सुरू आहे. कृपया पुन्हा विचारा किंवा थेट गोकर्ण येथील पुरोहितांशी संपर्क साधा: 9972339362.`
+          : `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಶ್ನಿಸಿ ಅಥವಾ ನೇರವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪಂಡಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ: 9972339362.`;
+
       const fallbackMsg: ConsultationChatMessage = {
         id: `astro_err_${Date.now()}`,
         sender: "astrologer",
-        text: `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ದಶಾ-ಭುಕ್ತಿಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಶ್ನಿಸಿ ಅಥವಾ ನೇರವಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪಂಡಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ: 9972339362.`,
+        text: errText,
         timestamp: new Date().toISOString()
       };
       setMessages((prev) => [...prev, fallbackMsg]);
@@ -900,11 +852,11 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
-  // Current Language Meta
-  const currentLang = session?.language || "kn";
+  // Current Language Meta & Chat UI i18n
   const currentLangMeta =
     CONSULTATION_LANGUAGES.find((l) => l.code === currentLang) || CONSULTATION_LANGUAGES[0];
   const currentI18n = CONSULTATION_MODAL_I18N[currentLang] || CONSULTATION_MODAL_I18N.kn;
+  const currentChatUi = CONSULTATION_CHAT_UI_I18N[currentLang] || CONSULTATION_CHAT_UI_I18N.kn;
 
   const totalDurationSeconds = (session?.durationMinutes || 20) * 60;
   const timerPercentage = Math.min(100, Math.max(0, (remainingSeconds / totalDurationSeconds) * 100));
@@ -1405,7 +1357,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           ) : (
             <div className="bg-white/90 border border-amber-300 rounded-2xl p-6 text-center text-amber-950 font-serif shadow-md space-y-3">
               <span className="text-3xl animate-spin block">☸️</span>
-              <p className="font-bold text-sm">ಪಂಚಾಂಗ ಹಾಗೂ ಜಾತಕ ವಿವರಗಳನ್ನು ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತಿದೆ...</p>
+              <p className="font-bold text-sm">{currentChatUi.patrikaLoading}</p>
             </div>
           )}
         </div>
@@ -1434,7 +1386,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             >
               {/* Sender Tag */}
               <div className="flex items-center gap-1 text-[10px] font-bold text-amber-900 mb-1 px-1">
-                <span>{isUser ? "ನೀವು (Devotee)" : "ದೈವಜ್ಞರು (Head Astrologer, Gokarna)"}</span>
+                <span>{isUser ? currentChatUi.devoteeSenderTag : currentChatUi.astrologerSenderTag}</span>
                 <span className="text-stone-400 font-normal">
                   • {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
@@ -1455,52 +1407,52 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   </p>
                 ))}
 
-                {/* Dedicated Luxury Gold Dosha & Karma Insight Card */}
-                {!isUser && msg.activeDoshaCard && (
+                {/* Dedicated Luxury Gold Dosha & Karma Insight Card (Deduplicated so never repeated) */}
+                {!isUser && msg.activeDoshaCard && isDoshaCardFirstOccurrence[msg.id] && (
                   <div className="mt-3 mb-2 p-3.5 bg-gradient-to-br from-amber-50 via-orange-50/80 to-amber-100/90 border-2 border-amber-400/90 rounded-2xl shadow-md text-amber-950 font-serif space-y-2.5">
                     <div className="flex items-center justify-between border-b border-amber-300 pb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">🪐</span>
                         <span className="font-bold text-amber-950 text-xs md:text-sm tracking-wide">
-                          ॥ ಜಾತಕ ದೋಷ / ಕರ್ಮ ಸಂಬಂಧಿತ ಒಳನೋಟ ॥
+                          {currentChatUi.doshaCardTitle}
                         </span>
                       </div>
                       <span className="bg-red-700 text-white text-[10px] font-sans font-bold px-2 py-0.5 rounded-full shadow-2xs animate-pulse">
-                        ವಿಶೇಷ ಪರಿಹಾರ
+                        {currentChatUi.specialPariharaBadge}
                       </span>
                     </div>
 
                     <div className="space-y-1.5 text-xs">
                       <div className="flex items-start gap-2">
-                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">⚡ ದೋಷ / ಬಾಧೆ:</span>
+                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.doshaAfflictionLabel}</span>
                         <span className="text-red-900 font-bold text-[12px]">{msg.activeDoshaCard.doshaName}</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">🪐 ಗ್ರಹ ಸಂಯೋಗ:</span>
+                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.planetaryCauseLabel}</span>
                         <span className="text-amber-900 leading-relaxed text-[11px]">{msg.activeDoshaCard.technicalWhy}</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">⚠️ ಪ್ರಸ್ತುತ ಪರಿಣಾಮ:</span>
+                        <span className="text-amber-800 font-bold whitespace-nowrap text-[11px]">{currentChatUi.currentImpactLabel}</span>
                         <span className="text-amber-950 leading-relaxed text-[11px]">{msg.activeDoshaCard.currentLifeProblems}</span>
                       </div>
                       <div className="flex items-start gap-2 bg-amber-100/80 p-2 rounded-xl border border-amber-300">
-                        <span className="text-amber-900 font-bold whitespace-nowrap text-[11px]">🛕 ಪರಿಹಾರ ಸಂಕಲ್ಪ:</span>
+                        <span className="text-amber-900 font-bold whitespace-nowrap text-[11px]">{currentChatUi.remedySankalpaLabel}</span>
                         <span className="text-amber-950 font-medium leading-relaxed text-[11px]">{msg.activeDoshaCard.recommendedPooja}</span>
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-amber-300 flex items-center justify-between gap-2 flex-wrap">
                       <div className="text-[10px] text-amber-900 font-sans">
-                        <span>ಆಚಾರ್ಯರು: </span>
+                        <span>{currentChatUi.priestLabel}</span>
                         <span className="font-bold">{msg.activeDoshaCard.priestName || DEFAULT_PRIEST_CONTACT.name}</span>
-                        <span className="block text-[9px] text-amber-800/80">ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ</span>
+                        <span className="block text-[9px] text-amber-800/80">{currentChatUi.gokarnaLocationLabel}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <a
                           href={`tel:${msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone}`}
                           className="bg-red-700 hover:bg-red-800 text-white font-sans text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1"
                         >
-                          <span>📞 ನೇರ ಕರೆ</span>
+                          <span>{currentChatUi.directCallBtn}</span>
                           <span className="text-[10px] opacity-90">({msg.activeDoshaCard.priestPhone || DEFAULT_PRIEST_CONTACT.phone})</span>
                         </a>
                       </div>
@@ -1508,21 +1460,21 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   </div>
                 )}
 
-                {/* Astrologer Dosha Chapter Badge (Fallback if no full card) */}
-                {!isUser && !msg.activeDoshaCard && msg.hasDosha && (
+                {/* Astrologer Dosha Chapter Badge (Fallback if no full card and first occurrence) */}
+                {!isUser && !msg.activeDoshaCard && msg.hasDosha && isDoshaCardFirstOccurrence[msg.id] && (
                   <div className="mt-2 mb-1 p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-400 rounded-xl flex items-center justify-between text-xs text-amber-950 font-serif shadow-2xs">
                     <div className="flex items-center gap-2">
                       <span className="text-base">⚡</span>
                       <div>
-                        <span className="font-bold text-amber-900 block text-[11px]">ದೋಷ ಪರಿಹಾರ ಅಧ್ಯಾಯ (೪ನೇ ಪ್ಯಾರಾ):</span>
-                        <span className="text-[11px] text-amber-800">{msg.doshaName || "ವಿಶೇಷ ಜಾತಕ ದೋಷ"}</span>
+                        <span className="font-bold text-amber-900 block text-[11px]">{currentChatUi.doshaBadgeFallback}</span>
+                        <span className="text-[11px] text-amber-800">{msg.doshaName || currentChatUi.specialDoshaFallback}</span>
                       </div>
                     </div>
                     <a
                       href={DEFAULT_PRIEST_CONTACT.callUri}
                       className="bg-amber-700 hover:bg-amber-800 text-white font-sans text-[10px] font-bold px-2.5 py-1 rounded-md shadow-2xs transition whitespace-nowrap"
                     >
-                      📞 ಪರಿಹಾರ ಕರೆ
+                      {currentChatUi.callRemedyBtn}
                     </a>
                   </div>
                 )}
@@ -1531,7 +1483,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 {!isUser && (
                   <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between text-[11px]">
                     <span className="text-amber-800/80 font-sans italic">
-                      ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ದೈವಜ್ಞ ಉತ್ತರ
+                      {currentChatUi.astrologerFooterNote}
                     </span>
                     <button
                       type="button"
@@ -1542,7 +1494,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                           : "bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300"
                       }`}
                     >
-                      <span>{speakingMessageId === msg.id ? "⏹️ ನಿಲ್ಲಿಸಿ" : "🔊 ಆಲಿಸಿ"}</span>
+                      <span>{speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}</span>
                     </button>
                   </div>
                 )}
@@ -1555,14 +1507,14 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         {isGenerating && (
           <div className="flex flex-col items-start w-full animate-pulse">
             <span className="text-[10px] font-bold text-amber-900 mb-1 px-1">
-              ದೈವಜ್ಞರು (Astrologer, Gokarna)
+              {currentChatUi.typingAstrologer}
             </span>
             <div className="bg-white border-2 border-amber-300 rounded-2xl rounded-bl-xs p-3.5 text-xs text-amber-900 font-serif flex items-center gap-2 shadow-xs">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce" />
               <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce [animation-delay:0.2s]" />
               <div className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-bounce [animation-delay:0.4s]" />
               <span className="font-sans ml-1 text-amber-800">
-                ಜನ್ಮಕುಂಡಲಿ & ದಶಾ-ಗೋಚಾರ ಗಣಿತ ಸಂಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...
+                {currentChatUi.synthesizingAnswer}
               </span>
             </div>
           </div>
@@ -1577,23 +1529,15 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       <footer className="w-full bg-[#FAF6EE] border-t-2 border-amber-300/80 sticky bottom-0 z-20 p-2 sm:p-3 shadow-lg">
         <div className="max-w-2xl mx-auto space-y-2">
           {/* Quick Questions Age-Adaptive Luxury FAQ Dock */}
-          {!isExpired && (
+          {!isExpired && quickFaqChips.length > 0 && (
             <div className="pt-0.5 pb-1">
               <div className="flex items-center justify-between text-[11px] text-amber-900 font-serif mb-1 px-1">
                 <span className="flex items-center gap-1 font-semibold">
                   <span>✨</span>
-                  <span>
-                    {isMinorChildDevotee
-                      ? session.language === "en"
-                        ? "Child Guidance & Education FAQs (1-Tap)"
-                        : "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ & ಪೋಷಕರ ಪ್ರಶ್ನಾವಳಿ (೧-ಟ್ಯಾಪ್)"
-                      : session.language === "en"
-                      ? "Frequently Asked Questions (1-Tap)"
-                      : "ಜನಪ್ರಿಯ ಪ್ರಶ್ನಾವಳಿ (೧-ಟ್ಯಾಪ್)"}
-                  </span>
+                  <span>{currentChatUi.faqDockHeader}</span>
                 </span>
                 <span className="text-[10px] text-amber-800/70 font-sans">
-                  {isMinorChildDevotee ? "👶 Minor Child" : `👤 ${devoteeAgeYears} yrs`}
+                  {isMinorChildDevotee ? currentChatUi.minorChildBadge : `👤 ${devoteeAgeYears} ${currentChatUi.yearsAgeBadge}`}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
@@ -1666,7 +1610,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                       ? "bg-red-500 text-white animate-pulse shadow-md"
                       : "text-amber-700 hover:bg-amber-100 active:scale-90"
                   }`}
-                  title="ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (3-4 ನಿಮಿಷ ಮಾತನಾಡಬಹುದು)"
+                  title={currentChatUi.micTooltip}
                 >
                   <span className="text-lg">🎙️</span>
                 </button>
@@ -1678,7 +1622,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 onClick={() => handleSendMessage()}
                 disabled={isGenerating || !inputText.trim()}
                 className="bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold p-3 rounded-2xl shadow-md disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition"
-                title="ಪ್ರಶ್ನೆ ಕಳುಹಿಸಿ"
+                title={currentChatUi.sendTooltip}
               >
                 <span className="text-base">➤</span>
               </button>
@@ -1753,7 +1697,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 {savingContact ? (
                   <>
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>ದೃಢೀಕರಿಸಲಾಗುತ್ತಿದೆ...</span>
+                    <span>{currentChatUi.confirmingContact}</span>
                   </>
                 ) : (
                   <span>{currentI18n.submitContactBtn}</span>
@@ -1786,25 +1730,25 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             {/* Profile summary in modal */}
             <div className="bg-white border border-amber-300 rounded-2xl p-3.5 text-xs text-stone-800 space-y-1.5 shadow-2xs">
               <div className="flex justify-between border-b border-amber-100 pb-1">
-                <span className="text-stone-500 font-medium">ಭಕ್ತರ ಹೆಸರು (Name):</span>
+                <span className="text-stone-500 font-medium">{currentChatUi.devoteeNameLabel}</span>
                 <span className="font-bold text-amber-950">{session.name}</span>
               </div>
               <div className="flex justify-between border-b border-amber-100 pb-1">
-                <span className="text-stone-500 font-medium">ಜನ್ಮ ವಿವರಗಳು:</span>
+                <span className="text-stone-500 font-medium">{currentChatUi.birthDetailsLabel}</span>
                 <span className="font-bold text-amber-950">
                   {session.dob} at {session.tob} ({session.place})
                 </span>
               </div>
               {(session.userPhone || session.userEmail) && (
                 <div className="flex justify-between border-b border-amber-100 pb-1">
-                  <span className="text-stone-500 font-medium">ಸಂಪರ್ಕ:</span>
+                  <span className="text-stone-500 font-medium">{currentChatUi.contactSummaryLabel}</span>
                   <span className="font-bold text-amber-950">
                     {session.userPhone || session.userEmail}
                   </span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-stone-500 font-medium">ಭಾಷೆ (Language):</span>
+                <span className="text-stone-500 font-medium">{currentChatUi.languageSummaryLabel}</span>
                 <span className="font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-sm">
                   {currentLangMeta.nativeName} ({currentLangMeta.englishName})
                 </span>
@@ -1830,7 +1774,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 {startingTimer ? (
                   <>
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ...</span>
+                    <span>{currentChatUi.startingSession}</span>
                   </>
                 ) : (
                   <>
@@ -1844,7 +1788,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 onClick={() => setShowTimerModal(false)}
                 className="w-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2.5 px-4 rounded-xl text-xs transition"
               >
-                ನಂತರ ಪ್ರಾರಂಭಿಸಿ (Review Later)
+                {currentChatUi.reviewLaterBtn}
               </button>
             </div>
           </div>
@@ -1911,15 +1855,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 })}
               </div>
               <span className="text-[11px] font-semibold text-amber-800 block">
-                {selectedStars === 5
-                  ? "⭐⭐⭐⭐⭐ ಅತ್ಯುತ್ತಮ (5/5 Excellent)"
-                  : selectedStars === 4
-                  ? "⭐⭐⭐⭐ ಬಹಳ ಒಳ್ಳೆಯದು (4/5 Very Good)"
-                  : selectedStars === 3
-                  ? "⭐⭐⭐ ತೃಪ್ತಿಕರ (3/5 Good)"
-                  : selectedStars === 2
-                  ? "⭐⭐ ಸುಧಾರಣೆ ಅಗತ್ಯ (2/5 Fair)"
-                  : "⭐ ಅತೃಪ್ತಿ (1/5 Needs Attention)"}
+                {currentChatUi.ratingLevels[Math.max(0, Math.min(4, selectedStars - 1))]}
               </span>
             </div>
 
@@ -1948,7 +1884,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 {isSubmittingRating ? (
                   <>
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...</span>
+                    <span>{currentChatUi.submittingReview}</span>
                   </>
                 ) : (
                   <>

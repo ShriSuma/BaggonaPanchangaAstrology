@@ -3,6 +3,8 @@ import {
   CONSULTATION_LANGUAGES,
   DEFAULT_PRIEST_CONTACT,
   CONSULTATION_MODAL_I18N,
+  CONSULTATION_CHAT_UI_I18N,
+  getLocalizedQuickFaqChips,
   type ConsultationLanguage,
   type ConsultationSession,
   type ConsultationQuestionRecord,
@@ -1606,6 +1608,179 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       expect(turn2Travel.fullText).not.toContain("ಹರಿ ಓಂ ರಮೇಶ್ ಕುಮಾರ್ ಅವರೇ! ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ");
       expect(turn2Travel.fullText).not.toContain("೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೊಠಡಿಯಲ್ಲಿ ನಾನು ನಿಮ್ಮೊಂದಿಗಿದ್ದೇನೆ");
       expect(turn2Travel.fullText).toMatch(/(ಪ್ರಯಾಣ|ಧರ್ಮಸ್ಥಳ|ಶುಭ|ಕುಲದೇವ|ಮಂಜುನಾಥ)/);
+    });
+  });
+
+  describe("14. Consultation UX Re-Audit: 7-Language Native Localization & Zero Repetitive Monologues", () => {
+    const all7Languages: ConsultationLanguage[] = ["kn", "en", "hi", "te", "ta", "ml", "mr"];
+
+    it("verifies CONSULTATION_CHAT_UI_I18N has 100% complete keys across all 7 languages without empty strings", () => {
+      const requiredKeys = [
+        "patrikaLoading",
+        "devoteeSenderTag",
+        "astrologerSenderTag",
+        "doshaCardTitle",
+        "specialPariharaBadge",
+        "doshaAfflictionLabel",
+        "planetaryCauseLabel",
+        "currentImpactLabel",
+        "remedySankalpaLabel",
+        "priestLabel",
+        "gokarnaLocationLabel",
+        "directCallBtn",
+        "doshaBadgeFallback",
+        "specialDoshaFallback",
+        "callRemedyBtn",
+        "astrologerFooterNote",
+        "stopAudio",
+        "listenAudio",
+        "typingAstrologer",
+        "synthesizingAnswer",
+        "faqDockHeader",
+        "minorChildBadge",
+        "yearsAgeBadge",
+        "micTooltip",
+        "sendTooltip",
+        "confirmingContact",
+        "startingSession",
+        "reviewLaterBtn",
+        "submittingReview",
+        "devoteeNameLabel",
+        "birthDetailsLabel",
+        "contactSummaryLabel",
+        "languageSummaryLabel"
+      ] as const;
+
+      for (const lang of all7Languages) {
+        const ui = CONSULTATION_CHAT_UI_I18N[lang];
+        expect(ui, `Missing UI i18n object for ${lang}`).toBeDefined();
+
+        for (const k of requiredKeys) {
+          const val = ui[k];
+          expect(val, `Missing or empty key ${k} in language ${lang}`).toBeDefined();
+          expect(typeof val).toBe("string");
+          expect(val.trim().length).toBeGreaterThan(0);
+        }
+
+        expect(Array.isArray(ui.ratingLevels)).toBe(true);
+        expect(ui.ratingLevels).toHaveLength(5);
+        for (let i = 0; i < 5; i++) {
+          expect(ui.ratingLevels[i].trim().length).toBeGreaterThan(0);
+        }
+      }
+    });
+
+    it("verifies getLocalizedQuickFaqChips provides 4 culturally authentic chips across all 7 languages for all 4 age demographics", () => {
+      const testAges = [10, 24, 38, 58]; // Minor, Youth, Mid-Career, Senior
+
+      for (const lang of all7Languages) {
+        for (const age of testAges) {
+          const chips = getLocalizedQuickFaqChips(lang, age);
+          expect(chips, `Chips missing for lang: ${lang}, age: ${age}`).toBeDefined();
+          expect(chips).toHaveLength(4);
+
+          for (const chip of chips) {
+            expect(chip.label.trim().length, `Empty label in ${lang} at age ${age}`).toBeGreaterThan(0);
+            expect(chip.question.trim().length, `Empty question in ${lang} at age ${age}`).toBeGreaterThan(0);
+          }
+        }
+      }
+
+      // Check script purity
+      const enMinorChips = getLocalizedQuickFaqChips("en", 12);
+      expect(enMinorChips[0].label).toContain("Education");
+      expect(enMinorChips[0].question).toContain("child");
+
+      const hiYouthChips = getLocalizedQuickFaqChips("hi", 25);
+      expect(hiYouthChips[0].label).toMatch(/[\u0900-\u097F]/); // Hindi Devanagari
+
+      const teMidChips = getLocalizedQuickFaqChips("te", 35);
+      expect(teMidChips[0].label).toMatch(/[\u0C00-\u0C7F]/); // Telugu script
+
+      const taSeniorChips = getLocalizedQuickFaqChips("ta", 55);
+      expect(taSeniorChips[0].label).toMatch(/[\u0B80-\u0BFF]/); // Tamil script
+
+      const mlSeniorChips = getLocalizedQuickFaqChips("ml", 52);
+      expect(mlSeniorChips[0].label).toMatch(/[\u0D00-\u0D7F]/); // Malayalam script
+
+      const mrMidChips = getLocalizedQuickFaqChips("mr", 40);
+      expect(mrMidChips[0].label).toMatch(/[\u0900-\u097F]/); // Marathi Devanagari
+    });
+
+    it("omits 150-word dosha chapter and suppresses duplicate activeDoshaCard on follow-up questions", async () => {
+      const devoteeSession: ConsultationSession = {
+        id: "bgn_cst_dedup_test",
+        name: "ಸುರೇಶ್ ಭಟ್ (Suresh)",
+        dob: "1988-03-25",
+        tob: "08:30",
+        place: "Gokarna",
+        lat: 14.5479,
+        lng: 74.3188,
+        timezone: 5.5,
+        language: "kn",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 1200000).toISOString(),
+        status: "active",
+        durationMinutes: 20,
+        graceDeleteMinutes: 20,
+        messages: [],
+        priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+        priestPhone: "9972339362"
+      };
+
+      // Turn 1: Career frustration query (detects dosha and attaches card)
+      const turn1 = await generateConsultationAnswer({
+        session: devoteeSession,
+        userQuestion: "ನನಗೆ ಕೆಲಸದಲ್ಲಿ ನಿರಂತರ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆ ಎದುರಾಗುತ್ತಿದೆ",
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+
+      expect(turn1.hasDosha).toBe(true);
+      expect(turn1.activeDoshaCard).toBeDefined();
+      expect(turn1.activeDoshaCard?.doshaName).toMatch(/(ದೋಷ|Dosha)/);
+      // Turn 1 contains the 150-word dosha chapter
+      expect(turn1.fullText).toMatch(/(ದೋಷ.*ಪರಿಹಾರ ಅಧ್ಯಾಯ|ಪರಿಹಾರ ಅಧ್ಯಾಯ)/);
+
+      // Turn 2: Devotee asks follow-up about career without mentioning dosha
+      const turn2 = await generateConsultationAnswer({
+        session: devoteeSession,
+        userQuestion: "ಹಾಗಾದರೆ ನಾನು ಹೊಸ ವ್ಯವಹಾರ ಅಥವಾ ವ್ಯಾಪಾರ ಯಾವಾಗ ಆರಂಭಿಸಬಹುದು?",
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+
+      // Turn 2 must NOT repeat the activeDoshaCard
+      expect(turn2.activeDoshaCard).toBeUndefined();
+      // Turn 2 must NOT repeat the 150-word dosha chapter
+      expect(turn2.fullText).not.toContain("ಕಾಳಸರ್ಪ ದೋಷ ಅಥವಾ ಛಾಯಾಗ್ರಹಗಳಾದ ರಾಹು-ಕೇತುಗಳ ವಕ್ರ ದೃಷ್ಟಿ");
+      expect(turn2.fullText).not.toContain("ದೋಷ ಪರಿಹಾರ ಅಧ್ಯಾಯ (೪ನೇ ಪ್ಯಾರಾ)");
+
+      // Turn 3: Devotee explicitly asks about dosha / pooja parihara
+      const turn3 = await generateConsultationAnswer({
+        session: devoteeSession,
+        userQuestion: "ನನ್ನ ಜಾತಕದಲ್ಲಿ ಯಾವುದಾದರೂ ದೋಷವಿದೆಯೇ? ಗೋಕರ್ಣದಲ್ಲಿ ಯಾವ ಶಾಂತಿ ಪೂಜೆ ಶ್ರೇಷ್ಠ?",
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 2
+      });
+
+      // Because devotee asked about doshas directly, card is attached!
+      expect(turn3.activeDoshaCard).toBeDefined();
+      expect(turn3.hasDosha).toBe(true);
+    });
+
+    it("verifies PANCHANGA_PATRIKA_LABELS_I18N contains all newly added labels across all 7 languages", () => {
+      for (const lang of all7Languages) {
+        const labels = PANCHANGA_PATRIKA_LABELS_I18N[lang];
+        expect(labels, `Missing Panchanga labels for ${lang}`).toBeDefined();
+        expect(labels.limbsTitle.trim().length).toBeGreaterThan(0);
+        expect(labels.phonePlaceholder.trim().length).toBeGreaterThan(0);
+        expect(labels.startingBtn.trim().length).toBeGreaterThan(0);
+        expect(labels.priestLocationPhone.trim().length).toBeGreaterThan(0);
+      }
     });
   });
 });
