@@ -28,6 +28,7 @@ import {
 } from "./sandhyavandanaDbService";
 import { synthesizeAndPlayClonedVoice, stopClonedAudio } from "../audio/aiVoiceCloneEngine";
 import type { SevaLang } from "../seva/sevaLocale";
+import { SandhyavandanaShareLinkModal } from "./SandhyavandanaShareLinkModal";
 
 export const SandhyavandanaPage: React.FC = () => {
   // Navigation State
@@ -54,6 +55,7 @@ export const SandhyavandanaPage: React.FC = () => {
   const [loadingSession, setLoadingSession] = useState<boolean>(false);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const [daysRemaining, setDaysRemaining] = useState<number>(90);
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
   // Auto-detect current Sandhya period on load
   useEffect(() => {
@@ -242,7 +244,14 @@ export const SandhyavandanaPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-200 font-serif text-xs font-bold px-3 py-1.5 rounded-xl border border-amber-400/60 shadow-xs transition flex items-center gap-1.5"
+            >
+              <span>🔗</span>
+              <span>೩ ತಿಂಗಳ ಲಿಂಕ್ ರಚಿಸಿ</span>
+            </button>
             <a
               href="tel:9972339362"
               className="bg-amber-900/90 hover:bg-amber-950 text-amber-200 font-serif text-xs font-bold px-3 py-1.5 rounded-xl border border-amber-400/50 shadow-xs transition"
@@ -789,6 +798,13 @@ export const SandhyavandanaPage: React.FC = () => {
         )}
       </div>
 
+      {/* 3-Month Shareable Link Modal */}
+      <SandhyavandanaShareLinkModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        initialName={devoteeNameInput}
+        initialGotraId={selectedGotraId}
+      />
     </div>
   );
 };

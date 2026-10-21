@@ -31,6 +31,8 @@ import { resolvePlaceFromPincode } from "../../services/locationApi";
 import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../auth/authStore";
 import { useAppStore } from "../../stores/appStore";
 import CategorizedNavDrawer from "../../components/navigation/CategorizedNavDrawer";
+import { encodeDevoteeToken } from "../../utils/tokenCipher";
+import { createSandhyavandanaSession } from "../sandhyavandana/sandhyavandanaDbService";
 
 const POPULAR_PLACES = [
   { name: "ಗೋಕರ್ಣ (Gokarna)", lat: 14.5479, lng: 74.3188 },
@@ -55,6 +57,9 @@ export const ConsultationGeneratorPage: React.FC = () => {
       currentUser === "$hriSuma" ||
       currentUser?.toLowerCase() === "superadmin" ||
       Boolean(currentUser && SUPER_ADMIN_USERNAMES.some((u) => u.toLowerCase() === currentUser.toLowerCase() || u === currentUser)));
+
+  // Service Type State: "consultation_20min" | "karma_mandala" | "sandhyavandana"
+  const [linkServiceType, setLinkServiceType] = useState<"consultation_20min" | "karma_mandala" | "sandhyavandana">("consultation_20min");
 
   // Form State
   const [name, setName] = useState("");
@@ -177,47 +182,109 @@ export const ConsultationGeneratorPage: React.FC = () => {
 
     setIsGenerating(true);
     try {
-      const input: CreateConsultationInput = {
-        name: name.trim(),
-        dob,
-        tob,
-        place: place.trim(),
-        lat: selectedLat,
-        lng: selectedLng,
-        timezone: 5.5,
-        language
-      };
-
-      const session = await createConsultationSession(input);
-      setGeneratedSession(session);
-
-      // Build Encrypted Secure Link URL (Double resilient: encrypted token in id, raw session ID in session)
       const origin = typeof window !== "undefined" && window.location.origin
         ? window.location.origin
         : "https://baggona-panchanga.web.app";
-      const secureToken = encodeSecureConsultationToken(session.id);
-      const fullUrl = `${origin}/consultation?id=${encodeURIComponent(secureToken)}&session=${session.id}`;
-      setGeneratedUrl(fullUrl);
 
-      // Generate QR Code
-      try {
+      if (linkServiceType === "karma_mandala") {
+        // Generate Karma Sanjeevini & Gokarna Parihara Mandala Token
+        const token = encodeDevoteeToken({
+          name: name.trim(),
+          dob,
+          tob,
+          pincode: pincode.trim(),
+          locationName: place.trim(),
+          lat: selectedLat,
+          lng: selectedLng,
+          lang: language,
+          priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+          priestPhone: "9972339362",
+          exp: Date.now() + 20 * 60 * 1000 // 20-min session security window
+        });
+        const fullUrl = `${origin}/karma-mandala?token=${token}`;
+        setGeneratedUrl(fullUrl);
+        setGeneratedSession({
+          id: `bgn_km_${Date.now()}`,
+          name: name.trim(),
+          dob,
+          tob,
+          place: place.trim(),
+          status: "active",
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 20 * 60 * 1000).toISOString()
+        } as any);
+
         const qr = await QRCode.toDataURL(fullUrl, {
           width: 280,
           margin: 2,
-          color: {
-            dark: "#78350f", // amber-900
-            light: "#fffdfa"
-          }
+          color: { dark: "#78350f", light: "#fffdfa" }
         });
         setQrCodeDataUrl(qr);
-      } catch (qrErr) {
-        console.warn("[Generator] QR generation error:", qrErr);
-      }
+      } else if (linkServiceType === "sandhyavandana") {
+        // Generate Sandhyavandana 3-Month Guided Session
+        const session = await createSandhyavandanaSession({
+          devoteeName: name.trim(),
+          preferredPeriod: "pratah"
+        });
+        const shareUrl = session.shareableUrl || "";
+        setGeneratedUrl(shareUrl);
+        setGeneratedSession({
+          id: session.id,
+          name: name.trim(),
+          dob,
+          tob,
+          place: place.trim(),
+          status: "active",
+          createdAt: session.createdAt,
+          expiresAt: session.expiresAt
+        } as any);
 
-      // Refresh list
-      void refreshRecentSessions();
+        if (shareUrl) {
+          const qr = await QRCode.toDataURL(shareUrl, {
+            width: 280,
+            margin: 2,
+            color: { dark: "#78350f", light: "#fffdfa" }
+          });
+          setQrCodeDataUrl(qr);
+        }
+      } else {
+        // Default 20-Min Astrologer Consultation Sanctum
+        const input: CreateConsultationInput = {
+          name: name.trim(),
+          dob,
+          tob,
+          place: place.trim(),
+          lat: selectedLat,
+          lng: selectedLng,
+          timezone: 5.5,
+          language
+        };
+
+        const session = await createConsultationSession(input);
+        setGeneratedSession(session);
+
+        const secureToken = encodeSecureConsultationToken(session.id);
+        const fullUrl = `${origin}/consultation?id=${encodeURIComponent(secureToken)}&session=${session.id}`;
+        setGeneratedUrl(fullUrl);
+
+        try {
+          const qr = await QRCode.toDataURL(fullUrl, {
+            width: 280,
+            margin: 2,
+            color: {
+              dark: "#78350f", // amber-900
+              light: "#fffdfa"
+            }
+          });
+          setQrCodeDataUrl(qr);
+        } catch (qrErr) {
+          console.warn("[Generator] QR generation error:", qrErr);
+        }
+
+        void refreshRecentSessions();
+      }
     } catch (err: any) {
-      alert("Error creating consultation session: " + (err.message || String(err)));
+      alert("Error creating link: " + (err.message || String(err)));
     } finally {
       setIsGenerating(false);
     }
@@ -238,7 +305,16 @@ export const ConsultationGeneratorPage: React.FC = () => {
   // Share on WhatsApp
   const handleShareWhatsApp = () => {
     if (!generatedSession || !generatedUrl) return;
-    const msg = `॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಸಮಾಲೋಚನೆ ॥\n\nನಮಸ್ಕಾರ ${generatedSession.name} ಅವರೇ,\nನಿಮಗಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ವೈದಿಕ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆಯ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಲಿಂಕ್ ಸಿದ್ಧವಾಗಿದೆ.\n\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ದಶಾ-ಭುಕ್ತಿ, ವೃತ್ತಿ, ವಿವಾಹ ಹಾಗೂ ಪರಿಹಾರಗಳ ಕುರಿತು ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಲು ಕೆಳಗಿನ ಲಿಂಕ್ ತೆರೆಯಿರಿ:\n👉 ${generatedUrl}\n\n(ಗಮನಿಸಿ: ನೀವು ಲಿಂಕ್ ತೆರೆದು 'Start' ಕ್ಲಿಕ್ ಮಾಡಿದ ಕೂಡಲೇ ೨೦ ನಿಮಿಷಗಳ ಟೈಮರ್ ಆರಂಭವಾಗುತ್ತದೆ).`;
+    let msg = "";
+
+    if (linkServiceType === "karma_mandala") {
+      msg = `॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n\nನಮಸ್ಕಾರ ${generatedSession.name} ಅವರೇ,\nನಿಮಗಾಗಿ ದೈವಿಕ ಕರ್ಮ ಸಂಜೀವಿನಿ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ದೋಷ ಪರಿಹಾರ ಮಂಡಲದ ವೈಯಕ್ತಿಕ ರಕ್ಷಾ ಕವಚ ಲಿಂಕ್ ಸಿದ್ಧವಾಗಿದೆ.\n\nನಿಮ್ಮ ಗ್ರಹ ಘರ್ಷಣೆ ರಾಡಾರ್, ಮುಹೂರ್ತ ದಿಕ್ಸೂಚಿ ಹಾಗೂ ಜಪ ಮಂಡಲ ನೋಡಲು ಕೆಳಗಿನ ಲಿಂಕ್ ತೆರೆಯಿರಿ:\n👉 ${generatedUrl}\n\n(ಗಮನಿಸಿ: ಈ ಲಿಂಕ್ ೨೦ ನಿಮಿಷಗಳ ಕಾಲ ಮಾನ್ಯವಾಗಿರುತ್ತದೆ).\nಪ್ರಧಾನ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (೯೯೭೨೩೩೯೩೬೨)\n॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ ॥`;
+    } else if (linkServiceType === "sandhyavandana") {
+      msg = `॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n\nನಮಸ್ಕಾರ ${generatedSession.name} ಅವರೇ,\nನಿಮಗಾಗಿ ವೈದಿಕ ಸಂಧ್ಯಾವಂದನಾ ಮಹಾವಿಧಿಯ ೩ ತಿಂಗಳ (೯೦ ದಿನಗಳ) ದಿವ್ಯ ಲಿಂಕ್ ಸಿದ್ಧವಾಗಿದೆ.\n\nದೈನಂದಿನ ಸಂಧ್ಯಾವಂದನೆ ಅಭ್ಯಾಸಕ್ಕೆ ಕೆಳಗಿನ ಲಿಂಕ್ ತೆರೆಯಿರಿ:\n👉 ${generatedUrl}\n\n(೯೦ ದಿನಗಳ ಮಾನ್ಯತೆ).\nಪ್ರಧಾನ ಅರ್ಚಕರು: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (೯೯೭೨೩೩೯೩೬೨)\n॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ ॥`;
+    } else {
+      msg = `॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಸಮಾಲೋಚನೆ ॥\n\nನಮಸ್ಕಾರ ${generatedSession.name} ಅವರೇ,\nನಿಮಗಾಗಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ವೈದಿಕ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆಯ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಲಿಂಕ್ ಸಿದ್ಧವಾಗಿದೆ.\n\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ, ದಶಾ-ಭುಕ್ತಿ, ವೃತ್ತಿ, ವಿವಾಹ ಹಾಗೂ ಪರಿಹಾರಗಳ ಕುರಿತು ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಲು ಕೆಳಗಿನ ಲಿಂಕ್ ತೆರೆಯಿರಿ:\n👉 ${generatedUrl}\n\n(ಗಮನಿಸಿ: ನೀವು ಲಿಂಕ್ ತೆರೆದು 'Start' ಕ್ಲಿಕ್ ಮಾಡಿದ ಕೂಡಲೇ ೨೦ ನಿಮಿಷಗಳ ಟೈಮರ್ ಆರಂಭವಾಗುತ್ತದೆ).`;
+    }
+
     const uri = `https://wa.me/?text=${encodeURIComponent(msg)}`;
     window.open(uri, "_blank");
   };
@@ -374,8 +450,43 @@ export const ConsultationGeneratorPage: React.FC = () => {
               <div className="flex items-center gap-2 border-b border-amber-200 pb-2">
                 <span className="text-xl">📝</span>
                 <h3 className="font-serif font-bold text-lg text-amber-950">
-                  ಭಕ್ತರ ಜನ್ಮ ವಿವರಗಳು & ಭಾಷೆ ಆಯ್ಕೆ (Devotee Profile)
+                  ಭಕ್ತರ ಜನ್ಮ ವಿವರಗಳು & ಸೇವೆಯ ಆಯ್ಕೆ (Devotee Profile & Service)
                 </h3>
+              </div>
+
+              {/* Service Type Tab Selector */}
+              <div>
+                <label className="block text-xs font-bold text-amber-950 mb-1.5">
+                  🎯 ರಚಿಸಬೇಕಾದ ಸೇವೆಯ ಲಿಂಕ್ ಪ್ರಕಾರ (Select Link Type)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: "consultation_20min", icon: "💬", title: "೨೦-ನಿಮಿಷ ಸಮಾಲೋಚನೆ", badge: "20-Min Chat" },
+                    { id: "karma_mandala", icon: "🔱", title: "ಕರ್ಮ ಸಂಜೀವಿನಿ ಮಂಡಲ", badge: "Karma Sanjeevini" },
+                    { id: "sandhyavandana", icon: "🕉️", title: "ಸಂಧ್ಯಾವಂದನಾ ಮಹಾವಿಧಿ", badge: "3-Month Access" }
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setLinkServiceType(s.id as any)}
+                      className={`p-2.5 rounded-xl border-2 text-left transition flex flex-col justify-between ${
+                        linkServiceType === s.id
+                          ? "bg-amber-600 text-white border-amber-500 shadow-md scale-[1.01]"
+                          : "bg-[#FAF6EE] border-amber-200 text-amber-950 hover:bg-amber-100"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 text-xs font-bold">
+                        <span>{s.icon}</span>
+                        <span>{s.title}</span>
+                      </div>
+                      <span className={`text-[10px] mt-1 font-mono font-semibold px-1.5 py-0.5 rounded w-fit ${
+                        linkServiceType === s.id ? "bg-amber-800 text-amber-100" : "bg-amber-100 text-amber-900"
+                      }`}>
+                        {s.badge}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
           <form onSubmit={handleGenerateLink} className="space-y-4">
@@ -528,7 +639,13 @@ export const ConsultationGeneratorPage: React.FC = () => {
                 ) : (
                   <>
                     <span>✨</span>
-                    <span>೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ರಚಿಸಿ (Generate 20-Min Link)</span>
+                    <span>
+                      {linkServiceType === "karma_mandala"
+                        ? "ಕರ್ಮ ಸಂಜೀವಿನಿ ರಕ್ಷಾ ಕವಚ ಲಿಂಕ್ ರಚಿಸಿ (Generate Karma Link)"
+                        : linkServiceType === "sandhyavandana"
+                        ? "ಸಂಧ್ಯಾವಂದನಾ ೩ ತಿಂಗಳ ಲಿಂಕ್ ರಚಿಸಿ (Generate 3-Month Link)"
+                        : "೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ರಚಿಸಿ (Generate 20-Min Link)"}
+                    </span>
                   </>
                 )}
               </button>

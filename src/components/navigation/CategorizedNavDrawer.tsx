@@ -93,6 +93,7 @@ export default function CategorizedNavDrawer({
           { page: "varshabavishya", icon: "🔮", labelKey: "varshabavishya", visible: hasPanchanga, keywords: ["yearly", "varsha", "annual", "bhavishya"] },
           { page: "melapak", icon: "💞", labelKey: "melapak", visible: hasPanchanga, keywords: ["matching", "marriage", "guna", "melapak", "compatibility"] },
           { page: "instant_reading", icon: "⚡", labelKey: "instant_reading", badge: "AI", badgeColor: "bg-cyan-500/30 text-cyan-300 border-cyan-500/40", visible: hasPanchanga, keywords: ["instant", "reading", "ai"] },
+          { page: "karma_mandala", icon: "🔱", labelKey: "karma_mandala", badge: "ಗೋಕರ್ಣ", badgeColor: "bg-amber-500/40 text-amber-200 border-amber-400/50", visible: hasPanchanga, keywords: ["karma", "mandala", "sanjeevini", "parihara", "gokarna", "dosha", "remedy", "japa"] },
           { page: "gurukula", icon: "🏛️", labelKey: "gurukula", visible: hasPanchanga, keywords: ["gurukula", "academy", "learn", "classes"] },
           { page: "doshas", icon: "⚠️", labelKey: "doshas", visible: hasPanchanga, keywords: ["doshas", "kuja", "kalatra", "sarpa"] }
         ]
@@ -106,7 +107,8 @@ export default function CategorizedNavDrawer({
         items: [
           { page: "package_download", icon: "📦", labelKey: "package_download", badge: "ZIP", badgeColor: "bg-yellow-500/40 text-yellow-200 border-yellow-400/50", visible: hasPanchanga && (session || isMasterOrSuperAdmin), keywords: ["package", "zip", "all reports", "download", "qr card"] },
           { page: "aiaastrologer", icon: "🔮", labelKey: "aiaastrologer", badge: "AI Q&A", badgeColor: "bg-purple-500/30 text-purple-300 border-purple-500/40", visible: true, keywords: ["ask", "qa", "consultation", "prashne", "prashnottara"] },
-          { page: "guided_pooja", icon: "🕉️", labelKey: "guided_pooja", visible: hasPanchanga && (session || isMasterOrSuperAdmin), keywords: ["pooja", "vidhi", "mantra", "guided", "homa"] },
+          { page: "sandhyavandana", icon: "🕉️", labelKey: "sandhyavandana", badge: "3 Months", badgeColor: "bg-amber-500/30 text-amber-300 border-amber-500/40", visible: true, keywords: ["sandhyavandana", "gayatri", "trikaala", "gotra", "pravara", "mantra"] },
+          { page: "guided_pooja", icon: "🪔", labelKey: "guided_pooja", visible: hasPanchanga && (session || isMasterOrSuperAdmin), keywords: ["pooja", "vidhi", "mantra", "guided", "homa"] },
           { page: "pooja_estimate", icon: "📜", labelKey: "pooja_estimate", badge: "New", badgeColor: "bg-amber-500/30 text-amber-300 border-amber-500/40", visible: hasPanchanga && (session || isMasterOrSuperAdmin), keywords: ["estimate", "cost", "samagri", "priest", "plan"] },
           { page: "seva", icon: "🪔", labelKey: "seva", visible: hasPanchanga && (session || isMasterOrSuperAdmin), keywords: ["seva", "prasada", "temple", "donation", "archana"] },
           { page: "varamahalakshmi", icon: "🌸", labelKey: "varamahalakshmi", visible: hasPanchanga, keywords: ["vratha", "lakshmi", "pooja"] }

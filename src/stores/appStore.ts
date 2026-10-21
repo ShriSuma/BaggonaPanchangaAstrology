@@ -6,7 +6,7 @@ import { hydrateMissingTranslations } from "../services/i18nHydrate";
 import type { AyanamsaModel, NodeType } from "../core/AstroTypes";
 
 export type SupportedLanguage = "en" | "hi" | "kn" | "te" | "ta";
-export type AppPage = "home" | "kundli" | "predictions" | "insights" | "settings" | "melapak" | "baggona" | "bhagyodaya" | "muhurtha" | "varshabavishya" | "ramanbhavishya" | "aiaastrologer" | "seva" | "varamahalakshmi" | "sankhyashastra" | "palmreading" | "facereading" | "maranottara" | "lifeguidance" | "astrogames" | "kaaladiksuchi" | "hindinajanma" | "ayursanjeevini" | "priestdashboard" | "superadmindashboard" | "priest_panchanga" | "instant_reading" | "public_kundli" | "quick_calendar" | "calendar" | "doshas" | "astodaya_grahana" | "gurukula" | "guided_pooja" | "pooja_estimate" | "package_download" | "sandhyavandana" | "consultation_generator";
+export type AppPage = "home" | "kundli" | "predictions" | "insights" | "settings" | "melapak" | "baggona" | "bhagyodaya" | "muhurtha" | "varshabavishya" | "ramanbhavishya" | "aiaastrologer" | "seva" | "varamahalakshmi" | "sankhyashastra" | "palmreading" | "facereading" | "maranottara" | "lifeguidance" | "astrogames" | "kaaladiksuchi" | "hindinajanma" | "ayursanjeevini" | "karma_mandala" | "priestdashboard" | "superadmindashboard" | "priest_panchanga" | "instant_reading" | "public_kundli" | "quick_calendar" | "calendar" | "doshas" | "astodaya_grahana" | "gurukula" | "guided_pooja" | "pooja_estimate" | "package_download" | "sandhyavandana" | "consultation_generator";
 
 const DEFAULT_LAT = 19.076;
 const DEFAULT_LNG = 72.8777;

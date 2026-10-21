@@ -148,6 +148,20 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "ఆయుర్-సంజీవిని & కర్మ మోక్ష చక్రం",
     ta: "ஆயுர் சஞ்சீவினி & கர்ம மோக்ஷம்"
   },
+  karma_mandala: {
+    kn: "ದೈವಿಕ ಕರ್ಮ ಸಂಜೀವಿನಿ & ಪರಿಹಾರ ಮಂಡಲ",
+    en: "Karma Sanjeevini & Remedial Mandala",
+    hi: "दैविक कर्म संजीवनी एवं परिहार मण्डल",
+    te: "దైవిక కర్మ సంజీవిని & పరిహార మండలం",
+    ta: "கர்ம சஞ்சீவினி & தோஷ நிவாரண மண்டலம்"
+  },
+  sandhyavandana: {
+    kn: "ಸಂಧ್ಯಾವಂದನಾ ಮಹಾವಿಧಿ",
+    en: "Vedic Sandhyavandana",
+    hi: "संध्यावंदना महाविधि",
+    te: "సంధ్యావందన మహావిధి",
+    ta: "சந்தியாவந்தனம்"
+  },
   astrogames: {
     kn: "ಜ್ಯೋತಿಷ್ಯ ಖೇಲ ಮಂಡಲ",
     en: "Astro Games Arena",

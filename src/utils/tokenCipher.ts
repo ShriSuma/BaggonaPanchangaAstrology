@@ -69,6 +69,8 @@ export interface DevoteeTokenPayload {
   priestWhatsApp?: string;
   pw?: string;
   priestName?: string;
+  expiresAt?: number | string;
+  exp?: number;
 }
 
 export const TOKEN_PREFIX = "bgn_v1_";
@@ -164,6 +166,12 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
 
     const rawDays = payload.days !== undefined ? payload.days : payload.dy !== undefined ? payload.dy : 90;
 
+    const rawExp = payload.exp !== undefined
+      ? payload.exp
+      : payload.expiresAt !== undefined
+      ? (typeof payload.expiresAt === "number" ? payload.expiresAt : new Date(payload.expiresAt).getTime())
+      : undefined;
+
     const compactObj = {
       n: rawName,
       nk: rawNak,
@@ -181,6 +189,7 @@ export function encodeDevoteeToken(payload: DevoteeTokenPayload): string {
       lt: rawLat,
       lg: rawLng,
       loc: rawLoc,
+      ...(rawExp !== undefined ? { exp: rawExp } : {}),
       ...(rawDob ? { dob: rawDob } : {}),
       ...(rawTob ? { tob: rawTob } : {}),
       ...(rawPhone ? { ph: rawPhone } : {}),
@@ -319,6 +328,8 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
   isDateOnly?: boolean;
   shraddhaTithi?: string;
   st?: string;
+  exp?: number;
+  expiresAt?: string;
 }) | null {
   if (!token || typeof token !== "string") return null;
 
@@ -427,6 +438,9 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
     const priestPhone = parsed.pp || parsed.priestPhone || (overrideCalendarPhone ? parsed.ph : undefined) || (parsed.ph && parsed.ph !== "9972339362" ? parsed.ph : undefined) || undefined;
     const priestWhatsApp = parsed.pw || parsed.priestWhatsApp || undefined;
 
+    const exp = typeof parsed.exp === "number" ? parsed.exp : (parsed.expiresAt ? (typeof parsed.expiresAt === "number" ? parsed.expiresAt : new Date(parsed.expiresAt).getTime()) : undefined);
+    const expiresAt = exp ? new Date(exp).toISOString() : undefined;
+
     return {
       name,
       n: name,
@@ -478,7 +492,9 @@ export function decodeDevoteeToken(token: string): (DevoteeTokenPayload & {
       priestPhone,
       pp: priestPhone,
       priestWhatsApp,
-      pw: priestWhatsApp
+      pw: priestWhatsApp,
+      exp,
+      expiresAt
     };
   } catch (err) {
     console.warn("Failed to decode token:", err);

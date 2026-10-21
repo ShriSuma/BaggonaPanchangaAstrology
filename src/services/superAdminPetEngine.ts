@@ -546,6 +546,16 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       en: "Ayurvedic wellness, Tridosha balance, and Nakshatra-aligned dietary wisdom."
     }
   },
+  karma_mandala: {
+    name: { kn: "ದೈವಿಕ ಕರ್ಮ ಸಂಜೀವಿನಿ (Karma Mandala)", en: "Divine Karma Sanjeevini & Remedial Mandala", hi: "दैविक कर्म संजीवनी", te: "దైవిక కర్మ సంజీవిని", ta: "கர்ம சஞ்சீவினி" },
+    category: "kundli",
+    icon: "🔱",
+    keywords: ["karma", "mandala", "sanjeevini", "parihara", "gokarna", "dosha", "remedy", "ಕರ್ಮ ಸಂಜೀವಿನಿ", "ದೋಷ ಪರಿಹಾರ"],
+    description: {
+      kn: "ಗ್ರಹ ಘರ್ಷಣೆ ರೇಡಾರ್, ಸಾಡೇಸಾತಿ, ಕಾಲಸರ್ಪ, ಗೋಕರ್ಣ ಮುಹೂರ್ತ ದಿಕ್ಸೂಚಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಸಂಕಲ್ಪ ಸೇವೆಗಳು.",
+      en: "Cosmic friction radar, Sade Sati & Kala Sarpa diagnosis, high-potency muhurthas and Gokarna temple rituals."
+    }
+  },
   hindinajanma: {
     name: { kn: "ಹಿಂದಿನ ಜನ್ಮ ರಹಸ್ಯ (Past Life Karma)", en: "Past Life Karma & Reincarnation", hi: "पूर्व जन्म रहस्य", te: "పూర్వ జన్మ రహస్యం", ta: "முற்பிறவி ரகசியம்" },
     category: "wisdom",

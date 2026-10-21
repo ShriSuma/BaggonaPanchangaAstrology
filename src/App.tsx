@@ -53,6 +53,7 @@ import DevoteePackageDownloadPage from "./pages/DevoteePackageDownloadPage";
 import ConsultationChatPage from "./features/consultation/ConsultationChatPage";
 import ConsultationGeneratorPage from "./features/consultation/ConsultationGeneratorPage";
 import { SandhyavandanaPage } from "./features/sandhyavandana/SandhyavandanaPage";
+import { KarmaMandalaPage } from "./features/karmaSanjeevini/KarmaMandalaPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -128,17 +129,38 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/sandhya")
   );
 
-  const isAcademyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && (
+  const isKarmaMandalaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (
+    window.location.pathname.startsWith("/karma-mandala") ||
+    window.location.pathname.startsWith("/karma_mandala") ||
+    window.location.pathname.startsWith("/karma-sanjeevini") ||
+    window.location.pathname.startsWith("/karma_sanjeevini") ||
+    window.location.pathname.startsWith("/parihara-mandala") ||
+    window.location.pathname.startsWith("/parihara") ||
+    window.location.search.includes("portal=karma_mandala") ||
+    window.location.search.includes("portal=karma-mandala") ||
+    window.location.search.includes("portal=karma") ||
+    window.location.search.includes("portal=parihara") ||
+    window.location.search.includes("page=karma_mandala") ||
+    window.location.search.includes("page=karma") ||
+    window.location.search.includes("karmaToken=") ||
+    window.location.search.includes("token=bgn_karma_") ||
+    window.location.hash.includes("#/karma-mandala") ||
+    window.location.hash.includes("#karma-mandala") ||
+    window.location.hash.includes("#/karma") ||
+    window.location.hash.includes("#/parihara")
+  );
+
+  const isAcademyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && !isKarmaMandalaRoute && (
     window.location.pathname.startsWith("/academy") ||
     window.location.pathname.startsWith("/learnkundli") ||
     window.location.search.includes("academyToken=") ||
     (window.location.search.includes("game=learnkundli") && window.location.search.includes("mode=standalone"))
   );
 
-  const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && (
+  const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && !isKarmaMandalaRoute && (
     window.location.pathname.startsWith("/daily") ||
     window.location.pathname.startsWith("/darshana") ||
-    (window.location.search.includes("token=") && !window.location.search.includes("token=bgn_sv_") && !window.location.pathname.startsWith("/sandhya") && !window.location.search.includes("portal=sandhya") && !window.location.search.includes("page=sandhya")) ||
+    (window.location.search.includes("token=") && !window.location.search.includes("token=bgn_sv_") && !window.location.search.includes("token=bgn_karma_") && !window.location.pathname.startsWith("/sandhya") && !window.location.pathname.startsWith("/karma") && !window.location.pathname.startsWith("/parihara") && !window.location.search.includes("portal=sandhya") && !window.location.search.includes("portal=karma") && !window.location.search.includes("page=sandhya") && !window.location.search.includes("page=karma")) ||
     window.location.search.includes("fromCal=") ||
     window.location.search.includes("action=ics")
   );
@@ -431,7 +453,7 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute]);
 
   if (isConsultationRoute) {
     return (
@@ -454,6 +476,14 @@ export default function App(): JSX.Element {
 
   if (isPriestPanchangaRoute) {
     return <PriestPanchangaPage />;
+  }
+
+  if (isKarmaMandalaRoute) {
+    return (
+      <ErrorBoundary>
+        <KarmaMandalaPage />
+      </ErrorBoundary>
+    );
   }
 
   if (isSandhyavandanaRoute) {
@@ -644,6 +674,7 @@ export default function App(): JSX.Element {
         {currentPage === "pooja_estimate" && <PoojaEstimatePage />}
         {currentPage === "package_download" && <DevoteePackageDownloadPage />}
         {currentPage === "sandhyavandana" && <SandhyavandanaPage />}
+        {currentPage === "karma_mandala" && <KarmaMandalaPage />}
         {currentPage === "consultation_generator" && (
           isMasterOrSuperAdmin ? <ConsultationGeneratorPage /> : <LoginPage />
         )}
