@@ -415,8 +415,17 @@ export async function presentConsultationReply(params: {
   userQuestion: string;
   conversationHistory?: AskGeminiChatTurn[];
   apiKey?: string;
+  isSubsequentQuestion?: boolean;
+  questionIndex?: number;
 }): Promise<ConsultationReadingResult & { sensedContext: SensedDevoteeContext }> {
-  const { session, userQuestion, conversationHistory, apiKey } = params;
+  const {
+    session,
+    userQuestion,
+    conversationHistory,
+    apiKey,
+    isSubsequentQuestion,
+    questionIndex
+  } = params;
 
   // Step 1: Frontline Sensing & Categorization
   const sensed = senseAndCategorizeQuestion(userQuestion, session);
@@ -435,7 +444,9 @@ export async function presentConsultationReply(params: {
       session,
       userQuestion,
       conversationHistory,
-      apiKey
+      apiKey,
+      isSubsequentQuestion,
+      questionIndex
     });
     return { ...reading, sensedContext: sensed };
   }
@@ -470,7 +481,9 @@ export async function presentConsultationReply(params: {
     nakshatra,
     pada,
     currentDashaText,
-    targetLang
+    targetLang,
+    isSubsequentQuestion,
+    questionIndex
   });
 
   let responseText = "";
@@ -493,7 +506,9 @@ export async function presentConsultationReply(params: {
       lagnaName,
       moonRashi,
       nakshatra,
-      currentDashaText
+      currentDashaText,
+      isSubsequentQuestion,
+      questionIndex
     });
   } else {
     try {
@@ -522,7 +537,9 @@ export async function presentConsultationReply(params: {
         lagnaName,
         moonRashi,
         nakshatra,
-        currentDashaText
+        currentDashaText,
+        isSubsequentQuestion,
+        questionIndex
       });
     }
   }
@@ -571,6 +588,8 @@ function buildPresenterPrompt(params: {
   pada: number;
   currentDashaText: string;
   targetLang: string;
+  isSubsequentQuestion?: boolean;
+  questionIndex?: number;
 }): string {
   const {
     session,
@@ -581,7 +600,9 @@ function buildPresenterPrompt(params: {
     nakshatra,
     pada,
     currentDashaText,
-    targetLang
+    targetLang,
+    isSubsequentQuestion,
+    questionIndex
   } = params;
 
   let categorySpecificInstructions = "";
@@ -777,7 +798,17 @@ SACRED BEHAVIORAL PROTOCOL (THE 50+ YEAR EXPERIENCED GOKARNA MASTER PRIEST - "DA
    - Do NOT use markdown symbols like * or # as this text will be read aloud by the priest neural voice engine. Provide clean, flowing spoken paragraphs.
 6. ONGOING CONVERSATION FLOW (NO REPEATED GREETINGS):
    - The opening welcome and introduction have ALREADY been delivered at the start of this 20-minute consultation.
-   - Directly, respectfully, and compassionately answer this specific question as an ongoing, continuous face-to-face dialogue.`;
+   - Directly, respectfully, and compassionately answer this specific question as an ongoing, continuous face-to-face dialogue.${
+     isSubsequentQuestion
+       ? `\n7. SUBSEQUENT QUESTION DIRECTIVE (STRICT FOCUS - ZERO REPETITION):
+   - This is question #${(questionIndex || 1) + 1} from the devotee in this ongoing 20-minute consultation.
+   - You MUST answer ONLY THIS NEW QUESTION ("${userQuestion}").
+   - ZERO RE-READING or summarizing of previous questions (e.g., do NOT say "As you asked earlier about marriage...", "ಹಿಂದೆ ಕೇಳಿದಂತೆ...").
+   - ZERO REPEATING of greetings (no "ನಮಸ್ಕಾರ / Namaste / ಹರಿ ಓಂ / Hari Om").
+   - ZERO REPEATING of the devotee's Lagna, Rashi, Nakshatra, Tatva, Gana inborn character traits that were already mirrored in turn 1.
+   - Start immediately with the direct answer, Bhavas, and remedy for this specific question.`
+       : ""
+   }`;
 }
 
 /**
@@ -792,93 +823,189 @@ function generateSpecializedFallbackReply(params: {
   moonRashi: string;
   nakshatra: string;
   currentDashaText: string;
+  isSubsequentQuestion?: boolean;
+  questionIndex?: number;
 }): string {
-  const { session, sensed, userQuestion, lagnaName, moonRashi, currentDashaText } = params;
+  const {
+    session,
+    sensed,
+    userQuestion,
+    lagnaName,
+    moonRashi,
+    currentDashaText,
+    isSubsequentQuestion,
+    questionIndex
+  } = params;
+  const isSubsequent = !!isSubsequentQuestion || (questionIndex !== undefined && questionIndex > 0);
   const isEn = session.language === "en";
 
   switch (sensed.category) {
     case "CAREER_FRUSTRATION_DISTRESS":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding your career frustration and work roadblocks ("${userQuestion}"), the prevailing influence of ${currentDashaText} along with current transits is demanding immense patience. When the 10th house of profession experiences temporary planetary strain, hard work often feels unnoticed and workplace friction arises. Do not make impulsive resignations or react with anger.\n\nThe cosmic cycle will soon shift towards stability as favorable transits begin to aspect your key houses. Maintain disciplined dedication, avoid unnecessary workplace arguments, and recite the sacred Gayatri Mantra or Shiva Panchakshari daily. Offering prayers to Sri Mahabaleshwara at Sri Kshetra Gokarna will dissolve obstacles and bring career prosperity.`;
+        }
         return `My child ${session.name}, I deeply understand the weight of frustration, career roadblocks, and mental anxiety you are carrying right now. In Vedic Jyotisha, times of career churning are not curses, but cosmic testing phases meant to temper your inner resilience.\n\nAccording to your birth chart calculated with Baggona Panchanga, you are guided by ${lagnaName} Lagna and ${moonRashi} Moon Sign. The prevailing influence of ${currentDashaText} along with current transits is demanding immense patience. When the 10th house of profession experiences temporary planetary strain, hard work often feels unnoticed and workplace friction arises. Do not make impulsive resignations or react with anger.\n\nThe cosmic cycle will soon shift towards stability as favorable transits begin to aspect your key houses. Maintain disciplined dedication, avoid unnecessary workplace arguments, and recite the sacred Gayatri Mantra or Shiva Panchakshari daily. Offering prayers to Sri Mahabaleshwara at Sri Kshetra Gokarna will dissolve obstacles and bring career prosperity.`;
+      }
+      if (isSubsequent) {
+        return `ವೃತ್ತಿಜೀವನ ಹಾಗೂ ಉದ್ಯೋಗದಲ್ಲಿ ಎದುರಾಗುತ್ತಿರುವ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆಯ ಈ ಪ್ರಶ್ನೆಗೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDashaText} ಅವಧಿ ಹಾಗೂ ಗೋಚಾರ ಶನಿ ಪ್ರಭಾವವು ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ಹೊಸ ಆತ್ಮಾವಲೋಕನವನ್ನು ಅಪೇಕ್ಷಿಸುತ್ತಿದೆ. ೧೦ನೇ ಮನೆಯಾದ ಕರ್ಮಸ್ಥಾನದ ಮೇಲಿನ ಈ ತಾತ್ಕಾಲಿಕ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅತಿಯಾದ ಒತ್ತಡ, ಸಹೋದ್ಯೋಗಿಗಳಲ್ಲಿ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ ಹಾಗೂ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ತಡವಾಗುತ್ತಿದೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಕೋಪ ಅಥವಾ ಆತುರದಲ್ಲಿ ಅವಸರದ ಹೆಜ್ಜೆಗಳನ್ನು ಇಡಬೇಡಿ.\n\nಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ಕತ್ತಲೆ ಕರಗಿ ನಿಧಾನವಾಗಿ ಹೊಸ ಅವಕಾಶಗಳ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ. ಅಲ್ಲಿಯವರೆಗೂ ಶಾಂತಚಿತ್ತದಿಂದ ನಿಮ್ಮ ಕಾರ್ಯವನ್ನು ನಿಷ್ಠೆಯಿಂದ ಮುಂದುವರಿಸಿ. ಪ್ರತಿದಿನ ಶಿವಪಂಚಾಕ್ಷರೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ಪ್ರತಿ ಶನಿವಾರ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಲಿವೆ.`;
       }
       return `ಮಗುವೇ ${session.name}, ನಿಮ್ಮ ಮನಸ್ಸಿನ ಕಳವಳ ಹಾಗೂ ವೃತ್ತಿಜೀವನದಲ್ಲಿ (ಉದ್ಯೋಗ/ವ್ಯಾಪಾರ) ಎದುರಾಗುತ್ತಿರುವ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಜೀವನದಲ್ಲಿ ಇಂತಹ ಮಂಥನದ ಹಂತಗಳು ಬಂದಾಗ ಎಂತಹ ಧೀರರೂ ವಿಚಲಿತರಾಗುವುದು ಸಹಜ.\n\nಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜ್ಯೋತಿಷ್ಯ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagnaName} ಲಗ್ನ, ${moonRashi} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದು, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${currentDashaText} ಅವಧಿ ಹಾಗೂ ಗೋಚಾರ ಶನಿ ಪ್ರಭಾವವು ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ಹೊಸ ಆತ್ಮಾವಲೋಕನವನ್ನು ಅಪೇಕ್ಷಿಸುತ್ತಿದೆ. ೧೦ನೇ ಮನೆಯಾದ ಕರ್ಮಸ್ಥಾನದ ಮೇಲಿನ ಈ ತಾತ್ಕಾಲಿಕ ಗ್ರಹ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅತಿಯಾದ ಒತ್ತಡ, ಸಹೋದ್ಯೋಗಿಗಳಲ್ಲಿ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ ಹಾಗೂ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ತಡವಾಗುತ್ತಿದೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಕೋಪ ಅಥವಾ ಆತುರದಲ್ಲಿ ಅವಸರದ ಹೆಜ್ಜೆಗಳನ್ನು ಇಡಬೇಡಿ.\n\nಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ಕತ್ತಲೆ ಕರಗಿ ನಿಧಾನವಾಗಿ ಹೊಸ ಅವಕಾಶಗಳ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ. ಅಲ್ಲಿಯವರೆಗೂ ಶಾಂತಚಿತ್ತದಿಂದ ನಿಮ್ಮ ಕಾರ್ಯವನ್ನು ನಿಷ್ಠೆಯಿಂದ ಮುಂದುವರಿಸಿ. ಪ್ರತಿದಿನ ಶಿವಪಂಚಾಕ್ಷರೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ಪ್ರತಿ ಶನಿವಾರ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಲಿವೆ.`;
 
     case "GENERAL_KNOWLEDGE_WORLDLY":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding your inquiry on "${userQuestion}", in our Vedic tradition, the pursuit of worldly sciences and general knowledge (Vijnana) is recognized as essential for intellectual refinement.\n\nKnowledge of worldly systems, science, and history expands the intellect (governed by Mercury and Jupiter). Having satisfied your curiosity on this topic, remember that as we sit together in this sacred 20-minute Gokarna consultation room, I warmly invite you to share any personal questions regarding your career, family, health, or life journey. May Lord Mahabaleshwara bless your intellectual endeavors with wisdom and success.`;
+        }
         return `Namaste ${session.name}. Your inquiry regarding "${userQuestion}" is thoughtful and engaging. In our Vedic tradition, the pursuit of worldly sciences and general knowledge (Vijnana) is recognized as essential for intellectual refinement.\n\nKnowledge of worldly systems, science, and history expands the intellect (governed by Mercury and Jupiter). Having satisfied your curiosity on this topic, remember that as we sit together in this sacred 20-minute Gokarna consultation room, I warmly invite you to share any personal questions regarding your career, family, health, or life journey. May Lord Mahabaleshwara bless your intellectual endeavors with wisdom and success.`;
+      }
+      if (isSubsequent) {
+        return `ನೀವು ಕೇಳಿರುವ "${userQuestion}" ಎಂಬ ಸಾಮಾನ್ಯ ಜ್ಞಾನದ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಇದು ಲೋಕ ವ್ಯವಸ್ಥೆ, ವಿಜ್ಞಾನ ಹಾಗೂ ಮಾನವ ಇತಿಹಾಸದ ಪ್ರಮುಖ ವಿಷಯವಾಗಿದೆ. ಜ್ಞಾನಾರ್ಜನೆಯು ಮನುಷ್ಯನ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು (ಬುಧ ಹಾಗೂ ಗುರು ತತ್ವ) ಸದಾ ಜಾಗೃತವಾಗಿಡುತ್ತದೆ.\n\nಈ ಮಾಹಿತಿಯ ಜೊತೆಗೆ, ನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ಈ ಪವಿತ್ರ ೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜೀವನ, ವೃತ್ತಿ, ವಿವಾಹ ಅಥವಾ ಕೌಟುಂಬಿಕ ವಿಚಾರಗಳ ಕುರಿತು ಮಾರ್ಗದರ್ಶನ ಬೇಕಿದ್ದಲ್ಲಿ ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯು ನಿಮ್ಮ ಮೇಲಿರಲಿ.`;
       }
       return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನೀವು ಕೇಳಿದ ಸಾಮಾನ್ಯ ಜ್ಞಾನದ ವಿಚಾರಣೆ ಅತ್ಯಂತ ಕುತೂಹಲಕಾರಿಯಾಗಿದೆ. ಲೋಕದ ಪ್ರತಿಯೊಂದು ವಿದ್ಯೆ ಮತ್ತು ವಿಜ್ಞಾನವೂ ಜ್ಞಾನದ ವಿಕಸನವೇ ಆಗಿದೆ. ನಿಮ್ಮ "${userQuestion}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಇದು ಲೋಕ ವ್ಯವಸ್ಥೆ, ವಿಜ್ಞಾನ ಹಾಗೂ ಮಾನವ ಇತಿಹಾಸದ ಪ್ರಮುಖ ವಿಷಯವಾಗಿದೆ. ಜ್ಞಾನಾರ್ಜನೆಯು ಮನುಷ್ಯನ ಬುದ್ಧಿಶಕ್ತಿಯನ್ನು (ಬುಧ ಹಾಗೂ ಗುರು ತತ್ವ) ಸದಾ ಜಾಗೃತವಾಗಿಡುತ್ತದೆ.\n\nಈ ಮಾಹಿತಿಯ ಜೊತೆಗೆ, ನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ಈ ಪವಿತ್ರ ೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಜೀವನ, ವೃತ್ತಿ, ವಿವಾಹ ಅಥವಾ ಕೌಟುಂಬಿಕ ವಿಚಾರಗಳ ಕುರಿತು ಮಾರ್ಗದರ್ಶನ ಬೇಕಿದ್ದಲ್ಲಿ ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯು ನಿಮ್ಮ ಮೇಲಿರಲಿ.`;
 
     case "SILLY_TROLLING_MOCKERY":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding "${userQuestion}", fictional superheroes and humorous riddles have always fascinated human imagination. Between fantastical characters, some possess superhuman cosmic powers while others rely on discipline and intellect, making for delightful stories. A good sense of humor keeps the heart cheerful and light.\n\nHaving shared a pleasant smile, remember that we are gathered in this sacred 20-minute consultation room of Sri Kshetra Gokarna. Now, tell me my child, how is your real life progressing? If you have genuine questions regarding your studies, career, relationships, or family dilemmas, open your heart and ask. As a senior priest, I am here to guide and bless your real life path.`;
+        }
         return `Dear ${session.name}, your playful and witty question brought a grandfatherly smile to my face! Regarding "${userQuestion}", fictional superheroes and humorous riddles have always fascinated human imagination. Between fantastical characters, some possess superhuman cosmic powers while others rely on discipline and intellect, making for delightful stories. A good sense of humor keeps the heart cheerful and light.\n\nHaving shared a pleasant smile, remember that we are gathered in this sacred 20-minute consultation room of Sri Kshetra Gokarna. Now, tell me my child, how is your real life progressing? If you have genuine questions regarding your studies, career, relationships, or family dilemmas, open your heart and ask. As a senior priest, I am here to guide and bless your real life path.`;
+      }
+      if (isSubsequent) {
+        return `ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯದ ಬಗ್ಗೆ ಹೇಳುವುದಾದರೆ, ಇಂತಹ ಕಲ್ಪನಾ ಕಥೆಗಳು ಹಾಗೂ ಕಾಲ್ಪನಿಕ ಪಾತ್ರಗಳಲ್ಲಿ (ಉದಾಹರಣೆಗೆ ಸೂಪರ್ ಹೀರೋಗಳು ಅಥವಾ ಹಾಸ್ಯ ಪ್ರಸಂಗಗಳು) ಅಸಾಧ್ಯವಾದ ಕಲ್ಪನೆ ಮತ್ತು ರೋಚಕತೆ ಇರುತ್ತದೆ. ಹಾಸ್ಯ ಮತ್ತು ಮುಗ್ಧತೆಯಿಂದ ನಗುವುದು ಮನಸ್ಸನ್ನು ಸದಾ ಹಗುರವಾಗಿಯೂ, ಲವಲವಿಕೆಯಿಂದಲೂ ಇಡುತ್ತದೆ.\n\nಆದರೆ ನೆನಪಿಡಿ, ನಾವಿಬ್ಬರೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನಾ ಕೊಠಡಿಯಲ್ಲಿ ಕುಳಿತಿದ್ದೇವೆ. ಒಮ್ಮೆ ನಕ್ಕು ಹಗುರಾದ ಮೇಲೆ, ನಿಮ್ಮ ನೈಜ ಬದುಕಿನ ಬಗ್ಗೆ ತಿಳಿಸಿ. ನಿಮ್ಮ ವಿದ್ಯಾಭ್ಯಾಸ, ಉದ್ಯೋಗ, ಕುಟುಂಬ ಅಥವಾ ಭವಿಷ್ಯದ ಕುರಿತು ಯಾವುದೇ ಗೊಂದಲಗಳಿದ್ದರೆ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಕೇಳಿ; ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಿಮಗೆ ಸನ್ಮಾರ್ಗ ಮತ್ತು ಪರಿಹಾರವನ್ನು ತಿಳಿಸುತ್ತೇನೆ.`;
       }
       return `ಮಗುವೇ ${session.name}, ನಿಮ್ಮ ತಮಾಷೆಯ ಮತ್ತು ಮುಗ್ಧತೆಯ ಪ್ರಶ್ನೆಯನ್ನು ನೋಡಿ ಒಬ್ಬ ಹಿರಿಯನಾಗಿ ಮುಖದಲ್ಲಿ ನಗು ಮೂಡಿತು! ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯದ ಬಗ್ಗೆ ಹೇಳುವುದಾದರೆ, ಇಂತಹ ಕಲ್ಪನಾ ಕಥೆಗಳು ಹಾಗೂ ಕಾಲ್ಪನಿಕ ಪಾತ್ರಗಳಲ್ಲಿ (ಉದಾಹರಣೆಗೆ ಸೂಪರ್ ಹೀರೋಗಳು ಅಥವಾ ಹಾಸ್ಯ ಪ್ರಸಂಗಗಳು) ಅಸಾಧ್ಯವಾದ ಕಲ್ಪನೆ ಮತ್ತು ರೋಚಕತೆ ಇರುತ್ತದೆ. ಹಾಸ್ಯ ಮತ್ತು ಮುಗ್ಧತೆಯಿಂದ ನಗುವುದು ಮನಸ್ಸನ್ನು ಸದಾ ಹಗುರವಾಗಿಯೂ, ಲವಲವಿಕೆಯಿಂದಲೂ ಇಡುತ್ತದೆ.\n\nಆದರೆ ನೆನಪಿಡಿ, ನಾವಿಬ್ಬರೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನಾ ಕೊಠಡಿಯಲ್ಲಿ ಕುಳಿತಿದ್ದೇವೆ. ಒಮ್ಮೆ ನಕ್ಕು ಹಗುರಾದ ಮೇಲೆ, ನಿಮ್ಮ ನೈಜ ಬದುಕಿನ ಬಗ್ಗೆ ತಿಳಿಸಿ. ನಿಮ್ಮ ವಿದ್ಯಾಭ್ಯಾಸ, ಉದ್ಯೋಗ, ಕುಟುಂಬ ಅಥವಾ ಭವಿಷ್ಯದ ಕುರಿತು ಯಾವುದೇ ಗೊಂದಲಗಳಿದ್ದರೆ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಕೇಳಿ; ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಿಮಗೆ ಸನ್ಮಾರ್ಗ ಮತ್ತು ಪರಿಹಾರವನ್ನು ತಿಳಿಸುತ್ತೇನೆ.`;
 
     case "EMOTIONAL_DISTRESS_LIFE":
       if (isEn) {
+        if (isSubsequent) {
+          return `Take a deep, peaceful breath and let your heart be at ease. Sitting in the divine presence of Sri Kshetra Gokarna, I reassure you with fatherly warmth that you are never alone.\n\nLife sometimes feels like an overwhelming storm, but remember that dark clouds can never extinguish the sun. In Vedic astrology, emotional pain is tied to the waxing and waning of the Moon (Chandra - ruler of the mind). This phase of mental sorrow is temporary and is clearing past karmic impressions to make way for renewal.\n\nDo not lose faith. Take care of your health, drink pure water, walk in fresh air, and recite the holy mantra 'Om Namah Shivaya'. Lord Mahabaleshwara is watching over you, and divine grace will soon restore peace, light, and happiness to your soul.`;
+        }
         return `My child ${session.name}, wipe away your tears and breathe in peace. Sitting in the divine presence of Sri Kshetra Gokarna, I reassure you with fatherly warmth that you are never alone.\n\nLife sometimes feels like an overwhelming storm, but remember that dark clouds can never extinguish the sun. In Vedic astrology, emotional pain is tied to the waxing and waning of the Moon (Chandra - ruler of the mind). This phase of mental sorrow is temporary and is clearing past karmic impressions to make way for renewal.\n\nDo not lose faith. Take care of your health, drink pure water, walk in fresh air, and recite the holy mantra 'Om Namah Shivaya'. Lord Mahabaleshwara is watching over you, and divine grace will soon restore peace, light, and happiness to your soul.`;
+      }
+      if (isSubsequent) {
+        return `ಶಾಂತಚಿತ್ತದಿಂದ ಆಳವಾದ ಉಸಿರು ತೆಗೆದುಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ನಿಮಗೆ ಧೈರ್ಯ ಹೇಳುತ್ತೇನೆ; ನೀವು ಎಂದಿಗೂ ಒಬ್ಬಂಟಿಯಲ್ಲ.\n\nಜೀವನದಲ್ಲಿ ಕೆಲವೊಮ್ಮೆ ಎಲ್ಲ ದಾರಿಗಳೂ ಮುಚ್ಚಿದಂತೆ, ಕತ್ತಲು ಆವರಿಸಿದಂತೆ ಅನ್ನಿಸುವುದು ಸಹಜ. ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಮನಸ್ಸಿಗೆ ಕಾರಕನಾದ ಚಂದ್ರ ಗ್ರಹದ ಮೇಲಿನ ಅಶುಭ ಪ್ರಭಾವದಿಂದ ಇಂತಹ ತೀವ್ರ ಖಿನ್ನತೆ ಮತ್ತು ನೋವು ಉಂಟಾಗುತ್ತದೆ. ಆದರೆ ನೆನಪಿಡಿ, ಕತ್ತಲು ಎಷ್ಟು ದಟ್ಟವಾಗಿದ್ದರೂ ಮುಂಜಾನೆಯ ಸೂರ್ಯೋದಯವನ್ನು ತಡೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ.\n\nಧೃತಿಗೆಡಬೇಡಿ. ನಿಮ್ಮ ಜೀವ ಅತ್ಯಂತ ಅಮೂಲ್ಯವಾದದ್ದು. ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ತಾಜಾ ಗಾಳಿಯಲ್ಲಿ ನಡೆದಾಡಿ ಸಕಾರಾತ್ಮಕವಾಗಿರಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಶೀಘ್ರದಲ್ಲೇ ಈ ಕಷ್ಟದ ಮೋಡಗಳು ಕರಗಿ, ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
       }
       return `ಮಗುವೇ ${session.name}, ನಿಮ್ಮ ಕಣ್ಣೀರನ್ನು ಒರೆಸಿಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ನಿಮಗೆ ಧೈರ್ಯ ಹೇಳುತ್ತೇನೆ; ನೀವು ಎಂದಿಗೂ ಒಬ್ಬಂಟಿಯಲ್ಲ.\n\nಜೀವನದಲ್ಲಿ ಕೆಲವೊಮ್ಮೆ ಎಲ್ಲ ದಾರಿಗಳೂ ಮುಚ್ಚಿದಂತೆ, ಕತ್ತಲು ಆವರಿಸಿದಂತೆ ಅನ್ನಿಸುವುದು ಸಹಜ. ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದಲ್ಲಿ ಮನಸ್ಸಿಗೆ ಕಾರಕನಾದ ಚಂದ್ರ ಗ್ರಹದ ಮೇಲಿನ ಅಶುಭ ಪ್ರಭಾವದಿಂದ ಇಂತಹ ತೀವ್ರ ಖಿನ್ನತೆ ಮತ್ತು ನೋವು ಉಂಟಾಗುತ್ತದೆ. ಆದರೆ ನೆನಪಿಡಿ, ಕತ್ತಲು ಎಷ್ಟು ದಟ್ಟವಾಗಿದ್ದರೂ ಮುಂಜಾನೆಯ ಸೂರ್ಯೋದಯವನ್ನು ತಡೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ.\n\nಧೃತಿಗೆಡಬೇಡಿ. ನಿಮ್ಮ ಜೀವ ಅತ್ಯಂತ ಅಮೂಲ್ಯವಾದದ್ದು. ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ತಾಜಾ ಗಾಳಿಯಲ್ಲಿ ನಡೆದಾಡಿ ಸಕಾರಾತ್ಮಕವಾಗಿರಿ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಶೀಘ್ರದಲ್ಲೇ ಈ ಕಷ್ಟದ ಮೋಡಗಳು ಕರಗಿ, ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
 
     case "CHILD_PARENT_INQUIRY":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding your inquiry on "${userQuestion}", examining the child's 4th house of learning and 5th house of intellect indicates strong grasping abilities, though occasional restlessness or playfulness is natural at this developmental stage. As loving parents, guiding them with patient encouragement rather than comparative academic pressure will inspire them to achieve excellence.\n\nFor concentration and memory power, lighting a pure ghee lamp during study hours and offering prayers to Lord Mahaganapati at Sri Kshetra Gokarna will bestow academic success and protection.`;
+        }
         return `Dear Parents of ${session.name}, examining the birth chart of your child (${lagnaName} Lagna, ${moonRashi} Moon Sign), the child is endowed with keen natural curiosity and sharp cognitive potential.\n\nRegarding your inquiry on "${userQuestion}", the child's 4th house of learning and 5th house of intellect indicate strong grasping abilities, though occasional restlessness or playfulness is natural at this developmental stage. As loving parents, guiding them with patient encouragement rather than comparative academic pressure will inspire them to achieve excellence.\n\nFor concentration and memory power, lighting a pure ghee lamp during study hours and offering prayers to Lord Mahaganapati at Sri Kshetra Gokarna will bestow academic success and protection.`;
+      }
+      if (isSubsequent) {
+        return `ಮಗುವಿನ "${userQuestion}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ ಮತ್ತು ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳನ್ನು ಗಮನಿಸಿದಾಗ ಮಗುವಿಗೆ ವಿಷಯಗಳನ್ನು ಬೇಗನೆ ಗ್ರಹಿಸುವ ಶಕ್ತಿಯಿದೆ. ಆದರೆ ಮನಸ್ಸು ಒಮ್ಮೊಮ್ಮೆ ಆಟದ ಕಡೆಗೆ ಚಂಚಲಗೊಳ್ಳುವುದು ಸಹಜ. ಪೋಷಕರಾಗಿ ನೀವು ಮಗುವಿನ ಮೇಲೆ ಕಠಿಣ ಒತ್ತಡ ಹೇರದೆ, ಪ್ರೀತಿ ಮತ್ತು ಸಮಾಧಾನದಿಂದ ನಿಗದಿತ ಅಧ್ಯಯನ ದಿನಚರಿಯನ್ನು ರೂಪಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.\n\nಮಗುವಿನ ವಿದ್ಯಾ ಏಕಾಗ್ರತೆ ಹಾಗೂ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗಾಗಿ, ಸಂಜೆ ಮನೆಯಲ್ಲಿ ದೀಪ ಹಚ್ಚಿ ಸರಸ್ವತೀ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಪ್ರಾರ್ಥನೆ ಮಾಡಿಸಿ.`;
       }
       return `ಆತ್ಮೀಯ ಪೋಷಕರೇ, ನಿಮ್ಮ ಮಗುವಿನ (${session.name}) ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು (${lagnaName} ಲಗ್ನ, ${moonRashi} ರಾಶಿ) ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಮಗುವಿನಲ್ಲಿ ಉತ್ತಮ ಬುದ್ಧಿಶಕ್ತಿ ಹಾಗೂ ಕಲಿಯುವ ಅಪಾರ ಆಸಕ್ತಿ ಕಂಡುಬರುತ್ತದೆ.\n\nನಿಮ್ಮ "${userQuestion}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಮಗುವಿನ ಜಾತಕದ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ ಮತ್ತು ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳು ಚೇತನವಾಗಿದ್ದು, ಮಗುವಿಗೆ ವಿಷಯಗಳನ್ನು ಬೇಗನೆ ಗ್ರಹಿಸುವ ಶಕ್ತಿಯಿದೆ. ಆದರೆ ಮನಸ್ಸು ಒಮ್ಮೊಮ್ಮೆ ಆಟದ ಕಡೆಗೆ ಚಂಚಲಗೊಳ್ಳುವುದು ಸಹಜ. ಪೋಷಕರಾಗಿ ನೀವು ಮಗುವಿನ ಮೇಲೆ ಕಠಿಣ ಒತ್ತಡ ಹೇರದೆ, ಪ್ರೀತಿ ಮತ್ತು ಸಮಾಧಾನದಿಂದ ನಿಗದಿತ ಅಧ್ಯಯನ ದಿನಚರಿಯನ್ನು ರೂಪಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.\n\nಮಗುವಿನ ವಿದ್ಯಾ ಏಕಾಗ್ರತೆ ಹಾಗೂ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗಾಗಿ, ಸಂಜೆ ಮನೆಯಲ್ಲಿ ದೀಪ ಹಚ್ಚಿ ಸರಸ್ವತೀ ಸ್ತೋತ್ರ ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಪ್ರಾರ್ಥನೆ ಮಾಡಿಸಿ.`;
 
     case "SANTHANA_PROGENY_SENSITIVE":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding your inquiry on progeny and childbirth ("${userQuestion}"), your 5th house of progeny and Putrakaraka Jupiter (Guru) are undergoing a temporary karmic transit delay. Remove all self-doubt and marital stress; Vedic tradition teaches that parenthood requires the sacred alignment of health and divine grace (Daiva Bala).\n\nUpcoming planetary transits favor family growth. Chanting the sacred Sri Santhana Gopala Mantra daily and performing the Santhana Gopala Homa and Naga Pratishtha at Sri Kshetra Gokarna with chief priest Shreeram Pandit (9972339362) will dissolve obstacles and bring joyous parenthood blessings.`;
+        }
         return `My child ${session.name}, I deeply understand the longing, emotional prayers, and societal sensitivity surrounding progeny and childbirth in your marriage. As a senior priest, I receive your inquiry with complete compassion.\n\nAccording to your birth chart (${lagnaName} Lagna, ${moonRashi} Moon Sign), your 5th house of progeny and Putrakaraka Jupiter (Guru) are undergoing a temporary karmic transit delay. Remove all self-doubt and marital stress; Vedic tradition teaches that parenthood requires the sacred alignment of health and divine grace (Daiva Bala).\n\nUpcoming planetary transits favor family growth. Chanting the sacred Sri Santhana Gopala Mantra daily and performing the Santhana Gopala Homa and Naga Pratishtha at Sri Kshetra Gokarna with chief priest Shreeram Pandit (9972339362) will dissolve obstacles and bring joyous parenthood blessings.`;
+      }
+      if (isSubsequent) {
+        return `ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತಾದ ನಿಮ್ಮ "${userQuestion}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನ ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು ತಾತ್ಕಾಲಿಕ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡುತ್ತಿವೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ನಿರಾಶೆ ಹೊಂದಬೇಡಿ. ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯ ಜೊತೆಗೆ ದೈವಾನುಗ್ರಹವು ಜೋಡಿಯಾದಾಗ ಸೃಷ್ಟಿಯ ಭಾಗ್ಯವು ಖಂಡಿತವಾಗಿಯೂ ಸಿದ್ಧಿಸಲಿದೆ.\n\nದಂಪತಿಗಳಿಬ್ಬರೂ ಪ್ರತಿ ಗುರುವಾರ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಪೂಜೆಯನ್ನು ಮುಖ್ಯ ಪುರೋಹಿತರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ಶೀಘ್ರವೇ ಸಂತಾನ ಭಾಗ್ಯದ ಶುಭ ಸುದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
       }
       return `ಮಗುವೇ ${session.name}, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಆಳವಾದ ಕಳವಳ ಹಾಗೂ ನಿರೀಕ್ಷೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಸಮಾಜದಲ್ಲಿ ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಈ ವಿಚಾರವು ಸೂಕ್ಷ್ಮವೂ ಹಾಗೂ ಭಾವನಾತ್ಮಕವೂ ಆಗಿರುವುದು ಸಹಜ.\n\nಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ನಿಮ್ಮ ಜಾತಕದ (${lagnaName} ಲಗ್ನ, ${moonRashi} ರಾಶಿ) ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನ ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು ತಾತ್ಕಾಲಿಕ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡುತ್ತಿವೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ನಿರಾಶೆ ಹೊಂದಬೇಡಿ. ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯ ಜೊತೆಗೆ ದೈವಾನುಗ್ರಹವು ಜೋಡಿಯಾದಾಗ ಸೃಷ್ಟಿಯ ಭಾಗ್ಯವು ಖಂಡಿತವಾಗಿಯೂ ಸಿದ್ಧಿಸಲಿದೆ.\n\nದಂಪತಿಗಳಿಬ್ಬರೂ ಪ್ರತಿ ಗುರುವಾರ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಪೂಜೆಯನ್ನು ಮುಖ್ಯ ಪುರೋಹಿತರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ಶೀಘ್ರವೇ ಸಂತಾನ ಭಾಗ್ಯದ ಶುಭ ಸುದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
 
     case "SECRET_INTIMATE_TABOO":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding your intimate inquiry ("${userQuestion}"), in Vedic Jyotisha, human desire (Kama) and intimate physical energies are acknowledged as natural celestial currents rather than something to be judged with shame. In your horoscope, Venus (Shukra) governs love, sexual vitality, and physical attraction, while Rahu creates intense fascination, secret attachments, and taboo illusions. The interplay of your 7th House (partnerships), 8th House (confidential secrets and vitality), and 12th House (bedroom pleasures and guilt) governs these deep private stirrings.\n\nDo not torment your mind with self-hatred, but let wisdom (Viveka) guide your conduct. Remember that clandestine or forbidden affairs may feel thrilling initially, but their karmic repercussion invariably brings mental unrest and loss of honor. If your question relates to physical vitality or intimacy anxieties, know that Shukra dhatu is naturally restored through a sattvic diet, Pranayama, and healthy lifestyle habits.\n\nTo balance these planetary currents and regain serene clarity, offering a Rudrabhisheka to Lord Mahabaleshwara at Sri Kshetra Gokarna and chanting the sacred Shiva Panchakshari ('Om Namah Shivaya') or Gayatri Mantra daily will bring tranquility and divine grace.`;
+        }
         return `Namaste ${session.name}. Speaking as a senior Vedic priest in the sacred sanctum of Sri Kshetra Gokarna, I receive your intimate, secret question with utmost confidentiality, fatherly compassion, and profound Vedic understanding.\n\nIn Vedic Jyotisha, human desire (Kama) and intimate physical energies are acknowledged as natural celestial currents rather than something to be judged with shame. In your horoscope, Venus (Shukra) governs love, sexual vitality, and physical attraction, while Rahu creates intense fascination, secret attachments, and taboo illusions. The interplay of your 7th House (partnerships), 8th House (confidential secrets and vitality), and 12th House (bedroom pleasures and guilt) governs these deep private stirrings.\n\nDo not torment your mind with self-hatred, but let wisdom (Viveka) guide your conduct. Remember that clandestine or forbidden affairs may feel thrilling initially, but their karmic repercussion invariably brings mental unrest and loss of honor. If your question relates to physical vitality or intimacy anxieties, know that Shukra dhatu is naturally restored through a sattvic diet, Pranayama, and healthy lifestyle habits.\n\nTo balance these planetary currents and regain serene clarity, offering a Rudrabhisheka to Lord Mahabaleshwara at Sri Kshetra Gokarna and chanting the sacred Shiva Panchakshari ('Om Namah Shivaya') or Gayatri Mantra daily will bring tranquility and divine grace.`;
+      }
+      if (isSubsequent) {
+        return `ಅಂತರಂಗದ ಈ ಗೌಪ್ಯ ವಿಚಾರಣೆಗೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮಾನವ ಸಹಜವಾದ ಕಾಮನೆ (Kama) ಹಾಗೂ ದೈಹಿಕ ಆಕರ್ಷಣೆಗಳನ್ನು ಪಾಪವೆಂದು ನಿರಾಕರಿಸದೆ, ಅವುಗಳ ಗ್ರಹಸ್ಥಿತಿಯ ಮೂಲವನ್ನು ಸವಿಸ್ತಾರವಾಗಿ ವಿವರಿಸಲಾಗಿದೆ. ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ (Venus) ಗ್ರಹವು ಪ್ರೇಮ, ಸೌಂದರ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ಶಕ್ತಿಯ (ಶುಕ್ರ ಧಾತು) ಕಾರಕನಾಗಿದ್ದು, ರಾಹು (Rahu) ಗ್ರಹವು ತೀವ್ರವಾದ ಭ್ರಮೆ, ರಹಸ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಅತಿಯಾದ ವ್ಯಾಮೋಹವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಾನೆ. ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ (ಕಳತ್ರ), ಅಷ್ಟಮ (ಗುಪ್ತ ಸ್ಥಾನ) ಹಾಗೂ ದ್ವಾದಶ (ಶಯನ ಸುಖ) ಭಾವಗಳ ಸಂಯೋಗದಿಂದ ಇಂತಹ ತೀವ್ರ ರಹಸ್ಯ ಭಾವನೆಗಳು ಅಥವಾ ಗೊಂದಲಗಳು ಉಂಟಾಗುತ್ತವೆ.\n\nಇಂತಹ ವಿಷಯಗಳಲ್ಲಿ ಅತಿಯಾದ ಅಪರಾಧಿ ಭಾವನೆಯಿಂದ ಕುಗ್ಗಬೇಡಿ; ಆದರೆ ಧರ್ಮದ ಗೆರೆಯನ್ನು ಎಂದಿಗೂ ದಾಟಬೇಡಿ. ರಹಸ್ಯ ಅಥವಾ ಅನೈತಿಕ ಸಂಬಂಧಗಳು ಆರಂಭದಲ್ಲಿ ಆಕರ್ಷಕವಾಗಿ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಅಷ್ಟಮ ಭಾವದ ಪ್ರಭಾವದಿಂದ ಕೀರ್ತಿಭಂಗ ಹಾಗೂ ಮಾನಸಿಕ ಅಶಾಂತಿಗೆ ಕಾರಣವಾಗುತ್ತವೆ. ದೈಹಿಕ ದೌರ್ಬಲ್ಯ ಅಥವಾ ಲೈಂಗಿಕ ಚಿಂತೆಗಳಿದ್ದರೆ, ಸಾತ್ವಿಕ ಆಹಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಆಯುರ್ವೇದ ಪದ್ಧತಿಯಿಂದ ಶುಕ್ರ ಧಾತುವನ್ನು ಬಲಪಡಿಸಿಕೊಳ್ಳಿ.\n\nಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಹಾಗೂ ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸುವುದರಿಂದ ಮನಸ್ಸಿನ ಕಾಮಾಗ್ನಿಯು ಶಮನವಾಗಿ, ಸಕಲ ಶುಭ ಹಾಗೂ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.`;
       }
       return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ, ನಿಮ್ಮ ಅಂತರಂಗದ ಈ ರಹಸ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಅತ್ಯಂತ ಗೌಪ್ಯವಾಗಿ ಹಾಗೂ ವಾತ್ಸಲ್ಯಪೂರ್ಣವಾಗಿ ಸ್ವೀಕರಿಸುತ್ತೇನೆ.\n\nವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮಾನವ ಸಹಜವಾದ ಕಾಮನೆ (Kama) ಹಾಗೂ ದೈಹಿಕ ಆಕರ್ಷಣೆಗಳನ್ನು ಪಾಪವೆಂದು ನಿರಾಕರಿಸದೆ, ಅವುಗಳ ಗ್ರಹಸ್ಥಿತಿಯ ಮೂಲವನ್ನು ಸವಿಸ್ತಾರವಾಗಿ ವಿವರಿಸಲಾಗಿದೆ. ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ (Venus) ಗ್ರಹವು ಪ್ರೇಮ, ಸೌಂದರ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ಶಕ್ತಿಯ (ಶುಕ್ರ ಧಾತು) ಕಾರಕನಾಗಿದ್ದು, ರಾಹು (Rahu) ಗ್ರಹವು ತೀವ್ರವಾದ ಭ್ರಮೆ, ರಹಸ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಅತಿಯಾದ ವ್ಯಾಮೋಹವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಾನೆ. ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ (ಕಳತ್ರ), ಅಷ್ಟಮ (ಗುಪ್ತ ಸ್ಥಾನ) ಹಾಗೂ ದ್ವಾದಶ (ಶಯನ ಸುಖ) ಭಾವಗಳ ಸಂಯೋಗದಿಂದ ಇಂತಹ ತೀವ್ರ ರಹಸ್ಯ ಭಾವನೆಗಳು ಅಥವಾ ಗೊಂದಲಗಳು ಉಂಟಾಗುತ್ತವೆ.\n\nಇಂತಹ ವಿಷಯಗಳಲ್ಲಿ ಅತಿಯಾದ ಅಪರಾಧಿ ಭಾವನೆಯಿಂದ ಕುಗ್ಗಬೇಡಿ; ಆದರೆ ಧರ್ಮದ ಗೆರೆಯನ್ನು ಎಂದಿಗೂ ದಾಟಬೇಡಿ. ರಹಸ್ಯ ಅಥವಾ ಅನೈತಿಕ ಸಂಬಂಧಗಳು ಆರಂಭದಲ್ಲಿ ಆಕರ್ಷಕವಾಗಿ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಅಷ್ಟಮ ಭಾವದ ಪ್ರಭಾವದಿಂದ ಕೀರ್ತಿಭಂಗ ಹಾಗೂ ಮಾನಸಿಕ ಅಶಾಂತಿಗೆ ಕಾರಣವಾಗುತ್ತವೆ. ದೈಹಿಕ ದೌರ್ಬಲ್ಯ ಅಥವಾ ಲೈಂಗಿಕ ಚಿಂತೆಗಳಿದ್ದರೆ, ಸಾತ್ವಿಕ ಆಹಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಆಯುರ್ವೇದ ಪದ್ಧತಿಯಿಂದ ಶುಕ್ರ ಧಾತುವನ್ನು ಬಲಪಡಿಸಿಕೊಳ್ಳಿ.\n\nಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಹಾಗೂ ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸುವುದರಿಂದ ಮನಸ್ಸಿನ ಕಾಮಾಗ್ನಿಯು ಶಮನವಾಗಿ, ಸಕಲ ಶುಭ ಹಾಗೂ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.`;
 
     case "CELEBRITY_FANTASY":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding "${userQuestion}", let us guide you with gentle truth and Vedic wisdom. Daydreaming about distant celebrities will only dissipate your mental energy. Focus your efforts on real personal achievements, character, and an honorable livelihood, and by divine grace, you will be blessed with a loving and virtuous life partner suited for your real life.`;
+        }
         return `Namaste ${session.name}. Listening to your question with fatherly affection, let me guide you with gentle truth and Vedic wisdom.\n\nFirst, recognize the reality of this world: the celebrity or actress you speak of is already happily married, with her own established family and life journey. Spending your precious mental energy and youthful years pursuing unattainable daydreams will only bring disillusionment.\n\nLook closely at the accomplished, hardworking individuals who achieve great heights in life. If you wish to attract a high-stature and noble partner, you must first build exceptional character, work diligently, earn an honorable livelihood, and establish respect in society. Your birth chart (${lagnaName} Lagna) shows strong inner resilience. Channel your energy away from screen illusions into your real-world career and self-growth, and by divine grace, you will be blessed with a loving and virtuous life partner suited for your real life.`;
+      }
+      if (isSubsequent) {
+        return `ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯಕ್ಕೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಕೇವಲ ಕಲ್ಪನಾ ಲೋಕದಲ್ಲಿ ಸಮಯ ಕಳೆಯುವುದರಿಂದ ಮಾನಸಿಕ ಗೊಂದಲಗಳು ಹೆಚ್ಚಾಗುತ್ತವೆ. ನಿಮ್ಮ ನೈಜ ಬದುಕಿನಲ್ಲಿ ಪರಿಶ್ರಮಿಸಿ, ಉನ್ನತ ಸಾಧನೆ ಮತ್ತು ಸಂಸ್ಕಾರವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಿ; ನಿಮ್ಮ ಬದುಕಿಗೆ ಸರಿಹೊಂದುವಂತಹ ಸದ್ಗುಣ ಸಂಪನ್ನೆಯಾದ ಬಾಳಸಂಗಾತಿಯು ಖಂಡಿತವಾಗಿಯೂ ದೊರೆಯಲಿದ್ದಾರೆ.`;
       }
       return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನಿಮ್ಮ ಮಾತನ್ನು ಕೇಳಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ, ವಾತ್ಸಲ್ಯದಿಂದ ನಿಮಗೆ ವಾಸ್ತವಿಕ ಮತ್ತು ಧರ್ಮದ ಮಾರ್ಗದರ್ಶನವನ್ನು ನೀಡುತ್ತೇನೆ.\n\nಮೊದಲನೆಯದಾಗಿ ಲೋಕದ ವಾಸ್ತವವನ್ನು ಗ್ರಹಿಸಿ: ನೀವು ಪ್ರಸ್ತಾಪಿಸಿದ ನಟಿ ಅಥವಾ ಸೆಲೆಬ್ರಿಟಿಯು ಈಗಾಗಲೇ ವಿವಾಹಿತರಾಗಿದ್ದು, ತಮ್ಮದೇ ಆದ ಕುಟುಂಬ, ಪತಿ ಮತ್ತು ಮಕ್ಕಳೊಂದಿಗೆ ಗೌರವಯುತ ಜೀವನ ನಡೆಸುತ್ತಿದ್ದಾರೆ. ಕೇವಲ ಕಲ್ಪನಾ ಲೋಕದಲ್ಲಿ ಸಮಯ ಮತ್ತು ಯೌವನವನ್ನು ಕಳೆಯುವುದರಿಂದ ಮಾನಸಿಕ ಗೊಂದಲಗಳು ಹೆಚ್ಚಾಗುತ್ತವೆಯೇ ಹೊರತು ಯಾವುದೇ ಸಾರ್ಥಕತೆ ದೊರೆಯುವುದಿಲ್ಲ.\n\nಅಂತಹ ಉನ್ನತ ಸ್ಥಾನದಲ್ಲಿರುವ ವ್ಯಕ್ತಿಗಳನ್ನು ವಿವಾಹವಾದ ಸಾಧಕರನ್ನು ಗಮನಿಸಿ. ಅವರು ಸತತ ಪರಿಶ್ರಮ, ಉನ್ನತ ಸಾಧನೆ ಮತ್ತು ಸಮಾಜದಲ್ಲಿ ಗೌರವಯುತ ಸ್ಥಾನವನ್ನು ಗಳಿಸಿರುತ್ತಾರೆ. ನೀವೂ ಸಹ ನಿಮ್ಮ ${lagnaName} ಲಗ್ನದ ಬಲವನ್ನು ಸದ್ವಿನಿಯೋಗಪಡಿಸಿಕೊಂಡು, ಕಲ್ಪನೆಗಳಿಂದ ಹೊರಬಂದು ನಿಮ್ಮ ವೃತ್ತಿ ಮತ್ತು ಜೀವನದಲ್ಲಿ ಶ್ರಮಿಸಿ, ಉತ್ತಮ ಆದಾಯ ಹಾಗೂ ಸಂಸ್ಕಾರವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಿ. ಆಗ ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ ಭಾವದ ಅನುಗ್ರಹದಿಂದ, ನಿಮ್ಮ ಬದುಕಿಗೆ ಸರಿಹೊಂದುವಂತಹ ಸದ್ಗುಣ ಸಂಪನ್ನೆಯಾದ ಬಾಳಸಂಗಾತಿಯು ಖಂಡಿತವಾಗಿಯೂ ದೊರೆಯಲಿದ್ದಾರೆ.`;
 
     case "PROVOCATIVE_TABOO":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding "${userQuestion}", human birth is a sacred gift endowed with intellect and divine purpose. Chasing transient lustful illusions and adult distractions pollutes the mind, drains vitality, and weakens self-esteem. Practice self-discipline and recite the sacred Gayatri Mantra or Om Namah Shivaya daily to awaken clarity and peace.`;
+        }
         return `Hari Om ${session.name}. As a senior priest speaking to you in this sacred sanctum of Sri Kshetra Gokarna, I receive your words with calm compassion and spiritual concern.\n\nHuman birth is a sacred gift endowed with intellect and divine purpose. Chasing transient lustful illusions, adult distractions, and degrading desires pollutes the mind, drains vital vitality, and weakens your self-esteem and future destiny.\n\nTrue happiness, self-respect, and lasting peace come from purity of thought, noble conduct, and building an honorable life worthy of your family's pride. Practice self-discipline and step away from unhealthy digital habits. Reciting the sacred Gayatri Mantra or chanting Om Namah Shivaya daily will purify the mind and awaken divine clarity.`;
+      }
+      if (isSubsequent) {
+        return `ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯಕ್ಕೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಮಾನವ ಜನ್ಮವು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾದದ್ದು. ಅಸ್ಥಿರವಾದ ಕಾಮನೆಗಳು ಹಾಗೂ ಅಶ್ಲೀಲ ಕಲ್ಪನೆಗಳ ಬೆನ್ನತ್ತಿ ಹೋಗುವುದರಿಂದ ಮನಸ್ಸು ಕಲುಷಿತಗೊಳ್ಳುತ್ತದೆ. ಇಂದ್ರಿಯ ನಿಗ್ರಹ ಮತ್ತು ಸದ್ಗುಣವನ್ನು ರೂಢಿಸಿಕೊಂಡು, ಪ್ರತಿದಿನ ಓಂ ನಮಃ ಶಿವಾಯ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಪಠಿಸಿ.`;
       }
       return `ಹರಿ ಓಂ ${session.name} ಅವರೇ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ, ನಿಮ್ಮ ಮಾತನ್ನು ಶಾಂತ ಚಿತ್ತದಿಂದ ಆಲಿಸಿ ನಿಮಗೆ ಸನ್ಮಾರ್ಗದ ವಿವೇಕವನ್ನು ಹೇಳುತ್ತೇನೆ.\n\nಮಾನವ ಜನ್ಮವು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾದದ್ದು. ಅಸ್ಥಿರವಾದ ಕಾಮನೆಗಳು, ಅಶ್ಲೀಲ ಕಲ್ಪನೆಗಳು ಹಾಗೂ ಕೆಟ್ಟ ವ್ಯಾಮೋಹಗಳ ಬೆನ್ನತ್ತಿ ಹೋಗುವುದರಿಂದ ಮನಸ್ಸು ಕಲುಷಿತಗೊಂಡು, ಆತ್ಮವಿಶ್ವಾಸ ಹಾಗೂ ಭವಿಷ್ಯದ ಶ್ರೇಯಸ್ಸು ಕುಂಠಿತವಾಗುತ್ತದೆ.\n\nನಿಜವಾದ ಸುಖ ಮತ್ತು ಶಾಂತಿಯು ಇಂದ್ರಿಯ ನಿಗ್ರಹ, ಸದ್ಗುಣ ಹಾಗೂ ಗೌರವಯುತ ಜೀವನದಲ್ಲಿದೆ. ಕ್ಷಣಿಕ ಭ್ರಮೆಗಳಿಂದ ದೂರವಾಗಿ, ನಿಮ್ಮ ತಂದೆ-ತಾಯಿಯರಿಗೆ ಹಾಗೂ ಸಮಾಜಕ್ಕೆ ಕೀರ್ತಿ ತರುವಂತಹ ಸತ್ಕಾರ್ಯಗಳಲ್ಲಿ ತೊಡಗಿಕೊಳ್ಳಿ. ಪ್ರತಿದಿನ ಓಂ ನಮಃ ಶಿವಾಯ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಪಠಿಸುವುದರಿಂದ ಮನಸ್ಸಿನ ಚಂಚಲತೆ ಶಮನವಾಗಿ, ಸಕಲ ಸನ್ಮಂಗಳ ಉಂಟಾಗುತ್ತದೆ.`;
 
     case "DOMESTIC_OMEN_VASTU":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding finding an old vessel or item in your home corner ("${userQuestion}"), there is no need for any fear, anxiety, or superstitious panic.\n\nAccording to Vedic Vastu and Nimitta Shastra, corners of a house—particularly the North-East (Ishanya) and South-West (Nairutya)—are vital energy intersections. Metallic vessels, especially copper or brass, naturally ground elemental vibrations.\n\nTo ensure positive energy and peace: clean the vessel respectfully with water and lemon. Wash the corner with water mixed with rock salt or sacred Ganga-jala to dispel any stagnant energies. Light a pure cow-ghee lamp in that direction and offer prayers to your Kuladevata.`;
+        }
         return `Namaste ${session.name}. You need not harbor any fear, anxiety, or superstitious panic regarding finding an old vessel or item in the corner of your home.\n\nAccording to Vedic Vastu and Nimitta Shastra, corners of a house—particularly the North-East (Ishanya) and South-West (Nairutya)—are vital energy intersections. Metallic vessels, especially copper or brass, naturally ground electromagnetic and elemental vibrations.\n\nTo ensure positive energy and peace: clean the vessel respectfully with water and lemon. Wash the corner with water mixed with rock salt or sacred Ganga-jala to dispel any stagnant energies. Light a pure cow-ghee lamp in that direction, sprinkle Tulasi water, and offer prayers to your Kuladevata. This will invite Goddess Mahalakshmi's grace and maintain harmony in your household.`;
+      }
+      if (isSubsequent) {
+        return `ಮನೆಯ ಮೂಲೆಯಲ್ಲಿ ಹಳೆಯ ಪಾತ್ರೆ ಸಿಕ್ಕಿದ ವಿಚಾರದಲ್ಲಿ ("${userQuestion}"), ಯಾವುದೇ ರೀತಿಯ ಅಂಜಿಕೆ, ಭಯ ಅಥವಾ ಮೂಢನಂಬಿಕೆಗಳಿಗೆ ಒಳಗಾಗುವ ಅಗತ್ಯವಿಲ್ಲ.\n\nವೈದಿಕ ವಾಸ್ತು ಮತ್ತು ನಿಮಿತ್ತ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಮನೆಯ ಮೂಲೆಗಳು ಪಂಚಭೂತಗಳ ಶಕ್ತಿಯ ಸಂಗಮ ಸ್ಥಾನಗಳಾಗಿವೆ. ತಾಮ್ರ ಅಥವಾ ಹಿತ್ತಾಳೆಯಂತಹ ಲೋಹದ ಪಾತ್ರೆಗಳು ನೈಸರ್ಗಿಕವಾಗಿ ಶಕ್ತಿಯನ್ನು ಹೀರಿಕೊಳ್ಳುವ ಗುಣವನ್ನು ಹೊಂದಿರುತ್ತವೆ.\n\nಇದರ ಪರಿಹಾರ ಮತ್ತು ಶುದ್ಧತೆಗಾಗಿ: ಆ ಪಾತ್ರೆಯನ್ನು ಶುದ್ಧ ನೀರಿನಿಂದ ತೊಳೆದು ಸ್ವಚ್ಛಗೊಳಿಸಿ. ಆ ಮೂಲೆಯನ್ನು ಕಲ್ಲುಪ್ಪು ಬೆರೆಸಿದ ನೀರಿನಿಂದ ಪ್ರೋಕ್ಷಿಸಿ ಸ್ವಚ್ಛಗೊಳಿಸಿ. ಆ ಜಾಗದಲ್ಲಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ. ಇದರಿಂದ ಮನೆಯಲ್ಲಿ ಸಕಲ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳು ತೊಲಗಿ ಶುಭವಾಗುತ್ತದೆ.`;
       }
       return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಅಥವಾ ಮೂಲೆಯಲ್ಲಿ ಹಳೆಯ ಪಾತ್ರೆ ಸಿಕ್ಕಿದ ವಿಚಾರದಲ್ಲಿ ಯಾವುದೇ ರೀತಿಯ ಅಂಜಿಕೆ, ಭಯ ಅಥವಾ ಮೂಢನಂಬಿಕೆಗಳಿಗೆ ಒಳಗಾಗುವ ಅಗತ್ಯವಿಲ್ಲ.\n\nವೈದಿಕ ವಾಸ್ತು ಮತ್ತು ನಿಮಿತ್ತ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಮನೆಯ ಮೂಲೆಗಳು (ವಿಶೇಷವಾಗಿ ಈಶಾನ್ಯ ಹಾಗೂ ನೈಋತ್ಯ ದಿಕ್ಕುಗಳು) ಪಂಚಭೂತಗಳ ಶಕ್ತಿಯ ಸಂಗಮ ಸ್ಥಾನಗಳಾಗಿವೆ. ತಾಮ್ರ ಅಥವಾ ಹಿತ್ತಾಳೆಯಂತಹ ಪ್ರಾಚೀನ ಲೋಹದ ಪಾತ್ರೆಗಳು ನೈಸರ್ಗಿಕವಾಗಿ ಶಕ್ತಿಯನ್ನು ಹೀರಿಕೊಳ್ಳುವ ಗುಣವನ್ನು ಹೊಂದಿರುತ್ತವೆ.\n\nಇದರ ಪರಿಹಾರ ಮತ್ತು ಶುದ್ಧತೆಗಾಗಿ: ಆ ಪಾತ್ರೆಯನ್ನು ಶುದ್ಧ ನೀರಿನಿಂದ ತೊಳೆದು ಸ್ವಚ್ಛಗೊಳಿಸಿ. ಆ ಮೂಲೆಯನ್ನು ಕಲ್ಲುಪ್ಪು ಬೆರೆಸಿದ ನೀರಿನಿಂದ ಅಥವಾ ಗಂಗಾಜಲದಿಂದ ಪ್ರೋಕ್ಷಿಸಿ ಸ್ವಚ್ಛಗೊಳಿಸಿ. ಆ ಜಾಗದಲ್ಲಿ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ, ತುಳಸಿ ತೀರ್ಥ ಪ್ರೋಕ್ಷಣೆ ಮಾಡಿ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ. ಇದರಿಂದ ಮನೆಯಲ್ಲಿ ಸಕಲ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳು ತೊಲಗಿ ಶುಭವಾಗುತ್ತದೆ.`;
 
     case "DAILY_TRIP_TRAVEL":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding your upcoming journey ("${userQuestion}"), our Vedic Panchanga recommends observing the daily Rahu Kala and avoiding starting the journey during that specific timeframe. Stepping out of your home with your right foot after a calm mental prayer ensures auspiciousness.\n\nBefore starting the vehicle or embarking on the road, break a coconut or offer sincere prayers to Lord Ganapati and your Kuladevata. Drive with disciplined patience, avoid impulsive rush, and your journey will be joyful and fruitful.`;
+        }
         return `Hari Om ${session.name}! May Lord Mahabaleshwara and Lord Ganapati of Sri Kshetra Gokarna bless your upcoming journey with safety, joy, and divine protection.\n\nRegarding your travel plans tomorrow, our Vedic Panchanga recommends observing the daily Rahu Kala and avoiding starting the journey during that specific timeframe. Stepping out of your home with your right foot after a calm mental prayer ensures auspiciousness.\n\nBefore starting the vehicle or embarking on the road, break a coconut or offer sincere prayers to Lord Ganapati and your Kuladevata. Drive with disciplined patience, avoid impulsive rush, and your journey will be joyful and fruitful.`;
+      }
+      if (isSubsequent) {
+        return `ನಾಳಿನ ಪ್ರಯಾಣದ ಕುರಿತಾದ ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ನಾಳೆ ಪ್ರಯಾಣ ಪ್ರಾರಂಭಿಸುವ ಮುನ್ನ ಆ ದಿನದ ರಾಹು ಕಾಲವನ್ನು ಗಮನಿಸಿ, ರಾಹು ಕಾಲದ ಅವಧಿಯಲ್ಲಿ ಹೊಸ ಪ್ರಯಾಣವನ್ನು ಆರಂಭಿಸಬೇಡಿ. ಮನೆಯಿಂದ ಹೊರಡುವಾಗ ಶುಭ ಸಂಕಲ್ಪದೊಂದಿಗೆ ಬಲಗಾಲಿಟ್ಟು ಹೊರಡಿ.\n\nವಾಹನ ಚಲಾಯಿಸುವ ಮುನ್ನ ಶ್ರೀ ಮಹಾಗಣಪತಿಯನ್ನು ಹಾಗೂ ಕುಲದೇವತೆಯನ್ನು ಭಕ್ತಿಯಿಂದ ಸ್ಮರಿಸಿ. ರಸ್ತೆಯಲ್ಲಿ ಯಾವುದೇ ಅತಿ ಆತುರ ಅಥವಾ ಆಕ್ರೋಶಕ್ಕೆ ಒಳಗಾಗದೆ ತಾಳ್ಮೆಯಿಂದ ಸಂಚರಿಸಿ; ದೈವಾನುಗ್ರಹದಿಂದ ನಿಮ್ಮ ಪ್ರವಾಸವು ಸಕಲ ಯಶಸ್ಸು ಮತ್ತು ಸಂತೋಷವನ್ನು ತರಲಿದೆ.`;
       }
       return `ಹರಿ ಓಂ ${session.name} ಅವರೇ! ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ನಾಳಿನ ಪ್ರವಾಸವು ಅತ್ಯಂತ ಸುಖಕರವೂ, ಕ್ಷೇಮಕರವೂ ಆಗಿರಲಿ ಎಂದು ಆಶೀರ್ವದಿಸುತ್ತೇನೆ.\n\nಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ನಾಳೆ ಪ್ರಯಾಣ ಪ್ರಾರಂಭಿಸುವ ಮುನ್ನ ಆ ದಿನದ ರಾಹು ಕಾಲವನ್ನು ಗಮನಿಸಿ, ರಾಹು ಕಾಲದ ಅವಧಿಯಲ್ಲಿ ಹೊಸ ಪ್ರಯಾಣವನ್ನು ಆರಂಭಿಸಬೇಡಿ. ಮನೆಯಿಂದ ಹೊರಡುವಾಗ ಶುಭ ಸಂಕಲ್ಪದೊಂದಿಗೆ ಬಲಗಾಲಿಟ್ಟು ಹೊರಡಿ.\n\nವಾಹನ ಚಲಾಯಿಸುವ ಮುನ್ನ ಅಥವಾ ಪ್ರಯಾಣದ ಆರಂಭದಲ್ಲಿ ಶ್ರೀ ಮಹಾಗಣಪತಿಯನ್ನು ಹಾಗೂ ಕುಲದೇವತೆಯನ್ನು ಭಕ್ತಿಯಿಂದ ಸ್ಮರಿಸಿ. ರಸ್ತೆಯಲ್ಲಿ ಯಾವುದೇ ಅತಿ ಆತುರ ಅಥವಾ ಆಕ್ರೋಶಕ್ಕೆ ಒಳಗಾಗದೆ ತಾಳ್ಮೆಯಿಂದ ಸಂಚರಿಸಿ; ದೈವಾನುಗ್ರಹದಿಂದ ನಿಮ್ಮ ಪ್ರವಾಸವು ಸಕಲ ಯಶಸ್ಸು ಮತ್ತು ಸಂತೋಷವನ್ನು ತರಲಿದೆ.`;
 
     case "INTERPERSONAL_CONFLICT":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding the conflict and quarrel you mentioned ("${userQuestion}"), sudden clashes and heated arguments are often triggered by the planetary transit of Mars (Kuja - anger) or Mercury (Budha - impulsive words). Anger is like a fire that scorches the container holding it before it reaches anyone else.\n\nDo not react impulsively or seek retaliation while emotions are raw. Allow a cooling-off period of 24 to 48 hours for the heated planetary energies to subside. Speak with dignified composure and patience when minds have cleared. Walking the noble path of Dharma and self-restraint will protect your peace and earn you lasting respect.`;
+        }
         return `Namaste ${session.name}. I understand your heart is disturbed due to this conflict. Let me offer you soothing Vedic counsel and astrological wisdom.\n\nIn astrology, sudden clashes and heated arguments are often triggered by the planetary transit of Mars (Kuja - anger) or Mercury (Budha - impulsive words). Anger is like a fire that scorches the container holding it before it reaches anyone else.\n\nDo not react impulsively or seek retaliation while emotions are raw. Allow a cooling-off period of 24 to 48 hours for the heated planetary energies to subside. Speak with dignified composure and patience when minds have cleared. Walking the noble path of Dharma and self-restraint will protect your peace and earn you lasting respect.`;
+      }
+      if (isSubsequent) {
+        return `ಜಗಳ ಅಥವಾ ಮನಸ್ತಾಪದ ಈ ವಿಷಯಕ್ಕೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಕ್ಷಣಿಕ ಕೋಪ ಮತ್ತು ಜಗಳಗಳು ಜಾತಕದಲ್ಲಿ ಕುಜ ಮತ್ತು ಬುಧ ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದ ಉಂಟಾಗುತ್ತವೆ. "ಕ್ರೋಧವು ಮನುಷ್ಯನ ವಿವೇಕವನ್ನು ನಾಶಮಾಡುತ್ತದೆ."\n\nಪ್ರಸ್ತುತ ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಯಾವುದೇ ಆತುರದ ಪ್ರತೀಕಾರ ಅಥವಾ ವಾಗ್ವಾದಕ್ಕೆ ಹೋಗಬೇಡಿ. ಕನಿಷ್ಠ ೨೪ ರಿಂದ ೪೮ ಗಂಟೆಗಳ ಕಾಲ ಮೌನ ಮತ್ತು ತಾಳ್ಮೆಯನ್ನು ವಹಿಸಿ, ಪರಿಸ್ಥಿತಿ ಶಾಂತವಾಗಲು ಸಮಯ ಕೊಡಿ. ಮನಸ್ಸು ತಿಳಿಯಾದ ನಂತರ ಗೌರವಯುತವಾಗಿ, ಧರ್ಮದ ಮಾರ್ಗದಲ್ಲಿ ಮಾತನಾಡಿ ಬಗೆಹರಿಸಿಕೊಳ್ಳಿ. ಶಾಂತಿಯೇ ನಿಮ್ಮ ದೊಡ್ಡ ಶಕ್ತಿ.`;
       }
       return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ಜಗಳ ಅಥವಾ ಮನಸ್ತಾಪದಿಂದ ನಿಮ್ಮ ಮನಸ್ಸು ಅಶಾಂತವಾಗಿರುವುದು ಸಹಜ. ಒಬ್ಬ ಹಿರಿಯ ಪುರೋಹಿತನಾಗಿ, ನಿಮ್ಮ ಶಾಂತಿಗಾಗಿ ಶಾಸ್ತ್ರದ ವಿವೇಕವನ್ನು ತಿಳಿಸುತ್ತೇನೆ.\n\nಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಕ್ಷಣಿಕ ಕೋಪ ಮತ್ತು ಜಗಳಗಳು ಜಾತಕದಲ್ಲಿ ಕುಜ (ಆಕ್ರೋಶ) ಮತ್ತು ಬುಧ (ತೀಕ್ಷ್ಣ ಮಾತು) ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದ ಉಂಟಾಗುತ್ತವೆ. "ಕ್ರೋಧವು ಮನುಷ್ಯನ ವಿವೇಕವನ್ನು ನಾಶಮಾಡುತ್ತದೆ." ಕೋಪದಲ್ಲಿ ಆಡಿದ ಮಾತುಗಳು ಜೀವನಪರ್ಯಂತ ನೋವನ್ನುಂಟುಮಾಡಬಲ್ಲವು.\n\nಪ್ರಸ್ತುತ ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಯಾವುದೇ ಆತುರದ ಪ್ರತೀಕಾರ ಅಥವಾ ವಾಗ್ವಾದಕ್ಕೆ ಹೋಗಬೇಡಿ. ಕನಿಷ್ಠ ೨೪ ರಿಂದ ೪೮ ಗಂಟೆಗಳ ಕಾಲ ಮೌನ ಮತ್ತು ತಾಳ್ಮೆಯನ್ನು ವಹಿಸಿ, ಪರಿಸ್ಥಿತಿ ಶಾಂತವಾಗಲು ಸಮಯ ಕೊಡಿ. ಮನಸ್ಸು ತಿಳಿಯಾದ ನಂತರ ಗೌರವಯುತವಾಗಿ, ಧರ್ಮದ ಮಾರ್ಗದಲ್ಲಿ ಮಾತನಾಡಿ ಬಗೆಹರಿಸಿಕೊಳ್ಳಿ. ಶಾಂತಿಯೇ ನಿಮ್ಮ ದೊಡ್ಡ ಶಕ್ತಿ.`;
 
     case "LIFE_OVERVIEW_EXISTENTIAL":
       if (isEn) {
+        if (isSubsequent) {
+          return `Regarding your ongoing life path and current phase ("${userQuestion}"), life moves in celestial cycles of learning, perseverance, and triumph. If you are experiencing uncertainty right now, understand that this phase is meant to refine your inner strength and prepare you for a brighter chapter ahead.\n\nMaintain unwavering faith and discipline in your daily endeavors. Reciting the sacred Gayatri Mantra and offering humble prayers to Lord Mahabaleshwara will dissolve the prevailing clouds of confusion and reveal the right path forward.`;
+        }
         return `Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga, you are guided by ${lagnaName} Lagna and ${moonRashi} Moon Sign, currently experiencing ${currentDashaText}.\n\nLife moves in celestial cycles of learning, perseverance, and triumph. If you are experiencing uncertainty right now, understand that this phase is meant to refine your inner strength and prepare you for a brighter chapter ahead.\n\nMaintain unwavering faith and discipline in your daily endeavors. Reciting the sacred Gayatri Mantra and offering humble prayers to Lord Mahabaleshwara will dissolve the prevailing clouds of confusion and reveal the right path forward.`;
+      }
+      if (isSubsequent) {
+        return `ಜೀವನದ ಹಾದಿ ಮತ್ತು ಮುನ್ನಡೆಯ ಈ ಪ್ರಶ್ನೆಗೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ಪ್ರತಿಯೊಂದು ಕಾಲಘಟ್ಟವೂ ತನ್ನದೇ ಆದ ಮಂಥನ ಮತ್ತು ಅನುಭವಗಳನ್ನು ನೀಡುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ಘಟನೆಗಳು ನಿಮ್ಮ ಧೈರ್ಯ ಮತ್ತು ಸಂಯಮವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದ್ದು, ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಶುಭ ಫಲಗಳಿಗೆ ದಾರಿಯಾಗಲಿವೆ.\n\nದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಧರ್ಮ, ಸತತ ಪ್ರಯತ್ನ ಮತ್ತು ತಾಳ್ಮೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಧ್ಯಾನ ಮತ್ತು ದೀಪಾರಾಧನೆಯಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸಕಲ ಗೊಂದಲಗಳು ನಿವಾರಣೆಯಾಗಿ, ಸಕಲ ಶುಭವಾಗಲಿದೆ.`;
       }
       return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagnaName} ಲಗ್ನ ಹಾಗೂ ${moonRashi} ರಾಶಿಯಲ್ಲಿ ಜನ್ಮತಾಳಿದ್ದು, ಪ್ರಸ್ತುತ ${currentDashaText} ಅವಧಿಯು ಚಾಲ್ತಿಯಲ್ಲಿದೆ.\n\nಜೀವನದಲ್ಲಿ ಪ್ರತಿಯೊಂದು ಕಾಲಘಟ್ಟವೂ ತನ್ನದೇ ಆದ ಮಂಥನ ಮತ್ತು ಅನುಭವಗಳನ್ನು ನೀಡುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ಘಟನೆಗಳು ನಿಮ್ಮ ಧೈರ್ಯ ಮತ್ತು ಸಂಯಮವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದ್ದು, ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಶುಭ ಫಲಗಳಿಗೆ ದಾರಿಯಾಗಲಿವೆ.\n\nದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಧರ್ಮ, ಸತತ ಪ್ರಯತ್ನ ಮತ್ತು ತಾಳ್ಮೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಧ್ಯಾನ ಮತ್ತು ದೀಪಾರಾಧನೆಯಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸಕಲ ಗೊಂದಲಗಳು ನಿವಾರಣೆಯಾಗಿ, ಸಕಲ ಶುಭವಾಗಲಿದೆ.`;
 
     case "CONVERSATIONAL_GREETING":
     default:
       if (isEn) {
+        if (isSubsequent) {
+          return `I am right here with you in this sacred consultation. Please continue with your questions or life situation whenever you are ready.`;
+        }
         return `Hari Om ${session.name}! May Lord Mahabaleshwara and Lord Ganapati of Sri Kshetra Gokarna shower their divine grace and blessings upon you and your family.\n\nI am seated here with you in this sacred 20-minute consultation. Please feel at complete peace. You may open your heart and ask any question regarding your life, travel, family, career, or spiritual path.`;
+      }
+      if (isSubsequent) {
+        return `ಹೌದು, ನಾನು ನಿಮ್ಮೊಂದಿಗೇ ಈ ಸಮಾಲೋಚನಾ ಕೊಠಡಿಯಲ್ಲಿದ್ದೇನೆ. ನಿಮ್ಮ ಮುಂದಿನ ಪ್ರಶ್ನೆ ಅಥವಾ ಗೊಂದಲವನ್ನು ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ.`;
       }
       return `ಹರಿ ಓಂ ${session.name} ಅವರೇ! ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸಕಲ ಕೃಪಾಕಟಾಕ್ಷ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಮತ್ತು ನಿಮ್ಮ ಕುಟುಂಬದ ಮೇಲೆ ಸದಾ ಇರಲಿ.\n\nನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೊಠಡಿಯಲ್ಲಿ ನಾನು ನಿಮ್ಮೊಂದಿಗಿದ್ದೇನೆ. ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಯಾವುದೇ ಪ್ರಶ್ನೆ, ದೈನಂದಿನ ಗೊಂದಲ, ಪ್ರವಾಸ, ಕುಟುಂಬ ಅಥವಾ ಜಾತಕ ವಿಚಾರಗಳ ಕುರಿತು ಮುಕ್ತವಾಗಿ ಮಾತನಾಡಿ.`;
   }

@@ -787,8 +787,20 @@ export async function generateConsultationAnswer(params: {
   userQuestion: string;
   conversationHistory?: AskGeminiChatTurn[];
   apiKey?: string;
+  isSubsequentQuestion?: boolean;
+  questionIndex?: number;
 }): Promise<ConsultationReadingResult> {
-  const { session, userQuestion, conversationHistory, apiKey } = params;
+  const {
+    session,
+    userQuestion,
+    conversationHistory,
+    apiKey,
+    isSubsequentQuestion,
+    questionIndex
+  } = params;
+
+  const isSubsequent = !!isSubsequentQuestion;
+  const qNum = (questionIndex !== undefined ? questionIndex : 0) + 1;
 
   // 1. Astronomical computations
   const astroData = await computeDevoteeKundli(session);
@@ -883,9 +895,13 @@ CRITICAL PARAGRAPH STRUCTURE RULE (EXACTLY 4 PARAGRAPHS - MANDATORY):
 Since an active Dosha / Karmic influence is present that directly influences the devotee's question:
 You MUST provide EXACTLY 4 well-developed, comprehensive paragraphs.
 Each paragraph MUST contain at least 5 to 6 full lines of authentic, deep Vedic astrological analysis.
-- Paragraph 1: Direct astrological answer addressing the devotee's question based on Janma Lagna (${lagnaName}), Moon sign (${moonRashi}), and planetary placements. If they express career frustration or emotional pain, first connect warmly and validate their feelings with fatherly care.
-- Paragraph 2: In-depth analysis of Bhavas (especially 10th House Karma in ${house10KarmaSign} ruled by ${house10KarmaLord} in House ${house10KarmaLordHouse}, 6th House hurdles in ${house6HurdlesSign}), running Vimshottari Dasha-Bhukti (${currentDashaText}), and Gochara transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}).
-- Paragraph 3: Future astrological trajectory, timeline of when hurdles will begin clearing, and practical life advice.
+${
+  isSubsequent
+    ? `- Paragraph 1: Direct astrological answer addressing THIS NEW QUESTION ("${userQuestion}") based on the specific relevant Bhavas and planetary rulers. ZERO greetings ("ನಮಸ್ಕಾರ / Hello"). ZERO re-reading or mentioning previous questions or older topics. ZERO repeating Lagna, Tatva, Gana, or inborn character profiling. Jump STRAIGHT into the answer!`
+    : `- Paragraph 1: Direct astrological answer addressing the devotee's question based on Janma Lagna (${lagnaName}), Moon sign (${moonRashi}), and planetary placements. First connect warmly with fatherly care and mirror their inborn temperament.`
+}
+- Paragraph 2: In-depth analysis of Bhavas relevant to this question (10th House Karma for career, 7th House for marriage, 5th House for progeny, 6th/8th House for health/hurdles), running Vimshottari Dasha-Bhukti (${currentDashaText}), and Gochara transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}).
+- Paragraph 3: Future astrological trajectory, timeline of when hurdles will begin clearing, and practical life advice specifically for "${userQuestion}".
 - Paragraph 4 (DEDICATED DOSHA & GOKARNA PARIHARA CHAPTER):
   * State clearly what this ${activeDosha.doshaName} is and explain simply and emotionally why this Dosha has manifested in their birth chart based on planetary positions.
   * Detail what specific hardships, delays, obstacles, and emotional/financial distress this Dosha is causing in their life right now.
@@ -897,13 +913,39 @@ Each paragraph MUST contain at least 5 to 6 full lines of authentic, deep Vedic 
 CRITICAL PARAGRAPH STRUCTURE RULE (EXACTLY 3 PARAGRAPHS - MANDATORY):
 Since NO adverse Dosha is currently obstructing this inquiry:
 You MUST provide EXACTLY 3 well-developed, comprehensive paragraphs (at least 5 to 6 full lines each).
-- Paragraph 1: Direct astrological analysis based on Lagna (${lagnaName}), Moon sign (${moonRashi}), Nakshatra (${nakshatra}), and relevant Bhavas. Connect with fatherly warmth.
-- Paragraph 2: In-depth evaluation of the running Vimshottari Dasha-Bhukti (${currentDashaText}) and live Gochara planetary transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}).
-- Paragraph 3: Future progression, auspicious timing, and sacred blessings of Sri Mahabaleshwara Gokarna with practical daily spiritual practices (mantras/daana).`;
+${
+  isSubsequent
+    ? `- Paragraph 1: Direct astrological analysis addressing THIS NEW QUESTION ("${userQuestion}") based on the relevant Bhavas and planetary placements. ZERO greetings ("ನಮಸ್ಕಾರ / Hello"). ZERO re-reading or mentioning previous questions or older topics. ZERO repeating Lagna, Tatva, Gana, or inborn character profiling. Jump straight into the specific answer!`
+    : `- Paragraph 1: Direct astrological analysis based on Lagna (${lagnaName}), Moon sign (${moonRashi}), Nakshatra (${nakshatra}), and relevant Bhavas. Connect with fatherly warmth.`
+}
+- Paragraph 2: In-depth evaluation of the running Vimshottari Dasha-Bhukti (${currentDashaText}) and live Gochara planetary transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}) specifically regarding "${userQuestion}".
+- Paragraph 3: Future progression, auspicious timing, and sacred blessings of Sri Mahabaleshwara Gokarna with practical daily spiritual practices (mantras/daana) customized to this question.`;
   }
 
   const prompt = `You are the revered Senior Head Astrologer & Chief Priest of Sri Baggona Panchanga Jyotishya Sansthana, Sri Kshetra Gokarna (ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುಖ್ಯ ದೈವಜ್ಞರು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ), endowed with over 50 years of tapasya, Vedic chart mastery, and pastoral spiritual guidance.
 The devotee is sitting right across from you face-to-face in the sacred sanctum of Gokarna for a private 20-minute spiritual conversation.
+
+========================================================================
+CRITICAL MANDATORY INSTRUCTION: 100% EXCLUSIVE FOCUS ON THIS NEW QUESTION
+========================================================================
+- CURRENT QUESTION TO ANSWER RIGHT NOW: "${userQuestion}"
+${
+  isSubsequent
+    ? `- THIS IS QUESTION #${qNum} IN THE ONGOING CONSULTATION (A SUBSEQUENT QUESTION).
+- MANDATORY INSTRUCTION 1 (ZERO RE-READING OR REPEATING OLD QUESTIONS):
+  * You MUST NOT re-read, quote, summarize, or reference older questions from earlier turns.
+  * NEVER say "ನೀವು ಹಿಂದೆ ಕೇಳಿದಂತೆ...", "As you previously asked...", "Regarding your earlier question...", "In our previous discussion...".
+  * Focus 100% of your words on this NEW question: "${userQuestion}".
+- MANDATORY INSTRUCTION 2 (ZERO REPEATING INTROS, GREETINGS, OR CHARACTER PROFILING):
+  * DO NOT greet ("ನಮಸ್ಕಾರ / ಹಲೋ / Welcome").
+  * DO NOT repeat the native's Lagna, Tatva, Gana, Nakshatra, or inborn character description ("ನೀವು ವೃಷಭ ಲಗ್ನ, ರೋಹಿಣಿ ನಕ್ಷತ್ರ, ಪೃಥ್ವಿ ತತ್ವ, ದೇವ ಗಣ..."). The devotee ALREADY heard that in question #1!
+  * Jump IMMEDIATELY in Paragraph 1 into the astrological analysis of the specific Bhavas and planetary rulers governing THIS NEW QUESTION!
+- MANDATORY INSTRUCTION 3 (ZERO REPEATING OLD TOPICS OR OLD DOSHAS):
+  * If the earlier question was about marriage/partner and this question is about career/money/health, DO NOT talk about marriage, partner, or Kuja dosha!
+  * Focus exclusively on the domain of "${userQuestion}".`
+    : `- THIS IS THE DEVOTEE'S FIRST QUESTION (QUESTION #1).
+- Greet them with paternal warmth and briefly mirror their inborn temperament (Tatva: ${astroData.characterProfile.tatva}, Gana: ${astroData.characterProfile.gana}) in Paragraph 1 before directly answering "${userQuestion}".`
+}
 
 DEVOTEE BIRTH PROFILE & ASTROLOGICAL COORDINATES (COMPUTED ACCURATELY BY BAGGONA PANCHANGA):
 - Name: ${session.name}
@@ -941,8 +983,12 @@ SACRED BEHAVIORAL PROTOCOL (THE 50+ YEAR EXPERIENCED GOKARNA MASTER ASTROLOGER -
      * The devotee should feel a holy reverence, fatherly affection, and complete reassurance that their life is under divine protection.
 
 2. NATIVE'S INBORN CHARACTERISTIC & TEMPERAMENT MIRRORING (ಕನ್ನಡಿಯಂತಹ ಜನ್ಮ ಸ್ವಭಾವ):
-   - In Paragraph 1, dynamically reflect the native's true inborn character and temperament based on their Lagna Tatva (${astroData.characterProfile.tatva}) and Nakshatra Gana (${astroData.characterProfile.gana}).
-   - The native must immediately sense that you are describing their exact inner soul and thought patterns ("ಕನ್ನಡಿಯಂತಹ ನಿಖರ ಸ್ವಭಾವ"), making them feel deeply understood and completely hooked.
+${
+  isSubsequent
+    ? `   - STRICT PROHIBITION: Since this is question #${qNum}, DO NOT repeat the inborn character profiling or Tatva/Gana basics. Go straight into the specific Bhavas and planetary rulers governing "${userQuestion}".`
+    : `   - In Paragraph 1, dynamically reflect the native's true inborn character and temperament based on their Lagna Tatva (${astroData.characterProfile.tatva}) and Nakshatra Gana (${astroData.characterProfile.gana}).
+   - The native must immediately sense that you are describing their exact inner soul and thought patterns ("ಕನ್ನಡಿಯಂತಹ ನಿಖರ ಸ್ವಭಾವ"), making them feel deeply understood and completely hooked.`
+}
 
 3. MINOR CHILD / PARENT INQUIRY PROTOCOL (STRICT MANDATORY RULE):
 ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD (${Math.floor(ageYears)} years old, e.g. 12-year-old child)!
@@ -982,9 +1028,10 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
    - Warm, dignified, spiritually authoritative, compassionate, and deeply comforting.
    - DO NOT use markdown symbols like * or # as this text will be read aloud by the priest voice engine.
 
-9. ONGOING CONVERSATION FLOW (NO REPEATED GREETINGS):
+9. ONGOING CONVERSATION FLOW (NO REPEATED GREETINGS & ZERO RE-READING OLD QUESTIONS):
    - The opening welcome and introduction ("ನಮಸ್ಕಾರ... ನಾನು ಶ್ರೀರಾಮ್ ಪಂಡಿತ್...") have ALREADY been delivered at the start of this 20-minute consultation.
    - Therefore, do NOT repeat greetings like "ನಮಸ್ಕಾರ...", "Hello", "Welcome", or re-introduce yourself in subsequent turns.
+   - ABSOLUTE PROHIBITION ON RE-READING OR REPEATING OLD QUESTIONS: Never say "ನೀವು ಹಿಂದೆ ಕೇಳಿದಂತೆ...", "As you previously asked...", "Regarding your earlier question...". Focus 100% on "${userQuestion}".
    - Directly, respectfully, and compassionately answer this specific question as an ongoing, continuous face-to-face dialogue.`;
 
   let responseText = "";
@@ -1008,7 +1055,9 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
       nakshatra,
       currentDashaText,
       activeDosha,
-      astroData
+      astroData,
+      isSubsequent,
+      params.questionIndex
     );
   } else {
     try {
@@ -1038,7 +1087,9 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
         nakshatra,
         currentDashaText,
         activeDosha,
-        astroData
+        astroData,
+        isSubsequent,
+        params.questionIndex
       );
     }
   }
@@ -1092,8 +1143,11 @@ function generateDeterministicFallbackReading(
   nakshatra: string,
   dasha: string,
   activeDosha: ActiveDoshaContext,
-  astroData?: DevoteeKundliComputedData
+  astroData?: DevoteeKundliComputedData,
+  isSubsequentQuestion?: boolean,
+  questionIndex?: number
 ): string {
+  const isSubsequent = !!isSubsequentQuestion || (questionIndex !== undefined && questionIndex > 0);
   const q = question.trim().toLowerCase();
   const isGreeting =
     /^(ನಮಸ್ಕಾರ|ಹಲೋ|ಹೇಗಿದ್ದೀರಿ|ಗುರೂಜಿ|ಸ್ವಾಮಿ|hello|hi|namaste|how are you|pranam|namaskara)/i.test(
@@ -1129,12 +1183,17 @@ function generateDeterministicFallbackReading(
   // English Locale Fallbacks
   if (session.language === "en") {
     if (isGreeting) {
+      if (isSubsequent) {
+        return `I am right here with you in this sacred consultation. Please continue with your question or life situation whenever you are ready.`;
+      }
       return `Hari Om ${session.name}! May Lord Mahabaleshwara and Lord Ganapati of Sri Kshetra Gokarna bestow their divine grace and blessings upon you and your family.\n\nI am sitting with you here in this sacred 20-minute consultation. Please feel at complete peace. You can open your heart and ask any question regarding your life, career, marriage, health, or family dilemmas.`;
     }
 
     // Minor Child (< 18 yrs) -> Address Parents Reverently
     if (isMinorChild) {
-      const p1Child = `Dear Parents, examining the sacred birth chart of your child (${session.name}) calculated with Baggona Panchanga, the child is born in ${lagna} Lagna and ${rashi} Moon sign with ${nakshatra} Nakshatra. The child's natural temperament is shaped by the ${tatvaEn} element and ${ganaEn} Gana: ${psychNatureEn || "curious, perceptive, and sensitive"}. Regarding your inquiry on "${question}", the child's 4th house of education (${house4Sign}) and 5th house of intellect (${house5Sign}) indicate tremendous latent potential that will blossom wonderfully with patient, nurturing encouragement.`;
+      const p1Child = isSubsequent
+        ? `Regarding your inquiry on "${question}", examining the child's 4th house of education (${house4Sign}) and 5th house of intellect (${house5Sign}) along with ruling planet ${house4Lord}, the chart reveals strong latent potential that will blossom wonderfully with patient, nurturing encouragement.`
+        : `Dear Parents, examining the sacred birth chart of your child (${session.name}) calculated with Baggona Panchanga, the child is born in ${lagna} Lagna and ${rashi} Moon sign with ${nakshatra} Nakshatra. The child's natural temperament is shaped by the ${tatvaEn} element and ${ganaEn} Gana: ${psychNatureEn || "curious, perceptive, and sensitive"}. Regarding your inquiry on "${question}", the child's 4th house of education (${house4Sign}) and 5th house of intellect (${house5Sign}) indicate tremendous latent potential that will blossom wonderfully with patient, nurturing encouragement.`;
       const p2Child = `Looking into the child's cognitive focus and memory retention, ruling planet ${house4Lord} governs grasping power and foundational learning. Occasional restlessness, exam anxiety, or playful distraction is a natural expression of this astrological temperament. As mindful parents, avoiding comparative pressure or harsh discipline and instead creating an organized, peaceful study atmosphere will produce remarkable academic excellence. The prevailing period of ${dasha} actively supports cognitive growth.`;
       const p3Child = `For physical immunity, academic sharpness, and protection against the evil eye (drishti dosha), lighting a pure cow-ghee lamp at study time and chanting the sacred Maha Saraswati Gayatri or Medha Sukta is highly auspicious. Offering prayers at Sri Kshetra Gokarna Mahaganapati for the child's well-being will bestow razor-sharp concentration, academic success, and long life.`;
 
@@ -1154,7 +1213,9 @@ function generateDeterministicFallbackReading(
 
     // Santhana / Progeny / Childbirth Query
     if (isSanthana) {
-      const p1Santhana = `My child ${session.name}, I understand the deep yearning, emotional anxiety, and societal questions surrounding progeny and conceiving a child in your marital life. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign with ${nakshatra} Nakshatra), your 5th house of progeny (${house5Sign}) and Putrakaraka Jupiter (Guru) are undergoing a karmic testing phase, which explains the temporary delay despite medical normalcy.`;
+      const p1Santhana = isSubsequent
+        ? `Regarding your inquiry on progeny and conception ("${question}"), examining your 5th house of progeny (${house5Sign}) and Putrakaraka Jupiter (Guru), this phase indicates a temporary karmic transit delay that demands emotional calm and mutual harmony alongside medical care.`
+        : `My child ${session.name}, I understand the deep yearning, emotional anxiety, and societal questions surrounding progeny and conceiving a child in your marital life. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign with ${nakshatra} Nakshatra), your 5th house of progeny (${house5Sign}) and Putrakaraka Jupiter (Guru) are undergoing a karmic testing phase, which explains the temporary delay despite medical normalcy.`;
       const p2Santhana = `Examining the 5th house lord (${house5Lord}) and the current Vimshottari period of ${dasha}, planetary tensions have created energetic friction in conceiving. In Vedic wisdom, conception requires the harmonious union of medical health and celestial grace (Daiva Bala). Shed all despondency and mutual blame. When the appropriate karmic remedies are conducted, the doors of parenthood will surely open wide.`;
       const p3Santhana = `Upcoming planetary transits over the next lunar cycles indicate a fertile and auspicious turning point. Maintain physical vitality through pure sattvic nourishment and mutual affection. For divine blessings of noble progeny, chanting the Sri Santhana Gopala Mantra daily with devotion will dissolve all reproductive anxieties and herald joyous news.`;
 
@@ -1174,7 +1235,9 @@ function generateDeterministicFallbackReading(
 
     // Secret Intimate / Sexuality Query
     if (isSecretIntimate) {
-      const p1Intimate = `Dear ${session.name}, in the Vedic worldview, Kama (vital desire, healthy intimacy, and conjugal pleasure) is revered as one of the four sacred Purusharthas. In our society, people often feel immense shyness, taboo, or guilt regarding sexual vitality and bedroom discord. Please be at total ease. As an experienced Vedic astrologer, I view this with fatherly compassion and scientific clarity. Your ${lagna} Lagna and the placement of Shukra (Venus) govern your emotional and vital responses.`;
+      const p1Intimate = isSubsequent
+        ? `Regarding this intimate matter ("${question}"), in Vedic Jyotisha, the placement of Shukra (Venus), the 7th house of harmony, and the 8th house govern these private vital energies. Approaching this with scientific calm rather than guilt is the key to restoration.`
+        : `Dear ${session.name}, in the Vedic worldview, Kama (vital desire, healthy intimacy, and conjugal pleasure) is revered as one of the four sacred Purusharthas. In our society, people often feel immense shyness, taboo, or guilt regarding sexual vitality and bedroom discord. Please be at total ease. As an experienced Vedic astrologer, I view this with fatherly compassion and scientific clarity. Your ${lagna} Lagna and the placement of Shukra (Venus) govern your emotional and vital responses.`;
       const p2Intimate = `In your astrological chart, the 8th house governs reproductive vitality, the 7th house rules conjugal harmony, and the 12th house oversees bedroom tranquility (shayana sukha). Under the running period of ${dasha}, mental exhaustion, performance anxiety, and nervous fatigue are causing temporary fluctuation in Shukra Dhatu (vitality). This is strictly a temporary psychosomatic stress imbalance, not a permanent defect. Releasing toxic guilt and adopting an Ayurvedic regimen of Ashwagandha, milk, and pranayama will rejuvenate your vigor.`;
       const p3Intimate = `Over the upcoming transit cycle, emotional bonding with your partner will deepen. Approach intimacy with calm affection rather than pressure. Offering sacred cow-milk prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna will harmonize hormonal balance, bestow peaceful sleep, and restore deep romantic harmony in your relationship.`;
 
@@ -1191,7 +1254,9 @@ function generateDeterministicFallbackReading(
     }
 
     if (isCareerFrustration) {
-      const p1Career = `My child ${session.name}, I understand the burden, anxiety, and frustration you are feeling in your career right now. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign with ${nakshatra} Nakshatra), your inborn nature is characterized by the ${tatvaEn} element and ${ganaEn} Gana: ${psychNatureEn || "deeply capable and hardworking"}. This difficult phase is a celestial churning. The active period of ${dasha} combined with ${shaniText} is testing your endurance, which explains why workplace recognition has been delayed despite your earnest efforts.`;
+      const p1Career = isSubsequent
+        ? `Regarding your career and workplace concerns ("${question}"), the active period of ${dasha} combined with ${shaniText} is currently demanding endurance and perseverance. Examining your 10th house of profession (governed by ${karmaLord}), temporary delays are testing your resolve rather than blocking your long-term success.`
+        : `My child ${session.name}, I understand the burden, anxiety, and frustration you are feeling in your career right now. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign with ${nakshatra} Nakshatra), your inborn nature is characterized by the ${tatvaEn} element and ${ganaEn} Gana: ${psychNatureEn || "deeply capable and hardworking"}. This difficult phase is a celestial churning. The active period of ${dasha} combined with ${shaniText} is testing your endurance, which explains why workplace recognition has been delayed despite your earnest efforts.`;
       const p2Career = `Examining your 10th house of profession (ruled by ${karmaLord}) and the 6th house of obstacles, the cosmic energies are demanding patience rather than impulsive reactions. Avoid hasty resignations or heated workplace friction. Astrological calculations indicate that the forthcoming planetary movements favor stability, long-term investments, and collaborative harmony. Maintaining mental equilibrium during this cycle will unlock substantial prosperity.`;
       const p3Career = `The planetary transits over the coming lunar cycles indicate a progressive turning point. When Jupiter casts its divine benefic aspect upon your key natal houses, the confusion that clouding your decisions will dissolve into crystalline clarity. Continue your earnest efforts with disciplined patience, for the cosmic timing is aligning to reward your dedication.`;
 
@@ -1209,7 +1274,9 @@ function generateDeterministicFallbackReading(
       return `${p1Career}\n\n${p2Career}\n\n${p3Career}`;
     }
 
-    const baseP1 = `Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga, you are born in ${lagna} Lagna and ${rashi} Moon Sign with ${nakshatra} Nakshatra (${tatvaEn} element, ${ganaEn} Gana). Regarding your question on "${question}", your planetary combinations indicate that the current period governed by ${dasha} is bringing significant pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting Jupiter and Saturn require patience in key negotiations.`;
+    const baseP1 = isSubsequent
+      ? `Regarding your inquiry on "${question}", planetary combinations indicate that the current period governed by ${dasha} is bringing pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting planetary aspects require calm patience in key decisions.`
+      : `Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga, you are born in ${lagna} Lagna and ${rashi} Moon Sign with ${nakshatra} Nakshatra (${tatvaEn} element, ${ganaEn} Gana). Regarding your question on "${question}", your planetary combinations indicate that the current period governed by ${dasha} is bringing significant pivotal transformations. The ruling planet of your ascendant provides strong foundational resilience, while transiting Jupiter and Saturn require patience in key negotiations.`;
     const baseP2 = `In the realm of your personal and professional endeavors, your chart reveals gradual clearance of previous hurdles. Astrological calculations indicate that the forthcoming planetary movements favor stability, long-term investments, and collaborative harmony. Maintaining mental equilibrium and avoiding hasty impulsive commitments during this cycle will unlock substantial prosperity.`;
     const baseP3 = `The planetary transits over the coming lunar cycles indicate a progressive turning point. When Jupiter casts its divine benefic aspect upon your key natal houses, the confusion that clouding your decisions will dissolve into crystalline clarity. Continue your earnest efforts with disciplined patience, for the cosmic timing is aligning to reward your dedication.`;
 
@@ -1230,12 +1297,17 @@ function generateDeterministicFallbackReading(
 
   // Kannada Default Fallback
   if (isGreeting) {
+    if (isSubsequent) {
+      return `ಹೌದು, ನಾನು ನಿಮ್ಮೊಂದಿಗೇ ಈ ಸಮಾಲೋಚನಾ ಕೊಠಡಿಯಲ್ಲಿದ್ದೇನೆ. ನಿಮ್ಮ ಮುಂದಿನ ಪ್ರಶ್ನೆ ಅಥವಾ ಗೊಂದಲವನ್ನು ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ.`;
+    }
     return `ಹರಿ ಓಂ ${session.name} ಅವರೇ! ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸಕಲ ಕೃಪಾಕಟಾಕ್ಷ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಮತ್ತು ನಿಮ್ಮ ಕುಟುಂಬದ ಮೇಲೆ ಸದಾ ಇರಲಿ.\n\nನಿಮಗಾಗಿ ನಿಗದಿಪಡಿಸಲಾದ ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೊಠಡಿಯಲ್ಲಿ ನಾನು ನಿಮ್ಮೊಂದಿಗಿದ್ದೇನೆ. ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಯಾವುದೇ ಗೊಂದಲ, ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ, ವಿವಾಹ, ಕೌಟುಂಬಿಕ ವಿಚಾರ ಅಥವಾ ದೋಷ ಪರಿಹಾರಗಳ ಕುರಿತು ಮುಕ್ತವಾಗಿ ಪ್ರಶ್ನಿಸಿ.`;
   }
 
   // Minor Child (< 18 yrs) -> Address Parents Reverently
   if (isMinorChild) {
-    const p1Child = `ಆತ್ಮೀಯ ಪೋಷಕರೇ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನಿಮ್ಮ ಮಗುವಿನ (${session.name}) ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಮಗುವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನ್ಮತಾಳಿದೆ. ಮಗುವಿನ ಲಗ್ನ ತತ್ವವಾದ ${tatva} ಹಾಗೂ ${gana} ಗಣದ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಗುವಿನಲ್ಲಿ ${psychNature || "ಚುರುಕಾದ ಬುದ್ಧಿಶಕ್ತಿ, ಸಹಜ ಕುತೂಹಲ ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಸಂವೇದನೆ"} ಎದ್ದು ಕಾಣುತ್ತದೆ. ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${house4Sign}) ಹಾಗೂ ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳು (${house5Sign}) ಅತ್ಯಂತ ಚೇತನವಾಗಿದ್ದು, ಮಗುವಿನ ಅಂತರಂಗದಲ್ಲಿ ಅಪಾರವಾದ ಸುಪ್ತ ಪ್ರತಿಭೆ ಅಡಗಿದೆ.`;
+    const p1Child = isSubsequent
+      ? `ಮಗುವಿನ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${house4Sign}) ಹಾಗೂ ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳನ್ನು (${house5Sign}) ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ವಿದ್ಯಾಧಿಪತಿಯಾದ ${house4Lord} ಗ್ರಹದ ಪ್ರಭಾವದಿಂದ ಮಗುವಿನಲ್ಲಿ ಉತ್ತಮ ಕಲಿಯುವ ಆಸಕ್ತಿಯಿದೆ. ತಾಳ್ಮೆಯಿಂದ ಪ್ರೋತ್ಸಾಹಿಸಿದರೆ ಮಗುವು ಶೈಕ್ಷಣಿಕವಾಗಿ ಉತ್ತಮ ಯಶಸ್ಸು ಸಾಧಿಸಲಿದೆ.`
+      : `ಆತ್ಮೀಯ ಪೋಷಕರೇ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನಿಮ್ಮ ಮಗುವಿನ (${session.name}) ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಮಗುವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನ್ಮತಾಳಿದೆ. ಮಗುವಿನ ಲಗ್ನ ತತ್ವವಾದ ${tatva} ಹಾಗೂ ${gana} ಗಣದ ಪ್ರಭಾವದಿಂದಾಗಿ ಮಗುವಿನಲ್ಲಿ ${psychNature || "ಚುರುಕಾದ ಬುದ್ಧಿಶಕ್ತಿ, ಸಹಜ ಕುತೂಹಲ ಹಾಗೂ ಸೂಕ್ಷ್ಮ ಸಂವೇದನೆ"} ಎದ್ದು ಕಾಣುತ್ತದೆ. ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಮಗುವಿನ ಜಾತಕದಲ್ಲಿ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ (${house4Sign}) ಹಾಗೂ ೫ನೇ ಬುದ್ಧಿ ಸ್ಥಾನಗಳು (${house5Sign}) ಅತ್ಯಂತ ಚೇತನವಾಗಿದ್ದು, ಮಗುವಿನ ಅಂತರಂಗದಲ್ಲಿ ಅಪಾರವಾದ ಸುಪ್ತ ಪ್ರತಿಭೆ ಅಡಗಿದೆ.`;
     const p2Child = `ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಗ್ರಹಣ ಶಕ್ತಿಯ ವಿಚಾರದಲ್ಲಿ ೪ನೇ ಮನೆಯ ಅಧಿಪತಿಯಾದ ${house4Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಮಗುವಿಗೆ ವಿಷಯಗಳನ್ನು ಬೇಗನೆ ಗ್ರಹಿಸುವ ಅದ್ಭುತ ಶಕ್ತಿಯಿದೆ. ಆದರೆ ಮನಸ್ಸು ಒಮ್ಮೊಮ್ಮೆ ಚಂಚಲಗೊಳ್ಳುವುದು, ಆಟದ ಕಡೆಗೆ ಆಕರ್ಷಿತವಾಗುವುದು ಹಾಗೂ ಪೋಷಕರ ಮಾತಿಗೆ ಹಠ ಮಾಡುವುದು ಈ ವಯಸ್ಸಿನ ಸಹಜ ಲಕ್ಷಣ. ಪೋಷಕರಾಗಿ ನೀವು ಮಗುವಿನ ಮೇಲೆ ಅನಗತ್ಯ ಶೈಕ್ಷಣಿಕ ಒತ್ತಡ ಅಥವಾ ಕಠಿಣ ಶಿಕ್ಷೆಗಳನ್ನು ಹೇರದೆ, ಪ್ರೀತಿ, ಸಮಾಧಾನ ಹಾಗೂ ನಿಗದಿತ ಸಮಯದ ದಿನಚರಿಯನ್ನು ರೂಢಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯು ಮಗುವಿನ ಬೌದ್ಧಿಕ ವಿಕಾಸಕ್ಕೆ ಉತ್ತಮ ತಳಹದಿ ಹಾಕಲಿದೆ.`;
     const p3Child = `ಮಗುವಿನ ಆರೋಗ್ಯ ರಕ್ಷಣೆ, ದೃಷ್ಟಿ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಏಕಾಗ್ರತೆಗಾಗಿ, ಪ್ರತಿದಿನ ಸಂಜೆ ಮನೆಯಲ್ಲಿ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ಮಹಾಸರಸ್ವತೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಗುವಿನ ಹೆಸರಿನಲ್ಲಿ ಸಂಕಲ್ಪ ಮಾಡಿ ದೂರ್ವಾ ಅರ್ಚನೆ ಮಾಡಿಸುವುದರಿಂದ ಮಗುವಿನ ಜ್ಞಾಪಕ ಶಕ್ತಿ ವೃದ್ಧಿಸಿ, ಶೈಕ್ಷಣಿಕ ವಿಜಯ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿದೆ.`;
 
@@ -1256,7 +1328,9 @@ function generateDeterministicFallbackReading(
 
   // Santhana / Progeny / Childbirth Query
   if (isSanthana) {
-    const p1Santhana = `ಮಗುವೇ ${session.name}, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ಪುತ್ರ ಪ್ರಾಪ್ತಿಯ ಕುರಿತು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಆಳವಾದ ಕಳವಳ ಹಾಗೂ ನಿರೀಕ್ಷೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜ್ಯೋತಿಷ್ಯ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದು, ನಿಮ್ಮ ಸಹಜ ಸ್ವಭಾವವು ${tatva} ತತ್ವ ಹಾಗೂ ${gana} ಗಣದಿಂದ ಕೂಡಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನವನ್ನು (${house5Sign}) ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಅವಲೋಕಿಸಿದಾಗ, ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಕಾಲದ ತಾತ್ಕಾಲಿಕ ವಿಳಂಬ ಗೋಚರಿಸುತ್ತಿದೆ.`;
+    const p1Santhana = isSubsequent
+      ? `ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತಾದ ನಿಮ್ಮ "${question}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನವನ್ನು (${house5Sign}) ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಅವಲೋಕಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗೋಚಾರ ಗ್ರಹಗಳು ತಾತ್ಕಾಲಿಕ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡುತ್ತಿವೆ. ವೈದ್ಯಕೀಯ ಪ್ರಯತ್ನಗಳ ಜೊತೆಗೆ ಸೂಕ್ತ ದೈವಾನುಗ್ರಹ ಸಿದ್ಧಿಸಿದಾಗ ಸಂತಾನ ಯೋಗವು ಖಂಡಿತ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`
+      : `ಮಗುವೇ ${session.name}, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ಪುತ್ರ ಪ್ರಾಪ್ತಿಯ ಕುರಿತು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಆಳವಾದ ಕಳವಳ ಹಾಗೂ ನಿರೀಕ್ಷೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜ್ಯೋತಿಷ್ಯ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದು, ನಿಮ್ಮ ಸಹಜ ಸ್ವಭಾವವು ${tatva} ತತ್ವ ಹಾಗೂ ${gana} ಗಣದಿಂದ ಕೂಡಿದೆ. ನಿಮ್ಮ ಜಾತಕದ ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನವನ್ನು (${house5Sign}) ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಅವಲೋಕಿಸಿದಾಗ, ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಕಾಲದ ತಾತ್ಕಾಲಿಕ ವಿಳಂಬ ಗೋಚರಿಸುತ್ತಿದೆ.`;
     const p2Santhana = `ನಿಮ್ಮ ಜಾತಕದ ಪಂಚಮಾಧಿಪತಿಯಾದ ${house5Lord} ಗ್ರಹದ ಸ್ಥಿತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗೋಚಾರ ಗ್ರಹಗಳ ಪರೀಕ್ಷೆಯು ತಾತ್ಕಾಲಿಕ ಅಡೆತಡೆಗಳನ್ನು ಉಂಟುಮಾಡಿದೆ. ವೈದ್ಯಕೀಯ ಪ್ರಯತ್ನಗಳ ಜೊತೆಗೆ ದೈವಬಲವು ಜೋಡಿಯಾದಾಗ ಮಾತ್ರವೇ ಸೃಷ್ಟಿಕಾರಕ ಶಕ್ತಿ ಜಾಗೃತಗೊಳ್ಳುತ್ತದೆ. ನಿಮ್ಮ ಅಥವಾ ನಿಮ್ಮ ಸಂಗಾತಿಯ ಮನಸ್ಸಿನಲ್ಲಿರುವ ನಕಾರಾತ್ಮಕ ನಿರಾಶೆಯನ್ನು ತಕ್ಷಣವೇ ದೂರಮಾಡಿ. ಜಾತಕದಲ್ಲಿರುವ ಕರ್ಮ ತಡೆಗಳನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ನಿವಾರಿಸಿದಾಗ ಸಂತಾನ ಭಾಗ್ಯದ ಬಾಗಿಲು ಖಂಡಿತವಾಗಿಯೂ ತೆರೆಯಲಿದೆ.`;
     const p3Santhana = `ಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಸಂತಾನ ಸ್ಥಾನದ ಮೇಲೆ ಬೀಳುವ ಸಂದರ್ಭದಲ್ಲಿ ಗರ್ಭಧಾರಣೆ ಹಾಗೂ ಸಂತಾನ ಯೋಗವು ಪ್ರಬಲವಾಗಿ ಸಿದ್ಧಿಸಲಿದೆ. ದಂಪತಿಗಳಿಬ್ಬರೂ ಪ್ರತಿ ಗುರುವಾರ ಶುದ್ಧ ಹಸುವಿನ ಹಾಲಿನಿಂದ ಮಾಡಿದ ನೈವೇದ್ಯವನ್ನು ಸಮರ್ಪಿಸಿ, ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಮನಸ್ಸಿನಲ್ಲಿ ಧನಾತ್ಮಕ ವಿಶ್ವಾಸವಿರಲಿ.`;
 
@@ -1278,7 +1352,9 @@ function generateDeterministicFallbackReading(
 
   // Secret Intimate / Sexuality Query
   if (isSecretIntimate) {
-    const p1Intimate = `ಆತ್ಮೀಯ ${session.name} ಅವರೇ, ಮನುಷ್ಯನ ಜೀವನದಲ್ಲಿ ಅಂತರಂಗದ ಕಾಮನೆ, ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ತೃಪ್ತಿಯು ಅತ್ಯಂತ ನೈಸರ್ಗಿಕವಾದ ಸಂಗತಿಯಾಗಿದೆ. ಇದನ್ನು ಸಮಾಜದಲ್ಲಿ ಯಾರ ಬಳಿಯೂ ಮುಕ್ತವಾಗಿ ಹೇಳಿಕೊಳ್ಳಲಾಗದೆ, ನಾಚಿಕೆ ಅಥವಾ ಅಪರಾಧ ಭಾವನೆಯಿಂದ ಮನಸ್ಸಿನಲ್ಲೇ ಕೊರಗುವುದು ಸಹಜ. ಆದರೆ ನೆನಪಿಡಿ, ಸನಾತನ ವೈದಿಕ ಪರಂಪರೆಯಲ್ಲಿ ಧರ್ಮ-ಅರ್ಥ-ಕಾಮ-ಮೋಕ್ಷ ಎಂಬ ನಾಲ್ಕು ಪುರುಷಾರ್ಥಗಳಲ್ಲಿ ಕಾಮವು ಸೃಷ್ಟಿ ಮತ್ತು ಜೀವನೋತ್ಸಾಹದ ಪವಿತ್ರ ಅಂಗವಾಗಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagna} ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಅಂತರಂಗದ ಸಂವೇದನೆಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ.`;
+    const p1Intimate = isSubsequent
+      ? `ಅಂತರಂಗದ ಈ ವಿಚಾರಣೆಗೆ ("${question}") ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೮ನೇ ಗುಪ್ತಸ್ಥಾನ, ೭ನೇ ಭಾವ ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಇದು ನೈಸರ್ಗಿಕ ಶಾರೀರಿಕ ಮತ್ತು ಮಾನಸಿಕ ಸಂವೇದನೆಯ ವಿಷಯವಾಗಿದೆ. ಯಾವುದೇ ಅಪರಾಧಿ ಭಾವನೆಗೆ ಒಳಗಾಗದೆ, ಆಯುರ್ವೇದ ಪದ್ಧತಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯಿಂದ ಸಮತೋಲನ ಸಾಧಿಸುವುದು ಮುಖ್ಯ.`
+      : `ಆತ್ಮೀಯ ${session.name} ಅವರೇ, ಮನುಷ್ಯನ ಜೀವನದಲ್ಲಿ ಅಂತರಂಗದ ಕಾಮನೆ, ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ತೃಪ್ತಿಯು ಅತ್ಯಂತ ನೈಸರ್ಗಿಕವಾದ ಸಂಗತಿಯಾಗಿದೆ. ಇದನ್ನು ಸಮಾಜದಲ್ಲಿ ಯಾರ ಬಳಿಯೂ ಮುಕ್ತವಾಗಿ ಹೇಳಿಕೊಳ್ಳಲಾಗದೆ, ನಾಚಿಕೆ ಅಥವಾ ಅಪರಾಧ ಭಾವನೆಯಿಂದ ಮನಸ್ಸಿನಲ್ಲೇ ಕೊರಗುವುದು ಸಹಜ. ಆದರೆ ನೆನಪಿಡಿ, ಸನಾತನ ವೈದಿಕ ಪರಂಪರೆಯಲ್ಲಿ ಧರ್ಮ-ಅರ್ಥ-ಕಾಮ-ಮೋಕ್ಷ ಎಂಬ ನಾಲ್ಕು ಪುರುಷಾರ್ಥಗಳಲ್ಲಿ ಕಾಮವು ಸೃಷ್ಟಿ ಮತ್ತು ಜೀವನೋತ್ಸಾಹದ ಪವಿತ್ರ ಅಂಗವಾಗಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagna} ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಅಂತರಂಗದ ಸಂವೇದನೆಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ.`;
     const p2Intimate = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಜಾತಕದ ೮ನೇ ಮನೆಯಾದ ಗುಪ್ತಸ್ಥಾನ, ೭ನೇ ಕಾಮಸ್ಥಾನ ಹಾಗೂ ೧೨ನೇ ಶಯನ ಸುಖದ ಸ್ಥಾನಗಳನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯಲ್ಲಿ ಶಾರೀರಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಒತ್ತಡವು ಶುಕ್ರ ಧಾತುವಿನ ಸಮತೋಲನದ ಮೇಲೆ ತಾತ್ಕಾಲಿಕ ಪ್ರಭಾವ ಬೀರಿದೆ. ಅತಿಯಾದ ಮಾನಸಿಕ ಆತಂಕ, ಅಪರಾಧ ಭಾವ ಅಥವಾ ದಣಿವೇ ಲೈಂಗಿಕ ಶಕ್ತಿ ಕುಗ್ಗಲು ಮುಖ್ಯ ಕಾರಣವೇ ಹೊರತು ಯಾವುದೇ ಶಾಶ್ವತ ಕೊರತೆಯಲ್ಲ. ಆಯುರ್ವೇದ ಪದ್ಧತಿಯಂತೆ ಅಶ್ವಗಂಧ, ಶುದ್ಧ ಹಾಲು, ಸಾತ್ವಿಕ ಆಹಾರ ಮತ್ತು ಪ್ರಾಣಾಯಾಮವು ನಿಮ್ಮ ನರಮಂಡಲಕ್ಕೆ ಹೊಸ ಚೈತನ್ಯವನ್ನು ತುಂಬಲಿದೆ.`;
     const p3Intimate = `ಮನಸ್ಸಿನ ಆತಂಕವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಕಳಚಿಕೊಳ್ಳಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಧ್ಯಾನ ಹಾಗೂ ಸೋಮವಾರದ ರುದ್ರಾಭಿಷೇಕವು ಮನಸ್ಸಿಗೆ ಶಾಂತಿ ನೀಡಿ, ದೈಹಿಕ ಹಾಗೂ ಮಾನಸಿಕ ಚೈತನ್ಯವನ್ನು ಮರಳಿ ತರಲಿದೆ. ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಪ್ರೀತಿ, ಗೌರವ ಮತ್ತು ಮುಕ್ತ ಸಂವಹನವನ್ನು ಹೆಚ್ಚಿಸಿಕೊಳ್ಳಿ.`;
 
@@ -1294,7 +1370,9 @@ function generateDeterministicFallbackReading(
   }
 
   if (isCareerFrustration) {
-    const p1Career = `ಮಗುವೇ ${session.name}, ನಿಮ್ಮ ಮನಸ್ಸಿನ ಕಳವಳ ಹಾಗೂ ವೃತ್ತಿಜೀವನದಲ್ಲಿ (ಉದ್ಯೋಗ/ವ್ಯಾಪಾರ) ಎದುರಾಗುತ್ತಿರುವ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಜೀವನದಲ್ಲಿ ಇಂತಹ ಮಂಥನದ ಹಂತಗಳು ಬಂದಾಗ ಎಂತಹ ಧೀರರೂ ವಿಚಲಿತರಾಗುವುದು ಸಹಜ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜ್ಯೋತಿಷ್ಯ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದು (${tatva} ತತ್ವ, ${gana} ಗಣ), ನಿಮ್ಮ ಸಹಜ ಗುಣವೇ ${psychNature || "ಶ್ರಮಜೀವಿ ಹಾಗೂ ಸ್ವಾಭಿಮಾನಿ"}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಕಾಲಘಟ್ಟ ಹಾಗೂ ${shaniText}ಯು ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ಹೊಸ ಆತ್ಮಾವಲೋಕನವನ್ನು ಅಪೇಕ್ಷಿಸುತ್ತಿದೆ.`;
+    const p1Career = isSubsequent
+      ? `ವೃತ್ತಿಜೀವನ ಹಾಗೂ ಉದ್ಯೋಗದ ಈ ಪ್ರಶ್ನೆಗೆ ("${question}") ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೧೦ನೇ ಕರ್ಮಸ್ಥಾನ (ಅಧಿಪತಿ: ${karmaLord}) ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯ ಸಂಯೋಗವನ್ನು ಗಮನಿಸಿದಾಗ, ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಒತ್ತಡ ಹಾಗೂ ಮಂಥನ ಕಂಡುಬರುತ್ತಿದೆ. ಇದು ನಿಮ್ಮ ಆಂತರಿಕ ಸಾಮರ್ಥ್ಯವನ್ನು ಸಾಣೆ ಹಿಡಿಯುವ ಸಮಯವೇ ಹೊರತು ಶಾಶ್ವತ ಹಿನ್ನಡೆಯಲ್ಲ.`
+      : `ಮಗುವೇ ${session.name}, ನಿಮ್ಮ ಮನಸ್ಸಿನ ಕಳವಳ ಹಾಗೂ ವೃತ್ತಿಜೀವನದಲ್ಲಿ (ಉದ್ಯೋಗ/ವ್ಯಾಪಾರ) ಎದುರಾಗುತ್ತಿರುವ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಜೀವನದಲ್ಲಿ ಇಂತಹ ಮಂಥನದ ಹಂತಗಳು ಬಂದಾಗ ಎಂತಹ ಧೀರರೂ ವಿಚಲಿತರಾಗುವುದು ಸಹಜ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಜ್ಯೋತಿಷ್ಯ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿಯಲ್ಲಿ ಜನಿಸಿದ್ದು (${tatva} ತತ್ವ, ${gana} ಗಣ), ನಿಮ್ಮ ಸಹಜ ಗುಣವೇ ${psychNature || "ಶ್ರಮಜೀವಿ ಹಾಗೂ ಸ್ವಾಭಿಮಾನಿ"}. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಕಾಲಘಟ್ಟ ಹಾಗೂ ${shaniText}ಯು ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ಹೊಸ ಆತ್ಮಾವಲೋಕನವನ್ನು ಅಪೇಕ್ಷಿಸುತ್ತಿದೆ.`;
     const p2Career = `ನಿಮ್ಮ ಜಾತಕದ ೧೦ನೇ ಮನೆಯಾದ ಕರ್ಮಸ್ಥಾನದ ಅಧಿಪತಿಯಾದ ${karmaLord} ಗ್ರಹದ ಸ್ಥಿತಿ ಹಾಗೂ ೬ನೇ ಮನೆಯ ಸ್ಥಿತಿಗತಿಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಅವಲೋಕಿಸಿದಾಗ, ಶನಿ ಹಾಗೂ ಗೋಚಾರ ಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅತಿಯಾದ ಒತ್ತಡ, ಸಹೋದ್ಯೋಗಿಗಳಲ್ಲಿ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ ಹಾಗೂ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ ತಡವಾಗುವ ವಾತಾವರಣ ನಿರ್ಮಾಣವಾಗಿದೆ. ಆದರೆ ನೆನಪಿಡಿ, ಈ ಪರೀಕ್ಷೆಯು ನಿಮ್ಮ ಒಳಗಿನ ಸಾಮರ್ಥ್ಯವನ್ನು ಸಾಣೆ ಹಿಡಿಯಲಿಕ್ಕಾಗಿಯೇ ಬಂದಿರುವುದೇ ಹೊರತು ನಿಮ್ಮ ಭವಿಷ್ಯವನ್ನು ಕುಗ್ಗಿಸುವುದಕ್ಕಲ್ಲ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಕೋಪ ಅಥವಾ ಆತುರದಲ್ಲಿ ರಾಜೀನಾಮೆಯಂತಹ ಅವಸರದ ಹೆಜ್ಜೆಗಳನ್ನು ಇಡಬೇಡಿ.`;
     const p3Career = `ಮುಂದಿನ ಗೋಚಾರ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಪರವಾಗಿ ತಿರುಗಲಿದ್ದು, ಕತ್ತಲೆ ಕರಗಿ ನಿಧಾನವಾಗಿ ಹೊಸ ಅವಕಾಶಗಳ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ. ಅಲ್ಲಿಯವರೆಗೂ ಶಾಂತಚಿತ್ತದಿಂದ ನಿಮ್ಮ ಕಾರ್ಯವನ್ನು ನಿಷ್ಠೆಯಿಂದ ಮುಂದುವರಿಸಿ. ಪ್ರತಿದಿನ ಶಿವಪಂಚಾಕ್ಷರೀ ಸ್ತೋತ್ರ ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ, ಪ್ರತಿ ಶನಿವಾರ ಅಥವಾ ಸೋಮವಾರ ತುಪ್ಪದ ದೀಪವನ್ನು ಬೆಳಗಿಸುವುದರಿಂದ ಮಾನಸಿಕ ಧೈರ್ಯ ಹೆಚ್ಚಿ, ಸಕಲ ವಿಘ್ನಗಳೂ ದೂರವಾಗಲಿವೆ.`;
 
@@ -1316,7 +1394,9 @@ function generateDeterministicFallbackReading(
     return `${p1Career}\n\n${p2Career}\n\n${p3Career}`;
   }
 
-  const p1 = `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನ್ಮತಾಳಿದ್ದೀರಿ (${tatva} ತತ್ವ, ${gana} ಗಣ). ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಮಹತ್ವದ ತಿರುವು ಮತ್ತು ಹೊಸ ಅವಕಾಶಗಳನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ. ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿ ಪ್ರಭಾವದಿಂದ ಹಂತ ಹಂತವಾಗಿ ಸಕಲ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`;
+  const p1 = isSubsequent
+    ? `ನೀವು ಕೇಳಿರುವ "${question}" ಎಂಬ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ಪ್ರಸ್ತುತ ${dasha} ಅವಧಿ ಹಾಗೂ ಸಂಬಂಧಿಸಿದ ಭಾವಾಧಿಪತಿಯ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಗ್ರಹಸ್ಥಿತಿಗಳು ಸಕಾರಾತ್ಮಕ ಬದಲಾವಣೆಗಳನ್ನು ಸೂಚಿಸುತ್ತಿವೆ. ಲಗ್ನಾಧಿಪತಿಯ ಬಲವು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ತಾಳ್ಮೆಯ ನಡೆಯಿಂದ ಉದ್ದೇಶಿತ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`
+    : `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನ್ಮತಾಳಿದ್ದೀರಿ (${tatva} ತತ್ವ, ${gana} ಗಣ). ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಮಹತ್ವದ ತಿರುವು ಮತ್ತು ಹೊಸ ಅವಕಾಶಗಳನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ. ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮಗೆ ಆತ್ಮಸ್ಥೈರ್ಯ ನೀಡುತ್ತಿದ್ದು, ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿ ಪ್ರಭಾವದಿಂದ ಹಂತ ಹಂತವಾಗಿ ಸಕಲ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.`;
 
   const p2 = `ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ಭಾವಗಳನ್ನು ಗಮನಿಸಿದಾಗ, ಈ ಹಿಂದೆ ಎದುರಾಗಿದ್ದ ಮಾನಸಿಕ ಆತಂಕಗಳು ಮತ್ತು ಕಾರ್ಯವಿಳಂಬಗಳು ಈಗ ನಿಧಾನವಾಗಿ ಪರಿಹಾರವಾಗುವ ಲಕ್ಷಣಗಳಿವೆ. ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ ಹಾಗೂ ಕುಟುಂಬ ಸೌಖ್ಯದ ವಿಚಾರದಲ್ಲಿ ಧನಾತ್ಮಕ ಫಲಗಳು ಗೋಚರಿಸುತ್ತಿದ್ದು, ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಹಾಗೂ ತಾಳ್ಮೆಯ ನಡೆ ನಿಮಗೆ ಹೆಚ್ಚಿನ ಯಶಸ್ಸನ್ನು ತಂದುಕೊಡುತ್ತದೆ. ಯಾವುದೇ ಅತಿ ಆತುರದ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳದೆ, ಗ್ರಹಬಲಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಹೆಜ್ಜೆ ಇಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`;
 

@@ -1504,6 +1504,110 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       expect(reply.fullText).toMatch(/(ಅಶ್ವಗಂಧ|ಹಾಲು|ಪ್ರಾಣಾಯಾಮ|ಗೋಕರ್ಣ|ಮಹಾಬಲೇಶ್ವರ|ರುದ್ರಾಭಿಷೇಕ)/);
     });
   });
+
+  describe("13. Multi-Turn Consultation & Zero-Repetition Focus Guard (Follow-up Questions)", () => {
+    const mockMultiTurnDevotee: ConsultationSession = {
+      id: "bgn_cst_multiturn_1",
+      name: "ರಮೇಶ್ ಕುಮಾರ್ (Ramesh Kumar)",
+      dob: "1988-04-12",
+      tob: "14:15",
+      place: "Bengaluru",
+      lat: 12.9716,
+      lng: 77.5946,
+      timezone: 5.5,
+      language: "kn",
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 1200000).toISOString(),
+      status: "active",
+      durationMinutes: 20,
+      graceDeleteMinutes: 20,
+      messages: [],
+      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      priestPhone: "9972339362"
+    };
+
+    it("Turn 1 includes greeting and personality profile, while Turn 2 (subsequent question) strictly omits greeting and inborn trait repetition", async () => {
+      // Turn 1: First question asked by devotee
+      const turn1 = await generateConsultationAnswer({
+        session: mockMultiTurnDevotee,
+        userQuestion: "ನನ್ನ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಬದಲಾವಣೆ ಯಾವಾಗ? ಕೆಲಸದಲ್ಲಿ ಕಿರಿಕಿರಿ ಹೆಚ್ಚಾಗಿದೆ.",
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+
+      // Turn 1 must contain introductory greeting and astrological foundation
+      expect(turn1.fullText).toContain("ರಮೇಶ್ ಕುಮಾರ್");
+      expect(turn1.fullText).toMatch(/(ಮಗುವೇ|ಕಂದ|ನಮಸ್ಕಾರ|ಆತ್ಮೀಯ)/);
+      expect(turn1.fullText).toMatch(/(ಲಗ್ನ|ರಾಶಿ|ದಶೆ|ತತ್ತ್ವ|ಪ್ರವೃತ್ತಿ)/);
+
+      // Turn 2: Follow-up question asked by devotee
+      const turn2 = await generateConsultationAnswer({
+        session: mockMultiTurnDevotee,
+        userQuestion: "ಆರೋಗ್ಯ ಮತ್ತು ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ಯಾವ ಪರಿಹಾರ ಮಾಡಬೇಕು?",
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+
+      // Turn 2 must NOT repeat introductory greeting or devotee inborn trait profiling
+      expect(turn2.fullText).not.toMatch(/^(ಮಗುವೇ|ನಮಸ್ಕಾರ|ಕಂದ)\s+ರಮೇಶ್\s+ಕುಮಾರ್/i);
+      expect(turn2.fullText).not.toContain("ಆತ್ಮೀಯ ಸ್ವಾಗತ");
+      expect(turn2.fullText).not.toContain("ನೀವು ಆಂತರಿಕವಾಗಿ ಗಂಭೀರ");
+      // Turn 2 must focus directly on the new question (health, peace, remedies)
+      expect(turn2.fullText).toMatch(/(ಆರೋಗ್ಯ|ಮಾನಸಿಕ|ಶಾಂತಿ|ಪ್ರಾಣಾಯಾಮ|ಮಹಾಬಲೇಶ್ವರ|ರುದ್ರಾಭಿಷೇಕ|ಪರಿಹಾರ)/);
+    });
+
+    it("Subsequent question in English strictly omits repeated greeting and horoscope boilerplate", async () => {
+      const enSession: ConsultationSession = {
+        ...mockMultiTurnDevotee,
+        name: "Ramesh Kumar",
+        language: "en"
+      };
+
+      // Turn 1
+      const turn1 = await generateConsultationAnswer({
+        session: enSession,
+        userQuestion: "When will I get a promotion in my job?",
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+      expect(turn1.fullText).toMatch(/(My child Ramesh|Namaste Ramesh|Welcome to your consultation)/i);
+      expect(turn1.fullText).toMatch(/(Lagna|Moon Sign|temperament|element)/i);
+
+      // Turn 2
+      const turn2 = await generateConsultationAnswer({
+        session: enSession,
+        userQuestion: "Should I invest in real estate or stock market right now?",
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+
+      // Must NOT re-read or repeat greeting
+      expect(turn2.fullText).not.toMatch(/^(My child|Namaste)\s+Ramesh/i);
+      expect(turn2.fullText).not.toContain("Welcome to your consultation");
+      expect(turn2.fullText).not.toContain("According to the precise mathematical coordinates");
+      // Must focus directly on the investment / financial query
+      expect(turn2.fullText).toMatch(/(invest|estate|market|finance|mercury|jupiter|wealth)/i);
+    });
+
+    it("presentConsultationReply for worldly/travel query on Turn 2 omits preamble and answers immediately", async () => {
+      const turn2Travel = await presentConsultationReply({
+        session: mockMultiTurnDevotee,
+        userQuestion: "ನಾಳೆ ಬೆಳಿಗ್ಗೆ ಧರ್ಮಸ್ಥಳಕ್ಕೆ ಹೊರಡುತ್ತಿದ್ದೇನೆ, ಪ್ರಯಾಣ ಶುಭವೇ?",
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+
+      expect(turn2Travel.sensedContext.category).toBe("DAILY_TRIP_TRAVEL");
+      expect(turn2Travel.fullText).not.toContain("ಹರಿ ಓಂ ರಮೇಶ್ ಕುಮಾರ್ ಅವರೇ! ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ");
+      expect(turn2Travel.fullText).not.toContain("೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೊಠಡಿಯಲ್ಲಿ ನಾನು ನಿಮ್ಮೊಂದಿಗಿದ್ದೇನೆ");
+      expect(turn2Travel.fullText).toMatch(/(ಪ್ರಯಾಣ|ಧರ್ಮಸ್ಥಳ|ಶುಭ|ಕುಲದೇವ|ಮಂಜುನಾಥ)/);
+    });
+  });
 });
 
 

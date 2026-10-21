@@ -713,10 +713,23 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     setIsGenerating(true);
 
     try {
-      const chatTurns = newHistory.map((m) => ({
-        role: m.sender === "user" ? ("user" as const) : ("model" as const),
-        text: m.text
-      }));
+      // Calculate whether this is a subsequent follow-up question
+      const previousUserMsgs = messages.filter((m) => m.sender === "user");
+      const isSubsequentQuestion = previousUserMsgs.length > 0;
+      const questionIndex = previousUserMsgs.length;
+
+      // Condense history: keep user questions intact, but summarize previous model responses
+      // to strictly prevent the LLM from echoing old boilerplate or repeating 600-word introductory traits
+      const chatTurns = newHistory.map((m) => {
+        if (m.sender === "user") {
+          return { role: "user" as const, text: m.text };
+        }
+        const snippet = m.text.length > 250 ? `${m.text.slice(0, 250)}...` : m.text;
+        return {
+          role: "model" as const,
+          text: m.intent ? `[Topic: ${m.intent}] ${snippet}` : snippet
+        };
+      });
 
       const effectiveKey = (
         geminiApiKey ||
@@ -730,7 +743,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         session,
         userQuestion: question,
         conversationHistory: chatTurns.slice(-6),
-        apiKey: effectiveKey
+        apiKey: effectiveKey,
+        isSubsequentQuestion,
+        questionIndex
       });
 
       const astrologerMsg: ConsultationChatMessage = {
