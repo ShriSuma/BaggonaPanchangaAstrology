@@ -597,6 +597,17 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       speechEngineRef.current.setLanguage(session.language);
     }
 
+    // Stop any active audio narration / TTS immediately so speaker audio does not bleed into the mic
+    stopClonedAudio();
+    if (activeVoiceCancelRef.current) {
+      activeVoiceCancelRef.current();
+      activeVoiceCancelRef.current = null;
+    }
+    setSpeakingMessageId(null);
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
     const started = speechEngineRef.current.start(inputText, {
       onTranscriptUpdate: (fullText) => {
         setInputText(fullText);

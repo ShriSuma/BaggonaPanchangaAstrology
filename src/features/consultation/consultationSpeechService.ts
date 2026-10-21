@@ -2,6 +2,11 @@
  * Baggona Panchanga - Uninterrupted Continuous Speech Recognition Engine
  * Engineered to support long dictations (up to 4-5 minutes) without unexpected premature cut-offs.
  * Automatically handles browser auto-end events, restarting seamlessly while active.
+ *
+ * CRITICAL FIX:
+ * Prevents Web Speech API duplicate word / sentence accumulation bug caused by
+ * iterating over historical event.results with un-advanced event.resultIndex.
+ * Includes intelligent multi-lingual anti-stutter deduplication filter.
  */
 
 import type { ConsultationLanguage } from "./consultationTypes";
@@ -23,14 +28,104 @@ export interface ContinuousSpeechCallbacks {
   onStateChange?: (isListening: boolean) => void;
 }
 
+/**
+ * Utility helper to join string segments cleanly with single space separation.
+ */
+export function cleanJoin(...parts: (string | undefined | null)[]): string {
+  return parts
+    .map((p) => (p || "").trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Deduplicates accidental consecutive identical words or multi-word phrase echoes
+ * caused by microphone feedback loops, speech engine stuttering, or repeated result firing.
+ * E.g. "ಅವನು ಅವನು ಅವನು ಅವನು ಅವಳಿಗೆ ಅವಳಿಗೆ" -> "ಅವನು ಅವಳಿಗೆ"
+ * E.g. "ಯಾವಾಗ ಆಗುತ್ತದೆ ಯಾವಾಗ ಆಗುತ್ತದೆ" -> "ಯಾವಾಗ ಆಗುತ್ತದೆ"
+ */
+export function sanitizeDuplicateSpeechWords(text: string): string {
+  if (!text) return "";
+
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+
+  // 1. Split tokens by whitespace while preserving punctuation attached to words
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+  if (tokens.length <= 1) return trimmed;
+
+  const cleaned: string[] = [];
+
+  for (let i = 0; i < tokens.length; i++) {
+    const current = tokens[i];
+    const prev = cleaned[cleaned.length - 1];
+
+    // Single-word consecutive duplicate: e.g. "ಅವನು ಅವನು ಅವನು"
+    if (prev && current.toLowerCase() === prev.toLowerCase()) {
+      continue;
+    }
+
+    // Two-word phrase repetition: e.g. "ಯಾವಾಗ ಆಗುತ್ತದೆ ಯಾವಾಗ ಆಗುತ್ತದೆ"
+    if (cleaned.length >= 2 && i + 1 < tokens.length) {
+      const next = tokens[i + 1];
+      const prev1 = cleaned[cleaned.length - 2];
+      const prev2 = cleaned[cleaned.length - 1];
+      if (
+        prev1.toLowerCase() === current.toLowerCase() &&
+        prev2.toLowerCase() === next.toLowerCase()
+      ) {
+        i++; // skip next word of the repeated phrase
+        continue;
+      }
+    }
+
+    // Three-word phrase repetition: e.g. "ನನಗೆ ಕೆಲಸ ಸಿಗುತ್ತಾ ನನಗೆ ಕೆಲಸ ಸಿಗುತ್ತಾ"
+    if (cleaned.length >= 3 && i + 2 < tokens.length) {
+      const next1 = tokens[i + 1];
+      const next2 = tokens[i + 2];
+      const p1 = cleaned[cleaned.length - 3];
+      const p2 = cleaned[cleaned.length - 2];
+      const p3 = cleaned[cleaned.length - 1];
+      if (
+        p1.toLowerCase() === current.toLowerCase() &&
+        p2.toLowerCase() === next1.toLowerCase() &&
+        p3.toLowerCase() === next2.toLowerCase()
+      ) {
+        i += 2; // skip remaining 2 words of the repeated 3-word phrase
+        continue;
+      }
+    }
+
+    cleaned.push(current);
+  }
+
+  return cleaned.join(" ");
+}
+
 export class ContinuousSpeechEngine {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private recognition: any = null;
   private isListening = false;
   private isExplicitlyActive = false;
   private language: string;
-  private accumulatedText = "";
+
+  /**
+   * Base text committed from initial input or previously auto-restarted browser sessions.
+   */
+  private baseText = "";
+
+  /**
+   * Final text computed from the CURRENT active browser recognition session.
+   */
+  private currentSessionFinal = "";
+
+  /**
+   * Interim (in-flight) text hypothesis for the CURRENT active browser recognition session.
+   */
   private currentInterim = "";
+
   private timerId: number | null = null;
   private elapsedSeconds = 0;
   private maxDurationSeconds = 300; // 5 minutes max continuous session
@@ -87,7 +182,9 @@ export class ContinuousSpeechEngine {
       return false;
     }
 
-    this.accumulatedText = initialText.trim() ? initialText.trim() + " " : "";
+    // Clean initial base text without trailing duplicated whitespace
+    this.baseText = (initialText || "").trim();
+    this.currentSessionFinal = "";
     this.currentInterim = "";
     this.elapsedSeconds = 0;
     this.isExplicitlyActive = true;
@@ -112,21 +209,38 @@ export class ContinuousSpeechEngine {
     // Event handlers
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.recognition.onresult = (event: any) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
+      let sessionFinal = "";
+      let sessionInterim = "";
+
+      // CRITICAL FIX:
+      // Always iterate over all results in event.results from 0 to event.results.length.
+      // In Web Speech API, event.results is the full session list.
+      // Re-reading from 0 and summing final/interim items avoids the catastrophic bug where
+      // previously finalized items were repeatedly appended to this.accumulatedText.
+      for (let i = 0; i < event.results.length; ++i) {
         const item = event.results[i];
+        if (!item || !item[0]) continue;
+        const transcript = (item[0].transcript || "").trim();
+        if (!transcript) continue;
+
         if (item.isFinal) {
-          const finalChunk = item[0].transcript.trim();
-          if (finalChunk) {
-            this.accumulatedText += finalChunk + " ";
-          }
+          sessionFinal += (sessionFinal ? " " : "") + transcript;
         } else {
-          interim += item[0].transcript;
+          sessionInterim += (sessionInterim ? " " : "") + transcript;
         }
       }
-      this.currentInterim = interim;
-      const full = (this.accumulatedText + this.currentInterim).trim();
-      callbacks.onTranscriptUpdate(full, false);
+
+      this.currentSessionFinal = sessionFinal;
+      this.currentInterim = sessionInterim;
+
+      const rawFull = cleanJoin(
+        this.baseText,
+        this.currentSessionFinal,
+        this.currentInterim
+      );
+
+      const sanitizedFull = sanitizeDuplicateSpeechWords(rawFull);
+      callbacks.onTranscriptUpdate(sanitizedFull, false);
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -150,6 +264,13 @@ export class ContinuousSpeechEngine {
       this.isListening = false;
       if (this.isExplicitlyActive) {
         // Automatically restart to fulfill 3-4 minute continuous speaking requirement!
+        // Commit the current session's final transcript into baseText before starting new session
+        if (this.currentSessionFinal) {
+          this.baseText = cleanJoin(this.baseText, this.currentSessionFinal);
+          this.currentSessionFinal = "";
+        }
+        this.currentInterim = "";
+
         if (this.restartTimeout) clearTimeout(this.restartTimeout);
         this.restartTimeout = window.setTimeout(() => {
           if (this.isExplicitlyActive && this.recognition) {
@@ -162,9 +283,14 @@ export class ContinuousSpeechEngine {
           }
         }, 80);
       } else {
+        if (this.currentSessionFinal) {
+          this.baseText = cleanJoin(this.baseText, this.currentSessionFinal);
+          this.currentSessionFinal = "";
+        }
         if (callbacks.onStateChange) callbacks.onStateChange(false);
-        const full = (this.accumulatedText + this.currentInterim).trim();
-        callbacks.onTranscriptUpdate(full, true);
+        const rawFull = cleanJoin(this.baseText, this.currentInterim);
+        const sanitizedFull = sanitizeDuplicateSpeechWords(rawFull);
+        callbacks.onTranscriptUpdate(sanitizedFull, true);
       }
     };
 
@@ -198,7 +324,16 @@ export class ContinuousSpeechEngine {
       }
     }
     this.isListening = false;
-    return (this.accumulatedText + this.currentInterim).trim();
+
+    if (this.currentSessionFinal) {
+      this.baseText = cleanJoin(this.baseText, this.currentSessionFinal);
+      this.currentSessionFinal = "";
+    }
+
+    const rawFull = cleanJoin(this.baseText, this.currentInterim);
+    const finalSanitized = sanitizeDuplicateSpeechWords(rawFull);
+    this.currentInterim = "";
+    return finalSanitized;
   }
 
   public getIsActive(): boolean {
