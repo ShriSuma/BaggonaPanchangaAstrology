@@ -36,11 +36,16 @@ import {
   computeDevoteeKundli,
   generateConsultationAnswer,
   detectRelevantQuestionDosha,
-  CONSULTATION_LANG_NAMES
+  CONSULTATION_LANG_NAMES,
+  deduplicateResponseText,
+  detectConversationIntelligence,
+  calculateAstrologicalTimeline
 } from "../features/consultation/consultationAIEngine";
 import {
   ContinuousSpeechEngine,
-  LANGUAGE_SPEECH_LOCALES
+  LANGUAGE_SPEECH_LOCALES,
+  sanitizeDuplicateSpeechWords,
+  mergeSpeechSegments
 } from "../features/consultation/consultationSpeechService";
 import {
   senseAndCategorizeQuestion,
@@ -1783,7 +1788,251 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       }
     });
   });
+
+  describe("Priority 1: Speech & AI Text Repetition Deduplication Engine", () => {
+    it("deduplicates single-word speech stutters in Kannada and English", () => {
+      const inputKn = "ನನ್ನ ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಯಾವಾಗ ಆಗುತ್ತದೆ ಆಗುತ್ತದೆ ಸ್ವಾಮಿ?";
+      const cleanKn = sanitizeDuplicateSpeechWords(inputKn);
+      expect(cleanKn).toBe("ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ ಸ್ವಾಮಿ?");
+
+      const inputEn = "Why why is my my marriage marriage getting delayed?";
+      const cleanEn = sanitizeDuplicateSpeechWords(inputEn);
+      expect(cleanEn).toBe("Why is my marriage getting delayed?");
+    });
+
+    it("deduplicates 4+ word repeated phrases in speech input", () => {
+      const inputKn = "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ";
+      const cleanKn = sanitizeDuplicateSpeechWords(inputKn);
+      expect(cleanKn).toBe("ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ");
+
+      const inputEn = "why is my marriage getting delayed why is my marriage getting delayed";
+      const cleanEn = sanitizeDuplicateSpeechWords(inputEn);
+      expect(cleanEn).toBe("why is my marriage getting delayed");
+    });
+
+    it("deduplicates entire repeated sentences in speech input", () => {
+      const inputKn = "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ? ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?";
+      const cleanKn = sanitizeDuplicateSpeechWords(inputKn);
+      expect(cleanKn).toBe("ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?");
+
+      const inputEn = "When will I get married? When will I get married?";
+      const cleanEn = sanitizeDuplicateSpeechWords(inputEn);
+      expect(cleanEn).toBe("When will I get married?");
+    });
+
+    it("merges speech segments by stripping restart suffix-prefix overlaps", () => {
+      // Browser Web Speech auto-restart re-emitting prior tail
+      const base = "ನನಗೆ ಉದ್ಯೋಗದಲ್ಲಿ ಕಿರಿಕಿರಿ ಇದೆ";
+      const incomingWithOverlap = "ಕಿರಿಕಿರಿ ಇದೆ ಯಾವಾಗ ಬಡ್ತಿ ಸಿಗುತ್ತದೆ";
+      const merged = mergeSpeechSegments(base, incomingWithOverlap);
+      expect(merged).toBe("ನನಗೆ ಉದ್ಯೋಗದಲ್ಲಿ ಕಿರಿಕಿರಿ ಇದೆ ಯಾವಾಗ ಬಡ್ತಿ ಸಿಗುತ್ತದೆ");
+
+      // Exactly identical repeated segment on browser wake-up
+      const identicalIncoming = "ನನಗೆ ಉದ್ಯೋಗದಲ್ಲಿ ಕಿರಿಕಿರಿ ಇದೆ";
+      const mergedIdentical = mergeSpeechSegments(base, identicalIncoming);
+      expect(mergedIdentical).toBe("ನನಗೆ ಉದ್ಯೋಗದಲ್ಲಿ ಕಿರಿಕಿರಿ ಇದೆ");
+
+      // Non-overlapping incoming segment
+      const cleanContinuation = "ಯಾವಾಗ ಬಡ್ತಿ ಸಿಗುತ್ತದೆ";
+      const mergedClean = mergeSpeechSegments(base, cleanContinuation);
+      expect(mergedClean).toBe("ನನಗೆ ಉದ್ಯೋಗದಲ್ಲಿ ಕಿರಿಕಿರಿ ಇದೆ ಯಾವಾಗ ಬಡ್ತಿ ಸಿಗುತ್ತದೆ");
+    });
+
+    it("deduplicates AI response text across duplicate sentences and repeated paragraphs", () => {
+      const repetitiveAIAnswer = `ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶುಭ ಯೋಗವಿದೆ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶುಭ ಯೋಗವಿದೆ.
+
+ಗುರು ಗ್ರಹದ ಸಂಚಾರವು ಅನುಕೂಲಕರವಾಗಿದೆ. ಗುರು ಗ್ರಹದ ಸಂಚಾರವು ಅನುಕೂಲಕರವಾಗಿದೆ.
+
+ಗುರು ಗ್ರಹದ ಸಂಚಾರವು ಅನುಕೂಲಕರವಾಗಿದೆ.`;
+
+      const cleanAIAnswer = deduplicateResponseText(repetitiveAIAnswer);
+      const paragraphs = cleanAIAnswer.split(/\n\s*\n/);
+
+      expect(paragraphs.length).toBe(2);
+      expect(paragraphs[0]).toBe("ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶುಭ ಯೋಗವಿದೆ.");
+      expect(paragraphs[1]).toBe("ಗುರು ಗ್ರಹದ ಸಂಚಾರವು ಅನುಕೂಲಕರವಾಗಿದೆ.");
+    });
+  });
+
+  describe("Priority 2: Conversational Intelligence & Astrological Timeline (98% Certainty)", () => {
+    const mockSession: ConsultationSession = {
+      id: "sess_marriage_test",
+      name: "ವಿನಯ್ ಕುಮಾರ್ (Vinay Kumar)",
+      dob: "1995-08-15",
+      tob: "10:30",
+      place: "ಶಿರಸಿ (Sirsi)",
+      lat: 14.6195,
+      lng: 74.8354,
+      timezone: 5.5,
+      language: "kn",
+      status: "active",
+      createdAt: new Date().toISOString(),
+      messages: [],
+      durationMinutes: 20,
+      graceDeleteMinutes: 20,
+      priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+      priestPhone: "9972339362"
+    };
+
+    it("detects conversation intelligence for Turn 1 vs intelligent Turn 2 follow-up", () => {
+      // Turn 1: Initial question
+      const turn1Analysis = detectConversationIntelligence(
+        "ನನ್ನ ಮದುವೆ ಯಾಕೆ ತಡವಾಗುತ್ತಿದೆ?",
+        [],
+        "kn"
+      );
+      expect(turn1Analysis.isFollowUp).toBe(false);
+      expect(turn1Analysis.isSameTopicFollowUp).toBe(false);
+      expect(turn1Analysis.currentTopic).toBe("MARRIAGE");
+      expect(turn1Analysis.isAskingTiming).toBe(false);
+
+      // Simulated history after Turn 1: priest identified Kuja Dosha
+      const historyWithKujaDosha = [
+        {
+          role: "user" as const,
+          text: "ನನ್ನ ಮದುವೆ ಯಾಕೆ ತಡವಾಗುತ್ತಿದೆ?"
+        },
+        {
+          role: "model" as const,
+          text: "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷ ಇರುವುದರಿಂದ ವಿವಾಹದಲ್ಲಿ ವಿಳಂಬ ಉಂಟಾಗಿದೆ..."
+        }
+      ];
+
+      // Turn 2: Follow-up asking "When will I get married?"
+      const turn2Analysis = detectConversationIntelligence(
+        "ನನಗೆ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?",
+        historyWithKujaDosha,
+        "kn"
+      );
+      expect(turn2Analysis.isFollowUp).toBe(true);
+      expect(turn2Analysis.isSameTopicFollowUp).toBe(true);
+      expect(turn2Analysis.currentTopic).toBe("MARRIAGE");
+      expect(turn2Analysis.isAskingTiming).toBe(true);
+      expect(turn2Analysis.referencedDoshaFromHistory).toContain("ಕುಜ ದೋಷ");
+      expect(turn2Analysis.contextualBridge).toContain("ಕುಜ ದೋಷ");
+      expect(turn2Analysis.contextualBridge).toContain("ವಿವಾಹದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ವಿಳಂಬ ಉಂಟಾಗುತ್ತಿರುವುದನ್ನು ನಾವು ಮೊದಲೇ ಗಮನಿಸಿದ್ದೇವೆ");
+    });
+
+    it("detects topic switch when devotee changes domain from marriage to career", () => {
+      const historyMarriage = [
+        { role: "user" as const, text: "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?" },
+        { role: "model" as const, text: "ವಿವಾಹ ಯೋಗವು ಮುಂದಿನ ತಿಂಗಳುಗಳಲ್ಲಿ ಕೈಗೂಡಲಿದೆ." }
+      ];
+
+      const turnSwitchAnalysis = detectConversationIntelligence(
+        "ನನ್ನ ಹೊಸ ಉದ್ಯೋಗ ಅಥವಾ ಕೆಲಸ ಯಾವಾಗ ಸಿಗುತ್ತದೆ?",
+        historyMarriage,
+        "kn"
+      );
+      expect(turnSwitchAnalysis.isFollowUp).toBe(true);
+      expect(turnSwitchAnalysis.isTopicSwitch).toBe(true);
+      expect(turnSwitchAnalysis.previousTopic).toBe("MARRIAGE");
+      expect(turnSwitchAnalysis.currentTopic).toBe("CAREER");
+      expect(turnSwitchAnalysis.contextualBridge).toContain("ಹಿಂದಿನ ವಿಚಾರದ ಜೊತೆಗೆ, ಈಗ ನಿಮ್ಮ ಹೊಸ ಪ್ರಶ್ನೆಯಾದ");
+    });
+
+    it("computes an authentic astrological timeline with Dasha-Bhukti transition and 98% certainty", async () => {
+      const astro = await computeDevoteeKundli(mockSession);
+      const timeline = calculateAstrologicalTimeline(
+        astro.kundli,
+        astro.ageYears,
+        "MARRIAGE",
+        "kn"
+      );
+
+      expect(timeline.probableAccuracyPercent).toBe(98);
+      expect(timeline.minMonths).toBeGreaterThanOrEqual(4);
+      expect(timeline.maxMonths).toBeGreaterThan(timeline.minMonths);
+      expect(timeline.monthsToDashaChange).toBeGreaterThanOrEqual(1);
+      expect(timeline.currentMahaName.trim().length).toBeGreaterThan(0);
+      expect(timeline.currentBhuktiName.trim().length).toBeGreaterThan(0);
+      expect(timeline.nextBhuktiName.trim().length).toBeGreaterThan(0);
+      expect(timeline.rangeSummary).toMatch(/ಮುಂದಿನ \d+ ರಿಂದ \d+ ತಿಂಗಳುಗಳ ಒಳಗೆ/);
+      expect(timeline.astrologicalRationale).toMatch(/ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಒಂದು ವರ್ಷದೊಳಗೆ/);
+    });
+
+    it("executes seamless 2-turn priest consultation: Turn 1 (Marriage delay + Kuja dosha) -> Turn 2 (When will I get married?)", async () => {
+      // Turn 1: Devotee asks why marriage is delayed
+      const reading1 = await generateConsultationAnswer({
+        session: mockSession,
+        userQuestion: "ನನ್ನ ಮದುವೆ ಯಾಕೆ ತಡವಾಗುತ್ತಿದೆ? ಕಾರಣವೇನು?",
+        apiKey: "",
+        isSubsequentQuestion: false,
+        questionIndex: 0
+      });
+
+      expect(reading1.fullText).toBeDefined();
+      expect(reading1.hasDosha).toBe(true);
+      expect(reading1.doshaName).toMatch(/(ಕುಜ|ಮಾಂಗಲಿಕ|ದೋಷ)/);
+
+      // Turn 2: Devotee follows up: "ನನಗೆ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?"
+      const history = [
+        { role: "user" as const, text: "ನನ್ನ ಮದುವೆ ಯಾಕೆ ತಡವಾಗುತ್ತಿದೆ? ಕಾರಣವೇನು?" },
+        { role: "model" as const, text: reading1.fullText }
+      ];
+
+      const reading2 = await generateConsultationAnswer({
+        session: mockSession,
+        userQuestion: "ಹಾಗಾದರೆ ನನಗೆ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?",
+        conversationHistory: history,
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+
+      // Verification of Priority 1 (Repetition fix):
+      // No duplicate consecutive sentences
+      const sentences = reading2.fullText.split(/(?<=[.!?॥|])\s+/);
+      const uniqueSentences = new Set(sentences.map((s) => s.trim().toLowerCase()));
+      expect(sentences.length).toBe(uniqueSentences.size);
+
+      // Verification of Priority 2 (Conversational continuity & timeline):
+      // 1. Starts from the prior conversation acknowledging Kuja Dosha
+      expect(reading2.fullText).toMatch(/(ಕುಜ ದೋಷ|ಮೊದಲೇ ಗಮನಿಸಿದ್ದೇವೆ|ವಿವಾಹದ ವಿಚಾರವಾಗಿ ಮುಂದುವರಿದು)/);
+
+      // 2. Explains Dasha-Bhukti transition and Guru Gochara 1-year transit cycle
+      expect(reading2.fullText).toMatch(/(ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಸುಮಾರು ಒಂದು ವರ್ಷದ ಅವಧಿಯಲ್ಲಿ|ಗುರು ಗ್ರಹವು|ದಶಾ-ಭುಕ್ತಿ)/);
+
+      // 3. Delivers concrete timeline range with 98% probability
+      expect(reading2.fullText).toMatch(/(ಶೇಕಡಾ ೯೮|ಮುಂದಿನ \d+ ರಿಂದ \d+ ತಿಂಗಳುಗಳ ಒಳಗೆ)/);
+
+      // 4. Does not repeat introductory greetings or basic character profiling
+      expect(reading2.fullText).not.toMatch(/^ನಮಸ್ಕಾರ/);
+      expect(reading2.fullText).not.toMatch(/ನಿಮ್ಮ ಲಗ್ನ ತತ್ವವಾದ.*ಗಣದ ಪ್ರಭಾವದಿಂದಾಗಿ/);
+
+      // 5. Does not re-explain the dedicated 4th paragraph dosha chapter
+      expect(reading2.activeDoshaCard).toBeUndefined();
+    });
+
+    it("verifies English follow-up timing delivers 98% accuracy window and Guru 1-year transit", async () => {
+      const enSession: ConsultationSession = {
+        ...mockSession,
+        language: "en"
+      };
+
+      const history = [
+        { role: "user" as const, text: "Why is my marriage delayed?" },
+        { role: "model" as const, text: "Your chart reveals Kuja Dosha causing temporary delay in marriage..." }
+      ];
+
+      const readingEn = await generateConsultationAnswer({
+        session: enSession,
+        userQuestion: "When will I get married?",
+        conversationHistory: history,
+        apiKey: "",
+        isSubsequentQuestion: true,
+        questionIndex: 1
+      });
+
+      expect(readingEn.fullText).toContain("Kuja Dosha");
+      expect(readingEn.fullText).toMatch(/(98% certainty|98% probability)/);
+      expect(readingEn.fullText).toMatch(/(next \d+ to \d+ months)/);
+      expect(readingEn.fullText).toMatch(/(1-year transit cycle|Vimshottari Dasha)/);
+      expect(readingEn.fullText).not.toMatch(/^Namaste/);
+    });
+  });
 });
+
 
 
 

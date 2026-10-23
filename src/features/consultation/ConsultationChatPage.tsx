@@ -56,7 +56,8 @@ import { DevoteePanchangaPatrikaCard } from "./DevoteePanchangaPatrikaCard";
 import { SacredKalaChakraClock } from "./SacredKalaChakraClock";
 import {
   ContinuousSpeechEngine,
-  LANGUAGE_SPEECH_LOCALES
+  LANGUAGE_SPEECH_LOCALES,
+  sanitizeDuplicateSpeechWords
 } from "./consultationSpeechService";
 import {
   synthesizeAndPlayClonedVoice,
@@ -631,7 +632,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
   // Handle Send Message
   const handleSendMessage = async (textToSend?: string) => {
-    const question = (textToSend || inputText).trim();
+    const rawQuestion = (textToSend || inputText).trim();
+    const question = sanitizeDuplicateSpeechWords(rawQuestion).trim();
     if (!question || !session || isGenerating || session.status !== "active" || remainingSeconds <= 0) return;
 
     // Check expiry
@@ -666,9 +668,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       const isSubsequentQuestion = previousUserMsgs.length > 0;
       const questionIndex = previousUserMsgs.length;
 
-      // Condense history: keep user questions intact, but summarize previous model responses
-      // to strictly prevent the LLM from echoing old boilerplate or repeating 600-word introductory traits
-      const chatTurns = newHistory.map((m) => {
+      // Condense PRIOR conversation history (excluding the new active question)
+      // to supply authentic conversational context without duplicating the active question turn.
+      const chatTurns = messages.map((m) => {
         if (m.sender === "user") {
           return { role: "user" as const, text: m.text };
         }

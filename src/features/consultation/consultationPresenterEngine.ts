@@ -31,6 +31,7 @@ import {
   computeDevoteeKundli,
   generateConsultationAnswer,
   CONSULTATION_LANG_NAMES,
+  deduplicateResponseText,
   type ConsultationReadingResult
 } from "./consultationAIEngine";
 import { askGemini, type AskGeminiChatTurn } from "../../core/GeminiEngine";
@@ -544,8 +545,9 @@ export async function presentConsultationReply(params: {
     }
   }
 
-  // Clean formatting artifacts
-  const cleaned = responseText
+  // Clean formatting artifacts and deduplicate repeated words/phrases/sentences
+  const deduplicated = deduplicateResponseText(responseText);
+  const cleaned = deduplicated
     .replace(/\*\*(.*?)\*\*/g, "$1")
     .replace(/\*(.*?)\*/g, "$1")
     .replace(/[#_]/g, "")

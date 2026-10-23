@@ -41,10 +41,55 @@ export function cleanJoin(...parts: (string | undefined | null)[]): string {
 }
 
 /**
- * Deduplicates accidental consecutive identical words or multi-word phrase echoes
- * caused by microphone feedback loops, speech engine stuttering, or repeated result firing.
+ * Merges two speech string segments cleanly while intelligently detecting and stripping
+ * any suffix-prefix overlap (up to 25 words) caused by speech engine restarts or buffer repeats.
+ * E.g. "ನನ್ನ ಮದುವೆ ಯಾವಾಗ" + "ಯಾವಾಗ ಆಗುತ್ತದೆ" -> "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ"
+ * E.g. "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ" + "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ ತಿಳಿಸಿ" -> "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ ತಿಳಿಸಿ"
+ */
+export function mergeSpeechSegments(baseText: string, incomingSegment: string): string {
+  const b = (baseText || "").trim();
+  const inc = (incomingSegment || "").trim();
+  if (!b) return sanitizeDuplicateSpeechWords(inc);
+  if (!inc) return sanitizeDuplicateSpeechWords(b);
+
+  const bTokens = b.split(/\s+/).filter(Boolean);
+  const incTokens = inc.split(/\s+/).filter(Boolean);
+
+  // Normalize tokens for matching (strip common punctuation for comparison)
+  const norm = (s: string) => s.toLowerCase().replace(/^[.,!?;:॥|]+|[.,!?;:॥|]+$/g, "");
+
+  const maxOverlap = Math.min(bTokens.length, incTokens.length, 25);
+  let overlapLen = 0;
+
+  for (let len = maxOverlap; len >= 1; len--) {
+    let match = true;
+    for (let k = 0; k < len; k++) {
+      const bWord = norm(bTokens[bTokens.length - len + k]);
+      const incWord = norm(incTokens[k]);
+      if (bWord !== incWord) {
+        match = false;
+        break;
+      }
+    }
+    if (match) {
+      overlapLen = len;
+      break;
+    }
+  }
+
+  // If suffix of base matches prefix of incoming, slice off the duplicate prefix
+  const remainingInc = incTokens.slice(overlapLen).join(" ");
+  const merged = cleanJoin(b, remainingInc);
+  return sanitizeDuplicateSpeechWords(merged);
+}
+
+/**
+ * Deduplicates accidental consecutive identical words, multi-word phrase echoes,
+ * or full repeated sentences caused by microphone feedback loops, speech engine stuttering,
+ * browser auto-restart overlap, or repeated result firing.
  * E.g. "ಅವನು ಅವನು ಅವನು ಅವನು ಅವಳಿಗೆ ಅವಳಿಗೆ" -> "ಅವನು ಅವಳಿಗೆ"
  * E.g. "ಯಾವಾಗ ಆಗುತ್ತದೆ ಯಾವಾಗ ಆಗುತ್ತದೆ" -> "ಯಾವಾಗ ಆಗುತ್ತದೆ"
+ * E.g. "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ? ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?" -> "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?"
  */
 export function sanitizeDuplicateSpeechWords(text: string): string {
   if (!text) return "";
@@ -52,56 +97,86 @@ export function sanitizeDuplicateSpeechWords(text: string): string {
   const trimmed = text.trim();
   if (!trimmed) return "";
 
-  // 1. Split tokens by whitespace while preserving punctuation attached to words
-  const tokens = trimmed.split(/\s+/).filter(Boolean);
-  if (tokens.length <= 1) return trimmed;
+  // Helper to normalize tokens for comparison (stripping terminal punctuation)
+  const norm = (s: string) => s.toLowerCase().replace(/^[.,!?;:॥|]+|[.,!?;:॥|]+$/g, "");
 
-  const cleaned: string[] = [];
+  // 1. Sentence-level deduplication
+  // Split on sentence terminators while preserving them or linebreaks
+  const rawSentences = trimmed.split(/(?<=[.!?॥|]|\n+)\s*/).filter(Boolean);
+  let dedupedText = trimmed;
 
-  for (let i = 0; i < tokens.length; i++) {
-    const current = tokens[i];
-    const prev = cleaned[cleaned.length - 1];
-
-    // Single-word consecutive duplicate: e.g. "ಅವನು ಅವನು ಅವನು"
-    if (prev && current.toLowerCase() === prev.toLowerCase()) {
-      continue;
-    }
-
-    // Two-word phrase repetition: e.g. "ಯಾವಾಗ ಆಗುತ್ತದೆ ಯಾವಾಗ ಆಗುತ್ತದೆ"
-    if (cleaned.length >= 2 && i + 1 < tokens.length) {
-      const next = tokens[i + 1];
-      const prev1 = cleaned[cleaned.length - 2];
-      const prev2 = cleaned[cleaned.length - 1];
-      if (
-        prev1.toLowerCase() === current.toLowerCase() &&
-        prev2.toLowerCase() === next.toLowerCase()
-      ) {
-        i++; // skip next word of the repeated phrase
-        continue;
+  if (rawSentences.length > 1) {
+    const cleanSentences: string[] = [];
+    for (const sentence of rawSentences) {
+      const sTrim = sentence.trim();
+      if (!sTrim) continue;
+      const prev = cleanSentences[cleanSentences.length - 1];
+      if (prev && norm(sTrim) === norm(prev.trim())) {
+        continue; // drop duplicate identical sentence
       }
+      cleanSentences.push(sTrim);
     }
-
-    // Three-word phrase repetition: e.g. "ನನಗೆ ಕೆಲಸ ಸಿಗುತ್ತಾ ನನಗೆ ಕೆಲಸ ಸಿಗುತ್ತಾ"
-    if (cleaned.length >= 3 && i + 2 < tokens.length) {
-      const next1 = tokens[i + 1];
-      const next2 = tokens[i + 2];
-      const p1 = cleaned[cleaned.length - 3];
-      const p2 = cleaned[cleaned.length - 2];
-      const p3 = cleaned[cleaned.length - 1];
-      if (
-        p1.toLowerCase() === current.toLowerCase() &&
-        p2.toLowerCase() === next1.toLowerCase() &&
-        p3.toLowerCase() === next2.toLowerCase()
-      ) {
-        i += 2; // skip remaining 2 words of the repeated 3-word phrase
-        continue;
-      }
-    }
-
-    cleaned.push(current);
+    dedupedText = cleanSentences.join(" ");
   }
 
-  return cleaned.join(" ");
+  // 2. Token-level n-gram deduplication (from 25-word phrases down to single words)
+  let tokens = dedupedText.split(/\s+/).filter(Boolean);
+  if (tokens.length <= 1) return dedupedText;
+
+  let changed = true;
+  let iterations = 0;
+  // Repeat passes until stable (max 4 passes to prevent infinite loop)
+  while (changed && iterations < 4) {
+    changed = false;
+    iterations++;
+
+    // Try phrase lengths from 25 down to 1
+    const maxK = Math.min(25, Math.floor(tokens.length / 2));
+    for (let k = maxK; k >= 1; k--) {
+      const newTokens: string[] = [];
+      let i = 0;
+
+      while (i < tokens.length) {
+        // Check if tokens[i .. i+k-1] matches tokens[i+k .. i+2k-1]
+        if (i + 2 * k <= tokens.length) {
+          let match = true;
+          for (let m = 0; m < k; m++) {
+            if (norm(tokens[i + m]) !== norm(tokens[i + k + m])) {
+              match = false;
+              break;
+            }
+          }
+          if (match) {
+            // Found duplicate phrase of length k! Push first copy, skip second copy
+            for (let m = 0; m < k; m++) {
+              newTokens.push(tokens[i + m]);
+            }
+            i += 2 * k;
+            changed = true;
+            continue;
+          }
+        }
+
+        // Also check if tokens[i] matches the immediately preceding token (single-word duplicate)
+        if (k === 1 && newTokens.length > 0) {
+          const prev = newTokens[newTokens.length - 1];
+          if (norm(tokens[i]) === norm(prev)) {
+            i++;
+            changed = true;
+            continue;
+          }
+        }
+
+        newTokens.push(tokens[i]);
+        i++;
+      }
+
+      tokens = newTokens;
+      if (changed) break; // restart scan on changed tokens
+    }
+  }
+
+  return tokens.join(" ").replace(/\s+([.,!?;:॥|])/g, "$1").trim();
 }
 
 export class ContinuousSpeechEngine {
@@ -233,12 +308,11 @@ export class ContinuousSpeechEngine {
       this.currentSessionFinal = sessionFinal;
       this.currentInterim = sessionInterim;
 
-      const rawFull = cleanJoin(
-        this.baseText,
+      const sessionCombined = mergeSpeechSegments(
         this.currentSessionFinal,
         this.currentInterim
       );
-
+      const rawFull = mergeSpeechSegments(this.baseText, sessionCombined);
       const sanitizedFull = sanitizeDuplicateSpeechWords(rawFull);
       callbacks.onTranscriptUpdate(sanitizedFull, false);
     };
@@ -265,8 +339,9 @@ export class ContinuousSpeechEngine {
       if (this.isExplicitlyActive) {
         // Automatically restart to fulfill 3-4 minute continuous speaking requirement!
         // Commit the current session's final transcript into baseText before starting new session
+        // using mergeSpeechSegments to seamlessly eliminate any suffix-prefix overlap.
         if (this.currentSessionFinal) {
-          this.baseText = cleanJoin(this.baseText, this.currentSessionFinal);
+          this.baseText = mergeSpeechSegments(this.baseText, this.currentSessionFinal);
           this.currentSessionFinal = "";
         }
         this.currentInterim = "";
@@ -284,11 +359,11 @@ export class ContinuousSpeechEngine {
         }, 80);
       } else {
         if (this.currentSessionFinal) {
-          this.baseText = cleanJoin(this.baseText, this.currentSessionFinal);
+          this.baseText = mergeSpeechSegments(this.baseText, this.currentSessionFinal);
           this.currentSessionFinal = "";
         }
         if (callbacks.onStateChange) callbacks.onStateChange(false);
-        const rawFull = cleanJoin(this.baseText, this.currentInterim);
+        const rawFull = mergeSpeechSegments(this.baseText, this.currentInterim);
         const sanitizedFull = sanitizeDuplicateSpeechWords(rawFull);
         callbacks.onTranscriptUpdate(sanitizedFull, true);
       }
@@ -326,11 +401,11 @@ export class ContinuousSpeechEngine {
     this.isListening = false;
 
     if (this.currentSessionFinal) {
-      this.baseText = cleanJoin(this.baseText, this.currentSessionFinal);
+      this.baseText = mergeSpeechSegments(this.baseText, this.currentSessionFinal);
       this.currentSessionFinal = "";
     }
 
-    const rawFull = cleanJoin(this.baseText, this.currentInterim);
+    const rawFull = mergeSpeechSegments(this.baseText, this.currentInterim);
     const finalSanitized = sanitizeDuplicateSpeechWords(rawFull);
     this.currentInterim = "";
     return finalSanitized;
