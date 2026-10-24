@@ -489,6 +489,47 @@ export const languageContract = (lang: string): string => {
   ].join("\n");
 };
 
+/**
+ * 100% Mathematical & Classical Jyotish Accuracy Contract.
+ * This outranks all generalities and mandates 100% mathematical fidelity to the computed chart.
+ * Strictly forbids generic horoscope filler, vague generalities, or out-of-context life-stage claims.
+ */
+export const accuracyContract = (input?: {
+  name?: string;
+  ageYears?: number;
+  gender?: string;
+  maritalStatus?: string;
+  hasChildren?: string;
+  lang?: string;
+}): string => {
+  const name = input?.name || "The Native";
+  const age = typeof input?.ageYears === "number" ? Math.floor(input.ageYears) : null;
+  const ageNotice =
+    age !== null
+      ? `Age: ${age} years (${
+          age < 12 ? "Child/Infant" : age < 22 ? "Youth/Student" : age >= 60 ? "Senior Elder" : "Adult"
+        })`
+      : "";
+  return [
+    "100% MATHEMATICAL & SHASTRIYA ACCURACY CONTRACT — THIS OUTRANKS ALL GENERALITIES",
+    `You are generating an authentic, 100% mathematically and scripturally accurate Vedic astrology chapter for ${name}.`,
+    ...(ageNotice ? [ageNotice] : []),
+    "",
+    "1. ABSOLUTE COMPUTATIONAL FIDELITY: Every single observation, strength, challenge, and timing window MUST be 100% mathematically grounded in the computed planetary facts above (exact Janma Lagna, Chandra Rashi, Nakshatra Pada, Bhava lords, planetary dignities, running Dasha-Bhukti, and live Gochara transits). Never invent or contradict computed facts.",
+    "2. STRICT ZERO-TOLERANCE FOR GENERIC HOROSCOPES: Absolutely FORBIDDEN to write vague newspaper horoscopes, generic sun-sign generalities, or boilerplate filler that could apply to any person (e.g. 'You are hardworking and desire success', 'Keep positive thoughts'). Every statement must explicitly tie back to a specific named graha, house lord, or transit in THIS person's chart.",
+    "3. INTIMATE LIVING REALITY & PSYCHOLOGICAL RESONANCE: Speak directly and intimately to the native as 'you'. Address their unspoken inner world, silent burdens, daily thoughts, domestic atmosphere, and immediate timeline. The devotee must experience an immediate shock of 100% accuracy: 'This astrologer knows my exact heart, my private dilemmas, and my exact life circumstances with astonishing precision!'",
+    "4. MANDATORY LIFE-STAGE & STATUS FIDELITY:",
+    "   - Children/Infants (< 12 years): Focus 100% on early cognitive development, learning rhythm, creative play, character building, and pediatric vitality. ABSOLUTELY ZERO adult romance, marriage proposals, career rat-race, or financial investments.",
+    "   - Youth/Students (12-21 years): Focus 100% on education, focus against distractions, exam preparation, and career foundations. ZERO marriage proposals.",
+    "   - Senior Elders (60+ years): Focus 100% on domestic serenity, lifelong companionship, grandchildren, mentorship, and peaceful spiritual fulfillment. ZERO corporate job searches or beginner marriage matchmaking.",
+    "   - If Married: Strictly interpret 7th house matters as domestic harmony, mutual emotional anchor, and marital partnership. NEVER diagnose 'delay in marriage' or 'difficulty finding a groom/bride'.",
+    "   - If Unmarried: Focus on matrimonial discernment, partner alignment, and auspicious timing.",
+    "   - If 'no_children': Focus on mutual emotional sanctuary, standing united, and private hopes for family expansion.",
+    "5. SACRED GOKARNA MAHABALESHWARA REMEDIES: Prescribe authentic Vedic remedies rooted in Sri Kshetra Gokarna Mahabaleshwara (sacred Atma Linga) and Lord Mukhyaprana. Remedies must inspire 100% spiritual confidence, peace, and divine protection, never fear or doom.",
+    "6. ZERO CONFUSING PERCENTAGE DISCLOSURES: Never output self-limiting or ambiguous phrases that sound like low accuracy or partial results (e.g. 'only 40% accuracy' or 'yields only 40%'). Affirm the native's 100% spiritual potential and divine timing."
+  ].join("\n");
+};
+
 /* ------------------------------------------------------------------ *
  * Repetition control
  * ------------------------------------------------------------------ */

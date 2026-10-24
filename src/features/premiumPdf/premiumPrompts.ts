@@ -23,6 +23,7 @@ import {
   RASHI_L5,
   NAKSHATRA_L5,
   languageContract,
+  accuracyContract,
   noRepeatContract
 } from "./premiumPdfLocale";
 
@@ -192,6 +193,8 @@ const header = (input: PremiumPromptInput, sectionKey: string, persona: string):
     "",
     languageContract(input.lang),
     "",
+    accuracyContract(input),
+    "",
     noRepeatContract(sectionKey, input.runId),
     "",
     buildChartFacts(input),
@@ -231,8 +234,9 @@ Extra material for this chapter:
 - Nakshatra: ${nakshatraName(input.moonNakshatraIndex, lang)}
 - Running Period: ${dashaLine}
 
-CRITICAL REQUIREMENT:
+CRITICAL 100% SHASTRIYA ACCURACY REQUIREMENT:
 Synthesize Chapter 1: The Sacred Soul Mirror & 3 Sovereign Truths of the Native's Soul.
+MUST BE 100% DERIVED FROM NATIVE'S EXACT LAGNA (${rashiName(input.lagnaRashiIndex, lang)}), MOON (${rashiName(input.moonRashiIndex, lang)}), NAKSHATRA (${nakshatraName(input.moonNakshatraIndex, lang)}), AND BHAVA PLACEMENTS. ZERO generic statements.
 Write THREE (3) profound, deep, culturally revered truth paragraphs (each paragraph minimum 150 characters, at least 5-6 full lines).
 - Truth 1 (Outer Persona vs Inner Core): Contrast the strong, capable outer demeanor of ${rashiName(input.lagnaRashiIndex, lang)} Lagna with the tender, self-sacrificing inner emotional sanctuary of ${rashiName(input.moonRashiIndex, lang)} Moon.
 - Truth 2 (Moral Integrity & Boundary): Explain the native's sacred boundary of trust—forgiving innocent mistakes readily, but strictly intolerant of intentional betrayal, fraud, or loss of dignity.
@@ -290,9 +294,10 @@ ${JSON_RULE}
   const yogas = `${header(
     input,
     "yogas",
-    "You are an authoritative Vedic scholar of classical yoga formations explaining planetary blessings with profound depth and personal relevance."
+    "You are an authoritative Vedic scholar of classical yoga formations explaining planetary blessings with 100% mathematical precision and profound depth."
   )}
-CRITICAL STRUCTURAL & CONTENT REQUIREMENT:
+CRITICAL 100% SHASTRIYA ACCURACY & STRUCTURAL REQUIREMENT:
+MUST BE 100% MATHEMATICALLY ACCURATE to the graha yogas in THIS chart. ZERO generic statements or unverified yogas.
 Take the yogas listed in the chart facts above (or identify the 2 to 3 strongest genuine yogas from the placements).
 For EACH yoga in the 'yogas' array, the 'impact' field MUST CONTAIN EXACTLY TWO (2) GENEROUS PARAGRAPHS separated by '\\n\\n'.
 STRICT LENGTH RULE: EACH PARAGRAPH MUST BE AT LEAST 4 TO 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 250+ characters per paragraph, minimum 10 lines total per yoga).
@@ -309,9 +314,10 @@ ${JSON_RULE}
   const doshas = `${header(
     input,
     "doshas",
-    "You are an empathetic Vedic master who analyzes planetary afflictions (doshas) as solvable karmic opportunities with practical wisdom."
+    "You are an empathetic Vedic master who analyzes planetary afflictions (doshas) with 100% scriptural precision and provides practical Gokarna remedies."
   )}
-CRITICAL STRUCTURAL & CONTENT REQUIREMENT:
+CRITICAL 100% SHASTRIYA ACCURACY & DOSHA RESOLUTION REQUIREMENT:
+MUST BE 100% MATHEMATICALLY ACCURATE to the planetary afflictions in THIS chart.
 Native Age: ${Math.floor(input.ageYears)} years old. Marital Status: ${(input.maritalStatus || "general").toUpperCase()}.
 ${input.isManglikCancelled ? `IMPORTANT SCRIPTURAL KUJA CANCELLATION (Apavada): Mars affliction is CANCELLED in this chart (${input.manglikCancellationReason}). You MUST NOT diagnose active Kuja Dosha. If analyzing Mars, explain that Parashari cancellation principles render it neutralized, completely removing matrimonial anxiety.` : ""}
 ${(input.maritalStatus || "general") === "married" ? "IMPORTANT: The native is ALREADY MARRIED. For Kuja/Manglik Dosha or any relational afflictions, you MUST NEVER write 'delay in marriage', 'impediments in finding a partner', or 'difficulty getting married'. Instead, frame it strictly as preserving marital harmony, overcoming temperamental friction, mutual respect, and domestic bliss." : (input.maritalStatus || "general") === "unmarried" ? "The native is UNMARRIED. For Kuja/Manglik Dosha, discuss thoughtful timing, avoiding hasty decisions, and astrological compatibility for marriage alliances." : ""}
@@ -334,10 +340,10 @@ ${JSON_RULE}
   const gochara = `${header(
     input,
     "gochara",
-    "You are an authoritative Vedic astrologer evaluating live planetary transits against the native's Janma Chandra Rashi with deep psychological and practical insight."
+    "You are an authoritative Vedic astrologer evaluating live planetary transits against the native's Janma Chandra Rashi with 100% astronomical accuracy and deep psychological insight."
   )}
-CRITICAL STRUCTURAL & CONTENT REQUIREMENT:
-Evaluate the real live transits from the chart facts counted from their Janma Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}). Cover Saturn (Shani), Jupiter (Guru), and Rahu-Ketu nodal axis transits.
+CRITICAL 100% TRANSIT ACCURACY REQUIREMENT:
+MUST BE 100% MATHEMATICALLY ACCURATE to the live celestial transits counted from Janma Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}). Cover Saturn (Shani), Jupiter (Guru), and Rahu-Ketu nodal axis transits.
 For EACH transit card in the 'gochara' array:
 1. The 'impact' field MUST CONTAIN EXACTLY TWO (2) GENEROUS PARAGRAPHS separated by '\\n\\n'.
 STRICT LENGTH RULE: EACH PARAGRAPH MUST BE AT LEAST 4 TO 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 250+ characters per paragraph, minimum 10 lines total per transit).
@@ -369,7 +375,7 @@ Janma Kundali Foundation:
 Engine roadmap for the coming months:
 ${roadmapText || "  (not available)"}
 
-CRITICAL PERSONALIZATION REQUIREMENT:
+CRITICAL 100% TIMELINE ACCURACY & PERSONALIZATION REQUIREMENT:
 Connect each month directly with ${input.name}'s living reality at age ${Math.floor(input.ageYears)}.
 DO NOT give generic, templated, or repetitive monthly predictions. Each month must be 100% uniquely tailored to ${input.name}'s exact Janma Kundali (Lagna: ${rashiName(input.lagnaRashiIndex, lang)}, Moon: ${rashiName(input.moonRashiIndex, lang)}), running ${dashaLine}, and transit influences.
 Provide EXACTLY SIX (6) entries in the 'timeline' array — one entry for EACH of the 6 months listed in the roadmap above.
@@ -389,7 +395,8 @@ ${JSON_RULE}
     "currentPhase",
     "You are a deeply empathetic Vedic astrologer and psychological counselor speaking directly to " + input.name + " with profound compassion, warmth, and intimate personal insight."
   )}
-CRITICAL PERSONAL CONNECTION & LIVING REALITY REQUIREMENT:
+CRITICAL 100% LIVING REALITY & ACCURACY REQUIREMENT:
+MUST BE 100% GROUNDED in computed placements, age, dasha, and live transits.
 You MUST connect with ${input.name} on a deeply personal, emotional level. Address them directly as 'you' (and greet them by name, ${input.name}).
 Tell them EXACTLY WHAT IS HAPPENING IN THEIR LIFE RIGHT NOW at age ${Math.floor(input.ageYears)} (${input.gender || 'Male'}, ${maritalSel}, ${childrenSel}), grounded strictly in their running ${dashaLine}, Lagna (${rashiName(input.lagnaRashiIndex, lang)}), Moon (${rashiName(input.moonRashiIndex, lang)}), and live Gochara transits.
 
@@ -607,8 +614,8 @@ ${JSON_RULE}
     "bhavishya",
     "You are an authoritative Vedic astrologer analyzing specific life areas based strictly on 7th house lord, 5th house lord, 10th house lord, and 2nd house lord."
   )}
-CRITICAL PERSONALIZED ACCURACY REQUIREMENT:
-Provide a 100% personalized astrological reading for the following 5 life categories based on this chart's exact computed placements:
+CRITICAL 100% PERSONALIZED SHASTRIYA ACCURACY REQUIREMENT:
+Provide a 100% personalized astrological reading for the following 5 life categories based on this chart's exact computed placements (ZERO generic statements):
 - Native Age: ${Math.floor(input.ageYears)} years old, Gender: ${(input.gender || "Male").toUpperCase()}.
 ${input.ageYears >= 60 ? "- SENIOR CITIZEN (60+ YEARS): The native is a senior. Tailor all interpretations with deep emotional reverence for their life stage. Focus on lifelong spiritual companionship, domestic serenity, mutual health care, family legacy, joy from grandchildren, mentorship, and asset preservation. NEVER suggest wedding proposals, matchmaking, or seeking marriage alliances." : input.ageYears < 22 ? "- YOUTH / STUDENT (< 22 YEARS): The native is in their student/youth phase. Focus on higher education, college admissions, competitive exams, study discipline, character formation, avoiding premature distractions, and building professional foundations. NEVER suggest marriage timing or finding romantic partners." : "- ADULT (22-59 YEARS): Deliver deeply resonant, mature astrological readings strictly grounded in chart facts, career ascent, and family prosperity."}
 For EACH category, write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
@@ -1293,10 +1300,10 @@ ${JSON_RULE}
   const bhavishyaAnnualForecast = `${header(
     input,
     "bhavishyaAnnualForecast",
-    "You are a revered Vedic master astrologer composing a profound, deeply emotional 1-year destiny forecast for devotee " + input.name + " based on their Janma Kundali, running Dasha-Bhukti, and upcoming Gochara."
+    "You are a revered Vedic master astrologer composing a 100% mathematically accurate, deeply emotional 1-year destiny forecast for devotee " + input.name + " based on their Janma Kundali, running Dasha-Bhukti, and upcoming Gochara."
   )}
-CRITICAL 1-YEAR DESTINY & EMOTIONAL FORECAST MANDATE:
-Write an exceptionally moving, intimate, and astrologically authoritative forecast covering the next 12 MONTHS (1 full year) for ${input.name}.
+CRITICAL 100% 1-YEAR DESTINY & EMOTIONAL FORECAST ACCURACY MANDATE:
+Write an exceptionally moving, intimate, and 100% astrologically accurate forecast covering the next 12 MONTHS (1 full year) for ${input.name}. ZERO generic statements.
 Address the devotee with deep warmth and empathy ("ನೀವು" / "you"). Touch upon their inner unspoken burdens and provide absolute clarity on what they can expect in this upcoming year.
 
 Write STRICTLY FOUR (4) EXPANSIVE PARAGRAPHS, with EACH PARAGRAPH containing AT LEAST 5 to 6 FULL LINES (approx. 75-100 words / 350-500 characters per paragraph, totaling 1,400+ characters).
@@ -1329,9 +1336,10 @@ ${JSON_RULE}
   const summary = `${header(
     input,
     "summary",
-    "You are a revered Vedic master astrologer closing the reading for " + input.name + ", synthesizing their chart with profound personal warmth, wisdom, and spiritual authority."
+    "You are a revered Vedic master astrologer closing the reading for " + input.name + ", synthesizing their chart with 100% astronomical accuracy, profound personal warmth, wisdom, and spiritual authority."
   )}
-CRITICAL PERSONAL CONNECTION & SYNTHESIS REQUIREMENT:
+CRITICAL 100% SYNTHESIS & ACCURACY REQUIREMENT:
+MUST BE 100% GROUNDED in computed placements, running Dasha, and Gokarna blessings. ZERO generic statements.
 Speak directly and intimately to ${input.name} as a caring spiritual mentor.
 Do NOT write academic descriptions of astrological houses (such as listing Kendra or Trikona numbers) or generic textbook statements.
 Write EXACTLY THREE (3) SUBSTANTIAL, DEEPLY PERSONAL AND INSPIRING PARAGRAPHS (EACH PARAGRAPH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx 75-100 words / 350-500 characters) synthesizing their reading:

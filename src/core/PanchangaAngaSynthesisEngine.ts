@@ -1712,9 +1712,9 @@ export function generateDestinyCatalystsAndLuckyCharms(
     titleKn: "ಹಿಂದೆ ದುರದೃಷ್ಟ ಮತ್ತು ನಿರಂತರ ಅಡೆತಡೆಗಳು ಕಾಡಲು ಕಾರಣವೇನು?",
     titleEn: "Why You Felt Unlucky & Hit Roadblocks So Far",
     explanationKn: sanitizeAstrologyKannadaText(
-      `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ ಹಾಗೂ ಭಾಗ್ಯಾಧಿಪತಿಯಾದ ${ninthLordKn}ನ ಮೇಲೆ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕಾಲದ ಪ್ರಭಾವ (8ನೇ ರಂಧ್ರ ಸ್ಥಾನದ ಸೆಳೆತ, ಮಾಂದಿ ಮತ್ತು ಶನಿ-ರಾಹುವಿನ ಛಾಯೆ) ಇದ್ದುದರಿಂದ, ನೀವು ಶೇಕಡಾ 100% ರಷ್ಟು ಪ್ರಾಮಾಣಿಕ ಶ್ರಮ, ಬುದ್ಧಿವಂತಿಕೆ ಹಾಗೂ ಬೆವರು ಸುರಿಸಿದರೂ ಫಲಿತಾಂಶ ಕೇವಲ 40%-50% ರಷ್ಟು ಮಾತ್ರ ದಕ್ಕುತ್ತಿತ್ತು. ಪ್ರಮುಖ ಕಾರ್ಯಗಳು 99% ರಷ್ಟು ಮುಗಿದು ಇನ್ನೇನು ಯಶಸ್ಸು ಸಿಗಬೇಕು ಎನ್ನುವಷ್ಟರಲ್ಲಿ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಹಠಾತ್ ಅಡೆತಡೆಗಳು ಎದುರಾಗುತ್ತಿದ್ದವು. ಇದು ನಿಮ್ಮ ಪ್ರತಿಭೆಯ ಕೊರತೆಯಲ್ಲ, ಬದಲಿಗೆ ಹಿಂದಿನ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕುಲುಮೆ (Karmic Crucible) ಆಗಿತ್ತು.`
+      `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ 9ನೇ ಭಾಗ್ಯ ಸ್ಥಾನ ಹಾಗೂ ಭಾಗ್ಯಾಧಿಪತಿಯಾದ ${ninthLordKn}ನ ಮೇಲೆ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕಾಲದ ಪ್ರಭಾವ (8ನೇ ರಂಧ್ರ ಸ್ಥಾನದ ಸೆಳೆತ, ಮಾಂದಿ ಮತ್ತು ಶನಿ-ರಾಹುವಿನ ಛಾಯೆ) ಇದ್ದುದರಿಂದ, ನೀವು ಶೇಕಡಾ 100% ರಷ್ಟು ಪ್ರಾಮಾಣಿಕ ಶ್ರಮ, ಬುದ್ಧಿವಂತಿಕೆ ಹಾಗೂ ಬೆವರು ಸುರಿಸಿದರೂ ನಿರೀಕ್ಷಿತ ಪೂರ್ಣ ಫಲಿತಾಂಶ ಹಾಗೂ ಮನ್ನಣೆ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ತಡವಾಗುತ್ತಿತ್ತು. ಪ್ರಮುಖ ಕಾರ್ಯಗಳು 99% ರಷ್ಟು ಮುಗಿದು ಇನ್ನೇನು ಯಶಸ್ಸು ಸಿಗಬೇಕು ಎನ್ನುವಷ್ಟರಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು ಎದುರಾಗುತ್ತಿದ್ದವು. ಇದು ನಿಮ್ಮ ಪ್ರತಿಭೆಯ ಕೊರತೆಯಲ್ಲ, ಬದಲಿಗೆ ಹಿಂದಿನ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕುಲುಮೆ (Karmic Crucible) ಆಗಿತ್ತು. ಈಗ 100% ದೈವಿಕ ಸಂಕಲ್ಪ ಮತ್ತು ಸೂಕ್ತ ಪರಿಹಾರಗಳಿಂದ ಸುವರ್ಣ ಭಾಗ್ಯೋದಯದ ಕಾಲ ತೆರೆದುಕೊಳ್ಳುತ್ತಿದೆ.`
     ),
-    explanationEn: `In your chart, the 9th Bhagya house and its ruler ${ninthLord} experienced subtle karmic resistance from 8th house drag, Maandi obstruction, and past Dasha friction. Consequently, even when you invested 100% sincere toil and intellect, tangible returns frequently stalled at 40-50%, hitting mysterious roadblocks at the 99% finish line. This was never a lack of merit, but an ancestral karmic crucible refining your endurance before the true golden cycle.`,
+    explanationEn: `In your chart, the 9th Bhagya house and its ruler ${ninthLord} experienced subtle karmic resistance from 8th house drag, Maandi obstruction, and past Dasha friction. Consequently, even when you invested 100% sincere toil and intellect, full tangible recognition frequently faced delays and sudden roadblocks at the 99% milestone. This was never a lack of merit, but an ancestral karmic crucible refining your endurance before the true 100% golden cycle unlocks.`,
     astrologicalReasonKn: sanitizeAstrologyKannadaText(
       `9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ${ninthLordKn}ನ ಕರ್ಮ ಸಂಯೋಗ, 8ನೇ ರಂಧ್ರ ಸ್ಥಾನದ ಮಾಂದಿ ಪ್ರಭಾವ ಹಾಗೂ ದಶಾ ಸಂಧಿಯ ಪರೀಕ್ಷೆ.`
     ),
@@ -1979,9 +1979,9 @@ export function generateDestinyCatalystsAndLuckyCharms(
       titleKn: "ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಹಿಂದೆ ದುರದೃಷ್ಟ ಮತ್ತು ನಿರಂತರ ಹಿನ್ನಡೆ ಕಾಡಲು 3 ಮುಖ್ಯ ಕಾರಣಗಳು",
       titleEn: "Why You Felt Unlucky: The 3-Fold Astrological Root Causes",
       overviewKn: sanitizeAstrologyKannadaText(
-        `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶೇಕಡಾ 100% ಪ್ರಾಮಾಣಿಕ ಶ್ರಮ, ಬುದ್ಧಿವಂತಿಕೆ ಮತ್ತು ಬೆವರು ಸುರಿಸಿದರೂ ಕೇವಲ 40%-50% ಫಲ ಸಿಗುತ್ತಿದ್ದುದಕ್ಕೆ ಕಾರಣ ಪ್ರತಿಭೆಯ ಕೊರತೆಯಲ್ಲ; ಬದಲಿಗೆ ಜನ್ಮ ಕುಂಡಲಿಯ ರಂಧ್ರ ಸ್ಥಾನ, ಗೋಚಾರ ಶನಿ-ಗುರು ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿಯ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕುಲುಮೆಯಾಗಿತ್ತು.`
+        `ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಶೇಕಡಾ 100% ಪ್ರಾಮಾಣಿಕ ಶ್ರಮ, ಬುದ್ಧಿವಂತಿಕೆ ಮತ್ತು ಬೆವರು ಸುರಿಸಿದರೂ ಹಿಂದೆ ನಿರೀಕ್ಷಿತ ಪೂರ್ಣ ಪ್ರತಿಫಲ ತಡವಾಗುತ್ತಿದ್ದುದಕ್ಕೆ ಕಾರಣ ಪ್ರತಿಭೆಯ ಕೊರತೆಯಲ್ಲ; ಬದಲಿಗೆ ಜನ್ಮ ಕುಂಡಲಿಯ ರಂಧ್ರ ಸ್ಥಾನ, ಗೋಚಾರ ಶನಿ-ಗುರು ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿಯ ಕರ್ಮದ ಪರೀಕ್ಷಾ ಕುಲುಮೆಯಾಗಿತ್ತು. ಈಗ ಸೂಕ್ತ ಶಾಂತಿ ಮತ್ತು ದೈವಾನುಗ್ರಹದಿಂದ 100% ಸಾರ್ಥಕತೆ ಲಭಿಸಲಿದೆ.`
       ),
-      overviewEn: `Yielding only 40-50% results from 100% toil was never a lack of competence, but an intricate alignment of natal dusthanas, Gochara transits, and Dasha Sandhi friction.`,
+      overviewEn: `Experiencing delays despite 100% honest toil was never a lack of competence, but an intricate alignment of natal dusthanas, Gochara transits, and past Dasha Sandhi friction, now clearing for 100% fulfillment.`,
       janmaKundliCauseKn: sanitizeAstrologyKannadaText(
         `ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ 8ನೇ ಅಷ್ಟಮಾಧಿಪತಿ ${eighthLordKn} (ಸ್ಥಾನ ${eighthLordHouse}), 6ನೇ ಶತ್ರು-ಋಣಾಧಿಪತಿ ${sixthLordKn} ಹಾಗೂ ಬಾಧಕಾಧಿಪತಿಯಾದ ${badhakaLordKn}ನ ಪ್ರಭಾವವು ಪ್ರಮುಖ ಕೆಲಸಗಳು 99% ರಷ್ಟು ಮುಗಿದು ಅಂತಿಮ ಕ್ಷಣಕ್ಕೆ ತಲುಪಿದಾಗ ಹಠಾತ್ ಅಡೆತಡೆಗಳನ್ನು ಸೃಷ್ಟಿಸುತ್ತಿತ್ತು. ಶನಿಯ ಛಾಯಾ ಪುತ್ರನಾದ ಮಾಂದಿಯು ${maandiHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದು ಕಡತಗಳನ್ನು ತಿಂಗಳುಗಟ್ಟಲೆ ಎಳೆಯುವಂತೆ ಮಾಡುತ್ತಿದ್ದನು.`
       ),
