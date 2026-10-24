@@ -195,10 +195,11 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
 
   // Kuja / Manglik Check (Mars in 1, 4, 7, 8, 12 from Lagna or Moon)
   let isManglik = false;
+  const isMarsSwakshetraIn7 = Boolean(marsPlacement && marsPlacement.house === 7 && [0, 7].includes(marsPlacement.rashiIndex));
   if (marsPlacement) {
     const mHouseLagna = marsPlacement.house;
     const mMoonHouse = ((marsPlacement.rashiIndex - moonRashiIndex + 12) % 12) + 1;
-    if ([1, 4, 7, 8, 12].includes(mHouseLagna) || [1, 4, 7, 8, 12].includes(mMoonHouse)) {
+    if (!isMarsSwakshetraIn7 && ([1, 4, 7, 8, 12].includes(mHouseLagna) || [1, 4, 7, 8, 12].includes(mMoonHouse))) {
       isManglik = true;
     }
   }
@@ -237,7 +238,7 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
   const hasKalatraDosha = !!(
     isManglik ||
     (houses[7] && (
-      houses[7].occupants.some(p => ["Rahu", "Ketu", "Saturn", "Mars"].includes(p.graha)) ||
+      houses[7].occupants.some(p => ["Rahu", "Ketu", "Saturn"].includes(p.graha) || (p.graha === "Mars" && !isMarsSwakshetraIn7)) ||
       houses[7].lordIsDebilitated
     ))
   );
@@ -451,7 +452,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `ಹಿರಿಯ ವಯಸ್ಸಿನ ದಾಂಪತ್ಯದಲ್ಲಿ ನಿಮ್ಮ ${partnerTermKn}ಯೊಂದಿಗೆ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಆರೋಗ್ಯದ ಆರೈಕೆಯೇ ಪರಮ ತಪಸ್ಸಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ದಶಕಗಳ ನಿಮ್ಮ ಒಡನಾಟವು ಕೌಟುಂಬಿಕ ಏಕತೆಗೆ ಬಲವಾದ ಅಡಿಪಾಯವಾಗಿದೆ. ಮಕ್ಕಳ ಹಾಗೂ ಮೊಮ್ಮಕ್ಕಳ ಯೋಗಕ್ಷೇಮವನ್ನು ಜೊತೆಯಾಗಿ ಹಾರೈಸುತ್ತಾ, ಸಣ್ಣಪುಟ್ಟ ವ್ಯತ್ಯಾಸಗಳನ್ನು ಸಮಾಧಾನದಿಂದ ಸ್ವೀಕರಿಸುವುದು ನಿಮ್ಮ ಅಂತರಂಗದ ಶಾಂತಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ನಿವೃತ್ತಿಯ ಈ ಸಾರ್ಥಕ ಹಂತದಲ್ಲಿ ಒಬ್ಬರಿಗೊಬ್ಬರು ನೀಡುವ ಮಾನಸಿಕ ಸಾಂತ್ವನವು ದೈವಿಕ ರಕ್ಷೆಯಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ.`;
       const p3 = `ಸಂಗಾತಿಯ ದೈನಂದಿನ ಆರೋಗ್ಯ ಸ್ಥಿತಿ, ನಿದ್ರೆಯ ನೆಮ್ಮದಿ ಹಾಗೂ ಆಹಾರ ವಿಹಾರಗಳ ಕಡೆಗೆ ಪ್ರೀತಿಪೂರ್ವಕ ಗಮನ ಹರಿಸುವುದು ಈ ಸಂಧ್ಯಾ ಕಾಲದ ಅತ್ಯಂತ ಪವಿತ್ರ ಕರ್ತವ್ಯವಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ದಿವ್ಯ ಅನುಗ್ರಹವು ನಿಮ್ಮಿಬ್ಬರ ನಡುವೆ ಕಣ್ಣೋಟದಲ್ಲೇ ಅರ್ಥೈಸಿಕೊಳ್ಳುವ ಅಪೂರ್ವ ಮೌನ ಸಂಭಾಷಣೆಯನ್ನು ನೀಡಿದೆ. ಮನೆಯಲ್ಲಿ ಸದಾ ಶಾಂತ, ಸೌಮ್ಯ ಹಾಗೂ ಸಕಾರಾತ್ಮಕ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಆದರ್ಶ ದಾಂಪತ್ಯದ ಶ್ರೇಷ್ಠ ಸಂದೇಶವನ್ನು ಸಾರುತ್ತದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const partnerTermHi = chart.gender === "Female" ? "धर्म सहचर" : "धर्म सहचरी";
@@ -463,7 +466,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `जीवन के इस परिपक्व काल में एक-दूसरे के स्वास्थ्य का ध्यान रखना, भावनात्मक संबल बनना और आध्यात्मिक चर्चाओं में समय बिताना ही दांपत्य का सच्चा सुख है। सप्तमेश ${h7Lord} के प्रभाव से आपका गृहस्थ जीवन बच्चों एवं पौत्र-पौत्रियों के लिए एक आदर्श उदाहरण है। जीवनसाथी की आवश्यकताओं के प्रति संवेदनशील रहना और पुरानी स्मृतियों को संजोते हुए आनंदित रहना आपके चित्त को सदैव शांत रखेगा।`;
       const p3 = `जीवन की इस परिपक्व बेला में जीवनसाथी के स्वास्थ्य और दैनिक आवश्यकताओं का स्नेहपूर्वक ध्यान रखना आपके आत्मिक संतोष को द्विगुणित करेगा। सप्तमेश ${h7Lord} का शुभ प्रभाव आप दोनों के मध्य बिना कहे एक-दूसरे के मनोभावों को समझने की अद्भुत अंतर्दृष्टि प्रदान करता है। घर में शांति, धैर्य और सात्विक विचारों का संचार बनाए रखना आने वाली पीढ़ियों के लिए एक अद्वितीय नैतिक प्रेरणा बनेगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const partnerTermTe = chart.gender === "Female" ? "ధర్మ సహచరుడు" : "ధర్మ సహచరి";
@@ -475,7 +480,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `ఈ వయస్సులో పరస్పర ఆరోగ్యం పట్ల శ్రద్ధ వహించడం, ఆధ్యాత్మిక సాధనల్లో కలిసి పాల్గొనడం అంతరంగ తృప్తిని కలిగిస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ దాంపత్య జీవితం కుటుంబ సభ్యులందరికీ గౌరవప్రదమైన మార్గదర్శకంగా నిలుస్తుంది. జీవిత భాగస్వామి భావాలను గౌరవిస్తూ ప్రశాంతంగా జీవించడం ఆయురారోగ్యాలను వృద్ధి చేస్తుంది.`;
       const p3 = `జీవిత భాగస్వామి దైనందిన అవసరాలను మరియు విశ్రాంతిని ఆప్యాయంగా గమనించడం ఈ సంధ్యా సమయపు పరమ ధర్మం. సప్తమాధిపతి ${h7Lord} దివ్య అనుగ్రహం మాటలు లేకుండానే ఒకరి మనసును ఒకరు తెలుసుకునే అపూర్వమైన గ్రహణశక్తిని ప్రసాదించింది. గృహంలో ప్రశాంతమైన వాతావరణాన్ని కాపాడుకోవడం రాబోయే తరాలకు చక్కని మార్గదర్శకత్వాన్ని అందిస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasKalatraDosha
@@ -486,7 +493,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `வாழ்க்கைத் துணையுடன் இணைந்து தர்ம காரியங்களில் ஈடுபடுவதும், பேரன்-பேத்திகளுக்கு நல்வழிகாட்டுவதும் அளப்பரிய மன அமைதியைத் தரும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் குடும்ப வாழ்க்கை சமூகத்தில் உயர்ந்த மரியாதையுடன் விளங்கும். வாழ்க்கைத் துணையின் ஆரோக்கியத்தில் அன்பான அக்கறை செலுத்துவதும் விட்டுக்கொடுத்து வாழ்வதும் முதுமையின் உண்மையான அமைதியாகும்.`;
       const p3 = `வாழ்க்கைத் துணையின் அன்றாட தேவைகள், ஓய்வு மற்றும் ஆரோக்கியத்தை அன்புடன் கவனித்துக் கொள்வது இந்த நிறைவான பருவத்தின் மேலான கடமையாகும். 7-ம் அதிபதி ${h7Lord} அருள் இருவரிடையே சொற்கள் அற்ற ஆழ்ந்த மனப்பூர்வமான புரிதலை உருவாக்கியுள்ளது. இல்லத்தில் அமைதியான சூழ்நிலையைப் பேணுவது உங்கள் சந்ததியினருக்கு சிறந்த பண்பாட்டு வழிகாட்டுதலாக அமையும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasKalatraDosha
       ? `【Dosha Analysis & Remedial Shanti】 Gentle astrological scrutiny reveals subtle Saturn or Rahu aspects touching the 7th house axis, which during mature retirement years can occasionally translate into heightened sensitivity concerning your spouse's health or energy levels. Pacifying these residual karmic vibrations through simple devotional upasanas preserves unbroken domestic harmony. Reciting the sacred Vishnu Sahasranama together on Fridays and offering prayers at sanctums such as Sri Kshetra Gokarna Mahabaleshwara neutralizes health stresses, surrounding your elder marital bond with celestial protection and serenity.`
@@ -497,7 +506,9 @@ export function buildDynamicMarriageFallback(
     const p2 = `Cultivating deep mutual understanding, respect, and attentive health care with your ${partnerTermEn} forms the sacred cornerstone of senior relationship harmony. Influenced by ${h7Lord}, your decades of shared life journey serve as an inspirational bedrock for children and grandchildren. Honoring emotional needs with compassionate patience enriches this contemplative chapter with genuine fulfillment and domestic grace.`;
     const p3 = `Attending attentively to your companion's daily physical vitality, resting rhythms, and comfort in this golden phase brings deep emotional fulfillment. The dignified disposition of 7th lord ${h7Lord} cultivates an intuitive, unspoken harmony where shared glances convey deeper reassurance than words ever could. Preserving calm equanimity and gentle domestic routines within the home radiates quiet strength, inspiring your children and extended family with an enduring testament of authentic matrimonial grace.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasKalatraDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Youth & Students (Age < 22): Character Formation, Emotional Poise & Academic Focus
@@ -511,7 +522,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `ಉತ್ತಮ ಸ್ನೇಹಿತರ ಸಹವಾಸ, ಗುರು-ಹಿರಿಯರ ಬಗೆಗಿನ ಗೌರವ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ಪರಿಪಾಲನೆಯೇ ಈ ವಯಸ್ಸಿನ ನಿಜವಾದ ಶಕ್ತಿಯಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವಿವೇಕಯುತ ನಡವಳಿಕೆ, ಸೌಜನ್ಯ ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ದಿನದಿಂದ ದಿನಕ್ಕೆ ಬೆಳೆಸಲಿದೆ. ಸಮವಯಸ್ಕರೊಂದಿಗೆ ಆರೋಗ್ಯಕರ ಗಡಿಗಳನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ಹಾಗೂ ಸದಾ ಸಕಾರಾತ್ಮಕ ಆಲೋಚನೆಗಳಿಂದ ಕೂಡಿರುವ ವ್ಯಕ್ತಿಗಳ ಸಂಪರ್ಕದಲ್ಲಿರುವುದು ನಿಮ್ಮ ಮಾನಸಿಕ ಸ್ವಾಸ್ಥ್ಯವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ. ಯಾವುದೇ ಕ್ಷಣಿಕ ಭಾವಾವೇಶಗಳಿಗೆ ಒಳಗಾಗದೆ ಸ್ವಂತಿಕೆ ಮತ್ತು ಸ್ವಾಭಿಮಾನದಿಂದ ಬಾಳುವ ಶಕ್ತಿಯನ್ನು ಈ ಗ್ರಹಸ್ಥಿತಿಯು ನೀಡುತ್ತದೆ.`;
       const p3 = `ನಿಮ್ಮ ಯೌವನದ ಅಮೂಲ್ಯ ಸಮಯ ಹಾಗೂ ಜೀವಚೈತನ್ಯವನ್ನು ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಕ್ರೀಡೆ, ಸೃಜನಶೀಲ ಕಲೆಗಳು ಹಾಗೂ ವೃತ್ತಿಪರ ಕೌಶಲ್ಯ ವೃದ್ಧಿಗಾಗಿ ವಿನಿಯೋಗಿಸುವುದು ಭವಿಷ್ಯದ ಉನ್ನತ ಬದುಕಿಗೆ ಅತ್ಯಂತ ಭದ್ರ ಬುನಾದಿಯಾಗಲಿದೆ. ಸಪ್ತಮ ಭಾವದ ಶಕ್ತಿಯು ಭವಿಷ್ಯದಲ್ಲಿ ಯಶಸ್ವಿ ಗೃಹಸ್ಥ ಜೀವನವನ್ನು ನಡೆಸಲು ಅಗತ್ಯವಾದ ಸಂಯಮ, ಸಹನೆ ಮತ್ತು ಪರಸ್ಪರ ಸಹಕಾರದ ಗುಣಗಳನ್ನು ಈ ಹಂತದಲ್ಲಿಯೇ ನಿಮ್ಮ ಅಂತರಂಗದಲ್ಲಿ ಬಿತ್ತುತ್ತದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಸ್ಪಷ್ಟವಾದ ದೀರ್ಘಕಾಲೀನ ಗುರಿಗಳನ್ನು ಇಟ್ಟುಕೊಂಡು ಸತತ ಪರಿಶ್ರಮ ಪಡುವುದು ಭವಿಷ್ಯದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಸಾಮಾಜಿಕ ಗೌರವ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸುಖವನ್ನು ಖಾತರಿಪಡಿಸುತ್ತದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasKalatraDosha
@@ -522,7 +535,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `विद्यार्थी जीवन में परस्पर समझ, बड़ों का सम्मान और सत्संगति आपके भविष्य की सच्ची पूंजी है। सप्तमेश ${h7Lord} के प्रभाव से मित्रों के चयन में विवेकशीलता बरतना आपकी मानसिक एकाग्रता को सुदृढ़ करेगा। अपने सहपाठियों के साथ मर्यादापूर्ण आचरण बनाए रखना और तात्कालिक आकर्षणों से परे रहकर आंतरिक दृढ़ता का विकास करना आपके आत्मसम्मान को नई ऊंचाइयां देगा। गुरुजनों के मार्गदर्शन का आदर करना आपके विचारों को परिष्कृत एवं उदात्त बनाएगा।`;
       const p3 = `अपनी ऊर्जा को ज्ञानार्जन, बौद्धिक विकास, खेलकूद तथा व्यावहारिक कौशलों के निखार में लगाना दीर्घकालिक सफलता का मार्ग प्रशस्त करेगा। सप्तम भाव की ग्रह ऊर्जा भविष्य के सामाजिक दायित्वों एवं संबंधों में संतुलन साधने के लिए आवश्यक धैर्य और सहिष्णुता की नींव इसी वय में स्थापित करती है। भविष्य की स्पष्ट रूपरेखा बनाकर निरंतर स्वाध्याय में रत रहना आपको न केवल शैक्षिक उत्कृष्टता दिलाएगा, अपितु जीवन के प्रत्येक क्षेत्र में आपको एक प्रतिष्ठित व्यक्तित्व के रूप में स्थापित करेगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasKalatraDosha
@@ -533,7 +548,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `ఈ వయస్సులో పరస్పర అవగాహన, పెద్దల పట్ల గౌరవం మరియు మంచి స్నేహితుల సాంగత్యం మీ ఉన్నతికి తోడ్పడతాయి. సప్తమాధిపతి ${h7Lord} ప్రభావం వలన వివేకవంతమైన ఆలోచనలతో వ్యవహరించడం శ్రేయస్కరం. స్నేహితుల ఎంపికలో విచక్షణ పాటించడం మరియు ప్రతికూల ఆలోచనలకు తావు ఇవ్వకుండా ఉండటం మీ మానసిక ప్రశాంతతను కాపాడుతుంది. గురువుల మార్గదర్శకత్వాన్ని గౌరవించడం ద్వారా మీ వ్యక్తిత్వం మరింత ప్రకాశవంతంగా మారుతుంది.`;
       const p3 = `మీ మానసిక మరియు శారీరక శక్తిని విద్యాభ్యాసం, సృజనాత్మక కళలు మరియు సరికొత్త నైపుణ్యాభివృద్ధికి ఉపయోగించడం ద్వారా భవిష్యత్తుకు బలమైన పునాది ఏర్పడుతుంది. సప్తమ భావ శక్తి భవిష్యత్తులో బాధ్యతాయుతమైన సంబంధాలను నిర్మించుకోవడానికి అవసరమైన సహనం మరియు అవగాహనను ఈ దశలోనే పెంపొందిస్తుంది. మీ లక్ష్యాలపై స్థిరమైన దృష్టిని సారించి ముందుకు సాగడం వలన ఉన్నత విద్యా శిఖరాలను అధిరోహించడంతో పాటు సమాజంలో విశేష గుర్తింపు లభిస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasKalatraDosha
@@ -544,17 +561,21 @@ export function buildDynamicMarriageFallback(
       const p2 = `நல்ல நண்பர்களின் சேர்க்கை, பெரியோர்களை மதித்தல் மற்றும் கடமை உணர்வு ஆகியவை உங்கள் வெற்றிக்கு உறுதுணையாக இருக்கும். 7-ம் அதிபதி ${h7Lord} அருளால் உங்கள் சிந்தனையில் முதிர்ச்சியும் விவேகமும் மேலோங்கும். நட்பு வட்டாரத்தில் நல்லொழுக்கமும் நேர்மறை சிந்தனைகளும் கொண்டவர்களைத் தேர்ந்தெடுப்பது உங்கள் மன அமைதியையும் நற்பெயரையும் பாதுகாக்கும். ஆசிரியர்களின் ஆலோசனைகளை ஏற்று நடப்பது உங்கள் எதிர்கால அறிவாற்றலை மெருகேற்றும்.`;
       const p3 = `இளமையின் விலைமதிப்பற்ற ஆற்றலைக் கல்வி, விளையாட்டு மற்றும் எதிர்கால தொழில் சார்ந்த திறன்களை வளர்ப்பதில் முழுமையாக ஈடுபடுத்துவது சிறந்த வெற்றியைத் தரும். 7-ம் பாவகத்தின் பலம் எதிர்காலத்தில் சமுதாயத்திலும் குடும்பத்திலும் நல்லுறவை பேணத் தேவையான பொறுமையையும் சமநிலையான மனப்பக்குவத்தையும் இப்பருவத்திலேயே உங்களுக்குள் விதைக்கிறது. உங்கள் உயர்ந்த இலக்குகளை நோக்கி உறுதியுடன் பயிலுவது சமுதாயத்தில் உங்களை ஒரு முன்மாதிரி ஆளுமையாக உயர்த்தும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasKalatraDosha
       ? `【Dosha Analysis & Remedial Shanti】 Astrological scrutiny reveals subtle Mars or Rahu influences impacting the 7th house axis, which during youth can occasionally induce mental restlessness, emotional ambivalence, or premature distractions that compromise academic focus. To dissolve this energetic friction, dedicated morning invocations of Lord Ganesha and Lord Subramanya are highly effective. Chanting the sacred Gayatri Mantra alongside the Subramanya Ashtakam on Tuesdays pacifies volatile planetary currents, instilling steadfast willpower and mental discipline. Sponsoring archana at sacred sanctums like Sri Kshetra Gokarna Mahabaleshwara neutralizes subtle impediments, ensuring noble friendships, moral purity, and academic brilliance.`
       : `【Benefic Planetary Shield & Divine Grace】 With your 7th house and Venus completely unblemished by malefic aspects, your youthful psyche remains wonderfully anchored in moral clarity, emotional poise, and focused academic ambition. Rather than being swayed by transient peer infatuations or superficial social distractions, you possess an innate sense of self-respect, personal boundaries, and long-term purpose. Choosing uplifting companions who mirror your intellectual curiosity and character formation strengthens your psychological resilience. Channeling this vibrant clarity into scholastic distinction creates an unshakeable springboard for life.`;
 
-    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern interpersonal maturity, character formation, academic discipline, and emotional poise during your youth. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period encourage steering clear of premature distractions and dedicating focused energy toward foundational life preparation, scholarly distinction, and conscious self-mastery. Favorable planetary configurations protect your emotional compass, steering you toward noble mentors and inspiring peers.`;
+    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern interpersonal and emotional maturity, character formation, academic discipline, and emotional poise during your youth. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period encourage steering clear of premature distractions and dedicating focused energy toward foundational life preparation, scholarly distinction, and conscious self-mastery. Favorable planetary configurations protect your emotional compass, steering you toward noble mentors and inspiring peers.`;
     const p2 = `Developing mutual understanding, respect for elders, and choosing noble, inspiring friendships forms the bedrock of your personal growth under this placement. Influenced by ${h7Lord}, maintaining emotional boundaries and channeling youthful vitality into academic and extracurricular mastery builds an unshakeable relationship with your own higher purpose. Discernment in social circles shields your peace of mind from peer pressure and superficial trends, allowing your authentic talents and leadership qualities to blossom naturally.`;
     const p3 = `Channeling this vibrant phase into scholastic brilliance, technical mastery, and creative or athletic disciplines creates an enduring foundation for lifelong fulfillment. The subtle lessons of the 7th house during youth are designed to cultivate emotional patience, reciprocal empathy, and steadfast integrity—the very attributes that will later blossom into a harmonious matrimonial and professional life. Holding firm to high ethical standards and disciplined study habits ensures that you emerge as a respected pillar of capability and character.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasKalatraDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Adult Native (22 to 59 Years): Unmarried, Married, General
@@ -564,11 +585,13 @@ export function buildDynamicMarriageFallback(
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಶಾಂತಿ ಪರಿಹಾರ】 ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ, ಕುಜ ಗ್ರಹ ಅಥವಾ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವದಿಂದಾಗಿ ಕಲ್ಯಾಣ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬ, ಮಾತುಕತೆಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು ಅಥವಾ ಆಂತರಿಕ ಗೊಂದಲಗಳು ಎದುರಾಗುವ ಕರ್ಮಿಕ ಪ್ರವೃತ್ತಿಯಿದೆ. ಕುಜ ದೋಷ ಹಾಗೂ ಕಳತ್ರ ಭಾವದ ಒತ್ತಡವನ್ನು ಪರಿಹರಿಸಲು ವೈದಿಕ ಶಾಂತಿ ಕರ್ಮಗಳು ಅತ್ಯಂತ ಪರಿಣಾಮಕಾರಿಯಾಗಿವೆ. ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಅಷ್ಟೋತ್ತರ ಹಾಗೂ 'ಓಂ ಶ್ರೀಂ ಗೌರ್ಯೈ ನಮಃ' ಮಂತ್ರವನ್ನು 108 ಬಾರಿ ಜಪಿಸುವುದು ವಿವಾಹ ಯೋಗಕ್ಕೆ ಇರುವ ವಿಘ್ನಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ. ಪ್ರತಿ ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಗೆ ಅಭಿಷೇಕ ಹಾಗೂ ಶುಕ್ರವಾರ ಗೌರಿ ಪೂಜೆ ನೆರವೇರಿಸುವುದು ಮಂಗಲ ತರಂಗಗಳನ್ನು ಆಕರ್ಷಿಸುತ್ತದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ಕಲ್ಯಾಣ ಸೇವೆ ಮತ್ತು ಕ್ಷೀರಾಭಿಷೇಕ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ವಿಳಂಬಗಳು ಪರಿಹಾರವಾಗಿ ಶೀಘ್ರ ಕಲ್ಯಾಣ ಭಾಗ್ಯ ಲಭಿಸಲಿದೆ.`
         : `【ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಕವಚ & ದೈವಿಕ ಅನುಗ್ರಹ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಸಪ್ತಮ ಭಾವ ಹಾಗೂ ಕಳತ್ರ ಕಾರಕ ಗ್ರಹಗಳ ಮೇಲೆ ಯಾವುದೇ ಕುಜ ದೋಷವಾಗಲಿ ಅಥವಾ ಕಳತ್ರ ದೋಷವಾಗಲಿ ಇಲ್ಲದಿರುವುದು ಕಲ್ಯಾಣ ಸಿದ್ಧಿಗೆ ಅತ್ಯಂತ ಶುಭ ಶಕುನವಾಗಿದೆ. ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ವೈವಾಹಿಕ ಜೀವನದ ಬಗ್ಗೆ ಸ್ಪಷ್ಟತೆ, ಪ್ರಬುದ್ಧ ಕಲ್ಪನೆ ಹಾಗೂ ಕುಟುಂಬ ಮೌಲ್ಯಗಳ ಬಗೆಗೆ ಆಳವಾದ ಗೌರವವಿದೆ. ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ಸಂಪೂರ್ಣವಾಗಿ ಹೊಂದಿಕೊಳ್ಳುವ, ಸದ್ಗುಣ ಸಂಪನ್ನ ಹಾಗೂ ಸಂಸ್ಕಾರಯುತ ಸಂಗಾತಿಯು ಸಕಾಲದಲ್ಲಿ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಪ್ರವೇಶಿಸಲಿದ್ದಾರೆ. ಮಾತುಕತೆಗಳಲ್ಲಿ ಅನಗತ್ಯ ಆತಂಕಗಳಿಗೆ ಒಳಗಾಗದೆ, ಪರಸ್ಪರ ಅಭಿರುಚಿ ಮತ್ತು ಜೀವನದ ಗುರಿಗಳನ್ನು ಮುಕ್ತವಾಗಿ ಹಂಚಿಕೊಳ್ಳುವ ಮೂಲಕ ದಾಂಪತ್ಯದ ಭದ್ರ ಬುನಾದಿಯನ್ನು ನಿರ್ಮಿಸಲು ಈ ಕಾಲಘಟ್ಟವು ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾಗಿದೆ.`;
 
-      const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, 7ನೇ ಮನೆಯಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ವೈವಾಹಿಕ ಯೋಗದ ಕರ್ಮಿಕ ಸಂರಚನೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. 7ನೇ ಮನೆಯ ಮೇಲೆ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯನ್ನು ಒದಗಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ವಿವಾಹದ ಮಾತುಕತೆಗಳಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿ ಗ್ರಹಗಳ ಅನುಗ್ರಹವು ಈ ಹಿಂದೆ ಎದುರಾಗಿದ್ದ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸಿ, ಕಂಕಣ ಭಾಗ್ಯದ ಸನಿಹಕ್ಕೆ ತರಲಿದೆ.`;
+      const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, 7ನೇ ಮನೆಯಾದ ${h7Sign} ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿಯಾದ ${h7Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಕಲ್ಯಾಣ ಸಿದ್ಧಿ ಹಾಗೂ ವೈವಾಹಿಕ ಯೋಗದ ಕರ್ಮಿಕ ಸಂರಚನೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. 7ನೇ ಮನೆಯ ಮೇಲೆ ಗ್ರಹಗಳ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯನ್ನು ಒದಗಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ವಿವಾಹದ ಮಾತುಕತೆಗಳಿಗೆ ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿ ಗ್ರಹಗಳ ಅನುಗ್ರಹವು ಈ ಹಿಂದೆ ಎದುರಾಗಿದ್ದ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸಿ, ಕಂಕಣ ಭಾಗ್ಯದ ಸನಿಹಕ್ಕೆ ತರಲಿದೆ.`;
       const p2 = `ನಿಮಗೆ ಒದಗಿಬರುವ ಜೀವನ ಸಂಗಾತಿಯು ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವಕ್ಕೆ ಅನುಗುಣವಾಗಿ ${spouseArchetype} ಗುಣಲಕ್ಷಣಗಳನ್ನು ಹೊಂದಿದ್ದು, ಉನ್ನತ ನೈತಿಕ ಮೌಲ್ಯ ಹಾಗೂ ಕುಟುಂಬ ಪ್ರೇಮವನ್ನು ಹೊಂದಿರುತ್ತಾರೆ. ಕಾರಕ ಗ್ರಹವಾದ ${karakaName} ಗ್ರಹದ ಶುಭ ಸ್ಥಿತಿಯು ದಾಂಪತ್ಯದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಸಾಮರಸ್ಯ ಹಾಗೂ ಪರಸ್ಪರ ಗೌರವವನ್ನು ಖಾತರಿಪಡಿಸುತ್ತದೆ. ಸಪ್ತಮ ಭಾವದ ದಿಶಾ ಬಲದ ಪ್ರಕಾರ, ನಿಮ್ಮ ಜನ್ಮಸ್ಥಳದಿಂದ ${dirName} ದಿಕ್ಕಿನಿಂದ ಯೋಗ್ಯ ಹಾಗೂ ಸಂಸ್ಕಾರಯುತ ವಿವಾಹ ಸಂಬಂಧಗಳು ಕೂಡಿಬರುವ ಅತ್ಯುತ್ತಮ ಯೋಗವಿದೆ. ಜೀವನ ಸಂಗಾತಿಯ ಪ್ರವೇಶದಿಂದ ನಿಮ್ಮ ಬದುಕಿನಲ್ಲಿ ಸುಖ, ಶಾಂತಿ ಮತ್ತು ಸೌಭಾಗ್ಯದ ವೃದ್ಧಿಯಾಗಲಿದೆ.`;
       const p3 = `ವಿವಾಹದ ಪ್ರಸ್ತಾವನೆಗಳನ್ನು ಪರಿಶೀಲಿಸುವಾಗ ಬಾಹ್ಯ ಆಕರ್ಷಣೆಗಳಿಗಿಂತ ಹೆಚ್ಚಾಗಿ ಪರಸ್ಪರ ಹೊಂದಾಣಿಕೆ, ಜೀವನದ ಆದರ್ಶಗಳು ಹಾಗೂ ಕುಟುಂಬದ ಮೌಲ್ಯಗಳಿಗೆ ಪ್ರಮುಖ ಆದ್ಯತೆ ನೀಡುವುದು ಶ್ರೇಯಸ್ಕರವಾಗಿದೆ. ಸಪ್ತಮ ಭಾವದ ಶಕ್ತಿಯು ನಿಮ್ಮಲ್ಲಿ ಭಾವನಾತ್ಮಕ ಪ್ರಬುದ್ಧತೆ ಹಾಗೂ ಮುಕ್ತ ಸಂಭಾಷಣೆಯ ಕೌಶಲ್ಯವನ್ನು ಬೆಳೆಸುತ್ತದೆ. ಸಂಗಾತಿಯೊಂದಿಗೆ ಮುಕ್ತವಾಗಿ ಅಭಿಪ್ರಾಯಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳುವುದು, ನೈತಿಕ ನಿಷ್ಠೆ ಹಾಗೂ ದಾಂಪತ್ಯದ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಸಮರ್ಥವಾಗಿ ನಿಭಾಯಿಸುವ ಸಿದ್ಧತೆಯು ಸುಖೀ ಸಂಸಾರಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯಾಗಿದೆ. ಕೌಟುಂಬಿಕ ಗೌರವವನ್ನು ಎತ್ತಿಹಿಡಿಯುವ ಉತ್ತಮ ಸಂಬಂಧವು ಸಕಾಲದಲ್ಲಿ ಕೂಡಿಬರಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = (chart.isManglik || chart.hasKalatraDosha)
@@ -579,7 +602,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `आपके भावी जीवनसाथी में सप्तमेश ${h7Lord} के अनुसार ${spouseArchetype} के विशिष्ट गुण परिलक्षित होंगे। वे उच्च नैतिक मूल्य, बौद्धिक परिपक्वता तथा उत्तरदायित्व की गहरी भावना से युक्त होंगे। कारक ग्रह ${karakaName} की शुभ स्थिति दांपत्य में परस्पर आत्मीयता एवं सुख-शांति को सुनिश्चित करती है। सप्तम भाव के दिशा बल नियमानुसार, आपके जन्मस्थान से ${dirName} दिशा से अत्यंत योग्य एवं प्रतिष्ठित विवाह प्रस्ताव प्राप्त होने के प्रबल योग हैं। जीवनसाथी के आगमन से आपके जीवन में स्थिरता और सौभाग्य का विस्तार होगा।`;
       const p3 = `विवाह प्रस्तावों के चयन में बाह्य आकर्षणों की अपेक्षा परस्पर वैचारिक सामंजस्य, जीवन मूल्यों और पारिवारिक पृष्ठभूमि को प्राथमिकता देना श्रेयस्कर रहेगा। सप्तम भाव का प्रभाव आपके भीतर भावनात्मक परिपक्वता तथा स्पष्ट संवाद की क्षमता को संबल प्रदान करता है। भावी जीवनसाथी के साथ जीवन के लक्ष्यों और अपेक्षाओं पर पारदर्शी विमर्श एक स्थायी दांपत्य की मजबूत आधारशिला रखता है। पारिवारिक मर्यादाओं का सम्मान करते हुए शांत चित्त से निर्णय लेना आपके दांपत्य को दीर्घकालिक आनंद प्रदान करेगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = (chart.isManglik || chart.hasKalatraDosha)
@@ -590,7 +615,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `మీకు లభించే జీవిత భాగస్వామి సప్తమాధిపతి ${h7Lord} ప్రభావంతో ${spouseArchetype} కలిగి, ఉన్నతమైన వ్యక్తిత్వం మరియు బాధ్యతాయుతమైన ప్రవర్తనతో ఉంటారు. కారక గ్రహమైన ${karakaName} స్థితి మీ ఇద్దరి మధ్య పరస్పర అవగాహన మరియు విశ్వాసాన్ని పెంపొందిస్తుంది. సప్తమ భావ దిశా బలం ప్రకారం, మీ జన్మస్థలం నుండి ${dirName} దిశ నుండి యోగ్యమైన మరియు సౌభాగ్యవంతమైన వివాహ సంబంధాలు వచ్చే బలమైన అవకాశాలు ఉన్నాయి. జీవిత భాగస్వామి రాకతో మీ జీవితంలో సుఖశాంతులు వెల్లివిరుస్తాయి.`;
       const p3 = `వివాహ సంబంధాల ఎంపికలో బాహ్య ఆకర్షణల కంటే పరస్పర ఆలోచనా విధానం, సంస్కారం మరియు కుటుంబ విలువలకే ప్రాధాన్యత ఇవ్వడం శ్రేయస్కరం. సప్తమ భావ శక్తి మీలో భావోద్వేగ పరిపక్వతను మరియు స్పష్టమైన సంభాషణను పెంపొందిస్తుంది. కాబోయే భాగస్వామితో జీవన లక్ష్యాలను మరియు ఆశయాలను స్వేచ్ఛగా పంచుకోవడం సుఖమయ దాంపత్యానికి బలమైన పునాది వేస్తుంది. కుటుంబ గౌరవాన్ని నిలబెట్టే చక్కని సంబంధం సకాలంలో కుదురుతుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = (chart.isManglik || chart.hasKalatraDosha)
@@ -601,17 +628,21 @@ export function buildDynamicMarriageFallback(
       const p2 = `உங்களுக்கு வரவிருக்கும் வாழ்க்கைத் துணை 7-ம் அதிபதி ${h7Lord} அருளால் ${spouseArchetype} குணங்களுடன், சிறந்த குடும்பப் பின்னணி கொண்டவராக இருப்பார். காரக கிரகமான ${karakaName} அமைப்பு இருவரிடையே ஆழ்ந்த அன்பையும் புரிதலையும் உருவாக்கும். உங்கள் பிறந்த இடத்திலிருந்து ${dirName} திசையிலிருந்து தகுந்த வரன் வர அதிக வாய்ப்புள்ளது. வாழ்க்கைத் துணையின் வரவு உங்கள் வாழ்வில் அமைதியையும் நல்வாழ்வையும் கொண்டு சேர்க்கும்.`;
       const p3 = `வரன் தேர்ந்தெடுக்கும் போது வெளித்தோற்றத்தை விட குணநலன்கள், வாழ்க்கை லட்சியங்கள் மற்றும் குடும்பப் பண்புகளுக்கு முன்னுரிமை அளிப்பது சிறந்தது. 7-ம் பாவத்தின் அமைப்பு உங்களிடம் முதிர்ந்த சிந்தனையையும் வெளிப்படையான உரையாடல் ஆற்றலையும் வளர்க்கிறது. எதிர்கால துணைவருடன் குடும்ப எதிர்பார்ப்புகளை மனம் திறந்து விவாதிப்பது நிலையான இல்லற வாழ்விற்கு வலிமையான அடித்தளமாகும். பெரியோர்களின் ஆசியுடன் தகுந்த நல்ல வரன் உரிய காலத்தில் கூடிவரும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = (chart.isManglik || chart.hasKalatraDosha)
       ? `【Dosha Analysis & Remedial Shanti】 Astrological analysis reveals that Mars or Kalatra Dosha influences touching the 7th house (${h7Sign}) may have induced intermittent delays, sudden cancellations, or mismatched expectations in past alliance negotiations. To dissolve this energetic friction and align with your auspicious Kuja status, reciting the Subramanya Ashtakam alongside prayers to Goddess Gauri ('Om Shreem Gauryai Namah') 108 times at sunrise pacifies karmic friction effectively. Sponsoring a dedicated Subramanya Kalyana seva and milk abhishekam at Sri Kshetra Gokarna Mahabaleshwara cleanses matrimonial hurdles, accelerating auspicious alliance finalization.`
       : `【Benefic Planetary Shield & Divine Grace】 With your 7th house and Venus completely free from any Kuja Dosha or Kalatra afflictions, your chart carries an unobstructed celestial path toward timely matrimonial fruition. You approach the prospect of marriage with grounded emotional maturity, clarity of expectations, and a profound respect for family traditions. The cosmic alignment ensures that you will attract a companion of noble pedigree and compatible temperament who mirrors your ethical values. Moving forward in alliance deliberations with transparent communication and inner calm lays the bedrock for lasting domestic happiness.`;
 
-    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern your foundational marriage prospects and timing of matrimonial fruition. The dignified placement of the 7th house creates a harmonious ground for domestic stability and emotional maturity. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period activate strong matrimonial potentials, while the ongoing transits of Jupiter and Saturn dissolve past hesitations, steering alliance proposals toward swift and joyous fruition.`;
+    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th lord ${h7Lord} situated in ${h7Where} govern your foundational marriage prospects and timing of Matrimonial Fruition. The dignified placement of the 7th house creates a harmonious ground for domestic stability and emotional maturity. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period activate strong matrimonial potentials, while the ongoing transits of Jupiter and Saturn dissolve past hesitations, steering alliance proposals toward swift and joyous fruition.`;
     const p2 = `Your destined life partner will embody distinct ${spouseArchetype} characteristics influenced by ${h7Lord}, exhibiting mature discernment, noble cultural values, and an enduring sense of household responsibility. The auspicious placement of ${karakaName} as relationship Karaka guarantees emotional tenderness, reciprocal honor, and enduring loyalty. Furthermore, the directional strength of your 7th house strongly aligns marriage proposals arriving from the ${dirName} direction relative to your birthplace, ushering in auspicious familial expansion.`;
     const p3 = `Approaching alliance deliberations with transparent emotional maturity, mutual respect, and realistic household expectations forms the cornerstone of lasting marital bliss. Influenced by ${h7Lord}, prioritizing shared philosophical outlook, family heritage, and intellectual parity over superficial criteria ensures an enduring companionship. Engaging in thoughtful dialogue before finalizing commitments allows both families to unite with genuine confidence and shared joy.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   if (status === "married") {
@@ -631,14 +662,18 @@ export function buildDynamicMarriageFallback(
         const p2 = `ಸಂತಾನ ನಿರೀಕ್ಷೆಯ ಈ ಸೂಕ್ಷ್ಮ ಹಂತದಲ್ಲಿ ಹೊರಗಿನ ಸಮಾಜದ ಮಾತುಗಳಿಗೆ ಕಿವಿಗೊಡದೆ, ನಿಮ್ಮ ಸಂಗಾತಿಯೊಂದಿಗೆ ಪರಸ್ಪರ ಪ್ರೀತಿ, ತಿಳುವಳಿಕೆ ಹಾಗೂ ವಿಶ್ವಾಸದಿಂದ ಒಂದಾಗಿರುವುದು ಅತ್ಯಂತ ಮುಖ್ಯವಾಗಿದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಇಬ್ಬರೂ ಜೊತೆಯಾಗಿ ಸಮಾಲೋಚಿಸುವುದು ನಿಮ್ಮ ಬಾಂಧವ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ. ಯಾವುದೇ ಬಾಹ್ಯ ಒತ್ತಡಗಳು ನಿಮ್ಮ ನಡುವಿನ ಸಾಮರಸ್ಯವನ್ನು ಭಂಗಗೊಳಿಸದಂತೆ ಜಾಗರೂಕರಾಗಿರುವುದು ದಾಂಪತ್ಯದ ರಕ್ಷಣಾ ಕವಚವಾಗಿದೆ.`;
         const p3 = `ದಾಂಪತ್ಯದಲ್ಲಿ ಆಂತರಿಕ ನೆಮ್ಮದಿ ಮತ್ತು ಪರಸ್ಪರ ಸಾಂತ್ವನವೇ ಪರಮ ಶಕ್ತಿಯಾಗಿದೆ. ಇಬ್ಬರೂ ಒಟ್ಟಾಗಿ ಮನೆಯ ಆರ್ಥಿಕ ಮತ್ತು ಕೌಟುಂಬಿಕ ಯೋಜನೆಗಳನ್ನು ರೂಪಿಸುವುದು ಹಾಗೂ ನಿತ್ಯ ಜೀವನದ ಸಣ್ಣಪುಟ್ಟ ಸಂತೋಷಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳುವುದು ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ. ನಿಮ್ಮಿಬ್ಬರ ನಡುವಿನ ಪ್ರಬುದ್ಧ ಸಂಭಾಷಣೆ ಹಾಗೂ ತಾಳ್ಮೆಯು ಈ ಹಂತವನ್ನು ಅತ್ಯಂತ ಧೈರ್ಯದಿಂದ ಮತ್ತು ಪ್ರೀತಿಯಿಂದ ಮುನ್ನಡೆಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ. ಈ ಪರಸ್ಪರ ಗೌರವವೇ ನಿಮ್ಮ ಸಂಸಾರದ ನಿಜವಾದ ಸೌಭಾಗ್ಯವಾಗಿದೆ.`;
 
-        return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+        const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+        return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
       }
 
       const p1 = `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord} ಗ್ರಹವು ನಿಮ್ಮ ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಆಳವಾದ ಪ್ರೀತಿ, ಪರಸ್ಪರ ರಕ್ಷಣೆ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${femaleMangalyaKn}ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯು ಸಂಸಾರದಲ್ಲಿ ನೈತಿಕ ಹೊಣೆಗಾರಿಕೆಗಳನ್ನು ಒಟ್ಟಾಗಿ ನಿರ್ವಹಿಸಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ. ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಸದಾ ಸುಖ, ಶಾಂತಿ ಹಾಗೂ ಸಮೃದ್ಧಿಯ ವಾತಾವರಣವನ್ನು ಕಾಪಾಡಲಿದೆ.`;
       const p2 = `ದಾಂಪತ್ಯದಲ್ಲಿ ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಗೌರವ ಹಾಗೂ ಮುಕ್ತ ಸಂಭಾಷಣೆಯು ನಿಮ್ಮ ಯಶಸ್ಸಿಗೆ ಮುಖ್ಯ ಆಧಾರಸ್ತಂಭಗಳಾಗಿವೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವದಿಂದಾಗಿ, ಕೌಟುಂಬಿಕ ಪ್ರಗತಿ ಮತ್ತು ಆರ್ಥಿಕ ಹೂಡಿಕೆಗಳ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಂಗಾತಿಯ ವಿವೇಕಯುತ ಸಲಹೆಗಳನ್ನು ಗೌರವಿಸುವುದು ಅದ್ಭುತ ಫಲಗಳನ್ನು ತರಲಿದೆ. ಜಂಟಿ ನಿರ್ಧಾರಗಳು ಮನೆಯಲ್ಲಿ ಸ್ಥಿರತೆ ಹಾಗೂ ಆರ್ಥಿಕ ಭದ್ರತೆಯನ್ನು ಖಾತರಿಪಡಿಸುತ್ತವೆ.`;
       const p3 = `ದೈನಂದಿನ ಜೀವನದ ಒತ್ತಡಗಳನ್ನು ಮನೆಗೆ ತರದೆ, ಸಂಸಾರದಲ್ಲಿ ಸದಾ ಪ್ರೀತಿ, ನಗು ಮತ್ತು ಪರಸ್ಪರ ಸಹಕಾರದ ವಾತಾವರಣವನ್ನು ನಿರ್ಮಿಸುವುದು ಗೃಹಸ್ಥ ಧರ್ಮದ ಸಾರ್ಥಕತೆಯಾಗಿದೆ. ಸಪ್ತಮ ಭಾವದ ಅನುಗ್ರಹವು ಸಂಗಾತಿಯ ನಡುವೆ ಅಪಾರ ಹೊಂದಾಣಿಕೆಯನ್ನು ಕಾಪಾಡಲು ನೆರವಾಗುತ್ತದೆ. ಪರಸ್ಪರರ ಭಾವನೆಗಳಿಗೆ ಸೂಕ್ತ ಗೌರವ ನೀಡುವುದು ಮತ್ತು ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಸಮಾಧಾನದಿಂದ ಬಗೆಹರಿಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿಯನ್ನು ದಿನದಿಂದ ದಿನಕ್ಕೆ ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const locName = getLocalizedDevoteeName(chart.name, "hi");
@@ -656,14 +691,18 @@ export function buildDynamicMarriageFallback(
         const p2 = `संतान की प्रतीक्षा के इस संवेदनशील दौर में सामाजिक प्रश्नों से विचलित हुए बिना, पति-पत्नी का एक अटूट स्तंभ बनकर साथ चलना तथा परस्पर समझ और विश्वास बनाए रखना अत्यंत आवश्यक है। सप्तमेश ${h7Lord} के प्रभाव से, वित्तीय योजनाओं और घरेलू निर्णयों में जीवनसाथी के विचारों को महत्व देना गृहस्थी को सुरक्षित और समृद्ध बनाएगा।`;
         const p3 = `दांपत्य में आंतरिक संबल और परस्पर भावनात्मक संवेदनशीलता ही सच्चा बल है। एक-दूसरे की मानसिक स्थिति का आदर करना, छोटी-छोटी खुशियों को मिलकर साझा करना और भविष्य की योजनाओं पर सकारात्मक दृष्टिकोण रखना घर के वातावरण को शांत और सुखद बनाए रखता है। आप दोनों का यह दृढ़ सहयोग जीवन के हर मोड़ पर संबल प्रदान करेगा।`;
 
-        return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+        const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+        return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
       }
 
       const p1 = `${salutation}आपकी जन्म लग्न (${chart.lagnaSignName}) एवं चंद्र राशि (${chart.moonSignName}) के अनुसार, सप्तमेश ${h7Lord} की स्थिति दांपत्य जीवन में प्रगाढ़ विश्वास, समर्पण और स्थायी सामंजस्य को पुष्ट करती है। ${femaleMangalyaHi}वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति का प्रभाव पारिवारिक उत्तरदायित्वों को गरिमापूर्ण ढंग से निभाने में सहायक सिद्ध होगा।`;
       const p2 = `दांपत्य जीवन में परस्पर समझ, सम्मान और एक-दूसरे की भावनाओं का आदर ही सच्चा बल है। सप्तमेश ${h7Lord} के प्रभाव से, महत्वपूर्ण घरेलू निर्णयों में जीवनसाथी के परामर्श को प्राथमिकता देना गृहस्थी को समृद्ध बनाएगा। आपसी तालमेल से लिए गए निर्णय परिवार में स्थायी शांति और प्रगति का मार्ग प्रशस्त करते हैं।`;
       const p3 = `दैनिक जीवन की व्यस्तताओं के मध्य एक-दूसरे के लिए समय निकालना और संवाद की निरंतरता बनाए रखना दांपत्य में नवीन ऊर्जा का संचार करता है। छोटी-मोटी असहमति को शांतिपूर्वक सुलझाना और एक-दूसरे के व्यक्तित्व का सम्मान करना परिवार के सौहार्द को चिरस्थायी बनाता है। सप्तम भाव की यह ऊर्जा आपके गृहस्थ जीवन को आनंदित रखेगी।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const locName = getLocalizedDevoteeName(chart.name, "te");
@@ -678,14 +717,18 @@ export function buildDynamicMarriageFallback(
         const p2 = `సంతానం కోసం ఎదురుచూసే ఈ సమయంలో బయటి వారి మాటలను పట్టించుకోకుండా ఇద్దరూ ఒకరికొకరు అండగా నిలవడం మరియు పరస్పర అవగాహన కలిగి ఉండటం ముఖ్యం. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన సంయుక్త నిర్ణయాలు కుటుంబానికి మేలు చేస్తాయి. ఒకరి మనోభావాలను మరొకరు గౌరవించుకోవడం సంబంధాన్ని బలోపేతం చేస్తుంది.`;
         const p3 = `దాంపత్యంలో మానసిక ప్రశాంతత మరియు పరస్పర ఆదరణ అత్యంత ప్రధానమైనవి. ఆర్థిక మరియు కుటుంబ విషయాలలో ఇద్దరూ కలిసి చర్చించి అడుగులు వేయడం ద్వారా కుటుంబంలో స్థిరత్వం ఏర్పడుతుంది. ఒకరికొకరు ధైర్యం చెప్పుకుంటూ సహనంతో ముందుకు సాగడం మీ వైవాహిక బంధాన్ని మరింత మధురంగా తీర్చిదిద్దుతుంది.`;
 
-        return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+        const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+        return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
       }
 
       const p1 = `${salutation}మీ జన్మ లగ్నం (${chart.lagnaSignName}) మరియు చంద్ర రాశి (${chart.moonSignName}) ప్రకారం, 7వ అధిపతి ${h7Lord} గ్రహం దాంపత్యంలో ప్రగాఢ విశ్వాసాన్ని, ఆప్యాయతను మరియు స్థిరత్వాన్ని సూచిస్తుంది. ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం కుటుంబ బాధ్యతలను విజయవంతంగా నిర్వహించడానికి సహాయపడుతుంది.`;
       const p2 = `దాంపత్యంలో పరస్పర అవగాహన, గౌరవం విజయానికి పునాదులు. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన కుటుంబ నిర్ణయాల్లో భాగస్వామి సలహాలను పాటించడం గొప్ప ఫలితాలను ఇస్తుంది. ఇద్దరి ఆలోచనలు కలసికట్టుగా సాగడం వలన కుటుంబంలో సుఖశాంతులు వర్ధిల్లుతాయి.`;
       const p3 = `రోజువారీ జీవితంలో ఎదురయ్యే చిన్నపాటి ఒడిదుడుకులను సంయమనంతో ఎదుర్కొని, గృహంలో ఆనందకరమైన వాతావరణాన్ని కాపాడుకోవడం గృహస్థు యొక్క ధర్మం. సప్తమ భావ అనుగ్రహం మీ ఇద్దరి మధ్య ప్రేమానురాగాలను సదా పచ్చగా ఉంచుతుంది. పరస్పర సహకారం కుటుంబ ఉన్నతికి బాటలు వేస్తుంది.`;
 
-        return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+        const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+        return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const locName = getLocalizedDevoteeName(chart.name, "ta");
@@ -700,14 +743,18 @@ export function buildDynamicMarriageFallback(
         const p2 = `குழந்தைச் செல்வம் எதிர்பார்த்திருக்கும் இக்காலகட்டத்தில், இருவரும் பரஸ்பர புரிதலுடன் ஒருவருக்கொருவர் துணையாக விளங்குவது அவசியம். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் இருவரும் இணைந்து எடுக்கும் முடிவுகள் எதிர்காலத்தை வளமாக்கும். வெளி மனிதர்களின் கருத்துக்களுக்கு இடம் தராமல் ஒற்றுமையாய் இருப்பது மிக நன்று.`;
         const p3 = `இல்லற வாழ்வில் மன அமைதியும் ஒருவருக்கொருவர் தரும் ஆதரவுமே மிகப்பெரிய பலமாகும். தினசரி வாழ்வின் மகிழ்ச்சிகளைப் பகிர்ந்துகொண்டு, நம்பிக்கையுடன் கூடிய எதிர்காலத் திட்டங்களை முன்னெடுப்பது குடும்பத்திற்கு நன்மையளிக்கும். உங்கள் பரஸ்பர அன்பு மற்றும் பொறுமை இல்லறத்தை எப்போதும் பாதுகாக்கும்.`;
 
-        return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+        const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+        return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
       }
 
       const p1 = `${salutation}உங்கள் ஜென்ம லக்னம் (${chart.lagnaSignName}) மற்றும் சந்திர ராசி (${chart.moonSignName}) அடிப்படையில், 7-ம் அதிபதி ${h7Lord} அமைப்பு இல்லற வாழ்வில் ஆழ்ந்த பாசம், அர்ப்பணிப்பு மற்றும் நிலைத்தன்மையை உறுதி செய்கிறது. தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி குடும்பப் பொறுப்புகளை நல்ல முறையில் நிர்வகிக்க உதவும்.`;
       const p2 = `இல்லற வாழ்வில் பரஸ்பர புரிதல், மரியாதை மற்றும் சுமுகமான உறவு வெற்றிக்கான மூலமந்திரமாகும். 7-ம் அதிபதி ${h7Lord} அருளால், குடும்ப மற்றும் நிதி திட்டங்களில் வாழ்க்கைத்துணையின் ஆலோசனையை ஏற்பது செல்வத்தையும் புகழையும் பெருக்கும். கூட்டாக எடுக்கும் முடிவுகள் குடும்பத்தில் நிம்மதியைத் தரும்.`;
       const p3 = `தினசரி பணிகளுக்கு நடுவே குடும்பத்தினருடன் மனம் திறந்து பேசுவதும், பரஸ்பர மரியாதையைக் கடைப்பிடிப்பதும் இல்லற அமைதியை நீடிக்கச் செய்யும். சிறு கருத்து வேறுபாடுகளையும் பொறுமையுடன் பேசித் தீர்ப்பது இல்லற மாண்பை உயர்த்தும். 7-ம் பாவத்தின் சுப பலம் உங்கள் வாழ்வை மகிழ்ச்சியாக வைத்திருக்கும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const salutation = chart.name ? `Dear ${chart.name}, ` : "";
     const femaleNuanceEn = chart.gender === "Female"
@@ -723,14 +770,18 @@ export function buildDynamicMarriageFallback(
       const p2 = `In this tender chapter of waiting for progeny, your spouse stands as your greatest confidant, emotional anchor, and steadfast life companion. Mutual understanding, reassurance, empathetic listening, and protecting each other from outside societal or familial questions about children are essential. Reflecting the qualities of ${h7Lord}, uniting as an unwavering team and transparently communicating ensures that emotional pressure dissolves, creating a calm, joyful household atmosphere.`;
       const p3 = `Nurturing joint creative pursuits, peaceful domestic routines, and collaborative financial milestones enriches your bond during this phase. Viewing your union as a sacred emotional sanctuary deepens psychological security, allowing both of you to navigate delays with serene resilience. When mutual honor and gentle affection guide daily interactions, the planetary foundation ensures an unbreakable matrimonial fortress.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
 
     const p1 = `${salutation}Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 7th house (${h7Sign}) and 7th house lord ${h7Lord} placed in ${h7Where} alongside your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti fosters enduring trust, emotional warmth, and domestic stability in your married life.${femaleNuanceEn}`;
     const p2 = `Cultivating deep mutual understanding, respectful communication, and empathy forms the true bedrock of your marital journey. Reflecting the qualities of ${h7Lord}, involving your spouse in pivotal household, financial, and life decisions directly accelerates family prosperity and harmony. Collaborative planning generates constructive milestones for long-term investments and family wellbeing.`;
     const p3 = `Preserving daily domestic warmth and resolving routine differences through empathetic humor and mutual respect creates an inspiring home atmosphere. Actively honoring each other's individual aspirations while nurturing common familial goals deepens emotional intimacy. The benefic aura of your 7th house ensures that your partnership matures into an enduring source of mutual pride and fulfillment.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   } else {
     // general
     if (baseLang === "kn") {
@@ -742,7 +793,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ, ಪ್ರಾಮಾಣಿಕ ಮಾತುಕತೆ ಹಾಗೂ ನೈತಿಕ ಮೌಲ್ಯಗಳ ರಕ್ಷಣೆಯು ಎಲ್ಲಾ ಒಡನಾಟಗಳಲ್ಲಿ ಶಾಶ್ವತ ವಿಶ್ವಾಸವನ್ನು ನೀಡುತ್ತದೆ. ಸಪ್ತಮಾಧಿಪತಿ ${h7Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸಂಯಮ ಹಾಗೂ ದಾರ್ಶನಿಕ ದೃಷ್ಟಿಯನ್ನು ತುಂಬಲಿದೆ. ಸಹೋದ್ಯೋಗಿಗಳು ಮತ್ತು ಆಪ್ತರೊಂದಿಗೆ ಪಾರದರ್ಶಕತೆ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಗೌರವವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.`;
       const p3 = `ವ್ಯವಹಾರಿಕ ಹಾಗೂ ಸಾಮಾಜಿಕ ಪಾಲುದಾರಿಕೆಗಳಲ್ಲಿ ಸಮಚಿತ್ತತೆಯನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುವುದು ದೀರ್ಘಕಾಲೀನ ಪ್ರಗತಿಗೆ ಕಾರಣವಾಗುತ್ತದೆ. ಇತರರ ದೃಷ್ಟಿಕೋನವನ್ನು ಗೌರವಿಸಿ ಸಮಾಲೋಚನೆ ನಡೆಸುವುದು ಯಾವುದೇ ವಿವಾದಗಳನ್ನು ಆರಂಭದಲ್ಲಿಯೇ ಶಮನಗೊಳಿಸುತ್ತದೆ. ಈ ನೈತಿಕ ಬದ್ಧತೆಯು ನಿಮ್ಮ ಎಲ್ಲಾ ಒಡನಾಟಗಳಲ್ಲಿ ಶಾಶ್ವತ ಸಾಮರಸ್ಯವನ್ನು ಉಂಟುಮಾಡಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = (chart.isManglik || chart.hasKalatraDosha)
@@ -753,7 +806,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `पारस्परिक समझ, स्पष्ट संवाद और नैतिक सिद्धांतों का पालन हर संबंध को स्थायी और विश्वसनीय बनाता है। सप्तमेश ${h7Lord} का प्रभाव आपके व्यवहार में गरिमा और धैर्य का संचार करेगा। मित्रों एवं सहयोगियों के साथ मर्यादापूर्ण आचरण बनाए रखना आपके सामाजिक यश को बढ़ाएगा।`;
       const p3 = `व्यावहारिक लेन-देन और संयुक्त दायित्वों में निष्पक्ष दृष्टिकोण बनाए रखना दीर्घकालिक सौहार्द की कुंजी है। किसी भी विवाद में दोनों पक्षों के दृष्टिकोण को समझकर निर्णय लेने की आपकी शैली विश्वास का वातावरण तैयार करती है। यह संतुलन आपके व्यक्तिगत और सामाजिक जीवन को सुखी बनाएगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = (chart.isManglik || chart.hasKalatraDosha)
@@ -764,7 +819,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `పరస్పర అవగాహన, స్పష్టమైన సంభాషణ మరియు నైతిక విలువల పరిరక్షణ సంబంధాలను దృఢపరుస్తాయి. సప్తమాధిపతి ${h7Lord} అనుగ్రహం వలన మీ ఆలోచనల్లో సహనం మరియు వివేకం పెరుగుతాయి. ఇతరులతో పారదర్శకంగా వ్యవహరించడం వల్ల మీ గౌరవం పెరుగుతుంది.`;
       const p3 = `సామాజిక మరియు వృత్తిపరమైన సంబంధాలలో స్థిరమైన సమతుల్యతను పాటించడం వల్ల దీర్ఘకాలిక ప్రయోజనాలు కలుగుతాయి. వివాదాలను ప్రశాంతంగా పరిష్కరించుకునే మీ స్వభావం కుటుంబంలోనూ, సమాజంలోనూ మీ పట్ల సద్భావాన్ని పెంపొందిస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = (chart.isManglik || chart.hasKalatraDosha)
@@ -775,7 +832,9 @@ export function buildDynamicMarriageFallback(
       const p2 = `பரஸ்பர புரிதல், நேர்மையான உரையாடல் மற்றும் நன்னெறிகள் உறவுகளை வலுப்படுத்தும். 7-ம் அதிபதி ${h7Lord} அருளால் அமைதியும் நல்லிணக்கமும் உண்டாகும். மற்றவர்களுடன் வெளிப்படையாகப் பழகுவது உங்கள் நற்பெயரைக் காக்கும்.`;
       const p3 = `சமூக உறவுகளிலும் தொழில் கூட்டாண்மைகளிலும் பொறுமையைக் கடைப்பிடிப்பது நீண்டகால வெற்றிக்கு வழிவகுக்கும். கருத்து வேறுபாடுகளை அன்போடும் அமைதியோடும் அணுகுவது எப்போதும் நல்லுறவை நிலைநிறுத்தும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = (chart.isManglik || chart.hasKalatraDosha)
       ? `【Dosha Analysis & Remedial Shanti】 Astrological analysis indicates subtle planetary friction or Kalatra afflictions influencing the 7th house of partnerships, which may occasionally generate misunderstandings, contractual hesitations, or delayed agreements. Pacifying these subtle planetary vibrations through regular recitation of the sacred Ishta Devata mantra and lighting a pure cow-ghee lamp on Fridays maintains emotional equilibrium. Sponsoring an archana at Sri Kshetra Gokarna Mahabaleshwara cleanses residual karmic hurdles, anchoring mutual trust, harmony, and lasting goodwill into your interpersonal sphere.`
@@ -785,7 +844,9 @@ export function buildDynamicMarriageFallback(
     const p2 = `Transparent communication, shared ethical values, and mutual honoring of personal boundaries remain the bedrock of successful relationships under this configuration. Developing emotional patience and open-hearted empathy across all social and domestic partnerships ensures enduring interpersonal harmony and mutual goodwill.`;
     const p3 = `Approaching disagreements with mature equanimity rather than reactive stubbornness transforms potential conflicts into deeper understanding. Valuing long-term trust over short-term pride establishes an aura of dependability that inspires loyalty and affection from associates, family, and peers alike.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.isManglik || chart.hasKalatraDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 }
 
@@ -816,7 +877,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮೊಮ್ಮಕ್ಕಳ ಮಂದಹಾಸ, ಕೌಟುಂಬಿಕ ಒಡನಾಟ ಹಾಗೂ ವಂಶದ ಮುನ್ನಡೆಯೇ ಪರಮ ಆನಂದವಾಗಿದೆ. ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ದೈವಿಕ ಬಲವು ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಸುಸಂಸ್ಕೃತ ನೈತಿಕ ಪರಂಪರೆ, ಧಾರ್ಮಿಕ ಆಚಾರ-ವಿಚಾರಗಳನ್ನು ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಯಶಸ್ವಿಯಾಗಿ ವರ್ಗಾಯಿಸಿದೆ. ಮಕ್ಕಳು ಮತ್ತು ಮೊಮ್ಮಕ್ಕಳು ನೀಡುವ ಪ್ರೀತಿ, ಗೌರವ ಹಾಗೂ ಅವರ ಶ್ರೇಯಸ್ಸು ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಅಪಾರ ತೃಪ್ತಿಯನ್ನು ನೀಡಲಿದೆ. ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳನ್ನು ಸಮಾಧಾನಚಿತ್ತದಿಂದ ನಿಭಾಯಿಸಿ, ಹಿರಿಯರಾಗಿ ಸದಾ ಸೌಹಾರ್ದತೆಯ ಆಶೀರ್ವಾದ ನೀಡುವುದು ಕುಟುಂಬದ ಕೀರ್ತಿಯನ್ನು ಸಮಾಜದಲ್ಲಿ ಸದಾ ಉತ್ತುಂಗದಲ್ಲಿರಿಸುತ್ತದೆ.`;
       const p3 = `ಮುಂದಿನ ಪೀಳಿಗೆಯ ಭವಿಷ್ಯವನ್ನು ಸಕಾರಾತ್ಮಕವಾಗಿ ರೂಪಿಸುವಲ್ಲಿ ನಿಮ್ಮ ಜೀವಮಾನದ ಅನುಭವದ ಮಾತುಗಳು ದಾರಿದೀಪವಾಗಿವೆ. ಮಕ್ಕಳಿಗೆ ತಮ್ಮ ಕರ್ತವ್ಯಗಳನ್ನು ನಿಭಾಯಿಸಲು ಸಂಪೂರ್ಣ ಸ್ವಾತಂತ್ರ್ಯ ನೀಡುತ್ತಾ, ಅಗತ್ಯವಿದ್ದಾಗ ಪ್ರೀತಿಯಿಂದ ಮಾರ್ಗದರ್ಶನ ಮಾಡುವುದು ಕುಟುಂಬದಲ್ಲಿ ಅನ್ಯೋನ್ಯತೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ. ಪಂಚಮ ಭಾವದ ಶುಭ ಕಂಪನಗಳು ನಿಮ್ಮ ವಂಶಪರಂಪರೆಯನ್ನು ಧರ್ಮ, ಸತ್ಯ ಮತ್ತು ಯಶಸ್ಸಿನ ಹಾದಿಯಲ್ಲಿ ಚಿರಸ್ಥಾಯಿಯಾಗಿ ಮುನ್ನಡೆಸಲಿವೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasSantanaDosha
@@ -827,7 +890,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `इस स्वर्णिम पड़ाव में परिवार का सान्निध्य, संतानों का आदर और भावी पीढ़ी को सनातन संस्कारों से जोड़ना ही जीवन की सबसे बड़ी उपलब्धि है। पंचमेश ${h5Lord} का शुभ प्रभाव आपके कुल में उच्च नैतिक मूल्यों और परस्पर स्नेह को अक्षुण्ण बनाए रखेगा। संतानों की प्रगति देखकर आपके मन में जो संतोष उत्पन्न होता है, वही वृद्धावस्था का सच्चा अमृत है। परिवार के प्रति आपकी शुभकामनाएं और आशीर्वाद आने वाली पीढ़ियों के लिए एक सुरक्षा कवच के समान कार्य करते हैं।`;
       const p3 = `आने वाली पीढ़ी को अपने अनुभवों से मार्गदर्शन देना और उनके स्वतंत्र विकास को सहर्ष स्वीकार करना पारिवारिक सौहार्द को बढ़ाता है। पंचम भाव की सात्विक ऊर्जा आपके घर-परिवार में प्रसन्नता, सद्भाव और उत्सव का वातावरण बनाए रखेगी। आपका यह गरिमामय जीवन कुल के लिए एक अनुपम प्रेरणास्रोत बना रहेगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasSantanaDosha
@@ -838,7 +903,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `హీనియర్ వయస్సులో మనవలు, మనవరాళ్లతో గడపడం మరియు వంశ ప్రగతిని చూడటమే పరమానందం. పంచమాధిపతి ${h5Lord} అనుగ్రహం వలన మీ కుటుంబంలో సదా ఆనందం, గౌరవ మర్యాదలు వెల్లివిరుస్తాయి. పిల్లలు చూపించే ప్రేమాభిమానాలు మీ మనస్సుకు ప్రశాంతతను కలిగిస్తాయి. కుటుంబ సభ్యులకు మీ ఆశీస్సులు రక్షణగా నిలుస్తాయి.`;
       const p3 = `మీ జీవితానుభవంతో కూడిన హితవచనాలు భావి తరాల ఉన్నతికి మార్గదర్శకాలుగా నిలుస్తాయి. పిల్లల నిర్ణయాలను గౌరవిస్తూ వారి బాధ్యతలను నిర్వర్తించేలా ప్రోత్సహించడం కుటుంబంలో శాంతిని నెలకొల్పుతుంది. 5వ ఇంటి అనుగ్రహం మీ వంశ పరంపరను ఎల్లప్పుడూ ధర్మమార్గంలో నడిపిస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasSantanaDosha
@@ -849,17 +916,21 @@ export function buildDynamicChildrenFallback(
       const p2 = `பேரன், பேத்திகளுடன் அன்போடு நேரம் செலவழிப்பதும், அவர்களின் நல்வாழ்விற்கு ஆசி வழங்குவதும் அளப்பரிய மன அமைதியைத் தரும். 5-ம் அதிபதி ${h5Lord} அருளால் குடும்பத்தில் ஒற்றுமையும் மகிழ்ச்சியும் நீடிக்கும். பிள்ளைகள் காட்டும் பாசமும் மரியாதையும் உங்கள் வாழ்வை நிறைவாக்கும். உங்கள் ஆசிகள் எப்போதும் குடும்பத்தைப் பாதுகாக்கும்.`;
       const p3 = `உங்கள் வாழ்க்கை அனுபவங்கள் இளைய தலைமுறையினருக்கு சிறந்த வழிகாட்டியாக அமையும். குடும்பத்தில் அன்பையும் சுதந்திரமான சிந்தனையையும் வளர்ப்பது நல்லிணக்கத்தை உண்டாக்கும். 5-ம் பாவகத்தின் சுப கதிர்வீச்சுகள் உங்கள் வம்சத்தை பெருமையோடு தழைக்கச் செய்யும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasSantanaDosha
       ? `【Dosha Analysis & Remedial Shanti】 For complete lineage protection, sustained family health, and the continuous prosperity of upcoming generations, devotional recitation of Sri Santana Gopala Stotram and Lord Ganesha invocations at home are deeply auspicious. Sponsoring a lineage-enhancement sankalpa puja and sacred milk abhishekam at the sanctum of Sri Kshetra Gokarna Mahabaleshwara dissolves residual ancestral strains, enveloping your children and grandchildren in an unbroken aura of celestial blessings, good health, and worldly honor.`
       : `【Benefic Planetary Shield & Divine Grace】 Your 5th house and Jupiter are completely free from Santana Dosha or malefic impediments, standing as a crowning planetary jewel in your elder life. Watching your children thrive as ethical, self-reliant, and highly respected professionals in society is your life's greatest triumph. The bubbling laughter, educational milestones, and affectionate embraces of your grandchildren bring a youthful spring to your retirement years. Having rooted your lineage in solid dharma, your elder years are suffused with contentment and domestic pride.`;
 
-    const p1 = `Based on your 5th house (${h5Sign}) and 5th lord ${h5Lord} placed in ${h5Where}, along with supportive aspects from Jupiter (Putrakaraka) situated in ${jupWhere}, your chart confirms the rich fulfillment of familial continuity, filial devotion, and the joyous flourishing of your lineage in this senior phase. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period illuminate a graceful chapter where you witness your children establish their own professional honor and familial stability with immense dignity.`;
-    const p2 = `In these mature years, the affectionate warmth of grandchildren, shared family celebrations, and the transmission of ancestral wisdom form the deepest wellspring of spiritual joy. The auspicious disposition of 5th lord ${h5Lord} ensures that your ethical principles and cultural values are living legacies carried forward by your progeny. Embracing their growing independence while offering gentle, non-intrusive counsel strengthens the intergenerational bridge.`;
+    const p1 = `Based on your 5th house (${h5Sign}) and 5th lord ${h5Lord} placed in ${h5Where}, along with supportive aspects from Jupiter (Putrakaraka) situated in ${jupWhere}, your chart confirms the rich fulfillment of familial continuity, filial devotion, and the joyous flourishing of your family lineage in this senior phase. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period illuminate a graceful chapter where you witness your children establish their own professional honor and familial stability with immense dignity.`;
+    const p2 = `In these mature years, the affectionate warmth of grandchildren (Poutra-Poutri ananda), shared family celebrations, and the transmission of ancestral wisdom form the deepest wellspring of spiritual joy. The auspicious disposition of 5th lord ${h5Lord} ensures that your ethical principles and cultural values are living legacies carried forward by your progeny. Embracing their growing independence while offering gentle, non-intrusive counsel strengthens the intergenerational bridge.`;
     const p3 = `Your life experience serves as an invaluable compass for younger family members as they navigate their own life decisions. Creating space for joyful family gatherings while preserving your own daily spiritual and contemplative routines anchors unbroken domestic serenity. The celestial blessings over your 5th house ensure that your household lineage continues to flourish with integrity, prosperity, and enduring honor.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasSantanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Youth & Students (Age < 22): Intellect, Learning, Creativity & Pure Character
@@ -869,11 +940,13 @@ export function buildDynamicChildrenFallback(
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಶಾಂತಿ ಪರಿಹಾರ】 ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವ ಅಥವಾ ಬುಧ-ಗುರು ಗ್ರಹಗಳ ಮೇಲೆ ಪಾಪಗ್ರಹಗಳ ಸೂಕ್ಷ್ಮ ದೃಷ್ಟಿಯಿಂದಾಗಿ ಅಧ್ಯಯನದಲ್ಲಿ ಏಕಾಗ್ರತೆಯ ಕೊರತೆ, ಮರೆಗುಳಿತನ ಅಥವಾ ಪರೀಕ್ಷಾ ಸಮಯದಲ್ಲಿ ಆತಂಕ ಎದುರಾಗಬಹುದು. ಈ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆಯನ್ನು ನಿವಾರಿಸಲು ನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಶ್ರೀ ಹಯಗ್ರೀವ ಸ್ತೋತ್ರ ಹಾಗೂ ಸರಸ್ವತೀ ದ್ವಾದಶನಾಮ ಸ್ತೋತ್ರ ಪಠಿಸುವುದು ಶ್ರೇಷ್ಠ. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತೀ ಅರ್ಚನೆ ಮಾಡಿಸುವುದರಿಂದ ಬುದ್ಧಿಶಕ್ತಿ ತೀಕ್ಷ್ಣವಾಗಿ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಉನ್ನತ ದರ್ಜೆ ಲಭಿಸಲಿದೆ.`
         : `【ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಕವಚ & ದೈವಿಕ ಅನುಗ್ರಹ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವವು ಅತ್ಯಂತ ಶುಭಪ್ರದವಾಗಿದ್ದು, ಯಾವುದೇ ಗ್ರಹದೋಷಗಳಿಲ್ಲದಿರುವುದು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಪ್ರತಿಭೆಗೆ ದೊರೆತ ದೈವಿಕ ಕೊಡುಗೆಯಾಗಿದೆ. ನಿಮ್ಮ ಗ್ರಹಣ ಶಕ್ತಿ, ಜ್ಞಾಪಕ ಶಕ್ತಿ ಹಾಗೂ ಕಲಾತ್ಮಕ ಆಸಕ್ತಿಗಳು ಸಮವಯಸ್ಕರಿಗಿಂತ ಅತ್ಯಂತ ಮುಂಚೂಣಿಯಲ್ಲಿವೆ. ನಿರಂತರ ಪರಿಶ್ರಮ ಹಾಗೂ ಗುರುಗಳ ಮೇಲಿನ ಭಕ್ತಿಯು ನಿಮ್ಮನ್ನು ಅತ್ಯುನ್ನತ ಶೈಕ್ಷಣಿಕ ಸಾಧನೆಯತ್ತ ಮುನ್ನಡೆಸಲಿದೆ. ಈ ಶುಭ ಯೋಗವು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಸೃಜನಶೀಲ ಆಲೋಚನೆಗಳನ್ನು ನಿರಂತರವಾಗಿ ಜಾಗೃತವಾಗಿರಿಸುತ್ತದೆ.`;
 
-      const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಬುದ್ಧಿ ಸ್ಥಾನವಾದ ಪಂಚಮ ಭಾವ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ನಿಮ್ಮ ವಿದ್ಯಾಭ್ಯಾಸ, ಗ್ರಹಣ ಶಕ್ತಿ, ಜ್ಞಾಪಕ ಬಲ ಹಾಗೂ ಸೃಜನಶೀಲ ಪ್ರತಿಭೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಸಾಧನೆ ಮಾಡಲು ಹಾಗೂ ಹೊಸ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯಲು ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾಗಿದೆ. ವಿದ್ಯಾಕಾರಕ ಬುಧ ಹಾಗೂ ಜ್ಞಾನಕಾರಕ ಗುರು ಗ್ರಹಗಳ ಬಲವು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಭವಿಷ್ಯವನ್ನು ಉಜ್ವಲಗೊಳಿಸಲಿದೆ.`;
+      const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಬುದ್ಧಿ ಸ್ಥಾನವಾದ ಪಂಚಮ ಭಾವ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹವು ನಿಮ್ಮ ಉನ್ನತ ಶಿಕ್ಷಣ, ಬುದ್ಧಿಶಕ್ತಿ, ವಿದ್ಯಾಭ್ಯಾಸ, ಗ್ರಹಣ ಶಕ್ತಿ, ಜ್ಞಾಪಕ ಬಲ ಹಾಗೂ ಸೃಜನಶೀಲ ಪ್ರತಿಭೆಯನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಸಾಧನೆ ಮಾಡಲು ಹಾಗೂ ಹೊಸ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯಲು ಅತ್ಯಂತ ಅನುಕೂಲಕರವಾಗಿದೆ. ವಿದ್ಯಾಕಾರಕ ಬುಧ ಹಾಗೂ ಜ್ಞಾನಕಾರಕ ಗುರು ಗ್ರಹಗಳ ಬಲವು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಭವಿಷ್ಯವನ್ನು ಉಜ್ವಲಗೊಳಿಸಲಿದೆ.`;
       const p2 = `ವಿದ್ಯಾರ್ಥಿ ಜೀವನದಲ್ಲಿ ಕಠಿಣ ಪರಿಶ್ರಮ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಸಮಯ ಪಾಲನೆಯು ಉನ್ನತ ಯಶಸ್ಸಿಗೆ ಮುಖ್ಯ ಹೆದ್ದಾರಿಯಾಗಿದೆ. ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ವೈಜ್ಞಾನಿಕ ಆಲೋಚನೆ, ಸಾಹಿತ್ಯಿಕ ಆಸಕ್ತಿ ಹಾಗೂ ನಾಯಕತ್ವದ ಗುಣಗಳನ್ನು ಬೆಳೆಸಲಿದೆ. ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಮುನ್ನಡೆಯಲು ದಿನನಿತ್ಯದ ಅಧ್ಯಯನದಲ್ಲಿ ಶಿಸ್ತನ್ನು ರೂಢಿಸಿಕೊಳ್ಳುವುದು ಅತ್ಯಗತ್ಯ. ಗುರು-ಹಿರಿಯರ ಆಶೀರ್ವಾದವು ನಿಮ್ಮ ಜ್ಞಾನಾರ್ಜನೆಯ ಹಾದಿಯನ್ನು ಸದಾ ಸುಗಮವಾಗಿಸುತ್ತದೆ.`;
       const p3 = `ಮಾನಸಿಕ ಒತ್ತಡಗಳಿಗೆ ಎಡೆಕೊಡದೆ, ಕ್ರೀಡೆ ಮತ್ತು ಸೃಜನಾತ್ಮಕ ಹವ್ಯಾಸಗಳಲ್ಲೂ ಸಮತೋಲನ ಕಾಯ್ದುಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಗ್ರಹಣ ಸಾಮರ್ಥ್ಯವನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸುತ್ತದೆ. ಪಂಚಮ ಭಾವದ ಶುಭ ಕಂಪನಗಳು ನಿಮ್ಮ ಯೋಚನೆಗಳಲ್ಲಿ ನಾವೀನ್ಯತೆಯನ್ನು ತುಂಬಿ, ಸಹಪಾಠಿಗಳಿಗಿಂತ ವಿಶಿಷ್ಟವಾಗಿ ಗುರುತಿಸಿಕೊಳ್ಳಲು ಪ್ರೇರೇಪಿಸುತ್ತವೆ. ನಿಮ್ಮ ಪ್ರತಿಭೆಯನ್ನು ಸಮಾಜಮುಖಿ ಕಾರ್ಯಗಳಿಗೂ ವಿನಿಯೋಗಿಸುವ ಉದಾತ್ತ ಮನೋಭಾವವು ನಿಮ್ಮಲ್ಲಿ ಈಗಿನಿಂದಲೇ ಮೊಳಕೆಯೊಡೆಯಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasSantanaDosha
@@ -884,7 +957,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `विद्यार्थी जीवन में अनुशासन, नियमित स्वाध्याय और सकारात्मक दृष्टिकोण ही सच्ची सफलता का मूलमंत्र है। पंचमेश ${h5Lord} के प्रभाव से आपमें विश्लेषणात्मक चिंतन और रचनात्मक प्रतिभा का विकास होगा। प्रतियोगी परीक्षाओं और शैक्षणिक प्रतियोगिताओं में पूरे आत्मविश्वास के साथ भाग लेना आपके भविष्य को नई ऊंचाई देगा। गुरुजनों का आदर और सतत प्रयास आपके ज्ञान को परिपक्व बनाएगा।`;
       const p3 = `अध्ययन के साथ-साथ बौद्धिक खेलों और सृजनात्मक गतिविधियों में भाग लेना आपके मानसिक स्वास्थ्य को सुदृढ़ करेगा। पंचम भाव का यह प्रभाव आपकी तर्कशक्ति को परिष्कृत कर आपको समवयस्कों के मध्य विशिष्ट पहचान दिलाएगा। अपने लक्ष्यों के प्रति निष्ठावान रहकर किया गया परिश्रम अवश्य ही उज्ज्वल भविष्य का निर्माण करेगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasSantanaDosha
@@ -895,7 +970,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `విద్యార్థి దశలో క్రమశిక్షణ, నిరంతర సాధన ఉన్నత విజయాలకు సోపానాలు. పంచమాధిపతి ${h5Lord} అనుగ్రహం వలన మీలో తార్కిక ఆలోచనలు మరియు సృజనాత్మకత పెరుగుతాయి. పరీక్షలను ఆత్మవిశ్వాసంతో ఎదుర్కొని మంచి మార్కులు సాధించడానికి ప్రణాళికాబద్ధమైన చదువు అవసరం. గురువుల మార్గదర్శకత్వం మీ ఉన్నతికి బాటలు వేస్తుంది.`;
       const p3 = `చదువుతో పాటు నైతిక విలువలను మరియు క్రీడలను అలవర్చుకోవడం పరిపూర్ణ వ్యక్తిత్వ వికాసానికి తోడ్పడుతుంది. 5వ భావ శుభ శక్తి మీ ఆలోచనల్లో చైతన్యాన్ని నింపి, సరికొత్త నైపుణ్యాలను సులభంగా నేర్చుకునేలా చేస్తుంది. మీ కృషి తప్పక సత్ఫలితాలను ఇస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasSantanaDosha
@@ -906,17 +983,21 @@ export function buildDynamicChildrenFallback(
       const p2 = `மாணவப் பருவத்தில் நேர மேலாண்மை மற்றும் முறையான பயிற்சி சிறந்த வெற்றிக்கு வழிவகுக்கும். 5-ம் அதிபதி ${h5Lord} அருளால் ஆக்கப்பூர்வமான சிந்தனையும் தலைமைப் பண்பும் வளரும். போட்டித் தேர்வுகளில் நம்பிக்கையோடு செயல்படுவது உங்கள் எதிர்கால அடித்தளத்தை வலுப்படுத்தும். பெரியோர்களின் ஆசி உங்கள் வெற்றியை உறுதி செய்யும்.`;
       const p3 = `படிப்புடன் சேர்த்து தனித்திறமைகளையும் விளையாட்டையும் வளர்த்துக் கொள்வது மன உறுதியை அதிகரிக்கும். 5-ம் பாவகத்தின் பலம் உங்கள் கற்றல் திறனை மேம்படுத்தி மற்றவர்களிடமிருந்து உங்களைத் தனித்துக் காட்டும். உங்கள் கடின உழைப்பு நல்ல எதிர்காலத்தை அமைத்துத் தரும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasSantanaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Subtle malefic or shadow planet influences touching the 5th house axis can occasionally manifest during student years as exam anxiety, fluctuating concentration, or temporary scholastic hesitation. To dissolve these energetic impediments, early morning recitation of Sri Hayagreeva Stotram and Medha Suktam instills diamond-hard mental focus and photographic recall. Sponsoring an archana at sanctums such as Sri Kshetra Gokarna Mahabaleshwara pacifies planetary friction, ensuring scholarly distinction, creative originality, and exam triumphs.`
       : `【Benefic Planetary Shield & Divine Grace】 Your 5th house of intellect, past-life merits (Purva Punya), and creative cognition radiates exceptional planetary purity. You possess an instinctual intellectual appetite, superior conceptual retention, and sharp problem-solving aptitude that effortlessly distinguish you in academic pursuits. Rather than relying on rote memorization, you grasp foundational principles rapidly and apply them with intuitive flair. Guided by inspiring mentors and ethical discernment, your scholastic trajectory is destined for remarkable distinctions and creative honors.`;
 
-    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 5th house (${h5Sign}) and 5th lord ${h5Lord} situated in ${h5Where} govern intellectual brilliance, analytical acuity, memory retention, and creative potential during your formative years. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period activate potent scholastic achievements, providing mental stamina and deep conceptual curiosity across all academic disciplines.`;
+    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 5th house (${h5Sign}) and 5th lord ${h5Lord} situated in ${h5Where} govern intellectual acumen, higher education, competitive examinations, analytical acuity, memory retention, and creative potential during your formative years. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period activate potent scholastic achievements, providing mental stamina and deep conceptual curiosity across all academic disciplines.`;
     const p2 = `Cultivating focused study rhythms, disciplined time management, and reverence for teachers forms the golden bridge to academic mastery. Influenced by ${h5Lord}, your analytical mind excels in competitive environments, scientific reasoning, and creative expression. Participating in debates, technical projects, or artistic endeavors sharpens your intellectual versatility, preparing you for higher academic honors.`;
     const p3 = `Balancing rigorous intellectual exertion with recreational mindfulness, outdoor sports, and artistic passions protects mental vitality from scholastic burnout. The harmonious aura of your 5th house inspires peer admiration and attracts compassionate guidance from seasoned educators. Channeling this cognitive vitality with humility and steadfast integrity ensures an illustrious academic foundation.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasSantanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Adult Native (22 to 59 Years): Seeking Progeny vs Has Children vs General
@@ -926,11 +1007,14 @@ export function buildDynamicChildrenFallback(
         ? `【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಶಾಂತಿ ಪರಿಹಾರ】 ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವ, ಗುರು ಗ್ರಹ ಅಥವಾ ಪಂಚಮಾಧಿಪತಿಯ ಮೇಲೆ ನಾಗ ದೋಷ ಅಥವಾ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವಿರುವುದರಿಂದ ಸಂತಾನ ಪ್ರಾಪ್ತಿಯಲ್ಲಿ ಸೂಕ್ಷ್ಮ ವಿಳಂಬ ಅಥವಾ ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು ಎದುರಾಗಬಹುದು. ಈ ಕರ್ಮಿಕ ಕ್ಲೇಶಗಳ ಪರಿಹಾರಕ್ಕಾಗಿ ನಿತ್ಯ ಮನೆಯಲ್ಲಿ 'ಓಂ ಕ್ಲೀಂ ಕೃಷ್ಣಾಯ ಗೋವಿಂದಾಯ ಗೋಪೀಜನವಲ್ಲಭಾಯ ಸ್ವಾಹಾ' (ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರ) 108 ಬಾರಿ ಜಪಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಾಗಬಲಿ, ಸಂತಾನ ಗೋಪಾಲ ಕಲ್ಪೋಕ್ತ ಸೇವೆ ಹಾಗೂ ರುದ್ರಾಭಿಷೇಕ ಸಮರ್ಪಿಸುವುದರಿಂದ ಸಕಲ ಗ್ರಹದೋಷಗಳು ನಿವಾರಣೆಯಾಗಿ ಶೀಘ್ರದಲ್ಲಿಯೇ ಸತ್ಸಂತಾನ ಭಾಗ್ಯ ಲಭಿಸಲಿದೆ.`
         : `【ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಕವಚ & ದೈವಿಕ ಅನುಗ್ರಹ】 ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮ ಭಾವ ಹಾಗೂ ಸಂತಾನ ಕಾರಕ ಬೃಹಸ್ಪತಿ ಗ್ರಹವು ಶುಭ ಸಂಚಾರದಲ್ಲಿದ್ದು, ಯಾವುದೇ ನಾಗ ದೋಷವಾಗಲಿ ಅಥವಾ ಸಂತಾನ ದೋಷವಾಗಲಿ ಇಲ್ಲದಿರುವುದು ವಂಶಾಭಿವೃದ್ಧಿಯ ಶುಭ ಸಂಕೇತವಾಗಿದೆ. ಪ್ರಸ್ತುತ ಗ್ರಹಗತಿಗಳು ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಮಗುವಿನ ಆಗಮನಕ್ಕೆ ಅನುಕೂಲಕರವಾದ ವಾತಾವರಣವನ್ನು ನಿರ್ಮಿಸುತ್ತಿವೆ. ದಂಪತಿಗಳಿಬ್ಬರೂ ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಆತಂಕಗಳಿಗೆ ಒಳಗಾಗದೆ, ಪರಸ್ಪರ ಪ್ರೀತಿ ಮತ್ತು ವಿಶ್ವಾಸದಿಂದ ಮುನ್ನಡೆಯುವುದು ಸಕಾಲದಲ್ಲಿ ಶುಭ ಫಲಗಳನ್ನು ನೀಡಲಿದೆ. ದೈವಿಕ ಅನುಗ್ರಹದಿಂದ ನಿಮ್ಮ ಗೃಹದಲ್ಲಿ ಶೀಘ್ರದಲ್ಲಿಯೇ ಮುದ್ದು ಕಂದನ ನಗುವಿನ ನಾದ ಮೊಳಗಲಿದೆ.`;
 
-      const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಂತಾನ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಸೌಭಾಗ್ಯದ ಸಾಮರ್ಥ್ಯವನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. ಸಂತಾನ ಕಾರಕನಾದ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ${jupWhere}ದಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದು ಸಂತಾನ ಭಾಗ್ಯಕ್ಕೆ ಅಗತ್ಯವಾದ ದೈವಿಕ ಬಲವನ್ನು ಒದಗಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸಂತಾನ ಅಪೇಕ್ಷಿಗಳಿಗೆ ಸಕಾರಾತ್ಮಕ ಅವಕಾಶಗಳನ್ನು ತೆರೆಯುವ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹಗಳ ಬಲವು ನೈಸರ್ಗಿಕ ಗರ್ಭಧಾರಣೆಯ ಯೋಗವನ್ನು ಪ್ರಬಲಗೊಳಿಸುತ್ತಿದೆ.`;
+      const devoteeSalutationKn = chart.name ? `${chart.name} ಅವರೇ, ` : "";
+      const p1 = `${devoteeSalutationKn}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${chart.lagnaSignName}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${chart.moonSignName}) ಆಧಾರದ ಮೇಲೆ, ಸಂತಾನ ಯೋಗ & ಕೌಟುಂಬಿಕ ನಿರೀಕ್ಷೆ, ಸಂತಾನ ಭಾವವಾದ ${h5Sign} ಹಾಗೂ ಪಂಚಮಾಧಿಪತಿಯಾದ ${h5Lord} ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ವಂಶಾಭಿವೃದ್ಧಿ ಹಾಗೂ ಸಂತಾನ ಸೌಭಾಗ್ಯದ ಸಾಮರ್ಥ್ಯವನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ. ಸಂತಾನ ಕಾರಕನಾದ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ${jupWhere}ದಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದು ಸಂತಾನ ಭಾಗ್ಯಕ್ಕೆ ಅಗತ್ಯವಾದ ದೈವಿಕ ಬಲವನ್ನು ಒದಗಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸಂತಾನ ಅಪೇಕ್ಷಿಗಳಿಗೆ ಸಕಾರಾತ್ಮಕ ಅವಕಾಶಗಳನ್ನು ತೆರೆಯುವ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹಗಳ ಬಲವು ನೈಸರ್ಗಿಕ ಗರ್ಭಧಾರಣೆಯ ಯೋಗವನ್ನು ಪ್ರಬಲಗೊಳಿಸುತ್ತಿದೆ.`;
       const p2 = `ಸಂತಾನ ನಿರೀಕ್ಷೆಯ ಈ ಹಂತದಲ್ಲಿ ದಂಪತಿಗಳಿಬ್ಬರೂ ಮಾನಸಿಕ ನೆಮ್ಮದಿ, ಪರಸ್ಪರ ಸಾಂತ್ವನ ಹಾಗೂ ದೈಹಿಕ ಆರೋಗ್ಯಕ್ಕೆ ಸಮಾನ ಆದ್ಯತೆ ನೀಡುವುದು ಅತ್ಯಂತ ಅವಶ್ಯಕವಾಗಿದೆ. ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ತಾಳ್ಮೆ ಹಾಗೂ ಧನಾತ್ಮಕ ಚಿಂತನೆಗಳನ್ನು ಬೇಡುತ್ತದೆ. ವೈದ್ಯಕೀಯ ಸಲಹೆಗಳ ಜೊತೆಗೆ ನಿಯಮಿತ ಜೀವನಶೈಲಿ, ಪೌಷ್ಟಿಕ ಆಹಾರ ಹಾಗೂ ಪ್ರಶಾಂತ ಮನಸ್ಥಿತಿಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಅತ್ಯುತ್ತಮ ಫಲಿತಾಂಶಗಳನ್ನು ನೀಡುತ್ತದೆ. ಸಾಮಾಜಿಕ ಪ್ರಶ್ನೆಗಳಿಗೆ ವಿಚಲಿತರಾಗದೆ, ಇಬ್ಬರೂ ಒಂದಾಗಿ ಆಶಾವಾದದಿಂದ ಮುನ್ನಡೆಯುವುದು ಗೃಹದಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ.`;
       const p3 = `ಕೌಟುಂಬಿಕ ಜೀವನದಲ್ಲಿ ಅತಿಯಾದ ಆತುರ ಅಥವಾ ಒತ್ತಡಕ್ಕೆ ಒಳಗಾಗದೆ, ಪ್ರಕೃತಿಯ ನಿಯಮಗಳ ಮೇಲೆ ವಿಶ್ವಾಸವಿಟ್ಟು ಸಾಗುವುದು ನಿಮ್ಮ ಆಂತರಿಕ ನೆಮ್ಮದಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ. ಪಂಚಮ ಭಾವದ ಶುಭ ಕಂಪನಗಳು ಗೃಹದಲ್ಲಿ ಶುಭ ವಾರ್ತೆಯ ಆಗಮನಕ್ಕೆ ಪೂರ್ವಭಾವಿ ರಂಗನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತಿವೆ. ಪರಸ್ಪರ ಗೌರವ, ನಿಷ್ಠೆ ಹಾಗೂ ದಾಂಪತ್ಯದ ಸಾಮರಸ್ಯವೇ ನಿಮ್ಮ ಸಂತಾನ ಯೋಗವನ್ನು ಪರಿಪೂರ್ಣವಾಗಿ ಫಲಪ್ರದಗೊಳಿಸುವ ನಿಜವಾದ ಶಕ್ತಿಯಾಗಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasSantanaDosha
@@ -941,7 +1025,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `संतान की प्रतीक्षा के इस महत्वपूर्ण दौर में पति-पत्नी का परस्पर भावनात्मक संबल और शांत मानसिक स्थिति अत्यंत आवश्यक है। पंचमेश ${h5Lord} का प्रभाव यह इंगित करता है कि किसी भी प्रकार की चिंता या हड़बड़ाहट से बचकर धैर्यपूर्वक आगे बढ़ना श्रेयस्कर है। चिकित्सीय परामर्श के साथ-साथ सात्विक जीवनशैली और संतुलित खानपान को अपनाना अत्यंत लाभकारी सिद्ध होगा। समाज की बातों से विचलित हुए बिना एक-दूसरे के प्रति समर्पित रहना सकारात्मक ऊर्जा का संचार करेगा।`;
       const p3 = `गृहस्थ जीवन में आशावादिता और आत्मिक शांति बनाए रखना संतान प्राप्ति की अनुकूलता को कई गुना बढ़ा देता है। पंचम भाव की सात्विक ऊर्जा आपके परिवार में नए सदस्य के स्वागत हेतु शुभ वातावरण तैयार कर रही है। आप दोनों का अटूट विश्वास और परस्पर प्रेम इस प्रतीक्षा को शीघ्र ही मातृत्व और पितृत्व के परम सुख में परिवर्तित करेगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasSantanaDosha
@@ -952,7 +1038,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `సంతానం కోసం ఎదురుచూసే సమయంలో దంపతులిద్దరూ మానసిక ప్రశాంతతను కాపాడుకోవడం మరియు ఒకరికొకరు అండగా నిలవడం ఎంతో ముఖ్యం. పంచమాధిపతి ${h5Lord} ప్రభావం సహనాన్ని మరియు సానుకూల దృక్పథాన్ని కోరుతోంది. ఆరోగ్యకరమైన జీవనశైలి మరియు వైద్యుల సలహాలను పాటించడం ఉత్తమ ఫలితాలను ఇస్తుంది. బాహ్య ఒత్తిళ్లను పట్టించుకోకుండా ఇద్దరూ ఒకే మాటపై నిలవడం కుటుంబంలో శాంతిని పెంచుతుంది.`;
       const p3 = `గృహంలో ఆనందకరమైన వాతావరణాన్ని కొనసాగించడం సంతాన ప్రాప్తికి ఎంతో తోడ్పడుతుంది. 5వ భావ శుభ తరంగాలు మీ ఇంట్లోకి కొత్త ప్రాణం ప్రవేశించడానికి అనువైన మార్గాన్ని సుగమం చేస్తున్నాయి. మీ పరస్పర విశ్వాసం మరియు సహనం త్వరలోనే శుభవార్తను తీసుకువస్తాయి.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasSantanaDosha
@@ -963,17 +1051,23 @@ export function buildDynamicChildrenFallback(
       const p2 = `குழந்தைப்பேறு எதிர்பார்த்திருக்கும் இத்தருணத்தில், தம்பதியர் இருவரும் மன அமைதியோடும் ஒருவருக்கொருவர் ஆதரவாகவும் இருப்பது மிக அவசியம். 5-ம் அதிபதி ${h5Lord} அமைப்பு அமைதியையும் நம்பிக்கையையும் வலியுறுத்துகிறது. மருத்துவ ஆலோசனைகளுடன் ஆரோக்கியமான உணவு முறைகளையும் கடைப்பிடிப்பது சிறந்த பலனைத் தரும். பிறரின் பேச்சுக்களுக்கு இடம் தராமல் தம்பதியர் இணைந்திருப்பது நல்ல ஆற்றலைத் தரும்.`;
       const p3 = `இல்லறத்தில் மகிழ்ச்சியான சூழலைப் பேணுவது நற்பலன்களை விரைவில் கொண்டு சேர்க்கும். 5-ம் பாவகத்தின் சுப கதிர்கள் உங்கள் இல்லத்தில் சுப நிகழ்வு நடைபெற வழிகாட்டுகின்றன. உங்கள் பரஸ்பர அன்பும் பொறுமையும் விரைவில் மழலைச் செல்வத்தை உங்கள் கைகளில் தவழச் செய்யும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasSantanaDosha
-      ? `【Dosha Analysis & Remedial Shanti】 Astrological analysis reveals that subtle Naga Dosha or malefic conjunctions affecting the 5th house (${h5Sign}) or Jupiter may have caused unexpected delays, conception stress, or emotional fatigue in your journey toward parenthood. To pacify these karmic knots, daily chanting of the Santana Gopala Mantra ('Om Kleem Krishnaya Govindaya Gopeejanavallabhaya Swaha') 108 times at sunrise cleanses subtle biological and energetic channels. Sponsoring a dedicated Naga Shanti, Santana Gopala Kalpokta puja, and milk abhishekam at Sri Kshetra Gokarna Mahabaleshwara dissolves ancestral impediments, blessing your home with the joyful arrival of noble progeny.`
+      ? `【Dosha Analysis & Remedial Shanti】 Astrological analysis reveals that subtle Naga Dosha or malefic conjunctions affecting the 5th house (${h5Sign}) or Jupiter may have caused unexpected delays, conception stress, or emotional fatigue in your journey toward parenthood. To pacify these karmic knots, daily chanting of the Santana Gopala Mantra ('Om Kleem Krishnaya Govindaya Gopeejanavallabhaya Swaha') 108 times at sunrise cleanses subtle biological and energetic channels, and Thursday Gau-seva (caring for mother cows) invokes immense divine grace. Sponsoring a dedicated Naga Shanti, Santana Gopala Kalpokta puja, and milk abhishekam at Sri Kshetra Gokarna Mahabaleshwara dissolves ancestral impediments, blessing your home with the joyful arrival of noble progeny.`
       : `【Benefic Planetary Shield & Divine Grace】 With your 5th house and Putrakaraka Jupiter completely untainted by any Naga Dosha or malefic affliction, the celestial architecture strongly favors the blessing of progeny in due course. The ongoing planetary transits of Jupiter and Venus are actively aligning fertile, auspicious biological and emotional conditions within your marriage. Rather than absorbing undue societal anxieties or unsolicited advice, retaining serenity, mutual humor, and compassionate trust within your relationship allows this divine blessing to manifest naturally and joyously.`;
 
-    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 5th house (${h5Sign}) and 5th lord ${h5Lord} situated in ${h5Where}, harmonized by Putrakaraka Jupiter situated in ${jupWhere}, govern your biological fertility, conception prospects, and the timing of progeny. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period illuminate an auspicious window for parenthood, while favorable transit alignments dissolve previous biological or emotional hurdles, creating fertile ground for familial expansion.`;
+    const devoteeSalutationEn = chart.name ? `Dear ${chart.name}, ` : "";
+    const h5LordSurya = h5.lordGraha === 'Sun' ? (h5Lord.includes('Surya') ? h5Lord : `${h5Lord} (Surya)`) : h5Lord;
+    const p1 = `${devoteeSalutationEn}Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 5th house (${h5Sign}) and 5th lord ${h5LordSurya} situated in ${h5Where}, harmonized by Putrakaraka Jupiter situated in ${jupWhere}, govern your Santana Yoga, biological fertility, conception prospects, Progeny Horizons & Family Expansion, and the timing of parenthood. Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period illuminate an auspicious window for parenthood, while favorable transit alignments dissolve previous biological or emotional hurdles, creating fertile ground for familial expansion.`;
     const p2 = `In this sensitive chapter of waiting for children, cultivating calm emotional equilibrium, mutual tenderness, and attentive physical wellness forms the most sacred preparation. Guided by ${h5Lord}, uniting with your spouse as an unbreakable team without blame or anxiety dissolves reproductive stress. Harmonizing modern medical counsel with wholesome lifestyle rhythms, mindful nutrition, and emotional solace ensures optimal cellular and psychological readiness for conception.`;
     const p3 = `Protecting your domestic sanctuary from outside queries and unsolicited opinions preserves peace of mind and strengthens marital solidarity. Viewing this waiting phase as an opportunity to deepen mutual devotion, creative harmony, and shared life vision aligns your emotional frequency with divine grace. The benefic planetary shield over your 5th house indicates that patience, serenity, and mutual love will soon culminate in the joyous laughter of a healthy child.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasSantanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   } else if (status === "has_children") {
     if (baseLang === "kn") {
       const para4Kn = chart.hasSantanaDosha
@@ -984,7 +1078,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `ಪೋಷಕರಾಗಿ ಮಕ್ಕಳಿಗೆ ಸಕಾರಾತ್ಮಕ ಪ್ರೋತ್ಸಾಹ ನೀಡುವುದು, ಅವರ ಆಸಕ್ತಿಗಳನ್ನು ಗೌರವಿಸುವುದು ಹಾಗೂ ಸ್ನೇಹಪೂರ್ವಕ ಸಂಭಾಷಣೆ ನಡೆಸುವುದು ಅವರಲ್ಲಿ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ. ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮ ಮಕ್ಕಳಿಗೆ ಉತ್ತಮ ಗ್ರಹಣ ಶಕ್ತಿ ಮತ್ತು ಸೃಜನಶೀಲತೆಯನ್ನು ನೀಡುತ್ತದೆ. ಪರೀಕ್ಷೆಗಳ ಸಮಯದಲ್ಲಿ ಅನಗತ್ಯ ಒತ್ತಡ ಹೇರದೆ, ಪ್ರೀತಿಯಿಂದ ಮಾರ್ಗದರ್ಶನ ಮಾಡುವುದು ಅತ್ಯುತ್ತಮ ಫಲಿತಾಂಶಗಳನ್ನು ತರಲಿದೆ.`;
       const p3 = `ಮಕ್ಕಳಲ್ಲಿ ನೈತಿಕ ಮೌಲ್ಯಗಳು, ಹಿರಿಯರ ಬಗೆಗಿನ ಭಕ್ತಿ ಹಾಗೂ ಸಮಾಜಮುಖಿ ಚಿಂತನೆಗಳನ್ನು ಬೆಳೆಸುವುದು ಅವರ ಭವಿಷ್ಯಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯಾಗಿದೆ. ದಿನನಿತ್ಯದ ಬದುಕಿನಲ್ಲಿ ಮಕ್ಕಳೊಂದಿಗೆ ಗುಣಮಟ್ಟದ ಸಮಯ ಕಳೆಯುವುದು ಕುಟುಂಬದ ಬಾಂಧವ್ಯವನ್ನು ಮತ್ತಷ್ಟು ಗಟ್ಟಿಗೊಳಿಸುತ್ತದೆ. ಪಂಚಮ ಭಾವದ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯು ನಿಮ್ಮ ಮಕ್ಕಳನ್ನು ಸಮಾಜದಲ್ಲಿ ಯಶಸ್ವಿ ಹಾಗೂ ಗೌರವಾನ್ವಿತ ಪ್ರಜೆಗಳನ್ನಾಗಿ ಬೆಳೆಸಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasSantanaDosha
@@ -995,7 +1091,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `माता-पिता के रूप में बच्चों को सकारात्मक प्रोत्साहन देना और उनके साथ मित्रवत संवाद स्थापित करना उनके आत्मविश्वास को कई गुना बढ़ा देता है। पंचमेश ${h5Lord} का प्रभाव संतानों में मौलिक सोच और कलात्मक प्रतिभा का विकास करेगा। उनकी रुचियों को समझकर उचित मार्गदर्शन देना उनके भविष्य को संवारेगा।`;
       const p3 = `संतानों में नैतिक मूल्यों, बड़ों के प्रति आदर और कर्तव्यनिष्ठा का बीजारोपण करना उनके स्थायी विकास की आधारशिला है। व्यस्त दिनचर्या में से बच्चों के साथ आत्मीय समय बिताना पारिवारिक संबंधों को और प्रगाढ़ बनाता है। पंचम भाव की सात्विक ऊर्जा आपके बच्चों को समाज में एक सफल और प्रतिष्ठित व्यक्ति के रूप में स्थापित करेगी।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasSantanaDosha
@@ -1006,7 +1104,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `తల్లిదండ్రులుగా పిల్లలను ప్రోత్సహించడం, వారి ఆలోచనలను అర్థం చేసుకోవడం వారి ఆత్మవిశ్వాసాన్ని పెంచుతుంది. పంచమాధిపతి ${h5Lord} ప్రభావం పిల్లల్లో సృజనాత్మకతను మరియు వివేకాన్ని పెంపొందిస్తుంది. చదువు విషయంలో ఒత్తిడి లేకుండా ప్రేమతో గైడ్ చేయడం మంచి ఫలితాలను ఇస్తుంది.`;
       const p3 = `పిల్లలకు మంచి సంస్కారాన్ని మరియు నైతిక విలువలను నేర్పించడం భవిష్యత్తుకు బలమైన పునాది. ప్రతిరోజూ పిల్లలతో కొంత సమయం గడపడం కుటుంబ బంధాన్ని మరింత దృఢం చేస్తుంది. 5వ భావ శుభ శక్తి మీ పిల్లలను ఉన్నత స్థానాలకు చేరుస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasSantanaDosha
@@ -1017,17 +1117,22 @@ export function buildDynamicChildrenFallback(
       const p2 = `குழந்தைகளுக்கு அன்பான ஆதரவை வழங்குவதும், அவர்களின் விருப்பங்களை மதிப்பதும் அவர்களின் தன்னம்பிக்கையை வளர்க்கும். 5-ம் அதிபதி ${h5Lord} அமைப்பு குழந்தைகளுக்கு நல்ல நினைவாற்றலையும் கிரகிக்கும் ஆற்றலையும் அளிக்கும். படிப்பில் அதிக அழுத்தம் தராமல் பொறுமையுடன் வழிகாட்டுவது நல்லது.`;
       const p3 = `குழந்தைகளுக்கு நல்லொழுக்கங்களையும் சமுதாயப் பொறுப்புகளையும் கற்றுக்கொடுப்பது குடும்பப் பெருமையை உயர்த்தும். தினசரி வாழ்வின் மகிழ்ச்சிகளை பிள்ளைகளுடன் பகிர்ந்துகொள்வது பாசத்தைப் பெருக்கும். 5-ம் பாவகத்தின் சுப சக்தி உங்கள் குழந்தைகளை உயர்ந்த நிலைக்குக் கொண்டு செல்லும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasSantanaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Subtle malefic aspects impacting the 5th house axis may occasionally reflect as childhood health sensitivities, fluctuating study concentration, or willful stubbornness during critical school phases. To neutralize these energetic frictions, morning recitations of Sri Ganapati Atharvashirsha and Gayatri Japa establish a protective spiritual mantle around your offspring. Sponsoring an archana or education-enhancement sankalpa at Sri Kshetra Gokarna Mahabaleshwara cleanses environmental negativity, ensuring vibrant pediatric wellness, emotional stability, and academic success for your children.`
       : `【Benefic Planetary Shield & Divine Grace】 Your 5th house and Jupiter are remarkably poised, bestowing radiant intellectual capability, emotional sweetness, and innate integrity upon your children. They carry a natural respect for family elders and reflect the noble values nurtured within your household. By encouraging their unique creative inclinations and refraining from rigid academic comparisons, you allow their innate brilliance to shine authentically. As they mature, their accomplishments in scholastic, professional, and cultural spheres will bring immense honor to your family name.`;
 
-    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 5th house (${h5Sign}) and 5th lord ${h5Lord} placed in ${h5Where} alongside Jupiter in ${jupWhere} govern your children's vital stamina, educational growth, moral character, and lifelong accomplishments. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster an inspiring home atmosphere where your children absorb wholesome family ethics, analytical curiosity, and emotional resilience.`;
+    const h5LordShani = h5.lordGraha === 'Saturn' ? (h5Lord.includes('Shani') ? h5Lord : `${h5Lord} (Shani)`) : h5Lord;
+    const p1 = `Based on your birth Lagna (${chart.lagnaSignName}) and Moon sign (${chart.moonSignName}), the 5th house (${h5Sign}) and 5th lord ${h5LordShani} placed in ${h5Where} alongside Jupiter in ${jupWhere} govern your children's vital stamina, educational growth, moral character, intellect, and lifelong accomplishments. Your current ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period foster an inspiring home atmosphere where your children absorb wholesome family ethics, analytical curiosity, and emotional resilience.`;
     const p2 = `Nurturing open, empathetic communication and recognizing each child's individual temperament forms the cornerstone of effective parenting under this configuration. Influenced by ${h5Lord}, your children demonstrate keen creative problem-solving and scholastic potential. Encouraging their scholastic and extracurricular pursuits with patient warmth rather than undue performance pressure builds unshakeable self-esteem and mutual trust.`;
     const p3 = `Instilling reverence for cultural heritage, compassionate citizenship, and ethical discipline provides your children with an unshakeable moral compass. Spending regular, undistracted quality time together strengthens family unity and dissolves adolescent anxieties. The benefic protective shield over your 5th house ensures that your children evolve into capable, distinguished, and devoted guardians of your family legacy.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasSantanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   } else {
     // general
     if (baseLang === "kn") {
@@ -1039,7 +1144,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `ಸೃಜನಶೀಲ ಕಾರ್ಯಗಳಲ್ಲಿ ತೊಡಗಿಸಿಕೊಳ್ಳುವುದು ಹಾಗೂ ಕಿರಿಯರಿಗೆ ಸನ್ಮಾರ್ಗದರ್ಶನ ನೀಡುವುದು ನಿಮ್ಮ ಅಂತರಂಗದ ತೃಪ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ. ಪಂಚಮಾಧಿಪತಿ ${h5Lord}ನ ಪ್ರಭಾವವು ನಿಮ್ಮಲ್ಲಿ ನಾಯಕತ್ವದ ಗುಣ ಹಾಗೂ ಸಮಾಜಮುಖಿ ಕಳಕಳಿಯನ್ನು ಬೆಳೆಸಲಿದೆ. ನೈತಿಕ ಮೌಲ್ಯಗಳ ಪರಿಪಾಲನೆಯು ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಗೌರವವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.`;
       const p3 = `ಜೀವನದಲ್ಲಿ ಸದಾ ಸಕಾರಾತ್ಮಕ ಆಲೋಚನೆಗಳನ್ನು ಇಟ್ಟುಕೊಂಡು, ಇತರರಿಗೆ ಪ್ರೇರಣೆಯಾಗುವಂತೆ ಬಾಳುವುದು ಪಂಚಮ ಭಾವದ ಶ್ರೇಷ್ಠ ಫಲವಾಗಿದೆ. ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ವಿವೇಕ ಮತ್ತು ದೂರದೃಷ್ಟಿಯು ಸದಾ ಜಾಗೃತವಾಗಿರಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasSantanaDosha
@@ -1050,7 +1157,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `सृजनात्मक कार्यों में रुचि लेना और भावी पीढ़ी को उचित मार्गदर्शन प्रदान करना आपके सामाजिक मान-सम्मान को बढ़ाएगा। पंचमेश ${h5Lord} का प्रभाव आपके विचारों में दूरदर्शिता और संतुलन का संचार करेगा। नैतिक सिद्धांतों का पालन आपके यश को चिरस्थायी बनाएगा।`;
       const p3 = `अपने जीवन के अनुभवों का सदुपयोग करते हुए समाज के कल्याण में योगदान देना आत्मिक शांति प्रदान करेगा। पंचम भाव की सात्विक ऊर्जा आपके व्यक्तित्व को प्रेरणादायी बनाए रखेगी।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasSantanaDosha
@@ -1061,7 +1170,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `సృజనాత్మక పనుల్లో పాల్గొనడం మరియు ఇతరులకు సహాయం చేయడం మానసిక ప్రశాంతతను ఇస్తుంది. పంచమాధిపతి ${h5Lord} అనుగ్రహం వలన మీలో విజ్ఞానం మరియు నాయకత్వ లక్షణాలు పెరుగుతాయి.`;
       const p3 = `జీవితంలో ఎల్లప్పుడూ ధర్మమార్గంలో నడవడం సమాజంలో మీ గౌరవాన్ని పెంపొందిస్తుంది. 5వ భావ శుభ శక్తి మీ ఆలోచనలకు స్థిరత్వాన్ని చేకూరుస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasSantanaDosha
@@ -1072,7 +1183,9 @@ export function buildDynamicChildrenFallback(
       const p2 = `நற்பணிகளில் ஈடுபடுவதும் இளைய தலைமுறையினருக்கு வழிகாட்டுவதும் மன அமைதியைத் தரும். 5-ம் அதிபதி ${h5Lord} அருளால் உங்கள் சிந்தனையில் முதிர்ச்சியும் தர்ம சிந்தனையும் மேலோங்கும்.`;
       const p3 = `வாழ்க்கையில் நன்னெறிகளைக் கடைப்பிடிப்பது எப்போதும் வெற்றியைத் தரும். 5-ம் பாவகத்தின் பலம் உங்கள் எதிர்காலத்தை பாதுகாப்பானதாக அமைக்கும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasSantanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasSantanaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Subtle malefic aspects impacting the 5th house axis can occasionally create intermittent delays or creative fatigue. Performing daily prayers to Lord Ganesha and lighting a pure ghee lamp at your household altar pacifies restless vibrations. Sponsoring an archana at Sri Kshetra Gokarna Mahabaleshwara cleanses residual karmic hurdles, anchoring creative clarity and lasting domestic harmony.`
@@ -1082,7 +1195,9 @@ export function buildDynamicChildrenFallback(
     const p2 = `Channeling mental acumen into constructive projects, mentorship, and ethical leadership brings deep personal fulfillment under this configuration. Influenced by ${h5Lord}, your capacity for philosophical insight and objective guidance commands natural respect from peers and associates alike. Upholding moral integrity in all undertakings ensures enduring social goodwill.`;
     const p3 = `Nurturing personal creative passions alongside professional commitments maintains vibrant emotional and mental equilibrium. The auspicious aura over your 5th house fosters long-term prosperity, inspiring you to act as a compassionate pillar of wisdom for your family and community.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasSantanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 }
 
@@ -1106,7 +1221,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
       const p2 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಪ್ರತಿಷ್ಠೆ ಹಾಗೂ ಗೌರವವನ್ನು ಇನ್ನಷ್ಟು ಹೆಚ್ಚಿಸಲಿದೆ. ಕೌಟುಂಬಿಕ ಹಾಗೂ ಸಾಮಾಜಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ನಿಮ್ಮ ಮಾರ್ಗದರ್ಶನಕ್ಕೆ ಪ್ರಮುಖ ಮನ್ನಣೆ ದೊರೆಯಲಿದೆ. ಸುದೀರ್ಘ ವೃತ್ತಿಜೀವನದ ಅನುಭವದಿಂದಾಗಿ ಕಿರಿಯರು ಹಾಗೂ ಆಪ್ತರು ಸಂಕೀರ್ಣ ಸನ್ನಿವೇಶಗಳಲ್ಲಿ ನಿಮ್ಮ ಸಲಹೆಯನ್ನು ಗೌರವದಿಂದ ಸ್ವೀಕರಿಸಲಿದ್ದಾರೆ. ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿಗಳಿಂದ ಮುಕ್ತವಾಗಿ ಸಮಾಜಕ್ಕೆ ಮೌಲ್ಯಯುತ ಕೊಡುಗೆ ನೀಡುವುದು ನಿಮ್ಮ ಘನತೆಯನ್ನು ಮತ್ತಷ್ಟು ಹೆಚ್ಚಿಸಲಿದೆ.`;
       const p3 = `ಜೀವನದ ಈ ಪ್ರಶಾಂತ ಹಂತದಲ್ಲಿ ಯಾವುದೇ ಅನಾವಶ್ಯಕ ವೃತ್ತಿಪರ ಪೈಪೋಟಿಗಳಿಂದ ದೂರವಿದ್ದು, ಮಾನಸಿಕ ನೆಮ್ಮದಿಗೆ ಪ್ರಥಮ ಆದ್ಯತೆ ನೀಡುವುದು ಶ್ರೇಷ್ಠ. ನಿಮ್ಮ ನಿಸ್ವಾರ್ಥ ಸೇವೆ ಹಾಗೂ ಪ್ರಾಮಾಣಿಕತೆಯ ಇತಿಹಾಸವು ಕುಟುಂಬದಲ್ಲಿ ಹಾಗೂ ಸಮಾಜದಲ್ಲಿ ಶಾಶ್ವತವಾದ ಗೌರವವನ್ನು ತಂದುಕೊಟ್ಟಿದೆ. ಆಧ್ಯಾತ್ಮಿಕ ಚಿಂತನೆ ಹಾಗೂ ಆಪ್ತರ ಒಡನಾಟದಲ್ಲಿ ಕಾಲ ಕಳೆಯುವುದು ನಿಮ್ಮ ಅಂತರಂಗಕ್ಕೆ ಅಪಾರ ಶಾಂತಿಯನ್ನು ತಂದುಕೊಡಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasKarmaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasKarmaDosha
@@ -1117,7 +1234,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
       const p2 = `वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में आपकी प्रतिष्ठा और सामाजिक आदर में निरंतर वृद्धि होगी। पारिवारिक और सामाजिक मामलों में आपके विचारों को सर्वोच्च प्राथमिकता दी जाएगी। अपने दीर्घकालिक व्यावसायिक अनुभव से आप युवा वर्ग को जीवन की जटिलताओं से पार पाने के लिए अत्यंत मूल्यवान मार्गदर्शन प्रदान करने में सक्षम हैं।`;
       const p3 = `जीवन के इस शांत और गरिमामयी पड़ाव पर किसी भी प्रकार की व्यावसायिक प्रतिस्पर्धा से मुक्त रहकर आत्मसंतोष का अनुभव करना सबसे बड़ी उपलब्धि है। आपकी निष्ठा और ईमानदारी का इतिहास आपके परिवार और समाज में चिरस्थायी प्रतिष्ठा का आधार बना रहेगा। सामाजिक कल्याण और पारिवारिक संवाद में समय बिताना आपके जीवन को आनंद और शांति से भर देगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasKarmaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasKarmaDosha
@@ -1128,7 +1247,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
       const p2 = `ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో సమాజంలో మీ గౌరవ మర్యాదలు మరింత పెరుగుతాయి. కుటుంబ సభ్యులు మరియు మిత్రులు కీలక నిర్ణయాల్లో మీ అమూల్యమైన సలహాలను కోరతారు. మీ అనుభవసారాన్ని నవతరానికి అందించడం ద్వారా సమాజ హితానికి తోడ్పడటం మీకు విశేష సంతృప్తిని కలిగిస్తుంది.`;
       const p3 = `ఉద్యోగ విధులను సంపూర్ణంగా పూర్తి చేసి ప్రశాంతమైన జీవనాన్ని గడపడం మీ ఆత్మగౌరవాన్ని రెట్టింపు చేస్తుంది. ఎలాంటి పోటీతత్వం లేని ఈ విశ్రాంత కాలంలో ప్రశాంతమైన ఆలోచనలతో ముందుకు సాగడం మంచిది. మీ జీవితకాల శ్రమ సమాజంలో శాశ్వతమైన కీర్తిని మరియు కుటుంబంలో ప్రేమానురాగాలను పెంపొందిస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasKarmaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasKarmaDosha
@@ -1139,7 +1260,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
       const p2 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் சமுதாயத்தில் உங்கள் நற்பெயரையும் செல்வாக்கையும் மேலும் உயர்த்தும். குடும்பத்திலும் வெளி வட்டாரத்திலும் முக்கிய முடிவுகளில் உங்கள் ஆலோசனைகள் மிகுந்த மரியாதையுடன் ஏற்றுக்கொள்ளப்படும். உங்களின் அனுபவ அறிவு அடுத்த தலைமுறையினருக்குச் சிறந்த வழிகாட்டியாக அமையும்.`;
       const p3 = `வாழ்நாளின் உழைப்பிற்குப் பின் அமைதியான மனநிறைவுடன் வாழ்வது மிக உன்னதமான பேறாகும். தேவையில்லாத கவலைகளைத் தவிர்த்து, குடும்பத்தினருடன் அன்போடு நேரத்தைச் செலவழிப்பது உங்கள் மனதிற்கு ஆழ்ந்த அமைதியையும் ஆனந்தத்தையும் தரும். உங்கள் நேர்மையான உழைப்பு உங்கள் பெயருக்கு என்றும் நிலைத்த புகழைத் தரும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasKarmaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasKarmaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Gentle astrological scrutiny reveals subtle Saturn or 10th house karmic residues that can occasionally induce feelings of under-appreciation or restless detachment during retirement years. Pacifying these subtle energetic ripples through regular recitation of the Dasharatha Shani Stotram on Saturdays and lighting a sesame oil lamp preserves enduring dignity and peace. Sponsoring a sacred Rudrabhishekam at Gokarna Mahabaleshwara Kshetra dissolves residual career karma, ensuring that your elder years radiate with uninterrupted honor, elder statesman authority, and profound inner fulfillment.`
@@ -1149,7 +1272,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
     const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period guide you away from high-stress commercial entanglements and toward meaningful consulting, charitable trust governance, and spiritual service. Younger professionals and family members look up to your time-tested discernment for strategic counsel and ethical direction. Your seasoned perspective provides invaluable clarity in resolving delicate disputes and guiding family institutions.`;
     const p3 = `Enjoying this dignified phase of emeritus leadership with serene self-reliance reflects the true fruition of your lifelong diligence. Relieved of executive pressures, your legacy is firmly anchored in the respect and loyalty you inspire among peers and successors. Cherishing wholesome interactions, reflective solitude, and generational harmony brings profound inner peace.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasKarmaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Youth & Students (Age < 22): Foundational Study, Academic Excellence & Competitive Exams
@@ -1163,7 +1288,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
       const p2 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು, ಪದವಿ ಶಿಕ್ಷಣ ಹಾಗೂ ವೃತ್ತಿಪರ ಕೋರ್ಸ್‌ಗಳಲ್ಲಿ ಅತ್ಯುತ್ತಮ ಸಾಧನೆ ಮಾಡಲು ಅತ್ಯಂತ ಪೂರಕವಾಗಿದೆ. ಅನಾವಶ್ಯಕ ಗೊಂದಲಗಳಿಗೆ ಕಿವಿಗೊಡದೆ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಸಂಪೂರ್ಣವಾಗಿ ತೊಡಗಿಸಿಕೊಳ್ಳುವುದು ಉಜ್ವಲ ಭವಿಷ್ಯವನ್ನು ಖಾತರಿಪಡಿಸಲಿದೆ. ನಿರಂತರ ಅಭ್ಯಾಸ ಹಾಗೂ ಶಿಕ್ಷಕರ ಮಾರ್ಗದರ್ಶನವು ನಿಮ್ಮ ಗುರಿಗಳನ್ನು ಸುಲಭವಾಗಿ ತಲುಪಲು ನೆರವಾಗಲಿದೆ.`;
       const p3 = `ವಿದ್ಯಾರ್ಥಿ ದೆಸೆಯಲ್ಲಿ ರೂಢಿಸಿಕೊಳ್ಳುವ ಸಮಯಪ್ರಜ್ಞೆ ಮತ್ತು ನೈತಿಕ ಶಿಸ್ತು ನಿಮ್ಮ ಮುಂದಿನ ವೃತ್ತಿಜೀವನಕ್ಕೆ ಭದ್ರ ಬುನಾದಿಯನ್ನು ನಿರ್ಮಿಸಲಿದೆ. ತಾಂತ್ರಿಕ ಜ್ಞಾನ ಮತ್ತು ಸಂವಹನ ಕೌಶಲ್ಯಗಳನ್ನು ಬಲಪಡಿಸಿಕೊಳ್ಳುವುದು ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ನಿಮಗೆ ವಿಶಿಷ್ಟ ಮುನ್ನಡೆ ಒದಗಿಸಲಿದೆ. ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಅಧ್ಯಯನ ಮುಂದುವರಿಸುವುದು ನಿಮ್ಮ ಯಶಸ್ಸನ್ನು ಖಚಿತಪಡಿಸುತ್ತದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasKarmaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasKarmaDosha
@@ -1174,7 +1301,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
       const p2 = `वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल प्रतियोगी परीक्षाओं, उच्च अध्ययन और करियर की दिशा तय करने के लिए अत्यंत महत्वपूर्ण है। भटकाव से बचकर विद्याध्ययन पर ध्यान केंद्रित करना स्वर्णिम भविष्य की गारंटी देगा। गुरुजनों के मार्गदर्शन और नियमित स्वाध्याय से जटिल विषयों पर भी आपकी पकड़ सुदृढ़ होगी।`;
       const p3 = `इस आयु में विकसित किया गया समय प्रबंधन, कार्य के प्रति निष्ठा और सकारात्मक दृष्टिकोण भावी व्यावसायिक चुनौतियों का सामना करने के लिए मजबूत संबल बनेगा। तकनीकी दक्षताओं और व्यावहारिक संवाद शैली को निखारना आपको सहपाठियों के मध्य विशिष्ट पहचान दिलाएगा। सतत परिश्रम से सफलता निश्चित होगी।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasKarmaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasKarmaDosha
@@ -1185,7 +1314,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
       const p2 = `ప్రస్తుత ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం పోటీ పరీక్షలు మరియు ఉన్నత విద్యా ప్రవేశాలకు అనుకూలమైనది. అనవసర వ్యాపకాలకు దూరంగా ఉండి చదువుపై శ్రద్ధ వహించడం ఉజ్వల భవిష్యత్తుకు బాటలు వేస్తుంది. నిరంతర పరిశ్రమ మరియు ప్రణాళికాబద్ధమైన అధ్యయనం మీకు మంచి ఫలితాలను చేకూరుస్తాయి.`;
       const p3 = `ఈ వయస్సులో నేర్చుకునే సాంకేతిక నైపుణ్యాలు మరియు నైతిక విలువలు భవిష్యత్ వృత్తిలో కీలక పాత్ర పోషిస్తాయి. సమయపాలన పాటించడం ద్వారా మానసిక ఒత్తిడిని అధిగమించి పరీక్షల్లో ఉత్తమ ప్రతిభ కనబరచవచ్చు. మీ ఆత్మవిశ్వాసం ఉన్నత శిఖరాలకు చేరుస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasKarmaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasKarmaDosha
@@ -1196,7 +1327,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
       const p2 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் உயர்கல்வி தேர்வுகள் மற்றும் போட்டித் தேர்வுகளில் சிறந்து விளங்க உதவும் பொற்காலமாகும். கவனச்சிதறல்களைத் தவிர்த்து கல்வியில் தீவிர கவனம் செலுத்துவது பிரகாசமான எதிர்காலத்தை அமைத்துத் தரும். ஆசிரியர்களின் அறிவுரைகளைக் கேட்டு நடப்பது உங்கள் இலக்குகளை அடைய உதவும்.`;
       const p3 = `இளம் பருவத்தில் வளர்த்துக் கொள்ளும் ஒழுக்கமும் நேர மேலாண்மையும் பிற்காலத் தொழில் வெற்றிக்கு அசைக்க முடியாத அடித்தளத்தை அமைக்கும். நவீன திறன்களைக் கற்றுக்கொள்வதும் தன்னம்பிக்கையுடன் செயல்படுவதும் உங்களை எப்போதும் முன்னணியில் வைத்திருக்கும். உங்களின் விடாமுயற்சி உயர்ந்த நிலையைத் தரும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasKarmaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasKarmaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Natal examination detects subtle planetary afflictions near the 10th house or Saturn that can occasionally induce study fatigue, test anxiety, or hesitation during competitive examinations. To dispel these subtle obstacles, chanting the Hanuman Chalisa on Saturdays, feeding birds, and performing daily Ganapati prayer before study sessions restores unwavering concentration. Sponsoring archana at sacred sanctuaries like Sri Kshetra Gokarna Mahabaleshwara clears mental fog, paving the way for superior academic laurels.`
@@ -1206,7 +1339,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
     const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period signal a pivotal window for decisive success in competitive exams, university admissions, and national certifications. Maintaining unwavering concentration, resisting fleeting distractions, and dedicating deliberate practice to complex subjects will yield coveted academic honors and prestigious career gateways. Mentors and educators will readily recognize your diligence and provide vital guidance.`;
     const p3 = `Developing structured project habits, technological proficiency, and articulate communication during these student years establishes the groundwork for future executive trajectory. Viewing rigorous exams as opportunities to sharpen problem-solving capability rather than sources of stress bolsters resilient confidence. Steadfast devotion to learning guarantees exceptional vocational ascendancy.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasKarmaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Adult Native (22 to 59 Years): Professional Growth, Leadership & Milestones
@@ -1219,7 +1354,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
     const p2 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ವೃತ್ತಿಜೀವನದಲ್ಲಿ ನೂತನ ಯೋಜನೆಗಳು, ಪ್ರಭಾವಿ ವ್ಯಕ್ತಿಗಳ ಒಡನಾಟ ಹಾಗೂ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿಗೆ ಅತ್ಯಂತ ಪ್ರಬಲವಾದ ವೇದಿಕೆಯನ್ನು ನಿರ್ಮಿಸುತ್ತಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಹಾಗೂ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಸಂಚಾರವು ನಿಮ್ಮ ದೀರ್ಘಾವಧಿಯ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ, ಬಡ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ಒದಗಿಸಲಿದೆ. ಕಚೇರಿಯಲ್ಲಿ ಸಹೋದ್ಯೋಗಿಗಳೊಂದಿಗೆ ಸೌಹಾರ್ದಯುತ ಬಾಂಧವ್ಯ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಹಾಗೂ ಆತುರದ ತೀರ್ಮಾನಗಳನ್ನು ತ್ಯಜಿಸುವುದು ನಿಮ್ಮ ವೃತ್ತಿಪರ ವರ್ಚಸ್ಸನ್ನು ಮತ್ತಷ್ಟು ವೃದ್ಧಿಸಲಿದೆ.`;
     const p3 = `ದೀರ್ಘಕಾಲೀನ ವೃತ್ತಿಪರ ಯಶಸ್ಸಿಗೆ ಕಾರ್ಯತಂತ್ರದ ಸ್ಪಷ್ಟತೆ, ನೈತಿಕ ಪ್ರಾಮಾಣಿಕತೆ ಹಾಗೂ ತಂಡವನ್ನು ಮುನ್ನಡೆಸುವ ನಾಯಕತ್ವ ಗುಣಗಳು ಅತ್ಯಗತ್ಯ. ಕಠಿಣ ಸನ್ನಿವೇಶಗಳಲ್ಲಿ ಧೃತಿಗುಂದದೆ ಶಾಂತಚಿತ್ತದಿಂದ ತೀರ್ಮಾನ ಕೈಗೊಳ್ಳುವುದು ನಿಮ್ಮ ವೃತ್ತಿಪರ ಪ್ರೌಢಿಮೆಯನ್ನು ಜಗತ್ತಿಗೆ ಪ್ರದರ್ಶಿಸಲಿದೆ. ನಿಮ್ಮ ಸಮರ್ಪಣಾ ಭಾವವು ವೃತ್ತಿ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತವಾದ ಗೌರವ ಮತ್ತು ಉನ್ನತಿಯನ್ನು ತಂದುಕೊಡಲಿದೆ.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+    const hasDosha = Boolean(chart.hasKarmaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "hi") {
     const para4Hi = chart.hasKarmaDosha
@@ -1230,7 +1367,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
     const p2 = `वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके कार्यक्षेत्र में नए प्रोजेक्ट्स, प्रभावशाली व्यक्तियों से संपर्क और अधिकार क्षेत्र के विस्तार के लिए अत्यंत अनुकूल है। गोचर में गुरु और शनि का शुभ प्रभाव आपके दीर्घकालिक परिश्रम का यथोचित फल, पदोन्नति और वित्तीय स्थिरता प्रदान करेगा। कार्यालय में सहकर्मियों के साथ सामंजस्य बनाए रखना और जल्दबाजी में कोई भी व्यावसायिक निर्णय न लेना आपकी पेशेवर साख को नई ऊंचाइयां प्रदान करेगा।`;
     const p3 = `दीर्घकालिक करियर विकास के लिए कार्यशैली में पारदर्शिता, नैतिक मूल्यों के प्रति निष्ठा और दूरदर्शिता बनाए रखना आवश्यक है। कार्यस्थल पर उत्पन्न होने वाली आकस्मिक चुनौतियों का धैर्यपूर्वक समाधान निकालना आपकी परिपक्वता को सिद्ध करेगा। आपकी अटूट कर्तव्यनिष्ठा आपको अपने क्षेत्र में शीर्ष प्रतिष्ठा दिलाएगी।`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+    const hasDosha = Boolean(chart.hasKarmaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "te") {
     const para4Te = chart.hasKarmaDosha
@@ -1241,7 +1380,9 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
     const p2 = `ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం నూతన ప్రాజెక్టులు ప్రారంభించడానికి, పలుకుబడి గల వ్యక్తుల పరిచయాలకు ఎంతో అనుకూలంగా ఉంది. గోచారంలో గురు, శని గ్రహాల అనుకూల సంచారం మీ దీర్ఘకాలిక శ్రమకు తగిన గుర్తింపును, ప్రమోషన్లను మరియు ఆర్థిక స్థిరత్వాన్ని చేకూరుస్తాయి. ఆఫీసులో తోటి ఉద్యోగులతో సత్సంబంధాలు కొనసాగించడం మీ వృత్తిపరమైన ఎదుగుదలకు మరింత బలాన్నిస్తుంది.`;
     const p3 = `వృత్తిలో స్థిరమైన ప్రగతి సాధించడానికి సమన్వయం, సమయస్ఫూర్తి మరియు ఉన్నత నైతిక విలువలు ఎంతో అవసరం. ఆకస్మిక సవాళ్లను సమర్థవంతంగా ఎదుర్కొని ముందుకు సాగడం మీ నాయకత్వ ప్రతిభను నిరూపిస్తుంది. మీ శ్రమ మరియు నిజాయితీ మీకు సమాజంలో గౌరవప్రదమైన స్థానాన్ని అందిస్తాయి.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+    const hasDosha = Boolean(chart.hasKarmaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "ta") {
     const para4Ta = chart.hasKarmaDosha
@@ -1252,17 +1393,22 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
     const p2 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி புதிய பொறுப்புகளையும் செல்வாக்கையும் தரும். குரு மற்றும் சனி பகவானின் சுப கோசாரம் உங்கள் கடின உழைப்பிற்கு ஏற்ற பதவி உயர்வையும், நிலையான வருமானத்தையும் பெற்றுத்தரும். சக பணியாளர்களுடன் சுமுகமாகப் பழகுவதும், அவசர முடிவுகளைத் தவிர்ப்பதும் உங்கள் தொழில் மரியாதையை உயர்த்தும்.`;
     const p3 = `நீண்டகால தொழில் மேன்மைக்கு திட்டமிட்ட உழைப்பும், நேர்மையும், தலைமைத்துவமும் இன்றியமையாதவை. சவாலான தருணங்களில் நிதானத்துடன் முடிவெடுப்பது உங்கள் ஆளுமையை வெளிப்படுத்தும். உங்கள் அசைக்க முடியாத உழைப்பு தொழில் துறையில் நிரந்தர புகழையும் உயர் அந்தஸ்தையும் தேடித் தரும்.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+    const hasDosha = Boolean(chart.hasKarmaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   const para4En = chart.hasKarmaDosha
     ? `【Dosha Analysis & Remedial Shanti】 Astrological scrutiny identifies subtle Saturnian or Rahu afflictions influencing your 10th house, which can occasionally manifest as sudden workplace politics, delayed promotions, or unmerited friction with leadership. Pacifying these career vibrations through dedicated recitation of the Dasharatha Shani Stotram on Saturdays, offering black sesame seeds in charity, and maintaining professional diplomacy neutralizes karmic resistance. Sponsoring a sacred Rudrabhishekam at Gokarna Mahabaleshwara Kshetra clears professional obstacles and establishes enduring career security.`
     : `【Benefic Planetary Shield & Divine Grace】 The dignified placement of your 10th house and Karmadhipati, completely devoid of malefic afflictions, sets the stage for authoritative vocational mastery and steady executive advancement. In the professional arena, your disciplined work ethic, strategic clarity, and composed leadership under deadlines command instant respect from seniors and peers alike. Rather than depending on corporate politics, your advancement is propelled by tangible delivery, ethical reliability, and sharp managerial discernment. Maintaining this steadfast focus ensures well-deserved promotions, managerial authority, and lasting vocational eminence.`;
 
-  const p1 = `Your 10th house (${h10Sign}) and 10th house lord ${h10Lord} situated in ${h10Where} govern your foundational career ambitions, leadership potential, professional stability, and societal recognition. Karmakaraka Saturn positioned in ${saturnWhere} instills patient perseverance, ethical rigor, and organizational maturity, indicating that your rise will be grounded in solid competence rather than speculative fortune. You are intrinsically suited for authoritative execution within ${careerDomain}, excelling in strategic stewardship and autonomous decision-making.`;
+  const h10LordShani = h10.lordGraha === 'Saturn' ? (h10Lord.includes('Shani') ? h10Lord : `${h10Lord} (Shani)`) : h10Lord;
+  const p1 = `Your 10th house (${h10Sign}) and 10th house lord ${h10LordShani} situated in ${h10Where} govern your foundational career ambitions, leadership potential, professional stability, and societal recognition. Karmakaraka Saturn positioned in ${saturnWhere} instills patient perseverance, ethical rigor, and organizational maturity, indicating that your rise will be grounded in solid competence rather than speculative fortune. You are intrinsically suited for authoritative execution within ${careerDomain}, excelling in strategic stewardship and autonomous decision-making.`;
   const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period create a robust launching pad for major professional expansion, executive appointments, and expanded influence. Benefic transits of Jupiter and Saturn validate years of dedicated toil, heralding institutional promotions, financial appraisals, and enhanced managerial responsibilities. Fostering harmonious collaboration with colleagues, mentoring subordinate talent, and refusing to compromise your core integrity will safeguard your stellar professional reputation.`;
   const p3 = `Long-term career eminence requires sustained strategic agility, emotional composure under high-stakes deadlines, and uncompromising professional ethics. By approaching complex operational challenges with measured clarity and transparent accountability, you naturally solidify your position as an indispensable executive pillar. Cultivating this purposeful alignment guarantees steady career elevation and lasting vocational renown.`;
 
-  return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+  const hasDosha = Boolean(chart.hasKarmaDosha);
+
+  return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
 }
 
 export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
@@ -1284,7 +1430,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯಲ್ಲಿ ದಾನ-ಧರ್ಮಗಳು, ತೀರ್ಥಯಾತ್ರೆಗಳು ಹಾಗೂ ಕುಟುಂಬದ ಉನ್ನತಿಗಾಗಿ ಸಂಪತ್ತನ್ನು ವಿನಿಯೋಗಿಸುವುದು ಅತೀವ ಮಾನಸಿಕ ತೃಪ್ತಿಯನ್ನು ನೀಡಲಿದೆ. ಹಣಕಾಸಿನ ಹೂಡಿಕೆಗಳನ್ನು ಅತ್ಯಂತ ಸುರಕ್ಷಿತ ಯೋಜನೆಗಳಲ್ಲಿ ಮುಂದುವರಿಸುವುದು ಮನಸ್ಸಿಗೆ ನಿರಾಳತೆಯನ್ನು ತರಲಿದೆ. ನಿಮ್ಮ ಜೀವಮಾನದ ಪರಿಶ್ರಮವು ಕುಟುಂಬದಲ್ಲಿ ಆರ್ಥಿಕ ಸುಭದ್ರತೆಯನ್ನು ನೆಲೆಗೊಳಿಸಿದೆ.`;
       const p3 = `ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಅನಗತ್ಯ ಆರ್ಥಿಕ ಜಂಜಾಟಗಳಿಂದ ಮುಕ್ತವಾಗಿರುವುದು ಅತ್ಯಂತ ಮುಖ್ಯ. ಸ್ಥಿರಾಸ್ತಿಗಳ ಸುವ್ಯವಸ್ಥಿತ ನಿರ್ವಹಣೆ ಮತ್ತು ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡುವುದು ಕುಟುಂಬದಲ್ಲಿ ಸೌಹಾರ್ದತೆಯನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ. ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆಯು ನಿಮ್ಮ ಆತ್ಮಗೌರವವನ್ನು ಸದಾ ರಕ್ಷಿಸುತ್ತದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasDhanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasDhanaDosha
@@ -1295,7 +1443,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में परोपकार, तीर्थयात्रा और परिवार के कल्याणार्थ किए गए कार्य अत्यंत पुण्यदायी सिद्ध होंगे। वित्तीय संसाधनों को सुरक्षित योजनाओं में बनाए रखना मानसिक शांति देगा। आपके पूर्व संचित प्रयास परिवार के लिए एक सुदृढ़ वित्तीय कवच सिद्ध हुए हैं।`;
       const p3 = `वरिष्ठ अवस्था में वित्तीय स्वावलंबन आत्मसम्मान को सुदृढ़ रखता है। अचल संपत्तियों का व्यवस्थित संरक्षण और भावी पीढ़ी को सामंजस्यपूर्ण मार्गदर्शन देना घर में शांति और समृद्धि का वातावरण बनाए रखेगा। बिना किसी आर्थिक चिंता के गरिमापूर्ण जीवन व्यतीत होगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasDhanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasDhanaDosha
@@ -1306,7 +1456,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో ధార్మిక కార్యాలు, దానధర్మాలు మరియు కుటుంబ శ్రేయస్సు కోసం చేసే సంకల్పాలు సత్ఫలితాలను ఇస్తాయి. స్థిరమైన పొదుపు పథకాలను కొనసాగించడం ఆర్థిక నిశ్చింతను కలిగిస్తుంది. మీ అనుభవంతో కుటుంబ ఆర్థిక వ్యవహారాలను చక్కదిద్దడం మంచి ఫలితాలను ఇస్తుంది.`;
       const p3 = `ఎవరిపైనా ఆధారపడకుండా ఆర్థిక స్వాతంత్ర్యంతో జీవించడం మీ ఆత్మగౌరవాన్ని కాపాడుతుంది. ఆస్తుల సురక్షిత నిర్వహణ మరియు భావితరానికి సరైన సలహాలు ఇవ్వడం కుటుంబంలో సమైక్యతను నిలబెడతాయి. ప్రశాంతమైన జీవనానికి మీ పొదుపు భరోసానిస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasDhanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasDhanaDosha
@@ -1317,7 +1469,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தர்ம காரியங்கள், ஆலயத் திருப்பணிகள் மற்றும் குடும்ப சுப நிகழ்வுகளுக்கு உதவும் புண்ணிய காலமாகும். பாதுகாப்பான திட்டங்களில் சேமிப்பைத் தொடர்வது நிம்மதியான ஓய்வுக்காலத்தை உறுதி செய்யும். உங்கள் நிதி மேலாண்மை அடுத்த தலைமுறைக்கு வழிகாட்டியாக அமையும்.`;
       const p3 = `பொருளாதார தன்னிறைவுடன் வாழ்வது உங்களின் சுயமரியாதையை எப்போதும் பாதுகாக்கும். அசையாச் சொத்துக்களைப் பாதுகாத்து குடும்பத்தினருடன் நல்லிணக்கமாக வாழ்வது மனதிற்குப் பேரமைதியைத் தரும். உங்களின் நேர்மையான சேமிப்பு உங்கள் குடும்பத்திற்கு என்றும் பாதுகாப்பு அரணாக விளங்கும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasDhanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasDhanaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Astrological scrutiny identifies subtle afflictions impacting the 2nd house of accumulated reserves, which during retirement years can prompt sudden healthcare outlays or family property deliberations. Pacifying these fiscal vibrations through regular recitation of Sri Kanakadhara Stotram or Sri Suktam on Fridays and supporting temple Annadana preserves lasting financial equilibrium. Sponsoring a dedicated Mahalakshmi archana at Sri Kshetra Gokarna sanctums neutralizes monetary impediments, safeguarding multigenerational wealth and family trusts.`
@@ -1327,7 +1481,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period support purposeful dharmic philanthropy, sponsoring community annadana, and pilgrimages that bring immense spiritual joy. Anchoring resources in secure sovereign instruments preserves complete fiscal sovereignty. Your lifelong diligent savings act as an impenetrable financial cushion for the entire family.`;
     const p3 = `Enjoying this chapter with complete debt freedom and personal autonomy reinforces your stature as an esteemed family patriarch or matriarch. Wisely managing family trusts and advising the younger generation on disciplined asset stewardship preserves harmony across all households. Dignified financial tranquility remains your enduring reward.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasDhanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Youth & Students (Age < 22): Financial Literacy, Budgeting, Family Resources
@@ -1341,7 +1497,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯಲ್ಲಿ ಅನಗತ್ಯ ದುಂದುವೆಚ್ಚಗಳು ಹಾಗೂ ಟ್ರೆಂಡ್‌ಗಳ ಹಿಂದಿನ ಖರ್ಚುಗಳನ್ನು ನಿಯಂತ್ರಿಸಿ, ಸಣ್ಣ ಉಳಿತಾಯದ ಹವ್ಯಾಸ ಬೆಳೆಸಿಕೊಳ್ಳುವುದು ಉತ್ತಮ. ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ಜ್ಞಾನಾರ್ಜನೆಯಲ್ಲಿ ಹಣ ಹೂಡುವುದು ಮುಂದೆ ಮಹತ್ತರ ಆರ್ಥಿಕ ಸಂಪತ್ತನ್ನು ತರಲಿದೆ. ಹಣದ ಸದ್ಬಳಕೆಯು ನಿಮ್ಮಲ್ಲಿ ಹೊಣೆಗಾರಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸಲಿದೆ.`;
       const p3 = `ವಿದ್ಯಾರ್ಥಿ ಹಂತದಲ್ಲಿ ಕಲಿಯುವ ಬಜೆಟ್ ನಿರ್ವಹಣೆ ಮತ್ತು ಆರ್ಥಿಕ ಸಂಯಮವು ಭವಿಷ್ಯದ ಜೀವನಕ್ಕೆ ಅತ್ಯಂತ ಮೌಲ್ಯಯುತ ಅಡಿಪಾಯವಾಗಿದೆ. ಪ್ರಲೋಭನೆಗಳಿಗೆ ಒಳಗಾಗದೆ ಸ್ವಾವಲಂಬನೆಯ ಮೌಲ್ಯವನ್ನು ಅರಿತು ಮುನ್ನಡೆಯುವುದು ನಿಮ್ಮ ಆರ್ಥಿಕ ಜ್ಞಾನವನ್ನು ವೃದ್ಧಿಸಲಿದೆ. ಈ ಶಿಸ್ತು ಮುಂದಿನ ದಿನಗಳಲ್ಲಿ ದೊಡ್ಡ ಸಂಪತ್ತನ್ನು ಸೃಷ್ಟಿಸಲು ಸಹಕಾರಿಯಾಗಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasDhanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasDhanaDosha
@@ -1352,7 +1510,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल में व्यर्थ के खर्चों से बचकर बचत की आदत डालना और अपने अध्ययन व कौशल विकास पर ध्यान देना भविष्य में उत्कृष्ट आर्थिक परिणाम देगा। माता-पिता के संसाधनों का सम्मान करना आपके व्यक्तित्व को परिपक्व बनाएगा।`;
       const p3 = `इस युवा अवस्था में सीखा गया वित्तीय संयम और बजट प्रबंधन आपके वयस्क जीवन के लिए एक अमूल्य उपहार सिद्ध होगा। क्षणिक आकर्षणों से बचकर भविष्योन्मुखी निवेश की सोच विकसित करना आपको आर्थिक रूप से आत्मनिर्भर और सफल बनाएगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasDhanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasDhanaDosha
@@ -1363,7 +1523,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలంలో అనవసర ఖర్చులను తగ్గించి, విద్యా సంబంధిత విషయాలపై దృష్టి పెట్టడం ఉత్తమమైన పెట్టుబడిగా మారుతుంది. కుటుంబ వనరులను పొదుపుగా వాడుకోవడం మీ బాధ్యతాయుత ప్రవర్తనను చాటుతుంది.`;
       const p3 = `ఈ విద్యార్థి దశలో అలవడే పొదుపు మరియు ఆర్థిక సమతుల్యత భవిష్యత్ విజయాలకు బలమైన సోపానాలు. అనవసర ప్రలోభాలకు లొంగకుండా వివేకంతో వ్యవహరించడం భవిష్యత్తులో గొప్ప సంపదను సమకూర్చుకోవడానికి సహాయపడుతుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasDhanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasDhanaDosha
@@ -1374,7 +1536,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி காலம் தேவையற்ற ஆடம்பரச் செலவுகளைக் கட்டுப்படுத்தி, கல்வி மற்றும் திறன் மேம்பாட்டில் கவனம் செலுத்துவது எதிர்காலத்தை வளமாக்கும். பெற்றோரின் உழைப்பை மதித்து நடப்பது உங்களுக்கு உயர்ந்த நற்பெயரைத் தரும்.`;
       const p3 = `இளம் வயதில் கற்றுக் கொள்ளும் சேமிப்புப் பழக்கமும் நிதி ஒழுக்கமும் உங்கள் எதிர்கால நல்வாழ்விற்கு உறுதியான அடித்தளமாக அமையும். விவேகமான செலவு முறைகள் பிற்காலத்தில் உங்களை சிறந்த பொருளாதார நிபுணராகவும் செல்வந்தராகவும் உயர்த்தும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasDhanaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasDhanaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Natal markers indicate subtle planetary friction touching the 2nd house of liquid assets, which during student years can manifest as impulsive expenditure or difficulty with systematic savings habits. To dissolve this fiscal restlessness, practicing conscious budgeting and reciting the sacred Sri Suktam on Fridays balances the Dhana Bhava axis. Honoring family resources and maintaining transparent financial communication with parents ensures unshakeable stability.`
@@ -1384,7 +1548,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period advise resisting impulsive consumer trends, steering clear of speculative peer risks, and embracing disciplined micro-savings. Allocating time and resources toward books, specialized certifications, and technology tools creates the highest financial return on investment. Respecting parental sacrifices anchors unshakeable financial wisdom.`;
     const p3 = `Cultivating early financial sobriety, tracking personal expenditure, and valuing delayed gratification distinguish you as a mature and self-directed native. Building steady habits of modest savings today ensures that you enter the professional workforce with formidable fiscal confidence and astute money management skills.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasDhanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Adult Native (22 to 59 Years): Wealth Accumulation, Assets, Investments
@@ -1397,7 +1563,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಆರ್ಥಿಕ ಹರಿವನ್ನು ವೃದ್ಧಿಸಲು ಮತ್ತು ನೂತನ ಆದಾಯದ ಮೂಲಗಳನ್ನು ಸೃಷ್ಟಿಸಲು ಪ್ರಬಲ ಬೆಂಬಲ ನೀಡುತ್ತಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿಯ ಅನುಕೂಲಕರ ಸ್ಥಿತಿಯು ಸಾಲಗಳಿಂದ ಮುಕ್ತಿ, ಭೂಮಿ ಅಥವಾ ಆಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಭದ್ರತೆಯನ್ನು ಖಾತರಿಪಡಿಸಲಿದೆ. ಆತುರದ ಷೇರು ಹೂಡಿಕೆಗಳು ಅಥವಾ ಅಪಾಯಕಾರಿ ಸಾಲ ವ್ಯವಹಾರಗಳಿಂದ ದೂರವಿರುವುದು ನಿಮ್ಮ ಸಂಪತ್ತನ್ನು ಸುರಕ್ಷಿತವಾಗಿಡಲಿದೆ.`;
     const p3 = `ದೀರ್ಘಾವಧಿಯ ಸಂಪತ್ತು ನಿರ್ಮಾಣಕ್ಕೆ ವ್ಯವಸ್ಥಿತ ಹೂಡಿಕೆ ಯೋಜನೆಗಳು ಮತ್ತು ಆಸ್ತಿಗಳ ವೈವಿಧ್ಯೀಕರಣ ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಲಿದೆ. ಕೌಟುಂಬಿಕ ಅವಶ್ಯಕತೆಗಳನ್ನು ಪೂರೈಸುತ್ತಾ, ಭವಿಷ್ಯದ ಭದ್ರತೆಗಾಗಿ ನಿರಂತರವಾಗಿ ಉಳಿತಾಯವನ್ನು ವೃದ್ಧಿಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯನ್ನು ಉನ್ನತ ಮಟ್ಟದಲ್ಲಿಡಲಿದೆ. ನಿಮ್ಮ ಹಣಕಾಸಿನ ವಿವೇಕವು ಕುಟುಂಬಕ್ಕೆ ಶಾಶ್ವತ ನೆಮ್ಮದಿಯನ್ನು ನೀಡಲಿದೆ.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+    const hasDosha = Boolean(chart.hasDhanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "hi") {
     const para4Hi = chart.hasDhanaDosha
@@ -1408,7 +1576,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल नए वित्तीय अवसरों और व्यावसायिक विस्तार के लिए अत्यंत अनुकूल है। गोचर में गुरु और शनि का शुभ प्रभाव ऋणों से मुक्ति, गृह निर्माण या भूमि क्रय के प्रबल योग बना रहा है। सट्टेबाजी और जोखिम भरे निवेशों से बचते हुए सुरक्षित योजनाओं में धन लगाना आपकी आर्थिक संपन्नता को अक्षुण्ण रखेगा।`;
     const p3 = `स्थायी संपत्ति के निर्माण हेतु संयमित वित्तीय योजना और परिसंपत्तियों का विविधीकरण अत्यंत लाभकारी सिद्ध होगा। परिवार के वर्तमान दायित्वों को पूरा करते हुए भविष्य के लिए एक मजबूत वित्तीय आधार तैयार करना आपकी बुद्धिमत्ता का परिचायक है। यह आर्थिक अनुशासन आपको दीर्घकालिक समृद्धि प्रदान करेगा।`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+    const hasDosha = Boolean(chart.hasDhanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "te") {
     const para4Te = chart.hasDhanaDosha
@@ -1419,7 +1589,9 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం నూతన ఆదాయ మార్గాలను సృష్టించడానికి ఎంతో తోడ్పడుతుంది. గోచారంలో గురు, శని గ్రహాల అనుగ్రహం రుణ విముక్తిని, గృహ నిర్మాణాన్ని లేదా భూమి కొనుగోలును సులభతరం చేస్తాయి. స్పెక్యులేషన్ లేదా తొందరపాటు పెట్టుబడులకు దూరంగా ఉండటం మీ సంపదను కాపాడుతుంది.`;
     const p3 = `దీర్ఘకాలిక సంపద సృష్టి కోసం వివేకవంతమైన పెట్టుబడులు మరియు ఆస్తుల పరిరక్షణ ఎంతో ముఖ్యం. కుటుంబ అవసరాలను తీరుస్తూనే భవిష్యత్తు కోసం స్థిరమైన నిధిని సమకూర్చుకోవడం మీ ఆర్థిక స్థిరత్వాన్ని పెంచుతుంది. మీ వివేకం కుటుంబానికి శాశ్వత సుఖసంతోషాలను అందిస్తుంది.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+    const hasDosha = Boolean(chart.hasDhanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "ta") {
     const para4Ta = chart.hasDhanaDosha
@@ -1430,17 +1602,22 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி புதிய வருமான வழிகளைத் திறக்கும். கோசாரத்தில் குரு மற்றும் சனி பகவானின் அருள் கடன் சுமைகளிலிருந்து விடுபடவும், புதிய சொத்துக்கள் வாங்கவும் வழிவகுக்கும். அவசரப் பங்குச் சந்தை முதலீடுகளைத் தவிர்ப்பது உங்கள் செல்வத்தைப் பாதுகாக்கும்.`;
     const p3 = `நீண்டகால நிதிப் பாதுகாப்பிற்கு சீரான சேமிப்பும் பாதுகாப்பான முதலீடுகளும் மிகவும் இன்றியமையாதவை. குடும்பத்தின் தேவைகளை நிறைவேற்றிக் கொண்டே எதிர்கால சேமிப்பை உயர்த்துவது உங்கள் பொருளாதார வலிமையை நிலைநிறுத்தும். உங்களின் பொறுப்பான நிதி மேலாண்மை குடும்பத்திற்கு நிரந்தர சுபிட்சத்தை அளிக்கும்.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+    const hasDosha = Boolean(chart.hasDhanaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   const para4En = chart.hasDhanaDosha
     ? `【Dosha Analysis & Remedial Shanti】 Astrological analysis reveals subtle afflictions touching your 2nd house (Dhana Sthana) or wealth karakas, which can occasionally prompt unexpected outflows, erratic cash cycles, or delayed investment maturity. To pacify these wealth-draining currents, regular Friday recitation of the Kanakadhara Stotram or Sri Suktam, combined with weekly cow-seva (feeding jaggery and fresh grass to cows), creates powerful protective merit. Sponsoring a dedicated Mahalakshmi archana at Sri Kshetra Gokarna sanctums stabilizes liquid cash reserves and ensures steady capital accumulation.`
     : `【Benefic Planetary Shield & Divine Grace】 With both the 2nd house of accumulated capital and 11th house of recurring revenues situated in pristine planetary health, your fiscal trajectory exhibits steady compounding and tangible wealth retention. Your prudent fiscal strategy converts active professional earnings into hard assets, including residential property, landholdings, or reliable sovereign debt portfolios. Steering clear of impulsive speculative fads and high-interest liabilities safeguards your core liquidity. This financial discipline creates enduring multi-generational prosperity and absolute domestic sovereignty.`;
 
-  const p1 = `Your 2nd house of accumulated reserves (${h2.rashiName}, ruled by ${h2Lord}) and 11th house of recurrent gains (${h11.rashiName}, ruled by ${h11Lord}) govern your wealth trajectory, capital retention, and asset expansion. Dhanakaraka Jupiter placed in ${jupWhere} establishes an enduring astrological foundation for liquid liquidity and sovereign independence. Your persistent industriousness, disciplined lifestyle, and calculated investments are primed to yield substantial tangible assets and long-term security.`;
+  const h2LordShukra = h2.lordGraha === 'Venus' ? (h2Lord.includes('Shukra') ? h2Lord : `${h2Lord} (Shukra)`) : h2Lord;
+  const p1 = `Your 2nd house of accumulated reserves (${h2.rashiName}, ruled by ${h2LordShukra}) and 11th house of recurrent gains (${h11.rashiName}, ruled by ${h11Lord}) govern your wealth trajectory, capital retention, and asset expansion. Dhanakaraka Jupiter placed in ${jupWhere} establishes an enduring astrological foundation for liquid liquidity and sovereign independence. Your persistent industriousness, disciplined lifestyle, and calculated investments are primed to yield substantial tangible assets and long-term security.`;
   const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period provide decisive energetic backing to expand revenue streams and execute strategic acquisitions. Benefic alignments of Jupiter and Saturn support the unburdening of historical liabilities and pave the way for real estate acquisitions or foundational investments. Resisting high-risk speculative frenzies and anchoring capital in tangible assets ensures unbroken financial tranquility.`;
   const p3 = `Building enduring family wealth requires balanced asset allocation, conservative cash reserve buffers, and patient compounding. By aligning active earnings with tangible property, sovereign instruments, and disciplined debt retirement, you create a robust financial legacy. This prudent fiscal stewardship ensures continuous family flourishing and multi-generational prosperity.`;
 
-  return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+  const hasDosha = Boolean(chart.hasDhanaDosha);
+
+  return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
 }
 
 export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
@@ -1462,7 +1639,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆಯೇ ದೈಹಿಕ ಆರೋಗ್ಯದ ಮೂಲವಾಗಿದೆ. ಪ್ರಾಣಾಯಾಮ, ಲಘು ಯೋಗಾಸನ ಹಾಗೂ ಧ್ಯಾನವು ನರಮಂಡಲವನ್ನು ಶಾಂತಗೊಳಿಸಿ, ಉತ್ತಮ ನಿದ್ರೆಯನ್ನು ತರಲಿದೆ. ತಣ್ಣೀರು ಹಾಗೂ ಅತಿಯಾದ ಎಣ್ಣೆಯುಕ್ತ ಆಹಾರವನ್ನು ತ್ಯಜಿಸಿ, ಹಿತಮಿತವಾದ ಪೌಷ್ಟಿಕ ಆಹಾರ ಸೇವಿಸುವುದು ಆಯುಷ್ಯ ಬಲವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ. ದೈನಂದಿನ ಲಘು ಚಟುವಟಿಕೆಗಳು ಶರೀರದಲ್ಲಿ ರಕ್ತಸಂಚಾರವನ್ನು ಸುಸ್ಥಿತಿಯಲ್ಲಿಡಲು ಸಹಕರಿಸುತ್ತವೆ.`;
       const p3 = `ಕಾಲೋಚಿತ ಬದಲಾವಣೆಗಳಿಗೆ ತಕ್ಕಂತೆ ಜೀವನಶೈಲಿಯನ್ನು ಹೊಂದಿಸಿಕೊಳ್ಳುವುದು ಮತ್ತು ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ವಿಶ್ರಾಂತಿ ಪಡೆಯುವುದು ವೃದ್ಧಾಪ್ಯದಲ್ಲಿ ದೈಹಿಕ ಶಕ್ತಿಯನ್ನು ಸಮತೋಲನದಲ್ಲಿಡುತ್ತದೆ. ಕುಟುಂಬದ ಪ್ರೀತಿಯ ಒಡನಾಟ ಹಾಗೂ ಪ್ರಶಾಂತ ಪರಿಸರವು ಮಾನಸಿಕ ಆತಂಕಗಳನ್ನು ದೂರವಿಡಲು ನೆರವಾಗಲಿದೆ. ನಿಮ್ಮ ಆರೋಗ್ಯ ಪ್ರಜ್ಞೆ ಮತ್ತು ಸಂಯಮವು ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಸಂತೃಪ್ತ ಜೀವನವನ್ನು ಕರುಣಿಸಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasRogaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasRogaDosha
@@ -1473,7 +1652,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `मानसिक शांति ही उत्तम स्वास्थ्य की कुंजी है। नियमित प्राणायाम, हल्का टहलना और ध्यान तंत्रिका तंत्र को शांत रखकर गहरी नींद लाने में सहायक सिद्ध होगा। गरिष्ठ एवं अत्यधिक ठंडे पदार्थों से परहेज करते हुए सुपाच्य और ताजा भोजन ग्रहण करना पाचन तंत्र को सुदृढ़ बनाए रखेगा। दैनिक हल्की शारीरिक सक्रियता रक्त संचार को सुचारु बनाए रखेगी।`;
       const p3 = `मौसम के अनुकूल दिनचर्या का पालन और पर्याप्त जल सेवन शरीर की प्राकृतिक कार्यप्रणाली को बनाए रखने में सहायक होगा। पारिवारिक संवाद और सकारात्मक वातावरण मानसिक तनाव को दूर रखने में महत्वपूर्ण भूमिका निभाएंगे। यह अनुशासित स्वास्थ्य प्रबंधन दीर्घायु और सुखद जीवन की आधारशिला बनेगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasRogaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasRogaDosha
@@ -1484,7 +1665,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `మానసిక ప్రశాంతతే శారీరక ఆరోగ్యానికి మూలస్తంభం. రోజూ ప్రాణాయామం, తేలికపాటి వ్యాయామం నాడీ వ్యవస్థను బలోపేతం చేసి మంచి నిద్రను అందిస్తాయి. చల్లటి నీరు మరియు నూనె పదార్థాలను తగ్గించి, సాత్వికమైన పోషకాహారాన్ని తీసుకోవడం ఆయుష్షును పెంచుతుంది. తేలికపాటి నడక శరీరంలో రక్త ప్రసరణను క్రమబద్ధీకరిస్తుంది.`;
       const p3 = `ఋతువులకు అనుగుణంగా ఆహార నియమాలను మార్చుకోవడం మరియు తగినంత విశ్రాంతి తీసుకోవడం శారీరక దృఢత్వాన్ని కాపాడుతుంది. కుటుంబ సభ్యుల ఆప్యాయత మరియు ప్రశాంత వాతావరణం మానసిక ఉల్లాసాన్ని కలిగిస్తాయి. మీ ఆరోగ్య నిష్ట మీకు పరిపూర్ణ ఆయురారోగ్యాలను అందిస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasRogaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasRogaDosha
@@ -1495,7 +1678,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `மன அமைதியே உடல் நலத்திற்கு அடிப்படை. தினமும் பிராணாயாமம் மற்றும் எளிய நடைப்பயிற்சி நரம்பு மண்டலத்தை அமைதிப்படுத்தி நல்ல உறக்கத்தைத் தரும். எண்ணெய் பலகாரங்கள் மற்றும் குளிர்ச்சியான பானங்களைத் தவிர்த்து, சத்தான மிதமான உணவை உண்பது உடலை வலுப்படுத்தும். தினசரி எளிய உடலியக்கங்கள் உடலை சுறுசுறுப்பாக வைத்திருக்க உதவும்.`;
       const p3 = `பருவநிலை மாற்றங்களுக்கு ஏற்ப உணவுப் பழக்கங்களை அமைத்துக் கொள்வதும் உரிய நேரத்தில் ஓய்வெடுப்பதும் உடல் நலனைப் பாதுகாக்கும். குடும்பத்தினரின் பாசமான அரவணைப்பும் அமைதியான சூழலும் மன அழுத்தத்தை விரட்டும். உங்கள் ஆரோக்கிய விவேகம் நீண்ட ஆயுளையும் பூரண நல்வாழ்வையும் தரும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasRogaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasRogaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Astrological analysis detects subtle Saturnian or Rahu influences impacting the 6th house (Roga Sthana), which during mature years can translate into joint stiffness, arthritic sensitivity, or sluggish digestive metabolism. To dissolve these geriatric wellness hurdles, reciting the sacred Maha Mrityunjaya mantra 108 times at dawn and drinking warm water infused with ginger harmonizes the Vata-Kapha balance. Sponsoring a dedicated Mrityunjaya homa at Sri Kshetra Gokarna Mahabaleshwara clears latent afflictions, surrounding your physical aura with radiant health and longevity.`
@@ -1505,7 +1690,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period advocate establishing restorative sleep hygiene, incorporating gentle morning mobility walks in natural sunlight, and consuming freshly prepared, unctuous Ayurvedic meals. Avoiding excessively heavy, chilled, or fried fare honors sluggish gastric transitions and preserves digestive harmony. Cultivating emotional stillness keeps autonomic blood pressure readings remarkably stable.`;
     const p3 = `Aligning diurnal routines with seasonal rhythms and honoring bodily signals for rest anchors robust cellular vitality into your seventies and beyond. Cherishing joyful family camaraderie and engaging in contemplative reflection naturally disarms latent health apprehensions. Calm self-discipline and metabolic mindfulness remain your ultimate safeguards for radiant longevity.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasRogaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Youth & Students (Age < 22): Vitality, Screen Strain, Surya Namaskars
@@ -1519,7 +1706,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಊಟ ಮತ್ತು ಗಾಢ ನಿದ್ರೆಯು ನಿಮ್ಮ ಜ್ಞಾಪಕ ಶಕ್ತಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ನಿಯಮಿತ ದೈಹಿಕ ವ್ಯಾಯಾಮ ಹಾಗೂ ಹೊರಾಂಗಣ ಕ್ರೀಡೆಗಳಲ್ಲಿ ಪಾಲ್ಗೊಳ್ಳುವುದು ಶಾರೀರಿಕ ಸಮತೋಲನವನ್ನು ಕಾಪಾಡುತ್ತದೆ. ದೇಹಕ್ಕೆ ಅಗತ್ಯವಾದಷ್ಟು ಶುದ್ಧ ನೀರನ್ನು ಕುಡಿಯುವುದು ಹಾಗೂ ಹಣ್ಣು-ತರಕಾರಿಗಳ ಸಮೃದ್ಧ ಸೇವನೆಯು ನವಚೈತನ್ಯವನ್ನು ಸದಾ ಕಾಪಾಡಲಿದೆ.`;
       const p3 = `ಅಧ್ಯಯನದ ಅವಧಿಯಲ್ಲಿ ಸೂಕ್ತ ಭಂಗಿಯಲ್ಲಿ ಕುಳಿತುಕೊಳ್ಳುವುದು ಮತ್ತು ಕಣ್ಣುಗಳಿಗೆ ನಿಯಮಿತ ವಿರಾಮ ನೀಡುವುದು ಆಯಾಸವನ್ನು ತಡೆಯುತ್ತದೆ. ಮಾನಸಿಕ ಒತ್ತಡವನ್ನು ಕ್ರೀಡೆ ಮತ್ತು ಹವ್ಯಾಸಗಳ ಮೂಲಕ ಕಡಿಮೆ ಮಾಡಿಕೊಳ್ಳುವುದು ವಿದ್ಯಾರ್ಥಿ ಜೀವನದ ಆರೋಗ್ಯಕ್ಕೆ ಅಮೂಲ್ಯವಾಗಿದೆ. ಈ ಯುವ ಶಕ್ತಿಯು ಭವಿಷ್ಯದ ಸಾಧನೆಗಳಿಗೆ ಭದ್ರ ಬುನಾದಿಯಾಗಲಿದೆ.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+      const hasDosha = Boolean(chart.hasRogaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "hi") {
       const para4Hi = chart.hasRogaDosha
@@ -1530,7 +1719,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `संतुलित दिनचर्या, समय पर पौष्टिक आहार और नियमित विश्राम आपकी एकाग्रता और ऊर्जा को शिखर पर बनाए रखेगा। मैदानी खेलों में सक्रिय भागीदारी मांसपेशियों को मजबूती प्रदान करेगी। पर्याप्त जल सेवन और ताजे फलों का आहार शरीर में स्फूर्ति बनाए रखेगा।`;
       const p3 = `अध्ययन के दौरान बैठने की सही मुद्रा बनाए रखना और आंखों को समय-समय पर विश्राम देना शारीरिक थकान से बचाएगा। खेलकूद और रचनात्मक रुचियों द्वारा मानसिक तनाव को दूर रखना उत्तम स्वास्थ्य के लिए आवश्यक है। यह शारीरिक संतुलन भविष्य की सफलता की नींव बनेगा।`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+      const hasDosha = Boolean(chart.hasRogaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "te") {
       const para4Te = chart.hasRogaDosha
@@ -1541,7 +1732,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `సరైన సమయానికి నిద్ర మరియు పౌష్టికాహారం మీ జ్ఞాపకశక్తిని, మానసిక ఉల్లాసాన్ని పెంపొందిస్తాయి. రోజూ కొంత సమయం మైదానంలో ఆటలు ఆడటం ఎముకలు మరియు కండరాల దృఢత్వానికి ఎంతో మేలు చేస్తుంది. తగినంత నీరు త్రాగడం మరియు తాజా ఆహారం తీసుకోవడం శరీరాన్ని చైతన్యవంతంగా ఉంచుతాయి.`;
       const p3 = `చదువుకునే సమయంలో సరైన భంగిమలో కూర్చోవడం మరియు కళ్ళకు తగిన విశ్రాంతి ఇవ్వడం అలసటను తగ్గిస్తాయి. క్రీడలు మరియు అభిరుచుల ద్వారా మానసిక ఒత్తిడిని దూరం చేసుకోవడం విద్యార్థి ఆరోగ్యానికి ఎంతో ముఖ్యం. ఈ శారీరక ఆరోగ్యం ఉజ్వల విజయాలకు పునాదిగా నిలుస్తుంది.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+      const hasDosha = Boolean(chart.hasRogaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     if (baseLang === "ta") {
       const para4Ta = chart.hasRogaDosha
@@ -1552,17 +1745,21 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
       const p2 = `சரியான உறக்கமும் சத்தான உணவும் உங்கள் நினைவாற்றலையும் உடல் பலத்தையும் பெருக்கும். மாலையில் உடற்பயிற்சி அல்லது விளையாட்டுகளில் ஈடுபடுவது உடல் ஆரோக்கியத்திற்கு மிக நல்லது. போதுமான அளவு தண்ணீர் குடிப்பதும், காய்கறிகளை உணவில் சேர்ப்பதும் உடலை எப்போதும் சுறுசுறுப்பாக வைத்திருக்கும்.`;
       const p3 = `படிக்கும் போது சரியான முறையில் அமர்வதும், கண்களுக்கு அவ்வப்போது ஓய்வு கொடுப்பதும் சோர்வைத் தடுக்கும். விளையாட்டுகளின் மூலம் மன அழுத்தத்தைக் குறைப்பது மாணவப் பருவத்திற்கு மிகவும் அவசியமாகும். இந்த உடல் நலம் உங்களின் எதிர்கால வெற்றிகளுக்கு உறுதியான அடித்தளமாக அமையும்.`;
 
-      return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+      const hasDosha = Boolean(chart.hasRogaDosha);
+
+      return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
     }
     const para4En = chart.hasRogaDosha
       ? `【Dosha Analysis & Remedial Shanti】 Subtle malefic aspects touching the 6th house axis during rigorous academic years can trigger digital eye strain, irregular sleep patterns, or tension headaches from extended screen immersion. To dissolve this energetic fatigue, setting daily screen-free boundaries, practicing conscious eye exercises, and offering early morning Surya Namaskars with Aditya Hridaya chanting swiftly restores metabolic balance and crystal-clear vision. Sponsoring archana at Sri Kshetra Gokarna shields academic vitality.`
       : `【Benefic Planetary Shield & Divine Grace】 The untainted vigor of your Lagna and 6th house bestows extraordinary physical resilience, rapid muscular recovery, and boundless youthful stamina. Your innate constitutional vitality easily rebounds from intense athletic exertion, requiring merely sound hydration and wholesome home-cooked nutrition to stay primed. By balancing rigorous study sessions with outdoor sports and natural sunlight, you prevent sedentary stiffness and keep ocular fatigue at bay. This vibrant equilibrium fuels both athletic agility and prolonged academic focus without burnout.`;
 
     const p1 = `For students and young natives (under age 22), the 1st house (${h1.rashiName}, lord ${h1Lord}) and 6th house (${h6.rashiName}, lord ${h6Lord}) govern vibrant youth stamina, sound immunity, and balancing intense study hours with physical wellbeing. Arogyakaraka Sun situated in ${sunWhere} infuses robust metabolic fire and natural cellular regeneration, while the Moon ensures emotional buoyancy. Mindful habits around digital screen strain, posture ergonomics, and restorative sleep rhythms prevent academic burnout.`;
-    const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period encourage pairing scholarly focus with regular outdoor physical activity, proper hydration, and nutritious meals. Engaging in athletic team sports or cardiovascular conditioning releases accumulated mental pressure, while consistent hydration keeps brain cognition primed. Preserving circadian sleep hygiene protects youthful stamina.`;
+    const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period encourage pairing scholarly focus with regular outdoor physical activity, Surya Namaskars, proper hydration, and nutritious meals. Engaging in athletic team sports or cardiovascular conditioning releases accumulated mental pressure, while consistent hydration keeps brain cognition primed. Preserving circadian sleep hygiene protects youthful stamina.`;
     const p3 = `Maintaining disciplined ergonomic posture during marathon study sessions and taking periodic visual breaks protects delicate ocular muscles from digital exhaustion. Channeling energetic restless spurts into constructive creative passions ensures balanced emotional equanimity. This grounded physical vitality prepares you for demanding academic laurels.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+    const hasDosha = Boolean(chart.hasRogaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
 
   // Adult Native (22 to 59 Years): Physical Stamina, Vitality, Stress Balance
@@ -1575,7 +1772,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಲಘು ವ್ಯಾಯಾಮ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ನಿಯಮಿತ ನಡಿಗೆಯು ಜೀರ್ಣಾಂಗ ವ್ಯವಸ್ಥೆಯನ್ನು ಸುಸ್ಥಿತಿಯಲ್ಲಿಡುತ್ತದೆ. ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ಧ್ಯಾನ ಮತ್ತು ಸಂಗೀತ ಶ್ರವಣವು ಉತ್ತಮ ಫಲಿತಾಂಶವನ್ನು ನೀಡಲಿದೆ. ಪೌಷ್ಟಿಕ ಆಹಾರ ಸೇವನೆ ಮತ್ತು ಸಾಕಷ್ಟು ನೀರು ಕುಡಿಯುವುದು ದೇಹದಲ್ಲಿ ನಿರ್ವಿಷೀಕರಣಕ್ಕೆ ಸಹಕರಿಸುತ್ತದೆ. ಕಚೇರಿಯ ಕೆಲಸದ ಒತ್ತಡವನ್ನು ಮನೆಗೆ ತರದಂತೆ ಜಾಗ್ರತೆ ವಹಿಸುವುದು ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ಕಾಪಾಡುತ್ತದೆ.`;
     const p3 = `ದೀರ್ಘಾವಧಿಯ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗೆ ಕೆಲಸ ಮತ್ತು ವಿಶ್ರಾಂತಿಯ ನಡುವೆ ಸಮತೋಲನ ಅತ್ಯಂತ ಅವಶ್ಯಕ. ಋತುಮಾನಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಆಹಾರ ಪದ್ಧತಿಯನ್ನು ಬದಲಾಯಿಸಿಕೊಳ್ಳುವುದು ನೈಸರ್ಗಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ. ನಿಮ್ಮ ನಿರಂತರ ಆರೋಗ್ಯ ಜಾಗೃತಿಯು ದೈಹಿಕ ಶಕ್ತಿ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯವನ್ನು ಭದ್ರಪಡಿಸಲಿದೆ.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}`;
+    const hasDosha = Boolean(chart.hasRogaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Kn}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "hi") {
     const para4Hi = chart.hasRogaDosha
@@ -1586,7 +1785,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `प्रतिदिन प्रातःकाल हल्का व्यायाम, प्राणायाम और नियमित टहलना चयापचय को संतुलित रखेगा। मानसिक शांति के लिए संगीत और ध्यान अत्यंत लाभकारी सिद्ध होगा। ताजे और सुपाच्य भोजन की आदत शरीर को ऊर्जावान बनाए रखेगी। कार्यस्थल के तनाव को व्यक्तिगत जीवन से अलग रखना मानसिक स्वास्थ्य को सुदृढ़ करेगा।`;
     const p3 = `दीर्घकालिक आरोग्य के लिए कार्य और विश्राम के बीच संतुलन स्थापित करना अनिवार्य है। मौसमी परिवर्तनों के अनुसार आहार में आवश्यक सामंजस्य बिठाना प्राकृतिक प्रतिरोधक क्षमता को सुदृढ़ रखेगा। आपका स्वास्थ्य के प्रति सजग दृष्टिकोण आपको सदैव ऊर्जावान और सक्रिय बनाए रखेगा।`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}`;
+    const hasDosha = Boolean(chart.hasRogaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Hi}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "te") {
     const para4Te = chart.hasRogaDosha
@@ -1597,7 +1798,9 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `రోజూ ఉదయం వ్యాయామం, ప్రాణాయామం మరియు సమతుల్య ఆహారం తీసుకోవడం ఆరోగ్యాన్ని సంరక్షిస్తాయి. మానసిక ప్రశాంతత కోసం ధ్యానం చేయడం ఎంతో శ్రేయస్కరం. తగినంత నీరు త్రాగడం మరియు విశ్రాంతి తీసుకోవడం శారీరక అలసటను తగ్గిస్తాయి. ఆఫీసు ఒత్తిడిని వ్యక్తిగత జీవితంపై పడకుండా చూసుకోవడం మంచిది.`;
     const p3 = `దీర్ఘకాలిక ఆరోగ్య పరిరక్షణకు పని మరియు విశ్రాంతి మధ్య సమతుల్యత పాటించడం చాలా అవసరం. కాలానుగుణ ఆహారపు అలవాట్లను అనుసరించడం వల్ల సహజ రోగనిరోధక శక్తి పెరుగుతుంది. మీ ఆరోగ్య స్పృహ మీకు దీర్ఘాయువును మరియు ఉల్లాసాన్ని ప్రసాదిస్తుంది.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}`;
+    const hasDosha = Boolean(chart.hasRogaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Te}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   if (baseLang === "ta") {
     const para4Ta = chart.hasRogaDosha
@@ -1608,17 +1811,22 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
     const p2 = `தினமும் காலையில் எளிய உடற்பயிற்சி, பிராணாயாமம் மற்றும் சத்தான உணவு உண்பது உடலை சமநிலையில் வைக்கும். மன அமைதிக்காக தியானம் செய்வது நற்பலன்களைத் தரும். போதுமான ஓய்வும் நீராகாரமும் உடல் சோர்வை விரட்டும். பணிச்சுமையை வீட்டிற்கு எடுத்துச் செல்லாமல் இருப்பது மன நிம்மதியைத் தரும்.`;
     const p3 = `நீண்டகால ஆரோக்கியத்திற்கு உழைப்பிற்கும் ஓய்விற்கும் இடையே சரியான சமநிலையைப் பேணுவது இன்றியமையாதது. பருவநிலைக்கு ஏற்ப உணவுகளைத் தேர்ந்தெடுப்பது இயல்பான நோய் எதிர்ப்பு சக்தியை அதிகரிக்கும். உங்களின் ஆரோக்கிய ஒழுக்கம் உங்களுக்கு நீண்ட ஆயுளையும் உற்சாகமான வாழ்வையும் அளிக்கும்.`;
 
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}`;
+    const hasDosha = Boolean(chart.hasRogaDosha);
+
+    return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4Ta}` : `${p1}\n\n${p2}\n\n${p3}`;
   }
   const para4En = chart.hasRogaDosha
     ? `【Dosha Analysis & Remedial Shanti】 Astrological scrutiny indicates subtle planetary friction influencing the 6th house axis or vital lords, which during periods of high stress can manifest as digestive sensitivities, metabolic lethargy, or restless sleep. To pacify these Roga Bhava vibrations, chanting the Aditya Hridaya Stotram at dawn, practicing gentle Surya Namaskars, and reciting the sacred Maha Mrityunjaya Mantra 108 times daily revitalizes cellular vitality and strengthens physical immunity. Sponsoring a sacred Mrityunjaya or Dhanvantari homa at Gokarna Mahabaleshwara Kshetra dissolves latent ailments and bestows robust health and longevity.`
     : `【Benefic Planetary Shield & Divine Grace】 The fortified strength of your Lagna and Arogyakaraka Sun, completely free from malefic afflictions, endows your physical frame with exceptional cellular resilience and metabolic stamina. Your biological constitution readily withstands demanding work schedules, neutralizing daily stress through sound circadian recovery and balanced digestive fire (Jatharagni). Free from chronic natal vulnerabilities, maintaining unhurried hydration, mindful nutrition, and consistent physical movement keeps your immunity fortified across all seasons. Experiencing dynamic bodily vigor without persistent medical anxieties anchors complete peace of mind.`;
 
-  const p1 = `Your Lagna (${h1.rashiName}) and Lagna lord ${h1Lord} govern your foundational constitution, natural vitality, cellular immunity, and physical stamina. The Sun as Arogyakaraka situated in ${sunWhere} bestows intrinsic metabolic vigor and resilience, while the Moon governs emotional equilibrium and mental calmness. The 6th house of health vulnerabilities (${h6.rashiName}, lord ${h6Lord}) advises proactive attentiveness toward digestive fire (Jatharagni), rhythmic sleep hygiene, and managing work-induced nervous fatigue. Maintaining harmonious Tridosha balance (Vata, Pitta, Kapha) through seasonally attuned lifestyles shields your physical body against chronic ailments and promotes cellular longevity.`;
+  const h1LordKuja = h1.lordGraha === 'Mars' ? (h1Lord.includes('Kuja') ? h1Lord : `${h1Lord} (Kuja)`) : h1Lord;
+  const p1 = `Your Lagna (${h1.rashiName}) and Lagna lord ${h1LordKuja} govern your foundational constitution, natural vitality, cellular immunity, and physical stamina. The Sun as Arogyakaraka situated in ${sunWhere} bestows intrinsic metabolic vigor and resilience, while the Moon governs emotional equilibrium and mental calmness. The 6th house of health vulnerabilities (${h6.rashiName}, lord ${h6Lord}) advises proactive attentiveness toward digestive fire (Jatharagni), rhythmic sleep hygiene, and managing work-induced nervous fatigue. Maintaining harmonious Tridosha balance (Vata, Pitta, Kapha) through seasonally attuned lifestyles shields your physical body against chronic ailments and promotes cellular longevity.`;
   const p2 = `During this active ${chart.mahaLordName} Mahadasha cycle, integrating daily pranayama, mindful hydration, and consistent physical movement prevents metabolic sluggishness. Maintaining sound circadian sleep hygiene and avoiding erratic meal hours preserves your high daytime stamina and mental clarity across all seasons. Establishing clear mental boundaries between executive responsibilities and domestic rest restores nervous equilibrium.`;
   const p3 = `Sustaining long-term metabolic health demands conscious balance between relentless vocational delivery and somatic recovery. Aligning seasonal nutrition with personal digestive capacity reinforces innate cellular defenses against burnout. This steadfast lifestyle discipline guarantees robust physical endurance and vibrant longevity.`;
 
-  return `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}`;
+  const hasDosha = Boolean(chart.hasRogaDosha);
+
+  return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
 }
 
 

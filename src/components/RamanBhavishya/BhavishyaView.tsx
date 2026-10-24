@@ -322,8 +322,8 @@ export function buildPersonalizedMarriageText(
         { graha: "Jupiter", rashiIndex: (lagnaIndex + 8) % 12, house: 9 },
         { graha: "Venus", rashiIndex: (lagnaIndex + 3) % 12, house: 4 },
         { graha: "Saturn", rashiIndex: (lagnaIndex + 9) % 12, house: 10 },
-        { graha: "Rahu", rashiIndex: (lagnaIndex + 10) % 12, house: 11 },
-        { graha: "Ketu", rashiIndex: (lagnaIndex + 4) % 12, house: 5 }
+        { graha: "Rahu", rashiIndex: (lagnaIndex + 5) % 12, house: 6 },
+        { graha: "Ketu", rashiIndex: (lagnaIndex + 11) % 12, house: 12 }
       ];
 
   const chart = analyzeKundali({
@@ -378,8 +378,8 @@ export function buildPersonalizedChildrenText(
         { graha: "Jupiter", rashiIndex: (lagnaIndex + 8) % 12, house: 9 },
         { graha: "Venus", rashiIndex: (lagnaIndex + 3) % 12, house: 4 },
         { graha: "Saturn", rashiIndex: (lagnaIndex + 9) % 12, house: 10 },
-        { graha: "Rahu", rashiIndex: (lagnaIndex + 10) % 12, house: 11 },
-        { graha: "Ketu", rashiIndex: (lagnaIndex + 4) % 12, house: 5 }
+        { graha: "Rahu", rashiIndex: (lagnaIndex + 5) % 12, house: 6 },
+        { graha: "Ketu", rashiIndex: (lagnaIndex + 11) % 12, house: 12 }
       ];
 
   const chart = analyzeKundali({
