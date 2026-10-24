@@ -61,6 +61,7 @@ export type PdfTranslations = {
   dashaGocharaCompassTitle?: string;
   dashaGocharaCompassSubtitle?: string;
   footer: string;
+  priestSeal?: string;
   /**
    * Opening greeting. Optional so the older non-premium exports, which do not
    * build one, keep working unchanged.
@@ -1104,10 +1105,17 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         <p className="text-2xl leading-loose font-medium text-amber-950 text-center">
           "{translations.ashirvadaValue}"
         </p>
-        <div className="flex items-center justify-center gap-6 opacity-80 mt-16 mb-12">
+        {translations.priestSeal && (
+          <div className="mt-8 mx-auto max-w-3xl px-6 py-2.5 rounded-full border border-amber-600/40 bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 text-amber-950 font-bold text-sm tracking-wide drop-shadow-sm flex items-center justify-center gap-3">
+            <span className="text-amber-600 text-base">✦</span>
+            <span>{translations.priestSeal}</span>
+            <span className="text-amber-600 text-base">✦</span>
+          </div>
+        )}
+        <div className="flex items-center justify-center gap-6 opacity-80 mt-12 mb-10">
           <span className="text-3xl text-amber-700">✧</span>
         </div>
-        <div className="mt-12 text-center text-amber-800 text-base font-bold uppercase pb-8 pt-10 leading-normal border-t border-amber-700/30">
+        <div className="mt-8 text-center text-amber-800 text-base font-bold uppercase pb-8 pt-8 leading-normal border-t border-amber-700/30">
           {translations.footer || "Baggona Panchanga Publication"}
         </div>
       </div>

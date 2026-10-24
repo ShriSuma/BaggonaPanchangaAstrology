@@ -209,12 +209,21 @@ export const ensureValidSection = async (
   }
 };
 
+import {
+  reviewChapterAccuracy,
+  auditAndHealBhavishyaV1Payload,
+  buildReviewContextFromParsed,
+  type PriestReviewAuditSummary,
+  PRIEST_ACCURACY_THRESHOLD
+} from "./priestReviewerEngine";
+
 export interface BhavishyaV1Payload {
   translations: PdfTranslations;
   premiumData: PremiumData;
   deepInsights: Record<string, string>;
   predictions: TranslatedPrediction[];
   ageYears: number;
+  priestAudit?: PriestReviewAuditSummary;
 }
 
 export async function prepareBhavishyaV1Data(
@@ -771,6 +780,25 @@ export async function prepareBhavishyaV1Data(
     return parts.length >= 3;
   };
 
+  const isManglikCancelled = Boolean(
+    effectiveEngineDoshas.some((d: any) =>
+      (d.name?.toLowerCase().includes("manglik") || d.name?.includes("ಕುಜ")) && d.isCancelled
+    )
+  );
+  const priestReviewCtx = buildReviewContextFromParsed(parsedKundali, {
+    isManglikCancelled,
+    detectedDoshaNames: effectiveEngineDoshas.map((d: any) => d.name)
+  });
+
+  // PRIEST REVIEW: Immediately review Chapter 2 - Characteristics (ವ್ಯಕ್ತಿತ್ವ ಲಕ್ಷಣ)
+  const charPriestRev = reviewChapterAccuracy({
+    chapterKey: "characteristics",
+    chapterTitle: "ವ್ಯಕ್ತಿತ್ವ ಲಕ್ಷಣ (Characteristics)",
+    chapterContent: dataCharacteristics?.characteristics,
+    kundaliContext: priestReviewCtx
+  });
+  console.log(`[Priest Reviewer] Chapter 2: ವ್ಯಕ್ತಿತ್ವ ಲಕ್ಷಣ (Characteristics) Initial Accuracy: ${charPriestRev.accuracyScore}% (${charPriestRev.isApproved ? "Approved" : "Revision Required"})`);
+
   // TARGETED PARALLEL AUTO-RETRY: Retry ONLY missing/incomplete sections
   if (effectiveGeminiApiKey) {
     const retryTasks: Promise<void>[] = [];
@@ -783,11 +811,24 @@ export async function prepareBhavishyaV1Data(
         })
       );
     }
-    if (!isCharacteristicsValid(dataCharacteristics)) {
+    if (!isCharacteristicsValid(dataCharacteristics) || !charPriestRev.isApproved) {
+      const charRetryPrompt = charPriestRev.suggestedPromptRefinement
+        ? `${prompts.characteristics}\n\n${charPriestRev.suggestedPromptRefinement}`
+        : prompts.characteristics;
       retryTasks.push(
-        callGeminiSafe("Retry Characteristics", prompts.characteristics, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Characteristics", charRetryPrompt, 0.35, 9000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
-          if (isCharacteristicsValid(parsed)) dataCharacteristics = parsed;
+          if (parsed) {
+            const reCheck = reviewChapterAccuracy({
+              chapterKey: "characteristics",
+              chapterTitle: "ವ್ಯಕ್ತಿತ್ವ ಲಕ್ಷಣ (Characteristics)",
+              chapterContent: parsed.characteristics,
+              kundaliContext: priestReviewCtx
+            });
+            if (reCheck.isApproved || isCharacteristicsValid(parsed)) {
+              dataCharacteristics = parsed;
+            }
+          }
         })
       );
     }
@@ -1456,6 +1497,37 @@ export async function prepareBhavishyaV1Data(
     premiumDataPayload.prescriptions = dynamicPrescriptions;
   }
 
+  // ── 10. Chief Priest Reviewer Full Audit & Healing ──────────────────────
+  const preliminaryPayload: BhavishyaV1Payload = {
+    translations: translatedData,
+    premiumData: premiumDataPayload,
+    deepInsights,
+    predictions: cleanedV1Predictions,
+    ageYears
+  };
+
+  const priestAudit = auditAndHealBhavishyaV1Payload(
+    preliminaryPayload,
+    parsedKundali,
+    {
+      lang,
+      onReviewProgress: (chapter, score, approved) => {
+        console.log(`[Priest Review Audit] ${chapter}: ${score}% (${approved ? "APPROVED" : "HEALED"})`);
+      }
+    }
+  );
+
+  translatedData.priestSeal = lang === "kn" ? priestAudit.priestSealTextKn : priestAudit.priestSealTextEn;
+
+  onProgress?.(
+    86,
+    lang === "kn"
+      ? `ದೈವಜ್ಞ ಪರಿಶೀಲನೆ ಪೂರ್ಣ: ${toKnDigits(priestAudit.overallAccuracyScore)}% ನಿಖರತೆ ಶಾಸ್ತ್ರ ಪ್ರಮಾಣಿತ...`
+      : lang === "hi"
+      ? `ज्योतिषी समीक्षा पूर्ण: ${priestAudit.overallAccuracyScore}% सटीकता शास्त्र प्रमाणित...`
+      : `Priest Review Audit Complete: ${priestAudit.overallAccuracyScore}% Astrologically Certified...`
+  );
+
   onProgress?.(
     88,
     lang === "kn"
@@ -1470,7 +1542,8 @@ export async function prepareBhavishyaV1Data(
     premiumData: premiumDataPayload,
     deepInsights,
     predictions: cleanedV1Predictions,
-    ageYears
+    ageYears,
+    priestAudit
   };
 }
 
