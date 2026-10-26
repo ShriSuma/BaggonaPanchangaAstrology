@@ -48,6 +48,7 @@ import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine
 import { translateText } from "../../utils/translator";
 import type { KundliViewerSession } from "../../stores/kundliViewerStore";
 import { ensureAtLeastThreeParagraphs } from "../premiumPdf/bhavishyaV1Service";
+import { getLagnaLordRemedyDetails, get8thLordNigoodhaDetails } from "../premiumPdf/dynamicBhavishyaEngine";
 import { PdfTemplate, type PdfTranslations, type PremiumData } from "../../components/RamanBhavishya/PdfTemplate";
 import { GokarnaKundaliTemplate } from "../../components/template/GokarnaKundaliTemplate";
 import { DashaPdfTemplate } from "../../components/kundli/DashaPdfTemplate";
@@ -132,33 +133,48 @@ const ensureValidSection = async (
   return [{ impact: translatedFallback }];
 };
 
-function buildKundaliCharacteristicsFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
+const RASHI_LORD_GRAHAS: GrahaKey[] = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"];
+
+function buildKundaliCharacteristicsFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string, lagnaIndex: number = 0): string {
   const baseLang = (lang || "en").split("-")[0];
+  const h1Graha = RASHI_LORD_GRAHAS[lagnaIndex % 12] || "Mars";
+  const remedy = getLagnaLordRemedyDetails(h1Graha, baseLang);
+
   if (baseLang === "kn") {
-    return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}), ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶೆಯ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ವಿಶಿಷ್ಟವಾದ ತೇಜಸ್ಸು ಹಾಗೂ ಬಲವನ್ನು ತುಂಬುತ್ತದೆ. ನೀವು ಸ್ವಾಭಾವಿಕವಾಗಿಯೇ ಉನ್ನತ ತರ್ಕಜ್ಞಾನ, ದೃಢ ಮನೋಬಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಅತ್ಯಂತ ಶಿಸ್ತಿನಿಂದ ನಿರ್ವಹಿಸುವ ನಾಯಕತ್ವ ಗುಣಗಳನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಗ್ರಹಗಳ ಬಲವಾದ ಸ್ಥಿತಿಯಿಂದಾಗಿ ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಲ್ಲಿ ದೂರದರ್ಶಿತ್ವ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಗೌರವ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳನ್ನು ಕಾಯ್ದುಕೊಂಡು ನಡೆಯುವುದು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ಮುಖ್ಯ ಲಕ್ಷಣವಾಗಿದೆ.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ನಿಮ್ಮ ಆಂತರಿಕ ಚೇತನವನ್ನು ಮತ್ತಷ್ಟು ಜಾಗೃತಗೊಳಿಸಲಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ನವೀನ ಆಲೋಚನೆಗಳು ಮೂಡಿಬರಲಿದ್ದು, ಕೈಗೊಂಡ ಕಾರ್ಯಗಳಲ್ಲಿ ಸತತ ಪ್ರಯತ್ನ ಹಾಗೂ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಶ್ರೇಷ್ಠ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
+    return `ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}), ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ಮಹಾದಶೆಯ ಶುಭ ಪ್ರಭಾವವು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವಕ್ಕೆ ವಿಶಿಷ್ಟವಾದ ತೇಜಸ್ಸು ಹಾಗೂ ಬಲವನ್ನು ತುಂಬುತ್ತದೆ. ನೀವು ಸ್ವಾಭಾವಿಕವಾಗಿಯೇ ಉನ್ನತ ತರ್ಕಜ್ಞಾನ, ದೃಢ ಮನೋಬಲ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿಗಳನ್ನು ಅತ್ಯಂತ ಶಿಸ್ತಿನಿಂದ ನಿರ್ವಹಿಸುವ ನಾಯಕತ್ವ ಗುಣಗಳನ್ನು ಹೊಂದಿದ್ದೀರಿ. ಗ್ರಹಗಳ ಬಲವಾದ ಸ್ಥಿತಿಯಿಂದಾಗಿ ನಿಮ್ಮ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ಯೋಜನೆಗಳಲ್ಲಿ ದೂರದರ್ಶಿತ್ವ ಎದ್ದು ಕಾಣುತ್ತದೆ. ಸಮಾಜದಲ್ಲಿ ಧಾರ್ಮಿಕ ಗೌರವ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳನ್ನು ಕಾಯ್ದುಕೊಂಡು ನಡೆಯುವುದು ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ಮುಖ್ಯ ಲಕ್ಷಣವಾಗಿದೆ.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ನಿಮ್ಮ ಆಂತರಿಕ ಚೇತನವನ್ನು ಮತ್ತಷ್ಟು ಜಾಗೃತಗೊಳಿಸಲಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ನವೀನ ಆಲೋಚನೆಗಳು ಮೂಡಿಬರಲಿದ್ದು, ಕೈಗೊಂಡ ಕಾರ್ಯಗಳಲ್ಲಿ ಸತತ ಪ್ರಯತ್ನ ಹಾಗೂ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಶ್ರೇಷ್ಠ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ. ಗ್ರಹಗಳ ಅನುಕೂಲಕರ ಸಂಚಾರವು ನಿಮ್ಮ ಉದ್ಯೋಗ, ವೈಯಕ್ತಿಕ ಸಂಬಂಧಗಳು ಹಾಗೂ ಸಾಮಾಜಿಕ ಸಂಪರ್ಕಗಳಲ್ಲಿ ಹೊಸ ಉತ್ಸಾಹ ಹಾಗೂ ಸ್ಥಿರತೆಯನ್ನು ತರಲಿದೆ.\n\nಲಗ್ನಾಧಿಪತಿಯ ತೇಜಸ್ಸನ್ನು ಹೆಚ್ಚಿಸಲು ${remedy.deity} ಆರಾಧನೆ, ${remedy.ritual} ಹಾಗೂ ನಿತ್ಯ ${remedy.mantra} ಪಠಿಸುವುದು ಸಮಸ್ತ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಿ ಸದಾ ಯಶಸ್ಸು ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯ ನೀಡುತ್ತದೆ.`;
   }
   if (baseLang === "hi") {
-    return `आपकी जन्म लग्न (${lagnaStr}), चंद्र राशि (${moonStr}) और वर्तमान ${dashaStr} महादशा का प्रभाव आपके व्यक्तित्व को अत्यंत प्रभावशाली और दूरदर्शी बनाता है। आप प्राकृतिक रूप से उच्च तार्किक क्षमता, दृढ इच्छाशक्ति और पारिवारिक उत्तरदायित्वों को निष्ठापूर्वक निभाने वाले गुणों से संपन्न हैं।\n\nवर्तमान ${bhuktiStr} भुक्ति का प्रभाव आपकी आंतरिक ऊर्जा को और मजबूत करेगा।`;
+    return `आपकी जन्म लग्न (${lagnaStr}), चंद्र राशि (${moonStr}) और वर्तमान ${dashaStr} महादशा का प्रभाव आपके व्यक्तित्व को अत्यंत प्रभावशाली और दूरदर्शी बनाता है। आप प्राकृतिक रूप से उच्च तार्किक क्षमता, दृढ इच्छाशक्ति और पारिवारिक उत्तरदायित्वों को निष्ठापूर्वक निभाने वाले गुणों से संपन्न हैं।\n\nवर्तमान ${bhuktiStr} भुक्ति का प्रभाव आपकी आंतरिक ऊर्जा को और मजबूत करेगा। इस समय आपके मन में नए विचार और योजनाएं आकार लेंगी, जिससे आपके करियर और सामाजिक जीवन में सम्मान और सफलता की प्राप्ति होगी।\n\nलग्नेश की शुभता में वृद्धि हेतु ${remedy.deity} की उपासना, ${remedy.ritual} तथा ${remedy.mantra} का जप करना सर्वकार्य सिद्धि प्रदायक रहेगा।`;
   }
   if (baseLang === "te") {
-    return `మీ జన్మ లగ్నం (${lagnaStr}), చంద్ర రాశి (${moonStr}) మరియు ప్రస్తుత ${dashaStr} మహాతశ ప్రభావం మీ వ్యక్తిత్వానికి విశేషమైన తేಜస్సును এবং మానసిక బలాన్ని అందిస్తాయి.`;
+    return `మీ జన్మ లగ్నం (${lagnaStr}), చంద్ర రాశి (${moonStr}) మరియు ప్రస్తుత ${dashaStr} మహాతశ ప్రభావం మీ వ్యక్తిత్వానికి విశేషమైన తేజస్సును మరియు మానసిక బలాన్ని అందిస్తాయి. మీరు సహజంగానే అత్యున్నತ తార్కిక జ్ఞానం, స్థిరమైన సంకల్ప బలం మరియు కుటుంబ బాధ్యతలను క్రమశిక్షణతో నిర్వహించే నాయకత్వ లక్షణాలను కలిగి ఉన్నారు.\n\nప్రస్తుత ${bhuktiStr} భుక్తి కాలం మీ అంతర్గత చైతన్యాన్ని మరింత నింపుతుంది. ఈ సమయంలో మీ ఆలోచనలు సత్ఫలితాలను ఇస్తాయి.\n\nలగ్నాధిపతి అనుగ్రహం కొరకు ${remedy.deity} పూజ, ${remedy.ritual} మరియు ${remedy.mantra} పారాయణం చేయడం వల్ల నిరంతర విజయం చేకూరుతుంది.`;
   }
   if (baseLang === "ta") {
-    return `உங்கள் லக்னம் (${lagnaStr}), சந்திர ರಾசி (${moonStr}) மற்றும் தற்போதைய ${dashaStr} தசா காலம் உங்கள் ஆளுமைக்கு மிகுந்த வலிமையையும் நற்பெயரையும் தருகிறது.`;
+    return `உங்கள் லக்னம் (${lagnaStr}), சந்திர ராசி (${moonStr}) மற்றும் தற்போதைய ${dashaStr} தசா காலம் உங்கள் ஆளுமைக்கு மிகுந்த வலிமையையும் நற்பெயரையும் தருகிறது. நீங்கள் இயற்கையாகவே சிறந்த அறிவாற்றலும், தெளிவான சிந்தனையும், குடும்பப் பொறுப்புகளை சீராக நிறைவேற்றும் நற்பண்புகளையும் கொண்டவர்.\n\nதற்போதைய ${bhuktiStr} புக்தி காலம் உங்கள் உள்மன ஆற்றலை மேலும் உயர்த்தும்.\n\nலக்னாதிபதியின் பலத்திற்கு ${remedy.deity} வழிபாடு, ${remedy.ritual} மற்றும் ${remedy.mantra} பாராயணம் செய்வது நன்மைகளைத் தரும்.`;
   }
-  return `Based on your birth Lagna (${lagnaStr}), Moon sign (${moonStr}), and running ${dashaStr} Mahadasha, your personality is imbued with strong intellect, resilience, and natural leadership capabilities.`;
+  return `Based on your birth Lagna (${lagnaStr}), Moon sign (${moonStr}), and running ${dashaStr} Mahadasha, your personality is imbued with strong intellect, resilience, and natural leadership capabilities. You possess a sharp analytical mind and a deeply rooted sense of responsibility toward family and community.\n\nYour current ${bhuktiStr} Bhukti sub-period further activates your inner drive and psychological expansion, allowing your long-term aspirations to take tangible shape.\n\nTo strengthen the vitality of your Lagna lord, venerating ${remedy.deity}, ${remedy.ritual}, and regular recitation of ${remedy.mantra} bestows divine protection, vitality, and enduring peace.`;
 }
 
-function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
+function buildKundaliDarkSecretFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string, lagnaIndex: number = 0): string {
   const baseLang = (lang || "en").split("-")[0];
+  const h8Graha = RASHI_LORD_GRAHAS[(lagnaIndex + 7) % 12] || "Mars";
+  const details = get8thLordNigoodhaDetails(h8Graha, baseLang);
+
   if (baseLang === "kn") {
-    return `ನಿಮ್ಮ ಜಾತಕದ ಅಷ್ಟಮ ಹಾಗೂ ದ್ವಾದಶ ಭಾವಗಳ ಕರ್ಮಿಕ ಸಂರಚನೆ, ರಾಹು-ಕೇತುಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶೆಯ ಆಂತರಿಕ ಪ್ರಭಾವವು ನಿಮ್ಮ ಆತ್ಮದ ಆಳದಲ್ಲಿ ಅಡಗಿರುವ ಗೂಢ ರಹಸ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ನೀವು ಹೊರನೋಟಕ್ಕೆ ಅತ್ಯಂತ ಶಾಂತ ಹಾಗೂ ಧೈರ್ಯಶಾಲಿಯಾಗಿ ಕಂಡುಬಂದರೂ, ಒಳಗಿನ ಮನಸ್ಸಿನಲ್ಲಿ ಹಳೆಯ ಘಟನೆಗಳ ಕಲ್ಪನೆ ಅಥವಾ ಭಾವನಾತ್ಮಕ ಒಂಟಿತನದ ಅನಿಸಿಕೆಗಳು ಒಮ್ಮೊಮ್ಮೆ ಬಾಧಿಸಬಹುದು.\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ಈ ಕರ್ಮಿಕ ಮಾನಸಿಕ ಸಂಕೋಲೆಗಳಿಂದ ಮುಕ್ತಿ ಪಡೆಯುವ ಸುಸಮಯವಾಗಿದೆ. ನಿತ್ಯವೂ ಧ್ಯಾನ, ನವಗ್ರಹ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಜಪ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಶಮನ ಪರಿಹಾರವಾಗಿದೆ.`;
+    return `ನಿಮ್ಮ ಜಾತಕದ ಅಷ್ಟಮ ಹಾಗೂ ದ್ವಾದಶ ಭಾವಗಳ ಕರ್ಮಿಕ ಸಂರಚನೆ, ರಾಹು-ಕೇತುಗಳ ಸ್ಥಿತಿ ಹಾಗೂ ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaStr} ದಶೆಯ ಆಂತರಿಕ ಪ್ರಭಾವವು ನಿಮ್ಮ ಆತ್ಮದ ಆಳದಲ್ಲಿ ಅಡಗಿರುವ ಗೂಢ ರಹಸ್ಯವನ್ನು ಸೂಚಿಸುತ್ತದೆ. ${details.conflict}\n\nಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${bhuktiStr} ಭುಕ್ತಿ ಕಾಲವು ಈ ಕರ್ಮಿಕ ಮಾನಸಿಕ ಸಂಕೋಲೆಗಳಿಂದ ಮುಕ್ತಿ ಪಡೆಯುವ ಸುಸಮಯವಾಗಿದೆ. ನಿಮ್ಮ ಆಂತರಿಕ ಸಂಘರ್ಷಗಳನ್ನು ಶಮನಗೊಳಿಸಲು ${details.remedy}`;
   }
   if (baseLang === "hi") {
-    return `आपकी कुंडली के अष्टम और द्वादश भाव का कर्मिक प्रभाव, राहू-केतु की स्थिति तथा वर्तमान ${dashaStr} महादशा आपके भीतर एक गहरे आध्यात्मिक अनुभव का संकेत देती है।`;
+    return `आपकी कुंडली के अष्टम और द्वादश भाव का कर्मिक प्रभाव तथा वर्तमान ${dashaStr} महादशा आपके भीतर एक गुप्त आंतरिक मनोभाव का संकेत देती है। ${details.conflict}\n\nवर्तमान ${bhuktiStr} भुक्ति का समय इस मानसिक दबाव से मुक्ति पाने का अनुकूल काल है। ${details.remedy}`;
   }
-  return `The karmic alignment of your 8th and 12th houses, the nodal axis of Rahu-Ketu, and your running ${dashaStr} Mahadasha point to a deep soul pattern. Externally you maintain composure, while internally navigating silent emotional vulnerabilities.`;
+  if (baseLang === "te") {
+    return `మీ జాతకంలో 8వ మరియు 12వ భావాల కర్మియా ప్రభావం మరియు ప్రస్తుత ${dashaStr} మహాతశ మీ అంతరంగంలో దాగివున్న రహస్యాన్ని తెలియజేస్తున్నాయి. ${details.conflict}\n\nప్రస్తుత ${bhuktiStr} భుక్తి కాలం ఈ ఆందోళనల నుండి విముక్తి పొందడానికి అనుకూలమైనది. ${details.remedy}`;
+  }
+  if (baseLang === "ta") {
+    return `உங்கள் ஜாதகத்தின் 8 மற்றும் 12 ஆம் இடங்களின் கர்ம வினைகள் உங்கள் மனதின் ஆழத்தில் உள்ள மறைமுக இரகசியத்தை உணர்த்துகின்றன. ${details.conflict}\n\nதற்போதைய ${bhuktiStr} புக்தி காலம் இந்த அழுத்தங்களிலிருந்து விடுபட சிறந்த காலமாகும். ${details.remedy}`;
+  }
+  return `The karmic alignment of your 8th and 12th houses alongside your running ${dashaStr} Mahadasha points to a deep, subterranean soul pattern. ${details.conflict}\n\nYour current ${bhuktiStr} Bhukti provides a potent astrological window for emotional liberation and inner healing. ${details.remedy}`;
 }
+
 
 function buildKundaliCurrentPhaseFallback(lang: string, lagnaStr: string, moonStr: string, dashaStr: string, bhuktiStr: string): string {
   const baseLang = (lang || "en").split("-")[0];
@@ -1249,8 +1265,9 @@ export const PriestMobilePortal: React.FC = () => {
       const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "Dasha";
       const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti";
 
-      const charFallbackText = buildKundaliCharacteristicsFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
-      const secretFallbackText = buildKundaliDarkSecretFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
+      const lagnaIdx = kundliResult.lagnaRashi?.index ?? 0;
+      const charFallbackText = buildKundaliCharacteristicsFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName, lagnaIdx);
+      const secretFallbackText = buildKundaliDarkSecretFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName, lagnaIdx);
       const currentPhaseFallbackText = buildKundaliCurrentPhaseFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
       const rawSummaryFallback = stripJayashreeIntro(`${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`);
 

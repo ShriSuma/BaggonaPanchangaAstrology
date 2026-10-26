@@ -1913,19 +1913,26 @@ Return ONLY this JSON format:
       const dashaName = mahaLord ? pick(GRAHA_L5[mahaLord], lang) : "Dasha";
       const bhuktiName = bhuktiLord ? pick(GRAHA_L5[bhuktiLord], lang) : "Bhukti";
 
-      const charFallbackText = buildKundaliCharacteristicsFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
-      const secretFallbackText = buildKundaliDarkSecretFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName);
-      const currentPhaseFallbackText = buildKundaliCurrentPhaseFallback(lang, lagnaStr, moonStr, dashaName, bhuktiName, session.input.name, ageYears, userGender);
-      const rawSummaryFallback = buildDynamicSummaryFallback({
-        ...({} as any),
+      const v2ParsedKundali = analyzeKundali({
         lang,
         name: session.input.name,
-        lagnaName: lagnaStr,
-        moonRashiName: moonStr,
-        runningDashaName: dashaName,
-        runningBhuktiName: bhuktiName,
-        ageYears
+        gender: userGender as "Male" | "Female",
+        ageYears,
+        maritalStatus: personalization?.maritalStatus || "general",
+        hasChildren: personalization?.childrenStatus || "general",
+        lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
+        moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        natalPlanets,
+        transits,
+        mahaLord,
+        bhuktiLord
       });
+
+      const charFallbackText = buildDynamicCharacteristicsFallback(v2ParsedKundali);
+      const secretFallbackText = buildDynamicDarkSecretFallback(v2ParsedKundali);
+      const currentPhaseFallbackText = buildDynamicCurrentPhaseFallback(v2ParsedKundali);
+      const rawSummaryFallback = buildDynamicSummaryFallback(v2ParsedKundali);
 
       const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
       const finalDarkSecret = await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
@@ -1963,22 +1970,6 @@ Return ONLY this JSON format:
         impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, personalization?.maritalStatus),
         remedy: d.remedy ? localizeDoshaRemedy(d.name, d.remedy, lang, personalization?.maritalStatus) : undefined
       }));
-
-      const v2ParsedKundali = analyzeKundali({
-        lang,
-        name: session.input.name,
-        gender: userGender as "Male" | "Female",
-        ageYears,
-        maritalStatus: personalization?.maritalStatus || "general",
-        hasChildren: personalization?.childrenStatus || "general",
-        lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
-        moonRashiIndex: session.result.moonSign.index,
-        moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
-        natalPlanets,
-        transits,
-        mahaLord,
-        bhuktiLord
-      });
 
       const dynamicTimelineFallback = buildDynamicTimelineFallback(v2ParsedKundali);
       const validTimelineItems = toSafeArray(dataTimeline.timeline).filter((t: any) => (t?.impact || "").trim().length > 30);
@@ -2394,31 +2385,6 @@ Return ONLY this JSON (no extra text before or after):
       const parsedGochara = parseGeminiJSON(resGochara).gochara as PremiumData["gochara"];
       const parsedSummary = parseGeminiJSON(resSummary).summary as PremiumData["summary"];
 
-      const rawCharFallback = `${result.masterSynthesis.overallTone || 'Planetary positions shape a dynamic personality.'}\n\n${result.natalLayer.shadowSelf.bluntTruth || ''}`;
-      const rawSecretFallback = `${result.natalLayer.shadowSelf.bluntTruth || 'Inner drive shapes deep character.'}\n\n${result.natalLayer.karmicBaggage.soulPurpose || ''}`;
-      const rawSummaryFallback = `${result.masterSynthesis.overallTone || 'A balanced planetary outlook for the future.'}\n\n${result.masterSynthesis.career || ''}\n\n${result.masterSynthesis.finance || ''}`;
-
-      const finalChar = await ensureValidSection(parsedChar, rawCharFallback, pdfLanguage);
-      const finalSecret = await ensureValidSection(parsedSecret, rawSecretFallback, pdfLanguage);
-      const finalSum = await ensureValidSection(parsedSummary, rawSummaryFallback, pdfLanguage);
-
-      const rawYogasFallback = await Promise.all(
-        (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map(async y => ({
-          name: await translateText(y.name, pdfLanguage),
-          impact: await translateText(asText(y.significance) || result.masterSynthesis.overallTone, pdfLanguage)
-        }))
-      );
-      const finalYogas = toSafeArray(parsedYogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0 ? parsedYogas : rawYogasFallback;
-
-      const rawDoshasFallback = await Promise.all(
-        (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(async d => ({
-          name: await translateText(d.name, pdfLanguage),
-          impact: await translateText(asText(d.significance) || result.natalLayer.karmicBaggage.description, pdfLanguage),
-          remedy: await translateText(d.remedy || result.natalLayer.karmicBaggage.soulPurpose, pdfLanguage)
-        }))
-      );
-      const finalDoshas = toSafeArray(parsedDoshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0 ? parsedDoshas : rawDoshasFallback;
-
       const a4LiveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
       const a4Transits: TransitPlacement[] = Object.entries(a4LiveTransits).map(([planet, pos]) => ({
         graha: toGraha(planet),
@@ -2451,6 +2417,31 @@ Return ONLY this JSON (no extra text before or after):
         mahaLord: a4MahaLord,
         bhuktiLord: a4BhuktiLord
       });
+
+      const rawCharFallback = buildDynamicCharacteristicsFallback(a4ParsedKundali);
+      const rawSecretFallback = buildDynamicDarkSecretFallback(a4ParsedKundali);
+      const rawSummaryFallback = buildDynamicSummaryFallback(a4ParsedKundali);
+
+      const finalChar = await ensureValidSection(parsedChar, rawCharFallback, pdfLanguage);
+      const finalSecret = await ensureValidSection(parsedSecret, rawSecretFallback, pdfLanguage);
+      const finalSum = await ensureValidSection(parsedSummary, rawSummaryFallback, pdfLanguage);
+
+      const rawYogasFallback = await Promise.all(
+        (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map(async y => ({
+          name: await translateText(y.name, pdfLanguage),
+          impact: await translateText(asText(y.significance) || result.masterSynthesis.overallTone, pdfLanguage)
+        }))
+      );
+      const finalYogas = toSafeArray(parsedYogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0 ? parsedYogas : rawYogasFallback;
+
+      const rawDoshasFallback = await Promise.all(
+        (result.aiGeneratedNarrative?.doshas || [{ name: "Karmic Challenge", significance: result.natalLayer.karmicBaggage.description, remedy: result.natalLayer.karmicBaggage.soulPurpose }]).map(async d => ({
+          name: await translateText(d.name, pdfLanguage),
+          impact: await translateText(asText(d.significance) || result.natalLayer.karmicBaggage.description, pdfLanguage),
+          remedy: await translateText(d.remedy || result.natalLayer.karmicBaggage.soulPurpose, pdfLanguage)
+        }))
+      );
+      const finalDoshas = toSafeArray(parsedDoshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0 ? parsedDoshas : rawDoshasFallback;
 
       const dynamicTimelineFallback = buildDynamicTimelineFallback(a4ParsedKundali);
       const rawAiTimeline = toSafeArray(parsedTimeline);

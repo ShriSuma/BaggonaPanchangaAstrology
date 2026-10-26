@@ -5,6 +5,11 @@ import { generateBhuktiTimeline } from "../../../core/DashaBhuktiEngine";
 import { NAKSHATRA_L5, RASHI_L5 } from "../../../features/seva/sevaLocale";
 import { transliterateName } from "../../../utils/transliterator";
 import { patrikaNavamshaFromDegree } from "../../../core/localeNumbers";
+import {
+  get8thLordNigoodhaDetails,
+  getLagnaLordRemedyDetails,
+  type GrahaKey
+} from "../../../features/premiumPdf/dynamicBhavishyaEngine";
 
 export interface DevoteeIdentityProps {
   personName?: string;
@@ -954,37 +959,44 @@ export const RoyalBooklet8PageTemplate: React.FC<RoyalBooklet8PageTemplateProps>
     if (!birthKundli) return null;
     const isKn = code === "kn";
     const isHi = code === "hi";
+    const isTe = code === "te";
+    const isTa = code === "ta";
 
     const moon = birthKundli.planets.find(p => p.name === "Moon");
     const lagnaRashiName = birthKundli.lagnaRashi ? birthKundli.lagnaRashi.sanskrit : "ಲಗ್ನ";
     const moonRashiName = birthKundli.moonSign ? birthKundli.moonSign.sanskrit : "ರಾಶಿ";
     const nakshatraName = moon && moon.nakshatra ? moon.nakshatra.sanskrit : "ನಕ್ಷತ್ರ";
 
+    const lagnaIdx = birthKundli.lagnaRashi ? (birthKundli.lagnaRashi.index ?? 0) : 0;
+    const h8Idx = (lagnaIdx + 7) % 12;
+    const RASHI_LORD_GRAHAS: GrahaKey[] = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"];
+    const h1Graha = RASHI_LORD_GRAHAS[lagnaIdx] || "Mars";
+    const h8Graha = RASHI_LORD_GRAHAS[h8Idx] || "Mars";
+
+    const lagnaRemedy = getLagnaLordRemedyDetails(h1Graha, code);
+    const nigoodhaDetails = get8thLordNigoodhaDetails(h8Graha, code);
+
     let card1Text1 = "";
     let card1Text2 = "";
     if (isKn) {
       card1Text1 = `${displayName} ಅವರ ಜನ್ಮ ಲಗ್ನ ${lagnaRashiName} ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ ${moonRashiName} (ನಕ್ಷತ್ರ: ${nakshatraName}) ಆಗಿದೆ. ಲಗ್ನಾಧಿಪತಿಯ ಸೌಮ್ಯ ಹಾಗೂ ಬಲವಾದ ಪ್ರಭಾವದಿಂದ ನಿಮ್ಮ ಆಲೋಚನೆಗಳಲ್ಲಿ ಸದಾ ಸಾತ್ವಿಕ ತೇಜಸ್ಸು, ಆತ್ಮಗೌರವ ಹಾಗೂ ಉನ್ನತ ಧರ್ಮ ಶ್ರದ್ಧೆ ಜಾಗೃತವಾಗಿರುತ್ತದೆ. ನೀವು ಕೈಗೊಳ್ಳುವ ಪ್ರತಿಯೊಂದು ಕಾರ್ಯದಲ್ಲೂ ಸ್ವಪ್ರಯತ್ನ, ಕಾರ್ಯಕ್ಷಮತೆ ಹಾಗೂ ಸಮಯ ಪ್ರಜ್ಞೆಗೆ ಅತ್ಯಂತ ಆದ್ಯತೆ ನೀಡುವಿರಿ. ಸತ್ಯವಂತಿಕೆ, ನ್ಯಾಯಪರತೆ ಹಾಗೂ ಅನ್ಯಾಯವನ್ನು ಸಹಿಸದ ನಿರ್ಭೀತ ಗುಣ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ಮುಖ್ಯ ದಿವ್ಯ ಲಕ್ಷಣವಾಗಿದೆ.`;
-      card1Text2 = `ಕೇಂದ್ರ ಹಾಗೂ ತ್ರಿಕೋಣ ಭಾವಗಳ ಶುಭ ಸ್ಥಿತಿಯಿಂದಾಗಿ ನಿಮ್ಮ ಆಲೋಚನಾ ಶಕ್ತಿ ಅತ್ಯಂತ ಚುರುಕಾಗಿದ್ದು, ಸಮಾಜದಲ್ಲಿ ಗೌರವಾನ್ವಿತ ಸಾಂಸ್ಥಿಕ ಮಾರ್ಗದರ್ಶಕರಾಗಿ ಗುರುತಿಸಿಕೊಳ್ಳುವಿರಿ. ಯಾವುದೇ ಸವಾಲು ಅಥವಾ ಪ್ರಬಲ ವಿರೋಧ ಎದುರಾದರೂ, ಆಂತರಿಕ ಧೈರ್ಯ ಹಾಗೂ ಪವಿತ್ರ ಬೌದ್ಧಿಕ ಚಾತುರ್ಯದಿಂದ ಸಕಲ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಿಕೊಂಡು ನಿರಂತರ ಯಶಸ್ಸಿನ ಹಾದಿಯಲ್ಲಿ ಮುನ್ನಡೆಯುವಿರಿ.`;
+      card1Text2 = `ಕೇಂದ್ರ ಹಾಗೂ ತ್ರಿಕೋಣ ಭಾವಗಳ ಶುಭ ಸ್ಥಿತಿಯಿಂದಾಗಿ ನಿಮ್ಮ ಆಲೋಚನಾ ಶಕ್ತಿ ಅತ್ಯಂತ ಚುರುಕಾಗಿದ್ದು, ಸಮಾಜದಲ್ಲಿ ಗೌರವಾನ್ವಿತ ಸಾಂಸ್ಥಿಕ ಮಾರ್ಗದರ್ಶಕರಾಗಿ ಗುರುತಿಸಿಕೊಳ್ಳುವಿರಿ. ಲಗ್ನಾಧಿಪತಿಯ ತೇಜೋವೃದ್ಧಿಗಾಗಿ ${lagnaRemedy.deity} ಆರಾಧನೆ, ${lagnaRemedy.ritual} ಹಾಗೂ ${lagnaRemedy.mantra} ಜಪವು ಸಕಲ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಿ ನಿರಂತರ ಯಶಸ್ಸು ಹಾಗೂ ಆರೋಗ್ಯ ನೀಡುತ್ತದೆ.`;
     } else if (isHi) {
       card1Text1 = `${displayName} का जन्म लग्न ${lagnaRashiName} तथा चंद्र राशि ${moonRashiName} (नक्षत्र: ${nakshatraName}) है। लग्नेश के प्रभाव से आपमें स्वाभिमान, धर्मनिष्ठा और कार्यकुशलता की प्रबलता रहती है। आप अपनी सत्यनिष्ठा और न्यायप्रियता के लिए समाज में जाने जाते हैं।`;
-      card1Text2 = `केन्द्र व त्रिकोण भावों की शुभ स्थिति से आपकी निर्णय क्षमता अत्यंत तीव्र है। किसी भी कठिन परिस्थिति में आप अपने बौद्धिक चातुर्य से विजय प्राप्त करते हैं।`;
+      card1Text2 = `केन्द्र व त्रिकोण भावों की शुभ स्थिति से आपकी निर्णय क्षमता अत्यंत तीव्र है। लग्नेश की अनुकूलता हेतु ${lagnaRemedy.deity} की उपासना, ${lagnaRemedy.ritual} एवं ${lagnaRemedy.mantra} का जप करने से सर्व कार्य सिद्ध होते हैं।`;
+    } else if (isTe) {
+      card1Text1 = `${displayName} గారి జన్మ లగ్నం ${lagnaRashiName} మరియు చంద్ర రాశి ${moonRashiName} (నక్షత్రం: ${nakshatraName}). లగ్నాధిపతి శుభ ప్రభావంతో మీలో ఆత్మగౌరవం, ధర్మనిష్ఠ మరియు కార్యదక్షత సహజంగా ఉంటాయి. మీరు న్యాయం మరియు సత్యానికి ప్రాధాన్యత ఇస్తారు.`;
+      card1Text2 = `కేంద్ర, త్రికోణ స్థానాల బలంతో మీ నిర్ణయ శక్తి అద్భుతంగా ఉంటుంది. లగ్నాధిపతి శుభత్వం కొరకు ${lagnaRemedy.deity} ఆరాధన, ${lagnaRemedy.ritual} మరియు ${lagnaRemedy.mantra} చేయడం వల్ల సంపూర్ణ విజయం లభిస్తుంది.`;
+    } else if (isTa) {
+      card1Text1 = `${displayName} அவர்களின் பிறந்த லக்னம் ${lagnaRashiName} மற்றும் சந்திர ராசி ${moonRashiName} (நட்சத்திரம்: ${nakshatraName}). லக்னாதிபதியின் சுப பார்வையால் உங்கள் இயல்பில் சுயமரியாதை, தர்ம சிந்தனை மற்றும் நேர்மை மேலோங்கி இருக்கும்.`;
+      card1Text2 = `கேந்திர மற்றும் திரிகோண ஸ்தானங்களின் பலத்தால் தெளிவான முடிவெடுக்கும் திறன் உண்டு. லக்னாதிபதியின் பலத்திற்கு ${lagnaRemedy.deity} வழிபாடு, ${lagnaRemedy.ritual} மற்றும் ${lagnaRemedy.mantra} பாராயணம் செய்வது நற்பலன்களைத் தரும்.`;
     } else {
       card1Text1 = `The birth Lagna of ${displayName} is ${lagnaRashiName} and Moon Sign is ${moonRashiName} (Nakshatra: ${nakshatraName}). Influenced by the ascendant lord, your core personality exhibits self-respect, high ethical standards, and meticulous dedication. You are deeply respected for your integrity, analytical focus, and commitment to truth.`;
-      card1Text2 = `Harmonious Kendra and Trikona house placements confer sharp decision-making capabilities, organizational leadership, and an indomitable spirit that successfully navigates all life challenges.`;
+      card1Text2 = `Harmonious Kendra and Trikona house placements confer sharp decision-making capabilities. To bolster ascendant vitality, venerating ${lagnaRemedy.deity}, ${lagnaRemedy.ritual}, and ${lagnaRemedy.mantra} dissolves obstructions and fosters holistic success.`;
     }
 
-    let nigoodhaText1 = "";
-    let nigoodhaText2 = "";
-    if (isKn) {
-      nigoodhaText1 = `ನಿಮ್ಮ ಪ್ರಶಾಂತ ಹಾಗೂ ಸೌಮ್ಯ ಮುಖಭಾವದ ಅಡಿಯಲ್ಲಿ ತೀವ್ರವಾದ ಆಂತರಿಕ ನಿಗೂಢ ಕೋಪ, ಅಸಹನೆ ಹಾಗೂ ಮಾನಸಿಕ ಉಗ್ರತೆ ಅಡಗಿದೆ. ಅಂದುಕೊಂಡ ಕಾರ್ಯಗಳು ಅನಿರೀಕ್ಷಿತವಾಗಿ ವಿಳಂಬವಾದಾಗ ಅಥವಾ ನೆಚ್ಚಿನ ಜನರಿಂದ ನಂಬಿಕೆಗೆ ಧಕ್ಕೆ ಉಂಟಾದಾಗ ಮನಸ್ಸಿನ ಒಳಗಡೆ ತೀವ್ರ ಅಶಾಂತಿ ಜಾಗೃತಗೊಳ್ಳುತ್ತದೆ. ಈ ಆಂತರಿಕ ಕೋಪವನ್ನು ಹೊರಹಾಕದೆ ಮನಸ್ಸಿನಲ್ಲೇ ಬಂಧಿಸಿಡುವುದರಿಂದ ಕೆಲವೊಮ್ಮೆ ಶಿರೋವೇದನೆ, ರಕ್ತದೊತ್ತಡ ಹಾಗೂ ನಿದ್ರಾಹೀನತೆಯಂತಹ ಸಮಸ್ಯೆಗಳು ಎದುರಾಗಬಹುದು.`;
-      nigoodhaText2 = `ಆತುರದ ಆವೇಶದ ಕ್ಷಣಗಳಲ್ಲಿ ಆಡುವ ಬಾಣದಂತಹ ಮಾತುಗಳು ಆಪ್ತ ಸಂಬಂಧಗಳಲ್ಲಿ ಬಿರುಕು ಮೂಡಿಸದಂತೆ ಸದಾ ಎಚ್ಚರ ವಹಿಸುವುದು ಅತ್ಯಂತ ಆವಶ್ಯಕವಾಗಿದೆ. ಕೋಪ ಶಮನ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿಗಾಗಿ ನಿತ್ಯ ೧೦ ನಿಮಿಷ ಪ್ರಾಣಾಯಾಮ, ಶ್ರೀ ಹನುಮಾನ್ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಗೋಕರ್ಣ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ರುದ್ರಾಭಿಷೇಕ ಸ್ಮರಣೆಯು ಆಂತರಿಕ ಉಗ್ರತೆಯನ್ನು ಶಮನಗೊಳಿಸಿ ನಿರಂತರ ತೇಜಸ್ಸು ನೀಡುತ್ತದೆ.`;
-    } else if (isHi) {
-      nigoodhaText1 = `आपके शांत स्वभाव के पीछे एक गुप्त आंतरिक क्रोध और असंतोष छुपा रहता है। जब कार्य में विलंब होता है, तो मन में तीव्र उग्रता जागृत होती है। इसे मन में दबाने से मानसिक तनाव हो सकता है।`;
-      nigoodhaText2 = `क्रोध में कठोर शब्दों के प्रयोग से बचें। शांति हेतु नित्य प्राणायाम करें तथा श्री गोಕರ್ಣ महाबलेश्वर मंदिर के रुद्राभिषेक का स्मरण करें।`;
-    } else {
-      nigoodhaText1 = `Beneath your calm exterior lies a subtle hidden layer of intense impatience and inner anger when expected outcomes are delayed or trust is breached. Internalizing this anger can cause stress and insomnia.`;
-      nigoodhaText2 = `Exercise care with hasty words during moments of frustration. Daily pranayama and remembrance of Sri Gokarna Mahabaleshwara Rudrabhishekam bring deep emotional serenity.`;
-    }
+    const nigoodhaText1 = nigoodhaDetails.conflict;
+    const nigoodhaText2 = nigoodhaDetails.remedy;
 
     const activeCard = dashaCardsData && dashaCardsData.length > 0 ? dashaCardsData[0] : null;
     const mahaName = activeCard ? activeCard.mahaName : (isKn ? "ಗುರು" : "Jupiter");
