@@ -87,7 +87,7 @@ export default function AskAstrologer({ session }: Props): JSX.Element {
 
   useEffect(() => {
     async function initGreeting() {
-      const baseGreeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವೈದಿಕ ಜ್ಯೋತಿಷಿ. ದಯವಿಟ್ಟು ಕೆಳಗಿನ ವಿಷಯಗಳಲ್ಲಿ ಒಂದನ್ನು ಆಯ್ಕೆಮಾಡಿ, ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮೈಕ್ ಮೂಲಕ ಮಾತನಾಡಿ. ನಾನು ನಿಮ್ಮ ಚಾರ್ಟ್ ಅನ್ನು ವಿಶ್ಲೇಷಿಸಿ ಸಂಪೂರ್ಣ 4-ಪ್ಯಾರಾಗ್ರಾಫ್ ವಿವರಣೆ ನೀಡುತ್ತೇನೆ.";
+      const baseGreeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವೈದಿಕ ಜ್ಯೋತಿಷಿ. ದಯವಿಟ್ಟು ಕೆಳಗಿನ ವಿಷಯಗಳಲ್ಲಿ ಒಂದನ್ನು ಆಯ್ಕೆಮಾಡಿ, ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮೈಕ್ ಮೂಲಕ ಮಾತನಾಡಿ. ನಾನು ನಿಮ್ಮ ಚಾರ್ಟ್ ಅನ್ನು ವಿಶ್ಲೇಷಿಸಿ ನೇರ ಹಾಗೂ ನಿಖರವಾದ ಶಾಸ್ತ್ರೋಕ್ತ ವಿವರಣೆ ನೀಡುತ್ತೇನೆ.";
       const greetingText = await translateText(baseGreeting, language, "kn");
 
       setMessages([
@@ -185,7 +185,10 @@ export default function AskAstrologer({ session }: Props): JSX.Element {
 
     const planetPositions = session.result.planets.map(p => `${p.name} in House ${p.house} (${p.rashi.english})`).join(', ');
 
-    const prompt = `You are an empathetic, highly learned master Vedic Astrologer giving a profound 4-PARAGRAPH response to the user's specific query.
+    const isSpecificQuery = /gemstone|ratna|stone|color|colour|number|digit|which|day|deity|ring|finger|ರತ್ನ|ಹವಳ|ಬಣ್ಣ|ಸಂಖ್ಯೆ|ವಾರ|ದೇವರು|ಉಂಗುರ|ಯಾವ/i.test(userQueryText);
+    const targetParagraphs = isSpecificQuery ? "1 TO 2 PARAGRAPHS" : "2 TO 3 PARAGRAPHS";
+
+    const prompt = `You are an empathetic, highly learned master Vedic Astrologer giving a direct, authentic response to the user's query.
 OUTPUT LANGUAGE: ${language}.${language === 'kn' ? ' Write EXCLUSIVELY in pure Kannada script.' : language === 'te' ? ' Write EXCLUSIVELY in pure Telugu script.' : language === 'ta' ? ' Write EXCLUSIVELY in pure Tamil script.' : language === 'hi' ? ' Write EXCLUSIVELY in pure Hindi (Devanagari).' : ' Write in clear English.'}
 
 USER DETAILS:
@@ -200,20 +203,13 @@ USER DETAILS:
 USER QUERY TOPIC: ${selectedCatObj.labelEn}
 SPECIFIC QUESTION / DETAIL: "${userQueryText || 'Detailed perspective on this topic'}"
 
-STRICT 4-PARAGRAPH FORMAT (DO NOT USE MARKDOWN HEADINGS OR BULLET POINTS, RESPOND IN 4 COMPLETE PARAGRAPHS SEPARATED BY DOUBLE NEWLINES):
-
-PARAGRAPH 1 (Kundali & House Placement Analysis):
-Explain the natal planetary placements, houses, and lords relevant to ${selectedCatObj.labelEn} in their birth chart. Speak directly to ${session.input.name}.
-
-PARAGRAPH 2 (Current Dasha-Bhukti & Gochara Transits):
-Analyze how the current running ${dashaText} period combined with major current transits (Gochara - Saturn, Jupiter, Rahu/Ketu) influences this topic right now.
-
-PARAGRAPH 3 (Specific Prediction, Timeline & Guidance):
-Give clear, specific predictions, expected outcomes, favorable timing windows, and practical decision guidance regarding their query.
-
-PARAGRAPH 4 (Remedial Guidance & Astrologer's Blessing):
-Provide 2 practical, spiritual/remedial recommendations (Parihara/Mantra/Charity) and conclude with a warm, uplifting blessing.
-`;
+CRITICAL 80/20 GOLDEN RULE & DYNAMIC LENGTH (${targetParagraphs}):
+- 80% DIRECT ANSWER AND PRACTICAL ACTIONABLE ADVICE, AT MOST 20% BRIEF ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOAD THE ANSWER: State the direct answer or outcome in the VERY FIRST SENTENCE of Paragraph 1! Do NOT bury the answer in later paragraphs or wander into technical jargon.
+- STRICT PROHIBITION: DO NOT write 4 paragraphs! Respond in EXACTLY ${targetParagraphs} separated by double newlines.
+- DO NOT USE MARKDOWN HEADINGS OR BULLET POINTS as this will be read aloud by the speech engine.
+- Paragraph 1: Direct, front-loaded answer addressing "${userQueryText || selectedCatObj.labelEn}".
+- Paragraph 2: Planetary transition context (${dashaText}) + practical advice, remedial guidance, and blessings of Sri Kshetra Gokarna.`;
 
     try {
       const responseText = await askGemini(

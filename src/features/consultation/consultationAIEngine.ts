@@ -856,6 +856,1063 @@ export function detectConversationIntelligence(
   };
 }
 
+export type QuestionComplexity = "QUICK_SPECIFIC" | "FOCUSED_MODERATE" | "COMPREHENSIVE_DEEP";
+
+export type SpecificDomain =
+  | "GEMSTONE_RATNA"
+  | "LUCKY_COLOR"
+  | "LUCKY_NUMBER"
+  | "AUSPICIOUS_DAY_DEITY"
+  | "FOLLOW_UP_CLARIFICATION"
+  | "TIMING_WINDOW"
+  | "CAREER"
+  | "MARRIAGE"
+  | "SANTHANA"
+  | "HEALTH"
+  | "FINANCE"
+  | "DOSHA_PARIHARA"
+  | "GENERAL";
+
+export interface QuestionComplexityAnalysis {
+  complexity: QuestionComplexity;
+  domain: SpecificDomain;
+  targetParagraphs: number;
+  minParagraphs: number;
+  maxParagraphs: number;
+  promptDirective: string;
+}
+
+/**
+ * Dynamically analyzes the devotee's question complexity and determines
+ * the exact target paragraph length (1-2 for quick specific questions,
+ * 2 for focused timing/single topic, 3-4 for deep multi-topic/karmic queries).
+ * Strictly enforces the 80/20 rule: 80% direct answer, 20% astrological context.
+ */
+export function analyzeQuestionComplexity(
+  question: string,
+  conversationHistory?: AskGeminiChatTurn[],
+  isSubsequent?: boolean
+): QuestionComplexityAnalysis {
+  const q = (question || "").trim().toLowerCase();
+  const wordCount = q.split(/\s+/).filter(Boolean).length;
+
+  // 1. Gemstones & Ratna
+  const isGemstone =
+    /ರತ್ನ|ಹವಳ|ಮುತ್ತು|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲ|ಗೋಮೇಧಿಕ|ವೈಡೂರ್ಯ|ಸ್ಪಟಿಕ|ರುದ್ರಾಕ್ಷಿ|ಉಂಗುರ|ಯಾವ ರತ್ನ|ರತ್ನ ಧರಿಸ|gemstone|ratna|stone|pearl|ruby|emerald|coral|sapphire|diamond|rudraksha|which ring|wear which stone|रत्न|मूंगा|मोती|माणिक|पन्ना|पुखराज|हीरा|नीलम|गोमेद|लहसुनिया|रुद्राक्ष|अंगूठी|రత్నం|పగడం|ముత్యం|కెంపు|పచ్చ|పుష్యరాగం|వజ్రం|నీలం|உருத்திராட்சம்|பவளம்|முத்து|மாணிக்கம்|மரகதம்|புஷ்பராகம்|வைரம்|நீலம்|രത്നം|പവിഴം|മുത്ത്|മാണിക്യം|മരതകം|പുഷ്യരാഗം|വൈരം|നീലക്കല്ല്|मोती|माणिक|मूंगा|पन्ना|पुखराज|हिरा|नीलम/i.test(
+      q
+    );
+
+  // 2. Lucky Colors
+  const isColor =
+    /ಬಣ್ಣ|ಯಾವ ಬಣ್ಣ|ಶುಭ ಬಣ್ಣ|ಅದೃಷ್ಟ ಬಣ್ಣ|color|colour|lucky color|which color|what color|which colour|रंग|शुभ रंग|भाग्यशाली रंग|कौन सा रंग|రంగు|ఏ రంగు|నిజమైన రంగు|வண்ணம்|எந்த நிறம்|நிறம்|നിറം|ഏത് നിറം|रंग|कोणता रंग/i.test(
+      q
+    );
+
+  // 3. Lucky Numbers
+  const isNumber =
+    /ಸಂಖ್ಯೆ|ಅದೃಷ್ಟ ಸಂಖ್ಯೆ|ಯಾವ ಸಂಖ್ಯೆ|ಲಕ್ಕಿ ನಂಬರ್|lucky number|lucky digit|which number|what number|संख्या|लकी नंबर|अंक|शुभ अंक|సంఖ్య|లక్కీ నంబర్|எண்|அதிர்ஷ்ட எண்|സംഖ്യ|ഭാഗ്യ നമ്പർ|अंक|लकी नंबर/i.test(
+      q
+    );
+
+  // 4. Auspicious Day, Weekday, Deity, or Mantra
+  const isDayDeity =
+    /ಯಾವ ವಾರ|ಯಾವ ದಿನ|ವಾರದ ದಿನ|ಯಾವ ದೇವರು|ಇಷ್ಟದೇವತೆ|ಯಾವ ಮಂತ್ರ|ಜಪ|which day|lucky day|which deity|which god|ishta devata|which mantra|fasting day|दिन|वार|शुभ वार|इष्टदेव|कौन से भगवान|मंत्र|ఏ వారం|ఏ రోజు|ఇష్టదైవం|எந்த நாள்|எந்த தெய்வம்|ഏത് ദിവസം|ഏത് ദൈവം|कोणता दिवस|कोणते दैवत/i.test(
+      q
+    );
+
+  // 5. Short Follow-Up Clarifications (e.g. which finger, metal, time, or very short follow-up <= 8 words)
+  const isClarification =
+    /ಯಾವ ಬೆರಳಿಗೆ|ಬೆಳ್ಳಿಯೋ ಚಿನ್ನವೋ|ಬೆಳ್ಳಿ|ಚಿನ್ನ|ಯಾವ ಕೈ|ಯಾವ ಸಮಯ|ಹೇಗೆ ಧರಿಸ|which finger|left hand or right|silver or gold|how to wear|when to wear|right hand or left|gold or silver|किस उंगली|सोने में या चांदी में|ఏ వేలికి|వెళ్ళి|ഏത് വിരലിൽ|कोणत्या बोटात/i.test(
+      q
+    ) || (!!isSubsequent && wordCount <= 8 && !/ವಿವಾಹ|ಮದುವೆ|ಉದ್ಯೋಗ|ವೃತ್ತಿ|ಸಂತಾನ|ಆರೋಗ್ಯ|ದೋಷ|marriage|career|health|progeny|dosha/i.test(q));
+
+  if (isGemstone) {
+    return {
+      complexity: "QUICK_SPECIFIC",
+      domain: "GEMSTONE_RATNA",
+      targetParagraphs: 1,
+      minParagraphs: 1,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (GEMSTONE / RATNA INQUIRY - 1 TO 2 PARAGRAPHS ONLY):
+- The devotee is specifically asking about gemstones/ratna ("${question}").
+- STRICT PROHIBITION: DO NOT write 3 or 4 paragraphs! DO NOT give a generic horoscope lecture!
+- 80/20 GOLDEN RULE: 80% DIRECT ANSWER & PRACTICAL DETAILS, MAXIMUM 20% BRIEF ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOADED ANSWER: In the VERY FIRST SENTENCE, directly state the recommended gemstone (e.g. Red Coral / Havala, Ruby / Manikya, etc.) and why it empowers their Lagna or Yoga-karaka planet.
+- PRACTICAL SPECIFICS: Detail the exact metal (gold/silver/copper), finger (ring finger/index finger), auspicious day/timing (e.g. Tuesday morning), and purification procedure.
+- Total length: EXACTLY 1 TO 2 SHORT, PUNCHY PARAGRAPHS (NO RAMBLING, ZERO FILLER).`
+    };
+  }
+
+  if (isColor) {
+    return {
+      complexity: "QUICK_SPECIFIC",
+      domain: "LUCKY_COLOR",
+      targetParagraphs: 1,
+      minParagraphs: 1,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (LUCKY COLOR INQUIRY - 1 TO 2 PARAGRAPHS ONLY):
+- The devotee is specifically asking about lucky/suitable colors ("${question}").
+- STRICT PROHIBITION: DO NOT write 3 or 4 paragraphs! DO NOT give a generic horoscope lecture!
+- 80/20 GOLDEN RULE: 80% DIRECT ANSWER & APPLICATION, MAXIMUM 20% BRIEF ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOADED ANSWER: In the VERY FIRST SENTENCE, state their most auspicious colors based on Lagna and Moon sign lords.
+- PRACTICAL APPLICATION: Explain when to wear these colors (interviews, business, ceremonies) and which colors to avoid/minimize.
+- Total length: EXACTLY 1 TO 2 SHORT, PUNCHY PARAGRAPHS.`
+    };
+  }
+
+  if (isNumber) {
+    return {
+      complexity: "QUICK_SPECIFIC",
+      domain: "LUCKY_NUMBER",
+      targetParagraphs: 1,
+      minParagraphs: 1,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (LUCKY NUMBER INQUIRY - 1 TO 2 PARAGRAPHS ONLY):
+- The devotee is asking for their lucky numbers ("${question}").
+- In the VERY FIRST SENTENCE, state their primary lucky number and harmonious number series.
+- Explain practical usage (dates, registrations) and conclude warmly.
+- Total length: EXACTLY 1 TO 2 SHORT, PUNCHY PARAGRAPHS.`
+    };
+  }
+
+  if (isDayDeity) {
+    return {
+      complexity: "QUICK_SPECIFIC",
+      domain: "AUSPICIOUS_DAY_DEITY",
+      targetParagraphs: 1,
+      minParagraphs: 1,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (AUSPICIOUS DAY / DEITY / MANTRA - 1 TO 2 PARAGRAPHS ONLY):
+- In the VERY FIRST SENTENCE, state the ideal worship day, Ishta Devata, and sacred mantra based on their chart.
+- Total length: EXACTLY 1 TO 2 SHORT, PUNCHY PARAGRAPHS.`
+    };
+  }
+
+  if (isClarification) {
+    return {
+      complexity: "QUICK_SPECIFIC",
+      domain: "FOLLOW_UP_CLARIFICATION",
+      targetParagraphs: 1,
+      minParagraphs: 1,
+      maxParagraphs: 1,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (QUICK FOLLOW-UP CLARIFICATION - EXACTLY 1 PARAGRAPH):
+- The devotee is asking a brief clarifying question ("${question}").
+- Provide a direct, concise 1-paragraph response answering their exact question without re-explaining the chart or background.
+- Total length: EXACTLY 1 CRISP PARAGRAPH.`
+    };
+  }
+
+  // 6. Timing questions
+  const isAskingTiming = detectIsAskingTiming(q);
+  if (isAskingTiming) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "TIMING_WINDOW",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 3,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (TIMING & PREDICTION INQUIRY - EXACTLY 2 PARAGRAPHS):
+- The devotee is asking WHEN an event will occur ("${question}").
+- STRICT PROHIBITION: DO NOT write 4 paragraphs!
+- 80/20 GOLDEN RULE: 80% TIMELINE & PRACTICAL COUNSEL, 20% ASTROLOGICAL JUSTIFICATION.
+- Paragraph 1: Direct answer stating the exact timeline window and outcome upfront.
+- Paragraph 2: Planetary transition context (Dasha shift + Guru transit) + practical guidance and blessings of Sri Kshetra Gokarna.
+- Total length: EXACTLY 2 PARAGRAPHS.`
+    };
+  }
+
+  // 7. Check for major dosha / deep crisis
+  const isDeepDosha =
+    /ದೋಷ|ಶಾಪ|ಕರ್ಮ|ಅಡೆತಡೆ|ಕಷ್ಟ|ಯಾಕೆ ಹೀಗೆ|ಯಾಕೆ ಹಿನ್ನಡೆ|dosha|curse|delay|obstacle|hurdle|karma|why suffering|stagnant/i.test(
+      q
+    );
+
+  if (isDeepDosha) {
+    return {
+      complexity: "COMPREHENSIVE_DEEP",
+      domain: "DOSHA_PARIHARA",
+      targetParagraphs: 3,
+      minParagraphs: 3,
+      maxParagraphs: 4,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (COMPREHENSIVE KARMIC / DOSHA INQUIRY - 3 TO 4 PARAGRAPHS):
+- 80/20 GOLDEN RULE: 80% empathetic clarity and practical solutions, at most 20% technical planetary coordinates.
+- Paragraph 1: Direct empathetic validation and clear identification of the root cause upfront.
+- Paragraph 2: In-depth analysis of Bhavas, Dasha-Bhukti, and transit dynamics.
+- Paragraph 3: Future progression, turning points, and actionable daily remedies.
+- (Optional 4th Paragraph only if active Gokarna parihara pooja is specifically prescribed).`
+    };
+  }
+
+  // Default moderate inquiry
+  return {
+    complexity: "FOCUSED_MODERATE",
+    domain: "GENERAL",
+    targetParagraphs: 2,
+    minParagraphs: 2,
+    maxParagraphs: 3,
+    promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (FOCUSED ASTROLOGICAL INQUIRY - EXACTLY 2 PARAGRAPHS):
+- The devotee is asking "${question}".
+- DO NOT write 4 paragraphs! Provide 2 focused, high-value paragraphs:
+- 80/20 GOLDEN RULE: 80% direct answer and actionable advice, 20% astrological context.
+- Paragraph 1: Direct answer addressing the query with clarity upfront.
+- Paragraph 2: Planetary guidance, practical life advice, and sacred blessings of Sri Kshetra Gokarna.
+- Total length: EXACTLY 2 PARAGRAPHS.`
+  };
+}
+
+export interface AstrologicalRecommendationProfile {
+  primaryGemstoneName: Record<ConsultationLanguage, string>;
+  gemstonePlanet: string;
+  isCoralMatched: boolean;
+  idealMetal: Record<ConsultationLanguage, string>;
+  idealFinger: Record<ConsultationLanguage, string>;
+  wearingDayAndTime: Record<ConsultationLanguage, string>;
+  gemstoneMantra: Record<ConsultationLanguage, string>;
+  gemstoneBenefits: Record<ConsultationLanguage, string>;
+  luckyColors: Record<ConsultationLanguage, string>;
+  colorsToAvoid: Record<ConsultationLanguage, string>;
+  primaryNumber: number;
+  compatibleNumbers: number[];
+  luckyNumbersText: Record<ConsultationLanguage, string>;
+  ishtaDevata: Record<ConsultationLanguage, string>;
+  sacredMantra: Record<ConsultationLanguage, string>;
+  auspiciousDay: Record<ConsultationLanguage, string>;
+}
+
+/**
+ * Computes authentic Parashari gemological, color, and numerological recommendations
+ * strictly derived from the devotee's Lagna, 5th, and 9th houses and planetary lords.
+ */
+export function computeAstrologicalRecommendations(
+  astroData: DevoteeKundliComputedData,
+  lang: ConsultationLanguage = "kn"
+): AstrologicalRecommendationProfile {
+  const lagnaIdx = astroData.lagnaIdx;
+  const lagnaLordPlanet = SIGN_LORDS[lagnaIdx];
+  const ninthLordPlanet = SIGN_LORDS[(lagnaIdx + 8) % 12];
+  const fifthLordPlanet = SIGN_LORDS[(lagnaIdx + 4) % 12];
+
+  // Mars is Yoga-Karaka or Lagna/9th Lord for:
+  // Aries (0), Cancer (3), Leo (4), Scorpio (7), Sagittarius (8), Pisces (11)
+  const isCoralMatched = [0, 3, 4, 7, 8, 11].includes(lagnaIdx);
+
+  // Gemstone per ruling planet
+  switch (lagnaLordPlanet) {
+    case PlanetName.Sun:
+      return {
+        gemstonePlanet: "Sun",
+        isCoralMatched,
+        primaryGemstoneName: {
+          kn: "ಮಾಣಿಕ್ಯ (Ruby)",
+          en: "Ruby (Manikya)",
+          hi: "माणिक्य (Ruby)",
+          te: "కెంపు (Ruby)",
+          ta: "மாணிக்கம் (Ruby)",
+          ml: "മാണിക്യം (Ruby)",
+          mr: "माणिक (Ruby)"
+        },
+        idealMetal: {
+          kn: "ಬಂಗಾರ ಅಥವಾ ತಾಮ್ರ",
+          en: "Gold or Copper",
+          hi: "सोना या तांबा",
+          te: "బంగారం లేదా రాగి",
+          ta: "தங்கம் அல்லது செம்பு",
+          ml: "സ്വർണ്ണം അല്ലെങ്കിൽ ചെമ്പ്",
+          mr: "सोने किंवा तांबे"
+        },
+        idealFinger: {
+          kn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)",
+          en: "Ring finger (Anamika)",
+          hi: "अनामिका (Ring finger)",
+          te: "ఉంగరపు వేలు",
+          ta: "மோதிர விரல்",
+          ml: "മോതിരവിരൽ",
+          mr: "अनामिका"
+        },
+        wearingDayAndTime: {
+          kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ವೇಳೆಯಲ್ಲಿ",
+          en: "Sunday morning within 1 hour of sunrise during Shukla Paksha",
+          hi: "शुक्ल पक्ष के रविवार को सूर्योदय के समय",
+          te: "శుక్ల పక్ష ఆదివారం సూర్యోదయ సమయంలో",
+          ta: "சுக்கில பட்ச ஞாயிற்றுக்கிழமை சூரியோதய வேளையில்",
+          ml: "ശുക്ലപക്ഷ ഞായറാഴ്ച രാവിലെ സൂര്യോദയ സമയത്ത്",
+          mr: "शुक्ल पक्षातील रविवारी सूर्योदयाच्या वेळी"
+        },
+        gemstoneMantra: {
+          kn: "ಓಂ ಘೃಣಿಃ ಸೂರ್ಯಾಯ ನಮಃ",
+          en: "Om Ghronih Suryaya Namah",
+          hi: "ॐ घृणिः सूर्याय नमः",
+          te: "ఓం ఘృణిః సూర్యాయ నమః",
+          ta: "ஓம் சூர்யாய நமஹ",
+          ml: "ഓം സൂര്യായ നമഃ",
+          mr: "ॐ घृणिः सूर्याय नमः"
+        },
+        gemstoneBenefits: {
+          kn: "ಆತ್ಮವಿಶ್ವಾಸ, ಸಮಾಜದಲ್ಲಿ ಗೌರವ, ನಾಯಕತ್ವ ಹಾಗೂ ಆರೋಗ್ಯವನ್ನು ವೃದ್ಧಿಸುತ್ತದೆ.",
+          en: "enhances vitality, social status, leadership, and paternal blessings.",
+          hi: "आत्मविश्वास, प्रतिष्ठा, नेतृत्व क्षमता और स्वास्थ्य को मजबूत करता है।",
+          te: "ఆత్మవిశ్వాసం, కీర్తి ప్రతిష్టలు మరియు నాయకత్వ లక్షణాలను పెంచుతుంది.",
+          ta: "தன்னம்பிக்கை, தலைமைப் பண்பு மற்றும் ஆரோக்கியத்தை மேம்படுத்துகிறது.",
+          ml: "ആത്മവിശ്വാസവും ആരോഗ്യവും സാമൂഹിക പദവിയും വർദ്ധിപ്പിക്കും.",
+          mr: "आत्मविश्वास, कीर्ती, नेतृत्व आणि आरोग्य सुधारते."
+        },
+        luckyColors: {
+          kn: "ಕೇಸರಿ, ಚಿನ್ನದ ಹಳದಿ, ಕಿತ್ತಳೆ ಹಾಗೂ ಗಾಢ ಕೆಂಪು",
+          en: "Saffron, Golden Yellow, Orange, and Bright Red",
+          hi: "केसरिया, सुनहरा पीला, नारंगी और गहरा लाल",
+          te: "కేసరి, బంగారు పసుపు, నారింజ మరియు ఎరుపు",
+          ta: "காவி, பொன்னிற மஞ்சள், ஆரஞ்சு மற்றும் சிவப்பு",
+          ml: "കേസരി, സുവർണ്ണ മഞ്ഞ, ഓറഞ്ച്, ചുവപ്പ്",
+          mr: "केशरी, सोनेरी पिवळा, नारंगी आणि गडद लाल"
+        },
+        colorsToAvoid: {
+          kn: "ಗಾಢ ನೀಲಿ ಹಾಗೂ ಕಪ್ಪು",
+          en: "Dark Blue and Black",
+          hi: "गहरा नीला और काला",
+          te: "ముదురు నీలం మరియు నలుపు",
+          ta: "அடர்ந்த நீலம் மற்றும் கருப்பு",
+          ml: "കടും നീലയും കറുപ്പും",
+          mr: "गडद निळा आणि काळा"
+        },
+        primaryNumber: 1,
+        compatibleNumbers: [1, 9, 3],
+        luckyNumbersText: {
+          kn: "೧ (ಹಾಗೂ ೧, ೯, ೩ ಸರಣಿ)",
+          en: "1 (along with 1, 9, 3 series)",
+          hi: "१ (तथा १, ९, ३ श्रृंखला)",
+          te: "1 (మరియు 1, 9, 3 శ్రేణి)",
+          ta: "1 (மற்றும் 1, 9, 3 வரிசை)",
+          ml: "1 (കൂടാതെ 1, 9, 3 പരമ്പര)",
+          mr: "१ (आणि १, ९, ३ मालिका)"
+        },
+        ishtaDevata: {
+          kn: "ಶ್ರೀ ಸೂರ್ಯನಾರಾಯಣ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ",
+          en: "Lord Surya Narayana and Sri Kshetra Gokarna Mahaganapati",
+          hi: "भगवान सूर्यनारायण एवं श्री क्षेत्र गोकर्ण महागणपति",
+          te: "శ్రీ సూర్యనారాయణ స్వామి మరియు గోకర్ణ మహాగణపతి",
+          ta: "ஸ்ரீ சூரியநாராயணன் மற்றும் கோகர்ண மகாகணபதி",
+          ml: "ശ്രീ സൂര്യനാരായണനും ഗോകർണ്ണ മഹാഗണപതിയും",
+          mr: "भगवान सूर्यनारायण आणि श्री क्षेत्र गोकर्ण महागणपती"
+        },
+        sacredMantra: {
+          kn: "ಓಂ ಘೃಣಿಃ ಸೂರ್ಯಾದಿತ್ಯಾಯ ನಮಃ",
+          en: "Om Ghrinih Suryadityaya Namah",
+          hi: "ॐ घृणिः सूर्यादित्याय नमः",
+          te: "ఓం ఘృణిః సూర్యాదిత్యాయ నమః",
+          ta: "ஓம் சூர்யாதித்யாய நமஹ",
+          ml: "ഓം സൂര്യായ നമഃ",
+          mr: "ॐ घृणिः सूर्यादित्याय नमः"
+        },
+        auspiciousDay: {
+          kn: "ಭಾನುವಾರ",
+          en: "Sunday",
+          hi: "रविवार",
+          te: "ఆదివారం",
+          ta: "ஞாயிறு",
+          ml: "ഞായറാഴ്ച",
+          mr: "रविवार"
+        }
+      };
+
+    case PlanetName.Moon:
+      return {
+        gemstonePlanet: "Moon",
+        isCoralMatched,
+        primaryGemstoneName: {
+          kn: "ನೈಸರ್ಗಿಕ ಮುತ್ತು (Natural Pearl)",
+          en: "Natural Pearl (Moti)",
+          hi: "सच्चा मोती (Natural Pearl)",
+          te: "ముత్యం (Natural Pearl)",
+          ta: "முத்து (Natural Pearl)",
+          ml: "മുത്ത് (Natural Pearl)",
+          mr: "मोती (Natural Pearl)"
+        },
+        idealMetal: {
+          kn: "ಶುದ್ಧ ಬೆಳ್ಳಿ",
+          en: "Pure Silver",
+          hi: "शुद्ध चांदी",
+          te: "స్వచ్ఛమైన వెండి",
+          ta: "தூய வெள்ளி",
+          ml: "ശുദ്ധ വെള്ളി",
+          mr: "शुद्ध चांदी"
+        },
+        idealFinger: {
+          kn: "ಕಿರುಬೆರಳು ಅಥವಾ ಉಂಗುರದ ಬೆರಳು",
+          en: "Little finger or Ring finger",
+          hi: "कनिष्ठिका या अनामिका",
+          te: "చిటికెన వేలు లేదా ఉంగరపు వేలు",
+          ta: "சுண்டு விரல் அல்லது மோதிர விரல்",
+          ml: "ചെറുവിരൽ അല്ലെങ്കിൽ മോതിരവിരൽ",
+          mr: "करंगळी किंवा अनामिका"
+        },
+        wearingDayAndTime: {
+          kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ ಅಥವಾ ಸಂಜೆ ಚಂದ್ರೋದಯದ ವೇಳೆ",
+          en: "Monday morning or evening during Moonrise in Shukla Paksha",
+          hi: "शुक्ल पक्ष के सोमवार को प्रातःकाल अथवा चंद्रोदय के समय",
+          te: "శుక్ల పక్ష సోమవారం ఉదయం లేదా చంద్రోదయ సమయంలో",
+          ta: "சுக்கில பட்ச திங்கட்கிழமை காலை அல்லது சந்திரோதய வேளையில்",
+          ml: "ശുക്ലപക്ഷ തിങ്കളാഴ്ച രാവിലെ അല്ലെങ്കിൽ ചന്ദ്രോദയ സമയത്ത്",
+          mr: "शुक्ल पक्षातील सोमवारी सकाळी किंवा चंद्रोदयाच्या वेळी"
+        },
+        gemstoneMantra: {
+          kn: "ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ",
+          en: "Om Som Somaya Namah",
+          hi: "ॐ सों सोमाय नमः",
+          te: "ఓం సోం సోమాయ నమః",
+          ta: "ஓம் சோமாய நமஹ",
+          ml: "ഓം സോമായ നമഃ",
+          mr: "ॐ सों सोमाय नमः"
+        },
+        gemstoneBenefits: {
+          kn: "ಮಾನಸಿಕ ನೆಮ್ಮದಿ, ಶಾಂತಿ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಭಾವನಾತ್ಮಕ ಸಮತೋಲನವನ್ನು ತರುತ್ತದೆ.",
+          en: "bestows mental peace, emotional stability, clear intuition, and cooling harmony.",
+          hi: "मानसिक शांति, एकाग्रता और भावनात्मक संतुलन प्रदान करता है।",
+          te: "మానసిక ప్రశాంతత, ఏకాగ్రత మరియు భావోద్వేగ స్థిరత్వాన్ని ప్రసాదిస్తుంది.",
+          ta: "மன அமைதி, தெளிவு மற்றும் உணர்ச்சி சமநிலையைத் தருகிறது.",
+          ml: "മനസ്സമാധാനവും ഏകാഗ്രതയും വൈകാരിക സ്ഥിരതയും നൽകുന്നു.",
+          mr: "मानसिक शांतता, एकाग्रता आणि भावनिक संतुलन प्रदान करते."
+        },
+        luckyColors: {
+          kn: "ಶುದ್ಧ ಬಿಳಿ, ಕೆನೆ ಬಣ್ಣ, ಬೆಳ್ಳಿ ಬಣ್ಣ ಹಾಗೂ ತಿಳಿ ನೀಲಿ",
+          en: "Pure White, Cream, Silver, and Pearl White",
+          hi: "शुद्ध सफेद, क्रीम, चांदी जैसा रंग और हल्का नीला",
+          te: "స్వచ్ఛమైన తెలుపు, క్రీమ్, వెండి రంగు మరియు లేత నీలం",
+          ta: "தூய வெள்ளை, கிரீம் மற்றும் வெள்ளி நிறம்",
+          ml: "ശുദ്ധ വെളുപ്പ്, ക്രീം, വെള്ളി നിറം",
+          mr: "पांढरा, क्रीम, रुपेरी आणि हलका निळा"
+        },
+        colorsToAvoid: {
+          kn: "ಕಪ್ಪು ಹಾಗೂ ಮಬ್ಬು ಕಂದು",
+          en: "Black and Dull Brown",
+          hi: "काला और मटमैला रंग",
+          te: "నలుపు మరియు గోధుమ రంగు",
+          ta: "கருப்பு மற்றும் பழுப்பு",
+          ml: "കറുപ്പും തവിട്ടുനിറവും",
+          mr: "काळा आणि तपकिरी"
+        },
+        primaryNumber: 2,
+        compatibleNumbers: [2, 1, 3],
+        luckyNumbersText: {
+          kn: "೨ (ಹಾಗೂ ೨, ೧, ೩ ಸರಣಿ)",
+          en: "2 (along with 2, 1, 3 series)",
+          hi: "२ (तथा २, १, ३ श्रृंखला)",
+          te: "2 (మరియు 2, 1, 3 శ్రేణి)",
+          ta: "2 (மற்றும் 2, 1, 3 வரிசை)",
+          ml: "2 (കൂടാതെ 2, 1, 3 പരമ്പര)",
+          mr: "२ (आणि २, १, ३ मालिका)"
+        },
+        ishtaDevata: {
+          kn: "ಶ್ರೀ ಮಹಾದೇವ (ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ) ಹಾಗೂ ಶ್ರೀ ಗೌರಿ",
+          en: "Lord Shiva (Sri Kshetra Gokarna Mahabaleshwara) and Goddess Gauri",
+          hi: "भगवान शिव (श्री क्षेत्र गोकर्ण महाबलेश्वर) एवं माता गौरी",
+          te: "శ్రీ మహాబలేశ్వర స్వామి మరియు గౌరీ దేవి",
+          ta: "ஸ்ரீ மகாபலேஸ்வரர் மற்றும் கௌரி அம்மன்",
+          ml: "ശ്രീ മഹാബലേശ്വരനും ഗൗരി ദേവിയും",
+          mr: "भगवान शिव (श्री क्षेत्र गोकर्ण महाबळेश्वर) आणि माता गौरी"
+        },
+        sacredMantra: {
+          kn: "ಓಂ ನಮಃ ಶಿವಾಯ",
+          en: "Om Namah Shivaya",
+          hi: "ॐ नमः शिवाय",
+          te: "ఓం నమః శివాయ",
+          ta: "ஓம் நம சிவாய",
+          ml: "ഓം നമഃ ശിവായ",
+          mr: "ॐ नमः शिवाय"
+        },
+        auspiciousDay: {
+          kn: "ಸೋಮವಾರ",
+          en: "Monday",
+          hi: "सोमवार",
+          te: "సోమవారం",
+          ta: "திங்கள்",
+          ml: "തിങ്കളാഴ്ച",
+          mr: "सोमवार"
+        }
+      };
+
+    case PlanetName.Mars:
+      return {
+        gemstonePlanet: "Mars",
+        isCoralMatched: true,
+        primaryGemstoneName: {
+          kn: "ರಕ್ತ ಹವಳ (Red Coral)",
+          en: "Red Coral (Moonga)",
+          hi: "रक्त मूंगा (Red Coral)",
+          te: "ఎరుపు పగడం (Red Coral)",
+          ta: "சிவப்பு பவளம் (Red Coral)",
+          ml: "ചുവന്ന പവിഴം (Red Coral)",
+          mr: "रक्त मूंगा (Red Coral)"
+        },
+        idealMetal: {
+          kn: "ತಾಮ್ರ ಅಥವಾ ಬಂಗಾರ",
+          en: "Copper or Gold",
+          hi: "तांबा या सोना",
+          te: "రాగి లేదా బంగారం",
+          ta: "செம்பு அல்லது தங்கம்",
+          ml: "ചെമ്പ് അല്ലെങ്കിൽ സ്വർണ്ണം",
+          mr: "तांबे किंवा सोने"
+        },
+        idealFinger: {
+          kn: "ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ)",
+          en: "Ring finger (Anamika)",
+          hi: "अनामिका (Ring finger)",
+          te: "ఉంగరపు వేలు",
+          ta: "மோதிர விரல்",
+          ml: "മോതിരവിരൽ",
+          mr: "अनामिका"
+        },
+        wearingDayAndTime: {
+          kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ವೇಳೆಯಲ್ಲಿ",
+          en: "Tuesday morning within 1 hour of sunrise during Shukla Paksha",
+          hi: "शुक्ल पक्ष के मंगलवार को सूर्योदय के समय",
+          te: "శుక్ల పక్ష మంగళవారం సూర్యోదయ సమయంలో",
+          ta: "சுக்கில பட்ச செவ்வாய்க்கிழமை காலை",
+          ml: "ശുക്ലപക്ഷ ചൊവ്വാഴ്ച രാവിലെ",
+          mr: "शुक्ल पक्षातील मंगळवारी सूर्योदयाच्या वेळी"
+        },
+        gemstoneMantra: {
+          kn: "ಓಂ ಅಂಗಾರಕಾಯ ನಮಃ",
+          en: "Om Angarakaya Namah",
+          hi: "ॐ अंगारकाय नमः",
+          te: "ఓం అంగారకాయ నమః",
+          ta: "ஓம் அங்காரகாய நமஹ",
+          ml: "ഓം അംഗാരകായ നമഃ",
+          mr: "ॐ अंगारकाय नमः"
+        },
+        gemstoneBenefits: {
+          kn: "ಆತ್ಮವಿಶ್ವಾಸ, ಧೈರ್ಯ, ಶೌರ್ಯ, ನಾಯಕತ್ವ ಹಾಗೂ ದೈಹಿಕ ಶಕ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸಿ ಸಮಸ್ತ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸುತ್ತದೆ.",
+          en: "amplifies physical stamina, courageous leadership, determination, and clears marriage or career hurdles.",
+          hi: "साहस, ऊर्जा, नेतृत्व क्षमता और पराक्रम को बढ़ाता है तथा समस्त बाधाओं को दूर करता है।",
+          te: "ఆత్మవిశ్వాసం, ధైర్యం, నాయకత్వ లక్షణాలు మరియు కార్యజయాన్ని ప్రసాదిస్తుంది.",
+          ta: "தைரியம், வீரம், தன்னம்பிக்கை மற்றும் தடைகளை நீக்கும் சக்தியைத் தரும்.",
+          ml: "ആരോഗ്യവും ധൈര്യവും ആത്മവിശ്വാസവും നൽകുന്നു.",
+          mr: "धैर्य, पराक्रम, आत्मविश्वास आणि कार्यक्षमता वाढवते."
+        },
+        luckyColors: {
+          kn: "ಗಾಢ ಕೆಂಪು, ಸಿಂಧೂರ, ಕಿತ್ತಳೆ ಹಾಗೂ ಕೇಸರಿ",
+          en: "Bright Red, Crimson, Saffron, and Coral Orange",
+          hi: "गहरा लाल, सिंदूरी, केसरिया और नारंगी",
+          te: "ఎరుపు, సిందూరం, కేసరి మరియు నారింజ",
+          ta: "சிவப்பு, குங்கும நிறம் மற்றும் காவி",
+          ml: "ചുവപ്പ്, സിന്ദൂര നിറം, കേസരി",
+          mr: "गडद लाल, शेंदरी आणि केशरी"
+        },
+        colorsToAvoid: {
+          kn: "ಹಸಿರು ಹಾಗೂ ಮಬ್ಬು ಬೂದು ಬಣ್ಣ",
+          en: "Green and Dull Grey",
+          hi: "हरा और मटमैला स्लेटी रंग",
+          te: "ఆకుపచ్చ మరియు బూడిద రంగు",
+          ta: "பச்சை மற்றும் சாம்பல் நிறம்",
+          ml: "പച്ചയും ചാരനിറവും",
+          mr: "हिरवा आणि राखाडी"
+        },
+        primaryNumber: 9,
+        compatibleNumbers: [9, 1, 3],
+        luckyNumbersText: {
+          kn: "೯ (ಹಾಗೂ ೯, ೧, ೩ ಸರಣಿ)",
+          en: "9 (along with 9, 1, 3 series)",
+          hi: "९ (तथा ९, १, ३ श्रृंखला)",
+          te: "9 (మరియు 9, 1, 3 శ్రేణి)",
+          ta: "9 (மற்றும் 9, 1, 3 வரிசை)",
+          ml: "9 (കൂടാതെ 9, 1, 3 പരമ്പര)",
+          mr: "९ (आणि ९, १, ३ मालिका)"
+        },
+        ishtaDevata: {
+          kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ (ಕಾರ್ತಿಕೇಯ) ಹಾಗೂ ಶ್ರೀ ಆಂಜನೇಯ ಸ್ವಾಮಿ",
+          en: "Lord Subrahmanya (Kartikeya) and Lord Hanuman",
+          hi: "भगवान कार्तिकेय (सुब्रह्मण्य) एवं श्री हनुमान जी",
+          te: "శ్రీ సుబ్రహ్మణ్య స్వామి మరియు శ్రీ ఆంజనేయ స్వామి",
+          ta: "ஸ்ரீ முருகப் பெருமான் மற்றும் ஸ்ரீ ஆஞ்சநேயர்",
+          ml: "ശ്രീ സുബ്രഹ്മണ്യനും ശ്രീ ഹനുമാനും",
+          mr: "भगवान कार्तिकेय आणि श्री हनुमान"
+        },
+        sacredMantra: {
+          kn: "ಓಂ ಶರವಣಭವಾಯ ನಮಃ",
+          en: "Om Sharavana Bhavaya Namah",
+          hi: "ॐ शरवणभवाय नमः",
+          te: "ఓం శరవణభవాయ నమః",
+          ta: "ஓம் சரவணபவாய நமஹ",
+          ml: "ഓം ശരവണഭവ നമഃ",
+          mr: "ॐ शरवणभवाय नमः"
+        },
+        auspiciousDay: {
+          kn: "ಮಂಗಳವಾರ",
+          en: "Tuesday",
+          hi: "मंगलवार",
+          te: "మంగళవారం",
+          ta: "செவ்வாய்",
+          ml: "ചൊവ്വാഴ്ച",
+          mr: "मंगळवार"
+        }
+      };
+
+    case PlanetName.Mercury:
+      return {
+        gemstonePlanet: "Mercury",
+        isCoralMatched,
+        primaryGemstoneName: {
+          kn: "ಪಚ್ಚೆ (Emerald)",
+          en: "Emerald (Panna)",
+          hi: "पन्ना (Emerald)",
+          te: "పచ్చ (Emerald)",
+          ta: "மரகதம் (Emerald)",
+          ml: "മരതകം (Emerald)",
+          mr: "पन्ना (Emerald)"
+        },
+        idealMetal: {
+          kn: "ಬಂಗಾರ ಅಥವಾ ಕಂಚು",
+          en: "Gold or Bronze",
+          hi: "सोना या कांसा",
+          te: "బంగారం లేదా కంచు",
+          ta: "தங்கம் அல்லது வெண்கலம்",
+          ml: "സ്വർണ്ണം അല്ലെങ്കിൽ വെങ്കലം",
+          mr: "सोने किंवा कासे"
+        },
+        idealFinger: {
+          kn: "ಕಿರುಬೆರಳು (ಕನಿಷ್ಠಿಕಾ)",
+          en: "Little finger (Kanishthika)",
+          hi: "कनिष्ठिका (Little finger)",
+          te: "చిటికెన వేలు",
+          ta: "சுண்டு விரல்",
+          ml: "ചെറുവിരൽ",
+          mr: "करंगळी"
+        },
+        wearingDayAndTime: {
+          kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ನಂತರ",
+          en: "Wednesday morning within 2 hours of sunrise during Shukla Paksha",
+          hi: "शुक्ल पक्ष के बुधवार को सूर्योदय के समय",
+          te: "శుక్ల పక్ష బుధవారం సూర్యోదయ సమయంలో",
+          ta: "சுக்கில பட்ச புதன்கிழமை காலை",
+          ml: "ശുക്ലപക്ഷ ബുധനാഴ്ച രാവിലെ",
+          mr: "शुक्ल पक्षातील बुधवारी सूर्योदयाच्या वेळी"
+        },
+        gemstoneMantra: {
+          kn: "ಓಂ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ",
+          en: "Om Bram Brim Braum Sah Budhaya Namah",
+          hi: "ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः",
+          te: "ఓం బుధాయ నమః",
+          ta: "ஓம் புதாய நமஹ",
+          ml: "ഓം ബുധായ നമഃ",
+          mr: "ॐ बुधाय नमः"
+        },
+        gemstoneBenefits: {
+          kn: "ಬುದ್ಧಿಶಕ್ತಿ, ವ್ಯಾಪಾರ ಚಾಕಚಕ್ಯತೆ, ವಾಕ್ಚಾತುರ್ಯ ಹಾಗೂ ಶೈಕ್ಷಣಿಕ ಯಶಸ್ಸನ್ನು ಕರುಣಿಸುತ್ತದೆ.",
+          en: "sharpens analytical intelligence, business acumen, communication prowess, and academic mastery.",
+          hi: "बुद्धि, व्यापारिक सूझबूझ, वाणी और शिक्षा में असाधारण सफलता दिलाता है।",
+          te: "మేధస్సు, వ్యాపార నైపుణ్యం, వాక్చాతుర్యం మరియు విద్యా విజయాలను ప్రసాదిస్తుంది.",
+          ta: "புத்தி கூர்மை, வியாபார வெற்றி மற்றும் கல்வி மேன்மையை அளிக்கிறது.",
+          ml: "ബുദ്ധിയും വാക്സാമർത്ഥ്യവും വിദ്യാഭ്യാസ വിജയവും നൽകുന്നു.",
+          mr: "बुद्धिमत्ता, व्यापार कौशल्य, संवाद आणि शिक्षणात यश प्रदान करते."
+        },
+        luckyColors: {
+          kn: "ಎಲೆ ಹಸಿರು, ಗಿಳಿ ಹಸಿರು, ತಿಳಿ ಹಸಿರು ಹಾಗೂ ಬಿಳಿ",
+          en: "Emerald Green, Light Mint Green, and Pure White",
+          hi: "तोते जैसा हरा, पन्ना हरा, हल्का हरा और सफेद",
+          te: "చిలుక పచ్చ, లేత ఆకుపచ్చ మరియు తెలుపు",
+          ta: "கிளிப்பச்சை, மரகதப்பச்சை மற்றும் வெள்ளை",
+          ml: "തത്തപ്പച്ച, ഇളം പച്ച, വെളുപ്പ്",
+          mr: "पोपटी हिरवा, पाचू हिरवा आणि पांढरा"
+        },
+        colorsToAvoid: {
+          kn: "ಗಾಢ ಕೆಂಪು",
+          en: "Dark Crimson and Red",
+          hi: "गहरा लाल और सिंदूरी",
+          te: "ముదురు ఎరుపు",
+          ta: "அடர்ந்த சிவப்பு",
+          ml: "കടും ചുവപ്പ്",
+          mr: "गडद लाल"
+        },
+        primaryNumber: 5,
+        compatibleNumbers: [5, 6, 8],
+        luckyNumbersText: {
+          kn: "೫ (ಹಾಗೂ ೫, ೬, ೮ ಸರಣಿ)",
+          en: "5 (along with 5, 6, 8 series)",
+          hi: "५ (तथा ५, ६, ८ श्रृंखला)",
+          te: "5 (మరియు 5, 6, 8 శ్రేణి)",
+          ta: "5 (மற்றும் 5, 6, 8 வரிசை)",
+          ml: "5 (കൂടാതെ 5, 6, 8 പരമ്പര)",
+          mr: "५ (आणि ५, ६, ८ मालिका)"
+        },
+        ishtaDevata: {
+          kn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು ಹಾಗೂ ಶ್ರೀ ಮಹಾಗಣಪತಿ",
+          en: "Lord Maha Vishnu and Lord Mahaganapati",
+          hi: "भगवान महाविष्णु एवं श्री गणेश जी",
+          te: "శ్రీ మహావిష్ణువు మరియు వినాయకుడు",
+          ta: "ஸ்ரீ மகாவிஷ்ணு மற்றும் விநாயகர்",
+          ml: "ശ്രീ മഹാവിഷ്ണുവും ഗണപതിയും",
+          mr: "भगवान महाविष्णू आणि श्री गणेश"
+        },
+        sacredMantra: {
+          kn: "ಓಂ ನಮೋ ನಾರಾಯಣಾಯ",
+          en: "Om Namo Narayanaya",
+          hi: "ॐ नमो नारायणाय",
+          te: "ఓం నమో నారాయణాయ",
+          ta: "ஓம் நமோ நாராயணாய",
+          ml: "ഓം നമോ നാരായണായ",
+          mr: "ॐ नमो नारायणाय"
+        },
+        auspiciousDay: {
+          kn: "ಬುಧವಾರ",
+          en: "Wednesday",
+          hi: "बुधवार",
+          te: "బుధవారం",
+          ta: "புதன்",
+          ml: "ബുധനാഴ്ച",
+          mr: "बुधवार"
+        }
+      };
+
+    case PlanetName.Jupiter:
+      return {
+        gemstonePlanet: "Jupiter",
+        isCoralMatched,
+        primaryGemstoneName: {
+          kn: "ಪುಷ್ಯರಾಗ (Yellow Sapphire)",
+          en: "Yellow Sapphire (Pukhraj)",
+          hi: "पीला पुखराज (Yellow Sapphire)",
+          te: "పుష్యరాగం (Yellow Sapphire)",
+          ta: "புஷ்பராகம் (Yellow Sapphire)",
+          ml: "പുഷ്യരാഗം (Yellow Sapphire)",
+          mr: "पुखराज (Yellow Sapphire)"
+        },
+        idealMetal: {
+          kn: "ಬಂಗಾರ ಅಥವಾ ಹಿತ್ತಾಳೆ",
+          en: "Gold or Brass",
+          hi: "सोना या पीतल",
+          te: "బంగారం లేదా ఇత్తడి",
+          ta: "தங்கம் அல்லது பித்தளை",
+          ml: "സ്വർണ്ണം അല്ലെങ്കിൽ താമ്രം",
+          mr: "सोने किंवा पितळ"
+        },
+        idealFinger: {
+          kn: "ತೋರುಬೆರಳು (ತರ್ಜನಿ)",
+          en: "Index finger (Tarjani)",
+          hi: "तर्जनी (Index finger)",
+          te: "చూపుడు వేలు",
+          ta: "ஆள்காட்டி விரல்",
+          ml: "ചൂണ്ടുവിരൽ",
+          mr: "तर्जनी"
+        },
+        wearingDayAndTime: {
+          kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ವೇಳೆಯಲ್ಲಿ",
+          en: "Thursday morning during sunrise hours in Shukla Paksha",
+          hi: "शुक्ल पक्ष के गुरुवार को सूर्योदय के समय",
+          te: "శుక్ల పక్ష గురువారం సూర్యోదయ సమయంలో",
+          ta: "சுக்கில பட்ச வியாழக்கிழமை காலை",
+          ml: "ശുക്ലപക്ഷ വ്യാഴാഴ്ച രാവിലെ",
+          mr: "शुक्ल पक्षातील गुरुवारी सूर्योदयाच्या वेळी"
+        },
+        gemstoneMantra: {
+          kn: "ಓಂ ಬೃಹಸ್ಪತಯೇ ನಮಃ",
+          en: "Om Brihaspataye Namah",
+          hi: "ॐ बृहस्पतये नमः",
+          te: "ఓం బృహస్పతయే నమః",
+          ta: "ஓம் பிரகஸ்பதயே நமஹ",
+          ml: "ഓം ബൃഹസ്പതയേ നമഃ",
+          mr: "ॐ बृहस्पतये नमः"
+        },
+        gemstoneBenefits: {
+          kn: "ಜ್ಞಾನ, ಕಲ್ಯಾಣ ಭಾಗ್ಯ (ವಿವಾಹ ಯೋಗ), ಸಂತಾನ ಸುಖ ಹಾಗೂ ಅಪಾರ ಧನಸಂಪತ್ತನ್ನು ಅನುಗ್ರಹಿಸುತ್ತದೆ.",
+          en: "brings divine wisdom, early marriage fruition, progeny joy, spiritual elevation, and lasting wealth.",
+          hi: "ज्ञान, शीघ्र विवाह, संतान सुख, आध्यात्मिक उन्नति और धन-समृद्धि प्रदान करता है।",
+          te: "జ్ఞానం, వివాహ భాగ్యం, సంతాన సౌఖ్యం మరియు సంపదలను ప్రసాదిస్తుంది.",
+          ta: "ஞானம், திருமண வரம், புத்திர பாக்கியம் மற்றும் செல்வம் தரும்.",
+          ml: "ജ്ഞാനം, വിവാഹ സൗഭാഗ്യം, സന്താന ലബ്ധി, ധനം എന്നിവ നൽകുന്നു.",
+          mr: "ज्ञान, विवाह योग, संतान सुख आणि धनसमृद्धी प्रदान करते."
+        },
+        luckyColors: {
+          kn: "ಅರಿಶಿನ ಹಳದಿ, ಬಂಗಾರದ ಹಳದಿ, ಕೇಸರಿ ಹಾಗೂ ತಿಳಿ ಕೆನೆ",
+          en: "Bright Yellow, Turmeric Yellow, Gold, and Amber",
+          hi: "हल्दी पीला, सुनहरा पीला, केसरिया और हल्का क्रीम",
+          te: "పసుపు, బంగారు వర్ణం మరియు కేసరి",
+          ta: "மஞ்சள், பொன்னிறம் மற்றும் காவி",
+          ml: "മഞ്ഞ, സുവർണ്ണം, കേസരി",
+          mr: "हळदी पिवळा, सोनेरी आणि केशरी"
+        },
+        colorsToAvoid: {
+          kn: "ಕಪ್ಪು ಹಾಗೂ ಗಾಢ ಬೂದು",
+          en: "Black and Dark Grey",
+          hi: "काला और गहरा स्लेटी",
+          te: "నలుపు మరియు బూడిద రంగు",
+          ta: "கருப்பு மற்றும் சாம்பல் நிறம்",
+          ml: "കറുപ്പും ചാരനിറവും",
+          mr: "काळा आणि गडद राखाडी"
+        },
+        primaryNumber: 3,
+        compatibleNumbers: [3, 1, 9],
+        luckyNumbersText: {
+          kn: "೩ (ಹಾಗೂ ೩, ೧, ೯ ಸರಣಿ)",
+          en: "3 (along with 3, 1, 9 series)",
+          hi: "३ (तथा ३, १, ९ श्रृंखला)",
+          te: "3 (మరియు 3, 1, 9 శ్రేణి)",
+          ta: "3 (மற்றும் 3, 1, 9 வரிசை)",
+          ml: "3 (കൂടാതെ 3, 1, 9 പരമ്പര)",
+          mr: "३ (आणि ३, १, ९ मालिका)"
+        },
+        ishtaDevata: {
+          kn: "ಶ್ರೀ ದತ್ತಾತ್ರೇಯ, ಶ್ರೀ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಹಾಗೂ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಗೋಕರ್ಣ",
+          en: "Lord Dattatreya, Lord Dakshinamurthy, and Sri Mahabaleshwara Gokarna",
+          hi: "भगवान दत्तात्रेय एवं श्री क्षेत्र गोकर्ण महाबलेश्वर",
+          te: "శ్రీ దత్తాత్రేయ స్వామి మరియు మహాబలేశ్వర స్వామి",
+          ta: "ஸ்ரீ தட்சிணாமூர்த்தி மற்றும் மகாபலேஸ்வரர்",
+          ml: "ശ്രീ ദക്ഷിണാമൂർത്തിയും മഹാബലേശ്വരനും",
+          mr: "भगवान दत्तात्रेय आणि श्री क्षेत्र गोकर्ण महाबळेश्वर"
+        },
+        sacredMantra: {
+          kn: "ಓಂ ಗುರವೇ ನಮಃ",
+          en: "Om Gurave Namah",
+          hi: "ॐ गुरवे नमः",
+          te: "ఓం గురవే నమః",
+          ta: "ஓம் குரவே நமஹ",
+          ml: "ഓം ഗുരവേ നമഃ",
+          mr: "ॐ गुरवे नमः"
+        },
+        auspiciousDay: {
+          kn: "ಗುರುವಾರ",
+          en: "Thursday",
+          hi: "गुरुवार",
+          te: "గురువారం",
+          ta: "வியாழன்",
+          ml: "വ്യാഴാഴ്ച",
+          mr: "गुरुवार"
+        }
+      };
+
+    case PlanetName.Venus:
+      return {
+        gemstonePlanet: "Venus",
+        isCoralMatched,
+        primaryGemstoneName: {
+          kn: "ವಜ್ರ ಅಥವಾ ಬಿಳಿ ಜಿರ್ಕಾನ್ (Diamond / White Zircon)",
+          en: "Diamond or White Zircon",
+          hi: "हीरा अथवा सफेद जरकन (Diamond / White Zircon)",
+          te: "వజ్రం లేదా తెల్ల జిర్కాన్ (Diamond / White Zircon)",
+          ta: "வைரம் அல்லது வெள்ளை ஜிர்கான்",
+          ml: "വൈരം അല്ലെങ്കിൽ വെള്ള സിർക്കോൺ",
+          mr: "हिरा किंवा पांढरा जरकन"
+        },
+        idealMetal: {
+          kn: "ಶುದ್ಧ ಬೆಳ್ಳಿ, ಪ್ಲಾಟಿನಂ ಅಥವಾ ಬಿಳಿ ಬಂಗಾರ",
+          en: "Silver, Platinum, or White Gold",
+          hi: "चांदी, प्लैटिनम अथवा सफेद सोना",
+          te: "వెండి లేదా ప్లాటినం",
+          ta: "வெள்ளி அல்லது பிளாட்டினம்",
+          ml: "വെള്ളി അല്ലെങ്കിൽ പ്ലാറ്റിനം",
+          mr: "चांदी किंवा प्लॅटिनम"
+        },
+        idealFinger: {
+          kn: "ಉಂಗುರದ ಬೆರಳು ಅಥವಾ ಮಧ್ಯದ ಬೆರಳು",
+          en: "Middle finger or Ring finger",
+          hi: "मध्यमा अथवा अनामिका",
+          te: "మధ్య వేలు లేదా ఉంగరపు వేలు",
+          ta: "நடுவிரல் அல்லது மோதிர விரல்",
+          ml: "നടുവിരൽ അല്ലെങ്കിൽ മോതിരവിരൽ",
+          mr: "मधले बोट किंवा अनामिका"
+        },
+        wearingDayAndTime: {
+          kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ",
+          en: "Friday morning during sunrise hours in Shukla Paksha",
+          hi: "शुक्ल पक्ष के शुक्रवार को सूर्योदय के समय",
+          te: "శుక్ల పక్ష శుక్రవారం సూర్యోదయ సమయంలో",
+          ta: "சுக்கில பட்ச வெள்ளிக்கிழமை காலை",
+          ml: "ശുക്ലപക്ഷ വെള്ളിയാഴ്ച രാവിലെ",
+          mr: "शुक्ल पक्षातील शुक्रवारी सूर्योदयाच्या वेळी"
+        },
+        gemstoneMantra: {
+          kn: "ಓಂ ಶುಕ್ರಾಯ ನಮಃ",
+          en: "Om Shukraya Namah",
+          hi: "ॐ शुक्राय नमः",
+          te: "ఓం శుక్రాయ నమః",
+          ta: "ஓம் சுக்ராய நமஹ",
+          ml: "ഓം ശുക്രായ നമഃ",
+          mr: "ॐ शुक्राय नमः"
+        },
+        gemstoneBenefits: {
+          kn: "ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ, ಕಲಾತ್ಮಕ ಯಶಸ್ಸು, ದಾಂಪತ್ಯ ಸುಖ, ಐಶ್ವರ್ಯ ಹಾಗೂ ಭೋಗ ಭಾಗ್ಯಗಳನ್ನು ನೀಡುತ್ತದೆ.",
+          en: "bestows magnetic charisma, marital bliss, aesthetic elegance, luxury, and artistic fulfillment.",
+          hi: "वैवाहिक सुख, आकर्षण, कलात्मक सफलता और भौतिक ऐश्वर्य प्रदान करता है।",
+          te: "ఆకర్షణీయమైన వ్యక్తిత్వం, దాంపత్య సౌఖ్యం మరియు సంపదలను కలిగిస్తుంది.",
+          ta: "கவர்ச்சி, திருமண இன்பம், கலைத் திறமை மற்றும் செல்வம் தரும்.",
+          ml: "ദാമ്പത്യ സൗഖ്യം, ഐശ്വര്യം, ആകർഷക വ്യക്തിത്വം എന്നിവ നൽകുന്നു.",
+          mr: "वैवाहिक सुख, आकर्षण, ऐश्वर्य आणि कला क्षेत्रात यश प्रदान करते."
+        },
+        luckyColors: {
+          kn: "ಶುದ್ಧ ಬಿಳಿ, ತಿಳಿ ಗುಲಾಬಿ, ಆಕಾಶ ನೀಲಿ, ಕೆನೆ ಬಣ್ಣ",
+          en: "Snow White, Light Pink, Sky Blue, and Cream",
+          hi: "दूधिया सफेद, हल्का गुलाबी, आसमानी नीला और क्रीम",
+          te: "తెలుపు, లేత గులాబీ, ఆకాశ నీలం మరియు క్రీమ్",
+          ta: "தூய வெள்ளை, இளஞ்சிவப்பு, வெளிர் நீலம்",
+          ml: "ശുദ്ധ വെളുപ്പ്, ഇളം പിങ്ക്, ആകാശ നീല",
+          mr: "पांढरा, हलका गुलाबी, आकाशी निळा आणि क्रीम"
+        },
+        colorsToAvoid: {
+          kn: "ಕಡು ಹಳದಿ ಹಾಗೂ ಅತಿಯಾದ ಕೆಂಪು",
+          en: "Bright Yellow and Fiery Red",
+          hi: "चमकीला पीला और गहरा लाल",
+          te: "ముదురు పసుపు మరియు ఎరుపు",
+          ta: "அடர்ந்த மஞ்சள் மற்றும் சிவப்பு",
+          ml: "കടും മഞ്ഞയും ചുവപ്പും",
+          mr: "गडद पिवळा आणि लाल"
+        },
+        primaryNumber: 6,
+        compatibleNumbers: [6, 5, 8],
+        luckyNumbersText: {
+          kn: "೬ (ಹಾಗೂ ೬, ೫, ೮ ಸರಣಿ)",
+          en: "6 (along with 6, 5, 8 series)",
+          hi: "६ (तथा ६, ५, ८ श्रृंखला)",
+          te: "6 (మరియు 6, 5, 8 శ్రేణి)",
+          ta: "6 (மற்றும் 6, 5, 8 வரிசை)",
+          ml: "6 (കൂടാതെ 6, 5, 8 പരമ്പര)",
+          mr: "६ (आणि ६, ५, ८ मालिका)"
+        },
+        ishtaDevata: {
+          kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ ದೇವಿ ಹಾಗೂ ಶ್ರೀ ಲಲಿತಾ ತ್ರಿಪುರಸುಂದರಿ",
+          en: "Goddess Mahalakshmi and Sri Lalita Tripurasundari",
+          hi: "माता महालक्ष्मी एवं श्री ललिता त्रिपुरासुंदरी",
+          te: "శ్రీ మహాలక్ష్మి దేవి",
+          ta: "ஸ்ரீ மகாலட்சுமி அம்மன்",
+          ml: "ശ്രീ മഹാലക്ഷ്മി ദേവി",
+          mr: "माता महालक्ष्मी"
+        },
+        sacredMantra: {
+          kn: "ಓಂ ಶ್ರೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ",
+          en: "Om Shreem Mahalakshmyai Namah",
+          hi: "ॐ श्रीं महालक्ष्म्यै नमः",
+          te: "ఓం శ్రీం మహాలక్ష్మ్యై నమః",
+          ta: "ஓம் ஸ்ரீம் மகாலட்சுமியை நமஹ",
+          ml: "ഓം ശ്രീം മഹാലക്ഷ്മ്യൈ നമഃ",
+          mr: "ॐ श्रीं महालक्ष्म्यै नमः"
+        },
+        auspiciousDay: {
+          kn: "ಶುಕ್ರವಾರ",
+          en: "Friday",
+          hi: "शुक्रवार",
+          te: "శుక్రవారం",
+          ta: "வெள்ளி",
+          ml: "വെള്ളിയാഴ്ച",
+          mr: "शुक्रवार"
+        }
+      };
+
+    case PlanetName.Saturn:
+    default:
+      return {
+        gemstonePlanet: "Saturn",
+        isCoralMatched,
+        primaryGemstoneName: {
+          kn: "ನೀಲ ಅಥವಾ ಅಮೆಥಿಸ್ಟ್ (Blue Sapphire / Amethyst)",
+          en: "Blue Sapphire (Neelam) or Amethyst",
+          hi: "नीलम अथवा जमुनिया (Blue Sapphire / Amethyst)",
+          te: "నీలం లేదా అమెథిస్ట్ (Blue Sapphire / Amethyst)",
+          ta: "நீலக்கல் அல்லது அமெதிஸ்ட்",
+          ml: "നീലക്കല്ല് അല്ലെങ്കിൽ അമേത്തിസ്റ്റ്",
+          mr: "नीलम किंवा जांभळा अगेटी (Blue Sapphire)"
+        },
+        idealMetal: {
+          kn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು",
+          en: "Pure Silver or Panchadhatu",
+          hi: "शुद्ध चांदी अथवा पंचधातु",
+          te: "వెండి లేదా పంచలోహం",
+          ta: "வெள்ளி அல்லது ஐம்பொன்",
+          ml: "വെള്ളി അല്ലെങ്കിൽ പഞ്ചലോഹം",
+          mr: "चांदी किंवा पंचधातू"
+        },
+        idealFinger: {
+          kn: "ಮಧ್ಯದ ಬೆರಳು (ಮಧ್ಯಮಾ)",
+          en: "Middle finger (Madhyama)",
+          hi: "मध्यमा (Middle finger)",
+          te: "మధ్య వేలు",
+          ta: "நடுவிரல்",
+          ml: "നടുവിരൽ",
+          mr: "मधले बोट"
+        },
+        wearingDayAndTime: {
+          kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಶನಿವಾರ ಸೂರ್ಯಾಸ್ತದ ಸಂಧ್ಯಾ ಕಾಲದಲ್ಲಿ",
+          en: "Saturday evening during twilight hours in Shukla Paksha",
+          hi: "शुक्ल पक्ष के शनिवार को सूर्यास्त के समय",
+          te: "శుక్ల పక్ష శనివారం సాయంత్రం సమయంలో",
+          ta: "சுக்கில பட்ச சனிக்கிழமை மாலை வேளையில்",
+          ml: "ശുക്ലപക്ഷ ശനിയാഴ്ച സന്ധ്യാസമയത്ത്",
+          mr: "शुक्ल पक्षातील शनिवारी सूर्यास्ताच्या वेळी"
+        },
+        gemstoneMantra: {
+          kn: "ಓಂ ಶಂ ಶನೈಶ್ಚರಾಯ ನಮಃ",
+          en: "Om Sham Shanaishcharaya Namah",
+          hi: "ॐ शं शनैश्चराय नमः",
+          te: "ఓం శం శనైశ్చరాయ నమః",
+          ta: "ஓம் சனீஸ்வராய நமஹ",
+          ml: "ഓം ശനീശ്വരായ നമഃ",
+          mr: "ॐ शं शनैश्चराय नमः"
+        },
+        gemstoneBenefits: {
+          kn: "ಸ್ಥಿರತೆ, ಶಿಸ್ತು, ಕರ್ಮದೋಷ ನಿವಾರಣೆ, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಆಕಸ್ಮಿಕ ಸಂಕಷ್ಟಗಳಿಂದ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.",
+          en: "instills unshakeable discipline, long-term stability, career longevity, and shields from karmic adversities.",
+          hi: "धैर्य, अनुशासन, स्थिरता, कर्मदोष निवारण और दीर्घायु प्रदान करता है।",
+          te: "స్థిరత్వం, క్రమశిక్షణ, కష్ట నివారణ మరియు దీర్ఘాయువును ప్రసాదిస్తుంది.",
+          ta: "நிலைத்தன்மை, ஒழுக்கம், தோஷ நிவர்த்தி மற்றும் நீண்ட ஆயுளைத் தரும்.",
+          ml: "സ്ഥിരതയും ആയുസ്സും കർമ്മദോഷ നിവാരണവും നൽകുന്നു.",
+          mr: "स्थैर्य, शिस्त, संकट निवारण आणि दीर्घायुष्य प्रदान करते."
+        },
+        luckyColors: {
+          kn: "ಗಾಢ ನೀಲಿ, ನೇವಿ ಬ್ಲೂ, ರಾಯಲ್ ಬ್ಲೂ ಹಾಗೂ ಬೂದು ಬಣ್ಣ",
+          en: "Navy Blue, Royal Blue, Dark Blue, and Charcoal Grey",
+          hi: "गहरा नीला, नेवी ब्लू, रॉयल ब्लू और स्लेटी रंग",
+          te: "ముదురు నీలం, నేవీ బ్లూ మరియు బూడిద రంగు",
+          ta: "அடர்ந்த நீலம், நேவி ப்ளூ மற்றும் சாம்பல் நிறம்",
+          ml: "കടും നീല, നേവി ബ്ലൂ, ചാരനിറം",
+          mr: "गडद निळा, नेव्ही ब्लू आणि राखाडी"
+        },
+        colorsToAvoid: {
+          kn: "ಅತಿಯಾದ ಕೆಂಪು ಹಾಗೂ ಕಿತ್ತಳೆ",
+          en: "Bright Red and Fiery Orange",
+          hi: "गहरा लाल और चमकीला नारंगी",
+          te: "ముదురు ఎరుపు మరియు నారింజ",
+          ta: "அடர்ந்த சிவப்பு மற்றும் ஆரஞ்சு",
+          ml: "കടും ചുവപ്പും ഓറഞ്ചും",
+          mr: "गडद लाल आणि भडक नारंगी"
+        },
+        primaryNumber: 8,
+        compatibleNumbers: [8, 5, 6],
+        luckyNumbersText: {
+          kn: "೮ (ಹಾಗೂ ೮, ೫, ೬ ಸರಣಿ)",
+          en: "8 (along with 8, 5, 6 series)",
+          hi: "८ (तथा ८, ५, ६ श्रृंखला)",
+          te: "8 (మరియు 8, 5, 6 శ్రేణి)",
+          ta: "8 (மற்றும் 8, 5, 6 வரிசை)",
+          ml: "8 (കൂടാതെ 8, 5, 6 പരമ്പര)",
+          mr: "८ (आणि ८, ५, ६ मालिका)"
+        },
+        ishtaDevata: {
+          kn: "ಶ್ರೀ ಶನೈಶ್ಚರ ದೇವರು, ಶ್ರೀ ಆಂಜನೇಯ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ",
+          en: "Lord Shani Dev, Lord Hanuman, and Sri Kshetra Gokarna Mahabaleshwara",
+          hi: "श्री शनिदेव, श्री हनुमान जी एवं श्री क्षेत्र गोकर्ण महाबलेश्वर",
+          te: "శ్రీ శనీశ్వర స్వామి మరియు శ్రీ ఆంజనేయ స్వామి",
+          ta: "ஸ்ரீ சனீஸ்வர பகவான் மற்றும் ஸ்ரீ ஆஞ்சநேயர்",
+          ml: "ശ്രീ ശനീശ്വരനും ശ്രീ ഹനുമാനും",
+          mr: "श्री शनिदेव, श्री हनुमान आणि श्री क्षेत्र गोकर्ण महाबळेश्वर"
+        },
+        sacredMantra: {
+          kn: "ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ",
+          en: "Om Pram Prim Praum Sah Shanaishcharaya Namah",
+          hi: "ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः",
+          te: "ఓం శం శనైశ్చరాయ నమః",
+          ta: "ஓம் சனீஸ்வராய நமஹ",
+          ml: "ഓം ശനീശ്വരായ നമഃ",
+          mr: "ॐ शं शनैश्चराय नमः"
+        },
+        auspiciousDay: {
+          kn: "ಶನಿವಾರ",
+          en: "Saturday",
+          hi: "शनिवार",
+          te: "శనివారం",
+          ta: "சனி",
+          ml: "ശനിയാഴ്ച",
+          mr: "शनिवार"
+        }
+      };
+  }
+}
+
 export interface AstrologicalTimelineResult {
   currentMahaName: string;
   currentBhuktiName: string;
@@ -1457,12 +2514,30 @@ export async function generateConsultationAnswer(params: {
 
   const targetLang = CONSULTATION_LANG_NAMES[session.language] || "Kannada";
 
-  // 4. Construct Authoritative Vedic Astrological Prompt with Conditional 4th Paragraph
+  // 4. Construct Authoritative Vedic Astrological Prompt with Dynamic Paragraph Length
+  const complexityAnalysis = analyzeQuestionComplexity(
+    userQuestion,
+    conversationHistory,
+    isSubsequent
+  );
+  const recProfile = computeAstrologicalRecommendations(
+    astroData,
+    session.language
+  );
+
   const asksAboutDoshaDirectly =
     /ದೋಷ|ಪರಿಹಾರ|ತೊಂದರೆ|ವಿಳಂಬ|ಯಾಕೆ|ಕಾರಣ|ಅಡೆತಡೆ|ಕಷ್ಟ|ಕರ್ಮ|dosha|curse|parihara|remedy|delay|obstacle|hurdle|why|karma/i.test(
       userQuestion
     );
-  const includeFullDoshaChapter = (!isSubsequent || asksAboutDoshaDirectly) && activeDosha.hasDosha;
+  // Dedicated 4th paragraph Dosha chapter is ONLY included if:
+  // 1) The inquiry is COMPREHENSIVE_DEEP (or explicitly asks about dosha/curse), AND
+  // 2) An active dosha is detected in the chart, AND
+  // 3) It is either Turn 1 of a dosha inquiry or a direct follow-up on dosha.
+  // NEVER attach full dosha chapter to QUICK_SPECIFIC or FOCUSED_MODERATE queries!
+  const includeFullDoshaChapter =
+    complexityAnalysis.complexity === "COMPREHENSIVE_DEEP" &&
+    activeDosha.hasDosha &&
+    (!isSubsequent || asksAboutDoshaDirectly);
 
   const timingInstruction = convIntel.isAskingTiming
     ? `
@@ -1472,11 +2547,34 @@ MANDATORY ASTROLOGICAL TIMELINE WINDOW (ACCURATE TIMING WITH 98% PROBABILITY):
   1) Dasha-Bhukti transition: Current ${timeline.currentMahaName}-${timeline.currentBhuktiName} transition matures in approximately ${timeline.monthsToDashaChange} months into ${timeline.nextBhuktiName}.
   2) Gochara Guru: Guru completes its 1-year transit cycle to cast direct divine aspect (drishti) on the native's chart.
   3) 98% Probability Auspicious Window: ${timeline.rangeSummary}.
-- In Paragraph 3, state this EXACT calculated timeline range (${timeline.rangeSummary}) clearly and reassuringly!`
+- State this EXACT calculated timeline range (${timeline.rangeSummary}) clearly and reassuringly in the reading!`
     : "";
 
   let doshaSectionPrompt = "";
-  if (includeFullDoshaChapter) {
+  if (complexityAnalysis.complexity === "QUICK_SPECIFIC") {
+    doshaSectionPrompt = `
+${complexityAnalysis.promptDirective}
+
+AUTHENTIC ASTROLOGICAL RECOMMENDATION DATA FOR THIS NATIVE:
+- Primary Gemstone: ${recProfile.primaryGemstoneName[session.language] || recProfile.primaryGemstoneName.kn}
+- Ruling Planet: ${recProfile.gemstonePlanet} (Red Coral Matched: ${recProfile.isCoralMatched ? "YES" : "NO"})
+- Ideal Metal: ${recProfile.idealMetal[session.language] || recProfile.idealMetal.kn}
+- Ideal Finger: ${recProfile.idealFinger[session.language] || recProfile.idealFinger.kn}
+- Auspicious Day & Timing: ${recProfile.wearingDayAndTime[session.language] || recProfile.wearingDayAndTime.kn}
+- Sacred Gemstone Mantra: ${recProfile.gemstoneMantra[session.language] || recProfile.gemstoneMantra.kn}
+- Gemstone Benefits: ${recProfile.gemstoneBenefits[session.language] || recProfile.gemstoneBenefits.kn}
+- Lucky Colors: ${recProfile.luckyColors[session.language] || recProfile.luckyColors.kn}
+- Colors to Avoid: ${recProfile.colorsToAvoid[session.language] || recProfile.colorsToAvoid.kn}
+- Primary Lucky Number: ${recProfile.primaryNumber} (Harmonious series: ${recProfile.luckyNumbersText[session.language] || recProfile.luckyNumbersText.kn})
+- Ishta Devata: ${recProfile.ishtaDevata[session.language] || recProfile.ishtaDevata.kn}
+- Sacred Deity Mantra: ${recProfile.sacredMantra[session.language] || recProfile.sacredMantra.kn}
+- Auspicious Day: ${recProfile.auspiciousDay[session.language] || recProfile.auspiciousDay.kn}
+
+MANDATORY 80/20 GOLDEN RULE:
+- 80% DIRECT ANSWER AND PRACTICAL SPECIFICS, AT MOST 20% BRIEF PLANETARY CONTEXT.
+- FRONT-LOADED ANSWER: State the direct answer (gemstone/color/number/deity) in the VERY FIRST SENTENCE of paragraph 1!
+- ABSOLUTELY DO NOT write more than ${complexityAnalysis.maxParagraphs} paragraph(s)! ZERO filler, ZERO unasked dosha rituals!`;
+  } else if (includeFullDoshaChapter) {
     doshaSectionPrompt = `
 ACTIVE DOSHA / KARMIC INFLUENCE IDENTIFIED IN NATIVE'S BIRTH CHART RELEVANT TO QUESTION:
 - Identified Dosha/Karma: ${activeDosha.doshaName} (${activeDosha.doshaId})
@@ -1504,33 +2602,25 @@ ${
   * Explain what sacred Vedic Parihara Pooja must be performed at Sri Kshetra Gokarna (${activeDosha.recommendedPooja}) to neutralize this Dosha.
   * Connect emotionally and reassuringly with the devotee: assure them with absolute certainty that upon performing this sacred Gokarna pooja, they will surely witness genuine relief and positive improvement in their life.
   * Explicitly instruct them to contact chief priest Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) to schedule and perform this parihara.`;
-  } else if (activeDosha.hasDosha && !includeFullDoshaChapter) {
+  } else if (complexityAnalysis.complexity === "FOCUSED_MODERATE") {
     doshaSectionPrompt = `
-CRITICAL PARAGRAPH STRUCTURE RULE (EXACTLY 3 PARAGRAPHS - ZERO REPETITION OF DOSHA CHAPTER):
-This is question #${qNum} (a follow-up question). The devotee was already informed about the ${activeDosha.doshaName} in question #1.
-DO NOT write a 4th paragraph re-explaining the dosha! DO NOT repeat the 6-line dosha parihara ritual!
-You MUST provide EXACTLY 3 well-developed, comprehensive paragraphs:
-${
-  convIntel.isSameTopicFollowUp
-    ? `- Paragraph 1: Direct conversational follow-up addressing "${userQuestion}". Open naturally using: "${convIntel.contextualBridge}". Connect smoothly: acknowledge the earlier identified ${convIntel.referencedDoshaFromHistory || activeDosha.doshaName} causing previous delays, and address this inquiry directly without re-explaining the dosha or repeating Lagna/Tatva/Gana traits.`
-    : `- Paragraph 1: Direct astrological answer addressing THIS NEW QUESTION ("${userQuestion}") based on the relevant Bhavas and planetary placements. ZERO greetings ("ನಮಸ್ಕಾರ / Hello"). ZERO repeating Lagna, Tatva, Gana, or inborn character profiling. Jump straight into the answer!`
-}
-- Paragraph 2: In-depth evaluation of the running Vimshottari Dasha-Bhukti (${currentDashaText}) and live Gochara planetary transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}) specifically regarding "${userQuestion}".
-- Paragraph 3: Future progression, auspicious timing, and practical advice specifically for "${userQuestion}".${timingInstruction} Conclude gracefully with a brief, single comforting sentence that the previously noted Gokarna parihara remedies will ensure steady progress and divine protection.`;
+CRITICAL SMART STRUCTURE DIRECTIVE (FOCUSED INQUIRY - EXACTLY 2 PARAGRAPHS):
+- The devotee is asking "${userQuestion}".
+- STRICT PROHIBITION: DO NOT write 3 or 4 paragraphs!
+- 80/20 GOLDEN RULE: 80% DIRECT ANSWER & ACTIONABLE COUNSEL, AT MOST 20% ASTROLOGICAL CONTEXT.
+- FRONT-LOADED ANSWER: In the VERY FIRST SENTENCE of paragraph 1, state the direct conclusion or timeline upfront!
+- Paragraph 1: Direct answer addressing "${userQuestion}" based on relevant Bhavas and planetary placements. ZERO preamble.
+- Paragraph 2: Planetary transition context (Dasha shift + Guru transit) + practical life advice and sacred blessings of Sri Kshetra Gokarna.${timingInstruction}
+- Total length: EXACTLY 2 PARAGRAPHS.`;
   } else {
+    // COMPREHENSIVE_DEEP without 4th dosha chapter
     doshaSectionPrompt = `
-CRITICAL PARAGRAPH STRUCTURE RULE (EXACTLY 3 PARAGRAPHS - MANDATORY):
-Since NO adverse Dosha is currently obstructing this inquiry:
-You MUST provide EXACTLY 3 well-developed, comprehensive paragraphs (at least 5 to 6 full lines each).
-${
-  isSubsequent
-    ? convIntel.isSameTopicFollowUp
-      ? `- Paragraph 1: Direct conversational follow-up addressing "${userQuestion}". Open smoothly using: "${convIntel.contextualBridge}". Connect seamlessly with the prior discussion on ${convIntel.currentTopic} and analyze the specific Bhavas without repeating greetings or introductory traits.`
-      : `- Paragraph 1: Direct astrological analysis addressing THIS NEW QUESTION ("${userQuestion}") based on the relevant Bhavas and planetary placements. ZERO greetings ("ನಮಸ್ಕಾರ / Hello"). ZERO repeating Lagna, Tatva, Gana, or inborn character profiling. Jump straight into the specific answer!`
-    : `- Paragraph 1: Direct astrological analysis based on Lagna (${lagnaName}), Moon sign (${moonRashi}), Nakshatra (${nakshatra}), and relevant Bhavas. Connect with fatherly warmth.`
-}
+CRITICAL SMART STRUCTURE DIRECTIVE (COMPREHENSIVE INQUIRY - EXACTLY 3 PARAGRAPHS):
+- 80/20 GOLDEN RULE: 80% direct compassionate counsel and solutions, 20% technical planetary coordinates.
+- Paragraph 1: Direct answer addressing "${userQuestion}".
 - Paragraph 2: In-depth evaluation of the running Vimshottari Dasha-Bhukti (${currentDashaText}) and live Gochara planetary transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}) specifically regarding "${userQuestion}".
-- Paragraph 3: Future progression, auspicious timing, and sacred blessings of Sri Mahabaleshwara Gokarna with practical daily spiritual practices (mantras/daana) customized to this question.${timingInstruction}`;
+- Paragraph 3: Future progression, auspicious timing, and practical advice customized to "${userQuestion}".${timingInstruction} Conclude gracefully with blessings of Sri Kshetra Gokarna.
+- Total length: EXACTLY 3 PARAGRAPHS.`;
   }
 
   const prompt = `You are the revered Senior Head Astrologer & Chief Priest of Sri Baggona Panchanga Jyotishya Sansthana, Sri Kshetra Gokarna (ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುಖ್ಯ ದೈವಜ್ಞರು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ), endowed with over 50 years of tapasya, Vedic chart mastery, and pastoral spiritual guidance.
@@ -1560,7 +2650,11 @@ ${
 - MANDATORY INSTRUCTION 1: Focus 100% on this question: "${userQuestion}".
 - MANDATORY INSTRUCTION 2: ZERO repeating intros, greetings ("ನಮಸ್ಕಾರ / ಹಲೋ / Welcome"), or character profiling. Jump immediately into the astrological analysis!`
     : `- THIS IS THE DEVOTEE'S FIRST QUESTION (QUESTION #1).
-- Greet them with paternal warmth and briefly mirror their inborn temperament (Tatva: ${astroData.characterProfile.tatva}, Gana: ${astroData.characterProfile.gana}) in Paragraph 1 before directly answering "${userQuestion}".`
+${
+  complexityAnalysis.complexity === "QUICK_SPECIFIC"
+    ? `- Greet them in half a sentence and immediately state the direct answer (gemstone/color/number) in the first sentence!`
+    : `- Greet them with paternal warmth and briefly mirror their inborn temperament (Tatva: ${astroData.characterProfile.tatva}, Gana: ${astroData.characterProfile.gana}) in Paragraph 1 before directly answering "${userQuestion}".`
+}`
 }
 
 DEVOTEE BIRTH PROFILE & ASTROLOGICAL COORDINATES (COMPUTED ACCURATELY BY BAGGONA PANCHANGA):
@@ -1727,7 +2821,10 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
 
-  const shouldAttachCard = (!isSubsequent || asksAboutDoshaDirectly) && activeDosha.hasDosha;
+  const shouldAttachCard =
+    (!isSubsequent || asksAboutDoshaDirectly) &&
+    activeDosha.hasDosha &&
+    complexityAnalysis.complexity === "COMPREHENSIVE_DEEP";
 
   return {
     fullText: cleaned,
@@ -1753,6 +2850,351 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
 }
 
 /**
+ * Generates an authentic, focused 1-to-2 paragraph gemstone reading.
+ * Strictly adheres to the 80/20 golden rule with the direct recommendation front-loaded in sentence 1.
+ */
+export function buildDeterministicGemstoneReading(
+  session: ConsultationSession,
+  question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  rec: AstrologicalRecommendationProfile,
+  _isSubsequent: boolean
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+  const gemName = rec.primaryGemstoneName[lang] || rec.primaryGemstoneName.kn;
+  const metal = rec.idealMetal[lang] || rec.idealMetal.kn;
+  const finger = rec.idealFinger[lang] || rec.idealFinger.kn;
+  const wearingDayAndTime = rec.wearingDayAndTime[lang] || rec.wearingDayAndTime.kn;
+  const mantra = rec.gemstoneMantra[lang] || rec.gemstoneMantra.kn;
+  const benefits = rec.gemstoneBenefits[lang] || rec.gemstoneBenefits.kn;
+  const asksCoral = /ಹವಳ|havala|coral|ಮೂಂಗಾ|moonga|munga|मूंगा|పగడం|pagadam|பவளம்|pavalam|പവിഴം|pavizham|पोवळा/i.test(question);
+  const isCoralMatched = rec.isCoralMatched;
+
+  if (lang === "en") {
+    let coralLine = "";
+    if (asksCoral) {
+      coralLine = isCoralMatched
+        ? "The Red Coral (Havala / Moonga) you specifically inquired about is indeed an exceptional Yoga-Karaka gemstone that aligns superbly with your chart. "
+        : `Regarding Red Coral, your primary ascendant gem is ${gemName}, which will yield the most potent and balanced benefits for your chart. `;
+    } else if (isCoralMatched) {
+      coralLine = "In addition, Red Coral (Havala) serves as a potent secondary Yoga-Karaka gemstone for your chart. ";
+    }
+    const p1 = `For your birth chart, the most auspicious and empowering primary gemstone is ${gemName} to strengthen your ruling planet ${rec.gemstonePlanet}. ${coralLine}This sacred gemstone should be set in ${metal} and worn on the ${finger} on ${wearingDayAndTime}. Before wearing, purify it in unboiled milk or holy water while chanting the sacred mantra '${mantra}' 108 times, which ${benefits}`;
+    const p2 = `Always ensure the gemstone is authentic, natural, and free from cracks or flaws before consecrating it. May the divine grace of Sri Kshetra Gokarna Mahabaleshwara bestow immense confidence, success, and prosperity upon your journey.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "hi") {
+    let coralLine = "";
+    if (asksCoral) {
+      coralLine = isCoralMatched
+        ? "आपके द्वारा पूछा गया लाल मूंगा (Red Coral) आपकी कुंडली के अनुसार अत्यंत शुभ और योगकारक रत्न है। "
+        : `लाल मूंगे की तुलना में आपकी कुंडली के लग्नेश का मुख्य रत्न ${gemName} धारण करना अधिक फलदायी रहेगा। `;
+    } else if (isCoralMatched) {
+      coralLine = "विशेष रूप से आपकी कुंडली में लाल मूंगा (Red Coral) भी उत्तम योगकारक बल प्रदान करता है। ";
+    }
+    const p1 = `आपकी जन्म कुंडली के अनुसार आपके लिए सबसे शुभ और भाग्यवर्धक मुख्य रत्न ${gemName} है, जो आपके ग्रह ${rec.gemstonePlanet} को विशेष बल प्रदान करता है। ${coralLine}इस पवित्र रत्न को ${metal} में बनवाकर ${wearingDayAndTime} ${finger} में धारण करें। धारण करने से पूर्व कच्चे दूध या गंगाजल से शुद्ध करके '${mantra}' मंत्र का १०८ बार जप करें। यह रत्न ${benefits}`;
+    const p2 = `ध्यान रहे कि रत्न सर्वथा प्राकृतिक, शुद्ध और दोषरहित होना चाहिए। श्री क्षेत्र गोकर्ण महाबलेश्वर के आशीर्वाद से यह रत्न आपके जीवन में स्थिरता, तेज और सफलता प्रदान करेगा।`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "te") {
+    let coralLine = "";
+    if (asksCoral) {
+      coralLine = isCoralMatched
+        ? "మీరు అడిగిన ఎరుపు పగడం (Red Coral) మీ జాతకానికి అత్యంత శుభప్రదమైన యోగకారక రత్నం. "
+        : `పగడం కంటే కూడా మీ లగ్నాధిపతి రత్నమైన ${gemName} ధరించడం విశేష ఫలితాన్నిస్తుంది. `;
+    } else if (isCoralMatched) {
+      coralLine = "విశేషించి మీ జాతకానికి ఎరుపు పగడం (Red Coral) కూడా అద్భుతమైన యోగకారక బలాన్ని ఇస్తుంది. ";
+    }
+    const p1 = `మీ జన్మ కుండలి ప్రకారం మీకు అత్యంత శుభప్రదమైన మరియు శక్తివంతమైన ప్రధాన రత్నం ${gemName}, ఇది మీ గ్రహమైన ${rec.gemstonePlanet}కు విశేష బలాన్ని చేకూరుస్తుంది. ${coralLine}ఈ రత్నాన్ని ${metal}లో పొదిగించి, ${wearingDayAndTime} ${finger} ధరించాలి. ధరించడానికి ముందు శుద్ధ జలంతో లేదా ఆవు పాలతో శుద్ధి చేసి '${mantra}' మంత్రాన్ని 108 సార్లు జపించి ధరించడం వలన ${benefits}`;
+    const p2 = `రత్నం సహజమైనది మరియు దోషరహితమైనదిగా ఉండేలా చూసుకోండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులతో మీకు సర్వదా శుభం కలుగుతుంది.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "ta") {
+    let coralLine = "";
+    if (asksCoral) {
+      coralLine = isCoralMatched
+        ? "நீங்கள் கேட்ட பவளம் (Red Coral) உங்கள் ஜாதகத்திற்கு மிகச்சிறந்த யோககாரக ரத்தினமாகும். "
+        : `பவளத்தை விட உங்கள் லக்னாதிபதி ரத்தினமான ${gemName} அணிவதே அதிக நற்பலன்களைத் தரும். `;
+    } else if (isCoralMatched) {
+      coralLine = "குறிப்பாக உங்கள் ஜாதகத்திற்கு பவளமும் (Red Coral) சிறந்த யோக பலனைத் தரும். ";
+    }
+    const p1 = `உங்கள் ஜாதக அமைப்பின்படி உங்களுக்கு மிகவும் யோகமும் மங்களமும் தரும் முதன்மை நவரத்தினம் ${gemName} ஆகும். இது உங்கள் ${rec.gemstonePlanet} கிரகத்திற்கு அளப்பரிய பலத்தைத் தரும். ${coralLine}இந்த ரத்தினத்தை ${metal}-ல் பதித்து, ${wearingDayAndTime} ${finger}-ல் அணிய வேண்டும். அணியும் முன் தூய பால் அல்லது கங்கை நீரால் சுத்தி செய்து '${mantra}' மந்திரத்தை 108 முறை ஜெபித்து அணிவதால் ${benefits}`;
+    const p2 = `ரத்தினம் இயற்கையானதாகவும் தரம் வாய்ந்ததாகவும் இருக்க வேண்டும். ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியின் திருவருளால் உங்களுக்கு சகல காரியங்களிலும் வெற்றி உண்டாகும்.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "ml") {
+    let coralLine = "";
+    if (asksCoral) {
+      coralLine = isCoralMatched
+        ? "നിങ്ങൾ ചോദിച്ച പവിഴം (Red Coral) നിങ്ങളുടെ ജാതകത്തിന് ഏറ്റവും ഉത്തമമായ യോഗകാരക രത്നമാണ്. "
+        : `പവിഴത്തേക്കാൾ നിങ്ങളുടെ ലഗ്നാധിപൻ്റെ രത്നമായ ${gemName} ധരിക്കുന്നതാണ് കൂടുതൽ ഗുണകരം. `;
+    } else if (isCoralMatched) {
+      coralLine = "പ്രത്യേകിച്ചും ചുവന്ന പവിഴവും (Red Coral) നിങ്ങളുടെ ജാതകത്തിന് യോഗബലം നൽകുന്നു. ";
+    }
+    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം ഏറ്റവും അനുകൂലവും ഐശ്വര്യപ്രദവുമായ പ്രധാന രത്നം ${gemName} ആണ്. ഇത് നിങ്ങളുടെ ${rec.gemstonePlanet} ഗ്രഹത്തിന് വിശേഷ ബലം നൽകുന്നു. ${coralLine}ഈ രത്നം ${metal}-ൽ പണിത് ${wearingDayAndTime} ${finger}-ൽ ധരിക്കണം. ധരിക്കുന്നതിന് മുമ്പ് പശുവിൻ പാലിലോ തീർത്ഥത്തിലോ ശുദ്ധിവരുത്തി '${mantra}' മന്ത്രം 108 തവണ ജപിച്ച് ധരിച്ചാൽ ${benefits}`;
+    const p2 = `സ്വാഭാവികവും കളങ്കമില്ലാത്തതുമായ രത്നം തിരഞ്ഞെടുക്കുക. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയുടെ അനുഗ്രഹത്താൽ ഐശ്വര്യവും സൗഭാഗ്യവും കൈവരും.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "mr") {
+    let coralLine = "";
+    if (asksCoral) {
+      coralLine = isCoralMatched
+        ? "तुम्ही विचारलेला लाल पोवळा (Red Coral) तुमच्या पत्रिकेनुसार अत्यंत शुभ आणि योगकारक रत्न आहे. "
+        : `पोवळ्यापेक्षा तुमच्या लग्नेशाचे मुख्य रत्न ${gemName} धारण करणे अधिक लाभदायक ठरेल. `;
+    } else if (isCoralMatched) {
+      coralLine = "विशेषतः तुमच्या कुंडलीत लाल पोवळा (Red Coral) देखील उत्तम योगकारक बल प्रदान करतो. ";
+    }
+    const p1 = `तुमच्या जन्म कुंडलीनुसार तुमच्यासाठी सर्वात शुभ आणि लाभदायक मुख्य रत्न ${gemName} आहे, जे तुमच्या ${rec.gemstonePlanet} ग्रहाला विशेष बल प्रदान करते. ${coralLine}हे रत्न ${metal} मध्ये बनवून ${wearingDayAndTime} ${finger} मध्ये धारण करावे. धारण करण्यापूर्वी कच्चे दूध किंवा गंगाजलाने शुद्ध करून '${mantra}' मंत्राचा १०८ वेळा जप करावा. यामुळे ${benefits}`;
+    const p2 = `रत्न पूर्णपणे नैसर्गिक आणि दोषमुक्त असावे. श्री क्षेत्र गोकर्ण महाबळेश्वर यांच्या कृपेने तुमच्या जीवनात प्रगती आणि यश लाभेल.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  // Default: Kannada
+  let coralLine = "";
+  if (asksCoral) {
+    coralLine = isCoralMatched
+      ? "ನೀವು ಕೇಳಿರುವ ಕೆಂಪು ಹವಳವು (Red Coral) ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ತ್ರಿಕೋಣಾಧಿಪತಿಯ ಬಲಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಯೋಗಕಾರಕ ರತ್ನವಾಗಿದೆ. "
+      : `ನೀವು ಕೇಳಿರುವ ಹವಳಕ್ಕಿಂತಲೂ ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನಾಧಿಪತಿಯಾದ ${gemName} ಧರಿಸುವುದು ಶ್ರೇಷ್ಠ ಫಲ ನೀಡುತ್ತದೆ. `;
+  } else if (isCoralMatched) {
+    coralLine = "ವಿಶೇಷವಾಗಿ ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕೆಂಪು ಹವಳವು (Red Coral) ಸಹ ಅತ್ಯುತ್ತಮ ಯೋಗಕಾರಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ";
+  }
+  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಹಾಗೂ ಮಂಗಳಕರವಾದ ಮುಖ್ಯ ರತ್ನವೆಂದರೆ ${gemName} (ಗ್ರಹಾಧಿಪತಿ ${rec.gemstonePlanet} ಬಲಕ್ಕಾಗಿ). ${coralLine}ಈ ಪವಿತ್ರ ರತ್ನವನ್ನು ${metal}ದಲ್ಲಿ ಉಂಗುರ ಮಾಡಿಸಿ, ${finger}ಗೆ ${wearingDayAndTime} ಧರಿಸಬೇಕು. ಧರಿಸುವ ಮುನ್ನ ಹಸಿಹಾಲು ಅಥವಾ ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ '${mantra}' ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ ಧರಿಸುವುದರಿಂದ ${benefits}`;
+  const p2 = `ರತ್ನವನ್ನು ಆಯ್ಕೆಮಾಡುವಾಗ ಯಾವುದೇ ಬಿರುಕು ಅಥವಾ ಕೃತಕತೆಯಿಲ್ಲದ ನೈಸರ್ಗಿಕ ಹರಳನ್ನೇ ಧರಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹದಿಂದ ಈ ರತ್ನಧಾರಣೆಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಆತ್ಮವಿಶ್ವಾಸ, ಧೈರ್ಯ ಹಾಗೂ ಸಕಲ ಕಾರ್ಯಸಿದ್ಧಿಯನ್ನು ತರಲಿದೆ.`;
+  return deduplicateResponseText(`${p1}\n\n${p2}`);
+}
+
+/**
+ * Generates an authentic, focused 1-to-2 paragraph lucky color reading.
+ */
+export function buildDeterministicColorReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  rec: AstrologicalRecommendationProfile,
+  _isSubsequent: boolean
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+  const luckyColors = rec.luckyColors[lang] || rec.luckyColors.kn;
+  const colorsToAvoid = rec.colorsToAvoid[lang] || rec.colorsToAvoid.kn;
+
+  if (lang === "en") {
+    const p1 = `According to your birth chart, your most auspicious and fortunate colors are **${luckyColors}**. Wearing these colors during pivotal interviews, signing contracts, launching new ventures, or attending auspicious ceremonies greatly amplifies your confidence and cosmic favor. Meanwhile, it is beneficial to avoid or minimize wearing ${colorsToAvoid}.`;
+    const p2 = `Incorporating these harmonious colors into your daily wardrobe alongside heartfelt prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna will maintain serene mental clarity and invite steady prosperity.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "hi") {
+    const p1 = `आपकी जन्म कुंडली के अनुसार आपके लिए सबसे शुभ और भाग्यशाली रंग **${luckyColors}** हैं। महत्वपूर्ण साक्षात्कारों, नए अनुबंधों, परीक्षाओं या शुभ कार्यों के अवसर पर इन रंगों के वस्त्र धारण करने से आपका आत्मविश्वास और सफलता की संभावनाएं कई गुना बढ़ जाती हैं। साथ ही, ${colorsToAvoid} रंगों का अधिक उपयोग करने से बचना चाहिए।`;
+    const p2 = `दैनिक जीवन में इन अनुकूल रंगों का प्रयोग करने के साथ-साथ श्री क्षेत्र गोकर्ण महाबलेश्वर का स्मरण करने से मानसिक शांति और निरंतर प्रगति की प्राप्ति होगी।`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "te") {
+    const p1 = `మీ జన్మ కుండలి ప్రకారం మీకు అత్యంత శుభప్రదమైన మరియు అదృష్టాన్నిచ్చే రంగులు: **${luckyColors}**. కీలకమైన ఇంటర్వ్యూలు, వ్యాపార ఒప్పందాలు, పరీక్షలు లేదా శుభకార్యాల సమయంలో ఈ రంగుల దుస్తులను ధరించడం వలన మీ ఆత్మవిశ్వాసం మరియు గ్రహానుకూలత పెరుగుతుంది. అదే సమయంలో, ${colorsToAvoid} రంగులను వీలైనంత వరకు నివారించడం శ్రేయస్కరం.`;
+    const p2 = `ఈ శుభ రంగులను మీ దైనందిన జీవితంలో ఉపయోగిస్తూ, శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారిని స్మరించడం వలన మీకు మానసిక ప్రశాంతత మరియు నిరంతర కార్యజయం లభిస్తాయి.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "ta") {
+    const p1 = `உங்கள் ஜாதக அமைப்பின்படி உங்களுக்கு மிகவும் அதிர்ஷ்டமும் நன்மையும் தரும் நிறங்கள்: **${luckyColors}**. முக்கியமான நேர்காணல்கள், புதிய முயற்சிகள், தேர்வுகள் அல்லது மங்களகரமான நிகழ்வுகளின் போது இந்த வண்ண ஆடைகளை அணிவது உங்களுக்கு தன்னம்பிக்கையையும் வெற்றிகளையும் தரும். அதே வேளையில், ${colorsToAvoid} நிறங்களை அதிகமாகப் பயன்படுத்துவதைத் தவிர்ப்பது நல்லது.`;
+    const p2 = `இந்த மங்களகரமான வண்ணங்களை அன்றாட வாழ்வில் பயன்படுத்துவதோடு, ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியை தியானித்து வருவதால் மன அமைதியும் காரிய வெற்றியும் கிட்டும்.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "ml") {
+    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം ഏറ്റവും അനുകൂലവും ഭാഗ്യപ്രദവുമായ നിറങ്ങൾ: **${luckyColors}**. പ്രധാനപ്പെട്ട ഇന്റർവ്യൂകൾ, പുതിയ സംരംഭങ്ങൾ, പരീക്ഷകൾ, മംഗളകരമായ ചടങ്ങുകൾ എന്നിവയിൽ ഈ നിറങ്ങളിലുള്ള വസ്ത്രങ്ങൾ ധരിക്കുന്നത് ആത്മവിശ്വാസവും ഭാഗ്യവും നൽകും. അതേസമയം, ${colorsToAvoid} നിറങ്ങൾ പരമാവധി ഒഴിവാക്കുന്നത് നല്ലതാണ്.`;
+    const p2 = `ഈ ശുഭ നിറങ്ങൾ ദൈനംദിന ജീവിതത്തിൽ ഉപയോഗിക്കുന്നതിനൊപ്പം ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയെ ഭജിക്കുന്നത് മനസ്സമാധാനവും വിജയവും നേടിത്തരും.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "mr") {
+    const p1 = `तुमच्या जन्म पत्रिकेनुसार तुमच्यासाठी सर्वात शुभ आणि भाग्यशाली रंग **${luckyColors}** आहेत. महत्त्वाच्या मुलाखती, नवीन व्यवसाय करार, परीक्षा किंवा शुभ कार्यांच्या प्रसंगी या रंगांचे वस्त्र परिधान केल्याने तुमचा आत्मविश्वास आणि यश वाढेल. तसेच ${colorsToAvoid} रंगांचा अति वापर टाळणे योग्य ठरेल.`;
+    const p2 = `दैनंदिन जीवनात या अनुकूल रंगांचा वापर करण्यासोबतच श्री क्षेत्र गोकर्ण महाबळेश्वर यांचे स्मरण केल्याने मानसिक शांतता आणि प्रगती लाभेल.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  // Kannada Default
+  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಪ್ರಕಾರ ನಿಮಗೆ ಅತ್ಯಂತ ಶುಭ ಮತ್ತು ಅದೃಷ್ಟ ತರುವ ಮುಖ್ಯ ಬಣ್ಣಗಳು: **${luckyColors}**. ಈ ಬಣ್ಣದ ವಸ್ತ್ರಗಳನ್ನು ಪ್ರಮುಖ ಸಂದರ್ಶನಗಳು, ನೂತನ ವ್ಯವಹಾರಗಳ ಆರಂಭ, ಪರೀಕ್ಷೆಗಳು ಅಥವಾ ಶುಭ ಕಾರ್ಯಗಳ ದಿನ ಧರಿಸುವುದರಿಂದ ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ಗ್ರಹಬಲದ ಧನಾತ್ಮಕ ಸ್ಪಂದನ ಹೆಚ್ಚುತ್ತದೆ. ಅದೇ ವೇಳೆ, ${colorsToAvoid} ಬಣ್ಣದ ಅತಿಯಾದ ಬಳಕೆಯನ್ನು ಕಡಿಮೆ ಮಾಡುವುದು ಜಾತಕ ರೀತ್ಯಾ ಹಿತಕರ.`;
+  const p2 = `ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ಈ ಶುಭ ಬಣ್ಣಗಳನ್ನು ಹೆಚ್ಚಾಗಿ ಬಳಸುವುದರೊಂದಿಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸ್ಮರಣೆ ಮಾಡುವುದರಿಂದ ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಪ್ರಶಾಂತತೆ ಹಾಗೂ ಕಾರ್ಯಗಳಲ್ಲಿ ನಿರಂತರ ಜಯವು ಲಭಿಸಲಿದೆ.`;
+  return deduplicateResponseText(`${p1}\n\n${p2}`);
+}
+
+/**
+ * Generates an authentic, focused 1-to-2 paragraph lucky number reading.
+ */
+export function buildDeterministicNumberReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  rec: AstrologicalRecommendationProfile,
+  _isSubsequent: boolean
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+  const primaryNumber = rec.primaryNumber;
+  const luckyNumbersText = rec.luckyNumbersText[lang] || rec.luckyNumbersText.kn;
+
+  if (lang === "en") {
+    const p1 = `Based on your ascendant and planetary vibrations, your primary lucky number is **${primaryNumber}**, supported by the harmonious series **${luckyNumbersText}**. Selecting these auspicious digits for significant dates, bank registrations, vehicle numbers, or major negotiations brings aligned planetary support.`;
+    const p2 = `Before undertaking crucial decisions, synchronizing with these auspicious numbers while seeking the grace of Lord Mahaganapati at Sri Kshetra Gokarna ensures swift clearance of obstacles and enduring success.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "hi") {
+    const p1 = `आपकी जन्म कुंडली के अनुसार आपका मुख्य भाग्यशाली अंक **${primaryNumber}** है तथा शुभ अंकों की श्रृंखला **${luckyNumbersText}** है। महत्वपूर्ण तिथियों, वाहन संख्या, बैंकिंग कार्यों अथवा नए समझौतों के लिए इन अंकों का चयन आपके लिए ग्रहबल का अनुकूल सहयोग प्रदान करेगा।`;
+    const p2 = `किसी भी नए कार्य के आरंभ से पूर्व इन शुभ अंकों का ध्यान रखकर श्री क्षेत्र गोकर्ण महागणपति की प्रार्थना करने से समस्त विघ्न दूर होकर कार्य सिद्ध होगा।`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "te") {
+    const p1 = `మీ జన్మ కుండలి ప్రకారం మీ ప్రధాన అదృష్ట సంఖ్య **${primaryNumber}** మరియు అనుకూల సంఖ్యల శ్రేణి **${luckyNumbersText}**. ముఖ్యమైన తేదీలు, బ్యాంకింగ్ వ్యవహారాలు, వాహన నంబర్లు లేదా వ్యాపార ఒప్పందాలలో ఈ సంఖ్యలను ఎంచుకోవడం వలన గ్రహబలం అనుకూలిస్తుంది.`;
+    const p2 = `ఏదైనా కొత్త పనిని ప్రారంభించే ముందు ఈ శుభ సంఖ్యల అనుకూలతతో పాటు శ్రీ క్షేత్ర గోకర్ణ మహాగణపతిని ప్రార్థించడం వలన సకల విఘ్నాలు తొలగి విజయం చేకూరుతుంది.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "ta") {
+    const p1 = `உங்கள் ஜாதகப்படி உங்கள் முதன்மை அதிர்ஷ்ட எண் **${primaryNumber}** மற்றும் மங்களகரமான எண் வரிசை **${luckyNumbersText}** ஆகும். முக்கியமான தேதிகள், வங்கி கணக்குகள், வாகன எண்கள் அல்லது புதிய ஒப்பந்தங்களின் போது இந்த எண்களைப் பயன்படுத்துவது கிரக பலத்தைத் தரும்.`;
+    const p2 = `எந்தவொரு நல்ல காரியத்தைத் தொடங்கும் முன்பும் இந்த எண்களைத் தேர்ந்தெடுத்து ஸ்ரீ சேத்ர கோகர்ண மகா கணபதியை வழிபடுவது தடைகளை நீக்கி வெற்றியைத் தரும்.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "ml") {
+    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം പ്രധാന ഭാഗ്യ നമ്പർ **${primaryNumber}** ഉം ശുഭകരമായ സംഖ്യാ പരമ്പര **${luckyNumbersText}** ഉം ആണ്. പ്രധാനപ്പെട്ട തീയതികൾ, വാഹന രജിസ്ട്രേഷൻ, കരാറുകൾ എന്നിവയിൽ ഈ സംഖ്യകൾ തിരഞ്ഞെടുക്കുന്നത് ഗ്രഹാനുകൂല്യം നൽകും.`;
+    const p2 = `പുതിയ സംരംഭങ്ങൾ തുടങ്ങുമ്പോൾ ഈ ഭാഗ്യ നമ്പറുകൾ ശ്രദ്ധിക്കുന്നതിനൊപ്പം ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാഗണപതിയെ ഭജിക്കുന്നത് വിഘ്നങ്ങളെല്ലാം മാറ്റി വിജയം തരും.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "mr") {
+    const p1 = `तुमच्या जन्म कुंडलीनुसार तुमचा मुख्य भाग्यशाली अंक **${primaryNumber}** आणि शुभ अंकांचे समीकरण **${luckyNumbersText}** आहे. महत्त्वाच्या तारखा, वाहन क्रमांक, बँकिंग किंवा नवीन करारांसाठी या अंकांचा वापर केल्यास अनुकूल ग्रहबल लाभेल.`;
+    const p2 = `कोणत्याही नवीन कार्यास सुरुवात करताना या शुभ अंकांचा विचार करून श्री क्षेत्र गोकर्ण महागणपतीची प्रार्थना केल्यास सर्व विघ्न दूर होऊन यश लाभेल.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  // Kannada Default
+  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿ ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಬಲದ ಪ್ರಕಾರ ನಿಮ್ಮ ಮುಖ್ಯ ಅದೃಷ್ಟ ಸಂಖ್ಯೆ **${primaryNumber}** ಹಾಗೂ ಅತ್ಯಂತ ಶುಭಕರ ಸಂಖ್ಯೆಗಳ ಸರಣಿ **${luckyNumbersText}**. ನಿಮ್ಮ ಪ್ರಮುಖ ಬ್ಯಾಂಕ್ ವ್ಯವಹಾರಗಳು, ವಾಹನ ನೋಂದಣಿ ಸಂಖ್ಯೆ, ಹೊಸ ಒಪ್ಪಂದಗಳ ದಿನಾಂಕ ಅಥವಾ ಮಹತ್ವದ ನಿರ್ಧಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವಾಗ ಈ ಸಂಖ್ಯೆಗಳು ಬರುವಂತೆ ನೋಡಿಕೊಳ್ಳುವುದು ಗ್ರಹಬಲದ ಶುಭ ಸ್ಪಂದನವನ್ನು ನೀಡುತ್ತದೆ.`;
+  const p2 = `ಯಾವುದೇ ಹೊಸ ಕಾರ್ಯಕ್ಕೆ ತೊಡಗುವ ಮುನ್ನ ಈ ಅದೃಷ್ಟ ಸಂಖ್ಯೆಗಳ ಸಂಯೋಗ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿಯ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದರಿಂದ ಸಕಲ ವಿಘ್ನಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ.`;
+  return deduplicateResponseText(`${p1}\n\n${p2}`);
+}
+
+/**
+ * Generates an authentic, focused 1-to-2 paragraph day & deity reading.
+ */
+export function buildDeterministicDayDeityReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  rec: AstrologicalRecommendationProfile,
+  _isSubsequent: boolean
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+  const ishtaDevata = rec.ishtaDevata[lang] || rec.ishtaDevata.kn;
+  const sacredMantra = rec.sacredMantra[lang] || rec.sacredMantra.kn;
+  const auspiciousDay = rec.auspiciousDay[lang] || rec.auspiciousDay.kn;
+
+  if (lang === "en") {
+    const p1 = `For your birth chart, your supreme protective Ishta Devata is **${ishtaDevata}**, and your most auspicious weekday is **${auspiciousDay}**. Devoting time on every ${auspiciousDay} to chant the sacred mantra **'${sacredMantra}'** 108 times pacifies astrological tensions and invokes profound inner strength.`;
+    const p2 = `Before undertaking important journeys or tasks, remembering your Ishta Devata and offering prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna ensures divine grace and steady fulfillment.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "hi") {
+    const p1 = `आपकी जन्म कुंडली के अनुसार आपके परम कल्याणकारी इष्टदेव **${ishtaDevata}** हैं तथा आपका सबसे शुभ वार **${auspiciousDay}** है। प्रत्येक ${auspiciousDay} को प्रातःकाल स्नान के पश्चात पवित्र मन से **'${sacredMantra}'** मंत्र का १०८ बार जप करना आपके समस्त ग्रहदोषों को शांत कर आत्मविश्वास प्रदान करेगा।`;
+    const p2 = `किसी भी महत्वपूर्ण कार्य पर जाने से पूर्व अपने इष्टदेव का स्मरण और श्री क्षेत्र गोकर्ण महाबलेश्वर की प्रार्थना करने से आपके सभी संकल्प सिद्ध होंगे।`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "te") {
+    const p1 = `మీ జన్మ కుండలి ప్రకారం మీకు అత్యంత అనుగ్రహప్రదమైన ఇష్టదైవం **${ishtaDevata}** మరియు మీ వారపు అత్యంత శుభదినం **${auspiciousDay}**. ప్రతి ${auspiciousDay} ఉదయం స్నానానంతరం పవిత్ర మనస్సుతో **'${sacredMantra}'** మంత్రాన్ని 108 సార్లు జపించడం వలన గ్రహదోషాలు శాంతించి అద్భుతమైన మనోధైర్యం కలుగుతుంది।`;
+    const p2 = `ముఖ్యమైన పనులకు వెళ్లేముందు ఇష్టదైవాన్ని స్మరిస్తూ శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారిని ప్రార్థించడం వలన సంకల్పసిద్ధి కలుగుతుంది.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "ta") {
+    const p1 = `உங்கள் ஜாதகப்படி உங்களுக்கு அருள் புரியும் இஷ்ட தெய்வம் **${ishtaDevata}** மற்றும் உங்கள் வாராந்திர மங்களகரமான நாள் **${auspiciousDay}** ஆகும். ஒவ்வொரு ${auspiciousDay}-ம் காலையில் நீராடி தூய மனதுடன் **'${sacredMantra}'** மந்திரத்தை 108 முறை ஜெபித்து வந்தால் சகல கிரக தோஷங்களும் நீங்கி மனோபலம் பெருகும்.`;
+    const p2 = `முக்கியமான காரியங்களை மேற்கொள்ளும் முன் இஷ்ட தெய்வத்தை தியானித்து ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியை வழிபடுவது காரிய சித்தியை அளிக்கும்.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "ml") {
+    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം ഏറ്റവും അനുഗ്രഹപ്രദമായ ഇഷ്ടദേവത **${ishtaDevata}** യും ശുഭദിനം **${auspiciousDay}** യും ആണ്. എല്ലാ ${auspiciousDay} രാവിലെയും കുളിച്ച് ശുദ്ധിയോടെ **'${sacredMantra}'** മന്ത്രം 108 തവണ ജപിക്കുന്നത് ഗ്രഹദോഷങ്ങളെ ശമിപ്പിക്കുകയും ആത്മശക്തി നൽകുകയും ചെയ്യും.`;
+    const p2 = `പ്രധാന കാര്യങ്ങൾക്കായി പോകുമ്പോൾ ഇഷ്ടദേവതയെ സ്മരിക്കുന്നതും ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയെ പ്രാർത്ഥിക്കുന്നതും കാര്യവിജയം ഉറപ്പാക്കും.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  if (lang === "mr") {
+    const p1 = `तुमच्या जन्म पत्रिकेनुसार तुमचे परम कल्याणकारी इष्टदैवत **${ishtaDevata}** आणि सर्वात शुभ वार **${auspiciousDay}** आहे. प्रत्येक ${auspiciousDay} रोजी सकाळी स्नानानंतर शुद्ध अंतःकरणाने **'${sacredMantra}'** मंत्राचा १०८ वेळा जप केल्याने सर्व ग्रहदोष शांत होऊन मनोबल वाढेल.`;
+    const p2 = `कोणत्याही महत्त्वाच्या कार्याला जाताना इष्टदेवतेचे स्मरण करून श्री क्षेत्र गोकर्ण महाबळेश्वर यांची प्रार्थना केल्यास संकल्पांची पूर्तता होईल.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  // Kannada Default
+  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಅತ್ಯಂತ ಪ್ರಬಲ ಹಾಗೂ ಅನುಗ್ರಹಕಾರಕ ಇಷ್ಟದೇವತೆ **${ishtaDevata}** ಹಾಗೂ ನಿಮ್ಮ ವಾರದ ಅತ್ಯಂತ ಶುಭದಿನ **${auspiciousDay}**. ಪ್ರತಿ ${auspiciousDay} ದಿನ ಪ್ರಾತಃಕಾಲ ಸ್ನಾನ ಮುಗಿಸಿ ಶುದ್ಧ ಮನಸ್ಸಿನಿಂದ **'${sacredMantra}'** ಮಂತ್ರವನ್ನು ಕನಿಷ್ಠ ೨೧ ಅಥವಾ ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸುವುದು ನಿಮ್ಮ ಜಾತಕದ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ ಅದ್ಭುತ ಆತ್ಮಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.`;
+  const p2 = `ವಿಶೇಷ ಕಾರ್ಯಗಳಿಗೆ ತೆರಳುವ ಮುನ್ನ ಇಷ್ಟದೇವತೆಯ ಸ್ಮರಣೆ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದರ್ಶನ/ಪ್ರಾರ್ಥನೆಯು ನಿಮ್ಮ ಸಂಕಲ್ಪಗಳಿಗೆ ಜಯವನ್ನು ಕರುಣಿಸಲಿದೆ.`;
+  return deduplicateResponseText(`${p1}\n\n${p2}`);
+}
+
+/**
+ * Generates a concise, single-paragraph follow-up clarification reading (e.g. finger, metal, wearing time).
+ */
+export function buildDeterministicFollowUpClarificationReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  rec: AstrologicalRecommendationProfile,
+  _isSubsequent: boolean
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+  const metal = rec.idealMetal[lang] || rec.idealMetal.kn;
+  const finger = rec.idealFinger[lang] || rec.idealFinger.kn;
+  const wearingDayAndTime = rec.wearingDayAndTime[lang] || rec.wearingDayAndTime.kn;
+
+  if (lang === "en") {
+    return deduplicateResponseText(
+      `Regarding your specific clarification: This gemstone must be crafted in **${metal}** and worn on the **${finger}** of your right (working) hand on **${wearingDayAndTime}**. Purify it briefly in unboiled milk or holy water with heartfelt prayer before wearing.`
+    );
+  }
+
+  if (lang === "hi") {
+    return deduplicateResponseText(
+      `रत्न धारण का शास्त्रोक्त नियम: इस रत्न को **${metal}** में बनवाकर दाहिने हाथ की **${finger}** में **${wearingDayAndTime}** धारण करना चाहिए। धारण करने से पूर्व कच्चे दूध अथवा गंगाजल से शुद्ध करके इष्टदेव की प्रार्थना करें।`
+    );
+  }
+
+  if (lang === "te") {
+    return deduplicateResponseText(
+      `రత్న ధారణ శాస్త్రోక్త నియమం: ఈ రత్నాన్ని **${metal}**లో చేయించి, కుడిచేతి **${finger}**కి **${wearingDayAndTime}** ధరించాలి. ధరించే ముందు ఆవు పాలు లేదా శుద్ధ జలంతో శుద్ధి చేసి ఇష్టదైవాన్ని ప్రార్థించండి.`
+    );
+  }
+
+  if (lang === "ta") {
+    return deduplicateResponseText(
+      `ரத்தினம் அணியும் சாஸ்திர விதிமுறை: இந்த ரத்தினத்தை **${metal}**-ல் பதித்து, வலது கையின் **${finger}**-ல் **${wearingDayAndTime}** அணிய வேண்டும். அணியும் முன் தூய பால் அல்லது தீர்த்தத்தால் சுத்தி செய்து இஷ்ட தெய்வத்தை பிரார்த்திக்கவும்.`
+    );
+  }
+
+  if (lang === "ml") {
+    return deduplicateResponseText(
+      `രത്നം ധരിക്കുന്നതിനുള്ള ശാസ്ത്രീയ വിധി: ഈ രത്നം **${metal}**-ൽ പണിത് വലതു കൈയിലെ **${finger}**-ൽ **${wearingDayAndTime}** ധരിക്കണം. ധരിക്കുന്നതിന് മുമ്പ് പശുവിൻ പാലിലോ തീർത്ഥത്തിലോ ശുദ്ധിവരുത്തി ഇഷ്ടദേവതയെ പ്രാർത്ഥിക്കുക.`
+    );
+  }
+
+  if (lang === "mr") {
+    return deduplicateResponseText(
+      `रत्न धारण करण्याचा शास्त्रीय नियम: हे रत्न **${metal}** मध्ये बनवून उजव्या हाताच्या **${finger}** मध्ये **${wearingDayAndTime}** धारण करावे. धारण करण्यापूर्वी कच्चे दूध किंवा गंगाजलाने शुद्ध करून इष्टदेवतेची प्रार्थना करावी.`
+    );
+  }
+
+  // Kannada Default
+  return deduplicateResponseText(
+    `ರತ್ನ ಧಾರಣೆಯ ಶಾಸ್ತ್ರೋಕ್ತ ನಿಯಮ: ಈ ರತ್ನವನ್ನು **${metal}**ದಲ್ಲಿ ಉಂಗುರ ಮಾಡಿಸಿ, ಬಲಗೈಯ **${finger}**ಗೆ **${wearingDayAndTime}** ಧರಿಸಬೇಕು. ಧರಿಸುವ ಮುನ್ನ ಹಸಿಹಾಲು ಅಥವಾ ಗಂಗಾಜಲದಿಂದ ಶುದ್ಧೀಕರಿಸಿ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ ಧರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`
+  );
+}
+
+/**
  * Deterministic fallback reading ensuring 100% availability even without an API key.
  * Adapts to greetings, conversational questions, career frustration, minor children/parent inquiries,
  * sensitive Santhana questions, intimate taboo queries, and full 3/4-paragraph astrological inquiries.
@@ -1772,6 +3214,62 @@ function generateDeterministicFallbackReading(
 ): string {
   const isSubsequent = !!isSubsequentQuestion || (questionIndex !== undefined && questionIndex > 0);
   const q = question.trim().toLowerCase();
+
+  const complexityAnalysis = analyzeQuestionComplexity(
+    question,
+    conversationHistory,
+    isSubsequent
+  );
+  const recProfile = astroData
+    ? computeAstrologicalRecommendations(astroData, session.language)
+    : undefined;
+
+  // 1. QUICK SPECIFIC DISPATCH (Gemstone, Color, Number, Day/Deity, Clarification)
+  // Strictly enforces the 80/20 golden rule and 1-2 paragraph target length.
+  if (complexityAnalysis.complexity === "QUICK_SPECIFIC" && recProfile) {
+    switch (complexityAnalysis.domain) {
+      case "GEMSTONE_RATNA":
+        return buildDeterministicGemstoneReading(
+          session,
+          question,
+          astroData,
+          recProfile,
+          isSubsequent
+        );
+      case "LUCKY_COLOR":
+        return buildDeterministicColorReading(
+          session,
+          question,
+          astroData,
+          recProfile,
+          isSubsequent
+        );
+      case "LUCKY_NUMBER":
+        return buildDeterministicNumberReading(
+          session,
+          question,
+          astroData,
+          recProfile,
+          isSubsequent
+        );
+      case "AUSPICIOUS_DAY_DEITY":
+        return buildDeterministicDayDeityReading(
+          session,
+          question,
+          astroData,
+          recProfile,
+          isSubsequent
+        );
+      case "FOLLOW_UP_CLARIFICATION":
+        return buildDeterministicFollowUpClarificationReading(
+          session,
+          question,
+          astroData,
+          recProfile,
+          isSubsequent
+        );
+    }
+  }
 
   const convIntel = detectConversationIntelligence(
     question,
@@ -1808,7 +3306,10 @@ function generateDeterministicFallbackReading(
     /ದೋಷ|ಪರಿಹಾರ|ತೊಂದರೆ|ವಿಳಂಬ|ಯಾಕೆ|ಕಾರಣ|ಅಡೆತಡೆ|ಕಷ್ಟ|ಕರ್ಮ|dosha|curse|parihara|remedy|delay|obstacle|hurdle|why|karma/i.test(
       q
     );
-  const includeFullDosha = (!isSubsequent || asksAboutDosha) && activeDosha.hasDosha;
+  const includeFullDosha =
+    complexityAnalysis.complexity === "COMPREHENSIVE_DEEP" &&
+    activeDosha.hasDosha &&
+    (!isSubsequent || asksAboutDosha);
 
   const isMinorChild = !!astroData?.isMinorChild;
   const tatva = astroData?.characterProfile?.tatva || "ಸ್ಥಿರ";
