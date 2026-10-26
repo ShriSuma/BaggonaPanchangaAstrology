@@ -178,7 +178,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   const getFontFamily = (l: string): string => {
     switch (l) {
       case "kn":
-        return `'Tiro Kannada', 'Noto Serif Kannada', 'Noto Sans Kannada', serif, sans-serif`;
+        return `'Noto Serif Kannada', 'Noto Sans Kannada', serif, sans-serif`;
       case "te":
         return `'Noto Sans Telugu', serif, sans-serif`;
       case "ta":
@@ -789,7 +789,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           <div className="grid grid-cols-2 gap-4 mb-8">
             {/* Shani Gochara Badge */}
             <div className={`p-4 rounded-xl border ${premiumData.dashaGocharaCompass.shaniBadge.isAdverse ? 'bg-amber-50/90 border-amber-700/30' : 'bg-amber-50/60 border-amber-900/20'} shadow-sm`}>
-              <div className="text-xs uppercase tracking-wider font-bold text-amber-800 mb-1">
+              <div className="text-xs font-bold tracking-normal leading-normal text-amber-800 mb-1.5" style={{ letterSpacing: 'normal' }}>
                 {premiumData.dashaGocharaCompass.shaniBadge.title}
               </div>
               <div className="text-2xl font-bold text-amber-950 mb-1">
@@ -802,7 +802,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
             {/* Guru Bala Badge */}
             <div className={`p-4 rounded-xl border ${premiumData.dashaGocharaCompass.guruBadge.isBenefic ? 'bg-amber-100/60 border-amber-600/40' : 'bg-stone-50 border-stone-300'} shadow-sm`}>
-              <div className="text-xs uppercase tracking-wider font-bold text-amber-800 mb-1">
+              <div className="text-xs font-bold tracking-normal leading-normal text-amber-800 mb-1.5" style={{ letterSpacing: 'normal' }}>
                 {premiumData.dashaGocharaCompass.guruBadge.title}
               </div>
               <div className="text-2xl font-bold text-amber-950 mb-1">
@@ -815,7 +815,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
             {/* Dasha Synergy Badge */}
             <div className="p-4 rounded-xl border border-amber-900/20 bg-amber-50/60 shadow-sm">
-              <div className="text-xs uppercase tracking-wider font-bold text-amber-800 mb-1">
+              <div className="text-xs font-bold tracking-normal leading-normal text-amber-800 mb-1.5" style={{ letterSpacing: 'normal' }}>
                 {premiumData.dashaGocharaCompass.dashaBadge.title}
               </div>
               <div className="text-xl font-bold text-amber-950 mb-1">
@@ -828,7 +828,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
             {/* Sri Gokarna Sacred Shield & Parihara Badge */}
             <div className="p-4 rounded-xl border border-amber-700/30 bg-amber-100/40 shadow-sm">
-              <div className="text-xs uppercase tracking-wider font-bold text-amber-900 mb-1">
+              <div className="text-xs font-bold tracking-normal leading-normal text-amber-900 mb-1.5" style={{ letterSpacing: 'normal' }}>
                 {premiumData.dashaGocharaCompass.pariharaBadge.title}
               </div>
               <div className="text-xl font-bold text-amber-950 mb-1">
@@ -1098,7 +1098,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Astrologer's Blessing ─────────────────────────────────────────── */}
       <div data-section="ashirvada" className="pdf-section mt-4 text-center px-20 pb-20">
-        <div className="text-6xl text-amber-600 mb-6 drop-shadow-md opacity-90" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>ॐ</div>
+        <div className="text-6xl text-amber-600 mb-6 opacity-90" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>ॐ</div>
         <h3 className={`text-3xl font-bold mb-8 italic ${primaryColorClass} leading-normal`}>
           {translations.ashirvadaTitle}
         </h3>
@@ -1106,10 +1106,15 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           "{translations.ashirvadaValue}"
         </p>
         {translations.priestSeal && (
-          <div className="mt-8 mx-auto max-w-3xl px-6 py-2.5 rounded-full border border-amber-600/40 bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 text-amber-950 font-bold text-sm tracking-wide drop-shadow-sm flex items-center justify-center gap-3">
-            <span className="text-amber-600 text-base">✦</span>
-            <span>{translations.priestSeal}</span>
-            <span className="text-amber-600 text-base">✦</span>
+          <div 
+            className="mt-8 mx-auto max-w-4xl px-8 py-3 rounded-full border border-amber-600/40 bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 text-amber-950 font-bold text-sm tracking-normal shadow-xs flex items-center justify-center gap-3"
+            style={{ letterSpacing: 'normal' }}
+          >
+            <span className="text-amber-600 text-base flex-shrink-0">✦</span>
+            <span className="tracking-normal leading-relaxed text-center" style={{ letterSpacing: 'normal' }}>
+              {translations.priestSeal}
+            </span>
+            <span className="text-amber-600 text-base flex-shrink-0">✦</span>
           </div>
         )}
         <div className="flex items-center justify-center gap-6 opacity-80 mt-12 mb-10">

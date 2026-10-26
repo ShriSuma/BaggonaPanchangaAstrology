@@ -65,6 +65,13 @@ export async function generatePDFFromElement(
       el.style.display = "block";
       el.style.width = "100%";
     }
+    // Prevent Indic ligature breakdown and dual-rendering ghosting in html2canvas
+    if (el.style) {
+      el.style.letterSpacing = "normal";
+      if (el.style.filter && el.style.filter.includes("drop-shadow")) {
+        el.style.filter = "none";
+      }
+    }
   }
 
   wrapper.appendChild(clone);

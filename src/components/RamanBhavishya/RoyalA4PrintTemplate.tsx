@@ -232,10 +232,10 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
             <div>
               {/* Header Invocations */}
               <div className="text-center pb-4 border-b-2 border-amber-800/40">
-                <div className="text-xs font-bold tracking-widest text-amber-800 uppercase font-sans mb-1">
+                <div className="text-xs font-bold tracking-normal text-amber-800 font-sans mb-1" style={{ letterSpacing: 'normal' }}>
                   {labels.headerSub}
                 </div>
-                <h1 className="text-3xl font-extrabold text-amber-900 tracking-wide font-serif mb-1">
+                <h1 className="text-3xl font-extrabold text-amber-900 tracking-normal font-serif mb-1" style={{ letterSpacing: 'normal' }}>
                   {data.title || "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥"}
                 </h1>
                 <p className="text-sm font-semibold text-amber-800 italic">
@@ -248,7 +248,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
 
               {/* Devotee Astrological Profile Parchment */}
               <div className="mt-5 p-4 rounded-xl border border-amber-700/40 bg-amber-50/80 shadow-sm">
-                <div className="text-xs font-bold text-amber-900 tracking-wider uppercase mb-3 flex items-center gap-2 border-b border-amber-700/20 pb-1">
+                <div className="text-xs font-bold text-amber-900 tracking-normal mb-3 flex items-center gap-2 border-b border-amber-700/20 pb-1" style={{ letterSpacing: 'normal' }}>
                   <span>📜</span>
                   <span>{labels.nativeDetails}</span>
                 </div>
@@ -466,7 +466,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                 <div className="mt-3.5 p-3.5 bg-gradient-to-br from-amber-50/90 via-[#FFFDF8] to-orange-50/70 rounded-xl border border-amber-600/40 shadow-xs relative overflow-hidden">
                   <div className="flex items-center gap-2 mb-2 pb-1 border-b border-amber-600/30">
                     <span className="text-amber-800 text-sm">✨</span>
-                    <h3 className="font-bold text-amber-950 font-serif text-sm tracking-wide">
+                    <h3 className="font-bold text-amber-950 font-serif text-sm tracking-normal" style={{ letterSpacing: 'normal' }}>
                       {data.karmicInwardJourney.title}
                     </h3>
                   </div>
@@ -750,7 +750,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
               {/* Astrologer's Benediction (Ashirvada) */}
               <div className="mt-4 p-4 bg-amber-50/90 rounded-xl border border-amber-600/40 text-center">
                 <span className="text-2xl text-amber-700 block mb-1">ॐ</span>
-                <h3 className="text-sm font-bold text-amber-900 uppercase tracking-widest mb-1.5">
+                <h3 className="text-sm font-bold text-amber-900 tracking-normal mb-1.5" style={{ letterSpacing: 'normal' }}>
                   {labels.ashirvadaTitle}
                 </h3>
                 <p className="text-xs text-amber-950 font-serif italic max-w-xl mx-auto leading-relaxed">
@@ -764,7 +764,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">👑</span>
-                      <span className="font-black text-amber-950 text-sm uppercase tracking-wide">
+                      <span className="font-black text-amber-950 text-sm tracking-normal" style={{ letterSpacing: 'normal' }}>
                         {labels.priestOffice}
                       </span>
                     </div>

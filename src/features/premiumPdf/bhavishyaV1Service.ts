@@ -1672,15 +1672,28 @@ export async function captureBhavishyaV1Pdf(
       tempBox.style.backgroundColor = "#FFF7ED";
       tempBox.style.pointerEvents = "none";
       tempBox.style.opacity = "1";
-      tempBox.style.visibility = "visible";
-      tempBox.style.overflow = "visible";
-      tempBox.style.fontFamily = "'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', sans-serif";
+      tempBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
+      tempBox.style.letterSpacing = "normal";
       tempBox.className = "bg-orange-50 text-amber-950 font-serif";
 
       const sectionClone = sectionEl.cloneNode(true) as HTMLElement;
       sectionClone.style.display = "block";
       sectionClone.style.width = "100%";
       sectionClone.style.margin = "0";
+      sectionClone.style.letterSpacing = "normal";
+
+      // Sanitize all descendants in the clone: enforce normal letterSpacing & eliminate CSS drop-shadow filters
+      // that break Indic conjunct shaper / cause duplicate overlapping text in html2canvas
+      sectionClone.querySelectorAll("*").forEach(el => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.style) {
+          htmlEl.style.letterSpacing = "normal";
+          if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
+            htmlEl.style.filter = "none";
+          }
+        }
+      });
+
       tempBox.appendChild(sectionClone);
       document.body.appendChild(tempBox);
 
@@ -1738,11 +1751,23 @@ export async function captureBhavishyaV1Pdf(
           tempSummaryBox.style.left = "-9999px";
           tempSummaryBox.style.top = "0";
           tempSummaryBox.style.width = "900px";
+          tempSummaryBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
+          tempSummaryBox.style.letterSpacing = "normal";
           tempSummaryBox.className = "bg-orange-50 text-amber-950 font-serif";
 
           const summaryClone = domSummaryEl.cloneNode(true) as HTMLElement;
           summaryClone.style.display = "block";
           summaryClone.style.width = "100%";
+          summaryClone.style.letterSpacing = "normal";
+          summaryClone.querySelectorAll("*").forEach(el => {
+            const htmlEl = el as HTMLElement;
+            if (htmlEl.style) {
+              htmlEl.style.letterSpacing = "normal";
+              if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
+                htmlEl.style.filter = "none";
+              }
+            }
+          });
           tempSummaryBox.appendChild(summaryClone);
           document.body.appendChild(tempSummaryBox);
 
