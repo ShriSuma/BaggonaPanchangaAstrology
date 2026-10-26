@@ -21,6 +21,22 @@ export type { GrahaKey };
 import type { NatalPlacement, TransitPlacement } from "./premiumPrompts";
 import { transliterateName } from "../../utils/transliterator";
 import { siderealLongitudes } from "../../core/EphemerisEngine";
+import {
+  type JananaPanchangaData,
+  type GocharaPanchangaData,
+  computeJananaPanchanga,
+  computeGocharaPanchanga,
+  getCharacteristicsPanchangaSynthesis,
+  getDarkSecretPanchangaSynthesis,
+  getCurrentPhasePanchangaSynthesis,
+  getMarriagePanchangaSynthesis,
+  getChildrenPanchangaSynthesis,
+  getCareerPanchangaSynthesis,
+  getWealthPanchangaSynthesis,
+  getHealthPanchangaSynthesis,
+  getGocharaPanchangaSynthesis,
+  getSummaryPanchangaSynthesis
+} from "./panchangaLifeEngine";
 
 export function getLocalizedDevoteeName(name: string | undefined | null, lang: string): string {
   if (!name) return "";
@@ -38,6 +54,10 @@ export interface KundaliAnalysisInput {
   lagnaRashiIndex: number;
   moonRashiIndex: number;
   moonNakshatraIndex?: number | null;
+  birthDate?: string;
+  birthTime?: string;
+  jananaPanchanga?: JananaPanchangaData;
+  gocharaPanchanga?: GocharaPanchangaData;
   natalPlanets: NatalPlacement[];
   transits?: TransitPlacement[];
   mahaLord?: GrahaKey | null;
@@ -91,6 +111,8 @@ export interface ParsedKundaliChart {
   mercuryPlacement: NatalPlacement | null;
   sunPlacement: NatalPlacement | null;
   moonPlacement: NatalPlacement | null;
+  jananaPanchanga?: JananaPanchangaData;
+  gocharaPanchanga?: GocharaPanchangaData;
   isManglik: boolean;
   spouseDirection: { en: string; kn: string; hi: string; te: string; ta: string };
   transitSaturn: { houseFromMoon: number; isSadeSati: boolean; isAshtama: boolean; isKantaka: boolean } | null;
@@ -278,6 +300,20 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
     )
   );
 
+  const jananaPanchanga = input.jananaPanchanga ?? computeJananaPanchanga({
+    birthDate: input.birthDate,
+    birthTime: input.birthTime,
+    moonRashiIndex,
+    moonNakshatraIndex: input.moonNakshatraIndex,
+    natalPlanets: input.natalPlanets
+  }, input.lang);
+
+  const gocharaPanchanga = input.gocharaPanchanga ?? computeGocharaPanchanga({
+    janmaMoonNakshatraIndex: jananaPanchanga.nakshatraIndex,
+    janmaMoonRashiIndex: moonRashiIndex,
+    transits: input.transits
+  }, input.lang);
+
   return {
     hasKalatraDosha,
     hasSantanaDosha,
@@ -309,6 +345,8 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
     mercuryPlacement,
     sunPlacement,
     moonPlacement,
+    jananaPanchanga,
+    gocharaPanchanga,
     isManglik,
     spouseDirection,
     transitSaturn,
@@ -782,7 +820,7 @@ export function get8thLordNigoodhaDetails(graha: GrahaKey, lang: string): { conf
 /* 100% Dynamic Fallback Narrative Builders (Strict 5-6 Lines per Paragraph) */
 /* ========================================================================= */
 
-export function buildDynamicMarriageFallback(
+function buildRawDynamicMarriageFallback(
   chart: ParsedKundaliChart,
   status: "unmarried" | "married" | "general" | string = "general"
 ): string {
@@ -1211,12 +1249,38 @@ export function buildDynamicMarriageFallback(
   }
 }
 
+function resolveJananaPanchanga(chart: ParsedKundaliChart, baseLang: string): JananaPanchangaData {
+  return chart.jananaPanchanga ?? computeJananaPanchanga({
+    moonRashiIndex: chart.moonRashiIndex,
+    moonNakshatraIndex: (chart as any).moonNakshatraIndex
+  }, baseLang);
+}
+
+function resolveGocharaPanchanga(chart: ParsedKundaliChart, baseLang: string): GocharaPanchangaData {
+  return chart.gocharaPanchanga ?? computeGocharaPanchanga({
+    janmaMoonRashiIndex: chart.moonRashiIndex,
+    janmaMoonNakshatraIndex: (chart as any).moonNakshatraIndex
+  }, baseLang);
+}
+
+export function buildDynamicMarriageFallback(
+  chart: ParsedKundaliChart,
+  status: "unmarried" | "married" | "general" | string = "general"
+): string {
+  const raw = buildRawDynamicMarriageFallback(chart, status);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getMarriagePanchangaSynthesis(resolveJananaPanchanga(chart, baseLang), resolveGocharaPanchanga(chart, baseLang), status, baseLang);
+  if (!pSynth) return raw;
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+}
+
 export function toKnDigits(numOrStr: string | number): string {
   const knDigits = ['೦', '೧', '೨', '೩', '೪', '೫', '೬', '೭', '೮', '೯'];
   return String(numOrStr).replace(/[0-9]/g, (d) => knDigits[parseInt(d, 10)]);
 }
 
-export function buildDynamicChildrenFallback(
+function buildRawDynamicChildrenFallback(
   chart: ParsedKundaliChart,
   status: "no_children" | "has_children" | "general"
 ): string {
@@ -1562,7 +1626,19 @@ export function buildDynamicChildrenFallback(
   }
 }
 
-export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
+export function buildDynamicChildrenFallback(
+  chart: ParsedKundaliChart,
+  status: "no_children" | "has_children" | "general" = "general"
+): string {
+  const raw = buildRawDynamicChildrenFallback(chart, status);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getChildrenPanchangaSynthesis(resolveJananaPanchanga(chart, baseLang), resolveGocharaPanchanga(chart, baseLang), status, baseLang);
+  if (!pSynth) return raw;
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+}
+
+function buildRawDynamicCareerFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
   const h10 = chart.houses[10];
   const h10Lord = h10.lordName;
@@ -1772,7 +1848,16 @@ export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
   return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
 }
 
-export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
+export function buildDynamicCareerFallback(chart: ParsedKundaliChart): string {
+  const raw = buildRawDynamicCareerFallback(chart);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getCareerPanchangaSynthesis(resolveJananaPanchanga(chart, baseLang), resolveGocharaPanchanga(chart, baseLang), baseLang);
+  if (!pSynth) return raw;
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+}
+
+function buildRawDynamicWealthFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
   const h2 = chart.houses[2];
   const h2Lord = h2.lordName;
@@ -1981,7 +2066,16 @@ export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
   return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
 }
 
-export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
+export function buildDynamicWealthFallback(chart: ParsedKundaliChart): string {
+  const raw = buildRawDynamicWealthFallback(chart);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getWealthPanchangaSynthesis(resolveJananaPanchanga(chart, baseLang), resolveGocharaPanchanga(chart, baseLang), baseLang);
+  if (!pSynth) return raw;
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+}
+
+function buildRawDynamicHealthFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
   const h1 = chart.houses[1];
   const h1Lord = h1.lordName;
@@ -2188,6 +2282,15 @@ export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
   const hasDosha = Boolean(chart.hasRogaDosha);
 
   return hasDosha ? `${p1}\n\n${p2}\n\n${p3}\n\n${para4En}` : `${p1}\n\n${p2}\n\n${p3}`;
+}
+
+export function buildDynamicHealthFallback(chart: ParsedKundaliChart): string {
+  const raw = buildRawDynamicHealthFallback(chart);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getHealthPanchangaSynthesis(resolveJananaPanchanga(chart, baseLang), resolveGocharaPanchanga(chart, baseLang), baseLang);
+  if (!pSynth) return raw;
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
 }
 
 
@@ -2671,7 +2774,7 @@ export function buildDynamicChildPediatricHealthFallback(chart: ParsedKundaliCha
 /* Chapters II, III, IV, VII Fallbacks                                       */
 /* ========================================================================= */
 
-export function buildDynamicCharacteristicsFallback(chart: ParsedKundaliChart): string {
+function buildRawDynamicCharacteristicsFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
   const h1 = chart.houses[1];
   const h1Lord = h1.lordName;
@@ -2708,7 +2811,16 @@ export function buildDynamicCharacteristicsFallback(chart: ParsedKundaliChart): 
   return `${p1}\n\n${p2}\n\n${p3}`;
 }
 
-export function buildDynamicDarkSecretFallback(chart: ParsedKundaliChart): string {
+export function buildDynamicCharacteristicsFallback(chart: ParsedKundaliChart): string {
+  const raw = buildRawDynamicCharacteristicsFallback(chart);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getCharacteristicsPanchangaSynthesis(resolveJananaPanchanga(chart, baseLang), baseLang);
+  if (!pSynth) return raw;
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+}
+
+function buildRawDynamicDarkSecretFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
   const h8 = chart.houses[8];
   const h12 = chart.houses[12];
@@ -2743,7 +2855,17 @@ export function buildDynamicDarkSecretFallback(chart: ParsedKundaliChart): strin
   const p3 = `Transmuting these subconscious soul impressions requires the protective canopy of ancestral (Pitri) blessings and the sacred grace of Lord Mahabaleshwara at Sri Kshetra Gokarna. ${nigoodha.remedy} Sponsoring nourishing food for the needy on Amavasya (New Moon) or Mondays, caring for gentle bovine life (Go-Seva), and diffusing purifying natural camphor or guggulu resin effortlessly repels subtle atmospheric heaviness. Dedicating ten minutes at dusk to silent contemplative repetition of your Ishta Mantra anchors your awareness in unconditional divine refuge. Through these authentic Vedic disciplines, you untie deep-seated karmic knots, stepping into revitalized clarity, unshakeable courage, and absolute peace of mind.`;
   return `${p1}\n\n${p2}\n\n${p3}`;
 }
-export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string {
+
+export function buildDynamicDarkSecretFallback(chart: ParsedKundaliChart): string {
+  const raw = buildRawDynamicDarkSecretFallback(chart);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getDarkSecretPanchangaSynthesis(resolveJananaPanchanga(chart, baseLang), baseLang);
+  if (!pSynth) return raw;
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+}
+
+function buildRawDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
   const age = chart.ageYears ?? 30;
   const isSenior = age >= 60;
@@ -2860,7 +2982,22 @@ export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): str
   return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
 }
 
-export function buildDynamicSummaryFallback(chart: ParsedKundaliChart): string {
+export function buildDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string {
+  const raw = buildRawDynamicCurrentPhaseFallback(chart);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getCurrentPhasePanchangaSynthesis(resolveGocharaPanchanga(chart, baseLang), chart.dashaSummary, baseLang);
+  if (!pSynth) return raw;
+  const paras = raw.split("\n\n");
+  if (paras.length >= 2) {
+    paras[1] = `${paras[1]} ${pSynth}`;
+    const combined = paras.join("\n\n");
+    return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+  }
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+}
+
+function buildRawDynamicSummaryFallback(chart: ParsedKundaliChart): string {
   const baseLang = chart.lang.split("-")[0];
   const age = chart.ageYears ?? 30;
   const isSenior = age >= 60;
@@ -2955,6 +3092,21 @@ export function buildDynamicSummaryFallback(chart: ParsedKundaliChart): string {
   const p3 = `Consistent worship of your Ishta and Kula Devatas, performing charitable acts, and honoring mentors guarantee continuous cosmic harmony. Showered with the divine grace of the Sri Kshetra Gokarna sacred sanctum, may your life path be perpetually adorned with robust longevity, joyous fulfillment, radiant prosperity, and abiding supreme peace.`;
 
   return `${p1}\n\n${p2}\n\n${p3}`;
+}
+
+export function buildDynamicSummaryFallback(chart: ParsedKundaliChart): string {
+  const raw = buildRawDynamicSummaryFallback(chart);
+  const baseLang = chart.lang.split("-")[0];
+  const pSynth = getSummaryPanchangaSynthesis(resolveJananaPanchanga(chart, baseLang), resolveGocharaPanchanga(chart, baseLang), chart.dashaSummary, baseLang);
+  if (!pSynth) return raw;
+  const paras = raw.split("\n\n");
+  if (paras.length >= 2) {
+    paras[1] = `${paras[1]} ${pSynth}`;
+    const combined = paras.join("\n\n");
+    return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
+  }
+  const combined = `${raw}\n\n${pSynth}`;
+  return baseLang === "en" ? combined : cleanEnglishFromRegionalText(combined, baseLang);
 }
 
 export function buildDynamicGocharaFallback(chart: ParsedKundaliChart): Array<{ name: string; impact: string; remedy?: string }> {
@@ -3145,6 +3297,30 @@ export function buildDynamicGocharaFallback(chart: ParsedKundaliChart): Array<{ 
   const rkCleanName = cleanEnglishFromRegionalText(rkName, baseLang);
   const rkCleanRemedy = cleanEnglishFromRegionalText(rkRemedy, baseLang);
   items.push({ name: rkCleanName, impact: rkImpact, remedy: rkCleanRemedy });
+
+  // 4. LIVE GOCHARA PANCHANGA & TARA-CHANDRA BALA CARD
+  let panName = "Live Gochara Panchanga & Tara-Chandra Bala";
+  let panRemedy = "Performing daily morning Surya Namaskara and reciting your Ishta Devata mantra harmonizes daily transit energies and strengthens lunar alignment.";
+  if (baseLang === "kn") {
+    panName = "ಗೋಚಾರ ಪಂಚಾಂಗ ಹಾಗೂ ತಾರಾ-ಚಂದ್ರ ಬಲ";
+    panRemedy = "ನಿತ್ಯ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ಇಷ್ಟದೇವತಾ ಗಾಯತ್ರಿ ಜಪ ಮಾಡುವುದರಿಂದ ದೈನಂದಿನ ತಾರಾ ಮತ್ತು ಚಂದ್ರ ಬಲವು ಅನುಕೂಲಕರವಾಗಿ ಪರಿಣಮಿಸುತ್ತದೆ.";
+  } else if (baseLang === "hi") {
+    panName = "गोचर पंचांग एवं तारा-चंद्र बल";
+    panRemedy = "प्रतिदिन प्रातः सूर्य नमस्कार एवं इष्टदेव गायत्री जप करने से दैनिक तारा एवं चंद्र बल सदा अनुकूल और फलदायी रहता है।";
+  } else if (baseLang === "te") {
+    panName = "గోచార పంచాంగం మరియు తారా-చంద్ర బలం";
+    panRemedy = "రోజూ ఉదయం సూర్య నమస్కారాలు చేయడం మరియు ఇష్టదేవతా గాయత్రీ జపం చేయడం వల్ల దైనిక తారా మరియు చంద్ర బలం శుభప్రదంగా మారుతుంది.";
+  } else if (baseLang === "ta") {
+    panName = "கோசார பஞ்சாங்கம் மற்றும் தாரா-சந்திர பலம்";
+    panRemedy = "தினமும் காலையில் சூரிய நமஸ்காரம் செய்து இஷ்டதெய்வ காயத்ரி ஜபம் செய்வது தினசரி தாரா மற்றும் சந்திர பலத்தை மங்களகரமாக்கும்.";
+  }
+  const panImpactRaw = getGocharaPanchangaSynthesis(resolveGocharaPanchanga(chart, baseLang), baseLang);
+  const panImpact = baseLang === "en" ? panImpactRaw : cleanEnglishFromRegionalText(panImpactRaw, baseLang);
+  items.push({
+    name: baseLang === "en" ? panName : cleanEnglishFromRegionalText(panName, baseLang),
+    impact: panImpact,
+    remedy: baseLang === "en" ? panRemedy : cleanEnglishFromRegionalText(panRemedy, baseLang)
+  });
 
   return items;
 }

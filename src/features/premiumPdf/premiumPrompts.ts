@@ -91,6 +91,14 @@ export type PremiumPromptInput = {
   moonPada?: 1 | 2 | 3 | 4;
   tithiName?: string;
   weekdayName?: string;
+  yogaName?: string;
+  karanaName?: string;
+  dagdhaRashis?: string;
+  todayTithiName?: string;
+  todayVaaraName?: string;
+  todayMoonNakshatra?: string;
+  taraBalaName?: string;
+  chandraBalaHouse?: number | string;
   isManglikCancelled?: boolean;
   manglikCancellationReason?: string;
   dashaSandhiActive?: boolean;
@@ -162,6 +170,14 @@ export const buildChartFacts = (input: PremiumPromptInput): string => {
     `Surya rashi: ${rashiName(input.sunRashiIndex, lang)}`,
     ...(input.tithiName ? [`Janma Tithi: ${input.tithiName}`] : []),
     ...(input.weekdayName ? [`Janma Vaara (Weekday): ${input.weekdayName}`] : []),
+    ...(input.yogaName ? [`Janma Nitya Yoga: ${input.yogaName}`] : []),
+    ...(input.karanaName ? [`Janma Karana: ${input.karanaName}`] : []),
+    ...(input.dagdhaRashis ? [`Dagdha (Shunya) Rashis: ${input.dagdhaRashis}`] : []),
+    ...(input.todayTithiName ? [`Transit (Today) Tithi: ${input.todayTithiName}`] : []),
+    ...(input.todayVaaraName ? [`Transit (Today) Vaara: ${input.todayVaaraName}`] : []),
+    ...(input.todayMoonNakshatra ? [`Transit (Today) Moon Nakshatra: ${input.todayMoonNakshatra}`] : []),
+    ...(input.taraBalaName ? [`Navatara Chakra (Tara Bala): ${input.taraBalaName}`] : []),
+    ...(input.chandraBalaHouse !== undefined ? [`Transit Chandra Bala: House ${input.chandraBalaHouse} from Janma Moon`] : []),
     ...(input.isManglikCancelled ? [`Kuja Dosha Status: CANCELLED (${input.manglikCancellationReason})`] : []),
     ...(input.dashaSandhiActive ? [`Dasha Sandhi: ACTIVE TRANSITION (${input.dashaSandhiDetails || "within 9 months of transition"})`] : []),
     ...(input.maandiConjunctions && input.maandiConjunctions.length ? [`Maandi Conjunctions: ${input.maandiConjunctions.join(", ")}`] : []),

@@ -379,6 +379,8 @@ export async function prepareBhavishyaV1Data(
     lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
     moonRashiIndex: session.result.moonSign.index,
     moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+    birthDate: session.input.birthDate,
+    birthTime: session.input.birthTime,
     natalPlanets,
     transits,
     mahaLord,
@@ -405,6 +407,9 @@ export async function prepareBhavishyaV1Data(
     })),
     transits,
     moonRashiIndex: session.result.moonSign.index,
+    moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+    birthDate: session.input.birthDate,
+    birthTime: session.input.birthTime,
     ageYears,
     gender: ((userGender || "Male") as "Male" | "Female")
   };
@@ -522,7 +527,17 @@ export async function prepareBhavishyaV1Data(
     careerNote: result.masterSynthesis.career,
     financeNote: result.masterSynthesis.finance,
     roadmap: result.timingLayer.twelveMonthRoadmap,
-    affairNote
+    affairNote,
+    tithiName: parsedKundali.jananaPanchanga?.tithiName,
+    weekdayName: parsedKundali.jananaPanchanga?.vaaraName,
+    yogaName: parsedKundali.jananaPanchanga?.yogaName,
+    karanaName: parsedKundali.jananaPanchanga?.karanaName,
+    dagdhaRashis: parsedKundali.jananaPanchanga?.dagdhaRashiNames?.join(", "),
+    todayTithiName: parsedKundali.gocharaPanchanga?.tithiName,
+    todayVaaraName: parsedKundali.gocharaPanchanga?.vaaraName,
+    todayMoonNakshatra: parsedKundali.gocharaPanchanga?.nakshatraName,
+    taraBalaName: parsedKundali.gocharaPanchanga?.taraBala?.taraName,
+    chandraBalaHouse: parsedKundali.gocharaPanchanga?.chandraBala?.houseFromMoon
   });
 
   const effectiveGeminiApiKey = (

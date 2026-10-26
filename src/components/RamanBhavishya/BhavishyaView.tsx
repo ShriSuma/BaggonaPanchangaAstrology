@@ -238,6 +238,9 @@ export interface DynamicChartContext {
   }>;
   transits?: TransitPlacement[];
   moonRashiIndex?: number;
+  moonNakshatraIndex?: number | null;
+  birthDate?: string;
+  birthTime?: string;
   ageYears?: number;
   gender?: "Male" | "Female";
 }
@@ -329,6 +332,9 @@ export function buildPersonalizedMarriageText(
   const chart = analyzeKundali({
     lagnaRashiIndex: lagnaIndex,
     moonRashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12),
+    moonNakshatraIndex: context?.moonNakshatraIndex ?? null,
+    birthDate: context?.birthDate,
+    birthTime: context?.birthTime,
     natalPlanets,
     transits: context?.transits,
     gender,
@@ -385,6 +391,9 @@ export function buildPersonalizedChildrenText(
   const chart = analyzeKundali({
     lagnaRashiIndex: lagnaIndex,
     moonRashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12),
+    moonNakshatraIndex: context?.moonNakshatraIndex ?? null,
+    birthDate: context?.birthDate,
+    birthTime: context?.birthTime,
     natalPlanets,
     transits: context?.transits,
     gender: context?.gender ?? "Male",
@@ -424,6 +433,9 @@ export function buildPersonalizedCareerText(
   const chart = analyzeKundali({
     lagnaRashiIndex: lagnaIndex,
     moonRashiIndex: context?.moonRashiIndex ?? 0,
+    moonNakshatraIndex: context?.moonNakshatraIndex ?? null,
+    birthDate: context?.birthDate,
+    birthTime: context?.birthTime,
     natalPlanets: (context?.planets || []).map(p => ({
       graha: toGraha(p.name),
       rashiIndex: p.rashiIndex,
@@ -452,6 +464,9 @@ export function buildPersonalizedWealthText(
   const chart = analyzeKundali({
     lagnaRashiIndex: lagnaIndex,
     moonRashiIndex: context?.moonRashiIndex ?? 0,
+    moonNakshatraIndex: context?.moonNakshatraIndex ?? null,
+    birthDate: context?.birthDate,
+    birthTime: context?.birthTime,
     natalPlanets: (context?.planets || []).map(p => ({
       graha: toGraha(p.name),
       rashiIndex: p.rashiIndex,
@@ -480,6 +495,9 @@ export function buildPersonalizedHealthText(
   const chart = analyzeKundali({
     lagnaRashiIndex: lagnaIndex,
     moonRashiIndex: context?.moonRashiIndex ?? 0,
+    moonNakshatraIndex: context?.moonNakshatraIndex ?? null,
+    birthDate: context?.birthDate,
+    birthTime: context?.birthTime,
     natalPlanets: (context?.planets || []).map(p => ({
       graha: toGraha(p.name),
       rashiIndex: p.rashiIndex,
@@ -1616,6 +1634,9 @@ Return ONLY this JSON format:
         })),
         transits,
         moonRashiIndex: session.result.moonSign.index,
+        moonNakshatraIndex: session.result.planets.find(p => p.name === "Moon")?.nakshatra?.index ?? null,
+        birthDate: session.input?.birthDate,
+        birthTime: session.input?.birthTime,
         ageYears,
         gender: (((session.input as any)?.gender || "Male") as "Male" | "Female")
       };
@@ -1923,6 +1944,8 @@ Return ONLY this JSON format:
         lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        birthDate: session.input.birthDate,
+        birthTime: session.input.birthTime,
         natalPlanets,
         transits,
         mahaLord,
@@ -2412,6 +2435,8 @@ Return ONLY this JSON (no extra text before or after):
         lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: a4MoonPlanet?.nakshatra.index ?? null,
+        birthDate: session.input.birthDate,
+        birthTime: session.input.birthTime,
         natalPlanets: a4NatalPlanets,
         transits: a4Transits,
         mahaLord: a4MahaLord,
@@ -2610,6 +2635,8 @@ Return ONLY this JSON (no extra text before or after):
         lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        birthDate: session.input.birthDate,
+        birthTime: session.input.birthTime,
         natalPlanets,
         transits,
         mahaLord,
