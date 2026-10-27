@@ -1675,14 +1675,14 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       }
     });
 
-    it("verifies getLocalizedQuickFaqChips provides 4 culturally authentic chips across all 7 languages for all 4 age demographics", () => {
+    it("verifies getLocalizedQuickFaqChips provides 6 culturally authentic chips (including gemstone & color) across all 7 languages for all 4 age demographics", () => {
       const testAges = [10, 24, 38, 58]; // Minor, Youth, Mid-Career, Senior
 
       for (const lang of all7Languages) {
         for (const age of testAges) {
           const chips = getLocalizedQuickFaqChips(lang, age);
           expect(chips, `Chips missing for lang: ${lang}, age: ${age}`).toBeDefined();
-          expect(chips).toHaveLength(4);
+          expect(chips).toHaveLength(6);
 
           for (const chip of chips) {
             expect(chip.label.trim().length, `Empty label in ${lang} at age ${age}`).toBeGreaterThan(0);

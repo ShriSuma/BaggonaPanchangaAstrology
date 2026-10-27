@@ -557,6 +557,12 @@ export interface ConsultationChatUiI18n {
   birthDetailsLabel: string;
   contactSummaryLabel: string;
   languageSummaryLabel: string;
+  directAnswerBadge: string;
+  directAnswerTag: string;
+  explanationHeader: string;
+  copyBtn: string;
+  copiedToast: string;
+  clearInputTooltip: string;
   ratingLevels: [string, string, string, string, string];
 }
 
@@ -595,6 +601,12 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     birthDetailsLabel: "ಜನ್ಮ ವಿವರಗಳು:",
     contactSummaryLabel: "ಸಂಪರ್ಕ:",
     languageSummaryLabel: "ಭಾಷೆ (Language):",
+    directAnswerBadge: "✨ ನೇರ ಉತ್ತರ (ತೀರ್ಮಾನ)",
+    directAnswerTag: "೮೦% ನೇರ ಉತ್ತರ",
+    explanationHeader: "📖 ಜ್ಯೋತಿಷ್ಯ ಹಿನ್ನೆಲೆ ಹಾಗೂ ಮಾರ್ಗದರ್ಶನ",
+    copyBtn: "📋 ನಕಲಿಸಿ",
+    copiedToast: "✓ ನಕಲಿಸಲಾಗಿದೆ",
+    clearInputTooltip: "ತೆರವುಗೊಳಿಸಿ",
     ratingLevels: [
       "⭐ ಅತೃಪ್ತಿ (1/5)",
       "⭐⭐ ಸುಧಾರಣೆ ಅಗತ್ಯ (2/5)",
@@ -637,6 +649,12 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     birthDetailsLabel: "Birth Details:",
     contactSummaryLabel: "Contact:",
     languageSummaryLabel: "Language:",
+    directAnswerBadge: "✨ Direct Answer (Quick Takeaway)",
+    directAnswerTag: "80% Direct Answer",
+    explanationHeader: "📖 Planetary Analysis & Guidance",
+    copyBtn: "📋 Copy",
+    copiedToast: "✓ Copied",
+    clearInputTooltip: "Clear input",
     ratingLevels: [
       "⭐ Needs Attention (1/5)",
       "⭐⭐ Fair (2/5)",
@@ -679,6 +697,12 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     birthDetailsLabel: "जन्म विवरण:",
     contactSummaryLabel: "संपर्क:",
     languageSummaryLabel: "भाषा:",
+    directAnswerBadge: "✨ सीधा उत्तर (निष्कर्ष)",
+    directAnswerTag: "८०% सीधा उत्तर",
+    explanationHeader: "📖 ज्योतिषीय कारण एवं मार्गदर्शन",
+    copyBtn: "📋 कॉपी करें",
+    copiedToast: "✓ कॉपी हो गया",
+    clearInputTooltip: "साफ़ करें",
     ratingLevels: [
       "⭐ असंतोषजनक (1/5)",
       "⭐⭐ सुधार आवश्यक (2/5)",
@@ -721,6 +745,12 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     birthDetailsLabel: "జన్మ వివరాలు:",
     contactSummaryLabel: "సంప్రదింపు:",
     languageSummaryLabel: "భాష:",
+    directAnswerBadge: "✨ ప్రత్యక్ష సమాధానం (తీర్పు)",
+    directAnswerTag: "80% ప్రత్యక్ష సమాధానం",
+    explanationHeader: "📖 జ్యోతిష్య నేపథ్యం మరియు మార్గదర్శకత్వం",
+    copyBtn: "📋 కాపీ చేయండి",
+    copiedToast: "✓ కాపీ చేయబడింది",
+    clearInputTooltip: "క్లియర్ చేయండి",
     ratingLevels: [
       "⭐ అసంతృప్తి (1/5)",
       "⭐⭐ మెరుగుదల అవసరం (2/5)",
@@ -763,6 +793,12 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     birthDetailsLabel: "பிறந்த விவரங்கள்:",
     contactSummaryLabel: "தொடர்பு:",
     languageSummaryLabel: "மொழி:",
+    directAnswerBadge: "✨ நேரடி பதில் (முடிவு)",
+    directAnswerTag: "80% நேரடி பதில்",
+    explanationHeader: "📖 ஜோதிட விளக்கம் மற்றும் வழிகாட்டுதல்",
+    copyBtn: "📋 நகலெடு",
+    copiedToast: "✓ நகலெடுக்கப்பட்டது",
+    clearInputTooltip: "அழி",
     ratingLevels: [
       "⭐ திருப்தியற்றது (1/5)",
       "⭐⭐ முன்னேற்றம் தேவை (2/5)",
@@ -805,6 +841,12 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     birthDetailsLabel: "ജനന വിവരങ്ങൾ:",
     contactSummaryLabel: "സമ്പർക്കം:",
     languageSummaryLabel: "ഭാഷ:",
+    directAnswerBadge: "✨ നേരിട്ടുള്ള ഉത്തരം (തീരുമാനം)",
+    directAnswerTag: "80% നേരിട്ടുള്ള ഉത്തരം",
+    explanationHeader: "📖 ജ്യോതിഷ വിശദീകരണവും മാർഗ്ഗനിർദ്ദേശവും",
+    copyBtn: "📋 പകർത്തുക",
+    copiedToast: "✓ പകർത്തി",
+    clearInputTooltip: "മായ്ക്കുക",
     ratingLevels: [
       "⭐ തൃപ്തികരമല്ല (1/5)",
       "⭐⭐ മെച്ചപ്പെടുത്തണം (2/5)",
@@ -847,6 +889,12 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     birthDetailsLabel: "जन्म तपशील:",
     contactSummaryLabel: "संपर्क:",
     languageSummaryLabel: "भाषा:",
+    directAnswerBadge: "✨ थेट उत्तर (निष्कर्ष)",
+    directAnswerTag: "८०% थेट उत्तर",
+    explanationHeader: "📖 ज्योतिषीय विश्लेषण आणि मार्गदर्शन",
+    copyBtn: "📋 कॉपी करा",
+    copiedToast: "✓ कॉपी झाले",
+    clearInputTooltip: "साफ करा",
     ratingLevels: [
       "⭐ असमाधानकारक (1/5)",
       "⭐⭐ सुधारणा आवश्यक (2/5)",
@@ -866,7 +914,7 @@ export interface QuickFaqChip {
  * Returns authentic, age-adaptive Quick Suggestion FAQ Chips
  * fully localized across all 7 supported languages without hardcoding
  */
-export function getLocalizedQuickFaqChips(
+function getAgeSpecificChips(
   lang: ConsultationLanguage,
   ageYears: number
 ): QuickFaqChip[] {
@@ -1090,5 +1138,51 @@ export function getLocalizedQuickFaqChips(
         { label: "🕊️ ಆಧ್ಯಾತ್ಮಿಕ ಮಾರ್ಗ & ಮುಕ್ತಿ", question: "ಜೀವನದ ಈ ಹಂತದಲ್ಲಿ ಮನಸ್ಸಿನ ನೆಮ್ಮದಿಗೆ ಯಾವ ದೈವಿಕ ಧ್ಯಾನ ಮತ್ತು ಸಾಧನೆ ಶ್ರೇಷ್ಠ?" }
       ];
   }
+}
+
+/**
+ * Returns authentic, age-adaptive Quick Suggestion FAQ Chips
+ * including Lucky Gemstone and Lucky Color/Number chips
+ * fully localized across all 7 supported languages without English token leakage
+ */
+export function getLocalizedQuickFaqChips(
+  lang: ConsultationLanguage,
+  ageYears: number
+): QuickFaqChip[] {
+  const base = getAgeSpecificChips(lang, ageYears);
+
+  const universalMap: Record<ConsultationLanguage, QuickFaqChip[]> = {
+    en: [
+      { label: "💎 Lucky Gemstone", question: "Which lucky gemstone is most auspicious for my birth chart and Lagna? What is the method of wearing?" },
+      { label: "🎨 Lucky Color & Number", question: "What are the most auspicious colors and lucky numbers for my horoscope?" }
+    ],
+    hi: [
+      { label: "💎 भाग्यशाली रत्न", question: "मेरी जन्म कुंडली के अनुसार कौन सा भाग्यशाली रत्न धारण करना श्रेष्ठ है? धारण करने की सही विधि क्या है?" },
+      { label: "🎨 शुभ रंग एवं अंक", question: "मेरी कुंडली और लग्न के अनुसार मेरा शुभ रंग और भाग्यशाली अंक कौन सा है?" }
+    ],
+    te: [
+      { label: "💎 అదృష్ట రత్నం", question: "నా జన్మ లగ్నానికి ఏ అదృష్ట రత్నం ధరించడం శ్రేయస్కరం? ధరించే పద్ధతి ఏమిటి?" },
+      { label: "🎨 అదృష్ట రంగు & సంఖ్య", question: "నా జాతకానికి శుభం కలిగించే అదృష్ట రంగు మరియు అదృష్ట సంఖ్య ఏది?" }
+    ],
+    ta: [
+      { label: "💎 அதிர்ஷ்ட ரத்தினம்", question: "என் லக்னத்திற்கு எந்த அதிர்ஷ்ட ரத்தினம் அணிய வேண்டும்? அணியும் சாஸ்திர முறை என்ன?" },
+      { label: "🎨 அதிர்ஷ்ட நிறம் & எண்", question: "என் ஜாதகப்படி எனக்கு அதிர்ஷ்டம் தரும் நிறம் மற்றும் அதிர்ஷ்ட எண் எது?" }
+    ],
+    ml: [
+      { label: "💎 ഭാഗ്യ രത്നം", question: "എന്റെ ജന്മ ലഗ്നത്തിന് ഏറ്റവും അനുയോജ്യമായ ഭാഗ്യരത്നം ഏതാണ്? ധരിക്കേണ്ട രീതി എങ്ങനെ?" },
+      { label: "🎨 ഭാഗ്യ നിറവും സംഖ്യയും", question: "എന്റെ ജാതകപ്രകാരം എനിക്ക് ഭാഗ്യം നൽകുന്ന നിറവും ഭാഗ്യ സംഖ്യയും ഏതാണ്?" }
+    ],
+    mr: [
+      { label: "💎 भाग्यवान रत्न", question: "माझ्या जन्म कुंडलीनुसार कोणते भाग्यवान रत्न परिधान करावे? रत्न घालण्याची शास्त्रोक्त पद्धत कोणती?" },
+      { label: "🎨 शुभ रंग व अंक", question: "माझ्या पत्रिकेनुसार माझा शुभ रंग आणि भाग्यवान अंक कोणता आहे?" }
+    ],
+    kn: [
+      { label: "💎 ಅದೃಷ್ಟ ರತ್ನ & ಧಾರಣೆ", question: "ನನ್ನ ಜನ್ಮ ಲಗ್ನಕ್ಕೆ ಯಾವ ಅದೃಷ್ಟ ರತ್ನ ಧರಿಸುವುದು ಶ್ರೇಷ್ಠ? ಧಾರಣೆಯ ನಿಯಮವೇನು?" },
+      { label: "🎨 ಅದೃಷ್ಟ ಬಣ್ಣ & ಸಂಖ್ಯೆ", question: "ನನ್ನ ಜಾತಕಕ್ಕೆ ಶುಭ ತರುವ ಅದೃಷ್ಟ ಬಣ್ಣ ಮತ್ತು ಅದೃಷ್ಟ ಸಂಖ್ಯೆ ಯಾವುದು?" }
+    ]
+  };
+
+  const universal = universalMap[lang] || universalMap.kn;
+  return [...base, ...universal];
 }
 

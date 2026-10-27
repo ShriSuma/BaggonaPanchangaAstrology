@@ -14,7 +14,7 @@
  * - 2-3 paragraphs (5-6 lines each) of 100% accurate Vedic readings in 7 languages
  */
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   getConsultationSession,
   startConsultationTimer,
@@ -139,6 +139,46 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [messages, setMessages] = useState<ConsultationChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustTextareaHeight = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      const scrollHeight = textareaRef.current.scrollHeight;
+      // Dynamically expand between 38px and 128px
+      textareaRef.current.style.height = `${Math.min(Math.max(scrollHeight, 38), 128)}px`;
+    }
+  }, []);
+
+  const handleCopyMessage = useCallback((messageId: string, text: string) => {
+    const copyToClipboard = async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          // Robust fallback for mobile devices & insecure contexts
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand("copy");
+          textArea.remove();
+        }
+        setCopiedMessageId(messageId);
+        setTimeout(() => {
+          setCopiedMessageId((prev) => (prev === messageId ? null : prev));
+        }, 2000);
+      } catch (err) {
+        console.error("Failed to copy consultation message:", err);
+      }
+    };
+    void copyToClipboard();
+  }, []);
 
   // Speech Recognition State
   const [isListening, setIsListening] = useState(false);
@@ -648,6 +688,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     }
 
     setInputText("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
 
     const userMsg: ConsultationChatMessage = {
       id: `user_${Date.now()}`,
@@ -1392,6 +1435,13 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       <main className="w-full max-w-2xl flex-1 px-3 py-3 overflow-y-auto space-y-3.5">
         {messages.map((msg) => {
           const isUser = msg.sender === "user";
+          const msgIndex = messages.findIndex((m) => m.id === msg.id);
+          const hasPriorUserMsg = messages.slice(0, msgIndex).some((m) => m.sender === "user");
+          const isWelcomeGreeting = !isUser && !hasPriorUserMsg;
+          const paragraphs = msg.text.split("\n\n").filter((p) => p.trim().length > 0);
+          const directAnswerPara = paragraphs[0] || "";
+          const remainingParas = paragraphs.slice(1);
+
           return (
             <div
               key={msg.id}
@@ -1413,12 +1463,51 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                     : "bg-white border-2 border-amber-300/90 text-amber-950 rounded-bl-xs font-serif shadow-amber-950/5 space-y-2.5"
                 }`}
               >
-                {/* Format paragraphs */}
-                {msg.text.split("\n\n").map((para, idx) => (
-                  <p key={idx} className="whitespace-pre-line">
-                    {para}
-                  </p>
-                ))}
+                {/* Content: If User or Initial Welcome Greeting, show regular paragraphs.
+                    For ongoing Astrologer guidance, showcase Upfront Direct Answer Highlight Card (ChatGPT/Gemini Style) first! */}
+                {isUser || isWelcomeGreeting ? (
+                  paragraphs.map((para, idx) => (
+                    <p key={idx} className="whitespace-pre-line">
+                      {para}
+                    </p>
+                  ))
+                ) : (
+                  <>
+                    {/* Upfront Direct Answer Highlight Card (ChatGPT / Gemini Upfront Style) */}
+                    {directAnswerPara && (
+                      <div className="bg-gradient-to-br from-amber-50 via-amber-100/70 to-orange-50 border-2 border-amber-400 rounded-xl p-3 sm:p-3.5 shadow-xs text-amber-950 font-serif space-y-1.5">
+                        <div className="flex items-center justify-between border-b border-amber-300/80 pb-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">✨</span>
+                            <span className="font-bold text-amber-900 text-xs sm:text-[13px] tracking-wide">
+                              {currentChatUi.directAnswerBadge}
+                            </span>
+                          </div>
+                          <span className="bg-amber-600/15 text-amber-900 border border-amber-400/80 text-[9px] font-sans font-semibold px-2 py-0.5 rounded-full">
+                            {currentChatUi.directAnswerTag}
+                          </span>
+                        </div>
+                        <p className="font-medium text-xs sm:text-sm text-stone-900 leading-relaxed whitespace-pre-line">
+                          {directAnswerPara}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Detailed Astrological Context & Shastra Guidance */}
+                    {remainingParas.length > 0 && (
+                      <div className="pt-1 space-y-2">
+                        <div className="flex items-center gap-1 text-[11px] font-bold text-amber-800/90 font-sans uppercase tracking-wider">
+                          <span>{currentChatUi.explanationHeader}</span>
+                        </div>
+                        {remainingParas.map((para, pIdx) => (
+                          <p key={pIdx} className="whitespace-pre-line text-xs sm:text-sm text-amber-950">
+                            {para}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
 
                 {/* Dedicated Luxury Gold Dosha & Karma Insight Card (Deduplicated so never repeated) */}
                 {!isUser && msg.activeDoshaCard && isDoshaCardFirstOccurrence[msg.id] && (
@@ -1492,23 +1581,40 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   </div>
                 )}
 
-                {/* Astrologer TTS Audio Action */}
+                {/* Astrologer Actions: Copy & Audio */}
                 {!isUser && (
-                  <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between text-[11px]">
-                    <span className="text-amber-800/80 font-sans italic">
+                  <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between text-[11px] gap-2 flex-wrap">
+                    <span className="text-amber-800/80 font-sans italic truncate max-w-[200px]">
                       {currentChatUi.astrologerFooterNote}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => handlePlayTTS(msg.id, msg.text)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-sans font-bold transition ${
-                        speakingMessageId === msg.id
-                          ? "bg-red-100 text-red-700 border border-red-300"
-                          : "bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300"
-                      }`}
-                    >
-                      <span>{speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}</span>
-                    </button>
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      {/* One-Tap Copy Answer Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleCopyMessage(msg.id, msg.text)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-sans font-bold text-xs transition active:scale-95 ${
+                          copiedMessageId === msg.id
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-400 shadow-2xs"
+                            : "bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300"
+                        }`}
+                        title={currentChatUi.copyBtn}
+                      >
+                        <span>{copiedMessageId === msg.id ? currentChatUi.copiedToast : currentChatUi.copyBtn}</span>
+                      </button>
+
+                      {/* TTS Audio Listen Button */}
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTTS(msg.id, msg.text)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-sans font-bold text-xs transition active:scale-95 ${
+                          speakingMessageId === msg.id
+                            ? "bg-red-100 text-red-700 border border-red-300 shadow-2xs"
+                            : "bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300"
+                        }`}
+                      >
+                        <span>{speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1560,7 +1666,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                     type="button"
                     disabled={isGenerating}
                     onClick={() => handleSendMessage(chip.question)}
-                    className="whitespace-nowrap bg-white hover:bg-amber-100 active:scale-95 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-full shadow-2xs font-medium transition flex items-center gap-1 disabled:opacity-50"
+                    className="whitespace-nowrap bg-white hover:bg-amber-100 active:scale-95 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-full shadow-2xs font-medium transition flex items-center gap-1 disabled:opacity-50 min-h-[36px]"
                   >
                     <span>{chip.label}</span>
                   </button>
@@ -1598,12 +1704,16 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </div>
           ) : (
             <div className="flex items-end gap-2">
-              {/* Text Input Container */}
-              <div className="flex-1 bg-white border-2 border-amber-400 rounded-2xl p-2 shadow-inner focus-within:border-amber-600 transition flex items-center gap-2">
+              {/* Text Input Container with Auto-Expanding Textarea & Clear (✕) Button */}
+              <div className="flex-1 bg-white border-2 border-amber-400 rounded-2xl p-2 shadow-inner focus-within:border-amber-600 transition flex items-end gap-1.5 sm:gap-2">
                 <textarea
+                  ref={textareaRef}
                   rows={1}
                   value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    adjustTextareaHeight();
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -1611,8 +1721,26 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                     }
                   }}
                   placeholder={currentLangMeta.inputPlaceholder}
-                  className="flex-1 bg-transparent text-sm text-stone-900 focus:outline-hidden resize-none max-h-28 font-sans"
+                  className="flex-1 bg-transparent text-sm text-stone-900 focus:outline-hidden resize-none overflow-y-auto max-h-32 min-h-[38px] py-1.5 font-sans leading-relaxed"
                 />
+
+                {/* Clear Input Button (visible when text entered) */}
+                {inputText.trim().length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInputText("");
+                      if (textareaRef.current) {
+                        textareaRef.current.style.height = "auto";
+                      }
+                    }}
+                    className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition active:scale-90"
+                    title={currentChatUi.clearInputTooltip}
+                    aria-label={currentChatUi.clearInputTooltip}
+                  >
+                    <span className="text-sm font-bold leading-none">✕</span>
+                  </button>
+                )}
 
                 {/* Mic Button */}
                 <button

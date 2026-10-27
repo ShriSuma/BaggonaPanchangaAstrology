@@ -274,10 +274,20 @@ describe("Consultation Complexity & 80/20 Dynamic Length Engine", () => {
       expect(res.fullText).toMatch(/ರತ್ನ ಧಾರಣೆಯ ಶಾಸ್ತ್ರೋಕ್ತ ನಿಯಮ/);
     });
 
-    it("returns 2-3 paragraphs for a timing inquiry without a 4th dosha chapter", async () => {
+    it("returns 2-3 paragraphs for a timing follow-up inquiry without repeating a 4th dosha chapter", async () => {
       const res = await generateConsultationAnswer({
         session: baseSession,
         userQuestion: "ನನಗೆ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?",
+        conversationHistory: [
+          {
+            role: "user",
+            text: "ನನ್ನ ಜಾತಕದಲ್ಲಿ ವಿವಾಹ ವಿಳಂಬಕ್ಕೆ ಕಾರಣವೇನು?"
+          },
+          {
+            role: "model",
+            text: "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷವಿದ್ದು ಶಾಂತಿ ಪರಿಹಾರ ಅಗತ್ಯವಿದೆ."
+          }
+        ],
         apiKey: ""
       });
 
@@ -336,6 +346,70 @@ describe("Consultation Complexity & 80/20 Dynamic Length Engine", () => {
         const paras = reading.split(/\n\s*\n/);
         expect(paras.length).toBeLessThanOrEqual(2);
       });
+    });
+  });
+
+  describe("5. Direct Answer Upfront & UI Localization Guardrails", () => {
+    const supportedLanguages: ConsultationLanguage[] = ["kn", "en", "hi", "te", "ta", "ml", "mr"];
+
+    it("verifies all 7 languages define direct answer badges and action buttons in CONSULTATION_CHAT_UI_I18N", async () => {
+      const { CONSULTATION_CHAT_UI_I18N } = await import("../features/consultation/consultationTypes");
+      for (const lang of supportedLanguages) {
+        const ui = CONSULTATION_CHAT_UI_I18N[lang];
+        expect(ui).toBeDefined();
+        expect(ui.directAnswerBadge).toBeTruthy();
+        expect(ui.directAnswerTag).toBeTruthy();
+        expect(ui.explanationHeader).toBeTruthy();
+        expect(ui.copyBtn).toBeTruthy();
+        expect(ui.copiedToast).toBeTruthy();
+        expect(ui.clearInputTooltip).toBeTruthy();
+      }
+    });
+
+    it("verifies getLocalizedQuickFaqChips provides lucky gemstone and color/number chips across all languages", async () => {
+      const { getLocalizedQuickFaqChips } = await import("../features/consultation/consultationTypes");
+      for (const lang of supportedLanguages) {
+        const chipsAdult = getLocalizedQuickFaqChips(lang, 30);
+        expect(chipsAdult.length).toBeGreaterThanOrEqual(2);
+        const hasGemstone = chipsAdult.some((c) => c.label.includes("💎"));
+        const hasColor = chipsAdult.some((c) => c.label.includes("🎨"));
+        expect(hasGemstone).toBe(true);
+        expect(hasColor).toBe(true);
+
+        const chipsChild = getLocalizedQuickFaqChips(lang, 8);
+        const hasChildGemstone = chipsChild.some((c) => c.label.includes("💎"));
+        expect(hasChildGemstone).toBe(true);
+      }
+    });
+
+    it("ensures deterministic gemstone & color readings present the direct answer upfront in Paragraph 1", async () => {
+      const session: ConsultationSession = { ...baseSession, language: "kn" };
+      const astroData = await computeDevoteeKundli(session);
+      const rec = computeAstrologicalRecommendations(astroData, "kn");
+
+      const gemReading = buildDeterministicGemstoneReading(
+        session,
+        "What gemstone should I wear?",
+        astroData,
+        rec,
+        true
+      );
+      const gemParas = gemReading.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+      expect(gemParas.length).toBeGreaterThanOrEqual(1);
+      // Paragraph 1 directly names the primary gemstone
+      expect(gemParas[0]).toContain(rec.primaryGemstoneName.kn);
+
+      const colorReading = buildDeterministicColorReading(
+        session,
+        "Which color is lucky?",
+        astroData,
+        rec,
+        true
+      );
+      const colorParas = colorReading.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+      expect(colorParas.length).toBeGreaterThanOrEqual(1);
+      // Paragraph 1 directly contains the lucky colors
+      expect(colorParas[0]).toContain(rec.luckyColors.kn[0]);
     });
   });
 });

@@ -924,7 +924,13 @@ export function analyzeQuestionComplexity(
   const isClarification =
     /ಯಾವ ಬೆರಳಿಗೆ|ಬೆಳ್ಳಿಯೋ ಚಿನ್ನವೋ|ಬೆಳ್ಳಿ|ಚಿನ್ನ|ಯಾವ ಕೈ|ಯಾವ ಸಮಯ|ಹೇಗೆ ಧರಿಸ|which finger|left hand or right|silver or gold|how to wear|when to wear|right hand or left|gold or silver|किस उंगली|सोने में या चांदी में|ఏ వేలికి|వెళ్ళి|ഏത് വിരലിൽ|कोणत्या बोटात/i.test(
       q
-    ) || (!!isSubsequent && wordCount <= 8 && !/ವಿವಾಹ|ಮದುವೆ|ಉದ್ಯೋಗ|ವೃತ್ತಿ|ಸಂತಾನ|ಆರೋಗ್ಯ|ದೋಷ|marriage|career|health|progeny|dosha/i.test(q));
+    ) ||
+    (!!isSubsequent &&
+      wordCount <= 8 &&
+      !detectIsAskingTiming(q) &&
+      !/ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಉದ್ಯೋಗ|ಕೆಲಸ|ವೃತ್ತಿ|ಸಂತಾನ|ಪುತ್ರ|ಆರೋಗ್ಯ|ದೋಷ|marry|married|marriage|wedding|career|job|work|business|health|progeny|santhana|child|dosha|when|timing/i.test(
+        q
+      ));
 
   if (isGemstone) {
     return {
@@ -1021,9 +1027,9 @@ export function analyzeQuestionComplexity(
     };
   }
 
-  // 7. Check for major dosha / deep crisis
+  // 7. Check for major dosha / deep crisis / career distress / progeny
   const isDeepDosha =
-    /ದೋಷ|ಶಾಪ|ಕರ್ಮ|ಅಡೆತಡೆ|ಕಷ್ಟ|ಯಾಕೆ ಹೀಗೆ|ಯಾಕೆ ಹಿನ್ನಡೆ|dosha|curse|delay|obstacle|hurdle|karma|why suffering|stagnant/i.test(
+    /ದೋಷ|ಶಾಪ|ಕರ್ಮ|ಅಡೆತಡೆ|ಕಷ್ಟ|ಯಾಕೆ ಹೀಗೆ|ಯಾಕೆ ಹಿನ್ನಡೆ|ಏಕೆ|ಯಾಕೆ|ಕಿರಿಕಿರಿ|ಹತಾಶೆ|ತೊಂದರೆ|ಸಮಸ್ಯೆ|ನಷ್ಟ|ವಿಳಂಬ|ಸಂತಾನ|ಪುತ್ರ|ಗರ್ಭ|dosha|curse|delay|obstacle|hurdle|karma|why suffering|stagnant|frustration|frustrated|struggle|problem|failure|stuck|progeny|childbirth|conception/i.test(
       q
     );
 
@@ -2420,7 +2426,10 @@ export async function generateConsultationAnswer(params: {
     questionIndex
   } = params;
 
-  const isSubsequent = !!isSubsequentQuestion;
+  const isSubsequent =
+    !!isSubsequentQuestion ||
+    (questionIndex !== undefined && questionIndex > 0) ||
+    (conversationHistory !== undefined && conversationHistory.length > 0);
   const qNum = (questionIndex !== undefined ? questionIndex : 0) + 1;
 
   // 1. Astronomical computations
@@ -2535,8 +2544,8 @@ export async function generateConsultationAnswer(params: {
   // 3) It is either Turn 1 of a dosha inquiry or a direct follow-up on dosha.
   // NEVER attach full dosha chapter to QUICK_SPECIFIC or FOCUSED_MODERATE queries!
   const includeFullDoshaChapter =
-    complexityAnalysis.complexity === "COMPREHENSIVE_DEEP" &&
     activeDosha.hasDosha &&
+    complexityAnalysis.complexity !== "QUICK_SPECIFIC" &&
     (!isSubsequent || asksAboutDoshaDirectly);
 
   const timingInstruction = convIntel.isAskingTiming
@@ -2824,7 +2833,7 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
   const shouldAttachCard =
     (!isSubsequent || asksAboutDoshaDirectly) &&
     activeDosha.hasDosha &&
-    complexityAnalysis.complexity === "COMPREHENSIVE_DEEP";
+    complexityAnalysis.complexity !== "QUICK_SPECIFIC";
 
   return {
     fullText: cleaned,
@@ -3212,7 +3221,10 @@ function generateDeterministicFallbackReading(
   questionIndex?: number,
   conversationHistory?: AskGeminiChatTurn[]
 ): string {
-  const isSubsequent = !!isSubsequentQuestion || (questionIndex !== undefined && questionIndex > 0);
+  const isSubsequent =
+    !!isSubsequentQuestion ||
+    (questionIndex !== undefined && questionIndex > 0) ||
+    (conversationHistory !== undefined && conversationHistory.length > 0);
   const q = question.trim().toLowerCase();
 
   const complexityAnalysis = analyzeQuestionComplexity(
@@ -3307,8 +3319,8 @@ function generateDeterministicFallbackReading(
       q
     );
   const includeFullDosha =
-    complexityAnalysis.complexity === "COMPREHENSIVE_DEEP" &&
     activeDosha.hasDosha &&
+    complexityAnalysis.complexity !== "QUICK_SPECIFIC" &&
     (!isSubsequent || asksAboutDosha);
 
   const isMinorChild = !!astroData?.isMinorChild;
