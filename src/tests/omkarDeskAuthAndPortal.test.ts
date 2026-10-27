@@ -15,7 +15,7 @@ describe("Omkar Hotel Reception Desk Operator Auth & Portal Guard", () => {
 
     expect(result.success).toBe(true);
     expect(result.requiresMfa).toBeFalsy();
-    expect(result.mustForceReset).toBeFalsy();
+    expect(result.requiresPasswordChange).toBeFalsy();
 
     const updated = useAuthStore.getState();
     expect(updated.isAuthenticated).toBe(true);

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import QRCode from "qrcode";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { useAuthStore } from "../features/auth/authStore";
 import { useAppStore } from "../stores/appStore";
 import { calculateKundli } from "../core/KundliEngine";
@@ -9,19 +11,28 @@ import { generatePDFFromElement } from "../utils/pdfGenerator";
 import { prepareBhavishyaV1Data, captureBhavishyaV1Pdf } from "../features/premiumPdf/bhavishyaV1Service";
 import { PdfTemplate } from "../components/RamanBhavishya/PdfTemplate";
 import { JananaKundaliPrintTemplate } from "../components/packageDownload/JananaKundaliPrintTemplate";
+import { GokarnaKundaliTemplate } from "../components/template/GokarnaKundaliTemplate";
+import { DashaPdfTemplate } from "../components/kundli/DashaPdfTemplate";
+import { exportPanchangaWithDashaPdf } from "../core/ExportUtils";
+import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { KundliRemedyPdfTemplate } from "../components/kundli/KundliRemedyPdfTemplate";
 import { generateKundliRemedyReport, type KundliRemedyDiagnosis } from "../features/remedies/kundliRemedyEngine";
 import {
   generateCompactGoogleCalendarUrlForQR,
   calculateDeterministicRhythmDay,
   downloadIcsFile,
-  generateSevaICalendarString
+  generateSevaICalendarString,
+  getSafeProductionOrigin
 } from "../features/seva/icsCalendarGenerator";
 import { createConsultationSession, encodeSecureConsultationToken } from "../features/consultation/consultationDbService";
 import { resolvePlaceOrPincode } from "../services/locationApi";
 import { transliterateName } from "../utils/transliterator";
 import { sendEmailNotification } from "../features/notifications/notificationService";
 import { type PackageLang } from "../components/packageDownload/packageDownloadLocale";
+import { encodeDevoteeToken } from "../utils/tokenCipher";
+import { registerCalendarAtGeneration } from "../features/seva/calendarVisitService";
+import { PriestQrCard1PageTemplate } from "../components/seva/pdf/PriestQrCard1PageTemplate";
+import { nakshatraName } from "../features/seva/sevaPresentation";
 
 const PRIEST_DEFAULT_NAME = "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
 const PRIEST_DEFAULT_PHONE = "9972339362";
@@ -30,6 +41,7 @@ const NOTIFICATION_TARGET_EMAIL = "spshreepandit@gmail.com";
 export default function OmkarDeskPortalPage(): JSX.Element {
   const { isAuthenticated, currentUser, login, logout } = useAuthStore();
   const setAppPage = useAppStore((s) => s.setPage);
+  const geminiApiKey = useAppStore((s) => s.geminiApiKey);
 
   // Authentication state for standalone desk operator
   const isOmkarUser = isAuthenticated && currentUser?.toLowerCase() === "omkar";
@@ -66,6 +78,8 @@ export default function OmkarDeskPortalPage(): JSX.Element {
   // Poster 2 Calendar State
   const [calendarQrDataUrl, setCalendarQrDataUrl] = useState<string>("");
   const [calendarGoogleUrl, setCalendarGoogleUrl] = useState<string>("");
+  const [calendarDirectDailyUrl, setCalendarDirectDailyUrl] = useState<string>("");
+  const [isDownloadingPriestCard, setIsDownloadingPriestCard] = useState(false);
 
   // Poster 3 Live Consultation Link State
   const [isGeneratingLiveLink, setIsGeneratingLiveLink] = useState(false);
@@ -73,9 +87,12 @@ export default function OmkarDeskPortalPage(): JSX.Element {
   const [liveSessionQrUrl, setLiveSessionQrUrl] = useState<string>("");
   const [copiedLinkToast, setCopiedLinkToast] = useState(false);
 
-  // Bhavishya V1 DOM container ref
+  // DOM container refs
   const [bhavishyaV1Payload, setBhavishyaV1Payload] = useState<any>(null);
   const bhavishyaV1Ref = useRef<HTMLDivElement>(null);
+  const traditionalExportRef = useRef<HTMLDivElement>(null);
+  const dashaExportRef = useRef<HTMLDivElement>(null);
+  const priestCardRef = useRef<HTMLDivElement>(null);
 
   // Live Transliterated Devotee Name into Target Script
   const transliteratedDevoteeName = useMemo(() => {
@@ -83,11 +100,19 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     return transliterateName(devoteeName.trim(), selectedLang);
   }, [devoteeName, selectedLang]);
 
+  // Guaranteed Effective Name in Selected Language
+  const effectiveDevoteeName = useMemo(() => {
+    if (transliteratedDevoteeName && transliteratedDevoteeName.trim()) {
+      return transliteratedDevoteeName.trim();
+    }
+    return (devoteeName || "Devotee").trim();
+  }, [transliteratedDevoteeName, devoteeName]);
+
   // Compute Kundli output
   const kundliResult: KundliOutput = useMemo(() => {
     try {
       const input: KundliInput = {
-        name: transliteratedDevoteeName || devoteeName,
+        name: effectiveDevoteeName,
         birthDate,
         birthTime,
         latitude,
@@ -109,19 +134,84 @@ export default function OmkarDeskPortalPage(): JSX.Element {
         { ayanamsaModel: "lahiri" }
       );
     }
-  }, [transliteratedDevoteeName, devoteeName, birthDate, birthTime, latitude, longitude, gender]);
+  }, [effectiveDevoteeName, birthDate, birthTime, latitude, longitude, gender]);
+
+  // Compute Traditional Baggona Panchanga math for Page 1 of Kundli
+  const birthDateObj = useMemo(() => {
+    if (!birthDate) return new Date();
+    const parts = birthDate.split("-").map(Number);
+    return new Date(parts[0] || 1995, ((parts[1] || 5) - 1), parts[2] || 15);
+  }, [birthDate]);
+
+  const traditionalData = useMemo(() => {
+    if (!birthDate || !birthTime) return null;
+    return calculateTraditionalBaggona(
+      birthDate,
+      birthTime,
+      latitude,
+      longitude,
+      "lahiri",
+      resolvedPincode
+    );
+  }, [birthDate, birthTime, latitude, longitude, resolvedPincode]);
+
+  const isDayBirthComputed = useMemo(() => {
+    if (!birthTime) return true;
+    const parts = birthTime.split(":").map(Number);
+    const birthMins = (parts[0] || 0) * 60 + (parts[1] || 0);
+
+    let sunriseMins = 6 * 60;
+    let sunsetMins = 18 * 60;
+
+    if (traditionalData?.sunrise && traditionalData.sunrise.includes(":")) {
+      const sp = traditionalData.sunrise.split(":");
+      const sh = parseInt(sp[0] || "6", 10);
+      const sm = parseInt(sp[1] || "0", 10);
+      if (!isNaN(sh) && !isNaN(sm)) sunriseMins = sh * 60 + sm;
+    }
+    if (traditionalData?.sunset && traditionalData.sunset.includes(":")) {
+      const sp = traditionalData.sunset.split(":");
+      const sh = parseInt(sp[0] || "18", 10);
+      const sm = parseInt(sp[1] || "0", 10);
+      if (!isNaN(sh) && !isNaN(sm)) sunsetMins = sh * 60 + sm;
+    }
+
+    return birthMins >= sunriseMins && birthMins < sunsetMins;
+  }, [birthTime, traditionalData?.sunrise, traditionalData?.sunset]);
+
+  const kundliSession = useMemo(() => {
+    return {
+      result: kundliResult,
+      input: {
+        name: effectiveDevoteeName,
+        birthDate,
+        birthTime,
+        latitude,
+        longitude,
+        gender: gender === "female" ? "Female" : "Male",
+        maritalStatus: "married",
+        childrenStatus: "has_children"
+      },
+      birthDateYmd: birthDate,
+      birthTimeHm: birthTime,
+      homePlaceName: resolvedPlaceName,
+      placeLabel: resolvedPlaceName,
+      dasha: [],
+      dailyPrediction: ""
+    };
+  }, [kundliResult, effectiveDevoteeName, birthDate, birthTime, latitude, longitude, gender, resolvedPlaceName]);
 
   // Compute Remedy Diagnosis for Kundli
   const remedyDiagnosis: KundliRemedyDiagnosis = useMemo(() => {
     return generateKundliRemedyReport(kundliResult, {
-      name: transliteratedDevoteeName || devoteeName,
+      name: effectiveDevoteeName,
       birthDate,
       birthTime,
       latitude,
       longitude,
       gender: gender === "female" ? "Female" : "Male"
     });
-  }, [kundliResult, transliteratedDevoteeName, devoteeName, birthDate, birthTime, latitude, longitude, gender]);
+  }, [kundliResult, effectiveDevoteeName, birthDate, birthTime, latitude, longitude, gender]);
 
   // Geocode location resolver
   const handleResolveLocation = async (queryText?: string) => {
@@ -154,7 +244,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     return () => clearTimeout(timer);
   }, [locationInput]);
 
-  // Generate Google Calendar URL & QR code for 30 Days
+  // Generate Google Calendar URL & QR code for 30 Days (matching Seva & Prasada PriestQrGeneratorTab)
   useEffect(() => {
     let isCancelled = false;
     async function prepare30DayCalendar() {
@@ -162,8 +252,44 @@ export default function OmkarDeskPortalPage(): JSX.Element {
         const moonPlanet = kundliResult.planets.find((p) => p.name === PlanetName.Moon);
         const nakIdx = moonPlanet?.nakshatra?.index ?? 18;
         const rashiIdx = kundliResult.moonSign?.index ?? moonPlanet?.rashi?.index ?? 8;
-        const startDateStr = new Date().toISOString().slice(0, 10);
+        const origin = getSafeProductionOrigin();
 
+        // 1. Encode 30-day token with native name in selected language
+        const token = encodeDevoteeToken({
+          n: effectiveDevoteeName,
+          nk: nakIdx,
+          r: rashiIdx,
+          g: gotra || "Kashyapa",
+          p: PRIEST_DEFAULT_NAME,
+          d: new Date().toISOString().slice(0, 10),
+          days: 30,
+          l: selectedLang,
+          dob: birthDate,
+          tob: birthTime,
+          phone: PRIEST_DEFAULT_PHONE,
+          overrideCalendarPhone: true
+        });
+
+        // 2. Register calendar visit
+        void registerCalendarAtGeneration({
+          userName: effectiveDevoteeName,
+          token,
+          startDate: new Date().toISOString().slice(0, 10),
+          durationDays: 30,
+          priestName: PRIEST_DEFAULT_NAME,
+          priestPhone: PRIEST_DEFAULT_PHONE,
+          nakshatraIndex: nakIdx,
+          rashiIndex: rashiIdx,
+          gotra: gotra || "Kashyapa",
+          dob: birthDate,
+          tob: birthTime,
+          source: "priest_qr"
+        });
+
+        // 3. Official Baggona Daily Darshana URL
+        const payloadDailyUrl = `${origin}/daily?token=${token}&action=ics&lang=${selectedLang}`;
+
+        // 4. Compact Google Calendar Direct Sync URL
         const rhythmDays = Array.from({ length: 30 }, (_, i) => {
           const d = new Date();
           d.setDate(d.getDate() + i);
@@ -171,13 +297,13 @@ export default function OmkarDeskPortalPage(): JSX.Element {
           return calculateDeterministicRhythmDay(ymd, nakIdx, rashiIdx, selectedLang);
         });
 
-        const calUrl = generateCompactGoogleCalendarUrlForQR({
+        const calGoogleUrl = generateCompactGoogleCalendarUrlForQR({
           days: rhythmDays,
           lang: selectedLang,
           panditName: PRIEST_DEFAULT_NAME,
           priestPhone: PRIEST_DEFAULT_PHONE,
           notificationTime: "06:30",
-          personName: transliteratedDevoteeName || devoteeName,
+          personName: effectiveDevoteeName,
           pincode: resolvedPincode,
           lat: latitude,
           lng: longitude,
@@ -189,11 +315,15 @@ export default function OmkarDeskPortalPage(): JSX.Element {
         });
 
         if (!isCancelled) {
-          setCalendarGoogleUrl(calUrl);
-          const qrData = await QRCode.toDataURL(calUrl, {
-            width: 280,
+          setCalendarDirectDailyUrl(payloadDailyUrl);
+          setCalendarGoogleUrl(calGoogleUrl);
+
+          // Generate high-contrast, scannable QR code of the Daily Darshana URL
+          const qrData = await QRCode.toDataURL(payloadDailyUrl, {
+            errorCorrectionLevel: "M",
+            width: 320,
             margin: 2,
-            color: { dark: "#064e3b", light: "#ffffff" }
+            color: { dark: "#78350f", light: "#fffdfa" }
           });
           if (!isCancelled) setCalendarQrDataUrl(qrData);
         }
@@ -209,7 +339,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     return () => {
       isCancelled = true;
     };
-  }, [currentStep, kundliResult, selectedLang, transliteratedDevoteeName, devoteeName, whatsappNumber, latitude, longitude]);
+  }, [currentStep, kundliResult, selectedLang, effectiveDevoteeName, birthDate, birthTime, gotra, resolvedPincode, resolvedPlaceName, latitude, longitude]);
 
   // Send Notification Email to spshreepandit@gmail.com
   const dispatchOrderNotification = async (offeringTitle: string, priceAmount: number, extraNotes?: string) => {
@@ -333,14 +463,31 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Action: Download Janana Kundli PDF
+  // Action: Download Baggona Janana Kundali & Dasha PDF (Official 2-Page Document)
   const handleDownloadJananaKundli = async () => {
     try {
       setIsDownloadingKundli(true);
-      const safeName = (transliteratedDevoteeName || devoteeName).replace(/[^\p{L}\p{N}]+/gu, "_");
-      const fileName = `${safeName}_Janana_Kundali_${selectedLang}.pdf`;
-      await generatePDFFromElement("omkar-kundli-container", fileName, true);
-      void dispatchOrderNotification("Poster 1: Janana Kundli PDF", includeRemedy ? 410 : 320, "Janana Kundli PDF Downloaded");
+      const safeName = effectiveDevoteeName.replace(/[^\p{L}\p{N}]+/gu, "_") || "Devotee";
+      const langNames: Record<string, string> = { kn: "Kannada", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
+      const langName = langNames[selectedLang] || "Kannada";
+      const baseFileName = `Baggona_Janana_Kundali_Dasha_${langName}_${safeName}`;
+
+      const traditionalEl = traditionalExportRef.current;
+      const dashaEl = dashaExportRef.current;
+
+      if (traditionalEl && dashaEl) {
+        await exportPanchangaWithDashaPdf(traditionalEl, dashaEl, baseFileName, true);
+      } else if (traditionalEl) {
+        await generatePDFFromElement("omkar-traditional-container", `${baseFileName}.pdf`, true);
+      } else {
+        await generatePDFFromElement("omkar-kundli-container", `${baseFileName}.pdf`, true);
+      }
+
+      void dispatchOrderNotification(
+        "Poster 1: Baggona Janana Kundali & Dasha PDF",
+        includeRemedy ? 410 : 320,
+        `Kundli & Dasha PDF (${langName}) Downloaded for ${effectiveDevoteeName}`
+      );
     } catch (err: any) {
       alert("Kundli download error: " + (err?.message || "Error"));
     } finally {
@@ -348,17 +495,19 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     }
   };
 
-  // Action: Download Bhavishya V1 PDF
+  // Action: Download Bhavishya V1 PDF (Official Baggona Divya Bhavishya V1)
   const handleDownloadBhavishyaV1 = async () => {
     try {
       setIsDownloadingBhavishyaV1(true);
-      const safeName = (transliteratedDevoteeName || devoteeName).replace(/[^\p{L}\p{N}]+/gu, "_");
-      const fileName = `${safeName}_Bhavishya_V1_${selectedLang}.pdf`;
+      const safeName = effectiveDevoteeName.replace(/[^\p{L}\p{N}]+/gu, "_") || "Devotee";
+      const langNames: Record<string, string> = { kn: "Kannada", ta: "Tamil", te: "Telugu", hi: "Hindi", en: "English" };
+      const langName = langNames[selectedLang] || "English";
+      const fileName = `Baggona_Panchanga_Prediction_V1_${langName}_${safeName}.pdf`;
 
       const sessionObj = {
         result: kundliResult,
         input: {
-          name: transliteratedDevoteeName || devoteeName,
+          name: effectiveDevoteeName,
           birthDate,
           birthTime,
           latitude,
@@ -378,12 +527,12 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       const payload = await prepareBhavishyaV1Data(
         sessionObj as any,
         selectedLang,
-        "",
+        geminiApiKey,
         { maritalStatus: "married", childrenStatus: "has_children" },
         () => {}
       );
       setBhavishyaV1Payload(payload);
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 800));
 
       if (bhavishyaV1Ref.current) {
         await captureBhavishyaV1Pdf(bhavishyaV1Ref.current, fileName, true, {
@@ -395,7 +544,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       void dispatchOrderNotification(
         includeRemedy ? "Poster 1: Premium Bhavishya V1 + Remedy" : "Poster 1: Premium Bhavishya V1 PDF",
         includeRemedy ? 410 : 320,
-        "Premium Life Forecast PDF Generated"
+        `Bhavishya V1 PDF (${langName}) Generated for ${effectiveDevoteeName}`
       );
     } catch (err: any) {
       alert("Bhavishya V1 download error: " + (err?.message || "Error"));
@@ -408,10 +557,10 @@ export default function OmkarDeskPortalPage(): JSX.Element {
   const handleDownloadRemedyPdf = async () => {
     try {
       setIsDownloadingRemedy(true);
-      const safeName = (transliteratedDevoteeName || devoteeName).replace(/[^\p{L}\p{N}]+/gu, "_");
+      const safeName = effectiveDevoteeName.replace(/[^\p{L}\p{N}]+/gu, "_") || "Devotee";
       const fileName = `${safeName}_Remedial_Upaya_${selectedLang}.pdf`;
       await generatePDFFromElement("omkar-remedy-container", fileName, true);
-      void dispatchOrderNotification("Poster 1: Remedial Upaya PDF", 410, "Remedy Report Downloaded");
+      void dispatchOrderNotification("Poster 1: Remedial Upaya PDF", 410, `Remedy Report Downloaded for ${effectiveDevoteeName}`);
     } catch (err: any) {
       alert("Remedy download error: " + (err?.message || "Error"));
     } finally {
@@ -428,7 +577,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       const startDateStr = new Date().toISOString().slice(0, 10);
 
       const icsString = generateSevaICalendarString({
-        personName: transliteratedDevoteeName || devoteeName,
+        personName: effectiveDevoteeName,
         priestName: PRIEST_DEFAULT_NAME,
         priestPhone: PRIEST_DEFAULT_PHONE,
         days: Array.from({ length: 30 }, (_, i) => {
@@ -449,11 +598,53 @@ export default function OmkarDeskPortalPage(): JSX.Element {
         gotra: gotra || "Kashyapa"
       });
 
-      const safeName = (transliteratedDevoteeName || devoteeName).replace(/[^\p{L}\p{N}]+/gu, "_");
+      const safeName = effectiveDevoteeName.replace(/[^\p{L}\p{N}]+/gu, "_") || "Devotee";
       downloadIcsFile(`${safeName}_30Day_Panchanga_Calendar.ics`, icsString);
-      void dispatchOrderNotification("Poster 2: 30-Day Calendar .ICS File", 280, "30-Day Calendar Downloaded");
+      void dispatchOrderNotification("Poster 2: 30-Day Calendar .ICS File", 280, `30-Day Calendar Downloaded for ${effectiveDevoteeName}`);
     } catch (err: any) {
       alert("ICS download error: " + (err?.message || "Error"));
+    }
+  };
+
+  // Action: Download Priest Ashirvada QR Card (1-Page A4 PDF from Seva & Prasada)
+  const handleDownloadPriestCardPdf = async () => {
+    const container = document.getElementById("priest-qr-card-1page-container");
+    if (!container) {
+      alert("Priest QR Card container not found");
+      return;
+    }
+    setIsDownloadingPriestCard(true);
+    try {
+      const canvas = await html2canvas(container, {
+        scale: 1.8,
+        useCORS: true,
+        backgroundColor: "#FFFDF7",
+        logging: false
+      });
+      const imgData = canvas.toDataURL("image/jpeg", 0.88);
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true
+      });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
+
+      const safeName = effectiveDevoteeName.replace(/[^\p{L}\p{N}]+/gu, "_") || "Devotee";
+      pdf.save(`Baggona_Priest_QR_Card_${safeName}_30Days_${selectedLang.toUpperCase()}.pdf`);
+
+      void dispatchOrderNotification(
+        "Poster 2: Priest Ashirvada QR Card (1-Page A4 PDF)",
+        280,
+        `Priest QR Card A4 PDF Downloaded for ${effectiveDevoteeName}`
+      );
+    } catch (err: any) {
+      console.error("PDF generation error:", err);
+      alert("Error generating 1-page A4 PDF card.");
+    } finally {
+      setIsDownloadingPriestCard(false);
     }
   };
 
@@ -462,7 +653,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     setIsGeneratingLiveLink(true);
     try {
       const session = await createConsultationSession({
-        name: transliteratedDevoteeName || devoteeName,
+        name: effectiveDevoteeName,
         dob: birthDate,
         tob: birthTime,
         place: resolvedPlaceName,
@@ -484,7 +675,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       });
       setLiveSessionQrUrl(qr);
 
-      void dispatchOrderNotification("Poster 3: 20-Min Live Priest Session Link", 450, `Live URL: ${fullUrl}`);
+      void dispatchOrderNotification("Poster 3: 20-Min Live Priest Session Link", 450, `Live URL: ${fullUrl} for ${effectiveDevoteeName}`);
     } catch (err: any) {
       alert("Error generating live consultation link: " + (err?.message || "Error"));
     } finally {
@@ -497,9 +688,9 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     const cleanPhone = whatsappNumber.replace(/\D/g, "");
     const msg =
       `*॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಜನನ ಕುಂಡಲಿ & ಭವಿಷ್ಯ ವರದಿ ॥*\n\n` +
-      `ನಮಸ್ಕಾರ ${transliteratedDevoteeName || devoteeName},\n` +
+      `ನಮಸ್ಕಾರ ${effectiveDevoteeName},\n` +
       `ನಿಮ್ಮ ೧೪೦ ವರ್ಷಗಳ ಪರಂಪರೆಯ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜಾತಕ ಫಲ ಸಿದ್ಧವಾಗಿದೆ.\n` +
-      `• ಗ್ರಾಹಕರು: *${transliteratedDevoteeName || devoteeName}*\n` +
+      `• ಗ್ರಾಹಕರು: *${effectiveDevoteeName}*\n` +
       `• ಜನ್ಮ ದಿನಾಂಕ: *${birthDate} ${birthTime}*\n` +
       `• ಸ್ಥಳ: *${resolvedPlaceName}*\n` +
       `• ಸೇವೆ: *${includeRemedy ? "ಜನನ ಕುಂಡಲಿ + ಭವಿಷ್ಯ + ಪರಿಹಾರ ವರದಿ (₹410)" : "ಪ್ರೀಮಿಯಂ ಜನನ ಕುಂಡಲಿ & ಭವಿಷ್ಯ V1 (₹320)"}*\n\n` +
@@ -511,9 +702,9 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     const cleanPhone = whatsappNumber.replace(/\D/g, "");
     const msg =
       `*॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ೩೦ ದಿನಗಳ ಕ್ಯಾಲೆಂಡರ್ ॥*\n\n` +
-      `ನಮಸ್ಕಾರ ${transliteratedDevoteeName || devoteeName},\n` +
-      `ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರಕ್ಕೆ ವಿಶೇಷವಾಗಿ ತಯಾರಿಸಿದ ೩೦ ದಿನಗಳ ಡಿಜಿಟಲ್ ಕ್ಯಾಲೆಂಡರ್ ಲಿಂಕ್:\n` +
-      `${calendarGoogleUrl || "https://baggona-astrology.web.app"}\n\n` +
+      `ನಮಸ್ಕಾರ ${effectiveDevoteeName},\n` +
+      `ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರಕ್ಕೆ ವಿಶೇಷವಾಗಿ ತಯಾರಿಸಿದ ೩೦ ದಿನಗಳ ಡಿಜಿಟಲ್ ದರ್ಶನ & ಕ್ಯಾಲೆಂಡರ್ ಲಿಂಕ್:\n` +
+      `${calendarDirectDailyUrl || calendarGoogleUrl || "https://baggona-astrology.web.app"}\n\n` +
       `• ಹಸಿರು: ಶುಭ ಶಕ್ತಿ & ಖರೀದಿ | ಹಳದಿ: ಸಮತೋಲನ | ಕೆಂಪು: ಜಾಗರೂಕತೆ\n` +
       `— ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362)`;
     window.open(`https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`, "_blank");
@@ -523,7 +714,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     const cleanPhone = whatsappNumber.replace(/\D/g, "");
     const msg =
       `*॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ೨೦ ನಿಮಿಷಗಳ ಲೈವ್ ದೈವಜ್ಞ ಸಮಾಲೋಚನೆ ॥*\n\n` +
-      `ನಮಸ್ಕಾರ ${transliteratedDevoteeName || devoteeName},\n` +
+      `ನಮಸ್ಕಾರ ${effectiveDevoteeName},\n` +
       `ನಿಮ್ಮ ಖಾಸಗಿ ೨೦ ನಿಮಿಷಗಳ ಲೈವ್ ಸಮಾಲೋಚನಾ ಲಿಂಕ್ ಸಿದ್ಧವಾಗಿದೆ:\n` +
       `${liveSessionUrl}\n\n` +
       `• ಈ ಲಿಂಕ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಧ್ವನಿ (Audio) ಬಟನ್ ಒತ್ತಿ ಮುಕ್ತವಾಗಿ ಯಾವುದೇ ಪ್ರಶ್ನೆ ಕೇಳಿ.\n` +
@@ -1027,13 +1218,13 @@ export default function OmkarDeskPortalPage(): JSX.Element {
                       </div>
                     )}
                     <span className="text-[10px] font-black text-slate-800 mt-1 uppercase">
-                      Scan for Google Calendar
+                      Scan for Daily Darshana & Sync
                     </span>
                   </div>
                 </div>
 
                 {/* Calendar Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-800">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800">
                   <a
                     href={calendarGoogleUrl}
                     target="_blank"
@@ -1049,6 +1240,15 @@ export default function OmkarDeskPortalPage(): JSX.Element {
                     className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 font-bold text-xs rounded-xl shadow transition text-center cursor-pointer"
                   >
                     📥 .ICS ಫೈಲ್ ಡೌನ್‌ಲೋಡ್
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleDownloadPriestCardPdf}
+                    disabled={isDownloadingPriestCard || !calendarQrDataUrl}
+                    className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow transition text-center cursor-pointer disabled:opacity-50"
+                  >
+                    📄 {isDownloadingPriestCard ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "ಅರ್ಚಕರ QR ಕಾರ್ಡ್ (A4)"}
                   </button>
 
                   <button
@@ -1154,12 +1354,42 @@ export default function OmkarDeskPortalPage(): JSX.Element {
 
       {/* OFF-SCREEN HIDDEN TEMPLATES FOR CLEAN PDF GENERATION */}
       <div style={{ position: "fixed", left: "-99999px", top: 0, opacity: 0, pointerEvents: "none", zIndex: -1 }}>
-        {/* Janana Kundali Container */}
+        {/* Authentic Baggona Panchanga Janana Kundali (Page 1) */}
+        <div
+          id="omkar-traditional-container"
+          ref={traditionalExportRef}
+          style={{ width: "900px", height: "1273px", minHeight: "1273px", maxHeight: "1273px", backgroundColor: "#ffffff", overflow: "hidden" }}
+        >
+          <GokarnaKundaliTemplate
+            kundli={kundliResult}
+            personName={effectiveDevoteeName}
+            parentsName=""
+            birthDateObj={birthDateObj}
+            birthTimeStr={birthTime}
+            isDayBirth={isDayBirthComputed}
+            panchanga={traditionalData}
+            gothra={gotra}
+            pdfLanguage={selectedLang}
+          />
+        </div>
+
+        {/* Authentic Baggona Panchanga Dasha Kundali (Page 2) */}
+        <div ref={dashaExportRef} style={{ width: "900px", background: "#ffffff" }}>
+          {kundliSession && (
+            <DashaPdfTemplate
+              session={kundliSession as any}
+              maxAge={120}
+              pdfLanguage={selectedLang}
+            />
+          )}
+        </div>
+
+        {/* Legacy Omkar Kundli Fallback */}
         <div id="omkar-kundli-container" style={{ width: "794px", minHeight: "1123px", background: "#ffffff" }}>
           <JananaKundaliPrintTemplate
             id="omkar-janana-kundali-template"
             kundli={kundliResult}
-            devoteeName={transliteratedDevoteeName || devoteeName}
+            devoteeName={effectiveDevoteeName}
             gender={gender}
             birthDate={birthDate}
             birthTime={birthTime}
@@ -1187,7 +1417,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
               session={{
                 result: kundliResult,
                 input: {
-                  name: transliteratedDevoteeName || devoteeName,
+                  name: effectiveDevoteeName,
                   birthDate,
                   birthTime,
                   latitude,
@@ -1211,6 +1441,24 @@ export default function OmkarDeskPortalPage(): JSX.Element {
             />
           )}
         </div>
+
+        {/* 1-Page A4 Priest QR Card Template */}
+        {calendarQrDataUrl && (
+          <div style={{ width: "794px", height: "1123px", background: "#FFFDF7" }}>
+            <PriestQrCard1PageTemplate
+              personName={effectiveDevoteeName}
+              rashiName={kundliResult.moonSign?.sanskrit ? `${kundliResult.moonSign.sanskrit} (${kundliResult.moonSign.english})` : "ವೃಶ್ಚಿಕ (Scorpio)"}
+              nakshatraName={kundliResult.planets.find((p) => p.name === PlanetName.Moon)?.nakshatra?.sanskrit ? `${kundliResult.planets.find((p) => p.name === PlanetName.Moon)?.nakshatra.sanskrit} (${kundliResult.planets.find((p) => p.name === PlanetName.Moon)?.nakshatra.english})` : "ಅನುರಾಧ (Anuradha)"}
+              gotra={gotra || "ಶ್ರೀವತ್ಸ (Shrivatsa)"}
+              priestName={PRIEST_DEFAULT_NAME}
+              priestPhone={PRIEST_DEFAULT_PHONE}
+              priestTitle="ವೇದಮೂರ್ತಿ"
+              durationDays={30}
+              qrDataUrl={calendarQrDataUrl}
+              lang={selectedLang}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
