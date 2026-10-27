@@ -54,6 +54,7 @@ import ConsultationChatPage from "./features/consultation/ConsultationChatPage";
 import ConsultationGeneratorPage from "./features/consultation/ConsultationGeneratorPage";
 import { SandhyavandanaPage } from "./features/sandhyavandana/SandhyavandanaPage";
 import { KarmaMandalaPage } from "./features/karmaSanjeevini/KarmaMandalaPage";
+import OmkarDeskPortalPage from "./pages/OmkarDeskPortalPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -329,6 +330,24 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#package-download")
   );
 
+  const isOmkarDeskRoute = typeof window !== "undefined" && (
+    window.location.pathname === "/omkar" ||
+    window.location.pathname.startsWith("/omkar/") ||
+    window.location.pathname === "/desk" ||
+    window.location.pathname.startsWith("/desk/") ||
+    window.location.pathname === "/hotel-desk" ||
+    window.location.pathname.startsWith("/hotel-desk/") ||
+    window.location.pathname === "/operator" ||
+    window.location.pathname.startsWith("/operator/") ||
+    window.location.search.includes("portal=omkar") ||
+    window.location.search.includes("portal=desk") ||
+    window.location.search.includes("page=omkar") ||
+    window.location.search.includes("page=desk") ||
+    window.location.hash.includes("#/omkar") ||
+    window.location.hash.includes("#omkar") ||
+    window.location.hash.includes("#/desk")
+  );
+
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -435,7 +454,8 @@ export default function App(): JSX.Element {
             isAstrologyQARoute ||
             isPriestPortalRoute ||
             isGuidedPoojaRoute ||
-            isPackageDownloadRoute
+            isPackageDownloadRoute ||
+            isOmkarDeskRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
             setConsentResolved(true);
@@ -453,7 +473,15 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute]);
+
+  if (isOmkarDeskRoute || currentUser?.toLowerCase() === "omkar") {
+    return (
+      <ErrorBoundary>
+        <OmkarDeskPortalPage />
+      </ErrorBoundary>
+    );
+  }
 
   if (isConsultationRoute) {
     return (
@@ -678,6 +706,7 @@ export default function App(): JSX.Element {
         {currentPage === "consultation_generator" && (
           isMasterOrSuperAdmin ? <ConsultationGeneratorPage /> : <LoginPage />
         )}
+        {currentPage === "omkar_desk" && <OmkarDeskPortalPage />}
       </Layout>
     </ErrorBoundary>
   );

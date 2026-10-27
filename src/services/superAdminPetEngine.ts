@@ -775,6 +775,32 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       kn: "ಭಕ್ತರ ಜನ್ಮ ವಿವರಗಳು ಮತ್ತು ಪಿನ್‌ಕೋಡ್ ನಮೂದಿಸಿ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೌನ್ಸಿಲಿಂಗ್ ಲಿಂಕ್ ಮತ್ತು ಕ್ಯೂಆರ್ ಕೋಡ್ ರಚಿಸಿ.",
       en: "Generate secure 20-minute live astrology consultation links with QR code for devotees with full birth Kundli and timing controls."
     }
+  },
+  omkar_desk: {
+    name: {
+      kn: "ಓಂಕಾರ್ ಕೌಂಟರ್ ಡೆಸ್ಕ್ (Omkar Desk)",
+      en: "Omkar Counter Desk Portal",
+      hi: "ओमकार काउंटर डेस्क पोर्टल",
+      te: "ఓంకార్ కౌంటర్ డెస్క్ పోర్టల్",
+      ta: "ஓம்கார் கவுண்டர் டெஸ்க் போர்டல்"
+    },
+    category: "admin",
+    icon: "🏨",
+    keywords: [
+      "omkar",
+      "desk",
+      "hotel desk",
+      "reception",
+      "counter portal",
+      "fast devotee entry",
+      "ಓಂಕಾರ್",
+      "ಕೌಂಟರ್",
+      "ಡೆಸ್ಕ್"
+    ],
+    description: {
+      kn: "ಹೋಟೆಲ್/ಕೌಂಟರ್ ಆಪರೇಟರ್ ಓಂಕಾರ್‌ಗಾಗಿ ಮೀಸಲಾದ ಭಕ್ತರ ವಿವರ ದಾಖಲಾತಿ ಹಾಗೂ ಪಿಡಿಎಫ್, ಕ್ಯಾಲೆಂಡರ್, ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ವಿತರಣಾ ಪೋರ್ಟಲ್.",
+      en: "Dedicated front desk reception counter portal for hotel operator Omkar to register devotees and dispatch Kundli PDFs, 30-day rhythm calendar, and 20-min live session links."
+    }
   }
 };
 

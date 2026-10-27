@@ -166,6 +166,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           createdAt: new Date().toISOString()
         });
       }
+
+      // 3. Seed Operator Account: omkar (Hotel Reception / Desk Operator)
+      const omkarUsername = "omkar";
+      const omkarPasswordRaw = "Omkar@Baggona2026";
+      const existingOmkar = await db.users.where("username").equals(omkarUsername).first();
+
+      if (!existingOmkar) {
+        const hashedOmkarPassword = await hashPassword(omkarPasswordRaw);
+        await db.users.put({
+          id: "operator_omkar",
+          username: omkarUsername,
+          passwordHash: hashedOmkarPassword,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      void syncUserProfile({
+        id: "operator_omkar",
+        username: omkarUsername,
+        name: "Omkar (Hotel Desk Operator)",
+        role: "priest",
+        phone: "9972339362",
+        email: HARDCODED_MFA_EMAIL,
+        createdAt: new Date().toISOString()
+      });
     } catch (err) {
       console.error("Error seeding default auth users:", err);
     }
@@ -324,8 +349,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const defaultHashLower = await hashPassword("baggona123");
       const defaultHashUpper = await hashPassword("Baggona123");
 
+      const isOmkar = cleanUsername === "omkar";
+      const isOmkarValid =
+        isOmkar &&
+        (password === "Omkar@Baggona2026" ||
+          password === "omkar123" ||
+          password === "omkar@123" ||
+          password === "Omkar123" ||
+          inputHash === user.passwordHash);
+
       const isPasswordValid =
         inputHash === user.passwordHash ||
+        isOmkarValid ||
         (isDefaultInitialPassword && (
           user.passwordHash === defaultHashLower ||
           user.passwordHash === defaultHashUpper ||
@@ -342,8 +377,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: "ಪಾಸ್‌ವರ್ಡ್ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ (Invalid password)" };
       }
 
-      // Sync active hash if needed for SuperAdmin
-      if (isSuperAdmin && inputHash !== user.passwordHash) {
+      // Sync active hash if needed for SuperAdmin or Omkar
+      if ((isSuperAdmin || isOmkar) && inputHash !== user.passwordHash) {
         await db.users.update(user.id!, { passwordHash: inputHash, updatedAt: new Date().toISOString() });
       }
 
@@ -360,6 +395,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const mustForceReset =
         userRole === "priest" &&
         user.username.toLowerCase() !== "baggona" && // preserve test default priest
+        user.username.toLowerCase() !== "omkar" && // preserve omkar desk operator
         (!isSetupDone || isDefaultInitialPassword || remoteProfile?.mustResetPassword === true);
 
       if (mustForceReset) {
@@ -373,8 +409,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: true, requiresPasswordChange: true };
       }
 
-      // 4. EXPLICIT SKIP-MFA LOGIN (for testing / programmatic bypass)
-      if (options?.skipMfa) {
+      // 4. EXPLICIT SKIP-MFA LOGIN (for testing, programmatic bypass, or desk operator omkar)
+      if (options?.skipMfa || isOmkar) {
         await db.users.update(user.id!, { lastLoginAt: new Date().toISOString() });
         const sessionToken = `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         localStorage.setItem(

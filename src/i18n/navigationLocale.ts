@@ -253,6 +253,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "జాతక & పరిహార సంపుటం డౌన్‌లోడ్",
     ta: "ஜாதக & பரிகார தொகுப்பு பதிவிறக்கம்"
   },
+  omkar_desk: {
+    kn: "ಹೋಟೆಲ್ ಕೌಂಟರ್ ಡೆಸ್ಕ್ (Omkar)",
+    en: "Hotel Reception Desk (Omkar)",
+    hi: "होटल रिसेप्शन डेस्क (Omkar)",
+    te: "హోటల్ కౌంటర్ డెస్క్ (Omkar)",
+    ta: "ஹோட்டல் கவுண்டர் டெஸ்க் (Omkar)"
+  },
   instant_reading: {
     kn: "ತ್ವರಿತ ಜ್ಯೋತಿಷ್ಯ ದರ್ಶನ",
     en: "Instant Astrological Reading",
