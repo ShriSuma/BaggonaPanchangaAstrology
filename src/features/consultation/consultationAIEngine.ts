@@ -896,11 +896,21 @@ export function analyzeQuestionComplexity(
   const q = (question || "").trim().toLowerCase();
   const wordCount = q.split(/\s+/).filter(Boolean).length;
 
-  // 1. Gemstones & Ratna
+  // 1. Gemstones, Ratna, Uparatnas & Affordable Substitutes
+  const hasGemstoneContextInHistory = !!conversationHistory?.some((turn) =>
+    /\b(diamond|coral|ruby|emerald|sapphire|pearl|ratna|gemstone|zircon|opal|topaz|moti|heera|panna|pukhraj|neelam)\b|ವಜ್ರ|ಹವಳ|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ಮುತ್ತು|ನೀಲ|ರತ್ನ|हीरा|मूंगा|माणिक|पन्ना|पुखराज|मोती|नीलम/i.test(
+      turn.text
+    )
+  );
+
   const isGemstone =
-    /ರತ್ನ|ಹವಳ|ಮುತ್ತು|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲ|ಗೋಮೇಧಿಕ|ವೈಡೂರ್ಯ|ಸ್ಪಟಿಕ|ರುದ್ರಾಕ್ಷಿ|ಉಂಗುರ|ಯಾವ ರತ್ನ|ರತ್ನ ಧರಿಸ|gemstone|ratna|stone|pearl|ruby|emerald|coral|sapphire|diamond|rudraksha|which ring|wear which stone|रत्न|मूंगा|मोती|माणिक|पन्ना|पुखराज|हीरा|नीलम|गोमेद|लहसुनिया|रुद्राक्ष|अंगूठी|రత్నం|పగడం|ముత్యం|కెంపు|పచ్చ|పుష్యరాగం|వజ్రం|నీలం|உருத்திராட்சம்|பவளம்|முத்து|மாணிக்கம்|மரகதம்|புஷ்பராகம்|வைரம்|நீலம்|രത്നം|പവിഴം|മുത്ത്|മാണിക്യം|മരതകം|പുഷ്യരാഗം|വൈരം|നീലക്കല്ല്|मोती|माणिक|मूंगा|पन्ना|पुखराज|हिरा|नीलम/i.test(
+    /\b(gemstone|ratna|stone|pearl|ruby|emerald|coral|sapphire|diamond|rudraksha|zircon|opal|sphatika|spatika|topaz|amethyst|garnet|tourmaline|peridot|citrine|sunela|heera|manikya|panna|pukhraj|neelam|moti|gomed|lehsunia|which ring|wear which stone|white havala|white coral|safed moonga|substitute|alternative|uparatna|budget stone|cheap stone|cannot afford|don't have money|afford diamond|too expensive)\b|ರತ್ನ|ಹವಳ|ಮುತ್ತು|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲ|ಗೋಮೇಧಿಕ|ವೈಡೂರ್ಯ|ಸ್ಪಟಿಕ|ಸ್ಫಟಿಕ|ಜಿರ್ಕಾನ್|ಓಪಲ್|ರುದ್ರಾಕ್ಷಿ|ಉಂಗುರ|ಯಾವ ರತ್ನ|ರತ್ನ ಧರಿಸ|ಉಪರತ್ನ|ಬದಲಿ ರತ್ನ|ಪರ್ಯಾಯ ರತ್ನ|ಬಿಳಿ ಹವಳ|रत्न|मूंगा|मोती|माणिक|पन्ना|पुखराज|हीरा|नीलम|गोमेद|लहसुनिया|जरकन|ओपल|स्फटिक|उपरत्न|सस्ता रत्न|विकल्प|अंगूठी|రత్నం|పగడం|ముత్యం|కెంపు|పచ్చ|పుష్యరాగం|వజ్రం|నీలం|జిర్కాన్|ఓపల్|ఉప రత్నం|உருத்திராட்சம்|பவளம்|முத்து|மாணிக்கம்|மரகதம்|புஷ்பராகம்|வைரம்|நீலம்|ஜிர்கான்|ஓபல்|உப ரத்தினம்|രത്നം|പവിഴം|മുത്ത്|മാണിക്യം|മരതകം|പുഷ്യരാഗം|വൈരം|നീലക്കല്ല്|സിർക്കോൺ|ഓപ്പൽ|उप रत्न/i.test(
       q
-    );
+    ) ||
+    (hasGemstoneContextInHistory &&
+      /\b(alternative|substitute|expensive|money|cost|afford|budget|cheap|another|option|other)\b|ಬೇರೆ|ಬದಲಿ|ಪರ್ಯಾಯ|ಹಣ|ಖರ್ಚು|ಕೈಗೆಟುಕುವ|बदला|सस्ता|पैसे/i.test(
+        q
+      ));
 
   // 2. Lucky Colors
   const isColor =
@@ -1068,6 +1078,8 @@ export function analyzeQuestionComplexity(
 
 export interface AstrologicalRecommendationProfile {
   primaryGemstoneName: Record<ConsultationLanguage, string>;
+  substituteGemstones: Record<ConsultationLanguage, string>;
+  gemstoneIncompatibilities: Record<ConsultationLanguage, string>;
   gemstonePlanet: string;
   isCoralMatched: boolean;
   idealMetal: Record<ConsultationLanguage, string>;
@@ -1084,6 +1096,83 @@ export interface AstrologicalRecommendationProfile {
   sacredMantra: Record<ConsultationLanguage, string>;
   auspiciousDay: Record<ConsultationLanguage, string>;
 }
+
+export const NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE = `
+================================================================================
+VEDIC SHASTRA AUTHENTIC NAVAGRAHA RATNA & UPARATNA (AFFORDABLE SUBSTITUTE) TRUTH TABLE:
+================================================================================
+1. VENUS (ಶುಕ್ರ - SHUKRA):
+   - Maharatna: DIAMOND (ವಜ್ರ / Heera).
+   - Authentic Vedic Uparatnas (Affordable Substitutes carrying identical Venusian frequencies):
+     * WHITE ZIRCON (ಬಿಳಿ ಜಿರ್ಕಾನ್ / Shveta Zircon) - Closest optical & energetic match to Diamond.
+     * NATURAL WHITE OPAL (ಬಿಳಿ ಓಪಲ್) - Excellent for marital harmony, beauty, and prosperity.
+     * PURE SPHATIKA (ಶುದ್ಧ ಸ್ಫಟಿಕ / Clear Quartz Crystal) - Pure, sattvic, highly affordable substitute.
+     * WHITE SAPPHIRE (ಬಿಳಿ ಪುಷ್ಯರಾಗ / Safed Pukhraj) - Corundum-based stone.
+   - ABSOLUTE PROHIBITION & GROUND TRUTH:
+     * WHITE CORAL (ಬಿಳಿ ಹವಳ / Safed Moonga) belongs EXCLUSIVELY to MARS (ಕುಜ / ಮಂಗಳ) for cooling excessive Pitta/Mars afflictions!
+     * WHITE CORAL IS NEVER, UNDER ANY CIRCUMSTANCES, A SUBSTITUTE FOR DIAMOND OR VENUS!
+     * If a devotee cannot afford Diamond, recommend White Zircon, Opal, or Sphatika set in silver. NEVER tell them to buy White Coral!
+
+2. MARS (ಕುಜ / ಮಂಗಳ - KUJA/MANGALA):
+   - Maharatna: RED CORAL (ರಕ್ತ ಹವಳ / Lal Moonga).
+   - Authentic Uparatnas: Carnelian (ಕಾರ್ನೇಲಿಯನ್), Red Jasper (ಕೆಂಪು ಜಾಸ್ಪರ್).
+   - Special Cooling Stone: White Coral (ಬಿಳಿ ಹವಳ / Safed Moonga) is used ONLY for cooling high Pitta / aggressive Mars afflictions. It is NOT for Venus.
+   - Incompatible: Emerald, Diamond, Blue Sapphire.
+
+3. JUPITER (ಗುರು - GURU):
+   - Maharatna: YELLOW SAPPHIRE (ಪುಷ್ಯರಾಗ / Pukhraj).
+   - Authentic Uparatnas: Yellow Topaz (ಹಳದಿ ತೋಪಾಜ್), Citrine / Sunela (ಸುನೇಲಾ / ಸಿಟ್ರಿನ್).
+   - Incompatible: Blue Sapphire, Diamond, Emerald.
+
+4. SATURN (ಶನಿ - SHANI):
+   - Maharatna: BLUE SAPPHIRE (ಇಂದ್ರನೀಲ / Neelam).
+   - Authentic Uparatnas: Natural Amethyst (ಕಟ್ಲೈ / ನೇರಳೆ ಜಂಬುಮಣಿ / ಜಮುನಿಯಾ), Blue Topaz, Lapis Lazuli.
+   - Incompatible: Ruby, Pearl, Red Coral.
+
+5. MERCURY (ಬುಧ - BUDHA):
+   - Maharatna: EMERALD (ಮರಕತ / ಪಚ್ಚೆ / Panna).
+   - Authentic Uparatnas: Green Tourmaline (ಹಸಿರು ಟೂರ್ಮಲಿನ್), Peridot (ಪೆರಿಡಾಟ್), Green Jade.
+   - Incompatible: Red Coral, Pearl.
+
+6. SUN (ಸೂರ್ಯ - SURYA):
+   - Maharatna: RUBY (ಮಾಣಿಕ್ಯ / Manikya).
+   - Authentic Uparatnas: Red Garnet (ರಕ್ತ ಗೋಮೇಧಿಕ / ತಾಮ್ರಮಣಿ), Red Spinel.
+   - Incompatible: Blue Sapphire, Diamond, Hessonite.
+
+7. MOON (ಚಂದ್ರ - CHANDRA):
+   - Maharatna: NATURAL PEARL (ನೈಸರ್ಗಿಕ ಮುತ್ತು / Moti).
+   - Authentic Uparatnas: Moonstone (ಚಂದ್ರಕಾಂತ ಮಣಿ), White Agate (ಬಿಳಿ ಅಕೀಕ್).
+   - Incompatible: Blue Sapphire, Hessonite, Cat's Eye.
+
+8. RAHU: Maharatna = Hessonite (ಗೋಮೇಧಿಕ / Gomed) -> Uparatna: Brown Tourmaline.
+9. KETU: Maharatna = Cat's Eye (ವೈಡೂರ್ಯ / Lehsunia) -> Uparatna: Tiger's Eye.
+================================================================================`;
+
+/**
+ * Strict Multi-Turn Anti-Contradiction Directive:
+ * Prevents Astrotalk flaws: shifting advice, contradictory gemstone prescriptions,
+ * or recommending an item that was previously warned against/rejected.
+ */
+export const MULTI_TURN_ANTI_CONTRADICTION_GUARD = `
+================================================================================
+CRITICAL MULTI-TURN ANTI-CONTRADICTION & CONSISTENCY RULE:
+================================================================================
+1. ABSOLUTE CONVERSATIONAL INTEGRITY:
+   - Carefully review all previous conversation turns (from Question 1 to Question 6+).
+   - You MUST maintain 100% strict consistency with all prior rulings, answers, and advice given in this session.
+   - You must NEVER contradict yourself or reverse your earlier statements.
+
+2. NEVER RECOMMEND A PREVIOUSLY REJECTED ITEM:
+   - If in Turn 1 (or any earlier question) you advised against, warned against, or rejected a specific item (for example, telling the user NOT to buy White Coral instead of Diamond), and then in Turn 2 (or Turn 6) the user says "I don't have money for Diamond, what alternative do you suggest?", you MUST NOT suggest White Coral!
+   - Suggesting the exact item you just rejected creates an instant, glaring contradiction that destroys devotee trust.
+   - Instead, recommend the authentic Vedic Uparatnas (substitutes) of the SAME planet:
+     For Diamond / Venus -> Recommend White Zircon (ಬಿಳಿ ಜಿರ್ಕಾನ್), White Opal (ಓಪಲ್), or Pure Sphatika (ಸ್ಫಟಿಕ).
+
+3. NO ASTROTALK PITFALLS:
+   - What is true, state as true directly upfront. What is false or incompatible, state as not true directly upfront.
+   - Never use vague evasion, fear-mongering, or shifting gemstone prescriptions.
+   - Stand firmly and truthfully by authentic Vedic Shastra.
+================================================================================`;
 
 /**
  * Computes authentic Parashari gemological, color, and numerological recommendations
@@ -1116,6 +1205,24 @@ export function computeAstrologicalRecommendations(
           ta: "மாணிக்கம் (Ruby)",
           ml: "മാണിക്യം (Ruby)",
           mr: "माणिक (Ruby)"
+        },
+        substituteGemstones: {
+          kn: "ಕೆಂಪು ಗಾರ್ನೆಟ್ (ರಕ್ತ ಗೋಮೇಧಿಕ / ತಾಮ್ರಮಣಿ), ಕೆಂಪು ಸ್ಪಿನೆಲ್",
+          en: "Red Garnet (Rakta Gomed / Tamramani), Red Spinel",
+          hi: "लाल गारनेट (रक्त गोमेद), लाल स्पिनेल",
+          te: "ఎరుపు గార్నెట్, ఎరుపు స్పినెల్",
+          ta: "சிவப்பு கார்னட், சிவப்பு ஸ்பைனல்",
+          ml: "ചുവന്ന ഗാർനെറ്റ്, ചുവന്ന സ്പൈനൽ",
+          mr: "लाल गारनेट, लाल स्पिनेल"
+        },
+        gemstoneIncompatibilities: {
+          kn: "ಇಂದ್ರನೀಲ (Blue Sapphire), ವಜ್ರ (Diamond), ಗೋಮೇಧಿಕ (Hessonite)",
+          en: "Blue Sapphire, Diamond, Hessonite (Gomed)",
+          hi: "नीलम, हीरा, गोमेद",
+          te: "నీలం, వజ్రం, గోమేధికం",
+          ta: "நீலம், வைரம், கோமேதகம்",
+          ml: "നീലക്കല്ല്, വൈരം, ഗോമേദകം",
+          mr: "नीलम, हिरा, गोमेद"
         },
         idealMetal: {
           kn: "ಬಂಗಾರ ಅಥವಾ ತಾಮ್ರ",
@@ -1233,6 +1340,24 @@ export function computeAstrologicalRecommendations(
           ml: "മുത്ത് (Natural Pearl)",
           mr: "मोती (Natural Pearl)"
         },
+        substituteGemstones: {
+          kn: "ಚಂದ್ರಕಾಂತ ಮಣಿ (Moonstone), ಬಿಳಿ ಅಕೀಕ್ (White Agate)",
+          en: "Moonstone (Chandrakanta Mani), White Agate",
+          hi: "चंद्रकांत मणि (Moonstone), सफेद अकीक",
+          te: "చంద్రకాంత మణి (Moonstone), తెల్ల అకీక్",
+          ta: "சந்திரகாந்த மணி (Moonstone), வெள்ளை அகீக்",
+          ml: "ചന്ദ്രകാന്ത മണി (Moonstone), വെളുത്ത അഗേറ്റ്",
+          mr: "चंद्रकांत मणी (Moonstone), पांढरा अकीक"
+        },
+        gemstoneIncompatibilities: {
+          kn: "ಇಂದ್ರನೀಲ (Blue Sapphire), ಗೋಮೇಧಿಕ (Hessonite), ವೈಡೂರ್ಯ (Cat's Eye)",
+          en: "Blue Sapphire, Hessonite, Cat's Eye",
+          hi: "नीलम, गोमेद, लहसुनिया",
+          te: "నీలం, గోమేధికం, వైడూర్యం",
+          ta: "நீலம், கோமேதகம், வைடூரியம்",
+          ml: "നീലക്കല്ല്, ഗോമേദകം, വൈഡൂര്യം",
+          mr: "नीलम, गोमेद, लसण्या"
+        },
         idealMetal: {
           kn: "ಶುದ್ಧ ಬೆಳ್ಳಿ",
           en: "Pure Silver",
@@ -1348,6 +1473,24 @@ export function computeAstrologicalRecommendations(
           ta: "சிவப்பு பவளம் (Red Coral)",
           ml: "ചുവന്ന പവിഴം (Red Coral)",
           mr: "रक्त मूंगा (Red Coral)"
+        },
+        substituteGemstones: {
+          kn: "ಕಾರ್ನೇಲಿಯನ್ (Carnelian), ಕೆಂಪು ಜಾಸ್ಪರ್ (Red Jasper); ಅಧಿಕ ಪಿತ್ತ ಶಮನಕ್ಕೆ ಮಾತ್ರ ಬಿಳಿ ಹವಳ",
+          en: "Carnelian, Red Jasper; White Coral (strictly for excessive Pitta cooling only)",
+          hi: "कार्नेलियन, लाल जैस्पर; अत्यधिक पित्त शमन हेतु सफेद मूंगा",
+          te: "కార్నేలియన్, ఎరుపు జాస్పర్; అధిక పిత్త శాంతికి మాత్రమే తెల్ల పగడం",
+          ta: "கார்னிலியன், சிவப்பு ஜாஸ்பர்; பித்த தணிப்புக்கு மட்டும் வெள்ளை பவளம்",
+          ml: "കാർണിലിയൻ, ചുവന്ന ജാസ്പർ; അമിത പിത്ത ശമനത്തിന് മാത്രം വെളുത്ത പവിഴം",
+          mr: "कार्नेलियन, लाल जास्पर; अतिरिक्त पित्त शमनासाठी पांढरा पोवळा"
+        },
+        gemstoneIncompatibilities: {
+          kn: "ಪಚ್ಚೆ (Emerald), ಇಂದ್ರನೀಲ (Blue Sapphire), ವಜ್ರ (Diamond)",
+          en: "Emerald, Blue Sapphire, Diamond",
+          hi: "पन्ना, नीलम, हीरा",
+          te: "పచ్చ, నీలం, వజ్రం",
+          ta: "மரகதம், நீலம், வைரம்",
+          ml: "മരതകം, നീലക്കല്ല്, വൈരം",
+          mr: "पन्ना, नीलम, हिरा"
         },
         idealMetal: {
           kn: "ತಾಮ್ರ ಅಥವಾ ಬಂಗಾರ",
@@ -1465,6 +1608,24 @@ export function computeAstrologicalRecommendations(
           ml: "മരതകം (Emerald)",
           mr: "पन्ना (Emerald)"
         },
+        substituteGemstones: {
+          kn: "ಹಸಿರು ಟೂರ್ಮಲಿನ್ (Green Tourmaline), ಪೆರಿಡಾಟ್ (Peridot), ಹಸಿರು ಜೇಡ್",
+          en: "Green Tourmaline (Verdelite), Peridot, Green Jade",
+          hi: "हरा टूमलाइन, पेरिडॉट (जबरजद), हरा जेड",
+          te: "ఆకుపచ్చ టూర్మలిన్, పెరిడాట్, గ్రీన్ జేడ్",
+          ta: "பச்சை டூர்மலைன், பெரிடாட், பச்சை ஜேட்",
+          ml: "പച്ച ടൂർമലൈൻ, പെരിഡോട്ട്, പച്ച ജേഡ്",
+          mr: "हिरवा टूमलाइन, पेरिडॉट, हिरवा जेड"
+        },
+        gemstoneIncompatibilities: {
+          kn: "ರಕ್ತ ಹವಳ (Red Coral), ಮುತ್ತು (Pearl)",
+          en: "Red Coral, Pearl",
+          hi: "मूंगा, मोती",
+          te: "పగడం, ముత్యం",
+          ta: "பவளம், முத்து",
+          ml: "പവിഴം, മുത്ത്",
+          mr: "पोवळा, मोती"
+        },
         idealMetal: {
           kn: "ಬಂಗಾರ ಅಥವಾ ಕಂಚು",
           en: "Gold or Bronze",
@@ -1580,6 +1741,24 @@ export function computeAstrologicalRecommendations(
           ta: "புஷ்பராகம் (Yellow Sapphire)",
           ml: "പുഷ്യരാഗം (Yellow Sapphire)",
           mr: "पुखराज (Yellow Sapphire)"
+        },
+        substituteGemstones: {
+          kn: "ಹಳದಿ ತೋಪಾಜ್ (Yellow Topaz), ಸುನೇಲಾ / ಸಿಟ್ರಿನ್ (Citrine)",
+          en: "Yellow Topaz, Citrine (Sunela)",
+          hi: "पीला टोपाज, सुनेहला (Citrine)",
+          te: "పసుపు పుష్పరాగం, సిట్రిన్ (సునేలా)",
+          ta: "மஞ்சள் டோபஸ், சிட்ரின் (சுனேலா)",
+          ml: "മഞ്ഞ ടോപാസ്, സിട്രിൻ",
+          mr: "पिवळा टोपाज, सुनेला (Citrine)"
+        },
+        gemstoneIncompatibilities: {
+          kn: "ಇಂದ್ರನೀಲ (Blue Sapphire), ವಜ್ರ (Diamond), ಪಚ್ಚೆ (Emerald)",
+          en: "Blue Sapphire, Diamond, Emerald",
+          hi: "नीलम, हीरा, पन्ना",
+          te: "నీలం, వజ్రం, పచ్చ",
+          ta: "நீலம், வைரம், மரகதம்",
+          ml: "നീലക്കല്ല്, വൈരം, മരതകം",
+          mr: "नीलम, हिरा, पन्ना"
         },
         idealMetal: {
           kn: "ಬಂಗಾರ ಅಥವಾ ಹಿತ್ತಾಳೆ",
@@ -1697,6 +1876,24 @@ export function computeAstrologicalRecommendations(
           ml: "വൈരം അല്ലെങ്കിൽ വെള്ള സിർക്കോൺ",
           mr: "हिरा किंवा पांढरा जरकन"
         },
+        substituteGemstones: {
+          kn: "ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon), ನೈಸರ್ಗಿಕ ಬಿಳಿ ಓಪಲ್ (White Opal), ಶುದ್ಧ ಸ್ಫಟಿಕ (Sphatika), ಬಿಳಿ ಪುಷ್ಯರಾಗ (White Sapphire)",
+          en: "Natural White Zircon (Shveta Zircon), Natural White Opal, Pure Sphatika (Clear Quartz), White Sapphire",
+          hi: "प्राकृतिक सफेद जरकन (White Zircon), प्राकृतिक सफेद ओपल (White Opal), शुद्ध स्फटिक, सफेद पुखराज",
+          te: "సహజ వైట్ జిర్కాన్ (White Zircon), సహజ వైట్ ఓపల్, శుద్ధ స్ఫటికం, తెల్ల పుష్యరాగం",
+          ta: "இயற்கை வெள்ளை ஜிர்கான், இயற்கை வெள்ளை ஓபல், தூய ஸ்படிகம், வெள்ளை புஷ்பராகம்",
+          ml: "സ്വാഭാവിക വൈറ്റ് സിർക്കോൺ, വൈറ്റ് ഓപ്പൽ, ശുദ്ധ സ്ഫടികം, വെള്ള പുഷ്യരാഗം",
+          mr: "नैसर्गिक पांढरा जरकन, पांढरा ओपल, शुद्ध स्फटिक, पांढरा पुखराज"
+        },
+        gemstoneIncompatibilities: {
+          kn: "ಮಾಣಿಕ್ಯ (Ruby), ಹಳದಿ ಪುಷ್ಯರಾಗ (Yellow Sapphire); ಬಿಳಿ ಹವಳವು ಮಂಗಳನ ರತ್ನವಾಗಿದ್ದು ವಜ್ರಕ್ಕೆ ಪರ್ಯಾಯವಲ್ಲ (White Coral is strictly prohibited)",
+          en: "Ruby, Yellow Sapphire; White Coral is strictly prohibited (Coral belongs exclusively to Mars)",
+          hi: "माणिक्य, पीला पुखराज; सफेद मूंगा पूरी तरह वर्जित है (मूंगा केवल मंगल का रत्न है)",
+          te: "కెంపు, పసుపు పుష్యరాగం; తెల్ల పగడం నిషేధం (పగడం కుజుడి రత్నం మాత్రమే)",
+          ta: "மாணிக்கம், மஞ்சள் புஷ்பராகம்; வெள்ளை பவளம் அணியக்கூடாது (பவளம் செவ்வாயின் ரத்தினம்)",
+          ml: "മാണിക്യം, മഞ്ഞ പുഷ്യരാഗം; വെളുത്ത പവിഴം കർശനമായി ഒഴിവാക്കുക (പവിഴം ചൊവ്വയുടേതാണ്)",
+          mr: "माणिक, पिवळा पुखराज; पांढरा पोवळा पूर्णपणे वर्जित (पोवळा फक्त मंगळाचा आहे)"
+        },
         idealMetal: {
           kn: "ಶುದ್ಧ ಬೆಳ್ಳಿ, ಪ್ಲಾಟಿನಂ ಅಥವಾ ಬಿಳಿ ಬಂಗಾರ",
           en: "Silver, Platinum, or White Gold",
@@ -1813,6 +2010,24 @@ export function computeAstrologicalRecommendations(
           ta: "நீலக்கல் அல்லது அமெதிஸ்ட்",
           ml: "നീലക്കല്ല് അല്ലെങ്കിൽ അമേത്തിസ്റ്റ്",
           mr: "नीलम किंवा जांभळा अगेटी (Blue Sapphire)"
+        },
+        substituteGemstones: {
+          kn: "ನೈಸರ್ಗಿಕ ಅಮೆಥಿಸ್ಟ್ (ಕಟ್ಲೈ / ನೇರಳೆ ಜಂಬುಮಣಿ / ಜಮುನಿಯಾ), ನೀಲಿ ತೋಪಾಜ್, ಲ್ಯಾಪಿಸ್ ಲಾಜುಲಿ",
+          en: "Natural Amethyst (Katela / Jamunia), Blue Topaz, Lapis Lazuli",
+          hi: "प्राकृतिक जमुनिया (Amethyst / कतेला), नीला टोपाज, लाजवर्त (Lapis Lazuli)",
+          te: "సహజ అమెథిస్ట్ (జామునియా), బ్లూ టోపాజ్, లాపిస్ లాజులీ",
+          ta: "இயற்கை அமெதிஸ்ட், நீல டோபஸ், லாபிஸ் லாசுலி",
+          ml: "സ്വാഭാവിക അമേത്തിസ്റ്റ്, നീല ടോപാസ്, ലാപിസ് ലാസുലി",
+          mr: "नैसर्गिक जांभळा कतेला (Amethyst), निळा टोपाज, लापिस लाजुली"
+        },
+        gemstoneIncompatibilities: {
+          kn: "ಮಾಣಿಕ್ಯ (Ruby), ಮುತ್ತು (Pearl), ರಕ್ತ ಹವಳ (Red Coral)",
+          en: "Ruby, Pearl, Red Coral",
+          hi: "माणिक्य, मोती, मूंगा",
+          te: "కెంపు, ముత్యం, పగడం",
+          ta: "மாணிக்கம், முத்து, பவளம்",
+          ml: "മാണിക്യം, മുത്ത്, പവിഴം",
+          mr: "माणिक, मोती, पोवळा"
         },
         idealMetal: {
           kn: "ಶುದ್ಧ ಬೆಳ್ಳಿ ಅಥವಾ ಪಂಚಧಾತು",
@@ -2566,6 +2781,8 @@ ${complexityAnalysis.promptDirective}
 
 AUTHENTIC ASTROLOGICAL RECOMMENDATION DATA FOR THIS NATIVE:
 - Primary Gemstone: ${recProfile.primaryGemstoneName[session.language] || recProfile.primaryGemstoneName.kn}
+- Authentic Uparatna / Affordable Substitutes: ${recProfile.substituteGemstones[session.language] || recProfile.substituteGemstones.kn}
+- Gemstone Incompatibilities & Strict Prohibitions: ${recProfile.gemstoneIncompatibilities[session.language] || recProfile.gemstoneIncompatibilities.kn}
 - Ruling Planet: ${recProfile.gemstonePlanet} (Red Coral Matched: ${recProfile.isCoralMatched ? "YES" : "NO"})
 - Ideal Metal: ${recProfile.idealMetal[session.language] || recProfile.idealMetal.kn}
 - Ideal Finger: ${recProfile.idealFinger[session.language] || recProfile.idealFinger.kn}
@@ -2687,6 +2904,29 @@ DEVOTEE BIRTH PROFILE & ASTROLOGICAL COORDINATES (COMPUTED ACCURATELY BY BAGGONA
 - Live Jupiter (Guru) Gochara: House ${guruTransitHouseFromMoon} from Moon (${guruTransitNature})
 - Exact Natal Planetary Placements (Bhavas 1 to 12): ${planetsSummary}
 - Live Gochara (Planetary Transits): ${transitsSummary}
+
+${NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE}
+
+${MULTI_TURN_ANTI_CONTRADICTION_GUARD}
+
+AUTHENTIC GEMOLOGICAL & ASTROLOGICAL PROFILE FOR THIS DEVOTEE:
+- Primary Gemstone: ${recProfile.primaryGemstoneName[session.language] || recProfile.primaryGemstoneName.kn}
+- Authentic Uparatnas (Affordable Substitutes): ${recProfile.substituteGemstones[session.language] || recProfile.substituteGemstones.kn}
+- Gemstone Incompatibilities: ${recProfile.gemstoneIncompatibilities[session.language] || recProfile.gemstoneIncompatibilities.kn}
+- Lucky Colors: ${recProfile.luckyColors[session.language] || recProfile.luckyColors.kn} (Avoid: ${recProfile.colorsToAvoid[session.language] || recProfile.colorsToAvoid.kn})
+- Lucky Number: ${recProfile.primaryNumber}
+
+${
+  conversationHistory && conversationHistory.length > 0
+    ? `CRITICAL MULTI-TURN CONVERSATION CONTINUITY & PAST RULINGS:
+The devotee is in an ongoing 20-minute conversation. Review all past turns:
+${conversationHistory.map((t, idx) => `[Turn ${idx + 1} - ${t.role === "user" ? "Devotee" : "Master Astrologer"}]: ${t.text}`).join("\n\n")}
+
+MANDATORY RULES ON PAST RULINGS:
+- If in Turn 1 or earlier you advised against, warned against, or rejected a gemstone/remedy (for example, telling the devotee NOT to buy White Coral instead of Diamond), you MUST NOT suggest that same rejected gemstone in this turn!
+- Maintain 100% strict consistency with your earlier statements. Never contradict yourself!`
+    : ""
+}
 
 DEVOTEE WORDS / QUESTION:
 "${userQuestion}"
@@ -2867,7 +3107,8 @@ export function buildDeterministicGemstoneReading(
   question: string,
   _astroData: DevoteeKundliComputedData | undefined,
   rec: AstrologicalRecommendationProfile,
-  _isSubsequent: boolean
+  _isSubsequent: boolean,
+  conversationHistory?: AskGeminiChatTurn[]
 ): string {
   const lang = (session.language || "kn") as ConsultationLanguage;
   const gemName = rec.primaryGemstoneName[lang] || rec.primaryGemstoneName.kn;
@@ -2876,6 +3117,115 @@ export function buildDeterministicGemstoneReading(
   const wearingDayAndTime = rec.wearingDayAndTime[lang] || rec.wearingDayAndTime.kn;
   const mantra = rec.gemstoneMantra[lang] || rec.gemstoneMantra.kn;
   const benefits = rec.gemstoneBenefits[lang] || rec.gemstoneBenefits.kn;
+  const substitute = rec.substituteGemstones[lang] || rec.substituteGemstones.kn;
+  const incompatibilities = rec.gemstoneIncompatibilities[lang] || rec.gemstoneIncompatibilities.kn;
+
+  const qLower = question.toLowerCase();
+
+  // Multi-turn context inspection
+  const historyText = conversationHistory
+    ? conversationHistory.map((t) => t.text.toLowerCase()).join(" ")
+    : "";
+  const hasDiamondInHistory = /diamond|heera|ವಜ್ರ|हीरा|वज्र|వజ్రం|వైరం|വൈരം/i.test(historyText);
+  const hasRejectedWhiteCoralInHistory = /white coral|safed moonga|ಬಿಳಿ ಹವಳ|white havala/i.test(historyText);
+
+  // 1. SPECIFIC WHITE CORAL INQUIRY (e.g. Can I wear white coral instead of diamond? / Is white coral good for me?)
+  const isWhiteCoralInquiry =
+    /ಬಿಳಿ\s*ಹವಳ|white\s*coral|safed\s*moonga|safed\s*munga|सफेद\s*मूंगा|తెల్ల\s*పగడం|வெள்ளை\s*பவளம்|വെളുത്ത\s*പവിഴം|पांढरा\s*पोवळा|white\s*havala/i.test(
+      qLower
+    ) ||
+    ((/ಹವಳ|coral|moonga|పగడం|பவளம்|പവിഴം|पोवळा/i.test(qLower) &&
+      /ವಜ್ರ|diamond|heera|ಶುಕ್ರ|venus|वज्र|हीरा|వజ్రం|వైరం|വൈരം/i.test(qLower)));
+
+  // 2. DIAMOND ALTERNATIVE / BUDGET INQUIRY (e.g. "I don't have money for diamond, alternative what do you suggest?")
+  const isDiamondAlternativeInquiry =
+    (!isWhiteCoralInquiry &&
+      (/diamond|ವಜ್ರ|heera|हीरा|वज्र|వజ్రం|వైరం|വൈരം/i.test(qLower) ||
+        (hasDiamondInHistory && !/ruby|emerald|sapphire|pearl|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ನೀಲ|ಮುತ್ತು/i.test(qLower))) &&
+      /alternative|substitute|expensive|money|cost|afford|budget|cheap|another|option|other|ಬೇರೆ|ಬದಲಿ|ಪರ್ಯಾಯ|ಹಣ|ಖರ್ಚು|ಕೈಗೆಟುಕುವ|ಬಜೆಟ್|बदला|सस्ता|पैसे|विकल्प|ఖర్చు|తక్కువ ధర|விலை|பட்ஜெட்|ചെലവ്|बजेट/i.test(
+        qLower
+      )) ||
+    (hasDiamondInHistory &&
+      hasRejectedWhiteCoralInHistory &&
+      /alternative|substitute|what do you suggest|what else|other|ಬೇರೆ|ಬದಲಿ|ಪರ್ಯಾಯ/i.test(qLower));
+
+  // --- WHITE CORAL INQUIRY RESOLUTION (TRUTH DIRECTLY UPFRONT) ---
+  if (isWhiteCoralInquiry) {
+    if (lang === "en") {
+      const p1 = `According to authentic Vedic Jyotisha, White Coral (Safed Moonga / ಬಿಳಿ ಹವಳ) is strictly NOT a substitute for Diamond or Venus (Shukra). Coral is governed entirely by Mars (Kuja/Mangala), and White Coral is prescribed specifically to cool high Pitta, bodily heat, and severe Martian afflictions. It carries Martian frequencies, not Venusian energies. Therefore, you should NOT buy or wear White Coral in place of Diamond. If Diamond is outside your budget, the authentic scripture-approved Vedic substitutes (Uparatnas) for Venus are Natural White Zircon (Shveta Zircon), Natural White Opal, or Pure Sphatika (Clear Quartz). Setting any of these in silver and wearing it on a Friday on the middle or little finger will bestow genuine Venusian blessings.`;
+      const p2 = `Always prioritize natural, untreated gemstones cleansed with sacred Vedic mantras. May the divine blessings of Sri Kshetra Gokarna Mahabaleshwara grant you enduring prosperity and joy.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "hi") {
+      const p1 = `वैदिक ज्योतिष शास्त्र के अनुसार, सफेद मूंगा (White Coral) शुक्र ग्रह अथवा हीरे का विकल्प नहीं है। मूंगा पूर्णतः मंगल ग्रह का रत्न है और सफेद मूंगा केवल मंगल के अत्यधिक पित्त, शारीरिक ताप एवं क्रोधाग्नि को शांत करने के लिए धारण किया जाता है। अतः हीरे के स्थान पर सफेद मूंगा कभी धारण न करें। यदि हीरे का बजट नहीं है, तो शुक्र के शास्त्रसम्मत शुद्ध उपरत्न प्राकृतिक सफेद जरकन (White Zircon), सफेद ओपल (White Opal) अथवा शुद्ध स्फटिक हैं। इन्हें चांदी में बनवाकर शुक्रवार की सुबह मध्यमा या कनिष्ठिका उंगली में धारण करने से हीरे के समान शुभ फल प्राप्त होते हैं।`;
+      const p2 = `श्री क्षेत्र गोकर्ण महाबलेश्वर के आशीर्वाद से यह शुद्ध उपरत्न आपके जीवन में ऐश्वर्य, शांति और सुख-समृद्धि प्रदान करेगा।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "te") {
+      const p1 = `వైదిక జ్యోతిష శాస్త్రం ప్రకారం, తెల్ల పగడం (White Coral) శుక్ర గ్రహానికి లేదా వజ్రానికి ప్రత్యామ్నాయ రత్నం కాదు. పగడం పూర్తిగా కుజ గ్రహానికి సంబంధించిన రత్నం. కుజుని అధిక వేడి, పిత్త దోషం మరియు రక్త సంబంధిత సమస్యలను తగ్గించడానికి మాత్రమే తెల్ల పగడం ధరిస్తారు. కాబట్టి వజ్రానికి బదులుగా తెల్ల పగడం ఎట్టి పరిస్థితుల్లోనూ ధరించరాదు. వజ్రానికి నిజమైన శాస్త్రోక్తమైన ఉపరత్నాలు సహజమైన వైట్ జిర్కాన్ (White Zircon), వైట్ ఓపల్ (White Opal) లేదా శుద్ధ స్ఫటికం. వీటిని వెండిలో చేయించి శుక్రవారం ఉదయం ధరించడం వల్ల వజ్రం లాంటి శుక్ర అనుగ్రహం లభిస్తుంది.`;
+      const p2 = `శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులతో మీకు సమస్త శుభాలు, శాంతి మరియు సంపదలు చేకూరుతాయి.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "ta") {
+      const p1 = `வேத ஜோதிட சாஸ்திரப்படி, வெள்ளை பவளம் (White Coral) சுக்கிர கிரகத்திற்கோ அல்லது வைரத்திற்கோ மாற்றான ரத்தினம் அல்ல. பவளம் முற்றிலும் செவ்வாய் (குஜ) கிரகத்திற்குரியது; பித்த தோஷத்தையும் அதிக உஷ்ணத்தையும் தணிக்க மட்டுமே வெள்ளை பவளம் பரிந்துரைக்கப்படுகிறது. எனவே வைரத்திற்குப் பதிலாக வெள்ளை பவளத்தை அணியக்கூடாது. வைரத்திற்கு உண்மையான மற்றும் சாஸ்திரப்பூர்வமான உப ரத்தினங்கள் இயற்கை வெள்ளை ஜிர்கான் (White Zircon), வெள்ளை ஓபல் (White Opal) அல்லது தூய ஸ்படிகம் ஆகும். இவற்றை வெள்ளியில் பதித்து வெள்ளிக்கிழமை அணிவதால் சுக்கிரனின் முழு அருள் கிட்டும்.`;
+      const p2 = `ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியின் திருவருளால் சகல காரியங்களிலும் வெற்றி மற்றும் சுபிக்ஷம் உண்டாகும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "ml") {
+      const p1 = `വേദ ജ്യോതിഷപ്രകാരം, വെളുത്ത പവിഴം (White Coral) ശുക്ര ഗ്രഹത്തിനോ വജ്രത്തിനോ പകരമുള്ള രത്നമല്ല. പവിഴം പൂർണ്ണമായും ചൊവ്വ (കുജ) ഗ്രഹത്തിന്റേതാണ്; അമിത പിത്തവും ഉഷ്ണവും ശമിപ്പിക്കാൻ മാത്രമാണ് വെളുത്ത പവിഴം ധരിക്കുന്നത്. അതിനാൽ വജ്രത്തിന് പകരം വെളുത്ത പവിഴം ധരിക്കരുത്. വജ്രത്തിന് ഏറ്റവും അനുയോജ്യമായ ഉപരത്നങ്ങൾ സ്വാഭാവിക വൈറ്റ് സിർക്കോൺ (White Zircon), വൈറ്റ് ഓപ്പൽ (White Opal) അല്ലെങ്കിൽ ശുദ്ധമായ സ്ഫടികം എന്നിവയാണ്. ഇവ വെള്ളിയിൽ തീർത്ത് വെള്ളിയാഴ്ച ധരിക്കുന്നത് ശുക്രന്റെ അനുഗ്രഹം നൽകും.`;
+      const p2 = `ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയുടെ അനുഗ്രഹത്താൽ ഐശ്വര്യവും സൗഭാഗ്യവും കൈവരും.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "mr") {
+      const p1 = `वैदिक ज्योतिष शास्त्रानुसार, पांढरा पोवळा (White Coral) हा शुक्र ग्रहाचा किंवा हिऱ्याचा पर्याय नाही. पोवळा पूर्णपणे मंगळ ग्रहाचे रत्न आहे आणि शरीरातील अतिरिक्त उष्णता व पित्त शांत करण्यासाठीच पांढरा पोवळा वापरला जातो. त्यामुळे हिऱ्याच्या जागी पांढरा पोवळा अजिबात घालू नये. हिऱ्याचे खरे आणि शास्त्रोक्त उपरत्न म्हणजे नैसर्गिक पांढरा जरकन (White Zircon), पांढरा ओपल (White Opal) किंवा शुद्ध स्फटिक आहेत. हे चांदीत बनवून शुक्रवारी धारण केल्यास शुक्राची पूर्ण कृपा लाभते.`;
+      const p2 = `श्री क्षेत्र गोकर्ण महाबळेश्वर यांच्या कृपेने तुमच्या जीवनात प्रगती, समाधान आणि यश लाभेल.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    // Kannada Default
+    const p1 = `ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಬಿಳಿ ಹವಳವು (White Coral / Safed Moonga) ಶುಕ್ರ ಗ್ರಹಕ್ಕೆ ಅಥವಾ ವಜ್ರಕ್ಕೆ ಪರ್ಯಾಯ ರತ್ನವಲ್ಲ. ಹವಳವು ಸಂಪೂರ್ಣವಾಗಿ ಮಂಗಳ (ಕುಜ) ಗ್ರಹಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ರತ್ನವಾಗಿದ್ದು, ಕುಜನ ಅಧಿಕ ಉಷ್ಣ, ಪಿತ್ತ ವಿಕಾರ ಮತ್ತು ರಕ್ತದೋಷವನ್ನು ಶಮನಗೊಳಿಸಲು ಮಾತ್ರ ಬಿಳಿ ಹವಳವನ್ನು ಧರಿಸಲಾಗುತ್ತದೆ. ಆದ್ದರಿಂದ ವಜ್ರದ ಬದಲು ಬಿಳಿ ಹವಳವನ್ನು ಎಂದಿಗೂ ಧರಿಸಬಾರದು. ವಜ್ರಕ್ಕೆ ನಿಜವಾದ ಮತ್ತು ಕೈಗೆಟುಕುವ ಶಾಸ್ತ್ರೋಕ್ತ ಉಪರತ್ನಗಳೆಂದರೆ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon), ನೈಸರ್ಗಿಕ ಬಿಳಿ ಓಪಲ್ (White Opal) ಅಥವಾ ಶುದ್ಧ ಸ್ಫಟಿಕ (Sphatika). ಇವುಗಳನ್ನು ಬೆಳ್ಳಿಯಲ್ಲಿ ಉಂಗುರ ಮಾಡಿಸಿ ಶುಕ್ರವಾರ ಧರಿಸುವುದರಿಂದ ವಜ್ರದಷ್ಟೇ ಪವಿತ್ರ ಶುಕ್ರಾನುಗ್ರಹ ಲಭಿಸುತ್ತದೆ.`;
+    const p2 = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ರತ್ನವನ್ನು ಪವಿತ್ರಗೊಳಿಸಿ ಧರಿಸುವುದರಿಂದ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಸೌಭಾಗ್ಯ ಮತ್ತು ಸಮೃದ್ಧಿ ನೆಲೆಸುತ್ತದೆ.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  // --- DIAMOND ALTERNATIVE / BUDGET INQUIRY RESOLUTION ---
+  if (isDiamondAlternativeInquiry) {
+    if (lang === "en") {
+      const p1 = `If a natural Diamond is beyond your budget, Vedic astrology offers three authentic, highly potent, and affordable substitutes (Uparatnas) for Venus (Shukra): 1) Natural White Zircon (Shveta Zircon - closest optical and energetic frequency to Diamond), 2) Natural Australian White Opal, or 3) Pure Sphatika (Clear Quartz). Important reminder: Never substitute Diamond with White Coral, as Coral belongs strictly to Mars. Have your chosen substitute gemstone set in pure silver and wear it on your middle or little finger on a Friday morning during Shukla Paksha after chanting 'Om Shum Shukraya Namaha' 108 times.`;
+      const p2 = `These authentic Vedic Uparatnas channel the exact benefic Venusian grace, enhancing creativity, marital happiness, and financial prosperity. May Lord Mahabaleshwara of Sri Kshetra Gokarna bless you with complete fulfillment.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "hi") {
+      const p1 = `यदि हीरा आपके बजट से बाहर है, तो वैदिक ज्योतिष में शुक्र ग्रह के लिए तीन अत्यंत शुभ, शक्तिशाली एवं किफायती शास्त्रसम्मत उपरत्न बताए गए हैं: १) प्राकृतिक सफेद जरकन (White Zircon - हीरे का सर्वश्रेष्ठ विकल्प), २) प्राकृतिक सफेद ओपल (White Opal), अथवा ३) शुद्ध स्फटिक। ध्यान रहे कि हीरे के स्थान पर सफेद मूंगा कभी न पहनें, क्योंकि मूंगा मंगल का रत्न है। इनमें से किसी एक उपरत्न को शुद्ध चांदी में बनवाकर शुक्ल पक्ष के शुक्रवार की सुबह 'ॐ शुं शुक्राय नमः' मंत्र का १०८ बार जप करके मध्यमा या कनिष्ठिका उंगली में धारण करें।`;
+      const p2 = `यह शास्त्रोक्त उपरत्न आपको हीरे के समान ही सुख, ऐश्वर्य और पारिवारिक सौहार्द प्रदान करेगा। श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा आप पर सदैव बनी रहे।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "te") {
+      const p1 = `వజ్రం ఖరీదైనది కావడం వల్ల మీ బడ్జెట్‌కు అనుకూలంగా లేకపోతే, వైదిక జ్యోతిషంలో శుక్ర గ్రహానికి మూడు అత్యంత శుభప్రదమైన, చవకైన ఉపరత్నాలు సూచించబడ్డాయి: 1) సహజ వైట్ జిర్కాన్ (White Zircon), 2) సహజ వైట్ ఓపల్ (White Opal), లేదా 3) శుద్ధ స్ఫటికం. గమనించండి, వజ్రానికి బదులుగా తెల్ల పగడం ఎప్పుడూ ధరించకూడదు, ఎందుకంటే పగడం కుజుడి రత్నం. ఈ ఉపరత్నాలలో ఒకదానిని శుద్ధ వెండిలో చేయించి, శుక్ల పక్షం శుక్రవారం ఉదయం 'ఓం శుం శుక్రాయ నమః' మంత్రాన్ని 108 సార్లు జపించి మధ్య వేలు లేదా చిటికెన వేలుకు ధరించాలి.`;
+      const p2 = `ఈ దివ్య ఉపరత్నం వజ్రం లాంటి ఫలితాలను, దాంపత్య సుఖాన్ని మరియు ఆర్థిక శ్రేయస్సును అందిస్తుంది. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి అనుగ్రహం మీకు సదా ఉండాలని ప్రార్థిస్తున్నాను.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "ta") {
+      const p1 = `வைரம் அதிக விலை கொண்டதாக இருந்து உங்கள் வசதிக்கு அப்பாற்பட்டதாக இருந்தால், வேத ஜோதிடத்தில் சுக்கிர கிரகத்திற்கு மூன்று சிறந்த மற்றும் மலிவான உப ரத்தினங்கள் பரிந்துரைக்கப்பட்டுள்ளன: 1) இயற்கை வெள்ளை ஜிர்கான் (White Zircon), 2) இயற்கை வெள்ளை ஓபல் (White Opal), அல்லது 3) தூய ஸ்படிகம். முக்கிய குறிப்பு: வைரத்திற்கு பதிலாக வெள்ளை பவளத்தை அணியக்கூடாது, ஏனெனில் பவளம் செவ்வாயின் ரத்தினம். இந்த உப ரத்தினத்தை சுத்தமான வெள்ளியில் பதித்து, சுக்கில பட்ச வெள்ளிக்கிழமை காலையில் 'ஓம் ஷும் சுக்ராய நமஹ' மந்திரத்தை 108 முறை ஜெபித்து நடுவிரல் அல்லது சுண்டுவிரலில் அணிய வேண்டும்.`;
+      const p2 = `இது வைரத்திற்கு இணையான நற்பலன்களையும், குடும்ப அமைதியையும், பொருளாதார மேன்மையையும் தரும். ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியின் ஆசிகள் உங்களுக்கு என்றும் துணை நிற்கும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "ml") {
+      const p1 = `വജ്രം വാങ്ങാൻ സാമ്പത്തിക ബുദ്ധിമുട്ടുണ്ടെങ്കിൽ, വേദ ജ്യോതിഷത്തിൽ ശുക്ര ഗ്രഹത്തിനായി മൂന്ന് വിശേഷപ്പെട്ടതും ചെലവ് കുറഞ്ഞതുമായ ഉപരത്നങ്ങൾ നിർദ്ദേശിച്ചിട്ടുണ്ട്: 1) സ്വാഭാവിക വൈറ്റ് സിർക്കോൺ (White Zircon), 2) സ്വാഭാവിക വൈറ്റ് ഓപ്പൽ (White Opal), അല്ലെങ്കിൽ 3) ശുദ്ധമായ സ്ഫടികം. ശ്രദ്ധിക്കുക, വജ്രത്തിന് പകരമായി വെളുത്ത പവിഴം ഒരിക്കലും ധരിക്കരുത്, കാരണം പവിഴം ചൊവ്വയുടെ രത്നമാണ്. ഈ ഉപരത്നം ശുദ്ധമായ വെള്ളിയിൽ മോതിരം തീർത്ത്, ശുക്ലപക്ഷത്തിലെ വെള്ളിയാഴ്ച 'ഓം ശും ശുക്രായ നമഃ' മന്ത്രം 108 തവണ ജപിച്ച് നടുവിരലിലോ ചെറുവിരലിലോ ധരിക്കുക.`;
+      const p2 = `ഇത് വജ്രത്തിന് തുല്യമായ ഗുണഫലങ്ങളും സാമ്പത്തിക അഭിവൃദ്ധിയും നൽകും. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയുടെ അനുഗ്രഹം ഉണ്ടാകട്ടെ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "mr") {
+      const p1 = `जर हिरा खरेदी करणे तुमच्या बजेटबाहेर असेल, तर वैदिक ज्योतिषात शुक्र ग्रहासाठी तीन अत्यंत प्रभावी आणि परवडणारे शास्त्रोक्त उपरत्न सांगितले आहेत: १) नैसर्गिक पांढरा जरकन (White Zircon), २) नैसर्गिक पांढरा ओपल (White Opal), किंवा ३) शुद्ध स्फटिक. लक्षात ठेवा, हिऱ्याच्या ऐवजी पांढरा पोवळा कधीही घालू नका, कारण पोवळा मंगळाचा आहे. यापैकी एक उपरत्न शुद्ध चांदीत बनवून, शुक्ल पक्षातील शुक्रवारी सकाळी 'ॐ शुं शुक्राय नमः' मंत्राचा १०८ वेळा जप करून मधल्या किंवा करंगळी बोटात धारण करावे.`;
+      const p2 = `हे शास्त्रोक्त उपरत्न हिऱ्याप्रमाणेच समृद्धी, कला आणि कौटुंबिक सौख्य प्रदान करेल. श्री क्षेत्र गोकर्ण महाबळेश्वर यांच्या कृपेने तुमचे सर्व कार्य सिद्ध होवो.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    // Kannada Default
+    const p1 = `ವಜ್ರದ ಬೆಲೆ ಹೆಚ್ಚಾಗಿದ್ದು ನಿಮ್ಮ ಬಜೆಟ್‌ಗೆ ಕೈಗೆಟುಕದಿದ್ದರೆ, ವೈದಿಕ ಶಾಸ್ತ್ರದಲ್ಲಿ ಶುಕ್ರ ಗ್ರಹಕ್ಕೆ ಮೂರು ಶ್ರೇಷ್ಠ ಮತ್ತು ಕೈಗೆಟುಕುವ ನೈಸರ್ಗಿಕ ಉಪರತ್ನಗಳನ್ನು (Substitutes) ವಿಧಿಸಲಾಗಿದೆ: ೧) ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon - ವಜ್ರಕ್ಕೆ ಅತ್ಯಂತ ಸಮೀಪವಾದ ರತ್ನ), ೨) ನೈಸರ್ಗಿಕ ಬಿಳಿ ಓಪಲ್ (White Opal), ೩) ಶುದ್ಧ ಸ್ಫಟಿಕ ಮಣಿ (Sphatika). ನೆನಪಿನಲ್ಲಿಡಿ, ಬಿಳಿ ಹವಳವನ್ನು ಎಂದಿಗೂ ವಜ್ರದ ಬದಲು ಧರಿಸಬಾರದು ಏಕೆಂದರೆ ಹವಳವು ಮಂಗಳನ ರತ್ನ. ಈ ಪರ್ಯಾಯ ಉಪರತ್ನಗಳನ್ನು ಶುದ್ಧ ಬೆಳ್ಳಿಯ (Silver) ಉಂಗುರದಲ್ಲಿ ಮಾಡಿಸಿ, ಶುಕ್ಲ ಪಕ್ಷದ ಶುಕ್ರವಾರದಂದು 'ಓಂ ಶುಂ ಶುಕ್ರಾಯ ನಮಃ' ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಜಪಿಸಿ ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳಿಗೆ ಧರಿಸಬೇಕು.`;
+    const p2 = `ಈ ಪವಿತ್ರ ಉಪರತ್ನವು ವಜ್ರದಷ್ಟೇ ಸಕಾರಾತ್ಮಕ ಶಕ್ತಿಯನ್ನು ನೀಡಿ ವೈವಾಹಿಕ ಸಾಮರಸ್ಯ, ಸೌಂದರ್ಯ ಮತ್ತು ಆರ್ಥಿಕ ಸಮೃದ್ಧಿಯನ್ನು ತರುತ್ತದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ನಿಮಗೆ ಸಕಲ ಸಿದ್ಧಿ ಲಭಿಸಲಿ.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  // --- GENERAL GEMSTONE INQUIRY ---
   const asksCoral = /ಹವಳ|havala|coral|ಮೂಂಗಾ|moonga|munga|मूंगा|పగడం|pagadam|பவளம்|pavalam|പവിഴം|pavizham|पोवळा/i.test(question);
   const isCoralMatched = rec.isCoralMatched;
 
@@ -2888,7 +3238,7 @@ export function buildDeterministicGemstoneReading(
     } else if (isCoralMatched) {
       coralLine = "In addition, Red Coral (Havala) serves as a potent secondary Yoga-Karaka gemstone for your chart. ";
     }
-    const p1 = `For your birth chart, the most auspicious and empowering primary gemstone is ${gemName} to strengthen your ruling planet ${rec.gemstonePlanet}. ${coralLine}This sacred gemstone should be set in ${metal} and worn on the ${finger} on ${wearingDayAndTime}. Before wearing, purify it in unboiled milk or holy water while chanting the sacred mantra '${mantra}' 108 times, which ${benefits}`;
+    const p1 = `For your birth chart, the most auspicious and empowering primary gemstone is ${gemName} to strengthen your ruling planet ${rec.gemstonePlanet}. ${coralLine}Authentic affordable substitutes (Uparatna) include ${substitute}. Note that incompatible stones to avoid are: ${incompatibilities}. This sacred gemstone should be set in ${metal} and worn on the ${finger} on ${wearingDayAndTime}. Before wearing, purify it in unboiled milk or holy water while chanting the sacred mantra '${mantra}' 108 times, which ${benefits}`;
     const p2 = `Always ensure the gemstone is authentic, natural, and free from cracks or flaws before consecrating it. May the divine grace of Sri Kshetra Gokarna Mahabaleshwara bestow immense confidence, success, and prosperity upon your journey.`;
     return deduplicateResponseText(`${p1}\n\n${p2}`);
   }
@@ -2902,7 +3252,7 @@ export function buildDeterministicGemstoneReading(
     } else if (isCoralMatched) {
       coralLine = "विशेष रूप से आपकी कुंडली में लाल मूंगा (Red Coral) भी उत्तम योगकारक बल प्रदान करता है। ";
     }
-    const p1 = `आपकी जन्म कुंडली के अनुसार आपके लिए सबसे शुभ और भाग्यवर्धक मुख्य रत्न ${gemName} है, जो आपके ग्रह ${rec.gemstonePlanet} को विशेष बल प्रदान करता है। ${coralLine}इस पवित्र रत्न को ${metal} में बनवाकर ${wearingDayAndTime} ${finger} में धारण करें। धारण करने से पूर्व कच्चे दूध या गंगाजल से शुद्ध करके '${mantra}' मंत्र का १०८ बार जप करें। यह रत्न ${benefits}`;
+    const p1 = `आपकी जन्म कुंडली के अनुसार आपके लिए सबसे शुभ और भाग्यवर्धक मुख्य रत्न ${gemName} है, जो आपके ग्रह ${rec.gemstonePlanet} को विशेष बल प्रदान करता है। ${coralLine}किफायती शास्त्रोक्त उपरत्न: ${substitute}। वर्जित रत्न: ${incompatibilities}। इस पवित्र रत्न को ${metal} में बनवाकर ${wearingDayAndTime} ${finger} में धारण करें। धारण करने से पूर्व कच्चे दूध या गंगाजल से शुद्ध करके '${mantra}' मंत्र का १०८ बार जप करें। यह रत्न ${benefits}`;
     const p2 = `ध्यान रहे कि रत्न सर्वथा प्राकृतिक, शुद्ध और दोषरहित होना चाहिए। श्री क्षेत्र गोकर्ण महाबलेश्वर के आशीर्वाद से यह रत्न आपके जीवन में स्थिरता, तेज और सफलता प्रदान करेगा।`;
     return deduplicateResponseText(`${p1}\n\n${p2}`);
   }
@@ -2916,7 +3266,7 @@ export function buildDeterministicGemstoneReading(
     } else if (isCoralMatched) {
       coralLine = "విశేషించి మీ జాతకానికి ఎరుపు పగడం (Red Coral) కూడా అద్భుతమైన యోగకారక బలాన్ని ఇస్తుంది. ";
     }
-    const p1 = `మీ జన్మ కుండలి ప్రకారం మీకు అత్యంత శుభప్రదమైన మరియు శక్తివంతమైన ప్రధాన రత్నం ${gemName}, ఇది మీ గ్రహమైన ${rec.gemstonePlanet}కు విశేష బలాన్ని చేకూరుస్తుంది. ${coralLine}ఈ రత్నాన్ని ${metal}లో పొదిగించి, ${wearingDayAndTime} ${finger} ధరించాలి. ధరించడానికి ముందు శుద్ధ జలంతో లేదా ఆవు పాలతో శుద్ధి చేసి '${mantra}' మంత్రాన్ని 108 సార్లు జపించి ధరించడం వలన ${benefits}`;
+    const p1 = `మీ జన్మ కుండలి ప్రకారం మీకు అత్యంత శుభప్రదమైన మరియు శక్తివంతమైన ప్రధాన రత్నం ${gemName}, ఇది మీ గ్రహమైన ${rec.gemstonePlanet}కు విశేష బలాన్ని చేకూరుస్తుంది. ${coralLine}సరసమైన ఉపరత్నాలు: ${substitute}। ధరించకూడని రత్నాలు: ${incompatibilities}। ఈ రత్నాన్ని ${metal}లో పొదిగించి, ${wearingDayAndTime} ${finger} ధరించాలి. ధరించడానికి ముందు శుద్ధ జలంతో లేదా ఆవు పాలతో శుద్ధి చేసి '${mantra}' మంత్రాన్ని 108 సార్లు జపించి ధరించడం వలన ${benefits}`;
     const p2 = `రత్నం సహజమైనది మరియు దోషరహితమైనదిగా ఉండేలా చూసుకోండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులతో మీకు సర్వదా శుభం కలుగుతుంది.`;
     return deduplicateResponseText(`${p1}\n\n${p2}`);
   }
@@ -2926,11 +3276,11 @@ export function buildDeterministicGemstoneReading(
     if (asksCoral) {
       coralLine = isCoralMatched
         ? "நீங்கள் கேட்ட பவளம் (Red Coral) உங்கள் ஜாதகத்திற்கு மிகச்சிறந்த யோககாரக ரத்தினமாகும். "
-        : `பவளத்தை விட உங்கள் லக்னாதிபதி ரத்தினமான ${gemName} அணிவதே அதிக நற்பலன்களைத் தரும். `;
+        : `பவளத்தை விட உங்கள் லக்னாதிபதி ரத்தினமான ${gemName} அணிவதே அதிக நற்பಲன்களைத் தரும். `;
     } else if (isCoralMatched) {
       coralLine = "குறிப்பாக உங்கள் ஜாதகத்திற்கு பவளமும் (Red Coral) சிறந்த யோக பலனைத் தரும். ";
     }
-    const p1 = `உங்கள் ஜாதக அமைப்பின்படி உங்களுக்கு மிகவும் யோகமும் மங்களமும் தரும் முதன்மை நவரத்தினம் ${gemName} ஆகும். இது உங்கள் ${rec.gemstonePlanet} கிரகத்திற்கு அளப்பரிய பலத்தைத் தரும். ${coralLine}இந்த ரத்தினத்தை ${metal}-ல் பதித்து, ${wearingDayAndTime} ${finger}-ல் அணிய வேண்டும். அணியும் முன் தூய பால் அல்லது கங்கை நீரால் சுத்தி செய்து '${mantra}' மந்திரத்தை 108 முறை ஜெபித்து அணிவதால் ${benefits}`;
+    const p1 = `உங்கள் ஜாதக அமைப்பின்படி உங்களுக்கு மிகவும் யோகமும் மங்களமும் தரும் முதன்மை நவரத்தினம் ${gemName} ஆகும். ಇದು உங்கள் ${rec.gemstonePlanet} கிரகத்திற்கு அளப்பரிய பலத்தைத் தரும். ${coralLine}மலிவான உப ரத்தினங்கள்: ${substitute}। தவிர்க்க வேண்டிய ரத்தினங்கள்: ${incompatibilities}। இந்த ரத்தினத்தை ${metal}-ல் பதித்து, ${wearingDayAndTime} ${finger}-ல் அணிய வேண்டும். அணியும் முன் தூய பால் அல்லது கங்கை நீரால் சுத்தி செய்து '${mantra}' மந்திரத்தை 108 முறை ஜெபித்து அணிவதால் ${benefits}`;
     const p2 = `ரத்தினம் இயற்கையானதாகவும் தரம் வாய்ந்ததாகவும் இருக்க வேண்டும். ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமியின் திருவருளால் உங்களுக்கு சகல காரியங்களிலும் வெற்றி உண்டாகும்.`;
     return deduplicateResponseText(`${p1}\n\n${p2}`);
   }
@@ -2944,7 +3294,7 @@ export function buildDeterministicGemstoneReading(
     } else if (isCoralMatched) {
       coralLine = "പ്രത്യേകിച്ചും ചുവന്ന പവിഴവും (Red Coral) നിങ്ങളുടെ ജാതകത്തിന് യോഗബലം നൽകുന്നു. ";
     }
-    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം ഏറ്റവും അനുകൂലവും ഐശ്വര്യപ്രദവുമായ പ്രധാന രത്നം ${gemName} ആണ്. ഇത് നിങ്ങളുടെ ${rec.gemstonePlanet} ഗ്രഹത്തിന് വിശേഷ ബലം നൽകുന്നു. ${coralLine}ഈ രത്നം ${metal}-ൽ പണിത് ${wearingDayAndTime} ${finger}-ൽ ധരിക്കണം. ധരിക്കുന്നതിന് മുമ്പ് പശുവിൻ പാലിലോ തീർത്ഥത്തിലോ ശുദ്ധിവരുത്തി '${mantra}' മന്ത്രം 108 തവണ ജപിച്ച് ധരിച്ചാൽ ${benefits}`;
+    const p1 = `നിങ്ങളുടെ ജാതകപ്രകാരം ഏറ്റവും അനുകൂലവും ഐശ്വര്യപ്രദവുമായ പ്രധാന രത്നം ${gemName} ആണ്. ഇത് നിങ്ങളുടെ ${rec.gemstonePlanet} ഗ്രഹത്തിന് വിശേഷ ബലം നൽകുന്നു. ${coralLine}ചെലവ് കുറഞ്ഞ ഉപരത്നങ്ങൾ: ${substitute}। ധരിക്കാൻ പാടില്ലാത്ത രത്നങ്ങൾ: ${incompatibilities}। ഈ രത്നം ${metal}-ൽ പണിത് ${wearingDayAndTime} ${finger}-ൽ ധരിക്കണം. ധരിക്കുന്നതിന് മുമ്പ് പശുവിൻ പാലിലോ തീർത്ഥത്തിലോ ശുദ്ധിവരുത്തി '${mantra}' മന്ത്രം 108 തവണ ജപിച്ച് ധരിച്ചാൽ ${benefits}`;
     const p2 = `സ്വാഭാവികവും കളങ്കമില്ലാത്തതുമായ രത്നം തിരഞ്ഞെടുക്കുക. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സ്വാമിയുടെ അനുഗ്രഹത്താൽ ഐശ്വര്യവും സൗഭാഗ്യവും കൈവരും.`;
     return deduplicateResponseText(`${p1}\n\n${p2}`);
   }
@@ -2958,7 +3308,7 @@ export function buildDeterministicGemstoneReading(
     } else if (isCoralMatched) {
       coralLine = "विशेषतः तुमच्या कुंडलीत लाल पोवळा (Red Coral) देखील उत्तम योगकारक बल प्रदान करतो. ";
     }
-    const p1 = `तुमच्या जन्म कुंडलीनुसार तुमच्यासाठी सर्वात शुभ आणि लाभदायक मुख्य रत्न ${gemName} आहे, जे तुमच्या ${rec.gemstonePlanet} ग्रहाला विशेष बल प्रदान करते. ${coralLine}हे रत्न ${metal} मध्ये बनवून ${wearingDayAndTime} ${finger} मध्ये धारण करावे. धारण करण्यापूर्वी कच्चे दूध किंवा गंगाजलाने शुद्ध करून '${mantra}' मंत्राचा १०८ वेळा जप करावा. यामुळे ${benefits}`;
+    const p1 = `तुमच्या जन्म कुंडलीनुसार तुमच्यासाठी सर्वात शुभ आणि लाभदायक मुख्य रत्न ${gemName} आहे, जे तुमच्या ${rec.gemstonePlanet} ग्रहाला विशेष बल प्रदान करते. ${coralLine}परवडणारे शास्त्रोक्त उपरत्न: ${substitute}। टाळायची रत्ने: ${incompatibilities}। हे रत्न ${metal} मध्ये बनवून ${wearingDayAndTime} ${finger} मध्ये धारण करावे. धारण करण्यापूर्वी कच्चे दूध किंवा गंगाजलाने शुद्ध करून '${mantra}' मंत्राचा १०८ वेळा जप करावा. यामुळे ${benefits}`;
     const p2 = `रत्न पूर्णपणे नैसर्गिक आणि दोषमुक्त असावे. श्री क्षेत्र गोकर्ण महाबळेश्वर यांच्या कृपेने तुमच्या जीवनात प्रगती आणि यश लाभेल.`;
     return deduplicateResponseText(`${p1}\n\n${p2}`);
   }
@@ -2972,14 +3322,11 @@ export function buildDeterministicGemstoneReading(
   } else if (isCoralMatched) {
     coralLine = "ವಿಶೇಷವಾಗಿ ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕೆಂಪು ಹವಳವು (Red Coral) ಸಹ ಅತ್ಯುತ್ತಮ ಯೋಗಕಾರಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ";
   }
-  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಹಾಗೂ ಮಂಗಳಕರವಾದ ಮುಖ್ಯ ರತ್ನವೆಂದರೆ ${gemName} (ಗ್ರಹಾಧಿಪತಿ ${rec.gemstonePlanet} ಬಲಕ್ಕಾಗಿ). ${coralLine}ಈ ಪವಿತ್ರ ರತ್ನವನ್ನು ${metal}ದಲ್ಲಿ ಉಂಗುರ ಮಾಡಿಸಿ, ${finger}ಗೆ ${wearingDayAndTime} ಧರಿಸಬೇಕು. ಧರಿಸುವ ಮುನ್ನ ಹಸಿಹಾಲು ಅಥವಾ ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ '${mantra}' ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ ಧರಿಸುವುದರಿಂದ ${benefits}`;
+  const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಗೆ ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಹಾಗೂ ಮಂಗಳಕರವಾದ ಮುಖ್ಯ ರತ್ನವೆಂದರೆ ${gemName} (ಗ್ರಹಾಧಿಪತಿ ${rec.gemstonePlanet} ಬಲಕ್ಕಾಗಿ). ${coralLine}ಕೈಗೆಟುಕುವ ಶಾಸ್ತ್ರೋಕ್ತ ಉಪರತ್ನಗಳು: ${substitute}। ಈ ರತ್ನದೊಂದಿಗೆ ಧರಿಸಬಾರದ ವಿರುದ್ಧ ರತ್ನಗಳು: ${incompatibilities}। ಈ ಪವಿತ್ರ ರತ್ನವನ್ನು ${metal}ದಲ್ಲಿ ಉಂಗುರ ಮಾಡಿಸಿ, ${finger}ಗೆ ${wearingDayAndTime} ಧರಿಸಬೇಕು. ಧರಿಸುವ ಮುನ್ನ ಹಸಿಹಾಲು ಅಥವಾ ಗಂಗಾಜಲದಲ್ಲಿ ಶುದ್ಧೀಕರಿಸಿ '${mantra}' ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ ಧರಿಸುವುದರಿಂದ ${benefits}`;
   const p2 = `ರತ್ನವನ್ನು ಆಯ್ಕೆಮಾಡುವಾಗ ಯಾವುದೇ ಬಿರುಕು ಅಥವಾ ಕೃತಕತೆಯಿಲ್ಲದ ನೈಸರ್ಗಿಕ ಹರಳನ್ನೇ ಧರಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹದಿಂದ ಈ ರತ್ನಧಾರಣೆಯು ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಆತ್ಮವಿಶ್ವಾಸ, ಧೈರ್ಯ ಹಾಗೂ ಸಕಲ ಕಾರ್ಯಸಿದ್ಧಿಯನ್ನು ತರಲಿದೆ.`;
   return deduplicateResponseText(`${p1}\n\n${p2}`);
 }
 
-/**
- * Generates an authentic, focused 1-to-2 paragraph lucky color reading.
- */
 export function buildDeterministicColorReading(
   session: ConsultationSession,
   _question: string,
@@ -3238,7 +3585,7 @@ function generateDeterministicFallbackReading(
 
   // 1. QUICK SPECIFIC DISPATCH (Gemstone, Color, Number, Day/Deity, Clarification)
   // Strictly enforces the 80/20 golden rule and 1-2 paragraph target length.
-  if (complexityAnalysis.complexity === "QUICK_SPECIFIC" && recProfile) {
+  if ((complexityAnalysis.complexity === "QUICK_SPECIFIC" || complexityAnalysis.domain === "GEMSTONE_RATNA") && recProfile) {
     switch (complexityAnalysis.domain) {
       case "GEMSTONE_RATNA":
         return buildDeterministicGemstoneReading(
@@ -3246,7 +3593,8 @@ function generateDeterministicFallbackReading(
           question,
           astroData,
           recProfile,
-          isSubsequent
+          isSubsequent,
+          conversationHistory
         );
       case "LUCKY_COLOR":
         return buildDeterministicColorReading(

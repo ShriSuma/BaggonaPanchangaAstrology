@@ -32,7 +32,9 @@ import {
   generateConsultationAnswer,
   CONSULTATION_LANG_NAMES,
   deduplicateResponseText,
-  type ConsultationReadingResult
+  type ConsultationReadingResult,
+  NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE,
+  MULTI_TURN_ANTI_CONTRADICTION_GUARD
 } from "./consultationAIEngine";
 import { askGemini, type AskGeminiChatTurn } from "../../core/GeminiEngine";
 import { useAppStore } from "../../stores/appStore";
@@ -484,7 +486,8 @@ export async function presentConsultationReply(params: {
     currentDashaText,
     targetLang,
     isSubsequentQuestion,
-    questionIndex
+    questionIndex,
+    conversationHistory
   });
 
   let responseText = "";
@@ -592,6 +595,7 @@ function buildPresenterPrompt(params: {
   targetLang: string;
   isSubsequentQuestion?: boolean;
   questionIndex?: number;
+  conversationHistory?: AskGeminiChatTurn[];
 }): string {
   const {
     session,
@@ -604,7 +608,8 @@ function buildPresenterPrompt(params: {
     currentDashaText,
     targetLang,
     isSubsequentQuestion,
-    questionIndex
+    questionIndex,
+    conversationHistory
   } = params;
 
   let categorySpecificInstructions = "";
@@ -766,6 +771,22 @@ SPECIFIC GUIDANCE FOR GREETING & GENERAL BLESSING:
 
   return `You are the revered Senior Head Astrologer & Chief Priest of Sri Baggona Panchanga Jyotishya Sansthana, Sri Kshetra Gokarna (ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಮುಖ್ಯ ದೈವಜ್ಞರು, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ), endowed with over 50 years of tapasya, Vedic wisdom, and pastoral spiritual guidance.
 The devotee is sitting right across from you face-to-face in the sacred sanctum of Gokarna for a private 20-minute spiritual conversation.
+
+${NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE}
+
+${MULTI_TURN_ANTI_CONTRADICTION_GUARD}
+
+${
+  conversationHistory && conversationHistory.length > 0
+    ? `CRITICAL MULTI-TURN CONVERSATION CONTINUITY & PAST RULINGS:
+The devotee is in an ongoing 20-minute conversation. Review all past turns:
+${conversationHistory.map((t, idx) => `[Turn ${idx + 1} - ${t.role === "user" ? "Devotee" : "Master Astrologer"}]: ${t.text}`).join("\n\n")}
+
+MANDATORY RULES ON PAST RULINGS:
+- If in Turn 1 or earlier you advised against, warned against, or rejected a gemstone/remedy (for example, telling the devotee NOT to buy White Coral instead of Diamond), you MUST NOT suggest that same rejected gemstone in this turn!
+- Maintain 100% strict consistency with your earlier statements. Never contradict yourself!`
+    : ""
+}
 
 DEVOTEE PROFILE & SENSED CONTEXT:
 - Name: ${session.name}

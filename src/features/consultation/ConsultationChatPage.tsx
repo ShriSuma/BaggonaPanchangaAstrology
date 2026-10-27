@@ -711,16 +711,17 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       const isSubsequentQuestion = previousUserMsgs.length > 0;
       const questionIndex = previousUserMsgs.length;
 
-      // Condense PRIOR conversation history (excluding the new active question)
-      // to supply authentic conversational context without duplicating the active question turn.
+      // Preserve rich PRIOR conversation history across the 20-minute session
+      // so previous rulings, gemstone advice, and prohibitions are never forgotten or contradicted.
       const chatTurns = messages.map((m) => {
         if (m.sender === "user") {
-          return { role: "user" as const, text: m.text };
+          return { role: "user" as const, text: m.text.trim() };
         }
-        const snippet = m.text.length > 250 ? `${m.text.slice(0, 250)}...` : m.text;
+        // Retain generous content up to 1500 characters so specific gemstone/remedy reasons remain intact
+        const snippet = m.text.length > 1500 ? `${m.text.slice(0, 1500)}...` : m.text;
         return {
           role: "model" as const,
-          text: m.intent ? `[Topic: ${m.intent}] ${snippet}` : snippet
+          text: snippet.trim()
         };
       });
 
@@ -735,7 +736,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       const reading = await presentConsultationReply({
         session,
         userQuestion: question,
-        conversationHistory: chatTurns.slice(-6),
+        conversationHistory: chatTurns.slice(-20),
         apiKey: effectiveKey,
         isSubsequentQuestion,
         questionIndex
