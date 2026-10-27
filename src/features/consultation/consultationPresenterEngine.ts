@@ -34,12 +34,19 @@ import {
   deduplicateResponseText,
   type ConsultationReadingResult,
   NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE,
-  MULTI_TURN_ANTI_CONTRADICTION_GUARD
+  MULTI_TURN_ANTI_CONTRADICTION_GUARD,
+  SYSTEM_SECURITY_CONFIDENTIALITY_DIRECTIVE,
+  detectSecurityOrSystemProbe,
+  getDeterministicSecurityBlockedReply,
+  formatRulingsLedgerForPrompt
 } from "./consultationAIEngine";
 import { askGemini, type AskGeminiChatTurn } from "../../core/GeminiEngine";
 import { useAppStore } from "../../stores/appStore";
 
 export type ConsultationQuestionCategory =
+  | "SECURITY_SYSTEM_PROBE_BLOCKED"
+  | "ABROAD_VS_INDIA_SETTLEMENT"
+  | "PROPERTY_ASSET_ACQUISITION"
   | "CAREER_FRUSTRATION_DISTRESS"
   | "EMOTIONAL_DISTRESS_LIFE"
   | "CHILD_PARENT_INQUIRY"
@@ -94,6 +101,55 @@ export function senseAndCategorizeQuestion(
 
   const lifeStage: "YOUTH" | "MID_CAREER" | "SENIOR" =
     ageYears < 28 ? "YOUTH" : ageYears <= 48 ? "MID_CAREER" : "SENIOR";
+
+  // 1.5. Security & System Integrity Guard (Prompt Injection, DB Credentials, Admin Secrets, Payment Bypass)
+  if (detectSecurityOrSystemProbe(q)) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "SECURITY_SYSTEM_PROBE_BLOCKED",
+      categoryLabel: "ಪವಿತ್ರ ದೈವಜ್ಞ ಭದ್ರತಾ ಮಿತಿ (Sanctuary Security & Dharmic Boundary)",
+      detectedTopicSnippet: "System / Security Probe Intercepted",
+      priestPersonaTone: "divine_oracle"
+    };
+  }
+
+  // 1.6. Abroad vs India Settlement / Foreign Settlement
+  const isAbroadSettlement =
+    /ವಿದೇಶ|ಪರದೇಶ|ವಿದೇಶ ವಾಸ|ವಿದೇಶ ಯೋಗ|ವಿದೇಶದಲ್ಲಿ ನೆಲೆಸ|ಇಂಡಿಯಾದಲ್ಲೇ ಇರಬೇಕಾ|ವಿದೇಶ ಉತ್ತಮವೋ|ಭಾರತ ಉತ್ತಮವೋ|ಅಮೆರಿಕ|ಕೆನಡಾ|ಜರ್ಮನಿ|ಯೂರೋಪ್|abroad|foreign|settle abroad|settle outside|settle in usa|settle in canada|settle in uk|settle in europe|settle in germany|foreign citizenship|pr visa|green card|stay in india|settled outside of india|foreign settlement|विदेश|विदेश योग|परदेस|विदेश में बसना|భారతదేశం|విదేశం|வெளிநாடு/i.test(
+      q
+    );
+
+  if (isAbroadSettlement) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "ABROAD_VS_INDIA_SETTLEMENT",
+      categoryLabel: "ವಿದೇಶ ಯೋಗ ಹಾಗೂ ಸ್ವದೇಶ ವಾಸ ವಿಶ್ಲೇಷಣೆ (Abroad Settlement vs Swadesha Guidance)",
+      detectedTopicSnippet: "Abroad vs India Settlement",
+      priestPersonaTone: "erudite_scholar"
+    };
+  }
+
+  // 1.7. Property / Asset / Land / House Acquisition
+  const isPropertyAsset =
+    /ಆಸ್ತಿ|ಜಮೀನು|ಭೂಮಿ|ಮನೆ|ನಿವೇಶನ|ಸೈಟ್|ಆಸ್ತಿ ಖರೀದಿ|ಮನೆ ಕಟ್ಟಿಸ|ಸ್ವಂತ ಮನೆ|property|asset|real estate|land purchase|buy house|buy flat|buy land|own house|plot|construction|house yog|संपत्ति|जमीन|मकान|घर खरीदना|ప్లాట్|ఆస్తి|சொத்து|நிலம்/i.test(
+      q
+    );
+
+  if (isPropertyAsset) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "PROPERTY_ASSET_ACQUISITION",
+      categoryLabel: "ಸ್ಥಿರ ಆಸ್ತಿ ಹಾಗೂ ಗೃಹ ಯೋಗ ವಿಚಾರಣೆ (Property, Land & House Acquisition)",
+      detectedTopicSnippet: "Property / Land / House Acquisition",
+      priestPersonaTone: "peaceful_counsel"
+    };
+  }
 
   // 2. Short Conversational Greeting & Blessings
   const isGreeting =
@@ -436,12 +492,32 @@ export async function presentConsultationReply(params: {
     `[consultationPresenterEngine] Devotee "${session.name}" (Age: ${sensed.ageYears}, ${sensed.lifeStage}) -> Category: ${sensed.category}`
   );
 
-  // If question is pure deep astrological, career frustration, child inquiry, or Santhana, delegate directly to the deep chart math engine
+  // Step 1.5: Security & System Probe Immediate Boundary Guard
+  if (sensed.category === "SECURITY_SYSTEM_PROBE_BLOCKED") {
+    const blockedText = getDeterministicSecurityBlockedReply(session.language);
+    return {
+      fullText: blockedText,
+      paragraphs: [blockedText],
+      astrologicalHighlights: {
+        lagna: "ಮೇಷ",
+        moonSign: "ವೃಷಭ",
+        nakshatra: "ರೋಹಿಣಿ",
+        currentDasha: "ಶುಭ ದಶಾ ಕಾಲ",
+        keyInfluences: []
+      },
+      hasDosha: false,
+      sensedContext: sensed
+    };
+  }
+
+  // If question is pure deep astrological, career frustration, child inquiry, Santhana, abroad settlement, or property, delegate directly to the deep chart math engine
   if (
     sensed.category === "ASTROLOGICAL_DEEP" ||
     sensed.category === "CAREER_FRUSTRATION_DISTRESS" ||
     sensed.category === "CHILD_PARENT_INQUIRY" ||
-    sensed.category === "SANTHANA_PROGENY_SENSITIVE"
+    sensed.category === "SANTHANA_PROGENY_SENSITIVE" ||
+    sensed.category === "ABROAD_VS_INDIA_SETTLEMENT" ||
+    sensed.category === "PROPERTY_ASSET_ACQUISITION"
   ) {
     const reading = await generateConsultationAnswer({
       session,
@@ -776,6 +852,10 @@ ${NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE}
 
 ${MULTI_TURN_ANTI_CONTRADICTION_GUARD}
 
+${SYSTEM_SECURITY_CONFIDENTIALITY_DIRECTIVE}
+
+${formatRulingsLedgerForPrompt(session.rulingsLedger || [], session.language)}
+
 ${
   conversationHistory && conversationHistory.length > 0
     ? `CRITICAL MULTI-TURN CONVERSATION CONTINUITY & PAST RULINGS:
@@ -783,8 +863,8 @@ The devotee is in an ongoing 20-minute conversation. Review all past turns:
 ${conversationHistory.map((t, idx) => `[Turn ${idx + 1} - ${t.role === "user" ? "Devotee" : "Master Astrologer"}]: ${t.text}`).join("\n\n")}
 
 MANDATORY RULES ON PAST RULINGS:
-- If in Turn 1 or earlier you advised against, warned against, or rejected a gemstone/remedy (for example, telling the devotee NOT to buy White Coral instead of Diamond), you MUST NOT suggest that same rejected gemstone in this turn!
-- Maintain 100% strict consistency with your earlier statements. Never contradict yourself!`
+- If in Turn 1 or earlier you advised against, warned against, or rejected a specific option (e.g. permanent settlement abroad, speculative debt-laden property, or White Coral instead of Diamond), you MUST NOT suggest or approve that same rejected option in this turn!
+- Maintain 100% strict consistency with your earlier statements across ALL life domains. Never contradict yourself!`
     : ""
 }
 

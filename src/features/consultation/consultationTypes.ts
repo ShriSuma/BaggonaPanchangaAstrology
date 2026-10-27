@@ -107,6 +107,25 @@ export interface ConsultationChatMessage {
   activeDoshaCard?: ActiveDoshaCardData;
 }
 
+export interface ConsultationRulingRecord {
+  domain:
+    | "ABROAD_SETTLEMENT"
+    | "MARRIAGE"
+    | "EDUCATION"
+    | "SANTHANA"
+    | "HEALTH"
+    | "PROPERTY_ASSET"
+    | "CAREER_FINANCE"
+    | "GEMSTONE_REMEDY"
+    | "GENERAL";
+  questionSummary: string;
+  primaryVerdict: string;
+  rejectedOptions: string[];
+  approvedOptions: string[];
+  remedyPrescribed?: string;
+  timestamp?: string;
+}
+
 export interface ConsultationSession {
   id: string; // unique token e.g. "bgn_cst_abcdef123"
   name: string;
@@ -139,6 +158,7 @@ export interface ConsultationSession {
     sunRashi: string;
     currentDasha?: string;
   };
+  rulingsLedger?: ConsultationRulingRecord[];
 }
 
 export interface CreateConsultationInput {
