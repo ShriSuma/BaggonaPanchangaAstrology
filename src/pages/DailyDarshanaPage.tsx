@@ -1631,7 +1631,16 @@ function getCallNowText(lang: SevaLang, priestPhone?: string): string {
 
 export default function DailyDarshanaPage(): JSX.Element {
   const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
-  const tokenParam = params.get("token");
+  const tokenParam = params.get("token") || params.get("t");
+
+  // Consultation token detection: If someone opens /daily with a 20-min consultation token, redirect immediately to /consultation
+  useEffect(() => {
+    if (tokenParam && tokenParam.startsWith("bgn_cst_")) {
+      if (typeof window !== "undefined") {
+        window.location.replace(`/consultation${window.location.search}`);
+      }
+    }
+  }, [tokenParam]);
   const initialDecoded = useMemo(() => {
     if (!tokenParam) return null;
     try {

@@ -91,7 +91,7 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#link-generator")
   );
 
-  const isConsultationRoute = typeof window !== "undefined" && !isConsultationGeneratorRoute && (
+  const isConsultationRoute = typeof window !== "undefined" && !isConsultationGeneratorRoute && !isPriestPanchangaRoute && (
     window.location.pathname === "/consultation" ||
     window.location.pathname.startsWith("/consultation/") ||
     window.location.pathname === "/chat-session" ||
@@ -101,17 +101,35 @@ export default function App(): JSX.Element {
     window.location.search.includes("portal=consultation") ||
     window.location.search.includes("portal=chat_session") ||
     window.location.search.includes("portal=chat") ||
-    window.location.search.includes("session=bgn_") ||
-    window.location.search.includes("id=bgn_") ||
-    window.location.search.includes("token=bgn_") ||
+    window.location.search.includes("page=consultation") ||
+    window.location.search.includes("page=chat_session") ||
+    window.location.search.includes("id=bgn_cst_") ||
+    window.location.search.includes("token=bgn_cst_") ||
     window.location.hash.startsWith("#/consultation?") ||
     window.location.hash === "#/consultation" ||
     window.location.hash.startsWith("#/consultation/") ||
     window.location.hash === "#consultation" ||
     window.location.hash.startsWith("#consultation?") ||
     window.location.hash.startsWith("#/chat-session") ||
-    window.location.hash.includes("id=bgn_") ||
-    window.location.hash.includes("session=bgn_")
+    window.location.hash.includes("id=bgn_cst_") ||
+    window.location.hash.includes("token=bgn_cst_") ||
+    window.location.hash.includes("bgn_cst_") ||
+    // Generic session/id query param ONLY when NOT on Daily Darshana or other dedicated sanctum routes
+    ((window.location.search.includes("session=bgn_") || window.location.search.includes("id=bgn_")) &&
+      !window.location.pathname.startsWith("/daily") &&
+      !window.location.pathname.startsWith("/darshana") &&
+      !window.location.search.includes("token=bgn_v1_") &&
+      !window.location.search.includes("token=bgn_dob_") &&
+      !window.location.search.includes("token=bgn_tk_") &&
+      !window.location.search.includes("action=ics") &&
+      !window.location.search.includes("fromCal=") &&
+      !window.location.pathname.startsWith("/sandhya") &&
+      !window.location.pathname.startsWith("/karma") &&
+      !window.location.pathname.startsWith("/parihara") &&
+      !window.location.pathname.startsWith("/academy") &&
+      !window.location.pathname.startsWith("/quick") &&
+      !window.location.pathname.startsWith("/calendar")
+    )
   );
 
   const isSandhyavandanaRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isConsultationRoute && !isConsultationGeneratorRoute && (
@@ -161,7 +179,23 @@ export default function App(): JSX.Element {
   const isDailyRoute = typeof window !== "undefined" && !isPriestPanchangaRoute && !isAcademyRoute && !isConsultationRoute && !isConsultationGeneratorRoute && !isSandhyavandanaRoute && !isKarmaMandalaRoute && (
     window.location.pathname.startsWith("/daily") ||
     window.location.pathname.startsWith("/darshana") ||
-    (window.location.search.includes("token=") && !window.location.search.includes("token=bgn_sv_") && !window.location.search.includes("token=bgn_karma_") && !window.location.pathname.startsWith("/sandhya") && !window.location.pathname.startsWith("/karma") && !window.location.pathname.startsWith("/parihara") && !window.location.search.includes("portal=sandhya") && !window.location.search.includes("portal=karma") && !window.location.search.includes("page=sandhya") && !window.location.search.includes("page=karma")) ||
+    (window.location.search.includes("token=") &&
+      !window.location.search.includes("token=bgn_sv_") &&
+      !window.location.search.includes("token=bgn_karma_") &&
+      !window.location.search.includes("token=bgn_km_") &&
+      !window.location.search.includes("token=bgn_cst_") &&
+      !window.location.search.includes("token=bgn_acad_") &&
+      !window.location.pathname.startsWith("/sandhya") &&
+      !window.location.pathname.startsWith("/karma") &&
+      !window.location.pathname.startsWith("/parihara") &&
+      !window.location.pathname.startsWith("/academy") &&
+      !window.location.pathname.startsWith("/consultation") &&
+      !window.location.search.includes("portal=sandhya") &&
+      !window.location.search.includes("portal=karma") &&
+      !window.location.search.includes("portal=consultation") &&
+      !window.location.search.includes("page=sandhya") &&
+      !window.location.search.includes("page=karma") &&
+      !window.location.search.includes("page=consultation")) ||
     window.location.search.includes("fromCal=") ||
     window.location.search.includes("action=ics")
   );

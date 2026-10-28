@@ -289,6 +289,17 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         typeof window !== "undefined" ? window.location.hash.replace(/^#\/?(consultation\/|chat-session\/)?/, "").split("?")[0] : ""
       ].filter((t): t is string => Boolean(t && typeof t === "string" && t.trim().length > 0));
 
+      // Devotee Daily Darshana token detection: If someone opens /consultation with a Daily Darshana token, redirect immediately to /daily
+      const hasDailyDarshanaToken = candidateTokens.some(
+        (t) => t.startsWith("bgn_v1_") || t.startsWith("bgn_dob_") || t.startsWith("bgn_tk_")
+      );
+      if (hasDailyDarshanaToken) {
+        if (typeof window !== "undefined") {
+          window.location.replace(`/daily${window.location.search}`);
+        }
+        return;
+      }
+
       if (candidateTokens.length === 0) {
         if (!isMounted) return;
         setNoTokenProvided(true);

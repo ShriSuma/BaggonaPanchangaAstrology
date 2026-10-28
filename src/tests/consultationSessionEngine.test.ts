@@ -996,20 +996,62 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
           search.includes("portal=consultation") ||
           search.includes("portal=chat_session") ||
           search.includes("portal=chat") ||
-          search.includes("session=bgn_") ||
-          search.includes("id=bgn_") ||
-          search.includes("token=bgn_") ||
+          search.includes("page=consultation") ||
+          search.includes("page=chat_session") ||
+          search.includes("id=bgn_cst_") ||
+          search.includes("token=bgn_cst_") ||
           hash.startsWith("#/consultation?") ||
           hash === "#/consultation" ||
           hash.startsWith("#/consultation/") ||
           hash === "#consultation" ||
           hash.startsWith("#consultation?") ||
           hash.startsWith("#/chat-session") ||
-          hash.includes("id=bgn_") ||
-          hash.includes("session=bgn_")
+          hash.includes("id=bgn_cst_") ||
+          hash.includes("token=bgn_cst_") ||
+          hash.includes("bgn_cst_") ||
+          // Generic session/id query param ONLY when NOT on Daily Darshana or other dedicated sanctum routes
+          ((search.includes("session=bgn_") || search.includes("id=bgn_")) &&
+            !pathname.startsWith("/daily") &&
+            !pathname.startsWith("/darshana") &&
+            !search.includes("token=bgn_v1_") &&
+            !search.includes("token=bgn_dob_") &&
+            !search.includes("token=bgn_tk_") &&
+            !search.includes("action=ics") &&
+            !search.includes("fromCal=") &&
+            !pathname.startsWith("/sandhya") &&
+            !pathname.startsWith("/karma") &&
+            !pathname.startsWith("/parihara") &&
+            !pathname.startsWith("/academy") &&
+            !pathname.startsWith("/quick") &&
+            !pathname.startsWith("/calendar")
+          )
         );
 
-        return { isConsultationGeneratorRoute, isConsultationRoute };
+        const isDailyRoute = !isConsultationGeneratorRoute && !isConsultationRoute && (
+          pathname.startsWith("/daily") ||
+          pathname.startsWith("/darshana") ||
+          (search.includes("token=") &&
+            !search.includes("token=bgn_sv_") &&
+            !search.includes("token=bgn_karma_") &&
+            !search.includes("token=bgn_km_") &&
+            !search.includes("token=bgn_cst_") &&
+            !search.includes("token=bgn_acad_") &&
+            !pathname.startsWith("/sandhya") &&
+            !pathname.startsWith("/karma") &&
+            !pathname.startsWith("/parihara") &&
+            !pathname.startsWith("/academy") &&
+            !pathname.startsWith("/consultation") &&
+            !search.includes("portal=sandhya") &&
+            !search.includes("portal=karma") &&
+            !search.includes("portal=consultation") &&
+            !search.includes("page=sandhya") &&
+            !search.includes("page=karma") &&
+            !search.includes("page=consultation")) ||
+          search.includes("fromCal=") ||
+          search.includes("action=ics")
+        );
+
+        return { isConsultationGeneratorRoute, isConsultationRoute, isDailyRoute };
       }
 
       // /consultation-generator MUST NOT trigger isConsultationRoute
@@ -1041,6 +1083,27 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       const chat3 = evaluateConsultationRoutes("/", "", "#/consultation?id=bgn_cst_abc.123");
       expect(chat3.isConsultationGeneratorRoute).toBe(false);
       expect(chat3.isConsultationRoute).toBe(true);
+
+      // CRITICAL: Daily Darshana URLs from calendar with token=bgn_v1_ MUST route to Daily Darshana and NEVER Consultation
+      const daily1 = evaluateConsultationRoutes("/daily", "?token=bgn_v1_payload123&date=2026-10-28&sd=2026-10-28&lang=kn");
+      expect(daily1.isConsultationRoute).toBe(false);
+      expect(daily1.isDailyRoute).toBe(true);
+
+      const daily2 = evaluateConsultationRoutes("/darshana", "?token=bgn_v1_payload123");
+      expect(daily2.isConsultationRoute).toBe(false);
+      expect(daily2.isDailyRoute).toBe(true);
+
+      const daily3 = evaluateConsultationRoutes("/", "?token=bgn_v1_payload123&action=ics");
+      expect(daily3.isConsultationRoute).toBe(false);
+      expect(daily3.isDailyRoute).toBe(true);
+
+      const daily4 = evaluateConsultationRoutes("/daily", "?token=bgn_dob_payload456");
+      expect(daily4.isConsultationRoute).toBe(false);
+      expect(daily4.isDailyRoute).toBe(true);
+
+      const daily5 = evaluateConsultationRoutes("/daily", "?token=bgn_tk_mig_test789");
+      expect(daily5.isConsultationRoute).toBe(false);
+      expect(daily5.isDailyRoute).toBe(true);
     });
 
     it("resolves session ID when id parameter is corrupted but session parameter is valid", () => {
