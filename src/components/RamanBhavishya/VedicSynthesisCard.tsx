@@ -156,7 +156,7 @@ export const VedicSynthesisCard: React.FC<VedicSynthesisCardProps> = ({ synthesi
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-amber-200 text-base">{p.name}</span>
-                        <span className="text-xs text-stone-400">({p.rashi.english} {p.degree.toFixed(1)}°)</span>
+                        <span className="text-xs text-stone-400">({p.rashi.english})</span>
                       </div>
                       {getOutcomeBadge(p.sutraOutcome)}
                     </div>
@@ -233,7 +233,7 @@ export const VedicSynthesisCard: React.FC<VedicSynthesisCardProps> = ({ synthesi
                   {synthesis.grahaAmshaProfiles.map((p) => (
                     <tr key={p.name} className="hover:bg-stone-800/40">
                       <td className="p-3 font-bold text-amber-200">{p.name}</td>
-                      <td className="p-3">{p.rashi.english} ({p.degree.toFixed(1)}°)</td>
+                      <td className="p-3">{p.rashi.english}</td>
                       <td className="p-3 font-mono font-bold text-yellow-300">
                         {p.amsha.d9NavamsaNumber}
                       </td>
@@ -397,7 +397,7 @@ export const VedicSynthesisCard: React.FC<VedicSynthesisCardProps> = ({ synthesi
                     <div>
                       <h4 className="font-bold text-amber-300 text-base">ಮಾಂದಿ (ಗುಳಿಕ) - {synthesis.maandiProfile.house}ನೇ ಭಾವ</h4>
                       <p className="text-xs text-stone-400 font-mono">
-                        ರಾಶಿ: {synthesis.maandiProfile.rashi.english} ({synthesis.maandiProfile.degree.toFixed(1)}°) | ನವಾಂಶ (D-9): {synthesis.maandiProfile.d9NavamsaNumber}
+                        ರಾಶಿ: {synthesis.maandiProfile.rashi.english} | ಭಾವ: {synthesis.maandiProfile.house} | ನವಾಂಶ (D-9): {synthesis.maandiProfile.d9NavamsaNumber}
                       </p>
                     </div>
                   </div>
@@ -452,11 +452,11 @@ export const VedicSynthesisCard: React.FC<VedicSynthesisCardProps> = ({ synthesi
                 </div>
                 <div className="p-2.5 rounded bg-stone-950/60 border border-stone-800">
                   <span className="font-bold text-amber-200">ಆತ್ಮಕಾರಕ (AK): </span>
-                  <span className="text-stone-300">{synthesis.advancedMethodologies.jaiminiSynthesis.atmakaraka.planet} ({synthesis.advancedMethodologies.jaiminiSynthesis.atmakaraka.degree}°)</span>
+                  <span className="text-stone-300">{synthesis.advancedMethodologies.jaiminiSynthesis.atmakaraka.planet}</span>
                 </div>
                 <div className="p-2.5 rounded bg-stone-950/60 border border-stone-800">
                   <span className="font-bold text-amber-200">ಅಮಾತ್ಯಕಾರಕ (AmK): </span>
-                  <span className="text-stone-300">{synthesis.advancedMethodologies.jaiminiSynthesis.amatyakaraka.planet} ({synthesis.advancedMethodologies.jaiminiSynthesis.amatyakaraka.degree}°)</span>
+                  <span className="text-stone-300">{synthesis.advancedMethodologies.jaiminiSynthesis.amatyakaraka.planet}</span>
                 </div>
               </div>
             </div>

@@ -86,7 +86,14 @@ export function cleanDegreesFromText(text: string): string {
   s = s.replace(/೧೮೦\s*ಡಿಗ್ರಿ\s*ಅಕ್ಷದ/gu, "ಅಕ್ಷದ");
   s = s.replace(/೧೨\s*ಡಿಗ್ರಿಗಿಂತ\s*ಹೆಚ್ಚು\s*ಅಂತರವಿರುವುದರಿಂದ/gu, "ಸಾಕಷ್ಟು ಅಂತರವಿರುವುದರಿಂದ");
 
+  // Diptamsha (ದೀಪ್ತಾಂಶ / दीप्तांश / దీప్తాంశ) and Degree labels:
+  s = s.replace(/\(?\s*ದೀಪ್ತಾಂಶ\s*[:：]?\s*(?:[\d\.\s°'′\-–—೦-೯]+)?\s*\)?/gu, "");
+  s = s.replace(/\(?\s*दीप्तांश\s*[:：]?\s*(?:[\d\.\s°'′\-–—०-९]+)?\s*\)?/gu, "");
+  s = s.replace(/\(?\s*దీప్తాంశ\s*[:：]?\s*(?:[\d\.\s°'′\-–—0-9]+)?\s*\)?/gu, "");
+  s = s.replace(/\(?\s*degrees?\s*[:：]?\s*(?:[\d\.\s°'′\-–—0-9]+)?\s*\)?/gi, "");
+
   // Clean dangling spaces, punctuation around stripped items (preserving paragraph newlines)
+  s = s.replace(/\([^\S\r\n]*[:：]?[^\S\r\n]*\)/g, "");
   s = s.replace(/\([^\S\r\n]*-[^\S\r\n]*\)/g, "");
   s = s.replace(/\([^\S\r\n]*\)/g, "");
   s = s.replace(/[^\S\r\n]{2,}/g, " ");

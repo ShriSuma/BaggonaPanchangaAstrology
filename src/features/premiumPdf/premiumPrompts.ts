@@ -31,9 +31,14 @@ export type NatalPlacement = {
   graha: GrahaKey;
   rashiIndex: number;
   house: number;
+  degree?: number;
+  navamshaRashiIndex?: number;
+  isCombust?: boolean;
   retrograde?: boolean;
   debilitated?: boolean;
   exalted?: boolean;
+  isVargottama?: boolean;
+  dignityLabel?: string;
 };
 
 export type TransitPlacement = {
@@ -72,6 +77,7 @@ export type PremiumPromptInput = {
   mahaLord: GrahaKey | null;
   bhuktiLord: GrahaKey | null;
   bhuktiEndsAtAge: number | null;
+  bhuktiEndDateFormatted?: string;
 
   engineYogas: EngineFinding[];
   engineDoshas: EngineFinding[];
@@ -115,6 +121,37 @@ const nakshatraName = (index: number | null, lang: string): string =>
 const grahaName = (graha: GrahaKey, lang: string): string => pick(GRAHA_L5[graha], lang);
 
 /**
+ * Emotional Persona & Sacred Pastoral Warmth Calibration.
+ * Instructs AI to speak as the devotee's own beloved family priest (Kulapurohita)
+ * with deep empathy, fatherly affection, and authentic personal connection.
+ */
+export const buildEmotionalAnchor = (input: PremiumPromptInput): string => {
+  const { name, ageYears, maritalStatus, hasChildren } = input;
+  const isStruggling = input.dashaSandhiActive || (input.engineDoshas && input.engineDoshas.length > 0);
+  const isChildless = maritalStatus === "married" && hasChildren === "no_children";
+
+  return [
+    `SACRED KULAPUROHITA (FAMILY PRIEST) VOICE & DEEP PERSONAL EMOTION (MANDATORY):`,
+    `You are NOT a detached academic commentator or generic textbook astrologer. You are ${name}'s revered family priest (ಕುಲಪುರೋಹಿತ / कुलपुरोहित) who carries deep spiritual affection and personal concern for ${name}'s path.`,
+    `- Speak directly to ${name} with fatherly warmth, sacred authority, and sincere encouragement.`,
+    `- MANDATORY NAME WEAVING: Explicitly address "${name}" by name in EVERY single paragraph (at least 3-4 times in each chapter). The devotee must immediately feel: "This was personally written for me alone."`,
+    `- STRICT ZERO-DEGREE RULE: Absolutely NEVER write degrees, minutes, or degree symbols (e.g. NEVER output '15°', '22 degrees', etc.). Devotees cannot understand degrees. Instead, refer ONLY to the Bhava (House 1 to 12), Rashi name, or Navamsha.`,
+    isStruggling
+      ? `- COMPASSIONATE CONSOLATION: ${name} is traversing a demanding karmic phase. Acknowledge their silent burdens with genuine empathy. Frame challenges not as punishment, but as sacred karmic refinement leading to lasting spiritual strength.`
+      : ``,
+    isChildless
+      ? `- SACRED TENDERNESS: ${name} and their partner hold a quiet prayer for progeny in their hearts. Treat this topic with sacred reverence, divine hope, and Atma Linga blessings. NEVER write cold or clinical observations.`
+      : ``,
+    ageYears >= 60
+      ? `- REVERED ELDER BLESSING: Acknowledge ${name}'s lifetime of noble tapas, sacrifices for family, and spiritual wisdom. Frame the future as serene fulfillment and spiritual peace.`
+      : ``,
+    ageYears < 22 && ageYears >= 12
+      ? `- YOUTH INSPIRATION: Guide ${name} with clarity, focus, emotional balance, and steadfast determination.`
+      : ``
+  ].filter(Boolean).join("\n");
+};
+
+/**
  * The shared factual block. Names are already localised, so the model copies
  * rather than translates them.
  */
@@ -124,11 +161,15 @@ export const buildChartFacts = (input: PremiumPromptInput): string => {
   const natal = input.natalPlanets
     .map(p => {
       const flags: string[] = [];
-      if (p.retrograde) flags.push("retrograde");
-      if (p.debilitated) flags.push("debilitated");
-      if (p.exalted) flags.push("exalted");
+      if (p.retrograde) flags.push("retrograde (Vakra)");
+      if (p.debilitated) flags.push("debilitated (Neecha)");
+      if (p.exalted) flags.push("exalted (Ucha)");
+      if (p.isVargottama) flags.push("Vargottama (same rashi in D1 and D9 Navamsha - high royal dignity)");
+      if (p.isCombust) flags.push("combust (Astangata by Surya)");
+      if (p.dignityLabel) flags.push(`dignity: ${p.dignityLabel}`);
+      const navamshaStr = p.navamshaRashiIndex !== undefined ? ` | Navamsha: ${rashiName(p.navamshaRashiIndex, lang)}` : "";
       const suffix = flags.length ? ` [${flags.join(", ")}]` : "";
-      return `  ${grahaName(p.graha, lang)} | ${rashiName(p.rashiIndex, lang)} | bhava ${p.house}${suffix}`;
+      return `  ${grahaName(p.graha, lang)} | Rashi: ${rashiName(p.rashiIndex, lang)} | Bhava: ${p.house}${navamshaStr}${suffix}`;
     })
     .join("\n");
 
@@ -182,7 +223,7 @@ export const buildChartFacts = (input: PremiumPromptInput): string => {
     ...(input.dashaSandhiActive ? [`Dasha Sandhi: ACTIVE TRANSITION (${input.dashaSandhiDetails || "within 9 months of transition"})`] : []),
     ...(input.maandiConjunctions && input.maandiConjunctions.length ? [`Maandi Conjunctions: ${input.maandiConjunctions.join(", ")}`] : []),
     "",
-    "Graha placements at birth (graha | rashi | bhava):",
+    "Graha placements at birth (graha | rashi | bhava | navamsha):",
     natal,
     "",
     "Where the grahas are moving right now (graha | rashi | house counted from the birth Chandra rashi):",
@@ -199,13 +240,22 @@ export const buildChartFacts = (input: PremiumPromptInput): string => {
     `Current life phase per the engine: ${input.lifePhase}`,
     `Overall tone: ${input.overallTone}`,
     `Career note: ${input.careerNote}`,
-    `Money note: ${input.financeNote}`
+    `Money note: ${input.financeNote}`,
+    "",
+    "DIGNITY & VARGOTTAMA NARRATIVE MANDATE:",
+    "- For every exalted planet, celebrate its royal empowerment in that Bhava.",
+    "- For every debilitated planet, explain its karmic lesson AND divine compensating factors.",
+    "- For Vargottama planets, highlight their scriptural stability and unshakable willpower.",
+    "- For combust planets, describe how Surya's blazing luminescence internalizes their creative power.",
+    "- STRICT NO-DEGREE MANDATE: Do NOT mention any numerical degrees or degree symbols anywhere in the reading."
   ].join("\n");
 };
 
 const header = (input: PremiumPromptInput, sectionKey: string, persona: string): string =>
   [
     persona,
+    "",
+    buildEmotionalAnchor(input),
     "",
     languageContract(input.lang),
     "",

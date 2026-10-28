@@ -47,6 +47,8 @@ import {
   buildDynamicAnnualForecastFallback,
   buildDynamicDashaGocharaCompassFallback,
   buildDynamicPrescriptions,
+  buildDynamicAshirvada,
+  ensureNamePresence,
   toKnDigits
 } from "./dynamicBhavishyaEngine";
 import {
@@ -324,7 +326,12 @@ export async function prepareBhavishyaV1Data(
     cosmicShieldTitle: tp("cosmicShieldTitle", lang),
     mindVitalityTitle: tp("mindVitalityTitle", lang),
     ashirvadaTitle: tp("ashirvadaTitle", lang),
-    ashirvadaValue: tp("ashirvadaValue", lang),
+    ashirvadaValue: buildDynamicAshirvada(
+      localizedDevoteeName,
+      lang,
+      undefined,
+      mahaLord ? pick(GRAHA_L5[mahaLord], lang) : undefined
+    ),
     footer: tp("footer", lang),
     soulMirrorTitle: tp("soulMirrorTitle", lang),
     yogasTitle: tp("yogasTitle", lang),
@@ -365,14 +372,69 @@ export async function prepareBhavishyaV1Data(
     houseFromMoon: pos.house
   }));
 
-  const natalPlanets: NatalPlacement[] = session.result.planets.map(p => ({
-    graha: toGraha(p.name),
-    rashiIndex: p.rashi.index,
-    house: p.house,
-    retrograde: p.isRetrograde,
-    debilitated: p.isDebilitated,
-    exalted: p.isExalted
-  }));
+  const natalPlanets: NatalPlacement[] = session.result.planets.map(p => {
+    const absLong = ((p.rashi.index % 12) * 30) + (p.degree % 30);
+    const navamshaRashiIndex = Math.floor((absLong * 3) / 10) % 12;
+    const isVargottama = p.rashi.index === navamshaRashiIndex;
+
+    // Classical Combustion orbs from Sun
+    let isCombust = false;
+    if (p.name !== 'Sun' && sunPlanet) {
+      const combustionOrbs: Record<string, number> = {
+        Moon: 12,
+        Mars: 17,
+        Mercury: p.isRetrograde ? 12 : 14,
+        Jupiter: 11,
+        Venus: p.isRetrograde ? 8 : 10,
+        Saturn: 15
+      };
+      const maxOrb = combustionOrbs[p.name] ?? 0;
+      if (maxOrb > 0) {
+        const diff = Math.abs(absLong - sunLong);
+        const distToSun = Math.min(diff, 360 - diff);
+        isCombust = distToSun <= maxOrb;
+      }
+    }
+
+    // Classical Dignity Label
+    let dignityLabel = "Neutral";
+    if (p.isExalted) {
+      dignityLabel = "Ucha (Exalted)";
+    } else if (p.isDebilitated) {
+      dignityLabel = "Neecha (Debilitated)";
+    } else {
+      const ownRashis: Record<string, number[]> = {
+        Sun: [4],
+        Moon: [3],
+        Mars: [0, 7],
+        Mercury: [2, 5],
+        Jupiter: [8, 11],
+        Venus: [1, 6],
+        Saturn: [9, 10]
+      };
+      const owns = ownRashis[p.name] || [];
+      if (owns.includes(p.rashi.index)) {
+        dignityLabel = "Swakshetra (Own House)";
+      }
+    }
+    if (isVargottama) {
+      dignityLabel += " + Vargottama";
+    }
+
+    return {
+      graha: toGraha(p.name),
+      rashiIndex: p.rashi.index,
+      house: p.house,
+      retrograde: p.isRetrograde,
+      debilitated: p.isDebilitated,
+      exalted: p.isExalted,
+      navamshaRashiIndex,
+      isCombust,
+      isVargottama,
+      dignityLabel,
+      degree: p.degree
+    };
+  });
 
   const userGender = (session.input as any).gender || "Male";
   const parsedKundali = analyzeKundali({
@@ -496,6 +558,23 @@ export async function prepareBhavishyaV1Data(
   const lagnaRashiIdx = session.result.lagnaRashi?.index ?? 0;
   const maandiHouse = maandi ? getMaandiHouseFromLagna(maandi.rashi.index, lagnaRashiIdx) : 1;
 
+  const bhuktiEndAge = currentBhuktiData?.bhuktiEndAge ?? null;
+  const isDashaSandhi = bhuktiEndAge !== null ? Math.abs(ageYears - bhuktiEndAge) <= 0.75 : false;
+
+  let bhuktiEndDateFormatted: string | undefined;
+  if (bhuktiEndAge !== null) {
+    const birthYear = new Date(session.input.birthDate).getFullYear();
+    const endYear = Math.floor(birthYear + bhuktiEndAge);
+    const endMonthIdx = Math.floor(((birthYear + bhuktiEndAge) % 1) * 12);
+    const monthNamesKn = ['ಜನವರಿ', 'ಫೆಬ್ರವರಿ', 'ಮಾರ್ಚ್', 'ಏಪ್ರಿಲ್', 'ಮೇ', 'ಜೂನ್', 'ಜುಲೈ', 'ಆಗಸ್ಟ್', 'ಸೆಪ್ಟೆಂಬರ್', 'ಅಕ್ಟೋಬರ್', 'ನವೆಂಬರ್', 'ಡಿಸೆಂಬರ್'];
+    const monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    if (baseLang === 'kn') {
+      bhuktiEndDateFormatted = `${monthNamesKn[endMonthIdx] || ''} ${toKnDigits(endYear)} ರವರೆಗೆ`;
+    } else {
+      bhuktiEndDateFormatted = `Until ${monthNamesEn[endMonthIdx] || ''} ${endYear}`;
+    }
+  }
+
   const prompts = buildPremiumPrompts({
     lang,
     runId,
@@ -515,6 +594,8 @@ export async function prepareBhavishyaV1Data(
     mahaLord,
     bhuktiLord,
     bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
+    bhuktiEndDateFormatted,
+    dashaSandhiActive: isDashaSandhi,
     engineYogas: result.aiGeneratedNarrative?.yogas ?? [],
     engineDoshas: effectiveEngineDoshas,
     pariharas: (result.pariharas ?? []).map(
@@ -1139,11 +1220,16 @@ export async function prepareBhavishyaV1Data(
     v1Predictions.push({ category: "Health & Vitality", translatedCategory: catHlt, text: textHlt, translatedText: textHlt });
   }
 
-  // Clean English leaks from regional scripts
-  const cleanedV1Predictions = v1Predictions.map(p => ({
-    ...p,
-    translatedText: cleanEnglishFromRegionalText(p.translatedText, lang)
-  }));
+  // Clean English leaks and degrees from regional scripts & weave devotee name
+  const cleanedV1Predictions = v1Predictions.map(p => {
+    const rawClean = cleanEnglishFromRegionalText(p.translatedText, lang);
+    const noDeg = cleanDegreesFromText(rawClean);
+    const withName = ensureNamePresence(noDeg, localizedDevoteeName, lang);
+    return {
+      ...p,
+      translatedText: withName
+    };
+  });
 
   const deepInsights: Record<string, string> = {};
   for (const pred of cleanedV1Predictions) {
@@ -1157,10 +1243,29 @@ export async function prepareBhavishyaV1Data(
   const rawSummaryFallback = buildDynamicSummaryFallback(parsedKundali);
   const annualFallbackText = buildDynamicAnnualForecastFallback(parsedKundali);
 
-  const finalCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
-  const finalDarkSecret = isChild ? [] : await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
-  const finalCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang, 250);
-  const finalSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
+  const rawCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
+  const finalCharacteristics = (rawCharacteristics || []).map((c: any) => ({
+    ...c,
+    impact: cleanDegreesFromText(ensureNamePresence(c.impact || "", localizedDevoteeName, lang))
+  }));
+
+  const rawDarkSecret = isChild ? [] : await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
+  const finalDarkSecret = (rawDarkSecret || []).map((d: any) => ({
+    ...d,
+    impact: cleanDegreesFromText(d.impact || "")
+  }));
+
+  const rawCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang, 250);
+  const finalCurrentPhase = (rawCurrentPhase || []).map((p: any) => ({
+    ...p,
+    impact: cleanDegreesFromText(ensureNamePresence(p.impact || "", localizedDevoteeName, lang))
+  }));
+
+  const rawSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
+  const finalSummary = (rawSummary || []).map((s: any) => ({
+    ...s,
+    impact: cleanDegreesFromText(ensureNamePresence(s.impact || "", localizedDevoteeName, lang))
+  }));
 
   let rawAnnualInput: any = dataAnnualForecast?.annualForecast;
   if (typeof rawAnnualInput === "string") {
@@ -1171,7 +1276,11 @@ export async function prepareBhavishyaV1Data(
       return { impact: item?.impact || item?.forecast || "" };
     });
   }
-  const finalAnnualForecast = await ensureValidSection(rawAnnualInput, annualFallbackText, lang, 100);
+  const rawFinalAnnual = await ensureValidSection(rawAnnualInput, annualFallbackText, lang, 100);
+  const finalAnnualForecast = (rawFinalAnnual || []).map((a: any) => ({
+    ...a,
+    impact: cleanDegreesFromText(a.impact || "")
+  }));
 
   const rawYogasFallback = (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map((y: any) => ({
     name: localizeYogaName(y.name || "Dasha Yoga", lang),
@@ -1817,23 +1926,33 @@ export async function captureBhavishyaV1Pdf(
     }
 
     // Partition rendered sections across pages to strictly stay below jsPDF's hard 14,400 userUnit (5080mm) limit
-    const MAX_SAFE_PAGE_HEIGHT_MM = 3800;
+    const MAX_SAFE_PAGE_HEIGHT_MM = 5000;
     const pages: { sections: typeof renderedSections; heightMm: number }[] = [];
-    let currentPageSections: typeof renderedSections = [];
-    let currentPageHeightMm = 0;
 
-    for (const sec of renderedSections) {
-      if (currentPageSections.length > 0 && currentPageHeightMm + sec.heightMm > MAX_SAFE_PAGE_HEIGHT_MM) {
-        pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
-        currentPageSections = [sec];
-        currentPageHeightMm = sec.heightMm;
-      } else {
-        currentPageSections.push(sec);
-        currentPageHeightMm += sec.heightMm;
+    if (totalPdfHeightMm <= MAX_SAFE_PAGE_HEIGHT_MM) {
+      // Ideal case: everything fits on 1 single continuous royal scroll without page breaks
+      pages.push({ sections: renderedSections, heightMm: totalPdfHeightMm });
+    } else {
+      // If content genuinely exceeds 5000mm, distribute evenly across balanced pages to prevent tiny orphan pages
+      const targetPageHeightMm = Math.ceil(totalPdfHeightMm / 2);
+      let currentPageSections: typeof renderedSections = [];
+      let currentPageHeightMm = 0;
+
+      for (let i = 0; i < renderedSections.length; i++) {
+        const sec = renderedSections[i];
+        const remainingSections = renderedSections.length - i;
+        if (currentPageSections.length >= 3 && currentPageHeightMm >= targetPageHeightMm && remainingSections >= 2) {
+          pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
+          currentPageSections = [sec];
+          currentPageHeightMm = sec.heightMm;
+        } else {
+          currentPageSections.push(sec);
+          currentPageHeightMm += sec.heightMm;
+        }
       }
-    }
-    if (currentPageSections.length > 0) {
-      pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
+      if (currentPageSections.length > 0) {
+        pages.push({ sections: currentPageSections, heightMm: currentPageHeightMm });
+      }
     }
 
     // Create jsPDF document with the first page height

@@ -3872,6 +3872,7 @@ export function buildDynamicSoulMirrorFallback(chart: ParsedKundaliChart): Dynam
 
 export interface DynamicPrescriptionsResult {
   gemstone: string;
+  uparatna?: string;
   rudraksha: string;
   ishtaDevata: string;
   luckyColors: string;
@@ -3880,38 +3881,33 @@ export interface DynamicPrescriptionsResult {
   luckyDirection: string;
 }
 
-export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPrescriptionsResult {
-  const baseLang = chart.lang.split("-")[0];
-  const lagnaRashiIdx = ((chart.lagnaRashiIndex % 12) + 12) % 12;
+// Map 12 Lagnas to their authentic presiding Graha
+export const LAGNA_PRESIDING_GRAHAS: GrahaKey[] = [
+  "Mars",    // 0: Aries (Mesha)
+  "Venus",   // 1: Taurus (Vrishabha)
+  "Mercury", // 2: Gemini (Mithuna)
+  "Moon",    // 3: Cancer (Karka)
+  "Sun",     // 4: Leo (Simha)
+  "Mercury", // 5: Virgo (Kanya)
+  "Venus",   // 6: Libra (Tula)
+  "Mars",    // 7: Scorpio (Vrishchika)
+  "Jupiter", // 8: Sagittarius (Dhanus)
+  "Saturn",  // 9: Capricorn (Makara)
+  "Saturn",  // 10: Aquarius (Kumbha)
+  "Jupiter"  // 11: Pisces (Meena)
+];
 
-  // Map 12 Lagnas to their authentic presiding Graha
-  const LAGNA_PRESIDING_GRAHAS: GrahaKey[] = [
-    "Mars",    // 0: Aries (Mesha)
-    "Venus",   // 1: Taurus (Vrishabha)
-    "Mercury", // 2: Gemini (Mithuna)
-    "Moon",    // 3: Cancer (Karka)
-    "Sun",     // 4: Leo (Simha)
-    "Mercury", // 5: Virgo (Kanya)
-    "Venus",   // 6: Libra (Tula)
-    "Mars",    // 7: Scorpio (Vrishchika)
-    "Jupiter", // 8: Sagittarius (Dhanus)
-    "Saturn",  // 9: Capricorn (Makara)
-    "Saturn",  // 10: Aquarius (Kumbha)
-    "Jupiter"  // 11: Pisces (Meena)
-  ];
-
-  const presidingGraha = LAGNA_PRESIDING_GRAHAS[lagnaRashiIdx] || "Jupiter";
-
-  // Comprehensive 5-Language Prescriptions Dataset for all 7 Presiding Grahas
-  const PRESCRIPTIONS_BY_GRAHA: Record<string, {
-    gemstone: Record<string, string>;
-    rudraksha: Record<string, string>;
-    ishtaDevata: Record<string, string>;
-    colors: Record<string, string>;
-    days: Record<string, string>;
-    numbers: Record<string, string>;
-    direction: Record<string, string>;
-  }> = {
+// Comprehensive 5-Language Prescriptions Dataset for all 7 Presiding Grahas
+export const PRESCRIPTIONS_BY_GRAHA: Record<string, {
+  gemstone: Record<string, string>;
+  uparatna: Record<string, string>;
+  rudraksha: Record<string, string>;
+  ishtaDevata: Record<string, string>;
+  colors: Record<string, string>;
+  days: Record<string, string>;
+  numbers: Record<string, string>;
+  direction: Record<string, string>;
+}> = {
     Sun: {
       gemstone: {
         kn: "ಮಾಣಿಕ್ಯ (ರೂಬಿ, ೪.೨೫ - ೫.೫೦ ಕ್ಯಾರಟ್ - ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು ಅನಾಮಿಕಾ, ಅಪ್ಪಟ ಚಿನ್ನ ಅಥವಾ ತಾಮ್ರದಲ್ಲಿ, ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯ ವೇಳೆಯಲ್ಲಿ ಧಾರಣೆ)",
@@ -3919,6 +3915,13 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
         te: "మాణిక్యం (రూబీ, 4.25 - 5.50 క్యారెట్లు - కుడి చేయి ఉంగరపు వేలు అనామిక, బంగారంలో లేదా రాగిలో, ఆదివారం ఉదయం సూర్యోదయ సమయంలో ధారణ)",
         ta: "மாணிக்கம் (4.25 - 5.50 கேரட் - வலது கை மோதிர விரல் அநாமிகா, தங்கம் அல்லது தாமிரத்தில், ஞாயிற்றுக்கிழமை காலை சூரிய உதய வேளையில் அணியவும்)",
         en: "Natural Ruby (Manikya, 4.25 - 5.50 Carats - Ring finger of right hand set in pure Gold or Copper, worn Sunday morning at sunrise during Surya Hora)"
+      },
+      uparatna: {
+        kn: "ಗಾರ್ನೆಟ್ (ರಕ್ತಮಣಿ) ಅಥವಾ ಕೆಂಪು ಸ್ಪಿನೆಲ್ - ಕೈಗೆಟುಕುವ ಸುಲಭ ಪರ್ಯಾಯ ರತ್ನ",
+        hi: "गार्नेट (रक्तमणि) अथवा लाल स्पिनेल - सुलभ विकल्प रत्न",
+        te: "గార్నెట్ (రక్తమణి) లేదా రెడ్ స్పినెల్ - సులభమైన ప్రత్యామ్నాయ రత్నం",
+        ta: "கார்னட் (ரத்தமணி) அல்லது சிவப்பு ஸ்பினெல் - எளிய மாற்று ரத்தினம்",
+        en: "Red Garnet or Red Spinel - Accessible Secondary Gemstone"
       },
       rudraksha: {
         kn: "೧ ಮುಖಿ ಅಥವಾ ೧೨ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಸೂರ್ಯ ತತ್ವ - ತೇಜಸ್ಸು ಹಾಗೂ ಆತ್ಮಸ್ಥೈರ್ಯ ವರ್ಧನೆ, ಭಾನುವಾರ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯ ಗಾಯತ್ರಿಯೊಂದಿಗೆ ಧಾರಣೆ)",
@@ -3971,6 +3974,13 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
         ta: "இயற்கை முத்து (4.5 - 6.0 கேரட் - வலது கை சுண்டு விரல், வெள்ளியில், திங்கட்கிழமை மாலை சந்திரோதய வேளையில் அணியவும்)",
         en: "Natural South Sea Pearl (Mukta, 4.5 - 6.0 Carats - Little finger of right hand set in pure Silver, worn Monday evening at Moonrise)"
       },
+      uparatna: {
+        kn: "ಚಂದ್ರಕಾಂತ ಮಣಿ (ಮೂನ್‌ಸ್ಟೋನ್) ಅಥವಾ ಬಿಳಿ ಹವಳ - ಶಾಂತಿದಾಯಕ ಪರ್ಯಾಯ ರತ್ನ",
+        hi: "चंद्रकांत मणि (मूनस्टोन) अथवा सफेद मूंगा - शांतिदायक विकल्प रत्न",
+        te: "చంద్రకాంత మణి (మూన్‌స్టోన్) లేదా తెల్ల పగడం - ప్రత్యామ్నాయ రత్నం",
+        ta: "சந்திரகாந்த மணி (மூன்ஸ்டோன்) அல்லது வெள்ளை பவழம் - மாற்று ரத்தினம்",
+        en: "Moonstone (Chandrakanta Mani) or White Coral - Harmonizing Alternative"
+      },
       rudraksha: {
         kn: "೨ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಅರ್ಧನಾರೀಶ್ವರ ತತ್ವ - ಮನಃಶಾಂತಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ, ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ ಶಿವ ಮಂತ್ರದೊಂದಿಗೆ ಧಾರಣೆ)",
         hi: "2 मुखी रुद्राक्ष (अर्धनारीश्वर तत्व - मानसिक शांति एवं पारिवारिक सौहार्द, सोमवार प्रातः शिव मंत्र के साथ धारण)",
@@ -4021,6 +4031,13 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
         te: "పగడం (శుద్ధ ప్రవాళం, 4.5 - 6.0 క్యారెట్లు - కుడి చేయి ఉంగరపు వేలు అనామిక, రాగి లేదా బంగారంలో, మంగళవారం ఉదయం కుజ హోరలో)",
         ta: "பவழம் (தூய பிரவாளம், 4.5 - 6.0 கேரட் - வலது கை மோதிர விரல் அநாமிகா, தாமிரம் அல்லது தங்கத்தில், செவ்வாய்க்கிழமை காலை குஜ ஓரையில்)",
         en: "Red Coral (Pure Pravala, 4.5 - 6.0 Carats - Ring finger of right hand set in Copper or Gold, worn Tuesday morning during Mars Hora)"
+      },
+      uparatna: {
+        kn: "ಕಾರ್ನೇಲಿಯನ್ (ಕೆಂಪು ಅಕೀಕ್) ಅಥವಾ ಕೆಂಪು ಜಾಸ್ಪರ್ - ಶೌರ್ಯವರ್ಧಕ ಪರ್ಯಾಯ ರತ್ನ",
+        hi: "कार्नेलियन (लाल अकीक) अथवा रेड जैस्पर - पराक्रमवर्धक विकल्प रत्न",
+        te: "కార్నెలియన్ (ఎరుపు అకీక్) లేదా రెడ్ జాస్పర్ - ప్రత్యామ్నాయ రత్నం",
+        ta: "கார்னிலியன் (சிவப்பு அகேட்) அல்லது ரெட் ஜாஸ்பர் - மாற்று ரத்தினம்",
+        en: "Carnelian (Red Agate) or Red Jasper - Energizing Secondary Gemstone"
       },
       rudraksha: {
         kn: "೩ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಅಗ್ನಿ ತತ್ವ - ಶೌರ್ಯ ವರ್ಧನೆ ಹಾಗೂ ಕುಜ ದೋಷ ಶಮನ, ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
@@ -4073,6 +4090,13 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
         ta: "மரகதம் (3.5 - 5.0 கேரட் - வலது கை சுண்டு விரல், தங்கம் அல்லது பஞ்சலோகத்தில், புதன்கிழமை காலை புதன் ஓரையில்)",
         en: "Emerald (Panna, 3.5 - 5.0 Carats - Little finger of right hand set in pure Gold or Panchadhatu, worn Wednesday morning during Mercury Hora)"
       },
+      uparatna: {
+        kn: "ಪೆರಿಡಾಟ್ (ಜಬರ್ಜದ್) ಅಥವಾ ಹಸಿರು ಟೂರ್ಮಲೀನ್ - ಬುದ್ಧಿವರ್ಧಕ ಪರ್ಯಾಯ ರತ್ನ",
+        hi: "पेरिडॉट अथवा हरा टूर्मलाइन - बुद्धिवर्धक विकल्प रत्न",
+        te: "పెరిడాట్ లేదా పచ్చ టూర్మలైన్ - విద్యాభివృద్ధి ప్రత్యామ్నాయ రత్నం",
+        ta: "பெரிடோட் அல்லது பச்சை டூர்மலைன் - அறிவுவளர்ச்சி மாற்று ரத்தினம்",
+        en: "Peridot or Green Tourmaline - Intellect Harmonizing Alternative"
+      },
       rudraksha: {
         kn: "೪ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಬ್ರಹ್ಮ ತತ್ವ - ಬುದ್ಧಿಶಕ್ತಿ, ವಾಗ್ವೈಖರಿ ಹಾಗೂ ಜ್ಞಾನ ವೃದ್ಧಿ, ಬುಧವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
         hi: "4 मुखी रुद्राक्ष (ब्रह्म तत्व - बुद्धि, वाणी एवं ज्ञान संवर्धन, बुधवार प्रातःकाल धारण)",
@@ -4123,6 +4147,13 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
         te: "కనక పుష్యరాగం (4.25 - 5.50 క్యారెట్లు - కుడి చేయి చూపుడు వేలు, బంగారంలో, గురువారం ఉదయం గురు హోరలో)",
         ta: "கனக புஷ்பராகம் (4.25 - 5.50 கேரட் - வலது கை ஆள்காட்டி விரல், தங்கத்தில், வியாழக்கிழமை காலை குரு ஓரையில்)",
         en: "Yellow Sapphire (Pushparaga, 4.25 - 5.50 Carats - Index finger of right hand set in pure Gold, worn Thursday morning during Jupiter Hora)"
+      },
+      uparatna: {
+        kn: "ಹಳದಿ ತೋಪಾಜ್ ಅಥವಾ ಸುನೈಲಾ (ಸಿಟ್ರಿನ್) - ಸೌಭಾಗ್ಯವರ್ಧಕ ಪರ್ಯಾಯ ರತ್ನ",
+        hi: "पीला टोपाज अथवा सुनहला (सिट्रीन) - सौभाग्यवर्धक विकल्प रत्न",
+        te: "ఎల్లో టోపాజ్ లేదా సిట్రిన్ (సునైలా) - శుభకర ప్రత్యామ్నాయ రత్నం",
+        ta: "மஞ்சள் டோபாஸ் அல்லது சிட்ரின் - மங்கல மாற்று ரத்தினம்",
+        en: "Yellow Topaz or Citrine (Sunaila) - Auspicious Secondary Gemstone"
       },
       rudraksha: {
         kn: "೫ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಕಾಲಾಗ್ನಿ ರುದ್ರ ತತ್ವ - ಗುರು ಬಲವರ್ಧನೆ, ಆರೋಗ್ಯ ಹಾಗೂ ಸರ್ವ ಕಲ್ಯಾಣ, ಗುರುವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
@@ -4175,6 +4206,13 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
         ta: "வைரம் அல்லது வெள்ளை ஜிர்கான் (1.0 - 2.5 கேரட் - வலது கை நடுவிரல் அல்லது சுண்டு விரல், வெள்ளி அல்லது பிளாட்டினத்தில், வெள்ளிக்கிழமை காலை)",
         en: "Diamond or Natural White Zircon (1.0 - 2.5 Carats - Middle or Little finger of right hand set in White Gold or Silver, worn Friday morning during Venus Hora)"
       },
+      uparatna: {
+        kn: "ಬಿಳಿ ಜಿರ್ಕಾನ್, ಓಪಲ್ ಅಥವಾ ಬಿಳಿ ನೀಲಮಣಿ - ಆಕರ್ಷಕ ಪರ್ಯಾಯ ರತ್ನ",
+        hi: "श्वेत जरकन, ओपल अथवा सफेद पुखराज - आकर्षक विकल्प रत्न",
+        te: "తెల్ల జిర్కాన్, ఒపల్ లేదా వైట్ సఫైర్ - ఆకర్షణీయ ప్రత్యామ్నాయ రత్నం",
+        ta: "வெள்ளை ஜிர்கான், ஓபல் அல்லது வெள்ளை நீலக்கல் - மாற்று ரத்தினம்",
+        en: "Natural White Zircon, Opal, or White Sapphire - Aesthetic Alternative"
+      },
       rudraksha: {
         kn: "೬ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಕಾರ್ತಿಕೇಯ ತತ್ವ - ಆಕರ್ಷಣೆ, ಸೌಭಾಗ್ಯ ಹಾಗೂ ದಾಂಪತ್ಯ ಸುಖ ವೃದ್ಧಿ, ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
         hi: "6 मुखी रुद्राक्ष (कार्तिकेय तत्व - आकर्षण, ऐश्वर्य एवं दांपत्य सुख संवर्धन, शुक्रवार प्रातःकाल धारण)",
@@ -4226,6 +4264,13 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
         ta: "நீலக்கல் அல்லது அமேதிஸ்ட் (4.5 - 6.0 கேரட் - வலது கை நடுவிரல், பஞ்சலோகம் அல்லது வெள்ளியில், சனிக்கிழமை மாலை சனி ஓரையில்)",
         en: "Blue Sapphire or Natural Amethyst (Neelam, 4.5 - 6.0 Carats - Middle finger of right hand set in Panchadhatu or Silver, worn Saturday evening during Saturn Hora)"
       },
+      uparatna: {
+        kn: "ಜಾಂಬವಂತ (ಅಮೆಥಿಸ್ಟ್/ಕಟೇಲಾ) ಅಥವಾ ನೀಲಿ ತೋಪಾಜ್ - ರಕ್ಷಾದಾಯಕ ಪರ್ಯಾಯ ರತ್ನ",
+        hi: "जामुनिया (कटेला/अमेथिस्ट) अथवा नीला टोपाज - रक्षात्मक विकल्प रत्न",
+        te: "అమెథిస్ట్ (కతేలా) లేదా బ్లూ టోపాజ్ - సంరక్షక ప్రత్యామ్నాయ రత్నం",
+        ta: "அமேதிஸ்ட் (கட்டேலா) அல்லது நீல டோபாஸ் - பாதுகாப்பு மாற்று ரத்தினம்",
+        en: "Amethyst (Katela) or Blue Topaz - Protective Secondary Gemstone"
+      },
       rudraksha: {
         kn: "೭ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ (ಮಹಾಲಕ್ಷ್ಮಿ ತತ್ವ - ಶನಿ ದೋಷ ನಿವಾರಣೆ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯ, ಶನಿವಾರ ಪ್ರಾತಃಕಾಲ ಧಾರಣೆ)",
         hi: "7 मुखी रुद्राक्ष (महालक्ष्मी तत्व - शनि पीड़ा निवारण, आर्थिक स्थिरता एवं दीर्घायु, शनिवार प्रातःकाल धारण)",
@@ -4271,10 +4316,15 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
     }
   };
 
+export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPrescriptionsResult {
+  const baseLang = chart.lang.split("-")[0];
+  const lagnaRashiIdx = ((chart.lagnaRashiIndex % 12) + 12) % 12;
+  const presidingGraha = LAGNA_PRESIDING_GRAHAS[lagnaRashiIdx] || "Jupiter";
   const rx = PRESCRIPTIONS_BY_GRAHA[presidingGraha] || PRESCRIPTIONS_BY_GRAHA.Jupiter;
 
   return {
     gemstone: rx.gemstone[baseLang] || rx.gemstone.en,
+    uparatna: rx.uparatna[baseLang] || rx.uparatna.en,
     rudraksha: rx.rudraksha[baseLang] || rx.rudraksha.en,
     ishtaDevata: rx.ishtaDevata[baseLang] || rx.ishtaDevata.en,
     luckyColors: rx.colors[baseLang] || rx.colors.en,
@@ -4765,5 +4815,143 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
     paragraph1,
     paragraph2,
     paragraph3
+  };
+}
+
+/**
+ * Ensures the devotee's personal name is naturally woven into text
+ */
+export function ensureNamePresence(text: string, name: string, lang: string = 'kn'): string {
+  if (!text) return text;
+  if (!name || name.trim().length < 2) return text;
+  const cleanName = name.trim();
+  if (text.includes(cleanName)) return text;
+
+  const prefixes: Record<string, string> = {
+    kn: `ಅಭಿಮಾನಿ ಶ್ರೀಯುತ ${cleanName} ಅವರೇ, `,
+    hi: `प्रिय श्री ${cleanName} जी, `,
+    te: `ప్రియమైన శ్రీ ${cleanName} గారు, `,
+    ta: `அன்பிற்குரிய திரு/திருமதி ${cleanName} அவர்களே, `,
+    en: `Dear ${cleanName}, `
+  };
+  const prefix = prefixes[lang] || prefixes.kn;
+  return `${prefix}${text}`;
+}
+
+/**
+ * Builds a dynamic, deeply sacred Ashirvada blessing customized to the devotee,
+ * their current Dasha, and their Ishta Devata across all 5 languages.
+ */
+export function buildDynamicAshirvada(
+  name: string,
+  lang: string = 'kn',
+  ishtaDevata?: string,
+  dashaLord?: string
+): string {
+  const cleanName = (name && name.trim().length > 1) ? name.trim() : 'ಭಕ್ತಾದಿ';
+  const baseLang = ['kn', 'hi', 'te', 'ta', 'en'].includes(lang) ? lang : 'kn';
+
+  const ashirvadaTemplates: Record<string, string> = {
+    kn: `॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಆತ್ಮಲಿಂಗ ಅನುಗ್ರಹ ಹಾಗೂ ಶ್ರೀ ಮಹಾಗಣಪತಿಯ ದಿವ್ಯ ಕೃಪಾಕಟಾಕ್ಷವು ${cleanName} ಅವರ ಜೀವನದಲ್ಲಿ ಸದಾ ಪ್ರಕಾಶಿಸಲಿ.
+ಪ್ರಸ್ತುತ ${dashaLord ? dashaLord + ' ದಶಾ ಕಾಲದಲ್ಲಿ' : 'ಸಮಯದಲ್ಲಿ'} ನಿಮ್ಮ ಧರ್ಮನಿಷ್ಠ ಸಂಕಲ್ಪಗಳು ಸಂಪೂರ್ಣ ಸಿದ್ಧಿ ಪಡೆದು, ಸಕಲ ಗ್ರಹಪೀಡೆಗಳು ಶಮನವಾಗಲಿ.
+ಆಯುರಾರೋಗ್ಯ, ಸತ್ಕೀರ್ತಿ, ಸುಖ-ಶಾಂತಿ, ಸೌಭಾಗ್ಯ ಹಾಗೂ ಅಚಲ ದೈವಬಲವನ್ನು ಜಗದೀಶ್ವರನು ಕರುಣಿಸಲಿ.
+ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ನಿತ್ಯ ಮಂಗಳವೂ, ಧರ್ಮದ ಜಯವೂ ಸ್ಥಿರವಾಗಿ ನೆಲೆಸಲಿ ಎಂದು ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಪರಂಪರೆಯ ಪರಮಪವಿತ್ರ ಆಶೀರ್ವಾದಗಳು.
+॥ ಸರ್ವೇ ಜನಾಃ ಸುಖಿನೋ ಭವಂತು • ಸಮಸ್ತ ಸನ್ಮಂಗಳಾನಿ ಭವಂತು ॥`,
+    hi: `॥ श्री गोकर्ण महाबलेश्वर स्वामी के आत्मलिंग अनुग्रह एवं श्री महागणपति की दिव्य कृपादृष्टि ${cleanName} जी के जीवन में सदैव प्रकाशित रहे।
+वर्तमान ${dashaLord ? dashaLord + ' महादशा के काल में' : 'समय में'} आपके समस्त धर्मनिष्ठ संकल्प निर्विघ्न सिद्ध हों तथा नवग्रह पीड़ा शांत हो।
+दीर्घायु, उत्तम आरोग्य, सुकीर्ति, अचल शांति एवं परम ऐश्वर्य प्रभु प्रदान करें।
+आपके परिवार में नित्य मंगल और धर्म की विजय प्रतिष्ठित रहे, यही श्री क्षेत्र बग्गोण परंपरा का परम पावन आशीर्वाद है।
+॥ सर्वे भवन्तु सुखिनः • सर्वे सन्तु निरामयाः ॥`,
+    te: `॥ శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి ఆత్మలింగ అనుగ్రహం మరియు శ్రీ మహాగణపతి దివ్య కృపాకటాక్షములు ${cleanName} గారి జీవితంలో సదా ప్రకాశించుగాక.
+ప్రస్తుత ${dashaLord ? dashaLord + ' దశా కాలంలో' : 'సమయంలో'} మీ ధర్మబద్ధ సంకల్పాలు విజయవంతమై, సమస్త గ్రహపీడలు నివారించబడుగాక.
+ఆయురారోగ్యములు, సంపద, సత్కీర్తి, మనశ్శాంతి మరియు పరమ సౌభాగ్యమును భగవంతుడు ప్రసాదించుగాక.
+మీ కుటుంబంలో నిత్య మంగళం, ధర్మ విజయం స్థిరంగా వర్ధిల్లుగాకని శ్రీ క్షేత్ర బగ్గోణ పరంపర యొక్క పరమపవిత్ర ఆశీస్సులు.
+॥ సర్వే జనాః సుఖినో భవంతు • సమస్త సన్మంగళాని భవంతు ॥`,
+    ta: `॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வர சுவாமியின் ஆத்மலிங்க அருளும் ஸ்ரீ மகா கணபதியின் திவ்ய கருணையும் ${cleanName} அவர்களின் வாழ்வில் என்றும் பிரகாசிக்கட்டும்.
+தற்போதைய ${dashaLord ? dashaLord + ' தசா காலத்தில்' : 'காலத்தில்'} தங்களின் தர்ம சிந்தனைகள் அனைத்தும் வெற்றிகரமாக நிறைவேறி, சகல கிரக தோஷங்களும் நிவர்த்தியாகட்டும்.
+நீண்ட ஆயுள், ஆரோக்கியம், புகழ், மன அமைதி மற்றும் மங்களகரமான வாழ்வை இறைவன் அருளட்டும்.
+தங்கள் குடும்பத்தில் என்றும் நன்மையும், தர்மத்தின் வெற்றியும் நிலைபெற வேண்டும் என ஸ்ரீ க்ஷேத்ர பக்கோண பாரம்பரியத்தின் புனித ஆசிகள்.
+॥ சர்வே ஜனாஃ சுகினோ பவந்து • சமஸ்த சன்மங்களானி பவந்து ॥`,
+    en: `॥ May the supreme grace of Lord Mahabaleshwara Atmalinga and Sri Maha Ganapati of Gokarna illuminate the life path of ${cleanName}.
+During this active ${dashaLord ? dashaLord + ' planetary era' : 'auspicious period'}, may all your righteous endeavors attain triumphant fruition and all astrological afflictions dissolve.
+May the Divine confer abundant vitality, tranquil harmony, moral stature, and enduring prosperity upon you and your lineage.
+With the sacred blessings and enduring spiritual guardianship of Sri Kshetra Baggona Parampara.
+॥ Sarve Janah Sukhino Bhavantu • May Peace & Divine Auspiciousness Prevail ॥`
+  };
+
+  return ashirvadaTemplates[baseLang] || ashirvadaTemplates.kn;
+}
+
+export interface TodayGuidanceResult {
+  title: string;
+  weekdayStr: string;
+  isFavorableDay: boolean;
+  recommendedColor: string;
+  recommendedDirection: string;
+  mantra: string;
+  guidanceText: string;
+}
+
+/**
+ * Generates actionable daily guidance based on birth chart planetary alignments and the current day.
+ */
+export function buildTodayGuidance(
+  chart: ParsedKundaliChart,
+  lang: string = 'kn',
+  targetDate: Date = new Date()
+): TodayGuidanceResult {
+  const baseLang = ['kn', 'hi', 'te', 'ta', 'en'].includes(lang) ? lang : 'kn';
+  const dayIndex = targetDate.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  const weekdayGrahaMap: GrahaKey[] = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'];
+  const dayGraha = weekdayGrahaMap[dayIndex] || 'Sun';
+
+  const rx = PRESCRIPTIONS_BY_GRAHA[dayGraha] || PRESCRIPTIONS_BY_GRAHA.Jupiter;
+
+  const weekdayNames: Record<string, string[]> = {
+    kn: ['ಭಾನುವಾರ', 'ಸೋಮವಾರ', 'ಮಂಗಳವಾರ', 'ಬುಧವಾರ', 'ಗುರುವಾರ', 'ಶುಕ್ರವಾರ', 'ಶನಿವಾರ'],
+    hi: ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'],
+    te: ['ఆదివారం', 'సోమవారం', 'మంగళవారం', 'బుధవారం', 'గురువారం', 'శుక్రవారం', 'శనివారం'],
+    ta: ['ஞாயிறு', 'திங்கள்', 'செவ்வாய்', 'புதன்', 'வியாழன்', 'வெள்ளி', 'சனி'],
+    en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  };
+
+  const titles: Record<string, string> = {
+    kn: 'ಇಂದಿನ ದೈನಂದಿನ ಮಾರ್ಗದರ್ಶನ ಹಾಗೂ ಅನುಷ್ಠಾನ',
+    hi: 'आज का दैनिक मार्गदर्शन एवं अनुष्ठान',
+    te: 'నేటి దైనిక మార్గదర్శనం మరియు అనుష్ఠానం',
+    ta: 'இன்றைய தினசரி வழிகாட்டுதல் மற்றும் வழிபாடு',
+    en: "Today's Sacred Guidance & Actionable Alignment"
+  };
+
+  const weekdayStr = (weekdayNames[baseLang] || weekdayNames.kn)[dayIndex];
+
+  // Check if today matches the devotee's lucky days
+  const luckyDaysStr = rx.days[baseLang] || rx.days.en;
+  const isFavorableDay = luckyDaysStr.includes(weekdayStr);
+
+  const guidanceNotes: Record<string, string> = {
+    kn: `${weekdayStr}ದಂದು ನಿಮ್ಮ ಪ್ರಮುಖ ಕಾರ್ಯಗಳಿಗೆ ${rx.direction[baseLang] || rx.direction.en} ದಿಕ್ಕು ಶುಭದಾಯಕ. ಶುಭ ವರ್ಣ: ${rx.colors[baseLang] || rx.colors.en}. ಮನಸ್ಸಿನಲ್ಲಿ ಪ್ರಶಾಂತತೆ ಹಾಗೂ ಕಾರ್ಯಸಿದ್ಧಿಗಾಗಿ ಇಷ್ಟದೇವತೆಯ ಧ್ಯಾನ ನಡೆಸಿ.`,
+    hi: `${weekdayStr} को आपके महत्वपूर्ण कार्यों हेतु ${rx.direction[baseLang] || rx.direction.en} दिशा शुभ है। शुभ रंग: ${rx.colors[baseLang] || rx.colors.en}। मानसिक एकाग्रता एवं कार्यसिद्धि हेतु इष्टदेव का स्मरण करें।`,
+    te: `${weekdayStr} రోజు మీ ముఖ్యమైన పనులకు ${rx.direction[baseLang] || rx.direction.en} దిక్కు శుభకరం. శుభ వర్ణం: ${rx.colors[baseLang] || rx.colors.en}. కార్యానుకూలత కోసం ఇష్టదేవతా స్మరణ చేయండి.`,
+    ta: `${weekdayStr} அன்று உங்கள் முக்கிய பணிகளுக்கு ${rx.direction[baseLang] || rx.direction.en} திசை மங்களகரமானது. உகந்த நிறம்: ${rx.colors[baseLang] || rx.colors.en}. காரிய சித்திக்கு இஷ்ட தெய்வத்தை தியானியுங்கள்.`,
+    en: `On ${weekdayStr}, align key undertakings towards the ${rx.direction.en} direction. Attune with the auspicious vibration of ${rx.colors.en}. Meditate upon your presiding deity for focus and dharmic success.`
+  };
+
+  const mantraNotes: Record<string, string> = {
+    kn: '॥ ಓಂ ನಮಃ ಶಿವಾಯ • ಶ್ರೀ ಗುರುಭ್ಯೋ ನಮಃ ॥',
+    hi: '॥ ॐ नमः शिवाय • श्री गुरुभ्यो नमः ॥',
+    te: '॥ ఓం నమః శివాయ • శ్రీ గురుభ్యో నమః ॥',
+    ta: '॥ ஓம் நம சிவாய • ஸ்ரீ குருப்யோ நமஹ ॥',
+    en: '॥ Om Namah Shivaya • Sri Gurubhyo Namaha ॥'
+  };
+
+  return {
+    title: titles[baseLang] || titles.kn,
+    weekdayStr,
+    isFavorableDay,
+    recommendedColor: rx.colors[baseLang] || rx.colors.en,
+    recommendedDirection: rx.direction[baseLang] || rx.direction.en,
+    mantra: mantraNotes[baseLang] || mantraNotes.kn,
+    guidanceText: guidanceNotes[baseLang] || guidanceNotes.kn
   };
 }

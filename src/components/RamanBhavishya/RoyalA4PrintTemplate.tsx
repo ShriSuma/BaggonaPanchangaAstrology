@@ -59,6 +59,7 @@ export interface RoyalA4Data {
     rashi: string;
     house: number;
     longitudeStr: string;
+    navamsha?: string;
     nakshatra: string;
     pada: number | string;
     dignity: string;
@@ -130,7 +131,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
         : "Royal Horoscope Printout (₹300 Physical Print Edition)",
       nativeDetails: isKn ? "ಜಾತಕರ ಜನನ ಜಾತಕ ವಿವರ" : isHi ? "जातक जन्म विवरण" : isTe ? "జాతక జనన వివరాలు" : isTa ? "பிறப்பு விவரங்கள்" : "Native's Astrological Details",
       chartTitle: isKn ? "ಜನ್ಮ ಲಗ್ನ ಕುಂಡಲಿ (ಗೋಕರ್ಣ ಪದ್ಧತಿ)" : isHi ? "जन्म लग्न कुंडली (गोकर्ण पद्धति)" : isTe ? "జన్మ లగ్న కుండలి" : isTa ? "ஜென்ம லக்ன குண்டலி" : "Janma Lagna Kundali (Gokarna System)",
-      planetsTitle: isKn ? "ಗ್ರಹ ಸ್ಥಿತಿ ಕೋಷ್ಟಕ (ನವಾಂಶ & ದೀಪ್ತಾಂಶ)" : isHi ? "ग्रह स्थिति सारणी" : isTe ? "గ్రహ స్థితి పట్టిక" : isTa ? "கிரக நிலை அட்டவணை" : "Planetary Positions & Dignity Table",
+      planetsTitle: isKn ? "ಗ್ರಹ ಸ್ಥಿತಿ ಕೋಷ್ಟಕ (ನವಾಂಶ & ಭಾವ ಸ್ಥಿತಿ)" : isHi ? "ग्रह स्थिति सारणी (नवांश एवं भाव)" : isTe ? "గ్రహ స్థితి పట్టిక (నవాంశ & భావ స్థితి)" : isTa ? "கிரக நிலை அட்டவணை (நவாம்சம்)" : "Planetary Positions & Navamsha Table",
       personalityTitle: isKn ? "೧. ಆತ್ಮಾನ್ವೇಷಣೆ & ಜನ್ಮ ಲಗ್ನ ವ್ಯಕ್ತಿತ್ವ ತತ್ವ" : isHi ? "1. आत्मा एवं जन्म लग्न व्यक्तित्व" : isTe ? "1. ఆత్మాన్వేషణ & వ్యక్తిత్వ తత్వం" : isTa ? "1. ஆத்ம ஆய்வு & குணநலன்" : "1. Soul & Core Personality Blueprint",
       dashaPhaseTitle: isKn ? "೨. ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಫಲ & ದೈವಿಕ ಮಾರ್ಗದರ್ಶನ" : isHi ? "2. वर्तमान दशा-भुक्ति प्रभाव एवं मार्गदर्शन" : isTe ? "2. ప్రస్తుత దశా-భుక్తి ఫలితాలు" : isTa ? "2. தற்போதைய தசா-புக்தி பலன்" : "2. Running Planetary Period (Dasha-Bhukti) Guidance",
       yogasTitle: isKn ? "೩. ಜಾತಕದಲ್ಲಿರುವ ವಿಶೇಷ ರಾಜಯೋಗಗಳು & ಶುಭ ಯೋಗಗಳು" : isHi ? "3. जन्म कुंडली में विशेष राजयोग एवं शुभ योग" : isTe ? "3. విశేష రాజయోగాలు & శుభ యోగాలు" : isTa ? "3. ராஜயோகங்கள் & சுப யோகங்கள்" : "3. Auspicious Planetary Yogas & Divine Combinations",
@@ -383,7 +384,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                               <th className="p-1.5">{isKn ? "ಗ್ರಹ" : "Planet"}</th>
                               <th className="p-1.5">{isKn ? "ರಾಶಿ" : "Rashi"}</th>
                               <th className="p-1.5 text-center">{isKn ? "ಭಾವ" : "House"}</th>
-                              <th className="p-1.5">{isKn ? "ದೀಪ್ತಾಂಶ" : "Deg"}</th>
+                              <th className="p-1.5">{isKn ? "ನವಾಂಶ" : isHi ? "नवांश" : isTe ? "నవాంశ" : isTa ? "நவாம்சம்" : "Navamsha"}</th>
                               <th className="p-1.5">{isKn ? "ಸ್ಥಿತಿ" : "Dignity"}</th>
                             </tr>
                           </thead>
@@ -393,7 +394,7 @@ export const RoyalA4PrintTemplate = forwardRef<HTMLDivElement, RoyalA4PrintTempl
                                 <td className="p-1.5 font-bold text-amber-950">{p.name}</td>
                                 <td className="p-1.5 text-amber-900">{p.rashi}</td>
                                 <td className="p-1.5 text-center font-bold text-amber-950">{p.house}</td>
-                                <td className="p-1.5 font-mono text-[10px] text-amber-800">{p.longitudeStr}</td>
+                                <td className="p-1.5 text-[10px] font-medium text-amber-900">{p.navamsha || p.rashi}</td>
                                 <td className="p-1.5 text-[10px] font-semibold text-amber-950">{p.dignity}</td>
                               </tr>
                             ))}

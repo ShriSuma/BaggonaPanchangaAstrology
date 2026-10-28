@@ -1087,24 +1087,29 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── Sanskrit Shloka ───────────────────────────────────────────────── */}
-      <div data-section="shloka" className="pdf-section w-full px-16 my-4">
-        <div className={`text-center px-20 py-14 border-y-[3px] border-double ${borderColorClass} bg-amber-100/30`}>
+      {/* ── Sanskrit Shloka & Sacred Astrologer's Ashirvada Blessing ──────── */}
+      <div data-section="ashirvada" className="pdf-section w-full px-14 pt-8 pb-32 text-center relative">
+        {/* Sacred Sanskrit Shloka */}
+        <div className={`text-center px-16 py-10 mb-8 border-y-[3px] border-double ${borderColorClass} bg-amber-100/30`}>
           <p className="text-3xl font-bold leading-loose text-amber-900" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>
             {shloka}
           </p>
         </div>
-      </div>
 
-      {/* ── Astrologer's Blessing ─────────────────────────────────────────── */}
-      <div data-section="ashirvada" className="pdf-section mt-4 text-center px-20 pb-20">
+        {/* Sacred ॐ Emblem */}
         <div className="text-6xl text-amber-600 mb-6 opacity-90" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>ॐ</div>
-        <h3 className={`text-3xl font-bold mb-8 italic ${primaryColorClass} leading-normal`}>
+        
+        {/* Ashirvada Title */}
+        <h3 className={`text-3xl font-bold mb-6 italic ${primaryColorClass} leading-normal`}>
           {translations.ashirvadaTitle}
         </h3>
-        <p className="text-2xl leading-loose font-medium text-amber-950 text-center">
+        
+        {/* Personalized Dynamic Ashirvada Blessing */}
+        <p className="text-2xl leading-loose font-medium text-amber-950 text-center max-w-3xl mx-auto px-4">
           "{translations.ashirvadaValue}"
         </p>
+
+        {/* Official Priest Seal */}
         {translations.priestSeal && (
           <div 
             className="mt-8 mx-auto max-w-4xl px-8 py-3 rounded-full border border-amber-600/40 bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 text-amber-950 font-bold text-sm tracking-normal shadow-xs flex items-center justify-center gap-3"
@@ -1117,10 +1122,14 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <span className="text-amber-600 text-base flex-shrink-0">✦</span>
           </div>
         )}
-        <div className="flex items-center justify-center gap-6 opacity-80 mt-12 mb-10">
+
+        {/* Decorative Divider */}
+        <div className="flex items-center justify-center gap-6 opacity-80 mt-10 mb-8">
           <span className="text-3xl text-amber-700">✧</span>
         </div>
-        <div className="mt-8 text-center text-amber-800 text-base font-bold uppercase pb-8 pt-8 leading-normal border-t border-amber-700/30">
+
+        {/* Publication Footer with Generous Bottom Clearance */}
+        <div className="mt-6 text-center text-amber-800 text-base font-bold uppercase pb-12 pt-6 leading-normal border-t border-amber-700/30">
           {translations.footer || "Baggona Panchanga Publication"}
         </div>
       </div>

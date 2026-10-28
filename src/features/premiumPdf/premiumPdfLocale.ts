@@ -526,7 +526,9 @@ export const accuracyContract = (input?: {
     "   - If Unmarried: Focus on matrimonial discernment, partner alignment, and auspicious timing.",
     "   - If 'no_children': Focus on mutual emotional sanctuary, standing united, and private hopes for family expansion.",
     "5. SACRED GOKARNA MAHABALESHWARA REMEDIES: Prescribe authentic Vedic remedies rooted in Sri Kshetra Gokarna Mahabaleshwara (sacred Atma Linga) and Lord Mukhyaprana. Remedies must inspire 100% spiritual confidence, peace, and divine protection, never fear or doom.",
-    "6. ZERO CONFUSING PERCENTAGE DISCLOSURES: Never output self-limiting or ambiguous phrases that sound like low accuracy or partial results (e.g. 'only 40% accuracy' or 'yields only 40%'). Affirm the native's 100% spiritual potential and divine timing."
+    "6. ZERO CONFUSING PERCENTAGE DISCLOSURES: Never output self-limiting or ambiguous phrases that sound like low accuracy or partial results (e.g. 'only 40% accuracy' or 'yields only 40%'). Affirm the native's 100% spiritual potential and divine timing.",
+    "7. STRICT ZERO-DEGREE RULE (CRITICAL MANDATE): NEVER output technical numerical degrees, minutes, or degree symbols (e.g., NEVER say '15°', '22 degrees', '23°14\''). Common devotees and families cannot understand degrees. Instead, refer exclusively to the Bhava (House 1 to 12), Rashi name, Navamsha position, or planetary dignity.",
+    "8. CLASSICAL DIGNITY & VARGOTTAMA INTEGRATION: Deeply weave the planetary dignities from the chart facts into the narrative: exalted planets bring royal authority, debilitated planets represent sacred karmic refining opportunities, and Vargottama planets bestow unshakable spiritual fortitude."
   ].join("\n");
 };
 

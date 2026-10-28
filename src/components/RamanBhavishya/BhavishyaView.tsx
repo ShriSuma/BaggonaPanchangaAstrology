@@ -3028,12 +3028,14 @@ Return ONLY this JSON (no extra text before or after):
         const absLong = (p.rashi.index * 30) + (p.degree % 30);
         const nakshatraDeg = absLong % (360 / 27);
         const pada = Math.floor(nakshatraDeg / (360 / 108)) + 1;
+        const navamshaRashiIndex = Math.floor((absLong * 3) / 10) % 12;
 
         return {
           name: pick(GRAHA_L5[toGraha(p.name)], lang),
           rashi: pick(RASHI_L5[p.rashi.index], lang),
           house: p.house,
           longitudeStr: `${deg}° ${min}'`,
+          navamsha: pick(RASHI_L5[navamshaRashiIndex], lang),
           nakshatra: p.nakshatra ? pick(NAKSHATRA_L5[p.nakshatra.index], lang) : "",
           pada,
           dignity: p.isExalted
@@ -3052,12 +3054,14 @@ Return ONLY this JSON (no extra text before or after):
         const nakshatraDeg = absLong % (360 / 27);
         const mPada = Math.floor(nakshatraDeg / (360 / 108)) + 1;
         const mNakIdx = Math.floor(absLong / (360 / 27));
+        const mNavamshaIdx = Math.floor((absLong * 3) / 10) % 12;
 
         planetsTable.push({
           name: lang === "kn" ? "ಮಾಂದಿ (ಗುಳಿಕ)" : lang === "hi" ? "मांदी (गुलिक)" : lang === "te" ? "మాంది (గుళిక)" : lang === "ta" ? "மாந்தி (குளிகன்)" : "Maandi (Gulika)",
           rashi: pick(RASHI_L5[maandi.rashi.index], lang),
           house: maandiHouse,
           longitudeStr: `${mDeg}° ${mMin}'`,
+          navamsha: pick(RASHI_L5[mNavamshaIdx], lang),
           nakshatra: pick(NAKSHATRA_L5[mNakIdx], lang),
           pada: mPada,
           dignity: lang === "kn" ? "ಉಪಗ್ರಹ" : lang === "hi" ? "उपग्रह" : lang === "te" ? "ఉపగ్రహం" : lang === "ta" ? "உபகிரகம்" : "Upagraha",
