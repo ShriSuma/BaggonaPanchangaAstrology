@@ -8,6 +8,7 @@ import {
   generateSevaICalendarString,
   generateGoogleCalendarUrl,
   generateCompactGoogleCalendarUrlForQR,
+  generate30DayDirectCalendarDownloadUrl,
   getDailyKaalaTimings
 } from "../features/seva/icsCalendarGenerator";
 import {
@@ -249,6 +250,63 @@ describe("Pre-Launch Commercial Readiness Audit", () => {
       expect(nonAscii.length).toBe(0);
       expect(compactUrl).toContain("calendar.google.com");
       expect(compactUrl).toContain("token%3Dbgn_v1_");
+    });
+
+    it("verifies 30-day direct calendar URL immediately downloads 30-day .ics with zero modal friction", () => {
+      const direct30Url = generate30DayDirectCalendarDownloadUrl({
+        lang: "kn",
+        panditName: "Shreeram Pandit",
+        priestPhone: "9972339362",
+        overrideCalendarPhone: true,
+        notificationTime: "07:00",
+        personName: "Narayana Bhatt",
+        pincode: "581326",
+        lat: 14.5479,
+        lng: 74.3187,
+        locationName: "Gokarna",
+        dob: "1988-11-20",
+        tob: "08:30"
+      });
+
+      // 1. Must route directly to action=ics30 and days=30
+      expect(direct30Url).toContain("/daily?");
+      expect(direct30Url).toContain("action=ics30");
+      expect(direct30Url).toContain("days=30");
+
+      // 2. Decode token to guarantee 30-day duration is embedded in crypto cipher
+      const urlObj = new URL(direct30Url);
+      const token = urlObj.searchParams.get("token");
+      expect(token).toBeTruthy();
+      expect(token!.startsWith("bgn_v1_")).toBe(true);
+
+      const decoded = decodeDevoteeToken(token!);
+      expect(decoded).toBeTruthy();
+      expect(decoded?.dy).toBe(30);
+      expect(decoded?.days).toBe(30);
+      expect(decoded?.ph).toBe("9972339362");
+
+      // 3. Verify exactly 30 daily VEVENTs are produced in the generated .ics
+      const thirtyDays: RhythmDay[] = Array.from({ length: 30 }, (_, i) => {
+        const d = new Date(Date.UTC(2026, 10, 1 + i, 12, 0, 0));
+        return calculateDeterministicRhythmDay(d.toISOString().slice(0, 10), 10, 4);
+      });
+
+      const ics = generateSevaICalendarString({
+        days: thirtyDays,
+        daysCount: 30,
+        lang: "kn",
+        panditName: "Shreeram Pandit",
+        personName: "Narayana Bhatt",
+        lat: 14.5479,
+        lng: 74.3187,
+        pincode: "581326",
+        priestPhone: "9972339362",
+        overrideCalendarPhone: true
+      });
+
+      const dailyMorningEvents = ics.match(/SUMMARY:.*ಬಗ್ಗೋಣ ಪಂಚಾಂಗ/g) || [];
+      expect(dailyMorningEvents.length).toBe(30);
+      expect(ics).toContain("9972339362");
     });
   });
 

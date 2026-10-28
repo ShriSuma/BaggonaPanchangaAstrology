@@ -256,6 +256,7 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
           // Generate compact ASCII URL strictly adhering to baggona-qr-code-guard
           const compactUrl = generateCompactGoogleCalendarUrlForQR({
             days: rhythmDays,
+            daysCount: count,
             lang: selectedLang,
             panditName: priestName || "Shreeram Pandit",
             priestPhone: priestPhone || "9972339362",

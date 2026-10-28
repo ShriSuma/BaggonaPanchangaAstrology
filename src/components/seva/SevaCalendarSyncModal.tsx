@@ -61,7 +61,7 @@ export default function SevaCalendarSyncModal({
 
   const [calendarMode, setCalendarMode] = useState<"devotee" | "priest">("devotee");
   const [includePriestCalendar, setIncludePriestCalendar] = useState<boolean>(false);
-  const [calendarSpanDays, setCalendarSpanDays] = useState<number>(90);
+  const [calendarSpanDays, setCalendarSpanDays] = useState<number>(30);
   const [target, setTarget] = useState<QrCalendarTarget>("google");
   const [platform, setPlatform] = useState<"android" | "apple">("android");
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
@@ -710,32 +710,34 @@ export default function SevaCalendarSyncModal({
             </div>
           </div>
 
-          {/* Priest Calendar Checkbox (Unchecked by default) */}
-          <label className="flex items-start gap-3 p-3.5 rounded-2xl border-2 border-amber-400 bg-[#FFFDF7] cursor-pointer shadow-xs hover:bg-amber-50/90 transition">
-            <input
-              type="checkbox"
-              checked={includePriestCalendar || calendarMode === "priest"}
-              onChange={(e) => {
-                setIncludePriestCalendar(e.target.checked);
-                if (e.target.checked && isSuperAdmin) {
-                  setCalendarMode("priest");
-                } else if (!e.target.checked) {
-                  setCalendarMode("devotee");
-                }
-              }}
-              className="mt-0.5 w-4 h-4 rounded text-amber-700 focus:ring-amber-500 border-amber-400"
-            />
-            <div className="text-left flex-1">
-              <span className="block text-xs font-black text-amber-950">
-                👑 {lang.startsWith("kn") ? "ಪುರೋಹಿತರ ವಿಶೇಷ ಪಂಚಾಂಗ ಸೇರಿಸಿ (Include Priest Calendar & Detailed Muhurtha Timings)" : "Include Priest Calendar & Detailed Muhurtha Timings"}
-              </span>
-              <span className="block text-[11px] leading-snug text-amber-900/80 mt-0.5">
-                {lang.startsWith("kn")
-                  ? "೧೨ ದಿನ ಲಗ್ನ ಅಂತ್ಯ ಸಮಯಗಳು, ತಿಥಿ-ನಕ್ಷತ್ರ ಅಂತ್ಯ ವಿವರ, ಶ್ರಾದ್ಧ ತಿಥಿ, ಎನರ್ಜಿ ಮೀಟರ್ ಮತ್ತು ಕರ್ಮಾನುಷ್ಠಾನ ಮುಹೂರ್ತಗಳನ್ನು ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಸೇರಿಸುತ್ತದೆ."
-                  : "Includes 12 Dina Lagna ending times, Tithi/Nakshatra transition timings, Shraddha tithi, energy meter, and priest duty reminders."}
-              </span>
-            </div>
-          </label>
+          {/* Priest Calendar Checkbox (Restricted to SuperAdmin / Priest view) */}
+          {isSuperAdmin && (
+            <label className="flex items-start gap-3 p-3.5 rounded-2xl border-2 border-amber-400 bg-[#FFFDF7] cursor-pointer shadow-xs hover:bg-amber-50/90 transition">
+              <input
+                type="checkbox"
+                checked={includePriestCalendar || calendarMode === "priest"}
+                onChange={(e) => {
+                  setIncludePriestCalendar(e.target.checked);
+                  if (e.target.checked && isSuperAdmin) {
+                    setCalendarMode("priest");
+                  } else if (!e.target.checked) {
+                    setCalendarMode("devotee");
+                  }
+                }}
+                className="mt-0.5 w-4 h-4 rounded text-amber-700 focus:ring-amber-500 border-amber-400"
+              />
+              <div className="text-left flex-1">
+                <span className="block text-xs font-black text-amber-950">
+                  👑 {lang.startsWith("kn") ? "ಪುರೋಹಿತರ ವಿಶೇಷ ಪಂಚಾಂಗ ಸೇರಿಸಿ (Include Priest Calendar & Detailed Muhurtha Timings)" : "Include Priest Calendar & Detailed Muhurtha Timings"}
+                </span>
+                <span className="block text-[11px] leading-snug text-amber-900/80 mt-0.5">
+                  {lang.startsWith("kn")
+                    ? "೧೨ ದಿನ ಲಗ್ನ ಅಂತ್ಯ ಸಮಯಗಳು, ತಿಥಿ-ನಕ್ಷತ್ರ ಅಂತ್ಯ ವಿವರ, ಶ್ರಾದ್ಧ ತಿಥಿ, ಎನರ್ಜಿ ಮೀಟರ್ ಮತ್ತು ಕರ್ಮಾನುಷ್ಠಾನ ಮುಹೂರ್ತಗಳನ್ನು ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ಸೇರಿಸುತ್ತದೆ."
+                    : "Includes 12 Dina Lagna ending times, Tithi/Nakshatra transition timings, Shraddha tithi, energy meter, and priest duty reminders."}
+                </span>
+              </div>
+            </label>
+          )}
 
           {/* Calendar Type Segmented Switch: ONLY FOR SUPERADMIN */}
           {isSuperAdmin && (

@@ -1698,20 +1698,23 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </div>
           )}
 
-          {/* Locked Expired Ribbon or Active Input Bar */}
+          {/* Sacred Royal Gold Completion Ribbon */}
           {isExpired ? (
-            <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 text-center space-y-2">
-              <p className="text-xs font-bold text-red-900">
-                ⌛ {currentI18n.sessionEndedTitle}
+            <div className="bg-gradient-to-b from-[#FFFDF0] to-[#FDF6E2] border-2 border-[#D4AF37] rounded-2xl p-4 text-center space-y-2.5 shadow-md">
+              <p className="text-xs font-bold text-amber-950 flex items-center justify-center gap-1.5">
+                <span>🪔</span>
+                <span>{currentI18n.sessionEndedTitle}</span>
+                <span>🕉️</span>
               </p>
-              <p className="text-[11px] text-stone-700">
+              <p className="text-[11px] text-amber-900 leading-relaxed font-sans max-w-lg mx-auto">
                 {currentI18n.sessionEndedMsg}
               </p>
               <a
                 href={DEFAULT_PRIEST_CONTACT.callUri}
-                className="inline-block bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs py-2 px-4 rounded-xl shadow-md transition"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow-md transition"
               >
-                📞 {currentI18n.callPriestBtn}
+                <span>📞</span>
+                <span>{currentI18n.callPriestBtn || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362"}</span>
               </a>
             </div>
           ) : (

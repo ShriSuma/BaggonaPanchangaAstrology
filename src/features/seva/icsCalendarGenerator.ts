@@ -2025,6 +2025,7 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
   tob?: string;
   birthNakshatraIndex?: number;
   birthRashiIndex?: number;
+  daysCount?: number;
 }): string {
   let {
     day: singleDay,
@@ -2111,7 +2112,8 @@ export function generateCompactGoogleCalendarUrlForQR(options: {
     d: day.ymd,
     startDate: startDateStr,
     sd: startDateStr,
-    dy: 90,
+    days: options.daysCount || (days && days.length > 0 ? days.length : 30),
+    dy: options.daysCount || (days && days.length > 0 ? days.length : 30),
     l: lang,
     tm: notificationTime,
     pl: "android",
@@ -2164,7 +2166,7 @@ export type QrCalendarTarget = "google" | "webcal" | "sanctum";
  */
 export function generateQrPayloadByTarget(
   target: QrCalendarTarget,
-  options: CalendarGeneratorOptions & { platform?: "android" | "apple" }
+  options: CalendarGeneratorOptions & { platform?: "android" | "apple"; daysCount?: number }
 ): string {
   let {
     days,
@@ -2178,8 +2180,11 @@ export function generateQrPayloadByTarget(
     lng = 74.31,
     locationName = "Gokarna",
     dob,
-    tob
+    tob,
+    daysCount
   } = options;
+
+  const effectiveSpanDays = daysCount || (days && days.length > 0 ? days.length : 30);
 
   if (pincode && /^\d{6}$/.test(pincode.trim())) {
     const pinCoords = resolvePincodeCoordinatesSync(pincode.trim(), lat, lng);
@@ -2226,8 +2231,8 @@ export function generateQrPayloadByTarget(
     d: startDateStr,
     startDate: startDateStr,
     sd: startDateStr,
-    days: 90,
-    dy: 90,
+    days: effectiveSpanDays,
+    dy: effectiveSpanDays,
     l: lang,
     pl: platform || "android",
     t: target,
@@ -2249,13 +2254,27 @@ export function generateQrPayloadByTarget(
     : "";
 
   if (target === "google" || target === "webcal") {
-    // Instant 90-day native calendar import engine
-    // Triggers direct .ics calendar import on devotee's phone without waiting 24h for Google crawler
-    return `${origin}/daily?token=${token}&action=ics90&sd=${startDateStr}&lang=${lang}${contactOverrideQuery}`;
+    // Instant native calendar import engine: downloads 30-day or 90-day .ics file directly on devotee's device
+    const spanAction = effectiveSpanDays <= 30 ? "ics30" : "ics90";
+    return `${origin}/daily?token=${token}&action=${spanAction}&days=${effectiveSpanDays}&sd=${startDateStr}&lang=${lang}${contactOverrideQuery}`;
   }
 
   // target === "sanctum"
   return `${origin}/daily?token=${token}&sd=${startDateStr}&lang=${lang}${contactOverrideQuery}`;
+}
+
+/**
+ * Dedicated 30-Day Direct Calendar Download Link Generator.
+ * Provides the direct QR code and web link for the 30-day subscription package.
+ * When clicked or scanned, the 30-day .ics file downloads immediately to the devotee's device.
+ */
+export function generate30DayDirectCalendarDownloadUrl(
+  options: CalendarGeneratorOptions & { platform?: "android" | "apple" }
+): string {
+  return generateQrPayloadByTarget("google", {
+    ...options,
+    daysCount: 30
+  });
 }
 
 export function generatePlatformSpecificQrPayload(

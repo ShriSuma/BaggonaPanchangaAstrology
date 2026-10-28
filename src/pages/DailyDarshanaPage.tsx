@@ -1858,7 +1858,7 @@ export default function DailyDarshanaPage(): JSX.Element {
 
   const isQrScanAutoDownload = useMemo(() => {
     const action = params.get("action");
-    return action === "ics" || action === "ics90" || action === "download";
+    return action === "ics" || action === "ics90" || action === "ics30" || action === "download";
   }, [params]);
 
   const isFromCalendarRedirect = useMemo(() => {
@@ -3114,8 +3114,11 @@ export default function DailyDarshanaPage(): JSX.Element {
   }, [deity, benediction, lang]);
 
   const requestedCalendarDays = useMemo(() => {
-    const raw = Number((decoded as any)?.dy || (decoded as any)?.days || (decoded as any)?.duration || params.get("days") || 90);
-    return Number.isFinite(raw) && raw > 0 ? raw : 90;
+    const action = params.get("action");
+    if (action === "ics30") return 30;
+    if (action === "ics90") return 90;
+    const raw = Number((decoded as any)?.dy || (decoded as any)?.days || (decoded as any)?.duration || params.get("days") || 30);
+    return Number.isFinite(raw) && raw > 0 ? raw : 30;
   }, [params, decoded]);
 
   const downloadIcsLabel = useMemo(() => {
@@ -3226,6 +3229,28 @@ export default function DailyDarshanaPage(): JSX.Element {
           <div style={{ fontSize: 13, fontWeight: 900, color: "#FDE68A", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
             ✨ {dict.panchangaTitle} ✨
           </div>
+
+          {/* Direct ICS Download Toast Notification */}
+          {downloadedNotice && (
+            <div style={{
+              background: "linear-gradient(90deg, #78350F 0%, #B45309 100%)",
+              border: "1.5px solid #FDE68A",
+              borderRadius: 12,
+              padding: "10px 14px",
+              marginBottom: 12,
+              color: "#FFFDF0",
+              fontSize: 13,
+              fontWeight: 800,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              boxShadow: "0 4px 15px rgba(245, 158, 11, 0.3)"
+            }}>
+              <span>📥</span>
+              <span>{lang === "kn" ? `ನಿಮ್ಮ ${requestedCalendarDays} ದಿನಗಳ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಕ್ಯಾಲೆಂಡರ್ ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!` : `Your ${requestedCalendarDays}-day Baggona Panchanga calendar downloaded successfully!`}</span>
+            </div>
+          )}
 
           {/* Gold Banner Graphic (Mandatory Always Visible on Top) */}
           <img
