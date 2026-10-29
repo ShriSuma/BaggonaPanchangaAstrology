@@ -19,6 +19,7 @@ import GrahaSpinner from "../components/ui/GrahaSpinner";
 import { generatePDFFromElement } from "../utils/pdfGenerator";
 import InstantReadingPdfTemplate from "../components/instantReading/InstantReadingPdfTemplate";
 import { PDF_LANGUAGES, type SupportedPdfLang } from "../components/instantReading/instantReadingPdfLocale";
+import { calculateInstantPrashnaClock, type InstantPrashnaClock } from "../core/instantPrashnaEngine";
 import {
   buildDeterministicFirstSixPoints,
   parseOrEnhanceTalkingPoints,
@@ -46,6 +47,15 @@ const hiddenHost: React.CSSProperties = {
  */
 export function cleanAstrologyText(text: string): string {
   return sanitizeAstrologyKannadaText(text);
+}
+
+export function getAgeTierBadge(age: number, isKn: boolean): string {
+  if (age < 12) return isKn ? "👶 ಬಾಲ / ಶಿಶು (0-12 ವರ್ಷ)" : "👶 Child / Infancy (0-12 yrs)";
+  if (age < 23) return isKn ? "📚 ವಿದ್ಯಾರ್ಥಿ / ಯುವ ತಾರುಣ್ಯ (13-22 ವರ್ಷ)" : "📚 Student / Youth (13-22 yrs)";
+  if (age < 40) return isKn ? "💼 ಯುವಕ / ಗೃಹಸ್ಥ (23-39 ವರ್ಷ)" : "💼 Young Adult / Householder (23-39 yrs)";
+  if (age < 60) return isKn ? "🏛️ ಪ್ರೌಢ ಗೃಹಸ್ಥ (40-59 ವರ್ಷ)" : "🏛️ Mature Householder (40-59 yrs)";
+  if (age < 75) return isKn ? "🌅 ಉತ್ತರ ಪ್ರೌಢಾವಸ್ಥೆ (60-74 ವರ್ಷ)" : "🌅 Senior Elder (60-74 yrs)";
+  return isKn ? "🧘 ವೃದ್ಧ / ವಾನಪ್ರಸ್ಥ (75+ ವರ್ಷ)" : "🧘 Venerable Sage (75+ yrs)";
 }
 
 export type InstantReadingTabKey =
@@ -185,6 +195,9 @@ export default function InstantReadingPage(): JSX.Element {
   const [maritalStatusOverride, setMaritalStatusOverride] = useState<string | undefined>(
     session?.input?.maritalStatus
   );
+  const [santanaStatusOverride, setSantanaStatusOverride] = useState<string | undefined>(
+    (session?.input as any)?.santanaStatus
+  );
 
   useEffect(() => {
     if (session?.input?.maritalStatus) {
@@ -193,6 +206,24 @@ export default function InstantReadingPage(): JSX.Element {
       setMaritalStatusOverride(undefined);
     }
   }, [session?.input?.name, session?.input?.maritalStatus]);
+
+  useEffect(() => {
+    if ((session?.input as any)?.santanaStatus) {
+      setSantanaStatusOverride((session?.input as any).santanaStatus);
+    } else {
+      setSantanaStatusOverride(undefined);
+    }
+  }, [session?.input?.name, (session?.input as any)?.santanaStatus]);
+
+  const [prashnaClock, setPrashnaClock] = useState<InstantPrashnaClock | null>(null);
+
+  useEffect(() => {
+    if (session?.result?.moonSign?.index !== undefined) {
+      const lat = session.input?.latitude ?? 14.5385;
+      const lon = session.input?.longitude ?? 74.3188;
+      setPrashnaClock(calculateInstantPrashnaClock(session.result.moonSign.index, new Date(), lat, lon));
+    }
+  }, [session?.result?.moonSign?.index, session?.input?.latitude, session?.input?.longitude]);
   const [aiNarration, setAiNarration] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [dynamicTalkingPoints, setDynamicTalkingPoints] = useState<{
@@ -309,6 +340,16 @@ export default function InstantReadingPage(): JSX.Element {
       ? maritalStatusOverride
       : session.input?.maritalStatus;
 
+    const resolvedSantanaStatus = santanaStatusOverride !== undefined
+      ? santanaStatusOverride
+      : (session.input as any)?.santanaStatus;
+
+    const hasChildren = resolvedSantanaStatus === "has_children"
+      ? true
+      : resolvedSantanaStatus === "no_children"
+      ? false
+      : undefined;
+
     const data = generatePanchangaAngaSynthesis(session.result, {
       birthDate,
       birthTime,
@@ -318,7 +359,9 @@ export default function InstantReadingPage(): JSX.Element {
       devoteeName: session.input.name || "Devotee",
       gender: session.input.gender,
       devoteeAge,
-      maritalStatus: resolvedMaritalStatus
+      maritalStatus: resolvedMaritalStatus,
+      santanaStatus: resolvedSantanaStatus,
+      hasChildren
     });
 
     setSynthesisData(data);
@@ -545,7 +588,7 @@ STRICT RULES:
         setAiLoading(false);
       }
     })();
-  }, [session, geminiApiKey, i18n.language, maritalStatusOverride]);
+  }, [session, geminiApiKey, i18n.language, maritalStatusOverride, santanaStatusOverride]);
 
   // Handle Speech Recognition for Voice Q&A
   const handleToggleVoice = () => {
@@ -901,9 +944,14 @@ STRICT RULES:
         <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-amber-300/20 blur-2xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <span className="inline-block px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-950 text-[11px] font-black uppercase tracking-wider mb-1.5 border border-amber-400/60">
-              ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಸಮಾಲೋಚನೆ ಮಂಡಲ ॥
-            </span>
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+              <span className="inline-block px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-950 text-[11px] font-black uppercase tracking-wider border border-amber-400/60">
+                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಸಮಾಲೋಚನೆ ಮಂಡಲ ॥
+              </span>
+              <span className="inline-block px-3 py-0.5 rounded-full bg-amber-600/20 text-amber-950 text-[11px] font-black uppercase tracking-wider border border-amber-500/60">
+                {getAgeTierBadge(devoteeAge, isKn)}
+              </span>
+            </div>
             <h1 className="text-2xl md:text-3xl font-black text-amber-950 font-serif">
               {session.input.name || "Devotee"} {isKn ? "ಅವರ ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಫಲಿತ ದರ್ಶನ" : "- Live Life Situation Reading"}
             </h1>
@@ -959,6 +1007,46 @@ STRICT RULES:
                 ⚡ ಪ್ರತ್ಯೇಕಿತರು (Separated)
               </button>
             </div>
+
+            {/* Santana (Children) Status Selector */}
+            <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-amber-300/40">
+              <span className="text-xs font-bold text-amber-950 flex items-center gap-1">
+                <span>ಸಂತಾನ ಸ್ಥಿತಿ:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setSantanaStatusOverride(undefined)}
+                className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
+                  santanaStatusOverride === undefined && !(session.input as any)?.santanaStatus
+                    ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                    : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                ❓ ತಿಳಿಸಿಲ್ಲ (Not Specified)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSantanaStatusOverride("has_children")}
+                className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
+                  (santanaStatusOverride ?? (session.input as any)?.santanaStatus) === "has_children"
+                    ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                    : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                👶 ಸಂತಾನವಿದೆ (Has Children)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSantanaStatusOverride("no_children")}
+                className={`text-xs px-3 py-1 rounded-full font-bold transition-all border ${
+                  (santanaStatusOverride ?? (session.input as any)?.santanaStatus) === "no_children"
+                    ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                    : "bg-white/80 text-stone-700 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                🌸 ಸಂತಾನವಿಲ್ಲ / ಅಪೇಕ್ಷಿತರು (Seeking / No Children)
+              </button>
+            </div>
           </div>
           <div className="px-4 py-2 rounded-2xl bg-amber-200/70 border border-amber-400 text-right">
             <span className="text-[10px] text-amber-900 uppercase font-black block">ಪಂಚಾಂಗ ವಿಶ್ಲೇಷಣೆ</span>
@@ -976,6 +1064,142 @@ STRICT RULES:
         </Card>
       ) : (
         <>
+          {/* 🕒 REAL-TIME HORARY / PRASHNA CONSULTATION CLOCK BANNER */}
+          {prashnaClock && (
+            <div className="rounded-2xl border-2 border-amber-400/80 bg-gradient-to-r from-amber-100 via-amber-50 to-yellow-50 p-4 md:p-5 text-stone-950 shadow-md">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-b border-amber-300/60 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/40 text-lg">
+                    🕒
+                  </span>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block">
+                      ॥ ಲೈವ್ ಪ್ರಶ್ನಾ & ಸಮಾಲೋಚನಾ ಮುಹೂರ್ತ ಗಡಿಯಾರ ॥
+                    </span>
+                    <h3 className="text-sm md:text-base font-black text-amber-950 font-serif">
+                      {isKn ? "ತಾತ್ಕಾಲಿಕ ಗೋಚಾರ & ಚಂದ್ರಬಲ ನಿರ್ಣಯ (Real-time Horary Clock)" : "Real-time Horary & Chandra Bala Assessment"}
+                    </h3>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-amber-200/80 border border-amber-400 text-amber-950 text-xs font-black">
+                    {isKn ? `ಮುಹೂರ್ತ ಬಲ: ${prashnaClock.muhurthaScore}%` : `Score: ${prashnaClock.muhurthaScore}%`}
+                  </span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-black border ${
+                    prashnaClock.isChandrashtama
+                      ? "bg-red-100 text-red-900 border-red-400 animate-pulse"
+                      : prashnaClock.badgeColor === "emerald"
+                      ? "bg-emerald-100 text-emerald-950 border-emerald-400"
+                      : "bg-amber-100 text-amber-950 border-amber-400"
+                  }`}>
+                    {isKn ? prashnaClock.verdictKn : prashnaClock.verdictEn}
+                  </span>
+                </div>
+              </div>
+
+              {/* 4 Cards: Hora, Choghadiya, Live Transit Moon, Chandra Bala */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3">
+                {/* 1. Hora */}
+                <div className="p-3 rounded-xl bg-white/90 border border-amber-200/80 shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-stone-600 flex items-center gap-1">
+                      <span>☀️</span>
+                      <span>{isKn ? "ಹಾಲಿ ಹೋರೆ" : "Current Hora"}</span>
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                      prashnaClock.isHoraAuspicious ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-900"
+                    }`}>
+                      {prashnaClock.isHoraAuspicious ? (isKn ? "ಶುಭ" : "Auspicious") : (isKn ? "ಸಾಮಾನ್ಯ" : "Neutral")}
+                    </span>
+                  </div>
+                  <div className="text-sm font-black text-amber-950">
+                    {isKn ? prashnaClock.horaLordKn : prashnaClock.horaLordEn} {isKn ? "ಹೋರೆ" : "Hora"}
+                  </div>
+                  <p className="text-[11px] text-stone-700 leading-snug">
+                    {isKn ? prashnaClock.horaSignificanceKn : prashnaClock.horaSignificanceEn}
+                  </p>
+                </div>
+
+                {/* 2. Choghadiya */}
+                <div className="p-3 rounded-xl bg-white/90 border border-amber-200/80 shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-stone-600 flex items-center gap-1">
+                      <span>⏳</span>
+                      <span>{isKn ? "ಚೋಘಡಿಯಾ" : "Choghadiya"}</span>
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                      prashnaClock.choghadiyaQuality === "auspicious" || prashnaClock.choghadiyaQuality === "gainful"
+                        ? "bg-emerald-100 text-emerald-900"
+                        : prashnaClock.choghadiyaQuality === "neutral"
+                        ? "bg-blue-100 text-blue-900"
+                        : "bg-red-100 text-red-900"
+                    }`}>
+                      {prashnaClock.choghadiyaQuality === "auspicious" ? (isKn ? "ಅತ್ಯುತ್ತಮ" : "Best")
+                        : prashnaClock.choghadiyaQuality === "gainful" ? (isKn ? "ಲಾಭದಾಯಕ" : "Gainful")
+                        : prashnaClock.choghadiyaQuality === "neutral" ? (isKn ? "ಚರ / ಸಾಮಾನ್ಯ" : "Neutral")
+                        : (isKn ? "ಎಚ್ಚರಿಕೆ" : "Caution")}
+                    </span>
+                  </div>
+                  <div className="text-sm font-black text-amber-950">
+                    {isKn ? prashnaClock.choghadiyaNameKn : prashnaClock.choghadiyaNameEn}
+                  </div>
+                  <p className="text-[11px] text-stone-700 leading-snug">
+                    {isKn ? prashnaClock.choghadiyaDescKn : prashnaClock.choghadiyaDescEn}
+                  </p>
+                </div>
+
+                {/* 3. Live Transit Moon & Chandra Bala */}
+                <div className={`p-3 rounded-xl border shadow-xs space-y-1 ${
+                  prashnaClock.isChandrashtama
+                    ? "bg-red-50/90 border-red-300"
+                    : "bg-white/90 border-amber-200/80"
+                }`}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-stone-600 flex items-center gap-1">
+                      <span>🌙</span>
+                      <span>{isKn ? "ಗೋಚಾರ ಚಂದ್ರ" : "Transit Moon"}</span>
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                      prashnaClock.isChandrashtama
+                        ? "bg-red-200 text-red-950 font-black animate-pulse"
+                        : prashnaClock.isChandraShubha
+                        ? "bg-emerald-100 text-emerald-900"
+                        : "bg-amber-100 text-amber-900"
+                    }`}>
+                      {prashnaClock.isChandrashtama ? "🔴 ಚಂದ್ರಾಷ್ಟಮ!" : `${prashnaClock.chandraHouseOffset}ನೇ ಮನೆ`}
+                    </span>
+                  </div>
+                  <div className="text-sm font-black text-amber-950">
+                    {isKn ? prashnaClock.transitMoonRashiKn : prashnaClock.transitMoonRashiEn} {isKn ? "ರಾಶಿ" : "Rashi"}
+                  </div>
+                  <p className="text-[11px] text-stone-700 leading-snug font-medium">
+                    {isKn ? prashnaClock.chandraBalaStatusKn : prashnaClock.chandraBalaStatusEn}
+                  </p>
+                </div>
+
+                {/* 4. Consultation Guidance & Rahu Kalam */}
+                <div className="p-3 rounded-xl bg-white/90 border border-amber-200/80 shadow-xs space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-stone-600 flex items-center gap-1">
+                      <span>🧭</span>
+                      <span>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದರ್ಶನ" : "Horary Advice"}</span>
+                    </span>
+                    {prashnaClock.isRahuKalamActive && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-900">
+                        {isKn ? "ರಾಹುಕಾಲ" : "Rahu Kalam"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs font-bold text-stone-900">
+                    {isKn ? "ಪ್ರಶ್ನಾ ಸಮಾಲೋಚನಾ ನಿಯಮ:" : "Prashna Guidance:"}
+                  </div>
+                  <p className="text-[11px] text-stone-700 leading-snug">
+                    {isKn ? prashnaClock.chandraGuidanceKn : prashnaClock.chandraGuidanceEn}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           {/* ── 8-TAB LUXURY GOLD & WHITE CONTROLLER ── */}
           <div ref={tabBarRef} className="space-y-3 pt-2">
             <div className="flex items-center justify-between gap-2 px-1 flex-wrap">
@@ -2394,6 +2618,34 @@ STRICT RULES:
                     </p>
                   </div>
                 </div>
+
+                {/* 🧭 Destined Spouse Arrival Direction & Characteristics (Brihat Jataka) */}
+                {(md.spouseDirectionKn || md.spouseCharacteristicsKn) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {md.spouseDirectionKn && (
+                      <div className="p-4 rounded-xl bg-amber-50/90 border border-amber-300 shadow-xs space-y-1.5">
+                        <div className="flex items-center gap-2 text-amber-950 font-bold text-xs uppercase tracking-wider">
+                          <span>🧭</span>
+                          <span>{isKn ? "ಜೀವನ ಸಂಗಾತಿ ಆಗಮಿಸುವ ದಿಕ್ಕು (Spouse Direction):" : "Spouse Arrival Direction:"}</span>
+                        </div>
+                        <p className="text-stone-900 font-semibold text-xs sm:text-sm leading-relaxed">
+                          {cleanAstrologyText(isKn ? md.spouseDirectionKn : (md.spouseDirectionEn || md.spouseDirectionKn))}
+                        </p>
+                      </div>
+                    )}
+                    {md.spouseCharacteristicsKn && (
+                      <div className="p-4 rounded-xl bg-amber-50/90 border border-amber-300 shadow-xs space-y-1.5">
+                        <div className="flex items-center gap-2 text-amber-950 font-bold text-xs uppercase tracking-wider">
+                          <span>👑</span>
+                          <span>{isKn ? "ಭಾವಿ ಸಂಗಾತಿಯ ವ್ಯಕ್ತಿತ್ವ & ಲಕ್ಷಣ (Spouse Nature):" : "Spouse Characteristics:"}</span>
+                        </div>
+                        <p className="text-stone-900 font-semibold text-xs sm:text-sm leading-relaxed">
+                          {cleanAstrologyText(isKn ? md.spouseCharacteristicsKn : (md.spouseCharacteristicsEn || md.spouseCharacteristicsKn))}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Historical / Celebrity Parallel if present */}
                 {md.historicalCelebrityParallelKn && (
@@ -4605,6 +4857,7 @@ STRICT RULES:
             session={session}
             aiNarration={aiNarration}
             lang={pdfLanguage}
+            prashnaClock={prashnaClock}
           />
         </div>
       )}

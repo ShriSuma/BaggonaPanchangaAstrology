@@ -70,7 +70,7 @@ export function classifyAstrologyTextTone(text: string): PointTone {
   const badPatterns = [
     "ದೋಷ", "ವಿಘ್ನ", "ಸವಾಲು", "ತಡೆ", "ಅಡೆತಡೆ", "ನಷ್ಟ", "ಸಂಕಷ್ಟ", "ಆತಂಕ", "ಚಿಂತೆ",
     "ಕ್ಲೇಶ", "ಭಾರ", "ನೋವು", "ಸಂಕೋಚ", "ಪ್ರತಿಕೂಲ", "ಸಮಸ್ಯೆ", "ವಿಳಂಬ", "ವಂಚನೆ",
-    "ಕುಂದು", "ಅಪಾರ್ಥ", "ಸಂಕಟ", "ದೌರ್ಬಲ್ಯ", "ಆಲಸ್ಯ", "೯೯%", "99%", "ಕೈತಪ್ಪುವ",
+    "ಕುಂದು", "ಅಪಾರ್ಥ", "ಸಂಕಟ", "ದೌರ್ಬಲ್ಯ", "ಆಲಸ್ಯ", "99%", "ಕೈತಪ್ಪುವ",
     "ಹಿಪ್ಪೆ", "ಗಂಟು", "stumble", "hurdle", "affliction", "delay", "loss", "anxiety",
     "stress", "misunderstanding", "stubborn", "knot", "clerical error", "fatigue"
   ];
@@ -409,51 +409,1033 @@ export function buildCoreTemperamentPoints(options: CoreTemperamentOptions): Ast
  * Builds deterministic, 100% authentic Shastric points for each of the First Six Sections.
  * Meets and exceeds the "at least 10 points" requirement under all conditions.
  */
+
+// -------------------------------------------------------------
+// CARD 2: ಅಂತರಂಗದ ಗುಪ್ತ ಆತಂಕ & ಚಿಂತೆ (Subconscious Worry - 100% Dynamic)
+// -------------------------------------------------------------
+export interface SubconsciousWorryOptions {
+  moonSignEn: string;
+  moonNakEn: string;
+  moonHouse: number;
+  hasVishYoga: boolean;      // Moon + Saturn conjunction or close aspect
+  hasGrahanYoga: boolean;    // Moon + Rahu conjunction or aspect
+  hasKetuYoga: boolean;      // Moon + Ketu
+  hasMangalYoga: boolean;    // Moon + Mars (Chandra-Mangala)
+  hasGajakesari: boolean;    // Moon with Jupiter or in Kendra from Jupiter
+  isDusthanaMoon: boolean;   // Moon in 6, 8, 12
+  isKemadruma: boolean;      // No planets around Moon
+  age: number;
+  isFemale: boolean;
+  isKn: boolean;
+  devoteeName?: string;
+}
+
+export function buildSubconsciousWorryPoints(opts: SubconsciousWorryOptions): AstrologerPointItem[] {
+  const isKn = opts.isKn;
+  const nakKn = toKannadaNakshatra(opts.moonNakEn);
+  const nakEn = opts.moonNakEn || "Ashwini";
+  const rashiKn = toKannadaRashi(opts.moonSignEn);
+  const rashiEn = opts.moonSignEn || "Aries";
+
+  const points: AstrologerPointItem[] = [];
+
+  // 1. Astrological Mental Foundation
+  points.push({
+    id: 1,
+    text: isKn
+      ? `ಜಾತಕರ ಮನಃಕಾರಕ ಚಂದ್ರನು ${rashiKn} ರಾಶಿಯ '${nakKn}' ನಕ್ಷತ್ರದಲ್ಲಿದ್ದು, ${opts.moonHouse}ನೇ ಭಾವದ ಅಧಿಪತ್ಯದೊಂದಿಗೆ ಅಂತರಂಗದ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ನಿಯಂತ್ರಿಸುತ್ತಾನೆ.`
+      : `Mind-significator Chandra occupies ${rashiEn} in the '${nakEn}' constellation, anchoring the subconscious emotional foundation from House ${opts.moonHouse}.`,
+    tone: "normal",
+    tagKn: "ಮಾನಸಿಕ ಆಧಾರ",
+    tagEn: "Mental Foundation"
+  });
+
+  // 2. Midnight Overthinking / Nocturnal racing thoughts
+  points.push({
+    id: 2,
+    text: isKn
+      ? "ಹಗಲಿನಲ್ಲಿ ನಗುಮುಖದಿಂದ ಪ್ರತಿಯೊಬ್ಬರ ಜವಾಬ್ದಾರಿಯನ್ನು ಅಚ್ಚುಕಟ್ಟಾಗಿ ನಿಭಾಯಿಸಿದರೂ, ರಾತ್ರಿ ಏಕಾಂತದಲ್ಲಿ ಮನಸ್ಸು ವಿಶ್ರಾಂತಿ ಪಡೆಯದೆ ಭವಿಷ್ಯದ ಹೊಣೆಗಾರಿಕೆಗಳ ಬಗ್ಗೆ ಅತಿಯಾಗಿ ಚಿಂತಿಸುತ್ತದೆ."
+      : "Maintains a composed, competent facade by day, yet battles nocturnal racing thoughts in solitude, overthinking future obligations and family responsibilities.",
+    tone: "bad",
+    tagKn: "ರಾತ್ರಿಯ ಅತಿಚಿಂತನೆ",
+    tagEn: "Midnight Overthinking"
+  });
+
+  // 3. Vish Yoga / Saturn Pressure OR Silent Burden
+  if (opts.hasVishYoga) {
+    points.push({
+      id: 3,
+      text: isKn
+        ? "ಶನಿ-ಚಂದ್ರರ ಪ್ರಭಾವದಿಂದ (ಶಾಸ್ತ್ರೋಕ್ತ ಪುನರ್ಫೂ / ವಿಷ ಯೋಗ): ಎಲ್ಲರ ಜವಾಬ್ದಾರಿಯನ್ನು ತಾನೊಬ್ಬನೇ ಹೊತ್ತು ತೀರಿಸುತ್ತಿದ್ದರೂ, ಒಳಗೊಳಗೇ ಒಂದು ನಿಗೂಢ ಒಂಟಿತನ ಹಾಗೂ 'ನನ್ನ ತ್ಯಾಗವನ್ನು ಯಾರೂ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತಿಲ್ಲ' ಎಂಬ ಮೌನ ವೇದನೆ ಕಾಡುತ್ತದೆ."
+        : "Saturn-Moon influence (classical Punaphoo/Vish Yoga): Silently shoulders immense family loads alone, harboring a quiet melancholy that their sacrifices remain unappreciated.",
+      tone: "bad",
+      tagKn: "ವಿಷ ಯೋಗದ ಮೌನ ವೇದನೆ",
+      tagEn: "Vish Yoga Melancholy"
+    });
+  } else {
+    points.push({
+      id: 3,
+      text: isKn
+        ? "ಕುಟುಂಬದವರಿಗೂ ಅಥವಾ ಆಪ್ತರಿಗೂ ಹೊರೆಯಾಗಬಾರದೆಂಬ ಉದ್ದೇಶದಿಂದ ತನ್ನ ಆಂತರಿಕ ನೋವು, ಆರ್ಥಿಕ ಒತ್ತಡಗಳು ಹಾಗೂ ಶ್ರಮವನ್ನು ಒಳಗೇ ನುಂಗಿಕೊಳ್ಳುವ ಮೌನ ಸಹನಶೀಲತೆ ಇದೆ."
+        : "Habitual internalization of financial and familial burdens to protect loved ones from distress, carrying private pain without complaining.",
+      tone: "bad",
+      tagKn: "ಮೌನ ವೇದನೆ",
+      tagEn: "Silent Burden"
+    });
+  }
+
+  // 4. Grahan Yoga / Rahu Phobia OR Past Betrayal Scars
+  if (opts.hasGrahanYoga) {
+    points.push({
+      id: 4,
+      text: isKn
+        ? "ರಾಹು-ಚಂದ್ರರ ಪ್ರಭಾವದಿಂದ (ಗ್ರಹಣ ಯೋಗ): ತಾನು ಸರಿ ಇದ್ದರೂ ಎಲ್ಲಿ ಅಪಾರ್ಥ, ಸುಳ್ಳು ಅಪವಾದ ಅಥವಾ ಸಾರ್ವಜನಿಕವಾಗಿ ಮಾನಹಾನಿ ಸಂಭವಿಸುವುದೋ ಎಂಬ ಕಣ್ಣಿಗೆ ಕಾಣದ ನಿಗೂಢ ಆತಂಕ ಮನಸ್ಸಿನ ಮೂಲೆಯಲ್ಲಿದೆ."
+        : "Rahu-Moon conjunction (Grahan Yoga): Persistent, invisible fear of being misunderstood, falsely blamed, or suffering public indignity despite clean intentions.",
+      tone: "bad",
+      tagKn: "ಗ್ರಹಣ ಯೋಗದ ಆತಂಕ",
+      tagEn: "Grahan Shadow Phobia"
+    });
+  } else {
+    points.push({
+      id: 4,
+      text: isKn
+        ? "ತಾನು ಅತಿಯಾಗಿ ನಂಬಿದ ಕೆಲವರು ತುರ್ತು ಸಂದರ್ಭದಲ್ಲಿ ಕೈಕೊಟ್ಟ ಕಹಿ ನೆನಪುಗಳು ಮನಸ್ಸಿನ ಆಳದಲ್ಲಿ ಇನ್ನೂ ಮರೆಯಾಗದೆ, ಹೊಸಬರನ್ನು ಸುಲಭವಾಗಿ ನಂಬಲು ಬಿಡದ ಸೂಕ್ಷ್ಮ ಸಂಶಯ ಉಳಿಸಿದೆ."
+        : "Deep emotional scars from past betrayals where trusted associates backed out at critical moments, leaving a guarded vigilance with newcomers.",
+      tone: "bad",
+      tagKn: "ವಿಶ್ವಾಸಘಾತದ ಗಾಯ",
+      tagEn: "Past Betrayal Scar"
+    });
+  }
+
+  // 5. Dusthana Moon (6/8/12) OR Somatic Stress
+  if (opts.isDusthanaMoon) {
+    points.push({
+      id: 5,
+      text: isKn
+        ? "ಚಂದ್ರನು ತ್ರಿಕ ಸ್ಥಾನದಲ್ಲಿರುವುದರಿಂದ (6, 8, ಅಥವಾ 12ನೇ ಮನೆ), ಮಾನಸಿಕ ಒತ್ತಡ ಹೆಚ್ಚಾದಾಗ ಎದೆಯಲ್ಲಿ ದವದವಿಕೆ, ಹೊಟ್ಟೆಯಲ್ಲಿ ಆಮ್ಲೀಯತೆ (Acidity), ಗ್ಯಾಸ್ಟ್ರಿಕ್ ಅಥವಾ ನಿದ್ರಾಭಂಗದಂತಹ ಲಕ್ಷಣಗಳು ತಕ್ಷಣವೇ ಶಾರೀರಿಕವಾಗಿ ಪ್ರಕಟವಾಗುತ್ತವೆ."
+        : "Moon in Dusthana (6th, 8th, or 12th house): Emotional stress immediately translates into somatic symptoms such as stomach acidity, erratic sleep, or chest restlessness.",
+      tone: "bad",
+      tagKn: "ದೈಹಿಕ ಒತ್ತಡದ ನೆರಳು",
+      tagEn: "Somatic Stress"
+    });
+  } else {
+    points.push({
+      id: 5,
+      text: isKn
+        ? "ಹೊಟ್ಟೆಯಲ್ಲಿ ಆಮ್ಲೀಯತೆ (Acidity), ಕುತ್ತಿಗೆ-ಹೆಗಲು ಬಿಗಿತ ಅಥವಾ ನಿದ್ರಾಭಂಗದಂತಹ ಲಕ್ಷಣಗಳು ಜಾತಕರ ಮಾನಸಿಕ ಒತ್ತಡದ ಬಾಹ್ಯ ಪ್ರತಿಫಲನಗಳಾಗಿ ಪ್ರಕಟಗೊಳ್ಳುತ್ತವೆ."
+        : "Physical manifestations of stress appear as sudden acidity, neck/shoulder stiffness, or shallow sleep during high-stakes deadlines.",
+      tone: "bad",
+      tagKn: "ಒತ್ತಡದ ನೆರಳು",
+      tagEn: "Physical Fatigue"
+    });
+  }
+
+  // 6. Chandra-Mangala Volatility OR Emotional Endurance
+  if (opts.hasMangalYoga) {
+    points.push({
+      id: 6,
+      text: isKn
+        ? "ಕುಜ-ಚಂದ್ರರ ಪ್ರಭಾವದಿಂದ (ಚಂದ್ರ-ಮಂಗಳ ಯೋಗ): ಅನ್ಯಾಯ, ನಿಧಾನಗತಿ ಅಥವಾ ಬೇಜವಾಬ್ದಾರಿಯನ್ನು ಕಂಡಾಗ ಒಳಗೆ ಜ್ವಾಲಾಮುಖಿಯಂತೆ ತೀವ್ರ ಆಕ್ರೋಶ ಉಕ್ಕಿದರೂ, ಸಂಬಂಧಗಳು ಹಾಳಾಗಬಾರದೆಂದು ಹೊರಗೆ ಸಂಯಮದಿಂದ ಹದ್ದುಬಸ್ತಿನಲ್ಲಿಡುವ ಆಂತರಿಕ ತೊಳಲಾಟ."
+        : "Mars-Moon interplay (Chandra-Mangala): Fierce internal indignation against sluggishness or injustice, fiercely bottled up to avoid rupturing delicate relationships.",
+      tone: "notice",
+      tagKn: "ಭಾವನಾತ್ಮಕ ತೊಳಲಾಟ",
+      tagEn: "Emotional Fire Suppression"
+    });
+  } else {
+    points.push({
+      id: 6,
+      text: isKn
+        ? "ಯಾವುದೇ ಕೆಲಸವು ಶೇಕಡಾ 100 ರಷ್ಟು ಪರಿಪೂರ್ಣವಾಗಿ ಮುಗಿಯಬೇಕೆಂಬ ಪರಿಪೂರ್ಣತಾವಾದದ (Perfectionism) ಹಠದಿಂದ ತಾನೇ ತನಗೆ ಅತಿಯಾದ ಆತಂಕವನ್ನು ಸೃಷ್ಟಿಸಿಕೊಳ್ಳುತ್ತಾರೆ."
+        : "Self-imposed perfectionist anxiety, feeling deeply unsettled when milestones achieve only 90% rather than flawless 100% execution.",
+      tone: "notice",
+      tagKn: "ಪರಿಪೂರ್ಣತೆಯ ಒತ್ತಡ",
+      tagEn: "Perfectionist Anxiety"
+    });
+  }
+
+  // 7. Kemadruma Loneliness OR Financial Vulnerability
+  if (opts.isKemadruma) {
+    points.push({
+      id: 7,
+      text: isKn
+        ? "ಶಾಸ್ತ್ರೋಕ್ತ ಕೇಮದ್ರುಮ ಯೋಗದ ನೆರಳು: ಸುತ್ತಲೂ ಜನರು, ಸ್ನೇಹಿತರಿದ್ದರೂ ಕೊನೆಗೆ ನಾನೊಬ್ಬನೇ ಒಂಟಿಯಾಗಿ ನನ್ನ ಹೋರಾಟ ಮಾಡಬೇಕು ಎಂಬ ಏಕಾಂಗಿತನದ ಭಾವ ಕಾಡುತ್ತದೆ."
+        : "Classical Kemadruma shadow: Despite being surrounded by people, feels fundamentally solitary, bearing the existential weight of fighting battles single-handedly.",
+      tone: "bad",
+      tagKn: "ಕೇಮದ್ರುಮ ಒಂಟಿತನ",
+      tagEn: "Existential Solitude"
+    });
+  } else {
+    points.push({
+      id: 7,
+      text: isKn
+        ? "ಆರ್ಥಿಕ ಭದ್ರತೆಯ ವಿಷಯದಲ್ಲಿ ಸದಾ ಒಂದು ಅನಿಶ್ಚಿತತೆಯ ಭಯ ಕಾಡುತ್ತಿದ್ದು, ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ನಿರೀಕ್ಷಿತ ಮೊತ್ತ ಜಮೆಯಾಗುವವರೆಗೂ ಮನಸ್ಸಿನಲ್ಲಿ ದವದವಿಕೆ ಮುಂದುವರಿಯುತ್ತದೆ."
+        : "Subconscious fear of sudden cash crunches, generating restlessness until funds are safely credited to the bank account.",
+      tone: "notice",
+      tagKn: "ಆರ್ಥಿಕ ಅನಿಶ್ಚಿತತೆ",
+      tagEn: "Financial Vulnerability"
+    });
+  }
+
+  // 8. Age-Specific Life Stage Worry
+  if (opts.age < 24) {
+    points.push({
+      id: 8,
+      text: isKn
+        ? "ಶೈಕ್ಷಣಿಕ ಸ್ಪರ್ಧೆ, ಕರಿಯರ್ ದಿಕ್ಕು ಹಾಗೂ ಪೋಷಕರ ನಿರೀಕ್ಷೆಗಳನ್ನು ಪೂರ್ಣ ಪ್ರಮಾಣದಲ್ಲಿ ತಲುಪಲು ಸಾಧ್ಯವಾಗುವುದೇ ಎಂಬ ಯುವ ಸಹಜ ಆಂತರಿಕ ಅಂಜಿಕೆ."
+        : "Anxiety regarding academic milestones, competitive cutoffs, and living up to familial expectations.",
+      tone: "notice",
+      tagKn: "ವಿದ್ಯಾ-ಕರಿಯರ್ ಚಿಂತೆ",
+      tagEn: "Academic Crossroads"
+    });
+  } else if (opts.age < 36) {
+    points.push({
+      id: 8,
+      text: isKn
+        ? "ಸ್ವಂತ ಮನೆ/ವಾಹನ, ಆರ್ಥಿಕ ಸ್ವಾತಂತ್ರ್ಯ, ಕಂಕಣ ಭಾಗ್ಯ ಹಾಗೂ ಸ್ವಂತ ಕಾಲಮೇಲೆ ಸಮಾಜದಲ್ಲಿ ಗೌರವಯುತವಾಗಿ ನಿಲ್ಲುವ ಬಗೆಗಿನ ತುರ್ತಿನ ಯೋಚನೆಗಳು."
+        : "Urgent pressure to achieve financial independence, establish domestic stability, and build a lasting reputation.",
+      tone: "notice",
+      tagKn: "ಸ್ಥಿರತೆಯ ಹಂಬಲ",
+      tagEn: "Settlement Urgency"
+    });
+  } else if (opts.age < 56) {
+    points.push({
+      id: 8,
+      text: isKn
+        ? "ಮಕ್ಕಳ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಸಾಲದ ಹೊರೆ ಇಳಿಸುವಿಕೆ ಹಾಗೂ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮುಂದಿನ ಪೀಳಿಗೆಯ ಎದುರು ತನ್ನ ಪ್ರಭಾವ ಉಳಿಸಿಕೊಳ್ಳುವ ಗಂಭೀರ ಹೊಣೆಗಾರಿಕೆ."
+        : "Heavy responsibilities balancing children's higher education, debt liquidation, and maintaining career authority.",
+      tone: "notice",
+      tagKn: "ಕುಟುಂಬದ ಜವಾಬ್ದಾರಿ",
+      tagEn: "Family Burden"
+    });
+  } else {
+    points.push({
+      id: 8,
+      text: isKn
+        ? "ಮಕ್ಕಳ ವಿವಾಹ/ಸೆಟ್ಲ್ಮೆಂಟ್, ದೇಹದ ಚೈತನ್ಯ ಹಾಗೂ ಇಳಿವಯಸ್ಸಿನಲ್ಲಿ ಯಾರ ಮುಂದೆಯೂ ಕೈಚಾಚದೆ ಗೌರವದಿಂದ ಬಾಳುವ ಸ್ವಾಭಿಮಾನದ ಚಿಂತನೆಗಳು."
+        : "Subconscious reflections on children's marital stability, bodily stamina, and preserving sovereign self-reliance in retirement.",
+      tone: "notice",
+      tagKn: "ಸ್ವಾಭಿಮಾನದ ನೆಮ್ಮದಿ",
+      tagEn: "Dignified Retirement"
+    });
+  }
+
+  // 9. Inner Resilience / Gaja Kesari / Purva Punya
+  if (opts.hasGajakesari) {
+    points.push({
+      id: 9,
+      text: isKn
+        ? "ಗುರು-ಚಂದ್ರರ ಪರಮ ಪವಿತ್ರ ಗಜಕೇಸರಿ ಯೋಗದ ರಕ್ಷಣೆ: ಎಷ್ಟೇ ಸಂಕಷ್ಟ, ಅಪವಾದ ಅಥವಾ ವಿಪತ್ತು ಎದುರಾದರೂ, ಅಂತಿಮವಾಗಿ ಇವರ ಗೌರವ ಹಾಗೂ ಧರ್ಮಕ್ಕೆ ಯಾವುದೇ ಆಘಾತವಾಗದಂತೆ ದೈವವೇ ರಕ್ಷಿಸುತ್ತದೆ."
+        : "Divine Gaja Kesari shield (Jupiter-Moon): Regardless of external turbulence or jealousy, divine grace ensures reputation and righteous standing remain unharmed.",
+      tone: "good",
+      tagKn: "ಗಜಕೇಸರಿ ಶ್ರೀರಕ್ಷೆ",
+      tagEn: "Gaja Kesari Shield"
+    });
+  } else {
+    points.push({
+      id: 9,
+      text: isKn
+        ? "ಎಷ್ಟೇ ಆಂತರಿಕ ಬಿರುಗಾಳಿ ಎದ್ದರೂ, ಮುಖದಲ್ಲಿ ಸಮಚಿತ್ತ ಕಾಪಾಡಿಕೊಂಡು ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ನುಗ್ಗುವ ಅದ್ಭುತ ಸಹನಶಕ್ತಿ ಹಾಗೂ ಪುನಶ್ಚೇತನ ಶಕ್ತಿ ಜಾತಕರಲ್ಲಿದೆ."
+        : "Rare internal endurance capable of absorbing immense private shocks without crumbling or neglecting outward duty, bouncing back stronger.",
+      tone: "good",
+      tagKn: "ಅಂತಃಸತ್ವ",
+      tagEn: "Emotional Endurance"
+    });
+  }
+
+  // 10. Solitude Rejuvenation
+  points.push({
+    id: 10,
+    text: isKn
+      ? "ಮನಸ್ಸನ್ನು ಪ್ರಶಾಂತಗೊಳಿಸಲು ಪುಣ್ಯಕ್ಷೇತ್ರ, ಪವಿತ್ರ ದೇವಸ್ಥಾನ ಅಥವಾ ಏಕಾಂತ ಧ್ಯಾನದ ವಾತಾವರಣವು ಜಾತಕರಿಗೆ ಅತೀವ ಚೇತರಿಕೆಯ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ."
+      : "Spiritual sanctuaries, ancient temple courtyards, and silent walks in nature act as instant psychic therapy for the native.",
+    tone: "good",
+    tagKn: "ಏಕಾಂತ ಚೇತರಿಕೆ",
+    tagEn: "Solitude Rejuvenation"
+  });
+
+  // 11. Upcoming Peace Window
+  points.push({
+    id: 11,
+    text: isKn
+      ? "ಮುಂಬರುವ ಶುಭ ದಶಾ-ಭುಕ್ತಿಯ ಪ್ರವೇಶದಿಂದ ಈ ಅಂತರಂಗದ ಆತಂಕದ ಮೋಡಗಳು ಕರಗಿ, ಆಂತರಿಕ ಪ್ರಶಾಂತತೆ ಹಾಗೂ ಧೈರ್ಯ ಮರುಕಳಿಸುವುದು ನಿಶ್ಚಿತ."
+      : "The impending sub-dasha planetary shift is scheduled to dissolve these midnight anxieties, restoring baseline mental peace.",
+    tone: "notice",
+    tagKn: "ಶಾಂತಿ ಪ್ರವೇಶ",
+    tagEn: "Upcoming Peace Window"
+  });
+
+  // 12. Sacred Mantra Shield
+  points.push({
+    id: 12,
+    text: isKn
+      ? "ಶ್ರೀ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಜಪ ('ಓಂ ನಮಃ ಶಿವಾಯ') ಹಾಗೂ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆಯಿಂದ ಮನಸ್ಸಿನ ಅಧೀರತೆ ದೂರವಾಗಿ, ನವೀನ ಆತ್ಮವಿಶ್ವಾಸ ನೆಲೆಗೊಳ್ಳಲಿದೆ."
+      : "Devotional recitation of Shiva Panchakshari ('Om Namah Shivaya') and ancestral sankalpa shields the psyche against all anxieties.",
+    tone: "good",
+    tagKn: "ದೈವ ರಕ್ಷಣೆ",
+    tagEn: "Divine Mental Shield"
+  });
+
+  return points;
+}
+
+// -------------------------------------------------------------
+// CARD 3: 99% ಆದ ಕೆಲಸ ನಿಲ್ಲಿಸುವ 'ಮಾಂದಿ ಕರ್ಮ ಗಂಟು' (100% Dynamic 12-House Analysis)
+// -------------------------------------------------------------
+export interface MaandiKarmicOptions {
+  maandiHouse: number;
+  maandiLordKn: string;
+  maandiLordEn: string;
+  isKn: boolean;
+  devoteeAge?: number;
+}
+
+export function buildMaandiKarmicPoints(opts: MaandiKarmicOptions): AstrologerPointItem[] {
+  const isKn = opts.isKn;
+  const mH = Math.max(1, Math.min(12, opts.maandiHouse || 1));
+  const lordKn = opts.maandiLordKn || "ಶನಿ";
+  const lordEn = opts.maandiLordEn || "Saturn";
+
+  const points: AstrologerPointItem[] = [];
+
+  // 1. Classical Foundation
+  points.push({
+    id: 1,
+    text: isKn
+      ? `ಶನಿಯ ಛಾಯಾ ಪುತ್ರನಾದ 'ಮಾಂದಿ' (ಗುಳಿಕ) ಗ್ರಹವು ಜನ್ಮ ಕುಂಡಲಿಯ ${mH}ನೇ ಭಾವದಲ್ಲಿದ್ದು, ಅಧಿಪತಿ ${lordKn} ಪ್ರಭಾವದಲ್ಲಿ ಕರ್ಮ ಗಂಟನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ.`
+      : `Saturn's shadow satellite Maandi (Gulika) occupies House ${mH} under dispositor ${lordEn}, anchoring a specific last-mile karmic knot.`,
+    tone: "normal",
+    tagKn: "ಮಾಂದಿ ಸ್ಥಾನ ಸತ್ಯ",
+    tagEn: "Maandi Alignment"
+  });
+
+  // 2. Initial Momentum
+  points.push({
+    id: 2,
+    text: isKn
+      ? "ಪ್ರಮುಖ ಕಾರ್ಯಗಳು ಆರಂಭದಲ್ಲಿ ಶೇಕಡಾ 50%, 80%, 90% ಮತ್ತು 99% ರಷ್ಟು ಅತ್ಯಂತ ಸುಲಭವಾಗಿ ಮುನ್ನಡೆದು ಅಂತಿಮ ಕ್ಷಣಕ್ಕೆ ತಲುಪುತ್ತವೆ."
+      : "Major projects gain swift momentum through 50%, 80%, and 99% with great optimism and smooth cooperation.",
+    tone: "normal",
+    tagKn: "ಆರಂಭಿಕ ಪ್ರಗತಿ",
+    tagEn: "Initial Momentum"
+  });
+
+  // 3 & 4. 100% Dynamic 12-House Specific 99% Stall Manifestation
+  const HOUSE_STALL_MAP_KN: Record<number, { trigger: string; agony: string; tag: string }> = {
+    1: {
+      trigger: "ಇನ್ನೇನು ಅಂತಿಮ ವಿಜಯದ ಮೆಟ್ಟಿಲು ಹತ್ತಬೇಕು ಅನ್ನುವಾಗಲೇ, ಹಠಾತ್ ದೈಹಿಕ ಆಲಸ್ಯ, ತಲೆಭಾರ ಅಥವಾ 'ನನ್ನಿಂದ ಸಾಧ್ಯವೇ?' ಎಂಬ ಸ್ವಯಂ-ಸಂಶಯದಿಂದ ಕೆಲಸ ಸ್ಥಗಿತಗೊಳ್ಳುತ್ತದೆ!",
+      agony: "ಆತ್ಮವಿಶ್ವಾಸದ ಕೊರತೆ ಅಥವಾ ಅಂತಿಮ ಕ್ಷಣದ ದೈಹಿಕ ಆಯಾಸದಿಂದಾಗಿ ಕೈಗೆ ಬಂದ ಗೆಲುವು ಕೈತಪ್ಪಿ ಹೋಗುವ ಪರಿಸ್ಥಿತಿ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ.",
+      tag: "ತನು ಸ್ಥಾನದ 99% ಗಂಟು"
+    },
+    2: {
+      trigger: "ಇನ್ನೇನು ಹಣ ಕೈಸೇರಬೇಕು ಅಥವಾ ಆಸ್ತಿ/ವ್ಯಾಪಾರ ಒಪ್ಪಂದ ಮುಕ್ತಾಯವಾಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ಮಾತಿನ ಚಕಮಕಿ ಅಥವಾ ತಾಂತ್ರಿಕ ಬ್ಯಾಂಕ್ ಕಾರಣದಿಂದ ಹಣ ಬಿಡುಗಡೆ ತಡೆಯಾಗುತ್ತದೆ!",
+      agony: "ಬರಬೇಕಾದ ಧನಾಗಮನ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಅಡೆತಡೆಗೆ ಸಿಲುಕಿ, ಸ್ನೇಹಿತರಿಗೆ ನೀಡಿದ ಹಣ ವಾಪಸ್ ಬರದೇ ತಿಂಗಳುಗಟ್ಟಲೆ ಎಳೆಯುತ್ತದೆ.",
+      tag: "ಧನಕೋಶದ 99% ಗಂಟು"
+    },
+    3: {
+      trigger: "ಇನ್ನೇನು ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಬೀಳಬೇಕು ಅಥವಾ ಪ್ರಮುಖ ಪ್ರಯಾಣ ಆರಂಭವಾಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ಸಂವಹನದ ಅಚಾತುರ್ಯ ಅಥವಾ ಸಹೋದರ/ಸಹೋದ್ಯೋಗಿಗಳ ಅಸಹಕಾರದಿಂದ ಕೆಲಸ ನಿಲ್ಲುತ್ತದೆ!",
+      agony: "ಪ್ರಯಾಣದ ದಾಖಲೆಗಳು, ಒಪ್ಪಂದದ ಕಡತಗಳು ಅಥವಾ ಪಾಲುದಾರರ ಸಹಿ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ಕೈಕೊಡುತ್ತವೆ.",
+      tag: "ಸಾಹಸ ಸ್ಥಾನದ 99% ಗಂಟು"
+    },
+    4: {
+      trigger: "ಇನ್ನೇನು ಗೃಹಪ್ರವೇಶ, ಹೊಸ ವಾಹನ ಖರೀದಿ ಅಥವಾ ಆಸ್ತಿ ನೋಂದಣಿ ಆಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ಸಬ್-ರಿಜಿಸ್ಟ್ರಾರ್ ಕಚೇರಿಯಲ್ಲಿ ಕಾಗದಪತ್ರದ ಕ್ಷುಲ್ಲಕ ಆಕ್ಷೇಪಣೆಯಿಂದ ಕೆಲಸ ನಿಲ್ಲುತ್ತದೆ!",
+      agony: "ವಾಹನದ ಹಠಾತ್ ರಿಪೇರಿ, ಮನೆಯಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ದುರಸ್ತಿ ಅಥವಾ ಮಾತೃಶ್ರೀಯವರ ಆರೋಗ್ಯ ಚಿಂತೆಯಿಂದ ಖುಷಿಯ ಕ್ಷಣಗಳಲ್ಲಿ ನೆಮ್ಮದಿ ಕದಡುತ್ತದೆ.",
+      tag: "ಸುಖ-ವಾಹನ 99% ಗಂಟು"
+    },
+    5: {
+      trigger: "ಇನ್ನೇನು ಸಂತಾನ ಯೋಗ ಅಥವಾ ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಯಲ್ಲಿ ಉತ್ತೀರ್ಣರಾಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ಕೇವಲ 1 ಅಂಕದಿಂದ ಅವಕಾಶ ತಪ್ಪುವುದು ಅಥವಾ ಅಂತಿಮ ಫಲಿತಾಂಶ ವಿಳಂಬವಾಗುತ್ತದೆ!",
+      agony: "ಪೂರ್ವಪುಣ್ಯದ ಫಲ ಸಿಗುವ ಹಂತದಲ್ಲಿ ಕೊನೆ ಗಳಿಗೆಯ ಗೊಂದಲ, ಮರೆವು ಅಥವಾ ಮಕ್ಕಳ ವಿದ್ಯಾಭ್ಯಾಸದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತ ತೊಡಕು ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ.",
+      tag: "ವಿದ್ಯಾ-ಸಂತಾನ 99% ಗಂಟು"
+    },
+    6: {
+      trigger: "ಇನ್ನೇನು ಸಾಲ ಮಂಜೂರಾಗಬೇಕು ಅಥವಾ ಶತ್ರುಗಳ ಮೇಲಿನ ವ್ಯಾಜ್ಯ ತೀರ್ಮಾನವಾಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ಹೊಸ ತಕರಾರು ಅಥವಾ ಜೀರ್ಣಾಂಗದ ಆಸಿಡಿಟಿ ಬಾಧೆಯಿಂದ ಅಂತಿಮ ತೀರ್ಪು ಮುಂದೂಡಲ್ಪಡುತ್ತದೆ!",
+      agony: "ಹೊಟ್ಟೆಯ ತೊಂದರೆ, ಕಚೇರಿಯ ಒಳಗಿನ ಗುಪ್ತ ಮತ್ಸರ ಹಾಗೂ ಸಾಲ ತೀರಿಸುವ ಕೊನೆಯ ಕಂತಿನ ವೇಳೆ ಅನಿರೀಕ್ಷಿತ ಧನ ಕೊರತೆ ಎದುರಾಗುತ್ತದೆ.",
+      tag: "ಶತ್ರು-ಸಾಲ 99% ಗಂಟು"
+    },
+    7: {
+      trigger: "ಇನ್ನೇನು ವಿವಾಹ ಸಂಬಂಧ ಗಟ್ಟಿಯಾಗಬೇಕು ಅಥವಾ ಬಿಸಿನೆಸ್ ಪಾಲುದಾರಿಕೆ ಆರಂಭವಾಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ಅಂತಿಮ ಮಾತುಕತೆಯ ವೇಳೆ ಅತ್ಯಂತ ಕ್ಷುಲ್ಲಕ ಕಾರಣಕ್ಕೆ ಸಂಬಂಧ ಮುರಿದುಬೀಳುತ್ತದೆ!",
+      agony: "ಕಂಕಣ ಭಾಗ್ಯದ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ಮೂರನೆಯವರ ವಿನಾಕಾರಣ ಚಾಡಿಮಾತು ಅಥವಾ ಸಂಗಾತಿಯ ಅಂತರಂಗದ ತಂಪು ವರ್ತನೆಯಿಂದ ಮನಸ್ಸಿಗೆ ಆಘಾತವಾಗುತ್ತದೆ.",
+      tag: "ಕಳತ್ರ-ವಿವಾಹ 99% ಗಂಟು"
+    },
+    8: {
+      trigger: "ಇನ್ನೇನು ಪಿತ್ರಾರ್ಜಿತ ಆಸ್ತಿ, ವಿಮಾ ಕ್ಲೈಮ್ ಅಥವಾ ನಿವೃತ್ತಿಯ ಹಣ ಕೈಸೇರಬೇಕು ಅನ್ನುವಾಗಲೇ, ಕ್ಲೆರಿಕಲ್ ನಿಯಮಗಳ ನೆಪದಲ್ಲಿ ಕಡತ ಕಚೇರಿಗಳಲ್ಲಿ ಸಿಲುಕಿಕೊಳ್ಳುತ್ತದೆ!",
+      agony: "ಅನಿರೀಕ್ಷಿತ ಆತಂಕ, ರಕ್ತದೊತ್ತಡದ ಏರುಪೇರು ಹಾಗೂ ಬರಬೇಕಾದ ಹಕ್ಕಿನ ಹಣಕ್ಕೆ ಅಧಿಕಾರಿಗಳ ಸುತ್ತ ಅಲೆಯುವಂತಹ ಪ್ರಸಂಗ ಬರುತ್ತದೆ.",
+      tag: "ಆಯುರ್-ವಿಮಾ 99% ಗಂಟು"
+    },
+    9: {
+      trigger: "ಇನ್ನೇನು ವಿದೇಶಿ ವೀಸಾ ಸಂದರ್ಶನ, ಉನ್ನತ ಪದವಿ ಅಥವಾ ಭಾಗ್ಯೋದಯದ ಹೆಜ್ಜೆ ಸಫಲವಾಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ರಾಯಭಾರ ಕಚೇರಿಯಲ್ಲಿ ಅಥವಾ ಹಿರಿಯರ ವಿರೋಧದಿಂದ ತಡೆ ಉಂಟಾಗುತ್ತದೆ!",
+      agony: "ಪಿತೃ ಕರ್ಮದ ಋಣದಿಂದಾಗಿ ಗುರು ಕೃಪೆ ಹಾಗೂ ಅದೃಷ್ಟದ ಬಾಗಿಲು ತೆರೆಯುವ ಕೊನೆಯ ಕ್ಷಣದಲ್ಲಿ ನಿಗೂಢ ವಿಳಂಬ ಉಂಟಾಗುತ್ತದೆ.",
+      tag: "ಭಾಗ್ಯ-ಪಿತೃ 99% ಗಂಟು"
+    },
+    10: {
+      trigger: "ಇನ್ನೇನು ಪ್ರಮೋಷನ್ ಪತ್ರ ಅಥವಾ ಉದ್ಯೋಗದ ಶ್ರೇಯಸ್ಸು ಸಿಗಬೇಕು ಅನ್ನುವಾಗಲೇ, 100% ದುಡಿದ ಜಾತಕರನ್ನು ಬಿಟ್ಟು ಕೆಲಸವೇ ಮಾಡದ ಬೇರೊಬ್ಬರಿಗೆ ಆ ಕ್ರೆಡಿಟ್ ಮತ್ತು ಪ್ರಶಸ್ತಿ ಸಿಗುತ್ತದೆ!",
+      agony: "ಪ್ರಾಮಾಣಿಕವಾಗಿ ಬೆವರು ಸುರಿಸಿ ಕೆಲಸ ಮಾಡಿದರೂ, ಅಂತಿಮ ಪ್ರಮೋಷನ್ ಫೈಲ್ ನಿರ್ದೇಶಕರ ಟೇಬಲ್ ಮೇಲೆ ಕಾರಣವಿಲ್ಲದೆ ಧೂಳು ತಿನ್ನುತ್ತದೆ.",
+      tag: "ಕರ್ಮ-ಪ್ರಮೋಷನ್ 99% ಗಂಟು"
+    },
+    11: {
+      trigger: "ಇನ್ನೇನು ವರ್ಷದ ಬೋನಸ್, ದೊಡ್ಡ ಲಾಭದ ಮೊತ್ತ ಅಥವಾ ಪ್ರಮುಖ ಒಡಂಬಡಿಕೆಯ ಫಲ ಕೈಸೇರಬೇಕು ಅನ್ನುವಾಗಲೇ, ಪಾಲುದಾರರ ನಂಬಿಕೆದ್ರೋಹದಿಂದ ಲಾಭ ಕೈತಪ್ಪುತ್ತದೆ!",
+      agony: "ಅತ್ಯಂತ ಆಪ್ತ ಸ್ನೇಹಿತರೆಂದು ನಂಬಿದವರು ಲಾಭ ಹಂಚಿಕೊಳ್ಳುವ ವೇಳೆ ಮುಖ ತಿರುಗಿಸಿ, ಹಕ್ಕಿನ ಲಾಭಾಂಶವನ್ನು ಕಸಿದುಕೊಳ್ಳುವ ಅನುಭವವಾಗುತ್ತದೆ.",
+      tag: "ಲಾಭ-ಬೋನಸ್ 99% ಗಂಟು"
+    },
+    12: {
+      trigger: "ಇನ್ನೇನು ಉಳಿತಾಯದ ಗುರಿ ಮುಟ್ಟಬೇಕು ಅಥವಾ ವಿದೇಶಿ ಪ್ರಯಾಣದ ವೀಸಾ ಮುದ್ರೆಯಾಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ಅನಿರೀಕ್ಷಿತ ದಂಡ, ಆಸ್ಪತ್ರೆ ಖರ್ಚು ಅಥವಾ ಕಾಗದದ ಆಕ್ಷೇಪಣೆಯಿಂದ ಖರ್ಚು ಉಂಟಾಗುತ್ತದೆ!",
+      agony: "ಬೆವರು ಸುರಿಸಿ ಕೂಡಿಸಿಟ್ಟ ಉಳಿತಾಯವು ಹಠಾತ್ ದುರಸ್ತಿ ಅಥವಾ ವ್ಯರ್ಥ ವೆಚ್ಚಗಳಿಗೆ ಸೋರಿಹೋಗಿ, ರಾತ್ರಿಯ ನಿದ್ರಾಭಂಗವನ್ನು ಉಂಟುಮಾಡುತ್ತದೆ.",
+      tag: "ವ್ಯಯ-ವಿದೇಶ 99% ಗಂಟು"
+    }
+  };
+
+  const HOUSE_STALL_MAP_EN: Record<number, { trigger: string; agony: string; tag: string }> = {
+    1: {
+      trigger: "Right when the finish line is in sight, sudden physical lethargy, head heaviness, or self-sabotaging doubt paralyzes action!",
+      agony: "A sudden energy dip or lack of confidence deprives the native of personal triumph at the very last step.",
+      tag: "Ascendant 99% Knot"
+    },
+    2: {
+      trigger: "Right when funds are due to credit or a financial pact is closing, a verbal dispute or clerical banking hold freezes liquid funds!",
+      agony: "Receivable wealth gets snarled in last-minute verification, while money lent to associates remains stuck for months.",
+      tag: "Wealth 99% Knot"
+    },
+    3: {
+      trigger: "Right when contracts are to be inked or a crucial journey begins, communication misfires or uncooperative associates stall the pact!",
+      agony: "Transit documents, travel visas, or partner signatures fail to arrive on the eve of execution.",
+      tag: "Contract 99% Knot"
+    },
+    4: {
+      trigger: "Right when buying a home, vehicle, or registering property, trivial registry objections or municipal delays freeze the paperwork!",
+      agony: "Emergency vehicular breakdowns or maternal health worries disrupt domestic tranquility right before auspicious events.",
+      tag: "Property 99% Knot"
+    },
+    5: {
+      trigger: "Right when academic merit or progeny conception is imminent, missing a competitive cutoff by just 1 mark stalls the outcome!",
+      agony: "Sudden creative block, memory slip during examinations, or progeny delays test emotional patience.",
+      tag: "Intellect 99% Knot"
+    },
+    6: {
+      trigger: "Right when loan sanctioning or debt clearance is closing, covert jealousy from colleagues or sudden stomach acidity causes postponement!",
+      agony: "Digestive flare-ups on high-stakes days and bureaucratic objections delay loan disbursements.",
+      tag: "Debt & Competition Knot"
+    },
+    7: {
+      trigger: "Right when marriage alliances or partnership deals are finalizing, frivolous third-party gossip or sudden coldness derails the pact!",
+      agony: "The alliance breaks down at the final discussion despite stellar astrological matching, causing acute shock.",
+      tag: "Matrimonial 99% Knot"
+    },
+    8: {
+      trigger: "Right when inheritance, insurance settlements, or gratuity are due, obscure legal clauses or tax notices lock the payout!",
+      agony: "Running around administrative desks for legitimate dues while enduring sudden unexplainable anxiety.",
+      tag: "Settlement 99% Knot"
+    },
+    9: {
+      trigger: "Right when foreign visa interviews or higher education grants are due, embassy administrative processing delays the dream!",
+      agony: "Ancestral pitru debt causes fortune's door to stall right at the counter despite flawless documentation.",
+      tag: "Fortune & Visa Knot"
+    },
+    10: {
+      trigger: "Right when promotions or formal commendations are awarded, the native who did 100% of the work is bypassed for a favored colleague!",
+      agony: "Pours sweat and intellect into projects, yet the promotion dossier sits untouched on the chairman's desk.",
+      tag: "Career Recognition Knot"
+    },
+    11: {
+      trigger: "Right when annual bonuses, investment dividends, or major profits are due, partner deceit or corporate excuses withhold the payout!",
+      agony: "Trusted associates turn indifferent when profit-sharing arrives, leaving rightful bonuses frozen.",
+      tag: "Profit & Bonus Knot"
+    },
+    12: {
+      trigger: "Right when savings reach a target or foreign relocation is scheduled, sudden hospital bills or visa holds drain the surplus!",
+      agony: "Hard-earned liquid savings leak into sudden emergency repairs and medical bills, triggering insomnia.",
+      tag: "Expenditure & Visa Knot"
+    }
+  };
+
+  const currentStallKn = HOUSE_STALL_MAP_KN[mH] || HOUSE_STALL_MAP_KN[10];
+  const currentStallEn = HOUSE_STALL_MAP_EN[mH] || HOUSE_STALL_MAP_EN[10];
+
+  points.push({
+    id: 3,
+    text: isKn ? currentStallKn.trigger : currentStallEn.trigger,
+    tone: "bad",
+    tagKn: currentStallKn.tag,
+    tagEn: currentStallEn.tag
+  });
+
+  points.push({
+    id: 4,
+    text: isKn ? currentStallKn.agony : currentStallEn.agony,
+    tone: "bad",
+    tagKn: "ಕೊನೆಯ ಮೈಲಿ ವೇದನೆ",
+    tagEn: "Last-Mile Agony"
+  });
+
+  points.push({
+    id: 5,
+    text: isKn
+      ? "ಪ್ರಾಮಾಣಿಕವಾಗಿ ಬೆವರು ಸುರಿಸಿ ದುಡಿದರೂ, ಅಂತಿಮ ಫಲಿತಾಂಶ ಸಿಗುವಾಗ 'ಕೈಯಿಗೆ ಬಂದ ತುತ್ತು ಬಾಯಿಗೆ ಬರಲಿಲ್ಲ' ಎಂಬಂತೆ ಆಗುವುದು ಇದರ ಮುಖ್ಯ ಲಕ್ಷಣ."
+      : "The classic 'morsel reached the hand but missed the mouth' syndrome, where genuine sweat gets entangled in trivial technicalities.",
+    tone: "bad",
+    tagKn: "ಶ್ರಮಕ್ಕೆ ತಡೆ",
+    tagEn: "Unearned Obstacles"
+  });
+
+  points.push({
+    id: 6,
+    text: isKn
+      ? `ಈ ${mH}ನೇ ಭಾವದ ಮಾಂದಿ ದೋಷವು ಪೂರ್ವಜನ್ಮದ ಕರ್ಮದ ಋಣವಾಗಿದ್ದು, ವ್ಯಕ್ತಿಯ ತಾಳ್ಮೆ ಮತ್ತು ಸತ್ಯನಿಷ್ಠೆಯನ್ನು ಪರೀಕ್ಷಿಸುವ ಒಂದು ಕಠಿಣ ಒರೆಗಲ್ಲಾಗಿದೆ.`
+      : `This House ${mH} Maandi knot originates from ancestral karmic residue, acting as an ethical crucible testing stamina before elevation.`,
+    tone: "notice",
+    tagKn: "ಕರ್ಮ ಪರೀಕ್ಷೆ",
+    tagEn: "Karmic Crucible"
+  });
+
+  points.push({
+    id: 7,
+    text: isKn
+      ? "ಆದರೆ ಮಾಂದಿ ಗ್ರಹವು ಕೆಲಸವನ್ನು ವಿಳಂಬ ಮಾಡಬಲ್ಲನೇ ಹೊರತು, ಸತತ ಪರಿಶ್ರಮ ಹಾಗೂ ದೈವಭಕ್ತಿ ಇರುವ ಜಾತಕರಿಗೆ ಯಶಸ್ಸನ್ನು ಶಾಶ್ವತವಾಗಿ ಕಸಿದುಕೊಳ್ಳಲಾರ!"
+      : "Maandi can delay, test, and frustrate, but can NEVER permanently deny triumph to a determined, righteous native.",
+    tone: "good",
+    tagKn: "ಅಂತಿಮ ಜಯ",
+    tagEn: "Eventual Triumph"
+  });
+
+  points.push({
+    id: 8,
+    text: isKn
+      ? "ಸತತ ಪರಿಶ್ರಮ ಹಾಗೂ ಹಠ ಬಿಡದ ಪ್ರಯತ್ನದಿಂದ ಅಂತಿಮವಾಗಿ ವಿಜಯ ಲಭಿಸಲಿದೆ; ಕೇವಲ ಕೊನೆಯ 1% ತಡೆಯನ್ನು ನಿವಾರಿಸಿಕೊಳ್ಳುವುದು ಅಗತ್ಯ."
+      : "Persistent resolve eventually overcomes the deadlock; dissolving that final 1% bottleneck is the sole requirement.",
+    tone: "good",
+    tagKn: "ಹಠದ ಜಯ",
+    tagEn: "Resolute Victory"
+  });
+
+  points.push({
+    id: 9,
+    text: isKn
+      ? `ಈ ${mH}ನೇ ಭಾವದ ಮಾಂದಿ ಕರ್ಮ ಗಂಟನ್ನು ಶಾಶ್ವತವಾಗಿ ನಿವಾರಿಸಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ 'ಮಾಂದಿ-ತಿಲ ಹೋಮ ಸಂಕಲ್ಪ' ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ ಪರಿಹಾರ.`
+      : `To snap this House ${mH} Maandi knot permanently, sponsoring a dedicated 'Maandi Tila Homa Sankalpa' at Sri Kshetra Gokarna Mahabaleshwara is supreme.`,
+    tone: "good",
+    tagKn: "ಗೋಕರ್ಣ ಶಾಂತಿ",
+    tagEn: "Gokarna Shanti"
+  });
+
+  points.push({
+    id: 10,
+    text: isKn
+      ? "ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ 'ಓಂ ಮಂದಪುತ್ರಾಯ ವಿದ್ಮಹೇ ಮೃತ್ಯುರೂಪಾಯ ಧೀಮಹಿ ತನ್ನೋ ಮಾಂದಿಃ ಪ್ರಚೋದಯಾತ್' ಮಂತ್ರವನ್ನು 11 ಬಾರಿ ಜಪಿಸುವುದು ಮಹತ್ವದ ರಕ್ಷಣಾ ನಿಯಮ."
+      : "Daily morning recitation of the Maandi Gayatri (11 repetitions) erects an impermeable psychic shield against sudden glitches.",
+    tone: "notice",
+    tagKn: "ದೈನಂದಿನ ಮಂತ್ರ",
+    tagEn: "Daily Mantra Shield"
+  });
+
+  points.push({
+    id: 11,
+    text: isKn
+      ? "ಈ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರದಿಂದ ವರ್ಷಗಳಿಂದ ಬಾಕಿ ಉಳಿದ ಕಡತಗಳು, ಧನಾಗಮನ ಹಾಗೂ ಸ್ಥಗಿತಗೊಂಡ ಕೆಲಸಗಳು ಶೀಘ್ರವಾಗಿ ಮುಕ್ತಾಯ ಕಾಣಲಿವೆ."
+      : "Post-remedy, years of stalled files, delayed wire transfers, and blocked milestones experience rapid breakthrough completion.",
+    tone: "good",
+    tagKn: "ಕಾರ್ಯ ಸಿದ್ಧಿ ಯೋಗ",
+    tagEn: "Hurdle Dissolution"
+  });
+
+  return points;
+}
+
+// -------------------------------------------------------------
+// CARD 4: ಶಾರೀರಿಕ ಮಚ್ಚೆ ಗುರುತು & ತ್ರಿದೋಷ ಪ್ರಕೃತಿ (Anga Lakshana & Tridosha)
+// -------------------------------------------------------------
+export interface AngaLakshanaOptions {
+  lagnaEn: string;
+  lagnaLordEn: string;
+  marsHouse?: number;
+  sunHouse?: number;
+  moonHouse?: number;
+  isKn: boolean;
+}
+
+export function buildAngaLakshanaAndTridoshaPoints(opts: AngaLakshanaOptions): AstrologerPointItem[] {
+  const isKn = opts.isKn;
+  const lEn = (opts.lagnaEn || "Aries").toLowerCase();
+
+  const LIMB_MAP_KN: Record<string, { limb: string; mark: string; tridosha: string; metabolism: string }> = {
+    aries: { limb: "ಹಣೆ, ನೆತ್ತಿ ಅಥವಾ ಹುಬ್ಬಿನ ಸಮೀಪ", mark: "ಹುಟ್ಟು ಮಚ್ಚೆ, ಗಾಯದ ಕಲೆ ಅಥವಾ ಸೂಕ್ಷ್ಮ ಗುರುತು", tridosha: "ಪಿತ್ತ ಪ್ರಧಾನ (Pitta-Agni)", metabolism: "ಉಷ್ಣ ಶರೀರ, ತೀಕ್ಷ್ಣ ಹಸಿವು & ಕ್ಷಿಪ್ರ ಶಕ್ತಿ ವಿಕಿರಣ." },
+    taurus: { limb: "ಕಂಠ, ಕುತ್ತಿಗೆ ಅಥವಾ ಗಲ್ಲದ ಬಲಭಾಗ", mark: "ಕಪ್ಪು ಅಥವಾ ಕಂದು ಬಣ್ಣದ ಆಕರ್ಷಕ ಮಚ್ಚೆ", tridosha: "ಕಫ-ವಾತ ಪ್ರಧಾನ (Kapha-Vata)", metabolism: "ದೃಢ ಶರೀರ ರಚನೆ, ಆಕರ್ಷಕ ಕಂಠಧ್ವನಿ & ಸ್ಥಿರ ಚಯಾಪಚಯ." },
+    gemini: { limb: "ಬಲ ಹೆಗಲು, ತೋಳು ಅಥವಾ ಮುಂಗೈ ಭಾಗ", mark: "ಸಣ್ಣ ಮಚ್ಚೆ ಅಥವಾ ಗಾಯದ ಗುರುತು", tridosha: "ವಾತ ಪ್ರಧಾನ (Vata-Agility)", metabolism: "ಚುರುಕಾದ ನರಮಂಡಲ, ಕ್ಷಿಪ್ರ ಗ್ರಹಣ ಶಕ್ತಿ & ತೆಳು ಶರೀರ." },
+    cancer: { limb: "ಎದೆಯ ಭಾಗ, ಪಕ್ಕೆಲುಬು ಅಥವಾ ಹೊಟ್ಟೆಯ ಮೇಲ್ಭಾಗ", mark: "ತಿಳಿ ಬಣ್ಣದ ನೈಸರ್ಗಿಕ ಮಚ್ಚೆ ಗುರುತು", tridosha: "ಕಫ-ಜಲ ಪ್ರಧಾನ (Kapha-Jala)", metabolism: "ಸೂಕ್ಷ್ಮ ಜೀರ್ಣಕ್ರಿಯೆ, ನೀರಿನಂಶದ ಏರುಪೇರು & ಶೀತ ಪ್ರವೃತ್ತಿ." },
+    leo: { limb: "ಬೆನ್ನಿನ ಮೇಲ್ಭಾಗ, ಭುಜ ಅಥವಾ ಎದೆಯ ಬಲಭಾಗ", mark: "ರಾಜಲಕ್ಷಣದ ಸ್ಪಷ್ಟ ಮಚ್ಚೆ ಅಥವಾ ಕಲೆ", tridosha: "ಪಿತ್ತ-ತೇಜಸ್ಸು ಪ್ರಧಾನ (Pitta-Tejas)", metabolism: "ಉನ್ನತ ಚೈತನ್ಯ, ಸದೃಢ ಮೂಳೆಗಳು & ಸಹಜ ರಾಜಗಾಂಭೀರ್ಯ." },
+    virgo: { limb: "ಸೊಂಟದ ಭಾಗ, ಹೊಟ್ಟೆ ಅಥವಾ ಕಟಿ ಪ್ರದೇಶ", mark: "ಚಿಕ್ಕ ಸೂಕ್ಷ್ಮ ಮಚ್ಚೆ ಅಥವಾ ಗಾಯದ ಕಲೆ", tridosha: "ವಾತ-ಪಿತ್ತ ಪ್ರಧಾನ (Vata-Pitta)", metabolism: "ಸೂಕ್ಷ್ಮ ಕರುಳಿನ ಜೀರ್ಣಕ್ರಿಯೆ, ಶುಚಿತ್ವ ಪ್ರಿಯತೆ & ಆಹಾರ ಪಥ್ಯ." },
+    libra: { limb: "ಹೊಟ್ಟೆಯ ಕೆಳಭಾಗ, ನಡು ಅಥವಾ ಸೊಂಟದ ಎಡಭಾಗ", mark: "ಅಂದವಾದ ಸೌಂದರ್ಯವರ್ಧಕ ಮಚ್ಚೆ", tridosha: "ವಾತ-ಕಫ ಸಮತೋಲನ (Vata-Kapha)", metabolism: "ಸಮತೋಲಿತ ದೇಹರಚನೆ, ನಯವಾದ ಚರ್ಮ & ಸೌಮ್ಯ ಕಳೆ." },
+    scorpio: { limb: "ಕಟಿ ಪ್ರದೇಶ, ತೊಡೆ ಸಂಧಿ ಅಥವಾ ಗುಪ್ತ ಭಾಗಗಳ ಸಮೀಪ", mark: "ನಿಗೂಢ ಕಪ್ಪು ಮಚ್ಚೆ ಅಥವಾ ಹಳೆಯ ಕಲೆ", tridosha: "ಪಿತ್ತ-ಜಲ ಪ್ರಧಾನ (Pitta-Jala)", metabolism: "ಆಳವಾದ ಪುನರುಜ್ಜೀವನ ಶಕ್ತಿ, ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿ & ಸಹಿಷ್ಣುತೆ." },
+    sagittarius: { limb: "ಬಲ ತೊಡೆ, ಪೃಷ್ಠ ಅಥವಾ ಸೊಂಟದ ಹಿಂಭಾಗ", mark: "ಗುರುತಿಸಬಹುದಾದ ಮಚ್ಚೆ ಅಥವಾ ಗಾಯದ ಗುರುತು", tridosha: "ಪಿತ್ತ-ವಾತ ಪ್ರಧಾನ (Pitta-Vata)", metabolism: "ಉದ್ದವಾದ ನಿಲವು, ಕ್ರೀಡಾ ಶಕ್ತಿ & ಕ್ರಿಯಾಶೀಲ ಶರೀರ." },
+    capricorn: { limb: "ಮಂಡಿ ಚಿಪ್ಪು, ಮೊಣಕಾಲು ಅಥವಾ ಕೀಲುಗಳ ಸಮೀಪ", mark: "ಹಳೆಯ ಬಿದ್ದ ಗಾಯದ ಕಲೆ ಅಥವಾ ಗಾಢ ಮಚ್ಚೆ", tridosha: "ವಾತ-ಶೀತ ಪ್ರಧಾನ (Vata-Cold)", metabolism: "ಬಲಿಷ್ಠ ಮೂಳೆಗಳು, ಕೀಲು ನೋವಿನ ಸೂಕ್ಷ್ಮತೆ & ದೀರ್ಘ ಸಹಿಷ್ಣುತೆ." },
+    aquarius: { limb: "ಪಿಕ್ಕಾಲು, ಮೊಣಕಾಲು ಕೆಳಭಾಗ ಅಥವಾ ಹಿಮ್ಮಡಿ", mark: "ವಿಶಿಷ್ಟ ಮಚ್ಚೆ ಅಥವಾ ಚರ್ಮದ ಗುರುತು", tridosha: "ವಾತ ಪ್ರಧಾನ (Vata-Air)", metabolism: "ರಕ್ತ ಪರಿಚಲನೆಯ ಸೂಕ್ಷ್ಮತೆ, ಚರ್ಮದ ಶುಷ್ಕತೆ & ಆಳವಾದ ಚಿಂತನೆ." },
+    pisces: { limb: "ಪಾದ, ಹಿಮ್ಮಡಿ ಅಥವಾ ಕಾಲ್ಬೆರಳುಗಳ ಸಮೀಪ", mark: "ಮೃದುವಾದ ಮಚ್ಚೆ ಅಥವಾ ಜಲ ಚಿಹ್ನೆ", tridosha: "ಕಫ-ಜಲ ಪ್ರಧಾನ (Kapha-Jala)", metabolism: "ಮೃದು ಪಾದಗಳು, ಶೀತ-ಕಫ ಪ್ರವೃತ್ತಿ & ಸೂಕ್ಷ್ಮ ನಿದ್ರಾ ವ್ಯವಸ್ಥೆ." }
+  };
+
+  const currentLimb = LIMB_MAP_KN[lEn] || LIMB_MAP_KN.aries;
+
+  const points: AstrologerPointItem[] = [];
+
+  points.push({
+    id: 1,
+    text: isKn
+      ? "ಬೃಹತ್ ಜಾತಕ ಅಧ್ಯಾಯ 25ರ ಅಂಗ ಲಕ್ಷಣ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಜನ್ಮ ಲಗ್ನದ ಆಧಾರದ ಮೇಲೆ ಶರೀರದಲ್ಲಿ ನೈಸರ್ಗಿಕ ಮಚ್ಚೆ ಗುರುತುಗಳು ನಿರ್ಧಾರವಾಗುತ್ತವೆ."
+      : "According to Brihat Jataka Chapter 25 Anga Lakshana, the rising sign dictates natural physical birthmarks.",
+    tone: "normal",
+    tagKn: "ಅಂಗ ಲಕ್ಷಣ ಸತ್ಯ",
+    tagEn: "Anga Lakshana Foundation"
+  });
+
+  points.push({
+    id: 2,
+    text: isKn
+      ? `ಜಾತಕರ ${currentLimb.limb} ಭಾಗದಲ್ಲಿ ಗಮನಾರ್ಹವಾದ ${currentLimb.mark} ಇರುವುದು ಇವರ ಶಾರೀರಿಕ ಗುರುತಾಗಿದೆ.`
+      : `Possesses a prominent birthmark, scar, or distinct beauty mark near the ${opts.lagnaEn} bodily region.`,
+    tone: "notice",
+    tagKn: "ಹುಟ್ಟು ಮಚ್ಚೆ ಗುರುತು",
+    tagEn: "Physical Birthmark"
+  });
+
+  points.push({
+    id: 3,
+    text: isKn
+      ? `ಆಯುರ್ವೇದ ತ್ರಿದೋಷ ಶಾಸ್ತ್ರದಂತೆ ಜಾತಕರು '${currentLimb.tridosha}' ಶರೀರ ಪ್ರಕೃತಿಯನ್ನು ಹೊಂದಿದ್ದಾರೆ.`
+      : `Governed by '${currentLimb.tridosha}' constitution according to classical Ayurvedic Tridosha physiology.`,
+    tone: "normal",
+    tagKn: "ತ್ರಿದೋಷ ಪ್ರಕೃತಿ",
+    tagEn: "Tridosha Constitution"
+  });
+
+  points.push({
+    id: 4,
+    text: isKn
+      ? `ಚಯಾಪಚಯ ಲಕ್ಷಣ: ${currentLimb.metabolism}`
+      : `Metabolic characteristics: High resilience with specific metabolic rhythms tuned to their ascendant.`,
+    tone: "normal",
+    tagKn: "ಚಯಾಪಚಯ ಲಕ್ಷಣ",
+    tagEn: "Metabolic Profile"
+  });
+
+  points.push({
+    id: 5,
+    text: isKn
+      ? "ಮಾನಸಿಕ ಆತಂಕ ಅಥವಾ ಅತಿಯಾದ ಕೆಲಸದ ಒತ್ತಡ ಉಂಟಾದಾಗ ಶರೀರದಲ್ಲಿ ಉಷ್ಣಾಂಶ ಅಥವಾ ಜೀರ್ಣಾಂಗದಲ್ಲಿ ಆಸಿಡಿಟಿ ಏರುಪೇರಾಗುವುದು ಸಹಜ."
+      : "Vulnerable to stress-induced digestive acidity and metabolic heat surges during demanding operational periods.",
+    tone: "bad",
+    tagKn: "ಉಷ್ಣದ ಸೂಕ್ಷ್ಮತೆ",
+    tagEn: "Pitta/Heat Vulnerability"
+  });
+
+  points.push({
+    id: 6,
+    text: isKn
+      ? "ಕೈಗೆತ್ತಿಕೊಂಡ ಕೆಲಸಗಳಲ್ಲಿ ಆಯಾಸವನ್ನು ಲೆಕ್ಕಿಸದೆ ನಿರಂತರವಾಗಿ ಶ್ರಮಿಸುವ ಶಾರೀರಿಕ ತ್ರಾಣ ಹಾಗೂ ಅಪ್ರತಿಮ ಸಹನಶಕ್ತಿ ಜಾತಕರಲ್ಲಿದೆ."
+      : "Endowed with uncommon physical stamina, capable of sustaining grueling working hours when driven by duty.",
+    tone: "good",
+    tagKn: "ಶಾರೀರಿಕ ತ್ರಾಣ",
+    tagEn: "Physical Stamina"
+  });
+
+  points.push({
+    id: 7,
+    text: isKn
+      ? "ಕಣ್ಣುಗಳಲ್ಲಿ ತೀಕ್ಷ್ಣ ಹೊಳಪು ಹಾಗೂ ಎದುರಿಗಿರುವವರ ಉದ್ದೇಶಗಳನ್ನು ಮುಖ ನೋಡಿಯೇ ಗ್ರಹಿಸುವ ಸಹಜ ದೃಷ್ಟಿ ಬಲವಿದೆ."
+      : "Possesses a penetrating gaze with natural face-reading instinct that immediately discerns ulterior motives.",
+    tone: "good",
+    tagKn: "ತೀಕ್ಷ್ಣ ದೃಷ್ಟಿ",
+    tagEn: "Penetrating Gaze"
+  });
+
+  points.push({
+    id: 8,
+    text: isKn
+      ? "ಶೀತಲ ಪಾನೀಯ, ತಂಪು ಆಹಾರ ಅಥವಾ ಅನಿಯಮಿತ ಸಮಯದ ಊಟದಿಂದ ಗ್ಯಾಸ್ಟ್ರಿಕ್ ಅಥವಾ ಕೀಲುಗಳ ಜಡತ್ವ ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು; ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಆಹಾರ ಸೇವಿಸುವುದು ಕ್ಷೇಮ."
+      : "Irregular meal schedules and excessive chilled foods provoke gastric distress; timely warm nutrition is essential.",
+    tone: "bad",
+    tagKn: "ಆಹಾರ ಪಥ್ಯ",
+    tagEn: "Dietary Vigilance"
+  });
+
+  points.push({
+    id: 9,
+    text: isKn
+      ? "ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ತಾಮ್ರದ ಪಾತ್ರೆಯ ನೀರು ಸೇವನೆ ಹಾಗೂ ಸೂರ್ಯ ನಮಸ್ಕಾರದಿಂದ ದೇಹದ ತ್ರಿದೋಷ ಸಮತೋಲನಗೊಂಡು, ಕಾಂತಿ ಹೆಚ್ಚುತ್ತದೆ."
+      : "Drinking water stored in copper vessels at sunrise restores cellular balance and revitalizes metabolic luster.",
+    tone: "good",
+    tagKn: "ಆಯುರ್ವೇದ ರಕ್ಷಣೆ",
+    tagEn: "Ayurvedic Regimen"
+  });
+
+  points.push({
+    id: 10,
+    text: isKn
+      ? "ದೇಹದ ನೈಸರ್ಗಿಕ ಚೈತನ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಲು 6 ರಿಂದ 7 ಗಂಟೆಗಳ ಆಳವಾದ ನಿದ್ರೆ ಅತ್ಯಂತ ಅನಿವಾರ್ಯ."
+      : "Requires 6 to 7 hours of undisturbed deep sleep to recharge the nervous system and clear mental fog.",
+    tone: "notice",
+    tagKn: "ನಿದ್ರಾ ಮಹತ್ವ",
+    tagEn: "Restorative Sleep"
+  });
+
+  points.push({
+    id: 11,
+    text: isKn
+      ? "ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಬಲದಿಂದಾಗಿ ಯಾವುದೇ ತಾತ್ಕಾಲಿಕ ಅನಾರೋಗ್ಯ ಎದುರಾದರೂ ಅದ್ಭುತವಾಗಿ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯಿಂದ ಗುಣಮುಖರಾಗುವ ವರಪ್ರಸಾದವಿದೆ."
+      : "Robust immune resilience ensures rapid, full recovery from temporary physical ailments without lingering weakness.",
+    tone: "good",
+    tagKn: "ರೋಗನಿರೋಧಕ ಶಕ್ತಿ",
+    tagEn: "Immune Vitality"
+  });
+
+  return points;
+}
+
+// -------------------------------------------------------------
+// CARD 5: ಕರ್ಮ ಸ್ಥಾನ & ವಾಸ್ತವಿಕ ಆರ್ಥಿಕ ಸ್ಥಿತಿ (Karma & Financial Reality)
+// -------------------------------------------------------------
+export interface KarmaFinancialOptions {
+  tenthSignKn: string;
+  tenthLordKn: string;
+  amatyakarakaKn: string;
+  amatyakarakaEn: string;
+  isKn: boolean;
+}
+
+export function buildKarmaFinancialPoints(opts: KarmaFinancialOptions): AstrologerPointItem[] {
+  const isKn = opts.isKn;
+
+  const points: AstrologerPointItem[] = [];
+
+  points.push({
+    id: 1,
+    text: isKn
+      ? `10ನೇ ಕರ್ಮ ಸ್ಥಾನವು ${opts.tenthSignKn} ರಾಶಿಯಾಗಿದ್ದು, ಕರ್ಮಾಧಿಪತಿ ${opts.tenthLordKn} ಹಾಗೂ ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ ${opts.amatyakarakaKn} ವೃತ್ತಿ ದಿಕ್ಕನ್ನು ನಿರ್ಧರಿಸುತ್ತಾರೆ.`
+      : `10th House of Karma and Jaimini Amatyakaraka ${opts.amatyakarakaEn} anchor professional vocation and earned authority.`,
+    tone: "normal",
+    tagKn: "ಕರ್ಮ ಸ್ಥಾನ ಸತ್ಯ",
+    tagEn: "10th House Alignment"
+  });
+
+  points.push({
+    id: 2,
+    text: isKn
+      ? "ಯಾರ ಕೈಕೆಳಗೂ ಗುಲಾಮರಂತೆ ಬಗ್ಗಿ ದುಡಿಯಲು ಇವರ ಸ್ವಾಭಿಮಾನ ಒಪ್ಪದು; ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ, ಅಧಿಕಾರ ಅಥವಾ ಗೌರವಯುತ ಸ್ಥಾನಮಾನವಿರುವ ಕ್ಷೇತ್ರದಲ್ಲೇ ಇವರು ಶೈನ್ ಆಗುತ್ತಾರೆ."
+      : "Fierce professional self-respect rejects demeaning subservience; thrives exclusively where autonomy, respect, and authority are granted.",
+    tone: "good",
+    tagKn: "ಸ್ವಾವಲಂಬಿ ನಾಯಕತ್ವ",
+    tagEn: "Autonomous Leadership"
+  });
+
+  points.push({
+    id: 3,
+    text: isKn
+      ? "ತಾನು ಶೇಕಡಾ 100 ರಷ್ಟು ಪ್ರಾಮಾಣಿಕವಾಗಿ ಪರಿಶ್ರಮಪಟ್ಟರೂ, ಆ ಕ್ಷಣದಲ್ಲಿ ಕ್ರೆಡಿಟ್ ಅಥವಾ ಗೌರವ ತಕ್ಷಣವೇ ಸಿಗದೆ, ಕೆಲವೊಮ್ಮೆ ಬೇರೆಯವರ ಪಾಲಾಗುವ ಕಹಿ ಅನುಭವ ಎದುರಾಗಿದೆ."
+      : "Experienced instances where their uncredited toil yielded breakthroughs, yet opportunists swooped in to claim immediate corporate applause.",
+    tone: "bad",
+    tagKn: "ಶ್ರಮಕ್ಕೆ ತಡವಾದ ಮನ್ನಣೆ",
+    tagEn: "Delayed Accolades"
+  });
+
+  points.push({
+    id: 4,
+    text: isKn
+      ? "ಆದರೆ ಜಾತಕರ ಅದ್ಭುತ ಪ್ರತಿಭೆ ಹಾಗೂ ಅನಿವಾರ್ಯತೆಯನ್ನು ಯಾರೂ ಶಾಶ್ವತವಾಗಿ ಕಡೆಗಣಿಸಲಾರರು; ಕೊನೆಗೆ ಇವರೇ ಬೇಕು ಎಂದು ಅರಸಿ ಬರುವಂತಾಗುತ್ತದೆ."
+      : "Yet their indispensability cannot be suppressed; management and clients ultimately realize missions fail without their direct intervention.",
+    tone: "good",
+    tagKn: "ಅನಿವಾರ್ಯ ಪ್ರತಿಭೆ",
+    tagEn: "Indispensable Competence"
+  });
+
+  points.push({
+    id: 5,
+    text: isKn
+      ? "ಆರ್ಥಿಕ ವಾಸ್ತವ: ಕೈಯಲ್ಲಿ ನಗದು ಹಣ (Liquid Cash) ನಿಲ್ಲುವುದು ಸ್ವಲ್ಪ ಕಷ್ಟವಾದರೂ, ಶಾಶ್ವತ ಆಸ್ತಿ, ಮನೆ ಅಥವಾ ಚಿನ್ನಾಭರಣದ ರೂಪದಲ್ಲಿ ಸಂಪತ್ತು ವೃದ್ಧಿಯಾಗುವ ಭಾಗ್ಯವಿದೆ."
+      : "Financial reality: Liquid bank cash fluctuates rapidly, yet wealth solidifies enduringly through fixed assets, land, and jewelry.",
+    tone: "notice",
+    tagKn: "ಆಸ್ತಿ vs ನಗದು",
+    tagEn: "Liquid vs Fixed Wealth"
+  });
+
+  points.push({
+    id: 6,
+    text: isKn
+      ? "ನಂಬಿಕೆಯಿಂದ ಯಾರಿಗಾದರೂ ಸಾಲ ನೀಡಿದರೆ, ಆ ಹಣ ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಮರಳಿ ಬರುವುದು ಅತ್ಯಂತ ಕಷ್ಟ; ಆದ್ದರಿಂದ ಸ್ನೇಹಿತರು ಅಥವಾ ಸಂಬಂಧಿಕರಿಗೆ ಸಾಲ ನೀಡುವಾಗ ಪರಮ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ."
+      : "Lending money out of emotional sympathy results in chronic delays; strictly avoid underwriting private loans without solid security.",
+    tone: "bad",
+    tagKn: "ಸಾಲ ನೀಡುವ ಎಚ್ಚರಿಕೆ",
+    tagEn: "Unsecured Lending Alert"
+  });
+
+  points.push({
+    id: 7,
+    text: isKn
+      ? "ಅನಗತ್ಯ ದುಂದುವೆಚ್ಚಗಳಿಲ್ಲದಿದ್ದರೂ, ಕುಟುಂಬದ ತುರ್ತು ಖರ್ಚುಗಳು ಅಥವಾ ಇತರರ ಜವಾಬ್ದಾರಿಗಳಿಗಾಗಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ಹಣ ಸೋರಿಹೋಗುವ ಸವಾಲು ಇದೆ."
+      : "Not a frivolous spender, yet periodic emergency family outflows prevent liquid reserves from accumulating smoothly.",
+    tone: "bad",
+    tagKn: "ಅನಿರೀಕ್ಷಿತ ಸೋರಿಕೆ",
+    tagEn: "Emergency Outflows"
+  });
+
+  points.push({
+    id: 8,
+    text: isKn
+      ? "ಕೈಗೆತ್ತಿಕೊಂಡ ಕೆಲಸಗಳಲ್ಲಿ ಅಪ್ರತಿಮ ನಿಷ್ಠೆ ಹಾಗೂ ಗುಣಮಟ್ಟ ಕಾಪಾಡುವುದರಿಂದ, ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಇವರ ಹೆಸರಿಗೆ ಒಂದು ವಿಶಿಷ್ಟ ಬ್ರಾಂಡ್ ಮೌಲ್ಯ ಲಭಿಸಲಿದೆ."
+      : "Flawless work ethics and uncompromising standards establish a formidable personal brand and sterling client reputation.",
+    tone: "good",
+    tagKn: "ಬ್ರಾಂಡ್ ಗೌರವ",
+    tagEn: "Sterling Reputation"
+  });
+
+  points.push({
+    id: 9,
+    text: isKn
+      ? "ಪ್ರಸ್ತುತ ಕರ್ಮ ಕ್ಷೇತ್ರದ ಅಸ್ಥಿರತೆ ಅಥವಾ ಬದಲಾವಣೆಯು ಮುಂಬರುವ ದೊಡ್ಡ ಆರ್ಥಿಕ ಉನ್ನತಿಗೆ ಒಂದು ಪ್ರಮುಖ ಪೂರ್ವಸಿದ್ಧತೆಯಾಗಿದೆ."
+      : "Ongoing career transitions or friction serve as necessary springboards toward their greatest upcoming commercial elevation.",
+    tone: "notice",
+    tagKn: "ಉನ್ನತಿಯ ಹಂತ",
+    tagEn: "Career Springboard"
+  });
+
+  points.push({
+    id: 10,
+    text: isKn
+      ? "ಶ್ರೀ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಶುಕ್ರವಾರ ಧನಲಕ್ಷ್ಮೀ ಪೂಜೆಯಿಂದ ವ್ಯಾಪಾರ-ವ್ಯವಹಾರಗಳಲ್ಲಿ ನೂತನ ಧನಾಗಮನದ ಬಾಗಿಲುಗಳು ತೆರೆಯಲಿವೆ."
+      : "Devotions to Sri Lakshmi-Narayana and Friday Dhana-Lakshmi prayers unlock multiple streams of legitimate wealth.",
+    tone: "good",
+    tagKn: "ಧನಲಾಭ ಯೋಗ",
+    tagEn: "Dhana Lakshmi Grace"
+  });
+
+  points.push({
+    id: 11,
+    text: isKn
+      ? "ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದಲೇ ಆರ್ಥಿಕ ಸಾಮ್ರಾಜ್ಯ ಕಟ್ಟುವ ಧೀರ ಯೋಗ ಜಾತಕರ ರಕ್ತದಲ್ಲಿದೆ; ಯಾರ ದಯಾ-ದಾಕ್ಷಿಣ್ಯಕ್ಕೂ ಇವರು ಕಾಯಬೇಕಿಲ್ಲ."
+      : "Destined to build durable prosperity purely through self-made enterprise and perseverance, beholden to no benefactor.",
+    tone: "good",
+    tagKn: "ಸ್ವಯಂ ಸಂಪತ್ತು",
+    tagEn: "Self-Made Prosperity"
+  });
+
+  return points;
+}
+
+// -------------------------------------------------------------
+// CARD 6: ದಶಾ ತಿರುವು & ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ (Turning Point & Sacred Gokarna Remedy)
+// -------------------------------------------------------------
+export interface TurningPointOptions {
+  runningMaha: string;
+  runningBhukti: string;
+  remainingMonths: number;
+  nextBhukti?: string;
+  dashaTimeline: string;
+  isKn: boolean;
+}
+
+export function buildTurningPointPoints(opts: TurningPointOptions): AstrologerPointItem[] {
+  const isKn = opts.isKn;
+  const rem = opts.remainingMonths || 6;
+  const mahaKn = toKannadaPlanet(opts.runningMaha);
+  const bhuktiKn = toKannadaPlanet(opts.runningBhukti);
+  const nextKn = opts.nextBhukti ? toKannadaPlanet(opts.nextBhukti) : "ಮುಂದಿನ ಶುಭ ಗ್ರಹ";
+  const mahaEn = opts.runningMaha || "Guru";
+  const bhuktiEn = opts.runningBhukti || "Shani";
+  const nextEn = opts.nextBhukti || "Next Sub-Lord";
+
+  const points: AstrologerPointItem[] = [];
+
+  points.push({
+    id: 1,
+    text: isKn
+      ? `ಪ್ರಸ್ತುತ ವಿಂಶೋತ್ತರಿ ದಶಾ ಚಕ್ರದಲ್ಲಿ '${mahaKn}' ಮಹಾದಶೆಯ '${bhuktiKn}' ಭುಕ್ತಿಯು ಚಾಲ್ತಿಯಲ್ಲಿದೆ.`
+      : `Operating under Vimshottari Mahadasha '${mahaEn}' and Antardasha '${bhuktiEn}'.`,
+    tone: "normal",
+    tagKn: "ದಶಾ ಸ್ಥಿತಿ",
+    tagEn: "Active Dasha Cycle"
+  });
+
+  points.push({
+    id: 2,
+    text: isKn
+      ? `ಪ್ರಸ್ತುತ ಕಠಿಣ ದಶಾ-ಭುಕ್ತಿಯು ಇನ್ನು ಕೇವಲ ${rem} ತಿಂಗಳುಗಳಲ್ಲಿ ಮುಕ್ತಾಯಗೊಳ್ಳಲಿದ್ದು, ನಿರೀಕ್ಷಿತ ತಿರುವು ಶೀಘ್ರವೇ ಆರಂಭವಾಗಲಿದೆ.`
+      : `The ongoing sub-dasha phase concludes in approximately ${rem} months, unlocking the long-awaited turning point window.`,
+    tone: "notice",
+    tagKn: "ಕಾಲಾವಧಿ ಕೌಂಟ್‌ಡೌನ್",
+    tagEn: "Turning Point Countdown"
+  });
+
+  points.push({
+    id: 3,
+    text: isKn
+      ? `ಮುಂದಿನ ಭುಕ್ತಿಯು '${nextKn}' ಗ್ರಹದ ಆಳ್ವಿಕೆಗೆ ಒಳಪಡಲಿದ್ದು, ವೃತ್ತಿ ಮತ್ತು ಆರ್ಥಿಕತೆಯಲ್ಲಿ ನೂತನ ಅವಕಾಶಗಳ ಹೆಬ್ಬಾಗಿಲು ತೆರೆಯಲಿದೆ.`
+      : `The incoming Antardasha of '${nextEn}' initiates fresh commercial expansion, professional breakthroughs, and relief.`,
+    tone: "good",
+    tagKn: "ಮುಂದಿನ ಶುಭ ಭುಕ್ತಿ",
+    tagEn: "Incoming Sub-Lord Grace"
+  });
+
+  points.push({
+    id: 4,
+    text: isKn
+      ? "ದಶಾ ಸಂಧಿಕಾಲದ (Dasha Sandhi) ಅವಧಿಯಲ್ಲಿ ಅವಸರದ ನಿರ್ಧಾರ, ಅನಗತ್ಯ ಹೂಡಿಕೆ ಅಥವಾ ಕೌಟುಂಬಿಕ ವಾಗ್ವಾದಗಳಿಗೆ ಎಡೆಗೊಡದೆ ಶಾಂತಿ ಕಾಪಾಡುವುದು ಕಡ್ಡಾಯ."
+      : "Strict vigilance during Dasha Sandhi transition: Defer speculative gambles, major career ruptures, and domestic ego clashes.",
+    tone: "bad",
+    tagKn: "ಸಂಧಿ ಜಾಗರೂಕತೆ",
+    tagEn: "Sandhi Caution"
+  });
+
+  points.push({
+    id: 5,
+    text: isKn
+      ? "ಗೋಚಾರ ಶನಿಯ ಪ್ರಭಾವದಿಂದ ಕರ್ತವ್ಯದ ಶ್ರಮ ಹೆಚ್ಚಿದ್ದರೂ, ಆಂತರಿಕ ಪರಿಪಕ್ವತೆ ಹಾಗೂ ಶಾಶ್ವತ ಬುನಾದಿ ನಿರ್ಮಾಣವಾಗುತ್ತಿದೆ."
+      : "Transit Saturn enforces rigorous discipline and labor, yet lays the unshakeable foundation for permanent long-term stability.",
+    tone: "notice",
+    tagKn: "ಗೋಚಾರ ಶನಿ ಬಲ",
+    tagEn: "Saturnian Discipline"
+  });
+
+  points.push({
+    id: 6,
+    text: isKn
+      ? "ಗೋಚಾರ ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿಯು ಸದ್ಯದಲ್ಲೇ ಜಾತಕರ ಭಾಗ್ಯ ಸ್ಥಾನ ಅಥವಾ ಕೇಂದ್ರ ಸ್ಥಾನದ ಮೇಲೆ ಪ್ರಭಾವ ಬೀರಿ, ಧರ್ಮ ಕಾರ್ಯಗಳಿಗೆ ಪ್ರೇರೇಪಿಸಲಿದೆ."
+      : "Jupiter's transit aspect prepares to illuminate Kendra/Trikona houses, unlocking auspicious events and spiritual fulfillment.",
+    tone: "good",
+    tagKn: "ಗುರು ಕೃಪೆ",
+    tagEn: "Jupiterian Illumination"
+  });
+
+  points.push({
+    id: 7,
+    text: isKn
+      ? "ಈ ದಶಾ ತಿರುವಿನ ಕಾಲದಲ್ಲಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಾನದಲ್ಲಿ ನವಗ್ರಹ ಶಾಂತಿ & ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ನೆರವೇರಿಸುವುದು ಪರಮ ಶ್ರೇಯಸ್ಕರ."
+      : "Sponsoring Navagraha Shanti and Maha Mrityunjaya Sankalpa at sacred Gokarna Mahabaleshwara sanctum ensures swift resolution.",
+    tone: "good",
+    tagKn: "ಗೋಕರ್ಣ ಸಂಕಲ್ಪ",
+    tagEn: "Gokarna Sankalpa"
+  });
+
+  points.push({
+    id: 8,
+    text: isKn
+      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ಸಮರ್ಪಿಸುವುದರಿಂದ ದೀರ್ಘಕಾಲದ ಮಾನಸಿಕ ತೊಳಲಾಟ ಶಮನಗೊಳ್ಳುತ್ತದೆ."
+      : "Milk Abhisheka to the sacred Gokarna Atma Linga dissolves acute karmic friction, restoring profound mental composure.",
+    tone: "good",
+    tagKn: "ಆತ್ಮಲಿಂಗ ಸೇವೆ",
+    tagEn: "Atma Linga Seva"
+  });
+
+  points.push({
+    id: 9,
+    text: isKn
+      ? "ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ವೇಳೆ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಅಥವಾ ಈಶ್ವರ ಪಂಚಾಕ್ಷರಿ ಜಪವನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಪಠಿಸಿ."
+      : "Recite Aditya Hridaya Stotra or Shiva Panchakshari Mantra at dawn to revitalize vitality and leadership presence.",
+    tone: "good",
+    tagKn: "ದೈನಂದಿನ ಆರಾಧನೆ",
+    tagEn: "Daily Sadhana"
+  });
+
+  points.push({
+    id: 10,
+    text: isKn
+      ? "ಈ ಶುಭ ತಿರುವಿನೊಂದಿಗೆ ಜಾತಕರ ಜೀವನದಲ್ಲಿ ದೀರ್ಘಕಾಲದ ಸಂಕಷ್ಟಗಳು ಕರಗಿ, ಗೌರವ ಹಾಗೂ ಸಂಪತ್ತು ನೆಲೆಗೊಳ್ಳುವುದು ನಿಶ್ಚಿತ."
+      : "With this planetary turning point, protracted obstacles dissolve, conferring enduring prosperity, respect, and peace.",
+    tone: "good",
+    tagKn: "ಭಾಗ್ಯೋದಯ ಭರವಸೆ",
+    tagEn: "Destined Breakthrough"
+  });
+
+  points.push({
+    id: 11,
+    text: isKn
+      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (+91 99723 39362) ಅವರ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಸರ್ವಕಾರ್ಯ ಸಿದ್ಧಿ ಲಭಿಸಲಿ."
+      : "Blessed under the auspices of Sri Kshetra Gokarna Chief Priest Vedamurthy Shreeram Pandit (+91 99723 39362).",
+    tone: "good",
+    tagKn: "ವೇದಮೂರ್ತಿ ಆಶೀರ್ವಾದ",
+    tagEn: "Priest Shreeram Pandit Seal"
+  });
+
+  return points;
+}
+
 export function buildDeterministicFirstSixPoints(
   synthesisData: PanchangaSynthesisOutput,
   session: any,
   isKn: boolean
 ): FirstSixTalkingPointsStructured {
   const lagnaRashiEn = session?.result?.lagnaRashi?.english || "Aries";
-  const lagnaRashiKn = toKannadaRashi(lagnaRashiEn);
   const moonRashiEn = session?.result?.moonSign?.english || "Aries";
-  const moonRashiKn = toKannadaRashi(moonRashiEn);
   const moonPlanet = session?.result?.planets?.find((p: any) => p.name === "Moon");
-  const moonNakEn = moonPlanet?.nakshatra?.english || "Ashwini";
-  const moonNakKn = toKannadaNakshatra(moonNakEn);
+  const saturnPlanet = session?.result?.planets?.find((p: any) => p.name === "Saturn");
+  const rahuPlanet = session?.result?.planets?.find((p: any) => p.name === "Rahu");
+  const ketuPlanet = session?.result?.planets?.find((p: any) => p.name === "Ketu");
+  const marsPlanet = session?.result?.planets?.find((p: any) => p.name === "Mars");
+  const jupiterPlanet = session?.result?.planets?.find((p: any) => p.name === "Jupiter");
+  const sunPlanet = session?.result?.planets?.find((p: any) => p.name === "Sun");
 
+  const moonNakEn = moonPlanet?.nakshatra?.english || "Ashwini";
   const devoteeName = session?.input?.name || (isKn ? "ಭಕ್ತರೇ" : "Devotee");
   const isFemale = session?.input?.gender === "Female";
-  const spouseTerm = isFemale ? (isKn ? "ಪತಿ" : "spouse") : (isKn ? "ಪತ್ನಿ" : "spouse");
+
+  // Calculate devotee age
+  let devoteeAge = 30;
+  const bDate = session?.birthDateYmd || session?.input?.birthDate;
+  if (bDate && bDate.length >= 4) {
+    const y = parseInt(bDate.substring(0, 4), 10);
+    if (!isNaN(y)) devoteeAge = Math.max(1, new Date().getFullYear() - y);
+  }
+
+  const moonHouse = moonPlanet?.house || 1;
+  const isDusthanaMoon = [6, 8, 12].includes(moonHouse);
+
+  // Vish Yoga / Punaphoo: Moon with Saturn or Saturn aspecting Moon
+  const hasVishYoga = Boolean(
+    saturnPlanet && (
+      saturnPlanet.house === moonHouse ||
+      ((moonHouse - saturnPlanet.house + 12) % 12 + 1 === 3) ||
+      ((moonHouse - saturnPlanet.house + 12) % 12 + 1 === 7) ||
+      ((moonHouse - saturnPlanet.house + 12) % 12 + 1 === 10)
+    )
+  );
+
+  // Grahan Yoga: Moon with Rahu or Rahu trine/aspect
+  const hasGrahanYoga = Boolean(
+    rahuPlanet && (
+      rahuPlanet.house === moonHouse ||
+      ((moonHouse - rahuPlanet.house + 12) % 12 + 1 === 5) ||
+      ((moonHouse - rahuPlanet.house + 12) % 12 + 1 === 7) ||
+      ((moonHouse - rahuPlanet.house + 12) % 12 + 1 === 9)
+    )
+  );
+
+  const hasKetuYoga = Boolean(ketuPlanet && ketuPlanet.house === moonHouse);
+  const hasMangalYoga = Boolean(marsPlanet && marsPlanet.house === moonHouse);
+
+  // Gaja Kesari: Jupiter in Kendra (1, 4, 7, 10) from Moon
+  const jupDist = jupiterPlanet ? ((jupiterPlanet.house - moonHouse + 12) % 12 + 1) : 0;
+  const hasGajakesari = [1, 4, 7, 10].includes(jupDist);
+
+  // Kemadruma Yoga: No planets (except Sun/Rahu/Ketu) in 2nd or 12th from Moon
+  const house2FromMoon = (moonHouse % 12) + 1;
+  const house12FromMoon = ((moonHouse - 2 + 12) % 12) + 1;
+  const hasPlanetsAround = session?.result?.planets?.some((p: any) =>
+    !["Sun", "Rahu", "Ketu", "Moon"].includes(p.name) &&
+    (p.house === house2FromMoon || p.house === house12FromMoon)
+  );
+  const isKemadruma = !hasPlanetsAround;
 
   const dashaTiming = synthesisData.currentDiagnosis?.dashaTiming;
   const runningMaha = dashaTiming?.currentMaha || "Guru";
   const runningBhukti = dashaTiming?.currentBhukti || "Shani";
+  const nextBhukti = dashaTiming?.nextBhukti;
   const remainingMonths = dashaTiming?.remainingMonths ?? 6;
   const dashaTimeline = dashaTiming?.timelineKn || "ಮುಂದಿನ ಕೆಲವೇ ತಿಂಗಳುಗಳಲ್ಲಿ";
-
-  const cls = synthesisData?.currentDiagnosis?.currentLifeSituation;
-  const prof = synthesisData?.currentDiagnosis?.accurateProfession;
-  const remedies = synthesisData?.prescriptions;
-  const catalysts = synthesisData?.destinyCatalysts;
-
-  const gemstoneNameKn = remedies?.gemstoneRing?.primaryGemstoneKn || "ಮಾಣಿಕ್ಯ/ಕನಕ ಪುಷ್ಯರಾಗ";
-  const gemstoneWeight = remedies?.gemstoneRing?.caratWeight || "4.25 ಕ್ಯಾರಟ್";
-  const gemstoneFingerKn = remedies?.gemstoneRing?.fingerKn || "ಉಂಗುರದ ಬೆರಳು";
-  const gemstoneNameEn = remedies?.gemstoneRing?.primaryGemstoneEn || remedies?.gemstoneRing?.primaryGemstoneKn || "Yellow Sapphire / Ruby";
-  const gemstoneFingerEn = remedies?.gemstoneRing?.fingerEn || remedies?.gemstoneRing?.fingerKn || "Ring Finger";
-
-  const rudrakshaNameKn = remedies?.rudraksha?.nameKn || "ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿ";
-  const rudrakshaNameEn = remedies?.rudraksha?.nameEn || remedies?.rudraksha?.nameKn || "5-Mukhi Rudraksha";
 
   const mHouse = session?.result?.maandi?.house || 1;
   const mHouseLord = session?.result?.maandi?.houseLord?.english || "Shani";
   const mHouseLordKn = toKannadaPlanet(mHouseLord);
 
-  // -------------------------------------------------------------
-  // Card 1: ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ (Ice-Breaker & Core Temperament - 12 points)
-  // 100% Technical-Free, Deeply Personalized Characteristics
-  // -------------------------------------------------------------
+  const prof = synthesisData?.currentDiagnosis?.accurateProfession;
+  const tenthSignKn = prof?.tenthHouseSignKn || "ದಶಮ";
+  const tenthLordKn = prof?.primaryPlanetKn || "ಕರ್ಮಾಧಿಪತಿ";
+  const amatyakarakaKn = prof?.amatyakarakaPlanetKn || "ಅಮಾತ್ಯಕಾರಕ";
+  const amatyakarakaEn = prof?.amatyakarakaPlanetEn || "Amatyakaraka";
+
+  // Card 1: ಆರಂಭ & ಮೂಲ ಪ್ರಕೃತಿ (12 points)
   const card1: AstrologerPointItem[] = buildCoreTemperamentPoints({
     lagnaEn: lagnaRashiEn,
     moonEn: moonRashiEn,
@@ -463,862 +1445,61 @@ export function buildDeterministicFirstSixPoints(
     devoteeName
   });
 
-  // -------------------------------------------------------------
-  // Card 2: ಅಂತರಂಗದ ಗುಪ್ತ ಆತಂಕ & ಚಿಂತೆ (Hidden Subconscious Worry - 11 points)
-  // -------------------------------------------------------------
-  const card2: AstrologerPointItem[] = isKn
-    ? [
-        {
-          id: 1,
-          text: `ಚಂದ್ರನ ನಕ್ಷತ್ರ '${moonNakKn}' ಹಾಗೂ 4ನೇ ಸುಖ ಸ್ಥಾನದ ಸ್ಥಿತಿಯು ಜಾತಕರ ಆಂತರಿಕ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ನಿಯಂತ್ರಿಸುತ್ತದೆ.`,
-          tone: "normal",
-          tagKn: "ಮಾನಸಿಕ ಆಧಾರ",
-          tagEn: "Mental Anchor"
-        },
-        {
-          id: 2,
-          text: `ಹಗಲಿನಲ್ಲಿ ನಗುಮುಖದಿಂದ ಎಲ್ಲರ ಜವಾಬ್ದಾರಿ ನಿಭಾಯಿಸಿದರೂ, ರಾತ್ರಿ ಏಕಾಂತದಲ್ಲಿ ಮನಸ್ಸು ವಿಶ್ರಾಂತಿ ಪಡೆಯದೆ ಭವಿಷ್ಯದ ಬಗ್ಗೆ ಅತಿಯಾಗಿ ಚಿಂತಿಸುತ್ತದೆ.`,
-          tone: "bad",
-          tagKn: "ರಾತ್ರಿಯ ಅತಿಚಿಂತನೆ",
-          tagEn: "Midnight Overthinking"
-        },
-        {
-          id: 3,
-          text: `ಕುಟುಂಬದವರಿಗೂ ಅಥವಾ ಆಪ್ತರಿಗೂ ಹೊರೆಯಾಗಬಾರದೆಂಬ ಉದ್ದೇಶದಿಂದ ತನ್ನ ಆಂತರಿಕ ನೋವು, ಆರ್ಥಿಕ ಒತ್ತಡಗಳನ್ನು ಒಳಗೇ ನುಂಗಿಕೊಳ್ಳುವ ಪ್ರವೃತ್ತಿ ಇದೆ.`,
-          tone: "bad",
-          tagKn: "ಮೌನ ವೇದನೆ",
-          tagEn: "Silent Burden"
-        },
-        {
-          id: 4,
-          text: `ತಾನು ನಂಬಿದ ಕೆಲವರು ತುರ್ತು ಸಂದರ್ಭದಲ್ಲಿ ಕೈಕೊಟ್ಟ ಕಹಿ ನೆನಪುಗಳು ಮನಸ್ಸಿನ ಆಳದಲ್ಲಿ ಇನ್ನೂ ಮರೆಯಾಗದೆ ಸೂಕ್ಷ್ಮ ಸಂಶಯ ಉಳಿಸಿದೆ.`,
-          tone: "bad",
-          tagKn: "ವಿಶ್ವಾಸಘಾತದ ಗಾಯ",
-          tagEn: "Past Betrayal Scar"
-        },
-        {
-          id: 5,
-          text: `ಆರ್ಥಿಕ ಭದ್ರತೆಯ ವಿಷಯದಲ್ಲಿ ಸದಾ ಒಂದು ಅನಿಶ್ಚಿತತೆಯ ಭಯ ಕಾಡುತ್ತಿದ್ದು, ನಿರೀಕ್ಷಿತ ಹಣ ಕೈಸೇರುವವರೆಗೂ ಮನಸ್ಸಿನಲ್ಲಿ ದವದವಿಕೆ ಇರುತ್ತದೆ.`,
-          tone: "notice",
-          tagKn: "ಆರ್ಥಿಕ ಅನಿಶ್ಚಿತತೆ",
-          tagEn: "Financial Vulnerability"
-        },
-        {
-          id: 6,
-          text: `ಯಾವುದೇ ಕೆಲಸವು 100% ಪರಿಪೂರ್ಣವಾಗಿ ಮುಗಿಯಬೇಕೆಂಬ ಪರಿಪೂರ್ಣತಾವಾದದ (Perfectionism) ಒತ್ತಡದಿಂದ ತಾನೇ ತನಗೆ ಅತಿಯಾದ ಆತಂಕ ತಂದುಕೊಳ್ಳುತ್ತಾರೆ.`,
-          tone: "notice",
-          tagKn: "ಪರಿಪೂರ್ಣತೆಯ ಒತ್ತಡ",
-          tagEn: "Perfectionist Anxiety"
-        },
-        {
-          id: 7,
-          text: `ಎಷ್ಟೇ ಆಂತರಿಕ ಬಿರುಗಾಳಿ ಎದ್ದರೂ, ಮುಖದಲ್ಲಿ ಸಮಚಿತ್ತ ಕಾಪಾಡಿಕೊಂಡು ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವ ಅದ್ಭುತ ಸಹನಶಕ್ತಿ ಜಾತಕರಲ್ಲಿದೆ.`,
-          tone: "good",
-          tagKn: "ಅಂತಃಸತ್ವ",
-          tagEn: "Emotional Endurance"
-        },
-        {
-          id: 8,
-          text: `ಹೊಟ್ಟೆಯಲ್ಲಿ ಆಮ್ಲೀಯತೆ (Acidity), ತಲೆನೋವು ಅಥವಾ ನಿದ್ರಾಭಂಗದಂತಹ ಲಕ್ಷಣಗಳು ಜಾತಕರ ಮಾನಸಿಕ ಒತ್ತಡದ ಬಾಹ್ಯ ಪ್ರತಿಫಲನಗಳಾಗಿವೆ.`,
-          tone: "bad",
-          tagKn: "ದೈಹಿಕ ಒತ್ತಡದ ನೆರಳು",
-          tagEn: "Somatic Stress"
-        },
-        {
-          id: 9,
-          text: `ಮನಸ್ಸನ್ನು ಪ್ರಶಾಂತಗೊಳಿಸಲು ಪ್ರಕೃತಿ, ದೇವಸ್ಥಾನ ಅಥವಾ ಏಕಾಂತ ಧ್ಯಾನದ ವಾತಾವರಣವು ಜಾತಕರಿಗೆ ಅತೀವ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.`,
-          tone: "good",
-          tagKn: "ಏಕಾಂತ ಚೇತರಿಕೆ",
-          tagEn: "Solitude Rejuvenation"
-        },
-        {
-          id: 10,
-          text: `ಮುಂಬರುವ ಶುಭ ದಶಾ ಬದಲಾವಣೆಯಿಂದ ಈ ಅಂತರಂಗದ ಆತಂಕದ ಮೋಡಗಳು ಕರಗಿ, ಆಂತರಿಕ ಪ್ರಶಾಂತತೆ ಮರುಕಳಿಸುವುದು ನಿಶ್ಚಿತ.`,
-          tone: "notice",
-          tagKn: "ಶಾಂತಿ ಪ್ರವೇಶ",
-          tagEn: "Upcoming Peace Window"
-        },
-        {
-          id: 11,
-          text: `ಶ್ರೀ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಜಪ ಹಾಗೂ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆಯಿಂದ ಮನಸ್ಸಿನ ಅಧೀರತೆ ದೂರವಾಗಿ, ನವೀನ ಆತ್ಮವಿಶ್ವಾಸ ನೆಲೆಗೊಳ್ಳಲಿದೆ.`,
-          tone: "good",
-          tagKn: "ದೈವ ರಕ್ಷಣೆ",
-          tagEn: "Divine Mental Shield"
-        }
-      ]
-    : [
-        {
-          id: 1,
-          text: `Chandra's constellation '${moonNakEn}' and 4th house sukhadhipati govern the internal emotional foundation.`,
-          tone: "normal",
-          tagKn: "Mental Anchor",
-          tagEn: "Mental Anchor"
-        },
-        {
-          id: 2,
-          text: `Presents a cheerful, composed facade by day, yet battles nocturnal racing thoughts regarding upcoming liabilities.`,
-          tone: "bad",
-          tagKn: "Midnight Overthinking",
-          tagEn: "Midnight Overthinking"
-        },
-        {
-          id: 3,
-          text: `Habitual internalization of financial and familial burdens to protect loved ones from worrying, causing internal fatigue.`,
-          tone: "bad",
-          tagKn: "Silent Burden",
-          tagEn: "Silent Burden"
-        },
-        {
-          id: 4,
-          text: `Lingering emotional scars from past instances where trusted associates backed out unexpectedly right when needed most.`,
-          tone: "bad",
-          tagKn: "Past Betrayal Scar",
-          tagEn: "Past Betrayal Scar"
-        },
-        {
-          id: 5,
-          text: `Subconscious fear of sudden liquidity crunches, generating restlessness until settlements are credited to the bank.`,
-          tone: "notice",
-          tagKn: "Financial Vulnerability",
-          tagEn: "Financial Vulnerability"
-        },
-        {
-          id: 6,
-          text: `Self-imposed perfectionist anxiety, feeling agitated when milestones achieve only 90% rather than flawless 100%.`,
-          tone: "notice",
-          tagKn: "Perfectionist Anxiety",
-          tagEn: "Perfectionist Anxiety"
-        },
-        {
-          id: 7,
-          text: `Rare internal endurance capable of absorbing immense private shocks without crumbling or neglecting outward duty.`,
-          tone: "good",
-          tagKn: "Emotional Endurance",
-          tagEn: "Emotional Endurance"
-        },
-        {
-          id: 8,
-          text: `Physical manifestation of stress through erratic sleep cycles, stomach acidity, or tight neck/shoulder knots.`,
-          tone: "bad",
-          tagKn: "Somatic Stress",
-          tagEn: "Somatic Stress"
-        },
-        {
-          id: 9,
-          text: `Spiritual sanctuaries, temple courtyards, and silent walks in nature act as immediate psychic remedies for the native.`,
-          tone: "good",
-          tagKn: "Solitude Rejuvenation",
-          tagEn: "Solitude Rejuvenation"
-        },
-        {
-          id: 10,
-          text: `Imminent sub-dasha transition is scheduled to dissolve these midnight anxieties, restoring baseline serenity.`,
-          tone: "notice",
-          tagKn: "Upcoming Peace Window",
-          tagEn: "Upcoming Peace Window"
-        },
-        {
-          id: 11,
-          text: `Devotional chanting of Shiva Panchakshari and ancestral sankalpa shields the psyche against all phantom terrors.`,
-          tone: "good",
-          tagKn: "Divine Mental Shield",
-          tagEn: "Divine Mental Shield"
-        }
-      ];
+  // Card 2: ಅಂತರಂಗದ ಗುಪ್ತ ಆತಂಕ & ಚಿಂತೆ (12 points) - 100% Dynamic
+  const card2: AstrologerPointItem[] = buildSubconsciousWorryPoints({
+    moonSignEn: moonRashiEn,
+    moonNakEn,
+    moonHouse,
+    hasVishYoga,
+    hasGrahanYoga,
+    hasKetuYoga,
+    hasMangalYoga,
+    hasGajakesari,
+    isDusthanaMoon,
+    isKemadruma,
+    age: devoteeAge,
+    isFemale,
+    isKn,
+    devoteeName
+  });
 
-  // -------------------------------------------------------------
-  // Card 3: 99% ಆದ ಕೆಲಸ ನಿಲ್ಲಿಸುವ 'ಮಾಂದಿ ಕರ್ಮ ಗಂಟು' (Maandi Karma Knot - 11 points)
-  // -------------------------------------------------------------
-  const card3: AstrologerPointItem[] = isKn
-    ? [
-        {
-          id: 1,
-          text: `ಶನಿಯ ಅದೃಶ್ಯ ಛಾಯಾ ಪುತ್ರನಾದ 'ಮಾಂದಿ' (ಗುಳಿಕ) ಗ್ರಹವು ${mHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದು, ಅಧಿಪತಿ ${mHouseLordKn} ಪ್ರಭಾವದಲ್ಲಿದ್ದಾನೆ.`,
-          tone: "normal",
-          tagKn: "ಮಾಂದಿ ಸ್ಥಾನ ಸತ್ಯ",
-          tagEn: "Maandi Alignment"
-        },
-        {
-          id: 2,
-          text: `ಪ್ರಮುಖ ಕಾರ್ಯಗಳು ಆರಂಭದಲ್ಲಿ ಶೇಕಡಾ 50%, 80%, 90% ಮತ್ತು 99% ರಷ್ಟು ಅತ್ಯಂತ ಸುಲಭವಾಗಿ ಮುನ್ನಡೆದು ಅಂತಿಮ ಕ್ಷಣಕ್ಕೆ ತಲುಪುತ್ತವೆ.`,
-          tone: "normal",
-          tagKn: "ಆರಂಭಿಕ ಪ್ರಗತಿ",
-          tagEn: "Initial Momentum"
-        },
-        {
-          id: 3,
-          text: `ಇನ್ನೇನು ನಾಳೆ ಕೆಲಸ ಮುಗಿದು ಫಲ ಸಿಗಬೇಕು ಅನ್ನುವಾಗಲೇ, ಅಂತಿಮ ಸಹಿ ಬೀಳುವ ವೇಳೆ ಅಥವಾ ಹಣ ಬಿಡುಗಡೆಯ ಮುನ್ನಾದಿನ ಕೆಲಸ ಹಠಾತ್ ಸ್ಥಗಿತಗೊಳ್ಳುತ್ತದೆ!`,
-          tone: "bad",
-          tagKn: "೯೯% ಗಂಟು ಸ್ಫೋಟ",
-          tagEn: "99% Stall Trigger"
-        },
-        {
-          id: 4,
-          text: `'ಕೈಯಿಗೆ ಬಂದ ತುತ್ತು ಬಾಯಿಗೆ ಬರಲಿಲ್ಲ' ಎಂಬಂತೆ, ಅತ್ಯಂತ ಕ್ಷುಲ್ಲಕ ತಾಂತ್ರಿಕ ನೆಪ ಅಥವಾ ಮೂರನೆಯವರ ಹಸ್ತಕ್ಷೇಪದಿಂದ ಕೆಲಸ ತಿಂಗಳುಗಟ್ಟಲೆ ಎಳೆಯುತ್ತದೆ.`,
-          tone: "bad",
-          tagKn: "ಕೊನೆಯ ಮೈಲಿ ವಿಳಂಬ",
-          tagEn: "Last-Mile Agony"
-        },
-        {
-          id: 5,
-          text: `ಪ್ರಾಮಾಣಿಕವಾಗಿ ಬೆವರು ಸುರಿಸಿ ದುಡಿದರೂ, ಅಂತಿಮ ಶ್ರೇಯಸ್ಸು ಅಥವಾ ಹಕ್ಕು ತಲುಪುವಾಗ ಅನಗತ್ಯ ತಡೆಗೋಡೆಗಳು ಎದುರಾಗುವುದು ಇದರ ನೈಜ ಲಕ್ಷಣ.`,
-          tone: "bad",
-          tagKn: "ಶ್ರಮಕ್ಕೆ ತಡೆ",
-          tagEn: "Unearned Obstacles"
-        },
-        {
-          id: 6,
-          text: `ಆಸ್ತಿ ನೋಂದಣಿ, ಸಾಲ ಮಂಜೂರಾತಿ, ಸರ್ಕಾರಿ ಪರವಾನಗಿ ಅಥವಾ ಪ್ರಮೋಷನ್ ಕಡತಗಳು ಅಂತಿಮ ಟೇಬಲ್‌ನಲ್ಲಿ ಕಾರಣವಿಲ್ಲದೆ ಕಾಯುವಂತಾಗುತ್ತದೆ.`,
-          tone: "notice",
-          tagKn: "ಕಾಗದಪತ್ರಗಳ ವಿಳಂಬ",
-          tagEn: "Bureaucratic Deadlock"
-        },
-        {
-          id: 7,
-          text: `ಆದರೆ ಈ ಮಾಂದಿ ಪ್ರಭಾವವು ವ್ಯಕ್ತಿಯ ತಾಳ್ಮೆ ಹಾಗೂ ಧರ್ಮನಿಷ್ಠೆಯನ್ನು ಪರೀಕ್ಷಿಸುವ ಒಂದು ಸೂಕ್ಷ್ಮ ಪೂರ್ವಾರ್ಜಿತ ಕರ್ಮ ಪರೀಕ್ಷೆಯಾಗಿದೆ.`,
-          tone: "notice",
-          tagKn: "ಕರ್ಮ ಪರೀಕ್ಷೆ",
-          tagEn: "Karmic Crucible"
-        },
-        {
-          id: 8,
-          text: `ಸತತ ಪರಿಶ್ರಮ ಹಾಗೂ ಹಠ ಬಿಡದ ಪ್ರಯತ್ನದಿಂದ ಅಂತಿಮವಾಗಿ ವಿಜಯ ಸಿಕ್ಕೇ ಸಿಗುತ್ತದೆ; ಮಾಂದಿ ವಿಳಂಬ ಮಾಡಬಲ್ಲನೇ ಹೊರತು ಯಶಸ್ಸನ್ನು ಶಾಶ್ವತವಾಗಿ ಕಸಿದುಕೊಳ್ಳಲಾರ.`,
-          tone: "good",
-          tagKn: "ಅಂತಿಮ ಜಯ",
-          tagEn: "Eventual Triumph"
-        },
-        {
-          id: 9,
-          text: `ಈ ಅಂತಿಮ 1% ಕರ್ಮ ಗಂಟನ್ನು ಕರಗಿಸಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ 'ಮಾಂದಿ-ಶನಿ ಶಾಂತಿ ಸಂಕಲ್ಪ' ಅತ್ಯಂತ ಫಲಪ್ರದ.`,
-          tone: "good",
-          tagKn: "ಗೋಕರ್ಣ ಶಾಂತಿ",
-          tagEn: "Gokarna Shanti"
-        },
-        {
-          id: 10,
-          text: `ದಿನನಿತ್ಯ ಪ್ರಾತಃಕಾಲ 'ಓಂ ಮಂದಪುತ್ರಾಯ ವಿದ್ಮಹೇ ಮೃತ್ಯುರೂಪಾಯ ಧೀಮಹಿ ತನ್ನೋ ಮಾಂದಿಃ ಪ್ರಚೋದಯಾತ್' ಮಂತ್ರವನ್ನು 11 ಬಾರಿ ಜಪಿಸುವುದು ಮಹತ್ವದ ನಿಯಮ.`,
-          tone: "notice",
-          tagKn: "ದೈನಂದಿನ ಜಪ",
-          tagEn: "Daily Mantra Shield"
-        },
-        {
-          id: 11,
-          text: `ಈ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರದಿಂದ ಕಾರ್ಯಗಳಲ್ಲಿನ ನಿಗೂಢ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ, ಬಾಕಿ ಉಳಿದ ಎಲ್ಲಾ ಕೆಲಸಗಳು ಶೀಘ್ರವಾಗಿ ಮುಕ್ತಾಯ ಕಾಣಲಿವೆ.`,
-          tone: "good",
-          tagKn: "ಕಾರ್ಯ ಸಿದ್ಧಿ ಯೋಗ",
-          tagEn: "Hurdle Dissolution"
-        }
-      ]
-    : [
-        {
-          id: 1,
-          text: `Saturn's subtle shadow satellite Maandi (Gulika) is posited in House ${mHouse} under dispositor ${mHouseLord}.`,
-          tone: "normal",
-          tagKn: "Maandi Alignment",
-          tagEn: "Maandi Alignment"
-        },
-        {
-          id: 2,
-          text: `Projects gather rapid speed through 50%, 80%, 90%, and 99% with smooth cooperation and high optimism.`,
-          tone: "normal",
-          tagKn: "Initial Momentum",
-          tagEn: "Initial Momentum"
-        },
-        {
-          id: 3,
-          text: `Right when the final signature, loan credit, or transfer order is due tomorrow, an abrupt impasse paralyzes execution!`,
-          tone: "bad",
-          tagKn: "99% Stall Trigger",
-          tagEn: "99% Stall Trigger"
-        },
-        {
-          id: 4,
-          text: `The classic 'morsel reached the hand but missed the mouth' curse, where trivial clerical excuses stall outcomes for months.`,
-          tone: "bad",
-          tagKn: "Last-Mile Agony",
-          tagEn: "Last-Mile Agony"
-        },
-        {
-          id: 5,
-          text: `Unjust exhaustion where the native pours 100% genuine effort only to see rewards entangled in bureaucratic red tape.`,
-          tone: "bad",
-          tagKn: "Unearned Obstacles",
-          tagEn: "Unearned Obstacles"
-        },
-        {
-          id: 6,
-          text: `Particularly affects property registrations, sanction letters, and promotions at the final signatory desk.`,
-          tone: "notice",
-          tagKn: "Bureaucratic Deadlock",
-          tagEn: "Bureaucratic Deadlock"
-        },
-        {
-          id: 7,
-          text: `This obstruction serves as a karmic crucible testing ethical stamina before conferring irreversible elevation.`,
-          tone: "notice",
-          tagKn: "Karmic Crucible",
-          tagEn: "Karmic Crucible"
-        },
-        {
-          id: 8,
-          text: `Maandi can delay and frustrate, but can NEVER permanently deny fruits to a resilient, principled seeker.`,
-          tone: "good",
-          tagKn: "Eventual Triumph",
-          tagEn: "Eventual Triumph"
-        },
-        {
-          id: 9,
-          text: `Sponsoring a dedicated Maandi-Shani Shanti Sankalpa at sacred Gokarna Mahabaleshwara Kshetra permanently snaps this ancestral knot.`,
-          tone: "good",
-          tagKn: "Gokarna Shanti",
-          tagEn: "Gokarna Shanti"
-        },
-        {
-          id: 10,
-          text: `Mandatory daily recitation of the Maandi Gayatri (11 repetitions) neutralizes negative eye-casting (drishti) and delays.`,
-          tone: "notice",
-          tagKn: "Daily Mantra Shield",
-          tagEn: "Daily Mantra Shield"
-        },
-        {
-          id: 11,
-          text: `Post-remedy, stalled files and frozen financial settlements experience accelerated breakthrough resolution.`,
-          tone: "good",
-          tagKn: "Hurdle Dissolution",
-          tagEn: "Hurdle Dissolution"
-        }
-      ];
+  // Card 3: 99% ಆದ ಕೆಲಸ ನಿಲ್ಲಿಸುವ 'ಮಾಂದಿ ಕರ್ಮ ಗಂಟು' (11 points) - 100% Dynamic 12 Houses
+  const card3: AstrologerPointItem[] = buildMaandiKarmicPoints({
+    maandiHouse: mHouse,
+    maandiLordKn: mHouseLordKn,
+    maandiLordEn: mHouseLord,
+    isKn,
+    devoteeAge
+  });
 
-  // -------------------------------------------------------------
-  // Card 4: ಶಾರೀರಿಕ ಮಚ್ಚೆ ಗುರುತು & ತ್ರಿದೋಷ ಪ್ರಕೃತಿ (Physical Sign & Tridosha - 11 points)
-  // -------------------------------------------------------------
-  const card4: AstrologerPointItem[] = isKn
-    ? [
-        {
-          id: 1,
-          text: `ಬೃಹತ್ ಜಾತಕ ಅಧ್ಯಾಯ 25ರ ಅಂಗ ಲಕ್ಷಣ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ಲಗ್ನಾಧಿಪತಿಯ ಪ್ರಭಾವದಿಂದ ಶರೀರದಲ್ಲಿ ವಿಶಿಷ್ಟ ಹುಟ್ಟು ಗುರುತು ನಿರ್ಧಾರವಾಗುತ್ತದೆ.`,
-          tone: "normal",
-          tagKn: "ಶಾಸ್ತ್ರ ಪ್ರಮಾಣ",
-          tagEn: "Classical Sutra"
-        },
-        {
-          id: 2,
-          text: `ಜಾತಕರ ದೇಹದ ಕುತ್ತಿಗೆ, ಭುಜ, ಎದೆಯ ಪಕ್ಕೆಲುಬು ಅಥವಾ ಮುಖಭಾಗದಲ್ಲಿ ಸ್ಪಷ್ಟವಾದ ನೈಸರ್ಗಿಕ ಮಚ್ಚೆ ಅಥವಾ ಹುಟ್ಟು ಕಲೆಯ ಗುರುತು ಇರುತ್ತದೆ.`,
-          tone: "good",
-          tagKn: "ಅಂಗ ಲಕ್ಷಣ ಮುದ್ರೆ",
-          tagEn: "Distinct Birthmark"
-        },
-        {
-          id: 3,
-          text: `ಲಗ್ನಾಧಿಪತಿಯ ಬೆಸ/ಸಮ ರಾಶಿ ಸ್ಥಿತಿಯಂತೆ ಈ ಮಂಗಳಕರ ಗುರುತು ಶರೀರದ ಬಲಭಾಗ ಅಥವಾ ಎಡಭಾಗದಲ್ಲಿ ಎದ್ದುಕಾಣುವಂತೆ ಇರುತ್ತದೆ.`,
-          tone: "normal",
-          tagKn: "ಶರೀರದ ದಿಕ್ಕು",
-          tagEn: "Body Side"
-        },
-        {
-          id: 4,
-          text: `ಈ ಶಾರೀರಿಕ ಗುರುತು ಜಾತಕದ ನಿಖರತೆ ಹಾಗೂ ಕುಂಡಲಿಯ ಜನ್ಮ ಸಮಯದ ಸತ್ಯತೆಯನ್ನು 100% ದೃಢೀಕರಿಸುವ ಪ್ರಾಚೀನ ಪರೀಕ್ಷೆಯಾಗಿದೆ.`,
-          tone: "good",
-          tagKn: "ಕುಂಡಲಿ ಸತ್ಯ ದೃಢೀಕರಣ",
-          tagEn: "Chart Verification"
-        },
-        {
-          id: 5,
-          text: `ಆಯುರ್ವೇದ ತ್ರಿದೋಷ ಸಿದ್ಧಾಂತದಂತೆ ಜಾತಕರಲ್ಲಿ 'ವಾತ-ಪಿತ್ತ' ಅಥವಾ 'ಪಿತ್ತ-ಕಫ' ಪ್ರಕೃತಿಯ ಉಷ್ಣಾಂಶದ ಸಮತೋಲನವಿರುತ್ತದೆ.`,
-          tone: "normal",
-          tagKn: "ತ್ರಿದೋಷ ಪ್ರಕೃತಿ",
-          tagEn: "Metabolic Profile"
-        },
-        {
-          id: 6,
-          text: `ಮಾನಸಿಕ ಒತ್ತಡ ಅಥವಾ ಅತಿಯಾದ ಆತಂಕ ಎದುರಾದಾಗ ಶರೀರದಲ್ಲಿ ಹಠಾತ್ ಉಷ್ಣಾಂಶ ಏರಿಕೆ, ಅಸಿಡಿಟಿ ಅಥವಾ ಕಣ್ಣಿನ ಉರಿ ಕಾಣಿಸಿಕೊಳ್ಳಬಹುದು.`,
-          tone: "bad",
-          tagKn: "ಉಷ್ಣ ವಿಕೋಪ",
-          tagEn: "Pitta Heat Surge"
-        },
-        {
-          id: 7,
-          text: `ಜೀರ್ಣಾಂಗ ಕ್ರಿಯೆಯಲ್ಲಿ (ಜಠರಾಗ್ನಿ) ಏರುಪೇರಿದ್ದು, ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಊಟ ಮಾಡದಿದ್ದರೆ ತಲೆನೋವು ಅಥವಾ ಆಯಾಸ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ.`,
-          tone: "bad",
-          tagKn: "ಜಠರಾಗ್ನಿ ಸೂಕ್ಷ್ಮತೆ",
-          tagEn: "Digestive Sensitivity"
-        },
-        {
-          id: 8,
-          text: `ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಎದ್ದ ತಕ್ಷಣ ಉಗುರುಬೆಚ್ಚಗಿನ ನೀರು ಸೇವಿಸುವುದು ಹಾಗೂ ಕರಿದ-ಖಾರದ ಪದಾರ್ಥಗಳ ಮಿತ ಬಳಕೆ ಆರೋಗ್ಯಕ್ಕೆ ಅತ್ಯಗತ್ಯ.`,
-          tone: "notice",
-          tagKn: "ದೈನಂದಿನ ಆಹಾರ ನಿಯಮ",
-          tagEn: "Dietary Regimen"
-        },
-        {
-          id: 9,
-          text: `ಶರೀರದಲ್ಲಿ ಅದ್ಭುತ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ನೈಸರ್ಗಿಕ ಚೇತರಿಕಾ ಬಲವಿದ್ದು, ಸೂಕ್ತ ವಿಶ್ರಾಂತಿ ಸಿಕ್ಕರೆ ಶೀಘ್ರವಾಗಿ ಚೇತರಿಸಿಕೊಳ್ಳುತ್ತಾರೆ.`,
-          tone: "good",
-          tagKn: "ನೈಸರ್ಗಿಕ ಚೇತರಿಕೆ",
-          tagEn: "Natural Recovery"
-        },
-        {
-          id: 10,
-          text: `ರಾತ್ರಿ ಮಲಗುವ ಮುನ್ನ ಮೊಬೈಲ್/ಸ್ಕ್ರೀನ್ ದೂರವಿಟ್ಟು, ಪಾದಗಳನ್ನು ತೊಳೆದು ಮಲಗುವುದರಿಂದ ಪ್ರಶಾಂತ ನಿದ್ರೆ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.`,
-          tone: "notice",
-          tagKn: "ನಿದ್ರಾ ಸಂರಕ್ಷಣೆ",
-          tagEn: "Sleep Hygiene"
-        },
-        {
-          id: 11,
-          text: `ಆಯುಷ್ಯ ಸ್ಥಾನವು ಶುಭ ರಕ್ಷಣೆಯಲ್ಲಿದ್ದು, ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯಿಂದ ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಉತ್ತಮ ದೈಹಿಕ ತೇಜಸ್ಸು ಪ್ರಾಪ್ತವಾಗಲಿದೆ.`,
-          tone: "good",
-          tagKn: "ಆಯುಷ್ಯ ರಕ್ಷಣೆ",
-          tagEn: "Longevity Grace"
-        }
-      ]
-    : [
-        {
-          id: 1,
-          text: `Per Brihat Jataka Chapter 25 (Anga Lakshana), ascendant dignity imprints a permanent physical marker confirming birth authenticity.`,
-          tone: "normal",
-          tagKn: "Classical Sutra",
-          tagEn: "Classical Sutra"
-        },
-        {
-          id: 2,
-          text: `Native carries a distinct natural mole, beauty mark, or birth sign situated around the neck, collarbone, chest, or facial zone.`,
-          tone: "good",
-          tagKn: "Distinct Birthmark",
-          tagEn: "Distinct Birthmark"
-        },
-        {
-          id: 3,
-          text: `Governed by odd/even house lordship, this prominent mark aligns reliably along the right or left anatomical meridian.`,
-          tone: "normal",
-          tagKn: "Body Side",
-          tagEn: "Body Side"
-        },
-        {
-          id: 4,
-          text: `This classical signature serves as concrete physical validation that planetary degrees align 100% with the birth chart.`,
-          tone: "good",
-          tagKn: "Chart Verification",
-          tagEn: "Chart Verification"
-        },
-        {
-          id: 5,
-          text: `Tridosha constitution reflects dynamic Vata-Pitta or Pitta-Kapha metabolism with fluctuating internal core body heat.`,
-          tone: "normal",
-          tagKn: "Metabolic Profile",
-          tagEn: "Metabolic Profile"
-        },
-        {
-          id: 6,
-          text: `Under intense emotional deadlines, sudden surges of metabolic Pitta manifest as stomach acidity, dry throat, or eye fatigue.`,
-          tone: "bad",
-          tagKn: "Pitta Heat Surge",
-          tagEn: "Pitta Heat Surge"
-        },
-        {
-          id: 7,
-          text: `Digestive fire (Jatharagni) is sensitive to erratic meal timings, triggering low-grade headaches if lunch is skipped.`,
-          tone: "bad",
-          tagKn: "Digestive Sensitivity",
-          tagEn: "Digestive Sensitivity"
-        },
-        {
-          id: 8,
-          text: `Hydrating with lukewarm water first thing at dawn and moderating spicy/sour oily stimulants is strictly advised.`,
-          tone: "notice",
-          tagKn: "Dietary Regimen",
-          tagEn: "Dietary Regimen"
-        },
-        {
-          id: 9,
-          text: `Inherent vital reserve (Ojas) rebounds rapidly once proper circadian sleep and clean hydration are restored.`,
-          tone: "good",
-          tagKn: "Natural Recovery",
-          tagEn: "Natural Recovery"
-        },
-        {
-          id: 10,
-          text: `Disconnecting from screens 45 minutes prior to sleep preserves optical prana and prevents restless tossing.`,
-          tone: "notice",
-          tagKn: "Sleep Hygiene",
-          tagEn: "Sleep Hygiene"
-        },
-        {
-          id: 11,
-          text: `Benefic planetary aspects shelter the longevity house, ensuring sustained physical vitality and radiant aura.`,
-          tone: "good",
-          tagKn: "Longevity Grace",
-          tagEn: "Longevity Grace"
-        }
-      ];
+  // Card 4: ಶಾರೀರಿಕ ಮಚ್ಚೆ ಗುರುತು & ತ್ರಿದೋಷ ಪ್ರಕೃತಿ (11 points) - 100% Dynamic
+  const card4: AstrologerPointItem[] = buildAngaLakshanaAndTridoshaPoints({
+    lagnaEn: lagnaRashiEn,
+    lagnaLordEn: session?.result?.lagnaLord?.english || "Mars",
+    marsHouse: marsPlanet?.house,
+    sunHouse: sunPlanet?.house,
+    moonHouse,
+    isKn
+  });
 
-  // -------------------------------------------------------------
-  // Card 5: ಕರ್ಮ ಸ್ಥಾನ & ವಾಸ್ತವಿಕ ಆರ್ಥಿಕ ಸ್ಥಿತಿ (Karma & Financial Reality - 11 points)
-  // -------------------------------------------------------------
-  const card5: AstrologerPointItem[] = isKn
-    ? [
-        {
-          id: 1,
-          text: `10ನೇ ಕರ್ಮ ಸ್ಥಾನ ಹಾಗೂ ಅಮಾತ್ಯಕಾರಕ ಗ್ರಹದ ಪ್ರಭಾವವು ಜಾತಕರ ವೃತ್ತಿ ಗೌರವ ಹಾಗೂ ಕಾರ್ಯಕ್ಷೇತ್ರದ ಯಶಸ್ಸನ್ನು ನಿಯಂತ್ರಿಸುತ್ತದೆ.`,
-          tone: "normal",
-          tagKn: "ಕರ್ಮ ಸ್ಥಾನ ಸತ್ಯ",
-          tagEn: "10th House Foundation"
-        },
-        {
-          id: 2,
-          text: `ಜಾತಕರು ಆಡಳಿತ, ನಿರ್ವಹಣೆ, ಸಲಹಾ ರಂಗ, ತಂತ್ರಜ್ಞಾನ, ಕಲೆ ಅಥವಾ ಕಾರ್ಯತಂತ್ರದ ಪ್ರಮುಖ ರಂಗಗಳಲ್ಲಿ ಅತ್ಯುನ್ನತ ಯಶಸ್ಸು ಕಾಣುವ ಯೋಗವಿದೆ.`,
-          tone: "good",
-          tagKn: "ಪ್ರಮುಖ ವೃತ್ತಿ ರಂಗ",
-          tagEn: "Prime Career Sector"
-        },
-        {
-          id: 3,
-          text: `ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಪ್ರಾಮಾಣಿಕತೆ ಹಾಗೂ ಶಿಸ್ತಿಗೆ ಮೊದಲ ಆದ್ಯತೆ ನೀಡುವ ಜಾತಕರಿಗೆ, ಚಾಡಿ ಹೇಳುವುದು, ಕಚೇರಿ ರಾಜಕೀಯ ಅಥವಾ ಮುಖಸ್ತುತಿ ಕಂಡರೆ ಅಸಹ್ಯ.`,
-          tone: "good",
-          tagKn: "ವೃತ್ತಿ ಸತ್ಯನಿಷ್ಠೆ",
-          tagEn: "Workplace Ethics"
-        },
-        {
-          id: 4,
-          text: `ತಾನು ಬೆವರು ಸುರಿಸಿ ಮಾಡಿದ ಕೆಲಸಕ್ಕೆ ಇತರರು ಕ್ರೆಡಿಟ್ ಪಡೆದುಕೊಳ್ಳುವ ಅಥವಾ ತನಗೆ ಸಲ್ಲಬೇಕಾದ ಮನ್ನಣೆ ವಿಳಂಬವಾಗುವ ಕಹಿ ಅನುಭವ ಹಲವು ಬಾರಿ ಆಗಿದೆ.`,
-          tone: "bad",
-          tagKn: "ಶ್ರೇಯಸ್ಸು ಕಳವು",
-          tagEn: "Uncredited Labor"
-        },
-        {
-          id: 5,
-          text: `ಕೈಗೆ ಬಂದ ನಗದು ಹಣವು ತಕ್ಷಣವೇ ಕೌಟುಂಬಿಕ ಜವಾಬ್ದಾರಿ, ಸ್ಥಿರಾಸ್ತಿ ಅಥವಾ ಸಾಲ ತೀರುವಳಿಯಲ್ಲಿ ಲಾಕ್ ಆಗಿ, ಕೈಯಲ್ಲಿ ಲಿಕ್ವಿಡ್ ಕ್ಯಾಶ್ ಕೊರತೆ ಕಾಣಿಸುತ್ತದೆ.`,
-          tone: "bad",
-          tagKn: "ದ್ರವ್ಯ ಹಣದ ಕೊರತೆ",
-          tagEn: "Cash Flow Lockup"
-        },
-        {
-          id: 6,
-          text: `ಹಣಕಾಸಿನ ಹರಿವು ನಿರಂತರವಾಗಿದ್ದರೂ, ಕೈಯಲ್ಲಿ ಉಳಿತಾಯದ ನಿಧಿ ಹೆಚ್ಚಾಗುವ ಬದಲು ಅನಿರೀಕ್ಷಿತ ಅಗತ್ಯಗಳಿಗೆ ವ್ಯಯವಾಗುವ ಪರಿಸ್ಥಿತಿ ಇದೆ.`,
-          tone: "notice",
-          tagKn: "ಅನಿರೀಕ್ಷಿತ ವ್ಯಯ",
-          tagEn: "Unplanned Outflow"
-        },
-        {
-          id: 7,
-          text: `ಯಾರ ಜೊತೆಯೂ ಅವಲಂಬಿತವಾಗಿರದೆ, ಸ್ವತಂತ್ರ ಅಧಿಕಾರ ಹಾಗೂ ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳುವ ಸ್ಥಾನದಲ್ಲಿ ಕೆಲಸ ಮಾಡಿದಾಗ ಜಾತಕರ ಪೂರ್ಣ ಸಾಮರ್ಥ್ಯ ಹೊರಬರುತ್ತದೆ.`,
-          tone: "good",
-          tagKn: "ಸ್ವತಂತ್ರ ನಿರ್ಧಾರ ಶಕ್ತಿ",
-          tagEn: "Autonomous Leadership"
-        },
-        {
-          id: 8,
-          text: `ವ್ಯವಹಾರ ಪಾಲುದಾರಿಕೆ ಅಥವಾ ಹಣದ ಲೆಕ್ಕಾಚಾರದಲ್ಲಿ ಯಾರನ್ನೂ ಕಣ್ಮುಚ್ಚಿ ನಂಬದೆ, ಪ್ರತಿಯೊಂದು ಒಪ್ಪಂದವನ್ನು ಲಿಖಿತವಾಗಿ ದಾಖಲಿಸುವುದು ಅತ್ಯಗತ್ಯ.`,
-          tone: "notice",
-          tagKn: "ಪಾಲುದಾರಿಕೆ ಎಚ್ಚರಿಕೆ",
-          tagEn: "Partnership Caution"
-        },
-        {
-          id: 9,
-          text: `ದೀರ್ಘಾವಧಿಯ ಆಸ್ತಿ ಸೃಷ್ಟಿ ಹಾಗೂ ಸ್ಥಿರಾಸ್ತಿ ಹೂಡಿಕೆಯಲ್ಲಿ ಜಾತಕರಿಗೆ ಅದ್ಭುತ ಧನಯೋಗವಿದ್ದು, ವಯಸ್ಸು ಹೆಚ್ಚಿದಂತೆ ಸಂಪತ್ತು ವೃದ್ಧಿಯಾಗಲಿದೆ.`,
-          tone: "good",
-          tagKn: "ಸ್ಥಿರಾಸ್ತಿ ಯೋಗ",
-          tagEn: "Asset Wealth Yoga"
-        },
-        {
-          id: 10,
-          text: `ತುರ್ತು ಪರಿಸ್ಥಿತಿಗಾಗಿ ಯಾರ ಕೈಯನ್ನೂ ಚಾಚದಂತೆ ಕನಿಷ್ಠ 6 ತಿಂಗಳ ಖರ್ಚಿಗೆ ಸಮನಾದ ತುರ್ತು ನಿಧಿಯನ್ನು ಪ್ರತ್ಯೇಕವಾಗಿ ಇಟ್ಟುಕೊಳ್ಳುವುದು ಜಾಣತನ.`,
-          tone: "notice",
-          tagKn: "ತುರ್ತು ನಿಧಿ ಶಿಸ್ತು",
-          tagEn: "Emergency Buffer"
-        },
-        {
-          id: 11,
-          text: `ಪ್ರಸ್ತುತ ದಶಾ ಸಂಚಾರದ ನಂತರ ಸಮಾಜದಲ್ಲಿ ಗೌರವ, ಅಧಿಕಾರ ಹಾಗೂ ಸ್ಥಿರ ಆರ್ಥಿಕ ಸುಭದ್ರತೆ ಕಟ್ಟಿಟ್ಟ ಬುತ್ತಿ ಎಂದು ಜಾತಕ ಸ್ಪಷ್ಟಪಡಿಸುತ್ತದೆ.`,
-          tone: "good",
-          tagKn: "ಆರ್ಥಿಕ ಗೌರವ ಸಿದ್ಧಿ",
-          tagEn: "Financial Honor"
-        }
-      ]
-    : [
-        {
-          id: 1,
-          text: `10th Karma Bhava and Amatyakaraka disposition govern public reputation, authority, and occupational elevation.`,
-          tone: "normal",
-          tagKn: "10th House Foundation",
-          tagEn: "10th House Foundation"
-        },
-        {
-          id: 2,
-          text: `Destined to achieve prominent success in leadership, advisory strategy, administration, specialized technology, or creative execution.`,
-          tone: "good",
-          tagKn: "Prime Career Sector",
-          tagEn: "Prime Career Sector"
-        },
-        {
-          id: 3,
-          text: `Unyielding workplace integrity with deep disdain for cheap sycophancy, gossip, backstabbing, or shortcut compromises.`,
-          tone: "good",
-          tagKn: "Workplace Ethics",
-          tagEn: "Workplace Ethics"
-        },
-        {
-          id: 4,
-          text: `Has experienced repeated historical episodes where less qualified peers claimed credit for foundational groundwork laid by the native.`,
-          tone: "bad",
-          tagKn: "Uncredited Labor",
-          tagEn: "Uncredited Labor"
-        },
-        {
-          id: 5,
-          text: `Liquid cash inflows frequently drain rapidly into fixed commitments, family obligations, or capital assets, creating temporary cash pinches.`,
-          tone: "bad",
-          tagKn: "Cash Flow Lockup",
-          tagEn: "Cash Flow Lockup"
-        },
-        {
-          id: 6,
-          text: `Overall income remains respectable, but money rarely rests idle in savings accounts due to immediate obligations.`,
-          tone: "notice",
-          tagKn: "Unplanned Outflow",
-          tagEn: "Unplanned Outflow"
-        },
-        {
-          id: 7,
-          text: `Flourishes best when awarded autonomous jurisdiction and creative authority rather than operating under micromanaged surveillance.`,
-          tone: "good",
-          tagKn: "Autonomous Leadership",
-          tagEn: "Autonomous Leadership"
-        },
-        {
-          id: 8,
-          text: `Business partnerships require strict, cold, black-and-white legal documentation to prevent unilateral burdens falling on the native.`,
-          tone: "notice",
-          tagKn: "Partnership Caution",
-          tagEn: "Partnership Caution"
-        },
-        {
-          id: 9,
-          text: `Possesses potent long-term wealth yogas in landed real estate and immovable assets, multiplying net worth steadily with maturity.`,
-          tone: "good",
-          tagKn: "Asset Wealth Yoga",
-          tagEn: "Asset Wealth Yoga"
-        },
-        {
-          id: 10,
-          text: `Maintaining an untouched 6-month liquid cushion is essential to eliminate subconscious anxiety during transitional phases.`,
-          tone: "notice",
-          tagKn: "Emergency Buffer",
-          tagEn: "Emergency Buffer"
-        },
-        {
-          id: 11,
-          text: `The upcoming dasha phase unlocks enduring societal honor, managerial elevation, and material prosperity.`,
-          tone: "good",
-          tagKn: "Financial Honor",
-          tagEn: "Financial Honor"
-        }
-      ];
+  // Card 5: ಕರ್ಮ ಸ್ಥಾನ & ವಾಸ್ತವಿಕ ಆರ್ಥಿಕ ಸ್ಥಿತಿ (11 points) - 100% Dynamic
+  const card5: AstrologerPointItem[] = buildKarmaFinancialPoints({
+    tenthSignKn,
+    tenthLordKn,
+    amatyakarakaKn,
+    amatyakarakaEn,
+    isKn
+  });
 
-  // -------------------------------------------------------------
-  // Card 6: ದಶಾ ತಿರುವು & ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ (Turning Point & Remedy - 11 points)
-  // -------------------------------------------------------------
-  const card6: AstrologerPointItem[] = isKn
-    ? [
-        {
-          id: 1,
-          text: `ಪ್ರಸ್ತುತ ಮಹಾದಶಾ '${toKannadaPlanet(runningMaha)}' ಹಾಗೂ ಭುಕ್ತಿ '${toKannadaPlanet(runningBhukti)}' ಸಂಚಾರದಲ್ಲಿದೆ (${dashaTimeline} ಅವಧಿ).`,
-          tone: "normal",
-          tagKn: "ಪ್ರಸ್ತುತ ದಶಾ ಸ್ಥಿತಿ",
-          tagEn: "Active Dasha"
-        },
-        {
-          id: 2,
-          text: `ಪ್ರಸ್ತುತ ಭುಕ್ತಿಯಲ್ಲಿ ಇನ್ನೂ ಸುಮಾರು ${remainingMonths} ತಿಂಗಳುಗಳು ಬಾಕಿ ಇದ್ದು, ಇದು ಜೀವನದ ಮಹತ್ವದ ಪರಿವರ್ತನೆಯ ಪೂರ್ವಭಾವಿ ಹಂತವಾಗಿದೆ.`,
-          tone: "notice",
-          tagKn: "ಕಾಲಾವಧಿ ಎಣಿಕೆ",
-          tagEn: "Transition Countdown"
-        },
-        {
-          id: 3,
-          text: `ದಶಾ ಸಂಧಿಕಾಲದ ಅಂತಿಮ ತಿಂಗಳುಗಳಲ್ಲಿ ಹಳೆಯ ಸಮಸ್ಯೆಗಳು ಕೊನೆಯ ಬಾರಿಗೆ ತೀವ್ರವಾಗಿ ಪರೀಕ್ಷೆ ಒಡ್ಡುವುದು ಸ್ವಾಭಾವಿಕವಾದ ಶಾಸ್ತ್ರೀಯ ನಿಯಮ.`,
-          tone: "bad",
-          tagKn: "ದಶಾ ಸಂಧಿ ಸವಾಲು",
-          tagEn: "Dasha Sandhi Friction"
-        },
-        {
-          id: 4,
-          text: `ಗೋಚಾರ ಗುರು ಹಾಗೂ ಶನಿಯ ಸಂಚಾರವು ಅನುಕೂಲಕರ ತಿರುವನ್ನು ಸೂಚಿಸುತ್ತಿದ್ದು, ಮುಂದಿನ 3 ರಿಂದ 6 ತಿಂಗಳುಗಳಲ್ಲಿ ಪ್ರಮುಖ ಬಿಕ್ಕಟ್ಟುಗಳು ಕರಗಲಿವೆ.`,
-          tone: "good",
-          tagKn: "ಗೋಚಾರ ಶುಭ ತಿರುವು",
-          tagEn: "Gochara Breakthrough"
-        },
-        {
-          id: 5,
-          text: `ಅನಗತ್ಯವಾಗಿ ವಿಳಂಬವಾಗುತ್ತಿದ್ದ ಮಹತ್ವದ ಕೆಲಸಗಳು ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ವೇಗ ಪಡೆದುಕೊಳ್ಳುವುದನ್ನು ಜಾತಕರು ಕಾಣಲಿದ್ದಾರೆ.`,
-          tone: "notice",
-          tagKn: "ಕಾರ್ಯ ವೇಗ",
-          tagEn: "Blockade Dissolution"
-        },
-        {
-          id: 6,
-          text: `ಯೋಗಕಾರಕ ರತ್ನ & ಉಂಗುರದ ಪ್ರಭಾವ: ${catalysts?.gemstoneRingCatalyst?.yogakarakaGemstoneKn || gemstoneNameKn} (${gemstoneWeight}) ರತ್ನವನ್ನು ${catalysts?.gemstoneRingCatalyst?.prescribedRingFingerKn || gemstoneFingerKn} ಬೆರಳಿಗೆ ಧರಿಸುವುದರಿಂದ ${catalysts?.gemstoneRingCatalyst?.catalyticImpactKn || "ಗ್ರಹಬಲ ವೃದ್ಧಿ"}.`,
-          tone: "good",
-          tagKn: "ಸಿದ್ಧ ರತ್ನ ಧಾರಣೆ",
-          tagEn: "Yogakaraka Gemstone"
-        },
-        {
-          id: 7,
-          text: `ಕಳತ್ರ ಭಾಗ್ಯೋದಯ (ವಿವಾಹದ ನಂತರ ಅದೃಷ್ಟ): ${catalysts?.marriageBhagya?.detailedExplanationKn || "ವಿವಾಹದ ನಂತರ ಜೀವನ ಸಂಗಾತಿಯ ಆಗಮನದಿಂದ ಭಾಗ್ಯದ ಬಾಗಿಲು ತೆರೆಯಲಿದೆ."}`,
-          tone: "good",
-          tagKn: "ಕಳತ್ರ ಭಾಗ್ಯೋದಯ",
-          tagEn: "Marriage Destiny Awakening"
-        },
-        {
-          id: 8,
-          text: `ಪುತ್ರಿ ಭಾಗ್ಯ & ಗೃಹಲಕ್ಷ್ಮೀ ಆಗಮನ: ${catalysts?.daughterBhagya?.lakshmiArrivalImpactKn || "ಗೃಹದಲ್ಲಿ ಹೆಣ್ಣು ಮಗುವಿನ ಆಗಮನದಿಂದ ಸಾಕ್ಷಾತ್ ಮಹಾಲಕ್ಷ್ಮಿಯ ಕೃಪೆ ಲಭಿಸಿ ಅಭಿವೃದ್ಧಿ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ."}`,
-          tone: "good",
-          tagKn: "ಗೃಹಲಕ್ಷ್ಮೀ ಯೋಗ",
-          tagEn: "Daughter Fortune"
-        },
-        {
-          id: 9,
-          text: `ನಾಮಾಕ್ಷರ ಕಂಪನ & ಧ್ವನಿ ತರಂಗಾಂತರ: ${catalysts?.nameSoundVibration?.vibrationHarmonyAnalysisKn || "ಜನ್ಮ ನಕ್ಷತ್ರದ ಪಾದಕ್ಕೆ ಅನುಗುಣವಾಗಿ ನಾಮ ಧ್ವನಿ ಕಂಪನವನ್ನು ಜೋಡಿಸುವುದು ನಿರಂತರ ಯಶಸ್ಸಿನ ರಹಸ್ಯ."}`,
-          tone: "good",
-          tagKn: "ನಾಮಾಕ್ಷರ ಕಂಪನ",
-          tagEn: "Name Frequency"
-        },
-        {
-          id: 10,
-          text: `ದೈವಿಕ ರುದ್ರಾಕ್ಷಿ: ${rudrakshaNameKn} ರುದ್ರಾಕ್ಷಿಯನ್ನು ಸೋಮವಾರ ಪ್ರಾತಃಕಾಲ ಶುದ್ಧ ಮನಸ್ಸಿನಿಂದ ಧಾರಣೆ ಮಾಡುವುದು ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗೆ ಶ್ರೀರಕ್ಷೆ.`,
-          tone: "good",
-          tagKn: "ಪವಿತ್ರ ರುದ್ರಾಕ್ಷಿ",
-          tagEn: "Sacred Rudraksha"
-        },
-        {
-          id: 11,
-          text: `ಪ್ರತಿದಿನ ಮುಂಜಾನೆ ಸೂರ್ಯೋದಯಕ್ಕೆ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಜಪ ಅಥವಾ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆಯನ್ನು 108 ಬಾರಿ ತಪ್ಪದೆ ನೆರವೇರಿಸುವುದು ಶಾಂತಿ ತರುತ್ತದೆ.`,
-          tone: "notice",
-          tagKn: "ನಿತ್ಯ ಮಂತ್ರ ನಿಯಮ",
-          tagEn: "Daily Chanting"
-        },
-        {
-          id: 12,
-          text: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಆತ್ಮಲಿಂಗಕ್ಕೆ ರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಮಾಂದಿ-ಶನಿ ದೋಷ ಶಾಂತಿ ಸಂಕಲ್ಪ ಸೇವೆ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಷ್ಠ.`,
-          tone: "good",
-          tagKn: "ಗೋಕರ್ಣ ಮಹಾ ಸಂಕಲ್ಪ",
-          tagEn: "Gokarna Atma Linga Seva"
-        },
-        {
-          id: 13,
-          text: `ಪರಿಹಾರಗಳ ಆಚರಣೆಯ ನಂತರ ಮನಸ್ಸಿನ ಭಾರ ಕಡಿಮೆಯಾಗಿ, ವೃತ್ತಿ ಮತ್ತು ಕುಟುಂಬದಲ್ಲಿ ನವ ಚೈತನ್ಯ ಹಾಗೂ ಉತ್ಸಾಹ ಮರುಕಳಿಸುವುದು ಗ್ಯಾರಂಟಿ.`,
-          tone: "good",
-          tagKn: "ನವ ಚೈತನ್ಯ ಪ್ರಾಪ್ತಿ",
-          tagEn: "Renewed Vitality"
-        },
-        {
-          id: 14,
-          text: `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಅನುಗ್ರಹವು ಜಾತಕರಿಗೆ ಸದಾ ಶ್ರೀರಕ್ಷೆಯಾಗಿದ್ದು, ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಶುಭ ಫಲಗಳು ಕೈಗೂಡಲಿವೆ.`,
-          tone: "good",
-          tagKn: "ಸನ್ನಿಧಾನದ ಆಶೀರ್ವಾದ",
-          tagEn: "Divine Grace"
-        }
-      ]
-    : [
-        {
-          id: 1,
-          text: `Currently traversing '${runningMaha}' Mahadasha and '${runningBhukti}' Bhukti (${dashaTimeline}).`,
-          tone: "normal",
-          tagKn: "Active Dasha",
-          tagEn: "Active Dasha"
-        },
-        {
-          id: 2,
-          text: `Approximately ${remainingMonths} months remain in the current Bhukti, marking a strategic inflection gateway.`,
-          tone: "notice",
-          tagKn: "Transition Countdown",
-          tagEn: "Transition Countdown"
-        },
-        {
-          id: 3,
-          text: `Classical Dasha Sandhi transition often sparks a final wave of tests before closing lingering karmic cycles.`,
-          tone: "bad",
-          tagKn: "Dasha Sandhi Friction",
-          tagEn: "Dasha Sandhi Friction"
-        },
-        {
-          id: 4,
-          text: `Favorable Gochara transits of Jupiter and Saturn unlock an empowering breakthrough window over the next 3 to 6 months.`,
-          tone: "good",
-          tagKn: "Gochara Breakthrough",
-          tagEn: "Gochara Breakthrough"
-        },
-        {
-          id: 5,
-          text: `Stalled undertakings and frozen opportunities are scheduled to regain dramatic forward momentum.`,
-          tone: "notice",
-          tagKn: "Blockade Dissolution",
-          tagEn: "Blockade Dissolution"
-        },
-        {
-          id: 6,
-          text: `Yogakaraka Gemstone Catalyst: Wearing ${catalysts?.gemstoneRingCatalyst?.yogakarakaGemstoneEn || gemstoneNameEn} (${gemstoneWeight}) on ${catalysts?.gemstoneRingCatalyst?.prescribedRingFingerEn || gemstoneFingerEn}: ${catalysts?.gemstoneRingCatalyst?.catalyticImpactEn || "strengthens prime benefic rays"}.`,
-          tone: "good",
-          tagKn: "Sacred Gemstone",
-          tagEn: "Sacred Gemstone"
-        },
-        {
-          id: 7,
-          text: `Post-Marriage Destiny Awakening (Kalatra Bhagya): ${catalysts?.marriageBhagya?.detailedExplanationEn || "Arrival of your life partner unleashes dormant fortune and domestic prosperity."}`,
-          tone: "good",
-          tagKn: "Kalatra Bhagya",
-          tagEn: "Kalatra Bhagya"
-        },
-        {
-          id: 8,
-          text: `Grihalakshmi Daughter Bhagya: ${catalysts?.daughterBhagya?.lakshmiArrivalImpactEn || "The arrival of a daughter acts as an auspicious celestial turning point, ushering family prosperity."}`,
-          tone: "good",
-          tagKn: "Daughter Fortune",
-          tagEn: "Daughter Fortune"
-        },
-        {
-          id: 9,
-          text: `Acoustic Name Frequency & Harmonization: ${catalysts?.nameSoundVibration?.vibrationHarmonyAnalysisEn || "Phonetic alignment of official name and signature with Nakshatra Pada syllables dissolves obstacles."}`,
-          tone: "good",
-          tagKn: "Name Frequency",
-          tagEn: "Name Frequency"
-        },
-        {
-          id: 10,
-          text: `Sacred Rudraksha: Auspicious ${rudrakshaNameEn} sanctified and worn on Monday morning for psychic armor.`,
-          tone: "good",
-          tagKn: "Sacred Rudraksha",
-          tagEn: "Sacred Rudraksha"
-        },
-        {
-          id: 11,
-          text: `Daily morning discipline: Chanting the Shiva Panchakshari Mantra 108 times at dawn to stabilize emotional equanimity.`,
-          tone: "notice",
-          tagKn: "Daily Chanting",
-          tagEn: "Daily Chanting"
-        },
-        {
-          id: 12,
-          text: `Sponsoring a Rudrabhisheka & Maandi-Shani Shanti Sankalpa at sacred Gokarna Mahabaleshwara Atma Linga Kshetra permanently clears the path.`,
-          tone: "good",
-          tagKn: "Gokarna Atma Linga Seva",
-          tagEn: "Gokarna Atma Linga Seva"
-        },
-        {
-          id: 13,
-          text: `Post-remedy observance rapidly dissolves psychic heaviness, unlocking career prestige and domestic harmony.`,
-          tone: "good",
-          tagKn: "Renewed Vitality",
-          tagEn: "Renewed Vitality"
-        },
-        {
-          id: 14,
-          text: `The eternal protective grace of Lord Mahabaleshwara shields the native, guaranteeing victorious turning points ahead.`,
-          tone: "good",
-          tagKn: "Divine Grace",
-          tagEn: "Divine Grace"
-        }
-      ];
+  // Card 6: ದಶಾ ತಿರುವು & ಶ್ರೀ ಗೋಕರ್ಣ ಸಿದ್ಧ ಪರಿಹಾರ (11 points) - 100% Dynamic
+  const card6: AstrologerPointItem[] = buildTurningPointPoints({
+    runningMaha,
+    runningBhukti,
+    remainingMonths,
+    nextBhukti,
+    dashaTimeline,
+    isKn
+  });
 
   return {
     openingIceBreaker: card1,
@@ -1330,10 +1511,7 @@ export function buildDeterministicFirstSixPoints(
   };
 }
 
-/**
- * Merges raw AI or paragraph points with the deterministic foundation.
- * Guarantees that EVERY section has AT LEAST 10 bullet points.
- */
+
 export function parseOrEnhanceTalkingPoints(
   rawInput: any,
   deterministic?: FirstSixTalkingPointsStructured,

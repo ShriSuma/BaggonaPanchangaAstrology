@@ -172,6 +172,10 @@ export interface MarriageDestinyAssessment {
   delayFactorsEn?: string[];
   blessingRemedyKn: string;
   blessingRemedyEn: string;
+  spouseDirectionKn?: string;
+  spouseDirectionEn?: string;
+  spouseCharacteristicsKn?: string;
+  spouseCharacteristicsEn?: string;
 }
 
 export interface AccurateProfessionProfile {
@@ -4554,6 +4558,44 @@ export function determineMarriageDestiny(
   const seventhLordPlanet = kundli.planets.find((p: PlanetPosition) => p.name === seventhLordName);
   const planetsIn7th = kundli.planets.filter((p: PlanetPosition) => p.house === 7);
 
+  // Direction of Spouse Arrival according to Brihat Jataka
+  const DIRECTION_MAP: Record<number, { kn: string; en: string }> = {
+    0: { kn: "ಪೂರ್ವ (East)", en: "East" },
+    4: { kn: "ಪೂರ್ವ (East)", en: "East" },
+    8: { kn: "ಈಶಾನ್ಯ / ಪೂರ್ವ (North-East / East)", en: "North-East / East" },
+    1: { kn: "ದಕ್ಷಿಣ (South)", en: "South" },
+    5: { kn: "ದಕ್ಷಿಣ / ನೈಋತ್ಯ (South / South-West)", en: "South / South-West" },
+    9: { kn: "ದಕ್ಷಿಣ (South)", en: "South" },
+    2: { kn: "ಪಶ್ಚಿಮ (West)", en: "West" },
+    6: { kn: "ಪಶ್ಚಿಮ / ವಾಯುವ್ಯ (West / North-West)", en: "West / North-West" },
+    10: { kn: "ಪಶ್ಚಿಮ (West)", en: "West" },
+    3: { kn: "ಉತ್ತರ (North)", en: "North" },
+    7: { kn: "ಉತ್ತರ / ಈಶಾನ್ಯ (North / North-East)", en: "North / North-East" },
+    11: { kn: "ಉತ್ತರ (North)", en: "North" }
+  };
+  const spouseDir = DIRECTION_MAP[seventhHouseSignIndex] || { kn: "ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ", en: "East or North" };
+
+  // Characteristics of Spouse according to 7th house & lord nature
+  let spouseCharKn = "ಶಾಂತ, ಗೌರವಾನ್ವಿತ, ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳನ್ನು ಗೌರವಿಸುವ ಹಾಗೂ ಹೊಂದಾಣಿಕೆಯ ಸ್ವಭಾವದ ಸಂಗಾತಿ.";
+  let spouseCharEn = "Composed, cultured, value-oriented, and emotionally supportive temperament.";
+
+  if (seventhLordName === PlanetName.Jupiter || planetsIn7th.some(p => p.name === PlanetName.Jupiter)) {
+    spouseCharKn = "ಧರ್ಮನಿಷ್ಠ, ಸುಸಂಸ್ಕೃತ, ಉನ್ನತ ವಿದ್ಯಾವಂತ, ಸಮಾಜದಲ್ಲಿ ಗೌರವಾನ್ವಿತ ಹಾಗೂ ಶುದ್ಧ ಸಾತ್ವಿಕ ಗುಣದ ಸಂಗಾತಿ.";
+    spouseCharEn = "Righteous, highly cultured, intellectually accomplished, dignified, and supportive partner.";
+  } else if (seventhLordName === PlanetName.Venus || planetsIn7th.some(p => p.name === PlanetName.Venus)) {
+    spouseCharKn = "ಸುಂದರ, ಕಲಾಪ್ರೇಮಿ, ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ, ಮೃದುಭಾಷಿ ಹಾಗೂ ದಾಂಪತ್ಯ ಪ್ರೀತಿಯನ್ನು ಪಾಲಿಸುವ ಸಂಗಾತಿ.";
+    spouseCharEn = "Charming, artistic, attractive, gentle-spoken, and deeply dedicated to marital harmony.";
+  } else if (seventhLordName === PlanetName.Mercury || planetsIn7th.some(p => p.name === PlanetName.Mercury)) {
+    spouseCharKn = "ಬುದ್ಧಿವಂತ, ಚುರುಕು, ವ್ಯವಹಾರ ಜ್ಞಾನವುಳ್ಳ, ಹಾಸ್ಯಪ್ರಿಯ ಹಾಗೂ ಹೊಂದಾಣಿಕೆಯ ಸ್ವಭಾವದ ಸಂಗಾತಿ.";
+    spouseCharEn = "Intellectually agile, commercially savvy, communicative, witty, and adaptable.";
+  } else if (seventhLordName === PlanetName.Mars || planetsIn7th.some(p => p.name === PlanetName.Mars)) {
+    spouseCharKn = "ಧೀರ, ಶ್ರಮಜೀವಿ, ಸ್ವಾಭಿಮಾನಿ, ಉನ್ನತ ಕಾರ್ಯಕ್ಷಮತೆ ಹಾಗೂ ನೇರ ನಡೆನುಡಿಯ ವ್ಯಕ್ತಿತ್ವ.";
+    spouseCharEn = "Dynamic, industrious, dignified, highly energetic, and candid in speech.";
+  } else if (seventhLordName === PlanetName.Saturn || planetsIn7th.some(p => p.name === PlanetName.Saturn)) {
+    spouseCharKn = "ಪರಿಪಕ್ವ, ಶಿಸ್ತುಬದ್ಧ, ಗಂಭೀರ, ಕರ್ತವ್ಯನಿಷ್ಠ ಹಾಗೂ ಕಷ್ಟಕಾಲದಲ್ಲಿ ಬಂಡೆಯಂತೆ ಜೊತೆನಿಲ್ಲುವ ಸಂಗಾತಿ.";
+    spouseCharEn = "Mature, disciplined, enduringly responsible, dependable, and a pillar of strength.";
+  }
+
   const jupiter = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Jupiter);
   const saturn = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Saturn);
   const mars = kundli.planets.find((p: PlanetPosition) => p.name === PlanetName.Mars);
@@ -4833,7 +4875,11 @@ export function determineMarriageDestiny(
       classicalRuleCitedKn: "ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ: ಸಪ್ತಮೇಶ ಶುಭಯುಕ್ತೇ ಕಲತ್ರ ಸೌಖ್ಯಮ್ (ಶುಭ 7ನೇ ಅಧಿಪತಿಯಿಂದ ದಾಂಪತ್ಯ ಸಿದ್ಧಿ)",
       classicalRuleCitedEn: "Brihat Parashara Hora Shastra: Auspicious disposition of 7th lord confers marital fulfillment",
       blessingRemedyKn: "ಪ್ರತಿನಿತ್ಯ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಶುಕ್ರವಾರ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಸ್ಮರಣೆ ದಾಂಪತ್ಯದಲ್ಲಿ ಅಖಂಡ ಶಾಂತಿ ತರುತ್ತದೆ.",
-      blessingRemedyEn: "Daily prayer to Ishta Devata and Lakshmi Narayana prayers on Fridays ensure lasting harmony."
+      blessingRemedyEn: "Daily prayer to Ishta Devata and Lakshmi Narayana prayers on Fridays ensure lasting harmony.",
+      spouseDirectionKn: spouseDir.kn,
+      spouseDirectionEn: spouseDir.en,
+      spouseCharacteristicsKn: spouseCharKn,
+      spouseCharacteristicsEn: spouseCharEn
     };
   }
 
@@ -4874,7 +4920,7 @@ export function determineMarriageDestiny(
       marriageTimingWindowEn: "Free from domestic householder bonds — Dedicated to higher mission / spirituality",
       astrologicalReasoningKn: "ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರವ್ರಜ್ಯಾ (ಸಂನ್ಯಾಸ) ಯೋಗ ಅಥವಾ 7ನೇ ಕಳತ್ರ ಸ್ಥಾನದ ಮೇಲೆ ಬ್ರಹ್ಮಚರ್ಯ ಕಾರಕರಾದ ಕೇತು, ಶನಿಯ ಪ್ರಭಾವ ಗರಿಷ್ಠವಾಗಿದೆ. ಜಾತಕರ ಪ್ರಾಣಶಕ್ತಿಯು ಕೌಟುಂಬಿಕ ಲೌಕಿಕ ಬಂಧನಗಳಿಗಿಂತ ಉನ್ನತ ಸಾಮಾಜಿಕ, ರಾಷ್ಟ್ರೀಯ ಅಥವಾ ಅಧ್ಯಾತ್ಮಿಕ ಧ್ಯೇಯಗಳಿಗೆ ಮೀಸಲಾಗಿದೆ.",
       astrologicalReasoningEn: "Classical Pravrajya (ascetic) yoga or intense Ketu/Saturn detachment over the 7th house directs the life-force towards higher spiritual or national service rather than domestic married life.",
-      classicalRuleCitedKn: "ಬೃಹತ್ ಜಾತಕ: ಏಕಸ್ಥೈಶ್ಚತುರಾದ್ಯೈಃ ಪ್ರವ್ರಜ್ಯಾ ಬಲಿಭಿಃ (೪ ಅಥವಾ ಹೆಚ್ಚು ಗ್ರಹಗಳ ಯೋಗದಿಂದ ಸಂನ್ಯಾಸ ಯೋಗ)",
+      classicalRuleCitedKn: "ಬೃಹತ್ ಜಾತಕ: ಏಕಸ್ಥೈಶ್ಚತುರಾದ್ಯೈಃ ಪ್ರವ್ರಜ್ಯಾ ಬಲಿಭಿಃ (4 ಅಥವಾ ಹೆಚ್ಚು ಗ್ರಹಗಳ ಯೋಗದಿಂದ ಸಂನ್ಯಾಸ ಯೋಗ)",
       classicalRuleCitedEn: "Brihat Jataka: Pravrajya Yoga formed by multiple ascetic planets in Kendra/Trikona",
       historicalCelebrityParallelKn: "ಡಾ. ಎ.ಪಿ.ಜೆ. ಅಬ್ದುಲ್ ಕಲಾಂ, ಸ್ವಾಮಿ ವಿವೇಕಾನಂದ, ಅಟಲ್ ಬಿಹಾರಿ ವಾಜಪೇಯಿ ಅವರಂತಹ ತಪಸ್ವೀ ಜೀವನದ ಹೋಲಿಕೆ.",
       historicalCelebrityParallelEn: "Resembles the dedicated ascetic life path of Dr. APJ Abdul Kalam, Swami Vivekananda, or Atal Bihari Vajpayee.",
@@ -4962,7 +5008,11 @@ export function determineMarriageDestiny(
       classicalRuleCitedKn: "ಜಾತಕ ಪಾರಿಜಾತ: ಶುಭಗ್ರಹೇಕ್ಷಣೇ ಸಪ್ತಮೇ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಸಿದ್ಧಿಃ",
       classicalRuleCitedEn: "Jataka Parijata: Auspicious disposition ensures timely matrimonial bliss at the appropriate stage of life",
       blessingRemedyKn: "ಪ್ರತಿನಿತ್ಯ ಶ್ರೀ ಗೌರಿ-ಶಂಕರ ಧ್ಯಾನ ಹಾಗೂ ಶುಕ್ರವಾರ ಕಲ್ಯಾಣೋತ್ಸವ ಸಂಕಲ್ಪ ಸದಾ ಶುಭ ತರುತ್ತದೆ.",
-      blessingRemedyEn: "Daily Gauri-Shankara contemplation and auspicious Friday prayers bless the marital journey."
+      blessingRemedyEn: "Daily Gauri-Shankara contemplation and auspicious Friday prayers bless the marital journey.",
+      spouseDirectionKn: spouseDir.kn,
+      spouseDirectionEn: spouseDir.en,
+      spouseCharacteristicsKn: spouseCharKn,
+      spouseCharacteristicsEn: spouseCharEn
     };
   }
 
@@ -5051,7 +5101,11 @@ export function determineMarriageDestiny(
       historicalCelebrityParallelKn: "ಹಲವು ಪ್ರಖ್ಯಾತ ನಾಯಕರು ಮತ್ತು ವಿದ್ವಾಂಸರು 30-36 ವರ್ಷದ ನಂತರ ಮದುವೆಯಾಗಿ ಅತ್ಯಂತ ಸುಖಿ ಸಂಸಾರ ನಡೆಸಿದಂತೆ ಸುದೃಢ ದಾಂಪತ್ಯ ಯೋಗ.",
       historicalCelebrityParallelEn: "Like many eminent leaders and intellectuals who marry between 30 and 36, settling into an exceptionally solid, enduring union.",
       blessingRemedyKn: "ಮಂಗಳವಾರ ಸುಬ್ರಹ್ಮಣ್ಯ / ಕುಜ ಶಾಂತಿ ಪೂಜೆ, ಶುಕ್ರವಾರ ಕಲ್ಯಾಣ ಲಕ್ಷ್ಮೀ ನಾರಾಯಣ ಪೂಜೆ ಹಾಗೂ ಹಳದಿ ವಸ್ತ್ರ/ಧಾನ್ಯ ದಾನವು ವಿವಾಹ ವಿಳಂಬವನ್ನು ಶೀಘ್ರವಾಗಿ ಪರಿಹರಿಸುತ್ತದೆ.",
-      blessingRemedyEn: "Tuesday Subrahmanya / Mangala Shanti prayers, Friday Kalyana Lakshmi Narayana pooja, and yellow grain charity swiftly remove delays."
+      blessingRemedyEn: "Tuesday Subrahmanya / Mangala Shanti prayers, Friday Kalyana Lakshmi Narayana pooja, and yellow grain charity swiftly remove delays.",
+      spouseDirectionKn: spouseDir.kn,
+      spouseDirectionEn: spouseDir.en,
+      spouseCharacteristicsKn: spouseCharKn,
+      spouseCharacteristicsEn: spouseCharEn
     };
   }
 
@@ -5075,6 +5129,10 @@ export function determineMarriageDestiny(
     classicalRuleCitedKn: "ಜಾತಕ ಪಾರಿಜಾತ: ಶುಭಗ್ರಹೇಕ್ಷಣೇ ಸಪ್ತಮೇ ಸಕಾಲಿಕ ಕಲ್ಯಾಣ ಸಿದ್ಧಿಃ",
     classicalRuleCitedEn: "Jataka Parijata: Benefic aspect on 7th house brings timely, prosperous matrimony",
     blessingRemedyKn: "ಪ್ರತಿನಿತ್ಯ ಶ್ರೀ ಗೌರಿ-ಶಂಕರ ಧ್ಯಾನ ಹಾಗೂ ಶುಕ್ರವಾರ ಕಲ್ಯಾಣೋತ್ಸವ ಸಂಕಲ್ಪ ಸದಾ ಶುಭ ತರುತ್ತದೆ.",
-    blessingRemedyEn: "Daily Gauri-Shankara contemplation and auspicious Friday prayers bless the marital journey."
+    blessingRemedyEn: "Daily Gauri-Shankara contemplation and auspicious Friday prayers bless the marital journey.",
+    spouseDirectionKn: spouseDir.kn,
+    spouseDirectionEn: spouseDir.en,
+    spouseCharacteristicsKn: spouseCharKn,
+    spouseCharacteristicsEn: spouseCharEn
   };
 }

@@ -1365,7 +1365,7 @@ export const generateAstrologicalPrescriptions = (
   const isKujaNakshatra = (nakIndex % 9) === 4;
   const isHavalaRecommended = isKujaNakshatra || (isMarsBeneficLagna && !isMarsDusthana);
 
-  const havalaPrescriptionKn = `ರತ್ನ: ಹವಳ (ಶುದ್ಧ ಪ್ರವಾಳ, ೪.೫ - ೬.೦ ಕ್ಯಾರಟ್). ಲೋಹ: ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಅಪ್ಪಟ ಚಿನ್ನ. ಧರಿಸುವ ಬೆರಳು: ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ). ಶುಭ ದಿನ & ಕಾಲ: ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ. ಪ್ರಾಣಪ್ರತಿಷ್ಠಾಪನೆಗೆ ಶುಭ ತಾರಾಬಲ ನಕ್ಷತ್ರಗಳು: ${consecrationTarasKn}. ಮಂತ್ರ: "ಓಂ ಭೌಮಾಯ ನಮಃ" (೧೦೮ ಬಾರಿ).`;
+  const havalaPrescriptionKn = `ರತ್ನ: ಹವಳ (ಶುದ್ಧ ಪ್ರವಾಳ, 4.5 - 6.0 ಕ್ಯಾರಟ್). ಲೋಹ: ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಅಪ್ಪಟ ಚಿನ್ನ. ಧರಿಸುವ ಬೆರಳು: ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ). ಶುಭ ದಿನ & ಕಾಲ: ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ. ಪ್ರಾಣಪ್ರತಿಷ್ಠಾಪನೆಗೆ ಶುಭ ತಾರಾಬಲ ನಕ್ಷತ್ರಗಳು: ${consecrationTarasKn}. ಮಂತ್ರ: "ಓಂ ಭೌಮಾಯ ನಮಃ" (108 ಬಾರಿ).`;
   const havalaPrescriptionEn = `Gemstone: Red Coral (Pure Pravala, 4.5 - 6.0 Carats). Metal: Pure Copper or Gold. Wearing Finger: Ring Finger of Right Hand (Anamika). Auspicious Time: Tuesday Morning during Mars Hora. Consecration Tara Bala Nakshatras: ${consecrationTarasEn}. Mantra: "Om Bhaumaya Namaha" (108 times).`;
   const havalaPrescriptionHi = `रत्न: लाल मूंगा (शुद्ध प्रवाल, 4.5 - 6.0 कैरेट)। धातु: शुद्ध तांबा अथवा स्वर्ण। धारण अंगुली: दाहिने हाथ की अनामिका अंगुली। शुभ दिन एवं समय: मंगलवार प्रातः मंगल होरा में। प्राण प्रतिष्ठा हेतु शुभ ताराबल नक्षत्र: ${consecrationTarasHi}। मंत्र: "ॐ भौमाय नमः" (108 बार)।`;
   const havalaPrescriptionTe = `రత్నం: పగడం (శుద్ధ ప్రవాళం, 4.5 - 6.0 క్యారెట్లు). లోహం: స్వచ్ఛమైన రాగి లేదా బంగారం. ధరించే వేలు: కుడి చేయి ఉంగరపు వేలు (అనామిక). శుభ సమయం: మంగళవారం ఉదయం కుజ హోరలో. ప్రాణ ప్రతిష్ఠకు శుభ తారాబల నక్షత్రాలు: ${consecrationTarasTe}. మంత్రం: "ఓం భౌమాయ నమః" (108 సార్లు).`;
@@ -8587,7 +8587,7 @@ export const generateInstantQAList = (
 
 export const generatePanchangaAngaSynthesis = (
   kundli: KundliOutput,
-  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; lang?: string; devoteeName?: string; gender?: string; devoteeAge?: number; maritalStatus?: string }
+  context: { birthDate: string; birthTime: string; latitude: number; longitude: number; lang?: string; devoteeName?: string; gender?: string; devoteeAge?: number; maritalStatus?: string; santanaStatus?: string; hasChildren?: boolean }
 ): PanchangaSynthesisOutput => {
   const tradPanchanga = calculateTraditionalBaggona(context.birthDate, context.birthTime, context.latitude, context.longitude);
   

@@ -1,5 +1,6 @@
 import React from "react";
 import type { PanchangaSynthesisOutput } from "../../core/PanchangaAngaSynthesisEngine";
+import { calculateInstantPrashnaClock, type InstantPrashnaClock } from "../../core/instantPrashnaEngine";
 import {
   PDF_DICT,
   pickL6,
@@ -30,6 +31,7 @@ export interface InstantReadingPdfTemplateProps {
   session: any;
   aiNarration?: string[];
   lang?: SupportedPdfLang | string;
+  prashnaClock?: InstantPrashnaClock | null;
 }
 
 const PAGE_W = 900;
@@ -82,7 +84,8 @@ export default function InstantReadingPdfTemplate({
   synthesisData,
   session,
   aiNarration,
-  lang = "kn"
+  lang = "kn",
+  prashnaClock
 }: InstantReadingPdfTemplateProps): JSX.Element {
   const selectedLang = ((lang || "kn").split("-")[0] || "kn") as SupportedPdfLang;
 
@@ -99,9 +102,15 @@ export default function InstantReadingPdfTemplate({
   const lagnaRashiEn = session?.result?.lagnaRashi?.english || "Aries";
   const lagnaDegree = session?.result?.ascendant;
   const moonRashiEn = session?.result?.moonSign?.english || "Aries";
+  const moonRashiIdx = session?.result?.moonSign?.index ?? 0;
   const moonPlanet = session?.result?.planets?.find((p: any) => p.name === "Moon");
   const moonNakshatraEn = moonPlanet?.nakshatra?.english || "Ashwini";
   const pada = session?.result?.moonPada || moonPlanet?.nakshatra?.pada || 1;
+
+  // Real-time Horary Prashna Clock for Consultation
+  const liveClock = prashnaClock || (session?.result?.moonSign?.index !== undefined
+    ? calculateInstantPrashnaClock(moonRashiIdx, new Date(), latitude, longitude)
+    : null);
 
   // Calculate devotee age
   let devoteeAge = 30;
@@ -336,6 +345,44 @@ export default function InstantReadingPdfTemplate({
                   </span>
                 </div>
               </div>
+
+              {/* Real-time Horary Prashna Consultation Moment Strip */}
+              {liveClock && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    padding: "4px 8px",
+                    backgroundColor: CARD_BG,
+                    borderRadius: 6,
+                    border: `1px dashed ${GOLD_LIGHT}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    fontSize: 9.5,
+                    color: INK
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ color: GOLD }}>🕒</span>
+                    <span>
+                      <b>{selectedLang === "kn" ? "ಸಮಾಲೋಚನಾ ಹೋರೆ" : "Consultation Hora"}:</b> {selectedLang === "kn" ? liveClock.horaLordKn : liveClock.horaLordEn} ({selectedLang === "kn" ? liveClock.horaSignificanceKn : liveClock.horaSignificanceEn})
+                    </span>
+                    <span>•</span>
+                    <span>
+                      <b>{selectedLang === "kn" ? "ಚೋಘಡಿಯಾ" : "Choghadiya"}:</b> {selectedLang === "kn" ? liveClock.choghadiyaNameKn : liveClock.choghadiyaNameEn}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontWeight: 800, color: liveClock.isChandrashtama ? "#B91C1C" : GOLD_DARK }}>
+                      {selectedLang === "kn" ? liveClock.chandraBalaStatusKn : liveClock.chandraBalaStatusEn}
+                    </span>
+                    <span>•</span>
+                    <span style={{ fontWeight: 800, color: GOLD_DARK }}>
+                      {selectedLang === "kn" ? "ಮುಹೂರ್ತ ಬಲ" : "Muhurtha Score"}: {liveClock.muhurthaScore}%
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Section 1: Panchanga 5-Angas Analysis */}
@@ -856,18 +903,18 @@ export default function InstantReadingPdfTemplate({
                   </b>
                   <span style={{ color: INK, lineHeight: 1.45 }}>
                     {selectedLang === "kn"
-                      ? (marriage?.directAnswerKn || marriage?.titleKn || "ಶಾಂತ, ಗೌರವಾನ್ವಿತ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳನ್ನು ಗೌರವಿಸುವ ವ್ಯಕ್ತಿತ್ವ.")
-                      : (marriage?.directAnswerEn || marriage?.titleEn || "Composed, cultured, and value-oriented temperament.")}
+                      ? (marriage?.spouseCharacteristicsKn || marriage?.directAnswerKn || marriage?.titleKn || "ಶಾಂತ, ಗೌರವಾನ್ವಿತ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಮೌಲ್ಯಗಳನ್ನು ಗೌರವಿಸುವ ವ್ಯಕ್ತಿತ್ವ.")
+                      : (marriage?.spouseCharacteristicsEn || marriage?.directAnswerEn || marriage?.titleEn || "Composed, cultured, and value-oriented temperament.")}
                   </span>
                 </div>
                 <div>
                   <b style={{ color: GOLD, display: "block", marginBottom: 2 }}>
-                    {t("labelMaritalHarmony")}:
+                    {selectedLang === "kn" ? "ಸಂಗಾತಿ ಆಗಮನ ದಿಕ್ಕು & ಯೋಗ" : "Spouse Direction & Destiny"}:
                   </b>
                   <span style={{ color: INK, lineHeight: 1.45 }}>
                     {selectedLang === "kn"
-                      ? (marriage?.astrologicalReasoningKn || marriage?.subtitleKn || "ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ ಹಾಗೂ ಹೊಂದಾಣಿಕೆಯಿಂದ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸುತ್ತದೆ.")
-                      : (marriage?.astrologicalReasoningEn || marriage?.subtitleEn || "Mutual empathy, emotional understanding, and planetary synergy foster harmony.")}
+                      ? `${marriage?.spouseDirectionKn ? `ದಿಕ್ಕು: ${marriage.spouseDirectionKn} · ` : ""}${marriage?.astrologicalReasoningKn || marriage?.subtitleKn || "ಪರಸ್ಪರ ತಿಳುವಳಿಕೆ ಹಾಗೂ ಹೊಂದಾಣಿಕೆಯಿಂದ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸುತ್ತದೆ."}`
+                      : `${marriage?.spouseDirectionEn ? `Direction: ${marriage.spouseDirectionEn} · ` : ""}${marriage?.astrologicalReasoningEn || marriage?.subtitleEn || "Mutual empathy, emotional understanding, and planetary synergy foster harmony."}`}
                   </span>
                 </div>
               </div>
@@ -1014,7 +1061,7 @@ export default function InstantReadingPdfTemplate({
             }}
           >
             <div>
-              <b style={{ color: GOLD_DARK }}>{t("brandBanner")}</b> · {t("priestName")} · {pickL6({ kn: "ದೂರವಾಣಿ:", en: "Phone:", hi: "फ़ोन:", te: "ఫోన్:", ta: "தொலைபேசி:", ml: "ഫോൺ:" }, selectedLang)} +91 94486 24830
+              <b style={{ color: GOLD_DARK }}>{t("brandBanner")}</b> · {t("priestName")} · {pickL6({ kn: "ದೂರವಾಣಿ:", en: "Phone:", hi: "फ़ोन:", te: "ఫోన్:", ta: "தொலைபேசி:", ml: "ഫോൺ:" }, selectedLang)} +91 99723 39362
             </div>
             <div style={{ fontWeight: 800, color: GOLD_DARK }}>{t("page2Footer")}</div>
           </div>
