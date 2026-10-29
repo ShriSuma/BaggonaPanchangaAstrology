@@ -110,14 +110,15 @@ describe("Premium Life Chapters Combinations & Precision Audit", () => {
       hasChildren: "general"
     });
 
-    // Marriage prompt checks: 30yo adult with 7th house Saturn deduces householder domestic harmony
-    expect(prompts.bhavishyaMarriage).toContain("DEDUCED: HOUSEHOLDER MANAGING MARITAL HARMONY");
-    expect(prompts.bhavishyaMarriage).toContain("NEVER write 'delay in finding a wedding alliance'");
+    // Marriage prompt checks: 30yo adult under Samanya does not falsely assume householder wife
+    expect(prompts.bhavishyaMarriage).toContain("CRITICAL MANDATE FOR DEDUCED: ADULT (STATUS UNSPECIFIED)");
+    expect(prompts.bhavishyaMarriage).toContain("DO NOT assume native currently has a wife.");
     expect(prompts.bhavishyaMarriage).not.toContain("SAMANYA / GENERAL MARITAL ANALYSIS");
 
-    // Children prompt checks: 30yo adult (< 33) without Santana dosha deduces auspicious progeny blessing
-    expect(prompts.bhavishyaChildren).toContain("DEDUCED: YOUNG ADULT WITH AUSPICIOUS PROGENY & LINEAGE BLESSING");
-    expect(prompts.bhavishyaChildren).toContain("auspicious Poorva Punya, strong lineage continuity");
+    // Children prompt checks: 30yo adult under Samanya focuses on Purva Punya & Progeny without assuming school-going kids
+    expect(prompts.bhavishyaChildren).toContain("CRITICAL MANDATE FOR DEDUCED: ADULT (STATUS UNSPECIFIED)");
+    expect(prompts.bhavishyaChildren).toContain("DO NOT discuss school homework or existing children.");
+    expect(prompts.bhavishyaChildren).toContain("auspicious Poorva Punya");
     expect(prompts.bhavishyaChildren).not.toContain("SAMANYA / GENERAL PROGENY & INTELLECT ANALYSIS");
   });
 
@@ -129,13 +130,14 @@ describe("Premium Life Chapters Combinations & Precision Audit", () => {
       hasChildren: "general"
     });
 
-    // 25yo with 7th house Saturn dosha deduces matrimonial alliance delays / matchmaking hurdles
-    expect(prompts.bhavishyaMarriage).toContain("DEDUCED: YOUNG ADULT FACING VIVAHA DELAYS / DOSHA OBSTACLES");
-    expect(prompts.bhavishyaMarriage).toContain("matchmaking delays in finalizing marriage alliances");
+    // 25yo under Samanya deduces 7th house Vivaha yoga with Gokarna remedies, without assuming wife
+    expect(prompts.bhavishyaMarriage).toContain("CRITICAL MANDATE FOR DEDUCED: ADULT (STATUS UNSPECIFIED)");
+    expect(prompts.bhavishyaMarriage).toContain("DO NOT assume native currently has a wife.");
     expect(prompts.bhavishyaMarriage).toContain("Sri Kshetra Gokarna Mahabaleshwara");
 
     // Progeny for 25yo
-    expect(prompts.bhavishyaChildren).toContain("DEDUCED: YOUNG ADULT WITH AUSPICIOUS PROGENY & LINEAGE BLESSING");
+    expect(prompts.bhavishyaChildren).toContain("CRITICAL MANDATE FOR DEDUCED: ADULT (STATUS UNSPECIFIED)");
+    expect(prompts.bhavishyaChildren).toContain("DO NOT discuss school homework or existing children.");
   });
 
   it("Audits Combination 4c: Samanya / General (38yo Householder Astrological Deduction)", () => {
@@ -146,10 +148,12 @@ describe("Premium Life Chapters Combinations & Precision Audit", () => {
       hasChildren: "general"
     });
 
-    // 38yo householder with school-going children
-    expect(prompts.bhavishyaMarriage).toContain("DEDUCED: HOUSEHOLDER MANAGING MARITAL HARMONY");
-    expect(prompts.bhavishyaChildren).toContain("DEDUCED: HOUSEHOLDER WITH SCHOLASTIC EXCELLENCE & FAMILY PRIDE");
-    expect(prompts.bhavishyaChildren).toContain("virtuous, intelligent offspring whose academic accomplishments");
+    // 38yo adult under Samanya mode does not assume wife or school-going children
+    expect(prompts.bhavishyaMarriage).toContain("CRITICAL MANDATE FOR DEDUCED: ADULT (STATUS UNSPECIFIED)");
+    expect(prompts.bhavishyaMarriage).toContain("DO NOT assume native currently has a wife.");
+    expect(prompts.bhavishyaChildren).toContain("CRITICAL MANDATE FOR DEDUCED: ADULT (STATUS UNSPECIFIED)");
+    expect(prompts.bhavishyaChildren).toContain("DO NOT discuss school homework or existing children.");
+    expect(prompts.bhavishyaChildren).not.toContain("virtuous, intelligent offspring whose academic accomplishments");
   });
 
   it("Audits Child Native (< 12 Years Old, e.g., 7yo Child)", () => {

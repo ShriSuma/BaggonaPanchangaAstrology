@@ -688,68 +688,38 @@ ${JSON_RULE}
       };
     }
 
-    if (input.ageYears < 30) {
-      // Young Adult (22-29): Prime Vivaha Yoga / Alliance Discovery Phase
-      if (hasMarriageDosha) {
-        return {
-          statusDesc: "DEDUCED: YOUNG ADULT FACING VIVAHA DELAYS / DOSHA OBSTACLES",
-          p1: `Classical 7th house (${h7.sign}), 7th lord ${h7.lordStr} placed ${h7.lordWhere}, and running ${dashaLine}. At age ${Math.floor(input.ageYears)}, astrological scrutiny reveals that detected Kuja or Kalatra Dosha has created karmic friction, unexpected hesitations, or matchmaking delays in finalizing marriage alliances. Explain the planetary root cause clearly without inducing fear.`,
-          p2: `Lived reality of matrimonial search: navigating family deliberations, overcoming emotional fatigue from delayed proposals, identifying essential partner character traits matching ${h7.lordStr} arriving from ${spouseDirection} direction, and avoiding hasty compromises.`,
-          p3: `Auspicious timing windows when Gochara Guru and Dasha currents realign over the next 1–2 years to dissolve hurdles and settle the alliance smoothly (strictly no remedies).`,
-          p4Callout: `Analyze the detected matrimonial obstacle and prescribe sacred Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja" : "Gauri-Shankara Kalyana Pooja"} at Sri Kshetra Gokarna Mahabaleshwara) for early, auspicious marriage settlement.`
-        };
-      }
+    if (input.ageYears >= 60) {
+      // Senior / Elder (60+)
       return {
-        statusDesc: "DEDUCED: YOUNG ADULT IN ACTIVE VIVAHA YOGA TIMING WINDOW",
-        p1: `Auspicious 7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. At age ${Math.floor(input.ageYears)}, running ${dashaLine} alongside ${isGuruBala ? "active Guru Bala" : "favorable transits"} activates a prime Vivaha Yoga window for matrimonial fruition and establishing an enduring life partnership.`,
-        p2: `Lived reality of alliance finalization: clear partner alignment, meeting a companion with dignified qualities from ${spouseDirection} direction, mutual respect between families, transparent communication, and setting the moral foundation for married life.`,
-        p3: `Smooth matrimonial progression, auspicious timing over the next 1–2 years, and establishing household stability (strictly no remedies).`,
-        p4Callout: "Write 100% about the native's auspicious Vivaha Yoga, emotional maturity, divine blessing for a noble partner, and lasting matrimonial happiness."
-      };
-    }
-
-    if (input.ageYears >= 30 && input.ageYears < 46) {
-      // Core Householder (30-45): Prime Grihastha Life
-      if (hasMarriageDosha) {
-        return {
-          statusDesc: "DEDUCED: HOUSEHOLDER MANAGING MARITAL HARMONY / DOSHA PACIFICATION",
-          p1: `Classical 7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. At age ${Math.floor(input.ageYears)}, the native is in active householder (Grihastha) life. Detected planetary friction touches daily domestic peace, spousal stress, or communication pacing under running ${dashaLine}. NEVER write 'delay in finding a wedding alliance'.`,
-          p2: `Lived reality of marital partnership: navigating shared domestic responsibilities, resolving occasional stubborn friction or work-stress spilling into the home, honoring spouse's perspectives in financial decisions, and maintaining mutual emotional warmth.`,
-          p3: `Future marital harmony, strengthening companionship, and peaceful household stabilization under upcoming Guru and Shani transits over the next 1–3 years (strictly no remedies).`,
-          p4Callout: "Analyze detected domestic/planetary friction and prescribe Lakshmi-Narayana and Gauri-Shankara Pooja at Sri Kshetra Gokarna Mahabaleshwara for deep marital peace, spousal health, and domestic tranquility."
-        };
-      }
-      return {
-        statusDesc: "DEDUCED: ESTABLISHED HOUSEHOLDER WITH DOMESTIC SANCTUARY",
-        p1: `7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. At age ${Math.floor(input.ageYears)}, planetary configurations anchor the native in established householder life, bestowing enduring spousal loyalty, emotional protection, and domestic stability under running ${dashaLine}.`,
-        p2: `Lived reality of partnership: deep mutual respect, collaborative financial planning, spouse serving as a reliable emotional anchor during demanding phases, and creating an inspiring, peaceful home atmosphere.`,
-        p3: `Joint milestones, deepening companionship, family prosperity, and domestic harmony over the next 1–3 years under favorable transits (strictly no remedies).`,
-        p4Callout: "Write 100% about the couple's profound mutual trust, joint achievements, emotional warmth, and domestic sanctuary."
-      };
-    }
-
-    if (input.ageYears >= 46 && input.ageYears < 60) {
-      // Mature Householder (46-59): Mature Marital Partnership & Family Guardian
-      return {
-        statusDesc: "DEDUCED: MATURE HOUSEHOLDER & LIFELONG PARTNERSHIP ANCHOR",
-        p1: `7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. At mature age ${Math.floor(input.ageYears)}, planetary configurations govern enduring marital companionship, spousal health support, and shared guardianship of family dharma under running ${dashaLine}. NEVER write 'wedding proposals' or 'matchmaking'.`,
-        p2: `Lived reality: mutual care, health attentiveness of spouse, joint pride in family achievements, mature understanding without petty friction, and quiet emotional companionship.`,
-        p3: `Deepening mutual peace, family milestones, and domestic tranquility over the next 1–3 years (strictly no remedies).`,
+        statusDesc: "DEDUCED: REVERED SENIOR COMPANIONSHIP & DOMESTIC SERENITY",
+        p1: `7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. As a respected elder at age ${Math.floor(input.ageYears)}, the 7th house radiates lifelong companionship, spousal longevity (Mangalya Sukha), and peaceful twilight years together under running ${dashaLine}. STRICT MANDATE: NEVER MENTION MATCHMAKING OR MARRIAGE DELAY.`,
+        p2: `Lived reality: quiet mutual care, attentive support for each other's physical well-being, shared memories of decades together, and serving as revered marital role models for the younger generation.`,
+        p3: `Serene domestic harmony, family gatherings, and spiritual companionship over the next 1–3 years (strictly no remedies).`,
         p4Callout: hasMarriageDosha
-          ? "Analyze planetary friction affecting spousal health or stress, and prescribe Gauri-Shankara Pooja at Sri Kshetra Gokarna Mahabaleshwara for spousal longevity and domestic peace."
-          : "Write 100% about the couple's lifelong dedication, mutual honor, emotional peace, and family elderhood blessing."
+          ? "Prescribe sacred Gauri-Shankara and Mahamrityunjaya Pooja at Sri Kshetra Gokarna Mahabaleshwara for spouse's health and longevity."
+          : "Write 100% about the beauty of lifelong companionship, peaceful home atmosphere, and divine marital grace."
       };
     }
 
-    // Senior / Elder (60+)
+    // Adult Native (22 to 59 Years) - Marital status unknown / unspecified ("general"):
+    // CRITICAL MANDATE: NEVER assume the native is already married or has a wife. NEVER mention dividing household chores with wife.
+    // Ground analysis in 7th House Vivaha Yoga, 7th Lord, Vivahakaraka, Kuja/Kalatra Dosha, Spouse Archetype, Direction, and Dasha-Gochara timing:
+    if (hasMarriageDosha) {
+      return {
+        statusDesc: "DEDUCED: ADULT (STATUS UNSPECIFIED) — 7TH HOUSE AFFLICTION / VIVAHA DOSHA PACIFICATION",
+        p1: `Astrological foundation of 7th house (${h7.sign}), 7th lord ${h7.lordStr} placed ${h7.lordWhere}, Vivahakaraka (${input.gender === "Female" ? "Guru/Jupiter" : "Shukra/Venus"}), and running ${dashaLine}. At age ${Math.floor(input.ageYears)}, astrological scrutiny reveals that detected ${isManglik ? "Kuja/Manglik Dosha" : "Kalatra Dosha / 7th house affliction"} creates karmic friction. Explain the planetary root cause: for alliance seekers, this causes unexpected delays, mismatched proposals, or hesitation in finalizing marriage; in relationships, it tests communication and emotional patience. DO NOT assume native currently has a wife.`,
+        p2: `Lived reality of matrimonial and relational karma: identifying essential partner character traits reflecting 7th lord ${h7.lordStr} with ${spouseDirection} directional alignment. Overcoming emotional weariness from past delays, preserving self-esteem, transparent communication, and maintaining high ethical discernment in choosing a life partner.`,
+        p3: `Auspicious timing progression over the next 1–3 years: how upcoming Gochara transits of Jupiter (Guru Bala) and Saturn pacify past hurdles, unlocking favorable timing windows for matrimonial settlement and enduring domestic peace (strictly no remedies).`,
+        p4Callout: `Analyze the detected matrimonial/relational obstacle (${isManglik ? "Kuja/Manglik Dosha" : "Kalatra Dosha"}) and prescribe sacred Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja & Kshirabhishekam" : "Gauri-Shankara Kalyana Pooja"}) at Sri Kshetra Gokarna Mahabaleshwara for early, auspicious marriage settlement and domestic peace.`
+      };
+    }
+
     return {
-      statusDesc: "DEDUCED: REVERED SENIOR COMPANIONSHIP & DOMESTIC SERENITY",
-      p1: `7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. As a respected elder at age ${Math.floor(input.ageYears)}, the 7th house radiates lifelong companionship, spousal longevity (Mangalya Sukha), and peaceful twilight years together under running ${dashaLine}. STRICT MANDATE: NEVER MENTION MATCHMAKING OR MARRIAGE DELAY.`,
-      p2: `Lived reality: quiet mutual care, attentive support for each other's physical well-being, shared memories of decades together, and serving as revered marital role models for the younger generation.`,
-      p3: `Serene domestic harmony, family gatherings, and spiritual companionship over the next 1–3 years (strictly no remedies).`,
-      p4Callout: hasMarriageDosha
-        ? "Prescribe sacred Gauri-Shankara and Mahamrityunjaya Pooja at Sri Kshetra Gokarna Mahabaleshwara for spouse's health and longevity."
-        : "Write 100% about the beauty of lifelong companionship, peaceful home atmosphere, and divine marital grace."
+      statusDesc: "DEDUCED: ADULT (STATUS UNSPECIFIED) — AUSPICIOUS 7TH HOUSE VIVAHA YOGA & PARTNERSHIP BLESSING",
+      p1: `Auspicious 7th house (${h7.sign}), 7th lord ${h7.lordStr} placed ${h7.lordWhere}, Vivahakaraka, and running ${dashaLine}. At age ${Math.floor(input.ageYears)}, the unobstructed 7th house alignment bestows dignified Vivaha Yoga, deep emotional fidelity, and planetary readiness for a lasting, harmonious life partnership. DO NOT assume native currently has a wife or divide household chores.`,
+      p2: `Lived reality: noble partner archetype reflecting 7th lord ${h7.lordStr} arriving from ${spouseDirection} direction, transparent communication, emotional poise, and readiness to establish an enduring, dignified bond. Navigating alliance decisions with clarity, family honor, and mutual respect.`,
+      p3: `Auspicious timing windows, favorable Gochara transits (${isGuruBala ? "active Guru Bala" : "favorable transits"}) over the next 1–3 years, and joyful progression toward matrimonial fulfillment and household stability (strictly no remedies).`,
+      p4Callout: "Write 100% about the native's auspicious Vivaha Yoga, emotional maturity, divine blessing for a noble partner, and lasting matrimonial happiness."
     };
   };
 
@@ -788,68 +758,38 @@ ${JSON_RULE}
       };
     }
 
-    if (input.ageYears < 33) {
-      // Young Adult (22-32): Progeny Horizons & Lineage Expansion Phase
-      if (hasSantanaDosha) {
-        return {
-          statusDesc: "DEDUCED: YOUNG ADULT WITH SANTANA DOSHA / PROGENY DELAY TIMING",
-          p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, astrological analysis reveals that detected Santana or Naga Dosha creates karmic impediments or delays in welcoming children under running ${dashaLine}. Explain how planetary knots cause conception delays or anxiety regarding family expansion.`,
-          p2: "Lived reality: managing emotional vulnerability and silent prayers, standing united as an unwavering team with partner, shielding oneself from outside societal queries, and nurturing physical and emotional health.",
-          p3: "Astrological timing windows when upcoming Guru Gochara into fertile houses activates progeny blessing over the next 1–3 years (strictly no remedies).",
-          p4Callout: "Analyze the detected 5th house affliction (Santana/Naga Dosha) and prescribe sacred Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Sri Kshetra Gokarna Mahabaleshwara for early, healthy child blessing."
-        };
-      }
+    if (input.ageYears >= 60) {
+      // Senior / Elder (60+)
       return {
-        statusDesc: "DEDUCED: YOUNG ADULT WITH AUSPICIOUS PROGENY & LINEAGE BLESSING",
-        p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, unobstructed 5th house configurations indicate auspicious Poorva Punya, strong lineage continuity, and divine blessings for family expansion under running ${dashaLine}.`,
-        p2: "Lived reality: maintaining a harmonious domestic environment, physical wellness, readiness for parenthood, and fostering creative and intellectual vitality.",
-        p3: "Auspicious fertility windows, upcoming Guru Gochara support, and joyful lineage expansion over the next 1–3 years (strictly no remedies).",
-        p4Callout: "Write 100% about the native's auspicious Santana Yoga, intellectual virtues, divine lineage protection, and joyful family expansion."
-      };
-    }
-
-    if (input.ageYears >= 33 && input.ageYears < 48) {
-      // Core Householder (33-47): Parenting of School-Going Children
-      if (hasSantanaDosha) {
-        return {
-          statusDesc: "DEDUCED: HOUSEHOLDER MANAGING CHILDREN WELFARE / ACADEMIC SHIELD",
-          p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, 5th house governs children's intellectual development, academic progress, and well-being. Detected planetary friction reflects parental anxiety regarding children's focus, health sensitivities, or exam composure under running ${dashaLine}.`,
-          p2: "Lived reality of parenting: guiding children through academic pressures, addressing screen-time balance, fostering emotional openness, and supporting their unique talents without harsh comparisons.",
-          p3: "Children's scholastic improvement, flourishing skills, and emotional maturity over the next 1–3 years (strictly no remedies).",
-          p4Callout: "Analyze detected 5th house friction and prescribe Medha Dakshinamurthy and Santana Gopala Pooja at Sri Kshetra Gokarna Mahabaleshwara for children's academic brilliance, focus, and health protection."
-        };
-      }
-      return {
-        statusDesc: "DEDUCED: HOUSEHOLDER WITH SCHOLASTIC EXCELLENCE & FAMILY PRIDE",
-        p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, 5th house blesses the native with virtuous, intelligent offspring whose academic accomplishments and moral character bring pride to the household under running ${dashaLine}.`,
-        p2: "Parenting dynamics: nurturing children's talents, cultivating deep parent-child trust, supporting their educational milestones, and celebrating their achievements.",
-        p3: "Children's upcoming scholastic distinctions, creative flowering, and family joy over the next 1–3 years under favorable transits (strictly no remedies).",
-        p4Callout: "Write 100% about the joy of parenthood, children's high intelligence, virtuous upbringing, and lasting pride in family lineage."
-      };
-    }
-
-    if (input.ageYears >= 48 && input.ageYears < 60) {
-      // Mature Householder (48-59): Grown Children Higher Education & Settlement
-      return {
-        statusDesc: "DEDUCED: MATURE HOUSEHOLDER — GROWN CHILDREN CAREER & SETTLEMENT",
-        p1: `5th house (${h5.sign}) and 5th lord ${h5.lordStr} placed ${h5.lordWhere}. At mature age ${Math.floor(input.ageYears)}, 5th house reflects the fruition of family upbringing, grown children's higher education, career settlement, and moral character under running ${dashaLine}.`,
-        p2: "Lived reality: guiding grown children with wisdom, respecting their independence, supporting their vocational launches, and maintaining close family bonds.",
-        p3: "Children's vocational stability, family pride, and auspicious milestones over the next 1–3 years (strictly no remedies).",
+        statusDesc: "DEDUCED: SENIOR CITIZEN — GRANDCHILDREN JOY & LINEAGE LEGACY",
+        p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. As an elder at age ${Math.floor(input.ageYears)}, the 5th house represents the crown of Purva Punya: joy of grandchildren (Poutra-Poutri Sukha), family continuity, and lineage fulfillment under running ${dashaLine}.`,
+        p2: "Lived reality: warm intergenerational bonding, affectionate moments with grandchildren, transmitting cultural wisdom, and peaceful family gatherings.",
+        p3: "Enduring family continuity, pride in flourishing descendants, and generational harmony over the next 1–3 years (strictly no remedies).",
         p4Callout: hasSantanaDosha
-          ? "Prescribe protective Vedic remedies at Sri Kshetra Gokarna Mahabaleshwara for children's career stability and family peace."
-          : "Write 100% about pride in grown children's achievements, family legacy, and enduring generational blessings."
+          ? "Prescribe lineage-protection sankalpa at Sri Kshetra Gokarna Mahabaleshwara for all-round progeny and grandchildren welfare."
+          : "Write 100% about grandchildren joy, noble family heritage, and enduring ancestral blessings."
       };
     }
 
-    // Senior / Elder (60+)
+    // Adult Native (22 to 59 Years) - Children status unknown / unspecified ("general"):
+    // CRITICAL MANDATE: NEVER assume the native currently has school-going children. DO NOT discuss children's school exams, homework, or screen time.
+    // Evaluate 5th house as Buddhi Sthana, Poorva Punya, and Santana Yoga (Progeny Horizons):
+    if (hasSantanaDosha) {
+      return {
+        statusDesc: "DEDUCED: ADULT (STATUS UNSPECIFIED) — 5TH HOUSE / SANTANA DOSHA PACIFICATION",
+        p1: `Classical 5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, Putrakaraka Jupiter, and running ${dashaLine}. At age ${Math.floor(input.ageYears)}, 5th house governs intellectual clarity, Poorva Punya (past-life merit), and the sacred potential for lineage expansion (Santana Yoga). Astrological scrutiny reveals that detected Santana or Naga Dosha creates karmic impediments or delays in welcoming children. DO NOT discuss school homework or parenting children.`,
+        p2: "Lived reality: managing emotional vulnerability and patient prayer, maintaining physical and mental wellness, shielding oneself from outside societal queries, and cultivating intellectual resilience and creative endeavors.",
+        p3: "Astrological timing windows: analyzing upcoming Gochara transits of Jupiter (Guru Bala transiting fertile houses 2, 5, 7, 9, 11 from Moon) over the next 1–3 years to dissolve hurdles and activate progeny blessings (strictly no remedies).",
+        p4Callout: "Analyze the detected 5th house affliction (Santana/Naga Dosha) and prescribe sacred Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Sri Kshetra Gokarna Mahabaleshwara for healthy child blessing and lineage continuity."
+      };
+    }
+
     return {
-      statusDesc: "DEDUCED: SENIOR CITIZEN — GRANDCHILDREN JOY & LINEAGE LEGACY",
-      p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. As an elder at age ${Math.floor(input.ageYears)}, the 5th house represents the crown of Purva Punya: joy of grandchildren (Poutra-Poutri Sukha), family continuity, and lineage fulfillment under running ${dashaLine}.`,
-      p2: "Lived reality: warm intergenerational bonding, affectionate moments with grandchildren, transmitting cultural wisdom, and peaceful family gatherings.",
-      p3: "Enduring family continuity, pride in flourishing descendants, and generational harmony over the next 1–3 years (strictly no remedies).",
-      p4Callout: hasSantanaDosha
-        ? "Prescribe lineage-protection sankalpa at Sri Kshetra Gokarna Mahabaleshwara for all-round progeny and grandchildren welfare."
-        : "Write 100% about grandchildren joy, noble family heritage, and enduring ancestral blessings."
+      statusDesc: "DEDUCED: ADULT (STATUS UNSPECIFIED) — AUSPICIOUS 5TH HOUSE POORVA PUNYA & PROGENY BLESSING",
+      p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, unobstructed 5th house configurations indicate auspicious Poorva Punya, sharp creative intellect, and divine blessings for family expansion and lineage continuity under running ${dashaLine}. DO NOT discuss school homework or existing children.`,
+      p2: "Lived reality: decision-making wisdom, artistic or professional creativity, ethical values, readiness for family milestones, and emotional serenity.",
+      p3: "Auspicious fertility windows, upcoming Guru Gochara support over the next 1–3 years, and joyful lineage expansion (strictly no remedies).",
+      p4Callout: "Write 100% about the native's auspicious Santana Yoga, intellectual virtues, divine lineage protection, and joyful family expansion."
     };
   };
 

@@ -621,13 +621,16 @@ export async function prepareBhavishyaV1Data(
     chandraBalaHouse: parsedKundali.gocharaPanchanga?.chandraBala?.houseFromMoon
   });
 
+  const isTestEnv = typeof process !== "undefined" && (process.env?.NODE_ENV === "test" || Boolean(process.env?.VITEST));
   const effectiveGeminiApiKey = (
-    geminiApiKey !== undefined
-      ? geminiApiKey
-      : (typeof window !== "undefined" && (window as any).__GEMINI_API_KEY__) ||
-        useAppStore.getState().geminiApiKey ||
-        (import.meta as any).env?.VITE_GEMINI_API_KEY ||
-        ""
+    isTestEnv
+      ? (geminiApiKey || "")
+      : ((geminiApiKey && geminiApiKey.trim().length > 0)
+          ? geminiApiKey
+          : (typeof window !== "undefined" && (window as any).__GEMINI_API_KEY__) ||
+            useAppStore.getState().geminiApiKey ||
+            (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+            "")
   ).trim();
 
   const failedAiSectionsV1: string[] = [];
@@ -793,10 +796,13 @@ export async function prepareBhavishyaV1Data(
   const wlhLabel = ageYears < 12 ? "Generate Child Family" : ageYears >= 60 ? "Generate Senior Wealth Preservation" : ageYears < 22 ? "Generate Youth Financial Discipline" : "Generate Wealth";
   const hltLabel = ageYears < 12 ? "Generate Child Pediatric Health" : ageYears >= 60 ? "Generate Senior Longevity" : ageYears < 22 ? "Generate Youth Fitness" : "Generate Health";
 
-  [resMarriage, resChildren, resCareer, resWealth, resHealth] = await Promise.all([
+  [resMarriage, resChildren, resCareer] = await Promise.all([
     callGeminiSafe(marLabel, prompts.bhavishyaMarriage, 0.3),
     callGeminiSafe(chdLabel, prompts.bhavishyaChildren, 0.3),
-    callGeminiSafe(carLabel, prompts.bhavishyaCareer, 0.3),
+    callGeminiSafe(carLabel, prompts.bhavishyaCareer, 0.3)
+  ]);
+  await new Promise(r => setTimeout(r, 120));
+  [resWealth, resHealth] = await Promise.all([
     callGeminiSafe(wlhLabel, prompts.bhavishyaWealth, 0.3),
     callGeminiSafe(hltLabel, prompts.bhavishyaHealth, 0.3)
   ]);
