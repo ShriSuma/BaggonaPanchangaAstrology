@@ -14,6 +14,7 @@ export type TranslatedPrediction = {
   text: string;
   translatedText: string;
   translatedCategory: string; 
+  question?: string;
 };
 
 const getDeepInsightCategories = (age: number) => {

@@ -44,9 +44,12 @@ export type PdfTranslations = {
   cosmicShieldTitle?: string;
   mindVitalityTitle?: string;
   characteristicsTitle: string;
+  characteristicsQuestion?: string;
   darkSecretTitle: string;
+  darkSecretQuestion?: string;
   currentPhaseTitle?: string;
   currentPhaseGuidanceTitle?: string;
+  currentPhaseQuestion?: string;
   currentPhase?: string;
   ashirvadaTitle: string;
   ashirvadaValue: string;
@@ -571,17 +574,41 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       {/* ── Characteristics Section ───────────────────────────────────────── */}
       {hasContent(premiumData?.characteristics) && (
         <div data-section="characteristics" className={sectionClass}>
-          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-8`}>
+          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-6`}>
             {translations.characteristicsTitle}
           </h2>
+          {translations.characteristicsQuestion && (
+            <div className="rounded-xl border border-amber-600/40 bg-amber-100/50 p-4 mb-8 shadow-xs">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl text-amber-800 leading-none">❖</span>
+                <p className="text-xl font-bold text-amber-950 leading-relaxed font-serif">
+                  {translations.characteristicsQuestion}
+                </p>
+              </div>
+            </div>
+          )}
           <div className="space-y-10">
             {premiumData!.characteristics!.map((char, idx) => (
               <div key={idx} className="space-y-6">
-                {(char.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                    {paragraph}
-                  </p>
-                ))}
+                {(char.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
+                  const trimmed = paragraph.trim();
+                  const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
+                  if (isShield) {
+                    return (
+                      <div
+                        key={pIdx}
+                        className="bg-amber-100/70 border border-amber-600/50 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                      >
+                        {paragraph}
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                      {paragraph}
+                    </p>
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -591,17 +618,41 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       {/* ── Dark Secret Section (Hidden for children below 8 years old) ───────────────────────────────────────────── */}
       {!isChildUnder8 && hasContent(premiumData?.darkSecret) && (
         <div data-section="dark-secret" className={sectionClass}>
-          <h2 className="text-3xl font-bold text-slate-800 leading-normal border-b-2 border-slate-700/30 pb-2 mb-8">
+          <h2 className="text-3xl font-bold text-slate-800 leading-normal border-b-2 border-slate-700/30 pb-2 mb-6">
             {translations.darkSecretTitle}
           </h2>
+          {translations.darkSecretQuestion && (
+            <div className="rounded-xl border border-slate-600/40 bg-slate-100/70 p-4 mb-8 shadow-xs">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl text-slate-700 leading-none">❖</span>
+                <p className="text-xl font-bold text-slate-900 leading-relaxed font-serif">
+                  {translations.darkSecretQuestion}
+                </p>
+              </div>
+            </div>
+          )}
           <div className="space-y-10">
             {premiumData!.darkSecret!.map((ds, idx) => (
               <div key={idx} className="space-y-6">
-                {(ds.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                    {paragraph}
-                  </p>
-                ))}
+                {(ds.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
+                  const trimmed = paragraph.trim();
+                  const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
+                  if (isShield) {
+                    return (
+                      <div
+                        key={pIdx}
+                        className="bg-indigo-50/80 border border-indigo-300/80 rounded-xl text-indigo-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                      >
+                        {paragraph}
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                      {paragraph}
+                    </p>
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -611,17 +662,41 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       {/* ── Present Planetary Influence & Divine Guidance Section ───────────────────── */}
       {hasContent(premiumData?.currentPhase) && (
         <div data-section="current-phase" className={sectionClass}>
-          <h2 className="text-3xl font-bold text-amber-900 leading-normal border-b-2 border-amber-700/30 pb-2 mb-8">
+          <h2 className="text-3xl font-bold text-amber-900 leading-normal border-b-2 border-amber-700/30 pb-2 mb-6">
             {translations.currentPhaseGuidanceTitle || translations.currentPhaseTitle || translations.title || "Present Planetary Influence & Divine Guidance"}
           </h2>
+          {translations.currentPhaseQuestion && (
+            <div className="rounded-xl border border-amber-600/40 bg-amber-100/50 p-4 mb-8 shadow-xs">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl text-amber-800 leading-none">❖</span>
+                <p className="text-xl font-bold text-amber-950 leading-relaxed font-serif">
+                  {translations.currentPhaseQuestion}
+                </p>
+              </div>
+            </div>
+          )}
           <div className="space-y-10">
             {premiumData!.currentPhase!.map((cp, idx) => (
               <div key={idx} className="space-y-6">
-                {(cp.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                    {paragraph}
-                  </p>
-                ))}
+                {(cp.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
+                  const trimmed = paragraph.trim();
+                  const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
+                  if (isShield) {
+                    return (
+                      <div
+                        key={pIdx}
+                        className="bg-amber-100/70 border border-amber-600/50 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                      >
+                        {paragraph}
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                      {paragraph}
+                    </p>
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -654,12 +729,22 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       {/* ── Life Stage Predictions ────────────────────────────────────────── */}
       {Object.entries(groupedPredictions).map(([category, preds]) => (
         <div data-section="life-predictions" key={category} className={sectionClass}>
-          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-8`}>
+          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-6`}>
             {category}
           </h2>
           <div className="space-y-10">
             {preds.map((pred, idx) => (
               <div key={idx} className="space-y-6">
+                {pred.question && (
+                  <div className="rounded-xl border border-amber-600/40 bg-amber-100/50 p-4 mb-2 shadow-xs">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl text-amber-800 leading-none">❖</span>
+                      <p className="text-xl font-bold text-amber-950 leading-relaxed font-serif">
+                        {pred.question}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
                   const trimmed = paragraph.trim();
                   const isDoshaOrShield = trimmed.startsWith('【') || trimmed.startsWith('[');

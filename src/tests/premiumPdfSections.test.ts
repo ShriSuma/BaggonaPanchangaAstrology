@@ -85,8 +85,8 @@ describe("Comprehensive PDF Section Completeness & 2-Paragraph Validation", () =
       affairNote: "Test affair"
     });
 
-    expect(prompts.characteristics).toContain("EACH PARAGRAPH MUST CONTAIN AT LEAST 5 FULL, SUBSTANTIAL LINES OF TEXT");
-    expect(prompts.darkSecret).toContain("EACH PARAGRAPH MUST CONTAIN AT LEAST 6 TO 7 FULL, SUBSTANTIAL LINES OF TEXT");
+    expect(prompts.characteristics).toContain("EACH PARAGRAPH MUST CONTAIN AT LEAST 5 TO 6 FULL, SUBSTANTIAL LINES OF TEXT");
+    expect(prompts.darkSecret).toContain("EACH PARAGRAPH MUST CONTAIN AT LEAST 5 TO 6 FULL, SUBSTANTIAL LINES OF TEXT");
     expect(prompts.darkSecret).toContain("niguda rahasya");
     expect(prompts.currentPhase).toContain("EXACTLY FOUR (4) FULL, DETAILED PARAGRAPHS");
   });

@@ -146,6 +146,62 @@ export const PDF_T: Record<string, L5> = {
     ta: "ஆளுமைப் பண்புகள்",
     hi: "व्यक्तित्व के लक्षण"
   },
+  characteristicsQuestion: {
+    en: "Question: What are my core characteristics, innate strengths, and natural conduct based on my Lagna and Nakshatra?",
+    kn: "ಪ್ರಶ್ನೆ: ನನ್ನ ವ್ಯಕ್ತಿತ್ವದ ನೈಜ ಗುಣಲಕ್ಷಣಗಳು, ಸಾಮರ್ಥ್ಯ ಮತ್ತು ಸ್ವಭಾವ ಹೇಗಿದೆ? ನನ್ನ ಜನ್ಮ ಲಗ್ನ ಮತ್ತು ನಕ್ಷತ್ರದ ನೈಜ ಪ್ರಭಾವವೇನು?",
+    te: "ప్రశ్న: నా వ్యక్తిత్వ లక్షణాలు, సామర్థ్యం మరియు అంతర్గత స్వభావం ఎలా ఉన్నాయి? నా జన్మ లగ్నం మరియు నక్షత్ర ప్రభావం ఏమిటి?",
+    ta: "கேள்வி: எனது ஆளுமைப் பண்புகள், திறன்கள் மற்றும் உள் சுபாவம் எவ்வாறு உள்ளது? எனது லக்னம் மற்றும் நட்சத்திரத்தின் தாக்கம் என்ன?",
+    hi: "प्रश्न: मेरे व्यक्तित्व के वास्तविक लक्षण, सामर्थ्य और आंतरिक स्वभाव कैसा है? मेरे जन्म लग्न और नक्षत्र का वास्तविक प्रभाव क्या है?"
+  },
+  darkSecretQuestion: {
+    en: "Question: What is my deepest hidden truth? What unspoken fears, emotional vulnerabilities, and silent burdens am I concealing from the world?",
+    kn: "ಪ್ರಶ್ನೆ: ನನ್ನ ಅಂತರಂಗದ ನಿಗೂಢ ರಹಸ್ಯವೇನು? ಸುಪ್ತಪ್ರಜ್ಞೆ ಮತ್ತು ಜಾಗೃತ ಮನಸ್ಸಿನಲ್ಲಿ ನಾನು ಎಲ್ಲರಿಂದಲೂ ಮುಚ್ಚಿಡುತ್ತಿರುವ ಕರಾಳ ಸತ್ಯಗಳು, ಆತಂಕಗಳು ಹಾಗೂ ಗುಪ್ತ ವಿಚಾರಗಳು ಯಾವುವು?",
+    te: "ప్రశ్న: నా అంతరంగంలోని నిగూఢ రహస్యమేమిటి? నా ఉపచేతన మరియు చేతన మనస్సులో నేను అందరినుంచీ దాస్తున్న రహస్యాలు, భయాలు ఏమిటి?",
+    ta: "கேள்வி: எனது ஆழ்மனதின் ரகசியம் என்ன? எனது நனவு மற்றும் ஆழ்மனதில் மற்றவர்களிடமிருந்து நான் மறைத்து வைத்திருக்கும் உண்மைகளும் பயங்களும் யாவை?",
+    hi: "प्रश्न: मेरे अंतर्मन का गूढ़ रहस्य क्या है? मेरे अवचेतन और चेतन मन में वे कौन से अनकहे सच और गुप्त भय हैं जिन्हें मैं सभी से छुपा रहा हूँ?"
+  },
+  currentPhaseQuestion: {
+    en: "Question: What is currently happening in my life right now? What is the real impact of my running Dasha-Bhukti, Gochara transits, and Sandhi transition?",
+    kn: "ಪ್ರಶ್ನೆ: ಪ್ರಸ್ತುತ ನನ್ನ ಜೀವನದಲ್ಲಿ ನಿಖರವಾಗಿ ಏನಾಗುತ್ತಿದೆ? ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ, ಗೋಚಾರ ಮತ್ತು ಸಂಧಿ ಕಾಲದ ನೈಜ ಸ್ಥಿತಿಗತಿ ಏನು?",
+    te: "ప్రశ్న: ప్రస్తుతం నా జీవితంలో ఖచ్చితంగా ఏమి జరుగుతోంది? నా ప్రస్తుత దశా-భుక్తి, గోచార మరియు సంధి కాల స్థితిగతులు ఏమిటి?",
+    ta: "கேள்வி: தற்போது என் வாழ்க்கையில் உண்மையில் என்ன நடக்கிறது? எனது நடப்பு தசா-புக்தி, கோச்சாரம் மற்றும் சந்தி காலத்தின் தாக்கம் என்ன?",
+    hi: "प्रश्न: वर्तमान में मेरे जीवन में वास्तविक रूप से क्या घटित हो रहा है? मेरी वर्तमान दशा-भुक्ति, गोचर और संधि काल का यथार्थ प्रभाव क्या है?"
+  },
+  marriageQuestion: {
+    en: "Question: What is the status of my marriage and partnership? How are my marital prospects, spousal harmony, and domestic tranquility aligned?",
+    kn: "ಪ್ರಶ್ನೆ: ನನ್ನ ಮದುವೆ / ದಾಂಪತ್ಯ ಜೀವನದ ವಿಷಯ ಹೇಗಿದೆ? ವಿವಾಹ ಭಾಗ್ಯ, ಸಂಗಾತಿ ಯೋಗ ಮತ್ತು ದಾಂಪತ್ಯ ಸುಖ ಹೇಗಿರಲಿದೆ?",
+    te: "ప్రశ్న: నా వివాహం మరియు దాంపత్య జీవితం ఎలా ఉండబోతోంది? వివాహ యోగం, జీవిత భాగస్వామి మరియు దాంపత్య సౌఖ్యం ఎలా ఉంటుంది?",
+    ta: "கேள்வி: எனது திருமணம் மற்றும் தாம்பத்திய வாழ்க்கை எவ்வாறு அமையவுள்ளது? திருமண யோகம் மற்றும் இல்வாழ்க்கை அமைதி எப்படி இருக்கும்?",
+    hi: "प्रश्न: मेरे विवाह और दांपत्य जीवन का विषय कैसा है? विवाह योग, जीवनसाथी का स्वभाव और दांपत्य सुख कैसा रहेगा?"
+  },
+  childrenQuestion: {
+    en: "Question: What is the status of my progeny and education? What are the prospects for children's well-being, intellectual growth, and academic milestones?",
+    kn: "ಪ್ರಶ್ನೆ: ನನ್ನ ಸಂತಾನ ಮತ್ತು ವಿದ್ಯಾ ವಿಷಯ ಹೇಗಿದೆ? ಸಂತಾನ ಭಾಗ್ಯ, ಮಕ್ಕಳ ಶ್ರೇಯಸ್ಸು ಅಥವಾ ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸದ ಸ್ಥಿತಿ ಹೇಗಿದೆ?",
+    te: "ప్రశ్న: నా సంతానం మరియు విద్యా విషయాలు ఎలా ఉన్నాయి? సంతాన ప్రాప్తి, పిల్లల భవిష్యత్తు లేదా విద్యాభ్యాసం ఎలా ఉంటుంది?",
+    ta: "கேள்வி: எனது சந்தானம் மற்றும் கல்வி நிலை எவ்வாறு உள்ளது? குழந்தை பாக்கியம், குழந்தைகளின் மேன்மை அல்லது கல்வி வளர்ச்சி எப்படி இருக்கும்?",
+    hi: "प्रश्न: मेरी संतान और विद्या का विषय कैसा है? संतान सुख, बच्चों की उन्नति अथवा उच्च शिक्षा की क्या स्थिति है?"
+  },
+  careerQuestion: {
+    en: "Question: What is the status of my career and profession? What are my prospects for vocational growth, promotion, authority, and professional stability?",
+    kn: "ಪ್ರಶ್ನೆ: ನನ್ನ ಉದ್ಯೋಗ ಮತ್ತು ವೃತ್ತಿಜೀವನದ ವಿಷಯದಲ್ಲಿ ಹೇಗಿದೆ? ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಯಶಸ್ಸು, ಸ್ಥಾನಮಾನ, ಪದೋನ್ನತಿ ಮತ್ತು ಸ್ಥಿರತೆ ಹೇಗಿರಲಿದೆ?",
+    te: "ప్రశ్న: నా ఉద్యోగ మరియు వృత్తిపరమైన విషయాలలో పరిస్థితి ఏమిటి? కార్యరంగంలో పదోన్నతి, విజయం, గౌరవం మరియు స్థిరత్వం ఎలా ఉంటాయి?",
+    ta: "கேள்வி: எனது தொழில் மற்றும் உத்தியோக வாழ்க்கை எவ்வாறு இருக்கும்? பணித்துறையில் வெற்றி, பதவி உயர்வு, அந்தஸ்து மற்றும் ஸ்திரத்தன்மை எப்படி அமையும்?",
+    hi: "प्रश्न: मेरी नौकरी और आजीविका के विषय में क्या स्थिति है? कार्यक्षेत्र में पदोन्नति, सफलता, मान-सम्मान और स्थिरता कैसी रहेगी?"
+  },
+  wealthQuestion: {
+    en: "Question: What is the status of my wealth and finances? What are my prospects for income accumulation, asset acquisition, debt freedom, and material prosperity?",
+    kn: "ಪ್ರಶ್ನೆ: ನನ್ನ ಧನ, ಸಂಪತ್ತು ಮತ್ತು ಆರ್ಥಿಕ ಸ್ಥಿತಿಯ ವಿಷಯ ಹೇಗಿದೆ? ಧನಾಗಮನ, ಉಳಿತಾಯ, ಆಸ್ತಿ ಪಾಸ್ತಿ ಮತ್ತು ಆರ್ಥಿಕ ಸುಭಿಕ್ಷತೆ ಹೇಗಿರಲಿದೆ?",
+    te: "ప్రశ్న: నా ధన, సంపద మరియు ఆర్థిక స్థితిగతులు ఎలా ఉండబోతున్నాయి? ధనాగమనం, ఆస్తుల వృద్ధి మరియు ఆర్థిక స్థిరత్వం ఎలా ఉంటుంది?",
+    ta: "கேள்வி: எனது தனம், செல்வம் மற்றும் நிதிநிலை எவ்வாறு இருக்கும்? பண வரவு, சேமிப்பு, சொத்து சேர்க்கை மற்றும் பொருளாதார முன்னேற்றம் எப்படி அமையும்?",
+    hi: "प्रश्न: मेरे धन, संपत्ति और आर्थिक स्थिति का विषय कैसा है? धनागमन, संचित पूंजी, संपत्ति लाभ और आर्थिक समृद्धि कैसी रहेगी?"
+  },
+  healthQuestion: {
+    en: "Question: What is the status of my health and physical vitality? What are my natural immunity, somatic vulnerabilities, mental equanimity, and longevity indicators?",
+    kn: "ಪ್ರಶ್ನೆ: ನನ್ನ ಆರೋಗ್ಯ ಮತ್ತು ದೈಹಿಕ ಸಾಮರ್ಥ್ಯದ ವಿಷಯ ಹೇಗಿದೆ? ರೋಗ ನಿರೋಧಕ ಶಕ್ತಿ, ದೈಹಿಕ ಬಾಧೆಗಳು, ಮಾನಸಿಕ ಸಮತೋಲನ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯದ ಸ್ಥಿತಿ ಏನು?",
+    te: "ప్రశ్న: నా ఆరోగ్యం మరియు శారీరక దృఢత్వం ఎలా ఉండబోతోంది? రోగ నిరోధక శక్తి, శారీరక రుగ్మతలు, మానసిక ప్రశాంతత మరియు ఆయుర్దాయం ఎలా ఉంటాయి?",
+    ta: "கேள்வி: எனது ஆரோக்கியம் மற்றும் உடல் பலம் எவ்வாறு இருக்கும்? நோய் எதிர்ப்பு சக்தி, உடல் உபாதைகள், மன அமைதி மற்றும் நீண்ட ஆயுள் எப்படி அமையும்?",
+    hi: "प्रश्न: मेरे स्वास्थ्य और शारीरिक सामर्थ्य का विषय कैसा है? रोग प्रतिरोधक क्षमता, शारीरिक कष्ट, मानसिक संतुलन और दीर्घायु की क्या स्थिति है?"
+  },
   darkSecretTitle: {
     en: "The Hidden Truth",
     kn: "ನಿಗೂಢ ರಹಸ್ಯ",
@@ -655,3 +711,222 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
 
   return cleaned;
 }
+
+export function getDevoteeQuestionForCategory(
+  categoryKey: string,
+  lang: string,
+  ageYears?: number
+): string {
+  const baseLang = (lang || "en").split("-")[0];
+  const age = ageYears ?? 30;
+  const isChild = age < 12;
+  const isSenior = age >= 60;
+  const isYouth = age >= 12 && age < 22;
+
+  const keyLower = categoryKey.toLowerCase();
+
+  // 1. Marriage / Companionship / Focus
+  if (
+    keyLower.includes("marriage") ||
+    keyLower.includes("relationship") ||
+    keyLower.includes("companionship") ||
+    keyLower.includes("ಮದುವೆ") ||
+    keyLower.includes("ವಿವಾಹ") ||
+    keyLower.includes("ಸಹಚಾರ್ಯ") ||
+    keyLower.includes("विवाह") ||
+    keyLower.includes("सौहार्द") ||
+    keyLower.includes("దాంపత్య") ||
+    keyLower.includes("திருமணம்")
+  ) {
+    if (isChild) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಮಗುವಿನ ಆರಂಭಿಕ ವಿದ್ಯಾಭ್ಯಾಸ, ಗ್ರಹಣ ಶಕ್ತಿ ಮತ್ತು ಶಾಲಾ ಏಕಾಗ್ರತೆಯ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: बच्चे की प्राथमिक शिक्षा, ग्रहण क्षमता एवं एकाग्रता का विषय कैसा है?";
+      if (baseLang === "te") return "ప్రశ్న: పిల్లల ప్రాథమిక విద్యాభ్యాసం, గ్రహణ శక్తి మరియు ఏకాగ్రత ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: குழந்தையின் ஆரம்பக் கல்வி, கற்கும் திறன் மற்றும் கவனிப்பு நிலை எவ்வாறு உள்ளது?";
+      return "Question: What is the status of the child's early education, grasping power, and study focus?";
+    }
+    if (isYouth) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಯೌವನಾವಸ್ಥೆಯಲ್ಲಿ ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ, ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ ಮತ್ತು ನಡವಳಿಕೆಯ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: युवावस्था में चरित्र निर्माण, मानसिक एकाग्रता एवं अध्ययन अनुशासन की क्या स्थिति है?";
+      if (baseLang === "te") return "ప్రశ్న: యవ్వనంలో వ్యక్తిత్వ నిర్మాణం, మానసిక ఏకాగ్రత మరియు ప్రవర్తన ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: இளமைப் பருவத்தில் ஆளுமை உருவாக்கம், மன உறுதி மற்றும் ஒழுக்கம் எவ்வாறு அமையும்?";
+      return "Question: What is the status of character formation, mental focus, and academic discipline in youth?";
+    }
+    if (isSenior) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಹಿರಿಯ ವಯಸ್ಸಿನಲ್ಲಿ ದಾಂಪತ್ಯ ಸಹಚಾರ್ಯ, ಪರಸ್ಪರ ಕಾಳಜಿ ಮತ್ತು ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿಯ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: वरिष्ठ आयु में जीवनसाथी का सान्निध्य, परस्पर देखभाल एवं पारिवारिक शांति कैसी रहेगी?";
+      if (baseLang === "te") return "ప్రశ్న: వృద్ధాప్యంలో దాంపత్య సహచర్యం, పరస్పర ఆదరణ మరియు కుటుంబ ప్రశాంతత ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: முதிய வயதில் தம்பதியர் அன்யோன்யம், பரஸ்பர கவனிப்பு மற்றும் குடும்ப அமைதி எப்படி இருக்கும்?";
+      return "Question: What is the status of marital companionship, mutual care, and domestic serenity in senior years?";
+    }
+    return tp("marriageQuestion", lang);
+  }
+
+  // 2. Children / Legacy / Studies / Activities
+  if (
+    keyLower.includes("children") ||
+    keyLower.includes("progeny") ||
+    keyLower.includes("legacy") ||
+    keyLower.includes("grandchildren") ||
+    keyLower.includes("ಸಂತಾನ") ||
+    keyLower.includes("ಮಕ್ಕಳು") ||
+    keyLower.includes("ವಂಶಾಭಿವೃದ್ಧಿ") ||
+    keyLower.includes("संतान") ||
+    keyLower.includes("पौत्र") ||
+    keyLower.includes("సంతానం") ||
+    keyLower.includes("వంశాభివృద్ధి") ||
+    keyLower.includes("சந்ததி") ||
+    keyLower.includes("பேரப்பிள்ளைகள்")
+  ) {
+    if (isChild) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಮಗುವಿನ ಕಲಾಭಿರುಚಿ, ಆಟೋಟಗಳು, ಕ್ರೀಡೆ ಮತ್ತು ನೈಸರ್ಗಿಕ ಪ್ರತಿಭೆಯ ವಿಕಾಸ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: बच्चे की कलात्मक रुचि, खेलकूद एवं स्वाभाविक प्रतिभा का विकास कैसा रहेगा?";
+      if (baseLang === "te") return "ప్రశ్న: పిల్లల కళాభిరుచి, ఆటపాటలు, క్రీడలు మరియు ప్రతిభా వికాసం ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: குழந்தையின் கலை ஆர்வம், விளையாட்டு மற்றும் தனித்திறமை வளர்ச்சி எவ்வாறு அமையும்?";
+      return "Question: What is the status of the child's extracurricular talents, sports stamina, and creative expression?";
+    }
+    if (isYouth) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಉನ್ನತ ಶಿಕ್ಷಣ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು ಮತ್ತು ಜ್ಞಾನಾರ್ಜನೆಯ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: उच्च शिक्षा, प्रतियोगी परीक्षाएं एवं बौद्धिक ज्ञानार्जन की क्या स्थिति है?";
+      if (baseLang === "te") return "ప్రశ్న: ఉన్నత విద్య, పోటీ పరీక్షలు మరియు జ్ఞానార్జన ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: உயர்கல்வி, போட்டித் தேர்வுகள் மற்றும் கல்வி மேன்மை எவ்வாறு அமையும்?";
+      return "Question: What is the status of higher education, competitive exams, and intellectual achievements?";
+    }
+    if (isSenior) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ವಂಶಾಭಿವೃದ್ಧಿ, ಮೊಮ್ಮಕ್ಕಳ ಸೌಖ್ಯ ಮತ್ತು ಪಾರಂಪರಿಕ ಆಶೀರ್ವಾದದ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: वंश वृद्धि, पौत्र-पौत्री सुख एवं पारिवारिक प्रतिष्ठा की क्या स्थिति है?";
+      if (baseLang === "te") return "ప్రశ్న: వంశాభివృద్ధి, మనవలు-మనవరాళ్ల సుఖం మరియు కుటుంబ గౌరవం ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: சந்ததி வளர்ச்சி, பேரப்பிள்ளைகள் நலம் மற்றும் வம்ச பெருமை எவ்வாறு இருக்கும்?";
+      return "Question: What is the status of generational lineage, grandchildren's joy, and ancestral fulfillment?";
+    }
+    return tp("childrenQuestion", lang);
+  }
+
+  // 3. Career / Mentorship / Foundation
+  if (
+    keyLower.includes("career") ||
+    keyLower.includes("profession") ||
+    keyLower.includes("job") ||
+    keyLower.includes("leadership") ||
+    keyLower.includes("foundation") ||
+    keyLower.includes("ಉದ್ಯೋಗ") ||
+    keyLower.includes("ವೃತ್ತಿ") ||
+    keyLower.includes("ಸಂಸ್ಕಾರ") ||
+    keyLower.includes("ಧರ್ಮ ಕಾರ್ಯ") ||
+    keyLower.includes("करियर") ||
+    keyLower.includes("आजीविका") ||
+    keyLower.includes("संस्कार") ||
+    keyLower.includes("ఉద్యోగం") ||
+    keyLower.includes("தொழில்") ||
+    keyLower.includes("உத்தியோகம்")
+  ) {
+    if (isChild) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಮಗುವಿನ ನೈತಿಕ ಸಂಸ್ಕಾರ, ನಡವಳಿಕೆ, ಸತ್ಯನಿಷ್ಠೆ ಮತ್ತು ಭವಿಷ್ಯದ ಅಡಿಪಾಯ ಹೇಗಿರಲಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: बच्चे के नैतिक संस्कार, आचरण, सत्यनिष्ठा एवं भविष्य की नींव कैसी बनेगी?";
+      if (baseLang === "te") return "ప్రశ్న: పిల్లల నైతిక విలువలు, సంస్కారం మరియు భవిష్యత్ పునాది ఎలా ఉండబోతోంది?";
+      if (baseLang === "ta") return "கேள்வி: குழந்தையின் நற்பண்புகள், ஆளுமை மற்றும் எதிர்கால அடித்தளம் எவ்வாறு அமையும்?";
+      return "Question: What is the status of foundational samskaras, truthfulness, and character formation?";
+    }
+    if (isYouth) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಭವಿಷ್ಯದ ವೃತ್ತಿ ಅಡಿಪಾಯ, ಕೌಶಲ್ಯ ವೃದ್ಧಿ ಮತ್ತು ಉದ್ಯೋಗದ ದಿಕ್ಕಿನ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: भावी करियर की नींव, व्यावसायिक कौशल एवं आजीविका की दिशा कैसी रहेगी?";
+      if (baseLang === "te") return "ప్రశ్న: భవిష్యత్ కెరీర్ పునాది, నైపుణ్యాల వృద్ధి మరియు ఉద్యోగ దిశ ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: எதிர்கால தொழில் அடித்தளம், தொழிற்திறன் மற்றும் வேலைவாய்ப்பு திசை எப்படி அமையும்?";
+      return "Question: What is the status of future vocational direction, skillset acquisition, and career foundation?";
+    }
+    if (isSenior) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಸಮಾಜದಲ್ಲಿ ಗೌರವ, ಧಾರ್ಮಿಕ ಮಾರ್ಗದರ್ಶನ ಮತ್ತು ಜೀವಮಾನದ ಕೀರ್ತಿಯ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: समाज में मान-प्रतिष्ठा, धर्मार्थ मार्गदर्शन एवं जीवन पर्यन्त यश की क्या स्थिति है?";
+      if (baseLang === "te") return "ప్రశ్న: సమాజంలో గౌరవం, ధార్మిక మార్గదర్శకత్వం మరియు జీవిత కీర్తి ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: சமூகத்தில் மதிப்பு, தர்ம வழிகாட்டுதல் மற்றும் வாழ்நாள் புகழ் எவ்வாறு நிலைக்கும்?";
+      return "Question: What is the status of societal respect, dharmic mentorship, and lifelong reputation?";
+    }
+    return tp("careerQuestion", lang);
+  }
+
+  // 4. Wealth / Family Environment / Financial Discipline
+  if (
+    keyLower.includes("wealth") ||
+    keyLower.includes("finance") ||
+    keyLower.includes("estate") ||
+    keyLower.includes("family") ||
+    keyLower.includes("discipline") ||
+    keyLower.includes("ಧನ") ||
+    keyLower.includes("ಸಂಪತ್ತು") ||
+    keyLower.includes("ಆರ್ಥಿಕ") ||
+    keyLower.includes("ಪೋಷಣೆ") ||
+    keyLower.includes("धन") ||
+    keyLower.includes("संपत्ति") ||
+    keyLower.includes("సంపద") ||
+    keyLower.includes("ఆర్థిక") ||
+    keyLower.includes("தனம்") ||
+    keyLower.includes("செல்வம்")
+  ) {
+    if (isChild) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಮಗುವಿನ ಕೌಟುಂಬಿಕ ಪ್ರೀತಿ, ವಾತ್ಸಲ್ಯ, ಮನೆಯ ನೆಮ್ಮದಿ ಮತ್ತು ಬೆಳವಣಿಗೆಯ ವಾತಾವರಣ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: बच्चे के लिए पारिवारिक वात्सल्य, घर का शांत वातावरण एवं उचित पोषण कैसा रहेगा?";
+      if (baseLang === "te") return "ప్రశ్న: పిల్లలకు కుటుంబ ప్రేమ, వాత్సల్యం మరియు గృహ వాతావరణం ఎలా ఉంటుంది?";
+      if (baseLang === "ta") return "கேள்வி: குழந்தைக்கு குடும்ப பாசம், வீட்டில் அமைதி மற்றும் அன்பான வளர்ப்புச் சூழல் எவ்வாறு அமையும்?";
+      return "Question: What is the status of family warmth, parental affection, and emotional security at home?";
+    }
+    if (isYouth) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಯೌವನದಲ್ಲಿ ಆರ್ಥಿಕ ಶಿಸ್ತು, ಹಣದ ಸದ್ಬಳಕೆ ಮತ್ತು ಸಂಪನ್ಮೂಲಗಳ ನಿರ್ವಹಣೆಯ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: युवावस्था में वित्तीय अनुशासन, धन का सदुपयोग एवं संसाधनों के प्रबंधन की क्या स्थिति है?";
+      if (baseLang === "te") return "ప్రశ్న: యవ్వనంలో ఆర్థిక క్రమశిక్షణ, పొదుపు మరియు వనరుల నిర్వహణ ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: இளமையில் நிதி ஒழுக்கம், பணத்தின் மதிப்பு மற்றும் சேமிப்பு சுபாவம் எவ்வாறு அமையும்?";
+      return "Question: What is the status of financial discipline, budgeting habits, and resource stewardship?";
+    }
+    if (isSenior) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಸಂಚಿತ ಆಸ್ತಿ ಸಂರಕ್ಷಣೆ, ಕುಟುಂಬ ಸುಭಿಕ್ಷತೆ ಮತ್ತು ಆರ್ಥಿಕ ನಿಶ್ಚಿಂತೆಯ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: संचित संपत्ति की सुरक्षा, पारिवारिक समृद्धि एवं आर्थिक निश्चिंतता की क्या स्थिति है?";
+      if (baseLang === "te") return "ప్రశ్న: సంపద పరిరక్షణ, కుటుంబ సుఖం మరియు ఆర్థిక భరోసా ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: பூர்வீக சொத்துப் பாதுகாப்பு, குடும்ப சுபிட்சம் மற்றும் நிதி அமைதி எவ்வாறு இருக்கும்?";
+      return "Question: What is the status of asset preservation, family security, and financial serenity?";
+    }
+    return tp("wealthQuestion", lang);
+  }
+
+  // 5. Health / Vitality / Longevity
+  if (
+    keyLower.includes("health") ||
+    keyLower.includes("vitality") ||
+    keyLower.includes("longevity") ||
+    keyLower.includes("fitness") ||
+    keyLower.includes("pediatric") ||
+    keyLower.includes("ಆರೋಗ್ಯ") ||
+    keyLower.includes("ಚೈತನ್ಯ") ||
+    keyLower.includes("ದೀರ್ಘಾಯುಷ್ಯ") ||
+    keyLower.includes("ಬಾಲ ಆರೋಗ್ಯ") ||
+    keyLower.includes("स्वास्थ्य") ||
+    keyLower.includes("आरोग्य") ||
+    keyLower.includes("दीर्घायु") ||
+    keyLower.includes("ఆరోగ్యం") ||
+    keyLower.includes("ఆరోగ్య")
+  ) {
+    if (isChild) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಮಗುವಿನ ಬಾಲ ಆರೋಗ್ಯ, ನೈಸರ್ಗಿಕ ರೋಗ ನಿರೋಧಕ ಶಕ್ತಿ ಮತ್ತು ಚೈತನ್ಯದ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: बच्चे का बाल स्वास्थ्य, प्राकृतिक रोग प्रतिरोधक क्षमता एवं शारीरिक स्फूर्ति कैसी रहेगी?";
+      if (baseLang === "te") return "ప్రశ్న: పిల్లల బాల ఆరోగ్యం, రోగ నిరోధక శక్తి మరియు ఉత్సాహం ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: குழந்தையின் உடல் ஆரோக்கியம், நோய் எதிர்ப்பு சக்தி மற்றும் சுறுசுறுப்பு எவ்வாறு இருக்கும்?";
+      return "Question: What is the status of pediatric vitality, natural immunity, and physical stamina?";
+    }
+    if (isYouth) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ಯುವ ಚೈತನ್ಯ, ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ, ಕ್ರೀಡಾ ಶಕ್ತಿ ಮತ್ತು ಜೀವನಶೈಲಿಯ ಸಮತೋಲನದ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: युवा ऊर्जा, शारीरिक सामर्थ्य, खेलकूद स्फूर्ति एवं जीवनशैली संतुलन की क्या स्थिति है?";
+      if (baseLang === "te") return "ప్రశ్న: యువ చైతన్యం, శారీరక దృఢత్వం మరియు సమతుల్య జీవనశైలి ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: இளமைத் துடிப்பு, உடல் வலிமை, உடற்பயிற்சி மற்றும் ஆரோக்கிய வாழ்க்கை முறை எப்படி அமையும்?";
+      return "Question: What is the status of youth fitness, physical stamina, and balanced lifestyle habits?";
+    }
+    if (isSenior) {
+      if (baseLang === "kn") return "ಪ್ರಶ್ನೆ: ದೀರ್ಘಾಯುಷ್ಯ, ವೃದ್ಧಾಪ್ಯದ ಸ್ವಾಸ್ಥ್ಯ ರಕ್ಷಣೆ ಮತ್ತು ದೈಹಿಕ ನೆಮ್ಮದಿಯ ವಿಷಯ ಹೇಗಿದೆ?";
+      if (baseLang === "hi") return "प्रश्न: दीर्घायु, वृद्धावस्था में स्वास्थ्य रक्षा एवं शारीरिक सुख-शांति कैसी रहेगी?";
+      if (baseLang === "te") return "ప్రశ్న: దీర్ఘాయుష్షు, వృద్ధాప్య ఆరోగ్య పరిరక్షణ మరియు శారీరక ప్రశాంతత ఎలా ఉంటాయి?";
+      if (baseLang === "ta") return "கேள்வி: நீண்ட ஆயுள், முதுமைக்கால ஆரோக்கியப் பாதுகாப்பு மற்றும் உடல் நலன் எவ்வாறு அமையும்?";
+      return "Question: What is the status of longevity, geriatric wellness preservation, and physical comfort?";
+    }
+    return tp("healthQuestion", lang);
+  }
+
+  return tp(categoryKey + "Question", lang) || "";
+}
+

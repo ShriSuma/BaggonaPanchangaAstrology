@@ -19,6 +19,8 @@
 import {
   type GrahaKey,
   pick,
+  tp,
+  getDevoteeQuestionForCategory,
   GRAHA_L5,
   RASHI_L5,
   NAKSHATRA_L5,
@@ -276,6 +278,15 @@ const JSON_RULE =
  */
 export const buildPremiumPrompts = (input: PremiumPromptInput) => {
   const { lang } = input;
+  const charQuestion = tp("characteristicsQuestion", lang);
+  const secretQuestion = tp("darkSecretQuestion", lang);
+  const phaseQuestion = tp("currentPhaseQuestion", lang);
+  const marQuestion = getDevoteeQuestionForCategory("marriage", lang, input.ageYears);
+  const chdQuestion = getDevoteeQuestionForCategory("children", lang, input.ageYears);
+  const carQuestion = getDevoteeQuestionForCategory("career", lang, input.ageYears);
+  const wlhQuestion = getDevoteeQuestionForCategory("wealth", lang, input.ageYears);
+  const hltQuestion = getDevoteeQuestionForCategory("health", lang, input.ageYears);
+
   const dashaLine =
     input.mahaLord && input.bhuktiLord
       ? `${grahaName(input.mahaLord, lang)} Mahadasha, and inside it ${grahaName(input.bhuktiLord, lang)} Bhukti`
@@ -316,46 +327,54 @@ ${JSON_RULE}
     "characteristics",
     "You are an authoritative Vedic astrologer writing a 100% mathematically accurate personality analysis strictly grounded in computed chart placements."
   )}
+DEVOTEE INQUEST QUESTION TO DIRECTLY ADDRESS AND ANSWER:
+"${charQuestion}"
+
 Extra material for this chapter only:
 Shadow side found by the engine: ${input.shadowSelf}
 Karmic pattern found by the engine: ${input.karmicBaggage}
 
-CRITICAL ACCURACY REQUIREMENT:
-Write EXACTLY THREE (3) detailed paragraphs about this person's personality, core nature, and behavioral traits.
-STRICT LENGTH RULE: EACH PARAGRAPH MUST CONTAIN AT LEAST 5 FULL, SUBSTANTIAL LINES OF TEXT (minimum 15 lines total for the section).
-MUST BE 100% MATHEMATICALLY ACCURATE to the birth chart above.
-- Paragraph 1: Synthesis of Lagna (${rashiName(input.lagnaRashiIndex, lang)}) and Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}), alongside Janma Nakshatra (${nakshatraName(input.moonNakshatraIndex, lang)}${input.moonPada ? ` Pada ${input.moonPada}` : ""}) with its presiding Vedic deity archetype. Detail core temperament, sattvic qualities, and instinctive strengths.
-- Paragraph 2: Lagna lord (Lagnesha) placement, dignity (exalted/debilitated/swakshetra), and aspects/occupants impacting the 1st house. Explain how this shapes physical vitality, moral conviction, and worldly posture.
-- Paragraph 3: Worldly behavior, natural leadership instincts, running ${dashaLine}${input.dashaSandhiActive ? ", and Dasha Sandhi transition guidance" : ""}. ZERO generic statements or unverified claims.
+CRITICAL ACCURACY & 4-PARAGRAPH STRUCTURAL MANDATE:
+Write STRICTLY FOUR (4) FULL, SUBSTANTIAL PARAGRAPHS answering the devotee's heartfelt question above.
+STRICT LENGTH RULE: EACH PARAGRAPH MUST CONTAIN AT LEAST 5 TO 6 FULL, SUBSTANTIAL LINES OF TEXT (minimum 20 lines total for the section).
+MUST BE 100% MATHEMATICALLY ACCURATE to the birth chart above. ZERO generic statements or unverified claims.
+- Paragraph 1 (5–6 lines): Synthesis of Lagna (${rashiName(input.lagnaRashiIndex, lang)}) and Chandra Rashi (${rashiName(input.moonRashiIndex, lang)}), alongside Janma Nakshatra (${nakshatraName(input.moonNakshatraIndex, lang)}${input.moonPada ? ` Pada ${input.moonPada}` : ""}) with its presiding Vedic deity archetype. Detail core temperament, sattvic qualities, instinctive reactions, and constitutional strengths.
+- Paragraph 2 (5–6 lines): Lagna lord (Lagnesha) placement, dignity (exalted, debilitated, swakshetra, Vargottama, combust), and aspects/occupants impacting the 1st house. Explain how this shapes physical presence, vitality, moral conviction, and worldly posture.
+- Paragraph 3 (5–6 lines): Worldly behavior, natural leadership instincts, decision-making style under running ${dashaLine}${input.dashaSandhiActive ? ", and Dasha Sandhi transition guidance" : ""}. Address how the native balances personal ideals with external responsibilities.
+- Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED PERSONALITY SHIELD & DIVINE GRACE (e.g. 【ವ್ಯಕ್ತಿತ್ವ ರಕ್ಷಾ ಕವಚ & ದೈವಿಕ ಅನುಗ್ರಹ ಮಾರ್ಗ】 / 【Personality Shield & Divine Grace Guidance】): Provide the native's personal protective mantra, sacred daily conduct, and divine blessings from Sri Kshetra Gokarna Mahabaleshwara and Mukhyaprana to fortify their vital aura and spiritual radiance.
 
 ${JSON_RULE}
-{"characteristics":[{"impact":"paragraph one\\n\\nparagraph two\\n\\nparagraph three"}]}`;
+{"characteristics":[{"impact":"paragraph one (5-6 lines)\\n\\nparagraph two (5-6 lines)\\n\\nparagraph three (5-6 lines)\\n\\nparagraph four starting with 【...】 (5-6 lines)"}]}`;
 
   const darkSecret = input.ageYears < 8 ? "" : `${header(
     input,
     "darkSecret",
     "You are an authoritative Vedic astrologer revealing the hidden soul pattern strictly based on 8th/12th house placements and karmic planets."
   )}
+DEVOTEE INQUEST QUESTION TO DIRECTLY ADDRESS AND ANSWER:
+"${secretQuestion}"
+
 Extra material for this chapter only:
 Shadow: ${input.shadowSelf}
 Karma: ${input.karmicBaggage}
 ${input.affairNote}
 
-CRITICAL ACCURACY & DEEP EMOTIONAL CONNECTION REQUIREMENT:
-Reveal the single deepest hidden truth of THIS chart — the niguda rahasya (ನಿಗೂಢ ರಹಸ್ಯ - hidden dark secret).
-STRICT LENGTH RULE: Write EXACTLY THREE (3) PARAGRAPHS, and EACH PARAGRAPH MUST CONTAIN AT LEAST 6 TO 7 FULL, SUBSTANTIAL LINES OF TEXT (minimum 18-21 lines total for the section).
+CRITICAL ACCURACY & 4-PARAGRAPH DEEP EMOTIONAL CONNECTION REQUIREMENT:
+Reveal the single deepest hidden truth of THIS chart — the niguda rahasya (ನಿಗೂಢ ರಹಸ್ಯ - hidden subconscious reality).
+STRICT LENGTH RULE: Write STRICTLY FOUR (4) FULL, SUBSTANTIAL PARAGRAPHS, and EACH PARAGRAPH MUST CONTAIN AT LEAST 5 TO 6 FULL, SUBSTANTIAL LINES OF TEXT (minimum 20-24 lines total for the section).
 MUST BE 100% MATHEMATICALLY ACCURATE to the 8th/12th house placements, Rahu/Ketu/Saturn karmic influences, running ${dashaLine}, and planetary transits in THIS chart.
 
 DEEP EMOTIONAL RESONANCE MANDATE:
 Speak directly to ${input.name}. Highlight the reality of what is happening inside them:
 Even though they smile outside, maintain a strong exterior for their family, and appear composed in society, unveil the unspoken emotional struggles, private loneliness, silent sacrifices, and internal vulnerabilities they carry alone and have never disclosed to anyone. When they read this, they must feel profoundly understood: "Yes, this is the nigudha rahasya I have kept locked inside with me, which nobody else sees!"
-- Paragraph 1: The hidden mask of fortitude vs inner vulnerability. Emotional burdens, silent fatigue, and secret wounds tied directly to named 8th/12th house placements above.
-- Paragraph 2: Rahu-Ketu karmic axis and past-life debt (Rinanubandha). Feeling unappreciated, invisible, or carrying emotional contracts from past lives despite selflessly supporting others.
-- Paragraph 3: How this pattern manifests under running ${dashaLine}, and the precise, compassionate spiritual catharsis, inner reconciliation, and transformative blessing from Lord Gokarna Mahabaleshwara (sacred Atma Linga) and Lord Mukhyaprana required to dissolve these silent fears and restore profound peace of mind.
+- Paragraph 1 (5–6 lines): The hidden mask of fortitude vs inner vulnerability. Emotional burdens, silent fatigue, and secret wounds tied directly to named 8th/12th house placements above.
+- Paragraph 2 (5–6 lines): Conscious secrets, unspoken fears, and concealed anxieties. What ${input.name} hides from everyone in family, workplace, and social life—the fear of letting others down, unacknowledged heartbreak, or the exhausting burden of always having to be the strong one.
+- Paragraph 3 (5–6 lines): Rahu-Ketu karmic axis and past-life debt (Rinanubandha). Feeling unappreciated, invisible, or carrying emotional contracts from past lives despite selflessly supporting others, under running ${dashaLine}.
+- Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED INNER CATHARSIS & ATMA LINGA DIVINE SHIELD (e.g. 【ಅಂತರಂಗ ಶುದ್ಧಿ & ಆತ್ಮಲಿಂಗ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Inner Catharsis & Atma Linga Divine Shield】): Compassionate spiritual catharsis, inner reconciliation, and the transformative blessing from Lord Gokarna Mahabaleshwara (sacred Atma Linga) and Lord Mukhyaprana required to dissolve these silent fears and restore profound peace of mind.
 Do not moralise, do not frighten, end on what can be healed and transformed.
 
 ${JSON_RULE}
-{"darkSecret":[{"impact":"paragraph one (5-6 lines)\\n\\nparagraph two (5-6 lines)\\n\\nparagraph three (5-6 lines)"}]}`;
+{"darkSecret":[{"impact":"paragraph one (5-6 lines)\\n\\nparagraph two (5-6 lines)\\n\\nparagraph three (5-6 lines)\\n\\nparagraph four starting with 【...】 (5-6 lines)"}]}`;
 
   const yogas = `${header(
     input,
@@ -461,6 +480,9 @@ ${JSON_RULE}
     "currentPhase",
     "You are a deeply empathetic Vedic astrologer and psychological counselor speaking directly to " + input.name + " with profound compassion, warmth, and intimate personal insight."
   )}
+DEVOTEE INQUEST QUESTION TO DIRECTLY ADDRESS AND ANSWER:
+"${phaseQuestion}"
+
 CRITICAL 100% LIVING REALITY & ACCURACY REQUIREMENT:
 MUST BE 100% GROUNDED in computed placements, age, dasha, and live transits.
 You MUST connect with ${input.name} on a deeply personal, emotional level. Address them directly as 'you' (and greet them by name, ${input.name}).
@@ -494,8 +516,8 @@ Write EXACTLY FOUR (4) FULL, DETAILED PARAGRAPHS (EXPANSIVE AND DEEPLY PERSONAL)
     : `Describe their silent anxiety about long-term financial security, craving for genuine appreciation from partner/family, and yearning for a peaceful life where they don't have to carry every burden alone.${maritalSel === 'married' && childrenSel === 'no_children' ? ' Acknowledge also their tender private prayers and shared hopes with their spouse regarding welcoming a child into their life.' : ''}`
   }
 
-- Paragraph 4 (Compassionate Astrological Guidance & Practical Daily Remedies):
-  Provide wise, actionable guidance on the exact mental attitude to cultivate during this phase. Give 2 practical Vedic remedies (daily dawn prayer, lighting a sacred lamp at dusk, specific mantra japa or charity) to pacify planetary friction and invite peace, prosperity, and divine grace.
+- Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DASHA-GOCHARA RELIEF SHIELD & SRI GOKARNA SANCTUARY SEVA (e.g. 【ಪ್ರಸ್ತುತ ದಶಾ-ಗೋಚಾರ ಸಂಕಷ್ಟ ನಿವಾರಣಾ ಕವಚ & ಶ್ರೀ ಸನ್ನಿಧಾನ ಸೇವೆ】 / 【Dasha-Gochara Relief Shield & Sri Gokarna Sanctuary Grace】):
+  Provide wise, actionable guidance on the exact mental attitude to cultivate during this phase. Give 2 practical Vedic remedies (daily dawn prayer, lighting a sacred lamp at dusk, specific mantra japa or charity) and Sri Kshetra Gokarna Mahabaleshwara and Mukhyaprana sankalpa to pacify planetary friction and invite peace, prosperity, and divine grace.
 
 ${JSON_RULE}
 {"currentPhase":[{"impact":"paragraph 1\n\nparagraph 2\n\nparagraph 3\n\nparagraph 4"}]}`;
@@ -510,16 +532,24 @@ ${JSON_RULE}
   const formatPlacementText = (p: NatalPlacement | undefined): string => {
     if (!p) return lang === "kn" ? "ಕುಂಡಲಿಯಲ್ಲಿ ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು" : lang === "hi" ? "कुंडली में सुस्थित होकर" : lang === "te" ? "కుండలిలో సుస్థితిలో ఉండి" : lang === "ta" ? "ஜாதகத்தில் சுப ஸ்தானத்தில் அமர்ந்து" : "favorably placed in chart";
     const sign = rashiName(p.rashiIndex, lang);
-    let dignity = "";
-    if (p.exalted) dignity = lang === "kn" ? " ಉಚ್ಚ ಸ್ಥಿತಿಯಲ್ಲಿ" : lang === "hi" ? " उच्च अवस्था में" : lang === "te" ? " ఉచ్ఛ స్థితిలో" : lang === "ta" ? " உச்ச நிலையில்" : " in exalted state";
-    else if (p.debilitated) dignity = lang === "kn" ? " ನೀಚ ಸ್ಥಿತಿಯಲ್ಲಿ" : lang === "hi" ? " नीच अवस्था में" : lang === "te" ? " నీచ స్థితిలో" : lang === "ta" ? " நீச நிலையில்" : " in debilitated state";
-    else if (p.retrograde) dignity = lang === "kn" ? " ವಕ್ರ ಗತಿಯಲ್ಲಿ" : lang === "hi" ? " वक्र गति में" : lang === "te" ? " వక్ర గతిలో" : lang === "ta" ? " வக்ர நிலையில்" : " in retrograde motion";
+    const traits: string[] = [];
+    if (p.exalted) traits.push(lang === "kn" ? "ಉಚ್ಚ ಸ್ಥಿತಿ (Exalted)" : lang === "hi" ? "उच्च अवस्था (Exalted)" : lang === "te" ? "ఉచ్ఛ స్థితి (Exalted)" : lang === "ta" ? "உச்ச நிலை (Exalted)" : "Exalted");
+    if (p.debilitated) traits.push(lang === "kn" ? "ನೀಚ ಸ್ಥಿತಿ (Debilitated)" : lang === "hi" ? "नीच अवस्था (Debilitated)" : lang === "te" ? "నీచ స్థితి (Debilitated)" : lang === "ta" ? "நீச நிலை (Debilitated)" : "Debilitated");
+    if (p.retrograde) traits.push(lang === "kn" ? "ವಕ್ರ ಗತಿ (Retrograde)" : lang === "hi" ? "वक्र गति (Retrograde)" : lang === "te" ? "వక్ర గతి (Retrograde)" : lang === "ta" ? "வக்ர நிலை (Retrograde)" : "Retrograde");
+    if (p.isVargottama) traits.push(lang === "kn" ? "ವರ್ಗೋತ್ತಮ (Vargottama - D1 & D9 same rashi)" : lang === "hi" ? "वर्गोत्तम (Vargottama)" : lang === "te" ? "వర్గోత్తమం (Vargottama)" : lang === "ta" ? "வர்கோத்தமம் (Vargottama)" : "Vargottama");
+    if (p.isCombust) traits.push(lang === "kn" ? "ಅಸ್ತಂಗತ (Combust by Sun)" : lang === "hi" ? "अस्तंगत (Combust)" : lang === "te" ? "అస్తంగతం (Combust)" : lang === "ta" ? "அஸ்தமனம் (Combust)" : "Combust");
+    if (p.dignityLabel) traits.push(p.dignityLabel);
+    if (p.navamshaRashiIndex !== undefined && p.navamshaRashiIndex >= 0 && p.navamshaRashiIndex <= 11) {
+      const navSign = rashiName(p.navamshaRashiIndex, lang);
+      traits.push(`Navamsha: ${navSign}`);
+    }
+    const traitStr = traits.length ? ` [${traits.join(", ")}]` : "";
 
-    if (lang === "kn") return `${sign} ರಾಶಿಯಲ್ಲಿ ${p.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು${dignity}`;
-    if (lang === "hi") return `${sign} राशि में ${p.house}वें भाव में स्थित होकर${dignity}`;
-    if (lang === "te") return `${sign} రాశిలో ${p.house}వ స్థానంలో స్థితుడై${dignity}`;
-    if (lang === "ta") return `${sign} ராசியில் ${p.house}ஆம் பாவத்தில் அமர்ந்து${dignity}`;
-    return `in ${sign} in house ${p.house}${dignity}`;
+    if (lang === "kn") return `${sign} ರಾಶಿಯಲ್ಲಿ ${p.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು${traitStr}`;
+    if (lang === "hi") return `${sign} राशि में ${p.house}वें भाव में स्थित होकर${traitStr}`;
+    if (lang === "te") return `${sign} రాశిలో ${p.house}వ స్థానంలో స్థితుడై${traitStr}`;
+    if (lang === "ta") return `${sign} ராசியில் ${p.house}ஆம் பாவத்தில் அமர்ந்து${traitStr}`;
+    return `in ${sign} in house ${p.house}${traitStr}`;
   };
 
   const getHouseInfo = (houseNum: number) => {
@@ -909,10 +939,11 @@ For EACH category, write THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINI
         Paragraph 2 (5–6 lines, NO REMEDIES): Real-life workplace dynamics—addressing lack of recognition for hard work, office politics, delayed promotions, work-life dilemmas (ಗೊಂದಲ/द्वंद्व), and executive skill growth.
         Paragraph 3 (5–6 lines, NO REMEDIES): Future vocational trajectory, upcoming promotions, transitions, business expansion, and milestone timing over the next 1–3 years (strictly no remedies).
         Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಕರ್ಮ ಶಾಂತಿ】 / 【Dosha Analysis & Career Remedy】): Analyze the detected 10th house / Karma / Saturn affliction, explain obstacle mechanisms, and detail Shani Shanti pooja, Dasharatha Stotram, and Rudrabhishekam at Sri Kshetra Gokarna Mahabaleshwara.`
-     : `NO DOSHA PRESENT: Write EXACTLY THREE detailed sections separated by double newlines (\\n\\n):
+     : `NO DOSHA PRESENT: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
         Paragraph 1 (5–6 lines, NO REMEDIES): Professional aptitude, career stability, leadership prospects, and timing under running ${dashaLine}.
         Paragraph 2 (5–6 lines, NO REMEDIES): Strategic workplace navigation, executive decision-making, handling demanding workloads, promotions, skill growth, and vocational ascent.
-        Paragraph 3 (5–6 lines, NO REMEDIES): Future vocational trajectory, upcoming promotions, transitions, business expansion, and milestone timing over the next 1–3 years (strictly no remedies).`
+        Paragraph 3 (5–6 lines, NO REMEDIES): Future vocational trajectory, upcoming promotions, transitions, business expansion, and milestone timing over the next 1–3 years (strictly no remedies).
+        Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED CAREER ASCENT & EXECUTIVE SHIELD starting with 【...】 (e.g. 【ವೃತ್ತಿ ಪ್ರಗತಿ & ನಾಯಕತ್ವ ರಕ್ಷಾ ಕವಚ】 / 【Career Ascent & Leadership Shield】): Write 100% about the native's personal professional reality, executive decision-making style, specific industry strengths, leadership acumen, professional respect earned, and vocational ascent.`
    }
 
 4. Wealth & Family Finance:
@@ -925,10 +956,11 @@ For EACH category, write THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINI
         Paragraph 2 (5–6 lines, NO REMEDIES): Real-life financial friction—unplanned emergency expenses draining savings, EMI pressure, delayed client payments, cash-flow bottlenecks, and asset management.
         Paragraph 3 (5–6 lines, NO REMEDIES): Future financial trajectory, upcoming gainful periods, debt clearance, and material stability over the next 1–3 years (strictly no remedies).
         Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಧನ ಸಮೃದ್ಧಿ ಶಾಂತಿ】 / 【Dosha Analysis & Financial Shanti】): Analyze the detected financial affliction, obstacle resolution, and prescribe Lakshmi Kubera Aradhana and remedy at Sri Kshetra Gokarna.`
-     : `NO DOSHA PRESENT: Write EXACTLY THREE detailed sections separated by double newlines (\\n\\n):
+     : `NO DOSHA PRESENT: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
         Paragraph 1 (5–6 lines, NO REMEDIES): Financial accumulation, income stability, investments, property gains, and family prosperity.
         Paragraph 2 (5–6 lines, NO REMEDIES): Debt management, liquidity planning, wealth preservation, prudent budgeting, and ancestral asset growth.
-        Paragraph 3 (5–6 lines, NO REMEDIES): Future financial trajectory, upcoming gainful periods, debt clearance, and material stability over the next 1–3 years (strictly no remedies).`
+        Paragraph 3 (5–6 lines, NO REMEDIES): Future financial trajectory, upcoming gainful periods, debt clearance, and material stability over the next 1–3 years (strictly no remedies).
+        Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED WEALTH ACCUMULATION & ASSET SHIELD starting with 【...】 (e.g. 【ಧನ ಸಮೃದ್ಧಿ & ಆರ್ಥಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Wealth Prosperity & Investment Shield】): Write 100% about the native's personal wealth accumulation habits, asset preservation, family financial security, investment prudence, and material peace of mind.`
    }
 
 5. Health & Vitality:
@@ -941,10 +973,11 @@ For EACH category, write THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINI
         Paragraph 2 (5–6 lines, NO REMEDIES): Real-life somatic stressors—restless sleep/insomnia, digestive sensitivities (Pitta/acidity/bloating), musculoskeletal fatigue in ${lagnaAnatomy}/${rogaAnatomy}, work-life mental exhaustion, and Ayurvedic daily routines.
         Paragraph 3 (5–6 lines, NO REMEDIES): Future physical stamina, seasonal wellness precautions, bodily rejuvenation, and long-term vitality rhythms (strictly no remedies).
         Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಆರೋಗ್ಯ ರಕ್ಷಾ ಶಾಂತಿ】 / 【Dosha Analysis & Health Shield Shanti】): Analyze the detected 6th/8th house roga affliction, and prescribe Mahamrityunjaya japa, Dhanvantari prayer, and Gokarna Mrityunjaya homa.`
-     : `NO DOSHA PRESENT: Write EXACTLY THREE detailed sections separated by double newlines (\\n\\n):
+     : `NO DOSHA PRESENT: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
         Paragraph 1 (5–6 lines, NO REMEDIES): Physical constitution, vital energy, seasonal wellness precautions, and metabolic stamina. Explicitly touch upon bodily sensations and areas (${lagnaAnatomy}, ${rogaAnatomy}).
         Paragraph 2 (5–6 lines, NO REMEDIES): Emotional resilience, mental peace, stress mitigation, circadian sleep hygiene, and Ayurvedic daily routines.
-        Paragraph 3 (5–6 lines, NO REMEDIES): Future physical stamina, seasonal wellness precautions, bodily rejuvenation, and long-term vitality rhythms (strictly no remedies).`
+        Paragraph 3 (5–6 lines, NO REMEDIES): Future physical stamina, seasonal wellness precautions, bodily rejuvenation, and long-term vitality rhythms (strictly no remedies).
+        Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED VITALITY & HEALTH SHIELD starting with 【...】 (e.g. 【ಆರೋಗ್ಯ ಸಂರಕ್ಷಣೆ & ದೈಹಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Vitality Preservation & Wellness Shield】): Write 100% about the native's personal physical constitution, bodily vulnerabilities/sensations (${lagnaAnatomy}, ${rogaAnatomy}), metabolic stamina, and balanced lifestyle rhythms.`
    }
 
 ${JSON_RULE}
@@ -1159,6 +1192,12 @@ ${JSON_RULE}
       "bhavishyaMarriage",
       "You are a revered Vedic master astrologer providing an in-depth, authentic reading on Marriage, Compatibility, and Partnerships for " + input.name + "."
     )}
+DEVOTEE INQUEST QUESTION TO DIRECTLY ADDRESS AND ANSWER:
+"${marQuestion}"
+
+DEVOTEE INQUEST QUESTION TO DIRECTLY ADDRESS AND ANSWER:
+"${chdQuestion}"
+
 CRITICAL MANDATE FOR ${d.statusDesc}:
 Write exhaustive, deeply personalized astrological analysis strictly based on ${input.name}'s Janma Kundali.
 Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
@@ -1377,6 +1416,9 @@ ${JSON_RULE}
     "bhavishyaCareer",
     "You are a revered Vedic master astrologer providing an in-depth reading on Career, Vocation, and Professional Ascent for " + input.name + "."
   )}
+DEVOTEE INQUEST QUESTION TO DIRECTLY ADDRESS AND ANSWER:
+"${carQuestion}"
+
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
 Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
@@ -1465,6 +1507,9 @@ ${JSON_RULE}
     "bhavishyaWealth",
     "You are a revered Vedic master astrologer providing an in-depth reading on Wealth, Assets, and Financial Destiny for " + input.name + "."
   )}
+DEVOTEE INQUEST QUESTION TO DIRECTLY ADDRESS AND ANSWER:
+"${wlhQuestion}"
+
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
 Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
@@ -1556,6 +1601,9 @@ ${JSON_RULE}
     "bhavishyaHealth",
     "You are a revered Vedic master astrologer providing an in-depth reading on Health, Vitality, and Longevity for " + input.name + "."
   )}
+DEVOTEE INQUEST QUESTION TO DIRECTLY ADDRESS AND ANSWER:
+"${hltQuestion}"
+
 CRITICAL MANDATE:
 Write exhaustive, deeply personalized analysis strictly based on ${input.name}'s Janma Kundali.
 Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
