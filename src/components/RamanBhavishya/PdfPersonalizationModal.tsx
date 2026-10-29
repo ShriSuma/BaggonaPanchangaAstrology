@@ -6,6 +6,7 @@ export type PersonalizationState = {
   maritalStatus: "unmarried" | "married" | "general";
   childrenStatus: "has_children" | "no_children" | "general";
   childFocus?: "education" | "activities" | "health" | "general";
+  youthFocus?: "higher_education" | "competitive_exams" | "career_foundation" | "general";
 };
 
 type Props = {
@@ -27,11 +28,13 @@ export default function PdfPersonalizationModal({
   onClose,
   onConfirm
 }: Props): JSX.Element | null {
-  const isChild = ageYears !== undefined && ageYears < 8;
+  const isChild = ageYears !== undefined && ageYears < 12;
+  const isYouth = ageYears !== undefined && ageYears >= 12 && ageYears < 22;
 
   const [maritalStatus, setMaritalStatus] = useState<"unmarried" | "married" | "general">(initialMaritalStatus);
   const [childrenStatus, setChildrenStatus] = useState<"has_children" | "no_children" | "general">(initialChildrenStatus);
   const [childFocus, setChildFocus] = useState<"education" | "activities" | "health" | "general">("education");
+  const [youthFocus, setYouthFocus] = useState<"higher_education" | "competitive_exams" | "career_foundation" | "general">("higher_education");
   const [activePreviewTab, setActivePreviewTab] = useState<"marriage" | "children">("marriage");
 
   useEffect(() => {
@@ -42,41 +45,71 @@ export default function PdfPersonalizationModal({
   }, [isOpen, initialMaritalStatus, initialChildrenStatus]);
 
   const liveMarriageText = useMemo(() => {
-    if (isChild) return "";
+    if (isChild || isYouth) return "";
     return buildPersonalizedMarriageText(lang, "", "", maritalStatus);
-  }, [lang, maritalStatus, isChild]);
+  }, [lang, maritalStatus, isChild, isYouth]);
 
   const liveChildrenText = useMemo(() => {
-    if (isChild) return "";
+    if (isChild || isYouth) return "";
     return buildPersonalizedChildrenText(lang, childrenStatus);
-  }, [lang, childrenStatus, isChild]);
+  }, [lang, childrenStatus, isChild, isYouth]);
 
   if (!isOpen) return null;
 
   const titleMap = {
-    kn: isChild ? "ಬಾಲ ಜಾತಕ ಪ್ರೀಮಿಯಂ ಪಿಡಿಎಫ್ ಗ್ರಾಹಕೀಕರಣ" : "ಪ್ರೀಮಿಯಂ ಪಿಡಿಎಫ್ V1 ಗ್ರಾಹಕೀಕರಣ",
-    en: isChild ? "Child Horoscope Premium PDF Personalization" : "Premium PDF V1 Personalization",
-    hi: isChild ? "बाल कुंडली प्रीमियम पीडीएफ कस्टमाइज़ेशन" : "प्रीमियम पीडीएफ V1 कस्टमाइज़ेशन",
-    te: isChild ? "బాల జాతకం ప్రీమియం పిడిఎఫ్ వ్యక్తిగతీకరణ" : "ప్రీమియం పిడిఎఫ్ V1 వ్యక్తిగతీకరణ",
-    ta: isChild ? "குழந்தை ஜாதகம் பிரீமியம் PDF தனிப்பயனாக்கம்" : "பிரீமியம் PDF V1 தனிப்பயனாக்கம்"
+    kn: isChild
+      ? "ಬಾಲ ಜಾತಕ ಪ್ರೀಮಿಯಂ ಪಿಡಿಎಫ್ ಗ್ರಾಹಕೀಕರಣ"
+      : isYouth
+        ? "ಯುವ ಜಾತಕ ಪ್ರೀಮಿಯಂ ಪಿಡಿಎಫ್ ಗ್ರಾಹಕೀಕರಣ (ವಿದ್ಯಾ & ಭವಿಷ್ಯದ ಆದ್ಯತೆ)"
+        : "ಪ್ರೀಮಿಯಂ ಪಿಡಿಎಫ್ V1 ಗ್ರಾಹಕೀಕರಣ",
+    en: isChild
+      ? "Child Horoscope Premium PDF Personalization"
+      : isYouth
+        ? "Youth Horoscope Premium PDF Personalization (Studies & Career Focus)"
+        : "Premium PDF V1 Personalization",
+    hi: isChild
+      ? "बाल कुंडली प्रीमियम पीडीएफ कस्टमाइज़ेशन"
+      : isYouth
+        ? "युवा कुंडली प्रीमियम पीडीएफ कस्टमाइज़ेशन (शिक्षा एवं करियर फोकस)"
+        : "प्रीमियम पीडीएफ V1 कस्टमाइज़ेशन",
+    te: isChild
+      ? "బాల జాతకం ప్రీమియం పిడిఎఫ్ వ్యక్తిగతీకరణ"
+      : isYouth
+        ? "యువ జాతకం ప్రీమియం పిడిఎఫ్ వ్యక్తిగతీకరణ (విద్య & కెరీర్ లక్ష్యం)"
+        : "ప్రీమియం పిడిఎఫ్ V1 వ్యక్తిగతీకరణ",
+    ta: isChild
+      ? "குழந்தை ஜாதகம் பிரீமியம் PDF தனிப்பயனாக்கம்"
+      : isYouth
+        ? "இளைஞர் ஜாதகம் பிரீமியம் PDF தனிப்பயனாக்கம் (கல்வி & தொழில் வழிகாட்டுதல்)"
+        : "பிரீமியம் PDF V1 தனிப்பயனாக்கம்"
   };
 
   const subtitleMap = {
     kn: isChild
       ? "ಮಗುವಿನ ವಿದ್ಯಾಭ್ಯಾಸ, ಬುದ್ಧಿಶಕ್ತಿ, ಆಟ-ಚಟುವಟಿಕೆಗಳು ಹಾಗೂ ದೈಹಿಕ ಆರೋಗ್ಯದ ನಿಖರ ಭವಿಷ್ಯಕ್ಕೆ ಆದ್ಯತೆ ಆಯ್ಕೆ ಮಾಡಿ:"
-      : "ನಿಮ್ಮ ವೈವಾಹಿಕ ಮತ್ತು ಸಂತಾನ ಸ್ಥಿತಿ ಆಯ್ಕೆ ಮಾಡಿ. ಕ್ಲಿಕ್ ಮಾಡಿದ ತಕ್ಷಣ ಕೆಳಗೆ ಲೈವ್ ನಿರೂಪಣೆ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ:",
+      : isYouth
+        ? "ಉನ್ನತ ವಿದ್ಯಾಭ್ಯಾಸ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಅಡಿಪಾಯಕ್ಕೆ ಆದ್ಯತೆ ಆಯ್ಕೆ ಮಾಡಿ:"
+        : "ನಿಮ್ಮ ವೈವಾಹಿಕ ಮತ್ತು ಸಂತಾನ ಸ್ಥಿತಿ ಆಯ್ಕೆ ಮಾಡಿ. ಕ್ಲಿಕ್ ಮಾಡಿದ ತಕ್ಷಣ ಕೆಳಗೆ ಲೈವ್ ನಿರೂಪಣೆ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ:",
     en: isChild
       ? "Select key growth areas for targeted child education, intellect, creative activities, and vitality:"
-      : "Select your marital and children status. Narration dynamically updates live on click:",
+      : isYouth
+        ? "Select primary growth focus for higher studies, competitive exams, mental focus, and career foundation:"
+        : "Select your marital and children status. Narration dynamically updates live on click:",
     hi: isChild
       ? "बच्चे की शिक्षा, बुद्धि, रचनात्मक गतिविधियों एवं स्वास्थ्य के लिए प्राथमिक क्षेत्र चुनें:"
-      : "अपनी वैवाहिक एवं संतान स्थिति चुनें। क्लिक करते ही लाइव व्याख्या तुरंत अपडेट होगी:",
+      : isYouth
+        ? "उच्च शिक्षा, प्रतियोगी परीक्षा, मानसिक एकाग्रता एवं भावी करियर के लिए प्राथमिक क्षेत्र चुनें:"
+        : "अपनी वैवाहिक एवं संतान स्थिति चुनें। क्लिक करते ही लाइव व्याख्या तुरंत अपडेट होगी:",
     te: isChild
       ? "పిల్లల విద్య, బుద్ధివికాసం, సృజనాత్మకత మరియు ఆరోగ్య సంరక్షణ కోసం ప్రాధాన్యతను ఎంచుకోండి:"
-      : "మీ వైవాహిక మరియు సంతాన స్థితిని ఎంచుకోండి. క్లిక్ చేయగానే వివరణ ప్రత్యక్షంగా నవీకరించబడుతుంది:",
+      : isYouth
+        ? "ఉన్నత విద్య, పోటీ పరీక్షలు, ఏకాగ్రత మరియు కెరీర్ పునాది కోసం ప్రాధాన్యతను ఎంచుకోండి:"
+        : "మీ వైవాహిక మరియు సంతాన స్థితిని ఎంచుకోండి. క్లిక్ చేయగానే వివరణ ప్రత్యక్షంగా నవీకరించబడుతుంది:",
     ta: isChild
       ? "குழந்தையின் கல்வி, புத்தி கூர்மை, விளையாட்டு மற்றும் உடல் ஆரோக்கியத்திற்கான முக்கிய வழிகாட்டுதலைத் தேர்ந்தெடுக்கவும்:"
-      : "உங்கள் திருமண மற்றும் சந்ததி நிலையைத் தேர்ந்தெடுக்கவும். கிளிக் செய்தவுடன் நேரலை பலன்கள் மாறும்:"
+      : isYouth
+        ? "உயர்கல்வி, போட்டித் தேர்வுகள், மன உறுதி மற்றும் தொழில் அடித்தளத்திற்கான வழிகாட்டுதலைத் தேர்ந்தெடுக்கவும்:"
+        : "உங்கள் திருமண மற்றும் சந்ததி நிலையைத் தேர்ந்தெடுக்கவும். கிளிக் செய்தவுடன் நேரலை பலன்கள் மாறும்:"
   };
 
   return (
@@ -131,6 +164,41 @@ export default function PdfPersonalizationModal({
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+        ) : isYouth ? (
+          /* Youth-Specific Studies, Competitive Exams & Career Foundation Focus */
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-amber-900">
+                {lang === "kn" ? "ಯುವ ವಿದ್ಯಾಭ್ಯಾಸ & ಭವಿಷ್ಯದ ಆದ್ಯತೆ (Youth Focus Area)" : "Youth & Student Focus Area"}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: "higher_education", label: { kn: "🎓 ಉನ್ನತ ಶಿಕ್ಷಣ & ವಿದ್ಯಾ ಸಾಧನೆ", en: "🎓 Higher Studies & Scholastic Excellence", hi: "🎓 उच्च शिक्षा एवं विद्वता", te: "🎓 ఉన్నత విద్య & విద్యా నైపుణ్యం", ta: "🎓 உயர்கல்வி & கல்விச் சிறப்பு" } },
+                  { id: "competitive_exams", label: { kn: "🎯 ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ & ಏಕಾಗ್ರತೆ", en: "🎯 Competitive Exams & Focus", hi: "🎯 प्रतियोगी परीक्षा एवं एकाग्रता", te: "🎯 పోటీ పరీక్షలు & ఏకాగ్రత", ta: "🎯 போட்டித் தேர்வுகள் & மனக்குவிப்பு" } },
+                  { id: "career_foundation", label: { kn: "🚀 ವೃತ್ತಿ ಅಡಿಪಾಯ & ಕೌಶಲ್ಯ", en: "🚀 Career Foundation & Skills", hi: "🚀 करियर की नींव एवं कौशल", te: "🚀 కెరీర్ పునాది & నైపుణ్యాలు", ta: "🚀 தொழில் அடித்தளம் & திறன்கள்" } },
+                  { id: "general", label: { kn: "🌟 ಸರ್ವತೋಮುಖ ವಿಕಾಸ & ವ್ಯಕ್ತಿತ್ವ", en: "🌟 All-round Character & Guidance", hi: "🌟 सर्वांगीण विकास एवं मार्गदर्शन", te: "🌟 సమగ్ర వికాసం & వ్యక్తిత్వం", ta: "🌟 முழுமையான வளர்ச்சி & ஆளுமை" } }
+                ].map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setYouthFocus(opt.id as any)}
+                    className={`rounded-xl border p-3 text-xs font-bold transition text-center cursor-pointer ${
+                      youthFocus === opt.id
+                        ? "border-amber-700 bg-amber-800 text-amber-50 shadow-md ring-2 ring-amber-400"
+                        : "border-amber-300 bg-white text-amber-900 hover:bg-amber-100"
+                    }`}
+                  >
+                    {pick(opt.label, lang)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="p-3 bg-amber-100/80 rounded-xl border border-amber-300/80 text-xs text-amber-950 font-medium">
+              ℹ️ {lang === "kn"
+                ? "ಯುವ ವಯೋಮಾನದವರಿಗೆ (೧೨-೨೧ ವರ್ಷ) ವಿವಾಹ ಮತ್ತು ಸಂತಾನ ಪ್ರಶ್ನೆಗಳನ್ನು ಹೊರತುಪಡಿಸಿ, ವ್ಯಕ್ತಿತ್ವ ನಿರ್ಮಾಣ, ಮಾನಸಿಕ ಏಕಾಗ್ರತೆ, ಉನ್ನತ ಶಿಕ್ಷಣ ಹಾಗೂ ವೃತ್ತಿ ಅಡಿಪಾಯದ ಮೇಲೆ ಪೂರ್ಣ ವಿಶ್ಲೇಷಣೆ ಸಿದ್ಧವಾಗುತ್ತದೆ."
+                : "For youth (12–21 years), the report focuses exclusively on character formation, mental focus, higher education, future career foundation, and financial discipline instead of adult marital/progeny questions."}
             </div>
           </div>
         ) : (
@@ -268,7 +336,9 @@ export default function PdfPersonalizationModal({
               onConfirm(
                 isChild
                   ? { maritalStatus: "general", childrenStatus: "general", childFocus }
-                  : { maritalStatus, childrenStatus }
+                  : isYouth
+                    ? { maritalStatus: "unmarried", childrenStatus: "no_children", youthFocus }
+                    : { maritalStatus, childrenStatus }
               )
             }
             className="flex-1 rounded-xl bg-gradient-to-r from-amber-600 via-amber-700 to-orange-700 py-3.5 text-sm font-black text-white shadow-lg hover:from-amber-700 hover:to-orange-800 transition cursor-pointer border border-amber-300"

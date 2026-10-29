@@ -1110,7 +1110,7 @@ export async function prepareBhavishyaV1Data(
     }
   }
 
-  const isChild = ageYears < 8;
+  const isChild = ageYears < 12;
   const v1Predictions: TranslatedPrediction[] = [];
   const aiB = dataBhavishya?.bhavishya || {};
 

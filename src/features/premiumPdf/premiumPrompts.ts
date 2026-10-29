@@ -507,6 +507,21 @@ ${JSON_RULE}
     "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"
   ];
 
+  const formatPlacementText = (p: NatalPlacement | undefined): string => {
+    if (!p) return lang === "kn" ? "ಕುಂಡಲಿಯಲ್ಲಿ ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು" : lang === "hi" ? "कुंडली में सुस्थित होकर" : lang === "te" ? "కుండలిలో సుస్థితిలో ఉండి" : lang === "ta" ? "ஜாதகத்தில் சுப ஸ்தானத்தில் அமர்ந்து" : "favorably placed in chart";
+    const sign = rashiName(p.rashiIndex, lang);
+    let dignity = "";
+    if (p.exalted) dignity = lang === "kn" ? " ಉಚ್ಚ ಸ್ಥಿತಿಯಲ್ಲಿ" : lang === "hi" ? " उच्च अवस्था में" : lang === "te" ? " ఉచ్ఛ స్థితిలో" : lang === "ta" ? " உச்ச நிலையில்" : " in exalted state";
+    else if (p.debilitated) dignity = lang === "kn" ? " ನೀಚ ಸ್ಥಿತಿಯಲ್ಲಿ" : lang === "hi" ? " नीच अवस्था में" : lang === "te" ? " నీచ స్థితిలో" : lang === "ta" ? " நீச நிலையில்" : " in debilitated state";
+    else if (p.retrograde) dignity = lang === "kn" ? " ವಕ್ರ ಗತಿಯಲ್ಲಿ" : lang === "hi" ? " वक्र गति में" : lang === "te" ? " వక్ర గతిలో" : lang === "ta" ? " வக்ர நிலையில்" : " in retrograde motion";
+
+    if (lang === "kn") return `${sign} ರಾಶಿಯಲ್ಲಿ ${p.house}ನೇ ಮನೆಯಲ್ಲಿದ್ದು${dignity}`;
+    if (lang === "hi") return `${sign} राशि में ${p.house}वें भाव में स्थित होकर${dignity}`;
+    if (lang === "te") return `${sign} రాశిలో ${p.house}వ స్థానంలో స్థితుడై${dignity}`;
+    if (lang === "ta") return `${sign} ராசியில் ${p.house}ஆம் பாவத்தில் அமர்ந்து${dignity}`;
+    return `in ${sign} in house ${p.house}${dignity}`;
+  };
+
   const getHouseInfo = (houseNum: number) => {
     const signIdx = (lagnaIdx + houseNum - 1) % 12;
     const sign = rashiName(signIdx, lang);
@@ -514,13 +529,10 @@ ${JSON_RULE}
     const lordStr = grahaName(lord, lang);
     const lordPlacement = input.natalPlanets.find(p => p.graha === lord);
     const occupants = input.natalPlanets.filter(p => p.house === houseNum).map(p => grahaName(p.graha, lang));
-    const lordFlags: string[] = [];
-    if (lordPlacement?.exalted) lordFlags.push("exalted");
-    if (lordPlacement?.debilitated) lordFlags.push("debilitated");
-    if (lordPlacement?.retrograde) lordFlags.push("retrograde");
-    const lordDignity = lordFlags.length ? ` (${lordFlags.join(", ")})` : "";
-    const lordWhere = lordPlacement ? `in Bhava ${lordPlacement.house} (${rashiName(lordPlacement.rashiIndex, lang)})${lordDignity}` : "unplaced";
-    const occStr = occupants.length ? occupants.join(", ") : "no planets occupying";
+    const lordWhere = formatPlacementText(lordPlacement);
+    const occStr = occupants.length
+      ? occupants.join(", ")
+      : (lang === "kn" ? "ಯಾವ ಗ್ರಹಗಳೂ ಇರುವುದಿಲ್ಲ" : lang === "hi" ? "कोई ग्रह नहीं" : lang === "te" ? "గ్రహాలు లేవు" : lang === "ta" ? "கிரகங்கள் இல்லை" : "no planets occupying");
     return { signIdx, sign, lord, lordStr, lordWhere, occStr };
   };
 
@@ -564,13 +576,21 @@ ${JSON_RULE}
   const rogaAnatomy = anatomicalVulnerabilitiesBySign[h6.signIdx] || "digestive and metabolic balance";
 
   const isInfant = input.ageYears < 5;
+  const isEarlyChild = input.ageYears >= 5 && input.ageYears < 12;
   const isChild = input.ageYears < 12;
+  const isEarlyYouth = input.ageYears >= 12 && input.ageYears < 17;
+  const isCollegeYouth = input.ageYears >= 17 && input.ageYears < 22;
   const isYouth = input.ageYears >= 12 && input.ageYears < 22;
-  const isSenior = input.ageYears >= 60;
+  const isYoungAdult = input.ageYears >= 22 && input.ageYears < 36;
+  const isMidAdult = input.ageYears >= 36 && input.ageYears < 50;
+  const isMatureAdult = input.ageYears >= 50 && input.ageYears < 60;
+  const isSenior = input.ageYears >= 60 && input.ageYears < 75;
+  const isElder = input.ageYears >= 75;
+  const isElderSenior = input.ageYears >= 60;
   const isAdult = input.ageYears >= 22 && input.ageYears < 60;
   const isChildNative = input.ageYears < 14;
 
-  // Strict Parashari Dosha detection per life category
+  // Strict Parashari Dosha detection per life category (Localized multi-script regexes)
   const h7Occupants = input.natalPlanets.filter(p => p.house === 7);
   const h8Occupants = input.natalPlanets.filter(p => p.house === 8);
   const hasMarriageDosha = !!(
@@ -578,7 +598,7 @@ ${JSON_RULE}
     h7Occupants.some(p => ["Rahu", "Ketu", "Saturn", "Mars"].includes(p.graha)) ||
     h8Occupants.some(p => ["Rahu", "Ketu", "Saturn", "Mars"].includes(p.graha)) ||
     input.natalPlanets.find(p => p.graha === h7.lord)?.debilitated ||
-    (!input.isManglikCancelled && input.engineDoshas.some(d => /kuja|manglik|kalatra|vivaha|7th|8th/i.test(d.name)))
+    (!input.isManglikCancelled && input.engineDoshas.some(d => /kuja|manglik|kalatra|vivaha|7th|8th|ಕುಜ|ಮಾಂಗಲಿಕ|ಕಳತ್ರ|ವಿವಾಹ|कुज|मांगलिक|कलत्र|विवाह|కుజ|మాంగళిక|కళత్ర|వివాహ|குஜ|மாங்கல்ய|களத்திர|திருமண/i.test(d.name)))
   );
 
   const h5Occupants = input.natalPlanets.filter(p => p.house === 5);
@@ -586,13 +606,13 @@ ${JSON_RULE}
     h5Occupants.some(p => ["Rahu", "Ketu", "Saturn", "Mars"].includes(p.graha)) ||
     input.natalPlanets.find(p => p.graha === h5.lord)?.debilitated ||
     jupiterPlacement?.debilitated ||
-    input.engineDoshas.some(d => /santana|putra|naga|sarpa|pitru|5th/i.test(d.name))
+    input.engineDoshas.some(d => /santana|putra|naga|sarpa|pitru|5th|ಸಂತಾನ|ಪುತ್ರ|ನಾಗ|ಸರ್ಪ|ಪಿತೃ|संतान|पुत्र|नाग|सर्प|पितृ|సంతాన|పుత్ర|నాగ|సర్ప|పితృ|சந்தான|புத்திர|நாக|சர்ப்ப|பித்ரு/i.test(d.name))
   );
 
   const hasBalyaDosha = isChildNative && !!(
     (moonPlacement && [6, 8, 12].includes(moonPlacement.house)) ||
     input.natalPlanets.find(p => p.graha === h1.lord)?.debilitated ||
-    input.engineDoshas.some(d => /balarishta|balya|gandanta|arogya|pediatric/i.test(d.name))
+    input.engineDoshas.some(d => /balarishta|balya|gandanta|arogya|pediatric|ಬಾಲಾರಿಷ್ಟ|ಬಾಲ್ಯ|ಗಂಡಾಂತ|ಆರೋಗ್ಯ|बालारिष्ट|बाल्य|गंडांत|आरोग्य|బాలారిష్ట|బాల్య|గండాంత|ఆరోగ్య|பாலாரிஷ்ட|பால்ய|கண்டாந்த|ஆரோக்கிய/i.test(d.name))
   );
 
   const h10Occupants = input.natalPlanets.filter(p => p.house === 10);
@@ -600,7 +620,7 @@ ${JSON_RULE}
     h10Occupants.some(p => ["Rahu", "Ketu"].includes(p.graha)) ||
     input.natalPlanets.find(p => p.graha === h10.lord)?.debilitated ||
     saturnPlacement?.debilitated ||
-    input.engineDoshas.some(d => /karma|shrapit|amavasya|grahan|10th/i.test(d.name))
+    input.engineDoshas.some(d => /karma|shrapit|amavasya|grahan|10th|ಕರ್ಮ|ಶ್ರಾಪಿತ|ಅಮಾವಾಸ್ಯೆ|ಗ್ರಹಣ|कर्म|श्रापित|अमावस्या|ग्रहण|కర్మ|శ్రాపిత|అమావాస్య|గ్రహణ|கர்ம|ஸ்ராபித|அமாவாசை|கிரகண/i.test(d.name))
   );
 
   const h2Occupants = input.natalPlanets.filter(p => p.house === 2);
@@ -609,7 +629,7 @@ ${JSON_RULE}
     h2Occupants.some(p => ["Rahu", "Ketu"].includes(p.graha)) ||
     h11Occupants.some(p => ["Rahu", "Ketu"].includes(p.graha)) ||
     input.natalPlanets.find(p => p.graha === h2.lord)?.debilitated ||
-    input.engineDoshas.some(d => /dhana|daridra|kemadruma|2nd|11th/i.test(d.name))
+    input.engineDoshas.some(d => /dhana|daridra|kemadruma|2nd|11th|ಧನ|ದಾರಿದ್ರ್ಯ|ಕೇಮದ್ರುಮ|धन|दारिद्र्य|केमद्रुम|ధన|దారిద్ర్య|కేమద్రుమ|தன|தாரித்ரிய|கேமத்ரும/i.test(d.name))
   );
 
   const h6Occupants = input.natalPlanets.filter(p => p.house === 6);
@@ -617,8 +637,224 @@ ${JSON_RULE}
     h6Occupants.some(p => ["Saturn", "Rahu", "Mars"].includes(p.graha)) ||
     input.natalPlanets.find(p => p.graha === h6.lord)?.debilitated ||
     input.natalPlanets.find(p => p.graha === h1.lord)?.debilitated ||
-    input.engineDoshas.some(d => /roga|maraka|mrityu|balarishta|health|arogya/i.test(d.name))
+    input.engineDoshas.some(d => /roga|maraka|mrityu|balarishta|health|arogya|ರೋಗ|ಮಾರಕ|ಮೃತ್ಯು|ಬಾಲಾರಿಷ್ಟ|ಆರೋಗ್ಯ|रोग|मारक|मृत्यु|बालारिष्ट|आरोग्य|రోగ|మారక|మృత్యు|బాలారిష్ట|ఆరోగ్య|ரோக|மாரக|மிருத்யு|பாலாரிஷ்ட|ஆரோக்கிய/i.test(d.name))
   );
+
+  const getMarriageDirectives = () => {
+    if (maritalSel === "married" && childrenSel === "has_children") {
+      return {
+        statusDesc: "ALREADY MARRIED WITH CHILDREN",
+        p1: "Foundation of marital partnership rooted in 7th house, 7th lord, and running Dasha-Bhukti. Analyze how planetary positions bless the mature, enduring bond of husband and wife managing a home and family. NEVER mention matchmaking, wedding proposals, alliance search, or marriage timing.",
+        p2: "Real-life marital dynamics: co-parenting harmony, mutual respect in financial decisions, dividing domestic duties, emotional closeness amidst routine life, resolving occasional miscommunications or stress from work spilling into home, and standing as loving partners in raising children.",
+        p3: "Future marital harmony, upcoming Gochara transits of Guru and Shani over the next 1–3 years, deepening companionship, joint family achievements, and enduring domestic tranquility (strictly no remedies).",
+        p4Callout: hasMarriageDosha
+          ? "Analyze the detected planetary friction affecting domestic peace or spouse's stress, and prescribe specific Vedic remedies (Lakshmi-Narayana or Gauri-Shankara pooja at Sri Kshetra Gokarna Mahabaleshwara) strictly for marital peace—NEVER for 'marriage delay'."
+          : "Write 100% about the couple's deep mutual trust, shared values, emotional intimacy, and protective marital sanctuary."
+      };
+    }
+    if (maritalSel === "married" && childrenSel === "no_children") {
+      return {
+        statusDesc: "MARRIED COUPLE WITHOUT CHILDREN",
+        p1: "Foundation of marriage rooted in 7th house, 7th lord, and running Dasha-Bhukti. Deep soul connection and mutual devotion between the two partners. STRICT MANDATE: ZERO MENTION OF CHILDREN, SCHOOLING, PARENTING, OR CHILD-RAISING IN THIS CHAPTER.",
+        p2: "Real-life partnership dynamics: standing as a steadfast emotional sanctuary and pillar of strength for each other. Complete mutual trust, shared ambitions, domestic warmth, and navigating external societal or family pressures together as an unbreakable united team.",
+        p3: "Future marital trajectory, upcoming Gochara transits of Guru and Shani over the next 1–3 years, strengthening emotional and material security, shared travel, and flourishing mutual companionship (strictly no remedies).",
+        p4Callout: hasMarriageDosha
+          ? "Analyze the detected planetary friction in 7th/8th house affecting spousal harmony or health, and prescribe specific Vedic remedies at Sri Kshetra Gokarna Mahabaleshwara for mutual peace."
+          : "Write 100% about the couple's profound mutual companionship, emotional warmth, deep alignment of hearts, and unconditional spousal devotion."
+      };
+    }
+    if (maritalSel === "unmarried") {
+      return {
+        statusDesc: "UNMARRIED / SEEKING LIFE PARTNER",
+        p1: "Astrological foundation of marriage alliance: 7th house sign, 7th lord placement, Vivahakaraka, and vivaha yoga potential under running Dasha-Bhukti. Timing of auspicious alliance windows.",
+        p2: "Real-life emotional and partner-search reality: navigating alliance proposals, overcoming internal confusion, hesitations, or family anxiety over marriage timing, identifying essential character traits of an ideal partner reflecting the 7th lord, and avoiding hasty decisions.",
+        p3: "Auspicious marriage timing windows, favorable Gochara transits (Guru Bala and Saturn transit support) over the next 1–3 years, direction of spouse, and smooth alliance finalization (strictly no remedies).",
+        p4Callout: hasMarriageDosha
+          ? `Analyze the detected ${isManglik ? "Kuja/Manglik Dosha" : "7th/8th house obstacle"} causing hesitation or delay in finding the right partner, and prescribe specific Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja at Sri Kshetra Gokarna Mahabaleshwara" : "Gauri-Shankara Kalyana Pooja at Sri Kshetra Gokarna Mahabaleshwara"}) for early, auspicious marriage settlement.`
+          : "Write 100% about the native's auspicious Vivaha Yoga, emotional maturity, ready alignment for a noble life partner, and divine blessings for a joyful marital union."
+      };
+    }
+    // When marital status is "general" (client's marital status is unknown/unspecified):
+    // Perform 100% authentic Vedic astrological deduction based on Age, 7th house, running Dasha-Bhukti, Gochara, and Doshas:
+    if (isChild || isYouth) {
+      return {
+        statusDesc: "DEDUCED: YOUTH COHORT — CHARACTER, EMOTIONAL MATURITY & SELF-DISCIPLINE",
+        p1: `Classical 7th house (${h7.sign}) and 7th lord ${h7.lordStr} analysis. At age ${Math.floor(input.ageYears)}, this house governs emotional poise, personal boundaries, character formation, and mutual respect with peers and mentors under running ${dashaLine}. STRICT MANDATE: ABSOLUTELY ZERO MENTION OF MARRIAGE, DATING, ROMANCE, WEDDINGS, OR PROPOSALS.`,
+        p2: "Developing mutual understanding, choosing noble friendships, respecting teachers and family elders, maintaining emotional discipline, and avoiding premature social distractions.",
+        p3: "Character cultivation, interpersonal maturity, and building positive social confidence over the next 1–3 years (strictly no remedies).",
+        p4Callout: hasMarriageDosha
+          ? "Analyze subtle planetary influences causing restlessness or social distraction, and prescribe morning Gayatri prayer and Ganesha invocation for steadfast willpower and academic focus."
+          : "Write 100% about the youth's innate moral clarity, emotional boundaries, noble companions, and radiant character."
+      };
+    }
+
+    if (input.ageYears < 30) {
+      // Young Adult (22-29): Prime Vivaha Yoga / Alliance Discovery Phase
+      if (hasMarriageDosha) {
+        return {
+          statusDesc: "DEDUCED: YOUNG ADULT FACING VIVAHA DELAYS / DOSHA OBSTACLES",
+          p1: `Classical 7th house (${h7.sign}), 7th lord ${h7.lordStr} placed ${h7.lordWhere}, and running ${dashaLine}. At age ${Math.floor(input.ageYears)}, astrological scrutiny reveals that detected Kuja or Kalatra Dosha has created karmic friction, unexpected hesitations, or matchmaking delays in finalizing marriage alliances. Explain the planetary root cause clearly without inducing fear.`,
+          p2: `Lived reality of matrimonial search: navigating family deliberations, overcoming emotional fatigue from delayed proposals, identifying essential partner character traits matching ${h7.lordStr} arriving from ${spouseDirection} direction, and avoiding hasty compromises.`,
+          p3: `Auspicious timing windows when Gochara Guru and Dasha currents realign over the next 1–2 years to dissolve hurdles and settle the alliance smoothly (strictly no remedies).`,
+          p4Callout: `Analyze the detected matrimonial obstacle and prescribe sacred Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja" : "Gauri-Shankara Kalyana Pooja"} at Sri Kshetra Gokarna Mahabaleshwara) for early, auspicious marriage settlement.`
+        };
+      }
+      return {
+        statusDesc: "DEDUCED: YOUNG ADULT IN ACTIVE VIVAHA YOGA TIMING WINDOW",
+        p1: `Auspicious 7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. At age ${Math.floor(input.ageYears)}, running ${dashaLine} alongside ${isGuruBala ? "active Guru Bala" : "favorable transits"} activates a prime Vivaha Yoga window for matrimonial fruition and establishing an enduring life partnership.`,
+        p2: `Lived reality of alliance finalization: clear partner alignment, meeting a companion with dignified qualities from ${spouseDirection} direction, mutual respect between families, transparent communication, and setting the moral foundation for married life.`,
+        p3: `Smooth matrimonial progression, auspicious timing over the next 1–2 years, and establishing household stability (strictly no remedies).`,
+        p4Callout: "Write 100% about the native's auspicious Vivaha Yoga, emotional maturity, divine blessing for a noble partner, and lasting matrimonial happiness."
+      };
+    }
+
+    if (input.ageYears >= 30 && input.ageYears < 46) {
+      // Core Householder (30-45): Prime Grihastha Life
+      if (hasMarriageDosha) {
+        return {
+          statusDesc: "DEDUCED: HOUSEHOLDER MANAGING MARITAL HARMONY / DOSHA PACIFICATION",
+          p1: `Classical 7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. At age ${Math.floor(input.ageYears)}, the native is in active householder (Grihastha) life. Detected planetary friction touches daily domestic peace, spousal stress, or communication pacing under running ${dashaLine}. NEVER write 'delay in finding a wedding alliance'.`,
+          p2: `Lived reality of marital partnership: navigating shared domestic responsibilities, resolving occasional stubborn friction or work-stress spilling into the home, honoring spouse's perspectives in financial decisions, and maintaining mutual emotional warmth.`,
+          p3: `Future marital harmony, strengthening companionship, and peaceful household stabilization under upcoming Guru and Shani transits over the next 1–3 years (strictly no remedies).`,
+          p4Callout: "Analyze detected domestic/planetary friction and prescribe Lakshmi-Narayana and Gauri-Shankara Pooja at Sri Kshetra Gokarna Mahabaleshwara for deep marital peace, spousal health, and domestic tranquility."
+        };
+      }
+      return {
+        statusDesc: "DEDUCED: ESTABLISHED HOUSEHOLDER WITH DOMESTIC SANCTUARY",
+        p1: `7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. At age ${Math.floor(input.ageYears)}, planetary configurations anchor the native in established householder life, bestowing enduring spousal loyalty, emotional protection, and domestic stability under running ${dashaLine}.`,
+        p2: `Lived reality of partnership: deep mutual respect, collaborative financial planning, spouse serving as a reliable emotional anchor during demanding phases, and creating an inspiring, peaceful home atmosphere.`,
+        p3: `Joint milestones, deepening companionship, family prosperity, and domestic harmony over the next 1–3 years under favorable transits (strictly no remedies).`,
+        p4Callout: "Write 100% about the couple's profound mutual trust, joint achievements, emotional warmth, and domestic sanctuary."
+      };
+    }
+
+    if (input.ageYears >= 46 && input.ageYears < 60) {
+      // Mature Householder (46-59): Mature Marital Partnership & Family Guardian
+      return {
+        statusDesc: "DEDUCED: MATURE HOUSEHOLDER & LIFELONG PARTNERSHIP ANCHOR",
+        p1: `7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. At mature age ${Math.floor(input.ageYears)}, planetary configurations govern enduring marital companionship, spousal health support, and shared guardianship of family dharma under running ${dashaLine}. NEVER write 'wedding proposals' or 'matchmaking'.`,
+        p2: `Lived reality: mutual care, health attentiveness of spouse, joint pride in family achievements, mature understanding without petty friction, and quiet emotional companionship.`,
+        p3: `Deepening mutual peace, family milestones, and domestic tranquility over the next 1–3 years (strictly no remedies).`,
+        p4Callout: hasMarriageDosha
+          ? "Analyze planetary friction affecting spousal health or stress, and prescribe Gauri-Shankara Pooja at Sri Kshetra Gokarna Mahabaleshwara for spousal longevity and domestic peace."
+          : "Write 100% about the couple's lifelong dedication, mutual honor, emotional peace, and family elderhood blessing."
+      };
+    }
+
+    // Senior / Elder (60+)
+    return {
+      statusDesc: "DEDUCED: REVERED SENIOR COMPANIONSHIP & DOMESTIC SERENITY",
+      p1: `7th house (${h7.sign}) and 7th lord ${h7.lordStr} placed ${h7.lordWhere}. As a respected elder at age ${Math.floor(input.ageYears)}, the 7th house radiates lifelong companionship, spousal longevity (Mangalya Sukha), and peaceful twilight years together under running ${dashaLine}. STRICT MANDATE: NEVER MENTION MATCHMAKING OR MARRIAGE DELAY.`,
+      p2: `Lived reality: quiet mutual care, attentive support for each other's physical well-being, shared memories of decades together, and serving as revered marital role models for the younger generation.`,
+      p3: `Serene domestic harmony, family gatherings, and spiritual companionship over the next 1–3 years (strictly no remedies).`,
+      p4Callout: hasMarriageDosha
+        ? "Prescribe sacred Gauri-Shankara and Mahamrityunjaya Pooja at Sri Kshetra Gokarna Mahabaleshwara for spouse's health and longevity."
+        : "Write 100% about the beauty of lifelong companionship, peaceful home atmosphere, and divine marital grace."
+    };
+  };
+
+  const getChildrenDirectives = () => {
+    if (childrenSel === "has_children") {
+      return {
+        statusDesc: "ALREADY HAS CHILDREN (LIVING CHILDREN)",
+        p1: "5th house (Santana & Buddhi Sthana), 5th lord placement, and Putrakaraka Jupiter governing the intellectual brilliance, moral character, and life trajectory of your living children. STRICT MANDATE: NATIVE ALREADY HAS CHILDREN. DO NOT WRITE ABOUT CONCEPTION DELAYS, PREGNANCY ATTEMPTS, OR INFERTILITY WORRIES.",
+        p2: "Real-life parenting dynamics: nurturing your children's scholastic excellence, managing daily parental dilemmas (screen time balance, concentration, exam composure, emotional stubbornness), fostering creative talents, and maintaining warm, respectful parent-child communication.",
+        p3: "Children's upcoming scholastic and personal milestones, academic advancement, flourishing unique talents, and family pride over the next 1–3 years (strictly no remedies).",
+        p4Callout: hasSantanaDosha
+          ? "Analyze subtle planetary afflictions touching the 5th house affecting children's academic focus, health, or emotional restlessness, and prescribe specific protective Vedic remedies (Medha Dakshinamurthy or Santana Gopala Pooja at Sri Kshetra Gokarna Mahabaleshwara) for the children's scholastic success and wellbeing."
+          : "Write 100% about the joy of parenthood, your children's natural intelligence, moral virtues, academic potential, and the lasting pride they bring to your family lineage."
+      };
+    }
+    if (childrenSel === "no_children") {
+      return {
+        statusDesc: "COUPLE WITHOUT CHILDREN / ASPIRING FOR PROGENY",
+        p1: "Deep classical 5th house, 5th lord, and Putrakaraka Jupiter analysis. Compassionate, reverent astrological validation of your heartfelt prayers and quiet longing for a child, reassuring you that lineage continuity is encoded in your Poorva Punya. STRICT MANDATE: DO NOT ASSUME THEY CURRENTLY HAVE CHILDREN. DO NOT DISCUSS SCHOOLING, EXAMS, OR PARENTING.",
+        p2: "Real-life emotional and family reality: acknowledging the quiet emotional heartache and unspoken vulnerability, managing societal or family questions with mutual spousal grace and dignity, standing united as an unwavering emotional anchor for each other, and keeping hope and divine faith strong.",
+        p3: "Astrological timing windows for progeny: analyzing the running Dasha-Bhukti, upcoming Gochara Guru Bala (Jupiter transit from Moon into fertile houses 2, 5, 7, 9, 11), favorable planetary windows over the next 1–3 years, and divine family expansion (strictly no remedies).",
+        p4Callout: hasSantanaDosha
+          ? "Analyze the detected 5th house planetary affliction (Naga/Sarpa Dosha, Rahu-Ketu axis, or Saturn aspect) causing delay in progeny, and prescribe sacred Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Sri Kshetra Gokarna Mahabaleshwara for early, healthy child blessing."
+          : "DEDICATED PROGENY BLESSING & HOPE SHIELD: Reassure the couple with deep spiritual warmth regarding their fertile astrological periods under upcoming Guru transit, divine grace, and joyful readiness for lineage fulfillment."
+      };
+    }
+    // When children status is "general" (client's children status is unknown/unspecified):
+    // Perform 100% authentic Vedic astrological deduction based on Age, 5th house, Putrakaraka Jupiter, and Santana Doshas:
+    if (isChild || isYouth) {
+      return {
+        statusDesc: "DEDUCED: YOUTH COHORT — PURE BUDDHI, VIDYA & SCHOLASTIC INTELLECT",
+        p1: `5th house (${h5.sign}) as Buddhi Sthana, 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter governing intellectual grasping capacity, memory power, and academic focus under running ${dashaLine}. STRICT MANDATE: ZERO MENTION OF PROGENY, CONCEPTION, OR HAVING CHILDREN.`,
+        p2: "Scholastic habits, analytical reasoning, exam composure, creative talents, and discipline in studies.",
+        p3: "Academic milestones, competitive exam success, and cognitive growth over the next 1–3 years (strictly no remedies).",
+        p4Callout: "Write 100% about the student's personal analytical reasoning, memory power, scholarly discipline, and intellectual confidence."
+      };
+    }
+
+    if (input.ageYears < 33) {
+      // Young Adult (22-32): Progeny Horizons & Lineage Expansion Phase
+      if (hasSantanaDosha) {
+        return {
+          statusDesc: "DEDUCED: YOUNG ADULT WITH SANTANA DOSHA / PROGENY DELAY TIMING",
+          p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, astrological analysis reveals that detected Santana or Naga Dosha creates karmic impediments or delays in welcoming children under running ${dashaLine}. Explain how planetary knots cause conception delays or anxiety regarding family expansion.`,
+          p2: "Lived reality: managing emotional vulnerability and silent prayers, standing united as an unwavering team with partner, shielding oneself from outside societal queries, and nurturing physical and emotional health.",
+          p3: "Astrological timing windows when upcoming Guru Gochara into fertile houses activates progeny blessing over the next 1–3 years (strictly no remedies).",
+          p4Callout: "Analyze the detected 5th house affliction (Santana/Naga Dosha) and prescribe sacred Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Sri Kshetra Gokarna Mahabaleshwara for early, healthy child blessing."
+        };
+      }
+      return {
+        statusDesc: "DEDUCED: YOUNG ADULT WITH AUSPICIOUS PROGENY & LINEAGE BLESSING",
+        p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, unobstructed 5th house configurations indicate auspicious Poorva Punya, strong lineage continuity, and divine blessings for family expansion under running ${dashaLine}.`,
+        p2: "Lived reality: maintaining a harmonious domestic environment, physical wellness, readiness for parenthood, and fostering creative and intellectual vitality.",
+        p3: "Auspicious fertility windows, upcoming Guru Gochara support, and joyful lineage expansion over the next 1–3 years (strictly no remedies).",
+        p4Callout: "Write 100% about the native's auspicious Santana Yoga, intellectual virtues, divine lineage protection, and joyful family expansion."
+      };
+    }
+
+    if (input.ageYears >= 33 && input.ageYears < 48) {
+      // Core Householder (33-47): Parenting of School-Going Children
+      if (hasSantanaDosha) {
+        return {
+          statusDesc: "DEDUCED: HOUSEHOLDER MANAGING CHILDREN WELFARE / ACADEMIC SHIELD",
+          p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, 5th house governs children's intellectual development, academic progress, and well-being. Detected planetary friction reflects parental anxiety regarding children's focus, health sensitivities, or exam composure under running ${dashaLine}.`,
+          p2: "Lived reality of parenting: guiding children through academic pressures, addressing screen-time balance, fostering emotional openness, and supporting their unique talents without harsh comparisons.",
+          p3: "Children's scholastic improvement, flourishing skills, and emotional maturity over the next 1–3 years (strictly no remedies).",
+          p4Callout: "Analyze detected 5th house friction and prescribe Medha Dakshinamurthy and Santana Gopala Pooja at Sri Kshetra Gokarna Mahabaleshwara for children's academic brilliance, focus, and health protection."
+        };
+      }
+      return {
+        statusDesc: "DEDUCED: HOUSEHOLDER WITH SCHOLASTIC EXCELLENCE & FAMILY PRIDE",
+        p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. At age ${Math.floor(input.ageYears)}, 5th house blesses the native with virtuous, intelligent offspring whose academic accomplishments and moral character bring pride to the household under running ${dashaLine}.`,
+        p2: "Parenting dynamics: nurturing children's talents, cultivating deep parent-child trust, supporting their educational milestones, and celebrating their achievements.",
+        p3: "Children's upcoming scholastic distinctions, creative flowering, and family joy over the next 1–3 years under favorable transits (strictly no remedies).",
+        p4Callout: "Write 100% about the joy of parenthood, children's high intelligence, virtuous upbringing, and lasting pride in family lineage."
+      };
+    }
+
+    if (input.ageYears >= 48 && input.ageYears < 60) {
+      // Mature Householder (48-59): Grown Children Higher Education & Settlement
+      return {
+        statusDesc: "DEDUCED: MATURE HOUSEHOLDER — GROWN CHILDREN CAREER & SETTLEMENT",
+        p1: `5th house (${h5.sign}) and 5th lord ${h5.lordStr} placed ${h5.lordWhere}. At mature age ${Math.floor(input.ageYears)}, 5th house reflects the fruition of family upbringing, grown children's higher education, career settlement, and moral character under running ${dashaLine}.`,
+        p2: "Lived reality: guiding grown children with wisdom, respecting their independence, supporting their vocational launches, and maintaining close family bonds.",
+        p3: "Children's vocational stability, family pride, and auspicious milestones over the next 1–3 years (strictly no remedies).",
+        p4Callout: hasSantanaDosha
+          ? "Prescribe protective Vedic remedies at Sri Kshetra Gokarna Mahabaleshwara for children's career stability and family peace."
+          : "Write 100% about pride in grown children's achievements, family legacy, and enduring generational blessings."
+      };
+    }
+
+    // Senior / Elder (60+)
+    return {
+      statusDesc: "DEDUCED: SENIOR CITIZEN — GRANDCHILDREN JOY & LINEAGE LEGACY",
+      p1: `5th house (${h5.sign}), 5th lord ${h5.lordStr} placed ${h5.lordWhere}, and Putrakaraka Jupiter. As an elder at age ${Math.floor(input.ageYears)}, the 5th house represents the crown of Purva Punya: joy of grandchildren (Poutra-Poutri Sukha), family continuity, and lineage fulfillment under running ${dashaLine}.`,
+      p2: "Lived reality: warm intergenerational bonding, affectionate moments with grandchildren, transmitting cultural wisdom, and peaceful family gatherings.",
+      p3: "Enduring family continuity, pride in flourishing descendants, and generational harmony over the next 1–3 years (strictly no remedies).",
+      p4Callout: hasSantanaDosha
+        ? "Prescribe lineage-protection sankalpa at Sri Kshetra Gokarna Mahabaleshwara for all-round progeny and grandchildren welfare."
+        : "Write 100% about grandchildren joy, noble family heritage, and enduring ancestral blessings."
+    };
+  };
+
+  const dMar = getMarriageDirectives();
+  const dChd = getChildrenDirectives();
 
   const bhavishya = isChild ? `${header(
     input,
@@ -638,14 +874,14 @@ For each category, write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by do
 
 1. Education & Early Intellect (Vidya & Buddhi):
    - 4th House (Vidya): ${getHouseInfo(4).sign} (Lord ${getHouseInfo(4).lordStr} ${getHouseInfo(4).lordWhere}). 5th House (Buddhi): ${h5.sign} (Lord ${h5.lordStr} ${h5.lordWhere}).
-   - Mercury (Budha): ${input.natalPlanets.find(p => p.graha === "Mercury") ? `in Bhava ${input.natalPlanets.find(p => p.graha === "Mercury")!.house}` : "present"}. Jupiter (Guru): ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+   - Mercury (Budha): placed ${formatPlacementText(input.natalPlanets.find(p => p.graha === "Mercury"))}. Jupiter (Guru): placed ${formatPlacementText(jupiterPlacement)}.
    - Paragraph 1 (5–6 lines, NO REMEDIES): Memory power, grasping capacity, academic inclination, and intellectual focus.
    - Paragraph 2 (5–6 lines, NO REMEDIES): Optimal learning environment, curiosity development, and parental guidance.
    - Paragraph 3 (5–6 lines, NO REMEDIES): Upcoming scholastic milestones, cognitive advancement, and study rhythm over the next 1–3 years.
    - Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED INTELLECTUAL GUIDANCE starting with 【...】: STRICT MANDATE: NO DOSHA DETECTED—DO NOT PRESCRIBE ANY PARIHARA, REMEDY, POOJA, ARCHANA, MANTRA JAPA, OR TEMPLE VISIT. Write 100% about the child's natural learning curiosity, reading habits, supportive study sanctuary, and academic potential.
 
 2. Talents, Activities & Sports (Kala, Kreeda & Kaushalya):
-   - 3rd House (Parakrama): ${getHouseInfo(3).sign}. 5th House: ${h5.sign}. Mars: ${marsPlacement ? `in Bhava ${marsPlacement.house}` : "present"}. Venus: ${venusPlacement ? `in Bhava ${venusPlacement.house}` : "present"}.
+   - 3rd House (Parakrama): ${getHouseInfo(3).sign}. 5th House: ${h5.sign}. Mars: placed ${formatPlacementText(marsPlacement)}. Venus: placed ${formatPlacementText(venusPlacement)}.
    - Paragraph 1 (5–6 lines, NO REMEDIES): Physical energy, sports inclination, and active stamina.
    - Paragraph 2 (5–6 lines, NO REMEDIES): Extracurricular inclinations, artistic expression, music, and creative hobbies.
    - Paragraph 3 (5–6 lines, NO REMEDIES): Future creative expansion, athletic skill development, and group participation over the next 1–3 years.
@@ -697,57 +933,36 @@ For EACH category, write THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINI
 - Paragraph 4: Dedicated Callout Section starting with 【...】 (5-6 full lines).
 
 1. Marriage & Relationships (User Selected Status: ${maritalSel.toUpperCase()}):
+   - Native Status: ${dMar.statusDesc}.
    - 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} is placed ${h7.lordWhere}.
    - Occupants of 7th House: ${h7.occStr}.
    - Native Gender: ${(input.gender || "Male").toUpperCase()}.
-   - Karaka Placement: ${(input.gender || "Male") === "Female" ? `Jupiter (Jeevakaraka) is placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}, 8th House (Mangalya Sthana) is ${h8.sign} with lord ${h8.lordStr}` : `Venus (Shukrakaraka) is placed ${venusPlacement ? `in Bhava ${venusPlacement.house} (${rashiName(venusPlacement.rashiIndex, lang)})` : "in chart"}`}.
-   - Kuja / Manglik Status: ${input.isManglikCancelled ? `Kuja Dosha CANCELLED / NEUTRALIZED via Parashari Apavada (${input.manglikCancellationReason}). Do not prescribe remedies for delay.` : isManglik ? `Kuja Dosha indicated (Mars in Bhava ${marsPlacement?.house})` : "No Kuja Dosha (Mars is comfortably placed outside 1/2/4/7/8/12)"}.
+   - Karaka Placement: ${(input.gender || "Male") === "Female" ? `Jupiter (Jeevakaraka) is placed ${formatPlacementText(jupiterPlacement)}, 8th House (Mangalya Sthana) is ${h8.sign} with lord ${h8.lordStr}` : `Venus (Shukrakaraka) is placed ${formatPlacementText(venusPlacement)}`}.
+   - Kuja / Manglik Status: ${input.isManglikCancelled ? `Kuja Dosha CANCELLED / NEUTRALIZED via Parashari Apavada (${input.manglikCancellationReason}). Do not prescribe remedies for delay.` : isManglik ? `Kuja Dosha indicated, Mars placed ${formatPlacementText(marsPlacement)}` : "No Kuja Dosha (Mars is comfortably placed outside 1/2/4/7/8/12)"}.
    - Direction of Spouse Alignment: ${spouseDirection} direction from birthplace.
    - Vivaha Yoga & Transits: Running ${dashaLine}. Jupiter transit: ${guruTransit ? `${guruTransit.houseFromMoon} from Chandra (${isGuruBala ? "Guru Bala active" : "Guru testing"})` : "active"}. Saturn transit: ${shaniTransit ? `${shaniTransit.houseFromMoon} from Chandra` : "active"}.
-   - CRITICAL RULE: MUST CONTAIN ONLY MARRIAGE & RELATIONSHIP CONTENT. DO NOT INCLUDE ANY CHILDREN OR PROGENY CONTENT IN THIS ITEM. IF USER SELECTED 'no_children', DO NOT MENTION RAISING CHILDREN, SCHOOLING, OR PARENTING. Focus purely on the deep emotional bond between the couple, mutual trust, and facing external questions as a united front.
-   - ${maritalSel === "unmarried"
-       ? "Write EXACTLY THREE detailed paragraphs for UNMARRIED status (plus Paragraph 4 if dosha detected):"
-       : maritalSel === "married"
-         ? "Write EXACTLY THREE detailed paragraphs for MARRIED status (plus Paragraph 4 if dosha detected):"
-         : "Write EXACTLY THREE detailed paragraphs for GENERAL status (plus Paragraph 4 if dosha detected):"}
-   ${hasMarriageDosha
-     ? `CRITICAL DOSHA DETECTED: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
-        Paragraph 1 (5–6 lines, NO REMEDIES): Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-        Paragraph 2 (5–6 lines, NO REMEDIES): Detailed psychological and practical dynamics of partnership—calling out real friction points, misunderstandings, ego clashes, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary, standing as anchors for each other, and facing societal questions together.' : ''}
-        Paragraph 3 (5–6 lines, NO REMEDIES): Future marital trajectory, upcoming transit progression over the next 1–3 years, relational maturity, and shared growth (strictly no remedies).
-        Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿವಾಹ ಶಾಂತಿ】 / 【Dosha Analysis & Relationship Shanti】): Analyze the detected ${isManglik ? "Kuja/Manglik Dosha" : "7th/8th house planetary affliction"} in this chart. ${maritalSel === "married" ? "Since the native is ALREADY MARRIED, strictly focus on domestic harmony, resolving occasional ego friction, and mutual communication—never 'delay in marriage'." : "Discuss alliance selection, avoiding hasty decisions, and favorable timing."} Prescribe specific Vedic remedies at Sri Kshetra Gokarna Mahabaleshwara.`
-     : `NO DOSHA PRESENT: Write EXACTLY THREE detailed sections separated by double newlines (\\n\\n):
-        Paragraph 1 (5–6 lines, NO REMEDIES): Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-        Paragraph 2 (5–6 lines, NO REMEDIES): Detailed psychological and practical dynamics of partnership—addressing current emotional dilemmas, communication friction, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and harmonious companionship.
-        Paragraph 3 (5–6 lines, NO REMEDIES): Future marital trajectory, upcoming transit progression over the next 1–3 years, milestones, and shared growth (strictly no remedies).`
-   }
+   - STRICT FORMATTING MANDATE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(7th house)', '7ನೇ ಮನೆ', '(ತುಲಾ)', or 'Bhava 7' in your output text!
+   - Paragraph 1 (5–6 lines, NO REMEDIES): ${dMar.p1}
+   - Paragraph 2 (5–6 lines, NO REMEDIES): ${dMar.p2}
+   - Paragraph 3 (5–6 lines, NO REMEDIES): ${dMar.p3}
+   - Paragraph 4 (5–6 lines, starting with 【...】): ${dMar.p4Callout}
 
 2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
+   - Native Status: ${dChd.statusDesc}.
    - 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} is placed ${h5.lordWhere}.
    - Occupants of 5th House: ${h5.occStr}.
-   - Putrakaraka Jupiter (Guru): placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}.
-   - Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra. Running ${dashaLine}.
-   - ${childrenSel === "has_children"
-       ? "Write STRICTLY THREE (3) expansive paragraphs for HAS CHILDREN status (plus Paragraph 4 if dosha detected):"
-       : childrenSel === "no_children"
-         ? "Write STRICTLY THREE (3) expansive paragraphs for NO_CHILDREN status (plus Paragraph 4 if dosha detected):"
-         : "Write STRICTLY THREE (3) expansive paragraphs for GENERAL status (plus Paragraph 4 if dosha detected):"}
-   ${hasSantanaDosha
-     ? `CRITICAL DOSHA DETECTED (Santana/5th House Affliction): Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
-        Paragraph 1 (5–6 lines, NO REMEDIES): Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child, emphasizing that lineage continuity is preserved in Poorva Punya.' : ' Analysis of children\'s intellect, academic focus, and moral character.'}
-        Paragraph 2 (5–6 lines, NO REMEDIES): Astrological timing, transit support, and parental/household guidance.${childrenSel === 'no_children' ? ' Reassure them with warmth that delays are periods of karmic refinement, not denial; address the silent emotional heartache and social inquiries.' : ' Address parental stress points: screen time, study distractions, stubbornness, exam pressure, and guidance.'}
-        Paragraph 3 (5–6 lines, NO REMEDIES): Future family expansion, children\'s upcoming milestones, and enduring lineage fulfillment (strictly no remedies).
-        Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಸಂತಾನ ಶಾಂತಿ】 / 【Dosha Analysis & Progeny Shanti】): Analyze the detected 5th house affliction (Naga/Sarpa Dosha, Rahu-Ketu axis, or Saturn influence) and prescribe sacred Vedic remedies at Sri Kshetra Gokarna Mahabaleshwara.`
-     : `NO DOSHA PRESENT: Write EXACTLY THREE detailed sections separated by double newlines (\\n\\n):
-        Paragraph 1 (5–6 lines, NO REMEDIES): Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Warm emotional validation of their family aspirations and fertile astrological windows.' : ' Analysis of children\'s intellect, moral values, and family bonding.'}
-        Paragraph 2 (5–6 lines, NO REMEDIES): Educational support, intellectual legacy, and divine family blessings.${childrenSel === 'no_children' ? ' Navigating societal questions as a united couple and preserving domestic joy.' : ' Navigating study balance, creative talents, and mutual parent-child respect.'}
-        Paragraph 3 (5–6 lines, NO REMEDIES): Future family expansion, children\'s upcoming milestones, and enduring lineage fulfillment (strictly no remedies).`
-   }
+   - Putrakaraka Jupiter (Guru): placed ${formatPlacementText(jupiterPlacement)}.
+   - Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra (${isGuruBala ? "Guru Bala active" : "testing phase"}). Running ${dashaLine}.
+   - STRICT FORMATTING MANDATE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(5th house)', '5ನೇ ಮನೆ', '(ಸಿಂಹ)', or 'Bhava 5' in your output text!
+   - Paragraph 1 (5–6 lines, NO REMEDIES): ${dChd.p1}
+   - Paragraph 2 (5–6 lines, NO REMEDIES): ${dChd.p2}
+   - Paragraph 3 (5–6 lines, NO REMEDIES): ${dChd.p3}
+   - Paragraph 4 (5–6 lines, starting with 【...】): ${dChd.p4Callout}
 
 3. Career & Profession:
    - 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} is placed ${h10.lordWhere}.
    - Occupants of 10th House: ${h10.occStr}.
-   - Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
+   - Karmakaraka Saturn (Shani): placed ${formatPlacementText(saturnPlacement)}.
    ${hasCareerDosha
      ? `CRITICAL DOSHA DETECTED: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
         Paragraph 1 (5–6 lines, NO REMEDIES): Professional aptitude, career stability, leadership prospects, and timing under running ${dashaLine}.
@@ -763,7 +978,7 @@ For EACH category, write THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINI
 4. Wealth & Family Finance:
    - 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
    - 11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
-   - Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+   - Dhanakaraka Jupiter: placed ${formatPlacementText(jupiterPlacement)}.
    ${hasWealthDosha
      ? `CRITICAL DOSHA DETECTED: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
         Paragraph 1 (5–6 lines, NO REMEDIES): Financial accumulation, income stability, investments, property gains, and family prosperity.
@@ -813,42 +1028,30 @@ For each category, write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by do
   If No Dosha is detected, begin with 【ದೈವಿಕ ಅನುಗ್ರಹ & ರಕ್ಷಾ ಕವಚ】 / 【Divine Auspicious Shield & Grace】 in 5-6 full lines describing the protective planetary alignment and divine blessing.
 
 1. Marriage & Partnerships (User Selected Status: ${maritalSel.toUpperCase()}):
+   - Native Status: ${dMar.statusDesc}.
    - 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} is placed ${h7.lordWhere}.
    - Occupants of 7th House: ${h7.occStr}.
-   - Vivahakaraka: ${input.gender === "Female" ? `Guru (Jupiter) placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "in chart"}` : `Shukra (Venus) placed ${venusPlacement ? `in Bhava ${venusPlacement.house}` : "in chart"}`}.
-   - Kuja/Manglik: ${input.isManglikCancelled ? `Kuja Dosha CANCELLED / NEUTRALIZED via Parashari Apavada (${input.manglikCancellationReason}). Do not prescribe remedies for delay.` : isManglik ? `Yes, Mars in Bhava ${marsPlacement?.house} causing Kuja Dosha` : "No Kuja Dosha"}.
+   - Vivahakaraka: ${input.gender === "Female" ? `Guru (Jupiter) placed ${formatPlacementText(jupiterPlacement)}` : `Shukra (Venus) placed ${formatPlacementText(venusPlacement)}`}.
+   - Kuja/Manglik: ${input.isManglikCancelled ? `Kuja Dosha CANCELLED / NEUTRALIZED via Parashari Apavada (${input.manglikCancellationReason}). Do not prescribe remedies for delay.` : isManglik ? `Yes, Mars placed ${formatPlacementText(marsPlacement)} causing Kuja Dosha` : "No Kuja Dosha"}.
    - Direction of Partner: ${spouseDirection}.
    - Running ${dashaLine}.
-   ${hasMarriageDosha
-     ? `CRITICAL DOSHA DETECTED: Write EXACTLY FOUR detailed sections separated by double newlines (\n\n):
-        Paragraph 1 (5–6 full lines, NO REMEDIES): Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-        Paragraph 2 (5–6 full lines, NO REMEDIES): Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary, standing as anchors for each other, and facing societal questions together.' : ''}
-        Paragraph 3 (5–6 full lines, NO REMEDIES): Future marital trajectory, upcoming transit progression over the next 1–3 years, relational maturity, and shared growth (strictly no remedies here).
-        Paragraph 4 (5–6 full lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿವಾಹ ಶಾಂತಿ】 / 【Dosha Analysis & Relationship Shanti】): Analyze the detected ${isManglik ? "Kuja/Manglik Dosha" : "7th/8th house affliction"} in this chart. ${maritalSel === "married" ? "Since the native is ALREADY MARRIED, strictly focus on domestic harmony, resolving occasional ego friction, and mutual communication—never 'delay in marriage'." : "Discuss alliance selection, avoiding hasty decisions, and favorable timing."} Prescribe specific Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja at Sri Kshetra Gokarna Mahabaleshwara" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
-     : `NO DOSHA PRESENT: Write EXACTLY FOUR detailed sections separated by double newlines (\n\n):
-        Paragraph 1 (5–6 full lines, NO REMEDIES): Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-        Paragraph 2 (5–6 full lines, NO REMEDIES): Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and domestic harmony.
-        Paragraph 3 (5–6 full lines, NO REMEDIES): Future marital trajectory, upcoming transit progression over the next 1–3 years, milestones, and shared growth (strictly no remedies here).
-        Paragraph 4 (5–6 full lines, starting with 【...】): DEDICATED PERSONAL BOND & MARITAL SHIELD starting with 【...】 (e.g. 【ದಾಂಪತ್ಯ ಸೌಖ್ಯ & ಪರಸ್ಪರ ರಕ್ಷಾ ಕವಚ】 / 【Marital Harmony & Deep Emotional Shield】): Write 100% about the native's emotional compatibility, shared values, mutual respect in daily life decisions, and deep psychological alignment with their spouse.`
-   }
+   - STRICT FORMATTING MANDATE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(7th house)', '7ನೇ ಮನೆ', '(ತುಲಾ)', or 'Bhava 7' in your output text!
+   - Paragraph 1 (5–6 full lines, NO REMEDIES): ${dMar.p1}
+   - Paragraph 2 (5–6 full lines, NO REMEDIES): ${dMar.p2}
+   - Paragraph 3 (5–6 full lines, NO REMEDIES): ${dMar.p3}
+   - Paragraph 4 (5–6 full lines, starting with 【...】): ${dMar.p4Callout}
 
 2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
+   - Native Status: ${dChd.statusDesc}.
    - 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} is placed ${h5.lordWhere}.
    - Occupants of 5th House: ${h5.occStr}.
-   - Putrakaraka Jupiter (Guru): placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}.
-   - Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra. Running ${dashaLine}.
-   ${hasSantanaDosha
-     ? `CRITICAL DOSHA DETECTED (Santana/5th House Affliction): Write EXACTLY FOUR detailed sections separated by double newlines (\n\n):
-        Paragraph 1 (5–6 full lines, NO REMEDIES): Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child, emphasizing that lineage continuity is preserved in Poorva Punya.' : ' Analysis of children\'s intellect, academic focus, and moral character.'}
-        Paragraph 2 (5–6 full lines, NO REMEDIES): Psychological and household dynamics.${childrenSel === 'no_children' ? ' Reassure them with warmth that delays are periods of karmic refinement, not denial; encourage standing united and supporting each other.' : ' Children\'s personality growth, specialized talents, and parent-child emotional bonding.'}
-        Paragraph 3 (5–6 full lines, NO REMEDIES): Astrological timing, upcoming transit support under Guru Bala, and long-term family expansion/legacy (strictly no remedies here).
-        Paragraph 4 (5–6 full lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಸಂತಾನ ಶಾಂತಿ】 / 【Dosha Analysis & Progeny Shanti】): Analyze the detected 5th house affliction (Naga/Sarpa Dosha, Rahu-Ketu axis, or Saturn influence) and prescribe sacred Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Sri Kshetra Gokarna Mahabaleshwara.`
-     : `NO DOSHA PRESENT: Write EXACTLY FOUR detailed sections separated by double newlines (\n\n):
-        Paragraph 1 (5–6 full lines, NO REMEDIES): Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Warm emotional validation of their family aspirations and fertile astrological windows.' : ' Analysis of children\'s intellect, moral values, and family bonding.'}
-        Paragraph 2 (5–6 full lines, NO REMEDIES): Educational support, emotional nurture, intellectual legacy, and divine family blessings.
-        Paragraph 3 (5–6 full lines, NO REMEDIES): Future family expansion, children\'s upcoming milestones, and enduring lineage fulfillment (strictly no remedies here).
-        Paragraph 4 (5–6 full lines, starting with 【...】): DEDICATED PROGENY FULFILLMENT & LINEAGE SHIELD starting with 【...】 (e.g. 【ಸಂತಾನ ಭಾಗ್ಯ & ಕೌಟುಂಬಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Progeny Fulfillment & Parental Joy Shield】): Write 100% about the native's personal family reality: ${childrenSel === 'no_children' ? 'warm personal validation of their family life, deep emotional unity as partners, mutual support, and joyful readiness for family expansion' : 'their children\'s actual academic growth, moral values, personal talents, and close parent-child bonding'}.`
-   }
+   - Putrakaraka Jupiter (Guru): placed ${formatPlacementText(jupiterPlacement)}.
+   - Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra (${isGuruBala ? "Guru Bala active" : "testing phase"}). Running ${dashaLine}.
+   - STRICT FORMATTING MANDATE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(5th house)', '5ನೇ ಮನೆ', '(ಸಿಂಹ)', or 'Bhava 5' in your output text!
+   - Paragraph 1 (5–6 full lines, NO REMEDIES): ${dChd.p1}
+   - Paragraph 2 (5–6 full lines, NO REMEDIES): ${dChd.p2}
+   - Paragraph 3 (5–6 full lines, NO REMEDIES): ${dChd.p3}
+   - Paragraph 4 (5–6 full lines, starting with 【...】): ${dChd.p4Callout}
 
 ${JSON_RULE}
 {"bhavishya":{"marriage":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】","children":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}}`;
@@ -871,7 +1074,7 @@ For each category, write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by do
 1. Career & Profession:
    - 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} is placed ${h10.lordWhere}.
    - Occupants of 10th House: ${h10.occStr}.
-   - Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
+   - Karmakaraka Saturn (Shani): placed ${formatPlacementText(saturnPlacement)}.
    - Paragraph 1 (5–6 lines, NO REMEDIES): Professional stability, leadership prospects, vocational aptitude, and timing under running ${dashaLine}.
    - Paragraph 2 (5–6 lines, NO REMEDIES): Strategic workplace navigation, career growth, executive strengths, workplace relationships, and public reputation.
    - Paragraph 3 (5–6 lines, NO REMEDIES): Future vocational trajectory, upcoming promotions, transitions, business expansion, and milestone timing over the next 1–3 years (strictly no remedies).
@@ -883,7 +1086,7 @@ For each category, write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by do
 2. Wealth & Family Finance:
    - 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
    - 11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
-   - Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+   - Dhanakaraka Jupiter: placed ${formatPlacementText(jupiterPlacement)}.
    - Paragraph 1 (5–6 lines, NO REMEDIES): Financial accumulation, investments, property gains, and income growth under running ${dashaLine}.
    - Paragraph 2 (5–6 lines, NO REMEDIES): Liquidity planning, family prosperity, asset consolidation, and wealth preservation.
    - Paragraph 3 (5–6 lines, NO REMEDIES): Future financial trajectory, upcoming gainful periods, debt clearance, and material stability over the next 1–3 years (strictly no remedies).
@@ -919,15 +1122,35 @@ ${JSON_RULE}
   )}
 CRITICAL CHILD HOROSCOPE MANDATE:
 The native is a ${isInfant ? "tender infant/toddler" : "young child"} (${Math.floor(input.ageYears)} years old). ${isInfant ? "Focus on early auditory recognition, cognitive grasping of surroundings, maternal bond, and soothing nursery rhythms." : "Focus strictly on early education, memory power, cognitive grasping capacity, and parental guidance."} DO NOT mention marriage, romance, or dating.
-Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
 - PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
 - STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS.
+- STRICT FORMATTING MANDATE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(4th house)', '4ನೇ ಮನೆ', '(ತುಲಾ)', or 'Bhava 4' in your output text!
 4th House (Vidya): ${getHouseInfo(4).sign} (Lord ${getHouseInfo(4).lordStr} ${getHouseInfo(4).lordWhere}). 5th House (Buddhi): ${h5.sign} (Lord ${h5.lordStr} ${h5.lordWhere}).
-Mercury (Budha): ${input.natalPlanets.find(p => p.graha === "Mercury") ? `in Bhava ${input.natalPlanets.find(p => p.graha === "Mercury")!.house}` : "present"}. Jupiter (Guru): ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+Mercury (Budha): placed ${formatPlacementText(input.natalPlanets.find(p => p.graha === "Mercury"))}. Jupiter (Guru): placed ${formatPlacementText(jupiterPlacement)}.
 Paragraph 1 (5–6 lines, NO REMEDIES): ${isInfant ? "Early auditory alertness, sensory curiosity, instinctive recognition of parents' voices, and responsive babbling." : "Memory power, cognitive retention, learning grasping speed, and natural scholastic aptitude."}
 Paragraph 2 (5–6 lines, NO REMEDIES): ${isInfant ? "Loving emotional security in the home, maternal soothing, peaceful colors, and unhurried developmental rhythms." : "Supportive study atmosphere at home, curiosity cultivation, and constructive parental guidance."}
 Paragraph 3 (5–6 lines, NO REMEDIES): Emerging cognitive milestones, scholastic curiosity, and learning rhythm over the next 1–3 years (strictly no remedies).
 Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED COGNITIVE & SCHOLASTIC NURTURING starting with 【...】: STRICT MANDATE: NO DOSHA DETECTED—DO NOT PRESCRIBE ANY PARIHARA, REMEDY, POOJA, ARCHANA, MANTRA JAPA, OR TEMPLE VISIT. Write 100% about the ${isInfant ? "infant's natural developmental curiosity, responsive smiles, sensory play, and peaceful nurturing environment" : "child's natural learning rhythm, reading curiosity, uncluttered study sanctuary, and academic flourishing"}.
+
+${JSON_RULE}
+{"marriage":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
+  : isElder ? `${header(
+    input,
+    "bhavishyaElderCompanionship",
+    "You are a revered Vedic master astrologer providing a spiritually serene reading on Sacred Elderhood, Peace of Mind, Devotion, and Gratitude for revered elder " + input.name + "."
+  )}
+CRITICAL SACRED ELDERHOOD MANDATE (75+ YEARS):
+The native is a venerable elder (${Math.floor(input.ageYears)} years old). Treat with deepest spiritual devotion and reverence. Focus on sacred contemplation, spiritual liberation (Moksha orientation), lifelong gratitude, quiet domestic contentment, peace of mind, and the protective grace of their life's dharmic deeds. NEVER mention wedding proposals, seeking marriage, or dating.
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
+- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
+- STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
+- STRICT FORMATTING MANDATE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(7th house)', '7ನೇ ಮನೆ', '(ತುಲಾ)', or 'Bhava 7' in your output text!
+7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} placed ${h7.lordWhere}. Vivahakaraka: ${input.gender === "Female" ? "Guru (Jupiter)" : "Shukra (Venus)"}. Running ${dashaLine}.
+Paragraph 1 (5–6 lines, NO REMEDIES): Peaceful soul companionship, lifelong emotional serenity, and sacred domestic peace under running ${dashaLine}.
+Paragraph 2 (5–6 lines, NO REMEDIES): Tranquil daily routine, prayerful contemplation, mutual care and companionship in serene elder years.
+Paragraph 3 (5–6 lines, NO REMEDIES): Blessings of longevity, spiritual equanimity, deep family reverence, and sacred peace over the next 1–3 years (strictly no remedies).
+Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED SACRED ELDER COMPANIONSHIP & SPIRITUAL SHIELD starting with 【...】: Write 100% about the elder's personal spiritual peace, serene mindset, mutual devotion, and lifelong sacred fulfillment.
 
 ${JSON_RULE}
 {"marriage":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
@@ -936,11 +1159,12 @@ ${JSON_RULE}
     "bhavishyaSeniorCompanionship",
     "You are a revered Vedic master astrologer providing an in-depth reading on Companionship, Domestic Harmony, and Mutual Care for senior native " + input.name + "."
   )}
-CRITICAL SENIOR CITIZEN MANDATE:
+CRITICAL SENIOR CITIZEN MANDATE (60–74 YEARS):
 The native is a respected senior citizen (${Math.floor(input.ageYears)} years old). Treat with profound reverence. Focus on lifelong spiritual companionship, domestic serenity, mutual health care, and peaceful household harmony. NEVER suggest wedding proposals or matchmaking.
-Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
 - PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
 - STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
+- STRICT FORMATTING MANDATE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(7th house)', '7ನೇ ಮನೆ', '(ತುಲಾ)', or 'Bhava 7' in your output text!
 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} placed ${h7.lordWhere}. Vivahakaraka: ${input.gender === "Female" ? "Guru (Jupiter)" : "Shukra (Venus)"}. Running ${dashaLine}.
 Paragraph 1 (5–6 lines, NO REMEDIES): Lifelong emotional companionship, mutual understanding, and spiritual peace at home under running ${dashaLine}.
 Paragraph 2 (5–6 lines, NO REMEDIES): Mutual health care, calm domestic rhythms, standing as a revered pillar for the entire family.
@@ -952,60 +1176,74 @@ ${hasMarriageDosha
 
 ${JSON_RULE}
 {"marriage":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
-  : isYouth ? `${header(
+  : isEarlyYouth ? `${header(
     input,
-    "bhavishyaYouthFocus",
-    "You are a revered Vedic master astrologer providing an in-depth reading on Character Formation, Emotional Balance, and Mental Focus for youth " + input.name + "."
+    "bhavishyaEarlyYouthFocus",
+    "You are a revered Vedic master astrologer providing an in-depth reading on Adolescent Focus, Emotional Balance, and Concentration for student " + input.name + "."
   )}
-CRITICAL YOUTH / STUDENT MANDATE:
-The native is a student/youth (${Math.floor(input.ageYears)} years old). Focus on emotional maturity, focus, self-discipline, and strong moral character. NEVER suggest marriage timing or romantic matchmaking.
-Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
-- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
-- STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
+CRITICAL SCHOOL / ADOLESCENT MANDATE (12–16 YEARS):
+The native is a school student (${Math.floor(input.ageYears)} years old). Focus on study concentration, memory retention, emotional composure, self-discipline, and respectful conduct towards parents and teachers. NEVER suggest marriage timing or romantic matchmaking.
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
+- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES).
+- STRICT MANDATE: ABSOLUTELY ZERO REMEDIES IN PARAS 1-3. ZERO BRACKETS/PARENTHESES.
 Lagna: ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}). Moon Sign: ${rashiName(input.moonRashiIndex, lang)}. Running ${dashaLine}.
-Paragraph 1 (5–6 lines, NO REMEDIES): Emotional maturity, mental focus, concentration stamina, and resilience against stress.
-Paragraph 2 (5–6 lines, NO REMEDIES): Constructive peer circles, steering clear of premature distractions, and building strong ethical character.
-Paragraph 3 (5–6 lines, NO REMEDIES): Maturing personality, goal clarity, and scholarly composure over the next 1–3 years (strictly no remedies).
-${hasMarriageDosha
-  ? `Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಮಾನಸಿಕ ಶಾಂತಿ】 / 【Dosha Analysis & Mental Focus Shanti】): Analyze the detected planetary friction inducing restlessness or distractions, and prescribe specific Vedic remedies at Sri Kshetra Gokarna Mahabaleshwara.`
-  : `Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED CHARACTER & MENTAL FOCUS SHIELD starting with 【...】 (e.g. 【ವ್ಯಕ್ತಿತ್ವ ವಿಕಾಸ & ಮಾನಸಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Character Formation & Mental Focus Shield】): STRICT MANDATE: NO DOSHA DETECTED—DO NOT PRESCRIBE ANY PARIHARA, REMEDY, POOJA, ARCHANA, MANTRA JAPA, OR TEMPLE VISIT. Write 100% about the student's personal focus, mental resilience, self-discipline, goal clarity, and noble moral character.`
-}
+Paragraph 1 (5–6 lines, NO REMEDIES): Adolescent emotional composure, focus in secondary school, and concentration stamina.
+Paragraph 2 (5–6 lines, NO REMEDIES): Constructive peer relationships, steering clear of digital distractions, and building strong ethical character.
+Paragraph 3 (5–6 lines, NO REMEDIES): Scholastic progress, examination composure, and character maturation over the next 1–3 years (strictly no remedies).
+Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED STUDENT FOCUS SHIELD starting with 【...】: Write 100% about the student's personal concentration, self-discipline, goal clarity, and noble moral character.
 
 ${JSON_RULE}
 {"marriage":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
-  : `${header(
+  : isCollegeYouth ? `${header(
     input,
-    "bhavishyaMarriage",
-    "You are a revered Vedic master astrologer providing an in-depth, authentic reading on Marriage, Compatibility, and Partnerships for " + input.name + "."
+    "bhavishyaCollegeYouthFocus",
+    "You are a revered Vedic master astrologer providing an in-depth reading on Higher Education Focus, Goal Clarity, and Character for youth " + input.name + "."
   )}
-CRITICAL MANDATE:
+CRITICAL YOUTH / COLLEGE MANDATE (17–21 YEARS):
+The native is a college student / youth (${Math.floor(input.ageYears)} years old). Focus on higher studies, competitive entrance exams, career foundation, avoiding premature distractions, and developing strong inner composure. NEVER suggest marriage timing or romantic matchmaking.
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
+- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES).
+- STRICT MANDATE: ABSOLUTELY ZERO REMEDIES IN PARAS 1-3. ZERO BRACKETS/PARENTHESES.
+Lagna: ${h1.sign} (Lord ${h1.lordStr} ${h1.lordWhere}). Moon Sign: ${rashiName(input.moonRashiIndex, lang)}. Running ${dashaLine}.
+Paragraph 1 (5–6 lines, NO REMEDIES): Mental clarity, intellectual stamina for college curricula, and emotional resilience against exam stress.
+Paragraph 2 (5–6 lines, NO REMEDIES): Positive friendships, avoiding emotional distractions, self-reliance, and cultivating professional ambition.
+Paragraph 3 (5–6 lines, NO REMEDIES): Graduating milestones, entrance exam success, and foundational vocational clarity over the next 1–3 years (strictly no remedies).
+Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED HIGHER EDUCATION & FOCUS SHIELD starting with 【...】: Write 100% about the youth's personal focus, analytical skills, exam composure, and ambitious career foundation.
+
+${JSON_RULE}
+{"marriage":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
+  : (() => {
+    const d = getMarriageDirectives();
+    return `${header(
+      input,
+      "bhavishyaMarriage",
+      "You are a revered Vedic master astrologer providing an in-depth, authentic reading on Marriage, Compatibility, and Partnerships for " + input.name + "."
+    )}
+CRITICAL MANDATE FOR ${d.statusDesc}:
 Write exhaustive, deeply personalized astrological analysis strictly based on ${input.name}'s Janma Kundali.
-Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
 - PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
 - STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
+- STRICT FORMATTING RULE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(7th house)', '7ನೇ ಮನೆ (ವೃಶ್ಚಿಕ)', '(ತುಲಾ)', or 'Bhava 7' in your output text! Weave all house names, signs, and planetary placements naturally into fluent, literary Vedic prose.
 
-Marriage & Partnerships (User Selected Status: ${maritalSel.toUpperCase()}):
+Marriage & Partnerships Context:
+- Native Status: ${d.statusDesc}.
 - 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} placed ${h7.lordWhere}.
 - Occupants of 7th House: ${h7.occStr}.
-- Vivahakaraka: ${input.gender === "Female" ? `Guru (Jupiter) placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "in chart"}` : `Shukra (Venus) placed ${venusPlacement ? `in Bhava ${venusPlacement.house}` : "in chart"}`}.
-- Kuja/Manglik: ${isManglik ? `Yes, Mars in Bhava ${marsPlacement?.house} causing Kuja Dosha` : "No Kuja Dosha"}.
+- Vivahakaraka: ${input.gender === "Female" ? `Guru (Jupiter) placed ${formatPlacementText(jupiterPlacement)}` : `Shukra (Venus) placed ${formatPlacementText(venusPlacement)}`}.
+- Kuja/Manglik: ${input.isManglikCancelled ? `Kuja Dosha CANCELLED / NEUTRALIZED via Parashari Apavada (${input.manglikCancellationReason}). Do not prescribe remedies for delay.` : isManglik ? `Yes, Mars placed ${formatPlacementText(marsPlacement)} causing Kuja Dosha` : "No Kuja Dosha"}.
 - Direction of Partner: ${spouseDirection}.
-- Running ${dashaLine}.
-${hasMarriageDosha
-  ? `CRITICAL DOSHA DETECTED: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
-    Paragraph 1 (5–6 lines, NO REMEDIES): Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-    Paragraph 2 (5–6 lines, NO REMEDIES): Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and shared milestones.${childrenSel === 'no_children' ? ' Focus on mutual emotional sanctuary, standing as anchors for each other, and facing societal questions together.' : ''}
-    Paragraph 3 (5–6 lines, NO REMEDIES): Future marital trajectory, upcoming transit progression over the next 1–3 years, relational maturity, and shared growth (strictly no remedies).
-    Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿವಾಹ ಶಾಂತಿ】 / 【Dosha Analysis & Relationship Shanti】): Analyze the detected ${isManglik ? "Kuja/Manglik Dosha" : "7th/8th house affliction"} in this chart. ${maritalSel === "married" ? "Since the native is ALREADY MARRIED, strictly focus on domestic harmony, resolving occasional ego friction, and mutual communication—never 'delay in marriage'." : "Discuss alliance selection, avoiding hasty decisions, and favorable timing."} Prescribe specific Vedic remedies (${isManglik ? "Subramanya / Mangala Pooja at Sri Kshetra Gokarna Mahabaleshwara" : "Lakshmi-Narayana / Gauri-Shankara Pooja"}).`
-  : `NO DOSHA PRESENT: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
-    Paragraph 1 (5–6 lines, NO REMEDIES): Grounded in 7th lord ${h7.lordStr} ${h7.lordWhere}, running ${dashaLine}, and transit influences. Analyze how these planets govern mutual trust, domestic stability, and emotional depth.
-    Paragraph 2 (5–6 lines, NO REMEDIES): Detailed psychological and practical dynamics of partnership—mutual respect in financial and household decisions, spouse's temperament reflecting ${h7.lordStr} and 7th house qualities, and domestic harmony.
-    Paragraph 3 (5–6 lines, NO REMEDIES): Future marital trajectory, upcoming transit progression over the next 1–3 years, milestones, and shared growth (strictly no remedies).
-    Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED PERSONAL BOND & MARITAL SHIELD starting with 【...】 (e.g. 【ದಾಂಪತ್ಯ ಸೌಖ್ಯ & ಪರಸ್ಪರ ರಕ್ಷಾ ಕವಚ】 / 【Marital Harmony & Deep Emotional Shield】): Write 100% about the native's own personal lived reality, emotional compatibility, shared values, mutual respect in daily life decisions, and deep psychological alignment with their spouse.`
-}
+- Running Period: ${dashaLine}.
+- Transits: Guru transit ${guruTransit ? guruTransit.houseFromMoon : 9} from Chandra (${isGuruBala ? "Guru Bala active" : "requiring devotion"}), Shani transit ${shaniTransit ? shaniTransit.houseFromMoon : 10} from Chandra.
+
+Paragraph 1 (5–6 lines, NO REMEDIES): ${d.p1}
+Paragraph 2 (5–6 lines, NO REMEDIES): ${d.p2}
+Paragraph 3 (5–6 lines, NO REMEDIES): ${d.p3}
+Paragraph 4 (5–6 lines, starting with 【...】): ${d.p4Callout}
 
 ${JSON_RULE}
 {"marriage":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`;
+  })();
 
   const bhavishyaChildren = isChild ? `${header(
     input,
@@ -1016,14 +1254,33 @@ ${JSON_RULE}
   )}
 CRITICAL CHILD HOROSCOPE MANDATE:
 The native is a ${isInfant ? "tender infant/toddler" : "child"} (${Math.floor(input.ageYears)} years old). ${isInfant ? "Focus on motor coordination, sensory exploration, instinctive curiosity, and joyful cheerful play." : "Focus on extracurricular interests, sports, fine arts, hobbies, and active energy channeling."}
-Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
 - PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
 - STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS.
-3rd House (Parakrama): ${getHouseInfo(3).sign}. 5th House: ${h5.sign}. Mars: ${marsPlacement ? `in Bhava ${marsPlacement.house}` : "present"}. Venus: ${venusPlacement ? `in Bhava ${venusPlacement.house}` : "present"}.
+- STRICT FORMATTING MANDATE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(5th house)', '5ನೇ ಮನೆ', '(ಸಿಂಹ)', or 'Bhava 5' in your output text!
+3rd House (Parakrama): ${getHouseInfo(3).sign}. 5th House: ${h5.sign}. Mars: placed ${formatPlacementText(marsPlacement)}. Venus: placed ${formatPlacementText(venusPlacement)}.
 Paragraph 1 (5–6 lines, NO REMEDIES): ${isInfant ? "Motor agility, responsive playfulness, sensory exploration, and energetic curiosity." : "Physical vigor, athletic stamina, sports enthusiasm, and motor coordination."}
 Paragraph 2 (5–6 lines, NO REMEDIES): ${isInfant ? "Gentle interactive games, rhythm, laughter, music, and joyful bonding with family." : "Creative inclinations, artistic expression, music, drawing, storytelling, and imaginative hobbies."}
 Paragraph 3 (5–6 lines, NO REMEDIES): Future creative expansion, athletic skill development, and group participation over the next 1–3 years (strictly no remedies).
 Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED TALENTS & CREATIVE EXPANSION starting with 【...】: STRICT MANDATE: NO DOSHA DETECTED—DO NOT PRESCRIBE ANY PARIHARA, REMEDY, POOJA, ARCHANA, MANTRA JAPA, OR TEMPLE VISIT. Write 100% about the ${isInfant ? "infant's cheerful nature, active sensory play, laughter, and natural physical milestones" : "child's positive extracurricular pursuits, artistic confidence, and team camaraderie"}.
+
+${JSON_RULE}
+{"children":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
+  : isElder ? `${header(
+    input,
+    "bhavishyaElderLegacy",
+    "You are a revered Vedic master astrologer providing a deeply reverent reading on Sacred Family Lineage, Generational Fulfillment, and Grandchildren for venerable elder " + input.name + "."
+  )}
+CRITICAL SACRED ELDERHOOD MANDATE (75+ YEARS):
+The native is a venerable elder (${Math.floor(input.ageYears)} years old). Focus on generational continuity, pride in multiple generations of children and grandchildren, passing on spiritual samskaras, and peaceful elder fulfillment.
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
+- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES).
+- STRICT MANDATE: ABSOLUTELY ZERO REMEDIES IN PARAS 1-3. ZERO BRACKETS/PARENTHESES.
+5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}. Putrakaraka Jupiter: placed ${formatPlacementText(jupiterPlacement)}.
+Paragraph 1 (5–6 lines, NO REMEDIES): Grand fruition of Poorva Punya through generations of family continuity.
+Paragraph 2 (5–6 lines, NO REMEDIES): Pure joy from children, grandchildren, and family gatherings; being a revered source of ancestral wisdom.
+Paragraph 3 (5–6 lines, NO REMEDIES): Enduring family blessings, peace in generational legacy, and spiritual contentment over the next 1–3 years (strictly no remedies).
+Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED SACRED LINEAGE & ANCESTRAL BLESSING SHIELD starting with 【...】: Write 100% about the elder's personal family pride, happiness in their descendants' thriving lives, and divine protective grace upon the entire lineage.
 
 ${JSON_RULE}
 {"children":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
@@ -1032,12 +1289,12 @@ ${JSON_RULE}
     "bhavishyaSeniorLegacy",
     "You are a revered Vedic master astrologer providing an in-depth reading on Family Legacy, Continuity, and Joy of Grandchildren for senior native " + input.name + "."
   )}
-CRITICAL SENIOR CITIZEN MANDATE:
+CRITICAL SENIOR CITIZEN MANDATE (60–74 YEARS):
 The native is a respected senior citizen (${Math.floor(input.ageYears)} years old). Focus on family lineage, joy and bonding with children and grandchildren, and passing down cultural wisdom.
-Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
-- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
-- STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
-5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}. Putrakaraka Jupiter: placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "in chart"}.
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
+- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES).
+- STRICT MANDATE: ABSOLUTELY ZERO REMEDIES IN PARAS 1-3. ZERO BRACKETS/PARENTHESES.
+5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}. Putrakaraka Jupiter: placed ${formatPlacementText(jupiterPlacement)}.
 Paragraph 1 (5–6 lines, NO REMEDIES): Fruitful fruition of Poorva Punya through grown children well-settled in their lives and vocations.
 Paragraph 2 (5–6 lines, NO REMEDIES): Joy of grandchildren (Poutra-Poutri sukha), warm intergenerational bonding, and peaceful family gatherings.
 Paragraph 3 (5–6 lines, NO REMEDIES): Deepening lineage satisfaction, family gatherings, and blessed elder role over the next 1–3 years (strictly no remedies).
@@ -1048,58 +1305,71 @@ ${hasSantanaDosha
 
 ${JSON_RULE}
 {"children":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
-  : isYouth ? `${header(
+  : isEarlyYouth ? `${header(
     input,
-    "bhavishyaYouthStudies",
-    "You are a revered Vedic master astrologer providing an in-depth reading on Higher Education, Scholastic Distinction, and Intellect for youth " + input.name + "."
+    "bhavishyaEarlyYouthStudies",
+    "You are a revered Vedic master astrologer providing an in-depth reading on Secondary Education, Grasping Power, and Scholastic Aptitude for student " + input.name + "."
   )}
-CRITICAL YOUTH / STUDENT MANDATE:
-The native is a student (${Math.floor(input.ageYears)} years old). Focus on higher studies, competitive exams, memory retention, and academic distinctions. NEVER use the words 'progeny' or 'conception'.
-Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
-- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
-- STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
-5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}. Putrakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}. Mercury: ${input.natalPlanets.find(p => p.graha === "Mercury") ? `in Bhava ${input.natalPlanets.find(p => p.graha === "Mercury")!.house}` : "present"}.
-Paragraph 1 (5–6 lines, NO REMEDIES): Academic focus, memory retention, grasping complex curricula, and examination preparation.
-Paragraph 2 (5–6 lines, NO REMEDIES): Analytical reasoning, competitive test composure, strategic revision, and scholarly discipline.
-Paragraph 3 (5–6 lines, NO REMEDIES): Scholastic milestones, college/exam distinctions, and intellectual maturity over the next 1–3 years (strictly no remedies).
-${hasSantanaDosha
-  ? `Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ವಿದ್ಯಾ ಶಾಂತಿ】 / 【Dosha Analysis & Scholastic Shanti】): Analyze detected planetary afflictions touching the 5th house or intellect lords, and prescribe authentic Vedic remedies at Sri Kshetra Gokarna Mahabaleshwara.`
-  : `Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED SCHOLASTIC EXCELLENCE & INTELLECTUAL SHIELD starting with 【...】 (e.g. 【ವಿದ್ಯಾ ಸಾಧನೆ & ಬೌದ್ಧಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Scholastic Distinction & Intellectual Shield】): STRICT MANDATE: NO DOSHA DETECTED—DO NOT PRESCRIBE ANY PARIHARA, REMEDY, POOJA, ARCHANA, MANTRA JAPA, OR TEMPLE VISIT. Write 100% about the student's personal analytical reasoning, exam composure, scholarly discipline, and intellectual confidence.`
-}
+CRITICAL SCHOOL / ADOLESCENT MANDATE (12–16 YEARS):
+The native is a school student (${Math.floor(input.ageYears)} years old). Focus on academic curriculum, grasping capacity, memory retention, and intellectual development. NEVER use words like 'progeny', 'children', or 'conception'.
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
+- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES).
+- STRICT MANDATE: ABSOLUTELY ZERO REMEDIES IN PARAS 1-3. ZERO BRACKETS/PARENTHESES.
+5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}. Putrakaraka Jupiter: placed ${formatPlacementText(jupiterPlacement)}. Mercury: placed ${formatPlacementText(input.natalPlanets.find(p => p.graha === "Mercury"))}.
+Paragraph 1 (5–6 lines, NO REMEDIES): Scholastic grasping power, academic curiosity, and memory retention in school subjects.
+Paragraph 2 (5–6 lines, NO REMEDIES): Study habits, revision discipline, analytical thinking, and balancing homework with active play.
+Paragraph 3 (5–6 lines, NO REMEDIES): Secondary school achievements, examination confidence, and intellectual growth over the next 1–3 years (strictly no remedies).
+Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED SCHOLASTIC EXCELLENCE SHIELD starting with 【...】: Write 100% about the student's personal analytical reasoning, exam composure, scholarly discipline, and intellectual confidence.
 
 ${JSON_RULE}
 {"children":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
-  : `${header(
+  : isCollegeYouth ? `${header(
     input,
-    "bhavishyaChildren",
-    "You are a revered Vedic master astrologer providing an in-depth, authentic reading on Children and Progeny for " + input.name + "."
+    "bhavishyaCollegeYouthStudies",
+    "You are a revered Vedic master astrologer providing an in-depth reading on Higher Education, Scholastic Distinction, and Intellect for youth " + input.name + "."
   )}
-CRITICAL MANDATE:
+CRITICAL YOUTH / COLLEGE MANDATE (17–21 YEARS):
+The native is a college student (${Math.floor(input.ageYears)} years old). Focus on higher studies, competitive exams, memory retention, and academic distinctions. NEVER use the words 'progeny', 'children', or 'conception'.
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
+- PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES).
+- STRICT MANDATE: ABSOLUTELY ZERO REMEDIES IN PARAS 1-3. ZERO BRACKETS/PARENTHESES.
+5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}. Putrakaraka Jupiter: placed ${formatPlacementText(jupiterPlacement)}. Mercury: placed ${formatPlacementText(input.natalPlanets.find(p => p.graha === "Mercury"))}.
+Paragraph 1 (5–6 lines, NO REMEDIES): Academic focus, memory retention, grasping complex college curricula, and competitive entrance preparation.
+Paragraph 2 (5–6 lines, NO REMEDIES): Analytical reasoning, competitive test composure, strategic revision, and scholarly discipline.
+Paragraph 3 (5–6 lines, NO REMEDIES): Scholastic milestones, degree/exam distinctions, and intellectual maturity over the next 1–3 years (strictly no remedies).
+Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED SCHOLASTIC DISTINCTION & INTELLECTUAL SHIELD starting with 【...】: Write 100% about the student's personal analytical reasoning, exam composure, scholarly discipline, and intellectual confidence.
+
+${JSON_RULE}
+{"children":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`
+  : (() => {
+    const d = getChildrenDirectives();
+    return `${header(
+      input,
+      "bhavishyaChildren",
+      "You are a revered Vedic master astrologer providing an in-depth, authentic reading on Children and Progeny for " + input.name + "."
+    )}
+CRITICAL MANDATE FOR ${d.statusDesc}:
 Write exhaustive, deeply personalized astrological analysis strictly based on ${input.name}'s Janma Kundali.
-Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
+Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\n\n):
 - PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
 - STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
+- STRICT FORMATTING RULE: ABSOLUTELY ZERO PARENTHESES OR BRACKETS like '(5th house)', '5ನೇ ಮನೆ (ಸಿಂಹ)', '(ಧನು)', or 'Bhava 5' in your output text! Weave all house names, signs, and planetary placements naturally into fluent, literary Vedic prose.
 
-Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
+Children & Progeny Context:
+- Native Status: ${d.statusDesc}.
 - 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} placed ${h5.lordWhere}.
 - Occupants of 5th House: ${h5.occStr}.
-- Putrakaraka Jupiter (Guru): placed ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house} (${rashiName(jupiterPlacement.rashiIndex, lang)})` : "in chart"}.
-- Progeny Transit: Jupiter transit ${guruTransit?.houseFromMoon} from Chandra. Running ${dashaLine}.
-${hasSantanaDosha
-  ? `CRITICAL DOSHA DETECTED (Santana/5th House Affliction): Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
-    Paragraph 1 (5–6 lines, NO REMEDIES): Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Deep emotional validation of the quiet, unspoken longing and heartfelt prayers for a child, emphasizing that lineage continuity is preserved in Poorva Punya.' : ' Analysis of children\'s intellect, academic focus, and moral character.'}
-    Paragraph 2 (5–6 lines, NO REMEDIES): Astrological timing, transit support, and parental/household guidance.${childrenSel === 'no_children' ? ' Reassure them with warmth that delays are periods of karmic refinement, not denial; encourage standing united.' : ' Children\'s future growth, specialized talents, and spiritual harmony.'}
-    Paragraph 3 (5–6 lines, NO REMEDIES): Future family expansion, children\'s upcoming milestones, and enduring lineage fulfillment (strictly no remedies).
-    Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED DOSHA ANALYSIS starting with 【...】 (e.g. 【ದೋಷ ವಿಶ್ಲೇಷಣೆ & ಸಂತಾನ ಶಾಂತಿ】 / 【Dosha Analysis & Progeny Shanti】): Analyze the detected 5th house affliction (Naga/Sarpa Dosha, Rahu-Ketu axis, or Saturn influence) and prescribe sacred Vedic remedies: Daily Santana Gopala Mantra, Thursday Gau-seva, and Subrahmanya / Naga Shanti Pooja at Sri Kshetra Gokarna Mahabaleshwara.`
-  : `NO DOSHA PRESENT: Write EXACTLY FOUR detailed sections separated by double newlines (\\n\\n):
-    Paragraph 1 (5–6 lines, NO REMEDIES): Detailed analysis of 5th house ${h5.sign}, 5th lord ${h5.lordStr} ${h5.lordWhere}, and Putrakaraka Jupiter.${childrenSel === 'no_children' ? ' Warm emotional validation of their family aspirations and fertile astrological windows.' : ' Analysis of children\'s intellect, moral values, and family bonding.'}
-    Paragraph 2 (5–6 lines, NO REMEDIES): Educational support, intellectual legacy, and divine family blessings.
-    Paragraph 3 (5–6 lines, NO REMEDIES): Future family expansion, children\'s upcoming milestones, and enduring lineage fulfillment (strictly no remedies).
-    Paragraph 4 (5–6 lines, starting with 【...】): DEDICATED PROGENY FULFILLMENT & LINEAGE SHIELD starting with 【...】 (e.g. 【ಸಂತಾನ ಭಾಗ್ಯ & ಕೌಟುಂಬಿಕ ರಕ್ಷಾ ಕವಚ】 / 【Progeny Fulfillment & Parental Joy Shield】): Write 100% about the native's personal family reality: ${childrenSel === 'no_children' ? 'warm personal validation of their family life, deep emotional unity as partners, mutual support, and joyful readiness for family expansion' : 'their children\'s actual academic growth, moral values, personal talents, and close parent-child bonding'}.`
-}
+- Putrakaraka Jupiter (Guru): placed ${formatPlacementText(jupiterPlacement)}.
+- Progeny Transit: Jupiter transit ${guruTransit ? guruTransit.houseFromMoon : 9} from Chandra (${isGuruBala ? "Guru Bala active" : "testing phase"}). Running ${dashaLine}.
+
+Paragraph 1 (5–6 lines, NO REMEDIES): ${d.p1}
+Paragraph 2 (5–6 lines, NO REMEDIES): ${d.p2}
+Paragraph 3 (5–6 lines, NO REMEDIES): ${d.p3}
+Paragraph 4 (5–6 lines, starting with 【...】): ${d.p4Callout}
 
 ${JSON_RULE}
 {"children":"four paragraphs: 3 paragraphs of 5-6 lines each without remedies, followed by paragraph 4 starting with 【...】"}`;
+  })();
 
   const bhavishyaCareer = isChild ? `${header(
     input,
@@ -1130,7 +1400,7 @@ The native is a senior citizen (${Math.floor(input.ageYears)} years old). Focus 
 Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
 - PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
 - STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
-10th House: ${h10.sign} (Lord ${h10.lordStr} placed ${h10.lordWhere}). Saturn: placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house}` : "in chart"}.
+10th House: ${h10.sign} (Lord ${h10.lordStr} placed ${h10.lordWhere}). Saturn: placed ${formatPlacementText(saturnPlacement)}.
 Paragraph 1 (5–6 lines, NO REMEDIES): Societal respect, honored standing as a community elder, and sharing wisdom gained over decades.
 Paragraph 2 (5–6 lines, NO REMEDIES): Dharmic leadership, guiding younger family members, charitable work, and spiritual satisfaction.
 Paragraph 3 (5–6 lines, NO REMEDIES): Enduring life legacy, peaceful spiritual fulfillment, and honored mentorship over the next 1–3 years (strictly no remedies).
@@ -1151,7 +1421,7 @@ The native is a youth (${Math.floor(input.ageYears)} years old). Focus on discov
 Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
 - PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
 - STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
-10th House: ${h10.sign} (Lord ${h10.lordStr} placed ${h10.lordWhere}). Karmakaraka Saturn: ${saturnPlacement ? `in Bhava ${saturnPlacement.house}` : "present"}. Sun: dignity in chart.
+10th House: ${h10.sign} (Lord ${h10.lordStr} placed ${h10.lordWhere}). Karmakaraka Saturn: placed ${formatPlacementText(saturnPlacement)}. Sun: dignity in chart.
 Paragraph 1 (5–6 lines, NO REMEDIES): Innate career inclinations, vocational fields aligned with the 10th house, and natural skills.
 Paragraph 2 (5–6 lines, NO REMEDIES): Developing professional competencies, practical internships, industry skills, and goal clarity.
 Paragraph 3 (5–6 lines, NO REMEDIES): Career launching milestones, industry entry, and skill mastery over the next 1–3 years (strictly no remedies).
@@ -1175,7 +1445,7 @@ Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\
 
 10th House Sign: ${h10.sign}. 10th House Lord: ${h10.lordStr} placed ${h10.lordWhere}.
 Occupants of 10th House: ${h10.occStr}.
-Karmakaraka Saturn (Shani): placed ${saturnPlacement ? `in Bhava ${saturnPlacement.house} (${rashiName(saturnPlacement.rashiIndex, lang)})` : "in chart"}.
+Karmakaraka Saturn (Shani): placed ${formatPlacementText(saturnPlacement)}.
 Running period: ${dashaLine}.
 Paragraph 1 (5–6 lines, NO REMEDIES): Professional stability, leadership prospects, vocational aptitude, and timing under running ${dashaLine}.
 Paragraph 2 (5–6 lines, NO REMEDIES): Strategic workplace navigation, career growth, transitions, and public reputation.
@@ -1218,7 +1488,7 @@ The native is a senior citizen (${Math.floor(input.ageYears)} years old). Focus 
 Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\\n):
 - PARAGRAPHS 1, 2, AND 3 MUST BE THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINING AT LEAST 5 TO 6 FULL LINES, approx. 75-120 words / 400-600 characters).
 - STRICT MANDATE FOR PARAGRAPHS 1, 2, AND 3: ABSOLUTELY ZERO REMEDIES, NO POOJA, NO JAPA, NO ARCHANA, NO MANTRA, NO GEMSTONES, AND NO TEMPLE VISITS. Speak directly to 'you'.
-2nd House: ${h2.sign} (Lord ${h2.lordStr} placed ${h2.lordWhere}). 11th House: ${h11.sign}. Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+2nd House: ${h2.sign} (Lord ${h2.lordStr} placed ${h2.lordWhere}). 11th House: ${h11.sign}. Jupiter: placed ${formatPlacementText(jupiterPlacement)}.
 Paragraph 1 (5–6 lines, NO REMEDIES): Financial security, safe asset consolidation, and retirement peace under running ${dashaLine}.
 Paragraph 2 (5–6 lines, NO REMEDIES): Estate planning, safeguarding ancestral wealth, and providing generational stability.
 Paragraph 3 (5–6 lines, NO REMEDIES): Unshakable material contentment, safe liquidity, and financial dignity over the next 1–3 years (strictly no remedies).
@@ -1263,7 +1533,7 @@ Write STRICTLY FOUR (4) SECTIONS / PARAGRAPHS separated by double newlines (\\n\
 
 2nd House (Accumulated Wealth): ${h2.sign} (Lord ${h2.lordStr} ${h2.lordWhere}, occupants: ${h2.occStr}).
 11th House (Income & Gains): ${h11.sign} (Lord ${h11.lordStr} ${h11.lordWhere}, occupants: ${h11.occStr}).
-Dhanakaraka Jupiter: ${jupiterPlacement ? `in Bhava ${jupiterPlacement.house}` : "present"}.
+Dhanakaraka Jupiter: placed ${formatPlacementText(jupiterPlacement)}.
 Running period: ${dashaLine}.
 Paragraph 1 (5–6 lines, NO REMEDIES): Financial accumulation, investments, property gains, and income growth under running ${dashaLine}.
 Paragraph 2 (5–6 lines, NO REMEDIES): Liquidity planning, family prosperity, asset consolidation, and wealth preservation.

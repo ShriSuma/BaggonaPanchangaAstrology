@@ -498,11 +498,43 @@ export const KundliDoshasPage: React.FC = () => {
     }
   }, [localKundli, defaultLat, defaultLng]);
 
+  // State to track pariharas marked as completed in past (or pending)
+  const [completedPariharas, setCompletedPariharas] = useState<
+    Record<string, { isCompleted: boolean; completedYear?: string | number }>
+  >(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("baggona_completed_dosha_shantis");
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return {};
+  });
+
+  const toggleShantiCompleted = (doshaId: string, completedYear?: string | number) => {
+    setCompletedPariharas((prev) => {
+      const isNowCompleted = !prev[doshaId]?.isCompleted;
+      const next = {
+        ...prev,
+        [doshaId]: {
+          isCompleted: isNowCompleted,
+          completedYear: isNowCompleted ? (completedYear || new Date().getFullYear()) : undefined
+        }
+      };
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("baggona_completed_dosha_shantis", JSON.stringify(next));
+        } catch {}
+      }
+      return next;
+    });
+  };
+
   // Compute comprehensive doshas report + gandantara + bhaya
   const doshaReport: ComprehensiveDoshaReport | null = useMemo(() => {
     if (!localKundli || !localInput) return null;
-    return calculateComprehensiveDoshas(localKundli, localInput, new Date());
-  }, [localKundli, localInput]);
+    return calculateComprehensiveDoshas(localKundli, localInput, new Date(), completedPariharas);
+  }, [localKundli, localInput, completedPariharas]);
 
   // STRICT REQUIREMENT: Only display the doshas that the native actually has!
   const activeDoshas = useMemo(() => {
@@ -1359,6 +1391,66 @@ Keep the tone divine, authoritative, and Vedic.`;
                             ))}
                           </ul>
                         </div>
+                      </div>
+
+                      {/* 🧠 SECTION: SUBCONSCIOUS FEAR & ANXIETY */}
+                      {dosha.subconsciousFear && (
+                        <div className="rounded-2xl bg-amber-50/70 border border-amber-300 p-4 space-y-1.5 print:bg-white print:border-black">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-900 print:text-black">
+                            <span>🧠</span>
+                            <span>{selectedLang === "kn" ? "ಆಂತರಿಕ ಮನೋಭಯ & ಚಿಂತೆಗಳು (Subconscious Fear)" : "Subconscious Fear & Anxiety Profile"}</span>
+                          </div>
+                          <p className="text-xs sm:text-sm leading-relaxed text-amber-950 font-medium print:text-black">
+                            {getLangText(dosha.subconsciousFear)}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* 🪔 SHANTI STATUS: ALREADY PERFORMED vs CONDITIONAL GUIDANCE */}
+                      <div className={`rounded-2xl p-4 sm:p-5 border-2 space-y-3 transition-all ${
+                        dosha.shantiStatus === "completed"
+                          ? "bg-emerald-50/80 border-emerald-400 text-emerald-950 shadow-sm"
+                          : "bg-[#FFFDF9] border-amber-300/80 text-amber-950"
+                      } print:bg-white print:border-black print:text-black`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 text-xs font-black uppercase">
+                            <span className="text-base">{dosha.shantiStatus === "completed" ? "✓" : "💡"}</span>
+                            <span>
+                              {dosha.shantiStatus === "completed"
+                                ? (selectedLang === "kn" ? "ಪರಿಹಾರ ನೆರವೇರಿದ ಸಿದ್ಧತೆ (Shanti Completed)" : "Ancestral Debt / Shanti Pacified")
+                                : (selectedLang === "kn" ? "ವಿಶೇಷ ಶಾಸ್ತ್ರೀಯ ಮಾರ್ಗದರ್ಶನ (Special Guidance)" : "Special Shastric Priest Guidance")}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => toggleShantiCompleted(dosha.id)}
+                            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                              dosha.shantiStatus === "completed"
+                                ? "bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-400 font-black shadow-sm"
+                                : "bg-amber-50 hover:bg-amber-100/80 text-amber-900 border-amber-300 shadow-sm"
+                            }`}
+                          >
+                            <span className="font-black">{dosha.shantiStatus === "completed" ? "✓" : "☐"}</span>
+                            <span>
+                              {dosha.shantiStatus === "completed"
+                                ? (selectedLang === "kn" ? "ಈ ಪರಿಹಾರ ಈಗಾಗಲೇ ನೆರವೇರಿದೆ [ಬದಲಾಯಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ]" : "Shanti Already Performed [Click to toggle]")
+                                : (selectedLang === "kn" ? "ಈ ಪರಿಹಾರ ಈಗಾಗಲೇ ಮಾಡಿಸಿದ್ದರೆ ಇಲ್ಲಿ ಗುರುತಿಸಿ" : "Mark as Already Performed in Past")}
+                            </span>
+                          </button>
+                        </div>
+
+                        {dosha.shantiStatus === "completed" ? (
+                          <div className="rounded-xl bg-white/80 border border-emerald-200 p-3.5 text-xs sm:text-sm text-emerald-950 font-medium leading-relaxed shadow-xs">
+                            <p>{getLangText(dosha.alreadyDoneNarration)}</p>
+                          </div>
+                        ) : (
+                          dosha.conditionalGuidance && (
+                            <div className="rounded-xl bg-amber-50/50 border border-amber-200 p-3.5 text-xs sm:text-sm text-amber-950 font-medium leading-relaxed">
+                              <p>{getLangText(dosha.conditionalGuidance)}</p>
+                            </div>
+                          )
+                        )}
                       </div>
                     </article>
                   );

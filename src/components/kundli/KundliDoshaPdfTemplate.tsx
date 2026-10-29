@@ -675,9 +675,9 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         </span>
                         <span
                           style={{
-                            background: "#FEF9E7",
-                            border: "1px solid #D4AF37",
-                            color: "#78350F",
+                            background: dosha.shantiStatus === "completed" ? "#DCFCE7" : "#FEF9E7",
+                            border: `1px solid ${dosha.shantiStatus === "completed" ? "#86EFAC" : "#D4AF37"}`,
+                            color: dosha.shantiStatus === "completed" ? "#166534" : "#78350F",
                             fontSize: "9px",
                             fontWeight: 800,
                             padding: "1.5px 6px",
@@ -741,6 +741,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       </div>
                     )}
 
+                    {/* Subconscious Fear Profile */}
+                    {dosha.subconsciousFear && (
+                      <div style={{ background: "#FEF9E7", border: "1px dashed #D4AF37", borderRadius: "6px", padding: "3.5px 8px", fontSize: "9.5px", color: "#78350F", lineHeight: 1.4 }}>
+                        <strong>🧠 {code === "kn" ? "ಆಂತರಿಕ ಮನೋಭಯ & ಚಿಂತೆಗಳು:" : "Subconscious Fear:"}</strong> {getLangVal(dosha.subconsciousFear)}
+                      </div>
+                    )}
+
                     {/* Prescribed Parihara & Gokarna Seva */}
                     <div style={{ background: "linear-gradient(135deg, #FEF9E7 0%, #FFFDF9 100%)", border: "1.5px solid #D4AF37", borderRadius: "6px", padding: "5px 9px", fontSize: "10px", lineHeight: 1.45 }}>
                       <div style={{ fontWeight: 900, color: "#92400E", lineHeight: 1.4 }}>🪔 {t.pariharaHeading}</div>
@@ -750,6 +757,19 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "3px", fontSize: "9.5px", color: "#78350F", lineHeight: 1.4 }}>
                         <span><strong>{t.mantraLabel}</strong> {getLangArr(dosha.remedies).slice(0, 2).join(" • ")}</span>
                       </div>
+
+                      {/* Completed Narration vs Conditional Guidance */}
+                      {dosha.shantiStatus === "completed" ? (
+                        <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: "5px", padding: "3.5px 7px", marginTop: "3.5px", fontSize: "9px", color: "#166534", lineHeight: 1.4 }}>
+                          <strong>✓ {code === "kn" ? "ಶಾಂತಿ ನೆರವೇರಿದ ದೃಢೀಕರಣ:" : "Shanti Completed:"}</strong> {getLangVal(dosha.alreadyDoneNarration)}
+                        </div>
+                      ) : (
+                        dosha.conditionalGuidance && (
+                          <div style={{ background: "#FFFDF8", border: "1px solid #E5C378", borderRadius: "5px", padding: "3.5px 7px", marginTop: "3.5px", fontSize: "9px", color: "#78350F", lineHeight: 1.4 }}>
+                            <strong>💡 {code === "kn" ? "ವಿಶೇಷ ಮಾರ್ಗದರ್ಶನ:" : "Special Guidance:"}</strong> {getLangVal(dosha.conditionalGuidance)}
+                          </div>
+                        )
+                      )}
                     </div>
                   </div>
                 );
@@ -907,22 +927,43 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         ({dosha.technicalDetail?.scripturalReference})
                       </span>
                     </div>
-                    <span
-                      style={{
-                        background: "linear-gradient(135deg, #B45309 0%, #78350F 100%)",
-                        color: "#FFFDF8",
-                        fontSize: "9px",
-                        fontWeight: 900,
-                        padding: "1px 6px",
-                        borderRadius: "8px",
-                        border: "1px solid #D4AF37",
-                        letterSpacing: "normal",
-                        flexShrink: 0
-                      }}
-                    >
-                      ⚡ {getLangVal(dosha.agePriorityBadge, `ಆದ್ಯತೆ #${dosha.agePriorityRank}`)}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", flexShrink: 0 }}>
+                      <span
+                        style={{
+                          background: dosha.shantiStatus === "completed" ? "#DCFCE7" : "#FEF9E7",
+                          border: `1px solid ${dosha.shantiStatus === "completed" ? "#86EFAC" : "#D4AF37"}`,
+                          color: dosha.shantiStatus === "completed" ? "#166534" : "#78350F",
+                          fontSize: "8.5px",
+                          fontWeight: 800,
+                          padding: "1px 5px",
+                          borderRadius: "6px",
+                          letterSpacing: "normal"
+                        }}
+                      >
+                        {getLangVal(dosha.statusBadge)}
+                      </span>
+                      <span
+                        style={{
+                          background: "linear-gradient(135deg, #B45309 0%, #78350F 100%)",
+                          color: "#FFFDF8",
+                          fontSize: "9px",
+                          fontWeight: 900,
+                          padding: "1px 6px",
+                          borderRadius: "8px",
+                          border: "1px solid #D4AF37",
+                          letterSpacing: "normal"
+                        }}
+                      >
+                        ⚡ {getLangVal(dosha.agePriorityBadge, `ಆದ್ಯತೆ #${dosha.agePriorityRank}`)}
+                      </span>
+                    </div>
                   </div>
+
+                  {dosha.subconsciousFear && (
+                    <div style={{ fontSize: "9px", color: "#78350F", background: "#FEF9E7", padding: "2.5px 6px", borderRadius: "4px", border: "1px dashed #D4AF37", marginTop: "3px", lineHeight: 1.35 }}>
+                      <strong>🧠 {code === "kn" ? "ಆಂತರಿಕ ಮನೋಭಯ:" : "Subconscious Fear:"}</strong> {getLangVal(dosha.subconsciousFear)}
+                    </div>
+                  )}
 
                   {dosha.immediateActionRequired && (
                     <div style={{ background: "#FEF9E7", border: "1px solid #D4AF37", borderRadius: "5px", padding: "3.5px 7px", marginTop: "3.5px", lineHeight: 1.45 }}>
@@ -934,6 +975,18 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   <div style={{ fontSize: "9.5px", color: "#451A03", marginTop: "3px", lineHeight: 1.45 }}>
                     <strong>{t.pariharaHeading}</strong> {getLangVal(dosha.recommendedPooja)} • <strong>{t.mantraLabel}</strong> {getLangArr(dosha.remedies).slice(0, 2).join(" • ")}
                   </div>
+
+                  {dosha.shantiStatus === "completed" ? (
+                    <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: "4px", padding: "2.5px 6px", marginTop: "2.5px", fontSize: "8.5px", color: "#166534", lineHeight: 1.35 }}>
+                      <strong>✓ {code === "kn" ? "ಶಾಂತಿ ಸಿದ್ಧತೆ:" : "Shanti Completed:"}</strong> {getLangVal(dosha.alreadyDoneNarration)}
+                    </div>
+                  ) : (
+                    dosha.conditionalGuidance && (
+                      <div style={{ background: "#FFFDF8", border: "1px solid #E5C378", borderRadius: "4px", padding: "2.5px 6px", marginTop: "2.5px", fontSize: "8.5px", color: "#78350F", lineHeight: 1.35 }}>
+                        <strong>💡 {code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Guidance:"}</strong> {getLangVal(dosha.conditionalGuidance)}
+                      </div>
+                    )
+                  )}
                 </div>
               ))}
             </div>
@@ -973,7 +1026,9 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 {t.gandantaraHeading}
               </div>
               <div style={{ fontSize: "9.5px", color: "#92400E", fontWeight: 700, flexShrink: 0 }}>
-                {gandantaras.length} {code === "kn" ? "ಗಂಡಾಂತರಗಳು ಸಕ್ರಿಯ" : "Hazards Active"}
+                {gandantaras.filter(g => g.isCurrentlyInDangerWindow).length > 0
+                  ? `${gandantaras.filter(g => g.isCurrentlyInDangerWindow).length} ${code === "kn" ? "ಗಂಡಾಂತರಗಳು ಸಕ್ರಿಯ" : "Hazards Active"}`
+                  : `✓ ${code === "kn" ? "ಸಕಲ ಗಂಡಾಂತರ ವಯೋಮಿತಿ ಸುರಕ್ಷಿತವಾಗಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ" : "All Hazard Windows Safely Surpassed"}`}
               </div>
             </div>
             <div style={{ fontSize: "9.5px", color: "#92400E", marginTop: "2px", fontStyle: "italic", lineHeight: 1.4 }}>
@@ -987,36 +1042,63 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   ✓ {code === "kn" ? "ಯಾವುದೇ ಮಾರಕ ಜಲ-ಅಗ್ನಿ-ಸರ್ಪ ಗಂಡಾಂತರಗಳು ಪತ್ತೆಯಾಗಿಲ್ಲ. ಜಾತಕರು ಸುರಕ್ಷಿತರಾಗಿದ್ದಾರೆ." : "No critical life hazards or Gandantaras detected. Devotee is safeguarded."}
                 </div>
               ) : (
-                gandantaras.slice(0, 3).map((g) => (
-                  <div
-                    key={g.id}
-                    style={{
-                      background: "#FEF9E7",
-                      border: "1px solid #E5C378",
-                      borderRadius: "6px",
-                      padding: "5px 8px",
-                      fontSize: "10px",
-                      lineHeight: 1.45
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-                      <div style={{ fontWeight: 900, color: "#78350F", fontSize: "10.5px", lineHeight: 1.35, minWidth: 0 }}>
-                        ⚡ {getLangVal(g.name)}
+                gandantaras.slice(0, 3).map((g) => {
+                  const isDanger = g.isCurrentlyInDangerWindow;
+                  return (
+                    <div
+                      key={g.id}
+                      style={{
+                        background: isDanger ? "#FEF9E7" : "#F0FDF4",
+                        border: `1px solid ${isDanger ? "#E5C378" : "#86EFAC"}`,
+                        borderRadius: "6px",
+                        padding: "5px 8px",
+                        fontSize: "10px",
+                        lineHeight: 1.45
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                        <div style={{ fontWeight: 900, color: isDanger ? "#78350F" : "#166534", fontSize: "10.5px", lineHeight: 1.35, minWidth: 0 }}>
+                          {isDanger ? "⚡" : "✓"} {getLangVal(g.name)}
+                        </div>
+                        <span
+                          style={{
+                            background: isDanger ? "linear-gradient(135deg, #B45309 0%, #78350F 100%)" : "#DCFCE7",
+                            color: isDanger ? "#FFFDF8" : "#166534",
+                            fontSize: "8.5px",
+                            fontWeight: 900,
+                            padding: "1px 6px",
+                            borderRadius: "6px",
+                            border: `1px solid ${isDanger ? "#D4AF37" : "#86EFAC"}`,
+                            letterSpacing: "normal",
+                            flexShrink: 0,
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          {isDanger
+                            ? `${t.safeAgeLimitLabel} ${g.vulnerableTillAge} ವರ್ಷದವರೆಗೆ`
+                            : `✓ ${code === "kn" ? "ವಯೋಮಿತಿ ದಾಟಿದೆ" : "Safe Age Passed"} (${g.vulnerableTillAge} ವರ್ಷ)`}
+                        </span>
                       </div>
-                      <span style={{ background: "linear-gradient(135deg, #B45309 0%, #78350F 100%)", color: "#FFFDF8", fontSize: "8.5px", fontWeight: 900, padding: "1px 6px", borderRadius: "6px", border: "1px solid #D4AF37", letterSpacing: "normal", flexShrink: 0, whiteSpace: "nowrap" }}>
-                        {t.safeAgeLimitLabel} {getLangVal(g.ageWindowDescription, `${g.vulnerableTillAge} ವರ್ಷದವರೆಗೆ`)}
-                      </span>
-                    </div>
 
-                    <div style={{ color: "#92400E", fontWeight: 700, marginTop: "2px", lineHeight: 1.45 }}>
-                      ⛔ {t.mandatoryPrecautionLabel} {getLangArr(g.cautionDirectives).slice(0, 2).join(" • ") || cleanDegreesFromText(getLangVal(g.technicalReason))}
+                      {isDanger ? (
+                        <>
+                          <div style={{ color: "#92400E", fontWeight: 700, marginTop: "2px", lineHeight: 1.45 }}>
+                            ⛔ {t.mandatoryPrecautionLabel} {getLangArr(g.cautionDirectives).slice(0, 2).join(" • ") || cleanDegreesFromText(getLangVal(g.technicalReason))}
+                          </div>
+                          <div style={{ color: "#451A03", fontWeight: 700, marginTop: "2px", lineHeight: 1.45 }}>
+                            🛡️ {t.protectiveMantraLabel} {getLangVal(g.protectiveParihara)} • {getLangArr(g.protectiveMantras).slice(0, 1).join("")}
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ color: "#166534", fontWeight: 700, marginTop: "2px", lineHeight: 1.45 }}>
+                          ✓ {code === "kn"
+                            ? `ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ (${g.vulnerableTillAge} ವರ್ಷ) ಯಶಸ್ವಿಯಾಗಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಈ ಗಂಡಾಂತರದಿಂದ ಜಾತಕರು ಸಂಪೂರ್ಣ ಸುರಕ್ಷಿತರಾಗಿದ್ದಾರೆ.`
+                            : `Safe threshold (${g.vulnerableTillAge} years) successfully surpassed. Native is fully shielded.`}
+                        </div>
+                      )}
                     </div>
-
-                    <div style={{ color: "#451A03", fontWeight: 700, marginTop: "2px", lineHeight: 1.45 }}>
-                      🛡️ {t.protectiveMantraLabel} {getLangVal(g.protectiveParihara)} • {getLangArr(g.protectiveMantras).slice(0, 1).join("")}
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 

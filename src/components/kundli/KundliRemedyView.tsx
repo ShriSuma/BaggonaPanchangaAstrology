@@ -478,6 +478,79 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 <span className="font-bold text-amber-900">{isKn ? "ಬದಲಾವಣೆಯ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಕ್ರಿಯೆ: " : "Astrological Breakthrough Mechanism: "}</span>
                 {isKn ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || lifeTurnaroundTiming.breakthroughMechanismKn)}
               </div>
+
+              {/* Astrological Reason if provided */}
+              {lifeTurnaroundTiming.astrologicalReason && (
+                <div className="text-[11px] text-amber-900 leading-relaxed font-medium bg-amber-50/80 rounded-lg p-2.5 border border-amber-300">
+                  <span className="font-bold text-amber-950">
+                    {selectedLang === "kn" ? "ಜ್ಯೋತಿಷ್ಯ ಕಾರಣ & ಗ್ರಹ ಪ್ರಭಾವ: " :
+                     selectedLang === "hi" ? "ज्योतिषीय कारण एवं प्रभाव: " :
+                     selectedLang === "te" ? "జ్యోతిష్య కారణం మరియు ప్రభావం: " :
+                     selectedLang === "ta" ? "ஜோதிட காரணம் மற்றும் தாக்கம்: " :
+                     "Astrological Reason & Karmic Alignment: "}
+                  </span>
+                  {lifeTurnaroundTiming.astrologicalReason[selectedLang] || lifeTurnaroundTiming.astrologicalReason.kn}
+                </div>
+              )}
+
+              {/* 10-Day Relief & 15-Day Transformation Milestones */}
+              {(lifeTurnaroundTiming.day10Expectation || lifeTurnaroundTiming.day15Expectation) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-0.5">
+                  {lifeTurnaroundTiming.day10Expectation && (
+                    <div className="rounded-lg bg-emerald-50/90 border border-emerald-300 p-2.5 space-y-1">
+                      <span className="text-[10px] font-black text-emerald-900 uppercase tracking-wider block">
+                        🌱 {selectedLang === "kn" ? "೧೦ ದಿನಗಳ ನಿರಂತರ ಸಾಧನೆಯ ಅನುಭವ" :
+                            selectedLang === "hi" ? "१० दिनों की साधना का अनुभव" :
+                            selectedLang === "te" ? "10 రోజుల సాధన అనుభవం" :
+                            selectedLang === "ta" ? "10 நாள் சாதனை உணர்வு" :
+                            "10-Day Experiential Practice Relief"}
+                      </span>
+                      <p className="text-[11px] text-emerald-950 leading-relaxed font-medium">
+                        {lifeTurnaroundTiming.day10Expectation[selectedLang] || lifeTurnaroundTiming.day10Expectation.kn}
+                      </p>
+                    </div>
+                  )}
+                  {lifeTurnaroundTiming.day15Expectation && (
+                    <div className="rounded-lg bg-amber-50/90 border border-amber-300 p-2.5 space-y-1">
+                      <span className="text-[10px] font-black text-amber-900 uppercase tracking-wider block">
+                        🌅 {selectedLang === "kn" ? "೧೫ ದಿನಗಳ ನಂತರ ನಿರೀಕ್ಷಿಸಬಹುದಾದ ತಿರುವು" :
+                            selectedLang === "hi" ? "१५ दिनों के बाद संभावित परिवर्तन" :
+                            selectedLang === "te" ? "15 రోజుల తర్వాత ఊహించదగిన మార్పు" :
+                            selectedLang === "ta" ? "15 நாட்களுக்குப் பிறகு திருப்புமுனை" :
+                            "15-Day Transformation Breakthrough"}
+                      </span>
+                      <p className="text-[11px] text-amber-950 leading-relaxed font-medium">
+                        {lifeTurnaroundTiming.day15Expectation[selectedLang] || lifeTurnaroundTiming.day15Expectation.kn}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Before vs After Transformation Contrast */}
+              {(lifeTurnaroundTiming.beforeState || lifeTurnaroundTiming.afterState) && (
+                <div className="rounded-lg bg-white/90 border border-amber-200 p-2.5 text-xs space-y-1.5">
+                  <span className="text-[10px] font-black text-amber-900 uppercase tracking-wider block">
+                    ⚖️ {selectedLang === "kn" ? "ಪರಿಹಾರ ಪೂರ್ವ vs ಪರಿಹಾರೋತ್ತರ ಫಲ" :
+                        selectedLang === "hi" ? "उपाय पूर्व बनाम उपायोत्तर फल" :
+                        selectedLang === "te" ? "పరిహార పూర్వ vs పరిహారోత్తర ఫలితం" :
+                        selectedLang === "ta" ? "பரிகாரத்திற்கு முன் vs பின் பலன்" :
+                        "Before vs After Transformation Contrast"}
+                  </span>
+                  {lifeTurnaroundTiming.beforeState && (
+                    <p className="text-[11px] text-rose-900 font-medium leading-snug">
+                      <span className="font-bold text-rose-950">⚠️ {selectedLang === "kn" ? "ಪ್ರಸ್ತುತ ಕರ್ಮ ಸ್ಥಿತಿ: " : "Current Friction: "}</span>
+                      {lifeTurnaroundTiming.beforeState[selectedLang] || lifeTurnaroundTiming.beforeState.kn}
+                    </p>
+                  )}
+                  {lifeTurnaroundTiming.afterState && (
+                    <p className="text-[11px] text-emerald-900 font-bold leading-snug">
+                      <span className="font-bold text-emerald-950">✨ {selectedLang === "kn" ? "ಪರಿಹಾರೋತ್ತರ ಬದಲಾವಣೆ: " : "Transformed State: "}</span>
+                      {lifeTurnaroundTiming.afterState[selectedLang] || lifeTurnaroundTiming.afterState.kn}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -592,6 +665,20 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               {panchangaRemedies.nakshatraRemedy.nakshatraName[selectedLang] || panchangaRemedies.nakshatraRemedy.nakshatraName.kn} (ಪಾದ {panchangaRemedies.nakshatraRemedy.pada})
             </span>
           </div>
+
+          {/* Elemental Balance Reason */}
+          {panchangaRemedies.elementalBalanceReason && (
+            <div className="rounded-xl bg-amber-100/70 border border-amber-300 p-2.5 text-xs text-amber-950 font-medium leading-relaxed">
+              <span className="font-bold text-amber-900">
+                🌀 {selectedLang === "kn" ? "ಪಂಚಮಹಾಭೂತ ಸಮತೋಲನ ಕಾರಣ: " :
+                    selectedLang === "hi" ? "पंचमहाभूत संतुलन कारण: " :
+                    selectedLang === "te" ? "పంచమహాభూత సమతుల్య కారణం: " :
+                    selectedLang === "ta" ? "பஞ்சமகாபூத சமநிலை காரணம்: " :
+                    "Five Elements Balance Reason: "}
+              </span>
+              {panchangaRemedies.elementalBalanceReason[selectedLang] || panchangaRemedies.elementalBalanceReason.kn}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             {/* 1. Nakshatra Vriksha (Sacred Tree) */}
@@ -779,6 +866,55 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
             💡 {dashaBhuktiAnalysis.remedialAction[selectedLang] || dashaBhuktiAnalysis.remedialAction.kn}
           </p>
         </div>
+
+        {/* Dasha Sandhi Junction Alert */}
+        {dashaBhuktiAnalysis.sandhiAlert && (
+          <div
+            className={`rounded-xl p-3.5 border text-xs space-y-1.5 ${
+              dashaBhuktiAnalysis.sandhiAlert.status === "active"
+                ? "bg-rose-50/80 border-rose-300"
+                : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming"
+                ? "bg-amber-50/80 border-amber-300"
+                : "bg-emerald-50/80 border-emerald-300"
+            }`}
+          >
+            <div className="flex items-center justify-between font-bold">
+              <span
+                className={
+                  dashaBhuktiAnalysis.sandhiAlert.status === "active"
+                    ? "text-rose-950 text-sm"
+                    : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming"
+                    ? "text-amber-950 text-sm"
+                    : "text-emerald-950 text-sm"
+                }
+              >
+                ⚡ {dashaBhuktiAnalysis.sandhiAlert.title[selectedLang] || dashaBhuktiAnalysis.sandhiAlert.title.kn}
+              </span>
+              <span
+                className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                  dashaBhuktiAnalysis.sandhiAlert.status === "active"
+                    ? "bg-rose-200 text-rose-900"
+                    : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming"
+                    ? "bg-amber-200 text-amber-900"
+                    : "bg-emerald-200 text-emerald-900"
+                }`}
+              >
+                {dashaBhuktiAnalysis.sandhiAlert.status === "active"
+                  ? (selectedLang === "kn" ? "ಸಕ್ರಿಯ ಸಂಧಿ ಕಾಲ" : selectedLang === "hi" ? "सक्रिय संधि काल" : "ACTIVE SANDHI")
+                  : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming"
+                  ? (selectedLang === "kn" ? "ಮುಂಬರುವ ಸಂಧಿ ಕಾಲ" : selectedLang === "hi" ? "आगामी संधि काल" : "UPCOMING SANDHI")
+                  : (selectedLang === "kn" ? "ಸ್ಥಿರ ದಶಾ ಕಾಲ" : selectedLang === "hi" ? "स्थिर दशा काल" : "STABLE")}
+              </span>
+            </div>
+            <p className="text-slate-700 leading-relaxed font-medium text-[11px]">
+              {dashaBhuktiAnalysis.sandhiAlert.description[selectedLang] || dashaBhuktiAnalysis.sandhiAlert.description.kn}
+            </p>
+            <p className="text-amber-950 font-bold text-[11px]">
+              💡 <span className="underline">{selectedLang === "kn" ? "ಸಂಧಿ ಕಾಲ ಶಾಂತಿ ಪರಿಹಾರ:" : "Sandhi Transition Shanti:"}</span>{" "}
+              {dashaBhuktiAnalysis.sandhiAlert.remedy[selectedLang] || dashaBhuktiAnalysis.sandhiAlert.remedy.kn}
+            </p>
+          </div>
+        )}
 
         {/* Gochara Transit Highlights Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">

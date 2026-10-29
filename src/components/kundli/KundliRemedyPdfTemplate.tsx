@@ -49,6 +49,12 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     currentDasha: "ಪ್ರಸ್ತುತ ಮಹಾದಶೆ & ಭುಕ್ತಿ:",
     activeKarmicFlow: "ದಶಾ ಪ್ರಭಾವ:",
     remedialStep: "ಪರಿಹಾರ ಕ್ರಮ:",
+    sandhiKalaLabel: "ದಶಾ-ಸಂಧಿ ಕಾಲಾವಧಿ:",
+    turnaroundTitle: "🌟 ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ:",
+    day10Title: "⚡ ೧೦ ದಿನಗಳ ನಿರಂತರ ಸಾಧನೆಯ ಅನುಭವ:",
+    day15Title: "🌅 ೧೫ ದಿನಗಳ ನಂತರ ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಜೀವನ ತಿರುವು:",
+    beforeAfterTitle: "🔄 ಪರಿಹಾರ ಪೂರ್ವ vs ಪರಿಹಾರೋತ್ತರ ಫಲ:",
+    elementalBalanceTitle: "🌿 ಪಂಚಭೂತ ಸಮನ್ವಯ ತತ್ತ್ವ:",
     sec7Title: "೭. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪವಿತ್ರ ಪರಿಹಾರಗಳು & ದಾನ",
     prescribedSeva: "ವಿಶೇಷ ಸೇವೆ:",
     rudraksha: "ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ:",
@@ -100,6 +106,12 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     currentDasha: "Active Dasha-Bhukti:",
     activeKarmicFlow: "Karmic Effect:",
     remedialStep: "Remedial Action:",
+    sandhiKalaLabel: "Dasha-Sandhi Transition Phase:",
+    turnaroundTitle: "🌟 Turnaround Window & Practice Milestones:",
+    day10Title: "⚡ 10-Day Daily Practice Experience:",
+    day15Title: "🌅 15-Day Transformation Breakthrough:",
+    beforeAfterTitle: "🔄 Before vs After Transformation:",
+    elementalBalanceTitle: "🌿 5 Cosmic Elements Balance:",
     sec7Title: "7. Sacred Sri Gokarna Mahabaleshwara Temple Remedies & Daana",
     prescribedSeva: "Prescribed Seva:",
     rudraksha: "Rudraksha:",
@@ -147,11 +159,17 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraBenefits: "फलश्रुति:",
     dailySankalpaTitle: "🪔 दैनिक शांति संकल्प एवं सन्निधान नियमावली",
     dailySankalpaText: "प्रतिदिन प्रातःकाल एवं संध्याकाल इन शास्त्रोक्त नियमों का श्रद्धापूर्वक पालन करने से ग्रह दोष शांत होते हैं और मानसिक शांति प्राप्त होती है।",
-    sec6Title: "೬. वर्तमान दशा-भुक्ति एवं गोचर ग्रहफल शांति",
+    sec6Title: "६. वर्तमान दशा-भुक्ति एवं गोचर ग्रहफल शांति",
     currentDasha: "वर्तमान महादशा एवं भुक्ति:",
     activeKarmicFlow: "दशा प्रभाव:",
     remedialStep: "उपाय क्रम:",
-    sec7Title: "೭. श्री गोकर्ण महाबलेश्वर सन्निधि के पावन उपाय एवं दान",
+    sandhiKalaLabel: "दशा-संधिकाल स्थिति:",
+    turnaroundTitle: "🌟 भाग्योदय एवं दैनिक साधना समयावधि:",
+    day10Title: "⚡ १० दिनों की साधना का अनुभव:",
+    day15Title: "🌅 १५ दिनों के उपरांत जीवन परिवर्तन:",
+    beforeAfterTitle: "🔄 उपाय पूर्व बनाम उपाय पश्चात प्रभाव:",
+    elementalBalanceTitle: "🌿 पंचतत्व संतुलन सिद्धांत:",
+    sec7Title: "७. श्री गोकर्ण महाबलेश्वर सन्निधि के पावन उपाय एवं दान",
     prescribedSeva: "विशेष सेवा:",
     rudraksha: "रुद्राक्ष धारण:",
     gemstone: "रत्न / धातु:",
@@ -202,6 +220,12 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     currentDasha: "ప్రస్తుత మహాదశ & భుక్తి:",
     activeKarmicFlow: "దశా ప్రభావం:",
     remedialStep: "పరిహార మార్గం:",
+    sandhiKalaLabel: "దశా-సంధి సమయం:",
+    turnaroundTitle: "🌟 భాగ్యోదయ & దైవిక సాధన సమయం:",
+    day10Title: "⚡ 10 రోజుల సాధన అనుభవం:",
+    day15Title: "🌅 15 రోజుల తర్వాత జీవిత మలుపు:",
+    beforeAfterTitle: "🔄 పరిహారానికి ముందు vs తర్వాత మార్పు:",
+    elementalBalanceTitle: "🌿 పంచభూత సమతుల్యత:",
     sec7Title: "7. శ్రీ గోకర్ణ మహాబలేశ్వర క్షేత్ర పవిత్ర పరిహారాలు & దానం",
     prescribedSeva: "విశేష సేవ:",
     rudraksha: "రుద్రాక్ష ధారణ:",
@@ -253,6 +277,12 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     currentDasha: "நடப்பு மகாதிசை & புக்தி:",
     activeKarmicFlow: "திசை பலன்:",
     remedialStep: "பரிகாரம்:",
+    sandhiKalaLabel: "திசை-சந்தி நிலை:",
+    turnaroundTitle: "🌟 வாழ்வு திருப்பம் & தினசரி வழிபாட்டு காலம்:",
+    day10Title: "⚡ 10 நாட்கள் வழிபாட்டு பலன்:",
+    day15Title: "🌅 15 நாட்களுக்குப் பிறகு வாழ்வு திருப்பம்:",
+    beforeAfterTitle: "🔄 பரிகாரத்திற்கு முன் vs பின் மாற்றம்:",
+    elementalBalanceTitle: "🌿 பஞ்சபூத சமநிலை தத்துவம்:",
     sec7Title: "7. ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலய வழிபாடுகள் & தானம்",
     prescribedSeva: "சிறப்பு பூஜை:",
     rudraksha: "ருத்ராட்சம்:",
@@ -267,37 +297,60 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
   }
 };
 
-/** Deterministic Shastric synthesis to guarantee 100% complete narrative if AI is pending or offline */
+/** Deterministic Shastric synthesis to guarantee 100% complete, non-generic narrative if AI is pending or offline */
 function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code: SupportedLanguage): string {
-  const { devoteeName, gotra, lagnaName, rashiName, nakshatraName, primaryStruggle, dashaBhuktiAnalysis, gokarnaTempleRemedies, personalizedStotras } = diagnosis;
+  const { devoteeName, gotra, lagnaName, rashiName, nakshatraName, primaryStruggle, dashaBhuktiAnalysis, gokarnaTempleRemedies, personalizedStotras, lifeTurnaroundTiming } = diagnosis;
   const stotra = personalizedStotras[0] || personalizedStotras[1];
   const stotraTitle = stotra?.title[code] || stotra?.title.kn || "";
   const sevaName = gokarnaTempleRemedies?.prescribedSeva?.name[code] || gokarnaTempleRemedies?.prescribedSeva?.name.kn || "";
+  const lagnaStr = lagnaName[code] || lagnaName.kn;
+  const rashiStr = rashiName[code] || rashiName.kn;
+  const nakshatraStr = nakshatraName[code] || nakshatraName.kn;
+  const struggleTitle = primaryStruggle.title[code] || primaryStruggle.title.kn;
+  const dashaStr = `${dashaBhuktiAnalysis.mahaDashaLabel[code] || dashaBhuktiAnalysis.mahaDashaLabel.kn} - ${dashaBhuktiAnalysis.bhuktiLabel[code] || dashaBhuktiAnalysis.bhuktiLabel.kn}`;
+  const sandhiTitle = dashaBhuktiAnalysis.sandhiAlert?.title[code] || dashaBhuktiAnalysis.sandhiAlert?.title.kn || "";
+  const day10Text = lifeTurnaroundTiming?.day10Expectation?.[code] || lifeTurnaroundTiming?.day10Expectation?.kn || "";
+  const day15Text = lifeTurnaroundTiming?.day15Expectation?.[code] || lifeTurnaroundTiming?.day15Expectation?.kn || "";
 
   if (code === "en") {
+    const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
+      ? `Under the active ${sandhiTitle} transition, `
+      : "";
     return `॥ Sri Gokarna Mahabaleshwara Prasanna ॥\n` +
-      `Upon deep shastric examination of the natal horoscope for ${devoteeName}${gotra ? ` (${gotra} Gotra)` : ""}, born under ${lagnaName.en || lagnaName.kn} Lagna and ${rashiName.en || rashiName.kn} Rashi (${nakshatraName.en || nakshatraName.kn} Nakshatra), the planetary configurations reveal prominent karmic tendencies. Under the current ${dashaBhuktiAnalysis.mahaDashaLabel.en || dashaBhuktiAnalysis.mahaDashaLabel.kn} Mahadasha and ${dashaBhuktiAnalysis.bhuktiLabel.en || dashaBhuktiAnalysis.bhuktiLabel.kn} Bhukti, the key life struggle is ${primaryStruggle.title.en || primaryStruggle.title.kn}.\n` +
-      `By offering the sacred ${sevaName} at Sri Kshetra Gokarna Mahabaleshwara, performing daily ${stotraTitle}, and observing the 4-step pacification protocol, planetary afflictions will be neutralized, granting deep mental tranquility, familial peace, and auspicious progress.`;
+      `Upon deep shastric examination of the natal horoscope for ${devoteeName}${gotra ? ` (${gotra} Gotra)` : ""}, born under ${lagnaStr} Lagna and ${rashiStr} Rashi (${nakshatraStr} Nakshatra), active planetary currents unfold under ${dashaStr}. ${sandhiPhrase}the primary karmic challenge manifests as ${struggleTitle}.\n` +
+      `By undertaking this consecrated sadhana: ${day10Text} Furthermore, after 15 days: ${day15Text} Offering the sacred ${sevaName} at Sri Kshetra Gokarna Mahabaleshwara and reciting daily ${stotraTitle} neutralizes planetary afflictions, granting enduring tranquility, protection, and auspicious progress.`;
   }
   if (code === "hi") {
+    const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
+      ? `वर्तमान में ${sandhiTitle} संधिकाल के प्रभाव से `
+      : "";
     return `॥ श्री गोकर्ण महाबलेश्वर प्रसन्न ॥\n` +
-      `जातक ${devoteeName}${gotra ? ` (${gotra} गोत्र)` : ""} की जन्म कुंडली का पाराशरी शास्त्र अनुसार सूक्ष्म विश्लेषण किया गया है। ${lagnaName.hi || lagnaName.kn} लग्न एवं ${rashiName.hi || rashiName.kn} राशि के ${nakshatraName.hi || nakshatraName.kn} नक्षत्र में जन्म होने के कारण, वर्तमान ${dashaBhuktiAnalysis.mahaDashaLabel.hi || dashaBhuktiAnalysis.mahaDashaLabel.kn} महादशा के प्रभाव से जीवन में मुख्य रूप से ${primaryStruggle.title.hi || primaryStruggle.title.kn} की स्थिति उत्पन्न हो रही है।\n` +
-      `श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधि में विहित ${sevaName} सेवा, नित्य ${stotraTitle} का पाठ एवं मनःशांति नियमों का पालन करने से ग्रहपीड़ा शांत होकर सपरिवार सुख-समृद्धि एवं शांति की प्राप्ति होगी।`;
+      `जातक ${devoteeName}${gotra ? ` (${gotra} गोत्र)` : ""} की जन्म कुंडली का पाराशरी शास्त्र अनुसार सूक्ष्म विश्लेषण किया गया है। ${lagnaStr} लग्न एवं ${rashiStr} राशि (${nakshatraStr} नक्षत्र) में जन्म होने से वर्तमान में ${dashaStr} चल रही है। ${sandhiPhrase}मुख्य रूप से ${struggleTitle} की स्थिति उत्पन्न हो रही है।\n` +
+      `इन शास्त्रोक्त उपायों के नियमित पालन से: ${day10Text} तत्पश्चात १५ दिनों में: ${day15Text} श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधि में विहित ${sevaName} एवं नित्य ${stotraTitle} के पाठ से ग्रहपीड़ा शांत होकर सुख-समृद्धि एवं मनःशांति की प्राप्ति होगी।`;
   }
   if (code === "te") {
+    const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
+      ? `ప్రస్తుతం ${sandhiTitle} సంధి ప్రభావంతో `
+      : "";
     return `॥ శ్రీ గోకర్ణ మహాబలేశ్వర ప్రసన్న ॥\n` +
-      `జాతకుడు ${devoteeName}${gotra ? ` (${gotra} గోత్రం)` : ""} గారి జన్మ కుండలిని పారాశరి శాస్త్రోక్త పద్ధతిలో పరిశీలించడమైనది. ${lagnaName.te || lagnaName.kn} లగ్నం మరియు ${rashiName.te || rashiName.kn} రాశి (${nakshatraName.te || nakshatraName.kn} నక్షత్రం) లో జన్మించిన వీరికి, ప్రస్తుత ${dashaBhuktiAnalysis.mahaDashaLabel.te || dashaBhuktiAnalysis.mahaDashaLabel.kn} మహర్దశ ప్రభావంతో ప్రధానంగా ${primaryStruggle.title.te || primaryStruggle.title.kn} ఎదురవుతోంది.\n` +
-      `శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో నిర్దేశించిన ${sevaName}, నిత్యం ${stotraTitle} పఠనం మరియు శాంతి నియమాల ఆచరణ ద్వారా గ్రహదోషాలు నివారణమై సంపూర్ణ మనశ్శాంతి లభిస్తుంది.`;
+      `జాతకుడు ${devoteeName}${gotra ? ` (${gotra} గోత్రం)` : ""} గారి జన్మ కుండలిని పారాశరి శాస్త్రోక్త పద్ధతిలో పరిశీలించడమైనది. ${lagnaStr} లగ్నం మరియు ${rashiStr} రాశి (${nakshatraStr} నక్షత్రం) లో జన్మించిన వీరికి, ప్రస్తుత ${dashaStr} ప్రభావంతో ${sandhiPhrase}ప్రధానంగా ${struggleTitle} ఎదురవుతోంది.\n` +
+      `ఈ శాస్త్రోక్త సాధన ద్వారా: ${day10Text} అనంతరం 15 రోజుల్లో: ${day15Text} శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో ${sevaName} మరియు నిత్యం ${stotraTitle} పఠనం ద్వారా గ్రహదోషాలు నివారణమై సంపూర్ణ మనశ్శాంతి లభిస్తుంది.`;
   }
   if (code === "ta") {
+    const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
+      ? `தற்போது ${sandhiTitle} சந்தி தாக்கத்தால் `
+      : "";
     return `॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் பிரசன்னம் ॥\n` +
-      `ஜாதகர் ${devoteeName}${gotra ? ` (${gotra} கோத்திரம்)` : ""} அவர்களின் ஜாதகத்தை பராசர ஜோதிட முறைப்படி ஆய்வு செய்ததில், ${lagnaName.ta || lagnaName.kn} லக்னம் மற்றும் ${rashiName.ta || rashiName.kn} ராசி (${nakshatraName.ta || nakshatraName.kn} நட்சத்திரம்) அமைந்திருக்கிறது. நடப்பு ${dashaBhuktiAnalysis.mahaDashaLabel.ta || dashaBhuktiAnalysis.mahaDashaLabel.kn} மகாதிசையின் தாக்கத்தால் ${primaryStruggle.title.ta || primaryStruggle.title.kn} சவால் ஏற்படுகிறது.\n` +
-      `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்தில் ${sevaName} பூஜை செய்து, தினமும் ${stotraTitle} பாராயணம் மற்றும் சாந்தி முறைகளை கடைப்பிடிப்பதால் கிரக தோஷங்கள் நீங்கி, மன நிம்மதியும் நல்வாழ்வும் அமையும்.`;
+      `ஜாதகர் ${devoteeName}${gotra ? ` (${gotra} கோத்திரம்)` : ""} அவர்களின் ஜாதகத்தை பராசர ஜோதிட முறைப்படி ஆய்வு செய்ததில், ${lagnaStr} லக்னம் மற்றும் ${rashiStr} ராசி (${nakshatraStr} நட்சத்திரம்) அமைந்திருக்கிறது. நடப்பு ${dashaStr} காலத்தில் ${sandhiPhrase}${struggleTitle} சவால் ஏற்படுகிறது.\n` +
+      `இந்த தெய்வீக வழிபாட்டின் மூலம்: ${day10Text} தொடர்ந்து 15 நாட்களில்: ${day15Text} ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்தில் ${sevaName} பூஜை மற்றும் தினமும் ${stotraTitle} பாராயணம் செய்வதால் கிரக தோஷங்கள் நீங்கி, மன நிம்மதியும் சுப யோகமும் அமையும்.`;
   }
   // Kannada default
+  const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
+    ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${sandhiTitle} ಸಂಧಿಕಾಲವು ಸಕ್ರಿಯವಾಗಿದ್ದು, `
+    : "";
   return `॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n` +
-    `ಜಾತಕರಾದ ${devoteeName}${gotra ? ` (${gotra} ಗೋತ್ರ)` : ""} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪರಾಶರೀ ಸಿದ್ಧಾಂತದಂತೆ ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ${lagnaName.kn} ಲಗ್ನ ಮತ್ತು ${rashiName.kn} ರಾಶಿಯ ${nakshatraName.kn} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ ಇವರಿಗೆ, ಪ್ರಸ್ತುತ ${dashaBhuktiAnalysis.mahaDashaLabel.kn} ಮಹಾದಶೆ ಮತ್ತು ${dashaBhuktiAnalysis.bhuktiLabel.kn} ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದ ಮುಖ್ಯವಾಗಿ ${primaryStruggle.title.kn} ಎದುರಾಗುತ್ತಿದೆ.\n` +
-    `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಗದಿತ ${sevaName} ಸೇವೆ, ನಕ್ಷತ್ರ ವೃಕ್ಷದ ಪೂಜೆ ಹಾಗೂ ನಿತ್ಯ ${stotraTitle} ಪಠಣೆಯಿಂದ ಗ್ರಹದೋಷಗಳು ಶಮನಗೊಂಡು, ಸಕಲ ಮನಃಕ್ಲೇಶಗಳು ದೂರವಾಗಿ ದೈವಿಕ ಶಾಂತಿ ಮತ್ತು ಅಭಿವೃದ್ಧಿ ಸಿದ್ಧಿಸುತ್ತದೆ.`;
+    `ಜಾತಕರಾದ ${devoteeName}${gotra ? ` (${gotra} ಗೋತ್ರ)` : ""} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪರಾಶರೀ ಸಿದ್ಧಾಂತದಂತೆ ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ${lagnaStr} ಲಗ್ನ ಮತ್ತು ${rashiStr} ರಾಶಿಯ ${nakshatraStr} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ ಇವರಿಗೆ, ಪ್ರಸ್ತುತ ${dashaStr} ಕಾಲ ನಡೆಯುತ್ತಿದೆ. ${sandhiPhrase}ಗ್ರಹಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದ ಜೀವನದಲ್ಲಿ ಮುಖ್ಯವಾಗಿ ${struggleTitle} ಎದುರಾಗುತ್ತಿದೆ.\n` +
+    `ಈ ಪವಿತ್ರ ಪರಿಹಾರಗಳನ್ನು ನಿಷ್ಠೆಯಿಂದ ಪ್ರಾರಂಭಿಸಿದಾಗ: ${day10Text} ನಂತರ ೧೫ ದಿನಗಳಲ್ಲಿ: ${day15Text} ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಗದಿತ ${sevaName} ಸೇವೆ ಹಾಗೂ ನಿತ್ಯ ${stotraTitle} ಪಠಣೆಯಿಂದ ಸಮಸ್ತ ಗ್ರಹಪೀಡೆಗಳು ಕರಗಿ ಅಖಂಡ ಶಾಂತಿ ಹಾಗೂ ಭಾಗ್ಯೋದಯ ಸಿದ್ಧಿಸುತ್ತದೆ.`;
 }
 
 export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = ({
@@ -776,6 +829,25 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   </div>
                 </div>
               </div>
+
+              {/* Elemental Balance Reason Banner */}
+              {panchangaRemedies.elementalBalanceReason && (
+                <div
+                  style={{
+                    marginTop: "5px",
+                    background: "#FEFCE8",
+                    border: "1px dashed #D97706",
+                    borderRadius: "6px",
+                    padding: "4px 8px",
+                    fontSize: "9.5px",
+                    color: "#78350F",
+                    lineHeight: 1.35
+                  }}
+                >
+                  <span style={{ fontWeight: 800, color: "#92400E" }}>{i18n.elementalBalanceTitle} </span>
+                  {panchangaRemedies.elementalBalanceReason[code] || panchangaRemedies.elementalBalanceReason.kn}
+                </div>
+              )}
             </div>
           )}
 
@@ -1242,29 +1314,96 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 <span style={{ fontWeight: 800 }}>• {i18n.remedialStep} </span>
                 {dashaBhuktiAnalysis.remedialAction[code] || dashaBhuktiAnalysis.remedialAction.kn}
               </div>
+              {/* Dasha Sandhi Alert Box */}
+              {dashaBhuktiAnalysis.sandhiAlert && (
+                <div
+                  style={{
+                    marginTop: "3px",
+                    paddingTop: "3px",
+                    borderTop: "1px dashed #FCD34D",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    fontSize: "10.5px"
+                  }}
+                >
+                  <span style={{ fontWeight: 800, color: dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "#991B1B" : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming" ? "#B45309" : "#166534" }}>
+                    {dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "⚠️ " : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming" ? "⏳ " : "🌿 "}
+                    <span style={{ color: "#78350F" }}>{i18n.sandhiKalaLabel} </span>
+                    {dashaBhuktiAnalysis.sandhiAlert.title[code] || dashaBhuktiAnalysis.sandhiAlert.title.kn}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "9px",
+                      background: dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "#FEE2E2" : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming" ? "#FEF3C7" : "#DCFCE7",
+                      color: dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "#991B1B" : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming" ? "#92400E" : "#166534",
+                      padding: "1px 6px",
+                      borderRadius: "6px",
+                      fontWeight: 800,
+                      border: `1px solid ${dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "#FCA5A5" : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming" ? "#FCD34D" : "#86EFAC"}`
+                    }}
+                  >
+                    {dashaBhuktiAnalysis.sandhiAlert.durationFormatted?.[code] || dashaBhuktiAnalysis.sandhiAlert.durationFormatted?.kn || (dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "ಸಕ್ರಿಯ" : "ಸ್ಥಿರ")}
+                  </span>
+                </div>
+              )}
             </div>
 
-            {/* Turnaround Timing Box (ಭಾಗ್ಯೋದಯ ಕಾಲಾವಧಿ) */}
+            {/* Turnaround Timing & 10-Day / 15-Day Milestone Card */}
             {lifeTurnaroundTiming && (
-              <div style={{ marginTop: "5px", background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: "6px", padding: "5px 9px", fontSize: "11px", lineHeight: 1.4 }}>
+              <div
+                style={{
+                  marginTop: "5px",
+                  background: "#FFFBEB",
+                  border: "1.5px solid #F59E0B",
+                  borderRadius: "6px",
+                  padding: "6px 9px",
+                  fontSize: "10.5px",
+                  lineHeight: 1.4
+                }}
+              >
+                {/* Header with Catalyst */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 900, color: "#78350F" }}>
-                  <span>🌟 {isKn ? "ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ:" : isHi ? "भाग्योदय एवं परिहार समयावधि:" : isTe ? "భాగ్యోదయ & పరిహార సమయం:" : isTa ? "வாழ்வு திருப்பம் & பரிகார காலம்:" : "Turnaround Point & Timing Window:"}</span>
-                  <span style={{ background: "#D97706", color: "#FFFFFF", padding: "1px 8px", borderRadius: "10px", fontSize: "10px", fontWeight: 800 }}>
+                  <span>{i18n.turnaroundTitle}</span>
+                  <span style={{ background: "#D97706", color: "#FFFFFF", padding: "1px 7px", borderRadius: "8px", fontSize: "9.5px", fontWeight: 800 }}>
                     {isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || "Upcoming 3 to 6 months")}
                   </span>
                 </div>
+
                 <div style={{ color: "#451A03", marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800 }}>{isKn ? "• ಪ್ರೇರಕ ಗ್ರಹ & ಗೋಕರ್ಣ ಸೇವೆ: " : isHi ? "• प्रेरक ग्रह एवं गोकर्ण सेवा: " : isTe ? "• ప్రేరక గ్రహం & గోకర్ణ సేవ: " : isTa ? "• தூண்டுதல் கிரகம் & கோகர்ண சேவை: " : "• Catalyst & Recommended Seva: "}</span>
+                  <span style={{ fontWeight: 800 }}>{isKn ? "• ಪ್ರೇರಕ ಗ್ರಹ & ಸೇವೆ: " : isHi ? "• प्रेरक ग्रह एवं सेवा: " : isTe ? "• ప్రేరక గ్రహం & సేవ: " : isTa ? "• தூண்டுதல் கிரகம் & சேவை: " : "• Catalyst & Seva: "}</span>
                   <span style={{ fontWeight: 700, color: "#92400E" }}>
                     {isKn
                       ? `${lifeTurnaroundTiming.catalystGrahaKn} · ${lifeTurnaroundTiming.specificSevaKn}`
                       : `${lifeTurnaroundTiming.catalystGrahaEn || "Catalyst Planet"} · ${lifeTurnaroundTiming.specificSevaEn || "Gokarna Seva"}`}
                   </span>
                 </div>
-                <div style={{ color: "#78350F", marginTop: "1px", fontSize: "10.5px" }}>
-                  <span style={{ fontWeight: 800 }}>{isKn ? "• ಜ್ಯೋತಿಷ್ಯ ಪ್ರಕ್ರಿಯೆ: " : isHi ? "• ज्योतिषीय प्रक्रिया: " : isTe ? "• జ్యోతిష్య ప్రక్రియ: " : isTa ? "• ஜோதிட திருப்ப முறை: " : "• Breakthrough Mechanism: "}</span>
-                  {isKn ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || "Astrological planetary alignment facilitates breakthroughs.")}
-                </div>
+
+                {/* 10-Day Experiential Relief Milestone */}
+                {lifeTurnaroundTiming.day10Expectation && (
+                  <div style={{ marginTop: "3px", background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "5px", padding: "3px 6px" }}>
+                    <span style={{ fontWeight: 800, color: "#92400E" }}>{i18n.day10Title} </span>
+                    <span style={{ color: "#451A03" }}>{lifeTurnaroundTiming.day10Expectation[code] || lifeTurnaroundTiming.day10Expectation.kn}</span>
+                  </div>
+                )}
+
+                {/* 15-Day Circumstantial Breakthrough Milestone */}
+                {lifeTurnaroundTiming.day15Expectation && (
+                  <div style={{ marginTop: "3px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "5px", padding: "3px 6px" }}>
+                    <span style={{ fontWeight: 800, color: "#166534" }}>{i18n.day15Title} </span>
+                    <span style={{ color: "#14532D" }}>{lifeTurnaroundTiming.day15Expectation[code] || lifeTurnaroundTiming.day15Expectation.kn}</span>
+                  </div>
+                )}
+
+                {/* Before vs After Transformation */}
+                {lifeTurnaroundTiming.beforeState && lifeTurnaroundTiming.afterState && (
+                  <div style={{ marginTop: "2px", color: "#78350F", fontSize: "10px", lineHeight: 1.35 }}>
+                    <span style={{ fontWeight: 800, color: "#92400E" }}>{i18n.beforeAfterTitle} </span>
+                    <span style={{ color: "#991B1B" }}>{lifeTurnaroundTiming.beforeState[code] || lifeTurnaroundTiming.beforeState.kn}</span>
+                    <span style={{ color: "#D97706", fontWeight: 800 }}> ➔ </span>
+                    <span style={{ color: "#166534", fontWeight: 700 }}>{lifeTurnaroundTiming.afterState[code] || lifeTurnaroundTiming.afterState.kn}</span>
+                  </div>
+                )}
               </div>
             )}
 

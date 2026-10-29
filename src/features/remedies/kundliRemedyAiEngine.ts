@@ -54,6 +54,14 @@ function buildRemedyAiPrompt(diagnosis: KundliRemedyDiagnosis, lang: string): st
   const struggleTitle = diagnosis.primaryStruggle.title[normLang] || diagnosis.primaryStruggle.title.kn;
   const struggleDesc = diagnosis.primaryStruggle.description[normLang] || diagnosis.primaryStruggle.description.kn;
   const dashaStr = `${diagnosis.dashaBhuktiAnalysis.mahaDashaLabel[normLang] || diagnosis.dashaBhuktiAnalysis.mahaDashaLabel.kn} / ${diagnosis.dashaBhuktiAnalysis.bhuktiLabel[normLang] || diagnosis.dashaBhuktiAnalysis.bhuktiLabel.kn}`;
+  const sandhiStr = diagnosis.dashaBhuktiAnalysis.sandhiAlert?.title[normLang] || diagnosis.dashaBhuktiAnalysis.sandhiAlert?.title.kn || "Stable Dasha (ಸ್ಥಿರ ದಶಾ ಕಾಲ)";
+  const tithiStr = `${diagnosis.panchangaRemedies.tithiRemedy.tithiName[normLang] || diagnosis.panchangaRemedies.tithiRemedy.tithiName.kn} (${diagnosis.panchangaRemedies.tithiRemedy.paksha})`;
+  const varaStr = diagnosis.panchangaRemedies.varaRemedy.dayName[normLang] || diagnosis.panchangaRemedies.varaRemedy.dayName.kn;
+  const yogaStr = diagnosis.panchangaRemedies.yogaRemedy.yogaName[normLang] || diagnosis.panchangaRemedies.yogaRemedy.yogaName.kn;
+  const karanaStr = diagnosis.panchangaRemedies.karanaRemedy.karanaName[normLang] || diagnosis.panchangaRemedies.karanaRemedy.karanaName.kn;
+  const sadeSatiStr = diagnosis.gocharaTransitAnalysis.sadeSatiStatus[normLang] || diagnosis.gocharaTransitAnalysis.sadeSatiStatus.kn;
+  const day10Relief = diagnosis.lifeTurnaroundTiming.day10Expectation?.[normLang] || diagnosis.lifeTurnaroundTiming.day10Expectation?.kn || "";
+  const day15Breakthrough = diagnosis.lifeTurnaroundTiming.day15Expectation?.[normLang] || diagnosis.lifeTurnaroundTiming.day15Expectation?.kn || "";
   const prescribedSeva = diagnosis.gokarnaTempleRemedies.prescribedSeva.name[normLang] || diagnosis.gokarnaTempleRemedies.prescribedSeva.name.kn;
   const sacredTree = diagnosis.panchangaRemedies.nakshatraRemedy.sacredTree.kannada;
   const stotraTitle = diagnosis.personalizedStotras[0]?.title[normLang] || diagnosis.personalizedStotras[0]?.title.kn;
@@ -73,8 +81,13 @@ DEVOTEE CHART PARTICULARS:
 - Natal Lagna: ${lagnaStr}
 - Chandra Rashi (Moon Sign): ${rashiStr}
 - Janma Nakshatra: ${nakshatraStr}
+- Birth Panchanga 5-Angas: Vara: ${varaStr}, Tithi: ${tithiStr}, Yoga: ${yogaStr}, Karana: ${karanaStr}
 - Active Vimshottari Period: ${dashaStr}
+- Dasha Sandhi Status: ${sandhiStr}
+- Live Transit & Sade Sati: ${sadeSatiStr}
 - Primary Astrological Diagnosis: ${struggleTitle} (${struggleDesc})
+- 10-Day Daily Practice Milestone: ${day10Relief}
+- 15-Day Transformation Breakthrough: ${day15Breakthrough}
 - Prescribed Sacred Tree & Deity: ${sacredTree} / ${diagnosis.panchangaRemedies.nakshatraRemedy.rulingDeity[normLang] || diagnosis.panchangaRemedies.nakshatraRemedy.rulingDeity.kn}
 - Designated Daily Stotra: ${stotraTitle}
 - Sacred Gokarna Temple Seva: ${prescribedSeva}
@@ -82,10 +95,11 @@ DEVOTEE CHART PARTICULARS:
 STRICT INSTRUCTIONS:
 1. Write 2 to 3 cohesive, compassionate, deeply spiritual paragraphs in EXCLUSIVELY ${targetLanguage} language.
 2. If ${targetLanguage} is an Indian language (Kannada, Telugu, Tamil, Hindi), use ONLY native script. Do NOT use English/Latin letters anywhere.
-3. Tailor the advice directly to the devotee's specific planetary alignment, active Dasha, and diagnosed struggle.
+3. Tailor the advice directly to the devotee's specific planetary alignment, active Dasha, Sandhi status, live Gochara, and diagnosed struggle.
 4. Explain clearly why chanting the designated stotra, performing the instant pacification protocol, and offering seva at Gokarna Mahabaleshwara will neutralize karmic afflictions and bring mental peace.
-5. Maintain a holy, encouraging, and authoritative Vedic priest persona. Do not include markdown headers (###) or bullet points.
-6. If the devotee is married, DO NOT mention marriage delay, finding a match, kankana bala, or getting married under any circumstances. Focus strictly on mutual respect, marital harmony, and family bliss.
+5. Provide clear day-by-day spiritual motivation and expectations: explain what internal relief they will feel after 10 continuous days of devoted practice, and what circumstantial turnaround breakthrough to expect after 15 days.
+6. Maintain a holy, encouraging, and authoritative Vedic priest persona that inspires deep devotion (Bhakti). Do not include markdown headers (###) or bullet points.
+7. If the devotee is married, DO NOT mention marriage delay, finding a match, kankana bala, or getting married under any circumstances. Focus strictly on mutual respect, marital harmony, and family bliss.
 `.trim();
 }
 

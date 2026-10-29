@@ -92,6 +92,11 @@ export interface DetectedDosha {
   agePriorityBadge?: Record<string, string>; // 5-lang badge e.g. ⚡ ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಆದ್ಯತೆ #1
   agePriorityReason?: Record<string, string>; // 5-lang reason why it's priority at current age
   immediateActionRequired?: Record<string, string>; // 5-lang immediate action to take first
+  shantiStatus?: "pending" | "completed"; // Indicates whether shanti was already performed in past or is pending
+  completedYear?: string | number; // e.g. 2020 or "ಹಿಂದಿನ ವರ್ಷಗಳಲ್ಲಿ"
+  alreadyDoneNarration?: Record<string, string>; // Compassionate validation if shanti was already performed
+  conditionalGuidance?: Record<string, string>; // Dual-state guidance (if performed vs if pending)
+  subconsciousFear?: Record<string, string>; // Specific innate fear/anxiety caused by this affliction
 }
 
 export interface ComprehensiveDoshaReport {
@@ -308,7 +313,8 @@ const KALA_SARPA_TYPES = [
 export function calculateComprehensiveDoshas(
   kundli: KundliOutput,
   input: KundliInput,
-  currentDate: Date = new Date()
+  currentDate: Date = new Date(),
+  completedPariharaMap?: Record<string, { isCompleted: boolean; completedYear?: string | number }>
 ): ComprehensiveDoshaReport {
   const sun = getPlanet(kundli, PN.Sun);
   const moon = getPlanet(kundli, PN.Moon);
@@ -384,6 +390,48 @@ export function calculateComprehensiveDoshas(
     };
   };
 
+  const buildShantiNarratives = (
+    doshaId: string,
+    doshaNameKn: string,
+    doshaNameEn: string,
+    doshaNameHi: string,
+    doshaNameTe: string,
+    doshaNameTa: string,
+    sacredPoojaNameKn: string,
+    sacredPoojaNameEn: string
+  ) => {
+    const isCompleted = !!completedPariharaMap?.[doshaId]?.isCompleted;
+    const yearStr = completedPariharaMap?.[doshaId]?.completedYear
+      ? `${completedPariharaMap[doshaId].completedYear}`
+      : "ಹಿಂದಿನ ವರ್ಷಗಳಲ್ಲಿ";
+    const yearStrEn = completedPariharaMap?.[doshaId]?.completedYear
+      ? `in ${completedPariharaMap[doshaId].completedYear}`
+      : "in past years";
+
+    const alreadyDoneNarration: Record<string, string> = {
+      kn: `ನೀವು ಈಗಾಗಲೇ ಈ ${doshaNameKn}ಕ್ಕೆ ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಅಥವಾ ತೀರ್ಥ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಾಸ್ತ್ರೋಕ್ತ ${sacredPoojaNameKn} ನೆರವೇರಿಸಿರುವುದರಿಂದ (${yearStr}), ಈ ಕರ್ಮ ಋಣವು ಬಹುತೇಕ ಶಮನಗೊಂಡಿದೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಹಿಂದಿನ ಕಠಿಣ ಅಡೆತಡೆಗಳು ತಗ್ಗಿ, ನಿಧಾನವಾಗಿ ಅಭಿವೃದ್ಧಿ ಹಾಗೂ ಆಂತರಿಕ ನೆಮ್ಮದಿ ಲಭಿಸುತ್ತಿರುವುದನ್ನು ನೀವು ಗಮನಿಸುತ್ತಿರಬಹುದು. ಆದ್ದರಿಂದ ಮತ್ತೆ ಯಾವುದೇ ದೊಡ್ಡ ಹೋಮ-ಪೂಜೆಗಳ ಅಗತ್ಯವಿಲ್ಲ; ಕೇವಲ ನಿತ್ಯ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ವಾರ್ಷಿಕ ಸಂಕಲ್ಪ ಮುಂದುವರಿಸಿದರೆ ಸಾಕು.`,
+      en: `Having already performed the consecrated ${sacredPoojaNameEn} for this ${doshaNameEn} at Sri Gokarna Kshetra or another sacred shrine (${yearStrEn}), this ancestral/karmic debt has been substantially pacified. You are likely already observing eased friction, renewed clarity, and steady stabilization. No repetition of major fire rituals (Homa) is warranted; maintaining regular devotional prayers and annual remembrance suffices.`,
+      hi: `चूंकि आपने पूर्व में ही (${yearStr}) श्री गोकर्ण क्षेत्र अथवा तीर्थ में इस ${doshaNameHi} की शास्त्रोक्त शांति संपन्न करा ली है, अतः यह कर्म ऋण शांत हो चुका है। आप जीवन में सकारात्मक बदलाव एवं मानसिक शांति का अनुभव कर रहे होंगे। पुनः भारी अनुष्ठान की आवश्यकता नहीं है; नित्य ईश्वर स्मरण पर्याप्त है।`,
+      te: `మీరు ఇప్పటికే (${yearStr}) గోకర్ణ క్షేత్రంలో లేదా పుణ్యక్షేత్రాలలో ఈ ${doshaNameTe}కు శాస్త్రోక్త శాంతి పూజలు పూర్తి చేసి ఉన్నందున, ఈ కర్మ భారం తొలగిపోయింది. జీవితంలో శుభ పరిణామాలు ప్రారంభమై ఉంటాయి. మళ్లీ పెద్ద హోమాలు చేయనవసరం లేదు; నిత్య పూజ సరిపోతుంది.`,
+      ta: `நீங்கள் ஏற்கனவே (${yearStr}) கோகர்ண சந்நிதியில் இந்த ${doshaNameTa}த்திற்குரிய சாந்தி பரிகாரங்களைச் செய்துவிட்டதால், இந்த கர்ம தாக்கம் தணிந்துள்ளது. மீண்டும் பெரும் ஹோமங்கள் செய்யத் தேவையில்லை; தினசரி வழிபாடு போதுமானது.`
+    };
+
+    const conditionalGuidance: Record<string, string> = {
+      kn: `ವಿಶೇಷ ಮಾರ್ಗದರ್ಶನ: ಈ ${doshaNameKn}ಕ್ಕೆ ನೀವು ಈಗಾಗಲೇ ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಅಥವಾ ತೀರ್ಥ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಾಸ್ತ್ರೋಕ್ತ ${sacredPoojaNameKn} ಮಾಡಿಸಿದ್ದರೆ, ಆ ಕರ್ಮ ಋಣವು ಶಮನಗೊಂಡಿದ್ದು ನೀವು ಈಗಾಗಲೇ ಕೆಲಸಗಳಲ್ಲಿ ಪ್ರಗತಿ ಮತ್ತು ಮಾನಸಿಕ ಶಾಂತಿಯನ್ನು ಅನುಭವಿಸುತ್ತಿರಬಹುದು; ಅಂತಹ ಸಂದರ್ಭದಲ್ಲಿ ಮತ್ತೆ ಹೋಮದ ಅಗತ್ಯವಿಲ್ಲ. ಒಂದು ವೇಳೆ ಇದುವರೆಗೂ ಮಾಡಿಸದಿದ್ದರೆ ಮಾತ್ರ, ಪ್ರಸ್ತುತ ${activeMahaKn}-${activeBhuktiKn} ದಶಾ ಕಾಲದಲ್ಲಿ ಶೀಘ್ರವಾಗಿ ಶಾಂತಿ ನೆರವೇರಿಸುವುದು ನಿಮ್ಮ ಸಕಲ ಕಾರ್ಯಗಳ ಸಿದ್ಧಿಗೆ ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`,
+      en: `Special Guidance: If you have already performed sanctified ${sacredPoojaNameEn} for this ${doshaNameEn} at Sri Gokarna or another sacred pilgrimage site, this karmic debt is already purified and you are likely already witnessing improvements and relief; in that case, no repeat ritual is required. Only if not yet performed, addressing it promptly during this active ${activeMahaPlanet}-${activeBhuktiPlanet} dasha is strongly advised.`,
+      hi: `विशेष मार्गदर्शन: यदि आप पहले ही गोकर्ण अथवा तीर्थ क्षेत्र में इस ${doshaNameHi} की शास्त्रोक्त शांति करा चुके हैं, तो यह कर्म ऋण शांत हो चुका है और आपको राहत मिल रही होगी; ऐसी स्थिति में पुनः पूजा की आवश्यकता नहीं है। यदि अब तक नहीं कराया है, तभी वर्तमान दशा में शीघ्र शांति कराना श्रेयस्कर होगा।`,
+      te: `ప్రత్యేక సూచన: మీరు ఇప్పటికే గోకర్ణంలో లేదా పుణ్యక్షేత్రాలలో ఈ ${doshaNameTe}కు శాంతి చేసి ఉంటే, మళ్లీ చేయవలసిన అవసరం లేదు. ఒకవేళ చేయకపోతే మాత్రమే ప్రస్తుత దశా కాలంలో తక్షణమే శాంతి చేసుకోవడం ఉత్తమం.`,
+      ta: `முக்கிய குறிப்பு: நீங்கள் ஏற்கனவே இந்த ${doshaNameTa}த்திற்கு சாந்தி பரிகாரம் செய்திருந்தால், மீண்டும் செய்யத் தேவையில்லை. இதுவரை செய்யவில்லை என்றால் மட்டுமே நடப்பு திசா காலத்தில் உடனடியாகச் செய்வது நலம் பயக்கும்.`
+    };
+
+    return {
+      shantiStatus: isCompleted ? ("completed" as const) : ("pending" as const),
+      completedYear: isCompleted ? yearStr : undefined,
+      alreadyDoneNarration,
+      conditionalGuidance
+    };
+  };
+
   const doshasList: DetectedDosha[] = [];
 
   // ==========================================================================
@@ -428,29 +476,61 @@ export function calculateComprehensiveDoshas(
     pitruReasonsEn.push(`Mutual combustion and enemy conjunction of Sun and Saturn in the ${sun.house}th house.`);
   }
 
-  if (sun && (sun.house === 6 || sun.house === 8 || sun.house === 12)) {
-    pitruHouses.push(sun.house);
-    pitruGrahas.push("Sun");
-    pitruReasonsKn.push(`ಪಿತೃಕಾರಕ ಸೂರ್ಯನು ತ್ರಿಕ/ದುಸ್ಥಾನವಾದ ${sun.house}ನೇ ಮನೆಯಲ್ಲಿ ನೆಲೆಸಿರುವುದು.`);
-    pitruReasonsHi.push(`पितृकारक सूर्य का त्रिक भाव (${sun.house}वें भाव) में स्थित होना।`);
-    pitruReasonsTe.push(`సూర్యుడు దుఃస్థానమైన ${sun.house}వ స్థానంలో ఉండటం.`);
-    pitruReasonsTa.push(`சூரிய பகவான் ${sun.house} ஆம் மறைவு ஸ்தானத்தில் இருப்பது.`);
-    pitruReasonsEn.push(`Sun (Pitrukaraka) is relegated to the Dusthana ${sun.house}th house.`);
+  if (sun && (sun.house === 8 || sun.house === 12)) {
+    const isSunAfflicted =
+      sun.rashi.index === 6 || // Debilitated in Libra
+      (saturn && (saturn.house === sun.house || Math.abs(saturn.degree - sun.degree) < 15)) ||
+      (rahu && rahu.house === sun.house) ||
+      (ketu && ketu.house === sun.house);
+
+    if (isSunAfflicted) {
+      pitruHouses.push(sun.house);
+      pitruGrahas.push("Sun");
+      pitruReasonsKn.push(`ಪಿತೃಕಾರಕ ಸೂರ್ಯನು ಅಷ್ಟಮ/ವ್ಯಯ ದುಸ್ಥಾನದಲ್ಲಿ (${sun.house}ನೇ ಮನೆ) ಪಾಪಗ್ರಹಗಳ ಬಾಧೆ ಅಥವಾ ನೀಚತ್ವ ಹೊಂದಿರಲು ಪಿತೃ ಋಣ ಉಂಟಾಗಿರುವುದು.`);
+      pitruReasonsHi.push(`पितृकारक सूर्य का अष्टम/द्वादश भाव में पीड़ित अथवा नीच होना।`);
+      pitruReasonsTe.push(`సూర్యుడు 8 లేదా 12వ స్థానంలో పాపగ్రహాల ప్రభావంతో బలహీనపడటం.`);
+      pitruReasonsTa.push(`சூரிய பகவான் 8 அல்லது 12 ஆம் மறைவிடத்தில் பலவீனமாக இருப்பது.`);
+      pitruReasonsEn.push(`Sun (Pitrukaraka) is afflicted or debilitated in the Dusthana ${sun.house}th house.`);
+    }
   }
 
   if (ninthLord && (ninthLord.house === 6 || ninthLord.house === 8 || ninthLord.house === 12)) {
-    pitruHouses.push(ninthLord.house);
-    pitruGrahas.push(ninthLord.name);
-    pitruReasonsKn.push(`೯ನೇ ಭಾಗ್ಯಾಧಿಪತಿಯಾದ ${ninthLord.name} ದುಸ್ಥಾನವಾದ ${ninthLord.house}ನೇ ಮನೆಯಲ್ಲಿ ಸ್ಥಿತನಾಗಿರುವುದು.`);
-    pitruReasonsHi.push(`नवमेश ${ninthLord.name} का त्रिक भाव (${ninthLord.house}वें भाव) में होना।`);
-    pitruReasonsTe.push(`9వ అధిపతి ${ninthLord.name} దుఃస్థానమైన ${ninthLord.house}వ స్థానంలో ఉండటం.`);
-    pitruReasonsTa.push(`9 ஆம் அதிபதி ${ninthLord.name} மறைவு ஸ்தானத்தில் இருப்பது.`);
-    pitruReasonsEn.push(`9th house lord ${ninthLord.name} is placed in the ${ninthLord.house}th Dusthana.`);
+    const isNinthLordAfflicted =
+      ninthLord.rashi.index === 6 || // Debilitated
+      (rahu && (rahu.house === ninthLord.house || Math.abs(rahu.degree - ninthLord.degree) < 15)) ||
+      (ketu && ketu.house === ninthLord.house) ||
+      (saturn && saturn.house === ninthLord.house);
+
+    if (isNinthLordAfflicted) {
+      pitruHouses.push(ninthLord.house);
+      pitruGrahas.push(ninthLord.name);
+      pitruReasonsKn.push(`೯ನೇ ಭಾಗ್ಯಾಧಿಪತಿಯಾದ ${ninthLord.name} ದುಸ್ಥಾನದಲ್ಲಿ (${ninthLord.house}ನೇ ಮನೆ) ಛಾಯಾಗ್ರಹ ಅಥವಾ ಶನಿಯಿಂದ ಪೀಡಿತನಾಗಿರುವುದು.`);
+      pitruReasonsHi.push(`नवमेश ${ninthLord.name} का त्रिक भाव में पापी ग्रहों से युक्त होना।`);
+      pitruReasonsTe.push(`9వ అధిపతి ${ninthLord.name} దుఃస్థానంలో పాపగ్రహాలతో కూడి ఉండటం.`);
+      pitruReasonsTa.push(`9 ஆம் அதிபதி ${ninthLord.name} மறைவிடத்தில் பாவ கிரகங்களுடன் இருப்பது.`);
+      pitruReasonsEn.push(`9th house lord ${ninthLord.name} is afflicted in the ${ninthLord.house}th Dusthana.`);
+    }
   }
 
-  const isPitruActive = pitruReasonsKn.length > 0;
+  const isPitruMitigatedByJupiter =
+    jupiter !== undefined &&
+    ((sun && [1, 5, 9].includes(Math.abs(jupiter.house - sun.house))) ||
+     (rahu && rahu.house === 9 && [1, 5, 9].includes(Math.abs(jupiter.house - 9))));
+
+  const isPitruActive = pitruReasonsKn.length > 0 && !(pitruReasonsKn.length === 1 && isPitruMitigatedByJupiter);
   const pitruSeverity: DoshaSeverity =
     pitruReasonsKn.length >= 3 ? "critical" : pitruReasonsKn.length >= 2 ? "high" : pitruReasonsKn.length === 1 ? "moderate" : "none";
+
+  const pitruShanti = buildShantiNarratives(
+    "pitru_dosha",
+    "ಪಿತೃ ದೋಷ",
+    "Pitru Dosha",
+    "पितृ दोष",
+    "పితృ దోషం",
+    "பித்ரு தோஷம்",
+    "ತಿಲ ಹೋಮ ಮತ್ತು ನಾರಾಯಣ ಬಲಿ",
+    "Tila Homa & Narayana Bali"
+  );
 
   doshasList.push({
     id: "pitru_dosha",
@@ -465,11 +545,32 @@ export function calculateComprehensiveDoshas(
     isDetected: isPitruActive,
     severity: pitruSeverity,
     statusBadge: {
-      kn: isPitruActive ? "ಸಕ್ರಿಯ ಪಿತೃ ಋಣ" : "ನಿರ್ದೋಷ (ಪಿತೃ ಕೃಪೆ)",
-      hi: isPitruActive ? "सक्रिय पितृ ऋण" : "पितृ कृपा युक्त",
-      te: isPitruActive ? "పితృ దోషం ఉంది" : "పితృ కృప",
-      ta: isPitruActive ? "பித்ரு தோஷம் உள்ளது" : "தோஷமில்லை",
-      en: isPitruActive ? "ACTIVE PITRU DEBT" : "ANCESTRAL HARMONY"
+      kn: pitruShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${pitruShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isPitruActive ? "ಸಕ್ರಿಯ ಪಿತೃ ಋಣ" : "ನಿರ್ದೋಷ (ಪಿತೃ ಕೃಪೆ)"),
+      hi: pitruShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (पितृ मुक्त)"
+        : (isPitruActive ? "सक्रिय पितृ ऋण" : "पितृ कृपा युक्त"),
+      te: pitruShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isPitruActive ? "పితృ దోషం ఉంది" : "పితృ కృప"),
+      ta: pitruShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isPitruActive ? "பித்ரு தோஷம் உள்ளது" : "தோஷமில்லை"),
+      en: pitruShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED (PURIFIED)"
+        : (isPitruActive ? "ACTIVE PITRU DEBT" : "ANCESTRAL HARMONY")
+    },
+    shantiStatus: pitruShanti.shantiStatus,
+    completedYear: pitruShanti.completedYear,
+    alreadyDoneNarration: pitruShanti.alreadyDoneNarration,
+    conditionalGuidance: pitruShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಪೂರ್ವಜರ ಅತೃಪ್ತಿ ಅಥವಾ ಪಿತೃ ಋಣದ ಕಾರಣದಿಂದ ಕುಟುಂಬದಲ್ಲಿ ಅಕಾಲಿಕ ವಿಪತ್ತು, ಅನಾರೋಗ್ಯ, ವಂಶಾಭಿವೃದ್ಧಿಯಲ್ಲಿ ಅಡೆತಡೆ ಹಾಗೂ ಕಠಿಣ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಫಲ ಸಿಗುವುದಿಲ್ಲವೋ ಎಂಬ ನಿರಂತರ ಆಂತರಿಕ ಅಭದ್ರತೆಯ ಭೀತಿ.",
+      en: "Subconscious dread of sudden unpreventable career stalls, unexplained domestic anxiety, fear of family health setbacks, and unyielding fear of legacy failure.",
+      hi: "अचानक कार्य रुकने का भय, संतान अथवा वंश वृद्धि की चिंता तथा पारिवारिक स्वास्थ्य संकट का आंतरिक भय।",
+      te: "పనులలో ఆకస్మిక అడ్డంకులు, సంతాన చింత మరియు కుటుంబంలో అనుకోని కష్టాలు వస్తాయేమోనన్న అంతర్గత భయం.",
+      ta: "முன்னோர்களின் கர்ம வினையால் சுபகாரியத் தடைகள், குடும்ப நிம்மதியின்மை மற்றும் எதிர்காலப் பயம்."
     },
     technicalDetail: {
       houseNumbers: Array.from(new Set(pitruHouses)),
@@ -597,10 +698,16 @@ In your current life phase, this ancestral debt creates psychological friction a
   }
 
   if (ketu && ketu.house === 5) {
-    narayanaHouses.push(5);
-    narayanaGrahas.push("Ketu");
-    narayanaReasonsKn.push("೫ನೇ ಸ್ಥಾನದಲ್ಲಿ ಮೋಕ್ಷ/ಕೇತು ನೆಲೆಸಿ ಸಂತಾನ ಸ್ಥಾನಕ್ಕೆ ಗ್ರಹಣ ತಂದಿರುವುದು.");
-    narayanaReasonsEn.push("Ketu afflicts the 5th house of progeny.");
+    const isFifthOrJupiterAfflicted =
+      (fifthLord && (fifthLord.house === 6 || fifthLord.house === 8 || fifthLord.house === 12 || fifthLord.rashi.index === 6)) ||
+      (jupiter && (jupiter.house === 6 || jupiter.house === 8 || jupiter.house === 12 || jupiter.rashi.index === 9));
+
+    if (isFifthOrJupiterAfflicted) {
+      narayanaHouses.push(5);
+      narayanaGrahas.push("Ketu");
+      narayanaReasonsKn.push("೫ನೇ ಸ್ಥಾನದಲ್ಲಿ ಕೇತು ನೆಲೆಸಿ ೫ನೇ ಅಧಿಪತಿ ಅಥವಾ ಪುತ್ರಕಾರಕ ಗುರು ದುರ್ಬಲನಾಗಿರುವುದರಿಂದ ವಂಶ ಋಣ ಉಂಟಾಗಿರುವುದು.");
+      narayanaReasonsEn.push("Ketu afflicts the 5th house in conjunction with afflicted 5th lord or debilitated Jupiter.");
+    }
   }
 
   if (jupiter && rahu && (jupiter.house === rahu.house || Math.abs(jupiter.rashi.index - rahu.rashi.index) === 0)) {
@@ -621,6 +728,17 @@ In your current life phase, this ancestral debt creates psychological friction a
   const narayanaSeverity: DoshaSeverity =
     narayanaReasonsKn.length >= 2 ? "critical" : narayanaReasonsKn.length === 1 ? "high" : "none";
 
+  const narayanaShanti = buildShantiNarratives(
+    "narayana_bali",
+    "ನಾರಾಯಣ ಬಲಿ ದೋಷ",
+    "Narayana Bali Dosha",
+    "नारायण बली दोष",
+    "నారాయణ బలి దోషం",
+    "நாராயண பலி தோஷம்",
+    "ನಾರಾಯಣ ಬಲಿ ಮತ್ತು ತಿಲ ಹೋಮ",
+    "Narayana Bali & Tila Homa"
+  );
+
   doshasList.push({
     id: "narayana_bali",
     name: {
@@ -634,11 +752,32 @@ In your current life phase, this ancestral debt creates psychological friction a
     isDetected: isNarayanaActive,
     severity: narayanaSeverity,
     statusBadge: {
-      kn: isNarayanaActive ? "ಶಾಂತಿ ಸಂಸ್ಕಾರ ಅವಶ್ಯಕ" : "ಶುಭ ಸಂತಾನ ಯೋಗ",
-      hi: isNarayanaActive ? "नारायण बली आवश्यक" : "शुभ संतान योग",
-      te: isNarayanaActive ? "శాంతి అవసరం" : "శుభ యోగం",
-      ta: isNarayanaActive ? "சாந்தி தேவை" : "தோஷமில்லை",
-      en: isNarayanaActive ? "NARAYANA BALI REQUIRED" : "LINEAGE HARMONY"
+      kn: narayanaShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${narayanaShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isNarayanaActive ? "ಶಾಂತಿ ಸಂಸ್ಕಾರ ಅವಶ್ಯಕ" : "ಶುಭ ಸಂತಾನ ಯೋಗ"),
+      hi: narayanaShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isNarayanaActive ? "नारायण बली आवश्यक" : "शुभ संतान योग"),
+      te: narayanaShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isNarayanaActive ? "శాంతి అవసరం" : "శుభ యోగం"),
+      ta: narayanaShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isNarayanaActive ? "சாந்தி தேவை" : "தோஷமில்லை"),
+      en: narayanaShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isNarayanaActive ? "NARAYANA BALI REQUIRED" : "LINEAGE HARMONY")
+    },
+    shantiStatus: narayanaShanti.shantiStatus,
+    completedYear: narayanaShanti.completedYear,
+    alreadyDoneNarration: narayanaShanti.alreadyDoneNarration,
+    conditionalGuidance: narayanaShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ವಂಶಾಭಿವೃದ್ಧಿಯಲ್ಲಿ ವಿಳಂಬ, ಗರ್ಭಸ್ರಾವ ಅಥವಾ ಸಂತಾನದ ಆರೋಗ್ಯದ ಚಿಂತೆ, ಕೌಟುಂಬಿಕ ಆಸ್ತಿ ಕಲಹಗಳು ಹಾಗೂ ಕಾರಣವಿಲ್ಲದೆ ಮನಸ್ಸಿನಲ್ಲಿ ಕಾಡುವ ಅಗೋಚರ ಅಭದ್ರತೆಯ ಭಯ.",
+      en: "Deep subconscious fear surrounding lineage continuation, progeny health setbacks, unexplained nocturnal domestic anxiety, and dread of ancestral discontent.",
+      hi: "संतान सुख में बाधा की चिंता, अकारण मानसिक भय तथा वंश वृद्धि में अवरोध का डर।",
+      te: "సంతాన భాగ్యంలో ఆలస్యం మరియు కుటుంబంలో భద్రత లోపించిందనే అంతర్గత భయం.",
+      ta: "வம்ச விருத்தி பற்றிய ஆழ்மன பயம் மற்றும் குடும்பத்தில் ஏற்படும் காரணமற்ற அச்சம்."
     },
     technicalDetail: {
       houseNumbers: Array.from(new Set(narayanaHouses)),
@@ -772,6 +911,17 @@ Performing the sacred Narayana Bali rites dissolves these ancestral burdens, tra
     }
   }
 
+  const kalaSarpaShanti = buildShantiNarratives(
+    "kala_sarpa",
+    "ಕಾಳ ಸರ್ಪ ದೋಷ",
+    "Kala Sarpa Dosha",
+    "कालसर्प दोष",
+    "కాలసర్ప దోషం",
+    "காலசர்ப்ப தோஷம்",
+    "ಸರ್ಪ ಸಂಸ್ಕಾರ & ನಾಗ ಪ್ರತಿಷ್ಠೆ",
+    "Sarpa Samskara & Naga Pratishtha"
+  );
+
   doshasList.push({
     id: "kala_sarpa",
     name: {
@@ -785,11 +935,32 @@ Performing the sacred Narayana Bali rites dissolves these ancestral burdens, tra
     isDetected: isKalaSarpa,
     severity: isKalaSarpa ? (isKalaAmrita ? "moderate" : "critical") : "none",
     statusBadge: {
-      kn: isKalaSarpa ? (isKalaAmrita ? "ಕಾಲ ಅಮೃತ ಯೋಗ (ಅನುಕೂಲ)" : `${kalaSarpaTypeObj.kn} ಸಕ್ರಿಯ`) : "ಸರ್ಪದೋಷ ಮುಕ್ತ",
-      hi: isKalaSarpa ? (isKalaAmrita ? "काल अमृत योग" : `${kalaSarpaTypeObj.hi} सक्रिय`) : "कालसर्प मुक्त",
-      te: isKalaSarpa ? "కాలసర్ప దోషం ఉంది" : "దోష రహితం",
-      ta: isKalaSarpa ? "காலசர்ப்ப தோஷம் உள்ளது" : "தோஷமில்லை",
-      en: isKalaSarpa ? (isKalaAmrita ? "KALA AMRITA YOGA" : `${kalaSarpaTypeObj.en.toUpperCase()} ACTIVE`) : "FREE OF NODAL CONFINEMENT"
+      kn: kalaSarpaShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${kalaSarpaShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isKalaSarpa ? (isKalaAmrita ? "ಕಾಲ ಅಮೃತ ಯೋಗ (ಅನುಕೂಲ)" : `${kalaSarpaTypeObj.kn} ಸಕ್ರಿಯ`) : "ಸರ್ಪದೋಷ ಮುಕ್ತ"),
+      hi: kalaSarpaShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isKalaSarpa ? (isKalaAmrita ? "काल अमृत योग" : `${kalaSarpaTypeObj.hi} सक्रिय`) : "कालसर्प मुक्त"),
+      te: kalaSarpaShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isKalaSarpa ? "కాలసర్ప దోషం ఉంది" : "దోష రహితం"),
+      ta: kalaSarpaShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isKalaSarpa ? "காலசர்ப்ப தோஷம் உள்ளது" : "தோஷமில்லை"),
+      en: kalaSarpaShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isKalaSarpa ? (isKalaAmrita ? "KALA AMRITA YOGA" : `${kalaSarpaTypeObj.en.toUpperCase()} ACTIVE`) : "FREE OF NODAL CONFINEMENT")
+    },
+    shantiStatus: kalaSarpaShanti.shantiStatus,
+    completedYear: kalaSarpaShanti.completedYear,
+    alreadyDoneNarration: kalaSarpaShanti.alreadyDoneNarration,
+    conditionalGuidance: kalaSarpaShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಸರ್ಪಭಯ, ನೀರಿನಲ್ಲಿ ಮುಳುಗುವ ಭೀತಿ, ಕಷ್ಟಪಟ್ಟು ಕಟ್ಟಿದ ಸಾಧನೆಗಳು ಒಮ್ಮೆಲೇ ಕುಸಿದುಬೀಳುವ ಅನಿರೀಕ್ಷಿತ ದುಗುಡ ಹಾಗೂ ಸದಾ ಹಿಂಬಾಲಿಸುತ್ತಿರುವ ಆತಂಕದ ಭಾವನೆ.",
+      en: "Reptilian/ophidiophobia, nightmares of sudden entrapment or drowning, and persistent subconscious dread of abrupt catastrophic reversal at the height of success.",
+      hi: "सर्प भय, आकस्मिक पतन का डर तथा जीवन में सब कुछ ठीक होते हुए भी अचानक विपत्ति आने की आशंका।",
+      te: "సర్ప భయం, అకస్మాత్తుగా అంతా తలకిందులవుతుందేమోనన్న తీవ్ర ఆందోళన.",
+      ta: "பாம்பு பயம், திடீர் வீழ்ச்சி ஏற்படுமோ என்ற ஆழ்மனக் கலக்கம்."
     },
     technicalDetail: {
       houseNumbers: rahu && ketu ? [rahu.house, ketu.house] : [],
@@ -895,6 +1066,17 @@ Propitiating Lord Shiva via formal Kala Sarpa Shanti harmonizes the nodal axis, 
   const guruChandalDist = jupiterPlanet && rahu ? Math.abs(jupiterPlanet.degree - rahu.degree) : 30;
   const isGuruChandalTight = isGuruChandal && guruChandalDist <= 10.0;
 
+  const guruChandalShanti = buildShantiNarratives(
+    "guru_chandala",
+    "ಗುರು ಚಂಡಾಲ ದೋಷ",
+    "Guru Chandala Dosha",
+    "गुरु चांडाल दोष",
+    "గురు చండాల దోషం",
+    "குரு சண்டாள தோஷம்",
+    "ಗುರು-ರಾಹು ಶಾಂತಿ & ದತ್ತಾತ್ರೇಯ ಆರಾಧನೆ",
+    "Guru-Rahu Shanti & Dattatreya Pooja"
+  );
+
   doshasList.push({
     id: "guru_chandala",
     name: {
@@ -908,11 +1090,32 @@ Propitiating Lord Shiva via formal Kala Sarpa Shanti harmonizes the nodal axis, 
     isDetected: !!isGuruChandal,
     severity: isGuruChandal ? (isGuruChandalTight ? "critical" : "high") : "none",
     statusBadge: {
-      kn: isGuruChandal ? (isGuruChandalTight ? "ತೀವ್ರ ಗುರು-ರಾಹು ಯುತಿ" : "ಗುರು ಚಂಡಾಲ ಯೋಗ") : "ಶುಭ ಗುರು",
-      hi: isGuruChandal ? "गुरु-राहु युति सक्रिय" : "शुभ गुरु",
-      te: isGuruChandal ? "గురు చండాల దోషం ఉంది" : "శుభ గురుడు",
-      ta: isGuruChandal ? "குரு சண்டாள தோஷம் உள்ளது" : "சுப குரு",
-      en: isGuruChandal ? (isGuruChandalTight ? "TIGHT GURU-RAHU CONJUNCTION" : "GURU CHANDALA ACTIVE") : "BENEFIC JUPITER"
+      kn: guruChandalShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${guruChandalShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isGuruChandal ? (isGuruChandalTight ? "ತೀವ್ರ ಗುರು-ರಾಹು ಯುತಿ" : "ಗುರು ಚಂಡಾಲ ಯೋಗ") : "ಶುಭ ಗುರು"),
+      hi: guruChandalShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isGuruChandal ? "गुरु-राहु युति सक्रिय" : "शुभ गुरु"),
+      te: guruChandalShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isGuruChandal ? "గురు చండాల దోషం ఉంది" : "శుభ గురుడు"),
+      ta: guruChandalShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isGuruChandal ? "குரு சண்டாள தோஷம் உள்ளது" : "சுப குரு"),
+      en: guruChandalShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isGuruChandal ? (isGuruChandalTight ? "TIGHT GURU-RAHU CONJUNCTION" : "GURU CHANDALA ACTIVE") : "BENEFIC JUPITER")
+    },
+    shantiStatus: guruChandalShanti.shantiStatus,
+    completedYear: guruChandalShanti.completedYear,
+    alreadyDoneNarration: guruChandalShanti.alreadyDoneNarration,
+    conditionalGuidance: guruChandalShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಧಾರ್ಮಿಕ/ಆಧ್ಯಾತ್ಮಿಕ ಗೊಂದಲಗಳು, ತಪ್ಪು ಜನರ ಸಹವಾಸದಿಂದ ಗೌರವಕ್ಕೆ ಧಕ್ಕೆ ಬರುವ ಭೀತಿ, ಆರ್ಥಿಕ ವಂಚನೆಗೊಳಗಾಗುವ ಆತಂಕ ಹಾಗೂ ನಂಬಿದವರು ದ್ರೋಹ ಬಗೆಯುವ ಭಯ.",
+      en: "Subconscious fear of moral hypocrisy, spiritual disillusionment, falling prey to unethical schemes, or being betrayed by trusted mentors/colleagues.",
+      hi: "धोखाधड़ी का भय, गलत संगति से सामाजिक प्रतिष्ठा धूमिल होने की आशंका।",
+      te: "నమ్మకద్రోహం జరుగుతుందేమోనన్న భయం మరియు తప్పుడు సలహాల వల్ల నష్టం జరుగుతుందనే ఆందోళన.",
+      ta: "நம்பிக்கைத் துரோகம் மற்றும் தவறான முடிவுகளால் பெயர் கெட்டுவிடுமோ என்ற பயம்."
     },
     technicalDetail: {
       houseNumbers: jupiterPlanet ? [jupiterPlanet.house] : [],
@@ -1065,6 +1268,13 @@ Honoring seasoned preceptors, chanting Brihaspati mantras, and conducting rigoro
         ? (hasBalarishtaBhanga ? "BALARISHTA BHANGA (PROTECTED)" : "ACTIVE BALARISHTA")
         : (isChildhood ? "VITAL CONSTITUTION" : "CHILDHOOD SURPASSED (LONGEVITY SECURED)")
     },
+    subconsciousFear: {
+      kn: "ಆರೋಗ್ಯ ಕುಸಿತ, ದೈಹಿಕ ದೌರ್ಬಲ್ಯ ಹಾಗೂ ಹವಾಮಾನ ಬದಲಾವಣೆಗಳಿಗೆ ತ್ವರಿತವಾಗಿ ತುತ್ತಾಗುವ ಬಗ್ಗೆ ಕಾಡುವ ಆಂತರಿಕ ಆತಂಕ.",
+      en: "Subconscious psychosomatic anxiety over physical constitution, vitality lapses, and seasonal health vulnerability.",
+      hi: "स्वास्थ्य एवं शारीरिक दुर्बलता को लेकर आंतरिक चिंता।",
+      te: "శారీరక బలహీనత మరియు ఆరోగ్య సమస్యలపై అంతర్గత భయం.",
+      ta: "உடல்நலம் மற்றும் பலவீனம் பற்றிய ஆழ்மன கவலை."
+    },
     technicalDetail: {
       houseNumbers: Array.from(new Set(balarishtaHouses)),
       grahasInvolved: [PlanetName.Moon, ...(lagnaLord ? [lagnaLord.name] : [])],
@@ -1203,6 +1413,13 @@ Cultivating clean Ayurvedic lifestyle habits and Mahamrityunjaya chanting sustai
         ? "PSYCHOSOMATIC VULNERABILITY"
         : (isChildhood ? "UNAFFLICTED" : "CHILDHOOD SURPASSED (MATURE VITALITY)")
     },
+    subconsciousFear: {
+      kn: "ನರಗಳ ದೌರ್ಬಲ್ಯ, ಸಣ್ಣಪುಟ್ಟ ವಿಷಯಗಳಿಗೂ ಹಠಾತ್ ಎದೆಬಡಿತ ಅಥವಾ ಅಂಜಿಕೆ ಹಾಗೂ ರಾತ್ರಿಯ ಅಕಾರಣ ಭಯ.",
+      en: "Subconscious nervous hyper-excitability, startle responses to sudden noises, and nocturnal dread.",
+      hi: "घबराहट, अचानक भय तथा रात्रि में बेचैनी की अनुभूति।",
+      te: "ఆకస్మిక భయాలు మరియు రాత్రి సమయాలలో ఆందోళన.",
+      ta: "திடீர் நடுக்கம் மற்றும் இரவு நேர பயங்கள்."
+    },
     technicalDetail: {
       houseNumbers: isBalyagraha ? [mercury?.house || moon?.house || 6] : [],
       grahasInvolved: ["Mercury", "Moon", "Rahu", "Ketu"],
@@ -1304,6 +1521,17 @@ Cultivating clean Ayurvedic lifestyle habits and Mahamrityunjaya chanting sustai
 
   const kujaSeverity: DoshaSeverity = isKujaDosha ? (isKujaBhanga ? "mild" : [7, 8].includes(mars?.house || 0) ? "high" : "moderate") : "none";
 
+  const kujaShanti = buildShantiNarratives(
+    "kuja_dosha",
+    "ಕುಜ / ಮಾಂಗಲಿಕ ದೋಷ",
+    "Kuja / Manglik Dosha",
+    "कुज / मांगलिक दोष",
+    "కుజ / మాంగ్లిక్ దోషం",
+    "செவ்வாய் தோஷம்",
+    "ಗೋಕರ್ಣ ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ & ಕುಜ ಶಾಂತಿ ಹೋಮ",
+    "Gokarna Subramanya Pooja & Kuja Shanti Homa"
+  );
+
   doshasList.push({
     id: "kuja_dosha",
     name: {
@@ -1317,11 +1545,32 @@ Cultivating clean Ayurvedic lifestyle habits and Mahamrityunjaya chanting sustai
     isDetected: isKujaDosha,
     severity: kujaSeverity,
     statusBadge: {
-      kn: isKujaDosha ? (isKujaBhanga ? "ಭಂಗ ಮಾಂಗಲಿಕ (ರಹಿತ)" : "ಸಕ್ರಿಯ ಕುಜದೋಷ") : "ನಿರ್ದೋಷ",
-      hi: isKujaDosha ? (isKujaBhanga ? "मांगलिक दोष भंग" : "सक्रिय मांगलिक दोष") : "दोष रहित",
-      te: isKujaDosha ? "కుజ దోషం" : "దోష రహితం",
-      ta: isKujaDosha ? "செவ்வாய் தோஷம்" : "தோஷமில்லை",
-      en: isKujaDosha ? (isKujaBhanga ? "MANGLIK BHANGA (CANCELLED)" : "ACTIVE MANGLIK DOSHA") : "UNAFFLICTED"
+      kn: kujaShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${kujaShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isKujaDosha ? (isKujaBhanga ? "ಭಂಗ ಮಾಂಗಲಿಕ (ರಹಿತ)" : "ಸಕ್ರಿಯ ಕುಜದೋಷ") : "ನಿರ್ದೋಷ"),
+      hi: kujaShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isKujaDosha ? (isKujaBhanga ? "मांगलिक दोष भंग" : "सक्रिय मांगलिक दोष") : "दोष रहित"),
+      te: kujaShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isKujaDosha ? "కుజ దోషం" : "దోష రహితం"),
+      ta: kujaShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isKujaDosha ? "செவ்வாய் தோஷம்" : "தோஷமில்லை"),
+      en: kujaShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isKujaDosha ? (isKujaBhanga ? "MANGLIK BHANGA (CANCELLED)" : "ACTIVE MANGLIK DOSHA") : "UNAFFLICTED")
+    },
+    shantiStatus: kujaShanti.shantiStatus,
+    completedYear: kujaShanti.completedYear,
+    alreadyDoneNarration: kujaShanti.alreadyDoneNarration,
+    conditionalGuidance: kujaShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ದಾಂಪತ್ಯದಲ್ಲಿ ಹೊಂದಾಣಿಕೆ ಕೊರತೆಯ ಭೀತಿ, ಕೋಪದ ಆವೇಶದಲ್ಲಿ ತಪ್ಪು ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವ ಭಯ ಹಾಗೂ ರಕ್ತ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಅಥವಾ ವಾಹನ ಅಪಘಾತದ ಆತಂಕ.",
+      en: "Subconscious dread of marital incompatibility, uncontrollable temperamental bursts leading to relational fracture, and latent fear of surgical blades, bleeding, or vehicular collisions.",
+      hi: "वैवाहिक कलह का भय, क्रोध में गलत निर्णय लेने की आशंका तथा रक्त अथवा वाहन दुर्घटना का डर।",
+      te: "వైవాహిక జీవితంలో సమస్యల భయం, కోపంలో తప్పు నిర్ణయాలు తీసుకుంటామేమోనన్న ఆందోళన.",
+      ta: "திருமண வாழ்வில் கருத்து வேறுபாடு ஏற்படுமோ என்ற அச்சம் மற்றும் வாகன விபத்து பயம்."
     },
     technicalDetail: {
       houseNumbers: kujaHouses,
@@ -1428,6 +1677,17 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
     ...(isChandraGrahan && moon ? [moon.house] : [])
   ];
 
+  const grahanShanti = buildShantiNarratives(
+    "grahan_dosha",
+    isSuryaGrahan ? "ಸೂರ್ಯ ಗ್ರಹಣ ದೋಷ" : isChandraGrahan ? "ಚಂದ್ರ ಗ್ರಹಣ ದೋಷ" : "ಗ್ರಹಣ ದೋಷ",
+    isSuryaGrahan ? "Surya Grahan Dosha" : isChandraGrahan ? "Chandra Grahan Dosha" : "Grahan Dosha",
+    isSuryaGrahan ? "सूर्य ग्रहण दोष" : isChandraGrahan ? "चंद्र ग्रहण दोष" : "ग्रहण दोष",
+    "గ్రహణ దోషం",
+    "கிரகண தோஷம்",
+    "ಗ್ರಹಣ ದೋಷ ನಿವಾರಣಾ ಶಾಂತಿ & ಸೂರ್ಯ-ಚಂದ್ರ ಹವನ",
+    "Grahan Dosha Shanti & Surya-Chandra Homa"
+  );
+
   doshasList.push({
     id: "grahan_dosha",
     name: {
@@ -1441,11 +1701,32 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
     isDetected: isGrahanActive,
     severity: isGrahanActive ? "high" : "none",
     statusBadge: {
-      kn: isGrahanActive ? "ಸಕ್ರಿಯ ಗ್ರಹಣ ದೋಷ" : "ನಿರ್ದೋಷ (ತೇಜಸ್ಸು)",
-      hi: isGrahanActive ? "सक्रिय ग्रहण दोष" : "ग्रहण मुक्त",
-      te: isGrahanActive ? "గ్రహణ దోషం ఉంది" : "శుభం",
-      ta: isGrahanActive ? "கிரகண தோஷம் உள்ளது" : "தோஷமில்லை",
-      en: isGrahanActive ? "ECLIPSE AFFLICTION ACTIVE" : "LUMINOUS CHARTER"
+      kn: grahanShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${grahanShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isGrahanActive ? "ಸಕ್ರಿಯ ಗ್ರಹಣ ದೋಷ" : "ನಿರ್ದೋಷ (ತೇಜಸ್ಸು)"),
+      hi: grahanShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isGrahanActive ? "सक्रिय ग्रहण दोष" : "ग्रहण मुक्त"),
+      te: grahanShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isGrahanActive ? "గ్రహణ దోషం ఉంది" : "శుభం"),
+      ta: grahanShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isGrahanActive ? "கிரகண தோஷம் உள்ளது" : "தோஷமில்லை"),
+      en: grahanShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isGrahanActive ? "ECLIPSE AFFLICTION ACTIVE" : "LUMINOUS CHARTER")
+    },
+    shantiStatus: grahanShanti.shantiStatus,
+    completedYear: grahanShanti.completedYear,
+    alreadyDoneNarration: grahanShanti.alreadyDoneNarration,
+    conditionalGuidance: grahanShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಆತ್ಮವಿಶ್ವಾಸದ ಕೊರತೆ, ಸಾರ್ವಜನಿಕವಾಗಿ ಅಪವಾದ ಅಥವಾ ನಿಂದನೆಗೆ ಒಳಗಾಗುವ ಭೀತಿ, ಕತ್ತಲೆಯ ಬಗ್ಗೆ ಅಪನಂಬಿಕೆ ಹಾಗೂ ನೇತ್ರ ಅಥವಾ ತಲೆನೋವಿನ ಭಯ.",
+      en: "Subconscious fear of public humiliation or false accusations, sudden eclipse of self-worth, anxiety in dim spaces, and ocular stress.",
+      hi: "सार्वजनिक अपमान का भय, आत्म-सम्मान में कमी की आशंका तथा अंधकार का डर।",
+      te: "సమాజంలో అపవాదులు ఎదురవుతాయనే భయం మరియు ఆత్మవిశ్వాసం కోల్పోతామనే ఆందోళన.",
+      ta: "வீண் பழிச்சொல் மற்றும் கௌரவக் குறைவு ஏற்படுமோ என்ற ஆழ்மன பயம்."
     },
     technicalDetail: {
       houseNumbers: grahanHouses,
@@ -1539,6 +1820,17 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
   const isShrapit = saturn && rahu && saturn.house === rahu.house;
   const shrapitSeverity: DoshaSeverity = isShrapit ? "critical" : "none";
 
+  const shrapitShanti = buildShantiNarratives(
+    "shrapit_dosha",
+    "ಶ್ರಪಿತ ದೋಷ (ಶನಿ-ರಾಹು)",
+    "Shrapit Dosha (Saturn-Rahu)",
+    "श्रापित दोष",
+    "శ్రాపిత దోషం",
+    "சிரபித தோஷம்",
+    "ಶ್ರಪಿತ ದೋಷ ನಿವಾರಣಾ ಮಹಾ ಯಜ್ಞ & ತೈಲಾಭಿಷೇಕ",
+    "Shrapit Dosha Nivarana Maha Yajna & Tailabhishekam"
+  );
+
   doshasList.push({
     id: "shrapit_dosha",
     name: {
@@ -1552,11 +1844,32 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
     isDetected: !!isShrapit,
     severity: shrapitSeverity,
     statusBadge: {
-      kn: isShrapit ? "ತೀವ್ರ ಶ್ರಪಿತ ಕರ್ಮ" : "ಶಾಪ ರಹಿತ",
-      hi: isShrapit ? "सक्रिय श्रापित योग" : "श्राप मुक्त",
-      te: isShrapit ? "శ్రాపిత దోషం ఉంది" : "శుభం",
-      ta: isShrapit ? "சிரபித தோஷம் உள்ளது" : "தோஷமில்லை",
-      en: isShrapit ? "ACTIVE SHRAPIT YOGA" : "UNAFFLICTED"
+      kn: shrapitShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${shrapitShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isShrapit ? "ತೀವ್ರ ಶ್ರಪಿತ ಕರ್ಮ" : "ಶಾಪ ರಹಿತ"),
+      hi: shrapitShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isShrapit ? "सक्रिय श्रापित योग" : "श्राप मुक्त"),
+      te: shrapitShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isShrapit ? "శ్రాపిత దోషం ఉంది" : "శుభం"),
+      ta: shrapitShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isShrapit ? "சிரபித தோஷம் உள்ளது" : "தோஷமில்லை"),
+      en: shrapitShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isShrapit ? "ACTIVE SHRAPIT YOGA" : "UNAFFLICTED")
+    },
+    shantiStatus: shrapitShanti.shantiStatus,
+    completedYear: shrapitShanti.completedYear,
+    alreadyDoneNarration: shrapitShanti.alreadyDoneNarration,
+    conditionalGuidance: shrapitShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಮುಟ್ಟಿದ್ದೆಲ್ಲವೂ ಬೂದಿಯಾಗುವುದೆಂಬ ಹತಾಶೆ, ಸತತ ಪರಿಶ್ರಮಕ್ಕೂ ದ್ರೋಹ ಅಥವಾ ನಿಂದನೆ ಎದುರಾಗುವ ಭಯ, ಗುಪ್ತ ಶತ್ರುಗಳ ಕಾಟ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಪ್ರಗತಿ ಸ್ಥಗಿತಗೊಳ್ಳುವ ಭೀತಿ.",
+      en: "Deep subconscious anxiety that genuine kindness will be rewarded with malice, dread of invisible karmic sabotage, and fear of sudden social isolation.",
+      hi: "कठिन परिश्रम के बाद भी विश्वासघात का भय, गुप्त शत्रुओं का डर तथा कार्य न बनने की निराशा।",
+      te: "ఎంత మేలు చేసినా కీడు ఎదురవుతుందనే భయం మరియు శత్రు భయం.",
+      ta: "நம்பிக்கைத் துரோகம் மற்றும் காரியங்கள் தடைபடுமோ என்ற ஆழ்மன அச்சம்."
     },
     technicalDetail: {
       houseNumbers: isShrapit && saturn ? [saturn.house] : [],
@@ -1671,6 +1984,17 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
     }
   }
 
+  const kemadrumaShanti = buildShantiNarratives(
+    "kemadruma_dosha",
+    "ಕೇಮದ್ರುಮ ದೋಷ",
+    "Kemadruma Dosha",
+    "केमद्रुम दोष",
+    "కేమద్రుమ దోషం",
+    "கேமத்ரும தோஷம்",
+    "ಕೇಮದ್ರುಮ ದೋಷ ಶಾಂತಿ & ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ-ಚಂದ್ರ ಯಾಗ",
+    "Kemadruma Shanti & Mahalakshmi-Chandra Yajna"
+  );
+
   doshasList.push({
     id: "kemadruma_dosha",
     name: {
@@ -1684,11 +2008,32 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
     isDetected: isKemadruma,
     severity: isKemadruma ? (hasKemadrumaBhanga ? "mild" : "high") : "none",
     statusBadge: {
-      kn: isKemadruma ? (hasKemadrumaBhanga ? "ಕೇಮದ್ರುಮ ಭಂಗ (ರಕ್ಷಿತ)" : "ಸಕ್ರಿಯ ಕೇಮದ್ರುಮ") : "ಚಂದ್ರ ಬಲ ಯೋಗ",
-      hi: isKemadruma ? (hasKemadrumaBhanga ? "केमद्रुम भंग योग" : "सक्रिय केमद्रुम") : "शुभ चंद्र योग",
-      te: isKemadruma ? "కేమద్రుమ దోషం" : "దోష రహితం",
-      ta: isKemadruma ? "கேமத்ரும தோஷம்" : "தோஷமில்லை",
-      en: isKemadruma ? (hasKemadrumaBhanga ? "KEMADRUMA BHANGA (MITIGATED)" : "ACTIVE KEMADRUMA") : "LUNAR STABILITY"
+      kn: kemadrumaShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${kemadrumaShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isKemadruma ? (hasKemadrumaBhanga ? "ಕೇಮದ್ರುಮ ಭಂಗ (ರಕ್ಷಿತ)" : "ಸಕ್ರಿಯ ಕೇಮದ್ರುಮ") : "ಚಂದ್ರ ಬಲ ಯೋಗ"),
+      hi: kemadrumaShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isKemadruma ? (hasKemadrumaBhanga ? "केमद्रुम भंग योग" : "सक्रिय केमद्रुम") : "शुभ चंद्र योग"),
+      te: kemadrumaShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isKemadruma ? "కేమద్రుమ దోషం" : "దోష రహితం"),
+      ta: kemadrumaShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isKemadruma ? "கேமத்ரும தோஷம்" : "தோஷமில்லை"),
+      en: kemadrumaShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isKemadruma ? (hasKemadrumaBhanga ? "KEMADRUMA BHANGA (MITIGATED)" : "ACTIVE KEMADRUMA") : "LUNAR STABILITY")
+    },
+    shantiStatus: kemadrumaShanti.shantiStatus,
+    completedYear: kemadrumaShanti.completedYear,
+    alreadyDoneNarration: kemadrumaShanti.alreadyDoneNarration,
+    conditionalGuidance: kemadrumaShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಸಂಪತ್ತು ಕೈಯಿಂದ ಜಾರಿಹೋಗುವ ದಾರಿದ್ರ್ಯ ಭಯ, ಜನಸಾಗರದಲ್ಲಿದ್ದರೂ ಕಾಡುವ ತೀವ್ರ ಏಕಾಂಗಿತನ, ಯಾರೂ ತಮ್ಮನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವುದಿಲ್ಲವೆಂಬ ಆಂತರಿಕ ಖಿನ್ನತೆ.",
+      en: "Subconscious dread of financial ruin or insolvency, sudden loss of social standing, and acute existential loneliness even when surrounded by relatives.",
+      hi: "आर्थिक अस्थिरता का भय, भीड़ में भी अकेलेपन का अहसास तथा मानसिक असुरक्षा।",
+      te: "ఆర్థిక అభద్రత మరియు తీవ్రమైన ఒంటరితనపు భయం.",
+      ta: "பொருளாதார இழப்பு மற்றும் தனிமை பற்றிய பயம்."
     },
     technicalDetail: {
       houseNumbers: moon ? [moon.house] : [],
@@ -1793,6 +2138,17 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
   const isGandanta =
     isAshleshaGandanta || isMaghaGandanta || isJyeshthaGandanta || isMoolaGandanta || isRevatiGandanta || isAshwiniGandanta;
 
+  const gandantaShanti = buildShantiNarratives(
+    "gandanta_dosha",
+    isMoolaGandanta ? "ಮೂಲ ನಕ್ಷತ್ರ ಗಂಡಾಂತ ದೋಷ" : "ನಕ್ಷತ್ರ ಗಂಡಾಂತ ದೋಷ",
+    isMoolaGandanta ? "Abhukta Moola Gandanta Dosha" : "Nakshatra Gandanta Dosha",
+    isMoolaGandanta ? "मूल नक्षत्र गंडांत दोष" : "नक्षत्र गंडांत दोष",
+    "గండాంత నక్షత్ర దోషం",
+    "கண்டாந்த நட்சத்திர தோஷம்",
+    "೨೭ ತೀರ್ಥೋದಕಗಳ ಗಂಡಾಂತ ಶಾಂತಿ ಸ್ನಾನ ಮಹಾ ಪೂಜೆ",
+    "27 Sacred Waters Gandanta Shanti Snana Puja"
+  );
+
   doshasList.push({
     id: "gandanta_dosha",
     name: {
@@ -1806,11 +2162,32 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
     isDetected: isGandanta,
     severity: isGandanta ? (isMoolaGandanta && moonPada === 1 ? "critical" : "high") : "none",
     statusBadge: {
-      kn: isGandanta ? "ಗಂಡಾಂತ ಶಾಂತಿ ಅವಶ್ಯಕ" : "ಶುಭ ನಕ್ಷತ್ರ ಕಾಲ",
-      hi: isGandanta ? "गंडांत शांति आवश्यक" : "शुभ नक्षत्र",
-      te: isGandanta ? "శాంతి అవసరం" : "శుభ నక్షత్రం",
-      ta: isGandanta ? "சாந்தி தேவை" : "சுப நட்சத்திரம்",
-      en: isGandanta ? "GANDANTA SHANTI REQUIRED" : "AUSPICIOUS NAKSHATRA"
+      kn: gandantaShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${gandantaShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isGandanta ? "ಗಂಡಾಂತ ಶಾಂತಿ ಅವಶ್ಯಕ" : "ಶುಭ ನಕ್ಷತ್ರ ಕಾಲ"),
+      hi: gandantaShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isGandanta ? "गंडांत शांति आवश्यक" : "शुभ नक्षत्र"),
+      te: gandantaShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isGandanta ? "శాంతి అవసరం" : "శుభ నక్షత్రం"),
+      ta: gandantaShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isGandanta ? "சாந்தி தேவை" : "சுப நட்சத்திரம்"),
+      en: gandantaShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isGandanta ? "GANDANTA SHANTI REQUIRED" : "AUSPICIOUS NAKSHATRA")
+    },
+    shantiStatus: gandantaShanti.shantiStatus,
+    completedYear: gandantaShanti.completedYear,
+    alreadyDoneNarration: gandantaShanti.alreadyDoneNarration,
+    conditionalGuidance: gandantaShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಜೀವನದ ಪ್ರಮುಖ ಘಟ್ಟಗಳಲ್ಲಿ (ಮದುವೆ, ಉದ್ಯೋಗ, ಮನೆ ಬದಲಾವಣೆ) ಹಠಾತ್ ದುರಂತ ಸಂಭವಿಸುವ ಆತಂಕ, ಕುಟುಂಬಕ್ಕೆ ತಾವೇ ಹೊರೆಯಾಗುವೆವೇನೋ ಎಂಬ ಅಪರಾಧ ಪ್ರಜ್ಞೆ.",
+      en: "Subconscious fear of abrupt catastrophic collapse at major life transition points, and irrational guilt of inadvertently causing misfortune to near ones.",
+      hi: "जीवन के नए मोड़ों पर अकस्मात संकट का डर तथा परिवार के प्रति अपराध बोध।",
+      te: "జీవితంలో కొత్త మార్పులు వచ్చినప్పుడు ఆందోళన మరియు కుటుంబానికి భారం అవుతామేమోనన్న భయం.",
+      ta: "வாழ்க்கையின் முக்கிய திருப்பங்களில் ஏற்படும் அச்சம் மற்றும் குடும்பத்தைப் பற்றிய கவலை."
     },
     technicalDetail: {
       houseNumbers: moon ? [moon.house] : [],
@@ -1908,6 +2285,17 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
   const sandhiAlert = sandhiResult.activeAlert || (sandhiResult.upcomingAlert && sandhiResult.upcomingAlert.daysRemainingOrUntil <= 180 ? sandhiResult.upcomingAlert : null);
   const isSandhiActive = sandhiAlert !== null;
 
+  const dashaSandhiShanti = buildShantiNarratives(
+    "dasha_sandhi",
+    "ದಶಾ-ಭುಕ್ತಿ ಸಂಧಿ ದೋಷ",
+    "Dasha-Bhukti Sandhi Transition",
+    "दशा संधि दोष",
+    "దశా సంధి దోషం",
+    "திசா சந்தி தோஷம்",
+    "ದಶಾ ಸಂಧಿ ಶಾಂತಿ ಮಹಾ ಹವನ & ನವಗ್ರಹ ಶಾಂತಿ",
+    "Dasha Sandhi Shanti Maha Homa & Navagraha Shanti"
+  );
+
   doshasList.push({
     id: "dasha_sandhi",
     name: {
@@ -1921,11 +2309,32 @@ Channelling this heat through regular athletic discipline and Kartikeya/Hanuman 
     isDetected: isSandhiActive,
     severity: isSandhiActive ? (sandhiAlert?.alertLevel === "critical" ? "critical" : "high") : "none",
     statusBadge: {
-      kn: isSandhiActive ? `${sandhiAlert?.badgeKn || "ಸಕ್ರಿಯ"} (${sandhiAlert?.durationFormattedKn || ""})` : "ಸ್ಥಿರ ದಶಾ ಕಾಲ",
-      hi: isSandhiActive ? "दशा संधि सक्रिय" : "स्थिर दशा काल",
-      te: isSandhiActive ? "దశా సంధి నడుస్తోంది" : "స్థిర దశ",
-      ta: isSandhiActive ? "திசா சந்தி காலம்" : "நிலைத்த திசை",
-      en: isSandhiActive ? `${(sandhiAlert?.badgeEn || "ACTIVE").toUpperCase()} ACTIVE` : "STABLE DASHA PHASE"
+      kn: dashaSandhiShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${dashaSandhiShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isSandhiActive ? `${sandhiAlert?.badgeKn || "ಸಕ್ರಿಯ"} (${sandhiAlert?.durationFormattedKn || ""})` : "ಸ್ಥಿರ ದಶಾ ಕಾಲ"),
+      hi: dashaSandhiShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isSandhiActive ? "दशा संधि सक्रिय" : "स्थिर दशा काल"),
+      te: dashaSandhiShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isSandhiActive ? "దశా సంధి నడుస్తోంది" : "స్థిర దశ"),
+      ta: dashaSandhiShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isSandhiActive ? "திசா சந்தி காலம்" : "நிலைத்த திசை"),
+      en: dashaSandhiShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isSandhiActive ? `${(sandhiAlert?.badgeEn || "ACTIVE").toUpperCase()} ACTIVE` : "STABLE DASHA PHASE")
+    },
+    shantiStatus: dashaSandhiShanti.shantiStatus,
+    completedYear: dashaSandhiShanti.completedYear,
+    alreadyDoneNarration: dashaSandhiShanti.alreadyDoneNarration,
+    conditionalGuidance: dashaSandhiShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ವೃತ್ತಿಯಲ್ಲಿ ದಿಢೀರ್ ಸ್ಥಾನಪಲ್ಲಟ, ಭವಿಷ್ಯದ ಅನಿಶ್ಚಿತತೆ, ಕೈಹಿಡಿದ ಯೋಜನೆಗಳು ಅರ್ಧಕ್ಕೆ ನಿಲ್ಲುವ ಆತಂಕ ಹಾಗೂ ಆಪ್ತರು ದೂರವಾಗುವ ಭಯ.",
+      en: "Subconscious dread of abrupt vocational displacement, existential limbo during transitional voids, and sudden alienation from trusted associates.",
+      hi: "कार्यक्षेत्र में अचानक बदलाव का डर, भविष्य की अनिश्चितता तथा मित्रों से अलगाव की चिंता।",
+      te: "ఉద్యోగంలో అస్థిరత మరియు భవిష్యత్తుపై అభద్రతా భావం.",
+      ta: "தொழிலில் திடீர் இடமாற்றம் மற்றும் எதிர்காலம் பற்றிய நிச்சயமற்ற தன்மை."
     },
     technicalDetail: {
       houseNumbers: [],
@@ -2046,6 +2455,17 @@ Avoid impetuous vocational disruptions or speculative commitments during this th
   const isGocharaAfflicted = isSadeSati || isAshtamaShani || isKantakaShani;
   const gocharaSeverity: DoshaSeverity = isAshtamaShani ? "critical" : isSadeSati ? "high" : isKantakaShani ? "moderate" : "none";
 
+  const gocharaShaniShanti = buildShantiNarratives(
+    "gochara_shani",
+    isAshtamaShani ? "ಅಷ್ಟಮ ಶನಿ ಗೋಚಾರ" : isSadeSati ? "ಸಾಡೇಸಾತಿ ಶನಿ" : "ಶನಿ ಗೋಚಾರ",
+    isAshtamaShani ? "Ashtama Shani Transit" : isSadeSati ? "Sade Sati Saturn Transit" : "Saturn Transit",
+    isAshtamaShani ? "अष्टम शनि गोचर" : isSadeSati ? "साढ़ेसाती शनि" : "शनि गोचर",
+    "శని గోచార దోషం",
+    "சனி பெயர்ச்சி தோஷம்",
+    "ಗೋಕರ್ಣ ಶನಿ ಶಾಂತಿ ಮಹಾ ಪೂಜೆ & ತೈಲಾಭಿಷೇಕ",
+    "Gokarna Shani Shanti Maha Puja & Tailabhishekam"
+  );
+
   doshasList.push({
     id: "gochara_shani",
     name: {
@@ -2069,11 +2489,32 @@ Avoid impetuous vocational disruptions or speculative commitments during this th
     isDetected: isGocharaAfflicted,
     severity: gocharaSeverity,
     statusBadge: {
-      kn: isGocharaAfflicted ? (isAshtamaShani ? "ತೀವ್ರ ಅಷ್ಟಮ ಶನಿ" : "ಸಕ್ರಿಯ ಶನಿ ಗೋಚಾರ") : "ಶುಭ ಶನಿ ಗೋಚಾರ",
-      hi: isGocharaAfflicted ? "सक्रिय शनि प्रभाव" : "शुभ शनि गोचर",
-      te: isGocharaAfflicted ? "శని గోచారం నడుస్తోంది" : "శుభ గోచారం",
-      ta: isGocharaAfflicted ? "சனி தாக்கம் உள்ளது" : "சுப கோசாரம்",
-      en: isGocharaAfflicted ? (isAshtamaShani ? "CRITICAL ASHTAMA SHANI" : "ACTIVE SADE SATI") : "BENEFIC SATURN TRANSIT"
+      kn: gocharaShaniShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${gocharaShaniShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isGocharaAfflicted ? (isAshtamaShani ? "ತೀವ್ರ ಅಷ್ಟಮ ಶನಿ" : "ಸಕ್ರಿಯ ಶನಿ ಗೋಚಾರ") : "ಶುಭ ಶನಿ ಗೋಚಾರ"),
+      hi: gocharaShaniShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isGocharaAfflicted ? "सक्रिय शनि प्रभाव" : "शुभ शनि गोचर"),
+      te: gocharaShaniShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isGocharaAfflicted ? "శని గోచారం నడుస్తోంది" : "శుభ గోచారం"),
+      ta: gocharaShaniShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isGocharaAfflicted ? "சனி தாக்கம் உள்ளது" : "சுப கோசாரம்"),
+      en: gocharaShaniShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isGocharaAfflicted ? (isAshtamaShani ? "CRITICAL ASHTAMA SHANI" : "ACTIVE SADE SATI") : "BENEFIC SATURN TRANSIT")
+    },
+    shantiStatus: gocharaShaniShanti.shantiStatus,
+    completedYear: gocharaShaniShanti.completedYear,
+    alreadyDoneNarration: gocharaShaniShanti.alreadyDoneNarration,
+    conditionalGuidance: gocharaShaniShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಅತಿಯಾದ ಶ್ರಮಕ್ಕೂ ಮನ್ನಣೆ ಸಿಗದಿರುವ ಆತಂಕ, ಸಾಲದ ಹೊರೆ ತೀರಿಸಲಾಗದ ಭಯ, ದೈಹಿಕ ಶಕ್ತಿ ಕುಂದುವ ನಿಶ್ಯಕ್ತಿ ಹಾಗೂ ಮೇಲಧಿಕಾರಿಗಳ ಕೋಪಕ್ಕೆ ಗುರಿಯಾಗುವ ಭೀತಿ.",
+      en: "Deep anxiety of unrewarded grinding toil, overwhelming debt servitude, physical exhaustion, and dread of bureaucratic or authoritative retribution.",
+      hi: "अत्यधिक परिश्रम के बाद भी मान्यता न मिलने का डर, कर्ज का बोझ तथा शारीरिक शिथिलता की चिंता।",
+      te: "ఎంత కష్టపడినా ఫలితం దక్కకపోవడం మరియు అప్పుల భయం.",
+      ta: "அதிக உழைப்பிற்குப் பின்னும் அங்கீகாரம் கிடைக்குமா என்ற சந்தேகம் மற்றும் கடன் பற்றிய பயம்."
     },
     technicalDetail: {
       houseNumbers: [liveSaturnHouseFromMoon],
@@ -2190,6 +2631,17 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
     ? "mild"
     : "none";
 
+  const gocharaGuruShanti = buildShantiNarratives(
+    "gochara_guru",
+    "ಗುರು ಗೋಚಾರ ದೋಷ (ಅಷ್ಟಮ/ವ್ಯಯ ಗುರು)",
+    "Jupiter Adverse Transit (Ashtama/Vyaya)",
+    "गुरु गोचर दोष",
+    "గురు గోచార దోషం",
+    "குரு பெயர்ச்சி தோஷம்",
+    "ಗೋಕರ್ಣ ಗುರು ಶಾಂತಿ ಮಹಾ ಹವನ & ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ",
+    "Gokarna Brihaspati Shanti Homa & Dakshinamurthy Puja"
+  );
+
   doshasList.push({
     id: "gochara_guru",
     name: {
@@ -2231,7 +2683,9 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
     isDetected: isGocharaGuruAfflicted,
     severity: gocharaGuruSeverity,
     statusBadge: {
-      kn: isAshtamaGuru
+      kn: gocharaGuruShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${gocharaGuruShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isAshtamaGuru
         ? "ತೀವ್ರ ಅಷ್ಟಮ ಗುರು"
         : isVyayaGuru
         ? "ವ್ಯಯ ಗುರು ಗೋಚಾರ"
@@ -2239,23 +2693,42 @@ Lighting sesame oil lamps on Saturdays and maintaining unshakeable ethics conver
         ? "ಜನ್ಮ ಗುರು ಗೋಚಾರ"
         : isGuruBala
         ? "ಶುಭ ಗುರು ಬಲ (ಅನರ್ಥವಿಲ್ಲ)"
-        : "ಸಾಧಾರಣ ಗುರು ಗೋಚಾರ",
-      hi: isAshtamaGuru
+        : "ಸಾಧಾರಣ ಗುರು ಗೋಚಾರ"),
+      hi: gocharaGuruShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isAshtamaGuru
         ? "गंभीर अष्टम गुरु"
         : isVyayaGuru
         ? "व्यय गुरु प्रभाव"
         : isGuruBala
         ? "शुभ गुरु बल"
-        : "सामान्य गुरु प्रभाव",
-      te: isAshtamaGuru ? "తీవ్ర అష్టమ గురు" : isGuruBala ? "శుభ గురు బలం" : "సాధారణ గోచారం",
-      ta: isAshtamaGuru ? "தீவிர அஷ்டம குரு" : isGuruBala ? "சுப குரு பலம்" : "சாதாரண கோசாரம்",
-      en: isAshtamaGuru
+        : "सामान्य गुरु प्रभाव"),
+      te: gocharaGuruShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isAshtamaGuru ? "తీవ్ర అష్టమ గురు" : isGuruBala ? "శుభ గురు బలం" : "సాధారణ గోచారం"),
+      ta: gocharaGuruShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isAshtamaGuru ? "தீவிர அஷ்டம குரு" : isGuruBala ? "சுப குரு பலம்" : "சாதாரண கோசாரம்"),
+      en: gocharaGuruShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isAshtamaGuru
         ? "CRITICAL ASHTAMA GURU"
         : isVyayaGuru
         ? "HIGH VYAYA GURU"
         : isGuruBala
         ? "AUSPICIOUS GURU BALA"
-        : "MODERATE JUPITER TRANSIT"
+        : "MODERATE JUPITER TRANSIT")
+    },
+    shantiStatus: gocharaGuruShanti.shantiStatus,
+    completedYear: gocharaGuruShanti.completedYear,
+    alreadyDoneNarration: gocharaGuruShanti.alreadyDoneNarration,
+    conditionalGuidance: gocharaGuruShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಧರ್ಮ ಮತ್ತು ಸಾಮಾಜಿಕ ಗೌರವಕ್ಕೆ ಚ್ಯುತಿ ಬರುವ ಭೀತಿ, ಹಿರಿಯರ ಅವಕೃಪೆ, ಆರ್ಥಿಕ ನಷ್ಟ ಹಾಗೂ ಸರಿಯಾದ ಮಾರ್ಗದರ್ಶನ ಸಿಗದೆ ದಾರಿತಪ್ಪುವ ಭಯ.",
+      en: "Subconscious fear of public dishonor, alienation from respected teachers or spiritual anchors, and catastrophic financial misjudgment.",
+      hi: "सामाजिक मान-सम्मान की हानि का डर तथा सही मार्गदर्शन के अभाव की चिंता।",
+      te: "గౌరవ భంగం జరుగుతుందేమోనన్న భయం మరియు తప్పుడు సలహాల వల్ల నష్టం జరుగుతుందనే ఆందోళన.",
+      ta: "கௌரவக் குறைவு மற்றும் பெரியோர்களின் வழிகாட்டுதல் கிடைக்காமல் போகுமோ என்ற பயம்."
     },
     technicalDetail: {
       houseNumbers: [liveJupiterHouseFromMoon],
@@ -2391,6 +2864,17 @@ Performing Brihaspati Shanti Homa at Gokarna and donating yellow chickpeas on Th
     ? "moderate"
     : "none";
 
+  const gocharaRahuKetuShanti = buildShantiNarratives(
+    "gochara_rahu_ketu",
+    "ರಾಹು-ಕೇತು ಗೋಚಾರ ದೋಷ",
+    "Rahu-Ketu Transit Axis Affliction",
+    "राहु-केतु गोचर दोष",
+    "రాహు-కేతు గోచార దోషం",
+    "ராகு-கேது பெயர்ச்சி தோஷம்",
+    "ಕುಕ್ಕೆ ಅಥವಾ ಗೋಕರ್ಣ ಆಶ್ಲೇಷಾ ಬಲಿ & ಸರ್ಪ ಶಾಂತಿ ಪೂಜೆ",
+    "Ashlesha Bali & Sarpa Shanti Puja at Gokarna / Kukke"
+  );
+
   doshasList.push({
     id: "gochara_rahu_ketu",
     name: {
@@ -2416,23 +2900,44 @@ Performing Brihaspati Shanti Homa at Gokarna and donating yellow chickpeas on Th
     isDetected: isGocharaRKAfflicted,
     severity: gocharaRKSeverity,
     statusBadge: {
-      kn: isRahuKetu17Axis
+      kn: gocharaRahuKetuShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${gocharaRahuKetuShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isRahuKetu17Axis
         ? "ಜನ್ಮ-ಸಪ್ತಮ ರಾಹು-ಕೇತು ಅಕ್ಷ"
         : isRahuKetu28Axis
         ? "ತೀವ್ರ ಅಷ್ಟಮ ರಾಹು-ಕೇತು ಅಕ್ಷ"
-        : "ಅನುಕೂಲಕರ ರಾಹು-ಕೇತು ಗೋಚಾರ",
-      hi: isRahuKetu17Axis
+        : "ಅನುಕೂಲಕರ ರಾಹು-ಕೇತು ಗೋಚಾರ"),
+      hi: gocharaRahuKetuShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isRahuKetu17Axis
         ? "जन्म-सप्तम राहु-केतु अक्ष"
         : isRahuKetu28Axis
         ? "अष्टम राहु-केतु अक्ष"
-        : "शुभ राहु-केतु गोचर",
-      te: isRahuKetu17Axis ? "జన్మ-సప్తమ అక్షం" : isRahuKetu28Axis ? "అష్టమ అక్షం" : "శుభ గోచారం",
-      ta: isRahuKetu17Axis ? "ஜன்ம-சப்தம அச்சு" : isRahuKetu28Axis ? "அஷ்டம அச்சு" : "சுப கோசாரம்",
-      en: isRahuKetu17Axis
+        : "शुभ राहु-केतु गोचर"),
+      te: gocharaRahuKetuShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isRahuKetu17Axis ? "జన్మ-సప్తమ అక్షం" : isRahuKetu28Axis ? "అష్టమ అక్షం" : "శుభ గోచారం"),
+      ta: gocharaRahuKetuShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isRahuKetu17Axis ? "ஜன்ம-சப்தம அச்சு" : isRahuKetu28Axis ? "அஷ்டம அச்சு" : "சுப கோசாரம்"),
+      en: gocharaRahuKetuShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isRahuKetu17Axis
         ? "ACTIVE 1ST/7TH AXIS"
         : isRahuKetu28Axis
         ? "CRITICAL 8TH/2ND AXIS"
-        : "BENEFIC RAHU-KETU TRANSIT"
+        : "BENEFIC RAHU-KETU TRANSIT")
+    },
+    shantiStatus: gocharaRahuKetuShanti.shantiStatus,
+    completedYear: gocharaRahuKetuShanti.completedYear,
+    alreadyDoneNarration: gocharaRahuKetuShanti.alreadyDoneNarration,
+    conditionalGuidance: gocharaRahuKetuShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಅಪರಿಚಿತರಿಂದ ಮೋಸ ಹೋಗುವ ಭೀತಿ, ಸಂಬಂಧಗಳಲ್ಲಿ ಹಠಾತ್ ಸಂಶಯ ಹಾಗೂ ಕಾರಣವಿಲ್ಲದೆ ಕಾಡುವ ಭ್ರಮೆ ಮತ್ತು ಕತ್ತಲೆಯ ಭಯ.",
+      en: "Subconscious fear of deceit from unfamiliar parties, sudden irrational suspicion corroding intimate partnerships, and nocturnal paranoia.",
+      hi: "धोखे का भय, रिश्तों में अकारण संदेह तथा मानसिक वहम।",
+      te: "మోసపోతామేమోనన్న భయం మరియు అనుమానాల వల్ల సంబంధాలు చెడిపోతాయనే ఆందోళన.",
+      ta: "ஏமாற்றப்படுவோமோ என்ற பயம் மற்றும் உறவுகளில் ஏற்படும் தேவையற்ற சந்தேகம்."
     },
     technicalDetail: {
       houseNumbers: [liveRahuHouseFromMoon, liveKetuHouseFromMoon],
@@ -2576,6 +3081,17 @@ Performing Ashlesha Bali or Sarpa Samskara at Kukke Subramanya or Gokarna Kshetr
     ? "moderate"
     : "none";
 
+  const tithiShunyaShanti = buildShantiNarratives(
+    "tithi_shunya_dosha",
+    "ತಿಥಿ ಶೂನ್ಯ (ದಗ್ಧ ರಾಶಿ) ದೋಷ",
+    "Tithi Shunya / Dagdha Rashi Dosha",
+    "तिथि शून्य (दग्ध राशि) दोष",
+    "తిథి శూన్య దోషం",
+    "திதி சூன்ய தோஷம்",
+    "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪಂಚಾಂಗ ಶುದ್ಧಿ ಶಾಂತಿ ಹೋಮ & ರುದ್ರಾಭಿಷೇಕ",
+    "Panchanga Shuddhi Shanti Homa & Rudrabhishekam at Gokarna"
+  );
+
   doshasList.push({
     id: "tithi_shunya_dosha",
     name: {
@@ -2589,11 +3105,32 @@ Performing Ashlesha Bali or Sarpa Samskara at Kukke Subramanya or Gokarna Kshetr
     isDetected: isTithiShunyaActive,
     severity: tithiShunyaSeverity,
     statusBadge: {
-      kn: isTithiShunyaActive ? "ತಿಥಿ ಶೂನ್ಯ ದೋಷ ಸಕ್ರಿಯ" : "ನಿರ್ದೋಷ ತಿಥಿ ಜನನ",
-      hi: isTithiShunyaActive ? "तिथि शून्य दोष सक्रिय" : "दोष रहित तिथि जन्म",
-      te: isTithiShunyaActive ? "తిథి శూన్య దోషం ఉంది" : "శుభ తిథి జననం",
-      ta: isTithiShunyaActive ? "திதி சூன்ய தோஷம் உள்ளது" : "சுப திதி பிறப்பு",
-      en: isTithiShunyaActive ? "ACTIVE TITHI SHUNYA DOSHA" : "BENEFIC UNBURNT TITHI"
+      kn: tithiShunyaShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${tithiShunyaShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isTithiShunyaActive ? "ತಿಥಿ ಶೂನ್ಯ ದೋಷ ಸಕ್ರಿಯ" : "ನಿರ್ದೋಷ ತಿಥಿ ಜನನ"),
+      hi: tithiShunyaShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isTithiShunyaActive ? "तिथि शून्य दोष सक्रिय" : "दोष रहित तिथि जन्म"),
+      te: tithiShunyaShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isTithiShunyaActive ? "తిథి శూన్య దోషం ఉంది" : "శుభ తిథి జననం"),
+      ta: tithiShunyaShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isTithiShunyaActive ? "திதி சூன்ய தோஷம் உள்ளது" : "சுப திதி பிறப்பு"),
+      en: tithiShunyaShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isTithiShunyaActive ? "ACTIVE TITHI SHUNYA DOSHA" : "BENEFIC UNBURNT TITHI")
+    },
+    shantiStatus: tithiShunyaShanti.shantiStatus,
+    completedYear: tithiShunyaShanti.completedYear,
+    alreadyDoneNarration: tithiShunyaShanti.alreadyDoneNarration,
+    conditionalGuidance: tithiShunyaShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಎಲ್ಲವೂ ಚೆನ್ನಾಗಿ ಸಾಗುತ್ತಿದ್ದರೂ ಅಂತಿಮ ಕ್ಷಣದಲ್ಲಿ ರದ್ದಾಗುವ ಶೂನ್ಯತೆಯ ಭೀತಿ, ಕೈಗೆ ಬಂದದ್ದು ಬಾಯಿಗೆ ಬರುವುದಿಲ್ಲವೆಂಬ ನಿರಾಸೆಯ ಭಯ.",
+      en: "Subconscious anxiety that any breakthrough will evaporate at the eleventh hour, leaving an unbridgeable void despite perfect merit.",
+      hi: "अंतिम समय में काम बिगड़ने का डर तथा जीवन में शून्यता का अहसास।",
+      te: "చివరి క్షణంలో పని ఆగిపోతుందేమోనన్న భయం మరియు శూన్యతా భావం.",
+      ta: "கடைசி நேரத்தில் வாய்ப்புகள் கைநழுவிப் போகுமோ என்ற ஆழ்மன ஏக்கம்."
     },
     technicalDetail: {
       houseNumbers: [
@@ -2723,6 +3260,17 @@ Performing Panchanga Shanti Puja and Rudrabhishekam at Gokarna Mahabaleshwara Ks
     ? "moderate"
     : "none";
 
+  const yogaDoshaShanti = buildShantiNarratives(
+    "panchanga_yoga_dosha",
+    isVyatipata ? "ವ್ಯತೀಪಾತ ಯೋಗ ದೋಷ" : isVaidhrithi ? "ವೈಧೃತಿ ಯೋಗ ದೋಷ" : "ಪಂಚಾಂಗ ನಿತ್ಯ ಯೋಗ ದೋಷ",
+    isVyatipata ? "Vyatipata Yoga Dosha" : isVaidhrithi ? "Vaidhrithi Yoga Dosha" : "Panchanga Nitya Yoga Dosha",
+    isVyatipata ? "व्यतीपात योग दोष" : isVaidhrithi ? "वैधृति योग दोष" : "पंचांग योग दोष",
+    "పంచాంగ నిత్య యోగ దోషం",
+    "பஞ்சாங்க நித்ய யோக தோஷம்",
+    "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವ್ಯತೀಪಾತ/ವೈಧೃತಿ ಶಾಂತಿ ಮಹಾ ಹವನ",
+    "Vyatipata / Vaidhrithi Shanti Maha Homa at Gokarna Kshetra"
+  );
+
   doshasList.push({
     id: "panchanga_yoga_dosha",
     name: {
@@ -2754,29 +3302,50 @@ Performing Panchanga Shanti Puja and Rudrabhishekam at Gokarna Mahabaleshwara Ks
     isDetected: isPanchangaYogaDosha,
     severity: yogaDoshaSeverity,
     statusBadge: {
-      kn: isVyatipata
+      kn: yogaDoshaShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${yogaDoshaShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isVyatipata
         ? "ತೀವ್ರ ವ್ಯತೀಪಾತ ಮಹಾದೋಷ"
         : isVaidhrithi
         ? "ತೀವ್ರ ವೈಧೃತಿ ಮಹಾದೋಷ"
         : isPanchangaYogaDosha
         ? "ಪ್ರತಿಕೂಲ ನಿತ್ಯ ಯೋಗ"
-        : "ಶುಭ ನಿತ್ಯ ಯೋಗ ಜನನ",
-      hi: isVyatipata
+        : "ಶುಭ ನಿತ್ಯ ಯೋಗ ಜನನ"),
+      hi: yogaDoshaShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isVyatipata
         ? "गंभीर व्यतीपात महादोष"
         : isVaidhrithi
         ? "गंभीर वैधृति महादोष"
         : isPanchangaYogaDosha
         ? "प्रतिकूल योग"
-        : "शुभ योग जन्म",
-      te: isVyatipata ? "తీవ్ర వ్యతీపాత దోషం" : isVaidhrithi ? "తీవ్ర వైధృతి దోషం" : isPanchangaYogaDosha ? "ప్రతికూల యోగం" : "శుభ యోగం",
-      ta: isVyatipata ? "தீவிர வியதீபாத தோஷம்" : isVaidhrithi ? "தீவிர வைதிருதி தோஷம்" : isPanchangaYogaDosha ? "பிரதிகூல யோகம்" : "சுப யோகம்",
-      en: isVyatipata
+        : "शुभ योग जन्म"),
+      te: yogaDoshaShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isVyatipata ? "తీవ్ర వ్యతీపాత దోషం" : isVaidhrithi ? "తీవ్ర వైధృతి దోషం" : isPanchangaYogaDosha ? "ప్రతికూల యోగం" : "శుభ యోగం"),
+      ta: yogaDoshaShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isVyatipata ? "தீவிர வியதீபாத தோஷம்" : isVaidhrithi ? "தீவிர வைதிருதி தோஷம்" : isPanchangaYogaDosha ? "பிரதிகூல யோகம்" : "சுப யோகம்"),
+      en: yogaDoshaShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isVyatipata
         ? "CRITICAL VYATIPATA DOSHA"
         : isVaidhrithi
         ? "CRITICAL VAIDHRITHI DOSHA"
         : isPanchangaYogaDosha
         ? "MALIFIC NITYA YOGA"
-        : "BENEFIC NITYA YOGA"
+        : "BENEFIC NITYA YOGA")
+    },
+    shantiStatus: yogaDoshaShanti.shantiStatus,
+    completedYear: yogaDoshaShanti.completedYear,
+    alreadyDoneNarration: yogaDoshaShanti.alreadyDoneNarration,
+    conditionalGuidance: yogaDoshaShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಅನಿರೀಕ್ಷಿತ ಆಘಾತ ಅಥವಾ ಅಪಘಾತ ಸಂಭವಿಸುವ ಭಯ, ಯಾವುದೇ ಸತ್ಕಾರ್ಯ ಆರಂಭಿಸಿದರೂ ತಡೆಗೋಡೆ ಎದುರಾಗುವ ಆತಂಕ.",
+      en: "Subconscious dread of sudden seismic shocks, unexpected derailment of wholesome ventures, and unprovoked friction in close circles.",
+      hi: "अचानक आने वाली विपदा का भय तथा शुभ कार्यों में विघ्न की आशंका।",
+      te: "అనుకోని ఆపదలు వస్తాయేమోనన్న భయం మరియు మంచి పనులలో ఆటంకాలు.",
+      ta: "எதிர்பாராத அதிர்ச்சிகள் மற்றும் நல்ல காரியங்களில் தடை ஏற்படுமோ என்ற பயம்."
     },
     technicalDetail: {
       houseNumbers: [1, 7],
@@ -2882,6 +3451,17 @@ Performing the Vyatipata/Vaidhrithi Shanti Maha Homa and Surya-Chandra Arghya at
   const halfTithi = Math.floor(elongation / 6) % 60;
   const isVishtiKarana = (halfTithi >= 1 && halfTithi <= 56 && ((halfTithi - 1) % 7) === 6);
 
+  const karanaDoshaShanti = buildShantiNarratives(
+    "panchanga_karana_dosha",
+    "ವಿಷ್ಟಿ (ಭದ್ರಾ) ಕರಣ ದೋಷ",
+    "Vishti (Bhadra) Karana Dosha",
+    "विष्टि (भद्रा) करण दोष",
+    "విష్టి (భద్రా) కరణ దోషం",
+    "விஷ்டி (பத்ரா) கரண தோஷம்",
+    "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾ ಮೃತ್ಯುಂಜಯ ಹವನ & ಕಾಲಭೈರವ ಪೂಜೆ",
+    "Maha Mrityunjaya Homa & Kala Bhairava Archana at Gokarna"
+  );
+
   doshasList.push({
     id: "panchanga_karana_dosha",
     name: {
@@ -2895,11 +3475,32 @@ Performing the Vyatipata/Vaidhrithi Shanti Maha Homa and Surya-Chandra Arghya at
     isDetected: isVishtiKarana,
     severity: isVishtiKarana ? "high" : "none",
     statusBadge: {
-      kn: isVishtiKarana ? "ವಿಷ್ಟಿ (ಭದ್ರಾ) ಕರಣ ದೋಷ ಸಕ್ರಿಯ" : "ಶುಭ ಕರಣ ಜನನ",
-      hi: isVishtiKarana ? "विष्टि (भद्रा) करण दोष सक्रिय" : "शुभ करण जन्म",
-      te: isVishtiKarana ? "విష్టి కరణ దోషం ఉంది" : "శుభ కరణం",
-      ta: isVishtiKarana ? "விஷ்டி கரண தோஷம் உள்ளது" : "சுப கரணம்",
-      en: isVishtiKarana ? "ACTIVE VISHTI (BHADRA) DOSHA" : "BENEFIC KARANA BIRTH"
+      kn: karanaDoshaShanti.shantiStatus === "completed"
+        ? `✓ ಸಿದ್ಧ ಶಾಂತಿ (${karanaDoshaShanti.completedYear || "ನೆರವೇರಿದೆ"})`
+        : (isVishtiKarana ? "ವಿಷ್ಟಿ (ಭದ್ರಾ) ಕರಣ ದೋಷ ಸಕ್ರಿಯ" : "ಶುಭ ಕರಣ ಜನನ"),
+      hi: karanaDoshaShanti.shantiStatus === "completed"
+        ? "✓ शांति संपन्न (मुक्त)"
+        : (isVishtiKarana ? "विष्टि (भद्रा) करण दोष सक्रिय" : "शुभ करण जन्म"),
+      te: karanaDoshaShanti.shantiStatus === "completed"
+        ? "✓ శాంతి పూర్తయింది"
+        : (isVishtiKarana ? "విష్టి కరణ దోషం ఉంది" : "శుభ కరణం"),
+      ta: karanaDoshaShanti.shantiStatus === "completed"
+        ? "✓ சாந்தி நிறைவடைந்தது"
+        : (isVishtiKarana ? "விஷ்டி கரண தோஷம் உள்ளது" : "சுப கரணம்"),
+      en: karanaDoshaShanti.shantiStatus === "completed"
+        ? "✓ SHANTI COMPLETED"
+        : (isVishtiKarana ? "ACTIVE VISHTI (BHADRA) DOSHA" : "BENEFIC KARANA BIRTH")
+    },
+    shantiStatus: karanaDoshaShanti.shantiStatus,
+    completedYear: karanaDoshaShanti.completedYear,
+    alreadyDoneNarration: karanaDoshaShanti.alreadyDoneNarration,
+    conditionalGuidance: karanaDoshaShanti.conditionalGuidance,
+    subconsciousFear: {
+      kn: "ಕೋಪದ ಆವೇಶದಲ್ಲಿ ಮಾಡಿದ ತಪ್ಪಿನಿಂದ ಬದುಕು ಹಾಳಾಗುವ ಭಯ, ಇತರರೊಂದಿಗೆ ಘರ್ಷಣೆಯಾಗುವ ಆತಂಕ ಹಾಗೂ ಆಂತರಿಕ ಅಶಾಂತಿ.",
+      en: "Subconscious fear of self-sabotage through impulsive fury, dread of adversarial conflicts, and chronic underlying agitation.",
+      hi: "क्रोध के कारण हानि का डर तथा अन्य लोगों से अकारण विवाद की आशंका।",
+      te: "ఆవేశంలో తప్పు నిర్ణయాలు తీసుకుంటామేమోనన్న భయం మరియు కలహాల ఆందోళన.",
+      ta: "முன்கோபத்தால் ஏற்படும் நஷ்டம் மற்றும் வீண் தகராறுகள் பற்றிய பயம்."
     },
     technicalDetail: {
       houseNumbers: [8],

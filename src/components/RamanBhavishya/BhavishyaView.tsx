@@ -1650,8 +1650,8 @@ Return ONLY this JSON format:
           : "2. Synthesizing Dynamic Marriage, Children, Career, Wealth & Health..."
       );
 
-      // Inject personalized targeted deep predictions if requested (Adults only, age >= 8)
-      if (personalization && ageYears >= 8) {
+      // Inject personalized targeted deep predictions if requested (Adults only, age >= 12)
+      if (personalization && ageYears >= 12) {
         const isKn = lang === "kn";
         const baseLang = (lang || "en").split("-")[0];
         const lagnaStr = session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "";
@@ -1703,7 +1703,7 @@ Return ONLY this JSON format:
         }
       }
 
-      if (ageYears < 8) {
+      if (ageYears < 12) {
         localisedPredictions = localisedPredictions.filter(p => {
           const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
           const isAdult = cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("ವಿवाह") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருಮணம்") ||
@@ -1811,7 +1811,7 @@ Return ONLY this JSON format:
       console.log("[PDF Generation] Initiating Batch 1 AI calls (Soul & Personality)...");
       const [resCharacteristics, resDarkSecret, resCurrentPhase, resYogas, resDoshas] = await Promise.all([
         safeAsk("Generate Characteristics", prompts.characteristics, 0.3),
-        ageYears < 8 ? Promise.resolve('{"darkSecret":[]}') : safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
+        ageYears < 12 ? Promise.resolve('{"darkSecret":[]}') : safeAsk("Generate Dark Secret", prompts.darkSecret, 0.3),
         safeAsk("Generate Current Phase", prompts.currentPhase, 0.3),
         safeAsk("Generate Premium Yogas", prompts.yogas, 0.4),
         safeAsk("Generate Premium Doshas", prompts.doshas, 0.4),
@@ -1832,16 +1832,16 @@ Return ONLY this JSON format:
 
       console.log("[PDF Generation] Initiating Batch 3 AI calls (Individual Life Domains)...");
       const [resMarriage, resChildren] = await Promise.all([
-        safeAsk(ageYears < 8 ? "Generate Child Education" : "Generate Marriage", prompts.bhavishyaMarriage, 0.3),
-        safeAsk(ageYears < 8 ? "Generate Child Activities" : "Generate Children", prompts.bhavishyaChildren, 0.3)
+        safeAsk(ageYears < 12 ? "Generate Child Education" : "Generate Marriage", prompts.bhavishyaMarriage, 0.3),
+        safeAsk(ageYears < 12 ? "Generate Child Activities" : "Generate Children", prompts.bhavishyaChildren, 0.3)
       ]);
 
       await new Promise(r => setTimeout(r, 200));
 
       const [resCareer, resWealth, resHealth] = await Promise.all([
-        safeAsk(ageYears < 8 ? "Generate Child Foundation" : "Generate Career", prompts.bhavishyaCareer, 0.3),
-        safeAsk(ageYears < 8 ? "Generate Child Family" : "Generate Wealth", prompts.bhavishyaWealth, 0.3),
-        safeAsk(ageYears < 8 ? "Generate Child Pediatric Health" : "Generate Health", prompts.bhavishyaHealth, 0.3)
+        safeAsk(ageYears < 12 ? "Generate Child Foundation" : "Generate Career", prompts.bhavishyaCareer, 0.3),
+        safeAsk(ageYears < 12 ? "Generate Child Family" : "Generate Wealth", prompts.bhavishyaWealth, 0.3),
+        safeAsk(ageYears < 12 ? "Generate Child Pediatric Health" : "Generate Health", prompts.bhavishyaHealth, 0.3)
       ]);
       console.log("[PDF Generation] Batch 3 AI calls completed successfully.");
 
@@ -2386,7 +2386,7 @@ Return ONLY this JSON (no extra text before or after):
       console.log("[A4 PDF Generation] Initiating Batch 1 AI calls (Characteristics, Secret, Yogas)...");
       const [resCharacteristics, resDarkSecret, resYogas] = await Promise.all([
         safeAskA4("Generate Characteristics", promptCharacteristics, 0.3),
-        ageYears < 8 ? Promise.resolve('{"darkSecret":[]}') : safeAskA4("Generate Dark Secret", promptDarkSecret, 0.3),
+        ageYears < 12 ? Promise.resolve('{"darkSecret":[]}') : safeAskA4("Generate Dark Secret", promptDarkSecret, 0.3),
         safeAskA4("Generate Yogas", promptYogas, 0.4)
       ]);
 
@@ -2808,16 +2808,16 @@ Return ONLY this JSON (no extra text before or after):
       await new Promise(r => setTimeout(r, 200));
 
       const [resMarriage, resChildren] = await Promise.all([
-        callGeminiRoyal(ageYears < 8 ? "Child Education" : "Marriage", prompts.bhavishyaMarriage, 0.3),
-        callGeminiRoyal(ageYears < 8 ? "Child Activities" : "Children", prompts.bhavishyaChildren, 0.3),
+        callGeminiRoyal(ageYears < 12 ? "Child Education" : "Marriage", prompts.bhavishyaMarriage, 0.3),
+        callGeminiRoyal(ageYears < 12 ? "Child Activities" : "Children", prompts.bhavishyaChildren, 0.3),
       ]);
 
       await new Promise(r => setTimeout(r, 200));
 
       const [resCareer, resWealth, resHealth] = await Promise.all([
-        callGeminiRoyal(ageYears < 8 ? "Child Foundation" : "Career", prompts.bhavishyaCareer, 0.3),
-        callGeminiRoyal(ageYears < 8 ? "Child Family" : "Wealth", prompts.bhavishyaWealth, 0.3),
-        callGeminiRoyal(ageYears < 8 ? "Child Health" : "Health", prompts.bhavishyaHealth, 0.3),
+        callGeminiRoyal(ageYears < 12 ? "Child Foundation" : "Career", prompts.bhavishyaCareer, 0.3),
+        callGeminiRoyal(ageYears < 12 ? "Child Family" : "Wealth", prompts.bhavishyaWealth, 0.3),
+        callGeminiRoyal(ageYears < 12 ? "Child Health" : "Health", prompts.bhavishyaHealth, 0.3),
       ]);
 
       setRoyalA4PdfProgress(75);
@@ -4243,6 +4243,7 @@ Return ONLY this JSON (no extra text before or after):
       <PdfPersonalizationModal
         isOpen={isPersonalizationModalOpen}
         lang={pdfLanguage}
+        ageYears={session?.input?.birthDate ? ageDecimalYearsAt(session.input.birthDate, session.input.birthTime, session.input.latitude, session.input.longitude, new Date()) : undefined}
         initialMaritalStatus={liveMaritalStatus}
         initialChildrenStatus={liveChildrenStatus}
         onClose={() => setIsPersonalizationModalOpen(false)}
