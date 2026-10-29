@@ -390,7 +390,7 @@ export default defineConfig(({ mode }) => {
       registerType: "autoUpdate",
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,json,woff2}"],
-        maximumFileSizeToCacheInBytes: 20000000
+        maximumFileSizeToCacheInBytes: 50000000
       },
       manifest: {
         name: "Baggona Panchanga Astrology",

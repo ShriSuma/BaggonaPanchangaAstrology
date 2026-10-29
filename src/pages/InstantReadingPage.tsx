@@ -10,6 +10,7 @@ import {
   type PanchangaSynthesisOutput,
   type InstantQAQuestion
 } from "../core/PanchangaAngaSynthesisEngine";
+import { evaluateGemstoneAndAmuletPrescription } from "../core/panchangaGemstoneAmuletEngine";
 import { askGemini } from "../core/GeminiEngine";
 import { generateCurrentLifeSituationWithAi } from "../core/instantReadingAiEngine";
 import type { CurrentLifeSituationDiagnosis } from "../core/CurrentLifeAndCareerDiagnosticEngine";
@@ -651,6 +652,14 @@ STRICT RULES:
           const negShadesQ = synthesisData.currentDiagnosis.negativeShades;
           const isNegCleanQ = !negShadesQ || negShadesQ.overallScore <= 15 || negShadesQ.isJupiterProtected || negShadesQ.isChildShielded;
 
+          const gemstoneAnalysis = evaluateGemstoneAndAmuletPrescription(session.result, {
+            vara: synthesisData.panchanga.vara.nameKn,
+            tithi: synthesisData.panchanga.tithi.nameKn,
+            nakshatra: session.result.planets.find(p => p.name === "Moon")?.nakshatra.english ?? "Ashwini",
+            yoga: synthesisData.panchanga.yoga.nameKn,
+            karana: synthesisData.panchanga.karana.nameKn
+          });
+
           const contextData = `
 Devotee: ${session.input.name || "Devotee"}
 Gender: ${session.input.gender || "Not Specified"} (${isFemaleQ ? "Female/ಸ್ತ್ರೀ" : "Male/ಪುರುಷ"})
@@ -672,6 +681,13 @@ Character & Morality Verification:
   * Extramarital/Sensual Risk: ${negShadesQ?.sensualMarital.hasRisk ? "Yes" : "NO (100% Faithful)"}
   * Bad Company/Downward Risk: ${negShadesQ?.conductDownwardPath.hasRisk ? "Yes" : "NO (100% Righteous Path)"}
 - Gender Awareness: ${isFemaleQ ? "Female native - NEVER use 'ಹೆಂಡತಿ' or 'ಪತ್ನಿ' for the native; spouse is husband ('ಪತಿ')" : "Male native - spouse is wife ('ಪತ್ನಿ')"}
+- Sacred Gemstone Ring & Neck Wear Mastery (100% Panchanga & Nakshatra Synthesis):
+  * Primary Ring: ${gemstoneAnalysis.primaryRing.gemstoneKn} (${gemstoneAnalysis.primaryRing.caratWeightKn}) in ${gemstoneAnalysis.primaryRing.metalKn} on ${gemstoneAnalysis.primaryRing.fingerKn} (Hand: ${gemstoneAnalysis.primaryRing.handKn}, Consecration: ${gemstoneAnalysis.primaryRing.activationDayKn} ${gemstoneAnalysis.primaryRing.horaKn}).
+  * Janma Nakshatra Neck Wear: ${gemstoneAnalysis.neckWear.rudrakshaNameKn} along with ${gemstoneAnalysis.neckWear.pendantTypeKn} in ${gemstoneAnalysis.neckWear.threadColorKn}.
+  * Havala (Red Coral) Specific Verdict: ${gemstoneAnalysis.havalaAnalysis.verdictKn} (${gemstoneAnalysis.havalaAnalysis.instructionsKn}).
+  * STRICT PROHIBITED GEMSTONES WARNING: ${gemstoneAnalysis.prohibitedGems.map(p => `${p.gemstoneKn} (${p.houseLordshipKn} - ${p.severeWarningKn})`).join("; ")}. NEVER recommend these as they amplify Dusthana malefic currents!
+  * Lucky Colors: ${gemstoneAnalysis.colors.luckyColorsKn.join(", ")}.
+  * STRICT AVOID COLORS: ${gemstoneAnalysis.colors.strictAvoidColorsKn.join(", ")} (${gemstoneAnalysis.colors.dangerWarningKn}).
 Prescriptions: ${synthesisData.prescriptions.rudraksha.nameKn}, ${synthesisData.prescriptions.gemstoneRing.primaryGemstoneKn} (${synthesisData.prescriptions.gemstoneRing.caratWeight}).
 
 Question from Devotee: "${q}"
@@ -686,6 +702,13 @@ Respond in crisp, structured bullet points directly answering the devotee's spec
 • 🪔 ಶಾಸ್ತ್ರೋಕ್ತ ಮುಕ್ತಿ ಪರಿಹಾರ & ಮಾರ್ಗೋಪಾಯ: Prescribe authentic Vedic remedies, Gokarna Mahabaleshwara Shanti Pooja, and sacred practices to resolve this issue.
 
 STRICT RULES:
+- GEMSTONES, RINGS, NECK WEAR & COLORS MANDATE: If the devotee asks about stones (ರತ್ನ), rings (ಉಂಗುರ), neck wear (ಕೊರಳಲ್ಲಿ ಧಾರಣೆ), coral/havala (ಹವಳ), or colors:
+  * DO NOT rely solely on Rashi! Base advice strictly on both Lagna Lord AND Janma Nakshatra.
+  * Prescribe the Primary Ring with exact finger, metal, and hand (e.g. Ring finger for Sun/Mars, Middle for Saturn/Venus, Index for Jupiter, Little for Mercury/Venus).
+  * Prescribe the Janma Nakshatra Rudraksha and sacred pendant for neck wear (absorbs transits safely).
+  * Address Havala (Coral) specifically: if prohibited, strictly forbid it; if Yogakaraka/auspicious, explain why.
+  * Explicitly warn against PROHIBITED gemstones for their Lagna to prevent downfall, accidents, or financial ruin.
+  * State lucky colors and strictly warn against avoid colors.
 - ZERO FALSE ACCUSATIONS & CONTRADICTIONS: If the native is a verified Teetotaler (ಸಾತ್ವಿಕ ಆಹಾರಿ), queries regarding alcohol/drugs/smoking MUST receive an authoritative 'ಇಲ್ಲ!' verdict. If verified High Fidelity Vrata or standard Marital Fidelity without multiple relationship risks, queries regarding infidelity MUST receive an authoritative 'ಇಲ್ಲ!' verdict. If prone to smoking/tobacco (Dhumapana), do NOT falsely accuse them of being an alcoholic (Madyapana). If verified Clean from crime/theft/violence, queries regarding criminality, theft, murder, violence, rape, or jail MUST receive an authoritative 'ಇಲ್ಲ!' verdict celebrating their moral purity. DO NOT contradict yourself in subsequent bullets!
 - DO NOT invent tragedies, crimes, or fake scandals.
 - Respect gender: For female natives, use '${isFemaleQ ? "ಪತಿ" : "ಪತ್ನಿ"}' for spouse.

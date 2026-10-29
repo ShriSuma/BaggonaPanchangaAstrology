@@ -37,6 +37,10 @@ import {
   getGocharaPanchangaSynthesis,
   getSummaryPanchangaSynthesis
 } from "./panchangaLifeEngine";
+import {
+  LAGNA_GEMSTONE_RULES,
+  NAKSHATRA_NECK_WEAR_CATALOG
+} from "../../core/panchangaGemstoneAmuletEngine";
 
 export function getLocalizedDevoteeName(name: string | undefined | null, lang: string): string {
   if (!name) return "";
@@ -3937,6 +3941,10 @@ export interface DynamicPrescriptionsResult {
   gemstone: string;
   uparatna?: string;
   rudraksha: string;
+  neckWear?: string;
+  prohibitedGems?: string;
+  avoidColors?: string;
+  consecrationMuhurtha?: string;
   ishtaDevata: string;
   luckyColors: string;
   luckyDays: string;
@@ -4385,10 +4393,64 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
   const presidingGraha = LAGNA_PRESIDING_GRAHAS[lagnaRashiIdx] || "Jupiter";
   const rx = PRESCRIPTIONS_BY_GRAHA[presidingGraha] || PRESCRIPTIONS_BY_GRAHA.Jupiter;
 
+  // Parashari Gemstone, Ring & Neck Wear Mastery
+  const lagnaRule = LAGNA_GEMSTONE_RULES[lagnaRashiIdx] || LAGNA_GEMSTONE_RULES[0]!;
+
+  // Resolve Janma Nakshatra for Neck Wear
+  let neckCatalogEntry = NAKSHATRA_NECK_WEAR_CATALOG["Ashwini"]!;
+  const rawNak = (chart.nakshatraName || "").toLowerCase();
+  for (const [key, val] of Object.entries(NAKSHATRA_NECK_WEAR_CATALOG)) {
+    if (
+      rawNak.includes(key.toLowerCase()) ||
+      rawNak.includes(val.nameEn.toLowerCase()) ||
+      rawNak.includes(val.deityEn.toLowerCase())
+    ) {
+      neckCatalogEntry = val;
+      break;
+    }
+  }
+
+  // Format Neck Wear
+  const neckWearText = baseLang === "kn"
+    ? `${neckCatalogEntry.nameKn} ಹಾಗೂ ${neckCatalogEntry.pendantKn} (${neckCatalogEntry.threadKn}ದಲ್ಲಿ)`
+    : baseLang === "hi"
+    ? `${neckCatalogEntry.nameEn} एवं ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`
+    : baseLang === "te"
+    ? `${neckCatalogEntry.nameEn} మరియు ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`
+    : baseLang === "ta"
+    ? `${neckCatalogEntry.nameEn} மற்றும் ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`
+    : `${neckCatalogEntry.nameEn} along with ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`;
+
+  // Format Prohibited Gemstones Alert
+  const prohibitedText = baseLang === "kn"
+    ? lagnaRule.prohibitedGems.map(p => `${p.gemstoneKn} (${p.houseLordshipKn} - ${p.dangerEffectKn})`).join("; ")
+    : lagnaRule.prohibitedGems.map(p => `${p.gemstoneEn} (${p.houseLordshipEn} - ${p.dangerEffectEn})`).join("; ");
+
+  // Format Avoid Colors
+  const avoidColorsText = baseLang === "kn"
+    ? `${lagnaRule.avoidColorsKn.join(", ")} (${lagnaRule.dangerColorsKn})`
+    : `${lagnaRule.avoidColorsEn.join(", ")} (${lagnaRule.dangerColorsEn})`;
+
+  // Format Consecration Muhurtha
+  const consecrationMuhurthaText = baseLang === "kn"
+    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn}ಯಲ್ಲಿ)`
+    : `${lagnaRule.activationDayEn} (during ${lagnaRule.horaEn})`;
+
+  // Weave Nakshatra into Rudraksha description
+  const rudrakshaText = baseLang === "kn"
+    ? `${neckCatalogEntry.nameKn} (ಜನ್ಮ ನಕ್ಷತ್ರದ ಶ್ರೀರಕ್ಷೆ: ${neckCatalogEntry.blessingKn})`
+    : baseLang === "hi"
+    ? `${neckCatalogEntry.nameEn} (नक्षत्र रक्षा: ${neckCatalogEntry.blessingEn})`
+    : `${neckCatalogEntry.nameEn} (Nakshatra Shield: ${neckCatalogEntry.blessingEn})`;
+
   return {
     gemstone: rx.gemstone[baseLang] || rx.gemstone.en,
     uparatna: rx.uparatna[baseLang] || rx.uparatna.en,
-    rudraksha: rx.rudraksha[baseLang] || rx.rudraksha.en,
+    rudraksha: rudrakshaText,
+    neckWear: neckWearText,
+    prohibitedGems: prohibitedText,
+    avoidColors: avoidColorsText,
+    consecrationMuhurtha: consecrationMuhurthaText,
     ishtaDevata: rx.ishtaDevata[baseLang] || rx.ishtaDevata.en,
     luckyColors: rx.colors[baseLang] || rx.colors.en,
     luckyDays: rx.days[baseLang] || rx.days.en,

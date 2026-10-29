@@ -24,6 +24,11 @@ import {
   type DashaSandhiAndRoadmapOutput
 } from "./DashaSandhiAndRoadmapEngine";
 import { NAKSHATRA_SYLLABLE_TABLE } from "../features/balavidya/balaVidyaEngine";
+import {
+  generateGemstoneConsultationAnswer,
+  evaluateGemstoneAndAmuletPrescription,
+  type PanchangaGemstoneAmuletResult
+} from "./panchangaGemstoneAmuletEngine";
 
 /** Calculate distance between houses (1-indexed, 1 to 12) */
 export const houseDist = (fromH: number, toH: number): number => ((toH - fromH + 12) % 12) + 1;
@@ -8756,6 +8761,7 @@ export const generateVedicConsultationAnswer = (
   const isMarriageQuery = /ವಿವಾಹ|ಮದುವೆ|ಕಳತ್ರ|ಕಂಕಣ|ಮದುವೆಯಾಗ|marriage|wedding|spouse|partner|match|kankana|ವರ ಹೊಂದಾಣಿಕೆ|ವರನ|ವರನಿಗೆ|ವಧು|ವರಾನ್ವೇಷಣೆ/.test(qLower);
   const isDebtQuery = /ಸಾಲ|ಋಣ|ಹೊರೆ|ತೀರಿಸ|ಬಾಕಿ|debt|loan|repay|borrow/.test(qLower);
   const isFinanceCareerQuery = /ಹಣ|ಆರ್ಥಿಕ|ದುಡ್ಡು|ಸಂಪತ್ತು|ಉದ್ಯೋಗ|ಕೆಲಸ|ವ್ಯಾಪಾರ|ತಿರುವು|ಅಭಿವೃದ್ಧಿ|ಪ್ರಮೋಷನ್|money|wealth|finance|job|career|business|turning point|promotion/.test(qLower);
+  const isGemstoneRingNeckQuery = /ರತ್ನ|ಉಂಗುರ|ಕೊರಳು|ಕೊರಳಲ್ಲಿ|ಕುತ್ತಿಗೆ|ಹವಳ|ಮುತ್ತು|ಪಚ್ಚೆ|ಮಾಣಿಕ್ಯ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲಂ|ಗೋಮೇಧಿಕ|ವೈಡೂರ್ಯ|ಬೆರಳು|ಲೋಹ|ಬಣ್ಣ|ಕಪ್ಪು.*ಬಣ್ಣ|ಅದೃಷ್ಟ.*ಕಲ್ಲು|stone|gemstone|ring|finger|neck|necklace|pendant|coral|pearl|ruby|emerald|sapphire|diamond|rudraksha|which.*wear|what.*wear/i.test(qLower);
 
   const seventhLord = signLord((kundli.lagnaRashi.index + 6) % 12);
   const seventhLordPlanet = kundli.planets.find((p) => p.name === seventhLord);
@@ -8858,6 +8864,17 @@ export const generateVedicConsultationAnswer = (
   // Ensure robust fallback for current life diagnostic and accurate profession
   const cls = currentDiagnosis.currentLifeSituation ?? diagnoseCurrentLifeSituation(kundli, { birthDate: "", birthTime: "", latitude: 0, longitude: 0, devoteeAge: age, gender });
   const prof = currentDiagnosis.accurateProfession ?? determineAccurateProfession(kundli, { birthDate: "", birthTime: "", latitude: 0, longitude: 0, devoteeAge: age, gender });
+
+  // 00. GEMSTONE, RING, NECK AMULET, AVALA & COLOR INQUIRY (ರತ್ನ, ಉಂಗುರ, ಕೊರಳ ಧಾರಣೆ & ಹವಳ ನಿರ್ಣಯ)
+  if (isGemstoneRingNeckQuery) {
+    return generateGemstoneConsultationAnswer(
+      kundli,
+      question,
+      devoteeNameFormatted,
+      isKn,
+      currentDiagnosis?.prasthuthaSthiti?.runningDashaSummary
+    );
+  }
 
   // 0A. CURRENT LIFE SITUATION & ACUTE STRUGGLES (ಹಾಲಿ ಅನುಭವಿಸುತ್ತಿರುವ ವಾಸ್ತವ ಜೀವನ ಸ್ಥಿತಿ & ಸಂಕಷ್ಟಗಳು)
   if (isCurrentStruggleQuery) {

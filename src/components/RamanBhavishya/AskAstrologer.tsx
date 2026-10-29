@@ -6,6 +6,7 @@ import { translateText } from "../../utils/translator";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { askGemini } from "../../core/GeminiEngine";
+import { evaluateGemstoneAndAmuletPrescription } from "../../core/panchangaGemstoneAmuletEngine";
 
 type Props = {
   session: KundliViewerSession;
@@ -185,8 +186,16 @@ export default function AskAstrologer({ session }: Props): JSX.Element {
 
     const planetPositions = session.result.planets.map(p => `${p.name} in House ${p.house} (${p.rashi.english})`).join(', ');
 
-    const isSpecificQuery = /gemstone|ratna|stone|color|colour|number|digit|which|day|deity|ring|finger|ರತ್ನ|ಹವಳ|ಬಣ್ಣ|ಸಂಖ್ಯೆ|ವಾರ|ದೇವರು|ಉಂಗುರ|ಯಾವ/i.test(userQueryText);
+    const isSpecificQuery = /gemstone|ratna|stone|color|colour|number|digit|which|day|deity|ring|finger|neck|necklace|pendant|coral|pearl|ruby|emerald|sapphire|diamond|rudraksha|ರತ್ನ|ಹವಳ|ಮುತ್ತು|ಪಚ್ಚೆ|ಮಾಣಿಕ್ಯ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲಂ|ಬಣ್ಣ|ಸಂಖ್ಯೆ|ವಾರ|ದೇವರು|ಉಂಗುರ|ಕೊರಳು|ಕೊರಳಲ್ಲಿ|ಕುತ್ತಿಗೆ|ಯಾವ/i.test(userQueryText);
     const targetParagraphs = isSpecificQuery ? "1 TO 2 PARAGRAPHS" : "2 TO 3 PARAGRAPHS";
+
+    const gemEval = evaluateGemstoneAndAmuletPrescription(session.result, {
+      vara: "",
+      tithi: "",
+      nakshatra: nakshatra,
+      yoga: "",
+      karana: ""
+    });
 
     const prompt = `You are an empathetic, highly learned master Vedic Astrologer giving a direct, authentic response to the user's query.
 OUTPUT LANGUAGE: ${language}.${language === 'kn' ? ' Write EXCLUSIVELY in pure Kannada script.' : language === 'te' ? ' Write EXCLUSIVELY in pure Telugu script.' : language === 'ta' ? ' Write EXCLUSIVELY in pure Tamil script.' : language === 'hi' ? ' Write EXCLUSIVELY in pure Hindi (Devanagari).' : ' Write in clear English.'}
@@ -200,12 +209,20 @@ USER DETAILS:
 - Current Running Dasha & Bhukti: ${dashaText}
 - Planetary Placements: ${planetPositions}
 
+PARASHARI GEMSTONE, RING, NECK WEAR & COLOR TRUTHS:
+- Primary Gemstone Ring: ${gemEval.primaryRing.gemstoneKn} / ${gemEval.primaryRing.gemstoneEn} (${gemEval.primaryRing.caratWeightKn}) in ${gemEval.primaryRing.metalKn} on ${gemEval.primaryRing.fingerKn} (${gemEval.primaryRing.handKn}).
+- Janma Nakshatra Neck Wear: ${gemEval.neckWear.rudrakshaNameKn} / ${gemEval.neckWear.rudrakshaNameEn} along with ${gemEval.neckWear.pendantTypeKn} in ${gemEval.neckWear.threadColorKn}.
+- Havala (Red Coral) Verdict: ${gemEval.havalaAnalysis.verdictKn} / ${gemEval.havalaAnalysis.verdictEn} (${gemEval.havalaAnalysis.instructionsKn}).
+- PROHIBITED GEMSTONES WARNING: ${gemEval.prohibitedGems.map(p => `${p.gemstoneKn} (${p.houseLordshipKn} - ${p.severeWarningKn})`).join("; ")}. NEVER suggest these as they cause downfall!
+- Lucky Colors: ${gemEval.colors.luckyColorsKn.join(", ")} | STRICT AVOID COLORS: ${gemEval.colors.strictAvoidColorsKn.join(", ")} (${gemEval.colors.dangerWarningKn}).
+
 USER QUERY TOPIC: ${selectedCatObj.labelEn}
 SPECIFIC QUESTION / DETAIL: "${userQueryText || 'Detailed perspective on this topic'}"
 
 CRITICAL 80/20 GOLDEN RULE & DYNAMIC LENGTH (${targetParagraphs}):
 - 80% DIRECT ANSWER AND PRACTICAL ACTIONABLE ADVICE, AT MOST 20% BRIEF ASTROLOGICAL JUSTIFICATION.
 - FRONT-LOAD THE ANSWER: State the direct answer or outcome in the VERY FIRST SENTENCE of Paragraph 1! Do NOT bury the answer in later paragraphs or wander into technical jargon.
+- If asking about gems, rings, neck wear, coral, or colors: NEVER base suggestions merely on Rashi! State the synthesis of Lagna, Nakshatra, and Panchanga. Explicitly prescribe the Primary Ring on the exact finger and metal, the Janma Nakshatra Rudraksha for neck wear, and warn against PROHIBITED stones.
 - STRICT PROHIBITION: DO NOT write 4 paragraphs! Respond in EXACTLY ${targetParagraphs} separated by double newlines.
 - DO NOT USE MARKDOWN HEADINGS OR BULLET POINTS as this will be read aloud by the speech engine.
 - Paragraph 1: Direct, front-loaded answer addressing "${userQueryText || selectedCatObj.labelEn}".

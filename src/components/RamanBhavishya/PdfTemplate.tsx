@@ -33,9 +33,13 @@ export type PdfTranslations = {
   weekdayValue?: string;
   prescriptionsTitle?: string;
   gemstoneLabel?: string;
+  neckWearLabel?: string;
+  prohibitedGemsLabel?: string;
   rudrakshaLabel?: string;
   ishtaDevataLabel?: string;
   luckyColorsLabel?: string;
+  avoidColorsLabel?: string;
+  consecrationMuhurthaLabel?: string;
   luckyDaysLabel?: string;
   luckyNumbersLabel?: string;
   luckyDirectionLabel?: string;
@@ -160,6 +164,10 @@ export type PremiumData = {
     luckyDays: string;
     luckyNumbers: string;
     luckyDirection: string;
+    neckWear?: string;
+    prohibitedGems?: string;
+    avoidColors?: string;
+    consecrationMuhurtha?: string;
   };
 };
 
@@ -1091,7 +1099,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           </div>
 
           <div className="grid grid-cols-2 gap-5 mb-4">
-            {/* Lucky Gemstone */}
+            {/* 1. Lucky Gemstone (Primary Ring) */}
             <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">💎</span>
@@ -1099,12 +1107,25 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   {translations.gemstoneLabel || "Lucky Gemstone"}
                 </span>
               </div>
-              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+              <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
                 {premiumData.prescriptions.gemstone}
               </p>
             </div>
 
-            {/* Sacred Rudraksha */}
+            {/* 2. Sacred Neck Wear (Nakshatra Deity & Rudraksha) */}
+            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl text-amber-800">📿</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
+                  {translations.neckWearLabel || "Sacred Neck Wear & Kavacha"}
+                </span>
+              </div>
+              <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.neckWear || premiumData.prescriptions.rudraksha}
+              </p>
+            </div>
+
+            {/* 3. Sacred Rudraksha */}
             <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">📿</span>
@@ -1112,12 +1133,12 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   {translations.rudrakshaLabel || "Sacred Rudraksha"}
                 </span>
               </div>
-              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+              <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
                 {premiumData.prescriptions.rudraksha}
               </p>
             </div>
 
-            {/* Ishta Devata */}
+            {/* 4. Ishta Devata */}
             <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">🔱</span>
@@ -1125,12 +1146,12 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   {translations.ishtaDevataLabel || "Ishta Devata"}
                 </span>
               </div>
-              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+              <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
                 {premiumData.prescriptions.ishtaDevata}
               </p>
             </div>
 
-            {/* Auspicious Colors */}
+            {/* 5. Auspicious Colors */}
             <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">🎨</span>
@@ -1138,37 +1159,65 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   {translations.luckyColorsLabel || "Auspicious Colors"}
                 </span>
               </div>
-              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
+              <p className="text-base font-bold text-emerald-900 font-serif leading-relaxed">
                 {premiumData.prescriptions.luckyColors}
               </p>
             </div>
 
-            {/* Auspicious Days */}
-            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+            {/* 6. Strict Prohibited Colors to Avoid */}
+            <div className="bg-red-50/70 border border-red-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl text-amber-800">🗓️</span>
-                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.luckyDaysLabel || "Auspicious Days"}
+                <span className="text-xl text-red-700">🚫</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-red-900/80">
+                  {translations.avoidColorsLabel || "Strict Avoid Colors"}
                 </span>
               </div>
-              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
-                {premiumData.prescriptions.luckyDays}
+              <p className="text-base font-bold text-red-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.avoidColors || "—"}
               </p>
             </div>
 
-            {/* Auspicious Numbers & Direction */}
+            {/* 7. Auspicious Days, Numbers & Direction */}
             <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">🧭</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.luckyNumbersLabel || "Auspicious Numbers"} &amp; {translations.luckyDirectionLabel || "Direction"}
+                  {translations.luckyDaysLabel || "Auspicious Days"} &amp; {translations.luckyDirectionLabel || "Direction"}
                 </span>
               </div>
-              <p className="text-xl font-bold text-amber-950 font-serif leading-relaxed">
-                {premiumData.prescriptions.luckyNumbers} • {premiumData.prescriptions.luckyDirection}
+              <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.luckyDays} • {translations.luckyNumbersLabel || "Numbers"}: {premiumData.prescriptions.luckyNumbers} • {premiumData.prescriptions.luckyDirection}
+              </p>
+            </div>
+
+            {/* 8. Consecration Muhurtha & Activation */}
+            <div className="bg-white/80 border border-amber-900/20 p-5 rounded-lg shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl text-amber-800">⏳</span>
+                <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
+                  {translations.consecrationMuhurthaLabel || "Consecration & Activation Muhurtha"}
+                </span>
+              </div>
+              <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.consecrationMuhurtha || "—"}
               </p>
             </div>
           </div>
+
+          {/* Strictly Prohibited Gemstones Alert Banner */}
+          {premiumData.prescriptions.prohibitedGems && (
+            <div className="mt-4 bg-gradient-to-r from-red-50 via-amber-50 to-red-50 border-2 border-red-700/40 p-5 rounded-lg shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl text-red-700">⚠️</span>
+                <span className="text-base font-black tracking-normal leading-normal text-red-900 uppercase">
+                  {translations.prohibitedGemsLabel || "Strictly Prohibited Gemstones Alert"}
+                </span>
+              </div>
+              <p className="text-base font-bold text-red-950 font-serif leading-relaxed">
+                {premiumData.prescriptions.prohibitedGems}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

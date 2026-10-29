@@ -109,6 +109,34 @@ export const PDF_T: Record<string, L5> = {
   luckyDaysLabel: { en: "Auspicious Days", kn: "ಶುಭ ವಾರಗಳು", te: "శుభ వారాలు", ta: "சுப கிழமைகள்", hi: "शुभ वार" },
   luckyNumbersLabel: { en: "Auspicious Numbers", kn: "ಅದೃಷ್ಟ ಸಂಖ್ಯೆಗಳು", te: "అదృష్ట సంఖ్యలు", ta: "அதிர்ஷ்ட எண்கள்", hi: "शुभ अंक" },
   luckyDirectionLabel: { en: "Auspicious Direction", kn: "ಶುಭ ದಿಕ್ಕು", te: "శుభ దిశ", ta: "சுப திசை", hi: "शुभ दिशा" },
+  neckWearLabel: {
+    en: "Janma Nakshatra Neck Wear",
+    kn: "ಜನ್ಮ ನಕ್ಷತ್ರದ ಕೊರಳ ಧಾರಣೆ",
+    te: "జన్మ నక్షత్ర కంఠ ధారణ",
+    ta: "ஜன்ம நட்சத்திர கழுத்து ஆபரணம்",
+    hi: "जन्म नक्षत्र कंठ धारण"
+  },
+  prohibitedGemsLabel: {
+    en: "Strict Prohibited Gemstones (Severe Warning)",
+    kn: "ಕಟ್ಟುನಿಟ್ಟಾದ ವರ್ಜ್ಯ ರತ್ನಗಳು (ಎಂದಿಗೂ ಧರಿಸಬೇಡಿ!)",
+    te: "ఖచ్చితంగా నిషేధించబడిన రత్నాలు (ఎప్పుడూ ధరించవద్దు!)",
+    ta: "முற்றிலும் தவிர்க்க வேண்டிய ரத்தினங்கள் (அணியக் கூடாது!)",
+    hi: "सख्त वर्जित रत्न (कदापि धारण न करें!)"
+  },
+  avoidColorsLabel: {
+    en: "Strict Avoid Colors",
+    kn: "ಕಟ್ಟುನಿಟ್ಟಾಗಿ ವರ್ಜ್ಯ ಮಾಡಬೇಕಾದ ಬಣ್ಣಗಳು",
+    te: "ఖచ్చితంగా నివారించవలసిన రంగులు",
+    ta: "கட்டாயம் தவிர்க்க வேண்டிய நிறங்கள்",
+    hi: "सख्त वर्जित रंग"
+  },
+  consecrationMuhurthaLabel: {
+    en: "Auspicious Consecration Muhurtha",
+    kn: "ಪ್ರಾಣ ಪ್ರತಿಷ್ಠಾಪನೆ & ಧಾರಣಾ ಮುಹೂರ್ತ",
+    te: "ప్రాణ ప్రతిష్ఠ & ధారణ ముహూర్తం",
+    ta: "பிராண பிரதிஷ்டை & அணியும் முகூர்த்தம்",
+    hi: "प्राण प्रतिष्ठा एवं धारण मुहूर्त"
+  },
 
   soulMirrorTitle: {
     en: "The Sacred Soul Mirror: Sovereign Truths & Cosmic Vitality",
