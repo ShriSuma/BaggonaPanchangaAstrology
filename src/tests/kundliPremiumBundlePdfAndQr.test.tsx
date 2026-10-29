@@ -37,7 +37,7 @@ describe("Kundli Premium Bundle PDF & QR Code Audit", () => {
   };
 
   describe("Item 5: 30-Day Auspicious Calendar QR Card", () => {
-    it("generates a valid QR payload pointing to /daily with action=ics90 and priest details", () => {
+    it("generates a valid QR payload pointing to /daily with action=ics30 and priest details", () => {
       const rhythmDays = Array.from({ length: 30 }, (_, i) => {
         const d = new Date("2026-10-02");
         d.setDate(d.getDate() + i);
@@ -67,9 +67,9 @@ describe("Kundli Premium Bundle PDF & QR Code Audit", () => {
         birthRashiIndex: sampleProfile.moonRashiIndex
       });
 
-      // Must direct to /daily?token=...&action=ics90...
+      // Must direct to /daily?token=...&action=ics30...
       expect(payload).toContain("/daily?token=");
-      expect(payload).toContain("action=ics90");
+      expect(payload).toContain("action=ics30");
       expect(payload).toContain("priestPhone=9972339362");
     });
 
