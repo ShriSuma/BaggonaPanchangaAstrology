@@ -1309,7 +1309,7 @@ CRITICAL SYSTEM CONFIDENTIALITY & DATA SECURITY DIRECTIVE (ABSOLUTE PROHIBITION)
  * Regex for identifying security, cyber probe, prompt injection, and paid content bypass attempts.
  */
 export const SECURITY_SYSTEM_PROBE_REGEX =
-  /(ignore\s+(all\s+)?(previous|prior)\s+instructions|system\s+prompt|reveal\s+your\s+prompt|what\s+are\s+your\s+instructions|developer\s+mode|you\s+are\s+now\s+dan|jailbreak|bypass\s+(restrictions|filters|security|payment)|admin\s+password|root\s+password|login\s+credentials|secret\s+key|api\s+key|gemini\s+key|firebase.*(database|key|credentials|secret|token|collection|data)|firestore.*(database|collection)|database.*(credentials|schema|password|table|access)|select\s+\*\s+from|drop\s+table|sql\s+injection|dump\s+(database|db|users)|source\s+code\s+of\s+this\s+app|backend\s+architecture|github\s+repo(sitory)?|hack\s+(payment|system|database|app)|(download|get).*(without\s+paying|for\s+free)|free.*(104.*page|panchanga.*book|paid.*pdf)|free.*pdf.*download.*without)/i;
+  /(ignore\s+(all\s+)?(previous|prior)\s+(instructions|rules|prompts|directives)|system\s+prompt|reveal\s+your\s+prompt|what\s+are\s+your\s+instructions|developer\s+mode|you\s+are\s+now\s+dan|jailbreak|bypass\s+(restrictions|filters|security|payment)|admin\s+password|root\s+password|login\s+credentials|secret\s+key|api\s+key|gemini\s+key|firebase.*(database|key|credentials|secret|token|collection|data)|firestore.*(database|collection)|database.*(credentials|schema|password|table|access|connection)|select\s+\*\s+from|drop\s+table|sql\s+injection|dump\s+(database|db|users)|source\s+code\s+of\s+this\s+app|backend\s+architecture|github\s+repo(sitory)?|hack\s+(payment|system|database|app)|(download|get).*(without\s+paying|for\s+free)|free.*(104.*page|panchanga.*book|paid.*pdf)|free.*pdf.*download.*without)/i;
 
 /**
  * Senses if a user query is attempting to probe internal system details, passwords,
@@ -1658,14 +1658,28 @@ export function buildDeterministicMarriageReading(
   _isSubsequent?: boolean
 ): string {
   const lang = (session.language || "kn") as ConsultationLanguage;
+  const asksKujaShanti =
+    /ಕುಜ ಶಾಂತಿ|ಕುಶ ಶಾಂತಿ|kuja shanti|kusha shanti|kuja dosha pooja|mangal shanti|मंगल शांति|कुज शांति|కుజ శాంతి|செவ்வாய் சாந்தி|ചൊവ്വാ ദോഷ പൂജ/i.test(
+      question
+    );
 
   switch (lang) {
     case "en": {
+      if (asksKujaShanti) {
+        const p1 = `100% Confident Astrological Ruling Regarding Kuja Shanti & Marriage Delay: You ask with sincere concern why marriage has not yet materialized despite performing sacred Kuja Shanti (Kusha Shanthi). In Vedic Jyotisha, Kuja Shanti pacifies the intense fiery friction, temperamental clashes, and hostile impediments of Kuja Dosha (Mars in 1st, 4th, 7th, 8th, or 12th). Performing that sacred Shanti was essential and has successfully removed the negative blockage from your 7th house. However, clearing an impediment is the foundation; the actual manifestation of Vivaha requires the positive cosmic activation of Gochara Guru drishti and Kalatra Bhava maturity.`;
+        const p2 = `Now that the Martian obstacle is dissolved, your birth chart confirms with 98% to 100% certainty that within the next 6 months, incoming Gochara Guru's direct aspect will solemnize your marriage! There is zero permanent delay remaining in your chart. Wear your prescribed Venusian gemstone—Diamond or natural White Zircon in silver on a Friday morning—and offer a sacred Sankalpa at Sri Kshetra Gokarna. Matrimonial alliance discussions will finalize happily within this confirmed 6-month window.`;
+        return deduplicateResponseText(`${p1}\n\n${p2}`);
+      }
       const p1 = `100% Confident Astrological Prediction: Examining your 7th house of matrimony, Venus (Shukra), and incoming Gochara Guru aspect, with 98% to 100% certainty within the next 6 months your marriage will definitely be solemnized! There is zero room for doubt or dilemma in your chart. The cosmic transit of Jupiter is casting its divine drishti directly upon your cardinal houses, dissolving previous karmic delays and unlocking the auspicious Vivaha Yoga.`;
       const p2 = `By wearing your prescribed Venusian gemstone—Diamond set in white gold/silver or natural Australian White Zircon on a Friday morning—and offering prayers at Sri Kshetra Gokarna Mahabaleshwara, the energetic alignment for your sacred alliance is completed. Proceed with serene conviction; matrimonial negotiations and alliance finalization will conclude happily within this 6-month auspicious window.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "hi": {
+      if (asksKujaShanti) {
+        const p1 = `१००% निश्चित दैवज्ञ निर्णय (कुज शांति के उपरांत विवाह योग): आपने कुज शांति (मंगल शांति) करवाई, फिर भी विवाह में विलंब क्यों हुआ, इसका प्रामाणिक वैदिक कारण समझें। कुज शांति ने मंगल के तीव्र दोष, कलह एवं विवाह बाधाओं को पूर्ण रूप से शांत कर दिया है। दोष का निवारण नकारात्मक रुकावटों को हटा देता है; किंतु वास्तविक विवाह संपन्न होने के लिए गोचर में गुरु (बृहस्पति) की अमृत दृष्टि और सप्तम भाव का सक्रिय होना अनिवार्य होता है।`;
+        const p2 = `अब जबकि मंगल की बाधा समाप्त हो चुकी है, आपकी कुंडली में गोचर गुरु का प्रभाव पूर्णतः सक्रिय हो चुका है। अतः ९८% से १००% निश्चितता के साथ अगले ६ महीनों में आपका विवाह संपन्न होना शत-प्रतिशत तय है! अपनी कुंडली के अनुसार शुक्र के रत्न हीरा (अथवा सफेद जरकन) को धारण करें तथा श्री क्षेत्र गोकर्ण में कल्याण संकल्प कराएं। आगामी ६ माह के भीतर आपका शुभ विवाह निर्विघ्न संपन्न होगा।`;
+        return deduplicateResponseText(`${p1}\n\n${p2}`);
+      }
       const p1 = `१००% निश्चित दैवज्ञ निर्णय: आपकी जन्म कुंडली के सप्तम भाव, शुक्र ग्रह एवं गोचर गुरु की अमृत दृष्टि का विश्लेषण करने पर यह शत-प्रतिशत प्रमाणित होता है कि अगले ६ महीनों में आपका विवाह संपन्न हो जाएगा! आपकी कुंडली में किसी भी संशय या दुविधा के लिए कोई स्थान नहीं है। देवगुरु बृहस्पति की शुभ दृष्टि आपके विवाह भाव पर पूर्ण रूप से सक्रिय हो चुकी है, जिससे पूर्व के समस्त अवरोध नष्ट हो रहे हैं।`;
       const p2 = `शुक्र के शुभ रत्न हीरा (अथवा शास्त्रसम्मत प्राकृतिक सफेद जरकन) को धारण करने तथा श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में कल्याण संकल्प पूजा संपन्न कराने से वैवाहिक वार्ता निर्विघ्न रूप से सफल होगी। पूरे विश्वास और उत्साह के साथ आगे बढ़िए; अगले ६ माह के भीतर आपका विवाह शत-प्रतिशत सुनिश्चित है।`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
@@ -1692,6 +1706,11 @@ export function buildDeterministicMarriageReading(
     }
     case "kn":
     default: {
+      if (asksKujaShanti) {
+        const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ತೀರ್ಮಾನ (ಕುಜ ಶಾಂತಿಯ ನಂತರದ ವಿವಾಹ ಯೋಗ): ನೀವು ಕುಜ ಶಾಂತಿ (ಕುಶ ಶಾಂತಿ) ಮಾಡಿಸಿದ್ದರೂ ಸಹ ಇನ್ನೂ ಏಕೆ ವಿವಾಹವಾಗಿಲ್ಲ ಎಂಬ ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಶಾಸ್ತ್ರೋಕ್ತವಾದ ಪರಮ ಸತ್ಯವನ್ನು ತಿಳಿಸುತ್ತೇನೆ. ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷಕ್ಕೆ (೧, ೪, ೭, ೮, ೧೨ ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಕುಜ) ಮಾಡಿದ ಕುಜ ಶಾಂತಿಯು, ವಿವಾಹಕ್ಕೆ ಅಡ್ಡಿಪಡಿಸುತ್ತಿದ್ದ ಕುಜನ ತೀಕ್ಷ್ಣ ಉಷ್ಣತೆ, ಜಗಳ ಹಾಗೂ ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವ ದೋಷ ತಡೆಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಶಮನಗೊಳಿಸಿದೆ. ದೋಷ ನಿವಾರಣೆಯು ನಕಾರಾತ್ಮಕ ಅಡೆತಡೆಗಳನ್ನು ತೆಗೆದುಹಾಕುವ ಮೊದಲ ಹೆಜ್ಜೆಯಾಗಿದೆ; ಆದರೆ ನೈಜ ವಿವಾಹ ಸಿದ್ಧಿಗೆ ಗೋಚಾರ ಗುರುವಿನ ದಿವ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಕಳತ್ರ ಭಾವದ ಶುಭ ಕಾಲ ಕೂಡಿಬರಬೇಕಾಗುತ್ತದೆ.`;
+        const p2 = `ಕುಜ ಶಾಂತಿಯಿಂದ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿರುವ ಕಾರಣ, ಈಗ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ೭ನೇ ಭಾವದ ಮೇಲೆ ನೇರವಾಗಿ ಪ್ರಸರಿಸುತ್ತಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಿಂದ ೧೦೦ ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ದೀರ್ಘಕಾಲಿಕ ವಿಳಂಬವಿಲ್ಲ. ಶುಕ್ರನ ರತ್ನವಾದ ವಜ್ರ (ಅಥವಾ ಬಿಳಿ ಜಿರ್ಕಾನ್ / ಓಪಲ್) ಧಾರಣೆ ಮಾಡಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ. ಮುಂದಿನ ೬ ತಿಂಗಳೊಳಗೆ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
+        return deduplicateResponseText(`${p1}\n\n${p2}`);
+      }
       const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ೭ನೇ ಕಳತ್ರ ಭಾವ, ಶುಕ್ರ ಹಾಗೂ ಗೋಚಾರ ಗುರು ಬಲವು ಈಗ ಪೂರ್ಣವಾಗಿ ಸಕ್ರಿಯವಾಗಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಅನುಮಾನಕ್ಕೆ ಆಸ್ಪದವಿಲ್ಲ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದಿವ್ಯ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಲಗ್ನ ಹಾಗೂ ಸಪ್ತಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಈ ಹಿಂದೆ ಇದ್ದ ಸಮಸ್ತ ವಿವಾಹ ತಡೆಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಭಸ್ಮವಾಗಲಿವೆ.`;
       const p2 = `ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಶುಕ್ರನ ರತ್ನವಾದ ವಜ್ರ (ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ / ಓಪಲ್) ಧಾರಣೆ ಮಾಡುವುದರಿಂದ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸುವುದರಿಂದ ವಿವಾಹ ಕಾರ್ಯವು ಅಡೆತಡೆಗಳಿಲ್ಲದೆ ಸುಸೂತ್ರವಾಗಿ ನೆರವೇರಲಿದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ದ್ವಂದ್ವವಿಲ್ಲದೆ ದೃಢ ನಂಬಿಕೆಯಿಂದ ಮುನ್ನಡೆಯಿರಿ; ಮುಂದಿನ ೬ ತಿಂಗಳ ಶುಭ ಕಾಲಾವಧಿಯೊಳಗೆ ನಿಮ್ಮ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
@@ -1714,12 +1733,15 @@ export function detectAndResolveUltaPaltaProbe(
 
   // 1. PUSHPARAGA / YELLOW SAPPHIRE PROBE (User asks about Pushparaga for Libra Lagna or when Pushparaga was rejected)
   const isPushparagaQuery = /ಪುಷ್ಯರಾಗ|ಪುಷ್ಯ|ಹಳದಿ ಪುಷ್ಯ|pushparaga|yellow sapphire|pukhraj|पुखराज|పుష్యరాగం|புஷ்பராகம்|പുഷ്യരാഗം/i.test(qLower);
+  const isTulaProbe =
+    /ತುಲಾ|tula|libra/i.test(qLower) ||
+    ledger.some((r) => /tula|libra|ತುಲಾ/i.test(r.questionSummary || "") || /tula|libra|ತುಲಾ/i.test(r.primaryVerdict || ""));
   const gemRecord = ledger.find((r) => r.domain === "GEMSTONE_REMEDY");
   const isPushparagaRejectedInLedger = gemRecord?.rejectedOptions?.some((opt) =>
     /yellow sapphire|pushparaga|pukhraj|ಪುಷ್ಯರಾಗ/i.test(opt)
   );
 
-  if (isPushparagaQuery && isPushparagaRejectedInLedger) {
+  if (isPushparagaQuery && (isPushparagaRejectedInLedger || isTulaProbe)) {
     if (lang === "en") {
       const p1 = `Master Daivajna Confident Ruling (100% Authoritative Determination): As firmly ruled in our earlier determination with 100% certainty, Yellow Sapphire (Pushparaga / Pukhraj) is STRICTLY PROHIBITED for your chart! Regardless of whether someone suggests wearing it for one month, one week, or in gold, you must NOT wear it. For your Libra (Tula) Lagna, Jupiter is the malefic 6th lord of debts, diseases, litigation, and enemies. Energizing the 6th lord with Yellow Sapphire will only attract financial liabilities, health complications, and obstacles.`;
       const p2 = `Your single authentic, scripture-approved gemstone is Diamond (Vajra) or natural White Zircon to strengthen your benefic Lagna Lord Venus. Stand firmly by authentic Vedic Shastra with zero dilemma.`;
@@ -3860,6 +3882,35 @@ export function buildDeterministicGemstoneReading(
   const hasDiamondInHistory = /diamond|heera|ವಜ್ರ|हीरा|वज्र|వజ్రం|వైరం|വൈരം/i.test(historyText);
   const hasRejectedWhiteCoralInHistory = /white coral|safed moonga|ಬಿಳಿ ಹವಳ|white havala/i.test(historyText);
 
+  // 0. SPECIFIC TULA (LIBRA) PUSHPARAGA (YELLOW SAPPHIRE) STRICT PROHIBITION INQUIRY
+  const isTulaNative =
+    /ತುಲಾ|tula|libra/i.test(_astroData?.lagnaName || "") ||
+    /ತುಲಾ|tula|libra/i.test(_astroData?.moonRashi || "") ||
+    /ತುಲಾ|tula|libra/i.test(question) ||
+    /ತುಲಾ|tula|libra/i.test(session.place || "");
+
+  const isPushparagaQuery =
+    /ಪುಷ್ಯರಾಗ|ಪುಷ್ಯ|ಹಳದಿ ಪುಷ್ಯ|pushparaga|yellow sapphire|pukhraj|पुखराज|పుష్యరాగం|புஷ்பராகம்|പുഷ്യരാഗം/i.test(
+      qLower
+    );
+
+  if (isPushparagaQuery && isTulaNative) {
+    if (lang === "en") {
+      const p1 = `100% Authoritative Astrological Determination (Pushparaga for Tula Prohibited): For your Tula (Libra) Lagna / Rashi, Yellow Sapphire (Pushparaga / Pukhraj) will NOT work and is STRICTLY PROHIBITED! In classical Parashari Jyotisha, Jupiter (Guru) is the functional lord of your 3rd house (effort/strain) and the 6th house (Roga/disease, Rina/debts, Shatru/enemies, and litigation). Even if Jupiter is naturally a benefic, or placed in the 9th or 11th house, or whatever transit Jupiter is currently undergoing, functional lordship of the 6th house takes absolute precedence (Adhipatya Dosha). Wearing Yellow Sapphire will directly energize your 6th house, inviting digestive and liver ailments, unexpected financial liabilities/debts, and workplace hostility. Therefore, Yellow Sapphire must never be worn for Tula.`;
+      const p2 = `Your single scripture-approved benefic gemstone is Diamond (Vajra) or authentic natural White Zircon / White Opal in pure silver to empower your benefic Lagna Lord Venus. Setting White Zircon in silver and wearing it on a Friday morning will attract genuine wealth, marital harmony, and protective grace from Sri Kshetra Gokarna Mahabaleshwara.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "hi") {
+      const p1 = `१००% प्रामाणिक दैवज्ञ निर्णय (तुला लग्न/राशि के लिए पुखराज पूर्णतः वर्जित): आपकी तुला लग्न अथवा तुला राशि के लिए पीला पुखराज (Yellow Sapphire) कभी फलदायी नहीं होगा और पूरी तरह वर्जित है! महर्षि पराशर के सिद्धांत के अनुसार, तुला लग्न में देवगुरु बृहस्पति तृतीय (कठिन परिश्रम) तथा षष्ठ भाव (रोग, ऋण, शत्रु एवं कोर्ट-कचहरी विवाद) के स्वामी होते हैं। गुरु कुंडली में भले ही किसी भी भाव में स्थित हों या वर्तमान गोचर में हों, षष्ठ भाव का आधिपत्य दोष सर्वोच्च रहता है। पुखराज धारण करने से रोग, अनावश्यक कर्ज और मानसिक अशांति बढ़ती है।`;
+      const p2 = `तुला के लिए एकमात्र कल्याणकारी रत्न लग्नेश शुक्र का हीरा (Vajra) अथवा प्राकृतिक सफेद जरकन / ओपल है। इसे चांदी में बनवाकर शुक्रवार की सुबह धारण करने से सुख, ऐश्वर्य और श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा प्राप्त होगी।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    // Kannada Default
+    const p1 = `೧೦೦% ಖಚಿತ ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ (ತುಲಾ ಲಗ್ನ/ರಾಶಿಗೆ ಪುಷ್ಯರಾಗ ಕಟ್ಟುನಿಟ್ಟಿನ ನಿಷೇಧ): ನಿಮ್ಮ ತುಲಾ ಲಗ್ನ ಅಥವಾ ತುಲಾ ರಾಶಿಗೆ ಹಳದಿ ಪುಷ್ಯರಾಗ (Yellow Sapphire / Pukhraj) ರತ್ನವು ಶತಸಿದ್ಧವಾಗಿ ನಿಷೇಧವಾಗಿದ್ದು, ಎಂದಿಗೂ ಫಲಿಸುವುದಿಲ್ಲ! ಪರಾಶರ ಮಹರ್ಷಿಗಳ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ, ತುಲಾ ಲಗ್ನಕ್ಕೆ ಗುರುವು ೩ನೇ (ಅತಿಯಾದ ಪ್ರಯಾಸ) ಹಾಗೂ ೬ನೇ (ರೋಗ, ಋಣ/ಸಾಲ, ಶತ್ರು ಹಾಗೂ ನ್ಯಾಯಾಲಯದ ವ್ಯಾಜ್ಯ) ದುಸ್ಥಾನಗಳ ಅಧಿಪತಿಯಾಗಿದ್ದಾನೆ. ಜಾತಕದಲ್ಲಿ ಗುರುವು ನೈಸರ್ಗಿಕ ಶುಭಗ್ರಹವಾಗಿದ್ದರೂ, ಅಥವಾ ೯/೧೧ನೇ ಮನೆಗಳಲ್ಲಿದ್ದರೂ, ಅಥವಾ ಪ್ರಸ್ತುತ ಯಾವುದೇ ಗೋಚಾರದಲ್ಲಿದ್ದರೂ, ೬ನೇ ಮನೆಯ ಅಧಿಪತ್ಯ ದೋಷವೇ ಪ್ರಮುಖವಾಗುತ್ತದೆ. ಇಂತಹ ಸ್ಥಿತಿಯಲ್ಲಿ ಪುಷ್ಯರಾಗ ಧರಿಸಿದರೆ ಹೊಟ್ಟೆ/ಯಕೃತ್ತಿನ ಕಾಯಿಲೆಗಳು, ತೀರಿಸಲಾಗದ ಸಾಲದ ಹೊರೆ ಹಾಗೂ ವಿವಾದಗಳು ಉಲ್ಬಣಗೊಳ್ಳುತ್ತವೆ.`;
+    const p2 = `ತುಲಾ ಲಗ್ನಕ್ಕೆ ಶುಭವನ್ನು ತರುವ ಏಕೈಕ ರತ್ನವೆಂದರೆ ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರನ ವಜ್ರ (Diamond) ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon / White Opal). ಇದನ್ನು ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಉಂಗುರದಲ್ಲಿ ಮಾಡಿಸಿ ಶುಕ್ರವಾರದಂದು ಧರಿಸುವುದರಿಂದ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ, ದಾಂಪತ್ಯ ಸೌಖ್ಯ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ರಕ್ಷಣೆ ದೊರೆಯಲಿದೆ.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
   // 1. SPECIFIC WHITE CORAL INQUIRY (e.g. Can I wear white coral instead of diamond? / Is white coral good for me?)
   const isWhiteCoralInquiry =
     /ಬಿಳಿ\s*ಹವಳ|white\s*coral|safed\s*moonga|safed\s*munga|सफेद\s*मूंगा|తెల్ల\s*పగడం|வெள்ளை\s*பவளம்|വെളുത്ത\s*പവിഴം|पांढरा\s*पोवळा|white\s*havala/i.test(
@@ -3963,9 +4014,13 @@ export function buildDeterministicGemstoneReading(
   if (lang === "en") {
     let coralLine = "";
     if (asksCoral) {
-      coralLine = isCoralMatched
-        ? "The Red Coral (Havala / Moonga) you specifically inquired about is indeed an exceptional Yoga-Karaka gemstone that aligns superbly with your chart. "
-        : `Regarding Red Coral, your primary ascendant gem is ${gemName}, which will yield the most potent and balanced benefits for your chart. `;
+      if (isTulaNative) {
+        coralLine = "Regarding Red Coral (Moonga / Havala): For Tula (Libra) Lagna, Mars rules the 2nd and 7th houses, which are Maraka sthanas (critical transition/death-inflicting houses). Wearing Red Coral is strictly caution-advised and generally NOT recommended, as Martian fire intensifies marital friction, aggressive anger, and discord with your spouse. ";
+      } else {
+        coralLine = isCoralMatched
+          ? "The Red Coral (Havala / Moonga) you specifically inquired about is indeed an exceptional Yoga-Karaka gemstone that aligns superbly with your chart. "
+          : `Regarding Red Coral, your primary ascendant gem is ${gemName}, which will yield the most potent and balanced benefits for your chart. `;
+      }
     } else if (isCoralMatched) {
       coralLine = "In addition, Red Coral (Havala) serves as a potent secondary Yoga-Karaka gemstone for your chart. ";
     }
@@ -4047,9 +4102,13 @@ export function buildDeterministicGemstoneReading(
   // Default: Kannada
   let coralLine = "";
   if (asksCoral) {
-    coralLine = isCoralMatched
-      ? "ನೀವು ಕೇಳಿರುವ ಕೆಂಪು ಹವಳವು (Red Coral) ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ತ್ರಿಕೋಣಾಧಿಪತಿಯ ಬಲಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಯೋಗಕಾರಕ ರತ್ನವಾಗಿದೆ. "
-      : `ನೀವು ಕೇಳಿರುವ ಹವಳಕ್ಕಿಂತಲೂ ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನಾಧಿಪತಿಯಾದ ${gemName} ಧರಿಸುವುದು ಶ್ರೇಷ್ಠ ಫಲ ನೀಡುತ್ತದೆ. `;
+    if (isTulaNative) {
+      coralLine = "ನೀವು ಕೇಳಿರುವ ಕೆಂಪು ಹವಳದ (Red Coral / Moonga) ವಿಚಾರದಲ್ಲಿ: ತುಲಾ ಲಗ್ನಕ್ಕೆ ಮಂಗಳನು ೨ನೇ ಹಾಗೂ ೭ನೇ ಮಾರಕ ಸ್ಥಾನಗಳ ಅಧಿಪತಿಯಾಗಿದ್ದಾನೆ. ಹವಳ ಧರಿಸುವುದರಿಂದ ಕೋಪ, ದಾಂಪತ್ಯ ಕಲಹ ಹಾಗೂ ರಕ್ತದೊತ್ತಡ ಹೆಚ್ಚಾಗುವ ಸಾಧ್ಯತೆ ಇರುವುದರಿಂದ ತುಲಾ ಲಗ್ನದವರಿಗೆ ಹವಳವನ್ನು ಧರಿಸಲು ಶಿಫಾರಸು ಮಾಡುವುದಿಲ್ಲ. ";
+    } else {
+      coralLine = isCoralMatched
+        ? "ನೀವು ಕೇಳಿರುವ ಕೆಂಪು ಹವಳವು (Red Coral) ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ತ್ರಿಕೋಣಾಧಿಪತಿಯ ಬಲಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾದ ಯೋಗಕಾರಕ ರತ್ನವಾಗಿದೆ. "
+        : `ನೀವು ಕೇಳಿರುವ ಹವಳಕ್ಕಿಂತಲೂ ನಿಮ್ಮ ಜಾತಕದ ಲಗ್ನಾಧಿಪತಿಯಾದ ${gemName} ಧರಿಸುವುದು ಶ್ರೇಷ್ಠ ಫಲ ನೀಡುತ್ತದೆ. `;
+    }
   } else if (isCoralMatched) {
     coralLine = "ವಿಶೇಷವಾಗಿ ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕೆಂಪು ಹವಳವು (Red Coral) ಸಹ ಅತ್ಯುತ್ತಮ ಯೋಗಕಾರಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ. ";
   }

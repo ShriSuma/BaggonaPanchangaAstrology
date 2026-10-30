@@ -206,10 +206,11 @@ export function senseAndCategorizeQuestion(
 
   // 4. Minor Child Native (< 18 yrs) OR Parent Child Education/Health Inquiry
   const isChildParentInquiry =
-    ageYears < 18 ||
-    /ಮಗು|ಮಗುವಿನ|ಮಗನ|ಮಗಳ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಏಕಾಗ್ರತೆ|ಬಾಲಾರಿಷ್ಟ|child|children|education|study|studies|concentration|memory|exam|marks|board exam/i.test(
-      q
-    );
+    (ageYears < 18 ||
+      /ಮಗು|ಮಗುವಿನ|ಮಗನ|ಮಗಳ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಏಕಾಗ್ರತೆ|ಬಾಲಾರಿಷ್ಟ|child|children|education|study|studies|concentration|memory|exam|marks|board exam/i.test(
+        q
+      )) &&
+    !/ಸಂತಾನ|conception|conceive|pregnancy|progeny|childbirth/i.test(q);
 
   if (isChildParentInquiry) {
     return {
@@ -265,11 +266,15 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 7. Celebrity Fantasy (Aishwarya Rai, heroines, actresses, models)
+  // 7. Celebrity Fantasy (Aishwarya Rai, Mia Khalifa, Sunny Leone, heroines, actresses, models, adult stars)
   const isCelebrityFantasy =
-    /ಐಶ್ವರ್ಯ|aishwarya|aiswarya|ಹೀರೋಯಿನ್|heroine|ನಟಿ|actress|ಸೆಲೆಬ್ರಿಟಿ|celebrity|ದೀಪಿಕಾ|deepika|ಕತ್ರಿನಾ|katrina|ಸಮಂತಾ|samantha|ರಶ್ಮಿಕಾ|rashmika|ಪೂಜಾ|pooja hegde|ತಾರೆ|ಸಿನಿಮಾ ನಟಿ/i.test(
+    /ಐಶ್ವರ್ಯ|aishwarya|aiswarya|ಹೀರೋಯಿನ್|heroine|ನಟಿ|actress|ಸೆಲೆಬ್ರಿಟಿ|celebrity|ದೀಪಿಕಾ|deepika|ಕತ್ರಿನಾ|katrina|ಸಮಂತಾ|samantha|ರಶ್ಮಿಕಾ|rashmika|ಪೂಜಾ|pooja hegde|ತಾರೆ|ಸಿನಿಮಾ ನಟಿ|ಮಿಯಾ ಖಲೀಫಾ|mia khalifa|sunny leone|ಸನ್ನಿ ಲಿಯೋನ್|mia malkova|dani daniels|kendra lust|sasha grey|angela white|alia bhatt|ಆಲಿಯಾ|kiara advani|sreeleela|ಶ್ರೀಲೀಲಾ|tamannaah|ತಮನ್ನಾ|nayanthara|ನಯನತಾರಾ|trisha|ತ್ರಿಷಾ|keerthy suresh|ಕೀರ್ತಿ ಸುರೇಶ್|kareena|ಕರೀನಾ|shraddha kapoor|taylor swift|kim kardashian|adult star|pornstar|porn star|ಮಾಡಲ್|model/i.test(
       q
-    ) && /ಮದುವೆ|marry|wedding|ಲವ್|love|ಪ್ರೀತಿಸ|ಆಗಬಹುದಾ|possible/i.test(q);
+    ) &&
+    (/ಮದುವೆ|marry|married|wedding|ಲವ್|love|ಪ್ರೀತಿಸ|ಆಗಬಹುದಾ|possible|wife|husband|crush|girlfriend|gf|date|dating|ಜೊತೆ|do i get married|can i marry|will i get married/i.test(
+      q
+    ) ||
+      /marry (mia|aishwarya|sunny|heroine|pornstar)|(mia khalifa|aishwarya rai|sunny leone).*maduve/i.test(q));
 
   if (isCelebrityFantasy) {
     return {
@@ -1052,14 +1057,20 @@ function generateSpecializedFallbackReply(params: {
     case "CELEBRITY_FANTASY":
       if (isEn) {
         if (isSubsequent) {
-          return `Regarding "${userQuestion}", let us guide you with gentle truth and Vedic wisdom. Daydreaming about distant celebrities will only dissipate your mental energy. Focus your efforts on real personal achievements, character, and an honorable livelihood, and by divine grace, you will be blessed with a loving and virtuous life partner suited for your real life.`;
+          return `Regarding "${userQuestion}", let us guide you with fatherly truth and Vedic wisdom. Screen celebrities, actresses, or internet personalities live in an entirely different commercial sphere with their own private realities, families, and separate life paths. Daydreaming about public figures or screen personas dissipates your vital mental energy and self-respect. Focus your efforts on real personal achievements, building high character, and establishing an honorable livelihood; by divine grace, you will be blessed with a loving and virtuous life partner suited for your real life.`;
         }
-        return `Namaste ${session.name}. Listening to your question with fatherly affection, let me guide you with gentle truth and Vedic wisdom.\n\nFirst, recognize the reality of this world: the celebrity or actress you speak of is already happily married, with her own established family and life journey. Spending your precious mental energy and youthful years pursuing unattainable daydreams will only bring disillusionment.\n\nLook closely at the accomplished, hardworking individuals who achieve great heights in life. If you wish to attract a high-stature and noble partner, you must first build exceptional character, work diligently, earn an honorable livelihood, and establish respect in society. Your birth chart (${lagnaName} Lagna) shows strong inner resilience. Channel your energy away from screen illusions into your real-world career and self-growth, and by divine grace, you will be blessed with a loving and virtuous life partner suited for your real life.`;
+        return `Namaste ${session.name}. Listening to your question with fatherly affection, let me guide you with gentle truth and Vedic wisdom.\n\nFirst, recognize the reality of this world: distant celebrities, actresses, or internet figures live in an entirely different commercial sphere with their own private realities, families, and separate life paths. Spending your precious mental energy and youthful years pursuing unattainable daydreams or screen illusions will only bring disillusionment and drain your focus.\n\nIn Vedic Jyotisha, real marital harmony and lifelong happiness are found with an honorable partner who walks beside you in reality. If you wish to attract a noble, virtuous partner, you must first build exceptional character, work diligently, earn an honorable livelihood, and establish respect in society. Your birth chart (${lagnaName} Lagna) shows strong inner resilience. Channel your energy away from screen illusions into your real-world career and self-growth, and by divine grace, you will be blessed with a loving and virtuous life partner suited for your real life.`;
+      }
+      if (isHi) {
+        if (isSubsequent) {
+          return `आपने जो "${userQuestion}" पूछा है, उस पर एक वरिष्ठ दैवज्ञ के रूप में वात्सल्य और सत्य के साथ मार्गदर्शन करता हूँ। फिल्मी हस्तियों, अभिनेत्रियों या इंटरनेट सेलिब्रिटी के प्रति केवल कल्पना लोक में समय बिताने से मानसिक ऊर्जा नष्ट होती है। अपने वास्तविक जीवन में परिश्रम करें, उत्तम संस्कार और चरित्रवान बनें; आपके वास्तविक जीवन के अनुकूल एक गुणवान और स्नेहमयी जीवनसंगिनी अवश्य प्राप्त होगी।`;
+        }
+        return `नमस्ते ${session.name} जी। आपकी बात सुनकर एक वरिष्ठ दैवज्ञ के रूप में, मैं आपको पिता समान वात्सल्य और वास्तविकता का मार्गदर्शन देता हूँ।\n\nसंसार की वास्तविकता को समझें: पर्दे की हस्तियां, अभिनेत्रियां या इंटरनेट सेलिब्रिटी पूरी तरह से एक अलग व्यावसायिक जगत में अपने व्यक्तिगत जीवन, परिवार और वास्तविकताओं के साथ जीती हैं। स्क्रीन के भ्रम और दिवास्वप्नों के पीछे अपनी अनमोल युवावस्था और समय गंवाना केवल भटकाव और निराशा लाता है।\n\nवैदिक शास्त्र में दांपत्य सुख वास्तविक जीवन के संस्कारवान साथी के साथ मिलता है। यदि आप एक सुसंस्कृत और योग्य जीवनसाथी चाहते हैं, तो पहले अपने चरित्र, विद्या, करियर और समाज में सम्मान को सुदृढ़ करें। आपकी जन्म कुंडली (${lagnaName} लग्न) में आत्मबल है। अपनी ऊर्जा को वास्तविक विकास में लगाएं; ईश्वर की कृपा से आपके जीवन के सर्वथा योग्य, सदाचारी और प्रेमपूर्ण जीवनसाथी का सुख आपको अवश्य मिलेगा।`;
       }
       if (isSubsequent) {
-        return `ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯಕ್ಕೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಕೇವಲ ಕಲ್ಪನಾ ಲೋಕದಲ್ಲಿ ಸಮಯ ಕಳೆಯುವುದರಿಂದ ಮಾನಸಿಕ ಗೊಂದಲಗಳು ಹೆಚ್ಚಾಗುತ್ತವೆ. ನಿಮ್ಮ ನೈಜ ಬದುಕಿನಲ್ಲಿ ಪರಿಶ್ರಮಿಸಿ, ಉನ್ನತ ಸಾಧನೆ ಮತ್ತು ಸಂಸ್ಕಾರವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಿ; ನಿಮ್ಮ ಬದುಕಿಗೆ ಸರಿಹೊಂದುವಂತಹ ಸದ್ಗುಣ ಸಂಪನ್ನೆಯಾದ ಬಾಳಸಂಗಾತಿಯು ಖಂಡಿತವಾಗಿಯೂ ದೊರೆಯಲಿದ್ದಾರೆ.`;
+        return `ನೀವು ಕೇಳಿದ "${userQuestion}" ಎಂಬ ವಿಷಯಕ್ಕೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಕೇವಲ ಕಲ್ಪನಾ ಲೋಕದಲ್ಲಿ ಸಮಯ ಕಳೆಯುವುದರಿಂದ ಮಾನಸಿಕ ಗೊಂದಲಗಳು ಹೆಚ್ಚಾಗುತ್ತವೆ. ಪರದೆಯ ಮೇಲಿನ ಸೆಲೆಬ್ರಿಟಿಗಳು ಅಥವಾ ಇಂಟರ್ನೆಟ್ ವ್ಯಕ್ತಿಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಭಿನ್ನವಾದ ವಾಣಿಜ್ಯ ಜಗತ್ತಿನಲ್ಲಿ ತಮ್ಮದೇ ಆದ ಖಾಸಗಿ ಬದುಕು ಮತ್ತು ನೈಜತೆಯೊಂದಿಗೆ ಇರುತ್ತಾರೆ. ನಿಮ್ಮ ನೈಜ ಬದುಕಿನಲ್ಲಿ ಪರಿಶ್ರಮಿಸಿ, ಉನ್ನತ ಸಾಧನೆ ಮತ್ತು ಸಂಸ್ಕಾರವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಿ; ನಿಮ್ಮ ಬದುಕಿಗೆ ಸರಿಹೊಂದುವಂತಹ ಸದ್ಗುಣ ಸಂಪನ್ನೆಯಾದ ಬಾಳಸಂಗಾತಿಯು ಖಂಡಿತವಾಗಿಯೂ ದೊರೆಯಲಿದ್ದಾರೆ.`;
       }
-      return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನಿಮ್ಮ ಮಾತನ್ನು ಕೇಳಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ, ವಾತ್ಸಲ್ಯದಿಂದ ನಿಮಗೆ ವಾಸ್ತವಿಕ ಮತ್ತು ಧರ್ಮದ ಮಾರ್ಗದರ್ಶನವನ್ನು ನೀಡುತ್ತೇನೆ.\n\nಮೊದಲನೆಯದಾಗಿ ಲೋಕದ ವಾಸ್ತವವನ್ನು ಗ್ರಹಿಸಿ: ನೀವು ಪ್ರಸ್ತಾಪಿಸಿದ ನಟಿ ಅಥವಾ ಸೆಲೆಬ್ರಿಟಿಯು ಈಗಾಗಲೇ ವಿವಾಹಿತರಾಗಿದ್ದು, ತಮ್ಮದೇ ಆದ ಕುಟುಂಬ, ಪತಿ ಮತ್ತು ಮಕ್ಕಳೊಂದಿಗೆ ಗೌರವಯುತ ಜೀವನ ನಡೆಸುತ್ತಿದ್ದಾರೆ. ಕೇವಲ ಕಲ್ಪನಾ ಲೋಕದಲ್ಲಿ ಸಮಯ ಮತ್ತು ಯೌವನವನ್ನು ಕಳೆಯುವುದರಿಂದ ಮಾನಸಿಕ ಗೊಂದಲಗಳು ಹೆಚ್ಚಾಗುತ್ತವೆಯೇ ಹೊರತು ಯಾವುದೇ ಸಾರ್ಥಕತೆ ದೊರೆಯುವುದಿಲ್ಲ.\n\nಅಂತಹ ಉನ್ನತ ಸ್ಥಾನದಲ್ಲಿರುವ ವ್ಯಕ್ತಿಗಳನ್ನು ವಿವಾಹವಾದ ಸಾಧಕರನ್ನು ಗಮನಿಸಿ. ಅವರು ಸತತ ಪರಿಶ್ರಮ, ಉನ್ನತ ಸಾಧನೆ ಮತ್ತು ಸಮಾಜದಲ್ಲಿ ಗೌರವಯುತ ಸ್ಥಾನವನ್ನು ಗಳಿಸಿರುತ್ತಾರೆ. ನೀವೂ ಸಹ ನಿಮ್ಮ ${lagnaName} ಲಗ್ನದ ಬಲವನ್ನು ಸದ್ವಿನಿಯೋಗಪಡಿಸಿಕೊಂಡು, ಕಲ್ಪನೆಗಳಿಂದ ಹೊರಬಂದು ನಿಮ್ಮ ವೃತ್ತಿ ಮತ್ತು ಜೀವನದಲ್ಲಿ ಶ್ರಮಿಸಿ, ಉತ್ತಮ ಆದಾಯ ಹಾಗೂ ಸಂಸ್ಕಾರವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಿ. ಆಗ ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ ಭಾವದ ಅನುಗ್ರಹದಿಂದ, ನಿಮ್ಮ ಬದುಕಿಗೆ ಸರಿಹೊಂದುವಂತಹ ಸದ್ಗುಣ ಸಂಪನ್ನೆಯಾದ ಬಾಳಸಂಗಾತಿಯು ಖಂಡಿತವಾಗಿಯೂ ದೊರೆಯಲಿದ್ದಾರೆ.`;
+      return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ನಿಮ್ಮ ಮಾತನ್ನು ಕೇಳಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ, ವಾತ್ಸಲ್ಯದಿಂದ ನಿಮಗೆ ವಾಸ್ತವಿಕ ಮತ್ತು ಧರ್ಮದ ಮಾರ್ಗದರ್ಶನವನ್ನು ನೀಡುತ್ತೇನೆ.\n\nಮೊದಲನೆಯದಾಗಿ ಲೋಕದ ವಾಸ್ತವವನ್ನು ಗ್ರಹಿಸಿ: ಪರದೆಯ ಮೇಲಿನ ಸೆಲೆಬ್ರಿಟಿಗಳು, ನಟಿಯರು ಅಥವಾ ಇಂಟರ್ನೆಟ್ ವ್ಯಕ್ತಿಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಭಿನ್ನವಾದ ವಾಣಿಜ್ಯ ಜಗತ್ತಿನಲ್ಲಿ ತಮ್ಮದೇ ಆದ ಖಾಸಗಿ ಬದುಕು, ಕುಟುಂಬ ಮತ್ತು ವಾಸ್ತವಗಳೊಂದಿಗೆ ಜೀವಿಸುತ್ತಿದ್ದಾರೆ. ಕೇವಲ ಕಲ್ಪನಾ ಲೋಕದಲ್ಲಿ ಯೌವನದ ಅಮೂಲ್ಯ ಸಮಯ ಮತ್ತು ಶಕ್ತಿಯನ್ನು ಕಳೆಯುವುದರಿಂದ ಮಾನಸಿಕ ಗೊಂದಲಗಳು ಹೆಚ್ಚಾಗುತ್ತವೆಯೇ ಹೊರತು ಯಾವುದೇ ಸಾರ್ಥಕತೆ ದೊರೆಯುವುದಿಲ್ಲ.\n\nವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ನಿಜವಾದ ದಾಂಪತ್ಯ ಸುಖವು ನೈಜ ಬದುಕಿನ ಸಂಸ್ಕಾರಯುತ ಸಂಗಾತಿಯೊಂದಿಗೆ ಸಿದ್ಧಿಸುತ್ತದೆ. ನೀವು ನಿಮ್ಮ ${lagnaName} ಲಗ್ನದ ಬಲವನ್ನು ಸದ್ವಿನಿಯೋಗಪಡಿಸಿಕೊಂಡು, ಕಲ್ಪನೆಗಳಿಂದ ಹೊರಬಂದು ನಿಮ್ಮ ವೃತ್ತಿ ಮತ್ತು ಜೀವನದಲ್ಲಿ ಶ್ರಮಿಸಿ, ಉತ್ತಮ ಆದಾಯ ಹಾಗೂ ಸಂಸ್ಕಾರವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಿ. ಆಗ ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ ಭಾವದ ಅನುಗ್ರಹದಿಂದ, ನಿಮ್ಮ ಬದುಕಿಗೆ ಸರಿಹೊಂದುವಂತಹ ಸದ್ಗುಣ ಸಂಪನ್ನೆಯಾದ ಬಾಳಸಂಗಾತಿಯು ಖಂಡಿತವಾಗಿಯೂ ದೊರೆಯಲಿದ್ದಾರೆ.`;
 
     case "PROVOCATIVE_TABOO":
       if (isEn) {
