@@ -36,7 +36,7 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       generatedBy: "ಭಾಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದಿಂದ ರಚಿಸಲಾಗಿದೆ",
       chapter: "ಅಧ್ಯಾಯ",
       characteristicsTitle: "ವ್ಯಕ್ತಿತ್ವದ ಗುಣಲಕ್ಷಣಗಳು",
-      darkSecretTitle: "ನಿಗೂಢ ಸತ್ಯ",
+      darkSecretTitle: "ನಿಗೂಢ ರಹಸ್ಯ",
       currentPhase: "ಪ್ರಸ್ತುತ ಮನಸ್ಥಿತಿ ಮತ್ತು ಜೀವನ",
       next6Months: "ಮುಂದಿನ 6-12 ತಿಂಗಳ ಭವಿಷ್ಯ",
       bhavishya: "ಭವಿಷ್ಯ (ಜೀವನದ ವಿವಿಧ ಆಯಾಮಗಳು)",
@@ -207,6 +207,31 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
 
   const getFirstLetter = (text?: string) => text ? text.charAt(0) : "";
   const getRestOfText = (text?: string) => text ? text.substring(1) : "";
+
+  const renderParagraphWithDropCap = (para: string) => {
+    // Only use drop-caps for English. In Indic languages (Kannada, Hindi, Telugu, Tamil),
+    // splitting characters breaks base consonants from viramas and conjunct ligatures.
+    if (activeLang === "en") {
+      return (
+        <>
+          <span className="drop-cap">{getFirstLetter(para)}</span>
+          {getRestOfText(para)}
+        </>
+      );
+    }
+    return para;
+  };
+
+  const getChapterBadge = (chapterIndex: number) => {
+    const knNums = ["", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"];
+    const hiNums = ["", "१", "२", "३", "४", "५", "६", "७", "८", "९", "१०"];
+    const romanNums = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
+    if (activeLang === "kn") return `${t.chapter} ${knNums[chapterIndex] || chapterIndex}`;
+    if (activeLang === "hi") return `${t.chapter} ${hiNums[chapterIndex] || chapterIndex}`;
+    if (activeLang === "te" || activeLang === "ta") return `${t.chapter} ${chapterIndex}`;
+    return `${t.chapter} ${romanNums[chapterIndex] || chapterIndex}`;
+  };
 
   const renderBhavishyaParagraph = (para: string, key: string) => {
     const trimmed = (para || "").trim();
@@ -519,11 +544,14 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
                   </svg>
               </div>
 
-              <p style={{ textIndent: 0, textAlign: "center", marginBottom: "10px", fontSize: "13pt" }}>{t.calculatedFor}</p>
-              <p style={{ textIndent: 0, fontFamily: "'Cinzel', 'Noto Serif Kannada', serif", fontSize: "20pt", fontWeight: "bold", textAlign: "center", color: "var(--text-main)" }}>{prediction.metadata.name}</p>
-              <p style={{ textIndent: 0, textAlign: "center", marginTop: "20px", fontSize: "12pt" }}>
-                {t.dob}: {prediction.metadata.birthDate} &nbsp;|&nbsp; {t.time}: {prediction.metadata.birthTime}
-              </p>
+              <div style={{ margin: "25px 0", padding: "20px 30px", border: "1px solid rgba(183, 144, 67, 0.4)", borderRadius: "8px", backgroundColor: "rgba(253, 251, 247, 0.8)", width: "80%" }}>
+                <p style={{ textIndent: 0, textAlign: "center", marginBottom: "8px", fontSize: "11pt", color: "var(--gold)", letterSpacing: "2px", textTransform: "uppercase" }}>{t.calculatedFor}</p>
+                <p style={{ textIndent: 0, fontFamily: "'Cinzel', 'Noto Serif Kannada', serif", fontSize: "22pt", fontWeight: "bold", textAlign: "center", color: "var(--text-main)", marginBottom: "10px" }}>{prediction.metadata.name}</p>
+                <div style={{ height: "1px", width: "60px", backgroundColor: "var(--gold)", margin: "10px auto" }} />
+                <p style={{ textIndent: 0, textAlign: "center", fontSize: "12pt", color: "#4a5568" }}>
+                  {t.dob}: <b>{prediction.metadata.birthDate}</b> &nbsp;|&nbsp; {t.time}: <b>{prediction.metadata.birthTime}</b>
+                </p>
+              </div>
 
               <div style={{ marginTop: "auto" }}>
                   <p style={{ textIndent: 0, textAlign: "center", fontSize: "11pt", color: "var(--gold)", letterSpacing: "2px", textTransform: "uppercase" }}>{t.generatedBy}</p>
@@ -534,18 +562,11 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER I: Characteristics */}
       {characteristics.length > 0 && (
         <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} I</div>
+            <div className="chapter-num">{getChapterBadge(1)}</div>
             <h2>{t.characteristicsTitle}</h2>
             {characteristics.map((para, idx) => (
                 <p key={idx} className={idx === 0 ? "first-paragraph" : ""}>
-                    {idx === 0 ? (
-                        <>
-                            <span className="drop-cap">{getFirstLetter(para)}</span>
-                            {getRestOfText(para)}
-                        </>
-                    ) : (
-                        para
-                    )}
+                    {idx === 0 ? renderParagraphWithDropCap(para) : para}
                 </p>
             ))}
         </div>
@@ -554,18 +575,11 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER II: Dark Secret (Niguda Rahasya) — hidden for children aged 12 and below */}
       {!isChild && darkSecret.length > 0 && (
         <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} II</div>
+            <div className="chapter-num">{getChapterBadge(2)}</div>
             <h2>{t.darkSecretTitle}</h2>
             {darkSecret.map((para, idx) => (
                 <p key={idx} className={idx === 0 ? "first-paragraph" : ""}>
-                    {idx === 0 ? (
-                        <>
-                            <span className="drop-cap">{getFirstLetter(para)}</span>
-                            {getRestOfText(para)}
-                        </>
-                    ) : (
-                        para
-                    )}
+                    {idx === 0 ? renderParagraphWithDropCap(para) : para}
                 </p>
             ))}
         </div>
@@ -574,7 +588,7 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER III: Current Phase */}
       {currentPhase.length > 0 && (
         <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} III</div>
+            <div className="chapter-num">{getChapterBadge(3)}</div>
             <h2>{t.currentPhase}</h2>
             {currentPhase.map((para, idx) => (
                 <p key={idx} className={idx === 0 ? "first-paragraph" : ""}>{para}</p>
@@ -585,7 +599,7 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER IV: Next 6-12 Months */}
       {next6Months.length > 0 && (
         <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} IV</div>
+            <div className="chapter-num">{getChapterBadge(4)}</div>
             <h2>{t.next6Months}</h2>
             {next6Months.map((para, idx) => (
                 <p key={idx} className={idx === 0 ? "first-paragraph" : ""}>{para}</p>
@@ -596,7 +610,7 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER V: Bhavishya (Life Areas) */}
       {(bhavishya.health || bhavishya.marriage || bhavishya.children || bhavishya.career || bhavishya.wealth) && (
         <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} V</div>
+            <div className="chapter-num">{getChapterBadge(5)}</div>
             <h2>{t.bhavishya}</h2>
             
             {bhavishya.health && bhavishya.health.length > 0 && (
@@ -639,7 +653,7 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER VI: Yogas */}
       {yogas.length > 0 && (
         <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} VI</div>
+            <div className="chapter-num">{getChapterBadge(6)}</div>
             <h2>{t.yogasTitle}</h2>
 
             {yogas.map((y: any, idx: number) => (
@@ -656,7 +670,7 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER VII: Doshas */}
       {doshas.length > 0 && (
         <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} VII</div>
+            <div className="chapter-num">{getChapterBadge(7)}</div>
             <h2>{t.doshasTitle}</h2>
 
             {doshas.map((d: any, idx: number) => (
@@ -676,7 +690,7 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER VIII: Cycle of Time (Roadmap) */}
       {roadmap.length > 0 && (
         <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} VIII</div>
+            <div className="chapter-num">{getChapterBadge(8)}</div>
             <h2>{t.cycleOfTime}</h2>
             
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px", marginTop: "30px" }}>
@@ -698,11 +712,10 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER IX: Summary */}
       {summaryText && (
           <div className="pdf-page">
-            <div className="chapter-num">{t.chapter} IX</div>
+            <div className="chapter-num">{getChapterBadge(9)}</div>
             <h2>{t.summary}</h2>
             <p className="first-paragraph">
-                <span className="drop-cap">{getFirstLetter(summaryText)}</span>
-                {getRestOfText(summaryText)}
+                {renderParagraphWithDropCap(summaryText)}
             </p>
           </div>
       )}
@@ -710,7 +723,7 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
       {/* CHAPTER X: Panchanga Prescriptions & Remedies */}
       {synthesis && (
         <div className="pdf-page">
-          <div className="chapter-num">{t.chapter} X</div>
+          <div className="chapter-num">{getChapterBadge(10)}</div>
           <h2>{isKn ? "ಪಂಚಾಂಗ ಸಮಗ್ರ ರಕ್ಷಾ ಕವಚ & ಭಾಗ್ಯ ರತ್ನ" : activeLang === "hi" ? "पंचांग समग्र रक्षा कवच एवं भाग्य रत्न" : activeLang === "te" ? "పంచాంగ సమగ్ర రక్షా కవచం & భాగ్య రత్నం" : activeLang === "ta" ? "பஞ்சாங்க பாதுகாப்பு கவசம் & அதிர்ஷ்ட ரத்தினம்" : "Panchanga Prescriptions & Sacred Armor"}</h2>
           
           <div style={{ marginTop: "20px" }}>

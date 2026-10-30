@@ -902,7 +902,7 @@ For EACH category, write THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINI
 - Paragraph 3: Future unfolding, milestones, and trajectory over next 1-3 years under upcoming transits WITHOUT remedies (5-6 full lines, no remedies).
 - Paragraph 4: Dedicated Callout Section starting with 【...】 (5-6 full lines).
 
-1. Marriage & Relationships (User Selected Status: ${maritalSel.toUpperCase()}):
+1. Marriage & Relationships (User Selected Status: ${maritalSel.toUpperCase()}): Write EXACTLY THREE detailed paragraphs for ${maritalSel.toUpperCase()} status:
    - Native Status: ${dMar.statusDesc}.
    - 7th House Sign: ${h7.sign}. 7th House Lord: ${h7.lordStr} is placed ${h7.lordWhere}.
    - Occupants of 7th House: ${h7.occStr}.
@@ -917,7 +917,7 @@ For EACH category, write THREE (3) EXPANSIVE NARRATIVE PARAGRAPHS (EACH CONTAINI
    - Paragraph 3 (5–6 lines, NO REMEDIES): ${dMar.p3}
    - Paragraph 4 (5–6 lines, starting with 【...】): ${dMar.p4Callout}
 
-2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}):
+2. Children & Progeny (User Selected Status: ${childrenSel.toUpperCase()}): Write STRICTLY THREE (3) expansive paragraphs for ${childrenSel.toUpperCase().replace('_', ' ')} status:
    - Native Status: ${dChd.statusDesc}.
    - 5th House Sign: ${h5.sign}. 5th House Lord: ${h5.lordStr} is placed ${h5.lordWhere}.
    - Occupants of 5th House: ${h5.occStr}.

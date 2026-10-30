@@ -47,6 +47,7 @@ export type PdfTranslations = {
   elementalBalanceTitle?: string;
   cosmicShieldTitle?: string;
   mindVitalityTitle?: string;
+  bhavishyaTitle?: string;
   characteristicsTitle: string;
   characteristicsQuestion?: string;
   darkSecretTitle: string;
@@ -253,6 +254,97 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   // px-14 = 56px horizontal clearance from edge — keeps all content well inside the border lines
   const sectionClass = "pdf-section px-14 py-10 relative";
 
+  // ─── 10-Chapter Sovereign Header & Inquest Helpers ──────────────────────────
+  const getChapterHeaderData = (
+    chapterNum: number,
+    defaultKnTitle: string,
+    defaultEnTitle: string,
+    currentTitle?: string
+  ) => {
+    const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"];
+    let badgeText = "";
+    if (langKey === "kn") badgeText = `ಅಧ್ಯಾಯ ${knDigits[chapterNum] || chapterNum}`;
+    else if (langKey === "hi") badgeText = `अध्याय ${knDigits[chapterNum] || chapterNum}`;
+    else if (langKey === "te") badgeText = `అధ్యాయం ${chapterNum}`;
+    else if (langKey === "ta") badgeText = `அத்தியாயம் ${chapterNum}`;
+    else badgeText = `Chapter ${chapterNum}`;
+
+    let rawTitle = (currentTitle || (langKey === "kn" ? defaultKnTitle : defaultEnTitle)).trim();
+    // Clean any leading duplicate chapter prefix from rawTitle so we don't get "ಅಧ್ಯಾಯ ೨: ಅಧ್ಯಾಯ ೨"
+    const cleanedTitle = rawTitle.replace(/^(ಅಧ್ಯಾಯ|अध्याय|అధ్యాయం|அத்தியாயம்|Chapter)\s*[\d೧೨೩೪೫೬೭೮೯IIVX]+[\s:,\.\-–—|]+/iu, "").trim();
+
+    return {
+      badge: badgeText,
+      fullTitle: `${badgeText}: ${cleanedTitle || rawTitle}`
+    };
+  };
+
+  const renderChapterBanner = (chapterNum: number, icon: string, defaultKn: string, defaultEn: string, currentTitle?: string) => {
+    const { badge, fullTitle } = getChapterHeaderData(chapterNum, defaultKn, defaultEn, currentTitle);
+    return (
+      <div className="border-b-2 border-amber-700/40 pb-4 mb-8 relative">
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/10 text-amber-900 rounded-full border border-amber-800/30">
+            <span className="text-amber-800 text-sm">{icon}</span>
+            <span className="text-xs font-black tracking-widest uppercase">
+              {badge}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-amber-800/60 text-sm font-serif">
+            <span>❖</span>
+            <span className="h-px w-12 bg-amber-700/30"></span>
+            <span>ॐ</span>
+          </div>
+        </div>
+        <h2 className="text-3xl font-extrabold text-amber-950 font-serif tracking-normal leading-relaxed">
+          {fullTitle}
+        </h2>
+      </div>
+    );
+  };
+
+  const renderDashboardBanner = (icon: string, badgeKn: string, badgeEn: string, title: string) => {
+    const badgeText = langKey === "kn" ? badgeKn : badgeEn;
+    return (
+      <div className="border-b-2 border-amber-700/40 pb-4 mb-6 relative">
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-800/10 text-amber-900 rounded-full border border-amber-800/30">
+            <span className="text-amber-800 text-sm">{icon}</span>
+            <span className="text-xs font-black tracking-widest uppercase">
+              {badgeText}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-amber-800/60 text-sm font-serif">
+            <span>❖</span>
+            <span className="h-px w-12 bg-amber-700/30"></span>
+            <span>ॐ</span>
+          </div>
+        </div>
+        <h2 className="text-3xl font-extrabold text-amber-950 font-serif leading-relaxed">
+          {title}
+        </h2>
+      </div>
+    );
+  };
+
+  const renderContemplationRibbon = (icon: string, labelKn: string, labelEn: string, questionText?: string) => {
+    if (!questionText) return null;
+    return (
+      <div className="rounded-xl border-2 border-amber-700/30 bg-gradient-to-r from-amber-100/90 via-orange-50/80 to-amber-100/90 p-5 mb-8 shadow-xs relative overflow-hidden">
+        <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-widest uppercase">
+          <span className="text-amber-800">{icon}</span>
+          <span>{langKey === "kn" ? labelKn : labelEn}</span>
+        </div>
+        <div className="flex items-start gap-3">
+          <span className="text-xl text-amber-800 leading-none pt-0.5">❖</span>
+          <p className="text-lg font-bold text-amber-950 leading-relaxed font-serif italic">
+            {questionText}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div 
       ref={ref}
@@ -389,12 +481,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
       {premiumData?.soulMirror && (
         <div data-section="soul-mirror" className={sectionClass}>
           {/* Main Chapter Heading */}
-          <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-8">
-            <span className="text-3xl text-amber-800">✦</span>
-            <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
-              {translations.soulMirrorTitle || (langKey === 'kn' ? "ಅಧ್ಯಾಯ ೧: ಅಂತರಂಗದ ತ್ರಿವಿಧ ಸತ್ಯಗಳು ಹಾಗೂ ಪಂಚಭೂತ ಚೇತನ ಶಕ್ತಿ" : "Chapter 1: The Sacred Soul Mirror & Cosmic Elemental Vitality")}
-            </h2>
-          </div>
+          {renderChapterBanner(
+            1,
+            "✦",
+            "ಅಂತರಂಗದ ತ್ರಿವಿಧ ಸತ್ಯಗಳು ಹಾಗೂ ಪಂಚಭೂತ ಚೇತನ ಶಕ್ತಿ",
+            "The Sacred Soul Mirror & Cosmic Elemental Vitality",
+            translations.soulMirrorTitle
+          )}
 
           <div className="space-y-8">
             {/* Part 1: Cosmic Elemental Balance & Mind Vitality Dashboard */}
@@ -558,12 +651,12 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
       {/* ── Sacred Cosmic Dasha-Gochara Aura & Astral Shield ────────────── */}
       <div data-section="cosmic-aura" className={sectionClass}>
-        <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-6">
-          <span className="text-3xl text-amber-800">🪐</span>
-          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
-            {translations.cosmicAuraTitle || (langKey === 'kn' ? "ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ನಡೆಸುತ್ತಿರುವ ದಶಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಜನ್ಮ ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ" : "Your Active Ruling Mahadasha Planet & Natal Protective Shield")}
-          </h2>
-        </div>
+        {renderDashboardBanner(
+          "🪐",
+          "ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ & ದಶಾಧಿಪತಿ ದರ್ಶನ",
+          "NATAL PROTECTIVE SHIELD & RULING PLANET AURA",
+          translations.cosmicAuraTitle || (langKey === 'kn' ? "ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ನಡೆಸುತ್ತಿರುವ ದಶಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಜನ್ಮ ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ" : "Your Active Ruling Mahadasha Planet & Natal Protective Shield")
+        )}
         <CosmicDashaAuraVisual
           lagnaName={translations.lagnaValue}
           lagnaIndex={session.result.lagnaRashi?.index ?? 0}
@@ -579,23 +672,28 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         />
       </div>
 
-      {/* ── Characteristics Section ───────────────────────────────────────── */}
+      {/* ── Chapter 2: Characteristics Section ────────────────────────────── */}
       {hasContent(premiumData?.characteristics) && (
         <div data-section="characteristics" className={sectionClass}>
-          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-6`}>
-            {translations.characteristicsTitle}
-          </h2>
-          {translations.characteristicsQuestion && (
-            <div className="rounded-xl border border-amber-600/40 bg-amber-100/50 p-4 mb-8 shadow-xs">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl text-amber-800 leading-none">❖</span>
-                <p className="text-xl font-bold text-amber-950 leading-relaxed font-serif">
-                  {translations.characteristicsQuestion}
-                </p>
-              </div>
-            </div>
+          {renderChapterBanner(
+            2,
+            "👑",
+            "ಜನ್ಮ ಲಗ್ನ ವ್ಯಕ್ತಿತ್ವ ಹಾಗೂ ನೈಜ ಗುಣಲಕ್ಷಣಗಳು",
+            "Natal Personality & Inherent Characteristics",
+            translations.characteristicsTitle
           )}
-          <div className="space-y-10">
+          {renderContemplationRibbon(
+            "✨",
+            "ದೈವಜ್ಞ ಜನ್ಮ ಕುಂಡಲಿ ವಿಚಾರ & ತತ್ತ್ವ ಚಿಂತನೆ",
+            "Sacred Astrological Inquest & Contemplation",
+            translations.characteristicsQuestion
+          )}
+          <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
+            <div className="absolute top-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute top-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+
             {premiumData!.characteristics!.map((char, idx) => (
               <div key={idx} className="space-y-6">
                 {(char.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
@@ -605,14 +703,14 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     return (
                       <div
                         key={pIdx}
-                        className="bg-amber-100/70 border border-amber-600/50 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                        className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
                       >
                         {paragraph}
                       </div>
                     );
                   }
                   return (
-                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
                       {paragraph}
                     </p>
                   );
@@ -623,23 +721,28 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── Dark Secret Section (Hidden for children below 8 years old) ───────────────────────────────────────────── */}
+      {/* ── Chapter 3: Dark Secret Section (Niguda Rahasya) ───────────────── */}
       {!isChildUnder8 && hasContent(premiumData?.darkSecret) && (
         <div data-section="dark-secret" className={sectionClass}>
-          <h2 className="text-3xl font-bold text-slate-800 leading-normal border-b-2 border-slate-700/30 pb-2 mb-6">
-            {translations.darkSecretTitle}
-          </h2>
-          {translations.darkSecretQuestion && (
-            <div className="rounded-xl border border-slate-600/40 bg-slate-100/70 p-4 mb-8 shadow-xs">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl text-slate-700 leading-none">❖</span>
-                <p className="text-xl font-bold text-slate-900 leading-relaxed font-serif">
-                  {translations.darkSecretQuestion}
-                </p>
-              </div>
-            </div>
+          {renderChapterBanner(
+            3,
+            "🔮",
+            "ಅಂತರಂಗದ ನಿಗೂಢ ರಹಸ್ಯ ಹಾಗೂ ಕರ್ಮ ಸತ್ಯ",
+            "Soul Pattern & Inner Truth (Niguda Rahasya)",
+            translations.darkSecretTitle
           )}
-          <div className="space-y-10">
+          {renderContemplationRibbon(
+            "🔮",
+            "ಅಂತರಂಗದ ನಿಗೂಢ ಸತ್ಯ & ಸುಪ್ತಪ್ರಜ್ಞೆ ವಿಚಾರ",
+            "Niguda Rahasya: Subconscious Reality & Karmic Inquest",
+            translations.darkSecretQuestion
+          )}
+          <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
+            <div className="absolute top-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute top-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+
             {premiumData!.darkSecret!.map((ds, idx) => (
               <div key={idx} className="space-y-6">
                 {(ds.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
@@ -649,14 +752,14 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     return (
                       <div
                         key={pIdx}
-                        className="bg-indigo-50/80 border border-indigo-300/80 rounded-xl text-indigo-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                        className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
                       >
                         {paragraph}
                       </div>
                     );
                   }
                   return (
-                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
                       {paragraph}
                     </p>
                   );
@@ -667,23 +770,28 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── Present Planetary Influence & Divine Guidance Section ───────────────────── */}
+      {/* ── Chapter 4: Present Planetary Influence & Divine Guidance ──────── */}
       {hasContent(premiumData?.currentPhase) && (
         <div data-section="current-phase" className={sectionClass}>
-          <h2 className="text-3xl font-bold text-amber-900 leading-normal border-b-2 border-amber-700/30 pb-2 mb-6">
-            {translations.currentPhaseGuidanceTitle || translations.currentPhaseTitle || translations.title || "Present Planetary Influence & Divine Guidance"}
-          </h2>
-          {translations.currentPhaseQuestion && (
-            <div className="rounded-xl border border-amber-600/40 bg-amber-100/50 p-4 mb-8 shadow-xs">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl text-amber-800 leading-none">❖</span>
-                <p className="text-xl font-bold text-amber-950 leading-relaxed font-serif">
-                  {translations.currentPhaseQuestion}
-                </p>
-              </div>
-            </div>
+          {renderChapterBanner(
+            4,
+            "⏳",
+            "ಪ್ರಸ್ತುತ ದಶಾ ಫಲ ಹಾಗೂ ದೈವಿಕ ಮಾರ್ಗದರ್ಶನ",
+            "Present Planetary Influence & Divine Guidance",
+            translations.currentPhaseGuidanceTitle || translations.currentPhaseTitle
           )}
-          <div className="space-y-10">
+          {renderContemplationRibbon(
+            "⏳",
+            "ವರ್ತಮಾನ ಕಾಲ ಸ್ಥಿತಿಗತಿ & ಗ್ರಹ ಸಂಚಾರ ವಿಚಾರ",
+            "Current Planetary Inquest & Living Reality",
+            translations.currentPhaseQuestion
+          )}
+          <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
+            <div className="absolute top-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute top-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+
             {premiumData!.currentPhase!.map((cp, idx) => (
               <div key={idx} className="space-y-6">
                 {(cp.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
@@ -693,14 +801,14 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     return (
                       <div
                         key={pIdx}
-                        className="bg-amber-100/70 border border-amber-600/50 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-loose text-left font-medium break-words whitespace-pre-wrap"
+                        className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
                       >
                         {paragraph}
                       </div>
                     );
                   }
                   return (
-                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
                       {paragraph}
                     </p>
                   );
@@ -734,24 +842,34 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── Life Stage Predictions ────────────────────────────────────────── */}
-      {Object.entries(groupedPredictions).map(([category, preds]) => (
+      {/* ── Chapter 5: Life Stage Predictions ────────────────────────────── */}
+      {Object.entries(groupedPredictions).map(([category, preds], catIdx) => (
         <div data-section="life-predictions" key={category} className={sectionClass}>
-          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-6`}>
-            {category}
-          </h2>
-          <div className="space-y-10">
+          {catIdx === 0 && (
+            <div className="mb-6">
+              {renderChapterBanner(
+                5,
+                "🏛️",
+                "ಪಂಚಮುಖ ಜೀವಮಾನ ಭವಿಷ್ಯ",
+                "Five Core Life Stage Predictions",
+                translations.bhavishyaTitle || (langKey === 'kn' ? "ಪಂಚಮುಖ ಜೀವಮಾನ ಭವಿಷ್ಯ (೫ ಪ್ರಮುಖ ಆಯಾಮಗಳು)" : "Five Core Life Stage Predictions")
+              )}
+            </div>
+          )}
+          <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-6">
+            <span className="text-2xl text-amber-800">❖</span>
+            <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
+              {category}
+            </h2>
+          </div>
+          <div className="space-y-8">
             {preds.map((pred, idx) => (
-              <div key={idx} className="space-y-6">
-                {pred.question && (
-                  <div className="rounded-xl border border-amber-600/40 bg-amber-100/50 p-4 mb-2 shadow-xs">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl text-amber-800 leading-none">❖</span>
-                      <p className="text-xl font-bold text-amber-950 leading-relaxed font-serif">
-                        {pred.question}
-                      </p>
-                    </div>
-                  </div>
+              <div key={idx} className="space-y-5">
+                {pred.question && renderContemplationRibbon(
+                  "✨",
+                  "ದೈವಜ್ಞ ಪ್ರಶ್ನೋತ್ತರ ವಿಚಾರ & ಮಾರ್ಗದರ್ಶನ",
+                  "Devotee Inquest & Sacred Astrological Guidance",
+                  pred.question
                 )}
                 {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
                   const trimmed = paragraph.trim();
@@ -783,16 +901,25 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       ))}
 
-      {/* ── Yogas Section ────────────────────────────────────────────────── */}
+      {/* ── Chapter 6: Yogas Section ────────────────────────────────────────── */}
       {hasContent(premiumData?.yogas) && (
         <div data-section="yogas" className={sectionClass}>
-          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-8`}>
-            {translations.yogasTitle}
-          </h2>
-          <div className="space-y-10">
+          {renderChapterBanner(
+            6,
+            "👑",
+            "ಶುಭ ರಾಜಯೋಗಗಳು ಹಾಗೂ ಜನ್ಮ ಕುಂಡಲಿ ಶಕ್ತಿ",
+            "Auspicious Natal Yogas & Planetary Combinations",
+            translations.yogasTitle
+          )}
+          <div className="space-y-8">
             {premiumData!.yogas!.map((yoga, idx) => (
-              <div key={idx} className="space-y-6">
-                <h3 className="text-2xl font-bold text-amber-900 mb-2 bg-amber-200/60 inline-block px-3 py-1 rounded shadow-sm">{yoga.name.replace(/^[\s:,\.\-–—×*•~|]+/gu, "")}</h3>
+              <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 border-b border-amber-700/20 pb-2">
+                  <span className="text-xl text-amber-800">👑</span>
+                  <h3 className="text-2xl font-bold text-amber-950 font-serif">
+                    {yoga.name.replace(/^[\s:,\.\-–—×*•~|]+/gu, "")}
+                  </h3>
+                </div>
                 {(yoga.impact || "")
                   .split('\n')
                   .map(p => p.replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "").replace(/^[\s:,\.\-–—×*•~|]+/gu, "").trim())
@@ -808,24 +935,34 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── Doshas Section ───────────────────────────────────────────────── */}
+      {/* ── Chapter 7: Doshas Section ───────────────────────────────────────── */}
       {hasContent(premiumData?.doshas) && (
         <div data-section="doshas" className={sectionClass}>
-          <h2 className="text-3xl font-bold text-rose-900 leading-normal border-b-2 border-rose-700/30 pb-2 mb-8">
-            {translations.doshasTitle}
-          </h2>
-          <div className="space-y-10">
+          {renderChapterBanner(
+            7,
+            "🛡️",
+            "ಕರ್ಮ ಸವಾಲುಗಳು ಹಾಗೂ ದೋಷ ಪರಿಹಾರ ಮಾರ್ಗ",
+            "Karmic Doshas, Life Obstacles & Sacred Remedies",
+            translations.doshasTitle
+          )}
+          <div className="space-y-8">
             {premiumData!.doshas!.map((dosha, idx) => (
-              <div key={idx} className="space-y-6">
-                <h3 className="text-2xl font-bold text-rose-900 mb-2">{dosha.name}</h3>
+              <div key={idx} className="rounded-xl border border-rose-300/80 bg-rose-50/70 p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 border-b border-rose-200 pb-2">
+                  <span className="text-xl text-rose-800">🛡️</span>
+                  <h3 className="text-2xl font-bold text-rose-950 font-serif">{dosha.name}</h3>
+                </div>
                 {(dosha.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
                   <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                     {paragraph}
                   </p>
                 ))}
                 {dosha.remedy && (
-                  <div className="mt-4 pt-4 border-t border-rose-200/40">
-                    <h4 className="text-xl font-bold text-rose-800 mb-2">{translations.remedyTitle}</h4>
+                  <div className="mt-4 pt-4 border-t border-rose-200 bg-amber-50/80 -mx-6 -mb-6 p-6 rounded-b-xl border-t border-amber-300">
+                    <h4 className="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
+                      <span>✨</span>
+                      <span>{translations.remedyTitle}</span>
+                    </h4>
                     <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                       {dosha.remedy}
                     </p>
@@ -837,24 +974,34 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── Gochara (Current Planetary Transits) Section ─────────────────── */}
+      {/* ── Chapter 8: Gochara (Current Planetary Transits) Section ─────────── */}
       {hasContent(premiumData?.gochara) && (
         <div data-section="gochara" className={sectionClass}>
-          <h2 className="text-3xl font-bold text-rose-900 leading-normal border-b-2 border-rose-700/30 pb-2 mb-8">
-            {translations.gocharaTitle}
-          </h2>
-          <div className="space-y-10">
+          {renderChapterBanner(
+            8,
+            "🪐",
+            "ಪ್ರಸ್ತುತ ಗ್ರಹ ಸಂಚಾರ ಹಾಗೂ ಗೋಚಾರ ಫಲ",
+            "Current Planetary Transits (Gochara Phala)",
+            translations.gocharaTitle
+          )}
+          <div className="space-y-8">
             {premiumData!.gochara!.map((gochara, idx) => (
-              <div key={idx} className="space-y-6">
-                <h3 className="text-2xl font-bold text-rose-900 mb-2 bg-rose-100/60 inline-block px-3 py-1 rounded shadow-sm">{gochara.name}</h3>
+              <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 border-b border-amber-700/20 pb-2">
+                  <span className="text-xl text-amber-800">🪐</span>
+                  <h3 className="text-2xl font-bold text-amber-950 font-serif">{gochara.name}</h3>
+                </div>
                 {(gochara.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
                   <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                     {paragraph}
                   </p>
                 ))}
                 {gochara.remedy && (
-                  <div className="mt-4 pt-4 border-t border-rose-200/40">
-                    <h4 className="text-xl font-bold text-rose-800 mb-2">{translations.remedyTitle}</h4>
+                  <div className="mt-4 pt-4 border-t border-amber-700/20 bg-amber-100/50 -mx-6 -mb-6 p-6 rounded-b-xl">
+                    <h4 className="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
+                      <span>✨</span>
+                      <span>{translations.remedyTitle}</span>
+                    </h4>
                     <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
                       {gochara.remedy}
                     </p>
@@ -989,12 +1136,16 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── 6-Month Planetary Journey Map ────────────────────────────────── */}
+      {/* ── Chapter 9: 6-Month Planetary Journey Map ────────────────────────── */}
       {hasContent(premiumData?.timeline) && (
         <div data-section="timeline" className={sectionClass}>
-          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-10`}>
-            {translations.timelineTitle}
-          </h2>
+          {renderChapterBanner(
+            9,
+            "📅",
+            "ಮುಂದಿನ ೬ ತಿಂಗಳ ಭವಿಷ್ಯ ಕಾಲಚಕ್ರ ನಕ್ಷೆ",
+            "6-Month Planetary Timeline & Journey Map",
+            translations.timelineTitle
+          )}
           <div className="space-y-8">
             {premiumData!.timeline!.map((item, idx) => (
               <div key={idx} className="flex gap-6 items-start">
@@ -1006,8 +1157,8 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   )}
                 </div>
                 {/* Card */}
-                <div className="flex-1 bg-white/70 border border-amber-900/20 shadow-sm p-6 rounded-lg mb-2">
-                  <span className="text-amber-800 font-bold text-lg bg-amber-100/50 inline-block px-3 py-1 rounded w-fit border border-amber-900/10 shadow-sm mb-3 block">
+                <div className="flex-1 bg-white/80 border border-amber-900/20 shadow-sm p-6 rounded-xl mb-2">
+                  <span className="text-amber-900 font-bold text-lg bg-amber-100/80 inline-block px-3 py-1 rounded w-fit border border-amber-900/10 shadow-sm mb-3 block font-serif">
                     {item.dateRange}
                   </span>
                   {(item.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
@@ -1068,13 +1219,22 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
-      {/* ── Astrologer's Summary ──────────────────────────────────────────── */}
+      {/* ── Chapter 10: Astrologer's Summary ───────────────────────────────── */}
       {hasContent(premiumData?.summary) && (
         <div data-section="summary" id="pdf-section-summary" className={sectionClass}>
-          <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal border-b-2 border-amber-700/30 pb-2 mb-8`}>
-            {translations.summaryTitle}
-          </h2>
-          <div className="space-y-6">
+          {renderChapterBanner(
+            10,
+            "📜",
+            "ದೈವಜ್ಞ ಸಾರಾಂಶ ಹಾಗೂ ಅಂತಿಮ ಮಾರ್ಗದರ್ಶನ",
+            "Astrologer's Master Summary & Spiritual Synthesis",
+            translations.summaryTitle
+          )}
+          <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
+            <div className="absolute top-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute top-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+
             {premiumData!.summary!.map((sum, idx) => (
               <div key={idx} className="space-y-6">
                 {(sum.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
