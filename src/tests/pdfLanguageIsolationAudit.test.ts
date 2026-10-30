@@ -9,7 +9,9 @@ import { PDF_T, cleanEnglishFromRegionalText } from "../features/premiumPdf/prem
 import {
   getLocalizedDevoteeName,
   buildDynamicCurrentPhaseFallback,
-  buildDynamicTimelineFallback
+  buildDynamicTimelineFallback,
+  ensureNamePresence,
+  moderateNameRepetition
 } from "../features/premiumPdf/dynamicBhavishyaEngine";
 
 describe("Premium PDF V1 - 100% Strict Language Isolation Audit", () => {
@@ -258,5 +260,95 @@ describe("Premium PDF V1 - 100% Strict Language Isolation Audit", () => {
         expect(/[a-zA-Z]/.test(item.dateRange)).toBe(false);
       }
     }
+  });
+
+  it("verifies cleanEnglishFromRegionalText completely purges Japanese, CJK, and cross-Indic scripts", () => {
+    // 1. Japanese / CJK leakage in Kannada
+    const rawWithJapanese = "ಉತ್ತರ ಭಾದ್ರಪದ ನಕ್ಷತ್ರ ಮತ್ತು ಶುಭ ಫಲ 日本語 こんにちは 東京 2026";
+    const cleanedKn = cleanEnglishFromRegionalText(rawWithJapanese, "kn");
+    expect(cleanedKn).toContain("ಉತ್ತರ ಭಾದ್ರಪದ ನಕ್ಷತ್ರ ಮತ್ತು ಶುಭ ಫಲ");
+    expect(cleanedKn).not.toContain("日本語");
+    expect(cleanedKn).not.toContain("こんにちは");
+    expect(cleanedKn).not.toContain("東京");
+
+    // 2. Cross-script Indic leakage: Tamil and Devanagari in Kannada
+    const rawCrossScriptKn = "ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು ಬಲವಿದೆ தமிழ் வணக்கம் नमस्ते";
+    const cleanedCrossKn = cleanEnglishFromRegionalText(rawCrossScriptKn, "kn");
+    expect(cleanedCrossKn).toContain("ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು ಬಲವಿದೆ");
+    expect(cleanedCrossKn).not.toContain("தமிழ்");
+    expect(cleanedCrossKn).not.toContain("வணக்கம்");
+    expect(cleanedCrossKn).not.toContain("नमस्ते");
+
+    // 3. Transliterated Tamil honorific suffixes in Kannada
+    const rawTamilSuffixKn = "ಪ್ರಿಯ ಮನೋಜ್ ಅವರ‍್ಗಳೇ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಅವರ‍್ಗಳಿಗೆ ಮಂಗಳವಾಗಲಿ ಅವರ‍್ಗಳ ಆಶೀರ್ವಾದ";
+    const cleanedTamilSuffix = cleanEnglishFromRegionalText(rawTamilSuffixKn, "kn");
+    expect(cleanedTamilSuffix).toContain("ಅವರೇ");
+    expect(cleanedTamilSuffix).not.toContain("ಅವರ‍್ಗಳೇ");
+    expect(cleanedTamilSuffix).not.toContain("ಅವರ್ಗಳೇ");
+    expect(cleanedTamilSuffix).toContain("ಅವರಿಗೆ");
+    expect(cleanedTamilSuffix).not.toContain("ಅವರ‍್ಗಳಿಗೆ");
+    expect(cleanedTamilSuffix).toContain("ಅವರ");
+    expect(cleanedTamilSuffix).not.toContain("ಅವರ‍್ಗಳ");
+
+    // 4. "ಅಭಿಮಾನಿ" and Telugu "ಗಾರು/ಕರು" purge in Kannada
+    const rawAbhimaniKn = "ಅಭಿಮಾನಿ ಶ್ರೀಯುತ ಮನೋಜ್ ಕರು ಅವರೇ";
+    const cleanedAbhimani = cleanEnglishFromRegionalText(rawAbhimaniKn, "kn");
+    expect(cleanedAbhimani).not.toContain("ಅಭಿಮಾನಿ");
+    expect(cleanedAbhimani).toContain("ಮನೋಜ್ ಅವರೇ");
+
+    // 5. Cross-script Indic leakage in Hindi: Kannada in Hindi
+    const rawCrossScriptHi = "आपकी कुंडली में शुभ योग है ನಿಮ್ಮ ಜಾತಕ";
+    const cleanedCrossHi = cleanEnglishFromRegionalText(rawCrossScriptHi, "hi");
+    expect(cleanedCrossHi).toContain("आपकी कुंडली में शुभ योग है");
+    expect(cleanedCrossHi).not.toContain("ನಿಮ್ಮ ಜಾತಕ");
+  });
+
+  it("verifies ensureNamePresence normalizes devotee name variants (Manoj/ಮನೋಜ್) and collapses duplicate stacked greetings", () => {
+    // Exact screenshot text regression test:
+    const screenshotText =
+      "ಅಭಿಮಾನಿ ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ಪ್ರಿಯ ಮನುಜ್ ಅವರ‍್ಗಳೇ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಸಪ್ತಮ ಸ್ಥಾನವಾದ ಮಿಥುನ ರಾಶಿಯಲ್ಲಿ ಕುಜ ಗ್ರಹವು ಸ್ಥಿತನಾಗಿರುವುದು.\n\n" +
+      "ಮನುಜ್ ಅವರೇ, ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ ವಿವಾಹ ಕಾರಕನಾದ ಶುಕ್ರನು ಮೀನ ರಾಶಿಯಲ್ಲಿ ನಾಲ್ಕನೇ ಮನೆಯಲ್ಲಿದ್ದಾನೆ.";
+
+    const result = ensureNamePresence(screenshotText, "Manoj", "kn");
+
+    // Must NOT contain inappropriate "ಅಭಿಮಾನಿ"
+    expect(result).not.toContain("ಅಭಿಮಾನಿ");
+
+    // Must NOT contain misspelled "ಮನುಜ್"
+    expect(result).not.toContain("ಮನುಜ್");
+
+    // Must NOT contain Tamil suffix "ಅವರ‍್ಗಳೇ"
+    expect(result).not.toContain("ಅವರ‍್ಗಳೇ");
+
+    // Must collapse duplicate greeting into single dignified "ಮನೋಜ್ ಅವರೇ,"
+    expect(result.startsWith("ಮನೋಜ್ ಅವರೇ,")).toBe(true);
+
+    // Paragraph 2 must NOT spam "ಮನೋಜ್ ಅವರೇ," or "ಮನುಜ್ ಅವರೇ," again — it should naturally flow with "ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ"
+    const paras = result.split("\n\n");
+    expect(paras).toHaveLength(2);
+    expect(paras[1]).not.toContain("ಮನೋಜ್ ಅವರೇ");
+    expect(paras[1]).not.toContain("ಮನುಜ್ ಅವರೇ");
+    expect(paras[1]).toContain("ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ");
+  });
+
+  it("verifies moderateNameRepetition prevents robotic name spam across paragraphs", () => {
+    const multiMention =
+      "ಮನೋಜ್ ಅವರೇ, ನಿಮ್ಮ ಲಗ್ನವು ವೃಷಭ. ಮನೋಜ್ ಅವರ ಜಾತಕದಲ್ಲಿ ಗುರು ಬಲವಿದೆ.\n\n" +
+      "ಮನೋಜ್ ಅವರೇ, ನಿಮ್ಮ ದಶಮ ಸ್ಥಾನದಲ್ಲಿ ಸೂರ್ಯನಿದ್ದಾನೆ. ಮನೋಜ್ ಅವರಿಗೆ ಉತ್ತಮ ಗೌರವ ಸಿಗಲಿದೆ.";
+
+    const moderated = moderateNameRepetition(multiMention, "ಮನೋಜ್", "kn");
+
+    // First greeting preserved
+    expect(moderated.startsWith("ಮನೋಜ್ ಅವರೇ,")).toBe(true);
+
+    // Subsequent mentions in para 1 replaced with natural pronouns
+    const paras = moderated.split("\n\n");
+    expect(paras[0]).toContain("ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಗುರು ಬಲವಿದೆ");
+    expect(paras[0]).not.toContain("ಮನೋಜ್ ಅವರ ಜಾತಕದಲ್ಲಿ");
+
+    // Para 2 does not repeat "ಮನೋಜ್ ಅವರೇ" at opening or inside
+    expect(paras[1]).not.toContain("ಮನೋಜ್ ಅವರೇ");
+    expect(paras[1]).toContain("ನಿಮ್ಮ ದಶಮ ಸ್ಥಾನದಲ್ಲಿ");
+    expect(paras[1]).toContain("ನಿಮಗೆ ಉತ್ತಮ ಗೌರವ ಸಿಗಲಿದೆ");
   });
 });

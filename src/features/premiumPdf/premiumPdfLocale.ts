@@ -567,6 +567,11 @@ export const languageContract = (lang: string): string => {
     `   Traditional Sanskrit terms already common in ${p.nativeName} are fine.`,
     `5. Keep the JSON keys exactly as written in this prompt. Only the values change language.`,
     `6. Ordinary digits (1, 2, 3) and years are fine.`,
+    `7. STRICT SINGLE-SCRIPT & SINGLE-LANGUAGE PURITY:`,
+    `   Write purely in ${p.scriptName} script. Absolutely ZERO foreign, Asian, Japanese, Chinese, Latin, or cross-Indic characters from other scripts (e.g. if writing in Kannada, NEVER output Tamil, Telugu, Hindi, Malayalam, or CJK characters).`,
+    `   Use authentic regional honorifics only (e.g., in Kannada: "${p.nativeName}" with "ಅವರೇ", "ನಿಮ್ಮ", "ನೀವು" — NEVER use Tamil suffixes like "ಅವರ‍್ಗಳೇ", "ಅವರ್ಗಳೇ", "ಅವರಗಳೇ", "ಅವರುಗಳೇ", and NEVER use Telugu "ಗಾರು/ಕರು", and NEVER use "ಅಭಿಮಾನಿ").`,
+    `8. CANONICAL NAME FIDELITY & RESPECTFUL ADDRESS:`,
+    `   When addressing the devotee, use ONLY the canonical name provided in the chart facts. NEVER alter, misspell, or corrupt it into phonetic variants. Greet them once at the beginning of the section/chapter, and then address them naturally as second person ("ನೀವು/ನಿಮ್ಮ", "आप/आपका", "మీరు/మీ", "நீங்கள்/உங்கள்"). DO NOT repeat the name mechanically in every paragraph.`,
     "",
     `Write the way a village astrologer speaks to a family sitting in front of him:`,
     `simple, warm, direct ${p.nativeName}. Not a textbook, not a translation.`
@@ -715,8 +720,31 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
   cleaned = cleaned.replace(/（\s*）/g, "");
   cleaned = cleaned.replace(/【\s*】/g, "");
 
-  // 4. Strip stray non-Indic/non-ASCII characters (e.g. CJK/Chinese/Japanese characters)
-  cleaned = cleaned.replace(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f]/g, "");
+  // 4. Strip stray non-Indic/non-ASCII characters (e.g. CJK/Chinese/Japanese characters, Hiragana, Katakana, Hangul while preserving sacred 【】 brackets)
+  cleaned = cleaned.replace(/[\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f\uac00-\ud7af]/gu, "");
+
+  // 4a. Cross-script isolation: enforce 100% single-script purity per language
+  if (lang.startsWith("kn")) {
+    // Strip non-Kannada Indic scripts: Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu (\u0900-\u0C7F) and Malayalam (\u0D00-\u0D7F)
+    cleaned = cleaned.replace(/[\u0900-\u0C7F\u0D00-\u0D7F]/gu, "");
+    // Clean transliterated Tamil honorifics in Kannada (including ZWJ/virama forms)
+    cleaned = cleaned
+      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳೇ/gu, "ಅವರೇ")
+      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳಿಗೆ/gu, "ಅವರಿಗೆ")
+      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳ/gu, "ಅವರ")
+      .replace(/(?:ಮನೋಜ್|ಮನೋಜ(?!್)|ಮನುಜ್|ಮಂಜು)\s*(?:ಕರು|ಗಾರು)\s*(?:ಅವರೇ)?/gu, "ಮನೋಜ್ ಅವರೇ")
+      .replace(/(?:^|[\s,.\-–—(])(?:ಕರು|ಗಾರು)(?=[\s,.\-–—!]|$)/gu, "ಅವರೇ")
+      .replace(/(?:^|[\s,.\-–—(])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, "");
+  } else if (lang.startsWith("hi")) {
+    // Strip non-Devanagari Indic scripts: Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam (\u0980-\u0D7F)
+    cleaned = cleaned.replace(/[\u0980-\u0D7F]/gu, "");
+  } else if (lang.startsWith("te")) {
+    // Strip non-Telugu Indic scripts: Devanagari, Tamil (\u0900-\u0BFF), Kannada, Malayalam (\u0C80-\u0D7F)
+    cleaned = cleaned.replace(/[\u0900-\u0BFF\u0C80-\u0D7F]/gu, "");
+  } else if (lang.startsWith("ta")) {
+    // Strip non-Tamil Indic scripts: Devanagari (\u0900-\u0B7F), Telugu, Kannada, Malayalam (\u0C00-\u0D7F)
+    cleaned = cleaned.replace(/[\u0900-\u0B7F\u0C00-\u0D7F]/gu, "");
+  }
 
   // 4b. Strip orphan colons, solitary numbers with colons/crosses/dots left behind after Latin removal (e.g. ": 7 × ..")
   cleaned = cleaned

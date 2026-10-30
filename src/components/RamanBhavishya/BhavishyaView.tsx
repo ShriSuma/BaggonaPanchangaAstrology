@@ -40,7 +40,8 @@ import {
   buildDynamicCurrentPhaseFallback,
   buildDynamicGocharaFallback,
   buildDynamicSummaryFallback,
-  buildDynamicTimelineFallback
+  buildDynamicTimelineFallback,
+  getLocalizedDevoteeName
 } from "../../features/premiumPdf/dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -759,12 +760,13 @@ export default function BhavishyaView() {
       const liveTransits = getTransitsForDate(session.result.moonSign.index, now, ayanamsaModel);
       const transitSummary = Object.entries(liveTransits).map(([planet, pos]) => `${planet} in House ${pos.house} from Moon`).join("; ");
       const planetPositions = session.result.planets.map(p => `${p.name} in House ${p.house} (${p.rashi.english})`).join(', ');
+      const localizedDevoteeName = getLocalizedDevoteeName(session.input.name, lang);
 
       const translatedData: PdfTranslations = {
         title: tp("title", lang),
         subtitle: questionTitle,
         nameLabel: tp("nameLabel", lang),
-        nameValue: session.input.name,
+        nameValue: localizedDevoteeName,
         dobLabel: tp("dobLabel", lang),
         dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
         lagnaLabel: tp("lagnaLabel", lang),
@@ -792,7 +794,7 @@ export default function BhavishyaView() {
         gocharaTitle: tp("gocharaTitle", lang),
         summaryTitle: tp("summaryTitle", lang),
         introTitle: tp("introTitle", lang),
-        introGreeting: greetingLine(lang, session.input.name),
+        introGreeting: greetingLine(lang, localizedDevoteeName),
       };
 
       setSummaryPdfTranslations(translatedData);
@@ -801,7 +803,7 @@ export default function BhavishyaView() {
 OUTPUT LANGUAGE: ${lang}.${lang === 'kn' ? ' Write ONLY in Kannada script.' : lang === 'te' ? ' Write ONLY in Telugu script.' : lang === 'ta' ? ' Write ONLY in Tamil script.' : lang === 'hi' ? ' Write ONLY in Hindi (Devanagari).' : ' Write in clear English.'}
 
 EXACT COMPUTED ASTROLOGICAL DATA:
-- Name: ${session.input.name}
+- Name: ${localizedDevoteeName}
 - Ascendant (Lagna): ${session.result.lagnaRashi?.english || 'Unknown'}
 - Moon Sign: ${session.result.moonSign.english}
 - Nakshatra: ${moonPlanet?.nakshatra.english || 'Unknown'}
@@ -1201,6 +1203,7 @@ Return ONLY this JSON format:
       const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
       const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
       const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
+      const localizedDevoteeName = getLocalizedDevoteeName(session.input.name, lang);
 
       const ashirvadaSource = ashirvada || "May the divine forces grant you strength, clarity and peace.";
 
@@ -1208,7 +1211,7 @@ Return ONLY this JSON format:
         title: tp("title", lang),
         subtitle: "",
         nameLabel: tp("nameLabel", lang),
-        nameValue: session.input.name,
+        nameValue: localizedDevoteeName,
         dobLabel: tp("dobLabel", lang),
         dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
         lagnaLabel: tp("lagnaLabel", lang),
@@ -1234,7 +1237,7 @@ Return ONLY this JSON format:
         gocharaTitle: tp("gocharaTitle", lang),
         summaryTitle: tp("summaryTitle", lang),
         introTitle: tp("introTitle", lang),
-        introGreeting: greetingLine(lang, session.input.name),
+        introGreeting: greetingLine(lang, localizedDevoteeName),
       };
 
       setSummaryPdfTranslations(translatedData);
@@ -1245,7 +1248,7 @@ Return ONLY this JSON format:
 OUTPUT LANGUAGE: ${lang}.${lang === 'kn' ? ' Write ONLY in Kannada script.' : lang === 'te' ? ' Write ONLY in Telugu script.' : lang === 'ta' ? ' Write ONLY in Tamil script.' : lang === 'hi' ? ' Write ONLY in Hindi (Devanagari).' : ' Write in clear English.'}
 
 USER PROFILE & CHART DETAILS:
-- Devotee Name: ${session.input.name}
+- Devotee Name: ${localizedDevoteeName}
 - Current Age: ${ageYears.toFixed(1)} years (${ageYears >= 60 ? "Senior Citizen - Focus on health, family unity, grandchildren, peace, letting go of worldly race" : ageYears < 23 ? "Youth / Student - Focus on education, vocational clarity, exams, emotional stability" : "Working Adult - Focus on career stability, family responsibilities, finances, domestic harmony"})
 - Ascendant (Lagna): ${session.result.lagnaRashi?.english || 'Unknown'}
 - Moon Sign: ${session.result.moonSign.english}
@@ -1253,12 +1256,12 @@ USER PROFILE & CHART DETAILS:
 - Current Running Dasha & Bhukti: ${currentBhuktiData ? currentBhuktiData.maha.planet + ' - ' + currentBhuktiData.bhukti : 'Current Dasha'}
 
 CRITICAL PERSONALIZATION RULES:
-1. Address ${session.input.name} directly with deep reverence, warmth, and intimacy. Speak to their immediate lived reality.
+1. Address ${localizedDevoteeName} directly with deep reverence, warmth, and intimacy. Speak to their immediate lived reality.
 2. Mirror what is actually happening in their day-to-day life at age ${Math.floor(ageYears)} right now under this Dasha-Bhukti and live transits.
 3. No textbook house numbers or dry academic jargon.
 
 REQUIRED 4 PARAGRAPHS STRUCTURE:
-PARAGRAPH 1 (Current Living Reality & Dasha-Bhukti State): Address ${session.input.name} directly. Detail the core planetary theme and current psychological/life chapter governed by ${currentBhuktiData?.maha.planet} Mahadasha and ${currentBhuktiData?.bhukti} Bhukti right now.
+PARAGRAPH 1 (Current Living Reality & Dasha-Bhukti State): Address ${localizedDevoteeName} directly. Detail the core planetary theme and current psychological/life chapter governed by ${currentBhuktiData?.maha.planet} Mahadasha and ${currentBhuktiData?.bhukti} Bhukti right now.
 PARAGRAPH 2 (Gochara Planetary Transits): Detail how current major transits (Gochara - Saturn, Jupiter, Rahu/Ketu) are influencing their Moon sign and birth planets currently.
 PARAGRAPH 3 (Immediate Life Outlook & Timing): Describe what is currently manifesting in their immediate life (career/finance/family/health) during this exact phase. Give key timing advice tailored to their life stage.
 PARAGRAPH 4 (Remedial Guidance & Blessing): Provide 2 practical remedies (Parihara/Mantra/Charity) and an encouraging Sri Kshetra Gokarna blessing for their current phase.
@@ -1540,11 +1543,13 @@ Return ONLY this JSON format:
       const ashirvadaSource = ashirvada
         || "May the divine forces grant you strength, clarity and peace, and may you trust your own resilience.";
 
+      const localizedDevoteeName = getLocalizedDevoteeName(session.input.name, lang);
+
       const translatedData: PdfTranslations = {
         title: tp("title", lang),
         subtitle: tp("subtitle", lang),
         nameLabel: tp("nameLabel", lang),
-        nameValue: session.input.name, // a person's name is never put through a translator
+        nameValue: localizedDevoteeName,
         dobLabel: tp("dobLabel", lang),
         dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
         lagnaLabel: tp("lagnaLabel", lang),
@@ -1572,9 +1577,9 @@ Return ONLY this JSON format:
         gocharaTitle: tp("gocharaTitle", lang),
         summaryTitle: tp("summaryTitle", lang),
         introTitle: tp("introTitle", lang),
-        introGreeting: greetingLine(lang, session.input.name),
+        introGreeting: greetingLine(lang, localizedDevoteeName),
         introPrepared: buildComprehensiveIntro(lang, {
-          name: session.input.name,
+          name: localizedDevoteeName,
           lagna: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], lang) : "",
           moonSign: pick(RASHI_L5[session.result.moonSign.index], lang),
           nakshatra: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
@@ -1743,7 +1748,7 @@ Return ONLY this JSON format:
       const prompts = buildPremiumPrompts({
         lang,
         runId,
-        name: session.input.name,
+        name: localizedDevoteeName,
         gender: userGender as "Male" | "Female",
         ageYears,
         maritalStatus: personalization?.maritalStatus || "general",
@@ -2214,11 +2219,12 @@ Return ONLY this JSON format:
       const dobWithTime = `${formattedDob}, ${session.input.birthTime}`;
 
       const { translateText: tx } = await import("../../utils/translator");
+      const localizedDevoteeName = getLocalizedDevoteeName(session.input.name, pdfLanguage);
       const translatedData: PdfTranslations = {
         title: await tx("Baggona Panchanga Prediction", pdfLanguage),
         subtitle: await tx("Personalized Cosmic Reading", pdfLanguage),
         nameLabel: await tx("Name", pdfLanguage),
-        nameValue: session.input.name,
+        nameValue: localizedDevoteeName,
         dobLabel: await tx("Birth Details", pdfLanguage),
         dobValue: await tx(dobWithTime, pdfLanguage),
         lagnaLabel: await tx("Birth Lagna (Ascendant)", pdfLanguage),
@@ -2249,9 +2255,9 @@ Return ONLY this JSON format:
         summaryTitle: tp("summaryTitle", pdfLanguage),
         footer: await tx("Generated gracefully by Baggona Panchanga Astrology Engine", pdfLanguage),
         introTitle: tp("introTitle", pdfLanguage),
-        introGreeting: greetingLine(pdfLanguage, session.input.name),
+        introGreeting: greetingLine(pdfLanguage, localizedDevoteeName),
         introPrepared: buildComprehensiveIntro(pdfLanguage, {
-          name: session.input.name,
+          name: localizedDevoteeName,
           lagna: session.result.lagnaRashi ? pick(RASHI_L5[session.result.lagnaRashi.index], pdfLanguage) : "",
           moonSign: pick(RASHI_L5[session.result.moonSign.index], pdfLanguage),
           nakshatra: a4MoonPlanet ? pick(NAKSHATRA_L5[a4MoonPlanet.nakshatra.index], pdfLanguage) : "",
@@ -2750,10 +2756,11 @@ Return ONLY this JSON (no extra text before or after):
       const lagnaRashiIdx = session.result.lagnaRashi?.index ?? 0;
       const maandiHouse = maandi ? getMaandiHouseFromLagna(maandi.rashi.index, lagnaRashiIdx) : 1;
 
+      const localizedDevoteeName = getLocalizedDevoteeName(session.input.name, lang);
       const prompts = buildPremiumPrompts({
         lang,
         runId,
-        name: session.input.name,
+        name: localizedDevoteeName,
         gender: parsedKundali.gender,
         ageYears,
         maritalStatus: (parsedKundali.maritalStatus as "married" | "unmarried" | "general" | undefined) ?? "general",
@@ -3000,7 +3007,7 @@ Return ONLY this JSON (no extra text before or after):
 
       // Maandi Inward Journey (Forbidden to mention "Maandi" or "Gulika" in text)
       const dataMaandiInquest = parseGeminiJSON(resMaandiInquest);
-      const fallbackMaandi = getMaandiPerspectiveInterpretation(maandiHouse, maandi?.rashi?.index ?? 0, lang, session.input.name);
+      const fallbackMaandi = getMaandiPerspectiveInterpretation(maandiHouse, maandi?.rashi?.index ?? 0, lang, localizedDevoteeName);
 
       let finalMaandiInquest = fallbackMaandi;
       if (dataMaandiInquest?.paragraph1 && dataMaandiInquest?.paragraph2 && dataMaandiInquest?.title) {

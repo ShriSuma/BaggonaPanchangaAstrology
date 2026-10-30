@@ -48,6 +48,7 @@ import {
   buildDynamicDashaGocharaCompassFallback,
   buildDynamicPrescriptions,
   buildDynamicAshirvada,
+  getLocalizedDevoteeName,
   ensureNamePresence,
   toKnDigits
 } from "./dynamicBhavishyaEngine";
@@ -262,9 +263,7 @@ export async function prepareBhavishyaV1Data(
   const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
   const panchanga = calculateTraditionalBaggona(session.birthDateYmd, session.birthTimeHm, session.input.latitude, session.input.longitude);
 
-  const localizedDevoteeName = (lang !== "en" && /[a-zA-Z]/.test(session.input.name))
-    ? transliterateName(session.input.name, lang)
-    : session.input.name;
+  const localizedDevoteeName = getLocalizedDevoteeName(session.input.name, lang);
 
   const sunPlanet = session.result.planets.find(p => p.name === 'Sun');
   const moonLong = moonPlanet ? (moonPlanet.rashi.index * 30 + moonPlanet.degree) : 0;
@@ -458,13 +457,13 @@ export async function prepareBhavishyaV1Data(
     gender: userGender as "Male" | "Female",
     ageYears,
     lang,
-    name: session.input.name,
+    name: localizedDevoteeName,
     maritalStatus: personalization?.maritalStatus || "general",
     hasChildren: personalization?.childrenStatus || "general"
   });
 
   const dynamicCtx: DynamicChartContext = {
-    name: session.input.name,
+    name: localizedDevoteeName,
     maritalStatus: personalization?.maritalStatus,
     hasChildren: personalization?.childrenStatus,
     planets: session.result.planets.map(p => ({
@@ -496,7 +495,7 @@ export async function prepareBhavishyaV1Data(
   let result: any = null;
   try {
     result = await generateMasterPrediction(session.result, {
-      name: session.input.name,
+      name: localizedDevoteeName,
       birthDate: session.input.birthDate,
       birthTime: session.input.birthTime,
       latitude: session.input.latitude,
@@ -586,7 +585,7 @@ export async function prepareBhavishyaV1Data(
   const prompts = buildPremiumPrompts({
     lang,
     runId,
-    name: session.input.name,
+    name: localizedDevoteeName,
     gender: userGender as "Male" | "Female",
     ageYears,
     maritalStatus: (personalization?.maritalStatus as ("married" | "unmarried" | "general")) || "general",
@@ -1106,7 +1105,7 @@ export async function prepareBhavishyaV1Data(
       : "8. Verifying 10-Chapter Astrological Integrity & Alignment..."
   );
 
-  const fallbackMaandi = getMaandiPerspectiveInterpretation(maandiHouse, maandi?.rashi?.index ?? 0, lang, session.input.name);
+  const fallbackMaandi = getMaandiPerspectiveInterpretation(maandiHouse, maandi?.rashi?.index ?? 0, lang, localizedDevoteeName);
 
   let finalMaandiInquest = fallbackMaandi;
   if (dataMaandiInquest?.paragraph1 && dataMaandiInquest?.paragraph2 && dataMaandiInquest?.title) {
@@ -1261,25 +1260,25 @@ export async function prepareBhavishyaV1Data(
   const rawCharacteristics = await ensureValidSection(dataCharacteristics.characteristics, charFallbackText, lang);
   const finalCharacteristics = (rawCharacteristics || []).map((c: any) => ({
     ...c,
-    impact: cleanDegreesFromText(ensureNamePresence(c.impact || "", localizedDevoteeName, lang))
+    impact: cleanDegreesFromText(ensureNamePresence(cleanEnglishFromRegionalText(c.impact || "", lang), localizedDevoteeName, lang))
   }));
 
   const rawDarkSecret = isChild ? [] : await ensureValidSection(dataDarkSecret.darkSecret, secretFallbackText, lang);
   const finalDarkSecret = (rawDarkSecret || []).map((d: any) => ({
     ...d,
-    impact: cleanDegreesFromText(d.impact || "")
+    impact: cleanDegreesFromText(cleanEnglishFromRegionalText(d.impact || "", lang))
   }));
 
   const rawCurrentPhase = await ensureValidSection(dataCurrentPhase.currentPhase, currentPhaseFallbackText, lang, 250);
   const finalCurrentPhase = (rawCurrentPhase || []).map((p: any) => ({
     ...p,
-    impact: cleanDegreesFromText(ensureNamePresence(p.impact || "", localizedDevoteeName, lang))
+    impact: cleanDegreesFromText(ensureNamePresence(cleanEnglishFromRegionalText(p.impact || "", lang), localizedDevoteeName, lang))
   }));
 
   const rawSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
   const finalSummary = (rawSummary || []).map((s: any) => ({
     ...s,
-    impact: cleanDegreesFromText(ensureNamePresence(s.impact || "", localizedDevoteeName, lang))
+    impact: cleanDegreesFromText(ensureNamePresence(cleanEnglishFromRegionalText(s.impact || "", lang), localizedDevoteeName, lang))
   }));
 
   let rawAnnualInput: any = dataAnnualForecast?.annualForecast;

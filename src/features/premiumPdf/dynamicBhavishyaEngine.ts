@@ -4968,23 +4968,184 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
 }
 
 /**
- * Ensures the devotee's personal name is naturally woven into text
+ * Moderates excessive name repetition within narrative text, replacing mechanical 2nd/3rd+
+ * name mentions with natural, dignified second-person pronouns.
+ */
+export function moderateNameRepetition(text: string, name: string, lang: string = 'kn'): string {
+  if (!text || !name || name.trim().length < 2) return text;
+  const cleanName = name.trim();
+  const baseLang = (lang || 'kn').split('-')[0];
+
+  const paragraphs = text.split(/\n\n+/);
+  const moderatedParagraphs = paragraphs.map((para, paraIdx) => {
+    let p = para.trim();
+    if (!p) return p;
+
+    if (paraIdx === 0) {
+      // In first paragraph, keep the initial greeting (e.g. `${cleanName} ಅವರೇ, `)
+      let firstMention = true;
+      if (baseLang === 'kn') {
+        p = p.replace(new RegExp(`(?:ಶ್ರೀಯುತ|ಪ್ರಿಯ|ಆತ್ಮೀಯ)?\\s*${cleanName}\\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರ|ಕರು|ಗಾರು)?`, 'gu'), (match) => {
+          if (firstMention) {
+            firstMention = false;
+            return match;
+          }
+          if (match.includes('ಅವರಿಗೆ')) return 'ನಿಮಗೆ';
+          if (match.includes('ಅವರ')) return 'ನಿಮ್ಮ';
+          return 'ನೀವು';
+        });
+      } else if (baseLang === 'hi') {
+        p = p.replace(new RegExp(`(?:श्री)?\\s*${cleanName}\\s*(?:जी)?(?:\\s*(?:का|की|के|को))?`, 'gu'), (match) => {
+          if (firstMention) {
+            firstMention = false;
+            return match;
+          }
+          if (match.includes('की')) return 'आपकी';
+          if (match.includes('के')) return 'आपके';
+          if (match.includes('को')) return 'आपको';
+          if (match.includes('का')) return 'आपका';
+          return 'आप';
+        });
+      } else if (baseLang === 'te') {
+        p = p.replace(new RegExp(`(?:శ్రీ)?\\s*${cleanName}\\s*(?:గారు|గారి|గారికి)?`, 'gu'), (match) => {
+          if (firstMention) {
+            firstMention = false;
+            return match;
+          }
+          if (match.includes('గారికి')) return 'మీకు';
+          if (match.includes('గారి')) return 'మీ';
+          return 'మీరు';
+        });
+      } else if (baseLang === 'ta') {
+        p = p.replace(new RegExp(`(?:திரு/திருமதி)?\\s*${cleanName}\\s*(?:அவர்களே|அவர்களின்|அவர்களுக்கு)?`, 'gu'), (match) => {
+          if (firstMention) {
+            firstMention = false;
+            return match;
+          }
+          if (match.includes('அவர்களுக்கு')) return 'உங்களுக்கு';
+          if (match.includes('அவர்களின்')) return 'உங்கள்';
+          return 'நீங்கள்';
+        });
+      } else if (baseLang === 'en') {
+        p = p.replace(new RegExp(`\\b${cleanName}(?:'s)?\\b`, 'gi'), (match) => {
+          if (firstMention) {
+            firstMention = false;
+            return match;
+          }
+          if (match.includes("'s")) return 'your';
+          return 'you';
+        });
+      }
+    } else {
+      // In subsequent paragraphs: Strip repetitive greetings at the start
+      if (baseLang === 'kn') {
+        p = p.replace(new RegExp(`^(?:(?:ಶ್ರೀಯುತ|ಪ್ರಿಯ|ಆತ್ಮೀಯ)?\\s*${cleanName}\\s*(?:ಅವರೇ|ಅವರಿಗೆ)[,!\\s]*)+(?:ನಿಮ್ಮ\\s*)?`, 'gu'), 'ನಿಮ್ಮ ');
+        p = p.replace(new RegExp(`^(?:(?:ಶ್ರೀಯುತ|ಪ್ರಿಯ|ಆತ್ಮೀಯ)?\\s*${cleanName}\\s*(?:ಅವರೇ|ಅವರಿಗೆ)[,!\\s]*)+`, 'gu'), '');
+        p = p.replace(new RegExp(`(?:ಶ್ರೀಯುತ|ಪ್ರಿಯ|ಆತ್ಮೀಯ)?\\s*${cleanName}\\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರ|ಕರು|ಗಾರು)?`, 'gu'), (match) => {
+          if (match.includes('ಅವರಿಗೆ')) return 'ನಿಮಗೆ';
+          if (match.includes('ಅವರ')) return 'ನಿಮ್ಮ';
+          return 'ನೀವು';
+        });
+      } else if (baseLang === 'hi') {
+        p = p.replace(new RegExp(`^(?:(?:प्रिय\\s*श्री|श्री)?\\s*${cleanName}\\s*(?:जी)[,!\\s]*)+(?:आपका\\s*)?`, 'gu'), 'आपका ');
+        p = p.replace(new RegExp(`^(?:(?:प्रिय\\s*श्री|श्री)?\\s*${cleanName}\\s*(?:जी)[,!\\s]*)+`, 'gu'), '');
+        p = p.replace(new RegExp(`(?:श्री)?\\s*${cleanName}\\s*(?:जी)?(?:\\s*(?:का|की|के|को))?`, 'gu'), (match) => {
+          if (match.includes('की')) return 'आपकी';
+          if (match.includes('के')) return 'आपके';
+          if (match.includes('को')) return 'आपको';
+          if (match.includes('का')) return 'आपका';
+          return 'आप';
+        });
+      } else if (baseLang === 'te') {
+        p = p.replace(new RegExp(`^(?:(?:ప్రియమైన\\s*శ్రీ|శ్రీ)?\\s*${cleanName}\\s*(?:గారు)[,!\\s]*)+(?:మీ\\s*)?`, 'gu'), 'మీ ');
+        p = p.replace(new RegExp(`^(?:(?:ప్రియమైన\\s*శ్రీ|శ్రీ)?\\s*${cleanName}\\s*(?:గారు)[,!\\s]*)+`, 'gu'), '');
+        p = p.replace(new RegExp(`(?:శ్రీ)?\\s*${cleanName}\\s*(?:గారు|గారి|గారికి)?`, 'gu'), (match) => {
+          if (match.includes('గారికి')) return 'మీకు';
+          if (match.includes('గారి')) return 'మీ';
+          return 'మీరు';
+        });
+      } else if (baseLang === 'ta') {
+        p = p.replace(new RegExp(`^(?:(?:அன்பிற்குரிய\\s*திரு/திருமதி|திரு/திருமதி)?\\s*${cleanName}\\s*(?:அவர்களே)[,!\\s]*)+(?:உங்கள்\\s*)?`, 'gu'), 'உங்கள் ');
+        p = p.replace(new RegExp(`^(?:(?:அன்பிற்குரிய\\s*திரு/திருமதி|திரு/திருமதி)?\\s*${cleanName}\\s*(?:அவர்களே)[,!\\s]*)+`, 'gu'), '');
+        p = p.replace(new RegExp(`(?:திரு/திருமதி)?\\s*${cleanName}\\s*(?:அவர்களே|அவர்களின்|அவர்களுக்கு)?`, 'gu'), (match) => {
+          if (match.includes('அவர்களுக்கு')) return 'உங்களுக்கு';
+          if (match.includes('அவர்களின்')) return 'உங்கள்';
+          return 'நீங்கள்';
+        });
+      } else if (baseLang === 'en') {
+        p = p.replace(new RegExp(`^(?:Dear\\s*${cleanName}[,!\\s]*)+`, 'gi'), '');
+        p = p.replace(new RegExp(`\\b${cleanName}(?:'s)?\\b`, 'gi'), (match) => {
+          if (match.includes("'s")) return 'your';
+          return 'you';
+        });
+      }
+    }
+    return p.replace(/^[ \t,;:.\-–—]+/u, '').replace(/[ \t]{2,}/g, ' ').trim();
+  });
+
+  return moderatedParagraphs.join('\n\n');
+}
+
+/**
+ * Ensures the devotee's personal name is naturally woven into text with dignity and zero repetition.
  */
 export function ensureNamePresence(text: string, name: string, lang: string = 'kn'): string {
   if (!text) return text;
   if (!name || name.trim().length < 2) return text;
-  const cleanName = name.trim();
-  if (text.includes(cleanName)) return text;
+  const baseLang = (lang || 'kn').split('-')[0];
+  const cleanName = getLocalizedDevoteeName(name, baseLang);
+  if (!cleanName) return text;
 
-  const prefixes: Record<string, string> = {
-    kn: `ಅಭಿಮಾನಿ ಶ್ರೀಯುತ ${cleanName} ಅವರೇ, `,
-    hi: `प्रिय श्री ${cleanName} जी, `,
-    te: `ప్రియమైన శ్రీ ${cleanName} గారు, `,
-    ta: `அன்பிற்குரிய திரு/திருமதி ${cleanName} அவர்களே, `,
-    en: `Dear ${cleanName}, `
-  };
-  const prefix = prefixes[lang] || prefixes.kn;
-  return `${prefix}${text}`;
+  let cleaned = text;
+
+  // 1. Purge "ಅಭಿಮಾನಿ" (movie fan/follower) - devotees are revered seekers
+  cleaned = cleaned.replace(/(?:^|[\s,.\-–—(])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, '');
+
+  // 2. Clean transliterated Tamil honorifics in Kannada (including ZWJ/virama forms)
+  if (baseLang === 'kn') {
+    cleaned = cleaned
+      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳೇ/gu, 'ಅವರೇ')
+      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳಿಗೆ/gu, 'ಅವರಿಗೆ')
+      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳ/gu, 'ಅವರ')
+      .replace(/(?:^|[\s,.\-–—(])(?:ಕರು|ಗಾರು)(?=[\s,.\-–—!]|$)/gu, 'ಅವರೇ');
+  }
+
+  // 3. Canonical name normalization for known common misspellings (e.g. Manoj -> ಮನೋಜ್)
+  if (cleanName === 'ಮನೋಜ್' || cleanName.toLowerCase() === 'manoj') {
+    cleaned = cleaned.replace(/(?:ಮನುಜ್|ಮಂಜು|ಮನುಜ|ಮನೋಜ(?!್))(?:\s*(?:ಅವರೇ|ಕರು|ಗಾರು|ಅವರಿಗೆ))?/gu, (match) => {
+      if (match.startsWith(cleanName)) return match;
+      if (match.includes('ಅವರಿಗೆ')) return `${cleanName} ಅವರಿಗೆ`;
+      return `${cleanName} ಅವರೇ`;
+    });
+  }
+
+  // 4. Collapse stacked duplicate greetings at start of text:
+  // e.g. "ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ಪ್ರಿಯ ಮನೋಜ್ ಅವರೇ, " or "ಮನೋಜ್ ಅವರೇ, ಪ್ರಿಯ ಮನುಜ್ ಅವರ‍್ಗಳೇ, "
+  if (baseLang === 'kn') {
+    cleaned = cleaned.replace(
+      /^(?:(?:ಶ್ರೀಯುತ|ಶ್ರೀ|ಪ್ರಿಯ|ಆತ್ಮೀಯ|ಮಾನ್ಯ)?\s*[\u0C80-\u0CFF\u200C\u200D]+\s*(?:ಅವರೇ|ಅವರಿಗೆ)[,!\s]*){2,}/gu,
+      `${cleanName} ಅವರೇ, `
+    );
+  }
+
+  // 5. If the cleanName is already present in the text, do not prepend another greeting
+  const hasName = cleaned.includes(cleanName);
+  if (!hasName) {
+    const prefixes: Record<string, string> = {
+      kn: `${cleanName} ಅವರೇ, `,
+      hi: `श्री ${cleanName} जी, `,
+      te: `శ్రీ ${cleanName} గారు, `,
+      ta: `திரு/திருமதி ${cleanName} அவர்களே, `,
+      en: `Dear ${cleanName}, `
+    };
+    const prefix = prefixes[baseLang] || `${cleanName}, `;
+    cleaned = `${prefix}${cleaned}`;
+  }
+
+  // 6. Moderate name repetition so name is not spammed every paragraph
+  cleaned = moderateNameRepetition(cleaned, cleanName, baseLang);
+
+  return cleaned.trim();
 }
 
 /**
