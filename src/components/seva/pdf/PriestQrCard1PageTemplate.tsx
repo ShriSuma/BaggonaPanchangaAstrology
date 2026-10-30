@@ -158,9 +158,36 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
 
   const step3 = code === "kn" ? "ನಿಮ್ಮ Apple Calendar ಅಥವಾ Google Calendar ನಲ್ಲಿ 'Add All Events / Subscribe' ಆಯ್ಕೆ ಮಾಡಿ."
     : code === "hi" ? "अपने Apple Calendar या Google Calendar में 'Add All Events / Subscribe' चुनें।"
-    : code === "te" ? "మీ Apple Calendar ಅಥವಾ Google Calendar లో 'Add All Events / Subscribe' ఎంచుకోండి."
+    : code === "te" ? "మీ Apple Calendar లేదా Google Calendar లో 'Add All Events / Subscribe' ఎంచుకోండి."
     : code === "ta" ? "உங்கள் Apple Calendar அல்லது Google Calendar இல் 'Add All Events / Subscribe' தேர்ந்தெடுக்கவும்."
     : "Select 'Add All Events / Subscribe' in Apple Calendar or Google Calendar.";
+
+  const templeNames: Record<string, string> = {
+    kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ",
+    hi: "श्री गोकर्ण महाबलेश्वर सन्निधि",
+    en: "Sri Gokarna Mahabaleshwara Sannidhi",
+    te: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి",
+    ta: "ஶ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி"
+  };
+  const activeTempleName = templeNames[code] || templeNames.en;
+
+  const stepNumbers: Record<string, [string, string, string]> = {
+    kn: ["೧.", "೨.", "೩."],
+    hi: ["१.", "२.", "३."],
+    en: ["1.", "2.", "3."],
+    te: ["1.", "2.", "3."],
+    ta: ["1.", "2.", "3."]
+  };
+  const activeSteps = stepNumbers[code] || stepNumbers.en;
+
+  const footerShlokas: Record<string, string> = {
+    kn: "॥ ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ಸಿದ್ಧ ಕುಂಡಲಿ ರಕ್ಷೆ · ಸಕಲ ದೋಷ ಶಮನಂ ॥",
+    hi: "॥ ॐ श्री गोकर्ण महाबलेश्वर सन्निधि की धर्मज्ञ सिद्ध कुंडली रक्षा · सर्व दोष शमनम् ॥",
+    en: "॥ Om Sri Gokarna Mahabaleshwara Sannidhi Sacred Kundli Protection · Sarva Dosha Shamanam ॥",
+    te: "॥ ఓం శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధి ధర్మజ్ఞ సిద్ధ కుండలి రక్ష · సకల దోష శమనం ॥",
+    ta: "॥ ஓம் ஶ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி தர்மக்ஞ சித்த குண்டலி ரக்ஷை · சகல தோஷ சமனம் ॥"
+  };
+  const activeFooterShloka = footerShlokas[code] || footerShlokas.en;
 
   return (
     <div
@@ -234,7 +261,7 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
             <div style={{ fontSize: "12.5px", color: "#92400E", lineHeight: "1.75" }}>
               <div style={{ marginBottom: "2px" }}><strong>{pLabels.pos}</strong> {activePriestTitle}</div>
               <div style={{ marginBottom: "2px" }}><strong>{pLabels.phone}</strong> <span style={{ color: "#78350F", fontWeight: 700 }}>{priestPhone}</span></div>
-              <div style={{ marginBottom: "2px" }}><strong>{pLabels.temple}</strong> ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ</div>
+              <div style={{ marginBottom: "2px" }}><strong>{pLabels.temple}</strong> {activeTempleName}</div>
             </div>
           </div>
         </div>
@@ -307,9 +334,9 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
             📲 {instructionTitle}
           </div>
           <div style={{ fontSize: "12.5px", color: "#92400E", lineHeight: "1.8" }}>
-            <div style={{ marginBottom: "3px" }}><strong>೧.</strong> {step1}</div>
-            <div style={{ marginBottom: "3px" }}><strong>೨.</strong> {step2}</div>
-            <div style={{ marginBottom: "3px" }}><strong>೩.</strong> {step3}</div>
+            <div style={{ marginBottom: "3px" }}><strong>{activeSteps[0]}</strong> {step1}</div>
+            <div style={{ marginBottom: "3px" }}><strong>{activeSteps[1]}</strong> {step2}</div>
+            <div style={{ marginBottom: "3px" }}><strong>{activeSteps[2]}</strong> {step3}</div>
           </div>
         </div>
 
@@ -325,10 +352,10 @@ export const PriestQrCard1PageTemplate: React.FC<PriestQrCard1PageTemplateProps>
           }}
         >
           <div style={{ fontSize: "13px", fontWeight: 700, color: "#FEF3C7", lineHeight: "1.5" }}>
-            "ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ಸಿದ್ಧ ಕುಂಡಲಿ ರಕ್ಷೆ · ಸಕಲ ದೋಷ ಶಮನಂ"
+            {activeFooterShloka}
           </div>
           <div style={{ fontSize: "12px", color: "#FDE68A", fontWeight: 600, marginTop: "4px", lineHeight: "1.5" }}>
-            {activePriestTitle} · {priestName} (ದೂರವಾಣಿ: {priestPhone})
+            {activePriestTitle} · {priestName} ({pLabels.phone} {priestPhone})
           </div>
         </div>
       </div>

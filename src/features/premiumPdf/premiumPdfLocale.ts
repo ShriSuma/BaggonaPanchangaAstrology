@@ -727,14 +727,15 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
   if (lang.startsWith("kn")) {
     // Strip non-Kannada Indic scripts: Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu (\u0900-\u0C7F) and Malayalam (\u0D00-\u0D7F)
     cleaned = cleaned.replace(/[\u0900-\u0C7F\u0D00-\u0D7F]/gu, "");
-    // Clean transliterated Tamil honorifics in Kannada (including ZWJ/virama forms)
+    // Clean transliterated Tamil honorifics in Kannada (including ZWJ/virama forms and plural forms like ಅವರುಗಳೇ)
     cleaned = cleaned
-      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳೇ/gu, "ಅವರೇ")
-      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳಿಗೆ/gu, "ಅವರಿಗೆ")
-      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳ/gu, "ಅವರ")
-      .replace(/(?:ಮನೋಜ್|ಮನೋಜ(?!್)|ಮನುಜ್|ಮಂಜು)\s*(?:ಕರು|ಗಾರು)\s*(?:ಅವರೇ)?/gu, "ಮನೋಜ್ ಅವರೇ")
-      .replace(/(?:^|[\s,.\-–—(])(?:ಕರು|ಗಾರು)(?=[\s,.\-–—!]|$)/gu, "ಅವರೇ")
-      .replace(/(?:^|[\s,.\-–—(])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, "");
+      .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳೇ/gu, "ಅವರೇ")
+      .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳಿಗೆ/gu, "ಅವರಿಗೆ")
+      .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳ/gu, "ಅವರ")
+      .replace(/(?:^|[- \t\r\n,.(–—])ಮ(?![\\u0C80-\\u0CFF])(?:\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರುಗಳೇ|ಕರು))?[,]?(?=[- \t\r\n,.(–—!]|$)/gu, " ಮನೋಜ್ ಅವರೇ,")
+      .replace(/(?:ಮನೋಜ್|ಮನೋಜ(?!್)|ಮನುಜ್|ಮಂಜು)\s*(?:ಕರು|ಗಾರು|ಅವರುಗಳೇ)?\s*(?:ಅವರೇ)?/gu, "ಮನೋಜ್ ಅವರೇ")
+      .replace(/(?:^|[- \t\r\n,.(–—])(?:ಕರು|ಗಾರು)(?=[- \t\r\n,.(–—!]|$)/gu, "ಅವರೇ")
+      .replace(/(?:^|[- \t\r\n,.(–—])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, "");
   } else if (lang.startsWith("hi")) {
     // Strip non-Devanagari Indic scripts: Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam (\u0980-\u0D7F)
     cleaned = cleaned.replace(/[\u0980-\u0D7F]/gu, "");
@@ -754,6 +755,17 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     .replace(/^[ \t:,\.\-–—×*•~|]+(?=[^ \t\r\n:,\.\-–—×*•~|])/gm, "")
     .replace(/[ \t:,\.\-–—×*•~|]+$/gm, "")
     .replace(/^[ \t:,\.\-–—×*•~|]+$/gm, "");
+
+  // 4c. Clean dangling trailing conjunctions/pronouns from incomplete sentences
+  if (lang.startsWith("kn")) {
+    cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:ನಿಮ್ಮ|ಮತ್ತು|ಹಾಗೂ|ಅಥವಾ|ಆದರೆ|ಏಕೆಂದರೆ|ಎಂದು|ಈ|ಆ|ಒಂದು|ಕೂಡ|ಇಂದ)\s*$/gu, "");
+  } else if (lang.startsWith("hi")) {
+    cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:आपका|आपकी|आपके|और|तथा|एवं|किंतु|परंतु|क्योंकि|कि|यह|वह|एक)\s*$/gu, "");
+  } else if (lang.startsWith("te")) {
+    cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:మీ|మరియు|కాని|ఎందుకంటే|ఈ|ಆ)\s*$/gu, "");
+  } else if (lang.startsWith("ta")) {
+    cleaned = cleaned.replace(/(?:[.,;!?|।॥]\s*)?(?:உங்கள்|மற்றும்|ஆனால்|ஏனெனில்|இந்த|அந்த)\s*$/gu, "");
+  }
 
   // 5. Clean whitespace & punctuation spacing
   cleaned = cleaned

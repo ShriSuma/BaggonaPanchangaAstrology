@@ -9,7 +9,7 @@ export type KundliRemedyPdfTemplateProps = {
 };
 
 // UI Localization Dictionary for PDF (5 Languages)
-const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
+export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
   kn: {
     templeBanner: "॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥",
     mainTitle: "ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ & ಮನಃಶಾಂತಿ ವರದಿ",
@@ -174,7 +174,7 @@ const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "रुद्राक्ष धारण:",
     gemstone: "रत्न / धातु:",
     daana: "दान एवं गौसेवा:",
-    sec8Title: "೮. प्रधान अर्चक का आशीर्वचन एवं गोकर्ण मुद्रा",
+    sec8Title: "८. प्रधान अर्चक का आशीर्वचन एवं गोकर्ण मुद्रा",
     templeSealLabel: "आधिकारिक मुद्रा",
     priestContact: "संपर्क:",
     page1Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ १/३ (आगे जारी...)",

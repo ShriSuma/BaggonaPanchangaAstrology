@@ -5087,6 +5087,77 @@ export function moderateNameRepetition(text: string, name: string, lang: string 
 }
 
 /**
+ * Ensures all paragraphs end with clean, complete sentences and no dangling fragments.
+ * Eliminates truncated text ending with dangling conjunctions or pronouns like:
+ * '...ಕುಗ್ಗದಂತೆ ಈ ಯೋಗವು ನಿಮ್ಮನ್ನು ಕಾಪಾಡುತ್ತದೆ. ನಿಮ್ಮ' -> '...ಕುಗ್ಗದಂತೆ ಈ ಯೋಗವು ನಿಮ್ಮನ್ನು ಕಾಪಾಡುತ್ತದೆ.'
+ */
+export function ensureCompleteSentences(text: string, lang: string = 'kn'): string {
+  if (!text) return "";
+  const baseLang = (lang || "kn").split("-")[0];
+  const paragraphs = text.split(/\n\n+/);
+
+  const cleanedParagraphs = paragraphs.map((para) => {
+    let p = para.trim();
+    if (!p) return "";
+
+    // 1. Remove dangling trailing conjunctions, pronouns, or prepositions left by AI token cutoff:
+    // (Never strip the terminal punctuation of the preceding valid sentence!)
+    if (baseLang === "kn") {
+      let prev = "";
+      while (prev !== p) {
+        prev = p;
+        p = p.replace(/(?:\s+(?:ನಿಮ್ಮ|ನಿಮ್ಮನ್ನು|ನಿಮಗೆ|ಮತ್ತು|ಹಾಗೂ|ಅಥವಾ|ಆದರೆ|ಏಕೆಂದರೆ|ಎಂದು|ಈ|ಆ|ಒಂದು|ಕೂಡ|ಇಂದ|ಅಲ್ಲಿ|ಇಲ್ಲಿ|ಜೊತೆಗೆ|ಪ್ರಕಾರ|ಬಗ್ಗೆ))+\s*$/gu, "").trim();
+      }
+    } else if (baseLang === "hi") {
+      let prev = "";
+      while (prev !== p) {
+        prev = p;
+        p = p.replace(/(?:\s+(?:आप|आपका|आपकी|आपके|आपको|और|तथा|एवं|किंतु|परंतु|क्योंकि|कि|यह|वह|एक|में|से|पर|द्वारा|अनुसार))+\s*$/gu, "").trim();
+      }
+    } else if (baseLang === "te") {
+      let prev = "";
+      while (prev !== p) {
+        prev = p;
+        p = p.replace(/(?:\s+(?:మీరు|మీ|మీకు|మరియు|కాని|ఎందుకంటే|ఈ|ఆ|ఒక|కూడా|ద్వారా|గురించి))+\s*$/gu, "").trim();
+      }
+    } else if (baseLang === "ta") {
+      let prev = "";
+      while (prev !== p) {
+        prev = p;
+        p = p.replace(/(?:\s+(?:நீங்கள்|உங்கள்|உங்களுக்கு|மற்றும்|ஆனால்|ஏனெனில்|இந்த|அந்த|ஒரு|கூட|மூலம்|பற்றி))+\s*$/gu, "").trim();
+      }
+    } else {
+      let prev = "";
+      while (prev !== p) {
+        prev = p;
+        p = p.replace(/(?:\s+(?:your|yours|you|and|or|but|the|a|an|of|to|in|on|with|that|this|which|because|as))+\s*$/gi, "").trim();
+      }
+    }
+
+    // Clean any trailing comma, colon, semicolon, or dash left before the dangling word
+    p = p.replace(/[,;:\-–—]\s*$/gu, "").trim();
+
+    p = p.trim();
+    // 2. If paragraph doesn't end with terminal punctuation, check if last fragment is incomplete
+    if (!/[.!?|।॥]$/.test(p)) {
+      // Find the last complete sentence terminating punctuation
+      const lastTermMatch = [...p.matchAll(/[.!?|।॥]/g)].pop();
+      if (lastTermMatch && typeof lastTermMatch.index === "number") {
+        // Strip the dangling sentence fragment after the last terminal punctuation
+        p = p.slice(0, lastTermMatch.index + 1).trim();
+      } else {
+        // If no punctuation was found or it was too early, append appropriate terminal punctuation
+        p = `${p}${baseLang === "hi" ? "।" : "."}`;
+      }
+    }
+
+    return p;
+  });
+
+  return cleanedParagraphs.filter(Boolean).join("\n\n");
+}
+
+/**
  * Ensures the devotee's personal name is naturally woven into text with dignity and zero repetition.
  */
 export function ensureNamePresence(text: string, name: string, lang: string = 'kn'): string {
@@ -5101,34 +5172,57 @@ export function ensureNamePresence(text: string, name: string, lang: string = 'k
   // 1. Purge "ಅಭಿಮಾನಿ" (movie fan/follower) - devotees are revered seekers
   cleaned = cleaned.replace(/(?:^|[\s,.\-–—(])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, '');
 
-  // 2. Clean transliterated Tamil honorifics in Kannada (including ZWJ/virama forms)
+  // 2. Clean transliterated Tamil/Telugu honorifics in Kannada (including ZWJ/virama forms and plural forms)
   if (baseLang === 'kn') {
     cleaned = cleaned
-      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳೇ/gu, 'ಅವರೇ')
-      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳಿಗೆ/gu, 'ಅವರಿಗೆ')
-      .replace(/ಅವರ[\u200C\u200D\u0CCD]*ಗಳ/gu, 'ಅವರ')
+      .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳೇ/gu, 'ಅವರೇ')
+      .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳಿಗೆ/gu, 'ಅವರಿಗೆ')
+      .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳ/gu, 'ಅವರ')
       .replace(/(?:^|[\s,.\-–—(])(?:ಕರು|ಗಾರು)(?=[\s,.\-–—!]|$)/gu, 'ಅವರೇ');
   }
 
-  // 3. Canonical name normalization for known common misspellings (e.g. Manoj -> ಮನೋಜ್)
+  // 3. Expand single-letter abbreviation artifacts (e.g. solitary "ಮ, " or "ಮ ಅವರೇ" when name is "ಮನೋಜ್")
+  if (cleanName.length >= 2) {
+    const firstChar = cleanName.charAt(0);
+    if (baseLang === 'kn') {
+      cleaned = cleaned.replace(
+        new RegExp(`(^|[- \\t\\r\\n,.(–—])${firstChar}(?![\\u0C80-\\u0CFF])(?:\\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರುಗಳೇ|ಕರು))?[,]?(?=[- \\t\\r\\n,.(–—!]|$)`, 'gu'),
+        (match, lead) => {
+          const l = lead || '';
+          if (match.includes('ಅವರಿಗೆ')) return `${l}${cleanName} ಅವರಿಗೆ `;
+          return `${l}${cleanName} ಅವರೇ, `;
+        }
+      );
+    } else if (baseLang === 'hi') {
+      cleaned = cleaned.replace(
+        new RegExp(`(^|[- \\t\\r\\n,.(–—])${firstChar}(?![\\u0900-\\u097F])(?:\\s*(?:जी|को))?[,]?(?=[- \\t\\r\\n,.(–—!]|$)`, 'gu'),
+        (match, lead) => {
+          const l = lead || '';
+          if (match.includes('को')) return `${l}${cleanName} जी को `;
+          return `${l}श्री ${cleanName} जी, `;
+        }
+      );
+    }
+  }
+
+  // 4. Canonical name normalization for known common misspellings (e.g. Manoj -> ಮನೋಜ್)
   if (cleanName === 'ಮನೋಜ್' || cleanName.toLowerCase() === 'manoj') {
-    cleaned = cleaned.replace(/(?:ಮನುಜ್|ಮಂಜು|ಮನುಜ|ಮನೋಜ(?!್))(?:\s*(?:ಅವರೇ|ಕರು|ಗಾರು|ಅವರಿಗೆ))?/gu, (match) => {
-      if (match.startsWith(cleanName)) return match;
+    cleaned = cleaned.replace(/(?:ಮನುಜ್|ಮಂಜು|ಮನುಜ|ಮನೋಜ(?!್)|ಮನೋಜ್\s*(?:ಕರು|ಗಾರು))(?:\s*(?:ಅವರೇ|ಕರು|ಗಾರು|ಅವರಿಗೆ|ಅವರುಗಳೇ))?/gu, (match) => {
       if (match.includes('ಅವರಿಗೆ')) return `${cleanName} ಅವರಿಗೆ`;
       return `${cleanName} ಅವರೇ`;
     });
   }
 
-  // 4. Collapse stacked duplicate greetings at start of text:
-  // e.g. "ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ಪ್ರಿಯ ಮನೋಜ್ ಅವರೇ, " or "ಮನೋಜ್ ಅವರೇ, ಪ್ರಿಯ ಮನುಜ್ ಅವರ‍್ಗಳೇ, "
+  // 5. Collapse stacked duplicate greetings at start of text:
+  // e.g. "ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ಪ್ರಿಯ ಮನೋಜ್ ಅವರೇ, " or "ಅಭಿಮಾನಿ ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ಪ್ರಿಯ ಮನುಜ್ ಅವರುಗಳೇ, "
   if (baseLang === 'kn') {
     cleaned = cleaned.replace(
-      /^(?:(?:ಶ್ರೀಯುತ|ಶ್ರೀ|ಪ್ರಿಯ|ಆತ್ಮೀಯ|ಮಾನ್ಯ)?\s*[\u0C80-\u0CFF\u200C\u200D]+\s*(?:ಅವರೇ|ಅವರಿಗೆ)[,!\s]*){2,}/gu,
+      /^(?:(?:(?:ಅಭಿಮಾನಿ\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?|ಶ್ರೀಯುತ|ಶ್ರೀ|ಪ್ರಿಯ|ಆತ್ಮೀಯ|ಮಾನ್ಯ)?\s*[\u0C80-\u0CFF\u200C\u200D]+\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರುಗಳೇ|ಅವರ‍್ಗಳೇ)[,!\s]*)+)/gu,
       `${cleanName} ಅವರೇ, `
     );
   }
 
-  // 5. If the cleanName is already present in the text, do not prepend another greeting
+  // 6. If the cleanName is already present in the text, do not prepend another greeting
   const hasName = cleaned.includes(cleanName);
   if (!hasName) {
     const prefixes: Record<string, string> = {
@@ -5142,8 +5236,11 @@ export function ensureNamePresence(text: string, name: string, lang: string = 'k
     cleaned = `${prefix}${cleaned}`;
   }
 
-  // 6. Moderate name repetition so name is not spammed every paragraph
+  // 7. Moderate name repetition so name is not spammed every paragraph
   cleaned = moderateNameRepetition(cleaned, cleanName, baseLang);
+
+  // 8. Ensure all sentences are complete with zero dangling cutoff words
+  cleaned = ensureCompleteSentences(cleaned, baseLang);
 
   return cleaned.trim();
 }

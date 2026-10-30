@@ -2,6 +2,9 @@ import React, { forwardRef } from 'react';
 import type { TranslatedPrediction } from './usePredictionEngine';
 import type { KundliViewerSession } from '../../stores/kundliViewerStore';
 import { CosmicDashaAuraVisual } from './CosmicDashaAuraVisual';
+import { cleanEnglishFromRegionalText } from '../../features/premiumPdf/premiumPdfLocale';
+import { cleanDegreesFromText, cleanPunctuationArtifacts } from '../../features/premiumPdf/yogaDoshaGocharaEnricher';
+import { ensureNamePresence, ensureCompleteSentences, getLocalizedDevoteeName } from '../../features/premiumPdf/dynamicBhavishyaEngine';
 
 export type PdfTranslations = {
   title: string;
@@ -253,6 +256,22 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   // Section padding shared across all sections for consistency
   // px-14 = 56px horizontal clearance from edge — keeps all content well inside the border lines
   const sectionClass = "pdf-section px-14 py-10 relative";
+
+  const rawDevoteeName = session?.input?.name || translations.nameValue || "";
+  const localizedDevoteeName = getLocalizedDevoteeName(rawDevoteeName, langKey);
+
+  const cleanPara = (text: string, weaveName: boolean = false): string => {
+    if (!text) return "";
+    let s = text;
+    if (weaveName && localizedDevoteeName) {
+      s = ensureNamePresence(s, localizedDevoteeName, langKey);
+    }
+    s = langKey === "en" ? s : cleanEnglishFromRegionalText(s, langKey);
+    s = cleanDegreesFromText(s);
+    s = cleanPunctuationArtifacts(s);
+    s = ensureCompleteSentences(s, langKey);
+    return s;
+  };
 
   // ─── 10-Chapter Sovereign Header & Inquest Helpers ──────────────────────────
   const getChapterHeaderData = (
@@ -695,9 +714,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
 
             {premiumData!.characteristics!.map((char, idx) => (
-              <div key={idx} className="space-y-6">
+              <div key={idx} className="space-y-6" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                 {(char.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const trimmed = paragraph.trim();
+                  const cleaned = cleanPara(paragraph, pIdx === 0);
+                  const trimmed = cleaned.trim();
                   const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isShield) {
                     return (
@@ -705,13 +725,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                         key={pIdx}
                         className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
                       >
-                        {paragraph}
+                        {cleaned}
                       </div>
                     );
                   }
                   return (
                     <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
-                      {paragraph}
+                      {cleaned}
                     </p>
                   );
                 })}
@@ -872,7 +892,8 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   pred.question
                 )}
                 {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const trimmed = paragraph.trim();
+                  const cleaned = cleanPara(paragraph, pIdx === 0);
+                  const trimmed = cleaned.trim();
                   const isDoshaOrShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isDoshaOrShield) {
                     const isAffliction = /ದೋಷ|ಅರಿಷ್ಟ|ಪೀಡಾ|ಬಾಧೆ|Dosha|Affliction|Obstacle|Remedy|Dosh|दोष|దోష|தோஷ/i.test(trimmed);
@@ -885,13 +906,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                         key={pIdx}
                         className={boxStyle}
                       >
-                        {paragraph}
+                        {cleaned}
                       </div>
                     );
                   }
                   return (
                     <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                      {paragraph}
+                      {cleaned}
                     </p>
                   );
                 })}
@@ -913,22 +934,25 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           )}
           <div className="space-y-8">
             {premiumData!.yogas!.map((yoga, idx) => (
-              <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4">
+              <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                 <div className="flex items-center gap-2 border-b border-amber-700/20 pb-2">
                   <span className="text-xl text-amber-800">👑</span>
                   <h3 className="text-2xl font-bold text-amber-950 font-serif">
-                    {yoga.name.replace(/^[\s:,\.\-–—×*•~|]+/gu, "")}
+                    {cleanPara(yoga.name.replace(/^[\s:,\.\-–—×*•~|]+/gu, ""))}
                   </h3>
                 </div>
                 {(yoga.impact || "")
                   .split('\n')
                   .map(p => p.replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "").replace(/^[\s:,\.\-–—×*•~|]+/gu, "").trim())
                   .filter(p => p.length > 0)
-                  .map((paragraph, pIdx) => (
-                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                      {paragraph}
-                    </p>
-                  ))}
+                  .map((paragraph, pIdx) => {
+                    const cleaned = cleanPara(paragraph, pIdx === 0);
+                    return (
+                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                        {cleaned}
+                      </p>
+                    );
+                  })}
               </div>
             ))}
           </div>
@@ -947,16 +971,19 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           )}
           <div className="space-y-8">
             {premiumData!.doshas!.map((dosha, idx) => (
-              <div key={idx} className="rounded-xl border border-rose-300/80 bg-rose-50/70 p-6 shadow-sm space-y-4">
+              <div key={idx} className="rounded-xl border border-rose-300/80 bg-rose-50/70 p-6 shadow-sm space-y-4" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                 <div className="flex items-center gap-2 border-b border-rose-200 pb-2">
                   <span className="text-xl text-rose-800">🛡️</span>
-                  <h3 className="text-2xl font-bold text-rose-950 font-serif">{dosha.name}</h3>
+                  <h3 className="text-2xl font-bold text-rose-950 font-serif">{cleanPara(dosha.name)}</h3>
                 </div>
-                {(dosha.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                    {paragraph}
-                  </p>
-                ))}
+                {(dosha.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
+                  const cleaned = cleanPara(paragraph, pIdx === 0);
+                  return (
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                      {cleaned}
+                    </p>
+                  );
+                })}
                 {dosha.remedy && (
                   <div className="mt-4 pt-4 border-t border-rose-200 bg-amber-50/80 -mx-6 -mb-6 p-6 rounded-b-xl border-t border-amber-300">
                     <h4 className="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
@@ -964,7 +991,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                       <span>{translations.remedyTitle}</span>
                     </h4>
                     <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                      {dosha.remedy}
+                      {cleanPara(dosha.remedy)}
                     </p>
                   </div>
                 )}
@@ -986,7 +1013,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           )}
           <div className="space-y-8">
             {premiumData!.gochara!.map((gochara, idx) => (
-              <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4">
+              <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                 <div className="flex items-center gap-2 border-b border-amber-700/20 pb-2">
                   <span className="text-xl text-amber-800">🪐</span>
                   <h3 className="text-2xl font-bold text-amber-950 font-serif">{gochara.name}</h3>

@@ -286,6 +286,250 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
   }
 };
 
+interface DoshaSnippets {
+  part1: string;
+  part2: string;
+  shivaMedallion: string;
+  suryaMedallion: string;
+  gokarnanathaMedallion: string;
+  yearsUnit: string;
+  yearsTillUnit: string;
+  evaluated: string;
+  critical: string;
+  moderate: string;
+  karmicVulnerability: string;
+  subconsciousFear: string;
+  subconsciousFearShort: string;
+  shantiCompleted: string;
+  shantiPrep: string;
+  guidance: string;
+  guidanceShort: string;
+  lagnaFortitude: string;
+  chandraFortitude: string;
+  suryaFortitudeTitle: string;
+  suryaFortitudeDesc: string;
+  trikonaFortitudeTitle: string;
+  trikonaFortitudeDesc: string;
+  pitruBadge: string;
+  hazardsActiveSuffix: string;
+  allHazardSafe: string;
+  noGandantaraDetected: string;
+  safeAgePassed: string;
+  safeThresholdSurpassedDesc: (age: number) => string;
+  parashariProtocol: string;
+  parashariRuleDesc: string;
+  agePrefix: string;
+  ageFocusFallback: string;
+  priorityPrefix: string;
+  divNative: string;
+  divPrimaryDosha: string;
+  divSecondaryDosha: string;
+  divPriestBlessing: string;
+}
+
+const LOCALIZED_SNIPPETS: Record<string, DoshaSnippets> = {
+  kn: {
+    part1: "ಭಾಗ ೧",
+    part2: "ಭಾಗ ೨",
+    shivaMedallion: "॥ ಶಿವ ॥",
+    suryaMedallion: "॥ ಸೂರ್ಯ ॥",
+    gokarnanathaMedallion: "॥ ಗೋಕರ್ಣನಾಥ ॥",
+    yearsUnit: "ವರ್ಷ",
+    yearsTillUnit: "ವರ್ಷದವರೆಗೆ",
+    evaluated: "ಪರಿಶೀಲಿತ ವರ್ಗಗಳು:",
+    critical: "ತೀವ್ರ ಬಾಧೆ (Critical):",
+    moderate: "ಮಧ್ಯಮ (Moderate):",
+    karmicVulnerability: "ದೋಷ ಸೂಚ್ಯಂಕ:",
+    subconsciousFear: "ಆಂತರಿಕ ಮನೋಭಯ & ಚಿಂತೆಗಳು:",
+    subconsciousFearShort: "ಆಂತರಿಕ ಮನೋಭಯ:",
+    shantiCompleted: "ಶಾಂತಿ ನೆರವೇರಿದ ದೃಢೀಕರಣ:",
+    shantiPrep: "ಶಾಂತಿ ಸಿದ್ಧತೆ:",
+    guidance: "ವಿಶೇಷ ಮಾರ್ಗದರ್ಶನ:",
+    guidanceShort: "ಮಾರ್ಗದರ್ಶನ:",
+    lagnaFortitude: "ಲಗ್ನ ಕೇಂದ್ರವು ಜಾತಕರ ಶಾರೀರಿಕ ಆರೋಗ್ಯ ಮತ್ತು ಜೀವ ಶಕ್ತಿಯನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಪ್ರಮುಖ ಭಾವಗಳು ರಕ್ಷಿತವಾಗಿವೆ.",
+    chandraFortitude: "ಚಂದ್ರ ರಾಶಿ ಮತ್ತು ಮನೋಸ್ಥಿತಿ ಸಮತೋಲನದಲ್ಲಿದ್ದು, ನಿತ್ಯ ಪೂಜೆ ಹಾಗೂ ಈಶ್ವರ ಪ್ರಾರ್ಥನೆಯು ಮಾನಸಿಕ ಶಾಂತಿಯನ್ನು ತರುತ್ತದೆ.",
+    suryaFortitudeTitle: "ಆತ್ಮಕಾರಕ ಸೂರ್ಯ ಬಲ:",
+    suryaFortitudeDesc: "ಪೂರ್ವ ಪುಣ್ಯ ಮತ್ತು ಪಿತೃ ಆಶೀರ್ವಾದದ ಪ್ರಭಾವದಿಂದ ಜಾತಕರಿಗೆ ಕಷ್ಟಗಳನ್ನು ಎದುರಿಸುವ ನೈಸರ್ಗಿಕ ಸಂಕಲ್ಪ ಶಕ್ತಿ ಲಭಿಸಿದೆ.",
+    trikonaFortitudeTitle: "ತ್ರಿಕೋಣ ಭಾವ ರಕ್ಷಣೆ:",
+    trikonaFortitudeDesc: "ಧರ್ಮ ಮತ್ತು ಭಾಗ್ಯ ಸ್ಥಾನಗಳು ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ನಿತ್ಯ ಅರ್ಚನೆಯಿಂದ ಸದಾ ಜಾಗೃತವಾಗಿರುತ್ತವೆ.",
+    pitruBadge: "🪔 ಪವಿತ್ರ ಪಿತೃ ಋಣ ನಿವಾರಣಾ ವಿಶೇಷ ಆದ್ಯತೆ · ಶ್ರೀ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ತಿಲ ಹೋಮ & ನಾರಾಯಣ ಬಲಿ",
+    hazardsActiveSuffix: "ಗಂಡಾಂತರಗಳು ಸಕ್ರಿಯ",
+    allHazardSafe: "✓ ಸಕಲ ಗಂಡಾಂತರ ವಯೋಮಿತಿ ಸುರಕ್ಷಿತವಾಗಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ",
+    noGandantaraDetected: "ಯಾವುದೇ ಮಾರಕ ಜಲ-ಅಗ್ನಿ-ಸರ್ಪ ಗಂಡಾಂತರಗಳು ಪತ್ತೆಯಾಗಿಲ್ಲ. ಜಾತಕರು ಸುರಕ್ಷಿತರಾಗಿದ್ದಾರೆ.",
+    safeAgePassed: "ವಯೋಮಿತಿ ದಾಟಿದೆ",
+    safeThresholdSurpassedDesc: (age: number) => `ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ (${age} ವರ್ಷ) ಯಶಸ್ವಿಯಾಗಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಈ ಗಂಡಾಂತರದಿಂದ ಜಾತಕರು ಸಂಪೂರ್ಣ ಸುರಕ್ಷಿತರಾಗಿದ್ದಾರೆ.`,
+    parashariProtocol: "ಪರಾಶರ ಶಾಸ್ತ್ರ ರಕ್ಷಾ ಸೂತ್ರ:",
+    parashariRuleDesc: "ಗಂಡಾಂತರ ವಯೋಮಿತಿ ದಾಟುವ ತನಕ ಜಾತಕರಿಗೆ ನಿತ್ಯ ರುದ್ರಾಭಿಷೇಕ ತೀರ್ಥ ಪ್ರೋಕ್ಷಣೆ, ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪ ಹಾಗೂ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆಯುಷ್ಯ ಶಾಂತಿ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.",
+    agePrefix: "ವಯಸ್ಸು ",
+    ageFocusFallback: "ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಅಗತ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಮೊದಲ ಆದ್ಯತೆಯ ಪರಿಹಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಾವಶ್ಯಕ.",
+    priorityPrefix: "ಆದ್ಯತೆ #",
+    divNative: "❖ ಜಾತಕ ವಿವರ ❖",
+    divPrimaryDosha: "❖ ಪ್ರಮುಖ ಕರ್ಮ ದೋಷ ವಿಶ್ಲೇಷಣೆ ❖",
+    divSecondaryDosha: "❖ ದ್ವಿತೀಯ ಕರ್ಮ ಫಲ & ಗ್ರಹ ಸಾಮರಸ್ಯ ❖",
+    divPriestBlessing: "❖ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಸನ್ನಿಧಿ ಮುದ್ರೆ ❖"
+  },
+  hi: {
+    part1: "भाग १",
+    part2: "भाग २",
+    shivaMedallion: "॥ शिव ॥",
+    suryaMedallion: "॥ सूर्य ॥",
+    gokarnanathaMedallion: "॥ गोकर्णनाथ ॥",
+    yearsUnit: "वर्ष",
+    yearsTillUnit: "वर्ष की आयु तक",
+    evaluated: "परीक्षित वर्ग:",
+    critical: "तीव्र बाधा (Critical):",
+    moderate: "मध्यम बाधा (Moderate):",
+    karmicVulnerability: "कर्म दोष सूचकांक:",
+    subconsciousFear: "आंतरिक मनोभय एवं चिंताएं:",
+    subconsciousFearShort: "आंतरिक मनोभय:",
+    shantiCompleted: "शांति संपन्न प्रमाण:",
+    shantiPrep: "शांति तैयारी:",
+    guidance: "विशेष मार्गदर्शन:",
+    guidanceShort: "मार्गदर्शन:",
+    lagnaFortitude: "लग्न केंद्र जातक के शारीरिक स्वास्थ्य और जीवन शक्ति को निर्धारित करता है। प्रमुख भाव सुरक्षित हैं।",
+    chandraFortitude: "चंद्र राशि एवं मनोस्थिति संतुलन में है, नित्य पूजा तथा शिव आराधना मानसिक शांति प्रदान करती है।",
+    suryaFortitudeTitle: "आत्मकारक सूर्य बल:",
+    suryaFortitudeDesc: "पूर्व पुण्य एवं पितृ आशीर्वाद के प्रभाव से जातक को विपत्तियों से लड़ने की स्वाभाविक संकल्प शक्ति प्राप्त है।",
+    trikonaFortitudeTitle: "त्रिकोण भाव रक्षा:",
+    trikonaFortitudeDesc: "धर्म एवं भाग्य स्थान श्री गोकर्ण महाबलेश्वर के सानिध्य में की जाने वाली नित्य आराधना से सदैव जागृत रहते हैं।",
+    pitruBadge: "🪔 पवित्र पितृ ऋण निवारण विशेष प्राथमिकता · श्री गोकर्ण कोटितीर्थ तिल होम एवं नारायण बलि",
+    hazardsActiveSuffix: "गंडांतर सक्रिय",
+    allHazardSafe: "✓ सभी गंडांतर आयु-सीमाएं सुरक्षित रूप से समाप्त हो चुकी हैं",
+    noGandantaraDetected: "कोई घातक जल-अग्नि-सर्प गंडांतर नहीं पाया गया। जातक पूर्णतः सुरक्षित हैं।",
+    safeAgePassed: "आयु-सीमा पार हो चुकी है",
+    safeThresholdSurpassedDesc: (age: number) => `सुरक्षा आयु-सीमा (${age} वर्ष) सफलतापूर्वक पार हो चुकी है। इस गंडांतर से जातक पूरी तरह सुरक्षित हैं।`,
+    parashariProtocol: "पाराशर शास्त्र रक्षा सूत्र:",
+    parashariRuleDesc: "गंडांतर आयु सीमा पार करने तक जातक को नित्य रुद्राभिषेक तीर्थ मार्जन, महामृत्युंजय मंत्र जप एवं गोकर्ण क्षेत्र में आयुष्य शांति अनुष्ठान कराना अत्यंत मंगलकारी है।",
+    agePrefix: "आयु ",
+    ageFocusFallback: "वर्तमान आयु की आवश्यकतानुसार प्राथमिक उपायों का श्रद्धापूर्वक अनुष्ठान करना अत्यंत आवश्यक है।",
+    priorityPrefix: "प्राथमिकता #",
+    divNative: "❖ जातक विवरण ❖",
+    divPrimaryDosha: "❖ प्रमुख कर्म दोष विश्लेषण ❖",
+    divSecondaryDosha: "❖ द्वितीय कर्म फल एवं ग्रह सामंजस्य ❖",
+    divPriestBlessing: "❖ अर्चक आशीर्वचन एवं सन्निधि मुद्रा ❖"
+  },
+  en: {
+    part1: "Part 1",
+    part2: "Part 2",
+    shivaMedallion: "॥ Shiva ॥",
+    suryaMedallion: "॥ Surya ॥",
+    gokarnanathaMedallion: "॥ Gokarnanatha ॥",
+    yearsUnit: "Yrs",
+    yearsTillUnit: "Years",
+    evaluated: "Evaluated Categories:",
+    critical: "Critical Afflictions:",
+    moderate: "Moderate Afflictions:",
+    karmicVulnerability: "Karmic Vulnerability:",
+    subconsciousFear: "Subconscious Fear & Anxiety:",
+    subconsciousFearShort: "Subconscious Fear:",
+    shantiCompleted: "Remedy Completed:",
+    shantiPrep: "Remedy Preparation:",
+    guidance: "Special Guidance:",
+    guidanceShort: "Guidance:",
+    lagnaFortitude: "The Ascendant kendra protects physical vitality, immunity and baseline life fortitude.",
+    chandraFortitude: "Lunar dignity preserves cognitive resilience; regular worship and meditation maintain calm clarity.",
+    suryaFortitudeTitle: "Sun & Vital Dignity:",
+    suryaFortitudeDesc: "Solar fortitude and dharmic inheritance bestow innate will-power to overcome karmic hurdles.",
+    trikonaFortitudeTitle: "Trikona Divine Grace:",
+    trikonaFortitudeDesc: "Benefic 9th and 5th house trines anchor lasting divine protection under Mahabaleshwara's grace.",
+    pitruBadge: "🪔 Sacred Ancestral Karma Priority · Sri Gokarna Kotiteertha Tila Homa & Narayana Bali",
+    hazardsActiveSuffix: "Hazards Active",
+    allHazardSafe: "✓ All Hazard Windows Safely Surpassed",
+    noGandantaraDetected: "No critical life hazards or Gandantaras detected. Devotee is safeguarded.",
+    safeAgePassed: "Safe Age Passed",
+    safeThresholdSurpassedDesc: (age: number) => `Safe threshold (${age} years) successfully surpassed. Native is fully shielded.`,
+    parashariProtocol: "Parashari Hazard Protocol:",
+    parashariRuleDesc: "Until the safe age threshold is crossed, daily Mahamrityunjaya chanting, protective sacred ash (Vibhuti), and temple Kavacha are strongly advised.",
+    agePrefix: "Age ",
+    ageFocusFallback: "It is essential to undertake priority remedial measures aligned with your current life stage.",
+    priorityPrefix: "Priority #",
+    divNative: "❖ Native Profile ❖",
+    divPrimaryDosha: "❖ Primary Karmic Doshas ❖",
+    divSecondaryDosha: "❖ Secondary Karmic Impact & Balance ❖",
+    divPriestBlessing: "❖ Priest Blessing & Sannidhi Seal ❖"
+  },
+  te: {
+    part1: "భాగం 1",
+    part2: "భాగం 2",
+    shivaMedallion: "॥ శివ ॥",
+    suryaMedallion: "॥ సూర్య ॥",
+    gokarnanathaMedallion: "॥ గోకర్ణనాథ ॥",
+    yearsUnit: "సంవత్సరాలు",
+    yearsTillUnit: "సంవత్సరాల వరకు",
+    evaluated: "పరిశీలించిన వర్గాలు:",
+    critical: "తీవ్ర బాధ (Critical):",
+    moderate: "మధ్యమ బాధ (Moderate):",
+    karmicVulnerability: "దోష సూచిక:",
+    subconsciousFear: "అంతర్గత భయాలు & ఆందోళనలు:",
+    subconsciousFearShort: "అంతర్గత భయం:",
+    shantiCompleted: "శాంతి పూర్తయిన నిర్ధారణ:",
+    shantiPrep: "శాంతి సన్నద్ధత:",
+    guidance: "ప్రత్యేక మార్గదర్శకత్వం:",
+    guidanceShort: "మార్గదర్శకత్వం:",
+    lagnaFortitude: "లగ్న కేంద్రం జాతకుని శారీరక ఆరోగ్యం మరియు ప్రాణశక్తిని నిర్ణయిస్తుంది. ముఖ్య భావాలు రక్షించబడ్డాయి.",
+    chandraFortitude: "చంద్ర రాశి మరియు మనఃస్థితి సమతుల్యతలో ఉన్నాయి, నిత్య పూజ మరియు శివారాధన మానసిక ప్రశాంతతను చేకూరుస్తాయి.",
+    suryaFortitudeTitle: "ఆత్మకారక సూర్య బలం:",
+    suryaFortitudeDesc: "పూర్వ పుణ్యం మరియు పితృ ఆశీర్వాద ప్రభావంతో జాతకునికి కష్టాలను ఎదుర్కొనే సహజ సంకల్ప బలం లభించింది.",
+    trikonaFortitudeTitle: "త్రికోణ భావ రక్షణ:",
+    trikonaFortitudeDesc: "ధర్మ మరియు భాగ్య స్థానాలు గోకర్ణ మహాబలేశ్వరుని సన్నిధిలో చేసే నిత్య పూజతో సదా రక్షణనిస్తాయి.",
+    pitruBadge: "🪔 పవిత్ర పితృ రుణ నివారణ ప్రత్యేక ప్రాధాన్యత · శ్రీ గోకర్ణ కోటితీర్థ తిల హోమం & నారాయణ బలి",
+    hazardsActiveSuffix: "గండాంతరాలు చురుకుగా ఉన్నాయి",
+    allHazardSafe: "✓ అన్ని గండాంతర వయోపరిమితులు సురక్షితంగా దాటాయి",
+    noGandantaraDetected: "ఎటువంటి ప్రాణాంతక జల-అగ్ని-సర్ప గండాంతరాలు లేవు. జాతకుడు సురక్షితంగా ఉన్నాడు.",
+    safeAgePassed: "వయోపరిమితి దాటింది",
+    safeThresholdSurpassedDesc: (age: number) => `రక్షణ వయోపరిమితి (${age} సం.) విజయవంతంగా దాటింది. ఈ గండాంతరం నుండి జాతకుడు సంపూర్ణంగా సురక్షితం.`,
+    parashariProtocol: "పరాశర శాస్త్ర రక్షా సూత్రం:",
+    parashariRuleDesc: "గండాంతర వయోపరిమితి దాటే వరకు జాతకునికి నిత్య రుద్రాభిషేక తీర్థ ప్రోక్షణ, మహామృత్యుంజయ మంత్ర జపం మరియు గోకర్ణ సన్నిధిలో ఆయుష్య శాంతి చేయడం అత్యంత శ్రేయస్కరం.",
+    agePrefix: "వయస్సు ",
+    ageFocusFallback: "ప్రస్తుత వయస్సు అవసరానికి అనుగుణంగా ప్రాధాన్యతా పరిహారాలను ఆచరించడం అత్యంత ఆవశ్యకం.",
+    priorityPrefix: "ప్రాధాన్యత #",
+    divNative: "❖ జాతక వివరాలు ❖",
+    divPrimaryDosha: "❖ ప్రధాన కర్మ దోష విశ్లేషణ ❖",
+    divSecondaryDosha: "❖ ద్వితీయ కర్మ ఫలం & గ్రహ సమన్వయం ❖",
+    divPriestBlessing: "❖ అర్చకుల ఆశీర్వచనం & సన్నిధి ముద్ర ❖"
+  },
+  ta: {
+    part1: "பகுதி 1",
+    part2: "பகுதி 2",
+    shivaMedallion: "॥ சிவ ॥",
+    suryaMedallion: "॥ சூர்யா ॥",
+    gokarnanathaMedallion: "॥ கோகர்ணநாதர் ॥",
+    yearsUnit: "ஆண்டுகள்",
+    yearsTillUnit: "ஆண்டுகள் வரை",
+    evaluated: "ஆய்வு செய்யப்பட்டவை:",
+    critical: "தீவிர பாதிப்பு (Critical):",
+    moderate: "நடுத்தர பாதிப்பு (Moderate):",
+    karmicVulnerability: "கர்ம தோஷ குறியீடு:",
+    subconsciousFear: "ஆழ்மன பயம் & கவலைகள்:",
+    subconsciousFearShort: "ஆழ்மன பயம்:",
+    shantiCompleted: "பரிகாரம் நிறைவடைந்த உறுதிப்படுத்தல்:",
+    shantiPrep: "பரிகார முன்னேற்பாடு:",
+    guidance: "சிறப்பு வழிகாட்டுதல்:",
+    guidanceShort: "வழிகாட்டுதல்:",
+    lagnaFortitude: "லக்ன கேந்திரம் ஜாதகரின் உடல் நலம் மற்றும் ஆயுள் பலத்தை உறுதி செய்கிறது. முக்கிய ஸ்தானங்கள் பாதுகாக்கப்பட்டுள்ளன.",
+    chandraFortitude: "சந்திர ராசி மற்றும் மனநிலை சமநிலையில் உள்ளது, தினசரி இறை வழிபாடு மன அமைதியை வழங்கும்.",
+    suryaFortitudeTitle: "ஆத்மகாரக சூரிய பலம்:",
+    suryaFortitudeDesc: "பூர்வ புண்ணியம் மற்றும் பித்ருக்களின் ஆசியால் தடைகளை வெல்லும் திடசங்கல்ப பலம் கிடைத்துள்ளது.",
+    trikonaFortitudeTitle: "திரிகோண ஸ்தான பாதுகாப்பு:",
+    trikonaFortitudeDesc: "தர்ம மற்றும் பாக்கிய ஸ்தானங்கள் கோகர்ண மகாபலேஸ்வரரின் அருளால் எப்போதும் பூரண பாதுகாப்பு அளிக்கின்றன.",
+    pitruBadge: "🪔 புனித பித்ரு கடன் நிவர்த்தி முன்னுரிமை · ஸ்ரீ கோகர்ண கோடித்தீர்த்த தில ஹோமம் & நாராயண பலி",
+    hazardsActiveSuffix: "கண்டாந்தரங்கள் தீவிரமாக உள்ளன",
+    allHazardSafe: "✓ அனைத்து கண்டாந்தர ஆபத்து வயது வரம்புகளும் பாதுகாப்பாக கடந்துவிட்டன",
+    noGandantaraDetected: "எந்தவித கொடிய நீர்-நெருப்பு-நாக கண்டாந்தரங்களும் இல்லை. ஜாதகர் பாதுகாப்பாக உள்ளார்.",
+    safeAgePassed: "பாதுகாப்பான வயது கடந்துவிட்டது",
+    safeThresholdSurpassedDesc: (age: number) => `பாதுகாப்பு வயது வரம்பு (${age} ஆண்டுகள்) வெற்றிகரமாக கடக்கப்பட்டது. இந்த கண்டாந்தரத்திலிருந்து ஜாதகர் பூரண பாதுகாப்பில் உள்ளார்.`,
+    parashariProtocol: "பராசர சாஸ்திர பாதுகாப்பு சூத்திரம்:",
+    parashariRuleDesc: "கண்டாந்தர வயது வரம்பு முடியும் வரை தினமும் ருத்ராபிஷேக தீர்த்தம் தெளித்தல், மகா மிருத்யுஞ்சய மந்திர ஜெபம் மற்றும் கோகர்ண சந்நிதானத்தில் ஆயுஷ்ய சாந்தி செய்வது மிகச் சிறந்தது.",
+    agePrefix: "வயது ",
+    ageFocusFallback: "தற்போதைய வயதின் தேவைக்கேற்ப முன்னுரிமை பரிகாரங்களைச் செய்வது மிகவும் அவசியம்.",
+    priorityPrefix: "முன்னுரிமை #",
+    divNative: "❖ ஜாதகர் விவரம் ❖",
+    divPrimaryDosha: "❖ முதன்மை கர்ம தோஷ ஆய்வு ❖",
+    divSecondaryDosha: "❖ இரண்டாம் நிலை கர்ம பலன் & கிரக சமநிலை ❖",
+    divPriestBlessing: "❖ அர்ச்சகர் ஆசி & சந்நிதி முத்திரை ❖"
+  }
+};
+
 const getAgeStageRemedies = (stage: string, lang: string, hasPitru: boolean) => {
   const titles: Record<string, string[]> = {
     kn: [
@@ -406,6 +650,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 }) => {
   const code: SupportedLanguage = (["kn", "hi", "te", "ta", "en"].includes(lang) ? lang : "kn") as SupportedLanguage;
   const t = PDF_TEXT[code] || PDF_TEXT.kn;
+  const snip = LOCALIZED_SNIPPETS[code] || LOCALIZED_SNIPPETS.en;
 
   const { devoteeInfo, doshas, gandantaraAndBhaya, summary } = report;
   const activeDoshas = (doshas || []).filter((d) => d.isDetected);
@@ -551,7 +796,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           }}
         />
         <div style={{ fontSize: "8px", fontWeight: 900, color: "#FDE68A", marginTop: "2px", letterSpacing: "normal" }}>
-          ॥ ಶಿವ ॥
+          {snip.shivaMedallion}
         </div>
       </div>
 
@@ -582,7 +827,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               border: `1px solid ${GOLD_LIGHT}`
             }}
           >
-            {partNum === 1 ? (code === "kn" ? "ಭಾಗ ೧" : "Part 1") : (code === "kn" ? "ಭಾಗ ೨" : "Part 2")}
+            {partNum === 1 ? snip.part1 : snip.part2}
           </div>
         </div>
         <div
@@ -630,7 +875,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           }}
         />
         <div style={{ fontSize: "8px", fontWeight: 900, color: "#FDE68A", marginTop: "2px", letterSpacing: "normal" }}>
-          ॥ ಸೂರ್ಯ ॥
+          {snip.suryaMedallion}
         </div>
       </div>
     </div>
@@ -730,7 +975,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Header Banner with Lord Shiva and Lord Surya Sacred Medallions */}
           {renderRoyalHeader(1, t.mainTitle, t.shloka)}
 
-          {renderGoldLandlineDivider("❖ ಜಾತಕ ವಿವರ ❖")}
+          {renderGoldLandlineDivider(snip.divNative)}
 
           {/* Devotee Info Matrix & Karmic Assessment Grid */}
           <div
@@ -774,7 +1019,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
               <div style={{ backgroundColor: PANEL_WARM, border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "4px 8px", textAlign: "center", minWidth: 0 }}>
                 <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "11.5px", lineHeight: 1.35 }}>
-                  ⭐ {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {code === "kn" ? "ವರ್ಷ" : "Yrs"}
+                  ⭐ {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {snip.yearsUnit}
                 </div>
                 <div style={{ fontSize: "10px", fontWeight: 800, color: GOLD_PRIMARY, marginTop: "1px", lineHeight: 1.35 }}>
                   🔥 {activeDoshas.length} {t.activeDoshasCountLabel} ({devoteeInfo.ageStageNameRecord?.[code] || devoteeInfo.ageStageKey})
@@ -785,12 +1030,12 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             {/* Karmic Index Indicator Bar */}
             <div style={{ marginTop: "6px", paddingTop: "5px", borderTop: `1px dashed ${GOLD_LIGHT}`, display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "10.5px", lineHeight: 1.4 }}>
               <div style={{ display: "flex", gap: "12px", color: INK_MUTED, fontWeight: 700 }}>
-                <span>📋 {code === "kn" ? "ಪರಿಶೀಲಿತ ವರ್ಗಗಳು:" : "Evaluated:"} <strong style={{ color: INK_DEEP }}>{summary?.totalEvaluated || 12}</strong></span>
-                <span>⚡ {code === "kn" ? "ತೀವ್ರ ಬಾಧೆ (Critical):" : "Critical:"} <strong style={{ color: "#B91C1C" }}>{summary?.criticalCount || 0}</strong></span>
-                <span>⚠️ {code === "kn" ? "ಮಧ್ಯಮ (Moderate):" : "Moderate:"} <strong style={{ color: GOLD_PRIMARY }}>{(summary?.highCount || 0) + (summary?.moderateCount || 0)}</strong></span>
+                <span>📋 {snip.evaluated} <strong style={{ color: INK_DEEP }}>{summary?.totalEvaluated || 12}</strong></span>
+                <span>⚡ {snip.critical} <strong style={{ color: "#B91C1C" }}>{summary?.criticalCount || 0}</strong></span>
+                <span>⚠️ {snip.moderate} <strong style={{ color: GOLD_PRIMARY }}>{(summary?.highCount || 0) + (summary?.moderateCount || 0)}</strong></span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <span style={{ fontWeight: 800, color: GOLD_DARK }}>{code === "kn" ? "ದೋಷ ಸೂಚ್ಯಂಕ:" : "Karmic Vulnerability:"}</span>
+                <span style={{ fontWeight: 800, color: GOLD_DARK }}>{snip.karmicVulnerability}</span>
                 <span style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "11.5px", backgroundColor: PANEL_WARM, padding: "2px 8px", borderRadius: "5px", border: `1px solid ${GOLD_BORDER}` }}>
                   {summary?.karmicIndexScore || 0}%
                 </span>
@@ -811,21 +1056,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
               <div style={{ fontSize: "12px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.35 }}>
-                {t.ageStrategyHeading} ({devoteeInfo.ageStageNameRecord?.[code] || "ವಯಸ್ಸು " + (devoteeInfo.currentAge || devoteeInfo.devoteeAge)})
+                {t.ageStrategyHeading} ({devoteeInfo.ageStageNameRecord?.[code] || snip.agePrefix + (devoteeInfo.currentAge || devoteeInfo.devoteeAge)})
               </div>
               <div style={{ fontSize: "9.5px", background: `linear-gradient(135deg, ${GOLD_DARK} 0%, ${GOLD_PRIMARY} 100%)`, color: "#FFFFFF", padding: "2px 9px", borderRadius: "7px", fontWeight: 800, border: `1px solid ${GOLD_BORDER}`, letterSpacing: "normal", flexShrink: 0 }}>
                 ⚡ {t.agePriorityBadgeLabel}
               </div>
             </div>
             <div style={{ fontSize: "10.5px", color: INK_DEEP, fontWeight: 700, marginTop: "3px", lineHeight: 1.45 }}>
-              {getLangVal(devoteeInfo.currentAgeFocusSummary, "ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಅಗತ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಮೊದಲ ಆದ್ಯತೆಯ ಪರಿಹಾರಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಾವಶ್ಯಕ.")}
+              {getLangVal(devoteeInfo.currentAgeFocusSummary, snip.ageFocusFallback)}
             </div>
             <div style={{ fontSize: "9.5px", color: INK_MUTED, marginTop: "2px", fontStyle: "italic", lineHeight: 1.35 }}>
               {t.ageStrategyNotice}
             </div>
           </div>
 
-          {renderGoldLandlineDivider("❖ ಪ್ರಮುಖ ಕರ್ಮ ದೋಷ ವಿಶ್ಲೇಷಣೆ ❖")}
+          {renderGoldLandlineDivider(snip.divPrimaryDosha)}
 
           {/* Page 1 Primary Active Doshas (Up to 2 Major Doshas in Full Depth) */}
           <div style={{ display: "flex", flexDirection: "column", gap: "9px", flex: 1, minHeight: 0, justifyContent: "space-around" }}>
@@ -853,7 +1098,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 const isKuja = dosha.id === "kuja_dosha";
                 const isSarpa = dosha.id === "kala_sarpa_dosha";
                 const isCompleted = dosha.shantiStatus === "completed";
-                const priorityBadgeText = getLangVal(dosha.agePriorityBadge, `ಆದ್ಯತೆ #${dosha.agePriorityRank || 1}`);
+                const priorityBadgeText = getLangVal(dosha.agePriorityBadge, `${snip.priorityPrefix}${dosha.agePriorityRank || 1}`);
 
                 return (
                   <div
@@ -883,9 +1128,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           border: `1px solid ${GOLD_LIGHT}`
                         }}
                       >
-                        {code === "kn"
-                          ? "🪔 ಪವಿತ್ರ ಪಿತೃ ಋಣ ನಿವಾರಣಾ ವಿಶೇಷ ಆದ್ಯತೆ · ಶ್ರೀ ಗೋಕರ್ಣ ಕೋಟಿತೀರ್ಥ ತಿಲ ಹೋಮ & ನಾರಾಯಣ ಬಲಿ"
-                          : "🪔 Sacred Ancestral Karma Priority · Sri Gokarna Kotiteertha Tila Homa & Narayana Bali"}
+                        {snip.pitruBadge}
                       </div>
                     )}
 
@@ -984,7 +1227,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           lineHeight: 1.4
                         }}
                       >
-                        <strong style={{ color: GOLD_DARK }}>🧠 {code === "kn" ? "ಆಂತರಿಕ ಮನೋಭಯ & ಚಿಂತೆಗಳು:" : "Subconscious Fear:"} </strong>
+                        <strong style={{ color: GOLD_DARK }}>🧠 {snip.subconsciousFear} </strong>
                         <span>{getLangVal(dosha.subconsciousFear)}</span>
                       </div>
                     )}
@@ -1059,13 +1302,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       {/* Completed Narration vs Conditional Guidance */}
                       {isCompleted ? (
                         <div style={{ backgroundColor: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: "5px", padding: "3px 7px", marginTop: "4px", fontSize: "9px", color: "#166534", lineHeight: 1.35 }}>
-                          <strong>✓ {code === "kn" ? "ಶಾಂತಿ ನೆರವೇರಿದ ದೃಢೀಕರಣ:" : "Shanti Completed:"} </strong>
+                          <strong>✓ {snip.shantiCompleted} </strong>
                           <span>{getLangVal(dosha.alreadyDoneNarration)}</span>
                         </div>
                       ) : (
                         dosha.conditionalGuidance && (
                           <div style={{ backgroundColor: CARD_BG, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "5px", padding: "3px 7px", marginTop: "4px", fontSize: "9px", color: INK_DEEP, lineHeight: 1.35 }}>
-                            <strong style={{ color: GOLD_DARK }}>💡 {code === "kn" ? "ವಿಶೇಷ ಮಾರ್ಗದರ್ಶನ:" : "Special Guidance:"} </strong>
+                            <strong style={{ color: GOLD_DARK }}>💡 {snip.guidance} </strong>
                             <span>
                               {stripDuplicatePrefix(getLangVal(dosha.conditionalGuidance), [
                                 "ವಿಶೇಷ ಮಾರ್ಗದರ್ಶನ:",
@@ -1102,33 +1345,25 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "6px", padding: "5px 8px", minWidth: 0 }}>
                     <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3 }}>🏛️ {t.lagnaLabel} {devoteeInfo.lagnaRashiRecord?.[code] || devoteeInfo.lagnaRashi}</div>
                     <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.4 }}>
-                      {code === "kn"
-                        ? "ಲಗ್ನ ಕೇಂದ್ರವು ಜಾತಕರ ಶಾರೀರಿಕ ಆರೋಗ್ಯ ಮತ್ತು ಜೀವ ಶಕ್ತಿಯನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಪ್ರಮುಖ ಭಾವಗಳು ರಕ್ಷಿತವಾಗಿವೆ."
-                        : "The Ascendant kendra protects physical vitality, immunity and baseline life fortitude."}
+                      {snip.lagnaFortitude}
                     </div>
                   </div>
                   <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "6px", padding: "5px 8px", minWidth: 0 }}>
                     <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3 }}>🌙 {t.rashiLabel} {devoteeInfo.moonRashiRecord?.[code] || devoteeInfo.moonRashi}</div>
                     <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.4 }}>
-                      {code === "kn"
-                        ? "ಚಂದ್ರ ರಾಶಿ ಮತ್ತು ಮನೋಸ್ಥಿತಿ ಸಮತೋಲನದಲ್ಲಿದ್ದು, ನಿತ್ಯ ಪೂಜೆ ಹಾಗೂ ಈಶ್ವರ ಪ್ರಾರ್ಥನೆಯು ಮಾನಸಿಕ ಶಾಂತಿಯನ್ನು ತರುತ್ತದೆ."
-                        : "Lunar dignity preserves cognitive resilience; regular worship and meditation maintain calm clarity."}
+                      {snip.chandraFortitude}
                     </div>
                   </div>
                   <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "6px", padding: "5px 8px", minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3 }}>☀️ {code === "kn" ? "ಆತ್ಮಕಾರಕ ಸೂರ್ಯ ಬಲ:" : "Sun & Vital Dignity:"}</div>
+                    <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3 }}>☀️ {snip.suryaFortitudeTitle}</div>
                     <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.4 }}>
-                      {code === "kn"
-                        ? "ಪೂರ್ವ ಪುಣ್ಯ ಮತ್ತು ಪಿತೃ ಆಶೀರ್ವಾದದ ಪ್ರಭಾವದಿಂದ ಜಾತಕರಿಗೆ ಕಷ್ಟಗಳನ್ನು ಎದುರಿಸುವ ನೈಸರ್ಗಿಕ ಸಂಕಲ್ಪ ಶಕ್ತಿ ಲಭಿಸಿದೆ."
-                        : "Solar fortitude and dharmic inheritance bestow innate will-power to overcome karmic hurdles."}
+                      {snip.suryaFortitudeDesc}
                     </div>
                   </div>
                   <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "6px", padding: "5px 8px", minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3 }}>🪔 {code === "kn" ? "ತ್ರಿಕೋಣ ಭಾವ ರಕ್ಷಣೆ:" : "Trikona Divine Grace:"}</div>
+                    <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3 }}>🪔 {snip.trikonaFortitudeTitle}</div>
                     <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.4 }}>
-                      {code === "kn"
-                        ? "ಧರ್ಮ ಮತ್ತು ಭಾಗ್ಯ ಸ್ಥಾನಗಳು ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ನಿತ್ಯ ಅರ್ಚನೆಯಿಂದ ಸದಾ ಜಾಗೃತವಾಗಿರುತ್ತವೆ."
-                        : "Benefic 9th and 5th house trines anchor lasting divine protection under Mahabaleshwara's grace."}
+                      {snip.trikonaFortitudeDesc}
                     </div>
                   </div>
                 </div>
@@ -1234,7 +1469,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Page 2 Header with Sacred Imagery */}
           {renderRoyalHeader(2, t.page2Title, t.page2Shloka)}
 
-          {renderGoldLandlineDivider("❖ ದ್ವಿತೀಯ ಕರ್ಮ ಫಲ & ಗ್ರಹ ಸಾಮರಸ್ಯ ❖")}
+          {renderGoldLandlineDivider(snip.divSecondaryDosha)}
 
           {/* Top Section: Secondary Doshas (if 3+ active doshas) OR Planetary Harmony Shield */}
           {page2Doshas.length > 0 ? (
@@ -1242,7 +1477,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               {page2Doshas.slice(0, 2).map((dosha) => {
                 const statusBadgeText = getLangVal(dosha.statusBadge);
                 const isCompleted = dosha.shantiStatus === "completed";
-                const priorityBadgeText = getLangVal(dosha.agePriorityBadge, `ಆದ್ಯತೆ #${dosha.agePriorityRank}`);
+                const priorityBadgeText = getLangVal(dosha.agePriorityBadge, `${snip.priorityPrefix}${dosha.agePriorityRank || 1}`);
 
                 return (
                   <div
@@ -1331,7 +1566,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           lineHeight: 1.4
                         }}
                       >
-                        <strong style={{ color: GOLD_DARK }}>🧠 {code === "kn" ? "ಆಂತರಿಕ ಮನೋಭಯ:" : "Subconscious Fear:"} </strong>
+                        <strong style={{ color: GOLD_DARK }}>🧠 {snip.subconsciousFearShort} </strong>
                         <span>{getLangVal(dosha.subconsciousFear)}</span>
                       </div>
                     )}
@@ -1397,7 +1632,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           lineHeight: 1.35
                         }}
                       >
-                        <strong>✓ {code === "kn" ? "ಶಾಂತಿ ಸಿದ್ಧತೆ:" : "Shanti Completed:"} </strong>
+                        <strong>✓ {snip.shantiPrep} </strong>
                         <span>{getLangVal(dosha.alreadyDoneNarration)}</span>
                       </div>
                     ) : (
@@ -1413,7 +1648,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                             lineHeight: 1.35
                           }}
                         >
-                          <strong style={{ color: GOLD_DARK }}>💡 {code === "kn" ? "ಮಾರ್ಗದರ್ಶನ:" : "Guidance:"} </strong>
+                          <strong style={{ color: GOLD_DARK }}>💡 {snip.guidanceShort} </strong>
                           <span>
                             {stripDuplicatePrefix(getLangVal(dosha.conditionalGuidance), [
                               "ವಿಶೇಷ ಮಾರ್ಗದರ್ಶನ:",
@@ -1450,7 +1685,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             </div>
           )}
 
-          {renderGoldLandlineDivider("❖ ಗಂಡಾಂತರ ಸಂರಕ್ಷಣೆ & ಸುರಕ್ಷಾ ವಯೋಮಿತಿ ❖")}
+          {renderGoldLandlineDivider("❖ ॐ ❖")}
 
           {/* Section: Critical Gandantara Hazards & Protective Age Windows */}
           <div
@@ -1469,8 +1704,8 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               </div>
               <div style={{ fontSize: "9.5px", color: INK_MUTED, fontWeight: 700, flexShrink: 0 }}>
                 {gandantaras.filter(g => g.isCurrentlyInDangerWindow).length > 0
-                  ? `${gandantaras.filter(g => g.isCurrentlyInDangerWindow).length} ${code === "kn" ? "ಗಂಡಾಂತರಗಳು ಸಕ್ರಿಯ" : "Hazards Active"}`
-                  : `✓ ${code === "kn" ? "ಸಕಲ ಗಂಡಾಂತರ ವಯೋಮಿತಿ ಸುರಕ್ಷಿತವಾಗಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ" : "All Hazard Windows Safely Surpassed"}`}
+                  ? `${gandantaras.filter(g => g.isCurrentlyInDangerWindow).length} ${snip.hazardsActiveSuffix}`
+                  : snip.allHazardSafe}
               </div>
             </div>
             <div style={{ fontSize: "9.5px", color: INK_MUTED, marginTop: "2px", fontStyle: "italic", lineHeight: 1.35 }}>
@@ -1481,7 +1716,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             <div style={{ display: "flex", flexDirection: "column", gap: "4.5px", marginTop: "5px" }}>
               {gandantaras.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "8px", color: GOLD_DARK, fontWeight: 700, fontSize: "10.5px", lineHeight: 1.4 }}>
-                  ✓ {code === "kn" ? "ಯಾವುದೇ ಮಾರಕ ಜಲ-ಅಗ್ನಿ-ಸರ್ಪ ಗಂಡಾಂತರಗಳು ಪತ್ತೆಯಾಗಿಲ್ಲ. ಜಾತಕರು ಸುರಕ್ಷಿತರಾಗಿದ್ದಾರೆ." : "No critical life hazards or Gandantaras detected. Devotee is safeguarded."}
+                  ✓ {snip.noGandantaraDetected}
                 </div>
               ) : (
                 gandantaras.slice(0, 3).map((g) => {
@@ -1517,8 +1752,8 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           }}
                         >
                           {isDanger
-                            ? `${t.safeAgeLimitLabel} ${g.vulnerableTillAge} ವರ್ಷದವರೆಗೆ`
-                            : `✓ ${code === "kn" ? "ವಯೋಮಿತಿ ದಾಟಿದೆ" : "Safe Age Passed"} (${g.vulnerableTillAge} ವರ್ಷ)`}
+                            ? `${t.safeAgeLimitLabel} ${g.vulnerableTillAge} ${snip.yearsTillUnit}`
+                            : `✓ ${snip.safeAgePassed} (${g.vulnerableTillAge} ${snip.yearsUnit})`}
                         </span>
                       </div>
 
@@ -1533,9 +1768,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         </>
                       ) : (
                         <div style={{ color: "#166534", fontWeight: 700, marginTop: "2px", lineHeight: 1.4 }}>
-                          ✓ {code === "kn"
-                            ? `ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ (${g.vulnerableTillAge} ವರ್ಷ) ಯಶಸ್ವಿಯಾಗಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ. ಈ ಗಂಡಾಂತರದಿಂದ ಜಾತಕರು ಸಂಪೂರ್ಣ ಸುರಕ್ಷಿತರಾಗಿದ್ದಾರೆ.`
-                            : `Safe threshold (${g.vulnerableTillAge} years) successfully surpassed. Native is fully shielded.`}
+                          ✓ {snip.safeThresholdSurpassedDesc(g.vulnerableTillAge)}
                         </div>
                       )}
                     </div>
@@ -1557,12 +1790,8 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 marginTop: "4px"
               }}
             >
-              <strong style={{ color: GOLD_DARK }}>🔱 {code === "kn" ? "ಪರಾಶರ ಶಾಸ್ತ್ರ ರಕ್ಷಾ ಸೂತ್ರ:" : "Parashari Hazard Protocol:"}</strong>{" "}
-              <span>
-                {code === "kn"
-                  ? "ಗಂಡಾಂತರ ವಯೋಮಿತಿ ದಾಟುವ ತನಕ ಜಾತಕರಿಗೆ ನಿತ್ಯ ರುದ್ರಾಭಿಷೇಕ ತೀರ್ಥ ಪ್ರೋಕ್ಷಣೆ, ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪ ಹಾಗೂ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆಯುಷ್ಯ ಶಾಂತಿ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ."
-                  : "Until the safe age threshold is crossed, daily Mahamrityunjaya chanting, protective sacred ash (Vibhuti), and temple Kavacha are strongly advised."}
-              </span>
+              <strong style={{ color: GOLD_DARK }}>🔱 {snip.parashariProtocol}</strong>{" "}
+              <span>{snip.parashariRuleDesc}</span>
             </div>
           </div>
 
@@ -1655,7 +1884,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             </div>
           </div>
 
-          {renderGoldLandlineDivider("❖ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಸನ್ನಿಧಿ ಮುದ್ರೆ ❖")}
+          {renderGoldLandlineDivider(snip.divPriestBlessing)}
 
           {/* Section: Chief Priest Shreeram Pandit's Blessing, Official Temple Seal & Scannable QR Code */}
           <div
@@ -1690,7 +1919,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   }}
                 />
                 <div style={{ fontSize: "8px", fontWeight: 900, color: GOLD_DARK, marginTop: "2px", letterSpacing: "normal" }}>
-                  ॥ ಗೋಕರ್ಣನಾಥ ॥
+                  {snip.gokarnanathaMedallion}
                 </div>
               </div>
 
