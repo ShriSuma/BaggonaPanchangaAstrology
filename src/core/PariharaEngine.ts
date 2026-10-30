@@ -1,4 +1,5 @@
 import { PlanetName, type KundliOutput } from "./AstroTypes";
+import { signLord } from "./KundliInsightsEngine";
 
 export interface Parihara {
   doshaName: string;
@@ -79,7 +80,7 @@ export function getPariharas(kundli: KundliOutput, maritalStatus?: string): Pari
 
   // If no major doshas found, provide a general uplifting one based on Lagna Lord
   if (pariharas.length === 0) {
-    const lagnaLord = kundli.planets[0].name; // Simplifying to Sun for now, usually it's the Lagna Lord
+    const lagnaLord = kundli.lagnaRashi ? signLord(kundli.lagnaRashi.index) : (kundli.planets[0]?.name || PlanetName.Sun);
     pariharas.push({
       doshaName: "General Planetary Alignment",
       afflictedGraha: lagnaLord,

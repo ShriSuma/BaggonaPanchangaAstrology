@@ -4,6 +4,7 @@ import { RASHIS, PlanetName as PN } from "../../core/AstroTypes";
 import { degreeToNakshatraPada } from "../../core/AstroMath";
 import { generateDashaTimeline, vimshottariBalanceAtBirth, type DashaEntry } from "../../core/DashaBhuktiEngine";
 import { GRAHA_L5, RASHI_L5, NAKSHATRA_L5, type GrahaKey } from "../../features/premiumPdf/premiumPdfLocale";
+import { patrikaMetaForNakshatraIndex } from "../../core/nakshatraPatrikaMeta";
 import type { PackageLang } from "./packageDownloadLocale";
 
 function formatDegree(totalDeg: number): string {
@@ -25,6 +26,50 @@ interface Props {
   gotra?: string;
   lang: PackageLang;
 }
+
+const GANA_L5: Record<string, Record<PackageLang, string>> = {
+  Deva: { kn: "ದೇವ ಗಣ", hi: "देव गण", te: "దేవ గణం", ta: "தேவ கணம்", en: "Deva Gana" },
+  Manushya: { kn: "ಮಾನವ ಗಣ", hi: "मानव गण", te: "మానవ గణం", ta: "மானிட கணம்", en: "Manushya Gana" },
+  Rakshasa: { kn: "ರಾಕ್ಷಸ ಗಣ", hi: "राक्षस गण", te: "రాక్షస గణం", ta: "ராட்சச கணம்", en: "Rakshasa Gana" }
+};
+
+const NADI_L5: Record<string, Record<PackageLang, string>> = {
+  Adi: { kn: "ಆದಿ ನಾಡಿ", hi: "आदि नाड़ी", te: "ఆది నాడి", ta: "ஆதி நாடி", en: "Adi Nadi" },
+  Madhya: { kn: "ಮಧ್ಯ ನಾಡಿ", hi: "मध्य नाड़ी", te: "మధ్య నాడి", ta: "மத்ய நாடி", en: "Madhya Nadi" },
+  Antya: { kn: "ಅಂತ್ಯ ನಾಡಿ", hi: "अन्त्य नाड़ी", te: "అంత్య నాడి", ta: "அந்திய நாடி", en: "Antya Nadi" }
+};
+
+const YONI_L5: Record<string, Record<PackageLang, string>> = {
+  Horse: { kn: "ಅಶ್ವ", hi: "अश्व", te: "అశ్వ", ta: "அசுவம்", en: "Horse (Ashwa)" },
+  Elephant: { kn: "ಗಜ", hi: "गज", te: "గజ", ta: "யானை", en: "Elephant (Gaja)" },
+  Goat: { kn: "ಮೇಷ / ಅಜ", hi: "मेष", te: "మేష", ta: "ஆடு", en: "Goat (Mesha)" },
+  Serpent: { kn: "ಸರ್ಪ", hi: "सर्प", te: "సర్ప", ta: "பாம்பு", en: "Serpent (Sarpa)" },
+  Dog: { kn: "ಶ್ವಾನ", hi: "श्वान", te: "శ్వాన", ta: "நாய்", en: "Dog (Shwana)" },
+  Cat: { kn: "ಮಾರ್ಜಾಲ", hi: "मार्जार", te: "మార్జాల", ta: "பூனை", en: "Cat (Marjala)" },
+  Rat: { kn: "ಮೂಷಕ", hi: "मूषक", te: "మూషక", ta: "எலி", en: "Rat (Mushaka)" },
+  Cow: { kn: "ಗೌ / ಗೋವು", hi: "गौ", te: "గోవు", ta: "பசு", en: "Cow (Gau)" },
+  Buffalo: { kn: "ಮಹಿಷ", hi: "महिष", te: "మహిష", ta: "எருமை", en: "Buffalo (Mahisha)" },
+  Tiger: { kn: "ವ್ಯಾಘ್ರ", hi: "व्याघ्र", te: "వ్యాఘ్ర", ta: "புலி", en: "Tiger (Vyaghra)" },
+  Deer: { kn: "ಹರಿಣ / ಮೃಗ", hi: "हरिण", te: "హరిణ", ta: "மான்", en: "Deer (Harina)" },
+  Monkey: { kn: "ವಾನರ", hi: "वानर", te: "వానర", ta: "குரங்கு", en: "Monkey (Vanara)" },
+  Mongoose: { kn: "ನಕುಲ", hi: "नकुल", te: "నకులం", ta: "கீரி", en: "Mongoose (Nakula)" },
+  Lion: { kn: "ಸಿಂಹ", hi: "सिंह", te: "సింహం", ta: "சிங்கம்", en: "Lion (Simha)" }
+};
+
+const VARNA_L5: Record<string, Record<PackageLang, string>> = {
+  Brahmin: { kn: "ಬ್ರಾಹ್ಮಣ", en: "Brahmin", hi: "ब्राह्मण", te: "బ్రాహ్మణ", ta: "பிராமணர்" },
+  Kshatriya: { kn: "ಕ್ಷತ್ರಿಯ", en: "Kshatriya", hi: "क्षत्रिय", te: "క్షత్రియ", ta: "க்ஷத்திரியர்" },
+  Vaishya: { kn: "ವೈಶ್ಯ", en: "Vaishya", hi: "वैश्य", te: "వైశ్య", ta: "வைசியர்" },
+  Shudra: { kn: "ಶೂದ್ರ", en: "Shudra", hi: "शूद्र", te: "శూద్ర", ta: "சூத்திரர்" }
+};
+
+const VASHYA_L5: Record<string, Record<PackageLang, string>> = {
+  Chatushpada: { kn: "ಚತುಷ್ಪಾದ", en: "Chatushpada (Quadruped)", hi: "चतुष्पाद", te: "చతుష్పాద", ta: "சதுஷ்பாதம்" },
+  Dwipada: { kn: "ದ್ವಿಪಾದ / ಮಾನವ", en: "Dwipada (Human)", hi: "द्विपद / मानव", te: "ద్విపాద / మానవ", ta: "த்விபாதம்" },
+  Jalachara: { kn: "ಜಲಚರ", en: "Jalachara (Aquatic)", hi: "जलचर", te: "జలచర", ta: "ஜலசரம்" },
+  Vanachara: { kn: "ವನಚರ / ಸಿಂಹ", en: "Vanachara (Wild/Lion)", hi: "वनचर", te: "వనచర", ta: "வனசரம்" },
+  Keeta: { kn: "ಕೀಟ", en: "Keeta (Insect)", hi: "कीट", te: "కీట", ta: "கீடம்" }
+};
 
 const UI_TITLES: Record<PackageLang, Record<string, string>> = {
   kn: {
@@ -63,7 +108,21 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     periodYears: "ಅವಧಿ (ವರ್ಷ)",
     blessingText: "॥ ಸೂರ್ಯಃ ಶೌರ್ಯಮಥೇಂದುರುಚ್ಚಪದವೀಂ ಸನ್ಮಂಗಳಂ ಮಂಗಳಃ । ಸದ್ಬುದ್ಧಿಂ ಚ ಬುಧೋ ಗುರುಶ್ಚ ಗುರುತಾಂ ಶುಕ್ರಃ ಸುಖಂ ಶಂ ಶನಿಃ ॥",
     page1Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೧/೨",
-    page2Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೨/೨"
+    page2Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೨/೨",
+    blessingCardHeading: "ಸನ್ನಿಧಾನದ ಮಹಾ ಆಶೀರ್ವಾದ",
+    blessingCardDesc: "ಜಾತಕರ ಜನ್ಮ ನಕ್ಷತ್ರ ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸಲಿ.",
+    dashaBalanceHeading: "ಜನನ ಕಾಲದ ವಿಂಶೋತ್ತರಿ ಮಹಾದಶಾ ಶಿಷ್ಟ",
+    dashaLordCol: "ಮಹಾದಶಾಧಿಪತಿ",
+    significationCol: "ಸಾಮಾನ್ಯ ಫಲ ಪ್ರಭಾವ",
+    yearsUnit: "ವರ್ಷ",
+    dashaSuffix: "ಮಹಾದಶೆ",
+    exaltedLabel: "ಉಚ್ಚ",
+    debilitatedLabel: "ನೀಚ",
+    standardDignityLabel: "ಸಮ",
+    retrogradeLabel: "ವಕ್ರಿ",
+    directMotionLabel: "ಮಾರ್ಗಿ",
+    priestBlessingHeading: "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರ ದೈವಿಕ ಆಶೀರ್ವಚನ",
+    priestBlessingSub: "ಸಮಸ್ತ ಗ್ರಹ ಪೀಡಾ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಪೂರ್ವಕ ಆಶೀರ್ವಾದ"
   },
   en: {
     templeBanner: "॥ Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga Astrology ॥",
@@ -101,7 +160,21 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     periodYears: "Duration (Years)",
     blessingText: "May Lord Mahabaleshwara and the Navagrahas bestow wisdom, health, prosperity, and peace.",
     page1Footer: "Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga · Page 1/2",
-    page2Footer: "Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga · Page 2/2"
+    page2Footer: "Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga · Page 2/2",
+    blessingCardHeading: "Divine Sannidhi Benediction",
+    blessingCardDesc: "By the grace of the birth star and ascendant lord, may the native attain success in all endeavors, longevity, and divine protection.",
+    dashaBalanceHeading: "Vimshottari Dasha Balance at Birth",
+    dashaLordCol: "Mahadasha Lord",
+    significationCol: "Significations & Influence",
+    yearsUnit: "years",
+    dashaSuffix: "Mahadasha",
+    exaltedLabel: "Exalted",
+    debilitatedLabel: "Debilitated",
+    standardDignityLabel: "Standard",
+    retrogradeLabel: "Retrograde",
+    directMotionLabel: "Direct",
+    priestBlessingHeading: "Sacred Benediction by Chief Priest, Sri Gokarna Kshetra",
+    priestBlessingSub: "Solemn prayer for the pacification of all planetary adversities"
   },
   hi: {
     templeBanner: "॥ श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
@@ -139,7 +212,21 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     periodYears: "अवधि (वर्ष)",
     blessingText: "॥ सूर्यः शौर्यमथेन्दुुरुच्चपदवीं सन्मङ्गलं मङ्गलः । सद्बुद्धिं च बुधो गुरुश्च गुरुतां शुक्रः सुखं शं शनिः ॥",
     page1Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ १/२",
-    page2Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ २/२"
+    page2Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ २/२",
+    blessingCardHeading: "सन्निधान का महा आशीर्वाद",
+    blessingCardDesc: "जातक के जन्म नक्षत्र एवं लग्नेश के अनुग्रह से सभी कार्यों में सफलता, दीर्घायु एवं दैवीय रक्षा प्राप्त हो।",
+    dashaBalanceHeading: "जन्म कालीन विंशोत्तरी महादशा भुक्त/शेष",
+    dashaLordCol: "महादशा स्वामी",
+    significationCol: "सामान्य फल प्रभाव",
+    yearsUnit: "वर्ष",
+    dashaSuffix: "महादशा",
+    exaltedLabel: "उच्च",
+    debilitatedLabel: "नीच",
+    standardDignityLabel: "सम",
+    retrogradeLabel: "वक्री",
+    directMotionLabel: "मार्गी",
+    priestBlessingHeading: "श्री गोकर्ण क्षेत्र प्रधान पुजारी का दिव्य आशीर्वाद",
+    priestBlessingSub: "समस्त ग्रह पीड़ा निवारण संकल्प पूर्वक आशीर्वाद"
   },
   te: {
     templeBanner: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగ జ్యోతిష్యం ॥",
@@ -177,7 +264,21 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     periodYears: "వ్యవధి (సంవత్సరాలు)",
     blessingText: "॥ సూర్యః శౌర్యమథేందురుచ్చపదవీం సన్మంగళం మంగళః । సద్బుద్ధిం చ బుధో గురుశ్చ గురుతాం శుక్రః సుఖం శం శనిః ॥",
     page1Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 1/2",
-    page2Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 2/2"
+    page2Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 2/2",
+    blessingCardHeading: "సన్నిధానం యొక్క మహా ఆశీర్వాదం",
+    blessingCardDesc: "జాతకుని జన్మ నక్షత్రం మరియు లగ్నాధిపతి అనుగ్రహంతో సకల కార్యాలలో విజయం, దీర్ఘాయువు మరియు దైవిక రక్షణ లభించుగాక.",
+    dashaBalanceHeading: "జన్మ కాలపు వింశోత్తరి మహర్దశ శేషం",
+    dashaLordCol: "మహర్దశాధిపతి",
+    significationCol: "సాధారణ ఫలితాల ప్రభావం",
+    yearsUnit: "సంవత్సరాలు",
+    dashaSuffix: "మహర్దశ",
+    exaltedLabel: "ఉచ్ఛ",
+    debilitatedLabel: "నీచ",
+    standardDignityLabel: "సమ",
+    retrogradeLabel: "వక్రం",
+    directMotionLabel: "మార్గం",
+    priestBlessingHeading: "శ్రీ గోకర్ణ క్షేత్ర ప్రధాన అర్చకుల దివ్య ఆశీర్వచనం",
+    priestBlessingSub: "సమస్త గ్రహ పీడల నివారణా సంకల్ప పూర్వక ఆశీర్వాదం"
   },
   ta: {
     templeBanner: "॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்க ஜோதிடம் ॥",
@@ -215,7 +316,87 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     periodYears: "காலம் (ஆண்டுகள்)",
     blessingText: "ஸ்ரீ மகாபலேஸ்வரர் மற்றும் நவகிரகங்களின் பரிபூரண அருளினால் சகல மங்களங்களும் உண்டாகட்டும்.",
     page1Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம் · பக்கம் 1/2",
-    page2Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம் · பக்கம் 2/2"
+    page2Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம் · பக்கம் 2/2",
+    blessingCardHeading: "சந்நிதானத்தின் மகா ஆசீர்வாதம்",
+    blessingCardDesc: "ஜாதகரின் பிறப்பு நட்சத்திரம் மற்றும் லக்னாதிபதியின் திருவருளால் அனைத்து செயல்களிலும் வெற்றி, தீர்க்காயுள் மற்றும் தெய்வீக பாதுகாப்பு கிடைக்கட்டும்.",
+    dashaBalanceHeading: "பிறப்பு கால விம்சோத்தரி மகாதிசை இருப்பு",
+    dashaLordCol: "மகாதிசா நாதர்",
+    significationCol: "பொதுவான பலன் தாக்கம்",
+    yearsUnit: "ஆண்டுகள்",
+    dashaSuffix: "மகாதிசை",
+    exaltedLabel: "உச்சம்",
+    debilitatedLabel: "நீசம்",
+    standardDignityLabel: "சமம்",
+    retrogradeLabel: "வக்ரம்",
+    directMotionLabel: "நேர்கதி",
+    priestBlessingHeading: "ஸ்ரீ கோகர்ண க்ஷேத்திர தலைமை அர்ச்சகரின் தெய்வீக ஆசீர்வாதம்",
+    priestBlessingSub: "சகல கிரக தோஷ நிவர்த்தி சங்கல்ப பூர்வக ஆசீர்வாதம்"
+  }
+};
+
+const DASHA_SIGNIFICATION_L5: Record<string, Record<PackageLang, string>> = {
+  Jupiter: {
+    kn: "ಜ್ಞಾನ, ಧರ್ಮ, ಭಾಗ್ಯ ವೃದ್ಧಿ & ಗುರು ಕೃಪೆ",
+    en: "Wisdom, righteousness, fortune expansion & Divine Guru grace",
+    hi: "ज्ञान, धर्म, भाग्य वृद्धि एवं गुरु कृपा",
+    te: "జ్ఞానం, ధర్మం, భాగ్య వృద్ధి & గురు కృప",
+    ta: "ஞானம், தர்மம், பாக்கிய வளர்ச்சி & குரு அருள்"
+  },
+  Saturn: {
+    kn: "ಕರ್ಮ ಪರಿಪಕ್ವತೆ, ಶಿಸ್ತು, ಸಹನೆ & ನಿಧಾನ ಪ್ರಗತಿ",
+    en: "Karmic fruition, discipline, patience & gradual elevation",
+    hi: "कर्म परिपक्वता, अनुशासन, धैर्य एवं सतत प्रगति",
+    te: "కర్మ పరిపక్వత, క్రమశిక్షణ, ఓర్పు & స్థిరమైన పురోగతి",
+    ta: "கர்ம பரிபக்குவம், ஒழுக்கம், பொறுமை & நிலையான முன்னேற்றம்"
+  },
+  Mercury: {
+    kn: "ವ್ಯಾಪಾರ, ಬುದ್ಧಿವಂತಿಕೆ, ವಿದ್ಯಾಭ್ಯಾಸ & ಸಂಪರ್ಕ",
+    en: "Commerce, sharp intellect, education & communications",
+    hi: "व्यापार, तीक्ष्ण बुद्धि, विद्या एवं संचार कौशल",
+    te: "వ్యాపారం, సూక్ష్మబుద్ధి, విద్య & సమాచార నైపుణ్యం",
+    ta: "வியாபாரம், கூரிய புத்தி, கல்வி & தகவல் தொடர்பு"
+  },
+  Venus: {
+    kn: "ಕೌಟುಂಬಿಕ ಸುಖ, ವಾಹನ, ಆಸ್ತಿ & ಕಲಾ ಪ್ರೀತಿ",
+    en: "Domestic joy, vehicles, prosperity & artistic refinement",
+    hi: "पारिवारिक सुख, वाहन, संपत्ति एवं कलात्मक रुचि",
+    te: "కుటుంబ సౌఖ్యం, వాహనం, సంపద & కళాభిరుచి",
+    ta: "குடும்ப மகிழ்ச்சி, வாகனம், செல்வம் & கலை ஆர்வம்"
+  },
+  Sun: {
+    kn: "ಆತ್ಮಬಲ, ಅಧಿಕಾರ, ಪಿತೃ ಕೃಪೆ & ಸರ್ಕಾರಿ ಗೌರವ",
+    en: "Soul strength, authority, paternal grace & royal recognition",
+    hi: "आत्मबल, सत्ता, पितृ कृपा एवं राजकीय सम्मान",
+    te: "ఆత్మబలం, అధికారం, పితృ కృప & గౌరవం",
+    ta: "ஆத்ம பலம், அதிகாரம், தந்தை அருள் & அரச மரியாதை"
+  },
+  Moon: {
+    kn: "ಮನಃಶಾಂತಿ, ಮಾತೃ ಪ್ರೀತಿ, ಪ್ರಯಾಣ & ಸೃಜನಶೀಲತೆ",
+    en: "Mental peace, maternal affection, travel & creativity",
+    hi: "मानसिक शांति, मातृ स्नेह, यात्रा एवं रचनात्मकता",
+    te: "మనశ్శాంతి, మాతృ వాత్సల్యం, ప్రయాణం & సృజనాత్మకత",
+    ta: "மன அமைதி, தாய் அன்பு, பயணம் & படைப்பாற்றல்"
+  },
+  Mars: {
+    kn: "ಧೈರ್ಯ, ಭೂಮಿ ಲಾಭ, ಸಹೋದರ ಬಲ & ಸಾಹಸ",
+    en: "Courage, land acquisition, fraternal vigor & dynamism",
+    hi: "साहस, भूमि लाभ, भ्रातृ बल एवं पराक्रम",
+    te: "ధైర్యం, భూమి లాభం, సోదర బలం & పరాక్రమం",
+    ta: "தைரியம், பூமி லாபம், சகோதர பலம் & சாகசம்"
+  },
+  Rahu: {
+    kn: "ಅನಿರೀಕ್ಷಿತ ಬದಲಾವಣೆ, ವಿದೇಶ ಸಂಪರ್ಕ & ಆಸೆಗಳು",
+    en: "Unprecedented change, international horizons & ambitions",
+    hi: "अचानक परिवर्तन, विदेश संबंध एवं महत्वाकांक्षाएं",
+    te: "ఊహించని మార్పులు, విదేశీ సంబంధాలు & ఆశయాలు",
+    ta: "எதிர்பாராத மாற்றங்கள், வெளிநாட்டு தொடர்பு & லட்சியங்கள்"
+  },
+  Ketu: {
+    kn: "ಆಧ್ಯಾತ್ಮಿಕ ಒಲವು, ಮೋಕ್ಷ ಸಾಧನೆ & ಆಂತರಿಕ ಅನ್ವೇಷಣೆ",
+    en: "Spiritual awakening, liberation pursuits & introspection",
+    hi: "आध्यात्मिक झुकाव, मोक्ष साधना एवं आंतरिक अनुसंधान",
+    te: "ఆధ్యాత్మిక భావన, మోక్ష సాధన & అంతర్మథనం",
+    ta: "ஆன்மீக நாட்டம், மோட்ச சாதனை & உள்முக தேடல்"
   }
 };
 
@@ -240,6 +421,17 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
   const lagnaRashiSanskrit = kundli.lagnaRashi?.sanskrit || "Mesha";
   const lagnaRashiIdx = kundli.lagnaRashi?.index ?? 0;
   const birthDashaInfo = vimshottariBalanceAtBirth(kundli);
+
+  const moonNakshatraIndex = moonPlanet?.nakshatra?.index ?? 0;
+  const moonRashiIndex = kundli.moonSign?.index ?? moonPlanet?.rashi?.index ?? 0;
+  const nakMeta = patrikaMetaForNakshatraIndex(moonNakshatraIndex);
+  const localizedGana = GANA_L5[nakMeta.ganaEn]?.[lang] || nakMeta.ganaEn;
+  const localizedNadi = NADI_L5[nakMeta.nadiEn]?.[lang] || nakMeta.nadiEn;
+  const localizedYoni = YONI_L5[nakMeta.yoniEn]?.[lang] || nakMeta.yoniEn;
+  const varnaKey = [3, 7, 11].includes(moonRashiIndex) ? "Brahmin" : [0, 4, 8].includes(moonRashiIndex) ? "Kshatriya" : [1, 5, 9].includes(moonRashiIndex) ? "Vaishya" : "Shudra";
+  const localizedVarna = VARNA_L5[varnaKey]?.[lang] || varnaKey;
+  const vashyaKey = [0, 1].includes(moonRashiIndex) ? "Chatushpada" : [2, 5, 6, 10].includes(moonRashiIndex) ? "Dwipada" : [3, 11].includes(moonRashiIndex) ? "Jalachara" : moonRashiIndex === 4 ? "Vanachara" : moonRashiIndex === 7 ? "Keeta" : moonRashiIndex === 8 ? "Dwipada" : "Chatushpada";
+  const localizedVashya = VASHYA_L5[vashyaKey]?.[lang] || vashyaKey;
 
   // South Indian Chart Grid (12 boxes around perimeter)
   const southGridRashiOrder = [
@@ -382,19 +574,23 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
                   </tr>
                   <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
                     <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.varna}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>Brahmin / Deva</td>
+                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedVarna}</td>
+                  </tr>
+                  <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
+                    <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.vashya}</td>
+                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedVashya}</td>
                   </tr>
                   <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
                     <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.yoni}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>Ashwa / Gaja</td>
+                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedYoni}</td>
                   </tr>
                   <tr style={{ borderBottom: "1px solid #FEF3C7" }}>
                     <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.gana}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>Deva Gana</td>
+                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedGana}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: "4px 0", color: "#64748B", fontWeight: 600 }}>{dict.nadi}</td>
-                    <td style={{ padding: "4px 0", fontWeight: 600 }}>Madhya Nadi</td>
+                    <td style={{ padding: "4px 0", fontWeight: 600 }}>{localizedNadi}</td>
                   </tr>
                 </tbody>
               </table>
@@ -402,10 +598,10 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
 
             <div style={{ border: "1px solid #E2E8F0", borderRadius: 8, padding: 10, backgroundColor: "#F8FAFC" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 4 }}>
-                🕉️ ಸನ್ನಿಧಾನದ ಮಹಾ ಆಶೀರ್ವಾದ
+                🕉️ {dict.blessingCardHeading}
               </div>
               <p style={{ fontSize: 10.5, lineHeight: 1.5, color: "#64748B", margin: 0 }}>
-                ಜಾತಕರ ಜನ್ಮ ನಕ್ಷತ್ರ ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಅನುಗ್ರಹದಿಂದ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಯಶಸ್ಸು, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆ ಲಭಿಸಲಿ.
+                {dict.blessingCardDesc}
               </p>
             </div>
           </div>
@@ -435,7 +631,7 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
                 const localizedR = RASHI_L5[p.rashi.sanskrit as any]?.[lang] || p.rashi.sanskrit;
                 const localizedNak = NAKSHATRA_L5[p.nakshatra.sanskrit as any]?.[lang] || p.nakshatra.sanskrit;
                 const pPada = degreeToNakshatraPada(p.degree ?? 0);
-                const dignityText = p.isExalted ? "ಉಚ್ಚ (Exalted)" : p.isDebilitated ? "ನೀಚ (Debilitated)" : "ಸಮ (Standard)";
+                const dignityText = p.isExalted ? dict.exaltedLabel : p.isDebilitated ? dict.debilitatedLabel : dict.standardDignityLabel;
                 const dignityBg = p.isExalted ? "#DCFCE7" : p.isDebilitated ? "#FEE2E2" : "#F1F5F9";
                 const dignityColor = p.isExalted ? "#166534" : p.isDebilitated ? "#991B1B" : "#475569";
                 return (
@@ -451,7 +647,7 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
                       </span>
                     </td>
                     <td style={{ padding: "6px 10px", color: p.isRetrograde ? "#DC2626" : "#64748B", fontWeight: p.isRetrograde ? 700 : 500 }}>
-                      {p.isRetrograde ? "ವಕ್ರಿ (Retrograde)" : "ಮಾರ್ಗಿ (Direct)"}
+                      {p.isRetrograde ? dict.retrogradeLabel : dict.directMotionLabel}
                     </td>
                   </tr>
                 );
@@ -484,10 +680,18 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
         {/* Dasha Balance Note */}
         <div style={{ padding: 12, backgroundColor: "#FEF3C7", borderRadius: 8, border: "1px solid #FCD34D", marginBottom: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: "#78350F" }}>
-            ⭐ ಜನನ ಕಾಲದ ವಿಂಶೋತ್ತರಿ ಮಹಾದಶಾ ಶಿಷ್ಟ (Birth Dasha Balance)
+            ⭐ {dict.dashaBalanceHeading}
           </div>
           <div style={{ fontSize: 11, color: "#92400E", marginTop: 4 }}>
-            ಜಾತಕರ ಜನನ ಕಾಲದಲ್ಲಿ {GRAHA_L5[String(birthDashaInfo.lord) as GrahaKey]?.[lang] || birthDashaInfo.lord} ಮಹಾದಶೆಯು ಚಾಲ್ತಿಯಲ್ಲಿದ್ದು (ಶಿಷ್ಟ: {birthDashaInfo.balanceYears.toFixed(1)} ವರ್ಷ), ಅದರಿಂದ ಮುಂದುವರಿದ ಸಂಪೂರ್ಣ ಜೀವನ ಕಾಲದ ದಶಾ ಕೋಷ್ಟಕವನ್ನು ಕೆಳಗೆ ನೀಡಲಾಗಿದೆ.
+            {lang === "kn"
+              ? `ಜಾತಕರ ಜನನ ಕಾಲದಲ್ಲಿ ${GRAHA_L5[String(birthDashaInfo.lord) as GrahaKey]?.[lang] || birthDashaInfo.lord} ಮಹಾದಶೆಯು ಚಾಲ್ತಿಯಲ್ಲಿದ್ದು (ಶಿಷ್ಟ: ${birthDashaInfo.balanceYears.toFixed(1)} ವರ್ಷ), ಅದರಿಂದ ಮುಂದುವರಿದ ಸಂಪೂರ್ಣ ಜೀವನ ಕಾಲದ ದಶಾ ಕೋಷ್ಟಕವನ್ನು ಕೆಳಗೆ ನೀಡಲಾಗಿದೆ.`
+              : lang === "hi"
+              ? `जातक के जन्म के समय ${GRAHA_L5[String(birthDashaInfo.lord) as GrahaKey]?.[lang] || birthDashaInfo.lord} महादशा सक्रिय थी (शेष: ${birthDashaInfo.balanceYears.toFixed(1)} वर्ष), जिससे आगे की पूर्ण जीवनकाल दशा सारणी नीचे दी गई है।`
+              : lang === "te"
+              ? `జాతకుని పుట్టిన సమయంలో ${GRAHA_L5[String(birthDashaInfo.lord) as GrahaKey]?.[lang] || birthDashaInfo.lord} మహర్దశ నడుస్తుండగా (శేషం: ${birthDashaInfo.balanceYears.toFixed(1)} సంవత్సరాలు), తదుపరి జీవితకాల దశా కాలక్రమం క్రింద ఇవ్వబడింది.`
+              : lang === "ta"
+              ? `ஜாதகர் பிறக்கும் போது ${GRAHA_L5[String(birthDashaInfo.lord) as GrahaKey]?.[lang] || birthDashaInfo.lord} மகாதிசை நடைமுறையில் இருந்தது (இருப்பு: ${birthDashaInfo.balanceYears.toFixed(1)} ஆண்டுகள்), அதிலிருந்து தொடரும் முழு வாழ்நாள் திசை அட்டவணை கீழே கொடுக்கப்பட்டுள்ளது.`
+              : `At birth, ${GRAHA_L5[String(birthDashaInfo.lord) as GrahaKey]?.[lang] || birthDashaInfo.lord} Mahadasha was active (Balance: ${birthDashaInfo.balanceYears.toFixed(1)} years); the full lifetime timeline progressing from it is detailed below.`}
           </div>
         </div>
 
@@ -499,11 +703,11 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
           <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse", textAlign: "left" }}>
             <thead>
               <tr style={{ backgroundColor: "#F8FAFC", borderBottom: "1px solid #E2E8F0", color: "#475569" }}>
-                <th style={{ padding: "8px 12px" }}>ಮಹಾದಶಾಧಿಪತಿ (Mahadasha Lord)</th>
+                <th style={{ padding: "8px 12px" }}>{dict.dashaLordCol}</th>
                 <th style={{ padding: "8px 12px" }}>{dict.startAge}</th>
                 <th style={{ padding: "8px 12px" }}>{dict.endAge}</th>
                 <th style={{ padding: "8px 12px" }}>{dict.periodYears}</th>
-                <th style={{ padding: "8px 12px" }}>ಸಾಮಾನ್ಯ ಫಲ ಪ್ರಭಾವ (Signification)</th>
+                <th style={{ padding: "8px 12px" }}>{dict.significationCol}</th>
               </tr>
             </thead>
             <tbody>
@@ -513,21 +717,13 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
                 return (
                   <tr key={idx} style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: idx % 2 === 0 ? "#FFFFFF" : "#FFFDF7" }}>
                     <td style={{ padding: "8px 12px", fontWeight: 800, color: "#78350F" }}>
-                      🪐 {localizedG} ಮಹಾದಶೆ
+                      🪐 {localizedG} {dict.dashaSuffix}
                     </td>
-                    <td style={{ padding: "8px 12px", fontWeight: 600 }}>{entry.startAge.toFixed(1)} ವರ್ಷ</td>
-                    <td style={{ padding: "8px 12px", fontWeight: 600 }}>{entry.endAge.toFixed(1)} ವರ್ಷ</td>
-                    <td style={{ padding: "8px 12px", fontWeight: 700, color: "#B45309" }}>{entry.durationYears.toFixed(1)} ವರ್ಷ</td>
+                    <td style={{ padding: "8px 12px", fontWeight: 600 }}>{entry.startAge.toFixed(1)} {dict.yearsUnit}</td>
+                    <td style={{ padding: "8px 12px", fontWeight: 600 }}>{entry.endAge.toFixed(1)} {dict.yearsUnit}</td>
+                    <td style={{ padding: "8px 12px", fontWeight: 700, color: "#B45309" }}>{entry.durationYears.toFixed(1)} {dict.yearsUnit}</td>
                     <td style={{ padding: "8px 12px", color: "#64748B" }}>
-                      {entry.planet === PN.Jupiter ? "ಜ್ಞಾನ, ಧರ್ಮ, ಭಾಗ್ಯ ವೃದ್ಧಿ & ಗುರು ಕೃಪೆ" :
-                       entry.planet === PN.Saturn ? "ಕರ್ಮ ಪರಿಪಕ್ವತೆ, ಶಿಸ್ತು, ಸಹನೆ & ನಿಧಾನ ಪ್ರಗತಿ" :
-                       entry.planet === PN.Mercury ? "ವ್ಯಾಪಾರ, ಬುದ್ಧಿವಂತಿಕೆ, ವಿದ್ಯಾಭ್ಯಾಸ & ಸಂಪರ್ಕ" :
-                       entry.planet === PN.Venus ? "ಕೌಟುಂಬಿಕ ಸುಖ, ವಾಹನ, ಆಸ್ತಿ & ಕಲಾ ಪ್ರೀತಿ" :
-                       entry.planet === PN.Sun ? "ಆತ್ಮಬಲ, ಅಧಿಕಾರ, ಪಿತೃ ಕೃಪೆ & ಸರ್ಕಾರಿ ಗೌರವ" :
-                       entry.planet === PN.Moon ? "ಮನಃಶಾಂತಿ, ಮಾತೃ ಪ್ರೀತಿ, ಪ್ರಯಾಣ & ಸೃಜನಶೀಲತೆ" :
-                       entry.planet === PN.Mars ? "ಧೈರ್ಯ, ಭೂಮಿ ಲಾಭ, ಸಹೋದರ ಬಲ & ಸಾಹಸ" :
-                       entry.planet === PN.Rahu ? "ಅನಿರೀಕ್ಷಿತ ಬದಲಾವಣೆ, ವಿದೇಶ ಸಂಪರ್ಕ & ಆಸೆಗಳು" :
-                       "ಆಧ್ಯಾತ್ಮಿಕ ಒಲವು, ಮೋಕ್ಷ ಸಾಧನೆ & ಆಂತರಿಕ ಅನ್ವೇಷಣೆ"}
+                      {DASHA_SIGNIFICATION_L5[entry.planet]?.[lang] || DASHA_SIGNIFICATION_L5[entry.planet]?.kn || ""}
                     </td>
                   </tr>
                 );
@@ -542,15 +738,23 @@ export const JananaKundaliPrintTemplate: React.FC<Props> = ({
             <span style={{ fontSize: 24 }}>🪔</span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#78350F" }}>
-                ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರ ದೈವಿಕ ಆಶೀರ್ವಚನ
+                {dict.priestBlessingHeading}
               </div>
               <div style={{ fontSize: 10, color: "#92400E" }}>
-                ಸಮಸ್ತ ಗ್ರಹ ಪೀಡಾ ನಿವಾರಣಾ ಸಂಕಲ್ಪ ಪೂರ್ವಕ ಆಶೀರ್ವಾದ
+                {dict.priestBlessingSub}
               </div>
             </div>
           </div>
           <p style={{ fontSize: 11, lineHeight: 1.6, color: "#451A03", margin: 0 }}>
-            ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪೆಯಿಂದ, ಜಾತಕರಾದ {devoteeName || "ಭಕ್ತರಿಗೆ"} ಅವರ ಜೀವಮಾನದ ಸಕಲ ಗ್ರಹದೋಷಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯಾದಿ ಸಕಲ ಸುಖ ಸಂಪತ್ತುಗಳು ಸಿದ್ಧಿಸಲಿ ಎಂದು ಶ್ರೀ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಲಾಗಿದೆ.
+            {lang === "kn"
+              ? `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಕೃಪೆಯಿಂದ, ಜಾತಕರಾದ ${devoteeName || "ಭಕ್ತರಿಗೆ"} ಅವರ ಜೀವಮಾನದ ಸಕಲ ಗ್ರಹದೋಷಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆಯುರಾರೋಗ್ಯ ಐಶ್ವರ್ಯಾದಿ ಸಕಲ ಸುಖ ಸಂಪತ್ತುಗಳು ಸಿದ್ಧಿಸಲಿ ಎಂದು ಶ್ರೀ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಲಾಗಿದೆ.`
+              : lang === "hi"
+              ? `श्री महाबलेश्वर स्वामी की दिव्य कृपा से, जातक ${devoteeName || "भक्त"} के जीवन के समस्त ग्रह दोष निवारित हों तथा उन्हें आयु, आरोग्य, ऐश्वर्य और संपूर्ण सुख-समृद्धि की प्राप्ति हो, ऐसी श्री सन्निधान में विशेष प्रार्थना की गई है।`
+              : lang === "te"
+              ? `శ్రీ మహాబలేశ్వర స్వామి దివ్య కృపతో, జాతకులైన ${devoteeName || "భక్తులకు"} వారి జీవితంలో సమస్త గ్రహదోషాలు తొలగిపోయి, ఆయురారోగ్యాలు, ఐశ్వర్యం మరియు సర్వ సుఖ సంపదలు చేకూరాలని శ్రీ సన్నిధానంలో ప్రత్యేక ప్రార్థన సమర్పించడమైనది.`
+              : lang === "ta"
+              ? `ஸ்ரீ மகாபலேஸ்வர சுவாமியின் தெய்வீக அருளால், ஜாதகரான ${devoteeName || "பக்தர்களுக்கு"} அவர்களின் வாழ்நாளில் சகல கிரக தோஷங்களும் நீங்கி, ஆயுள், ஆரோக்கியம், ஐஸ்வர்யம் மற்றும் அனைத்து நன்மைகளும் கிட்ட வேண்டும் என ஸ்ரீ சந்நிதானத்தில் சிறப்பு பிரார்த்தனை சமர்ப்பிக்கப்பட்டுள்ளது.`
+              : `By the divine grace of Lord Mahabaleshwara, special prayers are offered at Sri Sannidhi that all planetary afflictions in the life of ${devoteeName || "the devotee"} be alleviated, granting long life, radiant health, wealth, and lasting auspiciousness.`}
           </p>
         </div>
 

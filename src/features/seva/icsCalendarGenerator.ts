@@ -2296,11 +2296,13 @@ export function generateNative90DayQrCalendarPayload(options: {
   personName?: string;
   platform?: "android" | "apple";
   target?: QrCalendarTarget;
+  daysCount?: number;
 }): string {
+  const mergedOptions = { daysCount: 90, ...options };
   if (options.target) {
-    return generateQrPayloadByTarget(options.target, options);
+    return generateQrPayloadByTarget(options.target, mergedOptions);
   }
-  return generatePlatformSpecificQrPayload(options.platform || "android", options);
+  return generatePlatformSpecificQrPayload(options.platform || "android", mergedOptions);
 }
 
 

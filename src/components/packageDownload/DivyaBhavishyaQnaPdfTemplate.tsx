@@ -36,7 +36,12 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     p2Heading: "೨. ದಶಾಕಾಲ ಹಾಗೂ ಗ್ರಹ ಗೋಚಾರ ಫಲ (Dasha & Transits)",
     p3Heading: "೩. ನಿಖರ ಭವಿಷ್ಯಫಲ ಹಾಗೂ ಸಮಯ ಸಿದ್ಧಿ (Timing & Prediction)",
     p4Heading: "೪. ವೈದಿಕ ಶಮನ ಪರಿಹಾರ, ಮಂತ್ರ & ಪ್ರಾರ್ಥನೆ (Divine Remedies)",
-    footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ"
+    footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ",
+    devoteeLabel: "ಜಾತಕರು",
+    dobLabel: "ಜನನ ದಿನಾಂಕ",
+    moonSignLabel: "ಚಂದ್ರ ರಾಶಿ",
+    nakshatraLabel: "ಜನ್ಮ ನಕ್ಷತ್ರ",
+    questionPrefix: "ಪ್ರಶ್ನೆ"
   },
   en: {
     banner: "॥ Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga Astrology ॥",
@@ -47,7 +52,12 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     p2Heading: "2. Dasha Timeline & Planetary Transits Influence",
     p3Heading: "3. Prediction & Precise Timing Window",
     p4Heading: "4. Vedic Remedies, Mantras & Sacred Prayers",
-    footer: "Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga Astrology"
+    footer: "Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga Astrology",
+    devoteeLabel: "Devotee",
+    dobLabel: "Date of Birth",
+    moonSignLabel: "Moon Sign",
+    nakshatraLabel: "Birth Star",
+    questionPrefix: "Question"
   },
   hi: {
     banner: "॥ श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
@@ -58,10 +68,15 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     p2Heading: "२. दशा काल एवं ग्रह गोचर फल",
     p3Heading: "३. सटीक भविष्यफल एवं समय सिद्धि",
     p4Heading: "४. वैदिक समाधान, मंत्र एवं प्रार्थना",
-    footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष"
+    footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष",
+    devoteeLabel: "जातक",
+    dobLabel: "जन्म तिथि",
+    moonSignLabel: "चंद्र राशि",
+    nakshatraLabel: "जन्म नक्षत्र",
+    questionPrefix: "प्रश्न"
   },
   te: {
-    banner: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగ జ్యోతిష్యం ॥",
+    banner: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగ జ್ಯోతిష్యం ॥",
     title: "బగ్గోణ దివ్య భవిష్యత్తు - ప్రశ్నోత్తర మరియు శమన పరిహార నివేదిక",
     subtitle: "జాతక భావ విశ్లేషణ, దశా-గోచార ప్రభావం, సమయ ప్రాప్తి మరియు పరిహారాల అధికారిక పత్రం",
     questionLabel: "జాతకుల నిర్దిష్ట ప్రశ్న:",
@@ -69,7 +84,12 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     p2Heading: "2. దశాకాలం మరియు గ్రహ గోచార ఫలం",
     p3Heading: "3. ఖచ్చిత భవిష్యత్తు మరియు సమయ సిద్ధత",
     p4Heading: "4. వైదిక శమన పరిహారం, మంత్రం & ప్రార్థన",
-    footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం"
+    footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం",
+    devoteeLabel: "జాతకులు",
+    dobLabel: "పుట్టిన తేదీ",
+    moonSignLabel: "చంద్ర రాశి",
+    nakshatraLabel: "జన్మ నక్షత్రం",
+    questionPrefix: "ప్రశ్న"
   },
   ta: {
     banner: "॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்க ஜோதிடம் ॥",
@@ -80,7 +100,12 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     p2Heading: "2. தசா காலம் மற்றும் கிரக கோச்சார பலன்",
     p3Heading: "3. துல்லியமான எதிர்கால பலன் மற்றும் கால நேரம்",
     p4Heading: "4. வைதிக சாந்தி பரிகாரம், மந்திரம் & பிரார்த்தனை",
-    footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம்"
+    footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம்",
+    devoteeLabel: "ஜாதகர்",
+    dobLabel: "பிறந்த தேதி",
+    moonSignLabel: "சந்திர ராசி",
+    nakshatraLabel: "பிறப்பு நட்சத்திரம்",
+    questionPrefix: "கேள்வி"
   }
 };
 
@@ -100,12 +125,39 @@ export const DivyaBhavishyaQnaPdfTemplate: React.FC<Props> = ({
     <div id={id} className="pdf-container" style={{ width: 900, backgroundColor: "#FFFDF7", color: "#1E293B", fontFamily: "'Noto Sans Kannada', 'Noto Sans Devanagari', 'Inter', sans-serif" }}>
       {questions.map((q, qIndex) => {
         const headerTitle = q.smartHeader || q.topicLabel;
-        const ans = q.answer || {
-          paragraph1: "ಜಾತಕರ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿನ ಭಾವ ಹಾಗೂ ಕಾರಕ ಗ್ರಹಗಳ ಸ್ಥಾನವನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗಿದೆ.",
-          paragraph2: "ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶೆ ಹಾಗೂ ಅಂತರ್ದಶೆಯು ಈ ಪ್ರಶ್ನೆಗೆ ಪೂರಕ ಫಲಗಳನ್ನು ನೀಡಲಿದೆ.",
-          paragraph3: "ಮುಂದಿನ ೩ ರಿಂದ ೬ ತಿಂಗಳ ಅವಧಿಯಲ್ಲಿ ಶುಭ ಫಲಗಳು ಗೋಚರವಾಗಲಿವೆ.",
-          paragraph4: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ಆಚರಿಸಿ."
+        const fallbackAnsByLang: Record<PackageLang, { paragraph1: string; paragraph2: string; paragraph3: string; paragraph4: string }> = {
+          kn: {
+            paragraph1: "ಜಾತಕರ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿನ ಭಾವ ಹಾಗೂ ಕಾರಕ ಗ್ರಹಗಳ ಸ್ಥಾನವನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗಿದೆ.",
+            paragraph2: "ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶೆ ಹಾಗೂ ಅಂತರ್ದಶೆಯು ಈ ಪ್ರಶ್ನೆಗೆ ಪೂರಕ ಫಲಗಳನ್ನು ನೀಡಲಿದೆ.",
+            paragraph3: "ಮುಂದಿನ ೩ ರಿಂದ ೬ ತಿಂಗಳ ಅವಧಿಯಲ್ಲಿ ಶುಭ ಫಲಗಳು ಗೋಚರವಾಗಲಿವೆ.",
+            paragraph4: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ಆಚರಿಸಿ."
+          },
+          hi: {
+            paragraph1: "जातक की जन्म कुंडली के संबंधित भाव एवं कारक ग्रहों की स्थिति का विश्लेषण किया गया है।",
+            paragraph2: "वर्तमान में सक्रिय महादशा एवं अंतर्दशा इस प्रश्न के संदर्भ में अनुकूल फल प्रदान करेगी।",
+            paragraph3: "आगामी ३ से ६ माह की अवधि में शुभ परिणाम स्पष्ट रूप से परिलक्षित होंगे।",
+            paragraph4: "श्री महाबलेश्वर स्वामी के सन्निधान में विशेष प्रार्थना एवं नवग्रह शांति का अनुष्ठान करें।"
+          },
+          te: {
+            paragraph1: "జాతకుని జన్మ కుండలిలోని సంబంధిత భావం మరియు కారక గ్రహాల స్థితిని విశ్లేషించడమైనది.",
+            paragraph2: "ప్రస్తుతం నడుస్తున్న మహర్దశ మరియు అంతర్దశ ఈ ప్రశ్నకు అనుకూలమైన ఫలితాలను అందిస్తాయి.",
+            paragraph3: "రాబోయే 3 నుండి 6 నెలల వ్యవధిలో శుభ ఫలితాలు కనిపిస్తాయి.",
+            paragraph4: "శ్రీ మహాబలేశ్వర స్వామి సన్నిధానంలో విశేష ప్రార్థన మరియు నవగ్రహ శాంతి ఆచరించండి."
+          },
+          ta: {
+            paragraph1: "ஜாதகரின் பிறப்பு அமைப்பில் உள்ள தொடர்புடைய பாவம் மற்றும் காரக கிரகங்களின் நிலை ஆராயப்பட்டுள்ளது.",
+            paragraph2: "தற்போது நடக்கும் மகாதிசை மற்றும் புத்தி இக்கேள்விக்கு சாதகமான நற்பலன்களைத் தரும்.",
+            paragraph3: "அடுத்த 3 முதல் 6 மாத காலத்திற்குள் சுப பலன்கள் தெளிவாகக் கூடிவரும்.",
+            paragraph4: "ஸ்ரீ மகாபலேஸ்வர சுவாமியின் சந்நிதியில் சிறப்பு பிரார்த்தனை மற்றும் நவகிரக சாந்தி செய்யவும்."
+          },
+          en: {
+            paragraph1: "The relevant astrological house and significator planets in your natal chart have been thoroughly analyzed.",
+            paragraph2: "The currently operating Mahadasha and Antardasha provide supportive influences toward this inquiry.",
+            paragraph3: "A favorable and tangible realization is indicated within the next 3 to 6 months.",
+            paragraph4: "Offer special prayers at Sri Gokarna Mahabaleshwara temple and perform Navagraha Shanti."
+          }
         };
+        const ans = q.answer || fallbackAnsByLang[lang] || fallbackAnsByLang.kn;
 
         return (
           <div key={q.id || qIndex} className="pdf-page" style={{ width: 900, minHeight: 1250, padding: "32px 36px", boxSizing: "border-box", borderBottom: qIndex < questions.length - 1 ? "2px dashed #E2E8F0" : "none" }}>
@@ -125,19 +177,19 @@ export const DivyaBhavishyaQnaPdfTemplate: React.FC<Props> = ({
             {/* Devotee Info */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, padding: 10, backgroundColor: "#FEF3C7", borderRadius: 8, border: "1px solid #FCD34D", marginBottom: 14 }}>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>ಜಾತಕರು:</span>{" "}
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{dict.devoteeLabel}:</span>{" "}
                 <span style={{ fontSize: 12, fontWeight: 800, color: "#1E293B" }}>{devoteeName || "Devotee"}</span>
               </div>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>ಜನನ ದಿನಾಂಕ:</span>{" "}
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{dict.dobLabel}:</span>{" "}
                 <span style={{ fontSize: 11, fontWeight: 600 }}>{birthDate}</span>
               </div>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>ಚಂದ್ರ ರಾಶಿ:</span>{" "}
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{dict.moonSignLabel}:</span>{" "}
                 <span style={{ fontSize: 11, fontWeight: 700 }}>{rashiName}</span>
               </div>
               <div>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>ಜನ್ಮ ನಕ್ಷತ್ರ:</span>{" "}
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{dict.nakshatraLabel}:</span>{" "}
                 <span style={{ fontSize: 11, fontWeight: 700 }}>{nakshatraName}</span>
               </div>
             </div>
@@ -149,7 +201,7 @@ export const DivyaBhavishyaQnaPdfTemplate: React.FC<Props> = ({
                   {headerTitle}
                 </span>
                 <span style={{ backgroundColor: "#F59E0B", color: "#FFFFFF", padding: "2px 8px", borderRadius: 10, fontSize: 10, fontWeight: 700 }}>
-                  ಪ್ರಶ್ನೆ #{qIndex + 1}
+                  {dict.questionPrefix} #{qIndex + 1}
                 </span>
               </div>
               <div style={{ fontSize: 10.5, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>

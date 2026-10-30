@@ -4411,36 +4411,60 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
   }
 
   // Format Neck Wear
+  const cleanGemKn = (raw: string) => raw.replace(/\s*\([^)]*[a-zA-Z][^)]*\)/g, "").replace(/[a-zA-Z]/g, "").trim();
+
   const neckWearText = baseLang === "kn"
     ? `${neckCatalogEntry.nameKn} ಹಾಗೂ ${neckCatalogEntry.pendantKn} (${neckCatalogEntry.threadKn}ದಲ್ಲಿ)`
     : baseLang === "hi"
-    ? `${neckCatalogEntry.nameEn} एवं ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`
+    ? `${neckCatalogEntry.mukhi} मुखी रुद्राक्ष एवं चांदी का पेंडेंट (लाल रेशमी धागे में)`
     : baseLang === "te"
-    ? `${neckCatalogEntry.nameEn} మరియు ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`
+    ? `${neckCatalogEntry.mukhi} ముఖి రుద్రాక్ష మరియు వెండి లాకెట్ (ఎరుపు పట్టు దారంలో)`
     : baseLang === "ta"
-    ? `${neckCatalogEntry.nameEn} மற்றும் ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`
+    ? `${neckCatalogEntry.mukhi} முக ருத்ராட்சம் மற்றும் வெள்ளி பதக்கம் (சிவப்பு பட்டு நூலில்)`
     : `${neckCatalogEntry.nameEn} along with ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`;
 
   // Format Prohibited Gemstones Alert
   const prohibitedText = baseLang === "kn"
-    ? lagnaRule.prohibitedGems.map(p => `${p.gemstoneKn} (${p.houseLordshipKn} - ${p.dangerEffectKn})`).join("; ")
+    ? lagnaRule.prohibitedGems.map(p => `${cleanGemKn(p.gemstoneKn)} (${p.houseLordshipKn} - ${p.dangerEffectKn})`).join("; ")
+    : baseLang === "hi"
+    ? lagnaRule.prohibitedGems.map(p => `वर्जित रत्न: ${cleanGemKn(p.gemstoneKn)} (${p.houseLordshipKn} - अनिष्ट प्रभाव)`).join("; ")
+    : baseLang === "te"
+    ? lagnaRule.prohibitedGems.map(p => `నిషిద్ధ రత్నం: ${cleanGemKn(p.gemstoneKn)} (${p.houseLordshipKn} - ప్రతికూల ప్రభావం)`).join("; ")
+    : baseLang === "ta"
+    ? lagnaRule.prohibitedGems.map(p => `தவிர்க்க வேண்டிய ரத்தினம்: ${cleanGemKn(p.gemstoneKn)} (${p.houseLordshipKn} - தீய பலன்)`).join("; ")
     : lagnaRule.prohibitedGems.map(p => `${p.gemstoneEn} (${p.houseLordshipEn} - ${p.dangerEffectEn})`).join("; ");
 
   // Format Avoid Colors
   const avoidColorsText = baseLang === "kn"
     ? `${lagnaRule.avoidColorsKn.join(", ")} (${lagnaRule.dangerColorsKn})`
+    : baseLang === "hi"
+    ? `${lagnaRule.avoidColorsKn.join(", ")} (प्रतिकूल रंग)`
+    : baseLang === "te"
+    ? `${lagnaRule.avoidColorsKn.join(", ")} (ప్రతికూల రంగులు)`
+    : baseLang === "ta"
+    ? `${lagnaRule.avoidColorsKn.join(", ")} (தவிர்க்க வேண்டிய நிறங்கள்)`
     : `${lagnaRule.avoidColorsEn.join(", ")} (${lagnaRule.dangerColorsEn})`;
 
   // Format Consecration Muhurtha
   const consecrationMuhurthaText = baseLang === "kn"
     ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn}ಯಲ್ಲಿ)`
+    : baseLang === "hi"
+    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn} में)`
+    : baseLang === "te"
+    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn}లో)`
+    : baseLang === "ta"
+    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn}இல்)`
     : `${lagnaRule.activationDayEn} (during ${lagnaRule.horaEn})`;
 
   // Weave Nakshatra into Rudraksha description
   const rudrakshaText = baseLang === "kn"
     ? `${neckCatalogEntry.nameKn} (ಜನ್ಮ ನಕ್ಷತ್ರದ ಶ್ರೀರಕ್ಷೆ: ${neckCatalogEntry.blessingKn})`
     : baseLang === "hi"
-    ? `${neckCatalogEntry.nameEn} (नक्षत्र रक्षा: ${neckCatalogEntry.blessingEn})`
+    ? `${neckCatalogEntry.mukhi} मुखी रुद्राक्ष (जन्म नक्षत्र रक्षा: समस्त दोष निवारण एवं आत्मबल संवर्धन)`
+    : baseLang === "te"
+    ? `${neckCatalogEntry.mukhi} ముఖి రుద్రాక్ష (జన్మ నక్షత్ర రక్షణ: సమస్త దోష నివారణ మరియు సంపూర్ణ రక్షణ)`
+    : baseLang === "ta"
+    ? `${neckCatalogEntry.mukhi} முக ருத்ராட்சம் (பிறப்பு நட்சத்திர பாதுகாப்பு: சகல தோஷ நிவர்த்தி மற்றும் தெய்விக அருள்)`
     : `${neckCatalogEntry.nameEn} (Nakshatra Shield: ${neckCatalogEntry.blessingEn})`;
 
   return {

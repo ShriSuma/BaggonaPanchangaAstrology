@@ -40,7 +40,11 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     step2: "೨. ನಿಮ್ಮ ಅಗತ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ೩೦, ೯೦ ಅಥವಾ ೧೨೦ ದಿನಗಳ ಕ್ಯೂಆರ್ ಕೋಡ್ ಅನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
     step3: "೩. ಪರದೆಯ ಮೇಲೆ ಬರುವ ಲಿಂಕ್ ಒತ್ತಿ 'Add to Calendar' ಆಯ್ಕೆಮಾಡಿ.",
     step4: "೪. ಪ್ರತಿದಿನ ಬೆಳಗ್ಗೆ ೭:೦೦ಕ್ಕೆ ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರದ ಶುಭ ಮುಹೂರ್ತ ನಿಮ್ಮ ಮೊಬೈಲ್‌ನಲ್ಲಿ ಲಭ್ಯ!",
-    footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ"
+    footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ",
+    devoteeLabel: "ಜಾತಕರು",
+    dobLabel: "ಜನನ ದಿನಾಂಕ",
+    moonSignLabel: "ಚಂದ್ರ ರಾಶಿ",
+    nakshatraLabel: "ಜನ್ಮ ನಕ್ಷತ್ರ"
   },
   en: {
     banner: "॥ Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga Astrology ॥",
@@ -63,7 +67,11 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     step2: "2. Point the camera at your preferred QR code (30, 90, or 120 days).",
     step3: "3. Tap the displayed link and choose 'Add to Calendar'.",
     step4: "4. Receive personalized Vedic alerts at 07:00 AM every morning!",
-    footer: "Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga Astrology"
+    footer: "Sri Gokarna Mahabaleshwara Sannidhi · Baggona Panchanga Astrology",
+    devoteeLabel: "Devotee",
+    dobLabel: "Date of Birth",
+    moonSignLabel: "Moon Sign",
+    nakshatraLabel: "Birth Star"
   },
   hi: {
     banner: "॥ श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
@@ -86,7 +94,11 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     step2: "२. अपनी इच्छानुसार ३०, ९० अथवा १२० दिनों का क्यूआर कोड स्कैन करें।",
     step3: "३. दिखाई देने वाले लिंक पर टैप कर 'Add to Calendar' चुनें।",
     step4: "४. प्रतिदिन प्रातः ७:०० बजे शुभ मुहूर्त का नोटिफिकेशन पाएं!",
-    footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष"
+    footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष",
+    devoteeLabel: "जातक",
+    dobLabel: "जन्म तिथि",
+    moonSignLabel: "चंद्र राशि",
+    nakshatraLabel: "जन्म नक्षत्र"
   },
   te: {
     banner: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగ జ్యోతిష్యం ॥",
@@ -109,7 +121,11 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     step2: "2. 30, 90 లేదా 120 రోజుల క్యూఆర్ కోడ్‌ను స్కాన్ చేయండి.",
     step3: "3. వచ్చే లింక్‌పై క్లిక్ చేసి 'Add to Calendar' ఎంచుకోండి.",
     step4: "4. ప్రతిరోజూ ఉదయం 7:00 గంటలకు శుభ ముహూర్త సమాచారం లభిస్తుంది!",
-    footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం"
+    footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం",
+    devoteeLabel: "జాతకులు",
+    dobLabel: "పుట్టిన తేదీ",
+    moonSignLabel: "చంద్ర రాశి",
+    nakshatraLabel: "జన్మ నక్షత్రం"
   },
   ta: {
     banner: "॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்க ஜோதிடம் ॥",
@@ -132,7 +148,11 @@ const UI_TITLES: Record<PackageLang, Record<string, string>> = {
     step2: "2. 30, 90 அல்லது 120 நாட்கள் கியூஆர் குறியீட்டை ஸ்கேன் செய்யவும்.",
     step3: "3. திரையில் தோன்றும் இணைப்பைத் தட்டி 'Add to Calendar' என்பதைத் தேர்ந்தெடுக்கவும்.",
     step4: "4. தினமும் காலை 7:00 மணிக்கு உங்கள் போனில் சுப முகூர்த்த தகவல் வரும்!",
-    footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம்"
+    footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம்",
+    devoteeLabel: "ஜாதகர்",
+    dobLabel: "பிறந்த தேதி",
+    moonSignLabel: "சந்திர ராசி",
+    nakshatraLabel: "பிறப்பு நட்சத்திரம்"
   }
 };
 
@@ -173,19 +193,19 @@ export const MultiPeriodQrCardTemplate: React.FC<Props> = ({
         {/* Devotee Info */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, padding: 10, backgroundColor: "#FEF3C7", borderRadius: 8, border: "1px solid #FCD34D", marginBottom: 14 }}>
           <div>
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>ಜಾತಕರು:</span>{" "}
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{dict.devoteeLabel}:</span>{" "}
             <span style={{ fontSize: 12, fontWeight: 800, color: "#1E293B" }}>{devoteeName || "Devotee"}</span>
           </div>
           <div>
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>ಜನನ ದಿನಾಂಕ:</span>{" "}
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{dict.dobLabel}:</span>{" "}
             <span style={{ fontSize: 11, fontWeight: 600 }}>{birthDate}</span>
           </div>
           <div>
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>ಚಂದ್ರ ರಾಶಿ:</span>{" "}
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{dict.moonSignLabel}:</span>{" "}
             <span style={{ fontSize: 11, fontWeight: 700 }}>{rashiName}</span>
           </div>
           <div>
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>ಜನ್ಮ ನಕ್ಷತ್ರ:</span>{" "}
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{dict.nakshatraLabel}:</span>{" "}
             <span style={{ fontSize: 11, fontWeight: 700 }}>{nakshatraName}</span>
           </div>
         </div>
