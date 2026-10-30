@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   analyzeQuestionComplexity,
   buildDeterministicGemstoneReading,
+  buildDeterministicMarriageReading,
+  detectAndResolveUltaPaltaProbe,
   type AstrologicalRecommendationProfile
 } from "../features/consultation/consultationAIEngine";
 import { CONSULTATION_CHAT_UI_I18N, type ConsultationSession } from "../features/consultation/consultationTypes";
@@ -289,5 +291,111 @@ describe("Consultation Anti-Contradiction & Vedic Gemstone Parity Suite", () => 
     expect(CONSULTATION_CHAT_UI_I18N.kn.directAnswerTag).toBe("ಮುಖ್ಯ ತೀರ್ಮಾನ");
     expect(CONSULTATION_CHAT_UI_I18N.en.directAnswerTag).toBe("Key Verdict");
     expect(CONSULTATION_CHAT_UI_I18N.hi.directAnswerTag).toBe("मुख्य निर्णय");
+  });
+
+  it("6. analyzeQuestionComplexity detects marriage inquiries with focused 2-paragraph directive", () => {
+    const resKn = analyzeQuestionComplexity("ನನ್ನ ವಿವಾಹ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದೇ?");
+    expect(resKn.domain).toBe("MARRIAGE");
+    expect(resKn.targetParagraphs).toBe(2);
+
+    const resEn = analyzeQuestionComplexity("Will I get married successfully?");
+    expect(resEn.domain).toBe("MARRIAGE");
+    expect(resEn.targetParagraphs).toBe(2);
+
+    const resTiming = analyzeQuestionComplexity("When will I get married?");
+    expect(resTiming.domain).toBe("TIMING_WINDOW");
+  });
+
+  it("7. buildDeterministicMarriageReading delivers 100% confident prediction with zero dilemma", () => {
+    // English
+    const enReading = buildDeterministicMarriageReading(
+      { ...dummySession, language: "en" as const },
+      "When will I get married?",
+      undefined
+    );
+    expect(enReading).toContain("100% Confident Astrological Prediction");
+    expect(enReading).toContain("within the next 6 months your marriage will definitely be solemnized");
+    expect(enReading).toContain("zero room for doubt or dilemma");
+    expect(enReading).toContain("Diamond");
+
+    // Kannada
+    const knReading = buildDeterministicMarriageReading(
+      { ...dummySession, language: "kn" as const },
+      "ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲಿ ಮದುವೆ ಆಗುತ್ತಾ?",
+      undefined
+    );
+    expect(knReading).toContain("೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ");
+    expect(knReading).toContain("ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ");
+    expect(knReading).toContain("ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಅನುಮಾನಕ್ಕೆ ಆಸ್ಪದವಿಲ್ಲ");
+    expect(knReading).toContain("ವಜ್ರ");
+  });
+
+  it("8. detectAndResolveUltaPaltaProbe firmly rejects Pushparaga for Libra across reversed probes", () => {
+    const ledger = [
+      {
+        domain: "GEMSTONE_REMEDY" as const,
+        questionSummary: "Gemstone prescription",
+        primaryVerdict: "Diamond prescribed for Libra",
+        approvedOptions: ["Diamond", "White Zircon"],
+        rejectedOptions: [
+          "Yellow Sapphire (Pushparaga / Pukhraj) - 6th lord of debts, disease, and litigation for Libra",
+          "White Coral for Venus"
+        ]
+      }
+    ];
+
+    // English probe: "What if I wear Yellow Sapphire for 1 month only?"
+    const replyEn = detectAndResolveUltaPaltaProbe(
+      "Can I wear Yellow Sapphire for just one month?",
+      ledger,
+      "en"
+    );
+    expect(replyEn).not.toBeNull();
+    expect(replyEn).toContain("Yellow Sapphire (Pushparaga / Pukhraj) is STRICTLY PROHIBITED");
+    expect(replyEn).toContain("malefic 6th lord of debts");
+    expect(replyEn).toContain("Diamond (Vajra) or natural White Zircon");
+
+    // Kannada probe: "ತುಲಾ ಲಗ್ನಕ್ಕೆ ಪುಷ್ಯರಾಗ ಧರಿಸಿದರೆ ಏನಾಗುತ್ತೆ?"
+    const replyKn = detectAndResolveUltaPaltaProbe(
+      "ತುಲಾ ಲಗ್ನಕ್ಕೆ ಕೇವಲ ೧ ತಿಂಗಳು ಪುಷ್ಯರಾಗ ಧರಿಸಬಹುದೇ?",
+      ledger,
+      "kn"
+    );
+    expect(replyKn).not.toBeNull();
+    expect(replyKn).toContain("ಹಳದಿ ಪುಷ್ಯರಾಗವನ್ನು (Yellow Sapphire / Pukhraj) ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಧರಿಸಬಾರದು");
+    expect(replyKn).toContain("೬ನೇ ರೋಗ-ಸಾಲ-ಶತ್ರು-ವ್ಯಾಜ್ಯಗಳ ದುಸ್ಥಾನಾಧಿಪತಿಯಾಗಿದ್ದು");
+    expect(replyKn).toContain("ವಜ್ರ (Diamond) ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್");
+  });
+
+  it("9. detectAndResolveUltaPaltaProbe dispels marriage delay anxieties by affirming 6-month window", () => {
+    const ledger = [
+      {
+        domain: "MARRIAGE" as const,
+        questionSummary: "Marriage timing",
+        primaryVerdict: "100% Confident Prediction: Within the next 6 months, marriage is confirmed and solemnized.",
+        approvedOptions: ["Solemnizing marriage within next 6 months"],
+        rejectedOptions: ["Indefinite delay beyond 2-3 years"]
+      }
+    ];
+
+    // English probe: "Will my marriage not happen for 3 years?"
+    const replyEn = detectAndResolveUltaPaltaProbe(
+      "Will my marriage be delayed for 3 years?",
+      ledger,
+      "en"
+    );
+    expect(replyEn).not.toBeNull();
+    expect(replyEn).toContain("your marriage will NOT be delayed for 3 years");
+    expect(replyEn).toContain("within the next 6 months your marriage will definitely be solemnized");
+
+    // Kannada probe: "ಮದುವೆ ೩ ವರ್ಷ ತಡವಾಗುತ್ತಾ?"
+    const replyKn = detectAndResolveUltaPaltaProbe(
+      "ನನ್ನ ಮದುವೆ ೩ ವರ್ಷ ಆಗಲ್ವಾ?",
+      ledger,
+      "kn"
+    );
+    expect(replyKn).not.toBeNull();
+    expect(replyKn).toContain("ನಿಮ್ಮ ವಿವಾಹವು ೩ ವರ್ಷ ವಿಳಂಬವಾಗುವುದಿಲ್ಲ");
+    expect(replyKn).toContain("ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ");
   });
 });
