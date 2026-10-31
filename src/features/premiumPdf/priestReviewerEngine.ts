@@ -433,7 +433,7 @@ export function buildReviewContextFromParsed(
     lagnaRashiName: parsed.lagnaSignName,
     moonRashiIndex: parsed.moonRashiIndex,
     moonRashiName: parsed.moonSignName,
-    moonNakshatraIndex: null,
+    moonNakshatraIndex: parsed.moonNakshatraIndex ?? null,
     moonNakshatraName: parsed.nakshatraName,
     mahaLord: parsed.mahaLordName,
     bhuktiLord: parsed.bhuktiLordName,

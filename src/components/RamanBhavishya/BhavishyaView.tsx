@@ -41,8 +41,7 @@ import {
   buildDynamicGocharaFallback,
   buildDynamicSummaryFallback,
   buildDynamicTimelineFallback,
-  getLocalizedDevoteeName,
-  ensureNamePresence
+  getLocalizedDevoteeName
 } from "../../features/premiumPdf/dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -313,24 +312,24 @@ export function buildPersonalizedMarriageText(
 
   const natalPlanets: NatalPlacement[] = (context && context.planets && context.planets.length > 0)
     ? context.planets.map(p => ({
-        graha: toGraha(p.name),
-        rashiIndex: p.rashiIndex,
-        house: p.house,
-        exalted: p.isExalted,
-        debilitated: p.isDebilitated,
-        retrograde: p.isRetrograde
-      }))
+      graha: toGraha(p.name),
+      rashiIndex: p.rashiIndex,
+      house: p.house,
+      exalted: p.isExalted,
+      debilitated: p.isDebilitated,
+      retrograde: p.isRetrograde
+    }))
     : [
-        { graha: "Sun", rashiIndex: lagnaIndex, house: 1 },
-        { graha: "Moon", rashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12), house: 4 },
-        { graha: "Mars", rashiIndex: (lagnaIndex + 1) % 12, house: 2 },
-        { graha: "Mercury", rashiIndex: (lagnaIndex + 2) % 12, house: 3 },
-        { graha: "Jupiter", rashiIndex: (lagnaIndex + 8) % 12, house: 9 },
-        { graha: "Venus", rashiIndex: (lagnaIndex + 3) % 12, house: 4 },
-        { graha: "Saturn", rashiIndex: (lagnaIndex + 9) % 12, house: 10 },
-        { graha: "Rahu", rashiIndex: (lagnaIndex + 5) % 12, house: 6 },
-        { graha: "Ketu", rashiIndex: (lagnaIndex + 11) % 12, house: 12 }
-      ];
+      { graha: "Sun", rashiIndex: lagnaIndex, house: 1 },
+      { graha: "Moon", rashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12), house: 4 },
+      { graha: "Mars", rashiIndex: (lagnaIndex + 1) % 12, house: 2 },
+      { graha: "Mercury", rashiIndex: (lagnaIndex + 2) % 12, house: 3 },
+      { graha: "Jupiter", rashiIndex: (lagnaIndex + 8) % 12, house: 9 },
+      { graha: "Venus", rashiIndex: (lagnaIndex + 3) % 12, house: 4 },
+      { graha: "Saturn", rashiIndex: (lagnaIndex + 9) % 12, house: 10 },
+      { graha: "Rahu", rashiIndex: (lagnaIndex + 5) % 12, house: 6 },
+      { graha: "Ketu", rashiIndex: (lagnaIndex + 11) % 12, house: 12 }
+    ];
 
   const chart = analyzeKundali({
     lagnaRashiIndex: lagnaIndex,
@@ -372,24 +371,24 @@ export function buildPersonalizedChildrenText(
 
   const natalPlanets: NatalPlacement[] = (context && context.planets && context.planets.length > 0)
     ? context.planets.map(p => ({
-        graha: toGraha(p.name),
-        rashiIndex: p.rashiIndex,
-        house: p.house,
-        exalted: p.isExalted,
-        debilitated: p.isDebilitated,
-        retrograde: p.isRetrograde
-      }))
+      graha: toGraha(p.name),
+      rashiIndex: p.rashiIndex,
+      house: p.house,
+      exalted: p.isExalted,
+      debilitated: p.isDebilitated,
+      retrograde: p.isRetrograde
+    }))
     : [
-        { graha: "Sun", rashiIndex: lagnaIndex, house: 1 },
-        { graha: "Moon", rashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12), house: 4 },
-        { graha: "Mars", rashiIndex: (lagnaIndex + 1) % 12, house: 2 },
-        { graha: "Mercury", rashiIndex: (lagnaIndex + 2) % 12, house: 3 },
-        { graha: "Jupiter", rashiIndex: (lagnaIndex + 8) % 12, house: 9 },
-        { graha: "Venus", rashiIndex: (lagnaIndex + 3) % 12, house: 4 },
-        { graha: "Saturn", rashiIndex: (lagnaIndex + 9) % 12, house: 10 },
-        { graha: "Rahu", rashiIndex: (lagnaIndex + 5) % 12, house: 6 },
-        { graha: "Ketu", rashiIndex: (lagnaIndex + 11) % 12, house: 12 }
-      ];
+      { graha: "Sun", rashiIndex: lagnaIndex, house: 1 },
+      { graha: "Moon", rashiIndex: context?.moonRashiIndex ?? ((lagnaIndex + 3) % 12), house: 4 },
+      { graha: "Mars", rashiIndex: (lagnaIndex + 1) % 12, house: 2 },
+      { graha: "Mercury", rashiIndex: (lagnaIndex + 2) % 12, house: 3 },
+      { graha: "Jupiter", rashiIndex: (lagnaIndex + 8) % 12, house: 9 },
+      { graha: "Venus", rashiIndex: (lagnaIndex + 3) % 12, house: 4 },
+      { graha: "Saturn", rashiIndex: (lagnaIndex + 9) % 12, house: 10 },
+      { graha: "Rahu", rashiIndex: (lagnaIndex + 5) % 12, house: 6 },
+      { graha: "Ketu", rashiIndex: (lagnaIndex + 11) % 12, house: 12 }
+    ];
 
   const chart = analyzeKundali({
     lagnaRashiIndex: lagnaIndex,
@@ -539,8 +538,8 @@ export function buildKundaliCurrentPhaseFallback(
     const p1 = isSenior
       ? `${nameSalutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ${ageNum} ವರ್ಷಗಳ ಜೀವಿತಾವಧಿಯಲ್ಲಿ ಅತ್ಯಂತ ಗೌರವಾನ್ವಿತ ಹಾಗೂ ಮಹತ್ವದ ಕಾಲಘಟ್ಟವಾಗಿದೆ. ಈ ವಯೋಮಾನದಲ್ಲಿ ಪ್ರಾಪಂಚಿಕ ಪೈಪೋಟಿಗಿಂತ ಕುಟುಂಬದ ಸುಭದ್ರತೆ, ಆರೋಗ್ಯ ರಕ್ಷಣೆ ಮತ್ತು ಮನಸ್ಸಿನ ಶಾಂತಿಯೇ ನಿಮ್ಮ ದೈನಂದಿನ ಮುಖ್ಯ ಆದ್ಯತೆಯಾಗಿದೆ.`
       : isYouth
-      ? `${nameSalutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ${ageNum} ವರ್ಷಗಳ ಯೌವನಾವಸ್ಥೆಯಲ್ಲಿ ಶಿಕ್ಷಣ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಬುನಾದಿಯನ್ನು ನಿರ್ಮಿಸುವ ಅತ್ಯಂತ ನಿರ್ಣಾಯಕ ಕಾಲಘಟ್ಟವಾಗಿದೆ.`
-      : `${nameSalutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ನಿಮ್ಮ ${ageNum} ವರ್ಷಗಳ ಪ್ರೌಢ ಜೀವನದಲ್ಲಿ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿಗಳು, ಆರ್ಥಿಕ ನಿರ್ವಹಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಮತೋಲನದ ಮಹತ್ವದ ಹಂತವನ್ನು ಸೃಷ್ಟಿಸಿದೆ.`;
+        ? `${nameSalutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಅವಧಿಯು ನಿಮ್ಮ ${ageNum} ವರ್ಷಗಳ ಯೌವನಾವಸ್ಥೆಯಲ್ಲಿ ಶಿಕ್ಷಣ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ಭವಿಷ್ಯದ ವೃತ್ತಿ ಬುನಾದಿಯನ್ನು ನಿರ್ಮಿಸುವ ಅತ್ಯಂತ ನಿರ್ಣಾಯಕ ಕಾಲಘಟ್ಟವಾಗಿದೆ.`
+        : `${nameSalutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ (${lagnaStr}) ಹಾಗೂ ಚಂದ್ರ ರಾಶಿ (${moonStr}) ಆಧಾರದ ಮೇಲೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dashaName} ಮಹಾದಶಾ ಹಾಗೂ ${bhuktiName} ಭುಕ್ತಿ ಕಾಲಘಟ್ಟವು ನಿಮ್ಮ ${ageNum} ವರ್ಷಗಳ ಪ್ರೌಢ ಜೀವನದಲ್ಲಿ ವೃತ್ತಿಪರ ಜವಾಬ್ದಾರಿಗಳು, ಆರ್ಥಿಕ ನಿರ್ವಹಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಸಮತೋಲನದ ಮಹತ್ವದ ಹಂತವನ್ನು ಸೃಷ್ಟಿಸಿದೆ.`;
 
     const p2 = `ಭಾವನಾತ್ಮಕವಾಗಿ, ಪ್ರಸ್ತುತ ಗ್ರಹಗಳ ಗೋಚಾರ ಸಂಚಾರವು ನಿಮ್ಮ ಸಹನೆ ಮತ್ತು ಆಂತರಿಕ ನಿಗ್ರಹ ಶಕ್ತಿಯನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಿದೆ. ಕಠಿಣ ಶ್ರಮಕ್ಕೆ ತಕ್ಷಣವೇ ಪ್ರತಿಫಲ ಸಿಗುತ್ತಿಲ್ಲವೆಂಬ ಸಣ್ಣಪುಟ್ಟ ಆತಂಕ ಮೂಡಿದರೂ, ದೇವಗುರು ಹಾಗೂ ಶನಿ ಭಗವಾನರ ಅನುಗ್ರಹವು ನಿಮಗೆ ಧೈರ್ಯ ಮತ್ತು ಸ್ಥಿರತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`;
     const p3 = `ಅಂತರಂಗದ ಮಟ್ಟದಲ್ಲಿ, ನೀವು ಭವಿಷ್ಯದ ಭದ್ರತೆ, ಸಾಲ-ಹೊಣೆಗಾರಿಕೆಗಳ ನಿವಾರಣೆ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಅಭ್ಯುದಯದ ಕುರಿತು ಆಳವಾಗಿ ಆಲೋಚಿಸುತ್ತಿದ್ದೀರಿ. ಹಳೆಯ ಸಮಸ್ಯೆಗಳನ್ನು ಬಗೆಹರಿಸಿ ಶಾಂತಿಯುತ ಹೊಸ ಆರಂಭವನ್ನು ಮಾಡಲು ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಸಿದ್ಧವಾಗುತ್ತಿದೆ.`;
@@ -552,8 +551,8 @@ export function buildKundaliCurrentPhaseFallback(
     const p1 = isSenior
       ? `${nameSalutation}आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति आपके ${ageNum} वर्षों के जीवन का एक अत्यंत गरिमामयी और निर्णायक समय है। इस अवस्था में परिवार की स्थिरता और स्वास्थ्य रक्षा ही मुख्य ध्येय है।`
       : isYouth
-      ? `${nameSalutation}आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति आपके ${ageNum} वर्षों के युवा काल में शिक्षा एवं करियर की सुदृढ़ नींव रखने का काल है।`
-      : `${nameSalutation}आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति का प्रभाव आपके ${ageNum} वर्षों के प्रौढ़ जीवन में महत्वपूर्ण सकारात्मक परिवर्तन और नए दायित्व ला रहा है।`;
+        ? `${nameSalutation}आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति आपके ${ageNum} वर्षों के युवा काल में शिक्षा एवं करियर की सुदृढ़ नींव रखने का काल है।`
+        : `${nameSalutation}आपकी जन्म लग्न (${lagnaStr}) एवं चंद्र राशि (${moonStr}) के आधार पर, वर्तमान ${dashaName} महादशा एवं ${bhuktiName} भुक्ति का प्रभाव आपके ${ageNum} वर्षों के प्रौढ़ जीवन में महत्वपूर्ण सकारात्मक परिवर्तन और नए दायित्व ला रहा है।`;
 
     const p2 = `इस समय मानसिक रूप से कभी-कभी अधीरता या चिंता का अनुभव हो सकता है। परंतु गुरु एवं शनि के गोचर प्रभाव से आपको धैर्य, आत्मबल और मानसिक स्पष्टता प्राप्त होगी।`;
     const p3 = `आंतरिक स्तर पर, आप भविष्य की सुरक्षा एवं पारिवारिक उन्नति के विषय में गंभीर विचार कर रहे हैं। पुरानी समस्याओं को सुलझाकर नए क्षितिज की ओर बढ़ने की दिशा बन रही है।`;
@@ -564,8 +563,8 @@ export function buildKundaliCurrentPhaseFallback(
   const p1 = isSenior
     ? `${nameSalutation}based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti represent an honorable, reflective milestone in your ${ageNum} years of life, focusing energy on health maintenance and family harmony.`
     : isYouth
-    ? `${nameSalutation}based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti represent a foundational interval in your ${ageNum} years of youth, centering on academic excellence and vocational clarity.`
-    : `${nameSalutation}based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti activate significant developments in personal and vocational spheres during this ${ageNum}-year phase.`;
+      ? `${nameSalutation}based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti represent a foundational interval in your ${ageNum} years of youth, centering on academic excellence and vocational clarity.`
+      : `${nameSalutation}based on your birth Lagna (${lagnaStr}) and Moon sign (${moonStr}), your running ${dashaName} Mahadasha and ${bhuktiName} Bhukti activate significant developments in personal and vocational spheres during this ${ageNum}-year phase.`;
 
   const p2 = `Mentally, you may experience transient moments of impatience or fatigue regarding your efforts. Favorable aspects from Jupiter and Saturn foster internal resilience and strategic clarity.`;
   const p3 = `At a subconscious level, your primary focus revolves around long-term stability and family prosperity. Your inner self is preparing to resolve lingering issues and embrace constructive new beginnings.`;
@@ -1653,8 +1652,8 @@ Return ONLY this JSON format:
         pdfLanguage === "kn"
           ? "೨. ವಿವಾಹ, ಸಂತಾನ, ಉದ್ಯೋಗ, ಆರ್ಥಿಕ ಹಾಗೂ ಆರೋಗ್ಯ ಅಧ್ಯಾಯಗಳ ನಿಖರ ಸಂಶ್ಲೇಷಣೆ..."
           : pdfLanguage === "hi"
-          ? "2. विवाह, संतान, करियर, धन एवं स्वास्थ्य का विश्लेषण..."
-          : "2. Synthesizing Dynamic Marriage, Children, Career, Wealth & Health..."
+            ? "2. विवाह, संतान, करियर, धन एवं स्वास्थ्य का विश्लेषण..."
+            : "2. Synthesizing Dynamic Marriage, Children, Career, Wealth & Health..."
       );
 
       // Inject personalized targeted deep predictions if requested (Adults only, age >= 12)
@@ -1714,7 +1713,7 @@ Return ONLY this JSON format:
         localisedPredictions = localisedPredictions.filter(p => {
           const cat = `${p.translatedCategory || ''} ${p.category || ''}`.toLowerCase();
           const isAdult = cat.includes("marriage") || cat.includes("ಮದುವೆ") || cat.includes("ವಿವಾಹ") || cat.includes("ವಿवाह") || cat.includes("विवाह") || cat.includes("వివాహ") || cat.includes("திருಮணம்") ||
-                          cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("ಸಂತಾನ") || cat.includes("குழந்தை");
+            cat.includes("children") || cat.includes("ಸಂತಾನ") || cat.includes("ಮಕ್ಕಳು") || cat.includes("संतान") || cat.includes("ಸಂತಾನ") || cat.includes("குழந்தை");
           return !isAdult;
         });
       }
@@ -1951,6 +1950,8 @@ Return ONLY this JSON format:
         lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        moonPada: session.result.moonPada ?? null,
+        bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
         birthDate: session.input.birthDate,
         birthTime: session.input.birthTime,
         natalPlanets,
@@ -2072,8 +2073,8 @@ Return ONLY this JSON format:
         const alertMsg = lang === "kn"
           ? `ಗಮನಿಸಿ: 5 ಬಾರಿ ಮರುಪ್ರಯತ್ನಿಸಿದ ನಂತರವೂ AI ಸಂಪರ್ಕದಲ್ಲಿ ವ್ಯತ್ಯಯ ಉಂಟಾಗಿದ್ದರಿಂದ (${uniqueFailed.join(", ")}), ನಿಖರ ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ (Vedic Fallback Engine) ಮೂಲಕ ದೋಷರಹಿತ ಭವಿಷ್ಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ.`
           : lang === "hi"
-          ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
-          : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
+            ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
+            : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
         setAiFallbackNotification({
           active: true,
           sections: uniqueFailed,
@@ -2115,8 +2116,8 @@ Return ONLY this JSON format:
       pdfLanguage === "kn"
         ? "೧. ಜನ್ಮ ಲಗ್ನ, ನವಾಂಶ ಮತ್ತು ಗ್ರಹಗಳ ಗಣನೆ..."
         : pdfLanguage === "hi"
-        ? "1. जन्म लग्न, नवांश एवं ग्रह गणना..."
-        : "1. Calculating Natal Lagna, Bhavas & Navamsha..."
+          ? "1. जन्म लग्न, नवांश एवं ग्रह गणना..."
+          : "1. Calculating Natal Lagna, Bhavas & Navamsha..."
     );
 
     try {
@@ -2143,8 +2144,8 @@ Return ONLY this JSON format:
         pdfLanguage === "kn"
           ? "೯. ಉನ್ನತ ರೆಸಲ್ಯೂಷನ್ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಪಿಡಿಎಫ್ ಮುದ್ರಣ ಸಿದ್ಧತೆ..."
           : pdfLanguage === "hi"
-          ? "9. उच्च-रिज़ॉल्यूशन आधिकारिक बग्गोण पीडीएफ मुद्रण तैयारी..."
-          : "9. Assembling High-Resolution Official Baggona PDF Document..."
+            ? "9. उच्च-रिज़ॉल्यूशन आधिकारिक बग्गोण पीडीएफ मुद्रण तैयारी..."
+            : "9. Assembling High-Resolution Official Baggona PDF Document..."
       );
 
       // Wait for React to flush state to the hidden PdfTemplate
@@ -2175,12 +2176,12 @@ Return ONLY this JSON format:
       const errorTitle = baseLang === "kn"
         ? "ಬಗ್ಗೋಣ ಭವಿಷ್ಯ ಮುದ್ರಣ ತಡೆಹಿಡಿಯಲಾಗಿದೆ"
         : baseLang === "hi"
-        ? "बग्गोण भविष्य मुद्रण रोक दिया गया"
-        : baseLang === "te"
-        ? "బగ్గోణ భవిష్యత్తు ముద్రణ నిలిపివేయబడింది"
-        : baseLang === "ta"
-        ? "பக்கோணா ஜோதிட அறிக்கை பதிவிறக்கம் நிறுத்தப்பட்டது"
-        : "Baggona Bhavishya Download Aborted";
+          ? "बग्गोण भविष्य मुद्रण रोक दिया गया"
+          : baseLang === "te"
+            ? "బగ్గోణ భవిష్యత్తు ముద్రణ నిలిపివేయబడింది"
+            : baseLang === "ta"
+              ? "பக்கோணா ஜோதிட அறிக்கை பதிவிறக்கம் நிறுத்தப்பட்டது"
+              : "Baggona Bhavishya Download Aborted";
       alert(`${errorTitle}:\n\n${err.message || "Failed to generate complete Premium PDF V1. Please try again."}`);
     } finally {
       setIsGeneratingPremiumPdfV1(false);
@@ -2443,6 +2444,8 @@ Return ONLY this JSON (no extra text before or after):
         lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: a4MoonPlanet?.nakshatra.index ?? null,
+        moonPada: session.result.moonPada ?? null,
+        bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
         birthDate: session.input.birthDate,
         birthTime: session.input.birthTime,
         natalPlanets: a4NatalPlanets,
@@ -2545,8 +2548,8 @@ Return ONLY this JSON (no extra text before or after):
         const alertMsg = pdfLanguage === "kn"
           ? `ಗಮನಿಸಿ: 5 ಬಾರಿ ಮರುಪ್ರಯತ್ನಿಸಿದ ನಂತರವೂ AI ಸಂಪರ್ಕದಲ್ಲಿ ವ್ಯತ್ಯಯ ಉಂಟಾಗಿದ್ದರಿಂದ (${uniqueFailed.join(", ")}), ನಿಖರ ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ (Vedic Fallback Engine) ಮೂಲಕ ದೋಷರಹಿತ ಭವಿಷ್ಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ.`
           : pdfLanguage === "hi"
-          ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
-          : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
+            ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
+            : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
         setAiFallbackNotification({
           active: true,
           sections: uniqueFailed,
@@ -2587,8 +2590,8 @@ Return ONLY this JSON (no extra text before or after):
       pdfLanguage === "kn"
         ? "೧. ಜಾತಕರ ಜನ್ಮ ಲಗ್ನ, ನವಾಂಶ ಮತ್ತು ಗ್ರಹ ಸ್ಥಿತಿ ಪರಿಶೀಲನೆ..."
         : pdfLanguage === "hi"
-        ? "1. जातक जन्म लग्न, नवांश एवं ग्रह स्थिति विश्लेषण..."
-        : "1. Calculating Natal Kundali & Planetary Dignities..."
+          ? "1. जातक जन्म लग्न, नवांश एवं ग्रह स्थिति विश्लेषण..."
+          : "1. Calculating Natal Kundali & Planetary Dignities..."
     );
 
     const failedAiSectionsRoyal: string[] = [];
@@ -2643,6 +2646,8 @@ Return ONLY this JSON (no extra text before or after):
         lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
         moonRashiIndex: session.result.moonSign.index,
         moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+        moonPada: session.result.moonPada ?? null,
+        bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
         birthDate: session.input.birthDate,
         birthTime: session.input.birthTime,
         natalPlanets,
@@ -2900,9 +2905,9 @@ Return ONLY this JSON (no extra text before or after):
       const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
         ? dataYogas.yogas
         : (result.aiGeneratedNarrative?.yogas || []).map((y: any) => ({
-            name: y.name || "Dasha Yoga",
-            impact: asText(y.significance) || result.masterSynthesis.overallTone
-          }));
+          name: y.name || "Dasha Yoga",
+          impact: asText(y.significance) || result.masterSynthesis.overallTone
+        }));
       const finalYogas = (rawYogasArray || []).map((y: any) => ({
         ...y,
         name: localizeYogaName(y.name || y.trait || "", lang),
@@ -2913,10 +2918,10 @@ Return ONLY this JSON (no extra text before or after):
       const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
         ? dataDoshas.doshas
         : (result.aiGeneratedNarrative?.doshas || []).map((d: any) => ({
-            name: d.name || "Karmic Challenge",
-            impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
-            remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
-          }));
+          name: d.name || "Karmic Challenge",
+          impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
+          remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
+        }));
       const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
         ...d,
         name: localizeDoshaName(d.name || "", lang),
@@ -2928,10 +2933,10 @@ Return ONLY this JSON (no extra text before or after):
       const rawGocharaFallback = buildDynamicGocharaFallback(parsedKundali);
       const finalGochara = toSafeArray(dataGochara.gochara).filter((g: any) => (g?.impact || "").trim().length > 30).length >= 2
         ? dataGochara.gochara.map((g: any) => ({
-            name: localizeGocharaName(g.name || "", lang),
-            impact: cleanEnglishFromRegionalText(g.impact || "", lang),
-            remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
-          }))
+          name: localizeGocharaName(g.name || "", lang),
+          impact: cleanEnglishFromRegionalText(g.impact || "", lang),
+          remedy: g.remedy ? cleanEnglishFromRegionalText(g.remedy, lang) : undefined
+        }))
         : rawGocharaFallback;
 
       // 6-Month Timeline using astronomical Vedic computation engine
@@ -2999,10 +3004,10 @@ Return ONLY this JSON (no extra text before or after):
       );
       const cleanSum = cleanEnglishFromRegionalText(guaranteedSummary, lang);
       const withNameSum = ensureNamePresence(cleanSum, localizedDevoteeName, lang);
-      const parasSum = withNameSum.split(/\n\s*\n|\n+/).map((p: string) => p.trim()).filter((p: string) => p.length > 15);
+      const parasSum = withNameSum.split(/\n\s*\n|\n+/).map(p => p.trim()).filter(p => p.length > 15);
       const dedupedSum: string[] = [];
-      parasSum.forEach((p: string) => {
-        if (!dedupedSum.some((existing: string) => areParagraphsDuplicates(existing, p))) {
+      parasSum.forEach(p => {
+        if (!dedupedSum.some(existing => areParagraphsDuplicates(existing, p))) {
           dedupedSum.push(p);
         }
       });
@@ -3057,8 +3062,8 @@ Return ONLY this JSON (no extra text before or after):
           dignity: p.isExalted
             ? (lang === "kn" ? "ಉಚ್ಛ" : "Exalted")
             : p.isDebilitated
-            ? (lang === "kn" ? "ನೀಚ" : "Debilitated")
-            : (lang === "kn" ? "ಸ್ವಕ್ಷೇತ್ರ" : "Own Sign"),
+              ? (lang === "kn" ? "ನೀಚ" : "Debilitated")
+              : (lang === "kn" ? "ಸ್ವಕ್ಷೇತ್ರ" : "Own Sign"),
           isRetrograde: p.isRetrograde
         };
       });
@@ -3132,12 +3137,12 @@ Return ONLY this JSON (no extra text before or after):
       const activeBhuktiBadge = lang === "kn"
         ? "🟢 ಪ್ರಸ್ತುತ ಸಕ್ರಿಯ (Active Now)"
         : lang === "hi"
-        ? "🟢 वर्तमान सक्रिय (Active Now)"
-        : lang === "te"
-        ? "🟢 ప్రస్తుతం సక్రియం (Active Now)"
-        : lang === "ta"
-        ? "🟢 தற்போது இயங்குகிறது (Active Now)"
-        : "🟢 Active Now";
+          ? "🟢 वर्तमान सक्रिय (Active Now)"
+          : lang === "te"
+            ? "🟢 ప్రస్తుతం సక్రియం (Active Now)"
+            : lang === "ta"
+              ? "🟢 தற்போது இயங்குகிறது (Active Now)"
+              : "🟢 Active Now";
 
       const influenceSummary = currentBhuktiData
         ? runningPeriodSentence(lang, toGraha(currentBhuktiData.maha.planet), toGraha(currentBhuktiData.bhukti))
@@ -3157,8 +3162,8 @@ Return ONLY this JSON (no extra text before or after):
         const qualityBadge = qualityType === "benefic"
           ? (lang === "kn" ? "ಶುಭ ಫಲ" : lang === "hi" ? "शुभ फल" : lang === "te" ? "శుభ ఫలితం" : lang === "ta" ? "சுப பலன்" : "Benefic Period")
           : qualityType === "caution"
-          ? (lang === "kn" ? "ಜಾಗ್ರತೆ & ಪರಿಹಾರ" : lang === "hi" ? "सावधानी व शांति" : lang === "te" ? "జాగ్రత్త & పరిహారం" : lang === "ta" ? "கவனம் & பரிகாரம்" : "Caution & Remedies")
-          : (lang === "kn" ? "ಪರಿಶ್ರಮ & ಪ್ರಗತಿ" : lang === "hi" ? "परिश्रम व प्रगति" : lang === "te" ? "పరిశ్రమ & ప్రగతి" : lang === "ta" ? "முயற்சி & முன்னேற்றம்" : "Progress via Effort");
+            ? (lang === "kn" ? "ಜಾಗ್ರತೆ & ಪರಿಹಾರ" : lang === "hi" ? "सावधानी व शांति" : lang === "te" ? "జాగ్రత్త & పరిహారం" : lang === "ta" ? "கவனம் & பரிகாரம்" : "Caution & Remedies")
+            : (lang === "kn" ? "ಪರಿಶ್ರಮ & ಪ್ರಗತಿ" : lang === "hi" ? "परिश्रम व प्रगति" : lang === "te" ? "పరిశ్రమ & ప్రగతి" : lang === "ta" ? "முயற்சி & முன்னேற்றம்" : "Progress via Effort");
 
         return {
           lord: b.bhukti,
@@ -3208,22 +3213,22 @@ Return ONLY this JSON (no extra text before or after):
       const royalTitle = lang === "kn"
         ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥"
         : lang === "hi"
-        ? "॥ बग्गोण पंचांग ज्योतिष ॥"
-        : lang === "te"
-        ? "॥ బగ్గోణ పంచాంగ జ్యోతిష్యం ॥"
-        : lang === "ta"
-        ? "॥ பக்கோண பஞ்சாங்க ஜோதிடம் ॥"
-        : "॥ Baggona Panchanga Astrology ॥";
+          ? "॥ बग्गोण पंचांग ज्योतिष ॥"
+          : lang === "te"
+            ? "॥ బగ్గోణ పంచాంగ జ్యోతిష్యం ॥"
+            : lang === "ta"
+              ? "॥ பக்கோண பஞ்சாங்க ஜோதிடம் ॥"
+              : "॥ Baggona Panchanga Astrology ॥";
 
       const royalSubtitle = lang === "kn"
         ? "ರಾಜಮುದ್ರಣ ಜಾತಕ ಫಲ ತಾಳೆಗರಿ ಪ್ರತಿ (Royal A4 Physical Print Edition)"
         : lang === "hi"
-        ? "राजमुद्रण जन्मपत्रिका ताड़पत्र प्रति (Royal A4 Physical Print Edition)"
-        : lang === "te"
-        ? "రాజముద్రణ జన్మపత్రిక తాళపత్ర ప్రతి (Royal A4 Physical Print Edition)"
-        : lang === "ta"
-        ? "ராஜமுத்திரை ஜாதக ஏடு பதிப்பு (Royal A4 Physical Print Edition)"
-        : "Royal A4 Astrological Palm-Leaf Print Edition";
+          ? "राजमुद्रण जन्मपत्रिका ताड़पत्र प्रति (Royal A4 Physical Print Edition)"
+          : lang === "te"
+            ? "రాజముద్రణ జన్మపత్రిక తాళపత్ర ప్రతి (Royal A4 Physical Print Edition)"
+            : lang === "ta"
+              ? "ராஜமுத்திரை ஜாதக ஏடு பதிப்பு (Royal A4 Physical Print Edition)"
+              : "Royal A4 Astrological Palm-Leaf Print Edition";
 
       const royalPayload: RoyalA4Data = {
         title: royalTitle,
@@ -3278,8 +3283,8 @@ Return ONLY this JSON (no extra text before or after):
         const alertMsg = lang === "kn"
           ? `ಗಮನಿಸಿ: 5 ಬಾರಿ ಮರುಪ್ರಯತ್ನಿಸಿದ ನಂತರವೂ AI ಸಂಪರ್ಕದಲ್ಲಿ ವ್ಯತ್ಯಯ ಉಂಟಾಗಿದ್ದರಿಂದ (${uniqueFailed.join(", ")}), ನಿಖರ ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ (Vedic Fallback Engine) ಮೂಲಕ ದೋಷರಹಿತ ಭವಿಷ್ಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ.`
           : lang === "hi"
-          ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
-          : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
+            ? `सूचना: 5 प्रयासों के बाद भी AI API में समस्या के कारण (${uniqueFailed.join(", ")}), प्रामाणिक वैदिक गणितीय प्रणाली से भविष्यफल तैयार किया गया है।`
+            : `Notice: AI narration encountered API issues after 5 attempts (${uniqueFailed.join(", ")}). The report was successfully synthesized using the authentic Vedic mathematical fallback engine.`;
         setAiFallbackNotification({
           active: true,
           sections: uniqueFailed,
@@ -3434,15 +3439,15 @@ Return ONLY this JSON (no extra text before or after):
                   {pdfLanguage === "kn"
                     ? "ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವಿಸ್ತೃತ ಜೀವಮಾನ ಭವಿಷ್ಯವಾಣಿ (V1 Engine)"
                     : pdfLanguage === "hi"
-                    ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
-                    : "Comprehensive 10-Chapter Astrological Life Forecast (V1 Engine)"}
+                      ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
+                      : "Comprehensive 10-Chapter Astrological Life Forecast (V1 Engine)"}
                 </h4>
                 <p className="text-xs text-amber-200/90 font-sans max-w-2xl leading-relaxed">
                   {pdfLanguage === "kn"
                     ? "ನಿಖರ ಜನ್ಮ ಕುಂಡಲಿ, ಸಪ್ತಮ/ಪಂಚಮ ಭಾವ, ನವಾಂಶ, ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ನೈಜ ಸಮಯದ ಗ್ರಹ ಗೋಚಾರದ ಆಧಾರದಲ್ಲಿ ರಚಿಸಲಾಗುವ ಪರಿಪೂರ್ಣ ಭವಿಷ್ಯ ವರದಿ. ಕನಿಷ್ಠ ೩ ವಿಸ್ತೃತ ಪರಿಚ್ಛೇದಗಳು (ಪ್ರತಿಯೊಂದೂ ೫-೬ ಸಾಲುಗಳು) ಪ್ರತಿಯೊಂದು ಅಧ್ಯಾಯಕ್ಕೂ."
                     : pdfLanguage === "hi"
-                    ? "सटीक जन्म कुंडली, सप्तम/पंचम भाव, नवांश, दशा-भुक्ति एवं लाइव गोचर पर आधारित संपूर्ण भविष्यफल रिपोर्ट। प्रत्येक अध्याय में न्यूनतम ३ विस्तृत पैराग्राफ (प्रत्येक ५-६ पंक्तियां)।"
-                    : "100% mathematically calculated from your exact birth chart, 7th/5th house lords, Navamsha, Vimshottari Dasha, and live transits. Every chapter features strictly minimum 3 substantial paragraphs with 5-6 lines each."}
+                      ? "सटीक जन्म कुंडली, सप्तम/पंचम भाव, नवांश, दशा-भुक्ति एवं लाइव गोचर पर आधारित संपूर्ण भविष्यफल रिपोर्ट। प्रत्येक अध्याय में न्यूनतम ३ विस्तृत पैराग्राफ (प्रत्येक ५-६ पंक्तियां)।"
+                      : "100% mathematically calculated from your exact birth chart, 7th/5th house lords, Navamsha, Vimshottari Dasha, and live transits. Every chapter features strictly minimum 3 substantial paragraphs with 5-6 lines each."}
                 </p>
               </div>
 
@@ -3453,9 +3458,8 @@ Return ONLY this JSON (no extra text before or after):
                     generatePremiumPDFV1({ maritalStatus: liveMaritalStatus, childrenStatus: liveChildrenStatus });
                   }}
                   disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
-                  className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:via-yellow-400 hover:to-orange-400 text-slate-950 px-6 py-4 rounded-xl font-black text-sm transition-all duration-300 shadow-2xl border-2 border-yellow-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
-                    isGeneratingPremiumPdfV1 ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:via-yellow-400 hover:to-orange-400 text-slate-950 px-6 py-4 rounded-xl font-black text-sm transition-all duration-300 shadow-2xl border-2 border-yellow-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${isGeneratingPremiumPdfV1 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                 >
                   <span className="text-xl animate-pulse">📜✨</span>
                   <span>{isGeneratingPremiumPdfV1 ? "Crafting V1 Report..." : "Generate Premium PDF V1"}</span>
@@ -3468,9 +3472,8 @@ Return ONLY this JSON (no extra text before or after):
                     setIsPersonalizationModalOpen(true);
                   }}
                   disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
-                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-500 hover:from-red-600 hover:via-amber-500 hover:to-yellow-400 text-white font-serif px-5 py-4 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-amber-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
-                    isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-500 hover:from-red-600 hover:via-amber-500 hover:to-yellow-400 text-white font-serif px-5 py-4 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-amber-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                 >
                   <span className="text-lg">👑</span>
                   <span>
@@ -3491,9 +3494,8 @@ Return ONLY this JSON (no extra text before or after):
                     }
                   }}
                   disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf}
-                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-800 via-orange-700 to-amber-900 hover:from-amber-700 hover:to-orange-600 text-white font-serif px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg border border-amber-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
-                    isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-800 via-orange-700 to-amber-900 hover:from-amber-700 hover:to-orange-600 text-white font-serif px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg border border-amber-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${isGeneratingRoyalA4Pdf ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   title="Interactive Page-by-Page Preview and Direct Print"
                 >
                   <span className="text-lg">👁️</span>
@@ -3513,8 +3515,8 @@ Return ONLY this JSON (no extra text before or after):
                     {pdfLanguage === "kn"
                       ? "ಜಾತಕ ಗ್ರಾಹಕೀಕರಣ (ವೈವಾಹಿಕ & ಸಂತಾನ ಸ್ಥಿತಿ ಆಯ್ಕೆ)"
                       : pdfLanguage === "hi"
-                      ? "कुंडली कस्टमाइज़ेशन (वैवाहिक एवं संतान स्थिति चयन)"
-                      : "Horoscope Personalization (Marital & Children Status)"}
+                        ? "कुंडली कस्टमाइज़ेशन (वैवाहिक एवं संतान स्थिति चयन)"
+                        : "Horoscope Personalization (Marital & Children Status)"}
                   </span>
                 </div>
                 <div className="text-[11px] text-amber-400 font-medium italic">
@@ -3542,11 +3544,10 @@ Return ONLY this JSON (no extra text before or after):
                           setLiveMaritalStatus(opt.id as any);
                           setActiveLivePreviewTab("marriage");
                         }}
-                        className={`rounded-lg py-2 px-1 text-xs font-bold transition text-center cursor-pointer ${
-                          liveMaritalStatus === opt.id
-                            ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md ring-2 ring-yellow-300 font-black scale-[1.02]"
-                            : "bg-white/10 hover:bg-white/20 text-amber-100 border border-amber-500/30"
-                        }`}
+                        className={`rounded-lg py-2 px-1 text-xs font-bold transition text-center cursor-pointer ${liveMaritalStatus === opt.id
+                          ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md ring-2 ring-yellow-300 font-black scale-[1.02]"
+                          : "bg-white/10 hover:bg-white/20 text-amber-100 border border-amber-500/30"
+                          }`}
                       >
                         {pick(opt.label, pdfLanguage)}
                       </button>
@@ -3572,11 +3573,10 @@ Return ONLY this JSON (no extra text before or after):
                           setLiveChildrenStatus(opt.id as any);
                           setActiveLivePreviewTab("children");
                         }}
-                        className={`rounded-lg py-2 px-1 text-xs font-bold transition text-center cursor-pointer ${
-                          liveChildrenStatus === opt.id
-                            ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md ring-2 ring-yellow-300 font-black scale-[1.02]"
-                            : "bg-white/10 hover:bg-white/20 text-amber-100 border border-amber-500/30"
-                        }`}
+                        className={`rounded-lg py-2 px-1 text-xs font-bold transition text-center cursor-pointer ${liveChildrenStatus === opt.id
+                          ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md ring-2 ring-yellow-300 font-black scale-[1.02]"
+                          : "bg-white/10 hover:bg-white/20 text-amber-100 border border-amber-500/30"
+                          }`}
                       >
                         {pick(opt.label, pdfLanguage)}
                       </button>
@@ -3600,22 +3600,20 @@ Return ONLY this JSON (no extra text before or after):
                     <button
                       type="button"
                       onClick={() => setActiveLivePreviewTab("marriage")}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                        activeLivePreviewTab === "marriage"
-                          ? "bg-amber-400 text-slate-950 shadow-md font-black"
-                          : "bg-white/10 text-amber-200 hover:bg-white/20"
-                      }`}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${activeLivePreviewTab === "marriage"
+                        ? "bg-amber-400 text-slate-950 shadow-md font-black"
+                        : "bg-white/10 text-amber-200 hover:bg-white/20"
+                        }`}
                     >
                       {pdfLanguage === "kn" ? "💍 ವಿವಾಹ ಅಧ್ಯಾಯ" : "💍 Marriage"}
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveLivePreviewTab("children")}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                        activeLivePreviewTab === "children"
-                          ? "bg-amber-400 text-slate-950 shadow-md font-black"
-                          : "bg-white/10 text-amber-200 hover:bg-white/20"
-                      }`}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${activeLivePreviewTab === "children"
+                        ? "bg-amber-400 text-slate-950 shadow-md font-black"
+                        : "bg-white/10 text-amber-200 hover:bg-white/20"
+                        }`}
                     >
                       {pdfLanguage === "kn" ? "👶 ಸಂತಾನ ಅಧ್ಯಾಯ" : "👶 Children"}
                     </button>
@@ -4320,8 +4318,8 @@ Return ONLY this JSON (no extra text before or after):
                 {pdfLanguage === "kn"
                   ? "ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವಿಸ್ತೃತ ಜೀವಮಾನ ಭವಿಷ್ಯವಾಣಿ (V1 Engine)"
                   : pdfLanguage === "hi"
-                  ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
-                  : "10-Chapter Comprehensive Astrological Life Forecast (V1)"}
+                    ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
+                    : "10-Chapter Comprehensive Astrological Life Forecast (V1)"}
               </div>
             </div>
 
@@ -4411,8 +4409,8 @@ Return ONLY this JSON (no extra text before or after):
                 {pdfLanguage === "kn"
                   ? "👑 ₹೩೦೦ ರಾಜಮುದ್ರಣ ಭವಿಷ್ಯ (A4 Print Edition)"
                   : pdfLanguage === "hi"
-                  ? "👑 ₹३०० राजमुद्रण भविष्य (A4 Print Edition)"
-                  : "👑 ₹300 Royal A4 Physical Print Edition"}
+                    ? "👑 ₹३०० राजमुद्रण भविष्य (A4 Print Edition)"
+                    : "👑 ₹300 Royal A4 Physical Print Edition"}
               </div>
             </div>
 
@@ -4486,15 +4484,15 @@ Return ONLY this JSON (no extra text before or after):
                   {pdfLanguage === "kn"
                     ? "ಗಮನಿಸಿ: ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ ಬಳಕೆ"
                     : pdfLanguage === "hi"
-                    ? "सूचना: वैदिक गणितीय प्रणाली से निर्मित"
-                    : "Notice: Authentic Vedic Fallback Applied"}
+                      ? "सूचना: वैदिक गणितीय प्रणाली से निर्मित"
+                      : "Notice: Authentic Vedic Fallback Applied"}
                 </h4>
                 <p className="text-xs text-amber-400 font-mono">
                   {pdfLanguage === "kn"
                     ? "೫ ಬಾರಿ ಮರುಪ್ರಯತ್ನದ ನಂತರ AI ಸಂಪರ್ಕ ವ್ಯತ್ಯಯ"
                     : pdfLanguage === "hi"
-                    ? "५ प्रयासों के बाद AI विफलता"
-                    : "AI API limit reached after 5 retry attempts"}
+                      ? "५ प्रयासों के बाद AI विफलता"
+                      : "AI API limit reached after 5 retry attempts"}
                 </p>
               </div>
             </div>

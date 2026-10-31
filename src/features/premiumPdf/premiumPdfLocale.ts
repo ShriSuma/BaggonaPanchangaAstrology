@@ -753,7 +753,7 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     .replace(/[×x*•]\s*[\.]*/g, "")
     .replace(/\s*:\s*(?=[\s,.\-×*•]|$)/g, "")
     .replace(/^[ \t:,\.\-–—×*•~|]+(?=[^ \t\r\n:,\.\-–—×*•~|])/gm, "")
-    .replace(/[ \t:,\.\-–—×*•~|]+$/gm, "")
+    .replace(/[ \t:,\-–—×*•~|]+$/gm, "")
     .replace(/^[ \t:,\.\-–—×*•~|]+$/gm, "");
 
   // 4c. Clean dangling trailing conjunctions/pronouns from incomplete sentences
@@ -774,7 +774,7 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
     .replace(/ ,/g, ",")
     .replace(/\n{3,}/g, "\n\n")
     .replace(/^[\s:,\.\-–—×*•~|]+/gu, "")
-    .replace(/[\s:,\.\-–—×*•~|]+$/gu, "")
+    .replace(/[\s:,\-–—×*•~|]+$/gu, "")
     .trim();
 
   return cleaned;

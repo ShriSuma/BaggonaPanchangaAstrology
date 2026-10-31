@@ -58,6 +58,8 @@ export interface KundaliAnalysisInput {
   lagnaRashiIndex: number;
   moonRashiIndex: number;
   moonNakshatraIndex?: number | null;
+  moonPada?: number | null;
+  bhuktiEndsAtAge?: number | null;
   birthDate?: string;
   birthTime?: string;
   jananaPanchanga?: JananaPanchangaData;
@@ -97,6 +99,9 @@ export interface ParsedKundaliChart {
   lagnaSignName: string;
   moonRashiIndex: number;
   moonSignName: string;
+  moonNakshatraIndex?: number | null;
+  moonPada?: number | null;
+  bhuktiEndsAtAge?: number | null;
   nakshatraName: string;
   gender: "Male" | "Female";
   ageYears: number;
@@ -331,6 +336,9 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
     lagnaSignName,
     moonRashiIndex,
     moonSignName,
+    moonNakshatraIndex: input.moonNakshatraIndex ?? null,
+    moonPada: input.moonPada ?? null,
+    bhuktiEndsAtAge: input.bhuktiEndsAtAge ?? null,
     nakshatraName,
     gender,
     ageYears,
@@ -3215,39 +3223,39 @@ export function buildDynamicGocharaFallback(chart: ParsedKundaliChart): Array<{ 
     sName = "शनि देव का गोचर फल";
     sRemedy = "प्रत्येक शनिवार को तिल के तेल का दीपक जलाकर शनि चालीसा या दशरथ कृत शनि स्तोत्र का पाठ करें तथा निर्धनों को अन्नदान करें।";
     if (s.isSadeSati) {
-      sPara1 = "शनि देव आपकी चंद्र राशि से गोचर करते हुए साढ़ेसाती का प्रभाव निर्मित कर रहे हैं। यह समयावधि धैर्य, संयम और कर्तव्यनिष्ठा से किए गए कार्यों में विशेष सफलता और आत्मिक परिपक्वता प्रदान करेगी। अनावश्यक जल्दबाजी से बचें।";
+      sPara1 = `शनि देव आपकी जन्म चंद्र राशि से ${s.houseFromMoon}वें भाव में गोचर करते हुए साढ़ेसाती का प्रभाव निर्मित कर रहे हैं। यह समयावधि धैर्य, संयम और कर्तव्यनिष्ठा से किए गए कार्यों में विशेष सफलता और आत्मिक परिपक्वता प्रदान करेगी। अनावश्यक जल्दबाजी से बचें।`;
     } else if (s.isKantaka) {
-      sPara1 = "शनि देव आपकी चंद्र राशि से केंद्र भाव में गोचर करते हुए कंटक शनि का प्रभाव बना रहे हैं। कार्यक्षेत्र और पारिवारिक मामलों में संयम एवं सोच-समझकर निर्णय लेना अत्यंत आवश्यक है।";
+      sPara1 = `शनि देव आपकी जन्म चंद्र राशि से ${s.houseFromMoon}वें केंद्र भाव में गोचर करते हुए कंटक शनि का प्रभाव बना रहे हैं। कार्यक्षेत्र और पारिवारिक मामलों में संयम एवं सोच-समझकर निर्णय लेना अत्यंत आवश्यक है।`;
     } else if (s.isAshtama) {
-      sPara1 = "शनि देव आपकी चंद्र राशि से अष्टम भाव में गोचर कर रहे हैं। स्वास्थ्य की देखभाल, खान-पान में नियम और आर्थिक निर्णयों में विशेष सतर्कता बरतना कल्याणकारी रहेगा।";
+      sPara1 = `शनि देव आपकी जन्म चंद्र राशि से 8वें आयुर्भाव में गोचर कर रहे हैं। स्वास्थ्य की देखभाल, खान-पान में नियम और आर्थिक निर्णयों में विशेष सतर्कता बरतना कल्याणकारी रहेगा।`;
     } else {
-      sPara1 = "शनि देव आपकी चंद्र राशि से शुभ भाव में गोचर कर रहे हैं, जिससे आपके परिश्रम का यथोचित फल और जीवन में स्थिरता प्राप्त होगी। सामाजिक मान-प्रतिष्ठा में वृद्धि होगी।";
+      sPara1 = `शनि देव आपकी जन्म चंद्र राशि से ${s.houseFromMoon}वें भाव में अत्यंत अनुकूल गोचर कर रहे हैं, जिससे आपके परिश्रम का यथोचित फल और जीवन में स्थिरता प्राप्त होगी। सामाजिक मान-प्रतिष्ठा में वृद्धि होगी।`;
     }
     sPara2 = "कर्मफलदाता शनि देव सत्य और अनुशासन से परिपूर्ण प्रयासों का सदैव उत्तम फल प्रदान करते हैं। नियमित सात्विक दिनचर्या का पालन करने और परोपकार करने से समस्त बाधाएं दूर होंगी।";
   } else if (baseLang === "te") {
     sName = "శని భగవానుని గోచార ఫలితం";
     sRemedy = "శనివారం నువ్వుల నూనెతో దీపం వెలిగించి దశరథ ప్రోక్త శని స్తోత్రం పఠించడం మరియు నిరుపేదలకు అన్నదానం చేయడం దోషాలను నివారిస్తుంది.";
     if (s.isSadeSati) {
-      sPara1 = "శని భగవానుడు మీ జన్మ రాశి నుండి గోచరిస్తూ ఏలినాటి శని ప్రభావాన్ని చూపుతున్నారు. ఈ కాలంలో ఓర్పు, క్రమశిక్షణ మరియు ధర్మబద్ధమైన జీవనం ద్వారా శనీశ్వరుని సంపూర్ణ అనుగ్రహాన్ని పొందవచ్చు.";
+      sPara1 = `శని భగవానుడు మీ జన్మ చంద్ర రాశి నుండి ${s.houseFromMoon}వ స్థానంలో సంచరిస్తూ ఏలినాటి శని ప్రభావాన్ని చూపుతున్నారు. ఈ కాలంలో ఓర్పు, క్రమశిక్షణ మరియు ధర్మబద్ధమైన జీవనం ద్వారా శనీశ్వరుని సంపూర్ణ అనుగ్రహాన్ని పొందవచ్చు.`;
     } else if (s.isKantaka) {
-      sPara1 = "శని భగవానుడు మీ జన్మ రాశి నుండి కేంద్ర స్థానంలో సంచరిస్తూ కంటక శని ప్రభావాన్ని కలిగిస్తున్నారు. వృత్తి మరియు కుటుంబ వ్యవహారాలలో సంయమనంతో వ్యవహరించడం శ్రేయస్కరం.";
+      sPara1 = `శని భగవానుడు మీ జన్మ చంద్ర రాశి నుండి ${s.houseFromMoon}వ కేంద్ర స్థానంలో సంచరిస్తూ కంటక శని ప్రభావాన్ని కలిగిస్తున్నారు. వృత్తి మరియు కుటుంబ వ్యవహారాలలో సంయమనంతో వ్యవహరించడం శ్రేయస్కరం.`;
     } else if (s.isAshtama) {
-      sPara1 = "శని భగవానుడు మీ జన్మ రాశి నుండి 8వ స్థానంలో సంచరిస్తూ అష్టమ శని ప్రభావాన్ని చూపిస్తున్నారు. ఆరోగ్యం మరియు ఆర్థిక విషయాలలో తగిన జాగ్రత్తలు తీసుకోవడం అవసరం.";
+      sPara1 = `శని భగవానుడు మీ జన్మ చంద్ర రాశి నుండి 8వ ఆయుర్దాయ స్థానంలో సంచరిస్తూ అష్టమ శని ప్రభావాన్ని చూపిస్తున్నారు. ఆరోగ్యం మరియు ఆర్థిక విషయాలలో తగిన జాగ్రత్తలు తీసుకోవడం అవసరం.`;
     } else {
-      sPara1 = "శని భగవానుడు మీ జన్మ రాశి నుండి అనుకూల స్థానంలో సంచరిస్తూ మీ కష్టానికి తగిన గుర్తింపు మరియు స్థిరత్వాన్ని ప్రసాదిస్తారు. ఆశించిన ఫలితాలు సులభంగా లభిస్తాయి.";
+      sPara1 = `శని భగవానుడు మీ జన్మ చంద్ర రాశి నుండి ${s.houseFromMoon}వ అనుకూల స్థానంలో సంచరిస్తూ మీ కష్టానికి తగిన గుర్తింపు మరియు స్థిరత్వాన్ని ప్రసాదిస్తారు. ఆశించిన ఫలితాలు సులభంగా లభిస్తాయి.`;
     }
     sPara2 = "కర్మ ప్రదాత అయిన శనీశ్వరుడు నిజాయితీతో కూడిన కృషికి ఎల్లప్పుడూ ఉన్నత ఫలితాలనే అందిస్తారు. ప్రతిరోజూ క్రమశిక్షణతో కూడిన జీవనం సాగిస్తే అడ్డంకులు తొలగి విజయం లభిస్తుంది.";
   } else if (baseLang === "ta") {
     sName = "சனி பகவானின் கோசார பலன்";
     sRemedy = "சனிக்கிழமைகளில் நல்லெண்ணெய் தீபம் ஏற்றி தசரத சனி ஸ்தோத்திரம் பாராயணம் செய்வதும், ஏழைகளுக்கு அன்னதானம் செய்வதும் தோஷங்களை நீக்கும்.";
     if (s.isSadeSati) {
-      sPara1 = "சனி பகவான் உங்கள் சந்திர ராசியிலிருந்து சஞ்சரித்து ஏழரை நாட்டுச் சனியின் காலத்தை ஏற்படுத்துகிறார். பொறுமையுடனும் கடமை உணர்வுடனும் நேர்மையாகச் செயல்படுவது சனி பகவானின் பரிபூரண அருளைப் பெற்றுத் தரும்.";
+      sPara1 = `சனி பகவான் உங்கள் சந்திர ராசியிலிருந்து ${s.houseFromMoon}-ஆம் இடத்தில் சஞ்சரித்து ஏழரை நாட்டுச் சனியின் காலத்தை ஏற்படுத்துகிறார். பொறுமையுடனும் கடமை உணர்வுடனும் நேர்மையாகச் செயல்படுவது சனி பகவானின் பரிபூரண அருளைப் பெற்றுத் தரும்.`;
     } else if (s.isKantaka) {
-      sPara1 = "சனி பகவான் உங்கள் சந்திர ராசிக்கு கேந்திர ஸ்தானத்தில் சஞ்சரித்து கண்டகச் சனியின் தாக்கத்தை ஏற்படுத்துகிறார். தொழில் மற்றும் குடும்ப முடிவுகளில் நிதானமும் எச்சரிக்கையும் தேவை.";
+      sPara1 = `சனி பகவான் உங்கள் சந்திர ராசிக்கு ${s.houseFromMoon}-ஆம் கேந்திர ஸ்தானத்தில் சஞ்சரித்து கண்டகச் சனியின் தாக்கத்தை ஏற்படுத்துகிறார். தொழில் மற்றும் குடும்ப முடிவுகளில் நிதானமும் எச்சரிக்கையும் தேவை.`;
     } else if (s.isAshtama) {
-      sPara1 = "சனி பகவான் உங்கள் சந்திர ராசிக்கு எட்டாம் இடத்தில் சஞ்சரித்து அட்டமச் சனியின் தாக்கத்தை ஏற்படுத்துகிறார். உடல்நலம், உணவுப் பழக்கம் மற்றும் நிதி விவகாரங்களில் விழிப்புடன் இருப்பது அவசியம்.";
+      sPara1 = `சனி பகவான் உங்கள் சந்திர ராசிக்கு எட்டாம் இடத்தில் சஞ்சரித்து அட்டமச் சனியின் தாக்கத்தை ஏற்படுத்துகிறார். உடல்நலம், உணவுப் பழக்கம் மற்றும் நிதி விவகாரங்களில் விழிப்புடன் இருப்பது அவசியம்.`;
     } else {
-      sPara1 = "சனி பகவான் சாதகமான நிலையில் சஞ்சரிப்பதால் உங்கள் உழைப்பிற்கு ஏற்ற முன்னேற்றமும் ஸ்திரத்தன்மையும் கிட்டும். சமூகத்தில் மதிப்பு உயரும்.";
+      sPara1 = `சனி பகவான் ${s.houseFromMoon}-ஆம் சாதகமான இடத்தில் சஞ்சரிப்பதால் உங்கள் உழைப்பிற்கு ஏற்ற முன்னேற்றமும் ஸ்திரத்தன்மையும் கிட்டும். சமூகத்தில் மதிப்பு உயரும்.`;
     }
     sPara2 = "நீதிமானான சனி பகவான் உண்மையான உழைப்பிற்கும் நேர்மைக்கும் எப்போதுமே சிறப்பான பலன்களை வழங்குவார். நல்வழியில் கடமைகளை ஆற்றி வந்தால் நன்மைகள் தொடரும்.";
   } else {
@@ -3290,27 +3298,27 @@ export function buildDynamicGocharaFallback(chart: ParsedKundaliChart): Array<{ 
     jName = "देवगुरु बृहस्पति का गोचर फल";
     jRemedy = "गुरुवार को देवगुरु बृहस्पति का पूजन करें, विष्णु सहस्त्रनाम का पाठ करें तथा गोशाला में गायों को हरा चारा या गुड़-चना खिलाएं।";
     if (j.isGuruBala) {
-      jPara1 = "देवगुरु बृहस्पति आपकी चंद्र राशि से अनुकूल भाव में गोचर कर रहे हैं, जिससे प्रबल गुरु बल सक्रिय है। यह शुभ गोचर ज्ञान, प्रतिष्ठा, पारिवारिक मांगलिक कार्यों और आर्थिक समृद्धि में वृद्धि करेगा।";
+      jPara1 = `देवगुरु बृहस्पति आपकी चंद्र राशि से ${j.houseFromMoon}वें भाव में गोचर कर रहे हैं, जिससे प्रबल गुरु बल सक्रिय है। यह शुभ गोचर ज्ञान, प्रतिष्ठा, पारिवारिक मांगलिक कार्यों और आर्थिक समृद्धि में वृद्धि करेगा।`;
     } else {
-      jPara1 = "देवगुरु बृहस्पति आपकी चंद्र राशि से अध्ययन और आत्म-चिंतन के भाव में गोचर कर रहे हैं। यह समय नैतिक मूल्यों के संवर्धन और आध्यात्मिक साधना के लिए अत्यंत फलदायी है।";
+      jPara1 = `देवगुरु बृहस्पति आपकी चंद्र राशि से ${j.houseFromMoon}वें भाव में गोचर करते हुए अध्ययन और आत्म-चिंतन की प्रेरणा दे रहे हैं। यह समय नैतिक मूल्यों के संवर्धन और आध्यात्मिक साधना के लिए अत्यंत फलदायी है।`;
     }
     jPara2 = "गुरु का पावन आशीर्वाद आपके निर्णयों में विवेक और दूरदर्शिता प्रदान करता है। गुरुजनों का सम्मान करने और दान-धर्म करने से भाग्य में निरंतर वृद्धि होगी।";
   } else if (baseLang === "te") {
     jName = "దేవగురు బృహస్పతి గోచార ఫలితం";
     jRemedy = "ప్రతి గురువారం బృహస్పతి పూజ, విష్ణు సహస్రనామ స్తోత్ర పారాయణం చేయడం మరియు గోసేవ చేయడం విశేష శుభాలను ప్రసాదిస్తుంది.";
     if (j.isGuruBala) {
-      jPara1 = "దేవగురు బృహస్పతి మీ జన్మ రాశి నుండి అనుకూల స్థానంలో సంచరిస్తూ బలమైన గురు బలాన్ని ప్రసాదిస్తున్నారు. ఈ శుభ గోచారం గౌరవం, శుభకార్యాల నిర్వహణ మరియు ఆర్థిక సౌభాగ్యాన్ని చేకూరుస్తుంది.";
+      jPara1 = `దేవగురు బృహస్పతి మీ జన్మ రాశి నుండి ${j.houseFromMoon}వ స్థానంలో సంచరిస్తూ బలమైన గురు బలాన్ని ప్రసాదిస్తున్నారు. ఈ శుభ గోచారం గౌరవం, శుభకార్యాల నిర్వహణ మరియు ఆర్థిక సౌభాగ్యాన్ని చేకూరుస్తుంది.`;
     } else {
-      jPara1 = "దేవగురు బృహస్పతి మీ జన్మ రాశి నుండి అంతర్మథనం మరియు ఆధ్యాత్మిక సాధనకు అనుకూలమైన స్థానంలో సంచరిస్తున్నారు. విజ్ఞానాన్ని పెంపొందించుకోవడానికి ఇది మంచి సమయం.";
+      jPara1 = `దేవగురు బృహస్పతి మీ జన్మ రాశి నుండి ${j.houseFromMoon}వ స్థానంలో సంచరిస్తూ అంతర్మథనం మరియు ఆధ్యాత్మిక సాధనకు అనుకూలతను కలిగిస్తున్నారు.`;
     }
     jPara2 = "జ్ఞానకారకుడైన గురువు అనుగ్రహం మీ ఆలోచనలలో స్పష్టతను నింపుతుంది. పెద్దలను, గురువులను సత్కరించడం ద్వారా భవిష్యత్తులో అద్భుతమైన అవకాశాలు చేకూరుతాయి.";
   } else if (baseLang === "ta") {
     jName = "தேவகுரு பிரகஸ்பதியின் கோசார பலன்";
     jRemedy = "வியாழக்கிழமைகளில் குரு வழிபாடு, விஷ்ணு சகஸ்ரநாம பாராயணம் மற்றும் பசுவுக்கு அகத்திக்கீரை அல்லது தீவனம் அளிப்பது அளப்பரிய நற்பலன்களைத் தரும்.";
     if (j.isGuruBala) {
-      jPara1 = "தேவகுரு பிரகஸ்பதி உங்கள் சந்திர ராசியிலிருந்து சாதகமான பாவத்தில் சஞ்சரித்து சிறப்பான குரு பலத்தை அளிக்கிறார். இது சுபகாரியங்கள், தனலாபம், சமூக அந்தஸ்து மற்றும் குடும்ப மகிழ்ச்சியை அதிகரிக்கும்.";
+      jPara1 = `தேவகுரு பிரகஸ்பதி உங்கள் சந்திர ராசியிலிருந்து ${j.houseFromMoon}-ஆம் சாதகமான பாவத்தில் சஞ்சரித்து சிறப்பான குரு பலத்தை அளிக்கிறார். இது சுபகாரியங்கள், தனலாபம் மற்றும் குடும்ப மகிழ்ச்சியை அதிகரிக்கும்.`;
     } else {
-      jPara1 = "தேவகுரு பிரகஸ்பதி உங்கள் சந்திர ராசியிலிருந்து ஆன்மீக சாதனைக்கும் ஞான வளர்ச்சிக்கும் உகந்த இடத்தில் சஞ்சரித்து உள்ளார்ந்த அமைதியை ஏற்படுத்துகிறார்.";
+      jPara1 = `தேவகுரு பிரகஸ்பதி உங்கள் சந்திர ராசியிலிருந்து ${j.houseFromMoon}-ஆம் இடத்தில் சஞ்சரித்து ஆன்மீக சாதனைக்கும் ஞான வளர்ச்சிக்கும் உகந்த உள்ளார்ந்த அமைதியை ஏற்படுத்துகிறார்.`;
     }
     jPara2 = "ஞானகாரகரான குருவின் அருள் உங்கள் முடிவுகளில் தெளிவையும் நல்வழியையும் தரும். பெரியோர்களையும் ஆசிரியர்களையும் மதித்து நடப்பது வெற்றியை உறுதி செய்யும்.";
   } else {
@@ -3331,30 +3339,33 @@ export function buildDynamicGocharaFallback(chart: ParsedKundaliChart): Array<{ 
   items.push({ name: jCleanName, impact: jImpact, remedy: jCleanRemedy });
 
   // 3. RAHU & KETU CARD
+  const rahuH = chart.transitRahu?.houseFromMoon ?? 11;
+  const ketuH = chart.transitKetu?.houseFromMoon ?? (((rahuH + 6 - 1) % 12) + 1);
+
   let rkName = "Rahu & Ketu Shadow Planets Live Transit";
   let rkRemedy = "Chant Sri Durga Ashtakam on Tuesdays or Fridays, light a ghee lamp for Mother Durga, and feed wild birds with grains to harmonize shadow planet energies.";
-  let rkPara1 = `The lunar nodes, Rahu and Ketu, are navigating significant nodal axes relative to your natal Moon (${chart.moonSignName}), inaugurating an intense epoch of karmic rebalancing, subconscious evolution, and unconventional opportunities. Rahu magnifies ambitious pursuits, worldly networks, and new horizons, while Ketu instills spiritual detachment and introspective wisdom.`;
+  let rkPara1 = `The lunar nodes, Rahu (transiting the ${rahuH}th house from your natal Moon) and Ketu (transiting the ${ketuH}th house from your natal Moon), are navigating significant nodal axes relative to your natal Moon (${chart.moonSignName}), inaugurating an intense epoch of karmic rebalancing, subconscious evolution, and unconventional opportunities. Rahu magnifies ambitious pursuits, worldly networks, and new horizons, while Ketu instills spiritual detachment and introspective wisdom.`;
   let rkPara2 = "Navigating this nodal axis demands absolute transparency and grounded realism, steering clear of speculative mirages or impulsive overreach. Grounding everyday decisions in methodical ethics and honoring ancestral traditions transforms shadow tendencies into profound intuitive clarity and breakthrough achievements.";
 
   if (baseLang === "kn") {
     rkName = "ರಾಹು ಹಾಗೂ ಕೇತು ಛಾಯಾಗ್ರಹಗಳ ಗೋಚಾರ ಫಲ";
     rkRemedy = "ಪ್ರತಿ ಮಂಗಳವಾರ ಅಥವಾ ಶುಕ್ರವಾರ ದುರ್ಗಾ ದೇವಿಗೆ ತುಪ್ಪದ ದೀಪ ಹಚ್ಚಿ ದುರ್ಗಾ ಅಷ್ಟಕಂ ಪಠಿಸುವುದು ಹಾಗೂ ಪಕ್ಷಿಗಳಿಗೆ ಕಾಳು ಮತ್ತು ನೀರು ನೀಡುವುದು ಛಾಯಾಗ್ರಹ ದೋಷಗಳನ್ನು ನಿವಾರಿಸುತ್ತದೆ.";
-    rkPara1 = "ಛಾಯಾಗ್ರಹಗಳಾದ ರಾಹು ಮತ್ತು ಕೇತುಗಳು ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ಮಹತ್ವದ ಭಾವಗಳಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಜೀವನದಲ್ಲಿ ನೂತನ ಆಕಾಂಕ್ಷೆಗಳು, ಆಧ್ಯಾತ್ಮಿಕ ಅನುಭವಗಳು ಹಾಗೂ ಕರ್ಮಿಕ ತಿರುವುಗಳನ್ನು ಉಂಟುಮಾಡುತ್ತಿದ್ದಾರೆ. ರಾಹುವಿನ ಸಂಚಾರವು ಲೌಕಿಕ ಪ್ರಗತಿ ಮತ್ತು ಹೊಸ ಸಂಪರ್ಕಗಳನ್ನು ಪ್ರೇರೇಪಿಸಿದರೆ, ಕೇತುವಿನ ಸಂಚಾರವು ಆಂತರಿಕ ವೈರಾಗ್ಯ ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ಒಳನೋಟವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.";
+    rkPara1 = `ಛಾಯಾಗ್ರಹಗಳಾದ ರಾಹುವು ನಿಮ್ಮ ಜನ್ಮ ಚಂದ್ರನಿಂದ ${toKnDigits(rahuH)}ನೇ ಭಾವದಲ್ಲಿ ಹಾಗೂ ಕೇತುವು ${toKnDigits(ketuH)}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಜೀವನದಲ್ಲಿ ನೂತನ ಆಕಾಂಕ್ಷೆಗಳು, ಆಧ್ಯಾತ್ಮಿಕ ಅನುಭವಗಳು ಹಾಗೂ ಕರ್ಮಿಕ ತಿರುವುಗಳನ್ನು ಉಂಟುಮಾಡುತ್ತಿದ್ದಾರೆ. ರಾಹುವಿನ ಸಂಚಾರವು ಲೌಕಿಕ ಪ್ರಗತಿ ಮತ್ತು ಹೊಸ ಸಂಪರ್ಕಗಳನ್ನು ಪ್ರೇರೇಪಿಸಿದರೆ, ಕೇತುವಿನ ಸಂಚಾರವು ಆಂತರಿಕ ವೈರಾಗ್ಯ ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ಒಳನೋಟವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತಿದೆ.`;
     rkPara2 = "ಈ ಅವಧಿಯಲ್ಲಿ ಯಾವುದೇ ಭ್ರಮೆಗಳಿಗೆ ಒಳಗಾಗದೆ, ವಾಸ್ತವ ನೆಲೆಗಟ್ಟಿನಲ್ಲಿ ಯೋಚಿಸಿ ತೀರ್ಮಾನಗಳನ್ನು ಕೈಗೊಳ್ಳುವುದು ಅತ್ಯಂತ ಅವಶ್ಯಕವಾಗಿದೆ. ಕೌಟುಂಬಿಕ ಹಾಗೂ ಪಾಲುದಾರಿಕೆಯ ಸಂಬಂಧಗಳಲ್ಲಿ ಸ್ಪಷ್ಟವಾದ, ಪ್ರಾಮಾಣಿಕ ಮಾತುಕತೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದರಿಂದ ಯಾವುದೇ ತಪ್ಪುಗ್ರಹಿಕೆಗಳು ಉಂಟಾಗದಂತೆ ಎಚ್ಚರವಹಿಸಬಹುದು.";
   } else if (baseLang === "hi") {
     rkName = "राहु एवं केतु छायाग्रह गोचर फल";
     rkRemedy = "प्रत्येक मंगलवार अथवा शुक्रवार को मां दुर्गा के समक्ष घी का दीपक जलाकर दुर्गा सप्तशती का पाठ करें तथा पक्षियों को दाना-पानी दें।";
-    rkPara1 = "छायाग्रह राहु और केतु वर्तमान में आपकी चंद्र राशि से महत्वपूर्ण भावों में गोचर कर रहे हैं, जो जीवन में नवीन महत्वाकांक्षाएं, आध्यात्मिक अनुभव और कर्मिक परिवर्तन ला रहे हैं। राहु का गोचर सांसारिक प्रगति, नए संपर्क और दूरगामी योजनाओं को प्रेरित कर रहा है, जबकि केतु का गोचर आत्म-चिंतन और आंतरिक वैराग्य की भावना को जागृत कर रहा है।";
+    rkPara1 = `छायाग्रह राहु वर्तमान में आपकी चंद्र राशि से ${rahuH}वें भाव में तथा केतु ${ketuH}वें भाव में गोचर कर रहे हैं, जो जीवन में नवीन महत्वाकांक्षाएं, आध्यात्मिक अनुभव और कर्मिक परिवर्तन ला रहे हैं। राहु का गोचर सांसारिक प्रगति एवं नए संपर्क को प्रेरित कर रहा है, जबकि केतु का गोचर आत्म-चिंतन एवं आंतरिक वैराग्य की भावना को जागृत कर रहा है।`;
     rkPara2 = "इस गोचर काल में किसी भी प्रकार के भ्रम या अति-उत्साह से बचते हुए व्यावहारिक दृष्टिकोण बनाए रखना अत्यंत आवश्यक है। पारिवारिक एवं व्यावसायिक संबंधों में पारदर्शिता और सत्यनिष्ठा बनाए रखने से समस्त कार्य निर्विघ्न रूप से सिद्ध होंगे।";
   } else if (baseLang === "te") {
     rkName = "రాహువు మరియు కేతువు ఛాయాగ్రహ గోచార ఫలితం";
     rkRemedy = "ప్రతి మంగళవారం లేదా శుక్రవారం దుర్గాదేవికి నెయ్యి దీపం వెలిగించి, దుర్గా అష్టకం పఠించడం మరియు పక్షులకు ధాన్యాలు వేయడం రాహు-కేతు దోషాలను నివారిస్తుంది.";
-    rkPara1 = "ఛాయాగ్రహాలైన రాహువు మరియు కేతువులు ప్రస్తుతం మీ జన్మ చంద్రుని నుండి కీలక భావాలలో సంచరిస్తూ జీవితంలో నూతన ఆశయాలు, ఆధ్యాత్మిక అనుభవాలు మరియు కర్మిక మార్పులను కలిగిస్తున్నారు. రాహువు సంచారం లౌకిక పురోగతికి తోడ్పడగా, కేతువు సంచారం అంతర్గత వైరాగ్యం మరియు ఆధ్యాత్మిక వికాసాన్ని ప్రోత్సహిస్తుంది.";
+    rkPara1 = `ఛాయాగ్రహాలైన రాహువు మీ జన్మ చంద్రుని నుండి ${rahuH}వ స్థానంలో మరియు కేతువు ${ketuH}వ స్థానంలో సంచరిస్తూ జీవితంలో నూతన ఆశయాలు, ఆధ్యాత్మిక అనుభవాలు మరియు కర్మిక మార్పులను కలిగిస్తున్నారు. రాహువు సంచారం లౌకిక పురోగతికి తోడ్పడగా, కేతువు సంచారం అంతర్గత వైరాగ్యం మరియు ఆధ్యాత్మిక వికాసాన్ని ప్రోత్సహిస్తుంది.`;
     rkPara2 = "ఈ సమయంలో భ్రమలకు తావివ్వకుండా వాస్తవాలను గ్రహించి సమతుల్యమైన నిర్ణయాలు తీసుకోవడం చాలా ముఖ్యం. కుటుంబ మరియు వ్యాపార సంబంధాలలో నిజాయితీగా వ్యవహరించడం ద్వారా అపార్థాలను సులభంగా నివారించవచ్చు.";
   } else if (baseLang === "ta") {
     rkName = "ராகு மற்றும் கேது சாயாகிரக கோசார பலன்";
     rkRemedy = "செவ்வாய் அல்லது வெள்ளிக்கிழமைகளில் துர்க்கை அம்மனுக்கு நெய் தீபம் ஏற்றி, துர்கா அஷ்டகம் பாராயணம் செய்வது மற்றும் பறவைகளுக்கு தானியமிடுவது தோஷம் நீக்கும்.";
-    rkPara1 = "சாயாகிரகங்களான ராகு மற்றும் கேது பகவான்கள் தற்பொழுது உங்கள் சந்திர ராசியிலிருந்து முக்கிய பாவங்களில் சஞ்சரித்து, வாழ்வில் புதிய இலக்குகள், ஆன்மீக அனுபவங்கள் மற்றும் கர்ம வினைகளின் மாற்றங்களை உண்டாக்குகின்றனர். ராகுவின் சஞ்சாரம் உலகியல் முன்னேற்றத்திற்கும், கேதுவின் சஞ்சாரம் ஆன்மீக ஞானத்திற்கும் வழிவகுக்கும்.";
+    rkPara1 = `சாயாகிரகங்களான ராகு பகவான் உங்கள் சந்திர ராசிக்கு ${rahuH}-ஆம் இடத்திலும் கேது பகவான் ${ketuH}-ஆம் இடத்திலும் சஞ்சரித்து, வாழ்வில் புதிய இலக்குகள், ஆன்மீக அனுபவங்கள் மற்றும் கர்ம வினைகளின் மாற்றங்களை உண்டாக்குகின்றனர். ராகுவின் சஞ்சாரம் உலகியல் முன்னேற்றத்திற்கும், கேதுவின் சஞ்சாரம் ஆன்மீக ஞானத்திற்கும் வழிவகுக்கும்.`;
     rkPara2 = "இந்த காலகட்டத்தில் வீண் கற்பனைகளைத் தவிர்த்து, எதார்த்தமான சிந்தனையுடன் முடிவுகளை எடுப்பது அவசியமாகும். குடும்பம் மற்றும் தொழில் சார்ந்த உறவுகளில் வெளிப்படைத்தன்மையுடன் பழகுவது தவறான புரிதல்களை நீக்கி நற்பலன்களைத் தரும்.";
   }
 
@@ -3396,6 +3407,22 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
   const baseLang = chart.lang.split("-")[0];
   const devoteeName = getLocalizedDevoteeName(chart.name, baseLang);
 
+  const currentAge = chart.ageYears || 30;
+  const bhuktiEnd = chart.bhuktiEndsAtAge;
+  let inflectionMonthA = 4;
+  let inflectionMonthB = 8;
+  if (typeof bhuktiEnd === "number" && bhuktiEnd > currentAge) {
+    const diffMonths = Math.max(1, Math.min(12, Math.round((bhuktiEnd - currentAge) * 12)));
+    inflectionMonthA = Math.max(2, Math.min(6, Math.floor(diffMonths / 2) || 3));
+    inflectionMonthB = Math.max(inflectionMonthA + 2, Math.min(12, diffMonths));
+  } else {
+    const jH = chart.transitJupiter?.houseFromMoon ?? 11;
+    inflectionMonthA = ((jH * 2) % 5) + 3;
+    inflectionMonthB = Math.min(12, inflectionMonthA + 4);
+  }
+  const mAKn = toKnDigits(inflectionMonthA);
+  const mBKn = toKnDigits(inflectionMonthB);
+
   if (baseLang === "kn") {
     const salutation = devoteeName ? `${devoteeName} ಅವರೇ, ` : "";
     const p1 = `${salutation}ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${chart.lagnaSignName} ಹಾಗೂ ಜನ್ಮ ರಾಶಿಯಾದ ${chart.moonSignName} ಆಧಾರದ ಮೇಲೆ, ಕಳೆದ ಕೆಲ ಸಮಯಗಳಿಂದ ನೀವು ಹೊತ್ತು ಸಾಗುತ್ತಿರುವ ಆಂತರಿಕ ಆತಂಕಗಳು, ನಿಶ್ಯಬ್ದ ಹೋರಾಟಗಳು ಹಾಗೂ ಮಾನಸಿಕ ದಣಿವನ್ನು ಗ್ರಹಗಳ ಪ್ರಸ್ತುತ ಚಲನೆಯು ಸಂಪೂರ್ಣವಾಗಿ ಅರ್ಥೈಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ಆರಂಭವಾಗಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯ ಪವಿತ್ರ ಕಾಲಘಟ್ಟವು ಬರುವ ೧೨ ತಿಂಗಳುಗಳಲ್ಲಿ (ಮುಂದಿನ ೧ ವರ್ಷ) ನಿಮ್ಮ ಮನಸ್ಸಿಗೆ ಹೊಸ ಚೇತನ, ಆಶಾಭಾವನೆ ಮತ್ತು ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ತುಂಬಲಿದೆ. ಈ ಅವಧಿಯು ಕೇವಲ ಬಾಹ್ಯ ಬದಲಾವಣೆಗಳನ್ನಷ್ಟೇ ಅಲ್ಲದೆ, ನಿಮ್ಮ ಅಂತರಂಗದ ಗೊಂದಲಗಳನ್ನು ನಿವಾರಿಸಿ, ಭವಿಷ್ಯದ ಬಗ್ಗೆ ದೃಢವಾದ ಮತ್ತು ಶಾಂತಿಯುತವಾದ ಸ್ಪಷ್ಟತೆಯನ್ನು ಕರುಣಿಸಲಿದೆ.`;
@@ -3406,7 +3433,7 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
 
     const p3 = `ಕೌಟುಂಬಿಕ ವಲಯದಲ್ಲಿ ಹಿಂದಿನ ಸಣ್ಣಪುಟ್ಟ ಭಿನ್ನಾಭಿಪ್ರಾಯಗಳು ಹಾಗೂ ಸಂವಹನದ ಕೊರತೆಗಳು ನಿಧಾನವಾಗಿ ಬಗೆಹರಿದು ಪರಸ್ಪರ ಪ್ರೀತಿ ಮತ್ತು ವಿಶ್ವಾಸ ವೃದ್ಧಿಯಾಗಲಿದೆ. ಮನೆಯಲ್ಲಿ ಶುಭ ಕಾರ್ಯಗಳ ಸಿದ್ಧತೆ, ಹಿರಿಯರ ಆರೋಗ್ಯದಲ್ಲಿ ಸುಧಾರಣೆ ಹಾಗೂ ಬಂಧು-ಮಿತ್ರರ ಸಹಕಾರವು ನಿಮ್ಮ ಮಾನಸಿಕ ನೆಮ್ಮದಿಯನ್ನು ಇಮ್ಮಡಿಗೊಳಿಸಲಿದೆ. ದೈಹಿಕ ಆರೋಗ್ಯದ ದೃಷ್ಟಿಯಿಂದ ನಿಯಮಿತ ದಿನಚರಿ, ಸಾತ್ವಿಕ ಆಹಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ನಿದ್ರೆಯ ಸಮತೋಲನವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ನರಮಂಡಲ ಮತ್ತು ಜೀರ್ಣಕ್ರಿಯೆಗೆ ರಕ್ಷಣೆ ನೀಡಲಿದೆ. ಋತುಮಾನಕ್ಕೆ ತಕ್ಕಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆ ವಹಿಸುವುದು ಉತ್ತಮ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ನೀಡುತ್ತದೆ.`;
 
-    const p4 = `【ಮುಂದಿನ ೧ ವರ್ಷದ ದೈವಿಕ ಸಂಕಲ್ಪ & ವಿಜಯ ಸಾಧನೆ】 ಮುಂದಿನ ೧೨ ತಿಂಗಳ ಪಯಣದಲ್ಲಿ ಬರುವ ೫ನೇ ಮತ್ತು ೯ನೇ ತಿಂಗಳುಗಳು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳಿಗೆ (ಹೂಡಿಕೆ, ಸ್ಥಳ ಬದಲಾವಣೆ ಅಥವಾ ನೂತನ ಒಪ್ಪಂದಗಳು) ದೈವಿಕ ಸಂಕೇತಗಳನ್ನು ನೀಡಲಿವೆ. ಯಾವುದೇ ಆತುರದ ಭಾವನಾತ್ಮಕ ನಿರ್ಧಾರಗಳನ್ನು ತಡೆದು, ವಿವೇಕದಿಂದ ಹೆಜ್ಜೆ ಇಡುವುದು ನಿಮ್ಮನ್ನು ಯಶಸ್ಸಿನತ್ತ ಮುನ್ನಡೆಸಲಿದೆ. ನಿಮ್ಮ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ, ನಿತ್ಯ ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪರಮ ಪಾವನ ಸಾನ್ನಿಧ್ಯದ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳಿಗೆ ರಕ್ಷಾ ಕವಚವಾಗಿ ನಿಲ್ಲಲಿವೆ. ಈ ವರ್ಷವು ನಿಮ್ಮ ಕರ್ಮದ ಸತ್ಫಲಗಳನ್ನು ಅನುಭವಿಸುವ ಪುಣ್ಯ ವರ್ಷವಾಗಲಿ ಎಂದು ಹಾರೈಸುತ್ತೇವೆ.`;
+    const p4 = `【ಮುಂದಿನ ೧ ವರ್ಷದ ದೈವಿಕ ಸಂಕಲ್ಪ & ವಿಜಯ ಸಾಧನೆ】 ಮುಂದಿನ ೧೨ ತಿಂಗಳ ಪಯಣದಲ್ಲಿ ಬರುವ ${mAKn}ನೇ ಮತ್ತು ${mBKn}ನೇ ತಿಂಗಳುಗಳು ನಿಮ್ಮ ಜೀವನದ ಪ್ರಮುಖ ನಿರ್ಧಾರಗಳಿಗೆ (ಹೂಡಿಕೆ, ಸ್ಥಳ ಬದಲಾವಣೆ ಅಥವಾ ನೂತನ ಒಪ್ಪಂದಗಳು) ದೈವಿಕ ಸಂಕೇತಗಳನ್ನು ನೀಡಲಿವೆ. ಯಾವುದೇ ಆತುರದ ಭಾವನಾತ್ಮಕ ನಿರ್ಧಾರಗಳನ್ನು ತಡೆದು, ವಿವೇಕದಿಂದ ಹೆಜ್ಜೆ ಇಡುವುದು ನಿಮ್ಮನ್ನು ಯಶಸ್ಸಿನತ್ತ ಮುನ್ನಡೆಸಲಿದೆ. ನಿಮ್ಮ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ, ನಿತ್ಯ ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪರಮ ಪಾವನ ಸಾನ್ನಿಧ್ಯದ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳಿಗೆ ರಕ್ಷಾ ಕವಚವಾಗಿ ನಿಲ್ಲಲಿವೆ. ಈ ವರ್ಷವು ನಿಮ್ಮ ಕರ್ಮದ ಸತ್ಫಲಗಳನ್ನು ಅನುಭವಿಸುವ ಪುಣ್ಯ ವರ್ಷವಾಗಲಿ ಎಂದು ಹಾರೈಸುತ್ತೇವೆ.`;
 
     const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
     return cleanEnglishFromRegionalText(full, "kn");
@@ -3422,7 +3449,7 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
 
     const p3 = `पारिवारिक परिवेश में पहले से चले आ रहे वैचारिक मतभेद एवं संवादहीनता अब समाप्त होकर आपसी विश्वास और प्रेम में परिवर्तित होगी। घर में मांगलिक आयोजनों की रूपरेखा बनेगी तथा जीवनसाथी व परिजनों का पूर्ण सहयोग आपके मनोबल को ऊंचा रखेगा। स्वास्थ्य की दृष्टि से नित्य प्राणायाम, सूर्य नमस्कार और संतुलित सात्विक खानपान आपकी रोग प्रतिरोधक क्षमता को सुदृढ़ रखेगा। कार्य के दबाव में आकर अनिद्रा या मानसिक तनाव से बचें और प्राकृतिक जीवनशैली को अपनाएं।`;
 
-    const p4 = `【आगामी 1 वर्ष का दैवीय संकल्प एवं विजय साधना】 आगामी 12 महीनों के इस कालखंड में पांचवां और नौवां महीना आपके जीवन के कई महत्वपूर्ण फैसलों के लिए अत्यंत शुभ और निर्णायक सिद्ध होंगे। किसी भी जल्दबाजी या भावनात्मक आवेश से बचते हुए विवेकपूर्ण ढंग से निर्णय लेना आपको विजय दिलाएगा। नित्य अपने इष्टदेव का स्मरण, कुलदेवता की आराधना तथा श्री क्षेत्र गोकर्ण के पवित्र साकल्य से आपके समस्त मनोरथ निर्विघ्न संपन्न होंगे। यह वर्ष आपकी साधना और शुभ कर्मों के श्रेष्ठतम फलों को प्राप्त करने का एक स्वर्णिम अवसर सिद्ध होगा।`;
+    const p4 = `【आगामी 1 वर्ष का दैवीय संकल्प एवं विजय साधना】 आगामी 12 महीनों के इस कालखंड में ${inflectionMonthA}वें और ${inflectionMonthB}वें महीने आपके जीवन के कई महत्वपूर्ण फैसलों के लिए अत्यंत शुभ और निर्णायक सिद्ध होंगे। किसी भी जल्दबाजी या भावनात्मक आवेश से बचते हुए विवेकपूर्ण ढंग से निर्णय लेना आपको विजय दिलाएगा। नित्य अपने इष्टदेव का स्मरण, कुलदेवता की आराधना तथा श्री क्षेत्र गोकर्ण के पवित्र साकल्य से आपके समस्त मनोरथ निर्विघ्न संपन्न होंगे। यह वर्ष आपकी साधना और शुभ कर्मों के श्रेष्ठतम फलों को प्राप्त करने का एक स्वर्णिम अवसर सिद्ध होगा।`;
 
     const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
     return cleanEnglishFromRegionalText(full, "hi");
@@ -3438,7 +3465,7 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
 
     const p3 = `కుటుంబ వాతావరణంలో గతంలో ఏర్పడిన చిన్నపాటి అపార్థాలు తొలగిపోయి ఆప్యాయతలు, పరస్పర గౌరవం బలపడతాయి. గృహంలో శుభకార్యాల ప్రయత్నాలు వేగవంతమవుతాయి. జీవిత భాగస్వామి మరియు పిల్లల సహకారం మీ ఉల్లాసాన్ని రెట్టింపు చేస్తుంది. శారీరక ఆరోగ్యం విషయంలో క్రమబద్ధమైన దినచర్య, సమతుల్య ఆహారం మరియు ధ్యానం మీ నాడీ వ్యవస్థకు, జీర్ణవ్యవస్థకు మేలు చేస్తాయి. పని ఒత్తిడిని సమర్థవంతంగా నిర్వహించడం మానసిక ఉల్లాసానికి తోడ్పడుతుంది.`;
 
-    const p4 = `【రాబోయే 1 సంవత్సర దైవిక సంకల్పం & విజయ సాధన】 రాబోయే 12 నెలల కాలంలో 5వ మరియు 9వ నెలలు మీ జీవితంలో ముఖ్యమైన నిర్ణయాలకు (నూతన ప్రాజెక్టులు, పెట్టుబడులు లేదా ఒప్పందాలు) అత్యంత కీలకమైన మలుపులుగా నిలుస్తాయి. తొందరపాటు నిర్ణయాలకు తావివ్వకుండా, అనుభవజ్ఞుల సలహాలతో ముందడుగు వేయడం విశేష ఫలితాలను ఇస్తుంది. ఇష్టదైవ ఆరాధన, నిత్య ప్రార్థన మరియు శ్రీ క్షేత్ర గోకర్ణ పవిత్ర ఆశీర్వాదాలు మీ సకల సత్సంకల్పాలకు దివ్య రక్షణగా నిలుస్తాయి.`;
+    const p4 = `【రాబోయే 1 సంవత్సర దైవిక సంకల్పం & విజయ సాధన】 రాబోయే 12 నెలల కాలంలో ${inflectionMonthA}వ మరియు ${inflectionMonthB}వ నెలలు మీ జీవితంలో ముఖ్యమైన నిర్ణయాలకు (నూతన ప్రాజెక్టులు, పెట్టుబడులు లేదా ఒప్పందాలు) అత్యంత కీలకమైన మలుపులుగా నిలుస్తాయి. తొందరపాటు నిర్ణయాలకు తావివ్వకుండా, అనుభవజ్ఞుల సలహాలతో ముందడుగు వేయడం విశేష ఫలితాలను ఇస్తుంది. ఇష్టదైవ ఆరాధన, నిత్య ప్రార్థన మరియు శ్రీ క్షేత్ర గోకర్ణ పవిత్ర ఆశీర్వాదాలు మీ సకల సత్సంకల్పాలకు దివ్య రక్షణగా నిలుస్తాయి.`;
 
     const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
     return cleanEnglishFromRegionalText(full, "te");
@@ -3454,7 +3481,7 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
 
     const p3 = `குடும்பச் சூழலில் கடந்த கால கருத்து வேறுபாடுகள் மறைந்து அன்பும் பரஸ்பர புரிதலும் மேலோங்கும். வீட்டில் சுப காரியங்களுக்கான முயற்சிகள் கைகூடும். வாழ்க்கைத் துணை மற்றும் குடும்பத்தினரின் ஒத்துழைப்பு உங்கள் உற்சாகத்தை அதிகரிக்கும். ஆரோக்கியத்தைப் பொறுத்தவரை முறையான உடற்பயிற்சி, சாத்வீக உணவு மற்றும் தியானம் உங்கள் நரம்பு மண்டலத்தையும் செரிமானத்தையும் சமநிலையில் வைத்திருக்கும். பருவநிலை மாற்றங்களுக்கு ஏற்ப உணவுப் பழக்கங்களை அமைத்துக் கொள்வது நல்லது.`;
 
-    const p4 = `【வரவிருக்கும் 1 வருட தெய்வீக சங்கல்பம் & வெற்றி சாதனை】 வரவிருக்கும் 12 மாத பயணத்தில் 5-வது மற்றும் 9-வது மாதங்கள் உங்கள் வாழ்க்கையின் முக்கிய முடிவுகளுக்கு (முதலீடு, புதிய பொறுப்புகள் அல்லது ஒப்பந்தங்கள்) மிக முக்கியமான திருப்புமுனைகளாக அமையும். அவசர முடிவுகளைத் தவிர்த்து பொறுமையுடன் செயல்படுவது வெற்றியைத் தரும். உங்கள் இஷ்ட தெய்வ வழிபாடு மற்றும் ஸ்ரீ க்ஷேத்திர கோகர்ண திருத்தலத்தின் தெய்வீக அருளாசி உங்கள் அனைத்து நற்செயல்களுக்கும் பாதுகாப்பு கவசமாக விளங்கும். இந்த வருடம் உங்கள் நல்வினைகளின் பயனை அறுவடை செய்யும் ஆண்டாக அமைய வாழ்த்துகிறோம்.`;
+    const p4 = `【வரவிருக்கும் 1 வருட தெய்வீக சங்கல்பம் & வெற்றி சாதனை】 வரவிருக்கும் 12 மாத பயணத்தில் ${inflectionMonthA}-வது மற்றும் ${inflectionMonthB}-வது மாதங்கள் உங்கள் வாழ்க்கையின் முக்கிய முடிவுகளுக்கு (முதலீடு, புதிய பொறுப்புகள் அல்லது ஒப்பந்தங்கள்) மிக முக்கியமான திருப்புமுனைகளாக அமையும். அவசர முடிவுகளைத் தவிர்த்து பொறுமையுடன் செயல்படுவது வெற்றியைத் தரும். உங்கள் இஷ்ட தெய்வ வழிபாடு மற்றும் ஸ்ரீ க்ஷேத்திர கோகர்ண திருத்தலத்தின் தெய்வீக அருளாசி உங்கள் அனைத்து நற்செயல்களுக்கும் பாதுகாப்பு கவசமாக விளங்கும். இந்த வருடம் உங்கள் நல்வினைகளின் பயனை அறுவடை செய்யும் ஆண்டாக அமைய வாழ்த்துகிறோம்.`;
 
     const full = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
     return cleanEnglishFromRegionalText(full, "ta");
@@ -3470,7 +3497,7 @@ export function buildDynamicAnnualForecastFallback(chart: ParsedKundaliChart): s
 
   const p3 = `Within your domestic sphere, subtle communication strains and familial anxieties will steadily resolve into mutual understanding, warmth, and renewed companionship. Anticipated celebratory events or auspicious milestones will brighten the household sanctuary, reinforcing emotional trust among family members. On the wellness front, honoring mindful daily rhythms, seasonal nutrition, and restorative pranayama will safeguard your nervous and metabolic vitality. Embracing calm restorative practices shields your physical constitution against work-induced fatigue.`;
 
-  const p4 = `【Next 1-Year Divine Resolve & Cosmic Breakthrough】 Across this 12-month trajectory, months 5 and 9 emerge as significant inflection thresholds for pivotal life choices, contracts, or transformative investments. Exercising measured discernment over impulsive reactions will ensure consistent victory. Anchoring your daily life in devotion to your Ishta Devata, honoring ancestral roots, and receiving the divine blessings of Sri Kshetra Gokarna provide an impenetrable armor of grace and prosperity. May this upcoming year unfold as a deeply fulfilling chapter of triumph and peace.`;
+  const p4 = `【Next 1-Year Divine Resolve & Cosmic Breakthrough】 Across this 12-month trajectory, months ${inflectionMonthA} and ${inflectionMonthB} emerge as significant inflection thresholds for pivotal life choices, contracts, or transformative investments. Exercising measured discernment over impulsive reactions will ensure consistent victory. Anchoring your daily life in devotion to your Ishta Devata, honoring ancestral roots, and receiving the divine blessings of Sri Kshetra Gokarna provide an impenetrable armor of grace and prosperity. May this upcoming year unfold as a deeply fulfilling chapter of triumph and peace.`;
 
   return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
 }
@@ -4397,16 +4424,31 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
   const lagnaRule = LAGNA_GEMSTONE_RULES[lagnaRashiIdx] || LAGNA_GEMSTONE_RULES[0]!;
 
   // Resolve Janma Nakshatra for Neck Wear
+  const NAKSHATRA_NAMES_EN: string[] = [
+    "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
+    "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni",
+    "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
+    "Moola", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha",
+    "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"
+  ];
+
   let neckCatalogEntry = NAKSHATRA_NECK_WEAR_CATALOG["Ashwini"]!;
-  const rawNak = (chart.nakshatraName || "").toLowerCase();
-  for (const [key, val] of Object.entries(NAKSHATRA_NECK_WEAR_CATALOG)) {
-    if (
-      rawNak.includes(key.toLowerCase()) ||
-      rawNak.includes(val.nameEn.toLowerCase()) ||
-      rawNak.includes(val.deityEn.toLowerCase())
-    ) {
-      neckCatalogEntry = val;
-      break;
+  if (chart.moonNakshatraIndex !== null && chart.moonNakshatraIndex !== undefined && chart.moonNakshatraIndex >= 0) {
+    const key = NAKSHATRA_NAMES_EN[((chart.moonNakshatraIndex % 27) + 27) % 27];
+    if (key && NAKSHATRA_NECK_WEAR_CATALOG[key]) {
+      neckCatalogEntry = NAKSHATRA_NECK_WEAR_CATALOG[key]!;
+    }
+  } else {
+    const rawNak = (chart.nakshatraName || "").toLowerCase();
+    for (const [key, val] of Object.entries(NAKSHATRA_NECK_WEAR_CATALOG)) {
+      if (
+        rawNak.includes(key.toLowerCase()) ||
+        rawNak.includes(val.nameEn.toLowerCase()) ||
+        rawNak.includes(val.deityEn.toLowerCase())
+      ) {
+        neckCatalogEntry = val;
+        break;
+      }
     }
   }
 
@@ -4416,11 +4458,11 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
   const neckWearText = baseLang === "kn"
     ? `${neckCatalogEntry.nameKn} ಹಾಗೂ ${neckCatalogEntry.pendantKn} (${neckCatalogEntry.threadKn}ದಲ್ಲಿ)`
     : baseLang === "hi"
-    ? `${neckCatalogEntry.mukhi} मुखी रुद्राक्ष एवं चांदी का पेंडेंट (लाल रेशमी धागे में)`
+    ? `${neckCatalogEntry.mukhi} मुखी रुद्राक्ष एवं ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn} में)`
     : baseLang === "te"
-    ? `${neckCatalogEntry.mukhi} ముఖి రుద్రాక్ష మరియు వెండి లాకెట్ (ఎరుపు పట్టు దారంలో)`
+    ? `${neckCatalogEntry.mukhi} ముఖి రుద్రాక్ష మరియు ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn}లో)`
     : baseLang === "ta"
-    ? `${neckCatalogEntry.mukhi} முக ருத்ராட்சம் மற்றும் வெள்ளி பதக்கம் (சிவப்பு பட்டு நூலில்)`
+    ? `${neckCatalogEntry.mukhi} முக ருத்ராட்சம் மற்றும் ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn}இல்)`
     : `${neckCatalogEntry.nameEn} along with ${neckCatalogEntry.pendantEn} (${neckCatalogEntry.threadEn})`;
 
   // Format Prohibited Gemstones Alert
@@ -4445,26 +4487,26 @@ export function buildDynamicPrescriptions(chart: ParsedKundaliChart): DynamicPre
     ? `${lagnaRule.avoidColorsKn.join(", ")} (தவிர்க்க வேண்டிய நிறங்கள்)`
     : `${lagnaRule.avoidColorsEn.join(", ")} (${lagnaRule.dangerColorsEn})`;
 
-  // Format Consecration Muhurtha
+  // Format Consecration Muhurtha & Classical Finger/Metal Alignment
   const consecrationMuhurthaText = baseLang === "kn"
-    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn}ಯಲ್ಲಿ)`
+    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn}ಯಲ್ಲಿ, ${lagnaRule.fingerKn}, ${lagnaRule.metalKn}ದಲ್ಲಿ ಧರಿಸುವುದು ಶ್ರೇಷ್ಠ)`
     : baseLang === "hi"
-    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn} में)`
+    ? `${lagnaRule.activationDayEn} (${lagnaRule.horaEn} के समय, ${lagnaRule.fingerEn}, ${lagnaRule.metalEn} में धारण करें)`
     : baseLang === "te"
-    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn}లో)`
+    ? `${lagnaRule.activationDayEn} (${lagnaRule.horaEn} వేళలో, ${lagnaRule.fingerEn}, ${lagnaRule.metalEn}లో ధరించడం శ్రేయస్కరం)`
     : baseLang === "ta"
-    ? `${lagnaRule.activationDayKn} (${lagnaRule.horaKn}இல்)`
-    : `${lagnaRule.activationDayEn} (during ${lagnaRule.horaEn})`;
+    ? `${lagnaRule.activationDayEn} (${lagnaRule.horaEn} நேரத்தில், ${lagnaRule.fingerEn}, ${lagnaRule.metalEn}இல் அணிவது உத்தமம்)`
+    : `${lagnaRule.activationDayEn} (during ${lagnaRule.horaEn}, on ${lagnaRule.fingerEn}, set in ${lagnaRule.metalEn})`;
 
   // Weave Nakshatra into Rudraksha description
   const rudrakshaText = baseLang === "kn"
     ? `${neckCatalogEntry.nameKn} (ಜನ್ಮ ನಕ್ಷತ್ರದ ಶ್ರೀರಕ್ಷೆ: ${neckCatalogEntry.blessingKn})`
     : baseLang === "hi"
-    ? `${neckCatalogEntry.mukhi} मुखी रुद्राक्ष (जन्म नक्षत्र रक्षा: समस्त दोष निवारण एवं आत्मबल संवर्धन)`
+    ? `${neckCatalogEntry.mukhi} मुखी रुद्राक्ष (${neckCatalogEntry.deityEn} कृपा - जन्म नक्षत्र रक्षा: ${neckCatalogEntry.blessingEn})`
     : baseLang === "te"
-    ? `${neckCatalogEntry.mukhi} ముఖి రుద్రాక్ష (జన్మ నక్షత్ర రక్షణ: సమస్త దోష నివారణ మరియు సంపూర్ణ రక్షణ)`
+    ? `${neckCatalogEntry.mukhi} ముఖి రుద్రాక్ష (జన్మ నక్షత్ర రక్షణ: ${neckCatalogEntry.blessingEn})`
     : baseLang === "ta"
-    ? `${neckCatalogEntry.mukhi} முக ருத்ராட்சம் (பிறப்பு நட்சத்திர பாதுகாப்பு: சகல தோஷ நிவர்த்தி மற்றும் தெய்விக அருள்)`
+    ? `${neckCatalogEntry.mukhi} முக ருத்ராட்சம் (பிறப்பு நட்சத்திர பாதுகாப்பு: ${neckCatalogEntry.blessingEn})`
     : `${neckCatalogEntry.nameEn} (Nakshatra Shield: ${neckCatalogEntry.blessingEn})`;
 
   return {
@@ -4542,6 +4584,88 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
 
   const isUpachayaShani = [3, 6, 11].includes(s.houseFromMoon);
 
+  function getGrahaHouse(gKey: GrahaKey | null): number | null {
+    if (!gKey) return null;
+    if (gKey === "Sun" && chart.sunPlacement) return chart.sunPlacement.house;
+    if (gKey === "Moon" && chart.moonPlacement) return chart.moonPlacement.house;
+    if (gKey === "Mars" && chart.marsPlacement) return chart.marsPlacement.house;
+    if (gKey === "Mercury" && chart.mercuryPlacement) return chart.mercuryPlacement.house;
+    if (gKey === "Jupiter" && chart.jupiterPlacement) return chart.jupiterPlacement.house;
+    if (gKey === "Venus" && chart.venusPlacement) return chart.venusPlacement.house;
+    if (gKey === "Saturn" && chart.saturnPlacement) return chart.saturnPlacement.house;
+    if (chart.houses) {
+      for (let h = 1; h <= 12; h++) {
+        const occs = chart.houses[h]?.occupants;
+        if (occs?.some(o => o.graha === gKey)) return h;
+      }
+    }
+    return null;
+  }
+
+  const mahaHouse = getGrahaHouse(chart.mahaLordKey);
+  const bhuktiHouse = getGrahaHouse(chart.bhuktiLordKey);
+  const mutualDist = (mahaHouse !== null && bhuktiHouse !== null)
+    ? (((bhuktiHouse - mahaHouse + 12) % 12) + 1)
+    : null;
+
+  type SambandhaInfo = { name: string; desc: string };
+  const getSambandha = (langKey: string): SambandhaInfo => {
+    if (mutualDist === 1) {
+      if (langKey === "kn") return { name: "ಯುತಿ ಸಂಬಂಧ", desc: "ದಶಾ-ಭುಕ್ತಿನಾಥರ ಏಕಭಾವ ಸ್ಥಿತಿಯಿಂದ ಕೇಂದ್ರೀಕೃತ ಕರ್ಮಫಲ ಸಿದ್ಧಿ" };
+      if (langKey === "hi") return { name: "युति संबंध", desc: "दशा-अंतर्दशानाथ की एक भाव में स्थिति से केंद्रित कर्मफल सिद्धि" };
+      if (langKey === "te") return { name: "సంయోగ సంబంధం", desc: "దశా-భుక్తినాథుల ఏక స్థాన స్థితితో కేంద్రీకృత కర్మఫల సిద్ధి" };
+      if (langKey === "ta") return { name: "சேர்க்கை சம்பந்தம்", desc: "திசா-புத்திநாதர்களின் ஒரே பாவ சஞ்சாரத்தால் ஒருமுகப்பட்ட கர்ம பலன்" };
+      return { name: "Conjunction (Yuti)", desc: "Mutual single-house co-presence channeling concentrated karmic fruition" };
+    }
+    if (mutualDist === 7) {
+      if (langKey === "kn") return { name: "ಸಮಸಪ್ತಕ ಸಂಬಂಧ", desc: "ಪರಸ್ಪರ ಪೂರ್ಣ ದೃಷ್ಟಿಯಿಂದ ಜೀವನದಲ್ಲಿ ಸಮತೋಲನ ಹಾಗೂ ಕಾರ್ಯಸಾಧನೆ" };
+      if (langKey === "hi") return { name: "समसप्तक संबंध", desc: "परस्पर पूर्ण दृष्टि से जीवन में संतुलन एवं कार्यसिद्धि" };
+      if (langKey === "te") return { name: "సమసప్తక సంబంధం", desc: "పరస్పర పూర్ణ దృష్టితో జీవితంలో సమతుల్యత మరియు కార్యసాధన" };
+      if (langKey === "ta") return { name: "சமசப்தக சம்பந்தம்", desc: "பரஸ்பர பூரண பார்வையால் வாழ்வில் சமநிலை மற்றும் காரியசித்தி" };
+      return { name: "Samasaptaka (Mutual 7th)", desc: "Direct mutual aspect establishing balanced partnership and karmic reciprocity" };
+    }
+    if (mutualDist === 5 || mutualDist === 9) {
+      if (langKey === "kn") return { name: "ನವಪಂಚಮ ಸಂಬಂಧ", desc: "ಧರ್ಮ-ಭಾಗ್ಯ ತ್ರಿಕೋಣ ಮೈತ್ರಿಯಿಂದ ದೈವಾನುಗ್ರಹ ಹಾಗೂ ಸರ್ವತೋಮುಖ ವೃದ್ಧಿ" };
+      if (langKey === "hi") return { name: "नवपंचम संबंध", desc: "धर्म-भाग्य त्रिकोण मैत्री से ईश्वरीय कृपा एवं सर्वांगीण उन्नति" };
+      if (langKey === "te") return { name: "నవపంచమ సంబంధం", desc: "ధర్మ-భాగ్య త్రికోణ మైత్రితో దైవానుగ్రహం మరియు సర్వతోముఖాభివృద్ధి" };
+      if (langKey === "ta") return { name: "நவபஞ்சம சம்பந்தம்", desc: "தர்ம-பாக்கிய திரிகோண நட்பால் தெய்வீக அருளும் சர்வமங்கள உயர்வும்" };
+      return { name: "Navapanchama (Trine 5/9)", desc: "Auspicious trinal resonance awakening wisdom, dharmic merit, and divine providence" };
+    }
+    if (mutualDist === 3 || mutualDist === 11) {
+      if (langKey === "kn") return { name: "ತೃತೀಯ-ಏಕಾದಶ ಸಂಬಂಧ", desc: "ಉಪಚಯ ಭಾವ ಮೈತ್ರಿಯಿಂದ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಪ್ರಗತಿ ಹಾಗೂ ಶುಭ ಲಾಭ" };
+      if (langKey === "hi") return { name: "तृतीय-एकादश संबंध", desc: "उपचय भाव मैत्री से पुरुषार्थ के अनुरूप श्रेष्ठ प्रगति एवं अर्थलाभ" };
+      if (langKey === "te") return { name: "తృతీయ-ఏకాదశ సంబంధం", desc: "ఉపచయ స్థాన మైత్రితో కృషికి తగిన ప్రగతి మరియు ధనలాభం" };
+      if (langKey === "ta") return { name: "திருதிய-ஏகாதச சம்பந்தம்", desc: "உபசய ஸ்தான நட்பால் கடும் உழைப்பிற்கு ஏற்ற முன்னேற்றமும் தனலாபமும்" };
+      return { name: "Triteeya-Ekadasha (3/11)", desc: "Dynamic growth axis rewarding disciplined initiative with tangible material elevation" };
+    }
+    if (mutualDist === 4 || mutualDist === 10) {
+      if (langKey === "kn") return { name: "ಕೇಂದ್ರ ಸಂಬಂಧ", desc: "ಕರ್ಮ-ಸುಖ ಸಮನ್ವಯದಿಂದ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಹೊಣೆಗಾರಿಕೆ ಹಾಗೂ ಸ್ಥಿರತೆ" };
+      if (langKey === "hi") return { name: "केंद्र संबंध", desc: "कर्म-सुख समन्वय से कार्यक्षेत्र में नया दायित्व एवं सुदृढ़ स्थिरता" };
+      if (langKey === "te") return { name: "కేంద్ర సంబంధం", desc: "కర్మ-సుఖ సమన్వయంతో వృత్తిలో నూతన బాధ్యతలు మరియు సుస్థిరత" };
+      if (langKey === "ta") return { name: "கேந்திர சம்பந்தம்", desc: "கர்ம-சுக இணைவால் தொழில் துறையில் புதிய பொறுப்புகளும் நீடித்த ஸ்திரத்தன்மையும்" };
+      return { name: "Kendra Axis (4/10)", desc: "Structural angular dynamic reinforcing executive leadership and foundational domestic balance" };
+    }
+    if (mutualDist === 6 || mutualDist === 8) {
+      if (langKey === "kn") return { name: "ಷಡಾಷ್ಟಕ ಸಂಬಂಧ", desc: "ಕರ್ಮ ಪರಿಶೋಧನೆಯ ಕಾಲ - ತಾಳ್ಮೆ, ಆರೋಗ್ಯ ಶಿಸ್ತು ಹಾಗೂ ನಿತ್ಯ ಜಪದಿಂದ ಶುಭ ಪರಿಹಾರ" };
+      if (langKey === "hi") return { name: "षडाष्टक संबंध", desc: "कर्म शोधन काल - धैर्य, स्वास्थ्य संयम एवं साधना से शुभ समाधान" };
+      if (langKey === "te") return { name: "షడాష్టక సంబంధం", desc: "కర్మ పరిష్కార సమయం - ఓర్పు, ఆరోగ్య జాగ్రత్తలు మరియు జపంతో శుభ పరిష్కారం" };
+      if (langKey === "ta") return { name: "ஷடாஷ்டக சம்பந்தம்", desc: "கர்ம சுத்தி காலம் - பொறுமை, ஆரோக்கிய விழிப்புணர்வு மற்றும் வழிபாட்டால் சாந்தி" };
+      return { name: "Shadashtaka (6/8 Axis)", desc: "Karmic testing arc calling for patience, physical prudence, and spiritual refinement" };
+    }
+    if (mutualDist === 2 || mutualDist === 12) {
+      if (langKey === "kn") return { name: "ದ್ವಿದ್ವಾದಶ ಸಂಬಂಧ", desc: "ಧನ-ವ್ಯಯ ಮಂಥನ - ಹಣಕಾಸಿನ ವಿವೇಕಯುತ ನಿರ್ವಹಣೆ ಹಾಗೂ ದೂರದ ಸಂಪರ್ಕಗಳಿಂದ ಲಾಭ" };
+      if (langKey === "hi") return { name: "द्विद्वादश संबंध", desc: "धन-व्यय संतुलन - वित्तीय विवेक एवं दूरगामी संपर्कों से लाभ" };
+      if (langKey === "te") return { name: "ద్విద్వాదశ సంబంధం", desc: "ధన-వ్యయ సమన్వయం - ఆర్థిక వివేకం మరియు దూర ప్రాంత పరిచయాలతో ప్రయోజనం" };
+      if (langKey === "ta") return { name: "துவித்வாதச சம்பந்தம்", desc: "தன-விரய சமநிலை - நிதி விவேகம் மற்றும் தொலைதூர தொடர்புகளால் நன்மை" };
+      return { name: "Dvidvadasha (2/12 Axis)", desc: "Resource reallocation phase prioritizing fiscal prudence and purposeful investments" };
+    }
+    if (langKey === "kn") return { name: "ಶುಭ ದಶಾ ಯೋಗ", desc: j.isGuruBala ? "ದೈವಿಕ ಗುರು ಕೃಪೆಯೊಂದಿಗೆ ಕರ್ಮಸಿದ್ಧಿ ಯೋಗ" : "ಆಂತರಿಕ ಶಿಸ್ತು ಹಾಗೂ ಧರ್ಮ ಪಾಲನೆಯ ಕಾಲ" };
+    if (langKey === "hi") return { name: "शुभ दशा योग", desc: j.isGuruBala ? "दैवीय गुरु कृपा से कार्यसिद्धि योग" : "आंतरिक अनुशासन एवं धर्म पालन काल" };
+    if (langKey === "te") return { name: "శుభ దశా యోగం", desc: j.isGuruBala ? "దైవిక గురు కృపతో కార్యసిద్ధి యోగం" : "క్రమశిక్షణ మరియు ధర్మ పాలనా సమయం" };
+    if (langKey === "ta") return { name: "சுப திசா யோகம்", desc: j.isGuruBala ? "தெய்வீக குரு அருளால் காரிய சித்தி யோகம்" : "ஒழுக்கம் மற்றும் தர்ம நெறி வழிநடத்தல்" };
+    return { name: "Harmonious Dasha Confluence", desc: j.isGuruBala ? "Harmonious Cosmic Elevation & Dharmic Siddhi" : "Disciplined Karmic Maturation & Inner Awakening" };
+  };
+
   if (baseLang === "kn") {
     let shaniTitle = "ಶನಿ ಭಗವಾನರ ಗೋಚಾರ ಚಕ್ರ";
     let shaniStatus = "ಶುಭ ಶನಿ ಗೋಚಾರ ಬಲ";
@@ -4575,11 +4699,10 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
     const guruHouse = `ಜನ್ಮ ರಾಶಿಯಿಂದ ${j.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ${j.isGuruBala ? "ಶುಭ ದೃಷ್ಟಿ" : "ಸಂಚಾರ"}`;
     const guruBenefic = j.isGuruBala;
 
+    const sambandhaKn = getSambandha("kn");
     const dashaTitle = "ಸಕ್ರಿಯ ದಶಾ-ಗೋಚಾರ ಸಮನ್ವಯ";
-    const dashaEra = `${mahaName} ಮಹಾದಶಾ - ${bhuktiName} ಭುಕ್ತಿ`;
-    const dashaConfluence = j.isGuruBala
-      ? "ದೈವಿಕ ಗುರು ಕೃಪೆಯೊಂದಿಗೆ ಕರ್ಮಸಿದ್ಧಿ ಯೋಗ"
-      : "ಆಂತರಿಕ ಶಿಸ್ತು ಹಾಗೂ ಧರ್ಮ ಪಾಲನೆಯ ಕಾಲ";
+    const dashaEra = `${mahaName} ಮಹಾದಶಾ - ${bhuktiName} ಭುಕ್ತಿ (${sambandhaKn.name})`;
+    const dashaConfluence = sambandhaKn.desc;
 
     const pariharaTitle = "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ರಕ್ಷಾ ಸಂಕಲ್ಪ";
     const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
@@ -4607,7 +4730,7 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
       text: `${s.isAshtama ? "ಪ್ರಯಾಣದ ವೇಳೆ ಸಂಯಮ ಪಾಲಿಸಿ, ಆಹಾರ ಪಥ್ಯ ಮತ್ತು ಆರೋಗ್ಯದ ಕಡೆ ನಿತ್ಯ ಗಮನವಿರಲಿ." : s.isKantaka ? "ವ್ಯಾಪಾರ-ವಹಿವಾಟುಗಳ ಕಾಗದಪತ್ರಗಳಲ್ಲಿ ನಿಖರತೆ ಹಾಗೂ ಸ್ಪಷ್ಟತೆಯನ್ನು ಕಾಯ್ದುಕೊಳ್ಳಿ." : "ನಿತ್ಯ ಪ್ರಾರ್ಥನೆ, ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ಬಡವರಿಗೆ ಅನ್ನದಾನ ಮಾಡುವುದು ಸಕಲ ಗ್ರಹದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ ನಿರಂತರ ರಕ್ಷೆ ನೀಡಲಿದೆ."}`
     };
 
-    const paragraph1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಲಗ್ನವಾದ ${lagnaStr} ಮತ್ತು ಜನ್ಮ ರಾಶಿಯಾದ ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " ನಕ್ಷತ್ರ)" : ""} ಹಿನ್ನೆಲೆಯಲ್ಲಿ, ಪ್ರಸ್ತುತ ಆಕಾಶ ಮಂಡಲದಲ್ಲಿ ಚಲಿಸುತ್ತಿರುವ ಶನಿ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ಗೋಚಾರವು ನಿಮ್ಮ ಜೀವನದ ಕರ್ಮ ಪ್ರವಾಹದೊಂದಿಗೆ ನೇರ ಸಂಪರ್ಕ ಸಾಧಿಸಿದೆ. ಜನ್ಮ ಕುಂಡಲಿಯು ನಿಮ್ಮ ಮೂಲ ಸಂಚಿತ ಕರ್ಮ ಮತ್ತು ಸಾಮರ್ಥ್ಯದ ನಕ್ಷೆಯಾದರೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaName} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiName} ಭುಕ್ತಿಯು ಆ ಬೀಜಗಳು ಫಲ ನೀಡುವ ಸಮಯವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಆಕಾಶದಲ್ಲಿ ಶನಿ ಭಗವಾನರು ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿರುವುದು ನಿಮ್ಮ ತಾಳ್ಮೆ, ಕರ್ತವ್ಯನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲೀನ ಗುರಿಗಳಿಗೆ ಭದ್ರ ಅಡಿಪಾಯ ಹಾಕಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ.`;
+    const paragraph1 = `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಲಗ್ನವಾದ ${lagnaStr} ಮತ್ತು ಜನ್ಮ ರಾಶಿಯಾದ ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " ನಕ್ಷತ್ರ)" : ""} ಹಿನ್ನೆಲೆಯಲ್ಲಿ, ಪ್ರಸ್ತುತ ಆಕಾಶ ಮಂಡಲದಲ್ಲಿ ಚಲಿಸುತ್ತಿರುವ ಶನಿ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ಗೋಚಾರವು ನಿಮ್ಮ ಜೀವನದ ಕರ್ಮ ಪ್ರವಾಹದೊಂದಿಗೆ ನೇರ ಸಂಪರ್ಕ ಸಾಧಿಸಿದೆ. ಜನ್ಮ ಕುಂಡಲಿಯು ನಿಮ್ಮ ಮೂಲ ಸಂಚಿತ ಕರ್ಮ ಮತ್ತು ಸಾಮರ್ಥ್ಯದ ನಕ್ಷೆಯಾದರೆ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${mahaName} ಮಹಾದಶಾ ಮತ್ತು ${bhuktiName} ಭುಕ್ತಿಯು (${sambandhaKn.name} - ${sambandhaKn.desc}) ಆ ಬೀಜಗಳು ಫಲ ನೀಡುವ ಸಮಯವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಆಕಾಶದಲ್ಲಿ ಶನಿ ಭಗವಾನರು ಜನ್ಮ ರಾಶಿಯಿಂದ ${s.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿರುವುದು ನಿಮ್ಮ ತಾಳ್ಮೆ, ಕರ್ತವ್ಯನಿಷ್ಠೆ ಹಾಗೂ ದೀರ್ಘಕಾಲೀನ ಗುರಿಗಳಿಗೆ ಭದ್ರ ಅಡಿಪಾಯ ಹಾಕಲು ಪ್ರೇರೇಪಿಸುತ್ತದೆ.`;
 
     const paragraph2 = `ಗೋಚಾರ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಜನ್ಮ ರಾಶಿಯಿಂದ ${j.houseFromMoon}ನೇ ಭಾವದಲ್ಲಿದ್ದು, ${j.isGuruBala ? "ನಿಮಗೆ ಅತ್ಯಂತ ಮಂಗಳಕರವಾದ 'ಗುರು ಬಲ'ವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಧಾರೆ ಎರೆಯುತ್ತಿದ್ದಾನೆ. ಈ ಶುಭ ದೃಷ್ಟಿಯು ದಶಾನಾಥನ ಶಕ್ತಿಯನ್ನು ದ್ವಿಗುಣಗೊಳಿಸಿ, ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಗೌರವ, ಕುಟುಂಬದಲ್ಲಿ ಮಂಗಳ ಕಾರ್ಯಗಳ ಸಿದ್ಧಿ ಹಾಗೂ ಆರ್ಥಿಕ ಭದ್ರತೆಯನ್ನು ಉನ್ನತ ಹಂತಕ್ಕೆ ಕೊಂಡೊಯ್ಯುತ್ತದೆ." : "ನಿಮ್ಮನ್ನು ಆಂತರಿಕ ಚಿಂತನೆ, ಆತ್ಮಾವಲೋಕನ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಅರಿವಿನ ಕಡೆಗೆ ಮುನ್ನಡೆಸುತ್ತಿದ್ದಾನೆ. ಈ ಕಾಲಘಟ್ಟದಲ್ಲಿ ನೀವು ಗಳಿಸುವ ಜ್ಞಾನ ಮತ್ತು ಶಿಸ್ತು ಮುಂದಿನ ಭಾಗ್ಯೋದಯಕ್ಕೆ ದಿವ್ಯ ಸೋಪಾನವಾಗಲಿದೆ."} ಕರ್ಮಕಾರಕ ಶನಿಯ ಶಿಸ್ತು ಮತ್ತು ಜ್ಞಾನಕಾರಕ ಗುರುವಿನ ಮಾರ್ಗದರ್ಶನ ಒಟ್ಟಿಗೆ ಸೇರಿ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಅಸ್ಥಿರತೆಯನ್ನು ತೊಡೆದುಹಾಕಿ ಶಾಶ್ವತ ಯಶಸ್ಸನ್ನು ನಿರ್ಮಿಸುತ್ತಿವೆ.`;
 
@@ -4660,11 +4783,10 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
     const guruHouse = `चंद्र राशि से ${j.houseFromMoon}वें भाव में ${j.isGuruBala ? "शुभ अमृत दृष्टि" : "गोचर"}`;
     const guruBenefic = j.isGuruBala;
 
+    const sambandhaHi = getSambandha("hi");
     const dashaTitle = "सक्रिय दशा-गोचर समन्वय";
-    const dashaEra = `${mahaName} महादशा - ${bhuktiName} अंतर्दशा`;
-    const dashaConfluence = j.isGuruBala
-      ? "दैवीय गुरु कृपा से कार्यसिद्धि योग"
-      : "आंतरिक अनुशासन एवं धर्म पालन काल";
+    const dashaEra = `${mahaName} महादशा - ${bhuktiName} अंतर्दशा (${sambandhaHi.name})`;
+    const dashaConfluence = sambandhaHi.desc;
 
     const pariharaTitle = "श्री क्षेत्र गोकर्ण रक्षा संकल्प";
     const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
@@ -4692,7 +4814,7 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
       text: `${s.isAshtama ? "यात्रा के समय सतर्क रहें तथा खान-पान और स्वास्थ्य पर विशेष ध्यान दें।" : s.isKantaka ? "व्यापारिक समझौतों और दस्तावेजों पर हस्ताक्षर करते समय पूर्ण सावधानी बरतें।" : "नित्य सूर्य नमस्कार, गायत्री मंत्र जप तथा निर्धनों को अन्नदान करने से सभी ग्रह दोष शांत रहेंगे।"}`
     };
 
-    const paragraph1 = `आपकी जन्म कुंडली के लग्न ${lagnaStr} एवं चंद्र राशि ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " नक्षत्र)" : ""} के आधार पर वर्तमान में आकाश मंडल में चल रहे शनि और गुरु का गोचर आपके जीवन की दिशा तय कर रहा है। जन्म कुंडली यदि आपके प्रारब्ध और क्षमताओं का मूल मानचित्र है, तो सक्रिय ${mahaName} महादशा और ${bhuktiName} अंतर्दशा वह कालखंड है जब वे फल प्रत्यक्ष रूप से प्रकट होते हैं। शनि देव का आपकी चंद्र राशि से ${s.houseFromMoon}वें भाव में संचरण आपको कर्मठता, अनुशासन और दीर्घकालिक लक्ष्यों की प्राप्ति के लिए प्रेरित कर रहा है।`;
+    const paragraph1 = `आपकी जन्म कुंडली के लग्न ${lagnaStr} एवं चंद्र राशि ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " नक्षत्र)" : ""} के आधार पर वर्तमान में आकाश मंडल में चल रहे शनि और गुरु का गोचर आपके जीवन की दिशा तय कर रहा है। जन्म कुंडली यदि आपके प्रारब्ध और क्षमताओं का मूल मानचित्र है, तो सक्रिय ${mahaName} महादशा और ${bhuktiName} अंतर्दशा (${sambandhaHi.name} - ${sambandhaHi.desc}) वह कालखंड है जब वे फल प्रत्यक्ष रूप से प्रकट होते हैं। शनि देव का आपकी चंद्र राशि से ${s.houseFromMoon}वें भाव में संचरण आपको कर्मठता, अनुशासन और दीर्घकालिक लक्ष्यों की प्राप्ति के लिए प्रेरित कर रहा है।`;
 
     const paragraph2 = `गोचर में देवगुरु बृहस्पति आपकी चंद्र राशि से ${j.houseFromMoon}वें भाव में विराजमान होकर ${j.isGuruBala ? "आपको अत्यंत शुभ 'गुरु बल' प्रदान कर रहे हैं। गुरु की यह अमृत दृष्टि दशानाथ के शुभ प्रभावों को सशक्त बनाकर समाज में मान-सम्मान, परिवार में मांगलिक कार्य एवं आर्थिक स्थिरता का मार्ग प्रशस्त करती है।" : "आपको आत्म-चिंतन और ज्ञान अर्जन की ओर प्रेरित कर रहे हैं। इस अवधि में अर्जित अनुभव आने वाले समय में आपके भाग्योदय का आधार बनेगा।"} कर्मफलदाता शनि का अनुशासन और ज्ञानदाता गुरु की कृपा मिलकर आपके जीवन में स्थिरता और सफलता का निर्माण कर रहे हैं।`;
 
@@ -4745,11 +4867,10 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
     const guruHouse = `చంద్ర రాశి నుండి ${j.houseFromMoon}వ స్థానంలో ${j.isGuruBala ? "శుభ దృష్టి" : "సంచారం"}`;
     const guruBenefic = j.isGuruBala;
 
+    const sambandhaTe = getSambandha("te");
     const dashaTitle = "ప్రస్తుత దశా-గోచార సమన్వయం";
-    const dashaEra = `${mahaName} మహాదశ - ${bhuktiName} భుక్తి`;
-    const dashaConfluence = j.isGuruBala
-      ? "దైవిక గురు కృపతో కార్యసిద్ధి యోగం"
-      : "క్రమశిక్షణ మరియు ధర్మ పాలనా సమయం";
+    const dashaEra = `${mahaName} మహాదశ - ${bhuktiName} భుక్తి (${sambandhaTe.name})`;
+    const dashaConfluence = sambandhaTe.desc;
 
     const pariharaTitle = "శ్రీ క్షేత్ర గోకర్ణ రక్షా సంకల్పం";
     const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
@@ -4777,7 +4898,7 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
       text: `${s.isAshtama ? "ప్రయాణాలలో జాగ్రత్త వహించండి, ఆరోగ్యంపై దృష్టి పెట్టండి." : s.isKantaka ? "వ్యాపార ఒప్పందాలలో పత్రాలను క్షుణ్ణంగా పరిశీలించండి." : "నిత్య గాయత్రీ జపం మరియు పేదలకు అన్నదానం చేయడం సర్వ గ్రహ దోషాలను నివారిస్తుంది."}`
     };
 
-    const paragraph1 = `మీ జన్మ లగ్నం ${lagnaStr} మరియు జన్మ రాశి ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " నక్షత్రం)" : ""} ఆధారంగా ప్రస్తుతం ఆకాశ మండలంలో శని మరియు గురు గ్రహాల సంచారం మీ జీవిత గమనాన్ని నిర్దేశిస్తోంది. జన్మ కుండలి మీ కర్మ సామర్థ్యాల పునాది అయితే, నడుస్తున్న ${mahaName} మహాదశ మరియు ${bhuktiName} భుక్తి ఆ ఫలితాలను అనుభవించే సమయాన్ని సూచిస్తాయి. శని భగవానుడు మీ చంద్ర రాశి నుండి ${s.houseFromMoon}వ స్థానంలో సంచరిస్తూ మీలో పట్టుదల, క్రమశిక్షణలను పెంచుతున్నారు.`;
+    const paragraph1 = `మీ జన్మ లగ్నం ${lagnaStr} మరియు జన్మ రాశి ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " నక్షత్రం)" : ""} ఆధారంగా ప్రస్తుతం ఆకాశ మండలంలో శని మరియు గురు గ్రహాల సంచారం మీ జీవిత గమనాన్ని నిర్దేశిస్తోంది. జన్మ కుండలి మీ కర్మ సామర్థ్యాల పునాది అయితే, నడుస్తున్న ${mahaName} మహాదశ మరియు ${bhuktiName} భుక్తి (${sambandhaTe.name} - ${sambandhaTe.desc}) ఆ ఫలితాలను అనుభవించే సమయాన్ని సూచిస్తాయి. శని భగవానుడు మీ చంద్ర రాశి నుండి ${s.houseFromMoon}వ స్థానంలో సంచరిస్తూ మీలో పట్టుదల, క్రమశిక్షణలను పెంచుతున్నారు.`;
 
     const paragraph2 = `గోచారంలో దేవగురువు బృహస్పతి చంద్ర రాశి నుండి ${j.houseFromMoon}వ స్థానంలో ఉంటూ ${j.isGuruBala ? "మీకు అద్భుతమైన 'గురు బలాన్ని' ప్రసాదిస్తున్నారు. ఈ శుభ దృష్టి దశాధిపతి శక్తులను ఇనుమడింపజేసి, వృత్తిలో గుర్తింపు, కుటుంబంలో శుభకార్యాలు మరియు ఆర్థిక ఉన్నతిని చేకూరుస్తుంది." : "మిమ్మల్ని ఆత్మపరిశీలన మరియు ఆధ్యాత్మిక సాధనల వైపు నడిపిస్తున్నారు. ఈ కాలంలో సంపాదించిన అనుభవం భవిష్యత్తు విజయాలకు మార్గదర్శకం అవుతుంది."} శని క్రమశిక్షణ, గురువు అనుగ్రహం కలిసి మీ జీవితానికి స్థిరత్వాన్ని చేకూరుస్తాయి.`;
 
@@ -4830,11 +4951,10 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
     const guruHouse = `சந்திர ராசியில் இருந்து ${j.houseFromMoon}ஆம் இடத்தில் ${j.isGuruBala ? "சுபப் பார்வை" : "சஞ்சாரம்"}`;
     const guruBenefic = j.isGuruBala;
 
+    const sambandhaTa = getSambandha("ta");
     const dashaTitle = "தற்போதைய திசா-கோச்சார ஒருங்கிணைப்பு";
-    const dashaEra = `${mahaName} மகாதசை - ${bhuktiName} புத்தி`;
-    const dashaConfluence = j.isGuruBala
-      ? "தெய்வீக குரு அருளால் காரிய சித்தி யோகம்"
-      : "ஒழுக்கம் மற்றும் தர்ம நெறி வழிநடத்தல்";
+    const dashaEra = `${mahaName} மகாதசை - ${bhuktiName} புத்தி (${sambandhaTa.name})`;
+    const dashaConfluence = sambandhaTa.desc;
 
     const pariharaTitle = "ஸ்ரீ க்ஷேத்ர கோகர்ண பாதுகாப்பு சங்கல்பம்";
     const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
@@ -4862,7 +4982,7 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
       text: `${s.isAshtama ? "பயணங்களில் நிதானம் காக்கவும், உடல் ஆரோக்கியத்தில் கூடுதல் கவனம் தேவை." : s.isKantaka ? "வியாபார ஒப்பந்தங்களில் விழிப்புடன் இருக்கவும்." : "தினசரி காயத்ரி ஜபம் மற்றும் அன்னதானம் செய்வது அனைத்து கிரக தோஷங்களையும் போக்கி நலம் தரும்."}`
     };
 
-    const paragraph1 = `உங்கள் ஜென்ம லக்னம் ${lagnaStr} மற்றும் ஜென்ம ராசி ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " நட்சத்திரம்)" : ""} அமைப்பின்படி, தற்போதைய வானியல் கோளத்தில் சனி மற்றும் குருவின் சஞ்சாரம் உங்கள் வாழ்க்கைப் பாதையை வடிவமைக்கிறது. ஜென்ம ஜாதகம் உங்கள் பூர்வ கர்மாவின் வரைபடமாக அமைய, நடப்பு ${mahaName} மகாதசையும் ${bhuktiName} புத்தியும் அதன் பலன்கள் வெளிப்படும் காலத்தை உணர்த்துகின்றன. சனி பகவான் உங்கள் சந்திர ராசிக்கு ${s.houseFromMoon}ஆம் இடத்தில் சஞ்சரிப்பது உங்கள் பொறுமையையும் கடமை உணர்வையும் வளர்க்கிறது.`;
+    const paragraph1 = `உங்கள் ஜென்ம லக்னம் ${lagnaStr} மற்றும் ஜென்ம ராசி ${moonStr}${nakshatraStr ? " (" + nakshatraStr + " நட்சத்திரம்)" : ""} அமைப்பின்படி, தற்போதைய வானியல் கோளத்தில் சனி மற்றும் குருவின் சஞ்சாரம் உங்கள் வாழ்க்கைப் பாதையை வடிவமைக்கிறது. ஜென்ம ஜாதகம் உங்கள் பூர்வ கர்மாவின் வரைபடமாக அமைய, நடப்பு ${mahaName} மகாதசையும் ${bhuktiName} புத்தியும் (${sambandhaTa.name} - ${sambandhaTa.desc}) அதன் பலன்கள் வெளிப்படும் காலத்தை உணர்த்துகின்றன. சனி பகவான் உங்கள் சந்திர ராசிக்கு ${s.houseFromMoon}ஆம் இடத்தில் சஞ்சரிப்பது உங்கள் பொறுமையையும் கடமை உணர்வையும் வளர்க்கிறது.`;
 
     const paragraph2 = `கோச்சார தேவகுரு வியாழன் உங்கள் சந்திர ராசிக்கு ${j.houseFromMoon}ஆம் இடத்தில் அமர்ந்து ${j.isGuruBala ? "உங்களுக்குச் சிறந்த 'குரு பலத்தை' அருளுகிறார். இந்த சுப பார்வை தசாநாதனின் பலத்தை உயர்த்தி, சமூகத்தில் நன்மதிப்பு, குடும்பத்தில் சுப நிகழ்வுகள் மற்றும் பொருளாதார ஸ்திரத்தன்மையை வழங்குகிறது." : "உங்களை ஆன்மீகத் தேடலிலும் சுய பரிசீலனையிலும் வழிநடத்துகிறார். இக்காலத்தில் பெறும் அனுபவங்கள் எதிர்கால வெற்றிகளுக்கு அடித்தளமாகும்."} சனியின் ஒழுக்கமும் குருவின் வழிகாட்டுதலும் இணைந்து உங்கள் வாழ்வில் நீடித்த வெற்றியை உருவாக்குகின்றன.`;
 
@@ -4915,11 +5035,10 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
   const guruHouse = `Transiting House ${j.houseFromMoon} from Moon (${j.isGuruBala ? "Amrita Drishti" : "Preparatory Transit"})`;
   const guruBenefic = j.isGuruBala;
 
+  const sambandhaEn = getSambandha("en");
   const dashaTitle = "Active Dasha-Transit Confluence";
-  const dashaEra = `${mahaName} Mahadasha - ${bhuktiName} Bhukti`;
-  const dashaConfluence = j.isGuruBala
-    ? "Harmonious Cosmic Elevation & Dharmic Siddhi"
-    : "Disciplined Karmic Maturation & Inner Awakening";
+  const dashaEra = `${mahaName} Mahadasha - ${bhuktiName} Bhukti (${sambandhaEn.name})`;
+  const dashaConfluence = sambandhaEn.desc;
 
   const pariharaTitle = "Sri Kshetra Gokarna Sacred Shield";
   const pariharaSankalpa = (s.isSadeSati || s.isAshtama || s.isKantaka)
@@ -4947,7 +5066,7 @@ export function buildDynamicDashaGocharaCompassFallback(chart: ParsedKundaliChar
     text: `${s.isAshtama ? "Exercise vigilance during transit travel; maintain balanced nutrition and mindful physical rest." : s.isKantaka ? "Verify documentation thoroughly before entering commercial covenants." : "Daily sacred meditation, Surya Namaskar, and charitable feeding to the underprivileged neutralize lingering planetary friction."}`
   };
 
-  const paragraph1 = `In your authentic Vedic birth chart, your Ascendant (${lagnaStr}) and Moon sign (${moonStr}${nakshatraStr ? ", " + nakshatraStr + " Nakshatra" : ""}) form the foundational crucible through which cosmic energies manifest. While your natal Kundali reveals your innate karmic reservoir, the running ${mahaName} Mahadasha and ${bhuktiName} Bhukti represent the active season of fruition. Saturn's current transit through house ${s.houseFromMoon} from your natal Moon serves as the cosmic taskmaster, instilling perseverance, reality-tested judgment, and unwavering clarity.`;
+  const paragraph1 = `In your authentic Vedic birth chart, your Ascendant (${lagnaStr}) and Moon sign (${moonStr}${nakshatraStr ? ", " + nakshatraStr + " Nakshatra" : ""}) form the foundational crucible through which cosmic energies manifest. While your natal Kundali reveals your innate karmic reservoir, the running ${mahaName} Mahadasha and ${bhuktiName} Bhukti (${sambandhaEn.name}: ${sambandhaEn.desc}) represent the active season of fruition. Saturn's current transit through house ${s.houseFromMoon} from your natal Moon serves as the cosmic taskmaster, instilling perseverance, reality-tested judgment, and unwavering clarity.`;
 
   const paragraph2 = `Simultaneously, Devaguru Jupiter transiting house ${j.houseFromMoon} from your Moon sign ${j.isGuruBala ? "confers the celebrated 'Guru Bala' benediction. Jupiter's benevolent amrita gaze actively illuminates your career aspirations, fosters familial auspiciousness, and mitigates transit frictions." : "activates a reflective spiritual retreat, refining your philosophical insight and strategic foresight for the next growth cycle."} Together, the disciplined rigor of Saturn and the sovereign benevolence of Jupiter establish an unshakable equilibrium across your life path.`;
 

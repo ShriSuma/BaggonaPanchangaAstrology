@@ -691,18 +691,28 @@ export function getHealthPanchangaSynthesis(janana: JananaPanchangaData, gochara
 export function getGocharaPanchangaSynthesis(gochara: GocharaPanchangaData, lang: string): string {
   const baseLang = (lang || "en").split("-")[0];
   if (baseLang === "kn") {
-    return `ಇಂದಿನ ಗೋಚಾರ ಪಂಚಾಂಗದಲ್ಲಿ ${gochara.tithiName}, ವಾರ ${gochara.vaaraName} (ವಾರಾಧಿಪತಿ ${gochara.vaaraLordName}), ನಕ್ಷತ್ರ ${gochara.nakshatraName}, ಯೋಗ ${gochara.yogaName} ಹಾಗೂ ಕರಣ ${gochara.karanaName} ಪ್ರಚಲಿತವಾಗಿವೆ. ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಇಂದಿನ ತಾರಾಬಲವು ${gochara.taraBala.taraName} ಆಗಿದ್ದು, ${gochara.taraBala.description} ಒದಗಿಸುತ್ತದೆ. ${gochara.chandraBala.description} ಹಾಗೂ ಗೋಚಾರ ಶನಿ-ಗುರುಗಳ ಸಾಗಣೆಯು ಕರ್ಮಿಕ ಪಕ್ವತೆಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತದೆ.`;
+    const p1 = `ಇಂದಿನ ಗೋಚಾರ ಪಂಚಾಂಗದಲ್ಲಿ ${gochara.tithiName}, ವಾರ ${gochara.vaaraName} (ವಾರಾಧಿಪತಿ ${gochara.vaaraLordName}), ನಕ್ಷತ್ರ ${gochara.nakshatraName}, ಯೋಗ ${gochara.yogaName} ಹಾಗೂ ಕರಣ ${gochara.karanaName} ಪ್ರಚಲಿತವಾಗಿವೆ. ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಇಂದಿನ ತಾರಾಬಲವು ${gochara.taraBala.taraName} ಆಗಿದ್ದು, ${gochara.taraBala.description} ಒದಗಿಸುತ್ತದೆ.`;
+    const p2 = `ದೈನಂದಿನ ಚಂದ್ರ ಬಲದಂತೆ ${gochara.chandraBala.description} ಹಾಗೂ ಗೋಚಾರ ಶನಿ-ಗುರುಗಳ ಸಾಗಣೆಯು ಕರ್ಮಿಕ ಪಕ್ವತೆಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತದೆ. ಜನ್ಮ ನಕ್ಷತ್ರ ಮತ್ತು ದಿನದ ಪಂಚಾಂಗ ತತ್ತ್ವಗಳ ಸಮನ್ವಯವು ನಿಮ್ಮ ಮನೋಸ್ಥೈರ್ಯವನ್ನು ಹೆಚ್ಚಿಸಿ ಸಕಲ ಸತ್ಕಾರ್ಯಗಳ ಸಿದ್ಧಿಗೆ ಶ್ರೀರಕ್ಷೆಯಾಗುತ್ತದೆ.`;
+    return `${p1}\n\n${p2}`;
   }
   if (baseLang === "hi") {
-    return `आज के गोचर पंचांग में ${gochara.tithiName}, वार ${gochara.vaaraName} (स्वामी ${gochara.vaaraLordName}), नक्षत्र ${gochara.nakshatraName}, योग ${gochara.yogaName} एवं करण ${gochara.karanaName} गतिशील हैं। आपकी कुंडली के लिए आज का ताराबल ${gochara.taraBala.taraName} है, जो ${gochara.taraBala.description} करता है। ${gochara.chandraBala.description} के साथ गोचर ग्रह आपकी दिशा निर्धारित करते हैं।`;
+    const p1 = `आज के गोचर पंचांग में ${gochara.tithiName}, वार ${gochara.vaaraName} (स्वामी ${gochara.vaaraLordName}), नक्षत्र ${gochara.nakshatraName}, योग ${gochara.yogaName} एवं करण ${gochara.karanaName} गतिशील हैं। आपकी कुंडली के लिए आज का ताराबल ${gochara.taraBala.taraName} है, जो ${gochara.taraBala.description} करता है।`;
+    const p2 = `दैनिक चंद्र बल के अनुसार ${gochara.chandraBala.description} के साथ गोचर ग्रह आपकी दिशा निर्धारित करते हैं। जन्म नक्षत्र एवं दैनिक पंचांग तत्वों का यह शुभ संतुलन मानसिक शांति और कार्य सिद्धि में पूर्ण सहायक सिद्ध होता है।`;
+    return `${p1}\n\n${p2}`;
   }
   if (baseLang === "te") {
-    return `నేటి గోచార పంచాంగంలో ${gochara.tithiName}, వారం ${gochara.vaaraName} (అధిపతి ${gochara.vaaraLordName}), నక్షత్రం ${gochara.nakshatraName}, యోగం ${gochara.yogaName} మరియు కరణం ${gochara.karanaName} నడుస్తున్నాయి. మీ జాతకానికి నేటి తారాబలం ${gochara.taraBala.taraName} గా ఉండి, ${gochara.taraBala.description} ఇస్తోంది. ${gochara.chandraBala.description} తో పాటు గ్రహ సంచారం అనుకూలంగా ఉంది.`;
+    const p1 = `నేటి గోచార పంచాంగంలో ${gochara.tithiName}, వారం ${gochara.vaaraName} (అధిపతి ${gochara.vaaraLordName}), నక్షత్రం ${gochara.nakshatraName}, యోగం ${gochara.yogaName} మరియు కరణం ${gochara.karanaName} నడుస్తున్నాయి. మీ జాతకానికి నేటి తారాబలం ${gochara.taraBala.taraName} గా ఉండి, ${gochara.taraBala.description} ఇస్తోంది.`;
+    const p2 = `దైనిక చంద్ర బలం ప్రకారం ${gochara.chandraBala.description} తో పాటు గ్రహ సంచారం అనుకూలంగా ఉంది. జన్మ నక్షత్రం మరియు దైనిక పంచాంగ శక్తుల సమన్వయం మీ ఆలోచనలలో స్థిరత్వాన్ని నింపి సకల కార్యసిద్ధిని ప్రసాదిస్తుంది.`;
+    return `${p1}\n\n${p2}`;
   }
   if (baseLang === "ta") {
-    return `இன்றைய கோச்சார பஞ்சாங்கத்தில் ${gochara.tithiName}, கிழமை ${gochara.vaaraName} (அதிபதி ${gochara.vaaraLordName}), நட்சத்திரம் ${gochara.nakshatraName}, யோகம் ${gochara.yogaName} மற்றும் கரணம் ${gochara.karanaName} நிலவுகின்றன. உங்கள் ஜாதகத்திற்கு இன்றைய தாராபலம் ${gochara.taraBala.taraName} ஆக அமைந்து, ${gochara.taraBala.description} தருகிறது. ${gochara.chandraBala.description} இயங்குகிறது.`;
+    const p1 = `இன்றைய கோச்சார பஞ்சாங்கத்தில் ${gochara.tithiName}, கிழமை ${gochara.vaaraName} (அதிபதி ${gochara.vaaraLordName}), நட்சத்திரம் ${gochara.nakshatraName}, யோகம் ${gochara.yogaName} மற்றும் கரணம் ${gochara.karanaName} நிலவுகின்றன. உங்கள் ஜாதகத்திற்கு இன்றைய தாராபலம் ${gochara.taraBala.taraName} ஆக அமைந்து, ${gochara.taraBala.description} தருகிறது.`;
+    const p2 = `தினசரி சந்திர பலத்தின்படி ${gochara.chandraBala.description} இயங்குகிறது. உங்கள் ஜென்ம நட்சத்திரமும் இன்றைய பஞ்சாங்க ஆற்றல்களும் இணைந்து மன அமைதியையும் எடுத்த காரியங்களில் தடையற்ற வெற்றியையும் அளிக்கின்றன.`;
+    return `${p1}\n\n${p2}`;
   }
-  return `Under active Gochara Panchanga dynamics, the current celestial window features ${gochara.tithiName}, ${gochara.vaaraName} (ruled by ${gochara.vaaraLordName}), Moon in ${gochara.nakshatraName}, Nitya Yoga ${gochara.yogaName}, and Karana ${gochara.karanaName}. In relationship to your natal star, the operating Tara Bala is ${gochara.taraBala.taraName}, providing ${gochara.taraBala.description}. Concurrently, ${gochara.chandraBala.description} channels focused mental clarity.`;
+  const p1 = `Under active Gochara Panchanga dynamics, the current celestial window features ${gochara.tithiName}, ${gochara.vaaraName} (ruled by ${gochara.vaaraLordName}), Moon in ${gochara.nakshatraName}, Nitya Yoga ${gochara.yogaName}, and Karana ${gochara.karanaName}. In relationship to your natal star, the operating Tara Bala is ${gochara.taraBala.taraName}, providing ${gochara.taraBala.description}.`;
+  const p2 = `Concurrently, ${gochara.chandraBala.description} channels focused mental clarity. Aligning your daily endeavors with this cosmic rhythm harmonizes subconscious impulses and supports resilient, deliberate actions in career, personal routines, and spiritual pursuits.`;
+  return `${p1}\n\n${p2}`;
 }
 
 export function getSummaryPanchangaSynthesis(janana: JananaPanchangaData, gochara: GocharaPanchangaData, dashaSummary: string, lang: string): string {

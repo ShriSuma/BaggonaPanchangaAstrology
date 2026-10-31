@@ -40,7 +40,7 @@ describe('Gochara Language Purity and Depth Verification', () => {
     const chart = analyzeKundali(createMockInput('kn', 7, 11));
     const items = buildDynamicGocharaFallback(chart);
 
-    expect(items.length).toBe(3);
+    expect(items.length).toBe(4);
 
     items.forEach((item, idx) => {
       // 1. Zero English letters in title, impact, and remedy
@@ -70,7 +70,7 @@ describe('Gochara Language Purity and Depth Verification', () => {
     const chart = analyzeKundali(createMockInput('hi', 8, 9));
     const items = buildDynamicGocharaFallback(chart);
 
-    expect(items.length).toBe(3);
+    expect(items.length).toBe(4);
 
     items.forEach((item, idx) => {
       expect(/[a-zA-Z]/.test(item.name), `Item ${idx} name must not contain English characters`).toBe(false);
@@ -89,7 +89,7 @@ describe('Gochara Language Purity and Depth Verification', () => {
     const chart = analyzeKundali(createMockInput('te', 1, 5));
     const items = buildDynamicGocharaFallback(chart);
 
-    expect(items.length).toBe(3);
+    expect(items.length).toBe(4);
 
     items.forEach((item, idx) => {
       expect(/[a-zA-Z]/.test(item.name)).toBe(false);
@@ -105,7 +105,7 @@ describe('Gochara Language Purity and Depth Verification', () => {
     const chart = analyzeKundali(createMockInput('ta', 4, 2));
     const items = buildDynamicGocharaFallback(chart);
 
-    expect(items.length).toBe(3);
+    expect(items.length).toBe(4);
 
     items.forEach((item, idx) => {
       expect(/[a-zA-Z]/.test(item.name)).toBe(false);
@@ -122,7 +122,7 @@ describe('Gochara Language Purity and Depth Verification', () => {
     const chart = analyzeKundali(createMockInput('en', 2, 11));
     const items = buildDynamicGocharaFallback(chart);
 
-    expect(items.length).toBe(3);
+    expect(items.length).toBe(4);
     // Preserves contract for Guru Bala
     expect(items[1].impact).toContain("Guru Bala is active");
     // Preserves contract for Saturn Sade Sati

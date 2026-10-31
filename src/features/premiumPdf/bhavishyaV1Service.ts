@@ -594,6 +594,8 @@ export async function prepareBhavishyaV1Data(
     lagnaRashiIndex: session.result.lagnaRashi?.index ?? 0,
     moonRashiIndex: session.result.moonSign.index,
     moonNakshatraIndex: moonPlanet?.nakshatra.index ?? null,
+    moonPada: session.result.moonPada ?? null,
+    bhuktiEndsAtAge: currentBhuktiData?.bhuktiEndAge ?? null,
     birthDate: session.input.birthDate,
     birthTime: session.input.birthTime,
     natalPlanets,
@@ -1508,28 +1510,48 @@ export async function prepareBhavishyaV1Data(
     remedy: d.remedy || ""
   }));
 
+  const kendraTrikonaProtectors = session.result.planets.filter(p =>
+    [1, 4, 5, 7, 9, 10].includes(p.house) &&
+    ['Jupiter', 'Venus', 'Mercury', 'Moon'].includes(p.name)
+  );
+  const primaryProtector = kendraTrikonaProtectors.find(p => p.name === 'Jupiter')
+    || kendraTrikonaProtectors.find(p => p.name === 'Venus')
+    || kendraTrikonaProtectors.find(p => p.name === 'Mercury')
+    || kendraTrikonaProtectors[0]
+    || session.result.planets.find(p => p.name === 'Jupiter')
+    || session.result.planets[0];
+
+  const protGrahaKey = primaryProtector ? toGraha(primaryProtector.name) : "Jupiter";
+  const protHouseNum = primaryProtector?.house ?? 9;
+
+  const protNameKn = pick(GRAHA_L5[protGrahaKey], "kn");
+  const protNameHi = pick(GRAHA_L5[protGrahaKey], "hi");
+  const protNameTe = pick(GRAHA_L5[protGrahaKey], "te");
+  const protNameTa = pick(GRAHA_L5[protGrahaKey], "ta");
+  const protNameEn = primaryProtector?.name || "Jupiter";
+
   const safeDoshaFallback = rawDoshasFallback.length > 0
     ? rawDoshasFallback
     : [{
-        name: baseLang === "kn" ? "ಸರ್ವ ದೋಷ ಮುಕ್ತ & ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಕವಚ" : baseLang === "hi" ? "सर्व दोष मुक्त - शुभ ग्रह रक्षा कवच" : baseLang === "te" ? "సర్వ దోష రహితం - శుభ గ్రహ రక్షా కవచం" : baseLang === "ta" ? "தோஷ நிவர்த்தி - சுப கிரக பாதுகாப்பு" : "Benefic Planetary Shield - Free of Major Doshas",
+        name: baseLang === "kn" ? `ಸರ್ವ ದೋಷ ಮುಕ್ತ & ${protNameKn} ರಕ್ಷಾ ಕವಚ` : baseLang === "hi" ? `सर्व दोष मुक्त - ${protNameHi} रक्षा कवच` : baseLang === "te" ? `సర్వ దోష రహితం - ${protNameTe} రక్షా కవచం` : baseLang === "ta" ? `தோஷ நிவர்த்தி - ${protNameTa} சுப பாதுகாப்பு` : `Benefic Planetary Shield - Guarded by ${protNameEn}`,
         impact: baseLang === "kn"
-          ? "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಪಿತೃ, ಕಾಲಸರ್ಪ ಅಥವಾ ಬಾಲ್ಯದಾರಿಷ್ಟ ದೋಷಗಳಿಲ್ಲ. ಕೇಂದ್ರ ಮತ್ತು ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಲ್ಲಿ ಶುಭಗ್ರಹರ ಅನುಗ್ರಹವಿದ್ದು, ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಸದಾ ನಿಮ್ಮನ್ನು ಕಾಪಾಡುತ್ತದೆ."
+          ? `ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಯಾವುದೇ ಗಂಭೀರ ಪಿತೃ, ಕಾಲಸರ್ಪ ಅಥವಾ ಬಾಲ್ಯದಾರಿಷ್ಟ ದೋಷಗಳಿಲ್ಲ. ${protHouseNum}ನೇ ಭಾವದಲ್ಲಿ ನೆಲೆಸಿರುವ ${protNameKn} ಗ್ರಹದ ಶುಭ ಪ್ರಭಾವದಿಂದ ಕೇಂದ್ರ ಮತ್ತು ತ್ರಿಕೋಣ ಸ್ಥಾನಗಳಲ್ಲಿ ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ನಿರ್ಮಾಣವಾಗಿದ್ದು, ಸಕಲ ಅನಿಷ್ಟಗಳಿಂದ ನಿಮ್ಮನ್ನು ಸದಾ ಕಾಪಾಡುತ್ತದೆ.`
           : baseLang === "hi"
-          ? "आपकी कुंडली में कोई गंभीर कालसर्प, पितृ अथवा मांगलिक दोष नहीं है। शुभ ग्रहों की दृष्टि से आपका जीवन सुरक्षित एवं संरक्षित है।"
+          ? `आपकी कुंडली में कोई गंभीर कालसर्प, पितृ अथवा मांगलिक दोष नहीं है। ${protHouseNum}वें भाव में स्थित ${protNameHi} के शुभ प्रभाव से केंद्र एवं त्रिकोण भावों में दैवीय रक्षा कवच निर्मित है जो जीवन की रक्षा करता है।`
           : baseLang === "te"
-          ? "మీ జన్మ కుండలిలో ఎటువంటి తీవ్ర కాలసర్ప, పితృ లేదా మాంగళిక దోషాలు లేవు. కేంద్ర, త్రికోణ స్థానాలలో శుభగ్రహాల అనుగ్రహం కలిగి దైవిక రక్షా కవచం మిమ్మల్ని రక్షిస్తుంది."
+          ? `మీ జన్మ కుండలిలో ఎటువంటి తీవ్ర కాలసర్ప, పితృ లేదా మాంగళిక దోషాలు లేవు. ${protHouseNum}వ స్థానంలో ఉన్న ${protNameTe} అనుగ్రహంతో కేంద్ర మరియు త్రికోణ స్థానాలలో దైవిక రక్షా కవచం ఏర్పడి మిమ్మల్ని కాపాడుతుంది.`
           : baseLang === "ta"
-          ? "உங்கள் ஜாதகத்தில் எவ்வித கடுமையான காலசர்ப்ப, பித்ரு அல்லது மாங்கல்ய தோஷங்களும் இல்லை. திரிகோண மற்றும் கேந்திர ஸ்தானங்களில் சுப கிரகங்களின் ஆசியுடன் தெய்வீக பாதுகாப்பு உள்ளது."
-          : "Your chart is blessed without severe natal doshas. Auspicious planetary combinations provide a divine protective shield.",
+          ? `உங்கள் ஜாதகத்தில் எவ்வித கடுமையான காலசர்ப்ப, பித்ரு அல்லது மாங்கல்ய தோஷங்களும் இல்லை. ${protHouseNum}ஆம் இடத்தில் அமைந்துள்ள ${protNameTa} சுப ஆசியால் கேந்திர-திரிகோண ஸ்தானங்களில் தெய்வீக பாதுகாப்பு வளையம் உருவாகி காக்கிறது.`
+          : `Your chart is free of severe natal doshas like Kalasarpa or Pitru dosha. Auspicious placement of ${protNameEn} in House ${protHouseNum} forms a potent benefic shield anchoring the vital Kendra and Trikona houses.`,
         remedy: baseLang === "kn"
-          ? "ನಿತ್ಯ ಶ್ರೀ ಗಾಯತ್ರೀ ಜಪ, ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ದರ್ಶನ."
+          ? `ನಿತ್ಯ ಶ್ರೀ ಗಾಯತ್ರೀ ಜಪ, ${protNameKn} ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಗೆ ಕೃತಜ್ಞತಾ ನಮನ.`
           : baseLang === "hi"
-          ? "नित्य गायत्री मंत्र जप, कुलदेवता स्मरण एवं गोकर्ण महाबलेश्वर दर्शन।"
+          ? `नित्य गायत्री मंत्र जप, ${protNameHi} स्तोत्र पाठ एवं गोकर्ण महाबलेश्वर दर्शन।`
           : baseLang === "te"
-          ? "నిత్యం గాయత్రీ మంత్ర జపం, కులదేవత స్మరణ మరియు గోకర్ణ మహాబలేశ్వర దర్శనం."
+          ? `నిత్యం గాయత్రీ మంత్ర జపం, ${protNameTe} ప్రార్థన మరియు గోకర్ణ మహాబలేశ్వర దర్శనం.`
           : baseLang === "ta"
-          ? "தினசரி காயத்ரி மந்திர ஜபம், குலதெய்வ வழிபாடு மற்றும் கோகர்ண மகாபலேஸ்வரர் தரிசனம்."
-          : "Daily sacred prayer, Kuladevata worship, and temple gratitude offerings."
+          ? `தினசரி காயத்ரி மந்திர ஜபம், ${protNameTa} வழிபாடு மற்றும் கோகர்ண மகாபலேஸ்வரர் தரிசனம்.`
+          : `Daily sacred Gayatri Mantra recitation, prayers to ${protNameEn}, and temple gratitude offerings.`
       }];
 
   const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
