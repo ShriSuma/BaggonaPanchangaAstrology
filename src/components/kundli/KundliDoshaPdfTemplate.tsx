@@ -342,8 +342,8 @@ const LOCALIZED_SNIPPETS: Record<string, DoshaSnippets> = {
     yearsUnit: "ವರ್ಷ",
     yearsTillUnit: "ವರ್ಷದವರೆಗೆ",
     evaluated: "ಪರಿಶೀಲಿತ ವರ್ಗಗಳು:",
-    critical: "ತೀವ್ರ ಬಾಧೆ (Critical):",
-    moderate: "ಮಧ್ಯಮ (Moderate):",
+    critical: "ತೀವ್ರ ಬಾಧೆ:",
+    moderate: "ಮಧ್ಯಮ ಬಾಧೆ:",
     karmicVulnerability: "ದೋಷ ಸೂಚ್ಯಂಕ:",
     subconsciousFear: "ಆಂತರಿಕ ಮನೋಭಯ & ಚಿಂತೆಗಳು:",
     subconsciousFearShort: "ಆಂತರಿಕ ಮನೋಭಯ:",
@@ -382,8 +382,8 @@ const LOCALIZED_SNIPPETS: Record<string, DoshaSnippets> = {
     yearsUnit: "वर्ष",
     yearsTillUnit: "वर्ष की आयु तक",
     evaluated: "परीक्षित वर्ग:",
-    critical: "तीव्र बाधा (Critical):",
-    moderate: "मध्यम बाधा (Moderate):",
+    critical: "तीव्र बाधा:",
+    moderate: "मध्यम बाधा:",
     karmicVulnerability: "कर्म दोष सूचकांक:",
     subconsciousFear: "आंतरिक मनोभय एवं चिंताएं:",
     subconsciousFearShort: "आंतरिक मनोभय:",
@@ -462,8 +462,8 @@ const LOCALIZED_SNIPPETS: Record<string, DoshaSnippets> = {
     yearsUnit: "సంవత్సరాలు",
     yearsTillUnit: "సంవత్సరాల వరకు",
     evaluated: "పరిశీలించిన వర్గాలు:",
-    critical: "తీవ్ర బాధ (Critical):",
-    moderate: "మధ్యమ బాధ (Moderate):",
+    critical: "తీవ్ర బాధ:",
+    moderate: "మధ్యమ బాధ:",
     karmicVulnerability: "దోష సూచిక:",
     subconsciousFear: "అంతర్గత భయాలు & ఆందోళనలు:",
     subconsciousFearShort: "అంతర్గత భయం:",
@@ -502,8 +502,8 @@ const LOCALIZED_SNIPPETS: Record<string, DoshaSnippets> = {
     yearsUnit: "ஆண்டுகள்",
     yearsTillUnit: "ஆண்டுகள் வரை",
     evaluated: "ஆய்வு செய்யப்பட்டவை:",
-    critical: "தீவிர பாதிப்பு (Critical):",
-    moderate: "நடுத்தர பாதிப்பு (Moderate):",
+    critical: "தீவிர பாதிப்பு:",
+    moderate: "நடுத்தர பாதிப்பு:",
     karmicVulnerability: "கர்ம தோஷ குறியீடு:",
     subconsciousFear: "ஆழ்மன பயம் & கவலைகள்:",
     subconsciousFearShort: "ஆழ்மன பயம்:",
@@ -638,8 +638,8 @@ function stripDuplicatePrefix(text: string, prefixes: string[]): string {
 // Ultra-Luxury Gold & Parchment Palette
 const PARCHMENT_BG = "#FDFBF7"; // Royal warm parchment background
 const CARD_BG = "#FFFFFF"; // Clean crisp white card background
-const PANEL_WARM = "#FEF9E7"; // Royal warm cream
-const PANEL_ACCENT = "#FDF2D8"; // Soft amber panel for highlights
+const PANEL_WARM = "#FAF7F2"; // Royal warm serene panel
+const PANEL_ACCENT = "#FFFBEB"; // Soft amber panel for highlights
 const INK_DEEP = "#1C140D"; // Deepest contrast charcoal bronze - zero faint text
 const INK_MUTED = "#5C4028"; // Warm sepia brown for subtitles and citations
 const GOLD_PRIMARY = "#B45309"; // Regal amber gold
@@ -650,35 +650,35 @@ const GOLD_BORDER = "#D97706"; // Crisp royal golden border
 function getSeverityLabel(severity: string, code: SupportedLanguage): string {
   const map: Record<string, Record<SupportedLanguage, string>> = {
     critical: {
-      kn: "ತೀವ್ರ (Critical)",
-      hi: "तीव्र (Critical)",
-      en: "Critical",
-      te: "తీవ్రం (Critical)",
-      ta: "தீவிரம் (Critical)"
+      kn: "ತೀವ್ರ ದೋಷ",
+      hi: "तीव्र दोष",
+      en: "Critical Dosha",
+      te: "తీవ్ర దోషం",
+      ta: "தீவிர தோஷம்"
     },
     high: {
-      kn: "ಮಧ್ಯಮ-ತೀವ್ರ (High)",
-      hi: "मध्यम-तीव्र (High)",
-      en: "High",
-      te: "మధ్యమ-తీవ్రం (High)",
-      ta: "நடுத்தர-தீவிரம் (High)"
+      kn: "ಮಧ್ಯಮ-ತೀವ್ರ",
+      hi: "मध्यम-तीव्र",
+      en: "High Priority",
+      te: "మధ్యమ-తీవ్రం",
+      ta: "நடுத்தர-தீவிரம்"
     },
     moderate: {
-      kn: "ಮಧ್ಯಮ (Moderate)",
-      hi: "मध्यम (Moderate)",
-      en: "Moderate",
-      te: "మధ్యమం (Moderate)",
-      ta: "நடுத்தரம் (Moderate)"
+      kn: "ಮಧ್ಯಮ ದೋಷ",
+      hi: "मध्यम दोष",
+      en: "Moderate Dosha",
+      te: "మధ్యమ దోషం",
+      ta: "நடுத்தர தோஷம்"
     },
     low: {
-      kn: "ಲಘು (Low)",
-      hi: "सामान्य (Low)",
-      en: "Low",
-      te: "సాధారణం (Low)",
-      ta: "குறைவு (Low)"
+      kn: "ಸಾಮಾನ್ಯ ದೋಷ",
+      hi: "सामान्य दोष",
+      en: "Mild Dosha",
+      te: "సాధారణ దోషం",
+      ta: "சாதாரண தோஷம்"
     }
   };
-  return map[severity]?.[code] || severity.toUpperCase();
+  return map[severity]?.[code] || map.critical[code] || "Critical Dosha";
 }
 
 function getExpectedImprovementAfterParihara(doshaId: string, lang: SupportedLanguage): string {
@@ -1223,24 +1223,24 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       </div>
                     )}
 
-                    {/* Header Row: Title & Severity */}
+                    {/* Header Row: Title on Left, Unclipped Badges on Right */}
                     <div
                       style={{
-                        background: "linear-gradient(90deg, #FEF9E7 0%, #FFFDF8 100%)",
+                        background: "linear-gradient(90deg, #FAF7F2 0%, #FFFFFF 100%)",
                         border: `1.5px solid ${GOLD_LIGHT}`,
                         borderRadius: "8px",
-                        padding: "5px 10px",
+                        padding: "6px 12px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
                         gap: "10px"
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "7px", minWidth: 0, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: "16px", flexShrink: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
+                        <span style={{ fontSize: "18px", flexShrink: 0 }}>
                           {isPitru ? "🪔" : isKuja ? "⚔️" : isSarpa ? "🐍" : "🪐"}
                         </span>
-                        <span style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                        <span style={{ fontSize: "14.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
                           {getLangVal(dosha.name)}
                         </span>
                         {dosha.technicalDetail?.scripturalReference && (
@@ -1250,65 +1250,74 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         )}
                       </div>
 
-                      <span
-                        style={{
-                          background: dosha.severity === "critical" ? "#FEE2E2" : "#FEF3C7",
-                          border: `1px solid ${dosha.severity === "critical" ? "#F87171" : GOLD_BORDER}`,
-                          color: dosha.severity === "critical" ? "#991B1B" : GOLD_DARK,
-                          fontSize: "9.5px",
-                          fontWeight: 900,
-                          padding: "2px 8px",
-                          borderRadius: "5px",
-                          flexShrink: 0,
-                          whiteSpace: "nowrap"
-                        }}
-                      >
-                        {getSeverityLabel(dosha.severity, code)}
-                      </span>
-                    </div>
-
-                    {/* Dedicated Metadata & Status Badges Row (Prevents text drop-down or wrapping!) */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                      <span
-                        style={{
-                          background: isCompleted ? "#DCFCE7" : "#FEF3C7",
-                          border: `1.5px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
-                          color: isCompleted ? "#166534" : GOLD_DARK,
-                          fontSize: "9.5px",
-                          fontWeight: 800,
-                          padding: "2px 8px",
-                          borderRadius: "5px",
-                          whiteSpace: "nowrap",
-                          display: "inline-flex",
-                          alignItems: "center"
-                        }}
-                      >
-                        {getLangVal(dosha.statusBadge)}
-                      </span>
-                      {priorityBadgeText && (
+                      {/* Right: Dedicated Unclipped Badges Group */}
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
                         <span
                           style={{
-                            background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
-                            color: "#FFFFFF",
-                            fontSize: "9.5px",
+                            background: dosha.severity === "critical" ? "#FEF2F2" : "#FFFBEB",
+                            border: `1px solid ${dosha.severity === "critical" ? "#FCA5A5" : "#FCD34D"}`,
+                            color: dosha.severity === "critical" ? "#991B1B" : "#92400E",
+                            fontSize: "10px",
                             fontWeight: 800,
-                            padding: "2px 8px",
+                            padding: "3px 9px",
                             borderRadius: "5px",
-                            border: `1px solid ${GOLD_BORDER}`,
+                            flexShrink: 0,
                             whiteSpace: "nowrap",
                             display: "inline-flex",
-                            alignItems: "center"
+                            alignItems: "center",
+                            lineHeight: 1.1,
+                            height: "fit-content"
                           }}
                         >
-                          {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
+                          {getSeverityLabel(dosha.severity, code)}
                         </span>
-                      )}
-                      {dosha.agePriorityReason && (
-                        <span style={{ fontSize: "9.5px", color: INK_MUTED, fontStyle: "italic", lineHeight: 1.4 }}>
-                          ({getLangVal(dosha.agePriorityReason)})
+                        {priorityBadgeText && (
+                          <span
+                            style={{
+                              background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
+                              color: "#FFFFFF",
+                              fontSize: "10px",
+                              fontWeight: 800,
+                              padding: "3px 9px",
+                              borderRadius: "5px",
+                              border: `1px solid ${GOLD_BORDER}`,
+                              whiteSpace: "nowrap",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              lineHeight: 1.1,
+                              height: "fit-content"
+                            }}
+                          >
+                            {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            background: isCompleted ? "#F0FDF4" : "#FEF3C7",
+                            border: `1.5px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
+                            color: isCompleted ? "#166534" : GOLD_DARK,
+                            fontSize: "10px",
+                            fontWeight: 800,
+                            padding: "3px 9px",
+                            borderRadius: "5px",
+                            whiteSpace: "nowrap",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            lineHeight: 1.1,
+                            height: "fit-content"
+                          }}
+                        >
+                          {getLangVal(dosha.statusBadge)}
                         </span>
-                      )}
+                      </div>
                     </div>
+
+                    {/* Age Priority Reason if present */}
+                    {dosha.agePriorityReason && (
+                      <div style={{ fontSize: "9.5px", color: INK_MUTED, fontStyle: "italic", lineHeight: 1.35, padding: "0 2px" }}>
+                        ({getLangVal(dosha.agePriorityReason)})
+                      </div>
+                    )}
 
                     {/* Immediate Action Notice */}
                     {dosha.immediateActionRequired && (
@@ -1599,21 +1608,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       gap: "3.5px"
                     }}
                   >
-                    {/* Header Row: Title on Left, Severity on Right */}
+                    {/* Header Row: Title on Left, Unclipped Badges on Right */}
                     <div
                       style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
                         borderBottom: `1.5px solid ${GOLD_LIGHT}`,
-                        paddingBottom: "3px",
+                        paddingBottom: "4px",
                         gap: "10px"
                       }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                          <span style={{ fontSize: "14px", flexShrink: 0 }}>⚡</span>
-                          <span style={{ fontSize: "12.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                          <span style={{ fontSize: "15px", flexShrink: 0 }}>⚡</span>
+                          <span style={{ fontSize: "13px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
                             {getLangVal(dosha.name)}
                           </span>
                           {dosha.technicalDetail?.scripturalReference && (
@@ -1624,59 +1633,66 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         </div>
                       </div>
 
-                      <span
-                        style={{
-                          background: dosha.severity === "critical" ? "#FEE2E2" : "#FEF3C7",
-                          border: `1px solid ${dosha.severity === "critical" ? "#F87171" : GOLD_BORDER}`,
-                          color: dosha.severity === "critical" ? "#991B1B" : GOLD_DARK,
-                          fontSize: "8.5px",
-                          fontWeight: 900,
-                          padding: "1px 6px",
-                          borderRadius: "4px",
-                          flexShrink: 0,
-                          whiteSpace: "nowrap"
-                        }}
-                      >
-                        {getSeverityLabel(dosha.severity, code)}
-                      </span>
-                    </div>
-
-                    {/* Dedicated Metadata Badges Row (Zero text drop-down or wrapping!) */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                      <span
-                        style={{
-                          background: isCompleted ? "#DCFCE7" : "#FEF3C7",
-                          border: `1.5px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
-                          color: isCompleted ? "#166534" : GOLD_DARK,
-                          fontSize: "9px",
-                          fontWeight: 800,
-                          padding: "2px 7px",
-                          borderRadius: "5px",
-                          whiteSpace: "nowrap",
-                          display: "inline-flex",
-                          alignItems: "center"
-                        }}
-                      >
-                        {statusBadgeText}
-                      </span>
-                      {priorityBadgeText && (
+                      {/* Right: Dedicated Unclipped Badges Group */}
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", flexShrink: 0 }}>
                         <span
                           style={{
-                            background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
-                            color: "#FFFFFF",
+                            background: dosha.severity === "critical" ? "#FEF2F2" : "#FFFBEB",
+                            border: `1px solid ${dosha.severity === "critical" ? "#FCA5A5" : "#FCD34D"}`,
+                            color: dosha.severity === "critical" ? "#991B1B" : "#92400E",
                             fontSize: "9px",
                             fontWeight: 800,
                             padding: "2px 7px",
-                            borderRadius: "5px",
-                            border: `1px solid ${GOLD_BORDER}`,
+                            borderRadius: "4px",
+                            flexShrink: 0,
                             whiteSpace: "nowrap",
                             display: "inline-flex",
-                            alignItems: "center"
+                            alignItems: "center",
+                            lineHeight: 1.1,
+                            height: "fit-content"
                           }}
                         >
-                          {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
+                          {getSeverityLabel(dosha.severity, code)}
                         </span>
-                      )}
+                        {priorityBadgeText && (
+                          <span
+                            style={{
+                              background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
+                              color: "#FFFFFF",
+                              fontSize: "9px",
+                              fontWeight: 800,
+                              padding: "2px 7px",
+                              borderRadius: "4px",
+                              border: `1px solid ${GOLD_BORDER}`,
+                              whiteSpace: "nowrap",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              lineHeight: 1.1,
+                              height: "fit-content"
+                            }}
+                          >
+                            {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            background: isCompleted ? "#F0FDF4" : "#FEF3C7",
+                            border: `1.5px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
+                            color: isCompleted ? "#166534" : GOLD_DARK,
+                            fontSize: "9px",
+                            fontWeight: 800,
+                            padding: "2px 7px",
+                            borderRadius: "4px",
+                            whiteSpace: "nowrap",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            lineHeight: 1.1,
+                            height: "fit-content"
+                          }}
+                        >
+                          {statusBadgeText}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Subconscious Fear */}

@@ -99,6 +99,131 @@ const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as Gra
 export const asText = (value: string | string[] | undefined): string =>
   Array.isArray(value) ? value.join("\n\n") : (value ?? "");
 
+/**
+ * Strips devotee salutations and opening section prefixes for accurate paragraph deduplication.
+ */
+export const stripSalutationsForComparison = (str: string): string => {
+  if (!str) return "";
+  return str
+    // Strip Kannada devotee salutations (e.g. "ಮನೋಜ್ ಅವರೇ, ", "ಆತ್ಮೀಯ ಮನೋಜ್ ಅವರೇ, ", "ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ")
+    .replace(/^(?:(?:ಅಭಿಮಾನಿ\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?|ಶ್ರೀಯುತ|ಶ್ರೀ|ಪ್ರಿಯ|ಆತ್ಮೀಯ|ಮಾನ್ಯ)?\s*[\u0C80-\u0CFF\u200C\u200D]+\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರುಗಳೇ|ಅವರ‍್ಗಳೇ)[,!\s]*)+/gu, "")
+    // Strip Hindi devotee salutations (e.g. "श्री मनोज जी, ", "आदरणीय मनोज जी, ")
+    .replace(/^(?:(?:श्री|आदरणीय|प्रिय)?\s*[\u0900-\u097F]+\s*(?:जी|को)[,!\s]*)+/gu, "")
+    // Strip Telugu devotee salutations (e.g. "శ్రీ మనోజ్ గారు, ")
+    .replace(/^(?:(?:శ్రీ|ప్రియమైన)?\s*[\u0C00-\u0C7F]+\s*(?:గారు|గారికి)[,!\s]*)+/gu, "")
+    // Strip Tamil devotee salutations (e.g. "திரு மனோஜ் அவர்களே, ")
+    .replace(/^(?:(?:திரு|திருமதி|அன்பார்ந்த)?\s*[\u0B80-\u0BFF]+\s*(?:அவர்களே|அவர்களுக்கு)[,!\s]*)+/gu, "")
+    // Strip English devotee salutations (e.g. "Dear Manoj, ")
+    .replace(/^(?:Dear|Respected|Honorable)\s+[A-Za-z\s]+[,!\s]*/gi, "")
+    // Strip general section header prefixes (e.g. "ದೈವಜ್ಞ ಸಾರಾಂಶ:", "ದೈವಜ್ಞರ ಅಂತಿಮ ದೃಷ್ಟಿ:", "Summary:")
+    .replace(/^(?:ದೈವಜ್ಞ[^\n:–—]+[:–—]|ಜ್ಯೋತಿಷಿ[^\n:–—]+[:–—]|ज्योतिषी[^\n:–—]+[:–—]|Astrologer['’]s[^\n:–—]+[:–—]|Summary[:–—]|ಸಾರಾಂಶ[:–—])/gu, "")
+    .trim();
+};
+
+/**
+ * Normalized representation of paragraph for deduplication.
+ */
+export const normalizeParagraphForComparison = (str: string): string => {
+  const stripped = stripSalutationsForComparison(str);
+  return stripped.replace(/[\s\p{P}\d°]+/gu, "");
+};
+
+/**
+ * Detects whether two paragraphs are semantic or verbatim duplicates.
+ */
+export const areParagraphsDuplicates = (p1: string, p2: string): boolean => {
+  if (!p1 || !p2) return false;
+  const s1 = stripSalutationsForComparison(p1).trim();
+  const s2 = stripSalutationsForComparison(p2).trim();
+  if (s1 === s2) return true;
+
+  const n1 = normalizeParagraphForComparison(p1);
+  const n2 = normalizeParagraphForComparison(p2);
+  if (!n1 || !n2) return false;
+  if (n1 === n2) return true;
+
+  // Prefix match (first 25 characters of stripped text)
+  if (n1.length >= 25 && n2.length >= 25) {
+    if (n1.slice(0, 25) === n2.slice(0, 25)) return true;
+  }
+
+  // Substring containment if substantial
+  if (n1.length >= 20 && n2.length >= 20) {
+    if (n1.includes(n2) || n2.includes(n1)) return true;
+    if (n1.length > 35 && n2.includes(n1.slice(0, 35))) return true;
+    if (n2.length > 35 && n1.includes(n2.slice(0, 35))) return true;
+  }
+
+  // Word set Jaccard similarity for token overlap
+  const words1 = new Set(s1.split(/[\s,.\-–—:;|!?"'()\[\]]+/u).filter(w => w.length >= 3));
+  const words2 = new Set(s2.split(/[\s,.\-–—:;|!?"'()\[\]]+/u).filter(w => w.length >= 3));
+  if (words1.size > 0 && words2.size > 0) {
+    let intersection = 0;
+    words1.forEach(w => {
+      if (words2.has(w)) intersection++;
+    });
+    const minSize = Math.min(words1.size, words2.size);
+    if (minSize >= 4 && intersection / minSize >= 0.45) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Detects the thematic pillar of a summary paragraph:
+ * 'overview' (Natal/Lagna/Dasha), 'priority' (Coming Year Focus), or 'blessing' (Gokarna blessing/prayer).
+ */
+export const detectSummaryPillar = (text: string): "overview" | "priority" | "blessing" | "other" => {
+  const s = text.toLowerCase();
+  if (
+    s.includes("ಗೋಕರ್ಣ") ||
+    s.includes("ಮಹಾಬಲೇಶ್ವರ") ||
+    s.includes("ಪ್ರಾರ್ಥನೆ") ||
+    s.includes("ಆಶೀರ್ವಾದ") ||
+    s.includes("ಆಶೀರ್ವಚನ") ||
+    s.includes("ಗೋದಾನ") ||
+    s.includes("gokarna") ||
+    s.includes("blessing") ||
+    s.includes("prayer") ||
+    s.includes("कुलदेवता") ||
+    s.includes("आशीर्वाद")
+  ) {
+    return "blessing";
+  }
+  if (
+    s.includes("ಬರುವ ವರ್ಷ") ||
+    s.includes("ಮುಖ್ಯ ಗುರಿ") ||
+    s.includes("ಪ್ರಧಾನ ಆದ್ಯತೆ") ||
+    s.includes("ಆದ್ಯತೆಯು") ||
+    s.includes("ಆರ್ಥಿಕ ಉಳಿತಾಯ") ||
+    s.includes("year ahead") ||
+    s.includes("singular priority") ||
+    s.includes("primary focus") ||
+    s.includes("आने वाले वर्ष") ||
+    s.includes("मुख्य प्राथमिकता")
+  ) {
+    return "priority";
+  }
+  if (
+    s.includes("ಲಗ್ನ") ||
+    s.includes("ಕುಂಡಲಿ") ||
+    s.includes("ದ್ವಾದಶ ಭಾವ") ||
+    s.includes("ಮಹಾದಶಾ") ||
+    s.includes("ಭುಕ್ತಿ") ||
+    s.includes("lagna") ||
+    s.includes("kundali") ||
+    s.includes("dasha") ||
+    s.includes("लग्न") ||
+    s.includes("कुंडली") ||
+    s.includes("दशा")
+  ) {
+    return "overview";
+  }
+  return "other";
+};
+
 export function ensureAtLeastThreeParagraphs(
   aiText: string | string[] | undefined,
   fallbackText: string,
@@ -112,6 +237,7 @@ export function ensureAtLeastThreeParagraphs(
         .filter(p => p.length > 25)
     : [];
 
+  // If paragraphs were separated by single newlines instead of double newlines, split them
   if (paras.length < minParagraphs && rawText.includes("\n")) {
     const singleLineParas = rawText
       .split(/\n+/)
@@ -124,7 +250,7 @@ export function ensureAtLeastThreeParagraphs(
 
   const fallbackParas = fallbackText
     ? fallbackText
-        .split(/\n\s*\n/)
+        .split(/\n\s*\n|\n+/)
         .map(p => p.trim())
         .filter(p => p.length > 25)
     : [];
@@ -137,36 +263,37 @@ export function ensureAtLeastThreeParagraphs(
   const fallbackNarrative = fallbackParas.filter(p => !isCallout(p));
   const fallbackCallout = fallbackParas.filter(p => isCallout(p));
 
-  // Ensure at least minParagraphs (default 3) full narrative paragraphs
-  const normalizePara = (str: string) => str.replace(/[\s\p{P}]+/gu, "").slice(0, 35);
-  const isDuplicatePara = (p1: string, p2: string) => {
-    const n1 = normalizePara(p1);
-    const n2 = normalizePara(p2);
-    if (!n1 || !n2) return false;
-    if (n1 === n2) return true;
-    if (n1.length > 20 && n2.length > 20) {
-      if (n1.includes(n2) || n2.includes(n1)) return true;
-    }
-    return false;
-  };
-
+  // Deduplicate incoming narrative paragraphs first
   const combinedNarrative: string[] = [];
+  const coveredPillars = new Set<string>();
+
   for (const p of narrativeParas) {
-    if (!combinedNarrative.some(existing => isDuplicatePara(existing, p))) {
+    if (!combinedNarrative.some(existing => areParagraphsDuplicates(existing, p))) {
       combinedNarrative.push(p);
+      const pillar = detectSummaryPillar(p);
+      if (pillar !== "other") coveredPillars.add(pillar);
     }
   }
 
+  // If we still need more paragraphs to reach minParagraphs, append from fallback,
+  // but strictly avoid adding a fallback paragraph whose thematic pillar is ALREADY covered!
   for (const fbP of fallbackNarrative) {
     if (combinedNarrative.length >= minParagraphs) break;
-    if (!combinedNarrative.some(existing => isDuplicatePara(existing, fbP))) {
+    const fbPillar = detectSummaryPillar(fbP);
+    if (fbPillar !== "other" && coveredPillars.has(fbPillar)) {
+      continue; // Skip duplicate pillar
+    }
+    if (!combinedNarrative.some(existing => areParagraphsDuplicates(existing, fbP))) {
       combinedNarrative.push(fbP);
+      if (fbPillar !== "other") coveredPillars.add(fbPillar);
     }
   }
+
+  // Final fallback pass if still under minParagraphs (unlikely, but guaranteed unique)
   let fbIdx = 0;
   while (combinedNarrative.length < minParagraphs && fallbackNarrative.length > 0 && fbIdx < fallbackNarrative.length) {
     const candidate = fallbackNarrative[fbIdx % fallbackNarrative.length];
-    if (!combinedNarrative.some(existing => isDuplicatePara(existing, candidate))) {
+    if (!combinedNarrative.some(existing => areParagraphsDuplicates(existing, candidate))) {
       combinedNarrative.push(candidate);
     }
     fbIdx++;
@@ -1300,18 +1427,37 @@ export async function prepareBhavishyaV1Data(
   // Consolidate summary into a single narrative before validation to prevent duplicate fallback appending
   let rawSummaryInput: any = dataSummary?.summary;
   if (Array.isArray(rawSummaryInput)) {
-    const combinedTexts = rawSummaryInput
-      .map((s: any) => (typeof s === "string" ? s : s?.impact || s?.description || ""))
-      .filter((t: string) => t.trim().length > 0);
-    rawSummaryInput = [{ impact: combinedTexts.join("\n\n") }];
+    const uniqueSummaryParas: string[] = [];
+    rawSummaryInput.forEach((s: any) => {
+      const text = typeof s === "string" ? s : s?.impact || s?.description || "";
+      const paras = text.split(/\n\s*\n|\n+/).map((p: string) => p.trim()).filter((p: string) => p.length > 20);
+      paras.forEach((p: string) => {
+        if (!uniqueSummaryParas.some(existing => areParagraphsDuplicates(existing, p))) {
+          uniqueSummaryParas.push(p);
+        }
+      });
+    });
+    rawSummaryInput = [{ impact: uniqueSummaryParas.join("\n\n") }];
   } else if (typeof rawSummaryInput === "string") {
     rawSummaryInput = [{ impact: rawSummaryInput }];
   }
   const rawSummary = await ensureValidSection(rawSummaryInput, rawSummaryFallback, lang, 150);
-  const finalSummary = (rawSummary || []).map((s: any) => ({
-    ...s,
-    impact: cleanDegreesFromText(ensureNamePresence(cleanEnglishFromRegionalText(s.impact || "", lang), localizedDevoteeName, lang))
-  }));
+  const finalSummary = (rawSummary || []).map((s: any) => {
+    const rawClean = cleanEnglishFromRegionalText(s.impact || "", lang);
+    const withName = ensureNamePresence(rawClean, localizedDevoteeName, lang);
+    const completed = ensureCompleteSentences(withName, lang);
+    const paras = completed.split(/\n\s*\n|\n+/).map((p: string) => p.trim()).filter((p: string) => p.length > 15);
+    const dedupedParas: string[] = [];
+    paras.forEach((p: string) => {
+      if (!dedupedParas.some(existing => areParagraphsDuplicates(existing, p))) {
+        dedupedParas.push(p);
+      }
+    });
+    return {
+      ...s,
+      impact: cleanDegreesFromText(dedupedParas.join("\n\n"))
+    };
+  });
 
   let rawAnnualInput: any = dataAnnualForecast?.annualForecast;
   if (typeof rawAnnualInput === "string") {

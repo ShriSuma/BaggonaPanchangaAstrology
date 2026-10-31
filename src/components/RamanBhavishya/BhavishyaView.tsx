@@ -41,7 +41,8 @@ import {
   buildDynamicGocharaFallback,
   buildDynamicSummaryFallback,
   buildDynamicTimelineFallback,
-  getLocalizedDevoteeName
+  getLocalizedDevoteeName,
+  ensureNamePresence
 } from "../../features/premiumPdf/dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -63,7 +64,8 @@ import {
   prepareBhavishyaV1Data,
   captureBhavishyaV1Pdf,
   type BhavishyaV1Payload,
-  ensureAtLeastThreeParagraphs
+  ensureAtLeastThreeParagraphs,
+  areParagraphsDuplicates
 } from "../../features/premiumPdf/bhavishyaV1Service";
 import { BhavishyaValidationError } from "../../features/premiumPdf/bhavishyaV1Validator";
 import { generatePDFFromElement } from "../../utils/pdfGenerator";
@@ -2990,14 +2992,21 @@ Return ONLY this JSON (no extra text before or after):
 
       // Summary & Ashirvada
       const rawSummaryAI = toSafeArray(dataSummary.summary).map((s: any) => s.impact).join("\n\n") || result.masterSynthesis.overallTone;
-      const finalSummary = cleanEnglishFromRegionalText(
-        ensureAtLeastThreeParagraphs(
-          rawSummaryAI,
-          buildDynamicSummaryFallback(parsedKundali),
-          3
-        ),
-        lang
+      const guaranteedSummary = ensureAtLeastThreeParagraphs(
+        rawSummaryAI,
+        buildDynamicSummaryFallback(parsedKundali),
+        3
       );
+      const cleanSum = cleanEnglishFromRegionalText(guaranteedSummary, lang);
+      const withNameSum = ensureNamePresence(cleanSum, localizedDevoteeName, lang);
+      const parasSum = withNameSum.split(/\n\s*\n|\n+/).map((p: string) => p.trim()).filter((p: string) => p.length > 15);
+      const dedupedSum: string[] = [];
+      parasSum.forEach((p: string) => {
+        if (!dedupedSum.some((existing: string) => areParagraphsDuplicates(existing, p))) {
+          dedupedSum.push(p);
+        }
+      });
+      const finalSummary = dedupedSum.join("\n\n");
 
       const ashirvadaText = ashirvada || (
         lang === "kn"

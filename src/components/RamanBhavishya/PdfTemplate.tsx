@@ -5,6 +5,7 @@ import { CosmicDashaAuraVisual } from './CosmicDashaAuraVisual';
 import { cleanEnglishFromRegionalText } from '../../features/premiumPdf/premiumPdfLocale';
 import { cleanDegreesFromText, cleanPunctuationArtifacts } from '../../features/premiumPdf/yogaDoshaGocharaEnricher';
 import { ensureNamePresence, ensureCompleteSentences, getLocalizedDevoteeName } from '../../features/premiumPdf/dynamicBhavishyaEngine';
+import { areParagraphsDuplicates } from '../../features/premiumPdf/bhavishyaV1Service';
 
 export type PdfTranslations = {
   title: string;
@@ -1277,17 +1278,12 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             {(() => {
               // Deduplicate paragraphs across all summary items to guarantee zero repeated paragraphs
               const allParas: string[] = [];
-              const normPrefix = (s: string) => s.replace(/[\s\p{P}]+/gu, "").slice(0, 35);
 
               (premiumData?.summary || []).forEach((sum) => {
                 const cleanedParas = cleanSectionNarrative(sum.impact || "");
                 cleanedParas.forEach((cleaned) => {
                   if (!cleaned || cleaned.length < 15) return;
-                  const np = normPrefix(cleaned);
-                  const exists = allParas.some((existing) => {
-                    const ep = normPrefix(existing);
-                    return ep === np || existing.includes(cleaned) || cleaned.includes(existing);
-                  });
+                  const exists = allParas.some((existing) => areParagraphsDuplicates(existing, cleaned));
                   if (!exists) {
                     allParas.push(cleaned);
                   }
