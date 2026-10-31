@@ -155,7 +155,7 @@ export async function generateKundliRemedyWithAi(
   let aiSuccess = false;
   let narrationResult = "";
   const isTest = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
-  const perAttemptTimeout = timeoutMs ?? (isTest ? 4000 : 10000);
+  const perAttemptTimeout = timeoutMs ?? (isTest ? 4000 : 25000);
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     onAttempt?.(attempt, maxAttempts);
@@ -176,7 +176,7 @@ export async function generateKundliRemedyWithAi(
           prompt,
           activeKey,
           targetLang,
-          { raw: true, temperature: 0.35, retries: 1 }
+          { raw: true, temperature: 0.35, retries: 2, retryDelay: 1500 }
         ),
         timeoutPromise
       ]);

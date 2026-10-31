@@ -50,6 +50,48 @@ describe("Demo Readiness Audit: Hindi & English Strict Language Isolation & Form
     expect(fixed.startsWith("ಮನೋಜ್ ಅವರೇ,") || fixed.startsWith("ಮನೋಜ್,")).toBe(true);
   });
 
+  it("heals exact Screenshot 1 text: purges abhimani, collapses duplicate greetings, eliminates Tamil honorifics, and strips name spam in subsequent paragraphs", () => {
+    const rawScreenshot1 =
+      "ಅಭಿಮಾನಿ ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ಪ್ರಿಯ ಮನುಜ್ ಅವರ‍್ಗಳೇ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಸಪ್ತಮ ಸ್ಥಾನವಾದ ಮಿಥುನ ರಾಶಿಯಲ್ಲಿ ಕುಜ ಗ್ರಹವು ಸ್ಥಿತನಾಗಿರುವುದು ಮತ್ತು ಸಪ್ತಮ ಅಧಿಪತಿಯಾದ ಬುಧನು ಕುಂಭ ರಾಶಿಯಲ್ಲಿ ಮೂರನೇ ಮನೆಯಲ್ಲಿ ವಕ್ರಗತಿಯಲ್ಲಿರುವುದು ನಿಮ್ಮ ವೈವಾಹಿಕ ಜೀವನದ ಆಳವಾದ ಕರ್ಮದ ಬಂಧವನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ತೋರಿಸುತ್ತದೆ. ಈಗ ನಡೆಯುತ್ತಿರುವ ಚಂದ್ರ ಮಹಾದಶಾವಿನಲ್ಲಿ ಶನಿ ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದಾಗಿ ಮದುವೆ ಮತ್ತು ದಾಂಪತ್ಯದ ವಿಷಯದಲ್ಲಿ ಅನೇಕ ರೀತಿಯ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ವಿಳಂಬಗಳು ಎದುರಾಗುತ್ತಿರುವುದು ಸಹಜವೇ ಆಗಿದೆ. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷವು ಸಪ್ತಮ ಭಾವದಲ್ಲಿ ರೂಪುಗೊಂಡಿರುವುದರಿಂದ, ವೈವಾಹಿಕ ಸಂಬಂಧಗಳನ್ನು ಕುದುರಿಸುವಾಗ ಪರಸ್ಪರ ಒಮ್ಮತ ಮೂಡಲು ಅತಿಯಾದ ಶ್ರಮ ಹಾಗೂ ತಾಳ್ಮೆ ಅಗತ್ಯವಾಗಿದೆ\n\n" +
+      "ಮನುಜ್ ಅವರೇ, ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ ವಿವಾಹ ಕಾರಕನಾದ ಶುಕ್ರನು ಮೀನ ರಾಶಿಯಲ್ಲಿ ನಾಲ್ಕನೇ ಮನೆಯಲ್ಲಿ";
+
+    const fixed = ensureNamePresence(rawScreenshot1, "Manoj", "kn");
+    const paras = fixed.split("\n\n");
+
+    expect(fixed).not.toContain("ಅಭಿಮಾನಿ");
+    expect(fixed).not.toContain("ಅವರ‍್ಗಳೇ");
+    expect(fixed).not.toContain("ಅವರ್ಗಳೇ");
+    expect(fixed).not.toContain("ಮನುಜ್");
+    
+    // Paragraph 0 should have exactly 1 respectful greeting: "ಮನೋಜ್ ಅವರೇ, "
+    expect(paras[0].startsWith("ಮನೋಜ್ ಅವರೇ,")).toBe(true);
+    expect(paras[0]).not.toContain("ಪ್ರಿಯ");
+
+    // Paragraph 1 must NOT repeat the greeting "ಮನೋಜ್ ಅವರೇ" or "ಮನುಜ್ ಅವರೇ"
+    expect(paras[1]).not.toMatch(/^(?:ಮನೋಜ್|ಮನುಜ್)\s*ಅವರೇ/);
+    expect(paras[1].startsWith("ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ")).toBe(true);
+  });
+
+  it("heals exact Screenshot 2 text: expands 'ಮ' initial, removes dangling 'ನಿಮ್ಮ', and moderates paragraph 2", () => {
+    const rawScreenshot2 =
+      "ಮ, ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪಂಚಮಹಾಪುರುಷ ಯೋಗಗಳಲ್ಲಿ ಒಂದಾದ ಅತಿಶಯವಾದ ಮಾಳವ್ಯ ಯೋಗವು ಉಂಟಾಗಿದೆ. ಶುಕ್ರ ಗ್ರಹವು ಕೇಂದ್ರ ಸ್ಥಾನದಲ್ಲಿ ಸ್ವಕ್ಷೇತ್ರ ಅಥವಾ ಉಚ್ಚ ಸ್ಥಾನದಲ್ಲಿ ನೆಲೆಸಿದಾಗ ಸಿದ್ಧಿಸುವ ಈ ಯೋಗವು ವ್ಯಕ್ತಿಗೆ ಅಸಾಧಾರಣ ನಾಯಕತ್ವ ಗುಣಗಳು, ಭೋಗ-ಭಾಗ್ಯಗಳು ಮತ್ತು ಉದಾತ್ತ ಸ್ವಭಾವದ ಚಾರಿತ್ರ್ಯವನ್ನು ಕರುಣಿಸುತ್ತದೆ\n\n" +
+      "ಮ ಅವರೇ, ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಮತ್ತು ಕುಟುಂಬ ಜೀವನದಲ್ಲಿ ಸೌಂದರ್ಯ, ಕಲೆ ಮತ್ತು ಸಾಮರಸ್ಯವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಲು ಈ ಮಾಳವ್ಯ ಯೋಗವು ಅತ್ಯಂತ ಪ್ರಮುಖ ಪಾತ್ರ ವಹಿಸುತ್ತದೆ. ಕಷ್ಟದ ಕಾಲದಲ್ಲೂ ನಿಮ್ಮ ವ್ಯಕ್ತಿತ್ವದ ಘನತೆ ಮತ್ತು ಮೌಲ್ಯಗಳು ಎಂದಿಗೂ ಕುಗ್ಗದಂತೆ ಈ ಯೋಗವು ನಿಮ್ಮನ್ನು ಕಾಪಾಡುತ್ತದೆ. ನಿಮ್ಮ";
+
+    const fixed = ensureNamePresence(rawScreenshot2, "Manoj", "kn");
+    const paras = fixed.split("\n\n");
+
+    // Paragraph 0 must not start with "ಮ,"
+    expect(paras[0]).not.toMatch(/^ಮ,\s*/);
+    expect(paras[0].startsWith("ಮನೋಜ್ ಅವರೇ,") || paras[0].startsWith("ಮನೋಜ್,")).toBe(true);
+
+    // Paragraph 1 must not contain "ಮ ಅವರೇ"
+    expect(paras[1]).not.toContain("ಮ ಅವರೇ");
+
+    // Paragraph 1 must not end with dangling "ನಿಮ್ಮ"
+    expect(paras[1].endsWith("ನಿಮ್ಮ")).toBe(false);
+    expect(paras[1].endsWith("ಕಾಪಾಡುತ್ತದೆ.")).toBe(true);
+  });
+
   it("verifies KundliRemedyPdfTemplate PDF_I18N Hindi section has Devanagari numeral '८.' and zero Kannada", () => {
     const hiI18n = PDF_I18N.hi;
     expect(hiI18n.sec8Title).toBe("८. प्रधान अर्चक का आशीर्वचन एवं गोकर्ण मुद्रा");

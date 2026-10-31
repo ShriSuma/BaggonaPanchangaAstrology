@@ -70,7 +70,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     officialSealLabel: "ಅಧಿಕೃತ ಸನ್ನಿಧಿ ಮುದ್ರೆ",
     scanToVerify: "ಸ್ಕ್ಯಾನ್ ಮಾಡಿ (ಆನ್‌ಲೈನ್ ಪರಿಶೀಲನೆ)",
     page1Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಅಧಿಕೃತ ದೋಷ ಪತ್ರ · ಪುಟ ೧/೨ (ಮುಂದುವರಿದಿದೆ...)",
-    page2Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಅಧಿಕೃತ ದೋಷ ಪತ್ರ · ಪುಟ ೨/೨ (ಸಂಪೂರ್ಣ)"
+    page2Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಅಧಿಕೃತ ದೋಷ ಪತ್ರ · ಪುಟ ೨/೨ (ಸಂಪೂರ್ಣ)",
+    expectedImprovementHeading: "✨ ಪರಿಹಾರದ ನಂತರದ ಸುಧಾರಣೆ & ಶುಭ ಫಲಗಳು:"
   },
   en: {
     templeBanner: "॥ Sri Gokarna Mahabaleshwara Sannidhana · Baggona Panchanga Astrology ॥",
@@ -123,7 +124,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     officialSealLabel: "Official Temple Seal",
     scanToVerify: "Scan to Verify (Online)",
     page1Footer: "Sri Gokarna Mahabaleshwara Sannidhana · Baggona Panchanga · Official Dosha Report · Page 1/2 (Contd...)",
-    page2Footer: "Sri Gokarna Mahabaleshwara Sannidhana · Baggona Panchanga · Official Dosha Report · Page 2/2 (Complete)"
+    page2Footer: "Sri Gokarna Mahabaleshwara Sannidhana · Baggona Panchanga · Official Dosha Report · Page 2/2 (Complete)",
+    expectedImprovementHeading: "✨ Expected Life Improvement & Positive Transformations:"
   },
   hi: {
     templeBanner: "॥ श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
@@ -176,7 +178,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     officialSealLabel: "अधिकारिक सन्निधि मुहर",
     scanToVerify: "स्कैन करें (सत्यापन)",
     page1Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग · आधिकारिक दोष पत्र · पृष्ठ १/२ (जारी...)",
-    page2Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग · आधिकारिक दोष पत्र · पृष्ठ २/२ (संपूर्ण)"
+    page2Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग · आधिकारिक दोष पत्र · पृष्ठ २/२ (संपूर्ण)",
+    expectedImprovementHeading: "✨ शांति उपरांत अपेक्षित जीवन सुधार एवं शुभ परिणाम:"
   },
   te: {
     templeBanner: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగ జ్యోతిష్యం ॥",
@@ -229,7 +232,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     officialSealLabel: "అధికారిక సన్నిధి ముద్ర",
     scanToVerify: "స్కాన్ చేయండి (ధృవీకరణ)",
     page1Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · అధికారిక దోష పత్రం · పేజీ 1/2 (కొనసాగింపు...)",
-    page2Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · అధికారిక దోష పత్రం · పేజీ 2/2 (సంపూర్ణం)"
+    page2Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · అధికారిక దోష పత్రం · పేజీ 2/2 (సంపూర్ణం)",
+    expectedImprovementHeading: "✨ పరిహారం తర్వాత ఆశించే శుభ పరిణామాలు & అభివృద్ధి:"
   },
   ta: {
     templeBanner: "॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதானம் · பக்ககோண பஞ்சாங்க ஜோதிடம் ॥",
@@ -282,7 +286,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     officialSealLabel: "அதிகாரப்பூர்வ சந்நிதி முத்திரை",
     scanToVerify: "ஸ்கேன் செய்க (சரிபார்ப்பு)",
     page1Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதானம் · பக்ககோண பஞ்சாங்கம் · அதிகாரப்பூர்வ அறிக்கை · பக்கம் 1/2 (தொடர்கிறது...)",
-    page2Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதானம் · பக்ககோண பஞ்சாங்கம் · அதிகாரப்பூர்வ அறிக்கை · பக்கம் 2/2 (முழுமை)"
+    page2Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதானம் · பக்ககோண பஞ்சாங்கம் · அதிகாரப்பூர்வ அறிக்கை · பக்கம் 2/2 (முழுமை)",
+    expectedImprovementHeading: "✨ பரிகாரத்திற்குப் பின் எதிர்பார்க்கப்படும் நற்பலன்கள் & முன்னேற்றம்:"
   }
 };
 
@@ -641,6 +646,92 @@ const GOLD_PRIMARY = "#B45309"; // Regal amber gold
 const GOLD_DARK = "#78350F"; // Deep imperial gold / rich maroon
 const GOLD_LIGHT = "#E7C68A"; // Delicate golden filigree border
 const GOLD_BORDER = "#D97706"; // Crisp royal golden border
+
+function getSeverityLabel(severity: string, code: SupportedLanguage): string {
+  const map: Record<string, Record<SupportedLanguage, string>> = {
+    critical: {
+      kn: "ತೀವ್ರ (Critical)",
+      hi: "तीव्र (Critical)",
+      en: "Critical",
+      te: "తీవ్రం (Critical)",
+      ta: "தீவிரம் (Critical)"
+    },
+    high: {
+      kn: "ಮಧ್ಯಮ-ತೀವ್ರ (High)",
+      hi: "मध्यम-तीव्र (High)",
+      en: "High",
+      te: "మధ్యమ-తీవ్రం (High)",
+      ta: "நடுத்தர-தீவிரம் (High)"
+    },
+    moderate: {
+      kn: "ಮಧ್ಯಮ (Moderate)",
+      hi: "मध्यम (Moderate)",
+      en: "Moderate",
+      te: "మధ్యమం (Moderate)",
+      ta: "நடுத்தரம் (Moderate)"
+    },
+    low: {
+      kn: "ಲಘು (Low)",
+      hi: "सामान्य (Low)",
+      en: "Low",
+      te: "సాధారణం (Low)",
+      ta: "குறைவு (Low)"
+    }
+  };
+  return map[severity]?.[code] || severity.toUpperCase();
+}
+
+function getExpectedImprovementAfterParihara(doshaId: string, lang: SupportedLanguage): string {
+  const improvements: Record<string, Record<SupportedLanguage, string>> = {
+    pitru_dosha: {
+      kn: "ನಿಂತುಹೋಗಿದ್ದ ಶುಭ ಕಾರ್ಯಗಳು, ಸ್ಥಿರಾಸ್ತಿ-ಕೌಟುಂಬಿಕ ವಿವಾದಗಳು ಹಾಗೂ ವೃತ್ತಿ ಅಡೆತಡೆಗಳು ಶಮನವಾಗಿ ಹೊಸ ಶುಭ ಮಾರ್ಗಗಳು ತೆರೆದುಕೊಳ್ಳುತ್ತವೆ. ಕುಟುಂಬದಲ್ಲಿ ಶಾಂತಿ, ಸಂತಾನ ಭಾಗ್ಯ ಮತ್ತು ಪಿತೃಗಳ ದಿವ್ಯ ರಕ್ಷಣೆ ಸದಾ ಲಭಿಸುತ್ತದೆ.",
+      hi: "रुके हुए मांगलिक कार्य, पारिवारिक गतिरोध एवं आजीविका की अड़चनें दूर होकर नए शुभ अवसर प्राप्त होंगे। घर में सुख-शांति, वंश वृद्धि और पितरों का दिव्य आशीर्वाद बना रहेगा।",
+      en: "Stuck projects, property disputes, and career stagnations dissolve smoothly. Domestic peace, progeny blessings, and divine ancestral protection will flow into your life.",
+      te: "నిలిచిపోయిన శుభకార్యాలు, కుటుంబ వివాదాలు మరియు ఉద్యోగ అడ్డంకులు తొలగిపోయి కొత్త అవకాశాలు లభిస్తాయి. మానసిక ప్రశాంతత మరియు పితృదేవతల రక్షణ చేకూరుతుంది.",
+      ta: "தடைபட்ட சுபகாரியங்கள், குடும்ப சச்சரவுகள் மற்றும் தொழில் தடைகள் நீங்கி நல்வழிகள் பிறக்கும். மன அமைதியும் பித்ருக்களின் ஆசியும் நிறையும்."
+    },
+    kuja_dosha: {
+      kn: "ವಿವಾಹದಲ್ಲಿ ಉಂಟಾಗುತ್ತಿದ್ದ ಅಡೆತಡೆಗಳು, ಅಕಾರಣ ವಿಳಂಬ ಹಾಗೂ ಸಂಬಂಧಗಳಲ್ಲಿನ ಮುನಿಸು ದೂರವಾಗಿ, ಯೋಗ್ಯ ಜೀವನ ಸಂಗಾತಿಯ ಆಯ್ಕೆ ಸುಗಮವಾಗುತ್ತದೆ. ದಾಂಪತ್ಯದಲ್ಲಿ ಅನ್ಯೋನ್ಯತೆ ಹಾಗೂ ಆಂತರಿಕ ನೆಮ್ಮದಿ ನೆಲೆಸುತ್ತದೆ.",
+      hi: "विवाह में हो रहा अकारण विलंब और रिश्तों का तनाव समाप्त होगा, सुयोग्य जीवनसाथी का सहयोग तथा दांपत्य जीवन में मधुरता और मानसिक संतोष का संचार होगा।",
+      en: "Unnecessary marriage delays and emotional friction dissolve, leading to timely union with a compatible life partner, domestic harmony, and enduring mutual respect.",
+      te: "వివాహంలో ఎదురవుతున్న తీవ్ర జాప్యాలు మరియు సంబంధాలలోని ఘర్షణలు సమసిపోయి, అనుకూలమైన భాగస్వామి లభిస్తారు. దాంపత్య జీవితంలో పరస్పర ప్రేమ మరియు శాంతి వెల్లివిరుస్తుంది.",
+      ta: "திருமணத் தடைகளும் உறவுகளில் ஏற்பட்ட குழப்பங்களும் நீங்கி, பொருத்தமான வாழ்க்கைத்துணை அமைந்து இல்வாழ்க்கை சிறக்கும்."
+    },
+    kala_sarpa_dosha: {
+      kn: "ಕೊನೆ ಕ್ಷಣದಲ್ಲಿ ಕೈತಪ್ಪುತ್ತಿದ್ದ ಕೆಲಸಗಳು, ನಿರಂತರ ಆರ್ಥಿಕ ಅನಿಶ್ಚಿತತೆ ಹಾಗೂ ಆಂತರಿಕ ಆತಂಕಗಳು ಶಮನವಾಗಿ, ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ವ್ಯಾಪಾರ, ವೃತ್ತಿ ಹಾಗೂ ಸಾಮಾಜಿಕ ಗೌರವದಲ್ಲಿ ಸ್ಥಿರ ಯಶಸ್ಸು ಲಭಿಸುತ್ತದೆ.",
+      hi: "अंतिम समय में रुकने वाले कार्य, वित्तीय उतार-चढ़ाव और मानसिक घबराहट समाप्त होगी। आपके परिश्रम का पूर्ण फल व्यापार, नौकरी और सामाजिक प्रतिष्ठा के रूप में प्राप्त होगा।",
+      en: "Last-minute career slips, financial volatility, and recurring anxieties subside. Your honest efforts translate into consistent success, financial growth, and well-earned social recognition.",
+      te: "ఆఖరి క్షణంలో చేజారే పనులు, ఆర్థిక అస్థిరత మరియు అనవసర భయాలు సమసిపోయి, మీ శ్రమకు తగిన స్థిరమైన విజయం మరియు గౌరవం లభిస్తాయి.",
+      ta: "கடைசி நேரத்தில் நழுவிப்போகும் வாய்ப்புகள் மற்றும் தேவையற்ற அச்சங்கள் நீங்கி, உழைப்பிற்கு ஏற்ற முன்னேற்றமும் தொழில் வெற்றியும் உண்டாகும்."
+    },
+    guru_chandal_dosha: {
+      kn: "ಮಾನಸಿಕ ಗೊಂದಲಗಳು, ದಾರಿ ತಪ್ಪಿಸುವ ನಕಾರಾತ್ಮಕ ನಿರ್ಧಾರಗಳು ಹಾಗೂ ಧನ ನಷ್ಟ ನಿಯಂತ್ರಣಕ್ಕೆ ಬಂದು, ಆಧ್ಯಾತ್ಮಿಕ ಸ್ಪಷ್ಟತೆ, ಸರಿಯಾದ ಮಾರ್ಗದರ್ಶನ ಮತ್ತು ಸಾಮಾಜಿಕ ಗೌರವ ವೃದ್ಧಿಸುತ್ತದೆ.",
+      hi: "मानसिक भ्रम, गलत निर्णय और धन हानि से मुक्ति मिलेगी। विवेकपूर्ण निर्णय, श्रेष्ठ मार्गदर्शन और समाज में सम्मान व प्रतिष्ठा की वृद्धि होगी।",
+      en: "Mental confusion, erroneous guidance, and financial leakage subside. Clear discernment, auspicious mentorship, and respected status are firmly established.",
+      te: "మానసిక అయోమయం మరియు తప్పుడు నిర్ణయాల వల్ల కలిగే నష్టాలు తొలగిపోతాయి. సన్మార్గం, సరైన మార్గదర్శకత్వం మరియు గౌరవం లభిస్తాయి.",
+      ta: "மனக் குழப்பங்களும் தவறான முடிவுகளால் ஏற்படும் நஷ்டங்களும் நீங்கும். தெளிவான சிந்தனையும் நல்வழியும் சமுதாய மரியாதையும் உயரும்."
+    },
+    shani_sade_sati: {
+      kn: "ದೀರ್ಘಕಾಲದ ಮಾನಸಿಕ ಒತ್ತಡ, ಸ್ಥಾನಪಲ್ಲಟದ ಆತಂಕ ಮತ್ತು ಆರ್ಥಿಕ ಸಂಕಷ್ಟಗಳು ನಿವಾರಣೆಯಾಗಿ, ದೃಢ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕಂತೆ ಉದ್ಯೋಗದಲ್ಲಿ ಸ್ಥಿರತೆ, ಆಸ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ಶಾಶ್ವತ ನೆಮ್ಮದಿ ಲಭಿಸುತ್ತದೆ.",
+      hi: "दीर्घकालिक मानसिक तनाव, कार्यक्षेत्र की अस्थिरता और आर्थिक दबाव समाप्त होंगे। धैर्य और निष्ठापूर्वक किए गए कार्यों में स्थायित्व तथा उन्नति प्राप्त होगी।",
+      en: "Protracted mental fatigue and professional turbulence give way to stability, long-term asset building, resilience, and unshakeable inner peace.",
+      te: "సుదీర్ఘ మానసిక ఒత్తిడి మరియు ఉద్యోగ అస్థిరత తొలగిపోతాయి. కష్టానికి తగిన ప్రతిఫలం, స్థిరమైన ఉన్నతి మరియు శాంతి చేకూరుతాయి.",
+      ta: "நீண்டகால மன அழுத்தமும் தொழில் தடைகளும் நீங்கும். உழைப்பிற்கு ஏற்ற நிலையான வெற்றியும் பொருளாதார வளர்ச்சியும் கிட்டும்."
+    }
+  };
+
+  const defaultImprovement: Record<SupportedLanguage, string> = {
+    kn: "ಗ್ರಹಗಳ ಪ್ರತಿಕೂಲ ಪ್ರಭಾವ ಶಮನವಾಗಿ, ದೀರ್ಘಕಾಲದಿಂದ ನೆನೆಗುದಿಗೆ ಬಿದ್ದಿದ್ದ ಕೆಲಸ-ಕಾರ್ಯಗಳು ಚುರುಕುಗೊಳ್ಳುತ್ತವೆ. ಆರ್ಥಿಕ ಚೇತರಿಕೆ, ಆರೋಗ್ಯ ವೃದ್ಧಿ ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣಾ ಕವಚವು ನಿಮಗೆ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ನೀಡಲಿದೆ.",
+    hi: "ग्रहों का प्रतिकूल प्रभाव शांत होगा और लंबे समय से अटके हुए कार्य गति पकड़ेंगे। आर्थिक स्थिरता, उत्तम स्वास्थ्य और ईश्वर की कृपा से जीवन में आत्मविश्वास बढ़ेगा।",
+    en: "Adverse planetary influences harmonize, helping long-stuck tasks and delayed opportunities move forward smoothly. Financial stability, vitality, and divine peace will be restored.",
+    te: "గ్రహాల ప్రతికూల ప్రభావం తొలగి, చాలా కాలంగా నిలిచిపోయిన పనులు వేగవంతమవుతాయి. ఆర్థిక స్థిరత్వం, ఆరోగ్యం మరియు ఆత్మవిశ్వాసం పెరుగుతాయి.",
+    ta: "கிரகங்களின் பாதகமான தாக்கங்கள் நீங்கி, நீண்ட நாட்களாக தேங்கிக்கிடந்த பணிகள் விரைந்து முடியும். பொருளாதார நிலை உயர்ந்து மன அமைதி கிட்டும்."
+  };
+
+  const matched = improvements[doshaId];
+  if (matched && matched[lang]) return matched[lang];
+  return defaultImprovement[lang] || defaultImprovement.kn;
+}
 
 export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   id = "kundli-doshas-pdf-container",
@@ -1132,120 +1223,107 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       </div>
                     )}
 
-                    {/* Header Row */}
+                    {/* Header Row: Title & Severity */}
                     <div
                       style={{
                         background: "linear-gradient(90deg, #FEF9E7 0%, #FFFDF8 100%)",
                         border: `1.5px solid ${GOLD_LIGHT}`,
                         borderRadius: "8px",
-                        padding: "5px 9px",
+                        padding: "5px 10px",
                         display: "flex",
-                        alignItems: "flex-start",
+                        alignItems: "center",
                         justifyContent: "space-between",
                         gap: "10px"
                       }}
                     >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                          <span style={{ fontSize: "15px", flexShrink: 0 }}>
-                            {isPitru ? "🪔" : isKuja ? "⚡" : isSarpa ? "🐍" : "🪐"}
-                          </span>
-                          <span style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
-                            {getLangVal(dosha.name)}
-                          </span>
-                          {dosha.technicalDetail?.scripturalReference && (
-                            <span style={{ fontSize: "9.5px", color: INK_MUTED, fontWeight: 700 }}>
-                              ({dosha.technicalDetail.scripturalReference})
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-                        <span
-                          style={{
-                            background: isCompleted ? "#DCFCE7" : "#FEF3C7",
-                            border: `1.5px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
-                            color: isCompleted ? "#166534" : GOLD_DARK,
-                            fontSize: "9px",
-                            fontWeight: 800,
-                            padding: "2px 7px",
-                            borderRadius: "6px",
-                            whiteSpace: "nowrap"
-                          }}
-                        >
-                          {getLangVal(dosha.statusBadge)}
+                      <div style={{ display: "flex", alignItems: "center", gap: "7px", minWidth: 0, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: "16px", flexShrink: 0 }}>
+                          {isPitru ? "🪔" : isKuja ? "⚔️" : isSarpa ? "🐍" : "🪐"}
                         </span>
-                        {priorityBadgeText && (
-                          <span
-                            style={{
-                              background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
-                              color: "#FFFFFF",
-                              fontSize: "9px",
-                              fontWeight: 800,
-                              padding: "2px 7px",
-                              borderRadius: "6px",
-                              border: `1px solid ${GOLD_BORDER}`,
-                              whiteSpace: "nowrap"
-                            }}
-                          >
-                            {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
+                        <span style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                          {getLangVal(dosha.name)}
+                        </span>
+                        {dosha.technicalDetail?.scripturalReference && (
+                          <span style={{ fontSize: "9.5px", color: INK_MUTED, fontWeight: 700 }}>
+                            ({dosha.technicalDetail.scripturalReference})
                           </span>
                         )}
                       </div>
+
+                      <span
+                        style={{
+                          background: dosha.severity === "critical" ? "#FEE2E2" : "#FEF3C7",
+                          border: `1px solid ${dosha.severity === "critical" ? "#F87171" : GOLD_BORDER}`,
+                          color: dosha.severity === "critical" ? "#991B1B" : GOLD_DARK,
+                          fontSize: "9.5px",
+                          fontWeight: 900,
+                          padding: "2px 8px",
+                          borderRadius: "5px",
+                          flexShrink: 0,
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        {getSeverityLabel(dosha.severity, code)}
+                      </span>
                     </div>
 
-                    {/* Age Priority Reason */}
-                    {dosha.agePriorityReason && (
-                      <div
+                    {/* Dedicated Metadata & Status Badges Row (Prevents text drop-down or wrapping!) */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                      <span
                         style={{
+                          background: isCompleted ? "#DCFCE7" : "#FEF3C7",
+                          border: `1.5px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
+                          color: isCompleted ? "#166534" : GOLD_DARK,
                           fontSize: "9.5px",
-                          color: INK_DEEP,
-                          backgroundColor: PANEL_WARM,
-                          padding: "3px 7px",
+                          fontWeight: 800,
+                          padding: "2px 8px",
                           borderRadius: "5px",
-                          border: `1px solid ${GOLD_LIGHT}`,
-                          lineHeight: 1.4
+                          whiteSpace: "nowrap",
+                          display: "inline-flex",
+                          alignItems: "center"
                         }}
                       >
-                        <strong style={{ color: GOLD_DARK }}>📌 {t.agePriorityBadgeLabel}: </strong>
-                        <span>{getLangVal(dosha.agePriorityReason)}</span>
-                      </div>
-                    )}
+                        {getLangVal(dosha.statusBadge)}
+                      </span>
+                      {priorityBadgeText && (
+                        <span
+                          style={{
+                            background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
+                            color: "#FFFFFF",
+                            fontSize: "9.5px",
+                            fontWeight: 800,
+                            padding: "2px 8px",
+                            borderRadius: "5px",
+                            border: `1px solid ${GOLD_BORDER}`,
+                            whiteSpace: "nowrap",
+                            display: "inline-flex",
+                            alignItems: "center"
+                          }}
+                        >
+                          {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
+                        </span>
+                      )}
+                      {dosha.agePriorityReason && (
+                        <span style={{ fontSize: "9.5px", color: INK_MUTED, fontStyle: "italic", lineHeight: 1.4 }}>
+                          ({getLangVal(dosha.agePriorityReason)})
+                        </span>
+                      )}
+                    </div>
 
-                    {/* Subconscious Fear */}
-                    {dosha.subconsciousFear && (
-                      <div
-                        style={{
-                          fontSize: "9.5px",
-                          color: INK_DEEP,
-                          backgroundColor: CARD_BG,
-                          borderLeft: `3.5px solid ${GOLD_PRIMARY}`,
-                          border: `1px solid ${GOLD_LIGHT}`,
-                          borderRadius: "5px",
-                          padding: "3px 7px",
-                          lineHeight: 1.4
-                        }}
-                      >
-                        <strong style={{ color: GOLD_DARK }}>🧠 {snip.subconsciousFear} </strong>
-                        <span>{getLangVal(dosha.subconsciousFear)}</span>
-                      </div>
-                    )}
-
-                    {/* Immediate Priority Action */}
+                    {/* Immediate Action Notice */}
                     {dosha.immediateActionRequired && (
                       <div
                         style={{
                           backgroundColor: PANEL_ACCENT,
                           border: `1.5px solid ${GOLD_BORDER}`,
                           borderRadius: "6px",
-                          padding: "5px 9px"
+                          padding: "4px 8px",
+                          fontSize: "9.5px",
+                          lineHeight: 1.4
                         }}
                       >
-                        <div style={{ fontSize: "10px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
-                          {t.immediateActionLabel}
-                        </div>
-                        <div style={{ fontSize: "10px", fontWeight: 700, color: INK_DEEP, marginTop: "2px", lineHeight: 1.4 }}>
+                        <span style={{ fontWeight: 900, color: GOLD_DARK }}>{t.immediateActionLabel} </span>
+                        <span style={{ fontWeight: 700, color: INK_DEEP }}>
                           {stripDuplicatePrefix(getLangVal(dosha.immediateActionRequired), [
                             "🎯 ಮೊದಲು ಮಾಡಬೇಕಾದ ಕರ್ತವ್ಯ:",
                             "🎯 Immediate Priority Action:",
@@ -1253,61 +1331,70 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                             "🎯 మొదట చేయవలసిన కర్తవ్యం:",
                             "🎯 முதலில் செய்ய வேண்டிய கடமை:"
                           ])}
-                        </div>
+                        </span>
                       </div>
                     )}
 
-                    {/* Technical Root & Life Struggles (2-column A4 grid) */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: "7px", fontSize: "10px", lineHeight: 1.4 }}>
+                    {/* 4 PILLARS FOR THE DEVOTEE */}
+                    {/* Pillar 1 & 2: Root Cause & Struggles in Life (2-Column Grid) */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1.05fr 1fr", gap: "7px", fontSize: "10px", lineHeight: 1.5 }}>
                       <div style={{ backgroundColor: CARD_BG, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "6px", padding: "5px 8px", minWidth: 0 }}>
-                        <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3 }}>🔍 {t.technicalRootLabel}</div>
-                        <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.4 }}>
+                        <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.35 }}>🔍 {t.technicalRootLabel}</div>
+                        <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.45 }}>
                           {cleanDegreesFromText(getLangVal(dosha.technicalWhy))}
                         </div>
                       </div>
 
                       <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "6px", padding: "5px 8px", minWidth: 0 }}>
-                        <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3 }}>⚡ {t.realLifeImpactLabel}</div>
-                        <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.4 }}>
+                        <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.35 }}>⚡ {t.realLifeImpactLabel}</div>
+                        <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.45 }}>
                           {getLangVal(dosha.currentLifeProblems) || getLangVal(dosha.lifeImpact)}
                         </div>
                       </div>
                     </div>
 
-                    {/* Dasha Resonance Activation */}
+                    {/* Dasha Resonance if available */}
                     {dosha.dashaResonance && (
-                      <div style={{ backgroundColor: CARD_BG, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "5px", padding: "3px 7px", fontSize: "9.5px", color: INK_DEEP, lineHeight: 1.4 }}>
+                      <div style={{ backgroundColor: CARD_BG, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "5px", padding: "2px 7px", fontSize: "9px", color: INK_DEEP, lineHeight: 1.35 }}>
                         <strong style={{ color: GOLD_DARK }}>⏳ {t.dashaResonanceLabel} </strong>
                         <span>{getLangVal(dosha.dashaResonance)}</span>
                       </div>
                     )}
 
-                    {/* Prescribed Parihara & Gokarna Seva */}
-                    <div style={{ background: "linear-gradient(135deg, #FEF9E7 0%, #FFFDF9 100%)", border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "7px", padding: "5px 9px", fontSize: "10px", lineHeight: 1.4 }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "7px" }}>
+                    {/* Pillar 3: Prescribed Remedy & Sacred Gokarna Seva */}
+                    <div style={{ background: "linear-gradient(135deg, #FEF9E7 0%, #FFFDF9 100%)", border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "7px", padding: "5px 9px", fontSize: "9.5px", lineHeight: 1.45 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: "7px" }}>
                         <div>
-                          <div style={{ fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>🪔 {t.pariharaHeading}</div>
+                          <div style={{ fontWeight: 900, color: GOLD_DARK, lineHeight: 1.35 }}>🪔 {t.pariharaHeading}</div>
                           <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "2px", lineHeight: 1.4 }}>
                             {getLangVal(dosha.recommendedPooja)}
                           </div>
                         </div>
                         <div>
-                          <div style={{ fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>📿 {t.mantraLabel}</div>
+                          <div style={{ fontWeight: 900, color: GOLD_DARK, lineHeight: 1.35 }}>📿 {t.mantraLabel}</div>
                           <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.4 }}>
                             {getLangArr(dosha.remedies).slice(0, 2).join(" • ")}
                           </div>
                         </div>
                       </div>
 
+                      {/* Subconscious Fear */}
+                      {dosha.subconsciousFear && (
+                        <div style={{ marginTop: "3px", paddingTop: "2px", borderTop: `1px dashed ${GOLD_LIGHT}`, fontSize: "9px", color: INK_DEEP, lineHeight: 1.35 }}>
+                          <strong style={{ color: GOLD_DARK }}>🧠 {snip.subconsciousFear} </strong>
+                          <span>{getLangVal(dosha.subconsciousFear)}</span>
+                        </div>
+                      )}
+
                       {/* Completed Narration vs Conditional Guidance */}
                       {isCompleted ? (
-                        <div style={{ backgroundColor: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: "5px", padding: "3px 7px", marginTop: "4px", fontSize: "9px", color: "#166534", lineHeight: 1.35 }}>
+                        <div style={{ backgroundColor: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: "5px", padding: "2px 6px", marginTop: "3px", fontSize: "9px", color: "#166534", lineHeight: 1.35 }}>
                           <strong>✓ {snip.shantiCompleted} </strong>
                           <span>{getLangVal(dosha.alreadyDoneNarration)}</span>
                         </div>
                       ) : (
                         dosha.conditionalGuidance && (
-                          <div style={{ backgroundColor: CARD_BG, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "5px", padding: "3px 7px", marginTop: "4px", fontSize: "9px", color: INK_DEEP, lineHeight: 1.35 }}>
+                          <div style={{ backgroundColor: CARD_BG, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "5px", padding: "2px 6px", marginTop: "3px", fontSize: "9px", color: INK_DEEP, lineHeight: 1.35 }}>
                             <strong style={{ color: GOLD_DARK }}>💡 {snip.guidance} </strong>
                             <span>
                               {stripDuplicatePrefix(getLangVal(dosha.conditionalGuidance), [
@@ -1321,6 +1408,25 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           </div>
                         )
                       )}
+                    </div>
+
+                    {/* Pillar 4: Expected Life Improvement & Stuck Work Moving Forward */}
+                    <div
+                      style={{
+                        backgroundColor: "#FEFAF0",
+                        border: `1.5px solid ${GOLD_PRIMARY}`,
+                        borderRadius: "7px",
+                        padding: "4px 8px",
+                        fontSize: "9.5px",
+                        lineHeight: 1.45
+                      }}
+                    >
+                      <div style={{ fontWeight: 900, color: GOLD_DARK, display: "flex", alignItems: "center", gap: "5px" }}>
+                        <span>{t.expectedImprovementHeading || "✨ ಪರಿಹಾರದ ನಂತರದ ಸುಧಾರಣೆ & ಶುಭ ಫಲಗಳು:"}</span>
+                      </div>
+                      <div style={{ color: INK_DEEP, fontWeight: 600, marginTop: "2px", lineHeight: 1.45 }}>
+                        {getExpectedImprovementAfterParihara(dosha.id, code)}
+                      </div>
                     </div>
                   </div>
                 );
@@ -1493,11 +1599,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       gap: "3.5px"
                     }}
                   >
-                    {/* Header Row */}
+                    {/* Header Row: Title on Left, Severity on Right */}
                     <div
                       style={{
                         display: "flex",
-                        alignItems: "flex-start",
+                        alignItems: "center",
                         justifyContent: "space-between",
                         borderBottom: `1.5px solid ${GOLD_LIGHT}`,
                         paddingBottom: "3px",
@@ -1518,38 +1624,59 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         </div>
                       </div>
 
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+                      <span
+                        style={{
+                          background: dosha.severity === "critical" ? "#FEE2E2" : "#FEF3C7",
+                          border: `1px solid ${dosha.severity === "critical" ? "#F87171" : GOLD_BORDER}`,
+                          color: dosha.severity === "critical" ? "#991B1B" : GOLD_DARK,
+                          fontSize: "8.5px",
+                          fontWeight: 900,
+                          padding: "1px 6px",
+                          borderRadius: "4px",
+                          flexShrink: 0,
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        {getSeverityLabel(dosha.severity, code)}
+                      </span>
+                    </div>
+
+                    {/* Dedicated Metadata Badges Row (Zero text drop-down or wrapping!) */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                      <span
+                        style={{
+                          background: isCompleted ? "#DCFCE7" : "#FEF3C7",
+                          border: `1.5px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
+                          color: isCompleted ? "#166534" : GOLD_DARK,
+                          fontSize: "9px",
+                          fontWeight: 800,
+                          padding: "2px 7px",
+                          borderRadius: "5px",
+                          whiteSpace: "nowrap",
+                          display: "inline-flex",
+                          alignItems: "center"
+                        }}
+                      >
+                        {statusBadgeText}
+                      </span>
+                      {priorityBadgeText && (
                         <span
                           style={{
-                            background: isCompleted ? "#DCFCE7" : "#FEF3C7",
-                            border: `1.5px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
-                            color: isCompleted ? "#166534" : GOLD_DARK,
+                            background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
+                            color: "#FFFFFF",
                             fontSize: "9px",
                             fontWeight: 800,
                             padding: "2px 7px",
-                            borderRadius: "6px",
-                            whiteSpace: "nowrap"
+                            borderRadius: "5px",
+                            border: `1px solid ${GOLD_BORDER}`,
+                            whiteSpace: "nowrap",
+                            display: "inline-flex",
+                            alignItems: "center"
                           }}
                         >
-                          {statusBadgeText}
+                          {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
                         </span>
-                        {priorityBadgeText && (
-                          <span
-                            style={{
-                              background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
-                              color: "#FFFFFF",
-                              fontSize: "9px",
-                              fontWeight: 800,
-                              padding: "2px 7px",
-                              borderRadius: "6px",
-                              border: `1px solid ${GOLD_BORDER}`,
-                              whiteSpace: "nowrap"
-                            }}
-                          >
-                            {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
 
                     {/* Subconscious Fear */}
@@ -1661,6 +1788,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         </div>
                       )
                     )}
+
+                    {/* Pillar 4: Expected Life Improvement & Stuck Work Moving Forward */}
+                    <div
+                      style={{
+                        backgroundColor: "#FEFAF0",
+                        border: `1.5px solid ${GOLD_PRIMARY}`,
+                        borderRadius: "5px",
+                        padding: "3px 6px",
+                        fontSize: "8.5px",
+                        lineHeight: 1.35
+                      }}
+                    >
+                      <strong style={{ color: GOLD_DARK }}>{t.expectedImprovementHeading || "✨ ಪರಿಹಾರದ ನಂತರದ ಸುಧಾರಣೆ & ಶುಭ ಫಲಗಳು:"} </strong>
+                      <span style={{ color: INK_DEEP, fontWeight: 600 }}>{getExpectedImprovementAfterParihara(dosha.id, code)}</span>
+                    </div>
                   </div>
                 );
               })}

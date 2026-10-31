@@ -259,11 +259,11 @@ export const PDF_T: Record<string, L5> = {
     hi: "विशेष ग्रह योग"
   },
   doshasTitle: {
-    en: "Karmic Challenges",
-    kn: "ಕರ್ಮ ದೋಷಗಳು",
-    te: "కర్మ దోషాలు",
-    ta: "கர்ம தோஷங்கள்",
-    hi: "कर्म दोष"
+    en: "Karmic Challenges & Sacred Remedies",
+    kn: "ಕರ್ಮ ಸವಾಲುಗಳು ಹಾಗೂ ದೋಷ ಪರಿಹಾರ ಮಾರ್ಗ",
+    te: "కర్మ సవాళ్లు మరియు పవిత్ర పరిహారాలు",
+    ta: "கர்ம சவால்கள் மற்றும் புனித பரிகாரங்கள்",
+    hi: "कर्म चुनौतियां एवं शास्त्रोक्त उपाय"
   },
   remedyTitle: {
     en: "Remedy",
@@ -732,10 +732,10 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
       .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳೇ/gu, "ಅವರೇ")
       .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳಿಗೆ/gu, "ಅವರಿಗೆ")
       .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳ/gu, "ಅವರ")
-      .replace(/(?:^|[- \t\r\n,.(–—])ಮ(?![\\u0C80-\\u0CFF])(?:\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರುಗಳೇ|ಕರು))?[,]?(?=[- \t\r\n,.(–—!]|$)/gu, " ಮನೋಜ್ ಅವರೇ,")
       .replace(/(?:ಮನೋಜ್|ಮನೋಜ(?!್)|ಮನುಜ್|ಮಂಜು)\s*(?:ಕರು|ಗಾರು|ಅವರುಗಳೇ)?\s*(?:ಅವರೇ)?/gu, "ಮನೋಜ್ ಅವರೇ")
-      .replace(/(?:^|[- \t\r\n,.(–—])(?:ಕರು|ಗಾರು)(?=[- \t\r\n,.(–—!]|$)/gu, "ಅವರೇ")
-      .replace(/(?:^|[- \t\r\n,.(–—])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, "");
+      .replace(/(?:^|[- \t\r\n,.(–—])(?:ಕರು|ಗಾರು)\s*(?:ಅವರೇ)?(?=[- \t\r\n,.(–—!]|$)/gu, " ಅವರೇ")
+      .replace(/(?:^|[- \t\r\n,.(–—])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, "")
+      .replace(/(?:ಅವರೇ\s*){2,}/gu, "ಅವರೇ ");
   } else if (lang.startsWith("hi")) {
     // Strip non-Devanagari Indic scripts: Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam (\u0980-\u0D7F)
     cleaned = cleaned.replace(/[\u0980-\u0D7F]/gu, "");

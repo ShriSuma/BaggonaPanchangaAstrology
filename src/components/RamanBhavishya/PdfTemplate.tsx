@@ -273,6 +273,30 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
     return s;
   };
 
+  /**
+   * Cleans an entire multi-paragraph section narrative as a single cohesive unit.
+   * Ensures devotee's name is woven respectfully ONCE in paragraph 0, collapses stacked
+   * duplicate greetings, strips redundant greetings from subsequent paragraphs,
+   * expands single-letter abbreviations (e.g. "ಮ, "), and prevents dangling cutoff endings.
+   */
+  const cleanSectionNarrative = (rawText: string, options?: { weaveName?: boolean }): string[] => {
+    if (!rawText) return [];
+    let s = rawText;
+    const shouldWeave = options?.weaveName !== false;
+    if (shouldWeave && localizedDevoteeName) {
+      s = ensureNamePresence(s, localizedDevoteeName, langKey);
+    }
+    s = langKey === "en" ? s : cleanEnglishFromRegionalText(s, langKey);
+    s = cleanDegreesFromText(s);
+    s = cleanPunctuationArtifacts(s);
+    s = ensureCompleteSentences(s, langKey);
+
+    return s
+      .split('\n')
+      .map(p => p.replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "").replace(/^[\s:,\.\-–—×*•~|]+/gu, "").trim())
+      .filter(p => p.length > 0);
+  };
+
   // ─── 10-Chapter Sovereign Header & Inquest Helpers ──────────────────────────
   const getChapterHeaderData = (
     chapterNum: number,
@@ -290,7 +314,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
     let rawTitle = (currentTitle || (langKey === "kn" ? defaultKnTitle : defaultEnTitle)).trim();
     // Clean any leading duplicate chapter prefix from rawTitle so we don't get "ಅಧ್ಯಾಯ ೨: ಅಧ್ಯಾಯ ೨"
-    const cleanedTitle = rawTitle.replace(/^(ಅಧ್ಯಾಯ|अध्याय|అధ్యాయం|அத்தியாயம்|Chapter)\s*[\d೧೨೩೪೫೬೭೮೯IIVX]+[\s:,\.\-–—|]+/iu, "").trim();
+    const cleanedTitle = rawTitle.replace(/^(ಅಧ್ಯಾಯ|अध्याय|అధ్యాయం|அத்தியாயம்|Chapter)\s*[\d೦-೯०-९IIVX]+[\s:,\.\-–—|]+/iu, "").trim();
 
     return {
       badge: badgeText,
@@ -715,8 +739,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
             {premiumData!.characteristics!.map((char, idx) => (
               <div key={idx} className="space-y-6" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                {(char.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const cleaned = cleanPara(paragraph, pIdx === 0);
+                {cleanSectionNarrative(char.impact || "").map((cleaned, pIdx) => {
                   const trimmed = cleaned.trim();
                   const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isShield) {
@@ -764,9 +787,9 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
 
             {premiumData!.darkSecret!.map((ds, idx) => (
-              <div key={idx} className="space-y-6">
-                {(ds.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const trimmed = paragraph.trim();
+              <div key={idx} className="space-y-6" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                {cleanSectionNarrative(ds.impact || "").map((cleaned, pIdx) => {
+                  const trimmed = cleaned.trim();
                   const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isShield) {
                     return (
@@ -774,13 +797,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                         key={pIdx}
                         className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
                       >
-                        {paragraph}
+                        {cleaned}
                       </div>
                     );
                   }
                   return (
                     <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
-                      {paragraph}
+                      {cleaned}
                     </p>
                   );
                 })}
@@ -813,9 +836,9 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
 
             {premiumData!.currentPhase!.map((cp, idx) => (
-              <div key={idx} className="space-y-6">
-                {(cp.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const trimmed = paragraph.trim();
+              <div key={idx} className="space-y-6" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                {cleanSectionNarrative(cp.impact || "").map((cleaned, pIdx) => {
+                  const trimmed = cleaned.trim();
                   const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isShield) {
                     return (
@@ -823,13 +846,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                         key={pIdx}
                         className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
                       >
-                        {paragraph}
+                        {cleaned}
                       </div>
                     );
                   }
                   return (
                     <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
-                      {paragraph}
+                      {cleaned}
                     </p>
                   );
                 })}
@@ -891,8 +914,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   "Devotee Inquest & Sacred Astrological Guidance",
                   pred.question
                 )}
-                {(pred.translatedText || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const cleaned = cleanPara(paragraph, pIdx === 0);
+                {cleanSectionNarrative(pred.translatedText || "").map((cleaned, pIdx) => {
                   const trimmed = cleaned.trim();
                   const isDoshaOrShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isDoshaOrShield) {
@@ -941,18 +963,11 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                     {cleanPara(yoga.name.replace(/^[\s:,\.\-–—×*•~|]+/gu, ""))}
                   </h3>
                 </div>
-                {(yoga.impact || "")
-                  .split('\n')
-                  .map(p => p.replace(/^[\s:,\.\-–—×*•~|]+(?=[^\s:,\.\-–—×*•~|])/gu, "").replace(/^[\s:,\.\-–—×*•~|]+/gu, "").trim())
-                  .filter(p => p.length > 0)
-                  .map((paragraph, pIdx) => {
-                    const cleaned = cleanPara(paragraph, pIdx === 0);
-                    return (
-                      <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                        {cleaned}
-                      </p>
-                    );
-                  })}
+                {cleanSectionNarrative(yoga.impact || "").map((cleaned, pIdx) => (
+                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                    {cleaned}
+                  </p>
+                ))}
               </div>
             ))}
           </div>
@@ -976,14 +991,11 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   <span className="text-xl text-rose-800">🛡️</span>
                   <h3 className="text-2xl font-bold text-rose-950 font-serif">{cleanPara(dosha.name)}</h3>
                 </div>
-                {(dosha.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const cleaned = cleanPara(paragraph, pIdx === 0);
-                  return (
-                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                      {cleaned}
-                    </p>
-                  );
-                })}
+                {cleanSectionNarrative(dosha.impact || "").map((cleaned, pIdx) => (
+                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                    {cleaned}
+                  </p>
+                ))}
                 {dosha.remedy && (
                   <div className="mt-4 pt-4 border-t border-rose-200 bg-amber-50/80 -mx-6 -mb-6 p-6 rounded-b-xl border-t border-amber-300">
                     <h4 className="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
@@ -1016,11 +1028,11 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div key={idx} className="rounded-xl border border-amber-700/30 bg-amber-50/70 p-6 shadow-sm space-y-4" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                 <div className="flex items-center gap-2 border-b border-amber-700/20 pb-2">
                   <span className="text-xl text-amber-800">🪐</span>
-                  <h3 className="text-2xl font-bold text-amber-950 font-serif">{gochara.name}</h3>
+                  <h3 className="text-2xl font-bold text-amber-950 font-serif">{cleanPara(gochara.name)}</h3>
                 </div>
-                {(gochara.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                {cleanSectionNarrative(gochara.impact || "").map((cleaned, pIdx) => (
                   <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                    {paragraph}
+                    {cleaned}
                   </p>
                 ))}
                 {gochara.remedy && (
@@ -1030,7 +1042,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                       <span>{translations.remedyTitle}</span>
                     </h4>
                     <p className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                      {gochara.remedy}
+                      {cleanPara(gochara.remedy)}
                     </p>
                   </div>
                 )}
@@ -1188,9 +1200,9 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   <span className="text-amber-900 font-bold text-lg bg-amber-100/80 inline-block px-3 py-1 rounded w-fit border border-amber-900/10 shadow-sm mb-3 block font-serif">
                     {item.dateRange}
                   </span>
-                  {(item.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
+                  {cleanSectionNarrative(item.impact || "").map((cleaned, pIdx) => (
                     <p key={pIdx} className="text-xl leading-relaxed text-amber-950 font-medium text-left break-words whitespace-pre-wrap">
-                      {paragraph}
+                      {cleaned}
                     </p>
                   ))}
                 </div>
@@ -1212,8 +1224,8 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           <div className="space-y-6">
             {premiumData!.annualForecast!.map((item, idx) => (
               <div key={idx} className="space-y-6">
-                {(item.impact || "").split(/\n\n+/).filter(p => p.trim() !== '').map((paragraph, pIdx) => {
-                  const trimmed = paragraph.trim();
+                {cleanSectionNarrative(item.impact || "").map((cleaned, pIdx) => {
+                  const trimmed = cleaned.trim();
                   const isHeader = trimmed.startsWith("【") && trimmed.includes("】");
                   if (isHeader) {
                     const headerEnd = trimmed.indexOf("】") + 1;
@@ -1262,15 +1274,36 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <div className="absolute bottom-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
             <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
 
-            {premiumData!.summary!.map((sum, idx) => (
-              <div key={idx} className="space-y-6">
-                {(sum.impact || "").split('\n').filter(p => p.trim() !== '').map((paragraph, pIdx) => (
-                  <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            ))}
+            {(() => {
+              // Deduplicate paragraphs across all summary items to guarantee zero repeated paragraphs
+              const allParas: string[] = [];
+              const normPrefix = (s: string) => s.replace(/[\s\p{P}]+/gu, "").slice(0, 35);
+
+              (premiumData?.summary || []).forEach((sum) => {
+                const cleanedParas = cleanSectionNarrative(sum.impact || "");
+                cleanedParas.forEach((cleaned) => {
+                  if (!cleaned || cleaned.length < 15) return;
+                  const np = normPrefix(cleaned);
+                  const exists = allParas.some((existing) => {
+                    const ep = normPrefix(existing);
+                    return ep === np || existing.includes(cleaned) || cleaned.includes(existing);
+                  });
+                  if (!exists) {
+                    allParas.push(cleaned);
+                  }
+                });
+              });
+
+              return (
+                <div className="space-y-6">
+                  {allParas.map((paragraph, pIdx) => (
+                    <p key={pIdx} className="text-xl leading-loose text-amber-950 text-left font-medium break-words whitespace-pre-wrap">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

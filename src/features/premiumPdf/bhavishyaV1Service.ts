@@ -50,6 +50,7 @@ import {
   buildDynamicAshirvada,
   getLocalizedDevoteeName,
   ensureNamePresence,
+  ensureCompleteSentences,
   toKnDigits
 } from "./dynamicBhavishyaEngine";
 import {
@@ -137,17 +138,35 @@ export function ensureAtLeastThreeParagraphs(
   const fallbackCallout = fallbackParas.filter(p => isCallout(p));
 
   // Ensure at least minParagraphs (default 3) full narrative paragraphs
-  const combinedNarrative = [...narrativeParas];
+  const normalizePara = (str: string) => str.replace(/[\s\p{P}]+/gu, "").slice(0, 35);
+  const isDuplicatePara = (p1: string, p2: string) => {
+    const n1 = normalizePara(p1);
+    const n2 = normalizePara(p2);
+    if (!n1 || !n2) return false;
+    if (n1 === n2) return true;
+    if (n1.length > 20 && n2.length > 20) {
+      if (n1.includes(n2) || n2.includes(n1)) return true;
+    }
+    return false;
+  };
+
+  const combinedNarrative: string[] = [];
+  for (const p of narrativeParas) {
+    if (!combinedNarrative.some(existing => isDuplicatePara(existing, p))) {
+      combinedNarrative.push(p);
+    }
+  }
+
   for (const fbP of fallbackNarrative) {
     if (combinedNarrative.length >= minParagraphs) break;
-    if (!combinedNarrative.some(cp => cp.slice(0, 30) === fbP.slice(0, 30))) {
+    if (!combinedNarrative.some(existing => isDuplicatePara(existing, fbP))) {
       combinedNarrative.push(fbP);
     }
   }
   let fbIdx = 0;
   while (combinedNarrative.length < minParagraphs && fallbackNarrative.length > 0 && fbIdx < fallbackNarrative.length) {
     const candidate = fallbackNarrative[fbIdx % fallbackNarrative.length];
-    if (!combinedNarrative.includes(candidate)) {
+    if (!combinedNarrative.some(existing => isDuplicatePara(existing, candidate))) {
       combinedNarrative.push(candidate);
     }
     fbIdx++;
@@ -641,7 +660,7 @@ export async function prepareBhavishyaV1Data(
   ).trim();
 
   const failedAiSectionsV1: string[] = [];
-  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 10000, maxAttempts = 3): Promise<string> => {
+  const callGeminiSafe = async (label: string, prompt: string, temp = 0.3, timeoutMs = 30000, maxAttempts = 3): Promise<string> => {
     if (!effectiveGeminiApiKey || effectiveGeminiApiKey === "none" || effectiveGeminiApiKey === "mock" || effectiveGeminiApiKey.trim() === "") {
       failedAiSectionsV1.push(label);
       return "";
@@ -764,7 +783,7 @@ export async function prepareBhavishyaV1Data(
   ]);
   await new Promise(r => setTimeout(r, 120));
 
-  // Batch 4: Gochara, Summary & Karmic Inquest
+  // Batch 4: Gochara, Summary & Karmic Inquest (Staggered into 2 sub-batches for 98%+ 1st attempt success)
   onProgress?.(
     62,
     lang === "kn"
@@ -773,9 +792,12 @@ export async function prepareBhavishyaV1Data(
       ? "6. लाइव गोचर ग्रह, कर्म यात्रा एवं ज्योतिषी सारांश..."
       : "6. Calculating Live Transits, Karmic Inquest & Astrologer's Summary..."
   );
-  const [resGochara, resDashaGocharaCompass, resSummary, resMaandiInquest, resAnnualForecast] = await Promise.all([
+  const [resGochara, resDashaGocharaCompass] = await Promise.all([
     callGeminiSafe("Generate Gochara", prompts.gochara, 0.4),
-    callGeminiSafe("Generate Dasha-Gochara Compass", prompts.dashaGocharaCompass, 0.35),
+    callGeminiSafe("Generate Dasha-Gochara Compass", prompts.dashaGocharaCompass, 0.35)
+  ]);
+  await new Promise(r => setTimeout(r, 150));
+  const [resSummary, resMaandiInquest, resAnnualForecast] = await Promise.all([
     callGeminiSafe("Generate Summary", prompts.summary, 0.3),
     callGeminiSafe("Generate Maandi Inquest", prompts.maandiInquest, 0.4),
     callGeminiSafe("Generate Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35)
@@ -914,7 +936,7 @@ export async function prepareBhavishyaV1Data(
 
     if (!isSoulMirrorValid(dataSoulMirror)) {
       retryTasks.push(
-        callGeminiSafe("Retry Soul Mirror", prompts.soulMirror, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Soul Mirror", prompts.soulMirror, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isSoulMirrorValid(parsed)) dataSoulMirror = parsed;
         })
@@ -925,7 +947,7 @@ export async function prepareBhavishyaV1Data(
         ? `${prompts.characteristics}\n\n${charPriestRev.suggestedPromptRefinement}`
         : prompts.characteristics;
       retryTasks.push(
-        callGeminiSafe("Retry Characteristics", charRetryPrompt, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Characteristics", charRetryPrompt, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (parsed) {
             const reCheck = reviewChapterAccuracy({
@@ -943,7 +965,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (ageYears >= 8 && !isDarkSecretValid(dataDarkSecret)) {
       retryTasks.push(
-        callGeminiSafe("Retry Dark Secret", prompts.darkSecret, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Dark Secret", prompts.darkSecret, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isDarkSecretValid(parsed)) dataDarkSecret = parsed;
         })
@@ -951,7 +973,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isCurrentPhaseValid(dataCurrentPhase)) {
       retryTasks.push(
-        callGeminiSafe("Retry Current Phase", prompts.currentPhase, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Current Phase", prompts.currentPhase, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isCurrentPhaseValid(parsed)) dataCurrentPhase = parsed;
         })
@@ -959,7 +981,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isYogasValid(dataYogas)) {
       retryTasks.push(
-        callGeminiSafe("Retry Yogas", prompts.yogas, 0.4, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Yogas", prompts.yogas, 0.4, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isYogasValid(parsed)) dataYogas = parsed;
         })
@@ -967,7 +989,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isDoshasValid(dataDoshas)) {
       retryTasks.push(
-        callGeminiSafe("Retry Doshas", prompts.doshas, 0.4, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Doshas", prompts.doshas, 0.4, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isDoshasValid(parsed)) dataDoshas = parsed;
         })
@@ -975,7 +997,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isTimelineValid(dataTimeline)) {
       retryTasks.push(
-        callGeminiSafe("Retry Timeline", prompts.timeline, 0.4, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Timeline", prompts.timeline, 0.4, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isTimelineValid(parsed)) dataTimeline = parsed;
         })
@@ -983,7 +1005,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isGocharaValid(dataGochara)) {
       retryTasks.push(
-        callGeminiSafe("Retry Gochara", prompts.gochara, 0.4, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Gochara", prompts.gochara, 0.4, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isGocharaValid(parsed)) dataGochara = parsed;
         })
@@ -991,7 +1013,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isDashaGocharaCompassValid(dataDashaGocharaCompass)) {
       retryTasks.push(
-        callGeminiSafe("Retry Dasha-Gochara Compass", prompts.dashaGocharaCompass, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Dasha-Gochara Compass", prompts.dashaGocharaCompass, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isDashaGocharaCompassValid(parsed)) dataDashaGocharaCompass = parsed;
         })
@@ -999,7 +1021,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isSummaryValid(dataSummary)) {
       retryTasks.push(
-        callGeminiSafe("Retry Summary", prompts.summary, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Summary", prompts.summary, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isSummaryValid(parsed)) dataSummary = parsed;
         })
@@ -1007,7 +1029,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isAnnualForecastValid(dataAnnualForecast)) {
       retryTasks.push(
-        callGeminiSafe("Retry Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe("Retry Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isAnnualForecastValid(parsed)) dataAnnualForecast = parsed;
         })
@@ -1021,7 +1043,7 @@ export async function prepareBhavishyaV1Data(
 
     if (!isLifeAreaValid(extractChapterText(dMar, marCandidateKeys))) {
       retryTasks.push(
-        callGeminiSafe(`Retry ${marLabel}`, prompts.bhavishyaMarriage, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe(`Retry ${marLabel}`, prompts.bhavishyaMarriage, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (parsed) dMar = parsed;
         })
@@ -1029,7 +1051,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isLifeAreaValid(extractChapterText(dChd, chdCandidateKeys))) {
       retryTasks.push(
-        callGeminiSafe(`Retry ${chdLabel}`, prompts.bhavishyaChildren, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe(`Retry ${chdLabel}`, prompts.bhavishyaChildren, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (parsed) dChd = parsed;
         })
@@ -1037,7 +1059,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isLifeAreaValid(extractChapterText(dCar, carCandidateKeys))) {
       retryTasks.push(
-        callGeminiSafe(`Retry ${carLabel}`, prompts.bhavishyaCareer, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe(`Retry ${carLabel}`, prompts.bhavishyaCareer, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (parsed) dCar = parsed;
         })
@@ -1045,7 +1067,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isLifeAreaValid(extractChapterText(dWlh, wlhCandidateKeys))) {
       retryTasks.push(
-        callGeminiSafe(`Retry ${wlhLabel}`, prompts.bhavishyaWealth, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe(`Retry ${wlhLabel}`, prompts.bhavishyaWealth, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (parsed) dWlh = parsed;
         })
@@ -1053,7 +1075,7 @@ export async function prepareBhavishyaV1Data(
     }
     if (!isLifeAreaValid(extractChapterText(dHlt, hltCandidateKeys))) {
       retryTasks.push(
-        callGeminiSafe(`Retry ${hltLabel}`, prompts.bhavishyaHealth, 0.35, 9000, 2).then((res) => {
+        callGeminiSafe(`Retry ${hltLabel}`, prompts.bhavishyaHealth, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (parsed) dHlt = parsed;
         })
@@ -1275,7 +1297,17 @@ export async function prepareBhavishyaV1Data(
     impact: cleanDegreesFromText(ensureNamePresence(cleanEnglishFromRegionalText(p.impact || "", lang), localizedDevoteeName, lang))
   }));
 
-  const rawSummary = await ensureValidSection(dataSummary.summary, rawSummaryFallback, lang, 150);
+  // Consolidate summary into a single narrative before validation to prevent duplicate fallback appending
+  let rawSummaryInput: any = dataSummary?.summary;
+  if (Array.isArray(rawSummaryInput)) {
+    const combinedTexts = rawSummaryInput
+      .map((s: any) => (typeof s === "string" ? s : s?.impact || s?.description || ""))
+      .filter((t: string) => t.trim().length > 0);
+    rawSummaryInput = [{ impact: combinedTexts.join("\n\n") }];
+  } else if (typeof rawSummaryInput === "string") {
+    rawSummaryInput = [{ impact: rawSummaryInput }];
+  }
+  const rawSummary = await ensureValidSection(rawSummaryInput, rawSummaryFallback, lang, 150);
   const finalSummary = (rawSummary || []).map((s: any) => ({
     ...s,
     impact: cleanDegreesFromText(ensureNamePresence(cleanEnglishFromRegionalText(s.impact || "", lang), localizedDevoteeName, lang))
@@ -1313,12 +1345,14 @@ export async function prepareBhavishyaV1Data(
     const cleanName = localizeYogaName(y.name || y.trait || "", lang)
       .replace(/^[\s:,\.\-–—×*•~|]+/gu, "")
       .trim();
-    const paras = cleanImpact.split(/\n\n+/).filter(Boolean);
+    const withName = ensureNamePresence(cleanEnglishFromRegionalText(cleanImpact, lang), localizedDevoteeName, lang);
+    const completed = ensureCompleteSentences(withName, lang);
+    const paras = completed.split(/\n\n+/).filter(Boolean);
     return {
       ...y,
       name: cleanName,
-      impact: cleanImpact,
-      significance: paras.length > 0 ? paras : cleanImpact
+      impact: completed,
+      significance: paras.length > 0 ? paras : completed
     };
   });
 
@@ -1359,13 +1393,16 @@ export async function prepareBhavishyaV1Data(
     const rawImpact = d.impact || d.significance || "";
     const enrichedImpact = cleanDegreesFromText(enrichDoshaDescription(d.name || "", rawImpact, lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, parsedKundali.maritalStatus));
     const cleanRemedy = cleanDegreesFromText(localizeDoshaRemedy(d.name || "", d.remedy, lang, parsedKundali.maritalStatus));
-    const paras = enrichedImpact.split(/\n\n+/).filter(Boolean);
+    const withName = ensureNamePresence(cleanEnglishFromRegionalText(enrichedImpact, lang), localizedDevoteeName, lang);
+    const completed = ensureCompleteSentences(withName, lang);
+    const cleanRemedyCompleted = ensureCompleteSentences(cleanEnglishFromRegionalText(cleanRemedy, lang), lang);
+    const paras = completed.split(/\n\n+/).filter(Boolean);
     return {
       ...d,
       name: localizeDoshaName(d.name || "", lang),
-      impact: enrichedImpact,
-      significance: paras.length > 0 ? paras : enrichedImpact,
-      remedy: cleanRemedy
+      impact: completed,
+      significance: paras.length > 0 ? paras : completed,
+      remedy: cleanRemedyCompleted
     };
   });
 
@@ -1406,11 +1443,17 @@ export async function prepareBhavishyaV1Data(
   }).length >= 2;
 
   let finalGochara = aiGocharaValid ? dataGochara.gochara : rawGocharaFallback;
-  finalGochara = finalGochara.map((g: any) => ({
-    name: localizeGocharaName(g.name || "", lang),
-    impact: cleanDegreesFromText(enrichGocharaDescription(g.name || "", cleanEnglishFromRegionalText(g.impact || "", lang), lang, moonStr, ageYears, dashaName, bhuktiName)),
-    remedy: g.remedy ? cleanDegreesFromText(cleanEnglishFromRegionalText(g.remedy, lang)) : undefined
-  }));
+  finalGochara = finalGochara.map((g: any) => {
+    const rawImpact = cleanDegreesFromText(enrichGocharaDescription(g.name || "", cleanEnglishFromRegionalText(g.impact || "", lang), lang, moonStr, ageYears, dashaName, bhuktiName));
+    const withName = ensureNamePresence(rawImpact, localizedDevoteeName, lang);
+    const completed = ensureCompleteSentences(withName, lang);
+    const cleanRemedy = g.remedy ? ensureCompleteSentences(cleanDegreesFromText(cleanEnglishFromRegionalText(g.remedy, lang)), lang) : undefined;
+    return {
+      name: localizeGocharaName(g.name || "", lang),
+      impact: completed,
+      remedy: cleanRemedy
+    };
+  });
 
   const dynamicSoulMirror = buildDynamicSoulMirrorFallback(parsedKundali);
   let finalSoulMirror = { ...dynamicSoulMirror };

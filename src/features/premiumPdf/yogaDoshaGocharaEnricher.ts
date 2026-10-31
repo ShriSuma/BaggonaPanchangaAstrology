@@ -12,6 +12,7 @@
 
 import { cleanEnglishFromRegionalText } from "./premiumPdfLocale";
 import { transliterateName } from "../../utils/transliterator";
+import { ensureCompleteSentences } from "./dynamicBhavishyaEngine";
 
 export interface EnrichmentContext {
   lang: string;
@@ -165,7 +166,8 @@ export function enrichYogaDescription(
   // If text already has 2 generous paragraphs with at least 180 chars each, preserve it
   if (hasTwoSubstantialParagraphs(cleanImpact, 180)) {
     const preserved = baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
-    return cleanDegreesFromText(cleanPunctuationArtifacts(preserved));
+    const completed = ensureCompleteSentences(cleanPunctuationArtifacts(preserved), baseLang);
+    return cleanDegreesFromText(completed);
   }
 
   // 1. GAJAKESARI YOGA
@@ -388,7 +390,9 @@ export function enrichDoshaDescription(
 
   // If text already has 2 generous paragraphs with at least 180 chars each, preserve it ONLY IF it doesn't violate maritalStatus
   if (hasTwoSubstantialParagraphs(cleanImpact, 180) && !(isMarried && hasMarriageDelayLeak)) {
-    return cleanDegreesFromText(baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang));
+    const preserved = baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
+    const completed = ensureCompleteSentences(cleanPunctuationArtifacts(preserved), baseLang);
+    return cleanDegreesFromText(completed);
   }
 
   // 1. KUJA DOSHA / MANGLIK DOSHA
@@ -570,7 +574,9 @@ export function enrichGocharaDescription(
 
   // If text already has 2 generous paragraphs with at least 180 chars each, preserve it
   if (hasTwoSubstantialParagraphs(cleanImpact, 180)) {
-    return cleanDegreesFromText(baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang));
+    const preserved = baseLang === "en" ? cleanImpact : cleanEnglishFromRegionalText(cleanImpact, baseLang);
+    const completed = ensureCompleteSentences(cleanPunctuationArtifacts(preserved), baseLang);
+    return cleanDegreesFromText(completed);
   }
 
   // 1. SATURN (Shani) TRANSIT
