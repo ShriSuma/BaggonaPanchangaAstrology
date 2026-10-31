@@ -360,8 +360,38 @@ export function calculateComprehensiveDoshas(
 
   const activeMahaPlanet = activeMaha.planet;
   const activeBhuktiPlanet = activeBhukti.bhukti;
-  const activeMahaKn = toKannadaPlanet(activeMahaPlanet);
-  const activeBhuktiKn = toKannadaPlanet(activeBhuktiPlanet);
+
+  const PLANET_NAMES_5_LANG: Record<string, Record<string, string>> = {
+    Sun: { kn: "ರವಿ", hi: "सूर्य", te: "సూర్యుడు", ta: "சூரியன்", en: "Sun" },
+    Moon: { kn: "ಚಂದ್ರ", hi: "चन्द्र", te: "చంద్రుడు", ta: "சந்திரன்", en: "Moon" },
+    Mars: { kn: "ಕುಜ", hi: "मंगल", te: "కుజుడు", ta: "செவ்வாய்", en: "Mars" },
+    Mercury: { kn: "ಬುಧ", hi: "बुध", te: "బుధుడు", ta: "புதன்", en: "Mercury" },
+    Jupiter: { kn: "ಗುರು", hi: "गुरु", te: "గురుడు", ta: "குரு", en: "Jupiter" },
+    Venus: { kn: "ಶುಕ್ರ", hi: "शुक्र", te: "శుక్రుడు", ta: "சுக்கிரன்", en: "Venus" },
+    Saturn: { kn: "ಶನಿ", hi: "शनि", te: "శని", ta: "சனி", en: "Saturn" },
+    Rahu: { kn: "ರಾಹು", hi: "राहु", te: "రాహువు", ta: "ராகு", en: "Rahu" },
+    Ketu: { kn: "ಕೇತು", hi: "केतु", te: "కేతువు", ta: "கேது", en: "Ketu" }
+  };
+
+  const getDashaPlanet = (p: PlanetName | string, lang: string) => {
+    const key = String(p).trim();
+    const match = PLANET_NAMES_5_LANG[key] || PLANET_NAMES_5_LANG[key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()];
+    if (match && match[lang]) return match[lang];
+    if (lang === "kn") return toKannadaPlanet(p);
+    return key;
+  };
+
+  const activeMahaKn = getDashaPlanet(activeMahaPlanet, "kn");
+  const activeMahaHi = getDashaPlanet(activeMahaPlanet, "hi");
+  const activeMahaTe = getDashaPlanet(activeMahaPlanet, "te");
+  const activeMahaTa = getDashaPlanet(activeMahaPlanet, "ta");
+  const activeMahaEn = getDashaPlanet(activeMahaPlanet, "en");
+
+  const activeBhuktiKn = getDashaPlanet(activeBhuktiPlanet, "kn");
+  const activeBhuktiHi = getDashaPlanet(activeBhuktiPlanet, "hi");
+  const activeBhuktiTe = getDashaPlanet(activeBhuktiPlanet, "te");
+  const activeBhuktiTa = getDashaPlanet(activeBhuktiPlanet, "ta");
+  const activeBhuktiEn = getDashaPlanet(activeBhuktiPlanet, "en");
 
   const buildDashaResonance = (
     triggerPlanets: PlanetName[],
@@ -374,19 +404,19 @@ export function calculateComprehensiveDoshas(
     if (isDirectMatch) {
       return {
         kn: `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${activeMahaKn} ಮಹಾದಶೆಯಲ್ಲಿ ${activeBhuktiKn} ಭುಕ್ತಿ ನಡೆಯುತ್ತಿದ್ದು, ಈ ದಶಾಧಿಪತಿಗಳು ನೇರವಾಗಿ ಈ ${doshaNameKn}ದ ಕಾರಕ ಗ್ರಹಗಳಾಗಿದ್ದಾರೆ. ಆದ್ದರಿಂದ ಪ್ರಸ್ತುತ ಈ ಅವಧಿಯಲ್ಲಿ ಈ ದೋಷದ ನೈಜ ತೊಂದರೆಗಳು ನಿಮ್ಮ ದಿನನಿತ್ಯದ ಬದುಕಿನಲ್ಲಿ ಗರಿಷ್ಠ ತೀವ್ರತೆಯಲ್ಲಿ ಸಕ್ರಿಯವಾಗಿವೆ. ಸಕಾಲಿಕ ವೈದಿಕ ಶಾಂತಿಯು ತಕ್ಷಣದ ರಕ್ಷಣೆ ನೀಡುತ್ತದೆ.`,
-        hi: `वर्तमान में आपकी कुंडली में ${activeMahaPlanet} महादशा में ${activeBhuktiPlanet} भुक्ति चल रही है। यह दशा क्रम सीधे इस दोष को सक्रिय कर रहा है, जिससे वर्तमान जीवन में इसके प्रत्यक्ष प्रभाव तीव्र रूप से अनुभव हो रहे हैं। शांति अनुष्ठान शीघ्र अनिवार्य है।`,
-        te: `ప్రస్తుతం మీ కుండలిలో ${activeMahaPlanet} మహాదశలో ${activeBhuktiPlanet} భుక్తి నడుస్తోంది. ఈ గ్రహాల దశా ప్రభావం వల్ల ప్రస్తుత సమయంలో ఈ దోషం గరిష్ట స్థాయిలో జీవితంలో సమస్యలను రేకెత్తిస్తోంది. శాంతి పూజలు తప్పనిసరి.`,
-        ta: `தற்போது ${activeMahaPlanet} மகாதிசையில் ${activeBhuktiPlanet} அந்தர்திசை நடைபெறுகிறது. இந்த கிரகக் கூட்டமைப்பு இந்த தோஷத்தை தீவிரமாகத் தூண்டி அன்றாட வாழ்வில் சவால்களை உருவாக்குகிறது. சாந்தி பரிகாரம் உடனடி நிவாரணம் தரும்.`,
-        en: `Currently running ${activeMahaPlanet} Mahadasha with ${activeBhuktiPlanet} Antardasha. As these running planetary rulers directly trigger this dosha, its disruptive symptoms are currently operating at heightened potency in your daily reality. Consecrated propitiation provides immediate protection.`
+        hi: `वर्तमान में आपकी कुंडली में ${activeMahaHi} महादशा में ${activeBhuktiHi} भुक्ति चल रही है। यह दशा क्रम सीधे इस दोष को सक्रिय कर रहा है, जिससे वर्तमान जीवन में इसके प्रत्यक्ष प्रभाव तीव्र रूप से अनुभव हो रहे हैं। शांति अनुष्ठान शीघ्र अनिवार्य है।`,
+        te: `ప్రస్తుతం మీ కుండలిలో ${activeMahaTe} మహాదశలో ${activeBhuktiTe} భుక్తి నడుస్తోంది. ఈ గ్రహాల దశా ప్రభావం వల్ల ప్రస్తుత సమయంలో ఈ దోషం గరిష్ట స్థాయిలో జీవితంలో సమస్యలను రేకెత్తిస్తోంది. శాంతి పూజలు తప్పనిసరి.`,
+        ta: `தற்போது ${activeMahaTa} மகாதிசையில் ${activeBhuktiTa} அந்தர்திசை நடைபெறுகிறது. இந்த கிரகக் கூட்டமைப்பு இந்த தோஷத்தை தீவிரமாகத் தூண்டி அன்றாட வாழ்வில் சவால்களை உருவாக்குகிறது. சாந்தி பரிகாரம் உடனடி நிவாரணம் தரும்.`,
+        en: `Currently running ${activeMahaEn} Mahadasha with ${activeBhuktiEn} Antardasha. As these running planetary rulers directly trigger this dosha, its disruptive symptoms are currently operating at heightened potency in your daily reality. Consecrated propitiation provides immediate protection.`
       };
     }
 
     return {
       kn: `ಪ್ರಸ್ತುತ ನೀವು ${activeMahaKn} ಮಹಾದಶೆ - ${activeBhuktiKn} ಭುಕ್ತಿ ಕಾಲದಲ್ಲಿದ್ದು, ಈ ದೋಷವು ಜಾತಕದಲ್ಲಿ ಅಂತರ್ಗತ ಕರ್ಮವಾಗಿ ಮುಂದುವರಿಯುತ್ತಿದೆ. ಮುಂಬರುವ ಸಂಬಂಧಿತ ಗ್ರಹದಶಾ ಕಾಲದಲ್ಲಿ ಯಾವುದೇ ತೊಂದರೆ ಬಾರದಂತೆ ಮುನ್ನೆಚ್ಚರಿಕೆಯಾಗಿ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ ಮಾಡಿಸುವುದು ಶ್ರೇಯಸ್ಕರ.`,
-      hi: `वर्तमान में ${activeMahaPlanet} महादशा - ${activeBhuktiPlanet} भुक्ति चल रही है। यह दोष कुंडली में अंतर्निहित कर्म के रूप में विद्यमान है। आगामी दशाओं में सुरक्षा हेतु समय पर शांति पूजा उत्तम रहेगी।`,
-      te: `ప్రస్తుతం ${activeMahaPlanet} మహాదశ - ${activeBhuktiPlanet} భుక్తి జరుగుతోంది. రాబోయే కాలంలో ఇబ్బందులు రాకుండా ముందస్తుగా పరిహారాలు చేసుకోవడం మంచిది.`,
-      ta: `தற்போது ${activeMahaPlanet} மகாதிசை - ${activeBhuktiPlanet} புத்தி நடப்பில் உள்ளது. எதிர்காலத்தில் பாதிப்புகள் ஏற்படாமல் தடுக்க முன்னெச்சரிக்கையாக சாந்தி செய்வது நலம்.`,
-      en: `Currently traversing ${activeMahaPlanet}-${activeBhuktiPlanet} dasha; this affliction operates as latent karmic resistance. Timely sanctified remedies prevent adverse activation in upcoming cycles.`
+      hi: `वर्तमान में ${activeMahaHi} महादशा - ${activeBhuktiHi} भुक्ति चल रही है। यह दोष कुंडली में अंतर्निहित कर्म के रूप में विद्यमान है। आगामी दशाओं में सुरक्षा हेतु समय पर शांति पूजा उत्तम रहेगी।`,
+      te: `ప్రస్తుతం ${activeMahaTe} మహాదశ - ${activeBhuktiTe} భుక్తి జరుగుతోంది. రాబోయే కాలంలో ఇబ్బందులు రాకుండా ముందస్తుగా పరిహారాలు చేసుకోవడం మంచిది.`,
+      ta: `தற்போது ${activeMahaTa} மகாதிசை - ${activeBhuktiTa} புத்தி நடப்பில் உள்ளது. எதிர்காலத்தில் பாதிப்புகள் ஏற்படாமல் தடுக்க முன்னெச்சரிக்கையாக சாந்தி செய்வது நலம்.`,
+      en: `Currently traversing ${activeMahaEn}-${activeBhuktiEn} dasha; this affliction operates as latent karmic resistance. Timely sanctified remedies prevent adverse activation in upcoming cycles.`
     };
   };
 
@@ -401,32 +431,41 @@ export function calculateComprehensiveDoshas(
     sacredPoojaNameEn: string
   ) => {
     const isCompleted = !!completedPariharaMap?.[doshaId]?.isCompleted;
-    const yearStr = completedPariharaMap?.[doshaId]?.completedYear
+    const yearStrKn = completedPariharaMap?.[doshaId]?.completedYear
       ? `${completedPariharaMap[doshaId].completedYear}`
       : "ಹಿಂದಿನ ವರ್ಷಗಳಲ್ಲಿ";
+    const yearStrHi = completedPariharaMap?.[doshaId]?.completedYear
+      ? `${completedPariharaMap[doshaId].completedYear}`
+      : "पूर्व वर्षों में";
+    const yearStrTe = completedPariharaMap?.[doshaId]?.completedYear
+      ? `${completedPariharaMap[doshaId].completedYear}`
+      : "గత సంవత్సరాలలో";
+    const yearStrTa = completedPariharaMap?.[doshaId]?.completedYear
+      ? `${completedPariharaMap[doshaId].completedYear}`
+      : "முந்தைய ஆண்டுகளில்";
     const yearStrEn = completedPariharaMap?.[doshaId]?.completedYear
       ? `in ${completedPariharaMap[doshaId].completedYear}`
       : "in past years";
 
     const alreadyDoneNarration: Record<string, string> = {
-      kn: `ನೀವು ಈಗಾಗಲೇ ಈ ${doshaNameKn}ಕ್ಕೆ ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಅಥವಾ ತೀರ್ಥ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಾಸ್ತ್ರೋಕ್ತ ${sacredPoojaNameKn} ನೆರವೇರಿಸಿರುವುದರಿಂದ (${yearStr}), ಈ ಕರ್ಮ ಋಣವು ಬಹುತೇಕ ಶಮನಗೊಂಡಿದೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಹಿಂದಿನ ಕಠಿಣ ಅಡೆತಡೆಗಳು ತಗ್ಗಿ, ನಿಧಾನವಾಗಿ ಅಭಿವೃದ್ಧಿ ಹಾಗೂ ಆಂತರಿಕ ನೆಮ್ಮದಿ ಲಭಿಸುತ್ತಿರುವುದನ್ನು ನೀವು ಗಮನಿಸುತ್ತಿರಬಹುದು. ಆದ್ದರಿಂದ ಮತ್ತೆ ಯಾವುದೇ ದೊಡ್ಡ ಹೋಮ-ಪೂಜೆಗಳ ಅಗತ್ಯವಿಲ್ಲ; ಕೇವಲ ನಿತ್ಯ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ವಾರ್ಷಿಕ ಸಂಕಲ್ಪ ಮುಂದುವರಿಸಿದರೆ ಸಾಕು.`,
+      kn: `ನೀವು ಈಗಾಗಲೇ ಈ ${doshaNameKn}ಕ್ಕೆ ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಅಥವಾ ತೀರ್ಥ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಾಸ್ತ್ರೋಕ್ತ ${sacredPoojaNameKn} ನೆರವೇರಿಸಿರುವುದರಿಂದ (${yearStrKn}), ಈ ಕರ್ಮ ಋಣವು ಬಹುತೇಕ ಶಮನಗೊಂಡಿದೆ. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಹಿಂದಿನ ಕಠಿಣ ಅಡೆತಡೆಗಳು ತಗ್ಗಿ, ನಿಧಾನವಾಗಿ ಅಭಿವೃದ್ಧಿ ಹಾಗೂ ಆಂತರಿಕ ನೆಮ್ಮದಿ ಲಭಿಸುತ್ತಿರುವುದನ್ನು ನೀವು ಗಮನಿಸುತ್ತಿರಬಹುದು. ಆದ್ದರಿಂದ ಮತ್ತೆ ಯಾವುದೇ ದೊಡ್ಡ ಹೋಮ-ಪೂಜೆಗಳ ಅಗತ್ಯವಿಲ್ಲ; ಕೇವಲ ನಿತ್ಯ ಇಷ್ಟದೇವತಾ ಪ್ರಾರ್ಥನೆ ಹಾಗೂ ವಾರ್ಷಿಕ ಸಂಕಲ್ಪ ಮುಂದುವರಿಸಿದರೆ ಸಾಕು.`,
       en: `Having already performed the consecrated ${sacredPoojaNameEn} for this ${doshaNameEn} at Sri Gokarna Kshetra or another sacred shrine (${yearStrEn}), this ancestral/karmic debt has been substantially pacified. You are likely already observing eased friction, renewed clarity, and steady stabilization. No repetition of major fire rituals (Homa) is warranted; maintaining regular devotional prayers and annual remembrance suffices.`,
-      hi: `चूंकि आपने पूर्व में ही (${yearStr}) श्री गोकर्ण क्षेत्र अथवा तीर्थ में इस ${doshaNameHi} की शास्त्रोक्त शांति संपन्न करा ली है, अतः यह कर्म ऋण शांत हो चुका है। आप जीवन में सकारात्मक बदलाव एवं मानसिक शांति का अनुभव कर रहे होंगे। पुनः भारी अनुष्ठान की आवश्यकता नहीं है; नित्य ईश्वर स्मरण पर्याप्त है।`,
-      te: `మీరు ఇప్పటికే (${yearStr}) గోకర్ణ క్షేత్రంలో లేదా పుణ్యక్షేత్రాలలో ఈ ${doshaNameTe}కు శాస్త్రోక్త శాంతి పూజలు పూర్తి చేసి ఉన్నందున, ఈ కర్మ భారం తొలగిపోయింది. జీవితంలో శుభ పరిణామాలు ప్రారంభమై ఉంటాయి. మళ్లీ పెద్ద హోమాలు చేయనవసరం లేదు; నిత్య పూజ సరిపోతుంది.`,
-      ta: `நீங்கள் ஏற்கனவே (${yearStr}) கோகர்ண சந்நிதியில் இந்த ${doshaNameTa}த்திற்குரிய சாந்தி பரிகாரங்களைச் செய்துவிட்டதால், இந்த கர்ம தாக்கம் தணிந்துள்ளது. மீண்டும் பெரும் ஹோமங்கள் செய்யத் தேவையில்லை; தினசரி வழிபாடு போதுமானது.`
+      hi: `चूंकि आपने पूर्व में ही (${yearStrHi}) श्री गोकर्ण क्षेत्र अथवा तीर्थ में इस ${doshaNameHi} की शास्त्रोक्त शांति संपन्न करा ली है, अतः यह कर्म ऋण शांत हो चुका है। आप जीवन में सकारात्मक बदलाव एवं मानसिक शांति का अनुभव कर रहे होंगे। पुनः भारी अनुष्ठान की आवश्यकता नहीं है; नित्य ईश्वर स्मरण पर्याप्त है।`,
+      te: `మీరు ఇప్పటికే (${yearStrTe}) గోకర్ణ క్షేత్రంలో లేదా పుణ్యక్షేత్రాలలో ఈ ${doshaNameTe}కు శాస్త్రోక్త శాంతి పూజలు పూర్తి చేసి ఉన్నందున, ఈ కర్మ భారం తొలగిపోయింది. జీవితంలో శుభ పరిణామాలు ప్రారంభమై ఉంటాయి. మళ్లీ పెద్ద హోమాలు చేయనవసరం లేదు; నిత్య పూజ సరిపోతుంది.`,
+      ta: `நீங்கள் ஏற்கனவே (${yearStrTa}) கோகர்ண சந்நிதியில் இந்த ${doshaNameTa}த்திற்குரிய சாந்தி பரிகாரங்களைச் செய்துவிட்டதால், இந்த கர்ம தாக்கம் தணிந்துள்ளது. மீண்டும் பெரும் ஹோமங்கள் செய்யத் தேவையில்லை; தினசரி வழிபாடு போதுமானது.`
     };
 
     const conditionalGuidance: Record<string, string> = {
       kn: `ವಿಶೇಷ ಮಾರ್ಗದರ್ಶನ: ಈ ${doshaNameKn}ಕ್ಕೆ ನೀವು ಈಗಾಗಲೇ ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಅಥವಾ ತೀರ್ಥ ಕ್ಷೇತ್ರದಲ್ಲಿ ಶಾಸ್ತ್ರೋಕ್ತ ${sacredPoojaNameKn} ಮಾಡಿಸಿದ್ದರೆ, ಆ ಕರ್ಮ ಋಣವು ಶಮನಗೊಂಡಿದ್ದು ನೀವು ಈಗಾಗಲೇ ಕೆಲಸಗಳಲ್ಲಿ ಪ್ರಗತಿ ಮತ್ತು ಮಾನಸಿಕ ಶಾಂತಿಯನ್ನು ಅನುಭವಿಸುತ್ತಿರಬಹುದು; ಅಂತಹ ಸಂದರ್ಭದಲ್ಲಿ ಮತ್ತೆ ಹೋಮದ ಅಗತ್ಯವಿಲ್ಲ. ಒಂದು ವೇಳೆ ಇದುವರೆಗೂ ಮಾಡಿಸದಿದ್ದರೆ ಮಾತ್ರ, ಪ್ರಸ್ತುತ ${activeMahaKn}-${activeBhuktiKn} ದಶಾ ಕಾಲದಲ್ಲಿ ಶೀಘ್ರವಾಗಿ ಶಾಂತಿ ನೆರವೇರಿಸುವುದು ನಿಮ್ಮ ಸಕಲ ಕಾರ್ಯಗಳ ಸಿದ್ಧಿಗೆ ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`,
-      en: `Special Guidance: If you have already performed sanctified ${sacredPoojaNameEn} for this ${doshaNameEn} at Sri Gokarna or another sacred pilgrimage site, this karmic debt is already purified and you are likely already witnessing improvements and relief; in that case, no repeat ritual is required. Only if not yet performed, addressing it promptly during this active ${activeMahaPlanet}-${activeBhuktiPlanet} dasha is strongly advised.`,
-      hi: `विशेष मार्गदर्शन: यदि आप पहले ही गोकर्ण अथवा तीर्थ क्षेत्र में इस ${doshaNameHi} की शास्त्रोक्त शांति करा चुके हैं, तो यह कर्म ऋण शांत हो चुका है और आपको राहत मिल रही होगी; ऐसी स्थिति में पुनः पूजा की आवश्यकता नहीं है। यदि अब तक नहीं कराया है, तभी वर्तमान दशा में शीघ्र शांति कराना श्रेयस्कर होगा।`,
-      te: `ప్రత్యేక సూచన: మీరు ఇప్పటికే గోకర్ణంలో లేదా పుణ్యక్షేత్రాలలో ఈ ${doshaNameTe}కు శాంతి చేసి ఉంటే, మళ్లీ చేయవలసిన అవసరం లేదు. ఒకవేళ చేయకపోతే మాత్రమే ప్రస్తుత దశా కాలంలో తక్షణమే శాంతి చేసుకోవడం ఉత్తమం.`,
-      ta: `முக்கிய குறிப்பு: நீங்கள் ஏற்கனவே இந்த ${doshaNameTa}த்திற்கு சாந்தி பரிகாரம் செய்திருந்தால், மீண்டும் செய்யத் தேவையில்லை. இதுவரை செய்யவில்லை என்றால் மட்டுமே நடப்பு திசா காலத்தில் உடனடியாகச் செய்வது நலம் பயக்கும்.`
+      en: `Special Guidance: If you have already performed sanctified ${sacredPoojaNameEn} for this ${doshaNameEn} at Sri Gokarna or another sacred pilgrimage site, this karmic debt is already purified and you are likely already witnessing improvements and relief; in that case, no repeat ritual is required. Only if not yet performed, addressing it promptly during this active ${activeMahaEn}-${activeBhuktiEn} dasha is strongly advised.`,
+      hi: `विशेष मार्गदर्शन: यदि आप पहले ही गोकर्ण अथवा तीर्थ क्षेत्र में इस ${doshaNameHi} की शास्त्रोक्त शांति करा चुके हैं, तो यह कर्म ऋण शांत हो चुका है और आपको राहत मिल रही होगी; ऐसी स्थिति में पुनः पूजा की आवश्यकता नहीं है। यदि अब तक नहीं कराया है, तभी वर्तमान ${activeMahaHi}-${activeBhuktiHi} दशा में शीघ्र शांति कराना श्रेयस्कर होगा।`,
+      te: `ప్రత్యేక సూచన: మీరు ఇప్పటికే గోకర్ణంలో లేదా పుణ్యక్షేత్రాలలో ఈ ${doshaNameTe}కు శాంతి చేసి ఉంటే, మళ్లీ చేయవలసిన అవసరం లేదు. ఒకవేళ చేయకపోతే మాత్రమే ప్రస్తుత ${activeMahaTe}-${activeBhuktiTe} దశా కాలంలో తక్షణమే శాంతి చేసుకోవడం ఉత్తమం.`,
+      ta: `முக்கிய குறிப்பு: நீங்கள் ஏற்கனவே இந்த ${doshaNameTa}த்திற்கு சாந்தி பரிகாரம் செய்திருந்தால், மீண்டும் செய்யத் தேவையில்லை. இதுவரை செய்யவில்லை என்றால் மட்டுமே நடப்பு ${activeMahaTa}-${activeBhuktiTa} திசா காலத்தில் உடனடியாகச் செய்வது நலம் பயக்கும்.`
     };
 
     return {
       shantiStatus: isCompleted ? ("completed" as const) : ("pending" as const),
-      completedYear: isCompleted ? yearStr : undefined,
+      completedYear: isCompleted ? yearStrKn : undefined,
       alreadyDoneNarration,
       conditionalGuidance
     };

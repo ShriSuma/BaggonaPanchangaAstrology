@@ -126,6 +126,10 @@ export interface KundliRemedyDiagnosis {
     breakthroughMechanismEn: string;
     specificSevaKn: string;
     specificSevaEn: string;
+    timeline?: Record<string, string>;
+    catalystGraha?: Record<string, string>;
+    breakthroughMechanism?: Record<string, string>;
+    specificSeva?: Record<string, string>;
     astrologicalReason?: Record<string, string>;
     beforeState?: Record<string, string>;
     afterState?: Record<string, string>;
@@ -3113,19 +3117,19 @@ export function generateKundliRemedyReport(
   }
 
   // 4. Parashari Turnaround Point & Life Shift Timing Window (ಭಾಗ್ಯೋದಯ & ಪರಿಹಾರ ಕಾಲಾವಧಿ)
-  const catalystByLagna: Record<number, { graha: PlanetName; kn: string; en: string }> = {
-    0: { graha: PlanetName.Jupiter, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಗುರು & ಪಂಚಮಾಧಿಪತಿ ರವಿ", en: "9th Lord Jupiter & 5th Lord Sun" },
-    1: { graha: PlanetName.Saturn, kn: "ಯೋಗಕಾರಕ ಶನಿ & ಧನಾಧಿಪತಿ ಬುಧ", en: "Yogakaraka Saturn & Wealth Lord Mercury" },
-    2: { graha: PlanetName.Mercury, kn: "ಲಗ್ನಾಧಿಪತಿ ಬುಧ & ಪಂಚಮಾಧಿಪತಿ ಶುಕ್ರ", en: "Ascendant Lord Mercury & 5th Lord Venus" },
-    3: { graha: PlanetName.Mars, kn: "ಯೋಗಕಾರಕ ಕುಜ & ಭಾಗ್ಯಾಧಿಪತಿ ಗುರು", en: "Yogakaraka Mars & 9th Lord Jupiter" },
-    4: { graha: PlanetName.Mars, kn: "ಯೋಗಕಾರಕ ಕುಜ & ಲಗ್ನಾಧಿಪತಿ ರವಿ", en: "Yogakaraka Mars & Ascendant Lord Sun" },
-    5: { graha: PlanetName.Venus, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಬುಧ", en: "9th Lord Venus & Ascendant Lord Mercury" },
-    6: { graha: PlanetName.Saturn, kn: "ಯೋಗಕಾರಕ ಶನಿ & ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರ", en: "Yogakaraka Saturn & Ascendant Lord Venus" },
-    7: { graha: PlanetName.Jupiter, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಚಂದ್ರ & ಪಂಚಮಾಧಿಪತಿ ಗುರು", en: "9th Lord Moon & 5th Lord Jupiter" },
-    8: { graha: PlanetName.Sun, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ರವಿ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Sun & Ascendant Lord Jupiter" },
-    9: { graha: PlanetName.Venus, kn: "ಯೋಗಕಾರಕ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಶನಿ", en: "Yogakaraka Venus & Ascendant Lord Saturn" },
-    10: { graha: PlanetName.Venus, kn: "ಯೋಗಕಾರಕ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಶನಿ", en: "Yogakaraka Venus & Ascendant Lord Saturn" },
-    11: { graha: PlanetName.Mars, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Mars & Ascendant Lord Jupiter" }
+  const catalystByLagna: Record<number, { graha: PlanetName; kn: string; en: string; hi: string; te: string; ta: string }> = {
+    0: { graha: PlanetName.Jupiter, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಗುರು & ಪಂಚಮಾಧಿಪತಿ ರವಿ", en: "9th Lord Jupiter & 5th Lord Sun", hi: "भाग्येश गुरु एवं पंचमेश सूर्य", te: "భాగ్యాధిపతి గురుడు & పంచమాధిపతి సూర్యుడు", ta: "பாக்யாதிபதி குரு & பஞ்சமாதிபதி சூரியன்" },
+    1: { graha: PlanetName.Saturn, kn: "ಯೋಗಕಾರಕ ಶನಿ & ಧನಾಧಿಪತಿ ಬುಧ", en: "Yogakaraka Saturn & Wealth Lord Mercury", hi: "योगकारक शनि एवं धनेश बुध", te: "యోగకారక శని & ధనాధిపతి బుధుడు", ta: "யோககாரக சனி & தனாதிபதி புதன்" },
+    2: { graha: PlanetName.Mercury, kn: "ಲಗ್ನಾಧಿಪತಿ ಬುಧ & ಪಂಚಮಾಧಿಪತಿ ಶುಕ್ರ", en: "Ascendant Lord Mercury & 5th Lord Venus", hi: "लग्नेश बुध एवं पंचमेश शुक्र", te: "లగ్నాధిపతి బుధుడు & పంచమాధిపతి శుక్రుడు", ta: "லக்னாதிபதி புதன் & பஞ்சமாதிபதி சுக்கிரன்" },
+    3: { graha: PlanetName.Mars, kn: "ಯೋಗಕಾರಕ ಕುಜ & ಭಾಗ್ಯಾಧಿಪತಿ ಗುರು", en: "Yogakaraka Mars & 9th Lord Jupiter", hi: "योगकारक मंगल एवं भाग्येश गुरु", te: "యోగకారక కుజుడు & భాగ్యాధిపతి గురుడు", ta: "யோககாரக செவ்வாய் & பாக்யாதிபதி குரு" },
+    4: { graha: PlanetName.Mars, kn: "ಯೋಗಕಾರಕ ಕುಜ & ಲಗ್ನಾಧಿಪತಿ ರವಿ", en: "Yogakaraka Mars & Ascendant Lord Sun", hi: "योगकारक मंगल एवं लग्नेश सूर्य", te: "యోగకారక కుజుడు & లగ్నాధిపతి సూర్యుడు", ta: "யோககாரக செவ்வாய் & லக்னாதிபதி சூரியன்" },
+    5: { graha: PlanetName.Venus, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಬುಧ", en: "9th Lord Venus & Ascendant Lord Mercury", hi: "भाग्येश शुक्र एवं लग्नेश बुध", te: "భాగ్యాధిపతి శుక్రుడు & లగ్నాధిపతి బుధుడు", ta: "பாக்யாதிபதி சுக்கிரன் & லக்னாதிபதி புதன்" },
+    6: { graha: PlanetName.Saturn, kn: "ಯೋಗಕಾರಕ ಶನಿ & ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರ", en: "Yogakaraka Saturn & Ascendant Lord Venus", hi: "योगकारक शनि एवं लग्नेश शुक्र", te: "యోగకారక శని & లగ్నాధిపతి శుక్రుడు", ta: "யோககாரக சனி & லக்னாதிபதி சுக்கிரன்" },
+    7: { graha: PlanetName.Jupiter, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಚಂದ್ರ & ಪಂಚಮಾಧಿಪತಿ ಗುರು", en: "9th Lord Moon & 5th Lord Jupiter", hi: "भाग्येश चन्द्र एवं पंचमेश गुरु", te: "భాగ్యాధిపతి చంద్రుడు & పంచమాధిపతి గురుడు", ta: "பாக்யாதிபதி சந்திரன் & பஞ்சமாதிபதி குரு" },
+    8: { graha: PlanetName.Sun, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ರವಿ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Sun & Ascendant Lord Jupiter", hi: "भाग्येश सूर्य एवं लग्नेश गुरु", te: "భాగ్యాధిపతి సూర్యుడు & లగ్నాధిపతి గురుడు", ta: "பாக்யாதிபதி சூரியன் & லக்னாதிపతి குரு" },
+    9: { graha: PlanetName.Venus, kn: "ಯೋಗಕಾರಕ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಶನಿ", en: "Yogakaraka Venus & Ascendant Lord Saturn", hi: "योगकारक शुक्र एवं लग्नेश शनि", te: "యోగకారక శుక్రుడు & లగ్నాధిపతి శని", ta: "யோககாரக சுக்கிரன் & லக்னாதிபதி சனி" },
+    10: { graha: PlanetName.Venus, kn: "ಯೋಗಕಾರಕ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಶನಿ", en: "Yogakaraka Venus & Ascendant Lord Saturn", hi: "योगकारक शुक्र एवं लग्नेश शनि", te: "యోగకారక శుక్రుడు & లగ్నాధిపతి శని", ta: "யோககாரக சுக்கிரன் & லக்னாதிபதி சனி" },
+    11: { graha: PlanetName.Mars, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Mars & Ascendant Lord Jupiter", hi: "भाग्येश मंगल एवं लग्नेश गुरु", te: "భాగ్యాధిపతి కుజుడు & లగ్నాధిపతి గురుడు", ta: "பாக்யாதிபதி செவ்வாய் & லக்னாதிபதி குரு" }
   };
   const catalyst = catalystByLagna[lagnaRashiIndex] || catalystByLagna[0];
 
@@ -3133,67 +3137,198 @@ export function generateKundliRemedyReport(
   const turnaroundTimelineKn = dashaTiming?.timelineKn || `ಮುಂದಿನ ${timingMonths} ತಿಂಗಳುಗಳಲ್ಲಿ`;
   const turnaroundTimelineEn = dashaTiming?.timelineEn || `over the Next ${timingMonths} Month${timingMonths > 1 ? "s" : ""}`;
 
-  let breakthroughMechanismKn = `ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಸಂಚಾರದಲ್ಲಿ ಯೋಗಕಾರಕ ಗ್ರಹದ ಬಲದಿಂದ ಕರ್ಮಬಂಧ ಕರಗಿ ಭಾಗ್ಯೋದಯದ ಹೊಸ ಹಾದಿ ತೆರೆದುಕೊಳ್ಳಲಿದೆ.`;
-  let breakthroughMechanismEn = `Under current planetary transit and benefic catalyst support, karmic roadblocks dissolve, opening clear breakthrough horizons.`;
-  let turnaroundSevaKn = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ & ನವಗ್ರಹ ಶಾಂತಿ`;
-  let turnaroundSevaEn = `Sri Kshetra Gokarna Mahabaleshwara Atmalinga Ksheerabhisheka & Navagraha Shanti`;
+  const timeline5L: Record<string, string> = {
+    kn: turnaroundTimelineKn,
+    en: turnaroundTimelineEn,
+    hi: `आगामी ${timingMonths} महीनों में`,
+    te: `రాబోయే ${timingMonths} నెలల్లో`,
+    ta: `அடுத்த ${timingMonths} மாதங்களில்`
+  };
 
-  if (struggleCategory === "marriage_delay") {
-    breakthroughMechanismKn = `ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಸಂಚಾರದಲ್ಲಿ ಕಂಕಣ ಬಲ ಜಾಗೃತಗೊಂಡು, ಸಪ್ತಮಾಧಿಪತಿ ಹಾಗೂ ಗುರು ಕೃಪೆಯಿಂದ ಸಕಲ ವಿವಾಹ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿಶ್ಚಿತಾರ್ಥ ನೆರವೇರಲಿದೆ.`;
-    breakthroughMechanismEn = `Matrimonial alignments awaken under Jupiter-Venus benefic transit, dissolving delay doshas and sealing an auspicious match.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆ & ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಹೋಮ`;
-    turnaroundSevaEn = `Gokarna Uma-Maheshwara Kalyana Pooja & Swayamvara Parvati Homa`;
-  } else if (struggleCategory === "student_academic") {
-    breakthroughMechanismKn = `ಬುದ್ಧಿಕಾರಕ ಬುಧ ಹಾಗೂ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿಯ ಅನುಗ್ರಹದಿಂದ ಏಕಾಗ್ರತೆ ಹೆಚ್ಚಿ, ಮುಂಬರುವ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಅತ್ಯುನ್ನತ ಶ್ರೇಣಿ ಹಾಗೂ ಕಾಲೇಜು ಪ್ರವೇಶಾವಕಾಶ ಲಭಿಸಲಿದೆ.`;
-    breakthroughMechanismEn = `Cognitive clarity sharpens under Mercury and Dakshinamurthy alignment, eliminating exam anxiety and securing academic honors.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸಂಕಲ್ಪ & ವಿದ್ಯಾ ಗಣಪತಿ ಪೂಜೆ`;
-    turnaroundSevaEn = `Gokarna Medha Dakshinamurthy Sankalpa & Vidya Ganapati Pooja`;
-  } else if (struggleCategory === "debt_financial") {
-    breakthroughMechanismKn = `ಧನಕಾರಕ ಗುರು ಹಾಗೂ ಕುಬೇರ ಸಂಕಲ್ಪದಿಂದ ಸಾಲ ಮರುಪಾವತಿಗೆ ನೂತನ ಆರ್ಥಿಕ ಆದಾಯ ಮೂಲಗಳು ತೆರೆದುಕೊಂಡು ಬಿಕ್ಕಟ್ಟು ಸಂಪೂರ್ಣ ಶಮನವಾಗಲಿದೆ.`;
-    breakthroughMechanismEn = `Fresh liquidity channels open under Dhanakaraka Jupiter transit, enabling systematic debt clearance and wealth stability.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಗೋಕರ್ಣದಲ್ಲಿ ಋಣವಿಮೋಚನ ಅಂಗಾರಕ ಪೂಜೆ & ಕನಕಧಾರಾ ಮಹಾಲಕ್ಷ್ಮೀ ಸಂಕಲ್ಪ`;
-    turnaroundSevaEn = `Gokarna Runa Vimochana Angaraka Pooja & Kanakadhara Mahalakshmi Sankalpa`;
-  } else if (struggleCategory === "leadership_expansion") {
-    breakthroughMechanismKn = `೧೦ನೇ ಕೀರ್ತಿ ಸ್ಥಾನದ ರಾಜಯೋಗ ಬಲದಿಂದ ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ ಹಾಗೂ ಜಾಗತಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಅಖಂಡ ಯಶಸ್ಸು ಮುಂದುವರಿಯಲಿದೆ.`;
-    breakthroughMechanismEn = `High-level 10th house Raja Yoga continues scaling executive authority, institutional expansion, and global renown.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರಾಜಯೋಗ ಸಂಪದ ಮಹಾಪೂಜೆ & ಸುವರ್ಣ ಸಂಕಲ್ಪ ಸೇವೆ`;
-    turnaroundSevaEn = `Gokarna Raja Yoga Sampada Maha Pooja & Suvarna Sankalpa Seva`;
-  } else if (struggleCategory === "creative_stardom") {
-    breakthroughMechanismKn = `೫ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರ-ಬುಧರ ಕಲಾತ್ಮಕ ಯೋಗದಿಂದ ನೂತನ ಸೃಷ್ಟಿಗೆ ಅಪಾರ ಜಾಗತಿಕ ಮನ್ನಣೆ ಹಾಗೂ ಕೋಟ್ಯಂತರ ರಸಿಕರ ಪ್ರೀತಿ ದಕ್ಕಲಿದೆ.`;
-    breakthroughMechanismEn = `Artistic innovation reaches peak resonance under 5th house Venus alignments, commanding global viral reach and fan acclaim.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತಿ-ಲಕ್ಷ್ಮೀ ಗಾನ-ಕಲಾ ಸಿದ್ಧಿ ಮಹಾಪೂಜೆ`;
-    turnaroundSevaEn = `Gokarna Saraswati-Lakshmi Gana-Kala Siddhi Maha Pooja`;
-  } else if (struggleCategory === "elite_sports") {
-    breakthroughMechanismKn = `ಕುಜ-ರವಿ ತೇಜಸ್ಸಿನಿಂದ ಕ್ರೀಡಾ ಪರಾಕ್ರಮ ಉತ್ತುಂಗಕ್ಕೇರಿ ಮುಂಬರುವ ಪ್ರಮುಖ ಪಂದ್ಯಾವಳಿಗಳಲ್ಲಿ ನೂತನ ದಾಖಲೆಗಳು ನಿರ್ಮಾಣವಾಗಿ ಚಾಂಪಿಯನ್ ಕಿರೀಟ ಲಭಿಸಲಿದೆ.`;
-    breakthroughMechanismEn = `Unstoppable Mars-Sun athletic stamina manifests in major tournaments, securing championship trophies and physical supremacy.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ತೇಜಸ್ಸು ಪೂಜೆ & ಆದಿತ್ಯ ಹೃದಯ ಮಹಾಸಂಕಲ್ಪ`;
-    turnaroundSevaEn = `Gokarna Subrahmanya Tejas Pooja & Aditya Hrudaya Maha Sankalpa`;
-  } else if (struggleCategory === "legal_confinement") {
-    breakthroughMechanismKn = `ಸುದರ್ಶನ ನರಸಿಂಹ ಹಾಗೂ ಕಾಲಭೈರವ ಕೃಪೆಯಿಂದ ನ್ಯಾಯಾಲಯ ವ್ಯಾಜ್ಯಗಳು ಶೀಘ್ರ ಇತ್ಯರ್ಥವಾಗಿ ಸತ್ಯಕ್ಕೆ ಜಯ ಲಭಿಸಲಿದೆ.`;
-    breakthroughMechanismEn = `Legal gridlocks dissolve through Sudarshana Narasimha shielding, establishing righteous vindication and peaceful release.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುದರ್ಶನ ನರಸಿಂಹ ಜಪ & ಬಗಲಾಮುಖೀ ರಕ್ಷಾ ಕವಚ ಪೂಜೆ`;
-    turnaroundSevaEn = `Gokarna Sudarshana Narasimha Japa & Bagalamukhi Raksha Kavacha Pooja`;
-  } else if (struggleCategory === "health_vitality") {
-    breakthroughMechanismKn = `ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪದಿಂದ ಜೀವಧಾತು ಪುನಶ್ಚೇತನಗೊಂಡು, ದೈಹಿಕ ನವಚೈತನ್ಯ ಹಾಗೂ ಸಂಪೂರ್ಣ ಆರೋಗ್ಯ ಸಿದ್ಧಿಸಲಿದೆ.`;
-    breakthroughMechanismEn = `Cellular rejuvenation accelerates under Mahamrityunjaya shanti, restoring robust immunity, energy, and physical vitality.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ & ಆಯುಷ್ಯ ಹೋಮ`;
-    turnaroundSevaEn = `Gokarna Mahamrityunjaya Tailabhisheka & Ayushya Homa`;
-  } else if (struggleCategory === "relationship_friction") {
-    breakthroughMechanismKn = `ಉಮಾ-ಮಹೇಶ್ವರ ಕೃಪೆಯಿಂದ ಸಂಗಾತಿಗಳ ನಡುವಿನ ಅಪಾರ್ಥಗಳು ಕರಗಿ, ಪರಸ್ಪರ ಪ್ರೇಮ, ವಿಶ್ವಾಸ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಮರಳಲಿದೆ.`;
-    breakthroughMechanismEn = `Marital emotional distance dissolves under Uma-Maheshwara grace, re-establishing deep affection and domestic peace.`;
-    turnaroundSevaKn = `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಶಾಂತಿ ಪೂಜೆ`;
-    turnaroundSevaEn = `Gokarna Uma-Maheshwara Shanti Pooja`;
-  } else if (struggleCategory === "anger_temper") {
-    breakthroughMechanismKn = `ಸೋಮ-ಚಂದ್ರ ಹಾಗೂ ಕುಜ ಶಾಂತಿಯಿಂದ ಆಂತರಿಕ ಪಿತ್ತ ತಾಪ ಕರಗಿ, ವಿವೇಕಯುತ ಶಾಂತ ನಿರ್ಧಾರಗಳಿಂದ ಸರ್ವ ವಿಜಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`;
-    breakthroughMechanismEn = `High Pitta turbulence quenches under Soma-Mars shanti, restoring crystal-clear equanimity and harmonious communication.`;
-    turnaroundSevaKn = `ಗೋಕರ್ಣ ಕುಜ ಶಾಂತಿ, ತಾಮ್ರಾಭಿಷೇಕ & ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ`;
-    turnaroundSevaEn = `Gokarna Kuja Shanti, Copper Abhisheka & Subrahmanya Seva`;
-  } else if (struggleCategory === "career_obstacles") {
-    breakthroughMechanismKn = `ಶನಿ ಮಹಾತ್ಮನ ಕೃಪೆ ಮತ್ತು ಗೋಚಾರ ಗುರು ಬಲದಿಂದ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಉದ್ಯೋಗಾವಕಾಶ ಹಾಗೂ ಗೌರವಯುತ ಬಡ್ತಿ ಲಭಿಸಲಿದೆ.`;
-    breakthroughMechanismEn = `Saturnian delays transmute into enduring professional momentum, elevating native into a stable career breakthrough.`;
-    turnaroundSevaKn = `ಗೋಕರ್ಣ ಶನಿ-ಶಿವಾಭಿಷೇಕ & ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ`;
-    turnaroundSevaEn = `Gokarna Shani-Shiva Tailabhisheka & Mrityunjaya Shanti`;
-  }
+  const catalystGraha5L: Record<string, string> = {
+    kn: catalyst.kn,
+    en: catalyst.en,
+    hi: catalyst.hi || catalyst.en,
+    te: catalyst.te || catalyst.en,
+    ta: catalyst.ta || catalyst.en
+  };
+
+  const breakthroughMechanism5L: Record<string, Record<string, string>> = {
+    general_alignment: {
+      kn: `ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಸಂಚಾರದಲ್ಲಿ ಯೋಗಕಾರಕ ಗ್ರಹದ ಬಲದಿಂದ ಕರ್ಮಬಂಧ ಕರಗಿ ಭಾಗ್ಯೋದಯದ ಹೊಸ ಹಾದಿ ತೆರೆದುಕೊಳ್ಳಲಿದೆ.`,
+      en: `Under current planetary transit and benefic catalyst support, karmic roadblocks dissolve, opening clear breakthrough horizons.`,
+      hi: `वर्तमान दशा-भुक्ति एवं योगकारक ग्रह के प्रभाव से समस्त कर्म बंधन शांत होकर भाग्योदय का मार्ग प्रशस्त होगा।`,
+      te: `ప్రస్తుత దశా-భుక్తి ప్రభావం మరియు యోగకారక గ్రహ బలం వల్ల కర్మ బంధాలు తొలగి భాగ్యోదయ మార్గం సుగమమవుతుంది.`,
+      ta: `நடப்பு திசா-புக்தி மற்றும் யோககாரக கிரக பலத்தால் தடைகள் நீங்கி சுப யோகமும் பாக்கியமும் கூடும்.`
+    },
+    marriage_delay: {
+      kn: `ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಸಂಚಾರದಲ್ಲಿ ಕಂಕಣ ಬಲ ಜಾಗೃತಗೊಂಡು, ಸಪ್ತಮಾಧಿಪತಿ ಹಾಗೂ ಗುರು ಕೃಪೆಯಿಂದ ಸಕಲ ವಿವಾಹ ವಿಘ್ನಗಳು ನಿವಾರಣೆಯಾಗಿ ನಿಶ್ಚಿತಾರ್ಥ ನೆರವೇರಲಿದೆ.`,
+      en: `Matrimonial alignments awaken under Jupiter-Venus benefic transit, dissolving delay doshas and sealing an auspicious match.`,
+      hi: `वर्तमान दशा क्रम में कंकण बल जागृत होकर गुरु-शुक्र कृपा से विवाह की बाधाएं शांत होंगी एवं शीघ्र सगाई होगी।`,
+      te: `ప్రస్తుత దశా కాలంలో కంకణ బలం చేకూరి గురు-శుక్రుల అనుగ్రహంతో వివాహ విఘ్నాలు తొలగి శుభకార్యం జరుగుతుంది.`,
+      ta: `நடப்பு திசா காலத்தில் மங்கல யோகம் கூடி, குரு-சுக்கிரன் அருளால் திருமண தடைகள் விலகி திருமணம் நிச்சயிக்கப்படும்.`
+    },
+    student_academic: {
+      kn: `ಬುದ್ಧಿಕಾರಕ ಬುಧ ಹಾಗೂ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿಯ ಅನುಗ್ರಹದಿಂದ ಏಕಾಗ್ರತೆ ಹೆಚ್ಚಿ, ಮುಂಬರುವ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಅತ್ಯುನ್ನತ ಶ್ರೇಣಿ ಹಾಗೂ ಕಾಲೇಜು ಪ್ರವೇಶಾವಕಾಶ ಲಭಿಸಲಿದೆ.`,
+      en: `Cognitive clarity sharpens under Mercury and Dakshinamurthy alignment, eliminating exam anxiety and securing academic honors.`,
+      hi: `बुद्धि कारक बुध एवं मेधा दक्षिणामूर्ति कृपा से एकाग्रता बढ़कर आगामी परीक्षाओं में उत्कृष्ट सफलता प्राप्त होगी।`,
+      te: `బుద్ధి కారక బుధుడు మరియు మేధా దక్షిణామూర్తి అనుగ్రహంతో ఏకాగ్రత పెరిగి పరీక్షలలో ఉత్తమ ఫలితాలు లభిస్తాయి.`,
+      ta: `புதன் மற்றும் மேதா தட்சிணாமூர்த்தி அருளால் ஏகாக்கிரதை கூடி தேர்வுகளில் சிறந்த மதிப்பெண்கள் மற்றும் உயர்கல்வி வாய்ப்பு கிட்டும்.`
+    },
+    debt_financial: {
+      kn: `ಧನಕಾರಕ ಗುರು ಹಾಗೂ ಕುಬೇರ ಸಂಕಲ್ಪದಿಂದ ಸಾಲ ಮರುಪಾವತಿಗೆ ನೂತನ ಆರ್ಥಿಕ ಆದಾಯ ಮೂಲಗಳು ತೆರೆದುಕೊಂಡು ಬಿಕ್ಕಟ್ಟು ಸಂಪೂರ್ಣ ಶಮನವಾಗಲಿದೆ.`,
+      en: `Fresh liquidity channels open under Dhanakaraka Jupiter transit, enabling systematic debt clearance and wealth stability.`,
+      hi: `धनकारक गुरु एवं कुबेर कृपा से ऋणमुक्ति के नए आय स्रोत खुलेंगे तथा आर्थिक संकट समाप्त होगा।`,
+      te: `ధనకారక గురు మరియు కుబేర అనుగ్రహంతో రుణాలు తీర్చడానికి నూతన ఆదాయ మార్గాలు ఏర్పడి ఆర్థిక సమస్యలు తీరుతాయి.`,
+      ta: `தனகாரக குரு மற்றும் குபேர அருளால் கடன் அடைக்க புதிய வருமான வழிகள் பிறந்து பொருளாதார நெருக்கடி நீங்கும்.`
+    },
+    leadership_expansion: {
+      kn: `೧೦ನೇ ಕೀರ್ತಿ ಸ್ಥಾನದ ರಾಜಯೋಗ ಬಲದಿಂದ ಸಾಂಸ್ಥಿಕ ನಾಯಕತ್ವ ಹಾಗೂ ಜಾಗತಿಕ ನಿರ್ಧಾರಗಳಲ್ಲಿ ಅಖಂಡ ಯಶಸ್ಸು ಮುಂದುವರಿಯಲಿದೆ.`,
+      en: `High-level 10th house Raja Yoga continues scaling executive authority, institutional expansion, and global renown.`,
+      hi: `दशम भाव के राजयोग से नेतृत्व क्षमता और बड़े निर्णयों में अभूतपूर्व सफलता प्राप्त होगी।`,
+      te: `10వ భావ రాజయోగ బలం వల్ల సంస్థాగత నాయకత్వంలో మరియు కీలక నిర్ణయాలలో సంపూర్ణ విజయం లభిస్తుంది.`,
+      ta: `10ம் இடத்து ராஜயோகத்தால் தலைமைத்துவமும் நிர்வாக முடிவுகளில் பெரும் வெற்றியும் புகழும் கிட்டும்.`
+    },
+    creative_stardom: {
+      kn: `೫ನೇ ಪ್ರತಿಭಾ ಸ್ಥಾನ ಹಾಗೂ ಶುಕ್ರ-ಬುಧರ ಕಲಾತ್ಮಕ ಯೋಗದಿಂದ ನೂತನ ಸೃಷ್ಟಿಗೆ ಅಪಾರ ಜಾಗತಿಕ ಮನ್ನಣೆ ಹಾಗೂ ಕೋಟ್ಯಂತರ ರಸಿಕರ ಪ್ರೀತಿ ದಕ್ಕಲಿದೆ.`,
+      en: `Artistic innovation reaches peak resonance under 5th house Venus alignments, commanding global viral reach and fan acclaim.`,
+      hi: `पंचम कला भाव एवं शुक्र-बुध योग से नवीन सृजन को अंतरराष्ट्रीय ख्याति एवं अपार जनसमर्थन मिलेगा।`,
+      te: `5వ కళా భావం మరియు శుక్ర-బుధుల యోగంతో నూతన సృష్టికి విశేష ప్రజాదరణ మరియు కీర్తి లభిస్తాయి.`,
+      ta: `5ம் கலை ஸ்தானம் மற்றும் சுக்கிர-புதன் சேர்க்கையால் புதிய படைப்புகளுக்கு உலகளாவிய பாராட்டும் மக்கள் செல்வாக்கும் கூடும்.`
+    },
+    elite_sports: {
+      kn: `ಕುಜ-ರವಿ ತೇಜಸ್ಸಿನಿಂದ ಕ್ರೀಡಾ ಪರಾಕ್ರಮ ಉತ್ತುಂಗಕ್ಕೇರಿ ಮುಂಬರುವ ಪ್ರಮುಖ ಪಂದ್ಯಾವಳಿಗಳಲ್ಲಿ ನೂತನ ದಾಖಲೆಗಳು ನಿರ್ಮಾಣವಾಗಿ ಚಾಂಪಿಯನ್ ಕಿರೀಟ ಲಭಿಸಲಿದೆ.`,
+      en: `Unstoppable Mars-Sun athletic stamina manifests in major tournaments, securing championship trophies and physical supremacy.`,
+      hi: `मंगल-सूर्य के तेज से खेलकूद में पराक्रम बढ़कर आगामी प्रतियोगिताओं में कीर्तिमान और विजय प्राप्त होगी।`,
+      te: `కుజ-సూర్య బలంతో క్రీడల్లో అద్భుత ప్రతిభ కనబరచి చాంపియన్ విజయాలు సాధిస్తారు.`,
+      ta: `செவ்வாய்-சூரியன் தேஜஸால் விளையாட்டில் அசுர பலமும் புதிய சாதனைகளும் சாம்பியன் பட்டமும் கிட்டும்.`
+    },
+    legal_confinement: {
+      kn: `ಸುದರ್ಶನ ನರಸಿಂಹ ಹಾಗೂ ಕಾಲಭೈರವ ಕೃಪೆಯಿಂದ ನ್ಯಾಯಾಲಯ ವ್ಯಾಜ್ಯಗಳು ಶೀಘ್ರ ಇತ್ಯರ್ಥವಾಗಿ ಸತ್ಯಕ್ಕೆ ಜಯ ಲಭಿಸಲಿದೆ.`,
+      en: `Legal gridlocks dissolve through Sudarshana Narasimha shielding, establishing righteous vindication and peaceful release.`,
+      hi: `सुदर्शन नृसिंह एवं कालभैरव कृपा से कानूनी विवाद शीघ्र सुलझेंगे और सत्य की विजय होगी।`,
+      te: `సుదర్శన నరసింహ మరియు కాలభైరవ అనుగ్రహంతో న్యాయ వివాదాలు పరిష్కారమై సత్యానికి విజయం లభిస్తుంది.`,
+      ta: `சுதர்சன நரசிம்மர் மற்றும் காலபைரவர் அருளால் வழக்குகள் சாதகமாக முடிந்து சத்தியத்திற்கு வெற்றி கிட்டும்.`
+    },
+    health_vitality: {
+      kn: `ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪದಿಂದ ಜೀವಧಾತು ಪುನಶ್ಚೇತನಗೊಂಡು, ದೈಹಿಕ ನವಚೈತನ್ಯ ಹಾಗೂ ಸಂಪೂರ್ಣ ಆರೋಗ್ಯ ಸಿದ್ಧಿಸಲಿದೆ.`,
+      en: `Cellular rejuvenation accelerates under Mahamrityunjaya shanti, restoring robust immunity, energy, and physical vitality.`,
+      hi: `महामृत्युंजय अनुष्ठान से प्राण ऊर्जा पुनः जाग्रत होकर उत्तम स्वास्थ्य एवं दीर्घायु की प्राप्ति होगी।`,
+      te: `మహామృత్యుంజయ సంకల్పంతో శరీరంలో నూతన చైతన్యం పెరిగి సంపూర్ణ ఆరోగ్యం చేకూరుతుంది.`,
+      ta: `மகா மிருத்யுஞ்சய பூஜையால் நோய் எதிர்ப்பு சக்தி அதிகரித்து பூரண ஆரோக்கியமும் புத்துணர்ச்சியும் உண்டாகும்.`
+    },
+    relationship_friction: {
+      kn: `ಉಮಾ-ಮಹೇಶ್ವರ ಕೃಪೆಯಿಂದ ಸಂಗಾತಿಗಳ ನಡುವಿನ ಅಪಾರ್ಥಗಳು ಕರಗಿ, ಪರಸ್ಪರ ಪ್ರೇಮ, ವಿಶ್ವಾಸ ಹಾಗೂ ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಮರಳಲಿದೆ.`,
+      en: `Marital emotional distance dissolves under Uma-Maheshwara grace, re-establishing deep affection and domestic peace.`,
+      hi: `उमा-महेश्वर कृपा से दांपत्य के मतभेद समाप्त होकर परस्पर प्रेम और सुख-शांति लौटेगी।`,
+      te: `ఉమా-మహేశ్వర అనుగ్రహంతో దంపతుల మధ్య అపార్థాలు తొలగి పరస్పర ప్రేమ మరియు కుటుంబ శాంతి లభిస్తాయి.`,
+      ta: `உமா-மஹேஸ்வரர் அருளால் தம்பதியரிடையே உள்ள கருத்து வேறுபாடுகள் நீங்கி அன்பும் அமைதியும் நிலவும்.`
+    },
+    anger_temper: {
+      kn: `ಸೋಮ-ಚಂದ್ರ ಹಾಗೂ ಕುಜ ಶಾಂತಿಯಿಂದ ಆಂತರಿಕ ಪಿತ್ತ ತಾಪ ಕರಗಿ, ವಿವೇಕಯುತ ಶಾಂತ ನಿರ್ಧಾರಗಳಿಂದ ಸರ್ವ ವಿಜಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`,
+      en: `High Pitta turbulence quenches under Soma-Mars shanti, restoring crystal-clear equanimity and harmonious communication.`,
+      hi: `सोम-मंगल शांति से आंतरिक पित्त शांत होकर विवेकपूर्ण निर्णयों से सफलता मिलेगी।`,
+      te: `సోమ-కుజ శాంతితో కోపం తగ్గి వివేకవంతమైన నిర్ణయాలతో విజయం సాధిస్తారు.`,
+      ta: `சோம-செவ்வாய் சாந்தியால் கோபம் தணிந்து நிதானமான முடிவுகளால் காரிய வெற்றி கிட்டும்.`
+    },
+    career_obstacles: {
+      kn: `ಶನಿ ಮಹಾತ್ಮನ ಕೃಪೆ ಮತ್ತು ಗೋಚಾರ ಗುರು ಬಲದಿಂದ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ನೂತನ ಉದ್ಯೋಗಾವಕಾಶ ಹಾಗೂ ಗೌರವಯುತ ಬಡ್ತಿ ಲಭಿಸಲಿದೆ.`,
+      en: `Saturnian delays transmute into enduring professional momentum, elevating native into a stable career breakthrough.`,
+      hi: `शनि देव की कृपा एवं गुरु बल से कार्यक्षेत्र में पदोन्नति एवं नवीन आजीविका अवसर प्राप्त होंगे।`,
+      te: `శని దేవుని కృప మరియు గురు బలంతో ఉద్యోగంలో పదోన్నతి మరియు నూతన అవకాశాలు లభిస్తాయి.`,
+      ta: `சனி பகவான் அருள் மற்றும் குரு பலத்தால் பணியிடத்தில் பதவி உயர்வு மற்றும் புதிய வேலை வாய்ப்புகள் அமையும்.`
+    }
+  };
+
+  const turnaroundSeva5L: Record<string, Record<string, string>> = {
+    general_alignment: {
+      kn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಆತ್ಮಲಿಂಗ ಕ್ಷೀರಾಭಿಷೇಕ & ನವಗ್ರಹ ಶಾಂತಿ`,
+      en: `Sri Kshetra Gokarna Mahabaleshwara Atmalinga Ksheerabhisheka & Navagraha Shanti`,
+      hi: `श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधि में आत्मलिंग क्षीराभिषेक एवं नवग्रह शांति`,
+      te: `శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో ఆత్మలింగ క్షీరాభిషేకం & నవగ్రహ శాంతి`,
+      ta: `ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதியில் ஆத்மலிங்க பாலாபிஷேகம் & நவக்கிரக சாந்தி`
+    },
+    marriage_delay: {
+      kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಕಲ್ಯಾಣ ಪೂಜೆ & ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಹೋಮ`,
+      en: `Gokarna Uma-Maheshwara Kalyana Pooja & Swayamvara Parvati Homa`,
+      hi: `गोकर्ण महाबलेश्वर सन्निधि में उमा-महेश्वर कल्याण पूजा एवं स्वयंवर पार्वती होम`,
+      te: `గోకర్ణ మహాబలేశ్వర సన్నిధిలో ఉమా-మహేశ్వర కళ్యాణ పూజ & స్వయంవర పార్వతీ హోమం`,
+      ta: `கோகர்ண மகாபலேஸ்வரர் சந்நிதியில் உமா-மஹேஸ்வரர் கல்யாண பூஜை & சுயம்வர பார்வதி ஹோமம்`
+    },
+    student_academic: {
+      kn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸಂಕಲ್ಪ & ವಿದ್ಯಾ ಗಣಪತಿ ಪೂಜೆ`,
+      en: `Gokarna Medha Dakshinamurthy Sankalpa & Vidya Ganapati Pooja`,
+      hi: `गोकर्ण क्षेत्र में मेधा दक्षिणामूर्ति संकल्प एवं विद्या गणपति पूजा`,
+      te: `గోకర్ణంలో మేధా దక్షిణామూర్తి సంకల్పం & విద్యా గణపతి పూజ`,
+      ta: `கோகர்ணத்தில் மேதா தட்சிணாமூர்த்தி சங்கல்பம் & வித்யா கணபதி பூஜை`
+    },
+    debt_financial: {
+      kn: `ಶ್ರೀ ಗೋಕರ್ಣದಲ್ಲಿ ಋಣವಿಮೋಚನ ಅಂಗಾರಕ ಪೂಜೆ & ಕನಕಧಾರಾ ಮಹಾಲಕ್ಷ್ಮೀ ಸಂಕಲ್ಪ`,
+      en: `Gokarna Runa Vimochana Angaraka Pooja & Kanakadhara Mahalakshmi Sankalpa`,
+      hi: `गोकर्ण में ऋणविमोचन अंगारक पूजा एवं कनकधारा महालक्ष्मी संकल्प`,
+      te: `గోకర్ణంలో ఋణవిమోచన అంగారక పూజ & కనకధారా మహాలక్ష్మీ సంకల్పం`,
+      ta: `கோகர்ணத்தில் ருணவிமோசன அங்காரக பூஜை & கனகதாரா மகாலட்சுமி சங்கல்பம்`
+    },
+    leadership_expansion: {
+      kn: `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರಾಜಯೋಗ ಸಂಪದ ಮಹಾಪೂಜೆ & ಸುವರ್ಣ ಸಂಕಲ್ಪ ಸೇವೆ`,
+      en: `Gokarna Raja Yoga Sampada Maha Pooja & Suvarna Sankalpa Seva`,
+      hi: `महाबलेश्वर सन्निधि में राजयोग संपदा महापूजा एवं सुवर्ण संकल्प सेवा`,
+      te: `మహాబలేశ్వర సన్నిధిలో రాజయోగ సంపద మహాపూజ & సువర్ణ సంకల్ప సేవ`,
+      ta: `மகாபலேஸ்வரர் சந்நிதியில் ராஜயோக சம்பத மகாபூஜை & சுவர்ண சங்கல்ப சேவை`
+    },
+    creative_stardom: {
+      kn: `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸರಸ್ವತಿ-ಲಕ್ಷ್ಮೀ ಗಾನ-ಕಲಾ ಸಿದ್ಧಿ ಮಹಾಪೂಜೆ`,
+      en: `Gokarna Saraswati-Lakshmi Gana-Kala Siddhi Maha Pooja`,
+      hi: `महाबलेश्वर सन्निधि में सरस्वती-लक्ष्मी गान-कला सिद्धि महापूजा`,
+      te: `మహాబలేశ్వర సన్నిధిలో సరస్వతి-లక్ష్మీ గాన-కళా సిద్ధి మహాపూజ`,
+      ta: `மகாபலேஸ்வரர் சந்நிதியில் சரஸ்வதி-லட்சுமி கான-கலா சித்தி மகாபூஜை`
+    },
+    elite_sports: {
+      kn: `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುಬ್ರಹ್ಮಣ್ಯ ತೇಜಸ್ಸು ಪೂಜೆ & ಆದಿತ್ಯ ಹೃದಯ ಮಹಾಸಂಕಲ್ಪ`,
+      en: `Gokarna Subrahmanya Tejas Pooja & Aditya Hrudaya Maha Sankalpa`,
+      hi: `महाबलेश्वर सन्निधि में सुब्रह्मण्य तेजस पूजा एवं आदित्य हृदय महासंकल्प`,
+      te: `మహాబలేశ్వర సన్నిధిలో సుబ్రహ్మణ్య తేజస్సు పూజ & ఆదిత్య హృదయ మహాసంకల్పం`,
+      ta: `மகாபலேஸ்வரர் சந்நிதியில் சுப்பிரமணிய தேஜஸ் பூஜை & ஆதித்ய ஹிருதய மகாசங்கல்பம்`
+    },
+    legal_confinement: {
+      kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸುದರ್ಶನ ನರಸಿಂಹ ಜಪ & ಬಗಲಾಮುಖೀ ರಕ್ಷಾ ಕವಚ ಪೂಜೆ`,
+      en: `Gokarna Sudarshana Narasimha Japa & Bagalamukhi Raksha Kavacha Pooja`,
+      hi: `गोकर्ण सन्निधि में सुदर्शन नृसिंह जप एवं बगलामुखी रक्षा कवच पूजा`,
+      te: `గోకర్ణ సన్నిధిలో సుదర్శన నరసింహ జపం & బగలాముఖీ రక్షా కవచ పూజ`,
+      ta: `கோகர்ண சந்நிதியில் சுதர்சன நரசிம்மர் ஜெபம் & பகளாமுகி ரக்ஷா கவச பூஜை`
+    },
+    health_vitality: {
+      kn: `ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ & ಆಯುಷ್ಯ ಹೋಮ`,
+      en: `Gokarna Mahamrityunjaya Tailabhisheka & Ayushya Homa`,
+      hi: `महाबलेश्वर सन्निधि में महामृत्युंजय तैलाभिषेक एवं आयुष्य होम`,
+      te: `మహాబలేశ్వర సన్నిధిలో మహామృత్యుంజయ తైలాభిషేకం & ఆయుష్య హోమం`,
+      ta: `மகாபலேஸ்வரர் சந்நிதியில் மகா மிருத்யுஞ்சய தைலாபிஷேகம் & ஆயுஷ்ய ஹோமம்`
+    },
+    relationship_friction: {
+      kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಉಮಾ-ಮಹೇಶ್ವರ ಶಾಂತಿ ಪೂಜೆ`,
+      en: `Gokarna Uma-Maheshwara Shanti Pooja`,
+      hi: `गोकर्ण महाबलेश्वर सन्निधि में उमा-महेश्वर शांति पूजा`,
+      te: `గోకర్ణ మహాబలేశ్వర సన్నిధిలో ఉమా-మహేశ్వర శాంతి పూజ`,
+      ta: `கோகர்ண மகாபலேஸ்வரர் சந்நிதியில் உமா-மஹேஸ்வரர் சாந்தி பூஜை`
+    },
+    anger_temper: {
+      kn: `ಗೋಕರ್ಣ ಕುಜ ಶಾಂತಿ, ತಾಮ್ರಾಭಿಷೇಕ & ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ`,
+      en: `Gokarna Kuja Shanti, Copper Abhisheka & Subrahmanya Seva`,
+      hi: `गोकर्ण में मंगल शांति, ताम्राभिषेक एवं सुब्रह्मण्य सेवा`,
+      te: `గోకర్ణంలో కుజ శాంతి, తామ్రాభిషేకం & సుబ్రహ్మణ్య సేవ`,
+      ta: `கோகர்ணத்தில் செவ்வாய் சாந்தி, தாம்பிராபிஷேகம் & சுப்பிரமணியர் பூஜை`
+    },
+    career_obstacles: {
+      kn: `ಗೋಕರ್ಣ ಶನಿ-ಶಿವಾಭಿಷೇಕ & ಮಹಾಮೃತ್ಯುಂಜಯ ತೈಲಾಭಿಷೇಕ`,
+      en: `Gokarna Shani-Shiva Tailabhisheka & Mrityunjaya Shanti`,
+      hi: `गोकर्ण में शनि-शिवाभिषेक एवं महामृत्युंजय तैलाभिषेक`,
+      te: `గోకర్ణంలో శని-శివాభిషేకం & మహామృత్యుంజయ తైలాభిషేకం`,
+      ta: `கோகர்ணத்தில் சனி-சிவாபிஷேகம் & மகா மிருத்யுஞ்சய தைலாபிஷேகம்`
+    }
+  };
+
+  const mech5L = breakthroughMechanism5L[struggleCategory] || breakthroughMechanism5L.general_alignment;
+  const seva5L = turnaroundSeva5L[struggleCategory] || turnaroundSeva5L.general_alignment;
 
   const milestones = getTurnaroundMilestones(struggleCategory);
 
@@ -3202,10 +3337,14 @@ export function generateKundliRemedyReport(
     timelineEn: turnaroundTimelineEn,
     catalystGrahaKn: catalyst.kn,
     catalystGrahaEn: catalyst.en,
-    breakthroughMechanismKn,
-    breakthroughMechanismEn,
-    specificSevaKn: turnaroundSevaKn,
-    specificSevaEn: turnaroundSevaEn,
+    breakthroughMechanismKn: mech5L.kn,
+    breakthroughMechanismEn: mech5L.en,
+    specificSevaKn: seva5L.kn,
+    specificSevaEn: seva5L.en,
+    timeline: timeline5L,
+    catalystGraha: catalystGraha5L,
+    breakthroughMechanism: mech5L,
+    specificSeva: seva5L,
     astrologicalReason: milestones.astrologicalReason,
     beforeState: milestones.beforeState,
     afterState: milestones.afterState,
@@ -3815,28 +3954,414 @@ export function generateKundliRemedyReport(
   };
 
   // 7. Planetary Strength Remedies: Exalted & Debilitated Planets
-  const debilitationMap: Record<PlanetName, { sign: string; lord: PlanetName; remedyKn: string; remedyEn: string; cautionKn: string; cautionEn: string }> = {
-    [PlanetName.Sun]: { sign: "Libra", lord: PlanetName.Venus, remedyKn: "ಸೂರ್ಯ ಗಾಯತ್ರೀ ಜಪ, ಮಾಣಿಕ್ಯ ರತ್ನ ಧಾರಣೆ ಪರೀಕ್ಷೆ ಹಾಗೂ ತಂದೆಯ ಸೇವೆ.", remedyEn: "Surya Gayatri japa, Father's blessing, and Sunday Aditya Hrudaya.", cautionKn: "ತುಲಾ ಸೂರ್ಯನಿಗೆ ಮಾಣಿಕ್ಯ ಧರಿಸುವ ಮುನ್ನ ಲಗ್ನ ಶುಭತ್ವ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.", cautionEn: "Verify functional beneficence before Ruby." },
-    [PlanetName.Moon]: { sign: "Scorpio", lord: PlanetName.Mars, remedyKn: "ಚಂದ್ರಶೇಖರಾಷ್ಟಕ ಪಠಣ, ಸೋಮವಾರ ಶಿವನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಹಾಗೂ ಧ್ಯಾನ.", remedyEn: "Chandrashekhara Ashtakam, Monday Shiva milk abhisheka, and pranayama.", cautionKn: "ವೃಶ್ಚಿಕ ಚಂದ್ರನಿದ್ದಾಗ ಮುತ್ತು ಧರಿಸಿದರೆ ಮಾನಸಿಕ ಆತಂಕ ಹೆಚ್ಚಾಗಬಹುದು.", cautionEn: "Avoid Pearl for debilitated Moon unless cancelled." },
-    [PlanetName.Mars]: { sign: "Cancer", lord: PlanetName.Moon, remedyKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ, ಮಂಗಳವಾರ ತೊಗರಿಬೇಳೆ ದಾನ ಹಾಗೂ ಭೂಮಿ ವಂದನೆ.", remedyEn: "Subrahmanya worship, Tuesday toor dal charity, and honoring mother Earth.", cautionKn: "ಕಟಕ ಕುಜನಿಗೆ ಹವಳ ಧರಿಸುವುದರಿಂದ ರಕ್ತದೊತ್ತಡ ಏರುಪೇರಾಗಬಹುದು, ಎಚ್ಚರ.", cautionEn: "Red Coral for debilitated Mars requires careful scrutiny." },
-    [PlanetName.Mercury]: { sign: "Pisces", lord: PlanetName.Jupiter, remedyKn: "ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕ ದಾನ.", remedyEn: "Vishnu Sahasranama chanting, Tulasi seva, and donating books to needy scholars.", cautionKn: "ಮೀನ ಬುಧನಿಗೆ ಪಚ್ಚೆ ರತ್ನ ಧರಿಸುವ ಮುನ್ನ ನೀಚಭಂಗ ಪರೀಕ್ಷಿಸುವುದು ಅತ್ಯಗತ್ಯ.", cautionEn: "Verify Neecha Bhanga before wearing Emerald for debilitated Mercury." },
-    [PlanetName.Jupiter]: { sign: "Capricorn", lord: PlanetName.Saturn, remedyKn: "ಗುರು ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ, ಗುರುವಾರ ಕಡಲೆಬೇಳೆ ದಾನ ಹಾಗೂ ಶಿಕ್ಷಕರಿಗೆ ವಂದನೆ.", remedyEn: "Guru Dakshinamurthy worship, chana dal charity on Thursdays, and honoring teachers.", cautionKn: "ಮಕರ ಗುರುವಿನ ದುಸ್ಥಾನ ಸ್ಥಿತಿಯಲ್ಲಿ ಪುಷ್ಪರಾಗ ರತ್ನ ಧರಿಸುವುದು ಸೂಕ್ತವಲ್ಲ.", cautionEn: "Yellow Sapphire requires caution if debilitated Jupiter lacks Kendra cancellation." },
-    [PlanetName.Venus]: { sign: "Virgo", lord: PlanetName.Mercury, remedyKn: "ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಣ, ಬಿಳಿ ಹೂವುಗಳಿಂದ ಲಕ್ಷ್ಮೀ ಪೂಜೆ ಹಾಗೂ ಸ್ತ್ರೀಯರಿಗೆ ಗೌರವ.", remedyEn: "Kanakadhara Stotra recitation, white flower Lakshmi puja, and respecting women.", cautionKn: "ಕನ್ಯಾ ಶುಕ್ರನಿದ್ದಾಗ ವಜ್ರ ಧಾರಣೆಗಿಂತ ಗೋಸೇವೆ ಮತ್ತು ಲಕ್ಷ್ಮೀ ಉಪಾಸನೆ ಶ್ರೇಷ್ಠ.", cautionEn: "Prioritize Goseva and Lakshmi sadhana over Diamond when Venus is in Virgo." },
-    [PlanetName.Saturn]: { sign: "Aries", lord: PlanetName.Mars, remedyKn: "ದಶರಥ ಶನಿ ಸ್ತೋತ್ರ, ಅಶ್ವತ್ಥ ವೃಕ್ಷಕ್ಕೆ ಪ್ರದಕ್ಷಿಣೆ, ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಾಗೂ ಕಾಗೆಗಳಿಗೆ ಅನ್ನ.", remedyEn: "Dasharatha Shani Stotra, Peepal circumambulation, sesame oil lamp, and feeding crows.", cautionKn: "ಮೇಷ ಶನಿಯಿದ್ದಾಗ ನೀಲಂ (ಇಂದ್ರನೀಲ) ರತ್ನ ಧರಿಸುವುದು ಕಡ್ಡಾಯವಾಗಿ ನಿಷೇಧ.", cautionEn: "Blue Sapphire (Neelam) is prohibited for debilitated Saturn in Aries." },
-    [PlanetName.Rahu]: { sign: "Scorpio", lord: PlanetName.Mars, remedyKn: "ದುರ್ಗಾ ಸಪ್ತಶತೀ ಪಠಣ, ಗೋಕರ್ಣದಲ್ಲಿ ನಾಗರಾಜ ಪೂಜೆ ಹಾಗೂ ಶ್ವಾನಗಳಿಗೆ ಆಹಾರ.", remedyEn: "Durga Saptashati recitation, Nagaraja puja at Gokarna, and feeding stray dogs.", cautionKn: "ಗೋಮೇಧಿಕ ರತ್ನ ಧರಿಸಬಾರದು.", cautionEn: "Avoid Hessonite (Gomed) when Rahu is debilitated." },
-    [PlanetName.Ketu]: { sign: "Taurus", lord: PlanetName.Venus, remedyKn: "ಗಣೇಶ ಅಥರ್ವಶೀರ್ಷ ಪಠಣ ಹಾಗೂ ಬಡವರಿಗೆ ಕಂಬಳಿ ದಾನ.", remedyEn: "Ganesha Atharvashirsha chanting and blanket donation to the destitute.", cautionKn: "ವೈಢೂರ್ಯ ರತ್ನ ಧಾರಣೆ ಬೇಡ.", cautionEn: "Avoid Cat's Eye during debilitated Ketu." }
+  const debilitationMap: Record<PlanetName, {
+    sign: string;
+    lord: PlanetName;
+    remedy: Record<string, string>;
+    caution: Record<string, string>;
+    remedyKn: string;
+    remedyEn: string;
+    cautionKn: string;
+    cautionEn: string;
+  }> = {
+    [PlanetName.Sun]: {
+      sign: "Libra",
+      lord: PlanetName.Venus,
+      remedy: {
+        kn: "ಸೂರ್ಯ ಗಾಯತ್ರೀ ಜಪ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಣ ಹಾಗೂ ತಂದೆಯ ಆಶೀರ್ವಾದ ಪಡೆಯುವುದು.",
+        en: "Surya Gayatri japa, Sunday Aditya Hrudaya recitation, and honoring father's blessings.",
+        hi: "सूर्य गायत्री जप, रविवार को आदित्य हृदय स्तोत्र पाठ एवं पिता की सेवा व आशीर्वाद।",
+        te: "సూర్య గాయత్రీ జపం, ఆదిత్య హృదయ స్తోత్ర పఠనం మరియు తండ్రి ఆశీస్సులు పొందడం.",
+        ta: "சூரிய காயத்ரி ஜெபம், ஆதித்ய ஹிருதய ஸ்தோத்திரம் மற்றும் தந்தையின் ஆசி பெறுதல்."
+      },
+      caution: {
+        kn: "ತುಲಾ ಸೂರ್ಯನಿಗೆ ಮಾಣಿಕ್ಯ ಧರಿಸುವ ಮುನ್ನ ಲಗ್ನ ಶುಭತ್ವ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
+        en: "Verify functional beneficence before wearing Ruby for debilitated Sun.",
+        hi: "तुला राशि के नीच सूर्य में माणिक्य धारण करने से पूर्व लग्न शुद्धि अवश्य जांचें।",
+        te: "తుల సూర్యుడికి మాణిక్యం ధరించే ముందు లగ్న శుభత్వాన్ని తప్పక పరిశీలించాలి.",
+        ta: "துலாம் சூரியனுக்கு மாணிக்கம் அணியும் முன் லக்ன சுபத்துவத்தை உறுதிப்படுத்தவும்."
+      },
+      remedyKn: "ಸೂರ್ಯ ಗಾಯತ್ರೀ ಜಪ, ಮಾಣಿಕ್ಯ ರತ್ನ ಧಾರಣೆ ಪರೀಕ್ಷೆ ಹಾಗೂ ತಂದೆಯ ಸೇವೆ.",
+      remedyEn: "Surya Gayatri japa, Father's blessing, and Sunday Aditya Hrudaya.",
+      cautionKn: "ತುಲಾ ಸೂರ್ಯನಿಗೆ ಮಾಣಿಕ್ಯ ಧರಿಸುವ ಮುನ್ನ ಲಗ್ನ ಶುಭತ್ವ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
+      cautionEn: "Verify functional beneficence before Ruby."
+    },
+    [PlanetName.Moon]: {
+      sign: "Scorpio",
+      lord: PlanetName.Mars,
+      remedy: {
+        kn: "ಚಂದ್ರಶೇಖರಾಷ್ಟಕ ಪಠಣ, ಸೋಮವಾರ ಶಿವಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಹಾಗೂ ಪ್ರಾಣಾಯಾಮ.",
+        en: "Chandrashekhara Ashtakam, Monday Shiva milk abhisheka, and soothing pranayama.",
+        hi: "चन्द्रशेखराष्टक पाठ, सोमवार को शिवलिंग पर दुग्धाभिषेक एवं शांतिदायक प्राणायाम।",
+        te: "చంద్రశేఖరాష్టక పఠనం, సోమవారం శివునికి క్షీరాభిషేకం మరియు ధ్యానం.",
+        ta: "சந்திரசேகராஷ்டகம் பாராயணம், திங்கட்கிழமை சிவனுக்கு பாலாபிஷேகம் மற்றும் தியானம்."
+      },
+      caution: {
+        kn: "ವೃಶ್ಚಿಕ ಚಂದ್ರನಿದ್ದಾಗ ಮುತ್ತು ಧರಿಸಿದರೆ ಮಾನಸಿಕ ಆತಂಕ ಹೆಚ್ಚಾಗಬಹುದು, ಎಚ್ಚರ.",
+        en: "Avoid Pearl for debilitated Moon unless cancelled by strong Kendra lord.",
+        hi: "वृश्चिक चंद्र होने पर मोती धारण करने से मानसिक तनाव बढ़ सकता है, अतः बचें।",
+        te: "వృశ్చిక చంద్రుడికి ముత్యం ధరిస్తే మానసిక ఒత్తిడి పెరిగే అవకాశం ఉంది, జాగ్రత్త.",
+        ta: "விருச்சிக சந்திரனுக்கு முத்து அணிவது மனக்கவலையை அதிகரிக்கலாம், தவிர்க்கவும்."
+      },
+      remedyKn: "ಚಂದ್ರಶೇಖರಾಷ್ಟಕ ಪಠಣ, ಸೋಮವಾರ ಶಿವನಿಗೆ ಕ್ಷೀರಾಭಿಷೇಕ ಹಾಗೂ ಧ್ಯಾನ.",
+      remedyEn: "Chandrashekhara Ashtakam, Monday Shiva milk abhisheka, and pranayama.",
+      cautionKn: "ವೃಶ್ಚಿಕ ಚಂದ್ರನಿದ್ದಾಗ ಮುತ್ತು ಧರಿಸಿದರೆ ಮಾನಸಿಕ ಆತಂಕ ಹೆಚ್ಚಾಗಬಹುದು.",
+      cautionEn: "Avoid Pearl for debilitated Moon unless cancelled."
+    },
+    [PlanetName.Mars]: {
+      sign: "Cancer",
+      lord: PlanetName.Moon,
+      remedy: {
+        kn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ, ಮಂಗಳವಾರ ತೊಗರಿಬೇಳೆ ದಾನ ಹಾಗೂ ಭೂಮಿ ವಂದನೆ.",
+        en: "Subrahmanya worship, Tuesday toor dal charity, and honoring mother Earth.",
+        hi: "भगवान सुब्रह्मण्य की पूजा, मंगलवार को तुअर दाल दान एवं भूमि वंदना।",
+        te: "సుబ్రహ్మణ్య స్వామి పూజ, మంగళవారం కందిపప్పు దానం మరియు భూమి పూజ.",
+        ta: "முருகப்பெருமான் வழிபாடு, செவ்வாய்க்கிழமை துவரம்பருப்பு தானம் மற்றும் பூமி வழிபாடு."
+      },
+      caution: {
+        kn: "ಕಟಕ ಕುಜನಿಗೆ ಹವಳ ಧರಿಸುವುದರಿಂದ ರಕ್ತದೊತ್ತಡ ಏರುಪೇರಾಗಬಹುದು, ಎಚ್ಚರ.",
+        en: "Red Coral for debilitated Mars requires careful astrological scrutiny.",
+        hi: "कर्क राशि के मंगल हेतु मूंगा धारण करने से रक्तचाप प्रभावित हो सकता है, सावधानी रखें।",
+        te: "కర్కాటక కుజుడికి పగడం ధరిస్తే రక్తపోటు సమస్యలు రావచ్చు, జాగ్రత్త వహించండి.",
+        ta: "கடக செவ்வாய்க்கு பவளம் அணிவதால் இரத்த அழுத்தம் அதிகரிக்கலாம், எச்சரிக்கை."
+      },
+      remedyKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ, ಮಂಗಳವಾರ ತೊಗರಿಬೇಳೆ ದಾನ ಹಾಗೂ ಭೂಮಿ ವಂದನೆ.",
+      remedyEn: "Subrahmanya worship, Tuesday toor dal charity, and honoring mother Earth.",
+      cautionKn: "ಕಟಕ ಕುಜನಿಗೆ ಹವಳ ಧರಿಸುವುದರಿಂದ ರಕ್ತದೊತ್ತಡ ಏರುಪೇರಾಗಬಹುದು, ಎಚ್ಚರ.",
+      cautionEn: "Red Coral for debilitated Mars requires careful scrutiny."
+    },
+    [PlanetName.Mercury]: {
+      sign: "Pisces",
+      lord: PlanetName.Jupiter,
+      remedy: {
+        kn: "ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕ ದಾನ.",
+        en: "Vishnu Sahasranama chanting, Tulasi seva, and donating books to needy scholars.",
+        hi: "विष्णु सहस्रनाम पाठ, तुलसी पूजन एवं निर्धन विद्यार्थियों को पुस्तक दान।",
+        te: "విష్ణు సహస్రనామ పారాయణం, తులసి పూజ మరియు విద్యార్థులకు పుస్తక దానం.",
+        ta: "விஷ்ணு சஹஸ்ரநாம பாராயணம், துளசி பூஜை மற்றும் ஏழை மாணவர்களுக்கு புத்தக தானம்."
+      },
+      caution: {
+        kn: "ಮೀನ ಬುಧನಿಗೆ ಪಚ್ಚೆ ರತ್ನ ಧರಿಸುವ ಮುನ್ನ ನೀಚಭಂಗ ಪರೀಕ್ಷಿಸುವುದು ಅತ್ಯಗತ್ಯ.",
+        en: "Verify Neecha Bhanga before wearing Emerald for debilitated Mercury.",
+        hi: "मीन राशि के बुध में पन्ना धारण करने से पूर्व नीचभंग की पुष्टि अनिवार्य है।",
+        te: "మీన బుధుడికి పచ్చ రత్నం ధరించే ముందు నీచభంగాన్ని తప్పక పరిశీలించాలి.",
+        ta: "மீன புதனுக்கு மரகதம் அணியும் முன் நீச்சபங்கத்தை பரிசீலிப்பது அவசியம்."
+      },
+      remedyKn: "ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಪುಸ್ತಕ ದಾನ.",
+      remedyEn: "Vishnu Sahasranama chanting, Tulasi seva, and donating books to needy scholars.",
+      cautionKn: "ಮೀನ ಬುಧನಿಗೆ ಪಚ್ಚೆ ರತ್ನ ಧರಿಸುವ ಮುನ್ನ ನೀಚಭಂಗ ಪರೀಕ್ಷಿಸುವುದು ಅತ್ಯಗತ್ಯ.",
+      cautionEn: "Verify Neecha Bhanga before wearing Emerald for debilitated Mercury."
+    },
+    [PlanetName.Jupiter]: {
+      sign: "Capricorn",
+      lord: PlanetName.Saturn,
+      remedy: {
+        kn: "ಗುರು ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ, ಗುರುವಾರ ಕಡಲೆಬೇಳೆ ದಾನ ಹಾಗೂ ಶಿಕ್ಷಕರಿಗೆ ವಂದನೆ.",
+        en: "Guru Dakshinamurthy worship, chana dal charity on Thursdays, and honoring teachers.",
+        hi: "गुरु दक्षिणामूर्ति पूजन, गुरुवार को चना दाल दान एवं गुरुजनों का सम्मान।",
+        te: "గురు దక్షిణామూర్తి పూజ, గురువారం శనగపప్పు దానం మరియు గురువులకు వందనం.",
+        ta: "குரு தட்சிணாமூர்த்தி வழிபாடு, வியாழக்கிழமை கடலைப்பருப்பு தானம் மற்றும் குரு வணக்கம்."
+      },
+      caution: {
+        kn: "ಮಕರ ಗುರುವಿನ ದುಸ್ಥಾನ ಸ್ಥಿತಿಯಲ್ಲಿ ಪುಷ್ಪರಾಗ ರತ್ನ ಧರಿಸುವುದು ಸೂಕ್ತವಲ್ಲ.",
+        en: "Yellow Sapphire requires caution if debilitated Jupiter lacks Kendra cancellation.",
+        hi: "मकर राशि के गुरु में पुखराज धारण करने में सावधानी रखें जब तक केंद्र बल न हो।",
+        te: "మకర గురువునకు పుష్యరాగం ధరించడంలో జాగ్రత్త వహించాలి.",
+        ta: "மகர குருவுக்கு புஷ்பராகம் அணிவதை தவிர்ப்பது நல்லது."
+      },
+      remedyKn: "ಗುರು ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ, ಗುರುವಾರ ಕಡಲೆಬೇಳೆ ದಾನ ಹಾಗೂ ಶಿಕ್ಷಕರಿಗೆ ವಂದನೆ.",
+      remedyEn: "Guru Dakshinamurthy worship, chana dal charity on Thursdays, and honoring teachers.",
+      cautionKn: "ಮಕರ ಗುರುವಿನ ದುಸ್ಥಾನ ಸ್ಥಿತಿಯಲ್ಲಿ ಪುಷ್ಪರಾಗ ರತ್ನ ಧರಿಸುವುದು ಸೂಕ್ತವಲ್ಲ.",
+      cautionEn: "Yellow Sapphire requires caution if debilitated Jupiter lacks Kendra cancellation."
+    },
+    [PlanetName.Venus]: {
+      sign: "Virgo",
+      lord: PlanetName.Mercury,
+      remedy: {
+        kn: "ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಣ, ಬಿಳಿ ಹೂವುಗಳಿಂದ ಲಕ್ಷ್ಮೀ ಪೂಜೆ ಹಾಗೂ ಸ್ತ್ರೀಯರಿಗೆ ಗೌರವ.",
+        en: "Kanakadhara Stotra recitation, white flower Lakshmi puja, and respecting women.",
+        hi: "कनकधारा स्तोत्र पाठ, श्वेत पुष्पों से महालक्ष्मी पूजन एवं मातृशक्ति का आदर।",
+        te: "కనకధారా స్తోత్ర పఠనం, తెల్లని పూలతో లక్ష్మీ పూజ మరియు స్త్రీలను గౌరవించడం.",
+        ta: "கனகதாரா ஸ்தோத்திரம், வெள்ளை மலர்களால் லட்சுமி பூஜை மற்றும் பெண்களை மதித்தல்."
+      },
+      caution: {
+        kn: "ಕನ್ಯಾ ಶುಕ್ರನಿದ್ದಾಗ ವಜ್ರ ಧಾರಣೆಗಿಂತ ಗೋಸೇವೆ ಮತ್ತು ಲಕ್ಷ್ಮೀ ಉಪಾಸನೆ ಶ್ರೇಷ್ಠ.",
+        en: "Prioritize Goseva and Lakshmi sadhana over Diamond when Venus is in Virgo.",
+        hi: "कन्या राशि के शुक्र में हीरा धारण की तुलना में गौसेवा और लक्ष्मी उपासना श्रेष्ठ है।",
+        te: "కన్య శుక్రుడికి వజ్రం ధరించడం కంటే గోసేవ మరియు లక్ష్మీ పూజ శ్రేష్టం.",
+        ta: "கன்னி சுக்கிரனுக்கு வைரம் அணிவதை விட பசு சேவையும் லட்சுமி வழிபாடும் சிறந்தது."
+      },
+      remedyKn: "ಕನಕಧಾರಾ ಸ್ತೋತ್ರ ಪಠಣ, ಬಿಳಿ ಹೂವುಗಳಿಂದ ಲಕ್ಷ್ಮೀ ಪೂಜೆ ಹಾಗೂ ಸ್ತ್ರೀಯರಿಗೆ ಗೌರವ.",
+      remedyEn: "Kanakadhara Stotra recitation, white flower Lakshmi puja, and respecting women.",
+      cautionKn: "ಕನ್ಯಾ ಶುಕ್ರನಿದ್ದಾಗ ವಜ್ರ ಧಾರಣೆಗಿಂತ ಗೋಸೇವೆ ಮತ್ತು ಲಕ್ಷ್ಮೀ ಉಪಾಸನೆ ಶ್ರೇಷ್ಠ.",
+      cautionEn: "Prioritize Goseva and Lakshmi sadhana over Diamond when Venus is in Virgo."
+    },
+    [PlanetName.Saturn]: {
+      sign: "Aries",
+      lord: PlanetName.Mars,
+      remedy: {
+        kn: "ದಶರಥ ಶನಿ ಸ್ತೋತ್ರ, ಅಶ್ವತ್ಥ ವೃಕ್ಷಕ್ಕೆ ಪ್ರದಕ್ಷಿಣೆ, ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಾಗೂ ಕಾಗೆಗಳಿಗೆ ಅನ್ನ.",
+        en: "Dasharatha Shani Stotra, Peepal circumambulation, sesame oil lamp, and feeding crows.",
+        hi: "दशरथ कृत शनि स्तोत्र, पीपल की परिक्रमा, तिल के तेल का दीपक एवं कौवों को अन्न।",
+        te: "దశరథ శని స్తోత్రం, రావి చెట్టు ప్రదక్షిణ, నువ్వుల నూనె దీపం మరియు కాకులకు ఆహారం.",
+        ta: "தசரத சனி ஸ்தோத்திரம், அரசமர பிரதக்ஷிணம், நல்லெண்ணெய் தீபம் மற்றும் காகத்திற்கு அன்னம்."
+      },
+      caution: {
+        kn: "ಮೇಷ ಶನಿಯಿದ್ದಾಗ ನೀಲಂ (ಇಂದ್ರನೀಲ) ರತ್ನ ಧರಿಸುವುದು ಕಡ್ಡಾಯವಾಗಿ ನಿಷೇಧ.",
+        en: "Blue Sapphire (Neelam) is prohibited for debilitated Saturn in Aries.",
+        hi: "मेष राशि के नीच शनि में नीलम धारण करना वर्जित है।",
+        te: "మేష శనికి నీలం రత్నం ధరించడం పూర్తిగా నిషిద్ధం.",
+        ta: "மேஷ சனிக்கு நீலக்கல் (நீலம்) அணிவது முற்றிலும் தவிர்க்கப்பட வேண்டும்."
+      },
+      remedyKn: "ದಶರಥ ಶನಿ ಸ್ತೋತ್ರ, ಅಶ್ವತ್ಥ ವೃಕ್ಷಕ್ಕೆ ಪ್ರದಕ್ಷಿಣೆ, ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಾಗೂ ಕಾಗೆಗಳಿಗೆ ಅನ್ನ.",
+      remedyEn: "Dasharatha Shani Stotra, Peepal circumambulation, sesame oil lamp, and feeding crows.",
+      cautionKn: "ಮೇಷ ಶನಿಯಿದ್ದಾಗ ನೀಲಂ (ಇಂದ್ರನೀಲ) ರತ್ನ ಧರಿಸುವುದು ಕಡ್ಡಾಯವಾಗಿ ನಿಷೇಧ.",
+      cautionEn: "Blue Sapphire (Neelam) is prohibited for debilitated Saturn in Aries."
+    },
+    [PlanetName.Rahu]: {
+      sign: "Scorpio",
+      lord: PlanetName.Mars,
+      remedy: {
+        kn: "ದುರ್ಗಾ ಸಪ್ತಶತೀ ಪಠಣ, ಗೋಕರ್ಣದಲ್ಲಿ ನಾಗರಾಜ ಪೂಜೆ ಹಾಗೂ ಶ್ವಾನಗಳಿಗೆ ಆಹಾರ.",
+        en: "Durga Saptashati recitation, Nagaraja puja at Gokarna, and feeding stray dogs.",
+        hi: "दुर्गा सप्तशती पाठ, गोकर्ण में नागराज पूजा एवं श्वानों को भोजन।",
+        te: "దుర్గా సప్తశతి పారాయణం, గోకర్ణంలో నాగరాజ పూజ మరియు శునకాలకు ఆహారం.",
+        ta: "துர்கா சப்தசதி பாராயணம், கோகர்ணத்தில் நாகராஜ பூஜை மற்றும் நாய்களுக்கு உணவு."
+      },
+      caution: {
+        kn: "ಗೋಮೇಧಿಕ ರತ್ನ ಧರಿಸಬಾರದು.",
+        en: "Avoid Hessonite (Gomed) when Rahu is debilitated.",
+        hi: "गोमेद रत्न धारण न करें।",
+        te: "గోమేధికం ధరించరాదు.",
+        ta: "கோமேதகம் அணியக்கூடாது."
+      },
+      remedyKn: "ದುರ್ಗಾ ಸಪ್ತಶತೀ ಪಠಣ, ಗೋಕರ್ಣದಲ್ಲಿ ನಾಗರಾಜ ಪೂಜೆ ಹಾಗೂ ಶ್ವಾನಗಳಿಗೆ ಆಹಾರ.",
+      remedyEn: "Durga Saptashati recitation, Nagaraja puja at Gokarna, and feeding stray dogs.",
+      cautionKn: "ಗೋಮೇಧಿಕ ರತ್ನ ಧರಿಸಬಾರದು.",
+      cautionEn: "Avoid Hessonite (Gomed) when Rahu is debilitated."
+    },
+    [PlanetName.Ketu]: {
+      sign: "Taurus",
+      lord: PlanetName.Venus,
+      remedy: {
+        kn: "ಗಣೇಶ ಅಥರ್ವಶೀರ್ಷ ಪಠಣ ಹಾಗೂ ಬಡವರಿಗೆ ಕಂಬಳಿ ದಾನ.",
+        en: "Ganesha Atharvashirsha chanting and blanket donation to the destitute.",
+        hi: "गणेश अथर्वशीर्ष पाठ एवं निर्धनों को कंबल दान।",
+        te: "గణేశ అధర్వశీర్ష పఠనం మరియు పేదలకు దుప్పట్లు దానం.",
+        ta: "கணேச அதர்வசீரிஷம் மற்றும் ஏழைகளுக்கு போர்வை தானம்."
+      },
+      caution: {
+        kn: "ವೈಢೂರ್ಯ ರತ್ನ ಧಾರಣೆ ಬೇಡ.",
+        en: "Avoid Cat's Eye during debilitated Ketu.",
+        hi: "लहसुनिया (वैडूर्य) रत्न न पहनें।",
+        te: "వైడూర్యం ధరించకూడదు.",
+        ta: "வைடூரியம் அணிய வேண்டாம்."
+      },
+      remedyKn: "ಗಣೇಶ ಅಥರ್ವಶೀರ್ಷ ಪಠಣ ಹಾಗೂ ಬಡವರಿಗೆ ಕಂಬಳಿ ದಾನ.",
+      remedyEn: "Ganesha Atharvashirsha chanting and blanket donation to the destitute.",
+      cautionKn: "ವೈಢೂರ್ಯ ರತ್ನ ಧಾರಣೆ ಬೇಡ.",
+      cautionEn: "Avoid Cat's Eye during debilitated Ketu."
+    }
   };
 
-  const exaltationMap: Record<PlanetName, { sign: string; activationKn: string; activationEn: string; blessingKn: string; blessingEn: string }> = {
-    [PlanetName.Sun]: { sign: "Aries", activationKn: "ಸೂರ್ಯ ಗಾಯತ್ರೀ ಜಪ ಹಾಗೂ ಧಾರ್ಮಿಕ ನಾಯಕತ್ವ ಸಾಧನೆ.", activationEn: "Surya Gayatri japa and righteous leadership.", blessingKn: "ಆರೋಗ್ಯ, ತೇಜಸ್ಸು ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಗೌರವ.", blessingEn: "Vibrant health, royal authority, and high social prestige." },
-    [PlanetName.Moon]: { sign: "Taurus", activationKn: "ಚಂದ್ರ ಗಾಯತ್ರಿ, ಕಲಾಸೇವೆ ಹಾಗೂ ತಾಯಿಯ ಆರಾಧನೆ.", activationEn: "Chandra Gayatri, artistic pursuits, and maternal reverence.", blessingKn: "ಅಖಂಡ ಮಾನಸಿಕ ನೆಮ್ಮದಿ, ಸೌಂದರ್ಯ ಹಾಗೂ ಸಂಪತ್ತು.", blessingEn: "Deep emotional peace, charisma, and uninterrupted prosperity." },
-    [PlanetName.Mars]: { sign: "Capricorn", activationKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ, ದೈಹಿಕ ವ್ಯಾಯಾಮ ಹಾಗೂ ಧರ್ಮರಕ್ಷಣೆ.", activationEn: "Subrahmanya worship, disciplined physical stamina, and protective courage.", blessingKn: "ಅಪಾರ ಸಾಹಸ, ಭೂಮಿ ಲಾಭ ಹಾಗೂ ಶತ್ರು ಜಯ.", blessingEn: "Unshakable courage, real estate gains, and triumph over adversaries." },
-    [PlanetName.Mercury]: { sign: "Virgo", activationKn: "ಬುಧ ಬೀಜ ಮಂತ್ರ, ಗ್ರಂಥ ರಚನೆ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿವೇಕ.", activationEn: "Budha Beeja Mantra, analytical research, and ethical commerce.", blessingKn: "ಚುರುಕಾದ ಬುದ್ಧಿ, ಅದ್ಭುತ ವಾಕ್ಚಾತುರ್ಯ ಹಾಗೂ ವ್ಯವಹಾರ ಯಶಸ್ಸು.", blessingEn: "Genius intellect, eloquent speech, and commercial triumph." },
-    [PlanetName.Jupiter]: { sign: "Cancer", activationKn: "ಬೃಹಸ್ಪತಿ ಜಪ, ವೇದಾಧ್ಯಯನ ಹಾಗೂ ಸತ್ಪಾತ್ರ ದಾನ.", activationEn: "Brihaspati japa, spiritual scriptural study, and satvic charity.", blessingKn: "ದೈವಾನುಗ್ರಹ, ಸಂತಾನ ಸುಖ, ಜ್ಞಾನ ಹಾಗೂ ಧಾರ್ಮಿಕ ಕೀರ್ತಿ.", blessingEn: "Divine grace, noble progeny, profound wisdom, and guru status." },
-    [PlanetName.Venus]: { sign: "Pisces", activationKn: "ಶುಕ್ರ ಗಾಯತ್ರಿ, ಸಂಗೀತ-ಕಲೆ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಭಕ್ತಿ.", activationEn: "Shukra Gayatri, classical music/arts, and Lakshmi devotion.", blessingKn: "ದಾಂಪತ್ಯ ಸುಖ, ವಾಹನ ಸೌಭಾಗ್ಯ ಹಾಗೂ ವೈಭವೋಪೇತ ಜೀವನ.", blessingEn: "Marital bliss, luxury conveyance, and boundless artistic refinement." },
-    [PlanetName.Saturn]: { sign: "Libra", activationKn: "ಶನಿ ಶಾಂತಿ, ಅಶ್ವತ್ಥ ಪ್ರದಕ್ಷಿಣೆ ಹಾಗೂ ನಿಸ್ವಾರ್ಥ ಸೇವೆ.", activationEn: "Shani Shanti, Peepal circumambulation, and selfless public service.", blessingKn: "ದೀರ್ಘಾಯುಷ್ಯ, ನ್ಯಾಯಪರತೆ, ಸ್ಥಿರ ಸಂಪತ್ತು ಹಾಗೂ ಜನಬಲ.", blessingEn: "Longevity, unswerving justice, enduring assets, and mass leadership." },
-    [PlanetName.Rahu]: { sign: "Taurus", activationKn: "ದುರ್ಗಾ ಪೂಜೆ ಹಾಗೂ ನವಗ್ರಹ ಶಾಂತಿ.", activationEn: "Durga puja and Navagraha Shanti.", blessingKn: "ಅನಿರೀಕ್ಷಿತ ಆರ್ಥಿಕ ಬೆಳವಣಿಗೆ ಹಾಗೂ ವಿದೇಶ ಯಾನ.", blessingEn: "Sudden breakthroughs, foreign expansion, and research acumen." },
-    [PlanetName.Ketu]: { sign: "Scorpio", activationKn: "ಗಣಪತಿ ಹೋಮ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಧ್ಯಾನ.", activationEn: "Ganapati Homa and deep meditative contemplation.", blessingKn: "ಆಧ್ಯಾತ್ಮಿಕ ಮೋಕ್ಷ, ಅಂತರ್ದೃಷ್ಟಿ ಹಾಗೂ ಋಷಿ ಜ್ಞಾನ.", blessingEn: "Moksha orientation, heightened intuition, and occult discernment." }
+  const exaltationMap: Record<PlanetName, {
+    sign: string;
+    activation: Record<string, string>;
+    blessing: Record<string, string>;
+    activationKn: string;
+    activationEn: string;
+    blessingKn: string;
+    blessingEn: string;
+  }> = {
+    [PlanetName.Sun]: {
+      sign: "Aries",
+      activation: {
+        kn: "ಸೂರ್ಯ ಗಾಯತ್ರೀ ಜಪ ಹಾಗೂ ಧಾರ್ಮಿಕ ನಾಯಕತ್ವ ಸಾಧನೆ.",
+        en: "Surya Gayatri japa and righteous leadership.",
+        hi: "सूर्य गायत्री जप एवं धार्मिक नेतृत्व का आचरण।",
+        te: "సూర్య గాయత్రీ జపం మరియు నాయకత్వ సాధన.",
+        ta: "சூரிய காயத்ரி ஜெபம் மற்றும் தர்ம தலைமைத்துவ நெறி."
+      },
+      blessing: {
+        kn: "ಆರೋಗ್ಯ, ತೇಜಸ್ಸು ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಗೌರವ.",
+        en: "Vibrant health, royal authority, and high social prestige.",
+        hi: "आरोग्य, तेजस्विता एवं सार्वजनिक मान-सम्मान।",
+        te: "ఆరోగ్యం, తేజస్సు మరియు సమాజంలో ఉన్నత గౌరవం.",
+        ta: "பூரண ஆரோக்கியம், தேஜஸ் மற்றும் சமுதாய மரியாதை."
+      },
+      activationKn: "ಸೂರ್ಯ ಗಾಯತ್ರೀ ಜಪ ಹಾಗೂ ಧಾರ್ಮಿಕ ನಾಯಕತ್ವ ಸಾಧನೆ.",
+      activationEn: "Surya Gayatri japa and righteous leadership.",
+      blessingKn: "ಆರೋಗ್ಯ, ತೇಜಸ್ಸು ಹಾಗೂ ಸಾರ್ವಜನಿಕ ಗೌರವ.",
+      blessingEn: "Vibrant health, royal authority, and high social prestige."
+    },
+    [PlanetName.Moon]: {
+      sign: "Taurus",
+      activation: {
+        kn: "ಚಂದ್ರ ಗಾಯತ್ರಿ, ಕಲಾಸೇವೆ ಹಾಗೂ ತಾಯಿಯ ಆರಾಧನೆ.",
+        en: "Chandra Gayatri, artistic pursuits, and maternal reverence.",
+        hi: "चन्द्र गायत्री, कलात्मक सेवा एवं मातृ वंदना।",
+        te: "చంద్ర గాయత్రి, కళా సేవ మరియు తల్లి పూజ.",
+        ta: "சந்திர காயத்ரி, கலைப்பணி மற்றும் தாய் வழிபாடு."
+      },
+      blessing: {
+        kn: "ಅಖಂಡ ಮಾನಸಿಕ ನೆಮ್ಮದಿ, ಸೌಂದರ್ಯ ಹಾಗೂ ಸಂಪತ್ತು.",
+        en: "Deep emotional peace, charisma, and uninterrupted prosperity.",
+        hi: "अखंड मानसिक शांति, आकर्षण एवं निरंतर समृद्धि।",
+        te: "సంపూర్ణ మనశ్శాంతి, సౌందర్యం మరియు సంపద.",
+        ta: "நீடித்த மன அமைதி, வசீகரம் மற்றும் தொடர் செல்வம்."
+      },
+      activationKn: "ಚಂದ್ರ ಗಾಯತ್ರಿ, ಕಲಾಸೇವೆ ಹಾಗೂ ತಾಯಿಯ ಆರಾಧನೆ.",
+      activationEn: "Chandra Gayatri, artistic pursuits, and maternal reverence.",
+      blessingKn: "ಅಖಂಡ ಮಾನಸಿಕ ನೆಮ್ಮದಿ, ಸೌಂದರ್ಯ ಹಾಗೂ ಸಂಪತ್ತು.",
+      blessingEn: "Deep emotional peace, charisma, and uninterrupted prosperity."
+    },
+    [PlanetName.Mars]: {
+      sign: "Capricorn",
+      activation: {
+        kn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ, ದೈಹಿಕ ವ್ಯಾಯಾಮ ಹಾಗೂ ಧರ್ಮರಕ್ಷಣೆ.",
+        en: "Subrahmanya worship, disciplined physical stamina, and protective courage.",
+        hi: "सुब्रह्मण्य पूजन, नियमित व्यायाम एवं धर्मरक्षा।",
+        te: "సుబ్రహ్మణ్య పూజ, వ్యాయామం మరియు ధర్మ రక్షణ.",
+        ta: "சுப்பிரமணியர் பூஜை, உடற்பயிற்சி மற்றும் தர்ம பாதுகாப்பு."
+      },
+      blessing: {
+        kn: "ಅಪಾರ ಸಾಹಸ, ಭೂಮಿ ಲಾಭ ಹಾಗೂ ಶತ್ರು ಜಯ.",
+        en: "Unshakable courage, real estate gains, and triumph over adversaries.",
+        hi: "अदम्य साहस, भूमि लाभ एवं शत्रुओं पर विजय।",
+        te: "అపార ధైర్యం, భూ లాభం మరియు శత్రు జయం.",
+        ta: "அபார தைரியம், பூமி லாபம் மற்றும் எதிரிகள் மீது வெற்றி."
+      },
+      activationKn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಪೂಜೆ, ದೈಹಿಕ ವ್ಯಾಯಾಮ ಹಾಗೂ ಧರ್ಮರಕ್ಷಣೆ.",
+      activationEn: "Subrahmanya worship, disciplined physical stamina, and protective courage.",
+      blessingKn: "ಅಪಾರ ಸಾಹಸ, ಭೂಮಿ ಲಾಭ ಹಾಗೂ ಶತ್ರು ಜಯ.",
+      blessingEn: "Unshakable courage, real estate gains, and triumph over adversaries."
+    },
+    [PlanetName.Mercury]: {
+      sign: "Virgo",
+      activation: {
+        kn: "ಬುಧ ಬೀಜ ಮಂತ್ರ, ಗ್ರಂಥ ರಚನೆ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿವೇಕ.",
+        en: "Budha Beeja Mantra, analytical research, and ethical commerce.",
+        hi: "बुध बीज मंत्र, शोध कार्य एवं व्यापारिक विवेक।",
+        te: "బుధ బీజ మంత్రం, పరిశోధన మరియు వ్యాపార వివేకం.",
+        ta: "புதன் பீஜ மந்திரம், ஆராய்ச்சி மற்றும் வணிக விவேகம்."
+      },
+      blessing: {
+        kn: "ಚುರುಕಾದ ಬುದ್ಧಿ, ಅದ್ಭುತ ವಾಕ್ಚಾತುರ್ಯ ಹಾಗೂ ವ್ಯವಹಾರ ಯಶಸ್ಸು.",
+        en: "Genius intellect, eloquent speech, and commercial triumph.",
+        hi: "कुशाग्र बुद्धि, वाक्पटुता एवं व्यापारिक सफलता।",
+        te: "తీక్షణమైన బుద్ధి, వాక్చాతుర్యం మరియు వ్యాపార విజయం.",
+        ta: "கூர்மையான அறிவு, வாக்குவன்மை மற்றும் வியாபார வெற்றி."
+      },
+      activationKn: "ಬುಧ ಬೀಜ ಮಂತ್ರ, ಗ್ರಂಥ ರಚನೆ ಹಾಗೂ ವ್ಯಾಪಾರ ವಿವೇಕ.",
+      activationEn: "Budha Beeja Mantra, analytical research, and ethical commerce.",
+      blessingKn: "ಚುರುಕಾದ ಬುದ್ಧಿ, ಅದ್ಭುತ ವಾಕ್ಚಾತುರ್ಯ ಹಾಗೂ ವ್ಯವಹಾರ ಯಶಸ್ಸು.",
+      blessingEn: "Genius intellect, eloquent speech, and commercial triumph."
+    },
+    [PlanetName.Jupiter]: {
+      sign: "Cancer",
+      activation: {
+        kn: "ಬೃಹಸ್ಪತಿ ಜಪ, ವೇದಾಧ್ಯಯನ ಹಾಗೂ ಸತ್ಪಾತ್ರ ದಾನ.",
+        en: "Brihaspati japa, spiritual scriptural study, and satvic charity.",
+        hi: "बृहस्पति जप, स्वाध्याय एवं सुपात्र दान।",
+        te: "బృహస్పతి జపం, వేదాధ్యయనం మరియు సత్పాత్ర దానం.",
+        ta: "பிருஹஸ்பதி ஜெபம், வேத பாராயணம் மற்றும் தகுதியான தானம்."
+      },
+      blessing: {
+        kn: "ದೈವಾನುಗ್ರಹ, ಸಂತಾನ ಸುಖ, ಜ್ಞಾನ ಹಾಗೂ ಧಾರ್ಮಿಕ ಕೀರ್ತಿ.",
+        en: "Divine grace, noble progeny, profound wisdom, and guru status.",
+        hi: "ईश्वरीय कृपा, उत्तम संतान, ब्रह्मज्ञान एवं धार्मिक ख्याति।",
+        te: "దైవానుగ్రహం, సంతాన సౌఖ్యం, జ్ఞానం మరియు కీర్తి.",
+        ta: "தெய்வீக அருள், நன்மக்கள் பேறு, பேரறிவு மற்றும் ஆன்மீகப் புகழ்."
+      },
+      activationKn: "ಬೃಹಸ್ಪತಿ ಜಪ, ವೇದಾಧ್ಯಯನ ಹಾಗೂ ಸತ್ಪಾತ್ರ ದಾನ.",
+      activationEn: "Brihaspati japa, spiritual scriptural study, and satvic charity.",
+      blessingKn: "ದೈವಾನುಗ್ರಹ, ಸಂತಾನ ಸುಖ, ಜ್ಞಾನ ಹಾಗೂ ಧಾರ್ಮಿಕ ಕೀರ್ತಿ.",
+      blessingEn: "Divine grace, noble progeny, profound wisdom, and guru status."
+    },
+    [PlanetName.Venus]: {
+      sign: "Pisces",
+      activation: {
+        kn: "ಶುಕ್ರ ಗಾಯತ್ರಿ, ಸಂಗೀತ-ಕಲೆ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಭಕ್ತಿ.",
+        en: "Shukra Gayatri, classical music/arts, and Lakshmi devotion.",
+        hi: "शुक्र गायत्री, संगीत-कला एवं महालक्ष्मी भक्ति।",
+        te: "శుక్ర గాయత్రి, సంగీత కళలు మరియు లక్ష్మీ భక్తి.",
+        ta: "சுக்கிர காயத்ரி, சங்கீதம்-கலை மற்றும் லட்சுமி பக்தி."
+      },
+      blessing: {
+        kn: "ದಾಂಪತ್ಯ ಸುಖ, ವಾಹನ ಸೌಭಾಗ್ಯ ಹಾಗೂ ವೈಭವೋಪೇತ ಜೀವನ.",
+        en: "Marital bliss, luxury conveyance, and boundless artistic refinement.",
+        hi: "दांपत्य सुख, वाहन वैभव एवं कलात्मक जीवन शैली।",
+        te: "దాంపత్య సుఖం, వాహన సౌభాగ్యం మరియు వైభవ జీవనం.",
+        ta: "இல்வாழ்க்கை இன்பம், வாகன யோகம் மற்றும் வளமான வாழ்வு."
+      },
+      activationKn: "ಶುಕ್ರ ಗಾಯತ್ರಿ, ಸಂಗೀತ-ಕಲೆ ಹಾಗೂ ಲಕ್ಷ್ಮೀ ಭಕ್ತಿ.",
+      activationEn: "Shukra Gayatri, classical music/arts, and Lakshmi devotion.",
+      blessingKn: "ದಾಂಪತ್ಯ ಸುಖ, ವಾಹನ ಸೌಭಾಗ್ಯ ಹಾಗೂ ವೈಭವೋಪೇತ ಜೀವನ.",
+      blessingEn: "Marital bliss, luxury conveyance, and boundless artistic refinement."
+    },
+    [PlanetName.Saturn]: {
+      sign: "Libra",
+      activation: {
+        kn: "ಶನಿ ಶಾಂತಿ, ಅಶ್ವತ್ಥ ಪ್ರದಕ್ಷಿಣೆ ಹಾಗೂ ನಿಸ್ವಾರ್ಥ ಸೇವೆ.",
+        en: "Shani Shanti, Peepal circumambulation, and selfless public service.",
+        hi: "शनि शांति, पीपल परिक्रमा एवं निःस्वार्थ लोकसेवा।",
+        te: "శని శాంతి, రావి చెట్టు ప్రదక్షిణ మరియు నిస్వార్థ సేవ.",
+        ta: "சனி சாந்தி, அரசமர பிரதக்ஷிணம் மற்றும் பொது சேவை."
+      },
+      blessing: {
+        kn: "ದೀರ್ಘಾಯುಷ್ಯ, ನ್ಯಾಯಪರತೆ, ಸ್ಥಿರ ಸಂಪತ್ತು ಹಾಗೂ ಜನಬಲ.",
+        en: "Longevity, unswerving justice, enduring assets, and mass leadership.",
+        hi: "दीर्घायु, न्यायप्रियता, स्थायी संपत्ति एवं जनसमर्थन।",
+        te: "దీర్ఘాయువు, న్యాయం, స్థిరాస్తి మరియు ప్రజాబలం.",
+        ta: "நீண்ட ஆயுள், நீதி நெறி, நிலையான சொத்து மற்றும் மக்கள் ஆதரவு."
+      },
+      activationKn: "ಶನಿ ಶಾಂತಿ, ಅಶ್ವತ್ಥ ಪ್ರದಕ್ಷಿಣೆ ಹಾಗೂ ನಿಸ್ವಾರ್ಥ ಸೇವೆ.",
+      activationEn: "Shani Shanti, Peepal circumambulation, and selfless public service.",
+      blessingKn: "ದೀರ್ಘಾಯುಷ್ಯ, ನ್ಯಾಯಪರತೆ, ಸ್ಥಿರ ಸಂಪತ್ತು ಹಾಗೂ ಜನಬಲ.",
+      blessingEn: "ದೀರ್ಘಾಯುಷ್ಯ, ನ್ಯಾಯಪರತೆ, ಸ್ಥಿರ ಸಂಪತ್ತು ಹಾಗೂ ಜನಬಲ."
+    },
+    [PlanetName.Rahu]: {
+      sign: "Taurus",
+      activation: {
+        kn: "ದುರ್ಗಾ ಪೂಜೆ ಹಾಗೂ ನವಗ್ರಹ ಶಾಂತಿ.",
+        en: "Durga puja and Navagraha Shanti.",
+        hi: "भगवती दुर्गा पूजन एवं नवग्रह शांति।",
+        te: "దుర్గా పూజ మరియు నవగ్రహ శాంతి.",
+        ta: "துர்க்கை பூஜை மற்றும் நவக்கிரக சாந்தி."
+      },
+      blessing: {
+        kn: "ಅನಿರೀಕ್ಷಿತ ಆರ್ಥಿಕ ಬೆಳವಣಿಗೆ ಹಾಗೂ ವಿದೇಶ ಯಾನ.",
+        en: "Sudden breakthroughs, foreign expansion, and research acumen.",
+        hi: "आकस्मिक धन लाभ, विदेश यात्रा एवं अनुसंधान में सफलता।",
+        te: "ఆకస్మిక ధన లాభం మరియు విదేశీ ప్రయాణాలు.",
+        ta: "திடீர் பண வரவு, வெளிநாட்டு பயணம் மற்றும் புதிய வாய்ப்புகள்."
+      },
+      activationKn: "ದುರ್ಗಾ ಪೂಜೆ ಹಾಗೂ ನವಗ್ರಹ ಶಾಂತಿ.",
+      activationEn: "Durga puja and Navagraha Shanti.",
+      blessingKn: "ಅನಿರೀಕ್ಷಿತ ಆರ್ಥಿಕ ಬೆಳವಣಿಗೆ ಹಾಗೂ ವಿದೇಶ ಯಾನ.",
+      blessingEn: "Sudden breakthroughs, foreign expansion, and research acumen."
+    },
+    [PlanetName.Ketu]: {
+      sign: "Scorpio",
+      activation: {
+        kn: "ಗಣಪತಿ ಹೋಮ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಧ್ಯಾನ.",
+        en: "Ganapati Homa and deep meditative contemplation.",
+        hi: "गणपति होम एवं गहन आध्यात्मिक साधना।",
+        te: "గణపతి హోమం మరియు ఆధ్యాత్మిక ధ్యానం.",
+        ta: "கணபதி ஹோமம் மற்றும் ஆழ்ந்த தியானம்."
+      },
+      blessing: {
+        kn: "ಆಧ್ಯಾತ್ಮಿಕ ಮೋಕ್ಷ, ಅಂತರ್ದೃಷ್ಟಿ ಹಾಗೂ ಋಷಿ ಜ್ಞಾನ.",
+        en: "Moksha orientation, heightened intuition, and occult discernment.",
+        hi: "मोक्ष मार्ग, सूक्ष्म अंतर्दृष्टि एवं तत्वज्ञान।",
+        te: "మోక్ష మార్గం, అంతర్దృష్టి మరియు దివ్య జ్ఞానం.",
+        ta: "மோட்ச சாதனை, உள்ளுணர்வு மற்றும் மெய்ஞானம்."
+      },
+      activationKn: "ಗಣಪತಿ ಹೋಮ ಹಾಗೂ ಆಧ್ಯಾತ್ಮಿಕ ಧ್ಯಾನ.",
+      activationEn: "Ganapati Homa and deep meditative contemplation.",
+      blessingKn: "ಆಧ್ಯಾತ್ಮಿಕ ಮೋಕ್ಷ, ಅಂತರ್ದೃಷ್ಟಿ ಹಾಗೂ ಋಷಿ ಜ್ಞಾನ.",
+      blessingEn: "Moksha orientation, heightened intuition, and occult discernment."
+    }
   };
 
   const debilitatedPlanets = [];
@@ -3861,12 +4386,12 @@ export function generateKundliRemedyReport(
         neechaBhangaReason: hasNeechaBhanga ? {
           kn: `ಈ ಗ್ರಹದ ರಾಶ್ಯಾಧಿಪತಿಯಾದ ${GRAHA_NAMES_LOCALE[debInfo.lord]?.kn || debInfo.lord} ಕೇಂದ್ರ ಸ್ಥಾನದಲ್ಲಿದ್ದು ನೀಚಭಂಗ ರಾಜಯೋಗ (NBRY) ಉಂಟಾಗಿದೆ. ಆರಂಭಿಕ ಹೋರಾಟದ ನಂತರ ದೃಢವಾದ ಯಶಸ್ಸು ಲಭಿಸುತ್ತದೆ.`,
           en: `Dispositor ${GRAHA_NAMES_LOCALE[debInfo.lord]?.en || debInfo.lord} is stationed in Kendra, forming Neecha Bhanga Raja Yoga (NBRY). Initial struggle transforms into long-term resilience and victory.`,
-          hi: `राश्याधिपति केंद्र में होने से नीचभंग राजयोग का निर्माण हो रहा है।`,
-          te: `నీచభంగ రాజయోగం ఏర్పడుతోంది.`,
-          ta: `நீச்சபங்க ராஜயோகம் உண்டாகிறது.`
+          hi: `राश्याधिपति केंद्र में होने से नीचभंग राजयोग का निर्माण हो रहा है। संघर्ष के बाद स्थायित्व मिलेगा।`,
+          te: `రాశ్యాధిపతి కేంద్రంలో ఉండటం వలన నీచభంగ రాజయోగం ఏర్పడుతోంది. ప్రారంభ ఇబ్బందుల తర్వాత విజయం లభిస్తుంది.`,
+          ta: `ராசியாதிபதி கேந்திரத்தில் இருப்பதால் நீச்சபங்க ராஜயோகம் உண்டாகிறது. ஆரம்பப் போராட்டத்திற்குப் பின் வெற்றி கிட்டும்.`
         } : undefined,
-        shantiRemedy: { kn: debInfo.remedyKn, en: debInfo.remedyEn, hi: debInfo.remedyKn, te: debInfo.remedyEn, ta: debInfo.remedyEn },
-        gemstoneCaution: { kn: debInfo.cautionKn, en: debInfo.cautionEn, hi: debInfo.cautionKn, te: debInfo.cautionEn, ta: debInfo.cautionEn }
+        shantiRemedy: debInfo.remedy,
+        gemstoneCaution: debInfo.caution
       });
     }
 
@@ -3876,8 +4401,8 @@ export function generateKundliRemedyReport(
         graha: p.name,
         grahaName: GRAHA_NAMES_LOCALE[p.name],
         exaltationSign: RASHI_NAMES_LOCALE[exInfo.sign] || { kn: exInfo.sign, en: exInfo.sign },
-        activationRemedy: { kn: exInfo.activationKn, en: exInfo.activationEn, hi: exInfo.activationKn, te: exInfo.activationEn, ta: exInfo.activationEn },
-        blessingArea: { kn: exInfo.blessingKn, en: exInfo.blessingEn, hi: exInfo.blessingKn, te: exInfo.blessingEn, ta: exInfo.blessingEn }
+        activationRemedy: exInfo.activation,
+        blessingArea: exInfo.blessing
       });
     }
   }
@@ -4199,8 +4724,8 @@ export function generateKundliRemedyReport(
       ta: `தற்போது ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.ta || mahaDashaPlanet} மகாதிசையில் ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.ta || bhuktiPlanet} புக்தி நடைபெறுகிறது.`
     },
     remedialAction: {
-      kn: `ಈ ದಶಾ ಸಂಚಾರವನ್ನು ಶುಭಕರವಾಗಿಸಲು ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.kn || mahaDashaPlanet} ಹಾಗೂ ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.kn || bhuktiPlanet} ದೇವತೆಗಳಿಗೆ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಮತ್ತು ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ${turnaroundSevaKn} ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಫಲದಾಯಕ.`,
-      en: `To align this Dasha-Bhukti flow, offer dedicated prayers to ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.en || mahaDashaPlanet} and participate in ${turnaroundSevaEn}.`,
+      kn: `ಈ ದಶಾ ಸಂಚಾರವನ್ನು ಶುಭಕರವಾಗಿಸಲು ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.kn || mahaDashaPlanet} ಹಾಗೂ ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.kn || bhuktiPlanet} ದೇವತೆಗಳಿಗೆ ವಿಶೇಷ ಪ್ರಾರ್ಥನೆ ಮತ್ತು ಗೋಕರ್ಣ ಕ್ಷೇತ್ರದಲ್ಲಿ ${lifeTurnaroundTiming.specificSevaKn} ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಫಲದಾಯಕ.`,
+      en: `To align this Dasha-Bhukti flow, offer dedicated prayers to ${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.en || mahaDashaPlanet} and participate in ${lifeTurnaroundTiming.specificSevaEn}.`,
       hi: `इस दशा-भुक्ति के शुभ फल हेतु संबंधित ग्रहों की शांति एवं गोकर्ण महाबलेश्वर में पूजा कराएं।`,
       te: `ఈ దశ అనుకూలత కొరకు గోకర్ణంలో పూజ జరిపించండి.`,
       ta: `இந்த திசை நன்மை பெற கோகர்ணத்தில் வழிபாடு செய்யவும்.`
@@ -4365,11 +4890,11 @@ export function generateKundliRemedyReport(
   const prescriptions = generateAstrologicalPrescriptions(kundli, yogaRule, karanaRule);
 
   let prescribedSevaName = {
-    kn: turnaroundSevaKn,
-    en: turnaroundSevaEn,
-    hi: turnaroundSevaEn,
-    te: turnaroundSevaEn,
-    ta: turnaroundSevaEn
+    kn: lifeTurnaroundTiming.specificSevaKn,
+    en: lifeTurnaroundTiming.specificSevaEn,
+    hi: lifeTurnaroundTiming.specificSeva?.hi || lifeTurnaroundTiming.specificSevaEn,
+    te: lifeTurnaroundTiming.specificSeva?.te || lifeTurnaroundTiming.specificSevaEn,
+    ta: lifeTurnaroundTiming.specificSeva?.ta || lifeTurnaroundTiming.specificSevaEn
   };
   let sevaSignificance = {
     kn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಮರ್ಪಿಸುವ ಈ ದೈವಿಕ ಸಂಕಲ್ಪ ಸೇವೆಯು ನಿಮ್ಮ ಜಾತಕದ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಿ, ಶೀಘ್ರ ಯಶಸ್ಸು ಮತ್ತು ಶಾಂತಿ ಕರುಣಿಸುತ್ತದೆ.`,

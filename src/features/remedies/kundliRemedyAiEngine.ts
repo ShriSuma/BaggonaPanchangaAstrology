@@ -63,7 +63,14 @@ function buildRemedyAiPrompt(diagnosis: KundliRemedyDiagnosis, lang: string): st
   const day10Relief = diagnosis.lifeTurnaroundTiming.day10Expectation?.[normLang] || diagnosis.lifeTurnaroundTiming.day10Expectation?.kn || "";
   const day15Breakthrough = diagnosis.lifeTurnaroundTiming.day15Expectation?.[normLang] || diagnosis.lifeTurnaroundTiming.day15Expectation?.kn || "";
   const prescribedSeva = diagnosis.gokarnaTempleRemedies.prescribedSeva.name[normLang] || diagnosis.gokarnaTempleRemedies.prescribedSeva.name.kn;
-  const sacredTree = diagnosis.panchangaRemedies.nakshatraRemedy.sacredTree.kannada;
+  const treeObj = diagnosis.panchangaRemedies.nakshatraRemedy.sacredTree;
+  const sacredTree = (
+    normLang === "hi" ? treeObj.hindi :
+    normLang === "te" ? treeObj.telugu :
+    normLang === "ta" ? treeObj.tamil :
+    normLang === "en" ? treeObj.english :
+    treeObj.kannada
+  ) || treeObj.english || treeObj.kannada;
   const stotraTitle = diagnosis.personalizedStotras[0]?.title[normLang] || diagnosis.personalizedStotras[0]?.title.kn;
 
   const gotraMention = diagnosis.gotra?.trim()
@@ -98,8 +105,9 @@ STRICT INSTRUCTIONS:
 3. Tailor the advice directly to the devotee's specific planetary alignment, active Dasha, Sandhi status, live Gochara, and diagnosed struggle.
 4. Explain clearly why chanting the designated stotra, performing the instant pacification protocol, and offering seva at Gokarna Mahabaleshwara will neutralize karmic afflictions and bring mental peace.
 5. Provide clear day-by-day spiritual motivation and expectations: explain what internal relief they will feel after 10 continuous days of devoted practice, and what circumstantial turnaround breakthrough to expect after 15 days.
-6. Maintain a holy, encouraging, and authoritative Vedic priest persona that inspires deep devotion (Bhakti). Do not include markdown headers (###) or bullet points.
-7. If the devotee is married, DO NOT mention marriage delay, finding a match, kankana bala, or getting married under any circumstances. Focus strictly on mutual respect, marital harmony, and family bliss.
+6. Instill unshakable confidence, peace of mind, and moral strength: explicitly reassure the devotee that starting this sadhana with devotion immediately cleanses subconscious doubts and activates Sri Gokarna Mahabaleshwara's protective grace, assuring them of victory over hardships.
+7. Maintain a holy, encouraging, and authoritative Vedic priest persona that inspires deep devotion (Bhakti). Do not include markdown headers (###) or bullet points.
+8. If the devotee is married, DO NOT mention marriage delay, finding a match, kankana bala, or getting married under any circumstances. Focus strictly on mutual respect, marital harmony, and family bliss.
 `.trim();
 }
 
@@ -176,7 +184,7 @@ export async function generateKundliRemedyWithAi(
           prompt,
           activeKey,
           targetLang,
-          { raw: true, temperature: 0.35, retries: 2, retryDelay: 1500 }
+          { raw: true, temperature: 0.35, retries: 1, retryDelay: retryDelayMs !== undefined ? retryDelayMs : 500 }
         ),
         timeoutPromise
       ]);

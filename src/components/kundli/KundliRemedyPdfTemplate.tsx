@@ -318,7 +318,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
       : "";
     return `॥ Sri Gokarna Mahabaleshwara Prasanna ॥\n` +
       `Upon deep shastric examination of the natal horoscope for ${devoteeName}${gotra ? ` (${gotra} Gotra)` : ""}, born under ${lagnaStr} Lagna and ${rashiStr} Rashi (${nakshatraStr} Nakshatra), active planetary currents unfold under ${dashaStr}. ${sandhiPhrase}the primary karmic challenge manifests as ${struggleTitle}.\n` +
-      `By undertaking this consecrated sadhana: ${day10Text} Furthermore, after 15 days: ${day15Text} Offering the sacred ${sevaName} at Sri Kshetra Gokarna Mahabaleshwara and reciting daily ${stotraTitle} neutralizes planetary afflictions, granting enduring tranquility, protection, and auspicious progress.`;
+      `The moment you commence this consecrated sadhana with faith, self-doubt, inner turbulence, and hesitation dissolve completely, instilling unshakable confidence, mental peace, and divine fortitude. Within 10 days of starting this practice: ${day10Text} Furthermore, after 15 days: ${day15Text} Offering the sacred ${sevaName} at Sri Kshetra Gokarna Mahabaleshwara and reciting daily ${stotraTitle} permanently neutralizes planetary afflictions, granting enduring protection, prosperity, and triumphant success.`;
   }
   if (code === "hi") {
     const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
@@ -326,7 +326,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
       : "";
     return `॥ श्री गोकर्ण महाबलेश्वर प्रसन्न ॥\n` +
       `जातक ${devoteeName}${gotra ? ` (${gotra} गोत्र)` : ""} की जन्म कुंडली का पाराशरी शास्त्र अनुसार सूक्ष्म विश्लेषण किया गया है। ${lagnaStr} लग्न एवं ${rashiStr} राशि (${nakshatraStr} नक्षत्र) में जन्म होने से वर्तमान में ${dashaStr} चल रही है। ${sandhiPhrase}मुख्य रूप से ${struggleTitle} की स्थिति उत्पन्न हो रही है।\n` +
-      `इन शास्त्रोक्त उपायों के नियमित पालन से: ${day10Text} तत्पश्चात १५ दिनों में: ${day15Text} श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधि में विहित ${sevaName} एवं नित्य ${stotraTitle} के पाठ से ग्रहपीड़ा शांत होकर सुख-समृद्धि एवं मनःशांति की प्राप्ति होगी।`;
+      `इस शास्त्रोक्त दैवीय साधना को पूर्ण श्रद्धा से प्रारंभ करते ही मन का भय, संशय और व्याकुलता समाप्त होकर अटूट आत्मविश्वास और दैवीय आत्मबल का संचार होगा। साधना प्रारंभ के १० दिनों में: ${day10Text} तत्पश्चात १५ दिनों में: ${day15Text} श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधि में विहित ${sevaName} एवं नित्य ${stotraTitle} के पाठ से समस्त ग्रहपीड़ा शांत होकर अखंड सुख-समृद्धि, विजय और मनःशांति की प्राप्ति होगी।`;
   }
   if (code === "te") {
     const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
@@ -334,7 +334,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
       : "";
     return `॥ శ్రీ గోకర్ణ మహాబలేశ్వర ప్రసన్న ॥\n` +
       `జాతకుడు ${devoteeName}${gotra ? ` (${gotra} గోత్రం)` : ""} గారి జన్మ కుండలిని పారాశరి శాస్త్రోక్త పద్ధతిలో పరిశీలించడమైనది. ${lagnaStr} లగ్నం మరియు ${rashiStr} రాశి (${nakshatraStr} నక్షత్రం) లో జన్మించిన వీరికి, ప్రస్తుత ${dashaStr} ప్రభావంతో ${sandhiPhrase}ప్రధానంగా ${struggleTitle} ఎదురవుతోంది.\n` +
-      `ఈ శాస్త్రోక్త సాధన ద్వారా: ${day10Text} అనంతరం 15 రోజుల్లో: ${day15Text} శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో ${sevaName} మరియు నిత్యం ${stotraTitle} పఠనం ద్వారా గ్రహదోషాలు నివారణమై సంపూర్ణ మనశ్శాంతి లభిస్తుంది.`;
+      `ఈ పవిత్ర సాధనను భక్తిశ్రద్ధలతో ప్రారంభించిన క్షణం నుంచే మనస్సులోని భయం, సంశయం తొలగిపోయి అచంచలమైన ఆత్మవిశ్వాసం, దైవబలం కలుగుతాయి. సాధన ప్రారంభించిన 10 రోజుల్లో: ${day10Text} అనంతరం 15 రోజుల్లో: ${day15Text} శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో ${sevaName} మరియు నిత్యం ${stotraTitle} పఠనం ద్వారా గ్రహదోషాలు నివారణమై సంపూర్ణ మనశ్శాంతి, కార్యానుకూలత లభిస్తాయి.`;
   }
   if (code === "ta") {
     const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
@@ -342,7 +342,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
       : "";
     return `॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் பிரசன்னம் ॥\n` +
       `ஜாதகர் ${devoteeName}${gotra ? ` (${gotra} கோத்திரம்)` : ""} அவர்களின் ஜாதகத்தை பராசர ஜோதிட முறைப்படி ஆய்வு செய்ததில், ${lagnaStr} லக்னம் மற்றும் ${rashiStr} ராசி (${nakshatraStr} நட்சத்திரம்) அமைந்திருக்கிறது. நடப்பு ${dashaStr} காலத்தில் ${sandhiPhrase}${struggleTitle} சவால் ஏற்படுகிறது.\n` +
-      `இந்த தெய்வீக வழிபாட்டின் மூலம்: ${day10Text} தொடர்ந்து 15 நாட்களில்: ${day15Text} ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்தில் ${sevaName} பூஜை மற்றும் தினமும் ${stotraTitle} பாராயணம் செய்வதால் கிரக தோஷங்கள் நீங்கி, மன நிம்மதியும் சுப யோகமும் அமையும்.`;
+      `இந்த தெய்வீக வழிபாட்டை நம்பிக்கையுடன் தொடங்கும் தருணத்திலிருந்தே மனதில் உள்ள அச்சமும் தயக்கமும் நீங்கி, உறுதியான தன்னம்பிக்கையும் இறைசக்தியும் பெருகும். பரிகாரம் தொடங்கிய 10 நாட்களில்: ${day10Text} தொடர்ந்து 15 நாட்களில்: ${day15Text} ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்தில் ${sevaName} பூஜை மற்றும் தினமும் ${stotraTitle} பாராயணம் செய்வதால் கிரக தோஷங்கள் நீங்கி, மன நிம்மதியும் சுப யோகமும் வெற்றியும் நிலைக்கும்.`;
   }
   // Kannada default
   const sandhiPhrase = dashaBhuktiAnalysis.isSandhiActive && sandhiTitle
@@ -350,7 +350,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
     : "";
   return `॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n` +
     `ಜಾತಕರಾದ ${devoteeName}${gotra ? ` (${gotra} ಗೋತ್ರ)` : ""} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪರಾಶರೀ ಸಿದ್ಧಾಂತದಂತೆ ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ${lagnaStr} ಲಗ್ನ ಮತ್ತು ${rashiStr} ರಾಶಿಯ ${nakshatraStr} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ ಇವರಿಗೆ, ಪ್ರಸ್ತುತ ${dashaStr} ಕಾಲ ನಡೆಯುತ್ತಿದೆ. ${sandhiPhrase}ಗ್ರಹಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದ ಜೀವನದಲ್ಲಿ ಮುಖ್ಯವಾಗಿ ${struggleTitle} ಎದುರಾಗುತ್ತಿದೆ.\n` +
-    `ಈ ಪವಿತ್ರ ಪರಿಹಾರಗಳನ್ನು ನಿಷ್ಠೆಯಿಂದ ಪ್ರಾರಂಭಿಸಿದಾಗ: ${day10Text} ನಂತರ ೧೫ ದಿನಗಳಲ್ಲಿ: ${day15Text} ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಗದಿತ ${sevaName} ಸೇವೆ ಹಾಗೂ ನಿತ್ಯ ${stotraTitle} ಪಠಣೆಯಿಂದ ಸಮಸ್ತ ಗ್ರಹಪೀಡೆಗಳು ಕರಗಿ ಅಖಂಡ ಶಾಂತಿ ಹಾಗೂ ಭಾಗ್ಯೋದಯ ಸಿದ್ಧಿಸುತ್ತದೆ.`;
+    `ಈ ಪವಿತ್ರ ಪರಿಹಾರಗಳನ್ನು ನಿಷ್ಠೆಯಿಂದ ಪ್ರಾರಂಭಿಸಿದ ತಕ್ಷಣವೇ ಮನಸ್ಸಿನ ಭಯ, ಆತಂಕ ಹಾಗೂ ಅಸ್ಥಿರತೆಗಳು ಕರಗಿ ಅಚಲ ಆತ್ಮವಿಶ್ವಾಸ, ಧೈರ್ಯ ಹಾಗೂ ದೈವಬಲ ಮೂಡುತ್ತದೆ. ಸಾಧನೆ ಪ್ರಾರಂಭಿಸಿದ ೧೦ ದಿನಗಳಲ್ಲಿ: ${day10Text} ನಂತರ ೧೫ ದಿನಗಳಲ್ಲಿ: ${day15Text} ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಗದಿತ ${sevaName} ಸೇವೆ ಹಾಗೂ ನಿತ್ಯ ${stotraTitle} ಪಠಣೆಯಿಂದ ಸಮಸ್ತ ಗ್ರಹಪೀಡೆಗಳು ಕರಗಿ ಅಖಂಡ ಶಾಂತಿ, ದೃಢ ಯಶಸ್ಸು ಹಾಗೂ ಭಾಗ್ಯೋದಯ ಸಿದ್ಧಿಸುತ್ತದೆ.`;
 }
 
 export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = ({
@@ -761,11 +761,23 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 </div>
                 <div style={{ color: "#14532D", marginTop: "2px" }}>
                   <span style={{ fontWeight: 800 }}>{isKn ? "• ಪವಿತ್ರ ವೃಕ್ಷ: " : isHi ? "• पवित्र वृक्ष: " : isTe ? "• పవిత్ర వృక్షం: " : isTa ? "• புனித மரம்: " : "• Sacred Tree: "}</span>
-                  <span style={{ fontWeight: 900, color: "#166534" }}>{panchangaRemedies.nakshatraRemedy.sacredTree.kannada}</span> ({panchangaRemedies.nakshatraRemedy.sacredTree.botanicalName}) — {panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod[code] || panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod.kn}
+                  <span style={{ fontWeight: 900, color: "#166534" }}>
+                    {(code === "hi" ? panchangaRemedies.nakshatraRemedy.sacredTree.hindi :
+                      code === "te" ? panchangaRemedies.nakshatraRemedy.sacredTree.telugu :
+                      code === "ta" ? panchangaRemedies.nakshatraRemedy.sacredTree.tamil :
+                      code === "en" ? panchangaRemedies.nakshatraRemedy.sacredTree.english :
+                      panchangaRemedies.nakshatraRemedy.sacredTree.kannada) ||
+                      panchangaRemedies.nakshatraRemedy.sacredTree.english ||
+                      panchangaRemedies.nakshatraRemedy.sacredTree.kannada}
+                  </span> ({panchangaRemedies.nakshatraRemedy.sacredTree.botanicalName}) — {panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod[code] || panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod.kn}
                 </div>
                 <div style={{ color: "#166534", marginTop: "2px" }}>
                   <span style={{ fontWeight: 800 }}>{isKn ? "• ನಕ್ಷತ್ರ ಬೀಜ ಮಂತ್ರ: " : isHi ? "• नक्षत्र बीज मंत्र: " : isTe ? "• నక్షత్ర బీజ మంత్రం: " : isTa ? "• நட்சத்திர பீஜ மந்திரம்: " : "• Beeja Mantra: "}</span>
-                  <span style={{ fontWeight: 900, color: "#065F46" }}>{panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit}</span> ({panchangaRemedies.nakshatraRemedy.beejaMantra.meaning[code] || panchangaRemedies.nakshatraRemedy.beejaMantra.meaning.kn})
+                  <span style={{ fontWeight: 900, color: "#065F46" }}>
+                    {code === "kn"
+                      ? (panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                      : (panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit || panchangaRemedies.nakshatraRemedy.beejaMantra.kannada)}
+                  </span> ({panchangaRemedies.nakshatraRemedy.beejaMantra.meaning[code] || panchangaRemedies.nakshatraRemedy.beejaMantra.meaning.kn})
                 </div>
               </div>
 
@@ -1366,16 +1378,14 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 900, color: "#78350F" }}>
                   <span>{i18n.turnaroundTitle}</span>
                   <span style={{ background: "#D97706", color: "#FFFFFF", padding: "1px 7px", borderRadius: "8px", fontSize: "9.5px", fontWeight: 800 }}>
-                    {isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || "Upcoming 3 to 6 months")}
+                    {lifeTurnaroundTiming.timeline?.[code] || (isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || "Upcoming 3 to 6 months"))}
                   </span>
                 </div>
 
                 <div style={{ color: "#451A03", marginTop: "2px" }}>
                   <span style={{ fontWeight: 800 }}>{isKn ? "• ಪ್ರೇರಕ ಗ್ರಹ & ಸೇವೆ: " : isHi ? "• प्रेरक ग्रह एवं सेवा: " : isTe ? "• ప్రేరక గ్రహం & సేవ: " : isTa ? "• தூண்டுதல் கிரகம் & சேவை: " : "• Catalyst & Seva: "}</span>
                   <span style={{ fontWeight: 700, color: "#92400E" }}>
-                    {isKn
-                      ? `${lifeTurnaroundTiming.catalystGrahaKn} · ${lifeTurnaroundTiming.specificSevaKn}`
-                      : `${lifeTurnaroundTiming.catalystGrahaEn || "Catalyst Planet"} · ${lifeTurnaroundTiming.specificSevaEn || "Gokarna Seva"}`}
+                    {`${lifeTurnaroundTiming.catalystGraha?.[code] || (isKn ? lifeTurnaroundTiming.catalystGrahaKn : (lifeTurnaroundTiming.catalystGrahaEn || "Catalyst Planet"))} · ${lifeTurnaroundTiming.specificSeva?.[code] || (isKn ? lifeTurnaroundTiming.specificSevaKn : (lifeTurnaroundTiming.specificSevaEn || "Gokarna Seva"))}`}
                   </span>
                 </div>
 
