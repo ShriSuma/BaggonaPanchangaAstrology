@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import JSZip from "jszip";
 import { useAuthStore } from "../features/auth/authStore";
 import { useAppStore } from "../stores/appStore";
 import { calculateKundli } from "../core/KundliEngine";
@@ -17,6 +18,11 @@ import { exportPanchangaWithDashaPdf } from "../core/ExportUtils";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { KundliRemedyPdfTemplate } from "../components/kundli/KundliRemedyPdfTemplate";
 import { generateKundliRemedyReport, type KundliRemedyDiagnosis } from "../features/remedies/kundliRemedyEngine";
+import {
+  getOmkarZipFileName,
+  getOmkarWhatsAppShareUrl,
+  packageOmkarPremiumZip
+} from "../features/omkarDesk/omkarDeskService";
 import {
   generateCompactGoogleCalendarUrlForQR,
   calculateDeterministicRhythmDay,
@@ -74,6 +80,17 @@ export default function OmkarDeskPortalPage(): JSX.Element {
   const [isDownloadingKundli, setIsDownloadingKundli] = useState(false);
   const [isDownloadingBhavishyaV1, setIsDownloadingBhavishyaV1] = useState(false);
   const [isDownloadingRemedy, setIsDownloadingRemedy] = useState(false);
+
+  // Omkar Dedicated Premium Download (Only 3 Selectable Options)
+  const [selectedJananaKundli, setSelectedJananaKundli] = useState(true);
+  const [selectedBhavishyaV1, setSelectedBhavishyaV1] = useState(true);
+  const [selectedRemedy, setSelectedRemedy] = useState(true);
+
+  // ZIP packaging progress & state
+  const [isPackagingZip, setIsPackagingZip] = useState(false);
+  const [zipProgress, setZipProgress] = useState(0);
+  const [zipProgressStage, setZipProgressStage] = useState("");
+  const [lastDownloadedZip, setLastDownloadedZip] = useState<string | null>(null);
 
   // Poster 2 Calendar State
   const [calendarQrDataUrl, setCalendarQrDataUrl] = useState<string>("");
@@ -461,6 +478,192 @@ export default function OmkarDeskPortalPage(): JSX.Element {
     }
     setCurrentStep(2);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Action: Master 1-Click ZIP Download for Omkar Desk
+  const handleDownloadPremiumZip = async () => {
+    if (!selectedJananaKundli && !selectedBhavishyaV1 && !selectedRemedy) {
+      alert("ದಯವಿಟ್ಟು ಕನಿಷ್ಠ ಒಂದು ವರದಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿ (Please select at least one report).");
+      return;
+    }
+
+    setIsPackagingZip(true);
+    setZipProgress(5);
+    setZipProgressStage("ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ (Initializing)...");
+
+    try {
+      const safeName = (devoteeName || "Devotee")
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[^\p{L}\p{M}\p{N}_]+/gu, "")
+        .replace(/^_+|_+$/g, "") || "Devotee";
+
+      let jananaKundliBlob: Blob | null = null;
+      let bhavishyaV1Blob: Blob | null = null;
+      let remedyBlob: Blob | null = null;
+
+      // 1. Generate Baggona Janana Kundali & Dasha PDF if selected
+      if (selectedJananaKundli) {
+        setZipProgress(20);
+        setZipProgressStage("೧/೩ ಜನನ ಕುಂಡಲಿ PDF ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ (1/3 Janana Kundali)...");
+        const traditionalEl = traditionalExportRef.current;
+        const dashaEl = dashaExportRef.current;
+        let kundliPdf: jsPDF;
+        if (traditionalEl && dashaEl) {
+          kundliPdf = await exportPanchangaWithDashaPdf(
+            traditionalEl,
+            dashaEl,
+            `01_${safeName}_Baggona_Janana_Kundali.pdf`,
+            false
+          );
+        } else if (traditionalEl) {
+          kundliPdf = await generatePDFFromElement(
+            "omkar-traditional-container",
+            `01_${safeName}_Baggona_Janana_Kundali.pdf`,
+            false
+          );
+        } else {
+          kundliPdf = await generatePDFFromElement(
+            "omkar-kundli-container",
+            `01_${safeName}_Baggona_Janana_Kundali.pdf`,
+            false
+          );
+        }
+        jananaKundliBlob = kundliPdf.output("blob");
+      }
+
+      // 2. Generate Premium Bhavishya V1 PDF if selected
+      if (selectedBhavishyaV1) {
+        setZipProgress(45);
+        setZipProgressStage("೨/೩ ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ V1 ಗಣನೆಯಾಗುತ್ತಿದೆ (2/3 Bhavishya V1)...");
+
+        const sessionObj = {
+          result: kundliResult,
+          input: {
+            name: effectiveDevoteeName,
+            birthDate,
+            birthTime,
+            latitude,
+            longitude,
+            gender: gender === "female" ? "Female" : "Male",
+            maritalStatus: "married",
+            childrenStatus: "has_children"
+          },
+          birthDateYmd: birthDate,
+          birthTimeHm: birthTime,
+          homePlaceName: resolvedPlaceName,
+          placeLabel: resolvedPlaceName,
+          dasha: [],
+          dailyPrediction: ""
+        };
+
+        const payload = await prepareBhavishyaV1Data(
+          sessionObj as any,
+          selectedLang,
+          geminiApiKey,
+          { maritalStatus: "married", childrenStatus: "has_children" },
+          (stage) => {
+            setZipProgressStage(`ಭವಿಷ್ಯ V1: ${stage}...`);
+          }
+        );
+        setBhavishyaV1Payload(payload);
+        await new Promise((r) => setTimeout(r, 1000));
+
+        if (bhavishyaV1Ref.current) {
+          const v1Pdf = await captureBhavishyaV1Pdf(
+            bhavishyaV1Ref.current,
+            `02_${safeName}_Baggona_Bhavishya_V1.pdf`,
+            false,
+            { payload, lang: selectedLang }
+          );
+          bhavishyaV1Blob = v1Pdf.output("blob");
+        }
+      }
+
+      // 3. Generate Remedy PDF if selected
+      if (selectedRemedy) {
+        setZipProgress(75);
+        setZipProgressStage("೩/೩ ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ (3/3 Remedy)...");
+        const remedyPdf = await generatePDFFromElement(
+          "omkar-remedy-container",
+          `03_${safeName}_Baggona_Remedy.pdf`,
+          false
+        );
+        remedyBlob = remedyPdf.output("blob");
+      }
+
+      // 4. Package into ZIP
+      setZipProgress(88);
+      setZipProgressStage("ZIP ಕಡತವನ್ನು ಪ್ಯಾಕ್ ಮಾಡಲಾಗುತ್ತಿದೆ (Packaging ZIP archive)...");
+
+      const result = await packageOmkarPremiumZip({
+        devoteeName,
+        selectedLang,
+        jananaKundliBlob,
+        bhavishyaV1Blob,
+        remedyBlob,
+        onProgress: (pct, stage) => {
+          setZipProgress(pct);
+          setZipProgressStage(stage);
+        }
+      });
+
+      // 5. Download the ZIP file
+      const downloadUrl = URL.createObjectURL(result.zipBlob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = result.zipFileName;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        if (document.body.contains(link)) document.body.removeChild(link);
+        URL.revokeObjectURL(downloadUrl);
+      }, 2000);
+
+      setLastDownloadedZip(result.zipFileName);
+      setZipProgress(100);
+      setZipProgressStage("🎉 ಪ್ರೀಮಿಯಂ ZIP ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಂಡಿದೆ!");
+
+      // Dispatch order notification email
+      const selectedList = [
+        selectedJananaKundli ? "Baggona Janana Kundali" : null,
+        selectedBhavishyaV1 ? "Premium PDF V1" : null,
+        selectedRemedy ? "Remedy PDF" : null
+      ].filter(Boolean).join(" + ");
+
+      void dispatchOrderNotification(
+        `Omkar Premium ZIP: ${selectedList}`,
+        selectedJananaKundli && selectedBhavishyaV1 && selectedRemedy ? 500 : 350,
+        `Archive: ${result.zipFileName} (${result.includedFiles.join(", ")}) for ${effectiveDevoteeName}`
+      );
+    } catch (err: any) {
+      console.error("[OmkarDesk] Error generating ZIP package:", err);
+      alert("ZIP ನಿರ್ಮಾಣದಲ್ಲಿ ದೋಷ: " + (err?.message || "Error generating ZIP"));
+    } finally {
+      setIsPackagingZip(false);
+    }
+  };
+
+  // Action: WhatsApp Dispatcher with attached zip message
+  const handleSendZipWhatsapp = () => {
+    const selectedList = [
+      selectedJananaKundli ? "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನನ ಕುಂಡಲಿ" : null,
+      selectedBhavishyaV1 ? "ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ವರದಿ V1" : null,
+      selectedRemedy ? "ದೈವಿಕ ಪರಿಹಾರ ವರದಿ" : null
+    ].filter(Boolean) as string[];
+
+    const zipName = lastDownloadedZip || getOmkarZipFileName(devoteeName);
+    const shareUrl = getOmkarWhatsAppShareUrl({
+      whatsappNumber,
+      devoteeName: effectiveDevoteeName,
+      zipFileName: zipName,
+      birthDate,
+      birthTime,
+      place: resolvedPlaceName,
+      selectedOptions: selectedList
+    });
+
+    window.open(shareUrl, "_blank");
   };
 
   // Action: Download Baggona Janana Kundali & Dasha PDF (Official 2-Page Document)
@@ -1043,14 +1246,14 @@ export default function OmkarDeskPortalPage(): JSX.Element {
                   onClick={handleProceedToDashboard}
                   className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-base py-3.5 rounded-xl shadow-xl hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>ಮುಂದುವರಿಯಿರಿ & ೩ ಆಫರ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ತೆರೆಯಿರಿ (Proceed to 3 Offers) ➔</span>
+                  <span>ಜನರೇಟ್ ಮಾಡಿ & ಪ್ರೀಮಿಯಂ ಡೌನ್‌ಲೋಡ್ (Generate & Open Premium Download) ➔</span>
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* STEP 2: 3-OFFERING ACTION DASHBOARD */}
+        {/* STEP 2: OMKAR DEDICATED ACTION DASHBOARD */}
         {currentStep === 2 && (
           <div className="space-y-6">
             {/* Customer Summary Bar */}
@@ -1076,277 +1279,312 @@ export default function OmkarDeskPortalPage(): JSX.Element {
               </button>
             </div>
 
-            {/* 3 OFFERINGS CARDS */}
+            {/* OMKAR DEDICATED PREMIUM DOWNLOAD CONSOLE */}
             <div className="space-y-6">
-              {/* CARD 1: POSTER 1 — PREMIUM JANANA KUNDLI & BHAVISHYA PDF */}
-              <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-blue-950/40 border-2 border-blue-500/40 rounded-2xl p-6 shadow-xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-4">
+              {/* PRIMARY GOLD CARD: 3-PDF PREMIUM DOWNLOAD */}
+              <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950/40 border-2 border-amber-500/50 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/30 pb-4 mb-5">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-950 px-2.5 py-1 rounded-full border border-blue-500/30">
-                      POSTER 1 OFFERING
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-950/80 px-2.5 py-1 rounded-full border border-amber-500/40">
+                      👑 ಪ್ರೀಮಿಯಂ ಡೌನ್‌ಲೋಡ್ (PREMIUM DOWNLOAD)
                     </span>
-                    <h3 className="text-xl font-black text-amber-200 mt-1">
-                      ಪ್ರೀಮಿಯಂ ಜನನ ಕುಂಡಲಿ & ಭವಿಷ್ಯ ವರದಿ PDF (V1)
+                    <h3 className="text-xl sm:text-2xl font-black text-amber-200 mt-2">
+                      ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರೀಮಿಯಂ ZIP ಪ್ಯಾಕೇಜ್
                     </h3>
-                    <p className="text-xs text-slate-300 mt-0.5">
-                      ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ, ಪಂಚಭೂತ ತತ್ವ, ನಿಗೂಢ ರಹಸ್ಯ, ಪ್ರಸ್ತುತ ಯೋಗ-ದೋಷ & ೬ ತಿಂಗಳು-೧ ವರ್ಷದ ಅವಲೋಕನ
+                    <p className="text-xs text-slate-300 mt-1">
+                      ಕೇವಲ ಈ ೩ ವರದಿಗಳನ್ನು ಮಾತ್ರ ಆಯ್ಕೆ ಮಾಡಬಹುದು. ಆಯ್ಕೆ ಮಾಡಿದ ವರದಿಗಳು ಒಂದೇ ZIP ಕಡತವಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತವೆ.
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-black text-emerald-400">
-                      {includeRemedy ? "₹410" : "₹320"}
+                    <span className="text-xs font-mono font-bold text-amber-300 bg-slate-950 px-3 py-1.5 rounded-lg border border-amber-500/30">
+                      ZIP: {getOmkarZipFileName(devoteeName)}
                     </span>
-                    <p className="text-[11px] text-slate-400">
-                      {includeRemedy ? "(ಜಾತಕ + ಪರಿಹಾರ ವರದಿ)" : "(ಮೂಲ ಜಾತಕ & ಭವಿಷ್ಯ)"}
-                    </p>
                   </div>
                 </div>
 
-                {/* Optional Remedy Checkbox */}
-                <div className="mb-4 p-3 bg-amber-950/30 border border-amber-500/30 rounded-xl flex items-center justify-between">
-                  <label className="flex items-center gap-3 cursor-pointer text-xs font-bold text-amber-200">
+                {/* 3 CHECKBOX OPTIONS (ONLY THESE THREE CAN BE SELECTED) */}
+                <div className="space-y-3.5 mb-6">
+                  {/* OPTION 1: BAGGONA PANCHA JANANA KUNDALI */}
+                  <label
+                    className={`flex items-start gap-3.5 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      selectedJananaKundli
+                        ? "bg-amber-950/40 border-amber-400 shadow-md shadow-amber-950/30"
+                        : "bg-slate-900/60 border-slate-700 opacity-60 hover:opacity-90"
+                    }`}
+                  >
                     <input
                       type="checkbox"
-                      checked={includeRemedy}
-                      onChange={(e) => setIncludeRemedy(e.target.checked)}
-                      className="h-4 w-4 accent-amber-400 rounded"
+                      checked={selectedJananaKundli}
+                      onChange={(e) => setSelectedJananaKundli(e.target.checked)}
+                      className="h-5 w-5 accent-amber-400 mt-0.5 cursor-pointer rounded"
                     />
-                    <span>
-                      ವಿಶೇಷ ದೋಷ ಪರಿಹಾರ ವರದಿ ಸೇರಿಸಿ (Include Remedial Upaya PDF — +₹90 = Total ₹410)
-                    </span>
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <span className="text-base font-black text-amber-200">
+                          ೧. ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನನ ಕುಂಡಲಿ (Baggona Pancha Janana Kundali)
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40 self-start sm:self-auto">
+                          ಅಧಿಕೃತ ೨-ಪುಟ ಜಾತಕ & ದಶಾ
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                        ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ, ಪಂಚಾಂಗ ಗಣಿತ, ಗ್ರಹ ಸ್ಥಿತಿ, ನವಾಂಶ, ಹಾಗೂ ಪೂರ್ಣ ವಿಂಶೋತ್ತರಿ ಮಹಾದಶಾ-ಅಂತರ್ದಶಾ ಕೋಷ್ಟಕ.
+                      </p>
+                    </div>
                   </label>
-                  <span className="text-[11px] text-amber-400 font-bold">
-                    {includeRemedy ? "✓ ಪರಿಹಾರ ಸಕ್ರಿಯ" : "ಐಚ್ಛಿಕ"}
-                  </span>
+
+                  {/* OPTION 2: PREMIUM PDF V1 */}
+                  <label
+                    className={`flex items-start gap-3.5 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      selectedBhavishyaV1
+                        ? "bg-amber-950/40 border-amber-400 shadow-md shadow-amber-950/30"
+                        : "bg-slate-900/60 border-slate-700 opacity-60 hover:opacity-90"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedBhavishyaV1}
+                      onChange={(e) => setSelectedBhavishyaV1(e.target.checked)}
+                      className="h-5 w-5 accent-amber-400 mt-0.5 cursor-pointer rounded"
+                    />
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <span className="text-base font-black text-amber-200">
+                          ೨. ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ವರದಿ V1 (Premium PDF V1)
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40 self-start sm:self-auto">
+                          ಸಮಗ್ರ ಜೀವಮಾನ ಭವಿಷ್ಯ
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                        ೧೨ ಮನೆಗಳ ಸಮಗ್ರ ಫಲ, ಪಂಚಭೂತ ತತ್ವ, ನಿಗೂಢ ರಹಸ್ಯ, ಪ್ರಸ್ತುತ ಯೋಗ-ದೋಷ & ೬ ತಿಂಗಳು-೧ ವರ್ಷದ ಆಳವಾದ ಗೋಚಾರ ಅವಲೋಕನ.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* OPTION 3: REMEDY */}
+                  <label
+                    className={`flex items-start gap-3.5 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      selectedRemedy
+                        ? "bg-amber-950/40 border-amber-400 shadow-md shadow-amber-950/30"
+                        : "bg-slate-900/60 border-slate-700 opacity-60 hover:opacity-90"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedRemedy}
+                      onChange={(e) => setSelectedRemedy(e.target.checked)}
+                      className="h-5 w-5 accent-amber-400 mt-0.5 cursor-pointer rounded"
+                    />
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <span className="text-base font-black text-amber-200">
+                          ೩. ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (Remedy PDF)
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40 self-start sm:self-auto">
+                          ೧೪೦ ವರ್ಷಗಳ ಪರಂಪರೆಯ ಪರಿಹಾರ
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                        ಜನ್ಮ ಕುಂಡಲಿಯ ದೋಷಗಳಿಗೆ ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ, ಇಷ್ಟದೈವ ಆರಾಧನೆ, ಮಂತ್ರ ಜಪ, ರಕ್ಷಾ ಕವಚ & ಶ್ರೀಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಅರ್ಚಕರ ಮಾರ್ಗದರ್ಶನ.
+                      </p>
+                    </div>
+                  </label>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* PACKAGING PROGRESS BAR */}
+                {isPackagingZip && (
+                  <div className="my-5 p-4 bg-slate-950/90 border border-amber-500/50 rounded-xl space-y-2">
+                    <div className="flex justify-between text-xs text-amber-300 font-bold">
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin text-sm">⏳</span> {zipProgressStage}
+                      </span>
+                      <span className="font-mono">{zipProgress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 h-full transition-all duration-300 rounded-full"
+                        style={{ width: `${zipProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* SUCCESS DOWNLOAD ALERT */}
+                {lastDownloadedZip && !isPackagingZip && (
+                  <div className="my-5 p-4 bg-emerald-950/60 border-2 border-emerald-500/50 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-emerald-200">
+                    <div>
+                      <span className="text-xs font-black text-emerald-400 uppercase tracking-wider block">
+                        ✓ ZIP ಕಡತ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ:
+                      </span>
+                      <span className="font-mono text-sm font-bold text-white break-all">
+                        {lastDownloadedZip}
+                      </span>
+                      <p className="text-xs text-emerald-300/80 mt-1">
+                        ಕಡತವು ನಿಮ್ಮ ಡೌನ್‌ಲೋಡ್ ಫೋಲ್ಡರ್‌ನಲ್ಲಿದೆ. WhatsApp ಮೂಲಕ ಭಕ್ತರಿಗೆ ಸುಲಭವಾಗಿ ಕಳುಹಿಸಿ.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* THE ONLY PRIMARY ACTION BUTTON & WHATSAPP BUTTON */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={handleDownloadJananaKundli}
-                    disabled={isDownloadingKundli}
-                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"
+                    onClick={handleDownloadPremiumZip}
+                    disabled={isPackagingZip || (!selectedJananaKundli && !selectedBhavishyaV1 && !selectedRemedy)}
+                    className="flex-1 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-black text-base py-4 rounded-xl shadow-xl hover:shadow-amber-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>{isDownloadingKundli ? "ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ..." : "📥 ಜನನ ಕುಂಡಲಿ PDF"}</span>
+                    <span>
+                      {isPackagingZip
+                        ? "ಕಡತ ತಯಾರಾಗುತ್ತಿದೆ..."
+                        : "📥 ಪ್ರೀಮಿಯಂ ಜಿಪ್ ಡೌನ್‌ಲೋಡ್ (Premium Download ZIP)"}
+                    </span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleDownloadBhavishyaV1}
-                    disabled={isDownloadingBhavishyaV1}
-                    className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"
+                    onClick={handleSendZipWhatsapp}
+                    className="px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm rounded-xl shadow-lg hover:shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>{isDownloadingBhavishyaV1 ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "📥 ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ V1 PDF"}</span>
+                    <span>📲 WhatsApp ಮೂಲಕ ಕಳುಹಿಸಿ</span>
                   </button>
+                </div>
 
-                  {includeRemedy && (
+                {/* SUBTLE SECONDARY LINKS FOR INDIVIDUAL PDF DOWNLOAD */}
+                <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                  <span className="font-semibold text-slate-400">
+                    ಪ್ರತ್ಯೇಕ PDF ಡೌನ್‌ಲೋಡ್ (Individual PDF):
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleDownloadJananaKundli}
+                      disabled={isDownloadingKundli}
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded text-[11px] border border-slate-700 transition cursor-pointer"
+                    >
+                      {isDownloadingKundli ? "ಡೌನ್‌ಲೋಡ್..." : "ಜನನ ಕುಂಡಲಿ PDF"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadBhavishyaV1}
+                      disabled={isDownloadingBhavishyaV1}
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded text-[11px] border border-slate-700 transition cursor-pointer"
+                    >
+                      {isDownloadingBhavishyaV1 ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "ಭವಿಷ್ಯ V1 PDF"}
+                    </button>
                     <button
                       type="button"
                       onClick={handleDownloadRemedyPdf}
                       disabled={isDownloadingRemedy}
-                      className="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded text-[11px] border border-slate-700 transition cursor-pointer"
                     >
-                      <span>{isDownloadingRemedy ? "ಡೌನ್‌ಲೋಡ್..." : "📥 ಪರಿಹಾರ ವರದಿ PDF"}</span>
+                      {isDownloadingRemedy ? "ಡೌನ್‌ಲೋಡ್..." : "ಪರಿಹಾರ ವರದಿ PDF"}
                     </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleSendKundliWhatsapp}
-                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span>📲 WhatsApp ಗೆ ಕಳುಹಿಸಿ</span>
-                  </button>
+                  </div>
                 </div>
               </div>
 
-              {/* CARD 2: POSTER 2 — 30-DAY PERSONALIZED CALENDAR */}
-              <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-emerald-950/40 border-2 border-emerald-500/40 rounded-2xl p-6 shadow-xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-4">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-full border border-emerald-500/30">
-                      POSTER 2 OFFERING
-                    </span>
-                    <h3 className="text-xl font-black text-amber-200 mt-1">
-                      ೩೦ ದಿನಗಳ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ & ಕರ್ಮ ಕ್ಯಾಲೆಂಡರ್
-                    </h3>
-                    <p className="text-xs text-slate-300 mt-0.5">
-                      ನಿಮ್ಮ ಜನ್ಮ ನಕ್ಷತ್ರಕ್ಕೆ ಮಾತ್ರ ತಯಾರಿಸಿದ ೩೦ ದಿನಗಳ ಗೈಡ್ • ಪಂಡಿತರು: <strong>ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362)</strong>
-                    </p>
+              {/* COLLAPSED OPTIONAL TOOLS: 30-DAY CALENDAR & LIVE SESSION */}
+              <details className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 text-xs text-slate-400">
+                <summary className="cursor-pointer font-bold text-slate-400 hover:text-amber-300 select-none">
+                  ⚡ ಹೆಚ್ಚುವರಿ ಪರಿಕರಗಳು: ೩೦ ದಿನಗಳ ಕ್ಯಾಲೆಂಡರ್ & ಲೈವ್ ಲಿಂಕ್ (ಐಚ್ಛಿಕ / Optional)
+                </summary>
+                <div className="mt-4 space-y-6 pt-2 border-t border-slate-800">
+                  {/* CARD 2: POSTER 2 — 30-DAY PERSONALIZED CALENDAR */}
+                  <div className="bg-slate-900 border border-emerald-500/30 rounded-xl p-5">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-black text-amber-200">೩೦ ದಿನಗಳ ವೈಯಕ್ತಿಕ ಪಂಚಾಂಗ & ಕರ್ಮ ಕ್ಯಾಲೆಂಡರ್</h4>
+                      <span className="text-emerald-400 font-bold">₹280</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                      <a
+                        href={calendarGoogleUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-center rounded-lg"
+                      >
+                        📅 Google Calendar
+                      </a>
+                      <button
+                        type="button"
+                        onClick={handleDownloadIcsFile}
+                        className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-center rounded-lg border border-slate-600 cursor-pointer"
+                      >
+                        📥 .ICS ಫೈಲ್
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDownloadPriestCardPdf}
+                        disabled={isDownloadingPriestCard || !calendarQrDataUrl}
+                        className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-center rounded-lg cursor-pointer"
+                      >
+                        📄 ಅರ್ಚಕರ QR ಕಾರ್ಡ್ (A4)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSendCalendarWhatsapp}
+                        className="px-3 py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-center rounded-lg cursor-pointer"
+                      >
+                        📲 WhatsApp ಗೆ ಕಳುಹಿಸಿ
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-lg font-black text-emerald-400">₹280</span>
-                    <p className="text-[11px] text-slate-400">(೩೦ ದಿನಗಳ ಪೂರ್ಣ ಕ್ಯಾಲೆಂಡರ್)</p>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
-                  {/* Calendar 3-Color Rules Preview */}
-                  <div className="sm:col-span-2 space-y-2 text-xs">
-                    <div className="p-2.5 bg-emerald-950/50 border border-emerald-500/30 rounded-lg flex items-center gap-2">
-                      <span className="text-lg">🟢</span>
-                      <span>
-                        <strong className="text-emerald-300">ಹಸಿರು (Green):</strong> ಶುಭ ಶಕ್ತಿ — ಹೊಸ ಕೆಲಸ, ವಸ್ತು, ವಾಹನ, ಆಸ್ತಿ ಖರೀದಿ & ಒಪ್ಪಂದಕ್ಕೆ ಅತ್ಯುತ್ತಮ.
-                      </span>
+                  {/* CARD 3: POSTER 3 — 20-MINUTE LIVE SESSION */}
+                  <div className="bg-slate-900 border border-purple-500/30 rounded-xl p-5">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-black text-amber-200">೨೦ ನಿಮಿಷಗಳ ಲೈವ್ ದೈವಜ್ಞ ಸಮಾಲೋಚನೆ</h4>
+                      <span className="text-emerald-400 font-bold">₹450</span>
                     </div>
-                    <div className="p-2.5 bg-yellow-950/50 border border-yellow-500/30 rounded-lg flex items-center gap-2">
-                      <span className="text-lg">🟡</span>
-                      <span>
-                        <strong className="text-yellow-300">ಹಳದಿ (Yellow):</strong> ಸಮತೋಲನ ಶಕ್ತಿ — ದಿನನಿತ್ಯದ ಕೆಲಸಗಳಿಗೆ ಉತ್ತಮ.
-                      </span>
-                    </div>
-                    <div className="p-2.5 bg-red-950/50 border border-red-500/30 rounded-lg flex items-center gap-2">
-                      <span className="text-lg">🔴</span>
-                      <span>
-                        <strong className="text-red-300">ಕೆಂಪು (Red):</strong> ಜಾಗರೂಕತೆ — ಚಂದ್ರಾಷ್ಟಮ, ರಿಸ್ಕ್ ಬೇಡ, ಹೊಸ ಕೆಲಸ ಆರಂಭಿಸಬೇಡಿ.
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Google Calendar QR Code Display */}
-                  <div className="bg-white p-3 rounded-xl flex flex-col items-center justify-center text-center">
-                    {calendarQrDataUrl ? (
-                      <img
-                        src={calendarQrDataUrl}
-                        alt="30-Day Google Calendar QR"
-                        className="w-36 h-36 object-contain"
-                      />
+                    {!liveSessionUrl ? (
+                      <button
+                        type="button"
+                        onClick={handleGenerateLiveSession}
+                        disabled={isGeneratingLiveLink}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg cursor-pointer"
+                      >
+                        {isGeneratingLiveLink ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "⚡ ಲೈವ್ ಸೆಷನ್ ಲಿಂಕ್ ರಚಿಸಿ"}
+                      </button>
                     ) : (
-                      <div className="w-36 h-36 flex items-center justify-center text-xs text-slate-600">
-                        QR ಸಿದ್ಧವಾಗುತ್ತಿದೆ...
-                      </div>
-                    )}
-                    <span className="text-[10px] font-black text-slate-800 mt-1 uppercase">
-                      Scan for Daily Darshana & Sync
-                    </span>
-                  </div>
-                </div>
-
-                {/* Calendar Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800">
-                  <a
-                    href={calendarGoogleUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition text-center"
-                  >
-                    📅 Google Calendar ಗೆ ಲಿಂಕ್ ಮಾಡಿ
-                  </a>
-
-                  <button
-                    type="button"
-                    onClick={handleDownloadIcsFile}
-                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 font-bold text-xs rounded-xl shadow transition text-center cursor-pointer"
-                  >
-                    📥 .ICS ಫೈಲ್ ಡೌನ್‌ಲೋಡ್
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleDownloadPriestCardPdf}
-                    disabled={isDownloadingPriestCard || !calendarQrDataUrl}
-                    className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow transition text-center cursor-pointer disabled:opacity-50"
-                  >
-                    📄 {isDownloadingPriestCard ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "ಅರ್ಚಕರ QR ಕಾರ್ಡ್ (A4)"}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleSendCalendarWhatsapp}
-                    className="px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded-xl shadow transition text-center cursor-pointer"
-                  >
-                    📲 WhatsApp ಗೆ ಕಳುಹಿಸಿ
-                  </button>
-                </div>
-              </div>
-
-              {/* CARD 3: POSTER 3 — 20-MINUTE LIVE 1-ON-1 AI PRIEST CONSULTATION */}
-              <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-purple-950/40 border-2 border-purple-500/40 rounded-2xl p-6 shadow-xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-4">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 bg-purple-950 px-2.5 py-1 rounded-full border border-purple-500/30">
-                      POSTER 3 OFFERING
-                    </span>
-                    <h3 className="text-xl font-black text-amber-200 mt-1">
-                      ೨೦ ನಿಮಿಷಗಳ ಲೈವ್ ದೈವಜ್ಞ ಸಮಾಲೋಚನೆ (Live AI Priest)
-                    </h3>
-                    <p className="text-xs text-slate-300 mt-0.5">
-                      ನಾಚಿಕೆ ಅಥವಾ ಭಯವಿಲ್ಲದೆ ಮುಕ್ತವಾಗಿ ಮಾತನಾಡಿ • ೧೦೦% ಖಾಸಗಿ • Zero Data Saved • ಧ್ವನಿ (Audio) ಬಟನ್ ಸೌಲಭ್ಯ
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-lg font-black text-emerald-400">₹450</span>
-                    <p className="text-[11px] text-slate-400">(೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಕೊಠಡಿ)</p>
-                  </div>
-                </div>
-
-                {!liveSessionUrl ? (
-                  <div className="text-center py-4">
-                    <button
-                      type="button"
-                      onClick={handleGenerateLiveSession}
-                      disabled={isGeneratingLiveLink}
-                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm rounded-xl shadow-lg transition cursor-pointer"
-                    >
-                      {isGeneratingLiveLink ? "ರಚಿಸಲಾಗುತ್ತಿದೆ..." : "⚡ ೨೦ ನಿಮಿಷಗಳ ಲೈವ್ ಸೆಷನ್ ಲಿಂಕ್ ರಚಿಸಿ (Generate Live Link)"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-950/80 p-4 rounded-xl border border-purple-500/30">
-                      {liveSessionQrUrl && (
-                        <div className="bg-white p-2 rounded-lg">
-                          <img
-                            src={liveSessionQrUrl}
-                            alt="Live Consultation QR"
-                            className="w-28 h-28 object-contain"
-                          />
-                        </div>
-                      )}
-                      <div className="flex-1 w-full">
-                        <span className="text-xs font-bold text-purple-300 block mb-1">
-                          ಖಾಸಗಿ ಲೈವ್ ಸೆಷನ್ ಲಿಂಕ್ (Private Session URL):
-                        </span>
+                      <div className="flex flex-wrap gap-2 items-center">
                         <input
                           type="text"
                           readOnly
                           value={liveSessionUrl}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-amber-300 font-mono mb-2"
+                          className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-amber-300 font-mono"
                         />
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard.writeText(liveSessionUrl);
-                              setCopiedLinkToast(true);
-                              setTimeout(() => setCopiedLinkToast(false), 2000);
-                            }}
-                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold rounded-lg border border-slate-600 transition cursor-pointer"
-                          >
-                            {copiedLinkToast ? "✓ ಕಾಪಿ ಆಯಿತು!" : "📋 ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ"}
-                          </button>
-                          <a
-                            href={liveSessionUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg transition"
-                          >
-                            🌐 ಸೆಷನ್‌ಗೆ ಹೋಗಿ (Open Room)
-                          </a>
-                          <button
-                            type="button"
-                            onClick={handleSendLiveSessionWhatsapp}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition cursor-pointer"
-                          >
-                            📲 WhatsApp ಗೆ ಕಳುಹಿಸಿ
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(liveSessionUrl);
+                            setCopiedLinkToast(true);
+                            setTimeout(() => setCopiedLinkToast(false), 2000);
+                          }}
+                          className="px-3 py-1.5 bg-slate-800 text-amber-300 font-bold rounded-lg cursor-pointer border border-slate-600"
+                        >
+                          {copiedLinkToast ? "✓ ಕಾಪಿ ಆಯಿತು" : "📋 ಕಾಪಿ"}
+                        </button>
+                        <a
+                          href={liveSessionUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 bg-purple-700 text-white font-bold rounded-lg"
+                        >
+                          🌐 ತೆರೆಯಿರಿ
+                        </a>
+                        <button
+                          type="button"
+                          onClick={handleSendLiveSessionWhatsapp}
+                          className="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-lg cursor-pointer"
+                        >
+                          📲 WhatsApp
+                        </button>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              </details>
             </div>
           </div>
         )}
