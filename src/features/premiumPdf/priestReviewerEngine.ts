@@ -122,6 +122,7 @@ export interface ChapterReviewResult {
 export interface PriestReviewAuditSummary {
   overallAccuracyScore: number;
   allChaptersApproved: boolean;
+  priestSealText: string;
   priestSealTextKn: string;
   priestSealTextEn: string;
   chapterResults: Record<string, ChapterReviewResult>;
@@ -755,16 +756,30 @@ export function auditAndHealBhavishyaV1Payload(
   const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / (scores.length || 1));
   const allApproved = Object.values(chapterResults).every(r => r.isApproved);
 
+  const baseLang = (lang || "kn").split("-")[0];
   const priestSealTextKn = `॥ ಶ್ರೀ ಬಗ್ಗೋಣ ಕ್ಷೇತ್ರದ ವೇದ ದೈವಜ್ಞರ ನಿಖರತೆ ಪರಿಶೀಲನಾ ಮುದ್ರೆ: ${toKnDigits(avgScore)}% ಶಾಸ್ತ್ರ ಪ್ರಮಾಣಿತ ॥`;
+  const priestSealTextHi = `॥ श्री बग्गोण क्षेत्र वेद ज्योतिषी शुद्धता समीक्षा मुहर: ${avgScore}% शास्त्र प्रमाणित ॥`;
+  const priestSealTextTe = `॥ శ్రీ బగ్గోణ క్షేత్ర వేద జ్యోతిష ఖచ్చితత్వ సమీక్ష ముద్ర: ${avgScore}% శాస్త్ర ప్రమాణితం ॥`;
+  const priestSealTextTa = `॥ ஸ்ரீ பக்கோணா தலம் வேத ஜோதிட துல்லிய சரிபார்ப்பு முத்திரை: ${avgScore}% சாஸ்திர சான்றளிக்கப்பட்டது ॥`;
   const priestSealTextEn = `॥ Shri Baggona Vedic Priest Review Seal: ${avgScore}% Astrologically Verified & Certified ॥`;
 
+  const priestSealMap: Record<string, string> = {
+    kn: priestSealTextKn,
+    hi: priestSealTextHi,
+    te: priestSealTextTe,
+    ta: priestSealTextTa,
+    en: priestSealTextEn
+  };
+  const activePriestSeal = priestSealMap[baseLang] || priestSealTextEn;
+
   if (payload.translations) {
-    payload.translations.priestSeal = lang === "kn" ? priestSealTextKn : priestSealTextEn;
+    payload.translations.priestSeal = activePriestSeal;
   }
 
   return {
     overallAccuracyScore: avgScore,
     allChaptersApproved: allApproved,
+    priestSealText: activePriestSeal,
     priestSealTextKn,
     priestSealTextEn,
     chapterResults,

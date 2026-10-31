@@ -41,7 +41,9 @@ import {
   buildDynamicGocharaFallback,
   buildDynamicSummaryFallback,
   buildDynamicTimelineFallback,
-  getLocalizedDevoteeName
+  getLocalizedDevoteeName,
+  ensureNamePresence,
+  toKnDigits
 } from "../../features/premiumPdf/dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -2117,7 +2119,11 @@ Return ONLY this JSON format:
         ? "೧. ಜನ್ಮ ಲಗ್ನ, ನವಾಂಶ ಮತ್ತು ಗ್ರಹಗಳ ಗಣನೆ..."
         : pdfLanguage === "hi"
           ? "1. जन्म लग्न, नवांश एवं ग्रह गणना..."
-          : "1. Calculating Natal Lagna, Bhavas & Navamsha..."
+          : pdfLanguage === "te"
+            ? "1. జన్మ లగ్నం, నవాంశ మరియు గ్రహాల గణన..."
+            : pdfLanguage === "ta"
+              ? "1. ஜென்ம லக்னம், நவாம்சம் மற்றும் கிரகக் கணிதம்..."
+              : "1. Calculating Natal Lagna, Bhavas & Navamsha..."
     );
 
     try {
@@ -2145,7 +2151,11 @@ Return ONLY this JSON format:
           ? "೯. ಉನ್ನತ ರೆಸಲ್ಯೂಷನ್ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಪಿಡಿಎಫ್ ಮುದ್ರಣ ಸಿದ್ಧತೆ..."
           : pdfLanguage === "hi"
             ? "9. उच्च-रिज़ॉल्यूशन आधिकारिक बग्गोण पीडीएफ मुद्रण तैयारी..."
-            : "9. Assembling High-Resolution Official Baggona PDF Document..."
+            : pdfLanguage === "te"
+              ? "9. ఉన్నత రిజల్యూషన్ అధికారిక బగ్గోణ పిడిఎఫ్ ముద్రణ తయారీ..."
+              : pdfLanguage === "ta"
+                ? "9. உயர் தெளிவுத்திறன் அதிகாரப்பூர்வ பக்கோணா பிடிஎஃப் அச்சு தயாரிப்பு..."
+                : "9. Assembling High-Resolution Official Baggona PDF Document..."
       );
 
       // Wait for React to flush state to the hidden PdfTemplate
@@ -3004,10 +3014,10 @@ Return ONLY this JSON (no extra text before or after):
       );
       const cleanSum = cleanEnglishFromRegionalText(guaranteedSummary, lang);
       const withNameSum = ensureNamePresence(cleanSum, localizedDevoteeName, lang);
-      const parasSum = withNameSum.split(/\n\s*\n|\n+/).map(p => p.trim()).filter(p => p.length > 15);
+      const parasSum = withNameSum.split(/\n\s*\n|\n+/).map((p: string) => p.trim()).filter((p: string) => p.length > 15);
       const dedupedSum: string[] = [];
-      parasSum.forEach(p => {
-        if (!dedupedSum.some(existing => areParagraphsDuplicates(existing, p))) {
+      parasSum.forEach((p: string) => {
+        if (!dedupedSum.some((existing: string) => areParagraphsDuplicates(existing, p))) {
           dedupedSum.push(p);
         }
       });
@@ -3440,14 +3450,22 @@ Return ONLY this JSON (no extra text before or after):
                     ? "ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವಿಸ್ತೃತ ಜೀವಮಾನ ಭವಿಷ್ಯವಾಣಿ (V1 Engine)"
                     : pdfLanguage === "hi"
                       ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
-                      : "Comprehensive 10-Chapter Astrological Life Forecast (V1 Engine)"}
+                      : pdfLanguage === "te"
+                        ? "సంపూర్ణ 10-అధ్యాయాల సమగ్ర జీవిత భవిష్యత్తు (V1 Engine)"
+                        : pdfLanguage === "ta"
+                          ? "முழுமையான 10-அத்தியாயங்கள் விரிவான வாழ்க்கை பலன்கள் (V1 Engine)"
+                          : "Comprehensive 10-Chapter Astrological Life Forecast (V1 Engine)"}
                 </h4>
                 <p className="text-xs text-amber-200/90 font-sans max-w-2xl leading-relaxed">
                   {pdfLanguage === "kn"
                     ? "ನಿಖರ ಜನ್ಮ ಕುಂಡಲಿ, ಸಪ್ತಮ/ಪಂಚಮ ಭಾವ, ನವಾಂಶ, ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ನೈಜ ಸಮಯದ ಗ್ರಹ ಗೋಚಾರದ ಆಧಾರದಲ್ಲಿ ರಚಿಸಲಾಗುವ ಪರಿಪೂರ್ಣ ಭವಿಷ್ಯ ವರದಿ. ಕನಿಷ್ಠ ೩ ವಿಸ್ತೃತ ಪರಿಚ್ಛೇದಗಳು (ಪ್ರತಿಯೊಂದೂ ೫-೬ ಸಾಲುಗಳು) ಪ್ರತಿಯೊಂದು ಅಧ್ಯಾಯಕ್ಕೂ."
                     : pdfLanguage === "hi"
                       ? "सटीक जन्म कुंडली, सप्तम/पंचम भाव, नवांश, दशा-भुक्ति एवं लाइव गोचर पर आधारित संपूर्ण भविष्यफल रिपोर्ट। प्रत्येक अध्याय में न्यूनतम ३ विस्तृत पैराग्राफ (प्रत्येक ५-६ पंक्तियां)।"
-                      : "100% mathematically calculated from your exact birth chart, 7th/5th house lords, Navamsha, Vimshottari Dasha, and live transits. Every chapter features strictly minimum 3 substantial paragraphs with 5-6 lines each."}
+                      : pdfLanguage === "te"
+                        ? "ఖచ్చితమైన జన్మ కుండలి, 7/5 భావాలు, నవాంశ, దశా-భుక్తి మరియు ప్రత్యక్ష గోచార ఆధారంగా రూపొందించిన సంపూర్ణ భవిష్యత్తు నివేదిక. ప్రతి అధ్యాయంలో ఖచ్చితంగా కనీసం 3 సమగ్ర పేరాలు (ప్రతిదీ 5-6 పంక్తులు)."
+                        : pdfLanguage === "ta"
+                          ? "துல்லியமான பிறப்பு ஜாதகம், 7/5-ஆம் பாவங்கள், நவாம்சம், தசா-புக்தி மற்றும் நேரடி கோச்சார அடிப்படையில் அமைக்கப்பட்ட முழுமையான அறிக்கை. ஒவ்வொரு அத்தியாயத்திலும் கண்டிப்பாகக் குறைந்தபட்சம் 3 விரிவான பத்திகள் (ஒவ்வொன்றும் 5-6 வரிகள்)."
+                          : "100% mathematically calculated from your exact birth chart, 7th/5th house lords, Navamsha, Vimshottari Dasha, and live transits. Every chapter features strictly minimum 3 substantial paragraphs with 5-6 lines each."}
                 </p>
               </div>
 
@@ -3462,7 +3480,11 @@ Return ONLY this JSON (no extra text before or after):
                     }`}
                 >
                   <span className="text-xl animate-pulse">📜✨</span>
-                  <span>{isGeneratingPremiumPdfV1 ? "Crafting V1 Report..." : "Generate Premium PDF V1"}</span>
+                  <span>
+                    {isGeneratingPremiumPdfV1
+                      ? (pdfLanguage === "kn" ? "ವಿ೧ ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "hi" ? "वी१ रिपोर्ट तैयार हो रही है..." : pdfLanguage === "te" ? "వి1 నివేదిక సిద్ధమవుతోంది..." : pdfLanguage === "ta" ? "வி1 அறிக்கை தயாராகிறது..." : "Crafting V1 Report...")
+                      : (pdfLanguage === "kn" ? "ಪ್ರೀಮಿಯಂ ಪಿಡಿಎಫ್ ವಿ೧ ಪಡೆಯಿರಿ" : pdfLanguage === "hi" ? "प्रीमियम पीडीएफ वी१ प्राप्त करें" : pdfLanguage === "te" ? "ప్రీమియం పిడిఎఫ్ వి1 పొందండి" : pdfLanguage === "ta" ? "பிரீமியம் பிடிஎஃப் வி1 பெறுக" : "Generate Premium PDF V1")}
+                  </span>
                 </button>
 
                 <button
@@ -3478,8 +3500,24 @@ Return ONLY this JSON (no extra text before or after):
                   <span className="text-lg">👑</span>
                   <span>
                     {isGeneratingRoyalA4Pdf
-                      ? (pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "hi" ? "राजमुद्रण तैयार हो रहा है..." : "Crafting Royal Print...")
-                      : (pdfLanguage === "kn" ? "👑 ₹೩೦೦ ರಾಜಮುದ್ರಣ ಭವಿಷ್ಯ (A4 Print)" : pdfLanguage === "hi" ? "👑 ₹३०० राजमुद्रण भविष्य (A4 Print)" : "👑 ₹300 Royal A4 Printout")}
+                      ? (pdfLanguage === "kn"
+                          ? "ರಾಜಮುದ್ರಣ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
+                          : pdfLanguage === "hi"
+                            ? "राजमुद्रण तैयार हो रहा है..."
+                            : pdfLanguage === "te"
+                              ? "రాజముద్రణ సిద్ధమవుతోంది..."
+                              : pdfLanguage === "ta"
+                                ? "ராஜமுத்திரை தயாராகிறது..."
+                                : "Crafting Royal Print...")
+                      : (pdfLanguage === "kn"
+                          ? "👑 ₹೩೦೦ ರಾಜಮುದ್ರಣ ಭವಿಷ್ಯ (ಎ೪ ಆವೃತ್ತಿ)"
+                          : pdfLanguage === "hi"
+                            ? "👑 ₹३०० राजमुद्रण भविष्य (ए४ संस्करण)"
+                            : pdfLanguage === "te"
+                              ? "👑 ₹300 రాజముద్రణ భవిష్యవాణి (A4 ఎడిషన్)"
+                              : pdfLanguage === "ta"
+                                ? "👑 ₹300 ராஜமுத்திரை பலன்கள் (A4 பதிப்பு)"
+                                : "👑 ₹300 Royal A4 Printout")}
                   </span>
                 </button>
 
@@ -3500,7 +3538,15 @@ Return ONLY this JSON (no extra text before or after):
                 >
                   <span className="text-lg">👁️</span>
                   <span>
-                    {pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಮುನ್ನೋಟ" : pdfLanguage === "hi" ? "राजमुद्रण पूर्वावलोकन" : "Preview & Print"}
+                    {pdfLanguage === "kn"
+                      ? "ರಾಜಮುದ್ರಣ ಮುನ್ನೋಟ"
+                      : pdfLanguage === "hi"
+                        ? "राजमुद्रण पूर्वावलोकन"
+                        : pdfLanguage === "te"
+                          ? "రాజముద్రణ ప్రివ్యూ"
+                          : pdfLanguage === "ta"
+                            ? "ராஜமுத்திரை முன்னோட்டம்"
+                            : "Preview & Print"}
                   </span>
                 </button>
               </div>
@@ -3516,11 +3562,23 @@ Return ONLY this JSON (no extra text before or after):
                       ? "ಜಾತಕ ಗ್ರಾಹಕೀಕರಣ (ವೈವಾಹಿಕ & ಸಂತಾನ ಸ್ಥಿತಿ ಆಯ್ಕೆ)"
                       : pdfLanguage === "hi"
                         ? "कुंडली कस्टमाइज़ेशन (वैवाहिक एवं संतान स्थिति चयन)"
-                        : "Horoscope Personalization (Marital & Children Status)"}
+                        : pdfLanguage === "te"
+                          ? "జాతక అనుకూలీకరణ (వైవాహిక & సంతాన స్థితి ఎంపిక)"
+                          : pdfLanguage === "ta"
+                            ? "ஜாதகத் தனிப்பயனாக்கம் (திருமண & சந்ததி நிலை தேர்வு)"
+                            : "Horoscope Personalization (Marital & Children Status)"}
                   </span>
                 </div>
                 <div className="text-[11px] text-amber-400 font-medium italic">
-                  ⚡ {pdfLanguage === "kn" ? "ಆಯ್ಕೆ ಕ್ಲಿಕ್ ಮಾಡಿದ ತಕ್ಷಣ ಕೆಳಗೆ ಲೈವ್ ನಿರೂಪಣೆ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ" : "Narration dynamically updates live below on click"}
+                  ⚡ {pdfLanguage === "kn"
+                    ? "ಆಯ್ಕೆ ಕ್ಲಿಕ್ ಮಾಡಿದ ತಕ್ಷಣ ಕೆಳಗೆ ಲೈವ್ ನಿರೂಪಣೆ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ"
+                    : pdfLanguage === "hi"
+                      ? "विकल्प चुनते ही नीचे लाइव विश्लेषण तुरंत अपडेट होता है"
+                      : pdfLanguage === "te"
+                        ? "ఎంపిక క్లిక్ చేయగానే కింద లైవ్ విశ్లేషణ వెంటనే అప్‌డేట్ అవుతుంది"
+                        : pdfLanguage === "ta"
+                          ? "தேர்வு செய்தவுடன் கீழே நேரடி பகுப்பாய்வு உடனடியாக புதுப்பிக்கப்படும்"
+                          : "Narration dynamically updates live below on click"}
                 </div>
               </div>
 
@@ -3529,7 +3587,15 @@ Return ONLY this JSON (no extra text before or after):
                 {/* 1. Marital Status */}
                 <div className="space-y-1.5 bg-amber-950/40 p-3 rounded-xl border border-amber-500/20">
                   <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-300">
-                    {pdfLanguage === "kn" ? "೧. ವೈವಾಹಿಕ ಸ್ಥಿತಿ (Marital Status):" : "1. Marital Status:"}
+                    {pdfLanguage === "kn"
+                      ? "೧. ವೈವಾಹಿಕ ಸ್ಥಿತಿ:"
+                      : pdfLanguage === "hi"
+                        ? "१. वैवाहिक स्थिति:"
+                        : pdfLanguage === "te"
+                          ? "1. వైవాహిక స్థితి:"
+                          : pdfLanguage === "ta"
+                            ? "1. திருமண நிலை:"
+                            : "1. Marital Status:"}
                   </span>
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -3558,7 +3624,15 @@ Return ONLY this JSON (no extra text before or after):
                 {/* 2. Children Status */}
                 <div className="space-y-1.5 bg-amber-950/40 p-3 rounded-xl border border-amber-500/20">
                   <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-300">
-                    {pdfLanguage === "kn" ? "೨. ಸಂತಾನ ಸ್ಥಿತಿ (Children Status):" : "2. Children Status:"}
+                    {pdfLanguage === "kn"
+                      ? "೨. ಸಂತಾನ ಸ್ಥಿತಿ:"
+                      : pdfLanguage === "hi"
+                        ? "२. संतान स्थिति:"
+                        : pdfLanguage === "te"
+                          ? "2. సంతాన స్థితి:"
+                          : pdfLanguage === "ta"
+                            ? "2. சந்ததி நிலை:"
+                            : "2. Children Status:"}
                   </span>
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -3592,8 +3666,14 @@ Return ONLY this JSON (no extra text before or after):
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
                     <span className="text-xs font-extrabold text-amber-300 uppercase tracking-wide">
                       {pdfLanguage === "kn"
-                        ? "ಲೈವ್ ನಿರೂಪಣೆ (Live Chapter Narration Preview)"
-                        : "Live Personalized Chapter Narration Preview"}
+                        ? "ಲೈವ್ ವೈಯಕ್ತಿಕಗೊಳಿಸಿದ ಅಧ್ಯಾಯ ನಿರೂಪಣೆ ಮುನ್ನೋಟ"
+                        : pdfLanguage === "hi"
+                          ? "लाइव व्यक्तिगत अध्याय विश्लेषण पूर्वावलोकन"
+                          : pdfLanguage === "te"
+                            ? "లైవ్ వ్యక్తిగతీకరించిన అధ్యాయ విశ్లేషణ ప్రివ్యూ"
+                            : pdfLanguage === "ta"
+                              ? "நேரடி தனிப்பயனாக்கப்பட்ட அத்தியாய பகுப்பாய்வு முன்னோட்டம்"
+                              : "Live Personalized Chapter Narration Preview"}
                     </span>
                   </div>
                   <div className="flex gap-2">
@@ -3605,7 +3685,15 @@ Return ONLY this JSON (no extra text before or after):
                         : "bg-white/10 text-amber-200 hover:bg-white/20"
                         }`}
                     >
-                      {pdfLanguage === "kn" ? "💍 ವಿವಾಹ ಅಧ್ಯಾಯ" : "💍 Marriage"}
+                      {pdfLanguage === "kn"
+                        ? "💍 ವಿವಾಹ ಅಧ್ಯಾಯ"
+                        : pdfLanguage === "hi"
+                          ? "💍 विवाह अध्याय"
+                          : pdfLanguage === "te"
+                            ? "💍 వివాహ అధ్యాయం"
+                            : pdfLanguage === "ta"
+                              ? "💍 திருமண அத்தியாயம்"
+                              : "💍 Marriage"}
                     </button>
                     <button
                       type="button"
@@ -3615,7 +3703,15 @@ Return ONLY this JSON (no extra text before or after):
                         : "bg-white/10 text-amber-200 hover:bg-white/20"
                         }`}
                     >
-                      {pdfLanguage === "kn" ? "👶 ಸಂತಾನ ಅಧ್ಯಾಯ" : "👶 Children"}
+                      {pdfLanguage === "kn"
+                        ? "👶 ಸಂತಾನ ಅಧ್ಯಾಯ"
+                        : pdfLanguage === "hi"
+                          ? "👶 संतान अध्याय"
+                          : pdfLanguage === "te"
+                            ? "👶 సంతాన అధ్యాయం"
+                            : pdfLanguage === "ta"
+                              ? "👶 சந்ததி அத்தியாயம்"
+                              : "👶 Children"}
                     </button>
                   </div>
                 </div>
@@ -3627,7 +3723,15 @@ Return ONLY this JSON (no extra text before or after):
                     .map((para: string, idx: number) => (
                       <div key={idx} className="bg-stone-900/80 p-3 rounded-xl border border-amber-500/30 shadow-sm text-amber-100">
                         <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block mb-1">
-                          {pdfLanguage === "kn" ? `✦ ಪರಿಚ್ಛೇದ ${idx + 1} (೫-೬ ಸಾಲುಗಳು):` : `✦ Paragraph ${idx + 1} (5-6 Lines):`}
+                          {pdfLanguage === "kn"
+                            ? `✦ ಪರಿಚ್ಛೇದ ${toKnDigits(idx + 1)} (೫-೬ ಸಾಲುಗಳು):`
+                            : pdfLanguage === "hi"
+                              ? `✦ परिच्छेद ${idx + 1} (५-६ पंक्तियां):`
+                              : pdfLanguage === "te"
+                                ? `✦ పేరా ${idx + 1} (5-6 పంక్తులు):`
+                                : pdfLanguage === "ta"
+                                  ? `✦ பத்தி ${idx + 1} (5-6 வரிகள்):`
+                                  : `✦ Paragraph ${idx + 1} (5-6 Lines):`}
                         </span>
                         <p className="text-amber-100/90 leading-relaxed whitespace-pre-line">{para}</p>
                       </div>
@@ -3636,7 +3740,15 @@ Return ONLY this JSON (no extra text before or after):
 
                 <div className="flex items-center justify-between text-[11px] text-amber-300/80 pt-1 border-t border-amber-500/20">
                   <span className="text-emerald-300 font-semibold">
-                    ✓ {pdfLanguage === "kn" ? "ಖಚಿತ ಕನಿಷ್ಠ ೩ ಪರಿಚ್ಛೇದಗಳು (೫-೬ ಸಾಲುಗಳು)" : "Guaranteed Minimum 3 Paragraphs (5-6 Lines Each)"}
+                    ✓ {pdfLanguage === "kn"
+                      ? "ಖಚಿತ ಕನಿಷ್ಠ ೩ ಪರಿಚ್ಛೇದಗಳು (ಪ್ರತಿಯೊಂದೂ ೫-೬ ಸಾಲುಗಳು)"
+                      : pdfLanguage === "hi"
+                        ? "निश्चित न्यूनतम ३ परिच्छेद (प्रत्येक ५-६ पंक्तियां)"
+                        : pdfLanguage === "te"
+                          ? "ఖచ్చితమైన కనీసం 3 పేరాలు (ఒక్కొక్కటి 5-6 పంక్తులు)"
+                          : pdfLanguage === "ta"
+                            ? "உறுதியான குறைந்தபட்சம் 3 பத்திகள் (ஒவ்வொன்றும் 5-6 வரிகள்)"
+                            : "Guaranteed Minimum 3 Paragraphs (5-6 Lines Each)"}
                   </span>
                   <button
                     type="button"
@@ -3646,7 +3758,15 @@ Return ONLY this JSON (no extra text before or after):
                     }}
                     className="text-amber-300 underline hover:text-amber-100 font-bold cursor-pointer"
                   >
-                    {pdfLanguage === "kn" ? "⚙️ ಪಾಪ್-ಅಪ್ ಸಂವಾದದಲ್ಲಿ ಕಸ್ಟಮೈಸ್ ಮಾಡಿ" : "⚙️ Open In Modal"}
+                    {pdfLanguage === "kn"
+                      ? "⚙️ ಪಾಪ್-ಅಪ್ ಸಂವಾದದಲ್ಲಿ ಕಸ್ಟಮೈಸ್ ಮಾಡಿ"
+                      : pdfLanguage === "hi"
+                        ? "⚙️ पॉप-अप में कस्टमाइज़ करें"
+                        : pdfLanguage === "te"
+                          ? "⚙️ పాప్-అప్‌లో అనుకూలీకరించండి"
+                          : pdfLanguage === "ta"
+                            ? "⚙️ பாப்-அப்பில் தனிப்பயனாக்குங்கள்"
+                            : "⚙️ Open In Modal"}
                   </button>
                 </div>
               </div>
@@ -4309,17 +4429,37 @@ Return ONLY this JSON (no extra text before or after):
             {/* Header Invocations */}
             <div className="text-center space-y-1.5 pb-4 border-b border-amber-500/30">
               <div className="text-xs font-bold tracking-widest text-amber-400 uppercase font-sans">
-                ॥ ಶ್ರೀ ಕುಲದೇವತಾ ಪ್ರಸನ್ನ ॥
+                {pdfLanguage === "kn"
+                  ? "॥ ಶ್ರೀ ಕುಲದೇವತಾ ಪ್ರಸನ್ನ ॥"
+                  : pdfLanguage === "hi"
+                    ? "॥ श्री कुलदेवता प्रसन्न ॥"
+                    : pdfLanguage === "te"
+                      ? "॥ శ్రీ కులదేవతా ప్రసన్న ॥"
+                      : pdfLanguage === "ta"
+                        ? "॥ ஸ்ரீ குலதேவதா பிரசன்ன ॥"
+                        : "॥ Shri Kuladevata Prasanna ॥"}
               </div>
               <h3 className="text-2xl md:text-3xl font-black text-amber-200 tracking-wider font-serif">
-                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
+                {pdfLanguage === "kn"
+                  ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥"
+                  : pdfLanguage === "hi"
+                    ? "॥ बग्गोण पंचांग ज्योतिष ॥"
+                    : pdfLanguage === "te"
+                      ? "॥ బగ్గోణ పంచాంగ జ్యోతిష్యం ॥"
+                      : pdfLanguage === "ta"
+                        ? "॥ பக்கோண பஞ்சாங்க ஜோதிடம் ॥"
+                        : "॥ Baggona Panchanga Astrology ॥"}
               </h3>
               <div className="text-xs font-semibold text-amber-300/90 font-sans">
                 {pdfLanguage === "kn"
                   ? "ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವಿಸ್ತೃತ ಜೀವಮಾನ ಭವಿಷ್ಯವಾಣಿ (V1 Engine)"
                   : pdfLanguage === "hi"
                     ? "सम्पूर्ण १०-अध्यायों का विस्तृत जीवन भविष्यफल (V1 Engine)"
-                    : "10-Chapter Comprehensive Astrological Life Forecast (V1)"}
+                    : pdfLanguage === "te"
+                      ? "సంపూర్ణ 10-అధ్యాయాల సమగ్ర జీవిత భవిష్యవాణి (V1 Engine)"
+                      : pdfLanguage === "ta"
+                        ? "முழுமையான 10-அத்தியாய வாழ்க்கை பலன்கள் (V1 Engine)"
+                        : "10-Chapter Comprehensive Astrological Life Forecast (V1)"}
               </div>
             </div>
 
@@ -4344,7 +4484,15 @@ Return ONLY this JSON (no extra text before or after):
                   {v1PdfProgress}%
                 </span>
                 <div className="text-[11px] font-bold text-amber-400 uppercase tracking-widest mt-0.5 font-sans">
-                  {pdfLanguage === "kn" ? "ಗಣಿತಾಧಾರಿತ ಸಂಶ್ಲೇಷಣೆ ಚಾಲ್ತಿಯಲ್ಲಿದೆ..." : "Vedic Synthesis in Progress..."}
+                  {pdfLanguage === "kn"
+                    ? "ಗಣಿತಾಧಾರಿತ ಸಂಶ್ಲೇಷಣೆ ಚಾಲ್ತಿಯಲ್ಲಿದೆ..."
+                    : pdfLanguage === "hi"
+                      ? "गणित-आधारित वैदिक विश्लेषण प्रगति पर है..."
+                      : pdfLanguage === "te"
+                        ? "గణితాధారిత వేద సంశ్లేషణ కొనసాగుతోంది..."
+                        : pdfLanguage === "ta"
+                          ? "கணித அடிப்படையிலான வேத தொகுப்பு நடைபெறுகிறது..."
+                          : "Vedic Synthesis in Progress..."}
                 </div>
               </div>
             </div>
@@ -4354,10 +4502,28 @@ Return ONLY this JSON (no extra text before or after):
               <div className="flex justify-between items-center text-xs font-bold text-amber-200">
                 <span className="flex items-center gap-2">
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-                  <span>{pdfLanguage === "kn" ? "ಲೈವ್ ಪ್ರಗತಿ (Live Pipeline):" : "Live Processing Pipeline:"}</span>
+                  <span>
+                    {pdfLanguage === "kn"
+                      ? "ಲೈವ್ ಪ್ರಗತಿ:"
+                      : pdfLanguage === "hi"
+                        ? "लाइव प्रगति:"
+                        : pdfLanguage === "te"
+                          ? "లైవ్ పురోగతి:"
+                          : pdfLanguage === "ta"
+                            ? "நேரடி முன்னேற்றம்:"
+                            : "Live Processing Pipeline:"}
+                  </span>
                 </span>
                 <span className="font-mono text-amber-300 bg-amber-900/60 px-2 py-0.5 rounded-md border border-amber-500/40 text-[11px]">
-                  {v1PdfProgress >= 90 ? "ಹಂತ ೪/೪ (Step 4/4)" : v1PdfProgress >= 60 ? "ಹಂತ ೩/೪ (Step 3/4)" : v1PdfProgress >= 30 ? "ಹಂತ ೨/೪ (Step 2/4)" : "ಹಂತ ೧/೪ (Step 1/4)"}
+                  {pdfLanguage === "kn"
+                    ? (v1PdfProgress >= 90 ? "ಹಂತ ೪/೪" : v1PdfProgress >= 60 ? "ಹಂತ ೩/೪" : v1PdfProgress >= 30 ? "ಹಂತ ೨/೪" : "ಹಂತ ೧/೪")
+                    : pdfLanguage === "hi"
+                      ? (v1PdfProgress >= 90 ? "चरण ४/४" : v1PdfProgress >= 60 ? "चरण ३/४" : v1PdfProgress >= 30 ? "चरण २/४" : "चरण १/४")
+                      : pdfLanguage === "te"
+                        ? (v1PdfProgress >= 90 ? "దశ 4/4" : v1PdfProgress >= 60 ? "దశ 3/4" : v1PdfProgress >= 30 ? "దశ 2/4" : "దశ 1/4")
+                        : pdfLanguage === "ta"
+                          ? (v1PdfProgress >= 90 ? "படி 4/4" : v1PdfProgress >= 60 ? "படி 3/4" : v1PdfProgress >= 30 ? "படி 2/4" : "படி 1/4")
+                          : (v1PdfProgress >= 90 ? "Step 4/4" : v1PdfProgress >= 60 ? "Step 3/4" : v1PdfProgress >= 30 ? "Step 2/4" : "Step 1/4")}
                 </span>
               </div>
 
@@ -4369,14 +4535,44 @@ Return ONLY this JSON (no extra text before or after):
               </div>
 
               <p className="text-xs text-amber-200/90 font-medium text-center italic min-h-[2.5em] flex items-center justify-center px-2 leading-relaxed">
-                {v1PdfStageText || (pdfLanguage === "kn" ? "ನಿಖರ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಗ್ರಹ ಸ್ಥಿತಿಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..." : "Synthesizing 100% accurate mathematical Kundali and transit positions...")}
+                {v1PdfStageText || (
+                  pdfLanguage === "kn"
+                    ? "ನಿಖರ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಗ್ರಹ ಸ್ಥಿತಿಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..."
+                    : pdfLanguage === "hi"
+                      ? "सटीक जन्म कुंडली एवं ग्रह स्थितियों का विश्लेषण किया जा रहा है..."
+                      : pdfLanguage === "te"
+                        ? "ఖచ్చితమైన జన్మ కుండలి మరియు గ్రహ స్థితులను విశ్లేషిస్తున్నారు..."
+                        : pdfLanguage === "ta"
+                          ? "துல்லியமான பிறப்பு ஜாதகம் மற்றும் கிரக நிலைகள் பகுப்பாய்வு செய்யப்படுகின்றன..."
+                          : "Synthesizing 100% accurate mathematical Kundali and transit positions..."
+                )}
               </p>
             </div>
 
             {/* Bottom Heritage Seal & Sanskrit Shanti Mantra */}
             <div className="mt-4 pt-3 border-t border-amber-500/30 flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-300/80 font-sans gap-2">
-              <span className="italic">॥ ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥</span>
-              <span className="font-bold text-amber-400">ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ • ಶ್ರೀ ರಾಮ ಪಂಡಿತ</span>
+              <span className="italic">
+                {pdfLanguage === "kn"
+                  ? "॥ ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥"
+                  : pdfLanguage === "hi"
+                    ? "॥ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ॥"
+                    : pdfLanguage === "te"
+                      ? "॥ సర్వే భవంతు సుఖినః సర్వే సంతు నిరామయాః ॥"
+                      : pdfLanguage === "ta"
+                        ? "॥ ஸர்வே பவந்து ஸுகின: ஸர்வே ஸந்து நிராமயா: ॥"
+                        : "॥ Sarve Bhavantu Sukhinah Sarve Santu Niramayah ॥"}
+              </span>
+              <span className="font-bold text-amber-400">
+                {pdfLanguage === "kn"
+                  ? "ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ • ಶ್ರೀ ರಾಮ ಪಂಡಿತ"
+                  : pdfLanguage === "hi"
+                    ? "गोकर्ण दृग्गणित • श्री राम पंडित"
+                    : pdfLanguage === "te"
+                      ? "గోకర్ణ దృగ్గణితం • శ్రీ రామ పండిత్"
+                      : pdfLanguage === "ta"
+                        ? "கோகர்ண திருக்கணితம் • ஸ்ரீ ராம பண்டிதர்"
+                        : "Gokarna Drik Ganitha • Shri Rama Pandit"}
+              </span>
             </div>
           </div>
         </div>
@@ -4400,17 +4596,37 @@ Return ONLY this JSON (no extra text before or after):
             {/* Header Invocations */}
             <div className="text-center space-y-1.5 pb-4 border-b border-yellow-500/30">
               <div className="text-xs font-bold tracking-widest text-amber-400 uppercase font-sans">
-                ॥ ಶ್ರೀ ಕುಲದೇವತಾ ಪ್ರಸನ್ನ ॥
+                {pdfLanguage === "kn"
+                  ? "॥ ಶ್ರೀ ಕುಲದೇವತಾ ಪ್ರಸನ್ನ ॥"
+                  : pdfLanguage === "hi"
+                    ? "॥ श्री कुलदेवता प्रसन्न ॥"
+                    : pdfLanguage === "te"
+                      ? "॥ శ్రీ కులదేవతా ప్రసన్న ॥"
+                      : pdfLanguage === "ta"
+                        ? "॥ ஸ்ரீ குலதேவதா பிரசன்ன ॥"
+                        : "॥ Shri Kuladevata Prasanna ॥"}
               </div>
               <h3 className="text-2xl md:text-3xl font-black text-amber-200 tracking-wider font-serif">
-                ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
+                {pdfLanguage === "kn"
+                  ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥"
+                  : pdfLanguage === "hi"
+                    ? "॥ बग्गोण पंचांग ज्योतिष ॥"
+                    : pdfLanguage === "te"
+                      ? "॥ బగ్గోణ పంచాంగ జ్యోతిష్యం ॥"
+                      : pdfLanguage === "ta"
+                        ? "॥ பக்கோண பஞ்சாங்க ஜோதிடம் ॥"
+                        : "॥ Baggona Panchanga Astrology ॥"}
               </h3>
               <div className="text-xs font-bold text-yellow-300 font-sans tracking-wide">
                 {pdfLanguage === "kn"
-                  ? "👑 ₹೩೦೦ ರಾಜಮುದ್ರಣ ಭವಿಷ್ಯ (A4 Print Edition)"
+                  ? "👑 ₹೩೦೦ ರಾಜಮುದ್ರಣ ಭವಿಷ್ಯ (ಎ೪ ಆವೃತ್ತಿ)"
                   : pdfLanguage === "hi"
-                    ? "👑 ₹३०० राजमुद्रण भविष्य (A4 Print Edition)"
-                    : "👑 ₹300 Royal A4 Physical Print Edition"}
+                    ? "👑 ₹३०० राजमुद्रण भविष्य (ए४ संस्करण)"
+                    : pdfLanguage === "te"
+                      ? "👑 ₹300 రాజముద్రణ భవిష్యవాణి (A4 ముద్రణ ఎడిషన్)"
+                      : pdfLanguage === "ta"
+                        ? "👑 ₹300 ராஜமுத்திரை பலன்கள் (A4 அச்சு பதிப்பு)"
+                        : "👑 ₹300 Royal A4 Physical Print Edition"}
               </div>
             </div>
 
@@ -4435,7 +4651,15 @@ Return ONLY this JSON (no extra text before or after):
                   {royalA4PdfProgress}%
                 </span>
                 <div className="text-[11px] font-bold text-yellow-400 uppercase tracking-widest mt-0.5 font-sans">
-                  {pdfLanguage === "kn" ? "ರಾಜಮುದ್ರಣ ಗಣಿತ ಸಂಶ್ಲೇಷಣೆ ಚಾಲ್ತಿಯಲ್ಲಿದೆ..." : "Royal Print Synthesis in Progress..."}
+                  {pdfLanguage === "kn"
+                    ? "ರಾಜಮುದ್ರಣ ಗಣಿತ ಸಂಶ್ಲೇಷಣೆ ಚಾಲ್ತಿಯಲ್ಲಿದೆ..."
+                    : pdfLanguage === "hi"
+                      ? "राजमुद्रण गणितीय विश्लेषण प्रगति पर है..."
+                      : pdfLanguage === "te"
+                        ? "రాజముద్రణ గణిత సంశ్లేషణ కొనసాగుతోంది..."
+                        : pdfLanguage === "ta"
+                          ? "ராஜமுத்திரை கணித பகுப்பாய்வு நடைபெறுகிறது..."
+                          : "Royal Print Synthesis in Progress..."}
                 </div>
               </div>
             </div>
@@ -4445,10 +4669,28 @@ Return ONLY this JSON (no extra text before or after):
               <div className="flex justify-between items-center text-xs font-bold text-amber-200">
                 <span className="flex items-center gap-2">
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping" />
-                  <span>{pdfLanguage === "kn" ? "ಲೈವ್ ಪ್ರಗತಿ (Live Pipeline):" : "Live Processing Pipeline:"}</span>
+                  <span>
+                    {pdfLanguage === "kn"
+                      ? "ಲೈವ್ ಪ್ರಗತಿ:"
+                      : pdfLanguage === "hi"
+                        ? "लाइव प्रगति:"
+                        : pdfLanguage === "te"
+                          ? "లైవ్ పురోగతి:"
+                          : pdfLanguage === "ta"
+                            ? "நேரடி முன்னேற்றம்:"
+                            : "Live Processing Pipeline:"}
+                  </span>
                 </span>
                 <span className="font-mono text-yellow-300 bg-amber-950/80 px-2.5 py-0.5 rounded-md border border-yellow-500/50 text-[11px]">
-                  {royalA4PdfProgress >= 90 ? "ಹಂತ ೬/೬ (Page Render)" : royalA4PdfProgress >= 65 ? "ಹಂತ ೪/೬ (Narratives)" : royalA4PdfProgress >= 35 ? "ಹಂತ ೨/೬ (Yogas & Doshas)" : "ಹಂತ ೧/೬ (Astrology Math)"}
+                  {pdfLanguage === "kn"
+                    ? (royalA4PdfProgress >= 90 ? "ಹಂತ ೬/೬" : royalA4PdfProgress >= 65 ? "ಹಂತ ೪/೬" : royalA4PdfProgress >= 35 ? "ಹಂತ ೨/೬" : "ಹಂತ ೧/೬")
+                    : pdfLanguage === "hi"
+                      ? (royalA4PdfProgress >= 90 ? "चरण ६/६" : royalA4PdfProgress >= 65 ? "चरण ४/६" : royalA4PdfProgress >= 35 ? "चरण २/६" : "चरण १/६")
+                      : pdfLanguage === "te"
+                        ? (royalA4PdfProgress >= 90 ? "దశ 6/6" : royalA4PdfProgress >= 65 ? "దశ 4/6" : royalA4PdfProgress >= 35 ? "దశ 2/6" : "దశ 1/6")
+                        : pdfLanguage === "ta"
+                          ? (royalA4PdfProgress >= 90 ? "படி 6/6" : royalA4PdfProgress >= 65 ? "படி 4/6" : royalA4PdfProgress >= 35 ? "படி 2/6" : "படி 1/6")
+                          : (royalA4PdfProgress >= 90 ? "Step 6/6" : royalA4PdfProgress >= 65 ? "Step 4/6" : royalA4PdfProgress >= 35 ? "Step 2/6" : "Step 1/6")}
                 </span>
               </div>
 
@@ -4460,14 +4702,44 @@ Return ONLY this JSON (no extra text before or after):
               </div>
 
               <p className="text-xs text-amber-200/90 font-medium text-center italic min-h-[2.5em] flex items-center justify-center px-2 leading-relaxed">
-                {royalA4StageText || (pdfLanguage === "kn" ? "೧೦೦% ನಿಖರ ಗಣಿತಾಧಾರಿತ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಗ್ರಹ ಸ್ಥಿತಿಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..." : "Synthesizing 100% accurate mathematical Kundali and transit positions...")}
+                {royalA4StageText || (
+                  pdfLanguage === "kn"
+                    ? "೧೦೦% ನಿಖರ ಗಣಿತಾಧಾರಿತ ಜನ್ಮ ಕುಂಡಲಿ ಹಾಗೂ ಗ್ರಹ ಸ್ಥಿತಿಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..."
+                    : pdfLanguage === "hi"
+                      ? "१००% सटीक गणितीय जन्म कुंडली एवं ग्रह स्थितियों का विश्लेषण किया जा रहा है..."
+                      : pdfLanguage === "te"
+                        ? "100% ఖచ్చితమైన గణిత జన్మ కుండలి మరియు గ్రహ స్థితులను విశ్లేషిస్తున్నారు..."
+                        : pdfLanguage === "ta"
+                          ? "100% துல்லியமான கணித பிறப்பு ஜாதகம் மற்றும் கிரக நிலைகள் பகுப்பாய்வு செய்யப்படுகின்றன..."
+                          : "Synthesizing 100% accurate mathematical Kundali and transit positions..."
+                )}
               </p>
             </div>
 
             {/* Bottom Heritage Seal & Priest Information */}
             <div className="mt-4 pt-3 border-t border-yellow-500/30 flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-300/80 font-sans gap-2">
-              <span className="italic">॥ ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥</span>
-              <span className="font-bold text-yellow-400">ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ • ಶ್ರೀ ರಾಮ ಪಂಡಿತ (+91 9972339362)</span>
+              <span className="italic">
+                {pdfLanguage === "kn"
+                  ? "॥ ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥"
+                  : pdfLanguage === "hi"
+                    ? "॥ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ॥"
+                    : pdfLanguage === "te"
+                      ? "॥ సర్వే భవంతు సుఖినః సర్వే సంతు నిరామయాః ॥"
+                      : pdfLanguage === "ta"
+                        ? "॥ ஸர்வே பவந்து ஸுகின: ஸர்வே ஸந்து நிராமயா: ॥"
+                        : "॥ Sarve Bhavantu Sukhinah Sarve Santu Niramayah ॥"}
+              </span>
+              <span className="font-bold text-yellow-400">
+                {pdfLanguage === "kn"
+                  ? "ಗೋಕರ್ಣ ದೃಗ್ಗಣಿತ • ಶ್ರೀ ರಾಮ ಪಂಡಿತ (+91 9972339362)"
+                  : pdfLanguage === "hi"
+                    ? "गोकर्ण दृग्गणित • श्री राम पंडित (+91 9972339362)"
+                    : pdfLanguage === "te"
+                      ? "గోకర్ణ దృగ్గణితం • శ్రీ రామ పండిత్ (+91 9972339362)"
+                      : pdfLanguage === "ta"
+                        ? "கோகர்ண திருக்கணితம் • ஸ்ரீ ராம பண்டிதர் (+91 9972339362)"
+                        : "Gokarna Drik Ganitha • Shri Rama Pandit (+91 9972339362)"}
+              </span>
             </div>
           </div>
         </div>
@@ -4485,14 +4757,22 @@ Return ONLY this JSON (no extra text before or after):
                     ? "ಗಮನಿಸಿ: ವೇದ ಗಣಿತ ಆಧಾರಿತ ಎಂಜಿನ್ ಬಳಕೆ"
                     : pdfLanguage === "hi"
                       ? "सूचना: वैदिक गणितीय प्रणाली से निर्मित"
-                      : "Notice: Authentic Vedic Fallback Applied"}
+                      : pdfLanguage === "te"
+                        ? "గమనిక: వేద గణిత ఆధారిత వ్యవస్థ ఉపయోగం"
+                        : pdfLanguage === "ta"
+                          ? "குறிப்பு: வேத கணித அடிப்படையிலான அமைப்பு பயன்பாடு"
+                          : "Notice: Authentic Vedic Fallback Applied"}
                 </h4>
                 <p className="text-xs text-amber-400 font-mono">
                   {pdfLanguage === "kn"
                     ? "೫ ಬಾರಿ ಮರುಪ್ರಯತ್ನದ ನಂತರ AI ಸಂಪರ್ಕ ವ್ಯತ್ಯಯ"
                     : pdfLanguage === "hi"
                       ? "५ प्रयासों के बाद AI विफलता"
-                      : "AI API limit reached after 5 retry attempts"}
+                      : pdfLanguage === "te"
+                        ? "5 ప్రయత్నాల తర్వాత AI పరిమితి ముగిసింది"
+                        : pdfLanguage === "ta"
+                          ? "5 முயற்சிகளுக்குப் பிறகு AI இணைப்பு தாமதம்"
+                          : "AI API limit reached after 5 retry attempts"}
                 </p>
               </div>
             </div>
@@ -4505,7 +4785,15 @@ Return ONLY this JSON (no extra text before or after):
                 onClick={() => setAiFallbackNotification(null)}
                 className="px-5 py-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-bold rounded-xl text-sm transition-all shadow-md active:scale-95 cursor-pointer"
               >
-                {pdfLanguage === "kn" ? "ಸರಿ, ಮುಂದುವರಿಯಿರಿ" : pdfLanguage === "hi" ? "ठीक है" : "Understood"}
+                {pdfLanguage === "kn"
+                  ? "ಸರಿ, ಮುಂದುವರಿಯಿರಿ"
+                  : pdfLanguage === "hi"
+                    ? "ठीक है"
+                    : pdfLanguage === "te"
+                      ? "సరే, కొనసాగించండి"
+                      : pdfLanguage === "ta"
+                        ? "சரி, தொடரவும்"
+                        : "Understood"}
               </button>
             </div>
           </div>

@@ -392,6 +392,10 @@ export async function prepareBhavishyaV1Data(
       ? "೧. ಜನ್ಮ ಲಗ್ನ, ನವಾಂಶ ಮತ್ತು ಗ್ರಹಗಳ ಗಣನೆ..."
       : lang === "hi"
       ? "1. जन्म लग्न, नवांश एवं ग्रह गणना..."
+      : lang === "te"
+      ? "1. జన్మ లగ్నం, నవాంశ మరియు గ్రహాల గణన..."
+      : lang === "ta"
+      ? "1. ஜென்ம லக்னம், நவாம்சம் மற்றும் கிரகக் கணிதம்..."
       : "1. Calculating Natal Lagna, Bhavas & Navamsha..."
   );
 
@@ -450,7 +454,13 @@ export async function prepareBhavishyaV1Data(
     nakshatraLabel: tp("nakshatraLabel", lang),
     nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
     padaLabel: tp("padaLabel", lang),
-    padaValue: session.result.moonPada ? (lang === "kn" ? toKnDigits(session.result.moonPada) : String(session.result.moonPada)) : "",
+    padaValue: session.result.moonPada
+      ? (lang === "kn"
+          ? toKnDigits(session.result.moonPada)
+          : lang === "hi"
+            ? (["०", "१", "२", "३", "४"][session.result.moonPada] || String(session.result.moonPada))
+            : String(session.result.moonPada))
+      : "",
     tithiLabel: tp("tithiLabel", lang),
     tithiValue: getTithiDisplay(tithiIdx, lang),
     weekdayLabel: tp("weekdayLabel", lang),
@@ -637,6 +647,10 @@ export async function prepareBhavishyaV1Data(
       ? "೨. ವೈದಿಕ ಸೂತ್ರಗಳು ಹಾಗೂ ಮಹಾದಶಾ-ಭುಕ್ತಿ ಕಾಲಗಣನೆ..."
       : lang === "hi"
       ? "2. वैदिक सूत्र एवं महादशा-भुक्ति काल गणना..."
+      : lang === "te"
+      ? "2. వైదిక సూత్రాలు మరియు మహాదశా-భుక్తి కాలగణన..."
+      : lang === "ta"
+      ? "2. வைதிக சூத்திரங்கள் மற்றும் மகாதசா-புக்தி காலக்கணிதம்..."
       : "2. Calculating Vedic Formulas & Vimshottari Timeline..."
   );
 
@@ -870,6 +884,10 @@ export async function prepareBhavishyaV1Data(
       ? "೩. ಅಂತರಂಗದ ಸತ್ಯಗಳು ಹಾಗೂ ಜನ್ಮ ಲಗ್ನ ವ್ಯಕ್ತಿತ್ವ ಅಧ್ಯಾಯಗಳ ಸಂಶ್ಲೇಷಣೆ..."
       : lang === "hi"
       ? "3. आत्मा के सत्य एवं जन्म लग्न व्यक्तित्व अध्यायों का सटीक विश्लेषण..."
+      : lang === "te"
+      ? "3. అంతరంగ సత్యాలు మరియు జన్మ లగ్న వ్యక్తిత్వ అధ్యాయాల విశ్లేషణ..."
+      : lang === "ta"
+      ? "3. ஆழ்மன உண்மைகள் மற்றும் ஜென்ம லக்ன ஆளுமை அத்தியாயங்கள் ஆய்வு..."
       : "3. Synthesizing Soul Mirror & Personality Chapters..."
   );
   let resSoulMirror = "";
@@ -889,6 +907,10 @@ export async function prepareBhavishyaV1Data(
       ? "೪. ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಮತ್ತು ವಿಶೇಷ ರಾಜಯೋಗಗಳ ಸಮನ್ವಯ..."
       : lang === "hi"
       ? "4. वर्तमान दशा-भुक्ति एवं विशेष राजयोगों का समन्वय..."
+      : lang === "te"
+      ? "4. ప్రస్తుత దశా-భుక్తి మరియు విశేష రాజయోగాల సమన్వయం..."
+      : lang === "ta"
+      ? "4. நடப்பு தசா-புக்தி மற்றும் விசேட ராஜயோகங்கள் ஒருங்கிணைப்பு..."
       : "4. Harmonizing Current Dasha-Bhukti & Special Yogas..."
   );
   const [resCurrentPhase, resYogas] = await Promise.all([
@@ -904,6 +926,10 @@ export async function prepareBhavishyaV1Data(
       ? "೫. ಕರ್ಮ ಸವಾಲುಗಳು, ದೋಷ ಪರಿಹಾರ ಹಾಗೂ ೧೨ ತಿಂಗಳ ಭವಿಷ್ಯ ನಕ್ಷೆ..."
       : lang === "hi"
       ? "5. कर्म चुनौतियाँ, दोष परिहार एवं १२ महीनों का जीवन मार्ग..."
+      : lang === "te"
+      ? "5. కర్మ సవాళ్లు, దోష పరిహారాలు మరియు 12 నెలల భవిష్యత్తు నక్షత్ర మార్గం..."
+      : lang === "ta"
+      ? "5. கர்ம சவால்கள், தோஷ பரிகாரங்கள் மற்றும் 12 மாத காலக்கணிதம்..."
       : "5. Mapping Karmic Challenges, Remedies & 12-Month Timeline..."
   );
   const [resDoshas, resTimeline] = await Promise.all([
@@ -919,6 +945,10 @@ export async function prepareBhavishyaV1Data(
       ? "೬. ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು, ಕರ್ಮ ಪಯಣ ಹಾಗೂ ದೈವಿಕ ಸಂಕ್ಷಿಪ್ತ ಸಾರಾಂಶ..."
       : lang === "hi"
       ? "6. लाइव गोचर ग्रह, कर्म यात्रा एवं ज्योतिषी सारांश..."
+      : lang === "te"
+      ? "6. ప్రత్యక్ష గోచార గ్రహాలు, కర్మ ప్రయాణం మరియు జ్యోతిష్య సారాంశం..."
+      : lang === "ta"
+      ? "6. நேரடி கோச்சார கிரகங்கள், கர்ம பயணம் மற்றும் ஜோதிட சுருக்கம்..."
       : "6. Calculating Live Transits, Karmic Inquest & Astrologer's Summary..."
   );
   const [resGochara, resDashaGocharaCompass] = await Promise.all([
@@ -940,6 +970,10 @@ export async function prepareBhavishyaV1Data(
       ? "೭. ವಿವಾಹ, ಸಂತಾನ, ಉದ್ಯೋಗ, ಆರ್ಥಿಕ ಹಾಗೂ ಆರೋಗ್ಯ ಅಧ್ಯಾಯಗಳ ನಿಖರ ಸಂಶ್ಲೇಷಣೆ..."
       : lang === "hi"
       ? "7. विवाह, संतान, करियर, धन एवं स्वास्थ्य का गहन विश्लेषण..."
+      : lang === "te"
+      ? "7. వివాహం, సంతానం, ఉద్యోగం, ఆర్థికం మరియు ఆరోగ్య అధ్యాయాల విశ్లేషణ..."
+      : lang === "ta"
+      ? "7. திருமணம், சந்ததி, தொழில், நிதி மற்றும் ஆரோக்கிய அத்தியாயங்கள் ஆய்வு..."
       : "7. Synthesizing Marriage, Children, Career, Wealth & Health..."
   );
   let resMarriage = "";
@@ -1253,6 +1287,10 @@ export async function prepareBhavishyaV1Data(
       ? "೮. ಸಂಪೂರ್ಣ ೧೦-ಅಧ್ಯಾಯಗಳ ವರದಿ ಪರಿಶೀಲನೆ ಹಾಗೂ ಅಧಿಕೃತ ದೃಗ್ಗಣಿತ ತಾಳೆ..."
       : lang === "hi"
       ? "8. संपूर्ण १०-अध्यायों का सत्यापन एवं शास्त्रीय मिलान..."
+      : lang === "te"
+      ? "8. సంపూర్ణ 10-అధ్యాయాల నివేదిక పరిశీలన మరియు శాస్త్రీయ సరిపోలిక..."
+      : lang === "ta"
+      ? "8. முழுமையான 10-அத்தியாயங்கள் அறிக்கை சரிபார்ப்பு மற்றும் சாஸ்திர பொருத்தம்..."
       : "8. Verifying 10-Chapter Astrological Integrity & Alignment..."
   );
 
@@ -1866,7 +1904,7 @@ export async function prepareBhavishyaV1Data(
     }
   );
 
-  translatedData.priestSeal = lang === "kn" ? priestAudit.priestSealTextKn : priestAudit.priestSealTextEn;
+  translatedData.priestSeal = priestAudit.priestSealText || (lang === "kn" ? priestAudit.priestSealTextKn : priestAudit.priestSealTextEn);
 
   onProgress?.(
     86,
@@ -1874,6 +1912,10 @@ export async function prepareBhavishyaV1Data(
       ? `ದೈವಜ್ಞ ಪರಿಶೀಲನೆ ಪೂರ್ಣ: ${toKnDigits(priestAudit.overallAccuracyScore)}% ನಿಖರತೆ ಶಾಸ್ತ್ರ ಪ್ರಮಾಣಿತ...`
       : lang === "hi"
       ? `ज्योतिषी समीक्षा पूर्ण: ${priestAudit.overallAccuracyScore}% सटीकता शास्त्र प्रमाणित...`
+      : lang === "te"
+      ? `జ్యోతిష సమీక్ష పూర్తయింది: ${priestAudit.overallAccuracyScore}% ఖచ్చితత్వం శాస్త్ర ప్రమాణితం...`
+      : lang === "ta"
+      ? `ஜோதிட சரிபார்ப்பு நிறைவு: ${priestAudit.overallAccuracyScore}% துல்லியம் சாஸ்திர சான்றளிக்கப்பட்டது...`
       : `Priest Review Audit Complete: ${priestAudit.overallAccuracyScore}% Astrologically Certified...`
   );
 
@@ -1883,6 +1925,10 @@ export async function prepareBhavishyaV1Data(
       ? "೯. ಉನ್ನತ ರೆಸಲ್ಯೂಷನ್ ಅಧಿಕೃತ ಬಗ್ಗೋಣ ಪಿಡಿಎಫ್ ಮುದ್ರಣ ಸಿದ್ಧತೆ..."
       : lang === "hi"
       ? "9. उच्च-रिज़ॉल्यूशन आधिकारिक बग्गोण पीडीएफ मुद्रण तैयारी..."
+      : lang === "te"
+      ? "9. ఉన్నత రిజల్యూషన్ అధికారిక బగ్గోణ పిడిఎఫ్ ముద్రణ తయారీ..."
+      : lang === "ta"
+      ? "9. உயர் தெளிவுத்திறன் அதிகாரப்பூர்வ பக்கோணா பிடிஎஃப் அச்சு தயாரிப்பு..."
       : "9. Assembling High-Resolution Official Baggona PDF Document..."
   );
 

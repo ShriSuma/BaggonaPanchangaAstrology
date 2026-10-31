@@ -306,9 +306,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
     currentTitle?: string
   ) => {
     const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"];
+    const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९", "१०"];
     let badgeText = "";
     if (langKey === "kn") badgeText = `ಅಧ್ಯಾಯ ${knDigits[chapterNum] || chapterNum}`;
-    else if (langKey === "hi") badgeText = `अध्याय ${knDigits[chapterNum] || chapterNum}`;
+    else if (langKey === "hi") badgeText = `अध्याय ${hiDigits[chapterNum] || chapterNum}`;
     else if (langKey === "te") badgeText = `అధ్యాయం ${chapterNum}`;
     else if (langKey === "ta") badgeText = `அத்தியாயம் ${chapterNum}`;
     else badgeText = `Chapter ${chapterNum}`;
@@ -347,8 +348,21 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
     );
   };
 
-  const renderDashboardBanner = (icon: string, badgeKn: string, badgeEn: string, title: string) => {
-    const badgeText = langKey === "kn" ? badgeKn : badgeEn;
+  const renderDashboardBanner = (
+    icon: string,
+    badgeKn: string,
+    badgeEn: string,
+    title: string,
+    badgeHi?: string,
+    badgeTe?: string,
+    badgeTa?: string
+  ) => {
+    let badgeText = badgeEn;
+    if (langKey === "kn") badgeText = badgeKn;
+    else if (langKey === "hi") badgeText = badgeHi || badgeKn;
+    else if (langKey === "te") badgeText = badgeTe || badgeKn;
+    else if (langKey === "ta") badgeText = badgeTa || badgeKn;
+
     return (
       <div className="border-b-2 border-amber-700/40 pb-4 mb-6 relative">
         <div className="flex items-center justify-between gap-4 mb-2">
@@ -371,13 +385,27 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
     );
   };
 
-  const renderContemplationRibbon = (icon: string, labelKn: string, labelEn: string, questionText?: string) => {
+  const renderContemplationRibbon = (
+    icon: string,
+    labelKn: string,
+    labelEn: string,
+    questionText?: string,
+    labelHi?: string,
+    labelTe?: string,
+    labelTa?: string
+  ) => {
     if (!questionText) return null;
+    let label = labelEn;
+    if (langKey === "kn") label = labelKn;
+    else if (langKey === "hi") label = labelHi || labelKn;
+    else if (langKey === "te") label = labelTe || labelKn;
+    else if (langKey === "ta") label = labelTa || labelKn;
+
     return (
       <div className="rounded-xl border-2 border-amber-700/30 bg-gradient-to-r from-amber-100/90 via-orange-50/80 to-amber-100/90 p-5 mb-8 shadow-xs relative overflow-hidden">
         <div className="flex items-center gap-2 mb-2 text-amber-900 text-xs font-black tracking-widest uppercase">
           <span className="text-amber-800">{icon}</span>
-          <span>{langKey === "kn" ? labelKn : labelEn}</span>
+          <span>{label}</span>
         </div>
         <div className="flex items-start gap-3">
           <span className="text-xl text-amber-800 leading-none pt-0.5">❖</span>
@@ -453,7 +481,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {translations.lagnaLabel}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.lagnaValue} {translations.lagnaLordValue ? `(${translations.lagnaLordLabel || "Lord"}: ${translations.lagnaLordValue})` : ""}
+                {translations.lagnaValue} {translations.lagnaLordValue ? `(${translations.lagnaLordLabel || (langKey === "kn" ? "ಲಗ್ನಾಧಿಪತಿ" : langKey === "hi" ? "लग्नेश" : langKey === "te" ? "లగ్నాధిపతి" : langKey === "ta" ? "லக்னாதிபதி" : "Lagna Lord")}: ${translations.lagnaLordValue})` : ""}
               </span>
             </div>
 
@@ -462,7 +490,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {translations.moonLabel}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.moonValue} {translations.moonLordValue ? `(${translations.moonLordLabel || "Lord"}: ${translations.moonLordValue})` : ""}
+                {translations.moonValue} {translations.moonLordValue ? `(${translations.moonLordLabel || (langKey === "kn" ? "ರಾಶ್ಯಾಧಿಪತಿ" : langKey === "hi" ? "राशीश" : langKey === "te" ? "రాశ్యాధిపతి" : langKey === "ta" ? "ராசியாதிபதி" : "Rashi Lord")}: ${translations.moonLordValue})` : ""}
               </span>
             </div>
 
@@ -471,13 +499,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                 {translations.nakshatraLabel}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.nakshatraValue} {translations.padaValue ? `(${translations.padaLabel || "Pada"} ${translations.padaValue})` : ""}
+                {translations.nakshatraValue} {translations.padaValue ? `(${translations.padaLabel || (langKey === "kn" ? "ಪಾದ" : langKey === "hi" ? "पाद" : langKey === "te" ? "పాదం" : langKey === "ta" ? "பாதம்" : "Pada")} ${translations.padaValue})` : ""}
               </span>
             </div>
 
             <div className="flex flex-col border-b border-amber-800/20 pb-3">
               <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {translations.tithiLabel || "Tithi"} / {translations.weekdayLabel || "Vaara"}
+                {translations.tithiLabel || (langKey === "kn" ? "ಜನ್ಮ ತಿಥಿ" : langKey === "hi" ? "जन्म तिथि" : langKey === "te" ? "జన్మ తిథి" : langKey === "ta" ? "ஜென்ம திதி" : "Birth Tithi")} / {translations.weekdayLabel || (langKey === "kn" ? "ಜನ್ಮ ವಾರ" : langKey === "hi" ? "जन्म वार" : langKey === "te" ? "జన్మ వారం" : langKey === "ta" ? "ஜென்ம வாரம்" : "Birth Day")}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
                 {[translations.tithiValue, translations.weekdayValue].filter(Boolean).join(" • ") || "—"}
@@ -699,7 +727,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           "🪐",
           "ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ & ದಶಾಧಿಪತಿ ದರ್ಶನ",
           "NATAL PROTECTIVE SHIELD & RULING PLANET AURA",
-          translations.cosmicAuraTitle || (langKey === 'kn' ? "ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ನಡೆಸುತ್ತಿರುವ ದಶಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಜನ್ಮ ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ" : "Your Active Ruling Mahadasha Planet & Natal Protective Shield")
+          translations.cosmicAuraTitle || (langKey === 'kn' ? "ಪ್ರಸ್ತುತ ನಿಮ್ಮನ್ನು ನಡೆಸುತ್ತಿರುವ ದಶಾಧಿಪತಿ ಗ್ರಹ ಹಾಗೂ ಜನ್ಮ ಕುಂಡಲಿ ರಕ್ಷಾ ಕವಚ" : langKey === 'hi' ? "वर्तमान में आपका मार्गदर्शन करने वाला दशाधिपति ग्रह एवं जन्म कुंडली रक्षा कवच" : langKey === 'te' ? "ప్రస్తుతం మిమ్మల్ని నడిపిస్తున్న దశాధిపతి గ్రహం & జన్మ కుండలి రక్షా కవచం" : langKey === 'ta' ? "தற்போது உங்களை வழிநடத்தும் தசாநாத கிரகமும் ஜென்ம ஜாதக பாதுகாப்புக் கவசமும்" : "Your Active Ruling Mahadasha Planet & Natal Protective Shield"),
+          "कुंडली रक्षा कवच एवं दशाधिपति दर्शन",
+          "కుండలి రక్షా కవచం & దశాధిపతి దర్శనం",
+          "ஜாதக ரக்ஷா கவசம் & தசாதிபதி தரிசனம்"
         )}
         <CosmicDashaAuraVisual
           lagnaName={translations.lagnaValue}
@@ -730,7 +761,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             "✨",
             "ದೈವಜ್ಞ ಜನ್ಮ ಕುಂಡಲಿ ವಿಚಾರ & ತತ್ತ್ವ ಚಿಂತನೆ",
             "Sacred Astrological Inquest & Contemplation",
-            translations.characteristicsQuestion
+            translations.characteristicsQuestion,
+            "दैवज्ञ जन्म कुंडली विचार एवं तत्त्व चिंतन",
+            "దైవజ్ఞ జన్మ కుండలి విచారం & తత్త్వ చింతన",
+            "ஜோதிட பிறப்பு ஜாதக ஆய்வு & தத்துவ சிந்தனை"
           )}
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
             <div className="absolute top-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
@@ -779,7 +813,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             "🔮",
             "ಅಂತರಂಗದ ನಿಗೂಢ ಸತ್ಯ & ಸುಪ್ತಪ್ರಜ್ಞೆ ವಿಚಾರ",
             "Niguda Rahasya: Subconscious Reality & Karmic Inquest",
-            translations.darkSecretQuestion
+            translations.darkSecretQuestion,
+            "अंतर्मन का गूढ़ सत्य एवं अवचेतन विचार",
+            "అంతరంగ నిగూఢ సత్యం & ఉపచేతన విచారం",
+            "ஆழ்மனதின் மறைபொருள் உண்மை & நனவிலி ஆய்வு"
           )}
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
             <div className="absolute top-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
@@ -828,7 +865,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             "⏳",
             "ವರ್ತಮಾನ ಕಾಲ ಸ್ಥಿತಿಗತಿ & ಗ್ರಹ ಸಂಚಾರ ವಿಚಾರ",
             "Current Planetary Inquest & Living Reality",
-            translations.currentPhaseQuestion
+            translations.currentPhaseQuestion,
+            "वर्तमान काल स्थिति एवं ग्रह संचरण विचार",
+            "వర్తమాన కాల స్థితిగతులు & గ్రహ సంచార విచారం",
+            "தற்போதைய கால நிலைமை & கிரக சஞ்சார ஆய்வு"
           )}
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
             <div className="absolute top-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
@@ -913,7 +953,10 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   "✨",
                   "ದೈವಜ್ಞ ಪ್ರಶ್ನೋತ್ತರ ವಿಚಾರ & ಮಾರ್ಗದರ್ಶನ",
                   "Devotee Inquest & Sacred Astrological Guidance",
-                  pred.question
+                  pred.question,
+                  "दैवज्ञ प्रश्नोत्तर विचार एवं मार्गदर्शन",
+                  "దైవజ్ఞ ప్రశ్నోత్తర విచారం & మార్గదర్శకత్వం",
+                  "ஜோதிட வினா-விடை ஆய்வு & வழிகாட்டுதல்"
                 )}
                 {cleanSectionNarrative(pred.translatedText || "").map((cleaned, pIdx) => {
                   const trimmed = cleaned.trim();
@@ -1310,7 +1353,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           <div className="flex items-center gap-3 border-b-2 border-amber-700/30 pb-3 mb-8">
             <span className="text-3xl text-amber-700">❖</span>
             <h2 className={`text-3xl font-bold ${primaryColorClass} leading-normal`}>
-              {translations.prescriptionsTitle || "Royal Astro-Vedic Prescriptions & Sacred Alignments"}
+              {translations.prescriptionsTitle || (langKey === "kn" ? "ರಾಜ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ರಕ್ಷೆ ಹಾಗೂ ಪವಿತ್ರ ಶುಭ ಸಾನ್ನಿಧ್ಯಗಳು" : langKey === "hi" ? "राज वैदिक ज्योतिषीय रक्षा एवं पवित्र शुभ सान्निध्य" : langKey === "te" ? "రాజ వైదిక జ్యోతిష రక్ష మరియు పవిత్ర శుభ సాన్నిధ్యాలు" : langKey === "ta" ? "ராஜ வைதிக ஜோதிட ரக்ஷை மற்றும் புனித சுப தொடர்புகள்" : "Royal Astro-Vedic Prescriptions & Sacred Alignments")}
             </h2>
           </div>
 
@@ -1320,7 +1363,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">💎</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.gemstoneLabel || "Lucky Gemstone"}
+                  {translations.gemstoneLabel || (langKey === "kn" ? "ಅದೃಷ್ಟ ರತ್ನ" : langKey === "hi" ? "भाग्य रत्न" : langKey === "te" ? "అదృష్ట రత్నం" : langKey === "ta" ? "அதிர்ஷ்ட ரத்தினம்" : "Lucky Gemstone")}
                 </span>
               </div>
               <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
@@ -1333,7 +1376,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">📿</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.neckWearLabel || "Sacred Neck Wear & Kavacha"}
+                  {translations.neckWearLabel || (langKey === "kn" ? "ಜನ್ಮ ನಕ್ಷತ್ರದ ಕೊರಳ ಧಾರಣೆ" : langKey === "hi" ? "जन्म नक्षत्र कंठ धारण" : langKey === "te" ? "జన్మ నక్షత్ర కంఠ ధారణ" : langKey === "ta" ? "ஜன்ம நட்சத்திர கழுத்து ஆபரணம்" : "Janma Nakshatra Neck Wear")}
                 </span>
               </div>
               <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
@@ -1346,7 +1389,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">📿</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.rudrakshaLabel || "Sacred Rudraksha"}
+                  {translations.rudrakshaLabel || (langKey === "kn" ? "ಪವಿತ್ರ ರುದ್ರಾಕ್ಷಿ" : langKey === "hi" ? "पवित्र रुद्राक्ष" : langKey === "te" ? "పవిత్ర రుద్రాక్ష" : langKey === "ta" ? "புனித ருத்ராட்சம்" : "Sacred Rudraksha")}
                 </span>
               </div>
               <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
@@ -1359,7 +1402,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">🔱</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.ishtaDevataLabel || "Ishta Devata"}
+                  {translations.ishtaDevataLabel || (langKey === "kn" ? "ಇಷ್ಟ ದೇವತೆ" : langKey === "hi" ? "इष्ट देवता" : langKey === "te" ? "ఇష్ట దైవం" : langKey === "ta" ? "இஷ்ட தெய்வம்" : "Ishta Devata")}
                 </span>
               </div>
               <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
@@ -1372,7 +1415,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">🎨</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.luckyColorsLabel || "Auspicious Colors"}
+                  {translations.luckyColorsLabel || (langKey === "kn" ? "ಶುಭ ವರ್ಣಗಳು" : langKey === "hi" ? "शुभ रंग" : langKey === "te" ? "శుభ వర్ణాలు" : langKey === "ta" ? "சுப நிறங்கள்" : "Auspicious Colors")}
                 </span>
               </div>
               <p className="text-base font-bold text-emerald-900 font-serif leading-relaxed">
@@ -1385,7 +1428,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-red-700">🚫</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-red-900/80">
-                  {translations.avoidColorsLabel || "Strict Avoid Colors"}
+                  {translations.avoidColorsLabel || (langKey === "kn" ? "ಕಟ್ಟುನಿಟ್ಟಾಗಿ ವರ್ಜ್ಯ ಮಾಡಬೇಕಾದ ಬಣ್ಣಗಳು" : langKey === "hi" ? "सख्त वर्जित रंग" : langKey === "te" ? "ఖచ్చితంగా నివారించవలసిన రంగులు" : langKey === "ta" ? "கட்டாயம் தவிர்க்க வேண்டிய நிறங்கள்" : "Strict Avoid Colors")}
                 </span>
               </div>
               <p className="text-base font-bold text-red-950 font-serif leading-relaxed">
@@ -1398,11 +1441,11 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">🧭</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.luckyDaysLabel || "Auspicious Days"} &amp; {translations.luckyDirectionLabel || "Direction"}
+                  {translations.luckyDaysLabel || (langKey === "kn" ? "ಶುಭ ವಾರಗಳು" : langKey === "hi" ? "शुभ वार" : langKey === "te" ? "శుభ వారాలు" : langKey === "ta" ? "சுப கிழமைகள்" : "Auspicious Days")} {langKey === "kn" ? "ಮತ್ತು" : langKey === "hi" ? "एवं" : langKey === "te" ? "మరియు" : langKey === "ta" ? "மற்றும்" : "&"} {translations.luckyDirectionLabel || (langKey === "kn" ? "ಶುಭ ದಿಕ್ಕು" : langKey === "hi" ? "शुभ दिशा" : langKey === "te" ? "శుభ దిశ" : langKey === "ta" ? "சுப திசை" : "Direction")}
                 </span>
               </div>
               <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
-                {premiumData.prescriptions.luckyDays} • {translations.luckyNumbersLabel || "Numbers"}: {premiumData.prescriptions.luckyNumbers} • {premiumData.prescriptions.luckyDirection}
+                {premiumData.prescriptions.luckyDays} • {translations.luckyNumbersLabel || (langKey === "kn" ? "ಸಂಖ್ಯೆಗಳು" : langKey === "hi" ? "अंक" : langKey === "te" ? "సంఖ్యలు" : langKey === "ta" ? "எண்கள்" : "Numbers")}: {premiumData.prescriptions.luckyNumbers} • {premiumData.prescriptions.luckyDirection}
               </p>
             </div>
 
@@ -1411,7 +1454,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl text-amber-800">⏳</span>
                 <span className="text-sm font-extrabold tracking-normal leading-normal text-amber-900/80">
-                  {translations.consecrationMuhurthaLabel || "Consecration & Activation Muhurtha"}
+                  {translations.consecrationMuhurthaLabel || (langKey === "kn" ? "ಪ್ರಾಣ ಪ್ರತಿಷ್ಠಾಪನೆ & ಧಾರಣಾ ಮುಹೂರ್ತ" : langKey === "hi" ? "प्राण प्रतिष्ठा एवं धारण मुहूर्त" : langKey === "te" ? "ప్రాణ ప్రతిష్ఠ & ధారణ ముహూర్తం" : langKey === "ta" ? "பிராண பிரதிஷ்டை & அணியும் முகூர்த்தம்" : "Auspicious Consecration Muhurtha")}
                 </span>
               </div>
               <p className="text-base font-bold text-amber-950 font-serif leading-relaxed">
@@ -1426,7 +1469,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-2xl text-red-700">⚠️</span>
                 <span className="text-base font-black tracking-normal leading-normal text-red-900 uppercase">
-                  {translations.prohibitedGemsLabel || "Strictly Prohibited Gemstones Alert"}
+                  {translations.prohibitedGemsLabel || (langKey === "kn" ? "ಕಟ್ಟುನಿಟ್ಟಾದ ವರ್ಜ್ಯ ರತ್ನಗಳು (ಎಂದಿಗೂ ಧರಿಸಬೇಡಿ!)" : langKey === "hi" ? "सख्त वर्जित रत्न (कदापि धारण न करें!)" : langKey === "te" ? "ఖచ్చితంగా నిషేధించబడిన రత్నాలు (ఎప్పుడూ ధరించవద్దు!)" : langKey === "ta" ? "முற்றிலும் தவிர்க்க வேண்டிய ரத்தினங்கள் (அணியக் கூடாது!)" : "Strictly Prohibited Gemstones Alert")}
                 </span>
               </div>
               <p className="text-base font-bold text-red-950 font-serif leading-relaxed">
@@ -1480,7 +1523,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
         {/* Publication Footer with Generous Bottom Clearance */}
         <div className="mt-6 text-center text-amber-800 text-base font-bold uppercase pb-12 pt-6 leading-normal border-t border-amber-700/30">
-          {translations.footer || "Baggona Panchanga Publication"}
+          {translations.footer || (langKey === "kn" ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ ॥" : langKey === "hi" ? "॥ बग्गोण पंचांग प्रकाशन ॥" : langKey === "te" ? "॥ బగ్గోణ పంచాంగ ప్రచురణ ॥" : langKey === "ta" ? "॥ பக்கோண பஞ்சாங்க வெளியீடு ॥" : "॥ Baggona Panchanga Publication ॥")}
         </div>
       </div>
     </div>
