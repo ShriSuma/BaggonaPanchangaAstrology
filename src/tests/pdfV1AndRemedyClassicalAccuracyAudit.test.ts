@@ -120,38 +120,34 @@ describe("PDF V1 & Remedy Classical Accuracy and Multi-Language Audit", () => {
       birthTime: "10:30",
       latitude: 14.5,
       longitude: 74.3,
-      timezone: 5.5
+      gender: "Male"
     };
 
     const mockOutput: KundliOutput = {
-      lagnaRashi: { index: 0, name: "Mesha", english: "Aries" },
-      lagnaDegree: 15.0,
-      moonSign: { index: 3, name: "Karka", english: "Cancer" },
-      sunSign: { index: 1, name: "Vrishabha", english: "Taurus" },
+      ascendant: 15.0,
+      lagnaRashi: { index: 0, sanskrit: "Mesha", english: "Aries" },
+      moonSign: { index: 3, sanskrit: "Karka", english: "Cancer" },
+      sunSign: { index: 1, sanskrit: "Vrishabha", english: "Taurus" },
       moonPada: 2,
       planets: [
         {
           name: PlanetName.Mars,
           degree: 15,
-          speed: 1,
           isRetrograde: false,
-          rashi: { index: 0, name: "Mesha", english: "Aries" },
+          rashi: { index: 0, sanskrit: "Mesha", english: "Aries" },
           house: 1,
-          nakshatra: { index: 0, name: "Ashwini", english: "Ashwini", pada: 1 }
+          nakshatra: { index: 0, sanskrit: "Ashwini", english: "Ashwini", deity: "Ashwins" }
         },
         {
           name: PlanetName.Moon,
           degree: 10,
-          speed: 13,
           isRetrograde: false,
-          rashi: { index: 3, name: "Karka", english: "Cancer" },
+          rashi: { index: 3, sanskrit: "Karka", english: "Cancer" },
           house: 4,
-          nakshatra: { index: 7, name: "Pushya", english: "Pushya", pada: 2 }
+          nakshatra: { index: 7, sanskrit: "Pushya", english: "Pushya", deity: "Brihaspati" }
         }
       ],
-      houses: [
-        { house: 1, rashi: { index: 0, name: "Mesha", english: "Aries" } }
-      ]
+      houses: Array.from({ length: 12 }, (_, i) => i * 30)
     };
 
     const remedyResult = generateKundliRemedyReport(mockOutput, mockInput);
