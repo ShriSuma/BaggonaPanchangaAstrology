@@ -3,7 +3,8 @@ import { useAuthStore } from "../features/auth/authStore";
 import {
   getOmkarZipFileName,
   getOmkarWhatsAppShareUrl,
-  packageOmkarPremiumZip
+  packageOmkarPremiumZip,
+  calculateOmkarPackagePrice
 } from "../features/omkarDesk/omkarDeskService";
 
 describe("Omkar Hotel Reception Desk Operator Auth & Portal Guard", () => {
@@ -80,6 +81,44 @@ describe("Omkar Hotel Reception Desk Operator Auth & Portal Guard", () => {
       expect(url).toContain(encodeURIComponent("Ramesh_Hegde_bhagoda_Pancha_creation.zip"));
       expect(url).toContain(encodeURIComponent("9972339362"));
       expect(url).toContain(encodeURIComponent("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"));
+    });
+
+    it("calculates exact Omkar package pricing: ₹320 without remedy, ₹420 with remedy (never ₹500)", () => {
+      // 1. Standard Janana Kundali + Bhavishya V1 (no remedy)
+      expect(
+        calculateOmkarPackagePrice({
+          selectedJananaKundli: true,
+          selectedBhavishyaV1: true,
+          selectedRemedy: false
+        })
+      ).toBe(320);
+
+      // 2. When Remedy is included along with Janana Kundali and Bhavishya V1
+      expect(
+        calculateOmkarPackagePrice({
+          selectedJananaKundli: true,
+          selectedBhavishyaV1: true,
+          selectedRemedy: true
+        })
+      ).toBe(420);
+
+      // 3. Remedy only or included
+      expect(
+        calculateOmkarPackagePrice({
+          selectedJananaKundli: false,
+          selectedBhavishyaV1: false,
+          selectedRemedy: true
+        })
+      ).toBe(420);
+
+      // 4. Verify WhatsApp share URL includes the formatted fee
+      const urlWithPrice = getOmkarWhatsAppShareUrl({
+        whatsappNumber: "9845012345",
+        devoteeName: "Ramesh Hegde",
+        zipFileName: "Ramesh_Hegde_bhagoda_Pancha_creation.zip",
+        amount: 420
+      });
+      expect(urlWithPrice).toContain(encodeURIComponent("₹420"));
     });
 
     it("packages all 3 selected options (Janana Kundali, Bhavishya V1, Remedy) into ZIP", async () => {

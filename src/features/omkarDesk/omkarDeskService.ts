@@ -30,6 +30,22 @@ export function getOmkarZipFileName(name: string): string {
 }
 
 /**
+ * Calculates the exact package fee for Omkar Desk operator orders:
+ * - Janana Kundali + Bhavishya V1 (standard package): ₹320
+ * - When Remedy is included along with that: ₹420 (previously misconfigured as ₹500)
+ */
+export function calculateOmkarPackagePrice(options: {
+  selectedJananaKundli?: boolean;
+  selectedBhavishyaV1?: boolean;
+  selectedRemedy?: boolean;
+}): number {
+  if (options.selectedRemedy) {
+    return 420;
+  }
+  return 320;
+}
+
+/**
  * Builds the WhatsApp Click-to-Chat URL with pre-filled greeting and file metadata
  */
 export function getOmkarWhatsAppShareUrl(options: {
@@ -40,19 +56,23 @@ export function getOmkarWhatsAppShareUrl(options: {
   birthTime?: string;
   place?: string;
   selectedOptions?: string[];
+  amount?: number;
 }): string {
   const cleanPhone = (options.whatsappNumber || "").replace(/\D/g, "");
   const selectedListText = (options.selectedOptions && options.selectedOptions.length > 0)
     ? options.selectedOptions.map((opt) => `  • ${opt}`).join("\n")
     : "  • ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜನನ ಕುಂಡಲಿ\n  • ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ವರದಿ V1\n  • ದೈವಿಕ ಪರಿಹಾರ ವರದಿ";
 
+  const priceText = options.amount ? `• ಸೇವಾ ಶುಲ್ಕ: *₹${options.amount}*\n` : "";
+
   const msg =
     `*॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ಪ್ರೀಮಿಯಂ ಜ್ಯೋತಿಷ್ಯ ದಾಖಲೆಗಳು ॥*\n\n` +
     `ನಮಸ್ಕಾರ *${options.devoteeName}*,\n` +
     `ನಿಮ್ಮ ೧೪೦ ವರ್ಷಗಳ ಪರಂಪರೆಯ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರೀಮಿಯಂ ದಾಖಲೆಗಳ ಅಧಿಕೃತ ZIP ಕಡತ (*${options.zipFileName}*) ಸಿದ್ಧವಾಗಿದೆ.\n\n` +
     (options.birthDate ? `• ಜನ್ಮ ವಿವರ: *${options.birthDate} ${options.birthTime || ""}* (${options.place || "Gokarna"})\n` : "") +
-    `• ಒಳಗೊಂಡಿರುವ ವರದಿಗಳು:\n${selectedListText}\n\n` +
-    `ದಯವಿಟ್ಟು ಲಗತ್ತಿಸಲಾದ ಕಡತವನ್ನು (Attached ZIP File) ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ ಪರಿಶೀಲಿಸಿ.\n\n` +
+    `• ಒಳಗೊಂಡಿರುವ ವರದಿಗಳು:\n${selectedListText}\n` +
+    priceText +
+    `\nದಯವಿಟ್ಟು ಲಗತ್ತಿಸಲಾದ ಕಡತವನ್ನು (Attached ZIP File) ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ ಪರಿಶೀಲಿಸಿ.\n\n` +
     `ಧನ್ಯವಾದಗಳು!\n— ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362)\n॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ ॥`;
 
   return `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`;

@@ -21,7 +21,8 @@ import { generateKundliRemedyReport, type KundliRemedyDiagnosis } from "../featu
 import {
   getOmkarZipFileName,
   getOmkarWhatsAppShareUrl,
-  packageOmkarPremiumZip
+  packageOmkarPremiumZip,
+  calculateOmkarPackagePrice
 } from "../features/omkarDesk/omkarDeskService";
 import {
   generateCompactGoogleCalendarUrlForQR,
@@ -631,9 +632,15 @@ export default function OmkarDeskPortalPage(): JSX.Element {
         selectedRemedy ? "Remedy PDF" : null
       ].filter(Boolean).join(" + ");
 
+      const packageAmount = calculateOmkarPackagePrice({
+        selectedJananaKundli,
+        selectedBhavishyaV1,
+        selectedRemedy
+      });
+
       void dispatchOrderNotification(
-        `Omkar Premium ZIP: ${selectedList}`,
-        selectedJananaKundli && selectedBhavishyaV1 && selectedRemedy ? 500 : 350,
+        `Omkar Premium ZIP: ${selectedList} (₹${packageAmount})`,
+        packageAmount,
         `Archive: ${result.zipFileName} (${result.includedFiles.join(", ")}) for ${effectiveDevoteeName}`
       );
     } catch (err: any) {
@@ -652,6 +659,12 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       selectedRemedy ? "ದೈವಿಕ ಪರಿಹಾರ ವರದಿ" : null
     ].filter(Boolean) as string[];
 
+    const currentPrice = calculateOmkarPackagePrice({
+      selectedJananaKundli,
+      selectedBhavishyaV1,
+      selectedRemedy
+    });
+
     const zipName = lastDownloadedZip || getOmkarZipFileName(devoteeName);
     const shareUrl = getOmkarWhatsAppShareUrl({
       whatsappNumber,
@@ -660,7 +673,8 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       birthDate,
       birthTime,
       place: resolvedPlaceName,
-      selectedOptions: selectedList
+      selectedOptions: selectedList,
+      amount: currentPrice
     });
 
     window.open(shareUrl, "_blank");
@@ -688,7 +702,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
 
       void dispatchOrderNotification(
         "Poster 1: Baggona Janana Kundali & Dasha PDF",
-        includeRemedy ? 410 : 320,
+        includeRemedy ? 420 : 320,
         `Kundli & Dasha PDF (${langName}) Downloaded for ${effectiveDevoteeName}`
       );
     } catch (err: any) {
@@ -746,7 +760,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
 
       void dispatchOrderNotification(
         includeRemedy ? "Poster 1: Premium Bhavishya V1 + Remedy" : "Poster 1: Premium Bhavishya V1 PDF",
-        includeRemedy ? 410 : 320,
+        includeRemedy ? 420 : 320,
         `Bhavishya V1 PDF (${langName}) Generated for ${effectiveDevoteeName}`
       );
     } catch (err: any) {
@@ -763,7 +777,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       const safeName = effectiveDevoteeName.replace(/[^\p{L}\p{N}]+/gu, "_") || "Devotee";
       const fileName = `${safeName}_Remedial_Upaya_${selectedLang}.pdf`;
       await generatePDFFromElement("omkar-remedy-container", fileName, true);
-      void dispatchOrderNotification("Poster 1: Remedial Upaya PDF", 410, `Remedy Report Downloaded for ${effectiveDevoteeName}`);
+      void dispatchOrderNotification("Poster 1: Remedial Upaya PDF", 420, `Remedy Report Downloaded for ${effectiveDevoteeName}`);
     } catch (err: any) {
       alert("Remedy download error: " + (err?.message || "Error"));
     } finally {
@@ -896,7 +910,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       `• ಗ್ರಾಹಕರು: *${effectiveDevoteeName}*\n` +
       `• ಜನ್ಮ ದಿನಾಂಕ: *${birthDate} ${birthTime}*\n` +
       `• ಸ್ಥಳ: *${resolvedPlaceName}*\n` +
-      `• ಸೇವೆ: *${includeRemedy ? "ಜನನ ಕುಂಡಲಿ + ಭವಿಷ್ಯ + ಪರಿಹಾರ ವರದಿ (₹410)" : "ಪ್ರೀಮಿಯಂ ಜನನ ಕುಂಡಲಿ & ಭವಿಷ್ಯ V1 (₹320)"}*\n\n` +
+      `• ಸೇವೆ: *${includeRemedy ? "ಜನನ ಕುಂಡಲಿ + ಭವಿಷ್ಯ + ಪರಿಹಾರ ವರದಿ (₹420)" : "ಪ್ರೀಮಿಯಂ ಜನನ ಕುಂಡಲಿ & ಭವಿಷ್ಯ V1 (₹320)"}*\n\n` +
       `ಧನ್ಯವಾದಗಳು!\n— ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362)`;
     window.open(`https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -1295,10 +1309,16 @@ export default function OmkarDeskPortalPage(): JSX.Element {
                       ಕೇವಲ ಈ ೩ ವರದಿಗಳನ್ನು ಮಾತ್ರ ಆಯ್ಕೆ ಮಾಡಬಹುದು. ಆಯ್ಕೆ ಮಾಡಿದ ವರದಿಗಳು ಒಂದೇ ZIP ಕಡತವಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತವೆ.
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="flex flex-col sm:items-end gap-2">
                     <span className="text-xs font-mono font-bold text-amber-300 bg-slate-950 px-3 py-1.5 rounded-lg border border-amber-500/30">
                       ZIP: {getOmkarZipFileName(devoteeName)}
                     </span>
+                    <div className="inline-flex items-center gap-2 bg-emerald-950/90 border border-emerald-500/60 px-3 py-1.5 rounded-lg shadow-sm">
+                      <span className="text-xs text-emerald-300 font-medium">ಸಂಗ್ರಹಿಸಬೇಕಾದ ಶುಲ್ಕ:</span>
+                      <span className="text-base font-black text-emerald-400 font-mono">
+                        ₹{calculateOmkarPackagePrice({ selectedJananaKundli, selectedBhavishyaV1, selectedRemedy })}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1353,7 +1373,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
                           ೨. ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ವರದಿ V1 (Premium PDF V1)
                         </span>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40 self-start sm:self-auto">
-                          ಸಮಗ್ರ ಜೀವಮಾನ ಭವಿಷ್ಯ
+                          ಮೂಲ ಪ್ಯಾಕೇಜ್ ದರ: ₹೩೨೦
                         </span>
                       </div>
                       <p className="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -1381,8 +1401,8 @@ export default function OmkarDeskPortalPage(): JSX.Element {
                         <span className="text-base font-black text-amber-200">
                           ೩. ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (Remedy PDF)
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40 self-start sm:self-auto">
-                          ೧೪೦ ವರ್ಷಗಳ ಪರಂಪರೆಯ ಪರಿಹಾರ
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/90 px-2 py-0.5 rounded border border-emerald-500/50 self-start sm:self-auto">
+                          +₹೧೦೦ (ಪರಿಹಾರ ಸೇರಿ ಒಟ್ಟು ₹೪೨೦)
                         </span>
                       </div>
                       <p className="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -1438,7 +1458,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
                     <span>
                       {isPackagingZip
                         ? "ಕಡತ ತಯಾರಾಗುತ್ತಿದೆ..."
-                        : "📥 ಪ್ರೀಮಿಯಂ ಜಿಪ್ ಡೌನ್‌ಲೋಡ್ (Premium Download ZIP)"}
+                        : `📥 ಪ್ರೀಮಿಯಂ ಜಿಪ್ ಡೌನ್‌ಲೋಡ್ (₹${calculateOmkarPackagePrice({ selectedJananaKundli, selectedBhavishyaV1, selectedRemedy })})`}
                     </span>
                   </button>
 
