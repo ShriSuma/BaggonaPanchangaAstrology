@@ -181,7 +181,7 @@ describe("Consultation Security & Universal Multi-Turn Guard Test Suite", () => 
       );
 
       expect(turn1Reading).toContain("ಸ್ವದೇಶದಲ್ಲಿಯೇ (ಭಾರತದಲ್ಲೇ)");
-      expect(turn1Reading).toContain("ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು (Permanent Settlement / PR) ಜಾತಕ ರೀತ್ಯಾ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆ");
+      expect(turn1Reading).toContain("ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು ಜಾತಕ ರೀತ್ಯಾ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆ");
 
       // Turn 2 Follow-up: Asking about specific country (Canada / Germany)
       const turn2Reading = buildDeterministicAbroadSettlementReading(
@@ -250,7 +250,7 @@ describe("Consultation Security & Universal Multi-Turn Guard Test Suite", () => 
       expect(propertyReadingKn).toContain("ನಾಲ್ಕನೇ ಭಾವ");
       expect(propertyReadingKn).toContain("ಭೂಮಿಕಾರಕ ಕುಜ ಗ್ರಹದ ಸ್ಥಿತಿ");
       expect(propertyReadingKn).toContain("ಸ್ವಂತ ವಾಸದ ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ದೈವಾನುಗ್ರಹವಿದೆ");
-      expect(propertyReadingKn).toContain("ಅತಿಯಾದ ಸಾಲದ ಹೊರೆಯೊಂದಿಗೆ ಮಾಡುವ ಊಹಾತ್ಮಕ (Speculative) ವಾಣಿಜ್ಯ ಹೂಡಿಕೆಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ತಪ್ಪಿಸಬೇಕು");
+      expect(propertyReadingKn).toContain("ಅತಿಯಾದ ಸಾಲದ ಹೊರೆಯೊಂದಿಗೆ ಮಾಡುವ ಊಹಾತ್ಮಕ ವಾಣಿಜ್ಯ ಹೂಡಿಕೆಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ತಪ್ಪಿಸಬೇಕು");
     });
   });
 });

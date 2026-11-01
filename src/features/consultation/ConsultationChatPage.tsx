@@ -1324,11 +1324,11 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥
                 </h1>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-sm border border-amber-300">
-                  ಗೋಕರ್ಣ
+                  {currentChatUi.gokarnaTown || "ಗೋಕರ್ಣ"}
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-amber-800 font-medium">
-                ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆ
+                {currentChatUi.headerSubtitle || "ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆ"}
               </p>
             </div>
           </div>

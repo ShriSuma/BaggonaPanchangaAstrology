@@ -202,11 +202,27 @@ export interface DevoteeKundliComputedData {
   currentDashaTextEn: string;
   planetsSummary: string;
   ageYears: number;
-  // Deep House Specifics
-  house10KarmaSign: string;
-  house10KarmaLord: string;
-  house10KarmaLordHouse: number;
-  house10Planets: string[];
+  // 12-House Complete Matrix (Bhavas 1 to 12)
+  house1TanuSign: string;
+  house1TanuLord: string;
+  house1TanuLordHouse: number;
+  house1Planets: string[];
+  house2DhanaSign: string;
+  house2DhanaLord: string;
+  house2DhanaLordHouse: number;
+  house2Planets: string[];
+  house3SahajaSign: string;
+  house3SahajaLord: string;
+  house3SahajaLordHouse: number;
+  house3Planets: string[];
+  house4VidyaSign: string;
+  house4VidyaLord: string;
+  house4VidyaLordHouse: number;
+  house4Planets: string[];
+  house5SanthanaSign: string;
+  house5SanthanaLord: string;
+  house5SanthanaLordHouse: number;
+  house5Planets: string[];
   house6HurdlesSign: string;
   house6HurdlesLord: string;
   house6HurdlesLordHouse: number;
@@ -217,24 +233,34 @@ export interface DevoteeKundliComputedData {
   house8StressSign: string;
   house8StressLord: string;
   house8Planets: string[];
-  // 5th House (Santhana / Progeny / Buddhi)
-  house5SanthanaSign: string;
-  house5SanthanaLord: string;
-  house5SanthanaLordHouse: number;
-  house5Planets: string[];
-  // 4th House (Vidya / Education / Mother)
-  house4VidyaSign: string;
-  house4VidyaLord: string;
-  house4VidyaLordHouse: number;
-  house4Planets: string[];
+  house9BhagyaSign: string;
+  house9BhagyaLord: string;
+  house9BhagyaLordHouse: number;
+  house9Planets: string[];
+  house10KarmaSign: string;
+  house10KarmaLord: string;
+  house10KarmaLordHouse: number;
+  house10Planets: string[];
+  house11LabhaSign: string;
+  house11LabhaLord: string;
+  house11LabhaLordHouse: number;
+  house11Planets: string[];
+  house12MokshaSign: string;
+  house12MokshaLord: string;
+  house12MokshaLordHouse: number;
+  house12Planets: string[];
   // Character & Temperament Profile
   characterProfile: DevoteeCharacterProfile;
   isMinorChild: boolean;
-  // Transit Shani & Guru from Moon
+  // Dynamic Transit Shani, Guru, Rahu, Ketu from Moon
   shaniTransitHouseFromMoon: number;
   shaniTransitNature: string;
+  shaniTransitSign: string;
   guruTransitHouseFromMoon: number;
   guruTransitNature: string;
+  guruTransitSign: string;
+  rahuTransitHouseFromMoon: number;
+  ketuTransitHouseFromMoon: number;
 }
 
 /**
@@ -342,125 +368,190 @@ export async function computeDevoteeKundli(
     )
     .join(", ");
 
-  // 6. Deep House Calculations
-  // 10th House (Karma / Vrutti / Career)
-  const house10Idx = (lagnaIdx + 9) % 12;
-  const house10KarmaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house10Idx];
-  const house10LordPlanet = SIGN_LORDS[house10Idx];
-  const house10KarmaLord = pDict[house10LordPlanet] || house10LordPlanet;
-  const house10LordObj = kundli.planets.find((p) => p.name === house10LordPlanet);
-  const house10KarmaLordHouse = house10LordObj?.house || 10;
-  const house10Planets = kundli.planets
-    .filter((p) => p.house === 10)
-    .map((p) => pDict[p.name] || p.name);
+  // 6. Complete 12-House Matrix Calculations (Parashara Shastra Bhavas 1 to 12)
+  // 1st House (Tanu / Vitality / Health / Self)
+  const house1TanuSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[lagnaIdx];
+  const house1TanuLord = lagnaLord;
+  const house1TanuLordHouse = lagnaLordHouse;
+  const house1Planets = kundli.planets.filter((p) => p.house === 1).map((p) => pDict[p.name] || p.name);
 
-  // 6th House (Shatru / Roga / Work Hurdles)
-  const house6Idx = (lagnaIdx + 5) % 12;
-  const house6HurdlesSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house6Idx];
-  const house6LordPlanet = SIGN_LORDS[house6Idx];
-  const house6HurdlesLord = pDict[house6LordPlanet] || house6LordPlanet;
-  const house6LordObj = kundli.planets.find((p) => p.name === house6LordPlanet);
-  const house6HurdlesLordHouse = house6LordObj?.house || 6;
-  const house6Planets = kundli.planets
-    .filter((p) => p.house === 6)
-    .map((p) => pDict[p.name] || p.name);
+  // 2nd House (Dhana / Kutumba / Speech / Accumulated Wealth)
+  const house2Idx = (lagnaIdx + 1) % 12;
+  const house2DhanaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house2Idx];
+  const house2LordPlanet = SIGN_LORDS[house2Idx];
+  const house2DhanaLord = pDict[house2LordPlanet] || house2LordPlanet;
+  const house2LordObj = kundli.planets.find((p) => p.name === house2LordPlanet);
+  const house2DhanaLordHouse = house2LordObj?.house || 2;
+  const house2Planets = kundli.planets.filter((p) => p.house === 2).map((p) => pDict[p.name] || p.name);
 
-  // 7th House (Kalatra / Marriage / Partner)
-  const house7Idx = (lagnaIdx + 6) % 12;
-  const house7MarriageSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house7Idx];
-  const house7LordPlanet = SIGN_LORDS[house7Idx];
-  const house7MarriageLord = pDict[house7LordPlanet] || house7LordPlanet;
-  const house7Planets = kundli.planets
-    .filter((p) => p.house === 7)
-    .map((p) => pDict[p.name] || p.name);
+  // 3rd House (Sahaja / Parakrama / Courage / Siblings / Efforts)
+  const house3Idx = (lagnaIdx + 2) % 12;
+  const house3SahajaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house3Idx];
+  const house3LordPlanet = SIGN_LORDS[house3Idx];
+  const house3SahajaLord = pDict[house3LordPlanet] || house3LordPlanet;
+  const house3LordObj = kundli.planets.find((p) => p.name === house3LordPlanet);
+  const house3SahajaLordHouse = house3LordObj?.house || 3;
+  const house3Planets = kundli.planets.filter((p) => p.house === 3).map((p) => pDict[p.name] || p.name);
 
-  // 8th House (Randhra / Stress / Obstacles)
-  const house8Idx = (lagnaIdx + 7) % 12;
-  const house8StressSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house8Idx];
-  const house8LordPlanet = SIGN_LORDS[house8Idx];
-  const house8StressLord = pDict[house8LordPlanet] || house8LordPlanet;
-  const house8Planets = kundli.planets
-    .filter((p) => p.house === 8)
-    .map((p) => pDict[p.name] || p.name);
-
-  // 7. Shani Gochara (Saturn transit in Aquarius / Kumbha relative to Moon)
-  const shaniTransitHouseFromMoon = ((10 - rashiIdx + 12) % 12) + 1;
-  let shaniTransitNature = "";
-  if (shaniTransitHouseFromMoon === 12) {
-    shaniTransitNature =
-      lang === "kn"
-        ? "ಸಾಡೇ ಸಾತಿ (ಏಳರೆ ಶನಿ - ಮೊದಲ ಹಂತ: ವ್ಯಯ ಶನಿ)"
-        : "Sade Sati (Rising Phase - 12th from Moon)";
-  } else if (shaniTransitHouseFromMoon === 1) {
-    shaniTransitNature =
-      lang === "kn"
-        ? "ಸಾಡೇ ಸಾತಿ (ಜನ್ಮ ಶನಿ - ಶಿಖರ ಪರೀಕ್ಷಾ ಹಂತ)"
-        : "Sade Sati (Peak Janma Phase - on Moon)";
-  } else if (shaniTransitHouseFromMoon === 2) {
-    shaniTransitNature =
-      lang === "kn"
-        ? "ಸಾಡೇ ಸಾತಿ (ಅಂತಿಮ ಇಳಿಕೆ ಹಂತ: ಧನ ಶನಿ)"
-        : "Sade Sati (Setting Phase - 2nd from Moon)";
-  } else if (shaniTransitHouseFromMoon === 4) {
-    shaniTransitNature =
-      lang === "kn"
-        ? "ಕಂಟಕ ಶನಿ (ಅರ್ಧಾಷ್ಟಮ - ೪ನೇ ಮನೆ: ಮಾನಸಿಕ ಆತಂಕ & ವೃತ್ತಿ ಕಷ್ಟ)"
-        : "Kantaka Shani (4th from Moon - Career & Mental Strain)";
-  } else if (shaniTransitHouseFromMoon === 10) {
-    shaniTransitNature =
-      lang === "kn"
-        ? "ದಶಮ ಕಂಟಕ ಶನಿ (೧೦ನೇ ಮನೆ: ಉದ್ಯೋಗದಲ್ಲಿ ನಿರಂತರ ಒತ್ತಡ & ಕಿರಿಕಿರಿ)"
-        : "Kantaka Shani (10th from Moon - Heavy Professional Obstacles & Pressure)";
-  } else if (shaniTransitHouseFromMoon === 8) {
-    shaniTransitNature =
-      lang === "kn"
-        ? "ಅಷ್ಟಮ ಶನಿ (೮ನೇ ಮನೆ: ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು & ಕಾರ್ಯವಿಳಂಬ)"
-        : "Ashtama Shani (8th from Moon - Unexpected Delays & Roadblocks)";
-  } else {
-    shaniTransitNature =
-      lang === "kn"
-        ? `ಗೋಚಾರ ${shaniTransitHouseFromMoon}ನೇ ಮನೆಯ ಶನಿ ಸಂಚಾರ`
-        : `Saturn transiting House ${shaniTransitHouseFromMoon} from Moon`;
-  }
-
-  // 8. Guru Gochara (Jupiter transit in Taurus / Vrishabha relative to Moon)
-  const guruTransitHouseFromMoon = ((1 - rashiIdx + 12) % 12) + 1;
-  let guruTransitNature = "";
-  if ([2, 5, 7, 9, 11].includes(guruTransitHouseFromMoon)) {
-    guruTransitNature =
-      lang === "kn"
-        ? `ಶುಭ ಗುರುಬಲ (${guruTransitHouseFromMoon}ನೇ ಮನೆ - ದೈವಾನುಗ್ರಹ & ಪರಿಹಾರ)`
-        : `Auspicious Guru Transit (House ${guruTransitHouseFromMoon} - Divine Protection)`;
-  } else {
-    guruTransitNature =
-      lang === "kn"
-        ? `ಗುರು ಸಂಚಾರ (${guruTransitHouseFromMoon}ನೇ ಮನೆ - ತಾಳ್ಮೆ ಹಾಗೂ ಸತತ ಪ್ರಯತ್ನದ ಕಾಲ)`
-        : `Testing Guru Transit (House ${guruTransitHouseFromMoon} - Requires Patience)`;
-  }
-
-  // 9. 5th House (Putra / Santhana / Buddhi / Progeny)
-  const house5Idx = (lagnaIdx + 4) % 12;
-  const house5SanthanaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house5Idx];
-  const house5LordPlanet = SIGN_LORDS[house5Idx];
-  const house5SanthanaLord = pDict[house5LordPlanet] || house5LordPlanet;
-  const house5LordObj = kundli.planets.find((p) => p.name === house5LordPlanet);
-  const house5SanthanaLordHouse = house5LordObj?.house || 5;
-  const house5Planets = kundli.planets
-    .filter((p) => p.house === 5)
-    .map((p) => pDict[p.name] || p.name);
-
-  // 10. 4th House (Vidya / Matru / Education / Mind)
+  // 4th House (Vidya / Matru / Griha / Sukha / Property)
   const house4Idx = (lagnaIdx + 3) % 12;
   const house4VidyaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house4Idx];
   const house4LordPlanet = SIGN_LORDS[house4Idx];
   const house4VidyaLord = pDict[house4LordPlanet] || house4LordPlanet;
   const house4LordObj = kundli.planets.find((p) => p.name === house4LordPlanet);
   const house4VidyaLordHouse = house4LordObj?.house || 4;
-  const house4Planets = kundli.planets
-    .filter((p) => p.house === 4)
-    .map((p) => pDict[p.name] || p.name);
+  const house4Planets = kundli.planets.filter((p) => p.house === 4).map((p) => pDict[p.name] || p.name);
 
-  // 11. Character & Psychological Temperament Profile
+  // 5th House (Putra / Santhana / Buddhi / Poorva Punya / Progeny)
+  const house5Idx = (lagnaIdx + 4) % 12;
+  const house5SanthanaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house5Idx];
+  const house5LordPlanet = SIGN_LORDS[house5Idx];
+  const house5SanthanaLord = pDict[house5LordPlanet] || house5LordPlanet;
+  const house5LordObj = kundli.planets.find((p) => p.name === house5LordPlanet);
+  const house5SanthanaLordHouse = house5LordObj?.house || 5;
+  const house5Planets = kundli.planets.filter((p) => p.house === 5).map((p) => pDict[p.name] || p.name);
+
+  // 6th House (Shatru / Roga / Rina / Hurdles / Competitive Exams)
+  const house6Idx = (lagnaIdx + 5) % 12;
+  const house6HurdlesSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house6Idx];
+  const house6LordPlanet = SIGN_LORDS[house6Idx];
+  const house6HurdlesLord = pDict[house6LordPlanet] || house6LordPlanet;
+  const house6LordObj = kundli.planets.find((p) => p.name === house6LordPlanet);
+  const house6HurdlesLordHouse = house6LordObj?.house || 6;
+  const house6Planets = kundli.planets.filter((p) => p.house === 6).map((p) => pDict[p.name] || p.name);
+
+  // 7th House (Kalatra / Marriage / Partner / Business Trade)
+  const house7Idx = (lagnaIdx + 6) % 12;
+  const house7MarriageSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house7Idx];
+  const house7LordPlanet = SIGN_LORDS[house7Idx];
+  const house7MarriageLord = pDict[house7LordPlanet] || house7LordPlanet;
+  const house7LordObj = kundli.planets.find((p) => p.name === house7LordPlanet);
+  const house7MarriageLordHouse = house7LordObj?.house || 7;
+  const house7Planets = kundli.planets.filter((p) => p.house === 7).map((p) => pDict[p.name] || p.name);
+
+  // 8th House (Randhra / Ayus / Longevity / Hidden Stress / Surgery)
+  const house8Idx = (lagnaIdx + 7) % 12;
+  const house8StressSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house8Idx];
+  const house8LordPlanet = SIGN_LORDS[house8Idx];
+  const house8StressLord = pDict[house8LordPlanet] || house8LordPlanet;
+  const house8LordObj = kundli.planets.find((p) => p.name === house8LordPlanet);
+  const house8StressLordHouse = house8LordObj?.house || 8;
+  const house8Planets = kundli.planets.filter((p) => p.house === 8).map((p) => pDict[p.name] || p.name);
+
+  // 9th House (Bhagya / Dharma / Father / Higher Wisdom / Guru)
+  const house9Idx = (lagnaIdx + 8) % 12;
+  const house9BhagyaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house9Idx];
+  const house9LordPlanet = SIGN_LORDS[house9Idx];
+  const house9BhagyaLord = pDict[house9LordPlanet] || house9LordPlanet;
+  const house9LordObj = kundli.planets.find((p) => p.name === house9LordPlanet);
+  const house9BhagyaLordHouse = house9LordObj?.house || 9;
+  const house9Planets = kundli.planets.filter((p) => p.house === 9).map((p) => pDict[p.name] || p.name);
+
+  // 10th House (Karma / Vrutti / Career / Government Authority)
+  const house10Idx = (lagnaIdx + 9) % 12;
+  const house10KarmaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house10Idx];
+  const house10LordPlanet = SIGN_LORDS[house10Idx];
+  const house10KarmaLord = pDict[house10LordPlanet] || house10LordPlanet;
+  const house10LordObj = kundli.planets.find((p) => p.name === house10LordPlanet);
+  const house10KarmaLordHouse = house10LordObj?.house || 10;
+  const house10Planets = kundli.planets.filter((p) => p.house === 10).map((p) => pDict[p.name] || p.name);
+
+  // 11th House (Labha / Gains / Regular Income / Elder Siblings)
+  const house11Idx = (lagnaIdx + 10) % 12;
+  const house11LabhaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house11Idx];
+  const house11LordPlanet = SIGN_LORDS[house11Idx];
+  const house11LabhaLord = pDict[house11LordPlanet] || house11LordPlanet;
+  const house11LordObj = kundli.planets.find((p) => p.name === house11LordPlanet);
+  const house11LabhaLordHouse = house11LordObj?.house || 11;
+  const house11Planets = kundli.planets.filter((p) => p.house === 11).map((p) => pDict[p.name] || p.name);
+
+  // 12th House (Vyaya / Moksha / Foreign Lands / Hospitalization / Sleep)
+  const house12Idx = (lagnaIdx + 11) % 12;
+  const house12MokshaSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[house12Idx];
+  const house12LordPlanet = SIGN_LORDS[house12Idx];
+  const house12MokshaLord = pDict[house12LordPlanet] || house12LordPlanet;
+  const house12LordObj = kundli.planets.find((p) => p.name === house12LordPlanet);
+  const house12MokshaLordHouse = house12LordObj?.house || 12;
+  const house12Planets = kundli.planets.filter((p) => p.house === 12).map((p) => pDict[p.name] || p.name);
+
+  // 7. Dynamic Real-Time Planetary Transit Calculations (Ephemeris-Driven Gochara)
+  let liveTransits: Record<PlanetName, { rashiIndex: number; house: number }> | null = null;
+  try {
+    liveTransits = getTransitsForDate(rashiIdx, new Date(), "lahiri");
+  } catch (err) {
+    console.warn("[consultationAIEngine] liveTransits compute notice:", err);
+  }
+
+  const shaniTransit = liveTransits?.[PlanetName.Saturn];
+  const shaniTransitHouseFromMoon = shaniTransit?.house ?? (((10 - rashiIdx + 12) % 12) + 1);
+  const shaniRashiIdx = shaniTransit?.rashiIndex ?? 10;
+  const shaniTransitSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[shaniRashiIdx];
+
+  let shaniTransitNature = "";
+  if (shaniTransitHouseFromMoon === 12) {
+    shaniTransitNature =
+      lang === "kn"
+        ? `ಸಾಡೇ ಸಾತಿ (ಏಳರೆ ಶನಿ - ಮೊದಲ ಹಂತ: ವ್ಯಯ ಶನಿ ${shaniTransitSign}ದಲ್ಲಿ)`
+        : `Sade Sati (Rising Phase - 12th from Moon in ${shaniTransitSign})`;
+  } else if (shaniTransitHouseFromMoon === 1) {
+    shaniTransitNature =
+      lang === "kn"
+        ? `ಸಾಡೇ ಸಾತಿ (ಜನ್ಮ ಶನಿ - ಶಿಖರ ಪರೀಕ್ಷಾ ಹಂತ ${shaniTransitSign}ದಲ್ಲಿ)`
+        : `Sade Sati (Peak Janma Phase - on Moon in ${shaniTransitSign})`;
+  } else if (shaniTransitHouseFromMoon === 2) {
+    shaniTransitNature =
+      lang === "kn"
+        ? `ಸಾಡೇ ಸಾತಿ (ಅಂತಿಮ ಇಳಿಕೆ ಹಂತ: ಧನ ಶನಿ ${shaniTransitSign}ದಲ್ಲಿ)`
+        : `Sade Sati (Setting Phase - 2nd from Moon in ${shaniTransitSign})`;
+  } else if (shaniTransitHouseFromMoon === 4) {
+    shaniTransitNature =
+      lang === "kn"
+        ? `ಕಂಟಕ ಶನಿ (ಅರ್ಧಾಷ್ಟಮ - ೪ನೇ ಮನೆ ${shaniTransitSign}ದಲ್ಲಿ: ಮಾನಸಿಕ ಆತಂಕ & ವೃತ್ತಿ ಕಷ್ಟ)`
+        : `Kantaka Shani (4th from Moon in ${shaniTransitSign} - Career & Mental Strain)`;
+  } else if (shaniTransitHouseFromMoon === 10) {
+    shaniTransitNature =
+      lang === "kn"
+        ? `ದಶಮ ಕಂಟಕ ಶನಿ (೧೦ನೇ ಮನೆ ${shaniTransitSign}ದಲ್ಲಿ: ಉದ್ಯೋಗದಲ್ಲಿ ನಿರಂತರ ಒತ್ತಡ & ಕಿರಿಕಿರಿ)`
+        : `Kantaka Shani (10th from Moon in ${shaniTransitSign} - Heavy Professional Pressure)`;
+  } else if (shaniTransitHouseFromMoon === 8) {
+    shaniTransitNature =
+      lang === "kn"
+        ? `ಅಷ್ಟಮ ಶನಿ (೮ನೇ ಮನೆ ${shaniTransitSign}ದಲ್ಲಿ: ಅನಿರೀಕ್ಷಿತ ಅಡೆತಡೆಗಳು & ಕಾರ್ಯವಿಳಂಬ)`
+        : `Ashtama Shani (8th from Moon in ${shaniTransitSign} - Unexpected Roadblocks)`;
+  } else {
+    shaniTransitNature =
+      lang === "kn"
+        ? `ಗೋಚಾರ ${shaniTransitHouseFromMoon}ನೇ ಮನೆಯ ಶನಿ ಸಂಚಾರ (${shaniTransitSign}ದಲ್ಲಿ)`
+        : `Saturn transiting House ${shaniTransitHouseFromMoon} from Moon in ${shaniTransitSign}`;
+  }
+
+  // Guru Gochara
+  const guruTransit = liveTransits?.[PlanetName.Jupiter];
+  const guruTransitHouseFromMoon = guruTransit?.house ?? (((1 - rashiIdx + 12) % 12) + 1);
+  const guruRashiIdx = guruTransit?.rashiIndex ?? 1;
+  const guruTransitSign = (RASHIS_I18N[lang] || RASHIS_I18N.kn)[guruRashiIdx];
+
+  let guruTransitNature = "";
+  if ([2, 5, 7, 9, 11].includes(guruTransitHouseFromMoon)) {
+    guruTransitNature =
+      lang === "kn"
+        ? `ಶುಭ ಗುರುಬಲ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ದೈವಾನುಗ್ರಹ & ಕಾರ್ಯಸಿದ್ಧಿ)`
+        : `Auspicious Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Divine Grace & Success)`;
+  } else {
+    guruTransitNature =
+      lang === "kn"
+        ? `ಗುರು ಸಂಚಾರ (${guruTransitHouseFromMoon}ನೇ ಮನೆ ${guruTransitSign}ದಲ್ಲಿ - ತಾಳ್ಮೆ ಹಾಗೂ ಸತತ ಪ್ರಯತ್ನದ ಕಾಲ)`
+        : `Testing Guru Transit (House ${guruTransitHouseFromMoon} in ${guruTransitSign} - Requires Patience)`;
+  }
+
+  // Rahu & Ketu Gochara
+  const rahuTransit = liveTransits?.[PlanetName.Rahu];
+  const rahuTransitHouseFromMoon = rahuTransit?.house ?? (((11 - rashiIdx + 12) % 12) + 1);
+
+  const ketuTransit = liveTransits?.[PlanetName.Ketu];
+  const ketuTransitHouseFromMoon = ketuTransit?.house ?? (((5 - rashiIdx + 12) % 12) + 1);
+
+  // 8. Character & Psychological Temperament Profile
   const tatvaObj = SIGN_TATVAS[lagnaIdx] || SIGN_TATVAS[0];
   const ganaObj = NAKSHATRA_GANAS[nakIdx] || NAKSHATRA_GANAS[0];
   const psychObj = LAGNA_PSYCHOLOGICAL_NATURE[lagnaIdx] || LAGNA_PSYCHOLOGICAL_NATURE[0];
@@ -494,10 +585,27 @@ export async function computeDevoteeKundli(
     currentDashaTextEn,
     planetsSummary,
     ageYears,
-    house10KarmaSign,
-    house10KarmaLord,
-    house10KarmaLordHouse,
-    house10Planets,
+    // 12-House Matrix
+    house1TanuSign,
+    house1TanuLord,
+    house1TanuLordHouse,
+    house1Planets,
+    house2DhanaSign,
+    house2DhanaLord,
+    house2DhanaLordHouse,
+    house2Planets,
+    house3SahajaSign,
+    house3SahajaLord,
+    house3SahajaLordHouse,
+    house3Planets,
+    house4VidyaSign,
+    house4VidyaLord,
+    house4VidyaLordHouse,
+    house4Planets,
+    house5SanthanaSign,
+    house5SanthanaLord,
+    house5SanthanaLordHouse,
+    house5Planets,
     house6HurdlesSign,
     house6HurdlesLord,
     house6HurdlesLordHouse,
@@ -508,20 +616,32 @@ export async function computeDevoteeKundli(
     house8StressSign,
     house8StressLord,
     house8Planets,
-    house5SanthanaSign,
-    house5SanthanaLord,
-    house5SanthanaLordHouse,
-    house5Planets,
-    house4VidyaSign,
-    house4VidyaLord,
-    house4VidyaLordHouse,
-    house4Planets,
+    house9BhagyaSign,
+    house9BhagyaLord,
+    house9BhagyaLordHouse,
+    house9Planets,
+    house10KarmaSign,
+    house10KarmaLord,
+    house10KarmaLordHouse,
+    house10Planets,
+    house11LabhaSign,
+    house11LabhaLord,
+    house11LabhaLordHouse,
+    house11Planets,
+    house12MokshaSign,
+    house12MokshaLord,
+    house12MokshaLordHouse,
+    house12Planets,
     characterProfile,
     isMinorChild,
     shaniTransitHouseFromMoon,
     shaniTransitNature,
+    shaniTransitSign,
     guruTransitHouseFromMoon,
-    guruTransitNature
+    guruTransitNature,
+    guruTransitSign,
+    rahuTransitHouseFromMoon,
+    ketuTransitHouseFromMoon
   };
 }
 
@@ -863,6 +983,12 @@ export type SpecificDomain =
   | "SECURITY_PROBE_BLOCKED"
   | "ABROAD_SETTLEMENT"
   | "PROPERTY_ASSET"
+  | "GOVERNMENT_JOB"
+  | "BUSINESS_VS_JOB"
+  | "DEBT_FINANCIAL_RELIEF"
+  | "LEGAL_COURT_CASE"
+  | "HEALTH_LONGEVITY"
+  | "COMPETITIVE_EXAM_EDUCATION"
   | "EDUCATION"
   | "GEMSTONE_RATNA"
   | "LUCKY_COLOR"
@@ -925,6 +1051,42 @@ export function analyzeQuestionComplexity(
       q
     );
 
+  // 0d. Government Job vs Private Sector / Executive Authority
+  const isGovernmentJob =
+    /ಸರ್ಕಾರಿ ಕೆಲಸ|ಸರ್ಕಾರಿ ಉದ್ಯೋಗ|ಸರಕಾರಿ ಕೆಲಸ|ಸರಕಾರಿ ನೌಕರಿ|ಸರ್ಕಾರಿ ನೌಕರಿ|sarkari|government job|govt job|civil service|ias|ips|upsc|kpsc|ssc|government sector|सरकारी नौकरी|सरकारी काम|ప్రభుత్వ ఉద్యోగం|அரசு வேலை|സർക്കാർ ജോലി|सरकारी नोकरी/i.test(
+      q
+    );
+
+  // 0e. Business vs Job & Partnership
+  const isBusinessVsJob =
+    /ಸ್ವಂತ ವ್ಯಾಪಾರ|ಸ್ವಂತ ಉದ್ಯಮ|ಕೆಲಸ ಉತ್ತಮವೋ|ವ್ಯಾಪಾರ ಉತ್ತಮವೋ|ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|business or job|job or business|own business|partnership|start business|do business|व्यापार या नौकरी|नौकरी या व्यापार|भागीदारी|ಸೊಂತ ವ್ಯಾಪారం|వ్యాపారమా ఉద్యోగమా|పార్టనర్‌షిప్|தொழில் அல்லது வேலை|சொந்த தொழில்|கூட்டுத் தொழில்|സ്വന്തം ബിസിനസ്സ്|തൊഴിലോ ബിസിനസ്സോ|भागीदारी व्यवसाय/i.test(
+      q
+    );
+
+  // 0f. Debt Relief & Financial Revival
+  const isDebtRelief =
+    /ಸಾಲ ಮುಕ್ತಿ|ಸಾಲ ತೀರಿಸ|ಸಾಲದ ಬಾಧೆ|ಸಾಲ ಯಾವಾಗ ತೀರುತ್ತೆ|ಸಾಲದಿಂದ ಮುಕ್ತಿ|ಸಾಲದ ಹೊರೆ|debt relief|clear debt|pay off loan|clear loans|debt free|loan repayment|overcome debt|कर्ज मुक्ति|ऋण मुक्ति|कर्ज से छुटकारा|రుణ విముక్తి|అప్పులు తీరడం|கடன் நிவாரணம்|கடன் தீர|കടബാധ്യത മുക്തി|कर्जमुक्ती/i.test(
+      q
+    );
+
+  // 0g. Legal Dispute & Court Case Victory
+  const isLegalCourtCase =
+    /ಕೋರ್ಟ್ ಕೇಸ್|ಕೋರ್ಟು|ವ್ಯಾಜ್ಯ|ಮೊಕದ್ದಮೆ|ನ್ಯಾಯಾಲಯ|ಕೇಸ್ ಗೆಲುವು|ಶತ್ರು ಬಾಧೆ|court case|litigation|lawsuit|legal dispute|win case|court decision|opponent|legal battle|कोर्ट केस|मुकदमा|अदालत|शत्रु बाधा|కోర్టు కేసు|వ్యాజ్యం|న్యాయస్థానం|நீதிமன்ற வழக்கு|வழக்கு வெற்றி|കോടതി കേസ്|വ്യാവഹാരം|कोर्ट केस|खटला/i.test(
+      q
+    );
+
+  // 0h. Health Recovery, Surgery & Longevity
+  const isHealthLongevity =
+    /ಆರೋಗ್ಯ ಸುಧಾರಣೆ|ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ|ಸರ್ಜರಿ|ದೀರ್ಘಕಾಲದ ಕಾಯಿಲೆ|ಆಸ್ಪತ್ರೆ|ಆರೋಗ್ಯ ಯಾವಾಗ ಸುಧಾರಿಸುತ್ತೆ|health recovery|surgery|chronic illness|hospitalization|cure disease|medical recovery|स्वास्थ्य सुधार|सर्जरी|शल्यक्रिया|दीर्घ बीमारी|ఆరోగ్య రికవరీ|శస్త్రచికిత్స|உடல்நல முன்னேற்றம்|அறுவை சிகிச்சை|ആരോഗ്യ വീണ്ടെടുക്കൽ|ശസ്ത്രക്രിയ|आरोग्य सुधारणा|शस्त्रक्रिया/i.test(
+      q
+    );
+
+  // 0i. Competitive Exam & Academic Merit
+  const isCompetitiveExam =
+    /ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ|ಪರೀಕ್ಷೆಯಲ್ಲಿ ಪಾಸ್|ಉನ್ನತ ಶಿಕ್ಷಣ|ರ್ಯಾಂಕ್|ಕಾಂಪಿಟಿಟಿವ್ ಎಕ್ಸಾಮ್|competitive exam|exam pass|clear exam|higher education|entrance exam|rank|merit|प्रतियोगी परीक्षा|परीक्षा में सफलता|उच्च शिक्षा|పోటీ పరీక్ష|పరీక్షలో ఉత్తీర్ణత|உயர் கல்வி|போட்டித் தேர்வு|മത്സര പരീക്ഷ|ഉന്നത വിദ്യാഭ്യാസം|स्पर्धा परीक्षा|उच्च शिक्षण/i.test(
+      q
+    );
+
   // 1. Gemstones, Ratna, Uparatnas & Affordable Substitutes
   const hasGemstoneContextInHistory = !!conversationHistory?.some((turn) =>
     /\b(diamond|coral|ruby|emerald|sapphire|pearl|ratna|gemstone|zircon|opal|topaz|moti|heera|panna|pukhraj|neelam)\b|ವಜ್ರ|ಹವಳ|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ಮುತ್ತು|ನೀಲ|ರತ್ನ|हीरा|मूंगा|माणिक|पन्ना|पुखराज|मोती|नीलम/i.test(
@@ -969,6 +1131,108 @@ export function analyzeQuestionComplexity(
 - 80/20 GOLDEN RULE: 80% DIRECT RULING & TIMING, 20% ASTROLOGICAL JUSTIFICATION.
 - FRONT-LOADED ANSWER: State the property potential directly based on 4th House and Mars (Bhoomi Karaka).
 - Distinguish between self-earned clear-title residential house/plot (blessed) vs speculative disputed debt-leveraged properties (strictly avoid).
+- Total length: EXACTLY 2 PARAGRAPHS.`
+    };
+  }
+
+  if (isGovernmentJob) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "GOVERNMENT_JOB",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (GOVERNMENT JOB VS PRIVATE SECTOR - EXACTLY 2 PARAGRAPHS):
+- The devotee is inquiring about Government Job vs Private Sector ("${question}").
+- 80/20 GOLDEN RULE: 80% DIRECT VERDICT & STRATEGY, 20% ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOADED ANSWER: In the very first sentence, state the definitive career verdict based on Sun (Surya - Raja Karaka), 10th House (Rajyadhikara), and 6th House (Spardha/Competition).
+- Explain whether an administrative/governance path or high-growth private corporate enterprise is their true cosmic prosperity engine.
+- Detail the daily Surya Namaskara, copper vessel arghya, Aditya Hridaya Stotra, and Sri Kshetra Gokarna Mahabaleshwara blessings.
+- Total length: EXACTLY 2 PARAGRAPHS.`
+    };
+  }
+
+  if (isBusinessVsJob) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "BUSINESS_VS_JOB",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (BUSINESS VS EMPLOYMENT & PARTNERSHIP - EXACTLY 2 PARAGRAPHS):
+- The devotee is inquiring about starting a business vs doing a job, and partnerships ("${question}").
+- 80/20 GOLDEN RULE: 80% DIRECT VERDICT & BUSINESS RULES, 20% ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOADED ANSWER: State whether Independent Business (7th House/Mercury) or Salaried Employment (6th House) is favored.
+- MANDATORY PARTNERSHIP DIRECTIVE: Warn strictly against 50-50 partnerships if the 7th house has afflictions; prescribe sole proprietorship or direct ownership.
+- Prescribe Lakshmi Kubera Stotra, Budha mantra, and Sri Kshetra Gokarna Mahaganapati Modaka pooja.
+- Total length: EXACTLY 2 PARAGRAPHS.`
+    };
+  }
+
+  if (isDebtRelief) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "DEBT_FINANCIAL_RELIEF",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (DEBT RELIEF & FINANCIAL REVIVAL - EXACTLY 2 PARAGRAPHS):
+- The devotee is asking about debt clearance, financial burdens, and recovery ("${question}").
+- 80/20 GOLDEN RULE: 80% DIRECT TIMELINE & PRACTICAL PLAN, 20% ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOADED ANSWER: In the very first sentence, provide the timeline window for financial turnaround based on 6th House (Rina) vs 11th House (Labha) and 2nd House (Dhana).
+- Emphasize strict discipline against taking unbacked high-interest debt or speculative loans.
+- Prescribe Sri Runavimochana Mangala Stotra and Sri Kshetra Gokarna Rudrabhisheka.
+- Total length: EXACTLY 2 PARAGRAPHS.`
+    };
+  }
+
+  if (isLegalCourtCase) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "LEGAL_COURT_CASE",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (LEGAL DISPUTE & COURT CASE - EXACTLY 2 PARAGRAPHS):
+- The devotee is inquiring about a legal dispute, court case, or adversary hostility ("${question}").
+- 80/20 GOLDEN RULE: 80% DIRECT OUTCOME & LEGAL GUIDANCE, 20% ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOADED ANSWER: State the outcome based on 6th House (Shatru/Vivada) and 6th lord in Upachayas (3, 6, 11).
+- Explain whether a decisive legal verdict or an amicable out-of-court mediation is the most favorable and wealth-preserving path.
+- Prescribe Sri Subrahmanya Shatru Samhara Trishati, Narasimha Kavacha, and Gokarna blessings.
+- Total length: EXACTLY 2 PARAGRAPHS.`
+    };
+  }
+
+  if (isHealthLongevity) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "HEALTH_LONGEVITY",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (HEALTH RECOVERY & LONGEVITY - EXACTLY 2 PARAGRAPHS):
+- The devotee is asking about health improvement, surgery, or chronic illness ("${question}").
+- 80/20 GOLDEN RULE: 80% DIRECT REASSURANCE & HEALING PATH, 20% ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOADED ANSWER: Reassure the devotee on vital recovery based on 1st House (Tanu) and Lagna Lord vitality, 6th (Roga), and 8th (Ayus).
+- Clarify medical compliance while invoking spiritual healing; calm surgery and medical anxieties.
+- Prescribe Maha Mrityunjaya Japa, Surya Namaskara, and Sri Kshetra Gokarna Dhanvantari Sankalpa.
+- Total length: EXACTLY 2 PARAGRAPHS.`
+    };
+  }
+
+  if (isCompetitiveExam) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "COMPETITIVE_EXAM_EDUCATION",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 2,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (COMPETITIVE EXAM & ACADEMIC MERIT - EXACTLY 2 PARAGRAPHS):
+- The devotee is asking about competitive exams, entrance tests, rank, or higher education ("${question}").
+- 80/20 GOLDEN RULE: 80% DIRECT PREDICTION & STUDY DISCIPLINE, 20% ASTROLOGICAL JUSTIFICATION.
+- FRONT-LOADED ANSWER: In the very first sentence, state the exam success probability and merit potential based on 4th House (Vidya), 5th House (Buddhi/Medha), and 9th House (Bhagya).
+- Detail cognitive focus, grasping power of Mercury (Budha) and Jupiter (Guru).
+- Prescribe Sri Medha Sukta / Saraswati Stotra, lighting cow-ghee lamp, and Sri Kshetra Gokarna Mahaganapati blessings.
 - Total length: EXACTLY 2 PARAGRAPHS.`
     };
   }
@@ -1548,35 +1812,35 @@ export function buildDeterministicAbroadSettlementReading(
     }
     case "hi": {
       const p1 = isFollowUp
-        ? `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, जैसा कि हमने पूर्व में आपकी जन्म पत्रिका के अध्ययन में स्पष्ट किया था, आपका चतुर्थ भाव (मातृभूमि एवं सुख स्थान) तथा लग्नेश इस बात का प्रमाण हैं कि आपका वास्तविक उत्कर्ष, मानसिक शांति और पारिवारिक समृद्धि स्वदेश (भारत) में ही सुरक्षित है। यदि आप कनाडा, अमेरिका या जर्मनी जैसे देशों में अल्पकालिक प्रोजेक्ट, उच्च शिक्षा अथवा निश्चित समयावधि के तकनीकी कार्य हेतु जाना चाहते हैं, तो शुभ दशा में यह उचित है; किंतु भारत छोड़कर विदेश में स्थायी रूप से बसना (Permanent PR / Settlement) आपके ग्रहों के अनुकूल नहीं है और यह मानसिक अशांति का कारण बनेगा। अतः विदेश में स्थायी निवास का विचार त्यागना ही श्रेयस्कर है।`
-        : `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, आपकी जन्म कुंडली के चतुर्थ भाव (मातृभूमि व सुख स्थान) और लग्नेश की स्थिति का सूक्ष्म विश्लेषण करने पर यह स्पष्ट होता है कि आपका दीर्घकालिक कल्याण, आर्थिक स्थिरता और मानसिक शांति स्वदेश (भारत) में ही फलित होगी। कुंडली का नवम और द्वादश भाव शिक्षा अथवा सीमित अवधि के तकनीकी प्रोजेक्ट हेतु विदेश यात्रा का समर्थन करते हैं, किंतु भारत छोड़कर विदेश में स्थायी रूप से बसना (Permanent Settlement) ग्रह स्थिति के प्रतिकूल है। अतः स्वदेश में रहकर ही अपनी आजीविका और निवास को समृद्ध करना आपके लिए परम मंगलकारी है।`;
+        ? `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, जैसा कि हमने पूर्व में आपकी जन्म पत्रिका के अध्ययन में स्पष्ट किया था, आपका चतुर्थ भाव (मातृभूमि एवं सुख स्थान) तथा लग्नेश इस बात का प्रमाण हैं कि आपका वास्तविक उत्कर्ष, मानसिक शांति और पारिवारिक समृद्धि स्वदेश (भारत) में ही सुरक्षित है। यदि आप कनाडा, अमेरिका या जर्मनी जैसे देशों में अल्पकालिक प्रोजेक्ट, उच्च शिक्षा अथवा निश्चित समयावधि के तकनीकी कार्य हेतु जाना चाहते हैं, तो शुभ दशा में यह उचित है; किंतु भारत छोड़कर विदेश में स्थायी रूप से बसना अथवा नागरिकता लेना आपके ग्रहों के अनुकूल नहीं है और यह मानसिक अशांति का कारण बनेगा। अतः विदेश में स्थायी निवास का विचार त्यागना ही श्रेयस्कर है।`
+        : `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, आपकी जन्म कुंडली के चतुर्थ भाव (मातृभूमि व सुख स्थान) और लग्नेश की स्थिति का सूक्ष्म विश्लेषण करने पर यह स्पष्ट होता है कि आपका दीर्घकालिक कल्याण, आर्थिक स्थिरता और मानसिक शांति स्वदेश (भारत) में ही फलित होगी। कुंडली का नवम और द्वादश भाव शिक्षा अथवा सीमित अवधि के तकनीकी प्रोजेक्ट हेतु विदेश यात्रा का समर्थन करते हैं, किंतु भारत छोड़कर विदेश में स्थायी रूप से बसना ग्रह स्थिति के प्रतिकूल है। अतः स्वदेश में रहकर ही अपनी आजीविका और निवास को समृद्ध करना आपके लिए परम मंगलकारी है।`;
       const p2 = `अल्पकालिक व्यावसायिक यात्राओं का लाभ उठाएं किंतु अपने जीवन का स्थायी आधार भारत में ही बनाएं। नित्य कुलदेवता का स्मरण एवं आदित्य हृदय स्तोत्र का पाठ करें; श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा से आपको सर्वत्र सफलता प्राप्त होगी।`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "te": {
       const p1 = isFollowUp
-        ? `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ జాతకంలో నాల్గవ భావం (మాతృభూమి మరియు సుఖ స్థానం) పరిశీలించినప్పుడు, మీ నిజమైన శాంతి మరియు కుటుంబ స్థిరత్వం స్వదేశంలోనే (భారతదేశంలోనే) అత్యంత శ్రేయస్కరమని ముందే గ్రహించాము. కెనడా, జర్మనీ లేదా అమెరికా వంటి దేశాలకు ఉద్యోగ రీత్యా స్వల్పకాలిక ప్రాజెక్ట్‌లకు వెళ్లడం అనుకూలించినప్పటికీ, భారతదేశాన్ని విడిచి అక్కడ శాశ్వతంగా స్థిరపడటం (Permanent Settlement / PR) జాతక రీత్యా మానసిక అశాంతికి దారితీస్తుంది. కాబట్టి శాశ్వతంగా విదేశాలలో స్థిరపడే ఆలోచనను విరమించుకోవడం మంచిది.`
+        ? `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ జాతకంలో నాల్గవ భావం (మాతృభూమి మరియు సుఖ స్థానం) పరిశీలించినప్పుడు, మీ నిజమైన శాంతి మరియు కుటుంబ స్థిరత్వం స్వదేశంలోనే (భారతదేశంలోనే) అత్యంత శ్రేయస్కరమని ముందే గ్రహించాము. కెనడా, జర్మనీ లేదా అమెరికా వంటి దేశాలకు ఉద్యోగ రీత్యా స్వల్పకాలిక ప్రాజెక్ట్‌లకు వెళ్లడం అనుకూలించినప్పటికీ, భారతదేశాన్ని విడిచి అక్కడ శాశ్వతంగా స్థిరపడటం జాతక రీత్యా మానసిక అశాంతికి దారితీస్తుంది. కాబట్టి శాశ్వతంగా విదేశాలలో స్థిరపడే ఆలోచనను విరమించుకోవడం మంచిది.`
         : `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nఆత్మీయులారా, మీ జన్మ కుండలిలోని నాల్గవ స్థానం (మాతృభూమి మరియు సుఖ భావం) ఆధారంగా చూస్తే, మీ జీవిత సర్వతోముఖాభివృద్ధి, కుటుంబ సౌభాగ్యం మరియు మానసిక ప్రశాంతత స్వదేశంలోనే (భారతదేశంలోనే) విశేషంగా లభిస్తాయి. ఉన్నత విద్య లేదా స్వల్పకాలిక ప్రాజెక్ట్ పనుల కోసం విదేశాలకు వెళ్లడం జాతక రీత్యా సాధ్యమే అయినప్పటికీ, అక్కడ శాశ్వతంగా స్థిరపడటం మీ జాతకానికి అనుకూలం కాదు. స్వదేశంలోనే స్థిరపడి వృత్తిని కొనసాగించడం మీ భవిష్యత్తుకు పరమ శ్రేయస్కరం.`;
       const p2 = `స్వల్పకాలిక ప్రాజెక్ట్ పర్యటనలు వచ్చినప్పుడు సద్వినియోగం చేసుకోండి, కానీ మీ శాశ్వత జీవితాన్ని భారతదేశంలోనే తీర్చిదిద్దుకోండి. నిత్యం ఆదిత్య హృదయ స్తోత్రం మరియు కులదేవత ప్రార్థన చేయండి; శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని దివ్య అనుగ్రహం మీకు సదా రక్షగా నిలుస్తుంది.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "ta": {
       const p1 = isFollowUp
-        ? `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 4-ஆம் இடமான சுக ஸ்தானம் மற்றும் தாய்மண் அமைப்பை நாம் ஏற்கனவே ஆராய்ந்தபடி, உங்கள் உண்மையான மன அமைதியும் வாழ்வின் வளர்ச்சியும் தாய்நாடான இந்தியாவிலேயே சிறப்பாக அமையும். கனடா, ஜெர்மனி அல்லது அமெரிக்கா போன்ற நாடுகளுக்கு குறுகிய கால வேலைவாய்ப்பு அல்லது திட்டப் பணிகளுக்கு செல்வது சாதகமாக இருந்தாலும், இந்தியாவை விட்டுவிட்டு நிரந்தரமாக வெளிநாட்டில் குடியேறுவது (Permanent Settlement / PR) உங்கள் ஜாதகத்திற்கு ஏற்புடையதல்ல. அது மன உளைச்சலையும் அமைதியின்மையையும் தரும். எனவே நிரந்தர வெளிநாட்டு குடியேற்றத்தை தவிர்ப்பதே நலம்.`
+        ? `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 4-ஆம் இடமான சுக ஸ்தானம் மற்றும் தாய்மண் அமைப்பை நாம் ஏற்கனவே ஆராய்ந்தபடி, உங்கள் உண்மையான மன அமைதியும் வாழ்வின் வளர்ச்சியும் தாய்நாடான இந்தியாவிலேயே சிறப்பாக அமையும். கனடா, ஜெர்மனி அல்லது அமெரிக்கா போன்ற நாடுகளுக்கு குறுகிய கால வேலைவாய்ப்பு அல்லது திட்டப் பணிகளுக்கு செல்வது சாதகமாக இருந்தாலும், இந்தியாவை விட்டுவிட்டு நிரந்தரமாக வெளிநாட்டில் குடியேறுவது உங்கள் ஜாதகத்திற்கு ஏற்புடையதல்ல. அது மன உளைச்சலையும் அமைதியின்மையையும் தரும். எனவே நிரந்தர வெளிநாட்டு குடியேற்றத்தை தவிர்ப்பதே நலம்.`
         : `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பரே, உங்களது ஜாதகத்தில் 4-ஆம் வீடான மாத்ருபூமி மற்றும் சுக ஸ்தானத்தை நோக்கும்போது, உங்கள் நீண்டகால நல்வாழ்வு, குடும்ப மகிழ்ச்சி மற்றும் மன நிம்மதி தாய்நாடான இந்தியாவிலேயே சிறப்பாக நிலைக்கும் என்று தெளிவாகிறது. 9 மற்றும் 12-ஆம் வீடுகள் உயர்கல்வி அல்லது குறுகிய கால பணிகளுக்கான வெளிநாட்டு பயணங்களை ஆதரித்தாலும், நிரந்தரமாக வெளிநாட்டில் தங்குவது உங்கள் ஜாதக அமைப்பிற்கு முரணானது. எனவே இந்தியாவில் தங்கி தொழில் அல்லது வேலை செய்வதே உங்களுக்கு மிகுந்த நன்மைகளைத் தரும்.`;
       const p2 = `குறுகிய கால பணிகளுக்கு தைரியமாக செல்லலாம், ஆனால் உங்கள் நிரந்தர வாழ்வை இந்தியாவிலேயே அமைத்துக் கொள்ளுங்கள். ஆதித்ய ஹிருதய ஸ்தோத்திரம் மற்றும் குலதெய்வ வழிபாடு செய்து வாருங்கள்; கோகர்ண மகாபலேஸ்வரரின் அருள் உங்களுக்கு நல்வாழ்வை அருளும்.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "ml": {
       const p1 = isFollowUp
-        ? `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ നാലാം ഭാവവും ലഗ്നാധിപതിയും പരിശോധിച്ചതിൽ നിന്ന് സ്വദേശത്ത് (ഭാരതത്തിൽ) വസിക്കുന്നതാണ് ഏറ്റവും ശുഭകരമെന്ന് നാം നേരത്തെ വ്യക്തമാക്കിയതാണ്. കാനഡ, ജർമ്മനി തുടങ്ങിയ വിദേശ രാജ്യങ്ങളിലേക്ക് ഹ്രസ്വകാല പ്രോജക്റ്റുകൾക്കോ തൊഴിലിനോ പോകുന്നത് അനുകൂലമാണെങ്കിലും, ഭാരതം വിട്ട് അവിടെ സ്ഥിരതാമസമാക്കുന്നത് (Permanent Settlement / PR) ജാതകപ്രകാരം മനഃസമാധാനക്കുറവിനും അസ്വസ്ഥതയ്ക്കും കാരണമാകും. അതിനാൽ സ്ഥിരമായ വിദേശവാസം ഉപേക്ഷിച്ച് സ്വദേശത്ത് ഉറച്ചുനിൽക്കുകയാണ് ഉത്തമം.`
+        ? `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ നാലാം ഭാവവും ലഗ്നാധിപതിയും പരിശോധിച്ചതിൽ നിന്ന് സ്വദേശത്ത് (ഭാരതത്തിൽ) വസിക്കുന്നതാണ് ഏറ്റവും ശുഭകരമെന്ന് നാം നേരത്തെ വ്യക്തമാക്കിയതാണ്. കാനഡ, ജർമ്മനി തുടങ്ങിയ വിദേശ രാജ്യങ്ങളിലേക്ക് ഹ്രസ്വകാല പ്രോജക്റ്റുകൾക്കോ തൊഴിലിനോ പോകുന്നത് അനുകൂലമാണെങ്കിലും, ഭാരതം വിട്ട് അവിടെ സ്ഥിരതാമസമാക്കുന്നത് ജാതകപ്രകാരം മനഃസമാധാനക്കുറവിനും അസ്വസ്ഥതയ്ക്കും കാരണമാകും. അതിനാൽ സ്ഥിരമായ വിദേശവാസം ഉപേക്ഷിച്ച് സ്വദേശത്ത് ഉറച്ചുനിൽക്കുകയാണ് ഉത്തമം.`
         : `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ ഭക്തരേ, നിങ്ങളുടെ ജന്മജാതകത്തിലെ നാലാം ഭാവവും മാതൃഭൂമി സ്ഥാനവും വ്യക്തമാക്കുന്നത് നിങ്ങളുടെ ജീവിതത്തിലെ യഥാർത്ഥ ഉയർച്ചയും മാനസിക സമാധാനവും ഭാരതത്തിൽ തന്നെ നിലനിൽക്കുമെന്നാണ്. ഉന്നത പഠനത്തിനോ ഹ്രസ്വകാല ജോലിക്കോ വിദേശത്ത് പോകുന്നത് അനുകൂലമാണെങ്കിലും, സ്ഥിരമായി വിദേശത്ത് താമസിക്കുന്നത് നിങ്ങളുടെ ജാതകാനുസരണം ഗുണകരമല്ല. സ്വദേശത്ത് താമസിച്ച് ജോലി ചെയ്യുന്നത് നിങ്ങളുടെ ഭാവിക്ക് അത്യന്തം അനുഗ്രഹപ്രദമാണ്.`;
       const p2 = `ഹ്രസ്വകാല യാത്രകൾ വരുമ്പോൾ ശുഭസമയത്ത് മുന്നോട്ടുപോകുക. ദിവസവും കുലദേവതാ പ്രാർത്ഥനയും ആദിത്യ ഹൃദയ സ്തോത്രവും ജപിക്കുക; ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹം നിങ്ങൾക്ക് സദാ തുണയായിരിക്കും.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "mr": {
       const p1 = isFollowUp
-        ? `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या जन्मपत्रिकेतील चतुर्थ भाव (मातृभूमी व सुख स्थान) आणि लग्नेशाच्या स्थितीवरून आपण आधीच पाहिले आहे की, आपली खरी प्रगती, मनःशांती आणि कौटुंबिक समृद्धी स्वदेशातच (भारतात) सुरक्षित आहे. कॅनडा, जर्मनी किंवा अमेरिकेसारख्या देशांमध्ये अल्पावधीसाठी प्रोजेक्ट किंवा नोकरीनिमित्त जाणे अनुकूल असले तरी, भारत सोडून तिथे कायमस्वरूपी स्थायिक होणे (Permanent Settlement / PR) पत्रिकेनुसार मानसिक अस्वास्थ्य व अडचणी निर्माण करू शकते. त्यामुळे कायमस्वरूपी विदेशात राहण्याचा हट्ट टाळणेच योग्य ठरेल.`
+        ? `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या जन्मपत्रिकेतील चतुर्थ भाव (मातृभूमी व सुख स्थान) आणि लग्नेशाच्या स्थितीवरून आपण आधीच पाहिले आहे की, आपली खरी प्रगती, मनःशांती आणि कौटुंबिक समृद्धी स्वदेशातच (भारतात) सुरक्षित आहे. कॅनडा, जर्मनी किंवा अमेरिकेसारख्या देशांमध्ये अल्पावधीसाठी प्रोजेक्ट किंवा नोकरीनिमित्त जाणे अनुकूल असले तरी, भारत सोडून तिथे कायमस्वरूपी स्थायिक होणे पत्रिकेनुसार मानसिक अस्वास्थ्य व अडचणी निर्माण करू शकते. त्यामुळे कायमस्वरूपी विदेशात राहण्याचा हट्ट टाळणेच योग्य ठरेल.`
         : `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्ता, आपल्या जन्मकुंडलीतील चतुर्थ भाव (सुख व मातृभूमी स्थान) आणि लग्नेशाचा विचार करता, आपल्या जीवनातील खरी स्थिरता, मानसिक शांती आणि दीर्घकालीन यश स्वदेशातच (भारतात) सर्वोत्तम राहील. शिक्षणासाठी अथवा अल्प मुदतीच्या तंत्रज्ञान प्रकल्पासाठी विदेशात जाणे ग्रहमानानुसार शक्य असले, तरी कायमस्वरूपी विदेशात स्थायिक होणे आपल्या कुंडलीतील सुख स्थानास पूरक नाही. भारतात राहूनच करिअर घडवणे अत्यंत शुभफलदायी आहे.`;
       const p2 = `अल्प मुदतीच्या परदेश प्रवासाचा लाभ अवश्य घ्या, परंतु आपले कायमचे मूळ भारतातच घट्ट करा. नित्य कुलदेवतेचे स्मरण व आदित्य हृदय स्तोत्राचे पठण करा; श्री क्षेत्र गोकर्ण महाबळेश्वराच्या कृपेने आपले जीवन सुखमय होईल.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
@@ -1584,8 +1848,8 @@ export function buildDeterministicAbroadSettlementReading(
     case "kn":
     default: {
       const p1 = isFollowUp
-        ? `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಮಗುವೇ, ನಾವು ಮೊದಲೇ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಕಂಡಂತೆ, ನಿಮ್ಮ ನಾಲ್ಕನೇ ಭಾವ (ಮಾತೃಭೂಮಿ ಹಾಗೂ ಸುಖ ಸ್ಥಾನ) ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಸ್ಥಿತಿಯು ನೀವು ಸ್ವದೇಶದಲ್ಲಿಯೇ (ಭಾರತದಲ್ಲೇ) ನೆಲೆಸಿ ಅಭಿವೃದ್ಧಿ ಹೊಂದುವುದಕ್ಕೆ ಅತ್ಯಂತ ಬಲವಾದ ದೈವಿಕ ರಕ್ಷಣೆಯನ್ನು ನೀಡಿದೆ. ನೀವು ಕೇಳುತ್ತಿರುವಂತೆ ನಿರ್ದಿಷ್ಟ ದೇಶಗಳಿಗೆ (ಅಮೆರಿಕ, ಕೆನಡಾ, ಜರ್ಮನಿ ಮುಂತಾದ ಕಡೆ) ಉದ್ಯೋಗದ ನಿಮಿತ್ತ ಅಲ್ಪಾವಧಿಯ ಪ್ರಾಜೆಕ್ಟ್ ಅಥವಾ ತಾಂತ್ರಿಕ ಕಾರ್ಯಗಳಿಗೆ ತೆರಳುವುದು ಅನುಕೂಲಕರವಾದರೂ, ಅಲ್ಲಿಯೇ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು ಅಥವಾ ಪೌರತ್ವ ಹೊಂದುವುದು (Permanent PR / Settlement) ಜಾತಕ ರೀತ್ಯಾ ನಿಮ್ಮ ಮನಃಶಾಂತಿಗೆ ಹಾಗೂ ಕುಟುಂಬ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾಗಿಲ್ಲ. ಆದ್ದರಿಂದ ಭಾರತವನ್ನು ತೊರೆದು ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವ ನಿರ್ಧಾರವನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಕೈಬಿಡುವುದು ಶ್ರೇಯಸ್ಕರ.`
-        : `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ನಾಲ್ಕನೇ ಭಾವ (ಮಾತೃಭೂಮಿ ಹಾಗೂ ಸುಖ ಸ್ಥಾನ) ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜೀವನದ ಶಾಶ್ವತ ಏಳಿಗೆ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಮನಃಶಾಂತಿಯು ಸ್ವದೇಶದಲ್ಲಿಯೇ (ಭಾರತದಲ್ಲೇ) ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾಗಿ ನೆಲೆಗೊಳ್ಳುತ್ತದೆ. ವಿದೇಶದಲ್ಲಿ ಅಲ್ಪಾವಧಿ ಪ್ರಾಜೆಕ್ಟ್, ಉನ್ನತ ವ್ಯಾಸಂಗ ಅಥವಾ ನಿರ್ದಿಷ್ಟ ಅವಧಿಯ ಉದ್ಯೋಗದ ನಿಮಿತ್ತ ಪ್ರಯಾಣ ಬೆಳೆಸುವುದು ಅನುಕೂಲಕರವಾದರೂ, ಭಾರತವನ್ನು ತೊರೆದು ಅಲ್ಲಿಯೇ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು (Permanent Settlement / PR) ಜಾತಕ ರೀತ್ಯಾ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆ ಮತ್ತು ಅಶಾಂತಿಗೆ ಕಾರಣವಾಗುತ್ತದೆ. ಆದ್ದರಿಂದ ಸ್ವದೇಶದಲ್ಲಿ ನೆಲೆಸಿ ವೃತ್ತಿಜೀವನವನ್ನು ಮುನ್ನಡೆಸುವುದು ನಿಮ್ಮ ಭಾಗ್ಯಕ್ಕೆ ಪರಮ ಮಂಗಳಕರ.`;
+        ? `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಮಗುವೇ, ನಾವು ಮೊದಲೇ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಕಂಡಂತೆ, ನಿಮ್ಮ ನಾಲ್ಕನೇ ಭಾವ (ಮಾತೃಭೂಮಿ ಹಾಗೂ ಸುಖ ಸ್ಥಾನ) ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಸ್ಥಿತಿಯು ನೀವು ಸ್ವದೇಶದಲ್ಲಿಯೇ (ಭಾರತದಲ್ಲೇ) ನೆಲೆಸಿ ಅಭಿವೃದ್ಧಿ ಹೊಂದುವುದಕ್ಕೆ ಅತ್ಯಂತ ಬಲವಾದ ದೈವಿಕ ರಕ್ಷಣೆಯನ್ನು ನೀಡಿದೆ. ನೀವು ಕೇಳುತ್ತಿರುವಂತೆ ನಿರ್ದಿಷ್ಟ ದೇಶಗಳಿಗೆ (ಅಮೆರಿಕ, ಕೆನಡಾ, ಜರ್ಮನಿ ಮುಂತಾದ ಕಡೆ) ಉದ್ಯೋಗದ ನಿಮಿತ್ತ ಅಲ್ಪಾವಧಿಯ ಪ್ರಾಜೆಕ್ಟ್ ಅಥವಾ ತಾಂತ್ರಿಕ ಕಾರ್ಯಗಳಿಗೆ ತೆರಳುವುದು ಅನುಕೂಲಕರವಾದರೂ, ಅಲ್ಲಿಯೇ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು ಅಥವಾ ಪೌರತ್ವ ಹೊಂದುವುದು ಜಾತಕ ರೀತ್ಯಾ ನಿಮ್ಮ ಮನಃಶಾಂತಿಗೆ ಹಾಗೂ ಕುಟುಂಬ ಸೌಖ್ಯಕ್ಕೆ ಪೂರಕವಾಗಿಲ್ಲ. ಆದ್ದರಿಂದ ಭಾರತವನ್ನು ತೊರೆದು ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವ ನಿರ್ಧಾರವನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಕೈಬಿಡುವುದು ಶ್ರೇಯಸ್ಕರ.`
+        : `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ನಾಲ್ಕನೇ ಭಾವ (ಮಾತೃಭೂಮಿ ಹಾಗೂ ಸುಖ ಸ್ಥಾನ) ಮತ್ತು ಲಗ್ನಾಧಿಪತಿಯ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ಜೀವನದ ಶಾಶ್ವತ ಏಳಿಗೆ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ ಹಾಗೂ ಮನಃಶಾಂತಿಯು ಸ್ವದೇಶದಲ್ಲಿಯೇ (ಭಾರತದಲ್ಲೇ) ಅತ್ಯಂತ ಶ್ರೇಷ್ಠವಾಗಿ ನೆಲೆಗೊಳ್ಳುತ್ತದೆ. ವಿದೇಶದಲ್ಲಿ ಅಲ್ಪಾವಧಿ ಪ್ರಾಜೆಕ್ಟ್, ಉನ್ನತ ವ್ಯಾಸಂಗ ಅಥವಾ ನಿರ್ದಿಷ್ಟ ಅವಧಿಯ ಉದ್ಯೋಗದ ನಿಮಿತ್ತ ಪ್ರಯಾಣ ಬೆಳೆಸುವುದು ಅನುಕೂಲಕರವಾದರೂ, ಭಾರತವನ್ನು ತೊರೆದು ಅಲ್ಲಿಯೇ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು ಜಾತಕ ರೀತ್ಯಾ ಮಾನಸಿಕ ಅಸ್ಥಿರತೆ ಮತ್ತು ಅಶಾಂತಿಗೆ ಕಾರಣವಾಗುತ್ತದೆ. ಆದ್ದರಿಂದ ಸ್ವದೇಶದಲ್ಲಿ ನೆಲೆಸಿ ವೃತ್ತಿಜೀವನವನ್ನು ಮುನ್ನಡೆಸುವುದು ನಿಮ್ಮ ಭಾಗ್ಯಕ್ಕೆ ಪರಮ ಮಂಗಳಕರ.`;
       const p2 = `ಅಲ್ಪಾವಧಿ ವಿದೇಶ ಪ್ರವಾಸದ ಅವಕಾಶಗಳು ಬಂದಾಗ ಶುಭ ಮುಹೂರ್ತದಲ್ಲಿ ಮುನ್ನಡೆಯಿರಿ ಹಾಗೂ ನಿತ್ಯವೂ ಕುಲದೇವತಾ ಸ್ಮರಣೆ ಮತ್ತು ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಮತ್ತು ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಜೀವನದಲ್ಲಿ ಸಕಲ ಸನ್ಮಂಗಳಗಳು ನೆಲೆಸಲಿ.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
@@ -1639,7 +1903,7 @@ export function buildDeterministicPropertyReading(
     }
     case "kn":
     default: {
-      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ ನಾಲ್ಕನೇ ಭಾವ (ಸುಖ ಮತ್ತು ಗೃಹ ಸ್ಥಾನ) ಹಾಗೂ ಭೂಮಿಕಾರಕ ಕುಜ ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ನಿರ್ಮಿಸುವ ವಸತಿ ಮನೆ ಅಥವಾ ಸ್ಪಷ್ಟ ದಾಖಲೆಗಳಿರುವ ಭೂಮಿ/ನಿವೇಶನ ಖರೀದಿ ಯೋಗವು ಅತ್ಯಂತ ಮಂಗಳಕರವಾಗಿದೆ. ಕೃಷಿ ಭೂಮಿ ಅಥವಾ ಸ್ವಂತ ವಾಸದ ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ದೈವಾನುಗ್ರಹವಿದೆ; ಆದರೆ ಯಾವುದೇ ವಿವಾದಾತ್ಮಕ ಆಸ್ತಿ, ಅತಿಯಾದ ಸಾಲದ ಹೊರೆಯೊಂದಿಗೆ ಮಾಡುವ ಊಹಾತ್ಮಕ (Speculative) ವಾಣಿಜ್ಯ ಹೂಡಿಕೆಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ತಪ್ಪಿಸಬೇಕು.`;
+      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ ನಾಲ್ಕನೇ ಭಾವ (ಸುಖ ಮತ್ತು ಗೃಹ ಸ್ಥಾನ) ಹಾಗೂ ಭೂಮಿಕಾರಕ ಕುಜ ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ನಿರ್ಮಿಸುವ ವಸತಿ ಮನೆ ಅಥವಾ ಸ್ಪಷ್ಟ ದಾಖಲೆಗಳಿರುವ ಭೂಮಿ/ನಿವೇಶನ ಖರೀದಿ ಯೋಗವು ಅತ್ಯಂತ ಮಂಗಳಕರವಾಗಿದೆ. ಕೃಷಿ ಭೂಮಿ ಅಥವಾ ಸ್ವಂತ ವಾಸದ ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ದೈವಾನುಗ್ರಹವಿದೆ; ಆದರೆ ಯಾವುದೇ ವಿವಾದಾತ್ಮಕ ಆಸ್ತಿ, ಅತಿಯಾದ ಸಾಲದ ಹೊರೆಯೊಂದಿಗೆ ಮಾಡುವ ಊಹಾತ್ಮಕ ವಾಣಿಜ್ಯ ಹೂಡಿಕೆಗಳನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ತಪ್ಪಿಸಬೇಕು.`;
       const p2 = `ಆಸ್ತಿ ಅಥವಾ ಗೃಹ ಪ್ರವೇಶದ ಕಾರ್ಯಗಳಿಗೆ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ಮುಹೂರ್ತವನ್ನು ಆಯ್ಕೆ ಮಾಡಿಕೊಳ್ಳಿ ಹಾಗೂ ಶ್ರೀ ಭೂಮಿ ವರಾಹ ಸ್ವಾಮಿ ಅಥವಾ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿಯ ಪ್ರಾರ್ಥನೆ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ದೈವ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಸ್ವಂತ ಮನೆಯ ಸಂಕಲ್ಪವು ಸಕಾಲದಲ್ಲಿ ಸಾಕಾರಗೊಳ್ಳಲಿ.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
@@ -1719,6 +1983,330 @@ export function buildDeterministicMarriageReading(
 }
 
 /**
+ * Deterministic Government Job vs Private Sector reading across all 7 languages.
+ * Grounded in 10th House (Rajyadhikara), Sun (Raja Karaka), and 6th House (Spardha).
+ */
+export function buildDeterministicGovtJobReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  _ledger?: ConsultationRulingRecord[],
+  _isSubsequent?: boolean,
+  _conversationHistory?: AskGeminiChatTurn[]
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear devotee, an astrological examination of your 10th House (Karma & Governance) alongside Raja-Karaka Sun (Surya) reveals the true vehicle of your professional prosperity. In Vedic Jyotisha, sovereign government authority requires powerful Martian or Solar activations across the 10th and 6th houses. While competitive government examinations remain an avenue of honor, if your 10th lord aligns strongly with Mercury, Saturn, or Rahu in technical and enterprise signs, dynamic private corporate sectors and independent technological ventures will yield tenfold faster promotions, superior financial autonomy, and enduring status compared to low-tier government bureaucracy.`;
+      const p2 = `Align your focused energy with high-responsibility roles where your strategic intellect shines. To awaken royal solar vitality (Surya Bala) and conquer competitive hurdles, offer daily water Arghya to the rising Sun from a copper vessel while reciting the sacred Aditya Hridaya Stotra. May Sri Kshetra Gokarna Mahabaleshwara bless your professional endeavors with glorious triumph and unwavering stability.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "hi": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, आपकी जन्म कुंडली के दशम भाव (कर्म एवं राज्याधिकार) तथा राज-कारक सूर्य की स्थिति का विश्लेषण करने पर आपके वास्तविक आजीविका मार्ग का स्पष्ट बोध होता है। वैदिक ज्योतिष के अनुसार, शासकीय सेवा हेतु सूर्य और मंगल का दशम अथवा षष्ठ भाव से प्रगाढ़ संबंध आवश्यक होता है। यदि आपकी कुंडली में दशमेश की स्थिति बुध अथवा शनि के प्रभाव में है, तो निजी कॉर्पोरेट क्षेत्र अथवा तकनीकी उद्यम आपको शासकीय नौकरी की तुलना में कहीं अधिक तीव्र पदोन्नति, वित्तीय स्वतंत्रता और मान-सम्मान प्रदान करेंगे।`;
+      const p2 = `अपनी आंतरिक योग्यता के अनुरूप उच्च-प्रबंधन या तकनीकी उत्तरदायित्वों में आगे बढ़ें। सूर्य बल की वृद्धि तथा प्रतियोगी परीक्षाओं में विजय हेतु नित्य प्रातः तांबे के पात्र से सूर्य देव को अर्घ्य दें एवं आदित्य हृदय स्तोत्र का पाठ करें। श्री क्षेत्र गोकर्ण महाबलेश्वर की कृपा से आपका कर्मक्षेत्र सदैव प्रकाशमान रहेगा।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "te": {
+      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nఆత్మీయులారా, మీ జన్మ కుండలిలోని 10వ స్థానం (కర్మ మరియు రాజ్యాధికార భావం) అలాగే రాజకారకుడైన సూర్య గ్రహాన్ని పరిశీలించినప్పుడు, మీ వృత్తి జీవిత ఉన్నతి మార్గం స్పష్టమవుతుంది. వేద జ్యోతిషం ప్రకారం ప్రభుత్వ ఉద్యోగానికి సూర్య, కుజ గ్రహాల అనుగ్రహం అవసరం. మీ జాతకంలో బుధ, శని గ్రహాల అనుకూలత సాంకేతిక మరియు ప్రైవేట్ కార్పొరేట్ రంగాలలో అద్భుతమైన ధనలాభం, ఉన్నత పదవులు మరియు శీఘ్ర పురోగతిని ప్రసాదిస్తాయి.`;
+      const p2 = `మీ ప్రతిభకు తగిన విధంగా నాయకత్వ బాధ్యతలలో ముందడుగు వేయండి. సూర్య బలం పెంపొందించుకోవడానికి మరియు పోటీ పరీక్షలలో విజయం సాధించడానికి నిత్యం రాగి పాత్రతో ఉదయించే సూర్యునికి అర్ఘ్యం సమర్పించి, ఆదిత్య హృదయ స్తోత్రం పఠించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులతో మీ వృత్తిలో విజయాలు సాధిస్తారు.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ta": {
+      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பரே, உங்கள் ஜாதகத்தின் 10-ஆம் வீடான கர்ம ஸ்தானம் மற்றும் அரசு காரகனான சூரியனின் நிலையை ஆராயும்போது, உங்கள் வாழ்வின் உன்னத உத்தியோக பாதை தெளிவாகிறது. அரசு வேலைவாய்ப்பிற்கு சூரியன் மற்றும் செவ்வாயின் யோக பலம் அவசியமாகும். உங்கள் ஜாதகத்தில் புதன் மற்றும் சனியின் வலிமை தனியார் பெருநிறுவனங்கள் மற்றும் தொழில்நுட்பத் துறையில் அரசு வேலையை விட பன்மடங்கு விரைவான பதவி உயர்வையும் சிறந்த பொருளாதார செழிப்பையும் அள்ளித்தரும்.`;
+      const p2 = `உங்கள் திறமைக்கேற்ற உயர் நிர்வாகப் பொறுப்புகளில் நம்பிக்கையுடன் ஈடுபடுங்கள். சூரிய பலம் பெறவும், போட்டித் தேர்வுகளில் வெற்றி காணவும் தினமும் அதிகாலையில் செப்புப் பாத்திரத்தில் சூரிய தேவனுக்கு அர்க்கியம் விட்டு, ஆதித்ய ஹிருதய ஸ்தோத்திரம் படியுங்கள். கோகர்ண மகாபலேஸ்வரரின் திருவருள் உங்கள் தொழில் வாழ்க்கையில் உன்னத வெற்றியை அருளும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ml": {
+      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ ഭക്തരേ, നിങ്ങളുടെ ജന്മജാതകത്തിലെ പത്താം ഭാവവും (കർമ്മ സ്ഥാനം) രാജകാരകനായ സൂര്യന്റെ സ്ഥിതിയും പരിശോധിക്കുമ്പോൾ, നിങ്ങളുടെ യഥാർത്ഥ തൊഴിൽ വിജയ മാർഗ്ഗം വ്യക്തമാകുന്നു. സർക്കാർ ജോലിക്ക് സൂര്യ-ചൊവ്വ ഗ്രഹങ്ങളുടെ അനുഗ്രഹം പ്രധാനം തന്നെയാണ്. എന്നാൽ നിങ്ങളുടെ ഗ്രഹനിലയിൽ ബുധനും ശനിയും സാങ്കേതിക-കോർപ്പറേറ്റ് മേഖലകളിൽ സർക്കാർ ജോലിയേക്കാൾ വേഗത്തിലുള്ള സ്ഥാനക്കയറ്റവും മികച്ച സാമ്പത്തിക സ്വയംപര്യാപ്തതയും പ്രദാനം ചെയ്യുന്നു.`;
+      const p2 = `ഉത്തരവാദിത്തമുള്ള ഉന്നത നേതൃത്വ പദവികളിലേക്ക് ശ്രദ്ധ കേന്ദ്രീകരിക്കുക. സൂര്യബലം വർദ്ധിപ്പിക്കുന്നതിനും മത്സരപരീക്ഷകളിൽ വിജയം വരിക്കുന്നതിനും ദിവസവും രാവിലെ ചെമ്പ് പാത്രത്തിൽ നിന്ന് സൂര്യഭഗവാന് അർഘ്യം സമർപ്പിച്ച് ആദിത്യ ഹൃദയ സ്തോത്രം ജപിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹത്താൽ നിങ്ങളുടെ ഔദ്യോഗിക ജീവിതം ഉന്നതി പ്രാപിക്കും.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "mr": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्ता, आपल्या जन्मपत्रिकेतील दशम भाव (कर्म व राज्याधिकार स्थान) आणि राजकारक सूर्य ग्रहाचा सूक्ष्म अभ्यास करता, आपल्या योग्य करिअर मार्गाचा स्पष्ट उलगडा होतो. शासकीय सेवेसाठी सूर्य आणि मंगळाचे दशम अथवा षष्ठ भावाशी शुभ संबंध आवश्यक असतात. जर पत्रिकेत बुध अथवा शनीचा प्रभाव व्यावसायिक क्षेत्रात अधिक असेल, तर खाजगी कॉर्पोरेट क्षेत्र किंवा स्वतंत्र तंत्रज्ञान व्यवसाय आपल्याला शासकीय नोकरीपेक्षा कित्येक पटीने अधिक वेगवान पदोन्नती व आर्थिक स्थैर्य देईल.`;
+      const p2 = `आपल्या अंगभूत कौशल्यानुसार धोरणात्मक व उच्च पदांवर लक्ष केंद्रित करा. सूर्य बल वाढवण्यासाठी आणि स्पर्धात्मक यशासाठी रोज सकाळी तांब्याच्या पात्रातून सूर्याला अर्घ्य देऊन आदित्य हृदय स्तोत्राचे पठण करा. श्री क्षेत्र गोकर्ण महाबळेश्वराच्या आशीर्वादाने आपल्या कार्यक्षेत्रात उत्तुंग यश लाभेल.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೧೦ನೇ ಕರ್ಮಸ್ಥಾನ (ರಾಜ್ಯಾಧಿಕಾರ ಭಾವ) ಹಾಗೂ ರಾಜಕಾರಕ ಸೂರ್ಯನ ಗ್ರಹಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ವೃತ್ತಿಜೀವನದ ನೈಜ ಏಳಿಗೆಯ ಹಾದಿಯು ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ. ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ ಸರ್ಕಾರಿ ಅಧಿಕಾರಕ್ಕೆ ಸೂರ್ಯ ಮತ್ತು ಕುಜನ ಬಲವಾದ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಯೋಗವಿರಬೇಕು. ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಬುಧ ಮತ್ತು ಶನಿಯ ಪ್ರಭಾವವು ಖಾಸಗಿ ಕಾರ್ಪೊರೇಟ್ ಕ್ಷೇತ್ರ, ತಾಂತ್ರಿಕ ವಲಯ ಅಥವಾ ಉನ್ನತ ಆಡಳಿತಾತ್ಮಕ ಉದ್ಯಮಗಳಲ್ಲಿ ಸರ್ಕಾರಿ ನೌಕರಿಗಿಂತಲೂ ಹತ್ತು ಪಟ್ಟು ವೇಗದ ಬಡ್ತಿ, ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ ಹಾಗೂ ಅತ್ಯುನ್ನತ ಸಾಮಾಜಿಕ ಗೌರವವನ್ನು ತಂದುಕೊಡುವ ಶಕ್ತಿಯನ್ನು ಹೊಂದಿದೆ.`;
+      const p2 = `ನಿಮ್ಮ ಬೌದ್ಧಿಕ ಸಾಮರ್ಥ್ಯಕ್ಕೆ ತಕ್ಕಂತೆ ಉನ್ನತ ಜವಾಬ್ದಾರಿಯ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಮುನ್ನಡೆಯಿರಿ. ಸೂರ್ಯ ಬಲವನ್ನು ವೃದ್ಧಿಸಿಕೊಳ್ಳಲು ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯಕ್ಕಾಗಿ ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ ತಾಮ್ರದ ಪಾತ್ರೆಯಿಂದ ಸೂರ್ಯನಿಗೆ ಅರ್ಘ್ಯ ನೀಡಿ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ವೃತ್ತಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ನಿಶ್ಚಿತ ವಿಜಯ ಲಭಿಸಲಿ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+  }
+}
+
+/**
+ * Deterministic Business vs Employment & Partnership Guard reading across all 7 languages.
+ * Grounded in 6th (Service) vs 7th (Commerce) and strict prohibition of 50-50 partnerships if afflicted.
+ */
+export function buildDeterministicBusinessVsJobReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  _ledger?: ConsultationRulingRecord[],
+  _isSubsequent?: boolean,
+  _conversationHistory?: AskGeminiChatTurn[]
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, analyzing your 6th House (Service / Employment) versus your 7th House (Commerce & Independent Trade) alongside Mercury (Vyapara Karaka), your chart reveals that independent enterprise and sole self-governance grant ultimate prosperity. While holding steady employment provides essential stability and working capital, venturing into business as an independent owner or sole proprietor is deeply favored. However, heed this strict astrological warning: 50-50 business partnerships with friends or outside parties are STRICTLY PROHIBITED for your chart, as afflicted planetary placements in your 7th house will trigger severe betrayal, financial disputes, and strained relationships.`;
+      const p2 = `Retain your stable employment while systematically laying the foundation for your independent venture; if formal partnership is legally required, register the enterprise exclusively in your name or that of an auspicious family member (mother/spouse). Recite the Sri Lakshmi Kubera Stotra and offer prayers to Sri Mahaganapati at Sri Kshetra Gokarna for boundless commercial abundance and obstacle removal.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "hi": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी कुंडली के षष्ठ भाव (नौकरी/सेवा) और सप्तम भाव (स्वतंत्र व्यापार एवं वाणिज्य) तथा व्यापार-कारक बुध की स्थिति का विश्लेषण करने पर यह स्पष्ट होता है कि स्वतंत्र उद्यम ही आपकी दीर्घकालिक समृद्धि का आधार है। अपनी आजीविका हेतु वर्तमान नौकरी को जारी रखते हुए धीरे-धीरे स्वयं का स्वतंत्र व्यवसाय शुरू करना अत्यंत शुभ है। किंतु एक कठोर शास्त्रसम्मत चेतावनी स्मरण रखें: किसी भी मित्र अथवा बाहरी व्यक्ति के साथ ५०-५० की साझेदारी करना आपकी कुंडली के लिए पूर्णतः वर्जित है! साझेदारी आपके धन की हानि, विश्वासघात और आपसी कलह का कारण बनेगी।`;
+      const p2 = `नौकरी के साथ-साथ सुरक्षित पूंजी संचित कर एकल स्वामित्व में व्यापार आरंभ करें; यदि पंजीकरण आवश्यक हो तो माता अथवा जीवनसाथी के नाम पर करें। नित्य श्री लक्ष्मी कुबेर स्तोत्र का पाठ करें तथा श्री क्षेत्र गोकर्ण महागणपति के दर्शन से व्यापारिक विघ्नों का नाश होगा।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "te": {
+      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ జాతకంలోని 6వ స్థానం (ఉద్యోగం/సేవ) మరియు 7వ స్థానం (స్వతంత్ర వ్యాపారం/వాణిజ్యం) పరిశీలిస్తే, స్వతంత్ర వ్యాపారమే మీ దీర్ఘకాలిక సంపదకు మూలమని స్పష్టమవుతుంది. ప్రస్తుత ఉద్యోగాన్ని కొనసాగిస్తూనే క్రమంగా సొంత వ్యాపారానికి పునాది వేయడం శ్రేయస్కరం. అయితే ఒక ముఖ్యమైన హెచ్చరిక: స్నేహితులు లేదా ఇతరులతో సమాన 50-50 భాగస్వామ్యం చేయడం మీ జాతకానికి ఖచ్చితంగా నిషిద్ధం! భాగస్వామ్య వ్యాపారం నమ్మకద్రోహం, ఆర్థిక నష్టాలు మరియు వివాదాలకు దారితీస్తుంది.`;
+      const p2 = `సొంత యజమాన్యంలో మాత్రమే వ్యాపారం ప్రారంభించండి లేదా తల్లి/జీవిత భాగస్వామి పేరున నిర్వహించండి. నిత్యం శ్రీ లక్ష్మీ కుబేర స్తోత్రం పఠించండి; శ్రీ క్షేత్ర గోకర్ణ మహా గణపతి అనుగ్రహంతో వ్యాపారంలో అఖండ లాభాలు కలుగుతాయి.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ta": {
+      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 6-ஆம் வீடான உத்தியோக ஸ்தானத்தையும், 7-ஆம் வீடான வணிக ஸ்தானத்தையும் ஒப்பிட்டுப் பார்க்கும்போது, சொந்தத் தொழிலே உங்களுக்கு நிரந்தர செல்வத்தை வழங்கும். தற்போதைய வேலையை விடாமல் பார்த்துக் கொண்டு, படிப்படியாக சொந்தத் தொழில் தொடங்குவது மிக நன்று. ஆனால் மிக முக்கியமான சாஸ்திர எச்சரிக்கை: நண்பர்கள் அல்லது பிறருடன் கூட்டுத் தொழில் செய்வதை அறவே தவிர்க்க வேண்டும்! கூட்டுத் தொழில் செய்தால் பண இழப்பு, நம்பிக்கை துரோகம் மற்றும் பகையே மிஞ்சும்.`;
+      const p2 = `முழுமையான தனி உரிமையாளராக தொழில் தொடங்குங்கள்; அல்லது தாய் அல்லது மனைவியின் பெயரில் பதிவு செய்யுங்கள். தினமும் ஸ்ரீ லட்சுமி குபேர ஸ்தோத்திரம் பாராயணம் செய்து வாருங்கள்; கோகர்ண மகா கணபதியின் அருளால் தொழிலில் தடைகள் நீங்கி பெருவளம் சேரும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ml": {
+      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ ആറാം ഭാവവും (തൊഴിൽ/സർവീസ്) ഏഴാം ഭാവവും (സ്വതന്ത്ര ബിസിനസ്സ്) പരിശോധിച്ചതിൽ നിന്ന് സ്വന്തമായി ബിസിനസ്സ് ചെയ്യുന്നതാണ് ഏറ്റവും ഐശ്വര്യപ്രദമെന്ന് കാണുന്നു. നിലവിലെ ജോലി നിലനിർത്തിക്കൊണ്ട് സാവധാനം സ്വന്തം ബിസിനസ്സിലേക്ക് ചുവടുവെക്കുന്നത് ശുഭമാണ്. എന്നാൽ ജ്യോതിഷപരമായ ഒരു കഠിന മുന്നറിയിപ്പ് ശ്രദ്ധിക്കുക: സുഹൃത്തുക്കളുമായോ മറ്റുള്ളവരുമായോ ചേർന്നുള്ള പങ്കാളിത്ത ബിസിനസ്സ് നിങ്ങളുടെ ജാതകപ്രകാരം കർശനമായി ഒഴിവാക്കണം! പങ്കാളിത്തം വഞ്ചനയ്ക്കും കനത്ത സാമ്പത്തിക നഷ്ടത്തിനും വഴിവെക്കും.`;
+      const p2 = `സ്വന്തം പൂർണ്ണ ഉത്തരവാദിത്തത്തിൽ ബിസിനസ്സ് നടത്തുക, അല്ലെങ്കിൽ മാതാവിന്റെയോ ഭാര്യയുടെയോ പേരിൽ സംരംഭം രജിസ്റ്റർ ചെയ്യുക. ദിവസവും ശ്രീ ലക്ഷ്മി കുബേര സ്തോത്രം ജപിക്കുക; ഗോകർണ്ണ മഹാവിനായകന്റെ അനുഗ്രഹത്താൽ വ്യാപാര തടസ്സങ്ങളെല്ലാം നീങ്ങി സർവ്വ ഐശ്വര്യങ്ങളും വന്നുചേരും.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "mr": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या पत्रिकेतील षष्ठ भाव (नोकरी) आणि सप्तम भाव (स्वतंत्र व्यापार) यांचा तुलनात्मक अभ्यास करता, स्वतंत्र व्यवसायच आपल्याला सर्वोच्च आर्थिक समृद्धी देईल. सध्याची नोकरी सांभाळून हळूहळू स्वतःचा व्यवसाय सुरू करणे शुभ आहे. परंतु एक अत्यंत महत्त्वाची शास्त्रोक्त ताकीद लक्षात ठेवा: मित्र किंवा इतर कोणाशीही ५०-५० भागीदारीत व्यवसाय करणे आपल्या पत्रिकेसाठी पूर्णपणे निषिद्ध आहे! भागीदारी केल्यास विश्वासघात, आर्थिक नुकसान आणि कटुता निर्माण होईल.`;
+      const p2 = `एकल मालकी तत्वावरच व्यवसाय करा किंवा आई अथवा पत्नीच्या नावाने नोंदणी करा. नित्य श्री लक्ष्मी कुबेर स्तोत्राचे पठण करा; श्री क्षेत्र गोकर्ण महागणपतीच्या कृपेने आपल्या व्यवसायातील सर्व विघ्न दूर होऊन अफाट लाभ होईल.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೬ನೇ ಉದ್ಯೋಗ/ಸೇವಾ ಸ್ಥಾನ ಹಾಗೂ ೭ನೇ ಸ್ವತಂತ್ರ ವ್ಯಾಪಾರ/ವಾಣಿಜ್ಯ ಸ್ಥಾನಗಳ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಸ್ವಂತ ಪರಿಶ್ರಮದಿಂದ ನಿರ್ವಹಿಸುವ ಸ್ವತಂತ್ರ ಉದ್ಯಮವೇ ನಿಮಗೆ ದೀರ್ಘಾವಧಿಯ ಸಂಪತ್ತನ್ನು ಕರುಣಿಸಲಿದೆ. ಪ್ರಸ್ತುತ ಉದ್ಯೋಗವನ್ನು ತಕ್ಷಣಕ್ಕೆ ಕೈಬಿಡದೆ, ಆರ್ಥಿಕ ಬಂಡವಾಳವನ್ನು ಕ್ರೋಡೀಕರಿಸಿಕೊಂಡು ಹಂತ ಹಂತವಾಗಿ ಸ್ವಂತ ವ್ಯಾಪಾರಕ್ಕೆ ತಳಹದಿ ಹಾಕುವುದು ಅತ್ಯಂತ ಮಂಗಳಕರ. ಆದರೆ ಜಾತಕದ ಪರಮ ಕಠಿಣ ಎಚ್ಚರಿಕೆಯನ್ನು ನೆನಪಿಡಿ: ಯಾವುದೇ ಸ್ನೇಹಿತರು ಅಥವಾ ಹೊರಗಿನವರ ಜೊತೆ ೫೦-೫೦ ಪಾಲುದಾರಿಕೆ ವ್ಯವಹಾರವನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಮಾಡಬಾರದು! ೭ನೇ ಮನೆಯ ಗ್ರಹಸ್ಥಿತಿಯು ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ವಂಚನೆ, ವಿಶ್ವಾಸದ್ರೋಹ ಹಾಗೂ ಹಣಕಾಸಿನ ನಷ್ಟವನ್ನು ಉಂಟುಮಾಡಲಿದೆ.`;
+      const p2 = `ಸಂಪೂರ್ಣ ಸ್ವತಂತ್ರ ಮಾಲೀಕತ್ವದಲ್ಲಿ ಮಾತ್ರವೇ ಉದ್ಯಮವನ್ನು ನಡೆಸಿ; ಅಗತ್ಯವಿದ್ದಲ್ಲಿ ತಾಯಿ ಅಥವಾ ಧರ್ಮಪತ್ನಿಯ ಶುಭ ಜಾತಕದ ಹೆಸರಿನಲ್ಲಿ ಸಂಸ್ಥೆಯನ್ನು ನೋಂದಾಯಿಸಿ. ಪ್ರತಿದಿನ ಶ್ರೀ ಲಕ್ಷ್ಮೀ ಕುಬೇರ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೋದಕ ಅರ್ಪಿಸಿ ಸಂಕಲ್ಪ ಮಾಡಿ; ವ್ಯಾಪಾರದಲ್ಲಿ ಸಕಲ ಸಿದ್ಧಿ ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+  }
+}
+
+/**
+ * Deterministic Debt Relief & Financial Revival reading across all 7 languages.
+ * Grounded in 6th (Rina), 11th (Labha), 2nd (Dhana), Runavimochana Mangala Stotra.
+ */
+export function buildDeterministicDebtReliefReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  _ledger?: ConsultationRulingRecord[],
+  _isSubsequent?: boolean,
+  _conversationHistory?: AskGeminiChatTurn[]
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, examining your 6th House of liabilities (Rina Bhava) against your 11th House of gains (Labha) and 2nd House of accumulated wealth (Dhana), your chart confirms that this debt burden is a temporary karmic phase that will steadily dissolve. Planetary transit calculations indicate that as the 11th house activates under the upcoming benefic Gochara Guru transit, financial inflows will accelerate to eliminate pending loans. The cosmic principle for total debt clearance requires two unwavering rules: maintain disciplined systematic repayments while strictly abstaining from taking fresh unbacked high-interest informal loans or speculative shortcuts.`;
+      const p2 = `Channel your resources into steady principal reduction without panic. To permanently dissolve the karmic bonds of debt and attract financial revival, recite the sacred Sri Runavimochana Mangala Stotra every Tuesday and arrange for a Rudrabhisheka at Sri Kshetra Gokarna Mahabaleshwara. Divine protection will restore your economic independence and peace of mind.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "hi": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी जन्म कुंडली के षष्ठ भाव (ऋण स्थान) तथा एकादश भाव (लाभ स्थान) और द्वितीय भाव (धन स्थान) का सूक्ष्म विश्लेषण करने पर यह प्रमाणित होता है कि कर्ज का यह दबाव केवल एक अस्थायी कर्म चक्र है। आगामी गोचर गुरु का शुभ प्रभाव आपके लाभ भाव को सक्रिय कर रहा है, जिससे आगामी महीनों में धन आगमन के नए मार्ग खुलेंगे और ऋण मुक्ति तीव्र गति से होगी। कर्ज से स्थायी मुक्ति के लिए दो सिद्धांतों का पालन करें: पुराने कर्ज को नियमित रूप से चुकाएं तथा किसी भी प्रकार के नए सट्टेबाजी या भारी ब्याज वाले अनौपचारिक कर्ज से पूर्णतः दूर रहें।`;
+      const p2 = `धैर्यपूर्वक मूलधन की अदायगी पर ध्यान दें। ऋण के कर्म बंधनों को काटने के लिए प्रत्येक मंगलवार को श्री ऋणमोचन मंगल स्तोत्र का पाठ करें तथा श्री क्षेत्र गोकर्ण महाबलेश्वर में महारुद्राभिषेक संकल्प कराएं। भगवान शिव की कृपा से आपकी आर्थिक स्थिति पुनः सुदृढ़ होगी।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "te": {
+      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ కుండలిలోని 6వ స్థానం (రుణ భావం) అలాగే 11వ స్థానం (లాభ భావం), 2వ స్థానం (ధన స్థానం) పరిశీలిస్తే, ఈ అప్పుల భారం తాత్కాలిక కర్మ పరీక్ష మాత్రమేనని స్పష్టమవుతుంది. రాబోయే గోచార గురు బలం మీ లాభ భావాన్ని ఉత్తేజపరుస్తుండటం వల్ల ధనాదాయం పెరిగి అప్పులు తీరిపోయే శుభ కాలం సమీపిస్తోంది. రుణ విముక్తికి ఖచ్చితమైన నియమం: క్రమబద్ధంగా పాత అప్పులను తీర్చుకుంటూ, ఎలాంటి అధిక వడ్డీగల కొత్త అప్పులు లేదా ఊహాత్మక ఖర్చులు చేయకుండా ఉండాలి.` ;
+      const p2 = `శాంతియుతంగా రుణ విముక్తి ప్రణాళికను అమలు చేయండి. రుణ బాధలు పూర్తిగా తొలగిపోవడానికి ప్రతి మంగళవారం శ్రీ రుణవిమోచన మంగళ స్తోత్రం పఠించండి మరియు శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి సన్నిధిలో రుద్రాభిషేకం చేయించండి. దైవానుగ్రహంతో మీ ఆర్థిక స్వేచ్ఛ తిరిగి లభిస్తుంది.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ta": {
+      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 6-ஆம் வீடான கடன் ஸ்தானத்தையும், 11-ஆம் வீடான லாப ஸ்தானம் மற்றும் 2-ஆம் வீடான தன ஸ்தானத்தையும் பார்க்கும்போது, இந்த கடன் சுமை ஒரு தற்காலிக கர்ம சுழற்சியே என்று தெளிவாகிறது. வரவிருக்கும் கோசார குருவின் பார்வை உங்கள் லாப ஸ்தானத்தை வலுப்படுத்துவதால், புதிய வருமான வழிகள் பிறந்து கடன்கள் யாவும் படிப்படியாக அடைபடும். கடன் முற்றிலும் தீர முக்கியமான விதி: பழைய கடன்களை ஒழுங்காக அடைக்க வேண்டும்; அதிக வட்டிக்கு புதிய கடன்கள் வாங்குவதையோ அல்லது சூதாட்ட முதலீடுகளையோ அறவே தவிர்க்க வேண்டும்.`;
+      const p2 = `பதற்றமின்றி திட்டமிட்டு கடனை அடைத்து வாருங்கள். கடன் தொல்லைகள் நிரந்தரமாக நீங்க ஒவ்வொரு செவ்வாய்க்கிழமையும் ஸ்ரீ ருணவிமோசன மங்கள ஸ்தோத்திரம் பாராயணம் செய்து, ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வரருக்கு ருத்ராபிஷேகம் செய்யுங்கள். ஈசனின் அருளால் பொருளாதார நிம்மதி உண்டாகும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ml": {
+      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ ആറാം ഭാവവും (കടബാധ്യത) പതിനൊന്നാം ഭാവവും (ലാഭ സ്ഥാനം), രണ്ടാം ഭാവവും (ധന സ്ഥാനം) വ്യക്തമാക്കുന്നത് ഈ കടം ഒരു താത്കാലിക കര്മ്മ പരീക്ഷ മാത്രമാണെന്നാണ്. വരുന്ന വ്യാഴത്തിന്റെ ഗോചാര മാറ്റം നിങ്ങളുടെ വരുമാന മാർഗ്ഗങ്ങളെ ശക്തിപ്പെടുത്തുകയും കടങ്ങൾ വീട്ടിത്തീർക്കാനുള്ള സാഹചര്യം ഒരുക്കുകയും ചെയ്യും. സമ്പൂർണ്ണ കടമുക്തിക്കായി ഒരു സുപ്രധാന നിയമം പാലിക്കുക: പഴയ കടങ്ങൾ ചിട്ടയായി വീട്ടുക, ഉയർന്ന പലിശയ്ക്കുള്ള പുതിയ വായ്പകളോ ഊഹക്കച്ചവടങ്ങളോ കർശനമായി ഒഴിവാക്കുക.`;
+      const p2 = `സമാധാനത്തോടെ കടങ്ങൾ തീർക്കാൻ മുന്നോട്ട് നീങ്ങുക. കടബാധ്യതകൾ വേഗത്തിൽ ഒഴിഞ്ഞുപോകാൻ എല്ലാ ചൊവ്വാഴ്ചയും ശ്രീ ഋണവിമോചന മംഗള സ്തോത്രം ജപിക്കുകയും ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ രുദ്രാഭിഷേകം നടത്തുകയും ചെയ്യുക. ഭഗവാന്റെ കൃപയാൽ സാമ്പത്തിക സുരക്ഷിതത്വം തിരികെ ലഭിക്കും.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "mr": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या पत्रिकेतील षष्ठ भाव (कर्ज स्थान) तसेच एकादश भाव (लाभ स्थान) आणि द्वितीय भाव (धन स्थान) यांचा अभ्यास करता, कर्जाचे हे ओझे केवळ एक तात्पुरती कर्म स्थिती आहे. आगामी गोचर गुरूचा शुभ प्रभाव आपल्या लाभ स्थानास बळकट करणार असून नवीन उत्पन्नाचे मार्ग उघडून कर्जमुक्तीचा मार्ग सुकर होईल. पूर्ण कर्जमुक्तीसाठी महत्त्वाचा नियम पाळा: जुने कर्ज नियोजनबद्ध पद्धतीने फेडा आणि कोणतेही नवीन जादा व्याजाचे कर्ज अथवा सट्टेबाजी पूर्णपणे टाळा.`;
+      const p2 = `संयम ठेवून कर्जाची परतफेड करा. कर्जाच्या पाशातून कायमची मुक्ती मिळवण्यासाठी प्रत्येक मंगळवारी श्री ऋणमोचन मंगळ स्तोत्राचे पठण करा आणि श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी महारुद्राभिषेक पूजा अर्पण करा. महादेवाच्या कृपेने आपले आर्थिक स्वातंत्र्य लवकरच पुनरुज्जीवित होईल.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೬ನೇ ಸಾಲ/ಋಣ ಸ್ಥಾನ, ೧೧ನೇ ಲಾಭ ಸ್ಥಾನ ಹಾಗೂ ೨ನೇ ಧನ ಸ್ಥಾನಗಳ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಸಾಲದ ಹೊರೆಯು ಒಂದು ತಾತ್ಕಾಲಿಕ ಕರ್ಮ ಚಕ್ರವೇ ಹೊರತು ಶಾಶ್ವತ ಬಿಕ್ಕಟ್ಟಲ್ಲ. ಮುಂದಿನ ಗೋಚಾರದಲ್ಲಿ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ನಿಮ್ಮ ಲಾಭ ಸ್ಥಾನಕ್ಕೆ ವಿಶೇಷ ಚೈತನ್ಯ ನೀಡಲಿದ್ದು, ಹೊಸ ಆದಾಯದ ಮೂಲಗಳು ತೆರೆದುಕೊಂಡು ಸಾಲ ತೀರುವ ಹಾದಿ ಸುಗಮವಾಗಲಿದೆ. ಸಾಲದಿಂದ ಶಾಶ್ವತ ಮುಕ್ತಿ ಹೊಂದಲು ಎರಡು ಕಟ್ಟುನಿಟ್ಟಾದ ನಿಯಮಗಳಿವೆ: ಹಳೆಯ ಸಾಲಗಳನ್ನು ಶಿಸ್ತಿನಿಂದ ಹಂತ ಹಂತವಾಗಿ ತೀರಿಸುತ್ತಾ ಬನ್ನಿ; ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಅತಿಯಾದ ಬಡ್ಡಿಯ ಹೊಸ ಸಾಲ ಅಥವಾ ಊಹಾತ್ಮಕ ಜೂಜುಗಳಲ್ಲಿ ತೊಡಗಬೇಡಿ.`;
+      const p2 = `ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ಆತಂಕವಿಲ್ಲದೆ ನಿಯಮಿತವಾಗಿ ಅಸಲನ್ನು ತೀರಿಸುವ ಸಂಕಲ್ಪ ಮಾಡಿ. ಋಣಬಾಧೆಯ ಕರ್ಮ ತಡೆಗಳನ್ನು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಕಳಚಿಕೊಳ್ಳಲು ಪ್ರತಿ ಮಂಗಳವಾರ ಶ್ರೀ ಋಣವಿಮೋಚನ ಮಂಗಳ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ ಸಲ್ಲಿಸಿ. ಈಶ್ವರನ ಕೃಪೆಯಿಂದ ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ ಮತ್ತು ಮನಃಶಾಂತಿ ಮರಳಿ ನೆಲೆಸಲಿದೆ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+  }
+}
+
+/**
+ * Deterministic Legal Dispute & Court Case Victory reading across all 7 languages.
+ * Grounded in 6th (Shatru), Upachaya Lord placement, Subrahmanya Shatru Samhara Trishati / Narasimha Kavacha.
+ */
+export function buildDeterministicLegalCaseReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  _ledger?: ConsultationRulingRecord[],
+  _isSubsequent?: boolean,
+  _conversationHistory?: AskGeminiChatTurn[]
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear devotee, examining your 6th House (Shatru & Litigation) alongside the placement of your 6th lord in Upachaya houses, your chart demonstrates strong planetary protection against adversary hostility and legal entanglements. In Vedic jurisprudence, Upachaya strength ensures that truth and righteousness prevail; however, dragging court battles endlessly out of ego consumes valuable wealth and vital peace. Astrological indications strongly favor pursuing an honorable, strategic settlement or mediated resolution during the upcoming planetary window, which will secure your legal relief and protect your financial assets.`;
+      const p2 = `Maintain legal prudence without anxiety. To dissolve enemy malice, neutralize adversarial hostility, and ensure triumphant resolution, recite the sacred Sri Subrahmanya Shatru Samhara Trishati or Sri Narasimha Kavacha daily. May Sri Kshetra Gokarna Mahabaleshwara protect your rights and bestow peace and justice.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "hi": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्त, आपकी जन्म कुंडली के षष्ठ भाव (शत्रु एवं विवाद स्थान) तथा षष्ठेश की उपचय भाव में स्थिति का विश्लेषण करने पर यह सिद्ध होता है कि आपके पास विरोधियों के षड्यंत्र से उबरने की पर्याप्त ग्रह शक्ति है। शास्त्र अनुसार सत्य की ही विजय होती है; किंतु अहंकारवश मुकदमे को अनावश्यक लंबा खींचना धन और समय की बर्बादी कराता है। आपकी कुंडली के अनुसार आगामी अनुकूल समय में रणनीतिक सूझबूझ अथवा आपसी मध्यस्थता द्वारा विवाद का सम्मानजनक समाधान निकालना आपके लिए परम लाभकारी रहेगा।`;
+      const p2 = `शांत मन से अपने कानूनी पक्ष को सुदृढ़ रखें। विरोधियों की बाधा और मुकदमे के भय से मुक्ति हेतु नित्य श्री सुब्रमण्य शत्रु संहार त्रिशती अथवा श्री नृसिंह कवच का पाठ करें। श्री क्षेत्र गोकर्ण महाबलेश्वर आपके न्याय और सम्मान की रक्षा करेंगे।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "te": {
+      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nఆత్మీయులారా, మీ జన్మ జాతకంలోని 6వ స్థానం (శత్రు మరియు వ్యాజ్య స్థానం) పరిశీలిస్తే, శత్రువుల కుట్రలను తిప్పికొట్టే గ్రహ బలం మీకు ఉందని స్పష్టమవుతుంది. ధర్మం వైపు ఉన్నవారికే అంతిమ విజయం లభిస్తుంది; అయితే పంతాలకు పోయి కేసులను సుదీర్ఘంగా సాగదీయడం వల్ల ధనం, మనశ్శాంతి నష్టపోతాయి. అనుకూల గోచార సమయంలో తెలివైన న్యాయ వ్యూహం లేదా మధ్యవర్తిత్వ పరిష్కారం ద్వారా సమస్యను పరిష్కరించుకోవడం మీ భవిష్యత్తుకు ఎంతో క్షేమకరం.`;
+      const p2 = `ఆందోళన వీడి సంయమనంతో వ్యవహరించండి. శత్రు బాధలు నశించడానికి మరియు కోర్టు వ్యవహారాలలో అనుకూల ఫలితాలు సాధించడానికి నిత్యం శ్రీ సుబ్రహ్మణ్య శత్రు సంహార త్రిశతి లేదా శ్రీ నృసింహ కవచం పఠించండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని దివ్య రక్షణ మీకు సదా ఉంటుంది.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ta": {
+      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பரே, உங்கள் ஜாதகத்தின் 6-ஆம் வீடான சத்ரு மற்றும் வழக்கு ஸ்தானத்தை ஆராயும்போது, எதிர்ப்புகளை முறியடிக்கும் பலமான கிரக பாதுகாப்பு உங்களுக்கு உள்ளது தெளிவாகிறது. இறுதியில் நீதியே வெல்லும்; ஆனால் பிடிவாதமாக வழக்குகளை நீண்ட காலம் இழுத்தடிப்பது பொருளாதார இழப்பையும் மன உளைச்சலையுமே தரும். வரவிருக்கும் சுப காலத்தில் சாதுரியமான சட்ட அணுகுமுறை அல்லது சுமூகமான சமரச தீர்வு காண்பதே உங்கள் சொத்துக்களைப் பாதுகாக்கும் சிறந்த வழியாகும்.`;
+      const p2 = `பயமின்றி உறுதியுடன் செயல்படுங்கள். எதிரிகள் தொல்லை நீங்கவும், வழக்குகளில் சுப முடிவு கிட்டி வெற்றி பெறவும் தினமும் ஸ்ரீ சுப்ரமணிய சத்ரு சம்ஹார திரிசதி அல்லது ஸ்ரீ நரசிம்ம கவசம் பாராயணம் செய்யுங்கள். கோகர்ண மகாபலேஸ்வரரின் அருள் உங்களுக்கு வெற்றியை அருளும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ml": {
+      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ ഭക്തരേ, നിങ്ങളുടെ ജാതകത്തിലെ ആറാം ഭാവവും (ശത്രു-വ്യാവഹാര സ്ഥാനം) പരിശോധിക്കുമ്പോൾ, എതിർപ്പുകളെ അതിജീവിക്കാനുള്ള ശക്തമായ ഗ്രഹബലം നിങ്ങൾക്കുണ്ടെന്ന് കാണുന്നു. നീതിപൂർവ്വമായ നിലപാടുകൾക്കാണ് അന്തിമ വിജയം; എന്നാൽ വാശിപിടിച്ച് കേസുകൾ നീട്ടിക്കൊണ്ടുപോകുന്നത് സാമ്പത്തിക നഷ്ടത്തിനും മനഃസമാധാനക്കേടിനും കാരണമാകും. അനുകൂല ഗ്രഹമാറ്റ സമയത്ത് നയപരമായ മധ്യസ്ഥതയിലൂടെയോ തന്ത്രപരമായ നിയമനടപടിയിലൂടെയോ തർക്കം അവസാനിപ്പിക്കുന്നത് നിങ്ങൾക്ക് അതീവ ഗുണകരമാണ്.`;
+      const p2 = `ഭയപ്പെടാതെ ശാന്തതയോടെ നിയമപരമായ കാര്യങ്ങൾ മുന്നോട്ട് കൊണ്ടുപോകുക. ശത്രുദോഷം അകലുന്നതിനും കോടതി കാര്യങ്ങളിൽ ശുഭകരമായ തീരുമാനം ഉണ്ടാകുന്നതിനും ദിവസവും ശ്രീ സുബ്രഹ്മണ്യ ശത്രു സംഹാര തൃശതി അല്ലെങ്കിൽ ശ്രീ നരസിംഹ കവചം ജപിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹം നിങ്ങൾക്ക് സദാ തുണയായിരിക്കും.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "mr": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय भक्ता, आपल्या जन्मपत्रिकेतील षष्ठ भाव (शत्रू व खटला स्थान) आणि षष्ठेशाची उपचय स्थानातील स्थिती पाहता, विरोधकांवर मात करण्याचे प्रबळ ग्रहबळ आपल्या पाठीशी आहे. अंतिम विजय सत्याचाच होतो; परंतु अहंपणामुळे वाद अथवा कोर्ट कचेऱ्या दीर्घकाळ चालवणे धन आणि मनःशांतीचा नाश करते. पत्रिकेनुसार आगामी शुभ काळात सामंजस्याने तडजोड करणे अथवा धोरणात्मक कायदेशीर मार्ग काढणे आपल्या मालमत्तेचे व हिताचे रक्षण करेल.`;
+      const p2 = `भीती न बाळगता संयमाने कायदेशीर प्रक्रिया हाताळा. शत्रू पीडा नष्ट होण्यासाठी आणि खटल्यात दिलासा मिळण्यासाठी नित्य श्री सुब्रमण्य शत्रू संहार त्रिशती अथवा श्री नृसिंह कवचाचे पठण करा. श्री क्षेत्र गोकर्ण महाबळेश्वराच्या कृपेने आपल्यावर सदैव दैवी संरक्षण राहील.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೬ನೇ ಶತ್ರು ಹಾಗೂ ವ್ಯಾಜ್ಯ ಸ್ಥಾನದ ಅಧಿಪತಿಯ ಉಪಚಯ ಸ್ಥಾನಗಳ ಸ್ಥಿತಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ವಿರೋಧಿಗಳ ಕುತಂತ್ರ ಹಾಗೂ ಕೋರ್ಟ್-ಕಚೇರಿ ವ್ಯಾಜ್ಯಗಳನ್ನು ಎದುರಿಸಿ ನಿಲ್ಲುವ ಬಲವಾದ ಗ್ರಹ ರಕ್ಷಣೆ ನಿಮಗಿದೆ. ಧರ್ಮ ಮತ್ತು ಸತ್ಯಕ್ಕೆ ಎಂದಿಗೂ ಅಂತಿಮ ಜಯವಿದೆ; ಆದರೆ ಹಠದಿಂದ ದಾವೆಗಳನ್ನು ಅನಗತ್ಯವಾಗಿ ದೀರ್ಘಕಾಲ ಎಳೆದಾಡುವುದು ಕೇವಲ ಆಸ್ತಿ ಮತ್ತು ಮನಃಶಾಂತಿಯ ನಷ್ಟಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ. ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ ಮುಂದಿನ ಶುಭ ಗೋಚಾರ ಕಾಲದಲ್ಲಿ ನ್ಯಾಯಯುತ ತಂತ್ರಗಾರಿಕೆ ಅಥವಾ ಗೌರವಾನ್ವಿತ ಪರಸ್ಪರ ಸಂಧಾನದ ಮೂಲಕ ವ್ಯಾಜ್ಯವನ್ನು ಬಗೆಹರಿಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಭಾಗ್ಯಕ್ಕೆ ಪರಮ ಶ್ರೇಯಸ್ಕರ.`;
+      const p2 = `ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ಆತಂಕವಿಲ್ಲದೆ ಧೈರ್ಯದಿಂದ ಹೆಜ್ಜೆಯಿಡಿ. ಶತ್ರು ಬಾಧೆ ನಿವಾರಣೆ ಹಾಗೂ ನ್ಯಾಯಾಲಯದ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಜಯ ಲಭಿಸಲು ಪ್ರತಿದಿನ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಶತ್ರು ಸಂಹಾರ ತ್ರಿಶತೀ ಸ್ತೋತ್ರ ಅಥವಾ ಶ್ರೀ ನರಸಿಂಹ ಕವಚವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಸಕಲ ವಿವಾದಗಳೂ ಶಮನವಾಗಿ ನಿಮಗೆ ನ್ಯಾಯ ಹಾಗೂ ಜಯ ಸಿಗಲಿ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+  }
+}
+
+/**
+ * Deterministic Health Recovery, Surgery & Longevity reading across all 7 languages.
+ * Grounded in 1st (Tanu/Vitality), 6th (Roga), 8th (Ayus), Maha Mrityunjaya Japa.
+ */
+export function buildDeterministicHealthReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  _ledger?: ConsultationRulingRecord[],
+  _isSubsequent?: boolean,
+  _conversationHistory?: AskGeminiChatTurn[]
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear child, examining your 1st House (Tanu Bhava - Vitality & Constitution) alongside your 6th House (Roga) and 8th House (Ayus), your birth chart indicates inherent physical resilience and long life. While planetary tensions have created temporary physical exhaustion, surgical necessity, or nervous strain, this is strictly a passing imbalance of Doshas (Vata/Pitta/Kapha) rather than a permanent debility. Trust authentic medical advice and prescribed therapies without fear, for your Lagna Lord’s underlying strength ensures comprehensive physiological recovery.`;
+      const p2 = `Combine medical care with peaceful lifestyle rejuvenation. To fortify your vital life-force (Prana Shakti), reduce surgical anxieties, and accelerate healing, chant the sacred Maha Mrityunjaya Mantra daily and practice morning Surya Namaskara. Offering bilva patra or sacred milk prayers at Sri Kshetra Gokarna Mahabaleshwara will bestow vibrant immunity, radiant longevity, and complete sound health.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "hi": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय वत्स, आपकी जन्म कुंडली के प्रथम भाव (तनु भाव - आरोग्य एवं जीवन शक्ति) तथा षष्ठ (रोग) और अष्टम (आयु) भाव का विश्लेषण करने पर यह स्पष्ट होता है कि आपकी कुंडली में स्वाभाविक जीवन शक्ति और दीर्घायु का वरदान है। वर्तमान में जो शारीरिक कमजोरी, शल्यक्रिया की आशंका या दीर्घकालीन व्याधि का भय है, वह केवल एक अल्पकालिक ग्रह दशा का प्रभाव है। घबराने की कोई आवश्यकता नहीं है; योग्य चिकित्सीय उपचार पर पूर्ण विश्वास रखें, क्योंकि लग्नेश का बल आपके शीघ्र स्वास्थ्य लाभ को सुनिश्चित करता है।`;
+      const p2 = `चिकित्सीय परामर्श के साथ-साथ अपनी दिनचर्या को सात्विक बनाएं। प्राण शक्ति को जागृत करने और भय से मुक्ति के लिए नित्य महामृत्युंजय मंत्र का जप करें तथा सूर्य नमस्कार का अभ्यास करें। श्री क्षेत्र गोकर्ण महाबलेश्वर में शिवजी को बिल्वपत्र अर्पित करने से असाध्य रोगों का शमन होगा और आपको उत्तम स्वास्थ्य प्राप्त होगा।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "te": {
+      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nనాయనా, మీ జన్మ జాతకంలోని 1వ తను స్థానం (శరీర ఆరోగ్యం), 6వ రోగ స్థానం మరియు 8వ ఆయుష్షు స్థానం పరిశీలిస్తే, మీకు సహజమైన శారీరక దృఢత్వం మరియు దీర్ఘాయుష్షు ఉన్నాయని స్పష్టమవుతుంది. ప్రస్తుత అనారోగ్యం, శస్త్రచికిత్స ఆందోళనలు లేదా నిరంతర నీరసం కేవలం తాత్కాలిక గ్రహ దోషాల ప్రభావమే. భయపడాల్సిన అవసరం లేదు; సరైన వైద్య చికిత్సను అనుసరించండి, ఎందుకంటే లగ్నాధిపతి బలం మీకు సంపూర్ణ ఆరోగ్య రికవరీని ప్రసాదిస్తుంది.`;
+      const p2 = `వైద్యంతో పాటు ఆధ్యాత్మిక సాధనను కొనసాగించండి. ప్రాణ శక్తిని పెంపొందించుకోవడానికి మరియు అనారోగ్య భయాల నుండి బయటపడటానికి నిత్యం మహా మృత్యుంజయ మంత్రం జపించండి మరియు ఉదయం సూర్య నమస్కారాలు చేయండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వరుని అనుగ్రహంతో మీకు సంపూర్ణ ఆయురారోగ్యాలు చేకూరుతాయి.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ta": {
+      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்புக் குழந்தாய், உங்கள் ஜாதகத்தின் 1-ஆம் வீடான தனு ஸ்தானம் (உடல்நலம் மற்றும் உயிர்சக்தி), 6-ஆம் வீடான ரோக ஸ்தானம் மற்றும் 8-ஆம் வீடான ஆயுள் ஸ்தானத்தை ஆராயும்போது, நல்ல ஆயுள் பலமும் உடல் எதிர்ப்பாற்றலும் உள்ளது தெளிவாகிறது. தற்போதுள்ள உடல் சோர்வு, அறுவை சிகிச்சை பயம் அல்லது நீண்டகால நோய் என்பது ஒரு தற்காலிக கிரக தசா அமைப்பே ஆகும். அச்சப்பட வேண்டாம்; முறையான மருத்துவ சிகிச்சையை தைரியமாக எடுத்துக் கொள்ளுங்கள், உங்கள் லக்னாதிபதியின் பலம் உங்களை விரைவில் பூரண குணமடையச் செய்யும்.`;
+      const p2 = `மருத்துவ சிகிச்சையுடன் நல்ல உணவு முறையையும் பின்பற்றுங்கள். பிராண சக்தியைப் புதுப்பிக்கவும், நோய்கள் விலகவும் தினமும் மகா மிருத்யுஞ்சய மந்திரம் ஜெபித்து, சூரிய நமஸ்காரம் செய்யுங்கள். ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வரருக்கு வில்வ அர்ச்சனை செய்து வர உடல் நலம் சிறந்து நீண்ட ஆயுள் கிட்டும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ml": {
+      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nമക്കളേ, നിങ്ങളുടെ ജാതകത്തിലെ ഒന്നാം ഭാവവും (ആരോഗ്യം/ശരീരബലം) ആറാം ഭാവവും (രോഗം), എട്ടാം ഭാവവും (ആയുസ്സ്) പരിശോധിക്കുമ്പോൾ, നിങ്ങൾക്ക് നല്ല ആയുർബലവും സ്വാഭാവിക രോഗപ്രതിരോധ ശേഷിയും ഉണ്ടെന്ന് കാണുന്നു. ഇപ്പോൾ അനുഭവപ്പെടുന്ന ശാരീരിക അസ്വസ്ഥതകളോ ശസ്ത്രക്രിയ ഭയമോ താത്കാലിക ഗ്രഹദോഷം മാത്രമാണ്. ഭയപ്പെടേണ്ടതില്ല; കൃത്യമായ വൈദ്യചികിത്സ ഉറപ്പാക്കുക, നിങ്ങളുടെ ലഗ്നാധിപന്റെ ബലം നിങ്ങളെ വേഗത്തിൽ പൂർണ്ണ ആരോഗ്യത്തിലേക്ക് തിരികെ കൊണ്ടുവരും.`;
+      const p2 = `ചികിത്സയോടൊപ്പം മനസ്സിനെ പ്രശാന്തമായി സൂക്ഷിക്കുക. ജീവശക്തി വർദ്ധിപ്പിക്കുന്നതിനും രോഗശാന്തിക്കുമായി ദിവസവും മഹാമൃത്യുഞ്ജയ മന്ത്രം ജപിക്കുകയും രാവിലെ സൂര്യനമസ്കാരം ശീലമാക്കുകയും ചെയ്യുക. ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ കൂവളമാല സമർപ്പിച്ചു പ്രാർത്ഥിക്കുന്നത് നിങ്ങൾക്ക് പൂർണ്ണ ആരോഗ്യവും ദീർഘായുസ്സും പ്രദാനം ചെയ്യും.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "mr": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nबाळा, आपल्या पत्रिकेतील प्रथम भाव (तनु भाव - आरोग्य व प्राणशक्ती), षष्ठ भाव (रोग) आणि अष्टम भाव (आयुष्य) यांचा अभ्यास करता, आपल्या कुंडलीत उत्तम प्राणशक्ती आणि दीर्घायुष्याचे वरदान आहे. सध्याची शारीरिक अस्वस्थता, शस्त्रक्रियेची भीती अथवा दीर्घ आजारपण हे केवळ तात्पुरत्या ग्रहदशेचे फळ आहे. घाबरण्याचे कोणतेही कारण नाही; योग्य वैद्यकीय उपचारांवर पूर्ण विश्वास ठेवा, लग्नेशाचे बळ आपल्याला लवकरच पूर्णपणे रोगमुक्त करेल.`;
+      const p2 = `वैद्यकीय उपचारांसोबतच जीवनशैली सात्विक ठेवा. प्राणशक्ती बळकट करण्यासाठी आणि भीती निवारणासाठी नित्य महामृत्युंजय मंत्राचा जप करा व सूर्यनमस्कार घाला. श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी बेलपत्र अर्पण करून प्रार्थना केल्यास सर्व व्याधींचे शमन होऊन उत्तम आरोग्य लाभेल.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೧ನೇ ತನು ಭಾವ (ದೇಹ ದಾರ್ಢ್ಯ ಹಾಗೂ ಆರೋಗ್ಯ), ೬ನೇ ರೋಗ ಸ್ಥಾನ ಹಾಗೂ ೮ನೇ ಆಯುಷ್ಯ ಸ್ಥಾನಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ ಸಹಜ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯದ ಬಲವಾದ ಅನುಗ್ರಹವಿದೆ. ಪ್ರಸ್ತುತ ಎದುರಾಗಿರುವ ದೈಹಿಕ ಬಳಲಿಕೆ, ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯ ಆತಂಕ ಅಥವಾ ದೀರ್ಘಕಾಲದ ಕಾಯಿಲೆಯ ಭಯವು ಕೇವಲ ತಾತ್ಕಾಲಿಕ ಗೋಚಾರ ಗ್ರಹಗಳ ಪರೀಕ್ಷೆಯೇ ಹೊರತು ಶಾಶ್ವತ ಕೊರತೆಯಲ್ಲ. ಯಾವುದೇ ಆತಂಕವಿಲ್ಲದೆ ನುರಿತ ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯನ್ನು ಮುಂದುವರಿಸಿ; ಲಗ್ನಾಧಿಪತಿಯ ಶುಭ ಬಲವು ನಿಮ್ಮನ್ನು ಶೀಘ್ರವೇ ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯವಂತರನ್ನಾಗಿ ಮಾಡಲಿದೆ.`;
+      const p2 = `ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯ ಜೊತೆಗೆ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯನ್ನು ರೂಢಿಸಿಕೊಳ್ಳಿ. ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ವೃದ್ಧಿಸಿಕೊಳ್ಳಲು ಹಾಗೂ ಆರೋಗ್ಯ ಭಯಗಳಿಂದ ಮುಕ್ತಿ ಹೊಂದಲು ಪ್ರತಿದಿನ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರವನ್ನು ಜಪಿಸಿ ಹಾಗೂ ಸೂರ್ಯನಮಸ್ಕಾರವನ್ನು ಅಭ್ಯಾಸ ಮಾಡಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಬಿಲ್ವಪತ್ರೆ ಅರ್ಪಿಸಿ ಆಯುಷ್ಯ-ಆರೋಗ್ಯ ಶಾಂತಿ ಸಂಕಲ್ಪ ಮಾಡಿಸುವುದರಿಂದ ಸಕಲ ರೋಗರುಜಿನಗಳು ಶಮನವಾಗಿ ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿದೆ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+  }
+}
+
+/**
+ * Deterministic Competitive Exam & Academic Merit reading across all 7 languages.
+ * Grounded in 4th (Vidya), 5th (Buddhi/Medha), 9th (Bhagya), Budhaditya Yoga, Sri Medha Sukta.
+ */
+export function buildDeterministicCompetitiveExamReading(
+  session: ConsultationSession,
+  _question: string,
+  _astroData: DevoteeKundliComputedData | undefined,
+  _ledger?: ConsultationRulingRecord[],
+  _isSubsequent?: boolean,
+  _conversationHistory?: AskGeminiChatTurn[]
+): string {
+  const lang = (session.language || "kn") as ConsultationLanguage;
+
+  switch (lang) {
+    case "en": {
+      const p1 = `॥ Shri Sacchidananda Ganeshaya Namaha ॥\n\nDear student, examining your 4th House (Foundational Learning), 5th House (Intellect & Grasping Power), and 9th House (Higher Education & Fortune) alongside Mercury (Budha) and Jupiter (Guru), your chart confirms extraordinary cognitive brilliance and academic merit. Competitive examinations, civil services, or prestigious university entrances are fully supported by your natal planetary alignments. The prevailing planetary period indicates that consistent, disciplined revision and emotional composure will translate your hard work into outstanding scores and high merit ranks.`;
+      const p2 = `Set aside all self-doubt and exam nervousness. To awaken razor-sharp memory retention, intellectual clarity, and triumphant success in competitive tests, recite the sacred Sri Medha Sukta or Saraswati Stotra every morning in front of a lit cow-ghee lamp. Seeking the divine blessings of Sri Mahaganapati at Sri Kshetra Gokarna will guarantee obstacle-free academic victory and glorious career beginnings.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "hi": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय विद्यार्थी, आपकी जन्म कुंडली के चतुर्थ भाव (विद्या), पंचम भाव (बुद्धि एवं ग्रहण शक्ति) तथा नवम भाव (उच्च शिक्षा एवं भाग्य) का विश्लेषण करने पर यह प्रमाणित होता है कि आपमें उत्कृष्ट बौद्धिक क्षमता विद्यमान है। प्रतियोगी परीक्षाओं, उच्च शिक्षा अथवा प्रवेश परीक्षाओं में सफलता के लिए आपकी कुंडली में बुध और गुरु का उत्तम सहयोग प्राप्त है। अनुशासित समय-सारिणी बनाकर निरंतर अध्ययन करने से आपको निश्चित रूप से उच्च रैंक और मनवांछित सफलता प्राप्त होगी।`;
+      const p2 = `परीक्षा के भय और घबराहट को त्यागकर एकाग्रचित्त होकर तैयारी करें। तीव्र स्मरण शक्ति एवं प्रतियोगी परीक्षा में विजय हेतु नित्य प्रातः शुद्ध घी का दीपक जलाकर श्री मेधा सूक्त अथवा सरस्वती स्तोत्र का पाठ करें। श्री क्षेत्र गोकर्ण महागणपति की कृपा से आपकी शिक्षा के मार्ग के समस्त अवरोध दूर होंगे और आपको विजय प्राप्त होगी।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "te": {
+      const p1 = `॥ శ్రీ సచ్చిదానంద గణేశాయ నమః ॥\n\nఆత్మీయ విద్యార్థీ, మీ జన్మ జాతకంలోని 4వ విద్యా స్థానం, 5వ బుద్ధి స్థానం మరియు 9వ ఉన్నత విద్యా స్థానం పరిశీలిస్తే, మీలో అద్భుతమైన గ్రహణ శక్తి మరియు మేధో సంపత్తి ఉన్నాయని స్పష్టమవుతుంది. పోటీ పరీక్షలు, ప్రవేశ పరీక్షలు లేదా ఉన్నత చదువులలో రాణించడానికి బుధ, గురు గ్రహాల అనుగ్రహం ఉంది. పక్కా ప్రణాళికతో ఏకాగ్రతగా శ్రమిస్తే మీరు అత్యుత్తమ ర్యాంక్ సాధించడం ఖాయం.`;
+      const p2 = `పరీక్షల భయాన్ని వీడి ఆత్మవిశ్వాసంతో సిద్ధమవ్వండి. తీక్షణమైన జ్ఞాపకశక్తి మరియు పరీక్షా విజయం కోసం రోజూ ఉదయం ఆవు నెయ్యి దీపం వెలిగించి శ్రీ మేధా సూక్తం లేదా సరస్వతీ స్తోత్రం పఠించండి. శ్రీ క్షేత్ర గోకర్ణ మహా గణపతి దివ్య ఆశీస్సులతో మీ విద్యా ప్రయాణంలో అద్భుత విజయాలు సాధిస్తారు.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ta": {
+      const p1 = `॥ ஸ்ரீ சச்சிதானந்த கணேசாய நமஹ ॥\n\nஅன்பு மாணவனே, உங்கள் ஜாதகத்தின் 4-ஆம் வீடான கல்வி ஸ்தானம், 5-ஆம் வீடான புத்தி ஸ்தானம் மற்றும் 9-ஆம் வீடான உயர் கல்வி ஸ்தானத்தை ஆராயும்போது, சிறந்த ஞாபக சக்தியும் கூரிய அறிவுத்திறனும் உங்களிடம் உள்ளது தெளிவாகிறது. போட்டித் தேர்வுகள், அரசு நுழைவுத் தேர்வுகள் அல்லது உயர்கல்வியில் தேர்ச்சி பெற புதன் மற்றும் குருவின் சிறப்பான ஆதரவு உள்ளது. முறையான நேர மேலாண்மையுடன் பயின்றால் நிச்சயம் உயர் ரேங்க் மற்றும் வெற்றி கிட்டும்.`;
+      const p2 = `பரீட்சை பயத்தை விடுத்து தன்னம்பிக்கையுடன் படியுங்கள். நினைவாற்றல் பெருகவும், போட்டித் தேர்வுகளில் முதலிடம் பெறவும் தினமும் காலையில் நெய் தீபம் ஏற்றி ஸ்ரீ மேதா சூக்தம் அல்லது சரஸ்வதி ஸ்தோத்திரம் பாராயணம் செய்யுங்கள். கோகர்ண மகா கணபதியின் அருளால் கல்வித் தடைகள் யாவும் நீங்கி மாபெரும் வெற்றி உண்டாகும்.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "ml": {
+      const p1 = `॥ ശ്രീ സച്ചിദാനന്ദ ഗണേശായ നമഃ ॥\n\nപ്രിയ വിദ്യാർത്ഥീ, നിങ്ങളുടെ ജാതകത്തിലെ നാലാം ഭാവവും (വിദ്യാഭ്യാസം), അഞ്ചാം ഭാവവും (ബുദ്ധിശക്തി), ഒൻപതാം ഭാവവും (ഉന്നത വിദ്യാഭ്യാസം) പരിശോധിക്കുമ്പോൾ, നിങ്ങൾക്ക് മികച്ച ഓർമ്മശക്തിയും ബുദ്ധിവൈഭവവും ഉണ്ടെന്ന് വ്യക്തമാകുന്നു. മത്സരപരീക്ഷകളിലും ഉന്നത വിദ്യാഭ്യാസ പ്രവേശനങ്ങളിലും ഉന്നതവിജയം കൈവരിക്കാൻ ബുധന്റെയും വ്യാഴത്തിന്റെയും അനുഗ്രഹമുണ്ട്. ചിട്ടയായ പഠനത്തിലൂടെ നിങ്ങൾക്ക് മികച്ച റാങ്കും വിജയവും നേടാനാകും.`;
+      const p2 = `പരീക്ഷാപ്പേടി ഉപേക്ഷിച്ച് പൂർണ്ണ ഏകാഗ്രതയോടെ മുന്നേറുക. ഓർമ്മശക്തി വർദ്ധിക്കുന്നതിനും പരീക്ഷകളിൽ ഉന്നത വിജയം വരിക്കുന്നതിനും ദിവസവും നെയ്യ് വിളക്ക് കൊളുത്തി ശ്രീ മേധാ സൂക്തമോ സരസ്വതീ സ്തോത്രമോ ജപിക്കുക. ഗോകർണ്ണ മഹാവിനായകന്റെ കടാക്ഷത്താൽ നിങ്ങളുടെ വിദ്യാഭ്യാസം ഉന്നത വിജയത്തിലെത്തും.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "mr": {
+      const p1 = `॥ श्री सच्चिदानंद गणेशाय नमः ॥\n\nप्रिय विद्यार्थ्या, आपल्या जन्मपत्रिकेतील चतुर्थ भाव (विद्या), पंचम भाव (बुद्धी व आकलन) आणि नवम भाव (उच्च शिक्षण व भाग्य) यांचा अभ्यास करता, आपल्यामध्ये विलक्षण स्मरणशक्ती व कुशाग्र बुद्धिमत्ता आहे. स्पर्धा परीक्षा, प्रवेश परीक्षा अथवा उच्च शिक्षणात उत्तुंग यश मिळवण्यासाठी बुध आणि गुरूचे उत्तम पाठबळ आहे. नियोजनबद्ध आणि सातत्यपूर्ण अभ्यासाने आपल्याला उच्च गुणवत्ता आणि उत्तम रँक नक्कीच मिळेल.`;
+      const p2 = `परीक्षेची भीती मनातून काढून टाकून आत्मविश्वासाने अभ्यास करा. तीक्ष्ण स्मरणशक्ती आणि स्पर्धात्मक यशासाठी रोज सकाळी तुपाचा दिवा लावून श्री मेधा सूक्त अथवा सरस्वती स्तोत्राचे पठण करा. श्री क्षेत्र गोकर्ण महागणपतीच्या आशीर्वादाने आपल्या विद्येतील सर्व विघ्न दूर होऊन भव्य यश प्राप्त होईल.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    case "kn":
+    default: {
+      const p1 = `॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥\n\nಆತ್ಮೀಯ ವಿದ್ಯಾರ್ಥಿಯೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೪ನೇ ವಿದ್ಯಾ ಸ್ಥಾನ, ೫ನೇ ಬುದ್ಧಿ ಹಾಗೂ ಮೇಧಾ ಸ್ಥಾನ ಮತ್ತು ೯ನೇ ಉನ್ನತ ವ್ಯಾಸಂಗ/ಭಾಗ್ಯ ಸ್ಥಾನಗಳನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ ಅಸಾಧಾರಣ ಗ್ರಹಣ ಶಕ್ತಿ ಹಾಗೂ ಜ್ಞಾನಾರ್ಜನೆಯ ಅದ್ಭುತ ಸಾಮರ್ಥ್ಯವಿದೆ. ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು, ಪ್ರವೇಶ ಪರೀಕ್ಷೆಗಳು ಅಥವಾ ಉನ್ನತ ವಿಶ್ವವಿದ್ಯಾಲಯದ ವ್ಯಾಸಂಗದಲ್ಲಿ ಯಶಸ್ಸು ಗಳಿಸಲು ಬುಧ ಹಾಗೂ ಗುರು ಗ್ರಹಗಳ ಬಲವಾದ ಸಹಯೋಗವಿದೆ. ಶಿಸ್ತುಬದ್ಧ ದಿನಚರಿ ಹಾಗೂ ಪುನರಾವರ್ತನೆಯಿಂದ ಅಭ್ಯಾಸ ಮಾಡಿದರೆ ನಿಶ್ಚಿತವಾಗಿ ಅತ್ಯುನ್ನತ ರ್ಯಾಂಕ್ ಹಾಗೂ ಅಪೇಕ್ಷಿತ ಸ್ಥಾನಮಾನ ಲಭಿಸಲಿದೆ.`;
+      const p2 = `ಪರೀಕ್ಷಾ ಆತಂಕ ಅಥವಾ ಸಂದೇಹಗಳನ್ನು ಮನಸ್ಸಿನಿಂದ ಸಂಪೂರ್ಣವಾಗಿ ಕಿತ್ತೊಗೆಯಿರಿ. ಜ್ಞಾಪಕ ಶಕ್ತಿ, ಏಕಾಗ್ರತೆ ಹಾಗೂ ಸ್ಪರ್ಧಾತ್ಮಕ ಜಯಕ್ಕಾಗಿ ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಶ್ರೀ ಮೇಧಾ ಸೂಕ್ತ ಅಥವಾ ಸರಸ್ವತೀ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ದೂರ್ವಾ ಅರ್ಪಿಸಿ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದರಿಂದ ವಿದ್ಯಾ ವಿಘ್ನಗಳೆಲ್ಲವೂ ನಾಶವಾಗಿ ಭವ್ಯ ಶೈಕ್ಷಣಿಕ ವಿಜಯ ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+  }
+}
+
+/**
  * Detects and resolves "Ulta-Palta", reversed, or hypothetical questions
  * that probe against prior rulings in the Consultation Ruling Ledger.
  * Enforces 100% unwavering multi-turn consistency with zero dilemma!
@@ -1792,6 +2380,36 @@ export function detectAndResolveUltaPaltaProbe(
     }
     // Kannada Default
     const p1 = `ಶಾಸ್ತ್ರೋಕ್ತ ನಿಶ್ಚಿತ ಸತ್ಯ: ಬಿಳಿ ಹವಳವು ಮಂಗಳನ ರತ್ನವಾಗಿದ್ದು, ಶುಕ್ರನ ವಜ್ರಕ್ಕೆ ಪರ್ಯಾಯವಲ್ಲ! ವಜ್ರದ ಬದಲು ಬಿಳಿ ಹವಳವನ್ನು ಧರಿಸಿದರೆ ಮಂಗಳನ ದೋಷಗಳು ಉಲ್ಬಣಗೊಳ್ಳುತ್ತವೆ. ವಜ್ರದ ಬಜೆಟ್ ಇಲ್ಲದಿದ್ದರೆ ಶುಕ್ರನ ಅಧಿಕೃತ ಉಪರತ್ನಗಳಾದ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ (White Zircon) ಅಥವಾ ಬಿಳಿ ಓಪಲ್ ಧರಿಸಬೇಕು.`;
+    return deduplicateResponseText(p1);
+  }
+
+  // 4. PARTNERSHIP BUSINESS PROBE (User probes doing partnership when rejected)
+  const isPartnershipQuery = /ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|partnership|partner in business|50-50|भागीदारी|साझेदारी/i.test(qLower);
+  const bizRecord = ledger.find((r) => r.domain === "BUSINESS_VS_JOB");
+  if (isPartnershipQuery && bizRecord?.rejectedOptions?.some((opt) => /partnership/i.test(opt))) {
+    if (lang === "en") {
+      const p1 = `Master Daivajna Confident Ruling (100% Authoritative Determination): As firmly ruled in our earlier determination with 100% certainty, 50-50 partnership business is STRICTLY PROHIBITED for your chart! Entering a commercial partnership will only invite interpersonal discord, financial betrayal, and dispute. Your chart demands sole proprietorship or running the venture in your own name or that of an auspicious family member. Stand firmly by this scripture-based determination.`;
+      return deduplicateResponseText(p1);
+    }
+    if (lang === "hi") {
+      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): जैसा कि हमने पूर्व में स्पष्ट किया है, आपकी कुंडली के अनुसार किसी भी प्रकार का साझेदारी व्यापार पूर्णतः वर्जित है! मित्रों अथवा अन्य व्यक्तियों के साथ साझेदारी करने पर विश्वासघात, धन हानि और विवाद होना तय है। केवल एकल स्वामित्व ही आपको सफलता प्रदान करेगा। बिना किसी संशय के इस निर्णय पर अडिग रहें।`;
+      return deduplicateResponseText(p1);
+    }
+    // Kannada Default
+    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ (೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ): ನಾನು ಮೊದಲೇ ಸಂಪೂರ್ಣ ಖಚಿತತೆಯೊಂದಿಗೆ ಸ್ಪಷ್ಟಪಡಿಸಿದಂತೆ, ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಯಾವುದೇ ಪಾಲುದಾರಿಕೆ (Partnership) ವ್ಯವಹಾರವು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ಯಾರೇ ಆತ್ಮೀಯ ಸ್ನೇಹಿತರಾಗಲಿ, ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ ವ್ಯಾಪಾರ ಆರಂಭಿಸಿದರೆ ವಂಚನೆ, ಹಣದ ನಷ್ಟ ಹಾಗೂ ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವುದು ಖಚಿತ. ನಿಮ್ಮ ಏಳಿಗೆಗೆ ಸ್ವತಂತ್ರ ಮಾಲೀಕತ್ವ (Sole Proprietorship) ಅಥವಾ ಕುಟುಂಬದ ಶುಭ ಜಾತಕದ ಹೆಸರಿನಲ್ಲಿ ಮಾತ್ರ ವ್ಯಾಪಾರ ಮಾಡಬೇಕು. ಯಾವುದೇ ಗೊಂದಲವಿಲ್ಲದೆ ಇದೇ ತೀರ್ಮಾನಕ್ಕೆ ಬದ್ಧರಾಗಿರಿ.`;
+    return deduplicateResponseText(p1);
+  }
+
+  // 5. SPECULATIVE FRESH DEBT PROBE
+  const isFreshDebtQuery = /ಮತ್ತೆ ಸಾಲ|ಹೊಸ ಸಾಲ|ಇನ್ನಷ್ಟು ಸಾಲ|fresh loan|more debt|take loan to invest|another loan|और कर्ज/i.test(qLower);
+  const debtRecord = ledger.find((r) => r.domain === "DEBT_FINANCIAL_RELIEF");
+  if (isFreshDebtQuery && debtRecord) {
+    if (lang === "en") {
+      const p1 = `Vedic Jyotisha Absolute Truth: Taking fresh speculative debt or high-interest loans to cover liabilities is strictly warned against! Clear existing principal systematically under Runavimochana Mangala Stotra and incoming benefic transits.`;
+      return deduplicateResponseText(p1);
+    }
+    // Kannada Default
+    const p1 = `ಶಾಸ್ತ್ರೋಕ್ತ ನಿಶ್ಚಿತ ಸತ್ಯ: ಹಳೆಯ ಸಾಲವನ್ನು ಮುಚ್ಚಲು ಮತ್ತೆ ಹೊಸ ಸಾಲ ಅಥವಾ ಹೆಚ್ಚಿನ ಬಡ್ಡಿಯ ಸಾಲವನ್ನು ಮಾಡುವುದನ್ನು ಶಾಸ್ತ್ರವು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ವಿರೋಧಿಸುತ್ತದೆ! ಪ್ರಸ್ತುತ ಸಾಲವನ್ನು ನಿಯಮಿತವಾಗಿ ತೀರಿಸಿ; ಶ್ರೀ ಋಣವಿಮೋಚನ ಮಂಗಳ ಸ್ತೋತ್ರದ ಪಠಣೆಯಿಂದ ಶೀಘ್ರವೇ ಸಾಲಮುಕ್ತಿ ಸಾಧ್ಯವಾಗಲಿದೆ.`;
     return deduplicateResponseText(p1);
   }
 
@@ -3398,6 +4016,74 @@ export async function generateConsultationAnswer(params: {
       ],
       remedyPrescribed: "Wear Venusian gemstone (Diamond / White Zircon), light cow-ghee lamp, Gokarna Kalyana Sankalpa"
     });
+  } else if (
+    /ಸ್ವಂತ ವ್ಯಾಪಾರ|ಸ್ವಂತ ಉದ್ಯಮ|ವ್ಯಾಪಾರ ಉತ್ತಮವೋ|ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|business or job|job or business|own business|partnership|भागीदारी/i.test(
+      userQuestion
+    ) &&
+    !rulingsLedger.some((r) => r.domain === "BUSINESS_VS_JOB")
+  ) {
+    rulingsLedger.push({
+      domain: "BUSINESS_VS_JOB",
+      questionSummary: userQuestion,
+      primaryVerdict:
+        "Independent solo venture or direct self-ownership brings success; 50-50 partnership business is strictly warned against due to risk of discord and betrayal.",
+      approvedOptions: [
+        "Sole proprietorship / independent enterprise",
+        "Retaining stable salaried job alongside gradual business planning",
+        "Business registration in mother's or spouse's auspicious chart name"
+      ],
+      rejectedOptions: [
+        "50-50 partnership with friends or third parties",
+        "Unplanned sudden resignation without working capital",
+        "Blind debt-leveraged commercial expansion"
+      ],
+      remedyPrescribed: "Lakshmi Kubera Stotra and Sri Kshetra Gokarna Mahaganapati Modaka pooja"
+    });
+  } else if (
+    /ಸಾಲ ಮುಕ್ತಿ|ಸಾಲ ತೀರಿಸ|ಸಾಲದ ಬಾಧೆ|ಸಾಲ ಯಾವಾಗ ತೀರುತ್ತೆ|debt relief|clear debt|pay off loan|clear loans|debt free|कर्ज मुक्ति|ऋण मुक्ति/i.test(
+      userQuestion
+    ) &&
+    !rulingsLedger.some((r) => r.domain === "DEBT_FINANCIAL_RELIEF")
+  ) {
+    rulingsLedger.push({
+      domain: "DEBT_FINANCIAL_RELIEF",
+      questionSummary: userQuestion,
+      primaryVerdict:
+        "Systematic debt clearance accelerates as 11th lord transit activates; strictly refrain from taking fresh high-interest unbacked loans.",
+      approvedOptions: [
+        "Disciplined phased principal debt repayment",
+        "Consolidation into low-interest formal banking loans",
+        "Financial revival under upcoming Gochara Guru transit"
+      ],
+      rejectedOptions: [
+        "High-interest private informal borrowings",
+        "Speculative gambling/trading to pay off debts",
+        "Taking fresh debt to cover previous interest"
+      ],
+      remedyPrescribed: "Daily Runavimochana Mangala Stotra and Sri Kshetra Gokarna Rudrabhisheka"
+    });
+  } else if (
+    /ಕೋರ್ಟ್ ಕೇಸ್|ಕೋರ್ಟು|ವ್ಯಾಜ್ಯ|ಮೊಕದ್ದಮೆ|ನ್ಯಾಯಾಲಯ|court case|litigation|lawsuit|legal dispute|win case|कोर्ट केस/i.test(
+      userQuestion
+    ) &&
+    !rulingsLedger.some((r) => r.domain === "LEGAL_COURT_CASE")
+  ) {
+    rulingsLedger.push({
+      domain: "LEGAL_COURT_CASE",
+      questionSummary: userQuestion,
+      primaryVerdict:
+        "6th lord in Upachaya ensures protection and ultimate victory over adversaries; pursuit of amicable mediation or structured legal resolution preserves wealth.",
+      approvedOptions: [
+        "Strategic and disciplined legal defense",
+        "Amicable mutually beneficial settlement mediation",
+        "Favorable resolution under upcoming benefic transit"
+      ],
+      rejectedOptions: [
+        "Aggressive prolonging of unnecessary ego disputes",
+        "Unilateral surrender without legal advice"
+      ],
+      remedyPrescribed: "Sri Subrahmanya Shatru Samhara Trishati and Sri Narasimha Kavacha"
+    });
   }
   session.rulingsLedger = rulingsLedger;
 
@@ -4412,6 +5098,72 @@ function generateDeterministicFallbackReading(
 
   if (complexityAnalysis.domain === "PROPERTY_ASSET") {
     return buildDeterministicPropertyReading(
+      session,
+      question,
+      astroData,
+      session.rulingsLedger,
+      isSubsequent,
+      conversationHistory
+    );
+  }
+
+  if (complexityAnalysis.domain === "GOVERNMENT_JOB") {
+    return buildDeterministicGovtJobReading(
+      session,
+      question,
+      astroData,
+      session.rulingsLedger,
+      isSubsequent,
+      conversationHistory
+    );
+  }
+
+  if (complexityAnalysis.domain === "BUSINESS_VS_JOB") {
+    return buildDeterministicBusinessVsJobReading(
+      session,
+      question,
+      astroData,
+      session.rulingsLedger,
+      isSubsequent,
+      conversationHistory
+    );
+  }
+
+  if (complexityAnalysis.domain === "DEBT_FINANCIAL_RELIEF") {
+    return buildDeterministicDebtReliefReading(
+      session,
+      question,
+      astroData,
+      session.rulingsLedger,
+      isSubsequent,
+      conversationHistory
+    );
+  }
+
+  if (complexityAnalysis.domain === "LEGAL_COURT_CASE") {
+    return buildDeterministicLegalCaseReading(
+      session,
+      question,
+      astroData,
+      session.rulingsLedger,
+      isSubsequent,
+      conversationHistory
+    );
+  }
+
+  if (complexityAnalysis.domain === "HEALTH_LONGEVITY") {
+    return buildDeterministicHealthReading(
+      session,
+      question,
+      astroData,
+      session.rulingsLedger,
+      isSubsequent,
+      conversationHistory
+    );
+  }
+
+  if (complexityAnalysis.domain === "COMPETITIVE_EXAM_EDUCATION") {
+    return buildDeterministicCompetitiveExamReading(
       session,
       question,
       astroData,

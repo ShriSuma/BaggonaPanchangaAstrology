@@ -116,6 +116,10 @@ export interface ConsultationRulingRecord {
     | "HEALTH"
     | "PROPERTY_ASSET"
     | "CAREER_FINANCE"
+    | "BUSINESS_VS_JOB"
+    | "DEBT_FINANCIAL_RELIEF"
+    | "LEGAL_COURT_CASE"
+    | "GOVERNMENT_JOB"
     | "GEMSTONE_REMEDY"
     | "GENERAL";
   questionSummary: string;
@@ -584,10 +588,14 @@ export interface ConsultationChatUiI18n {
   copiedToast: string;
   clearInputTooltip: string;
   ratingLevels: [string, string, string, string, string];
+  headerSubtitle: string;
+  gokarnaTown: string;
 }
 
 export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, ConsultationChatUiI18n> = {
   kn: {
+    headerSubtitle: "ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆ",
+    gokarnaTown: "ಗೋಕರ್ಣ",
     patrikaLoading: "ಪಂಚಾಂಗ ಹಾಗೂ ಜಾತಕ ವಿವರಗಳನ್ನು ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತಿದೆ...",
     devoteeSenderTag: "ನೀವು (ಭಕ್ತರು)",
     astrologerSenderTag: "ದೈವಜ್ಞರು (ಮುಖ್ಯ ಜ್ಯೋತಿಷಿ, ಗೋಕರ್ಣ)",
@@ -636,6 +644,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     ]
   },
   en: {
+    headerSubtitle: "Vedic Astrology Live Interactive Consultation",
+    gokarnaTown: "Gokarna",
     patrikaLoading: "Calculating sacred Panchanga and birth chart coordinates...",
     devoteeSenderTag: "You (Devotee)",
     astrologerSenderTag: "Chief Astrologer (Gokarna)",
@@ -684,6 +694,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     ]
   },
   hi: {
+    headerSubtitle: "वैदिक ज्योतिष दैवज्ञ प्रत्यक्ष परामर्श",
+    gokarnaTown: "गोकर्ण",
     patrikaLoading: "पंचांग एवं जन्म कुंडली विवरणों की गणना की जा रही है...",
     devoteeSenderTag: "आप (भक्त)",
     astrologerSenderTag: "दैवज्ञ (मुख्य ज्योतिषी, गोकर्ण)",
@@ -732,6 +744,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     ]
   },
   te: {
+    headerSubtitle: "వైదిక జ్యోతిష దైవజ్ఞ ప్రత్యక్ష సంభాషణ",
+    gokarnaTown: "గోకర్ణ",
     patrikaLoading: "పంచాంగం మరియు జాతక వివరాలు లెక్కించబడుతున్నాయి...",
     devoteeSenderTag: "మీరు (భక్తులు)",
     astrologerSenderTag: "దైవజ్ఞులు (ప్రధాన జ్యోతిష్యులు, గోకర్ణ)",
@@ -780,6 +794,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     ]
   },
   ta: {
+    headerSubtitle: "வேத ஜோதிட நேரடி ஆலோசனை அரங்கம்",
+    gokarnaTown: "கோகர்ணம்",
     patrikaLoading: "பஞ்சாங்கம் மற்றும் ஜாதக விவரங்கள் கணக்கிடப்படுகின்றன...",
     devoteeSenderTag: "நீங்கள் (பக்தர்)",
     astrologerSenderTag: "ஜோதிடர் (தலைமை ஜோதிடர், கோகர்ணம்)",
@@ -828,6 +844,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     ]
   },
   ml: {
+    headerSubtitle: "വൈദിക ജ്യോതിഷ ലൈവ് മുഖാമുഖം കൺസൾട്ടേഷൻ",
+    gokarnaTown: "ഗോകർണ്ണം",
     patrikaLoading: "പഞ്ചാംഗവും ജാതക വിവരങ്ങളും കണക്കാക്കുന്നു...",
     devoteeSenderTag: "നിങ്ങൾ (ഭക്തൻ)",
     astrologerSenderTag: "ജ്യോതിഷി (പ്രധാന ജ്യോതിഷി, ഗോകർണ്ണം)",
@@ -876,6 +894,8 @@ export const CONSULTATION_CHAT_UI_I18N: Record<ConsultationLanguage, Consultatio
     ]
   },
   mr: {
+    headerSubtitle: "वैदिक ज्योतिष दैवज्ञ थेट संवाद व मार्गदर्शन",
+    gokarnaTown: "गोकर्ण",
     patrikaLoading: "पंचांग आणि जन्मपत्रिका तपशीलांची गणना केली जात आहे...",
     devoteeSenderTag: "तुम्ही (भक्त)",
     astrologerSenderTag: "दैवज्ञ (मुख्य ज्योतिषी, गोकर्ण)",

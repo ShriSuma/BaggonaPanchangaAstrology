@@ -47,6 +47,12 @@ export type ConsultationQuestionCategory =
   | "SECURITY_SYSTEM_PROBE_BLOCKED"
   | "ABROAD_VS_INDIA_SETTLEMENT"
   | "PROPERTY_ASSET_ACQUISITION"
+  | "GOVERNMENT_JOB_AUTHORITY"
+  | "BUSINESS_VS_JOB_COMMERCE"
+  | "DEBT_RELIEF_FINANCE"
+  | "LEGAL_DISPUTE_VICTORY"
+  | "HEALTH_VITALITY_HEALING"
+  | "COMPETITIVE_EXAM_SUCCESS"
   | "CAREER_FRUSTRATION_DISTRESS"
   | "EMOTIONAL_DISTRESS_LIFE"
   | "CHILD_PARENT_INQUIRY"
@@ -207,10 +213,11 @@ export function senseAndCategorizeQuestion(
   // 4. Minor Child Native (< 18 yrs) OR Parent Child Education/Health Inquiry
   const isChildParentInquiry =
     (ageYears < 18 ||
-      /ಮಗು|ಮಗುವಿನ|ಮಗನ|ಮಗಳ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಏಕಾಗ್ರತೆ|ಬಾಲಾರಿಷ್ಟ|child|children|education|study|studies|concentration|memory|exam|marks|board exam/i.test(
+      /ಮಗು|ಮಗುವಿನ|ಮಗನ|ಮಗಳ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಏಕಾಗ್ರತೆ|ಬಾಲಾರಿಷ್ಟ|child|children|concentration|memory|board exam/i.test(
         q
       )) &&
-    !/ಸಂತಾನ|conception|conceive|pregnancy|progeny|childbirth/i.test(q);
+    !/ಸಂತಾನ|conception|conceive|pregnancy|progeny|childbirth/i.test(q) &&
+    !/ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ|competitive exam|entrance exam|ರ್ಯಾಂಕ್|rank|upsc|kpsc|ias|ips|ssc/i.test(q);
 
   if (isChildParentInquiry) {
     return {
@@ -266,29 +273,7 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 7. Celebrity Fantasy (Aishwarya Rai, Mia Khalifa, Sunny Leone, heroines, actresses, models, adult stars)
-  const isCelebrityFantasy =
-    /ಐಶ್ವರ್ಯ|aishwarya|aiswarya|ಹೀರೋಯಿನ್|heroine|ನಟಿ|actress|ಸೆಲೆಬ್ರಿಟಿ|celebrity|ದೀಪಿಕಾ|deepika|ಕತ್ರಿನಾ|katrina|ಸಮಂತಾ|samantha|ರಶ್ಮಿಕಾ|rashmika|ಪೂಜಾ|pooja hegde|ತಾರೆ|ಸಿನಿಮಾ ನಟಿ|ಮಿಯಾ ಖಲೀಫಾ|mia khalifa|sunny leone|ಸನ್ನಿ ಲಿಯೋನ್|mia malkova|dani daniels|kendra lust|sasha grey|angela white|alia bhatt|ಆಲಿಯಾ|kiara advani|sreeleela|ಶ್ರೀಲೀಲಾ|tamannaah|ತಮನ್ನಾ|nayanthara|ನಯನತಾರಾ|trisha|ತ್ರಿಷಾ|keerthy suresh|ಕೀರ್ತಿ ಸುರೇಶ್|kareena|ಕರೀನಾ|shraddha kapoor|taylor swift|kim kardashian|adult star|pornstar|porn star|ಮಾಡಲ್|model/i.test(
-      q
-    ) &&
-    (/ಮದುವೆ|marry|married|wedding|ಲವ್|love|ಪ್ರೀತಿಸ|ಆಗಬಹುದಾ|possible|wife|husband|crush|girlfriend|gf|date|dating|ಜೊತೆ|do i get married|can i marry|will i get married/i.test(
-      q
-    ) ||
-      /marry (mia|aishwarya|sunny|heroine|pornstar)|(mia khalifa|aishwarya rai|sunny leone).*maduve/i.test(q));
-
-  if (isCelebrityFantasy) {
-    return {
-      ageYears,
-      lifeStage,
-      place: session.place,
-      category: "CELEBRITY_FANTASY",
-      categoryLabel: "ಸೆಲೆಬ್ರಿಟಿ ವಿವಾಹ / ಕಲ್ಪನಾ ವಿಚಾರ (Celebrity Fantasy)",
-      detectedTopicSnippet: "Celebrity Marriage Fantasy",
-      priestPersonaTone: "compassionate_grounding"
-    };
-  }
-
-  // 8. Provocative / Taboo / Adult Star / Vulgar Testing
+  // 7. Provocative / Taboo / Adult Star / Vulgar Testing
   const isProvocativeTaboo =
     /porn|pornstar|ಪಾಪ್|ಕಾಮ|ಬೂತು|adult star|ಸೆಕ್ಸ್|sex|blue film|ಅಶ್ಲೀಲ|vulgar|ಬೆತ್ತಲೆ|nude/i.test(
       q
@@ -303,6 +288,28 @@ export function senseAndCategorizeQuestion(
       categoryLabel: "ಇಂದ್ರಿಯ ನಿಗ್ರಹ / ಪಾವಿತ್ರ್ಯ ಮಾರ್ಗದರ್ಶನ (Spiritual Purity & Discipline)",
       detectedTopicSnippet: "Taboo or Provocative Query",
       priestPersonaTone: "gentle_wisdom"
+    };
+  }
+
+  // 8. Celebrity Fantasy (Aishwarya Rai, Mia Khalifa, Sunny Leone, heroines, actresses, models)
+  const isCelebrityFantasy =
+    /ಐಶ್ವರ್ಯ|aishwarya|aiswarya|ಹೀರೋಯಿನ್|heroine|ನಟಿ|actress|ಸೆಲೆಬ್ರಿಟಿ|celebrity|ದೀಪಿಕಾ|deepika|ಕತ್ರಿನಾ|katrina|ಸಮಂತಾ|samantha|ರಶ್ಮಿಕಾ|rashmika|ಪೂಜಾ|pooja hegde|ತಾರೆ|ಸಿನಿಮಾ ನಟಿ|ಮಿಯಾ ಖಲೀಫಾ|mia khalifa|sunny leone|ಸನ್ನಿ ಲಿಯೋನ್|mia malkova|dani daniels|kendra lust|sasha grey|angela white|alia bhatt|ಆಲಿಯಾ|kiara advani|sreeleela|ಶ್ರೀಲೀಲಾ|tamannaah|ತಮನ್ನಾ|nayanthara|ನಯನತಾರಾ|trisha|ತ್ರಿಷಾ|keerthy suresh|ಕೀರ್ತಿ ಸುರೇಶ್|kareena|ಕರೀನಾ|shraddha kapoor|taylor swift|kim kardashian|ಮಾಡಲ್|model/i.test(
+      q
+    ) &&
+    (/ಮದುವೆ|marry|married|wedding|ಲವ್|love|ಪ್ರೀತಿಸ|ಆಗಬಹುದಾ|possible|wife|husband|crush|girlfriend|gf|date|dating|ಜೊತೆ|do i get married|can i marry|will i get married/i.test(
+      q
+    ) ||
+      /marry (mia|aishwarya|sunny|heroine)|(mia khalifa|aishwarya rai|sunny leone).*maduve/i.test(q));
+
+  if (isCelebrityFantasy) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "CELEBRITY_FANTASY",
+      categoryLabel: "ಸೆಲೆಬ್ರಿಟಿ ವಿವಾಹ / ಕಲ್ಪನಾ ವಿಚಾರ (Celebrity Fantasy)",
+      detectedTopicSnippet: "Celebrity Marriage Fantasy",
+      priestPersonaTone: "compassionate_grounding"
     };
   }
 
@@ -422,7 +429,25 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 14. Interpersonal Conflict & Anger (Fights, quarrels, dispute with someone)
+  // 14. Legal Dispute & Court Case Victory
+  const isLegalCourtCase =
+    /ಕೋರ್ಟ್ ಕೇಸ್|ಕೋರ್ಟು|ವ್ಯಾಜ್ಯ|ಮೊಕದ್ದಮೆ|ನ್ಯಾಯಾಲಯ|ಕೇಸ್ ಗೆಲುವು|ಶತ್ರು ಬಾಧೆ|court case|litigation|lawsuit|legal dispute|win case|court decision|opponent|legal battle|कोर्ट केस|मुकदमा|अदालत|शत्रु बाधा|కోర్టు కేసు|వ్యాజ్యం|న్యాయస్థానం|நீதிமன்ற வழக்கு|வழக்கு வெற்றி|കോടതി കേസ്|വ്യാവഹാരം|कोर्ट केस|खटला/i.test(
+      q
+    );
+
+  if (isLegalCourtCase) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "LEGAL_DISPUTE_VICTORY",
+      categoryLabel: "ನ್ಯಾಯಾಲಯ ವಿವಾದ & ಶತ್ರು ಜಯ (Legal Dispute & Adversary Victory)",
+      detectedTopicSnippet: "Court Case / Legal Dispute",
+      priestPersonaTone: "divine_oracle"
+    };
+  }
+
+  // 14a. Interpersonal Conflict & Anger (Fights, quarrels, dispute with someone)
   const isConflict =
     /ಫೈಟ್|fight|ಜಗಳ|quarrel|ಹೊಡೆದಾಟ|ದ್ವೇಷ|ಕೋಪ|ನನಗೂ ಅವನಿಗೂ|ಅವನಿಗೆ ಏನು ಮಾಡ್ಲಿ|ಅವಳಿಗೆ ಏನು ಮಾಡ್ಲಿ|enemy|conflict|argument|dispute|ಶತ್ರು|ಮನಸ್ತಾಪ/i.test(
       q
@@ -437,6 +462,98 @@ export function senseAndCategorizeQuestion(
       categoryLabel: "ವಿವಾದ ಪರಿಹಾರ ಹಾಗೂ ಶಾಂತಿ ಮಾರ್ಗದರ್ಶನ (Conflict Resolution & Peace)",
       detectedTopicSnippet: "Interpersonal Conflict / Fight",
       priestPersonaTone: "peaceful_counsel"
+    };
+  }
+
+  // 14b. Government Job vs Private Sector / Executive Authority
+  const isGovtJob =
+    /ಸರ್ಕಾರಿ ಕೆಲಸ|ಸರ್ಕಾರಿ ಉದ್ಯೋಗ|ಸರಕಾರಿ ಕೆಲಸ|ಸರಕಾರಿ ನೌಕರಿ|ಸರ್ಕಾರಿ ನೌಕರಿ|sarkari|government job|govt job|civil service|ias|ips|upsc|kpsc|ssc|government sector|सरकारी नौकरी|सरकारी काम|ప్రభుత్వ ఉద్యోగం|அரசு வேலை|സർക്കാർ ജോലി|सरकारी नोकरी/i.test(
+      q
+    );
+
+  if (isGovtJob) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "GOVERNMENT_JOB_AUTHORITY",
+      categoryLabel: "ಸರ್ಕಾರಿ ಉದ್ಯೋಗ & ರಾಜ್ಯಾಧಿಕಾರ ಯೋಗ (Government Career & Executive Authority)",
+      detectedTopicSnippet: "Government Job / Sarkari Naukri",
+      priestPersonaTone: "divine_oracle"
+    };
+  }
+
+  // 14c. Business vs Employment & Partnership Guard
+  const isBusinessVsJob =
+    /ಸ್ವಂತ ವ್ಯಾಪಾರ|ಸ್ವಂತ ಉದ್ಯಮ|ಕೆಲಸ ಉತ್ತಮವೋ|ವ್ಯಾಪಾರ ಉತ್ತಮವೋ|ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|business or job|job or business|own business|partnership|start business|do business|व्यापार या नौकरी|नौकरी या व्यापार|भागीदारी|సొంత వ్యాపారం|వ్యాపారమా ఉద్యోగమా|పార్టనర్‌షిప్|தொழில் அல்லது வேலை|சொந்த தொழில்|கூட்டுத் தொழில்|സ്വന്തം ബിസിനസ്സ്|തൊഴിലോ ബിസിനസ്സോ|भागीदारी व्यवसाय/i.test(
+      q
+    );
+
+  if (isBusinessVsJob) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "BUSINESS_VS_JOB_COMMERCE",
+      categoryLabel: "ಸ್ವಂತ ವ್ಯಾಪಾರ vs ಉದ್ಯೋಗ & ಪಾಲುದಾರಿಕೆ ಮಾರ್ಗದರ್ಶನ (Business vs Employment & Partnership Guard)",
+      detectedTopicSnippet: "Business vs Job / Partnership",
+      priestPersonaTone: "divine_oracle"
+    };
+  }
+
+  // 14d. Debt Relief & Financial Revival
+  const isDebtRelief =
+    /ಸಾಲ ಮುಕ್ತಿ|ಸಾಲ ತೀರಿಸ|ಸಾಲದ ಬಾಧೆ|ಸಾಲ ಯಾವಾಗ ತೀರುತ್ತೆ|ಸಾಲದಿಂದ ಮುಕ್ತಿ|ಸಾಲದ ಹೊರೆ|debt relief|clear debt|pay off loan|clear loans|debt free|loan repayment|overcome debt|कर्ज मुक्ति|ऋण मुक्ति|कर्ज से छुटकारा|రుణ విముక్తి|అప్పులు తీరడం|கடன் நிவாரணம்|கடன் தீர|കടബാധ്യത മുക്തി|कर्जमुक्ती/i.test(
+      q
+    );
+
+  if (isDebtRelief) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "DEBT_RELIEF_FINANCE",
+      categoryLabel: "ಋಣ ವಿಮೋಚನೆ & ಆರ್ಥಿಕ ಪುನಶ್ಚೇತನ (Debt Relief & Financial Revival)",
+      detectedTopicSnippet: "Debt Relief / Financial Revival",
+      priestPersonaTone: "compassionate_grounding"
+    };
+  }
+
+
+
+  // 14f. Health Recovery, Surgery & Longevity
+  const isHealthLongevity =
+    /ಆರೋಗ್ಯ ಸುಧಾರಣೆ|ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ|ಸರ್ಜರಿ|ದೀರ್ಘಕಾಲದ ಕಾಯಿಲೆ|ಆಸ್ಪತ್ರೆ|ಆರೋಗ್ಯ ಯಾವಾಗ ಸುಧಾರಿಸುತ್ತೆ|health recovery|surgery|chronic illness|hospitalization|cure disease|medical recovery|स्वास्थ्य सुधार|सर्जरी|शल्यक्रिया|दीर्घ बीमारी|ఆరోగ్య రికవరీ|శస్త్రచికిత్స|உடல்நல முன்னேற்றம்|அறுவை சிகிச்சை|ആരോഗ്യ വീണ്ടെടുക്കൽ|ശസ്ത്രക്രിയ|आरोग्य सुधारणा|शस्त्रक्रिया/i.test(
+      q
+    );
+
+  if (isHealthLongevity) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "HEALTH_VITALITY_HEALING",
+      categoryLabel: "ಆರೋಗ್ಯ ರಕ್ಷಣೆ & ಆಯುಷ್ಯ ವೃದ್ಧಿ (Health Recovery & Longevity)",
+      detectedTopicSnippet: "Health Recovery / Surgery / Longevity",
+      priestPersonaTone: "peaceful_counsel"
+    };
+  }
+
+  // 14g. Competitive Exam & Academic Merit
+  const isCompetitiveExam =
+    /ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ|ಪರೀಕ್ಷೆಯಲ್ಲಿ ಪಾಸ್|ಉನ್ನತ ಶಿಕ್ಷಣ|ರ್ಯಾಂಕ್|ಕಾಂಪಿಟಿಟಿವ್ ಎಕ್ಸಾಮ್|competitive exam|exam pass|clear exam|higher education|entrance exam|rank|merit|प्रतियोगी परीक्षा|परीक्षा में सफलता|उच्च शिक्षा|పోటీ పరీక్ష|పరీక్షలో ఉత్తీర్ణత|உயர் கல்வி|போட்டித் தேர்வு|മത്സര പരീക്ഷ|ഉന്നത വിദ്യാഭ്യാസം|स्पर्धा परीक्षा|उच्च शिक्षण/i.test(
+      q
+    );
+
+  if (isCompetitiveExam) {
+    return {
+      ageYears,
+      lifeStage,
+      place: session.place,
+      category: "COMPETITIVE_EXAM_SUCCESS",
+      categoryLabel: "ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ & ವಿದ್ಯಾ ಜಯ (Competitive Exam & Academic Merit)",
+      detectedTopicSnippet: "Competitive Exam / Higher Education",
+      priestPersonaTone: "divine_oracle"
     };
   }
 
@@ -517,14 +634,20 @@ export async function presentConsultationReply(params: {
     };
   }
 
-  // If question is pure deep astrological, career frustration, child inquiry, Santhana, abroad settlement, or property, delegate directly to the deep chart math engine
+  // If question is pure deep astrological, career frustration, child inquiry, Santhana, abroad settlement, property, govt job, business, debt, legal, health, or exams, delegate directly to the deep chart math engine
   if (
     sensed.category === "ASTROLOGICAL_DEEP" ||
     sensed.category === "CAREER_FRUSTRATION_DISTRESS" ||
     sensed.category === "CHILD_PARENT_INQUIRY" ||
     sensed.category === "SANTHANA_PROGENY_SENSITIVE" ||
     sensed.category === "ABROAD_VS_INDIA_SETTLEMENT" ||
-    sensed.category === "PROPERTY_ASSET_ACQUISITION"
+    sensed.category === "PROPERTY_ASSET_ACQUISITION" ||
+    sensed.category === "GOVERNMENT_JOB_AUTHORITY" ||
+    sensed.category === "BUSINESS_VS_JOB_COMMERCE" ||
+    sensed.category === "DEBT_RELIEF_FINANCE" ||
+    sensed.category === "LEGAL_DISPUTE_VICTORY" ||
+    sensed.category === "HEALTH_VITALITY_HEALING" ||
+    sensed.category === "COMPETITIVE_EXAM_SUCCESS"
   ) {
     const reading = await generateConsultationAnswer({
       session,
