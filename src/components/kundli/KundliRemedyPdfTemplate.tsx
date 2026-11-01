@@ -776,6 +776,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   <span style={{ fontWeight: 900, color: "#065F46" }}>
                     {code === "kn"
                       ? (panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                      : code === "hi"
+                      ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).hindi || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                      : code === "te"
+                      ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).telugu || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                      : code === "ta"
+                      ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).tamil || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
                       : (panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit || panchangaRemedies.nakshatraRemedy.beejaMantra.kannada)}
                   </span> ({panchangaRemedies.nakshatraRemedy.beejaMantra.meaning[code] || panchangaRemedies.nakshatraRemedy.beejaMantra.meaning.kn})
                 </div>

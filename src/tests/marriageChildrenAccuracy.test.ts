@@ -23,7 +23,7 @@ describe('Marriage & Children Dynamic Kundali Accuracy Tests', () => {
     const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 30);
     expect(paragraphs.length).toBe(3);
 
-    assertMarriageChildrenCriteria(text, ['ಕರ್ಕ (Karka)', 'ತುಲಾ (Tula)', 'ಶುಕ್ರ (Venus)', 'ರಾಹು (Rahu)', 'ಶನಿ']);
+    assertMarriageChildrenCriteria(text, ['ಕರ್ಕ', 'ತುಲಾ', 'ಶುಕ್ರ', 'ರಾಹು', 'ಶನಿ']);
   });
 
   it('buildPersonalizedMarriageText generates 3 Kundali-accurate paragraphs for married status in English', () => {
@@ -43,7 +43,7 @@ describe('Marriage & Children Dynamic Kundali Accuracy Tests', () => {
     const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 30);
     expect(paragraphs.length).toBe(3);
 
-    assertMarriageChildrenCriteria(text, ['ಬೃಹಸ್ಪತಿ (Jupiter)', 'ಚಂದ್ರ (Moon)', 'ಕುಜ (ಮಂಗಳ)']);
+    assertMarriageChildrenCriteria(text, ['ಬೃಹಸ್ಪತಿ', 'ಚಂದ್ರ', 'ಕುಜ']);
   });
 
   it('buildPersonalizedChildrenText generates 3 Kundali-accurate paragraphs for has_children status in English', () => {

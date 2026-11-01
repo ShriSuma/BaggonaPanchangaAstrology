@@ -5126,9 +5126,9 @@ export function generateKundliRemedyReport(
       metal: {
         kn: prescriptions.gemstoneRing.metalKn,
         en: prescriptions.gemstoneRing.metalEn,
-        hi: prescriptions.gemstoneRing.metalEn,
-        te: prescriptions.gemstoneRing.metalEn,
-        ta: prescriptions.gemstoneRing.metalEn
+        hi: prescriptions.gemstoneRing.metalHi || prescriptions.gemstoneRing.metalEn,
+        te: prescriptions.gemstoneRing.metalTe || prescriptions.gemstoneRing.metalEn,
+        ta: prescriptions.gemstoneRing.metalTa || prescriptions.gemstoneRing.metalEn
       },
       finger: {
         kn: prescriptions.gemstoneRing.fingerKn,

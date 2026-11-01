@@ -51,7 +51,10 @@ import {
   getLocalizedDevoteeName,
   ensureNamePresence,
   ensureCompleteSentences,
-  toKnDigits
+  toKnDigits,
+  toHiDigits,
+  toTeDigits,
+  toTaDigits
 } from "./dynamicBhavishyaEngine";
 import {
   enrichYogaDescription,
@@ -459,7 +462,11 @@ export async function prepareBhavishyaV1Data(
           ? toKnDigits(session.result.moonPada)
           : lang === "hi"
             ? (["०", "१", "२", "३", "४"][session.result.moonPada] || String(session.result.moonPada))
-            : String(session.result.moonPada))
+            : lang === "te"
+              ? (["౦", "౧", "౨", "౩", "౪"][session.result.moonPada] || String(session.result.moonPada))
+              : lang === "ta"
+                ? (["௦", "௧", "௨", "௩", "௪"][session.result.moonPada] || String(session.result.moonPada))
+                : String(session.result.moonPada))
       : "",
     tithiLabel: tp("tithiLabel", lang),
     tithiValue: getTithiDisplay(tithiIdx, lang),
@@ -736,9 +743,18 @@ export async function prepareBhavishyaV1Data(
     const endYear = Math.floor(birthYear + bhuktiEndAge);
     const endMonthIdx = Math.floor(((birthYear + bhuktiEndAge) % 1) * 12);
     const monthNamesKn = ['ಜನವರಿ', 'ಫೆಬ್ರವರಿ', 'ಮಾರ್ಚ್', 'ಏಪ್ರಿಲ್', 'ಮೇ', 'ಜೂನ್', 'ಜುಲೈ', 'ಆಗಸ್ಟ್', 'ಸೆಪ್ಟೆಂಬರ್', 'ಅಕ್ಟೋಬರ್', 'ನವೆಂಬರ್', 'ಡಿಸೆಂಬರ್'];
+    const monthNamesHi = ['जनवरी', 'फ़रवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'];
+    const monthNamesTe = ['జనవరి', 'ఫిబ్రవరి', 'మార్చి', 'ఏప్రిల్', 'మే', 'జూన్', 'జూలై', 'ఆగస్టు', 'సెప్టెంబర్', 'అక్టోబర్', 'నవంబర్', 'డిసెంబర్'];
+    const monthNamesTa = ['ஜனவரி', 'பிப்ரவரி', 'மார்ச்', 'ஏப்ரல்', 'மே', 'ஜூன்', 'ஜூலை', 'ஆகஸ்ட்', 'செப்டம்பர்', 'அக்டோபர்', 'நவம்பர்', 'டிசம்பர்'];
     const monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     if (baseLang === 'kn') {
       bhuktiEndDateFormatted = `${monthNamesKn[endMonthIdx] || ''} ${toKnDigits(endYear)} ರವರೆಗೆ`;
+    } else if (baseLang === 'hi') {
+      bhuktiEndDateFormatted = `${monthNamesHi[endMonthIdx] || ''} ${toHiDigits(endYear)} तक`;
+    } else if (baseLang === 'te') {
+      bhuktiEndDateFormatted = `${monthNamesTe[endMonthIdx] || ''} ${toTeDigits(endYear)} వరకు`;
+    } else if (baseLang === 'ta') {
+      bhuktiEndDateFormatted = `${monthNamesTa[endMonthIdx] || ''} ${toTaDigits(endYear)} வரை`;
     } else {
       bhuktiEndDateFormatted = `Until ${monthNamesEn[endMonthIdx] || ''} ${endYear}`;
     }
@@ -809,6 +825,13 @@ export async function prepareBhavishyaV1Data(
       return "";
     }
     const cleanLabel = label.replace(/^(Generate|Retry)\s*/i, "");
+    const formatRetryNotice = (att: number) => {
+      if (lang === "kn") return `ಗಮನಿಸಿ: '${cleanLabel}' ವಿಭಾಗದಲ್ಲಿ ಮರು-ಪ್ರಯತ್ನಿಸಲಾಗುತ್ತಿದೆ (ಪ್ರಯತ್ನ ${att + 1}/${maxAttempts})...`;
+      if (lang === "hi") return `सूचना: '${cleanLabel}' खंड में पुनः प्रयास किया जा रहा है (${att + 1}/${maxAttempts})...`;
+      if (lang === "te") return `గమనిక: '${cleanLabel}' విభాగంలో పునఃప్రయత్నం జరుగుతోంది (ప్రయత్నం ${att + 1}/${maxAttempts})...`;
+      if (lang === "ta") return `குறிப்பு: '${cleanLabel}' பிரிவில் மீண்டும் முயற்சிக்கப்படுகிறது (முயற்சி ${att + 1}/${maxAttempts})...`;
+      return `Notice: Retrying '${cleanLabel}' AI narration (Attempt ${att + 1}/${maxAttempts})...`;
+    };
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const timeoutPromise = new Promise<string>((resolve) =>
@@ -828,11 +851,7 @@ export async function prepareBhavishyaV1Data(
             return "";
           }
           if (attempt < maxAttempts) {
-            const retryNotice = lang === "kn"
-              ? `ಗಮನಿಸಿ: '${cleanLabel}' ವಿಭಾಗದಲ್ಲಿ ಮರು-ಪ್ರಯತ್ನಿಸಲಾಗುತ್ತಿದೆ (ಪ್ರಯತ್ನ ${attempt + 1}/${maxAttempts})...`
-              : lang === "hi"
-              ? `सूचना: '${cleanLabel}' खंड में पुनः प्रयास किया जा रहा है (${attempt + 1}/${maxAttempts})...`
-              : `Notice: Retrying '${cleanLabel}' AI narration (Attempt ${attempt + 1}/${maxAttempts})...`;
+            const retryNotice = formatRetryNotice(attempt);
             onProgress?.(Math.min(85, Math.max(35, 30 + attempt * 12)), retryNotice);
             await new Promise((r) => setTimeout(r, attempt * 600));
             continue;
@@ -845,11 +864,7 @@ export async function prepareBhavishyaV1Data(
         }
         // If raw is empty or too short (e.g. timeout resolved to ""), retry if attempt < maxAttempts
         if (attempt < maxAttempts) {
-          const retryNotice = lang === "kn"
-            ? `ಗಮನಿಸಿ: '${cleanLabel}' ವಿಭಾಗದಲ್ಲಿ ಮರು-ಪ್ರಯತ್ನಿಸಲಾಗುತ್ತಿದೆ (ಪ್ರಯತ್ನ ${attempt + 1}/${maxAttempts})...`
-            : lang === "hi"
-            ? `सूचना: '${cleanLabel}' खंड में पुनः प्रयास किया जा रहा है (${attempt + 1}/${maxAttempts})...`
-            : `Notice: Retrying '${cleanLabel}' AI narration (Attempt ${attempt + 1}/${maxAttempts})...`;
+          const retryNotice = formatRetryNotice(attempt);
           console.warn(`[bhavishyaV1Service] AI call for ${label} returned empty/short on attempt ${attempt}/${maxAttempts}. ${retryNotice}`);
           onProgress?.(Math.min(85, Math.max(35, 30 + attempt * 12)), retryNotice);
           await new Promise((r) => setTimeout(r, attempt * 600));
@@ -860,11 +875,7 @@ export async function prepareBhavishyaV1Data(
       } catch (e) {
         console.warn(`[bhavishyaV1Service] AI call failed for ${label} (attempt ${attempt}/${maxAttempts}):`, e);
         if (attempt < maxAttempts) {
-          const retryNotice = lang === "kn"
-            ? `ಗಮನಿಸಿ: '${cleanLabel}' ವಿಭಾಗದಲ್ಲಿ ಮರು-ಪ್ರಯತ್ನಿಸಲಾಗುತ್ತಿದೆ (ಪ್ರಯತ್ನ ${attempt + 1}/${maxAttempts})...`
-            : lang === "hi"
-            ? `सूचना: '${cleanLabel}' खंड में पुनः प्रयास किया जा रहा है (${attempt + 1}/${maxAttempts})...`
-            : `Notice: Retrying '${cleanLabel}' AI narration (Attempt ${attempt + 1}/${maxAttempts})...`;
+          const retryNotice = formatRetryNotice(attempt);
           onProgress?.(Math.min(85, Math.max(35, 30 + attempt * 12)), retryNotice);
           await new Promise((r) => setTimeout(r, attempt * 600));
           continue;

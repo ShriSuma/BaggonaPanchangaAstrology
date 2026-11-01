@@ -134,6 +134,11 @@ export interface ParsedKundaliChart {
   hasKarmaDosha?: boolean;
   hasDhanaDosha?: boolean;
   hasRogaDosha?: boolean;
+  isDashaChidra?: boolean;
+  digbalaGrahas?: GrahaKey[];
+  viparitaRajaYogas?: Array<"Harsha" | "Sarala" | "Vimala">;
+  hasShubhaArgala?: boolean;
+  isArgalaObstructed?: boolean;
 }
 
 const RASHI_LORD_GRAHAS: GrahaKey[] = [
@@ -323,6 +328,49 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
     transits: input.transits
   }, input.lang);
 
+  // 1. Dasha-Chidra (The terminal 9th Bhukti of any Mahadasha - Phaladeepika)
+  const TERMINAL_BHUKTI_MAP: Partial<Record<GrahaKey, GrahaKey>> = {
+    Ketu: "Mercury",
+    Venus: "Ketu",
+    Sun: "Venus",
+    Moon: "Sun",
+    Mars: "Moon",
+    Rahu: "Mars",
+    Jupiter: "Rahu",
+    Saturn: "Jupiter",
+    Mercury: "Saturn"
+  };
+  const isDashaChidra = Boolean(mahaLordKey && bhuktiLordKey && TERMINAL_BHUKTI_MAP[mahaLordKey] === bhuktiLordKey);
+
+  // 2. Digbala (Directional Strength - Saravali)
+  const digbalaGrahas: GrahaKey[] = [];
+  if (jupiterPlacement?.house === 1) digbalaGrahas.push("Jupiter");
+  if (mercuryPlacement?.house === 1) digbalaGrahas.push("Mercury");
+  if (sunPlacement?.house === 10) digbalaGrahas.push("Sun");
+  if (marsPlacement?.house === 10) digbalaGrahas.push("Mars");
+  if (saturnPlacement?.house === 7) digbalaGrahas.push("Saturn");
+  if (venusPlacement?.house === 4) digbalaGrahas.push("Venus");
+  if (moonPlacement?.house === 4) digbalaGrahas.push("Moon");
+
+  // 3. Viparita Raja Yoga (Phaladeepika Ch. 6)
+  const viparitaRajaYogas: Array<"Harsha" | "Sarala" | "Vimala"> = [];
+  const h6LordH = houses[6].lordHouse;
+  const h8LordH = houses[8].lordHouse;
+  const h12LordH = houses[12].lordHouse;
+  if ([6, 8, 12].includes(h6LordH)) viparitaRajaYogas.push("Harsha");
+  if ([6, 8, 12].includes(h8LordH)) viparitaRajaYogas.push("Sarala");
+  if ([6, 8, 12].includes(h12LordH)) viparitaRajaYogas.push("Vimala");
+
+  // 4. Argala & Virodha Argala on Lagna (BPHS Ch. 31)
+  const h2Count = houses[2].occupants.length;
+  const h12Count = houses[12].occupants.length;
+  const h4Count = houses[4].occupants.length;
+  const h10Count = houses[10].occupants.length;
+  const h11Count = houses[11].occupants.length;
+  const h3Count = houses[3].occupants.length;
+  const hasShubhaArgala = (h2Count > 0 && h2Count >= h12Count) || (h4Count > 0 && h4Count >= h10Count) || (h11Count > 0 && h11Count >= h3Count);
+  const isArgalaObstructed = (h12Count > h2Count) || (h10Count > h4Count) || (h3Count > h11Count);
+
   return {
     hasKalatraDosha,
     hasSantanaDosha,
@@ -330,6 +378,11 @@ export function analyzeKundali(input: KundaliAnalysisInput): ParsedKundaliChart 
     hasKarmaDosha,
     hasDhanaDosha,
     hasRogaDosha,
+    isDashaChidra,
+    digbalaGrahas,
+    viparitaRajaYogas,
+    hasShubhaArgala,
+    isArgalaObstructed,
     lang,
     name: input.name,
     lagnaRashiIndex,
@@ -1341,6 +1394,21 @@ export function toKnDigits(numOrStr: string | number): string {
   return String(numOrStr).replace(/[0-9]/g, (d) => knDigits[parseInt(d, 10)]);
 }
 
+export function toHiDigits(numOrStr: string | number): string {
+  const hiDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+  return String(numOrStr).replace(/[0-9]/g, (d) => hiDigits[parseInt(d, 10)]);
+}
+
+export function toTeDigits(numOrStr: string | number): string {
+  const teDigits = ['౦', '౧', '౨', '౩', '౪', '౫', '౬', '౭', '౮', '౯'];
+  return String(numOrStr).replace(/[0-9]/g, (d) => teDigits[parseInt(d, 10)]);
+}
+
+export function toTaDigits(numOrStr: string | number): string {
+  const taDigits = ['௦', '௧', '௨', '௩', '௪', '௫', '௬', '௭', '௮', '௯'];
+  return String(numOrStr).replace(/[0-9]/g, (d) => taDigits[parseInt(d, 10)]);
+}
+
 function buildRawDynamicChildrenFallback(
   chart: ParsedKundaliChart,
   status: "no_children" | "has_children" | "general"
@@ -1859,7 +1927,7 @@ function buildRawDynamicCareerFallback(chart: ParsedKundaliChart): string {
 
     const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ 10ನೇ ಮನೆಯಾದ ದಶಮ ಭಾವ (${h10Sign}) ಹಾಗೂ ದಶಮಾಧಿಪತಿಯಾದ ${h10Lord} ಗ್ರಹವು ${h10Where}ದಲ್ಲಿ ನೆಲೆಸಿರುವ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಸ್ಥಿರತೆ, ನಾಯಕತ್ವ ಹಾಗೂ ಗೌರವಯುತ ಸ್ಥಾನಮಾನಗಳನ್ನು ತಂದುಕೊಡುತ್ತದೆ. ಕರ್ಮಕಾರಕನಾದ ಶನಿ ಗ್ರಹವು ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಅಪಾರ ತಾಳ್ಮೆ, ಕರ್ತವ್ಯನಿಷ್ಠೆ, ಶಿಸ್ತು ಹಾಗೂ ಸುದೀರ್ಘ ಪರಿಶ್ರಮವನ್ನು ಬೇಡುತ್ತಾನೆ. ನಿಮ್ಮ ಜಾತಕದ ವಿಶಿಷ್ಟ ಸಂರಚನೆಯ ಪ್ರಕಾರ ${careerDomain} ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ನೀವು ಅಸಾಧಾರಣ ಪ್ರತಿಭೆಯನ್ನು ಪ್ರದರ್ಶಿಸಲಿದ್ದು, ಸ್ವತಂತ್ರ ನಿರ್ಧಾರಗಳು ಹಾಗೂ ಕಠಿಣ ಪರಿಶ್ರಮದಿಂದ ಸಂಸ್ಥೆಯಲ್ಲಿ ಉನ್ನತ ಸ್ಥಾನವನ್ನು ಅಲಂಕರಿಸಲಿದ್ದೀರಿ.`;
     const p2 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ವೃತ್ತಿಜೀವನದಲ್ಲಿ ನೂತನ ಯೋಜನೆಗಳು, ಪ್ರಭಾವಿ ವ್ಯಕ್ತಿಗಳ ಒಡನಾಟ ಹಾಗೂ ಅಧಿಕಾರ ಪ್ರಾಪ್ತಿಗೆ ಅತ್ಯಂತ ಪ್ರಬಲವಾದ ವೇದಿಕೆಯನ್ನು ನಿರ್ಮಿಸುತ್ತಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಹಾಗೂ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಕೂಲಕರ ಸಂಚಾರವು ನಿಮ್ಮ ದೀರ್ಘಾವಧಿಯ ಪರಿಶ್ರಮಕ್ಕೆ ತಕ್ಕ ಮನ್ನಣೆ, ಬಡ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ಒದಗಿಸಲಿದೆ. ಕಚೇರಿಯಲ್ಲಿ ಸಹೋದ್ಯೋಗಿಗಳೊಂದಿಗೆ ಸೌಹಾರ್ದಯುತ ಬಾಂಧವ್ಯ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು ಹಾಗೂ ಆತುರದ ತೀರ್ಮಾನಗಳನ್ನು ತ್ಯಜಿಸುವುದು ನಿಮ್ಮ ವೃತ್ತಿಪರ ವರ್ಚಸ್ಸನ್ನು ಮತ್ತಷ್ಟು ವೃದ್ಧಿಸಲಿದೆ.`;
-    const p3 = `ದೀರ್ಘಕಾಲೀನ ವೃತ್ತಿಪರ ಯಶಸ್ಸಿಗೆ ಕಾರ್ಯತಂತ್ರದ ಸ್ಪಷ್ಟತೆ, ನೈತಿಕ ಪ್ರಾಮಾಣಿಕತೆ ಹಾಗೂ ತಂಡವನ್ನು ಮುನ್ನಡೆಸುವ ನಾಯಕತ್ವ ಗುಣಗಳು ಅತ್ಯಗತ್ಯ. ಕಠಿಣ ಸನ್ನಿವೇಶಗಳಲ್ಲಿ ಧೃತಿಗುಂದದೆ ಶಾಂತಚಿತ್ತದಿಂದ ತೀರ್ಮಾನ ಕೈಗೊಳ್ಳುವುದು ನಿಮ್ಮ ವೃತ್ತಿಪರ ಪ್ರೌಢಿಮೆಯನ್ನು ಜಗತ್ತಿಗೆ ಪ್ರದರ್ಶಿಸಲಿದೆ. ನಿಮ್ಮ ಸಮರ್ಪಣಾ ಭಾವವು ವೃತ್ತಿ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತವಾದ ಗೌರವ ಮತ್ತು ಉನ್ನತಿಯನ್ನು ತಂದುಕೊಡಲಿದೆ.`;
+    const p3 = `ಭಾವತ್ ಭಾವಂ ಸಿದ್ಧಾಂತದಂತೆ ೧೦ನೇ ಮನೆಗೆ ೧೦ನೇ ಮನೆಯಾದ ಸಪ್ತಮ ಭಾವವು (${chart.houses[7].rashiName}, ಅಧಿಪತಿ ${chart.houses[7].lordName}) ನಿಮ್ಮ ವೃತ್ತಿಯ ಸಾರ್ವಜನಿಕ ಮನ್ನಣೆ ಹಾಗೂ ದೀರ್ಘಕಾಲಿಕ ಗ್ರಾಹಕ ಬಲವನ್ನು ಪೋಷಿಸುತ್ತದೆ. ದೀರ್ಘಕಾಲೀನ ವೃತ್ತಿಪರ ಯಶಸ್ಸಿಗೆ ಕಾರ್ಯತಂತ್ರದ ಸ್ಪಷ್ಟತೆ, ನೈತಿಕ ಪ್ರಾಮಾಣಿಕತೆ ಹಾಗೂ ತಂಡವನ್ನು ಮುನ್ನಡೆಸುವ ನಾಯಕತ್ವ ಗುಣಗಳು ಅತ್ಯಗತ್ಯ. ಕಠಿಣ ಸನ್ನಿವೇಶಗಳಲ್ಲಿ ಧೃತಿಗುಂದದೆ ಶಾಂತಚಿತ್ತದಿಂದ ತೀರ್ಮಾನ ಕೈಗೊಳ್ಳುವುದು ನಿಮ್ಮ ವೃತ್ತಿಪರ ಪ್ರೌಢಿಮೆಯನ್ನು ಜಗತ್ತಿಗೆ ಪ್ರದರ್ಶಿಸಲಿದೆ. ನಿಮ್ಮ ಸಮರ್ಪಣಾ ಭಾವವು ವೃತ್ತಿ ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತವಾದ ಗೌರವ ಮತ್ತು ಉನ್ನತಿಯನ್ನು ತಂದುಕೊಡಲಿದೆ.`;
 
     const hasDosha = Boolean(chart.hasKarmaDosha);
 
@@ -1872,7 +1940,7 @@ function buildRawDynamicCareerFallback(chart: ParsedKundaliChart): string {
 
     const p1 = `आपकी जन्म कुंडली का 10वां भाव (दशम भाव ${h10Sign}) और कर्मेश ${h10Lord} की ${h10Where} में स्थिति आपके कार्यक्षेत्र में स्थिरता, नेतृत्व क्षमता और प्रतिष्ठित पद की प्राप्ति को सुनिश्चित करती है। कर्मकारक शनि देव आपकी कार्यशैली में अनुशासन, गहन परिश्रम और धैर्य की अपेक्षा करते हैं। आपकी ग्रह स्थिति के अनुसार आप ${careerDomain} के क्षेत्रों में विशिष्ट दक्षता प्रदर्शित करेंगे तथा अपने स्वतंत्र निर्णयों व लगन से उच्च प्रबंधकीय पद प्राप्त करने में सफल होंगे।`;
     const p2 = `वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल आपके कार्यक्षेत्र में नए प्रोजेक्ट्स, प्रभावशाली व्यक्तियों से संपर्क और अधिकार क्षेत्र के विस्तार के लिए अत्यंत अनुकूल है। गोचर में गुरु और शनि का शुभ प्रभाव आपके दीर्घकालिक परिश्रम का यथोचित फल, पदोन्नति और वित्तीय स्थिरता प्रदान करेगा। कार्यालय में सहकर्मियों के साथ सामंजस्य बनाए रखना और जल्दबाजी में कोई भी व्यावसायिक निर्णय न लेना आपकी पेशेवर साख को नई ऊंचाइयां प्रदान करेगा।`;
-    const p3 = `दीर्घकालिक करियर विकास के लिए कार्यशैली में पारदर्शिता, नैतिक मूल्यों के प्रति निष्ठा और दूरदर्शिता बनाए रखना आवश्यक है। कार्यस्थल पर उत्पन्न होने वाली आकस्मिक चुनौतियों का धैर्यपूर्वक समाधान निकालना आपकी परिपक्वता को सिद्ध करेगा। आपकी अटूट कर्तव्यनिष्ठा आपको अपने क्षेत्र में शीर्ष प्रतिष्ठा दिलाएगी।`;
+    const p3 = `भावत् भावम् सिद्धांत के अनुसार दशम से दशम अर्थात सप्तम भाव (${chart.houses[7].rashiName}, स्वामी ${chart.houses[7].lordName}) आपके करियर की सार्वजनिक प्रतिष्ठा, जनसंपर्क एवं दीर्घकालिक स्थिरता का संवर्धन करता है। दीर्घकालिक करियर विकास के लिए कार्यशैली में पारदर्शिता, नैतिक मूल्यों के प्रति निष्ठा और दूरदर्शिता बनाए रखना आवश्यक है। कार्यस्थल पर उत्पन्न होने वाली आकस्मिक चुनौतियों का धैर्यपूर्वक समाधान निकालना आपकी परिपक्वता को सिद्ध करेगा। आपकी अटूट कर्तव्यनिष्ठा आपको अपने क्षेत्र में शीर्ष प्रतिष्ठा दिलाएगी।`;
 
     const hasDosha = Boolean(chart.hasKarmaDosha);
 
@@ -1885,7 +1953,7 @@ function buildRawDynamicCareerFallback(chart: ParsedKundaliChart): string {
 
     const p1 = `మీ జాతకంలో 10వ ఇల్లు (${h10Sign}) మరియు కర్మాధిపతి ${h10Lord} ${h10Where}లో ఉండటం వృత్తి జీవితంలో స్థిరత్వం, నాయకత్వ లక్షణాలు మరియు ఉన్నత పదవులను సూచిస్తున్నాయి. కర్మకారక శని మీ పనిలో క్రమశిక్షణను, అంకితభావాన్ని కోరుతున్నారు. మీ జాతక బలాన్ని బట్టి ${careerDomain} రంగాలలో విశేష ప్రతిభను కనబరిచి, స్వశక్తితో ఉన్నత స్థాయికి చేరుకుంటారు.`;
     const p2 = `ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం నూతన ప్రాజెక్టులు ప్రారంభించడానికి, పలుకుబడి గల వ్యక్తుల పరిచయాలకు ఎంతో అనుకూలంగా ఉంది. గోచారంలో గురు, శని గ్రహాల అనుకూల సంచారం మీ దీర్ఘకాలిక శ్రమకు తగిన గుర్తింపును, ప్రమోషన్లను మరియు ఆర్థిక స్థిరత్వాన్ని చేకూరుస్తాయి. ఆఫీసులో తోటి ఉద్యోగులతో సత్సంబంధాలు కొనసాగించడం మీ వృత్తిపరమైన ఎదుగుదలకు మరింత బలాన్నిస్తుంది.`;
-    const p3 = `వృత్తిలో స్థిరమైన ప్రగతి సాధించడానికి సమన్వయం, సమయస్ఫూర్తి మరియు ఉన్నత నైతిక విలువలు ఎంతో అవసరం. ఆకస్మిక సవాళ్లను సమర్థవంతంగా ఎదుర్కొని ముందుకు సాగడం మీ నాయకత్వ ప్రతిభను నిరూపిస్తుంది. మీ శ్రమ మరియు నిజాయితీ మీకు సమాజంలో గౌరవప్రదమైన స్థానాన్ని అందిస్తాయి.`;
+    const p3 = `భావత్ భావం సిద్ధాంతం ప్రకారం 10వ ఇంటికి 10వ ఇల్లు అయిన 7వ ఇల్లు (${chart.houses[7].rashiName}, అధిపతి ${chart.houses[7].lordName}) మీ వృత్తిపరమైన ప్రజాదరణ మరియు దీర్ఘకాలిక స్థిరత్వాన్ని పెంపొందిస్తుంది. వృత్తిలో స్థిరమైన ప్రగతి సాధించడానికి సమన్వయం, సమయస్ఫూర్తి మరియు ఉన్నత నైతిక విలువలు ఎంతో అవసరం. ఆకస్మిక సవాళ్లను సమర్థవంతంగా ఎదుర్కొని ముందుకు సాగడం మీ నాయకత్వ ప్రతిభను నిరూపిస్తుంది. మీ శ్రమ మరియు నిజాయితీ మీకు సమాజంలో గౌరవప్రదమైన స్థానాన్ని అందిస్తాయి.`;
 
     const hasDosha = Boolean(chart.hasKarmaDosha);
 
@@ -1898,7 +1966,7 @@ function buildRawDynamicCareerFallback(chart: ParsedKundaliChart): string {
 
     const p1 = `உங்கள் ஜாதகத்தில் 10-ம் வீடான (${h10Sign}) மற்றும் 10-ம் அதிபதி ${h10Lord} ${h10Where} அமைப்பில் இருப்பது உங்கள் தொழில் வாழ்வில் சிறந்த நிலைத்தன்மை, தலைமைப் பண்பு மற்றும் உயர்ந்த அந்தஸ்தைத் தரும். கர்மகாரகன் சனி பகவான் உங்கள் தொழிலில் கடமை உணர்வையும், அயராத உழைப்பையும் எதிர்பார்க்கிறார். ஜாதக அமைப்பின்படி ${careerDomain} சார்ந்த துறைகளில் நீங்கள் சிறந்து விளங்கி, உயர் நிர்வாகப் பதவிகளை அடைவீர்கள்.`;
     const p2 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி புதிய பொறுப்புகளையும் செல்வாக்கையும் தரும். குரு மற்றும் சனி பகவானின் சுப கோசாரம் உங்கள் கடின உழைப்பிற்கு ஏற்ற பதவி உயர்வையும், நிலையான வருமானத்தையும் பெற்றுத்தரும். சக பணியாளர்களுடன் சுமுகமாகப் பழகுவதும், அவசர முடிவுகளைத் தவிர்ப்பதும் உங்கள் தொழில் மரியாதையை உயர்த்தும்.`;
-    const p3 = `நீண்டகால தொழில் மேன்மைக்கு திட்டமிட்ட உழைப்பும், நேர்மையும், தலைமைத்துவமும் இன்றியமையாதவை. சவாலான தருணங்களில் நிதானத்துடன் முடிவெடுப்பது உங்கள் ஆளுமையை வெளிப்படுத்தும். உங்கள் அசைக்க முடியாத உழைப்பு தொழில் துறையில் நிரந்தர புகழையும் உயர் அந்தஸ்தையும் தேடித் தரும்.`;
+    const p3 = `பாவத் பாவம் சாஸ்திரப்படி 10-ம் வீட்டிற்கு 10-ம் வீடான 7-ம் பாவகமானது (${chart.houses[7].rashiName}, அதிபதி ${chart.houses[7].lordName}) உங்கள் தொழிலின் பொது நற்பெயரையும் நிலையான வெற்றியையும் உறுதி செய்கிறது. நீண்டகால தொழில் மேன்மைக்கு திட்டமிட்ட உழைப்பும், நேர்மையும், தலைமைத்துவமும் இன்றியமையாதவை. சவாலான தருணங்களில் நிதானத்துடன் முடிவெடுப்பது உங்கள் ஆளுமையை வெளிப்படுத்தும். உங்கள் அசைக்க முடியாத உழைப்பு தொழில் துறையில் நிரந்தர புகழையும் உயர் அந்தஸ்தையும் தேடித் தரும்.`;
 
     const hasDosha = Boolean(chart.hasKarmaDosha);
 
@@ -1911,7 +1979,7 @@ function buildRawDynamicCareerFallback(chart: ParsedKundaliChart): string {
   const h10LordShani = h10.lordGraha === 'Saturn' ? (h10Lord.includes('Shani') ? h10Lord : `${h10Lord} (Shani)`) : h10Lord;
   const p1 = `Your 10th house (${h10Sign}) and 10th house lord ${h10LordShani} situated in ${h10Where} govern your foundational career ambitions, leadership potential, professional stability, and societal recognition. Karmakaraka Saturn positioned in ${saturnWhere} instills patient perseverance, ethical rigor, and organizational maturity, indicating that your rise will be grounded in solid competence rather than speculative fortune. You are intrinsically suited for authoritative execution within ${careerDomain}, excelling in strategic stewardship and autonomous decision-making.`;
   const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period create a robust launching pad for major professional expansion, executive appointments, and expanded influence. Benefic transits of Jupiter and Saturn validate years of dedicated toil, heralding institutional promotions, financial appraisals, and enhanced managerial responsibilities. Fostering harmonious collaboration with colleagues, mentoring subordinate talent, and refusing to compromise your core integrity will safeguard your stellar professional reputation.`;
-  const p3 = `Long-term career eminence requires sustained strategic agility, emotional composure under high-stakes deadlines, and uncompromising professional ethics. By approaching complex operational challenges with measured clarity and transparent accountability, you naturally solidify your position as an indispensable executive pillar. Cultivating this purposeful alignment guarantees steady career elevation and lasting vocational renown.`;
+  const p3 = `Under the classical Bhavat Bhavam principle (10th from the 10th house), your 7th house (${chart.houses[7].rashiName}, ruled by Lord ${chart.houses[7].lordName}) anchors public credibility, executive partnerships, and the enduring commercial longevity of your career. Strategic vision, ethical integrity, and team-building stewardship form the cornerstones of your professional ascendancy. Meeting complex challenges with grounded equanimity showcases your seasoned leadership, ensuring compounding worldly honor and vocational distinction.`;
 
   const hasDosha = Boolean(chart.hasKarmaDosha);
 
@@ -2076,7 +2144,7 @@ function buildRawDynamicWealthFallback(chart: ParsedKundaliChart): string {
 
     const p1 = `ನಿಮ್ಮ ಜನ್ಮ ಜಾತಕದ 2ನೇ ಮನೆ (ಧನ ಭಾವವಾದ ${h2.rashiName}, ಅಧಿಪತಿ ${h2Lord}) ಹಾಗೂ 11ನೇ ಮನೆ (ಲಾಭ ಭಾವವಾದ ${h11.rashiName}, ಅಧಿಪತಿ ${h11Lord}) ಗ್ರಹಗಳ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸಮೃದ್ಧಿ, ಸ್ಥಿರಾಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ನಿರಂತರ ಧನಾಗಮನದ ಯೋಗವನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ. ಧನಕಾರಕ ಬೃಹಸ್ಪತಿಯು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಯನ್ನು ರಕ್ಷಿಸುತ್ತಾನೆ. ನಿಮ್ಮ ಕಠಿಣ ಪರಿಶ್ರಮ ಮತ್ತು ದೂರದೃಷ್ಟಿಯ ಹೂಡಿಕೆಗಳು ದೀರ್ಘಾವಧಿಯಲ್ಲಿ ಸ್ಥಿರವಾದ ಆಸ್ತಿ ಹಾಗೂ ಬ್ಯಾಂಕ್ ಉಳಿತಾಯವನ್ನು ತಂದುಕೊಡಲಿವೆ.`;
     const p2 = `ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿ ಅವಧಿಯು ಆರ್ಥಿಕ ಹರಿವನ್ನು ವೃದ್ಧಿಸಲು ಮತ್ತು ನೂತನ ಆದಾಯದ ಮೂಲಗಳನ್ನು ಸೃಷ್ಟಿಸಲು ಪ್ರಬಲ ಬೆಂಬಲ ನೀಡುತ್ತಿದೆ. ಗೋಚಾರದಲ್ಲಿ ಗುರು ಹಾಗೂ ಶನಿಯ ಅನುಕೂಲಕರ ಸ್ಥಿತಿಯು ಸಾಲಗಳಿಂದ ಮುಕ್ತಿ, ಭೂಮಿ ಅಥವಾ ಆಸ್ತಿ ಖರೀದಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಭದ್ರತೆಯನ್ನು ಖಾತರಿಪಡಿಸಲಿದೆ. ಆತುರದ ಷೇರು ಹೂಡಿಕೆಗಳು ಅಥವಾ ಅಪಾಯಕಾರಿ ಸಾಲ ವ್ಯವಹಾರಗಳಿಂದ ದೂರವಿರುವುದು ನಿಮ್ಮ ಸಂಪತ್ತನ್ನು ಸುರಕ್ಷಿತವಾಗಿಡಲಿದೆ.`;
-    const p3 = `ದೀರ್ಘಾವಧಿಯ ಸಂಪತ್ತು ನಿರ್ಮಾಣಕ್ಕೆ ವ್ಯವಸ್ಥಿತ ಹೂಡಿಕೆ ಯೋಜನೆಗಳು ಮತ್ತು ಆಸ್ತಿಗಳ ವೈವಿಧ್ಯೀಕರಣ ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಲಿದೆ. ಕೌಟುಂಬಿಕ ಅವಶ್ಯಕತೆಗಳನ್ನು ಪೂರೈಸುತ್ತಾ, ಭವಿಷ್ಯದ ಭದ್ರತೆಗಾಗಿ ನಿರಂತರವಾಗಿ ಉಳಿತಾಯವನ್ನು ವೃದ್ಧಿಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯನ್ನು ಉನ್ನತ ಮಟ್ಟದಲ್ಲಿಡಲಿದೆ. ನಿಮ್ಮ ಹಣಕಾಸಿನ ವಿವೇಕವು ಕುಟುಂಬಕ್ಕೆ ಶಾಶ್ವತ ನೆಮ್ಮದಿಯನ್ನು ನೀಡಲಿದೆ.`;
+    const p3 = `ಭಾವತ್ ಭಾವಂ ಶಾಸ್ತ್ರದಂತೆ ಲಾಭ ಸ್ಥಾನವಾದ ೧೧ಕ್ಕೆ ೧೧ನೇ ಮನೆಯಾದ ಭಾಗ್ಯ ಸ್ಥಾನವು (${chart.houses[9].rashiName}, ಅಧಿಪತಿ ${chart.houses[9].lordName}) ನಿಮ್ಮ ಧರ್ಮಮಾರ್ಗದ ಉಳಿತಾಯ ಮತ್ತು ಶಾಶ್ವತ ಸಂಪತ್ತನ್ನು ಸದಾ ರಕ್ಷಿಸುತ್ತದೆ. ದೀರ್ಘಾವಧಿಯ ಸಂಪತ್ತು ನಿರ್ಮಾಣಕ್ಕೆ ವ್ಯವಸ್ಥಿತ ಹೂಡಿಕೆ ಯೋಜನೆಗಳು ಮತ್ತು ಆಸ್ತಿಗಳ ವೈವಿಧ್ಯೀಕರಣ ಅತ್ಯಂತ ಫಲಪ್ರದವಾಗಲಿದೆ. ಕೌಟುಂಬಿಕ ಅವಶ್ಯಕತೆಗಳನ್ನು ಪೂರೈಸುತ್ತಾ, ಭವಿಷ್ಯದ ಭದ್ರತೆಗಾಗಿ ನಿರಂತರವಾಗಿ ಉಳಿತಾಯವನ್ನು ವೃದ್ಧಿಸಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿತಿಯನ್ನು ಉನ್ನತ ಮಟ್ಟದಲ್ಲಿಡಲಿದೆ. ನಿಮ್ಮ ಹಣಕಾಸಿನ ವಿವೇಕವು ಕುಟುಂಬಕ್ಕೆ ಶಾಶ್ವತ ನೆಮ್ಮದಿಯನ್ನು ನೀಡಲಿದೆ.`;
 
     const hasDosha = Boolean(chart.hasDhanaDosha);
 
@@ -2089,7 +2157,7 @@ function buildRawDynamicWealthFallback(chart: ParsedKundaliChart): string {
 
     const p1 = `आपकी कुंडली का द्वितीय भाव (${h2.rashiName}, स्वामी ${h2Lord}) तथा एकादश भाव (${h11.rashiName}, स्वामी ${h11Lord}) वित्तीय संचय, आय के स्रोतों और पारिवारिक संपत्ति की प्रचुरता को दर्शाते हैं। धनकारक बृहस्पति आपकी वित्तीय सुरक्षा को दृढ़ता प्रदान करते हैं। आपकी दूरदर्शिता और परिश्रम से अर्जित आय दीर्घकालिक परिसंपत्तियों और अचल संपत्ति के निर्माण में सहायक होगी।`;
     const p2 = `वर्तमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल नए वित्तीय अवसरों और व्यावसायिक विस्तार के लिए अत्यंत अनुकूल है। गोचर में गुरु और शनि का शुभ प्रभाव ऋणों से मुक्ति, गृह निर्माण या भूमि क्रय के प्रबल योग बना रहा है। सट्टेबाजी और जोखिम भरे निवेशों से बचते हुए सुरक्षित योजनाओं में धन लगाना आपकी आर्थिक संपन्नता को अक्षुण्ण रखेगा।`;
-    const p3 = `स्थायी संपत्ति के निर्माण हेतु संयमित वित्तीय योजना और परिसंपत्तियों का विविधीकरण अत्यंत लाभकारी सिद्ध होगा। परिवार के वर्तमान दायित्वों को पूरा करते हुए भविष्य के लिए एक मजबूत वित्तीय आधार तैयार करना आपकी बुद्धिमत्ता का परिचायक है। यह आर्थिक अनुशासन आपको दीर्घकालिक समृद्धि प्रदान करेगा।`;
+    const p3 = `भावत् भावम् शास्त्र के अनुसार लाभ भाव (११वें) से ११वां भाव अर्थात भाग्य स्थान (${chart.houses[9].rashiName}, स्वामी ${chart.houses[9].lordName}) आपकी धर्मनिष्ठ संचित पूंजी एवं स्थायी संपदा की रक्षा करता है। स्थायी संपत्ति के निर्माण हेतु संयमित वित्तीय योजना और परिसंपत्तियों का विविधीकरण अत्यंत लाभकारी सिद्ध होगा। परिवार के वर्तमान दायित्वों को पूरा करते हुए भविष्य के लिए एक मजबूत वित्तीय आधार तैयार करना आपकी बुद्धिमत्ता का परिचायक है। यह आर्थिक अनुशासन आपको दीर्घकालिक समृद्धि प्रदान करेगा।`;
 
     const hasDosha = Boolean(chart.hasDhanaDosha);
 
@@ -2102,7 +2170,7 @@ function buildRawDynamicWealthFallback(chart: ParsedKundaliChart): string {
 
     const p1 = `మీ జాతకంలో 2వ ఇల్లు (${h2.rashiName}, అధిపతి ${h2Lord}) మరియు 11వ ఇల్లు (${h11.rashiName}, అధిపతి ${h11Lord}) మీ ఆర్థిక శ్రేయస్సును, ఆస్తి వృద్ధిని సూచిస్తున్నాయి. గురు భగవానుడు మీ ఆర్థిక స్థితికి రక్షణగా నిలుస్తారు. మీ కష్టార్జితం మరియు వివేకవంతమైన పొదుపు దీర్ఘకాలిక ఆస్తుల రూపంలో స్థిరపడతాయి.`;
     const p2 = `ప్రస్తుత ${chart.mahaLordName} మహాదశ మరియు ${chart.bhuktiLordName} భుక్తి కాలం నూతన ఆదాయ మార్గాలను సృష్టించడానికి ఎంతో తోడ్పడుతుంది. గోచారంలో గురు, శని గ్రహాల అనుగ్రహం రుణ విముక్తిని, గృహ నిర్మాణాన్ని లేదా భూమి కొనుగోలును సులభతరం చేస్తాయి. స్పెక్యులేషన్ లేదా తొందరపాటు పెట్టుబడులకు దూరంగా ఉండటం మీ సంపదను కాపాడుతుంది.`;
-    const p3 = `దీర్ఘకాలిక సంపద సృష్టి కోసం వివేకవంతమైన పెట్టుబడులు మరియు ఆస్తుల పరిరక్షణ ఎంతో ముఖ్యం. కుటుంబ అవసరాలను తీరుస్తూనే భవిష్యత్తు కోసం స్థిరమైన నిధిని సమకూర్చుకోవడం మీ ఆర్థిక స్థిరత్వాన్ని పెంచుతుంది. మీ వివేకం కుటుంబానికి శాశ్వత సుఖసంతోషాలను అందిస్తుంది.`;
+    const p3 = `భావత్ భావం శాస్త్రం ప్రకారం లాభ స్థానమైన 11వ ఇంటికి 11వ ఇల్లు అయిన 9వ ఇల్లు భాగ్య స్థానం (${chart.houses[9].rashiName}, అధిపతి ${chart.houses[9].lordName}) మీ ధర్మబద్ధమైన సంపదను కాపాడుతుంది. దీర్ఘకాలిక సంపద సృష్టి కోసం వివేకవంతమైన పెట్టుబడులు మరియు ఆస్తుల పరిరక్షణ ఎంతో ముఖ్యం. కుటుంబ అవసరాలను తీరుస్తూనే భవిష్యత్తు కోసం స్థిరమైన నిధిని సమకూర్చుకోవడం మీ ఆర్థిక స్థిరత్వాన్ని పెంచుతుంది. మీ వివేకం కుటుంబానికి శాశ్వత సుఖసంతోషాలను అందిస్తుంది.`;
 
     const hasDosha = Boolean(chart.hasDhanaDosha);
 
@@ -2115,7 +2183,7 @@ function buildRawDynamicWealthFallback(chart: ParsedKundaliChart): string {
 
     const p1 = `உங்கள் ஜாதகத்தில் 2-ம் வீடான (${h2.rashiName}, அதிபதி ${h2Lord}) மற்றும் 11-ம் வீடான (${h11.rashiName}, அதிபதி ${h11Lord}) உங்கள் நிதி வளம், அசையா சொத்துக்கள் மற்றும் தொடர் வருமானத்தைக் குறிக்கின்றன. தனகாரகன் குரு பகவான் உங்கள் நிதிப் பாதுகாப்பை உறுதி செய்கிறார். உங்கள் அயராத உழைப்பும் தொலைநோக்குப் பார்வையும் எதிர்காலத்தில் நிலம், வீடு போன்ற நிலையான சொத்துக்களை உருவாக்க உதவும்.`;
     const p2 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி புதிய வருமான வழிகளைத் திறக்கும். கோசாரத்தில் குரு மற்றும் சனி பகவானின் அருள் கடன் சுமைகளிலிருந்து விடுபடவும், புதிய சொத்துக்கள் வாங்கவும் வழிவகுக்கும். அவசரப் பங்குச் சந்தை முதலீடுகளைத் தவிர்ப்பது உங்கள் செல்வத்தைப் பாதுகாக்கும்.`;
-    const p3 = `நீண்டகால நிதிப் பாதுகாப்பிற்கு சீரான சேமிப்பும் பாதுகாப்பான முதலீடுகளும் மிகவும் இன்றியமையாதவை. குடும்பத்தின் தேவைகளை நிறைவேற்றிக் கொண்டே எதிர்கால சேமிப்பை உயர்த்துவது உங்கள் பொருளாதார வலிமையை நிலைநிறுத்தும். உங்களின் பொறுப்பான நிதி மேலாண்மை குடும்பத்திற்கு நிரந்தர சுபிட்சத்தை அளிக்கும்.`;
+    const p3 = `பாவத் பாவம் சாஸ்திரப்படி 11-ம் வீட்டிற்கு 11-ம் வீடான 9-ம் பாக்கிய ஸ்தானமானது (${chart.houses[9].rashiName}, அதிபதி ${chart.houses[9].lordName}) உங்கள் தர்ம நெறிசார்ந்த செல்வத்தை நிலைநிறுத்துகிறது. நீண்டகால நிதிப் பாதுகாப்பிற்கு சீரான சேமிப்பும் பாதுகாப்பான முதலீடுகளும் மிகவும் இன்றியமையாதவை. குடும்பத்தின் தேவைகளை நிறைவேற்றிக் கொண்டே எதிர்கால சேமிப்பை உயர்த்துவது உங்கள் பொருளாதார வலிமையை நிலைநிறுத்தும். உங்களின் பொறுப்பான நிதி மேலாண்மை குடும்பத்திற்கு நிரந்தர சுபிட்சத்தை அளிக்கும்.`;
 
     const hasDosha = Boolean(chart.hasDhanaDosha);
 
@@ -2128,7 +2196,7 @@ function buildRawDynamicWealthFallback(chart: ParsedKundaliChart): string {
   const h2LordShukra = h2.lordGraha === 'Venus' ? (h2Lord.includes('Shukra') ? h2Lord : `${h2Lord} (Shukra)`) : h2Lord;
   const p1 = `Your 2nd house of accumulated reserves (${h2.rashiName}, ruled by ${h2LordShukra}) and 11th house of recurrent gains (${h11.rashiName}, ruled by ${h11Lord}) govern your wealth trajectory, capital retention, and asset expansion. Dhanakaraka Jupiter placed in ${jupWhere} establishes an enduring astrological foundation for liquid liquidity and sovereign independence. Your persistent industriousness, disciplined lifestyle, and calculated investments are primed to yield substantial tangible assets and long-term security.`;
   const p2 = `Your running ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti period provide decisive energetic backing to expand revenue streams and execute strategic acquisitions. Benefic alignments of Jupiter and Saturn support the unburdening of historical liabilities and pave the way for real estate acquisitions or foundational investments. Resisting high-risk speculative frenzies and anchoring capital in tangible assets ensures unbroken financial tranquility.`;
-  const p3 = `Building enduring family wealth requires balanced asset allocation, conservative cash reserve buffers, and patient compounding. By aligning active earnings with tangible property, sovereign instruments, and disciplined debt retirement, you create a robust financial legacy. This prudent fiscal stewardship ensures continuous family flourishing and multi-generational prosperity.`;
+  const p3 = `Through classical Bhavat Bhavam (11th from the 11th house), your 9th house of Fortune (${chart.houses[9].rashiName}, ruled by Lord ${chart.houses[9].lordName}) sanctifies material gains, safeguarding ethical wealth and sustained financial security. Building enduring family wealth requires balanced asset allocation, conservative cash reserve buffers, and patient compounding. By aligning active earnings with tangible property, sovereign instruments, and disciplined debt retirement, you create a robust financial legacy. This prudent fiscal stewardship ensures continuous family flourishing and multi-generational prosperity.`;
 
   const hasDosha = Boolean(chart.hasDhanaDosha);
 
@@ -2962,7 +3030,10 @@ function buildRawDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string 
     const satH = chart.transitSaturn?.houseFromMoon ?? 7;
     const p2 = `ಗೋಚಾರ ಗ್ರಹಗಳಾದ ದೇವಗುರು ನಿಮ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ ${jupH}ನೇ ಭಾವದಲ್ಲಿ ಹಾಗೂ ಶನಿ ಮಹಾತ್ಮರು ${satH}ನೇ ಭಾವದಲ್ಲಿ ಸಂಚರಿಸುತ್ತಿದ್ದು, ನಿಮ್ಮ ದೃಢ ಪರಿಶ್ರಮ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಧರ್ಮನಿಷ್ಠೆಗೆ ತಕ್ಕ ಸತ್ಫಲಗಳನ್ನು ನೀಡಲು ಸನ್ನದ್ಧವಾಗಿವೆ. ಜೀವನದಲ್ಲಿ ತಾತ್ಕಾಲಿಕ ಜಂಜಾಟಗಳು ಅಥವಾ ನಿಧಾನಗತಿ ಎದುರಾದರೂ ಧೃತಿಗೆಡದೆ, ತಾಳ್ಮೆ ಮತ್ತು ಸಂಯಮದಿಂದ ಕರ್ತವ್ಯಗಳನ್ನು ನಿರ್ವಹಿಸುವುದು ಅಪಾರ ಯಶಸ್ಸಿಗೆ ನಾಂದಿ ಹಾಡಲಿದೆ.`;
 
-    const p3 = `ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದ, ಆಂತರಿಕವಾಗಿ ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಭವಿಷ್ಯದ ಸುಭದ್ರತೆ, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ಹಾಗೂ ಸಾಲ-ಹೊಣೆಗಾರಿಕೆಗಳ ಶಾಶ್ವತ ಮುಕ್ತಿಯ ಬಗ್ಗೆ ಗಾಢವಾಗಿ ಚಿಂತಿಸುತ್ತಿದೆ. ಹಳೆಯ ಕಹಿ ನೆನಪುಗಳನ್ನು ಮರೆತು, ಹೊಸ ಭರವಸೆಯೊಂದಿಗೆ ಕರ್ತವ್ಯ ಪಥದಲ್ಲಿ ಮುನ್ನಡೆಯಲು ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದೆ.`;
+    const dashaChidraKn = chart.isDashaChidra
+      ? ` ಪರಾಶರೀ ಶಾಸ್ತ್ರ ಹಾಗೂ ಫಲದೀಪಿಕೆಯಂತೆ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ಪ್ರಸ್ತುತ 'ದಶಾ-ಚಿದ್ರ' (ಮಹಾದಶೆಯ ಅಂತಿಮ ಸಂಧಿಕಾಲ) ಚಾಲ್ತಿಯಲ್ಲಿದೆ. ಈ ಕಾಲಘಟ್ಟವು ಹಿಂದಿನ ಮಹಾದಶೆಯ ಸಂಚಿತ ಕರ್ಮಗಳನ್ನು ಕರಗಿಸಿ, ಮುಂಬರುವ ನವಯುಗದ ಅದ್ಭುತ ಆರಂಭಕ್ಕೆ ನಿಮ್ಮನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತಿದೆ.`
+      : "";
+    const p3 = `ಪ್ರಸ್ತುತ ಚಾಲ್ತಿಯಲ್ಲಿರುವ ${chart.mahaLordName} ಮಹಾದಶಾ ಹಾಗೂ ${chart.bhuktiLordName} ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದ, ಆಂತರಿಕವಾಗಿ ನಿಮ್ಮ ಸುಪ್ತ ಮನಸ್ಸು ಭವಿಷ್ಯದ ಸುಭದ್ರತೆ, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ಹಾಗೂ ಸಾಲ-ಹೊಣೆಗಾರಿಕೆಗಳ ಶಾಶ್ವತ ಮುಕ್ತಿಯ ಬಗ್ಗೆ ಗಾಢವಾಗಿ ಚಿಂತಿಸುತ್ತಿದೆ.${dashaChidraKn} ಹಳೆಯ ಕಹಿ ನೆನಪುಗಳನ್ನು ಮರೆತು, ಹೊಸ ಭರವಸೆಯೊಂದಿಗೆ ಕರ್ತವ್ಯ ಪಥದಲ್ಲಿ ಮುನ್ನಡೆಯಲು ಗ್ರಹಗಳ ಶುಭ ಬಲವು ನಿಮ್ಮ ಆತ್ಮಸ್ಥೈರ್ಯವನ್ನು ಹೆಚ್ಚಿಸುತ್ತಿದೆ.`;
 
     const p4 = `【ಪ್ರಸ್ತುತ ದಶಾ-ಗೋಚಾರ ಸಂಕಷ್ಟ ನಿವಾರಣಾ ಕವಚ & ಶ್ರೀ ಸನ್ನಿಧಾನ ಸೇವೆ】: ಗುರು-ಹಿರಿಯರ ಮಾರ್ಗದರ್ಶನವನ್ನು ಗೌರವಿಸುವುದು, ನಿತ್ಯ ಪ್ರಾರ್ಥನೆ ಮಾಡುವುದು ಹಾಗೂ ಸತ್ಪಾತ್ರರಿಗೆ ದಾನ ನೀಡುವುದು ಗ್ರಹ ದೋಷಗಳನ್ನು ಶಮನಗೊಳಿಸಲಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಪರಮ ಪಾವನ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಹಾಗೂ ಶ್ರೀ ಮುಖ್ಯಪ್ರಾಣ ದೇವರ ದಿವ್ಯ ಆಶೀರ್ವಾದವು ಸದಾ ನಿಮ್ಮ ರಕ್ಷಣೆಗೆ ನಿಂತು, ಜೀವನದಲ್ಲಿ ಶಾಶ್ವತ ಶಾಂತಿ, ಸಕಲ ಸೌಭಾಗ್ಯ ಮತ್ತು ಆಯುರಾರೋಗ್ಯವನ್ನು ಕರುಣಿಸಲಿ.`;
 
@@ -2984,7 +3055,10 @@ function buildRawDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string 
     const satH = chart.transitSaturn?.houseFromMoon ?? 7;
     const p2 = `गोचर में चंद्र से ${jupH}वें भाव में देवगुरु बृहस्पति तथा ${satH}वें भाव में शनि देव का संचरण आपके धैर्य, अनुशासन और धर्मनिष्ठ कर्मों का उत्तम प्रतिफल देने के लिए तत्पर है। यदि मार्ग में क्षणिक बाधाएं आएं, तो भी विचलित हुए बिना कर्तव्य पथ पर अडिग रहना ही आपकी सबसे बड़ी शक्ति होगी।`;
 
-    const p3 = `वर्तमान गतिमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल के प्रभाव से, आपका अवचेतन मन भविष्य की सुरक्षा, संचित धन और पारिवारिक सुख-शांति के विषय में गंभीर विचार कर रहा है। पुरानी चिंताओं को त्यागकर नए संकल्पों के साथ आगे बढ़ने के लिए ग्रहों का शुभ बल प्राप्त हो रहा है।`;
+    const dashaChidraHi = chart.isDashaChidra
+      ? ` पराशरी शास्त्र एवं फलदीपिका के अनुसार आपकी कुंडली में वर्तमान में 'दशा-छिद्र' (महादशा का अंतिम संधिकाल) सक्रिय है। यह काल पूर्व संचित कर्म बंधनों को क्षीण कर आगामी नए युग के भव्य स्वागत हेतु अंतर्मन को तैयार करता है।`
+      : "";
+    const p3 = `वर्तमान गतिमान ${chart.mahaLordName} महादशा एवं ${chart.bhuktiLordName} भुक्ति काल के प्रभाव से, आपका अवचेतन मन भविष्य की सुरक्षा, संचित धन और पारिवारिक सुख-शांति के विषय में गंभीर विचार कर रहा है।${dashaChidraHi} पुरानी चिंताओं को त्यागकर नए संकल्पों के साथ आगे बढ़ने के लिए ग्रहों का शुभ बल प्राप्त हो रहा है।`;
 
     const p4 = `【वर्तमान दशा-गोचर संकट निवारण कवच एवं श्री सन्निधान सेवा】: माता-पिता का आशीर्वाद, नित्य भगवद् आराधना तथा सात्विक आचरण मार्ग की समस्त रुकावटों को समाप्त करेगा। श्री क्षेत्र गोकर्ण के पावन आत्मलिंग आशीर्वाद से आपके जीवन में निरंतर स्वास्थ्य, संपन्नता और शांति बनी रहे।`;
 
@@ -3006,7 +3080,10 @@ function buildRawDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string 
     const satH = chart.transitSaturn?.houseFromMoon ?? 7;
     const p2 = `గోచారంలో చంద్రుని నుండి ${jupH}వ స్థానంలో గురు మరియు ${satH}వ స్థానంలో శని గ్రహాల సంచారం మీ కష్టానికి తగిన ప్రతిఫలాన్ని మరియు స్థిరత్వాన్ని అందించేందుకు అనుకూలంగా ఉన్నాయి. చిన్నపాటి ఆటంకాలు ఎదురైనా అధైర్యపడకుండా సంయమనంతో వ్యవహరిస్తే తిరుగులేని విజయాలు సాధిస్తారు.`;
 
-    const p3 = `ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి ప్రభావంతో, అంతరంగంలో మీ మనస్సు భవిష్యత్ ఆర్థిక స్థిరత్వం, కుటుంబ శ్రేయస్సు మరియు రుణ విముక్తి గురించి లోతుగా ఆలోచిస్తోంది. పాత సమస్యలను పరిష్కరించి ప్రశాంతమైన జీవనాన్ని ప్రారంభించడానికి గ్రహ బలం తోడ్పడుతుంది.`;
+    const dashaChidraTe = chart.isDashaChidra
+      ? ` పరాశర శాస్త్రం మరియు ఫలదీపిక ప్రకారం మీ జాతకంలో ప్రస్తుతం 'దశా-ఛిద్ర' (మహాదశ ముగింపు సంధికాలం) నడుస్తోంది. ఈ కాలం గత సంచిత కర్మలను తొలగించి రాబోయే నూతన యుగపు శుభారంభానికి మిమ్మల్ని సంసిద్ధం చేస్తుంది.`
+      : "";
+    const p3 = `ప్రస్తుతం నడుస్తున్న ${chart.mahaLordName} మహర్దశ మరియు ${chart.bhuktiLordName} భుక్తి ప్రభావంతో, అంతరంగంలో మీ మనస్సు భవిష్యత్ ఆర్థిక స్థిరత్వం, కుటుంబ శ్రేయస్సు మరియు రుణ విముక్తి గురించి లోతుగా ఆలోచిస్తోంది.${dashaChidraTe} పాత సమస్యలను పరిష్కరించి ప్రశాంతమైన జీవనాన్ని ప్రారంభించడానికి గ్రహ బలం తోడ్పడుతుంది.`;
 
     const p4 = `【ప్రస్తుత దశా-గోచార సంకట నివారణ కవచం & శ్రీ సన్నిధాన సేవ】: పెద్దల ఆశీర్వాదాలు తీసుకోవడం, నిత్య ఇష్టదైవ ప్రార్థన చేయడం వల్ల గ్రహ దోషాలు తొలగిపోతాయి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి ఆశీస్సులతో మీ జీవితంలో ఆయురారోగ్యాలు, శాశ్వత శాంతి మరియు సర్వతోముఖాభివృద్ధి చేకూరుతాయి.`;
 
@@ -3028,7 +3105,10 @@ function buildRawDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string 
     const satH = chart.transitSaturn?.houseFromMoon ?? 7;
     const p2 = `கோசாரத்தில் சந்திரனிலிருந்து ${jupH}-ஆம் இடத்தில் குரு பகவானும், ${satH}-ஆம் இடத்தில் சனி பகவானும் சஞ்சரிப்பது உங்கள் உண்மையான உழைப்பிற்கும் நேர்மைக்கும் ஏற்ற நற்பலன்களை வாரி வழங்கக் காத்திருக்கின்றன. தற்காலிகத் தடைகள் தோன்றினாலும் தளராமல் விவேகத்துடன் செயல்படுவது வெற்றியைத் தரும்.`;
 
-    const p3 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி தாக்கத்தால், ஆழ்மனதில் நீங்கள் எதிர்காலப் பாதுகாப்பு, குடும்ப நலம் மற்றும் கடன்களிலிருந்து விடுபடுவது குறித்து ஆழமாகச் சிந்திக்கிறீர்கள். பழைய கவலைகளை மறந்து புது நம்பிக்கையுடன் செயல்பட கிரகங்களின் அருள் துணைநிற்கிறது.`;
+    const dashaChidraTa = chart.isDashaChidra
+      ? ` பராசர சாஸ்திரம் மற்றும் பலதீபிகையின்படி உங்கள் ஜாதகத்தில் தற்போது 'தசா-சித்ர' (மகாதிசையின் இறுதி சந்திக்காலம்) நடைபெறுகிறது. இக்காலம் பழைய கர்ம வினைகளைக் கரைத்து, வரவிருக்கும் புதிய பொற்காலத் தொடக்கத்திற்கு உங்களை தயார்படுத்துகிறது.`
+      : "";
+    const p3 = `தற்போதைய ${chart.mahaLordName} மகாதிசை மற்றும் ${chart.bhuktiLordName} புக்தி தாக்கத்தால், ஆழ்மனதில் நீங்கள் எதிர்காலப் பாதுகாப்பு, குடும்ப நலம் மற்றும் கடன்களிலிருந்து விடுபடுவது குறித்து ஆழமாகச் சிந்திக்கிறீர்கள்.${dashaChidraTa} பழைய கவலைகளை மறந்து புது நம்பிக்கையுடன் செயல்பட கிரகங்களின் அருள் துணைநிற்கிறது.`;
 
     const p4 = `【தற்போதைய தசா-கோச்சார சங்கட நிவாரணக் கவசம் & ஸ்ரீ சந்நிதான சேவை】: பெரியோர்களின் ஆசிகளைப் பெறுவதும் தினசரி வழிபாடும் அனைத்து தோஷங்களையும் போக்கும். ஸ்ரீ க்ஷேத்திர கோகர்ண திருத்தலத்தின் திவ்ய ஆசியுடன் உங்கள் வாழ்வில் நீண்ட ஆயுள், ஆரோக்கியம் மற்றும் நிலையான மன அமைதி நிறையும்.`;
 
@@ -3050,7 +3130,10 @@ function buildRawDynamicCurrentPhaseFallback(chart: ParsedKundaliChart): string 
   const satH = chart.transitSaturn?.houseFromMoon ?? 7;
   const p2 = `Live transits, with Jupiter activating the ${jupH}th house and Saturn structuring the ${satH}th house from your natal Moon, converge to reward unyielding perseverance, ethical discipline, and professional integrity. Even if transient hurdles arise, greeting them with meditative poise and calculated patience converts apparent friction into substantial stepping stones.`;
 
-  const p3 = `Under your unfolding ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti, at a deeper subconscious tier, your focus centers on long-term family security, dissolving residual liabilities, and orchestrating stable new beginnings. Harmonic planetary placements provide the fortitude and moral clarity needed to transcend historical anxieties.`;
+  const dashaChidraEn = chart.isDashaChidra
+    ? ` Furthermore, adhering strictly to classical Phaladeepika principles, your chart currently undergoes the sacred 'Dasha-Chidra' (the concluding junction of your Mahadasha), dissolving unspent karmic momentum to realign your path for the incoming planetary era.`
+    : "";
+  const p3 = `Under your unfolding ${chart.mahaLordName} Mahadasha and ${chart.bhuktiLordName} Bhukti, at a deeper subconscious tier, your focus centers on long-term family security, dissolving residual liabilities, and orchestrating stable new beginnings.${dashaChidraEn} Harmonic planetary placements provide the fortitude and moral clarity needed to transcend historical anxieties.`;
 
   const p4 = `【CURRENT DASHA-GOCHARA RELIEF SHIELD & SRI GOKARNA SANCTUARY SEVA】: Consistent spiritual grounding, honoring mentors, and maintaining benevolent deeds will harmonize cosmic forces. Showered with the divine grace of Lord Mahabaleshwara and Sri Mukhyaprana at the Sri Kshetra Gokarna sacred sanctum, may your path be perpetually blessed with health, peace, and compounding holistic prosperity.`;
 

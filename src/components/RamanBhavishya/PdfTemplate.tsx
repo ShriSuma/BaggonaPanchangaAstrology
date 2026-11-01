@@ -307,11 +307,13 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   ) => {
     const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೧೦"];
     const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९", "१०"];
+    const teDigits = ["౦", "౧", "౨", "౩", "౪", "౫", "౬", "౭", "౮", "౯", "౧౦"];
+    const taDigits = ["௦", "௧", "௨", "௩", "௪", "௫", "௬", "௭", "௮", "௯", "௰"];
     let badgeText = "";
     if (langKey === "kn") badgeText = `ಅಧ್ಯಾಯ ${knDigits[chapterNum] || chapterNum}`;
     else if (langKey === "hi") badgeText = `अध्याय ${hiDigits[chapterNum] || chapterNum}`;
-    else if (langKey === "te") badgeText = `అధ్యాయం ${chapterNum}`;
-    else if (langKey === "ta") badgeText = `அத்தியாயம் ${chapterNum}`;
+    else if (langKey === "te") badgeText = `అధ్యాయం ${teDigits[chapterNum] || chapterNum}`;
+    else if (langKey === "ta") badgeText = `அத்தியாயம் ${taDigits[chapterNum] || chapterNum}`;
     else badgeText = `Chapter ${chapterNum}`;
 
     let rawTitle = (currentTitle || (langKey === "kn" ? defaultKnTitle : defaultEnTitle)).trim();
