@@ -112,23 +112,23 @@ describe("Daivika Parihara Deep Personalization & Panchanga Synthesis Guard", ()
     }
   });
 
-  it("5. PDF Template renders 10-day relief, 15-day transformation, and Sandhi alerts without breaking 4-page layout", () => {
+  it("5. PDF Template renders 10-day relief, 15-day transformation, and Sandhi alerts without breaking 3-page layout", () => {
     const report = generateKundliRemedyReport(mockKundli, devoteeInput);
     const { container } = render(<KundliRemedyPdfTemplate diagnosis={report} lang="kn" />);
 
     const pages = container.querySelectorAll(".pdf-page");
-    expect(pages.length).toBe(4);
+    expect(pages.length).toBe(3);
 
     // Page 1 should contain elemental balance
     const page1Text = pages[0]?.textContent || "";
     expect(page1Text).toContain("ಪಂಚಭೂತ ಸಮನ್ವಯ ತತ್ತ್ವ");
 
-    // Page 4 should contain turnaround and milestones
-    const page4Text = pages[3]?.textContent || "";
-    expect(page4Text).toContain("೧೦ ದಿನಗಳ ನಿರಂತರ ಸಾಧನೆಯ ಅನುಭವ");
-    expect(page4Text).toContain("೧೫ ದಿನಗಳ ನಂತರ ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಜೀವನ ತಿರುವು");
-    expect(page4Text).toContain("ಪರಿಹಾರ ಪೂರ್ವ vs ಪರಿಹಾರೋತ್ತರ ಫಲ");
-    expect(page4Text).toContain("ದಶಾ-ಸಂಧಿ ಕಾಲಾವಧಿ");
+    // Page 3 should contain turnaround and milestones
+    const page3Text = pages[2]?.textContent || "";
+    expect(page3Text).toContain("೧೦ ದಿನಗಳ ನಿರಂತರ ಸಾಧನೆಯ ಅನುಭವ");
+    expect(page3Text).toContain("೧೫ ದಿನಗಳ ನಂತರ ನಿರೀಕ್ಷಿಸಬಹುದಾದ ಜೀವನ ತಿರುವು");
+    expect(page3Text).toContain("ಪರಿಹಾರ ಪೂರ್ವ vs ಪರಿಹಾರೋತ್ತರ ಫಲ");
+    expect(page3Text).toContain("ದಶಾ-ಸಂಧಿ ಕಾಲಾವಧಿ");
   });
 
   it("6. Audits all struggle categories for comprehensive non-empty milestone generation", () => {

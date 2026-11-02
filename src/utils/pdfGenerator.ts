@@ -180,18 +180,66 @@ export async function generatePDFFromElement(
       let pdf: jsPDF | null = null;
 
       for (const pageEl of pageDivs) {
-        const canvas = await html2canvas(pageEl, canvasOptions);
-        const imgData = getCanvasDataUrl(canvas);
-        const heightMm = (canvas.width > 0 && !isNaN(canvas.height / canvas.width))
-          ? (canvas.height / canvas.width) * A4_WIDTH_MM
-          : A4_HEIGHT_MM;
+        // Render each page in an isolated top-level container at (left: 0, top: 0)
+        // to guarantee html2canvas never suffers from vertical scroll offsets,
+        // page stacking offsets, or viewport clipping!
+        const pageBox = document.createElement("div");
+        pageBox.style.position = "fixed";
+        pageBox.style.left = "0px";
+        pageBox.style.top = "0px";
+        pageBox.style.width = "900px";
+        pageBox.style.height = pageEl.style.height || "1273px";
+        pageBox.style.zIndex = "999999";
+        pageBox.style.backgroundColor = "#FFFDF7";
+        pageBox.style.pointerEvents = "none";
+        pageBox.style.overflow = "hidden";
 
-        if (!pdf) {
-          pdf = new jsPDF({ orientation: "p", unit: "mm", format: [A4_WIDTH_MM, heightMm], compress: true });
-        } else {
-          pdf.addPage([A4_WIDTH_MM, heightMm], "p");
+        const pageClone = pageEl.cloneNode(true) as HTMLElement;
+        pageClone.style.margin = "0";
+        pageClone.style.position = "static";
+        pageClone.style.width = "900px";
+        pageClone.style.display = "block";
+
+        // Sanitize letterSpacing & drop-shadow filters in the clone
+        pageClone.querySelectorAll("*").forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          if (htmlEl.style) {
+            htmlEl.style.letterSpacing = "normal";
+            if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
+              htmlEl.style.filter = "none";
+            }
+          }
+        });
+
+        pageBox.appendChild(pageClone);
+        document.body.appendChild(pageBox);
+
+        try {
+          const canvas = await html2canvas(pageBox, {
+            ...canvasOptions,
+            x: 0,
+            y: 0,
+            width: 900,
+            height: pageBox.offsetHeight || 1273,
+            scrollX: 0,
+            scrollY: 0
+          });
+          const imgData = getCanvasDataUrl(canvas);
+          const heightMm = (canvas.width > 0 && !isNaN(canvas.height / canvas.width))
+            ? (canvas.height / canvas.width) * A4_WIDTH_MM
+            : A4_HEIGHT_MM;
+
+          if (!pdf) {
+            pdf = new jsPDF({ orientation: "p", unit: "mm", format: [A4_WIDTH_MM, heightMm], compress: true });
+          } else {
+            pdf.addPage([A4_WIDTH_MM, heightMm], "p");
+          }
+          pdf.addImage(imgData, "JPEG", 0, 0, A4_WIDTH_MM, heightMm);
+        } finally {
+          if (document.body.contains(pageBox)) {
+            document.body.removeChild(pageBox);
+          }
         }
-        pdf.addImage(imgData, "JPEG", 0, 0, A4_WIDTH_MM, heightMm);
       }
       if (pdf) {
         generatedPdf = pdf;

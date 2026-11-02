@@ -1,6 +1,7 @@
 import React from "react";
 import { type KundliRemedyDiagnosis, type SupportedLanguage, computeMandalaVrataSadhana } from "../../features/remedies/kundliRemedyEngine";
 import { PlanetName } from "../../core/AstroTypes";
+import { getRemedyJapaForGraha } from "../../features/remedies/kundliPersonalRemedyJapaEngine";
 
 export type KundliRemedyPdfTemplateProps = {
   diagnosis: KundliRemedyDiagnosis;
@@ -15,7 +16,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     templeBanner: "॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥",
     mainTitle: "ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ & ಮನಃಶಾಂತಿ ವರದಿ",
     page2Title: "ಮನಃಶಾಂತಿ ಸಾಧನೆ, ದೈನಂದಿನ ಶಾಂತಿ ದಿನಚರ್ಯೆ & ಶಾಸ್ತ್ರೋಕ್ತ ಸ್ತೋತ್ರ",
-    page3Title: "೪೫-ದಿನಗಳ ಮಂಡಲ ವ್ರತ ಸಂಕಲ್ಪ, ತಾರಾಬಲ ಮುಹೂರ್ತ & ಸಾಧನಾ ಪತ್ರಿಕೆ",
+    page3Title: "ದಶಾ-ಭುಕ್ತಿ ಫಲ, ಗೋಚಾರ ಪರಿಹಾರ, ವೈದಿಕ ಗ್ರಹ ಶಾಂತಿ ಮಂತ್ರ, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆಗಳು & ಅರ್ಚಕರ ಆಶೀರ್ವಾದ",
     page4Title: "ದಶಾ-ಭುಕ್ತಿ ಫಲ, ಗೋಚಾರ ಪರಿಹಾರ, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಸೇವೆಗಳು & ಅರ್ಚಕರ ಆಶೀರ್ವಾದ",
     dhyanaShloka: "॥ ಶಾಂತಾಕಾರಂ ಭುಜಗಶಯನಂ ಪದ್ಮನಾಭಂ ಸುರೇಶಂ । ಚಂದ್ರಶೇಖರಂ ಪ್ರಣಮಾಮಿ ಸರ್ವ ಶಾಂತಿ ಪ್ರದಾಯಕಮ್ ॥",
     mandalaBanner: "॥ ಏಕ ಮಂಡಲ ತಪಸ್ಸಿನಿಂದ ಸಮಸ್ತ ಕರ್ಮ ಕಲ್ಮಷ ಶಮನ & ಸಂಕಲ್ಪ ಸಿದ್ಧಿ ॥",
@@ -48,6 +49,11 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraBenefits: "ಫಲಶೃತಿ:",
     dailySankalpaTitle: "🪔 ದೈನಂದಿನ ಶಾಂತಿ ಸಂಕಲ್ಪ & ಸನ್ನಿಧಾನದ ನಿಯಮಾವಳಿ",
     dailySankalpaText: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ಮತ್ತು ಸೂರ್ಯಾಸ್ತ ಸಮಯದಲ್ಲಿ ಈ ನಿಯಮಗಳನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಪಾಲಿಸುವುದರಿಂದ ಜಾತಕದಲ್ಲಿನ ಪೀಡಾಕಾರಕ ಗ್ರಹಗಳ ಅಶಾಂತಿ ಶಮನಗೊಂಡು, ಕುಟುಂಬದಲ್ಲಿ ಸೌಹಾರ್ದತೆ ಮತ್ತು ಮನಸ್ಸಿನಲ್ಲಿ ದೈವಿಕ ನೆಮ್ಮದಿ ನೆಲೆಸುತ್ತದೆ.",
+    vedicGrahaShantiTitle: "ವೈದಿಕ ಗ್ರಹ ಶಾಂತಿ ಮಂತ್ರ & ನಿತ್ಯ ೧೧ ಬಾರಿ ಜಪ ವಿಧಾನ",
+    chant11TimesDaily: "ನಿತ್ಯ ೧೧ ಬಾರಿ ಜಪಿಸಿ",
+    prescribedDeityLabel: "ಶಾಂತಿ ದೇವತೆ / ಗ್ರಹ",
+    mantraMeaningLabel: "ಮಂತ್ರದ ದಿವ್ಯ ಅರ್ಥ",
+    calmingBenefitLabel: "ಮನಃಶಾಂತಿ & ದೋಷ ಶಮನ ಫಲ",
     muhurthaTitle: "೬. ಜನ್ಮ ತಾರಾಬಲ ಆಧಾರಿತ ವ್ರತ ಆರಂಭ ಮುಹೂರ್ತ & ಸಾಧನಾ ವಿಧಿ",
     taraBalaLabel: "ತಾರಾಬಲ:",
     weekdayLabel: "ಶುಭ ವಾರ:",
@@ -94,17 +100,17 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     sec8Title: "೮. ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಮುದ್ರೆ",
     templeSealLabel: "ಅಧಿಕೃತ ಮುದ್ರೆ",
     priestContact: "ದೂರವಾಣಿ:",
-    page1Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೧/೪ (ಮುಂದುವರಿದಿದೆ...)",
-    page2Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೨/೪ (ಮುಂದುವರಿದಿದೆ...)",
-    page3Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೩/೪ (ಮುಂದುವರಿದಿದೆ...)",
-    page4Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೪/೪ (ಸಂಪೂರ್ಣ)"
+    page1Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೧/೩ (ಮುಂದುವರಿದಿದೆ...)",
+    page2Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೨/೩ (ಮುಂದುವರಿದಿದೆ...)",
+    page3Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೩/೩ (ಸಂಪೂರ್ಣ)",
+    page4Footer: "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ · ಪುಟ ೩/೩ (ಸಂಪೂರ್ಣ)"
   },
   en: {
     templeBanner: "॥ SRI GOKARNA MAHABALESHWARA TEMPLE · BAGGONA PANCHANGA ASTROLOGY ॥",
     mainTitle: "Personalized Kundali Astrological Remedy & Pacification Report",
     page2Title: "Daily Mind Pacification Protocol & Classical Vedic Stotra",
-    page3Title: "45-Day Sacred Mandala Vrata Sankalpa & Sadhana Guide",
-    page4Title: "Dasha-Bhukti, Live Transits, Gokarna Temple Sevas & Priest Blessing",
+    page3Title: "Dasha-Bhukti, Live Transits, Vedic Graha Shanti Mantra, Gokarna Sevas & Blessings",
+    page4Title: "Dasha-Bhukti, Live Transits, Vedic Graha Shanti Mantra, Gokarna Sevas & Blessings",
     dhyanaShloka: "॥ Shantakaram Bhujagashayanam Padmanabham Suresham | Chandrashekharam Pranamami Sarva Shanti Pradayakam ॥",
     mandalaBanner: "॥ Karma Purification & Sacred Sankalpa Manifestation via One Mandala ॥",
     devotee: "Devotee:",
@@ -136,6 +142,11 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraBenefits: "Spiritual Benefits:",
     dailySankalpaTitle: "🪔 Daily Sacred Peace Sankalpa & Shastric Discipline",
     dailySankalpaText: "By observing these daily shastric disciplines at dawn and twilight with devotion, planetary afflictions are pacified, ensuring mental equilibrium, familial harmony, and divine grace.",
+    vedicGrahaShantiTitle: "Sacred Vedic Graha Shanti Mantra & Daily 11-Time Japa",
+    chant11TimesDaily: "Chant 11 Times Daily",
+    prescribedDeityLabel: "Prescribed Deity / Graha",
+    mantraMeaningLabel: "Sacred Meaning",
+    calmingBenefitLabel: "Inner Peace & Pacification Result",
     muhurthaTitle: "6. Janma Tara Bala Auspicious Starting Muhurtha & Setup",
     taraBalaLabel: "Tara Bala:",
     weekdayLabel: "Ideal Weekday:",
@@ -182,17 +193,17 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     sec8Title: "8. Chief Priest Vedic Blessing & Official Temple Seal",
     templeSealLabel: "Official Temple Seal",
     priestContact: "Contact:",
-    page1Footer: "Sri Gokarna Kshetra · Baggona Panchanga Astrology · Page 1 of 4 (Continued...)",
-    page2Footer: "Sri Gokarna Kshetra · Baggona Panchanga Astrology · Page 2 of 4 (Continued...)",
-    page3Footer: "Sri Gokarna Kshetra · Baggona Panchanga Astrology · Page 3 of 4 (Continued...)",
-    page4Footer: "Sri Gokarna Kshetra · Baggona Panchanga Astrology · Page 4 of 4 (Complete)"
+    page1Footer: "Sri Gokarna Kshetra · Baggona Panchanga Astrology · Page 1 of 3 (Continued...)",
+    page2Footer: "Sri Gokarna Kshetra · Baggona Panchanga Astrology · Page 2 of 3 (Continued...)",
+    page3Footer: "Sri Gokarna Kshetra · Baggona Panchanga Astrology · Page 3 of 3 (Complete)",
+    page4Footer: "Sri Gokarna Kshetra · Baggona Panchanga Astrology · Page 3 of 3 (Complete)"
   },
   hi: {
     templeBanner: "॥ श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष ॥",
     mainTitle: "जन्म कुंडली आधारित वैदिक ज्योतिषीय उपाय एवं मनःशांति रिपोर्ट",
     page2Title: "मनःशांति साधना, दैनिक शांति नियमावली एवं शास्त्रीय स्तोत्र",
-    page3Title: "४५-दिवसीय मंडल व्रत संकल्प, ताराबल मुहूर्त एवं साधना पत्रिका",
-    page4Title: "दशा-भुक्ति फल, गोचर शांति, गोकर्ण क्षेत्र सेवाएं एवं अर्चक आशीर्वाद",
+    page3Title: "दशा-भुक्ति फल, गोचर शांति, वैदिक ग्रह शांति मंत्र, गोकर्ण क्षेत्र सेवाएं एवं अर्चक आशीर्वाद",
+    page4Title: "दशा-भुक्ति फल, गोचर शांति, वैदिक ग्रह शांति मंत्र, गोकर्ण क्षेत्र सेवाएं एवं अर्चक आशीर्वाद",
     dhyanaShloka: "॥ शान्ताकारं भुजगशयनं पद्मनाभं सुरेशं । चन्द्रशेखरं प्रणमामि सर्व शान्ति प्रदायकम् ॥",
     mandalaBanner: "॥ एक मंडल साधना से समस्त कर्मदोष निवारण एवं संकल्प सिद्धि ॥",
     devotee: "जातक:",
@@ -208,7 +219,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     krodhaLabel: "क्रोध / पित्त स्तर",
     manasLabel: "मानसिक शांति",
     vitalityLabel: "आत्मबल / प्राणशक्ति",
-    patienceLabel: "धैर्य सूचकांक",
+    patienceLabel: "धैर्य सूचкаंक",
     sec2Title: "२. पंचांग ५-अंग दैवीय साधना एवं नक्षत्र वृक्ष",
     sec3Title: "३. तत्काल क्रोध एवं आवेग शमन हेतु ४-चरणीय विधि",
     emergencyMantraTitle: "आपत्कालीन मनःशांति बीज मंत्र (मन ही मन ११ बार जपें):",
@@ -224,6 +235,11 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraBenefits: "फलश्रुति:",
     dailySankalpaTitle: "🪔 दैनिक शांति संकल्प एवं सन्निधान नियमावली",
     dailySankalpaText: "प्रतिदिन प्रातःकाल एवं संध्याकाल इन शास्त्रोक्त नियमों का श्रद्धापूर्वक पालन करने से ग्रह दोष शांत होते हैं और मानसिक शांति प्राप्त होती है।",
+    vedicGrahaShantiTitle: "वैदिक ग्रह शांति मंत्र एवं नित्य ११ बार जप विधि",
+    chant11TimesDaily: "नित्य ११ बार जपें",
+    prescribedDeityLabel: "शांति देवता / ग्रह",
+    mantraMeaningLabel: "मंत्र का पावन अर्थ",
+    calmingBenefitLabel: "मानसिक शांति एवं दोष शमन फल",
     muhurthaTitle: "६. जन्म ताराबल आधारित व्रत आरंभ मुहूर्त एवं साधना विधि",
     taraBalaLabel: "ताराबल:",
     weekdayLabel: "शुभ वार:",
@@ -270,17 +286,17 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     sec8Title: "८. प्रधान अर्चक का आशीर्वचन एवं गोकर्ण मुद्रा",
     templeSealLabel: "आधिकारिक मुद्रा",
     priestContact: "संपर्क:",
-    page1Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ १/४ (आगे जारी...)",
-    page2Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ २/४ (आगे जारी...)",
-    page3Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ ३/४ (आगे जारी...)",
-    page4Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ ४/४ (संपूर्ण)"
+    page1Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ १/३ (आगे जारी...)",
+    page2Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ २/३ (आगे जारी...)",
+    page3Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ ३/३ (संपूर्ण)",
+    page4Footer: "श्री गोकर्ण महाबलेश्वर सन्निधान · बग्गोण पंचांग ज्योतिष · पृष्ठ ३/३ (संपूर्ण)"
   },
   te: {
     templeBanner: "॥ శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగ జ్యోతిష్యం ॥",
     mainTitle: "జన్మ కుండలి ఆధారిత దైవిక జ్యోతిష్య పరిహార & మనశ్శాంతి నివేదిక",
     page2Title: "మనశ్శాంతి సాధన, దైనందిన నియమావళి & జన్మ నక్షత్ర స్తోత్రం",
-    page3Title: "45-రోజుల మండల వ్రత సంకల్పం, తారాబల ముహూర్తం & సాధనా పత్రిక",
-    page4Title: "దశా-భుక్తి ఫలం, గోచార పరిహారం, గోకర్ణ క్షేత్ర సేవలు & అర్చకుల ఆశీర్వచనం",
+    page3Title: "దశా-భుక్తి ఫలం, గోచార పరిహారం, వైదిక గ్రహ శాంతి మంత్రం, గోకర్ణ క్షేత్ర సేవలు & అర్చకుల ఆశీర్వచనం",
+    page4Title: "దశా-భుక్తి ఫలం, గోచార పరిహారం, వైదిక గ్రహ శాంతి మంత్రం, గోకర్ణ క్షేత్ర సేవలు & అర్చకుల ఆశీర్వచనం",
     dhyanaShloka: "॥ శాంతాకారం భుజగశయనం పద్మనాభం సురేశం । చంద్రశేఖరం ప్రణమామి సర్వ శాంతి ప్రదాయకమ్ ॥",
     mandalaBanner: "॥ ఏక మండల తపస్సుతో సమస్త కర్మదోష నివారణ & సంకల్ప సిద్ధి ॥",
     devotee: "జాతకుడు:",
@@ -312,6 +328,11 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraBenefits: "ఫలితం:",
     dailySankalpaTitle: "🪔 దైనందిన శాంతి సంకల్పం & నియమావళి",
     dailySankalpaText: "ప్రతిరోజూ ఉదయం మరియు సాయంత్రం ఈ శాస్త్రోక్త నియమాలను శ్రద్ధతో పాటించడం వలన గ్రహ దోషాలు తొలగి, మనశ్శాంతి లభిస్తుంది.",
+    vedicGrahaShantiTitle: "వైదిక గ్రహ శాంతి మంత్రం & నిత్య 11 సార్లు జప విధానం",
+    chant11TimesDaily: "నిత్యం 11 సార్లు జపించండి",
+    prescribedDeityLabel: "శాంతి దేవత / గ్రహం",
+    mantraMeaningLabel: "మంత్ర దివ్యార్థం",
+    calmingBenefitLabel: "మనఃశాంతి & దోష నివారణ ఫలం",
     muhurthaTitle: "6. జన్మ తారాబల ఆధారిత వ్రత ప్రారంభ ముహూర్తం & సాధనా విధానం",
     taraBalaLabel: "తారాబలం:",
     weekdayLabel: "శుభ వారం:",
@@ -358,17 +379,17 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     sec8Title: "8. ప్రధాన అర్చకుల ఆశీర్వచనం & గోకర్ణ ముద్ర",
     templeSealLabel: "అధికారిక ముద్ర",
     priestContact: "ఫోన్:",
-    page1Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 1/4 (కొనసాగింపు...)",
-    page2Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 2/4 (కొనసాగింపు...)",
-    page3Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 3/4 (కొనసాగింపు...)",
-    page4Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 4/4 (సంపూర్ణం)"
+    page1Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 1/3 (కొనసాగింపు...)",
+    page2Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 2/3 (కొనసాగింపు...)",
+    page3Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 3/3 (సంపూర్ణం)",
+    page4Footer: "శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం · బగ్గోణ పంచాంగం · పేజీ 3/3 (సంపూర్ణం)"
   },
   ta: {
     templeBanner: "॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்ககோண பஞ்சாங்க ஜோதிடம் ॥",
     mainTitle: "ஜாதக அடிப்படையிலான தெய்வீக பரிகாரம் & மன அமைதி அறிக்கை",
     page2Title: "மன அமைதி சாதனை, தினசரி வழிபாட்டு முறை & ஸ்தோத்திரம்",
-    page3Title: "45-நாள் மண்டல விரத சங்கல்பம், தாராபல முகூர்த்தம் & சாதனை வழிகாட்டி",
-    page4Title: "திசை-புக்தி பலன், கோசார பரிகாரம், ஆலய பூஜைகள் & அர்ச்சகர் ஆசி",
+    page3Title: "திசை-புக்தி பலன், கோசார பரிகாரம், வைதீக கிரக சாந்தி மந்திரம், ஆலய பூஜைகள் & அர்ச்சகர் ஆசி",
+    page4Title: "திசை-புக்தி பலன், கோசார பரிகாரம், வைதீக கிரக சாந்தி மந்திரம், ஆலய பூஜைகள் & அர்ச்சகர் ஆசி",
     dhyanaShloka: "॥ சாந்தாகாரம் புஜகசயனம் பத்மநாபம் ஸுரேசம் । சந்த்ரசேகரம் ப்ரணமாமி ஸர்வ சாந்தி ப்ரதாயகம் ॥",
     mandalaBanner: "॥ ஒரு மண்டல வழிபாட்டால் கர்ம தோஷ நிவர்த்தி & சங்கல்ப சித்தி ॥",
     devotee: "ஜாதகர்:",
@@ -400,6 +421,11 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     stotraBenefits: "பலன்கள்:",
     dailySankalpaTitle: "🪔 தினசரி சாந்தி சங்கல்பம் & வழிபாட்டு நெறிமுறை",
     dailySankalpaText: "தினசரி காலை மற்றும் மாலை வேளைகளில் இந்த சாஸ்திர வழிபாடுகளை பக்தியுடன் கடைப்பிடிப்பதால் கிரக தோஷங்கள் நீங்கி, மன அமைதி உண்டாகும்.",
+    vedicGrahaShantiTitle: "வைதீக கிரக சாந்தி மந்திரம் & தினசரி 11 முறை ஜப முறை",
+    chant11TimesDaily: "தினமும் 11 முறை ஜபிக்கவும்",
+    prescribedDeityLabel: "சாந்தி தெய்வம் / கிரகம்",
+    mantraMeaningLabel: "மந்திரத்தின் புனிதப் பொருள்",
+    calmingBenefitLabel: "மன அமைதி & தோஷ நிவர்த்தி பலன்",
     muhurthaTitle: "6. ஜன்ம தாராபல அடிப்படையிலான விரத ஆரம்ப முகூர்த்தம் & வழிபாட்டு விதி",
     taraBalaLabel: "தாராபலம்:",
     weekdayLabel: "சுப வாரம்:",
@@ -446,10 +472,10 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     sec8Title: "8. தலைமை அர்ச்சகரின் ஆசி & ஆலய முத்திரை",
     templeSealLabel: "அங்கீகரிக்கப்பட்ட முத்திரை",
     priestContact: "தொலைபேசி:",
-    page1Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 1/4 (தொடர்கிறது...)",
-    page2Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 2/4 (தொடர்கிறது...)",
-    page3Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 3/4 (தொடர்கிறது...)",
-    page4Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 4/4 (முழுமை)"
+    page1Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 1/3 (தொடர்கிறது...)",
+    page2Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 2/3 (தொடர்கிறது...)",
+    page3Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 3/3 (முழுமை)",
+    page4Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சன்னிதானம் · பக்கம் 3/3 (முழுமை)"
   }
 };
 
@@ -546,6 +572,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     badhakaAnalysis,
     vedicDoctorPrescription
   } = diagnosis;
+
+  const primaryGraha = afflictionFactors?.[0]?.graha || dashaBhuktiAnalysis?.currentMahaDasha || "sarvadosha";
+  const grahaMantra = getRemedyJapaForGraha(primaryGraha);
 
   const stotra = personalizedStotras[0] || personalizedStotras[1];
 
@@ -649,19 +678,23 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             width: "100%",
             height: "1241px",
             maxHeight: "1241px",
-            border: "3px double #92400E",
-            outline: "1.5px solid #D97706",
-            outlineOffset: "-5px",
-            borderRadius: "12px",
+            border: "2px solid #D97706",
+            borderRadius: "14px",
             padding: "13px 16px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            overflow: "hidden"
+            overflow: "hidden",
+            position: "relative"
           }}
         >
+          {/* 4 Corner Florets placed safely away from border to prevent any collision */}
+          <div style={{ position: "absolute", top: "12px", left: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "12px", right: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", left: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", right: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
           {/* Header Banner */}
           <div
             style={{
@@ -1111,19 +1144,23 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             width: "100%",
             height: "1241px",
             maxHeight: "1241px",
-            border: "3px double #92400E",
-            outline: "1.5px solid #D97706",
-            outlineOffset: "-5px",
-            borderRadius: "12px",
+            border: "2px solid #D97706",
+            borderRadius: "14px",
             padding: "13px 16px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            overflow: "hidden"
+            overflow: "hidden",
+            position: "relative"
           }}
         >
+          {/* 4 Corner Florets placed safely away from border to prevent any collision */}
+          <div style={{ position: "absolute", top: "12px", left: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "12px", right: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", left: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", right: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
           {/* Header Banner */}
           <div
             style={{
@@ -1441,8 +1478,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
         </div>
       </div>
 
-            {/* ====================================================================== */}
-      {/* PAGE 3: 45-DAY MANDALA VRATA, TARA BALA MUHURTHA & SADHANA GUIDE     */}
+      {/* ====================================================================== */}
+      {/* PAGE 3: DASHA/GOCHARA SHANTI, VEDIC MANTRAS, GOKARNA SEVAS & ASHIRVADA */}
       {/* ====================================================================== */}
       <div
         className="pdf-page"
@@ -1464,424 +1501,23 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             width: "100%",
             height: "1241px",
             maxHeight: "1241px",
-            border: "3px double #92400E",
-            outline: "1.5px solid #D97706",
-            outlineOffset: "-5px",
-            borderRadius: "12px",
-            padding: "10px 14px",
-            boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 25%, #FEF3C7 100%)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            overflow: "hidden"
-          }}
-        >
-          {/* Header Banner */}
-          <div
-            style={{
-              textAlign: "center",
-              background: "linear-gradient(135deg, #451A03 0%, #78350F 50%, #451A03 100%)",
-              borderRadius: "8px",
-              padding: "6px 12px",
-              color: "#FFFFFF",
-              border: "2px solid #F59E0B",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.12)"
-            }}
-          >
-            <div style={{ fontSize: "10.5px", fontWeight: 800, color: "#FDE68A", letterSpacing: "normal" }}>
-              {i18n.templeBanner}
-            </div>
-            <div style={{ fontSize: "14px", fontWeight: 900, color: "#FFFFFF", marginTop: "1px", lineHeight: 1.25 }}>
-              {i18n.page3Title}
-            </div>
-            <div style={{ fontSize: "9.5px", color: "#FDE68A", fontStyle: "italic", marginTop: "1px" }}>
-              {i18n.mandalaBanner}
-            </div>
-          </div>
-
-          {/* Section 6A: Auspicious Starting Muhurtha & Tara Bala Grid */}
-          <div
-            style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #D97706",
-              borderRadius: "8px",
-              padding: "7px 10px",
-              boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                fontWeight: 900,
-                color: "#78350F",
-                borderBottom: "1.5px solid #FDE68A",
-                paddingBottom: "3px",
-                marginBottom: "5px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}
-            >
-              <span>🧭 {i18n.muhurthaTitle}</span>
-              <span
-                style={{
-                  background: "#FEF3C7",
-                  color: "#92400E",
-                  border: "1px solid #F59E0B",
-                  padding: "1px 7px",
-                  borderRadius: "10px",
-                  fontSize: "9.5px",
-                  fontWeight: 800
-                }}
-              >
-                {mandalaVrata.durationLabel[code] || mandalaVrata.durationLabel.kn}
-              </span>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "10.5px", lineHeight: 1.35 }}>
-              <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "5px", padding: "5px 7px" }}>
-                <span style={{ fontWeight: 800, color: "#92400E" }}>⭐ {i18n.taraBalaLabel} </span>
-                <span style={{ fontWeight: 900, color: "#78350F" }}>{mandalaVrata.auspiciousStartMuhurtha.taraBalaCategory[code] || mandalaVrata.auspiciousStartMuhurtha.taraBalaCategory.kn}</span>
-                <div style={{ color: "#451A03", marginTop: "2px", fontSize: "9.5px" }}>
-                  {mandalaVrata.auspiciousStartMuhurtha.taraBalaReason[code] || mandalaVrata.auspiciousStartMuhurtha.taraBalaReason.kn}
-                </div>
-              </div>
-
-              <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "5px", padding: "5px 7px" }}>
-                <div>
-                  <span style={{ fontWeight: 800, color: "#166534" }}>📅 {i18n.weekdayLabel} </span>
-                  <span style={{ fontWeight: 900, color: "#14532D" }}>{mandalaVrata.auspiciousStartMuhurtha.auspiciousWeekday[code] || mandalaVrata.auspiciousStartMuhurtha.auspiciousWeekday.kn}</span>
-                </div>
-                <div style={{ marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800, color: "#166534" }}>🌕 {i18n.tithiLabel} </span>
-                  <span style={{ color: "#14532D" }}>{mandalaVrata.auspiciousStartMuhurtha.tithiPakshaRecommendation[code] || mandalaVrata.auspiciousStartMuhurtha.tithiPakshaRecommendation.kn}</span>
-                </div>
-                <div style={{ marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800, color: "#166534" }}>⏰ {i18n.timeWindowLabel} </span>
-                  <span style={{ color: "#14532D" }}>{mandalaVrata.auspiciousStartMuhurtha.idealTimeWindow[code] || mandalaVrata.auspiciousStartMuhurtha.idealTimeWindow.kn}</span>
-                </div>
-                <div style={{ marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800, color: "#166534" }}>🧭 {i18n.directionLabel} </span>
-                  <span style={{ color: "#14532D" }}>{mandalaVrata.auspiciousStartMuhurtha.facingDirection[code] || mandalaVrata.auspiciousStartMuhurtha.facingDirection.kn} · {mandalaVrata.auspiciousStartMuhurtha.sacredAsana[code] || mandalaVrata.auspiciousStartMuhurtha.sacredAsana.kn}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 6B: 3-Phase 45-Day Transformation Roadmap */}
-          <div
-            style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #D97706",
-              borderRadius: "8px",
-              padding: "7px 10px",
-              boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                fontWeight: 900,
-                color: "#78350F",
-                borderBottom: "1.5px solid #FDE68A",
-                paddingBottom: "3px",
-                marginBottom: "5px"
-              }}
-            >
-              🌟 {i18n.threePhaseTitle}
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
-              {/* Phase 1 */}
-              <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "6px", padding: "5px 7px", fontSize: "10px", lineHeight: 1.35 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontWeight: 900, color: "#92400E", fontSize: "10.5px" }}>🌱 {i18n.phase1Label}</span>
-                  <span style={{ background: "#F59E0B", color: "#FFFFFF", padding: "1px 5px", borderRadius: "6px", fontSize: "8.5px", fontWeight: 800 }}>
-                    {mandalaVrata.threePhaseRoadmap.phase1.daysRange[code] || mandalaVrata.threePhaseRoadmap.phase1.daysRange.kn}
-                  </span>
-                </div>
-                <div style={{ fontWeight: 800, color: "#78350F", marginTop: "2px" }}>
-                  {mandalaVrata.threePhaseRoadmap.phase1.phaseTitle[code] || mandalaVrata.threePhaseRoadmap.phase1.phaseTitle.kn}
-                </div>
-                <div style={{ color: "#451A03", marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800 }}>• {i18n.focusLabel} </span>
-                  {mandalaVrata.threePhaseRoadmap.phase1.focusArea[code] || mandalaVrata.threePhaseRoadmap.phase1.focusArea.kn}
-                </div>
-                <div style={{ color: "#065F46", fontWeight: 700, marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800 }}>• {i18n.reliefLabel} </span>
-                  {mandalaVrata.threePhaseRoadmap.phase1.experientialRelief[code] || mandalaVrata.threePhaseRoadmap.phase1.experientialRelief.kn}
-                </div>
-              </div>
-
-              {/* Phase 2 */}
-              <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "6px", padding: "5px 7px", fontSize: "10px", lineHeight: 1.35 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontWeight: 900, color: "#B45309", fontSize: "10.5px" }}>⚡ {i18n.phase2Label}</span>
-                  <span style={{ background: "#D97706", color: "#FFFFFF", padding: "1px 5px", borderRadius: "6px", fontSize: "8.5px", fontWeight: 800 }}>
-                    {mandalaVrata.threePhaseRoadmap.phase2.daysRange[code] || mandalaVrata.threePhaseRoadmap.phase2.daysRange.kn}
-                  </span>
-                </div>
-                <div style={{ fontWeight: 800, color: "#78350F", marginTop: "2px" }}>
-                  {mandalaVrata.threePhaseRoadmap.phase2.phaseTitle[code] || mandalaVrata.threePhaseRoadmap.phase2.phaseTitle.kn}
-                </div>
-                <div style={{ color: "#451A03", marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800 }}>• {i18n.focusLabel} </span>
-                  {mandalaVrata.threePhaseRoadmap.phase2.focusArea[code] || mandalaVrata.threePhaseRoadmap.phase2.focusArea.kn}
-                </div>
-                <div style={{ color: "#065F46", fontWeight: 700, marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800 }}>• {i18n.reliefLabel} </span>
-                  {mandalaVrata.threePhaseRoadmap.phase2.experientialRelief[code] || mandalaVrata.threePhaseRoadmap.phase2.experientialRelief.kn}
-                </div>
-              </div>
-
-              {/* Phase 3 */}
-              <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "6px", padding: "5px 7px", fontSize: "10px", lineHeight: 1.35 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontWeight: 900, color: "#166534", fontSize: "10.5px" }}>👑 {i18n.phase3Label}</span>
-                  <span style={{ background: "#16A34A", color: "#FFFFFF", padding: "1px 5px", borderRadius: "6px", fontSize: "8.5px", fontWeight: 800 }}>
-                    {mandalaVrata.threePhaseRoadmap.phase3.daysRange[code] || mandalaVrata.threePhaseRoadmap.phase3.daysRange.kn}
-                  </span>
-                </div>
-                <div style={{ fontWeight: 800, color: "#14532D", marginTop: "2px" }}>
-                  {mandalaVrata.threePhaseRoadmap.phase3.phaseTitle[code] || mandalaVrata.threePhaseRoadmap.phase3.phaseTitle.kn}
-                </div>
-                <div style={{ color: "#451A03", marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800 }}>• {i18n.focusLabel} </span>
-                  {mandalaVrata.threePhaseRoadmap.phase3.focusArea[code] || mandalaVrata.threePhaseRoadmap.phase3.focusArea.kn}
-                </div>
-                <div style={{ color: "#065F46", fontWeight: 700, marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800 }}>• {i18n.reliefLabel} </span>
-                  {mandalaVrata.threePhaseRoadmap.phase3.experientialRelief[code] || mandalaVrata.threePhaseRoadmap.phase3.experientialRelief.kn}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 6C: Laghu Purashcharana Mantra Japa Formula & Mala Rule */}
-          <div
-            style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #D97706",
-              borderRadius: "8px",
-              padding: "7px 10px",
-              boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                fontWeight: 900,
-                color: "#78350F",
-                borderBottom: "1.5px solid #FDE68A",
-                paddingBottom: "3px",
-                marginBottom: "5px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}
-            >
-              <span>📿 {i18n.japaFormulaTitle}</span>
-              <span style={{ color: "#B45309", fontSize: "10.5px", fontWeight: 900 }}>
-                {mandalaVrata.japaPurashcharanaFormula.totalMandalaCountFormatted[code] || mandalaVrata.japaPurashcharanaFormula.totalMandalaCountFormatted.kn}
-              </span>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "6px", fontSize: "10.5px", lineHeight: 1.35 }}>
-              <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "5px", padding: "5px 7px" }}>
-                <div>
-                  <span style={{ fontWeight: 800, color: "#92400E" }}>🔢 {i18n.dailyJapaLabel} </span>
-                  <span style={{ fontWeight: 900, color: "#B45309" }}>{mandalaVrata.japaPurashcharanaFormula.dailyCountFormatted[code] || mandalaVrata.japaPurashcharanaFormula.dailyCountFormatted.kn}</span>
-                </div>
-                <div style={{ marginTop: "2px" }}>
-                  <span style={{ fontWeight: 800, color: "#92400E" }}>📿 {i18n.malaLabel} </span>
-                  <span style={{ fontWeight: 700, color: "#78350F" }}>{mandalaVrata.japaPurashcharanaFormula.prescribedMala[code] || mandalaVrata.japaPurashcharanaFormula.prescribedMala.kn}</span>
-                </div>
-              </div>
-
-              <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "5px", padding: "5px 7px", fontSize: "9.5px", color: "#451A03" }}>
-                <span style={{ fontWeight: 800, color: "#92400E" }}>📜 {i18n.malaRuleLabel} </span>
-                {mandalaVrata.japaPurashcharanaFormula.shastricRule[code] || mandalaVrata.japaPurashcharanaFormula.shastricRule.kn}
-              </div>
-            </div>
-          </div>
-
-          {/* Section 6D: Sattvic Pathya & Niyama Disciplines */}
-          <div
-            style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #D97706",
-              borderRadius: "8px",
-              padding: "7px 10px",
-              boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                fontWeight: 900,
-                color: "#78350F",
-                borderBottom: "1.5px solid #FDE68A",
-                paddingBottom: "3px",
-                marginBottom: "5px"
-              }}
-            >
-              🥗 {i18n.pathyaTitle}
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "10px", lineHeight: 1.35 }}>
-              {/* Ahara Rules */}
-              <div style={{ background: "#FEFCE8", border: "1px solid #FDE047", borderRadius: "5px", padding: "5px 7px" }}>
-                <div style={{ fontWeight: 900, color: "#92400E", marginBottom: "2px" }}>
-                  🌾 {i18n.dietLabel}
-                </div>
-                {mandalaVrata.sattvicPathyaAndNiyama.aharaRules.map((rule: Record<string, string>, rIdx: number) => (
-                  <div key={rIdx} style={{ color: "#451A03", marginTop: rIdx === 0 ? "0px" : "2px" }}>
-                    • {rule[code] || rule.kn}
-                  </div>
-                ))}
-              </div>
-
-              {/* Achara Rules & Charity */}
-              <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "5px", padding: "5px 7px" }}>
-                <div style={{ fontWeight: 900, color: "#166534", marginBottom: "2px" }}>
-                  🧘 {i18n.conductLabel}
-                </div>
-                {mandalaVrata.sattvicPathyaAndNiyama.acharaRules.map((rule: Record<string, string>, rIdx: number) => (
-                  <div key={rIdx} style={{ color: "#14532D", marginTop: rIdx === 0 ? "0px" : "2px" }}>
-                    • {rule[code] || rule.kn}
-                  </div>
-                ))}
-                <div style={{ marginTop: "3px", paddingTop: "2px", borderTop: "1px dashed #86EFAC", fontWeight: 700, color: "#15803D" }}>
-                  🐄 <span style={{ fontWeight: 800 }}>{i18n.charityLabel} </span>
-                  {mandalaVrata.sattvicPathyaAndNiyama.weeklyDaana[code] || mandalaVrata.sattvicPathyaAndNiyama.weeklyDaana.kn}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 6E: 45-Day Daily Sadhana Tick-off Grid (Daily Checklist) */}
-          <div
-            style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #D97706",
-              borderRadius: "8px",
-              padding: "7px 10px",
-              boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
-              <div style={{ fontSize: "12px", fontWeight: 900, color: "#78350F" }}>
-                📅 {i18n.trackerTitle}
-              </div>
-              <div style={{ fontSize: "9px", color: "#92400E", fontWeight: 700 }}>
-                {i18n.trackerSubtext}
-              </div>
-            </div>
-
-            {/* 45 Days Grid: 3 rows of 15 columns */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(15, 1fr)",
-                gap: "3px",
-                marginTop: "3px"
-              }}
-            >
-              {Array.from({ length: 45 }, (_, idx) => idx + 1).map(dayNum => (
-                <div
-                  key={dayNum}
-                  style={{
-                    background: dayNum <= 15 ? "#FFFBEB" : dayNum <= 30 ? "#FEFCE8" : "#F0FDF4",
-                    border: `1px solid ${dayNum <= 15 ? "#FCD34D" : dayNum <= 30 ? "#FDE047" : "#BBF7D0"}`,
-                    borderRadius: "4px",
-                    padding: "2px 0",
-                    textAlign: "center",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}
-                >
-                  <span style={{ fontSize: "8px", fontWeight: 900, color: dayNum <= 15 ? "#92400E" : dayNum <= 30 ? "#B45309" : "#166534" }}>
-                    {formatDayNum(dayNum)}
-                  </span>
-                  <span style={{ fontSize: "7px", color: "#9CA3AF", marginTop: "-1px" }}>◯</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Section 6F: Personalized Sacred Sankalpa Resolve Box */}
-          <div
-            style={{
-              background: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)",
-              border: "1.5px solid #F59E0B",
-              borderRadius: "8px",
-              padding: "7px 10px",
-              boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
-            }}
-          >
-            <div style={{ fontSize: "11px", fontWeight: 900, color: "#78350F", marginBottom: "2px" }}>
-              🪔 {i18n.sankalpaBoxTitle}
-            </div>
-            <div style={{ fontSize: "10px", color: "#451A03", lineHeight: 1.45, fontStyle: "italic", fontWeight: 600 }}>
-              "{mandalaVrata.sankalpaDeclaration[code] || mandalaVrata.sankalpaDeclaration.kn}"
-            </div>
-          </div>
-
-          {/* Page 3 Footer */}
-          <div
-            style={{
-              textAlign: "center",
-              fontSize: "11px",
-              color: "#78350F",
-              fontWeight: 800,
-              borderTop: "1px solid #D97706",
-              paddingTop: "5px"
-            }}
-          >
-            {i18n.page3Footer}
-          </div>
-        </div>
-      </div>
-
-{/* ====================================================================== */}
-      {/* PAGE 4: DASHA/GOCHARA SHANTI, GOKARNA SEVAS & PRIEST ASHIRVADA & SEAL  */}
-      {/* ====================================================================== */}
-      <div
-        className="pdf-page"
-        style={{
-          width: "900px",
-          height: "1273px",
-          minHeight: "1273px",
-          maxHeight: "1273px",
-          padding: "16px 20px",
-          boxSizing: "border-box",
-          position: "relative",
-          overflow: "hidden",
-          pageBreakAfter: "always",
-          background: "#FFFDF7"
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            height: "1241px",
-            maxHeight: "1241px",
-            border: "3px double #92400E",
-            outline: "1.5px solid #D97706",
-            outlineOffset: "-5px",
-            borderRadius: "12px",
+            border: "2px solid #D97706",
+            borderRadius: "14px",
             padding: "13px 16px",
             boxSizing: "border-box",
             background: "linear-gradient(180deg, #FFFDF8 0%, #FEF9C3 30%, #FEF3C7 100%)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            overflow: "hidden"
+            overflow: "hidden",
+            position: "relative"
           }}
         >
+          {/* 4 Corner Florets placed safely away from border to prevent any collision */}
+          <div style={{ position: "absolute", top: "12px", left: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "12px", right: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", left: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", right: "14px", color: "#D97706", fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
           {/* Header Banner */}
           <div
             style={{
@@ -1898,7 +1534,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               {i18n.templeBanner}
             </div>
             <div style={{ fontSize: "15px", fontWeight: 900, color: "#FFFFFF", marginTop: "2px", lineHeight: 1.3 }}>
-              {i18n.page4Title}
+              {i18n.page3Title}
             </div>
           </div>
 
@@ -2129,6 +1765,81 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             )}
           </div>
 
+                    {/* Sacred Vedic Graha Shanti Mantra Box (MANDATORY & AUTHENTIC) */}
+          <div
+            style={{
+              background: "#FFFBEB",
+              border: "1.5px solid #D97706",
+              borderRadius: "8px",
+              padding: "8px 12px",
+              boxShadow: "0 1.5px 3px rgba(0,0,0,0.05)"
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderBottom: "1.5px solid #FDE68A",
+                paddingBottom: "3px",
+                marginBottom: "4px"
+              }}
+            >
+              <div style={{ fontSize: "12px", fontWeight: 900, color: "#78350F" }}>
+                📿 {i18n.vedicGrahaShantiTitle}
+              </div>
+              <span
+                style={{
+                  fontSize: "9.5px",
+                  fontWeight: 900,
+                  backgroundColor: "#FEF3C7",
+                  color: "#92400E",
+                  border: "1px solid #D97706",
+                  padding: "1px 6px",
+                  borderRadius: "6px"
+                }}
+              >
+                ✦ {i18n.chant11TimesDaily}
+              </span>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "10.5px", lineHeight: 1.4 }}>
+              <div>
+                <div style={{ fontWeight: 800, color: "#92400E" }}>
+                  🕉️ {i18n.prescribedDeityLabel}:{" "}
+                  <span style={{ color: "#78350F", fontWeight: 900 }}>
+                    {grahaMantra.deityName[code] || grahaMantra.deityName.kn}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    color: "#991B1B",
+                    fontWeight: 900,
+                    fontSize: "11px",
+                    marginTop: "2px",
+                    fontStyle: "italic",
+                    backgroundColor: "#FFFFFF",
+                    padding: "4px 6px",
+                    borderRadius: "6px",
+                    border: "1px solid #FCD34D"
+                  }}
+                >
+                  {grahaMantra.sanskritShlokaL5?.[code] || grahaMantra.sanskritShloka}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: "#451A03" }}>
+                  <strong style={{ color: "#78350F" }}>📖 {i18n.mantraMeaningLabel}: </strong>
+                  {grahaMantra.meaning[code] || grahaMantra.meaning.kn}
+                </div>
+                <div style={{ color: "#065F46", marginTop: "2px", fontWeight: 700 }}>
+                  <strong style={{ color: "#065F46" }}>✨ {i18n.calmingBenefitLabel}: </strong>
+                  {grahaMantra.calmingBenefit[code] || grahaMantra.calmingBenefit.kn}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Section 7: Sacred Gokarna Mahabaleshwara Remedies */}
           <div
             style={{
@@ -2276,7 +1987,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               paddingTop: "4px"
             }}
           >
-            {i18n.page4Footer}
+            {i18n.page3Footer}
           </div>
         </div>
       </div>

@@ -38,7 +38,7 @@ export interface DetermineRemedyParams {
 }
 
 // Authentic Vedic Shlokas for each Graha & Devata specifically tailored for calming & stress-relief
-const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapaInfo, "grahaKey">> = {
+export const REMEDY_DATABASE: Record<PlanetName | "sarvadosha", Omit<PersonalRemedyJapaInfo, "grahaKey">> = {
   // 1. SHANI (Saturn) - Lord Shiva / Shani Shanti Shloka
   [PlanetName.Saturn]: {
     deityName: {
@@ -950,3 +950,25 @@ export function determineKundliPersonalRemedy(params: DetermineRemedyParams): Pe
     ...REMEDY_DATABASE.sarvadosha
   };
 }
+
+/**
+ * Retrieves the authentic Vedic Graha Shanti Shloka and Japa details
+ * for a specific Graha key or defaults to Sarvadosha Maha Mrityunjaya.
+ */
+export function getRemedyJapaForGraha(grahaKey?: PlanetName | "sarvadosha" | string): PersonalRemedyJapaInfo {
+  if (!grahaKey) {
+    return { grahaKey: "sarvadosha", ...REMEDY_DATABASE.sarvadosha };
+  }
+  const cleanKey = String(grahaKey).trim();
+  const matchedPlanet = Object.values(PlanetName).find(
+    (p) => p.toLowerCase() === cleanKey.toLowerCase()
+  );
+  if (matchedPlanet && REMEDY_DATABASE[matchedPlanet]) {
+    return { grahaKey: matchedPlanet, ...REMEDY_DATABASE[matchedPlanet] };
+  }
+  if (cleanKey === "sarvadosha" || !REMEDY_DATABASE[cleanKey as PlanetName]) {
+    return { grahaKey: "sarvadosha", ...REMEDY_DATABASE.sarvadosha };
+  }
+  return { grahaKey: cleanKey as PlanetName, ...REMEDY_DATABASE[cleanKey as PlanetName] };
+}
+
