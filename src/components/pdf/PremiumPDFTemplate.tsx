@@ -503,7 +503,14 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
                 const hour = parseInt((session.birthTimeHm || "12:00").split(":")[0], 10);
                 return !isNaN(hour) ? (hour >= 6 && hour < 18) : true;
               })()}
-              panchanga={calculateTraditionalBaggona(session.birthDateYmd, session.birthTimeHm, session.input.latitude, session.input.longitude)}
+              panchanga={calculateTraditionalBaggona(
+                session.birthDateYmd,
+                session.birthTimeHm,
+                session.input.latitude || 14.5479,
+                session.input.longitude || 74.3188,
+                (session.input as any)?.ayanamsa || (session as any)?.ayanamsa || "lahiri",
+                session.input.pincode || (session as any).pincode || "581326"
+              )}
               gothra={session.input.gothra ? translate(`gotras.${session.input.gothra}`) : ""}
               pdfLanguage={lang}
             />

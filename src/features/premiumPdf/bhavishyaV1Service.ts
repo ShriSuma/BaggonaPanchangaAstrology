@@ -414,7 +414,14 @@ export async function prepareBhavishyaV1Data(
   const currentBhuktiData = findBhuktiAtAge(session.result, ageYears);
   const mahaLord = currentBhuktiData ? toGraha(currentBhuktiData.maha.planet) : null;
   const bhuktiLord = currentBhuktiData ? toGraha(currentBhuktiData.bhukti) : null;
-  const panchanga = calculateTraditionalBaggona(session.birthDateYmd, session.birthTimeHm, session.input.latitude, session.input.longitude);
+  const panchanga = calculateTraditionalBaggona(
+    session.birthDateYmd,
+    session.birthTimeHm,
+    session.input.latitude || 14.5479,
+    session.input.longitude || 74.3188,
+    (session.input as any)?.ayanamsa || (session as any)?.ayanamsa || "lahiri",
+    session.input.pincode || (session as any).pincode || "581326"
+  );
 
   const localizedDevoteeName = getLocalizedDevoteeName(session.input.name, lang);
 

@@ -17,50 +17,63 @@ import {
   getDivaGhati,
   getSankrantiGataDina,
   getDetailedTithiInfo,
+  TITHIS_5L,
   type DetailedTithiInfo
 } from "./VedicCalculations";
 import { vedicWeekdayAtBirth } from "./birthSunTimes";
 import { panchangClockTimeZone, weekdayInTimeZone } from "./placeTime";
 import { ghatiVighatiSinceSunrise } from "./ghatiVighati";
 import { resolveSunTimesForJyotish } from "./hinduSunTimes";
+import { resolvePincodeCoordinatesSync } from "../services/locationApi";
 
 
 export interface TraditionalBaggonaPanchanga {
   shakaYear: number;
   samvatsara: string;
   samvatsaraKn: string;
+  samvatsara5L?: Record<string, string>;
   masa: string;
   masaKn: string;
+  masa5L?: Record<string, string>;
   paksha: string;
   pakshaKn: string;
+  paksha5L?: Record<string, string>;
   tithi: string;
   tithiKn: string;
+  tithi5L?: Record<string, string>;
   tithiGhati: number;
   tithiVighati: number;
   weekday: string;
   weekdayKn: string;
+  weekday5L?: Record<string, string>;
   weekdayIndex: number;
   sunNakshatra: string;
   sunNakshatraKn: string;
+  sunNakshatra5L?: Record<string, string>;
   sunNakshatraGhati: number;
   sunNakshatraVighati: number;
   moonNakshatra: string;
   moonNakshatraKn: string;
+  moonNakshatra5L?: Record<string, string>;
   moonNakshatraGhati: number;
   moonNakshatraVighati: number;
   yoga: string;
   yogaKn: string;
+  yoga5L?: Record<string, string>;
   yogaGhati: number;
   yogaVighati: number;
   karana: string;
   karanaKn: string;
+  karana5L?: Record<string, string>;
   karanaGhati: number;
   karanaVighati: number;
   vishaGhati: { ghati: number; vighati: number };
   amrithaGhati: { ghati: number; vighati: number };
   divaGhati: { ghati: number; vighati: number };
+  nisheGhati?: { ghati: number; vighati: number };
   sankrantiSign: string;
   sankrantiSignKn: string;
+  sankrantiSign5L?: Record<string, string>;
   sankrantiGataDina: number;
   paramaGhati: { ghati: number; vighati: number };
   ashayaGhati: { ghati: number; vighati: number };
@@ -109,6 +122,24 @@ const YOGAS_KN = [
   "ಸಿದ್ಧ", "ಸಾಧ್ಯ", "ಶುಭ", "ಶುಕ್ಲ", "ಬ್ರಹ್ಮ", "ಐಂದ್ರ", "ವೈಧೃತಿ"
 ];
 
+const YOGAS_HI = [
+  "विष्कम्भ", "प्रीति", "आयुष्मान", "सौभाग्य", "शोभन", "अतिगण्ड", "सुकर्मा", "धृति", "शूल", "गण्ड",
+  "वृद्धि", "ध्रुव", "व्याघात", "हर्षण", "वज्र", "सिद्धि", "व्यतीपात", "वरीयान", "परिघ", "शिव",
+  "सिद्ध", "साध्य", "शुभ", "शुक्ल", "ब्रह्म", "ऐन्द्र", "वैधृति"
+];
+
+const YOGAS_TE = [
+  "విష్కంభ", "ప్రీతి", "ఆయుష్మాన్", "సౌభాగ్య", "శోభన", "అతిగండ", "సుకర్మ", "ధృతి", "శూల", "గండ",
+  "వృద్ధి", "ధ్రువ", "వ్యాఘాత", "హర్షణ", "వజ్ర", "సిద్ధి", "వ్యతీపాత", "వరీయాన్", "పరిఘ", "శివ",
+  "సిద్ధ", "సాధ్య", "శుభ", "శుక్ల", "బ్రహ్మ", "ఐంద్ర", "వైధృతి"
+];
+
+const YOGAS_TA = [
+  "விஷ்கம்பம்", "ப்ரீதி", "ஆயுஷ்மான்", "ஸௌபாக்யம்", "சோபனம்", "அதிகண்டம்", "சுகர்மம்", "த்ருதி", "சூலம்", "கண்டம்",
+  "வ்ருத்தி", "த்ருவம்", "வ்யாகாதம்", "ஹர்ஷணம்", "வஜ்ரம்", "சித்தி", "வ்யதீபாதம்", "வரீயான்", "பரிகம்", "சிவம்",
+  "சித்தம்", "சாத்யம்", "சுபம்", "சுக்லம்", "ப்ரம்மம்", "ஐந்த்ரம்", "வைத்ருதி"
+];
+
 const KARANAS_EN = [
   "Bava", "Balava", "Kaulava", "Taitila", "Garaja", "Vanija", "Vishti",
   "Shakuni", "Chatushpada", "Naga", "Kintughna"
@@ -117,6 +148,21 @@ const KARANAS_EN = [
 const KARANAS_KN = [
   "ಬವ", "ಬಾಲವ", "ಕೌಲವ", "ತೈತಿಲ", "ಗರಜ", "ವಣಿಜ", "ಭದ್ರೆ",
   "ಶಕುನಿ", "ಚತುಷ್ಪಾದ", "ನಾಗ", "ಕಿಂಸ್ತುಘ್ನ"
+];
+
+const KARANAS_HI = [
+  "बव", "बालव", "कौलव", "तैतिल", "गर", "वणिज", "विष्टि",
+  "शकुनि", "चतुष्पाद", "नाग", "किंस्तुघ्न"
+];
+
+const KARANAS_TE = [
+  "బవ", "బాలవ", "కౌలవ", "తైతిల", "గరజి", "వణిజ", "భద్ర",
+  "శకుని", "చతుష్పాద", "నాగ", "కింస్తుఘ్న"
+];
+
+const KARANAS_TA = [
+  "பவம்", "பாலவம்", "கௌலவம்", "தைதிலம்", "கரசை", "வணிசை", "பத்திரை",
+  "சகுனி", "சதுஷ்பாதம்", "நாகம்", "கிம்ஸ்துக்னம்"
 ];
 
 const NAKSHATRAS_EN = [
@@ -131,12 +177,42 @@ const NAKSHATRAS_KN = [
   "ಮೂಲಾ", "ಪೂರ್ವಾಷಾಢಾ", "ಉತ್ತರಾಷಾಢಾ", "ಶ್ರವಣ", "ಧನಿಷ್ಠಾ", "ಶತಭಿಷಾ", "ಪೂರ್ವಾಭಾದ್ರಾ", "ಉತ್ತರಾಭಾದ್ರಾ", "ರೇವತಿ"
 ];
 
+const NAKSHATRAS_HI = [
+  "अश्विनी", "भरणी", "कृत्तिका", "रोहिणी", "मृगशिरा", "आर्द्रा", "पुनर्वसु", "पुष्य", "आश्लेषा",
+  "मघा", "पूर्वाफाल्गुनी", "उत्तराफाल्गुनी", "हस्त", "चित्रा", "स्वाति", "विशाखा", "अनुराधा", "ज्येष्ठा",
+  "मूल", "पूर्वाषाढ़ा", "उत्तराषाढ़ा", "श्रवण", "धनिष्ठा", "शतभिषा", "पूर्वाभाद्रपद", "उत्तराभाद्रपद", "रेवती"
+];
+
+const NAKSHATRAS_TE = [
+  "అశ్విని", "భరణి", "కృత్తిక", "రోహిణి", "మృగశిర", "ఆరుద్ర", "పునర్వసు", "పుష్యమి", "ఆశ్లేష",
+  "మఘ", "పూర్వ ఫల్గుణి", "ఉత్తర ఫల్గుణి", "హస్త", "చిత్త", "స్వాతి", "విశాఖ", "అనూరాధ", "జ్యేష్ఠ",
+  "మూల", "పూర్వాషాఢ", "ఉత్తరాషాఢ", "శ్రవణం", "ధనిష్ఠ", "శతభిషం", "పూర్వాభాద్ర", "ఉత్తరాభాద్ర", "రేవతి"
+];
+
+const NAKSHATRAS_TA = [
+  "அஸ்வினி", "பரணி", "கிருத்திகை", "ரோகிணி", "மிருகசீரிஷம்", "திருவாதிரை", "புனர்பூசம்", "பூசம்", "ஆயில்யம்",
+  "மகம்", "பூரம்", "உத்திரம்", "அஸ்தம்", "சித்திரை", "சுவாதி", "விசாகம்", "அனுஷம்", "கேட்டை",
+  "மூலம்", "பூராடம்", "உத்திராடம்", "திருவோணம்", "அவிட்டம்", "சதயம்", "பூரட்டாதி", "உத்திரட்டாதி", "ரேவதி"
+];
+
 const RASHIS_EN = [
   "Mesha", "Vrishabha", "Mithuna", "Karka", "Simha", "Kanya", "Tula", "Vrischika", "Dhanu", "Makara", "Kumbha", "Meena"
 ];
 
 const RASHIS_KN = [
   "ಮೇಷ", "ವೃಷಭ", "ಮಿಥುನ", "ಕರ್ಕ", "ಸಿಂಹ", "ಕನ್ಯಾ", "ತುಲಾ", "ವೃಶ್ಚಿಕ", "ಧನು", "ಮಕರ", "ಕುಂಭ", "ಮೀನ"
+];
+
+const RASHIS_HI = [
+  "मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या", "तुला", "वृश्चिक", "धनु", "मकर", "कुंभ", "मीन"
+];
+
+const RASHIS_TE = [
+  "మేష", "వృషభ", "మిథున", "కర్కాటక", "సింహ", "కన్య", "తులా", "వృశ్చిక", "ధనుస్సు", "మకర", "కుంభ", "మీన"
+];
+
+const RASHIS_TA = [
+  "மேஷம்", "ரிஷபம்", "மிதுனம்", "கடகம்", "சிம்மம்", "கன்னி", "துலாம்", "விருச்சிகம்", "தனுசு", "மகரம்", "கும்பம்", "மீனம்"
 ];
 
 const WEEKDAYS_EN = [
@@ -147,6 +223,18 @@ const WEEKDAYS_KN = [
   "ಆದಿತ್ಯ ವಾಸರೇ", "ಚಂದ್ರ ವಾಸರೇ", "ಭೌಮ ವಾಸರೇ", "ಸೌಮ್ಯ ವಾಸರೇ", "ಗುರು ವಾಸರೇ", "ಭೃಗು ವಾಸರೇ", "ಸ್ಥಿರ ವಾಸರೇ"
 ];
 
+const WEEKDAYS_HI = [
+  "आदित्य वासरे", "चन्द्र वासरे", "भौम वासरे", "सौम्य वासरे", "गुरु वासरे", "भृगु वासरे", "स्थिर वासरे"
+];
+
+const WEEKDAYS_TE = [
+  "ఆదిత్య వాసరే", "చంద్ర వాసరే", "భౌమ వాసరే", "సౌమ్య వాసరే", "గురు వాసరే", "భృగు వాసరే", "స్థిర వాసరే"
+];
+
+const WEEKDAYS_TA = [
+  "ஆதித்ய வாசரே", "சந்திர வாசரே", "பௌம வாசரே", "ஸௌம்ய வாசரே", "குரு வாசரே", "ப்ருகோ வாசரே", "ஸ்திர வாசரே"
+];
+
 export function calculateTraditionalBaggona(
   birthDate: string,
   birthTime: string,
@@ -155,22 +243,45 @@ export function calculateTraditionalBaggona(
   ayanamsaModel: AyanamsaModel = "lahiri",
   pincode = ""
 ): TraditionalBaggonaPanchanga {
+  let effectivePin = (pincode || "").trim();
+  let lat = latitude;
+  let lng = longitude;
+
+  // Authentic resolution: Gokarna 581326 or user pincode
+  if (
+    effectivePin === "581326" ||
+    (!lat && !lng) ||
+    (Math.abs(lat) < 0.0001 && Math.abs(lng) < 0.0001) ||
+    !isFinite(lat) ||
+    !isFinite(lng)
+  ) {
+    if (effectivePin && effectivePin !== "581326" && /^\d{6}$/.test(effectivePin)) {
+      const resolved = resolvePincodeCoordinatesSync(effectivePin, 14.5479, 74.3188);
+      lat = resolved.lat;
+      lng = resolved.lng;
+    } else {
+      lat = 14.5479;
+      lng = 74.3188;
+      if (!effectivePin) effectivePin = "581326";
+    }
+  }
+
   // Generic dynamic calculation for any other date/location
-  const birthUtc = wallClockBirthToUtc(birthDate, birthTime, latitude, longitude, pincode);
+  const birthUtc = wallClockBirthToUtc(birthDate, birthTime, lat, lng, effectivePin);
   if (isNaN(birthUtc.getTime())) {
     return null as any; // Fail fast if Invalid Date
   }
-  let noonUtc = wallClockBirthToUtc(birthDate, "12:00", latitude, longitude, pincode);
-  let scTimes = SunCalc.getTimes(noonUtc, latitude, longitude);
-  let jyotish = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, latitude, longitude);
+  let noonUtc = wallClockBirthToUtc(birthDate, "12:00", lat, lng, effectivePin);
+  let scTimes = SunCalc.getTimes(noonUtc, lat, lng);
+  let jyotish = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, lat, lng, effectivePin);
   let sunriseUtc = jyotish.sunrise && !isNaN(jyotish.sunrise.getTime()) ? jyotish.sunrise : new Date(noonUtc.getTime() - 6 * 60 * 60 * 1000);
   let sunsetUtc = jyotish.sunset && !isNaN(jyotish.sunset.getTime()) ? jyotish.sunset : new Date(noonUtc.getTime() + 6 * 60 * 60 * 1000);
 
   // If birth is before sunrise on the calendar date, use the previous day's sunrise/sunset as baseline
   if (birthUtc.getTime() < sunriseUtc.getTime()) {
     const prevDayUtc = new Date(noonUtc.getTime() - 24 * 60 * 60 * 1000);
-    scTimes = SunCalc.getTimes(prevDayUtc, latitude, longitude);
-    jyotish = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, latitude, longitude);
+    scTimes = SunCalc.getTimes(prevDayUtc, lat, lng);
+    jyotish = resolveSunTimesForJyotish({ sunrise: scTimes.sunrise, sunset: scTimes.sunset }, lat, lng, effectivePin);
     if (jyotish.sunrise && !isNaN(jyotish.sunrise.getTime())) sunriseUtc = jyotish.sunrise;
     if (jyotish.sunset && !isNaN(jyotish.sunset.getTime())) sunsetUtc = jyotish.sunset;
   }
@@ -299,8 +410,94 @@ export function calculateTraditionalBaggona(
   const { monthIndex, isAdhika, samvatsaraIndex, shakaYear } = getLunarMonthAndYear(birthUtc, ayanamsaModel);
   const samvatsara = getLocalizedSamvatsara("en", samvatsaraIndex);
   const samvatsaraKn = getLocalizedSamvatsara("kn", samvatsaraIndex);
+  const samvatsara5L: Record<string, string> = {
+    en: getLocalizedSamvatsara("en", samvatsaraIndex),
+    kn: getLocalizedSamvatsara("kn", samvatsaraIndex),
+    hi: getLocalizedSamvatsara("hi", samvatsaraIndex),
+    te: getLocalizedSamvatsara("te", samvatsaraIndex),
+    ta: getLocalizedSamvatsara("ta", samvatsaraIndex),
+  };
+
   const masa = getLocalizedMasa("en", monthIndex, isAdhika);
   const masaKn = getLocalizedMasa("kn", monthIndex, isAdhika);
+  const masa5L: Record<string, string> = {
+    en: getLocalizedMasa("en", monthIndex, isAdhika),
+    kn: getLocalizedMasa("kn", monthIndex, isAdhika),
+    hi: getLocalizedMasa("hi", monthIndex, isAdhika),
+    te: getLocalizedMasa("te", monthIndex, isAdhika),
+    ta: getLocalizedMasa("ta", monthIndex, isAdhika),
+  };
+
+  const paksha5L: Record<string, string> = {
+    en: paksha,
+    kn: pakshaKn,
+    hi: tithiIdx < 15 ? "शुक्ल" : "कृष्ण",
+    te: tithiIdx < 15 ? "శుక్ల" : "కృష్ణ",
+    ta: tithiIdx < 15 ? "சுக்ல" : "கிருஷ்ண"
+  };
+
+  const tithi5L: Record<string, string> = {
+    en: tithi,
+    kn: tithiKn,
+    hi: TITHIS_5L.hi?.[tithiIdx] ?? tithi,
+    te: TITHIS_5L.te?.[tithiIdx] ?? tithi,
+    ta: TITHIS_5L.ta?.[tithiIdx] ?? tithi
+  };
+
+  const weekday5L: Record<string, string> = {
+    en: weekday,
+    kn: weekdayKn,
+    hi: WEEKDAYS_HI[wdIdx] ?? weekday,
+    te: WEEKDAYS_TE[wdIdx] ?? weekday,
+    ta: WEEKDAYS_TA[wdIdx] ?? weekday
+  };
+
+  const sunNakshatra5L: Record<string, string> = {
+    en: sunNakshatra,
+    kn: sunNakshatraKn,
+    hi: NAKSHATRAS_HI[sunNakIdx] ?? sunNakshatra,
+    te: NAKSHATRAS_TE[sunNakIdx] ?? sunNakshatra,
+    ta: NAKSHATRAS_TA[sunNakIdx] ?? sunNakshatra
+  };
+
+  const moonNakshatra5L: Record<string, string> = {
+    en: moonNakshatra,
+    kn: moonNakshatraKn,
+    hi: NAKSHATRAS_HI[moonNakIdx] ?? moonNakshatra,
+    te: NAKSHATRAS_TE[moonNakIdx] ?? moonNakshatra,
+    ta: NAKSHATRAS_TA[moonNakIdx] ?? moonNakshatra
+  };
+
+  const yoga5L: Record<string, string> = {
+    en: yoga,
+    kn: yogaKn,
+    hi: YOGAS_HI[yogaIdx] ?? yoga,
+    te: YOGAS_TE[yogaIdx] ?? yoga,
+    ta: YOGAS_TA[yogaIdx] ?? yoga
+  };
+
+  const karana5L: Record<string, string> = {
+    en: karana,
+    kn: karanaKn,
+    hi: KARANAS_HI[karanaIdx] ?? karana,
+    te: KARANAS_TE[karanaIdx] ?? karana,
+    ta: KARANAS_TA[karanaIdx] ?? karana
+  };
+
+  const sankrantiSign5L: Record<string, string> = {
+    en: sankrantiSign,
+    kn: sankrantiSignKn,
+    hi: RASHIS_HI[sunRashiIdx] ?? sankrantiSign,
+    te: RASHIS_TE[sunRashiIdx] ?? sankrantiSign,
+    ta: RASHIS_TA[sunRashiIdx] ?? sankrantiSign
+  };
+
+  const dayVighatis = divaGhatiVal.ghati * 60 + divaGhatiVal.vighati;
+  const nightVighatis = Math.max(0, 3600 - dayVighatis);
+  const nisheGhati = {
+    ghati: Math.floor(nightVighatis / 60),
+    vighati: nightVighatis % 60
+  };
 
   // Dynamic Dasha Balance at birth calculation:
   const NAK_SPAN = 360 / 27;
@@ -343,38 +540,49 @@ export function calculateTraditionalBaggona(
     shakaYear,
     samvatsara,
     samvatsaraKn,
+    samvatsara5L,
     masa,
     masaKn,
+    masa5L,
     paksha,
     pakshaKn,
+    paksha5L,
     tithi,
     tithiKn,
+    tithi5L,
     tithiGhati: tEnd.ghati,
     tithiVighati: tEnd.vighati,
     weekday,
     weekdayKn,
+    weekday5L,
     weekdayIndex: wdIdx,
     sunNakshatra,
     sunNakshatraKn,
+    sunNakshatra5L,
     sunNakshatraGhati: sEnd.ghati,
     sunNakshatraVighati: sEnd.vighati,
     moonNakshatra,
     moonNakshatraKn,
+    moonNakshatra5L,
     moonNakshatraGhati: mEnd.ghati,
     moonNakshatraVighati: mEnd.vighati,
     yoga,
     yogaKn,
+    yoga5L,
     yogaGhati: yEnd.ghati,
     yogaVighati: yEnd.vighati,
     karana,
     karanaKn,
+    karana5L,
     karanaGhati: kEnd.ghati,
     karanaVighati: kEnd.vighati,
     vishaGhati,
     amrithaGhati,
     divaGhati: divaGhatiVal,
+    nisheGhati,
     sankrantiSign,
     sankrantiSignKn,
+    sankrantiSign5L,
     sankrantiGataDina,
     paramaGhati,
     ashayaGhati,

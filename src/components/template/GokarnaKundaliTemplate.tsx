@@ -116,30 +116,30 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
   const defaultMasa = pdfLanguage === "kn" ? "ಚೈತ್ರ ಮಾಸೇ" : pdfLanguage === "hi" ? "चैत्र मासे" : pdfLanguage === "te" ? "చైత్ర మాసే" : pdfLanguage === "ta" ? "சித்திரை மாஸே" : "Chaitra Mase";
   const defaultPaksha = pdfLanguage === "kn" ? "ಶುಕ್ಲ ಪಕ್ಷೇ" : pdfLanguage === "hi" ? "शुक्ल पक्षे" : pdfLanguage === "te" ? "శుక్ల పక్షే" : pdfLanguage === "ta" ? "சுக்ல பக்ஷே" : "Shukla Pakshe";
 
-  const samvatsara = getValue("samvatsara", (panchanga ? (pdfLanguage === "kn" ? panchanga.samvatsaraKn : (panchanga.samvatsara || panchanga.samvatsaraKn)) : defaultSamvatsara));
-  const masa = getValue("masa", (panchanga ? (pdfLanguage === "kn" ? panchanga.masaKn : (panchanga.masa || panchanga.masaKn)) : defaultMasa));
-  const paksha = getValue("paksha", (panchanga ? (pdfLanguage === "kn" ? panchanga.pakshaKn : (panchanga.paksha || panchanga.pakshaKn)) : defaultPaksha));
+  const samvatsara = getValue("samvatsara", (panchanga ? (panchanga.samvatsara5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.samvatsaraKn : (panchanga.samvatsara || panchanga.samvatsaraKn))) : defaultSamvatsara));
+  const masa = getValue("masa", (panchanga ? (panchanga.masa5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.masaKn : (panchanga.masa || panchanga.masaKn))) : defaultMasa));
+  const paksha = getValue("paksha", (panchanga ? (panchanga.paksha5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.pakshaKn : (panchanga.paksha || panchanga.pakshaKn))) : defaultPaksha));
   
-  const defaultTithi = panchanga ? (pdfLanguage === "kn" ? panchanga.tithiKn : (panchanga.tithi || panchanga.tithiKn)) : "";
+  const defaultTithi = panchanga ? (panchanga.tithi5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.tithiKn : (panchanga.tithi || panchanga.tithiKn))) : "";
   const tithi = panchanga ? <>{getValue("tithi", defaultTithi)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.tithiGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.tithiVighati, pdfLanguage)}</> : "";
 
-  const defaultWeekday = panchanga ? (pdfLanguage === "kn" ? panchanga.weekdayKn : (panchanga.weekday || panchanga.weekdayKn)) : "";
-  const defaultSunNak = panchanga ? (pdfLanguage === "kn" ? panchanga.sunNakshatraKn : (panchanga.sunNakshatra || panchanga.sunNakshatraKn)) : "";
+  const defaultWeekday = panchanga ? (panchanga.weekday5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.weekdayKn : (panchanga.weekday || panchanga.weekdayKn))) : "";
+  const defaultSunNak = panchanga ? (panchanga.sunNakshatra5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.sunNakshatraKn : (panchanga.sunNakshatra || panchanga.sunNakshatraKn))) : "";
   const vasara = panchanga ? <>{getValue("weekday", defaultWeekday)} – <b>{getLabel("Ravi Nakshatra")}</b> {getValue("sunNakshatra", defaultSunNak)}, {getLabel("Ghati")} {formatChartHouseNumber(panchanga.sunNakshatraGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.sunNakshatraVighati, pdfLanguage)}</> : "";
 
-  const defaultMoonNak = panchanga ? (pdfLanguage === "kn" ? panchanga.moonNakshatraKn : (panchanga.moonNakshatra || panchanga.moonNakshatraKn)) : "";
+  const defaultMoonNak = panchanga ? (panchanga.moonNakshatra5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.moonNakshatraKn : (panchanga.moonNakshatra || panchanga.moonNakshatraKn))) : "";
   const nakshatra = panchanga ? <>{getValue("moonNakshatra", defaultMoonNak)}, {getLabel("Ghati")} {formatChartHouseNumber(panchanga.moonNakshatraGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.moonNakshatraVighati, pdfLanguage)}</> : "";
 
-  const defaultYoga = panchanga ? (pdfLanguage === "kn" ? panchanga.yogaKn : (panchanga.yoga || panchanga.yogaKn)) : "";
+  const defaultYoga = panchanga ? (panchanga.yoga5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.yogaKn : (panchanga.yoga || panchanga.yogaKn))) : "";
   const yoga = panchanga ? <>{getValue("yoga", defaultYoga)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.yogaGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.yogaVighati, pdfLanguage)}</> : "";
 
-  const defaultKarana = panchanga ? (pdfLanguage === "kn" ? panchanga.karanaKn : (panchanga.karana || panchanga.karanaKn)) : "";
+  const defaultKarana = panchanga ? (panchanga.karana5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.karanaKn : (panchanga.karana || panchanga.karanaKn))) : "";
   const karana = panchanga ? <>{getValue("karana", defaultKarana)} – {getLabel("Ghati")} {formatChartHouseNumber(panchanga.karanaGhati, pdfLanguage)} {getLabel("Pale")} {formatChartHouseNumber(panchanga.karanaVighati, pdfLanguage)}</> : "";
   
   const visha = panchanga ? <>{formatChartHouseNumber(panchanga.vishaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.vishaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
   const amruta = panchanga ? <>{formatChartHouseNumber(panchanga.amrithaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.amrithaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
   const diva = panchanga ? <>{formatChartHouseNumber(panchanga.divaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.divaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
-  const defaultSankrantiSign = panchanga ? (pdfLanguage === "kn" ? panchanga.sankrantiSignKn : (panchanga.sankrantiSign || panchanga.sankrantiSignKn)) : "";
+  const defaultSankrantiSign = panchanga ? (panchanga.sankrantiSign5L?.[pdfLanguage] || (pdfLanguage === "kn" ? panchanga.sankrantiSignKn : (panchanga.sankrantiSign || panchanga.sankrantiSignKn))) : "";
   const sankranti = panchanga ? <>{getValue("sankrantiSign", defaultSankrantiSign)} {getLabel("Sankranti")}, {getLabel("Gata Dina")} {formatChartHouseNumber(panchanga.sankrantiGataDina, pdfLanguage)}</> : "";
   const parama = panchanga ? <>{formatChartHouseNumber(panchanga.paramaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.paramaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
   const aishya = panchanga ? <>{formatChartHouseNumber(panchanga.ashayaGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.ashayaGhati.vighati, pdfLanguage)} {getLabel("Pale")}</> : "";
@@ -288,6 +288,9 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
           <div><b>{getLabel("Visha Ghati")}:</b> {visha}</div>
           <div><b>{getLabel("Amruta Ghati")}:</b> {amruta}</div>
           <div><b>{getLabel("Diva Ghati")}:</b> {diva}</div>
+          {panchanga?.nisheGhati ? (
+            <div><b>{getLabel("Nishe Ghati")}:</b> {formatChartHouseNumber(panchanga.nisheGhati.ghati, pdfLanguage)} {getLabel("Ghati")} {formatChartHouseNumber(panchanga.nisheGhati.vighati, pdfLanguage)} {getLabel("Pale")}</div>
+          ) : null}
           <div><b>{getLabel("Parama Ghati")}:</b> {parama}</div>
           <div><b>{getLabel("Aishya Ghati")}:</b> {aishya}</div>
           <div><b>{getLabel("Gata Ghati")}:</b> {gata}</div>
