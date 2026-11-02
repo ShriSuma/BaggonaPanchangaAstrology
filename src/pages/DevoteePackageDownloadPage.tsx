@@ -1806,6 +1806,8 @@ export default function DevoteePackageDownloadPage(): JSX.Element {
           id="pkg-dosha-container"
           report={doshaReport}
           lang={selectedLang}
+          overridePriestName={priestName}
+          overridePriestPhone={priestPhone}
         />
 
         {/* 5. Current Life Status Container */}

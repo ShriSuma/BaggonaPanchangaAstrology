@@ -15,6 +15,8 @@ export interface KundliDoshaPdfTemplateProps {
   report: ComprehensiveDoshaReport;
   lang?: string;
   qrCodeDataUrl?: string;
+  overridePriestName?: string;
+  overridePriestPhone?: string;
 }
 
 // 5-Language UI Localized Dictionary for 2-Page Master Dossier PDF
@@ -36,7 +38,7 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     activeDoshasCountLabel: "ಸಕ್ರಿಯ ದೋಷಗಳು:",
     ageStrategyHeading: "⭐ ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಆದ್ಯತಾ ಸೂಚಿ & ತುರ್ತು ಮಾರ್ಗದರ್ಶನ",
     ageStrategyNotice: "ಗಮನಿಸಿ: ದೋಷಗಳನ್ನು ಜಾತಕರ ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ತುರ್ತು ಆಧಾರದ ಮೇಲೆ ಆದ್ಯತಾ ಕ್ರಮದಲ್ಲಿ (#1, #2, #3...) ಜೋಡಿಸಲಾಗಿದೆ.",
-    immediateActionLabel: "🎯 ಮೊದಲು ಮಾಡಬೇಕಾದ ಕರ್ತವ್ಯ (Immediate Priority Action):",
+    immediateActionLabel: "🎯 ಮೊದಲು ಮಾಡಬೇಕಾದ ಕರ್ತವ್ಯ:",
     agePriorityBadgeLabel: "ಪ್ರಸ್ತುತ ವಯಸ್ಸಿನ ಆದ್ಯತೆ",
     technicalRootLabel: "ಶಾಸ್ತ್ರೀಯ ತಾಂತ್ರಿಕ ಕಾರಣ:",
     realLifeImpactLabel: "ನೈಜ ಜೀವನದ ಪರಿಣಾಮಗಳು:",
@@ -44,19 +46,19 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     pariharaHeading: "ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ & ಗೋಕರ್ಣ ಸೇವೆ:",
     mantraLabel: "ಮಂತ್ರ ಜಪ & ಪರಿಹಾರ ಕ್ರಮ:",
     daanaLabel: "ದಾನ & ಸೇವೆ:",
-    noDoshaTitle: "🕊️ ಶುದ್ಧ ನಿರ್ದೋಷ ಜಾತಕ (No Critical Afflictions)",
+    noDoshaTitle: "🕊️ ಶುದ್ಧ ನಿರ್ದೋಷ ಜಾತಕ (ದೋಷ ರಹಿತ)",
     noDoshaDesc: "ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಮಾರಕ ಕರ್ಮ ದೋಷಗಳು ಅಥವಾ ಗಂಡಾಂತರಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ಭಗವಂತನ ಕೃಪೆಯಿಂದ ಸಕಲ ಶುಭಗಳು ಲಭಿಸಲಿ.",
-    secondaryDoshasHeading: "⚡ ದ್ವಿತೀಯ ಕರ್ಮ ದೋಷ ನಿರ್ಣಯ (Secondary Afflictions)",
-    planetaryHarmonyHeading: "🕊️ ಗ್ರಹ ಸಾಮರಸ್ಯ & ದೋಷ ಶಮನ ರಕ್ಷಾ ಕವಚ (Harmonious Alignment)",
+    secondaryDoshasHeading: "⚡ ದ್ವಿತೀಯ ಕರ್ಮ ದೋಷ ನಿರ್ಣಯ",
+    planetaryHarmonyHeading: "🕊️ ಗ್ರಹ ಸಾಮರಸ್ಯ & ದೋಷ ಶಮನ ರಕ್ಷಾ ಕವಚ",
     planetaryHarmonyDesc: "ಜಾತಕದ ಇತರ ಭಾವಗಳು ಮತ್ತು ಗ್ರಹ ಸ್ಥಾನಗಳು ಸುಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ಪ್ರಮುಖ ಕರ್ಮ ದೋಷಗಳು ಪ್ರಥಮ ಪುಟದಲ್ಲಿ ಆದ್ಯತಾ ಕ್ರಮದಲ್ಲಿ ದಾಖಲಾಗಿವೆ. ಕೆಳಗಿನ ಗಂಡಾಂತರ ಸಂರಕ್ಷಣೆ ಮತ್ತು ಗೋಕರ್ಣ ಮಹಾ ಪರಿಹಾರಗಳು ಸಕಲ ಶುಭಗಳನ್ನು ತರಲಿವೆ.",
-    chartBalanceHeading: "🪐 ಗ್ರಹ ಸ್ಥಿತಿ & ಜಾತಕ ಭಾವ ಪರೀಕ್ಷೆ (Natal Balance Overview)",
-    gandantaraHeading: "⚡ ಗಂಡಾಂತರಗಳು & ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ (Life Hazards & Safe Age Limits)",
+    chartBalanceHeading: "🪐 ಗ್ರಹ ಸ್ಥಿತಿ & ಜಾತಕ ಭಾವ ಪರೀಕ್ಷೆ",
+    gandantaraHeading: "⚡ ಗಂಡಾಂತರಗಳು & ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ",
     gandantaraNotice: "ಜಲ, ಅಗ್ನಿ, ವಾಹನ, ಸರ್ಪ ಇತ್ಯಾದಿ ಅಪಾಯಗಳ ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ ಹಾಗೂ ಕಡ್ಡಾಯ ನಿಷೇಧಗಳು",
     safeAgeLimitLabel: "ಸಂರಕ್ಷಣಾ ವಯೋಮಿತಿ:",
     karmicCauseLabel: "ಕರ್ಮ ಕಾರಣ:",
     mandatoryPrecautionLabel: "ಕಡ್ಡಾಯ ನಿಷೇಧ & ರಕ್ಷಣೆ:",
     protectiveMantraLabel: "ರಕ್ಷಾ ಕವಚ & ಮಂತ್ರ:",
-    fearsHeading: "🧠 ಅಂತರ್ಗತ ಮನೋಭಯಗಳು & ನಿವಾರಣಾ ಸಾಧನೆ (Innate Fears & Phobias)",
+    fearsHeading: "🧠 ಅಂತರ್ಗತ ಮನೋಭಯಗಳು & ನಿವಾರಣಾ ಸಾಧನೆ",
     fearsSubheading: "ಗ್ರಹ ಪ್ರಭಾವದಿಂದ ಉಂಟಾಗುವ ಆಂತರಿಕ ಭಯಗಳ ಶಮನ ಹಾಗೂ ಮನೋಬಲ ವೃದ್ಧಿ",
     symptomLabel: "ಮಾನಸಿಕ ಲಕ್ಷಣ:",
     strengtheningPracticeLabel: "ಮನೋಬಲ ಸಾಧನೆ:",
@@ -144,7 +146,7 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     activeDoshasCountLabel: "सक्रिय दोष:",
     ageStrategyHeading: "⭐ वर्तमान आयु प्राथमिकता सूची एवं तात्कालिक मार्गदर्शन",
     ageStrategyNotice: "सूचना: दोषों को जातक की वर्तमान आयु की तात्कालिक आवश्यकता के अनुसार प्राथमिकता क्रम में सजाया गया है।",
-    immediateActionLabel: "🎯 सर्वप्रथम कर्तव्य (Immediate Priority Action):",
+    immediateActionLabel: "🎯 सर्वप्रथम कर्तव्य:",
     agePriorityBadgeLabel: "वर्तमान आयु प्राथमिकता",
     technicalRootLabel: "शास्त्रीय तकनीकी कारण:",
     realLifeImpactLabel: "वास्तविक जीवन पर प्रभाव:",
@@ -152,19 +154,19 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     pariharaHeading: "शास्त्रोक्त परिहार एवं गोकर्ण सेवा:",
     mantraLabel: "मंत्र जप एवं परिहार विधि:",
     daanaLabel: "दान एवं सेवा:",
-    noDoshaTitle: "🕊️ शुद्ध निर्दोष जातक (No Critical Afflictions)",
+    noDoshaTitle: "🕊️ शुद्ध निर्दोष जातक (दोष रहित)",
     noDoshaDesc: "कुंडली में कोई मारक कर्म दोष अथवा गंडांतर उपस्थित नहीं है। ईश्वर की कृपा से सर्वत्र शुभता बनी रहे।",
-    secondaryDoshasHeading: "⚡ द्वितीयक कर्म दोष निर्णय (Secondary Afflictions)",
-    planetaryHarmonyHeading: "🕊️ ग्रह सामंजस्य एवं दोष शमन रक्षा कवच (Harmonious Alignment)",
+    secondaryDoshasHeading: "⚡ द्वितीयक कर्म दोष निर्णय",
+    planetaryHarmonyHeading: "🕊️ ग्रह सामंजस्य एवं दोष शमन रक्षा कवच",
     planetaryHarmonyDesc: "कुंडली के अन्य भाव एवं ग्रह स्थिति अनुकूल हैं। प्रथम पृष्ठ के मुख्य परिहारों के साथ नीचे दिए गए निर्देशों का पालन सर्वतोमुखी सुरक्षा प्रदान करेगा।",
-    chartBalanceHeading: "🪐 ग्रह स्थिति एवं कुंडली भाव विश्लेषण (Natal Balance Overview)",
-    gandantaraHeading: "⚡ गंडांतर एवं रक्षात्मक आयु सीमा (Life Hazards & Safe Age Limits)",
+    chartBalanceHeading: "🪐 ग्रह स्थिति एवं कुंडली भाव विश्लेषण",
+    gandantaraHeading: "⚡ गंडांतर एवं रक्षात्मक आयु सीमा",
     gandantaraNotice: "जल, अग्नि, वाहन, सर्प आदि संकटों की रक्षात्मक आयु सीमा एवं अनिवार्य निषेध।",
     safeAgeLimitLabel: "रक्षात्मक आयु सीमा:",
     karmicCauseLabel: "कर्म कारण:",
     mandatoryPrecautionLabel: "अनिवार्य निषेध एवं सावधानी:",
     protectiveMantraLabel: "रक्षा कवच एवं मंत्र:",
-    fearsHeading: "🧠 अंतर्निहित मनोभय एवं निवारण साधना (Innate Fears & Phobias)",
+    fearsHeading: "🧠 अंतर्निहित मनोभय एवं निवारण साधना",
     fearsSubheading: "ग्रह प्रभाव से उत्पन्न मानसिक भयों का शमन एवं मनोबल संवर्धन।",
     symptomLabel: "मानसिक लक्षण:",
     strengtheningPracticeLabel: "मनोबल साधना:",
@@ -198,7 +200,7 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     activeDoshasCountLabel: "సక్రియ దోషాలు:",
     ageStrategyHeading: "⭐ ప్రస్తుత వయస్సు ప్రాధాన్యత & తక్షణ మార్గదర్శనం",
     ageStrategyNotice: "గమనిక: ప్రస్తుత వయస్సు అవసరానికి అనుగుణంగా దోషాలు ప్రాధాన్యతా క్రమంలో అమర్చబడ్డాయి.",
-    immediateActionLabel: "🎯 మొదట చేయవలసిన కర్తవ్యం (Immediate Priority Action):",
+    immediateActionLabel: "🎯 మొదట చేయవలసిన కర్తవ్యం:",
     agePriorityBadgeLabel: "ప్రస్తుత వయస్సు ప్రాధాన్యత",
     technicalRootLabel: "శాస్త్రీయ సాంకేతిక కారణం:",
     realLifeImpactLabel: "నిజ జీవితంలో ప్రభావం:",
@@ -206,19 +208,19 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     pariharaHeading: "శాస్త్రోక్త పరిహారం & గోకర్ణ సేవ:",
     mantraLabel: "మంత్ర జపం & పరిహార విధి:",
     daanaLabel: "దానం & సేవ:",
-    noDoshaTitle: "🕊️ శుద్ధ నిర్దోష జాతకం (No Critical Afflictions)",
+    noDoshaTitle: "🕊️ శుద్ధ నిర్దోష జాతకం (దోష రహితం)",
     noDoshaDesc: "జాతకంలో ఎటువంటి తీవ్ర కర్మ దోషాలు లేవు. భగవంతుని కృపతో సర్వ శుభాలు కలుగుగాక.",
-    secondaryDoshasHeading: "⚡ ద్వితీయ కర్మ దోష నిర్ణయం (Secondary Afflictions)",
-    planetaryHarmonyHeading: "🕊️ గ్రహ సామరస్యం & రక్షా కవచం (Harmonious Alignment)",
+    secondaryDoshasHeading: "⚡ ద్వితీయ కర్మ దోష నిర్ణయం",
+    planetaryHarmonyHeading: "🕊️ గ్రహ సామరస్యం & రక్షా కవచం",
     planetaryHarmonyDesc: "జాతకంలోని ఇతర గ్రహ స్థితులు అనుకూలంగా ఉన్నాయి. మొదటి పేజీలోని ముఖ్య పరిహారాలతో పాటు క్రింది సూచనలు సర్వతోముఖ రక్షణ కల్పిస్తాయి.",
-    chartBalanceHeading: "🪐 గ్రహ స్థితి & కుండలి భావ పరిశీలన (Natal Balance Overview)",
-    gandantaraHeading: "⚡ గండాతరాలు & రక్షణ వయోపరిమితి (Life Hazards & Safe Age Limits)",
+    chartBalanceHeading: "🪐 గ్రహ స్థితి & కుండలి భావ పరిశీలన",
+    gandantaraHeading: "⚡ గండాతరాలు & రక్షణ వయోపరిమితి",
     gandantaraNotice: "జల, అగ్ని, వాహన, సర్ప ప్రమాదాల రక్షణ వయోపరిమితి మరియు తప్పనిసరి నియమాలు.",
     safeAgeLimitLabel: "రక్షణ వయోపరిమితి:",
     karmicCauseLabel: "కర్మ కారణం:",
     mandatoryPrecautionLabel: "తప్పనిసరి జాగ్రత్తలు & రక్షణ:",
     protectiveMantraLabel: "రక్షా కవచం & మంత్రం:",
-    fearsHeading: "🧠 అంతర్గత మనోభయాలు & నివారణ సాధన (Innate Fears & Phobias)",
+    fearsHeading: "🧠 అంతర్గత మనోభయాలు & నివారణ సాధన",
     fearsSubheading: "గ్రహ ప్రభావం వల్ల కలిగే ఆందోళనల శమనం మరియు మనోబల వృద్ధి.",
     symptomLabel: "మానసిక లక్షణం:",
     strengtheningPracticeLabel: "మనోబల సాధన:",
@@ -236,7 +238,7 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     expectedImprovementHeading: "✨ పరిహారం తర్వాత ఆశించే శుభ పరిణామాలు & అభివృద్ధి:"
   },
   ta: {
-    templeBanner: "॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதானம் · பக்ககோண பஞ்சாங்க ஜோதிடம் ॥",
+    templeBanner: "॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்க ஜோதிடம் ॥",
     mainTitle: "ஜன்ம குண்டலி தோஷ ஆய்வு, கண்டாந்தரங்கள் & வயதுக்கேற்ற பரிகார அறிக்கை",
     page2Title: "இரண்டாம் பகுதி: கண்டாந்தர பாதுகாப்பு, பய நிவாரணம், கோகர்ண சேவைகள் & ஆசி",
     shloka: "॥ நமஃ சூர்யாய சாந்தாய சர்வரோக நிவாரினே । ஆயுராரோக்யமைஸ்வர்யம் தேஹி தேவ ஜகத்பதே ॥",
@@ -252,7 +254,7 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     activeDoshasCountLabel: "நடப்பு தோஷங்கள்:",
     ageStrategyHeading: "⭐ நடப்பு வயது முன்னுரிமை & உடனடி வழிகாட்டுதல்",
     ageStrategyNotice: "குறிப்பு: ஜாதகரின் தற்போதைய வயதுக்கு ஏற்ப தோஷங்கள் முன்னுரிமை வரிசையில் பட்டியலிடப்பட்டுள்ளன.",
-    immediateActionLabel: "🎯 முதலில் செய்ய வேண்டிய பரிகாரம் (Immediate Priority Action):",
+    immediateActionLabel: "🎯 முதலில் செய்ய வேண்டிய கடமை:",
     agePriorityBadgeLabel: "நடப்பு வயது முன்னுரிமை",
     technicalRootLabel: "சாஸ்திர ஜோதிடக் காரணம்:",
     realLifeImpactLabel: "நடைமுறை வாழ்க்கைப் பாதிப்புகள்:",
@@ -260,19 +262,19 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     pariharaHeading: "சாஸ்திரோக்த பரிகாரம் & கோகர்ண சேவை:",
     mantraLabel: "மந்திர ஜபம் & பரிகார முறை:",
     daanaLabel: "தானம் & வழிபாட்டு முறைகள்:",
-    noDoshaTitle: "🕊️ தோஷமற்ற தூய ஜாதகம் (No Critical Afflictions)",
+    noDoshaTitle: "🕊️ தோஷமற்ற தூய ஜாதகம் (சுப ஜாதகம்)",
     noDoshaDesc: "ஜாதகத்தில் கடுமையான கர்ம தோஷங்கள் ஏதுமில்லை. இறைவனின் அருளால் வாழ்க்கை அமைதியாக அமையட்டும்.",
-    secondaryDoshasHeading: "⚡ இரண்டாம் நிலை தோஷங்கள் (Secondary Afflictions)",
-    planetaryHarmonyHeading: "🕊️ கிரக சமநிலை & பாதுகாப்பு கவசம் (Harmonious Alignment)",
+    secondaryDoshasHeading: "⚡ இரண்டாம் நிலை கர்ம தோஷங்கள்",
+    planetaryHarmonyHeading: "🕊️ கிரக சமநிலை & பாதுகாப்பு கவசம்",
     planetaryHarmonyDesc: "ஜாதகத்தின் பிற நிலைகள் சுபமாக உள்ளன. முதல் பக்க பரிகாரங்களுடன் கீழேயுள்ள வழிமுறைகள் பூரண பாதுகாப்பு அளிக்கும்.",
-    chartBalanceHeading: "🪐 கிரக நிலை & ஜாதக பலம் (Natal Balance Overview)",
-    gandantaraHeading: "⚡ கண்டாந்தரங்கள் & பாதுகாப்பு வயது வரம்பு (Life Hazards & Safe Age Limits)",
+    chartBalanceHeading: "🪐 கிரக நிலை & ஜாதக பலம்",
+    gandantaraHeading: "⚡ கண்டாந்தரங்கள் & பாதுகாப்பு வயது வரம்பு",
     gandantaraNotice: "நீர், நெருப்பு, வாகனம், நாக தோஷ ஆபத்துகளுக்கான பாதுகாப்பு வயது வரம்பு மற்றும் எச்சரிக்கைகள்.",
     safeAgeLimitLabel: "பாதுகாப்பு வயது வரம்பு:",
     karmicCauseLabel: "கர்ம காரணம்:",
     mandatoryPrecautionLabel: "கட்டாய எச்சரிக்கை & பாதுகாப்பு:",
     protectiveMantraLabel: "பாதுகாப்பு கவசம் & மந்திரம்:",
-    fearsHeading: "🧠 ஆழ்மன பயங்கள் & மனோபல வளர்ச்சி (Innate Fears & Phobias)",
+    fearsHeading: "🧠 ஆழ்மன பயங்கள் & மனோபல வளர்ச்சி",
     fearsSubheading: "கிரக தாக்கத்தால் ஏற்படும் உள்மன அச்சங்களை நீக்கி மனோதைரியம் பெருக்கும் முறைகள்.",
     symptomLabel: "மனோதத்துவ அறிகுறி:",
     strengtheningPracticeLabel: "மனோபல சாதனை:",
@@ -285,8 +287,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     ashirvadaMeaning: "ஸ்ரீ மகாபலேஸ்வரர் திருவருளால் சகல தோஷங்களும் நீங்கி, நீண்ட ஆயுளும் ஆரோக்கியமும் உண்டாக வாழ்த்துகிறோம்.",
     officialSealLabel: "அதிகாரப்பூர்வ சந்நிதி முத்திரை",
     scanToVerify: "ஸ்கேன் செய்க (சரிபார்ப்பு)",
-    page1Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதானம் · பக்ககோண பஞ்சாங்கம் · அதிகாரப்பூர்வ அறிக்கை · பக்கம் 1/2 (தொடர்கிறது...)",
-    page2Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதானம் · பக்ககோண பஞ்சாங்கம் · அதிகாரப்பூர்வ அறிக்கை · பக்கம் 2/2 (முழுமை)",
+    page1Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம் · அதிகாரப்பூர்வ அறிக்கை · பக்கம் 1/2 (தொடர்கிறது...)",
+    page2Footer: "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி · பக்கோண பஞ்சாங்கம் · அதிகாரப்பூர்வ அறிக்கை · பக்கம் 2/2 (முழுமை)",
     expectedImprovementHeading: "✨ பரிகாரத்திற்குப் பின் எதிர்பார்க்கப்படும் நற்பலன்கள் & முன்னேற்றம்:"
   }
 };
@@ -681,6 +683,200 @@ function getSeverityLabel(severity: string, code: SupportedLanguage): string {
   return map[severity]?.[code] || map.critical[code] || "Critical Dosha";
 }
 
+const FEAR_SEVERITY_LABELS: Record<string, Record<SupportedLanguage, string>> = {
+  high: {
+    kn: "ತೀವ್ರ ಭಯ",
+    hi: "तीव्र भय",
+    te: "తీవ్ర భయం",
+    ta: "தீவிர பயம்",
+    en: "High"
+  },
+  moderate: {
+    kn: "ಮಧ್ಯಮ ಭಯ",
+    hi: "मध्यम भय",
+    te: "మధ్యమ భయం",
+    ta: "நடுத்தர பயம்",
+    en: "Moderate"
+  },
+  mild: {
+    kn: "ಸಾಮಾನ್ಯ ಭಯ",
+    hi: "सामान्य भय",
+    te: "సాధారణ భయం",
+    ta: "சாதாரண பயம்",
+    en: "Mild"
+  }
+};
+
+function getFearSeverityLabel(severity: string, code: SupportedLanguage): string {
+  return FEAR_SEVERITY_LABELS[severity]?.[code] || FEAR_SEVERITY_LABELS.moderate[code] || severity;
+}
+
+const SCRIPTURAL_REF_5LANG: Record<string, Record<SupportedLanguage, string>> = {
+  pitru_dosha: {
+    kn: "ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ, ಪಿತೃದೋಷಾಧ್ಯಾಯ",
+    hi: "बृहत् पराशर होरा शास्त्र, पितृदोषाध्याय",
+    te: "బృహత్ పరాశర హోరా శాస్త్రం, పితృదోషాధ్యాయం",
+    ta: "பிருஹத் பராசர ஹோரா சாஸ்திரம், பித்ரு தோஷாத்தியாயம்",
+    en: "BPHS, Pitru Dosha Adhyaya"
+  },
+  narayana_bali: {
+    kn: "ಗರುಡ ಪುರಾಣ, ಪ್ರೇತ ಕಲ್ಪ & ಧರ್ಮಸಿಂಧು",
+    hi: "गरुड़ पुराण, प्रेत कल्प एवं धर्मसिंधु",
+    te: "గరుడ పురాణం, ప్రేత కల్పం & ధర్మసింధు",
+    ta: "கருட புராணம், பிரேத கல்பம் & தர்மசிந்து",
+    en: "Garuda Purana & Dharmasindhu"
+  },
+  kala_sarpa: {
+    kn: "ಹೋರಾ ಸಾರ & ಭೃಗು ಸಂಹಿತಾ",
+    hi: "होरा सार एवं भृगु संहिता",
+    te: "హోరా సార & భృగు సంహిత",
+    ta: "ஹோரா சாரம் & பிருகு சம்ஹிதை",
+    en: "Horasara & Bhrigu Samhita"
+  },
+  kala_sarpa_dosha: {
+    kn: "ಹೋರಾ ಸಾರ & ಭೃಗು ಸಂಹಿತಾ",
+    hi: "होरा सार एवं भृगु संहिता",
+    te: "హೋరా సార & భೃగు సంహిత",
+    ta: "ஹோரா சாரம் & பிருகு சம்ஹிதை",
+    en: "Horasara & Bhrigu Samhita"
+  },
+  guru_chandala: {
+    kn: "ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ, ಯೋಗಾಧ್ಯಾಯ",
+    hi: "बृहत् पराशर होरा शास्त्र, योगाध्याय",
+    te: "బృహత్ పరాశర హోరా శాస్త్రం, యోగాధ్యాయం",
+    ta: "பிருஹத் பராசர ஹோரா சாஸ்திரம், யோகாத்தியாயம்",
+    en: "BPHS, Yogadhyaya"
+  },
+  guru_chandal_dosha: {
+    kn: "ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ, ಯೋಗಾಧ್ಯಾಯ",
+    hi: "बृहत् पराशर होरा शास्त्र, योगाध्याय",
+    te: "బృహత్ పరాశర హోరా శాస్త్రం, యోగాధ్యాయం",
+    ta: "பிருஹத் பராசர ஹோரா சாஸ்திரம், யோகாத்தியாயம்",
+    en: "BPHS, Yogadhyaya"
+  },
+  balarishta: {
+    kn: "ಫಲದೀಪಿಕಾ, ಬಾಲಾರಿಷ್ಟಾಧ್ಯಾಯ",
+    hi: "फलदीपिका, बालारिष्टाध्याय",
+    te: "ఫలదీపిక, బాలారిష్టాధ్యాయం",
+    ta: "பலதீபிகை, பாலாரிஷ்டாத்தியாயம்",
+    en: "Phaladeepika, Balarishta Adhyaya"
+  },
+  balyagraha: {
+    kn: "ಸುಶ್ರುತ ಸಂಹಿತಾ & ಆಯುರ್ವೇದ ಜ್ಯೋತಿಷ",
+    hi: "सुश्रुत संहिता एवं आयुर्वेद ज्योतिष",
+    te: "సుశ్రుత సంహిత & ఆయుర్వేద జ్యోతిష్యం",
+    ta: "சுஸ்ருத சம்ஹிதை & ஆயுர்வேத ஜோதிடம்",
+    en: "Sushruta Samhita & Ayurvedic Jyotisha"
+  },
+  kuja_dosha: {
+    kn: "ಮುಹೂರ್ತ ಚಿಂತಾಮಣಿ & ಪರಾಶರ ಸಂಹಿತಾ",
+    hi: "मुहूर्त चिंतामणि एवं पराशर संहिता",
+    te: "ముహూర్త చింతామణి & పరాశర సంహిత",
+    ta: "முகூர்த்த சிந்தாமணி & பராசர சம்ஹிதை",
+    en: "Muhurtha Chintamani & Parashara"
+  },
+  grahan_dosha: {
+    kn: "ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ, ಗ್ರಹಣ ದೋಷಾಧ್ಯಾಯ",
+    hi: "बृहत् पराशर होरा शास्त्र, ग्रहण दोषाध्याय",
+    te: "బృహత్ పరాశర హోరా శాస్త్రం, గ్రహణ దోషాధ్యాయం",
+    ta: "பிருஹத் பராசர ஹோரா சாஸ்திரம், கிரகண தோஷாத்தியாயம்",
+    en: "BPHS, Grahan Adhyaya"
+  },
+  shrapit_dosha: {
+    kn: "ಭೃಗು ಸಂಹಿತಾ, ಶ್ರಪಿತ ಕುಂಡಲಿ ಯೋಗಾಧ್ಯಾಯ",
+    hi: "भृगु संहिता, शापित कुंडली योगाध्याय",
+    te: "భృగు సంహిత, శ్రాపిత కుండలి యోగాధ్యాయం",
+    ta: "பிருகு சம்ஹிதை, சாபித குண்டலி யோகாத்தியாயம்",
+    en: "Bhrigu Samhita, Shrapit Yoga"
+  },
+  kemadruma_dosha: {
+    kn: "ಜಾತಕ ಪಾರಿಜಾತ & ಫಲದೀಪಿಕಾ",
+    hi: "जातक पारिजात एवं फलदीपिका",
+    te: "జాతక పారిజాతం & ఫలదీపిక",
+    ta: "ஜாதக பாரிஜாதம் & பலதீபிகை",
+    en: "Jataka Parijata & Phaladeepika"
+  },
+  gandanta_dosha: {
+    kn: "ನಾರದ ಸಂಹಿತಾ & ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ, ಗಂಡಾಂತಾಧ್ಯಾಯ",
+    hi: "नारद संहिता एवं पराशर होरा शास्त्र, गंडांताध्याय",
+    te: "నారద సంహిత & పరాశర హోరా శాస్త్రం, గండాంతాధ్యాయం",
+    ta: "நாரத சம்ஹிதை & பராசர ஹோரா சாஸ்திரம், கண்டாந்தாத்தியாயம்",
+    en: "Narada Samhita & BPHS"
+  },
+  dasha_sandhi: {
+    kn: "ಫಲದೀಪಿಕಾ, ದಶಾಫಲಾಧ್ಯಾಯ",
+    hi: "फलदीपिका, दशाफलाध्याय",
+    te: "ఫలదీపిక, దశాఫలాధ్యాయం",
+    ta: "பலதீபிகை, தசாபலாத்தியாயம்",
+    en: "Phaladeepika, Dasha Phala Adhyaya"
+  },
+  gochara_shani: {
+    kn: "ಬೃಹತ್ ಸಂಹಿತಾ & ಗೋಚಾರ ಫಲಾದ್ಯಾಯ",
+    hi: "बृहत् संहिता एवं गोचर फलाध्याय",
+    te: "బృహత్ సంహిత & గోచార ఫలాధ్యాయం",
+    ta: "பிருஹத் சம்ஹிதை & கோசார பலாத்தியாயம்",
+    en: "Brihat Samhita & Gochara Phala"
+  },
+  shani_sade_sati: {
+    kn: "ಬೃಹತ್ ಸಂಹಿತಾ & ಗೋಚಾರ ಫಲಾದ್ಯಾಯ",
+    hi: "बृहत् संहिता एवं गोचर फलाध्याय",
+    te: "బృహత్ సంహిత & గోచార ఫలాధ్యాయం",
+    ta: "பிருஹத் சம்ஹிதை & கோசார பலாத்தியாயம்",
+    en: "Brihat Samhita & Gochara Phala"
+  },
+  gochara_guru: {
+    kn: "ಫಲದೀಪಿಕಾ & ಬೃಹತ್ ಸಂಹಿತಾ - ಗೋಚಾರ ಫಲ",
+    hi: "फलदीपिका एवं बृहत् संहिता - गोचर फल",
+    te: "ఫలదీపిక & బృహత్ సంహిత - గోచార ఫలం",
+    ta: "பலதீபிகை & பிருஹத் சம்ஹிதை - கோசார பலன்",
+    en: "Phaladeepika Ch. 26"
+  },
+  gochara_rahu_ketu: {
+    kn: "ಜಾತಕ ಪಾರಿಜಾತ & ನಾರದ ಸಂಹಿತಾ",
+    hi: "जातक पारिजात एवं नारद संहिता",
+    te: "జాతక పారిజాతం & నారద సంహిత",
+    ta: "ஜாதக பாரிஜாதம் & நாரத சம்ஹிதை",
+    en: "Jataka Parijata"
+  },
+  tithi_shunya_dosha: {
+    kn: "ಮುಹೂರ್ತ ಚಿಂತಾಮಣಿ & ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ",
+    hi: "मुहूर्त चिंतामणि एवं बृहत् पराशर होरा शास्त्र",
+    te: "ముహూర్త చింతామణి & బృహత్ పరాశర హోరా శాస్త్రం",
+    ta: "முகூர்த்த சிந்தாமணி & பிருஹத் பராசர ஹோரா சாஸ்திரம்",
+    en: "Muhurtha Chintamani"
+  },
+  panchanga_yoga_dosha: {
+    kn: "ಕಾಳಾಮೃತ & ನಾರದ ಸಂಹಿತಾ - ಯೋಗಾಧ್ಯಾಯ",
+    hi: "कालामृत एवं नारद संहिता - योगाध्याय",
+    te: "కాలామృతం & నారద సంహిత - యోగాధ్యాయం",
+    ta: "காலாமிர்தம் & நாரத சம்ஹிதை - யோகாத்தியாயம்",
+    en: "Kalamrita & Narada Samhita"
+  },
+  panchanga_karana_dosha: {
+    kn: "ಮುಹೂರ್ತ ಗಣಪತಿ & ನಾರದ ಸಂಹಿತಾ",
+    hi: "मुहूर्त गणपति एवं नारद संहिता",
+    te: "ముహూర్త గణపతి & నారద సంహిత",
+    ta: "முகூர்த்த கணபதி & நாரத சம்ஹிதை",
+    en: "Muhurtha Ganapati"
+  }
+};
+
+function getScripturalReference(doshaId: string, rawRef: string | undefined, code: SupportedLanguage): string {
+  const normId = (doshaId || "").toLowerCase().replace(/-/g, "_");
+  const found = SCRIPTURAL_REF_5LANG[normId];
+  if (found && found[code]) return found[code];
+  if (!rawRef) return "";
+  if (code === "en") {
+    const enMatch = rawRef.match(/\(([^)]+)\)/);
+    return enMatch ? enMatch[1].trim() : rawRef;
+  }
+  if (code === "kn") {
+    return rawRef.replace(/\([^)]+\)/g, "").trim() || rawRef;
+  }
+  const enMatch = rawRef.match(/\(([^)]+)\)/);
+  return enMatch ? enMatch[1].trim() : rawRef;
+}
+
 function getExpectedImprovementAfterParihara(doshaId: string, lang: SupportedLanguage): string {
   const improvements: Record<string, Record<SupportedLanguage, string>> = {
     pitru_dosha: {
@@ -840,7 +1036,8 @@ function getExpectedImprovementAfterParihara(doshaId: string, lang: SupportedLan
     ta: "கிரகங்களின் பாதகமான தாக்கங்கள் நீங்கி, நீண்ட நாட்களாக தேங்கிக்கிடந்த பணிகள் விரைந்து முடியும். பொருளாதார நிலை உயர்ந்து மன அமைதி கிட்டும்."
   };
 
-  const matched = improvements[doshaId];
+  const normalizedId = (doshaId || "").toLowerCase().replace(/-/g, "_");
+  const matched = improvements[normalizedId] || improvements[doshaId];
   if (matched && matched[lang]) return matched[lang];
   return defaultImprovement[lang] || defaultImprovement.kn;
 }
@@ -849,11 +1046,17 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   id = "kundli-doshas-pdf-container",
   report,
   lang = "kn",
-  qrCodeDataUrl
+  qrCodeDataUrl,
+  overridePriestName,
+  overridePriestPhone
 }) => {
-  const code: SupportedLanguage = (["kn", "hi", "te", "ta", "en"].includes(lang) ? lang : "kn") as SupportedLanguage;
+  const normalizedLang = (lang || "kn").toLowerCase();
+  const code: SupportedLanguage = (["kn", "hi", "te", "ta", "en"].includes(normalizedLang) ? normalizedLang : "kn") as SupportedLanguage;
   const t = PDF_TEXT[code] || PDF_TEXT.kn;
   const snip = LOCALIZED_SNIPPETS[code] || LOCALIZED_SNIPPETS.en;
+
+  const displayPriestName = overridePriestName?.trim() || t.priestName;
+  const displayPriestPhone = overridePriestPhone?.trim() || t.priestPhone;
 
   const { devoteeInfo, doshas, gandantaraAndBhaya, summary } = report;
   const activeDoshas = (doshas || []).filter((d) => d.isDetected);
@@ -876,9 +1079,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     }
     let isMounted = true;
     try {
+      const phoneDigits = (overridePriestPhone || "9972339362").replace(/[^0-9]/g, "") || "9972339362";
       const verifyUrl = `https://baggonapanchanga.web.app/daily?action=dosha_verify&devotee=${encodeURIComponent(
         devoteeInfo.name || "Devotee"
-      )}&priestPhone=9972339362&lang=${code}`;
+      )}&priestPhone=${phoneDigits}&lang=${code}`;
 
       QRCode.toDataURL(verifyUrl, {
         errorCorrectionLevel: "M",
@@ -904,7 +1108,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [qrCodeDataUrl, devoteeInfo.name, code]);
+  }, [qrCodeDataUrl, devoteeInfo.name, code, overridePriestPhone]);
 
   // 2-PAGE STRICT STRUCTURING FOR FULL A4 SHEET UTILIZATION:
   // Page 1: Devotee Profile Matrix, Karmic Assessment Summary, Age Priority Directive & Top 2 Active Doshas (or Chart Fortitude).
@@ -912,13 +1116,15 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   const page1Doshas = activeDoshas.slice(0, 2);
   const page2Doshas = activeDoshas.slice(2);
 
-  const getLangVal = (obj: Record<string, string> | undefined, fallback: string = ""): string => {
+  const getLangVal = (obj: any, fallback: string = ""): string => {
     if (!obj) return fallback;
+    if (typeof obj === "string") return obj;
     return obj[code] || obj["en"] || obj["kn"] || fallback;
   };
 
-  const getLangArr = (obj: Record<string, string[]> | undefined): string[] => {
+  const getLangArr = (obj: any): string[] => {
     if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
     return obj[code] || obj["en"] || obj["kn"] || [];
   };
 
@@ -1196,7 +1402,8 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>👤 {t.nativeDetails}:</span>{" "}
                 <span style={{ fontWeight: 900, color: INK_DEEP, fontSize: "12.5px" }}>{devoteeInfo.name}</span>
                 <div style={{ fontSize: "10px", color: INK_MUTED, marginTop: "2px", lineHeight: 1.4 }}>
-                  📅 {devoteeInfo.birthDate} • {devoteeInfo.birthTime}
+                  📅 {[devoteeInfo.birthDate, devoteeInfo.birthTime].filter(Boolean).join(" • ")}
+                  {devoteeInfo.place ? ` · 📍 ${devoteeInfo.place}` : ""}
                 </div>
               </div>
 
@@ -1355,11 +1562,14 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         <span style={{ fontSize: "14.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
                           {getLangVal(dosha.name)}
                         </span>
-                        {dosha.technicalDetail?.scripturalReference && (
-                          <span style={{ fontSize: "9.5px", color: INK_MUTED, fontWeight: 700 }}>
-                            ({dosha.technicalDetail.scripturalReference})
-                          </span>
-                        )}
+                        {(() => {
+                          const sRef = getScripturalReference(dosha.id, dosha.technicalDetail?.scripturalReference, code);
+                          return sRef ? (
+                            <span style={{ fontSize: "9.5px", color: INK_MUTED, fontWeight: 700 }}>
+                              ({sRef})
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
 
                       {/* Right: Dedicated Unclipped Badges Group */}
@@ -1462,7 +1672,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       <div style={{ backgroundColor: CARD_BG, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "6px", padding: "5px 8px", minWidth: 0 }}>
                         <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.35 }}>🔍 {t.technicalRootLabel}</div>
                         <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.45 }}>
-                          {cleanDegreesFromText(getLangVal(dosha.technicalWhy))}
+                          {cleanDegreesFromText(getLangVal(dosha.technicalWhy) || getLangVal((dosha as any).technicalReason))}
                         </div>
                       </div>
 
@@ -1737,11 +1947,14 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           <span style={{ fontSize: "13px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
                             {getLangVal(dosha.name)}
                           </span>
-                          {dosha.technicalDetail?.scripturalReference && (
-                            <span style={{ fontSize: "9px", color: INK_MUTED, fontWeight: 700 }}>
-                              ({dosha.technicalDetail.scripturalReference})
-                            </span>
-                          )}
+                          {(() => {
+                            const sRef = getScripturalReference(dosha.id, dosha.technicalDetail?.scripturalReference, code);
+                            return sRef ? (
+                              <span style={{ fontSize: "9px", color: INK_MUTED, fontWeight: 700 }}>
+                                ({sRef})
+                              </span>
+                            ) : null;
+                          })()}
                         </div>
                       </div>
 
@@ -1989,7 +2202,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   ✓ {snip.noGandantaraDetected}
                 </div>
               ) : (
-                gandantaras.slice(0, 3).map((g) => {
+                gandantaras.slice(0, page2Doshas.length >= 2 ? 2 : 3).map((g) => {
                   const isDanger = g.isCurrentlyInDangerWindow;
                   return (
                     <div
@@ -2033,7 +2246,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                             ⛔ {t.mandatoryPrecautionLabel} {getLangArr(g.cautionDirectives).slice(0, 2).join(" • ") || cleanDegreesFromText(getLangVal(g.technicalReason))}
                           </div>
                           <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "2px", lineHeight: 1.4 }}>
-                            🛡️ {t.protectiveMantraLabel} {getLangVal(g.protectiveParihara)} • {getLangArr(g.protectiveMantras).slice(0, 1).join("")}
+                            🛡️ {t.protectiveMantraLabel} {[getLangVal(g.protectiveParihara), getLangArr(g.protectiveMantras)[0]].filter(Boolean).join(" • ")}
                           </div>
                         </>
                       ) : (
@@ -2102,7 +2315,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       {fear.icon} {getLangVal(fear.name)}
                     </div>
                     <span style={{ fontSize: "8.5px", backgroundColor: CARD_BG, color: GOLD_DARK, padding: "1px 5px", borderRadius: "4px", fontWeight: 700, border: `1px solid ${GOLD_LIGHT}`, flexShrink: 0 }}>
-                      {fear.severity}
+                      {getFearSeverityLabel(fear.severity, code)}
                     </span>
                   </div>
                   <div style={{ color: INK_MUTED, marginTop: "2px", lineHeight: 1.35 }}>
@@ -2196,10 +2409,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               {/* Center: Chief Priest Info & Sanskrit Blessing */}
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: "12.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
-                  {t.priestName}
+                  {displayPriestName}
                 </div>
                 <div style={{ fontSize: "10px", color: INK_MUTED, fontWeight: 700, marginTop: "1px", lineHeight: 1.3 }}>
-                  {t.priestTitle} · {t.priestPhone}
+                  {t.priestTitle} · {displayPriestPhone}
                 </div>
                 <div style={{ fontSize: "10.5px", color: GOLD_DARK, fontWeight: 800, marginTop: "2px", lineHeight: 1.45 }}>
                   {t.sanskritAshirvada}
