@@ -84,6 +84,55 @@ export interface PlanetaryStrengthRemedies {
   };
 }
 
+export interface MandalaVrataSadhana {
+  durationDays: number;
+  durationLabel: Record<SupportedLanguage, string>;
+  auspiciousStartMuhurtha: {
+    taraBalaCategory: Record<SupportedLanguage, string>;
+    taraBalaReason: Record<SupportedLanguage, string>;
+    auspiciousWeekday: Record<SupportedLanguage, string>;
+    tithiPakshaRecommendation: Record<SupportedLanguage, string>;
+    idealTimeWindow: Record<SupportedLanguage, string>;
+    facingDirection: Record<SupportedLanguage, string>;
+    sacredAsana: Record<SupportedLanguage, string>;
+  };
+  threePhaseRoadmap: {
+    phase1: {
+      daysRange: Record<SupportedLanguage, string>;
+      phaseTitle: Record<SupportedLanguage, string>;
+      focusArea: Record<SupportedLanguage, string>;
+      experientialRelief: Record<SupportedLanguage, string>;
+      subconsciousShift: Record<SupportedLanguage, string>;
+    };
+    phase2: {
+      daysRange: Record<SupportedLanguage, string>;
+      phaseTitle: Record<SupportedLanguage, string>;
+      focusArea: Record<SupportedLanguage, string>;
+      experientialRelief: Record<SupportedLanguage, string>;
+      subconsciousShift: Record<SupportedLanguage, string>;
+    };
+    phase3: {
+      daysRange: Record<SupportedLanguage, string>;
+      phaseTitle: Record<SupportedLanguage, string>;
+      focusArea: Record<SupportedLanguage, string>;
+      experientialRelief: Record<SupportedLanguage, string>;
+      subconsciousShift: Record<SupportedLanguage, string>;
+    };
+  };
+  japaPurashcharanaFormula: {
+    dailyCountFormatted: Record<SupportedLanguage, string>;
+    totalMandalaCountFormatted: Record<SupportedLanguage, string>;
+    prescribedMala: Record<SupportedLanguage, string>;
+    shastricRule: Record<SupportedLanguage, string>;
+  };
+  sattvicPathyaAndNiyama: {
+    aharaRules: Array<Record<SupportedLanguage, string>>;
+    acharaRules: Array<Record<SupportedLanguage, string>>;
+    weeklyDaana: Record<SupportedLanguage, string>;
+  };
+  sankalpaDeclaration: Record<SupportedLanguage, string>;
+}
+
 export interface KundliRemedyDiagnosis {
   devoteeName: string;
   birthDate: string;
@@ -255,6 +304,7 @@ export interface KundliRemedyDiagnosis {
     ashirvadaMeaning: Record<string, string>;
     templeSealText: Record<string, string>;
   };
+  mandalaVrataSadhana: MandalaVrataSadhana;
 }
 
 /** Localized Graha Names Dictionary */
@@ -2692,6 +2742,724 @@ export function getTurnaroundMilestones(category: KundliRemedyDiagnosis["primary
         }
       };
   }
+}
+
+/**
+ * 45-Day Sacred Mandala Vrata & Sankalpa Siddhi Computation Engine
+ * Computes Janma Tara Bala, auspicious starting Muhurtha, 3-phase transformation roadmap,
+ * 108 japa Laghu Purashcharana formula, and Sattvic Pathya & Niyama across 5 languages.
+ */
+export function computeMandalaVrataSadhana(
+  struggleCategory: KundliRemedyDiagnosis["primaryStruggle"]["category"],
+  catalystGraha: PlanetName,
+  moonNakshatraIndex: number,
+  devoteeName: string,
+  gotra?: string
+): MandalaVrataSadhana {
+  // 1. Tara Bala Category Determination
+  let taraBalaCategory: Record<SupportedLanguage, string>;
+  let taraBalaReason: Record<SupportedLanguage, string>;
+
+  if (["anger_temper", "mental_anxiety", "health_vitality"].includes(struggleCategory)) {
+    taraBalaCategory = {
+      kn: "ಕ್ಷೇಮ ತಾರೆ (ಆರೋಗ್ಯ, ರಕ್ಷಣೆ & ಪರಮ ಮನಃಶಾಂತಿ ತಾರೆ)",
+      en: "Kshema Tara (Well-being, Protection & Peace Star)",
+      hi: "क्षेम तारा (आरोग्य, सुरक्षा एवं मानसिक शांति तारा)",
+      te: "క్షేమ తార (ఆరోగ్యం, రక్షణ & మానసిక శాంతి తార)",
+      ta: "க்ஷேம தாரை (ஆரோக்கியம், பாதுகாப்பு & மன அமைதி நட்சத்திரம்)"
+    };
+    taraBalaReason = {
+      kn: "ಜನ್ಮ ನಕ್ಷತ್ರದಿಂದ ೪, ೧೩ ಅಥವಾ ೨೨ನೇ ಕ್ಷೇಮ ತಾರೆಯಲ್ಲಿ ಈ ಮಂಡಲ ಸಾಧನೆ ಆರಂಭಿಸುವುದರಿಂದ ದೇಹ-ಮನಸ್ಸಿನ ದೋಷಗಳು ತಕ್ಷಣ ಶಮನವಾಗಿ ಆಯುರಾರೋಗ್ಯ ಮತ್ತು ಶಾಂತಿ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+      en: "Commencing this Mandala sadhana on 4th, 13th or 22nd Kshema Tara pacifies physiological and mental afflictions, securing peace, health, and psychic shielding.",
+      hi: "जन्म नक्षत्र से ४, १३ या २२वें क्षेम तारे में साधना आरंभ करने से दैहिक एवं मानसिक संताप शांत होकर आरोग्य एवं शांति की सिद्धि होती है।",
+      te: "జన్మ నక్షత్రం నుండి 4, 13 లేదా 22వ క్షేమ తారలో ఈ సాధన ప్రారంభించడం వలన శారీరక, మానసిక దోషాలు తొలగి శాంతి లభిస్తుంది.",
+      ta: "ஜன்ம நட்சத்திரத்திலிருந்து 4, 13 அல்லது 22வது க்ஷேம தாரையில் தொடங்கினால் உடல், மன உபாதைகள் நீங்கி ஆரோக்கியமும் அமைதியும் உண்டாகும்."
+    };
+  } else if (["debt_financial", "leadership_expansion"].includes(struggleCategory)) {
+    taraBalaCategory = {
+      kn: "ಸಂಪತ್ ತಾರೆ (ಧನ ಸಮೃದ್ಧಿ, ಸೌಭಾಗ್ಯ & ಅಭಿವೃದ್ಧಿ ತಾರೆ)",
+      en: "Sampat Tara (Wealth, Prosperity & Growth Star)",
+      hi: "सम्पत् तारा (धन समृद्धि, सौभाग्य एवं वृद्धि तारा)",
+      te: "సంపత్ తార (ధన సమృద్ధి, సౌభాగ్యం & అభివృద్ధి తార)",
+      ta: "சம்பத் தாரை (செல்வம், செழிப்பு & வளர்ச்சி நட்சத்திரம்)"
+    };
+    taraBalaReason = {
+      kn: "ಜನ್ಮ ನಕ್ಷತ್ರದಿಂದ ೨, ೧೧ ಅಥವಾ ೨೦ನೇ ಸಂಪತ್ ತಾರೆಯಲ್ಲಿ ವ್ರತ ಕೈಗೊಳ್ಳುವುದರಿಂದ ಕುಬೇರ-ಲಕ್ಷ್ಮೀ ಕೃಪೆ ಉಂಟಾಗಿ ಸಾಲ ಬಾಧೆಗಳು ನಿವಾರಣೆಯಾಗಿ ಧನ ಸಮೃದ್ಧಿ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+      en: "Initiating on 2nd, 11th, or 20th Sampat Tara invokes Kubera-Lakshmi grace, dissolving debt constraints and unlocking enduring wealth channels.",
+      hi: "जन्म नक्षत्र से २, ११ या २०वें सम्पत् तारे में व्रत करने से कुबेर-लक्ष्मी कृपा से ऋण मुक्ति होकर अक्षय धन समृद्धि की प्राप्ति होती है।",
+      te: "జన్మ నక్షత్రం నుండి 2, 11 లేదా 20వ సంపత్ తారలో వ్రతం ప్రారంభించడం వల్ల లక్ష్మీ కటాక్షంతో రుణ విముక్తి కలిగి ధన సమృద్ధి కలుగుతుంది.",
+      ta: "ஜன்ம நட்சத்திரத்திலிருந்து 2, 11 அல்லது 20வது சம்பத் தாரையில் ஆரம்பித்தால் லட்சுமி அருளால் கடன் நீங்கி செல்வம் பெருகும்."
+    };
+  } else if (["relationship_friction", "marriage_delay", "creative_stardom"].includes(struggleCategory)) {
+    taraBalaCategory = {
+      kn: "ಮಿತ್ರ / ಪರಮ ಮಿತ್ರ ತಾರೆ (ಸೌಹಾರ್ದತೆ, ಪ್ರೇಮ & ದೈವಾನುಗ್ರಹ ತಾರೆ)",
+      en: "Mitra / Parama Mitra Tara (Harmony, Divine Grace & Love Star)",
+      hi: "मित्र / परम मित्र तारा (सौहार्द, प्रेम एवं दैवानुग्रह तारा)",
+      te: "మిత్ర / పరమ మిత్ర తార (సౌహార్దం, ప్రేమ & దైవానుగ్రహ తార)",
+      ta: "மித்ர / பரம மித்ர தாரை (நல்லிணக்கம், அன்பு & தெய்வ அருள் நட்சத்திரம்)"
+    };
+    taraBalaReason = {
+      kn: "ಜನ್ಮ ನಕ್ಷತ್ರದಿಂದ ೮, ೯, ೧೭, ೧೮, ೨೬ ಅಥವಾ ೨೭ನೇ ಮಿತ್ರ-ಪರಮಮಿತ್ರ ತಾರೆಯಲ್ಲಿ ಸಾಧನೆ ಆರಂಭಿಸುವುದರಿಂದ ವಿವಾಹ ವಿಘ್ನಗಳು ಕರಗಿ, ಕಲ್ಯಾಣ ಸೌಭಾಗ್ಯ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸಾಮರಸ್ಯ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+      en: "Beginning on 8th, 9th, 17th, 18th, 26th, or 27th Mitra/Parama Mitra Tara resolves matrimonial obstacles and fosters deep familial affection.",
+      hi: "जन्म नक्षत्र से मित्र या परम मित्र तारे में साधना आरंभ करने से विवाह बाधाएं दूर होकर गृहस्थ सुख एवं दांपत्य सौहार्द प्राप्त होता है।",
+      te: "జన్మ నక్షత్రం నుండి మిత్ర లేదా పరమ మిత్ర తారలో సాధన ఆరంభిస్తే వివాహ విఘ్నాలు తొలగి దాంపత్య సౌభాగ్యం లభిస్తుంది.",
+      ta: "ஜன்ம நட்சத்திரத்திலிருந்து மித்ர அல்லது பரம மித்ர தாரையில் தொடங்கினால் திருமண தடைகள் நீங்கி குடும்ப ஒற்றுமை உண்டாகும்."
+    };
+  } else {
+    taraBalaCategory = {
+      kn: "ಸಾಧನಾ ತಾರೆ (ಕಾರ್ಯ ಸಿದ್ಧಿ, ಜಯ & ಸಂಕಲ್ಪ ಪೂರ್ತಿ ತಾರೆ)",
+      en: "Sadhana Tara (Accomplishment, Victory & Goal Fulfillment Star)",
+      hi: "साधना तारा (कार्य सिद्धि, विजय एवं संकल्प पूर्ति तारा)",
+      te: "సాధనా తార (కార్య సిద్ధి, విజయం & సంకల్ప పూర్తి తార)",
+      ta: "சாதனா தாரை (காரிய சித்தி, வெற்றி & சங்கல்ப பூர்த்தி நட்சத்திரம்)"
+    };
+    taraBalaReason = {
+      kn: "ಜನ್ಮ ನಕ್ಷತ್ರದಿಂದ ೬, ೧೫ ಅಥವಾ ೨೪ನೇ ಸಾಧನಾ ತಾರೆಯಲ್ಲಿ ಈ ಮಂಡಲ ವ್ರತ ಕೈಗೊಳ್ಳುವುದರಿಂದ ಉದ್ಯೋಗ, ವಿದ್ಯಾಭ್ಯಾಸ ಹಾಗೂ ಸಕಲ ಸತ್ಸಂಕಲ್ಪಗಳು ನಿರಾತಂಕವಾಗಿ ಸಿದ್ಧಿಸುತ್ತವೆ.",
+      en: "Commencing on 6th, 15th, or 24th Sadhana Tara aligns your intentionality with cosmic cosmic rhythm, assuring success in career, study, and noble ventures.",
+      hi: "जन्म नक्षत्र से ६, १५ या २४वें साधना तारे में यह मंडल व्रत आरंभ करने से कार्यक्षेत्र, विद्या एवं समस्त संकल्पों में निर्विघ्न सफलता प्राप्त होती है।",
+      te: "జన్మ నక్షత్రం నుండి 6, 15 లేదా 24వ సాధనా తారలో ఈ వ్రతం ఆరంభిస్తే ఉద్యోగం, విద్య మరియు సర్వ సంకల్పాలు నెరవేరుతాయి.",
+      ta: "ஜன்ம நட்சத்திரத்திலிருந்து 6, 15 அல்லது 24வது சாதனா தாரையில் தொடங்கினால் தொழில், கல்வி மற்றும் சகல சங்கல்பங்களும் நிறைவேறும்."
+    };
+  }
+
+  // 2. Weekday matching Catalyst Graha
+  const weekdayMap: Record<PlanetName, Record<SupportedLanguage, string>> = {
+    [PlanetName.Sun]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಭಾನುವಾರ (ಸೂರ್ಯನ ತೇಜಸ್ಸಿನ ದಿನ)",
+      en: "Shukla Paksha Sunday (Day of Surya / Vitality)",
+      hi: "शुक्ल पक्ष का रविवार (सूर्य देव का पावन दिन)",
+      te: "శుక్ల పక్ష ఆదివారం (సూర్య తేజస్సు దినం)",
+      ta: "சுக்ல பட்ச ஞாயிற்றுக்கிழமை (சூரியனின் சுப நாள்)"
+    },
+    [PlanetName.Moon]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಸೋಮವಾರ (ಚಂದ್ರನ ಪ್ರಶಾಂತ ದಿನ)",
+      en: "Shukla Paksha Monday (Day of Chandra / Peace)",
+      hi: "शुक्ल पक्ष का सोमवार (चन्द्र देव का शुभ दिन)",
+      te: "శుక్ల పక్ష సోమవారం (చంద్రుని ప్రశాంత దినం)",
+      ta: "சுக்ல பட்ச திங்கட்கிழமை (சந்திரனின் சாந்தி நாள்)"
+    },
+    [PlanetName.Mars]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಮಂಗಳವಾರ (ಕುಜನ ಧೈರ್ಯ & ಮಂಗಳ ದಿನ)",
+      en: "Shukla Paksha Tuesday (Day of Mangala / Courage)",
+      hi: "शुक्ल पक्ष का मंगलवार (मंगल देव का शौर्य दिन)",
+      te: "శుక్ల పక్ష మంగళవారం (కుజుని ధైర్య దినం)",
+      ta: "சுக்ல பட்ச செவ்வாய்க்கிழமை (செவ்வாயின் மங்கல நாள்)"
+    },
+    [PlanetName.Mercury]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಬುಧವಾರ (ಬುಧನ ಜ್ಞಾನ & ವಿವೇಕದ ದಿನ)",
+      en: "Shukla Paksha Wednesday (Day of Budha / Intellect)",
+      hi: "शुक्ल पक्ष का बुधवार (बुध देव का ज्ञान दिन)",
+      te: "శుక్ల పక్ష బుధవారం (బుధుని వివేక దినం)",
+      ta: "சுக்ல பட்ச புதன்கிழமை (புதனின் ஞான நாள்)"
+    },
+    [PlanetName.Jupiter]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಗುರುವಾರ (ಬೃಹಸ್ಪತಿಯ ದೈವಿಕ ದಿನ)",
+      en: "Shukla Paksha Thursday (Day of Brihaspati / Grace)",
+      hi: "शुक्ल पक्ष का गुरुवार (बृहस्पति देव का पावन दिन)",
+      te: "శుక్ల పక్ష గురువారం (బృహస్పతి దైవిక దినం)",
+      ta: "சுக்ல பட்ச வியாழக்கிழமை (குருவின் தெய்வீக நாள்)"
+    },
+    [PlanetName.Venus]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಶುಕ್ರವಾರ (ಮಹಾಲಕ್ಷ್ಮಿ & ಶುಕ್ರನ ಸೌಭಾಗ್ಯ ದಿನ)",
+      en: "Shukla Paksha Friday (Day of Mahalakshmi & Shukra)",
+      hi: "शुक्ल पक्ष का शुक्रवार (महालक्ष्मी एवं शुक्र का शुभ दिन)",
+      te: "శుక్ల పక్ష శుక్రవారం (మహాలక్ష్మి & శుక్రుని శుభ దినం)",
+      ta: "சுக்ல பட்ச வெள்ளிக்கிழமை (மகாலட்சுமி & சுக்கிரனின் சுப நாள்)"
+    },
+    [PlanetName.Saturn]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಶನಿವಾರ (ಶನೈಶ್ಚರನ ಕರ್ಮ ಶುದ್ಧಿಯ ದಿನ)",
+      en: "Shukla Paksha Saturday (Day of Shanaishchara / Discipline)",
+      hi: "शुक्ल पक्ष का शनिवार (शनि देव का कर्म शुद्धि दिन)",
+      te: "శుక్ల పక్ష శనివారం (శని దేవుని కర్మ శుద్ధి దినం)",
+      ta: "சுக்ல பட்ச சனிக்கிழமை (சனி பகவானின் கர்ம சுத்தி நாள்)"
+    },
+    [PlanetName.Rahu]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಶನಿವಾರ ಮುಸ್ಸಂಜೆ ಅಥವಾ ಬುಧವಾರ",
+      en: "Shukla Paksha Saturday Twilight or Wednesday",
+      hi: "शुक्ल पक्ष का शनिवार सायं अथवा बुधवार",
+      te: "శుక్ల పక్ష శనివారం సాయంత్రం లేదా బుధవారం",
+      ta: "சுக்ல பட்ச சனிக்கிழமை அந்தி அல்லது புதன்கிழமை"
+    },
+    [PlanetName.Ketu]: {
+      kn: "ಶುಕ್ಲ ಪಕ್ಷದ ಮಂಗಳವಾರ ಅಥವಾ ಗುರುವಾರ",
+      en: "Shukla Paksha Tuesday or Thursday",
+      hi: "शुक्ल पक्ष का मंगलवार अथवा गुरुवार",
+      te: "శుక్ల పక్ష మంగళవారం లేదా గురువారం",
+      ta: "சுக்ல பட்ச செவ்வாய்க்கிழமை அல்லது வியாழக்கிழமை"
+    }
+  };
+
+  const auspiciousWeekday = weekdayMap[catalystGraha] || weekdayMap[PlanetName.Jupiter];
+
+  // 3. Mala Recommendation
+  let prescribedMala: Record<SupportedLanguage, string>;
+  if ([PlanetName.Saturn, PlanetName.Rahu, PlanetName.Ketu].includes(catalystGraha)) {
+    prescribedMala = {
+      kn: "ಪವಿತ್ರ ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಮಾಲೆ (೧೦೮ ಮಣಿಗಳು)",
+      en: "Sacred 5-Mukhi Rudraksha Mala (108 beads)",
+      hi: "पवित्र पंचमुखी रुद्राक्ष माला (१०८ मनके)",
+      te: "పవిత్ర పంచముఖి రుద్రాక్ష మాల (108 పూసలు)",
+      ta: "புனித பஞ்சமுக ருத்ராட்ச மாலை (108 மணிகள்)"
+    };
+  } else if ([PlanetName.Moon, PlanetName.Venus, PlanetName.Mercury].includes(catalystGraha)) {
+    prescribedMala = {
+      kn: "ಶುದ್ಧ ಸ್ಫಟಿಕ ಮಾಲೆ ಅಥವಾ ಬಿಳಿ ಚಂದನದ ಮಾಲೆ (೧೦೮ ಮಣಿಗಳು)",
+      en: "Pure Spatika (Quartz) or White Sandalwood Mala (108 beads)",
+      hi: "शुद्ध स्फटिक माला अथवा श्वेत चन्दन माला (१०८ मनके)",
+      te: "శుద్ధ స్పటిక మాల లేదా తెల్ల చందనం మాల (108 పూసలు)",
+      ta: "தூய ஸ்படிக மாலை அல்லது வெண் சந்தன மாலை (108 மணிகள்)"
+    };
+  } else {
+    prescribedMala = {
+      kn: "ರಕ್ತ ಚಂದನ ಅಥವಾ ಶುದ್ಧ ತುಳಸಿ ಮಾಲೆ (೧೦೮ ಮಣಿಗಳು)",
+      en: "Red Sandalwood or Sacred Tulasi Mala (108 beads)",
+      hi: "रक्त चन्दन अथवा शुद्ध तुलसी माला (१०८ मनके)",
+      te: "రక్త చందనం లేదా తులసి మాల (108 పూసలు)",
+      ta: "ரத்த சந்தனம் அல்லது துளசி மாலை (108 மணிகள்)"
+    };
+  }
+
+  // 4. 3-Phase Transformation Roadmap Content based on primary struggle
+  interface PhaseDetail {
+    daysRange: Record<SupportedLanguage, string>;
+    phaseTitle: Record<SupportedLanguage, string>;
+    focusArea: Record<SupportedLanguage, string>;
+    experientialRelief: Record<SupportedLanguage, string>;
+    subconsciousShift: Record<SupportedLanguage, string>;
+  }
+
+  let phase1: PhaseDetail;
+  let phase2: PhaseDetail;
+  let phase3: PhaseDetail;
+
+  if (struggleCategory === "career_obstacles") {
+    phase1 = {
+      daysRange: { kn: "ದಿನ ೧ - ೧೫", en: "Days 1 - 15", hi: "दिन १ - १५", te: "రోజులు 1 - 15", ta: "நாட்கள் 1 - 15" },
+      phaseTitle: {
+        kn: "ಪ್ರಥಮ ಹಂತ: ಕರ್ಮ ಪ್ರತಿಬಂಧಕ ನಿವಾರಣೆ & ಕಾರ್ಯಕ್ಷೇತ್ರದ ಗೊಂದಲ ಶಮನ",
+        en: "Phase 1: Karmic Block Dissolution & Workplace De-escalation",
+        hi: "प्रथम चरण: कर्म बाधा निवारण एवं कार्यक्षेत्र तनाव शमन",
+        te: "మొదటి దశ: కర్మ దోష నివారణ & పని ప్రదేశంలో ఒత్తిడి శమనం",
+        ta: "முதல் படி: கர்ம தடை நீக்கம் & பணியிட அமைதி"
+      },
+      focusArea: {
+        kn: "ಕಾರ್ಯಸ್ಥಳದಲ್ಲಿನ ಹಠಾತ್ ಅಡೆತಡೆಗಳು, ಅಧಿಕಾರಿಗಳ ಅಪಸ್ವರ ಹಾಗೂ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿಗಳ ಶಮನ.",
+        en: "Pacifying sudden workplace bottlenecks, superior friction, and ambient career anxiety.",
+        hi: "कार्यस्थल की अचानक रुकावटों, अधिकारियों के मतभेद एवं मानसिक अशांति का शमन।",
+        te: "పని ప్రదేశంలో ఆకస్మిక అడ్డంకులు, అధికారులతో విభేదాలు మరియు ఆందోళనల శమనం.",
+        ta: "பணியிடத்தில் ஏற்படும் திடீர் தடைகள், உயரதிகாரிகளுடன் கருத்து வேறுபாடுகள் தணிதல்."
+      },
+      experientialRelief: {
+        kn: "೧೫ ದಿನಗಳ ಸಾಧನೆಯಿಂದ ನಿರಂತರ ಒತ್ತಡ ಇಳಿದು, ದಿನನಿತ್ಯದ ಕೆಲಸಗಳಲ್ಲಿ ಸ್ಪಷ್ಟ ಏಕಾಗ್ರತೆ ಮರಳುತ್ತದೆ.",
+        en: "Within 15 days, ambient work panic recedes; daily duties regain calm, organized focus.",
+        hi: "१५ दिनों की साधना से निरंतर तनाव कम होकर कार्य में स्पष्ट एकाग्रता लौटती है।",
+        te: "15 రోజుల సాధనతో నిరంతర ఒత్తిడి తగ్గి, పనుల్లో స్పష్టమైన ఏకాగ్రత చేకూరుతుంది.",
+        ta: "15 நாள் வழிபாட்டால் மன அழுத்தம் குறைந்து, பணிகளில் தெளிவான கவனம் திரும்பும்."
+      },
+      subconsciousShift: {
+        kn: "ಅಂತಃಪ್ರಜ್ಞೆಯಲ್ಲಿ ಕೀಳರಿಮೆ ಕರಗಿ ವೃತ್ತಿಪರ ಆತ್ಮವಿಶ್ವಾಸ ಜಾಗೃತಗೊಳ್ಳುತ್ತದೆ.",
+        en: "Dissolution of professional self-doubt into grounded career confidence.",
+        hi: "आत्मसंदेह दूर होकर कार्यक्षेत्र में दृढ़ आत्मविश्वास जागृत होता है।",
+        te: "ఆత్మవిశ్వాసం పెరిగి వృత్తిలో స్థిరమైన ఆలోచనలు కలుగుతాయి.",
+        ta: "சுய சந்தேகம் நீங்கி தொழில் துறையில் உறுதியான நம்பிக்கை பிறக்கும்."
+      }
+    };
+    phase2 = {
+      daysRange: { kn: "ದಿನ ೧೬ - ೩೦", en: "Days 16 - 30", hi: "दिन १६ - ३०", te: "రోజులు 16 - 30", ta: "நாட்கள் 16 - 30" },
+      phaseTitle: {
+        kn: "ದ್ವಿತೀಯ ಹಂತ: ಬುಧ-ಗುರು ತೇಜಸ್ಸು ಜಾಗೃತಿ & ನೂತನ ಅವಕಾಶಗಳ ಪ್ರಕಾಶ",
+        en: "Phase 2: Budha-Guru Tejas Activation & Horizon Expansion",
+        hi: "द्वितीय चरण: बुध-गुरु तेज जागृति एवं नवीन अवसर प्रकाश",
+        te: "రెండవ దశ: బుధ-గురు తేజస్సు జాగృతి & నూతన అవకాశాల వెలుగు",
+        ta: "இரண்டாம் படி: புதன்-குரு தேஜஸ் விழிப்புணர்வு & புதிய வாய்ப்புகள்"
+      },
+      focusArea: {
+        kn: "ಕುಂಠಿತಗೊಂಡಿದ್ದ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳ ಪುನಶ್ಚೇತನ, ಪ್ರಮುಖ ವ್ಯಕ್ತಿಗಳ ಬೆಂಬಲ ಹಾಗೂ ಕೌಶಲ್ಯ ವೃದ್ಧಿ.",
+        en: "Revival of stalled projects, recognition from mentors, and sharp intellectual discernment.",
+        hi: "रुके हुए कार्यों का पुनः आरंभ, वरिष्ठों का सहयोग एवं बौद्धिक कुशाग्रता।",
+        te: "ఆగిపోయిన పనులు పునఃప్రారంభం, అధికారుల మద్దతు మరియు నైపుణ్యాల వృద్ధి.",
+        ta: "முடங்கிய பணிகள் மீண்டும் தொடங்குதல், உயர் அதிகாரிகளின் ஆதரவு மற்றும் அறிவு கூர்மை."
+      },
+      experientialRelief: {
+        kn: "ಹಳೆಯ ವಿರೋಧಗಳು ಕರಗಿ, ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷಮತೆಗೆ ಮೇಲಧಿಕಾರಿಗಳ ಮೆಚ್ಚುಗೆ ಲಭಿಸಲಾರಂಭಿಸುತ್ತದೆ.",
+        en: "Colleague resistance dissolves; your consistent contributions gain overt appreciation.",
+        hi: "सहकर्मियों का विरोध शांत होता है और आपकी कार्यकुशलता की प्रशंसा होने लगती है।",
+        te: "సహోద్యోగుల వ్యతిరేకత తగ్గి, మీ పనితీరుకు ప్రశంసలు లభించడం ప్రారంభమవుతుంది.",
+        ta: "சக ஊழியர்களின் எதிர்ப்பு நீங்கி, உங்கள் உழைப்பிற்கு பாராட்டு கிடைக்கத் தொடங்கும்."
+      },
+      subconsciousShift: {
+        kn: "ಕಾರ್ಯತಂತ್ರದಲ್ಲಿ ದೈವಿಕ ವಿವೇಕ ಮತ್ತು ಕಾಲಜ್ಞಾನ ಸಿದ್ಧಿಸುತ್ತದೆ.",
+        en: "Alignment with sharp strategic timing and professional discernment.",
+        hi: "रणनीतिक निर्णय क्षमता एवं समयबद्ध कार्य कुशलता की सिद्धि।",
+        te: "వ్యూహాత్మక నిర్ణయాలు తీసుకునే వివేకం మరియు సమయస్ఫూర్తి కలుగుతాయి.",
+        ta: "சரியான நேரத்தில் சரியான முடிவெடுக்கும் விவேகம் உண்டாகும்."
+      }
+    };
+    phase3 = {
+      daysRange: { kn: "ದಿನ ೩೧ - ೪೫", en: "Days 31 - 45", hi: "दिन ३१ - ४५", te: "రోజులు 31 - 45", ta: "நாட்கள் 31 - 45" },
+      phaseTitle: {
+        kn: "ತೃತೀಯ ಹಂತ: ಸಂಕಲ್ಪ ಸಿದ್ಧಿ, ಉದ್ಯೋಗ ಬಡ್ತಿ & ಆದಾಯ ವೃದ್ಧಿ",
+        en: "Phase 3: Sankalpa Siddhi, Promotion & Material Breakthrough",
+        hi: "तृतीय चरण: संकल्प सिद्धि, पदोन्नति एवं स्थायी समृद्धि",
+        te: "మూడవ దశ: సంకల్ప సిద్ధి, పదోన్నతి & స్థిర ఆదాయ వృద్ధి",
+        ta: "மூன்றாம் படி: சங்கல்ப சித்தி, பதவி உயர்வு & நிரந்தர செல்வம்"
+      },
+      focusArea: {
+        kn: "ಉದ್ಯೋಗದಲ್ಲಿ ಅಪೇಕ್ಷಿತ ಬಡ್ತಿ, ನೂತನ ವೇತನ ಶ್ರೇಣಿ, ಯಶಸ್ವಿ ಒಪ್ಪಂದಗಳು & ಸ್ಥಿರ ಗೌರವ.",
+        en: "Manifestation of coveted promotion, higher remuneration, lucrative contracts, and dignity.",
+        hi: "वांछित पदोन्नति, वेतन वृद्धि, व्यापारिक विस्तार एवं समाज में प्रतिष्ठा।",
+        te: "కోరుకున్న ప్రమోషన్, జీతభత్యాల పెంపు, వ్యాపార విస్తరణ మరియు గౌరవం.",
+        ta: "விரும்பிய பதவி உயர்வு, ஊதிய உயர்வு, வியாபார வளர்ச்சி மற்றும் நற்பெயர்."
+      },
+      experientialRelief: {
+        kn: "೪೫ ದಿನಗಳ ಪೂರ್ಣ ಮಂಡಲದಿಂದ ಉದ್ಯೋಗ ಸಂಕಲ್ಪ ಸಿದ್ಧಿಯಾಗಿ ಆರ್ಥಿಕ ಸ್ವಾತಂತ್ರ್ಯ ನೆಲೆಸುತ್ತದೆ.",
+        en: "Culmination of 45-day discipline crowns your career resolve with solid financial stability.",
+        hi: "४५ दिवसीय पूर्ण मंडल से आजीविका का संकल्प सिद्ध होकर आर्थिक निश्चिंतता आती है।",
+        te: "45 రోజుల సాధనతో ఉద్యోగ సంకల్పం నెరవేరి ఆర్థిక భద్రత చేకూరుతుంది.",
+        ta: "45 நாள் முழு மண்டல வழிபாட்டால் உத்தியோக சங்கல்பம் நிறைவேறுவதுடன் நிதி அமைதி உண்டாகும்."
+      },
+      subconsciousShift: {
+        kn: "ಅಧಿಕಾರ, ಸ್ಥಿರತೆ ಮತ್ತು ದೈವಿಕ ಯಶಸ್ಸಿನ ಪರಿಪೂರ್ಣ ಸಾಕ್ಷಾತ್ಕಾರ.",
+        en: "Attainment of rightful authority, abundance, and divine professional fulfillment.",
+        hi: "अधिकार, स्थिरता एवं दैवीय सफलता का पूर्ण साक्षात्कार।",
+        te: "అధికారం, స్థిరత్వం మరియు దైవిక సాఫల్యత సాక్షాత్కారం.",
+        ta: "அதிகாரம், நிலைத்தன்மை மற்றும் தெய்வீக வெற்றியின் முழு அனுபவம்."
+      }
+    };
+  } else if (struggleCategory === "debt_financial") {
+    phase1 = {
+      daysRange: { kn: "ದಿನ ೧ - ೧೫", en: "Days 1 - 15", hi: "दिन १ - १५", te: "రోజులు 1 - 15", ta: "நாட்கள் 1 - 15" },
+      phaseTitle: {
+        kn: "ಪ್ರಥಮ ಹಂತ: ಅನಗತ್ಯ ಧನವ್ಯಯ ತಡೆ & ಆರ್ಥಿಕ ಆತಂಕ ನಿವಾರಣೆ",
+        en: "Phase 1: Financial Leak Containment & Panic Dissolution",
+        hi: "प्रथम चरण: अनियंत्रित धन हानि पर रोक एवं चिंता निवारण",
+        te: "మొదటి దశ: అనవసర ఖర్చుల నియంత్రణ & ఆర్థిక ఆందోళన నివారణ",
+        ta: "முதல் படி: வீண் விரயங்கள் தடுப்பு & பணக்கவலை நீக்கம்"
+      },
+      focusArea: {
+        kn: "ಅನಿರೀಕ್ಷಿತ ನಷ್ಟಗಳು, ಸಾಲಗಾರರ ಒತ್ತಡ ಹಾಗೂ ಆರ್ಥಿಕ ಅಸ್ಥಿರತೆಯ ಶಮನ.",
+        en: "Halting sudden expenditures, creditor friction, and money-related panic.",
+        hi: "अप्रत्याशित हानियों पर रोक, ऋणदाताओं के दबाव एवं आर्थिक भय का शमन।",
+        te: "అనుకోని నష్టాలు, అప్పుల వారి ఒత్తిడి మరియు ఆర్థిక భయాల నివారణ.",
+        ta: "எதிர்பாராத இழப்புகள், கடன்காரர்களின் அழுத்தம் மற்றும் நிதி பயம் தணிதல்."
+      },
+      experientialRelief: {
+        kn: "೧೫ ದಿನಗಳಲ್ಲಿ ಹಣ ವ್ಯರ್ಥವಾಗಿ ಖರ್ಚಾಗುವುದು ನಿಂತು, ಆರ್ಥಿಕ ನಿರ್ವಹಣೆಯಲ್ಲಿ ಸ್ಪಷ್ಟತೆ ಬರುತ್ತದೆ.",
+        en: "Wasteful outflows halt within 15 days; composure returns to money management.",
+        hi: "१५ दिनों में अनावश्यक खर्च रुकते हैं और आर्थिक संतुलन में सुधार आता है।",
+        te: "15 రోజుల్లో ధన నష్టం ఆగిపోయి, ఆర్థిక నిర్వహణలో స్థిరత్వం వస్తుంది.",
+        ta: "15 நாட்களில் வீண் செலவுகள் நின்று, பண நிர்வாகத்தில் தெளிவு பிறக்கும்."
+      },
+      subconsciousShift: {
+        kn: "ಬಡತನದ ಆತಂಕ ಕರಗಿ ಸಮೃದ್ಧಿಯ ಪ್ರಜ್ಞೆ ಜಾಗೃತಗೊಳ್ಳುತ್ತದೆ.",
+        en: "Poverty trauma dissolves, anchoring subconscious in steady abundance.",
+        hi: "आर्थिक असुरक्षा की भावना समाप्त होकर संबल का उदय होता है।",
+        te: "ఆర్థిక అభద్రతా భావం తొలగి స్థిరమైన నమ్మకం ఏర్పడుతుంది.",
+        ta: "பணப் பற்றாக்குறை பயம் நீங்கி தன்னம்பிக்கை உண்டாகும்."
+      }
+    };
+    phase2 = {
+      daysRange: { kn: "ದಿನ ೧೬ - ೩೦", en: "Days 16 - 30", hi: "दिन १६ - ३०", te: "రోజులు 16 - 30", ta: "நாட்கள் 16 - 30" },
+      phaseTitle: {
+        kn: "ದ್ವಿತೀಯ ಹಂತ: ಕುಬೇರ-ಲಕ್ಷ್ಮೀ ಆಕರ್ಷಣೆ & ನೂತನ ಆದಾಯ ಮಾರ್ಗಗಳು",
+        en: "Phase 2: Kubera-Lakshmi Inflow & Revenue Channel Awakening",
+        hi: "द्वितीय चरण: कुबेर-लक्ष्मी कृपा एवं नवीन आय स्रोत",
+        te: "రెండవ దశ: కుబేర-లక్ష్మీ కటాక్షం & నూతన ఆదాయ మార్గాలు",
+        ta: "இரண்டாம் படி: குபேர-லட்சுமி அருள் & புதிய வருமான வழிகள்"
+      },
+      focusArea: {
+        kn: "ಹಿಂದೆ ಸಿಲುಕಿದ್ದ ಹಣ ವಾಪಸಾತಿ, ನೂತನ ಗ್ರಾಹಕರು ಹಾಗೂ ವ್ಯಾಪಾರ ವೃದ್ಧಿ.",
+        en: "Recovery of blocked capital, onboarding new clients, and trade expansion.",
+        hi: "फंसे हुए धन की वापसी, नए ग्राहकों का जुड़ाव एवं व्यापार वृद्धि।",
+        te: "నిలిచిపోయిన ధనం తిరిగి రావడం, నూతన వ్యాపార అవకాశాలు లభించడం.",
+        ta: "நிலுவையில் இருந்த பணம் வசூலாதல், புதிய வியாபார வாய்ப்புகள் வருதல்."
+      },
+      experientialRelief: {
+        kn: "ಸ್ಥಗಿತಗೊಂಡ ಧನಪರಿಚಲನೆ ಪುನಾರಂಭವಾಗಿ, ಸಾಲ ತೀರಿಸಲು ಸುಲಭ ಹಾದಿಗಳು ಗೋಚರಿಸುತ್ತವೆ.",
+        en: "Blocked cashflow resumes; practical avenues for systematic debt clearance open up.",
+        hi: "धन का प्रवाह सुचारु होता है और कर्ज चुकाने के स्पष्ट रास्ते दिखाई देते हैं।",
+        te: "ఆర్థిక రాబడి పెరిగి, అప్పులు తీర్చడానికి మార్గాలు సుగమమవుతాయి.",
+        ta: "பணப்புழக்கம் சீராகி, கடன்களை அடைப்பதற்கான வழிகள் தென்படும்."
+      },
+      subconsciousShift: {
+        kn: "ಅಖಂಡ ಐಶ್ವರ್ಯದ ದೈವಿಕ ಶಕ್ತಿಯೊಂದಿಗೆ ಮರುಸಂಪರ್ಕ.",
+        en: "Reconnection with divine abundance and resource dignity.",
+        hi: "लक्ष्मी की कृपा से सकारात्मक वित्तीय सामर्थ्य का जागरण।",
+        te: "లక్ష్మీదేవి అనుగ్రహంతో ఆర్థిక వివేకం మరియు స్థిరత్వం.",
+        ta: "மகாலட்சுமி அருளால் நிலையான செல்வ வளம் பெறும் தெளிவு."
+      }
+    };
+    phase3 = {
+      daysRange: { kn: "ದಿನ ೩೧ - ೪೫", en: "Days 31 - 45", hi: "दिन ३१ - ४५", te: "రోజులు 31 - 45", ta: "நாட்கள் 31 - 45" },
+      phaseTitle: {
+        kn: "ತೃತೀಯ ಹಂತ: ಸಂಪೂರ್ಣ ಋಣಮುಕ್ತಿ & ಶಾಶ್ವತ ಸಂಪತ್ ಸಿದ್ಧಿ",
+        en: "Phase 3: Debt Liquidation, Lasting Abundance & Financial Peace",
+        hi: "तृतीय चरण: संपूर्ण ऋणमुक्ति एवं स्थायी समृद्धि सिद्धि",
+        te: "మూడవ దశ: సంపూర్ణ రుణ విముక్తి & శాశ్వత సంపత్ సిద్ధి",
+        ta: "மூன்றாம் படி: பூரண கடன் நிவர்த்தி & நிலையான செல்வ சித்தி"
+      },
+      focusArea: {
+        kn: "ಸಾಲಗಳ ಸಂಪೂರ್ಣ ಇತ್ಯರ್ಥ, ಉಳಿತಾಯ ವೃದ್ಧಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ಆರ್ಥಿಕ ನೆಮ್ಮದಿ.",
+        en: "Decisive debt settlement, wealth accumulation, and domestic financial peace.",
+        hi: "कर्ज का पूर्ण निपटान, बचत में वृद्धि एवं पारिवारिक आर्थिक सुरक्षा।",
+        te: "అప్పులన్నీ తీరిపోవడం, పొదుపు పెరగడం మరియు కుటుంబ ఆర్థిక భద్రత.",
+        ta: "கடன்கள் யாவும் அடைபடுதல், சேமிப்பு பெருகுதல் மற்றும் குடும்ப நிம்மதி."
+      },
+      experientialRelief: {
+        kn: "೪೫-ದಿನಗಳ ಮಂಡಲ ವ್ರತದಿಂದ ಋಣಬಂಧನ ಕಳಚಿ, ಗೌರವಾನ್ವಿತ ಸಂಪತ್ ಸಿದ್ಧಿ ಪ್ರಾಪ್ತಿಯಾಗುತ್ತದೆ.",
+        en: "45-day Mandala resolve dissolves debt bondage, instating lasting prosperity.",
+        hi: "४५ दिवसीय व्रत से ऋण के समस्त बंधन कटकर आत्मसम्मान एवं समृद्धि प्राप्त होती है।",
+        te: "45 రోజుల వ్రతంతో రుణ బంధాలు తొలగి, గౌరవప్రదమైన సంపద సమకూరుతుంది.",
+        ta: "45 நாள் விரதத்தால் கடன் சுமை அகன்று, கௌரவமான செல்வ நிலை உண்டாகும்."
+      },
+      subconsciousShift: {
+        kn: "ಅಖಂಡ ಧನ ಸಮೃದ್ಧಿ ಮತ್ತು ಕೃತಜ್ಞತೆಯ ದೈವಿಕ ಅನುಭವ.",
+        en: "Permanent embodiment of financial freedom and grateful abundance.",
+        hi: "शाश्वत आर्थिक स्वतंत्रता एवं कृतज्ञता का अनुभव।",
+        te: "శాశ్వత ఆర్థిక స్వాతంత్ర్యం మరియు కృతజ్ఞతా భావం.",
+        ta: "நிரந்தர நிதி சுதந்திரம் மற்றும் பூரண திருப்தி."
+      }
+    };
+  } else if (struggleCategory === "marriage_delay") {
+    phase1 = {
+      daysRange: { kn: "ದಿನ ೧ - ೧೫", en: "Days 1 - 15", hi: "दिन १ - १५", te: "రోజులు 1 - 15", ta: "நாட்கள் 1 - 15" },
+      phaseTitle: {
+        kn: "ಪ್ರಥಮ ಹಂತ: ಕಳತ್ರ ದೋಷ ಶಮನ & ಮಾನಸಿಕ ನಿರಾಶೆಯ ನಿವಾರಣೆ",
+        en: "Phase 1: Kalatra Dosha Pacification & Hopelessness Release",
+        hi: "प्रथम चरण: कलत्र दोष शमन एवं मानसिक निराशा निवारण",
+        te: "మొదటి దశ: కళత్ర దోష శమనం & నైరాశ్య నివారణ",
+        ta: "முதல் படி: களத்திர தோஷ சாந்தி & மனக்கவலை நீக்கம்"
+      },
+      focusArea: {
+        kn: "ವಿವಾಹ ವಿಳಂಬ ಉಂಟುಮಾಡುತ್ತಿದ್ದ ಕರ್ಮ ದೋಷಗಳು, ಮನಸ್ಸಿನ ಕೀಳರಿಮೆ ಹಾಗೂ ಆತಂಕ ಶಮನ.",
+        en: "Clearing karmic impediments to alliance and releasing feelings of fatigue.",
+        hi: "विवाह में विलंब उत्पन्न करने वाले ग्रह दोषों एवं मानसिक हीनभावना का शमन।",
+        te: "వివాహ ఆలస్యానికి కారణమైన దోషాలు మరియు మానసిక ఆందోళనల నివారణ.",
+        ta: "திருமண தாமதத்தை ஏற்படுத்திய கிரக தோஷங்கள் மற்றும் தாழ்வு மனப்பான்மை நீங்குதல்."
+      },
+      experientialRelief: {
+        kn: "ಮನಸ್ಸಿನ ಭಾರ ಇಳಿದು, ಮುಖದಲ್ಲಿ ಸಾತ್ವಿಕ ಕಾಂತಿ ಹಾಗೂ ನವ ವಿಶ್ವಾಸ ಮೂಡುತ್ತದೆ.",
+        en: "Heavy heart lifts within 15 days, replaced by a radiant, cheerful aura.",
+        hi: "हृदय का बोझ हल्का होकर मुखमंडल पर सात्विक तेज एवं नवीन आशा का संचार होता है।",
+        te: "మనస్సు ప్రశాంతమై, ముఖంలో తేజస్సు మరియు నూతన ఉత్సాహం కనిపిస్తాయి.",
+        ta: "மனபாரம் நீங்கி, முகத்தில் புதுப்பொலிவும் நம்பிக்கையும் உண்டாகும்."
+      },
+      subconsciousShift: {
+        kn: "ದಾಂಪತ್ಯ ಸುಖದ ಮೇಲಿನ ದೃಢ ವಿಶ್ವಾಸ ಮತ್ತು ಆಂತರಿಕ ಆಕರ್ಷಣಾ ಶಕ್ತಿ ಜಾಗೃತಿ.",
+        en: "Re-awakening of subconscious magnetic openness for an aligned partner.",
+        hi: "दांपत्य सुख के प्रति दृढ़ विश्वास एवं आकर्षण शक्ति का जागरण।",
+        te: "దాంపత్య సుఖంపై నమ్మకం మరియు ఆకర్షణ శక్తి జాగృతమవుతాయి.",
+        ta: "திருமண வாழ்வின் மீதான நம்பிக்கை மற்றும் ஈர்ப்பு சக்தி விழித்தெழும்."
+      }
+    };
+    phase2 = {
+      daysRange: { kn: "ದಿನ ೧೬ - ೩೦", en: "Days 16 - 30", hi: "दिन १६ - ३०", te: "రోజులు 16 - 30", ta: "நாட்கள் 16 - 30" },
+      phaseTitle: {
+        kn: "ದ್ವಿತೀಯ ಹಂತ: ಶುಕ್ರ-ಗುರು ಕೃಪೆ & ಯೋಗ್ಯ ವಿವಾಹ ಸಂಬಂಧಗಳ ಆಗಮನ",
+        en: "Phase 2: Shukra-Guru Grace & Arrival of Aligned Alliances",
+        hi: "द्वितीय चरण: शुक्र-गुरु कृपा एवं योग्य विवाह प्रस्ताव",
+        te: "రెండవ దశ: శుక్ర-గురు అనుగ్రహం & యోగ్యమైన సంబంధాల రాక",
+        ta: "இரண்டாம் படி: சுக்கிர-குரு அருள் & நல்ல வரன்கள் அமைதல்"
+      },
+      focusArea: {
+        kn: "ಸಂಸ್ಕಾರಯುತ ಮತ್ತು ಅನುರೂಪ ಕುಟುಂಬಗಳಿಂದ ಪ್ರಸ್ತಾವನೆಗಳು, ಮಾತುಕತೆಗಳಲ್ಲಿ ಸೌಹಾರ್ದತೆ.",
+        en: "Arrival of noble matrimonial matches and cordial, respectful family dialogues.",
+        hi: "सभ्य एवं सुसंस्कृत परिवारों से उत्तम प्रस्ताव एवं अनुकूल बातचीत।",
+        te: "మంచి కుటుంబాల నుండి సంబంధాలు రావడం, చర్చలు సానుకూలంగా సాగడం.",
+        ta: "நல்ல குடும்பங்களிலிருந்து வரன்கள் வருதல் மற்றும் பேச்சுவார்த்தைகள் சுமுகமாதல்."
+      },
+      experientialRelief: {
+        kn: "ಹಿಂದಿನ ಎಲ್ಲ ಅಪಾರ್ಥಗಳು ನಿವಾರಣೆಯಾಗಿ, ವಿವಾಹ ಮಾತುಕತೆಗಳಲ್ಲಿ ಪ್ರಗತಿ ಕಂಡುಬರುತ್ತದೆ.",
+        en: "Past misunderstandings dissolve; matchmaking conversations advance smoothly.",
+        hi: "विवाह वार्ता में निरंतर प्रगति होती है और शुभ संकेत प्राप्त होते हैं।",
+        te: "గతంలో వచ్చిన అడ్డంకులు తొలగి, పెళ్లి మాటలు ముందుకు సాగుతాయి.",
+        ta: "முந்தைய தடைகள் விலகி, திருமண பேச்சுவார்த்தை சாதகமாக முன்னேறும்."
+      },
+      subconsciousShift: {
+        kn: "ಪವಿತ್ರ ದಾಂಪತ್ಯ ಸಂಯೋಗದ ದೈವಿಕ ಅನುಮೋದನೆ.",
+        en: "Subconscious alignment with sacred marital partnership.",
+        hi: "पवित्र गृहस्थ धर्म की स्थापना हेतु आत्मिक तत्परता।",
+        te: "పవిత్ర దాంపత్య బంధానికి మానసిక సంసిద్ధత ఏర్పడుతుంది.",
+        ta: "புனித இல்லற வாழ்விற்கான ஆத்மார்த்தமான பக்குவம் உண்டாகும்."
+      }
+    };
+    phase3 = {
+      daysRange: { kn: "ದಿನ ೩೧ - ೪೫", en: "Days 31 - 45", hi: "दिन ३१ - ۴५", te: "రోజులు 31 - 45", ta: "நாட்கள் 31 - 45" },
+      phaseTitle: {
+        kn: "ತೃತೀಯ ಹಂತ: ಕಲ್ಯಾಣ ಸಿದ್ಧಿ, ವಿವಾಹ ನಿಶ್ಚಯ & ಮಂಗಳ ಸೌಭಾಗ್ಯ",
+        en: "Phase 3: Kalyana Siddhi, Engagement & Auspicious Harmony",
+        hi: "तृतीय चरण: कल्याण सिद्धि, विवाह निश्चय एवं मंगल सौभाग्य",
+        te: "మూడవ దశ: కళ్యాణ సిద్ధి, వివాహ నిశ్చయం & మంగళ సౌభాగ్యం",
+        ta: "மூன்றாம் படி: கல்யாண சித்தி, திருமண நிச்சயம் & மங்கல வாழ்வு"
+      },
+      focusArea: {
+        kn: "ಮನಮೆಚ್ಚುವ ಸಂಗಾತಿಯೊಂದಿಗೆ ವಿವಾಹ ನಿಶ್ಚಿತಾರ್ಥ, ಶಾಶ್ವತ ಪ್ರೀತಿ & ದಾಂಪತ್ಯ ಆನಂದ.",
+        en: "Joyous engagement to a cherished soulmate, lifelong affection, and harmony.",
+        hi: "मनोनुकूल जीवनसाथी के साथ विवाह तय होना, दांपत्य प्रेम एवं अखंड सौभाग्य।",
+        te: "మనసుకు నచ్చిన భాగస్వామితో నిశ్చితార్థం, శాశ్వత ప్రేమ మరియు కుటుంబ ఆనందం.",
+        ta: "மனதிற்கினிய துணையுடன் நிச்சயம், ஆழமான அன்பு மற்றும் மங்கல வாழ்வு."
+      },
+      experientialRelief: {
+        kn: "೪೫ ದಿನಗಳ ಮಂಡಲ ಸಿದ್ಧಿಯಿಂದ ವಿವಾಹ ಕಂಕಣ ಬಲ ಕೂಡಿಬಂದು ಶುಭ ಮಂಗಳ ಕಾರ್ಯ ನಿಶ್ಚಯವಾಗುತ್ತದೆ.",
+        en: "45-day Mandala fruition seals the auspicious knot with familial joy and grace.",
+        hi: "४५ दिवसीय साधना के पूर्ण होने पर विवाह की समस्त बाधाएं समाप्त होकर मंगल कार्य संपन्न होता है।",
+        te: "45 రోజుల వ్రత ఫలంగా కళ్యాణ ఘడియలు సమీపించి శుభకార్యం ఖాయమవుతుంది.",
+        ta: "45 நாள் விரத பலனாக திருமண யோகம் கூடிவந்து மங்கல நிகழ்ச்சி உறுதியாகும்."
+      },
+      subconsciousShift: {
+        kn: "ಸಂಪೂರ್ಣ ದಾಂಪತ್ಯ ಸೌಖ್ಯ ಮತ್ತು ಪರಸ್ಪರ ಸಮರ್ಪಣಾ ಭಾವ.",
+        en: "Radiant fulfillment of domestic bliss and devoted togetherness.",
+        hi: "अखंड सौभाग्य, सुखी दांपत्य एवं पारिवारिक आनंद का साक्षात्कार।",
+        te: "అఖండ సౌభాగ్యం మరియు సుఖీ దాంపత్య జీవిత అనుభవం.",
+        ta: "பூரண தம்பதி சுகம் மற்றும் இணைபிரியா குடும்ப அமைதி."
+      }
+    };
+  } else {
+    // General Alignment / Anger / Mental / Health default robust phases
+    phase1 = {
+      daysRange: { kn: "ದಿನ ೧ - ೧೫", en: "Days 1 - 15", hi: "दिन १ - १५", te: "రోజులు 1 - 15", ta: "நாட்கள் 1 - 15" },
+      phaseTitle: {
+        kn: "ಪ್ರಥಮ ಹಂತ: ಕಲ್ಮಷ ಶಮನ, ಪಿತ್ತ ತಾಪ ನಿವಾರಣೆ & ಆಂತರಿಕ ಶಾಂತಿ",
+        en: "Phase 1: Karmic De-escalation & Nervous System Reset",
+        hi: "प्रथम चरण: कर्मदोष शमन, पित्त शांति एवं आंतरिक स्थिरता",
+        te: "మొదటి దశ: కల్మష శమనం, పిత్త నివారణ & అంతర్గత శాంతి",
+        ta: "முதல் படி: கர்ம தோஷ சாந்தி, பித்த தணிவு & மன அமைதி"
+      },
+      focusArea: {
+        kn: "ಮನಸ್ಸಿನ ಚಂಚಲತೆ, ಅನಗತ್ಯ ಸಿಡುಕು, ಆತಂಕ, ಶಾರೀರಿಕ ಉಷ್ಣತೆ ಹಾಗೂ ರಜೋಗುಣದ ಶಮನ.",
+        en: "Dissolving mental agitation, sudden anger surges, physical heat, and restlessness.",
+        hi: "चित्त की चंचलता, अकारण क्रोध, मानसिक संताप एवं शारीरिक दाह का शमन।",
+        te: "మనశ్చాంచల్యం, ఆకస్మిక కోపం, ఆందోళన మరియు శారీరక ఉష్ణోగ్రత శమనం.",
+        ta: "மன அலைபாய்தல், திடீர் கோபம், பதட்டம் மற்றும் உடல் உஷ்ணம் தணிதல்."
+      },
+      experientialRelief: {
+        kn: "೧೫ ದಿನಗಳ ಸಾಧನೆಯಿಂದ ಗಾಢ ನಿದ್ರೆ, ಶಾಂತ ಮನೋಭಾವ ಹಾಗೂ ರಕ್ತದೊತ್ತಡದಲ್ಲಿ ಸಮತೋಲನ ಕಂಡುಬರುತ್ತದೆ.",
+        en: "Deep restorative sleep returns; blood pressure stabilizes, anchoring calm patience.",
+        hi: "१५ दिनों की साधना से गहरी निद्रा, चित्त में शांति एवं स्वभाव में सौम्यता आती है।",
+        te: "15 రోజుల సాధనతో ప్రశాంత నిద్ర, రక్తపోటు అదుపులోకి వచ్చి మనస్సు కుదుటపడుతుంది.",
+        ta: "15 நாள் சாதனையில் ஆழ்ந்த உறக்கம், இரத்த அழுத்தம் சீராகி அமைதி உண்டாகும்."
+      },
+      subconsciousShift: {
+        kn: "ಅಂತಃಪ್ರಜ್ಞೆಯಲ್ಲಿ ಸಾವಧಾನತೆಯ ಅರಿವು ಮತ್ತು ನಕಾರಾತ್ಮಕತೆಯ ನಿವಾರಣೆ.",
+        en: "Emergence of deep inner stillness and clearing of toxic thought loops.",
+        hi: "अंतश्चेतना में स्थिरता एवं नकारात्मक विचारों का शमन।",
+        te: "అంతఃచేతనలో ప్రశాంతత మరియు ప్రతికూల ఆలోచనల తొలగింపు.",
+        ta: "உள்ளுணர்வில் அமைதியும் எதிர்மறை எண்ணங்கள் நீங்குதலும் நிகழும்."
+      }
+    };
+    phase2 = {
+      daysRange: { kn: "ದಿನ ೧೬ - ೩೦", en: "Days 16 - 30", hi: "दिन १६ - ३०", te: "రోజులు 16 - 30", ta: "நாட்கள் 16 - 30" },
+      phaseTitle: {
+        kn: "ದ್ವಿತೀಯ ಹಂತ: ಪ್ರಾಣ ತೇಜಸ್ಸು ಜಾಗೃತಿ, ಓಜಸ್ಸು & ಸಂಬಂಧಗಳ ಸಾಮರಸ್ಯ",
+        en: "Phase 2: Prana Tejas & Relational Harmony Awakening",
+        hi: "द्वितीय चरण: प्राण तेज जागृति, ओज संवर्धन एवं संबंध सौहार्द",
+        te: "రెండవ దశ: ప్రాణ తేజస్సు జాగృతి, ఓజస్సు & సంబంధాల సామరస్యం",
+        ta: "இரண்டாம் படி: பிராண தேஜஸ் விழிப்புணர்வு & உறவு நல்லிணக்கம்"
+      },
+      focusArea: {
+        kn: "ಕುಟುಂಬದ ಸದಸ್ಯರೊಂದಿಗೆ ಮಧುರ ಸಂವಹನ, ಆಂತರಿಕ ಚೈತನ್ಯ ಹಾಗೂ ಬುದ್ಧಿಯಲ್ಲಿ ಸ್ಪಷ್ಟತೆ.",
+        en: "Restoring warmth in family interactions, cellular vigor, and clear decision-making.",
+        hi: "पारिवारिक सदस्यों से मधुर संवाद, शारीरिक स्फूर्ति एवं बुद्धि में स्पष्टता।",
+        te: "కుటుంబంలో ఆప్యాయత, శారీరక ఉల్లాసం మరియు నిర్ణయాల్లో స్పష్టత.",
+        ta: "குடும்பத்தினரிடம் பாசமான பேச்சு, உடல் சுறுசுறுப்பு மற்றும் தெளிவான அறிவு."
+      },
+      experientialRelief: {
+        kn: "ಹಳೆಯ ಕಲಹಗಳು ಕರಗಿ, ನಿಮ್ಮ ಶಾಂತ ನಡವಳಿಕೆಗೆ ಕುಟುಂಬದಲ್ಲಿ ಗೌರವ ಮತ್ತು ಪ್ರೀತಿ ಮರಳುತ್ತದೆ.",
+        en: "Past domestic frictions dissolve; your composed presence commands warmth and esteem.",
+        hi: "पारिवारिक मतभेद समाप्त होकर आपके शांत व्यवहार से सम्मान एवं प्रेम में वृद्धि होती है।",
+        te: "పాత వివాదాలు సమసిపోయి, మీ ప్రశాంత ప్రవర్తనతో ఇంట్లో గౌరవం పెరుగుతుంది.",
+        ta: "பழைய கருத்து வேறுபாடுகள் மறைந்து, உங்கள் அமைதியான குணத்திற்கு மதிப்பு கூடும்."
+      },
+      subconsciousShift: {
+        kn: "ಭಾವನಾತ್ಮಕ ಪಕ್ವತೆ ಮತ್ತು ನಿರ್ಧಾರಗಳಲ್ಲಿ ದೈವಿಕ ವಿವೇಕದ ಪ್ರಕಾಶ.",
+        en: "Emotional poise and intuitive illumination in everyday decisions.",
+        hi: "भावनात्मक परिपक्वता एवं निर्णयों में विवेक का प्रकाश।",
+        te: "భావోద్వేగ స్థిరత్వం మరియు ఆధ్యాత్మిక వివేకం కలుగుతాయి.",
+        ta: "உணர்ச்சிவசப்படாத மனப்பக்குவமும் தெய்வீக விவேகமும் உண்டாகும்."
+      }
+    };
+    phase3 = {
+      daysRange: { kn: "ದಿನ ೩೧ - ೪೫", en: "Days 31 - 45", hi: "दिन ३१ - ۴۵", te: "రోజులు 31 - 45", ta: "நாட்கள் 31 - 45" },
+      phaseTitle: {
+        kn: "ತೃತೀಯ ಹಂತ: ಸಂಕಲ್ಪ ಸಿದ್ಧಿ, ಸರ್ವಾರ್ಥ ಸೌಭಾಗ್ಯ & ಪರಮ ಮನಃಶಾಂತಿ",
+        en: "Phase 3: Sankalpa Siddhi, All-Round Prosperity & Abiding Peace",
+        hi: "तृतीय चरण: संकल्प सिद्धि, सर्वार्थ सौभाग्य एवं परम मानसिक शांति",
+        te: "మూడవ దశ: సంకల్ప సిద్ధి, సర్వార్థ సౌభాగ్యం & పరమ మనశ్శాంతి",
+        ta: "மூன்றாம் படி: சங்கல்ப சித்தி, சர்வ சௌபாக்கியம் & பூரண மன அமைதி"
+      },
+      focusArea: {
+        kn: "ಸಂಕಲ್ಪಿಸಿದ ಸಕಲ ಕಾರ್ಯಗಳ ಪೂರ್ಣ ಸಿದ್ಧಿ, ದೈವಾನುಗ್ರಹ ಸ್ಥಿರತೆ & ಅಖಂಡ ನೆಮ್ಮದಿ.",
+        en: "Total fruition of noble desires, divine protection, and unshakeable contentment.",
+        hi: "अभीष्ट संकल्पों की पूर्ण सिद्धि, ईश्वरीय कृपा का स्थायित्व एवं अखंड आनंद।",
+        te: "కోరుకున్న పనులన్నీ విజయవంతం కావడం, దైవానుగ్రహం మరియు పరిపూర్ణ ప్రశాంతత.",
+        ta: "நினைத்த காரியங்கள் யாவும் வெற்றி பெறுதல், தெய்வ கடாட்சம் மற்றும் பூரண அமைதி."
+      },
+      experientialRelief: {
+        kn: "೪೫ ದಿನಗಳ ಪೂರ್ಣ ಮಂಡಲ ವ್ರತದಿಂದ ಸಮಸ್ತ ಗ್ರಹದೋಷಗಳು ಭಸ್ಮವಾಗಿ ಪರಮ ಶಾಂತಿ ಸಿದ್ಧಿಯಾಗುತ್ತದೆ.",
+        en: "45-day Mandala completion burns away chart afflictions, securing lasting serenity.",
+        hi: "४५ दिवसीय पूर्ण मंडल व्रत से समस्त ग्रह दोष शांत होकर जीवन में सुख-शांति प्रतिष्ठित होती है।",
+        te: "45 రోజుల మండల వ్రతంతో గ్రహ దోషాలన్నీ తొలగి, జీవితంలో శాశ్వత శాంతి నెలకొంటుంది.",
+        ta: "45 நாள் மண்டல விரதத்தால் சகல கிரக தோஷங்களும் நீங்கி, வாழ்வில் அமைதியும் சுபமும் நிறையும்."
+      },
+      subconsciousShift: {
+        kn: "ಪರಮ ಶಾಂತಿ ಮತ್ತು ದೈವಿಕ ಸಂಕಲ್ಪ ಸಾಕ್ಷಾತ್ಕಾರದ ಪರಿಪೂರ್ಣ ಅನುಭವ.",
+        en: "Unshakeable realization of inner peace and cosmic grace.",
+        hi: "परम शांति एवं ईश्वरीय कृपा का अखंड साक्षात्कार।",
+        te: "పరమ శాంతి మరియు దైవిక సంకల్ప సాక్షాత్కార పరిపూర్ణత.",
+        ta: "பூரண மன அமைதி மற்றும் தெய்வீக சங்கல்ப சித்தியின் நிறைவு."
+      }
+    };
+  }
+
+  // 5. Dietary Disciplines (Ahara Rules)
+  const aharaRules: Array<Record<SupportedLanguage, string>> = [
+    {
+      kn: "೪೫ ದಿನಗಳ ಮಂಡಲ ಅವಧಿಯಲ್ಲಿ ಸಂಪೂರ್ಣ ಸಾತ್ವಿಕ ಆಹಾರ ಸೇವನೆ: ಈರುಳ್ಳಿ, ಬೆಳ್ಳುಳ್ಳಿ, ತೀಕ್ಷ್ಣ ಮಸಾಲೆ, ಮಾಂಸಾಹಾರ ಹಾಗೂ ಮದ್ಯಪಾನವನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ತ್ಯಜಿಸಬೇಕು.",
+      en: "Strictly Sattvic Diet: Completely renounce onion, garlic, pungent spices, non-vegetarian food, and alcohol during these 45 days.",
+      hi: "४५ दिनों में पूर्ण सात्विक आहार: प्याज, लहसुन, तामसिक भोजन, मांसाहार एवं मदिरा का कड़ाई से त्याग करें।",
+      te: "45 రోజులు సంపూర్ణ సాత్విక ఆహారం: ఉల్లిపాయ, వెల్లుల్లి, ఘాటైన మసాలాలు, మాంసాహారం మరియు మద్యం పూర్తిగా విసర్జించాలి.",
+      ta: "45 நாட்கள் முழுமையான சாத்வீக உணவு: வெங்காயம், பூண்டு, காரமான உணவு, அசைவம் மற்றும் மதுவை கண்டிப்பாக தவிர்க்க வேண்டும்."
+    },
+    {
+      kn: "ಪ್ರತಿದಿನ ಸೂರ್ಯಾಸ್ತಕ್ಕೆ ಮುನ್ನ ಶುದ್ಧ ಬಿಸಿ ಆಹಾರ ಸೇವನೆ; ರಾತ್ರಿಯ ವೇಳೆ ಲಘು ಆಹಾರ ಅಥವಾ ದೇಶಿ ಹಸುವಿನ ಹಾಲು-ಹಣ್ಣುಗಳನ್ನು ಮಾತ್ರ ಸೇವಿಸುವುದು ಶ್ರೇಷ್ಠ.",
+      en: "Consume fresh, warm meals before sunset; opt for light sustenance or pure cow's milk with fresh fruits at night.",
+      hi: "सूर्यास्त पूर्व ताजा एवं गर्म भोजन ग्रहण करें; रात्रि में केवल हल्का आहार अथवा देशी गाय का दूध एवं फल लें।",
+      te: "సూర్యాస్తమయానికి ముందే తాజా ఆహారం తీసుకోవాలి; రాత్రి వేళ తేలికపాటి ఆహారం లేదా ఆవు పాలు, పండ్లు శ్రేష్ఠం.",
+      ta: "சூரிய அஸ்தமனத்திற்கு முன் சூடான உணவு அருந்தவும்; இரவில் எளிய உணவு அல்லது பசும்பால்-பழங்கள் சிறந்தது."
+    },
+    {
+      kn: "ಅತಿ ಹುಳಿ, ಹೆಚ್ಚು ಉಪ್ಪು, ಹಳಸಿದ ಆಹಾರ ಹಾಗೂ ಕೃತಕ ತಂಪು ಪಾನೀಯಗಳನ್ನು ತ್ಯಜಿಸಿ, ಜೀರ್ಣಾಂಗದಲ್ಲಿ ಪಿತ್ತ-ಅಗ್ನಿ ಸಮತೋಲನ ಕಾಪಾಡಿಕೊಳ್ಳುವುದು.",
+      en: "Avoid excessively sour, salty, stale, or packaged cold foods to maintain subtle Pitta-Agni metabolic equilibrium.",
+      hi: "अत्यधिक खट्टा, खारा, बासी अथवा पैकेज्ड खाद्य पदार्थों से बचें ताकि पाचन में पित्त-अग्नि का संतुलन बना रहे।",
+      te: "అధిక పులుపు, ఉప్పు, చల్లని మరియు నిల్వ ఆహారాలు మాని పిత్త-అగ్ని సమతుల్యతను కాపాడుకోవాలి.",
+      ta: "அதிக புளிப்பு, உப்பு, பழைய உணவு மற்றும் குளிர்பானங்களை தவிர்த்து பித்த-அக்னி சமநிலையை காக்கவும்."
+    }
+  ];
+
+  // 6. Behavioral Conduct (Achara Rules)
+  const acharaRules: Array<Record<SupportedLanguage, string>> = [
+    {
+      kn: "ಪ್ರತಿದಿನ ಸೂರ್ಯೋದಯಕ್ಕೆ ಮುನ್ನ ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತದಲ್ಲಿ ಶೌಚ-ಸ್ನಾನ ಮುಗಿಸಿ, ಶುಭ್ರವಾದ ಹತ್ತಿ ವಸ್ತ್ರವನ್ನು ಧರಿಸಿ ಪೂಜಾ ಕೋಣೆಯಲ್ಲಿ ಕುಳಿತುಕೊಳ್ಳುವುದು.",
+      en: "Bathe before sunrise during Brahma Muhurtha, don fresh, clean cotton clothing, and sit in your sanctified puja space.",
+      hi: "सूर्योदय से पूर्व ब्रह्म मुहूर्त में स्नान कर स्वच्छ सूती वस्त्र धारण करें और पूजा स्थान में बैठें।",
+      te: "సూర్యోదయానికి ముందే బ్రాహ్మీ ముహూర్తంలో స్నానం చేసి, శుభ్రమైన నూలు దుస్తులు ధరించి పూజా స్థలంలో కూర్చోవాలి.",
+      ta: "சூரியோதயத்திற்கு முன் பிரம்ம முகூர்த்தத்தில் நீராடி, தூய பருத்தி ஆடை அணிந்து பூஜை அறையில் அமரவும்."
+    },
+    {
+      kn: "೪೫ ದಿನಗಳ ಕಾಲ ಪೂರ್ಣ ಬ್ರಹ್ಮಚರ್ಯ ಪಾಲನೆ; ಕ್ರೋಧ, ಆವೇಶ, ಸುಳ್ಳು ನುಡಿಯುವುದು, ಇತರರ ಚಾಡಿ ಅಥವಾ ನಿಂದನೆಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ವರ್ಜಿಸುವುದು.",
+      en: "Observe Brahmacharya (sensory purity) for all 45 days; strictly avoid anger, untruths, slander, and harsh speech.",
+      hi: "४५ दिनों तक ब्रह्मचर्य का पालन करें; क्रोध, मिथ्या भाषण, निंदा एवं कटु वाणी का पूर्णतः त्याग करें।",
+      te: "45 రోజుల పాటు సంపూర్ణ బ్రహ్మచర్యం పాటించాలి; కోపం, అబద్ధాలు, ఇతరులను నిందించడం పూర్తిగా మానాలి.",
+      ta: "45 நாட்கள் பிரம்மச்சரியம் காக்கவும்; கோபம், பொய், பிறரை நிந்தித்தல் போன்றவற்றை முழுமையாக தவிர்க்கவும்."
+    },
+    {
+      kn: "ಜಪದ ಮುನ್ನ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ, ತಾಮ್ರದ ಪಾತ್ರೆಯಲ್ಲಿ ಶುದ್ಧ ಜಲವನ್ನಿಟ್ಟು ಸಂಕಲ್ಪ ಮಾಡುವುದು; ಜಪ ಮುಗಿದ ನಂತರ ಆ ಜಲವನ್ನು ಸೇವಿಸಿ ಆಶೀರ್ವಾದ ಪಡೆಯುವುದು.",
+      en: "Light a pure cow ghee lamp, place clean water in a copper/silver vessel, make the resolve, and sip the energized water after japa.",
+      hi: "जप से पूर्व गाय के घी का दीपक जलाएं, तांबे के पात्र में जल रखकर संकल्प करें और जप उपरांत चरणामृत रूप में जल ग्रहण करें।",
+      te: "జపానికి ముందు ఆవు నెయ్యి దీపం వెలిగించి, రాగి పాత్రలో నీరుంచి సంకల్పం చేయాలి; జపం తర్వాత ఆ జలాన్ని తీర్థంగా స్వీకరించాలి.",
+      ta: "ஜபத்திற்கு முன் நெய் தீபம் ஏற்றி, செம்பு பாத்திரத்தில் நீர் வைத்து சங்கல்பம் செய்து, ஜபத்திற்கு பின் அத்தீர்த்தத்தை பருகவும்."
+    }
+  ];
+
+  // 7. Weekly Daana & Goseva Duty
+  const weeklyDaana: Record<SupportedLanguage, string> = {
+    kn: "ವಾರಕ್ಕೊಮ್ಮೆ ಪ್ರೇರಕ ಗ್ರಹದ ಶುಭ ವಾರದಂದು ಗೋವಿಗೆ ಹಸಿರು ಹುಲ್ಲು, ಬೆಲ್ಲ ಮತ್ತು ಬಾಳೆಹಣ್ಣು ನೀಡುವುದು (ಗೋ-ಗ್ರಾಸ) ಅಥವಾ ಸನ್ನಿಧಾನದ ಹೆಸರಿನಲ್ಲಿ ಬಡವರಿಗೆ ಅನ್ನದಾನ ಅರ್ಪಿಸುವುದು.",
+    en: "Weekly Seva: Offer green fodder, jaggery and bananas to cows (Go-Grasa) or sponsor Annadaana to the needy on your catalyst weekday.",
+    hi: "साप्ताहिक सेवा: प्रति सप्ताह प्रेरक ग्रह के दिन गाय को हरा चारा, गुड़ व केला खिलाएं (गौ-ग्रास) अथवा अन्नदान करें।",
+    te: "వారపు సేవ: ప్రతి వారం ప్రేరక గ్రహం రోజున ఆవుకు గడ్డి, బెల్లం తినిపించాలి (గో-గ్రాసం) లేదా పేదలకు అన్నదానం చేయాలి.",
+    ta: "வாராந்திர சேவை: ஒவ்வொரு வாரமும் தூண்டுதல் கிரக நாளில் பசுவிற்கு அகத்திக்கீரை, வெல்லம் அளிக்கவும் (கோ-பூஜை) அல்லது அன்னதானம் செய்யவும்."
+  };
+
+  // 8. Sacred Sankalpa Declaration
+  const safeName = devoteeName || "Devotee";
+  const gotraStr = gotra ? gotra.trim() : "";
+
+  const sankalpaDeclaration: Record<SupportedLanguage, string> = {
+    kn: `${gotraStr ? gotraStr + " ಗೋತ್ರೋದ್ಭವಸ್ಯ " : ""}${safeName} ರವರಾದ ನಾನು, ಮಮ ಸಮಸ್ತ ಜನ್ಮ ಕುಂಡಲಿ ಗ್ರಹ ಪೀಡಾ ನಿವಾರಣಾರ್ಥಂ, ಸರ್ವ ಸಂಕಲ್ಪ ಸಿದ್ಧರ್ಥಂ, ಭಗವಾನ್ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯ ಕೃಪೆಯಿಂದ ಈ ೪೫-ದಿನಗಳ ಮಂಡಲ ವ್ರತ ಸಾಧನೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ಕೈಗೊಳ್ಳುತ್ತಿದ್ದೇನೆ.`,
+    en: `I, devotee ${safeName}${gotraStr ? " of " + gotraStr + " Gotra" : ""}, for the dissolution of all natal chart planetary afflictions and the fulfillment of my sacred Sankalpa, by the divine grace of Lord Mahabaleshwara at Gokarna Kshetra, solemnly undertake this 45-day Mandala Vrata Sadhana with devotion and unwavering faith.`,
+    hi: `मैं, ${safeName}${gotraStr ? " (" + gotraStr + " गोत्र)" : ""}, अपनी जन्म कुंडली के समस्त ग्रह दोषों के निवारण एवं अपने संकल्प की पूर्ण सिद्धि हेतु, भगवान श्री गोಕರ್ण महाबलेश्वर की कृपा से इस ४५-दिवसीय मंडल व्रत साधना को श्रद्धापूर्वक स्वीकार करता/करती हूँ।`,
+    te: `${gotraStr ? gotraStr + " గోత్రోద్భవులైన " : ""}${safeName} అను నేను, నా జన్మ కుండలిలోని సమస్త గ్రహ దోషాల నివారణార్థం, సంకల్ప సిద్ధ్యర్థం, శ్రీ గోకర్ణ మహాబలేశ్వరుని దివ్య కృపతో ఈ 45-రోజుల మండల వ్రత సాధనను శ్రద్ధాభక్తులతో ఆచరిస్తున్నాను.`,
+    ta: `${gotraStr ? gotraStr + " கோத்திரத்தை சேர்ந்த " : ""}${safeName} ஆகிய நான், எனது ஜாதக கிரக தோஷங்கள் நீங்கி சங்கல்ப சித்தி அடைவதற்காக, ஸ்ரீ கோகர்ண மகாபலேஸ்வரரின் திருவருளால் இந்த 45-நாள் மண்டல விரத சாதனையை பக்தியுடன் மேற்கொள்கிறேன்.`
+  };
+
+  return {
+    durationDays: 45,
+    durationLabel: {
+      kn: "೪೫ ದಿನಗಳ ಮಂಡಲ ವ್ರತ ಸಂಕಲ್ಪ ಸಾಧನಾ ಪತ್ರಿಕೆ",
+      en: "45-Day Sacred Mandala Vrata Sadhana Guide",
+      hi: "४५-दिवसीय पवित्र मंडल व्रत साधना पत्रिका",
+      te: "45-రోజుల పవిత్ర మండల వ్రత సాధనా పత్రిక",
+      ta: "45-நாள் புனித மண்டல விரத சாதனை வழிகாட்டி"
+    },
+    auspiciousStartMuhurtha: {
+      taraBalaCategory,
+      taraBalaReason,
+      auspiciousWeekday,
+      tithiPakshaRecommendation: {
+        kn: "ಶುಕ್ಲ ಪಕ್ಷದ ತೃತೀಯ, ಪಂಚಮಿ, ಸಪ್ತಮಿ ಅಥವಾ ಶುಭ ಏಕಾದಶಿ",
+        en: "Shukla Paksha Tritiya, Panchami, Saptami, or Auspicious Ekadashi",
+        hi: "शुक्ल पक्ष की तृतीया, पंचमी, सप्तमी अथवा शुभ एकादशी",
+        te: "శుక్ల పక్ష తదియ, పంచమి, సప్తమి లేదా శుభ ఏకాదశి",
+        ta: "சுக்ல பட்ச திருதியை, பஞ்சமி, சப்தமி அல்லது சுப ஏகாதசி"
+      },
+      idealTimeWindow: {
+        kn: "ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತ (ಮುಂಜಾನೆ 05:15 ರಿಂದ 06:15) ಅಥವಾ ಸೂರ್ಯೋದಯ ಕಾಲ",
+        en: "Brahma Muhurtha (Dawn 05:15 to 06:15 AM) or Sunrise Phase",
+        hi: "ब्राह्म मुहूर्त (प्रातः 05:15 से 06:15) अथवा सूर्योदय काल",
+        te: "బ్రాహ్మీ ముహూర్తం (ఉదయం 05:15 నుండి 06:15) లేదా సూర్యోదయ సమయం",
+        ta: "பிரம்மி முகூர்த்தம் (காலை 05:15 முதல் 06:15) அல்லது சூரியோதய காலம்"
+      },
+      facingDirection: {
+        kn: "ಪೂರ್ವ ದಿಕ್ಕು (ಜ್ಞಾನ & ತೇಜಸ್ಸಿಗೆ) ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕು (ಧನ & ಶಾಂತಿಗೆ)",
+        en: "East (for Wisdom & Vitality) or North (for Wealth & Peace)",
+        hi: "पूर्व दिशा (ज्ञान एवं तेज हेतु) अथवा उत्तर दिशा (धन एवं शांति हेतु)",
+        te: "తూర్పు దిశ (జ్ఞానం & తేజస్సు కోసం) లేదా ఉత్తర దిశ (ధనం & శాంతి కోసం)",
+        ta: "கிழக்கு திசை (ஞானம் & தேஜஸ்) அல்லது வடக்கு திசை (செல்வம் & அமைதி)"
+      },
+      sacredAsana: {
+        kn: "ಶುದ್ಧ ಉಣ್ಣೆಯ ಕಂಬಳಿ (ಕಂಬಳ) ಅಥವಾ ದರ್ಭೆಯ ಆಸನ (ನೆಲದ ಸಂಪರ್ಕವಿಲ್ಲದೆ)",
+        en: "Pure Woolen Blanket (Kambala) or Kusha Grass Mat (insulated from bare floor)",
+        hi: "शुद्ध ऊनी कम्बल अथवा कुशा का आसन (भूमि स्पर्श रहित)",
+        te: "శుద్ధ ఉన్ని ఆసనం లేదా దర్భాసనం (నేలను తాకకుండా)",
+        ta: "தூய கம்பளி அல்லது தர்பை ஆசனம் (தரை தொடுதல் இன்றி)"
+      }
+    },
+    threePhaseRoadmap: {
+      phase1,
+      phase2,
+      phase3
+    },
+    japaPurashcharanaFormula: {
+      dailyCountFormatted: {
+        kn: "ದಿನಕ್ಕೆ ೧೦೮ ಬಾರಿ (೧ ಪವಿತ್ರ ಮಾಲೆ ನಿತ್ಯ ಜಪ)",
+        en: "108 Counts Daily (1 Sacred Mala per day)",
+        hi: "प्रतिदिन १०८ बार (१ पवित्र माला नित्य जप)",
+        te: "రోజుకు 108 సార్లు (1 పవిత్ర మాల నిత్య జపం)",
+        ta: "தினமும் 108 முறை (1 புனித மாலை தினசரி ஜபம்)"
+      },
+      totalMandalaCountFormatted: {
+        kn: "೪೫ ದಿನಗಳಲ್ಲಿ ಒಟ್ಟು ೪,೮೬೦ ಜಪಗಳು (ಶಾಸ್ತ್ರೋಕ್ತ ಲಘು ಪುರಶ್ಚರಣ ಸಿದ್ಧಿ)",
+        en: "4,860 Total Japas across 45 Days (Laghu Purashcharana Siddhi)",
+        hi: "४५ दिनों में कुल ४,८६० जप (शास्त्रोक्त लघु पुरश्चरण सिद्धि)",
+        te: "45 రోజుల్లో మొత్తం 4,860 జపాలు (శాస్త్రోక్త లఘు పురశ్చరణ సిద్ధి)",
+        ta: "45 நாட்களில் மொத்தம் 4,860 ஜபங்கள் (சாஸ்திர லகு புரச்சரண சித்தி)"
+      },
+      prescribedMala,
+      shastricRule: {
+        kn: "ಮಂತ್ರ ಜಪದ ವೇಳೆ ತೋರುಬೆರಳನ್ನು (ತರ್ಜನಿ) ಮಾಲೆಗೆ ತಾಗಿಸಬಾರದು; ಮಧ್ಯದ ಬೆರಳು ಮತ್ತು ಹೆಬ್ಬೆರಳಿನಿಂದ ಮಾತ್ರ ಮಾಲೆಯನ್ನು ತಿರುಗಿಸಬೇಕು. ಮೇರು ಮಣಿಯನ್ನು ದಾಟದೆ ಹಿಮ್ಮುಖವಾಗಿ ತಿರುಗಿಸುವುದು ಶಾಸ್ತ್ರ ನಿಯಮ.",
+        en: "Never touch the mala with the index finger (Tarjani); rotate solely using middle finger and thumb. Reverse direction without crossing the Meru bead.",
+        hi: "माला जपते समय तर्जनी उंगली का स्पर्श न करें; मध्यमा एवं अंगूठे से ही माला फेरें। मेरु मणि को लांघना वर्जित है।",
+        te: "మాల జపించేటప్పుడు చూపుడు వేలిని తాకించరాదు; మధ్య వేలు మరియు బొటనవేలితో మాత్రమే మాల తిప్పాలి. మేరు మణిని దాటకూడదు.",
+        ta: "மந்திர ஜபத்தின் போது ஆள்காட்டி விரலை தொடக்கூடாது; நடுவிரல் மற்றும் கட்டைவிரலால் மட்டுமே மாலையை திருப்ப வேண்டும். மேரு மணியை தாண்டக்கூடாது."
+      }
+    },
+    sattvicPathyaAndNiyama: {
+      aharaRules,
+      acharaRules,
+      weeklyDaana
+    },
+    sankalpaDeclaration
+  };
 }
 
 
@@ -5218,6 +5986,13 @@ export function generateKundliRemedyReport(
     dashaBhuktiAnalysis,
     gocharaTransitAnalysis,
     gokarnaTempleRemedies,
-    chiefPriestBlessing
+    chiefPriestBlessing,
+    mandalaVrataSadhana: computeMandalaVrataSadhana(
+      struggleCategory,
+      catalyst.graha,
+      moon?.nakshatra?.index ?? 0,
+      input.name || "Devotee",
+      input.gothra
+    )
   };
 }
