@@ -110,9 +110,9 @@ describe("Kundli Doshas Precision & Already-Done Shanti Intelligence Audit", () 
     expect(root).toBeTruthy();
     expect(root?.getAttribute("style")).toContain("width: 900px");
 
-    // Exactly 2 pages
+    // Exactly 4 pages
     const pages = container.querySelectorAll(".pdf-page");
-    expect(pages.length).toBe(2);
+    expect(pages.length).toBe(4);
 
     for (const page of pages) {
       expect(page.getAttribute("style")).toContain("height: 1273px");

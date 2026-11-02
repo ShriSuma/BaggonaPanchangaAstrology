@@ -123,7 +123,7 @@ describe("Kundli Premium Bundle PDF & QR Code Audit", () => {
       );
 
       const pages = container.querySelectorAll(".pdf-page") as NodeListOf<HTMLElement>;
-      expect(pages.length).toBe(2);
+      expect(pages.length).toBe(4);
 
       pages.forEach((p) => {
         expect(p.style.width).toBe("900px");

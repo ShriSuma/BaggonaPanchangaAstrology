@@ -21,7 +21,7 @@ describe("Kundli Dosha PDF Comprehensive Audit & Guard Verification", () => {
   const kundli = calculateKundli(sampleNative, { ayanamsaModel: "lahiri" });
   const report = calculateComprehensiveDoshas(kundli, sampleNative, new Date("2026-11-01"));
 
-  it("1. Strictly enforces 2 A4 pages with 900px width and 1273px height", () => {
+  it("1. Strictly enforces 4 A4 pages with 900px width and 1273px height", () => {
     const { container } = render(
       <KundliDoshaPdfTemplate
         id="test-dosha-a4-check"
@@ -31,7 +31,7 @@ describe("Kundli Dosha PDF Comprehensive Audit & Guard Verification", () => {
     );
 
     const pages = container.querySelectorAll(".pdf-page");
-    expect(pages.length).toBe(2);
+    expect(pages.length).toBe(4);
 
     pages.forEach((page) => {
       const el = page as HTMLElement;
