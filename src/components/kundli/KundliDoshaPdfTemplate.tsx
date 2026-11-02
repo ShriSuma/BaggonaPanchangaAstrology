@@ -1511,25 +1511,39 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               {getSeverityLabel(dosha.severity, code)}
             </span>
 
-            {/* Glowing Golden Amber Age Priority Badge */}
+            {/* Solid Crimson Age Priority Badge with Perfectly Centered Text */}
             <span
               style={{
-                background: "linear-gradient(90deg, #B45309 0%, #D97706 100%)",
+                backgroundColor: "#991B1B",
                 color: "#FFFFFF",
-                fontSize: "10.5px",
-                fontWeight: 800,
-                padding: "3px 11px",
+                fontSize: "11px",
+                fontWeight: 900,
+                height: "24px",
+                padding: "0 12px",
                 borderRadius: "9999px",
-                border: "1px solid #78350F",
+                border: "1.5px solid #7F1D1D",
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center",
-                lineHeight: 1.45,
-                boxShadow: "0 1px 3px rgba(120, 53, 15, 0.2)",
+                justifyContent: "center",
+                lineHeight: "1",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.25)",
                 boxSizing: "border-box"
               }}
             >
-              {priorityPillText}
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  whiteSpace: "nowrap",
+                  transform: "translateY(-1.5px)",
+                  letterSpacing: "0.2px",
+                  lineHeight: "1"
+                }}
+              >
+                {priorityPillText}
+              </span>
             </span>
 
             {/* Status Badge */}
@@ -2017,48 +2031,46 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           style={{
             width: "100%",
             height: "100%",
-            border: `3px double ${GOLD_BORDER}`,
-            outline: `1px solid rgba(180, 83, 9, 0.25)`,
-            outlineOffset: "-6px",
-            borderRadius: "14px",
+            border: `2px solid ${GOLD_BORDER}`,
+            borderRadius: "16px",
             padding: "16px 20px",
             boxSizing: "border-box",
             backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
+            gap: "10px",
             overflow: "hidden",
             position: "relative",
             zIndex: 1
           }}
         >
-          {/* 4 Corner Florets */}
-          <div style={{ position: "absolute", top: "7px", left: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", top: "7px", right: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "7px", left: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "7px", right: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          {/* 4 Corner Florets placed safely away from border line to prevent any overlap */}
+          <div style={{ position: "absolute", top: "12px", left: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "12px", right: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", left: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", right: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
 
           {/* Header Banner with Lord Shiva and Lord Surya Sacred Medallions */}
           {renderRoyalHeader(1, t.page1Title || t.mainTitle, t.shloka)}
 
           {renderGoldLandlineDivider(snip.divNative)}
 
-          {/* Devotee Info Matrix & Karmic Assessment Grid */}
+          {/* Devotee Info Matrix & Karmic Assessment Grid (Compact & Sleek) */}
           <div
             style={{
               backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
-              padding: "14px 20px",
-              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
+              padding: "10px 16px",
+              boxShadow: "0 2px 4px rgba(180, 83, 9, 0.03)",
               flexShrink: 0
             }}
           >
-            <div style={{ display: "grid", gridTemplateColumns: "1.25fr 1.1fr 1.1fr 1.15fr", gap: "10px 16px", fontSize: "12.5px", lineHeight: 1.6, wordSpacing: "1px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr 1fr", gap: "8px 12px", fontSize: "11.5px", lineHeight: 1.5 }}>
               <div style={{ minWidth: 0 }}>
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>👤 {t.nativeDetails}:</span>{" "}
-                <span style={{ fontWeight: 900, color: INK_DEEP, fontSize: "15.5px" }}>{devoteeInfo.name}</span>
-                <div style={{ fontSize: "11.5px", color: INK_MUTED, marginTop: "4px", lineHeight: 1.5 }}>
+                <span style={{ fontWeight: 900, color: INK_DEEP, fontSize: "14px" }}>{devoteeInfo.name}</span>
+                <div style={{ fontSize: "10.5px", color: INK_MUTED, marginTop: "2px", lineHeight: 1.4 }}>
                   📅 {[devoteeInfo.birthDate, devoteeInfo.birthTime].filter(Boolean).join(" • ")}
                   {devoteeInfo.place ? ` · 📍 ${devoteeInfo.place}` : ""}
                 </div>
@@ -2066,44 +2078,44 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
               <div style={{ minWidth: 0 }}>
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>🏛️ {t.lagnaLabel}</span>{" "}
-                <span style={{ fontWeight: 800, color: INK_DEEP, fontSize: "14px" }}>
+                <span style={{ fontWeight: 800, color: INK_DEEP, fontSize: "13px" }}>
                   {devoteeInfo.lagnaRashiRecord?.[code] || devoteeInfo.lagnaRashi}
                 </span>
-                <div style={{ fontSize: "11.5px", color: INK_MUTED, marginTop: "4px", lineHeight: 1.5 }}>
+                <div style={{ fontSize: "10.5px", color: INK_MUTED, marginTop: "2px", lineHeight: 1.4 }}>
                   🌙 {t.rashiLabel} {devoteeInfo.moonRashiRecord?.[code] || devoteeInfo.moonRashi}
                 </div>
               </div>
 
               <div style={{ minWidth: 0 }}>
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>⭐ {t.nakshatraLabel}</span>{" "}
-                <span style={{ fontWeight: 800, color: INK_DEEP, fontSize: "14px" }}>
+                <span style={{ fontWeight: 800, color: INK_DEEP, fontSize: "13px" }}>
                   {devoteeInfo.nakshatraRecord?.[code] || devoteeInfo.nakshatra} ({devoteeInfo.pada})
                 </span>
-                <div style={{ fontSize: "11.5px", color: INK_MUTED, marginTop: "4px", lineHeight: 1.5 }}>
+                <div style={{ fontSize: "10.5px", color: INK_MUTED, marginTop: "2px", lineHeight: 1.4 }}>
                   ⏳ {t.dashaLabel} {devoteeInfo.currentDashaRecord?.[code] || devoteeInfo.currentDashaStr}
                 </div>
               </div>
 
-              <div style={{ backgroundColor: "#F7F3E9", border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "8px 12px", textAlign: "center", minWidth: 0 }}>
-                <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35 }}>
+              <div style={{ backgroundColor: "#F7F3E9", border: `1px solid ${GOLD_BORDER}`, borderRadius: "6px", padding: "5px 8px", textAlign: "center", minWidth: 0 }}>
+                <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "11.5px", lineHeight: 1.3 }}>
                   ⭐ {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {snip.yearsUnit}
                 </div>
-                <div style={{ fontSize: "11.5px", fontWeight: 800, color: GOLD_PRIMARY, marginTop: "3px", lineHeight: 1.35 }}>
+                <div style={{ fontSize: "10.5px", fontWeight: 800, color: GOLD_PRIMARY, marginTop: "2px", lineHeight: 1.3 }}>
                   🔥 {activeDoshas.length} {t.activeDoshasCountLabel} ({devoteeInfo.ageStageNameRecord?.[code] || devoteeInfo.ageStageKey})
                 </div>
               </div>
             </div>
 
             {/* Karmic Index Indicator Bar */}
-            <div style={{ marginTop: "10px", paddingTop: "9px", borderTop: `1px dashed ${GOLD_LIGHT}`, display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "12px", lineHeight: 1.5 }}>
-              <div style={{ display: "flex", gap: "16px", color: INK_MUTED, fontWeight: 700, wordSpacing: "1px" }}>
+            <div style={{ marginTop: "6px", paddingTop: "5px", borderTop: `1px dashed ${GOLD_LIGHT}`, display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", lineHeight: 1.4 }}>
+              <div style={{ display: "flex", gap: "12px", color: INK_MUTED, fontWeight: 700 }}>
                 <span>📋 {snip.evaluated} <strong style={{ color: INK_DEEP }}>{summary?.totalEvaluated || 18}</strong></span>
                 <span>⚡ {snip.critical} <strong style={{ color: "#B91C1C" }}>{summary?.criticalCount || 0}</strong></span>
                 <span>⚠️ {snip.moderate} <strong style={{ color: GOLD_PRIMARY }}>{(summary?.highCount || 0) + (summary?.moderateCount || 0)}</strong></span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>{snip.karmicVulnerability}</span>
-                <span style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", backgroundColor: "#F7F3E9", padding: "3px 12px", borderRadius: "6px", border: `1px solid ${GOLD_BORDER}` }}>
+                <span style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "11.5px", backgroundColor: "#F7F3E9", padding: "2px 8px", borderRadius: "5px", border: `1px solid ${GOLD_BORDER}` }}>
                   {summary?.karmicIndexScore || 0}%
                 </span>
               </div>
@@ -2112,65 +2124,76 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
           {renderGoldLandlineDivider(t.ageDirectiveDivider)}
 
-          {/* Age-Adaptive Priority Strategy Card (Screen-Matched Luxury Styling) */}
+          {/* Age-Adaptive Priority Strategy Card (Compact & Perfectly Centered Crimson Badge) */}
           <div
             style={{
               background: "linear-gradient(135deg, #FFFDF9 0%, #FEFBF2 50%, #FFF9EB 100%)",
-              border: "2px solid rgba(245, 158, 11, 0.5)",
-              borderRadius: "16px",
-              padding: "10px 14px",
-              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
+              border: "1.5px solid rgba(245, 158, 11, 0.5)",
+              borderRadius: "12px",
+              padding: "8px 12px",
+              boxShadow: "0 2px 4px rgba(180, 83, 9, 0.03)",
               flexShrink: 0
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", borderBottom: "1.5px solid rgba(245, 158, 11, 0.2)", paddingBottom: "6px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "32px", height: "32px", borderRadius: "10px", border: "1px solid #FCD34D", backgroundColor: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>
-                  ⭐
-                </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", borderBottom: "1px solid rgba(245, 158, 11, 0.2)", paddingBottom: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ fontSize: "15px" }}>⭐</span>
                 <div>
-                  <div style={{ fontSize: "13px", fontWeight: 900, color: "#451A03", lineHeight: 1.3 }}>
+                  <span style={{ fontSize: "12.5px", fontWeight: 900, color: "#451A03" }}>
                     {t.ageStrategyHeading}
-                  </div>
-                  <div style={{ fontSize: "10.5px", fontWeight: 700, color: "#78350F", marginTop: "1px" }}>
-                    {devoteeInfo.ageStageNameRecord?.[code] || devoteeInfo.ageStageKey} • {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {snip.yearsUnit}
-                  </div>
+                  </span>
+                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#78350F", marginLeft: "6px" }}>
+                    ({devoteeInfo.ageStageNameRecord?.[code] || devoteeInfo.ageStageKey} • {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {snip.yearsUnit})
+                  </span>
                 </div>
               </div>
 
+              {/* Solid Crimson Age Badge with Optical-Center Alignment */}
               <div
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "5px",
-                  padding: "3px 11px",
+                  justifyContent: "center",
+                  gap: "4px",
+                  height: "24px",
+                  padding: "0 12px",
                   borderRadius: "9999px",
-                  background: "linear-gradient(90deg, #B45309 0%, #D97706 100%)",
+                  backgroundColor: "#991B1B",
                   color: "#FFFFFF",
-                  border: "1px solid #78350F",
+                  border: "1.5px solid #7F1D1D",
                   fontSize: "10.5px",
-                  fontWeight: 800,
-                  lineHeight: 1.45,
+                  fontWeight: 900,
+                  lineHeight: "1",
                   whiteSpace: "nowrap",
-                  boxShadow: "0 1px 3px rgba(120, 53, 15, 0.2)"
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)",
+                  boxSizing: "border-box",
+                  flexShrink: 0
                 }}
               >
-                <span>⚡</span>
-                <span>{t.agePriorityBadgeLabel}</span>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    whiteSpace: "nowrap",
+                    transform: "translateY(-1.5px)",
+                    letterSpacing: "0.2px",
+                    lineHeight: "1"
+                  }}
+                >
+                  ⚡ {t.agePriorityBadgeLabel}
+                </span>
               </div>
             </div>
 
-            <div style={{ marginTop: "6px", backgroundColor: "#FFFDF9", border: "1px solid #FDE68A", borderRadius: "10px", padding: "7px 10px" }}>
-              <div style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", color: "#78350F", display: "flex", alignItems: "center", gap: "4px" }}>
-                <span>📜</span>
-                <span>{snip.divNative || "ಶಾಸ್ತ್ರೋಕ್ತ ಜೀವನ ಮಾರ್ಗದರ್ಶನ"}</span>
-              </div>
-              <div style={{ fontSize: "11.5px", color: "#451A03", fontWeight: 700, marginTop: "3px", lineHeight: 1.55, wordSpacing: "1px" }}>
+            <div style={{ marginTop: "4px", backgroundColor: "#FFFDF9", border: "1px solid #FDE68A", borderRadius: "8px", padding: "5px 9px" }}>
+              <div style={{ fontSize: "11px", color: "#451A03", fontWeight: 700, lineHeight: 1.5, wordSpacing: "1px" }}>
+                <span style={{ color: "#78350F", fontWeight: 900, marginRight: "4px" }}>📜 {snip.divNative || "ಶಾಸ್ತ್ರೋಕ್ತ ಮಾರ್ಗದರ್ಶನ"}:</span>
                 {getLangVal(devoteeInfo.currentAgeFocusSummary, snip.ageFocusFallback)}
               </div>
             </div>
 
-            <div style={{ fontSize: "10px", color: "#78350F", marginTop: "4px", fontStyle: "italic", lineHeight: 1.35, paddingLeft: "2px" }}>
+            <div style={{ fontSize: "9.5px", color: "#78350F", marginTop: "3px", fontStyle: "italic", lineHeight: 1.3 }}>
               {t.ageStrategyNotice}
             </div>
           </div>
@@ -2278,26 +2301,24 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           style={{
             width: "100%",
             height: "100%",
-            border: `3px double ${GOLD_BORDER}`,
-            outline: `1px solid rgba(180, 83, 9, 0.25)`,
-            outlineOffset: "-6px",
-            borderRadius: "14px",
+            border: `2px solid ${GOLD_BORDER}`,
+            borderRadius: "16px",
             padding: "16px 20px",
             boxSizing: "border-box",
             backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
+            gap: "10px",
             overflow: "hidden",
             position: "relative",
             zIndex: 1
           }}
         >
-          {/* 4 Corner Florets */}
-          <div style={{ position: "absolute", top: "7px", left: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", top: "7px", right: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "7px", left: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "7px", right: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          {/* 4 Corner Florets placed safely away from border line to prevent any overlap */}
+          <div style={{ position: "absolute", top: "12px", left: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "12px", right: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", left: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", right: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
 
           {/* Header Banner */}
           {renderRoyalHeader(2, t.page2Title, t.shloka)}
@@ -2445,26 +2466,24 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           style={{
             width: "100%",
             height: "100%",
-            border: `3px double ${GOLD_BORDER}`,
-            outline: `1px solid rgba(180, 83, 9, 0.25)`,
-            outlineOffset: "-6px",
-            borderRadius: "14px",
+            border: `2px solid ${GOLD_BORDER}`,
+            borderRadius: "16px",
             padding: "16px 20px",
             boxSizing: "border-box",
             backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
+            gap: "10px",
             overflow: "hidden",
             position: "relative",
             zIndex: 1
           }}
         >
-          {/* 4 Corner Florets */}
-          <div style={{ position: "absolute", top: "7px", left: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", top: "7px", right: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "7px", left: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "7px", right: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          {/* 4 Corner Florets placed safely away from border line to prevent any overlap */}
+          <div style={{ position: "absolute", top: "12px", left: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "12px", right: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", left: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", right: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
 
           {/* Header Banner */}
           {renderRoyalHeader(3, t.page3Title, t.shloka)}
@@ -2572,6 +2591,161 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 </div>
               </div>
             )}
+
+            {secondaryDoshas.length <= 1 && (
+              <>
+                {renderGoldLandlineDivider(
+                  code === "kn"
+                    ? "❖ ದಶಾ ಸಂಧಿ & ನವಗ್ರಹ ದಿವ್ಯ ಸಮನ್ವಯ ಸೂತ್ರಗಳು ❖"
+                    : code === "hi"
+                    ? "❖ दशा संधि एवं नवग्रह समन्वय सूत्र ❖"
+                    : code === "te"
+                    ? "❖ దశా సంధి & నవగ్రహ సమన్వయ సూత్రాలు ❖"
+                    : code === "ta"
+                    ? "❖ திசா சந்தி & நவக்கிரக நல்லிணக்க வழிகள் ❖"
+                    : "❖ Navagraha Harmony & Dasha Transition Directives ❖"
+                )}
+
+                {/* Section 3 on Page 3: Sacred Navagraha Harmony & Dasha Pacification (Fills Page 3 beautifully) */}
+                <div
+                  style={{
+                    backgroundColor: "#FCFBF9",
+                    border: `1.5px solid ${GOLD_BORDER}`,
+                    borderRadius: "14px",
+                    padding: "14px 18px",
+                    boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
+                    flexShrink: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px"
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "14.5px",
+                      fontWeight: 900,
+                      color: GOLD_DARK,
+                      borderBottom: `1.5px solid ${GOLD_LIGHT}`,
+                      paddingBottom: "4px",
+                      lineHeight: 1.35,
+                      letterSpacing: "0.2px"
+                    }}
+                  >
+                    🔱{" "}
+                    {code === "kn"
+                      ? "ದಶಾ ಸಂಧಿ ಶಾಂತಿ & ನವಗ್ರಹ ದಿವ್ಯ ರಕ್ಷಾ ಕವಚ"
+                      : code === "hi"
+                      ? "दशा संधि शांति एवं नवग्रह रक्षा कवच"
+                      : code === "te"
+                      ? "దశా సంధి శాంతి & నవగ్రహ రక్షా కవచం"
+                      : code === "ta"
+                      ? "திசா சந்தி சாந்தி & நவக்கிரக பாதுகாப்புக் கவசம்"
+                      : "Dasha Transition Pacification & Navagraha Safeguards"}
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+                    <div
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        border: `1px solid ${GOLD_LIGHT}`,
+                        borderRadius: "8px",
+                        padding: "10px 12px"
+                      }}
+                    >
+                      <div style={{ fontSize: "12px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                        ☀️{" "}
+                        {code === "kn"
+                          ? "ಸೂರ್ಯ ಆರಾಧನೆ"
+                          : code === "hi"
+                          ? "सूर्य आराधना"
+                          : code === "te"
+                          ? "సూర్య ఆరాధన"
+                          : code === "ta"
+                          ? "சூரிய வழிபாடு"
+                          : "Surya Arghya"}
+                      </div>
+                      <div style={{ fontSize: "11px", color: INK_DEEP, marginTop: "4px", lineHeight: 1.55 }}>
+                        {code === "kn"
+                          ? "ನಿತ್ಯ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ಸೂರ್ಯದೇವನಿಗೆ ತಾಮ್ರ ಪಾತ್ರೆಯ ಅರ್ಘ್ಯ ಪ್ರದಾನವು ಆತ್ಮಬಲ, ತೇಜಸ್ಸು ಹಾಗೂ ಪಿತೃ ಆಶೀರ್ವಾದವನ್ನು ಸದಾ ಜಾಗೃತವಾಗಿರಿಸುತ್ತದೆ."
+                          : code === "hi"
+                          ? "नित्य प्रातःकाल तांबे के पात्र से सूर्य को अर्घ्य देना आत्मबल, तेज व पितृ कृपा को निरंतर जाग्रत रखता है।"
+                          : code === "te"
+                          ? "నిత్యం ఉదయాన్నే రాగి పాత్రతో సూర్యునికి అర్ఘ్యం ఇవ్వడం ఆత్మబలం, పితృ ఆశీస్సులను నిరంతరం కాపాడుతుంది."
+                          : code === "ta"
+                          ? "தினமும் காலையில் செம்பு பாத்திரத்தில் சூரியனுக்கு அர்க்கியம் வழங்குவது ஆன்ம பலத்தையும் பித்ரு ஆசியையும் தரும்."
+                          : "Offering daily morning copper-vessel water to the Sun sustains vital soul energy and ancestral fortune."}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        border: `1px solid ${GOLD_LIGHT}`,
+                        borderRadius: "8px",
+                        padding: "10px 12px"
+                      }}
+                    >
+                      <div style={{ fontSize: "12px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                        🪔{" "}
+                        {code === "kn"
+                          ? "ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ"
+                          : code === "hi"
+                          ? "रुद्राभिषेक सेवा"
+                          : code === "te"
+                          ? "రుద్రాభిషేక సేవ"
+                          : code === "ta"
+                          ? "ருத்ராபிஷேக பூஜை"
+                          : "Rudrabhisheka"}
+                      </div>
+                      <div style={{ fontSize: "11px", color: INK_DEEP, marginTop: "4px", lineHeight: 1.55 }}>
+                        {code === "kn"
+                          ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪಪೂರ್ವಕ ರುದ್ರಾಭಿಷೇಕ ಅಥವಾ ನಿತ್ಯ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪವು ಸರ್ವ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ."
+                          : code === "hi"
+                          ? "गोकर्ण महाबलेश्वर में रुद्राभिषेक अथवा नित्य 'ॐ नमः शिवाय' जप समस्त ग्रह पीड़ाओं को शांत करता है।"
+                          : code === "te"
+                          ? "గోకర్ణ మహాబలేశ్వరునికి రుద్రాభిషేకం లేదా 'ॐ नमः शिवाय' జపం సమస్త గ్రహ బాధలను నివారిస్తుంది."
+                          : code === "ta"
+                          ? "கோகர்ணத்தில் ருத்ராபிஷேகம் அல்லது 'ஓம் நம சிவாய' ஜபம் சகல கிரக தோஷங்களையும் அமைதிப்படுத்தும்."
+                          : "Sankalpa Rudrabhisheka at Sri Gokarna Mahabaleshwara or daily 'Om Namah Shivaya' japa calms all planetary afflictions."}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        border: `1px solid ${GOLD_LIGHT}`,
+                        borderRadius: "8px",
+                        padding: "10px 12px"
+                      }}
+                    >
+                      <div style={{ fontSize: "12px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                        🐄{" "}
+                        {code === "kn"
+                          ? "ಗೋಸೇವೆ & ದಾನ"
+                          : code === "hi"
+                          ? "गोसेवा एवं दान"
+                          : code === "te"
+                          ? "గోసేవ & దానం"
+                          : code === "ta"
+                          ? "பசு சேவை & தானம்"
+                          : "Holy Cow Care"}
+                      </div>
+                      <div style={{ fontSize: "11px", color: INK_DEEP, marginTop: "4px", lineHeight: 1.55 }}>
+                        {code === "kn"
+                          ? "ಮಂಗಳವಾರ ಅಥವಾ ಶನಿವಾರದಂದು ಗೋಮಾತೆಗೆ ಬೆಲ್ಲ-ಹುಲ್ಲು ನೀಡುವುದು ಹಾಗೂ ತಿಲ ತೈಲ ದೀಪಾರಾಧನೆಯು ಕರ್ಮ ಕ್ಷಯಕ್ಕೆ ಶ್ರೇಷ್ಠ ಪರಿಹಾರವಾಗಿದೆ."
+                          : code === "hi"
+                          ? "मंगलवार या शनिवार को गाय को गुड़-घास खिलाना तथा तिल-दीपक जलाना संचित कर्म क्षय का श्रेष्ठ उपाय है।"
+                          : code === "te"
+                          ? "మంగళ లేదా శనివారాలలో గోమాతకు బెల్లం-గడ్డి తినిపించడం మరియు తిల దీపం వెలిగించడం కర్మ క్షయానికి మేలైన మార్గం."
+                          : code === "ta"
+                          ? "செவ்வாய் அல்லது சனிக்கிழமைகளில் பசுவுக்கு வெல்லம், புல் வழங்குவதும் எள் விளக்கேற்றுவதும் கர்ம வினையைத் தீர்க்கும்."
+                          : "Offering jaggery-grass to sacred cows on Tuesdays/Saturdays with sesame oil lamps dissolves stubborn karma."}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Page 3 Pinned Footer */}
@@ -2651,61 +2825,59 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           style={{
             width: "100%",
             height: "100%",
-            border: `3px double ${GOLD_BORDER}`,
-            outline: `1px solid rgba(180, 83, 9, 0.25)`,
-            outlineOffset: "-6px",
-            borderRadius: "14px",
+            border: `2px solid ${GOLD_BORDER}`,
+            borderRadius: "16px",
             padding: "16px 20px",
             boxSizing: "border-box",
             backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
-            gap: "10px",
+            gap: "11px",
             overflow: "hidden",
             position: "relative",
             zIndex: 1
           }}
         >
-          {/* 4 Corner Florets */}
-          <div style={{ position: "absolute", top: "7px", left: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", top: "7px", right: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "7px", left: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "7px", right: "9px", color: GOLD_PRIMARY, fontSize: "14px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          {/* 4 Corner Florets placed safely away from border line to prevent any overlap */}
+          <div style={{ position: "absolute", top: "12px", left: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "12px", right: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", left: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "12px", right: "14px", color: GOLD_PRIMARY, fontSize: "13px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
 
           {/* Header Banner with Lord Shiva and Lord Surya Sacred Imagery */}
           {renderRoyalHeader(4, t.page4Title, t.page2Shloka)}
 
           {renderGoldLandlineDivider(t.gandantaraDivider)}
 
-          {/* Section: Critical Gandantara Hazards & Protective Age Windows */}
+          {/* Section: Critical Gandantara Hazards & Protective Age Windows (Expanded & Clean) */}
           <div
             style={{
               backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "12px 18px",
+              borderRadius: "14px",
+              padding: "14px 20px",
               boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", gap: "8px" }}>
-              <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3, letterSpacing: "0.2px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", gap: "8px" }}>
+              <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3, letterSpacing: "0.2px" }}>
                 {t.gandantaraHeading}
               </div>
-              <div style={{ fontSize: "11.5px", color: INK_MUTED, fontWeight: 700, flexShrink: 0, wordSpacing: "1px" }}>
+              <div style={{ fontSize: "12px", color: INK_MUTED, fontWeight: 700, flexShrink: 0, wordSpacing: "1px" }}>
                 {gandantaras.filter(g => g.isCurrentlyInDangerWindow).length > 0
                   ? `${gandantaras.filter(g => g.isCurrentlyInDangerWindow).length} ${snip.hazardsActiveSuffix}`
                   : snip.allHazardSafe}
               </div>
             </div>
-            <div style={{ fontSize: "11.5px", color: INK_MUTED, marginTop: "3px", fontStyle: "italic", lineHeight: 1.45, wordSpacing: "1px" }}>
+            <div style={{ fontSize: "12px", color: INK_MUTED, marginTop: "4px", fontStyle: "italic", lineHeight: 1.5, wordSpacing: "1px" }}>
               {t.gandantaraNotice}
             </div>
 
             {/* Gandantara Items */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "7px", marginTop: "7px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
               {gandantaras.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "10px", color: GOLD_DARK, fontWeight: 700, fontSize: "12.5px", lineHeight: 1.5, wordSpacing: "1px" }}>
+                <div style={{ textAlign: "center", padding: "14px", color: GOLD_DARK, fontWeight: 700, fontSize: "13px", lineHeight: 1.6, wordSpacing: "1px" }}>
                   ✓ {snip.noGandantaraDetected}
                 </div>
               ) : (
@@ -2717,25 +2889,25 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       style={{
                         backgroundColor: "#FFFFFF",
                         border: `1.5px solid ${isDanger ? GOLD_LIGHT : GOLD_BORDER}`,
-                        borderRadius: "8px",
-                        padding: "8px 12px",
-                        fontSize: "12px",
-                        lineHeight: 1.55,
+                        borderRadius: "10px",
+                        padding: "10px 14px",
+                        fontSize: "12.5px",
+                        lineHeight: 1.6,
                         wordSpacing: "1px"
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-                        <div style={{ fontWeight: 900, color: isDanger ? GOLD_DARK : "#78350F", fontSize: "12.5px", lineHeight: 1.3, minWidth: 0, letterSpacing: "0.2px" }}>
+                        <div style={{ fontWeight: 900, color: isDanger ? GOLD_DARK : "#78350F", fontSize: "13px", lineHeight: 1.35, minWidth: 0, letterSpacing: "0.2px" }}>
                           {isDanger ? "⚡" : "✓"} {getLangVal(g.name)}
                         </div>
                         <span
                           style={{
                             backgroundColor: isDanger ? "#991B1B" : "#FEFAF0",
                             color: isDanger ? "#FFFFFF" : "#78350F",
-                            fontSize: "11px",
+                            fontSize: "11.5px",
                             fontWeight: 900,
-                            padding: "3px 9px",
-                            borderRadius: "5px",
+                            padding: "3px 10px",
+                            borderRadius: "6px",
                             border: `1px solid ${isDanger ? "#7F1D1D" : GOLD_BORDER}`,
                             letterSpacing: "normal",
                             flexShrink: 0,
@@ -2751,15 +2923,15 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
                       {isDanger ? (
                         <>
-                          <div style={{ color: GOLD_DARK, fontWeight: 700, marginTop: "4px", lineHeight: 1.5 }}>
+                          <div style={{ color: GOLD_DARK, fontWeight: 700, marginTop: "4px", lineHeight: 1.55 }}>
                             ⛔ {t.mandatoryPrecautionLabel} {getLangArr(g.cautionDirectives).slice(0, 2).join(" • ") || cleanDegreesFromText(getLangVal(g.technicalReason))}
                           </div>
-                          <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "3px", lineHeight: 1.5 }}>
+                          <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "3px", lineHeight: 1.55 }}>
                             🛡️ {t.protectiveMantraLabel} {[getLangVal(g.protectiveParihara), getLangArr(g.protectiveMantras)[0]].filter(Boolean).join(" • ")}
                           </div>
                         </>
                       ) : (
-                        <div style={{ color: "#78350F", fontWeight: 700, marginTop: "4px", lineHeight: 1.5 }}>
+                        <div style={{ color: "#78350F", fontWeight: 700, marginTop: "4px", lineHeight: 1.55 }}>
                           ✓ {snip.safeThresholdSurpassedDesc(g.vulnerableTillAge)}
                         </div>
                       )}
@@ -2774,12 +2946,12 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               style={{
                 backgroundColor: "#FFFFFF",
                 border: `1px solid ${GOLD_LIGHT}`,
-                borderRadius: "6px",
-                padding: "6px 12px",
-                fontSize: "11.5px",
+                borderRadius: "8px",
+                padding: "8px 14px",
+                fontSize: "12px",
                 color: INK_DEEP,
-                lineHeight: 1.5,
-                marginTop: "7px",
+                lineHeight: 1.55,
+                marginTop: "8px",
                 wordSpacing: "1px"
               }}
             >
@@ -2790,50 +2962,50 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
           {renderGoldLandlineDivider(t.fearsAndSevasDivider)}
 
-          {/* Section: Subconscious Innate Phobias & Fears */}
+          {/* Section: Subconscious Innate Phobias & Fears (Expanded & Clean) */}
           <div
             style={{
               backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "12px 18px",
+              borderRadius: "14px",
+              padding: "14px 20px",
               boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
-            <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", lineHeight: 1.3, letterSpacing: "0.2px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", lineHeight: 1.3, letterSpacing: "0.2px" }}>
               🧠 {t.fearsHeading}
             </div>
-            <div style={{ fontSize: "11.5px", color: INK_MUTED, marginTop: "3px", fontStyle: "italic", lineHeight: 1.45, wordSpacing: "1px" }}>
+            <div style={{ fontSize: "12px", color: INK_MUTED, marginTop: "4px", fontStyle: "italic", lineHeight: 1.5, wordSpacing: "1px" }}>
               {t.fearsSubheading}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "8px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "10px" }}>
               {fears.slice(0, 2).map((fear) => (
                 <div
                   key={fear.id}
                   style={{
                     backgroundColor: "#FFFFFF",
                     border: `1px solid ${GOLD_LIGHT}`,
-                    borderRadius: "8px",
-                    padding: "8px 12px",
-                    fontSize: "11.5px",
-                    lineHeight: 1.5,
+                    borderRadius: "10px",
+                    padding: "10px 14px",
+                    fontSize: "12px",
+                    lineHeight: 1.55,
                     minWidth: 0
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
-                    <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3, minWidth: 0, fontSize: "12px", letterSpacing: "0.2px" }}>
+                    <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.35, minWidth: 0, fontSize: "12.5px", letterSpacing: "0.2px" }}>
                       {fear.icon} {getLangVal(fear.name)}
                     </div>
-                    <span style={{ fontSize: "10.5px", backgroundColor: "#FCFBF9", color: GOLD_DARK, padding: "2px 7px", borderRadius: "4px", fontWeight: 700, border: `1px solid ${GOLD_LIGHT}`, flexShrink: 0 }}>
+                    <span style={{ fontSize: "11px", backgroundColor: "#FCFBF9", color: GOLD_DARK, padding: "2px 8px", borderRadius: "5px", fontWeight: 700, border: `1px solid ${GOLD_LIGHT}`, flexShrink: 0 }}>
                       {getFearSeverityLabel(fear.severity, code)}
                     </span>
                   </div>
-                  <div style={{ color: INK_MUTED, marginTop: "4px", lineHeight: 1.45, wordSpacing: "1px" }}>
+                  <div style={{ color: INK_MUTED, marginTop: "5px", lineHeight: 1.5, wordSpacing: "1px" }}>
                     <strong>{t.symptomLabel}</strong> {getLangVal(fear.psychologicalSymptom)}
                   </div>
-                  <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "4px", lineHeight: 1.45, wordSpacing: "1px" }}>
+                  <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "5px", lineHeight: 1.5, wordSpacing: "1px" }}>
                     <strong style={{ color: GOLD_DARK }}>{t.strengtheningPracticeLabel}</strong> {getLangVal(fear.strengtheningPractice)}
                   </div>
                 </div>
@@ -2841,100 +3013,125 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             </div>
           </div>
 
-          {/* Section: Sacred Gokarna Mahabaleshwara Remedies tailored to Age Stage */}
+          {/* Section: Sacred Gokarna Mahabaleshwara Remedies tailored to Age Stage (Expanded & Clean) */}
           <div
             style={{
               backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "12px 18px",
+              borderRadius: "14px",
+              padding: "14px 20px",
               boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
-            <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", lineHeight: 1.3, letterSpacing: "0.2px" }}>
-              🪔 {t.templeRemediesHeading}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px" }}>
+              <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3, letterSpacing: "0.2px" }}>
+                {t.templeRemediesHeading}
+              </div>
+              <div style={{ fontSize: "11.5px", color: GOLD_PRIMARY, fontWeight: 800 }}>
+                {devoteeInfo.ageStageNameRecord?.[code] || devoteeInfo.ageStageKey}
+              </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "8px", fontSize: "12px", lineHeight: 1.5 }}>
-              {ageStageRemedies.map((remedy, idx) => (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "10px" }}>
+              {ageStageRemedies.map((rem, idx) => (
                 <div
                   key={idx}
                   style={{
                     backgroundColor: "#FFFFFF",
-                    border: `1px solid ${GOLD_LIGHT}`,
-                    borderRadius: "8px",
-                    padding: "8px 12px",
-                    minWidth: 0
+                    border: rem.isPriority ? `1.5px solid ${GOLD_PRIMARY}` : `1px solid ${GOLD_LIGHT}`,
+                    borderRadius: "10px",
+                    padding: "10px 14px",
+                    fontSize: "12px",
+                    lineHeight: 1.55,
+                    minWidth: 0,
+                    boxShadow: rem.isPriority ? "0 2px 6px rgba(180, 83, 9, 0.08)" : "none"
                   }}
                 >
-                  <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.3, fontSize: "12.5px", letterSpacing: "0.2px" }}>
-                    {remedy.icon} {remedy.title}
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 800, color: rem.isPriority ? GOLD_DARK : "#78350F", fontSize: "12.5px" }}>
+                    <span style={{ fontSize: "16px" }}>{rem.icon}</span>
+                    <span>{rem.title}</span>
                   </div>
-                  <div style={{ color: INK_DEEP, marginTop: "3px", lineHeight: 1.5, wordSpacing: "1px" }}>
-                    {remedy.desc}
+                  <div style={{ color: INK_DEEP, marginTop: "4px", fontSize: "11.5px", lineHeight: 1.5, wordSpacing: "1px" }}>
+                    {rem.desc}
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Sacred Sannidhana Protection Guarantee */}
+            <div
+              style={{
+                marginTop: "10px",
+                borderTop: `1px dashed ${GOLD_LIGHT}`,
+                paddingTop: "7px",
+                fontSize: "12px",
+                color: INK_DEEP,
+                lineHeight: 1.55,
+                wordSpacing: "1px"
+              }}
+            >
+              <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
+              <span>{t.gokarnaProtectionDesc}</span>
             </div>
           </div>
 
           {renderGoldLandlineDivider(snip.divPriestBlessing)}
 
-          {/* Section: Chief Priest Shreeram Pandit's Blessing, Official Temple Seal & Scannable QR Code */}
+          {/* Section: Chief Priest Vedamurthy Shreeram Pandit's Blessing & Live Verification QR Code */}
           <div
             style={{
               backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "12px 18px",
+              borderRadius: "14px",
+              padding: "14px 20px",
               boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px" }}>
-              <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3, letterSpacing: "0.2px" }}>
-                🙏 {t.priestBlessingHeading}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px" }}>
+              <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, letterSpacing: "0.2px" }}>
+                {t.priestBlessingHeading}
               </div>
-              <div style={{ fontSize: "12px", color: GOLD_DARK, fontWeight: 800 }}>
+              <div style={{ fontSize: "12.5px", color: GOLD_DARK, fontWeight: 800 }}>
                 {displayPriestPhone}
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "68px 1fr 120px", gap: "12px", marginTop: "8px", alignItems: "center" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 130px", gap: "14px", marginTop: "10px", alignItems: "center" }}>
               {/* Priest & Gokarnanatha Sacred Emblem */}
               <div style={{ textAlign: "center" }}>
                 <img
                   src="/daily_posters/poster_1_shiva.jpg"
                   alt="Chief Priest Sanctum Medallion"
                   style={{
-                    width: "58px",
-                    height: "58px",
+                    width: "66px",
+                    height: "66px",
                     borderRadius: "50%",
-                    border: "2px solid #FDE68A",
+                    border: "2.5px solid #FDE68A",
                     boxShadow: "0 2px 6px rgba(0, 0, 0, 0.25)",
                     objectFit: "cover",
                     backgroundColor: "#FEF3C7",
                     display: "inline-block"
                   }}
                 />
-                <div style={{ fontSize: "9px", fontWeight: 900, color: GOLD_PRIMARY, marginTop: "3px" }}>
+                <div style={{ fontSize: "9.5px", fontWeight: 900, color: GOLD_PRIMARY, marginTop: "4px" }}>
                   {snip.gokarnanathaMedallion}
                 </div>
               </div>
 
               {/* Priest Ashirvada Sanskrit Verse & Meaning */}
               <div>
-                <div style={{ fontSize: "14.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3, letterSpacing: "0.2px" }}>
+                <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3, letterSpacing: "0.2px" }}>
                   {displayPriestName}
                 </div>
-                <div style={{ fontSize: "11.5px", color: INK_MUTED, fontWeight: 700, marginTop: "2px" }}>
+                <div style={{ fontSize: "12px", color: INK_MUTED, fontWeight: 700, marginTop: "2px" }}>
                   {t.priestTitle} · {displayPriestPhone}
                 </div>
-                <div style={{ fontSize: "12px", color: GOLD_DARK, fontStyle: "italic", marginTop: "4px", lineHeight: 1.45, fontWeight: 700, wordSpacing: "1px" }}>
+                <div style={{ fontSize: "12.5px", color: GOLD_DARK, fontStyle: "italic", marginTop: "4px", lineHeight: 1.5, fontWeight: 700, wordSpacing: "1px" }}>
                   {t.sanskritAshirvada}
                 </div>
-                <div style={{ fontSize: "11.5px", color: INK_DEEP, marginTop: "3px", lineHeight: 1.5, wordSpacing: "1px" }}>
+                <div style={{ fontSize: "12px", color: INK_DEEP, marginTop: "3px", lineHeight: 1.55, wordSpacing: "1px" }}>
                   {t.ashirvadaMeaning}
                 </div>
               </div>
@@ -2946,10 +3143,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  padding: "6px 10px",
+                  padding: "8px 12px",
                   backgroundColor: "#FFFFFF",
                   border: `1.5px solid ${GOLD_BORDER}`,
-                  borderRadius: "8px",
+                  borderRadius: "10px",
                   textAlign: "center"
                 }}
               >
@@ -2959,24 +3156,24 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       src={internalQr}
                       alt="Online Verification QR"
                       style={{
-                        width: "72px",
-                        height: "72px",
-                        borderRadius: "5px",
+                        width: "80px",
+                        height: "80px",
+                        borderRadius: "6px",
                         border: `1px solid ${GOLD_LIGHT}`,
                         backgroundColor: "#FFFFFF"
                       }}
                     />
-                    <div style={{ fontSize: "8.5px", color: GOLD_DARK, fontWeight: 900, marginTop: "3px", lineHeight: 1.1 }}>
+                    <div style={{ fontSize: "9px", color: GOLD_DARK, fontWeight: 900, marginTop: "4px", lineHeight: 1.2 }}>
                       {t.scanToVerify}
                     </div>
                   </>
                 ) : (
                   <div style={{ textAlign: "center", padding: "6px" }}>
-                    <div style={{ fontSize: "22px" }}>🔱</div>
-                    <div style={{ fontSize: "9.5px", color: GOLD_DARK, fontWeight: 900, marginTop: "2px" }}>
+                    <div style={{ fontSize: "24px" }}>🔱</div>
+                    <div style={{ fontSize: "10px", color: GOLD_DARK, fontWeight: 900, marginTop: "2px" }}>
                       {code === "kn" ? "॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥" : code === "hi" ? "॥ गोकर्ण सन्निधि ॥" : code === "te" ? "॥ గోకర్ణ సన్నిధి ॥" : code === "ta" ? "॥ கோகர்ண சந்நிதி ॥" : "॥ Sri Gokarna ॥"}
                     </div>
-                    <div style={{ fontSize: "8.5px", color: GOLD_PRIMARY, fontWeight: 800, marginTop: "2px" }}>
+                    <div style={{ fontSize: "9px", color: GOLD_PRIMARY, fontWeight: 800, marginTop: "2px" }}>
                       {t.officialSealLabel}
                     </div>
                   </div>
@@ -2990,7 +3187,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             style={{
               marginTop: "auto",
               textAlign: "center",
-              fontSize: "10.5px",
+              fontSize: "11px",
               color: GOLD_DARK,
               fontWeight: 800,
               borderTop: `1.5px dashed ${GOLD_LIGHT}`,
