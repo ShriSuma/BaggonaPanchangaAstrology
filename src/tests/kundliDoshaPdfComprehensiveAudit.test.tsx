@@ -31,7 +31,7 @@ describe("Kundli Dosha PDF Comprehensive Audit & Guard Verification", () => {
     );
 
     const pages = container.querySelectorAll(".pdf-page");
-    expect(pages.length).toBe(3);
+    expect(pages.length).toBe(4);
 
     pages.forEach((page) => {
       const el = page as HTMLElement;

@@ -19,7 +19,7 @@ describe("Kundli Doshagalu PDF Luxury Redesign Audit", () => {
   const kundli = calculateKundli(sampleNative, { ayanamsaModel: "lahiri" });
   const report = calculateComprehensiveDoshas(kundli, sampleNative, new Date("2026-10-30"));
 
-  it("1. Renders strictly 3 A4 pages with 900px width and 1273px height", () => {
+  it("1. Renders strictly 4 A4 pages with 900px width and 1273px height", () => {
     const { container } = render(
       <KundliDoshaPdfTemplate
         id="test-doshas-pdf"
@@ -29,7 +29,7 @@ describe("Kundli Doshagalu PDF Luxury Redesign Audit", () => {
     );
 
     const pages = container.querySelectorAll(".pdf-page");
-    expect(pages.length).toBe(3);
+    expect(pages.length).toBe(4);
 
     pages.forEach((page) => {
       const el = page as HTMLElement;
