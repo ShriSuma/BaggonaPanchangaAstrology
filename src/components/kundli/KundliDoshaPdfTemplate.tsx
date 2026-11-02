@@ -1396,31 +1396,43 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     const isKuja = dosha.id === "kuja_dosha";
     const isSarpa = dosha.id === "kala_sarpa_dosha" || dosha.id === "kala_sarpa";
     const isCompleted = dosha.shantiStatus === "completed";
-    const priorityBadgeText = getLangVal(
-      dosha.agePriorityBadge,
-      `${snip.priorityPrefix}${dosha.agePriorityRank || 1}`
-    );
+    const priorityRank = dosha.agePriorityRank || 1;
+    const devoteeAge = devoteeInfo.currentAge || devoteeInfo.devoteeAge || "";
+
+    // Clean, crisp priority badge with ample lineHeight so Indic glyphs never drop out or clip
+    const priorityPillText =
+      code === "kn"
+        ? `⚡ ಆದ್ಯತೆ #${priorityRank} (${devoteeAge} ವರ್ಷ)`
+        : code === "hi"
+        ? `⚡ प्राथमिकता #${priorityRank} (${devoteeAge} वर्ष)`
+        : code === "te"
+        ? `⚡ ప్రాధాన్యత #${priorityRank} (${devoteeAge} సం.)`
+        : code === "ta"
+        ? `⚡ முன்னுரிமை #${priorityRank} (${devoteeAge} வயது)`
+        : `⚡ Priority #${priorityRank} (Age ${devoteeAge})`;
 
     return (
       <div
         key={dosha.id}
         style={{
-          backgroundColor: CARD_BG,
-          border: `2px solid ${GOLD_BORDER}`,
+          backgroundColor: "#FFFFFF",
+          border: `1.5px solid ${GOLD_BORDER}`,
           borderRadius: "12px",
-          padding: "13px 18px",
-          boxShadow: "0 4px 12px rgba(180, 83, 9, 0.07)",
+          padding: "14px 18px",
+          boxShadow: "0 2px 8px rgba(180, 83, 9, 0.05)",
           display: "flex",
           flexDirection: "column",
-          gap: "8px"
+          gap: "8px",
+          position: "relative",
+          boxSizing: "border-box"
         }}
       >
         {isPitru && (
           <div
             style={{
-              background: "linear-gradient(90deg, #78350F 0%, #B45309 100%)",
+              backgroundColor: "#78350F",
               color: "#FEF9E7",
-              fontSize: "11.5px",
+              fontSize: "11px",
               fontWeight: 900,
               padding: "4px 12px",
               borderRadius: "6px",
@@ -1436,27 +1448,25 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
         {/* Header Row: Title & Scripture on Left, Clean Unclipped Badges on Right */}
         <div
           style={{
-            background: "linear-gradient(90deg, #FAF7F2 0%, #FFFFFF 100%)",
-            border: `1.5px solid ${GOLD_LIGHT}`,
-            borderRadius: "8px",
-            padding: "8px 14px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: "10px"
+            gap: "10px",
+            borderBottom: "1.5px solid #F1E8D9",
+            paddingBottom: "8px"
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
             <span style={{ fontSize: "20px", flexShrink: 0 }}>
               {isPitru ? "🪔" : isKuja ? "⚔️" : isSarpa ? "🐍" : "🪐"}
             </span>
-            <span style={{ fontSize: "17px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+            <span style={{ fontSize: "16px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
               {getLangVal(dosha.name)}
             </span>
             {(() => {
               const sRef = getScripturalReference(dosha.id, dosha.technicalDetail?.scripturalReference, code);
               return sRef ? (
-                <span style={{ fontSize: "12px", color: INK_MUTED, fontWeight: 700 }}>
+                <span style={{ fontSize: "11.5px", color: INK_MUTED, fontWeight: 700 }}>
                   ({sRef})
                 </span>
               ) : null;
@@ -1465,59 +1475,62 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
           {/* Right: Badges Group with whitespace nowrap */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+            {/* Severity Badge */}
             <span
               style={{
-                background: dosha.severity === "critical" ? "#FEF2F2" : "#FFFBEB",
+                backgroundColor: dosha.severity === "critical" ? "#FEF2F2" : "#FFFBEB",
                 border: `1px solid ${dosha.severity === "critical" ? "#FCA5A5" : "#FCD34D"}`,
                 color: dosha.severity === "critical" ? "#991B1B" : "#92400E",
-                fontSize: "11.5px",
+                fontSize: "11px",
                 fontWeight: 800,
-                padding: "3px 10px",
+                padding: "3px 9px",
                 borderRadius: "5px",
                 flexShrink: 0,
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center",
-                lineHeight: 1.1,
-                height: "fit-content"
+                lineHeight: 1.4,
+                boxSizing: "border-box"
               }}
             >
               {getSeverityLabel(dosha.severity, code)}
             </span>
-            {priorityBadgeText && (
-              <span
-                style={{
-                  background: `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)`,
-                  color: "#FFFFFF",
-                  fontSize: "11.5px",
-                  fontWeight: 800,
-                  padding: "3px 10px",
-                  borderRadius: "5px",
-                  border: `1px solid ${GOLD_BORDER}`,
-                  whiteSpace: "nowrap",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  lineHeight: 1.1,
-                  height: "fit-content"
-                }}
-              >
-                {priorityBadgeText.replace(/^⚡\s*/, "⚡ ")}
-              </span>
-            )}
+
+            {/* Red / Crimson Age Priority Badge with Crystal Clear Typography & Proper Line Height */}
             <span
               style={{
-                background: isCompleted ? "#FAF8F2" : "#FEF3C7",
-                border: `1.5px solid ${GOLD_BORDER}`,
-                color: isCompleted ? "#166534" : GOLD_DARK,
-                fontSize: "11.5px",
+                backgroundColor: "#991B1B",
+                color: "#FFFFFF",
+                fontSize: "11px",
                 fontWeight: 800,
                 padding: "3px 10px",
+                borderRadius: "5px",
+                border: "1px solid #7F1D1D",
+                whiteSpace: "nowrap",
+                display: "inline-flex",
+                alignItems: "center",
+                lineHeight: 1.4,
+                boxSizing: "border-box"
+              }}
+            >
+              {priorityPillText}
+            </span>
+
+            {/* Status Badge */}
+            <span
+              style={{
+                backgroundColor: isCompleted ? "#F0FDF4" : "#FEF3C7",
+                border: `1px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
+                color: isCompleted ? "#166534" : GOLD_DARK,
+                fontSize: "11px",
+                fontWeight: 800,
+                padding: "3px 9px",
                 borderRadius: "5px",
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center",
-                lineHeight: 1.1,
-                height: "fit-content"
+                lineHeight: 1.4,
+                boxSizing: "border-box"
               }}
             >
               {getLangVal(dosha.statusBadge)}
@@ -1527,25 +1540,27 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
         {/* Age Priority Reason if present */}
         {dosha.agePriorityReason && (
-          <div style={{ fontSize: "12px", color: INK_MUTED, fontStyle: "italic", lineHeight: 1.4, padding: "0 2px" }}>
+          <div style={{ fontSize: "11.5px", color: INK_MUTED, fontStyle: "italic", lineHeight: 1.4, padding: "0 2px" }}>
             ({getLangVal(dosha.agePriorityReason)})
           </div>
         )}
 
-        {/* Immediate Action Banner */}
+        {/* Immediate Action Banner: Clean Corporate Callout with Deep Left Accent Line */}
         {dosha.immediateActionRequired && (
           <div
             style={{
-              backgroundColor: PANEL_ACCENT,
+              backgroundColor: "#FCFBF9",
               borderLeft: `4px solid ${GOLD_BORDER}`,
-              border: `1px solid ${GOLD_LIGHT}`,
-              borderRadius: "8px",
+              borderTop: "1px solid #F1E8D9",
+              borderRight: "1px solid #F1E8D9",
+              borderBottom: "1px solid #F1E8D9",
+              borderRadius: "6px",
               padding: "7px 12px",
-              fontSize: "13px",
+              fontSize: "12.5px",
               lineHeight: 1.55
             }}
           >
-            <span style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13.5px" }}>{t.immediateActionLabel} </span>
+            <span style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px" }}>{t.immediateActionLabel} </span>
             <span style={{ fontWeight: 700, color: INK_DEEP }}>
               {stripDuplicatePrefix(getLangVal(dosha.immediateActionRequired), [
                 "🎯 ಮೊದಲು ಮಾಡಬೇಕಾದ ಕರ್ತವ್ಯ:",
@@ -1558,53 +1573,35 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           </div>
         )}
 
-        {/* 4 PILLARS FOR NON-ASTROLOGY USERS */}
+        {/* 4 PILLARS FOR NON-ASTROLOGY USERS: SINGLE CLEAN BACKGROUND, NO NESTED PATCHWORK */}
         {/* Pillar 1: Root Cause / What is the Issue? */}
-        <div
-          style={{
-            backgroundColor: CARD_BG,
-            border: `1.5px solid ${GOLD_LIGHT}`,
-            borderRadius: "8px",
-            padding: "8px 13px",
-            minWidth: 0
-          }}
-        >
-          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.35 }}>
+        <div style={{ paddingTop: "3px" }}>
+          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35 }}>
             {t.pillar1Question}
           </div>
-          <div style={{ color: INK_DEEP, marginTop: "3px", fontSize: "13px", lineHeight: 1.6 }}>
+          <div style={{ color: INK_DEEP, marginTop: "2px", fontSize: "12.5px", lineHeight: 1.55 }}>
             {cleanDegreesFromText(getLangVal(dosha.technicalWhy) || getLangVal((dosha as any).technicalReason))}
           </div>
         </div>
 
         {/* Pillar 2: Real Life Impact / What is it Doing in Life Now? */}
-        <div
-          style={{
-            backgroundColor: PANEL_WARM,
-            border: `1.5px solid ${GOLD_LIGHT}`,
-            borderRadius: "8px",
-            padding: "8px 13px",
-            minWidth: 0
-          }}
-        >
-          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.35 }}>
+        <div style={{ borderTop: "1px solid #F1E8D9", paddingTop: "6px" }}>
+          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35 }}>
             {t.pillar2Question}
           </div>
-          <div style={{ color: INK_DEEP, marginTop: "3px", fontSize: "13px", lineHeight: 1.6 }}>
+          <div style={{ color: INK_DEEP, marginTop: "2px", fontSize: "12.5px", lineHeight: 1.55 }}>
             {getLangVal(dosha.currentLifeProblems) || getLangVal(dosha.lifeImpact)}
           </div>
           {/* Dasha Resonance if available */}
           {dosha.dashaResonance && (
             <div
               style={{
-                backgroundColor: CARD_BG,
-                border: `1px solid ${GOLD_LIGHT}`,
-                borderRadius: "6px",
-                padding: "5px 10px",
+                borderLeft: `3px solid ${GOLD_LIGHT}`,
+                paddingLeft: "8px",
                 fontSize: "12px",
                 color: INK_DEEP,
                 lineHeight: 1.45,
-                marginTop: "6px"
+                marginTop: "4px"
               }}
             >
               <strong style={{ color: GOLD_DARK }}>⏳ {t.dashaResonanceLabel} </strong>
@@ -1614,30 +1611,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
         </div>
 
         {/* Pillar 3: Prescribed Remedy & Sacred Gokarna Seva / What is the Solution? */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #FEF9E7 0%, #FFFDF9 100%)",
-            border: `1.5px solid ${GOLD_BORDER}`,
-            borderRadius: "8px",
-            padding: "9px 13px",
-            fontSize: "13px",
-            lineHeight: 1.55
-          }}
-        >
+        <div style={{ borderTop: "1px solid #F1E8D9", paddingTop: "6px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "12px" }}>
             <div>
-              <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.35 }}>
+              <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35 }}>
                 {t.pillar3Question}
               </div>
-              <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "3px", lineHeight: 1.55 }}>
+              <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "2px", fontSize: "12.5px", lineHeight: 1.5 }}>
                 {getLangVal(dosha.recommendedPooja)}
               </div>
             </div>
             <div>
-              <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.35 }}>
+              <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35 }}>
                 📿 {t.mantraLabel}
               </div>
-              <div style={{ color: INK_DEEP, marginTop: "3px", lineHeight: 1.55 }}>
+              <div style={{ color: INK_DEEP, marginTop: "2px", fontSize: "12.5px", lineHeight: 1.5 }}>
                 {getLangArr(dosha.remedies).slice(0, 2).join(" • ")}
               </div>
             </div>
@@ -1647,12 +1635,12 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {dosha.subconsciousFear && (
             <div
               style={{
-                marginTop: "6px",
-                paddingTop: "5px",
-                borderTop: `1px dashed ${GOLD_LIGHT}`,
-                fontSize: "12.5px",
+                marginTop: "4px",
+                borderLeft: `3px solid ${GOLD_LIGHT}`,
+                paddingLeft: "8px",
+                fontSize: "12px",
                 color: INK_DEEP,
-                lineHeight: 1.45
+                lineHeight: 1.4
               }}
             >
               <strong style={{ color: GOLD_DARK }}>🧠 {snip.subconsciousFear} </strong>
@@ -1664,31 +1652,27 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {isCompleted ? (
             <div
               style={{
-                backgroundColor: "#FAF8F2",
-                border: `1px solid ${GOLD_BORDER}`,
-                borderRadius: "6px",
-                padding: "5px 10px",
-                marginTop: "6px",
-                fontSize: "12.5px",
-                color: "#78350F",
-                lineHeight: 1.45
+                borderLeft: "3px solid #166534",
+                paddingLeft: "8px",
+                marginTop: "4px",
+                fontSize: "12px",
+                color: "#166534",
+                lineHeight: 1.4
               }}
             >
-              <strong style={{ color: "#166534" }}>✓ {snip.shantiCompleted} </strong>
+              <strong>✓ {snip.shantiCompleted} </strong>
               <span>{getLangVal(dosha.alreadyDoneNarration)}</span>
             </div>
           ) : (
             dosha.conditionalGuidance && (
               <div
                 style={{
-                  backgroundColor: CARD_BG,
-                  border: `1px solid ${GOLD_LIGHT}`,
-                  borderRadius: "6px",
-                  padding: "5px 10px",
-                  marginTop: "6px",
-                  fontSize: "12.5px",
+                  borderLeft: `3px solid ${GOLD_LIGHT}`,
+                  paddingLeft: "8px",
+                  marginTop: "4px",
+                  fontSize: "12px",
                   color: INK_DEEP,
-                  lineHeight: 1.45
+                  lineHeight: 1.4
                 }}
               >
                 <strong style={{ color: GOLD_DARK }}>💡 {snip.guidance} </strong>
@@ -1707,20 +1691,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
         </div>
 
         {/* Pillar 4: Expected Life Improvement & Positive Transformations / What Will Happen After? */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #FEFAF0 0%, #FFF7E6 100%)",
-            border: `1.5px solid ${GOLD_PRIMARY}`,
-            borderRadius: "8px",
-            padding: "8px 13px",
-            fontSize: "13px",
-            lineHeight: 1.55
-          }}
-        >
-          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.35 }}>
+        <div style={{ borderTop: "1px solid #F1E8D9", paddingTop: "6px" }}>
+          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35 }}>
             {t.pillar4Question}
           </div>
-          <div style={{ color: INK_DEEP, fontWeight: 600, marginTop: "3px", lineHeight: 1.55 }}>
+          <div style={{ color: INK_DEEP, fontWeight: 600, marginTop: "2px", fontSize: "12.5px", lineHeight: 1.55 }}>
             {getExpectedImprovementAfterParihara(dosha.id, code)}
           </div>
         </div>
@@ -1729,10 +1704,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   };
 
   // 4-PAGE LUXURY MASTER DOSSIER ARCHITECTURE:
-  // Page 1: Devotee Profile Matrix, Karmic Assessment, Age Strategy & Natal Planetary Fortitude Shield (4 Houses).
-  // Page 2: Primary Karmic Affliction (#1) & Parashari Protective Counterbalance Card.
-  // Page 3: Secondary Afflictions / Transits (or Grand Planetary Harmony Shield & Divine Protection).
-  // Page 4: Life Hazards (Gandantara), Fears, Gokarna Temple Sevas, Chief Priest Blessing & Live QR Code.
+  // Page 1: Devotee Profile Matrix, Age Strategy & Primary Urgent Karmic Affliction (#1). (ZERO BLANK SPACE).
+  // Page 2: Natal Celestial Fortitude & Protection Shield (4 Houses) + Secondary Affliction (#2). (NO OVERFLOW).
+  // Page 3: Additional Afflictions (#3 or Transits) + Critical Gandantara Hazards & Safe Age Limits.
+  // Page 4: Subconscious Innate Fears, Gokarna Temple Sevas, Chief Priest Blessing & Live QR Code.
   const primaryDosha = activeDoshas[0] || null;
   const secondaryDoshas = activeDoshas.slice(1);
 
@@ -1752,7 +1727,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
       }}
     >
       {/* ====================================================================== */}
-      {/* PAGE 1: DEVOTEE PROFILE, AGE DIRECTIVE & NATAL FORTITUDE SHIELD        */}
+      {/* PAGE 1: DEVOTEE PROFILE, AGE DIRECTIVE & PRIMARY URGENT DOSHA (#1)    */}
       {/* ====================================================================== */}
       <div
         className="pdf-page"
@@ -1815,7 +1790,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             borderRadius: "14px",
             padding: "14px 18px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF9 0%, #FAF6ED 50%, #FFFDF9 100%)",
+            backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
             gap: "10px",
@@ -1838,11 +1813,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Devotee Info Matrix & Karmic Assessment Grid */}
           <div
             style={{
-              backgroundColor: CARD_BG,
+              backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
               padding: "12px 18px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.06)",
+              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
@@ -1876,7 +1851,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 </div>
               </div>
 
-              <div style={{ backgroundColor: PANEL_WARM, border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "6px 10px", textAlign: "center", minWidth: 0 }}>
+              <div style={{ backgroundColor: "#F7F3E9", border: `1.5px solid ${GOLD_BORDER}`, borderRadius: "8px", padding: "6px 10px", textAlign: "center", minWidth: 0 }}>
                 <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "12.5px", lineHeight: 1.3 }}>
                   ⭐ {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {snip.yearsUnit}
                 </div>
@@ -1895,7 +1870,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>{snip.karmicVulnerability}</span>
-                <span style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "12.5px", backgroundColor: PANEL_WARM, padding: "3px 10px", borderRadius: "6px", border: `1px solid ${GOLD_BORDER}` }}>
+                <span style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "12.5px", backgroundColor: "#F7F3E9", padding: "3px 10px", borderRadius: "6px", border: `1px solid ${GOLD_BORDER}` }}>
                   {summary?.karmicIndexScore || 0}%
                 </span>
               </div>
@@ -1907,91 +1882,54 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Age-Adaptive Priority Strategy Card */}
           <div
             style={{
-              backgroundColor: CARD_BG,
+              backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
-              padding: "11px 16px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
+              padding: "10px 16px",
+              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-              <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
                 {t.ageStrategyHeading} ({devoteeInfo.ageStageNameRecord?.[code] || snip.agePrefix + (devoteeInfo.currentAge || devoteeInfo.devoteeAge)})
               </div>
-              <div style={{ fontSize: "11px", background: `linear-gradient(135deg, ${GOLD_DARK} 0%, ${GOLD_PRIMARY} 100%)`, color: "#FFFFFF", padding: "3px 9px", borderRadius: "6px", fontWeight: 800, border: `1px solid ${GOLD_BORDER}`, letterSpacing: "normal", flexShrink: 0 }}>
+              <div style={{ fontSize: "11px", backgroundColor: "#991B1B", color: "#FFFFFF", padding: "3px 9px", borderRadius: "6px", fontWeight: 800, border: `1px solid #7F1D1D`, letterSpacing: "normal", flexShrink: 0 }}>
                 ⚡ {t.agePriorityBadgeLabel}
               </div>
             </div>
-            <div style={{ fontSize: "12.5px", color: INK_DEEP, fontWeight: 700, marginTop: "5px", lineHeight: 1.6 }}>
+            <div style={{ fontSize: "12.5px", color: INK_DEEP, fontWeight: 700, marginTop: "4px", lineHeight: 1.55 }}>
               {getLangVal(devoteeInfo.currentAgeFocusSummary, snip.ageFocusFallback)}
             </div>
-            <div style={{ fontSize: "11.5px", color: INK_MUTED, marginTop: "4px", fontStyle: "italic", lineHeight: 1.45 }}>
+            <div style={{ fontSize: "11px", color: INK_MUTED, marginTop: "3px", fontStyle: "italic", lineHeight: 1.4 }}>
               {t.ageStrategyNotice}
             </div>
           </div>
 
-          {renderGoldLandlineDivider(t.protectionShieldDivider)}
+          {renderGoldLandlineDivider(snip.divPrimaryDosha)}
 
-          {/* Natal Planetary Fortitude & Protection Shield (4 houses 2x2 grid) */}
-          <div
-            style={{
-              backgroundColor: CARD_BG,
-              border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "13px 18px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
-              flexShrink: 0,
-              display: "flex",
-              flexDirection: "column",
-              gap: "9px"
-            }}
-          >
-            <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", lineHeight: 1.35 }}>
-              🪐 {t.chartBalanceHeading}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "9px", fontSize: "12px", lineHeight: 1.5 }}>
-              <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "9px 13px", minWidth: 0 }}>
-                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.3 }}>🏛️ {t.lagnaLabel} {devoteeInfo.lagnaRashiRecord?.[code] || devoteeInfo.lagnaRashi}</div>
-                <div style={{ color: INK_DEEP, marginTop: "3px", lineHeight: 1.5 }}>
-                  {snip.lagnaFortitude}
+          {/* Primary Urgent Dosha Card (#1) */}
+          <div style={{ flexShrink: 0 }}>
+            {primaryDosha ? (
+              renderDoshaCard(primaryDosha, true)
+            ) : (
+              <div
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: `2px dashed ${GOLD_BORDER}`,
+                  borderRadius: "12px",
+                  padding: "24px 18px",
+                  textAlign: "center"
+                }}
+              >
+                <div style={{ fontSize: "18px", color: GOLD_DARK, fontWeight: 900 }}>
+                  {t.noDoshaTitle}
+                </div>
+                <div style={{ fontSize: "12.5px", color: INK_MUTED, marginTop: "6px", lineHeight: 1.55, maxWidth: "680px", margin: "6px auto 0" }}>
+                  {t.noDoshaDesc}
                 </div>
               </div>
-              <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "9px 13px", minWidth: 0 }}>
-                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.3 }}>🌙 {t.rashiLabel} {devoteeInfo.moonRashiRecord?.[code] || devoteeInfo.moonRashi}</div>
-                <div style={{ color: INK_DEEP, marginTop: "3px", lineHeight: 1.5 }}>
-                  {snip.chandraFortitude}
-                </div>
-              </div>
-              <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "9px 13px", minWidth: 0 }}>
-                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.3 }}>☀️ {snip.suryaFortitudeTitle}</div>
-                <div style={{ color: INK_DEEP, marginTop: "3px", lineHeight: 1.5 }}>
-                  {snip.suryaFortitudeDesc}
-                </div>
-              </div>
-              <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "9px 13px", minWidth: 0 }}>
-                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.3 }}>🪔 {snip.trikonaFortitudeTitle}</div>
-                <div style={{ color: INK_DEEP, marginTop: "3px", lineHeight: 1.5 }}>
-                  {snip.trikonaFortitudeDesc}
-                </div>
-              </div>
-            </div>
-
-            {/* Parashari Benefic Shield Banner */}
-            <div
-              style={{
-                background: "linear-gradient(135deg, #FEF9E7 0%, #FFFDF9 100%)",
-                border: `1px solid ${GOLD_LIGHT}`,
-                borderRadius: "8px",
-                padding: "8px 12px",
-                fontSize: "12px",
-                color: INK_DEEP,
-                lineHeight: 1.5
-              }}
-            >
-              <strong style={{ color: GOLD_DARK }}>🔱 {snip.parashariProtocol} </strong>
-              <span>{snip.parashariRuleDesc}</span>
-            </div>
+            )}
           </div>
 
           {/* Page 1 Pinned Footer */}
@@ -2015,7 +1953,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
       </div>
 
       {/* ====================================================================== */}
-      {/* PAGE 2: PRIMARY KARMIC AFFLICTION (#1) & FULL SCRIPTURAL DIAGNOSIS    */}
+      {/* PAGE 2: NATAL CELESTIAL FORTITUDE & SECONDARY AFFLICTION (#2)         */}
       {/* ====================================================================== */}
       <div
         className="pdf-page"
@@ -2077,7 +2015,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             borderRadius: "14px",
             padding: "14px 18px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF9 0%, #FAF6ED 50%, #FFFDF9 100%)",
+            backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
             gap: "10px",
@@ -2095,63 +2033,100 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Header Banner */}
           {renderRoyalHeader(2, t.page2Title, t.shloka)}
 
-          {renderGoldLandlineDivider(snip.divPrimaryDosha)}
+          {renderGoldLandlineDivider(t.protectionShieldDivider)}
 
-          {/* Primary Urgent Dosha Card (#1) */}
+          {/* Natal Planetary Fortitude & Protection Shield (4 houses 2x2 grid) */}
+          <div
+            style={{
+              backgroundColor: "#FCFBF9",
+              border: `1.5px solid ${GOLD_BORDER}`,
+              borderRadius: "12px",
+              padding: "12px 16px",
+              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px"
+            }}
+          >
+            <div style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "3px", lineHeight: 1.35 }}>
+              🪐 {t.chartBalanceHeading}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "11.5px", lineHeight: 1.45 }}>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", minWidth: 0 }}>
+                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "12.5px", lineHeight: 1.3 }}>🏛️ {t.lagnaLabel} {devoteeInfo.lagnaRashiRecord?.[code] || devoteeInfo.lagnaRashi}</div>
+                <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.45 }}>
+                  {snip.lagnaFortitude}
+                </div>
+              </div>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", minWidth: 0 }}>
+                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "12.5px", lineHeight: 1.3 }}>🌙 {t.rashiLabel} {devoteeInfo.moonRashiRecord?.[code] || devoteeInfo.moonRashi}</div>
+                <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.45 }}>
+                  {snip.chandraFortitude}
+                </div>
+              </div>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", minWidth: 0 }}>
+                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "12.5px", lineHeight: 1.3 }}>☀️ {snip.suryaFortitudeTitle}</div>
+                <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.45 }}>
+                  {snip.suryaFortitudeDesc}
+                </div>
+              </div>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", minWidth: 0 }}>
+                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "12.5px", lineHeight: 1.3 }}>🪔 {snip.trikonaFortitudeTitle}</div>
+                <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.45 }}>
+                  {snip.trikonaFortitudeDesc}
+                </div>
+              </div>
+            </div>
+
+            {/* Parashari Benefic Shield Banner */}
+            <div
+              style={{
+                backgroundColor: "#FFFFFF",
+                border: `1px solid ${GOLD_LIGHT}`,
+                borderRadius: "8px",
+                padding: "7px 12px",
+                fontSize: "11.5px",
+                color: INK_DEEP,
+                lineHeight: 1.45
+              }}
+            >
+              <strong style={{ color: GOLD_DARK }}>🔱 {snip.parashariProtocol} </strong>
+              <span>{snip.parashariRuleDesc}</span>
+            </div>
+          </div>
+
+          {renderGoldLandlineDivider(snip.divSecondaryDosha)}
+
+          {/* Secondary Dosha (Dosha #2) OR Planetary Harmony Shield */}
           <div style={{ flexShrink: 0 }}>
-            {primaryDosha ? (
-              renderDoshaCard(primaryDosha, true)
+            {secondaryDoshas.length > 0 ? (
+              renderDoshaCard(secondaryDoshas[0], false)
             ) : (
               <div
                 style={{
-                  backgroundColor: CARD_BG,
-                  border: `2px dashed ${GOLD_BORDER}`,
+                  backgroundColor: "#FFFFFF",
+                  border: `1.5px solid ${GOLD_BORDER}`,
                   borderRadius: "12px",
-                  padding: "24px 18px",
-                  textAlign: "center"
+                  padding: "16px 20px",
+                  boxShadow: "0 2px 8px rgba(180, 83, 9, 0.05)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px"
                 }}
               >
-                <div style={{ fontSize: "19px", color: GOLD_DARK, fontWeight: 900 }}>
-                  {t.noDoshaTitle}
+                <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.35, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px" }}>
+                  {t.planetaryHarmonyHeading}
                 </div>
-                <div style={{ fontSize: "13px", color: INK_MUTED, marginTop: "8px", lineHeight: 1.6, maxWidth: "680px", margin: "8px auto 0" }}>
-                  {t.noDoshaDesc}
+                <div style={{ fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.6 }}>
+                  {t.planetaryHarmonyDesc}
+                </div>
+                <div style={{ backgroundColor: "#FCFBF9", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "9px 13px", fontSize: "12px", color: INK_DEEP, lineHeight: 1.5 }}>
+                  <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
+                  <span>{t.gokarnaProtectionDesc}</span>
                 </div>
               </div>
             )}
-          </div>
-
-          {renderGoldLandlineDivider(t.ageDirectiveDivider)}
-
-          {/* Parashari Protective Counterbalance / Immediate Relief Guidance Card */}
-          <div
-            style={{
-              backgroundColor: CARD_BG,
-              border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "13px 18px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
-              flexShrink: 0
-            }}
-          >
-            <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", lineHeight: 1.35 }}>
-              🔱 {code === "kn" ? "ಪರಿಹಾರ ಕಾಲಾವಧಿ & ದೈವಿಕ ಸಂಕಲ್ಪ ಮಾರ್ಗದರ್ಶನ" : code === "hi" ? "शांति काल एवं दैवीय संकल्प मार्गदर्शन" : code === "te" ? "పరిహార కాలం & దైవిక సంకల్ప మార్గదర్శనం" : code === "ta" ? "பரிகாரக் காலம் & தெய்வீக சங்கல்ப வழிகாட்டுதல்" : "Parihara Duration & Divine Resolution Guidance"}
-            </div>
-            <div style={{ fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.6, marginTop: "6px" }}>
-              {code === "kn"
-                ? "ಶಾಸ್ತ್ರಗಳ ಪ್ರಕಾರ, ಈ ಪ್ರಮುಖ ಕರ್ಮ ದೋಷಕ್ಕೆ ಸೂಚಿಸಲಾದ ಪವಿತ್ರ ಪರಿಹಾರ ಮತ್ತು ಮಂತ್ರ ಸಾಧನೆಯನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ೩೦ ರಿಂದ ೪೫ ದಿನಗಳ ಕಾಲ ಆಚರಿಸುವುದರಿಂದ ದೋಷದ ತೀವ್ರತೆಯು ಶಮನಗೊಳ್ಳುತ್ತದೆ. ಸಂಕಲ್ಪಿಸಿದ ಕಾರ್ಯಗಳಲ್ಲಿ ಎದುರಾಗುತ್ತಿದ್ದ ಕಠಿಣ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ, ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ."
-                : code === "hi"
-                ? "शास्त्रों के अनुसार, इस प्रमुख कर्म दोष हेतु निर्देशित पवित्र परिहार एवं मंत्र साधना को 30 से 45 दिनों तक श्रद्धापूर्वक करने से दोष का अनिष्ट प्रभाव शांत हो जाता है। जीवन में आ रही रुकावटें दूर होकर आर्थिक स्थिरता एवं पारिवारिक शांति प्राप्त होती है।"
-                : code === "te"
-                ? "శాస్త్రాల ప్రకారం, ఈ ప్రధాన కర్మ దోషానికి సూచించిన పవిత్ర పరిహారం మరియు మంత్ర సాధనను 30 నుండి 45 రోజుల పాటు శ్రద్ధతో పాటించడం వల్ల దోష తీవ్రత తగ్గుతుంది. ఆటంకాలు తొలగి, ఆర్థిక స్థిరత్వం మరియు కుటుంబ శాంతి లభిస్తుంది."
-                : code === "ta"
-                ? "சாஸ்திரங்களின்படி, இந்த முக்கிய கர்ம தோஷத்திற்குரிய பரிகாரத்தை 30 முதல் 45 நாட்கள் வரை நம்பிக்கையுடன் செய்வதன் மூலம் தோஷத்தின் தாக்கம் குறையும். தடைகள் நீங்கி, நல்வாழ்வும் மனசாந்தியும் உண்டாகும்."
-                : "According to classical Vedic scriptures, performing this sacred remedy and dedicated mantra japa for 30 to 45 days brings profound pacification of this primary karmic affliction, dissolving stubborn obstacles and unlocking peace, health, and prosperity."}
-            </div>
-            <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "7px 12px", fontSize: "12px", color: INK_DEEP, marginTop: "8px", lineHeight: 1.5 }}>
-              <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
-              <span>{t.gokarnaProtectionDesc}</span>
-            </div>
           </div>
 
           {/* Page 2 Pinned Footer */}
@@ -2175,7 +2150,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
       </div>
 
       {/* ====================================================================== */}
-      {/* PAGE 3: SECONDARY AFFLICTIONS & PLANETARY TRANSITS                     */}
+      {/* PAGE 3: ADDITIONAL AFFLICTIONS / GOCHARA TRANSITS                     */}
       {/* ====================================================================== */}
       <div
         className="pdf-page"
@@ -2237,7 +2212,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             borderRadius: "14px",
             padding: "14px 18px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF9 0%, #FAF6ED 50%, #FFFDF9 100%)",
+            backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
             gap: "10px",
@@ -2257,30 +2232,30 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
           {renderGoldLandlineDivider(snip.divSecondaryDosha)}
 
-          {/* Secondary Dosha (Dosha #2) OR Planetary Harmony Shield */}
+          {/* Tertiary Dosha (Dosha #3) OR Grand Planetary Harmony */}
           <div style={{ flexShrink: 0 }}>
-            {secondaryDoshas.length > 0 ? (
-              renderDoshaCard(secondaryDoshas[0], false)
+            {secondaryDoshas.length > 1 ? (
+              renderDoshaCard(secondaryDoshas[1], false)
             ) : (
               <div
                 style={{
-                  backgroundColor: CARD_BG,
+                  backgroundColor: "#FCFBF9",
                   border: `1.5px solid ${GOLD_BORDER}`,
                   borderRadius: "12px",
                   padding: "16px 20px",
-                  boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
+                  boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
                   display: "flex",
                   flexDirection: "column",
                   gap: "10px"
                 }}
               >
-                <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.35, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px" }}>
+                <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.35, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px" }}>
                   {t.planetaryHarmonyHeading}
                 </div>
-                <div style={{ fontSize: "13px", color: INK_DEEP, lineHeight: 1.65 }}>
+                <div style={{ fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.6 }}>
                   {t.planetaryHarmonyDesc}
                 </div>
-                <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "10px 14px", fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.55 }}>
+                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "9px 13px", fontSize: "12px", color: INK_DEEP, lineHeight: 1.5 }}>
                   <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
                   <span>{t.gokarnaProtectionDesc}</span>
                 </div>
@@ -2293,18 +2268,18 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Classical Transit & Gochara Impact Guidance Card */}
           <div
             style={{
-              backgroundColor: CARD_BG,
+              backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
-              padding: "13px 18px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
+              padding: "12px 16px",
+              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
-            <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", lineHeight: 1.35 }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", lineHeight: 1.35 }}>
               🪐 {code === "kn" ? "ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ & ದೈವಿಕ ರಕ್ಷಣೆ" : code === "hi" ? "गोचर ग्रह प्रभाव एवं दैवीय सुरक्षा" : code === "te" ? "గోచార గ్రహ ప్రభావం & దైవిక రక్షణ" : code === "ta" ? "கோசார கிரக தாக்கம் & தெய்வீக பாதுகாப்பு" : "Planetary Transits & Divine Safeguards"}
             </div>
-            <div style={{ fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.6, marginTop: "6px" }}>
+            <div style={{ fontSize: "12px", color: INK_DEEP, lineHeight: 1.55, marginTop: "5px" }}>
               {code === "kn"
                 ? "ಗೋಚಾರದಲ್ಲಿ ಶನಿ, ರಾಹು-ಕೇತು ಅಥವಾ ಗುರು ಗ್ರಹಗಳ ಸಂಚಾರವು ಕುಂಡಲಿಯ ಪ್ರಮುಖ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಭಾವಗಳ ಮೇಲೆ ಪ್ರಭಾವ ಬೀರುತ್ತಿದ್ದರೆ, ದೈನಂದಿನ ಗಾಯತ್ರಿ ಜಪ, ಶಿವನಾಮ ಸ್ಮರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಸನ್ನಿಧಾನದ ಪ್ರಾರ್ಥನೆಯು ಜಾತಕರನ್ನು ರಕ್ಷಿಸುತ್ತದೆ. ಪ್ರಸ್ತುತ ದಶಾ ಅವಧಿಯಲ್ಲಿ ಸಕಾರಾತ್ಮಕ ಕರ್ಮಗಳ ಮೂಲಕ ಸಕಲ ವಿಘ್ನಗಳನ್ನು ಸುಲಭವಾಗಿ ನಿವಾರಿಸಿಕೊಳ್ಳಬಹುದು."
                 : code === "hi"
@@ -2315,7 +2290,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 ? "கோசாரத்தில் சனி, ராகு-கேது அல்லது குரு கிரகங்களின் சஞ்சாரம் ஜாதகத்தின் முக்கிய பாவங்களை பாதிக்கும் போது, நித்திய காயத்ரி ஜபம், சிவ வழிபாடு மற்றும் கோகர்ண சந்நிதி பிரார்த்தனை பாதுகாப்பு தரும்."
                 : "Planetary transits of Saturn, Rahu-Ketu, or Jupiter across sensitive natal axes are effectively balanced by daily sacred Gayatri mantra japa, Shiva archana, and Sri Gokarna Mahabaleshwara's divine grace, dissolving hindrances and protecting peace."}
             </div>
-            <div style={{ backgroundColor: PANEL_WARM, border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "7px 12px", fontSize: "12px", color: INK_DEEP, marginTop: "8px", lineHeight: 1.5 }}>
+            <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "7px 12px", fontSize: "11.5px", color: INK_DEEP, marginTop: "6px", lineHeight: 1.45 }}>
               <strong style={{ color: GOLD_DARK }}>🔱 {t.gokarnaProtectionLabel} </strong>
               <span>{t.gokarnaProtectionDesc}</span>
             </div>
@@ -2404,7 +2379,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             borderRadius: "14px",
             padding: "14px 18px",
             boxSizing: "border-box",
-            background: "linear-gradient(180deg, #FFFDF9 0%, #FAF6ED 50%, #FFFDF9 100%)",
+            backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
             gap: "9px",
@@ -2427,11 +2402,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Section: Critical Gandantara Hazards & Protective Age Windows */}
           <div
             style={{
-              backgroundColor: CARD_BG,
+              backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
               padding: "9px 14px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
+              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
@@ -2450,7 +2425,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             </div>
 
             {/* Gandantara Items */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "6px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginTop: "5px" }}>
               {gandantaras.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "8px", color: GOLD_DARK, fontWeight: 700, fontSize: "12px", lineHeight: 1.45 }}>
                   ✓ {snip.noGandantaraDetected}
@@ -2462,7 +2437,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                     <div
                       key={g.id}
                       style={{
-                        backgroundColor: isDanger ? PANEL_ACCENT : "#FAF8F2",
+                        backgroundColor: "#FFFFFF",
                         border: `1.5px solid ${isDanger ? GOLD_LIGHT : GOLD_BORDER}`,
                         borderRadius: "7px",
                         padding: "6px 10px",
@@ -2476,16 +2451,17 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         </div>
                         <span
                           style={{
-                            background: isDanger ? `linear-gradient(135deg, ${GOLD_PRIMARY} 0%, ${GOLD_DARK} 100%)` : "#FEFAF0",
+                            backgroundColor: isDanger ? "#991B1B" : "#FEFAF0",
                             color: isDanger ? "#FFFFFF" : "#78350F",
                             fontSize: "10.5px",
                             fontWeight: 900,
                             padding: "2px 8px",
                             borderRadius: "5px",
-                            border: `1px solid ${isDanger ? GOLD_BORDER : GOLD_BORDER}`,
+                            border: `1px solid ${isDanger ? "#7F1D1D" : GOLD_BORDER}`,
                             letterSpacing: "normal",
                             flexShrink: 0,
-                            whiteSpace: "nowrap"
+                            whiteSpace: "nowrap",
+                            lineHeight: 1.4
                           }}
                         >
                           {isDanger
@@ -2517,14 +2493,14 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             {/* Sacred Guidance Box */}
             <div
               style={{
-                background: "linear-gradient(135deg, #FEF9E7 0%, #FFFDF8 100%)",
+                backgroundColor: "#FFFFFF",
                 border: `1px solid ${GOLD_LIGHT}`,
                 borderRadius: "6px",
                 padding: "5px 9px",
                 fontSize: "11px",
                 color: INK_DEEP,
                 lineHeight: 1.45,
-                marginTop: "6px"
+                marginTop: "5px"
               }}
             >
               <strong style={{ color: GOLD_DARK }}>🔱 {snip.parashariProtocol}</strong>{" "}
@@ -2537,11 +2513,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Section: Subconscious Innate Phobias & Fears */}
           <div
             style={{
-              backgroundColor: CARD_BG,
+              backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
               padding: "9px 14px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
+              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
@@ -2552,12 +2528,12 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               {t.fearsSubheading}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "6px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "5px" }}>
               {fears.slice(0, 2).map((fear) => (
                 <div
                   key={fear.id}
                   style={{
-                    backgroundColor: PANEL_WARM,
+                    backgroundColor: "#FFFFFF",
                     border: `1px solid ${GOLD_LIGHT}`,
                     borderRadius: "7px",
                     padding: "6px 9px",
@@ -2570,7 +2546,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                     <div style={{ fontWeight: 800, color: GOLD_DARK, lineHeight: 1.25, minWidth: 0, fontSize: "11.5px" }}>
                       {fear.icon} {getLangVal(fear.name)}
                     </div>
-                    <span style={{ fontSize: "10px", backgroundColor: CARD_BG, color: GOLD_DARK, padding: "1px 6px", borderRadius: "4px", fontWeight: 700, border: `1px solid ${GOLD_LIGHT}`, flexShrink: 0 }}>
+                    <span style={{ fontSize: "10px", backgroundColor: "#FCFBF9", color: GOLD_DARK, padding: "1px 6px", borderRadius: "4px", fontWeight: 700, border: `1px solid ${GOLD_LIGHT}`, flexShrink: 0 }}>
                       {getFearSeverityLabel(fear.severity, code)}
                     </span>
                   </div>
@@ -2588,11 +2564,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Section: Sacred Gokarna Mahabaleshwara Remedies tailored to Age Stage */}
           <div
             style={{
-              backgroundColor: CARD_BG,
+              backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
               padding: "9px 14px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
+              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
@@ -2600,12 +2576,12 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               🪔 {t.templeRemediesHeading}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "6px", fontSize: "11.5px", lineHeight: 1.45 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "5px", fontSize: "11.5px", lineHeight: 1.45 }}>
               {ageStageRemedies.map((remedy, idx) => (
                 <div
                   key={idx}
                   style={{
-                    backgroundColor: PANEL_WARM,
+                    backgroundColor: "#FFFFFF",
                     border: `1px solid ${GOLD_LIGHT}`,
                     borderRadius: "7px",
                     padding: "6px 9px",
@@ -2628,11 +2604,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Section: Chief Priest Shreeram Pandit's Blessing, Official Temple Seal & Scannable QR Code */}
           <div
             style={{
-              backgroundColor: CARD_BG,
+              backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
               padding: "9px 14px",
-              boxShadow: "0 3px 8px rgba(180, 83, 9, 0.05)",
+              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
@@ -2691,7 +2667,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   alignItems: "center",
                   justifyContent: "center",
                   padding: "5px 8px",
-                  backgroundColor: PANEL_WARM,
+                  backgroundColor: "#FFFFFF",
                   border: `1.5px solid ${GOLD_BORDER}`,
                   borderRadius: "8px",
                   textAlign: "center"
