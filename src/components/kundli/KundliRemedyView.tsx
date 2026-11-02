@@ -145,6 +145,18 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
   priestNamePlaceholder: string;
   savePriestBtn: string;
   saveSuccessMsg: string;
+  badhakaBadge: string;
+  adhidevataBadge: string;
+  pratyadhidevataBadge: string;
+  prescriptionCardTitle: string;
+  prescriptionCardSubtitle: string;
+  prescriptionNidanaTitle: string;
+  prescriptionAushadhaTitle: string;
+  prescriptionAnupanaTitle: string;
+  prescriptionPathyaTitle: string;
+  prescriptionApathyaTitle: string;
+  prescriptionTimingTitle: string;
+  prescriptionProgressionTitle: string;
 }> = {
   kn: {
     headerTitle: "ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ & ಮನಃಶಾಂತಿ ವರದಿ",
@@ -267,7 +279,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     priestPhoneLabel: "ಮೊಬೈಲ್ / WhatsApp ಸಂಖ್ಯೆ",
     priestNamePlaceholder: "ಉದಾ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
     savePriestBtn: "💾 ಉಳಿಸಿ",
-    saveSuccessMsg: "✓ ಪುರೋಹಿತರ ವಿವರಗಳು Firebase ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿದಿವೆ!"
+    saveSuccessMsg: "✓ ಪುರೋಹಿತರ ವಿವರಗಳು Firebase ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿದಿವೆ!",
+    badhakaBadge: "ಬಾಧಕ ಗ್ರಹ & ಅಡೆತಡೆ",
+    adhidevataBadge: "ಅಧಿದೇವತೆ",
+    pratyadhidevataBadge: "ಪ್ರತ್ಯಧಿದೇವತೆ",
+    prescriptionCardTitle: "ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಚಿಕಿತ್ಸಾ ಪತ್ರ (Medical-Grade Astrological Prescription)",
+    prescriptionCardSubtitle: "ವೈದ್ಯರು ರೋಗಿಗೆ ನಿಖರ ಔಷಧ ಮತ್ತು ಪಥ್ಯ ನೀಡುವಂತೆ, ಕುಂಡಲಿಯ ಗ್ರಹದೋಷ ಶಮನಕ್ಕೆ ಶಾಸ್ತ್ರೋಕ್ತ ನಿಧಾನ, ಔಷಧ, ಅನುಪಾನ ಹಾಗೂ ೧೫-೨೦ ದಿನಗಳ ಪರಿಹಾರ ಪ್ರಕ್ರಿಯೆ.",
+    prescriptionNidanaTitle: "ಕರ್ಮ & ದೋಷ ನಿಧಾನ (Karmic & Doshic Diagnosis):",
+    prescriptionAushadhaTitle: "ದೈವಿಕ ಮಂತ್ರೌಷಧ (Prescribed Shastric Aushadha):",
+    prescriptionAnupanaTitle: "ಪವಿತ್ರ ಅನುಪಾನ & ಸೇವನಾ ವಿಧಿ (Sacred Vehicle & Ingestion):",
+    prescriptionPathyaTitle: "ಅನುಸರಿಸಬೇಕಾದ ಪಥ್ಯ (Prescribed Pathya - 15 to 20 Days):",
+    prescriptionApathyaTitle: "ವರ್ಜಿಸಬೇಕಾದ ಅಪಥ್ಯ (Strictly Prohibited Apathya):",
+    prescriptionTimingTitle: "ಚಿಕಿತ್ಸಾ ಕಾಲ, ಆಸನ & ದಿಕ್ಕು (Clinical Timing & Setup):",
+    prescriptionProgressionTitle: "೧೫ ರಿಂದ ೨೦ ದಿನಗಳಲ್ಲಿ ಅನುಭವಕ್ಕೆ ಬರುವ ಪರಿಹಾರ ಹಂತಗಳು (15-20 Day Relief Progression):"
   },
   hi: {
     headerTitle: "जन्म कुंडली आधारित दैविक ज्योतिषीय उपाय एवं मनःशांति रिपोर्ट",
@@ -390,7 +414,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     priestPhoneLabel: "मोबाइल / WhatsApp नंबर",
     priestNamePlaceholder: "उदा: श्रीराम पंडित",
     savePriestBtn: "💾 सहेजें",
-    saveSuccessMsg: "✓ पुरोहित विवरण Firebase डेटाबेस में सफलतापूर्वक सहेजा गया!"
+    saveSuccessMsg: "✓ पुरोहित विवरण Firebase डेटाबेस में सफलतापूर्वक सहेजा गया!",
+    badhakaBadge: "बाधक ग्रह एवं विघ्न",
+    adhidevataBadge: "अधिदेवता",
+    pratyadhidevataBadge: "प्रत्यधिदेवता",
+    prescriptionCardTitle: "वैदिक ज्योतिष चिकित्सा पत्र (Medical-Grade Astrological Prescription)",
+    prescriptionCardSubtitle: "जैसे चिकित्सक रोगी को सटीक औषधि एवं अनुपान देते हैं, वैसे ही ग्रहदोष निवारण हेतु शास्त्रीय निदान, औषधि, अनुपान एवं १५-२० दिवसीय राहत प्रक्रिया।",
+    prescriptionNidanaTitle: "कर्म एवं दोष निदान (Karmic Diagnosis):",
+    prescriptionAushadhaTitle: "दैविक मंत्रौषध (Prescribed Shastric Aushadha):",
+    prescriptionAnupanaTitle: "पवित्र अनुपान एवं सेवन विधि (Sacred Vehicle & Ingestion):",
+    prescriptionPathyaTitle: "पालनीय पथ्य (Prescribed Pathya - 15 to 20 Days):",
+    prescriptionApathyaTitle: "त्याज्य अपथ्य (Strictly Prohibited Apathya):",
+    prescriptionTimingTitle: "चिकित्सा काल, आसन एवं दिशा (Clinical Timing & Setup):",
+    prescriptionProgressionTitle: "१५ से २० दिनों में अनुभव होने वाले राहत के चरण (15-20 Day Relief Progression):"
   },
   te: {
     headerTitle: "జన్మ కుండలి ఆధారిత దైవిక జ్యోతిష్య పరిహార & మనశ్శాంతి నివేదిక",
@@ -513,7 +549,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     priestPhoneLabel: "మొబైల్ / WhatsApp సంఖ్య",
     priestNamePlaceholder: "ఉదా: శ్రీరామ్ పండిట్",
     savePriestBtn: "💾 భద్రపరచు",
-    saveSuccessMsg: "✓ పురోహితుని వివరాలు Firebase డేటాబేస్ లో విజయవంతంగా నమోదయ్యాయి!"
+    saveSuccessMsg: "✓ పురోహితుని వివరాలు Firebase డేటాబేస్ లో విజయవంతంగా నమోదయ్యాయి!",
+    badhakaBadge: "బాధక గ్రహం & అడ్డంకులు",
+    adhidevataBadge: "అధిదేవత",
+    pratyadhidevataBadge: "ప్రత్యధిదేవత",
+    prescriptionCardTitle: "వైదిక జ్యోతిష్య చికిత్సా పత్రం (Medical-Grade Astrological Prescription)",
+    prescriptionCardSubtitle: "వైద్యులు రోగికి ఖచ్చితమైన ఔషధం మరియు పథ్యం ఇచ్చే విధంగా, కుండలి గ్రహదోష నివారణకు శాస్త్రోక్త నిదానం, ఔషధం, అనుపానం మరియు 15-20 రోజుల ఉపశమన ప్రక్రియ.",
+    prescriptionNidanaTitle: "కర్మ & దోష నిదానం (Karmic Diagnosis):",
+    prescriptionAushadhaTitle: "దైవిక మంత్రౌషధం (Prescribed Shastric Aushadha):",
+    prescriptionAnupanaTitle: "పవిత్ర అనుపానం & సేవన విధానం (Sacred Vehicle & Ingestion):",
+    prescriptionPathyaTitle: "పాటించవలసిన పథ్యం (Prescribed Pathya - 15 to 20 Days):",
+    prescriptionApathyaTitle: "వర్జించవలసిన అపథ్యం (Strictly Prohibited Apathya):",
+    prescriptionTimingTitle: "చికిత్సా సమయం, ఆసనం & దిశ (Clinical Timing & Setup):",
+    prescriptionProgressionTitle: "15 నుండి 20 రోజుల్లో అనుభవంలోకి వచ్చే ఉపశమన దశలు (15-20 Day Relief Progression):"
   },
   ta: {
     headerTitle: "ஜாதக அடிப்படையிலான தெய்வீக பரிகாரம் & மனஅமைதி அறிக்கை",
@@ -636,7 +684,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     priestPhoneLabel: "மொபைல் / WhatsApp எண்",
     priestNamePlaceholder: "உதா: ஸ்ரீராம் பண்டிட்",
     savePriestBtn: "💾 சேமி",
-    saveSuccessMsg: "✓ குருக்கள் விவரங்கள் Firebase தரவுத்தளத்தில் வெற்றிகரமாக சேமிக்கப்பட்டன!"
+    saveSuccessMsg: "✓ குருக்கள் விவரங்கள் Firebase தரவுத்தளத்தில் வெற்றிகரமாக சேமிக்கப்பட்டன!",
+    badhakaBadge: "பாதக கிரகம் & தடைகள்",
+    adhidevataBadge: "அதிதேவதை",
+    pratyadhidevataBadge: "பிரத்யதிதேவதை",
+    prescriptionCardTitle: "வைதிக ஜோதிட சிகிச்சை சீட்டு (Medical-Grade Astrological Prescription)",
+    prescriptionCardSubtitle: "மருத்துவர் நோயாளிக்கு மருந்து மற்றும் பத்தியம் வழங்குவது போல, ஜாதக கிரக தோஷ நிவர்த்திக்கு சாஸ்திர நிதானம், ஔஷதம், அனுபானம் மற்றும் 15-20 நாள் நிவாரண முறை.",
+    prescriptionNidanaTitle: "கர்ம & தோஷ நிதானம் (Karmic Diagnosis):",
+    prescriptionAushadhaTitle: "தெய்வீக மந்திர ஔஷதம் (Prescribed Shastric Aushadha):",
+    prescriptionAnupanaTitle: "புனித அனுபானம் & உட்கொள்ளும் முறை (Sacred Vehicle & Ingestion):",
+    prescriptionPathyaTitle: "கடைப்பிடிக்க வேண்டிய பத்தியம் (Prescribed Pathya - 15 to 20 Days):",
+    prescriptionApathyaTitle: "தவிர்க்க வேண்டிய அபத்தியம் (Strictly Prohibited Apathya):",
+    prescriptionTimingTitle: "சிகிச்சை நேரம், ஆசனம் & திசை (Clinical Timing & Setup):",
+    prescriptionProgressionTitle: "15 முதல் 20 நாட்களில் உணரக்கூடிய நிவாரண நிலைகள் (15-20 Day Relief Progression):"
   },
   en: {
     headerTitle: "Natal Kundali Astrological Remedy & Mind Pacification Report",
@@ -759,7 +819,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     priestPhoneLabel: "Mobile / WhatsApp Number",
     priestNamePlaceholder: "e.g. Shreeram Pandit",
     savePriestBtn: "💾 Save",
-    saveSuccessMsg: "✓ Priest details saved into Firebase database successfully!"
+    saveSuccessMsg: "✓ Priest details saved into Firebase database successfully!",
+    badhakaBadge: "Badhaka Graha & Obstruction",
+    adhidevataBadge: "Adhidevata",
+    pratyadhidevataBadge: "Pratyadhidevata",
+    prescriptionCardTitle: "Vedic Astrological Clinical Prescription (Medical-Grade Shastric Protocol)",
+    prescriptionCardSubtitle: "Calibrated exactly like a medical prescription: precise Karmic Diagnosis (Nidana), Divine Mantra (Aushadha), Ingestion Vehicle (Anupana), Dietary Discipline (Pathya), and a measurable 15-20 day relief trajectory.",
+    prescriptionNidanaTitle: "Karmic & Doshic Diagnosis (Nidana):",
+    prescriptionAushadhaTitle: "Divine Sacred Aushadha (Prescription Mantra):",
+    prescriptionAnupanaTitle: "Sacred Vehicle & Ingestion Method (Anupana):",
+    prescriptionPathyaTitle: "Prescribed Pathya (Strict 15-20 Days):",
+    prescriptionApathyaTitle: "Strictly Prohibited Apathya (Avoid Completely):",
+    prescriptionTimingTitle: "Sacred Chikitsa Kala, Direction & Asana:",
+    prescriptionProgressionTitle: "15 to 20-Day Measurable Relief Trajectory (Vedic Chikitsa Progression):"
   }
 };
 
@@ -912,7 +984,9 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
     gocharaTransitAnalysis,
     gokarnaTempleRemedies,
     chiefPriestBlessing,
-    mandalaVrataSadhana
+    mandalaVrataSadhana,
+    badhakaAnalysis,
+    vedicDoctorPrescription
   } = diagnosis;
 
   const currentStotra = personalizedStotras.find((s) => s.id === activeStotraId) || personalizedStotras[0];
@@ -1325,6 +1399,27 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 </div>
               ))}
             </div>
+
+            {/* Badhaka Graha & Obstruction House Card */}
+            {badhakaAnalysis && (
+              <div className="rounded-xl border-2 border-rose-300 bg-rose-50/60 p-3.5 text-xs space-y-1.5 mt-2 shadow-xs">
+                <div className="flex flex-wrap items-center justify-between gap-1">
+                  <span className="font-black text-rose-950 flex items-center gap-1.5">
+                    <span>🚧</span>
+                    <span>{t.badhakaBadge} ({badhakaAnalysis.modalityLabel[selectedLang] || badhakaAnalysis.modalityLabel.kn} - {badhakaAnalysis.badhakaHouse}th House)</span>
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-200 text-rose-900 border border-rose-300">
+                    {badhakaAnalysis.badhakeshName[selectedLang] || badhakaAnalysis.badhakeshName.kn} ({badhakaAnalysis.badhakaSignName[selectedLang] || badhakaAnalysis.badhakaSignName.kn})
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-700 leading-snug">
+                  {badhakaAnalysis.diagnosisReason[selectedLang] || badhakaAnalysis.diagnosisReason.kn}
+                </p>
+                <p className="text-[11px] text-rose-900 font-bold bg-white/80 p-2 rounded-lg border border-rose-200">
+                  💡 {t.remedyPrefix}{badhakaAnalysis.shantiRemedy[selectedLang] || badhakaAnalysis.shantiRemedy.kn}
+                </p>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -1399,6 +1494,210 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
           </div>
         </Card>
       </div>
+
+      {/* ====================================================================== */}
+      {/* 2B. MEDICAL-GRADE ASTROLOGICAL PRESCRIPTION (Vedic Doctor Protocol)   */}
+      {/* ====================================================================== */}
+      {vedicDoctorPrescription && (
+        <Card className="border-2 border-emerald-500/80 bg-gradient-to-b from-emerald-50/40 via-white to-amber-50/30 p-5 shadow-lg space-y-4 rounded-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-emerald-200 pb-3 gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🏥</span>
+                <h3 className="font-serif text-base sm:text-lg font-black text-emerald-950">
+                  {t.prescriptionCardTitle}
+                </h3>
+              </div>
+              <p className="text-xs text-emerald-900 font-semibold mt-0.5">
+                {t.prescriptionCardSubtitle}
+              </p>
+            </div>
+            <span className="rounded-full bg-emerald-800 text-emerald-50 text-[10px] font-black px-3 py-1 shadow-xs tracking-wider uppercase self-start sm:self-auto">
+              100% Shastric Clinical Chikitsa
+            </span>
+          </div>
+
+          {/* 4 Pillars Grid: Nidana + Anupana + Aushadha + Chikitsa Kala */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            {/* 1. Nidana (Diagnosis) */}
+            <div className="rounded-xl border border-emerald-300 bg-white p-3.5 space-y-2 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="font-extrabold text-emerald-950 text-xs flex items-center gap-1.5">
+                  <span>🩺</span>
+                  <span>{t.prescriptionNidanaTitle}</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200">
+                  {vedicDoctorPrescription.nidana.primaryDosha} ({vedicDoctorPrescription.nidana.doshaLabel[selectedLang] || vedicDoctorPrescription.nidana.doshaLabel.kn})
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
+                {vedicDoctorPrescription.nidana.rootCauseDescription[selectedLang] || vedicDoctorPrescription.nidana.rootCauseDescription.kn}
+              </p>
+              <div className="text-[10.5px] text-emerald-900 font-bold bg-emerald-50/70 p-2 rounded-lg border border-emerald-200">
+                ⚡ {vedicDoctorPrescription.nidana.affectedNadis[selectedLang] || vedicDoctorPrescription.nidana.affectedNadis.kn}
+              </div>
+            </div>
+
+            {/* 2. Anupana (Sacred Vehicle & Ingestion) */}
+            <div className="rounded-xl border border-amber-300 bg-white p-3.5 space-y-2 shadow-xs">
+              <div className="font-extrabold text-amber-950 text-xs flex items-center gap-1.5">
+                <span>🧪</span>
+                <span>{t.prescriptionAnupanaTitle}</span>
+              </div>
+              <div className="font-black text-amber-900 text-sm">
+                • {vedicDoctorPrescription.anupana.vehicleName[selectedLang] || vedicDoctorPrescription.anupana.vehicleName.kn}
+              </div>
+              <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
+                {vedicDoctorPrescription.anupana.preparationMethod[selectedLang] || vedicDoctorPrescription.anupana.preparationMethod.kn}
+              </p>
+              <div className="text-[10.5px] text-amber-950 font-bold bg-amber-50/80 p-2 rounded-lg border border-amber-200">
+                ⏰ {vedicDoctorPrescription.anupana.intakeTiming[selectedLang] || vedicDoctorPrescription.anupana.intakeTiming.kn}
+              </div>
+            </div>
+
+            {/* 3. Aushadha (Prescription Mantra & Sacred Substance) */}
+            <div className="rounded-xl border border-indigo-300 bg-white p-3.5 space-y-2 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="font-extrabold text-indigo-950 text-xs flex items-center gap-1.5">
+                  <span>🕉️</span>
+                  <span>{t.prescriptionAushadhaTitle}</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200">
+                  {vedicDoctorPrescription.aushadha.beejaMantra.dailyDosageCount[selectedLang] || vedicDoctorPrescription.aushadha.beejaMantra.dailyDosageCount.kn}
+                </span>
+              </div>
+              <div className="text-center py-1 font-serif font-black text-sm text-indigo-950 bg-indigo-50/60 rounded-lg border border-indigo-100">
+                {vedicDoctorPrescription.aushadha.beejaMantra.mantraNative[selectedLang] || vedicDoctorPrescription.aushadha.beejaMantra.mantraNative.kn}
+              </div>
+              <p className="text-[10.5px] text-slate-700 leading-snug">
+                {vedicDoctorPrescription.aushadha.beejaMantra.instructions[selectedLang] || vedicDoctorPrescription.aushadha.beejaMantra.instructions.kn}
+              </p>
+              <div className="text-[11px] text-indigo-900 font-bold pt-1 border-t border-indigo-100 space-y-0.5">
+                <div>📜 {vedicDoctorPrescription.aushadha.stotraKavacha[selectedLang] || vedicDoctorPrescription.aushadha.stotraKavacha.kn}</div>
+                <div>🌿 {vedicDoctorPrescription.aushadha.sacredSubstance[selectedLang] || vedicDoctorPrescription.aushadha.sacredSubstance.kn}</div>
+              </div>
+            </div>
+
+            {/* 4. Chikitsa Kala (Timing, Direction & Asana) */}
+            <div className="rounded-xl border border-amber-300 bg-white p-3.5 space-y-2 shadow-xs">
+              <div className="font-extrabold text-amber-950 text-xs flex items-center gap-1.5">
+                <span>🧭</span>
+                <span>{t.prescriptionTimingTitle}</span>
+              </div>
+              <div className="space-y-1.5 text-[11px] text-amber-950 font-bold">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-amber-700">⏰</span>
+                  <span>{vedicDoctorPrescription.chikitsaKala.idealTimeWindow[selectedLang] || vedicDoctorPrescription.chikitsaKala.idealTimeWindow.kn}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-amber-700">🧭</span>
+                  <span>{vedicDoctorPrescription.chikitsaKala.facingDirection[selectedLang] || vedicDoctorPrescription.chikitsaKala.facingDirection.kn}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-amber-700">🧘</span>
+                  <span>{vedicDoctorPrescription.chikitsaKala.asanaMaterial[selectedLang] || vedicDoctorPrescription.chikitsaKala.asanaMaterial.kn}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pathya vs Apathya 2-Column Discipline */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            {/* Prescribed Pathya */}
+            <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/50 p-3.5 space-y-1.5">
+              <div className="font-black text-emerald-950 flex items-center gap-1.5 text-xs">
+                <span>✅</span>
+                <span>{t.prescriptionPathyaTitle}</span>
+              </div>
+              <div className="space-y-1 text-[11px] text-emerald-950 font-medium">
+                {vedicDoctorPrescription.pathyaApathya.pathyaPrescribed.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-1.5">
+                    <span className="text-emerald-700 font-bold">•</span>
+                    <span>{item[selectedLang] || item.kn}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Prohibited Apathya */}
+            <div className="rounded-xl border-2 border-rose-300 bg-rose-50/50 p-3.5 space-y-1.5">
+              <div className="font-black text-rose-950 flex items-center gap-1.5 text-xs">
+                <span>🚫</span>
+                <span>{t.prescriptionApathyaTitle}</span>
+              </div>
+              <div className="space-y-1 text-[11px] text-rose-950 font-medium">
+                {vedicDoctorPrescription.pathyaApathya.apathyaProhibited.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-1.5">
+                    <span className="text-rose-700 font-bold">•</span>
+                    <span>{item[selectedLang] || item.kn}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 15-to-20 Day Measurable Relief Trajectory */}
+          <div className="rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50/60 to-emerald-50/50 p-4 space-y-3">
+            <div className="font-serif font-black text-xs sm:text-sm text-amber-950 flex items-center gap-1.5">
+              <span>📈</span>
+              <span>{t.prescriptionProgressionTitle}</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
+              {/* Day 1-3 */}
+              <div className="rounded-lg bg-white/90 p-2.5 border border-amber-200 space-y-1">
+                <span className="text-[10px] font-black text-amber-800 uppercase tracking-wide block">
+                  {vedicDoctorPrescription.reliefMilestones.day1To3.stage[selectedLang] || vedicDoctorPrescription.reliefMilestones.day1To3.stage.kn}
+                </span>
+                <p className="text-[10.5px] text-slate-700 leading-snug font-medium">
+                  {vedicDoctorPrescription.reliefMilestones.day1To3.observation[selectedLang] || vedicDoctorPrescription.reliefMilestones.day1To3.observation.kn}
+                </p>
+              </div>
+
+              {/* Day 4-7 */}
+              <div className="rounded-lg bg-white/90 p-2.5 border border-amber-200 space-y-1">
+                <span className="text-[10px] font-black text-amber-800 uppercase tracking-wide block">
+                  {vedicDoctorPrescription.reliefMilestones.day4To7.stage[selectedLang] || vedicDoctorPrescription.reliefMilestones.day4To7.stage.kn}
+                </span>
+                <p className="text-[10.5px] text-slate-700 leading-snug font-medium">
+                  {vedicDoctorPrescription.reliefMilestones.day4To7.observation[selectedLang] || vedicDoctorPrescription.reliefMilestones.day4To7.observation.kn}
+                </p>
+              </div>
+
+              {/* Day 8-14 */}
+              <div className="rounded-lg bg-white/90 p-2.5 border border-amber-200 space-y-1">
+                <span className="text-[10px] font-black text-amber-800 uppercase tracking-wide block">
+                  {vedicDoctorPrescription.reliefMilestones.day8To14.stage[selectedLang] || vedicDoctorPrescription.reliefMilestones.day8To14.stage.kn}
+                </span>
+                <p className="text-[10.5px] text-slate-700 leading-snug font-medium">
+                  {vedicDoctorPrescription.reliefMilestones.day8To14.observation[selectedLang] || vedicDoctorPrescription.reliefMilestones.day8To14.observation.kn}
+                </p>
+              </div>
+
+              {/* Day 15-20 (Key Breakthrough) */}
+              <div className="rounded-lg bg-emerald-50/90 p-2.5 border-2 border-emerald-400 space-y-1 shadow-xs">
+                <span className="text-[10px] font-black text-emerald-900 uppercase tracking-wide block flex items-center gap-1">
+                  <span>✨</span>
+                  <span>{vedicDoctorPrescription.reliefMilestones.day15To20.stage[selectedLang] || vedicDoctorPrescription.reliefMilestones.day15To20.stage.kn}</span>
+                </span>
+                <p className="text-[10.5px] text-emerald-950 leading-snug font-bold">
+                  {vedicDoctorPrescription.reliefMilestones.day15To20.observation[selectedLang] || vedicDoctorPrescription.reliefMilestones.day15To20.observation.kn}
+                </p>
+              </div>
+
+              {/* Day 21-45 (Mandala Siddhi) */}
+              <div className="rounded-lg bg-amber-100/90 p-2.5 border border-amber-300 space-y-1">
+                <span className="text-[10px] font-black text-amber-900 uppercase tracking-wide block">
+                  {vedicDoctorPrescription.reliefMilestones.day21To45.stage[selectedLang] || vedicDoctorPrescription.reliefMilestones.day21To45.stage.kn}
+                </span>
+                <p className="text-[10.5px] text-amber-950 leading-snug font-medium">
+                  {vedicDoctorPrescription.reliefMilestones.day21To45.observation[selectedLang] || vedicDoctorPrescription.reliefMilestones.day21To45.observation.kn}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* ====================================================================== */}
       {/* 3. PANCHANGA 5-ANGA DIVINE REMEDIES & NAKSHATRA VRIKSHA                 */}
@@ -1905,6 +2204,22 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
           <p className="text-emerald-900 font-bold">
             💡 {t.remedyPrefix}{dashaBhuktiAnalysis.remedialAction[selectedLang] || dashaBhuktiAnalysis.remedialAction.kn}
           </p>
+          {dashaBhuktiAnalysis.adhidevata && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-amber-200/80 mt-2">
+              <div className="rounded-lg bg-white/90 p-2.5 border border-amber-200 space-y-1">
+                <span className="font-bold text-amber-900 text-[11px] block">
+                  🏛️ {t.adhidevataBadge}: <span className="text-amber-950 font-black">{dashaBhuktiAnalysis.adhidevata.adhidevata[selectedLang] || dashaBhuktiAnalysis.adhidevata.adhidevata.kn}</span>
+                </span>
+                <span className="font-bold text-amber-900 text-[11px] block">
+                  🔱 {t.pratyadhidevataBadge}: <span className="text-amber-950 font-black">{dashaBhuktiAnalysis.adhidevata.pratyadhidevata[selectedLang] || dashaBhuktiAnalysis.adhidevata.pratyadhidevata.kn}</span>
+                </span>
+              </div>
+              <div className="rounded-lg bg-emerald-50/90 p-2.5 border border-emerald-200 text-[11px] text-emerald-950 font-medium">
+                <span className="font-black text-emerald-900 block mb-0.5">✨ {t.sadhanaPrefix}</span>
+                {dashaBhuktiAnalysis.adhidevata.sadhana[selectedLang] || dashaBhuktiAnalysis.adhidevata.sadhana.kn}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Dasha Sandhi Junction Alert */}

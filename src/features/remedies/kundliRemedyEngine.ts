@@ -133,6 +133,75 @@ export interface MandalaVrataSadhana {
   sankalpaDeclaration: Record<SupportedLanguage, string>;
 }
 
+export interface BadhakaAnalysis {
+  modality: "Chara" | "Sthira" | "Dvisvabhava";
+  modalityLabel: Record<SupportedLanguage, string>;
+  badhakaHouse: number;
+  badhakaSignName: Record<SupportedLanguage, string>;
+  badhakeshGraha: PlanetName;
+  badhakeshName: Record<SupportedLanguage, string>;
+  diagnosisReason: Record<SupportedLanguage, string>;
+  shantiRemedy: Record<SupportedLanguage, string>;
+}
+
+export interface VedicDoctorPrescription {
+  title: Record<SupportedLanguage, string>;
+  subtitle: Record<SupportedLanguage, string>;
+  nidana: {
+    primaryDosha: "Pitta" | "Vata" | "Kapha" | "Tridosha";
+    doshaLabel: Record<SupportedLanguage, string>;
+    rootCauseDescription: Record<SupportedLanguage, string>;
+    affectedNadis: Record<SupportedLanguage, string>;
+  };
+  aushadha: {
+    beejaMantra: {
+      mantraSanskrit: string;
+      mantraNative: Record<SupportedLanguage, string>;
+      transliteration: string;
+      dailyDosageCount: Record<SupportedLanguage, string>;
+      instructions: Record<SupportedLanguage, string>;
+    };
+    stotraKavacha: Record<SupportedLanguage, string>;
+    sacredSubstance: Record<SupportedLanguage, string>;
+  };
+  anupana: {
+    vehicleName: Record<SupportedLanguage, string>;
+    preparationMethod: Record<SupportedLanguage, string>;
+    intakeTiming: Record<SupportedLanguage, string>;
+  };
+  pathyaApathya: {
+    pathyaPrescribed: Array<Record<SupportedLanguage, string>>;
+    apathyaProhibited: Array<Record<SupportedLanguage, string>>;
+  };
+  chikitsaKala: {
+    idealTimeWindow: Record<SupportedLanguage, string>;
+    facingDirection: Record<SupportedLanguage, string>;
+    asanaMaterial: Record<SupportedLanguage, string>;
+  };
+  reliefMilestones: {
+    day1To3: {
+      stage: Record<SupportedLanguage, string>;
+      observation: Record<SupportedLanguage, string>;
+    };
+    day4To7: {
+      stage: Record<SupportedLanguage, string>;
+      observation: Record<SupportedLanguage, string>;
+    };
+    day8To14: {
+      stage: Record<SupportedLanguage, string>;
+      observation: Record<SupportedLanguage, string>;
+    };
+    day15To20: {
+      stage: Record<SupportedLanguage, string>;
+      observation: Record<SupportedLanguage, string>;
+    };
+    day21To45: {
+      stage: Record<SupportedLanguage, string>;
+      observation: Record<SupportedLanguage, string>;
+    };
+  };
+}
+
 export interface KundliRemedyDiagnosis {
   devoteeName: string;
   birthDate: string;
@@ -259,6 +328,16 @@ export interface KundliRemedyDiagnosis {
       remedy: Record<string, string>;
       durationFormatted?: Record<string, string>;
     };
+    adhidevata?: {
+      adhidevata: Record<SupportedLanguage, string>;
+      pratyadhidevata: Record<SupportedLanguage, string>;
+      sadhana: Record<SupportedLanguage, string>;
+      mahaDashaAdhidevata: Record<SupportedLanguage, string>;
+      mahaDashaPratyadhidevata: Record<SupportedLanguage, string>;
+      bhuktiAdhidevata: Record<SupportedLanguage, string>;
+      bhuktiPratyadhidevata: Record<SupportedLanguage, string>;
+      sadhanaAction: Record<SupportedLanguage, string>;
+    };
   };
   gocharaTransitAnalysis: {
     transitHighlights: Array<{
@@ -271,6 +350,12 @@ export interface KundliRemedyDiagnosis {
       remedy: Record<string, string>;
     }>;
     sadeSatiStatus: Record<string, string>;
+    sadeSatiDetailedPhase?: {
+      phaseCode: "rising" | "peak" | "setting" | "ashtama" | "ardhashtama" | "kantaka" | "favorable";
+      phaseTitle: Record<SupportedLanguage, string>;
+      phaseDescription: Record<SupportedLanguage, string>;
+      shantiRecommendation: Record<SupportedLanguage, string>;
+    };
   };
   gokarnaTempleRemedies: {
     prescribedSeva: {
@@ -305,6 +390,8 @@ export interface KundliRemedyDiagnosis {
     templeSealText: Record<string, string>;
   };
   mandalaVrataSadhana: MandalaVrataSadhana;
+  badhakaAnalysis: BadhakaAnalysis;
+  vedicDoctorPrescription: VedicDoctorPrescription;
 }
 
 /** Localized Graha Names Dictionary */
@@ -2744,11 +2831,779 @@ export function getTurnaroundMilestones(category: KundliRemedyDiagnosis["primary
   }
 }
 
+/** Classical Rashi Ruling Lords (Parashari System) */
+export const RASHI_LORDS: Record<number, PlanetName> = {
+  0: PlanetName.Mars,     // Aries
+  1: PlanetName.Venus,    // Taurus
+  2: PlanetName.Mercury,  // Gemini
+  3: PlanetName.Moon,     // Cancer
+  4: PlanetName.Sun,      // Leo
+  5: PlanetName.Mercury,  // Virgo
+  6: PlanetName.Venus,    // Libra
+  7: PlanetName.Mars,     // Scorpio
+  8: PlanetName.Jupiter,  // Sagittarius
+  9: PlanetName.Saturn,   // Capricorn
+  10: PlanetName.Saturn,  // Aquarius
+  11: PlanetName.Jupiter  // Pisces
+};
+
 /**
- * 45-Day Sacred Mandala Vrata & Sankalpa Siddhi Computation Engine
- * Computes Janma Tara Bala, auspicious starting Muhurtha, 3-phase transformation roadmap,
- * 108 japa Laghu Purashcharana formula, and Sattvic Pathya & Niyama across 5 languages.
+ * Classical Parashara Badhaka Graha & House Computation
+ * Chara Lagna (0, 3, 6, 9) -> 11th House is Badhaka
+ * Sthira Lagna (1, 4, 7, 10) -> 9th House is Badhaka
+ * Dvisvabhava Lagna (2, 5, 8, 11) -> 7th House is Badhaka
  */
+export function computeBadhakaAnalysis(lagnaRashiIndex: number): BadhakaAnalysis {
+  const norm = ((lagnaRashiIndex % 12) + 12) % 12;
+  const isChara = [0, 3, 6, 9].includes(norm);
+  const isSthira = [1, 4, 7, 10].includes(norm);
+
+  let modality: "Chara" | "Sthira" | "Dvisvabhava";
+  let modalityLabel: Record<SupportedLanguage, string>;
+  let badhakaHouse: number;
+  let badhakaSignIndex: number;
+
+  if (isChara) {
+    modality = "Chara";
+    modalityLabel = {
+      kn: "ಚರ ಲಗ್ನ (ಚಲನಶೀಲ ತತ್ತ್ವ)",
+      en: "Movable (Chara) Ascendant",
+      hi: "चर लग्न (गतिशील तत्व)",
+      te: "చర లగ్నం (చలనశీల తత్త్వం)",
+      ta: "சர லக்னம் (இயங்கும் தன்மை)"
+    };
+    badhakaHouse = 11;
+    badhakaSignIndex = (norm + 10) % 12;
+  } else if (isSthira) {
+    modality = "Sthira";
+    modalityLabel = {
+      kn: "ಸ್ಥಿರ ಲಗ್ನ (ಸ್ಥಿರ ತತ್ತ್ವ)",
+      en: "Fixed (Sthira) Ascendant",
+      hi: "स्थिर लग्न (अडिग तत्व)",
+      te: "స్థిర లగ్నం (స్థిర తత్త్వం)",
+      ta: "ஸ்திர லக்னம் (நிலையான தன்மை)"
+    };
+    badhakaHouse = 9;
+    badhakaSignIndex = (norm + 8) % 12;
+  } else {
+    modality = "Dvisvabhava";
+    modalityLabel = {
+      kn: "ದ್ವಿಸ್ವಭಾವ ಲಗ್ನ (ಉಭಯ ತತ್ತ್ವ)",
+      en: "Dual (Dvisvabhava) Ascendant",
+      hi: "द्विस्वभाव लग्न (उभय तत्व)",
+      te: "ద్విస్వభావ లగ్నం (ఉభయ తత్త్వం)",
+      ta: "உபய லக்னம் (இருமை தன்மை)"
+    };
+    badhakaHouse = 7;
+    badhakaSignIndex = (norm + 6) % 12;
+  }
+
+  const badhakeshGraha = RASHI_LORDS[badhakaSignIndex];
+  const signNames = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+  const signKey = signNames[badhakaSignIndex];
+  const badhakaSignName: Record<SupportedLanguage, string> = {
+    kn: RASHI_NAMES_LOCALE[signKey]?.kn || signKey,
+    en: RASHI_NAMES_LOCALE[signKey]?.en || signKey,
+    hi: RASHI_NAMES_LOCALE[signKey]?.hi || signKey,
+    te: RASHI_NAMES_LOCALE[signKey]?.te || signKey,
+    ta: RASHI_NAMES_LOCALE[signKey]?.ta || signKey
+  };
+
+  const badhakeshName: Record<SupportedLanguage, string> = {
+    kn: GRAHA_NAMES_LOCALE[badhakeshGraha]?.kn || badhakeshGraha,
+    en: GRAHA_NAMES_LOCALE[badhakeshGraha]?.en || badhakeshGraha,
+    hi: GRAHA_NAMES_LOCALE[badhakeshGraha]?.hi || badhakeshGraha,
+    te: GRAHA_NAMES_LOCALE[badhakeshGraha]?.te || badhakeshGraha,
+    ta: GRAHA_NAMES_LOCALE[badhakeshGraha]?.ta || badhakeshGraha
+  };
+
+  const diagnosisReason: Record<SupportedLanguage, string> = {
+    kn: `ಪರಾಶರ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ನಿಮ್ಮ ${modalityLabel.kn}ಕ್ಕೆ ${badhakaHouse}ನೇ ಸ್ಥಾನವು ಬಾಧಕ ಸ್ಥಾನವಾಗಿದ್ದು, ${badhakaSignName.kn} ರಾಶಿಯ ಅಧಿಪತಿ ${badhakeshName.kn} ಬಾಧಕಾಧಿಪತಿಯಾಗಿದ್ದಾನೆ. ಈ ಗ್ರಹದ ಅಶಾಂತಿಯಿಂದಾಗಿ ಮಹತ್ವದ ಕಾರ್ಯಗಳು ಕೊನೆ ಕ್ಷಣದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ವಿಳಂಬವಾಗುತ್ತವೆ.`,
+    en: `According to Brihat Parashara Hora Shastra, for your ${modalityLabel.en}, the ${badhakaHouse}th house is the Badhakhana (Obstruction Zone) and ${badhakeshName.en} governing ${badhakaSignName.en} acts as Badhakesh. An unpropitiated Badhaka triggers unexplained bottlenecks right before culmination.`,
+    hi: `बृहत् पराशर होरा शास्त्रानुसार आपके ${modalityLabel.hi} हेतु ${badhakaHouse}वां भाव बाधक स्थान है तथा ${badhakaSignName.hi} के स्वामी ${badhakeshName.hi} बाधकेश हैं। बाधक प्रभाव से महत्वपूर्ण कार्य अंतिम क्षणों में अटकते हैं।`,
+    te: `పరాశర హోరా శాస్త్రం ప్రకారం మీ ${modalityLabel.te}కు ${badhakaHouse}వ స్థానం బాధక స్థానం మరియు ${badhakeshName.te} బాధకాధిపతి. దీనివలన పనులలో చివరి నిమిషంలో ఆటంకాలు ఎదురవుతాయి.`,
+    ta: `பராசர சாஸ்திரப்படி உங்கள் ${modalityLabel.ta}க்கு ${badhakaHouse}ம் இடம் பாதக ஸ்தானம் மற்றும் ${badhakeshName.ta} பாதகாதிபதி ஆவார். இதனால் முக்கிய காரியங்களில் திடீர் தாமதங்கள் ஏற்படலாம்.`
+  };
+
+  const shantiRemedy: Record<SupportedLanguage, string> = {
+    kn: `ಬಾಧಕಾಧಿಪತಿಯಾದ ${badhakeshName.kn}ನ ಪ್ರತ್ಯಧಿದೇವತೆಯ ಆರಾಧನೆ, ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ವಿಶೇಷ ಸಂಕಲ್ಪ ಹಾಗೂ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆಯಿಂದ ಈ ಅಗೋಚರ ವಿಘ್ನ ಸಂಪೂರ್ಣ ನಿವಾರಣೆಯಾಗುತ್ತದೆ.`,
+    en: `Propitiating the Pratyadhidevata of Badhakesh ${badhakeshName.en}, making a dedicated sankalpa at Gokarna Mahabaleshwara, and honoring your Kula Devata completely dissolves these invisible roadblocks.`,
+    hi: `बाधकेश ${badhakeshName.hi} के प्रत्याधिदेवता की उपासना, गोकर्ण क्षेत्र में विशेष संकल्प एवं कुलदेवता की अर्चना से यह अदृश्य बाधा शांत होती है।`,
+    te: `బాధకాధిపతి ${badhakeshName.te} యొక్క ప్రత్యధిదేవత పూజ మరియు గోకర్ణంలో విశేష సంకల్పంతో ఈ ఆటంకాలు తొలగుతాయి.`,
+    ta: `பாதகாதிபதி ${badhakeshName.ta}யின் பிரத்யதிதேவதை வழிபாடு மற்றும் கோகர்ண க்ஷேத்திர சங்கல்பத்தால் தடைகள் யாவும் விலகும்.`
+  };
+
+  return {
+    modality,
+    modalityLabel,
+    badhakaHouse,
+    badhakaSignName,
+    badhakeshGraha,
+    badhakeshName,
+    diagnosisReason,
+    shantiRemedy
+  };
+}
+
+/**
+ * Authentic Classical Parashara Adhidevata & Pratyadhidevata Directory
+ * Every Graha is governed by an Adhidevata (Higher deity) and Pratyadhidevata (Inner regulatory deity).
+ */
+export const GRAHA_DEVATA_PAIRS: Record<PlanetName, {
+  adhidevata: Record<SupportedLanguage, string>;
+  pratyadhidevata: Record<SupportedLanguage, string>;
+  sadhana: Record<SupportedLanguage, string>;
+}> = {
+  [PlanetName.Sun]: {
+    adhidevata: { kn: "ಅಗ್ನಿ / ಪರಮಶಿವ", en: "Agni / Shiva", hi: "अग्नि / शिव", te: "అగ్ని / శివుడు", ta: "அக்னி / சிவன்" },
+    pratyadhidevata: { kn: "ರುದ್ರ / ಶ್ರೀರಾಮಚಂದ್ರ", en: "Rudra / Sri Rama", hi: "रुद्र / श्रीराम", te: "రుద్రుడు / శ్రీరాముడు", ta: "ருத்ரன் / ஸ்ரீராமர்" },
+    sadhana: {
+      kn: "ಸೂರ್ಯ ನಮಸ್ಕಾರ, ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಹಾಗೂ ಶ್ರೀರಾಮ ನಾಮ ಸ್ಮರಣೆ.",
+      en: "Surya Namaskara at dawn, Aditya Hrudaya Stotra, and Sri Rama Taraka Japa.",
+      hi: "प्रातः सूर्य नमस्कार, आदित्य हृदय स्तोत्र एवं श्रीराम नाम जप।",
+      te: "సూర్య నమస్కారాలు, ఆదిత్య హృదయ స్తోత్రం మరియు శ్రీరామ నామ జపం.",
+      ta: "சூரிய நமஸ்காரம், ஆதித்ய ஹிருதய ஸ்தோத்திரம் மற்றும் ஸ்ரீராம நாம ஜெபம்."
+    }
+  },
+  [PlanetName.Moon]: {
+    adhidevata: { kn: "ವರುಣ (ಜಲ ತತ್ತ್ವ) / ಗೌರೀ ದೇವಿ", en: "Varuna / Gauri Devi", hi: "वरुण / गौरी देवी", te: "వరుణుడు / గౌరీ దేవి", ta: "வருணன் / கௌரி தேவி" },
+    pratyadhidevata: { kn: "ಉಮಾ / ಪಾರ್ವತಿ ದೇವಿ", en: "Uma / Parvati Devi", hi: "उमा / पार्वती देवी", te: "ఉమ / పార్వతీ దేవి", ta: "உமை / பார்வதி தேவி" },
+    sadhana: {
+      kn: "ಚಂದ್ರ ಶಾಂತಿ, ಶಿವಲಿಂಗಕ್ಕೆ ಕ್ಷೀರಾಭಿಷೇಕ ಹಾಗೂ ಶ್ರೀ ಲಲಿತಾ ಅಷ್ಟೋತ್ತರ ಪಠಣ.",
+      en: "Chandra Shanti, pure milk abhisheka to Shiva Linga, and Lalita Ashtottara.",
+      hi: "चन्द्र शांति, शिवलिंग पर दुग्धाभिषेक एवं ललिता अष्टोत्तर पाठ।",
+      te: "చంద్ర శాంతి, శివలింగానికి క్షీరాభిషేకం మరియు లలితా అష్టోత్తర పఠనం.",
+      ta: "சந்திர சாந்தி, சிவலிங்கத்திற்கு பாலாபிஷேகம் மற்றும் லலிதா அஷ்டோத்திரம்."
+    }
+  },
+  [PlanetName.Mars]: {
+    adhidevata: { kn: "ಕ್ಷೇತ್ರಪಾಲ / ಭೂಮಿ ದೇವಿ", en: "Kshetrapala / Bhoomi Devi", hi: "क्षेत्रपाल / भूमि देवी", te: "క్షేత్రపాలకుడు / భూదేవి", ta: "க்ஷேத்ரபாலகர் / பூமிதேவி" },
+    pratyadhidevata: { kn: "ಸುಬ್ರಹ್ಮಣ್ಯ / ಸ್ಕಂದ", en: "Subrahmanya / Skanda", hi: "सुब्रह्मण्य / कार्तिकेय", te: "సుబ్రహ్మణ్య స్వామి / స్కందుడు", ta: "சுப்பிரமணியர் / முருகன்" },
+    sadhana: {
+      kn: "ಸುಬ್ರಹ್ಮಣ್ಯ ಭುಜಂಗ ಸ್ತೋತ್ರ, ತಾಮ್ರ ಪಾತ್ರೆಯ ಜಲಾರ್ಪಣೆ ಹಾಗೂ ಅಂಗಾರಕ ಶಾಂತಿ.",
+      en: "Subrahmanya Bhujanga Stotra, copper vessel water offering, and Angaraka Shanti.",
+      hi: "सुब्रह्मण्य भुजंग स्तोत्र, ताम्रपात्र से जलार्पण एवं अंगारक शांति।",
+      te: "సుబ్రహ్మణ్య భుజంగ స్తోత్రం మరియు అంగారక శాంతి.",
+      ta: "சுப்பிரமணிய புஜங்கம் மற்றும் அங்காரக சாந்தி."
+    }
+  },
+  [PlanetName.Mercury]: {
+    adhidevata: { kn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು", en: "Sri Maha Vishnu", hi: "श्री महाविष्णु", te: "శ్రీ మహావిష్ణువు", ta: "ஸ்ரீ மகாவிஷ்ணு" },
+    pratyadhidevata: { kn: "ನಾರಾಯಣ / ಶ್ರೀಕೃಷ್ಣ", en: "Narayana / Sri Krishna", hi: "नारायण / श्रीकृष्ण", te: "నారాయణుడు / శ్రీకృష్ణుడు", ta: "நாராயணர் / ஸ்ரீகிருஷ்ணர்" },
+    sadhana: {
+      kn: "ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಠಣ, ತುಳಸೀ ಅರ್ಚನೆ ಹಾಗೂ ಹಸಿರು ಹೆಸರುಕಾಳು ದಾನ.",
+      en: "Vishnu Sahasranama recitation, Tulasi archana, and moong dal charity.",
+      hi: "विष्णु सहस्रनाम पाठ, तुलसी अर्चन एवं मूंग दाल दान।",
+      te: "విష్ణు సహస్రనామ పఠనం మరియు తులసీ పూజ.",
+      ta: "விஷ்ணு சஹஸ்ரநாம பாராயணம் மற்றும் துளசி அர்ச்சனை."
+    }
+  },
+  [PlanetName.Jupiter]: {
+    adhidevata: { kn: "ಇಂದ್ರ / ಬ್ರಹ್ಮದೇವ", en: "Indra / Brahma Deva", hi: "इन्द्र / ब्रह्मा", te: "ఇంద్రుడు / బ్రహ్మదేవుడు", ta: "இந்திரன் / பிரம்மன்" },
+    pratyadhidevata: { kn: "ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ / ಸದಾಶಿವ", en: "Medha Dakshinamurthy / Sadashiva", hi: "मेधा दक्षिणामूर्ति / सदाशिव", te: "మేధా దక్షిణామూర్తి / సదాశివుడు", ta: "மேதா தட்சிணாமூர்த்தி / சதாசிவன்" },
+    sadhana: {
+      kn: "ದಕ್ಷಿಣಾಮೂರ್ತಿ ಸ್ತೋತ್ರ, ಗುರು ಚರಿತ್ರೆ ಶ್ರವಣ ಹಾಗೂ ಹಳದಿ ಕಡಲೆಕಾಳು ದಾನ.",
+      en: "Dakshinamurthy Stotra, Guru Charitra listening, and yellow chana daana.",
+      hi: "दक्षिणामूर्ति स्तोत्र, गुरु उपासना एवं चने की दाल का दान।",
+      te: "దక్షిణామూర్తి స్తోత్రం మరియు గురు పూజ.",
+      ta: "தட்சிணாமூர்த்தி ஸ்தோத்திரம் மற்றும் குரு வழிபாடு."
+    }
+  },
+  [PlanetName.Venus]: {
+    adhidevata: { kn: "ಇಂದ್ರಾಣಿ / ಶಚೀ ದೇವಿ", en: "Indrani / Shachi Devi", hi: "इन्द्राणी / शची देवी", te: "ఇంద్రాణి / శచీ దేవి", ta: "இந்திராணி / சசி தேவி" },
+    pratyadhidevata: { kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮೀ", en: "Sri Mahalakshmi", hi: "श्री महालक्ष्मी", te: "శ్రీ మహాలక్ష్మి", ta: "ஸ்ரீ மகாலட்சுமி" },
+    sadhana: {
+      kn: "ಕನಕಧಾರಾ ಸ್ತೋತ್ರ, ಶ್ರೀ ಸೂಕ್ತ ಪಠಣ ಹಾಗೂ ಗೋವಿಗೆ ಬೆಲ್ಲ-ಹುಲ್ಲು ಸಮರ್ಪಣೆ.",
+      en: "Kanakadhara Stotra, Sri Sukta recitation, and feeding grass-jaggery to cow.",
+      hi: "कनकधारा स्तोत्र, श्री सूक्त पाठ एवं गौमाता को गुड़-चारा समर्पण।",
+      te: "కనకధారా స్తోత్రం, శ్రీ సూక్తం మరియు గోసేవ.",
+      ta: "கனகதாரா ஸ்தோத்திரம், ஸ்ரீ சூக்தம் மற்றும் கோபூஜை."
+    }
+  },
+  [PlanetName.Saturn]: {
+    adhidevata: { kn: "ಯಮಧರ್ಮ ರಾಜ", en: "Yama Dharma Raja", hi: "यमराज / धर्म", te: "యమధర్మరాజు", ta: "எமதர்ம ராஜன்" },
+    pratyadhidevata: { kn: "ಪ್ರಜಾಪತಿ / ಕಾಲಭೈರವ", en: "Prajapati / Kaal Bhairava", hi: "प्रजापति / कालभैरव", te: "ప్రజాపతి / కాలభైరవుడు", ta: "பிரஜாபதி / காலபைரவர்" },
+    sadhana: {
+      kn: "ಕಾಲಭೈರವಾಷ್ಟಕ, ಶನಿ ಚಾಲೀಸಾ, ಕಪ್ಪು ಎಳ್ಳೆಣ್ಣೆ ದೀಪ ಹಾಗೂ ವೃದ್ಧರ ಸೇವೆ.",
+      en: "Kala Bhairavashtakam, Shani Chalisa, sesame oil lamp, and serving elderly destitute.",
+      hi: "कालभैरवाष्टक, शनि चालीसा, तिल के तेल का दीपक एवं असहायों की सेवा।",
+      te: "కాలభైరవాష్టకం, శని చాలీసా మరియు నువ్వుల నూనె దీపం.",
+      ta: "காலபைரவாஷ்டகம், சனி சாலிசா மற்றும் நல்லெண்ணெய் தீபம்."
+    }
+  },
+  [PlanetName.Rahu]: {
+    adhidevata: { kn: "ದುರ್ಗಾ ದೇವಿ", en: "Durga Devi", hi: "दुर्गा देवी", te: "దుర్గా దేవి", ta: "துர்க்கை அம்மன்" },
+    pratyadhidevata: { kn: "ನಾಗರಾಜ / ಸರ್ಪ ದೇವತೆ", en: "Nagaraja / Sarpa Devata", hi: "नागराज / सर्प देव", te: "నాగరాజు / సర్ప దేవత", ta: "நாகராஜர் / சர்ப்ப தேவதை" },
+    sadhana: {
+      kn: "ದುರ್ಗಾ ಸಪ್ತಶತೀ, ಸುಬ್ರಹ್ಮಣ್ಯ ಕವಚ ಹಾಗೂ ಉದ್ದಿನ ಕಾಳು ದಾನ.",
+      en: "Durga Saptashati, Subrahmanya Kavacha, and urad dal daana.",
+      hi: "दुर्गा सप्तशती, सुब्रह्मण्य कवच एवं उड़द दाल का दान।",
+      te: "దుర్గా సప్తశతి, సుబ్రహ్మణ్య కవచం మరియు మినుముల దానం.",
+      ta: "துர்க்கா சப்தசதி, சுப்பிரமணிய கவசம் மற்றும் உளுந்து தானம்."
+    }
+  },
+  [PlanetName.Ketu]: {
+    adhidevata: { kn: "ಚಿತ್ರಗುಪ್ತ ಮಹಾರಾಜ", en: "Chitragupta Maharaja", hi: "चित्रगुप्त", te: "చిత్రగుప్తుడు", ta: "சித்ரகுப்தர்" },
+    pratyadhidevata: { kn: "ಮಹಾ ಗಣಪತಿ", en: "Maha Ganapati", hi: "महागणपति", te: "మహా గణపతి", ta: "மகா கணபதி" },
+    sadhana: {
+      kn: "ಸಂಕಷ್ಟನಾಶನ ಗಣೇಶ ಸ್ತೋತ್ರ, ಗಣಪತಿ ಅಥರ್ವಶೀರ್ಷ ಹಾಗೂ ಕಪ್ಪು-ಬಿಳಿ ಕಂಬಳಿ ದಾನ.",
+      en: "Sankata Nashana Ganesha Stotra, Ganapati Atharvashirsha, and dual-color blanket daana.",
+      hi: "संकटनाशन गणेश स्तोत्र, गणपति अथर्वशीर्ष एवं कंबल दान।",
+      te: "సంకటనాశన గణేశ స్తోత్రం మరియు గణపతి అథర్వశీర్షం.",
+      ta: "சங்கட நாசன கணேச ஸ்தோத்திரம் மற்றும் கணபதி அதர்வசீரிடம்."
+    }
+  }
+};
+
+/**
+ * Medical-Grade Astrological Prescription Engine (ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಚಿಕಿತ್ಸಾ ಪತ್ರ)
+ * Formulates clinical-grade Ayurvedic/Vedic diagnosis (Nidana), Divine Medicine (Aushadha),
+ * Sacred Ingestion Vehicle (Anupana), Dietary/Lifestyle Protocol (Pathya & Apathya),
+ * Chronobiology (Chikitsa Kala), and 15-to-20 Day Measurable Relief Progression.
+ */
+export function computeVedicDoctorPrescription(
+  struggleCategory: KundliRemedyDiagnosis["primaryStruggle"]["category"],
+  catalystGraha: PlanetName,
+  lagnaRashiIndex: number,
+  devoteeName: string,
+  gotra?: string,
+  badhakaInfo?: BadhakaAnalysis
+): VedicDoctorPrescription {
+  // 1. Nidana (Dosha & Subtle Channel Imbalance)
+  let primaryDosha: "Pitta" | "Vata" | "Kapha" | "Tridosha" = "Pitta";
+  let doshaLabel: Record<SupportedLanguage, string>;
+  let rootCauseDescription: Record<SupportedLanguage, string>;
+  let affectedNadis: Record<SupportedLanguage, string>;
+
+  if (struggleCategory === "anger_temper" || struggleCategory === "elite_sports") {
+    primaryDosha = "Pitta";
+    doshaLabel = {
+      kn: "ತೀವ್ರ ಪಿತ್ತ ಪ್ರಕೋಪ (ರಕ್ತ & ಅಗ್ನಿ ತತ್ತ್ವ ಅಸಮತೋಲನ)",
+      en: "Severe Pitta Surge (Blood & Fire Element Agitation)",
+      hi: "तीव्र पित्त प्रकोप (रक्त एवं अग्नि तत्व असंतुलन)",
+      te: "తీవ్ర పిత్త ప్రకోపం (రక్త & అగ్ని తత్త్వ అసమతుల్యత)",
+      ta: "தீவிர பித்த பிரகோபம் (ரத்தம் மற்றும் அக்னி தத்துவ சீர்குலைவு)"
+    };
+    rootCauseDescription = {
+      kn: "ಕುಜ ಹಾಗೂ ರವಿ ಗ್ರಹಗಳ ತೀಕ್ಷ್ಣ ತೇಜಸ್ಸು ಮಿದುಳಿನ ರಕ್ತನಾಳಗಳನ್ನು ಪ್ರಚೋದಿಸಿ, ಪಿತ್ತ ದೋಷವನ್ನು ಉಲ್ಬಣಗೊಳಿಸುತ್ತದೆ. ಇದರಿಂದ ಅತಿ-ಆವೇಶ, ಅಸಹನೆ ಮತ್ತು ತಕ್ಷಣ ಸಿಟ್ಟು ಉಂಟಾಗುತ್ತದೆ.",
+      en: "Piercing Mars-Sun astral rays agitate autonomic sympathetic channels and cerebral bloodflow, spiking Pitta and triggering reactive anger and impatience.",
+      hi: "मंगल एवं सूर्य के तीक्ष्ण प्रभाव से नाड़ियों में पित्त बढ़ता है, जिससे तुरंत क्रोध और अधीरता उत्पन्न होती है।",
+      te: "కుజ మరియు సూర్యుల తీవ్ర ప్రభావం వలన నాడీ వ్యవస్థలో పిత్తం పెరిగి కోపం మరియు అసహనం కలుగుతాయి.",
+      ta: "செவ்வாய் மற்றும் சூரியனின் உக்கிரத்தால் பித்தம் அதிகரித்து திடீர் கோபமும் பொறுமையின்மையும் உண்டாகிறது."
+    };
+    affectedNadis = {
+      kn: "ಪಿಂಗಳಾ ನಾಡಿ (ಸೂರ್ಯ ನಾಡಿ) & ವಿಶುದ್ಧಿ ಚಕ್ರ",
+      en: "Pingala Nadi (Solar Channel) & Vishuddha Throat Chakra",
+      hi: "पिंगला नाड़ी (सूर्य नाड़ी) एवं विशुद्धि चक्र",
+      te: "పింగళా నాడి (సూర్య నాడి) & విశుద్ధి చక్రం",
+      ta: "பிங்கலா நாடி (சூரிய நாடி) & விசுத்தி சக்கரம்"
+    };
+  } else if (struggleCategory === "career_obstacles" || struggleCategory === "debt_financial" || struggleCategory === "legal_confinement") {
+    primaryDosha = "Vata";
+    doshaLabel = {
+      kn: "ವಾತ ಪ್ರಕೋಪ & ಕರ್ಮಿಕ ಸ್ತಂಭನ (ವಾಯು ತತ್ತ್ವ ಅಸಮತೋಲನ)",
+      en: "Vata Aggravation & Karmic Stagnation (Air Element Obstruction)",
+      hi: "वात प्रकोप एवं कर्मिक अवरोध (वायु तत्व असंतुलन)",
+      te: "వాత ప్రకోపం & కర్మిక స్తంభన (వాయు తత్త్వ లోపం)",
+      ta: "வாத பிரகோபம் & கர்ம தடை (வாயு தத்துவ கோளாறு)"
+    };
+    rootCauseDescription = {
+      kn: "ಶನಿ ಹಾಗೂ ರಾಹು ಗ್ರಹಗಳ ಕರ್ಮಿಕ ಭಾರದಿಂದ ವಾತ ನಾಡಿಗಳು ಸಂಕೋಚನಗೊಂಡು, ಪ್ರತಿಯೊಂದು ಕಾರ್ಯದಲ್ಲೂ ಕೊನೆ ಕ್ಷಣದ ವಿಳಂಬ, ಆರ್ಥಿಕ ತಡೆ ಮತ್ತು ಅತಿಯಾದ ಶ್ರಮ ಎದುರಾಗುತ್ತದೆ.",
+      en: "Saturnian karmic pressure and Rahu's etheric drag restrict vital Vata currents, freezing momentum and producing prolonged bottlenecks.",
+      hi: "शनि एवं राहु के प्रभाव से वात नाड़ियां संकुचित होती हैं, जिससे कार्यों में विलंब और भारी श्रम का बोझ रहता है।",
+      te: "శని మరియు రాహువుల ప్రభావం వల్ల వాత దోషం ఏర్పడి పనుల్లో జాప్యం మరియు శ్రమ కలుగుతాయి.",
+      ta: "சனி மற்றும் ராகுவின் தாக்கத்தால் காரியங்களில் தேக்கமும் கடன்/பொருளாதார நெருக்கடியும் உண்டாகிறது."
+    };
+    affectedNadis = {
+      kn: "ಅಪಾನ ವಾಯು & ಮೂಲಾಧಾರ ಚಕ್ರ",
+      en: "Apana Vayu & Muladhara Root Chakra",
+      hi: "अपान वायु एवं मूलाधार चक्र",
+      te: "అపాన వాయువు & మూలాధార చక్రం",
+      ta: "அபான வாயு & மூலாதார சக்கரம்"
+    };
+  } else if (struggleCategory === "mental_anxiety" || struggleCategory === "health_vitality") {
+    primaryDosha = "Vata";
+    doshaLabel = {
+      kn: "ವಾತ-ಪಿತ್ತ ಮಿಶ್ರಿತ ದೋಷ (ಮನಸ್ಸಿನ ಚಾಂಚಲ್ಯ & ಪ್ರಾಣ ಕ್ಷೀಣತೆ)",
+      en: "Vata-Pitta Mixed Doshic Strain (Manas Turbulence & Prana Dip)",
+      hi: "वात-पित्त मिश्रित दोष (चित्त चंचलता एवं प्राण दुर्बलता)",
+      te: "వాత-పిత్త మిశ్రమ దోషం (మానసిక చంచలత)",
+      ta: "வாத-பித்த கலப்பு தோஷம் (மன சஞ்சலம் & பிராண பலவீனம்)"
+    };
+    rootCauseDescription = {
+      kn: "ಮನಃಕಾರಕ ಚಂದ್ರನ ಮೇಲಿನ ಪಾಪಗ್ರಹಗಳ ದೃಷ್ಟಿಯಿಂದ ಇಡಾ ನಾಡಿ ದುರ್ಬಲಗೊಂಡು, ರಾತ್ರಿಯ ಅತಿಯಾದ ಯೋಚನೆ, ನಿದ್ರಾಭಂಗ ಹಾಗೂ ಮನಸ್ಸಿನಲ್ಲಿ ಅಕಾರಣ ಭಯ ಕಾಡುತ್ತದೆ.",
+      en: "Afflictions to lunar and solar luminaries destabilize the parasympathetic Ida Nadi, producing nocturnal rumination, shallow sleep, and phantom fears.",
+      hi: "चन्द्रमा पर पाप दृष्टि से इड़ा नाड़ी दुर्बल होती है, जिससे अनिद्रा, अधिक चिंता और भय की स्थिति बनती है।",
+      te: "చంద్రునిపై పాప దృష్టి వలన ఇడా నాడి బలహీనపడి నిద్రలేమి మరియు మానసిక ఆందోళన కలుగుతాయి.",
+      ta: "சந்திரன் பலவீனத்தால் இடா நாடி பாதிக்கப்பட்டு தூக்கமின்மையும் வீண் பயமும் உண்டாகிறது."
+    };
+    affectedNadis = {
+      kn: "ಇಡಾ ನಾಡಿ (ಚಂದ್ರ ನಾಡಿ) & ಅನಾಹತ ಹೃದಯ ಚಕ್ರ",
+      en: "Ida Nadi (Lunar Channel) & Anahata Heart Chakra",
+      hi: "इड़ा नाड़ी (चन्द्र नाड़ी) एवं अनाहत चक्र",
+      te: "ఇడా నాడి (చంద్ర నాడి) & అనాహత చక్రం",
+      ta: "இடா நாடி (சந்திர நாடி) & அனாகத சக்கரம்"
+    };
+  } else if (struggleCategory === "student_academic" || struggleCategory === "creative_stardom") {
+    primaryDosha = "Kapha";
+    doshaLabel = {
+      kn: "ಕಫ-ವಾತ ಮಂದತೆ (ಬುದ್ಧಿ ಭ್ರಮಣೆ & ಏಕಾಗ್ರತಾ ಭಂಗ)",
+      en: "Kapha-Vata Cognitive Sluggishness (Intellectual Distraction)",
+      hi: "कफ-वात मंदता (एकाग्रता भंग एवं स्मृति भ्रम)",
+      te: "కఫ-వాత మందగమనం (ఏకాగ్రత లోపం)",
+      ta: "கப-வாத மந்தநிலை (கவனச்சிதறல் & நினைவாற்றல் சவால்)"
+    };
+    rootCauseDescription = {
+      kn: "ಬುದ್ಧಿಕಾರಕ ಬುಧನ ಮೇಲೆ ರಾಹುವಿನ ಪ್ರಭಾವದಿಂದ ಮಿದುಳಿನ ಗ್ರಾಹಕ ಶಕ್ತಿ ಮಂದಗೊಂಡು, ಓದಿದ ವಿಷಯ ಮರೆತುಹೋಗುವುದು ಮತ್ತು ಪರೀಕ್ಷಾ ಭಯ ಉಂಟಾಗುತ್ತದೆ.",
+      en: "Mercurial cognitive pathways experience clouding under shadowy Rahu, inducing study restlessness, conceptual fog, and recall hesitancy.",
+      hi: "बुध पर राहु के प्रभाव से एकाग्रता भंग होती है और परीक्षा के समय स्मरणशक्ति दुर्बल महसूस होती है।",
+      te: "బుధునిపై రాహు ప్రభావం వల్ల చదువులో ఏకాగ్రత మరియు జ్ఞాపకశక్తి లోపిస్తాయి.",
+      ta: "புதன் மீது ராகு தாக்கத்தால் படிப்பில் கவனச்சிதறலும் தேர்வு பயமும் உண்டாகிறது."
+    };
+    affectedNadis = {
+      kn: "ಮೇಧಾ ನಾಡಿ & ಆಜ್ಞಾ ಚಕ್ರ (ಭ್ರೂಮಧ್ಯ)",
+      en: "Medha Nadi & Ajna Brow Center Chakra",
+      hi: "मेधा नाड़ी एवं आज्ञा चक्र (भ्रूमध्य)",
+      te: "మేధా నాడి & ఆజ్ఞా చక్రం",
+      ta: "மேதா நாடி & ஆக்ஞா சக்கரம்"
+    };
+  } else {
+    primaryDosha = "Tridosha";
+    doshaLabel = {
+      kn: "ತ್ರಿದೋಷ ಸಾಮ್ಯತೆ & ಸಪ್ತಧಾತು ಸಂವರ್ಧನೆ",
+      en: "Tridoshic Re-alignment & Sapta Dhatu Rejuvenation",
+      hi: "त्रिदोष साम्य एवं सप्तधातु संवर्धन",
+      te: "త్రిదోష సమన్వయం & సప్తధాతు సంవర్ధన",
+      ta: "திரிதோஷ சமநிலை & சப்த தாது புத்துணர்ச்சி"
+    };
+    rootCauseDescription = {
+      kn: "ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಭಾಗ್ಯಾಧಿಪತಿಯ ಬಲವನ್ನು ವರ್ಧಿಸಿ, ಜೀವನದಲ್ಲಿ ನಿರಂತರ ಸೌಭಾಗ್ಯ, ಕೌಟುಂಬಿಕ ಪ್ರೇಮ ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣೆ ನೆಲೆಸುವಂತೆ ಮಾಡಲು ನಿಯಮಿತ ಚಿಕಿತ್ಸಾ ಪಾಲನೆ ಅಗತ್ಯ.",
+      en: "Harmonizing primary ascendant and catalytic yogakaraka planetary rays fortifies cellular immunity, domestic tenderness, and lasting prosperity.",
+      hi: "लग्नेश एवं भाग्येश को सशक्त कर जीवन में अखंड शांति, पारिवारिक सुख और दैवीय सुरक्षा स्थापित करने हेतु साधना आवश्यक है।",
+      te: "లగ్నాధిపతి మరియు భాగ్యాధిపతిని బలపరచడం ద్వారా జీవితంలో శాంతి మరియు అభివృద్ధి లభిస్తాయి.",
+      ta: "லக்னாதிபதி மற்றும் பாக்கியாதிபதியை பலப்படுத்தி வாழ்க்கையில் நிரந்தர சுபிட்சம் பெற நல்வழிபாடு அவசியம்."
+    };
+    affectedNadis = {
+      kn: "ಸುಷುಮ್ನಾ ನಾಡಿ & ಸಹಸ್ರಾರ ಚಕ್ರ",
+      en: "Sushumna Central Channel & Sahasrara Crown Chakra",
+      hi: "सुषुम्ना नाड़ी एवं सहस्रार चक्र",
+      te: "సుషుమ్నా నాడి & సహస్రార చక్రం",
+      ta: "சுஷும்னா நாடி & சஹஸ்ரார சக்கரம்"
+    };
+  }
+
+  // 2. Aushadha (Divine Prescribed Medicine)
+  let mantraSanskrit = "॥ ॐ क्रां क्रीं क्रौं सः भौमाय नमः । ॐ ಸों सोमाय नमः शान्तये ॥";
+  let mantraNative: Record<SupportedLanguage, string> = {
+    kn: "॥ ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ । ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ ಶಾಂತಯೇ ॥",
+    en: "Om Kram Kreem Kroum Sah Bhaumaya Namaha | Om Som Somaya Namaha Shantaye",
+    hi: "॥ ॐ क्रां क्रीं क्रौं सः भौमाय नमः । ॐ सों सोमाय नमः शान्तये ॥",
+    te: "॥ ఓం క్రాం క్రీం క్రౌం సః భౌమాయ నమః । ఓం సోం సోమాయ నమః శాంతయే ॥",
+    ta: "॥ ஓம் க்ராம் க்ரீம் க்ரௌம் ஸஃ பௌமாய நமஹ । ஓம் சோம் சோமாய நமஹ சாந்தயே ॥"
+  };
+  let transliteration = "Om Kram Kreem Kroum Sah Bhaumaya Namaha | Om Som Somaya Namaha Shantaye";
+  let dailyDosageCount: Record<SupportedLanguage, string> = {
+    kn: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ೧೦೮ ಬಾರಿ (ಏಕ ಮಾಲಾ ಜಪ)",
+    en: "108 Recitations Daily at Dawn (1 Full Mala)",
+    hi: "प्रतिदिन प्रातःकाल १०८ बार (एक माला जप)",
+    te: "ప్రతిరోజూ ఉదయం 108 సార్లు (ఒక మాల జపం)",
+    ta: "தினசரி காலையில் 108 முறை (ஒரு மாலை ஜெபம்)"
+  };
+  let instructions: Record<SupportedLanguage, string> = {
+    kn: "ಸ್ಪಷ್ಟ ಉಚ್ಚಾರಣೆಯೊಂದಿಗೆ ತುಳಸಿ ಅಥವಾ ರುದ್ರಾಕ್ಷಿ ಮಾಲೆಯಿಂದ ಮೇರು ಮಣಿಯನ್ನು ದಾಟದೆ ಜಪಿಸುವುದು.",
+    en: "Chant with clear phonetic rhythm using Tulasi or Rudraksha beads without crossing the Meru bead.",
+    hi: "तुलसी अथवा रुद्राक्ष माला से बिना मेरु का उल्लंघन किए शुद्ध उच्चारण के साथ जप करें।",
+    te: "తులసి లేదా రుద్రాక్ష మాలతో స్పష్టంగా జపించండి.",
+    ta: "துளசி அல்லது ருத்ராட்ச மாலையால் சுமேருவை தாண்டாமல் தெளிவாக ஜெபிக்கவும்."
+  };
+  let stotraKavacha: Record<SupportedLanguage, string> = {
+    kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಕವಚ & ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ",
+    en: "Sri Subrahmanya Kavacha & Aditya Hrudaya Stotra",
+    hi: "श्री सुब्रह्मण्य कवच एवं आदित्य हृदय स्तोत्र",
+    te: "శ్రీ సుబ్రహ్మణ్య కవచం & ఆదిత్య హృదయ స్తోత్రం",
+    ta: "ஸ்ரீ சுப்பிரமணிய கவசம் & ஆதித்ய ஹிருதய ஸ்தோத்திரம்"
+  };
+  let sacredSubstance: Record<SupportedLanguage, string> = {
+    kn: "ಶುದ್ಧ ರಕ್ತ ಚಂದನ ಅಥವಾ ವಿಭೂತಿ ತಿಲಕ",
+    en: "Pure Red Sandalwood (Rakta Chandan) or Bhasma Tilak",
+    hi: "शुद्ध रक्त चंदन अथवा भस्म तिलक",
+    te: "రక్త చందనం లేదా విభూతి తిలకం",
+    ta: "சிவப்பு சந்தனம் அல்லது விபூதி திலகம்"
+  };
+
+  if (struggleCategory === "career_obstacles" || struggleCategory === "debt_financial") {
+    mantraSanskrit = "॥ ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः । ॐ ह्रीं श्रीं क्लीं महालक्ष्म्यै नमः ॥";
+    mantraNative = {
+      kn: "॥ ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನೈಶ್ಚರಾಯ ನಮಃ । ಓಂ ಹ್ರೀಂ ಶ್ರೀಂ ಕ್ಲೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ ॥",
+      en: "Om Pram Preem Proum Sah Shanaishcharaya Namaha | Om Hreem Shreem Kleem Mahalakshmyai Namaha",
+      hi: "॥ ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः । ॐ ह्रीं श्रीं क्लीं महालक्ष्म्यै नमः ॥",
+      te: "॥ ఓం ప్రాం ప్రీం ప్రౌం సః శనైశ్చరాయ నమః । ఓం హ్రీం శ్రీం క్లీం మహాలక్ష్మ్యై నమః ॥",
+      ta: "॥ ஓம் ப்ராம் ப்ரீம் ப்ரௌம் ஸஃ சனைச்சராய நமஹ । ஓம் ஹ்ரீம் ஸ்ரீம் க்லீம் மகாலட்சுமியை நமஹ ॥"
+    };
+    transliteration = "Om Pram Preem Proum Sah Shanaishcharaya Namaha | Om Hreem Shreem Kleem Mahalakshmyai Namaha";
+    stotraKavacha = {
+      kn: "ಶ್ರೀ ಕನಕಧಾರಾ ಸ್ತೋತ್ರ & ದಶರಥ ಕೃತ ಶನಿ ಸ್ತೋತ್ರ",
+      en: "Sri Kanakadhara Stotra & Dasharatha Shani Stotra",
+      hi: "श्री कनकधारा स्तोत्र एवं दशरथ कृत शनि स्तोत्र",
+      te: "శ్రీ కనకధారా స్తోత్రం & శని స్తోత్రం",
+      ta: "ஸ்ரீ கனகதாரா ஸ்தோத்திரம் & தசரத சனி ஸ்தோத்திரம்"
+    };
+    sacredSubstance = {
+      kn: "ಕಪ್ಪು ಎಳ್ಳೆಣ್ಣೆ ದೀಪದ ರಕ್ಷೆ & ಬಿಲ್ವಪತ್ರೆ ಭಸ್ಮ",
+      en: "Sesame Lamp Soot Raksha & Bilva Bhasma",
+      hi: "तिल दीप की रक्षा एवं बिल्व भस्म",
+      te: "నువ్వుల నూనె దీప రక్ష & బిల్వ భస్మం",
+      ta: "நல்லெண்ணெய் தீப ரக்ஷை & வில்வ பஸ்மம்"
+    };
+  } else if (struggleCategory === "student_academic") {
+    mantraSanskrit = "॥ ॐ ऐಂ सरस्वत्यै नमः । ॐ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ ॥";
+    mantraNative = {
+      kn: "॥ ಓಂ ಐಂ ಸರಸ್ವತ್ಯೈ ನಮಃ । ಓಂ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ ॥",
+      en: "Om Aim Saraswatyai Namaha | Om Bram Breem Broum Sah Budhaya Namaha",
+      hi: "॥ ॐ ऐं सरस्वत्यै नमः । ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः ॥",
+      te: "॥ ఓం ఐం సరస్వత్యై నమః । ఓం బ్రాం బ్రీం బ్రౌం సః బుధాయ నమః ॥",
+      ta: "॥ ஓம் ஐம் சரஸ்வத்யை நமஹ । ஓம் ப்ராம் ப்ரீம் ப்ரௌம் ஸஃ புதாய நமஹ ॥"
+    };
+    transliteration = "Om Aim Saraswatyai Namaha | Om Bram Breem Broum Sah Budhaya Namaha";
+    stotraKavacha = {
+      kn: "ಶ್ರೀ ಮೇಧಾ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಕವಚ & ಸರಸ್ವತೀ ದ್ವಾದಶನಾಮ ಸ್ತೋತ್ರ",
+      en: "Sri Medha Dakshinamurthy Kavacha & Saraswati Dwadashanama",
+      hi: "श्री मेधा दक्षिणामूर्ति कवच एवं सरस्वती द्वादशनाम स्तोत्र",
+      te: "శ్రీ మేధా దక్షిణామూర్తి కవచం & సరస్వతీ ద్వాదశనామ స్తోత్రం",
+      ta: "ஸ்ரீ மேதா தட்சிணாமூர்த்தி கவசம் & சரஸ்வதி துவாதசநாம ஸ்தோத்திரம்"
+    };
+    sacredSubstance = {
+      kn: "ಹರಿದ್ರಾ (ಶುದ್ಧ ಅರಿಶಿನ) ತಿಲಕ",
+      en: "Pure Organic Turmeric (Haridra) Tilak",
+      hi: "शुद्ध हरिद्रा (हल्दी) तिलक",
+      te: "పరిశుద్ధ పసుపు తిలకం",
+      ta: "தூய மஞ்சள் திலகம்"
+    };
+  } else if (struggleCategory === "marriage_delay" || struggleCategory === "relationship_friction") {
+    mantraSanskrit = "॥ ॐ ದ್ರಾಂ ದ್ರೀಂ ದ್ರೌಂ ಸಃ ಶುಕ್ರಾಯ ನಮಃ । ॐ ಉಮಾ-ಮಹೇಶ್ವರಾಭ್ಯಾಂ ನಮಃ ॥";
+    mantraNative = {
+      kn: "॥ ಓಂ ದ್ರಾಂ ದ್ರೀಂ ದ್ರೌಂ ಸಃ ಶುಕ್ರಾಯ ನಮಃ । ಓಂ ಉಮಾ-ಮಹೇಶ್ವರಾಭ್ಯಾಂ ನಮಃ ॥",
+      en: "Om Dram Dreem Droum Sah Shukraya Namaha | Om Uma-Maheshwarabhyam Namaha",
+      hi: "॥ ॐ द्रां द्रीं द्रौं सः शुक्राय नमः । ॐ उमा-महेश्वराभ्यां नमः ॥",
+      te: "॥ ఓం ద్రాం ద్రీం ద్రౌం సః శుక్రాయ నమః । ఓం ఉమా-మహేశ్వరాభ్యాం నమః ॥",
+      ta: "॥ ஓம் த்ராம் த்ரீம் த்ரௌம் ஸஃ சுக்கிராய நமஹ । ஓம் உமா-மஹேஸ்வரப்யாம் நமஹ ॥"
+    };
+    transliteration = "Om Dram Dreem Droum Sah Shukraya Namaha | Om Uma-Maheshwarabhyam Namaha";
+    stotraKavacha = {
+      kn: "ಶ್ರೀ ಸ್ವಯಂವರ ಪಾರ್ವತಿ ಸ್ತೋತ್ರ & ಉಮಾ-ಮಹೇಶ್ವರ ಅಷ್ಟಕ",
+      en: "Sri Swayamvara Parvati Stotra & Uma-Maheshwara Ashtakam",
+      hi: "श्री स्वयंवर पार्वती स्तोत्र एवं उमा-महेश्वर अष्टक",
+      te: "శ్రీ స్వయంవర పార్వతీ స్తోత్రం & ఉమా-మహేశ్వర అష్టకం",
+      ta: "ஸ்ரீ சுயம்வர பார்வதி ஸ்தோத்திரம் & உமா-மஹேஸ்வர அஷ்டகம்"
+    };
+    sacredSubstance = {
+      kn: "ಕುಂಕುಮ & ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಾ ಭಸ್ಮ",
+      en: "Kumkum & Gokarna Mahabaleshwara Sacred Bhasma",
+      hi: "कुमकुम एवं गोकर्ण महाबलेश्वर रक्षा भस्म",
+      te: "కుంకుమ & గోకర్ణ మహాబలేశ్వర రక్షా భస్మం",
+      ta: "குங்குமம் & கோகர்ண மகாபலேஸ்வரர் ரக்ஷா பஸ்மம்"
+    };
+  }
+
+  // 3. Anupana (Sacred Vehicle & Medium of Consumption)
+  let anupanaVehicleName: Record<SupportedLanguage, string>;
+  let anupanaPrep: Record<SupportedLanguage, string>;
+  let anupanaTiming: Record<SupportedLanguage, string>;
+
+  if (struggleCategory === "anger_temper" || struggleCategory === "elite_sports") {
+    anupanaVehicleName = {
+      kn: "ತಾಮ್ರೋದಕ (ತಾಮ್ರ ಪಾತ್ರೆಯಲ್ಲಿ ರಾತ್ರಿ ಇರಿಸಿದ ಶುದ್ಧ ಜಲ)",
+      en: "Tamra Jala (Overnight Copper Energized Water)",
+      hi: "ताम्रोदक (तांबे के पात्र में रातभर रखा शीतल जल)",
+      te: "తామ్రోదకం (రాగి పాత్రలో రాత్రంతా ఉంచిన శుద్ధ జలం)",
+      ta: "தாம்பிர ஜலம் (செம்பு பாத்திரத்தில் இரவு முழுவதும் வைக்கப்பட்ட நீர்)"
+    };
+    anupanaPrep = {
+      kn: "ರಾತ್ರಿ ತಾಮ್ರದ ಲೋಟ ಅಥವಾ ಪಾತ್ರೆಯಲ್ಲಿ ಶುದ್ಧ ಕುಡಿಯುವ ನೀರನ್ನು ಇರಿಸಿ. ಮುಂಜಾನೆ ಪೂರ್ವಕ್ಕೆ ಮುಖಮಾಡಿ ಜಪದ ನಂತರ ೧ ಲೋಟ ನೀರನ್ನು ನಿಧಾನವಾಗಿ ಸೇವಿಸಿ. ಇದು ದೇಹದೊಳಗಿನ ಪಿತ್ತ-ಅಗ್ನಿಯನ್ನು ತಕ್ಷಣ ಶಮನಗೊಳಿಸುತ್ತದೆ.",
+      en: "Store pure drinking water in a copper cup overnight. At sunrise, facing East after japa, sip 1 glass slowly to pacify gastric and neural Pitta immediately.",
+      hi: "रात में तांबे के पात्र में जल रखें। प्रातः पूर्व मुख होकर जप के पश्चात एक गिलास जल घूंट-घूंट पिएं। यह आंतरिक पित्त को तुरंत शांत करता है।",
+      te: "రాగి పాత్రలో నీటిని ఉంచి ఉదయం తూర్పు ముఖంగా కూర్చుని తాగండి. ఇది పిత్తాన్ని తగ్గిస్తుంది.",
+      ta: "செம்பு பாத்திரத்தில் வைத்த நீரை காலையில் கிழக்கு நோக்கி அமர்ந்து அருந்தவும். இது பித்தத்தை தணிக்கும்."
+    };
+    anupanaTiming = {
+      kn: "ಪ್ರಾತಃಕಾಲ ಸೂರ್ಯೋದಯದ ಸಮಯದಲ್ಲಿ (ಖಾಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ)",
+      en: "At Sunrise during Brahma Muhurtha (Empty Stomach)",
+      hi: "प्रातः सूर्योदय वेला में (खाली पेट)",
+      te: "సూర్యోదయ వేళలో (ఖాళీ కడుపుతో)",
+      ta: "சூரியோதய வேளையில் (வெறும் வயிற்றில்)"
+    };
+  } else if (struggleCategory === "mental_anxiety" || struggleCategory === "health_vitality") {
+    anupanaVehicleName = {
+      kn: "ರಜತೋದಕ / ಕ್ಷೀರ ತೀರ್ಥ (ಬೆಳ್ಳಿ ಪಾತ್ರೆಯ ಶುದ್ಧ ನೀರು ಅಥವಾ ಹಾಲು)",
+      en: "Rajata Jala / Ksheera Theertha (Silver Energized Water or Warm Milk)",
+      hi: "रजतोदक / क्षीर तीर्थ (चांदी के पात्र में रखा जल अथवा दुग्ध)",
+      te: "రజతోదకం (వెండి పాత్రలోని పాలు లేదా నీరు)",
+      ta: "ரஜத ஜலம் (வெள்ளி பாத்திரத்தில் வைக்கப்பட்ட பால் அல்லது நீர்)"
+    };
+    anupanaPrep = {
+      kn: "ಬೆಳ್ಳಿಯ ಪಾತ್ರೆಯಲ್ಲಿ ಶುದ್ಧ ನೀರು ಅಥವಾ ಆಕಳ ಹಾಲನ್ನು ೩ ಗಂಟೆಗಳ ಕಾಲ ಇರಿಸಿ. ಸಂಧ್ಯಾಕಾಲದಲ್ಲಿ ಅಥವಾ ರಾತ್ರಿ ಮಲಗುವ ಮುನ್ನ ಉತ್ತರಕ್ಕೆ ಮುಖಮಾಡಿ ಸೇವಿಸುವುದರಿಂದ ಮನಸ್ಸು ಶಾಂತವಾಗಿ ಗಾಢ ನಿದ್ರೆ ಬರುತ್ತದೆ.",
+      en: "Infuse water or boiled pure cow milk in a pure silver tumbler for 3 hours. Consume at twilight or bedtime facing North to induce deep restorative sleep and settle autonomic turbulence.",
+      hi: "चांदी के पात्र में जल अथवा गाय का दूध ३ घंटे रखें। सायंकाल उत्तर मुख होकर इसका सेवन करें; यह अनिद्रा व मानसिक चंचलता को दूर करता है।",
+      te: "వెండి పాత్రలోని నీరు లేదా పాలను సాయంత్రం సేవించండి. ఇది మానసిక శాంతిని ఇస్తుంది.",
+      ta: "வெள்ளி பாத்திரத்தில் வைத்த நீரை மாலையில் அருந்தவும். இது மன அமைதியையும் தூக்கத்தையும் தரும்."
+    };
+    anupanaTiming = {
+      kn: "ಸಂಧ್ಯಾಕಾಲ (ಸೂರ್ಯಾಸ್ತದ ನಂತರ) ಅಥವಾ ರಾತ್ರಿ ಶಯನ ಪೂರ್ವ",
+      en: "Twilight Sandhya (Post-Sunset) or 30 Mins Before Sleep",
+      hi: "सायं संध्याकाल अथवा रात्रि शयन से पूर्व",
+      te: "సాయంత్రం లేదా పడుకునే ముందు",
+      ta: "சாயங்காலம் அல்லது தூங்குவதற்கு முன்"
+    };
+  } else if (struggleCategory === "student_academic") {
+    anupanaVehicleName = {
+      kn: "ತುಳಸೀ ತೀರ್ಥ (ಶುದ್ಧ ತುಳಸೀ ದಳ ಯುಕ್ತ ಜಲ)",
+      en: "Tulasi Theertha (Sacred Tulasi Infused Water)",
+      hi: "तुलसी तीर्थ (पवित्र तुलसी दल युक्त जल)",
+      te: "తులసీ తీర్థం (తులసి దళాలతో కూడిన జలం)",
+      ta: "துளசி தீர்த்தம் (துளசி இலை கலந்த புனித நீர்)"
+    };
+    anupanaPrep = {
+      kn: "ತಾಮ್ರದ ಪಾತ್ರೆಯ ಶುದ್ಧ ನೀರಿನಲ್ಲಿ ೩ ತಾಜಾ ತುಳಸೀ ದಳಗಳನ್ನು ಹಾಕಿ. 'ಐಂ' ಬೀಜ ಮಂತ್ರವನ್ನು ೧೧ ಬಾರಿ ಉಚ್ಚರಿಸಿ ಆ ತೀರ್ಥವನ್ನು ಪ್ರಾತಃ ಅಧ್ಯಯನಕ್ಕೆ ಮುನ್ನ ಸೇವಿಸಿ. ಇದು ನೆನಪಿನ ಶಕ್ತಿ ಮತ್ತು ಏಕಾಗ್ರತೆಯನ್ನು ದುಪ್ಪಟ್ಟುಗೊಳಿಸುತ್ತದೆ.",
+      en: "Place 3 freshly washed Tulasi leaves into a copper cup of fresh water. Chant the Saraswati Beeja 'AIM' 11 times and sip before morning study to stimulate neuro-cognitive plasticity and photographic recall.",
+      hi: "तांबे के पात्र में ३ तुलसी दल डालें। 'ऐं' बीज मंत्र का ११ बार उच्चारण कर अध्ययन से पूर्व ग्रहण करें। यह एकाग्रता और स्मरणशक्ति बढ़ाता है।",
+      te: "నీటిలో 3 తులసి ఆకులు వేసి 'ఐం' మంత్రం జపించి తాగండి. జ్ఞాపకశక్తి పెరుగుతుంది.",
+      ta: "துளசி இலைகளை நீரில் இட்டு 'ஐம்' மந்திரம் ஜெபித்து அருந்தவும். நினைவாற்றல் கூடும்."
+    };
+    anupanaTiming = {
+      kn: "ಮುಂಜಾನೆ ಅಧ್ಯಯನ ಆರಂಭಿಸುವ ಮುನ್ನ (06:00 - 07:00)",
+      en: "Dawn Before Morning Study (06:00 - 07:00 AM)",
+      hi: "प्रातः अध्ययन प्रारंभ करने से पूर्व",
+      te: "ఉదయం చదువు ప్రారంభించే ముందు",
+      ta: "காலை படிப்பு தொடங்கும் முன்"
+    };
+  } else {
+    anupanaVehicleName = {
+      kn: "ಹರಿದ್ರೋದಕ & ಗಂಗಾತೀರ್ಥ (ಸ್ವಲ್ಪ ಅರಿಶಿನ & ಗಂಗಾಜಲ ಯುಕ್ತ ಉಗುರುಬೆಚ್ಚಗಿನ ನೀರು)",
+      en: "Haridra & Ganga Theertha (Turmeric & Ganga Infused Luke-Warm Water)",
+      hi: "हरिद्रोदक एवं गंगातीर्थ (हल्दी एवं गंगाजल युक्त गुनगुना जल)",
+      te: "హరిద్రోదకం (పసుపు & గంగాజలం కలిపిన గోరువెచ్చని నీరు)",
+      ta: "ஹரித்ரோதகம் (மஞ்சள் மற்றும் கங்காதீர்த்தம் கலந்த நீர்)"
+    };
+    anupanaPrep = {
+      kn: "ಒಂದು ಲೋಟ ಉಗುರುಬೆಚ್ಚಗಿನ ನೀರಿಗೆ ಒಂದು ಚಿಟಿಕೆ ಶುದ್ಧ ಅರಿಶಿನ ಹಾಗೂ ಕೆಲವು ಹನಿ ಗಂಗಾಜಲ ಸೇರಿಸಿ. ಪ್ರಾತಃಕಾಲ ಪೂರ್ವಾಭಿಮುಖವಾಗಿ ಕುಳಿತು ಜಪದ ನಂತರ ಸೇವಿಸುವುದರಿಂದ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳು ಶಮನವಾಗಿ ಭಾಗ್ಯೋದಯವಾಗುತ್ತದೆ.",
+      en: "Blend a pinch of organic turmeric and a few drops of holy Ganga water into luke-warm water. Sip after dawn japa facing East to harmonize all 9 planetary rays and unblock fortune.",
+      hi: "गुनगुने जल में एक चुटकी हल्दी एवं गंगाजल की कुछ बूंदें मिलाएं। प्रातः जप के उपरांत पूर्व मुख होकर पिएं।",
+      te: "గోరువెచ్చని నీటిలో కొద్దిగా పసుపు, గంగాజలం కలిపి ఉదయం జపం తర్వాత తాగండి.",
+      ta: "வெதுவெதுப்பான நீரில் சிறிதளவு மஞ்சள், கங்கா தீர்த்தம் கலந்து ஜெபத்திற்குப் பின் அருந்தவும்."
+    };
+    anupanaTiming = {
+      kn: "ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತ (05:30 - 06:30 AM)",
+      en: "Brahma Muhurtha (05:30 - 06:30 AM)",
+      hi: "ब्राह्म मुहूर्त वेला (05:30 - 06:30)",
+      te: "బ్రాహ్మీ ముహూర్తం (05:30 - 06:30)",
+      ta: "பிரம்ம முகூர்த்தம் (05:30 - 06:30)"
+    };
+  }
+
+  // 4. Pathya & Apathya (Dietary & Behavioral Protocol)
+  const pathyaPrescribed: Array<Record<SupportedLanguage, string>> = [
+    {
+      kn: "ಪ್ರತಿದಿನ ಮುಂಜಾನೆ ಹಸುವಿನ ಹಾಲು, ಹಸಿ ಹೆಸರುಕಾಳು, ದಾಳಿಂಬೆ ಅಥವಾ ಸಿಹಿ ಹಣ್ಣುಗಳ ಸೇವನೆ.",
+      en: "Daily intake of fresh cow milk, green moong, sweet pomegranate, and seasonal fruits.",
+      hi: "प्रतिदिन प्रातः देशी गाय का दूध, मूंग दाल, अनार अथवा मीठे फलों का सेवन।",
+      te: "ఆవు పాలు, పెసలు, దానిమ్మ మరియు తీపి పండ్ల సేవనం.",
+      ta: "பசும்பால், பாசிப்பயறு, மாதுளை மற்றும் இனிப்பு பழங்கள் உட்கொள்ளுதல்."
+    },
+    {
+      kn: "ದಿನವಿಡೀ ಶಾಂತ, ಮಿತ ಹಾಗೂ ಹಿತಕರ ಮಾತು; ಸೂರ್ಯಾಸ್ತ ಸಮಯದಲ್ಲಿ ಕನಿಷ್ಠ ೧೫ ನಿಮಿಷ ಮೌನ ಧಾರಣೆ.",
+      en: "Speaking softly and truth-bound; observing at least 15 minutes of sacred silence at sunset.",
+      hi: "शांत एवं मधुर वाणी; सायंकाल गोधूलि वेला में १५ मिनट मौन धारण।",
+      te: "శాంతమైన మాటలు; సూర్యాస్తమయ సమయంలో 15 నిమిషాల మౌనం.",
+      ta: "அமைதியான பேச்சு; சூரிய அஸ்தமன வேளையில் 15 நிமிடம் மௌனம் காத்தல்."
+    },
+    {
+      kn: "ಪ್ರತಿದಿನ ತುಪ್ಪದ ದೀಪ ಬೆಳಗಿಸಿ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಹಾಗೂ ಕುಲದೇವತೆಗೆ ನಮಸ್ಕರಿಸುವುದು.",
+      en: "Lighting a pure cow ghee lamp daily and bowing to Lord Mahabaleshwara and Kula Devata.",
+      hi: "नित्य गोघृत का दीपक जलाकर भगवान महाबलेश्वर एवं कुलदेवता का स्मरण।",
+      te: "నిత్యం నేతి దీపం వెలిగించి కులదేవతను పూజించడం.",
+      ta: "தினசரி நெய் தீபம் ஏற்றி மகாபலேஸ்வரரையும் குலதெய்வத்தையும் வணங்குதல்."
+    }
+  ];
+
+  const apathyaProhibited: Array<Record<SupportedLanguage, string>> = [
+    {
+      kn: "೧೫-೨೦ ದಿನಗಳ ಕಾಲ ಅತಿಯಾದ ಖಾರ, ಮಸಾಲೆ, ಎಣ್ಣೆ ಜಿಡ್ಡಿನ ತಿಂಡಿ, ಹಳಸಿದ ಆಹಾರ ಹಾಗೂ ಮಾಂಸಾಹಾರ ಸೇವನೆ ಸಂಪೂರ್ಣ ನಿಷಿದ್ಧ.",
+      en: "Strictly prohibit stale, overly spicy, deep-fried, tamasic foods and non-vegetarian diet for 15-20 days.",
+      hi: "१५-२० दिनों तक अत्यधिक तीखा, बासी, तामसिक भोजन एवं मांसाहार का पूर्ण त्याग।",
+      te: "15-20 రోజుల పాటు కారం, మసాలా, తామసిక ఆహారం మరియు మాంసాహారం నిషేధం.",
+      ta: "15-20 நாட்களுக்கு அதிக காரம், பழைய உணவு மற்றும் அசைவ உணவுகளை முற்றிலும் தவிர்க்கவும்."
+    },
+    {
+      kn: "ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಆವೇಶದ ವಾದ-ವಿವಾದ, ಕೋಪದ ಬೈಗುಳ, ಸುಳ್ಳು ಹೇಳುವುದು ಹಾಗೂ ಅನ್ಯರ ದೂಷಣೆಯಲ್ಲಿ ತೊಡಗಬಾರದು.",
+      en: "Strictly avoid impulsive arguments, harsh outbursts, falsehood, or criticising others.",
+      hi: "क्रोध, कटु वचन, मिथ्या भाषण एवं दूसरों की निंदा से पूर्णतः बचें।",
+      te: "కోపం, అసత్యం మరియు ఇతరులను నిందించడం పూర్తిగా మానాలి.",
+      ta: "வீண் வாக்குவாதம், கோபமான சொற்கள் மற்றும் பொய் பேசுவதை தவிர்க்கவும்."
+    },
+    {
+      kn: "ಸೂರ್ಯೋದಯದ ನಂತರ ನಿದ್ರೆ ಮಾಡುವುದು ಹಾಗೂ ರಾತ್ರಿ ತಡವಾಗಿ ಊಟ ಮಾಡುವುದು ವರ್ಜ್ಯ.",
+      en: "Sleeping past sunrise and late-night heavy dinners must be strictly avoided.",
+      hi: "सूर्योदय के पश्चात सोना एवं देर रात भोजन करना पूर्ण वर्जित है।",
+      te: "సూర్యోదయం తర్వాత నిద్రించడం మరియు రాత్రి ఆలస్యంగా భోజనం చేయడం నిషిద్ధం.",
+      ta: "சூரியோதயத்திற்குப் பின் தூங்குவதும் இரவு தாமதமாக உண்பதும் கூடாது."
+    }
+  ];
+
+  // 5. Chikitsa Kala & Direction
+  const chikitsaKala = {
+    idealTimeWindow: {
+      kn: "ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತ (05:30 - 06:45 AM) ಅಥವಾ ಪ್ರದೋಷ ಕಾಲ (18:00 - 19:15)",
+      en: "Brahma Muhurtha (05:30 - 06:45 AM) or Pradosha Sandhya (18:00 - 19:15)",
+      hi: "ब्राह्म मुहूर्त (05:30 - 06:45) अथवा प्रदोष काल (18:00 - 19:15)",
+      te: "బ్రాహ్మీ ముహూర్తం (05:30 - 06:45) లేదా ప్రదోష వేళ (18:00 - 19:15)",
+      ta: "பிரம்ம முகூர்த்தம் (05:30 - 06:45) அல்லது பிரதோஷ காலம் (18:00 - 19:15)"
+    },
+    facingDirection: {
+      kn: "ಪೂರ್ವ (ಆರೋಗ್ಯ & ತೇಜಸ್ಸು) ಅಥವಾ ಉತ್ತರ (ಶಾಂತಿ & ಸಮೃದ್ಧಿ)",
+      en: "East (for Vitality & Cognition) or North (for Wealth & Peace)",
+      hi: "पूर्व (आरोग्य एवं तेज) अथवा उत्तर (शांति एवं समृद्धि)",
+      te: "తూర్పు (ఆరోగ్యం) లేదా ఉత్తరం (శాంతి & సంపద)",
+      ta: "கிழக்கு (ஆரோக்கியம்) அல்லது வடக்கு (சாந்தி & செல்வம்)"
+    },
+    asanaMaterial: {
+      kn: "ಶುದ್ಧ ಬಿಳಿ ಹತ್ತಿ ಅಥವಾ ಉಣ್ಣೆಯ ಆಸನ (ಕುಶಾಸನ ಶ್ರೇಷ್ಠ)",
+      en: "Pure white cotton or woolen asana (Kushasana preferred)",
+      hi: "श्वेत सूती अथवा ऊनी आसन (कुशासन सर्वोत्तम)",
+      te: "తెల్లని నూలు లేదా ఉన్ని ఆసనం (కుశాసనం శ్రేష్టం)",
+      ta: "தூய பருத்தி அல்லது கம்பளி ஆசனம் (தர்பை ஆசனம் சிறந்தது)"
+    }
+  };
+
+  // 6. 15-to-20 Day Measurable Relief Progression (ಅನುಭವಕ್ಕೆ ಬರುವ ಚಿಕಿತ್ಸಾ ಫಲಶ್ರುತಿ)
+  const reliefMilestones = {
+    day1To3: {
+      stage: {
+        kn: "ಹಂತ ೧ (ದಿನ ೧ - ೩): ಪ್ರಾಥಮಿಕ ಉಪಶಮನ (Acute Crisis Calming)",
+        en: "Stage 1 (Days 1 - 3): Acute Crisis Calming",
+        hi: "चरण १ (दिन १ - ३): प्राथमिक उपशमन",
+        te: "దశ 1 (రోజులు 1 - 3): ప్రాథమిక ఉపశమనం",
+        ta: "படி 1 (நாட்கள் 1 - 3): ஆரம்ப நிவாரணம்"
+      },
+      observation: {
+        kn: "ಹೃದಯ ಬಡಿತ ಮತ್ತು ರಕ್ತದೊತ್ತಡ ಸಹಜ ಸ್ಥಿತಿಗೆ ಮರಳುವುದು; ತೀವ್ರ ಆವೇಶ, ಆತಂಕ ಮತ್ತು ಹತಾಶೆಯ ಭಾವನೆಗಳು ತಕ್ಷಣ ಶಮನಗೊಳ್ಳಲು ಆರಂಭವಾಗುತ್ತವೆ.",
+        en: "Autonomic heart rate and neural reactivity settle; acute spikes of panic, frustration, and reactive anger subside markedly.",
+        hi: "हृदय गति एवं रक्तचाप सामान्य होता है; तीव्र क्रोध, भय और निराशा के आवेग शांत होने लगते हैं।",
+        te: "గుండె వేగం మరియు రక్తపోటు స్థిరపడతాయి; తీవ్ర ఆవేశం మరియు భయం తగ్గడం మొదలవుతుంది.",
+        ta: "இதய துடிப்பு மற்றும் ரத்த அழுத்தம் சீராகும்; தீவிர கோபம் மற்றும் பய உணர்வுகள் தணிய தொடங்கும்."
+      }
+    },
+    day4To7: {
+      stage: {
+        kn: "ಹಂತ ೨ (ದಿನ ೪ - ೭): ಮಾನಸಿಕ ಸ್ಥಿರತೆ & ಗಾಢ ನಿದ್ರೆ (Subconscious Grounding)",
+        en: "Stage 2 (Days 4 - 7): Subconscious Grounding & Restorative Sleep",
+        hi: "चरण २ (दिन ४ - ७): मानसिक स्थिरता एवं सुखद निद्रा",
+        te: "దశ 2 (రోజులు 4 - 7): మానసిక స్థిరత్వం & నిద్ర",
+        ta: "படி 2 (நாட்கள் 4 - 7): மன அமைதி & ஆழ்ந்த தூக்கம்"
+      },
+      observation: {
+        kn: "ಗಾಢವಾದ ವಿಶ್ರಾಂತಿ ನಿದ್ರೆ ಲಭಿಸುತ್ತದೆ; ರಾತ್ರಿಯ ವೇಳೆ ಕಾಡುವ ಅತಿಯಾದ ಯೋಚನೆಗಳು ೪೦-೫೦% ರಷ್ಟು ಕಡಿಮೆಯಾಗಿ ಮುಂಜಾನೆ ಹೊಸ ಉಲ್ಲಾಸ ಮೂಡುತ್ತದೆ.",
+        en: "Deep restorative REM sleep returns; repetitive nocturnal overthinking and irritability decline by 40-50%, infusing tranquil resilience.",
+        hi: "गहरी व शांत निद्रा प्राप्त होती है; रात की बेचैनी एवं अत्यधिक सोच में ४०-५०% कमी आकर मन में उत्साह जगता है।",
+        te: "గాఢ నిద్ర పడుతుంది; రాత్రివేళ అధిక ఆలోచనలు 40-50% తగ్గి ఉదయం ప్రశాంతత కలుగుతుంది.",
+        ta: "ஆழ்ந்த அமைதியான உறக்கம் கிட்டும்; இரவில் அதிக சிந்தனை 40-50% குறைந்து உள்ளத்தில் புதுத்தெம்பு பிறக்கும்."
+      }
+    },
+    day8To14: {
+      stage: {
+        kn: "ಹಂತ ೩ (ದಿನ ೮ - ೧೪): ಕರ್ಮಿಕ ಮಾರ್ಗಭೇದನ & ಅಡೆತಡೆ ನಿವಾರಣೆ (Karmic Unblocking)",
+        en: "Stage 3 (Days 8 - 14): Karmic Roadblock Dissolution",
+        hi: "चरण ३ (दिन ८ - १४): कर्मिक अवरोध निवारण",
+        te: "దశ 3 (రోజులు 8 - 14): కర్మిక ఆటంకాల తొలగింపు",
+        ta: "படி 3 (நாட்கள் 8 - 14): கர்ம தடைகள் விலகுதல்"
+      },
+      observation: {
+        kn: "ದೀರ್ಘಕಾಲದಿಂದ ನಿಂತುಹೋಗಿದ್ದ ಕೆಲಸಗಳಲ್ಲಿ ಚಲನೆ ಕಂಡುಬರುತ್ತದೆ; ನಿರೀಕ್ಷಿತ ಸಕಾರಾತ್ಮಕ ಕರೆಗಳು, ಕೌಟುಂಬಿಕ ಸೌಹಾರ್ದತೆ ಹಾಗೂ ಹಣಕಾಸಿನ ಮುಗ್ಗಟ್ಟು ಸಡಿಲಗೊಳ್ಳುತ್ತದೆ.",
+        en: "Stalled endeavors resume motion; long-awaited positive messages arrive, communication barriers dissolve, and financial/relationship gridlocks loosen up.",
+        hi: "लंबे समय से रुके हुए कार्यों में गति आती है; शुभ समाचार मिलते हैं और आर्थिक अथवा पारिवारिक तनाव शिथिल होता है।",
+        te: "నిలిచిపోయిన పనులలో కదలిక వస్తుంది; శుభ వార్తలు అందుతాయి మరియు ఆర్థిక సమస్యలు తగ్గుముఖం పడతాయి.",
+        ta: "நீண்ட நாட்களாக தடைபட்ட காரியங்கள் நகர தொடங்கும்; நற்செய்திகள் வரும் மற்றும் பொருளாதார நெருக்கடி குறையும்."
+      }
+    },
+    day15To20: {
+      stage: {
+        kn: "ಹಂತ ೪ (ದಿನ ೧೫ - ೨೦): ಪ್ರತ್ಯಕ್ಷ ಫಲಸಿದ್ಧಿ & ಪರಿಹಾರದ ಅನುಭವ (Tangible Breakthrough & Relief)",
+        en: "Stage 4 (Days 15 - 20): Tangible Breakthrough & Palpable Relief",
+        hi: "चरण ४ (दिन १५ - २०): प्रत्यक्ष फलसिद्धि एवं राहत का अनुभव",
+        te: "దశ 4 (రోజులు 15 - 20): ప్రత్యక్ష ఫలితం & ఉపశమనం",
+        ta: "படி 4 (நாட்கள் 15 - 20): கண்கூடான வெற்றி & நிம்மதி"
+      },
+      observation: {
+        kn: "ಮುಖ್ಯ ಸಮಸ್ಯೆಯಿಂದ ಕಣ್ಣಿಗೆ ಕಾಣುವ ಸ್ಪಷ್ಟ ಮುಕ್ತಿ; ಕಣ್ಣೆದುರೇ ದೈವಿಕ ರಕ್ಷಣೆ, ನವಚೈತನ್ಯ ಮತ್ತು ಜೀವನದಲ್ಲಿ ಸ್ಪಷ್ಟ ಭರವಸೆಯ ತಿರುವು ಗೋಚರವಾಗುತ್ತದೆ.",
+        en: "A palpable, tangible breakthrough in your primary struggle manifests; an unmistakable sense of divine protection, renewed enthusiasm, and clear direction replaces helplessness.",
+        hi: "मुख्य समस्या से स्पष्ट मुक्ति व राहत का अनुभव; स्पष्ट मानसिक शांति, दैवीय संरक्षण की अनुभूति और जीवन में नई दिशा प्राप्त होती है।",
+        te: "ప్రధాన సమస్య నుండి స్పష్టమైన ఉపశమనం లభిస్తుంది; దైవిక రక్షణ భావన మరియు మనస్సులో అఖండ శాంతి కలుగుతాయి.",
+        ta: "முக்கிய பிரச்சனையிலிருந்து கண்கூடாக விடுதலை கிடைக்கும்; தெய்வீக பாதுகாப்பு உணர்வும் மனதில் புது நம்பிக்கையும் மலரும்."
+      }
+    },
+    day21To45: {
+      stage: {
+        kn: "ಹಂತ ೫ (ದಿನ ೨೧ - ೪೫): ಮಂಡಲ ಪೂರ್ಣತಾ & ಶಾಶ್ವತ ರಕ್ಷಾ ಕವಚ (Mandala Poornata & Permanent Armor)",
+        en: "Stage 5 (Days 21 - 45): Mandala Poornata & Permanent Spiritual Armor",
+        hi: "चरण ५ (दिन २१ - ४५): मंडल पूर्णता एवं स्थायी रक्षा कवच",
+        te: "దశ 5 (రోజులు 21 - 45): మండల పూర్ణత & రక్షణ కవచం",
+        ta: "படி 5 (நாட்கள் 21 - 45): மண்டல பூர்த்தி & நிரந்தர பாதுகாப்பு"
+      },
+      observation: {
+        kn: "ಏಕ ಮಂಡಲ ಸಾಧನೆಯಿಂದ ಜಾತಕದ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳು ಸಂಪೂರ್ಣ ಭಸ್ಮವಾಗಿ, ಕುಟುಂಬದಲ್ಲಿ ಶಾಶ್ವತ ನೆಮ್ಮದಿ, ಅಭೀಷ್ಟ ಸಿದ್ಧಿ ಮತ್ತು ದೈವಾನುಗ್ರಹ ಸ್ಥಿರಗೊಳ್ಳುತ್ತದೆ.",
+        en: "Completing 45 days of consecrated sadhana incinerates deep-rooted karmic debts, establishing permanent spiritual immunity, domestic bliss, and lasting prosperity.",
+        hi: "एक मंडल साधना से ग्रहदोष भस्म होकर परिवार में स्थायी सुख-शांति, अभीष्ट सिद्धि और अखंड समृद्धि स्थापित होती है।",
+        te: "ఒక మండల సాధనతో గ్రహదోషాలు తొలగి కుటుంబంలో శాశ్వత శాంతి, సంపద మరియు దైవానుగ్రహం స్థిరపడతాయి.",
+        ta: "ஒரு மண்டல வழிபாட்டால் கிரக தோஷங்கள் நீங்கி குடும்பத்தில் நிரந்தர அமைதி, விருப்பங்கள் நிறைவேறுதல் மற்றும் சுபிட்சம் உண்டாகும்."
+      }
+    }
+  };
+
+  return {
+    title: {
+      kn: "ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಚಿಕಿತ್ಸಾ ಪತ್ರ (Medical-Grade Astrological Prescription)",
+      en: "Medical-Grade Astrological Prescription (Vedic Chikitsa Patra)",
+      hi: "वैदिक ज्योतिषीय चिकित्सा पत्र (Medical-Grade Astrological Prescription)",
+      te: "వైదిక జ్యోతిష్య చికిత్సా పత్రం (Medical-Grade Astrological Prescription)",
+      ta: "வைதீக ஜோதிட மருத்துவ சீட்டு (Medical-Grade Astrological Prescription)"
+    },
+    subtitle: {
+      kn: "ಆಯುರ್ವೇದೀಯ ನಿಧಾನ, ದಿವ್ಯ ಮಂತ್ರ ಔಷಧ, ಪವಿತ್ರ ಅನುಪಾನ ಸೇವನೆ, ಪಥ್ಯ-ಅಪಥ್ಯ ಹಾಗೂ ೧೫-೨೦ ದಿನಗಳ ಚಿಕಿತ್ಸಾ ಫಲಶ್ರುತಿ.",
+      en: "Shastric Nidana diagnosis, Divine Mantra medicine, Sacred Anupana carrier, Strict Pathya regimen & 15-to-20 Day Relief Progression.",
+      hi: "आयुर्वेदिक निदान, दिव्य मंत्र औषधि, पवित्र अनुपान सेवन, पथ्य-अपथ्य एवं १५-२० दिवसीय प्रत्यक्ष फलश्रुति।",
+      te: "ఆయుర్వేద నిదానం, దివ్య మంత్ర ఔషధం, పవిత్ర అనుపానం, పథ్య నియమాలు & 15-20 రోజుల ప్రత్యక్ష ఫలితం.",
+      ta: "ஆயுர்வேத சிகிச்சை முறை, மந்திர மருந்து, புனித அனுபானம், பத்திய உணவு முறை & 15-20 நாள் நிவாரண பலன்."
+    },
+    nidana: {
+      primaryDosha,
+      doshaLabel,
+      rootCauseDescription,
+      affectedNadis
+    },
+    aushadha: {
+      beejaMantra: {
+        mantraSanskrit,
+        mantraNative,
+        transliteration,
+        dailyDosageCount,
+        instructions
+      },
+      stotraKavacha,
+      sacredSubstance
+    },
+    anupana: {
+      vehicleName: anupanaVehicleName,
+      preparationMethod: anupanaPrep,
+      intakeTiming: anupanaTiming
+    },
+    pathyaApathya: {
+      pathyaPrescribed,
+      apathyaProhibited
+    },
+    chikitsaKala,
+    reliefMilestones
+  };
+}
+
 export function computeMandalaVrataSadhana(
   struggleCategory: KundliRemedyDiagnosis["primaryStruggle"]["category"],
   catalystGraha: PlanetName,
@@ -4123,6 +4978,32 @@ export function generateKundliRemedyReport(
   // Affliction Factors List
   const afflictionFactors = [];
 
+  // Badhaka Graha Analysis (Parashara Obstruction Sthana)
+  const badhakaInfo = computeBadhakaAnalysis(lagnaRashiIndex);
+  const badhakaPlanetObj = planets.find(p => p.name === badhakaInfo.badhakeshGraha);
+
+  if (badhakaPlanetObj && ([1, 6, 7, 8, 11, 12].includes(badhakaPlanetObj.house) || badhakaPlanetObj.isDebilitated)) {
+    afflictionFactors.push({
+      graha: badhakaInfo.badhakeshGraha,
+      title: {
+        kn: `ಬಾಧಕಾಧಿಪತಿ ದೋಷ (${badhakaInfo.badhakeshName.kn})`,
+        en: `Badhakesh Obstruction (${badhakaInfo.badhakeshName.en})`,
+        hi: `बाधकेश दोष (${badhakaInfo.badhakeshName.hi})`,
+        te: `బాధకాధిపతి దోషం (${badhakaInfo.badhakeshName.te})`,
+        ta: `பாதகாதிபதி தோஷம் (${badhakaInfo.badhakeshName.ta})`
+      },
+      reason: badhakaInfo.diagnosisReason,
+      house: badhakaPlanetObj.house,
+      impact: {
+        kn: "ಮಹತ್ವದ ಕಾರ್ಯಗಳು ಕೊನೆ ಕ್ಷಣದಲ್ಲಿ ಅನಿರೀಕ್ಷಿತವಾಗಿ ವಿಳಂಬವಾಗುವುದು.",
+        en: "Unforeseen bottlenecks occurring just as endeavors reach final culmination.",
+        hi: "महत्वपूर्ण कार्यों में अंतिम क्षणों में अप्रत्याशित विलंब होना।",
+        te: "పనులు చివరి దశకు చేరుకున్నప్పుడు ఆటంకాలు రావడం.",
+        ta: "முக்கிய காரியங்கள் முடியும் தருவாயில் எதிர்பாராத தடைகள் ஏற்படுதல்."
+      }
+    });
+  }
+
   if (isMarsAfflicted && mars) {
     afflictionFactors.push({
       graha: PlanetName.Mars,
@@ -4160,6 +5041,36 @@ export function generateKundliRemedyReport(
       reason: { kn: `ರಾಹುವು ${rahu.house} ನೇ ಮನೆಯಲ್ಲಿ ಸ್ಥಿತನಾಗಿ ಅನಿರೀಕ್ಷಿತ ತಿರುವುಗಳನ್ನು ನೀಡುತ್ತಾನೆ.`, en: `Rahu on the ${rahu.house} axis creates sudden phantom anxieties and restless ambitions.`, hi: `राहु ${rahu.house}वें भाव में होकर मन में भ्रम उत्पन्न करता है।`, te: `రాహువు ${rahu.house}వ స్థానంలో ఉండి చికాకు కలిగిస్తాడు.`, ta: `ராகு ${rahu.house}ம் இடத்தில் இருந்து குழப்பம் தருகிறார்.` },
       house: rahu.house,
       impact: { kn: "ಸ್ಪಷ್ಟತೆಯ ಕೊರತೆ, ಆತಂಕ.", en: "Temporary confusion, sudden bursts of desire followed by burnout.", hi: "अनिर्णय की स्थिति।", te: "స్పష్టత లేకపోవడం.", ta: "குழப்பமான மனநிலை." }
+    });
+  }
+
+  if (sun && (sun.isDebilitated || sun.rashi.english === "Libra" || [6, 8, 12].includes(sun.house))) {
+    afflictionFactors.push({
+      graha: PlanetName.Sun,
+      title: { kn: "ರವಿ ಕ್ಷೀಣತೆ / ಆತ್ಮಬಲ ಕೊರತೆ", en: "Sun Affliction / Low Vitality & Identity Strain", hi: "सूर्य दुर्बलता / आत्मबल क्षीणता", te: "సూర్య క్షీణత / ఆత్మబలం లోపం", ta: "சூரிய பலவீனம் / ஆன்ம பல குறைவு" },
+      reason: { kn: `ರವಿ ಗ್ರಹವು ${sun.house} ನೇ ಮನೆಯಲ್ಲಿದ್ದು ಅಥವಾ ನೀಚ ಸ್ಥಿತಿಯಲ್ಲಿದ್ದು, ದೈಹಿಕ ತೇಜಸ್ಸು ಹಾಗೂ ಆತ್ಮವಿಶ್ವಾಸದಲ್ಲಿ ಏರಿಳಿತ ತರುತ್ತದೆ.`, en: `Sun placed in House ${sun.house} or debilitated affects sympathetic energy and vitality.`, hi: `सूर्य ${sun.house}वें भाव में अथवा नीच राशि में होकर आत्मविश्वास और ऊर्जा को प्रभावित करता है।`, te: `సూర్యుడు ${sun.house}వ స్థానంలో లేదా నీచంలో ఉండి ఆత్మవిశ్వాసాన్ని తగ్గిస్తాడు.`, ta: `சூரியன் ${sun.house}ம் இடத்தில் அல்லது நீசமாக இருந்து ஆத்ம பலத்தை பாதிக்கிறார்.` },
+      house: sun.house,
+      impact: { kn: "ಆತ್ಮವಿಶ್ವಾಸದ ಕೊರತೆ, ತಂದೆಯವರ ಸಹಕಾರದಲ್ಲಿ ಅಡಚಣೆ.", en: "Low confidence, fatherly friction, energy fatigue.", hi: "आत्मविश्वास की कमी एवं थकान।", te: "ఆత్మవిశ్వాసం లోపించడం, అలసట.", ta: "நம்பிக்கையின்மை, உடல் சோர்வு." }
+    });
+  }
+
+  if (jupiter && (jupiter.isDebilitated || jupiter.rashi.english === "Capricorn" || [6, 8, 12].includes(jupiter.house))) {
+    afflictionFactors.push({
+      graha: PlanetName.Jupiter,
+      title: { kn: "ಗುರು ದೌರ್ಬಲ್ಯ / ವಿವೇಕ-ಧನ ಭಾಗ್ಯ ತಡೆ", en: "Jupiter Affliction / Wisdom & Fortune Slump", hi: "गुरु दुर्बलता / भाग्य एवं धन बाधा", te: "గురు దౌర్బల్యం / భాగ్య లోపం", ta: "குரு பலவீனம் / பாக்கிய தடை" },
+      reason: { kn: `ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ${jupiter.house} ನೇ ಭಾವದಲ್ಲಿ ನೆಲೆಸಿದ್ದು, ಆಧ್ಯಾತ್ಮಿಕ ಮಾರ್ಗದರ್ಶನ ಮತ್ತು ಆರ್ಥಿಕ ವೃದ್ಧಿಯಲ್ಲಿ ಅಡೆತಡೆ ತರುತ್ತಾನೆ.`, en: `Jupiter in House ${jupiter.house} demands dedicated Guru propitiation to unblock higher guidance.`, hi: `बृहस्पति ${jupiter.house}वें भाव में होकर भाग्य और धन वृद्धि में विलंब करते हैं।`, te: `గురుడు ${jupiter.house}వ స్థానంలో ఉండి ధన, భాగ్యాలలో ఆటంకాలు కలిగిస్తాడు.`, ta: `குரு ${jupiter.house}ம் இடத்தில் இருந்து சுப காரியங்களில் தாமதம் ஏற்படுத்துகிறார்.` },
+      house: jupiter.house,
+      impact: { kn: "ಹಿರಿಯರ ಆಶೀರ್ವಾದದ ಕೊರತೆ, ನಿರ್ಧಾರಗಳಲ್ಲಿ ಗೊಂದಲ.", en: "Lack of mentorship, hesitation in big decisions.", hi: "निर्णय में असमंजस एवं रुकावट।", te: "నిర్ణయాలలో సందిగ్ధత.", ta: "முடிவெடுப்பதில் குழப்பம்." }
+    });
+  }
+
+  if (mercury && (mercury.isDebilitated || mercury.rashi.english === "Pisces" || [6, 8, 12].includes(mercury.house))) {
+    afflictionFactors.push({
+      graha: PlanetName.Mercury,
+      title: { kn: "ಬುಧ ಮಂದತೆ / ಏಕಾಗ್ರತೆ & ಸಂವಹನ ಭಂಗ", en: "Mercury Affliction / Communication Slump", hi: "बुध मंदता / एकाग्रता एवं संवाद बाधा", te: "బుధ బలహీనత / ఏకాగ్రత లోపం", ta: "புதன் பலவீனம் / தகவல் தொடர்பு தடை" },
+      reason: { kn: `ಬುದ್ಧಿಕಾರಕ ಬುಧನು ${mercury.house} ನೇ ಭಾವದಲ್ಲಿ ಸ್ಥಿತನಾಗಿದ್ದು, ವ್ಯಾಪಾರ, ಮಾತುಕತೆ ಮತ್ತು ಅಧ್ಯಯನದಲ್ಲಿ ಗೊಂದಲ ಉಂಟುಮಾಡಬಹುದು.`, en: `Mercury in House ${mercury.house} or debilitated triggers hesitation in negotiations and scattered thoughts.`, hi: `बुध ${mercury.house}वें भाव में होकर वाणी और व्यवसाय में उतार-चढ़ाव लाता है।`, te: `బుధుడు ${mercury.house}వ స్థానంలో ఉండి వ్యాపారంలో ఒడిదుడుకులు తెస్తాడు.`, ta: `புதன் ${mercury.house}ம் இடத்தில் இருந்து பேச்சிலும் வணிகத்திலும் தடைகளை தருகிறார்.` },
+      house: mercury.house,
+      impact: { kn: "ಸಂವಹನದಲ್ಲಿ ಅಪಾರ್ಥ, ನೆನಪಿನ ಶಕ್ತಿಯಲ್ಲಿ ಏರಿಳಿತ.", en: "Misunderstandings in communication, memory fatigue.", hi: "संवाद में गलतफहमियां।", te: "సమస్యలు, స్పష్టత లేకపోవడం.", ta: "தவறான புரிதல்கள், மறதி." }
     });
   }
 
@@ -5479,6 +6390,32 @@ export function generateKundliRemedyReport(
     };
   }
 
+  const mahaDevata = GRAHA_DEVATA_PAIRS[mahaDashaPlanet] || GRAHA_DEVATA_PAIRS[PlanetName.Jupiter];
+  const bhuktiDevata = GRAHA_DEVATA_PAIRS[bhuktiPlanet] || GRAHA_DEVATA_PAIRS[PlanetName.Jupiter];
+
+  const adhidevataObj = {
+    adhidevata: mahaDevata.adhidevata,
+    pratyadhidevata: mahaDevata.pratyadhidevata,
+    sadhana: {
+      kn: `ದಶಾನಾಥ ${mahaDevata.adhidevata.kn} ಹಾಗೂ ಭುಕ್ತಿನಾಥ ${bhuktiDevata.pratyadhidevata.kn} ಆರಾಧನೆಯಿಂದ ಈ ದಶಾಕಾಲವು ಪರಮ ಶುಭಕರವಾಗಲಿದೆ.`,
+      en: `Propitiating Dasha Lord's Adhidevata (${mahaDevata.adhidevata.en}) and Bhukti Lord's Pratyadhidevata (${bhuktiDevata.pratyadhidevata.en}) unlocks harmonious karmic flow.`,
+      hi: `दशेश अधिदेवता (${mahaDevata.adhidevata.hi}) एवं भुक्ति प्रत्याधिदेवता (${bhuktiDevata.pratyadhidevata.hi}) की आराधना से यह दशा अत्यंत शुभ फलदायी होगी।`,
+      te: `దశా అధిదేవత మరియు భుక్తి ప్రత్యధిదేవత పూజలతో ఈ కాలం శుభప్రదమవుతుంది.`,
+      ta: `திசா அதிதேவதை மற்றும் புக்தி பிரத்யதிதேவதை வழிபாட்டால் நற்பலன்கள் கிட்டும்.`
+    },
+    mahaDashaAdhidevata: mahaDevata.adhidevata,
+    mahaDashaPratyadhidevata: mahaDevata.pratyadhidevata,
+    bhuktiAdhidevata: bhuktiDevata.adhidevata,
+    bhuktiPratyadhidevata: bhuktiDevata.pratyadhidevata,
+    sadhanaAction: {
+      kn: `ದಶಾನಾಥ ${mahaDevata.adhidevata.kn} ಹಾಗೂ ಭುಕ್ತಿನಾಥ ${bhuktiDevata.pratyadhidevata.kn} ಆರಾಧನೆಯಿಂದ ಈ ದಶಾಕಾಲವು ಪರಮ ಶುಭಕರವಾಗಲಿದೆ.`,
+      en: `Propitiating Dasha Lord's Adhidevata (${mahaDevata.adhidevata.en}) and Bhukti Lord's Pratyadhidevata (${bhuktiDevata.pratyadhidevata.en}) unlocks harmonious karmic flow.`,
+      hi: `दशेश अधिदेवता (${mahaDevata.adhidevata.hi}) एवं भुक्ति प्रत्याधिदेवता (${bhuktiDevata.pratyadhidevata.hi}) की आराधना से यह दशा अत्यंत शुभ फलदायी होगी।`,
+      te: `దశా అధిదేవత మరియు భుక్తి ప్రత్యధిదేవత పూజలతో ఈ కాలం శుభప్రదమవుతుంది.`,
+      ta: `திசா அதிதேவதை மற்றும் புக்தி பிரத்யதிதேவதை வழிபாட்டால் நற்பலன்கள் கிட்டும்.`
+    }
+  };
+
   const dashaBhuktiAnalysis = {
     currentMahaDasha: mahaDashaPlanet,
     currentBhukti: bhuktiPlanet,
@@ -5499,7 +6436,8 @@ export function generateKundliRemedyReport(
       ta: `இந்த திசை நன்மை பெற கோகர்ணத்தில் வழிபாடு செய்யவும்.`
     },
     isSandhiActive,
-    sandhiAlert: sandhiAlertObj
+    sandhiAlert: sandhiAlertObj,
+    adhidevata: adhidevataObj
   };
 
   // 11. Gochara (Transit) Real-Time Calculation for all planets
@@ -5531,13 +6469,103 @@ export function generateKundliRemedyReport(
   const isKantakaShani = saturnDiff === 3 || saturnDiff === 6 || saturnDiff === 9;
 
   let sadeSatiText: Record<string, string>;
-  if (isSadeSati) {
+  let sadeSatiDetailedPhase: KundliRemedyDiagnosis["gocharaTransitAnalysis"]["sadeSatiDetailedPhase"];
+
+  if (saturnDiff === 11) {
     sadeSatiText = {
-      kn: "⚠️ ಶನಿ ಸಾಡೇಸಾತಿ (ಏಳೂವರೆ ವರ್ಷದ ಶನಿ ಪ್ರಭಾವ) ಸಕ್ರಿಯವಾಗಿದೆ - ತಾಳ್ಮೆ, ಶಾಂತಿ ಮತ್ತು ಹನುಮಾನ್ ಜಪ ಅತ್ಯಗತ್ಯ.",
-      en: "⚠️ Active Sade Sati Phase (7.5 Year Saturn Cycle) - Demands calm speech, discipline, and Hanuman devotion.",
-      hi: "⚠️ साढ़ेसाती प्रभाव सक्रिय है - धैर्य और हनुमान उपासना आवश्यक है।",
-      te: "⚠️ ఏలినాటి శని ప్రభావం ఉంది - ఓపిక మరియు హనుమాన్ పూజ అవసరం.",
-      ta: "⚠️ ஏழரை நாட்டு சனி நடப்பில் உள்ளது - பொறுமையும் வழிபாடும் அவசியம்."
+      kn: "⚠️ ಶನಿ ಸಾಡೇಸಾತಿ ಪ್ರಥಮ ಚರಣ (ಆರೋಹಣ ಹಂತ - ವ್ಯಯ ಶನಿ) ಸಕ್ರಿಯವಾಗಿದೆ - ತಾಳ್ಮೆ, ಶಾಂತಿ ಮತ್ತು ಹನುಮಾನ್ ಜಪ ಅತ್ಯಗತ್ಯ.",
+      en: "⚠️ Active Sade Sati 1st Phase (Rising Phase - 12th from Moon) - Demands calm speech, discipline, and Hanuman devotion.",
+      hi: "⚠️ साढ़ेसाती प्रथम चरण (उदय काल - द्वादश शनि) सक्रिय है - धैर्य और हनुमान उपासना आवश्यक है।",
+      te: "⚠️ ఏలినాటి శని మొదటి దశ (ప్రారంభ దశ) - ఓపిక మరియు హనుమాన్ పూజ అవసరం.",
+      ta: "⚠️ ஏழரை நாட்டு சனி முதல் சுற்று (விரய சனி) நடப்பில் உள்ளது - பொறுமையும் வழிபாடும் அவசியம்."
+    };
+    sadeSatiDetailedPhase = {
+      phaseCode: "rising",
+      phaseTitle: {
+        kn: "ಶನಿ ಸಾಡೇಸಾತಿ ಪ್ರಥಮ ಚರಣ (ಆರೋಹಣ ಹಂತ - ವ್ಯಯ ಶನಿ)",
+        en: "Sade Sati 1st Phase (Rising Phase - 12th from Moon)",
+        hi: "साढ़ेसाती प्रथम चरण (उदय काल - द्वादश शनि)",
+        te: "ఏలినాటి శని మొదటి దశ (ప్రారంభ దశ)",
+        ta: "ஏழரை சனி முதல் சுற்று (விரய சனி)"
+      },
+      phaseDescription: {
+        kn: "ಶನಿಯು ಜನ್ಮ ರಾಶಿಯ ಹಿಂದಿನ ಮನೆಯಲ್ಲಿದ್ದು (೧೨ನೇ ಭಾವ), ನಿದ್ರಾಭಂಗ, ಅನಿರೀಕ್ಷಿತ ಖರ್ಚುಗಳು ಹಾಗೂ ಪ್ರಯಾಣದ ಶ್ರಮವನ್ನು ತರಬಹುದು. ತಾಳ್ಮೆ ಮತ್ತು ಹನುಮಾನ್ ಚಾಲೀಸಾ ಅತ್ಯಗತ್ಯ.",
+        en: "Saturn transits the 12th house from natal Moon, testing financial budgeting, sleep hygiene, and travel stamina. Requires calm persistence.",
+        hi: "शनि चंद्र से द्वादश भाव में हैं, जिससे व्यय और अनिद्रा की स्थिति बन सकती है।",
+        te: "శని చంద్రుని నుండి 12వ ఇంట్లో ఉండి అనవసర ఖర్చులు తెస్తాడు.",
+        ta: "சனி சந்திரன் முன் வீட்டில் இருந்து வீண் செலவுகளை தரலாம்."
+      },
+      shantiRecommendation: {
+        kn: "ಶನಿವಾರ ಎಳ್ಳೆಣ್ಣೆ ದೀಪ, ಸುಂದರಕಾಂಡ ಪಠಣ ಹಾಗೂ ಗೋಕರ್ಣ ಶನಿ ಶಾಂತಿ.",
+        en: "Light sesame oil lamp on Saturdays, recite Sundarakanda, and Gokarna Shani Shanti.",
+        hi: "शनिवार को पीपल पर तिल के तेल का दीपक एवं सुंदरकांड पाठ।",
+        te: "శనివారం నువ్వుల నూనె దీపం మరియు సుందరకాండ పారాయణ.",
+        ta: "சனிக்கிழமை நல்லெண்ணெய் தீபம் மற்றும் சுந்தரகாண்ட பாராயணம்."
+      }
+    };
+  } else if (saturnDiff === 0) {
+    sadeSatiText = {
+      kn: "⚠️ ಶನಿ ಸಾಡೇಸಾತಿ ದ್ವಿತೀಯ ಚರಣ (ಶಿಖರ ಹಂತ - ಜನ್ಮ ಶನಿ) ಸಕ್ರಿಯವಾಗಿದೆ - ಪರಮ ಶ್ರದ್ಧೆ, ಅಹಂಕಾರ ತ್ಯಾಗ ಹಾಗೂ ತೈಲಾಭಿಷೇಕ ರಕ್ಷಣೆ.",
+      en: "⚠️ Active Sade Sati 2nd Phase (Peak Phase - Janma Shani) - Purifying ego, demanding supreme discipline and Tailabhisheka armor.",
+      hi: "⚠️ साढ़ेसाती द्वितीय चरण (मध्य/शिखर काल - जन्म शनि) सक्रिय है - आत्म-अनुशासन एवं तैलाभिषेक आवश्यक है।",
+      te: "⚠️ ఏలినాటి శని రెండవ దశ (జన్మ శని) - క్రమశిక్షణ మరియు తైలాభిషేకం అవసరం.",
+      ta: "⚠️ ஏழரை சனி இரண்டாம் சுற்று (ஜன்ம சனி) - சுய கட்டுப்பாடு மற்றும் நல்லெண்ணெய் அபிஷேகம் அவசியம்."
+    };
+    sadeSatiDetailedPhase = {
+      phaseCode: "peak",
+      phaseTitle: {
+        kn: "ಶನಿ ಸಾಡೇಸಾತಿ ದ್ವಿತೀಯ ಚರಣ (ಶಿಖರ ಹಂತ - ಜನ್ಮ ಶನಿ)",
+        en: "Sade Sati 2nd Phase (Peak Phase - Janma Shani)",
+        hi: "साढ़ेसाती द्वितीय चरण (मध्य/शिखर काल - जन्म शनि)",
+        te: "ఏలినాటి శని రెండవ దశ (జన్మ శని)",
+        ta: "ஏழரை சனி இரண்டாம் சுற்று (ஜன்ம சனி)"
+      },
+      phaseDescription: {
+        kn: "ಶನಿಯು ಜನ್ಮ ರಾಶಿಯ ಮೇಲೆಯೇ ಸಂಚರಿಸುತ್ತಿದ್ದು, ಮಾನಸಿಕ ಧೃತಿ, ಅಹಂಕಾರ ತ್ಯಾಗ ಹಾಗೂ ಕಠಿಣ ಪರಿಶ್ರಮವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತಾನೆ. ತೈಲಾಭಿಷೇಕ ಪರಮ ರಕ್ಷಣೆ.",
+        en: "Saturn is directly conjoined your natal Moon sign (Janma Shani), purifying ego and demanding supreme self-discipline. Tailabhisheka provides supreme armor.",
+        hi: "शनि सीधे चंद्र राशि पर गोचर कर रहे हैं; यह धैर्य और आत्म-अनुशासन की परीक्षा का समय है।",
+        te: "శని చంద్రునిపైనే సంచరిస్తూ కఠిన క్రమశిక్షణను కోరతాడు.",
+        ta: "சனி ராசியிலேயே சஞ்சரித்து மனோபலத்தை சோதிப்பார்."
+      },
+      shantiRecommendation: {
+        kn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಶನಿ-ಶಿವಾಭಿಷೇಕ & ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ.",
+        en: "Gokarna Shani-Shiva Tailabhisheka & Mahamrityunjaya Japa.",
+        hi: "गोकर्ण में शनि-शिवाभिषेक एवं महामृत्युंजय जप।",
+        te: "గోకర్ణంలో శని-శివాభిషేకం మరియు మహామృత్యుంజయ జపం.",
+        ta: "கோகர்ணத்தில் சனி-சிவாபிஷேகம் மற்றும் மகா மிருத்யுஞ்சய ஜெபம்."
+      }
+    };
+  } else if (saturnDiff === 1) {
+    sadeSatiText = {
+      kn: "⚠️ ಶನಿ ಸಾಡೇಸಾತಿ ತೃತೀಯ ಚರಣ (ಅವರೋಹಣ ಹಂತ - ಧನ ಶನಿ) ಸಕ್ರಿಯವಾಗಿದೆ - ಮೃದು ಮಾತು, ಆರ್ಥಿಕ ಶಿಸ್ತು ಹಾಗೂ ಧರ್ಮ ಪಾಲನೆ.",
+      en: "⚠️ Active Sade Sati 3rd Phase (Setting Phase - 2nd from Moon) - Prudent financial budgeting and gentle speech facilitate turnaround.",
+      hi: "⚠️ साढ़ेसाती तृतीय चरण (उतरती साढ़ेसाती - धन शनि) सक्रिय है - वाणी में मधुरता एवं आर्थिक अनुशासन आवश्यक है।",
+      te: "⚠️ ఏలినాటి శని మూడవ దశ (ముగింపు దశ) - ఆర్థిక క్రమశిక్షణ అవసరం.",
+      ta: "⚠️ ஏழரை சனி மூன்றாம் சுற்று (பாத சனி) - பேச்சில் நிதானமும் பொருளாதார விவேகமும் தேவை."
+    };
+    sadeSatiDetailedPhase = {
+      phaseCode: "setting",
+      phaseTitle: {
+        kn: "ಶನಿ ಸಾಡೇಸಾತಿ ತೃತೀಯ ಚರಣ (ಅವರೋಹಣ ಹಂತ - ಧನ ಶನಿ)",
+        en: "Sade Sati 3rd Phase (Setting Phase - 2nd from Moon)",
+        hi: "साढ़ेसाती तृतीय चरण (उतरती साढ़ेसाती - धन शनि)",
+        te: "ఏలినాటి శని మూడవ దశ (ముగింపు దశ)",
+        ta: "ஏழரை சனி மூன்றாம் சுற்று (பாத சனி)"
+      },
+      phaseDescription: {
+        kn: "ಶನಿಯು ೨ನೇ ಮನೆಯಲ್ಲಿದ್ದು ಸಾಡೇಸಾತಿಯ ಕೊನೆಯ ಹಂತದಲ್ಲಿದ್ದಾನೆ. ಕೌಟುಂಬಿಕ ಮಾತುಕತೆಯಲ್ಲಿ ಮೃದುತ್ವ ಮತ್ತು ಆರ್ಥಿಕ ಶಿಸ್ತು ಕಾಪಾಡಿಕೊಂಡರೆ ಭಾಗ್ಯೋದಯ ಸುಲಭ.",
+        en: "Saturn is in the 2nd house from Moon, concluding Sade Sati. Gentle speech and prudent budgeting facilitate a smooth turnaround.",
+        hi: "शनि चंद्र से द्वितीय भाव में होकर साढ़ेसाती के समापन काल में हैं। वाणी में मधुरता रखें।",
+        te: "శని చంద్రుని నుండి 2వ స్థానంలో ఉండి ముగింపు దశలో ఉన్నాడు.",
+        ta: "சனி 2ம் இடத்தில் இருந்து ஏழரை சனியை நிறைவு செய்கிறார்."
+      },
+      shantiRecommendation: {
+        kn: "ಕಪ್ಪು ಎಳ್ಳು ದಾನ, ಹನುಮಾನ್ ಚಾಲೀಸಾ ಹಾಗೂ ಧರ್ಮ ಕರ್ಮಗಳ ಆಚರಣೆ.",
+        en: "Black sesame donation, Hanuman Chalisa, and righteous financial conduct.",
+        hi: "काले तिल का दान एवं हनुमान चालीसा का नित्य पाठ।",
+        te: "నల్ల నువ్వుల దానం మరియు హనుమాన్ చాలీసా పఠనం.",
+        ta: "கருப்பு எள் தானம் மற்றும் அனுமன் சாலிசா பாராயணம்."
+      }
     };
   } else if (isAshtamaShani) {
     sadeSatiText = {
@@ -5547,6 +6575,30 @@ export function generateKundliRemedyReport(
       te: "⚠️ అష్టమ శని ప్రభావం - జాగ్రత్త అవసరం.",
       ta: "⚠️ அஷ்டம சனி தாக்கம் - எச்சரிக்கை தேவை."
     };
+    sadeSatiDetailedPhase = {
+      phaseCode: "ashtama",
+      phaseTitle: {
+        kn: "ಅಷ್ಟಮ ಶನಿ ಗೋಚಾರ (೮ನೇ ಭಾವದ ಕಠಿಣ ಸಂಚಾರ)",
+        en: "Ashtama Shani (8th House Saturn Transit)",
+        hi: "अष्टम शनि गोचर (८वें भाव का प्रभाव)",
+        te: "అష్టమ శని గోచారం (8వ స్థానం)",
+        ta: "அஷ்டம சனி கோசாரம் (8ம் இடம்)"
+      },
+      phaseDescription: {
+        kn: "ಜನ್ಮ ರಾಶಿಯಿಂದ ೮ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಸಂಚಾರವು ಅನಿರೀಕ್ಷಿತ ಸವಾಲುಗಳನ್ನು ತರಬಹುದು. ವಾಹನ ಚಾಲನೆ ಹಾಗೂ ಆತುರದ ತೀರ್ಮಾನಗಳಿಂದ ದೂರವಿರಿ.",
+        en: "Saturn in 8th from Moon brings sudden tests. Avoid rash driving, speculative risks, and abrupt career exits.",
+        hi: "चंद्र से आठवें भाव में शनि गोचर से अचानक चुनौतियां आ सकती हैं; सतर्कता आवश्यक है।",
+        te: "8వ స్థానంలో శని సంచారం వలన జాగ్రత్తగా ఉండాలి.",
+        ta: "8ம் இடத்து சனி திடீர் சவால்களை தரலாம்; எச்சரிக்கை தேவை."
+      },
+      shantiRecommendation: {
+        kn: "ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ, ಕಾಲಭೈರವ ಆರಾಧನೆ ಹಾಗೂ ಗೋಕರ್ಣ ತೈಲಾಭಿಷೇಕ.",
+        en: "Mahamrityunjaya Japa, Kala Bhairava Aradhana, and Gokarna Tailabhisheka.",
+        hi: "महामृत्युंजय जप, कालभैरव साधना एवं गोकर्ण में तैलाभिषेक।",
+        te: "మహామృత్యుంజయ జపం మరియు కాలభైరవ పూజ.",
+        ta: "மகா மிருத்யுஞ்சய ஜெபம் மற்றும் காலபைரவர் வழிபாடு."
+      }
+    };
   } else if (isKantakaShani) {
     sadeSatiText = {
       kn: "ℹ️ ಕಂಟಕ ಶನಿ ಪ್ರಭಾವ - ಉದ್ಯೋಗ ಮತ್ತು ಕೌಟುಂಬಿಕ ವಿಷಯಗಳಲ್ಲಿ ತಾಳ್ಮೆ ಇರಲಿ.",
@@ -5554,6 +6606,30 @@ export function generateKundliRemedyReport(
       hi: "ℹ️ कंटक शनि प्रभाव - कार्यक्षेत्र में धैर्य बनाए रखें।",
       te: "ℹ️ కంటక శని ప్రభావం - ఉద్యోగంలో ఓపిక అవసరం.",
       ta: "ℹ️ கண்டக சனி தாக்கம் - பொறுமை தேவை."
+    };
+    sadeSatiDetailedPhase = {
+      phaseCode: "kantaka",
+      phaseTitle: {
+        kn: "ಕಂಟಕ ಶನಿ ಗೋಚಾರ",
+        en: "Kantaka Shani Transit",
+        hi: "कंटक शनि गोचर",
+        te: "కంటక శని గోచారం",
+        ta: "கண்டக சனி கோசாரம்"
+      },
+      phaseDescription: {
+        kn: "ಉದ್ಯೋಗ ಹಾಗೂ ವ್ಯಾಪಾರದಲ್ಲಿ ತಾಳ್ಮೆಯಿಂದ ಇರಬೇಕು; ಹಿರಿಯರೊಂದಿಗೆ ವಾದ ಬೇಡ.",
+        en: "Exercise discipline in career matters and avoid unnecessary confrontations with superiors.",
+        hi: "कार्यक्षेत्र में धैर्य रखें एवं वरिष्ठों से वाद-विवाद से बचें।",
+        te: "ఉద్యోగంలో ఓపిక పాటించండి.",
+        ta: "பணியிடத்தில் பொறுமையுடன் செயல்படவும்."
+      },
+      shantiRecommendation: {
+        kn: "ಶನಿ ಶಾಂತಿ ಜಪ & ಅಶ್ವತ್ಥ ಪ್ರದಕ್ಷಿಣೆ.",
+        en: "Shani Shanti Japa & Peepal circumambulation.",
+        hi: "शनि शांति जप एवं पीपल की परिक्रमा।",
+        te: "శని శాంతి జపం.",
+        ta: "சனி சாந்தி ஜெபம்."
+      }
     };
   } else {
     sadeSatiText = {
@@ -5563,9 +6639,35 @@ export function generateKundliRemedyReport(
       te: "✅ శని అనుకూలంగా ఉన్నాడు.",
       ta: "✅ சனி பகவானின் பாதகமான தாக்கம் தற்போது இல்லை."
     };
+    sadeSatiDetailedPhase = {
+      phaseCode: "favorable",
+      phaseTitle: {
+        kn: "ಅನುಕೂಲಕರ ಶನಿ ಗೋಚಾರ (ಸಾಡೇಸಾತಿ ಮುಕ್ತ)",
+        en: "Favorable Saturn Transit (Free of Sade Sati)",
+        hi: "शुभ शनि गोचर (साढ़ेसाती मुक्त)",
+        te: "అనుకూల శని గోచారం",
+        ta: "சாதகமான சனி கோசாரம்"
+      },
+      phaseDescription: {
+        kn: "ಪ್ರಸ್ತುತ ಶನಿಯು ನಿಮ್ಮ ರಾಶಿಗೆ ಅನುಕೂಲಕರ ಸ್ಥಾನದಲ್ಲಿದ್ದು, ಸ್ಥಿರ ಶ್ರಮಕ್ಕೆ ಶುಭಫಲಗಳನ್ನು ನೀಡಲಿದ್ದಾನೆ.",
+        en: "Saturn is transiting a favorable angle from your natal Moon, rewarding persistent disciplined efforts.",
+        hi: "शनि का गोचर आपके लिए शुभ है; सतत परिश्रम से सफलता मिलेगी।",
+        te: "శని అనుకూలంగా ఉన్నాడు; నిరంతర శ్రమతో విజయం లభిస్తుంది.",
+        ta: "சனி சாதகமாக உள்ளதால் முயற்சிக்கு தகுந்த வெற்றி கிட்டும்."
+      },
+      shantiRecommendation: {
+        kn: "ದೈನಂದಿನ ಹನುಮಾನ್ ಚಾಲೀಸಾ ಪಠಣ.",
+        en: "Daily Hanuman Chalisa recitation.",
+        hi: "नित्य हनुमान चालीसा पाठ।",
+        te: "నిత్య హనుమాన్ చాలీసా పఠనం.",
+        ta: "தினசரி அனுமன் சாலிசா பாராயணம்."
+      }
+    };
   }
 
   const rahuDiff = (transitRahuRashi.index - moonRashiIndex + 12) % 12;
+  const jupiterHouseFromMoon = ((transitJupiterRashi.index - moonRashiIndex + 12) % 12) + 1;
+  const isGuruBalaAuspicious = [2, 5, 7, 9, 11].includes(jupiterHouseFromMoon);
 
   const gocharaTransitAnalysis = {
     transitHighlights: [
@@ -5599,21 +6701,41 @@ export function generateKundliRemedyReport(
       {
         graha: PlanetName.Jupiter,
         transitSign: RASHI_NAMES_LOCALE[transitJupiterRashi.english]?.en || transitJupiterRashi.english,
-        houseFromMoon: ((transitJupiterRashi.index - moonRashiIndex + 12) % 12) + 1,
-        effect: "Benefic" as const,
+        houseFromMoon: jupiterHouseFromMoon,
+        effect: isGuruBalaAuspicious ? ("Benefic" as const) : ("Caution" as const),
         title: {
-          kn: `ಗೋಚಾರ ಗುರು ಬಲ (${RASHI_NAMES_LOCALE[transitJupiterRashi.english]?.kn || transitJupiterRashi.english} ರಾಶಿ)`,
-          en: `Transit Jupiter in ${transitJupiterRashi.english}`,
-          hi: `गोचर गुरु बल (${transitJupiterRashi.english})`,
-          te: `గోచార గురు బలం`,
-          ta: `கோசார குரு பலம்`
+          kn: isGuruBalaAuspicious
+            ? `ಗೋಚಾರ ಗುರು ಬಲ (${RASHI_NAMES_LOCALE[transitJupiterRashi.english]?.kn || transitJupiterRashi.english} ರಾಶಿ - ${jupiterHouseFromMoon}ನೇ ಮನೆ)`
+            : `ಗೋಚಾರ ಗುರು ಶಾಂತಿ ಅಗತ್ಯ (${RASHI_NAMES_LOCALE[transitJupiterRashi.english]?.kn || transitJupiterRashi.english} ರಾಶಿ - ${jupiterHouseFromMoon}ನೇ ಮನೆ)`,
+          en: isGuruBalaAuspicious
+            ? `Auspicious Guru Bala in ${transitJupiterRashi.english} (${jupiterHouseFromMoon}th from Moon)`
+            : `Guru Shanti Needed in ${transitJupiterRashi.english} (${jupiterHouseFromMoon}th from Moon)`,
+          hi: isGuruBalaAuspicious
+            ? `गोचर गुरु बल (${transitJupiterRashi.english} - ${jupiterHouseFromMoon}वां भाव)`
+            : `गोचर गुरु शांति आवश्यक (${transitJupiterRashi.english} - ${jupiterHouseFromMoon}वां भाव)`,
+          te: isGuruBalaAuspicious
+            ? `గోచార గురు బలం (${transitJupiterRashi.english} - ${jupiterHouseFromMoon}వ స్థానం)`
+            : `గోచార గురు శాంతి అవసరం (${transitJupiterRashi.english} - ${jupiterHouseFromMoon}వ స్థానం)`,
+          ta: isGuruBalaAuspicious
+            ? `கோசார குரு பலம் (${transitJupiterRashi.english} - ${jupiterHouseFromMoon}ம் இடம்)`
+            : `கோசார குரு சாந்தி தேவை (${transitJupiterRashi.english} - ${jupiterHouseFromMoon}ம் இடம்)`
         },
         description: {
-          kn: `ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಜ್ಞಾನ, ವಿವೇಕ ಮತ್ತು ಧಾರ್ಮಿಕ ಕಾರ್ಯಗಳಿಗೆ ಸಂಪೂರ್ಣ ರಕ್ಷಣೆ ನೀಡುತ್ತಿದ್ದಾನೆ.`,
-          en: `Benefic transit of Brihaspati illuminates wisdom, dissolves mental turmoil, and provides spiritual shielding.`,
-          hi: `देवगुरु बृहस्पति का शुभ गोचर आपके विवेक और आध्यात्मिक ऊर्जा को बढ़ा रहा है।`,
-          te: `గురు భగవానుడు జ్ఞానాన్ని మరియు రక్షణను ఇస్తున్నాడు.`,
-          ta: `குரு பகவான் நற்பலன்களையும் பாதுகாப்பையும் தருகிறார்.`
+          kn: isGuruBalaAuspicious
+            ? `ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ನಿಮ್ಮ ಜನ್ಮ ರಾಶಿಯಿಂದ ${jupiterHouseFromMoon}ನೇ ಶುಭ ಸ್ಥಾನದಲ್ಲಿದ್ದು, ಅದ್ಭುತ ಗುರು ಬಲ, ಭಾಗ್ಯೋದಯ ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣೆ ಒದಗಿಸುತ್ತಿದ್ದಾನೆ.`
+            : `ಗುರುವು ಜನ್ಮ ರಾಶಿಯಿಂದ ${jupiterHouseFromMoon}ನೇ ಭಾವದಲ್ಲಿದ್ದು, ಗುರು ಬಲದ ಕೊರತೆಯಿದೆ. ಶುಭ ಕಾರ್ಯಗಳು ಹಾಗೂ ಆರ್ಥಿಕ ವಿಷಯಗಳಲ್ಲಿ ಗುರು ಶಾಂತಿ ಪೂಜೆ ಅತ್ಯಗತ್ಯ.`,
+          en: isGuruBalaAuspicious
+            ? `Benefic transit of Brihaspati in ${jupiterHouseFromMoon}th house illuminates wisdom, dissolves mental turmoil, and provides spiritual shielding.`
+            : `Jupiter transits ${jupiterHouseFromMoon}th house from natal Moon, requiring dedicated Brihaspati propitiation to unlock blocked momentum.`,
+          hi: isGuruBalaAuspicious
+            ? `देवगुरु बृहस्पति का शुभ गोचर आपके विवेक और आध्यात्मिक ऊर्जा को बढ़ा रहा है।`
+            : `गुरु ${jupiterHouseFromMoon}वें भाव में होकर शांति की अपेक्षा रखते हैं; गुरु अर्चना फलदायी होगी।`,
+          te: isGuruBalaAuspicious
+            ? `గురు భగవానుడు జ్ఞానాన్ని మరియు రక్షణను ఇస్తున్నాడు.`
+            : `గురుడు ${jupiterHouseFromMoon}వ స్థానంలో ఉన్నందున గురు శాంతి పూజ అవసరం.`,
+          ta: isGuruBalaAuspicious
+            ? `குரு பகவான் நற்பலன்களையும் பாதுகாப்பையும் தருகிறார்.`
+            : `குரு ${jupiterHouseFromMoon}ம் இடத்தில் இருப்பதால் குரு சாந்தி வழிபாடு தேவை.`
         },
         remedy: {
           kn: "ಗುರುವಾರ ಹಳದಿ ಬಣ್ಣದ ಹೂವುಗಳಿಂದ ದಕ್ಷಿಣಾಮೂರ್ತಿ ಪೂಜೆ ಅಥವಾ ಗುರು ವಂದನೆ ಮಾಡಿ.",
@@ -5651,7 +6773,8 @@ export function generateKundliRemedyReport(
         }
       }
     ],
-    sadeSatiStatus: sadeSatiText
+    sadeSatiStatus: sadeSatiText,
+    sadeSatiDetailedPhase
   };
 
   // 12. Sacred Gokarna Mahabaleshwara Temple Remedies & Dāna
@@ -5876,11 +6999,11 @@ export function generateKundliRemedyReport(
         ta: prescriptions.rudraksha.deity
       },
       benefits: {
-        kn: prescriptions.rudraksha.astrologicalReason,
-        en: prescriptions.rudraksha.wearingMethod,
-        hi: "क्रोध, चिंता को दूर कर एकाग्रता और आत्मशांति प्रदान करता है।",
-        te: "కోపాన్ని తగ్గించి మానసిక ఏకాగ్రతను పెంచుతుంది.",
-        ta: "கோபத்தை தணித்து மனதை ஒருமுகப்படுத்தும்."
+        kn: prescriptions.rudraksha.astrologicalReason || "ಗ್ರಹದೋಷ ನಿವಾರಣೆ, ಮನಃಶಾಂತಿ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆ ಒದಗಿಸುತ್ತದೆ.",
+        en: prescriptions.rudraksha.astrologicalReason || "Dissolves planetary afflictions, promotes mental tranquility and divine protection.",
+        hi: "ग्रहदोष शांति, मानसिक एकाग्रता एवं दैवीय सुरक्षा प्रदान करता है।",
+        te: "గ్రహదోష నివారణ, మానసిక ఏకాగ్రత మరియు దైవిక రక్షణ కలిగిస్తుంది.",
+        ta: "கிரக தோஷ நிவர்த்தி, மன அமைதி மற்றும் தெய்வீக பாதுகாப்பு தரும்."
       }
     },
     gemstoneRecommendation: {
@@ -5993,6 +7116,15 @@ export function generateKundliRemedyReport(
       moon?.nakshatra?.index ?? 0,
       input.name || "Devotee",
       input.gothra
+    ),
+    badhakaAnalysis: badhakaInfo,
+    vedicDoctorPrescription: computeVedicDoctorPrescription(
+      struggleCategory,
+      catalyst.graha,
+      lagnaRashiIndex,
+      input.name || "Devotee",
+      input.gothra,
+      badhakaInfo
     )
   };
 }

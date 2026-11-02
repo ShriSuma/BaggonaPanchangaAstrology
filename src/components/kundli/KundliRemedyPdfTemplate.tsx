@@ -88,6 +88,9 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "ರುದ್ರಾಕ್ಷಿ ಧಾರಣೆ:",
     gemstone: "ರತ್ನ / ಲೋಹ:",
     daana: "ದಾನ & ಗೋಸೇವೆ:",
+    badhakeshLabel: "ಬಾಧಕ ಗ್ರಹ & ಅಡೆತಡೆ:",
+    anupanaLabel: "ಪವಿತ್ರ ಅನುಪಾನ ತೀರ್ಥ:",
+    adhidevataTitle: "ದಶಾಧಿಪತಿ ಅಧಿದೇವತೆ & ಪ್ರತ್ಯಧಿದೇವತೆ:",
     sec8Title: "೮. ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಮುದ್ರೆ",
     templeSealLabel: "ಅಧಿಕೃತ ಮುದ್ರೆ",
     priestContact: "ದೂರವಾಣಿ:",
@@ -173,6 +176,9 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "Rudraksha:",
     gemstone: "Gemstone / Metal:",
     daana: "Daana & Goseva:",
+    badhakeshLabel: "Badhaka Obstruction Planet:",
+    anupanaLabel: "Sacred Anupana Vehicle:",
+    adhidevataTitle: "Dasha Lord Adhidevata & Pratyadhidevata:",
     sec8Title: "8. Chief Priest Vedic Blessing & Official Temple Seal",
     templeSealLabel: "Official Temple Seal",
     priestContact: "Contact:",
@@ -258,6 +264,9 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "रुद्राक्ष धारण:",
     gemstone: "रत्न / धातु:",
     daana: "दान एवं गौसेवा:",
+    badhakeshLabel: "बाधक ग्रह एवं बाधा:",
+    anupanaLabel: "पवित्र अनुपान तीर्थ:",
+    adhidevataTitle: "दशाधिपति अधिदेवता एवं प्रत्यधिदेवता:",
     sec8Title: "८. प्रधान अर्चक का आशीर्वचन एवं गोकर्ण मुद्रा",
     templeSealLabel: "आधिकारिक मुद्रा",
     priestContact: "संपर्क:",
@@ -343,6 +352,9 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "రుద్రాక్ష ధారణ:",
     gemstone: "రత్నం / లోహం:",
     daana: "దానం & గోసేవ:",
+    badhakeshLabel: "బాధక గ్రహం & అడ్డంకి:",
+    anupanaLabel: "పవిత్ర అనుపాన తీర్థం:",
+    adhidevataTitle: "దశాధిపతి అధిదేవత & ప్రత్యధిదేవత:",
     sec8Title: "8. ప్రధాన అర్చకుల ఆశీర్వచనం & గోకర్ణ ముద్ర",
     templeSealLabel: "అధికారిక ముద్ర",
     priestContact: "ఫోన్:",
@@ -428,6 +440,9 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     rudraksha: "ருத்ராட்சம்:",
     gemstone: "ரத்தினம் / உலோகம்:",
     daana: "தானம் & கோபூஜை:",
+    badhakeshLabel: "பாதக கிரகம் & தடை:",
+    anupanaLabel: "புனித அனுபான தீர்த்தம்:",
+    adhidevataTitle: "திசாதிபதி அதிதேவதை & பிரத்யதிதேவதை:",
     sec8Title: "8. தலைமை அர்ச்சகரின் ஆசி & ஆலய முத்திரை",
     templeSealLabel: "அங்கீகரிக்கப்பட்ட முத்திரை",
     priestContact: "தொலைபேசி:",
@@ -527,7 +542,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     dashaBhuktiAnalysis,
     gocharaTransitAnalysis,
     gokarnaTempleRemedies,
-    chiefPriestBlessing
+    chiefPriestBlessing,
+    badhakaAnalysis,
+    vedicDoctorPrescription
   } = diagnosis;
 
   const stotra = personalizedStotras[0] || personalizedStotras[1];
@@ -838,6 +855,27 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 </div>
               ))}
             </div>
+
+            {/* Badhaka Graha & Badhakesh Placement */}
+            {badhakaAnalysis && (
+              <div
+                style={{
+                  marginTop: "5px",
+                  background: "#FEF2F2",
+                  border: "1px solid #FECACA",
+                  borderRadius: "5px",
+                  padding: "4px 8px",
+                  fontSize: "10px",
+                  color: "#991B1B",
+                  lineHeight: 1.35
+                }}
+              >
+                <span>
+                  <strong>🚧 {i18n.badhakeshLabel} </strong>
+                  {badhakaAnalysis.badhakeshName[code] || badhakaAnalysis.badhakeshName.kn} ({badhakaAnalysis.badhakaHouse}th House {badhakaAnalysis.badhakaSignName[code] || badhakaAnalysis.badhakaSignName.kn}) — {badhakaAnalysis.shantiRemedy[code] || badhakaAnalysis.shantiRemedy.kn}
+                </span>
+              </div>
+            )}
 
             {/* Psychological & Temperament Meters with Progress Bar Visualizations */}
             <div
@@ -1359,22 +1397,31 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             </div>
           )}
 
-          {/* Dedicated Daily Peace Sankalpa Card (Guarantees 100% Page Balance & Zero Empty Space) */}
+          {/* Dedicated Daily Peace Sankalpa & Sacred Anupana Card (Guarantees 100% Page Balance & Zero Empty Space) */}
           <div
             style={{
               background: "linear-gradient(135deg, #FEFCE8 0%, #FEF3C7 50%, #FFFBEB 100%)",
               border: "1.5px solid #D97706",
               borderRadius: "8px",
-              padding: "8px 12px",
+              padding: "7px 12px",
               color: "#78350F",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
             }}
           >
-            <div style={{ fontSize: "11.5px", fontWeight: 900, color: "#92400E", marginBottom: "3px" }}>
-              {i18n.dailySankalpaTitle}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 900, color: "#92400E" }}>
+                {i18n.dailySankalpaTitle}
+              </span>
+              {vedicDoctorPrescription?.anupana && (
+                <span style={{ fontSize: "9.5px", background: "#DCFCE7", color: "#166534", padding: "1px 6px", borderRadius: "8px", fontWeight: 800, border: "1px solid #86EFAC" }}>
+                  🧪 {i18n.anupanaLabel} {vedicDoctorPrescription.anupana.vehicleName[code] || vedicDoctorPrescription.anupana.vehicleName.kn}
+                </span>
+              )}
             </div>
-            <div style={{ fontSize: "10.5px", color: "#451A03", lineHeight: 1.5, fontStyle: "italic" }}>
-              {i18n.dailySankalpaText}
+            <div style={{ fontSize: "10px", color: "#451A03", lineHeight: 1.45, fontStyle: "italic" }}>
+              {vedicDoctorPrescription?.anupana
+                ? `${vedicDoctorPrescription.anupana.preparationMethod[code] || vedicDoctorPrescription.anupana.preparationMethod.kn} (${vedicDoctorPrescription.anupana.intakeTiming[code] || vedicDoctorPrescription.anupana.intakeTiming.kn}) — ${i18n.dailySankalpaText}`
+                : i18n.dailySankalpaText}
             </div>
           </div>
 
@@ -1902,6 +1949,15 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 <span style={{ fontWeight: 800 }}>• {i18n.remedialStep} </span>
                 {dashaBhuktiAnalysis.remedialAction[code] || dashaBhuktiAnalysis.remedialAction.kn}
               </div>
+              {dashaBhuktiAnalysis.adhidevata && (
+                <div style={{ color: "#78350F", marginTop: "2px", fontSize: "10px" }}>
+                  <span style={{ fontWeight: 800 }}>• {i18n.adhidevataTitle} </span>
+                  <span style={{ color: "#451A03", fontWeight: 700 }}>
+                    {dashaBhuktiAnalysis.adhidevata.adhidevata[code] || dashaBhuktiAnalysis.adhidevata.adhidevata.kn} / {dashaBhuktiAnalysis.adhidevata.pratyadhidevata[code] || dashaBhuktiAnalysis.adhidevata.pratyadhidevata.kn}
+                  </span>{" "}
+                  — {dashaBhuktiAnalysis.adhidevata.sadhana[code] || dashaBhuktiAnalysis.adhidevata.sadhana.kn}
+                </div>
+              )}
               {/* Dasha Sandhi Alert Box */}
               {dashaBhuktiAnalysis.sandhiAlert && (
                 <div

@@ -165,4 +165,142 @@ describe("PDF V1 & Remedy Classical Accuracy and Multi-Language Audit", () => {
     expect(metal.te.length).toBeGreaterThan(0);
     expect(metal.ta.length).toBeGreaterThan(0);
   });
+
+  it("accurately computes Badhaka Graha & Badhakesh based on Lagna modality across all modalities", () => {
+    const createMockKundli = (lagnaRashiIndex: number): [KundliOutput, KundliInput] => {
+      const input: KundliInput = {
+        name: "Test Modality",
+        birthDate: "1995-01-01",
+        birthTime: "12:00",
+        latitude: 12.97,
+        longitude: 77.59,
+        gender: "Male"
+      };
+      const output: KundliOutput = {
+        ascendant: lagnaRashiIndex * 30 + 10,
+        lagnaRashi: { index: lagnaRashiIndex, sanskrit: "Lagna", english: "Lagna" },
+        moonSign: { index: 0, sanskrit: "Mesha", english: "Aries" },
+        sunSign: { index: 8, sanskrit: "Dhanu", english: "Sagittarius" },
+        moonPada: 1,
+        planets: [
+          {
+            name: PlanetName.Moon,
+            degree: 5,
+            isRetrograde: false,
+            rashi: { index: 0, sanskrit: "Mesha", english: "Aries" },
+            house: 1,
+            nakshatra: { index: 0, sanskrit: "Ashwini", english: "Ashwini", deity: "Ashwins" }
+          }
+        ],
+        houses: Array.from({ length: 12 }, (_, i) => i * 30)
+      };
+      return [output, input];
+    };
+
+    // 1. Chara (Cardinal) Lagna: Mesha (0) -> 11th house (Kumbha) -> Saturn
+    const [charaOutput, charaInput] = createMockKundli(0);
+    const charaReport = generateKundliRemedyReport(charaOutput, charaInput);
+    expect(charaReport.badhakaAnalysis.modality).toBe("Chara");
+    expect(charaReport.badhakaAnalysis.badhakaHouse).toBe(11);
+    expect(charaReport.badhakaAnalysis.badhakeshGraha).toBe(PlanetName.Saturn);
+
+    // 2. Sthira (Fixed) Lagna: Vrishabha (1) -> 9th house (Makara) -> Saturn
+    const [sthiraOutput, sthiraInput] = createMockKundli(1);
+    const sthiraReport = generateKundliRemedyReport(sthiraOutput, sthiraInput);
+    expect(sthiraReport.badhakaAnalysis.modality).toBe("Sthira");
+    expect(sthiraReport.badhakaAnalysis.badhakaHouse).toBe(9);
+    expect(sthiraReport.badhakaAnalysis.badhakeshGraha).toBe(PlanetName.Saturn);
+
+    // 3. Dvisvabhava (Dual) Lagna: Mithuna (2) -> 7th house (Dhanu) -> Jupiter
+    const [dualOutput, dualInput] = createMockKundli(2);
+    const dualReport = generateKundliRemedyReport(dualOutput, dualInput);
+    expect(dualReport.badhakaAnalysis.modality).toBe("Dvisvabhava");
+    expect(dualReport.badhakaAnalysis.badhakaHouse).toBe(7);
+    expect(dualReport.badhakaAnalysis.badhakeshGraha).toBe(PlanetName.Jupiter);
+
+    // Verify 5-language localization of Badhaka diagnosis & remedy
+    expect(dualReport.badhakaAnalysis.modalityLabel.kn).toContain("ದ್ವಿಸ್ವಭಾವ");
+    expect(dualReport.badhakaAnalysis.modalityLabel.hi).toContain("द्विस्वभाव");
+    expect(dualReport.badhakaAnalysis.modalityLabel.te).toContain("ద్విస్వభావ");
+    expect(dualReport.badhakaAnalysis.modalityLabel.ta).toContain("உபய");
+    expect(dualReport.badhakaAnalysis.modalityLabel.en).toContain("Dual");
+  });
+
+  it("synthesizes authentic Medical-Grade Astrological Prescription (Vedic Chikitsa) with 15-20 day relief progression", () => {
+    const input: KundliInput = {
+      name: "Sadhaka Devotee",
+      birthDate: "1988-08-20",
+      birthTime: "06:15",
+      latitude: 15.3,
+      longitude: 75.1,
+      gender: "Male"
+    };
+    const output: KundliOutput = {
+      ascendant: 120, // Simha
+      lagnaRashi: { index: 4, sanskrit: "Simha", english: "Leo" },
+      moonSign: { index: 7, sanskrit: "Vrishchika", english: "Scorpio" },
+      sunSign: { index: 4, sanskrit: "Simha", english: "Leo" },
+      moonPada: 4,
+      planets: [
+        {
+          name: PlanetName.Sun,
+          degree: 125,
+          isRetrograde: false,
+          rashi: { index: 4, sanskrit: "Simha", english: "Leo" },
+          house: 1,
+          nakshatra: { index: 9, sanskrit: "Magha", english: "Magha", deity: "Pitris" }
+        },
+        {
+          name: PlanetName.Mars,
+          degree: 140,
+          isRetrograde: false,
+          rashi: { index: 4, sanskrit: "Simha", english: "Leo" },
+          house: 1,
+          nakshatra: { index: 10, sanskrit: "Purva Phalguni", english: "Purva Phalguni", deity: "Bhaga" }
+        }
+      ],
+      houses: Array.from({ length: 12 }, (_, i) => i * 30)
+    };
+
+    const report = generateKundliRemedyReport(output, input);
+    const rx = report.vedicDoctorPrescription;
+
+    // Verify Nidana
+    expect(rx.nidana.primaryDosha).toBeTruthy();
+    expect(rx.nidana.doshaLabel.kn).toBeTruthy();
+    expect(rx.nidana.affectedNadis.kn).toBeTruthy();
+
+    // Verify Anupana
+    expect(rx.anupana.vehicleName.kn).toBeTruthy();
+    expect(rx.anupana.preparationMethod.kn).toBeTruthy();
+    expect(rx.anupana.intakeTiming.kn).toBeTruthy();
+
+    // Verify Aushadha
+    expect(rx.aushadha.beejaMantra.mantraNative.kn).toBeTruthy();
+    expect(rx.aushadha.beejaMantra.dailyDosageCount.kn).toBeTruthy();
+    expect(rx.aushadha.stotraKavacha.kn).toBeTruthy();
+    expect(rx.aushadha.sacredSubstance.kn).toBeTruthy();
+
+    // Verify Pathya & Apathya lists
+    expect(rx.pathyaApathya.pathyaPrescribed.length).toBeGreaterThanOrEqual(3);
+    expect(rx.pathyaApathya.apathyaProhibited.length).toBeGreaterThanOrEqual(3);
+
+    // Verify Chikitsa Kala
+    expect(rx.chikitsaKala.idealTimeWindow.kn).toBeTruthy();
+    expect(rx.chikitsaKala.facingDirection.kn).toBeTruthy();
+
+    // Verify 15-20 Day Relief Progression Milestones
+    expect(rx.reliefMilestones.day1To3.stage.kn).toBeTruthy();
+    expect(rx.reliefMilestones.day4To7.stage.kn).toBeTruthy();
+    expect(rx.reliefMilestones.day8To14.stage.kn).toBeTruthy();
+    expect(rx.reliefMilestones.day15To20.stage.kn).toBeTruthy();
+    expect(rx.reliefMilestones.day15To20.observation.kn).toBeTruthy();
+    expect(rx.reliefMilestones.day21To45.stage.kn).toBeTruthy();
+
+    // Verify Dasha Adhidevata & Pratyadhidevata
+    expect(report.dashaBhuktiAnalysis.adhidevata).toBeDefined();
+    expect(report.dashaBhuktiAnalysis.adhidevata?.adhidevata.kn).toBeTruthy();
+    expect(report.dashaBhuktiAnalysis.adhidevata?.pratyadhidevata.kn).toBeTruthy();
+    expect(report.dashaBhuktiAnalysis.adhidevata?.sadhana.kn).toBeTruthy();
+  });
 });
