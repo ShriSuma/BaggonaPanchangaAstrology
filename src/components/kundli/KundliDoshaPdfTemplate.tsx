@@ -1388,9 +1388,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
         </div>
       </div>
     </div>
-  );
-
-  // Reusable Spacious Dosha Card for Layman Readability (Zero nested cluttered boxes)
+  );  // Reusable Screen-Matched Dosha Card (Identical layout and design system as KundliDoshasPage)
   const renderDoshaCard = (dosha: DetectedDosha, isPrimary: boolean) => {
     const isPitru = dosha.id === "pitru_dosha";
     const isKuja = dosha.id === "kuja_dosha";
@@ -1399,7 +1397,6 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     const priorityRank = dosha.agePriorityRank || 1;
     const devoteeAge = devoteeInfo.currentAge || devoteeInfo.devoteeAge || "";
 
-    // Clean, crisp priority badge with ample lineHeight so Indic glyphs never drop out or clip
     const priorityPillText =
       code === "kn"
         ? `⚡ ಆದ್ಯತೆ #${priorityRank} (${devoteeAge} ವರ್ಷ)`
@@ -1415,14 +1412,16 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
       <div
         key={dosha.id}
         style={{
-          backgroundColor: "#FFFFFF",
-          border: `1.5px solid ${GOLD_BORDER}`,
-          borderRadius: "12px",
-          padding: "16px 20px",
-          boxShadow: "0 2px 8px rgba(180, 83, 9, 0.05)",
+          borderRadius: "18px",
+          border: isPitru ? "2px solid #B45309" : "2px solid rgba(245, 158, 11, 0.55)",
+          background: isPitru
+            ? "linear-gradient(135deg, #FFFDF8 0%, #FFF9EB 50%, #FFFDF8 100%)"
+            : "linear-gradient(135deg, #FFFDF9 0%, #FEFBF2 50%, #FFFDF9 100%)",
+          padding: "14px 18px",
+          boxShadow: "0 3px 10px rgba(180, 83, 9, 0.05)",
           display: "flex",
           flexDirection: "column",
-          gap: "10px",
+          gap: "8px",
           position: "relative",
           boxSizing: "border-box"
         }}
@@ -1432,11 +1431,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             style={{
               backgroundColor: "#78350F",
               color: "#FEF9E7",
-              fontSize: "11.5px",
+              fontSize: "11px",
               fontWeight: 900,
               padding: "4px 12px",
-              borderRadius: "6px",
-              letterSpacing: "0.2px",
+              borderRadius: "8px",
+              letterSpacing: "normal",
               lineHeight: 1.45,
               border: `1px solid ${GOLD_LIGHT}`
             }}
@@ -1445,35 +1444,51 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           </div>
         )}
 
-        {/* Header Row: Title & Scripture on Left, Clean Unclipped Badges on Right */}
+        {/* 🌟 Header Row: Exact match with KundliDoshasPage screen */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: "10px",
-            borderBottom: "1.5px solid #F1E8D9",
+            gap: "12px",
+            borderBottom: "1.5px solid rgba(245, 158, 11, 0.25)",
             paddingBottom: "8px"
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
-            <span style={{ fontSize: "20px", flexShrink: 0 }}>
-              {isPitru ? "🪔" : isKuja ? "⚔️" : isSarpa ? "🐍" : "🪐"}
-            </span>
-            <span style={{ fontSize: "16.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3, letterSpacing: "0.2px" }}>
-              {getLangVal(dosha.name)}
-            </span>
-            {(() => {
-              const sRef = getScripturalReference(dosha.id, dosha.technicalDetail?.scripturalReference, code);
-              return sRef ? (
-                <span style={{ fontSize: "11.5px", color: INK_MUTED, fontWeight: 700, letterSpacing: "0.2px" }}>
-                  ({sRef})
-                </span>
-              ) : null;
-            })()}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "12px",
+                border: isPitru ? "1.5px solid #F59E0B" : "1.5px solid rgba(245, 158, 11, 0.4)",
+                backgroundColor: isPitru ? "#FEF3C7" : "#FFFBEB",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "20px",
+                flexShrink: 0,
+                boxShadow: "0 1px 3px rgba(180, 83, 9, 0.08)"
+              }}
+            >
+              {isPitru ? "🪔" : isKuja ? "⚔️" : isSarpa ? "🐍" : "⚡"}
+            </div>
+            <div>
+              <div style={{ fontSize: "16px", fontWeight: 900, color: "#451A03", lineHeight: 1.3, letterSpacing: "normal" }}>
+                {getLangVal(dosha.name)}
+              </div>
+              {(() => {
+                const sRef = getScripturalReference(dosha.id, dosha.technicalDetail?.scripturalReference, code);
+                return sRef ? (
+                  <div style={{ fontSize: "10.5px", color: "#92400E", fontWeight: 600, marginTop: "1px", letterSpacing: "normal" }}>
+                    {sRef}
+                  </div>
+                ) : null;
+              })()}
+            </div>
           </div>
 
-          {/* Right: Badges Group with whitespace nowrap */}
+          {/* Badges on Right: Pill Shapes exactly matching screen */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
             {/* Severity Badge */}
             <span
@@ -1481,10 +1496,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 backgroundColor: dosha.severity === "critical" ? "#FEF2F2" : "#FFFBEB",
                 border: `1px solid ${dosha.severity === "critical" ? "#FCA5A5" : "#FCD34D"}`,
                 color: dosha.severity === "critical" ? "#991B1B" : "#92400E",
-                fontSize: "11px",
+                fontSize: "10.5px",
                 fontWeight: 800,
                 padding: "3px 9px",
-                borderRadius: "5px",
+                borderRadius: "9999px",
                 flexShrink: 0,
                 whiteSpace: "nowrap",
                 display: "inline-flex",
@@ -1496,20 +1511,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               {getSeverityLabel(dosha.severity, code)}
             </span>
 
-            {/* Red / Crimson Age Priority Badge with Crystal Clear Typography & Proper Line Height */}
+            {/* Glowing Golden Amber Age Priority Badge */}
             <span
               style={{
-                backgroundColor: "#991B1B",
+                background: "linear-gradient(90deg, #B45309 0%, #D97706 100%)",
                 color: "#FFFFFF",
-                fontSize: "11px",
+                fontSize: "10.5px",
                 fontWeight: 800,
-                padding: "3px 10px",
-                borderRadius: "5px",
-                border: "1px solid #7F1D1D",
+                padding: "3px 11px",
+                borderRadius: "9999px",
+                border: "1px solid #78350F",
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center",
                 lineHeight: 1.45,
+                boxShadow: "0 1px 3px rgba(120, 53, 15, 0.2)",
                 boxSizing: "border-box"
               }}
             >
@@ -1522,10 +1538,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 backgroundColor: isCompleted ? "#F0FDF4" : "#FEF3C7",
                 border: `1px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
                 color: isCompleted ? "#166534" : GOLD_DARK,
-                fontSize: "11px",
+                fontSize: "10.5px",
                 fontWeight: 800,
                 padding: "3px 9px",
-                borderRadius: "5px",
+                borderRadius: "9999px",
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center",
@@ -1533,36 +1549,66 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 boxSizing: "border-box"
               }}
             >
-              {getLangVal(dosha.statusBadge)}
+              ● {getLangVal(dosha.statusBadge)}
             </span>
           </div>
         </div>
 
-        {/* Age Priority Reason if present */}
+        {/* 📌 Age Priority Reason (Matching screen) */}
         {dosha.agePriorityReason && (
-          <div style={{ fontSize: "12px", color: INK_MUTED, fontStyle: "italic", lineHeight: 1.45, wordSpacing: "1px" }}>
-            ({getLangVal(dosha.agePriorityReason)})
+          <div
+            style={{
+              backgroundColor: "#FFFDF9",
+              border: "1px solid #FDE68A",
+              borderRadius: "10px",
+              padding: "6px 10px",
+              fontSize: "11px",
+              color: "#451A03",
+              lineHeight: 1.5,
+              boxShadow: "0 1px 2px rgba(180, 83, 9, 0.02)"
+            }}
+          >
+            <span style={{ fontWeight: 800, color: "#78350F" }}>📌 {t.agePriorityBadgeLabel}: </span>
+            <span>{getLangVal(dosha.agePriorityReason)}</span>
           </div>
         )}
 
-        {/* Immediate Action Banner: Clean Corporate Callout with Deep Left Accent Line */}
+        {/* 🎯 Immediate Priority Action (Matching screen glowing card) */}
         {dosha.immediateActionRequired && (
           <div
             style={{
-              backgroundColor: "#FCFBF9",
-              borderLeft: `4px solid ${GOLD_BORDER}`,
-              borderTop: "1px solid #F1E8D9",
-              borderRight: "1px solid #F1E8D9",
-              borderBottom: "1px solid #F1E8D9",
-              borderRadius: "6px",
-              padding: "8px 14px",
-              fontSize: "12.5px",
-              lineHeight: 1.6,
-              wordSpacing: "1px"
+              backgroundColor: "#FEF9E7",
+              border: "2px solid #F59E0B",
+              borderRadius: "12px",
+              padding: "8px 12px",
+              boxShadow: "0 2px 6px rgba(245, 158, 11, 0.12)"
             }}
           >
-            <span style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px" }}>{t.immediateActionLabel} </span>
-            <span style={{ fontWeight: 700, color: INK_DEEP }}>
+            <div
+              style={{
+                fontSize: "10.5px",
+                fontWeight: 900,
+                color: "#78350F",
+                textTransform: "uppercase",
+                letterSpacing: "normal",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+                marginBottom: "3px"
+              }}
+            >
+              <span>🎯</span>
+              <span>{t.immediateActionLabel}</span>
+            </div>
+            <div
+              style={{
+                fontSize: "12px",
+                fontWeight: 800,
+                color: "#451A03",
+                lineHeight: 1.55,
+                letterSpacing: "normal"
+              }}
+            >
               {stripDuplicatePrefix(getLangVal(dosha.immediateActionRequired), [
                 "🎯 ಮೊದಲು ಮಾಡಬೇಕಾದ ಕರ್ತವ್ಯ:",
                 "🎯 Immediate Priority Action:",
@@ -1570,65 +1616,221 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 "🎯 మొదట చేయవలసిన కర్తవ్యం:",
                 "🎯 முதலில் செய்ய வேண்டிய கடமை:"
               ])}
-            </span>
+            </div>
           </div>
         )}
 
-        {/* 4 PILLARS FOR NON-ASTROLOGY USERS: SINGLE CLEAN BACKGROUND, NO NESTED PATCHWORK */}
-        {/* Pillar 1: Root Cause / What is the Issue? */}
-        <div style={{ paddingTop: "2px" }}>
-          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
-            {t.pillar1Question}
+        {/* 🔍 Technical "WHY" Breakdown (Matching screen) */}
+        <div
+          style={{
+            backgroundColor: "#FFFDF9",
+            border: "1px solid #FDE68A",
+            borderRadius: "12px",
+            padding: "8px 12px",
+            boxShadow: "0 1px 2px rgba(180, 83, 9, 0.02)"
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10.5px",
+              fontWeight: 900,
+              color: "#78350F",
+              textTransform: "uppercase",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              marginBottom: "3px"
+            }}
+          >
+            <span>🔍</span>
+            <span>{t.technicalRootLabel}</span>
           </div>
-          <div style={{ color: INK_DEEP, marginTop: "4px", fontSize: "12.5px", lineHeight: 1.65, wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
+          <div
+            style={{
+              fontSize: "11.5px",
+              color: "#451A03",
+              lineHeight: 1.6,
+              fontWeight: 500,
+              letterSpacing: "normal"
+            }}
+          >
             {cleanDegreesFromText(getLangVal(dosha.technicalWhy) || getLangVal((dosha as any).technicalReason))}
+          </div>
+
+          {/* Chips below */}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "5px", marginTop: "5px" }}>
+            {dosha.technicalDetail?.houseNumbers && dosha.technicalDetail.houseNumbers.length > 0 && (
+              <span
+                style={{
+                  backgroundColor: "#FFFBEB",
+                  border: "1px solid #FDE68A",
+                  color: "#451A03",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  padding: "1px 7px",
+                  borderRadius: "6px"
+                }}
+              >
+                🏠 {code === "kn" ? "ಭಾವಗಳು: " : "Houses: "} {dosha.technicalDetail.houseNumbers.join(", ")}
+              </span>
+            )}
+            {dosha.technicalDetail?.grahasInvolved && dosha.technicalDetail.grahasInvolved.length > 0 && (
+              <span
+                style={{
+                  backgroundColor: "#FFFBEB",
+                  border: "1px solid #FDE68A",
+                  color: "#451A03",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  padding: "1px 7px",
+                  borderRadius: "6px"
+                }}
+              >
+                🪐 {code === "kn" ? "ಗ್ರಹಗಳು: " : "Grahas: "} {dosha.technicalDetail.grahasInvolved.join(", ")}
+              </span>
+            )}
+            {dosha.technicalDetail?.hasBhangaOrMitigation && (
+              <span
+                style={{
+                  backgroundColor: "#FEF3C7",
+                  border: "1px solid #FCD34D",
+                  color: "#78350F",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  padding: "1px 7px",
+                  borderRadius: "6px"
+                }}
+              >
+                ✨ {code === "kn" ? "ಭಂಗ / ಪರಿಹಾರಕ ಬಲ: " : "Mitigation: "} {getLangVal(dosha.technicalDetail.bhangaDescription)}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Pillar 2: Real Life Impact / What is it Doing in Life Now? */}
-        <div style={{ borderTop: "1px solid #F1E8D9", paddingTop: "8px" }}>
-          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
-            {t.pillar2Question}
+        {/* 🚨 Real-World Life Impacts / Current Problems (Matching screen) */}
+        <div
+          style={{
+            backgroundColor: "#FFFDF9",
+            border: "1px solid #FDE68A",
+            borderRadius: "12px",
+            padding: "8px 12px",
+            boxShadow: "0 1px 2px rgba(180, 83, 9, 0.02)"
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10.5px",
+              fontWeight: 900,
+              color: "#78350F",
+              textTransform: "uppercase",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              marginBottom: "3px"
+            }}
+          >
+            <span>🚨</span>
+            <span>{t.realLifeImpactLabel}</span>
           </div>
-          <div style={{ color: INK_DEEP, marginTop: "4px", fontSize: "12.5px", lineHeight: 1.65, wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
+          <div
+            style={{
+              fontSize: "11.5px",
+              color: "#451A03",
+              lineHeight: 1.6,
+              fontWeight: 500,
+              letterSpacing: "normal"
+            }}
+          >
             {getLangVal(dosha.currentLifeProblems) || getLangVal(dosha.lifeImpact)}
           </div>
-          {/* Dasha Resonance if available */}
+
           {dosha.dashaResonance && (
             <div
               style={{
-                borderLeft: `3px solid ${GOLD_LIGHT}`,
-                paddingLeft: "10px",
-                fontSize: "12px",
-                color: INK_DEEP,
-                lineHeight: 1.55,
-                marginTop: "6px",
-                wordSpacing: "1px"
+                marginTop: "5px",
+                borderLeft: "3px solid #D97706",
+                paddingLeft: "8px",
+                fontSize: "11px",
+                color: "#451A03",
+                lineHeight: 1.5
               }}
             >
-              <strong style={{ color: GOLD_DARK }}>⏳ {t.dashaResonanceLabel} </strong>
+              <strong style={{ color: "#78350F" }}>⏳ {t.dashaResonanceLabel} </strong>
               <span>{getLangVal(dosha.dashaResonance)}</span>
             </div>
           )}
         </div>
 
-        {/* Pillar 3: Prescribed Remedy & Sacred Gokarna Seva / What is the Solution? */}
-        <div style={{ borderTop: "1px solid #F1E8D9", paddingTop: "8px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "14px" }}>
-            <div>
-              <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
-                {t.pillar3Question}
-              </div>
-              <div style={{ color: INK_DEEP, fontWeight: 700, marginTop: "4px", fontSize: "12.5px", lineHeight: 1.55, wordSpacing: "1px" }}>
-                {getLangVal(dosha.recommendedPooja)}
+        {/* 🔱 Prescribed Vedic Shanti & Sacred Gokarna Seva (Matching screen) */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #FFFDF9 0%, #FEFBF2 50%, #FFF9EB 100%)",
+            border: "2px solid rgba(245, 158, 11, 0.6)",
+            borderRadius: "14px",
+            padding: "10px 12px",
+            boxShadow: "0 2px 6px rgba(180, 83, 9, 0.03)"
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10.5px",
+              fontWeight: 900,
+              color: "#451A03",
+              textTransform: "uppercase",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              marginBottom: "6px"
+            }}
+          >
+            <span>🔱</span>
+            <span>{t.pariharaHeading}</span>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "8px" }}>
+            {/* Temple Pooja Box */}
+            <div
+              style={{
+                backgroundColor: "#FFFDF9",
+                border: "1px solid #FCD34D",
+                borderRadius: "10px",
+                padding: "6px 10px",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "6px"
+              }}
+            >
+              <span style={{ fontSize: "16px", flexShrink: 0 }}>🛕</span>
+              <div>
+                <div style={{ fontSize: "9.5px", fontWeight: 800, color: "#78350F", textTransform: "uppercase" }}>
+                  {code === "kn" ? "ಶಿಫಾರಸು ಮಾಡಿದ ಪೂಜೆ & ಕ್ಷೇತ್ರ:" : "Prescribed Sacred Pooja:"}
+                </div>
+                <div style={{ fontSize: "11.5px", fontWeight: 800, color: "#451A03", marginTop: "1px", lineHeight: 1.4 }}>
+                  {getLangVal(dosha.recommendedPooja)}
+                </div>
               </div>
             </div>
-            <div>
-              <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
-                📿 {t.mantraLabel}
+
+            {/* Daily Remedies Box */}
+            <div
+              style={{
+                backgroundColor: "#FFFDF9",
+                border: "1px solid #FCD34D",
+                borderRadius: "10px",
+                padding: "6px 10px"
+              }}
+            >
+              <div style={{ fontSize: "9.5px", fontWeight: 800, color: "#78350F", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span>📿</span>
+                <span>{t.mantraLabel}</span>
               </div>
-              <div style={{ color: INK_DEEP, marginTop: "4px", fontSize: "12.5px", lineHeight: 1.55, wordSpacing: "1px" }}>
-                {getLangArr(dosha.remedies).slice(0, 2).join(" • ")}
+              <div style={{ fontSize: "11px", color: "#451A03", marginTop: "2px", lineHeight: 1.45, fontWeight: 500 }}>
+                {getLangArr(dosha.remedies).slice(0, 2).map((rem, rIdx) => (
+                  <div key={rIdx} style={{ display: "flex", alignItems: "flex-start", gap: "4px", marginTop: rIdx > 0 ? "2px" : "0" }}>
+                    <span style={{ color: "#D97706", fontWeight: 900 }}>✦</span>
+                    <span>{rem}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1638,30 +1840,32 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             <div
               style={{
                 marginTop: "6px",
-                borderLeft: `3px solid ${GOLD_LIGHT}`,
-                paddingLeft: "10px",
-                fontSize: "12px",
-                color: INK_DEEP,
-                lineHeight: 1.5,
-                wordSpacing: "1px"
+                backgroundColor: "rgba(254, 243, 199, 0.4)",
+                border: "1px solid #FDE68A",
+                borderRadius: "8px",
+                padding: "5px 8px",
+                fontSize: "10.5px",
+                color: "#451A03",
+                lineHeight: 1.45
               }}
             >
-              <strong style={{ color: GOLD_DARK }}>🧠 {snip.subconsciousFear} </strong>
+              <strong style={{ color: "#78350F" }}>🧠 {snip.subconsciousFear} </strong>
               <span>{getLangVal(dosha.subconsciousFear)}</span>
             </div>
           )}
 
-          {/* Completed Narration vs Conditional Guidance */}
+          {/* Shanti Completed or Special Guidance */}
           {isCompleted ? (
             <div
               style={{
-                borderLeft: "3px solid #166534",
-                paddingLeft: "10px",
                 marginTop: "6px",
-                fontSize: "12px",
+                backgroundColor: "#F0FDF4",
+                border: "1px solid #86EFAC",
+                borderRadius: "8px",
+                padding: "5px 8px",
+                fontSize: "10.5px",
                 color: "#166534",
-                lineHeight: 1.5,
-                wordSpacing: "1px"
+                lineHeight: 1.45
               }}
             >
               <strong>✓ {snip.shantiCompleted} </strong>
@@ -1671,16 +1875,17 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             dosha.conditionalGuidance && (
               <div
                 style={{
-                  borderLeft: `3px solid ${GOLD_LIGHT}`,
-                  paddingLeft: "10px",
                   marginTop: "6px",
-                  fontSize: "12px",
-                  color: INK_DEEP,
-                  lineHeight: 1.5,
-                  wordSpacing: "1px"
+                  backgroundColor: "#FFFDF9",
+                  border: "1px solid #FDE68A",
+                  borderRadius: "8px",
+                  padding: "5px 8px",
+                  fontSize: "10.5px",
+                  color: "#451A03",
+                  lineHeight: 1.45
                 }}
               >
-                <strong style={{ color: GOLD_DARK }}>💡 {snip.guidance} </strong>
+                <strong style={{ color: "#78350F" }}>💡 {snip.guidance} </strong>
                 <span>
                   {stripDuplicatePrefix(getLangVal(dosha.conditionalGuidance), [
                     "ವಿಶೇಷ ಮಾರ್ಗದರ್ಶನ:",
@@ -1695,12 +1900,40 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           )}
         </div>
 
-        {/* Pillar 4: Expected Life Improvement & Positive Transformations / What Will Happen After? */}
-        <div style={{ borderTop: "1px solid #F1E8D9", paddingTop: "8px" }}>
-          <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "13px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
-            {t.pillar4Question}
+        {/* ✨ Expected Life Improvement After Parihara (Matching screen) */}
+        <div
+          style={{
+            backgroundColor: "#FFFDF9",
+            border: "1px solid #FDE68A",
+            borderRadius: "12px",
+            padding: "8px 12px",
+            boxShadow: "0 1px 2px rgba(180, 83, 9, 0.02)"
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10.5px",
+              fontWeight: 900,
+              color: "#78350F",
+              textTransform: "uppercase",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              marginBottom: "3px"
+            }}
+          >
+            <span>✨</span>
+            <span>{t.expectedImprovementHeading}</span>
           </div>
-          <div style={{ color: INK_DEEP, fontWeight: 600, marginTop: "4px", fontSize: "12.5px", lineHeight: 1.6, wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
+          <div
+            style={{
+              fontSize: "11.5px",
+              color: "#451A03",
+              lineHeight: 1.6,
+              fontWeight: 600,
+              letterSpacing: "normal"
+            }}
+          >
             {getExpectedImprovementAfterParihara(dosha.id, code)}
           </div>
         </div>
@@ -1708,11 +1941,6 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     );
   };
 
-  // 4-PAGE LUXURY MASTER DOSSIER ARCHITECTURE (BALANCED & FULL A4 UTILIZATION):
-  // Page 1: Devotee Profile Matrix, Age Strategy & Primary Urgent Karmic Affliction (#1). (NO BLANK SPACE).
-  // Page 2: Secondary Affliction (#2, e.g. Kuja Dosha in Full Depth) & Parashari Protective Counterbalance. (NO CUT-OFF).
-  // Page 3: Natal Celestial Fortitude & Protection Shield (4 Houses) + Gochara Planetary Transits. (NO 25% EMPTY SPACE).
-  // Page 4: Critical Life Hazards (Gandantara), Fears, Gokarna Temple Sevas & Chief Priest Blessings. (FULL A4).
   const primaryDosha = activeDoshas[0] || null;
   const secondaryDoshas = activeDoshas.slice(1);
 
@@ -1884,29 +2112,65 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
           {renderGoldLandlineDivider(t.ageDirectiveDivider)}
 
-          {/* Age-Adaptive Priority Strategy Card */}
+          {/* Age-Adaptive Priority Strategy Card (Screen-Matched Luxury Styling) */}
           <div
             style={{
-              backgroundColor: "#FCFBF9",
-              border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "12px 18px",
+              background: "linear-gradient(135deg, #FFFDF9 0%, #FEFBF2 50%, #FFF9EB 100%)",
+              border: "2px solid rgba(245, 158, 11, 0.5)",
+              borderRadius: "16px",
+              padding: "10px 14px",
               boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-              <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.35, letterSpacing: "0.2px" }}>
-                {t.ageStrategyHeading} ({devoteeInfo.ageStageNameRecord?.[code] || snip.agePrefix + (devoteeInfo.currentAge || devoteeInfo.devoteeAge)})
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", borderBottom: "1.5px solid rgba(245, 158, 11, 0.2)", paddingBottom: "6px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "10px", border: "1px solid #FCD34D", backgroundColor: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>
+                  ⭐
+                </div>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: 900, color: "#451A03", lineHeight: 1.3 }}>
+                    {t.ageStrategyHeading}
+                  </div>
+                  <div style={{ fontSize: "10.5px", fontWeight: 700, color: "#78350F", marginTop: "1px" }}>
+                    {devoteeInfo.ageStageNameRecord?.[code] || devoteeInfo.ageStageKey} • {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {snip.yearsUnit}
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: "11px", backgroundColor: "#991B1B", color: "#FFFFFF", padding: "3px 10px", borderRadius: "6px", fontWeight: 800, border: `1px solid #7F1D1D`, letterSpacing: "normal", flexShrink: 0, lineHeight: 1.4 }}>
-                ⚡ {t.agePriorityBadgeLabel}
+
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "3px 11px",
+                  borderRadius: "9999px",
+                  background: "linear-gradient(90deg, #B45309 0%, #D97706 100%)",
+                  color: "#FFFFFF",
+                  border: "1px solid #78350F",
+                  fontSize: "10.5px",
+                  fontWeight: 800,
+                  lineHeight: 1.45,
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 1px 3px rgba(120, 53, 15, 0.2)"
+                }}
+              >
+                <span>⚡</span>
+                <span>{t.agePriorityBadgeLabel}</span>
               </div>
             </div>
-            <div style={{ fontSize: "12.5px", color: INK_DEEP, fontWeight: 700, marginTop: "5px", lineHeight: 1.65, wordSpacing: "1.2px" }}>
-              {getLangVal(devoteeInfo.currentAgeFocusSummary, snip.ageFocusFallback)}
+
+            <div style={{ marginTop: "6px", backgroundColor: "#FFFDF9", border: "1px solid #FDE68A", borderRadius: "10px", padding: "7px 10px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", color: "#78350F", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span>📜</span>
+                <span>{snip.divNative || "ಶಾಸ್ತ್ರೋಕ್ತ ಜೀವನ ಮಾರ್ಗದರ್ಶನ"}</span>
+              </div>
+              <div style={{ fontSize: "11.5px", color: "#451A03", fontWeight: 700, marginTop: "3px", lineHeight: 1.55, wordSpacing: "1px" }}>
+                {getLangVal(devoteeInfo.currentAgeFocusSummary, snip.ageFocusFallback)}
+              </div>
             </div>
-            <div style={{ fontSize: "11.5px", color: INK_MUTED, marginTop: "4px", fontStyle: "italic", lineHeight: 1.45, wordSpacing: "1px" }}>
+
+            <div style={{ fontSize: "10px", color: "#78350F", marginTop: "4px", fontStyle: "italic", lineHeight: 1.35, paddingLeft: "2px" }}>
               {t.ageStrategyNotice}
             </div>
           </div>
