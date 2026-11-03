@@ -1130,7 +1130,7 @@ function getExpectedImprovementAfterParihara(doshaId: string, lang: SupportedLan
   return defaultImprovement[lang] || defaultImprovement.kn;
 }
 
-export function formatDevoteeNameForLanguage(name: string, targetLang: string): string {
+function formatDevoteeNameForLanguage(name: string, targetLang: string): string {
   if (!name || !name.trim()) return "Devotee";
   const trimmed = name.trim();
   const lang = (targetLang || "kn").toLowerCase();
