@@ -1577,17 +1577,17 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               textAlign: "center",
               background: "linear-gradient(135deg, #451A03 0%, #78350F 50%, #451A03 100%)",
               borderRadius: "10px",
-              padding: "7px 16px",
+              padding: "8px 16px",
               color: "#FFFFFF",
               border: "2px solid #F59E0B",
               boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
               flexShrink: 0
             }}
           >
-            <div style={{ fontSize: "11px", fontWeight: 800, color: "#FDE68A", letterSpacing: "normal" }}>
+            <div style={{ fontSize: "12px", fontWeight: 800, color: "#FDE68A", letterSpacing: "normal" }}>
               {i18n.templeBanner}
             </div>
-            <div style={{ fontSize: "14.5px", fontWeight: 900, color: "#FFFFFF", marginTop: "2px", lineHeight: 1.3 }}>
+            <div style={{ fontSize: "15.5px", fontWeight: 900, color: "#FFFFFF", marginTop: "2px", lineHeight: 1.3 }}>
               {i18n.page3Title}
             </div>
           </div>
@@ -1598,7 +1598,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               backgroundColor: "#FFFFFF",
               border: "1.5px solid #D97706",
               borderRadius: "12px",
-              padding: "11px 15px",
+              padding: "11px 16px",
               boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)",
               flexShrink: 0,
               display: "flex",
@@ -1608,7 +1608,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
           >
             <div
               style={{
-                fontSize: "13px",
+                fontSize: "14px",
                 fontWeight: 900,
                 color: "#78350F",
                 borderBottom: "1.5px solid #FDE68A",
@@ -1619,9 +1619,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             </div>
 
             {/* Dasha & Bhukti Card */}
-            <div style={{ backgroundColor: "#FFFDF8", border: "1px solid #FDE68A", borderRadius: "8px", padding: "8px 12px", fontSize: "11px", lineHeight: 1.45 }}>
+            <div style={{ backgroundColor: "#FFFDF8", border: "1px solid #FDE68A", borderRadius: "8px", padding: "8px 13px", fontSize: "12px", lineHeight: 1.5 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ fontWeight: 800, color: "#92400E" }}>
+                <div style={{ fontWeight: 800, color: "#92400E", fontSize: "12.5px" }}>
                   <span>⏳ {cleanLabel(i18n.currentDasha)} </span>
                   <span style={{ color: "#B45309", fontWeight: 900 }}>
                     {isKn
@@ -1638,11 +1638,11 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 {dashaBhuktiAnalysis.sandhiAlert && (
                   <span
                     style={{
-                      fontSize: "9.5px",
+                      fontSize: "10.5px",
                       backgroundColor: dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "#FEE2E2" : "#FEF3C7",
                       color: dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "#991B1B" : "#92400E",
-                      padding: "0 8px",
-                      height: "20px",
+                      padding: "0 9px",
+                      height: "22px",
                       borderRadius: "6px",
                       fontWeight: 800,
                       border: "1px solid #FDE68A",
@@ -1670,7 +1670,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    fontSize: "10.5px"
+                    fontSize: "11.5px"
                   }}
                 >
                   <span style={{ fontWeight: 800, color: dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "#991B1B" : "#B45309" }}>
@@ -1691,7 +1691,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 <span>{dashaBhuktiAnalysis.remedialAction[code] || dashaBhuktiAnalysis.remedialAction.kn}</span>
               </div>
               {dashaBhuktiAnalysis.adhidevata && (
-                <div style={{ color: "#78350F", marginTop: "2px", fontSize: "10.5px" }}>
+                <div style={{ color: "#78350F", marginTop: "2px", fontSize: "11.5px" }}>
                   <span style={{ fontWeight: 800 }}>• {cleanLabel(i18n.adhidevataTitle)} </span>
                   <span style={{ color: "#451A03", fontWeight: 700 }}>
                     {dashaBhuktiAnalysis.adhidevata.adhidevata[code] || dashaBhuktiAnalysis.adhidevata.adhidevata.kn} / {dashaBhuktiAnalysis.adhidevata.pratyadhidevata[code] || dashaBhuktiAnalysis.adhidevata.pratyadhidevata.kn}
@@ -1702,7 +1702,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             </div>
 
             {/* Gochara Transits Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: gocharaTransitAnalysis.transitHighlights.length > 2 ? "1fr 1fr 1fr" : "1fr 1fr", gap: "7px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: gocharaTransitAnalysis.transitHighlights.length > 2 ? "1fr 1fr 1fr" : "1fr 1fr", gap: "8px" }}>
               {gocharaTransitAnalysis.transitHighlights.map((gh, idx) => (
                 <div
                   key={idx}
@@ -1710,18 +1710,18 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     backgroundColor: "#FFFDF8",
                     border: "1px solid #FDE68A",
                     borderRadius: "8px",
-                    padding: "6px 9px",
-                    fontSize: "10.5px",
-                    lineHeight: 1.4
+                    padding: "7px 10px",
+                    fontSize: "11px",
+                    lineHeight: 1.45
                   }}
                 >
-                  <div style={{ fontWeight: 800, color: "#92400E" }}>
+                  <div style={{ fontWeight: 800, color: "#92400E", fontSize: "11.5px" }}>
                     ✨ {gh.title[code] || gh.title.kn}
                   </div>
-                  <div style={{ color: "#451A03", marginTop: "1px", fontSize: "10px" }}>
+                  <div style={{ color: "#451A03", marginTop: "1px", fontSize: "10.5px" }}>
                     {gh.description[code] || gh.description.kn}
                   </div>
-                  <div style={{ color: "#78350F", marginTop: "1px", fontWeight: 700, fontSize: "10px" }}>
+                  <div style={{ color: "#78350F", marginTop: "1px", fontWeight: 700, fontSize: "10.5px" }}>
                     {gh.remedy[code] || gh.remedy.kn}
                   </div>
                 </div>
@@ -1734,11 +1734,11 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 backgroundColor: "#FEF3C7",
                 border: "1px solid #FDE68A",
                 borderRadius: "6px",
-                padding: "5px 10px",
-                fontSize: "10.5px",
+                padding: "6px 11px",
+                fontSize: "11.5px",
                 color: "#92400E",
                 fontWeight: 800,
-                lineHeight: 1.35
+                lineHeight: 1.4
               }}
             >
               🪐 {gocharaTransitAnalysis.sadeSatiStatus[code] || gocharaTransitAnalysis.sadeSatiStatus.kn}
@@ -1751,14 +1751,14 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   backgroundColor: "#FFFDF8",
                   border: "1px solid #FDE68A",
                   borderRadius: "8px",
-                  padding: "6px 11px",
-                  fontSize: "10.5px",
-                  lineHeight: 1.4
+                  padding: "7px 12px",
+                  fontSize: "11.5px",
+                  lineHeight: 1.45
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 900, color: "#78350F" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 900, color: "#78350F", fontSize: "12px" }}>
                   <span>⭐ {i18n.turnaroundTitle}</span>
-                  <span style={{ backgroundColor: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A", padding: "0 8px", height: "19px", borderRadius: "6px", fontSize: "9.5px", fontWeight: 800, display: "inline-flex", alignItems: "center" }}>
+                  <span style={{ backgroundColor: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A", padding: "0 9px", height: "20px", borderRadius: "6px", fontSize: "10.5px", fontWeight: 800, display: "inline-flex", alignItems: "center" }}>
                     {lifeTurnaroundTiming.timeline?.[code] || (isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || "Upcoming 3 to 6 months"))}
                   </span>
                 </div>
@@ -1788,7 +1788,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 )}
                 {/* Before vs After Transformation */}
                 {lifeTurnaroundTiming.beforeState && lifeTurnaroundTiming.afterState && (
-                  <div style={{ color: "#78350F", marginTop: "2px", fontSize: "10.5px", lineHeight: 1.4 }}>
+                  <div style={{ color: "#78350F", marginTop: "3px", fontSize: "11px", lineHeight: 1.45 }}>
                     <span style={{ fontWeight: 800, color: "#92400E" }}>{cleanLabel(i18n.beforeAfterTitle)} </span>
                     <span style={{ color: "#991B1B", fontWeight: 700 }}>{lifeTurnaroundTiming.beforeState[code] || lifeTurnaroundTiming.beforeState.kn}</span>
                     <span style={{ color: "#D97706", fontWeight: 800 }}> ➔ </span>
@@ -1805,12 +1805,12 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               backgroundColor: "#FFFDF8",
               border: "1.5px solid #D97706",
               borderRadius: "12px",
-              padding: "11px 15px",
+              padding: "11px 16px",
               boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)",
               flexShrink: 0,
               display: "flex",
               flexDirection: "column",
-              gap: "7px"
+              gap: "8px"
             }}
           >
             <div
@@ -1822,18 +1822,18 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 paddingBottom: "3px"
               }}
             >
-              <div style={{ fontSize: "12.5px", fontWeight: 900, color: "#78350F" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: 900, color: "#78350F" }}>
                 📿 {i18n.vedicGrahaShantiTitle}
               </div>
               <span
                 style={{
-                  fontSize: "9.5px",
+                  fontSize: "10.5px",
                   fontWeight: 900,
                   backgroundColor: "#FEF3C7",
                   color: "#92400E",
                   border: "1px solid #D97706",
-                  padding: "0 10px",
-                  height: "22px",
+                  padding: "0 11px",
+                  height: "23px",
                   borderRadius: "6px",
                   lineHeight: 1,
                   display: "inline-flex",
@@ -1849,9 +1849,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: "10px", fontSize: "11px", lineHeight: 1.45 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: "12px", fontSize: "12px", lineHeight: 1.5 }}>
               <div>
-                <div style={{ fontWeight: 800, color: "#92400E" }}>
+                <div style={{ fontWeight: 800, color: "#92400E", fontSize: "12.5px" }}>
                   🔯 {cleanLabel(i18n.prescribedDeityLabel)}{" "}
                   <span style={{ color: "#78350F", fontWeight: 900 }}>
                     {grahaMantra.deityName[code] || grahaMantra.deityName.kn}
@@ -1861,14 +1861,14 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   style={{
                     color: "#991B1B",
                     fontWeight: 900,
-                    fontSize: "11.5px",
+                    fontSize: "12.5px",
                     marginTop: "3px",
                     fontStyle: "italic",
                     backgroundColor: "#FFFFFF",
-                    padding: "6px 10px",
+                    padding: "7px 11px",
                     borderRadius: "8px",
                     border: "1.5px solid #FDE68A",
-                    lineHeight: 1.5,
+                    lineHeight: 1.55,
                     letterSpacing: "0.2px"
                   }}
                 >
@@ -1894,17 +1894,17 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               backgroundColor: "#FFFFFF",
               border: "1.5px solid #D97706",
               borderRadius: "12px",
-              padding: "11px 15px",
+              padding: "11px 16px",
               boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)",
               flexShrink: 0,
               display: "flex",
               flexDirection: "column",
-              gap: "7px"
+              gap: "8px"
             }}
           >
             <div
               style={{
-                fontSize: "13px",
+                fontSize: "14px",
                 fontWeight: 900,
                 color: "#78350F",
                 borderBottom: "1.5px solid #FDE68A",
@@ -1914,23 +1914,23 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               🛕 {i18n.sec7Title}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "11px" }}>
               {/* Prescribed Seva */}
-              <div style={{ backgroundColor: "#FFFDF8", border: "1px solid #FDE68A", borderRadius: "8px", padding: "8px 12px", fontSize: "11px", lineHeight: 1.45 }}>
-                <div style={{ fontWeight: 800, color: "#92400E" }}>🔱 {cleanLabel(i18n.prescribedSeva)}</div>
-                <div style={{ color: "#451A03", fontWeight: 900, fontSize: "12px", marginTop: "2px" }}>
+              <div style={{ backgroundColor: "#FFFDF8", border: "1px solid #FDE68A", borderRadius: "8px", padding: "8px 13px", fontSize: "12px", lineHeight: 1.5 }}>
+                <div style={{ fontWeight: 800, color: "#92400E", fontSize: "12px" }}>🔱 {cleanLabel(i18n.prescribedSeva)}</div>
+                <div style={{ color: "#451A03", fontWeight: 900, fontSize: "13px", marginTop: "2px" }}>
                   {gokarnaTempleRemedies.prescribedSeva.name[code] || gokarnaTempleRemedies.prescribedSeva.name.kn}
                 </div>
-                <div style={{ color: "#78350F", fontSize: "10.5px", marginTop: "2px" }}>
+                <div style={{ color: "#78350F", fontSize: "11.5px", marginTop: "2px" }}>
                   {gokarnaTempleRemedies.prescribedSeva.temple[code] || gokarnaTempleRemedies.prescribedSeva.temple.kn}
                 </div>
-                <div style={{ color: "#78350F", fontSize: "10.5px", marginTop: "2px", fontWeight: 700 }}>
+                <div style={{ color: "#78350F", fontSize: "11.5px", marginTop: "2px", fontWeight: 700 }}>
                   📅 {gokarnaTempleRemedies.prescribedSeva.idealDay[code] || gokarnaTempleRemedies.prescribedSeva.idealDay.kn}
                 </div>
               </div>
 
               {/* Rudraksha, Gemstone, Daana */}
-              <div style={{ backgroundColor: "#FFFDF8", border: "1px solid #FDE68A", borderRadius: "8px", padding: "8px 12px", fontSize: "11px", lineHeight: 1.45 }}>
+              <div style={{ backgroundColor: "#FFFDF8", border: "1px solid #FDE68A", borderRadius: "8px", padding: "8px 13px", fontSize: "12px", lineHeight: 1.5 }}>
                 <div>
                   <span style={{ fontWeight: 800, color: "#92400E" }}>📿 {cleanLabel(i18n.rudraksha)} </span>
                   <span style={{ color: "#451A03", fontWeight: 700 }}>
@@ -1971,7 +1971,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   backgroundColor: "#FFFFFF",
                   border: "1.5px solid #D97706",
                   borderRadius: "12px",
-                  padding: "11px 15px",
+                  padding: "11px 16px",
                   boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)",
                   flexShrink: 0,
                   display: "flex",
@@ -1981,7 +1981,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               >
                 <div
                   style={{
-                    fontSize: "13.5px",
+                    fontSize: "14px",
                     fontWeight: 900,
                     color: "#78350F",
                     borderBottom: "1.5px solid #FDE68A",
@@ -1993,22 +1993,22 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 84px",
+                    gridTemplateColumns: "1fr 86px",
                     gap: "14px",
                     alignItems: "center"
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: "14.5px", fontWeight: 900, color: "#78350F", letterSpacing: "normal" }}>
+                    <div style={{ fontSize: "15.5px", fontWeight: 900, color: "#78350F", letterSpacing: "normal" }}>
                       {localizedPriestName}
                     </div>
-                    <div style={{ fontSize: "11px", color: "#92400E", fontWeight: 700, marginTop: "2px" }}>
+                    <div style={{ fontSize: "11.5px", color: "#92400E", fontWeight: 700, marginTop: "2px" }}>
                       {chiefPriestBlessing.priestTitle[code] || chiefPriestBlessing.priestTitle.kn} · {cleanLabel(i18n.priestContact)} {displayPhone}
                     </div>
-                    <div style={{ fontSize: "12px", color: "#991B1B", fontWeight: 800, marginTop: "4px", lineHeight: 1.5, letterSpacing: "0.2px" }}>
+                    <div style={{ fontSize: "12.5px", color: "#991B1B", fontWeight: 800, marginTop: "4px", lineHeight: 1.5, letterSpacing: "0.2px" }}>
                       {chiefPriestBlessing.sanskritAshirvada}
                     </div>
-                    <div style={{ fontSize: "11px", color: "#451A03", marginTop: "3px", lineHeight: 1.45, fontStyle: "italic" }}>
+                    <div style={{ fontSize: "11.5px", color: "#451A03", marginTop: "3px", lineHeight: 1.5, fontStyle: "italic" }}>
                       {localizedAshirvadaMeaning}
                     </div>
                   </div>
@@ -2016,8 +2016,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   {/* Official Temple Seal Graphic */}
                   <div
                     style={{
-                      width: "78px",
-                      height: "78px",
+                      width: "82px",
+                      height: "82px",
                       borderRadius: "50%",
                       border: "2px double #B45309",
                       background: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)",
@@ -2032,11 +2032,11 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                       flexShrink: 0
                     }}
                   >
-                    <div style={{ fontSize: "17px" }}>🪔</div>
-                    <div style={{ fontSize: "7px", fontWeight: 900, color: "#78350F", lineHeight: 1.1, marginTop: "2px" }}>
+                    <div style={{ fontSize: "18px" }}>🪔</div>
+                    <div style={{ fontSize: "7.5px", fontWeight: 900, color: "#78350F", lineHeight: 1.1, marginTop: "2px" }}>
                       {isKn ? "॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥" : isHi ? "॥ गोकर्ण सन्निधि ॥" : isTe ? "॥ గోకర్ణ సన్నిధి ॥" : isTa ? "॥ கோகர்ண சந்நிதி ॥" : "॥ Sri Gokarna Kshetra ॥"}
                     </div>
-                    <div style={{ fontSize: "6.5px", color: "#92400E", fontWeight: 800 }}>
+                    <div style={{ fontSize: "7px", color: "#92400E", fontWeight: 800 }}>
                       {i18n.templeSealLabel}
                     </div>
                   </div>
@@ -2050,7 +2050,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             style={{
               marginTop: "auto",
               textAlign: "center",
-              fontSize: "11px",
+              fontSize: "11.5px",
               color: "#78350F",
               fontWeight: 800,
               borderTop: "1.5px dashed #FDE68A",
