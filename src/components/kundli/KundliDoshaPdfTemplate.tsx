@@ -1157,7 +1157,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   const t = PDF_TEXT[code] || PDF_TEXT.kn;
   const snip = LOCALIZED_SNIPPETS[code] || LOCALIZED_SNIPPETS.en;
 
-  const displayPriestName = overridePriestName?.trim() || t.priestName;
+  const displayPriestName = (() => {
+    if (!overridePriestName?.trim()) return t.priestName;
+    const trimmed = overridePriestName.trim();
+    const isDefaultPriest =
+      trimmed.includes("ಶ್ರೀರಾಮ") ||
+      trimmed.includes("ಶ್ರೀರಾಮ್") ||
+      trimmed.includes("Shreeram") ||
+      trimmed.includes("श्रीराम") ||
+      trimmed.includes("శ్రీరామ్") ||
+      trimmed.includes("ஸ்ரீராம்");
+    if (isDefaultPriest) {
+      return t.priestName;
+    }
+    return formatDevoteeNameForLanguage(trimmed, code);
+  })();
   const rawOverridePhone = overridePriestPhone?.trim();
   const displayPriestPhone = rawOverridePhone
     ? (rawOverridePhone.replace(/[^0-9]/g, "") === "9972339362" ? "+91 99723 39362" : rawOverridePhone)
