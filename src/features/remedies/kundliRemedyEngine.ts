@@ -7043,14 +7043,14 @@ export function generateKundliRemedyReport(
     }
   };
 
-  // 13. Chief Priest Blessing (Strictly Vedamurthi Shri Shreeram Pandit)
+  // 13. Chief Priest Blessing (Strictly Veda Moorthy Chaitanya Pandit)
   const chiefPriestBlessing = {
     priestName: {
-      kn: "ವೇದಮೂರ್ತಿ ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-      en: "Vedamurthi Shri Shreeram Pandit",
-      hi: "वेदमूर्ति श्री श्रीराम पंडित",
-      te: "వేదమూర్తి శ్రీ శ్రీరామ్ పండిత్",
-      ta: "வேதமூர்த்தி ஸ்ரீ ஸ்ரீராம் பண்டித்"
+      kn: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
+      en: "Veda Moorthy Chaitanya Pandit",
+      hi: "वेदमूर्ति चैतन्य पंडित",
+      te: "వేదమూర్తి చైతన్య పండిట్",
+      ta: "வேதமூர்த்தி சைதன்ய பண்டிட்"
     },
     priestTitle: {
       kn: "ಪ್ರಧಾನ ಅರ್ಚಕರು & ಧರ್ಮಕರ್ತರು, ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
@@ -7059,7 +7059,7 @@ export function generateKundliRemedyReport(
       te: "ప్రధాన అర్చకులు, శ్రీ గోకర్ణ క్షేత్రం",
       ta: "தலைமை அர்ச்சகர், ஸ்ரீ கோகர்ண க்ஷேத்திரம்"
     },
-    phone: "+91 99723 39362",
+    phone: "+91 94821 09844",
     sanskritAshirvada: "॥ ॐ स्वस्ति प्रजाभ्यः परिपालयन्तां न्यायेन मार्गेण महीं महीशाः । शुभं भवतु कल्याणं च वर्धताम् ॥",
     ashirvadaMeaning: {
       kn: `${input.gothra ? input.gothra + " ಗೋತ್ರದ " : ""}${input.name ? input.name + " ರವರಿಗೆ " : ""}ಭಗವಾನ್ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನ ಪರಮ ಕೃಪೆಯಿಂದ ತಮ್ಮ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳು, ಮನಸ್ಸಿನ ಕ್ರೋಧ-ಆತಂಕಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆಯುರಾರೋಗ್ಯ, ಸುಖ-ಶಾಂತಿ ಮತ್ತು ಅಖಂಡ ಯಶಸ್ಸು ಲಭಿಸಲಿ ಎಂದು ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಿಂದ ಆಶೀರ್ವದಿಸುತ್ತೇವೆ.`,

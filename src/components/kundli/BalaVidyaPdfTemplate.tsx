@@ -167,7 +167,7 @@ export const BalaVidyaPdfTemplate: React.FC<BalaVidyaPdfTemplateProps> = ({
             {code === "kn" ? '"ॐ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಧರ್ಮಜ್ಞ ಬಾಲ ವಿದ್ಯಾ ಆಶೀರ್ವಾದ · ಸಕಲ ವಿದ್ಯಾ ಪಾರಂಗತೋ ಭವತು"' : '"Om Gokarna Mahabaleshwara Child Intelligence Blessing · Victory in Learning"'}
           </div>
           <div style={{ fontSize: "10.5px", color: "#FDE68A", fontWeight: 600, marginTop: "2px" }}>
-            {code === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ · ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (ದೂರವಾಣಿ: +91 99723 39362)" : "Sri Shreeram Pandit · Chief Priest, Gokarna Kshetra (Phone: +91 99723 39362)"}
+            {code === "kn" ? "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್ · ಮುಖ್ಯ ಅರ್ಚಕರು, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ (ದೂರವಾಣಿ: +91 94821 09844)" : "Veda Moorthy Chaitanya Pandit · Chief Priest, Gokarna Kshetra (Phone: +91 94821 09844)"}
           </div>
         </div>
       </div>

@@ -552,19 +552,19 @@ function formatDevoteeNameForLanguage(name: string, targetLang: string): string 
 }
 
 const PRIEST_DISPLAY_NAMES: Record<SupportedLanguage, string> = {
-  kn: "ವೇದಮೂರ್ತಿ ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-  hi: "वेदमूर्ति श्री श्रीराम पंडित",
-  te: "వేదమూర్తి శ్రీ శ్రీరామ్ పండిట్",
-  ta: "வேதமூர்த்தி ஸ்ரீராம் பண்டிட்",
-  en: "Vedamurthi Shri Shreeram Pandit"
+  kn: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
+  hi: "वेदमूर्ति चैतन्य पंडित",
+  te: "వేదమూర్తి చైతన్య పండిట్",
+  ta: "வேதமூர்த்தி சைதன்ய பண்டிட்",
+  en: "Veda Moorthy Chaitanya Pandit"
 };
 
 const SHORT_PRIEST_DISPLAY_NAMES: Record<SupportedLanguage, string> = {
-  kn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-  hi: "श्रीराम पंडित",
-  te: "శ్రీరామ్ పండిత్",
-  ta: "ஸ்ரீராம் பண்டிட்",
-  en: "Shreeram Pandit"
+  kn: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
+  hi: "वेदमूर्ति चैतन्य पंडित",
+  te: "వేదమూర్తి చైతన్య పండిట్",
+  ta: "வேதமூர்த்தி சைதன்ய பண்டிட்",
+  en: "Veda Moorthy Chaitanya Pandit"
 };
 
 function getShortPriestName(override?: string, langCode: SupportedLanguage = "kn"): string {
@@ -574,6 +574,11 @@ function getShortPriestName(override?: string, langCode: SupportedLanguage = "kn
   }
   const trimmed = override.trim();
   const isDefaultPriest =
+    trimmed.includes("ಚೈತನ್ಯ") ||
+    trimmed.includes("Chaitanya") ||
+    trimmed.includes("चैतन्य") ||
+    trimmed.includes("చైతన్య") ||
+    trimmed.includes("சைதன்ய") ||
     trimmed.includes("ಶ್ರೀರಾಮ") ||
     trimmed.includes("ಶ್ರೀರಾಮ್") ||
     trimmed.includes("Shreeram") ||
@@ -593,6 +598,11 @@ function getLocalizedPriestName(override?: string, langCode: SupportedLanguage =
   }
   const trimmed = override.trim();
   const isDefaultPriest =
+    trimmed.includes("ಚೈತನ್ಯ") ||
+    trimmed.includes("Chaitanya") ||
+    trimmed.includes("चैतन्य") ||
+    trimmed.includes("చైతన్య") ||
+    trimmed.includes("சைதன்ய") ||
     trimmed.includes("ಶ್ರೀರಾಮ") ||
     trimmed.includes("ಶ್ರೀರಾಮ್") ||
     trimmed.includes("Shreeram") ||
@@ -1980,11 +1990,11 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             </div>
           </div>
 
-          {/* Section 8: Chief Priest Shreeram Pandit & Temple Contact */}
+          {/* Section 8: Chief Priest Veda Moorthy Chaitanya Pandit & Temple Contact */}
           {(() => {
             const shortPriestName = getShortPriestName(overridePriestName, code);
             const displayPhone = overridePriestPhone?.trim()
-              ? (overridePriestPhone.replace(/[^0-9]/g, "") === "9972339362" ? "+91 99723 39362" : overridePriestPhone)
+              ? (["9972339362", "9482109844"].includes(overridePriestPhone.replace(/[^0-9]/g, "")) ? "+91 94821 09844" : overridePriestPhone)
               : chiefPriestBlessing.phone;
 
             return (

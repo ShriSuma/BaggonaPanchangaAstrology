@@ -94,8 +94,8 @@ describe("Kundli Doshagalu PDF Luxury Redesign Audit", () => {
       />
     );
 
-    expect(container.textContent).toContain("ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-    expect(container.textContent).toContain("+91 99723 39362");
+    expect(container.textContent).toContain("ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್");
+    expect(container.textContent).toContain("+91 94821 09844");
     expect(container.textContent).toContain("ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ");
 
     // Check QR code or seal container
@@ -122,17 +122,17 @@ describe("Kundli Doshagalu PDF Luxury Redesign Audit", () => {
       const text = container.textContent || "";
       if (lang === "en") {
         expect(text).toContain("Natal Kundli Comprehensive Doshas");
-        expect(text).toContain("Vedamurthy Shreeram Pandit");
-        expect(text).toContain("+91 99723 39362");
+        expect(text).toContain("Veda Moorthy Chaitanya Pandit");
+        expect(text).toContain("+91 94821 09844");
       } else if (lang === "hi") {
-        expect(text).toContain("वेदामूर्ति श्रीराम पंडित");
-        expect(text).toContain("+91 99723 39362");
+        expect(text).toContain("वेदमूर्ति चैतन्य पंडित");
+        expect(text).toContain("+91 94821 09844");
       } else if (lang === "te") {
-        expect(text).toContain("వేదమూర్తి శ్రీరామ్ పండిత్");
-        expect(text).toContain("+91 99723 39362");
+        expect(text).toContain("వేదమూర్తి చైతన్య పండిట్");
+        expect(text).toContain("+91 94821 09844");
       } else if (lang === "ta") {
-        expect(text).toContain("வேதமூர்த்தி ஸ்ரீராம் பண்டிதர்");
-        expect(text).toContain("+91 99723 39362");
+        expect(text).toContain("வேதமூர்த்தி சைதன்ய பண்டிதர்");
+        expect(text).toContain("+91 94821 09844");
       }
     });
   });

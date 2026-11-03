@@ -140,14 +140,14 @@ export default function KundliPage(): JSX.Element {
     qrCalendar: true
   });
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
-  const [selectedPriestId, setSelectedPriestId] = useState<string>("shreeram-pandit");
+  const [selectedPriestId, setSelectedPriestId] = useState<string>("chaitanya-pandit");
   const [priestNameInput, setPriestNameInput] = useState<string>(() => {
-    const p = getAllPriests().find(pr => pr.id === "shreeram-pandit");
-    return p?.name.kn || "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+    const p = getAllPriests().find(pr => pr.id === "chaitanya-pandit");
+    return p?.name.kn || "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್";
   });
   const [priestPhoneInput, setPriestPhoneInput] = useState<string>(() => {
-    const p = getAllPriests().find(pr => pr.id === "shreeram-pandit");
-    return p?.phone || "9972339362";
+    const p = getAllPriests().find(pr => pr.id === "chaitanya-pandit");
+    return p?.phone || "9482109844";
   });
 
   const [bundleDownloadedPdfs, setBundleDownloadedPdfs] = useState<{

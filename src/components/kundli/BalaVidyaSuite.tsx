@@ -454,7 +454,7 @@ export const BalaVidyaSuite: React.FC<BalaVidyaSuiteProps> = ({
               </div>
 
               <div className="rounded-xl bg-amber-200/60 p-3 border border-amber-300 text-amber-950 text-center font-bold">
-                🙏 {isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರ ಆಶೀರ್ವಾದ: ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (+91 99723 39362)" : "Chief Priest: Sri Shreeram Pandit (+91 99723 39362)"}
+                🙏 {isKn ? "ಮುಖ್ಯ ಅರ್ಚಕರ ಆಶೀರ್ವಾದ: ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್ (+91 94821 09844)" : "Chief Priest: Veda Moorthy Chaitanya Pandit (+91 94821 09844)"}
               </div>
             </div>
           </Card>

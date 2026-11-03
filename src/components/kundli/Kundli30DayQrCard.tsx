@@ -68,7 +68,7 @@ const I18N: Record<string, Record<string, string>> = {
     guidelinesTitle: "ದೈನಂದಿನ ಪಂಚಾಂಗ ಪರಿಪಾಲನಾ ಸಂಕಲ್ಪ:",
     guidelinesDesc: "ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ತಿಥಿ, ವಾರ, ನಕ್ಷತ್ರ ಮತ್ತು ಚಂದ್ರಬಲವನ್ನು ಸ್ಮರಿಸುವುದರಿಂದ ಆಯುಷ್ಯ, ಆರೋಗ್ಯ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆ ಸಿದ್ಧಿಸುತ್ತದೆ. ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಆಶೀರ್ವಾದ ಸದಾ ಇರಲಿ.",
     priestHeader: "ಮುಖ್ಯ ಜ್ಯೋತಿಷಿಗಳು & ಪುರೋಹಿತರ ಅಧಿಕೃತ ಸಂಪರ್ಕ",
-    priestName: "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+    priestName: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
     priestRole: "ಪ್ರಧಾನ ಅರ್ಚಕರು ಹಾಗೂ ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಸಲಹೆಗಾರರು",
     templeAddress: "ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ, ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ, ಕರ್ನಾಟಕ - ೫೮೧೩೨೬",
     priestPhoneLabel: "ನೇರ ಸಂಪರ್ಕ & ವಾಟ್ಸಾಪ್ (WhatsApp):",
@@ -101,7 +101,7 @@ const I18N: Record<string, Record<string, string>> = {
     guidelinesTitle: "Daily Panchanga Observance Guidelines:",
     guidelinesDesc: "Remembering the daily Tithi, Vara, Nakshatra, and Moon rhythm every morning bestows vitality, peace, and spiritual protection under Sri Gokarna Mahabaleshwara's grace.",
     priestHeader: "Official Priest (Purohita) & Astrologer Contact",
-    priestName: "Vedamurthy Shreeram Pandit",
+    priestName: "Veda Moorthy Chaitanya Pandit",
     priestRole: "Chief Priest & Vedic Astrology Consultant",
     templeAddress: "Shri Baggona Panchanga Jyotishya Karyalaya, Gokarna Kshetra, Karnataka - 581326",
     priestPhoneLabel: "Direct Call & WhatsApp:",
@@ -134,7 +134,7 @@ const I18N: Record<string, Record<string, string>> = {
     guidelinesTitle: "दैनिक पंचांग परिपालन संकल्प:",
     guidelinesDesc: "प्रतिदिन प्रातःकाल तिथि, वार, नक्षत्र एवं चंद्रबल का स्मरण करने से आयु, आरोग्य एवं दैवीय सुरक्षा प्राप्त होती है। श्री गोकर्ण महाबलेश्वर की कृपा सदा बनी रहे।",
     priestHeader: "मुख्य ज्योतिषी एवं पुरोहित आधिकारिक संपर्क",
-    priestName: "वेदामूर्ति श्रीराम पंडित",
+    priestName: "वेदमूर्ति चैतन्य पंडित",
     priestRole: "प्रधान पुरोहित एवं वैदिक ज्योतिष परामर्शदाता",
     templeAddress: "श्री बग्गोण पंचांग ज्योतिष कार्यालय, गोकर्ण क्षेत्र, कर्नाटक - ५८१೩೨೬",
     priestPhoneLabel: "सीधा संपर्क एवं व्हाट्सएप:",
@@ -167,7 +167,7 @@ const I18N: Record<string, Record<string, string>> = {
     guidelinesTitle: "దైనందిన పంచాంగ పరిపాలన సంకల్పం:",
     guidelinesDesc: "ప్రతిరోజూ ఉదయం తిథి, వారం, నక్షత్రం మరియు చంద్రబలాన్ని స్మరించడం వలన ఆయురారోగ్యాలు, మానసిక ప్రశాంతత లభిస్తాయి. శ్రీ గోకర్ణ మహాబలేశ్వరుని కృప సదా ఉండుగాక.",
     priestHeader: "ప్రధాన జ్యోతిష్యులు & పురోహితుల సంప్రదింపు వివరాలు",
-    priestName: "వేదమూర్తి శ్రీరామ్ పండిత్",
+    priestName: "వేదమూర్తి చైతన్య పండిట్",
     priestRole: "ప్రధాన అర్చకులు & వైదిక జ్యోతిష్య సలహాదారులు",
     templeAddress: "శ్రీ బగ్గోణ పంచాంగ జ్యోతిష్య కార్యాలయం, గోకర్ణ క్షేత్రం, కర్ణాటక - 581326",
     priestPhoneLabel: "ప్రత్యక్ష సంప్రదింపు & వాట్సాప్:",
@@ -200,7 +200,7 @@ const I18N: Record<string, Record<string, string>> = {
     guidelinesTitle: "தினசரி பஞ்சாங்க வழிபாட்டு சங்கல்பம்:",
     guidelinesDesc: "தினசரி காலையில் திதி, வாரம், நட்சத்திரம் ஆகியவற்றை தியானிப்பதால் ஆயுள், ஆரோக்கியம் மற்றும் தெய்விக பாதுகாப்பு உண்டாகும். ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் அருள் நிலைக்கட்டும்.",
     priestHeader: "முதன்மை ஜோதிடர் மற்றும் புரோகிதர் தொடர்பு விவரங்கள்",
-    priestName: "வேதமூர்த்தி ஸ்ரீராம் பண்டிதர்",
+    priestName: "வேதமூர்த்தி சைதன்ய பண்டிதர்",
     priestRole: "தலைமை அர்ச்சகர் மற்றும் வேத ஜோதிட ஆலோசகர்",
     templeAddress: "ஸ்ரீ பக்ககோண பஞ்சாங்க ஜோதிட நிலையம், கோகர்ணம், கர்நாடகா - 581326",
     priestPhoneLabel: "நேரடி அழைப்பு & வாட்ஸ்அப்:",
@@ -214,8 +214,8 @@ const I18N: Record<string, Record<string, string>> = {
 export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
   profile,
   lang = "kn",
-  panditName = "Shreeram Pandit",
-  priestPhone = "9972339362",
+  panditName = "Veda Moorthy Chaitanya Pandit",
+  priestPhone = "9482109844",
   qrDataUrl: externalQr,
   placeLabel,
   pincode = "581326",
@@ -247,8 +247,8 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
       const qrPayload = generateQrPayloadByTarget("google", {
         days: rhythmDays,
         lang: currentLang,
-        panditName: panditName || "Shreeram Pandit",
-        priestPhone: priestPhone || "9972339362",
+        panditName: panditName || "Veda Moorthy Chaitanya Pandit",
+        priestPhone: priestPhone || "9482109844",
         overrideCalendarPhone: true,
         notificationTime: "07:00",
         personName: profile.name,
@@ -274,12 +274,12 @@ export const Kundli30DayQrCard: React.FC<Kundli30DayQrCardProps> = ({
         .then((url) => setGeneratedQr(url))
         .catch((err) => {
           console.warn("[Kundli30DayQrCard] QR generation fallback:", err);
-          const fallback = `${getSafeProductionOrigin()}/daily?action=ics&lang=${currentLang}&priestPhone=${encodeURIComponent(priestPhone || "9972339362")}`;
+          const fallback = `${getSafeProductionOrigin()}/daily?action=ics&lang=${currentLang}&priestPhone=${encodeURIComponent(priestPhone || "9482109844")}`;
           QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 320 }).then(setGeneratedQr);
         });
     } catch (e) {
       console.error("[Kundli30DayQrCard] QR build error:", e);
-      const fallback = `${getSafeProductionOrigin()}/daily?action=ics&lang=${currentLang}&priestPhone=${encodeURIComponent(priestPhone || "9972339362")}`;
+      const fallback = `${getSafeProductionOrigin()}/daily?action=ics&lang=${currentLang}&priestPhone=${encodeURIComponent(priestPhone || "9482109844")}`;
       QRCode.toDataURL(fallback, { errorCorrectionLevel: "L", margin: 2, width: 320 }).then(setGeneratedQr).catch(() => {});
     }
   }, [externalQr, currentLang, profile, panditName, priestPhone, pincode, placeLabel, lat, lng]);

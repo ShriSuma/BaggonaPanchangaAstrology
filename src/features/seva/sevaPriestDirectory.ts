@@ -70,11 +70,11 @@ export const PREDEFINED_PRIESTS: PriestProfile[] = [
   {
     id: "chaitanya-pandit",
     name: {
-      kn: "ಚೈತನ್ಯ ಪಂಡಿತ್",
-      en: "Chaitanya Pandit",
-      hi: "चैतन्य पंडित",
-      te: "చైతన్య పండిత్",
-      ta: "சைதன்யா பண்டிட்"
+      kn: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
+      en: "Veda Moorthy Chaitanya Pandit",
+      hi: "वेदमूर्ति चैतन्य पंडित",
+      te: "వేదమూర్తి చైతన్య పండిట్",
+      ta: "வேதமூர்த்தி சைதன்ய பண்டிட்"
     },
     title: {
       kn: "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರು",
@@ -92,6 +92,7 @@ export const PREDEFINED_PRIESTS: PriestProfile[] = [
     },
     sealSymbol: "🕉️",
     sealColor: "#D4AF37",
+    phone: "9482109844",
     shloka: {
       sanskrit: "ॐ ತ್ರಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ | ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ||",
       meaningKn: "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಕೃಪೆಯಿಂದ ಸಕಲ ಭಕ್ತರಿಗೂ ದೀರ್ಘಾಯುಷ್ಯ, ಆಯುರಾರೋಗ್ಯ ಮತ್ತು ಮೃತ್ಯುಂಜಯ ರಕ್ಷೆ ದೊರೆಯಲಿ.",

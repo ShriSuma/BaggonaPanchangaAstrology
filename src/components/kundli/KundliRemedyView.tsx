@@ -818,7 +818,7 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     addNewPriestOption: "➕ Add New Priest (+ Add New Priest)",
     priestNameLabel: "Priest Name",
     priestPhoneLabel: "Mobile / WhatsApp Number",
-    priestNamePlaceholder: "e.g. Shreeram Pandit",
+    priestNamePlaceholder: "e.g. Veda Moorthy Chaitanya Pandit",
     savePriestBtn: "💾 Save",
     saveSuccessMsg: "✓ Priest details saved into Firebase database successfully!",
     badhakaBadge: "Badhaka Graha & Obstruction",
@@ -884,16 +884,16 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
 
   // Priest Attribution & Firebase DB Selection State
   const [priestsList, setPriestsList] = useState<PriestProfile[]>(() => getAllPriests());
-  const [selectedPriestId, setSelectedPriestId] = useState<string>(initialPriestId || "shreeram-pandit");
+  const [selectedPriestId, setSelectedPriestId] = useState<string>(initialPriestId || "chaitanya-pandit");
   const [priestNameInput, setPriestNameInput] = useState<string>(() => {
     if (initialPriestName) return initialPriestName;
-    const p = getAllPriests().find(pr => pr.id === (initialPriestId || "shreeram-pandit"));
-    return p?.name.kn || "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್";
+    const p = getAllPriests().find(pr => pr.id === (initialPriestId || "chaitanya-pandit"));
+    return p?.name.kn || "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್";
   });
   const [priestPhoneInput, setPriestPhoneInput] = useState<string>(() => {
     if (initialPriestPhone) return initialPriestPhone;
-    const p = getAllPriests().find(pr => pr.id === (initialPriestId || "shreeram-pandit"));
-    return p?.phone || "9972339362";
+    const p = getAllPriests().find(pr => pr.id === (initialPriestId || "chaitanya-pandit"));
+    return p?.phone || "9482109844";
   });
   const [isSavingPriest, setIsSavingPriest] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState("");

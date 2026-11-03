@@ -120,8 +120,8 @@ describe("Kundli Doshas Precision & Already-Done Shanti Intelligence Audit", () 
     }
 
     // Check priest branding and phone
-    expect(container.textContent).toContain("+91 99723 39362");
-    expect(container.textContent).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+    expect(container.textContent).toContain("+91 94821 09844");
+    expect(container.textContent).toContain("ಚೈತನ್ಯ ಪಂಡಿತ್");
 
     // If pitru dosha was detected and completed, check completed text
     const pitru = report.doshas.find((d) => d.id === "pitru_dosha");

@@ -68,9 +68,9 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     strengtheningPracticeLabel: "ಮನೋಬಲ ಸಾಧನೆ:",
     templeRemediesHeading: "🪔 ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಮಹಾ ಪರಿಹಾರಗಳು",
     priestBlessingHeading: "🙏 ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಮುದ್ರೆ",
-    priestName: "ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+    priestName: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
     priestTitle: "ಪ್ರಧಾನ ಅರ್ಚಕರು, ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ",
-    priestPhone: "ದೂರವಾಣಿ: +91 99723 39362",
+    priestPhone: "ದೂರವಾಣಿ: +91 94821 09844",
     sanskritAshirvada: "॥ ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ । ಸರ್ವೇ ಭದ್ರಾಣಿ ಪಶ್ಯಂತು ಮಾ ಕಶ್ಚಿತ್ ದುಃಖಭಾಗ್ಭವತ್ ॥",
     ashirvadaMeaning: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಅನುಗ್ರಹದಿಂದ ಜಾತಕದ ಸಮಸ್ತ ದೋಷಗಳು, ಗಂಡಾಂತರಗಳು ಶಮನವಾಗಿ, ಆಯುರಾರೋಗ್ಯ, ಸನ್ಮಂಗಳ ಉಂಟಾಗಲಿ ಎಂದು ಆಶೀರ್ವದಿಸಲಾಗಿದೆ.",
     officialSealLabel: "ಅಧಿಕೃತ ಸನ್ನಿಧಿ ಮುದ್ರೆ",
@@ -137,9 +137,9 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     strengtheningPracticeLabel: "Fortitude Practice:",
     templeRemediesHeading: "🪔 Sacred Gokarna Mahabaleshwara Remedies by Life Stage",
     priestBlessingHeading: "🙏 Chief Priest Blessing & Official Temple Seal",
-    priestName: "Vedamurthy Shreeram Pandit",
+    priestName: "Veda Moorthy Chaitanya Pandit",
     priestTitle: "Chief Priest & Astrologer, Sri Gokarna Kshetra",
-    priestPhone: "Direct Phone: +91 99723 39362",
+    priestPhone: "Direct Phone: +91 94821 09844",
     sanskritAshirvada: "॥ Sarve Bhavantu Sukhinah Sarve Santu Niramayah | Sarve Bhadrani Pashyantu Ma Kashchid Duhkhabhag Bhavet ॥",
     ashirvadaMeaning: "Blessed with divine longevity, health, and liberation from all karmic afflictions under Sri Mahabaleshwara's grace.",
     officialSealLabel: "Official Temple Seal",
@@ -206,9 +206,9 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     strengtheningPracticeLabel: "आत्मबल साधना:",
     templeRemediesHeading: "🪔 श्री गोकर्ण महाबलेश्वर सान्निध्य महा परिहार",
     priestBlessingHeading: "🙏 मुख्य अर्चक आशीर्वाद एवं आधिकारिक सन्निधि मुहर",
-    priestName: "वेदामूर्ति श्रीराम पंडित",
+    priestName: "वेदमूर्ति चैतन्य पंडित",
     priestTitle: "प्रधान अर्चक, श्री गोकर्ण महाबलेश्वर सन्निधान",
-    priestPhone: "दूरभाष: +91 99723 39362",
+    priestPhone: "दूरभाष: +91 94821 09844",
     sanskritAshirvada: "॥ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः । सर्वे भद्राणि पश्यन्तु मा कश्चिद् दुःखभाग्भवेत् ॥",
     ashirvadaMeaning: "श्री महाबलेश्वर स्वामी के दिव्य अनुग्रह से कुंडली के समस्त दोष व गंडांतर शांत होकर आयु, आरोग्य व सौभाग्य की प्राप्ति हो।",
     officialSealLabel: "आधिकारिक सन्निधि मुहर",
@@ -275,9 +275,9 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     strengtheningPracticeLabel: "మనోబల సాధన:",
     templeRemediesHeading: "🪔 శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధాన మహా పరిహారాలు",
     priestBlessingHeading: "🙏 ప్రధాన అర్చకుల ఆశీర్వచనం & అధికారిక ముద్ర",
-    priestName: "వేదమూర్తి శ్రీరామ్ పండిత్",
+    priestName: "వేదమూర్తి చైతన్య పండిట్",
     priestTitle: "ప్రధాన అర్చకులు, శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధానం",
-    priestPhone: "ఫోన్: +91 99723 39362",
+    priestPhone: "ఫోన్: +91 94821 09844",
     sanskritAshirvada: "॥ సర్వే భవంతు సుఖినః సర్వే సంతు నిరామయాః । సర్వే భద్రాణి పశ్యంతు మా కశ్చిద్ దుఃఖభాగ్భవేత్ ॥",
     ashirvadaMeaning: "శ్రీ మహాబలేశ్వర స్వామి అనుగ్రహంతో సమస్త దోషాలు తొలగి, ఆయురారోగ్యాలు సిద్ధించుగాక.",
     officialSealLabel: "అధికారిక సన్నిధి ముద్ర",
@@ -344,9 +344,9 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     strengtheningPracticeLabel: "மனோபல சாதனை:",
     templeRemediesHeading: "🪔 ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதி மகா பரிகாரங்கள்",
     priestBlessingHeading: "🙏 தலைமை அர்ச்சகர் ஆசீர்வாதம் & சந்நிதி முத்திரை",
-    priestName: "வேதமூர்த்தி ஸ்ரீராம் பண்டிதர்",
+    priestName: "வேதமூர்த்தி சைதன்ய பண்டிதர்",
     priestTitle: "தலைமை அர்ச்சகர், ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதானம்",
-    priestPhone: "நேரடி அழைப்பு: +91 99723 39362",
+    priestPhone: "நேரடி அழைப்பு: +91 94821 09844",
     sanskritAshirvada: "॥ சர்வே பவந்து சுகினஃ சர்வே சந்து நிராமயாஃ । சர்வே பத்ராணி பஸ்யந்து மா கஸ்சித் துக்கபாக்பவேத் ॥",
     ashirvadaMeaning: "ஸ்ரீ மகாபலேஸ்வரர் திருவருளால் சகல தோஷங்களும் நீங்கி, நீண்ட ஆயுளும் ஆரோக்கியமும் உண்டாக வாழ்த்துகிறோம்.",
     officialSealLabel: "அதிகாரப்பூர்வ சந்நிதி முத்திரை",
@@ -1161,6 +1161,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     if (!overridePriestName?.trim()) return t.priestName;
     const trimmed = overridePriestName.trim();
     const isDefaultPriest =
+      trimmed.includes("ಚೈತನ್ಯ") ||
+      trimmed.includes("Chaitanya") ||
+      trimmed.includes("चैतन्य") ||
+      trimmed.includes("చైతన్య") ||
+      trimmed.includes("சைதன்ய") ||
       trimmed.includes("ಶ್ರೀರಾಮ") ||
       trimmed.includes("ಶ್ರೀರಾಮ್") ||
       trimmed.includes("Shreeram") ||
@@ -1174,7 +1179,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   })();
   const rawOverridePhone = overridePriestPhone?.trim();
   const displayPriestPhone = rawOverridePhone
-    ? (rawOverridePhone.replace(/[^0-9]/g, "") === "9972339362" ? "+91 99723 39362" : rawOverridePhone)
+    ? (["9972339362", "9482109844"].includes(rawOverridePhone.replace(/[^0-9]/g, "")) ? "+91 94821 09844" : rawOverridePhone)
     : t.priestPhone;
 
   const { devoteeInfo, doshas, gandantaraAndBhaya, summary } = report;
@@ -1200,7 +1205,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     }
     let isMounted = true;
     try {
-      const phoneDigits = (overridePriestPhone || "9972339362").replace(/[^0-9]/g, "") || "9972339362";
+      const phoneDigits = (overridePriestPhone || "9482109844").replace(/[^0-9]/g, "") || "9482109844";
       const verifyUrl = `https://baggonapanchanga.web.app/daily?action=dosha_verify&devotee=${encodeURIComponent(
         devoteeInfo.name || "Devotee"
       )}&priestPhone=${phoneDigits}&lang=${code}`;
@@ -3160,7 +3165,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
           {renderGoldLandlineDivider(snip.divPriestBlessing)}
 
-          {/* Section: Chief Priest Vedamurthy Shreeram Pandit's Blessing & Live Verification QR Code */}
+          {/* Section: Chief Priest Veda Moorthy Chaitanya Pandit's Blessing & Live Verification QR Code */}
           <div
             style={{
               backgroundColor: "#FCFBF9",

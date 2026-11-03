@@ -77,13 +77,13 @@ describe("Kundli Remedy Engine", () => {
     expect(report.gocharaTransitAnalysis.sadeSatiStatus).toBeDefined();
   });
 
-  it("should contain authentic Gokarna Mahabaleshwara temple prescriptions and Priest Shreeram Pandit blessings", () => {
+  it("should contain authentic Gokarna Mahabaleshwara temple prescriptions and Priest Veda Moorthy Chaitanya Pandit blessings", () => {
     const report = generateKundliRemedyReport(mockKundliMarsAfflicted, mockInput);
 
     expect(report.gokarnaTempleRemedies.prescribedSeva.temple.en).toContain("Gokarna");
     expect(report.gokarnaTempleRemedies.rudrakshaRecommendation.mukhi).toBeDefined();
-    expect(report.chiefPriestBlessing.priestName.kn).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-    expect(report.chiefPriestBlessing.phone).toBe("+91 99723 39362");
+    expect(report.chiefPriestBlessing.priestName.kn).toContain("ಚೈತನ್ಯ ಪಂಡಿತ್");
+    expect(report.chiefPriestBlessing.phone).toBe("+91 94821 09844");
     expect(report.chiefPriestBlessing.sanskritAshirvada).toContain("स्वस्ति");
   });
 

@@ -143,10 +143,10 @@ describe("Daivika Parihara 3-Page Master PDF Contract & Vedic Mantra Audit", () 
     expect(page3.textContent).toContain("ರತ್ನ / ಲೋಹ");
     expect(page3.textContent).toContain("ದಾನ & ಗೋಸೇವೆ");
 
-    // Section 8: Chief Priest Shreeram Pandit Blessing & Seal
+    // Section 8: Chief Priest Veda Moorthy Chaitanya Pandit Blessing & Seal
     expect(page3.textContent).toContain("೮. ಪ್ರಧಾನ ಅರ್ಚಕರ ಆಶೀರ್ವಚನ & ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಮುದ್ರೆ");
-    expect(page3.textContent).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-    expect(page3.textContent).toContain("+91 99723 39362");
+    expect(page3.textContent).toContain("ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್");
+    expect(page3.textContent).toContain("+91 94821 09844");
     expect(page3.textContent).toContain("॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥");
     expect(page3.textContent).toContain("ಅಧಿಕೃತ ಮುದ್ರೆ");
 

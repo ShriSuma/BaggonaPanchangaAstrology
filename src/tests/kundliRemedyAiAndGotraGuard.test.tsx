@@ -133,7 +133,7 @@ describe("Kundli Gotra Default Bug Elimination & AI Remedy 10-Retry Guard", () =
       expect(report.devoteeName).toBe("Test Devotee");
       expect(report.instantCalmingProtocol.steps.length).toBe(4);
       expect(report.panchangaRemedies).toBeDefined();
-      expect(report.chiefPriestBlessing.phone).toBe("+91 99723 39362");
+      expect(report.chiefPriestBlessing.phone).toBe("+91 94821 09844");
     });
 
     it("should succeed when GenAI succeeds within retry limit", async () => {

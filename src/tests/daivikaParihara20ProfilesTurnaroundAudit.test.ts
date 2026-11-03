@@ -58,9 +58,9 @@ describe("Daivika Parihara (Divine Remedies) & Turnaround Timing 20-Benchmark Au
         expect(report.lifeTurnaroundTiming.specificSevaKn).not.toContain("**");
 
         // 4. Chief Priest Contact & Determinism
-        expect(report.chiefPriestBlessing.priestName.kn).toBe("ವೇದಮೂರ್ತಿ ಶ್ರೀ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
-        expect(report.chiefPriestBlessing.priestName.en).toBe("Vedamurthi Shri Shreeram Pandit");
-        expect(report.chiefPriestBlessing.phone).toBe("+91 99723 39362");
+        expect(report.chiefPriestBlessing.priestName.kn).toBe("ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್");
+        expect(report.chiefPriestBlessing.priestName.en).toBe("Veda Moorthy Chaitanya Pandit");
+        expect(report.chiefPriestBlessing.phone).toBe("+91 94821 09844");
 
         // 5. Authentic Dasha-Bhukti Analysis (Dynamic, non-boilerplate)
         expect(report.dashaBhuktiAnalysis.currentMahaDasha).toBeTruthy();
