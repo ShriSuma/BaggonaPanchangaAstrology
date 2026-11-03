@@ -559,6 +559,33 @@ const PRIEST_DISPLAY_NAMES: Record<SupportedLanguage, string> = {
   en: "Vedamurthi Shri Shreeram Pandit"
 };
 
+const SHORT_PRIEST_DISPLAY_NAMES: Record<SupportedLanguage, string> = {
+  kn: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+  hi: "श्रीराम पंडित",
+  te: "శ్రీరామ్ పండిత్",
+  ta: "ஸ்ரீராம் பண்டிட்",
+  en: "Shreeram Pandit"
+};
+
+function getShortPriestName(override?: string, langCode: SupportedLanguage = "kn"): string {
+  const cleanLang = (["kn", "hi", "te", "ta", "en"].includes(langCode) ? langCode : "kn") as SupportedLanguage;
+  if (!override || !override.trim()) {
+    return SHORT_PRIEST_DISPLAY_NAMES[cleanLang];
+  }
+  const trimmed = override.trim();
+  const isDefaultPriest =
+    trimmed.includes("ಶ್ರೀರಾಮ") ||
+    trimmed.includes("ಶ್ರೀರಾಮ್") ||
+    trimmed.includes("Shreeram") ||
+    trimmed.includes("श्रीराम") ||
+    trimmed.includes("శ్రీరామ్") ||
+    trimmed.includes("ஸ்ரீராம்");
+  if (isDefaultPriest) {
+    return SHORT_PRIEST_DISPLAY_NAMES[cleanLang];
+  }
+  return formatDevoteeNameForLanguage(trimmed, cleanLang);
+}
+
 function getLocalizedPriestName(override?: string, langCode: SupportedLanguage = "kn"): string {
   const cleanLang = (["kn", "hi", "te", "ta", "en"].includes(langCode) ? langCode : "kn") as SupportedLanguage;
   if (!override || !override.trim()) {
@@ -1953,14 +1980,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             </div>
           </div>
 
-          {/* Section 8: Chief Priest Shreeram Pandit Blessing & Seal */}
+          {/* Section 8: Chief Priest Shreeram Pandit & Temple Contact */}
           {(() => {
-            const localizedPriestName = getLocalizedPriestName(overridePriestName, code);
-            const localizedDevoteeName = formatDevoteeNameForLanguage(devoteeName || "Devotee", code);
-            const rawMeaning = chiefPriestBlessing.ashirvadaMeaning[code] || chiefPriestBlessing.ashirvadaMeaning.kn;
-            const localizedAshirvadaMeaning = devoteeName && rawMeaning.includes(devoteeName)
-              ? rawMeaning.replace(new RegExp(devoteeName, "g"), localizedDevoteeName)
-              : rawMeaning;
+            const shortPriestName = getShortPriestName(overridePriestName, code);
             const displayPhone = overridePriestPhone?.trim()
               ? (overridePriestPhone.replace(/[^0-9]/g, "") === "9972339362" ? "+91 99723 39362" : overridePriestPhone)
               : chiefPriestBlessing.phone;
@@ -1970,75 +1992,51 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 style={{
                   backgroundColor: "#FFFFFF",
                   border: "1.5px solid #D97706",
-                  borderRadius: "12px",
-                  padding: "11px 16px",
+                  borderRadius: "10px",
+                  padding: "8px 14px",
                   boxShadow: "0 2px 5px rgba(180, 83, 9, 0.04)",
                   flexShrink: 0,
                   display: "flex",
                   flexDirection: "column",
-                  gap: "6px"
+                  gap: "4px"
                 }}
               >
                 <div
                   style={{
-                    fontSize: "14px",
-                    fontWeight: 900,
-                    color: "#78350F",
-                    borderBottom: "1.5px solid #FDE68A",
-                    paddingBottom: "4px"
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    borderBottom: "1px solid #FDE68A",
+                    paddingBottom: "3px"
                   }}
                 >
-                  🙏 {i18n.sec8Title}
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 86px",
-                    gap: "14px",
-                    alignItems: "center"
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: "15.5px", fontWeight: 900, color: "#78350F", letterSpacing: "normal" }}>
-                      {localizedPriestName}
-                    </div>
-                    <div style={{ fontSize: "11.5px", color: "#92400E", fontWeight: 700, marginTop: "2px" }}>
-                      {chiefPriestBlessing.priestTitle[code] || chiefPriestBlessing.priestTitle.kn} · {cleanLabel(i18n.priestContact)} {displayPhone}
-                    </div>
-                    <div style={{ fontSize: "12.5px", color: "#991B1B", fontWeight: 800, marginTop: "4px", lineHeight: 1.5, letterSpacing: "0.2px" }}>
-                      {chiefPriestBlessing.sanskritAshirvada}
-                    </div>
-                    <div style={{ fontSize: "11.5px", color: "#451A03", marginTop: "3px", lineHeight: 1.5, fontStyle: "italic" }}>
-                      {localizedAshirvadaMeaning}
-                    </div>
+                  <div style={{ fontSize: "12.5px", fontWeight: 900, color: "#78350F" }}>
+                    🙏 {i18n.sec8Title}
                   </div>
-
-                  {/* Official Temple Seal Graphic */}
                   <div
                     style={{
-                      width: "82px",
-                      height: "82px",
-                      borderRadius: "50%",
-                      border: "2px double #B45309",
-                      background: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)",
-                      display: "flex",
-                      flexDirection: "column",
+                      fontSize: "9px",
+                      color: "#92400E",
+                      fontWeight: 800,
+                      backgroundColor: "#FEF3C7",
+                      border: "1px solid #FDE68A",
+                      padding: "1px 7px",
+                      borderRadius: "4px",
+                      display: "inline-flex",
                       alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                      padding: "4px",
-                      boxSizing: "border-box",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      flexShrink: 0
+                      gap: "3px"
                     }}
                   >
-                    <div style={{ fontSize: "18px" }}>🪔</div>
-                    <div style={{ fontSize: "7.5px", fontWeight: 900, color: "#78350F", lineHeight: 1.1, marginTop: "2px" }}>
-                      {isKn ? "॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥" : isHi ? "॥ गोकर्ण सन्निधि ॥" : isTe ? "॥ గోకర్ణ సన్నిధి ॥" : isTa ? "॥ கோகர்ண சந்நிதி ॥" : "॥ Sri Gokarna Kshetra ॥"}
-                    </div>
-                    <div style={{ fontSize: "7px", color: "#92400E", fontWeight: 800 }}>
-                      {i18n.templeSealLabel}
-                    </div>
+                    🪔 {isKn ? "॥ ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ॥ ಅಧಿಕೃತ ಮುದ್ರೆ" : isHi ? "॥ गोकर्ण सन्निधि ॥ आधिकारिक मुद्रा" : isTe ? "॥ గోకర్ణ సన్నిధి ॥ అధికారిక ముద్ర" : isTa ? "॥ கோகர்ண சந்நிதி ॥ அங்கீகரிக்கப்பட்ட முத்திரை" : "॥ Sri Gokarna Kshetra ॥ Official Seal"}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "6px" }}>
+                  <div style={{ fontSize: "14px", fontWeight: 900, color: "#78350F" }}>
+                    {shortPriestName}
+                  </div>
+                  <div style={{ fontSize: "11.5px", color: "#92400E", fontWeight: 700 }}>
+                    {chiefPriestBlessing.priestTitle[code] || chiefPriestBlessing.priestTitle.kn} · {cleanLabel(i18n.priestContact)} {displayPhone}
                   </div>
                 </div>
               </div>
