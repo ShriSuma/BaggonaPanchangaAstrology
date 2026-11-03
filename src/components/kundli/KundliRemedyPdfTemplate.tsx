@@ -1937,7 +1937,10 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   {overridePriestName || chiefPriestBlessing.priestName[code] || chiefPriestBlessing.priestName.kn}
                 </div>
                 <div style={{ fontSize: "10.5px", color: "#92400E", fontWeight: 700 }}>
-                  {chiefPriestBlessing.priestTitle[code] || chiefPriestBlessing.priestTitle.kn} · {i18n.priestContact} {overridePriestPhone || chiefPriestBlessing.phone}
+                  {chiefPriestBlessing.priestTitle[code] || chiefPriestBlessing.priestTitle.kn} · {i18n.priestContact}{" "}
+                  {overridePriestPhone?.trim()
+                    ? (overridePriestPhone.replace(/[^0-9]/g, "") === "9972339362" ? "+91 99723 39362" : overridePriestPhone)
+                    : chiefPriestBlessing.phone}
                 </div>
                 <div style={{ fontSize: "11px", color: "#991B1B", fontWeight: 800, marginTop: "2px", lineHeight: 1.4 }}>
                   {chiefPriestBlessing.sanskritAshirvada}

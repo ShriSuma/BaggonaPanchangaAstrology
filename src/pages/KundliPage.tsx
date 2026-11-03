@@ -3314,6 +3314,8 @@ export default function KundliPage(): JSX.Element {
             id="kundli-doshas-pdf-container"
             report={doshaReport}
             lang={pdfLanguage as any}
+            overridePriestName={priestNameInput}
+            overridePriestPhone={priestPhoneInput}
           />
         </div>
       )}

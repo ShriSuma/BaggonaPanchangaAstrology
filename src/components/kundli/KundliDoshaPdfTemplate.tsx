@@ -1143,7 +1143,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   const snip = LOCALIZED_SNIPPETS[code] || LOCALIZED_SNIPPETS.en;
 
   const displayPriestName = overridePriestName?.trim() || t.priestName;
-  const displayPriestPhone = overridePriestPhone?.trim() || t.priestPhone;
+  const rawOverridePhone = overridePriestPhone?.trim();
+  const displayPriestPhone = rawOverridePhone
+    ? (rawOverridePhone.replace(/[^0-9]/g, "") === "9972339362" ? "+91 99723 39362" : rawOverridePhone)
+    : t.priestPhone;
 
   const { devoteeInfo, doshas, gandantaraAndBhaya, summary } = report;
   const activeDoshas = (doshas || []).filter((d) => d.isDetected);
