@@ -1130,6 +1130,20 @@ function getExpectedImprovementAfterParihara(doshaId: string, lang: SupportedLan
   return defaultImprovement[lang] || defaultImprovement.kn;
 }
 
+export function formatDevoteeNameForLanguage(name: string, targetLang: string): string {
+  if (!name || !name.trim()) return "Devotee";
+  const trimmed = name.trim();
+  const lang = (targetLang || "kn").toLowerCase();
+
+  if (lang === "kn" && /[\u0C80-\u0CFF]/.test(trimmed)) return trimmed;
+  if (lang === "hi" && /[\u0900-\u097F]/.test(trimmed)) return trimmed;
+  if (lang === "te" && /[\u0C00-\u0C7F]/.test(trimmed)) return trimmed;
+  if (lang === "ta" && /[\u0B80-\u0BFF]/.test(trimmed)) return trimmed;
+  if (lang === "en" && !/[\u0900-\u0D7F]/.test(trimmed)) return trimmed;
+
+  return transliterateName(trimmed, lang);
+}
+
 export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   id = "kundli-doshas-pdf-container",
   report,
@@ -1151,7 +1165,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
   const { devoteeInfo, doshas, gandantaraAndBhaya, summary } = report;
   const rawDevoteeName = devoteeInfo.name || "Devotee";
-  const displayDevoteeName = transliterateName(rawDevoteeName, code);
+  const displayDevoteeName = formatDevoteeNameForLanguage(rawDevoteeName, code);
   const activeDoshas = (doshas || []).filter((d) => d.isDetected);
   const isPitruActive = activeDoshas.some((d) => d.id === "pitru_dosha");
   const ageStageRemedies = getAgeStageRemedies(devoteeInfo.ageStageKey || "gruhastha", code, isPitruActive);
@@ -1282,12 +1296,12 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "52px 1fr 52px",
-        gap: "10px",
+        gridTemplateColumns: "62px 1fr 62px",
+        gap: "12px",
         alignItems: "center",
         background: "linear-gradient(135deg, #451A03 0%, #78350F 45%, #92400E 75%, #451A03 100%)",
         borderRadius: "12px",
-        padding: "6px 12px",
+        padding: "8px 14px",
         color: "#FFFFFF",
         border: `2px solid ${GOLD_BORDER}`,
         boxShadow: "0 4px 12px rgba(120, 53, 15, 0.25)",
@@ -1300,11 +1314,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           src="/daily_posters/poster_1_shiva.jpg"
           alt="Lord Shiva Mahabaleshwara Atmalinga"
           style={{
-            width: "48px",
-            height: "48px",
+            width: "56px",
+            height: "56px",
             borderRadius: "50%",
-            border: "2px solid #FDE68A",
-            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.35)",
+            border: "2.5px solid #FDE68A",
+            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.35)",
             objectFit: "cover",
             backgroundColor: "#FEF3C7",
             display: "inline-block"
@@ -1324,11 +1338,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             justifyContent: "center",
             gap: "8px",
             borderBottom: "1px solid rgba(254, 243, 199, 0.35)",
-            paddingBottom: "2px",
-            marginBottom: "2px"
+            paddingBottom: "3px",
+            marginBottom: "3px"
           }}
         >
-          <div style={{ fontSize: "11px", color: "#FDE68A", fontWeight: 800, letterSpacing: "normal" }}>
+          <div style={{ fontSize: "11.5px", color: "#FDE68A", fontWeight: 800, letterSpacing: "normal" }}>
             {t.templeBanner}
           </div>
           <div
@@ -1337,29 +1351,31 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               fontWeight: 900,
               color: GOLD_DARK,
               backgroundColor: "#FEF3C7",
-              padding: "1px 8px 3.5px 8px",
+              padding: "0 8px",
+              height: "20px",
               borderRadius: 6,
               border: `1px solid ${GOLD_LIGHT}`,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               lineHeight: 1,
-              whiteSpace: "nowrap"
+              whiteSpace: "nowrap",
+              boxSizing: "border-box"
             }}
           >
-            <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1px" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", transform: "translateY(-1px)", whiteSpace: "nowrap" }}>
               {partNum === 1 ? snip.part1 : partNum === 2 ? snip.part2 : partNum === 3 ? snip.part3 : snip.part4}
             </span>
           </div>
         </div>
         <div
           style={{
-            fontSize: "14px",
+            fontSize: "14.5px",
             fontWeight: 900,
             color: "#FFFFFF",
             marginTop: "1px",
             letterSpacing: "normal",
-            lineHeight: 1.25
+            lineHeight: 1.3
           }}
         >
           {title}
@@ -1367,12 +1383,12 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
         {subtitle && (
           <div
             style={{
-              fontSize: "10px",
+              fontSize: "10.5px",
               color: "#FEF08A",
               fontStyle: "italic",
-              marginTop: "1px",
+              marginTop: "2px",
               letterSpacing: "normal",
-              lineHeight: 1.3
+              lineHeight: 1.35
             }}
           >
             {subtitle}
@@ -1386,11 +1402,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           src="/daily_posters/poster_0_surya.jpg"
           alt="Lord Surya Bhagavan Graha Raja"
           style={{
-            width: "48px",
-            height: "48px",
+            width: "56px",
+            height: "56px",
             borderRadius: "50%",
-            border: "2px solid #FDE68A",
-            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.35)",
+            border: "2.5px solid #FDE68A",
+            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.35)",
             objectFit: "cover",
             backgroundColor: "#FEF3C7",
             display: "inline-block"
@@ -1430,7 +1446,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           background: isPitru
             ? "linear-gradient(135deg, #FFFDF8 0%, #FFF9EB 50%, #FFFDF8 100%)"
             : "linear-gradient(135deg, #FFFDF9 0%, #FEFBF2 50%, #FFFDF9 100%)",
-          padding: isPrimary ? "6px 10px" : "8px 12px",
+          padding: isPrimary ? "8px 12px" : "10px 14px",
           boxShadow: "0 3px 8px rgba(180, 83, 9, 0.04)",
           display: "flex",
           flexDirection: "column",
@@ -1444,18 +1460,17 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             style={{
               backgroundColor: "#78350F",
               color: "#FEF9E7",
-              fontSize: "10.5px",
+              fontSize: "11px",
               fontWeight: 900,
-              padding: "1px 10px 3px 10px",
+              padding: "3px 10px 4px 10px",
               borderRadius: "8px",
               letterSpacing: "normal",
-              lineHeight: 1,
+              lineHeight: 1.3,
               border: `1px solid ${GOLD_LIGHT}`,
-              display: "flex",
-              alignItems: "center"
+              textAlign: "center"
             }}
           >
-            <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1px" }}>
+            <span style={{ transform: "translateY(-0.5px)", display: "inline-block" }}>
               {snip.pitruBadge}
             </span>
           </div>
@@ -1469,21 +1484,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             justifyContent: "space-between",
             gap: "10px",
             borderBottom: "1.5px solid rgba(245, 158, 11, 0.25)",
-            paddingBottom: isPrimary ? "3px" : "4px"
+            paddingBottom: isPrimary ? "4px" : "6px"
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
             <div
               style={{
-                width: isPrimary ? "34px" : "38px",
-                height: isPrimary ? "34px" : "38px",
+                width: "36px",
+                height: "36px",
                 borderRadius: "10px",
                 border: isPitru ? "1.5px solid #F59E0B" : "1.5px solid rgba(245, 158, 11, 0.4)",
                 backgroundColor: isPitru ? "#FEF3C7" : "#FFFBEB",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: isPrimary ? "17px" : "19px",
+                fontSize: "18px",
                 flexShrink: 0,
                 boxShadow: "0 1px 3px rgba(180, 83, 9, 0.08)"
               }}
@@ -1491,13 +1506,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               {isPitru ? "🪔" : isKuja ? "⚔️" : isSarpa ? "🐍" : "⚡"}
             </div>
             <div>
-              <div style={{ fontSize: isPrimary ? "14.5px" : "15.5px", fontWeight: 900, color: "#451A03", lineHeight: 1.25, letterSpacing: "normal" }}>
+              <div style={{ fontSize: "15px", fontWeight: 900, color: "#451A03", lineHeight: 1.3, letterSpacing: "normal" }}>
                 {getLangVal(dosha.name)}
               </div>
               {(() => {
                 const sRef = getScripturalReference(dosha.id, dosha.technicalDetail?.scripturalReference, code);
                 return sRef ? (
-                  <div style={{ fontSize: "10px", color: "#92400E", fontWeight: 600, marginTop: "1px", letterSpacing: "normal", lineHeight: 1.2 }}>
+                  <div style={{ fontSize: "10px", color: "#92400E", fontWeight: 600, marginTop: "1px", letterSpacing: "normal" }}>
                     {sRef}
                   </div>
                 ) : null;
@@ -1506,16 +1521,17 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           </div>
 
           {/* Badges on Right: Pill Shapes exactly matching screen with vertical optical centering */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", flexShrink: 0 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
             {/* Severity Badge */}
             <span
               style={{
                 backgroundColor: dosha.severity === "critical" ? "#FEF2F2" : "#FFFBEB",
                 border: `1px solid ${dosha.severity === "critical" ? "#FCA5A5" : "#FCD34D"}`,
                 color: dosha.severity === "critical" ? "#991B1B" : "#92400E",
-                fontSize: "10px",
+                fontSize: "10.5px",
                 fontWeight: 800,
-                padding: "1px 9px 3.5px 9px",
+                padding: "0 9px",
+                height: "22px",
                 borderRadius: "9999px",
                 flexShrink: 0,
                 whiteSpace: "nowrap",
@@ -1526,7 +1542,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 boxSizing: "border-box"
               }}
             >
-              <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1px" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", transform: "translateY(-1px)", whiteSpace: "nowrap" }}>
                 {getSeverityLabel(dosha.severity, code)}
               </span>
             </span>
@@ -1536,9 +1552,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               style={{
                 backgroundColor: "#991B1B",
                 color: "#FFFFFF",
-                fontSize: "10.5px",
+                fontSize: "11px",
                 fontWeight: 900,
-                padding: "1px 12px 3.5px 12px",
+                padding: "0 10px",
+                height: "22px",
                 borderRadius: "9999px",
                 border: "1.5px solid #7F1D1D",
                 whiteSpace: "nowrap",
@@ -1550,7 +1567,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 boxSizing: "border-box"
               }}
             >
-              <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1.5px" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", transform: "translateY(-1.5px)", whiteSpace: "nowrap" }}>
                 {priorityPillText}
               </span>
             </span>
@@ -1561,19 +1578,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 backgroundColor: isCompleted ? "#F0FDF4" : "#FEF3C7",
                 border: `1px solid ${isCompleted ? "#86EFAC" : GOLD_BORDER}`,
                 color: isCompleted ? "#166534" : GOLD_DARK,
-                fontSize: "10px",
+                fontSize: "10.5px",
                 fontWeight: 800,
-                padding: "1px 9px 3.5px 9px",
+                padding: "0 9px",
+                height: "22px",
                 borderRadius: "9999px",
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 lineHeight: 1,
+                flexShrink: 0,
                 boxSizing: "border-box"
               }}
             >
-              <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1px" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", transform: "translateY(-1px)", whiteSpace: "nowrap" }}>
                 ● {getLangVal(dosha.statusBadge)}
               </span>
             </span>
@@ -1587,10 +1606,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               backgroundColor: "#FFFDF9",
               border: "1px solid #FDE68A",
               borderRadius: "8px",
-              padding: isPrimary ? "3px 8px" : "4px 8px",
+              padding: isPrimary ? "4px 8px" : "5px 9px",
               fontSize: "10.5px",
               color: "#451A03",
-              lineHeight: 1.35,
+              lineHeight: 1.4,
               boxShadow: "0 1px 2px rgba(180, 83, 9, 0.02)"
             }}
           >
@@ -1604,9 +1623,9 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           <div
             style={{
               backgroundColor: "#FEF9E7",
-              border: "1.5px solid #F59E0B",
+              border: "2px solid #F59E0B",
               borderRadius: "10px",
-              padding: isPrimary ? "4px 8px" : "5px 8px",
+              padding: isPrimary ? "5px 9px" : "6px 10px",
               boxShadow: "0 2px 5px rgba(245, 158, 11, 0.1)"
             }}
           >
@@ -1628,10 +1647,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             </div>
             <div
               style={{
-                fontSize: isPrimary ? "11px" : "11.5px",
+                fontSize: "11.5px",
                 fontWeight: 800,
                 color: "#451A03",
-                lineHeight: 1.38,
+                lineHeight: 1.45,
                 letterSpacing: "normal"
               }}
             >
@@ -1652,7 +1671,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             backgroundColor: "#FFFDF9",
             border: "1px solid #FDE68A",
             borderRadius: "10px",
-            padding: isPrimary ? "4px 8px" : "5px 8px",
+            padding: isPrimary ? "5px 9px" : "6px 10px",
             boxShadow: "0 1px 2px rgba(180, 83, 9, 0.02)"
           }}
         >
@@ -1664,16 +1683,16 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              marginBottom: "2px"
+              marginBottom: "3px"
             }}
           >
             <span>{t.pillar1Question || `🔍 ${t.technicalRootLabel}`}</span>
           </div>
           <div
             style={{
-              fontSize: isPrimary ? "10.5px" : "11px",
+              fontSize: "11px",
               color: "#451A03",
-              lineHeight: 1.36,
+              lineHeight: 1.45,
               fontWeight: 500,
               letterSpacing: "normal"
             }}
@@ -1682,17 +1701,20 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           </div>
 
           {/* Chips below */}
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", marginTop: "3px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "5px", marginTop: "4px" }}>
             {dosha.technicalDetail?.houseNumbers && dosha.technicalDetail.houseNumbers.length > 0 && (
               <span
                 style={{
                   backgroundColor: "#FFFBEB",
                   border: "1px solid #FDE68A",
                   color: "#451A03",
-                  fontSize: "9px",
+                  fontSize: "9.5px",
                   fontWeight: 700,
-                  padding: "1px 6px",
-                  borderRadius: "5px"
+                  padding: "0 6px",
+                  height: "18px",
+                  borderRadius: "5px",
+                  display: "inline-flex",
+                  alignItems: "center"
                 }}
               >
                 🏠 {code === "kn" ? "ಭಾವಗಳು: " : "Houses: "} {dosha.technicalDetail.houseNumbers.join(", ")}
@@ -1704,10 +1726,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   backgroundColor: "#FFFBEB",
                   border: "1px solid #FDE68A",
                   color: "#451A03",
-                  fontSize: "9px",
+                  fontSize: "9.5px",
                   fontWeight: 700,
-                  padding: "1px 6px",
-                  borderRadius: "5px"
+                  padding: "0 6px",
+                  height: "18px",
+                  borderRadius: "5px",
+                  display: "inline-flex",
+                  alignItems: "center"
                 }}
               >
                 🪐 {code === "kn" ? "ಗ್ರಹಗಳು: " : "Grahas: "} {dosha.technicalDetail.grahasInvolved.join(", ")}
@@ -1719,10 +1744,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   backgroundColor: "#FEF3C7",
                   border: "1px solid #FCD34D",
                   color: "#78350F",
-                  fontSize: "9px",
+                  fontSize: "9.5px",
                   fontWeight: 700,
-                  padding: "1px 6px",
-                  borderRadius: "5px"
+                  padding: "0 6px",
+                  height: "18px",
+                  borderRadius: "5px",
+                  display: "inline-flex",
+                  alignItems: "center"
                 }}
               >
                 ✨ {code === "kn" ? "ಭಂಗ / ಪರಿಹಾರಕ ಬಲ: " : "Mitigation: "} {getLangVal(dosha.technicalDetail.bhangaDescription)}
@@ -1737,7 +1765,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             backgroundColor: "#FFFDF9",
             border: "1px solid #FDE68A",
             borderRadius: "10px",
-            padding: isPrimary ? "4px 8px" : "5px 8px",
+            padding: isPrimary ? "5px 9px" : "6px 10px",
             boxShadow: "0 1px 2px rgba(180, 83, 9, 0.02)"
           }}
         >
@@ -1749,16 +1777,16 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              marginBottom: "2px"
+              marginBottom: "3px"
             }}
           >
             <span>{t.pillar2Question || `⚡ ${t.realLifeImpactLabel}`}</span>
           </div>
           <div
             style={{
-              fontSize: isPrimary ? "10.5px" : "11px",
+              fontSize: "11px",
               color: "#451A03",
-              lineHeight: 1.36,
+              lineHeight: 1.45,
               fontWeight: 500,
               letterSpacing: "normal"
             }}
@@ -1769,12 +1797,12 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {dosha.dashaResonance && (
             <div
               style={{
-                marginTop: "3px",
-                borderLeft: "2.5px solid #D97706",
-                paddingLeft: "6px",
-                fontSize: "10px",
+                marginTop: "4px",
+                borderLeft: "3px solid #D97706",
+                paddingLeft: "7px",
+                fontSize: "10.5px",
                 color: "#451A03",
-                lineHeight: 1.35
+                lineHeight: 1.4
               }}
             >
               <strong style={{ color: "#78350F" }}>⏳ {t.dashaResonanceLabel} </strong>
@@ -1786,10 +1814,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
         {/* 🔱 Prescribed Vedic Shanti & Sacred Gokarna Seva (Matching screen) */}
         <div
           style={{
-            background: "linear-gradient(135deg, #FFFDF8 0%, #FEFBF2 50%, #FFF9EB 100%)",
+            background: "linear-gradient(135deg, #FFFDF9 0%, #FEFBF2 50%, #FFF9EB 100%)",
             border: "1.5px solid rgba(245, 158, 11, 0.6)",
             borderRadius: "12px",
-            padding: isPrimary ? "5px 8px" : "6px 8px",
+            padding: isPrimary ? "6px 10px" : "8px 12px",
             boxShadow: "0 2px 5px rgba(180, 83, 9, 0.03)"
           }}
         >
@@ -1801,7 +1829,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              marginBottom: "3px"
+              marginBottom: "4px"
             }}
           >
             <span>{t.pillar3Question || `🪔 ${t.pariharaHeading}`}</span>
@@ -1814,18 +1842,18 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 backgroundColor: "#FFFDF9",
                 border: "1px solid #FCD34D",
                 borderRadius: "8px",
-                padding: "4px 6px",
+                padding: "5px 8px",
                 display: "flex",
                 alignItems: "flex-start",
                 gap: "5px"
               }}
             >
-              <span style={{ fontSize: "14px", flexShrink: 0 }}>🛕</span>
+              <span style={{ fontSize: "15px", flexShrink: 0 }}>🛕</span>
               <div>
                 <div style={{ fontSize: "9px", fontWeight: 800, color: "#78350F", textTransform: "uppercase" }}>
                   {code === "kn" ? "ಶಿಫಾರಸು ಮಾಡಿದ ಪೂಜೆ & ಕ್ಷೇತ್ರ:" : "Prescribed Sacred Pooja:"}
                 </div>
-                <div style={{ fontSize: isPrimary ? "10.5px" : "11px", fontWeight: 800, color: "#451A03", marginTop: "1px", lineHeight: 1.3 }}>
+                <div style={{ fontSize: "11px", fontWeight: 800, color: "#451A03", marginTop: "1px", lineHeight: 1.35 }}>
                   {getLangVal(dosha.recommendedPooja)}
                 </div>
               </div>
@@ -1837,16 +1865,16 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 backgroundColor: "#FFFDF9",
                 border: "1px solid #FCD34D",
                 borderRadius: "8px",
-                padding: "4px 6px"
+                padding: "5px 8px"
               }}
             >
               <div style={{ fontSize: "9px", fontWeight: 800, color: "#78350F", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "3px" }}>
                 <span>📿</span>
                 <span>{t.mantraLabel}</span>
               </div>
-              <div style={{ fontSize: isPrimary ? "9.5px" : "10px", color: "#451A03", marginTop: "1px", lineHeight: 1.3, fontWeight: 500 }}>
+              <div style={{ fontSize: "10.5px", color: "#451A03", marginTop: "2px", lineHeight: 1.35, fontWeight: 500 }}>
                 {getLangArr(dosha.remedies).slice(0, 2).map((rem, rIdx) => (
-                  <div key={rIdx} style={{ display: "flex", alignItems: "flex-start", gap: "3px", marginTop: rIdx > 0 ? "1px" : "0" }}>
+                  <div key={rIdx} style={{ display: "flex", alignItems: "flex-start", gap: "3px", marginTop: rIdx > 0 ? "2px" : "0" }}>
                     <span style={{ color: "#D97706", fontWeight: 900 }}>✦</span>
                     <span>{rem}</span>
                   </div>
@@ -1859,14 +1887,14 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {dosha.subconsciousFear && (
             <div
               style={{
-                marginTop: "3px",
+                marginTop: "4px",
                 backgroundColor: "rgba(254, 243, 199, 0.4)",
                 border: "1px solid #FDE68A",
                 borderRadius: "6px",
-                padding: "3px 6px",
-                fontSize: "9.5px",
+                padding: "4px 7px",
+                fontSize: "10px",
                 color: "#451A03",
-                lineHeight: 1.3
+                lineHeight: 1.35
               }}
             >
               <strong style={{ color: "#78350F" }}>🧠 {snip.subconsciousFear} </strong>
@@ -1878,14 +1906,14 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {isCompleted ? (
             <div
               style={{
-                marginTop: "3px",
+                marginTop: "4px",
                 backgroundColor: "#F0FDF4",
                 border: "1px solid #86EFAC",
                 borderRadius: "6px",
-                padding: "3px 6px",
-                fontSize: "9.5px",
+                padding: "4px 7px",
+                fontSize: "10px",
                 color: "#166534",
-                lineHeight: 1.3
+                lineHeight: 1.35
               }}
             >
               <strong>✓ {snip.shantiCompleted} </strong>
@@ -1895,14 +1923,14 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             dosha.conditionalGuidance && (
               <div
                 style={{
-                  marginTop: "3px",
+                  marginTop: "4px",
                   backgroundColor: "#FFFDF9",
                   border: "1px solid #FDE68A",
                   borderRadius: "6px",
-                  padding: "3px 6px",
-                  fontSize: "9.5px",
+                  padding: "4px 7px",
+                  fontSize: "10px",
                   color: "#451A03",
-                  lineHeight: 1.3
+                  lineHeight: 1.35
                 }}
               >
                 <strong style={{ color: "#78350F" }}>💡 {snip.guidance} </strong>
@@ -1926,7 +1954,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             backgroundColor: "#FFFDF9",
             border: "1px solid #FDE68A",
             borderRadius: "10px",
-            padding: isPrimary ? "4px 8px" : "5px 8px",
+            padding: isPrimary ? "5px 9px" : "6px 10px",
             boxShadow: "0 1px 2px rgba(180, 83, 9, 0.02)"
           }}
         >
@@ -1938,16 +1966,16 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              marginBottom: "2px"
+              marginBottom: "3px"
             }}
           >
             <span>{t.pillar4Question || `✨ ${t.expectedImprovementHeading}`}</span>
           </div>
           <div
             style={{
-              fontSize: isPrimary ? "10.5px" : "11px",
+              fontSize: "11px",
               color: "#451A03",
-              lineHeight: 1.36,
+              lineHeight: 1.45,
               fontWeight: 600,
               letterSpacing: "normal"
             }}
@@ -1959,7 +1987,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
     );
   };
 
-  const primaryDosha = activeDoshas[0] || null;
+    const primaryDosha = activeDoshas[0] || null;
   const secondaryDoshas = activeDoshas.slice(1);
 
   return (
@@ -1989,7 +2017,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           height: "1273px",
           minHeight: "1273px",
           maxHeight: "1273px",
-          padding: "12px 18px",
+          padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -2037,22 +2065,22 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             height: "100%",
             border: `2px solid ${GOLD_BORDER}`,
             borderRadius: "16px",
-            padding: "10px 14px",
+            padding: "16px 20px",
             boxSizing: "border-box",
             backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
-            gap: "4px",
+            gap: "6px",
             overflow: "hidden",
             position: "relative",
             zIndex: 1
           }}
         >
           {/* 4 Corner Florets placed safely away from border with ample clearance to guarantee zero overlap */}
-          <div style={{ position: "absolute", top: "16px", left: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", top: "16px", right: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "16px", left: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "16px", right: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
 
           {/* Header Banner with Lord Shiva and Lord Surya Sacred Medallions */}
           {renderRoyalHeader(1, t.page1Title || t.mainTitle, t.shloka)}
@@ -2065,16 +2093,16 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
-              padding: "5px 12px",
+              padding: "8px 14px",
               boxShadow: "0 2px 4px rgba(180, 83, 9, 0.03)",
               flexShrink: 0
             }}
           >
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr 1fr", gap: "4px 10px", fontSize: "11px", lineHeight: 1.35 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr 1fr", gap: "8px 12px", fontSize: "11.5px", lineHeight: 1.5 }}>
               <div style={{ minWidth: 0 }}>
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>👤 {t.nativeDetails}:</span>{" "}
-                <span style={{ fontWeight: 900, color: INK_DEEP, fontSize: "13.5px" }}>{displayDevoteeName}</span>
-                <div style={{ fontSize: "10px", color: INK_MUTED, marginTop: "1px", lineHeight: 1.3 }}>
+                <span style={{ fontWeight: 900, color: INK_DEEP, fontSize: "14px" }}>{displayDevoteeName}</span>
+                <div style={{ fontSize: "10.5px", color: INK_MUTED, marginTop: "2px", lineHeight: 1.4 }}>
                   📅 {[devoteeInfo.birthDate, devoteeInfo.birthTime].filter(Boolean).join(" • ")}
                   {devoteeInfo.place ? ` · 📍 ${devoteeInfo.place}` : ""}
                 </div>
@@ -2082,37 +2110,37 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
 
               <div style={{ minWidth: 0 }}>
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>🏛️ {t.lagnaLabel}</span>{" "}
-                <span style={{ fontWeight: 800, color: INK_DEEP, fontSize: "12.5px" }}>
+                <span style={{ fontWeight: 800, color: INK_DEEP, fontSize: "13px" }}>
                   {devoteeInfo.lagnaRashiRecord?.[code] || devoteeInfo.lagnaRashi}
                 </span>
-                <div style={{ fontSize: "10px", color: INK_MUTED, marginTop: "1px", lineHeight: 1.3 }}>
+                <div style={{ fontSize: "10.5px", color: INK_MUTED, marginTop: "2px", lineHeight: 1.4 }}>
                   🌙 {t.rashiLabel} {devoteeInfo.moonRashiRecord?.[code] || devoteeInfo.moonRashi}
                 </div>
               </div>
 
               <div style={{ minWidth: 0 }}>
                 <span style={{ fontWeight: 800, color: GOLD_DARK }}>⭐ {t.nakshatraLabel}</span>{" "}
-                <span style={{ fontWeight: 800, color: INK_DEEP, fontSize: "12.5px" }}>
+                <span style={{ fontWeight: 800, color: INK_DEEP, fontSize: "13px" }}>
                   {devoteeInfo.nakshatraRecord?.[code] || devoteeInfo.nakshatra} ({devoteeInfo.pada})
                 </span>
-                <div style={{ fontSize: "10px", color: INK_MUTED, marginTop: "1px", lineHeight: 1.3 }}>
+                <div style={{ fontSize: "10.5px", color: INK_MUTED, marginTop: "2px", lineHeight: 1.4 }}>
                   ⏳ {t.dashaLabel} {devoteeInfo.currentDashaRecord?.[code] || devoteeInfo.currentDashaStr}
                 </div>
               </div>
 
-              <div style={{ backgroundColor: "#F7F3E9", border: `1px solid ${GOLD_BORDER}`, borderRadius: "6px", padding: "3px 6px", textAlign: "center", minWidth: 0 }}>
-                <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "11px", lineHeight: 1.25 }}>
+              <div style={{ backgroundColor: "#F7F3E9", border: `1px solid ${GOLD_BORDER}`, borderRadius: "6px", padding: "5px 8px", textAlign: "center", minWidth: 0 }}>
+                <div style={{ fontWeight: 900, color: GOLD_DARK, fontSize: "11.5px", lineHeight: 1.3 }}>
                   ⭐ {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {snip.yearsUnit}
                 </div>
-                <div style={{ fontSize: "10px", fontWeight: 800, color: GOLD_PRIMARY, marginTop: "1px", lineHeight: 1.25 }}>
+                <div style={{ fontSize: "10.5px", fontWeight: 800, color: GOLD_PRIMARY, marginTop: "2px", lineHeight: 1.3 }}>
                   🔥 {activeDoshas.length} {t.activeDoshasCountLabel} ({devoteeInfo.ageStageNameRecord?.[code] || devoteeInfo.ageStageKey})
                 </div>
               </div>
             </div>
 
             {/* Karmic Index Indicator Bar */}
-            <div style={{ marginTop: "4px", paddingTop: "3px", borderTop: `1px dashed ${GOLD_LIGHT}`, display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "10.5px", lineHeight: 1.35 }}>
-              <div style={{ display: "flex", gap: "10px", color: INK_MUTED, fontWeight: 700 }}>
+            <div style={{ marginTop: "6px", paddingTop: "5px", borderTop: `1px dashed ${GOLD_LIGHT}`, display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", lineHeight: 1.4 }}>
+              <div style={{ display: "flex", gap: "12px", color: INK_MUTED, fontWeight: 700 }}>
                 <span>📋 {snip.evaluated} <strong style={{ color: INK_DEEP }}>{summary?.totalEvaluated || 18}</strong></span>
                 <span>⚡ {snip.critical} <strong style={{ color: "#B91C1C" }}>{summary?.criticalCount || 0}</strong></span>
                 <span>⚠️ {snip.moderate} <strong style={{ color: GOLD_PRIMARY }}>{(summary?.highCount || 0) + (summary?.moderateCount || 0)}</strong></span>
@@ -2123,19 +2151,21 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   style={{
                     fontWeight: 900,
                     color: GOLD_DARK,
-                    fontSize: "11px",
+                    fontSize: "11.5px",
                     backgroundColor: "#F7F3E9",
-                    padding: "1px 8px 3px 8px",
+                    padding: "0 8px",
+                    height: "20px",
                     borderRadius: "5px",
                     border: `1px solid ${GOLD_BORDER}`,
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
                     lineHeight: 1,
-                    whiteSpace: "nowrap"
+                    whiteSpace: "nowrap",
+                    boxSizing: "border-box"
                   }}
                 >
-                  <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1px" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", transform: "translateY(-1px)", whiteSpace: "nowrap" }}>
                     {summary?.karmicIndexScore || 0}%
                   </span>
                 </span>
@@ -2148,22 +2178,22 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           {/* Age-Adaptive Priority Strategy Card (Compact & Perfectly Centered Crimson Badge) */}
           <div
             style={{
-              background: "linear-gradient(135deg, #FFFDF8 0%, #FEFBF2 50%, #FFF9EB 100%)",
+              background: "linear-gradient(135deg, #FFFDF9 0%, #FEFBF2 50%, #FFF9EB 100%)",
               border: "1.5px solid rgba(245, 158, 11, 0.5)",
-              borderRadius: "10px",
-              padding: "4px 8px",
+              borderRadius: "12px",
+              padding: "6px 10px",
               boxShadow: "0 2px 4px rgba(180, 83, 9, 0.03)",
               flexShrink: 0
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", borderBottom: "1px solid rgba(245, 158, 11, 0.2)", paddingBottom: "3px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <span style={{ fontSize: "14px" }}>⭐</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", borderBottom: "1px solid rgba(245, 158, 11, 0.2)", paddingBottom: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ fontSize: "15px" }}>⭐</span>
                 <div>
-                  <span style={{ fontSize: "12px", fontWeight: 900, color: "#451A03" }}>
+                  <span style={{ fontSize: "12.5px", fontWeight: 900, color: "#451A03" }}>
                     {t.ageStrategyHeading}
                   </span>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#78350F", marginLeft: "5px" }}>
+                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#78350F", marginLeft: "6px" }}>
                     ({devoteeInfo.ageStageNameRecord?.[code] || devoteeInfo.ageStageKey} • {t.currentAgeLabel} {devoteeInfo.currentAge || devoteeInfo.devoteeAge} {snip.yearsUnit})
                   </span>
                 </div>
@@ -2176,12 +2206,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "4px",
-                  padding: "1px 12px 3.5px 12px",
+                  padding: "0 12px",
+                  height: "22px",
                   borderRadius: "9999px",
                   backgroundColor: "#991B1B",
                   color: "#FFFFFF",
                   border: "1.5px solid #7F1D1D",
-                  fontSize: "10.5px",
+                  fontSize: "11px",
                   fontWeight: 900,
                   lineHeight: 1,
                   whiteSpace: "nowrap",
@@ -2190,20 +2221,20 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   flexShrink: 0
                 }}
               >
-                <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1.5px", gap: "4px" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", transform: "translateY(-1.5px)", whiteSpace: "nowrap", gap: "4px" }}>
                   ⚡ {t.agePriorityBadgeLabel}
                 </span>
               </div>
             </div>
 
-            <div style={{ marginTop: "3px", backgroundColor: "#FFFDF9", border: "1px solid #FDE68A", borderRadius: "6px", padding: "3px 8px" }}>
-              <div style={{ fontSize: "10.5px", color: "#451A03", fontWeight: 700, lineHeight: 1.35, wordSpacing: "0.5px" }}>
+            <div style={{ marginTop: "4px", backgroundColor: "#FFFDF9", border: "1px solid #FDE68A", borderRadius: "8px", padding: "5px 9px" }}>
+              <div style={{ fontSize: "11px", color: "#451A03", fontWeight: 700, lineHeight: 1.5, wordSpacing: "1px" }}>
                 <span style={{ color: "#78350F", fontWeight: 900, marginRight: "4px" }}>📜 {snip.divNative || "ಶಾಸ್ತ್ರೋಕ್ತ ಮಾರ್ಗದರ್ಶನ"}:</span>
                 {getLangVal(devoteeInfo.currentAgeFocusSummary, snip.ageFocusFallback)}
               </div>
             </div>
 
-            <div style={{ fontSize: "9px", color: "#78350F", marginTop: "2px", fontStyle: "italic", lineHeight: 1.25 }}>
+            <div style={{ fontSize: "9.5px", color: "#78350F", marginTop: "3px", fontStyle: "italic", lineHeight: 1.3 }}>
               {t.ageStrategyNotice}
             </div>
           </div>
@@ -2220,14 +2251,14 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   backgroundColor: "#FFFFFF",
                   border: `2px dashed ${GOLD_BORDER}`,
                   borderRadius: "12px",
-                  padding: "24px 18px",
+                  padding: "28px 20px",
                   textAlign: "center"
                 }}
               >
-                <div style={{ fontSize: "16px", color: GOLD_DARK, fontWeight: 900 }}>
+                <div style={{ fontSize: "18px", color: GOLD_DARK, fontWeight: 900 }}>
                   {t.noDoshaTitle}
                 </div>
-                <div style={{ fontSize: "12px", color: INK_MUTED, marginTop: "6px", lineHeight: 1.5, maxWidth: "680px", margin: "6px auto 0", wordSpacing: "1px" }}>
+                <div style={{ fontSize: "13px", color: INK_MUTED, marginTop: "8px", lineHeight: 1.6, maxWidth: "680px", margin: "8px auto 0", wordSpacing: "1px" }}>
                   {t.noDoshaDesc}
                 </div>
               </div>
@@ -2239,14 +2270,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             style={{
               marginTop: "auto",
               textAlign: "center",
-              fontSize: "10px",
+              fontSize: "10.5px",
               color: GOLD_DARK,
               fontWeight: 800,
               borderTop: `1.5px dashed ${GOLD_LIGHT}`,
-              paddingTop: "5px",
-              paddingBottom: "2px",
+              paddingTop: "6px",
               flexShrink: 0,
-              lineHeight: 1.3,
+              lineHeight: 1.4,
               letterSpacing: "normal"
             }}
           >
@@ -2267,7 +2297,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           height: "1273px",
           minHeight: "1273px",
           maxHeight: "1273px",
-          padding: "12px 18px",
+          padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -2314,22 +2344,22 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             height: "100%",
             border: `2px solid ${GOLD_BORDER}`,
             borderRadius: "16px",
-            padding: "10px 14px",
+            padding: "16px 20px",
             boxSizing: "border-box",
             backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
-            gap: "5px",
+            gap: "10px",
             overflow: "hidden",
             position: "relative",
             zIndex: 1
           }}
         >
           {/* 4 Corner Florets placed safely away from border with ample clearance to guarantee zero overlap */}
-          <div style={{ position: "absolute", top: "16px", left: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", top: "16px", right: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "16px", left: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "16px", right: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
 
           {/* Header Banner */}
           {renderRoyalHeader(2, t.page2Title, t.shloka)}
@@ -2346,20 +2376,20 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   backgroundColor: "#FFFFFF",
                   border: `1.5px solid ${GOLD_BORDER}`,
                   borderRadius: "12px",
-                  padding: "16px 20px",
+                  padding: "20px 24px",
                   boxShadow: "0 2px 8px rgba(180, 83, 9, 0.05)",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "10px"
+                  gap: "12px"
                 }}
               >
-                <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", letterSpacing: "0.2px" }}>
+                <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.35, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", letterSpacing: "0.2px" }}>
                   {t.planetaryHarmonyHeading}
                 </div>
-                <div style={{ fontSize: "12px", color: INK_DEEP, lineHeight: 1.6, wordSpacing: "1px" }}>
+                <div style={{ fontSize: "13px", color: INK_DEEP, lineHeight: 1.7, wordSpacing: "1.2px" }}>
                   {t.planetaryHarmonyDesc}
                 </div>
-                <div style={{ backgroundColor: "#FCFBF9", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "10px 14px", fontSize: "11.5px", color: INK_DEEP, lineHeight: 1.5, wordSpacing: "1px" }}>
+                <div style={{ backgroundColor: "#FCFBF9", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "12px 16px", fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.6, wordSpacing: "1px" }}>
                   <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
                   <span>{t.gokarnaProtectionDesc}</span>
                 </div>
@@ -2375,15 +2405,15 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
-              padding: "8px 12px",
-              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
+              padding: "16px 20px",
+              boxShadow: "0 2px 8px rgba(180, 83, 9, 0.04)",
               flexShrink: 0
             }}
           >
-            <div style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "3px", lineHeight: 1.3, letterSpacing: "0.2px" }}>
+            <div style={{ fontSize: "14.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
               🔱 {code === "kn" ? "ಪರಿಹಾರ ಕಾಲಾವಧಿ & ದೈವಿಕ ಸಂಕಲ್ಪ ಮಾರ್ಗದರ್ಶನ" : code === "hi" ? "शांति काल एवं दैवीय संकल्प मार्गदर्शन" : code === "te" ? "పరిహార కాలం & దైవిక సంకల్ప మార్గదర్శనం" : code === "ta" ? "பரிகாரக் காலம் & தெய்வீக சங்கல்ப வழிகாட்டுதல்" : "Parihara Duration & Divine Resolution Guidance"}
             </div>
-            <div style={{ fontSize: "11px", color: INK_DEEP, lineHeight: 1.4, marginTop: "4px", wordSpacing: "0.5px" }}>
+            <div style={{ fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.7, marginTop: "8px", wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
               {code === "kn"
                 ? "ಶಾಸ್ತ್ರಗಳ ಪ್ರಕಾರ, ಈ ಪ್ರಮುಖ ಕರ್ಮ ದೋಷಗಳಿಗೆ ಸೂಚಿಸಲಾದ ಪವಿತ್ರ ಪರಿಹಾರ ಮತ್ತು ಮಂತ್ರ ಸಾಧನೆಯನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ೩೦ ರಿಂದ ೪೫ ದಿನಗಳ ಕಾಲ ಆಚರಿಸುವುದರಿಂದ ದೋಷದ ತೀವ್ರತೆಯು ಶಮನಗೊಳ್ಳುತ್ತದೆ. ಸಂಕಲ್ಪಿಸಿದ ಕಾರ್ಯಗಳಲ್ಲಿ ಎದುರಾಗುತ್ತಿದ್ದ ಕಠಿಣ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ, ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ."
                 : code === "hi"
@@ -2394,7 +2424,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 ? "சாஸ்திரங்களின்படி, இந்த முக்கிய கர்ம தோஷங்களுக்குரிய பரிகாரத்தை 30 முதல் 45 நாட்கள் வரை நம்பிக்கையுடன் செய்வதன் மூலம் தோஷத்தின் தாக்கம் குறையும். தடைகள் நீங்கி, நல்வாழ்வும் மனசாந்தியும் உண்டாகும்."
                 : "According to classical Vedic scriptures, performing these sacred remedies and dedicated mantra japa for 30 to 45 days brings profound pacification of these primary karmic afflictions, dissolving stubborn obstacles and unlocking peace, health, and prosperity."}
             </div>
-            <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "5px 8px", fontSize: "10.5px", color: INK_DEEP, marginTop: "6px", lineHeight: 1.35, wordSpacing: "0.5px" }}>
+            <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "10px 14px", fontSize: "12px", color: INK_DEEP, marginTop: "10px", lineHeight: 1.55, wordSpacing: "1px" }}>
               <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
               <span>{t.gokarnaProtectionDesc}</span>
             </div>
@@ -2405,14 +2435,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             style={{
               marginTop: "auto",
               textAlign: "center",
-              fontSize: "10px",
+              fontSize: "10.5px",
               color: GOLD_DARK,
               fontWeight: 800,
               borderTop: `1.5px dashed ${GOLD_LIGHT}`,
-              paddingTop: "5px",
-              paddingBottom: "2px",
+              paddingTop: "6px",
               flexShrink: 0,
-              lineHeight: 1.3,
+              lineHeight: 1.4,
               letterSpacing: "normal"
             }}
           >
@@ -2433,7 +2462,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           height: "1273px",
           minHeight: "1273px",
           maxHeight: "1273px",
-          padding: "12px 18px",
+          padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -2480,22 +2509,22 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             height: "100%",
             border: `2px solid ${GOLD_BORDER}`,
             borderRadius: "16px",
-            padding: "10px 14px",
+            padding: "16px 20px",
             boxSizing: "border-box",
             backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
-            gap: "5px",
+            gap: "6px",
             overflow: "hidden",
             position: "relative",
             zIndex: 1
           }}
         >
           {/* 4 Corner Florets placed safely away from border with ample clearance to guarantee zero overlap */}
-          <div style={{ position: "absolute", top: "16px", left: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", top: "16px", right: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "16px", left: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "16px", right: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
 
           {/* Header Banner */}
           {renderRoyalHeader(3, t.page3Title, t.shloka)}
@@ -2508,39 +2537,39 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
               backgroundColor: "#FCFBF9",
               border: `1.5px solid ${GOLD_BORDER}`,
               borderRadius: "12px",
-              padding: "8px 12px",
+              padding: "10px 14px",
               boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
               flexShrink: 0,
               display: "flex",
               flexDirection: "column",
-              gap: "5px"
+              gap: "6px"
             }}
           >
-            <div style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "3px", lineHeight: 1.3, letterSpacing: "0.2px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
               🪐 {t.chartBalanceHeading}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 8px", fontSize: "11px", lineHeight: 1.35 }}>
-              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "5px 8px", minWidth: 0 }}>
-                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "12px", lineHeight: 1.25, letterSpacing: "0.2px" }}>🏛️ {t.lagnaLabel} {devoteeInfo.lagnaRashiRecord?.[code] || devoteeInfo.lagnaRashi}</div>
-                <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.35, wordSpacing: "0.5px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: "12px", lineHeight: 1.55 }}>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "6px 10px", minWidth: 0 }}>
+                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.3, letterSpacing: "0.2px" }}>🏛️ {t.lagnaLabel} {devoteeInfo.lagnaRashiRecord?.[code] || devoteeInfo.lagnaRashi}</div>
+                <div style={{ color: INK_DEEP, marginTop: "4px", lineHeight: 1.6, wordSpacing: "1px" }}>
                   {snip.lagnaFortitude}
                 </div>
               </div>
-              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "5px 8px", minWidth: 0 }}>
-                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "12px", lineHeight: 1.25, letterSpacing: "0.2px" }}>🌙 {t.rashiLabel} {devoteeInfo.moonRashiRecord?.[code] || devoteeInfo.moonRashi}</div>
-                <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.35, wordSpacing: "0.5px" }}>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "6px 10px", minWidth: 0 }}>
+                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.3, letterSpacing: "0.2px" }}>🌙 {t.rashiLabel} {devoteeInfo.moonRashiRecord?.[code] || devoteeInfo.moonRashi}</div>
+                <div style={{ color: INK_DEEP, marginTop: "4px", lineHeight: 1.6, wordSpacing: "1px" }}>
                   {snip.chandraFortitude}
                 </div>
               </div>
-              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "5px 8px", minWidth: 0 }}>
-                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "12px", lineHeight: 1.25, letterSpacing: "0.2px" }}>☀️ {snip.suryaFortitudeTitle}</div>
-                <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.35, wordSpacing: "0.5px" }}>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "6px 10px", minWidth: 0 }}>
+                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.3, letterSpacing: "0.2px" }}>☀️ {snip.suryaFortitudeTitle}</div>
+                <div style={{ color: INK_DEEP, marginTop: "4px", lineHeight: 1.6, wordSpacing: "1px" }}>
                   {snip.suryaFortitudeDesc}
                 </div>
               </div>
-              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "5px 8px", minWidth: 0 }}>
-                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "12px", lineHeight: 1.25, letterSpacing: "0.2px" }}>🪔 {snip.trikonaFortitudeTitle}</div>
-                <div style={{ color: INK_DEEP, marginTop: "2px", lineHeight: 1.35, wordSpacing: "0.5px" }}>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "6px 10px", minWidth: 0 }}>
+                <div style={{ fontWeight: 800, color: GOLD_DARK, fontSize: "13.5px", lineHeight: 1.3, letterSpacing: "0.2px" }}>🪔 {snip.trikonaFortitudeTitle}</div>
+                <div style={{ color: INK_DEEP, marginTop: "4px", lineHeight: 1.6, wordSpacing: "1px" }}>
                   {snip.trikonaFortitudeDesc}
                 </div>
               </div>
@@ -2552,11 +2581,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 backgroundColor: "#FFFFFF",
                 border: `1px solid ${GOLD_LIGHT}`,
                 borderRadius: "8px",
-                padding: "4px 8px",
-                fontSize: "10.5px",
+                padding: "10px 16px",
+                fontSize: "12.5px",
                 color: INK_DEEP,
-                lineHeight: 1.35,
-                wordSpacing: "0.5px"
+                lineHeight: 1.6,
+                wordSpacing: "1px"
               }}
             >
               <strong style={{ color: GOLD_DARK }}>🔱 {snip.parashariProtocol} </strong>
@@ -2576,17 +2605,17 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                   backgroundColor: "#FCFBF9",
                   border: `1.5px solid ${GOLD_BORDER}`,
                   borderRadius: "12px",
-                  padding: "8px 12px",
+                  padding: "16px 20px",
                   boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "4px"
+                  gap: "10px"
                 }}
               >
-                <div style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "3px", lineHeight: 1.3, letterSpacing: "0.2px" }}>
+                <div style={{ fontSize: "14.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
                   🪐 {code === "kn" ? "ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ, ಸಾಡೇ ಸಾತಿ & ದೈವಿಕ ರಕ್ಷಣೆ" : code === "hi" ? "गोचर ग्रह प्रभाव, साढ़े साती एवं दैवीय सुरक्षा" : code === "te" ? "గోచార గ్రహ ప్రభావం, సాడే సాతి & దైవిక రక్షణ" : code === "ta" ? "கோசார கிரக தாக்கம், ஏழரை சனி & தெய்வீக பாதுகாப்பு" : "Planetary Transits, Sade Sati & Divine Safeguards"}
                 </div>
-                <div style={{ fontSize: "11px", color: INK_DEEP, lineHeight: 1.4, marginTop: "2px", wordSpacing: "0.5px" }}>
+                <div style={{ fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.7, marginTop: "4px", wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
                   {code === "kn"
                     ? "ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಮಹಾತ್ಮನ ಸಂಚಾರ, ರಾಹು-ಕೇತುಗಳ ಅಕ್ಷ ಬದಲಾವಣೆ ಅಥವಾ ಗುರು ಗ್ರಹದ ವಕ್ರ ಸಂಚಾರವು ಕುಂಡಲಿಯ ಪ್ರಮುಖ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಭಾವಗಳ ಮೇಲೆ ಸದಾ ಪರಿಣಾಮ ಬೀರುತ್ತಿರುತ್ತದೆ. ಜಾತಕರ ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲದಲ್ಲಿ ನಿತ್ಯ ಗಾಯತ್ರಿ ಜಪ, ಶಿವನಾಮ ಸ್ಮರಣೆ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ನಿತ್ಯ ಅರ್ಚನೆಯು ಸಕಲ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಶಮನಗೊಳಿಸಿ, ಸರ್ವತ್ರ ಜಯವನ್ನು ತರಲಿದೆ."
                     : code === "hi"
@@ -2597,7 +2626,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                     ? "கோசாரத்தில் சனி பகவானின் சஞ்சாரம், ராகு-கேது பெயர்ச்சி மற்றும் குருவின் நிலை ஜாதகத்தின் முக்கிய பாவங்களை பாதிக்கின்றன. தற்போதைய திசை காலத்தில் நித்திய காயத்ரி ஜபம், சிவ வழிபாடு மற்றும் கோகர்ண மகாபலேஸ்வரர் பூஜை சகல தோஷங்களையும் போக்கி வெற்றியைத் தரும்."
                     : "Planetary transits of Saturn, Rahu-Ketu, or Jupiter across sensitive natal axes interact dynamically with running dashas. Daily sacred Gayatri mantra japa, Shiva archana, and Sri Gokarna Mahabaleshwara's divine grace neutralize transit friction, protect health, and bestow comprehensive victory."}
                 </div>
-                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "4px 8px", fontSize: "10.5px", color: INK_DEEP, marginTop: "3px", lineHeight: 1.35, wordSpacing: "0.5px" }}>
+                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "10px 14px", fontSize: "12px", color: INK_DEEP, marginTop: "6px", lineHeight: 1.55, wordSpacing: "1px" }}>
                   <strong style={{ color: GOLD_DARK }}>🔱 {t.gokarnaProtectionLabel} </strong>
                   <span>{t.gokarnaProtectionDesc}</span>
                 </div>
@@ -2618,28 +2647,28 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                     : "❖ Navagraha Harmony & Dasha Transition Directives ❖"
                 )}
 
-                {/* Section 3 on Page 3: Sacred Navagraha Harmony & Dasha Pacification */}
+                {/* Section 3 on Page 3: Sacred Navagraha Harmony & Dasha Pacification (Fills Page 3 beautifully) */}
                 <div
                   style={{
                     backgroundColor: "#FCFBF9",
                     border: `1.5px solid ${GOLD_BORDER}`,
-                    borderRadius: "12px",
-                    padding: "8px 12px",
+                    borderRadius: "14px",
+                    padding: "14px 18px",
                     boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
                     flexShrink: 0,
                     display: "flex",
                     flexDirection: "column",
-                    gap: "5px"
+                    gap: "8px"
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "13.5px",
+                      fontSize: "14.5px",
                       fontWeight: 900,
                       color: GOLD_DARK,
                       borderBottom: `1.5px solid ${GOLD_LIGHT}`,
-                      paddingBottom: "3px",
-                      lineHeight: 1.3,
+                      paddingBottom: "4px",
+                      lineHeight: 1.35,
                       letterSpacing: "0.2px"
                     }}
                   >
@@ -2655,16 +2684,16 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                       : "Dasha Transition Pacification & Navagraha Safeguards"}
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
                     <div
                       style={{
                         backgroundColor: "#FFFFFF",
                         border: `1px solid ${GOLD_LIGHT}`,
                         borderRadius: "8px",
-                        padding: "5px 8px"
+                        padding: "10px 12px"
                       }}
                     >
-                      <div style={{ fontSize: "11px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.25 }}>
+                      <div style={{ fontSize: "12px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
                         ☀️{" "}
                         {code === "kn"
                           ? "ಸೂರ್ಯ ಆರಾಧನೆ"
@@ -2676,7 +2705,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           ? "சூரிய வழிபாடு"
                           : "Surya Arghya"}
                       </div>
-                      <div style={{ fontSize: "10px", color: INK_DEEP, marginTop: "2px", lineHeight: 1.32 }}>
+                      <div style={{ fontSize: "11px", color: INK_DEEP, marginTop: "4px", lineHeight: 1.55 }}>
                         {code === "kn"
                           ? "ನಿತ್ಯ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ಸೂರ್ಯದೇವನಿಗೆ ತಾಮ್ರ ಪಾತ್ರೆಯ ಅರ್ಘ್ಯ ಪ್ರದಾನವು ಆತ್ಮಬಲ, ತೇಜಸ್ಸು ಹಾಗೂ ಪಿತೃ ಆಶೀರ್ವಾದವನ್ನು ಸದಾ ಜಾಗೃತವಾಗಿರಿಸುತ್ತದೆ."
                           : code === "hi"
@@ -2694,10 +2723,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         backgroundColor: "#FFFFFF",
                         border: `1px solid ${GOLD_LIGHT}`,
                         borderRadius: "8px",
-                        padding: "5px 8px"
+                        padding: "10px 12px"
                       }}
                     >
-                      <div style={{ fontSize: "11px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.25 }}>
+                      <div style={{ fontSize: "12px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
                         🪔{" "}
                         {code === "kn"
                           ? "ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ"
@@ -2709,13 +2738,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           ? "ருத்ராபிஷேக பூஜை"
                           : "Rudrabhisheka"}
                       </div>
-                      <div style={{ fontSize: "10px", color: INK_DEEP, marginTop: "2px", lineHeight: 1.32 }}>
+                      <div style={{ fontSize: "11px", color: INK_DEEP, marginTop: "4px", lineHeight: 1.55 }}>
                         {code === "kn"
                           ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪಪೂರ್ವಕ ರುದ್ರಾಭಿಷೇಕ ಅಥವಾ ನಿತ್ಯ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಜಪವು ಸರ್ವ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ."
                           : code === "hi"
                           ? "गोकर्ण महाबलेश्वर में रुद्राभिषेक अथवा नित्य 'ॐ नमः शिवाय' जप समस्त ग्रह पीड़ाओं को शांत करता है।"
                           : code === "te"
-                          ? "గోకర్ణ మహాబలేశ్వరునికి రుద్రాభిషేకం లేదా 'ॐ नमः శివాయ' జపం సమస్త గ్రహ బాధలను నివారిస్తుంది."
+                          ? "గోకర్ణ మహాబలేశ్వరునికి రుద్రాభిషేకం లేదా 'ॐ नमः शिवाय' జపం సమస్త గ్రహ బాధలను నివారిస్తుంది."
                           : code === "ta"
                           ? "கோகர்ணத்தில் ருத்ராபிஷேகம் அல்லது 'ஓம் நம சிவாய' ஜபம் சகல கிரக தோஷங்களையும் அமைதிப்படுத்தும்."
                           : "Sankalpa Rudrabhisheka at Sri Gokarna Mahabaleshwara or daily 'Om Namah Shivaya' japa calms all planetary afflictions."}
@@ -2727,10 +2756,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         backgroundColor: "#FFFFFF",
                         border: `1px solid ${GOLD_LIGHT}`,
                         borderRadius: "8px",
-                        padding: "5px 8px"
+                        padding: "10px 12px"
                       }}
                     >
-                      <div style={{ fontSize: "11px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.25 }}>
+                      <div style={{ fontSize: "12px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
                         🐄{" "}
                         {code === "kn"
                           ? "ಗೋಸೇವೆ & ದಾನ"
@@ -2742,7 +2771,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                           ? "பசு சேவை & தானம்"
                           : "Holy Cow Care"}
                       </div>
-                      <div style={{ fontSize: "10px", color: INK_DEEP, marginTop: "2px", lineHeight: 1.32 }}>
+                      <div style={{ fontSize: "11px", color: INK_DEEP, marginTop: "4px", lineHeight: 1.55 }}>
                         {code === "kn"
                           ? "ಮಂಗಳವಾರ ಅಥವಾ ಶನಿವಾರದಂದು ಗೋಮಾತೆಗೆ ಬೆಲ್ಲ-ಹುಲ್ಲು ನೀಡುವುದು ಹಾಗೂ ತಿಲ ತೈಲ ದೀಪಾರಾಧನೆಯು ಕರ್ಮ ಕ್ಷಯಕ್ಕೆ ಶ್ರೇಷ್ಠ ಪರಿಹಾರವಾಗಿದೆ."
                           : code === "hi"
@@ -2765,14 +2794,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             style={{
               marginTop: "auto",
               textAlign: "center",
-              fontSize: "10px",
+              fontSize: "10.5px",
               color: GOLD_DARK,
               fontWeight: 800,
               borderTop: `1.5px dashed ${GOLD_LIGHT}`,
-              paddingTop: "5px",
-              paddingBottom: "2px",
+              paddingTop: "6px",
               flexShrink: 0,
-              lineHeight: 1.3,
+              lineHeight: 1.4,
               letterSpacing: "normal"
             }}
           >
@@ -2793,7 +2821,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
           height: "1273px",
           minHeight: "1273px",
           maxHeight: "1273px",
-          padding: "12px 18px",
+          padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
@@ -2840,22 +2868,22 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             height: "100%",
             border: `2px solid ${GOLD_BORDER}`,
             borderRadius: "16px",
-            padding: "10px 14px",
+            padding: "16px 20px",
             boxSizing: "border-box",
             backgroundColor: "#FFFFFF",
             display: "flex",
             flexDirection: "column",
-            gap: "5px",
+            gap: "11px",
             overflow: "hidden",
             position: "relative",
             zIndex: 1
           }}
         >
           {/* 4 Corner Florets placed safely away from border with ample clearance to guarantee zero overlap */}
-          <div style={{ position: "absolute", top: "16px", left: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", top: "16px", right: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "16px", left: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
-          <div style={{ position: "absolute", bottom: "16px", right: "18px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", top: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+          <div style={{ position: "absolute", bottom: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
 
           {/* Header Banner with Lord Shiva and Lord Surya Sacred Imagery */}
           {renderRoyalHeader(4, t.page4Title, t.page2Shloka)}
@@ -2919,7 +2947,8 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                             color: isDanger ? "#FFFFFF" : "#78350F",
                             fontSize: "11.5px",
                             fontWeight: 900,
-                            padding: "1px 10px 3.5px 10px",
+                            padding: "0 10px",
+                            height: "22px",
                             borderRadius: "6px",
                             border: `1px solid ${isDanger ? "#7F1D1D" : GOLD_BORDER}`,
                             letterSpacing: "normal",
@@ -2928,10 +2957,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                             lineHeight: 1,
                             display: "inline-flex",
                             alignItems: "center",
-                            justifyContent: "center"
+                            justifyContent: "center",
+                            boxSizing: "border-box"
                           }}
                         >
-                          <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1px" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", transform: "translateY(-1px)", whiteSpace: "nowrap" }}>
                             {isDanger
                               ? `${t.safeAgeLimitLabel} ${g.vulnerableTillAge} ${snip.yearsTillUnit}`
                               : `✓ ${snip.safeAgePassed} (${g.vulnerableTillAge} ${snip.yearsUnit})`}
@@ -3021,7 +3051,8 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         fontSize: "11px",
                         backgroundColor: "#FCFBF9",
                         color: GOLD_DARK,
-                        padding: "1px 8px 3px 8px",
+                        padding: "0 8px",
+                        height: "20px",
                         borderRadius: "5px",
                         fontWeight: 700,
                         border: `1px solid ${GOLD_LIGHT}`,
@@ -3030,10 +3061,11 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        whiteSpace: "nowrap"
+                        whiteSpace: "nowrap",
+                        boxSizing: "border-box"
                       }}
                     >
-                      <span style={{ display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", position: "relative", top: "-1px" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", transform: "translateY(-1px)", whiteSpace: "nowrap" }}>
                         {getFearSeverityLabel(fear.severity, code)}
                       </span>
                     </span>
@@ -3223,14 +3255,13 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             style={{
               marginTop: "auto",
               textAlign: "center",
-              fontSize: "10px",
+              fontSize: "11px",
               color: GOLD_DARK,
               fontWeight: 800,
               borderTop: `1.5px dashed ${GOLD_LIGHT}`,
-              paddingTop: "5px",
-              paddingBottom: "2px",
+              paddingTop: "6px",
               flexShrink: 0,
-              lineHeight: 1.3,
+              lineHeight: 1.4,
               letterSpacing: "normal"
             }}
           >
