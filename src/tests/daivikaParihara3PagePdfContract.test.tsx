@@ -175,4 +175,47 @@ describe("Daivika Parihara 3-Page Master PDF Contract & Vedic Mantra Audit", () 
       expect((pages[2] as HTMLElement).textContent).toContain(expected.p3);
     }
   });
+
+  it("6. In English (en) mode, renders all mantras and shlokas in readable English transliteration without Devanagari script", () => {
+    const diagnosis = generateKundliRemedyReport(mockKundli, devoteeInput);
+    const { container } = render(<KundliRemedyPdfTemplate diagnosis={diagnosis} lang="en" />);
+    const pages = container.querySelectorAll(".pdf-page");
+    expect(pages.length).toBe(3);
+
+    // Devanagari letters (excluding sacred danda ॥ and ।)
+    const devaLetters = /[\u0904-\u0939\u0958-\u0963]/;
+    const kannadaLetters = /[\u0C80-\u0CFF]/;
+
+    // Page 1: Nakshatra Beeja Mantra in Latin/English phonetics
+    const page1 = pages[0] as HTMLElement;
+    expect(page1.textContent).toContain("• Beeja Mantra: ");
+    const page1Text = page1.textContent || "";
+    const beejaMatch = page1Text.match(/• Beeja Mantra:\s*([^\(]+)/);
+    expect(beejaMatch).toBeTruthy();
+    const beejaMantraText = beejaMatch![1].trim();
+    expect(beejaMantraText.length).toBeGreaterThan(5);
+    expect(beejaMantraText).not.toMatch(devaLetters);
+    expect(beejaMantraText).not.toMatch(kannadaLetters);
+
+    // Page 2: Emergency Beeja Mantra and Stotra Shloka in Latin/English phonetics
+    const page2 = pages[1] as HTMLElement;
+    expect(page2.textContent).toContain("Emergency Mind Pacification Mantra");
+    // Verify stotra and emergency mantra do not contain Devanagari letters
+    const page2Text = page2.textContent || "";
+    expect(page2Text).toContain("Emergency Mind Pacification Mantra");
+    // Emergency mantra text is inside page 2
+    expect(diagnosis.instantCalmingProtocol.emergencyBeejaMantra.transliteration).toBeTruthy();
+    expect(page2Text).toContain(diagnosis.instantCalmingProtocol.emergencyBeejaMantra.transliteration);
+
+    // Verify Stotra transliteration is present
+    const stotra = diagnosis.personalizedStotras[0];
+    expect(stotra.transliteration).toBeTruthy();
+    expect(page2Text).toContain(stotra.transliteration.trim());
+
+    // Page 3: Vedic Graha Shanti Mantra in Latin/English phonetics
+    const page3 = pages[2] as HTMLElement;
+    expect(page3.textContent).toContain("Sacred Vedic Graha Shanti Mantra");
+    const page3Text = page3.textContent || "";
+    expect(page3Text).not.toMatch(devaLetters);
+  });
 });

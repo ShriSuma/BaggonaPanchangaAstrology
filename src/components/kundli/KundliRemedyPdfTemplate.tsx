@@ -1,4 +1,4 @@
-import { transliterateName } from "../../utils/transliterator";
+import { transliterateName, transliterateIndicToLatin } from "../../utils/transliterator";
 import React from "react";
 import { type KundliRemedyDiagnosis, type SupportedLanguage, computeMandalaVrataSadhana } from "../../features/remedies/kundliRemedyEngine";
 import { PlanetName } from "../../core/AstroTypes";
@@ -692,7 +692,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     if (code === "te") return st.shlokaTelugu;
     if (code === "ta") return st.shlokaTamil;
     if (code === "hi") return st.shlokaHindi;
-    if (code === "en") return st.shlokaSanskrit;
+    if (code === "en") return st.transliteration || (st as any).shlokaEnglish || transliterateIndicToLatin(st.shlokaSanskrit);
     return st.shlokaKannada;
   };
 
@@ -700,7 +700,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     if (code === "te") return bm.telugu;
     if (code === "ta") return bm.tamil;
     if (code === "hi") return bm.hindi;
-    if (code === "en") return bm.sanskrit;
+    if (code === "en") return bm.transliteration || (bm as any).english || transliterateIndicToLatin(bm.sanskrit);
     return bm.kannada;
   };
 
@@ -1103,7 +1103,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                       ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).telugu || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
                       : code === "ta"
                       ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).tamil || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
-                      : (panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit || panchangaRemedies.nakshatraRemedy.beejaMantra.kannada)}
+                      : ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).transliteration ||
+                         (panchangaRemedies.nakshatraRemedy.beejaMantra as any).english ||
+                         transliterateIndicToLatin(panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit || panchangaRemedies.nakshatraRemedy.beejaMantra.kannada))}
                   </span> ({panchangaRemedies.nakshatraRemedy.beejaMantra.meaning[code] || panchangaRemedies.nakshatraRemedy.beejaMantra.meaning.kn})
                 </div>
               </div>
@@ -1909,7 +1911,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     letterSpacing: "0.2px"
                   }}
                 >
-                  {grahaMantra.sanskritShlokaL5?.[code] || grahaMantra.sanskritShloka}
+                  {code === "en"
+                    ? (grahaMantra.sanskritShlokaL5?.en || grahaMantra.transliteration || transliterateIndicToLatin(grahaMantra.sanskritShloka))
+                    : (grahaMantra.sanskritShlokaL5?.[code] || grahaMantra.sanskritShloka)}
                 </div>
               </div>
               <div>

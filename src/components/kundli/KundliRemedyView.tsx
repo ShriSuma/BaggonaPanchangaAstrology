@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Card from "../ui/Card";
 import type { KundliRemedyDiagnosis, SupportedLanguage } from "../../features/remedies/kundliRemedyEngine";
+import { transliterateIndicToLatin } from "../../utils/transliterator";
 import { REMEDY_AI_FALLBACK_MESSAGES } from "../../features/remedies/kundliRemedyAiEngine";
 import {
   getAllPriests,
@@ -997,7 +998,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
     if (selectedLang === "te") return st.shlokaTelugu;
     if (selectedLang === "ta") return st.shlokaTamil;
     if (selectedLang === "hi") return st.shlokaHindi;
-    if (selectedLang === "en") return st.shlokaSanskrit;
+    if (selectedLang === "en") return st.transliteration || (st as any).shlokaEnglish || transliterateIndicToLatin(st.shlokaSanskrit);
     return st.shlokaKannada;
   };
 
@@ -1005,7 +1006,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
     if (selectedLang === "te") return bm.telugu;
     if (selectedLang === "ta") return bm.tamil;
     if (selectedLang === "hi") return bm.hindi;
-    if (selectedLang === "en") return bm.sanskrit;
+    if (selectedLang === "en") return bm.transliteration || (bm as any).english || transliterateIndicToLatin(bm.sanskrit);
     return bm.kannada;
   };
 
@@ -1753,7 +1754,19 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 {panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod[selectedLang] || panchangaRemedies.nakshatraRemedy.sacredTree.worshipMethod.kn}
               </p>
               <div className="rounded-xl bg-emerald-950 text-emerald-200 p-2.5 text-center font-serif font-black text-xs">
-                {panchangaRemedies.nakshatraRemedy.beejaMantra[selectedLang === "en" ? "sanskrit" : "kannada"]}
+                {selectedLang === "en"
+                  ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).transliteration ||
+                     (panchangaRemedies.nakshatraRemedy.beejaMantra as any).english ||
+                     transliterateIndicToLatin(panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit || panchangaRemedies.nakshatraRemedy.beejaMantra.kannada))
+                  : selectedLang === "kn"
+                  ? (panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                  : selectedLang === "hi"
+                  ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).hindi || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                  : selectedLang === "te"
+                  ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).telugu || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                  : selectedLang === "ta"
+                  ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).tamil || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                  : (panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)}
               </div>
               <div className="text-[10px] text-emerald-900 font-bold">
                 🙏 {t.deityWorshipTitle} {panchangaRemedies.nakshatraRemedy.aradhana[selectedLang] || panchangaRemedies.nakshatraRemedy.aradhana.kn}
