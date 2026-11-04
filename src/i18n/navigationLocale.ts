@@ -260,6 +260,13 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "హోటల్ కౌంటర్ డెస్క్ (Omkar)",
     ta: "ஹோட்டல் கவுண்டர் டெஸ்க் (Omkar)"
   },
+  poster_item: {
+    kn: "೮K ಪ್ರಚಾರ ಪೋಸ್ಟರ್ & ಟೇಬಲ್ ಸ್ಟ್ಯಾಂಡ್",
+    en: "8K Promo Poster & Table Tent",
+    hi: "8K प्रचार पोस्टर एवं टेबल टेंट",
+    te: "8K ప్రచార పోస్టర్ & టేబుల్ టెంట్",
+    ta: "8K விளம்பர போஸ்டர் & டேபிள் டென்ட்"
+  },
   instant_reading: {
     kn: "ತ್ವರಿತ ಜ್ಯೋತಿಷ್ಯ ದರ್ಶನ",
     en: "Instant Astrological Reading",

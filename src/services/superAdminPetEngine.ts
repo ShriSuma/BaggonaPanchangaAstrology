@@ -801,6 +801,35 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       kn: "ಹೋಟೆಲ್/ಕೌಂಟರ್ ಆಪರೇಟರ್ ಓಂಕಾರ್‌ಗಾಗಿ ಮೀಸಲಾದ ಭಕ್ತರ ವಿವರ ದಾಖಲಾತಿ ಹಾಗೂ ಪಿಡಿಎಫ್, ಕ್ಯಾಲೆಂಡರ್, ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ವಿತರಣಾ ಪೋರ್ಟಲ್.",
       en: "Dedicated front desk reception counter portal for hotel operator Omkar to register devotees and dispatch Kundli PDFs, 30-day rhythm calendar, and 20-min live session links."
     }
+  },
+  poster: {
+    name: {
+      kn: "೮K ಪ್ರಚಾರ ಪೋಸ್ಟರ್ & ಟೇಬಲ್ ಸ್ಟ್ಯಾಂಡ್ (8K Poster)",
+      en: "8K Promo Poster & Table Tent",
+      hi: "8K प्रचार पोस्टर एवं टेबल टेंट",
+      te: "8K ప్రచార పోస్టర్ & టేబుల్ టెంట్",
+      ta: "8K விளம்பர போஸ்டர் & டேபிள் டென்ட்"
+    },
+    category: "admin",
+    icon: "🖼️",
+    keywords: [
+      "poster",
+      "tent",
+      "table tent",
+      "8k",
+      "standee",
+      "cashier poster",
+      "330",
+      "430",
+      "500",
+      "700",
+      "ಪ್ರಚಾರ",
+      "ಪೋಸ್ಟರ್"
+    ],
+    description: {
+      kn: "೮K ಅಲ್ಟ್ರಾ-ಹೆಚ್‌ಡಿ ಕ್ಯಾಷಿಯರ್ ಡೆಸ್ಕ್ ಲ್ಯಾಮಿನೇಶನ್ ಪೋಸ್ಟರ್ ಹಾಗೂ ರೆಸ್ಟೋರೆಂಟ್ ಟೇಬಲ್ ಟೆಂಟ್ ಸ್ಟ್ಯಾಂಡಿ ಮುದ್ರಣ ಪ್ರದರ್ಶನ.",
+      en: "8K Ultra-HD A4 Cashier Desk Lamination Poster and Restaurant Table Tent Standee display with 1-click PDF/PNG export."
+    }
   }
 };
 

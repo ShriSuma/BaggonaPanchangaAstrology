@@ -83,7 +83,7 @@ describe("Omkar Hotel Reception Desk Operator Auth & Portal Guard", () => {
       expect(url).toContain(encodeURIComponent("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"));
     });
 
-    it("calculates exact Omkar package pricing: ₹320 without remedy, ₹420 with remedy (never ₹500)", () => {
+    it("calculates exact Omkar package pricing: ₹330 without remedy (regular ₹500), ₹430 with remedy (regular ₹700)", () => {
       // 1. Standard Janana Kundali + Bhavishya V1 (no remedy)
       expect(
         calculateOmkarPackagePrice({
@@ -91,7 +91,7 @@ describe("Omkar Hotel Reception Desk Operator Auth & Portal Guard", () => {
           selectedBhavishyaV1: true,
           selectedRemedy: false
         })
-      ).toBe(320);
+      ).toBe(330);
 
       // 2. When Remedy is included along with Janana Kundali and Bhavishya V1
       expect(
@@ -100,7 +100,7 @@ describe("Omkar Hotel Reception Desk Operator Auth & Portal Guard", () => {
           selectedBhavishyaV1: true,
           selectedRemedy: true
         })
-      ).toBe(420);
+      ).toBe(430);
 
       // 3. Remedy only or included
       expect(
@@ -109,7 +109,7 @@ describe("Omkar Hotel Reception Desk Operator Auth & Portal Guard", () => {
           selectedBhavishyaV1: false,
           selectedRemedy: true
         })
-      ).toBe(420);
+      ).toBe(430);
 
       // 4. Verify WhatsApp share URL includes the formatted fee
       const urlWithPrice = getOmkarWhatsAppShareUrl({

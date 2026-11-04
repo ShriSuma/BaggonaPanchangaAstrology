@@ -18,6 +18,7 @@ import { exportPanchangaWithDashaPdf } from "../core/ExportUtils";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { KundliRemedyPdfTemplate } from "../components/kundli/KundliRemedyPdfTemplate";
 import { generateKundliRemedyReport, type KundliRemedyDiagnosis } from "../features/remedies/kundliRemedyEngine";
+import { Baggona8kPromoPoster } from "../components/poster/Baggona8kPromoPoster";
 import {
   getOmkarZipFileName,
   getOmkarWhatsAppShareUrl,
@@ -77,6 +78,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
   const [gotra, setGotra] = useState("Kashyapa / Shiva");
 
   // Poster 1 Offering Options
+  const [showPosterModal, setShowPosterModal] = useState(false);
   const [includeRemedy, setIncludeRemedy] = useState(false);
   const [isDownloadingKundli, setIsDownloadingKundli] = useState(false);
   const [isDownloadingBhavishyaV1, setIsDownloadingBhavishyaV1] = useState(false);
@@ -702,7 +704,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
 
       void dispatchOrderNotification(
         "Poster 1: Baggona Janana Kundali & Dasha PDF",
-        includeRemedy ? 420 : 320,
+        includeRemedy ? 430 : 330,
         `Kundli & Dasha PDF (${langName}) Downloaded for ${effectiveDevoteeName}`
       );
     } catch (err: any) {
@@ -760,7 +762,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
 
       void dispatchOrderNotification(
         includeRemedy ? "Poster 1: Premium Bhavishya V1 + Remedy" : "Poster 1: Premium Bhavishya V1 PDF",
-        includeRemedy ? 420 : 320,
+        includeRemedy ? 430 : 330,
         `Bhavishya V1 PDF (${langName}) Generated for ${effectiveDevoteeName}`
       );
     } catch (err: any) {
@@ -777,7 +779,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       const safeName = effectiveDevoteeName.replace(/[^\p{L}\p{N}]+/gu, "_") || "Devotee";
       const fileName = `${safeName}_Remedial_Upaya_${selectedLang}.pdf`;
       await generatePDFFromElement("omkar-remedy-container", fileName, true);
-      void dispatchOrderNotification("Poster 1: Remedial Upaya PDF", 420, `Remedy Report Downloaded for ${effectiveDevoteeName}`);
+      void dispatchOrderNotification("Poster 1: Remedial Upaya PDF", 430, `Remedy Report Downloaded for ${effectiveDevoteeName}`);
     } catch (err: any) {
       alert("Remedy download error: " + (err?.message || "Error"));
     } finally {
@@ -910,7 +912,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
       `• ಗ್ರಾಹಕರು: *${effectiveDevoteeName}*\n` +
       `• ಜನ್ಮ ದಿನಾಂಕ: *${birthDate} ${birthTime}*\n` +
       `• ಸ್ಥಳ: *${resolvedPlaceName}*\n` +
-      `• ಸೇವೆ: *${includeRemedy ? "ಜನನ ಕುಂಡಲಿ + ಭವಿಷ್ಯ + ಪರಿಹಾರ ವರದಿ (₹420)" : "ಪ್ರೀಮಿಯಂ ಜನನ ಕುಂಡಲಿ & ಭವಿಷ್ಯ V1 (₹320)"}*\n\n` +
+      `• ಸೇವೆ: *${includeRemedy ? "ಜನನ ಕುಂಡಲಿ + ಭವಿಷ್ಯ + ಪರಿಹಾರ ವರದಿ (₹430)" : "ಪ್ರೀಮಿಯಂ ಜನನ ಕುಂಡಲಿ & ಭವಿಷ್ಯ V1 (₹330)"}*\n\n` +
       `ಧನ್ಯವಾದಗಳು!\n— ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362)`;
     window.open(`https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -1030,6 +1032,13 @@ export default function OmkarDeskPortalPage(): JSX.Element {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowPosterModal(true)}
+              className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black rounded-lg hover:from-amber-400 hover:to-amber-500 shadow-md transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>🖼️</span>
+              <span>8K ಪ್ರಚಾರ ಪೋಸ್ಟರ್ (₹330 / ₹430)</span>
+            </button>
+            <button
               onClick={() => logout()}
               className="px-3 py-1.5 bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-bold rounded-lg hover:bg-red-900/60 transition cursor-pointer"
             >
@@ -1038,6 +1047,13 @@ export default function OmkarDeskPortalPage(): JSX.Element {
           </div>
         </div>
       </header>
+
+      {/* 8K PROMO POSTER MODAL OVERLAY */}
+      {showPosterModal && (
+        <div className="fixed inset-0 z-50 bg-black/95 overflow-y-auto">
+          <Baggona8kPromoPoster onClose={() => setShowPosterModal(false)} />
+        </div>
+      )}
 
       {/* Main Container */}
       <main className="max-w-5xl mx-auto px-4 py-6">

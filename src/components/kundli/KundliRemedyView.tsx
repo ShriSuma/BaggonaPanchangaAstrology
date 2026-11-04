@@ -1097,11 +1097,10 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                   key={lCode}
                   type="button"
                   onClick={() => setSelectedLang(lCode)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
-                    selectedLang === lCode
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${selectedLang === lCode
                       ? "bg-amber-400 text-amber-950 shadow-sm"
                       : "text-amber-200 hover:bg-amber-800"
-                  }`}
+                    }`}
                 >
                   {lCode.toUpperCase()}
                 </button>
@@ -1133,12 +1132,12 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               {selectedLang === "kn"
                 ? "ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..."
                 : selectedLang === "hi"
-                ? "दैविक ज्योतिष विवरण तैयार हो रहा है..."
-                : selectedLang === "te"
-                ? "దైవిక జ్యోతిష్య వివరణ సిద్ధమవుతోంది..."
-                : selectedLang === "ta"
-                ? "தெய்வீக ஜோதிட உரை தயாராகிறது..."
-                : "Synthesizing Divine Astrological Narration..."}
+                  ? "दैविक ज्योतिष विवरण तैयार हो रहा है..."
+                  : selectedLang === "te"
+                    ? "దైవిక జ్యోతిష్య వివరణ సిద్ధమవుతోంది..."
+                    : selectedLang === "ta"
+                      ? "தெய்வீக ஜோதிட உரை தயாராகிறது..."
+                      : "Synthesizing Divine Astrological Narration..."}
             </h4>
             <p className="text-[11px] text-amber-200">
               {selectedLang === "kn"
@@ -1156,12 +1155,12 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 {selectedLang === "kn"
                   ? "ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ನಿರೂಪಣೆ & ಸಂದೇಶ"
                   : selectedLang === "hi"
-                  ? "दैविक ज्योतिष विवरण एवं सन्देश"
-                  : selectedLang === "te"
-                  ? "దైవిక జ్యోతిష్య వివరణ & సందేశం"
-                  : selectedLang === "ta"
-                  ? "தெய்வீக ஜோதிட உரை & செய்தி"
-                  : "Personalized Divine Astrological Narration"}
+                    ? "दैविक ज्योतिष विवरण एवं सन्देश"
+                    : selectedLang === "te"
+                      ? "దైవిక జ్యోతిష్య వివరణ & సందేశం"
+                      : selectedLang === "ta"
+                        ? "தெய்வீக ஜோதிட உரை & செய்தி"
+                        : "Personalized Divine Astrological Narration"}
               </h3>
             </div>
             <span className="text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
@@ -1180,12 +1179,12 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               {selectedLang === "kn"
                 ? "ಪಾರಂಪರಿಕ ಶಾಸ್ತ್ರೀಯ ಜಾತಕ ವಿಶ್ಲೇಷಣೆ & ಮಾರ್ಗದರ್ಶನ"
                 : selectedLang === "hi"
-                ? "पारंपरिक शास्त्रीय जन्मकुंडली विश्लेषण एवं मार्गदर्शन"
-                : selectedLang === "te"
-                ? "పారంపరిక శాస్త్రీయ జాతక విశ్లేషణ & మార్గదర్శనం"
-                : selectedLang === "ta"
-                ? "பாரம்பரிய சாஸ்திர ஜாதக பகுப்பாய்வு & வழிகாட்டல்"
-                : "Traditional Classical Astrological Guidance"}
+                  ? "पारंपरिक शास्त्रीय जन्मकुंडली विश्लेषण एवं मार्गदर्शन"
+                  : selectedLang === "te"
+                    ? "పారంపరిక శాస్త్రీయ జాతక విశ్లేషణ & మార్గదర్శనం"
+                    : selectedLang === "ta"
+                      ? "பாரம்பரிய சாஸ்திர ஜாதக பகுப்பாய்வு & வழிகாட்டல்"
+                      : "Traditional Classical Astrological Guidance"}
             </h4>
             <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">
               {diagnosis.aiFallbackMessage?.[selectedLang] ||
@@ -1235,11 +1234,10 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
             <div
               key={idx}
               onClick={() => setActiveStep(st.stepNumber)}
-              className={`rounded-xl p-3.5 border-2 transition cursor-pointer space-y-1.5 ${
-                activeStep === st.stepNumber
+              className={`rounded-xl p-3.5 border-2 transition cursor-pointer space-y-1.5 ${activeStep === st.stepNumber
                   ? "border-amber-600 bg-amber-100/90 shadow-md scale-[1.02]"
                   : "border-amber-200 bg-white hover:bg-amber-50/60"
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xl">{st.icon}</span>
@@ -1296,11 +1294,10 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <span>{t.rootCauseTitle}</span>
             </h3>
             <span
-              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                primaryStruggle.intensity === "High"
+              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${primaryStruggle.intensity === "High"
                   ? "bg-rose-100 text-rose-900 border border-rose-300"
                   : "bg-amber-100 text-amber-900 border border-amber-300"
-              }`}
+                }`}
             >
               {primaryStruggle.intensityLabel
                 ? primaryStruggle.intensityLabel[selectedLang] || primaryStruggle.intensityLabel.kn
@@ -1755,10 +1752,10 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
             <div className="rounded-xl bg-amber-100/70 border border-amber-300 p-2.5 text-xs text-amber-950 font-medium leading-relaxed">
               <span className="font-bold text-amber-900">
                 🌀 {selectedLang === "kn" ? "ಪಂಚಮಹಾಭೂತ ಸಮತೋಲನ ಕಾರಣ: " :
-                    selectedLang === "hi" ? "पंचमहाभूत संतुलन कारण: " :
+                  selectedLang === "hi" ? "पंचमहाभूत संतुलन कारण: " :
                     selectedLang === "te" ? "పంచమహాభూత సమతుల్య కారణం: " :
-                    selectedLang === "ta" ? "பஞ்சமகாபூத சமநிலை காரணம்: " :
-                    "Five Elements Balance Reason: "}
+                      selectedLang === "ta" ? "பஞ்சமகாபூத சமநிலை காரணம்: " :
+                        "Five Elements Balance Reason: "}
               </span>
               {panchangaRemedies.elementalBalanceReason[selectedLang] || panchangaRemedies.elementalBalanceReason.kn}
             </div>
@@ -1785,17 +1782,17 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <div className="rounded-xl bg-emerald-950 text-emerald-200 p-2.5 text-center font-serif font-black text-xs">
                 {selectedLang === "en"
                   ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).transliteration ||
-                     (panchangaRemedies.nakshatraRemedy.beejaMantra as any).english ||
-                     transliterateIndicToLatin(panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit || panchangaRemedies.nakshatraRemedy.beejaMantra.kannada))
+                    (panchangaRemedies.nakshatraRemedy.beejaMantra as any).english ||
+                    transliterateIndicToLatin(panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit || panchangaRemedies.nakshatraRemedy.beejaMantra.kannada))
                   : selectedLang === "kn"
-                  ? (panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
-                  : selectedLang === "hi"
-                  ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).hindi || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
-                  : selectedLang === "te"
-                  ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).telugu || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
-                  : selectedLang === "ta"
-                  ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).tamil || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
-                  : (panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)}
+                    ? (panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                    : selectedLang === "hi"
+                      ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).hindi || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                      : selectedLang === "te"
+                        ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).telugu || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                        : selectedLang === "ta"
+                          ? ((panchangaRemedies.nakshatraRemedy.beejaMantra as any).tamil || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)
+                          : (panchangaRemedies.nakshatraRemedy.beejaMantra.kannada || panchangaRemedies.nakshatraRemedy.beejaMantra.sanskrit)}
               </div>
               <div className="text-[10px] text-emerald-900 font-bold">
                 🙏 {t.deityWorshipTitle} {panchangaRemedies.nakshatraRemedy.aradhana[selectedLang] || panchangaRemedies.nakshatraRemedy.aradhana.kn}
@@ -1882,11 +1879,10 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 key={st.id}
                 type="button"
                 onClick={() => setActiveStotraId(st.id)}
-                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
-                  activeStotraId === st.id
+                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${activeStotraId === st.id
                     ? "bg-amber-800 text-white shadow-sm"
                     : "bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100"
-                }`}
+                  }`}
               >
                 {st.title[selectedLang]?.split(" ")[0] || st.title.kn.split(" ")[0]}
               </button>
@@ -1994,13 +1990,12 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
         {/* Dasha Sandhi Junction Alert */}
         {dashaBhuktiAnalysis.sandhiAlert && (
           <div
-            className={`rounded-xl p-3.5 border text-xs space-y-1.5 ${
-              dashaBhuktiAnalysis.sandhiAlert.status === "active"
+            className={`rounded-xl p-3.5 border text-xs space-y-1.5 ${dashaBhuktiAnalysis.sandhiAlert.status === "active"
                 ? "bg-rose-50/80 border-rose-300"
                 : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming"
-                ? "bg-amber-50/80 border-amber-300"
-                : "bg-emerald-50/80 border-emerald-300"
-            }`}
+                  ? "bg-amber-50/80 border-amber-300"
+                  : "bg-emerald-50/80 border-emerald-300"
+              }`}
           >
             <div className="flex items-center justify-between font-bold">
               <span
@@ -2008,26 +2003,25 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                   dashaBhuktiAnalysis.sandhiAlert.status === "active"
                     ? "text-rose-950 text-sm"
                     : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming"
-                    ? "text-amber-950 text-sm"
-                    : "text-emerald-950 text-sm"
+                      ? "text-amber-950 text-sm"
+                      : "text-emerald-950 text-sm"
                 }
               >
                 ⚡ {dashaBhuktiAnalysis.sandhiAlert.title[selectedLang] || dashaBhuktiAnalysis.sandhiAlert.title.kn}
               </span>
               <span
-                className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                  dashaBhuktiAnalysis.sandhiAlert.status === "active"
+                className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${dashaBhuktiAnalysis.sandhiAlert.status === "active"
                     ? "bg-rose-200 text-rose-900"
                     : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming"
-                    ? "bg-amber-200 text-amber-900"
-                    : "bg-emerald-200 text-emerald-900"
-                }`}
+                      ? "bg-amber-200 text-amber-900"
+                      : "bg-emerald-200 text-emerald-900"
+                  }`}
               >
                 {dashaBhuktiAnalysis.sandhiAlert.status === "active"
                   ? t.activeSandhiBadge
                   : dashaBhuktiAnalysis.sandhiAlert.status === "upcoming"
-                  ? t.upcomingSandhiBadge
-                  : t.stableSandhiBadge}
+                    ? t.upcomingSandhiBadge
+                    : t.stableSandhiBadge}
               </span>
             </div>
             <p className="text-slate-700 leading-relaxed font-medium text-[11px]">
@@ -2045,11 +2039,10 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
           {gocharaTransitAnalysis.transitHighlights.map((th, idx) => (
             <div
               key={idx}
-              className={`rounded-xl p-3.5 border text-xs space-y-1 ${
-                th.effect === "Challenging"
+              className={`rounded-xl p-3.5 border text-xs space-y-1 ${th.effect === "Challenging"
                   ? "bg-rose-50/70 border-rose-300"
                   : "bg-emerald-50/70 border-emerald-300"
-              }`}
+                }`}
             >
               <div className="font-bold flex items-center justify-between">
                 <span className={th.effect === "Challenging" ? "text-rose-900" : "text-emerald-900"}>

@@ -55,6 +55,7 @@ import ConsultationGeneratorPage from "./features/consultation/ConsultationGener
 import { SandhyavandanaPage } from "./features/sandhyavandana/SandhyavandanaPage";
 import { KarmaMandalaPage } from "./features/karmaSanjeevini/KarmaMandalaPage";
 import OmkarDeskPortalPage from "./pages/OmkarDeskPortalPage";
+import BaggonaPosterPage from "./pages/BaggonaPosterPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -382,6 +383,18 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/desk")
   );
 
+  const isPosterRoute = typeof window !== "undefined" && (
+    window.location.pathname === "/poster" ||
+    window.location.pathname.startsWith("/poster/") ||
+    window.location.pathname === "/table-tent" ||
+    window.location.pathname.startsWith("/table-tent/") ||
+    window.location.search.includes("portal=poster") ||
+    window.location.search.includes("page=poster") ||
+    window.location.hash.includes("#/poster") ||
+    window.location.hash.includes("#poster") ||
+    window.location.hash.includes("#/table-tent")
+  );
+
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -508,6 +521,14 @@ export default function App(): JSX.Element {
     };
     void run();
   }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute]);
+
+  if (isPosterRoute) {
+    return (
+      <ErrorBoundary>
+        <BaggonaPosterPage />
+      </ErrorBoundary>
+    );
+  }
 
   if (isOmkarDeskRoute || currentUser?.toLowerCase() === "omkar") {
     return (
@@ -741,6 +762,7 @@ export default function App(): JSX.Element {
           isMasterOrSuperAdmin ? <ConsultationGeneratorPage /> : <LoginPage />
         )}
         {currentPage === "omkar_desk" && <OmkarDeskPortalPage />}
+        {currentPage === "poster" && <BaggonaPosterPage />}
       </Layout>
     </ErrorBoundary>
   );

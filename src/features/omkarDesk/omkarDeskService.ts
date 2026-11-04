@@ -31,8 +31,8 @@ export function getOmkarZipFileName(name: string): string {
 
 /**
  * Calculates the exact package fee for Omkar Desk operator orders:
- * - Janana Kundali + Bhavishya V1 (standard package): ₹320
- * - When Remedy is included along with that: ₹420 (previously misconfigured as ₹500)
+ * - Janana Kundali + Bhavishya V1 (standard package): ₹330 (Regular ₹500)
+ * - When Remedy is included along with that: ₹430 (Regular ₹700)
  */
 export function calculateOmkarPackagePrice(options: {
   selectedJananaKundli?: boolean;
@@ -40,9 +40,9 @@ export function calculateOmkarPackagePrice(options: {
   selectedRemedy?: boolean;
 }): number {
   if (options.selectedRemedy) {
-    return 420;
+    return 430;
   }
-  return 320;
+  return 330;
 }
 
 /**
