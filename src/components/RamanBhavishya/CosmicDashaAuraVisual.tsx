@@ -1208,13 +1208,13 @@ export const CosmicDashaAuraVisual: React.FC<CosmicDashaAuraProps> = ({
           <span>✦</span>
           <span>
             {baseLang === "kn"
-              ? "ಈ ವಿಭಾಗ ಹಾಗೂ ಚಿತ್ರದ ಮಹತ್ವ (Significance of this Section)"
+              ? "ಈ ವಿಭಾಗ ಹಾಗೂ ದಿವ್ಯ ಮಂಡಲದ ಮಹತ್ವ"
               : baseLang === "hi"
-              ? "इस अनुभाग एवं दिव्य मंडल का महत्व (Significance of this Section)"
+              ? "इस अनुभाग एवं दिव्य मंडल का महत्व"
               : baseLang === "te"
-              ? "ఈ విభాగం మరియు దివ్య చిత్రం యొక్క ప్రాముఖ్యత (Significance of this Section)"
+              ? "ఈ విభాగం మరియు దివ్య మండలం యొక్క ప్రాముఖ్యత"
               : baseLang === "ta"
-              ? "இப்பகுதி மற்றும் தெய்வீகப் படத்தின் முக்கியத்துவம் (Significance of this Section)"
+              ? "இப்பகுதி மற்றும் தெய்வீக மண்டலத்தின் முக்கியத்துவம்"
               : "Significance of this Section & Celestial Mandala"}
           </span>
         </div>

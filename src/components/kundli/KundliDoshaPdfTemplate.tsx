@@ -1194,8 +1194,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
   const activeDoshas = (doshas || []).filter((d) => d.isDetected);
   const primaryDosha = activeDoshas[0] || null;
   const secondaryDoshas = activeDoshas.slice(1);
-  const extraDoshaCount = Math.max(0, secondaryDoshas.length - 1);
-  const totalPages = 4 + extraDoshaCount;
+  const totalPages = secondaryDoshas.length > 0 ? 4 + secondaryDoshas.length : 4;
 
   const renderPageFooter = (currentPage: number) => {
     if (totalPages === 4) {
@@ -2488,38 +2487,43 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             )}
           </div>
 
-          {renderGoldLandlineDivider(t.ageDirectiveDivider)}
+          {/* If no primary dosha, show the general Shanti Duration Guidance */}
+          {!primaryDosha && (
+            <>
+              {renderGoldLandlineDivider(t.ageDirectiveDivider)}
 
-          {/* Parashari Protective Counterbalance / Immediate Relief Guidance Card */}
-          <div
-            style={{
-              backgroundColor: "#FCFBF9",
-              border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "14px 18px",
-              boxShadow: "0 2px 8px rgba(180, 83, 9, 0.04)",
-              flexShrink: 0
-            }}
-          >
-            <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
-              🔱 {code === "kn" ? "ಪರಿಹಾರ ಕಾಲಾವಧಿ & ದೈವಿಕ ಸಂಕಲ್ಪ ಮಾರ್ಗದರ್ಶನ" : code === "hi" ? "शांति काल एवं दैवीय संकल्प मार्गदर्शन" : code === "te" ? "పరిహార కాలం & దైవిక సంకల్ప మార్గదర్శనం" : code === "ta" ? "பரிகாரக் காலம் & தெய்வீக சங்கல்ப வழிகாட்டுதல்" : "Parihara Duration & Divine Resolution Guidance"}
-            </div>
-            <div style={{ fontSize: "12px", color: INK_DEEP, lineHeight: 1.65, marginTop: "6px", wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
-              {code === "kn"
-                ? "ಶಾಸ್ತ್ರಗಳ ಪ್ರಕಾರ, ಈ ಪ್ರಮುಖ ಕರ್ಮ ದೋಷಗಳಿಗೆ ಸೂಚಿಸಲಾದ ಪವಿತ್ರ ಪರಿಹಾರ ಮತ್ತು ಮಂತ್ರ ಸಾಧನೆಯನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ೩೦ ರಿಂದ ೪೫ ದಿನಗಳ ಕಾಲ ಆಚರಿಸುವುದರಿಂದ ದೋಷದ ತೀವ್ರತೆಯು ಶಮನಗೊಳ್ಳುತ್ತದೆ. ಸಂಕಲ್ಪಿಸಿದ ಕಾರ್ಯಗಳಲ್ಲಿ ಎದುರಾಗುತ್ತಿದ್ದ ಕಠಿಣ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ, ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ."
-                : code === "hi"
-                ? "शास्त्रों के अनुसार, इन प्रमुख कर्म दोषों हेतु निर्देशित पवित्र परिहार एवं मंत्र साधना को 30 से 45 दिनों तक श्रद्धापूर्वक करने से दोष का अनिष्ट प्रभाव शांत हो जाता है। जीवन में आ रही रुकावटें दूर होकर आर्थिक स्थिरता एवं पारिवारिक शांति प्राप्त होती है।"
-                : code === "te"
-                ? "శాస్త్రాల ప్రకారం, ఈ ప్రధాన కర్మ దోషాలకు సూచించిన పవిత్ర పరిహారం మరియు మంత్ర సాధనను 30 నుండి 45 రోజుల పాటు శ్రద్ధతో పాటించడం వల్ల దోష తీవ్రత తగ్గుతుంది. ఆటంకాలు తొలగి, ఆర్థిక స్థిరత్వం మరియు కుటుంబ శాంతి లభిస్తుంది."
-                : code === "ta"
-                ? "சாஸ்திரங்களின்படி, இந்த முக்கிய கர்ம தோஷங்களுக்குரிய பரிகாரத்தை 30 முதல் 45 நாட்கள் வரை நம்பிக்கையுடன் செய்வதன் மூலம் தோஷத்தின் தாக்கம் குறையும். தடைகள் நீங்கி, நல்வாழ்வும் மனசாந்தியும் உண்டாகும்."
-                : "According to classical Vedic scriptures, performing these sacred remedies and dedicated mantra japa for 30 to 45 days brings profound pacification of these primary karmic afflictions, dissolving stubborn obstacles and unlocking peace, health, and prosperity."}
-            </div>
-            <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", fontSize: "11.5px", color: INK_DEEP, marginTop: "8px", lineHeight: 1.5, wordSpacing: "1px" }}>
-              <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
-              <span>{t.gokarnaProtectionDesc}</span>
-            </div>
-          </div>
+              {/* Parashari Protective Counterbalance / Immediate Relief Guidance Card */}
+              <div
+                style={{
+                  backgroundColor: "#FCFBF9",
+                  border: `1.5px solid ${GOLD_BORDER}`,
+                  borderRadius: "12px",
+                  padding: "14px 18px",
+                  boxShadow: "0 2px 8px rgba(180, 83, 9, 0.04)",
+                  flexShrink: 0
+                }}
+              >
+                <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
+                  🔱 {code === "kn" ? "ಪರಿಹಾರ ಕಾಲಾವಧಿ & ದೈವಿಕ ಸಂಕಲ್ಪ ಮಾರ್ಗದರ್ಶನ" : code === "hi" ? "शांति काल एवं दैवीय संकल्प मार्गदर्शन" : code === "te" ? "పరిహార కాలం & దైవిక సంకల్ప మార్గదర్శనం" : code === "ta" ? "பரிகாரக் காலம் & தெய்வீக சங்கல்ப வழிகாட்டுதல்" : "Parihara Duration & Divine Resolution Guidance"}
+                </div>
+                <div style={{ fontSize: "12px", color: INK_DEEP, lineHeight: 1.65, marginTop: "6px", wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
+                  {code === "kn"
+                    ? "ಶಾಸ್ತ್ರಗಳ ಪ್ರಕಾರ, ಈ ಪ್ರಮುಖ ಕರ್ಮ ದೋಷಗಳಿಗೆ ಸೂಚಿಸಲಾದ ಪವಿತ್ರ ಪರಿಹಾರ ಮತ್ತು ಮಂತ್ರ ಸಾಧನೆಯನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ೩೦ ರಿಂದ ೪೫ ದಿನಗಳ ಕಾಲ ಆಚರಿಸುವುದರಿಂದ ದೋಷದ ತೀವ್ರತೆಯು ಶಮನಗೊಳ್ಳುತ್ತದೆ. ಸಂಕಲ್ಪಿಸಿದ ಕಾರ್ಯಗಳಲ್ಲಿ ಎದುರಾಗುತ್ತಿದ್ದ ಕಠಿಣ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆರ್ಥಿಕ ಸ್ಥಿರತೆ, ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ."
+                    : code === "hi"
+                    ? "शास्त्रों के अनुसार, इन प्रमुख कर्म दोषों हेतु निर्देशित पवित्र परिहार एवं मंत्र साधना को 30 से 45 दिनों तक श्रद्धापूर्वक करने से दोष का अनिष्ट प्रभाव शांत हो जाता है। जीवन में आ रही रुकावटें दूर होकर आर्थिक स्थिरता एवं पारिवारिक शांति प्राप्त होती है।"
+                    : code === "te"
+                    ? "శాస్త్రాల ప్రకారం, ఈ ప్రధాన కర్మ దోషాలకు సూచించిన పవిత్ర పరిహారం మరియు మంత్ర సాధనను 30 నుండి 45 రోజుల పాటు శ్రద్ధతో పాటించడం వల్ల దోష తీవ్రత తగ్గుతుంది. ఆటంకాలు తొలగి, ఆర్థిక స్థిరత్వం మరియు కుటుంబ శాంతి లభిస్తుంది."
+                    : code === "ta"
+                    ? "சாஸ்திரங்களின்படி, இந்த முக்கிய கர்ம தோஷங்களுக்குரிய பரிகாரத்தை 30 முதல் 45 நாட்கள் வரை நம்பிக்கையுடன் செய்வதன் மூலம் தோஷத்தின் தாக்கம் குறையும். தடைகள் நீங்கி, நல்வாழ்வும் மனசாந்தியும் உண்டாகும்."
+                    : "According to classical Vedic scriptures, performing these sacred remedies and dedicated mantra japa for 30 to 45 days brings profound pacification of these primary karmic afflictions, dissolving stubborn obstacles and unlocking peace, health, and prosperity."}
+                </div>
+                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", fontSize: "11.5px", color: INK_DEEP, marginTop: "8px", lineHeight: 1.5, wordSpacing: "1px" }}>
+                  <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
+                  <span>{t.gokarnaProtectionDesc}</span>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Page 2 Pinned Footer */}
           <div
@@ -2653,55 +2657,55 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             )}
           </div>
 
-          {renderGoldLandlineDivider(
-            code === "kn"
-              ? "❖ ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ & ಸಾಡೇ ಸಾತಿ ರಕ್ಷಾ ಕವಚ ❖"
-              : code === "hi"
-              ? "❖ गोचर ग्रह प्रभाव एवं साढ़े साती रक्षा कवच ❖"
-              : code === "te"
-              ? "❖ గోచార గ్రహ ప్రభావం & సాడే సాతి రక్షా కవచం ❖"
-              : code === "ta"
-              ? "❖ கோசார கிரக தாக்கம் & ஏழரை சனி பாதுகாப்புக் கவசம் ❖"
-              : "❖ Planetary Transits, Sade Sati & Divine Safeguards ❖"
-          )}
-
-          {/* Planetary Transits, Gochara Guidance & Divine Safeguards */}
-          <div
-            style={{
-              backgroundColor: "#FCFBF9",
-              border: `1.5px solid ${GOLD_BORDER}`,
-              borderRadius: "12px",
-              padding: "12px 16px",
-              boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
-              flexShrink: 0,
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px"
-            }}
-          >
-            <div style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
-              🪐 {code === "kn" ? "ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ, ಸಾಡೇ ಸಾತಿ & ದೈವಿಕ ರಕ್ಷಣೆ" : code === "hi" ? "गोचर ग्रह प्रभाव, साढ़े साती एवं दैवीय सुरक्षा" : code === "te" ? "గోచార గ్రహ ప్రభావం, సాడే సాతి & దైవిక రక్షణ" : code === "ta" ? "கோசார கிரக தாக்கம், ஏழரை சனி & தெய்வீக பாதுகாப்பு" : "Planetary Transits, Sade Sati & Divine Safeguards"}
-            </div>
-            <div style={{ fontSize: "11.5px", color: INK_DEEP, lineHeight: 1.6, wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
-              {code === "kn"
-                ? "ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಮಹಾತ್ಮನ ಸಂಚಾರ, ರಾಹು-ಕೇತುಗಳ ಅಕ್ಷ ಬದಲಾವಣೆ ಅಥವಾ ಗುರು ಗ್ರಹದ ವಕ್ರ ಸಂಚಾರವು ಕುಂಡಲಿಯ ಪ್ರಮುಖ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಭಾವಗಳ ಮೇಲೆ ಸದಾ ಪರಿಣಾಮ ಬೀರುತ್ತಿರುತ್ತದೆ. ಜಾತಕರ ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲದಲ್ಲಿ ನಿತ್ಯ ಗಾಯತ್ರಿ ಜಪ, ಶಿವನಾಮ ಸ್ಮರಣೆ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ನಿತ್ಯ ಅರ್ಚನೆಯು ಸಕಲ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಶಮನಗೊಳಿಸಿ, ಸರ್ವತ್ರ ಜಯವನ್ನು ತರಲಿದೆ."
-                : code === "hi"
-                ? "गोचर में शनि देव का संचार, राहु-केतु का अक्ष परिवर्तन अथवा गुरु की स्थिति कुंडली के प्रमुख भावों पर निरंतर प्रभाव डालती है। वर्तमान दशा काल में नित्य गायत्री जप, शिव आराधना तथा गोकर्ण महाबलेश्वर की नित्य पूजा समस्त ग्रह बाधाओं को शांत कर जीवन में सफलता प्रदान करती है।"
-                : code === "te"
-                ? "గోచారంలో శని సంచారం, రాహు-కేతువుల స్థాన చలనం లేదా గురు గ్రహ ప్రభావం కుండలిలోని ప్రధాన భావాలపై నిరంతరం ప్రభావం చూపుతాయి. ప్రస్తుత దశా కాలంలో నిత్య గాయత్రీ జపం, శివారాధన మరియు గోకర్ణ మహాబలేశ్వర నిత్య పూజ సమస్త గ్రహ బాధలను నివారించి విజయాన్ని చేకూరుస్తాయి."
-                : code === "ta"
-                ? "கோசாரத்தில் சனி பகவானின் சஞ்சாரம், ராகு-கேது பெயர்ச்சி மற்றும் குருவின் நிலை ஜாதகத்தின் முக்கிய பாவங்களை பாதிக்கின்றன. தற்போதைய திசை காலத்தில் நித்திய காயத்ரி ஜபம், சிவ வழிபாடு மற்றும் கோகர்ண மகாபலேஸ்வரர் பூஜை சகல தோஷங்களையும் போக்கி வெற்றியைத் தரும்."
-                : "Planetary transits of Saturn, Rahu-Ketu, or Jupiter across sensitive natal axes interact dynamically with running dashas. Daily sacred Gayatri mantra japa, Shiva archana, and Sri Gokarna Mahabaleshwara's divine grace neutralize transit friction, protect health, and bestow comprehensive victory."}
-            </div>
-            <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", fontSize: "11px", color: INK_DEEP, lineHeight: 1.5, wordSpacing: "1px" }}>
-              <strong style={{ color: GOLD_DARK }}>🔱 {t.gokarnaProtectionLabel} </strong>
-              <span>{t.gokarnaProtectionDesc}</span>
-            </div>
-          </div>
-
-          {/* If no secondary doshas, also show Navagraha Harmony on Page 3 */}
+          {/* If no secondary doshas, show Navagraha Harmony and Gochara on Page 3 */}
           {secondaryDoshas.length === 0 && (
             <>
+              {renderGoldLandlineDivider(
+                code === "kn"
+                  ? "❖ ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ & ಸಾಡೇ ಸಾತಿ ರಕ್ಷಾ ಕವಚ ❖"
+                  : code === "hi"
+                  ? "❖ गोचर ग्रह प्रभाव एवं साढ़े साती रक्षा कवच ❖"
+                  : code === "te"
+                  ? "❖ గోచార గ్రహ ప్రభావం & సాడే సాతి రక్షా కవచం ❖"
+                  : code === "ta"
+                  ? "❖ கோசார கிரக தாக்கம் & ஏழரை சனி பாதுகாப்புக் கவசம் ❖"
+                  : "❖ Planetary Transits, Sade Sati & Divine Safeguards ❖"
+              )}
+
+              {/* Planetary Transits, Gochara Guidance & Divine Safeguards */}
+              <div
+                style={{
+                  backgroundColor: "#FCFBF9",
+                  border: `1.5px solid ${GOLD_BORDER}`,
+                  borderRadius: "12px",
+                  padding: "12px 16px",
+                  boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
+                  flexShrink: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px"
+                }}
+              >
+                <div style={{ fontSize: "13.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "4px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
+                  🪐 {code === "kn" ? "ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ, ಸಾಡೇ ಸಾತಿ & ದೈವಿಕ ರಕ್ಷಣೆ" : code === "hi" ? "गोचर ग्रह प्रभाव, साढ़े साती एवं दैवीय सुरक्षा" : code === "te" ? "గోచార గ్రహ ప్రభావం, సాడే సాతి & దైవిక రక్షణ" : code === "ta" ? "கோசார கிரக தாக்கம், ஏழரை சனி & தெய்வீக பாதுகாப்பு" : "Planetary Transits, Sade Sati & Divine Safeguards"}
+                </div>
+                <div style={{ fontSize: "11.5px", color: INK_DEEP, lineHeight: 1.6, wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
+                  {code === "kn"
+                    ? "ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಮಹಾತ್ಮನ ಸಂಚಾರ, ರಾಹು-ಕೇತುಗಳ ಅಕ್ಷ ಬದಲಾವಣೆ ಅಥವಾ ಗುರು ಗ್ರಹದ ವಕ್ರ ಸಂಚಾರವು ಕುಂಡಲಿಯ ಪ್ರಮುಖ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಭಾವಗಳ ಮೇಲೆ ಸದಾ ಪರಿಣಾಮ ಬೀರುತ್ತಿರುತ್ತದೆ. ಜಾತಕರ ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲದಲ್ಲಿ ನಿತ್ಯ ಗಾಯತ್ರಿ ಜಪ, ಶಿವನಾಮ ಸ್ಮರಣೆ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ನಿತ್ಯ ಅರ್ಚನೆಯು ಸಕಲ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಶಮನಗೊಳಿಸಿ, ಸರ್ವತ್ರ ಜಯವನ್ನು ತರಲಿದೆ."
+                    : code === "hi"
+                    ? "गोचर में शनि देव का संचार, राहु-केतु का अक्ष परिवर्तन अथवा गुरु की स्थिति कुंडली के प्रमुख भावों पर निरंतर प्रभाव डालती है। वर्तमान दशा काल में नित्य गायत्री जप, शिव आराधना तथा गोकर्ण महाबलेश्वर की नित्य पूजा समस्त ग्रह बाधाओं को शांत कर जीवन में सफलता प्रदान करती है।"
+                    : code === "te"
+                    ? "గోచారంలో శని సంచారం, రాహు-కేతువుల స్థాన చలనం లేదా గురు గ్రహ ప్రభావం కుండలిలోని ప్రధాన భావాలపై నిరంతరం ప్రభావం చూపుతాయి. ప్రస్తుత దశా కాలంలో నిత్య గాయత్రీ జపం, శివారాధన మరియు గోకర్ణ మహాబలేశ్వర నిత్య పూజ సమస్త గ్రహ బాధలను నివారించి విజయాన్ని చేకూరుస్తాయి."
+                    : code === "ta"
+                    ? "கோசாரத்தில் சனி பகவானின் சஞ்சாரம், ராகு-கேது பெயர்ச்சி மற்றும் குருவின் நிலை ஜாதகத்தின் முக்கிய பாவங்களை பாதிக்கின்றன. தற்போதைய திசை காலத்தில் நித்திய காயத்ரி ஜபம், சிவ வழிபாடு மற்றும் கோகர்ண மகாபலேஸ்வரர் பூஜை சகல தோஷங்களையும் போக்கி வெற்றியைத் தரும்."
+                    : "Planetary transits of Saturn, Rahu-Ketu, or Jupiter across sensitive natal axes interact dynamically with running dashas. Daily sacred Gayatri mantra japa, Shiva archana, and Sri Gokarna Mahabaleshwara's divine grace neutralize transit friction, protect health, and bestow comprehensive victory."}
+                </div>
+                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", fontSize: "11px", color: INK_DEEP, lineHeight: 1.5, wordSpacing: "1px" }}>
+                  <strong style={{ color: GOLD_DARK }}>🔱 {t.gokarnaProtectionLabel} </strong>
+                  <span>{t.gokarnaProtectionDesc}</span>
+                </div>
+              </div>
+
               {renderGoldLandlineDivider(
                 code === "kn"
                   ? "❖ ದಶಾ ಸಂಧಿ & ನವಗ್ರಹ ದಿವ್ಯ ಸಮನ್ವಯ ಸೂತ್ರಗಳು ❖"
@@ -2916,39 +2920,6 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                 {renderDoshaCard(extraDosha, false)}
               </div>
 
-              {renderGoldLandlineDivider(t.ageDirectiveDivider)}
-
-              {/* Dedicated Shastric Guidance for this Affliction */}
-              <div
-                style={{
-                  backgroundColor: "#FCFBF9",
-                  border: `1.5px solid ${GOLD_BORDER}`,
-                  borderRadius: "12px",
-                  padding: "14px 18px",
-                  boxShadow: "0 2px 8px rgba(180, 83, 9, 0.04)",
-                  flexShrink: 0
-                }}
-              >
-                <div style={{ fontSize: "14px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", lineHeight: 1.35, letterSpacing: "0.2px" }}>
-                  🔱 {code === "kn" ? "ಕರ್ಮ ಪರಿಹಾರ ಕ್ರಮ & ವಿಶೇಷ ದೈವಿಕ ಸಂಕಲ್ಪ" : code === "hi" ? "कर्म शांति क्रम एवं विशेष दैवीय संकल्प" : code === "te" ? "కర్మ పరిహార క్రమం & ప్రత్యేక దైవిక సంకల్పం" : code === "ta" ? "கர்ம பரிகார முறை & சிறப்பு தெய்வீக சங்கல்பம்" : "Karmic Mitigation Protocol & Sacred Resolution"}
-                </div>
-                <div style={{ fontSize: "12px", color: INK_DEEP, lineHeight: 1.65, marginTop: "6px", wordSpacing: "1.2px", letterSpacing: "0.15px" }}>
-                  {code === "kn"
-                    ? "ಈ ದೋಷದ ಪೂರ್ಣ ಪರಿಹಾರಕ್ಕಾಗಿ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪಪೂರ್ವಕ ಸೇವೆ ಹಾಗೂ ನಿತ್ಯ ಆರಾಧನೆಯನ್ನು ಕೈಗೊಳ್ಳುವುದರಿಂದ ಸಕಲ ನಕಾರಾತ್ಮಕ ಕರ್ಮ ಪ್ರಭಾವಗಳು ಶಮನಗೊಂಡು, ಜಾತಕರಿಗೆ ಅಖಂಡ ರಕ್ಷಣೆ ಲಭಿಸುತ್ತದೆ."
-                    : code === "hi"
-                    ? "इस दोष के पूर्ण निवारण हेतु श्री गोकर्ण महाबलेश्वर में संकल्पपूर्वक पूजा एवं नित्य आराधना करने से समस्त नकारात्मक कर्म प्रभाव शांत होकर जीवन में अखंड सुरक्षा प्राप्त होती है।"
-                    : code === "te"
-                    ? "ఈ దోష సంపూర్ణ నివారణ కొరకు శ్రీ గోకర్ణ మహాబలేశ్వర సన్నిధిలో సంకల్పపూర్వక పూజ మరియు నిత్య ఆరాధన చేయడం వల్ల సమస్త ప్రతికూల కర్మ ప్రభావాలు తొలగి అఖండ రక్షణ లభిస్తుంది."
-                    : code === "ta"
-                    ? "இந்த தோஷத்தின் முழுமையான நிவாரணத்திற்கு ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சந்நிதியில் சங்கல்ப பூஜையும் நித்திய வழிபாடும் செய்வதன் மூலம் சகல கர்ம வினைகளும் நீங்கி பரிபூரண பாதுகாப்பு உண்டாகும்."
-                    : "For complete pacification of this karmic affliction, performing dedicated sankalpa pooja at Sri Gokarna Mahabaleshwara Sannidhana alongside daily prayers completely dissolves negative karmic imprints, securing comprehensive protection."}
-                </div>
-                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "8px 12px", fontSize: "11.5px", color: INK_DEEP, marginTop: "8px", lineHeight: 1.5, wordSpacing: "1px" }}>
-                  <strong style={{ color: GOLD_DARK }}>{t.gokarnaProtectionLabel} </strong>
-                  <span>{t.gokarnaProtectionDesc}</span>
-                </div>
-              </div>
-
               {/* Extra Page Pinned Footer */}
               <div
                 style={{
@@ -2972,7 +2943,239 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
       })}
 
       {/* ====================================================================== */}
-      {/* PAGE 4: LIFE HAZARDS, FEARS, TEMPLE REMEDIES & PRIEST BLESSING         */}
+      {/* DYNAMIC GOCHARA & TRANSITS PAGE: WHEN SECONDARY DOSHAS EXIST           */}
+      {/* ====================================================================== */}
+      {secondaryDoshas.length > 0 && (
+        <div
+          key="gochara-dedicated-page"
+          className="pdf-page"
+          style={{
+            width: "900px",
+            minWidth: "900px",
+            maxWidth: "900px",
+            height: "1273px",
+            minHeight: "1273px",
+            maxHeight: "1273px",
+            padding: "16px 20px",
+            boxSizing: "border-box",
+            position: "relative",
+            overflow: "hidden",
+            pageBreakAfter: "always",
+            backgroundColor: PARCHMENT_BG,
+            color: INK_DEEP,
+            fontFamily: fontStack,
+            display: "block"
+          }}
+        >
+          {/* Subtle Sacred Sri Yantra / Atma Linga Watermark Overlay */}
+          <svg
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "52%",
+              transform: "translate(-50%, -50%)",
+              width: "520px",
+              height: "520px",
+              opacity: 0.035,
+              pointerEvents: "none",
+              zIndex: 0
+            }}
+            viewBox="0 0 200 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle cx="100" cy="100" r="95" stroke="#B45309" strokeWidth="2" strokeDasharray="3 3" />
+            <circle cx="100" cy="100" r="86" stroke="#78350F" strokeWidth="1.5" />
+            <circle cx="100" cy="100" r="76" stroke="#B45309" strokeWidth="1" />
+            <polygon points="100,20 170,140 30,140" stroke="#78350F" strokeWidth="1.5" />
+            <polygon points="100,180 30,60 170,60" stroke="#78350F" strokeWidth="1.5" />
+            <circle cx="100" cy="100" r="24" stroke="#B45309" strokeWidth="1.5" />
+            <circle cx="100" cy="100" r="6" fill="#B45309" />
+          </svg>
+
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              border: `2px solid ${GOLD_BORDER}`,
+              borderRadius: "16px",
+              padding: "16px 20px",
+              boxSizing: "border-box",
+              backgroundColor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              overflow: "hidden",
+              position: "relative",
+              zIndex: 1
+            }}
+          >
+            <div style={{ position: "absolute", top: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+            <div style={{ position: "absolute", top: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+            <div style={{ position: "absolute", bottom: "20px", left: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+            <div style={{ position: "absolute", bottom: "20px", right: "24px", color: GOLD_PRIMARY, fontSize: "11px", lineHeight: 1, pointerEvents: "none" }}>❖</div>
+
+            {renderRoyalHeader(totalPages - 1, code === "kn" ? "ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ, ಸಾಡೇ ಸಾತಿ & ನವಗ್ರಹ ದಿವ್ಯ ಸಮನ್ವಯ" : code === "hi" ? "गोचर ग्रह प्रभाव, साढ़े साती एवं नवग्रह समन्वय" : code === "te" ? "గోచార గ్రహ ప్రభావం, సాడే సాతి & నవగ్రహ సమన్వయం" : code === "ta" ? "கோசார கிரக தாக்கம், ஏழரை சனி & நவக்கிரக நல்லிணக்கம்" : "Planetary Transits, Sade Sati & Navagraha Harmony", t.shloka)}
+
+            {renderGoldLandlineDivider(
+              code === "kn"
+                ? "❖ ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ & ಸಾಡೇ ಸಾತಿ ರಕ್ಷಾ ಕವಚ ❖"
+                : code === "hi"
+                ? "❖ गोचर ग्रह प्रभाव एवं साढ़े साती रक्षा कवच ❖"
+                : code === "te"
+                ? "❖ గోచార గ్రహ ప్రభావం & సాడే సాతి రక్షా కవచం ❖"
+                : code === "ta"
+                ? "❖ கோசார கிரக தாக்கம் & ஏழரை சனி பாதுகாப்புக் கவசம் ❖"
+                : "❖ Planetary Transits, Sade Sati & Divine Safeguards ❖"
+            )}
+
+            {/* Gochara and Sade Sati Card */}
+            <div
+              style={{
+                backgroundColor: "#FCFBF9",
+                border: `1.5px solid ${GOLD_BORDER}`,
+                borderRadius: "14px",
+                padding: "16px 20px",
+                boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px"
+              }}
+            >
+              <div style={{ fontSize: "15px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "6px", lineHeight: 1.35 }}>
+                🪐 {code === "kn" ? "ಗೋಚಾರ ಗ್ರಹ ಪ್ರಭಾವ, ಸಾಡೇ ಸಾತಿ & ದೈವಿಕ ರಕ್ಷಣೆ" : code === "hi" ? "गोचर ग्रह प्रभाव, साढ़े साती एवं दैवीय सुरक्षा" : code === "te" ? "గోచార గ్రహ ప్రభావం, సాడే సాతి & దైవిక రక్షణ" : code === "ta" ? "கோசார கிரக தாக்கம், ஏழரை சனி & தெய்வீக பாதுகாப்பு" : "Planetary Transits, Sade Sati & Divine Safeguards"}
+              </div>
+              <div style={{ fontSize: "12.5px", color: INK_DEEP, lineHeight: 1.7, wordSpacing: "1.2px" }}>
+                {code === "kn"
+                  ? "ಗೋಚಾರದಲ್ಲಿ ಶನಿ ಮಹಾತ್ಮನ ಸಂಚಾರ, ರಾಹು-ಕೇತುಗಳ ಅಕ್ಷ ಬದಲಾವಣೆ ಅಥವಾ ಗುರು ಗ್ರಹದ ವಕ್ರ ಸಂಚಾರವು ಕುಂಡಲಿಯ ಪ್ರಮುಖ ಕೇಂದ್ರ-ತ್ರಿಕೋಣ ಭಾವಗಳ ಮೇಲೆ ಸದಾ ಪರಿಣಾಮ ಬೀರುತ್ತಿರುತ್ತದೆ. ಜಾತಕರ ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲದಲ್ಲಿ ನಿತ್ಯ ಗಾಯತ್ರಿ ಜಪ, ಶಿವನಾಮ ಸ್ಮರಣೆ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದ ನಿತ್ಯ ಅರ್ಚನೆಯು ಸಕಲ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಶಮನಗೊಳಿಸಿ, ಸರ್ವತ್ರ ಜಯವನ್ನು ತರಲಿದೆ."
+                  : code === "hi"
+                  ? "गोचर में शनि देव का संचार, राहु-केतु का अक्ष परिवर्तन अथवा गुरु की स्थिति कुंडली के प्रमुख भावों पर निरंतर प्रभाव डालती है। वर्तमान दशा काल में नित्य गायत्री जप, शिव आराधना तथा गोकर्ण महाबलेश्वर की नित्य पूजा समस्त ग्रह बाधाओं को शांत कर जीवन में सफलता प्रदान करती है।"
+                  : code === "te"
+                  ? "గోచారంలో శని సంచారం, రాహు-కేతువుల స్థాన చలనం లేదా గురు గ్రహ ప్రభావం కుండలిలోని ప్రధాన భావాలపై నిరంతరం ప్రభావం చూపుతాయి. ప్రస్తుత దశా కాలంలో నిత్య గాయత్రీ జపం, శివారాధన మరియు గోకర్ణ మహాబలేశ్వర నిత్య పూజ సమస్త గ్రహ బాధలను నివారించి విజయాన్ని చేకూరుస్తాయి."
+                  : code === "ta"
+                  ? "கோசாரத்தில் சனி பகவானின் சஞ்சாரம், ராகு-கேது பெயர்ச்சி மற்றும் குருவின் நிலை ஜாதகத்தின் முக்கிய பாவங்களை பாதிக்கின்றன. தற்போதைய திசை காலத்தில் நித்திய காயத்ரி ஜபம், சிவ வழிபாடு மற்றும் கோகர்ண மகாபலேஸ்வரர் பூஜை சகல தோஷங்களையும் போக்கி வெற்றியைத் தரும்."
+                  : "Planetary transits of Saturn, Rahu-Ketu, or Jupiter across sensitive natal axes interact dynamically with running dashas. Daily sacred Gayatri mantra japa, Shiva archana, and Sri Gokarna Mahabaleshwara's divine grace neutralize transit friction, protect health, and bestow comprehensive victory."}
+              </div>
+              <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "8px", padding: "10px 14px", fontSize: "12px", color: INK_DEEP, lineHeight: 1.55 }}>
+                <strong style={{ color: GOLD_DARK }}>🔱 {t.gokarnaProtectionLabel} </strong>
+                <span>{t.gokarnaProtectionDesc}</span>
+              </div>
+            </div>
+
+            {renderGoldLandlineDivider(
+              code === "kn"
+                ? "❖ ದಶಾ ಸಂಧಿ & ನವಗ್ರಹ ದಿವ್ಯ ಸಮನ್ವಯ ಸೂತ್ರಗಳು ❖"
+                : code === "hi"
+                ? "❖ दशा संधि एवं नवग्रह समन्वय सूत्र ❖"
+                : code === "te"
+                ? "❖ దశా సంధి & నవగ్రహ సమన్వయ సూత్రాలు ❖"
+                : code === "ta"
+                ? "❖ திசா சந்தி & நவக்கிரக நல்லிணக்க வழிகள் ❖"
+                : "❖ Navagraha Harmony & Dasha Transition Directives ❖"
+            )}
+
+            {/* 3 Navagraha Harmony Pillars */}
+            <div
+              style={{
+                backgroundColor: "#FCFBF9",
+                border: `1.5px solid ${GOLD_BORDER}`,
+                borderRadius: "14px",
+                padding: "16px 20px",
+                boxShadow: "0 2px 6px rgba(180, 83, 9, 0.04)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px"
+              }}
+            >
+              <div style={{ fontSize: "14.5px", fontWeight: 900, color: GOLD_DARK, borderBottom: `1.5px solid ${GOLD_LIGHT}`, paddingBottom: "5px", lineHeight: 1.35 }}>
+                🔱 {code === "kn"
+                  ? "ದಶಾ ಸಂಧಿ ಶಾಂತಿ & ನವಗ್ರಹ ದಿವ್ಯ ರಕ್ಷಾ ಕವಚ"
+                  : code === "hi"
+                  ? "दशा संधि शांति एवं नवग्रह रक्षा कवच"
+                  : code === "te"
+                  ? "దశా సంధి శాంతి & నవగ్రహ రక్షా కవచం"
+                  : code === "ta"
+                  ? "திசா சந்தி சாந்தி & நவக்கிரக பாதுகாப்புக் கவசம்"
+                  : "Dasha Transition Pacification & Navagraha Safeguards"}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "10px", padding: "12px 14px" }}>
+                  <div style={{ fontSize: "12.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                    ☀️ {code === "kn" ? "ಸೂರ್ಯ ಆರಾಧನೆ" : code === "hi" ? "सूर्य आराधना" : code === "te" ? "సూర్య ఆరాధన" : code === "ta" ? "சூரிய வழிபாடு" : "Surya Arghya"}
+                  </div>
+                  <div style={{ fontSize: "11.5px", color: INK_DEEP, marginTop: "6px", lineHeight: 1.6 }}>
+                    {code === "kn"
+                      ? "ನಿತ್ಯ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ಸೂರ್ಯದೇವನಿಗೆ ತಾಮ್ರ ಪಾತ್ರೆಯ ಅರ್ಘ್ಯ ಪ್ರದಾನವು ಆತ್ಮಬಲವನ್ನು ಜಾಗೃತವಾಗಿರಿಸುತ್ತದೆ."
+                      : code === "hi"
+                      ? "नित्य प्रातःकाल तांबे के पात्र से सूर्य को अर्घ्य देना आत्मबल को निरंतर जाग्रत रखता है।"
+                      : code === "te"
+                      ? "నిత్యం ఉదయాన్నే రాగి పాత్రతో సూర్యునికి అర్ఘ్యం ఇవ్వడం ఆత్మబలాన్ని కాపాడుతుంది."
+                      : code === "ta"
+                      ? "தினமும் காலையில் செம்பு பாத்திரத்தில் சூரியனுக்கு அர்க்கியம் வழங்குவது ஆன்ம பலத்தைத் தரும்."
+                      : "Offering daily morning copper-vessel water to the Sun sustains vital soul energy."}
+                  </div>
+                </div>
+
+                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "10px", padding: "12px 14px" }}>
+                  <div style={{ fontSize: "12.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                    🪔 {code === "kn" ? "ರುದ್ರಾಭಿಷೇಕ ಸೇವೆ" : code === "hi" ? "रुद्राभिषेक सेवा" : code === "te" ? "రుద్రాభిషేక సేవ" : code === "ta" ? "ருத்ராபிஷேக பூஜை" : "Rudrabhisheka"}
+                  </div>
+                  <div style={{ fontSize: "11.5px", color: INK_DEEP, marginTop: "6px", lineHeight: 1.6 }}>
+                    {code === "kn"
+                      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪಪೂರ್ವಕ ರುದ್ರಾಭಿಷೇಕವು ಸರ್ವ ಗ್ರಹ ಬಾಧೆಗಳನ್ನು ಶಮನಗೊಳಿಸುತ್ತದೆ."
+                      : code === "hi"
+                      ? "गोकर्ण महाबलेश्वर में रुद्राभिषेक समस्त ग्रह पीड़ाओं को शांत करता है।"
+                      : code === "te"
+                      ? "గోకర్ణ మహాబలేశ్వరునికి రుద్రాభిషేకం సమస్త గ్రహ బాధలను నివారిస్తుంది."
+                      : code === "ta"
+                      ? "கோகர்ணத்தில் ருத்ராபிஷேகம் சகல கிரக தோஷங்களையும் அமைதிப்படுத்தும்."
+                      : "Sankalpa Rudrabhisheka at Sri Gokarna Mahabaleshwara calms all planetary afflictions."}
+                  </div>
+                </div>
+
+                <div style={{ backgroundColor: "#FFFFFF", border: `1px solid ${GOLD_LIGHT}`, borderRadius: "10px", padding: "12px 14px" }}>
+                  <div style={{ fontSize: "12.5px", fontWeight: 900, color: GOLD_DARK, lineHeight: 1.3 }}>
+                    🐄 {code === "kn" ? "ಗೋಸೇವೆ & ದಾನ" : code === "hi" ? "गोसेवा एवं दान" : code === "te" ? "గోసేవ & దానం" : code === "ta" ? "பசு சேவை & தானம்" : "Holy Cow Care"}
+                  </div>
+                  <div style={{ fontSize: "11.5px", color: INK_DEEP, marginTop: "6px", lineHeight: 1.6 }}>
+                    {code === "kn"
+                      ? "ಮಂಗಳವಾರ ಅಥವಾ ಶನಿವಾರ ಗೋಮಾತೆಗೆ ಬೆಲ್ಲ-ಹುಲ್ಲು ನೀಡುವುದು ಕರ್ಮ ಕ್ಷಯಕ್ಕೆ ಶ್ರೇಷ್ಠ ಪರಿಹಾರವಾಗಿದೆ."
+                      : code === "hi"
+                      ? "मंगलवार या शनिवार को गाय को गुड़-घास खिलाना संचित कर्म क्षय का श्रेष्ठ उपाय है।"
+                      : code === "te"
+                      ? "మంగళ లేదా శనివారాలలో గోమాతకు బెల్లం-గడ్డి తినిపించడం కర్మ క్షయానికి మేలైన మార్గం."
+                      : code === "ta"
+                      ? "செவ்வாய் அல்லது சனிக்கிழமைகளில் பசுவுக்கு வெல்லம் வழங்குவது கர்ம வினையைத் தீர்க்கும்."
+                      : "Offering jaggery-grass to sacred cows on Tuesdays/Saturdays dissolves stubborn karma."}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pinned Footer */}
+            <div
+              style={{
+                marginTop: "auto",
+                textAlign: "center",
+                fontSize: "10.5px",
+                color: GOLD_DARK,
+                fontWeight: 800,
+                borderTop: `1.5px dashed ${GOLD_LIGHT}`,
+                paddingTop: "6px",
+                flexShrink: 0,
+                lineHeight: 1.4,
+                letterSpacing: "normal"
+              }}
+            >
+              {renderPageFooter(totalPages - 1)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================================== */}
+      {/* FINAL PAGE: LIFE HAZARDS, FEARS, TEMPLE REMEDIES & PRIEST BLESSING     */}
       {/* ====================================================================== */}
       <div
         className="pdf-page"

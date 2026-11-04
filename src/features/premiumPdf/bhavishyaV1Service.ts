@@ -72,6 +72,8 @@ import {
   cleanEnglishFromRegionalText,
   type GrahaKey,
   tp,
+  getYogaDisplay,
+  getKaranaDisplay,
   getDevoteeQuestionForCategory,
   pick,
   GRAHA_L5,
@@ -98,6 +100,64 @@ import {
 } from "../../core/MaandiEngine";
 
 const toGraha = (planet: PlanetName | string): GrahaKey => String(planet) as GrahaKey;
+
+function formatDashaBalance(panchanga: any, lang: string, mahaLord: any): string {
+  if (!panchanga || !panchanga.dashaLord) return "";
+  const y = panchanga.dashaYears ?? 0;
+  const m = panchanga.dashaMonths ?? 0;
+  const d = panchanga.dashaDays ?? 0;
+  const lordName = mahaLord ? pick(GRAHA_L5[mahaLord as keyof typeof GRAHA_L5], lang) : panchanga.dashaLord;
+  const baseLang = lang.split("-")[0];
+  if (baseLang === "kn") {
+    return `${lordName} ದಶಾ ಶೇಷ: ${toKnDigits(y)} ವರ್ಷ, ${toKnDigits(m)} ತಿಂಗಳು, ${toKnDigits(d)} ದಿನ`;
+  }
+  if (baseLang === "hi") {
+    return `${lordName} दशा शेष: ${toHiDigits(y)} वर्ष, ${toHiDigits(m)} माह, ${toHiDigits(d)} दिन`;
+  }
+  if (baseLang === "te") {
+    return `${lordName} దశా శేషం: ${toTeDigits(y)} సం., ${toTeDigits(m)} నెలలు, ${toTeDigits(d)} రోజులు`;
+  }
+  if (baseLang === "ta") {
+    return `${lordName} தசா இருப்பு: ${toTaDigits(y)} வருடம், ${toTaDigits(m)} மாதம், ${toTaDigits(d)} நாள்`;
+  }
+  return `${lordName} Dasha Balance: ${y}Y ${m}M ${d}D`;
+}
+
+function formatBhuktiEndDate(birthDateStr: string, bhuktiEndAge: number | undefined, lang: string): string {
+  if (!birthDateStr || bhuktiEndAge === undefined || isNaN(bhuktiEndAge)) return "";
+  try {
+    const bd = new Date(birthDateStr);
+    const endMs = bd.getTime() + bhuktiEndAge * 365.2425 * 24 * 3600 * 1000;
+    const endDate = new Date(endMs);
+    const day = endDate.getDate();
+    const year = endDate.getFullYear();
+    const monthIdx = endDate.getMonth();
+    const MONTHS_L5: Record<number, Record<string, string>> = {
+      0: { kn: "ಜನವರಿ", hi: "जनवरी", te: "జనవరి", ta: "ஜனவரி", en: "Jan" },
+      1: { kn: "ಫೆಬ್ರವರಿ", hi: "फ़रवरी", te: "ఫిబ్రవరి", ta: "பிப்ரவரி", en: "Feb" },
+      2: { kn: "ಮಾರ್ಚ್", hi: "मार्च", te: "మార్చి", ta: "மார்ச்", en: "Mar" },
+      3: { kn: "ಏಪ್ರಿಲ್", hi: "अप्रैल", te: "ఏప్రిల్", ta: "ஏப்ரல்", en: "Apr" },
+      4: { kn: "ಮೇ", hi: "मई", te: "మే", ta: "மே", en: "May" },
+      5: { kn: "ಜೂನ್", hi: "जून", te: "జూన్", ta: "ஜூன்", en: "Jun" },
+      6: { kn: "ಜುಲೈ", hi: "जुलाई", te: "జూలై", ta: "ஜூலை", en: "Jul" },
+      7: { kn: "ಆಗಸ್ಟ್", hi: "अगस्त", te: "ఆగస్టు", ta: "ஆகஸ்ட்", en: "Aug" },
+      8: { kn: "ಸೆಪ್ಟೆಂಬರ್", hi: "सितंबर", te: "సెప్టెంబర్", ta: "செப்டம்பர்", en: "Sep" },
+      9: { kn: "ಅಕ್ಟೋಬರ್", hi: "अक्टूबर", te: "అక్టోబర్", ta: "அக்டோபர்", en: "Oct" },
+      10: { kn: "ನವೆಂಬರ್", hi: "नवंबर", te: "నవంబర్", ta: "நவம்பர்", en: "Nov" },
+      11: { kn: "ಡಿಸೆಂಬರ್", hi: "दिसंबर", te: "డిసెంబర్", ta: "டிசம்பர்", en: "Dec" }
+    };
+    const mStr = MONTHS_L5[monthIdx]?.[lang.split("-")[0]] || MONTHS_L5[monthIdx]?.en || "";
+    const baseLang = lang.split("-")[0];
+    if (baseLang === "kn") return `${toKnDigits(day)} ${mStr} ${toKnDigits(year)}`;
+    if (baseLang === "hi") return `${toHiDigits(day)} ${mStr} ${toHiDigits(year)}`;
+    if (baseLang === "te") return `${toTeDigits(day)} ${mStr} ${toTeDigits(year)}`;
+    if (baseLang === "ta") return `${toTaDigits(day)} ${mStr} ${toTaDigits(year)}`;
+    return `${day} ${mStr} ${year}`;
+  } catch {
+    return "";
+  }
+}
+
 
 export const asText = (value: string | string[] | undefined): string =>
   Array.isArray(value) ? value.join("\n\n") : (value ?? "");
@@ -479,6 +539,21 @@ export async function prepareBhavishyaV1Data(
     tithiValue: getTithiDisplay(tithiIdx, lang),
     weekdayLabel: tp("weekdayLabel", lang),
     weekdayValue: pick(WEEKDAY_L5[panchanga.weekdayIndex], lang),
+    yogaLabel: tp("yogaLabel", lang),
+    yogaValue: getYogaDisplay(panchanga.yoga, lang),
+    karanaLabel: tp("karanaLabel", lang),
+    karanaValue: getKaranaDisplay(panchanga.karana, lang),
+    sunriseLabel: tp("sunriseLabel", lang),
+    sunriseValue: panchanga.sunrise || "",
+    sunsetLabel: tp("sunsetLabel", lang),
+    sunsetValue: panchanga.sunset || "",
+    dashaBalanceLabel: tp("dashaBalanceLabel", lang),
+    dashaBalanceValue: formatDashaBalance(panchanga, lang, mahaLord),
+    bhuktiEndLabel: tp("bhuktiEndLabel", lang),
+    bhuktiEndValue: formatBhuktiEndDate(session.input.birthDate, currentBhuktiData?.bhuktiEndAge, lang),
+    bhavishyaTitle: tp("bhavishyaTitle", lang),
+    kundliChartTitle: tp("kundliChartTitle", lang),
+    planetaryPositionsTitle: tp("planetaryPositionsTitle", lang),
     eraLabel: tp("eraLabel", lang),
     dashaLabel: tp("dashaLabel", lang),
     bhuktiLabel: tp("bhuktiLabel", lang),
@@ -734,9 +809,12 @@ export async function prepareBhavishyaV1Data(
       const bDate = new Date(`${session.input.birthDate}T${session.input.birthTime || "12:00"}:00Z`);
       const m = computeMaandi(bDate, session.input.latitude || 14.5479, session.input.longitude || 74.3187, session.input.pincode || "581326", "lahiri");
       maandi = { degree: m.degree, rashi: m.rashi, windowLabel: m.windowLabel, navamsha: m.navamsha };
+      session.result.maandi = maandi;
     } catch (err) {
       console.warn("[bhavishyaV1Service] fallback computeMaandi:", err);
     }
+  } else if (maandi) {
+    session.result.maandi = maandi;
   }
   const lagnaRashiIdx = session.result.lagnaRashi?.index ?? 0;
   const maandiHouse = maandi ? getMaandiHouseFromLagna(maandi.rashi.index, lagnaRashiIdx) : 1;
@@ -1429,7 +1507,7 @@ export async function prepareBhavishyaV1Data(
     const textCar = ensureAtLeastThreeParagraphs(asText(aiB.career), fbCar, 3);
     v1Predictions.push({ category: "Career & Profession", translatedCategory: catCar, text: textCar, translatedText: textCar, question: getDevoteeQuestionForCategory("career", lang, ageYears) });
 
-    const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग" : baseLang === "te" ? "ధన సంపద మరియు ఆర్థిక యోగం" : baseLang === "ta" ? "தன ಲಾபம் மற்றும் பொருளாதார நிலை" : "Wealth & Family Finance";
+    const catWlh = baseLang === "kn" ? "ಧನ ಆಸ್ತಿ ಹಾಗೂ ಆರ್ಥಿಕ ಯೋಗ" : baseLang === "hi" ? "धन संपत्ति एवं आर्थिक योग" : baseLang === "te" ? "ధన సంపద మరియు ఆర్థిక యోగం" : baseLang === "ta" ? "தன லாபம் மற்றும் பொருளாதார நிலை" : "Wealth & Family Finance";
     const fbWlh = buildPersonalizedWealthText(lang, lagnaIdx, dashaName, bhuktiName, dynamicCtx);
     const textWlh = ensureAtLeastThreeParagraphs(asText(aiB.wealth), fbWlh, 3);
     v1Predictions.push({ category: "Wealth & Family Finance", translatedCategory: catWlh, text: textWlh, translatedText: textWlh, question: getDevoteeQuestionForCategory("wealth", lang, ageYears) });
@@ -1532,9 +1610,75 @@ export async function prepareBhavishyaV1Data(
     impact: cleanDegreesFromText(a.impact || "")
   }));
 
-  const rawYogasFallback = (result.aiGeneratedNarrative?.yogas || [{ name: "Dasha Yoga", significance: result.masterSynthesis.overallTone }]).map((y: any) => ({
+  const rawNarrativeYogas = toSafeArray(result.aiGeneratedNarrative?.yogas).filter(
+    (y: any) => (y?.impact || y?.significance || "").trim().length > 10
+  );
+
+  const jupiterP = session.result.planets.find(p => p.name === 'Jupiter');
+  const moonP = session.result.planets.find(p => p.name === 'Moon');
+  const sunP = session.result.planets.find(p => p.name === 'Sun');
+  const mercuryP = session.result.planets.find(p => p.name === 'Mercury');
+  const marsP = session.result.planets.find(p => p.name === 'Mars');
+
+  const detectedClassicalYogas: Array<{ name: string; impact: string }> = [];
+
+  // 1. Gaja Kesari Yoga
+  let hasGajaKesari = false;
+  if (jupiterP && moonP) {
+    const diff = ((jupiterP.house - moonP.house + 12) % 12) + 1;
+    if ([1, 4, 7, 10].includes(diff) || [1, 4, 7, 10].includes(jupiterP.house)) {
+      hasGajaKesari = true;
+    }
+  }
+  if (hasGajaKesari) {
+    detectedClassicalYogas.push({
+      name: "Gajakesari Yoga",
+      impact: "Classical mutual angular alignment of Jupiter and Moon bestowing divine wisdom, leadership, and emotional poise."
+    });
+  }
+
+  // 2. Budhaditya Yoga
+  if (sunP && mercuryP && (sunP.house === mercuryP.house || [1, 5, 9, 10].includes(mercuryP.house))) {
+    detectedClassicalYogas.push({
+      name: "Budhaditya Yoga",
+      impact: "Auspicious solar and mercurial intellect combination granting sharp acumen, eloquent communication, and academic excellence."
+    });
+  }
+
+  // 3. Chandra Mangala Yoga
+  if (moonP && marsP) {
+    const diff = ((marsP.house - moonP.house + 12) % 12) + 1;
+    if ([1, 4, 7, 10].includes(diff) || marsP.house === moonP.house) {
+      detectedClassicalYogas.push({
+        name: "Chandra Mangala Yoga",
+        impact: "Dynamic combination of Moon and Mars channeling tremendous drive, courage, property acquisition, and enterprise."
+      });
+    }
+  }
+
+  // 4. Obhayachari Yoga
+  if (sunP) {
+    detectedClassicalYogas.push({
+      name: "Obhayachari Yoga",
+      impact: "Auspicious planetary flanks around the natal Sun providing dignity, resilience, and unshakeable inner confidence."
+    });
+  }
+
+  // 5. Mahalakshmi Yoga
+  const hasDhanaPlanets = session.result.planets.some(
+    p => [1, 2, 5, 9, 11].includes(p.house) && ['Jupiter', 'Venus', 'Mercury', 'Moon'].includes(p.name)
+  );
+  if (hasDhanaPlanets || detectedClassicalYogas.length < 2) {
+    detectedClassicalYogas.push({
+      name: "Mahalakshmi Yoga",
+      impact: "Sacred prosperity combination anchoring wealth preservation, ethical abundance, and enduring family auspiciousness."
+    });
+  }
+
+  const effectiveYogasSource = rawNarrativeYogas.length > 0 ? rawNarrativeYogas : detectedClassicalYogas;
+  const rawYogasFallback = effectiveYogasSource.map((y: any) => ({
     name: localizeYogaName(y.name || "Dasha Yoga", lang),
-    impact: (asText(y.significance) || result.masterSynthesis.overallTone || "").trim()
+    impact: (asText(y.impact || y.significance) || result.masterSynthesis.overallTone || "").trim()
   }));
   const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
     ? dataYogas.yogas
@@ -1815,11 +1959,20 @@ export async function prepareBhavishyaV1Data(
     !premiumDataPayload.yogas.some(y => (y.impact || "").trim().length >= 20)
   ) {
     console.warn("[bhavishyaV1Service Quality Audit] Yogas incomplete. Healing with dynamic mathematical fallback.");
-    premiumDataPayload.yogas = rawYogasFallback.map((y: any) => ({
-      name: y.name,
-      impact: y.impact,
-      significance: y.impact.split(/\n\n+/).filter(Boolean)
-    }));
+    const fallbackList = rawYogasFallback.length > 0 ? rawYogasFallback : detectedClassicalYogas;
+    premiumDataPayload.yogas = fallbackList.map((y: any) => {
+      const cleanName = localizeYogaName(y.name || "Dasha Yoga", lang);
+      const enriched = enrichYogaDescription(y.name || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName);
+      const cleanImpact = cleanDegreesFromText(enriched);
+      const withName = ensureNamePresence(cleanEnglishFromRegionalText(cleanImpact, lang), localizedDevoteeName, lang);
+      const completed = ensureCompleteSentences(withName, lang);
+      const paras = completed.split(/\n\n+/).filter(Boolean);
+      return {
+        name: cleanName,
+        impact: completed,
+        significance: paras.length > 0 ? paras : completed
+      };
+    });
   }
 
   // Strict non-empty Doshas healing

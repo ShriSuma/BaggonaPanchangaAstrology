@@ -92,7 +92,34 @@ export const PDF_T: Record<string, L5> = {
   padaLabel: { en: "Pada", kn: "ಪಾದ", te: "పాదం", ta: "பாதம்", hi: "पाद" },
   lagnaLordLabel: { en: "Lagna Lord", kn: "ಲಗ್ನಾಧಿಪತಿ", te: "లగ్నాధిపతి", ta: "லக்னாதிபதி", hi: "लग्नेश" },
   moonLordLabel: { en: "Rashi Lord", kn: "ರಾಶ್ಯಾಧಿಪತಿ", te: "రాశ్యాధిపతి", ta: "ராசியாதிபதி", hi: "राशीश" },
-  tithiLabel: { en: "Birth Tithi", kn: "ಜನ್ಮ ತಿಥಿ", te: "జన్మ తిథి", ta: "ஜென்ம திதி", hi: "जन्म तिथि" },
+  yogaLabel: { en: "Yoga", kn: "ಯೋಗ", te: "యోగం", ta: "யோகம்", hi: "योग" },
+  karanaLabel: { en: "Karana", kn: "ಕರಣ", te: "కరణం", ta: "கரணம்", hi: "करण" },
+  sunriseLabel: { en: "Sunrise", kn: "ಸೂರ್ಯೋದಯ", te: "సూర్యోదయం", ta: "சூரியோதயம்", hi: "सूर्योदय" },
+  sunsetLabel: { en: "Sunset", kn: "ಸೂರ್ಯಾಸ್ತ", te: "సూర్యాస్తమయం", ta: "சூரிய அஸ்தமனம்", hi: "सूर्यास्त" },
+  dashaBalanceLabel: { en: "Janma Dasha Balance", kn: "ಜನ್ಮ ದಶಾ ಶೇಷ", te: "జన్మ దశా శేషం", ta: "ஜன்ம தசா இருப்பு", hi: "जन्म दशा शेष" },
+  bhuktiEndLabel: { en: "Current Bhukti End", kn: "ಪ್ರಸ್ತುತ ಭುಕ್ತಿ ಸಮಾಪ್ತಿ", te: "ప్రస్తుత భుక్తి ముగింపు", ta: "நடப்பு புக்தி முடிவு", hi: "वर्तमान भुक्ति समाप्ति" },
+  bhavishyaTitle: {
+    en: "Five Core Life Stage Predictions",
+    kn: "ಪಂಚಮುಖ ಜೀವಮಾನ ಭವಿಷ್ಯ (೫ ಪ್ರಮುಖ ಆಯಾಮಗಳು)",
+    te: "పంచముఖ జీవన భవిష్యత్తు (5 ప్రముఖ కోణాలు)",
+    ta: "பஞ்சமுக வாழ்க்கை பலன்கள் (5 முக்கிய பரிமாணங்கள்)",
+    hi: "पंचमुख जीवन भविष्यफल (५ प्रमुख आयाम)"
+  },
+  kundliChartTitle: {
+    en: "Sacred South Indian Rashi Chakra (Natal Kundli)",
+    kn: "ದಕ್ಷಿಣ ಭಾರತೀಯ ಪವಿತ್ರ ರಾಶಿ ಚಕ್ರ (ಜನ್ಮ ಕುಂಡಲಿ)",
+    te: "దక్షిణ భారతీయ పవిత్ర రాశి చక్రం (జన్మ కుండలి)",
+    ta: "தென்னிந்திய புனித ராசி சக்கரம் (ஜன்ம ஜாதகம்)",
+    hi: "दक्षिण भारतीय पवित्र राशि चक्र (जन्म कुंडली)"
+  },
+  planetaryPositionsTitle: {
+    en: "Planetary Ephemeris & Dignity Table (Sphuta)",
+    kn: "ಗ್ರಹ ಸ್ಪಷ್ಟ ಸ್ಥಿತಿ, ನಕ್ಷತ್ರ-ಪಾದ ಹಾಗೂ ಬಲ ಕೋಷ್ಟಕ",
+    te: "గ్రహ స్పష్ట స్థితి, నక్షత్ర-పాదం & బల పట్టిక",
+    ta: "கிரக ஸ்பஷ்ட நிலை, நட்சத்திர-பாதம் & பல அட்டவணை",
+    hi: "ग्रह स्पष्ट स्थिति, नक्षत्र-पाद एवं बल सारणी"
+  },
+  tithiLabel: { en: "Birth Tithi", kn: "ಜನ್ಮ ತಿಥಿ", te: "జನ್మ తిథి", ta: "ஜென்ம திதி", hi: "जन्म तिथि" },
   weekdayLabel: { en: "Birth Day", kn: "ಜನ್ಮ ವಾರ", te: "జన్మ వారం", ta: "ஜென்ம வாரம்", hi: "जन्म वार" },
 
   prescriptionsTitle: {
@@ -998,3 +1025,89 @@ export function getDevoteeQuestionForCategory(
   return tp(categoryKey + "Question", lang) || "";
 }
 
+
+/* ------------------------------------------------------------------ *
+ * Complete 5-Language Panchanga Limbs: Yogas & Karanas
+ * ------------------------------------------------------------------ */
+
+export const YOGA_NAMES_L5: Record<string, L5> = {
+  vishkambha: { en: "Vishkambha", kn: "ವಿಷ್ಕಂಭ", hi: "विष्कंभ", te: "విష్కంభం", ta: "விஷ்கம்பம்" },
+  priti: { en: "Priti", kn: "ಪ್ರೀತಿ", hi: "प्रीति", te: "ప్రీతి", ta: "பிரீதி" },
+  ayushman: { en: "Ayushman", kn: "ಆಯುಷ್ಮಾನ್", hi: "आयुष्मान", te: "ఆయుష్మాన్", ta: "ஆயுஷ்மான்" },
+  saubhagya: { en: "Saubhagya", kn: "ಸೌಭಾಗ್ಯ", hi: "सौभाग्य", te: "సౌభాగ్యం", ta: "சௌபாக்கியம்" },
+  shobhana: { en: "Shobhana", kn: "ಶೋಭನ", hi: "शोभन", te: "శోభనం", ta: "சோபனம்" },
+  atiganda: { en: "Atiganda", kn: "ಅತಿಗಂಡ", hi: "अतिगंड", te: "అతిగండం", ta: "அதிகண்டம்" },
+  sukarma: { en: "Sukarma", kn: "ಸುಕರ್ಮ", hi: "सुकर्मा", te: "సుకర్మ", ta: "சுகர்மம்" },
+  dhriti: { en: "Dhriti", kn: "ಧೃತಿ", hi: "धृति", te: "ధృతి", ta: "திருதி" },
+  shoola: { en: "Shoola", kn: "ಶೂಲ", hi: "शूल", te: "శూలం", ta: "சூலம்" },
+  ganda: { en: "Ganda", kn: "ಗಂಡ", hi: "गंड", te: "గండం", ta: "கண்டம்" },
+  vriddhi: { en: "Vriddhi", kn: "ವೃದ್ಧಿ", hi: "वृद्धि", te: "వృద్ధి", ta: "விருத்தி" },
+  dhruva: { en: "Dhruva", kn: "ಧ್ರುವ", hi: "ध्रुव", te: "ధ్రువం", ta: "துருவம்" },
+  vyaghata: { en: "Vyaghata", kn: "ವ್ಯಾಘಾತ", hi: "व्याघात", te: "వ్యాఘాతం", ta: "வியாகாதம்" },
+  harshana: { en: "Harshana", kn: "ಹರ್ಷಣ", hi: "हर्षण", te: "హర్షణం", ta: "ஹர்ஷணம்" },
+  vajra: { en: "Vajra", kn: "ವಜ್ರ", hi: "वज्र", te: "వజ్రం", ta: "வஜ்ரம்" },
+  siddhi: { en: "Siddhi", kn: "ಸಿದ್ಧಿ", hi: "सिद्धि", te: "సిద్ధి", ta: "சித்தி" },
+  vyatipata: { en: "Vyatipata", kn: "ವ್ಯತೀಪಾತ", hi: "व्यतीपात", te: "వ్యతీపాతం", ta: "வியதீபாதம்" },
+  variyan: { en: "Variyan", kn: "ವರೀಯಾನ್", hi: "वरीयान", te: "వరీయాన్", ta: "வரியான்" },
+  parigha: { en: "Parigha", kn: "ಪರಿಘ", hi: "परिघ", te: "పరిఘం", ta: "பரிகம்" },
+  shiva: { en: "Shiva", kn: "ಶಿವ", hi: "शिव", te: "శివం", ta: "சிவம்" },
+  siddha: { en: "Siddha", kn: "ಸಿದ್ಧ", hi: "सिद्ध", te: "సిద్ధం", ta: "சித்தம்" },
+  sadhya: { en: "Sadhya", kn: "ಸಾಧ್ಯ", hi: "साध्य", te: "సాధ్యం", ta: "சாத்தியம்" },
+  shubha: { en: "Shubha", kn: "ಶುಭ", hi: "शुभ", te: "శుభం", ta: "சுபம்" },
+  shukla: { en: "Shukla", kn: "ಶುಕ್ಲ", hi: "शुक्ल", te: "శుక్లం", ta: "சுக்லம்" },
+  brahma: { en: "Brahma", kn: "ಬ್ರಹ್ಮ", hi: "ब्रह्म", te: "బ్రహ్మ", ta: "பிரம்மம்" },
+  aindra: { en: "Indra (Aindra)", kn: "ಐಂದ್ರ (ಇಂದ್ರ)", hi: "ऐंद्र", te: "ఐంద్రం", ta: "ஐந்திரம்" },
+  vaidhrithi: { en: "Vaidhrithi", kn: "ವೈಧೃತಿ", hi: "वैधृति", te: "వైధృతి", ta: "வைதிருதி" }
+};
+
+export const KARANA_NAMES_L5: Record<string, L5> = {
+  bava: { en: "Bava", kn: "ಬವ", hi: "बव", te: "బవ", ta: "பவம்" },
+  balava: { en: "Balava", kn: "ಬಾಲವ", hi: "बालव", te: "బాలవ", ta: "பாலவம்" },
+  kaulava: { en: "Kaulava", kn: "ಕೌಲವ", hi: "कौलव", te: "కౌలవ", ta: "கௌலவம்" },
+  taitila: { en: "Taitila", kn: "ತೈತಿಲ", hi: "तैतिल", te: "తైతిల", ta: "தைதுலம்" },
+  garija: { en: "Garaja", kn: "ಗರಜ", hi: "गरिज", te: "గరజ", ta: "கரசை" },
+  garaja: { en: "Garaja", kn: "ಗರಜ", hi: "गरिज", te: "గరజ", ta: "கரசை" },
+  vanija: { en: "Vanija", kn: "ವಣಿಜ", hi: "वणिज", te: "వణిజ", ta: "வனசை" },
+  vishti: { en: "Vishti (Bhadra)", kn: "ವಿಷ್ಟಿ (ಭದ್ರಾ)", hi: "विष्टि (भद्रा)", te: "విష్టి (భద్ర)", ta: "விஷ்டி (பத்ரை)" },
+  bhadra: { en: "Vishti (Bhadra)", kn: "ವಿಷ್ಟಿ (ಭದ್ರಾ)", hi: "विष्टि (भद्रा)", te: "విష్టి (భద్ర)", ta: "விஷ்டி (பத்ரை)" },
+  shakuni: { en: "Shakuni", kn: "ಶಕುನಿ", hi: "शकुनि", te: "శకుని", ta: "சகுனி" },
+  chatushpada: { en: "Chatushpada", kn: "ಚತುಷ್ಪಾದ", hi: "चतुष्पाद", te: "చతుష్పాద", ta: "சதுஷ்பாதம்" },
+  naga: { en: "Naga", kn: "ನಾಗ", hi: "नाग", te: "నాగ", ta: "நாகம்" },
+  kimstughna: { en: "Kimstughna", kn: "ಕಿಂಸ್ತುಘ್ನ", hi: "किंस्तुघ्न", te: "కింస్తుఘ్న", ta: "கிம்ஸ்துக்னம்" }
+};
+
+export function getYogaDisplay(yogaNameOrIdx: string | number | undefined, lang: string): string {
+  if (yogaNameOrIdx === undefined || yogaNameOrIdx === null) return "";
+  const YOGA_KEYS = [
+    "vishkambha", "priti", "ayushman", "saubhagya", "shobhana", "atiganda",
+    "sukarma", "dhriti", "shoola", "ganda", "vriddhi", "dhruva", "vyaghata",
+    "harshana", "vajra", "siddhi", "vyatipata", "variyan", "parigha", "shiva",
+    "siddha", "sadhya", "shubha", "shukla", "brahma", "aindra", "vaidhrithi"
+  ];
+  let key = "";
+  if (typeof yogaNameOrIdx === "number") {
+    key = YOGA_KEYS[((yogaNameOrIdx % 27) + 27) % 27] || "";
+  } else {
+    const raw = String(yogaNameOrIdx).toLowerCase().trim();
+    key = Object.keys(YOGA_NAMES_L5).find(k => raw.includes(k)) || "";
+  }
+  const entry = key ? YOGA_NAMES_L5[key] : null;
+  return entry ? pick(entry, lang) : String(yogaNameOrIdx);
+}
+
+export function getKaranaDisplay(karanaNameOrIdx: string | number | undefined, lang: string): string {
+  if (karanaNameOrIdx === undefined || karanaNameOrIdx === null) return "";
+  const KARANA_KEYS = [
+    "bava", "balava", "kaulava", "taitila", "garaja", "vanija", "vishti",
+    "shakuni", "chatushpada", "naga", "kimstughna"
+  ];
+  let key = "";
+  if (typeof karanaNameOrIdx === "number") {
+    key = KARANA_KEYS[((karanaNameOrIdx % 11) + 11) % 11] || "";
+  } else {
+    const raw = String(karanaNameOrIdx).toLowerCase().trim();
+    key = Object.keys(KARANA_NAMES_L5).find(k => raw.includes(k)) || "";
+  }
+  const entry = key ? KARANA_NAMES_L5[key] : null;
+  return entry ? pick(entry, lang) : String(karanaNameOrIdx);
+}
