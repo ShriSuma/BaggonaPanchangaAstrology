@@ -6,6 +6,7 @@ import type {
   DetectedGandantara,
   DetectedFear
 } from "../../core/ComprehensiveDoshaEngine";
+import { PLANET_NAMES_5LANG } from "../../core/ComprehensiveDoshaEngine";
 import { cleanDegreesFromText } from "../../features/premiumPdf/yogaDoshaGocharaEnricher";
 import { transliterateName } from "../../utils/transliterator";
 
@@ -48,7 +49,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     realLifeImpactLabel: "ನೈಜ ಜೀವನದ ಪರಿಣಾಮಗಳು:",
     dashaResonanceLabel: "ದಶಾ-ಭುಕ್ತಿ ಪ್ರಭಾವ:",
     pariharaHeading: "ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ & ಗೋಕರ್ಣ ಸೇವೆ:",
-    mantraLabel: "ಮಂತ್ರ ಜಪ & ಪರಿಹಾರ ಕ್ರಮ:",
+    recommendedPoojaLabel: "ಶಿಫಾರಸು ಮಾಡಿದ ಪೂಜೆ & ಪುಣ್ಯಕ್ಷೇತ್ರ:",
+    mantraLabel: "ದೈನಂದಿನ ಆಚರಣೆಗಳು & ಮಂತ್ರ ಪರಿಹಾರ:",
     daanaLabel: "ದಾನ & ಸೇವೆ:",
     noDoshaTitle: "🕊️ ಶುದ್ಧ ನಿರ್ದೋಷ ಜಾತಕ (ದೋಷ ರಹಿತ)",
     noDoshaDesc: "ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಮಾರಕ ಕರ್ಮ ದೋಷಗಳು ಅಥವಾ ಗಂಡಾಂತರಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ಭಗವಂತನ ಕೃಪೆಯಿಂದ ಸಕಲ ಶುಭಗಳು ಲಭಿಸಲಿ.",
@@ -117,7 +119,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     realLifeImpactLabel: "Real-World Manifestation:",
     dashaResonanceLabel: "Dasha-Bhukti Resonance:",
     pariharaHeading: "Prescribed Parihara & Gokarna Seva:",
-    mantraLabel: "Sacred Mantra & Remedy:",
+    recommendedPoojaLabel: "Recommended Pooja & Sacred Kshetra:",
+    mantraLabel: "Daily Observances & Sacred Mantra Remedy:",
     daanaLabel: "Charity & Offerings:",
     noDoshaTitle: "🕊️ Pure & Unafflicted Natal Chart",
     noDoshaDesc: "No critical karmic afflictions or life hazards detected. Under divine grace, may life remain peaceful and prosperous.",
@@ -186,7 +189,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     realLifeImpactLabel: "वास्तविक जीवन पर प्रभाव:",
     dashaResonanceLabel: "दशा-भुक्ति प्रभाव:",
     pariharaHeading: "शास्त्रोक्त परिहार एवं गोकर्ण सेवा:",
-    mantraLabel: "मंत्र जप एवं विधि:",
+    recommendedPoojaLabel: "अनुशंसित पूजा एवं तीर्थ क्षेत्र:",
+    mantraLabel: "दैनिक आचरण एवं मंत्र जप विधि:",
     daanaLabel: "दान एवं सेवा:",
     noDoshaTitle: "🕊️ शुद्ध निर्दोष जातक (दोष रहित)",
     noDoshaDesc: "कुंडली में कोई मारक कर्म दोष या गंडांतर नहीं है। ईश्वर की कृपा से जीवन मंगलमय रहे।",
@@ -255,7 +259,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     realLifeImpactLabel: "నిజ జీవితంలో ప్రభావం:",
     dashaResonanceLabel: "దశా-భుక్తి ప్రభావం:",
     pariharaHeading: "శాస్త్రోక్త పరిహారం & గోకర్ణ సేవ:",
-    mantraLabel: "మంత్ర జపం & పరిహార విధి:",
+    recommendedPoojaLabel: "సిఫార్సు చేసిన పూజ & పుణ్యక్షేత్రం:",
+    mantraLabel: "దైనందిన ఆచరణలు & మంత్ర పరిహారం:",
     daanaLabel: "దాన ధర్మాలు & సేవ:",
     noDoshaTitle: "🕊️ నిర్దోష జాతకం (దోష రహితం)",
     noDoshaDesc: "కుండలిలో ఎటువంటి తీవ్ర కర్మ దోషాలు లేదా గండాతరాలు లేవు. దైవానుగ్రహంతో సకల శుభాలు కలుగుగాక.",
@@ -324,7 +329,8 @@ const PDF_TEXT: Record<SupportedLanguage, Record<string, string>> = {
     realLifeImpactLabel: "நடைமுறை வாழ்க்கைப் பாதிப்புகள்:",
     dashaResonanceLabel: "திசை-புக்தி தாக்கம்:",
     pariharaHeading: "சாஸ்திரோக்த பரிகாரம் & கோகர்ண சேவை:",
-    mantraLabel: "மந்திர ஜபம் & பரிகார முறை:",
+    recommendedPoojaLabel: "பரிந்துரைக்கப்பட்ட பூஜை & திருத்தலம்:",
+    mantraLabel: "தினசரி வழிபாட்டு முறைகள் & மந்திரப் பரிகாரம்:",
     daanaLabel: "தான தர்மங்கள்:",
     noDoshaTitle: "🕊️ களங்கமற்ற சுப ஜாதகம் (தோஷமற்றது)",
     noDoshaDesc: "ஜாதகத்தில் கடுமையான கர்ம தோஷங்களோ கண்டாந்தரங்களோ இல்லை. இறைவன் அருளால் சகல நன்மைகளும் உண்டாகட்டும்.",
@@ -1752,7 +1758,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                     }}
                   >
                     <span>🏠</span>
-                    <span>{code === "kn" ? "ಭಾವಗಳು: " : "Houses: "} {houseNumbers.join(", ")}</span>
+                    <span>
+                      {code === "kn" ? "ಭಾವಗಳು: " : code === "hi" ? "भाव: " : code === "te" ? "భావాలు: " : code === "ta" ? "பாவங்கள்: " : "Houses: "}
+                      {houseNumbers.join(", ")}
+                    </span>
                   </span>
                 )}
                 {grahasInvolved.length > 0 && (
@@ -1771,7 +1780,15 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                     }}
                   >
                     <span>🪐</span>
-                    <span>{code === "kn" ? "ಗ್ರಹಗಳು: " : "Grahas: "} {grahasInvolved.join(", ")}</span>
+                    <span>
+                      {code === "kn" ? "ಗ್ರಹಗಳು: " : code === "hi" ? "ग्रह: " : code === "te" ? "గ్రహాలు: " : code === "ta" ? "கிரகங்கள்: " : "Grahas: "}
+                      {grahasInvolved.map((g) => {
+                        const cleanG = g.trim();
+                        return PLANET_NAMES_5LANG[cleanG]?.[code] ||
+                               PLANET_NAMES_5LANG[cleanG.charAt(0).toUpperCase() + cleanG.slice(1).toLowerCase()]?.[code] ||
+                               g;
+                      }).join(", ")}
+                    </span>
                   </span>
                 )}
                 {hasMitigation && (
@@ -1790,7 +1807,10 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
                     }}
                   >
                     <span>✨</span>
-                    <span>{code === "kn" ? "ಭಂಗ / ಪರಿಹಾರಕ ಬಲ: " : "Mitigation: "} {bhangaDesc}</span>
+                    <span>
+                      {code === "kn" ? "ಭಂಗ / ಪರಿಹಾರಕ ಬಲ: " : code === "hi" ? "भंग / शमन बल: " : code === "te" ? "భంగం / ఉపశమన బలం: " : code === "ta" ? "பங்கம் / நிவர்த்தி பலம்: " : "Mitigation: "}
+                      {bhangaDesc}
+                    </span>
                   </span>
                 )}
               </div>
@@ -1894,7 +1914,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             >
               <div style={{ fontSize: "10.5px", fontWeight: 800, color: GOLD_DARK, display: "flex", alignItems: "center", gap: "4px" }}>
                 <span>🏛️</span>
-                <span>{code === "kn" ? "ಶಿಫಾರಸು ಮಾಡಿದ ಪೂಜೆ & ಪುಣ್ಯಕ್ಷೇತ್ರ:" : t.recommendedPoojaLabel}</span>
+                <span>{t.recommendedPoojaLabel}</span>
               </div>
               <div style={{ fontSize: "11.5px", fontWeight: 800, color: INK_DEEP, marginTop: "3px", lineHeight: 1.45 }}>
                 {getLangVal(dosha.recommendedPooja)}
@@ -1912,7 +1932,7 @@ export const KundliDoshaPdfTemplate: React.FC<KundliDoshaPdfTemplateProps> = ({
             >
               <div style={{ fontSize: "10.5px", fontWeight: 800, color: GOLD_DARK, display: "flex", alignItems: "center", gap: "4px" }}>
                 <span>📿</span>
-                <span>{code === "kn" ? "ದೈನಂದಿನ ಆಚರಣೆಗಳು & ಮಂತ್ರ ಪರಿಹಾರ:" : t.mantraLabel}</span>
+                <span>{t.mantraLabel}</span>
               </div>
               <div style={{ fontSize: "11px", color: INK_DEEP, marginTop: "3px", lineHeight: 1.45, fontWeight: 500 }}>
                 {getLangArr(dosha.remedies).slice(0, 2).map((rem, rIdx) => (

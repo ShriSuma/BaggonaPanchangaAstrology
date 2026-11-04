@@ -134,12 +134,14 @@ describe("Dynamic Daivika Parihara & Multilingual Print Purity Audit", () => {
     };
 
     const report = generateKundliRemedyReport(mockBaseKundli, devoteeInput);
-    expect(report.chiefPriestBlessing.ashirvadaMeaning.kn).toContain("Kashyapa ಗೋತ್ರದ");
-    expect(report.chiefPriestBlessing.ashirvadaMeaning.kn).toContain("Ramesh Sharma");
+    expect(report.chiefPriestBlessing.ashirvadaMeaning.kn).toContain("ಕಾಶ್ಯಪ ಗೋತ್ರದ");
+    expect(report.chiefPriestBlessing.ashirvadaMeaning.kn).toContain("ರಮೇಶ್ ಶರ್ಮಾ");
     expect(report.chiefPriestBlessing.ashirvadaMeaning.en).toContain("Ramesh Sharma of Kashyapa Gotra");
-    expect(report.chiefPriestBlessing.ashirvadaMeaning.hi).toContain("Ramesh Sharma (Kashyapa गोत्र)");
-    expect(report.chiefPriestBlessing.ashirvadaMeaning.te).toContain("Kashyapa గోత్రోద్భవులైన");
-    expect(report.chiefPriestBlessing.ashirvadaMeaning.ta).toContain("Kashyapa கோத்திர");
+    expect(report.chiefPriestBlessing.ashirvadaMeaning.hi).toContain("काश्यप गोत्र");
+    expect(report.chiefPriestBlessing.ashirvadaMeaning.hi).toContain("रमेश शर्मा");
+    expect(report.chiefPriestBlessing.ashirvadaMeaning.te).toContain("కాశ్యప గోత్రోద్భవులైన");
+    expect(report.chiefPriestBlessing.ashirvadaMeaning.ta).toContain("காஸ்யப கோத்திர");
+    expect(report.chiefPriestBlessing.ashirvadaMeaning.ta).toContain("ரமேஷ் சர்மா");
   });
 
   it("6. Panchanga 5-Angas helpers return ZERO Kannada characters for Hindi, Telugu, Tamil, and English", () => {

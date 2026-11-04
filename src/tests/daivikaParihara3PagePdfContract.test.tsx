@@ -67,9 +67,9 @@ describe("Daivika Parihara 3-Page Master PDF Contract & Vedic Mantra Audit", () 
     const pages = container.querySelectorAll(".pdf-page");
     const page1 = pages[0] as HTMLElement;
 
-    // Devotee Info
-    expect(page1.textContent).toContain("Shreeram Hegde");
-    expect(page1.textContent).toContain("Vasishtha");
+    // Devotee Info (Transliterated purely into Kannada)
+    expect(page1.textContent).toContain("ಶ್ರೀರಾಮ ಹೆಗ್ಡೆ");
+    expect(page1.textContent).toContain("ವಸಿಷ್ಠ");
     expect(page1.textContent).toContain("ಮೇಷ"); // Lagna
     expect(page1.textContent).toContain("ಸಿಂಹ"); // Moon Sign
     expect(page1.textContent).toContain("ಪೂರ್ವ ಫಲ್ಗುಣಿ"); // Nakshatra

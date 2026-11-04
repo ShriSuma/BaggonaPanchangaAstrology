@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Card from "../ui/Card";
 import type { KundliRemedyDiagnosis, SupportedLanguage } from "../../features/remedies/kundliRemedyEngine";
-import { transliterateIndicToLatin } from "../../utils/transliterator";
+import { transliterateName, transliterateIndicToLatin } from "../../utils/transliterator";
 import { REMEDY_AI_FALLBACK_MESSAGES } from "../../features/remedies/kundliRemedyAiEngine";
 import {
   getAllPriests,
@@ -837,6 +837,20 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
   }
 };
 
+function formatDevoteeNameForLanguage(name: string, targetLang: string): string {
+  if (!name || !name.trim()) return "Devotee";
+  const trimmed = name.trim();
+  const lang = (targetLang || "kn").toLowerCase();
+
+  if (lang === "kn" && /[\u0C80-\u0CFF]/.test(trimmed)) return trimmed;
+  if (lang === "hi" && /[\u0900-\u097F]/.test(trimmed)) return trimmed;
+  if (lang === "te" && /[\u0C00-\u0C7F]/.test(trimmed)) return trimmed;
+  if (lang === "ta" && /[\u0B80-\u0BFF]/.test(trimmed)) return trimmed;
+  if (lang === "en" && !/[\u0900-\u0D7F]/.test(trimmed)) return trimmed;
+
+  return transliterateName(trimmed, lang);
+}
+
 export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
   diagnosis,
   lang,
@@ -918,6 +932,18 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (selectedPriestId && selectedPriestId !== "new_priest") {
+      const p = priestsList.find(pr => pr.id === selectedPriestId);
+      if (p) {
+        const langKey = ((selectedLang as unknown) as SevaLang) || "kn";
+        const nameToUse = (p.name as Record<string, string>)[langKey] || p.name.kn || p.name.en || "";
+        setPriestNameInput(nameToUse);
+        onPriestChange?.(nameToUse, priestPhoneInput);
+      }
+    }
+  }, [selectedLang, selectedPriestId, priestsList]);
+
   const handleSavePriestToDb = async () => {
     const cleanName = priestNameInput.trim();
     const cleanPhone = priestPhoneInput.trim();
@@ -991,6 +1017,9 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
     vedicDoctorPrescription
   } = diagnosis;
 
+  const displayDevoteeName = useMemo(() => formatDevoteeNameForLanguage(devoteeName, selectedLang), [devoteeName, selectedLang]);
+  const displayGotra = useMemo(() => gotra ? formatDevoteeNameForLanguage(gotra, selectedLang) : "", [gotra, selectedLang]);
+
   const currentStotra = personalizedStotras.find((s) => s.id === activeStotraId) || personalizedStotras[0];
 
   const getShlokaByLang = (st: typeof currentStotra) => {
@@ -1041,7 +1070,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
             {/* Devotee Metadata Badges */}
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
               <span className="rounded-lg bg-amber-800/80 px-2.5 py-1 text-amber-100 border border-amber-600/60">
-                👤 {devoteeName} {gotra ? `(${gotra} ${t.gotraLabel})` : ""}
+                👤 {displayDevoteeName} {displayGotra ? `(${displayGotra} ${t.gotraLabel})` : ""}
               </span>
               <span className="rounded-lg bg-emerald-950/80 px-2.5 py-1 text-emerald-200 border border-emerald-600/60">
                 🏛️ {t.lagnaLabel} {lagnaName[selectedLang] || lagnaName.kn}
@@ -1913,7 +1942,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
       {/* ====================================================================== */}
       <div className="space-y-2">
         <PostPoojaRemedyJapaCard
-          devoteeName={diagnosis.devoteeName}
+          devoteeName={displayDevoteeName}
           rashiName={diagnosis.rashiName[selectedLang] || diagnosis.rashiName.kn}
           nakshatraName={diagnosis.nakshatraName[selectedLang] || diagnosis.nakshatraName.kn}
           lang={selectedLang as SevaLang}
@@ -2279,7 +2308,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                     setPriestPhoneInput(e.target.value);
                     onPriestChange?.(priestNameInput, e.target.value);
                   }}
-                  placeholder="9972339362"
+                  placeholder="9482109844"
                   className="w-full rounded-xl bg-slate-900/90 border border-amber-500/50 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 />
                 <button

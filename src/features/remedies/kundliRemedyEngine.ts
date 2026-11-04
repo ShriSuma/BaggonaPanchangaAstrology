@@ -9,8 +9,23 @@ import {
   YOGA_RULES,
   KARANA_RULES
 } from "../../core/PanchangaAngaSynthesisEngine";
+import { transliterateName } from "../../utils/transliterator";
 
 export type SupportedLanguage = "kn" | "en" | "hi" | "te" | "ta";
+
+export function formatNameForLanguage(name: string | undefined | null, targetLang: string, fallback: string = "Devotee"): string {
+  if (!name || !name.trim()) return fallback;
+  const trimmed = name.trim();
+  const lang = (targetLang || "kn").toLowerCase();
+
+  if (lang === "kn" && /[\u0C80-\u0CFF]/.test(trimmed)) return trimmed;
+  if (lang === "hi" && /[\u0900-\u097F]/.test(trimmed)) return trimmed;
+  if (lang === "te" && /[\u0C00-\u0C7F]/.test(trimmed)) return trimmed;
+  if (lang === "ta" && /[\u0B80-\u0BFF]/.test(trimmed)) return trimmed;
+  if (lang === "en" && !/[\u0900-\u0D7F]/.test(trimmed)) return trimmed;
+
+  return transliterateName(trimmed, lang);
+}
 
 export interface PanchangaRemedies {
   elementalBalanceReason?: Record<string, string>;
@@ -4226,15 +4241,24 @@ export function computeMandalaVrataSadhana(
   };
 
   // 8. Sacred Sankalpa Declaration
-  const safeName = devoteeName || "Devotee";
-  const gotraStr = gotra ? gotra.trim() : "";
+  const nameKn = formatNameForLanguage(devoteeName, "kn", "ಭಕ್ತ");
+  const nameEn = formatNameForLanguage(devoteeName, "en", "Devotee");
+  const nameHi = formatNameForLanguage(devoteeName, "hi", "भक्त");
+  const nameTe = formatNameForLanguage(devoteeName, "te", "భక్తులు");
+  const nameTa = formatNameForLanguage(devoteeName, "ta", "பக்தர்");
+
+  const gotraKn = gotra ? formatNameForLanguage(gotra, "kn", "") : "";
+  const gotraEn = gotra ? formatNameForLanguage(gotra, "en", "") : "";
+  const gotraHi = gotra ? formatNameForLanguage(gotra, "hi", "") : "";
+  const gotraTe = gotra ? formatNameForLanguage(gotra, "te", "") : "";
+  const gotraTa = gotra ? formatNameForLanguage(gotra, "ta", "") : "";
 
   const sankalpaDeclaration: Record<SupportedLanguage, string> = {
-    kn: `${gotraStr ? gotraStr + " ಗೋತ್ರೋದ್ಭವಸ್ಯ " : ""}${safeName} ರವರಾದ ನಾನು, ಮಮ ಸಮಸ್ತ ಜನ್ಮ ಕುಂಡಲಿ ಗ್ರಹ ಪೀಡಾ ನಿವಾರಣಾರ್ಥಂ, ಸರ್ವ ಸಂಕಲ್ಪ ಸಿದ್ಧರ್ಥಂ, ಭಗವಾನ್ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯ ಕೃಪೆಯಿಂದ ಈ ೪೫-ದಿನಗಳ ಮಂಡಲ ವ್ರತ ಸಾಧನೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ಕೈಗೊಳ್ಳುತ್ತಿದ್ದೇನೆ.`,
-    en: `I, devotee ${safeName}${gotraStr ? " of " + gotraStr + " Gotra" : ""}, for the dissolution of all natal chart planetary afflictions and the fulfillment of my sacred Sankalpa, by the divine grace of Lord Mahabaleshwara at Gokarna Kshetra, solemnly undertake this 45-day Mandala Vrata Sadhana with devotion and unwavering faith.`,
-    hi: `मैं, ${safeName}${gotraStr ? " (" + gotraStr + " गोत्र)" : ""}, अपनी जन्म कुंडली के समस्त ग्रह दोषों के निवारण एवं अपने संकल्प की पूर्ण सिद्धि हेतु, भगवान श्री गोಕರ್ण महाबलेश्वर की कृपा से इस ४५-दिवसीय मंडल व्रत साधना को श्रद्धापूर्वक स्वीकार करता/करती हूँ।`,
-    te: `${gotraStr ? gotraStr + " గోత్రోద్భవులైన " : ""}${safeName} అను నేను, నా జన్మ కుండలిలోని సమస్త గ్రహ దోషాల నివారణార్థం, సంకల్ప సిద్ధ్యర్థం, శ్రీ గోకర్ణ మహాబలేశ్వరుని దివ్య కృపతో ఈ 45-రోజుల మండల వ్రత సాధనను శ్రద్ధాభక్తులతో ఆచరిస్తున్నాను.`,
-    ta: `${gotraStr ? gotraStr + " கோத்திரத்தை சேர்ந்த " : ""}${safeName} ஆகிய நான், எனது ஜாதக கிரக தோஷங்கள் நீங்கி சங்கல்ப சித்தி அடைவதற்காக, ஸ்ரீ கோகர்ண மகாபலேஸ்வரரின் திருவருளால் இந்த 45-நாள் மண்டல விரத சாதனையை பக்தியுடன் மேற்கொள்கிறேன்.`
+    kn: `${gotraKn ? gotraKn + " ಗೋತ್ರೋದ್ಭವಸ್ಯ " : ""}${nameKn} ರವರಾದ ನಾನು, ಮಮ ಸಮಸ್ತ ಜನ್ಮ ಕುಂಡಲಿ ಗ್ರಹ ಪೀಡಾ ನಿವಾರಣಾರ್ಥಂ, ಸರ್ವ ಸಂಕಲ್ಪ ಸಿದ್ಧರ್ಥಂ, ಭಗವಾನ್ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರನ ಸನ್ನಿಧಿಯ ಕೃಪೆಯಿಂದ ಈ ೪೫-ದಿನಗಳ ಮಂಡಲ ವ್ರತ ಸಾಧನೆಯನ್ನು ಶ್ರದ್ಧಾ-ಭಕ್ತಿಗಳಿಂದ ಕೈಗೊಳ್ಳುತ್ತಿದ್ದೇನೆ.`,
+    en: `I, devotee ${nameEn}${gotraEn ? " of " + gotraEn + " Gotra" : ""}, for the dissolution of all natal chart planetary afflictions and the fulfillment of my sacred Sankalpa, by the divine grace of Lord Mahabaleshwara at Gokarna Kshetra, solemnly undertake this 45-day Mandala Vrata Sadhana with devotion and unwavering faith.`,
+    hi: `मैं, ${nameHi}${gotraHi ? " (" + gotraHi + " गोत्र)" : ""}, अपनी जन्म कुंडली के समस्त ग्रह दोषों के निवारण एवं अपने संकल्प की पूर्ण सिद्धि हेतु, भगवान श्री गोकर्ण महाबलेश्वर की कृपा से इस ४५-दिवसीय मंडल व्रत साधना को श्रद्धापूर्वक स्वीकार करता/करती हूँ।`,
+    te: `${gotraTe ? gotraTe + " గోత్రోద్భవులైన " : ""}${nameTe} అను నేను, నా జన్మ కుండలిలోని సమస్త గ్రహ దోషాల నివారణార్థం, సంకల్ప సిద్ధ్యర్థం, శ్రీ గోకర్ణ మహాబలేశ్వరుని దివ్య కృపతో ఈ 45-రోజుల మండల వ్రత సాధనను శ్రద్ధాభక్తులతో ఆచరిస్తున్నాను.`,
+    ta: `${gotraTa ? gotraTa + " கோத்திரத்தை சேர்ந்த " : ""}${nameTa} ஆகிய நான், எனது ஜாதக கிரக தோஷங்கள் நீங்கி சங்கல்ப சித்தி அடைவதற்காக, ஸ்ரீ கோகர்ண மகாபலேஸ்வரரின் திருவருளால் இந்த 45-நாள் மண்டல விரத சாதனையை பக்தியுடன் மேற்கொள்கிறேன்.`
   };
 
   return {
@@ -5623,11 +5647,11 @@ export function generateKundliRemedyReport(
       tatva: karanaRule.tatva,
       deity: karanaRule.rulingDeity,
       karyaShanti: {
-        kn: karanaRule.remedy || `${karanaRule.rulingDeity} ದೇವರ ಆರಾಧನೆ, ಕರ್ಮಸಿದ್ಧಿಗೆ ಶುಭಾರಂಭದ ಮುನ್ನ ಪ್ರಾರ್ಥನೆ.`,
-        en: karanaRule.remedy || `Worship ${karanaRule.rulingDeity}; invoke prior to commencing major transactions.`,
-        hi: karanaRule.remedy || `${karanaRule.rulingDeity} की पूजा करें।`,
-        te: karanaRule.remedy || `${karanaRule.rulingDeity} పూజ.`,
-        ta: karanaRule.remedy || `${karanaRule.rulingDeity} வழிபாடு.`
+        kn: karanaRule.remedy || `${formatNameForLanguage(karanaRule.rulingDeity, "kn", "ಇಂದ್ರ")} ದೇವರ ಆರಾಧನೆ, ಕರ್ಮಸಿದ್ಧಿಗೆ ಶುಭಾರಂಭದ ಮುನ್ನ ಪ್ರಾರ್ಥನೆ.`,
+        en: karanaRule.remedy || `Worship ${formatNameForLanguage(karanaRule.rulingDeity, "en", "Indra")}; invoke prior to commencing major transactions.`,
+        hi: karanaRule.remedy || `${formatNameForLanguage(karanaRule.rulingDeity, "hi", "इंद्र")} की पूजा करें।`,
+        te: karanaRule.remedy || `${formatNameForLanguage(karanaRule.rulingDeity, "te", "ఇంద్ర")} పూజ.`,
+        ta: karanaRule.remedy || `${formatNameForLanguage(karanaRule.rulingDeity, "ta", "இந்திரன்")} வழிபாடு.`
       }
     }
   };
@@ -7050,7 +7074,7 @@ export function generateKundliRemedyReport(
       en: "Veda Moorthy Chaitanya Pandit",
       hi: "वेदमूर्ति चैतन्य पंडित",
       te: "వేదమూర్తి చైతన్య పండిట్",
-      ta: "வேதமூர்த்தி சைதன்ய பண்டிட்"
+      ta: "வேதமூர்த்தி சைதன்ய பண்டிதர்"
     },
     priestTitle: {
       kn: "ಪ್ರಧಾನ ಅರ್ಚಕರು & ಧರ್ಮಕರ್ತರು, ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ",
@@ -7062,11 +7086,11 @@ export function generateKundliRemedyReport(
     phone: "+91 94821 09844",
     sanskritAshirvada: "॥ ॐ स्वस्ति प्रजाभ्यः परिपालयन्तां न्यायेन मार्गेण महीं महीशाः । शुभं भवतु कल्याणं च वर्धताम् ॥",
     ashirvadaMeaning: {
-      kn: `${input.gothra ? input.gothra + " ಗೋತ್ರದ " : ""}${input.name ? input.name + " ರವರಿಗೆ " : ""}ಭಗವಾನ್ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನ ಪರಮ ಕೃಪೆಯಿಂದ ತಮ್ಮ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳು, ಮನಸ್ಸಿನ ಕ್ರೋಧ-ಆತಂಕಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆಯುರಾರೋಗ್ಯ, ಸುಖ-ಶಾಂತಿ ಮತ್ತು ಅಖಂಡ ಯಶಸ್ಸು ಲಭಿಸಲಿ ಎಂದು ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಿಂದ ಆಶೀರ್ವದಿಸುತ್ತೇವೆ.`,
-      en: `For devotee ${input.name || "devotee"}${input.gothra ? " of " + input.gothra + " Gotra" : ""}, by the supreme grace of Lord Mahabaleshwara at Gokarna, may all planetary afflictions and life obstacles be dissolved, bestowing you with health, peace, longevity, and auspicious prosperity.`,
-      hi: `श्री ${input.name || "भक्त"}${input.gothra ? " (" + input.gothra + " गोत्र)" : ""} पर भगवान श्री महाबलेश्वर की असीम अनुकंपा से समस्त ग्रह दोष और जीवन के संताप दूर हों तथा सुख-शांति एवं ऐश्वर्य की वृद्धि हो।`,
-      te: `${input.gothra ? input.gothra + " గోత్రోద్భవులైన " : ""}${input.name ? input.name + " గారికి " : ""}శ్రీ మహాబలేశ్వరుని దివ్య కృపతో సర్వ దోషాలు తొలగి ఆయురారోగ్యాలు, మనశ్శాంతి కలగాలని ఆశీర్వదిస్తున్నాము.`,
-      ta: `${input.gothra ? input.gothra + " கோத்திர " : ""}${input.name ? input.name + " அவர்களுக்கு " : ""}ஸ்ரீ மகாபலேஸ்வரரின் திருவருளால் சகல தோஷங்களும் நீங்கி ஆரோக்கியமும் மன அமைதியும் உண்டாக ஆசீர்வதிக்கிறோம்.`
+      kn: `${input.gothra ? formatNameForLanguage(input.gothra, "kn", "") + " ಗೋತ್ರದ " : ""}${input.name ? formatNameForLanguage(input.name, "kn", "ಭಕ್ತ") + " ರವರಿಗೆ " : ""}ಭಗವಾನ್ ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರನ ಪರಮ ಕೃಪೆಯಿಂದ ತಮ್ಮ ಸಮಸ್ತ ಗ್ರಹ ದೋಷಗಳು, ಮನಸ್ಸಿನ ಕ್ರೋಧ-ಆತಂಕಗಳು ನಿವಾರಣೆಯಾಗಿ, ಆಯುರಾರೋಗ್ಯ, ಸುಖ-ಶಾಂತಿ ಮತ್ತು ಅಖಂಡ ಯಶಸ್ಸು ಲಭಿಸಲಿ ಎಂದು ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಿಂದ ಆಶೀರ್ವದಿಸುತ್ತೇವೆ.`,
+      en: `For devotee ${formatNameForLanguage(input.name, "en", "devotee")}${input.gothra ? " of " + formatNameForLanguage(input.gothra, "en", "") + " Gotra" : ""}, by the supreme grace of Lord Mahabaleshwara at Gokarna, may all planetary afflictions and life obstacles be dissolved, bestowing you with health, peace, longevity, and auspicious prosperity.`,
+      hi: `श्री ${formatNameForLanguage(input.name, "hi", "भक्त")}${input.gothra ? " (" + formatNameForLanguage(input.gothra, "hi", "") + " गोत्र)" : ""} पर भगवान श्री महाबलेश्वर की असीम अनुकंपा से समस्त ग्रह दोष और जीवन के संताप दूर हों तथा सुख-शांति एवं ऐश्वर्य की वृद्धि हो।`,
+      te: `${input.gothra ? formatNameForLanguage(input.gothra, "te", "") + " గోత్రోద్భవులైన " : ""}${input.name ? formatNameForLanguage(input.name, "te", "భక్తులు") + " గారికి " : ""}శ్రీ మహాబలేశ్వరుని దివ్య కృపతో సర్వ దోషాలు తొలగి ఆయురారోగ్యాలు, మనశ్శాంతి కలగాలని ఆశీర్వదిస్తున్నాము.`,
+      ta: `${input.gothra ? formatNameForLanguage(input.gothra, "ta", "") + " கோத்திர " : ""}${input.name ? formatNameForLanguage(input.name, "ta", "பக்தர்") + " அவர்களுக்கு " : ""}ஸ்ரீ மகாபலேஸ்வரரின் திருவருளால் சகல தோஷங்களும் நீங்கி ஆரோக்கியமும் மன அமைதியும் உண்டாக ஆசீர்வதிக்கிறோம்.`
     },
     templeSealText: {
       kn: "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನಂ · ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಅಧಿಕೃತ ಮುದ್ರೆ",

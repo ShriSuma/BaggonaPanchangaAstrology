@@ -480,9 +480,25 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
   }
 };
 
+function formatDevoteeNameForLanguage(name: string, targetLang: string): string {
+  if (!name || !name.trim()) return "Devotee";
+  const trimmed = name.trim();
+  const lang = (targetLang || "kn").toLowerCase();
+
+  if (lang === "kn" && /[ಀ-೿]/.test(trimmed)) return trimmed;
+  if (lang === "hi" && /[\u0900-\u097F]/.test(trimmed)) return trimmed;
+  if (lang === "te" && /[\u0C00-\u0C7F]/.test(trimmed)) return trimmed;
+  if (lang === "ta" && /[\u0B80-\u0BFF]/.test(trimmed)) return trimmed;
+  if (lang === "en" && !/[\u0900-\u0D7F]/.test(trimmed)) return trimmed;
+
+  return transliterateName(trimmed, lang);
+}
+
 /** Deterministic Shastric synthesis to guarantee 100% complete, non-generic narrative if AI is pending or offline */
 function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code: SupportedLanguage): string {
   const { devoteeName, gotra, lagnaName, rashiName, nakshatraName, primaryStruggle, dashaBhuktiAnalysis, gokarnaTempleRemedies, personalizedStotras, lifeTurnaroundTiming } = diagnosis;
+  const dispDevotee = formatDevoteeNameForLanguage(devoteeName, code);
+  const dispGotra = gotra ? formatDevoteeNameForLanguage(gotra, code) : "";
   const stotra = personalizedStotras[0] || personalizedStotras[1];
   const stotraTitle = stotra?.title[code] || stotra?.title.kn || "";
   const sevaName = gokarnaTempleRemedies?.prescribedSeva?.name[code] || gokarnaTempleRemedies?.prescribedSeva?.name.kn || "";
@@ -500,7 +516,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
       ? `Under the active ${sandhiTitle} transition, `
       : "";
     return `॥ Sri Gokarna Mahabaleshwara Prasanna ॥\n` +
-      `Upon deep shastric examination of the natal horoscope for ${devoteeName}${gotra ? ` (${gotra} Gotra)` : ""}, born under ${lagnaStr} Lagna and ${rashiStr} Rashi (${nakshatraStr} Nakshatra), active planetary currents unfold under ${dashaStr}. ${sandhiPhrase}the primary karmic challenge manifests as ${struggleTitle}.\n` +
+      `Upon deep shastric examination of the natal horoscope for ${dispDevotee}${dispGotra ? ` (${dispGotra} Gotra)` : ""}, born under ${lagnaStr} Lagna and ${rashiStr} Rashi (${nakshatraStr} Nakshatra), active planetary currents unfold under ${dashaStr}. ${sandhiPhrase}the primary karmic challenge manifests as ${struggleTitle}.\n` +
       `The moment you commence this consecrated sadhana with faith, self-doubt, inner turbulence, and hesitation dissolve completely, instilling unshakable confidence, mental peace, and divine fortitude. Within 10 days of starting this practice: ${day10Text} Furthermore, after 15 days: ${day15Text} Offering the sacred ${sevaName} at Sri Kshetra Gokarna Mahabaleshwara and reciting daily ${stotraTitle} permanently neutralizes planetary afflictions, granting enduring protection, prosperity, and triumphant success.`;
   }
   if (code === "hi") {
@@ -508,7 +524,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
       ? `वर्तमान में ${sandhiTitle} संधिकाल के प्रभाव से `
       : "";
     return `॥ श्री गोकर्ण महाबलेश्वर प्रसन्न ॥\n` +
-      `जातक ${devoteeName}${gotra ? ` (${gotra} गोत्र)` : ""} की जन्म कुंडली का पाराशरी शास्त्र अनुसार सूक्ष्म विश्लेषण किया गया है। ${lagnaStr} लग्न एवं ${rashiStr} राशि (${nakshatraStr} नक्षत्र) में जन्म होने से वर्तमान में ${dashaStr} चल रही है। ${sandhiPhrase}मुख्य रूप से ${struggleTitle} की स्थिति उत्पन्न हो रही है।\n` +
+      `जातक ${dispDevotee}${dispGotra ? ` (${dispGotra} गोत्र)` : ""} की जन्म कुंडली का पाराशरी शास्त्र अनुसार सूक्ष्म विश्लेषण किया गया है। ${lagnaStr} लग्न एवं ${rashiStr} राशि (${nakshatraStr} नक्षत्र) में जन्म होने से वर्तमान में ${dashaStr} चल रही है। ${sandhiPhrase}मुख्य रूप से ${struggleTitle} की स्थिति उत्पन्न हो रही है।\n` +
       `इस शास्त्रोक्त दैवीय साधना को पूर्ण श्रद्धा से प्रारंभ करते ही मन का भय, संशय और व्याकुलता समाप्त होकर अटूट आत्मविश्वास और दैवीय आत्मबल का संचार होगा। साधना प्रारंभ के १० दिनों में: ${day10Text} तत्पश्चात १५ दिनों में: ${day15Text} श्री क्षेत्र गोकर्ण महाबलेश्वर सन्निधि में विहित ${sevaName} एवं नित्य ${stotraTitle} के पाठ से समस्त ग्रहपीड़ा शांत होकर अखंड सुख-समृद्धि, विजय और मनःशांति की प्राप्ति होगी।`;
   }
   if (code === "te") {
@@ -516,7 +532,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
       ? `ప్రస్తుతం ${sandhiTitle} సంధి ప్రభావంతో `
       : "";
     return `॥ శ్రీ గోకర్ణ మహాబలేశ్వర ప్రసన్న ॥\n` +
-      `జాతకుడు ${devoteeName}${gotra ? ` (${gotra} గోత్రం)` : ""} గారి జన్మ కుండలిని పారాశరి శాస్త్రోక్త పద్ధతిలో పరిశీలించడమైనది. ${lagnaStr} లగ్నం మరియు ${rashiStr} రాశి (${nakshatraStr} నక్షత్రం) లో జన్మించిన వీరికి, ప్రస్తుత ${dashaStr} ప్రభావంతో ${sandhiPhrase}ప్రధానంగా ${struggleTitle} ఎదురవుతోంది.\n` +
+      `జాతకుడు ${dispDevotee}${dispGotra ? ` (${dispGotra} గోత్రం)` : ""} గారి జన్మ కుండలిని పారాశరి శాస్త్రోక్త పద్ధతిలో పరిశీలించడమైనది. ${lagnaStr} లగ్నం మరియు ${rashiStr} రాశి (${nakshatraStr} నక్షత్రం) లో జన్మించిన వీరికి, ప్రస్తుత ${dashaStr} ప్రభావంతో ${sandhiPhrase}ప్రధానంగా ${struggleTitle} ఎదురవుతోంది.\n` +
       `ఈ పవిత్ర సాధనను భక్తిశ్రద్ధలతో ప్రారంభించిన క్షణం నుంచే మనస్సులోని భయం, సంశయం తొలగిపోయి అచంచలమైన ఆత్మవిశ్వాసం, దైవబలం కలుగుతాయి. సాధన ప్రారంభించిన 10 రోజుల్లో: ${day10Text} అనంతరం 15 రోజుల్లో: ${day15Text} శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర సన్నిధిలో ${sevaName} మరియు నిత్యం ${stotraTitle} పఠనం ద్వారా గ్రహదోషాలు నివారణమై సంపూర్ణ మనశ్శాంతి, కార్యానుకూలత లభిస్తాయి.`;
   }
   if (code === "ta") {
@@ -524,7 +540,7 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
       ? `தற்போது ${sandhiTitle} சந்தி தாக்கத்தால் `
       : "";
     return `॥ ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் பிரசன்னம் ॥\n` +
-      `ஜாதகர் ${devoteeName}${gotra ? ` (${gotra} கோத்திரம்)` : ""} அவர்களின் ஜாதகத்தை பராசர ஜோதிட முறைப்படி ஆய்வு செய்ததில், ${lagnaStr} லக்னம் மற்றும் ${rashiStr} ராசி (${nakshatraStr} நட்சத்திரம்) அமைந்திருக்கிறது. நடப்பு ${dashaStr} காலத்தில் ${sandhiPhrase}${struggleTitle} சவால் ஏற்படுகிறது.\n` +
+      `ஜாதகர் ${dispDevotee}${dispGotra ? ` (${dispGotra} கோத்திரம்)` : ""} அவர்களின் ஜாதகத்தை பராசர ஜோதிட முறைப்படி ஆய்வு செய்ததில், ${lagnaStr} லக்னம் மற்றும் ${rashiStr} ராசி (${nakshatraStr} நட்சத்திரம்) அமைந்திருக்கிறது. நடப்பு ${dashaStr} காலத்தில் ${sandhiPhrase}${struggleTitle} சவால் ஏற்படுகிறது.\n` +
       `இந்த தெய்வீக வழிபாட்டை நம்பிக்கையுடன் தொடங்கும் தருணத்திலிருந்தே மனதில் உள்ள அச்சமும் தயக்கமும் நீங்கி, உறுதியான தன்னம்பிக்கையும் இறைசக்தியும் பெருகும். பரிகாரம் தொடங்கிய 10 நாட்களில்: ${day10Text} தொடர்ந்து 15 நாட்களில்: ${day15Text} ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் ஆலயத்தில் ${sevaName} பூஜை மற்றும் தினமும் ${stotraTitle} பாராயணம் செய்வதால் கிரக தோஷங்கள் நீங்கி, மன நிம்மதியும் சுப யோகமும் வெற்றியும் நிலைக்கும்.`;
   }
   // Kannada default
@@ -532,30 +548,18 @@ function getDeterministicSacredNarration(diagnosis: KundliRemedyDiagnosis, code:
     ? `ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${sandhiTitle} ಸಂಧಿಕಾಲವು ಸಕ್ರಿಯವಾಗಿದ್ದು, `
     : "";
   return `॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ ॥\n` +
-    `ಜಾತಕರಾದ ${devoteeName}${gotra ? ` (${gotra} ಗೋತ್ರ)` : ""} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪರಾಶರೀ ಸಿದ್ಧಾಂತದಂತೆ ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ${lagnaStr} ಲಗ್ನ ಮತ್ತು ${rashiStr} ರಾಶಿಯ ${nakshatraStr} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ ಇವರಿಗೆ, ಪ್ರಸ್ತುತ ${dashaStr} ಕಾಲ ನಡೆಯುತ್ತಿದೆ. ${sandhiPhrase}ಗ್ರಹಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದ ಜೀವನದಲ್ಲಿ ಮುಖ್ಯವಾಗಿ ${struggleTitle} ಎದುರಾಗುತ್ತಿದೆ.\n` +
+    `ಜಾತಕರಾದ ${dispDevotee}${dispGotra ? ` (${dispGotra} ಗೋತ್ರ)` : ""} ಅವರ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪರಾಶರೀ ಸಿದ್ಧಾಂತದಂತೆ ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ${lagnaStr} ಲಗ್ನ ಮತ್ತು ${rashiStr} ರಾಶಿಯ ${nakshatraStr} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ ಇವರಿಗೆ, ಪ್ರಸ್ತುತ ${dashaStr} ಕಾಲ ನಡೆಯುತ್ತಿದೆ. ${sandhiPhrase}ಗ್ರಹಗಳ ತೀಕ್ಷ್ಣ ಪ್ರಭಾವದಿಂದ ಜೀವನದಲ್ಲಿ ಮುಖ್ಯವಾಗಿ ${struggleTitle} ಎದುರಾಗುತ್ತಿದೆ.\n` +
     `ಈ ಪವಿತ್ರ ಪರಿಹಾರಗಳನ್ನು ನಿಷ್ಠೆಯಿಂದ ಪ್ರಾರಂಭಿಸಿದ ತಕ್ಷಣವೇ ಮನಸ್ಸಿನ ಭಯ, ಆತಂಕ ಹಾಗೂ ಅಸ್ಥಿರತೆಗಳು ಕರಗಿ ಅಚಲ ಆತ್ಮವಿಶ್ವಾಸ, ಧೈರ್ಯ ಹಾಗೂ ದೈವಬಲ ಮೂಡುತ್ತದೆ. ಸಾಧನೆ ಪ್ರಾರಂಭಿಸಿದ ೧೦ ದಿನಗಳಲ್ಲಿ: ${day10Text} ನಂತರ ೧೫ ದಿನಗಳಲ್ಲಿ: ${day15Text} ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ನಿಗದಿತ ${sevaName} ಸೇವೆ ಹಾಗೂ ನಿತ್ಯ ${stotraTitle} ಪಠಣೆಯಿಂದ ಸಮಸ್ತ ಗ್ರಹಪೀಡೆಗಳು ಕರಗಿ ಅಖಂಡ ಶಾಂತಿ, ದೃಢ ಯಶಸ್ಸು ಹಾಗೂ ಭಾಗ್ಯೋದಯ ಸಿದ್ಧಿಸುತ್ತದೆ.`;
 }
 
 
-function formatDevoteeNameForLanguage(name: string, targetLang: string): string {
-  if (!name || !name.trim()) return "Devotee";
-  const trimmed = name.trim();
-  const lang = (targetLang || "kn").toLowerCase();
 
-  if (lang === "kn" && /[ಀ-೿]/.test(trimmed)) return trimmed;
-  if (lang === "hi" && /[ऀ-ॿ]/.test(trimmed)) return trimmed;
-  if (lang === "te" && /[ఀ-౿]/.test(trimmed)) return trimmed;
-  if (lang === "ta" && /[஀-௿]/.test(trimmed)) return trimmed;
-  if (lang === "en" && !/[ऀ-ൿ]/.test(trimmed)) return trimmed;
-
-  return transliterateName(trimmed, lang);
-}
 
 const PRIEST_DISPLAY_NAMES: Record<SupportedLanguage, string> = {
   kn: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
   hi: "वेदमूर्ति चैतन्य पंडित",
   te: "వేదమూర్తి చైతన్య పండిట్",
-  ta: "வேதமூர்த்தி சைதன்ய பண்டிட்",
+  ta: "வேதமூர்த்தி சைதன்ய பண்டிதர்",
   en: "Veda Moorthy Chaitanya Pandit"
 };
 
@@ -563,7 +567,7 @@ const SHORT_PRIEST_DISPLAY_NAMES: Record<SupportedLanguage, string> = {
   kn: "ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್",
   hi: "वेदमूर्ति चैतन्य पंडित",
   te: "వేదమూర్తి చైతన్య పండిట్",
-  ta: "வேதமூர்த்தி சைதன்ய பண்டிட்",
+  ta: "வேதமூர்த்தி சைதன்ய பண்டிதர்",
   en: "Veda Moorthy Chaitanya Pandit"
 };
 
@@ -661,6 +665,9 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
   const primaryGraha = afflictionFactors?.[0]?.graha || dashaBhuktiAnalysis?.currentMahaDasha || "sarvadosha";
   const grahaMantra = getRemedyJapaForGraha(primaryGraha);
 
+  const displayDevoteeName = formatDevoteeNameForLanguage(devoteeName, code);
+  const displayGotra = gotra ? formatDevoteeNameForLanguage(gotra, code) : "";
+
   const stotra = personalizedStotras[0] || personalizedStotras[1];
 
   const mandalaVrata = diagnosis.mandalaVrataSadhana || computeMandalaVrataSadhana(
@@ -704,10 +711,24 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
     return bm.kannada;
   };
 
-  // Determine active narration text (AI synthesized or rich deterministic fallback)
+  const isScriptMatchingLang = (text: string, langCode: SupportedLanguage) => {
+    if (!text) return false;
+    if (langCode === "kn") return /[\u0C80-\u0CFF]/.test(text);
+    if (langCode === "hi") return /[\u0900-\u097F]/.test(text);
+    if (langCode === "te") return /[\u0C00-\u0C7F]/.test(text);
+    if (langCode === "ta") return /[\u0B80-\u0BFF]/.test(text);
+    if (langCode === "en") return !/[\u0900-\u0D7F]/.test(text);
+    return false;
+  };
+
+  // Determine active narration text (AI synthesized with language-purity check, or rich deterministic fallback)
   const rawNarrationText =
-    diagnosis.aiNarrationText?.[code]?.trim() ||
-    (diagnosis.isAiGenerated && typeof diagnosis.aiNarration === "string" ? diagnosis.aiNarration.trim() : "") ||
+    (diagnosis.aiNarrationText?.[code]?.trim() && isScriptMatchingLang(diagnosis.aiNarrationText[code], code)
+      ? diagnosis.aiNarrationText[code].trim()
+      : "") ||
+    (diagnosis.isAiGenerated && typeof diagnosis.aiNarration === "string" && isScriptMatchingLang(diagnosis.aiNarration, code)
+      ? diagnosis.aiNarration.trim()
+      : "") ||
     getDeterministicSacredNarration(diagnosis, code);
 
   const narrationText = rawNarrationText
@@ -820,8 +841,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
           >
             <div>
               <span style={{ color: "#78350F", fontWeight: 800 }}>👤 {i18n.devotee}</span>{" "}
-              <span style={{ color: "#451A03", fontWeight: 900 }}>{devoteeName}</span>
-              {gotra && <span style={{ color: "#92400E", fontSize: "11px", display: "inline-block", marginLeft: "4px" }}>({gotra} {i18n.gotraSuffix})</span>}
+              <span style={{ color: "#451A03", fontWeight: 900 }}>{displayDevoteeName}</span>
+              {displayGotra && <span style={{ color: "#92400E", fontSize: "11px", display: "inline-block", marginLeft: "4px" }}>({displayGotra} {i18n.gotraSuffix})</span>}
             </div>
             <div>
               <span style={{ color: "#78350F", fontWeight: 800 }}>🏛️ {i18n.lagna}</span>{" "}
@@ -1147,7 +1168,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     </span>
                   </div>
                   <div style={{ color: "#14532D", marginTop: "1px" }}>
-                    <span style={{ fontWeight: 800 }}>{isKn ? "• ದೇವತೆ: " : isHi ? "• देवता: " : isTe ? "• దేవత: " : isTa ? "• தெய்வம்: " : "• Deity: "}</span>{panchangaRemedies.yogaRemedy.deity}
+                    <span style={{ fontWeight: 800 }}>{isKn ? "• ದೇವತೆ: " : isHi ? "• देवता: " : isTe ? "• దేవత: " : isTa ? "• தெய்வம்: " : "• Deity: "}</span>{formatDevoteeNameForLanguage(panchangaRemedies.yogaRemedy.deity, code)}
                   </div>
                   <div style={{ color: "#166534", marginTop: "1px" }}>
                     {panchangaRemedies.yogaRemedy.shantiPractice[code] || panchangaRemedies.yogaRemedy.shantiPractice.kn}
@@ -1159,11 +1180,11 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#1E40AF" }}>
                     <span>⚡ {isKn ? "ಜನ್ಮ ಕರಣ: " : isHi ? "जन्म करण: " : isTe ? "జన్మ కరణం: " : isTa ? "ஜன்ம கரணம்: " : "Birth Karana: "}{panchangaRemedies.karanaRemedy.karanaName[code] || panchangaRemedies.karanaRemedy.karanaName.kn}</span>
                     <span style={{ fontSize: "9.5px", background: "#DBEAFE", color: "#1D4ED8", padding: "1px 5px", borderRadius: "5px", fontWeight: 800 }}>
-                      {isKn ? "ತತ್ತ್ವ: " : isHi ? "तत्व: " : isTe ? "తత్త్వం: " : isTa ? "தத்துவம்: " : "Element: "}{panchangaRemedies.karanaRemedy.tatva}
+                      {isKn ? "ತತ್ತ್ವ: ಪೃಥ್ವಿ" : isHi ? "तत्व: पृथ्वी" : isTe ? "తత్త్వం: పృథ్వి" : isTa ? "தத்துவம்: நிலம்" : "Element: Earth"}
                     </span>
                   </div>
                   <div style={{ color: "#1E3A8A", marginTop: "1px" }}>
-                    <span style={{ fontWeight: 800 }}>{isKn ? "• ಅಧಿದೇವತೆ: " : isHi ? "• अधिदेवता: " : isTe ? "• అధిదేవత: " : isTa ? "• அதிதேவதை: " : "• Presiding Deity: "}</span>{panchangaRemedies.karanaRemedy.deity}
+                    <span style={{ fontWeight: 800 }}>{isKn ? "• ಅಧಿದೇವತೆ: " : isHi ? "• अधिदेवता: " : isTe ? "• అధిదేవత: " : isTa ? "• அதிதேவதை: " : "• Presiding Deity: "}</span>{formatDevoteeNameForLanguage(panchangaRemedies.karanaRemedy.deity, code)}
                   </div>
                   <div style={{ color: "#1E40AF", marginTop: "1px" }}>
                     {panchangaRemedies.karanaRemedy.karyaShanti[code] || panchangaRemedies.karanaRemedy.karyaShanti.kn}

@@ -1342,11 +1342,11 @@ export function buildTurningPointPoints(opts: TurningPointOptions): AstrologerPo
   points.push({
     id: 11,
     text: isKn
-      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ವೇದಮೂರ್ತಿ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (+91 99723 39362) ಅವರ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಸರ್ವಕಾರ್ಯ ಸಿದ್ಧಿ ಲಭಿಸಲಿ."
-      : "Blessed under the auspices of Sri Kshetra Gokarna Chief Priest Vedamurthy Shreeram Pandit (+91 99723 39362).",
+      ? "ಶ್ರೀ ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್ (+91 94821 09844) ಅವರ ಆಶೀರ್ವಾದದೊಂದಿಗೆ ಸರ್ವಕಾರ್ಯ ಸಿದ್ಧಿ ಲಭಿಸಲಿ."
+      : "Blessed under the auspices of Sri Kshetra Gokarna Chief Priest Veda Moorthy Chaitanya Pandit (+91 94821 09844).",
     tone: "good",
     tagKn: "ವೇದಮೂರ್ತಿ ಆಶೀರ್ವಾದ",
-    tagEn: "Priest Shreeram Pandit Seal"
+    tagEn: "Priest Chaitanya Pandit Seal"
   });
 
   return points;
