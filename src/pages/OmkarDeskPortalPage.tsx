@@ -18,7 +18,6 @@ import { exportPanchangaWithDashaPdf } from "../core/ExportUtils";
 import { calculateTraditionalBaggona } from "../core/TraditionalBaggonaEngine";
 import { KundliRemedyPdfTemplate } from "../components/kundli/KundliRemedyPdfTemplate";
 import { generateKundliRemedyReport, type KundliRemedyDiagnosis } from "../features/remedies/kundliRemedyEngine";
-import { Baggona8kPromoPoster } from "../components/poster/Baggona8kPromoPoster";
 import {
   getOmkarZipFileName,
   getOmkarWhatsAppShareUrl,
@@ -77,8 +76,7 @@ export default function OmkarDeskPortalPage(): JSX.Element {
   const [gender, setGender] = useState<"male" | "female">("male");
   const [gotra, setGotra] = useState("Kashyapa / Shiva");
 
-  // Poster 1 Offering Options
-  const [showPosterModal, setShowPosterModal] = useState(false);
+  // Package Offering Options
   const [includeRemedy, setIncludeRemedy] = useState(false);
   const [isDownloadingKundli, setIsDownloadingKundli] = useState(false);
   const [isDownloadingBhavishyaV1, setIsDownloadingBhavishyaV1] = useState(false);
@@ -1032,13 +1030,6 @@ export default function OmkarDeskPortalPage(): JSX.Element {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowPosterModal(true)}
-              className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black rounded-lg hover:from-amber-400 hover:to-amber-500 shadow-md transition flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>🖼️</span>
-              <span>8K ಪ್ರಚಾರ ಪೋಸ್ಟರ್ (₹330 / ₹430)</span>
-            </button>
-            <button
               onClick={() => logout()}
               className="px-3 py-1.5 bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-bold rounded-lg hover:bg-red-900/60 transition cursor-pointer"
             >
@@ -1047,13 +1038,6 @@ export default function OmkarDeskPortalPage(): JSX.Element {
           </div>
         </div>
       </header>
-
-      {/* 8K PROMO POSTER MODAL OVERLAY */}
-      {showPosterModal && (
-        <div className="fixed inset-0 z-50 bg-black/95 overflow-y-auto">
-          <Baggona8kPromoPoster onClose={() => setShowPosterModal(false)} />
-        </div>
-      )}
 
       {/* Main Container */}
       <main className="max-w-5xl mx-auto px-4 py-6">

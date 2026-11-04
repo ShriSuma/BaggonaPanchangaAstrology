@@ -523,6 +523,9 @@ export default function App(): JSX.Element {
   }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute]);
 
   if (isPosterRoute) {
+    if (!isAuthenticated || !isMasterOrSuperAdmin) {
+      return <LoginPage />;
+    }
     return (
       <ErrorBoundary>
         <BaggonaPosterPage />
@@ -762,7 +765,9 @@ export default function App(): JSX.Element {
           isMasterOrSuperAdmin ? <ConsultationGeneratorPage /> : <LoginPage />
         )}
         {currentPage === "omkar_desk" && <OmkarDeskPortalPage />}
-        {currentPage === "poster" && <BaggonaPosterPage />}
+        {currentPage === "poster" && (
+          isMasterOrSuperAdmin ? <BaggonaPosterPage /> : <LoginPage />
+        )}
       </Layout>
     </ErrorBoundary>
   );

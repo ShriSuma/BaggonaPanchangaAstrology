@@ -2004,6 +2004,18 @@ export const SuperAdminDashboard: React.FC = () => {
 
           <button
             type="button"
+            onClick={() => useAppStore.getState().setPage("poster")}
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-slate-950 shadow-md hover:brightness-105 cursor-pointer"
+          >
+            <span>🖼️</span>
+            <span>೮K ಪ್ರಚಾರ ಪೋಸ್ಟರ್ & AI ಸ್ಟುಡಿಯೋ</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-slate-950 text-amber-300 border border-amber-400">
+              Super Omi
+            </span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => {
               setActiveTab("voice_db");
               setAdminVoiceProfiles(getAllVoiceProfiles());

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -16,6 +16,94 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
   const [exportStage, setExportStage] = useState("");
   const posterRef = useRef<HTMLDivElement>(null);
   const tableTentRef = useRef<HTMLDivElement>(null);
+
+  // =========================================================================
+  // SUPER ADMIN (SUPER OMI) CONFIGURABLE OFFERS & PRICING STATE
+  // =========================================================================
+  const [offer1Price, setOffer1Price] = useState(330);
+  const [offer1RegularPrice, setOffer1RegularPrice] = useState(500);
+  const [offer1TitleKn, setOffer1TitleKn] = useState("ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ದರ್ಶನ V1 + ಜನ್ಮ ಕುಂಡಲಿ");
+  const [offer1TitleEn, setOffer1TitleEn] = useState("Premium Life Bhavishya V1 (40+ Pgs) + South Indian Kundali");
+
+  const [offer2Price, setOffer2Price] = useState(430);
+  const [offer2RegularPrice, setOffer2RegularPrice] = useState(700);
+  const [offer2TitleKn, setOffer2TitleKn] = useState("ಕುಂಡಲಿ + ಭವಿಷ್ಯ V1 + ದೈವಿಕ ಪರಿಹಾರ ವರದಿ");
+  const [offer2TitleEn, setOffer2TitleEn] = useState("Kundali + Bhavishya V1 + Daivika Parihara (Remedy Report)");
+
+  const [heritageTextKn, setHeritageTextKn] = useState("೧೪೦+ ವರ್ಷಗಳ ಪವಿತ್ರ ಪರಾಶರೀ ಸಿದ್ಧಾಂತ ಜ್ಯೋತಿಷ್ಯ ಪರಂಪರೆ");
+  const [heritageTextEn, setHeritageTextEn] = useState("140+ YEARS OF SACRED VEDIC HERITAGE");
+  const [templeInvocation, setTempleInvocation] = useState("॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ ॥");
+  const [dispatchTime, setDispatchTime] = useState("5 Minutes");
+  const [ctaTextKn, setCtaTextKn] = useState("ಪಡೆಯಲು ದಯವಿಟ್ಟು ಕ್ಯಾಷಿಯರ್ ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ");
+  const [ctaTextEn, setCtaTextEn] = useState("FOR BOOKING & DETAILS, PLEASE CONTACT THE CASHIER DESK");
+  const [customAnnouncement, setCustomAnnouncement] = useState("");
+
+  // Studio Drawer Controls (Super Omi Control Panel)
+  const [showStudioPanel, setShowStudioPanel] = useState(false);
+  const [studioTab, setStudioTab] = useState<"offers" | "prompt" | "gallery">("offers");
+  const [customPromptTweaks, setCustomPromptTweaks] = useState("");
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+
+  // Dynamic Savings Calculations
+  const offer1Savings = Math.max(0, offer1RegularPrice - offer1Price);
+  const offer2Savings = Math.max(0, offer2RegularPrice - offer2Price);
+
+  // Dynamic Nano Banana / Imagen AI Generation Prompt
+  const generatedAiPrompt = useMemo(() => {
+    return `Create an ultra-high quality, professional luxury temple marketing poster (A4 portrait aspect ratio 1:1.414, 8K print quality) for "Baggona Panchanga" (${heritageTextEn} / ${heritageTextKn}).
+The poster is designed for a cashier desk display and restaurant table standee.
+Key visual and textual elements to render with crisp, clear, beautiful luxury gold and deep maroon styling:
+- Header: "${templeInvocation}" and "BAGGONA PANCHANGA (${heritageTextKn}) - ${heritageTextEn}"
+- Special Pricing Badges:
+  1. Standard Package: ₹${offer1Price} (Original ₹${offer1RegularPrice}, SAVE ₹${offer1Savings}) - ${offer1TitleEn} (South Indian Janana Kundali with Lagna, Navagrahas, and Maandi/Gulika placements + 40-Page Premium Bhavishya PDF with 10 Chapters).
+  2. Complete Sacred Package + Daivika Parihara: ₹${offer2Price} (Original ₹${offer2RegularPrice}, SAVE ₹${offer2Savings}) - ${offer2TitleEn} (Kaal Sarp, Pitru, Kuja dosha diagnostics, 45-day Mandala Vrata, Beeja mantras, Gokarna Temple Sevas, and Chief Priest Vedic Blessing).
+- Delivery badge: "Lightning ${dispatchTime} Dispatch via WhatsApp & Email in a secure ZIP file!"
+- Call to action at bottom: "${ctaTextEn} (Provide Name, DOB, Time, & Place of Birth)"
+${customAnnouncement ? `- Special Announcement Banner: "${customAnnouncement}"\n` : ""}${customPromptTweaks ? `- Stylistic Notes: ${customPromptTweaks}\n` : ""}- Traditional sacred Vedic aesthetic: ornate gold filigree borders, glowing Diya / deepam, temple motifs, sacred warm golden parchment background, ultra-sharp typography in English and Kannada script.`;
+  }, [
+    offer1Price,
+    offer1RegularPrice,
+    offer1Savings,
+    offer1TitleEn,
+    offer2Price,
+    offer2RegularPrice,
+    offer2Savings,
+    offer2TitleEn,
+    heritageTextEn,
+    heritageTextKn,
+    templeInvocation,
+    dispatchTime,
+    ctaTextEn,
+    customAnnouncement,
+    customPromptTweaks
+  ]);
+
+  const handleCopyPrompt = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(generatedAiPrompt);
+      setCopiedPrompt(true);
+      setTimeout(() => setCopiedPrompt(false), 2500);
+    }
+  };
+
+  const handleResetDefaults = () => {
+    setOffer1Price(330);
+    setOffer1RegularPrice(500);
+    setOffer1TitleKn("ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ದರ್ಶನ V1 + ಜನ್ಮ ಕುಂಡಲಿ");
+    setOffer1TitleEn("Premium Life Bhavishya V1 (40+ Pgs) + South Indian Kundali");
+    setOffer2Price(430);
+    setOffer2RegularPrice(700);
+    setOffer2TitleKn("ಕುಂಡಲಿ + ಭವಿಷ್ಯ V1 + ದೈವಿಕ ಪರಿಹಾರ ವರದಿ");
+    setOffer2TitleEn("Kundali + Bhavishya V1 + Daivika Parihara (Remedy Report)");
+    setHeritageTextKn("೧೪೦+ ವರ್ಷಗಳ ಪವಿತ್ರ ಪರಾಶರೀ ಸಿದ್ಧಾಂತ ಜ್ಯೋತಿಷ್ಯ ಪರಂಪರೆ");
+    setHeritageTextEn("140+ YEARS OF SACRED VEDIC HERITAGE");
+    setTempleInvocation("॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ ॥");
+    setDispatchTime("5 Minutes");
+    setCtaTextKn("ಪಡೆಯಲು ದಯವಿಟ್ಟು ಕ್ಯಾಷಿಯರ್ ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ");
+    setCtaTextEn("FOR BOOKING & DETAILS, PLEASE CONTACT THE CASHIER DESK");
+    setCustomAnnouncement("");
+    setCustomPromptTweaks("");
+  };
 
   // High-Resolution 8K Print / PDF Export Handler
   const handleDownloadPdf = async () => {
@@ -99,16 +187,16 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
   return (
     <div className="min-h-screen bg-slate-950 p-3 sm:p-6 text-slate-100 flex flex-col items-center">
       {/* Top Floating Control Bar (Hidden on Print) */}
-      <div className="w-full max-w-5xl mb-6 bg-slate-900/90 border border-amber-500/40 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex flex-wrap items-center justify-between gap-4 print:hidden">
+      <div className="w-full max-w-5xl mb-4 bg-slate-900/90 border border-amber-500/40 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex flex-wrap items-center justify-between gap-4 print:hidden">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🪔</span>
+            <span className="text-2xl">👑</span>
             <h1 className="text-lg sm:text-xl font-black text-amber-300 font-serif">
-              ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — 8K ಪ್ರಚಾರ ಪೋಸ್ಟರ್ & ಟೇಬಲ್ ಸ್ಟ್ಯಾಂಡ್
+              ಸೂಪರ್ ಓಮಿ ೮K ಪ್ರಚಾರ ಪೋಸ್ಟರ್ & AI ಸ್ಟುಡಿಯೋ (Super Admin Studio)
             </h1>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            140+ Years Heritage · Bilingual (ಕನ್ನಡ & English) · Ready for Cashier Desk & Table Tents
+            ಕೇವಲ ಸೂಪರ್ ಅಡ್ಮಿನ್ ನಿಯಂತ್ರಣ · 140+ Years Heritage · Custom Offers, AI Prompts & 8K Exports
           </p>
         </div>
 
@@ -117,7 +205,7 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
           <button
             type="button"
             onClick={() => setViewMode("cashier_poster")}
-            className={`px-3 py-1.5 rounded-lg transition ${
+            className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
               viewMode === "cashier_poster"
                 ? "bg-amber-500 text-slate-950 shadow-md font-black"
                 : "text-amber-200 hover:text-white"
@@ -128,7 +216,7 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
           <button
             type="button"
             onClick={() => setViewMode("table_tent")}
-            className={`px-3 py-1.5 rounded-lg transition ${
+            className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
               viewMode === "table_tent"
                 ? "bg-amber-500 text-slate-950 shadow-md font-black"
                 : "text-amber-200 hover:text-white"
@@ -140,10 +228,24 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Studio Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setShowStudioPanel(!showStudioPanel)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition shadow cursor-pointer ${
+              showStudioPanel
+                ? "bg-amber-400 text-slate-950 ring-2 ring-amber-300"
+                : "bg-amber-950/70 border border-amber-500/60 text-amber-300 hover:bg-amber-900"
+            }`}
+          >
+            <span>✨</span>
+            <span>{showStudioPanel ? "ಸ್ಟುಡಿಯೋ ಮುಚ್ಚಿ (Hide Studio)" : "ಸೂಪರ್ ಓಮಿ ಸ್ಟುಡಿಯೋ (Studio Controls)"}</span>
+          </button>
+
           <button
             type="button"
             onClick={handleBrowserPrint}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 border border-amber-500/40 text-xs font-extrabold flex items-center gap-1.5 transition shadow"
+            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 border border-amber-500/40 text-xs font-extrabold flex items-center gap-1.5 transition shadow cursor-pointer"
           >
             <span>🖨️</span>
             <span>A4 Print</span>
@@ -152,16 +254,16 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
             type="button"
             disabled={isExporting}
             onClick={handleDownloadPdf}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition shadow-lg disabled:opacity-50"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition shadow-lg disabled:opacity-50 cursor-pointer"
           >
             <span>📄</span>
-            <span>{isExporting ? exportStage || "Exporting..." : "Download A4 PDF"}</span>
+            <span>{isExporting ? exportStage || "Exporting..." : "Download PDF"}</span>
           </button>
           <button
             type="button"
             disabled={isExporting}
             onClick={handleDownloadImage}
-            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 transition shadow-lg disabled:opacity-50"
+            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 transition shadow-lg disabled:opacity-50 cursor-pointer"
           >
             <span>🖼️</span>
             <span>8K PNG</span>
@@ -170,13 +272,341 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-200 text-xs font-bold transition"
+              className="px-3 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-200 text-xs font-bold transition cursor-pointer"
             >
-              ✕ ಮುಚ್ಚಿ (Close)
+              ✕ Dashboard
             </button>
           )}
         </div>
       </div>
+
+      {/* ====================================================================== */}
+      {/* SUPER ADMIN (SUPER OMI) STUDIO CONTROL PANEL (COLLAPSIBLE DRAWER)      */}
+      {/* ====================================================================== */}
+      {showStudioPanel && (
+        <div className="w-full max-w-5xl mb-6 bg-slate-900/95 border-2 border-amber-500/60 rounded-2xl p-5 shadow-2xl backdrop-blur-lg print:hidden animate-fade-in">
+          {/* Panel Header */}
+          <div className="flex flex-wrap items-center justify-between border-b border-amber-500/30 pb-3 mb-4 gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🪄</span>
+              <div>
+                <h2 className="text-base font-black text-amber-300">
+                  ಸೂಪರ್ ಓಮಿ ಆಫರ್ ಎಡಿಟರ್ & ನ್ಯಾನೋ ಬನಾನಾ AI ಪ್ರಾಂಪ್ಟ್ ಲ್ಯಾಬ್
+                </h2>
+                <p className="text-xs text-slate-400">
+                  ಇಲ್ಲಿ ನೀಡಲಾದ ಹೊಸ ಆಫರ್‌ಗಳು, ಬೆಲೆಗಳು ಹಾಗೂ ಪಠ್ಯವು ನೇರವಾಗಿ ಕೆಳಗಿನ ಪೋಸ್ಟರ್‌ನಲ್ಲಿ ಹಾಗೂ AI ಪ್ರಾಂಪ್ಟ್‌ನಲ್ಲಿ ನವೀಕರಣಗೊಳ್ಳುತ್ತವೆ.
+                </p>
+              </div>
+            </div>
+
+            {/* Studio Navigation Tabs */}
+            <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setStudioTab("offers")}
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                  studioTab === "offers" ? "bg-amber-500 text-slate-950 font-black" : "text-slate-300 hover:text-white"
+                }`}
+              >
+                🎛️ ಹೊಸ ಆಫರ್‌ಗಳು & ಬೆಲೆ
+              </button>
+              <button
+                type="button"
+                onClick={() => setStudioTab("prompt")}
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                  studioTab === "prompt" ? "bg-amber-500 text-slate-950 font-black" : "text-slate-300 hover:text-white"
+                }`}
+              >
+                🍌 Nano Banana Prompt
+              </button>
+              <button
+                type="button"
+                onClick={() => setStudioTab("gallery")}
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                  studioTab === "gallery" ? "bg-amber-500 text-slate-950 font-black" : "text-slate-300 hover:text-white"
+                }`}
+              >
+                🖼️ ೮K AI ಗ್ಯಾಲರಿ
+              </button>
+            </div>
+          </div>
+
+          {/* TAB 1: OFFERS & PRICING CUSTOMIZATION */}
+          {studioTab === "offers" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Offer 1 Controls */}
+                <div className="bg-slate-950/80 p-4 rounded-xl border border-amber-500/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-black text-amber-400 uppercase tracking-wider">
+                      ⭐ ಕೊಡುಗೆ ೧ (Standard Offer)
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40 font-bold">
+                      ರಿಯಾಯಿತಿ: ₹{offer1Savings}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">ವಿಶೇಷ ಬೆಲೆ (Special Price ₹)</label>
+                      <input
+                        type="number"
+                        value={offer1Price}
+                        onChange={(e) => setOffer1Price(Number(e.target.value) || 0)}
+                        className="w-full bg-slate-900 border border-amber-500/40 rounded-lg px-3 py-1.5 text-sm font-black text-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">ಮೂಲ ಬೆಲೆ (Original Price ₹)</label>
+                      <input
+                        type="number"
+                        value={offer1RegularPrice}
+                        onChange={(e) => setOffer1RegularPrice(Number(e.target.value) || 0)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">ಶೀರ್ಷಿಕೆ (ಕನ್ನಡ)</label>
+                      <input
+                        type="text"
+                        value={offer1TitleKn}
+                        onChange={(e) => setOffer1TitleKn(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 text-xs text-slate-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">Title (English)</label>
+                      <input
+                        type="text"
+                        value={offer1TitleEn}
+                        onChange={(e) => setOffer1TitleEn(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 text-xs text-slate-200"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Offer 2 Controls */}
+                <div className="bg-slate-950/80 p-4 rounded-xl border border-rose-500/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-black text-rose-400 uppercase tracking-wider">
+                      🔱 ಕೊಡುಗೆ ೨ (Complete Sacred Package)
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40 font-bold">
+                      ರಿಯಾಯಿತಿ: ₹{offer2Savings}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">ವಿಶೇಷ ಬೆಲೆ (Special Price ₹)</label>
+                      <input
+                        type="number"
+                        value={offer2Price}
+                        onChange={(e) => setOffer2Price(Number(e.target.value) || 0)}
+                        className="w-full bg-slate-900 border border-rose-500/40 rounded-lg px-3 py-1.5 text-sm font-black text-rose-300 focus:outline-none focus:ring-1 focus:ring-rose-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">ಮೂಲ ಬೆಲೆ (Original Price ₹)</label>
+                      <input
+                        type="number"
+                        value={offer2RegularPrice}
+                        onChange={(e) => setOffer2RegularPrice(Number(e.target.value) || 0)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">ಶೀರ್ಷಿಕೆ (ಕನ್ನಡ)</label>
+                      <input
+                        type="text"
+                        value={offer2TitleKn}
+                        onChange={(e) => setOffer2TitleKn(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 text-xs text-slate-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">Title (English)</label>
+                      <input
+                        type="text"
+                        value={offer2TitleEn}
+                        onChange={(e) => setOffer2TitleEn(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 text-xs text-slate-200"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Extra Announcement & Heritage Settings */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">ಪರಂಪರೆಯ ವರ್ಷಗಳು (Heritage)</label>
+                  <input
+                    type="text"
+                    value={heritageTextKn}
+                    onChange={(e) => setHeritageTextKn(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">ರವಾನೆ ಅವಧಿ (Dispatch Time)</label>
+                  <input
+                    type="text"
+                    value={dispatchTime}
+                    onChange={(e) => setDispatchTime(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">ವಿಶೇಷ ಸಂದೇಶ / ಹೊಸ ಘೋಷಣೆ (Optional Banner)</label>
+                  <input
+                    type="text"
+                    placeholder="ಉದಾ: ದೀಪಾವಳಿ ವಿಶೇಷ ಶುಭ ಸಂದರ್ಭ / Limited Festive Offer"
+                    value={customAnnouncement}
+                    onChange={(e) => setCustomAnnouncement(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-amber-200"
+                  />
+                </div>
+              </div>
+
+              {/* Reset to standard prices */}
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={handleResetDefaults}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+                >
+                  ↺ ಮೂಲ ಸೆಟ್ಟಿಂಗ್ಸ್‌ಗಳಿಗೆ ಮರುಹೊಂದಿಸಿ (Reset to ₹330 / ₹430 Defaults)
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: NANO BANANA AI PROMPT STUDIO */}
+          {studioTab === "prompt" && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-black text-amber-300 uppercase tracking-wider">
+                    🍌 Nano Banana / Imagen 8K AI Image Prompt Generator
+                  </span>
+                  <p className="text-[11px] text-slate-400">
+                    ಈ ಪ್ರಾಂಪ್ಟ್ ನೀವು ಮೇಲಿನ ಆಫರ್‌ಗಳಲ್ಲಿ ನಮೂದಿಸಿದ ಪ್ರತಿಯೊಂದು ಬೆಲೆ ಹಾಗೂ ವಿವರಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಒಳಗೊಂಡಿರುತ್ತದೆ.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyPrompt}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition shadow cursor-pointer"
+                >
+                  <span>{copiedPrompt ? "✅ ಕಾಪಿ ಆಗಿದೆ!" : "📋 ಕಾಪಿ ಪ್ರಾಂಪ್ಟ್ (Copy Prompt)"}</span>
+                </button>
+              </div>
+
+              {/* Live Generated Prompt Box */}
+              <div className="relative">
+                <textarea
+                  readOnly
+                  rows={7}
+                  value={generatedAiPrompt}
+                  className="w-full bg-slate-950 border border-amber-500/40 rounded-xl p-3 text-xs text-amber-100 font-mono focus:outline-none select-all"
+                />
+              </div>
+
+              {/* Extra Prompt Tweaks */}
+              <div>
+                <label className="text-[11px] text-slate-300 block mb-1">
+                  ಹೊಸ ಕಲಾತ್ಮಕ ಶೈಲಿ ಅಥವಾ ಅಂಶಗಳನ್ನು ಸೇರಿಸಿ (Custom Prompt Tweaks):
+                </label>
+                <input
+                  type="text"
+                  placeholder="ಉದಾ: Add Lord Ganesha motif at top, royal peacock feathers, saffron golden silk texture..."
+                  value={customPromptTweaks}
+                  onChange={(e) => setCustomPromptTweaks(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: GENERATED 8K NANO BANANA GALLERY */}
+          {studioTab === "gallery" && (
+            <div className="space-y-4">
+              <div className="border-b border-slate-800 pb-2">
+                <h3 className="text-xs font-black text-amber-300 uppercase tracking-wider">
+                  🖼️ ಸೂಪರ್ ಓಮಿ ೮K AI ಮುದ್ರಣ ಗ್ಯಾಲರಿ (Ultra-HD AI Master Prints)
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  ನ್ಯಾನೋ ಬನಾನಾ AI ಮೂಲಕ ಸಿದ್ಧಪಡಿಸಲಾದ ಅಲ್ಟ್ರಾ-ಹೆಚ್‌ಡಿ ಪೋಸ್ಟರ್‌ಗಳು. ನೇರವಾಗಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ ಕ್ಯಾಷಿಯರ್ ಡೆಸ್ಕ್ ಅಥವಾ ಟೇಬಲ್ ಸ್ಟ್ಯಾಂಡ್ ಮುದ್ರಣಕ್ಕೆ ಬಳಸಿ.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Poster 1 Card */}
+                <div className="bg-slate-950 p-3 rounded-xl border border-amber-500/30 flex flex-col justify-between">
+                  <div>
+                    <div className="w-full h-48 bg-slate-900 rounded-lg overflow-hidden border border-amber-500/20 mb-2 flex items-center justify-center">
+                      <img
+                        src="/posters/Baggona_Panchanga_Cashier_Poster_8K.jpg"
+                        alt="Nano Banana Poster 1"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="font-bold text-xs text-amber-200">
+                      ಆಯ್ಕೆ ೧: ರಾಯಲ್ ವೆಲ್ವೆಟ್ ಮರೂನ್ & ದೀಪ ಸಂಪುಟ (8K Master)
+                    </div>
+                    <p className="text-[10.5px] text-slate-400 mt-0.5">
+                      ಶಿವ ಲಿಂಗ ಲಾಂಛನ, ಬೆಳಗುವ ಹಿತ್ತಾಳೆ ದೀಪ, ₹330 & ₹430 ಗೋಲ್ಡ್ ಬ್ಯಾಡ್ಜ್, 5-ನಿಮಿಷ WhatsApp ರಿಬ್ಬನ್.
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <a
+                      href="/posters/Baggona_Panchanga_Cashier_Poster_8K.jpg"
+                      download="Baggona_Panchanga_Cashier_Poster_8K_Maroon.jpg"
+                      className="w-full py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black text-center transition flex items-center justify-center gap-1.5"
+                    >
+                      <span>📥</span>
+                      <span>ಡೌನ್‌ಲೋಡ್ ೮K ಚಿತ್ರ (813 KB)</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Poster 2 Card */}
+                <div className="bg-slate-950 p-3 rounded-xl border border-amber-500/30 flex flex-col justify-between">
+                  <div>
+                    <div className="w-full h-48 bg-slate-900 rounded-lg overflow-hidden border border-amber-500/20 mb-2 flex items-center justify-center">
+                      <img
+                        src="/posters/Baggona_Panchanga_Cashier_Poster_Variant2_8K.jpg"
+                        alt="Nano Banana Poster 2"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="font-bold text-xs text-amber-200">
+                      ಆಯ್ಕೆ ೨: ಪವಿತ್ರ ಸುವರ್ಣ ಪತ್ರಿಕೆ & ಜನ್ಮ ಕುಂಡಲಿ ಚಾರ್ಟ್ (8K Master)
+                    </div>
+                    <p className="text-[10.5px] text-slate-400 mt-0.5">
+                      ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ (Lagna, Maandi, Gulika), ೧೦ ಅಧ್ಯಾಯಗಳ ಭವಿಷ್ಯ & ದೈವಿಕ ಪರಿಹಾರ ವರದಿ ವಿವರಣೆ.
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <a
+                      href="/posters/Baggona_Panchanga_Cashier_Poster_Variant2_8K.jpg"
+                      download="Baggona_Panchanga_Cashier_Poster_8K_GoldKundli.jpg"
+                      className="w-full py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black text-center transition flex items-center justify-center gap-1.5"
+                    >
+                      <span>📥</span>
+                      <span>ಡೌನ್‌ಲೋಡ್ ೮K ಚಿತ್ರ (981 KB)</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ====================================================================== */}
       {/* MODE 1: CASHIER DESK FULL A4 POSTER (FLAT LAMINATED SHEET)             */}
@@ -202,20 +632,23 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
               background: "#FFFDF8",
               fontFamily: "'Cinzel', 'Playfair Display', 'Noto Serif Kannada', 'Noto Serif', serif, sans-serif",
               color: "#1C1917",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)"
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between"
             }}
           >
-            {/* Outer Gold Border Box */}
+            {/* Outer Luxury Symmetrical Gold Double Border */}
             <div
               style={{
                 width: "100%",
-                height: "1241px",
-                maxHeight: "1241px",
-                border: "3px solid #B45309",
+                height: "100%",
+                border: "4px solid #B45309",
+                outline: "2px solid #D97706",
+                outlineOffset: "-8px",
                 borderRadius: "16px",
                 padding: "12px 16px",
                 boxSizing: "border-box",
-                background: "linear-gradient(180deg, #FFFFFF 0%, #FFFDF5 35%, #FFFBEB 100%)",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -245,13 +678,13 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                 }}
               >
                 <div style={{ fontSize: "12px", fontWeight: 800, color: "#FDE68A", letterSpacing: "1px" }}>
-                  ॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪ್ರಸನ್ನ · ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ ॥
+                  {templeInvocation}
                 </div>
                 <div style={{ fontSize: "20px", fontWeight: 900, color: "#FFFFFF", marginTop: "2px", lineHeight: 1.25 }}>
-                  ೧೪೦+ ವರ್ಷಗಳ ಪವಿತ್ರ ಪರಾಶರೀ ಸಿದ್ಧಾಂತ ಜ್ಯೋತಿಷ್ಯ ಪರಂಪರೆ
+                  {heritageTextKn}
                 </div>
                 <div style={{ fontSize: "13px", fontWeight: 800, color: "#FBBF24", marginTop: "1px", letterSpacing: "0.5px" }}>
-                  BAGGONA PANCHANGA — 140+ YEARS OF SACRED VEDIC HERITAGE
+                  {heritageTextEn}
                 </div>
                 <div
                   style={{
@@ -268,13 +701,29 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                 >
                   ⚡ ನಿಮ್ಮ ಊಟದ ಸಿದ್ಧತೆಯ ನಡುವೆ, ನಿಮ್ಮ ಜೀವಿತದ ಭವಿಷ್ಯ ತಿಳಿಯಿರಿ! | Discover Your Life's Destiny While You Wait!
                 </div>
+                {customAnnouncement && (
+                  <div
+                    style={{
+                      marginTop: "4px",
+                      padding: "2px 12px",
+                      background: "rgba(245, 158, 11, 0.25)",
+                      border: "1px dashed #FDE68A",
+                      borderRadius: "6px",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      color: "#FFFBEB"
+                    }}
+                  >
+                    🔔 {customAnnouncement}
+                  </div>
+                )}
               </div>
 
               {/* ============================================================== */}
               {/* 2. DUAL PRICING OFFERS (NO NOVEMBER MENTION - DIRECT SAVINGS)  */}
               {/* ============================================================== */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", flexShrink: 0, marginTop: "6px" }}>
-                {/* OFFER 1: STANDARD PACKAGE (₹330) */}
+                {/* OFFER 1: STANDARD PACKAGE */}
                 <div
                   style={{
                     backgroundColor: "#FFFFFF",
@@ -307,19 +756,19 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                     ⭐ ಕೊಡುಗೆ ೧ · OFFER 1
                   </div>
                   <div style={{ fontSize: "14px", fontWeight: 900, color: "#780206", lineHeight: 1.25 }}>
-                    ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ದರ್ಶನ V1 + ಜನ್ಮ ಕುಂಡಲಿ
+                    {offer1TitleKn}
                   </div>
                   <div style={{ fontSize: "11px", fontWeight: 700, color: "#451A03" }}>
-                    Premium Life Bhavishya V1 (40+ Pgs) + South Indian Kundali
+                    {offer1TitleEn}
                   </div>
 
                   {/* Price Block */}
                   <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "5px" }}>
                     <span style={{ fontSize: "13px", color: "#6B7280", textDecoration: "line-through", fontWeight: 700 }}>
-                      ₹500
+                      ₹{offer1RegularPrice}
                     </span>
                     <span style={{ fontSize: "24px", color: "#B45309", fontWeight: 900, lineHeight: 1 }}>
-                      ₹330
+                      ₹{offer1Price}
                     </span>
                     <span
                       style={{
@@ -332,7 +781,7 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                         borderRadius: "6px"
                       }}
                     >
-                      SAVE ₹170! (ರಿಯಾಯಿತಿ)
+                      SAVE ₹{offer1Savings}! (ರಿಯಾಯಿತಿ)
                     </span>
                   </div>
 
@@ -343,7 +792,7 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                   </div>
                 </div>
 
-                {/* OFFER 2: COMPLETE SACRED PACKAGE WITH REMEDY (₹430) */}
+                {/* OFFER 2: COMPLETE SACRED PACKAGE WITH REMEDY */}
                 <div
                   style={{
                     backgroundColor: "#FEFCE8",
@@ -376,19 +825,19 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                     🔱 ಕೊಡುಗೆ ೨ · COMPLETE SACRED PACKAGE
                   </div>
                   <div style={{ fontSize: "14px", fontWeight: 900, color: "#780206", lineHeight: 1.25 }}>
-                    ಕುಂಡಲಿ + ಭವಿಷ್ಯ V1 + ದೈವಿಕ ಪರಿಹಾರ ವರದಿ
+                    {offer2TitleKn}
                   </div>
                   <div style={{ fontSize: "11px", fontWeight: 700, color: "#451A03" }}>
-                    Kundali + Bhavishya V1 + Daivika Parihara (Remedy Report)
+                    {offer2TitleEn}
                   </div>
 
                   {/* Price Block */}
                   <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "5px" }}>
                     <span style={{ fontSize: "13px", color: "#6B7280", textDecoration: "line-through", fontWeight: 700 }}>
-                      ₹700
+                      ₹{offer2RegularPrice}
                     </span>
                     <span style={{ fontSize: "24px", color: "#780206", fontWeight: 900, lineHeight: 1 }}>
-                      ₹430
+                      ₹{offer2Price}
                     </span>
                     <span
                       style={{
@@ -401,7 +850,7 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                         borderRadius: "6px"
                       }}
                     >
-                      SAVE ₹270! (ಅತ್ಯುತ್ತಮ ಮೌಲ್ಯ)
+                      SAVE ₹{offer2Savings}! (ಅತ್ಯುತ್ತಮ ಮೌಲ್ಯ)
                     </span>
                   </div>
 
@@ -421,28 +870,28 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                 <div
                   style={{
                     backgroundColor: "#FFFFFF",
-                    border: "1.5px solid #FDE68A",
-                    borderRadius: "10px",
-                    padding: "7px 11px",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.03)"
+                    border: "1.5px solid #E5E7EB",
+                    borderLeft: "5px solid #B45309",
+                    borderRadius: "8px",
+                    padding: "7px 12px"
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ fontSize: "12px", fontWeight: 900, color: "#780206" }}>
-                      🏛️ ೧. ದಕ್ಷಿಣ ಭಾರತೀಯ ಶೈಲಿಯ ಜನ್ಮ ಕುಂಡಲಿ (South Indian Janana Kundali)
+                      🪐 ೧. ದಕ್ಷಿಣ ಭಾರತೀಯ ಶೈಲಿಯ ಜನ್ಮ ಕುಂಡಲಿ (South Indian Janana Kundali)
                     </div>
                     <span style={{ fontSize: "9.5px", background: "#FEF3C7", color: "#92400E", padding: "1px 6px", borderRadius: "4px", fontWeight: 800 }}>
-                      AUTHENTIC CHART
+                      INCLUDED IN BOTH
                     </span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "10px", color: "#451A03", marginTop: "3px", lineHeight: 1.4 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "9.5px", color: "#451A03", marginTop: "3px", lineHeight: 1.35 }}>
                     <div>
-                      • <strong>ದಕ್ಷಿಣ ಭಾರತೀಯ ಚಾರ್ಟ್:</strong> ಲಗ್ನ, ಚಂದ್ರ ರಾಶಿ, ನಕ್ಷತ್ರ ಪಾದ ಹಾಗೂ ನವಗ್ರಹಗಳ ನಿಖರ ಡಿಗ್ರಿ ಮತ್ತು ಭಾವ ಸ್ಥಾನಗಳು.<br />
-                      • <strong>South Indian Grid:</strong> Authentic layout with exact degree, minutes & bhava positions of all 9 planets.
+                      • <strong>ಆರೂಢ ಲಗ್ನ & ಮಾಂದಿ & ಗುಳಿಕ (Lagna & Maandi / Gulika Placements):</strong> ಸೂಕ್ಷ್ಮ ಕರ್ಮ ಬಿಂದುಗಳು ಮತ್ತು ೧೨ ಭಾವಗಳ ಸ್ಪಷ್ಟ ವಿನ್ಯಾಸ.<br />
+                      • <strong>ರಾಶಿ & ನವಾಂಶ ಚಾರ್ಟ್‌ಗಳು (D1 & D9 Charts):</strong> ಗ್ರಹಗಳ ನಿಖರ ಅಂಶ, ಡಿಗ್ರಿ, ದೃಷ್ಟಿ ಬಲ ಮತ್ತು ಶಕ್ತಿ ವಿಶ್ಲೇಷಣೆ.
                     </div>
                     <div>
-                      • <strong>ಮಾಂದಿ & ಗುಳಿಕ ಸ್ಥಾನ:</strong> ಅಗೋಚರ ದೋಷ ಹಾಗೂ ಕರ್ಮ ಬಂಧನಗಳನ್ನು ಶೋಧಿಸುವ ಮಾಂದಿ-ಗುಳಿಕ ಸ್ಫುಟಗಳು.<br />
-                      • <strong>Maandi / Gulika:</strong> Exact calculation of subtle karmic afflictions and ascendant degree balance.
+                      • <strong>Precise Degree & House Alignments:</strong> Exact placements of all 9 planets in South Indian square format.<br />
+                      • <strong>Maandi/Gulika Calculation:</strong> Authentic karmic shadow planet calculation as per Parashari Siddhanta.
                     </div>
                   </div>
                 </div>
@@ -451,56 +900,54 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                 <div
                   style={{
                     backgroundColor: "#FFFFFF",
-                    border: "1.5px solid #FDE68A",
-                    borderRadius: "10px",
-                    padding: "7px 11px",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.03)"
+                    border: "1.5px solid #E5E7EB",
+                    borderLeft: "5px solid #D97706",
+                    borderRadius: "8px",
+                    padding: "7px 12px"
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ fontSize: "12px", fontWeight: 900, color: "#780206" }}>
-                      📜 ೨. ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ದರ್ಶನ V1 (೪೦+ ಪುಟಗಳ ಸಮಗ್ರ ೧೦ ಅಧ್ಯಾಯಗಳು)
+                      📖 ೨. ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ದರ್ಶನ V1 (೪೦+ ಪುಟಗಳ ಸಮಗ್ರ ೧೦ ಅಧ್ಯಾಯಗಳು)
                     </div>
-                    <span style={{ fontSize: "9.5px", background: "#DCFCE7", color: "#166534", padding: "1px 6px", borderRadius: "4px", fontWeight: 800 }}>
+                    <span style={{ fontSize: "9.5px", background: "#FEF3C7", color: "#92400E", padding: "1px 6px", borderRadius: "4px", fontWeight: 800 }}>
                       40+ PAGES · 10 CHAPTERS
                     </span>
                   </div>
-
-                  {/* 10 Chapters Compact Grid */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 10px", fontSize: "9.5px", color: "#451A03", marginTop: "4px", lineHeight: 1.35 }}>
-                    <div>
-                      • <strong>ಅಧ್ಯಾಯ ೧ (Ch 1):</strong> ಜಾತಕ ದರ್ಪಣ & ವ್ಯಕ್ತಿತ್ವ (Core Temperament & Nature)<br />
-                      • <strong>ಅಧ್ಯಾಯ ೨ (Ch 2):</strong> ಧನ-ಧಾನ್ಯ, ಕುಟುಂಬ & ಆರ್ಥಿಕ ಯೋಗಗಳು (Wealth & Family)<br />
-                      • <strong>ಅಧ್ಯಾಯ ೩ (Ch 3):</strong> ವಿದ್ಯಾಭ್ಯಾಸ, ಬುದ್ಧಿ & ಸಂತಾನ ಭಾಗ್ಯ (Intellect & Progeny)<br />
-                      • <strong>ಅಧ್ಯಾಯ ೪ (Ch 4):</strong> ಆರೋಗ್ಯ, ಋಣ ನಿವಾರಣೆ & ಶತ್ರು ಜಯ (Health & Debt Relief)<br />
-                      • <strong>ಅಧ್ಯಾಯ ೫ (Ch 5):</strong> ವಿವಾಹ, ಕಳತ್ರ ಭಾಗ್ಯ & ದಾಂಪತ್ಯ ಸುಖ (Marriage & Harmony)
+                  <div style={{ fontSize: "9px", color: "#451A03", marginTop: "3px", lineHeight: 1.3 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
+                      <div>
+                        • <strong>ಅಧ್ಯಾಯ ೧-೪:</strong> ಜಾತಕ ದರ್ಪಣ · ಧನ-ಧಾನ್ಯ, ಕುಟುಂಬ · ವಿದ್ಯಾಭ್ಯಾಸ, ಬುದ್ಧಿ · ಆರೋಗ್ಯ, ಋಣ ನಿವಾರಣೆ<br />
+                        • <strong>Ch 1-4:</strong> Personality, Wealth & Family, Education & Children, Health & Debt Mastery
+                      </div>
+                      <div>
+                        • <strong>ಅಧ್ಯಾಯ ೫-೮:</strong> ವಿವಾಹ, ಕಳತ್ರ ಭಾಗ್ಯ · ಆಯುಷ್ಯ, ಗಂಡಾಂತರ ರಕ್ಷೆ · ಭಾಗ್ಯೋದಯ, ಧರ್ಮ · ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ ರಾಜಯೋಗ<br />
+                        • <strong>Ch 5-8:</strong> Marriage & Spouse, Longevity & Protection, Fortune & Dharma, Career & Raja Yoga
+                      </div>
                     </div>
-                    <div>
-                      • <strong>ಅಧ್ಯಾಯ ೬ (Ch 6):</strong> ಆಯುಷ್ಯ, ಗಂಡಾಂತರ & ರಕ್ಷಾ ಕವಚ (Longevity & Hazard Shield)<br />
-                      • <strong>ಅಧ್ಯಾಯ ೭ (Ch 7):</strong> ಭಾಗ್ಯೋದಯ, ಧರ್ಮ & ತೀರ್ಥಯಾತ್ರೆ (Destiny & Spiritual Grace)<br />
-                      • <strong>ಅಧ್ಯಾಯ ೮ (Ch 8):</strong> ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ & ರಾಜಯೋಗ (Career, Business & Status)<br />
-                      • <strong>ಅಧ್ಯಾಯ ೯ (Ch 9):</strong> ಲಾಭ, ಐಶ್ವರ್ಯ & ಸಕಲ ಸಿದ್ಧಿಗಳು (Gains & Material Inflows)<br />
-                      • <strong>ಅಧ್ಯಾಯ ೧೦ (Ch 10):</strong> ೧೨೦ ವರ್ಷಗಳ ವಿಂಶೋತ್ತರೀ ಮಹಾದಶಾ-ಭುಕ್ತಿ & ೧೦-ವರ್ಷ ರೋಡ್‌ಮ್ಯಾಪ್
+                    <div style={{ marginTop: "2px", borderTop: "1px dotted #E5E7EB", paddingTop: "2px" }}>
+                      • <strong>ಅಧ್ಯಾಯ ೯-೧೦:</strong> ಲಾಭ, ಐಶ್ವರ್ಯ · ೧೨೦ ವರ್ಷಗಳ ವಿಂಶೋತ್ತರೀ ಮಹಾದಶಾ-ಭುಕ್ತಿ ರೋಡ್‌ಮ್ಯಾಪ್ & ಮುಂದಿನ ೧೦ ವರ್ಷಗಳ ಮಾರ್ಗದರ್ಶಿ<br />
+                      • <strong>Ch 9-10:</strong> Gains & Fulfillment, 120-Year Vimshottari Mahadasha-Bhukti Roadmap & Next 10-Year Life Guide
                     </div>
                   </div>
                 </div>
 
-                {/* REPORT C: DAIVIKA PARIHARA / REMEDY DOSSIER */}
+                {/* REPORT C: DAIVIKA PARIHARA DOSSIER */}
                 <div
                   style={{
-                    backgroundColor: "#FFFDF8",
+                    backgroundColor: "#FFFBEB",
                     border: "1.5px solid #FCD34D",
-                    borderRadius: "10px",
-                    padding: "7px 11px",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.03)"
+                    borderLeft: "5px solid #DC2626",
+                    borderRadius: "8px",
+                    padding: "7px 12px"
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ fontSize: "12px", fontWeight: 900, color: "#780206" }}>
                       🪔 ೩. ದೈವಿಕ ಪರಿಹಾರ & ದೋಷ ಮುಕ್ತಿ ವರದಿ (Daivika Parihara Dossier)
                     </div>
                     <span style={{ fontSize: "9.5px", background: "#FEE2E2", color: "#991B1B", padding: "1px 6px", borderRadius: "4px", fontWeight: 800 }}>
-                      INCLUDED IN ₹430 PACKAGE
+                      INCLUDED IN ₹{offer2Price} PACKAGE
                     </span>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "9.5px", color: "#451A03", marginTop: "3px", lineHeight: 1.35 }}>
@@ -587,11 +1034,11 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                     <span style={{ fontSize: "18px" }}>🛎️</span>
                     <span style={{ fontSize: "15px", fontWeight: 900, color: "#FDE68A" }}>
-                      ಪಡೆಯಲು ದಯವಿಟ್ಟು ಕ್ಯಾಷಿಯರ್ ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ
+                      {ctaTextKn}
                     </span>
                   </div>
                   <div style={{ fontSize: "12px", fontWeight: 800, color: "#FFFFFF", marginTop: "2px" }}>
-                    FOR BOOKING & DETAILS, PLEASE CONTACT THE CASHIER DESK
+                    {ctaTextEn}
                   </div>
                   <div style={{ fontSize: "10px", color: "#D6D3D1", marginTop: "2px" }}>
                     ಕೇವಲ ೪ ವಿವರಗಳನ್ನು ನೀಡಿ: <strong>ಹೆಸರು (Name) · ಜನ್ಮ ದಿನಾಂಕ (DOB) · ಜನನ ಸಮಯ (Birth Time) · ಹುಟ್ಟಿದ ಊರು (Place)</strong>
@@ -702,7 +1149,7 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                 }}
               >
                 <div style={{ fontSize: "10.5px", color: "#FDE68A", fontWeight: 800 }}>
-                  ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — ೧೪೦+ ವರ್ಷಗಳ ಪವಿತ್ರ ಸಿದ್ಧಾಂತ ಪರಂಪರೆ ॥
+                  ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ — {heritageTextKn} ॥
                 </div>
                 <div style={{ fontSize: "16px", fontWeight: 900, color: "#FFFFFF", marginTop: "1px" }}>
                   ನಿಮ್ಮ ಊಟದ ನಿರೀಕ್ಷೆಯ ನಡುವೆ, ನಿಮ್ಮ ಭವಿಷ್ಯ ತಿಳಿಯಿರಿ!
@@ -716,11 +1163,11 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "6px" }}>
                 <div style={{ backgroundColor: "#FFFFFF", border: "2px solid #D97706", borderRadius: "10px", padding: "8px 10px" }}>
                   <div style={{ fontSize: "10.5px", fontWeight: 800, color: "#B45309" }}>⭐ OFFER 1: KUNDALI + BHAVISHYA V1</div>
-                  <div style={{ fontSize: "12.5px", fontWeight: 900, color: "#780206" }}>ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ V1 + ಜನ್ಮ ಕುಂಡಲಿ</div>
+                  <div style={{ fontSize: "12.5px", fontWeight: 900, color: "#780206" }}>{offer1TitleKn}</div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "3px" }}>
-                    <span style={{ fontSize: "11.5px", color: "#6B7280", textDecoration: "line-through" }}>₹500</span>
-                    <span style={{ fontSize: "20px", color: "#B45309", fontWeight: 900 }}>₹330</span>
-                    <span style={{ fontSize: "9.5px", background: "#DCFCE7", color: "#166534", padding: "1px 5px", borderRadius: "4px", fontWeight: 800 }}>SAVE ₹170</span>
+                    <span style={{ fontSize: "11.5px", color: "#6B7280", textDecoration: "line-through" }}>₹{offer1RegularPrice}</span>
+                    <span style={{ fontSize: "20px", color: "#B45309", fontWeight: 900 }}>₹{offer1Price}</span>
+                    <span style={{ fontSize: "9.5px", background: "#DCFCE7", color: "#166534", padding: "1px 5px", borderRadius: "4px", fontWeight: 800 }}>SAVE ₹{offer1Savings}</span>
                   </div>
                   <div style={{ fontSize: "9.5px", color: "#78350F", marginTop: "3px", lineHeight: 1.3 }}>
                     • ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ (Lagna & Maandi)<br />
@@ -731,11 +1178,11 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
 
                 <div style={{ backgroundColor: "#FEFCE8", border: "2px solid #780206", borderRadius: "10px", padding: "8px 10px" }}>
                   <div style={{ fontSize: "10.5px", fontWeight: 800, color: "#991B1B" }}>🔱 OFFER 2: COMPLETE REMEDY PACK</div>
-                  <div style={{ fontSize: "12.5px", fontWeight: 900, color: "#780206" }}>ಕುಂಡಲಿ + ಭವಿಷ್ಯ + ಪರಿಹಾರ ವರದಿ</div>
+                  <div style={{ fontSize: "12.5px", fontWeight: 900, color: "#780206" }}>{offer2TitleKn}</div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "3px" }}>
-                    <span style={{ fontSize: "11.5px", color: "#6B7280", textDecoration: "line-through" }}>₹700</span>
-                    <span style={{ fontSize: "20px", color: "#780206", fontWeight: 900 }}>₹430</span>
-                    <span style={{ fontSize: "9.5px", background: "#FEE2E2", color: "#991B1B", padding: "1px 5px", borderRadius: "4px", fontWeight: 800 }}>SAVE ₹270</span>
+                    <span style={{ fontSize: "11.5px", color: "#6B7280", textDecoration: "line-through" }}>₹{offer2RegularPrice}</span>
+                    <span style={{ fontSize: "20px", color: "#780206", fontWeight: 900 }}>₹{offer2Price}</span>
+                    <span style={{ fontSize: "9.5px", background: "#FEE2E2", color: "#991B1B", padding: "1px 5px", borderRadius: "4px", fontWeight: 800 }}>SAVE ₹{offer2Savings}</span>
                   </div>
                   <div style={{ fontSize: "9.5px", color: "#78350F", marginTop: "3px", lineHeight: 1.3 }}>
                     • ಭವಿಷ್ಯ V1 & ಜನ್ಮ ಕುಂಡಲಿ ಸಂಪೂರ್ಣ ವಿವರ<br />
@@ -748,7 +1195,7 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
               {/* Side A 5-Min Delivery Banner */}
               <div style={{ background: "#FEF3C7", border: "1.5px dashed #B45309", borderRadius: "8px", padding: "6px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "6px" }}>
                 <div style={{ fontSize: "11px", fontWeight: 900, color: "#780206" }}>
-                  ⚡ ಕೇವಲ ೫ ನಿಮಿಷಗಳಲ್ಲಿ ನಿಮ್ಮ WhatsApp ಅಥವಾ Email ಗೆ ZIP ಫೈಲ್ ರವಾನೆ!
+                  ⚡ ಕೇವಲ {dispatchTime}ಗಳಲ್ಲಿ ನಿಮ್ಮ WhatsApp ಅಥವಾ Email ಗೆ ZIP ಫೈಲ್ ರವಾನೆ!
                 </div>
                 <span style={{ fontSize: "10px", background: "#166534", color: "#FFFFFF", padding: "2px 8px", borderRadius: "6px", fontWeight: 900 }}>
                   5 MINS 🚀
@@ -759,7 +1206,7 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
               <div style={{ background: "#1C1917", borderRadius: "8px", padding: "7px 12px", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "6px" }}>
                 <div>
                   <div style={{ fontSize: "12px", fontWeight: 900, color: "#FDE68A" }}>
-                    🛎️ ಪಡೆಯಲು ದಯವಿಟ್ಟು ಕ್ಯಾಷಿಯರ್ ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ | Contact Cashier
+                    🛎️ {ctaTextKn} | Contact Cashier
                   </div>
                   <div style={{ fontSize: "9.5px", color: "#D6D3D1" }}>
                     ನೀಡಿ: ಹೆಸರು (Name) · ಜನ್ಮ ದಿನಾಂಕ (DOB) · ಸಮಯ (Birth Time) · ಹುಟ್ಟಿದ ಊರು (Place)
@@ -782,101 +1229,140 @@ export const Baggona8kPromoPoster: React.FC<Baggona8kPromoPosterProps> = ({
                 position: "relative"
               }}
             >
-              <div style={{ position: "absolute", width: "100%", borderBottom: "1.5px dashed #B45309", opacity: 0.6 }}></div>
-              <span style={{ position: "relative", backgroundColor: "#FFFDF8", padding: "0 12px", fontSize: "9px", color: "#92400E", fontWeight: 800, letterSpacing: "1px" }}>
-                ✂️ ಮಡಚುವ ಗೆರೆ · FOLD HERE FOR TABLE TENT STANDEE ✂️
-              </span>
+              <div style={{ width: "100%", height: "1px", borderTop: "2px dashed #B45309", opacity: 0.7 }} />
+              <div
+                style={{
+                  position: "absolute",
+                  background: "#FFFDF8",
+                  padding: "2px 12px",
+                  border: "1px solid #D97706",
+                  borderRadius: "10px",
+                  fontSize: "9px",
+                  fontWeight: 900,
+                  color: "#B45309",
+                  letterSpacing: "1px"
+                }}
+              >
+                ✂️ ಕಾಗದದ ಮಧ್ಯಭಾಗದ ಮಡಚುವ ಗೆರೆ · FOLD HERE FOR TABLE TENT STANDEE (BI-FOLD A4)
+              </div>
             </div>
 
-            {/* SIDE B: BOTTOM HALF (FACING OPPOSITE DINER / COMPREHENSIVE CHAPTERS) */}
+            {/* SIDE B: BOTTOM HALF (FOLD OVER FOR DINER 2) */}
             <div
               style={{
                 height: "595px",
-                border: "2px solid #B45309",
+                border: "2px solid #780206",
                 borderRadius: "14px",
                 padding: "10px 14px",
                 boxSizing: "border-box",
-                background: "linear-gradient(180deg, #FFFDF8 0%, #FFFFFF 100%)",
+                background: "linear-gradient(180deg, #FFFDF8 0%, #FFFBEB 100%)",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
                 position: "relative"
               }}
             >
+              {/* Side B Header */}
               <div
                 style={{
                   background: "linear-gradient(135deg, #1C1917 0%, #292524 100%)",
                   borderRadius: "10px",
-                  padding: "6px 12px",
+                  padding: "7px 12px",
                   color: "#FFFFFF",
                   border: "1.5px solid #F59E0B",
                   textAlign: "center"
                 }}
               >
                 <div style={{ fontSize: "10px", color: "#FDE68A", fontWeight: 800 }}>
-                  📜 ವರದಿಯಲ್ಲಿ ಒಳಗೊಂಡಿರುವ ೧೦ ಅಧ್ಯಾಯಗಳು & ದೈವಿಕ ರಕ್ಷೆ
+                  ॥ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಆಶೀರ್ವಾದ ॥
                 </div>
-                <div style={{ fontSize: "14px", fontWeight: 900, color: "#FFFFFF" }}>
-                  10 Full Life Chapters + South Indian Kundali + Daivika Parihara
-                </div>
-              </div>
-
-              {/* South Indian Chart & Maandi Specs */}
-              <div style={{ backgroundColor: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: "8px", padding: "6px 10px", marginTop: "4px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 900, color: "#780206" }}>
-                  🏛️ ದಕ್ಷಿಣ ಭಾರತೀಯ ಜನ್ಮ ಕುಂಡಲಿ & ಮಾಂದಿ ಸ್ಥಾನ (South Indian Kundali & Maandi)
-                </div>
-                <div style={{ fontSize: "9.5px", color: "#451A03", marginTop: "2px", lineHeight: 1.35 }}>
-                  ದಕ್ಷಿಣ ಭಾರತೀಯ ಶೈಲಿಯ ಸ್ಪಷ್ಟ ಚಾರ್ಟ್ · ಲಗ್ನ, ನವಗ್ರಹಗಳ ನಿಖರ ಡಿಗ್ರಿ, ನಕ್ಷತ್ರ ಪಾದ, ಚಂದ್ರ ರಾಶಿ ಹಾಗೂ ಅಗೋಚರ ದೋಷ ನಿವಾರಿಸುವ ಮಾಂದಿ-ಗುಳಿಕ ಸ್ಥಾನ ನಿರ್ಣಯ.
+                <div style={{ fontSize: "14px", fontWeight: 900, color: "#FFFFFF", marginTop: "1px" }}>
+                  ವರದಿಗಳ ಸಮಗ್ರ ವಿವರ · FULL REPORT SPECIFICATIONS
                 </div>
               </div>
 
-              {/* 10 Chapters Listing */}
-              <div style={{ backgroundColor: "#FFFFFF", border: "1px solid #FDE68A", borderRadius: "8px", padding: "6px 10px", marginTop: "4px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 900, color: "#780206", marginBottom: "3px" }}>
-                  📖 ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ V1 — ೪೦+ ಪುಟಗಳ ೧೦ ಅಧ್ಯಾಯಗಳ ಸಾರಾಂಶ:
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 8px", fontSize: "9px", color: "#451A03", lineHeight: 1.35 }}>
-                  <div>
-                    • <strong>ಅಧ್ಯಾಯ ೧:</strong> ಜಾತಕ ದರ್ಪಣ (Personality & Temperament)<br />
-                    • <strong>ಅಧ್ಯಾಯ ೨:</strong> ಧನ-ಧಾನ್ಯ, ಕುಟುಂಬ & ಆರ್ಥಿಕ ಯೋಗ (Wealth)<br />
-                    • <strong>ಅಧ್ಯಾಯ ೩:</strong> ವಿದ್ಯಾಭ್ಯಾಸ, ಬುದ್ಧಿ & ಸಂತಾನ (Education)<br />
-                    • <strong>ಅಧ್ಯಾಯ ೪:</strong> ಆರೋಗ್ಯ, ಋಣ ನಿವಾರಣೆ & ಶತ್ರು ಜಯ (Health)<br />
-                    • <strong>ಅಧ್ಯಾಯ ೫:</strong> ವಿವಾಹ, ಕಳತ್ರ & ದಾಂಪತ್ಯ ಸುಖ (Marriage)
+              {/* Side B 3 Report Features */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "6px" }}>
+                <div style={{ background: "#FFFFFF", border: "1px solid #E5E7EB", borderLeft: "4px solid #B45309", borderRadius: "8px", padding: "6px 10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 900, color: "#780206" }}>
+                    🪐 ೧. ದಕ್ಷಿಣ ಭಾರತೀಯ ಕುಂಡಲಿ (Lagna & Maandi Placements)
                   </div>
-                  <div>
-                    • <strong>ಅಧ್ಯಾಯ ೬:</strong> ಆಯುಷ್ಯ, ಗಂಡಾಂತರ & ರಕ್ಷಾ ಕವಚ (Longevity)<br />
-                    • <strong>ಅಧ್ಯಾಯ ೭:</strong> ಭಾಗ್ಯೋದಯ & ತೀರ್ಥಯಾತ್ರೆ (Destiny & Grace)<br />
-                    • <strong>ಅಧ್ಯಾಯ ೮:</strong> ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ & ರಾಜಯೋಗ (Career)<br />
-                    • <strong>ಅಧ್ಯಾಯ ೯:</strong> ಲಾಭ, ಐಶ್ವರ್ಯ & ಸಕಲ ಸಿದ್ಧಿಗಳು (Gains)<br />
-                    • <strong>ಅಧ್ಯಾಯ ೧೦:</strong> ೧೨೦-ವರ್ಷ ದಶಾ-ಭುಕ್ತಿ & ೧೦-ವರ್ಷ ರೋಡ್‌ಮ್ಯಾಪ್
+                  <div style={{ fontSize: "9px", color: "#451A03", marginTop: "2px" }}>
+                    ಆರೂಢ ಲಗ್ನ, ೧೨ ಭಾವಗಳು, ಗ್ರಹ ಸ್ಪಷ್ಟಾಂಶ ಹಾಗೂ ಮಾಂದಿ-ಗುಳಿಕ ಕರ್ಮ ಬಿಂದುಗಳು. D1 & D9 ಚಾರ್ಟ್‌ಗಳು.
+                  </div>
+                </div>
+
+                <div style={{ background: "#FFFFFF", border: "1px solid #E5E7EB", borderLeft: "4px solid #D97706", borderRadius: "8px", padding: "6px 10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 900, color: "#780206" }}>
+                    📖 ೨. ೪೦+ ಪುಟಗಳ ಪ್ರೀಮಿಯಂ ಭವಿಷ್ಯ ದರ್ಶನ V1 (10 Full Chapters)
+                  </div>
+                  <div style={{ fontSize: "8.5px", color: "#451A03", marginTop: "2px" }}>
+                    ಜಾತಕ ದರ್ಪಣ · ಧನ-ಕುಟುಂಬ · ವಿದ್ಯಾ-ಸಂತಾನ · ರೋಗ-ಋಣ ಜಯ · ವಿವಾಹ · ಆಯುಷ್ಯ · ಭಾಗ್ಯ · ಉದ್ಯೋಗ · ಲಾಭ · ೧೨೦-ವರ್ಷ ದಶಾ ರೋಡ್‌ಮ್ಯಾಪ್.
+                  </div>
+                </div>
+
+                <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderLeft: "4px solid #DC2626", borderRadius: "8px", padding: "6px 10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 900, color: "#780206" }}>
+                    🪔 ೩. ದೈವಿಕ ಪರಿಹಾರ & ಗೋಕರ್ಣ ಸೇವೆಗಳು (Daivika Parihara Dossier)
+                  </div>
+                  <div style={{ fontSize: "8.5px", color: "#451A03", marginTop: "2px" }}>
+                    ಕಾಲಸರ್ಪ, ಪಿತೃ, ಕುಜ ದೋಷ ಶಾಂತಿ · ೪೫-ದಿನ ಮಂಡಲ ಸಾಧನೆ · ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಪೂಜೆಗಳು & ಅರ್ಚಕರ ಆಶೀರ್ವಾದ.
                   </div>
                 </div>
               </div>
 
-              {/* Daivika Parihara Bullet */}
-              <div style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "8px", padding: "6px 10px", marginTop: "4px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 900, color: "#991B1B" }}>
-                  🪔 ದೈವಿಕ ಪರಿಹಾರ ವರದಿ (Daivika Parihara — Included in ₹430 Pack):
+              {/* Side B Footer */}
+              <div
+                style={{
+                  borderTop: "1px dashed #D97706",
+                  paddingTop: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  fontSize: "9.5px",
+                  color: "#78350F",
+                  fontWeight: 800
+                }}
+              >
+                <div>
+                  🙏 ಪ್ರಧಾನ ಅರ್ಚಕರು: ವೇದಮೂರ್ತಿ ಚೈತನ್ಯ ಪಂಡಿತ್ (+91 94821 09844)
                 </div>
-                <div style={{ fontSize: "9px", color: "#7F1D1D", marginTop: "2px", lineHeight: 1.35 }}>
-                  ಕಾಲಸರ್ಪ, ಪಿತೃ, ಕುಜ, ಅಂಗಾರಕ ದೋಷ ನಿವಾರಣೆ · ೪೫-ದಿನಗಳ ಮಂಡಲ ವ್ರತ ಸಾಧನೆ · ತುರ್ತು ಬೀಜ ಮಂತ್ರಗಳು, ವೈಯಕ್ತಿಕ ಸ್ತೋತ್ರಗಳು, ರುದ್ರಾಕ್ಷಿ-ರತ್ನ ಹಾಗೂ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಸೇವೆಗಳು.
-                </div>
-              </div>
-
-              {/* Side B Order Callout */}
-              <div style={{ background: "#780206", color: "#FFFFFF", borderRadius: "8px", padding: "6px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "4px" }}>
-                <div style={{ fontSize: "10.5px", fontWeight: 800 }}>
-                  🛎️ ಬುಕಿಂಗ್‌ಗಾಗಿ ಕ್ಯಾಷಿಯರ್ ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ | Contact Cashier for Instant Delivery
-                </div>
-                <div style={{ background: "#F59E0B", color: "#1C1917", padding: "2px 8px", borderRadius: "4px", fontSize: "10px", fontWeight: 900 }}>
-                  ₹330 / ₹430
+                <div style={{ color: "#B45309" }}>
+                  ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ಕಾರ್ಯಾಲಯ ॥
                 </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Global Print Media Styles (A4 Page Fit) */}
+      <style>{`
+        @media print {
+          body {
+            background-color: #FFFFFF !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 0mm;
+          }
+          .poster-print-container {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 8mm 10mm !important;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
