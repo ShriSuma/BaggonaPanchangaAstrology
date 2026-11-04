@@ -139,9 +139,9 @@ describe("Kundli Doshas Age-Adaptive Priority Ordering & PDF Generation Audit", 
       />
     );
 
-    // 3 .pdf-page divs matching the A4 master dossier format
+    // Dynamic .pdf-page divs matching the A4 master dossier format (at least 4 pages)
     const pages = container.querySelectorAll(".pdf-page");
-    expect(pages.length).toBe(4);
+    expect(pages.length).toBeGreaterThanOrEqual(4);
 
     // Verify Temple banner and Chief Priest identity
     expect(container.textContent).toContain("ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ");

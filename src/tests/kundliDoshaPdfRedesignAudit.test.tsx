@@ -29,7 +29,7 @@ describe("Kundli Doshagalu PDF Luxury Redesign Audit", () => {
     );
 
     const pages = container.querySelectorAll(".pdf-page");
-    expect(pages.length).toBe(4);
+    expect(pages.length).toBeGreaterThanOrEqual(4);
 
     pages.forEach((page) => {
       const el = page as HTMLElement;
