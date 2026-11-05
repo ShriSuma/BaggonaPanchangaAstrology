@@ -103,8 +103,8 @@ describe("Comprehensive 50 Real-World Profiles Premium PDF V1 Audit Across 5 Lan
       const marsHouseFromLagna = ((marsRashiIdx - lagnaRashiIdx + 12) % 12) + 1;
       const isMarsDusthana = [6, 8, 12].includes(marsHouseFromLagna);
       const isMarsBeneficLagna = [0, 3, 4, 7, 8, 11].includes(lagnaRashiIdx);
-      const isKujaNakshatra = (nakIndex % 9) === 4; // Mrigashira, Chitra, Dhanishta
-      const expectedHavala = isKujaNakshatra || (isMarsBeneficLagna && !isMarsDusthana);
+      // In classical Parashari Jyotish, Havala is strictly prohibited for Taurus, Gemini, Virgo, Libra, Capricorn, Aquarius
+      const expectedHavala = isMarsBeneficLagna && !isMarsDusthana;
 
       expect(gemstoneRing.isHavalaRecommended).toBe(expectedHavala);
 

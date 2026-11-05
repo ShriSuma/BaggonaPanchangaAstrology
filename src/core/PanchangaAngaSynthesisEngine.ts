@@ -1361,14 +1361,18 @@ export const generateAstrologicalPrescriptions = (
   const consecrationTarasTe = `సంపత్ తార (${sampatObj.te}), క్షేమ తార (${kshemaObj.te}), సాధన తార (${sadhanaObj.te}), మిత్ర తార (${mitraObj.te})`;
   const consecrationTarasTa = `சம்பத் தாரை (${sampatObj.ta}), க்ஷேம தாரை (${kshemaObj.ta}), சாதன தாரை (${sadhanaObj.ta}), மித்ர தாரை (${mitraObj.ta})`;
 
-  // Mars / Havala Check
+  // Mars / Havala Check - Strict Parashari Incompatibility Guard:
+  // In classical Jyotish (BPHS), Red Coral (Havala / Pravala) is strictly prohibited for Taurus, Gemini, Virgo, Libra, Capricorn, and Aquarius.
+  // Most crucially, for Venus-ruled Lagnas (Taurus & Libra) where the primary prescribed gemstone is Vajra (Diamond),
+  // wearing Havala (Red Coral) simultaneously creates a severe Maraka & Agni-Jala conflict.
+  // Hence, Havala ring is ONLY recommended if Lagna is inherently Mars-benefic (0, 3, 4, 7, 8, 11) AND Mars is not in a Dusthana (6, 8, 12).
   const mars = kundli.planets.find((p) => p.name === PlanetName.Mars);
   const marsRashiIdx = mars ? mars.rashi.index : 0;
   const marsHouseFromLagna = ((marsRashiIdx - lagnaRashiIdx + 12) % 12) + 1;
   const isMarsDusthana = [6, 8, 12].includes(marsHouseFromLagna);
   const isMarsBeneficLagna = [0, 3, 4, 7, 8, 11].includes(lagnaRashiIdx);
   const isKujaNakshatra = (nakIndex % 9) === 4;
-  const isHavalaRecommended = isKujaNakshatra || (isMarsBeneficLagna && !isMarsDusthana);
+  const isHavalaRecommended = isMarsBeneficLagna && !isMarsDusthana;
 
   const havalaPrescriptionKn = `ರತ್ನ: ಹವಳ (ಶುದ್ಧ ಪ್ರವಾಳ, 4.5 - 6.0 ಕ್ಯಾರಟ್). ಲೋಹ: ಶುದ್ಧ ತಾಮ್ರ ಅಥವಾ ಅಪ್ಪಟ ಚಿನ್ನ. ಧರಿಸುವ ಬೆರಳು: ಬಲಗೈಯ ಉಂಗುರದ ಬೆರಳು (ಅನಾಮಿಕಾ). ಶುಭ ದಿನ & ಕಾಲ: ಮಂಗಳವಾರ ಪ್ರಾತಃಕಾಲ ಕುಜ ಹೋರೆಯಲ್ಲಿ. ಪ್ರಾಣಪ್ರತಿಷ್ಠಾಪನೆಗೆ ಶುಭ ತಾರಾಬಲ ನಕ್ಷತ್ರಗಳು: ${consecrationTarasKn}. ಮಂತ್ರ: "ಓಂ ಭೌಮಾಯ ನಮಃ" (108 ಬಾರಿ).`;
   const havalaPrescriptionEn = `Gemstone: Red Coral (Pure Pravala, 4.5 - 6.0 Carats). Metal: Pure Copper or Gold. Wearing Finger: Ring Finger of Right Hand (Anamika). Auspicious Time: Tuesday Morning during Mars Hora. Consecration Tara Bala Nakshatras: ${consecrationTarasEn}. Mantra: "Om Bhaumaya Namaha" (108 times).`;

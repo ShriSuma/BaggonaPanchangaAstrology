@@ -10,6 +10,7 @@ import {
   toTaDigits
 } from "../features/premiumPdf/dynamicBhavishyaEngine";
 import { generateKundliRemedyReport } from "../features/remedies/kundliRemedyEngine";
+import { generateAstrologicalPrescriptions } from "../core/PanchangaAngaSynthesisEngine";
 import type { KundliInput, KundliOutput } from "../core/AstroTypes";
 import { PlanetName } from "../core/AstroTypes";
 
@@ -302,5 +303,79 @@ describe("PDF V1 & Remedy Classical Accuracy and Multi-Language Audit", () => {
     expect(report.dashaBhuktiAnalysis.adhidevata?.adhidevata.kn).toBeTruthy();
     expect(report.dashaBhuktiAnalysis.adhidevata?.pratyadhidevata.kn).toBeTruthy();
     expect(report.dashaBhuktiAnalysis.adhidevata?.sadhana.kn).toBeTruthy();
+  });
+
+  it("strictly enforces consistency between Premium PDF V1 and Remedy PDF for Vajra / Havala and Rudraksha", () => {
+    // Test case: Taurus Lagna (Vrishabha - index 1), Moon in Krittika (Sun Nakshatra - index 2)
+    // Venus rules Lagna -> Vajra (Diamond) is primary gemstone, 6 Mukhi Rudraksha is primary.
+    // Sun rules Nakshatra -> 1 Mukhi Rudraksha is Nakshatra Rudraksha.
+    // Havala MUST be strictly false because Taurus native wears Vajra, and Mars is 7th/12th Maraka.
+    const taurusInput: KundliInput = {
+      name: "Taurus Devotee",
+      birthDate: "1988-05-10",
+      birthTime: "06:30",
+      latitude: 13.0,
+      longitude: 77.5,
+      gender: "Male"
+    };
+
+    const taurusOutput: KundliOutput = {
+      ascendant: 45.0, // Taurus
+      lagnaRashi: { index: 1, sanskrit: "Vrishabha", english: "Taurus" },
+      moonSign: { index: 1, sanskrit: "Vrishabha", english: "Taurus" },
+      sunSign: { index: 0, sanskrit: "Mesha", english: "Aries" },
+      moonPada: 1,
+      planets: [
+        {
+          name: PlanetName.Venus,
+          degree: 15,
+          isRetrograde: false,
+          rashi: { index: 1, sanskrit: "Vrishabha", english: "Taurus" },
+          house: 1,
+          nakshatra: { index: 3, sanskrit: "Rohini", english: "Rohini", deity: "Brahma" }
+        },
+        {
+          name: PlanetName.Moon,
+          degree: 28,
+          isRetrograde: false,
+          rashi: { index: 0, sanskrit: "Mesha", english: "Aries" },
+          house: 12,
+          nakshatra: { index: 2, sanskrit: "Krittika", english: "Krittika", deity: "Agni" }
+        },
+        {
+          name: PlanetName.Mars,
+          degree: 10,
+          isRetrograde: false,
+          rashi: { index: 9, sanskrit: "Makara", english: "Capricorn" },
+          house: 9,
+          nakshatra: { index: 22, sanskrit: "Dhanishta", english: "Dhanishta", deity: "Vasus" }
+        }
+      ],
+      houses: Array.from({ length: 12 }, (_, i) => (i * 30 + 45) % 360)
+    };
+
+    const remedyReport = generateKundliRemedyReport(taurusOutput, taurusInput);
+    const { rudrakshaRecommendation, gemstoneRecommendation } = remedyReport.gokarnaTempleRemedies;
+
+    // 1. Gemstone must be Vajra (Diamond)
+    expect(gemstoneRecommendation.stone.kn).toContain("ವಜ್ರ");
+    expect(gemstoneRecommendation.metal.kn).toContain("ಬೆಳ್ಳಿ");
+
+    // 2. Rudraksha must include 6 Mukhi (Lagna - Venus) AND 1 Mukhi (Nakshatra - Sun)
+    expect(rudrakshaRecommendation.mukhi.kn).toContain("6 ಮುಖಿ");
+    expect(rudrakshaRecommendation.mukhi.kn).toContain("1 ಮುಖಿ");
+    // Ensure no English "Mukhi" leak in Kannada
+    expect(rudrakshaRecommendation.mukhi.kn).not.toMatch(/\bMukhi\b/);
+
+    // 3. Verify Havala incompatibility guard: For Taurus, Havala is strictly prohibited
+    const prescriptions = generateAstrologicalPrescriptions(taurusOutput);
+    expect(prescriptions.gemstoneRing.isHavalaRecommended).toBe(false);
+    expect(prescriptions.gemstoneRing.primaryGemstoneKn).toContain("ವಜ್ರ");
+
+    // 4. Verify identical gemstone values across both engines
+    expect(gemstoneRecommendation.stone.kn).toBe(
+      `${prescriptions.gemstoneRing.primaryGemstoneKn} (${prescriptions.gemstoneRing.caratWeight})`
+    );
+    expect(gemstoneRecommendation.metal.kn).toBe(prescriptions.gemstoneRing.metalKn);
   });
 });

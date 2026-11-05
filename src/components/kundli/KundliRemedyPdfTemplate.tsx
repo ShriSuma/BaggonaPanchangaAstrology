@@ -480,6 +480,22 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
   }
 };
 
+export const TATVA_LOCALE: Record<string, Record<SupportedLanguage, string>> = {
+  Earth: { kn: "ಪೃಥ್ವಿ", en: "Earth", hi: "पृथ्वी", te: "పృథ్వి", ta: "நிலம்" },
+  Water: { kn: "ಜಲ", en: "Water", hi: "जल", te: "జలం", ta: "நீர்" },
+  Fire: { kn: "ಅಗ್ನಿ", en: "Fire", hi: "अग्नि", te: "అగ్ని", ta: "நெருப்பு" },
+  Air: { kn: "ವಾಯು", en: "Air", hi: "वायु", te: "వాయువు", ta: "காற்று" },
+  Ether: { kn: "ಆಕಾಶ", en: "Ether", hi: "आकाश", te: "ఆకాశం", ta: "ஆகாயம்" }
+};
+
+export function formatHouseName(house: number, langCode: SupportedLanguage): string {
+  if (langCode === "kn") return `${house}ನೇ ಮನೆ`;
+  if (langCode === "hi") return `${house}वां भाव`;
+  if (langCode === "te") return `${house}వ స్థానం`;
+  if (langCode === "ta") return `${house}ஆம் வீடு`;
+  return `${house}th House`;
+}
+
 function formatDevoteeNameForLanguage(name: string, targetLang: string): string {
   if (!name || !name.trim()) return "Devotee";
   const trimmed = name.trim();
@@ -863,7 +879,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
             <div>
               <span style={{ color: "#78350F", fontWeight: 800 }}>🌿 {i18n.panchangaTithiVara}</span>{" "}
               <span style={{ color: "#065F46", fontWeight: 700 }}>
-                {panchangaRemedies ? `${panchangaRemedies.tithiRemedy.tithiName[code] || panchangaRemedies.tithiRemedy.tithiName.kn}, ${panchangaRemedies.varaRemedy.dayName[code] || panchangaRemedies.varaRemedy.dayName.kn}` : "ಶುಭ ದಿನ"}
+                {panchangaRemedies ? `${panchangaRemedies.tithiRemedy.tithiName[code] || panchangaRemedies.tithiRemedy.tithiName.kn}, ${panchangaRemedies.varaRemedy.dayName[code] || panchangaRemedies.varaRemedy.dayName.kn}` : (isKn ? "ಶುಭ ದಿನ" : isHi ? "शुभ दिन" : isTe ? "శుభ దినం" : isTa ? "சுப தினம்" : "Auspicious Day")}
               </span>
             </div>
           </div>
@@ -1011,7 +1027,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
               >
                 <span>
                   <strong>🚧 {i18n.badhakeshLabel} </strong>
-                  {badhakaAnalysis.badhakeshName[code] || badhakaAnalysis.badhakeshName.kn} ({badhakaAnalysis.badhakaHouse}th House {badhakaAnalysis.badhakaSignName[code] || badhakaAnalysis.badhakaSignName.kn}) — {badhakaAnalysis.shantiRemedy[code] || badhakaAnalysis.shantiRemedy.kn}
+                  {badhakaAnalysis.badhakeshName[code] || badhakaAnalysis.badhakeshName.kn} ({formatHouseName(badhakaAnalysis.badhakaHouse, code)} · {badhakaAnalysis.badhakaSignName[code] || badhakaAnalysis.badhakaSignName.kn}) — {badhakaAnalysis.shantiRemedy[code] || badhakaAnalysis.shantiRemedy.kn}
                 </span>
               </div>
             )}
@@ -1180,7 +1196,15 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#1E40AF" }}>
                     <span>⚡ {isKn ? "ಜನ್ಮ ಕರಣ: " : isHi ? "जन्म करण: " : isTe ? "జన్మ కరణం: " : isTa ? "ஜன்ம கரணம்: " : "Birth Karana: "}{panchangaRemedies.karanaRemedy.karanaName[code] || panchangaRemedies.karanaRemedy.karanaName.kn}</span>
                     <span style={{ fontSize: "9.5px", background: "#DBEAFE", color: "#1D4ED8", padding: "1px 5px", borderRadius: "5px", fontWeight: 800 }}>
-                      {isKn ? "ತತ್ತ್ವ: ಪೃಥ್ವಿ" : isHi ? "तत्व: पृथ्वी" : isTe ? "తత్త్వం: పృథ్వి" : isTa ? "தத்துவம்: நிலம்" : "Element: Earth"}
+                      {isKn
+                        ? `ತತ್ತ್ವ: ${TATVA_LOCALE[panchangaRemedies.karanaRemedy.tatva]?.kn || "ಪೃಥ್ವಿ"}`
+                        : isHi
+                        ? `तत्व: ${TATVA_LOCALE[panchangaRemedies.karanaRemedy.tatva]?.hi || "पृथ्वी"}`
+                        : isTe
+                        ? `తత్త్వం: ${TATVA_LOCALE[panchangaRemedies.karanaRemedy.tatva]?.te || "పృథ్వి"}`
+                        : isTa
+                        ? `தத்துவம்: ${TATVA_LOCALE[panchangaRemedies.karanaRemedy.tatva]?.ta || "நிலம்"}`
+                        : `Element: ${TATVA_LOCALE[panchangaRemedies.karanaRemedy.tatva]?.en || "Earth"}`}
                     </span>
                   </div>
                   <div style={{ color: "#1E3A8A", marginTop: "1px" }}>
@@ -1829,7 +1853,7 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 900, color: "#78350F", fontSize: "12px" }}>
                   <span>⭐ {i18n.turnaroundTitle}</span>
                   <span style={{ backgroundColor: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A", padding: "0 9px", height: "20px", borderRadius: "6px", fontSize: "10.5px", fontWeight: 800, display: "inline-flex", alignItems: "center" }}>
-                    {lifeTurnaroundTiming.timeline?.[code] || (isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || "Upcoming 3 to 6 months"))}
+                    {lifeTurnaroundTiming.timeline?.[code] || (isKn ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || lifeTurnaroundTiming.timelineKn))}
                   </span>
                 </div>
                 <div style={{ color: "#451A03", marginTop: "3px" }}>
@@ -1838,8 +1862,8 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                   </span>
                   <span style={{ fontWeight: 700, color: "#92400E" }}>
                     {(() => {
-                      const catalyst = lifeTurnaroundTiming.catalystGraha?.[code] || lifeTurnaroundTiming.catalystGrahaKn || lifeTurnaroundTiming.catalystGrahaEn || (isTa ? "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர்" : isHi ? "श्री गोकर्ण महाबलेश्वर" : isTe ? "శ్రీ గోకర్ణ మహాబలేశ్వర" : isKn ? "ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ" : "Sri Gokarna Mahabaleshwara");
-                      const seva = lifeTurnaroundTiming.specificSeva?.[code] || lifeTurnaroundTiming.specificSevaKn || lifeTurnaroundTiming.specificSevaEn || (isTa ? "சிறப்பு பூஜை" : isHi ? "विशेष पूजा" : isTe ? "విశేష పూజ" : isKn ? "ವಿಶೇಷ ಸೇವೆ" : "Special Seva");
+                      const catalyst = lifeTurnaroundTiming.catalystGraha?.[code] || (isKn ? lifeTurnaroundTiming.catalystGrahaKn : (lifeTurnaroundTiming.catalystGrahaEn || (isTa ? "ஸ்ரீ கோகர்ண மகாபலேஸ்வரர்" : isHi ? "श्री गोकर्ण महाबलेश्वर" : isTe ? "శ్రీ గోకర్ణ మహాబలేశ్వర" : "Sri Gokarna Mahabaleshwara")));
+                      const seva = lifeTurnaroundTiming.specificSeva?.[code] || (isKn ? lifeTurnaroundTiming.specificSevaKn : (lifeTurnaroundTiming.specificSevaEn || (isTa ? "சிறப்பு பூஜை" : isHi ? "विशेष पूजा" : isTe ? "విశేష పూజ" : "Special Seva")));
                       return `${catalyst} · ${seva}`;
                     })()}
                   </span>

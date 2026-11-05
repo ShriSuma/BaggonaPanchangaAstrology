@@ -2255,11 +2255,11 @@ export const CLASSICAL_STOTRAS_CATALOG = [
       te: "పార్వతీ దేవి",
       ta: "பார்வதி தேவி"
     },
-    shlokaSanskrit: `ॐ ह्रीं योगिनि योगिनी योगेश्वरी योग भयङ्करि सकल स्थावर ಜङ्गमस्य मुख हृदयं मम वशं आकर्षय आकर्षय नमः ॥`,
+    shlokaSanskrit: `ॐ ह्रीं योगिनि योगिनी योगेश्वरी योग भयङ्करि सकल स्थावर जङ्गमस्य मुख हृदयं मम वशं आकर्षय आकर्षय नमः ॥`,
     shlokaKannada: `ಓಂ ಹ್ರೀಂ ಯೋಗಿನಿ ಯೋಗಿನೀ ಯೋಗೇಶ್ವರೀ ಯೋಗ ಭಯಂಕರಿ ಸಕಲ ಸ್ಥಾವರ ಜಂಗಮಸ್ಯ ಮುಖ ಹೃದಯಂ ಮಮ ವಶಂ ಆಕರ್ಷಯ ಆಕರ್ಷಯ ನಮಃ ॥`,
-    shlokaTelugu: `ఓం హ్రీం యోగిని ಯೋಗಿನೀ యోగేశ్వరీ యోగ భయంకరి సకల స్థావర జంగమస్య ముఖ హృదయం మమ వశం ఆకర్షయ ఆకర్షయ నమః ॥`,
+    shlokaTelugu: `ఓం హ్రీం యోగిని యోగినీ యోగేశ్వరీ యోగ భయంకరి సకల స్థావర జంగమస్య ముఖ హృదయం మమ వశం ఆకర్షయ ఆకర్షయ నమః ॥`,
     shlokaTamil: `ஓம் ஹ்ரீம் யோகினி யோகினீ யோகேஸ்வரீ சகல ஸ்தாவர ஜங்கமஸ்ய முகம் ஹ்ருதயம் மம வசம் ஆகர்ஷய நமஹ ॥`,
-    shlokaHindi: `ॐ ह्रीं योगिनि योगिनी योगेश्वरी योग भयङ्करि सकल स्थावर ಜङ्गमस्य मुख हृदयं मम वशं आकर्षय आकर्षय नमः ॥`,
+    shlokaHindi: `ॐ ह्रीं योगिनि योगिनी योगेश्वरी योग भयङ्करि सकल स्थावर जङ्गमस्य मुख हृदयं मम वशं आकर्षय आकर्षय नमः ॥`,
     transliteration: "Oṁ Hrīṁ Yōgini Yōginī Yōgēśvarī Yōga Bhayaṅkari Sakala Sthāvara Jaṅgamasya Mukha Hṛdayaṁ Mama Vaśaṁ Ākarṣaya Ākarṣaya Namaḥ ||",
     meaning: {
       kn: "ವಿವಾಹ ವಿಘ್ನಗಳನ್ನು ನಿವಾರಿಸಿ ಯೋಗ್ಯ ಸಂಗಾತಿಯೊಡನೆ ಸೌಭಾಗ್ಯದ ಜೀವನವನ್ನು ಕರುಣಿಸುವ ಜಗನ್ಮಾತೆ ಪಾರ್ವತಿಯನ್ನು ಭಕ್ತಿಯಿಂದ ಶರಣುಹೋಗುತ್ತೇವೆ.",
@@ -3209,7 +3209,7 @@ export function computeVedicDoctorPrescription(
   }
 
   // 2. Aushadha (Divine Prescribed Medicine)
-  let mantraSanskrit = "॥ ॐ क्रां क्रीं क्रौं सः भौमाय नमः । ॐ ಸों सोमाय नमः शान्तये ॥";
+  let mantraSanskrit = "॥ ॐ क्रां क्रीं क्रौं सः भौमाय नमः । ॐ सों सोमाय नमः शान्तये ॥";
   let mantraNative: Record<SupportedLanguage, string> = {
     kn: "॥ ಓಂ ಕ್ರಾಂ ಕ್ರೀಂ ಕ್ರೌಂ ಸಃ ಭೌಮಾಯ ನಮಃ । ಓಂ ಸೋಂ ಸೋಮಾಯ ನಮಃ ಶಾಂತಯೇ ॥",
     en: "Om Kram Kreem Kroum Sah Bhaumaya Namaha | Om Som Somaya Namaha Shantaye",
@@ -3272,7 +3272,7 @@ export function computeVedicDoctorPrescription(
       ta: "நல்லெண்ணெய் தீப ரக்ஷை & வில்வ பஸ்மம்"
     };
   } else if (struggleCategory === "student_academic") {
-    mantraSanskrit = "॥ ॐ ऐಂ सरस्वत्यै नमः । ॐ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ ॥";
+    mantraSanskrit = "॥ ॐ ऐं सरस्वत्यै नमः । ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः ॥";
     mantraNative = {
       kn: "॥ ಓಂ ಐಂ ಸರಸ್ವತ್ಯೈ ನಮಃ । ಓಂ ಬ್ರಾಂ ಬ್ರೀಂ ಬ್ರೌಂ ಸಃ ಬುಧಾಯ ನಮಃ ॥",
       en: "Om Aim Saraswatyai Namaha | Om Bram Breem Broum Sah Budhaya Namaha",
@@ -3296,7 +3296,7 @@ export function computeVedicDoctorPrescription(
       ta: "தூய மஞ்சள் திலகம்"
     };
   } else if (struggleCategory === "marriage_delay" || struggleCategory === "relationship_friction") {
-    mantraSanskrit = "॥ ॐ ದ್ರಾಂ ದ್ರೀಂ ದ್ರೌಂ ಸಃ ಶುಕ್ರಾಯ ನಮಃ । ॐ ಉಮಾ-ಮಹೇಶ್ವರಾಭ್ಯಾಂ ನಮಃ ॥";
+    mantraSanskrit = "॥ ॐ द्रां द्रीं द्रौं सः शुक्राय नमः । ॐ उमा-महेश्वराभ्यां नमः ॥";
     mantraNative = {
       kn: "॥ ಓಂ ದ್ರಾಂ ದ್ರೀಂ ದ್ರೌಂ ಸಃ ಶುಕ್ರಾಯ ನಮಃ । ಓಂ ಉಮಾ-ಮಹೇಶ್ವರಾಭ್ಯಾಂ ನಮಃ ॥",
       en: "Om Dram Dreem Droum Sah Shukraya Namaha | Om Uma-Maheshwarabhyam Namaha",
@@ -7015,6 +7015,46 @@ export function generateKundliRemedyReport(
     donationDay = { kn: "ಮಂಗಳವಾರ ಅಥವಾ ಶನಿವಾರ", en: "Tuesday or Saturday", hi: "मंगलवार अथवा शनिवार", te: "మంగళ లేదా శనివారం", ta: "செவ்வாய் அல்லது சனிக்கிழமை" };
   }
 
+  // Synchronize Rudraksha recommendations with Premium PDF V1 (Lagna-Lord Mukhi + Nakshatra Mukhi)
+  const hasNakRudraksha = Boolean(
+    prescriptions.rudraksha.nakshatraMukhi &&
+    prescriptions.rudraksha.nakshatraMukhi !== prescriptions.rudraksha.mukhi
+  );
+  const rudrakshaMukhiKn = hasNakRudraksha
+    ? `${prescriptions.rudraksha.nameKn} (ಲಗ್ನ) + ${prescriptions.rudraksha.nakshatraRudrakshaKn} (ನಕ್ಷತ್ರ)`
+    : prescriptions.rudraksha.nameKn;
+  const rudrakshaMukhiEn = hasNakRudraksha
+    ? `${prescriptions.rudraksha.mukhi}-Mukhi (${prescriptions.rudraksha.nameEn}) [Lagna] + ${prescriptions.rudraksha.nakshatraMukhi}-Mukhi [Nakshatra]`
+    : `${prescriptions.rudraksha.mukhi}-Mukhi (${prescriptions.rudraksha.nameEn})`;
+  const rudrakshaMukhiHi = hasNakRudraksha
+    ? `${prescriptions.rudraksha.nameHi || (prescriptions.rudraksha.mukhi + " मुखी रुद्राक्ष")} (लग्न) + ${prescriptions.rudraksha.nakshatraRudrakshaHi || (prescriptions.rudraksha.nakshatraMukhi + " मुखी रुद्राक्ष")} (नक्षत्र)`
+    : (prescriptions.rudraksha.nameHi || `${prescriptions.rudraksha.mukhi}-मुखी रुद्राक्ष`);
+  const rudrakshaMukhiTe = hasNakRudraksha
+    ? `${prescriptions.rudraksha.nameTe || (prescriptions.rudraksha.mukhi + " ముఖి రుద్రాక్ష")} (లగ్నం) + ${prescriptions.rudraksha.nakshatraRudrakshaTe || (prescriptions.rudraksha.nakshatraMukhi + " ముఖి రుద్రాక్ష")} (నక్షత్రం)`
+    : (prescriptions.rudraksha.nameTe || `${prescriptions.rudraksha.mukhi}-ముఖి రుద్రాక్ష`);
+  const rudrakshaMukhiTa = hasNakRudraksha
+    ? `${prescriptions.rudraksha.nameTa || (prescriptions.rudraksha.mukhi + " முக ருத்ராட்சம்")} (லக்னம்) + ${prescriptions.rudraksha.nakshatraRudrakshaTa || (prescriptions.rudraksha.nakshatraMukhi + " முக ருத்ராட்சம்")} (நட்சத்திரம்)`
+    : (prescriptions.rudraksha.nameTa || `${prescriptions.rudraksha.mukhi}-முக ருத்ராட்சம்`);
+
+  const rudrakshaDeityMap: Record<PlanetName, { kn: string; en: string; hi: string; te: string; ta: string }> = {
+    [PlanetName.Sun]: { kn: "ಶ್ರೀ ಸೂರ್ಯ ನಾರಾಯಣ / ಶಿವ (ಸೂರ್ಯ ತತ್ತ್ವ)", en: "Lord Shiva (Surya Tatva)", hi: "भगवान शिव / सूर्य नारायण (सूर्य तत्व)", te: "భగవాన్ శివుడు / సూర్య నారాయణ (సూర్య తత్వము)", ta: "சிவபெருமான் / சூரிய நாராயணன் (சூரிய தத்துவம்)" },
+    [PlanetName.Moon]: { kn: "ಶ್ರೀ ಅರ್ಧನಾರೀಶ್ವರ (ಚಂದ್ರ ತತ್ತ್ವ)", en: "Ardhanarishvara (Chandra Tatva)", hi: "भगवान अर्धनारीश्वर (चंद्र तत्व)", te: "భగవాన్ అర్ధనారీశ్వరుడు (చంద్ర తత్వము)", ta: "அர்த்தநாரீஸ்வரர் (சந்திர தத்துவம்)" },
+    [PlanetName.Mars]: { kn: "ಅಗ್ನಿ ದೇವ / ಸುಬ್ರಹ್ಮಣ್ಯ (ಮಂಗಳ ತತ್ತ್ವ)", en: "Lord Agni / Kartikeya (Mangala Tatva)", hi: "अग्नि देव / कार्तिकेय (मंगल तत्व)", te: "అగ్ని దేవుడు / సుబ్రహ్మణ్య (మంగళ తత్వము)", ta: "அக்னி தேவன் / சுப்ரமண்யர் (செவ்வாய் தத்துவம்)" },
+    [PlanetName.Mercury]: { kn: "ಬ್ರಹ್ಮ ದೇವ / ಮಹಾಗಣಪತಿ (ಬುಧ ತತ್ತ್ವ)", en: "Lord Brahma / Ganapati (Budha Tatva)", hi: "ब्रह्मा देव / गणपति (बुध तत्व)", te: "బ్రహ్మ దేవుడు / మహాగణపతి (బుధ తత్వము)", ta: "பிரம்ம தேவன் / மகா கணபதி (புதன் தத்துவம்)" },
+    [PlanetName.Jupiter]: { kn: "ಶ್ರೀ ಕಾಲಾಗ್ನಿ ರುದ್ರ (ಗುರು ತತ್ತ್ವ)", en: "Lord Kalagni Rudra (Guru Tatva)", hi: "भगवान कालाग्नि रुद्र (गुरु तत्व)", te: "భగవాన్ కాలాగ్ని రుద్రుడు (గురు తత్వము)", ta: "காலாக்னி ருத்ரர் (குரு தத்துவம்)" },
+    [PlanetName.Venus]: { kn: "ಶ್ರೀ ಷಣ್ಮುಖ ಕಾರ್ತಿಕೇಯ (ಶುಕ್ರ ತತ್ತ್ವ)", en: "Lord Kartikeya (Shukra Tatva)", hi: "भगवान कार्तिकेय (शुक्र तत्व)", te: "భగవాన్ కార్తికేయుడు (శుక్ర తత్వము)", ta: "கார்த்திகேயப் பெருமான் (சுக்கிர தத்துவம்)" },
+    [PlanetName.Saturn]: { kn: "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ (ಶನಿ ತತ್ತ್ವ)", en: "Goddess Mahalakshmi (Shani Tatva)", hi: "भगवती महालक्ष्मी (शनि तत्व)", te: "శ్రీ మహాలక్ష్మి (శని తత్వము)", ta: "மகாலட்சுமி தாயார் (சனி தத்துவம்)" },
+    [PlanetName.Rahu]: { kn: "ಶ್ರೀ ಮಹಾಗಣಪತಿ (ರಾಹು ತತ್ತ್ವ)", en: "Lord Ganesha (Rahu Tatva)", hi: "भगवान श्री गणेश (राहु तत्व)", te: "శ్రీ మహాగణపతి (రాహు తత్వము)", ta: "மகா கணபதி (ராகு தத்துவம்)" },
+    [PlanetName.Ketu]: { kn: "ಶ್ರೀ ದುರ್ಗಾ ಪರಮೇಶ್ವರಿ (ಕೇತು ತತ್ತ್ವ)", en: "Goddess Durga (Ketu Tatva)", hi: "भगवती दुर्गा (केतु तत्व)", te: "శ్రీ దుర్గా పరమేశ్వరి (కేతు తత్వము)", ta: "துர்க்கா பரமேஸ்வரி (கேது தத்துவம்)" }
+  };
+  const resolvedRudrakshaDeity = rudrakshaDeityMap[prescriptions.rudraksha.planet as PlanetName] || {
+    kn: prescriptions.rudraksha.deity,
+    en: prescriptions.rudraksha.deity,
+    hi: prescriptions.rudraksha.deity,
+    te: prescriptions.rudraksha.deity,
+    ta: prescriptions.rudraksha.deity
+  };
+
   const gokarnaTempleRemedies = {
     prescribedSeva: {
       name: prescribedSevaName,
@@ -7030,22 +7070,22 @@ export function generateKundliRemedyReport(
     },
     rudrakshaRecommendation: {
       mukhi: {
-        kn: `${prescriptions.rudraksha.mukhi} Mukhi (${prescriptions.rudraksha.nameKn})`,
-        en: `${prescriptions.rudraksha.mukhi}-Mukhi (${prescriptions.rudraksha.nameEn})`,
-        hi: `${prescriptions.rudraksha.mukhi}-मुखी रुद्राक्ष`,
-        te: `${prescriptions.rudraksha.mukhi}-ముఖి రుద్రాక్ష`,
-        ta: `${prescriptions.rudraksha.mukhi}-முக ருத்ராட்சம்`
+        kn: rudrakshaMukhiKn,
+        en: rudrakshaMukhiEn,
+        hi: rudrakshaMukhiHi,
+        te: rudrakshaMukhiTe,
+        ta: rudrakshaMukhiTa
       },
       deity: {
-        kn: prescriptions.rudraksha.deity,
-        en: prescriptions.rudraksha.deity,
-        hi: prescriptions.rudraksha.deity,
-        te: prescriptions.rudraksha.deity,
-        ta: prescriptions.rudraksha.deity
+        kn: resolvedRudrakshaDeity.kn,
+        en: resolvedRudrakshaDeity.en,
+        hi: resolvedRudrakshaDeity.hi,
+        te: resolvedRudrakshaDeity.te,
+        ta: resolvedRudrakshaDeity.ta
       },
       benefits: {
         kn: prescriptions.rudraksha.astrologicalReason || "ಗ್ರಹದೋಷ ನಿವಾರಣೆ, ಮನಃಶಾಂತಿ ಹಾಗೂ ದೈವಿಕ ರಕ್ಷಣೆ ಒದಗಿಸುತ್ತದೆ.",
-        en: prescriptions.rudraksha.astrologicalReason || "Dissolves planetary afflictions, promotes mental tranquility and divine protection.",
+        en: "Harmonizes planetary vibrations, enhances vitality, and dissolves astrological afflictions.",
         hi: "ग्रहदोष शांति, मानसिक एकाग्रता एवं दैवीय सुरक्षा प्रदान करता है।",
         te: "గ్రహదోష నివారణ, మానసిక ఏకాగ్రత మరియు దైవిక రక్షణ కలిగిస్తుంది.",
         ta: "கிரக தோஷ நிவர்த்தி, மன அமைதி மற்றும் தெய்வீக பாதுகாப்பு தரும்."

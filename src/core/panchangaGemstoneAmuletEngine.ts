@@ -2103,7 +2103,9 @@ export function evaluateGemstoneAndAmuletPrescription(
   const isMarsBeneficLagna = [0, 3, 4, 7, 8, 11].includes(lagnaRashiIdx); // Mesha, Karka, Simha, Vrischika, Dhanus, Meena
   const isKujaNakshatra = neckWearInfo.lord === PlanetName.Mars;
 
-  const isHavalaRecommended = (isMarsBeneficLagna && !isMarsDusthana) || isKujaNakshatra;
+  // Strict Parashari Incompatibility Guard:
+  // Havala (Red Coral) is strictly prohibited for Taurus and Libra (Vajra users), Gemini, Virgo, Capricorn, Aquarius.
+  const isHavalaRecommended = isMarsBeneficLagna && !isMarsDusthana;
 
   const havalaVerdictKn = isHavalaRecommended
     ? `ಹೌದು! ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕೆಂಪು ಹವಳವು (Red Coral) ಅತ್ಯಂತ ಮಂಗಳಕರ ಹಾಗೂ ಯೋಗಕಾರಕ ರತ್ನವಾಗಿದೆ.`
