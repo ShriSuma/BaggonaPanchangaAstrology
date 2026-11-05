@@ -33,6 +33,10 @@ import {
   PLANET_NAMES_I18N
 } from "./consultationPanchangaService";
 import { useAppStore } from "../../stores/appStore";
+import {
+  sanitizeDuplicateSpeechWords,
+  normToken
+} from "./consultationSpeechService";
 
 export interface ConsultationReadingResult {
   fullText: string;
@@ -661,82 +665,13 @@ export function deduplicateResponseText(text: string): string {
 
   const cleanParagraphs: string[] = [];
 
-  const norm = (s: string) => {
-    let n = typeof s.normalize === "function" ? s.normalize("NFC") : s;
-    n = n.replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "");
-    return n.toLowerCase().replace(/^[.,!?;:॥|।·•–—"'`“”‘’«»()[\]{}]+|[.,!?;:॥|।·•–—"'`“”‘’«»()[\]{}]+$/g, "").trim();
-  };
-
   for (const para of rawParagraphs) {
-    // 1. Sentence-level deduplication inside paragraph
-    const rawSentences = para.split(/(?<=[.!?॥|]|\n+)\s*/).filter(Boolean);
-    const cleanSentences: string[] = [];
-
-    for (const sent of rawSentences) {
-      const sTrim = sent.trim();
-      if (!sTrim) continue;
-      const prev = cleanSentences[cleanSentences.length - 1];
-      if (prev && norm(sTrim) === norm(prev.trim())) {
-        continue; // drop duplicate consecutive identical sentence
-      }
-      cleanSentences.push(sTrim);
-    }
-
-    const paraWithUniqueSentences = cleanSentences.join(" ");
-
-    // 2. Token-level n-gram deduplication (from 25-word phrases down to single words)
-    let tokens = paraWithUniqueSentences.split(/\s+/).filter(Boolean);
-    if (tokens.length > 1) {
-      let changed = true;
-      let iterations = 0;
-      while (changed && iterations < 3) {
-        changed = false;
-        iterations++;
-        const maxK = Math.min(25, Math.floor(tokens.length / 2));
-        for (let k = maxK; k >= 1; k--) {
-          const newTokens: string[] = [];
-          let i = 0;
-          while (i < tokens.length) {
-            if (i + 2 * k <= tokens.length) {
-              let match = true;
-              for (let m = 0; m < k; m++) {
-                if (norm(tokens[i + m]) !== norm(tokens[i + k + m])) {
-                  match = false;
-                  break;
-                }
-              }
-              if (match) {
-                for (let m = 0; m < k; m++) {
-                  newTokens.push(tokens[i + m]);
-                }
-                i += 2 * k;
-                changed = true;
-                continue;
-              }
-            }
-            if (k === 1 && newTokens.length > 0) {
-              const prev = newTokens[newTokens.length - 1];
-              if (norm(tokens[i]) === norm(prev)) {
-                i++;
-                changed = true;
-                continue;
-              }
-            }
-            newTokens.push(tokens[i]);
-            i++;
-          }
-          tokens = newTokens;
-          if (changed) break;
-        }
-      }
-    }
-
-    const cleanedPara = tokens.join(" ").replace(/\s+([.,!?;:॥|])/g, "$1").trim();
+    const cleanedPara = sanitizeDuplicateSpeechWords(para).trim();
     if (!cleanedPara) continue;
 
     // Check if this paragraph is identical to previous paragraph
     const prevPara = cleanParagraphs[cleanParagraphs.length - 1];
-    if (prevPara && norm(cleanedPara) === norm(prevPara)) {
+    if (prevPara && normToken(cleanedPara) === normToken(prevPara)) {
       continue;
     }
     cleanParagraphs.push(cleanedPara);
@@ -1755,7 +1690,7 @@ export function buildConsultationRulingsLedger(
           "Indefinite delay beyond 2-3 years",
           "Speculative incompatible alliances"
         ],
-        remedyPrescribed: "Wear Venusian gemstone (Diamond / White Zircon), light cow-ghee lamp, Gokarna Kalyana Sankalpa"
+        remedyPrescribed: "Wear Lagna-prescribed Bhagya gemstone (Diamond / White Zircon for Venusian Lagna, Red Coral for Mars Lagnas, Pearl for Cancer, Ruby for Leo, Yellow Sapphire for Guru Lagnas), light cow-ghee lamp, Gokarna Kalyana Sankalpa"
       });
     }
   }
@@ -1936,6 +1871,140 @@ export function buildDeterministicPropertyReading(
 }
 
 /**
+ * Helper to get strictly Lagna-aligned auspicious gemstone text for Vivaha / Bhagya recommendations.
+ * Prevents catastrophic prescription of Venusian Diamond/Zircon to incompatible Lagnas (Aries, Leo, Cancer, Scorpio, Sagittarius, Pisces).
+ */
+export function getLagnaPrescribedGemstoneText(
+  astroData: DevoteeKundliComputedData | undefined,
+  lang: ConsultationLanguage
+): string {
+  const lagnaIdx = astroData?.kundli?.lagnaRashi?.index ?? -1;
+  const isVenusian = [1, 6, 9, 10, 2, 5].includes(lagnaIdx);
+
+  if (isVenusian || lagnaIdx === -1) {
+    switch (lang) {
+      case "en":
+        return "Diamond (Vajra) or natural White Zircon set in silver on a Friday morning";
+      case "hi":
+        return "शुक्र के शुभ रत्न हीरा अथवा शास्त्रसम्मत प्राकृतिक सफेद जरकन";
+      case "te":
+        return "శుక్ర గ్రహ రత్నమైన వజ్రం లేదా సహజ వైట్ జిర్కాన్";
+      case "ta":
+        return "சுக்கிரனுக்குரிய வைரம் அல்லது இயற்கை வெள்ளை ஜிர்கான்";
+      case "ml":
+        return "ശുക്രന്റെ രത്നമായ വജ്രം അല്ലെങ്കിൽ സ്വാഭാവിക വൈറ്റ് സിർക്കോൺ";
+      case "mr":
+        return "शुक्राचे शुभ रत्न हिरा किंवा नैसर्गिक पांढरा जरकन";
+      case "kn":
+      default:
+        return "ಶುಕ್ರನ ರತ್ನವಾದ ವಜ್ರ (ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ / ಓಪಲ್)";
+    }
+  }
+
+  // Aries (0) or Scorpio (7) -> Mars Lagnesha -> Red Coral
+  if (lagnaIdx === 0 || lagnaIdx === 7) {
+    switch (lang) {
+      case "en":
+        return "Lagna Lord Mars gemstone Red Coral (Pravala) set in copper or gold on a Tuesday morning";
+      case "hi":
+        return "लग्नेश मंगल का शुभ रत्न लाल मूंगा (तांबे अथवा सोने में)";
+      case "te":
+        return "లగ్నాధిపతి కుజుని శుభ రత్నమైన ఎర్ర పగడం (రాగి లేదా బంగారంలో)";
+      case "ta":
+        return "லக்னாதிபதி செவ்வாயின் சுப ரத்தினமான சிவப்பு பவளம் (செம்பு அல்லது தங்கத்தில்)";
+      case "ml":
+        return "ലഗ്നാധിപനായ ചൊവ്വയുടെ രത്നമായ ചുവന്ന പവിഴം";
+      case "mr":
+        return "लग्नेश मंगळाचे शुभ रत्न लाल पोवळा";
+      case "kn":
+      default:
+        return "ಲಗ್ನಾಧಿಪತಿ ಕುಜನ ಶುಭ ರತ್ನವಾದ ಕೆಂಪು ಹವಳ (ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನದಲ್ಲಿ)";
+    }
+  }
+
+  // Cancer (3) -> Moon Lagnesha -> Natural Pearl
+  if (lagnaIdx === 3) {
+    switch (lang) {
+      case "en":
+        return "Lagna Lord Moon gemstone Natural Pearl (Mukta) set in silver on a Monday morning";
+      case "hi":
+        return "लग्नेश चंद्र का शुभ रत्न सच्चा मोती (चांदी में)";
+      case "te":
+        return "లగ్నాధిపతి చంద్రుని శుభ రత్నమైన సహజ ముత్యం (వెండిలో)";
+      case "ta":
+        return "லக்னாதிபதி சந்திரனின் சுப ரத்தினமான இயற்கை முத்து (வெள்ளியில்)";
+      case "ml":
+        return "ലഗ്നാധിപനായ ചന്ദ്രന്റെ രത്നമായ സ്വാഭാവിക മുത്ത്";
+      case "mr":
+        return "लग्नेश चंद्राचे शुभ रत्न खरा मोती";
+      case "kn":
+      default:
+        return "ಲಗ್ನಾಧಿಪತಿ ಚಂದ್ರನ ಶುಭ ರತ್ನವಾದ ನೈಸರ್ಗಿಕ ಮುತ್ತು (ಬೆಳ್ಳಿಯಲ್ಲಿ)";
+    }
+  }
+
+  // Leo (4) -> Sun Lagnesha -> Ruby
+  if (lagnaIdx === 4) {
+    switch (lang) {
+      case "en":
+        return "Lagna Lord Sun gemstone Ruby (Manikya) set in gold or copper on a Sunday morning";
+      case "hi":
+        return "लग्नेश सूर्य का शुभ रत्न माणिक्य (सोने अथवा तांबे में)";
+      case "te":
+        return "లగ్నాధిపతి సూర్యుని శుభ రత్నమైన మాణిక్యం (బంగారం లేదా రాగిలో)";
+      case "ta":
+        return "லக்னாதிபதி சூரியனின் சுப ரத்தினமான மாணிக்கம் (தங்கம் அல்லது செம்பில்)";
+      case "ml":
+        return "ലഗ്നാധിപനായ സൂര്യന്റെ രത്നമായ മാണിക്യം";
+      case "mr":
+        return "लग्नेश सूर्याचे शुभ रत्न माणिक";
+      case "kn":
+      default:
+        return "ಲಗ್ನಾಧಿಪತಿ ಸೂರ್ಯನ ಶುಭ ರತ್ನವಾದ ಮಾಣಿಕ್ಯ (ಚಿನ್ನ ಅಥವಾ ತಾಮ್ರದಲ್ಲಿ)";
+    }
+  }
+
+  // Sagittarius (8) or Pisces (11) -> Jupiter Lagnesha -> Yellow Sapphire
+  if (lagnaIdx === 8 || lagnaIdx === 11) {
+    switch (lang) {
+      case "en":
+        return "Lagna Lord Jupiter gemstone Yellow Sapphire (Pushparaga) set in pure gold on a Thursday morning";
+      case "hi":
+        return "लग्नेश बृहस्पति का शुभ रत्न पीला पुखराज (सोने में)";
+      case "te":
+        return "లగ్నాధిపతి గురు గ్రహ రత్నమైన పుష్యరాగం (బంగారంలో)";
+      case "ta":
+        return "லக்னாதிபதி குருவின் சுப ரத்தினமான புஷ்பராகம் (தங்கத்தில்)";
+      case "ml":
+        return "ലഗ്നാധിപനായ വ്യാഴത്തിന്റെ രത്നമായ പുഷ്യരാഗം";
+      case "mr":
+        return "लग्नेश गुरूचे शुभ रत्न पिवळा पुखराज";
+      case "kn":
+      default:
+        return "ಲಗ್ನಾಧಿಪತಿ ಗುರುವಿನ ಶುಭ ರತ್ನವಾದ ಪುಷ್ಪರಾಗ (ಅಪ್ಪಟ ಚಿನ್ನದಲ್ಲಿ)";
+    }
+  }
+
+  switch (lang) {
+    case "en":
+      return "your prescribed Lagna Bhagya gemstone";
+    case "hi":
+      return "अपनी लग्न पत्रिका अनुसार निर्धारित मुख्य भाग्य रत्न";
+    case "te":
+      return "మీ లగ్నానికి అనుకూలమైన ప్రధాన భాగ్య రత్నం";
+    case "ta":
+      return "உங்கள் லக்னத்திற்குரிய முதன்மை அதிர்ஷ்ட ரத்தினம்";
+    case "ml":
+      return "നിങ്ങളുടെ ലഗ്നാനുസൃതമായ ഭാഗ്യ രത്നം";
+    case "mr":
+      return "आपल्या लग्नानुसार योग्य भाग्य रत्न";
+    case "kn":
+    default:
+      return "ನಿಮ್ಮ ಲಗ್ನಕ್ಕೆ ನಿಗದಿಪಡಿಸಿದ ಭಾಗ್ಯ ರತ್ನ";
+  }
+}
+
+/**
  * Deterministic 100% confident Marriage Reading across all 7 languages.
  * Eliminates all dilemma, declaring the marriage window with absolute Daivajna authority.
  */
@@ -1951,57 +2020,58 @@ export function buildDeterministicMarriageReading(
     /ಕುಜ ಶಾಂತಿ|ಕುಶ ಶಾಂತಿ|kuja shanti|kusha shanti|kuja dosha pooja|mangal shanti|मंगल शांति|कुज शांति|కుజ శాంతి|செவ்வாய் சாந்தி|ചൊവ്വാ ദോഷ പൂജ/i.test(
       question
     );
+  const gemText = getLagnaPrescribedGemstoneText(astroData, lang);
 
   switch (lang) {
     case "en": {
       if (asksKujaShanti) {
         const p1 = `100% Confident Astrological Ruling Regarding Kuja Shanti & Marriage Delay: You ask with sincere concern why marriage has not yet materialized despite performing sacred Kuja Shanti (Kusha Shanthi). In Vedic Jyotisha, Kuja Shanti pacifies the intense fiery friction, temperamental clashes, and hostile impediments of Kuja Dosha (Mars in 1st, 4th, 7th, 8th, or 12th). Performing that sacred Shanti was essential and has successfully removed the negative blockage from your 7th house. However, clearing an impediment is the foundation; the actual manifestation of Vivaha requires the positive cosmic activation of Gochara Guru drishti and Kalatra Bhava maturity.`;
-        const p2 = `Now that the Martian obstacle is dissolved, your birth chart confirms with 98% to 100% certainty that within the next 6 months, incoming Gochara Guru's direct aspect will solemnize your marriage! There is zero permanent delay remaining in your chart. Wear your prescribed Venusian gemstone—Diamond or natural White Zircon in silver on a Friday morning—and offer a sacred Sankalpa at Sri Kshetra Gokarna. Matrimonial alliance discussions will finalize happily within this confirmed 6-month window.`;
+        const p2 = `Now that the Martian obstacle is dissolved, your birth chart confirms with 98% to 100% certainty that within the next 6 months, incoming Gochara Guru's direct aspect will solemnize your marriage! There is zero permanent delay remaining in your chart. Wear your prescribed gemstone—${gemText}—and offer a sacred Sankalpa at Sri Kshetra Gokarna. Matrimonial alliance discussions will finalize happily within this confirmed 6-month window.`;
         return deduplicateResponseText(`${p1}\n\n${p2}`);
       }
       const p1 = `100% Confident Astrological Prediction: Examining your 7th house of matrimony, Venus (Shukra), and incoming Gochara Guru aspect, with 98% to 100% certainty within the next 6 months your marriage will definitely be solemnized! There is zero room for doubt or dilemma in your chart. The cosmic transit of Jupiter is casting its divine drishti directly upon your cardinal houses, dissolving previous karmic delays and unlocking the auspicious Vivaha Yoga.`;
-      const p2 = `By wearing your prescribed Venusian gemstone—Diamond set in white gold/silver or natural Australian White Zircon on a Friday morning—and offering prayers at Sri Kshetra Gokarna Mahabaleshwara, the energetic alignment for your sacred alliance is completed. Proceed with serene conviction; matrimonial negotiations and alliance finalization will conclude happily within this 6-month auspicious window.`;
+      const p2 = `By wearing your prescribed gemstone—${gemText}—and offering prayers at Sri Kshetra Gokarna Mahabaleshwara, the energetic alignment for your sacred alliance is completed. Proceed with serene conviction; matrimonial negotiations and alliance finalization will conclude happily within this 6-month auspicious window.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "hi": {
       if (asksKujaShanti) {
         const p1 = `१००% निश्चित दैवज्ञ निर्णय (कुज शांति के उपरांत विवाह योग): आपने कुज शांति (मंगल शांति) करवाई, फिर भी विवाह में विलंब क्यों हुआ, इसका प्रामाणिक वैदिक कारण समझें। कुज शांति ने मंगल के तीव्र दोष, कलह एवं विवाह बाधाओं को पूर्ण रूप से शांत कर दिया है। दोष का निवारण नकारात्मक रुकावटों को हटा देता है; किंतु वास्तविक विवाह संपन्न होने के लिए गोचर में गुरु (बृहस्पति) की अमृत दृष्टि और सप्तम भाव का सक्रिय होना अनिवार्य होता है।`;
-        const p2 = `अब जबकि मंगल की बाधा समाप्त हो चुकी है, आपकी कुंडली में गोचर गुरु का प्रभाव पूर्णतः सक्रिय हो चुका है। अतः ९८% से १००% निश्चितता के साथ अगले ६ महीनों में आपका विवाह संपन्न होना शत-प्रतिशत तय है! अपनी कुंडली के अनुसार शुक्र के रत्न हीरा (अथवा सफेद जरकन) को धारण करें तथा श्री क्षेत्र गोकर्ण में कल्याण संकल्प कराएं। आगामी ६ माह के भीतर आपका शुभ विवाह निर्विघ्न संपन्न होगा।`;
+        const p2 = `अब जबकि मंगल की बाधा समाप्त हो चुकी है, आपकी कुंडली में गोचर गुरु का प्रभाव पूर्णतः सक्रिय हो चुका है। अतः ९८% से १००% निश्चितता के साथ अगले ६ महीनों में आपका विवाह संपन्न होना शत-प्रतिशत तय है! अपनी कुंडली के अनुसार ${gemText} को धारण करें तथा श्री क्षेत्र गोकर्ण में कल्याण संकल्प कराएं। आगामी ६ माह के भीतर आपका शुभ विवाह निर्विघ्न संपन्न होगा।`;
         return deduplicateResponseText(`${p1}\n\n${p2}`);
       }
       const p1 = `१००% निश्चित दैवज्ञ निर्णय: आपकी जन्म कुंडली के सप्तम भाव, शुक्र ग्रह एवं गोचर गुरु की अमृत दृष्टि का विश्लेषण करने पर यह शत-प्रतिशत प्रमाणित होता है कि अगले ६ महीनों में आपका विवाह संपन्न हो जाएगा! आपकी कुंडली में किसी भी संशय या दुविधा के लिए कोई स्थान नहीं है। देवगुरु बृहस्पति की शुभ दृष्टि आपके विवाह भाव पर पूर्ण रूप से सक्रिय हो चुकी है, जिससे पूर्व के समस्त अवरोध नष्ट हो रहे हैं।`;
-      const p2 = `शुक्र के शुभ रत्न हीरा (अथवा शास्त्रसम्मत प्राकृतिक सफेद जरकन) को धारण करने तथा श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में कल्याण संकल्प पूजा संपन्न कराने से वैवाहिक वार्ता निर्विघ्न रूप से सफल होगी। पूरे विश्वास और उत्साह के साथ आगे बढ़िए; अगले ६ माह के भीतर आपका विवाह शत-प्रतिशत सुनिश्चित है।`;
+      const p2 = `${gemText} को धारण करने तथा श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में कल्याण संकल्प पूजा संपन्न कराने से वैवाहिक वार्ता निर्विघ्न रूप से सफल होगी। पूरे विश्वास और उत्साह के साथ आगे बढ़िए; अगले ६ माह के भीतर आपका विवाह शत-प्रतिशत सुनिश्चित है।`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "te": {
       const p1 = `100% ఖచ్చితమైన దైవజ్ఞ నిర్ణయం: మీ జాతకంలోని 7వ కళత్ర స్థానం, శుక్ర గ్రహం మరియు గోచార గురు బలాన్ని సూక్ష్మంగా పరిశీలించినప్పుడు, రాబోయే 6 నెలల్లో మీ వివాహం ఖాయంగా నిశ్చయమవుతుంది! మీ కుండలిలో ఎలాంటి సందిగ్ధతకు లేదా సందేహానికి తావులేదు. దేవగురువు బృహస్పతి యొక్క దివ్య దృష్టి మీ వివాహ స్థానంపై ప్రసరిస్తుండటం వల్ల పూర్వపు ఆటంకాలన్నీ తొలగిపోతున్నాయి.`;
-      const p2 = `శుక్ర గ్రహ రత్నమైన వజ్రం (లేదా సహజ వైట్ జిర్కాన్) ధరించడం మరియు శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి సన్నిధిలో కళ్యాణ సంకల్ప పూజ జరిపించడం వలన వివాహ సంబంధాలు శీఘ్రంగా కుదురుతాయి. సంపూర్ణ విశ్వాసంతో ముందడుగు వేయండి; రాబోయే 6 నెలల శుభ కాలంలో మీ కళ్యాణ యోగం సిద్ధించడం తథ్యం.`;
+      const p2 = `${gemText} ధరించడం మరియు శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి సన్నిధిలో కళ్యాణ సంకల్ప పూజ జరిపించడం వలన వివాహ సంబంధాలు శీఘ్రంగా కుదురుతాయి. సంపూర్ణ విశ్వాసంతో ముందడుగు వేయండి; రాబోయే 6 నెలల శుభ కాలంలో మీ కళ్యాణ యోగం సిద్ధించడం తథ్యం.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "ta": {
       const p1 = `100% உறுதியான ஜோதிடத் தீர்ப்பு: உங்கள் ஜாதகத்தின் 7-ஆம் வீடான களத்திர ஸ்தானம், சுக்கிரன் மற்றும் கோசார குருவின் பார்வை ஆகியவற்றை ஆராயும்போது, அடுத்த 6 மாதங்களுக்குள் உங்கள் திருமணம் நிச்சயமாகக் கைகூடும்! இதில் எவ்வித சந்தேகத்திற்கும் அல்லது குழப்பத்திற்கும் இடமில்லை. குரு பகவானின் மங்கள பார்வை உங்கள் திருமண ஸ்தானத்தை ஆசீர்வதிப்பதால், இதுவரை இருந்த தடைகள் அனைத்தும் தகர்ந்து சுபயோகம் உருவாகிறது.`;
-      const p2 = `சுக்கிரனுக்குரிய வைரம் (அல்லது இயற்கை வெள்ளை ஜிர்கான்) அணிந்து, ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமி சந்நிதியில் கல்யாண சங்கல்ப பூஜை செய்வதன் மூலம் நல்ல வரன் அமைந்து திருமணம் இனிதே முடியும். உறுதியான நம்பிக்கையுடன் செயல்படுங்கள்; அடுத்த 6 மாதத்திற்குள் மாங்கல்ய பாக்கியம் கிட்டுவது உறுதி.`;
+      const p2 = `${gemText} அணிந்து, ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமி சந்நிதியில் கல்யாண சங்கல்ப பூஜை செய்வதன் மூலம் நல்ல வரன் அமைந்து திருமணம் இனிதே முடியும். உறுதியான நம்பிக்கையுடன் செயல்படுங்கள்; அடுத்த 6 மாதத்திற்குள் மாங்கல்ய பாக்கியம் கிட்டுவது உறுதி.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "ml": {
       const p1 = `100% ഉറപ്പായ ജ്യോതിഷ പ്രവചനം: നിങ്ങളുടെ ജാതകത്തിലെ ഏഴാം ഭാവവും ശുക്രനും ഗോചാര വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടിയും പരിശോധിക്കുമ്പോൾ, അടുത്ത 6 മാസത്തിനകം നിങ്ങളുടെ വിവാഹം നിശ്ചയമായും നടക്കുന്നതാണ്! നിങ്ങളുടെ ഗ്രഹനിലയിൽ യാതൊരുവിധ സംശയങ്ങൾക്കും ആശയക്കുഴപ്പങ്ങൾക്കും സ്ഥാനമില്ല. ദേവഗുരുവായ വ്യാഴത്തിന്റെ കടാക്ഷം വിവാഹ തടസ്സങ്ങളെയെല്ലാം നീക്കി ശുഭയോഗം നൽകുന്നു.`;
-      const p2 = `ശുക്രന്റെ രത്നമായ വജ്രം (അല്ലെങ്കിൽ സ്വാഭാവിക വൈറ്റ് സിർക്കോൺ) ധരിക്കുന്നതിലൂടെയും ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ കല്യാണ സങ്കൽപ്പ പൂജ നടത്തുന്നതിലൂടെയും വിവാഹാലോചനകൾ വേഗത്തിൽ ശുഭമായി പര്യവസാനിക്കും. പൂർണ്ണ വിശ്വാസത്തോടെ മുന്നോട്ട് പോകുക; അടുത്ത 6 മാസത്തിനുള്ളിൽ മംഗല്യഭാഗ്യം സുനിശ്ചിതമാണ്.`;
+      const p2 = `${gemText} ധരിക്കുന്നതിലൂടെയും ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ കല്യാണ സങ്കൽപ്പ പൂജ നടത്തുന്നതിലൂടെയും വിവാഹാലോചനകൾ വേഗത്തിൽ ശുഭമായി പര്യവസാനിക്കും. പൂർണ്ണ വിശ്വാസത്തോടെ മുന്നോട്ട് പോകുക; അടുത്ത 6 മാസത്തിനുള്ളിൽ മംഗല്യഭാഗ്യം സുനിശ്ചിതമാണ്.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "mr": {
       const p1 = `१००% अचूक आणि निश्चित दैवज्ञ निर्णय: आपल्या पत्रिकेतील सप्तम भाव, शुक्र आणि गोचर गुरूच्या शुभ दृष्टीचा अभ्यास करता, पुढील ६ महिन्यांत आपला विवाह निश्चितपणे संपन्न होणार आहे! आपल्या कुंडलीत कोणताही संशय किंवा द्विधा मनःस्थिती ठेवण्याचे कारण नाही. देवगुरू बृहस्पतीची अमृत दृष्टी आपल्या विवाह स्थानावर सक्रिय झाली असून भूतकाळातील सर्व अडथळे आता पूर्णपणे नष्ट होत आहेत.`;
-      const p2 = `शुक्राचे शुभ रत्न हिरा (किंवा नैसर्गिक पांढरा जरकन) धारण करून श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी कल्याण संकल्प पूजा अर्पण केल्यास विवाह बोलणी विनाअडथळा यशस्वी होतील. पूर्ण आत्मविश्वासाने पुढे पाऊल टाका; पुढील ६ महिन्यांच्या आत मंगलकार्य ठरून विवाह होणे शतप्रतिशत निश्चित आहे.`;
+      const p2 = `${gemText} धारण करून श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी कल्याण संकल्प पूजा अर्पण केल्यास विवाह बोलणी विनाअडथळा यशस्वी होतील. पूर्ण आत्मविश्वासाने पुढे पाऊल टाका; पुढील ६ महिन्यांच्या आत मंगलकार्य ठरून विवाह होणे शतप्रतिशत निश्चित आहे.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
     case "kn":
     default: {
       if (asksKujaShanti) {
         const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ತೀರ್ಮಾನ (ಕುಜ ಶಾಂತಿಯ ನಂತರದ ವಿವಾಹ ಯೋಗ): ನೀವು ಕುಜ ಶಾಂತಿ (ಕುಶ ಶಾಂತಿ) ಮಾಡಿಸಿದ್ದರೂ ಸಹ ಇನ್ನೂ ಏಕೆ ವಿವಾಹವಾಗಿಲ್ಲ ಎಂಬ ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಶಾಸ್ತ್ರೋಕ್ತವಾದ ಪರಮ ಸತ್ಯವನ್ನು ತಿಳಿಸುತ್ತೇನೆ. ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷಕ್ಕೆ (೧, ೪, ೭, ೮, ೧೨ ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಕುಜ) ಮಾಡಿದ ಕುಜ ಶಾಂತಿಯು, ವಿವಾಹಕ್ಕೆ ಅಡ್ಡಿಪಡಿಸುತ್ತಿದ್ದ ಕುಜನ ತೀಕ್ಷ್ಣ ಉಷ್ಣತೆ, ಜಗಳ ಹಾಗೂ ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವ ದೋಷ ತಡೆಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಶಮನಗೊಳಿಸಿದೆ. ದೋಷ ನಿವಾರಣೆಯು ನಕಾರಾತ್ಮಕ ಅಡೆತಡೆಗಳನ್ನು ತೆಗೆದುಹಾಕುವ ಮೊದಲ ಹೆಜ್ಜೆಯಾಗಿದೆ; ಆದರೆ ನೈಜ ವಿವಾಹ ಸಿದ್ಧಿಗೆ ಗೋಚಾರ ಗುರುವಿನ ದಿವ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಕಳತ್ರ ಭಾವದ ಶುಭ ಕಾಲ ಕೂಡಿಬರಬೇಕಾಗುತ್ತದೆ.`;
-        const p2 = `ಕುಜ ಶಾಂತಿಯಿಂದ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿರುವ ಕಾರಣ, ಈಗ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ೭ನೇ ಭಾವದ ಮೇಲೆ ನೇರವಾಗಿ ಪ್ರಸರಿಸುತ್ತಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಿಂದ ೧೦೦ ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ದೀರ್ಘಕಾಲಿಕ ವಿಳಂಬವಿಲ್ಲ. ಶುಕ್ರನ ರತ್ನವಾದ ವಜ್ರ (ಅಥವಾ ಬಿಳಿ ಜಿರ್ಕಾನ್ / ಓಪಲ್) ಧಾರಣೆ ಮಾಡಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ. ಮುಂದಿನ ೬ ತಿಂಗಳೊಳಗೆ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
+        const p2 = `ಕುಜ ಶಾಂತಿಯಿಂದ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿರುವ ಕಾರಣ, ಈಗ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ೭ನೇ ಭಾವದ ಮೇಲೆ ನೇರವಾಗಿ ಪ್ರಸರಿಸುತ್ತಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಿಂದ ೧೦೦ ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ದೀರ್ಘಕಾಲಿಕ ವಿಳಂಬವಿಲ್ಲ. ${gemText} ಧಾರಣೆ ಮಾಡಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ. ಮುಂದಿನ ೬ ತಿಂಗಳೊಳಗೆ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
         return deduplicateResponseText(`${p1}\n\n${p2}`);
       }
       const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ೭ನೇ ಕಳತ್ರ ಭಾವ, ಶುಕ್ರ ಹಾಗೂ ಗೋಚಾರ ಗುರು ಬಲವು ಈಗ ಪೂರ್ಣವಾಗಿ ಸಕ್ರಿಯವಾಗಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಅನುಮಾನಕ್ಕೆ ಆಸ್ಪದವಿಲ್ಲ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದಿವ್ಯ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಲಗ್ನ ಹಾಗೂ ಸಪ್ತಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಈ ಹಿಂದೆ ಇದ್ದ ಸಮಸ್ತ ವಿವಾಹ ತಡೆಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಭಸ್ಮವಾಗಲಿವೆ.`;
-      const p2 = `ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಶುಕ್ರನ ರತ್ನವಾದ ವಜ್ರ (ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಜಿರ್ಕಾನ್ / ಓಪಲ್) ಧಾರಣೆ ಮಾಡುವುದರಿಂದ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸುವುದರಿಂದ ವಿವಾಹ ಕಾರ್ಯವು ಅಡೆತಡೆಗಳಿಲ್ಲದೆ ಸುಸೂತ್ರವಾಗಿ ನೆರವೇರಲಿದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ದ್ವಂದ್ವವಿಲ್ಲದೆ ದೃಢ ನಂಬಿಕೆಯಿಂದ ಮುನ್ನಡೆಯಿರಿ; ಮುಂದಿನ ೬ ತಿಂಗಳ ಶುಭ ಕಾಲಾವಧಿಯೊಳಗೆ ನಿಮ್ಮ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
+      const p2 = `ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ${gemText} ಧಾರಣೆ ಮಾಡುವುದರಿಂದ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸುವುದರಿಂದ ವಿವಾಹ ಕಾರ್ಯವು ಅಡೆತಡೆಗಳಿಲ್ಲದೆ ಸುಸೂತ್ರವಾಗಿ ನೆರವೇರಲಿದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ದ್ವಂದ್ವವಿಲ್ಲದೆ ದೃಢ ನಂಬಿಕೆಯಿಂದ ಮುನ್ನಡೆಯಿರಿ; ಮುಂದಿನ ೬ ತಿಂಗಳ ಶುಭ ಕಾಲಾವಧಿಯೊಳಗೆ ನಿಮ್ಮ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
       return deduplicateResponseText(`${p1}\n\n${p2}`);
     }
   }
@@ -4039,7 +4109,7 @@ export async function generateConsultationAnswer(params: {
         "Indefinite delay beyond 2-3 years",
         "Speculative incompatible alliances"
       ],
-      remedyPrescribed: "Wear Venusian gemstone (Diamond / White Zircon), light cow-ghee lamp, Gokarna Kalyana Sankalpa"
+      remedyPrescribed: "Wear Lagna-prescribed Bhagya gemstone (Diamond / White Zircon for Venusian Lagna, Red Coral for Mars Lagnas, Pearl for Cancer, Ruby for Leo, Yellow Sapphire for Guru Lagnas), light cow-ghee lamp, Gokarna Kalyana Sankalpa"
     });
   } else if (
     /ಸ್ವಂತ ವ್ಯಾಪಾರ|ಸ್ವಂತ ಉದ್ಯಮ|ವ್ಯಾಪಾರ ಉತ್ತಮವೋ|ಪಾಲುದಾರಿಕೆ|ಪಾರ್ಟ್ನರ್‌ಶಿಪ್|business or job|job or business|own business|partnership|भागीदारी/i.test(

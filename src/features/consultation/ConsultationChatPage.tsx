@@ -1574,7 +1574,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
               {/* Message Bubble */}
               <div
-                className={`max-w-[92%] sm:max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-sm leading-relaxed shadow-xs transition-all ${
+                className={`max-w-[92%] sm:max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-sm leading-relaxed shadow-xs transition-all break-words ${
                   isUser
                     ? "bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white rounded-br-xs font-medium"
                     : "bg-white border-2 border-amber-300/90 text-amber-950 rounded-bl-xs font-serif shadow-amber-950/5 space-y-2.5"
@@ -1583,11 +1583,40 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 {/* Content: If User or Initial Welcome Greeting, show regular paragraphs.
                     For ongoing Astrologer guidance, showcase Upfront Direct Answer Highlight Card (ChatGPT/Gemini Style) first! */}
                 {isUser || isWelcomeGreeting ? (
-                  paragraphs.map((para, idx) => (
-                    <p key={idx} className="whitespace-pre-line">
-                      {para}
-                    </p>
-                  ))
+                  <>
+                    {paragraphs.map((para, idx) => (
+                      <p key={idx} className="whitespace-pre-line">
+                        {para}
+                      </p>
+                    ))}
+                    {isUser && (
+                      <div className="pt-2 border-t border-amber-500/40 flex items-center justify-end gap-1.5 mt-2">
+                        {/* Copy Question Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleCopyMessage(msg.id, msg.text)}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-800/60 hover:bg-amber-800 text-amber-100 font-sans font-medium text-[11px] transition active:scale-95 border border-amber-400/30"
+                          title={currentChatUi.copyBtn}
+                        >
+                          <span>{copiedMessageId === msg.id ? currentChatUi.copiedToast : currentChatUi.copyBtn}</span>
+                        </button>
+
+                        {/* Audio Listen Button for User Question */}
+                        <button
+                          type="button"
+                          onClick={() => handlePlayTTS(msg.id, msg.text)}
+                          className={`flex items-center gap-1 px-2.5 py-0.5 rounded-lg font-sans font-semibold text-[11px] transition active:scale-95 ${
+                            speakingMessageId === msg.id
+                              ? "bg-red-500 text-white border border-red-300 shadow-2xs animate-pulse"
+                              : "bg-amber-800/60 hover:bg-amber-800 text-amber-100 border border-amber-400/40"
+                          }`}
+                          title={speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}
+                        >
+                          <span>{speakingMessageId === msg.id ? currentChatUi.stopAudio : currentChatUi.listenAudio}</span>
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <>
                     {/* Upfront Direct Answer Highlight Card (ChatGPT / Gemini Upfront Style) */}

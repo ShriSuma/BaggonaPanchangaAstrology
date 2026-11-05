@@ -83,6 +83,11 @@ export function collapseConsecutiveTokens(tokens: string[]): string[] {
     if (!current) continue;
     const prev = result[result.length - 1];
     if (prev && normToken(current) && normToken(current) === normToken(prev)) {
+      // Transfer any trailing punctuation from current to prev if prev lacks it
+      const trailingPunct = current.match(/[.,!?;:॥|]+$/);
+      if (trailingPunct && !/[.,!?;:॥|]+$/.test(prev)) {
+        result[result.length - 1] = prev + trailingPunct[0];
+      }
       continue; // drop consecutive duplicate word
     }
     result.push(current);
@@ -158,6 +163,7 @@ export function sanitizeDuplicateSpeechWords(text: string): string {
             for (let m = 0; m < k; m++) {
               newTokens.push(tokens[i + m]);
             }
+            let lastSkippedEndToken = "";
             i += k; // point to second copy
             while (i + k <= tokens.length) {
               let nextMatch = true;
@@ -168,10 +174,18 @@ export function sanitizeDuplicateSpeechWords(text: string): string {
                 }
               }
               if (nextMatch) {
+                lastSkippedEndToken = tokens[i + k - 1];
                 i += k; // skip repeated copy
                 changed = true;
               } else {
                 break;
+              }
+            }
+            if (lastSkippedEndToken && newTokens.length > 0) {
+              const trailing = lastSkippedEndToken.match(/[.,!?;:॥|]+$/);
+              const lastNew = newTokens[newTokens.length - 1];
+              if (trailing && lastNew && !/[.,!?;:॥|]+$/.test(lastNew)) {
+                newTokens[newTokens.length - 1] = lastNew + trailing[0];
               }
             }
             continue;
