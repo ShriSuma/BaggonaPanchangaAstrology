@@ -2039,6 +2039,14 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     {gokarnaTempleRemedies.gemstoneRecommendation.stone[code] || gokarnaTempleRemedies.gemstoneRecommendation.stone.kn} ({gokarnaTempleRemedies.gemstoneRecommendation.metal[code] || gokarnaTempleRemedies.gemstoneRecommendation.metal.kn})
                   </span>
                 </div>
+                {gokarnaTempleRemedies.neckWearRecommendation && (
+                  <div style={{ marginTop: "3px" }}>
+                    <span style={{ fontWeight: 800, color: "#92400E" }}>📿 {code === "kn" ? "ಕಂಠಹಾರ / ಸಾರ:" : code === "hi" ? "कंठहार / माला:" : code === "te" ? "కంఠహారం / సారా:" : code === "ta" ? "கழுத்து மாலை / சாரா:" : "Neck Wear / Sara:"} </span>
+                    <span style={{ color: "#451A03" }}>
+                      {gokarnaTempleRemedies.neckWearRecommendation.pendant[code] || gokarnaTempleRemedies.neckWearRecommendation.pendant.kn} ({gokarnaTempleRemedies.neckWearRecommendation.thread[code] || gokarnaTempleRemedies.neckWearRecommendation.thread.kn})
+                    </span>
+                  </div>
+                )}
                 <div style={{ marginTop: "3px" }}>
                   <span style={{ fontWeight: 800, color: "#92400E" }}>🌾 {cleanLabel(i18n.daana)} </span>
                   <span style={{ color: "#451A03" }}>

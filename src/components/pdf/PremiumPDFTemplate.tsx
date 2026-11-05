@@ -774,6 +774,31 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
               </div>
             )}
 
+            {/* 2b. Nakshatra-Aligned Sacred Neck Wear (Sara / Pendant / Thread) */}
+            {synthesis.prescriptions.neckWearSara && (
+              <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid #805ad5", paddingLeft: "15px", backgroundColor: "rgba(128, 90, 213, 0.05)", borderRadius: "0 6px 6px 0", padding: "10px 15px" }}>
+                <span className="yoga-name" style={{ fontSize: "13pt", color: "#6b46c1" }}>
+                  🧵 {isKn ? `ಜನ್ಮ ನಕ್ಷತ್ರ ಕೊರಳ ರಕ್ಷಾ ಕವಚ & ಸರ (${synthesis.prescriptions.neckWearSara.nakshatraNameKn}):` : activeLang === "hi" ? `जन्म नक्षत्र कंठ रक्षा कवच एवं माला (${synthesis.prescriptions.neckWearSara.nakshatraNameHi}):` : activeLang === "te" ? `జన్మ నక్షత్ర కంఠ రక్షణ కవచం & సరము (${synthesis.prescriptions.neckWearSara.nakshatraNameTe}):` : activeLang === "ta" ? `ஜென்ம நட்சத்திர கழுத்து ரக்ஷா கவசம் & மாலை (${synthesis.prescriptions.neckWearSara.nakshatraNameTa}):` : `Janma Nakshatra Sacred Neck Wear & Amulet (${synthesis.prescriptions.neckWearSara.nakshatraNameEn}):`}
+                </span>
+                <p style={{ textIndent: 0, marginTop: "6px" }}>
+                  <b>{isKn ? "ಪವಿತ್ರ ಪೆಂಡೆಂಟ್ / ಯಂತ್ರ:" : activeLang === "hi" ? "पवित्र पेंडेंट / यंत्र:" : activeLang === "te" ? "పవిత్ర లాకెట్ / యంత్రం:" : activeLang === "ta" ? "புனித பதக்கம் / எந்திரம்:" : "Sacred Pendant / Yantra:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.neckWearSara.pendantKn : activeLang === "hi" ? (synthesis.prescriptions.neckWearSara.pendantHi || synthesis.prescriptions.neckWearSara.pendantEn) : activeLang === "te" ? (synthesis.prescriptions.neckWearSara.pendantTe || synthesis.prescriptions.neckWearSara.pendantEn) : activeLang === "ta" ? (synthesis.prescriptions.neckWearSara.pendantTa || synthesis.prescriptions.neckWearSara.pendantEn) : synthesis.prescriptions.neckWearSara.pendantEn}
+                </p>
+                <p style={{ textIndent: 0 }}>
+                  <b>{isKn ? "ಪವಿತ್ರ ದಾರ / ಸರ:" : activeLang === "hi" ? "पवित्र धागा / माला:" : activeLang === "te" ? "పవిత్ర దారం / గొలుసు:" : activeLang === "ta" ? "புனித நூல் / சங்கிலி:" : "Sacred Thread / Chain:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.neckWearSara.threadColorKn : activeLang === "hi" ? (synthesis.prescriptions.neckWearSara.threadColorHi || synthesis.prescriptions.neckWearSara.threadColorEn) : activeLang === "te" ? (synthesis.prescriptions.neckWearSara.threadColorTe || synthesis.prescriptions.neckWearSara.threadColorEn) : activeLang === "ta" ? (synthesis.prescriptions.neckWearSara.threadColorTa || synthesis.prescriptions.neckWearSara.threadColorEn) : synthesis.prescriptions.neckWearSara.threadColorEn}
+                </p>
+                <p style={{ textIndent: 0, fontSize: "10.5pt", color: "#2f855a" }}>
+                  🛡️ <b>{isKn ? "ರಕ್ಷಾ ಅನುಗ್ರಹ:" : activeLang === "hi" ? "सुरक्षा कृपा:" : activeLang === "te" ? "రక్షణ అనుగ్రహం:" : activeLang === "ta" ? "பாதுகாப்பு அருள்:" : "Protective Blessing:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.neckWearSara.blessingKn : activeLang === "hi" ? (synthesis.prescriptions.neckWearSara.blessingHi || synthesis.prescriptions.neckWearSara.blessingEn) : activeLang === "te" ? (synthesis.prescriptions.neckWearSara.blessingTe || synthesis.prescriptions.neckWearSara.blessingEn) : activeLang === "ta" ? (synthesis.prescriptions.neckWearSara.blessingTa || synthesis.prescriptions.neckWearSara.blessingEn) : synthesis.prescriptions.neckWearSara.blessingEn}
+                </p>
+                <p style={{ textIndent: 0, fontSize: "10pt", color: "#4a5568" }}>
+                  <b>{isKn ? "ಧಾರಣಾ ನಿಯಮ:" : activeLang === "hi" ? "धारण विधि:" : activeLang === "te" ? "ధారణ నియమం:" : activeLang === "ta" ? "அணியும் முறை:" : "Wearing Method:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.neckWearSara.wearingProcedureKn : activeLang === "hi" ? (synthesis.prescriptions.neckWearSara.wearingProcedureHi || synthesis.prescriptions.neckWearSara.wearingProcedureEn) : activeLang === "te" ? (synthesis.prescriptions.neckWearSara.wearingProcedureTe || synthesis.prescriptions.neckWearSara.wearingProcedureEn) : activeLang === "ta" ? (synthesis.prescriptions.neckWearSara.wearingProcedureTa || synthesis.prescriptions.neckWearSara.wearingProcedureEn) : synthesis.prescriptions.neckWearSara.wearingProcedureEn}
+                </p>
+              </div>
+            )}
+
             {/* 3. Primary Bhagya Gemstone Ring */}
             <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid var(--gold)", paddingLeft: "15px" }}>
               <span className="yoga-name" style={{ fontSize: "13pt", color: "var(--gold)" }}>
@@ -808,6 +833,76 @@ export const PremiumPDFTemplate: React.FC<PremiumPDFTemplateProps> = ({ predicti
                 <p style={{ textIndent: 0, marginTop: "6px" }}>
                   <b>{isKn ? "ಧರಿಸುವ ವಿವರ:" : activeLang === "hi" ? "धारण विवरण:" : activeLang === "te" ? "ధారణ వివరాలు:" : activeLang === "ta" ? "அணியும் விவரம்:" : "Wearing Specifications:"}</b>{" "}
                   {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.havalaPrescriptionKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.havalaPrescriptionHi || synthesis.prescriptions.gemstoneRing.havalaPrescriptionEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.havalaPrescriptionTe || synthesis.prescriptions.gemstoneRing.havalaPrescriptionEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.havalaPrescriptionTa || synthesis.prescriptions.gemstoneRing.havalaPrescriptionEn) : synthesis.prescriptions.gemstoneRing.havalaPrescriptionEn}
+                </p>
+              </div>
+            )}
+
+            {/* 5. Vajra (Diamond) Master Protocol & Safe White Zircon Substitute */}
+            {synthesis.prescriptions.gemstoneRing.vajraMasterRules && (
+              <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid #319795", paddingLeft: "15px", backgroundColor: "rgba(49, 151, 149, 0.05)", borderRadius: "0 6px 6px 0", padding: "12px 16px" }}>
+                <span className="yoga-name" style={{ fontSize: "13pt", color: "#285e61" }}>
+                  💎 {isKn ? "ವಜ್ರ ರತ್ನ ವಿಧಿ & ಸಾತ್ವಿಕ ಬಿಳಿ ಝಿರ್ಕಾನ್ ಪರ್ಯಾಯ (ಶುಕ್ರ ತತ್ತ್ವ):" : activeLang === "hi" ? "हीरा रत्न विधि एवं श्वेत जिरकॉन विकल्प (शुक्र तत्व):" : activeLang === "te" ? "వజ్ర రత్న విధి & సాత్విక తెల్ల జిర్కాన్ ప్రత్యామ్నాయం:" : activeLang === "ta" ? "வைர ரத்தின விதி & வெள்ளை ஜிர்கான் மாற்று:" : "Diamond Master Protocol & Natural White Zircon Substitute:"}
+                </span>
+                <p style={{ textIndent: 0, marginTop: "6px" }}>
+                  <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ತೀರ್ಪು:" : activeLang === "hi" ? "शास्त्रीय निर्णय:" : activeLang === "te" ? "శాస్త్రీయ నిర్ణయం:" : activeLang === "ta" ? "சாஸ்திர தீர்ப்பு:" : "Shastric Verdict:"}</b>{" "}
+                  <span style={{ fontWeight: 700, color: synthesis.prescriptions.gemstoneRing.vajraMasterRules.isVajraRecommended ? "#2f855a" : "#c53030" }}>
+                    {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.vajraMasterRules.verdictKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.verdictHi || synthesis.prescriptions.gemstoneRing.vajraMasterRules.verdictEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.verdictTe || synthesis.prescriptions.gemstoneRing.vajraMasterRules.verdictEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.verdictTa || synthesis.prescriptions.gemstoneRing.vajraMasterRules.verdictEn) : synthesis.prescriptions.gemstoneRing.vajraMasterRules.verdictEn}
+                  </span>
+                </p>
+                <p style={{ textIndent: 0 }}>
+                  <b>{isKn ? "ಧಾರಣಾ ನಿಯಮಾವಳಿ:" : activeLang === "hi" ? "धारण नियमावली:" : activeLang === "te" ? "ధారణ నియమాలు:" : activeLang === "ta" ? "அணியும் விதிமுறைகள்:" : "Wearing Specifications:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.vajraMasterRules.specificationsKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.specificationsHi || synthesis.prescriptions.gemstoneRing.vajraMasterRules.specificationsEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.specificationsTe || synthesis.prescriptions.gemstoneRing.vajraMasterRules.specificationsEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.specificationsTa || synthesis.prescriptions.gemstoneRing.vajraMasterRules.specificationsEn) : synthesis.prescriptions.gemstoneRing.vajraMasterRules.specificationsEn}
+                </p>
+                <p style={{ textIndent: 0, fontSize: "10pt", color: "#c53030" }}>
+                  ⚠️ <b>{isKn ? "ಬೃಹತ್ ಸಂಹಿತಾ ರತ್ನ ಪರೀಕ್ಷಾ ನಿಯಮ:" : activeLang === "hi" ? "बृहत् संहिता रत्न परीक्षा नियम:" : activeLang === "te" ? "బృహత్ సంహిత రత్న పరీక్ష నియమం:" : activeLang === "ta" ? "பிருஹத் சம்ஹிதா ரத்தின பரீட்சை விதி:" : "Flawlessness Guard:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.vajraMasterRules.flawlessnessWarningKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.flawlessnessWarningHi || synthesis.prescriptions.gemstoneRing.vajraMasterRules.flawlessnessWarningEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.flawlessnessWarningTe || synthesis.prescriptions.gemstoneRing.vajraMasterRules.flawlessnessWarningEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.flawlessnessWarningTa || synthesis.prescriptions.gemstoneRing.vajraMasterRules.flawlessnessWarningEn) : synthesis.prescriptions.gemstoneRing.vajraMasterRules.flawlessnessWarningEn}
+                </p>
+                <p style={{ textIndent: 0, fontSize: "10pt", color: "#2f855a" }}>
+                  ✨ <b>{isKn ? "ಸುರಕ್ಷಿತ ಪರ್ಯಾಯ ರತ್ನ:" : activeLang === "hi" ? "सुरक्षित सात्विक विकल्प:" : activeLang === "te" ? "సురక్షిత ప్రత్యామ్నాయం:" : activeLang === "ta" ? "பாதுகாப்பான மாற்று:" : "Safe Vedic Alternative:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.gemstoneRing.vajraMasterRules.substituteKn : activeLang === "hi" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.substituteHi || synthesis.prescriptions.gemstoneRing.vajraMasterRules.substituteEn) : activeLang === "te" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.substituteTe || synthesis.prescriptions.gemstoneRing.vajraMasterRules.substituteEn) : activeLang === "ta" ? (synthesis.prescriptions.gemstoneRing.vajraMasterRules.substituteTa || synthesis.prescriptions.gemstoneRing.vajraMasterRules.substituteEn) : synthesis.prescriptions.gemstoneRing.vajraMasterRules.substituteEn}
+                </p>
+              </div>
+            )}
+
+            {/* 6. Shastric Black Color Bio-Field Harmony Advisory */}
+            {synthesis.prescriptions.luckyAttributes.blackColorAdvisory && (
+              <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid #4a5568", paddingLeft: "15px", backgroundColor: "rgba(74, 85, 104, 0.05)", borderRadius: "0 6px 6px 0", padding: "12px 16px" }}>
+                <span className="yoga-name" style={{ fontSize: "13pt", color: "#2d3748" }}>
+                  🌟 {isKn ? "ಶನಿ ತತ್ತ್ವ ಕಪ್ಪು ಬಣ್ಣ & ಜೈವಿಕ ಕಾಂತಕ್ಷೇತ್ರ ವಿಶ್ಲೇಷಣೆ:" : activeLang === "hi" ? "शनि तत्व काला रंग एवं आभामंडल विश्लेषण:" : activeLang === "te" ? "శని తత్వ నలుపు రంగు & ఆభా మండల విశ్లేషణ:" : activeLang === "ta" ? "சனி தத்துவ கருப்பு நிறம் & பிராண சக்தி பகுப்பாய்வு:" : "Saturn Black Color Bio-Field Harmony Advisory:"}
+                </span>
+                <p style={{ textIndent: 0, marginTop: "6px" }}>
+                  <b>{isKn ? "ಸ್ಥಿತಿ:" : activeLang === "hi" ? "स्थिति:" : activeLang === "te" ? "స్థితి:" : activeLang === "ta" ? "நிலை:" : "Status:"}</b>{" "}
+                  <span style={{ fontWeight: 700, color: synthesis.prescriptions.luckyAttributes.blackColorAdvisory.isBlackFavorable ? "#2f855a" : "#c53030" }}>
+                    {activeLang === "kn" ? synthesis.prescriptions.luckyAttributes.blackColorAdvisory.statusKn : activeLang === "hi" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.statusHi || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.statusEn) : activeLang === "te" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.statusTe || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.statusEn) : activeLang === "ta" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.statusTa || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.statusEn) : synthesis.prescriptions.luckyAttributes.blackColorAdvisory.statusEn}
+                  </span>
+                </p>
+                <p style={{ textIndent: 0 }}>
+                  <b>{isKn ? "ಆಭಾಮಂಡಲದ ಮೇಲಿನ ಪ್ರಭಾವ:" : activeLang === "hi" ? "आभामंडल पर प्रभाव:" : activeLang === "te" ? "ఆభా మండలంపై ప్రభావం:" : activeLang === "ta" ? "பிராண சக்தி மீதான தாக்கம்:" : "Bio-Field Impact:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.luckyAttributes.blackColorAdvisory.impactKn : activeLang === "hi" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.impactHi || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.impactEn) : activeLang === "te" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.impactTe || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.impactEn) : activeLang === "ta" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.impactTa || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.impactEn) : synthesis.prescriptions.luckyAttributes.blackColorAdvisory.impactEn}
+                </p>
+                <p style={{ textIndent: 0, fontSize: "10pt", color: "#4a5568" }}>
+                  📜 <b>{isKn ? "ಶಾಸ್ತ್ರೀಯ ಆಧಾರ:" : activeLang === "hi" ? "शास्त्रीय आधार:" : activeLang === "te" ? "శాస్త్రీయ ఆధారం:" : activeLang === "ta" ? "சாஸ்திர ஆதாரம்:" : "Classical Foundation:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.luckyAttributes.blackColorAdvisory.classicalBasisKn : activeLang === "hi" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.classicalBasisHi || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.classicalBasisEn) : activeLang === "te" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.classicalBasisTe || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.classicalBasisEn) : activeLang === "ta" ? (synthesis.prescriptions.luckyAttributes.blackColorAdvisory.classicalBasisTa || synthesis.prescriptions.luckyAttributes.blackColorAdvisory.classicalBasisEn) : synthesis.prescriptions.luckyAttributes.blackColorAdvisory.classicalBasisEn}
+                </p>
+              </div>
+            )}
+
+            {/* 7. Empirical Benchmark Case Study Proof (from 100 Classical Profiles) */}
+            {synthesis.prescriptions.benchmarkCaseStudy && (
+              <div className="yoga-entry" style={{ marginBottom: "20px", borderLeft: "4px solid #d69e2e", paddingLeft: "15px", backgroundColor: "rgba(214, 158, 46, 0.05)", borderRadius: "0 6px 6px 0", padding: "12px 16px" }}>
+                <span className="yoga-name" style={{ fontSize: "13pt", color: "#975a16" }}>
+                  📜 {isKn ? "ನೈಜ ಸಂಶೋಧನಾ ಕೇಸ್ ಸ್ಟಡಿ (೧೦೦ ಕೇಸ್ ದಾಖಲೆಗಳ ಆಧಾರ):" : activeLang === "hi" ? "वास्तविक शोध केस स्टडी (१०० प्रमाणिक अभिलेख):" : activeLang === "te" ? "వాస్తవ పరిశోధనా కేస్ స్టడీ (100 ఆధారాల విశ్లేషణ):" : activeLang === "ta" ? "உண்மை ஆய்வு கேஸ் ஸ்டடி (100 ஆதாரங்களின் பகுப்பாய்வு):" : "Empirical Case Study Proof (100 Case Archives):"}
+                </span>
+                <p style={{ textIndent: 0, marginTop: "6px", fontWeight: 700, color: "var(--primary-dark)" }}>
+                  {activeLang === "kn" ? synthesis.prescriptions.benchmarkCaseStudy.titleKn : activeLang === "hi" ? (synthesis.prescriptions.benchmarkCaseStudy.titleHi || synthesis.prescriptions.benchmarkCaseStudy.titleEn) : activeLang === "te" ? (synthesis.prescriptions.benchmarkCaseStudy.titleTe || synthesis.prescriptions.benchmarkCaseStudy.titleEn) : activeLang === "ta" ? (synthesis.prescriptions.benchmarkCaseStudy.titleTa || synthesis.prescriptions.benchmarkCaseStudy.titleEn) : synthesis.prescriptions.benchmarkCaseStudy.titleEn}
+                </p>
+                <p style={{ textIndent: 0, fontSize: "10pt", color: "#c53030" }}>
+                  ❌ <b>{isKn ? "ತಪ್ಪು ಧಾರಣೆಯ ಸಂಕಷ್ಟ:" : activeLang === "hi" ? "गलत धारण का संकट:" : activeLang === "te" ? "తప్పుడు ధారణ వల్ల నష్టం:" : activeLang === "ta" ? "தவறான அணிதலால் ஏற்பட்ட இழப்பு:" : "Adverse Outcome:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.benchmarkCaseStudy.adverseOutcomeKn : activeLang === "hi" ? (synthesis.prescriptions.benchmarkCaseStudy.adverseOutcomeHi || synthesis.prescriptions.benchmarkCaseStudy.adverseOutcomeEn) : activeLang === "te" ? (synthesis.prescriptions.benchmarkCaseStudy.adverseOutcomeTe || synthesis.prescriptions.benchmarkCaseStudy.adverseOutcomeEn) : activeLang === "ta" ? (synthesis.prescriptions.benchmarkCaseStudy.adverseOutcomeTa || synthesis.prescriptions.benchmarkCaseStudy.adverseOutcomeEn) : synthesis.prescriptions.benchmarkCaseStudy.adverseOutcomeEn}
+                </p>
+                <p style={{ textIndent: 0, fontSize: "10pt", color: "#2f855a" }}>
+                  ✅ <b>{isKn ? "ಶಾಸ್ತ್ರೋಕ್ತ ಪರಿಹಾರ & ಯಶಸ್ವಿ ಬದಲಾವಣೆ:" : activeLang === "hi" ? "शास्त्रीय उपाय एवं सफल परिवर्तन:" : activeLang === "te" ? "శాస్త్రీయ పరిహారం & విజయవంతమైన మార్పు:" : activeLang === "ta" ? "சாஸ்திர பரிகாரம் & வெற்றிகரமான மாற்றம்:" : "Verified Turnaround:"}</b>{" "}
+                  {activeLang === "kn" ? synthesis.prescriptions.benchmarkCaseStudy.turnaroundKn : activeLang === "hi" ? (synthesis.prescriptions.benchmarkCaseStudy.turnaroundHi || synthesis.prescriptions.benchmarkCaseStudy.turnaroundEn) : activeLang === "te" ? (synthesis.prescriptions.benchmarkCaseStudy.turnaroundTe || synthesis.prescriptions.benchmarkCaseStudy.turnaroundEn) : activeLang === "ta" ? (synthesis.prescriptions.benchmarkCaseStudy.turnaroundTa || synthesis.prescriptions.benchmarkCaseStudy.turnaroundEn) : synthesis.prescriptions.benchmarkCaseStudy.turnaroundEn}
                 </p>
               </div>
             )}

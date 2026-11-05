@@ -27,7 +27,10 @@ import { NAKSHATRA_SYLLABLE_TABLE } from "../features/balavidya/balaVidyaEngine"
 import {
   generateGemstoneConsultationAnswer,
   evaluateGemstoneAndAmuletPrescription,
-  type PanchangaGemstoneAmuletResult
+  type PanchangaGemstoneAmuletResult,
+  NAKSHATRA_NECK_WEAR_CATALOG,
+  GEMSTONE_100_BENCHMARK_PROFILES,
+  getBenchmarkProfileById
 } from "./panchangaGemstoneAmuletEngine";
 
 /** Calculate distance between houses (1-indexed, 1 to 12) */
@@ -369,6 +372,62 @@ export interface AstrologicalPrescriptions {
     consecrationTarasHi?: string;
     consecrationTarasTe?: string;
     consecrationTarasTa?: string;
+    // Vajra (Diamond) Master Precision & Flawlessness Protocol
+    vajraMasterRules?: {
+      isVajraRecommended: boolean;
+      verdictKn: string;
+      verdictEn: string;
+      verdictHi: string;
+      verdictTe: string;
+      verdictTa: string;
+      specificationsKn: string;
+      specificationsEn: string;
+      specificationsHi: string;
+      specificationsTe: string;
+      specificationsTa: string;
+      flawlessnessWarningKn: string;
+      flawlessnessWarningEn: string;
+      flawlessnessWarningHi: string;
+      flawlessnessWarningTe: string;
+      flawlessnessWarningTa: string;
+      substituteKn: string;
+      substituteEn: string;
+      substituteHi: string;
+      substituteTe: string;
+      substituteTa: string;
+    };
+  };
+  neckWearSara?: {
+    nakshatraNameKn: string;
+    nakshatraNameEn: string;
+    nakshatraNameHi: string;
+    nakshatraNameTe: string;
+    nakshatraNameTa: string;
+    pendantKn: string;
+    pendantEn: string;
+    pendantHi: string;
+    pendantTe: string;
+    pendantTa: string;
+    threadColorKn: string;
+    threadColorEn: string;
+    threadColorHi: string;
+    threadColorTe: string;
+    threadColorTa: string;
+    deityKn: string;
+    deityEn: string;
+    deityHi: string;
+    deityTe: string;
+    deityTa: string;
+    blessingKn: string;
+    blessingEn: string;
+    blessingHi: string;
+    blessingTe: string;
+    blessingTa: string;
+    wearingProcedureKn: string;
+    wearingProcedureEn: string;
+    wearingProcedureHi: string;
+    wearingProcedureTe: string;
+    wearingProcedureTa: string;
   };
   luckyAttributes: {
     carColors: string[];
@@ -376,6 +435,52 @@ export interface AstrologicalPrescriptions {
     avoidColors: string[];
     directions: string[];
     numbers: number[];
+    blackColorAdvisory?: {
+      isBlackFavorable: boolean;
+      statusKn: string;
+      statusEn: string;
+      statusHi: string;
+      statusTe: string;
+      statusTa: string;
+      impactKn: string;
+      impactEn: string;
+      impactHi: string;
+      impactTe: string;
+      impactTa: string;
+      classicalBasisKn: string;
+      classicalBasisEn: string;
+      classicalBasisHi: string;
+      classicalBasisTe: string;
+      classicalBasisTa: string;
+    };
+  };
+  benchmarkCaseStudy?: {
+    id: number;
+    titleKn: string;
+    titleEn: string;
+    titleHi: string;
+    titleTe: string;
+    titleTa: string;
+    wrongItemKn: string;
+    wrongItemEn: string;
+    wrongItemHi: string;
+    wrongItemTe: string;
+    wrongItemTa: string;
+    adverseOutcomeKn: string;
+    adverseOutcomeEn: string;
+    adverseOutcomeHi: string;
+    adverseOutcomeTe: string;
+    adverseOutcomeTa: string;
+    rootCauseKn: string;
+    rootCauseEn: string;
+    rootCauseHi: string;
+    rootCauseTe: string;
+    rootCauseTa: string;
+    turnaroundKn: string;
+    turnaroundEn: string;
+    turnaroundHi: string;
+    turnaroundTe: string;
+    turnaroundTa: string;
   };
   shantiPooja: {
     nameKn: string;
@@ -1123,6 +1228,1293 @@ const ORDERED_NAKSHATRAS_27 = [
   "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"
 ];
 
+// ── 27 NAKSHATRAS 5-LANGUAGE SACRED NECK WEAR (SARA / PENDANT / THREAD) CATALOG ──
+export const NAKSHATRA_NECK_WEAR_5L: Record<string, {
+  pendant: { kn: string; en: string; hi: string; te: string; ta: string };
+  thread: { kn: string; en: string; hi: string; te: string; ta: string };
+  deity: { kn: string; en: string; hi: string; te: string; ta: string };
+  blessing: { kn: string; en: string; hi: string; te: string; ta: string };
+}> = {
+  Ashwini: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಗಣಪತಿ ಯಂತ್ರ ಅಥವಾ ೯ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಪೆಂಡೆಂಟ್",
+      en: "Silver Ganesha Yantra or 9-Mukhi Rudraksha Pendant",
+      hi: "चांदी का श्री गणेश यंत्र अथवा ९ मुखी रुद्राक्ष पेंडेंट",
+      te: "వెండి శ్రీ గణేశ యంత్రం లేదా 9 ముఖి రుద్రాక్ష లాకెట్",
+      ta: "வெள்ளி விநாயகர் எந்திரம் அல்லது 9 முக ருத்ராட்ச பதக்கம்"
+    },
+    thread: {
+      kn: "ಕೆಂಪು ರೇಷ್ಮೆ ದಾರ ಅಥವಾ ಬೆಳ್ಳಿಯ ಸರ",
+      en: "Red silk thread or silver chain",
+      hi: "लाल रेशमी धागा अथवा चांदी की चेन",
+      te: "ఎరుపు రంగు పట్టు దారం లేదా వెండి గొలుసు",
+      ta: "சிவப்பு பட்டு நூல் அல்லது வெள்ளி சங்கிலி"
+    },
+    deity: {
+      kn: "ಅಶ್ವಿನೀ ಕುಮಾರರು (ದೇವ ವೈದ್ಯರು)",
+      en: "Ashwini Kumaras (Divine Healers)",
+      hi: "अश्विनी कुमार (देव वैद्य)",
+      te: "అశ్వినీ కుమారులు (దివ్య వైద్యులు)",
+      ta: "அஸ்வினி குமாரர்கள் (தெய்வீக மருத்துவர்கள்)"
+    },
+    blessing: {
+      kn: "ಆರೋಗ್ಯ ಚೈತನ್ಯ, ಅನಿರೀಕ್ಷಿತ ಅಪಘಾತ ಭಯ ನಿವಾರಣೆ ಮತ್ತು ಕಾರ್ಯ ವೇಗವರ್ಧನೆ.",
+      en: "Vital health resilience, fear dispelling, and rapid career momentum.",
+      hi: "उत्तम स्वास्थ्य, भय निवारण एवं कार्य में त्वरित प्रगति।",
+      te: "సంపూర్ణ ఆరోగ్యం, ప్రమాద భయ నివారణ మరియు కార్య జయం.",
+      ta: "பூரண ஆரோக்கியம், விபத்து பயம் நீங்குதல் மற்றும் காரிய வெற்றி."
+    }
+  },
+  Bharani: {
+    pendant: {
+      kn: "ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಓಂಕಾರ ಅಥವಾ ಷಣ್ಮುಖ ಪೆಂಡೆಂಟ್",
+      en: "Pure Silver Omkara or Shanmukha Pendant",
+      hi: "शुद्ध चांदी का ॐ अथवा षण्मुख पेंडेंट",
+      te: "శుద్ధ వెండి ఓంకార లేదా షణ్ముఖ లాకెట్",
+      ta: "தூய வெள்ளி ஓம்கார அல்லது சண்முகர் பதக்கம்"
+    },
+    thread: {
+      kn: "ಬಿಳಿ ಅಥವಾ ಗುಲಾಬಿ ರೇಷ್ಮೆ ದಾರ",
+      en: "White or rose silk thread",
+      hi: "सफेद अथवा गुलाबी रेशमी धागा",
+      te: "తెలుపు లేదా గులాబీ పట్టు దారం",
+      ta: "வெள்ளை அல்லது இளஞ்சிவப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಯಮಧರ್ಮ ರಾಜ",
+      en: "Lord Yama (Dharma Lord)",
+      hi: "यमराज (धर्मराज)",
+      te: "యమధర్మ రాజు",
+      ta: "எமதர்ம ராஜன்"
+    },
+    blessing: {
+      kn: "ಇಂದ್ರಿಯ ನಿಗ್ರಹ, ಆಕರ್ಷಕ ವ್ಯಕ್ತಿತ್ವ ಮತ್ತು ಕರ್ಮ ಬಂಧನಗಳಿಂದ ರಕ್ಷಣೆ.",
+      en: "Sensory mastery, magnetic charisma, and protection from karmic traps.",
+      hi: "इंद्रिय संयम, चुंबकीय व्यक्तित्व एवं कर्म बंधनों से मुक्ति।",
+      te: "ఇంద్రియ నిగ్రహం, ఆకర్షణీయ వ్యక్తిత్వం మరియు కర్మ బంధాల నుండి రక్షణ.",
+      ta: "இந்திரிய அடக்கம், வசீகரம் மற்றும் கர்ம பந்தங்களிலிருந்து விடுதலை."
+    }
+  },
+  Krittika: {
+    pendant: {
+      kn: "ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನದಲ್ಲಿ ಸೂರ್ಯ ಯಂತ್ರ ಪೆಂಡೆಂಟ್",
+      en: "Copper or Gold Surya Yantra Pendant",
+      hi: "तांबा अथवा स्वर्ण सूर्य यंत्र पेंडेंट",
+      te: "రాగి లేదా బంగారు సూర్య యంత్ర లాకెట్",
+      ta: "தாமிரம் அல்லது தங்க சூரிய எந்திர பதக்கம்"
+    },
+    thread: {
+      kn: "ಕೇಸರಿ ಅಥವಾ ಕೆಂಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Saffron or red silk thread",
+      hi: "केसरिया अथवा लाल रेशमी धागा",
+      te: "కాషాయం లేదా ఎరుపు పట్టు దారం",
+      ta: "காவி அல்லது சிவப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಅಗ್ನಿದೇವ",
+      en: "Lord Agni (Sacred Fire)",
+      hi: "अग्निदेव",
+      te: "అగ్ని దేవుడు",
+      ta: "அக்னி தேவன்"
+    },
+    blessing: {
+      kn: "ಆತ್ಮವಿಶ್ವಾಸ, ನಾಯಕತ್ವ ಗುಣ, ತೇಜಸ್ಸು ಹಾಗೂ ಪಿತೃದೋಷ ಶಾಂತಿ.",
+      en: "Supreme self-confidence, leadership, vital radiance, and ancestral peace.",
+      hi: "अगाध आत्मविश्वास, नेतृत्व शक्ति, तेज एवं पितृ शांति।",
+      te: "ఆత్మవిశ్వాసం, నాయకత్వ లక్షణాలు, తేజస్సు మరియు పితృదోష శాంతి.",
+      ta: "அபார தன்னம்பிக்கை, தலைமைப் பண்பு, தேஜஸ் மற்றும் பித்ரு சாந்தி."
+    }
+  },
+  Rohini: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಚಂದ್ರ ಕವಚ ಅಥವಾ ನೈಸರ್ಗಿಕ ಮುತ್ತಿನ ಪೆಂಡೆಂಟ್",
+      en: "Silver Moon Crescent or Natural Pearl Pendant",
+      hi: "चांदी का अर्धचंद्र अथवा प्राकृतिक मोती पेंडेंट",
+      te: "వెండి చంద్రవంక లేదా సహజ ముత్యపు లాకెట్",
+      ta: "வெள்ளி பிறைச்சந்திரன் அல்லது இயற்கை முத்து பதக்கம்"
+    },
+    thread: {
+      kn: "ಬಿಳಿ ರೇಷ್ಮೆ ದಾರ ಅಥವಾ ಬೆಳ್ಳಿಯ ಸರ",
+      en: "White silk thread or sterling silver chain",
+      hi: "श्वेत रेशमी धागा अथवा चांदी की चेन",
+      te: "తెల్లటి పట్టు దారం లేదా వెండి గొలుసు",
+      ta: "வெள்ளை பட்டு நூல் அல்லது வெள்ளி சங்கிலி"
+    },
+    deity: {
+      kn: "ಬ್ರಹ್ಮದೇವ (ಪ್ರಜಾಪತಿ)",
+      en: "Lord Brahma (Creator)",
+      hi: "ब्रह्मा देव (प्रजापति)",
+      te: "బ్రహ్మ దేవుడు (ప్రజాపతి)",
+      ta: "பிரம்ம தேவன் (பிரஜாபதி)"
+    },
+    blessing: {
+      kn: "ಮಾನಸಿಕ ಪ್ರಶಾಂತತೆ, ಭಾವನಾತ್ಮಕ ಸ್ಥಿರತೆ ಹಾಗೂ ದಾಂಪತ್ಯ ಪ್ರೇಮ ಸಮೃದ್ಧಿ.",
+      en: "Unshakable peace of mind, emotional poise, and domestic warmth.",
+      hi: "अटूट मानसिक शांति, भावनात्मक संतुलन एवं दांपत्य सुख।",
+      te: "మానసిక ప్రశాంతత, భావోద్వేగ స్థిరత్వం మరియు దాంపత్య ప్రేమ.",
+      ta: "மன அமைதி, உணர்ச்சி சமநிலை மற்றும் குடும்ப மகிழ்ச்சி."
+    }
+  },
+  Mrigashira: {
+    pendant: {
+      kn: "ತಾಮ್ರದ ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಕವಚ ಅಥವಾ ೩ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ",
+      en: "Copper Kartikeya Kavacha or 3-Mukhi Rudraksha",
+      hi: "तांबे का कार्तिकेय कवच अथवा ३ मुखी रुद्राक्ष",
+      te: "రాగి సుబ్రహ్మణ్య కవచం లేదా 3 ముఖి రుద్రాక్ష",
+      ta: "தாமிர கார்த்திகேயர் கவசம் அல்லது 3 முக ருத்ராட்சம்"
+    },
+    thread: {
+      kn: "ಕೆಂಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Red silk thread",
+      hi: "लाल रेशमी धागा",
+      te: "ఎరుపు రంగు పట్టు దారం",
+      ta: "சிவப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಸೋಮ (ಚಂದ್ರದೇವ)",
+      en: "Lord Soma (Nectar of Immortality)",
+      hi: "सोम (चंद्रदेव)",
+      te: "సోముడు (చంద్ర దేవుడు)",
+      ta: "சோம தேவன்"
+    },
+    blessing: {
+      kn: "ಹಿಂದಿನ ಜನ್ಮದ ಪಾಪಕ್ಷಯ, ರಕ್ತದೊತ್ತಡ ನಿಯಂತ್ರಣ ಹಾಗೂ ಧೈರ್ಯ ವೃದ್ಧಿ.",
+      en: "Purification of past karmas, emotional calm, and supreme courage.",
+      hi: "पूर्व जन्म के पापों का शमन, रक्तचाप नियंत्रण एवं परम साहस।",
+      te: "పూర్వజన్మ పాప క్షయం, ధైర్యం మరియు మనశ్శాంతి.",
+      ta: "பூர்வ ஜென்ம பாவ நிவர்த்தி, இரத்த அழுத்த கட்டுப்பாடு மற்றும் வீரம்."
+    }
+  },
+  Ardra: {
+    pendant: {
+      kn: "ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಆತ್ಮಲಿಂಗ ಕವಚ",
+      en: "Pure Silver Gokarna Mahabaleshwara Atmalinga Kavacha",
+      hi: "चांदी का गोकर्ण महाबलेश्वर आत्मलिंग कवच",
+      te: "వెండి గోకర్ణ మహాబలేశ్వర ఆత్మలింగ కవచం",
+      ta: "வெள்ளி கோகர்ணம் மகாபலேஸ்வரர் ஆத்மலிங்க கவசம்"
+    },
+    thread: {
+      kn: "ಕಪ್ಪು ಅಥವಾ ಗಾಢ ಕಂದು ದಾರ",
+      en: "Dark brown or black silk thread",
+      hi: "गहरा भूरा या काला रेशमी धागा",
+      te: "నలుపు లేదా ముదురు గోధుమ పట్టు దారం",
+      ta: "அடர் பழுப்பு அல்லது கருப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ರುದ್ರದೇವ (ಲಯಕರ್ತ)",
+      en: "Lord Rudra (Fierce Compassion)",
+      hi: "भगवान रुद्र",
+      te: "రుద్ర దేవుడు",
+      ta: "ருத்ர பெருமான்"
+    },
+    blessing: {
+      kn: "ರಾಹುವಿನ ಭ್ರಮೆ, ಮಾನಸಿಕ ತೊಳಲಾಟ, ವಾಮಾಚಾರ ಭಯ ನಿವಾರಣೆ ಮತ್ತು ಅಖಂಡ ಜಯ.",
+      en: "Shielding from Rahu illusions, anxiety, psychic attacks, and hurdles.",
+      hi: "राहु के भ्रम से मुक्ति, मानसिक तनाव शमन एवं सर्वांगीण विजय।",
+      te: "రాహు భ్రమల నివారణ, మానసిక ప్రశాంతత మరియు అఖండ విజయం.",
+      ta: "ராகுவின் மாயை விலகுதல், மன அமைதி மற்றும் வெற்றி."
+    }
+  },
+  Punarvasu: {
+    pendant: {
+      kn: "ಬಂಗಾರದ ತಾಯಿತದಲ್ಲಿ ಪಂಚಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಅಥವಾ ಹಳದಿ ನೀಲಮಣಿ",
+      en: "Gold-capped 5-Mukhi Rudraksha or Yellow Sapphire Pendant",
+      hi: "स्वर्ण जड़ित ५ मुखी रुद्राक्ष अथवा पीला पुखराज पेंडेंट",
+      te: "బంగారు తాపడం చేసిన 5 ముఖి రుద్రాక్ష లేదా పుష్యరాగ లాకెట్",
+      ta: "தங்க மூடி போட்ட 5 முக ருத்ராட்சம் அல்லது மஞ்சள் புஷ்பராக பதக்கம்"
+    },
+    thread: {
+      kn: "ಹಳದಿ ರೇಷ್ಮೆ ದಾರ",
+      en: "Yellow silk thread",
+      hi: "पीला रेशमी धागा",
+      te: "పసుపు రంగు పట్టు దారం",
+      ta: "மஞ்சள் பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಅದಿತಿ (ದೇವತೆಗಳ ಮಾತೆ)",
+      en: "Goddess Aditi (Cosmic Mother)",
+      hi: "देवी अदिति (देवमाता)",
+      te: "అదితి దేవి (దేవతల తల్లి)",
+      ta: "அதிதி தேவி (தேவமாதா)"
+    },
+    blessing: {
+      kn: "ಜ್ಞಾನಾರ್ಜನೆ, ಗುರುಕೃಪೆ, ಪುತ್ರ-ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ಧರ್ಮ ರಕ್ಷಣೆ.",
+      en: "Spiritual wisdom, Divine Guru grace, progeny blessings, and virtue.",
+      hi: "ज्ञानार्जन, गुरु कृपा, उत्तम संतान प्राप्ति एवं धर्म वृद्धि।",
+      te: "జ్ఞానం, గురు అనుగ్రహం, సంతాన సౌభాగ్యం మరియు ధర్మ రక్షణ.",
+      ta: "ஞானம், குரு அருள், சந்தான பாக்கியம் மற்றும் தர்ம ரக்ஷணை."
+    }
+  },
+  Pushya: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಮಹಾಲಕ್ಷ್ಮಿ ಯಂತ್ರ ಅಥವಾ ೭ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ",
+      en: "Silver Mahalakshmi Yantra or 7-Mukhi Rudraksha",
+      hi: "चांदी का महालक्ष्मी यंत्र अथवा ७ मुखी रुद्राक्ष",
+      te: "వెండి మహాలక్ష్మి యంత్రం లేదా 7 ముఖి రుద్రాక్ష",
+      ta: "வெள்ளி மகாலட்சுமி எந்திரம் அல்லது 7 முக ருத்ராட்சம்"
+    },
+    thread: {
+      kn: "ನೀಲಿ ಅಥವಾ ಕಪ್ಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Navy blue or black silk thread",
+      hi: "गहरा नीला या काला रेशमी धागा",
+      te: "నీలం లేదా నలుపు పట్టు దారం",
+      ta: "நீல அல்லது கருப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ದೇವಗುರು ಬೃಹಸ್ಪತಿ",
+      en: "Brihaspati (Preceptor of Gods)",
+      hi: "देवगुरु बृहस्पति",
+      te: "బృహస్పతి",
+      ta: "பிரகஸ்பதி"
+    },
+    blessing: {
+      kn: "ಸ್ಥಿರ ಸಂಪತ್ತು, ಶನಿ ಸಾಡೇಸಾತಿ ರಕ್ಷಣೆ, ಗೌರವ ಹಾಗೂ ದೀರ್ಘಾಯುಷ್ಯ.",
+      en: "Permanent financial prosperity, Sade Sati immunity, and longevity.",
+      hi: "स्थिर लक्ष्मी, साढ़ेसाती से रक्षा, सम्मान एवं दीर्घायु।",
+      te: "స్థిర ఐశ్వర్యం, శని సాడేసతి రక్షణ మరియు దీర్ఘాయుష్షు.",
+      ta: "நிரந்தர செல்வம், ஏழரைச் சனி பாதுகாப்பு மற்றும் ஆயுள் பலம்."
+    }
+  },
+  Ashlesha: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ನಾಗ ಕವಚ ಅಥವಾ ಪಚ್ಚೆ ಪೆಂಡೆಂಟ್",
+      en: "Silver Naga Kavacha or Emerald Pendant",
+      hi: "चांदी का नाग कवच अथवा पन्ना पेंडेंट",
+      te: "వెండి నాగ కవచం లేదా పచ్చ లాకెట్",
+      ta: "வெள்ளி நாக கவசம் அல்லது மரகத பதக்கம்"
+    },
+    thread: {
+      kn: "ಹಸಿರು ರೇಷ್ಮೆ ದಾರ",
+      en: "Green silk thread",
+      hi: "हरा रेशमी धागा",
+      te: "ఆకుపచ్చ పట్టు దారం",
+      ta: "பச்சை பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಸರ್ಪ / ನಾಗರಾಜ",
+      en: "Sarpa (Serpent Deities)",
+      hi: "नागराज",
+      te: "సర్ప రాజు",
+      ta: "சர்ப்ப தேவதை"
+    },
+    blessing: {
+      kn: "ಬುದ್ಧಿ ಚಾತುರ್ಯ, ಮಾತುಗಾರಿಕೆ ಬಲ, ವಿಷಭಯ ನಿವಾರಣೆ ಹಾಗೂ ವ್ಯಾಪಾರ ವೃದ್ಧಿ.",
+      en: "Sharp intellect, eloquence, protection from deceit, and trade gains.",
+      hi: "तीव्र बुद्धि, वाकपटुता, व्यापारिक लाभ एवं विषबाधा से सुरक्षा।",
+      te: "బుద్ధి కుశలత, వాక్చాతుర్యం, వ్యాపార లాభాలు మరియు విష భయ నివారణ.",
+      ta: "கூர்மையான புத்தி, வாக்கு சாதுரியம், வியாபார மேன்மை மற்றும் விஷ பயமின்மை."
+    }
+  },
+  Magha: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಪಿತೃ ಮುಕ್ತಿ ಯಂತ್ರ ಅಥವಾ ೯ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ",
+      en: "Silver Pitru Mukti Yantra or 9-Mukhi Rudraksha",
+      hi: "चांदी का पितृ मुक्ति यंत्र अथवा ९ मुखी रुद्राक्ष",
+      te: "వెండి పితృ ముక్తి యంత్రం లేదా 9 ముఖి రుద్రాక్ష",
+      ta: "வெள்ளி பித்ரு முக்தி எந்திரம் அல்லது 9 முக ருத்ராட்சம்"
+    },
+    thread: {
+      kn: "ಕೆಂಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Red silk thread",
+      hi: "लाल रेशमी धागा",
+      te: "ఎరుపు రంగు పట్టు దారం",
+      ta: "சிவப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಪಿತೃ ದೇವತೆಗಳು (ಪೂರ್ವಜರು)",
+      en: "Pitrus (Ancestral Souls)",
+      hi: "पितृ देव",
+      te: "పితృ దేవతలు",
+      ta: "பித்ருக்கள்"
+    },
+    blessing: {
+      kn: "ಪಿತೃದೋಷ ಶಾಂತಿ, ಸಿಂಹಾಸನ ಸದೃಶ ಅಧಿಕಾರ, ಕೀರ್ತಿ ಹಾಗೂ ವಂಶಾಭಿವೃದ್ಧಿ.",
+      en: "Ancestral liberation, royal authority, fame, and family lineage.",
+      hi: "पितृदोष शांति, उच्च पद-प्रतिष्ठा, कीर्ति एवं वंश वृद्धि।",
+      te: "పితృదోష శాంతి, అధికార యోగం, కీర్తి మరియు వంశాభివృద్ధి.",
+      ta: "பித்ரு தோஷ நிவர்த்தி, அரச அந்தஸ்து, புகழ் மற்றும் வம்ச விருத்தி."
+    }
+  },
+  "Purva Phalguni": {
+    pendant: {
+      kn: "ಸ್ಪಟಿಕ ಮಾಲೆ ಅಥವಾ ಬೆಳ್ಳಿಯ ಲಕ್ಷ್ಮಿ ಪೆಂಡೆಂಟ್",
+      en: "Sphatika Crystal Mala or Silver Lakshmi Pendant",
+      hi: "स्फटिक माला अथवा चांदी का लक्ष्मी पेंडेंट",
+      te: "స్ఫటిక మాల లేదా వెండి లక్ష్మి లాకెట్",
+      ta: "ஸ்படிக மாலை அல்லது வெள்ளி லட்சுமி பதக்கம்"
+    },
+    thread: {
+      kn: "ಗುಲಾಬಿ ಅಥವಾ ಬಿಳಿ ದಾರ",
+      en: "Pink or white silk thread",
+      hi: "गुलाबी या सफेद रेशमी धागा",
+      te: "గులాబీ లేదా తెలుపు పట్టు దారం",
+      ta: "இளஞ்சிவப்பு அல்லது வெள்ளை பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಭಾಗ್ಯ ದೇವತೆ (ಭಗ)",
+      en: "Bhaga (God of Fortune)",
+      hi: "भग (भाग्य देव)",
+      te: "భగ దేవుడు",
+      ta: "பக தேவன்"
+    },
+    blessing: {
+      kn: "ಸೌಂದರ್ಯ, ಕಲಾ ಪ್ರತಿಭೆ, ದಾಂಪತ್ಯ ಸುಖ ಹಾಗೂ ಆರ್ಥಿಕ ಆಕರ್ಷಣೆ.",
+      en: "Personal magnetism, creative bliss, marital harmony, and affluence.",
+      hi: "सौंदर्य, कलात्मक प्रतिभा, दांपत्य सुख एवं आकर्षण।",
+      te: "సౌందర్యం, కళా ప్రతిభ, దాంపత్య సుఖం మరియు ఐశ్వర్యం.",
+      ta: "கலைத்திறன், வசீகரம், தாம்பத்ய சுகம் மற்றும் ஐஸ்வர்யம்."
+    }
+  },
+  "Uttara Phalguni": {
+    pendant: {
+      kn: "ತಾಮ್ರದ ಶ್ರೀ ಸೂರ್ಯ ಕವಚ ಪೆಂಡೆಂಟ್",
+      en: "Copper Surya Kavacha Pendant",
+      hi: "तांबे का सूर्य कवच पेंडेंट",
+      te: "రాగి సూర్య కవచ లాకెట్",
+      ta: "தாமிர சூரிய கவச பதக்கம்"
+    },
+    thread: {
+      kn: "ಕೆಂಪು ಅಥವಾ ಕೇಸರಿ ದಾರ",
+      en: "Red or saffron silk thread",
+      hi: "लाल या केसरिया रेशमी धागा",
+      te: "ఎరుపు లేదా కాషాయం పట్టు దారం",
+      ta: "சிவப்பு அல்லது காவி பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಅರ್ಯಮನ್ (ಸ್ನೇಹ & ಧರ್ಮ ದೇವ)",
+      en: "Aryaman (Protector of Unions)",
+      hi: "अर्यमा",
+      te: "అర్యముడు",
+      ta: "அரியமான்"
+    },
+    blessing: {
+      kn: "ಸರ್ಕಾರಿ ಕೆಲಸದಲ್ಲಿ ಮನ್ನಣೆ, ನಾಯಕತ್ವ ಬಲ, ಶತ್ರುನಾಶ ಹಾಗೂ ಗೌರವ.",
+      en: "Executive command, government patronage, victory over foes, and honor.",
+      hi: "सरकारी कार्यों में सफलता, नेतृत्व बल, शत्रु विजय एवं प्रतिष्ठा।",
+      te: "ప్రభుత్వ రంగంలో గుర్తింపు, నాయకత్వ బలం, శత్రు నాశనం మరియు గౌరవం.",
+      ta: "அரசு மரியாதை, தலைமை பலம், எதிரிகள் தோல்வி மற்றும் கௌரவம்."
+    }
+  },
+  Hasta: {
+    pendant: {
+      kn: "ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಶ್ರೀ ಗಾಯತ್ರೀ ಯಂತ್ರ ಪೆಂಡೆಂಟ್",
+      en: "Silver Gayatri Yantra Pendant",
+      hi: "चांदी का श्री गायत्री यंत्र पेंडेंट",
+      te: "వెండి గాయత్రీ యంత్ర లాకెట్",
+      ta: "வெள்ளி காயத்ரி எந்திர பதக்கம்"
+    },
+    thread: {
+      kn: "ಬಿಳಿ ಅಥವಾ ತಿಳಿ ಹಳದಿ ದಾರ",
+      en: "White or light yellow thread",
+      hi: "सफेद या हल्का पीला धागा",
+      te: "తెలుపు లేదా లేత పసుపు పట్టు దారం",
+      ta: "வெள்ளை அல்லது வெளிர் மஞ்சள் நூல்"
+    },
+    deity: {
+      kn: "ಸವಿತೃ (ಸೂರ್ಯನ ಜ್ಞಾನ ತೇಜಸ್ಸು)",
+      en: "Savitur (Illuminating Sun)",
+      hi: "सविता (सूर्य देव)",
+      te: "సవితృ",
+      ta: "சவிதா தேவன்"
+    },
+    blessing: {
+      kn: "ಕೈಹಿಡಿದ ಕೆಲಸದಲ್ಲಿ ಯಶಸ್ಸು, ಹಸ್ತಕಲಾ ನೈಪುಣ್ಯ ಹಾಗೂ ನಕಾರಾತ್ಮಕ ಶಕ್ತಿ ನಿವಾರಣೆ.",
+      en: "Golden touch in endeavors, creative dexterity, and peace.",
+      hi: "हस्तकला निपुणता, कार्यों में सिद्धि एवं नकारात्मक ऊर्जा से रक्षा।",
+      te: "పనులలో విజయం, కళా నైపుణ్యం మరియు మానసిక శాంతి.",
+      ta: "கைராசி, கலைத்திறன் மற்றும் மன அமைதி."
+    }
+  },
+  Chitra: {
+    pendant: {
+      kn: "ತಾಮ್ರ ಅಥವಾ ಬೆಳ್ಳಿಯ ತ್ರಿಶೂಲ ಪೆಂಡೆಂಟ್",
+      en: "Copper or Silver Trishula Pendant",
+      hi: "तांबा या चांदी का त्रिशूल पेंडेंट",
+      te: "రాగి లేదా వెండి త్రిశూల లాకెట్",
+      ta: "தாமிரம் அல்லது வெள்ளி திரிசூல பதக்கம்"
+    },
+    thread: {
+      kn: "ಕೆಂಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Red silk thread",
+      hi: "लाल रेशमी धागा",
+      te: "ఎరుపు రంగు పట్టు దారం",
+      ta: "சிவப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ವಿಶ್ವಕರ್ಮ (ದೈವಿಕ ಶಿಲ್ಪಿ)",
+      en: "Vishwakarma (Divine Architect)",
+      hi: "विश्वकर्मा",
+      te: "విశ్వకర్మ",
+      ta: "விஸ்வகர்மா"
+    },
+    blessing: {
+      kn: "ವಾಸ್ತು ದೋಷ ನಿವಾರಣೆ, ಎಂಜಿನಿಯರಿಂಗ್/ತಾಂತ್ರಿಕ ಪ್ರತಿಭೆ ಹಾಗೂ ತೇಜಸ್ಸು.",
+      en: "Vastu harmonization, architectural brilliance, and supreme vitality.",
+      hi: "वास्तु दोष निवारण, तकनीकी कौशल एवं शारीरिक तेज।",
+      te: "వాస్తు దోష నివారణ, సాంకేతిక ప్రతిభ మరియు తేజస్సు.",
+      ta: "வாஸ்து தோஷ நிவர்த்தி, தொழில்நுட்ப திறமை மற்றும் தேஜஸ்."
+    }
+  },
+  Swati: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಆಂಜನೇಯ ಕವಚ ಅಥವಾ ೮ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ",
+      en: "Silver Hanuman Kavacha or 8-Mukhi Rudraksha",
+      hi: "चांदी का हनुमान कवच अथवा ८ मुखी रुद्राक्ष",
+      te: "వెండి హనుమాన్ కవచం లేదా 8 ముఖి రుద్రాక్ష",
+      ta: "வெள்ளி ஆஞ்சநேயர் கவசம் அல்லது 8 முக ருத்ராட்சம்"
+    },
+    thread: {
+      kn: "ಕಪ್ಪು ಅಥವಾ ಹಳದಿ ಮಿಶ್ರಿತ ದಾರ",
+      en: "Black or yellow-bordered thread",
+      hi: "काला अथवा पीली धारीदार धागा",
+      te: "నలుపు లేదా పసుపు అంచు గల దారం",
+      ta: "கருப்பு அல்லது மஞ்சள் கரை நூல்"
+    },
+    deity: {
+      kn: "ವಾಯುದೇವ (ಪ್ರಾಣವಾಯು)",
+      en: "Lord Vayu (Life-force)",
+      hi: "वायुदेव",
+      te: "వాయు దేవుడు",
+      ta: "வாயு தேவன்"
+    },
+    blessing: {
+      kn: "ಸ್ವಾವಲಂಬನೆ, ವ್ಯಾಪಾರದಲ್ಲಿ ಮುಕ್ತ ಮುನ್ನಡೆ, ಆತಂಕ ಮುಕ್ತಿ ಹಾಗೂ ಭಾಗ್ಯೋದಯ.",
+      en: "Independent enterprise, trade freedom, panic relief, and luck.",
+      hi: "आत्मनिर्भरता, व्यापार में प्रगति, भय मुक्ति एवं भाग्योदय।",
+      te: "స్వయం సమృద్ధి, వ్యాపార స్వేచ్ఛ, భయ విముక్తి మరియు భాగ్యోదయం.",
+      ta: "சுயதொழில் மேன்மை, பயம் நீங்குதல் மற்றும் அதிர்ஷ்டம்."
+    }
+  },
+  Vishakha: {
+    pendant: {
+      kn: "ಬಂಗಾರ ಅಥವಾ ಬೆಳ್ಳಿಯ ಗುರು ಯಂತ್ರ ಪೆಂಡೆಂಟ್",
+      en: "Gold or Silver Guru Yantra Pendant",
+      hi: "स्वर्ण अथवा चांदी का गुरु यंत्र पेंडेंट",
+      te: "బంగారం లేదా వెండి గురు యంత్ర లాకెట్",
+      ta: "தங்கம் அல்லது வெள்ளி குரு எந்திர பதக்கம்"
+    },
+    thread: {
+      kn: "ಹಳದಿ ರೇಷ್ಮೆ ದಾರ",
+      en: "Yellow silk thread",
+      hi: "पीला रेशमी धागा",
+      te: "పసుపు రంగు పట్టు దారం",
+      ta: "மஞ்சள் பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಇಂದ್ರ ಹಾಗೂ ಅಗ್ನಿ (ಇಂದ್ರಾಗ್ನಿ)",
+      en: "Indra & Agni (Triumphant Pair)",
+      hi: "इंद्राग्नि",
+      te: "ఇంద్రాగ్ని",
+      ta: "இந்திராக்னி"
+    },
+    blessing: {
+      kn: "ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಜಯ, ಗುರಿ ಸಾಧನೆ, ಸತ್ಯನಿಷ್ಠೆ ಹಾಗೂ ಧನಾಗಮನ.",
+      en: "Competitive triumph, relentless goal achievement, and wealth.",
+      hi: "प्रतियोगी परीक्षाओं में विजय, लक्ष्य प्राप्ति एवं धन समृद्धि।",
+      te: "పోటీ పరీక్షలలో విజయం, లక్ష్య సాధన మరియు ధన లాభం.",
+      ta: "போட்டித் தேர்வுகளில் வெற்றி, லட்சிய சாதனை மற்றும் தன வரவு."
+    }
+  },
+  Anuradha: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಶಿವಲಿಂಗ ಕವಚ ಅಥವಾ ನೀಲಿ ಸ್ಪಟಿಕ ಪೆಂಡೆಂಟ್",
+      en: "Silver Shivalinga Kavacha or Blue Crystal Pendant",
+      hi: "चांदी का शिवलिंग कवच अथवा नीलमणि पेंडेंट",
+      te: "వెండి శివలింగ కవచం లేదా నీలి స్పటిక లాకెట్",
+      ta: "வெள்ளி சிவலிங்க கவசம் அல்லது நீல ஸ்படிக பதக்கம்"
+    },
+    thread: {
+      kn: "ನೀಲಿ ಅಥವಾ ಕಪ್ಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Blue or black silk thread",
+      hi: "नीला या काला रेशमी धागा",
+      te: "నీలం లేదా నలుపు పట్టు దారం",
+      ta: "நீல அல்லது கருப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಮಿತ್ರ (ಸ್ನೇಹ & ಸದ್ಭಾವನೆಯ ದೇವ)",
+      en: "Mitra (God of Alliances & Friendship)",
+      hi: "मित्र देव",
+      te: "మిత్ర దేవుడు",
+      ta: "மித்ர தேவன்"
+    },
+    blessing: {
+      kn: "ವಿದೇಶ ಪ್ರವಾಸ ಭಾಗ್ಯ, ಆಪ್ತ ಸ್ನೇಹಿತರ ಸಹಕಾರ, ಶನಿ ಸಂಕಷ್ಟ ನಿವಾರಣೆ.",
+      en: "Foreign travel luck, loyal alliances, and Saturn affliction relief.",
+      hi: "विदेश यात्रा योग, सच्चे मित्रों का सहयोग एवं शनि दोष शांति।",
+      te: "విదేశీ ప్రయాణ యోగం, మిత్రుల సహకారం మరియు శని బాధల నివారణ.",
+      ta: "வெளிநாட்டுப் பயண யோகம், நல்ல நண்பர்கள் சேர்க்கை மற்றும் சனி சாந்தி."
+    }
+  },
+  Jyeshtha: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ವಜ್ರಾಯುಧ ಯಂತ್ರ ಅಥವಾ ಪಚ್ಚೆ ಪೆಂಡೆಂಟ್",
+      en: "Silver Vajra Yantra or Emerald Pendant",
+      hi: "चांदी का वज्र यंत्र अथवा पन्ना पेंडेंट",
+      te: "వెండి వజ్రాయుధ యంత్రం లేదా పచ్చ లాకెట్",
+      ta: "வெள்ளி வஜ்ராயுத எந்திரம் அல்லது மரகத பதக்கம்"
+    },
+    thread: {
+      kn: "ಹಸಿರು ರೇಷ್ಮೆ ದಾರ",
+      en: "Green silk thread",
+      hi: "हरा रेशमी धागा",
+      te: "ఆకుపచ్చ పట్టు దారం",
+      ta: "பச்சை பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಇಂದ್ರ (ದೇವತೆಗಳ ಅಧಿಪತಿ)",
+      en: "Lord Indra (King of Gods)",
+      hi: "देवराज इंद्र",
+      te: "దేవేంద్రుడు",
+      ta: "இந்திர தேவன்"
+    },
+    blessing: {
+      kn: "ಹಿರಿತನದ ಸ್ಥಾನಮಾನ, ಅಧಿಕಾರ, ಹಿರಿಯರ ಆಶೀರ್ವಾದ ಹಾಗೂ ಧೈರ್ಯ.",
+      en: "Senior executive stature, authority, wisdom, and fearless leadership.",
+      hi: "उच्च पद, प्रशासनिक अधिकार, मान-सम्मान एवं निर्भीकता।",
+      te: "ఉన్నత అధికార పదవి, పెద్దల ఆశీర్వాదం మరియు ధైర్యం.",
+      ta: "தலைமைப் பதவி, அதிகாரம், அறிவுக்கூர்மை மற்றும் துணிச்சல்."
+    }
+  },
+  Mula: {
+    pendant: {
+      kn: "ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ರಕ್ಷಾ ಕವಚ",
+      en: "Silver Gokarna Mahabaleshwara Raksha Kavacha",
+      hi: "चांदी का गोकर्ण महाबलेश्वर रक्षा कवच",
+      te: "వెండి గోకర్ణ మహాబలేశ్వర రక్షా కవచం",
+      ta: "வெள்ளி கோகர்ணம் மகாபலேஸ்வரர் ரக்ஷா கவசம்"
+    },
+    thread: {
+      kn: "ಕೆಂಪು ಅಥವಾ ಕಪ್ಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Red or black silk thread",
+      hi: "लाल या काला रेशमी धागा",
+      te: "ఎరుపు లేదా నలుపు పట్టు దారం",
+      ta: "சிவப்பு அல்லது கருப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ನಿರೃತಿ (ಮಹಾಕಾಳಿ)",
+      en: "Nirriti (Goddess Mahakali)",
+      hi: "निर्ऋति (महाकाली)",
+      te: "నిర్ఋతి (మహాకాళి)",
+      ta: "நிர்ருதி (மகாகாளி)"
+    },
+    blessing: {
+      kn: "ಮೂಲ ನಕ್ಷತ್ರ ಗಂಡಾಂತರ ಮುಕ್ತಿ, ಸಂಸಾರ ರಕ್ಷಣೆ, ಆಧ್ಯಾತ್ಮಿಕ ಸಿದ್ಧಿ.",
+      en: "Complete Moola Gandanta relief, ancestral debt clearance, spiritual peace.",
+      hi: "मूल गंडांत दोष शांति, पितृ ऋण से मुक्ति एवं आध्यात्मिक शांति।",
+      te: "మూలా నక్షత్ర గండాంత నివారణ, కుటుంబ రక్షణ మరియు ఆధ్యాత్మిక సిద్ధి.",
+      ta: "மூல நட்சத்திர தோஷ நிவர்த்தி, பித்ரு கடன் தீருதல் மற்றும் ஆன்மீக அமைதி."
+    }
+  },
+  "Purva Ashadha": {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ಪೆಂಡೆಂಟ್ ಅಥವಾ ಬಿಳಿ ಝಿರ್ಕಾನ್",
+      en: "Silver Mahalakshmi Pendant or White Zircon",
+      hi: "चांदी का महालक्ष्मी पेंडेंट अथवा सफेद जिरकॉन",
+      te: "వెండి శ్రీ మహాలక్ష్మి లాకెట్ లేదా తెల్లటి జిర్కాన్",
+      ta: "வெள்ளி மகாலட்சுமி பதக்கம் அல்லது வெள்ளை ஜிர்கான்"
+    },
+    thread: {
+      kn: "ಬಿಳಿ ಅಥವಾ ಗುಲಾಬಿ ದಾರ",
+      en: "White or rose silk thread",
+      hi: "सफेद या गुलाबी रेशमी धागा",
+      te: "తెలుపు లేదా గులాబీ పట్టు దారం",
+      ta: "வெள்ளை அல்லது இளஞ்சிவப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಅಪಃ (ಜಲದೇವತೆ)",
+      en: "Apah (Sacred Waters)",
+      hi: "आपः (जलदेवता)",
+      te: "అపః (జలదేవత)",
+      ta: "ஆபஹ் (ஜலதேவதை)"
+    },
+    blessing: {
+      kn: "ಅಪಜಯದ ಭಯ ನಿವಾರಣೆ, ವಾಕ್ಚಾತುರ್ಯ, ಪ್ರವಾಸಗಳಲ್ಲಿ ಜಯ ಹಾಗೂ ಸಂಪತ್ತು.",
+      en: "Infallible victory, emotional flow, eloquence, and luxury.",
+      hi: "पराजय भय से मुक्ति, वाकसिद्धि एवं ऐश्वर्य प्राप्ति।",
+      te: "అపజయ భయ నివారణ, వాక్చాతుర్యం మరియు సంపద.",
+      ta: "தோல்வி பயமின்மை, வாக்குவன்மை மற்றும் ஆடம்பரம்."
+    }
+  },
+  "Uttara Ashadha": {
+    pendant: {
+      kn: "ತಾಮ್ರದ ಶ್ರೀ ಸೂರ್ಯ-ವಿಷ್ಣು ಯಂತ್ರ ಪೆಂಡೆಂಟ್",
+      en: "Copper Surya-Vishnu Yantra Pendant",
+      hi: "तांबे का सूर्य-विष्णु यंत्र पेंडेंट",
+      te: "రాగి సూర్య-విష్ణు యంత్ర లాకెట్",
+      ta: "தாமிர சூரிய-விஷ்ணு எந்திர பதக்கம்"
+    },
+    thread: {
+      kn: "ಕೇಸರಿ ರೇಷ್ಮೆ ದಾರ",
+      en: "Saffron silk thread",
+      hi: "केसरिया रेशमी धागा",
+      te: "కాషాయం పట్టు దారం",
+      ta: "காவி பட்டு நூல்"
+    },
+    deity: {
+      kn: "ವಿಶ್ವೇದೇವತೆಗಳು (ಸಾರ್ವಭೌಮ ದೇವತೆಗಳು)",
+      en: "Vishwadevas (Universal Gods)",
+      hi: "विश्वेदेवा",
+      te: "విశ్వేదేవతలు",
+      ta: "விஸ்வேதேவர்கள்"
+    },
+    blessing: {
+      kn: "ಅಪೂರ್ವ ಜನಪ್ರಿಯತೆ, ನಿಷ್ಕಳಂಕ ಚಾರಿತ್ರ್ಯ, ರಾಜಯೋಗ ಹಾಗೂ ಕೀರ್ತಿ.",
+      en: "Universal admiration, pure character, Rajayoga, and lasting fame.",
+      hi: "सर्वप्रियता, निष्कलंक चरित्र, राजयोग एवं चिरस्थायी कीर्ति।",
+      te: "అఖండ ప్రజాదరణ, నిష్కళంక వ్యక్తిత్వం, రాజయోగం మరియు కీర్తి.",
+      ta: "மக்கள் ஆதரவு, நல்லொழுக்கம், ராஜயோகம் மற்றும் அழியாத புகழ்."
+    }
+  },
+  Shravana: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಶ್ರೀ ತುಳಸೀ ಕವಚ ಅಥವಾ ಶಂಖ ಪೆಂಡೆಂಟ್",
+      en: "Silver Tulasi Locket or Shankha Pendant",
+      hi: "चांदी का तुलसी कवच अथवा शंख पेंडेंट",
+      te: "వెండి తులసి కవచం లేదా శంఖ లాకెట్",
+      ta: "வெள்ளி துளசி தாயத்து அல்லது சங்கு பதக்கம்"
+    },
+    thread: {
+      kn: "ಬಿಳಿ ಅಥವಾ ಹಳದಿ ರೇಷ್ಮೆ ದಾರ",
+      en: "White or yellow silk thread",
+      hi: "सफेद या पीला रेशमी धागा",
+      te: "తెలుపు లేదా పసుపు పట్టు దారం",
+      ta: "வெள்ளை அல்லது மஞ்சள் பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಮಹಾವಿಷ್ಣು (ಲೋಕರಕ್ಷಕ)",
+      en: "Lord Maha Vishnu (Preserver)",
+      hi: "भगवान विष्णु",
+      te: "మహావిష్ణువు",
+      ta: "மகாவிஷ்ணு"
+    },
+    blessing: {
+      kn: "ಶ್ರವಣ ಶಕ್ತಿ, ಉತ್ತಮ ಕಲಿಯುವಿಕೆ, ಗುರು ಹಿರಿಯರ ಪ್ರೀತಿ ಹಾಗೂ ಮಾನಸಿಕ ಶಾಂತಿ.",
+      en: "Deep listening, scholarly brilliance, family respect, and tranquility.",
+      hi: "श्रवण शक्ति, ज्ञानार्जन, बड़ों का स्नेह एवं मानसिक शांति।",
+      te: "శ్రవణ జ్ఞానం, విద్యా ప్రతిభ, పెద్దల గౌరవం మరియు మనశ్శాంతి.",
+      ta: "கூர்ந்து கவனிக்கும் ஆற்றல், கல்வி ஞானம் மற்றும் மன அமைதி."
+    }
+  },
+  Dhanishta: {
+    pendant: {
+      kn: "ತಾಮ್ರ ಅಥವಾ ಚಿನ್ನದಲ್ಲಿ ಧನಲಕ್ಷ್ಮಿ ಕವಚ",
+      en: "Copper or Gold Dhanalakshmi Kavacha",
+      hi: "तांबा अथवा स्वर्ण धनलक्ष्मी कवच",
+      te: "రాగి లేదా బంగారు ధనలక్ష్మి కవచం",
+      ta: "தாமிரம் அல்லது தங்க தனலட்சுமி கவசம்"
+    },
+    thread: {
+      kn: "ಕೆಂಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Red silk thread",
+      hi: "लाल रेशमी धागा",
+      te: "ఎరుపు రంగు పట్టు దారం",
+      ta: "சிவப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಅಷ್ಟ ವಸುಗಳು (ಐಶ್ವರ್ಯ ದೇವತೆಗಳು)",
+      en: "Ashta Vasus (Elemental Gods of Wealth)",
+      hi: "अष्टवसु",
+      te: "అష్ట వసువులు",
+      ta: "அஷ்ட வசுக்கள்"
+    },
+    blessing: {
+      kn: "ಸಂಗೀತ ಕಲೆ, ಅಖಂಡ ಧನಲಾಭ, ಸ್ಥಿರಾಸ್ತಿ ವೃದ್ಧಿ ಹಾಗೂ ನಾಯಕತ್ವ.",
+      en: "Artistic talent, perpetual wealth flow, real-estate gains, and leadership.",
+      hi: "संगीत-कला, निरंतर धन प्रवाह, अचल संपत्ति एवं नेतृत्व।",
+      te: "సంగీత-కళా ప్రావీణ్యం, స్థిరాస్తి వృద్ధి మరియు అఖండ ధనప్రాప్తి.",
+      ta: "கலைத்திறன், தொடர் பணவரவு, அசையா சொத்து சேர்க்கை மற்றும் தலைமை."
+    }
+  },
+  Shatabhisha: {
+    pendant: {
+      kn: "ಶುದ್ಧ ಬೆಳ್ಳಿಯ ಶ್ರೀ ಮೃತ್ಯುಂಜಯ ಕವಚ ಅಥವಾ ೮ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ",
+      en: "Silver Mrityunjaya Kavacha or 8-Mukhi Rudraksha",
+      hi: "चांदी का महामृत्युंजय कवच अथवा ८ मुखी रुद्राक्ष",
+      te: "వెండి మృత్యుంజయ కవచం లేదా 8 ముఖి రుద్రాక్ష",
+      ta: "வெள்ளி மிருத்யுஞ்ஜய கவசம் அல்லது 8 முக ருத்ராட்சம்"
+    },
+    thread: {
+      kn: "ನೀಲಿ ಅಥವಾ ಕಪ್ಪು ರೇಷ್ಮೆ ದಾರ",
+      en: "Blue or black silk thread",
+      hi: "नीला या काला रेशमी धागा",
+      te: "నీలం లేదా నలుపు పట్టు దారం",
+      ta: "நீல அல்லது கருப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ವರುಣದೇವ (ಸಾಗರಾಧಿಪತಿ & ಸಂಜೀವಿನಿ ವೈದ್ಯ)",
+      en: "Lord Varuna (Cosmic Ocean & Mystic Healer)",
+      hi: "वरुण देव",
+      te: "వరుణ దేవుడు",
+      ta: "வருண பகவான்"
+    },
+    blessing: {
+      kn: "ದೀರ್ಘಕಾಲದ ರೋಗ ನಿವಾರಣೆ, ವಿಷಮ ಸ್ಥಿತಿಯಿಂದ ಮುಕ್ತಿ, ಸಂಶೋಧನಾ ಯಶಸ್ಸು.",
+      en: "Healing of chronic afflictions, mystical insight, research triumph.",
+      hi: "असाध्य रोगों से मुक्ति, विषम परिस्थितियों से रक्षा एवं अनुसंधान में सफलता।",
+      te: "దీర్ఘకాలిక రోగ నివారణ, పరిశోధన విజయం మరియు రక్షణ.",
+      ta: "தீராத நோய் நிவர்த்தி, ஆபத்திலிருந்து விடுதலை மற்றும் ஆராய்ச்சி வெற்றி."
+    }
+  },
+  "Purva Bhadrapada": {
+    pendant: {
+      kn: "ಬಂಗಾರ ಅಥವಾ ಹಿತ್ತಾಳೆಯ ಶ್ರೀ ಗುರು ಪೆಂಡೆಂಟ್",
+      en: "Gold or Brass Guru Locket Pendant",
+      hi: "स्वर्ण अथवा पीतल का गुरु पेंडेंट",
+      te: "బంగారం లేదా ఇత్తడి గురు లాకెట్",
+      ta: "தங்கம் அல்லது பித்தளை குரு பதக்கம்"
+    },
+    thread: {
+      kn: "ಹಳದಿ ರೇಷ್ಮೆ ದಾರ",
+      en: "Yellow silk thread",
+      hi: "पीला रेशमी धागा",
+      te: "పసుపు రంగు పట్టు దారం",
+      ta: "மஞ்சள் பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಅಜ ಏಕಪಾದ (ರುದ್ರನ ತಪೋರೂಪ)",
+      en: "Aja Ekapada (Mystic Tapasya Rudra)",
+      hi: "अज एकपाद",
+      te: "అజ ఏకపాదుడు",
+      ta: "அஜ ஏகபாதர்"
+    },
+    blessing: {
+      kn: "ಆಧ್ಯಾತ್ಮಿಕ ತೇಜಸ್ಸು, ತ್ಯಾಗ ಮನೋಭಾವ, ಉನ್ನತ ತಾತ್ವಿಕ ಜ್ಞಾನ ಹಾಗೂ ಧನಶ್ರೀ.",
+      en: "Spiritual elevation, detached wisdom, philosophical depth, and wealth.",
+      hi: "आध्यात्मिक तेज, त्याग भाव, उच्च दार्शनिक ज्ञान एवं धन वृद्धि।",
+      te: "ఆధ్యాత్మిక తేజస్సు, తాత్విక జ్ఞానం మరియు ధన సంపద.",
+      ta: "ஆன்மீக மேன்மை, தத்துவ ஞானம் மற்றும் தன லாபம்."
+    }
+  },
+  "Uttara Bhadrapada": {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಶಿವಲಿಂಗ ಅಥವಾ ನೀಲ ಸ್ಪಟಿಕ ಪೆಂಡೆಂಟ್",
+      en: "Silver Shivalinga or Blue Quartz Pendant",
+      hi: "चांदी का शिवलिंग अथवा नीलमणि पेंडेंट",
+      te: "వెండి శివలింగం లేదా నీలి స్పటిక లాకెట్",
+      ta: "வெள்ளி சிவலிங்கம் அல்லது நீல ஸ்படிக பதக்கம்"
+    },
+    thread: {
+      kn: "ಗಾಢ ನೀಲಿ ಅಥವಾ ಕಪ್ಪು ದಾರ",
+      en: "Dark navy blue or black silk thread",
+      hi: "गहरा नीला या काला रेशमी धागा",
+      te: "ముదురు నీలం లేదా నలుపు పట్టు దారం",
+      ta: "அடர் நீல அல்லது கருப்பு பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಅಹಿರ್ಬುಧ್ನ್ಯ (ಆಳವಾದ ಜ್ಞಾನದ ಸರ್ಪರೂಪಿ ರುದ್ರ)",
+      en: "Ahirbudhnya (Deep Serpent of the Abyss)",
+      hi: "अहिरबुध्न्य",
+      te: "అహిర్బుధ్న్యుడు",
+      ta: "அகிர்புத்னியர்"
+    },
+    blessing: {
+      kn: "ಕುಂಡಲಿನೀ ಜಾಗೃತಿ, ಗಂಭೀರ ಯೋಚನಾಶಕ್ತಿ, ನಿರಂತರ ಆರ್ಥಿಕ ಸ್ಥಿರತೆ.",
+      en: "Kundalini balance, profound meditation, unwavering financial stability.",
+      hi: "कुंडलिनी जागरण, गंभीर चिंतन एवं दीर्घकालिक आर्थिक स्थिरता।",
+      te: "కుండలినీ జాగృతి, ధ్యాన స్థితి మరియు ఆర్థిక స్థిరత్వం.",
+      ta: "தியான பலம், ஆழ்ந்த சிந்தனை மற்றும் நிதி நிலைத்தன்மை."
+    }
+  },
+  Revati: {
+    pendant: {
+      kn: "ಬೆಳ್ಳಿಯ ಶ್ರೀ ಗೋಪಾಲ ಕೃಷ್ಣ ಯಂತ್ರ ಅಥವಾ ಪಚ್ಚೆ ಪೆಂಡೆಂಟ್",
+      en: "Silver Gopala Krishna Yantra or Emerald Pendant",
+      hi: "चांदी का गोपाल कृष्ण यंत्र अथवा पन्ना पेंडेंट",
+      te: "వెండి గోపాల కృష్ణ యంత్రం లేదా పచ్చ లాకెట్",
+      ta: "வெள்ளி கோபால கிருஷ்ணர் எந்திரம் அல்லது மரகத பதக்கம்"
+    },
+    thread: {
+      kn: "ಹಸಿರು ಅಥವಾ ಬಿಳಿ ರೇಷ್ಮೆ ದಾರ",
+      en: "Green or white silk thread",
+      hi: "हरा या सफेद रेशमी धागा",
+      te: "ఆకుపచ్చ లేదా తెలుపు పట్టు దారం",
+      ta: "பச்சை அல்லது வெள்ளை பட்டு நூல்"
+    },
+    deity: {
+      kn: "ಪೂಷನ್ (ಪ್ರಯಾಣಿಕರ & ಪಶುಗಳ ರಕ್ಷಕ)",
+      en: "Pushan (Nurturer & Safe Guide)",
+      hi: "पूषा देव",
+      te: "పూషణుడు",
+      ta: "பூஷன்"
+    },
+    blessing: {
+      kn: "ಪ್ರಯಾಣದಲ್ಲಿ ರಕ್ಷಣೆ, ಹೈನುಗಾರಿಕೆ/ವ್ಯಾಪಾರದಲ್ಲಿ ವೃದ್ಧಿ, ಅಂತಿಮ ಮೋಕ್ಷ ಗತಿ.",
+      en: "Safe travel, livestock/commerce flourishing, and spiritual culmination.",
+      hi: "सुरक्षित यात्रा, व्यापार-गोपालन में वृद्धि एवं मोक्ष प्राप्ति।",
+      te: "ప్రయాణ రక్షణ, వ్యాపార వృద్ధి మరియు ఆధ్యాత్మిక మోక్షం.",
+      ta: "பாதுகாப்பான பயணம், வணிக அபிவிருத்தி மற்றும் மோட்ச கதி."
+    }
+  }
+};
+
+// ── 12 LAGNAS 5-LANGUAGE CLASSICAL EMPIRICAL BENCHMARK PROOF CATALOG ──
+export const LAGNA_BENCHMARK_PROOFS_5L: Record<number, {
+  id: number;
+  title: { kn: string; en: string; hi: string; te: string; ta: string };
+  wrongItem: { kn: string; en: string; hi: string; te: string; ta: string };
+  adverseOutcome: { kn: string; en: string; hi: string; te: string; ta: string };
+  rootCause: { kn: string; en: string; hi: string; te: string; ta: string };
+  turnaround: { kn: string; en: string; hi: string; te: string; ta: string };
+}> = {
+  0: { // Aries (Mesha) -> Case #9
+    id: 9,
+    title: {
+      kn: "ಮೇಷ ಲಗ್ನಕ್ಕೆ ವಜ್ರ ಧರಿಸಿ ಉಂಟಾದ ದಾಂಪತ್ಯ ಕಲಹ & ಕೆಂಪು ಹವಳ-೯ ಮುಖಿಯಿಂದ ಸಮನ್ವಯ",
+      en: "Aries Ascendant Diamond Marital Discord & Turnaround via Red Coral + 9-Mukhi",
+      hi: "मेष लग्न में हीरा धारण से दांपत्य कलह एवं लाल मूंगा-९ मुखी से समाधान",
+      te: "మేష లగ్నానికి వజ్రం ధరించి దాంపత్య కలహాలు & ఎరుపు పగడం-9 ముఖితో సఖ్యత",
+      ta: "மேஷ லக்னத்திற்கு வைரம் அணிந்து குடும்ப சண்டை & பவழம்-9 முகத்தால் சாந்தி"
+    },
+    wrongItem: {
+      kn: "ಫ್ಯಾಷನ್‌ಗಾಗಿ ಬಲಗೈಗೆ ೧.೫ ಕ್ಯಾರಟ್ ವಜ್ರದ ಉಂಗುರ ಧರಿಸಿದ್ದರು.",
+      en: "1.5-Carat Diamond ring worn on right hand for fashion/prestige.",
+      hi: "दाहिने हाथ में १.५ कैरेट का हीरा अंगूठी में धारण किया था।",
+      te: "కుడి చేతికి 1.5 క్యారెట్ల వజ్రపు ఉంగరం ధరించారు.",
+      ta: "வலது கையில் 1.5 கேரட் வைர மோதிரம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಧರಿಸಿದ ೪ ವಾರಗಳಲ್ಲಿ ಪತ್ನಿಯೊಂದಿಗೆ ನಿರಂತರ ಜಗಳ, ಕಂಠನಾಳದ ಸೋಂಕು ಹಾಗೂ ಆಸ್ಪತ್ರೆ ದಾಖಲು.",
+      en: "Within 4 weeks: severe domestic friction, chronic vocal infection, and hospitalization.",
+      hi: "४ सप्ताह में पत्नी से कलह, गले का गंभीर संक्रमण एवं अस्पताल में भर्ती।",
+      te: "4 వారాల్లో భార్యతో తీవ్ర కలహాలు, గొంతు ఇన్ఫెక్షన్ మరియు ఆసుపత్రి పాలు.",
+      ta: "4 வாரங்களில் குடும்ப சண்டை, தொண்டை தொற்று மற்றும் மருத்துவமனையில் அனுமதி."
+    },
+    rootCause: {
+      kn: "ಮೇಷ ಲಗ್ನಕ್ಕೆ ಶುಕ್ರನು 2ನೇ & 7ನೇ ಮಾರಕ ಸ್ಥಾನಾಧಿಪತಿ. ವಜ್ರವು ಮಾರಕ ಶಕ್ತಿಯನ್ನು ಪ್ರಚೋದಿಸಿತು.",
+      en: "Venus rules 2nd and 7th Maraka houses for Aries; Diamond fueled acute Maraka conflict.",
+      hi: "मेष लग्न में शुक्र द्वितीय व सप्तम मारक स्वामी है; हीरे ने मारक ऊर्जा को भड़काया।",
+      te: "మేష లగ్నానికి శుక్రుడు 2వ మరియు 7వ మారక స్థానాధిపతి; వజ్రం మారక శక్తిని పెంచింది.",
+      ta: "மேஷ லக்னத்திற்கு சுக்கிரன் 2 மற்றும் 7-ஆம் மாரக அதிபதி; வைரம் மாரக பலத்தை தூண்டியது."
+    },
+    turnaround: {
+      kn: "ವಜ್ರ ತೆಗೆದು, ತಾಮ್ರದಲ್ಲಿ ಕೆಂಪು ಹವಳ ಮತ್ತು ಕೊರಳಲ್ಲಿ ೯ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧರಿಸಿದಾಗ ದಾಂಪತ್ಯ ಸುಖಮಯವಾಗಿ ವಿದೇಶಿ ಪ್ರಾಜೆಕ್ಟ್ ಲೀಡರ್ ಆದರು.",
+      en: "Discarded Diamond; prescribed Red Coral in copper + 9-Mukhi Rudraksha in neck. Restored domestic harmony and promoted to cloud architect lead.",
+      hi: "हीरा त्यागकर तांबे में लाल मूंगा एवं गले में ९ मुखी रुद्राक्ष धारण करने से दांपत्य मधुर हुआ और पदोन्नति मिली।",
+      te: "వజ్రం తీసివేసి, రాగిలో ఎరుపు పగడం మరియు మెడలో 9 ముఖి ధరించిన వెంటనే దాంపత్యం చక్కబడి విదేశీ ప్రాజెక్ట్ లభించింది.",
+      ta: "வைரத்தை நீக்கி, தாமிரத்தில் பவழம் மற்றும் கழுத்தில் 9 முக ருத்ராட்சம் அணிந்ததும் குடும்பம் சீராகி வெளிநாட்டு உயர்பதவி கிட்டியது."
+    }
+  },
+  1: { // Taurus (Vrishabha) -> Case #4
+    id: 4,
+    title: {
+      kn: "ವೃಷಭ ಲಗ್ನಕ್ಕೆ ಪುಷ್ಯರಾಗದಿಂದ ಕಾಮಾಲೆ ರೋಗ & ವಜ್ರ-ನೀಲಂ ಯೋಗಕಾರಕ ಶಕ್ತಿಯಿಂದ ಚೇತರಿಕೆ",
+      en: "Taurus Ascendant Yellow Sapphire Jaundice & Rebound via Diamond + Neelam",
+      hi: "वृषभ लग्न में पुखराज से पीलिया रोग एवं हीरा-नीलम योगकारक शक्ति से आरोग्य",
+      te: "వృషభ లగ్నానికి పుష్యరాగంతో కామెర్లు & వజ్రం-నీలం యోగకారక శక్తితో స్వస్థత",
+      ta: "ரிஷப லக்னத்திற்கு புஷ்பராகத்தால் மஞ்சள் காமாலை & வைரம்-நீலம் யோககாரகத்தால் குணம்"
+    },
+    wrongItem: {
+      kn: "ಗುರು ಬಲಕ್ಕೆಂದು ೫ ಕ್ಯಾರಟ್ ಹಳದಿ ಪುಷ್ಯರಾಗ ಬಂಗಾರದಲ್ಲಿ ತೋರುಬೆರಳಿನಲ್ಲಿ ಧರಿಸಿದ್ದರು.",
+      en: "5-Carat Yellow Sapphire in Gold on index finger to 'strengthen Jupiter'.",
+      hi: "गुरु बल हेतु ५ कैरेट का पीला पुखराज सोने में तर्जनी अंगुली में पहना था।",
+      te: "గురు బలం కోసం 5 క్యారెట్ల పుష్యరాగం బంగారంలో చూపుడు వేలికి ధరించారు.",
+      ta: "குரு பலத்திற்காக 5 கேரட் மஞ்சள் புஷ்பராகத்தை ஆட்காட்டி விரலில் அணிந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಧರಿಸಿದ ೩ ತಿಂಗಳಲ್ಲಿ ತೀವ್ರ ಕಾಮಾಲೆ, ₹12 ಲಕ್ಷ ಸಾಲ ಹಾಗೂ ಮದುವೆ ನಿಶ್ಚಯ ಮುರಿದು ಬಿತ್ತು.",
+      en: "Within 3 months: acute jaundice/liver failure, ₹12 Lakhs debt, and wedding called off.",
+      hi: "३ माह में पीलिया (यकृत संक्रमण), ₹१२ लाख का कर्ज एवं तय विवाह टूट गया।",
+      te: "3 నెలల్లో తీవ్రమైన కామెర్లు, ₹12 లక్షల అప్పు మరియు నిశ్చయమైన వివాహం రద్దు.",
+      ta: "3 மாதங்களில் தீவிர மஞ்சள் காமாலை, ₹12 லட்சம் கடன் மற்றும் நிச்சயித்த திருமணம் ரத்து."
+    },
+    rootCause: {
+      kn: "ವೃಷಭಕ್ಕೆ ಗುರುವು 8ನೇ ರಂಧ್ರ ಸ್ಥಾನ ಹಾಗೂ 11ನೇ ಬಾಧಕ ಸ್ಥಾನಾಧಿಪತಿ. ಪುಷ್ಯರಾಗವು 8ನೇ ಮನೆಯ ಆಸ್ಪತ್ರೆ ಬಾಧೆ ತಂದಿತು.",
+      en: "Jupiter rules 8th Dusthana and 11th Badhaka for Taurus; Pushparaga directly activated 8th house illness.",
+      hi: "वृषभ लग्न हेतु गुरु अष्टमेश व बाधक स्वामी है; पुखराज ने अष्टम भाव के रोग-संकट को जागृत किया।",
+      te: "వృషభ లగ్నానికి గురువు 8వ దుష్టాన మరియు 11వ బాధకాధిపతి; పుష్యరాగం తీవ్ర అనారోగ్యాన్ని తెచ్చింది.",
+      ta: "ரிஷபத்திற்கு குரு 8 மற்றும் 11-ஆம் பாவாதிபதி; புஷ்பராகம் 8-ஆம் இடத்து மருத்துவ சிகிச்சையை வரவழைத்தது."
+    },
+    turnaround: {
+      kn: "ಪುಷ್ಯರಾಗ ತೆಗೆದು, ಬೆಳ್ಳಿಯಲ್ಲಿ ವಜ್ರ/ಬಿಳಿ ಝಿರ್ಕಾನ್ ಮತ್ತು ಮಧ್ಯದ ಬೆರಳಿಗೆ ನೀಲಂ ಧರಿಸಿದಾಗ ಲಿವರ್ ಪೂರ್ಣ ಗುಣವಾಗಿ ಅಮೆರಿಕ ಆನ್‌ಸೈಟ್ ಪ್ರಮೋಷನ್ ಲಭಿಸಿತು.",
+      en: "Removed Pushparaga; prescribed Diamond/White Zircon + Yogakaraka Blue Sapphire on middle finger. Liver completely healed and earned US onsite promotion.",
+      hi: "पुखराज हटाकर हीरा/सफेद जिरकॉन व नीलम धारण करने से यकृत रोग पूर्णतः ठीक हुआ और अमेरिका में पदोन्नति मिली।",
+      te: "పుష్యరాగం తీసేసి, వెండిలో వజ్రం/జిర్కాన్ మరియు నీలం ధరించిన తరువాత కాలేయ వ్యాధి తగ్గి అమెరికా ఆన్‌సైట్ అవకాశం వచ్చింది.",
+      ta: "புஷ்பராகத்தை நீக்கி, வைரம்/ஜிர்கான் மற்றும் நடுவிரலில் நீலம் அணிந்ததும் கல்லீரல் பூரண குணமாகி அமெரிக்க வாய்ப்பு கிடைத்தது."
+    }
+  },
+  2: { // Gemini (Mithuna) -> Case #3
+    id: 3,
+    title: {
+      kn: "ಮಿಥುನ ಲಗ್ನಕ್ಕೆ ಹವಳ ಧರಿಸಿ ಉಂಟಾದ ಅಪಘಾತ & ಪಚ್ಚೆ-೪ ಮುಖಿ ರುದ್ರಾಕ್ಷಿಯಿಂದ ಪರಿಹಾರ",
+      en: "Gemini Ascendant Coral Crisis: Accident Averted via Emerald & 4-Mukhi",
+      hi: "मिथुन लग्न में मूंगा से दुर्घटना संकट एवं पन्ना-४ मुखी रुद्राक्ष से निवारण",
+      te: "మిథున లగ్నానికి పగడం ధరించి ప్రమాదం & పచ్చ-4 ముఖి రుద్రాక్షతో పరిహారం",
+      ta: "மிதுன லக்னத்திற்கு பவழத்தால் விபத்து & மரகதம்-4 முக ருத்ராட்சத்தால் நிவாரணம்"
+    },
+    wrongItem: {
+      kn: "ರಕ್ತ ಶುದ್ಧಿಗೆಂದು ೭ ಕ್ಯಾರಟ್ ಹವಳದ ಉಂಗುರ ಧರಿಸಿದ್ದರು.",
+      en: "7-Carat Red Coral ring worn on right hand ring finger.",
+      hi: "रक्त शुद्धि के नाम पर ७ कैरेट का लाल मूंगा अनामिका अंगुली में पहना था।",
+      te: "రక్త శుద్ధి కోసమని 7 క్యారెట్ల పగడపు ఉంగరం ధరించారు.",
+      ta: "இரத்த ஓட்டத்திற்காக 7 கேரட் பவழ மோதிரம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಧರಿಸಿದ ೨೦ ದಿನಗಳಲ್ಲಿ ಬೈಕ್ ಅಪಘಾತವಾಗಿ ಬಲಗೈ ಮೂಳೆ ಮುರಿತ ಹಾಗೂ ಪಾಲುದಾರನ ಮೇಲೆ ಪೊಲೀಸ್ ಕೇಸ್ ಆಯಿತು.",
+      en: "Within 20 days: fractured arm in motorcycle crash, severe hypertension, and partner police complaint.",
+      hi: "२० दिनों में बाइक दुर्घटना में हाथ की हड्डी टूटी, उच्च रक्तचाप व व्यापारिक विवाद में पुलिस केस हुआ।",
+      te: "20 రోజుల్లో బైక్ ప్రమాదంలో కుడి చేయి విరగడం మరియు భాగస్వామితో పోలీస్ కేసు.",
+      ta: "20 நாட்களில் பைக் விபத்தில் கை எலும்பு முறிவு மற்றும் கூட்டாளியுடன் போலீஸ் வழக்கு."
+    },
+    rootCause: {
+      kn: "ಮಿಥುನ ಲಗ್ನಕ್ಕೆ ಕುಜನು 6ನೇ ರೋಗ-ಶತ್ರು-ಕೋರ್ಟ್ ಹಾಗೂ 11ನೇ ಸ್ಥಾನಾಧಿಪತಿ. ಹವಳವು 6ನೇ ಮನೆಯ ಹಿಂಸೆಯನ್ನು ಜಾಗೃತಗೊಳಿಸಿತು.",
+      en: "Mars rules 6th house of injury, surgery, and court cases for Gemini; Coral directly provoked 6th house crisis.",
+      hi: "मिथुन लग्न में मंगल षष्ठ (रोग-शत्रु-विवाद) स्वामी है; मूंगे ने षष्ठ भाव के संकट को प्रचंड किया।",
+      te: "మిథున లగ్నానికి కుజుడు 6వ రోగ-శత్రు-కోర్టు స్థానాధిపతి; పగడం 6వ భావ ఘర్షణను పెంచింది.",
+      ta: "மிதுன லக்னத்திற்கு செவ்வாய் 6-ஆம் இடத்து அதிபதி; பவழம் 6-ஆம் பாவத்து வன்முறையை தூண்டியது."
+    },
+    turnaround: {
+      kn: "ಹವಳ ತ್ಯಜಿಸಿ, ಬೆಳ್ಳಿಯಲ್ಲಿ ಪಚ್ಚೆ ಮತ್ತು ಕೊರಳಲ್ಲಿ ೪ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧರಿಸಿದಾಗ ಕೇಸ್ ಇತ್ಯರ್ಥವಾಗಿ ₹25 ಲಕ್ಷ ಹೊಸ ರಫ್ತು ಆರ್ಡರ್ ಬಂತು.",
+      en: "Surrendered Coral; prescribed Zambian Emerald in Silver + 4-Mukhi Rudraksha in neck. Case dismissed and bagged ₹25 Lakhs export order.",
+      hi: "मूंगा हटाकर चांदी में पन्ना और ४ मुखी रुद्राक्ष पहनने से केस खारिज हुआ और ₹२५ लाख का नया निर्यात आर्डर मिला।",
+      te: "పగడం విసర్జించి, వెండిలో పచ్చ మరియు 4 ముఖి ధరించిన తరువాత కేసు రాజీ అయి ₹25 లక్షల ఆర్డర్ లభించింది.",
+      ta: "பவழத்தை கைவிட்டு, வெள்ளியில் மரகதம் மற்றும் 4 முக ருத்ராட்சம் அணிந்ததும் வழக்கு முடிந்து ₹25 லட்சம் ஏற்றுமதி ஆணை கிடைத்தது."
+    }
+  },
+  3: { // Cancer (Karka) -> Case #1
+    id: 1,
+    title: {
+      kn: "ಕರ್ಕಾಟಕ ಲಗ್ನಕ್ಕೆ ನೀಲಂ ಧರಿಸಿ ಉಂಟಾದ ದಿವಾಳಿತನ & ಮುತ್ತು-ರುದ್ರಾಕ್ಷಿಯಿಂದ ಪುನಶ್ಚೇತನ",
+      en: "Cancer Ascendant Neelam Disaster & Restoration via Pearl + Rudraksha",
+      hi: "कर्क लग्न में नीलम से आर्थिक हानि एवं मोती-रुद्राक्ष से पुनरुत्थान",
+      te: "కర్కాటక లగ్నానికి నీలం ధరించి దివాలా & ముత్యం-రుద్రాక్షతో పునరుజ్జీవనం",
+      ta: "கடக லக்னத்திற்கு நீலத்தால் இழப்பு & முத்து-ருத்ராட்சத்தால் மறுவாழ்வு"
+    },
+    wrongItem: {
+      kn: "ಶನಿ ಸಾಡೇಸಾತಿ ಭಯಕ್ಕೆ ನೀಲಂ (Blue Sapphire) ೫ ಕ್ಯಾರಟ್ ಬಲಗೈ ಮಧ್ಯದ ಬೆರಳಿಗೆ ಧರಿಸಿದ್ದರು.",
+      en: "5-Carat Blue Sapphire on right middle finger out of Sade Sati panic.",
+      hi: "साढ़ेसाती के भय से दाहिनी मध्यमा में ५ कैरेट का नीलम धारण किया था।",
+      te: "శని సాడేసతి భయంతో కుడి చేయి మధ్య వేలికి 5 క్యారెట్ల నీలం ధరించారు.",
+      ta: "ஏழரைச் சனி பயத்தால் வலது கை நடுவிரலில் 5 கேரட் நீலம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಧರಿಸಿದ ೪೫ ದಿನಗಳಲ್ಲಿ ₹18 ಲಕ್ಷ ವಂಚನೆ, ತೀವ್ರ ಕೀಲು ನೋವು ಹಾಗೂ ಪತ್ನಿ ಮನೆ ಬಿಟ್ಟು ಹೋದರು.",
+      en: "Within 45 days: suffered ₹18 Lakhs business fraud, debilitating joint pain, and marital split.",
+      hi: "४५ दिनों में ₹१८ लाख का व्यापारिक धोखा, गंभीर जोड़ों का दर्द एवं दांपत्य अलगाव।",
+      te: "45 రోజుల్లో ₹18 లక్షల మోసం, కీళ్ల నొప్పులు మరియు భార్య పుట్టింటికి వెళ్లడం.",
+      ta: "45 நாட்களில் ₹18 லட்சம் மோசடி, மூட்டு வலி மற்றும் மனைவி பிரிந்து செல்லுதல்."
+    },
+    rootCause: {
+      kn: "ಕರ್ಕಾಟಕ ಲಗ್ನಕ್ಕೆ ಶನಿಯು 7ನೇ ಮಾರಕ ಹಾಗೂ 8ನೇ ರಂಧ್ರ ಸ್ಥಾನಾಧಿಪತಿ. ನೀಲಂ ಧರಿಸಿದ್ದರಿಂದ 8ನೇ ಮನೆಯ ಆಘಾತ ನುಗ್ಗಿಬಂತು.",
+      en: "Saturn rules both 7th Maraka and 8th Dusthana for Cancer; Neelam supercharged 8th house trauma.",
+      hi: "कर्क लग्न में शनि सप्तम मारक व अष्टम रंध्रेश है; नीलम ने अष्टम भाव की विनाशकारी ऊर्जा को बढ़ाया।",
+      te: "కర్కాటక లగ్నానికి శని 7వ మారక మరియు 8వ రంధ్ర స్థానాధిపతి; నీలం 8వ భావ ఆపదలను పెంచింది.",
+      ta: "கடக லக்னத்திற்கு சனி 7-ஆம் மாரக மற்றும் 8-ஆம் அஷ்டமாதிபதி; நீலம் 8-ஆம் இடத்து விபரீதத்தை பெருக்கியது."
+    },
+    turnaround: {
+      kn: "ನೀಲಂ ತೆಗೆದು, ಬೆಳ್ಳಿಯಲ್ಲಿ ನೈಸರ್ಗಿಕ ಮುತ್ತು ಮತ್ತು ಕೊರಳಲ್ಲಿ ೪ ಮುಖಿ ರುದ್ರಾಕ್ಷಿ ಧರಿಸಿದಾಗ ಕೀಲು ನೋವು ಮಾಯವಾಗಿ ಪತ್ನಿ ಮರಳಿದರು ಹಾಗೂ ಸಾಲ ತೀರಿದರು.",
+      en: "Removed Neelam; prescribed Natural Pearl in Silver + 4-Mukhi Rudraksha in neck. Joint pain vanished, wife reconciled, and cleared all debts.",
+      hi: "नीलम हटाकर चांदी में प्राकृतिक मोती एवं ४ मुखी रुद्राक्ष पहनने से जोड़ों का दर्द ठीक हुआ, पत्नी वापस आईं और ऋण मुक्त हुए।",
+      te: "నీలం తీసేసి, వెండిలో సహజ ముత్యం మరియు 4 ముఖి ధరించిన 21 రోజుల్లో నొప్పులు తగ్గి దాంపత్యం కలకాలం సాగింది.",
+      ta: "நீலத்தை கழற்றி, வெள்ளியில் முத்து மற்றும் 4 முக ருத்ராட்சம் அணிந்ததும் வலி நீங்கி மனைவி திரும்பினார்."
+    }
+  },
+  4: { // Leo (Simha) -> Case #2
+    id: 2,
+    title: {
+      kn: "ಸಿಂಹ ಲಗ್ನಕ್ಕೆ ಕಪ್ಪು ಬಣ್ಣ-ನೀಲಿ ಕಲ್ಲು ಧರಿಸಿ ಸೋಲು & ಕೆಂಪು ಹವಳ-೯ ಮುಖಿಯಿಂದ ಐಪಿಎಸ್ ಯಶಸ್ಸು",
+      en: "Leo Ascendant Black Color Exam Setbacks & IPS Triumph via Red Coral + 9-Mukhi",
+      hi: "सिंह लग्न में काले रंग से परीक्षा असफलता एवं लाल मूंगा-९ मुखी से आईपीएस सफलता",
+      te: "సింహ లగ్నానికి నలుపు రంగుతో వైఫల్యాలు & ఎరుపు పగడం-9 ముఖితో ఐపీఎస్ విజయం",
+      ta: "சிம்ம லக்னத்திற்கு கருப்பு நிறத்தால் தோல்வி & பவழம்-9 முகத்தால் ஐபிஎஸ் வெற்றி"
+    },
+    wrongItem: {
+      kn: "ಸತತವಾಗಿ ಕಪ್ಪು ಬಣ್ಣದ ಶರ್ಟ್ ಹಾಗೂ ನೀಲಿ ಗಾಜಿನ ಕಲ್ಲು ಧರಿಸಿ ಪರೀಕ್ಷೆ ಬರೆಯುತ್ತಿದ್ದರು.",
+      en: "Habitually wore black shirts and a dark blue glass stone during competitive exams.",
+      hi: "प्रतियोगी परीक्षाओं में निरंतर काले वस्त्र एवं नीले रंग का पत्थर पहनते थे।",
+      te: "నిరంతరం నల్లటి చొక్కాలు మరియు నీలి రంగు రాయి ధరించి పరీక్షలు రాశారు.",
+      ta: "தொடர்ந்து கருப்பு சட்டை மற்றும் நீலக் கல்லை அணிந்து தேர்வு எழுதினர்."
+    },
+    adverseOutcome: {
+      kn: "ಮೂರು ಬಾರಿ ಯುಪಿಎಸ್‌ಸಿ ಪರೀಕ್ಷೆಯಲ್ಲಿ ಕೇವಲ ೨ ಅಂಕಗಳಿಂದ ಸಂದರ್ಶನ ಕೈತಪ್ಪಿ ತೀವ್ರ ಖಿನ್ನತೆ ಆವರಿಸಿತ್ತು.",
+      en: "Failed civil services cutoff thrice by a razor-thin margin of 2 marks, suffering severe self-doubt.",
+      hi: "तीन बार यूपीएससी में मात्र २ अंकों से असफलता मिली और घोर मानसिक अवसाद छा गया।",
+      te: "యూపీఎస్సీలో వరుసగా మూడుసార్లు కేవలం 2 మార్కులతో ఉద్యోగం చేజారి నిరాశకు గురయ్యారు.",
+      ta: "மூன்று முறை யுபிஎஸ்சி தேர்வில் 2 மதிப்பெண்களில் வாய்ப்பிழந்து மன உளைச்சலுக்கு ஆளாயினர்."
+    },
+    rootCause: {
+      kn: "ಸಿಂಹ ಲಗ್ನಕ್ಕೆ ಶನಿ ಶತ್ರುವಾಗಿರುವಾಗ ಕಪ್ಪು ಬಣ್ಣ ತಾಮಸಿಕ ಜಡತ್ವ ತುಂಬಿತ್ತು. ಪರಮ ಯೋಗಕಾರಕ ಕುಜನ ಶಕ್ತಿ ನಿಷ್ಕ್ರಿಯವಾಗಿತ್ತು.",
+      en: "Saturn is natural enemy to Leo; black color trapped tamasic inertia, while prime Yogakaraka Mars lay dormant.",
+      hi: "सिंह लग्न के स्वामी सूर्य का शनि परम शत्रु है; काले रंग ने तामसिक जड़ता बढ़ाई और योगकारक मंगल सुप्त रहा।",
+      te: "సింహ లగ్నానికి శని శత్రువు కావడం వల్ల నలుపు రంగు జడత్వాన్ని పెంచింది, యోగకారక కుజుడు నిద్రాణంగా ఉన్నాడు.",
+      ta: "சிம்மத்திற்கு சனி எதிரி என்பதால் கருப்பு நிறம் தாமச மந்தத்தை ஏற்படுத்தி யோககாரக செவ்வாயை முடக்கியது."
+    },
+    turnaround: {
+      kn: "ಕಪ್ಪು ಬಟ್ಟೆ ತ್ಯಜಿಸಿ, ತಾಮ್ರದಲ್ಲಿ ತ್ರಿಕೋಣ ಹವಳ ಮತ್ತು ಕೊರಳಲ್ಲಿ ಮಘಾ ೯ ಮುಖಿ ಧರಿಸಿದಾಗ ಅಖಿಲ ಭಾರತ ೪೨ನೇ ರ್ಯಾಂಕ್ ಗಳಿಸಿ ಐಪಿಎಸ್ ಅಧಿಕಾರಿಯಾದರು.",
+      en: "Shed all black clothing; prescribed Triangular Red Coral in copper + Magha 9-Mukhi Rudraksha in neck. Secured AIR 42 and appointed as IPS Officer.",
+      hi: "काले वस्त्र त्यागकर तांबे में त्रिकोण मूंगा व ९ मुखी रुद्राक्ष पहनने से ४२वीं रैंक पाकर आईपीएस बने।",
+      te: "నలుపు రంగు వదిలేసి, రాగిలో త్రికోణ పగడం మరియు 9 ముఖి ధరించిన వెంటనే 42వ ర్యాంకుతో ఐపీఎస్ అధికారి అయ్యారు.",
+      ta: "கருப்பு உடைகளை நீக்கி, முக்கோண பவழம் மற்றும் 9 முக ருத்ராட்சம் அணிந்ததும் அகில இந்திய 42-ஆம் ரேங்க் பெற்று ஐபிஎஸ் ஆனார்."
+    }
+  },
+  5: { // Virgo (Kanya) -> Case #7
+    id: 7,
+    title: {
+      kn: "ಕನ್ಯಾ ಲಗ್ನಕ್ಕೆ ಹವಳ ಧರಿಸಿ ಉಂಟಾದ ವಿವಾಹ ವಿಚ್ಛೇದನ ಕಂಟಕ & ಪಚ್ಚೆಯಿಂದ ಶಾಂತಿ",
+      en: "Virgo Ascendant Coral Marital Trauma & Recovery via Emerald",
+      hi: "कन्या लग्न में मूंगा से विवाह विच्छेद संकट एवं पन्ना से दांपत्य शांति",
+      te: "కన్యా లగ్నానికి పగడంతో విడాకుల ముప్పు & పచ్చ రత్నంతో దాంపత్య శాంతి",
+      ta: "கன்னி லக்னத்திற்கு பவழத்தால் விவாகரத்து ஆபத்து & மரகதத்தால் குடும்ப சாந்தி"
+    },
+    wrongItem: {
+      kn: "ಕುಜ ದೋಷ ನಿವಾರಣೆಗೆಂದು ಕೆಂಪು ಹವಳದ ಉಂಗುರ ಧರಿಸಿದ್ದರು.",
+      en: "Wore Red Coral ring to 'neutralize Manglik Dosha'.",
+      hi: "मांगलिक दोष शांति के नाम पर लाल मूंगा अंगूठी में पहना था।",
+      te: "కుజదోష నివారణ కోసమని ఎరుపు పగడపు ఉంగరం ధరించారు.",
+      ta: "செவ்வாய் தோஷ நிவர்த்திக்காக பவழ மோதிரம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಧರಿಸಿದ ೨ ತಿಂಗಳಲ್ಲಿ ಗಂಡನೊಂದಿಗೆ ಭೀಕರ ಜಗಳವಾಗಿ ವಿಚ್ಛೇದನದ ನೋಟಿಸ್ ತಲುಪಿತು.",
+      en: "Within 2 months: violent domestic flare-up led to divorce legal notice and chronic bleeding.",
+      hi: "२ माह में पति से भीषण विवाद होकर तलाक का कानूनी नोटिस आ गया।",
+      te: "2 నెలల్లో భర్తతో తీవ్ర గొడవలు జరిగి విడాకుల నోటీసు చేరింది.",
+      ta: "2 மாதங்களில் கணவருடன் கடும் சண்டை ஏற்பட்டு விவாகரத்து நோட்டீஸ் வந்தது."
+    },
+    rootCause: {
+      kn: "ಕನ್ಯಾ ಲಗ್ನಕ್ಕೆ ಕುಜನು 8ನೇ ಅಷ್ಟಮಾಧಿಪತಿ. ಹವಳ ಧರಿಸಿದ್ದರಿಂದ 8ನೇ ಮನೆಯ ಆಘಾತಕಾರಿ ವಿಚ್ಛೇದನ ಶಕ್ತಿ ಇಮ್ಮಡಿಯಾಯಿತು.",
+      en: "Mars rules 8th house for Virgo; wearing Coral directly amplified 8th house marital trauma.",
+      hi: "कन्या लग्न हेतु मंगल अष्टमेश है; मूंगा पहनने से अष्टम भाव का वैवाहिक विच्छेद प्रचंड हो गया।",
+      te: "కన్యా లగ్నానికి కుజుడు 8వ అష్టమాధిపతి; పగడం ధరించడం వల్ల 8వ భావ దాంపత్య సంక్షోభం తీవ్రమైంది.",
+      ta: "கன்னி லக்னத்திற்கு செவ்வாய் 8-ஆம் அதிபதி; பவழம் அணிந்ததால் 8-ஆம் இடத்து விவாகரத்து ஆபத்து பெருகியது."
+    },
+    turnaround: {
+      kn: "ಹವಳ ತೆಗೆದು, ಲಗ್ನಾಧಿಪತಿ ಬುಧನ ಶುದ್ಧ ಪಚ್ಚೆ ಬೆಳ್ಳಿಯಲ್ಲಿ ಹಾಗೂ ಹಸ್ತಾ ೨ ಮುಖಿ ಧರಿಸಿದಾಗ ವಿಚ್ಛೇದನ ನೋಟಿಸ್ ವಾಪಸ್ ಪಡೆದು ದಂಪತಿಗಳು ಒಂದಾದರು.",
+      en: "Removed Coral; prescribed pure Emerald in Silver on little finger + Hasta 2-Mukhi Rudraksha in neck. Divorce petition withdrawn and marriage restored.",
+      hi: "मूंगा हटाकर चांदी में पन्ना और २ मुखी रुद्राक्ष पहनने से तलाक याचिका वापस हुई और दांपत्य सुख लौटा।",
+      te: "పగడం తీసేసి, వెండిలో పచ్చ మరియు 2 ముఖి ధరించిన తరువాత విడాకుల నోటీసు రద్దయి దంపతులు ఏకమయ్యారు.",
+      ta: "பவழத்தை கழற்றி, வெள்ளியில் மரகதம் மற்றும் 2 முக ருத்ராட்சம் அணிந்ததும் விவாகரத்து நோட்டீஸ் திரும்பப் பெறப்பட்டது."
+    }
+  },
+  6: { // Libra (Tula) -> Case #5
+    id: 5,
+    title: {
+      kn: "ತುಲಾ ಲಗ್ನಕ್ಕೆ ಮಾಣಿಕ್ಯ ಧರಿಸಿ ಕಣ್ಣಿನ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ & ನೀಲಂ ಯೋಗಕಾರಕ ಬಲದಿಂದ ರಕ್ಷಣೆ",
+      en: "Libra Ascendant Ruby Ocular Crisis & Revival via Yogakaraka Neelam",
+      hi: "तुला लग्न में माणिक्य से नेत्र शल्यक्रिया संकट एवं योगकारक नीलम से रक्षा",
+      te: "తులా లగ్నానికి మాణిక్యంతో కంటి ఆపరేషన్ ముప్పు & యోగకారక నీలంతో రక్షణ",
+      ta: "துலா லக்னத்திற்கு மாணிக்கத்தால் கண் சிகிச்சை & யோககாரக நீலத்தால் பாதுகாப்பு"
+    },
+    wrongItem: {
+      kn: "ಮಾಣಿಕ್ಯ (Ruby) ೪ ಕ್ಯಾರಟ್ ಬಂಗಾರದಲ್ಲಿ ಧರಿಸಿದ್ದರು.",
+      en: "4-Carat Ruby in Gold on ring finger.",
+      hi: "सोने की अंगूठी में ४ कैरेट का माणिक्य पहना था।",
+      te: "బంగారంలో 4 క్యారెట్ల మాణిక్యం ఉంగరపు వేలికి ధరించారు.",
+      ta: "தங்கத்தில் 4 கேரட் மாணிக்க மோதிரம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಎಡಗಣ್ಣಿನಲ್ಲಿ ರೆಟಿನಾ ಹರಿದು ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯಾಯಿತು; ಹಿರಿಯ ಸಹೋದರನೊಂದಿಗೆ ಕೋರ್ಟ್ ಕೇಸ್ ಆರಂಭವಾಯಿತು.",
+      en: "Suffered retinal tear emergency surgery; bitter legal dispute with elder brother froze assets.",
+      hi: "नेत्र में रेटिना फटने से आपातकालीन ऑपरेशन हुआ और बड़े भाई से अदालती मुकदमा शुरू हुआ।",
+      te: "ఎడమ కంటి రెటీనా చిట్లి ఆపరేషన్ జరిగింది; అన్నతో కోర్టు కేసు మొదలై ఆస్తి వివాదం ఏర్పడింది.",
+      ta: "இடது கண் ரெட்டினா கிழிந்து அறுவை சிகிச்சை நடந்தது; அண்ணனுடன் சொத்து தகராறு தொடங்கியது."
+    },
+    rootCause: {
+      kn: "ತುಲಾ ಲಗ್ನಕ್ಕೆ ಸೂರ್ಯನು 11ನೇ ಬಾಧಕಾಧಿಪತಿ. ಮಾಣಿಕ್ಯ ಧರಿಸಿದ್ದರಿಂದ ಬಾಧಕ ದೋಷ ಹಾಗೂ ಸೂರ್ಯ-ಶುಕ್ರ ವೈಷಮ್ಯ ತಾರಕಕ್ಕೇರಿತು.",
+      en: "Sun is Badhaka lord for Libra; Ruby supercharged Badhaka affliction, causing fraternal litigation and eye trauma.",
+      hi: "तुला लग्न हेतु सूर्य एकादश बाधक स्वामी है; माणिक्य ने बाधक दोष व नेत्र पीड़ा को भड़काया।",
+      te: "తులా లగ్నానికి సూర్యుడు 11వ బాధకాధిపతి; మాణిక్యం బాధక దోషాన్ని మరియు దృష్టి లోపాన్ని పెంచింది.",
+      ta: "துலா லக்னத்திற்கு சூரியன் 11-ஆம் பாதகாதிபதி; மாணிக்கம் பாதக தோஷத்தையும் கண் நோயையும் பெருக்கியது."
+    },
+    turnaround: {
+      kn: "ಮಾಣಿಕ್ಯ ತೆಗೆಸಿ, ಪರಮ ಯೋಗಕಾರಕ ಶನಿಯ ನೀಲಂ ಪಂಚಲೋಹದಲ್ಲಿ ಹಾಗೂ ಸ್ವಾತಿ ೮ ಮುಖಿ ಧರಿಸಿದಾಗ ದೃಷ್ಟಿ ಪೂರ್ಣ ಮರಳಿ ಕೋರ್ಟ್ ಕೇಸ್ ಇತ್ಯರ್ಥವಾಯಿತು.",
+      en: "Removed Ruby; prescribed Yogakaraka Blue Sapphire in Panchadhatu on middle finger + Swati 8-Mukhi Rudraksha in neck. Vision restored 100% and litigation settled.",
+      hi: "माणिक्य हटाकर पंचधातु में नीलम व ८ मुखी रुद्राक्ष पहनने से दृष्टि १००% लौटी और मुकदमा सुलझा।",
+      te: "మాణిక్యం తీసివేసి, పంచలోహంలో నీలం మరియు 8 ముఖి ధరించిన తరువాత కంటి చూపు సరిగ్గా వచ్చి వివాదం ముగిసింది.",
+      ta: "மாணிக்கத்தை நீக்கி, பஞ்சலோகத்தில் நீலம் மற்றும் 8 முக ருத்ராட்சம் அணிந்ததும் பார்வை மீண்டு வழக்கு முடிவுக்கு வந்தது."
+    }
+  },
+  7: { // Scorpio (Vrischika) -> Case #10
+    id: 10,
+    title: {
+      kn: "ವೃಶ್ಚಿಕ ಲಗ್ನಕ್ಕೆ ಪಚ್ಚೆ ಧರಿಸಿ ಎದುರಾದ ಸೈಬರ್ ಮೋಸ & ಹವಳ-ಪುಷ್ಯರಾಗದಿಂದ ಹಣ ವಾಪಸ್",
+      en: "Scorpio Ascendant Emerald Cyber Fraud & Recovery via Red Coral + Yellow Sapphire",
+      hi: "वृश्चिक लग्न में पन्ना से साइबर धोखाधड़ी एवं मूंगा-पुखराज से धन वापसी",
+      te: "వృశ్చిక లగ్నానికి పచ్చతో సైబర్ మోసం & పగడం-పుష్యరాగంతో ధన రికవరీ",
+      ta: "விருச்சிக லக்னத்திற்கு மரகதத்தால் பண மோசடி & பவழம்-புஷ்பராகத்தால் நிதி மீட்பு"
+    },
+    wrongItem: {
+      kn: "ವ್ಯಾಪಾರ ವೃದ್ಧಿಗೆಂದು ಬುಧನ ಹಸಿರು ಪಚ್ಚೆ ಉಂಗುರ ಧರಿಸಿದ್ದರು.",
+      en: "Wore green Emerald ring on little finger for business growth.",
+      hi: "व्यापार वृद्धि हेतु कनिष्ठिका में पन्ना की अंगूठी पहनी थी।",
+      te: "వ్యాపార వృద్ధి కోసం చిటికెన వేలికి పచ్చ ఉంగరం ధరించారు.",
+      ta: "வியாபார வளர்ச்சிக்காக சுண்டு விரலில் மரகத மோதிரம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಧರಿಸಿದ ೩ ವಾರಗಳಲ್ಲಿ ₹45 ಲಕ್ಷ ಸೈಬರ್ ವಂಚನೆಗೊಳಗಾದರು, ತೀವ್ರ ನಿದ್ರಾಹೀನತೆ ಎದುರಾಯಿತು.",
+      en: "Within 3 weeks: lost ₹45 Lakhs in phishing scam, suffered acute insomnia and nerve tingling.",
+      hi: "३ सप्ताह में ₹४५ लाख की साइबर ठगी हुई एवं गंभीर अनिद्रा-अवसाद हुआ।",
+      te: "3 వారాల్లో ₹45 లక్షల సైబర్ మోసం జరిగింది, నిద్రలేమి సమస్య తీవ్రమైంది.",
+      ta: "3 வாரங்களில் ₹45 லட்சம் சைபர் மோசடி மற்றும் தூக்கமின்மை பிரச்சனை ஏற்பட்டது."
+    },
+    rootCause: {
+      kn: "ವೃಶ್ಚಿಕ ಲಗ್ನಕ್ಕೆ ಬುಧನು 8ನೇ ಅಷ್ಟಮ ಹಾಗೂ 11ನೇ ಬಾಧಕ ಸ್ಥಾನಾಧಿಪತಿ. ಪಚ್ಚೆಯು ಆಕಸ್ಮಿಕ ವಂಚನೆ ಮತ್ತು ನಷ್ಟ ಘಟಿಸಿತು.",
+      en: "For Scorpio, Mercury rules 8th Dusthana and 11th Badhaka; Emerald directly invited stealth cyber theft.",
+      hi: "वृश्चिक लग्न हेतु बुध अष्टम व बाधक स्वामी है; पन्ने ने अष्टम भाव की धोखाधड़ी को सक्रिय किया।",
+      te: "వృశ్చిక లగ్నానికి బుధుడు 8వ మరియు 11వ స్థానాధిపతి; పచ్చ ఆకస్మిక మోసానికి దారితీసింది.",
+      ta: "விருச்சிக லக்னத்திற்கு புதன் 8 மற்றும் 11-ஆம் அதிபதி; மரகதம் திடீர் பண இழப்பை வரவழைத்தது."
+    },
+    turnaround: {
+      kn: "ಪಚ್ಚೆ ನಿಷೇಧಿಸಿ, ಕುಜನ ಹವಳ ಮತ್ತು ಗುರುವಿನ ಪುಷ್ಯರಾಗ ಹಾಗೂ ಅನುರಾಧಾ ೭ ಮುಖಿ ಧರಿಸಿದಾಗ ಪೊಲೀಸರು ವಂಚಕರಿಂದ ಹಣ ವಸೂಲಿ ಮಾಡಿದರು.",
+      en: "Banned Emerald; prescribed Red Coral + Jupiter Yellow Sapphire + Anuradha 7-Mukhi Rudraksha in neck. Cyber police recovered stolen funds.",
+      hi: "पन्ना त्यागकर मूंगा, पुखराज एवं ७ मुखी रुद्राक्ष पहनने से पुलिस ने ठगी की राशि बरामद कराई।",
+      te: "పచ్చ తీసివేసి, పగడం, పుష్యరాగం మరియు 7 ముఖి ధరించిన తరువాత పోలీసులు డబ్బును రికవరీ చేశారు.",
+      ta: "மரகதத்தை தவிர்த்து, பவழம், புஷ்பராகம் மற்றும் 7 முக ருத்ராட்சம் அணிந்ததும் போலீஸ் பணத்தை மீட்டுத் தந்தது."
+    }
+  },
+  8: { // Sagittarius (Dhanu) -> Case #11
+    id: 11,
+    title: {
+      kn: "ಧನು ಲಗ್ನಕ್ಕೆ ವಜ್ರ ಧರಿಸಿ ಆದ ಬ್ಯಾಂಕ್ ಸಾಲದ ಸುಳಿ & ಪುಷ್ಯರಾಗ-೯ ಮುಖಿಯಿಂದ ಸಾಲಮುಕ್ತಿ",
+      en: "Sagittarius Ascendant Diamond Debt Trap & Salvation via Yellow Sapphire + 9-Mukhi",
+      hi: "धनु लग्न में हीरा से बैंक ऋण संकट एवं पुखराज-९ मुखी से ऋणमुक्ति",
+      te: "ధనుస్సు లగ్నానికి వజ్రంతో బ్యాంక్ అప్పుల ఊబి & పుష్యరాగం-9 ముఖితో రుణవిముక్తి",
+      ta: "தனுசு லக்னத்திற்கு வைரத்தால் கடன் சுமை & புஷ்பராகம்-9 முகத்தால் கடன் நிவாரணம்"
+    },
+    wrongItem: {
+      kn: "ಫ್ಯಾಷನ್‌ಗಾಗಿ ಬಂಗಾರದಲ್ಲಿ ದೊಡ್ಡ ವಜ್ರದ ಉಂಗುರ ಧರಿಸಿದ್ದರು.",
+      en: "Wore high-carat Diamond ring in gold for status/fashion.",
+      hi: "प्रतिष्ठा हेतु सोने में भारी हीरे की अंगूठी धारण की थी।",
+      te: "హోదా కోసం బంగారంలో పెద్ద వజ్రపు ఉంగరం ధరించారు.",
+      ta: "அந்தஸ்திற்காக தங்கத்தில் பெரிய வைர மோதிரம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಸರ್ಕಾರಿ ಬಿಲ್ ಸಿಲುಕಿಕೊಂಡಿತು, ಬ್ಯಾಂಕ್ ಲೋನ್ ಎನ್‌ಪಿಎ ಹಂತಕ್ಕೆ ತಲುಪಿ ಕಿಡ್ನಿ ಕಲ್ಲು ನೋವು ಬಂತು.",
+      en: "Government project bills froze, bank debt entered default NPA warning, and severe renal colic emerged.",
+      hi: "सरकारी भुगतान रुका, बैंक ऋण एनपीए हुआ और गुर्दे की पथरी का असह्य दर्द उठा।",
+      te: "ప్రభుత్వ బిల్లులు ఆగిపోయి, బ్యాంక్ లోన్ ఎన్‌పీఏగా మారి మూత్రపిండాల సమస్య వచ్చింది.",
+      ta: "அரசு பாக்கிகள் முடங்கி, வங்கி கடன் வாராக்கடன் நிலைக்கு சென்று சிறுநீரக கல் வலி ஏற்பட்டது."
+    },
+    rootCause: {
+      kn: "ಧನು ಲಗ್ನಕ್ಕೆ ಶುಕ್ರನು 6ನೇ ರೋಗ-ಋಣ-ಶತ್ರು ಸ್ಥಾನಾಧಿಪತಿ. ವಜ್ರವು 6ನೇ ಮನೆಯ ಸಾಲ-ರೋಗದ ಶಕ್ತಿಯನ್ನು ಉಲ್ಬಣಿಸಿತು.",
+      en: "Venus rules 6th house (debts, disease, litigation) for Sagittarius; Diamond inflamed 6th house liabilities exponentially.",
+      hi: "धनु लग्न हेतु शुक्र षष्ठ (रोग-ऋण-शत्रु) भाव स्वामी है; हीरे ने ऋण व रोग संकट को प्रचंड किया।",
+      te: "ధనుస్సు లగ్నానికి శుక్రుడు 6వ రోగ-రుణ-శత్రు స్థానాధిపతి; వజ్రం అప్పుల బాధను పెంచింది.",
+      ta: "தனுசு லக்னத்திற்கு சுக்கிரன் 6-ஆம் அதிபதி; வைரம் கடன் மற்றும் நோய் சுமையை அதிகரித்தது."
+    },
+    turnaround: {
+      kn: "ವಜ್ರ ತ್ಯಜಿಸಿ, ಹಳದಿ ಪುಷ್ಯರಾಗ ತರ್ಜನಿ ಬೆರಳಿಗೆ ಹಾಗೂ ಮೂಲಾ ೯ ಮುಖಿ ಧರಿಸಿದಾಗ ₹2 ಕೋಟಿ ಬಿಲ್ ಬಿಡುಗಡೆಯಾಗಿ ಸಾಲಮುಕ್ತರಾದರು.",
+      en: "Surrendered Diamond; prescribed Ceylon Yellow Sapphire in gold on index finger + Moola 9-Mukhi Rudraksha in neck. Pending ₹2 Crore bill cleared and debt dissolved.",
+      hi: "हीरा त्यागकर पुखराज और ९ मुखी रुद्राक्ष पहनने से ₹२ करोड़ का रुका बिल पास हुआ और ऋण मुक्ति हुई।",
+      te: "వజ్రం విడిచిపెట్టి, పుష్యరాగం మరియు 9 ముఖి ధరించిన తరువాత ₹2 కోట్ల బిల్లు విడుదలై అప్పులన్నీ తీరిపోయాయి.",
+      ta: "வைரத்தை கைவிட்டு, புஷ்பராகம் மற்றும் 9 முக ருத்ராட்சம் அணிந்ததும் ₹2 கோடி பாக்கி வந்து கடன் தீர்ந்தது."
+    }
+  },
+  9: { // Capricorn (Makara) -> Case #6
+    id: 6,
+    title: {
+      kn: "ಮಕರ ಲಗ್ನಕ್ಕೆ ಮಾಣಿಕ್ಯ ಧರಿಸಿ ಹೃದಯಾಘಾತ ಭಯ & ವಜ್ರ-ನೀಲಂನಿಂದ ಪುನಶ್ಚೇತನ",
+      en: "Capricorn Ascendant Ruby Hazard: Cardiac Panic to Diamond Mastery",
+      hi: "मकर लग्न में माणिक्य से हृदय संकट एवं हीरा-नीलम से स्वास्थ्य-पदोन्नति",
+      te: "మకర లగ్నానికి మాణిక్యంతో గుండె సమస్యల భయం & వజ్రం-నీలంతో సంపూర్ణ ఆరోగ్యం",
+      ta: "மகர லக்னத்திற்கு மாணிக்கத்தால் இதய படபடப்பு & வைரம்-நீலத்தால் பூரண குணம்"
+    },
+    wrongItem: {
+      kn: "ಮಾಣಿಕ್ಯ ೫.೫ ಕ್ಯಾರಟ್ ಬಂಗಾರದ ಉಂಗುರ ಧರಿಸಿದ್ದರು.",
+      en: "5.5-Carat Ruby in Gold ring on right hand.",
+      hi: "सोने में ५.५ कैरेट का माणिक्य धारण किया था।",
+      te: "బంగారంలో 5.5 క్యారెట్ల మాణిక్యం ఉంగరం ధరించారు.",
+      ta: "தங்கத்தில் 5.5 கேரட் மாணிக்க மோதிரம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಧರಿಸಿದ ೩೫ ದಿನಗಳಲ್ಲಿ ತೀವ್ರ ಎದೆನೋವು, ಡಿಮೋಷನ್ ಹಾಗೂ ಆದಾಯ ತೆರಿಗೆ ದಾಳಿ ನೋಟಿಸ್ ಬಂತು.",
+      en: "Within 35 days: acute angina panic attack, demotion at workplace, and sudden income tax notice.",
+      hi: "३५ दिनों में सीने में असह्य दर्द, पद में अवनति एवं आयकर का छापा नोटिस आया।",
+      te: "35 రోజుల్లో ఛాతీ నొప్పి, ఉద్యోగంలో డిమోషన్ మరియు ఐటీ నోటీసు వచ్చింది.",
+      ta: "35 நாட்களில் நெஞ்சு வலி, வேலையில் பின்னடைவு மற்றும் வருமான வரி நோட்டீஸ் வந்தது."
+    },
+    rootCause: {
+      kn: "ಮಕರಕ್ಕೆ ಸೂರ್ಯನು 8ನೇ ಆಯುಷ್ಯ/ರಂಧ್ರ ಸ್ಥಾನಾಧಿಪತಿ ಹಾಗೂ ಶನಿಯ ಪರಮ ಶತ್ರು. ಮಾಣಿಕ್ಯವು 8ನೇ ಮನೆಯ ಆಕಸ್ಮಿಕ ಸಂಕಷ್ಟ ತಂದಿತು.",
+      en: "Sun rules lethal 8th house for Capricorn and is enemy of Saturn; Ruby provoked direct 8th house crisis.",
+      hi: "मकर लग्न में सूर्य अष्टम रंध्रेश व लग्नेश शनि का परम शत्रु है; माणिक्य ने अष्टम संकट को बढ़ाया।",
+      te: "మకర లగ్నానికి సూర్యుడు 8వ రంధ్ర స్థానాధిపతి మరియు శనికి శత్రువు; మాణిక్యం తీవ్ర సంక్షోభాన్ని తెచ్చింది.",
+      ta: "மகர லக்னத்திற்கு சூரியன் 8-ஆம் அதிபதி மற்றும் சனிக்கு எதிரி; மாணிக்கம் 8-ஆம் இடத்து ஆபத்தை தூண்டியது."
+    },
+    turnaround: {
+      kn: "ಮಾಣಿಕ್ಯ ತೆಗೆದು, ಲಗ್ನಾಧಿಪತಿ ಶನಿಯ ನೀಲಂ ಮತ್ತು ಯೋಗಕಾರಕ ಶುಕ್ರನ ವಜ್ರ/ಬಿಳಿ ಝಿರ್ಕಾನ್ ಹಾಗೂ ಶ್ರವಣ ೨ ಮುಖಿ ಧರಿಸಿದಾಗ ಆರೋಗ್ಯ ಸುಧಾರಿಸಿ ವೈಸ್ ಪ್ರೆಸಿಡೆಂಟ್ ಆದರು.",
+      en: "Removed Ruby; prescribed Blue Sapphire + Venusian Diamond/White Zircon + Shravana 2-Mukhi Rudraksha in neck. Cardiac health normalized and promoted to VP.",
+      hi: "माणिक्य हटाकर नीलम, हीरा/सफेद जिरकॉन व २ मुखी रुद्राक्ष पहनने से स्वास्थ्य ठीक हुआ और वाइस प्रेसिडेंट बने।",
+      te: "మాణిక్యం తీసివేసి, నీలం, వజ్రం/జిర్కాన్ మరియు 2 ముఖి ధరించిన తరువాత ఆరోగ్యం కుదుటపడి వైస్ ప్రెసిడెంట్ అయ్యారు.",
+      ta: "மாணிக்கத்தை நீக்கி, நீலம், வைரம்/ஜிர்கான் மற்றும் 2 முக ருத்ராட்சம் அணிந்ததும் உடல் நலம் பெற்று வி.பி ஆக உயர்ந்தார்."
+    }
+  },
+  10: { // Aquarius (Kumbha) -> Case #12
+    id: 12,
+    title: {
+      kn: "ಕುಂಭ ಲಗ್ನಕ್ಕೆ ಮಾಣಿಕ್ಯ ಧರಿಸಿ ಪಾಲುದಾರಿಕೆ ಮುರಿತ & ನೀಲಂ-೮ ಮುಖಿಯಿಂದ ಐಕ್ಯತೆ",
+      en: "Aquarius Ascendant Ruby Partnership Fallout & Triumph via Blue Sapphire + 8-Mukhi",
+      hi: "कुंभ लग्न में माणिक्य से व्यापारिक विवाद एवं नीलम-८ मुखी से विजय",
+      te: "కుంభ లగ్నానికి మాణిక్యంతో భాగస్వామ్య వివాదం & నీలం-8 ముఖితో విజయం",
+      ta: "கும்ப லக்னத்திற்கு மாணிக்கத்தால் தொழில் முறிவு & நீலம்-8 முகத்தால் ஐக்கியம்"
+    },
+    wrongItem: {
+      kn: "ಸೂರ್ಯನ ಬಲವರ್ಧನೆಗೆಂದು ೬ ಕ್ಯಾರಟ್ ಮಾಣಿಕ್ಯ ಧರಿಸಿದ್ದರು.",
+      en: "Wore 6-Carat Ruby in gold ring to 'strengthen Sun'.",
+      hi: "सूर्य बल हेतु सोने में ६ कैरेट का माणिक्य पहना था।",
+      te: "సూర్యుని బలం కోసమని 6 క్యారెట్ల మాణిక్యం ధరించారు.",
+      ta: "சூரிய பலத்திற்காக 6 கேரட் மாணிக்க மோதிரம் அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಮುಖ್ಯ ಪಾಲುದಾರ ಸಂಸ್ಥೆಗೆ ರಾಜೀನಾಮೆ ನೀಡಿ ವ್ಯಾಜ್ಯ ಹೂಡಿದನು, ಅಸಿಡಿಟಿ ಮತ್ತು ಪಿತ್ತದ ಉರಿಯೂತದಿಂದ ಆಸ್ಪತ್ರೆ ಸೇರಿದರು.",
+      en: "Key partner walked away filing lawsuit; severe hyperacidity and bile regurgitation required hospitalization.",
+      hi: "व्यापारिक साझीदार ने मुकदमा दायर कर दिया एवं अत्यधिक पित्त विकार से अस्पताल में भर्ती होना पड़ा।",
+      te: "ముఖ్య భాగస్వామి కేసు వేసి విడిపోయాడు, పిత్త ప్రకోపంతో ఆసుపత్రి పాలు కావలసి వచ్చింది.",
+      ta: "முக்கிய கூட்டாளி வழக்கு தொடர்ந்து பிரிந்தார், பித்த உபாதையால் மருத்துவமனையில் சேர்ந்தனர்."
+    },
+    rootCause: {
+      kn: "ಕುಂಭ ಲಗ್ನಕ್ಕೆ ಸೂರ್ಯನು 7ನೇ ಮಾರಕ ಸ್ಥಾನಾಧಿಪತಿ ಹಾಗೂ ಶನಿಗೆ ಜನ್ಮ ಶತ್ರು. ಮಾಣಿಕ್ಯವು 7ನೇ ಮನೆಯ ದಾಂಪತ್ಯ ಮತ್ತು ಪಾಲುದಾರಿಕೆಯನ್ನು ಸುಟ್ಟುಹಾಕಿತು.",
+      en: "Sun rules 7th house (Maraka & business partners) for Aquarius and opposes Saturn. Ruby incinerated partnership harmony.",
+      hi: "कुंभ लग्न हेतु सूर्य सप्तम मारक स्वामी व शनि का शत्रु है; माणिक्य ने साझेदारी को नष्ट किया।",
+      te: "కుంభ లగ్నానికి సూర్యుడు 7వ మారక స్థానాధిపతి; మాణిక్యం భాగస్వామ్యాన్ని దెబ్బతీసింది.",
+      ta: "கும்ப லக்னத்திற்கு சூரியன் 7-ஆம் மாரக அதிபதி; மாணிக்கம் கூட்டுத் தொழிலை சிதைத்தது."
+    },
+    turnaround: {
+      kn: "ಮಾಣಿಕ್ಯ ತೆಗೆಸಿ, ನೀಲಂ ಮತ್ತು ಶತಭಿಷಾ ೮ ಮುಖಿ ಧರಿಸಿದಾಗ ವ್ಯಾಜ್ಯ ರಾಜಿ ಮುಖಾಂತರ ಮುಕ್ತಾಯವಾಗಿ ಸಂಸ್ಥೆಯ ಮೌಲ್ಯ ೫ ಪಟ್ಟು ಹೆಚ್ಚಾಯಿತು.",
+      en: "Removed Ruby; prescribed Blue Sapphire + Shatabhisha 8-Mukhi Rudraksha in neck. Partnership litigation settled and valuation surged 5x.",
+      hi: "माणिक्य हटाकर नीलम व ८ मुखी रुद्राक्ष पहनने से विवाद शांत हुआ और कंपनी का मूल्यांकन ५ गुना बढ़ा।",
+      te: "మాణిక్యం తీసివేసి, నీలం మరియు 8 ముఖి ధరించిన తరువాత వివాదం ముగిసి సంస్థ విలువ 5 రెట్లు పెరిగింది.",
+      ta: "மாணிக்கத்தை நீக்கி, நீலம் மற்றும் 8 முக ருத்ராட்சம் அணிந்ததும் தகராறு தீர்ந்து நிறுவன மதிப்பு 5 மடங்கு உயர்ந்தது."
+    }
+  },
+  11: { // Pisces (Meena) -> Case #8
+    id: 8,
+    title: {
+      kn: "ಮೀನ ಲಗ್ನಕ್ಕೆ ವಜ್ರ ಧರಿಸಿ ಉಂಟಾದ ಅಪಘಾತ & ಪುಷ್ಯರಾಗ-ಹವಳದಿಂದ ರಾಜಯೋಗ",
+      en: "Pisces Ascendant Diamond Accident & Restoration via Pushparaga + Coral",
+      hi: "मीन लग्न में हीरा से वाहन दुर्घटना संकट एवं पुखराज-मूंगा से राजयोग",
+      te: "మీన లగ్నానికి వజ్రంతో వాహన ప్రమాదం & పుష్యరాగం-పగడంతో రాజయోగం",
+      ta: "மீன லக்னத்திற்கு வைரத்தால் வாகன விபத்து & புஷ்பராகம்-பவழத்தால் ராஜயோகம்"
+    },
+    wrongItem: {
+      kn: "ಉಡುಗೊರೆಯಾಗಿ ಬಂದ ೨ ಕ್ಯಾರಟ್ ವಜ್ರದ ಉಂಗುರ ಧರಿಸಿದ್ದರು.",
+      en: "Wore a gifted 2-Carat Diamond ring on right hand.",
+      hi: "उपहार में मिली २ कैरेट की हीरे की अंगूठी धारण की थी।",
+      te: "బహుమతిగా వచ్చిన 2 క్యారెట్ల వజ్రపు ఉంగరం ధరించారు.",
+      ta: "பரிசாக வந்த 2 கேரட் வைர மோதிரத்தை அணிந்திருந்தனர்."
+    },
+    adverseOutcome: {
+      kn: "ಧರಿಸಿದ ೪೦ ದಿನಗಳಲ್ಲಿ ಕಾರು ಡಿಕ್ಕಿಯಾಗಿ ಆಸ್ಪತ್ರೆ ಸೇರಿದರು, ಕೈ ನಡುಗಲು ಆರಂಭವಾಗಿ ಕ್ಲಿನಿಕ್ ಮುಚ್ಚುವ ಸ್ಥಿತಿ ಬಂತು.",
+      en: "Within 40 days: major car crash, surgery, and fine motor tremors forced temporary surgical clinic closure.",
+      hi: "४० दिनों में कार दुर्घटना, शल्यक्रिया एवं हाथों में कंपन होने से क्लीनिक बंद करने की नौबत आई।",
+      te: "40 రోజుల్లో కారు ప్రమాదం జరిగి చేతులు వణకడం మొదలై క్లినిక్ మూసివేయాల్సిన పరిస్థితి వచ్చింది.",
+      ta: "40 நாட்களில் கார் விபத்து, கை நடுக்கம் ஏற்பட்டு மருத்துவ கிளினிக்கை மூடும் நிலை வந்தது."
+    },
+    rootCause: {
+      kn: "ಮೀನ ಲಗ್ನಕ್ಕೆ ಶುಕ್ರನು 3ನೇ ಹಾಗೂ 8ನೇ ರಂಧ್ರ/ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ ಸ್ಥಾನಾಧಿಪತಿ. ವಜ್ರವು 8ನೇ ಮನೆಯ ಅಪಘಾತ ಶಕ್ತಿಯನ್ನು ಪ್ರಚೋದಿಸಿತು.",
+      en: "Venus rules 3rd & 8th houses for Pisces; Diamond directly triggered 8th house trauma and motor tremors.",
+      hi: "मीन लग्न में शुक्र तृतीय व अष्टम रंध्रेश है; हीरे ने अष्टम भाव की दुर्घटना ऊर्जा को सक्रिय किया।",
+      te: "మీన లగ్నానికి శుక్రుడు 3వ మరియు 8వ అష్టమాధిపతి; వజ్రం ప్రమాద తీవ్రతను పెంచింది.",
+      ta: "மீன லக்னத்திற்கு சுக்கிரன் 3 மற்றும் 8-ஆம் அதிபதி; வைரம் 8-ஆம் இடத்து விபத்தை தூண்டியது."
+    },
+    turnaround: {
+      kn: "ವಜ್ರ ತೆಗೆಸಿ, ಸಿಲೋನ್ ಹಳದಿ ಪುಷ್ಯರಾಗ, 9ನೇ ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜನ ಹವಳ ಹಾಗೂ ೭ ಮುಖಿ ಧರಿಸಿದಾಗ ಕೈ ನಡುಕ ನಿಂತು ನೂತನ ಮಲ್ಟಿಸ್ಪೆಷಾಲಿಟಿ ಆಸ್ಪತ್ರೆ ಆರಂಭಿಸಿದರು.",
+      en: "Removed Diamond; prescribed Ceylon Yellow Sapphire + 9th lord Mars Red Coral + 7-Mukhi Rudraksha in neck. Tremors vanished and inaugurated new multi-specialty center.",
+      hi: "हीरा हटाकर पुखराज, लाल मूंगा एवं ७ मुखी रुद्राक्ष पहनने से कंपन समाप्त हुआ और नया अस्पताल स्थापित किया।",
+      te: "వజ్రం తీసివేసి, పుష్యరాగం, పగడం మరియు 7 ముఖి ధరించిన తరువాత వణుకు తగ్గి కొత్త మల్టీస్పెషాలిటీ ఆసుపత్రిని ప్రారంభించారు.",
+      ta: "வைரத்தை கழற்றி, புஷ்பராகம், பவழம் மற்றும் 7 முக ருத்ராட்சம் அணிந்ததும் நடுக்கம் நின்று புதிய மருத்துவமனை தொடங்கினர்."
+    }
+  }
+};
+
+
 export const generateAstrologicalPrescriptions = (
   kundli: KundliOutput,
   yogaRule?: YogaRule,
@@ -1380,6 +2772,162 @@ export const generateAstrologicalPrescriptions = (
   const havalaPrescriptionTe = `రత్నం: పగడం (శుద్ధ ప్రవాళం, 4.5 - 6.0 క్యారెట్లు). లోహం: స్వచ్ఛమైన రాగి లేదా బంగారం. ధరించే వేలు: కుడి చేయి ఉంగరపు వేలు (అనామిక). శుభ సమయం: మంగళవారం ఉదయం కుజ హోరలో. ప్రాణ ప్రతిష్ఠకు శుభ తారాబల నక్షత్రాలు: ${consecrationTarasTe}. మంత్రం: "ఓం భౌమాయ నమః" (108 సార్లు).`;
   const havalaPrescriptionTa = `ரத்தினம்: பவழம் (தூய பிரவாளம், 4.5 - 6.0 கேரட்). உலோகம்: தூய தாமிரம் அல்லது தங்கம். அணியும் விரல்: வலது கை மோதிர விரல் (அநாமிகா). சுப நாள் & நேரம்: செவ்வாய்க்கிழமை காலை குஜ ஓரையில். பிராண பிரதிஷ்டைக்கான சுப தாராபல நட்சத்திரங்கள்: ${consecrationTarasTa}. மந்திரம்: "ஓம் பௌமாய நமஹ" (108 முறை).`;
 
+  // 4. Nakshatra-aligned Sacred Neck Wear (Sara / Pendant / Thread)
+  const neckL5 = NAKSHATRA_NECK_WEAR_5L[nakNameEn] || NAKSHATRA_NECK_WEAR_5L["Ashwini"];
+  const neckWearSara = {
+    nakshatraNameKn: nakObj.kn,
+    nakshatraNameEn: nakObj.en,
+    nakshatraNameHi: nakObj.hi,
+    nakshatraNameTe: nakObj.te,
+    nakshatraNameTa: nakObj.ta,
+    pendantKn: neckL5.pendant.kn,
+    pendantEn: neckL5.pendant.en,
+    pendantHi: neckL5.pendant.hi,
+    pendantTe: neckL5.pendant.te,
+    pendantTa: neckL5.pendant.ta,
+    threadColorKn: neckL5.thread.kn,
+    threadColorEn: neckL5.thread.en,
+    threadColorHi: neckL5.thread.hi,
+    threadColorTe: neckL5.thread.te,
+    threadColorTa: neckL5.thread.ta,
+    deityKn: neckL5.deity.kn,
+    deityEn: neckL5.deity.en,
+    deityHi: neckL5.deity.hi,
+    deityTe: neckL5.deity.te,
+    deityTa: neckL5.deity.ta,
+    blessingKn: neckL5.blessing.kn,
+    blessingEn: neckL5.blessing.en,
+    blessingHi: neckL5.blessing.hi,
+    blessingTe: neckL5.blessing.te,
+    blessingTa: neckL5.blessing.ta,
+    wearingProcedureKn: "ವಿಶುದ್ಧ ಮತ್ತು ಅನಾಹತ ಚಕ್ರಗಳ ರಕ್ಷಣೆಗಾಗಿ ಕೊರಳಿನಲ್ಲಿ ಧರಿಸಬೇಕು. ಇದು ನಕ್ಷತ್ರ ತರಂಗಗಳನ್ನು ಸೌಮ್ಯವಾಗಿ ರಕ್ಷಿಸಿ ನೈಸರ್ಗಿಕ ರಕ್ಷಾ ಕವಚವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.",
+    wearingProcedureEn: "Wear around the neck at Vishuddha and Anahata chakras to create a divine protective bio-shield without meridian strain.",
+    wearingProcedureHi: "विशुद्ध एवं अनाहत चक्र की रक्षा हेतु गले में धारण करें। यह नक्षत्र तरंगों को संतुलित कर दैवीय सुरक्षा कवच प्रदान करता है।",
+    wearingProcedureTe: "విశుద్ధ మరియు అనాహత చక్రాల రక్షణ కోసం మెడలో ధరించాలి. ఇది నక్షత్ర తరంగాలను శాంతింపజేసి దివ్య రక్షణ కవచం ఏర్పరుస్తుంది.",
+    wearingProcedureTa: "விசுத்தி மற்றும் அனாஹத சக்கரங்களின் பாதுகாப்பிற்காக கழுத்தில் அணிய வேண்டும். இது நட்சத்திர அலைகளை சாந்தப்படுத்தி தெய்வீக கவசத்தை அமைக்கிறது."
+  };
+
+  // 5. Vajra (Diamond) Master Precision & Flawlessness Protocol
+  const isVajraRecommended = [1, 6].includes(lagnaRashiIdx) || ([9, 10].includes(lagnaRashiIdx) && !isMarsDusthana) || [2, 5].includes(lagnaRashiIdx);
+  const vajraMasterRules = isVajraRecommended
+    ? {
+        isVajraRecommended: true,
+        verdictKn: "ಅತ್ಯಂತ ಶುಭಪ್ರದ ಭಾಗ್ಯವರ್ಧಕ ರತ್ನ (ಶುಕ್ರಾನುಗ್ರಹ & ಸಕಲ ಐಶ್ವರ್ಯ ಸಿದ್ಧಿ)",
+        verdictEn: "Highly Auspicious Fortune Catalyst (Venusian Radiance & Material Prosperity)",
+        verdictHi: "अत्यंत शुभ भाग्यवर्धक रत्न (शुक्र कृपा एवं समस्त ऐश्वर्य सिद्धि)",
+        verdictTe: "అత్యంత శుభప్రదమైన భాగ్యవర్ధక రత్నం (శుక్ర అనుగ్రహం & సమస్త ఐశ్వర్య సిద్ధి)",
+        verdictTa: "மிகவும் சுபமான அதிர்ஷ்ட ரத்தினம் (சுக்கிர அருள் & சகல ஐஸ்வர்ய சித்தி)",
+        specificationsKn: "ತೂಕ: 0.50 ರಿಂದ 1.25 ಕ್ಯಾರಟ್ (VVS1/VVS2 ಶುದ್ಧತೆ). ಲೋಹ: ಶುದ್ಧ ಪ್ಲಾಟಿನಂ, ಬಿಳಿ ಚಿನ್ನ ಅಥವಾ ಬೆಳ್ಳಿ. ಧರಿಸುವ ಬೆರಳು: ಬಲಗೈ ಮಧ್ಯದ ಬೆರಳು ಅಥವಾ ಕಿರುಬೆರಳು. ಶುಭ ಕಾಲ: ಶುಕ್ಲ ಪಕ್ಷದ ಶುಕ್ರವಾರ ಪ್ರಾತಃಕಾಲ ಶುಕ್ರ ಹೋರೆಯಲ್ಲಿ. ಮಂತ್ರ: \"ಓಂ ಶುಂ ಶುಕ್ರಾಯ ನಮಃ\" (108 ಬಾರಿ).",
+        specificationsEn: "Weight: 0.50 - 1.25 Carats (VVS1/VVS2 clarity). Metal: Platinum, White Gold, or Silver. Finger: Right hand Middle or Little finger. Time: Friday morning during Venus Hora in Shukla Paksha. Mantra: \"Om Shum Shukraya Namaha\" (108 times).",
+        specificationsHi: "भार: 0.50 - 1.25 कैरेट (VVS1/VVS2 शुद्धता)। धातु: प्लैटिनम, सफेद सोना अथवा चांदी। अंगुली: दाहिने हाथ की मध्यमा अथवा कनिष्ठिका। समय: शुक्ल पक्ष शुक्रवार प्रातः शुक्र होरा में। मंत्र: \"ॐ शुं शुक्राय नमः\" (108 बार)।",
+        specificationsTe: "బరువు: 0.50 - 1.25 క్యారెట్లు (VVS1/VVS2 స్వచ్ఛత). లోహం: ప్లాటినం, వైట్ గోల్డ్ లేదా వెండి. వేలు: కుడి చేయి మధ్య వేలు లేదా చిటికెన వేలు. సమయం: శుక్ల పక్ష శుక్రవారం ఉదయం శుక్ర హోరలో. మంత్రం: \"ఓం శుం శుక్రాయ నమః\" (108 సార్లు).",
+        specificationsTa: "எடை: 0.50 - 1.25 கேரட் (VVS1/VVS2 தரம்). உலோகம்: பிளாட்டினம், வெள்ளை தங்கம் அல்லது வெள்ளி. விரல்: வலது கை நடுவிரல் அல்லது சுண்டு விரல். நேரம்: வளர்பிறை வெள்ளிக்கிழமை காலை சுக்கிர ஓரையில். மந்திரம்: \"ஓம் ஷும் சுக்ராய நமஹ\" (108 முறை).",
+        flawlessnessWarningKn: "ಬೃಹತ್ ಸಂಹಿತಾ ರತ್ನ ಪರೀಕ್ಷಾ ನಿಯಮ: ಬಿರುಕು, ಕಪ್ಪು ಚುಕ್ಕೆ, ಕಾಗೆಪಾದ ಅಥವಾ ಮಬ್ಬಾದ ವಜ್ರವನ್ನು ಎಂದಿಗೂ ಧರಿಸಬಾರದು. ದೋಷಯುಕ್ತ ವಜ್ರವು ಅಮೃತದ ಬದಲಿಗೆ ವಿಷವಾಗಿ ಪರಿಣಮಿಸಿ ಆಕಸ್ಮಿಕ ಹಾನಿ ತರುತ್ತದೆ.",
+        flawlessnessWarningEn: "Brihat Samhita Ratna Pariksha Rule: Never wear a cracked, spotted, crow-foot flawed, or cloudy diamond. A blemished diamond acts as a toxic poison, inviting sudden misfortunes.",
+        flawlessnessWarningHi: "बृहत् संहिता रत्न परीक्षा नियम: दरार, काले धब्बे, पंख या धुंधलापन युक्त हीरा कभी धारण न करें। दोषयुक्त हीरा विष तुल्य होकर आकस्मिक संकट लाता है।",
+        flawlessnessWarningTe: "బృహత్ సంహిత రత్న పరీక్ష నియమం: పగుళ్లు, నల్లటి మచ్చలు లేదా మసకబారిన వజ్రాన్ని ఎప్పుడూ ధరించరాదు. లోపభూయిష్ట వజ్రం విషమై ఆకస్మిక విపత్తులను తెస్తుంది.",
+        flawlessnessWarningTa: "பிருஹத் சம்ஹிதா ரத்தின பரீட்சை விதி: விரிசல், கரும்புள்ளி அல்லது மங்கலான வைரத்தை ஒருபோதும் அணியக்கூடாது. குறைபாடுள்ள வைரம் விஷம்போல் செயல்பட்டு ஆபத்துக்களை வரவழைக்கும்.",
+        substituteKn: "ಸಾತ್ವಿಕ ಪರ್ಯಾಯ ರತ್ನ: ನೈಸರ್ಗಿಕ ಶುದ್ಧ ಬಿಳಿ ಝಿರ್ಕಾನ್ (White Zircon, 4.0 - 5.5 ಕ್ಯಾರಟ್) ಅಥವಾ ನೈಸರ್ಗಿಕ ಬಿಳಿ ಪುಷ್ಯರಾಗ (White Sapphire) ಅತ್ಯಂತ ಸುರಕ್ಷಿತ ಹಾಗೂ ಶ್ರೇಷ್ಠ ಫಲಪ್ರದ.",
+        substituteEn: "Sattvic Safe Alternative: Natural unheated White Zircon (4.0 - 5.5 Carats) or Natural White Sapphire is an exceptionally safe, potent Vedic alternative.",
+        substituteHi: "सात्विक सुरक्षित विकल्प: प्राकृतिक श्वेत जिरकॉन (4.0 - 5.5 कैरेट) अथवा सफेद पुखराज अत्यंत सुरक्षित एवं शुभ फलदायी विकल्प है।",
+        substituteTe: "సాత్విక సురక్షిత ప్రత్యామ్నాయం: సహజమైన తెల్లటి జిర్కాన్ (4.0 - 5.5 క్యారెట్లు) లేదా తెల్ల పుష్యరాగం అత్యంత సురక్షితమైన శుభ ప్రత్యామ్నాయం.",
+        substituteTa: "சாத்வீக பாதுகாப்பான மாற்று: இயற்கையான வெள்ளை ஜிர்கான் (4.0 - 5.5 கேரட்) அல்லது வெள்ளை புஷ்பராகம் மிகவும் பாதுகாப்பான சுப மாற்றாகும்."
+      }
+    : {
+        isVajraRecommended: false,
+        verdictKn: "ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧಿಸಲಾಗಿದೆ (ಮಾರಕ / ಅಷ್ಟಮ / ಶತ್ರು ದೋಷ)",
+        verdictEn: "Strictly Prohibited (Maraka / Dusthana Malefic Conflict)",
+        verdictHi: "सख्त वर्जित (मारक / अष्टम शत्रु दोष)",
+        verdictTe: "ఖచ్చితంగా నిషిద్ధం (మారక / అష్టమ శత్రు దోషం)",
+        verdictTa: "முற்றிலும் தவிர்க்கப்பட வேண்டும் (மாரக / அஷ்டம தோஷம்)",
+        specificationsKn: "ನಿಮ್ಮ ಲಗ್ನಕ್ಕೆ ಶುಕ್ರನು ಮಾರಕ, ವ್ಯಯ ಅಥವಾ ಅಷ್ಟಮಾಧಿಪತಿಯಾಗಿರುವುದರಿಂದ ವಜ್ರ ಧರಿಸುವುದು ಜೀವಕ್ಕೆ ಕಂಟಕ ಹಾಗೂ ಆರ್ಥಿಕ ಆಘಾತ ತರುತ್ತದೆ.",
+        specificationsEn: "Venus rules Maraka, Dusthana, or enemy sectors for your Ascendant; wearing a Diamond poses severe energetic harm and financial shock.",
+        specificationsHi: "आपके लग्न हेतु शुक्र मारक अथवा षष्ठ/अष्टम भाव स्वामी होने से हीरा धारण करने पर गंभीर संकट व धनहानि होती है।",
+        specificationsTe: "మీ లగ్నానికి శుక్రుడు మారక లేదా దుష్టానాధిపతి అయినందున వజ్రం ధరిస్తే తీవ్రమైన ఆపదలు, ధన నష్టం కలుగుతాయి.",
+        specificationsTa: "உங்கள் லக்னத்திற்கு சுக்கிரன் மாரக அல்லது அஷ்டமாதிபதியாக இருப்பதால் வைரம் அணிவது கடுமையான ஆபத்தையும் பண இழப்பையும் விளைவிக்கும்.",
+        flawlessnessWarningKn: "ವಜ್ರ ತ್ಯಜಿಸಿ: ಪರ್ಯಾಯವಾಗಿ ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ಅಥವಾ ಪರಮ ಯೋಗಕಾರಕ ಗ್ರಹದ ರತ್ನವನ್ನೇ ಧರಿಸಬೇಕು.",
+        flawlessnessWarningEn: "Surrender Diamond: Wear solely your Ascendant Lord or Yogakaraka gemstone.",
+        flawlessnessWarningHi: "हीरा का त्याग करें: केवल अपने लग्नेश अथवा योगकारक रत्न को ही धारण करें।",
+        flawlessnessWarningTe: "వజ్రం విసర్జించండి: కేవలం మీ లగ్నాధిపతి లేదా యోగకారక రత్నాన్ని మాత్రమే ధరించండి.",
+        flawlessnessWarningTa: "வைரத்தை தவிர்க்கவும்: உங்கள் லக்னாதிபதி அல்லது யோககாரக ரத்தினத்தை மட்டுமே அணியவும்.",
+        substituteKn: `ಪರ್ಯಾಯ ರತ್ನ: ನಿಮ್ಮ ಲಗ್ನಕ್ಕೆ ನಿಗದಿಪಡಿಸಿದ ${selectedGem.kn} ಭಾಗ್ಯ ರತ್ನ ಉಂಗುರ.`,
+        substituteEn: `Prescribed Alternative: Your primary ${selectedGem.en} Bhagya Gemstone Ring.`,
+        substituteHi: `निर्धारित विकल्प: आपके लग्न अनुसार मुख्य ${selectedGem.hi || selectedGem.sanskrit} भाग्य रत्न अंगूठी।`,
+        substituteTe: `నిర్దేశిత ప్రత్యామ్నాయం: మీ లగ్నానికి తగిన ప్రధాన ${selectedGem.te || selectedGem.en} భాగ్య రత్న ఉంగరం.`,
+        substituteTa: `பரிந்துரைக்கப்பட்ட மாற்று: உங்கள் லக்னத்திற்கான முதன்மை ${selectedGem.ta || selectedGem.en} அதிர்ஷ்ட ரத்தின மோதிரம்.`
+      };
+
+  // 6. Bio-Field Black Color & Shani Color Therapy Advisory
+  const isBlackFavorable = [1, 6, 9, 10].includes(lagnaRashiIdx);
+  const blackColorAdvisory = isBlackFavorable
+    ? {
+        isBlackFavorable: true,
+        statusKn: "ಶುಭ & ರಕ್ಷಾ ಕವಚ (ಶನಿ ಬಲವರ್ಧನೆ / ಸ್ಥಿರತೆ)",
+        statusEn: "Auspicious & Protective Shield (Saturn Grounding & Resilience)",
+        statusHi: "शुभ एवं सुरक्षा कवच (शनि बलवर्धन एवं स्थिरता)",
+        statusTe: "శుభప్రదం & రక్షణ కవచం (శని బలవర్ధన & స్థిరత్వం)",
+        statusTa: "சுபம் & பாதுகாப்பு கவசம் (சனி பலம் & நிலைத்தன்மை)",
+        impactKn: "ಕಪ್ಪು ಹಾಗೂ ಗಾಢ ನೀಲಿ ಬಣ್ಣಗಳು ನಿಮ್ಮ ಜೈವಿಕ ಕಾಂತಕ್ಷೇತ್ರವನ್ನು (Aura) ರಕ್ಷಿಸಿ, ಅತಿಯಾದ ಮಾನಸಿಕ ಚಂಚಲತೆಯನ್ನು ನಿಯಂತ್ರಿಸಿ, ದೀರ್ಘಕಾಲಿಕ ಶಿಸ್ತು ಹಾಗೂ ಅಧಿಕಾರವನ್ನು ತಂದುಕೊಡುತ್ತವೆ.",
+        impactEn: "Black and deep navy blue colors shield your bio-magnetic aura, ground mental agitation, and foster enduring discipline, executive focus, and wealth.",
+        impactHi: "काला एवं गहरा नीला रंग आपके आभामंडल को स्थिर कर, मानसिक भटकाव दूर कर दीर्घकालिक अनुशासन, स्थिरता एवं अधिकार प्रदान करता है।",
+        impactTe: "నలుపు మరియు ముదురు నీలం రంగులు మీ ఆభా మండలాన్ని కాపాడి, మానసిక చంచలత్వాన్ని అరికట్టి, దీర్ఘకాలిక క్రమశిక్షణ మరియు అధికార సంపదలను అందిస్తాయి.",
+        impactTa: "கருப்பு மற்றும் அடர் நீல நிறங்கள் உங்கள் பிராண சக்தியைப் பாதுகாத்து, மன அமைதியை நிலைநிறுத்தி, நீண்ட கால ஒழுக்கத்தையும் அதிகார பலத்தையும் தரும்.",
+        classicalBasisKn: "ಶನಿಯು ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿ ಅಥವಾ ಪರಮ ಯೋಗಕಾರಕನಾಗಿರುವುದರಿಂದ ಕಪ್ಪು ಶನಿಯ ತರಂಗಾಂತರವು ರಾಜಯೋಗವನ್ನು ಜಾಗೃತಗೊಳಿಸುತ್ತದೆ.",
+        classicalBasisEn: "Because Saturn is your Lagna Lord or prime Yogakaraka, Saturnian dark frequencies awaken Rajayoga grounding and persevering power.",
+        classicalBasisHi: "शनि आपके लग्नेश अथवा परम योगकारक होने से काले रंग की शनि तरंगे राजयोग और दृढ़ता को जागृत करती हैं।",
+        classicalBasisTe: "శని మీ లగ్నాధిపతి లేదా పరమ యోగకారకుడు అయినందున నలుపు రంగు శని తరంగాలు రాజయోగాన్ని, స్థిరత్వాన్ని మేల్కొల్పుతాయి.",
+        classicalBasisTa: "சனி உங்கள் லக்னாதிபதி அல்லது யோககாரகனாக இருப்பதால் கருப்பு நிற சனி அலைகள் ராஜயோகத்தையும் உறுதியையும் தூண்டுகின்றன."
+      }
+    : {
+        isBlackFavorable: false,
+        statusKn: "ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧಿಸಲಾಗಿದೆ (ತಾಮಸಿಕ ದೋಷ / ಆಲಸ್ಯ)",
+        statusEn: "Strictly Prohibited (Tamasic Energy & Blockages)",
+        statusHi: "सख्त वर्जित (तामसिक प्रभाव एवं अवरोध)",
+        statusTe: "ఖచ్చితంగా నిషిద్ధం (తామసిక దోషం & జడత్వం)",
+        statusTa: "முற்றிலும் தவிர்க்கப்பட வேண்டும் (தாமச தோஷம் & தடை)",
+        impactKn: "ಕಪ್ಪು ಬಣ್ಣವು ಬೆಳಕನ್ನು ಸಂಪೂರ್ಣ ಹೀರಿಕೊಂಡು ತಾಮಸಿಕ ಶಕ್ತಿಯನ್ನು ದೇಹದಲ್ಲಿ ತುಂಬುತ್ತದೆ. ಇದು ತೀವ್ರ ಮಾನಸಿಕ ಖಿನ್ನತೆ, ಕೆಲಸದಲ್ಲಿ ನಿರಂತರ ವಿಳಂಬ, ರಕ್ತದೊತ್ತಡ ಏರಿಳಿತ ಹಾಗೂ ಅಪಘಾತದ ಅಪಾಯವನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ. ಕಪ್ಪು ಬಟ್ಟೆ ಅಥವಾ ಕಪ್ಪು ದಾರ ಧರಿಸುವುದನ್ನು ಸಂಪೂರ್ಣ ತ್ಯಜಿಸಿ.",
+        impactEn: "Black absorbs cosmic light and traps heavy tamasic vibrations in your bio-field. It triggers chronic lethargy, depression, career stagnation, and relationship friction. Strictly avoid black clothes, black threads, and dark obsidian items.",
+        impactHi: "काला रंग प्रकाश को अवशोषित कर तामसिक ऊर्जा बढ़ाता है। इससे मानसिक अवसाद, कार्यों में अकारण विलंब, रक्तचाप में गड़बड़ी तथा दुर्घटनाओं की संभावना बढ़ती है। काले वस्त्र एवं काले धागे का पूर्ण त्याग करें।",
+        impactTe: "నలుపు రంగు కాంతిని పీల్చుకుని తామసిక శక్తిని పెంచుతుంది. ఇది మానసిక నిరాశ, పనులలో జాప్యం, రక్తపోటు హెచ్చుతగ్గులు మరియు ప్రమాదాల భయాన్ని కలిగిస్తుంది. నల్లటి దుస్తులు మరియు నల్ల దారాలను పూర్తిగా విడిచిపెట్టండి.",
+        impactTa: "கருப்பு நிறம் ஒளியை கிரகித்து தாமச சக்தியை பெருக்குகிறது. இது மனச்சோர்வு, காரியத் தடை, இரத்த அழுத்த மாறுபாடு மற்றும் விபத்து அச்சத்தை ஏற்படுத்தும். கருப்பு உடைகள் மற்றும் கருப்பு நூலை முற்றிலும் தவிர்க்கவும்.",
+        classicalBasisKn: "ಶನಿಯು ನಿಮ್ಮ ಲಗ್ನಾಧಿಪತಿಗೆ ಪರಮ ಶತ್ರು ಅಥವಾ ಮಾರಕ/ಅಷ್ಟಮ ಸ್ಥಾನಾಧಿಪತಿಯಾಗಿರುವುದರಿಂದ ಕಪ್ಪು ಶನಿಯ ತರಂಗಾಂತರವು ಪ್ರಾಣಶಕ್ತಿಯನ್ನು ಕ್ಷೀಣಿಸುತ್ತದೆ.",
+        classicalBasisEn: "Because Saturn is an archenemy or Dusthana/Maraka lord for your Ascendant, Saturnian black frequencies suppress your vital bio-energy.",
+        classicalBasisHi: "शनि आपके लग्नेश का परम शत्रु अथवा मारक/अष्टमेश होने के कारण काले रंग की ऊर्जा प्राणशक्ति को क्षीण करती है।",
+        classicalBasisTe: "శని మీ లగ్నాధిపతికి శత్రువు లేదా మారక/అష్టమాధిపతి అయినందున నలుపు రంగు ప్రాణశక్తిని క్షీణింపజేస్తుంది.",
+        classicalBasisTa: "சனி உங்கள் லக்னாதிபதிக்கு பரம எதிரி அல்லது மாரக/அஷ்டமாதிபதியாக இருப்பதால் கருப்பு நிறம் பிராண சக்தியை குறைக்கிறது."
+      };
+
+  // 7. Empirical Benchmark Case Study Proof (from 100 Classical Profiles)
+  const benchL5 = LAGNA_BENCHMARK_PROOFS_5L[lagnaRashiIdx] || LAGNA_BENCHMARK_PROOFS_5L[0];
+  const benchmarkCaseStudy = {
+    id: benchL5.id,
+    titleKn: benchL5.title.kn,
+    titleEn: benchL5.title.en,
+    titleHi: benchL5.title.hi,
+    titleTe: benchL5.title.te,
+    titleTa: benchL5.title.ta,
+    wrongItemKn: benchL5.wrongItem.kn,
+    wrongItemEn: benchL5.wrongItem.en,
+    wrongItemHi: benchL5.wrongItem.hi,
+    wrongItemTe: benchL5.wrongItem.te,
+    wrongItemTa: benchL5.wrongItem.ta,
+    adverseOutcomeKn: benchL5.adverseOutcome.kn,
+    adverseOutcomeEn: benchL5.adverseOutcome.en,
+    adverseOutcomeHi: benchL5.adverseOutcome.hi,
+    adverseOutcomeTe: benchL5.adverseOutcome.te,
+    adverseOutcomeTa: benchL5.adverseOutcome.ta,
+    rootCauseKn: benchL5.rootCause.kn,
+    rootCauseEn: benchL5.rootCause.en,
+    rootCauseHi: benchL5.rootCause.hi,
+    rootCauseTe: benchL5.rootCause.te,
+    rootCauseTa: benchL5.rootCause.ta,
+    turnaroundKn: benchL5.turnaround.kn,
+    turnaroundEn: benchL5.turnaround.en,
+    turnaroundHi: benchL5.turnaround.hi,
+    turnaroundTe: benchL5.turnaround.te,
+    turnaroundTa: benchL5.turnaround.ta
+  };
+
   return {
     rudraksha: {
       mukhi: selectedRudraksha.mukhi,
@@ -1473,15 +3021,21 @@ export const generateAstrologicalPrescriptions = (
       consecrationTarasEn,
       consecrationTarasHi,
       consecrationTarasTe,
-      consecrationTarasTa
+      consecrationTarasTa,
+      // Vajra Master Protocol
+      vajraMasterRules
     },
+    neckWearSara,
     luckyAttributes: {
       carColors: lucky.car,
       clothColors: lucky.cloth,
       avoidColors: lucky.avoid,
       directions: lucky.dir,
-      numbers: lucky.nums
+      numbers: lucky.nums,
+      // Bio-Field Black Color Advisory
+      blackColorAdvisory
     },
+    benchmarkCaseStudy,
     shantiPooja: {
       nameKn: shantiKn,
       nameEn: shantiEn,

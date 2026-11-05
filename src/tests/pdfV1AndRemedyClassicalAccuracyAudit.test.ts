@@ -378,4 +378,103 @@ describe("PDF V1 & Remedy Classical Accuracy and Multi-Language Audit", () => {
     );
     expect(gemstoneRecommendation.metal.kn).toBe(prescriptions.gemstoneRing.metalKn);
   });
+
+  it("accurately computes Nakshatra-aligned Sacred Neck Wear (Sara), Vajra Master Rules, Black Color Advisory and Empirical Benchmarks across all 12 Lagnas", () => {
+    const lagnaConfigs = [
+      { lagna: 0, name: "Aries", vajraAllowed: false, blackAllowed: false },
+      { lagna: 1, name: "Taurus", vajraAllowed: true, blackAllowed: true },
+      { lagna: 2, name: "Gemini", vajraAllowed: true, blackAllowed: false },
+      { lagna: 3, name: "Cancer", vajraAllowed: false, blackAllowed: false },
+      { lagna: 4, name: "Leo", vajraAllowed: false, blackAllowed: false },
+      { lagna: 5, name: "Virgo", vajraAllowed: true, blackAllowed: false },
+      { lagna: 6, name: "Libra", vajraAllowed: true, blackAllowed: true },
+      { lagna: 7, name: "Scorpio", vajraAllowed: false, blackAllowed: false },
+      { lagna: 8, name: "Sagittarius", vajraAllowed: false, blackAllowed: false },
+      { lagna: 9, name: "Capricorn", vajraAllowed: true, blackAllowed: true },
+      { lagna: 10, name: "Aquarius", vajraAllowed: true, blackAllowed: true },
+      { lagna: 11, name: "Pisces", vajraAllowed: false, blackAllowed: false }
+    ];
+
+    lagnaConfigs.forEach(({ lagna, name, vajraAllowed, blackAllowed }) => {
+      const mockChart: KundliOutput = {
+        ascendant: lagna * 30 + 15,
+        lagnaRashi: { index: lagna, sanskrit: name, english: name },
+        moonSign: { index: (lagna + 3) % 12, sanskrit: "MoonSign", english: "MoonSign" },
+        sunSign: { index: (lagna + 1) % 12, sanskrit: "SunSign", english: "SunSign" },
+        moonPada: 1,
+        planets: [
+          {
+            name: PlanetName.Moon,
+            degree: 140,
+            isRetrograde: false,
+            rashi: { index: 4, sanskrit: "Simha", english: "Leo" },
+            house: 5,
+            nakshatra: { index: 10, sanskrit: "Magha", english: "Magha", deity: "Pitris" }
+          }
+        ],
+        houses: Array.from({ length: 12 }, (_, i) => (i * 30 + lagna * 30) % 360)
+      };
+
+      const mockInput: KundliInput = {
+        name: `${name} Native`,
+        birthDate: "1992-08-20",
+        birthTime: "12:00",
+        latitude: 12.97,
+        longitude: 77.59,
+        gender: "Female"
+      };
+
+      const prescriptions = generateAstrologicalPrescriptions(mockChart);
+      const remedyReport = generateKundliRemedyReport(mockChart, mockInput);
+
+      // 1. Nakshatra-aligned Neck Wear Sara verification
+      expect(prescriptions.neckWearSara).toBeDefined();
+      expect(prescriptions.neckWearSara?.pendantKn).toBeTruthy();
+      expect(prescriptions.neckWearSara?.pendantEn).toBeTruthy();
+      expect(prescriptions.neckWearSara?.pendantHi).toBeTruthy();
+      expect(prescriptions.neckWearSara?.pendantTe).toBeTruthy();
+      expect(prescriptions.neckWearSara?.pendantTa).toBeTruthy();
+      expect(prescriptions.neckWearSara?.threadColorKn).toBeTruthy();
+      expect(prescriptions.neckWearSara?.wearingProcedureKn).toContain("ವಿಶುದ್ಧ");
+
+      // Verify Remedy Report parity for neck wear
+      expect(remedyReport.gokarnaTempleRemedies.neckWearRecommendation).toBeDefined();
+      expect(remedyReport.gokarnaTempleRemedies.neckWearRecommendation?.pendant.kn).toBe(
+        prescriptions.neckWearSara?.pendantKn
+      );
+
+      // 2. Vajra Master Rules verification
+      expect(prescriptions.gemstoneRing.vajraMasterRules).toBeDefined();
+      expect(prescriptions.gemstoneRing.vajraMasterRules?.isVajraRecommended).toBe(vajraAllowed);
+      if (vajraAllowed) {
+        expect(prescriptions.gemstoneRing.vajraMasterRules?.verdictKn).toContain("ಶುಭಪ್ರದ ಭಾಗ್ಯವರ್ಧಕ");
+        expect(prescriptions.gemstoneRing.vajraMasterRules?.substituteKn).toContain("ಝಿರ್ಕಾನ್");
+      } else {
+        expect(prescriptions.gemstoneRing.vajraMasterRules?.verdictKn).toContain("ನಿಷೇಧಿಸಲಾಗಿದೆ");
+        expect(prescriptions.gemstoneRing.vajraMasterRules?.substituteKn).toContain("ಪರ್ಯಾಯ ರತ್ನ");
+      }
+      expect(remedyReport.gokarnaTempleRemedies.vajraMasterRules?.isVajraRecommended).toBe(vajraAllowed);
+
+      // 3. Black Color Advisory verification
+      expect(prescriptions.luckyAttributes.blackColorAdvisory).toBeDefined();
+      expect(prescriptions.luckyAttributes.blackColorAdvisory?.isBlackFavorable).toBe(blackAllowed);
+      if (blackAllowed) {
+        expect(prescriptions.luckyAttributes.blackColorAdvisory?.statusKn).toContain("ಶುಭ & ರಕ್ಷಾ ಕವಚ");
+      } else {
+        expect(prescriptions.luckyAttributes.blackColorAdvisory?.statusKn).toContain("ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧಿಸಲಾಗಿದೆ");
+      }
+      expect(remedyReport.gokarnaTempleRemedies.blackColorAdvisory?.isBlackFavorable).toBe(blackAllowed);
+
+      // 4. Empirical Benchmark Case Study verification (from 100 Case Archives)
+      expect(prescriptions.benchmarkCaseStudy).toBeDefined();
+      expect(prescriptions.benchmarkCaseStudy?.titleKn).toBeTruthy();
+      expect(prescriptions.benchmarkCaseStudy?.wrongItemKn).toBeTruthy();
+      expect(prescriptions.benchmarkCaseStudy?.adverseOutcomeKn).toBeTruthy();
+      expect(prescriptions.benchmarkCaseStudy?.rootCauseKn).toBeTruthy();
+      expect(prescriptions.benchmarkCaseStudy?.turnaroundKn).toBeTruthy();
+      expect(remedyReport.gokarnaTempleRemedies.benchmarkCaseStudy?.id).toBe(
+        prescriptions.benchmarkCaseStudy?.id
+      );
+    });
+  });
 });

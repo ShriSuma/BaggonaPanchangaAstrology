@@ -396,6 +396,14 @@ export interface KundliRemedyDiagnosis {
       day: Record<string, string>;
       beneficiary: Record<string, string>;
     };
+    neckWearRecommendation?: {
+      pendant: Record<string, string>;
+      thread: Record<string, string>;
+      blessing: Record<string, string>;
+    };
+    vajraMasterRules?: any;
+    blackColorAdvisory?: any;
+    benchmarkCaseStudy?: any;
   };
   chiefPriestBlessing: {
     priestName: Record<string, string>;
@@ -7125,7 +7133,33 @@ export function generateKundliRemedyReport(
       item: donationItem,
       day: donationDay,
       beneficiary: donationBeneficiary
-    }
+    },
+    neckWearRecommendation: prescriptions.neckWearSara ? {
+      pendant: {
+        kn: prescriptions.neckWearSara.pendantKn,
+        en: prescriptions.neckWearSara.pendantEn,
+        hi: prescriptions.neckWearSara.pendantHi,
+        te: prescriptions.neckWearSara.pendantTe,
+        ta: prescriptions.neckWearSara.pendantTa
+      },
+      thread: {
+        kn: prescriptions.neckWearSara.threadColorKn,
+        en: prescriptions.neckWearSara.threadColorEn,
+        hi: prescriptions.neckWearSara.threadColorHi,
+        te: prescriptions.neckWearSara.threadColorTe,
+        ta: prescriptions.neckWearSara.threadColorTa
+      },
+      blessing: {
+        kn: prescriptions.neckWearSara.blessingKn,
+        en: prescriptions.neckWearSara.blessingEn,
+        hi: prescriptions.neckWearSara.blessingHi,
+        te: prescriptions.neckWearSara.blessingTe,
+        ta: prescriptions.neckWearSara.blessingTa
+      }
+    } : undefined,
+    vajraMasterRules: prescriptions.gemstoneRing.vajraMasterRules,
+    blackColorAdvisory: prescriptions.luckyAttributes.blackColorAdvisory,
+    benchmarkCaseStudy: prescriptions.benchmarkCaseStudy
   };
 
   // 13. Chief Priest Blessing (Strictly Veda Moorthy Chaitanya Pandit)
