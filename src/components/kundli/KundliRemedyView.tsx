@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Card from "../ui/Card";
-import type { KundliRemedyDiagnosis, SupportedLanguage } from "../../features/remedies/kundliRemedyEngine";
+import { type KundliRemedyDiagnosis, type SupportedLanguage, computeMandalaVrataSadhana } from "../../features/remedies/kundliRemedyEngine";
 import { transliterateName, transliterateIndicToLatin } from "../../utils/transliterator";
 import { REMEDY_AI_FALLBACK_MESSAGES } from "../../features/remedies/kundliRemedyAiEngine";
 import {
@@ -159,6 +159,18 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
   prescriptionApathyaTitle: string;
   prescriptionTimingTitle: string;
   prescriptionProgressionTitle: string;
+  padaLabel: string;
+  yogaLabel: string;
+  karanaLabel: string;
+  elementalBalanceLabel: string;
+  houseSuffix: (house: number) => string;
+  transitEffectAuspicious: string;
+  transitEffectChallenging: string;
+  shastricAnalysisBadge: string;
+  clinicalChikitsaBadge: string;
+  firebaseSyncBadge: string;
+  templeSealBadge: string;
+  analyzingNatalSubtitle: string;
 }> = {
   kn: {
     headerTitle: "ಜನ್ಮ ಕುಂಡಲಿ ಆಧಾರಿತ ದೈವಿಕ ಜ್ಯೋತಿಷ್ಯ ಪರಿಹಾರ & ಮನಃಶಾಂತಿ ವರದಿ",
@@ -293,7 +305,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     prescriptionPathyaTitle: "ಅನುಸರಿಸಬೇಕಾದ ಪಥ್ಯ (Prescribed Pathya - 15 to 20 Days):",
     prescriptionApathyaTitle: "ವರ್ಜಿಸಬೇಕಾದ ಅಪಥ್ಯ (Strictly Prohibited Apathya):",
     prescriptionTimingTitle: "ಚಿಕಿತ್ಸಾ ಕಾಲ, ಆಸನ & ದಿಕ್ಕು (Clinical Timing & Setup):",
-    prescriptionProgressionTitle: "೧೫ ರಿಂದ ೨೦ ದಿನಗಳಲ್ಲಿ ಅನುಭವಕ್ಕೆ ಬರುವ ಪರಿಹಾರ ಹಂತಗಳು (15-20 Day Relief Progression):"
+    prescriptionProgressionTitle: "೧೫ ರಿಂದ ೨೦ ದಿನಗಳಲ್ಲಿ ಅನುಭವಕ್ಕೆ ಬರುವ ಪರಿಹಾರ ಹಂತಗಳು (15-20 Day Relief Progression):",
+    padaLabel: "ಪಾದ",
+    yogaLabel: "ಯೋಗ",
+    karanaLabel: "ಕರಣ",
+    elementalBalanceLabel: "ಪಂಚಮಹಾಭೂತ ಸಮತೋಲನ ಕಾರಣ: ",
+    houseSuffix: (h) => `${h}ನೇ ಭಾವ`,
+    transitEffectAuspicious: "ಶುಭ ಫಲ",
+    transitEffectChallenging: "ಸವಾಲು / ಪರೀಕ್ಷೆ",
+    shastricAnalysisBadge: "ಅಧಿಕೃತ ಶಾಸ್ತ್ರೀಯ ವಿಶ್ಲೇಷಣೆ",
+    clinicalChikitsaBadge: "ಶಾಸ್ತ್ರೋಕ್ತ ಚಿಕಿತ್ಸಾ ಪದ್ಧತಿ",
+    firebaseSyncBadge: "🔥 ಕ್ಲೌಡ್ ಸಿಂಕ್ ಆಗಿದೆ",
+    templeSealBadge: "ಗೋಕರ್ಣ ಸನ್ನಿಧಿ ಮುದ್ರೆ",
+    analyzingNatalSubtitle: "ಜಾತಕದ ಗ್ರಹಸ್ಥಿತಿ ಮತ್ತು ದಶಾ ಕಾಲಾವಧಿಗೆ ಅನುಗುಣವಾಗಿ ನಿಖರ ಶಾಸ್ತ್ರೋಕ್ತ ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ."
   },
   hi: {
     headerTitle: "जन्म कुंडली आधारित दैविक ज्योतिषीय उपाय एवं मनःशांति रिपोर्ट",
@@ -428,7 +452,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     prescriptionPathyaTitle: "पालनीय पथ्य (Prescribed Pathya - 15 to 20 Days):",
     prescriptionApathyaTitle: "त्याज्य अपथ्य (Strictly Prohibited Apathya):",
     prescriptionTimingTitle: "चिकित्सा काल, आसन एवं दिशा (Clinical Timing & Setup):",
-    prescriptionProgressionTitle: "१५ से २० दिनों में अनुभव होने वाले राहत के चरण (15-20 Day Relief Progression):"
+    prescriptionProgressionTitle: "१५ से २० दिनों में अनुभव होने वाले राहत के चरण (15-20 Day Relief Progression):",
+    padaLabel: "चरण",
+    yogaLabel: "योग",
+    karanaLabel: "करण",
+    elementalBalanceLabel: "पंचमहाभूत संतुलन कारण: ",
+    houseSuffix: (h) => `${h}वां भाव`,
+    transitEffectAuspicious: "शुभ फल",
+    transitEffectChallenging: "चुनौतीपूर्ण",
+    shastricAnalysisBadge: "प्रामाणिक शास्त्रीय विश्लेषण",
+    clinicalChikitsaBadge: "शास्त्रोक्त चिकित्सा पद्धति",
+    firebaseSyncBadge: "🔥 क्लाउड सिंक",
+    templeSealBadge: "गोकर्ण सन्निधि मुद्रा",
+    analyzingNatalSubtitle: "जन्मकुंडली की ग्रह स्थिति एवं दशा काल के अनुसार गहन शास्त्रीय विश्लेषण चल रहा है।"
   },
   te: {
     headerTitle: "జన్మ కుండలి ఆధారిత దైవిక జ్యోతిష్య పరిహార & మనశ్శాంతి నివేదిక",
@@ -563,7 +599,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     prescriptionPathyaTitle: "పాటించవలసిన పథ్యం (Prescribed Pathya - 15 to 20 Days):",
     prescriptionApathyaTitle: "వర్జించవలసిన అపథ్యం (Strictly Prohibited Apathya):",
     prescriptionTimingTitle: "చికిత్సా సమయం, ఆసనం & దిశ (Clinical Timing & Setup):",
-    prescriptionProgressionTitle: "15 నుండి 20 రోజుల్లో అనుభవంలోకి వచ్చే ఉపశమన దశలు (15-20 Day Relief Progression):"
+    prescriptionProgressionTitle: "15 నుండి 20 రోజుల్లో అనుభవంలోకి వచ్చే ఉపశమన దశలు (15-20 Day Relief Progression):",
+    padaLabel: "పాదం",
+    yogaLabel: "యోగం",
+    karanaLabel: "కరణం",
+    elementalBalanceLabel: "పంచమహాభూత సమతుల్య కారణం: ",
+    houseSuffix: (h) => `${h}వ స్థానం`,
+    transitEffectAuspicious: "శుభ ఫలితం",
+    transitEffectChallenging: "సవాలు",
+    shastricAnalysisBadge: "ప్రామాణిక శాస్త్రీయ విశ్లేషణ",
+    clinicalChikitsaBadge: "శాస్త్రోక్త చికిత్సా విధానం",
+    firebaseSyncBadge: "🔥 క్లౌడ్ సింక్ అయింది",
+    templeSealBadge: "గోకర్ణ సన్నిధి ముద్ర",
+    analyzingNatalSubtitle: "జాతక గ్రహస్థితి మరియు దశా కాలానికి అనుగుణంగా లోతైన శాస్త్రోక్త విశ్లేషణ జరుగుతోంది."
   },
   ta: {
     headerTitle: "ஜாதக அடிப்படையிலான தெய்வீக பரிகாரம் & மனஅமைதி அறிக்கை",
@@ -698,7 +746,19 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     prescriptionPathyaTitle: "கடைப்பிடிக்க வேண்டிய பத்தியம் (Prescribed Pathya - 15 to 20 Days):",
     prescriptionApathyaTitle: "தவிர்க்க வேண்டிய அபத்தியம் (Strictly Prohibited Apathya):",
     prescriptionTimingTitle: "சிகிச்சை நேரம், ஆசனம் & திசை (Clinical Timing & Setup):",
-    prescriptionProgressionTitle: "15 முதல் 20 நாட்களில் உணரக்கூடிய நிவாரண நிலைகள் (15-20 Day Relief Progression):"
+    prescriptionProgressionTitle: "15 முதல் 20 நாட்களில் உணரக்கூடிய நிவாரண நிலைகள் (15-20 Day Relief Progression):",
+    padaLabel: "பாதம்",
+    yogaLabel: "யோகம்",
+    karanaLabel: "கரணம்",
+    elementalBalanceLabel: "பஞ்சமகாபூத சமநிலை காரணம்: ",
+    houseSuffix: (h) => `${h}ஆம் இடம்`,
+    transitEffectAuspicious: "சுப பலன்",
+    transitEffectChallenging: "சவால்",
+    shastricAnalysisBadge: "சாஸ்திர ரீதியான ஆய்வு",
+    clinicalChikitsaBadge: "சாஸ்திரோக்த சிகிச்சை முறை",
+    firebaseSyncBadge: "🔥 கிளவுட் ஒத்திசைவு",
+    templeSealBadge: "கோகர்ண சன்னிதான முத்திரை",
+    analyzingNatalSubtitle: "ஜாதக கிரக நிலை மற்றும் திசா காலத்திற்கு ஏற்ப ஆழமான சாஸ்திர பகுப்பாய்வு நடைபெறுகிறது."
   },
   en: {
     headerTitle: "Natal Kundali Astrological Remedy & Mind Pacification Report",
@@ -833,8 +893,69 @@ export const REMEDY_VIEW_I18N: Record<SupportedLanguage, {
     prescriptionPathyaTitle: "Prescribed Pathya (Strict 15-20 Days):",
     prescriptionApathyaTitle: "Strictly Prohibited Apathya (Avoid Completely):",
     prescriptionTimingTitle: "Sacred Chikitsa Kala, Direction & Asana:",
-    prescriptionProgressionTitle: "15 to 20-Day Measurable Relief Trajectory (Vedic Chikitsa Progression):"
+    prescriptionProgressionTitle: "15 to 20-Day Measurable Relief Trajectory (Vedic Chikitsa Progression):",
+    padaLabel: "Pada",
+    yogaLabel: "Yoga",
+    karanaLabel: "Karana",
+    elementalBalanceLabel: "Five Elements Balance Reason: ",
+    houseSuffix: (h) => `${h}th House`,
+    transitEffectAuspicious: "Auspicious",
+    transitEffectChallenging: "Challenging",
+    shastricAnalysisBadge: "100% Shastric Chart Analysis",
+    clinicalChikitsaBadge: "100% Shastric Clinical Chikitsa",
+    firebaseSyncBadge: "🔥 Cloud Synced",
+    templeSealBadge: "Gokarna Temple Seal",
+    analyzingNatalSubtitle: "Analyzing natal chart and transit periods with deep Shastric precision."
   }
+};
+
+export const PAKSHA_LOCALE: Record<"Shukla" | "Krishna", Record<SupportedLanguage, string>> = {
+  Shukla: {
+    kn: "ಶುಕ್ಲ ಪಕ್ಷ",
+    en: "Shukla Paksha",
+    hi: "शुक्ल पक्ष",
+    te: "శుక్ల పక్షం",
+    ta: "சுக்கில பக்ஷம்"
+  },
+  Krishna: {
+    kn: "ಕೃಷ್ಣ ಪಕ್ಷ",
+    en: "Krishna Paksha",
+    hi: "कृष्ण पक्ष",
+    te: "కృష్ణ పక్షం",
+    ta: "கிருஷ்ண பக்ஷம்"
+  }
+};
+
+export const TRANSIT_EFFECT_LOCALE: Record<"Benefic" | "Caution" | "Challenging", Record<SupportedLanguage, string>> = {
+  Benefic: {
+    kn: "ಶುಭ ಫಲ",
+    en: "Benefic",
+    hi: "शुभ फल",
+    te: "శుభ ఫలితం",
+    ta: "சுப பலன்"
+  },
+  Caution: {
+    kn: "ಎಚ್ಚರಿಕೆ",
+    en: "Caution",
+    hi: "सावधानी",
+    te: "జాగ్రత్త",
+    ta: "எச்சரிக்கை"
+  },
+  Challenging: {
+    kn: "ಸವಾಲು / ಪರೀಕ್ಷೆ",
+    en: "Challenging",
+    hi: "चुनौतीपूर्ण",
+    te: "సవాలు",
+    ta: "சவால்"
+  }
+};
+
+export const TATVA_LOCALE: Record<string, Record<SupportedLanguage, string>> = {
+  Earth: { kn: "ಪೃಥ್ವಿ", en: "Earth", hi: "पृथ्वी", te: "పృథ్వి", ta: "நிலம்" },
+  Water: { kn: "ಜಲ", en: "Water", hi: "जल", te: "జలం", ta: "நீர்" },
+  Fire: { kn: "ಅಗ್ನಿ", en: "Fire", hi: "अग्नि", te: "అग्नि", ta: "நெருப்பு" },
+  Air: { kn: "ವಾಯು", en: "Air", hi: "वायु", te: "వాయువు", ta: "காற்று" },
+  Ether: { kn: "ಆಕಾಶ", en: "Ether", hi: "आकाश", te: "ఆకాశం", ta: "ஆகாயம்" }
 };
 
 function formatDevoteeNameForLanguage(name: string, targetLang: string): string {
@@ -1020,6 +1141,13 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
   const displayDevoteeName = useMemo(() => formatDevoteeNameForLanguage(devoteeName, selectedLang), [devoteeName, selectedLang]);
   const displayGotra = useMemo(() => gotra ? formatDevoteeNameForLanguage(gotra, selectedLang) : "", [gotra, selectedLang]);
 
+  const mandalaVrata = useMemo(() => {
+    if (mandalaVrataSadhana) return mandalaVrataSadhana;
+    const cat = primaryStruggle?.category || "anger_temper";
+    const catGraha = (planetaryStrengthRemedies?.exaltedPlanets[0]?.graha || "Jupiter") as any;
+    return computeMandalaVrataSadhana(cat, catGraha, 0, devoteeName, gotra);
+  }, [mandalaVrataSadhana, primaryStruggle, planetaryStrengthRemedies, devoteeName, gotra]);
+
   const currentStotra = personalizedStotras.find((s) => s.id === activeStotraId) || personalizedStotras[0];
 
   const getShlokaByLang = (st: typeof currentStotra) => {
@@ -1040,8 +1168,8 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
   };
 
   const handleCopySankalpa = () => {
-    if (!mandalaVrataSadhana?.sankalpaDeclaration) return;
-    const text = mandalaVrataSadhana.sankalpaDeclaration[selectedLang] || mandalaVrataSadhana.sankalpaDeclaration.kn;
+    if (!mandalaVrata?.sankalpaDeclaration) return;
+    const text = mandalaVrata.sankalpaDeclaration[selectedLang] || mandalaVrata.sankalpaDeclaration.kn;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
       setSankalpaCopied(true);
@@ -1140,9 +1268,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                       : "Synthesizing Divine Astrological Narration..."}
             </h4>
             <p className="text-[11px] text-amber-200">
-              {selectedLang === "kn"
-                ? "ಜಾತಕದ ಗ್ರಹಸ್ಥಿತಿ ಮತ್ತು ದಶಾ ಕಾಲಾವಧಿಗೆ ಅನುಗುಣವಾಗಿ ನಿಖರ ಶಾಸ್ತ್ರೋಕ್ತ ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ."
-                : "Analyzing natal chart and transit periods with deep Shastric precision."}
+              {t.analyzingNatalSubtitle}
             </p>
           </div>
         </div>
@@ -1164,7 +1290,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               </h3>
             </div>
             <span className="text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
-              100% Shastric Chart Analysis
+              {t.shastricAnalysisBadge}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-amber-100/95 leading-relaxed font-normal whitespace-pre-line">
@@ -1325,7 +1451,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                   <span>{t.lifeTurnaroundTitle}</span>
                 </div>
                 <span className="rounded-full bg-amber-600 text-white text-[10px] font-black px-2.5 py-0.5 shadow-xs">
-                  {selectedLang === "kn" ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || lifeTurnaroundTiming.timelineKn)}
+                  {lifeTurnaroundTiming.timeline?.[selectedLang] || (selectedLang === "kn" ? lifeTurnaroundTiming.timelineKn : (lifeTurnaroundTiming.timelineEn || lifeTurnaroundTiming.timelineKn))}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -1334,7 +1460,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                     {t.catalystGrahaTitle}
                   </span>
                   <p className="text-xs font-black text-amber-950">
-                    {selectedLang === "kn" ? lifeTurnaroundTiming.catalystGrahaKn : (lifeTurnaroundTiming.catalystGrahaEn || lifeTurnaroundTiming.catalystGrahaKn)}
+                    {lifeTurnaroundTiming.catalystGraha?.[selectedLang] || (selectedLang === "kn" ? lifeTurnaroundTiming.catalystGrahaKn : (lifeTurnaroundTiming.catalystGrahaEn || lifeTurnaroundTiming.catalystGrahaKn))}
                   </p>
                 </div>
                 <div className="rounded-lg bg-white/90 border border-amber-200 p-2.5 space-y-1">
@@ -1342,13 +1468,13 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                     {t.targetedSevaTitle}
                   </span>
                   <p className="text-xs font-black text-amber-950">
-                    {selectedLang === "kn" ? lifeTurnaroundTiming.specificSevaKn : (lifeTurnaroundTiming.specificSevaEn || lifeTurnaroundTiming.specificSevaKn)}
+                    {lifeTurnaroundTiming.specificSeva?.[selectedLang] || (selectedLang === "kn" ? lifeTurnaroundTiming.specificSevaKn : (lifeTurnaroundTiming.specificSevaEn || lifeTurnaroundTiming.specificSevaKn))}
                   </p>
                 </div>
               </div>
               <div className="text-[11px] text-amber-950 leading-relaxed font-medium bg-white/70 rounded-lg p-2.5 border border-amber-200/80">
                 <span className="font-bold text-amber-900">{t.mechanismTitle}</span>
-                {selectedLang === "kn" ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || lifeTurnaroundTiming.breakthroughMechanismKn)}
+                {lifeTurnaroundTiming.breakthroughMechanism?.[selectedLang] || (selectedLang === "kn" ? lifeTurnaroundTiming.breakthroughMechanismKn : (lifeTurnaroundTiming.breakthroughMechanismEn || lifeTurnaroundTiming.breakthroughMechanismKn))}
               </div>
 
               {/* Astrological Reason if provided */}
@@ -1434,7 +1560,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-1">
                   <span className="font-black text-rose-950 flex items-center gap-1.5">
                     <span>🚧</span>
-                    <span>{t.badhakaBadge} ({badhakaAnalysis.modalityLabel[selectedLang] || badhakaAnalysis.modalityLabel.kn} - {badhakaAnalysis.badhakaHouse}th House)</span>
+                    <span>{t.badhakaBadge} ({badhakaAnalysis.modalityLabel[selectedLang] || badhakaAnalysis.modalityLabel.kn} - {t.houseSuffix(badhakaAnalysis.badhakaHouse)})</span>
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-200 text-rose-900 border border-rose-300">
                     {badhakaAnalysis.badhakeshName[selectedLang] || badhakaAnalysis.badhakeshName.kn} ({badhakaAnalysis.badhakaSignName[selectedLang] || badhakaAnalysis.badhakaSignName.kn})
@@ -1541,7 +1667,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               </p>
             </div>
             <span className="rounded-full bg-emerald-800 text-emerald-50 text-[10px] font-black px-3 py-1 shadow-xs tracking-wider uppercase self-start sm:self-auto">
-              100% Shastric Clinical Chikitsa
+              {t.clinicalChikitsaBadge}
             </span>
           </div>
 
@@ -1743,7 +1869,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               </p>
             </div>
             <span className="rounded-full bg-amber-800 text-amber-50 px-3 py-1 text-xs font-bold shrink-0 self-start sm:self-auto">
-              {panchangaRemedies.nakshatraRemedy.nakshatraName[selectedLang] || panchangaRemedies.nakshatraRemedy.nakshatraName.kn} (ಪಾದ {panchangaRemedies.nakshatraRemedy.pada})
+              {panchangaRemedies.nakshatraRemedy.nakshatraName[selectedLang] || panchangaRemedies.nakshatraRemedy.nakshatraName.kn} ({t.padaLabel} {panchangaRemedies.nakshatraRemedy.pada})
             </span>
           </div>
 
@@ -1751,11 +1877,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
           {panchangaRemedies.elementalBalanceReason && (
             <div className="rounded-xl bg-amber-100/70 border border-amber-300 p-2.5 text-xs text-amber-950 font-medium leading-relaxed">
               <span className="font-bold text-amber-900">
-                🌀 {selectedLang === "kn" ? "ಪಂಚಮಹಾಭೂತ ಸಮತೋಲನ ಕಾರಣ: " :
-                  selectedLang === "hi" ? "पंचमहाभूत संतुलन कारण: " :
-                    selectedLang === "te" ? "పంచమహాభూత సమతుల్య కారణం: " :
-                      selectedLang === "ta" ? "பஞ்சமகாபூத சமநிலை காரணம்: " :
-                        "Five Elements Balance Reason: "}
+                🌀 {t.elementalBalanceLabel}
               </span>
               {panchangaRemedies.elementalBalanceReason[selectedLang] || panchangaRemedies.elementalBalanceReason.kn}
             </div>
@@ -1807,7 +1929,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                   <span>{t.tithiVrataTitle}</span>
                 </div>
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
-                  {panchangaRemedies.tithiRemedy.paksha} Paksha
+                  {PAKSHA_LOCALE[panchangaRemedies.tithiRemedy.paksha]?.[selectedLang] || `${panchangaRemedies.tithiRemedy.paksha} Paksha`}
                 </span>
               </div>
               <div className="text-amber-900 font-bold text-sm">
@@ -1839,10 +1961,10 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                 </div>
                 <div className="flex gap-2">
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${panchangaRemedies.yogaRemedy.isAuspicious ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
-                    ಯೋಗ: {panchangaRemedies.yogaRemedy.yogaName[selectedLang] || panchangaRemedies.yogaRemedy.yogaName.kn}
+                    {t.yogaLabel}: {panchangaRemedies.yogaRemedy.yogaName[selectedLang] || panchangaRemedies.yogaRemedy.yogaName.kn}
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-800">
-                    ಕರಣ: {panchangaRemedies.karanaRemedy.karanaName[selectedLang] || panchangaRemedies.karanaRemedy.karanaName.kn} ({panchangaRemedies.karanaRemedy.tatva})
+                    {t.karanaLabel}: {panchangaRemedies.karanaRemedy.karanaName[selectedLang] || panchangaRemedies.karanaRemedy.karanaName.kn} ({TATVA_LOCALE[panchangaRemedies.karanaRemedy.tatva]?.[selectedLang] || panchangaRemedies.karanaRemedy.tatva})
                   </span>
                 </div>
               </div>
@@ -1944,6 +2066,298 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
           lang={selectedLang as SevaLang}
         />
       </div>
+
+      {/* ====================================================================== */}
+      {/* 5B. 45-DAY MANDALA VRATA SADHANA & INTERACTIVE PROGRESS TRACKER        */}
+      {/* ====================================================================== */}
+      {mandalaVrata && (
+        <Card className="border-2 border-amber-400 bg-gradient-to-b from-amber-50/60 via-white to-amber-50/40 p-5 shadow-lg space-y-4 rounded-2xl">
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-amber-300/80 pb-3 gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🪔</span>
+                <h3 className="font-serif text-base sm:text-lg font-black text-amber-950">
+                  {t.mandalaSectionTitle}
+                </h3>
+              </div>
+              <p className="text-xs text-amber-900 font-semibold mt-0.5">
+                {t.mandalaSubtitle}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="rounded-full bg-amber-800 text-amber-100 text-[10px] font-black px-3 py-1 shadow-xs tracking-wider uppercase">
+                {mandalaVrata.durationLabel[selectedLang] || mandalaVrata.durationLabel.kn}
+              </span>
+            </div>
+          </div>
+
+          {/* 3-Phase Roadmap Tabs & Cards */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                <span>🌟</span>
+                <span>{selectedLang === "kn" ? "೩-ಹಂತದ ಜೀವನ ಪರಿವರ್ತನಾ ಕಾಲಾವಧಿ" : selectedLang === "hi" ? "३-चरणीय जीवन परिवर्तन समयावधि" : selectedLang === "te" ? "3-దశల జీవన పరివర్తన కాలక్రమం" : selectedLang === "ta" ? "3-படிநிலை வாழ்வு மாற்ற காலக்கோடு" : "Three-Phase Life Transformation Roadmap"}</span>
+              </h4>
+              <div className="flex gap-1">
+                {([1, 2, 3] as const).map((pNum) => (
+                  <button
+                    key={pNum}
+                    type="button"
+                    data-testid={`mandala-phase-btn-${pNum}`}
+                    onClick={() => setActiveMandalaPhase(pNum)}
+                    className={`px-2.5 py-1 text-[11px] font-extrabold rounded-lg transition cursor-pointer ${
+                      activeMandalaPhase === pNum
+                        ? "bg-amber-600 text-white shadow-xs"
+                        : "bg-amber-100/80 text-amber-900 hover:bg-amber-200"
+                    }`}
+                  >
+                    {selectedLang === "kn" ? `ಹಂತ ${pNum}` : selectedLang === "hi" ? `चरण ${pNum}` : selectedLang === "te" ? `దశ ${pNum}` : selectedLang === "ta" ? `நிலை ${pNum}` : `Phase ${pNum}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Phase Card */}
+            {(() => {
+              const pData = activeMandalaPhase === 1
+                ? mandalaVrata.threePhaseRoadmap.phase1
+                : activeMandalaPhase === 2
+                  ? mandalaVrata.threePhaseRoadmap.phase2
+                  : mandalaVrata.threePhaseRoadmap.phase3;
+              return (
+                <div className="rounded-xl border-2 border-amber-300 bg-amber-50/70 p-4 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-1 border-b border-amber-200 pb-1.5">
+                    <span className="font-black text-amber-950 text-xs sm:text-sm">
+                      {pData.phaseTitle[selectedLang] || pData.phaseTitle.kn}
+                    </span>
+                    <span className="rounded-full bg-amber-200 text-amber-900 text-[10px] font-black px-2.5 py-0.5">
+                      {pData.daysRange[selectedLang] || pData.daysRange.kn}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs pt-1">
+                    <div className="rounded-lg bg-white/90 p-2.5 border border-amber-200 space-y-0.5">
+                      <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wide block">
+                        🎯 {selectedLang === "kn" ? "ಸಾಧನಾ ಕೇಂದ್ರ:" : selectedLang === "hi" ? "साधना केंद्र:" : selectedLang === "te" ? "సాధనా కేంద్రం:" : selectedLang === "ta" ? "சாதனை நோக்கம்:" : "Core Focus:"}
+                      </span>
+                      <p className="text-[11px] text-amber-950 font-bold leading-snug">
+                        {pData.focusArea[selectedLang] || pData.focusArea.kn}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-white/90 p-2.5 border border-amber-200 space-y-0.5">
+                      <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wide block">
+                        🌱 {selectedLang === "kn" ? "ಅನುಭವಕ್ಕೆ ಬರುವ ಪರಿವರ್ತನೆ:" : selectedLang === "hi" ? "अनुभवजन्य परिवर्तन:" : selectedLang === "te" ? "అనుభవపూర్వక ఉపశమనం:" : selectedLang === "ta" ? "உணரக்கூடிய அமைதி:" : "Experiential Relief:"}
+                      </span>
+                      <p className="text-[11px] text-emerald-950 font-bold leading-snug">
+                        {pData.experientialRelief[selectedLang] || pData.experientialRelief.kn}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-white/90 p-2.5 border border-amber-200 space-y-0.5">
+                      <span className="text-[10px] font-bold text-indigo-800 uppercase tracking-wide block">
+                        ✨ {selectedLang === "kn" ? "ಆಂತರಿಕ ಜಾಗೃತಿ:" : selectedLang === "hi" ? "आंतरिक जागृति:" : selectedLang === "te" ? "అంతర్గత జాగృతి:" : selectedLang === "ta" ? "உள்ளுணர்வு விழிப்புணர்வு:" : "Subconscious Shift:"}
+                      </span>
+                      <p className="text-[11px] text-indigo-950 font-bold leading-snug">
+                        {pData.subconsciousShift[selectedLang] || pData.subconsciousShift.kn}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* 2-Column: Muhurtha & Setup + Japa Formula */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            {/* Muhurtha & Tara Bala Card */}
+            <div className="rounded-xl border border-amber-300 bg-white p-3.5 space-y-2 shadow-xs">
+              <div className="font-extrabold text-amber-950 text-xs flex items-center gap-1.5 border-b border-amber-200 pb-1.5">
+                <span>⭐</span>
+                <span>{t.muhurthaCardTitle}</span>
+              </div>
+              <div className="space-y-1.5 text-[11px]">
+                <div className="font-black text-amber-900 bg-amber-50/80 p-2 rounded-lg border border-amber-200">
+                  <span className="text-amber-800">{t.taraBalaRuleTitle}</span>{" "}
+                  {mandalaVrata.auspiciousStartMuhurtha.taraBalaCategory[selectedLang] || mandalaVrata.auspiciousStartMuhurtha.taraBalaCategory.kn}
+                </div>
+                <p className="text-slate-700 leading-snug">
+                  {mandalaVrata.auspiciousStartMuhurtha.taraBalaReason[selectedLang] || mandalaVrata.auspiciousStartMuhurtha.taraBalaReason.kn}
+                </p>
+                <div className="grid grid-cols-2 gap-1.5 pt-1 font-bold text-amber-950 text-[10.5px]">
+                  <div>📅 <span className="text-amber-800">{t.auspiciousWeekdaysTitle}</span> {mandalaVrata.auspiciousStartMuhurtha.auspiciousWeekday[selectedLang] || mandalaVrata.auspiciousStartMuhurtha.auspiciousWeekday.kn}</div>
+                  <div>🌕 {mandalaVrata.auspiciousStartMuhurtha.tithiPakshaRecommendation[selectedLang] || mandalaVrata.auspiciousStartMuhurtha.tithiPakshaRecommendation.kn}</div>
+                  <div>⏰ {mandalaVrata.auspiciousStartMuhurtha.idealTimeWindow[selectedLang] || mandalaVrata.auspiciousStartMuhurtha.idealTimeWindow.kn}</div>
+                  <div>🧭 {mandalaVrata.auspiciousStartMuhurtha.facingDirection[selectedLang] || mandalaVrata.auspiciousStartMuhurtha.facingDirection.kn}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Japa Formula & Mala Rules */}
+            <div className="rounded-xl border border-amber-300 bg-white p-3.5 space-y-2 shadow-xs">
+              <div className="font-extrabold text-amber-950 text-xs flex items-center justify-between border-b border-amber-200 pb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <span>📿</span>
+                  <span>{t.japaFormulaCardTitle}</span>
+                </span>
+                <span className="rounded-full bg-emerald-100 text-emerald-900 px-2 py-0.5 text-[10px] font-extrabold border border-emerald-300">
+                  {t.japaFormulaCount}
+                </span>
+              </div>
+              <div className="space-y-1.5 text-[11px]">
+                <div className="font-black text-emerald-950 bg-emerald-50/70 p-2 rounded-lg border border-emerald-200">
+                  {mandalaVrata.japaPurashcharanaFormula.dailyCountFormatted[selectedLang] || mandalaVrata.japaPurashcharanaFormula.dailyCountFormatted.kn}
+                </div>
+                <div className="font-bold text-amber-900">
+                  ✨ {mandalaVrata.japaPurashcharanaFormula.totalMandalaCountFormatted[selectedLang] || mandalaVrata.japaPurashcharanaFormula.totalMandalaCountFormatted.kn}
+                </div>
+                <div className="font-bold text-amber-950">
+                  • {t.malaRuleTitle} {mandalaVrata.japaPurashcharanaFormula.prescribedMala[selectedLang] || mandalaVrata.japaPurashcharanaFormula.prescribedMala.kn}
+                </div>
+                <p className="text-[10.5px] text-slate-700 leading-snug">
+                  {mandalaVrata.japaPurashcharanaFormula.shastricRule[selectedLang] || mandalaVrata.japaPurashcharanaFormula.shastricRule.kn}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sattvic Pathya & Niyama Card */}
+          <div className="rounded-xl border border-amber-300 bg-amber-50/50 p-4 space-y-2.5 text-xs">
+            <div className="font-extrabold text-amber-950 flex items-center gap-1.5 border-b border-amber-200 pb-1.5">
+              <span>🥗</span>
+              <span>{t.pathyaCardTitle}</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px]">
+              <div className="space-y-1">
+                <span className="font-black text-amber-900 block">{t.aharaTitle}</span>
+                <ul className="space-y-1 text-slate-700 font-medium">
+                  {mandalaVrata.sattvicPathyaAndNiyama.aharaRules.map((r, idx) => (
+                    <li key={idx} className="flex items-start gap-1">
+                      <span className="text-emerald-700 font-bold">•</span>
+                      <span>{r[selectedLang] || r.kn}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="space-y-1">
+                <span className="font-black text-amber-900 block">{t.acharaTitle}</span>
+                <ul className="space-y-1 text-slate-700 font-medium">
+                  {mandalaVrata.sattvicPathyaAndNiyama.acharaRules.map((r, idx) => (
+                    <li key={idx} className="flex items-start gap-1">
+                      <span className="text-indigo-700 font-bold">•</span>
+                      <span>{r[selectedLang] || r.kn}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="space-y-1">
+                <span className="font-black text-amber-900 block">{t.weeklyDanaTitle}</span>
+                <p className="text-slate-700 font-medium bg-white/80 p-2 rounded-lg border border-amber-200 leading-snug">
+                  {mandalaVrata.sattvicPathyaAndNiyama.weeklyDaana[selectedLang] || mandalaVrata.sattvicPathyaAndNiyama.weeklyDaana.kn}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 5-Step Daily Sadhana Checklist */}
+          <div className="rounded-xl border border-amber-300 bg-white p-3.5 space-y-2 text-xs">
+            <span className="font-extrabold text-amber-950 flex items-center gap-1.5">
+              <span>📋</span>
+              <span>{t.dailyChecklistTitle}</span>
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-[10.5px]">
+              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200 font-medium text-amber-950">
+                1️⃣ {t.dailyCheckItem1}
+              </div>
+              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200 font-medium text-amber-950">
+                2️⃣ {t.dailyCheckItem2}
+              </div>
+              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200 font-medium text-amber-950">
+                3️⃣ {t.dailyCheckItem3}
+              </div>
+              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200 font-medium text-amber-950">
+                4️⃣ {t.dailyCheckItem4}
+              </div>
+              <div className="rounded-lg bg-amber-50/70 p-2 border border-amber-200 font-medium text-amber-950">
+                5️⃣ {t.dailyCheckItem5}
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive 45-Day Daily Progress Tracker */}
+          <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-r from-amber-950 via-stone-900 to-amber-950 p-4 sm:p-5 text-white shadow-xl space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-600/60 pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📅</span>
+                <h4 className="font-serif text-xs sm:text-sm font-black text-amber-200">
+                  {t.trackerCardTitle}
+                </h4>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-amber-300">
+                  {t.trackerProgressLabel} {completedDays.length} / 45 {t.daysCompletedSuffix} ({completionPercent}%)
+                </span>
+                <span className="rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[10px] font-black px-2.5 py-0.5">
+                  {completionPercent === 100 ? "🎉 SIDDHI" : `${completionPercent}%`}
+                </span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="h-2.5 w-full rounded-full bg-stone-800 overflow-hidden border border-amber-600/40">
+              <div
+                className="h-full bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 transition-all duration-300"
+                style={{ width: `${completionPercent}%` }}
+              />
+            </div>
+
+            <p className="text-[10px] text-amber-200/80 italic">
+              💡 {t.clickToToggleHelp}
+            </p>
+
+            {/* 45-Day Grid */}
+            <div className="grid grid-cols-9 sm:grid-cols-15 gap-1.5 pt-1">
+              {Array.from({ length: 45 }, (_, i) => i + 1).map((dayNum) => {
+                const isDone = completedDays.includes(dayNum);
+                return (
+                  <button
+                    key={dayNum}
+                    type="button"
+                    data-testid={`mandala-day-${dayNum}`}
+                    onClick={() => toggleDayCompletion(dayNum)}
+                    className={`h-8 sm:h-9 rounded-lg font-mono font-black text-[11px] flex flex-col items-center justify-center transition active:scale-90 cursor-pointer ${
+                      isDone
+                        ? "bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-sm border border-emerald-300"
+                        : "bg-stone-800 text-amber-200/80 border border-stone-700 hover:bg-stone-700"
+                    }`}
+                  >
+                    <span>{dayNum}</span>
+                    <span className="text-[8px] leading-none">{isDone ? "✓" : "○"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sacred Sankalpa Resolution Declaration with Copy Action */}
+          <div className="rounded-xl bg-amber-950 border-2 border-amber-400 p-4 text-white space-y-2 shadow-inner">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-700/60 pb-2">
+              <span className="text-xs font-black text-amber-200 flex items-center gap-1.5 uppercase tracking-wide">
+                <span>🕉️</span>
+                <span>{t.sankalpaBoxTitle}</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleCopySankalpa}
+                className="px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 active:scale-95 text-amber-950 font-black text-[11px] shadow-sm transition cursor-pointer"
+              >
+                {sankalpaCopied ? t.copiedMsg : t.copySankalpaBtn}
+              </button>
+            </div>
+            <p className="font-serif text-xs sm:text-sm text-amber-100/95 leading-relaxed italic text-center py-1">
+              "{mandalaVrata.sankalpaDeclaration[selectedLang] || mandalaVrata.sankalpaDeclaration.kn}"
+            </p>
+          </div>
+        </Card>
+      )}
 
       {/* ====================================================================== */}
       {/* 6. GOCHARA (TRANSIT) & ACTIVE DASHA-BHUKTI SHANTI                     */}
@@ -2049,7 +2463,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
                   {th.title[selectedLang] || th.title.kn}
                 </span>
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-white border">
-                  {th.effect}
+                  {TRANSIT_EFFECT_LOCALE[th.effect]?.[selectedLang] || th.effect}
                 </span>
               </div>
               <p className="text-slate-700 text-[11px] leading-snug">{th.description[selectedLang] || th.description.kn}</p>
@@ -2230,7 +2644,7 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
               <span>{t.priestSelectionTitle}</span>
             </div>
             <span className="text-[10px] text-amber-300 bg-amber-900/80 px-2.5 py-1 rounded-full border border-amber-500/40 font-bold self-start sm:self-auto">
-              🔥 Firebase Cloud Synced
+              {t.firebaseSyncBadge}
             </span>
           </div>
 
@@ -2339,10 +2753,9 @@ export const KundliRemedyView: React.FC<KundliRemedyViewProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-col items-center justify-center shrink-0 border-2 border-dashed border-amber-400 rounded-full w-16 h-16 bg-amber-800/40 text-[8px] font-black text-amber-200 text-center">
+          <div className="flex flex-col items-center justify-center shrink-0 border-2 border-dashed border-amber-400 rounded-full w-16 h-16 bg-amber-800/40 text-[8px] font-black text-amber-200 text-center px-1">
             <span className="text-base">🕉️</span>
-            <span>GOKARNA</span>
-            <span>SEAL</span>
+            <span>{t.templeSealBadge}</span>
           </div>
         </div>
       </Card>

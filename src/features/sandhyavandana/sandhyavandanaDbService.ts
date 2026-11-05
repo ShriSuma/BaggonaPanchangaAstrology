@@ -25,14 +25,61 @@ function generateChecksum(input: string): string {
   return Math.abs(hash).toString(36);
 }
 
+function toBase64Url(str: string): string {
+  try {
+    const bytes = new TextEncoder().encode(str);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) {
+      bin += String.fromCharCode(bytes[i]);
+    }
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  } catch {
+    return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+}
+
+function fromBase64Url(str: string): string {
+  try {
+    let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4 !== 0) {
+      base64 += "=";
+    }
+    const bin = atob(base64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) {
+      bytes[i] = bin.charCodeAt(i);
+    }
+    return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  } catch {
+    let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4 !== 0) {
+      base64 += "=";
+    }
+    return atob(base64);
+  }
+}
+
 /**
- * Encodes session ID and expiry timestamp into a URL-safe cryptographic token.
+ * Encodes session ID, expiry timestamp, and devotee metadata into a URL-safe cryptographic token.
  */
-export function encodeSecureSandhyavandanaToken(sessionId: string, expiresAt: number | string): string {
+export function encodeSecureSandhyavandanaToken(
+  sessionId: string,
+  expiresAt: number | string,
+  devoteeName?: string,
+  devoteeGotraId?: string,
+  preferredPeriod?: string
+): string {
   const expiresAtMs = typeof expiresAt === "number" ? expiresAt : new Date(expiresAt).getTime();
-  const payload = `${sessionId}|${expiresAtMs}`;
-  const encodedPayload = btoa(payload).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  const checksum = generateChecksum(payload);
+  const obj = {
+    sid: sessionId,
+    exp: expiresAtMs,
+    ...(devoteeName ? { dn: devoteeName.trim() } : {}),
+    ...(devoteeGotraId ? { g: devoteeGotraId.trim() } : {}),
+    ...(preferredPeriod ? { p: preferredPeriod.trim() } : {})
+  };
+  const jsonStr = JSON.stringify(obj);
+  const checksum = generateChecksum(jsonStr);
+  const encodedPayload = toBase64Url(jsonStr);
   return `bgn_sv_${encodedPayload}.${checksum}`;
 }
 
@@ -44,6 +91,9 @@ export function decodeSecureSandhyavandanaToken(token: string): {
   sessionId: string | null;
   isExpired: boolean;
   expiresAt: string | null;
+  devoteeName?: string;
+  devoteeGotraId?: string;
+  preferredPeriod?: string;
 } {
   if (!token || !token.startsWith("bgn_sv_")) {
     return { isValid: false, sessionId: null, isExpired: false, expiresAt: null };
@@ -57,20 +107,37 @@ export function decodeSecureSandhyavandanaToken(token: string): {
   const [encodedPayload, providedChecksum] = parts;
 
   try {
-    let base64 = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
-    while (base64.length % 4 !== 0) {
-      base64 += "=";
-    }
-    const decodedPayload = atob(base64);
-    const [sessionId, expiresAtMsStr] = decodedPayload.split("|");
+    const rawPayload = fromBase64Url(encodedPayload);
 
+    // 1. Modern JSON format: {"sid":"...","exp":...,"dn":"..."}
+    if (rawPayload.startsWith("{")) {
+      const calculatedChecksum = generateChecksum(rawPayload);
+      if (calculatedChecksum !== providedChecksum) {
+        return { isValid: false, sessionId: null, isExpired: false, expiresAt: null };
+      }
+      const obj = JSON.parse(rawPayload);
+      const expiresAtMs = typeof obj.exp === "number" ? obj.exp : Date.now() + THREE_MONTHS_MS;
+      const isExpired = Date.now() > expiresAtMs;
+      return {
+        isValid: true,
+        sessionId: obj.sid || "sv_session",
+        isExpired,
+        expiresAt: new Date(expiresAtMs).toISOString(),
+        devoteeName: obj.dn,
+        devoteeGotraId: obj.g,
+        preferredPeriod: obj.p
+      };
+    }
+
+    // 2. Legacy Pipe format: `${sessionId}|${expiresAtMs}`
+    const [sessionId, expiresAtMsStr] = rawPayload.split("|");
     if (!sessionId || !expiresAtMsStr) {
       return { isValid: false, sessionId: null, isExpired: false, expiresAt: null };
     }
 
-    const calculatedChecksum = generateChecksum(decodedPayload);
+    const calculatedChecksum = generateChecksum(rawPayload);
     if (calculatedChecksum !== providedChecksum) {
-      return { isValid: false, sessionId: null, isExpired: false, expiresAt: null }; // Tampered link!
+      return { isValid: false, sessionId: null, isExpired: false, expiresAt: null };
     }
 
     const expiresAtMs = parseInt(expiresAtMsStr, 10);
@@ -125,7 +192,13 @@ export async function createSandhyavandanaSession(
   const now = new Date();
   const expiresAtDate = new Date(now.getTime() + THREE_MONTHS_MS);
   const sessionId = `bgn_sv_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
-  const token = encodeSecureSandhyavandanaToken(sessionId, expiresAtDate.getTime());
+  const token = encodeSecureSandhyavandanaToken(
+    sessionId,
+    expiresAtDate.getTime(),
+    input.devoteeName,
+    input.devoteeGotraId,
+    input.preferredPeriod
+  );
 
   const baseUrl = typeof window !== "undefined" && window.location?.origin
     ? window.location.origin

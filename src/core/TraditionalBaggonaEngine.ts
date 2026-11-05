@@ -94,6 +94,11 @@ export interface TraditionalBaggonaPanchanga {
   majorityTithi?: string;
   majorityTithiKn?: string;
   detailedTithi?: DetailedTithiInfo;
+  hora?: string;
+  horaKn?: string;
+  hora5L?: Record<string, string>;
+  horaLord?: string;
+  horaNumber?: number;
 }
 
 const TITHIS_EN = [
@@ -536,6 +541,59 @@ export function calculateTraditionalBaggona(
   const majorityTithi = detailedTithi.majorityTithiName.en;
   const majorityTithiKn = detailedTithi.majorityTithiName.kn;
 
+  // Calculation of Janma Hora (Birth Planetary Hour)
+  const WEEKDAY_HORA_LORDS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
+  const CHALDEAN_HORA_ORDER = ["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"];
+
+  let horaIndex = 0;
+  const birthMs = birthUtc.getTime();
+  const srMs = sunriseUtc.getTime();
+  const ssMs = sunsetUtc.getTime();
+
+  if (birthMs >= srMs && birthMs < ssMs) {
+    const dayDuration = Math.max(1, ssMs - srMs);
+    const elapsed = Math.max(0, birthMs - srMs);
+    horaIndex = Math.min(11, Math.floor((elapsed / dayDuration) * 12));
+  } else {
+    let nextSunriseMs = srMs + 24 * 3600 * 1000;
+    if (scTimes && scTimes.sunrise) {
+      const nextDayUtc = new Date(noonUtc.getTime() + 24 * 60 * 60 * 1000);
+      const scNext = SunCalc.getTimes(nextDayUtc, latitude, longitude);
+      const jyotishNext = resolveSunTimesForJyotish({ sunrise: scNext.sunrise, sunset: scNext.sunset }, latitude, longitude, effectivePin);
+      if (jyotishNext.sunrise && !isNaN(jyotishNext.sunrise.getTime())) {
+        nextSunriseMs = jyotishNext.sunrise.getTime();
+      }
+    }
+    const nightDuration = Math.max(1, nextSunriseMs - ssMs);
+    let elapsed = 0;
+    if (birthMs >= ssMs) {
+      elapsed = birthMs - ssMs;
+    } else {
+      elapsed = Math.max(0, birthMs - (ssMs - 24 * 3600 * 1000));
+    }
+    horaIndex = 12 + Math.min(11, Math.floor((elapsed / nightDuration) * 12));
+  }
+
+  const dayLord = WEEKDAY_HORA_LORDS[wdIdx] || "Sun";
+  const chaldeanStartIdx = CHALDEAN_HORA_ORDER.indexOf(dayLord);
+  const currentChaldeanIdx = (chaldeanStartIdx + horaIndex) % 7;
+  const horaLord = CHALDEAN_HORA_ORDER[currentChaldeanIdx] || "Jupiter";
+
+  const HORA_MAP_5L: Record<string, { en: string; kn: string; hi: string; te: string; ta: string }> = {
+    Sun: { en: "Sun Hora", kn: "ರವಿ ಹೋರೆ", hi: "सूर्य होरा", te: "సూర్య హోర", ta: "சூரிய ஓரை" },
+    Moon: { en: "Moon Hora", kn: "ಚಂದ್ರ ಹೋರೆ", hi: "चन्द्र होरा", te: "చంద్ర హోర", ta: "சந்திர ஓரை" },
+    Mars: { en: "Mars Hora", kn: "ಕುಜ ಹೋರೆ", hi: "मंगल होरा", te: "కుజ హోర", ta: "செவ்வாய் ஓரை" },
+    Mercury: { en: "Mercury Hora", kn: "ಬುಧ ಹೋರೆ", hi: "बुध होरा", te: "ಬುಧ హోర", ta: "புதன் ஓரை" },
+    Jupiter: { en: "Jupiter Hora", kn: "ಗುರು ಹೋರೆ", hi: "गुरु होरा", te: "గురు హోర", ta: "குரு ஓரை" },
+    Venus: { en: "Venus Hora", kn: "ಶುಕ್ರ ಹೋರೆ", hi: "शुक्र होरा", te: "శుక్ర హోర", ta: "சுக்கிர ஓரை" },
+    Saturn: { en: "Saturn Hora", kn: "ಶನಿ ಹೋರೆ", hi: "शनि होरा", te: "శని హోర", ta: "சனி ஓரை" }
+  };
+
+  const hora5L = HORA_MAP_5L[horaLord] || HORA_MAP_5L.Sun!;
+  const hora = hora5L.en;
+  const horaKn = hora5L.kn;
+  const horaNumber = horaIndex + 1;
+
   return {
     shakaYear,
     samvatsara,
@@ -602,6 +660,11 @@ export function calculateTraditionalBaggona(
     tithiNextEndTime,
     majorityTithi,
     majorityTithiKn,
-    detailedTithi
+    detailedTithi,
+    hora,
+    horaKn,
+    hora5L,
+    horaLord,
+    horaNumber
   };
 }

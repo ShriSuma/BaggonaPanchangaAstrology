@@ -3,6 +3,8 @@ import districts from "../data/india-districts.json";
 import villages from "../data/india-villages.json";
 import { PINCODE_FALLBACK, staticVillagesByPincode } from "../data/pincodeFallback";
 import { cacheGeocode, getGeocode } from "../db/indexedDb";
+import { findOfflineIndianCityOrPin, OFFLINE_INDIAN_CITIES, type OfflineCityEntry } from "../data/offlineCityPincodeDb";
+import { findOfflineInternationalCity, OFFLINE_INTERNATIONAL_CITIES, type InternationalCityEntry } from "../data/internationalCitiesDb";
 
 export type State = {
   code: string;
@@ -474,6 +476,276 @@ const PIN_PREFIX_CENTROIDS: Record<string, PostalCentroid> = {
   "85": { lat: 25.7711, lng: 87.4704, stateCode: "BR", regionName: "Purnia / Seemanchal" }
 };
 
+export interface StateRegionalCoordinate {
+  lat: number;
+  lng: number;
+  stateCode: string;
+  stateName: string;
+  regionName: string;
+}
+
+export const STATE_REGIONAL_COORDINATES: Record<string, {
+  default: StateRegionalCoordinate;
+  subRegions: Array<{
+    keywords: string[];
+    coord: StateRegionalCoordinate;
+  }>;
+}> = {
+  KA: {
+    default: { lat: 14.4644, lng: 75.9218, stateCode: "KA", stateName: "Karnataka", regionName: "Central Karnataka / Davanagere" },
+    subRegions: [
+      {
+        keywords: ["south", "bengaluru", "bangalore", "mysore", "mysuru", "mandya", "hassan", "chamarajanagar", "kolar", "tumkur", "ramanagara"],
+        coord: { lat: 12.9716, lng: 77.5946, stateCode: "KA", stateName: "Karnataka", regionName: "South Karnataka / Bengaluru" }
+      },
+      {
+        keywords: ["coast", "coastal", "mangalore", "mangaluru", "udupi", "karwar", "uttara kannada", "dakshina kannada", "honnavar", "kumta", "bhatkal", "ankola", "gokarna"],
+        coord: { lat: 14.5479, lng: 74.3188, stateCode: "KA", stateName: "Karnataka", regionName: "Coastal Karnataka / Gokarna" }
+      },
+      {
+        keywords: ["north", "belagavi", "belgaum", "hubli", "hubballi", "dharwad", "kalaburagi", "gulbarga", "bidar", "raichur", "bagalkot", "vijayapura", "bijapur", "yadgir"],
+        coord: { lat: 15.8497, lng: 74.4977, stateCode: "KA", stateName: "Karnataka", regionName: "North Karnataka / Belagavi" }
+      },
+      {
+        keywords: ["central", "davanagere", "shivamogga", "shimoga", "chitradurga", "chikkamagaluru", "ballari", "bellary", "koppal", "haveri"],
+        coord: { lat: 14.4644, lng: 75.9218, stateCode: "KA", stateName: "Karnataka", regionName: "Central Karnataka / Davanagere" }
+      }
+    ]
+  },
+  TN: {
+    default: { lat: 10.7905, lng: 78.7047, stateCode: "TN", stateName: "Tamil Nadu", regionName: "Central Tamil Nadu / Tiruchirappalli" },
+    subRegions: [
+      {
+        keywords: ["north", "chennai", "madras", "tiruvallur", "kanchipuram", "chengalpattu", "arakkonam"],
+        coord: { lat: 13.0827, lng: 80.2707, stateCode: "TN", stateName: "Tamil Nadu", regionName: "North Tamil Nadu / Chennai" }
+      },
+      {
+        keywords: ["west", "kongu", "coimbatore", "kovai", "tiruppur", "erode", "salem", "namakkal", "nilgiris", "ooty"],
+        coord: { lat: 11.0168, lng: 76.9558, stateCode: "TN", stateName: "Tamil Nadu", regionName: "Kongu Nadu / Coimbatore" }
+      },
+      {
+        keywords: ["south", "madurai", "tirunelveli", "kanyakumari", "tuticorin", "thoothukudi", "dindigul", "virudhunagar", "theni", "ramanathapuram", "sivaganga"],
+        coord: { lat: 9.9252, lng: 78.1198, stateCode: "TN", stateName: "Tamil Nadu", regionName: "South Tamil Nadu / Madurai" }
+      },
+      {
+        keywords: ["vellore", "krishnagiri", "hosur", "dharmapuri", "tiruvannamalai", "ranipet", "tirupattur"],
+        coord: { lat: 12.9165, lng: 79.1325, stateCode: "TN", stateName: "Tamil Nadu", regionName: "North-West Tamil Nadu / Vellore" }
+      },
+      {
+        keywords: ["delta", "central", "tiruchirappalli", "trichy", "thanjavur", "tanjore", "kumbakonam", "nagapattinam", "tiruvarur", "pudukkottai", "karur", "cuddalore", "perambalur", "ariyalur", "kallakurichi"],
+        coord: { lat: 10.7905, lng: 78.7047, stateCode: "TN", stateName: "Tamil Nadu", regionName: "Central Tamil Nadu / Delta" }
+      }
+    ]
+  },
+  MH: {
+    default: { lat: 19.7515, lng: 75.7139, stateCode: "MH", stateName: "Maharashtra", regionName: "Central Maharashtra" },
+    subRegions: [
+      {
+        keywords: ["mumbai", "bombay", "thane", "navi mumbai", "konkan", "raigad", "ratnagiri", "sindhudurg", "palghar"],
+        coord: { lat: 18.9916, lng: 72.8540, stateCode: "MH", stateName: "Maharashtra", regionName: "Mumbai / Konkan" }
+      },
+      {
+        keywords: ["west", "western", "pune", "poona", "satara", "kolhapur", "sangli", "solapur"],
+        coord: { lat: 18.5204, lng: 73.8567, stateCode: "MH", stateName: "Maharashtra", regionName: "Western Maharashtra / Pune" }
+      },
+      {
+        keywords: ["north", "khandesh", "nashik", "nasik", "dhule", "jalgaon", "nandurbar", "ahmednagar"],
+        coord: { lat: 20.0000, lng: 73.7800, stateCode: "MH", stateName: "Maharashtra", regionName: "North Maharashtra / Nashik" }
+      },
+      {
+        keywords: ["marathwada", "aurangabad", "sambhajinagar", "nanded", "latur", "parbhani", "jalna", "beed", "osmanabad", "dharashiv", "hingoli"],
+        coord: { lat: 19.8762, lng: 75.3433, stateCode: "MH", stateName: "Maharashtra", regionName: "Marathwada / Sambhajinagar" }
+      },
+      {
+        keywords: ["vidarbha", "east", "nagpur", "amravati", "akola", "chandrapur", "wardha", "yavatmal", "bhandara", "gondia", "gadchiroli", "washim", "buldhana"],
+        coord: { lat: 21.1458, lng: 79.0882, stateCode: "MH", stateName: "Maharashtra", regionName: "Vidarbha / Nagpur" }
+      }
+    ]
+  },
+  TG: {
+    default: { lat: 17.3850, lng: 78.4867, stateCode: "TG", stateName: "Telangana", regionName: "Hyderabad / Central Telangana" },
+    subRegions: [
+      {
+        keywords: ["central", "hyderabad", "secunderabad", "rangareddy", "medchal", "sangareddy"],
+        coord: { lat: 17.3850, lng: 78.4867, stateCode: "TG", stateName: "Telangana", regionName: "Hyderabad / Central Telangana" }
+      },
+      {
+        keywords: ["north", "karimnagar", "nizamabad", "adilabad", "ramagundam", "mancherial", "jagtial", "nirmal", "kamareddy", "peddapalli", "sircilla"],
+        coord: { lat: 18.4386, lng: 79.1288, stateCode: "TG", stateName: "Telangana", regionName: "North Telangana / Karimnagar" }
+      },
+      {
+        keywords: ["east", "warangal", "khammam", "kothagudem", "bhadradri", "mahabubabad", "jangaon", "bhupalpally"],
+        coord: { lat: 17.9689, lng: 79.5941, stateCode: "TG", stateName: "Telangana", regionName: "East Telangana / Warangal" }
+      },
+      {
+        keywords: ["south", "mahabubnagar", "nalgonda", "suryapet", "gadwal", "wanaparthy", "nagarkurnool", "narayanpet", "yadadri"],
+        coord: { lat: 16.7488, lng: 77.9856, stateCode: "TG", stateName: "Telangana", regionName: "South Telangana / Mahabubnagar" }
+      }
+    ]
+  },
+  AP: {
+    default: { lat: 16.5062, lng: 80.6480, stateCode: "AP", stateName: "Andhra Pradesh", regionName: "Coastal Andhra / Vijayawada" },
+    subRegions: [
+      {
+        keywords: ["visakhapatnam", "vizag", "vizianagaram", "srikakulam", "north coastal"],
+        coord: { lat: 17.6868, lng: 83.2185, stateCode: "AP", stateName: "Andhra Pradesh", regionName: "North Coastal Andhra / Visakhapatnam" }
+      },
+      {
+        keywords: ["rayalaseema", "tirupati", "kadapa", "kurnool", "anantapur", "chittoor"],
+        coord: { lat: 14.4673, lng: 78.8242, stateCode: "AP", stateName: "Andhra Pradesh", regionName: "Rayalaseema / Kadapa / Tirupati" }
+      },
+      {
+        keywords: ["coastal", "vijayawada", "guntur", "nellore", "kakinada", "rajahmundry", "eluru", "ongole", "machilipatnam"],
+        coord: { lat: 16.5062, lng: 80.6480, stateCode: "AP", stateName: "Andhra Pradesh", regionName: "Coastal Andhra / Vijayawada" }
+      }
+    ]
+  },
+  KL: {
+    default: { lat: 9.9312, lng: 76.2673, stateCode: "KL", stateName: "Kerala", regionName: "Central Kerala / Kochi" },
+    subRegions: [
+      {
+        keywords: ["south", "thiruvananthapuram", "trivandrum", "kollam", "pathanamthitta"],
+        coord: { lat: 8.5241, lng: 76.9366, stateCode: "KL", stateName: "Kerala", regionName: "South Kerala / Thiruvananthapuram" }
+      },
+      {
+        keywords: ["central", "kochi", "cochin", "ernakulam", "alappuzha", "kottayam", "idukki", "thrissur"],
+        coord: { lat: 9.9312, lng: 76.2673, stateCode: "KL", stateName: "Kerala", regionName: "Central Kerala / Kochi" }
+      },
+      {
+        keywords: ["north", "malabar", "kozhikode", "calicut", "kannur", "kasaragod", "wayanad", "malappuram", "palakkad"],
+        coord: { lat: 11.2588, lng: 75.7804, stateCode: "KL", stateName: "Kerala", regionName: "Malabar / Kozhikode" }
+      }
+    ]
+  },
+  GJ: {
+    default: { lat: 23.0225, lng: 72.5714, stateCode: "GJ", stateName: "Gujarat", regionName: "Ahmedabad / North Gujarat" },
+    subRegions: [
+      {
+        keywords: ["north", "central", "ahmedabad", "gandhinagar", "vadodara", "anand", "mehsana"],
+        coord: { lat: 23.0225, lng: 72.5714, stateCode: "GJ", stateName: "Gujarat", regionName: "Ahmedabad / North Gujarat" }
+      },
+      {
+        keywords: ["south", "surat", "bharuch", "valsad", "navsari"],
+        coord: { lat: 21.1702, lng: 72.8311, stateCode: "GJ", stateName: "Gujarat", regionName: "Surat / South Gujarat" }
+      },
+      {
+        keywords: ["saurashtra", "kutch", "rajkot", "jamnagar", "bhavnagar", "junagadh", "bhuj"],
+        coord: { lat: 22.3039, lng: 70.8022, stateCode: "GJ", stateName: "Gujarat", regionName: "Saurashtra / Rajkot" }
+      }
+    ]
+  },
+  RJ: {
+    default: { lat: 26.9124, lng: 75.7873, stateCode: "RJ", stateName: "Rajasthan", regionName: "Jaipur / Central Rajasthan" },
+    subRegions: [
+      {
+        keywords: ["jaipur", "central", "ajmer", "alwar", "sikar", "jhunjhunu"],
+        coord: { lat: 26.9124, lng: 75.7873, stateCode: "RJ", stateName: "Rajasthan", regionName: "Jaipur / Central Rajasthan" }
+      },
+      {
+        keywords: ["south", "mewar", "udaipur", "kota", "bhilwara", "chittorgarh"],
+        coord: { lat: 24.5854, lng: 73.7125, stateCode: "RJ", stateName: "Rajasthan", regionName: "Udaipur / South Rajasthan" }
+      },
+      {
+        keywords: ["west", "north", "marwar", "jodhpur", "bikaner", "jaisalmer", "barmer"],
+        coord: { lat: 26.2389, lng: 73.0243, stateCode: "RJ", stateName: "Rajasthan", regionName: "Jodhpur / West Rajasthan" }
+      }
+    ]
+  },
+  UP: {
+    default: { lat: 26.8467, lng: 80.9462, stateCode: "UP", stateName: "Uttar Pradesh", regionName: "Central UP / Lucknow" },
+    subRegions: [
+      {
+        keywords: ["west", "noida", "ghaziabad", "meerut", "agra", "aligarh", "mathura", "bareilly", "moradabad"],
+        coord: { lat: 27.1767, lng: 78.0081, stateCode: "UP", stateName: "Uttar Pradesh", regionName: "West UP / Agra" }
+      },
+      {
+        keywords: ["central", "lucknow", "kanpur", "ayodhya", "faizabad"],
+        coord: { lat: 26.8467, lng: 80.9462, stateCode: "UP", stateName: "Uttar Pradesh", regionName: "Central UP / Lucknow" }
+      },
+      {
+        keywords: ["east", "purvanchal", "varanasi", "kashi", "prayagraj", "allahabad", "gorakhpur", "jhansi"],
+        coord: { lat: 25.3176, lng: 82.9739, stateCode: "UP", stateName: "Uttar Pradesh", regionName: "East UP / Varanasi" }
+      }
+    ]
+  },
+  WB: {
+    default: { lat: 22.5726, lng: 88.3639, stateCode: "WB", stateName: "West Bengal", regionName: "South Bengal / Kolkata" },
+    subRegions: [
+      {
+        keywords: ["south", "kolkata", "calcutta", "howrah", "hooghly", "durgapur", "asansol", "midnapore"],
+        coord: { lat: 22.5726, lng: 88.3639, stateCode: "WB", stateName: "West Bengal", regionName: "South Bengal / Kolkata" }
+      },
+      {
+        keywords: ["north", "siliguri", "darjeeling", "jalpaiguri", "malda"],
+        coord: { lat: 26.7271, lng: 88.3953, stateCode: "WB", stateName: "West Bengal", regionName: "North Bengal / Siliguri" }
+      }
+    ]
+  },
+  DL: {
+    default: { lat: 28.6139, lng: 77.2090, stateCode: "DL", stateName: "Delhi", regionName: "Delhi NCR" },
+    subRegions: []
+  },
+  GA: {
+    default: { lat: 15.4909, lng: 73.8278, stateCode: "GA", stateName: "Goa", regionName: "Goa" },
+    subRegions: []
+  }
+};
+
+/**
+ * Resolves state and sub-regional coordinates for any query mentioning an Indian state or region.
+ * Guarantees that an unmapped location in Tamil Nadu, Maharashtra, Telangana, etc.
+ * returns that state's accurate regional coordinates and NEVER falls back to Gokarna.
+ */
+export function resolveStateRegionalCoordinates(
+  query: string
+): StateRegionalCoordinate | null {
+  if (!query) return null;
+  const qLower = query.toLowerCase();
+
+  // 1. Identify which Indian state is mentioned or inferred
+  let matchedStateCode: string | null = null;
+
+  for (const [alias, code] of Object.entries(STATE_ALIASES)) {
+    const rx = new RegExp(`(^|[^a-z])${alias}([^a-z]|$)`, "i");
+    if (rx.test(qLower)) {
+      matchedStateCode = code;
+      break;
+    }
+  }
+
+  if (!matchedStateCode) {
+    if (qLower.includes("karnataka") || qLower.includes("kannada")) matchedStateCode = "KA";
+    else if (qLower.includes("tamil") || qLower.includes("tamilnadu")) matchedStateCode = "TN";
+    else if (qLower.includes("maharashtra") || qLower.includes("marathi")) matchedStateCode = "MH";
+    else if (qLower.includes("telangana") || qLower.includes("telugu")) matchedStateCode = "TG";
+    else if (qLower.includes("andhra")) matchedStateCode = "AP";
+    else if (qLower.includes("kerala") || qLower.includes("malayalam")) matchedStateCode = "KL";
+    else if (qLower.includes("gujarat")) matchedStateCode = "GJ";
+    else if (qLower.includes("rajasthan")) matchedStateCode = "RJ";
+    else if (qLower.includes("uttar pradesh")) matchedStateCode = "UP";
+    else if (qLower.includes("bengal")) matchedStateCode = "WB";
+    else if (qLower.includes("delhi")) matchedStateCode = "DL";
+    else if (qLower.includes("goa")) matchedStateCode = "GA";
+  }
+
+  if (!matchedStateCode || !STATE_REGIONAL_COORDINATES[matchedStateCode]) {
+    return null;
+  }
+
+  const stateConfig = STATE_REGIONAL_COORDINATES[matchedStateCode];
+
+  // 2. Identify nearest sub-region within that state
+  for (const sub of stateConfig.subRegions) {
+    for (const kw of sub.keywords) {
+      if (qLower.includes(kw)) {
+        return sub.coord;
+      }
+    }
+  }
+
+  return stateConfig.default;
+}
+
 export const getPostalRegionCentroid = (
   pincode: string
 ): PostalCentroid => {
@@ -527,7 +799,7 @@ export const formatGoogleStylePlaceName = (primary?: string, district?: string, 
   return `${p}, ${d}`;
 };
 
-/** Synchronously resolve coordinates from an Indian PIN code using offline bundled catalog and postal region centroids. */
+/** Synchronously resolve coordinates from an Indian PIN code using offline bundled catalog, offline Indian database, and postal region centroids. */
 export const resolvePincodeCoordinatesSync = (
   pincode?: string,
   fallbackLat = 14.5479,
@@ -536,6 +808,11 @@ export const resolvePincodeCoordinatesSync = (
   if (!pincode) return { lat: fallbackLat, lng: fallbackLng };
   const clean = pincode.trim();
   if (!/^\d{6}$/.test(clean)) return { lat: fallbackLat, lng: fallbackLng };
+
+  const offlinePin = findOfflineIndianCityOrPin(clean);
+  if (offlinePin && typeof offlinePin.lat === "number" && typeof offlinePin.lng === "number") {
+    return { lat: offlinePin.lat, lng: offlinePin.lng };
+  }
 
   const villages = bundledVillagesByPincode(clean);
   if (villages && villages.length > 0 && typeof villages[0].lat === "number" && typeof villages[0].lng === "number") {
@@ -554,7 +831,7 @@ export const resolvePincodeCoordinatesSync = (
 export const resolvePlaceFromPincode = async (pincode: string): Promise<ResolvedPinPlace | null> => {
   if (!/^[1-9]\d{5}$/.test(pincode)) return null;
 
-  // 1. Instant check from bundled catalog (offline fast-path for key locations like Gokarna 581326)
+  // 1. Instant check from bundled catalog (offline fast-path for key locations like Gokarna 581326, Bargur 635104)
   const bundled = bundledVillagesByPincode(pincode);
   const fb = bundled[0];
   if (fb?.lat && fb?.lng) {
@@ -628,8 +905,11 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
       const rawDistrict = mainPo?.District || nomRecord?.address?.state_district || "";
       const rawState = mainPo?.State || nomRecord?.address?.state || "";
 
+      const offlineMatch = findOfflineIndianCityOrPin(pincode);
+
       const stateCode =
         stateCodeFromPostalName(rawState) ||
+        offlineMatch?.stateCode ||
         getPostalRegionCentroid(pincode).stateCode ||
         "KA";
       const districtCode = findDistrictCodeForPostal(stateCode, rawDistrict);
@@ -652,18 +932,28 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
               lng = coords.lng;
             }
           } catch {
-            // will fall back to centroid
+            // will fall back to offline match or centroid
           }
         }
       }
 
       if (!lat || !lng) {
-        const centroid = getPostalRegionCentroid(pincode);
-        lat = centroid.lat;
-        lng = centroid.lng;
+        if (offlineMatch) {
+          lat = offlineMatch.lat;
+          lng = offlineMatch.lng;
+        } else {
+          const centroid = getPostalRegionCentroid(pincode);
+          lat = centroid.lat;
+          lng = centroid.lng;
+        }
       }
 
-      const villageName = formatGoogleStylePlaceName(rawPrimary, rawDistrict, rawState);
+      let villageName = formatGoogleStylePlaceName(rawPrimary, rawDistrict, rawState);
+      if ((!villageName || villageName === "India") && offlineMatch) {
+        villageName = offlineMatch.district
+          ? `${offlineMatch.name}, ${offlineMatch.district}`
+          : `${offlineMatch.name}, ${offlineMatch.stateName}`;
+      }
 
       // Cache for offline repeat access
       await cacheGeocode(`pin:${pincode}`, lat, lng);
@@ -682,13 +972,18 @@ export const resolvePlaceFromPincode = async (pincode: string): Promise<Resolved
     }
   }
 
-  // 4. Offline / Failure fallback to cached or accurate regional centroid
+  // 4. Offline / Failure fallback to offline database, cached, or accurate regional centroid
+  const offlineMatch = findOfflineIndianCityOrPin(pincode);
   const centroid = getPostalRegionCentroid(pincode);
-  const lat = cached?.lat || centroid.lat || 14.5479;
-  const lng = cached?.lng || centroid.lng || 74.3188;
-  const stateCode = centroid.stateCode || "KA";
-  const districtCode = `${stateCode}-DST`;
-  const villageName = centroid.regionName ? `${centroid.regionName}` : `Pincode ${pincode}`;
+  const lat = offlineMatch?.lat || cached?.lat || centroid.lat || 14.5479;
+  const lng = offlineMatch?.lng || cached?.lng || centroid.lng || 74.3188;
+  const stateCode = offlineMatch?.stateCode || centroid.stateCode || "KA";
+  const districtCode = offlineMatch
+    ? `${stateCode}-${(offlineMatch.district || offlineMatch.name).slice(0, 3).toUpperCase()}`
+    : `${stateCode}-DST`;
+  const villageName = offlineMatch
+    ? (offlineMatch.district ? `${offlineMatch.name}, ${offlineMatch.district}` : `${offlineMatch.name}, ${offlineMatch.stateName}`)
+    : (centroid.regionName ? `${centroid.regionName}` : `Pincode ${pincode}`);
 
   return {
     villageName,
@@ -754,7 +1049,7 @@ export const findGermanCity = (query: string): GermanCity | undefined => {
 };
 
 /**
- * Universal resolver for Indian Pincodes, German Cities, OR City / Place names.
+ * Universal resolver for Indian Pincodes, German Cities, International Cities, OR City / Place names.
  * Never resets to (0,0) or throws uncaught exceptions.
  */
 export const resolvePlaceOrPincode = async (
@@ -799,7 +1094,34 @@ export const resolvePlaceOrPincode = async (
     };
   }
 
-  // 3. If City / Town name (Indian or International)
+  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+  // 3. If Offline: Fast-path Offline Indian City & Pincode database (KA, MH, TG, TN, Pan-India)
+  if (isOffline) {
+    const indianMatch = findOfflineIndianCityOrPin(q);
+    if (indianMatch) {
+      return {
+        placeName: q,
+        lat: indianMatch.lat,
+        lng: indianMatch.lng,
+        pincode: indianMatch.pincode,
+        country: "India"
+      };
+    }
+
+    const intlMatch = findOfflineInternationalCity(q);
+    if (intlMatch) {
+      return {
+        placeName: q,
+        lat: intlMatch.lat,
+        lng: intlMatch.lng,
+        pincode: intlMatch.postalCode,
+        country: intlMatch.country
+      };
+    }
+  }
+
+  // 4. Online Geocoding Search: When online, query live for exact real-time coordinates
   try {
     const coords = await getCoordinates(q);
     if (coords && coords.lat && coords.lng) {
@@ -813,6 +1135,41 @@ export const resolvePlaceOrPincode = async (
     console.warn("Geocoding lookup fallback for:", q, err);
   }
 
+  // 5. Offline Fallback for Indian City / International City if online failed or offline
+  const indianMatchFallback = findOfflineIndianCityOrPin(q);
+  if (indianMatchFallback) {
+    return {
+      placeName: q,
+      lat: indianMatchFallback.lat,
+      lng: indianMatchFallback.lng,
+      pincode: indianMatchFallback.pincode,
+      country: "India"
+    };
+  }
+
+  const intlMatchFallback = findOfflineInternationalCity(q);
+  if (intlMatchFallback) {
+    return {
+      placeName: q,
+      lat: intlMatchFallback.lat,
+      lng: intlMatchFallback.lng,
+      pincode: intlMatchFallback.postalCode,
+      country: intlMatchFallback.country
+    };
+  }
+
+  // 6. Regional state sub-regional coordination fallback (Never fallback to Gokarna for other states!)
+  const regionalFallback = resolveStateRegionalCoordinates(q);
+  if (regionalFallback) {
+    return {
+      placeName: `${q} (${regionalFallback.regionName})`,
+      lat: regionalFallback.lat,
+      lng: regionalFallback.lng,
+      pincode: "",
+      country: "India"
+    };
+  }
+
   return { placeName: q || "Gokarna, Karnataka", lat: 14.5479, lng: 74.3188, pincode: "581326", country: "India" };
 };
 
@@ -821,6 +1178,22 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
   const cached = await getGeocode(normalized);
   if (cached) {
     return cached;
+  }
+
+  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+  // Fast-path for offline Indian cities (e.g. Mumbai, Pune, Bengaluru, Hyderabad, Chennai, Gokarna)
+  const indianMatch = findOfflineIndianCityOrPin(normalized);
+  if (indianMatch) {
+    await cacheGeocode(normalized, indianMatch.lat, indianMatch.lng);
+    return { lat: indianMatch.lat, lng: indianMatch.lng };
+  }
+
+  // Fast-path for offline International cities (e.g. London, New York, Dubai, Singapore, Tokyo, Sydney)
+  const intlMatch = findOfflineInternationalCity(normalized);
+  if (intlMatch) {
+    await cacheGeocode(normalized, intlMatch.lat, intlMatch.lng);
+    return { lat: intlMatch.lat, lng: intlMatch.lng };
   }
 
   // Fast-path for bundled German cities (e.g. Berlin, Munich, Frankfurt)
@@ -838,17 +1211,29 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
     return { lat: staticMatch.lat, lng: staticMatch.lng };
   }
 
-  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
-  if (isOffline) {
-    return { lat: 14.5479, lng: 74.3188 };
-  }
-
   // Check if query is or contains a 6-digit Indian PIN code
   const pinMatch = placeName.match(/\b([1-9]\d{5})\b/);
   if (pinMatch) {
     const pin = pinMatch[1];
+    const pinOffline = findOfflineIndianCityOrPin(pin);
+    if (pinOffline) {
+      await cacheGeocode(normalized, pinOffline.lat, pinOffline.lng);
+      return { lat: pinOffline.lat, lng: pinOffline.lng };
+    }
     const pinCached = await getGeocode(`pin:${pin}`);
     if (pinCached) return pinCached;
+  }
+
+  if (isOffline) {
+    if (pinMatch) {
+      const centroid = getPostalRegionCentroid(pinMatch[1]);
+      return { lat: centroid.lat, lng: centroid.lng };
+    }
+    const regional = resolveStateRegionalCoordinates(placeName);
+    if (regional) {
+      return { lat: regional.lat, lng: regional.lng };
+    }
+    return { lat: 14.5479, lng: 74.3188 };
   }
 
   const now = Date.now();
@@ -941,9 +1326,21 @@ export const getCoordinates = async (placeName: string): Promise<{ lat: number; 
       const centroid = getPostalRegionCentroid(pinMatch[1]);
       return { lat: centroid.lat, lng: centroid.lng };
     }
+    const indianFallback = findOfflineIndianCityOrPin(placeName);
+    if (indianFallback) {
+      return { lat: indianFallback.lat, lng: indianFallback.lng };
+    }
+    const intlFallback = findOfflineInternationalCity(placeName);
+    if (intlFallback) {
+      return { lat: intlFallback.lat, lng: intlFallback.lng };
+    }
     const germanFallback = findGermanCity(placeName);
     if (germanFallback) {
       return { lat: germanFallback.lat, lng: germanFallback.lng };
+    }
+    const regional = resolveStateRegionalCoordinates(placeName);
+    if (regional) {
+      return { lat: regional.lat, lng: regional.lng };
     }
     return { lat: 14.5479, lng: 74.3188 };
   }

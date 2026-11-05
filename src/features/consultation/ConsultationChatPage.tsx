@@ -17,6 +17,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   getConsultationSession,
+  createConsultationSession,
+  encodeSecureConsultationToken,
   startConsultationTimer,
   updateDevoteeContact,
   claimBonusMinute,
@@ -57,7 +59,8 @@ import { SacredKalaChakraClock } from "./SacredKalaChakraClock";
 import {
   ContinuousSpeechEngine,
   LANGUAGE_SPEECH_LOCALES,
-  sanitizeDuplicateSpeechWords
+  sanitizeDuplicateSpeechWords,
+  refineSpokenConsultationQuestion
 } from "./consultationSpeechService";
 import {
   synthesizeAndPlayClonedVoice,
@@ -66,6 +69,7 @@ import {
 import { useAppStore } from "../../stores/appStore";
 import { useAuthStore } from "../auth/authStore";
 import { useWalletStore } from "../wallet/walletStore";
+import { useKundliViewerStore } from "../../stores/kundliViewerStore";
 import CategorizedNavDrawer from "../../components/navigation/CategorizedNavDrawer";
 
 interface Props {
@@ -82,8 +86,37 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       currentUser === "$hriSuma" ||
       currentUser?.toLowerCase() === "superadmin");
   const wallet = useWalletStore((s) => s.wallet);
+  const activeKundliSession = useKundliViewerStore((s) => s.session);
+  const [isLaunchingKundliLive, setIsLaunchingKundliLive] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [noTokenProvided, setNoTokenProvided] = useState(false);
+
+  // Direct 1-Click Launch with Generated Kundli Session
+  const handleLaunchKundliLiveSession = async () => {
+    if (!activeKundliSession?.input) return;
+    setIsLaunchingKundliLive(true);
+    try {
+      const inp = activeKundliSession.input;
+      const devoteeName = inp.name || "Devotee";
+      const s = await createConsultationSession({
+        name: devoteeName,
+        dob: activeKundliSession.birthDateYmd || inp.birthDate || "1995-05-15",
+        tob: activeKundliSession.birthTimeHm || inp.birthTime || "10:30",
+        place: activeKundliSession.homePlaceName || activeKundliSession.placeLabel || "Gokarna",
+        lat: typeof inp.latitude === "number" && inp.latitude !== 0 ? inp.latitude : 14.5479,
+        lng: typeof inp.longitude === "number" && inp.longitude !== 0 ? inp.longitude : 74.3188,
+        timezone: 5.5,
+        language: "kn"
+      });
+      const token = encodeSecureConsultationToken(s.id);
+      window.location.replace(`/consultation?token=${encodeURIComponent(token)}`);
+    } catch (err) {
+      console.error("Failed to launch kundli live session:", err);
+      handleGoToGenerator();
+    } finally {
+      setIsLaunchingKundliLive(false);
+    }
+  };
 
   // Navigation handlers
   const setPage = useAppStore((s) => s.setPage);
@@ -183,6 +216,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   // Speech Recognition State
   const [isListening, setIsListening] = useState(false);
   const [speechTimerText, setSpeechTimerText] = useState("00:00");
+  const [isReviewingQuestion, setIsReviewingQuestion] = useState(false);
+  const isReviewingRef = useRef(false);
   const speechEngineRef = useRef<ContinuousSpeechEngine | null>(null);
 
   // Text-To-Speech State
@@ -630,16 +665,46 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     }
   };
 
+  // Fast 2-3s AI Question Review Trigger (Debounced with lock to prevent race duplicates)
+  const triggerAiQuestionReview = async (questionText: string) => {
+    if (!questionText || questionText.trim().length < 4 || !session || isReviewingRef.current) return;
+    isReviewingRef.current = true;
+    setIsReviewingQuestion(true);
+    try {
+      const refined = await refineSpokenConsultationQuestion({
+        spokenQuestion: questionText,
+        language: session.language
+      });
+      if (refined && refined.trim()) {
+        const cleanRefined = sanitizeDuplicateSpeechWords(refined).trim();
+        setInputText(cleanRefined);
+        if (textareaRef.current) {
+          setTimeout(adjustTextareaHeight, 50);
+        }
+      }
+    } catch (e) {
+      console.warn("[ConsultationChatPage] Question refinement notice:", e);
+    } finally {
+      isReviewingRef.current = false;
+      setIsReviewingQuestion(false);
+    }
+  };
+
   // Handle Speech Recognition (Continuous 3-4 minutes)
   const toggleSpeechRecognition = () => {
-    if (!session || session.status === "expired") return;
+    if (!session || session.status === "expired" || isReviewingQuestion) return;
 
     if (isListening) {
+      let rawText = "";
       if (speechEngineRef.current) {
-        const text = speechEngineRef.current.stop();
-        if (text) setInputText(text);
+        rawText = speechEngineRef.current.stop();
       }
       setIsListening(false);
+      const clean = sanitizeDuplicateSpeechWords(rawText || inputText).trim();
+      if (clean) {
+        setInputText(clean);
+        void triggerAiQuestionReview(clean);
+      }
       return;
     }
 
@@ -661,8 +726,14 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     }
 
     const started = speechEngineRef.current.start(inputText, {
-      onTranscriptUpdate: (fullText) => {
+      onTranscriptUpdate: (fullText, isFinalChunk) => {
         setInputText(fullText);
+        if (isFinalChunk && !isReviewingRef.current) {
+          const clean = sanitizeDuplicateSpeechWords(fullText).trim();
+          if (clean) {
+            void triggerAiQuestionReview(clean);
+          }
+        }
       },
       onTimeTick: (_secs, formatted) => {
         setSpeechTimerText(formatted);
@@ -1195,6 +1266,40 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 : sessionError || currentI18n.sessionEndedMsg}
             </p>
 
+            {/* Active Kundli 1-Click Launch Card (Restricted strictly to authenticated Super Admin to prevent data leakage) */}
+            {noTokenProvided && isMasterOrSuperAdmin && activeKundliSession?.input && (
+              <div className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 rounded-2xl p-4 text-left space-y-2.5 shadow-md">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">✨</span>
+                  <h3 className="text-xs sm:text-sm font-bold text-amber-950 font-serif">
+                    ಸಕ್ರಿಯ ಜನನ ಕುಂಡಲಿ ಲಭ್ಯವಿದೆ (Active Kundali Available)
+                  </h3>
+                </div>
+                <p className="text-xs text-amber-900 leading-snug">
+                  ಭಕ್ತರ ಹೆಸರು: <strong>{activeKundliSession.input.name || "Devotee"}</strong><br />
+                  ಜನನ ವಿವರ: {activeKundliSession.birthDateYmd || activeKundliSession.input.birthDate} {activeKundliSession.birthTimeHm || activeKundliSession.input.birthTime} ({activeKundliSession.homePlaceName || activeKundliSession.placeLabel || "Gokarna"})
+                </p>
+                <button
+                  type="button"
+                  disabled={isLaunchingKundliLive}
+                  onClick={handleLaunchKundliLiveSession}
+                  className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2"
+                >
+                  {isLaunchingKundliLive ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>💬</span>
+                      <span>ಈ ಜಾತಕದೊಂದಿಗೆ ನೇರ ಸಮಾಲೋಚನೆ ಆರಂಭಿಸಿ (Start 20-Min Live Chat)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
             {/* Super Admin Control Options */}
             {isMasterOrSuperAdmin && (
               <div className="bg-amber-50 border-2 border-amber-400/80 rounded-2xl p-3.5 space-y-2 text-left">
@@ -1698,6 +1803,19 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </div>
           )}
 
+          {/* Active AI Question Reviewing Banner (2-3 seconds) */}
+          {isReviewingQuestion && (
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-300 text-amber-950 text-xs px-3 py-1.5 rounded-xl flex items-center justify-between shadow-xs animate-pulse">
+              <span className="flex items-center gap-2 font-medium">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping" />
+                <span>{currentLangMeta.aiReviewingIndicator || "✨ AI ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದೆ... (೨-೩ ಸೆಕೆಂಡುಗಳು)"}</span>
+              </span>
+              <span className="font-mono text-[11px] font-bold text-amber-900 bg-amber-200/70 px-2 py-0.5 rounded-md">
+                ⏱️ ~2s
+              </span>
+            </div>
+          )}
+
           {/* Sacred Royal Gold Completion Ribbon */}
           {isExpired ? (
             <div className="bg-gradient-to-b from-[#FFFDF0] to-[#FDF6E2] border-2 border-[#D4AF37] rounded-2xl p-4 text-center space-y-2.5 shadow-md">
@@ -1725,6 +1843,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   ref={textareaRef}
                   rows={1}
                   value={inputText}
+                  disabled={isReviewingQuestion}
                   onChange={(e) => {
                     setInputText(e.target.value);
                     adjustTextareaHeight();
@@ -1736,20 +1855,21 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                     }
                   }}
                   placeholder={currentLangMeta.inputPlaceholder}
-                  className="flex-1 bg-transparent text-sm text-stone-900 focus:outline-hidden resize-none overflow-y-auto max-h-32 min-h-[38px] py-1.5 font-sans leading-relaxed"
+                  className="flex-1 bg-transparent text-sm text-stone-900 focus:outline-hidden resize-none overflow-y-auto max-h-32 min-h-[38px] py-1.5 font-sans leading-relaxed disabled:opacity-60"
                 />
 
                 {/* Clear Input Button (visible when text entered) */}
                 {inputText.trim().length > 0 && (
                   <button
                     type="button"
+                    disabled={isReviewingQuestion}
                     onClick={() => {
                       setInputText("");
                       if (textareaRef.current) {
                         textareaRef.current.style.height = "auto";
                       }
                     }}
-                    className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition active:scale-90"
+                    className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition active:scale-90 disabled:opacity-30"
                     title={currentChatUi.clearInputTooltip}
                     aria-label={currentChatUi.clearInputTooltip}
                   >
@@ -1761,10 +1881,11 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 <button
                   type="button"
                   onClick={toggleSpeechRecognition}
+                  disabled={isReviewingQuestion || isGenerating}
                   className={`p-2 rounded-xl transition ${
                     isListening
                       ? "bg-red-500 text-white animate-pulse shadow-md"
-                      : "text-amber-700 hover:bg-amber-100 active:scale-90"
+                      : "text-amber-700 hover:bg-amber-100 active:scale-90 disabled:opacity-40"
                   }`}
                   title={currentChatUi.micTooltip}
                 >
@@ -1776,11 +1897,15 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               <button
                 type="button"
                 onClick={() => handleSendMessage()}
-                disabled={isGenerating || !inputText.trim()}
-                className="bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold p-3 rounded-2xl shadow-md disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition"
-                title={currentChatUi.sendTooltip}
+                disabled={isGenerating || isReviewingQuestion || !inputText.trim()}
+                className="bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold p-3 rounded-2xl shadow-md disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition min-w-[44px] flex items-center justify-center"
+                title={isReviewingQuestion ? (currentLangMeta.aiReviewingIndicator || "AI ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದೆ...") : currentChatUi.sendTooltip}
               >
-                <span className="text-base">➤</span>
+                {isReviewingQuestion ? (
+                  <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                ) : (
+                  <span className="text-base">➤</span>
+                )}
               </button>
             </div>
           )}

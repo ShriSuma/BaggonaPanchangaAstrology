@@ -220,7 +220,7 @@ export const PDF_I18N: Record<SupportedLanguage, Record<string, string>> = {
     krodhaLabel: "क्रोध / पित्त स्तर",
     manasLabel: "मानसिक शांति",
     vitalityLabel: "आत्मबल / प्राणशक्ति",
-    patienceLabel: "धैर्य सूचкаंक",
+    patienceLabel: "धैर्य सूचकांक",
     sec2Title: "२. पंचांग ५-अंग दैवीय साधना एवं नक्षत्र वृक्ष",
     sec3Title: "३. तत्काल क्रोध एवं आवेग शमन हेतु ४-चरणीय विधि",
     emergencyMantraTitle: "आपत्कालीन मनःशांति बीज मंत्र (मन ही मन ११ बार जपें):",
@@ -1714,7 +1714,17 @@ export const KundliRemedyPdfTemplate: React.FC<KundliRemedyPdfTemplateProps> = (
                     }}
                   >
                     <span style={{ transform: "translateY(-0.5px)" }}>
-                      {dashaBhuktiAnalysis.sandhiAlert.durationFormatted?.[code] || dashaBhuktiAnalysis.sandhiAlert.durationFormatted?.kn || (dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "ಸಕ್ರಿಯ" : "ಸ್ಥಿರ")}
+                      {dashaBhuktiAnalysis.sandhiAlert.durationFormatted?.[code] ||
+                        dashaBhuktiAnalysis.sandhiAlert.durationFormatted?.kn ||
+                        (isKn
+                          ? (dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "ಸಕ್ರಿಯ" : "ಸ್ಥಿರ")
+                          : isHi
+                          ? (dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "सक्रिय" : "स्थिर")
+                          : isTe
+                          ? (dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "సక్రియం" : "స్థిరం")
+                          : isTa
+                          ? (dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "செயலில்" : "நிலையானது")
+                          : (dashaBhuktiAnalysis.sandhiAlert.status === "active" ? "Active" : "Stable"))}
                     </span>
                   </span>
                 )}

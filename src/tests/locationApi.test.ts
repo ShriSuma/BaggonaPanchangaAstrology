@@ -44,8 +44,8 @@ describe("locationApi", () => {
     }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const first = await getCoordinates("Pune");
-    const second = await getCoordinates("Pune");
+    const first = await getCoordinates("RemoteUncachedTown");
+    const second = await getCoordinates("RemoteUncachedTown");
     expect(first.lat).toBe(18.5204);
     expect(second.lng).toBe(73.8567);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -73,14 +73,21 @@ describe("locationApi", () => {
     expect(cityRes.lat).toBeGreaterThan(0);
     expect(cityRes.lng).toBeGreaterThan(0);
 
-    // PIN 601201 offline fallback to Tamil Nadu centroid (NEVER Gokarna)
-    const tnFallback = await resolvePlaceFromPincode("601201");
+    // Unmapped PIN 609999 offline fallback to Tamil Nadu centroid (NEVER Gokarna)
+    const tnFallback = await resolvePlaceFromPincode("609999");
     expect(tnFallback).not.toBeNull();
     expect(tnFallback?.stateCode).toBe("TN");
     expect(tnFallback?.lat).toBeCloseTo(13.0827, 2);
     expect(tnFallback?.lng).toBeCloseTo(80.2707, 2);
     // Crucial check: must NOT be Gokarna coordinates
     expect(tnFallback?.lat).not.toBeCloseTo(14.5479, 2);
+
+    // Mapped PIN 601201 offline resolution to exact Gummidipoondi coordinates
+    const gmpFallback = await resolvePlaceFromPincode("601201");
+    expect(gmpFallback).not.toBeNull();
+    expect(gmpFallback?.stateCode).toBe("TN");
+    expect(gmpFallback?.lat).toBeCloseTo(13.4072, 2);
+    expect(gmpFallback?.lng).toBeCloseTo(80.1306, 2);
 
     vi.unstubAllGlobals();
   });

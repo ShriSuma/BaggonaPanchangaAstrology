@@ -31,3 +31,13 @@ Use this skill whenever working on PDF export functionality, PDF styling, A4 pag
 ## 4. Ultra-Premium Royal Gold Card Layout
 - **User Details Box**: Styled as a royal parchment card with gradient `from-amber-50 via-orange-50/40 to-amber-100/80`, 2px golden border `border-amber-600/60`, inner frame borders, and corner emblems (`❖`).
 - **Intro Header**: `introGreeting` (`ನಮಸ್ಕಾರ ಪ್ರಮೋದ್ ಕೊಡಗಿ,`) MUST be rendered as a **BIG 3XL Bold Heading** at the top of the intro card.
+
+## 5. 6-Anga Panchanga & Janma Hora Card Layout
+- **Complete Parameters Grid**: The Panchanga parameters grid in `PdfTemplate.tsx` must contain all 6 elements across 2 balanced columns:
+  - Row 1: Devotee Name & Date of Birth
+  - Row 2: Janma Lagna & Moon Sign (with respective lords)
+  - Row 3: Nakshatra (with Pada) & Tithi / Weekday (Vara)
+  - Row 4: Nitya Yoga & Karana
+  - Row 5: Sunrise / Sunset & **Janma Hora (Birth Hora)**
+  - Row 6: Active Mahadasha / Bhukti & Janma Dasha Balance
+- **Vajra & Hawala Gemstone Distinction**: Prescriptions must strictly distinguish between **Vajra (Diamond - Venus)** and **Hawala (Red Coral - Mars)** based on Parashari Lagna lordship (Yogakaraka vs Maraka/Dusthana) and enforce separation.

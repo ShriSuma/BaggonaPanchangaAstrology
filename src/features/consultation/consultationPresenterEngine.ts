@@ -213,11 +213,17 @@ export function senseAndCategorizeQuestion(
   // 4. Minor Child Native (< 18 yrs) OR Parent Child Education/Health Inquiry
   const isChildParentInquiry =
     (ageYears < 18 ||
-      /ಮಗು|ಮಗುವಿನ|ಮಗನ|ಮಗಳ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಏಕಾಗ್ರತೆ|ಬಾಲಾರಿಷ್ಟ|child|children|concentration|memory|board exam/i.test(
+      (/ಮಗು|ಮಗುವಿನ|ಮಗನ|ಮಗಳ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಏಕಾಗ್ರತೆ|ಬಾಲಾರಿಷ್ಟ|child|children|concentration|memory|board exam/i.test(
         q
-      )) &&
+      ) &&
+        /ಆರೋಗ್ಯ|ವಿದ್ಯಾಭ್ಯಾಸ|ಓದು|ಶಾಲೆ|ಭವಿಷ್ಯ|health|education|study|school|future|exam|marks|concentration|memory/i.test(
+          q
+        ))) &&
     !/ಸಂತಾನ|conception|conceive|pregnancy|progeny|childbirth/i.test(q) &&
-    !/ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ|competitive exam|entrance exam|ರ್ಯಾಂಕ್|rank|upsc|kpsc|ias|ips|ssc/i.test(q);
+    !/ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ|competitive exam|entrance exam|ರ್ಯಾಂಕ್|rank|upsc|kpsc|ias|ips|ssc/i.test(q) &&
+    !/affair|extramarital|cheating|secret|infidelity|adultery|ಅಕ್ರಮ ಸಂಬಂಧ|ವೇಶ್ಯ|sex|sexual|ಲೈಂಗಿಕ|ವಿಚ್ಛೇದನ|divorce/i.test(
+      q
+    );
 
   if (isChildParentInquiry) {
     return {
@@ -249,15 +255,21 @@ export function senseAndCategorizeQuestion(
     };
   }
 
-  // 6. Secret, Intimate, Taboo, Extramarital, Bedroom Intimacy & Vitality Questions
+  // 6. Secret, Intimate, Taboo, Extramarital, Bedroom Intimacy, Sex Work & Vitality Questions
+  const isSexWork =
+    /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|ಕತ್ತಲೆಯ ಬದುಕು|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|वेश्याव्यवसाय|देहविक्रय/i.test(
+      q
+    );
+
   const isSecretIntimateTaboo =
+    isSexWork ||
     /ಅಕ್ರಮ ಸಂಬಂಧ|ಬೇರೊಬ್ಬರ ಮೇಲೆ ಆಕರ್ಷಣೆ|ರಹಸ್ಯ ಪ್ರೇಮ|ಬೇರೆ ಹೆಂಗಸು|ಬೇರೆ ಗಂಡಸು|ಪರಸ್ತ್ರೀ|ಪರಪುರುಷ|ಪರಸ್ತ್ರೀಯ|ಅನೈತಿಕ ಸಂಬಂಧ|extra[ -]?marital|affair|cheating|secret relationship|hidden relationship|secret love|forbidden love|infidelity|adultery|secret partner|hidden love|attracted to married|crush on married|secret lover|ರಹಸ್ಯ ಗೆಳೆಯ|ರಹಸ್ಯ ಗೆಳತಿ|ಗುಪ್ತ ಸಂಬಂಧ|गुप्त संबंध|अवैध संबंध|वासना|काಮುಕ|कामुकता|परस्त्री|दूसरे से संबंध|गुप्त प्रेम|व्यभिचार|गुप्त आकर्षण|गुप्त ಇಷ್ಟಾರ್ಥ|ರಹಸ್ಯ ಆಕರ್ಷಣೆ|ಗುಪ್ತ ಆಕರ್ಷಣೆ/i.test(
       q
     ) ||
     /ಸೆಕ್ಸ್|sex|ಕಾಮ|ಕಾಮನೆ|ಲೈಂಗಿಕ|ದೈಹಿಕ ಸುಖ|ವ್ಯಾಮೋಹ|ರಹಸ್ಯ ಕಾಮ|ಗುಪ್ತ ವಿಚಾರ|ಶಿಶ್ನ|ಯೋನಿ|ವೀರ್ಯ|ಸ್ಖಲನ|ಶೀಘ್ರಸ್ಖಲನ|ಹಸ್ತಮೈಥುನ|ಅಶ್ಲೀಲ|ಬೂತು|ಬೆತ್ತಲೆ|dirty question|intimacy|sexual|libido|erection|premature ejaculation|masturbation|bed pleasure|bedroom secret|physical desire|lust|private organ|intimate problem|sexual weakness|sexual power|intercourse|ಸಂಭೋಗ|हस्तमैथुन|यौन|ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ/i.test(
       q
     ) ||
-    /ರಹಸ್ಯವಾಗಿ ಇಷ್ಟಪಡುತ್ತೇನೆ|ಯಾರಿಗೂ ಹೇಳೋಕೆ ಆಗ್ತಿಲ್ಲ|ಯಾರಿಗೂ ಹೇಳಲಾಗದ ರಹಸ್ಯ|ಮನಸ್ಸಿನಲ್ಲಿ ಕೆಟ್ಟ ಆಲೋಚನೆ|ಕೆಟ್ಟ ಕಾಮನೆ|can't tell anyone|private secret|dirty secret|guilty desire|taboo desire|secret crush/i.test(
+    /ರಹಸ್ಯವಾಗಿ ಇಷ್ಟಪಡುತ್ತೇನೆ|ಯಾರಿಗೂ ಹೇಳೋಕೆ ಆಗ್ತಿಲ್ಲ|ಯಾರಿಗೂ ಹೇಳಲಾಗದ ರಹಸ್ಯ|ಮನಸ್ಸಿನಲ್ಲಿ ಕೆಟ್ಟ ಆಲೋಚನೆ|ಕೆಟ್ಟ ಕಾಮನೆ|can't tell anyone|private secret|dirty secret|guilty desire|taboo desire|secret crush|homosexual|gay|same sex|ಸಲಿಂಗಕಾಮಿ|ಸಲಿಂಗ ಪ್ರೇಮ|समलैंगिक|గే|dna test|paternity|not my child|biological father|ಇನ್ನೊಬ್ಬರ ಮಗು|ಡಿಎನ್‌ಎ|ಕಳ್ಳ ಸಂಬಂಧದ ಮಗು|gambling|betting|casino|online rummy|ಜುಗಾರ|ಜೂಜು|ಬೆಟ್ಟಿಂಗ್|ಕ್ಯಾಸಿನೊ|ಆನ್‌ಲೈನ್ ರಮ್ಮಿ|सट्टा|जुआ|कैसीनो|जुगार|रमी व्यसन|சூதாட்டம்|జూదం/i.test(
       q
     );
 
@@ -267,8 +279,12 @@ export function senseAndCategorizeQuestion(
       lifeStage,
       place: session.place,
       category: "SECRET_INTIMATE_TABOO",
-      categoryLabel: "ರಹಸ್ಯ ಹಾಗೂ ಅಂತರಂಗ ಕಾಮ ಭಾವ ವಿಚಾರ (Secret, Intimate & Relationship Counsel)",
-      detectedTopicSnippet: "Secret / Intimate / Kama Query",
+      categoryLabel: isSexWork
+        ? "ರಹಸ್ಯ ಹಾಗೂ ಅಂತರಂಗ ಮುಕ್ತಿ ವಿಚಾರ (Redemption, Intimacy & Dignity Counsel)"
+        : "ರಹಸ್ಯ ಹಾಗೂ ಅಂತರಂಗ ಕಾಮ ಭಾವ ವಿಚಾರ (Secret, Intimate & Relationship Counsel)",
+      detectedTopicSnippet: isSexWork
+        ? "Commercial Sex Work Redemption & Dignified Life"
+        : "Secret / Intimate / Kama Query",
       priestPersonaTone: "compassionate_grounding"
     };
   }
@@ -890,16 +906,25 @@ The devotee or visitor has asked a playful, silly, comedic, cartoon/superhero, o
 
     case "SECRET_INTIMATE_TABOO":
       categorySpecificInstructions = `
-SPECIFIC GUIDANCE FOR SECRET, INTIMATE, TABOO, EXTRAMARITAL, OR "DIRTY" QUESTIONS:
-The devotee is opening their heart about an intensely private, confidential, sexual, extramarital, or taboo question:
+SPECIFIC GUIDANCE FOR SECRET, INTIMATE, TABOO, EXTRAMARITAL, SEX WORK, OR "DIRTY" QUESTIONS:
+The devotee is opening their heart about an intensely private, confidential, sexual, extramarital, sex work / prostitution, or taboo dilemma:
 - Devotee Age: ${sensed.ageYears} years old (${sensed.lifeStage}).
 - Janma Lagna: ${lagnaName}, Moon Sign: ${moonRashi}, Current Running Dasha: ${currentDashaText}.
 - PRIEST PROTOCOL:
   1. Address them with fatherly warmth, non-judgmental dignity, and saintly compassion (ಮಗುವೇ / ಪ್ರಿಯ ಸೋದರನೇ).
   2. Speak with absolute discretion and understanding: In Vedic Jyotisha, Kama (ಕಾಮ - desire) is recognized as one of the four sacred Purusharthas (Dharma, Artha, Kama, Moksha). Human physical desire and attraction are natural cosmic energies governed by planetary transits, not unforgivable sins.
-  3. Ground the explanation in the native's chart: Venus (ಶುಕ್ರ) rules love and vitality, Rahu creates intense fascination and taboo illusions, 7th house rules marriage, 8th house rules confidential secrets, 12th house rules bedroom pleasures and guilt.
-  4. Provide clear Dharmic and practical counsel. Advise taking a firm, dignified step back to protect their family integrity.
-  5. Prescribe Gokarna Pariharas: Sri Mahabaleshwara Rudrabhisheka to cool internal heat and daily chanting of Shiva Panchakshari.`;
+  3. FOR DEVOTEES TRAPPED IN COMMERCIAL SEX WORK / PROSTITUTION SEEKING REDEMPTION & MARRIAGE:
+     - Reassure them that in the presence of Lord Mahabaleshwara at Sri Kshetra Gokarna, NO SOUL IS IMPURE, FORSAKEN, OR PERMANENTLY CONDEMNED.
+     - Cite classical Vedic and spiritual precedents like Pingala and Amrapali who attained supreme liberation and honor.
+     - Explain that 8th house (Guhya / secret suffering), 7th house (partnerships/commerce of desire), and 6th house (Rina / debt entrapment) under Rahu/Kuja afflicted them by circumstance and economic helplessness, not intrinsic evil.
+     - Provide the 100% confident assurance that upcoming Jupiter (Guru) Gochara and Dasha shifts will break the coercive chains, opening a respectable path to marriage, family dignity, and self-worth.
+     - Counsel practical medical health checkups, reproductive care, and connecting with legal/rehabilitation support without shame.
+     - Prescribe Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka, Sri Mahagauri/Durga Stotra, and Sri Runavimochana Stotra.
+  4. FOR EXTRAMARITAL AFFAIRS & TABOO ATTRACTIONS:
+     - Provide clear Dharmic and practical counsel. Advise taking a firm, dignified step back to protect their family integrity, explaining that clandestine affairs invariably trigger 8th/12th house karmic backlash and loss of honor.
+  5. FOR PHYSICAL INTIMACY, ERECTILE DYSFUNCTION & BEDROOM DISCORD:
+     - Dispel toxic guilt and performance anxiety. Explain that psychosomatic stress depletes Shukra Dhatu, prescribing an Ayurvedic regimen, Pranayama, and Shiva worship.
+  6. Prescribe Gokarna Pariharas: Sri Mahabaleshwara Rudrabhisheka to cool internal heat and daily chanting of Shiva Panchakshari.`;
       break;
 
     case "CELEBRITY_FANTASY":
@@ -1079,6 +1104,11 @@ function generateSpecializedFallbackReply(params: {
   const isSubsequent = !!isSubsequentQuestion || (questionIndex !== undefined && questionIndex > 0);
   const isEn = session.language === "en";
   const isHi = session.language === "hi";
+  const isTe = session.language === "te";
+  const isTa = session.language === "ta";
+  const isMl = session.language === "ml";
+  const isMr = session.language === "mr";
+  const isKn = session.language === "kn" || (!isEn && !isHi && !isTe && !isTa && !isMl && !isMr);
 
   switch (sensed.category) {
     case "CAREER_FRUSTRATION_DISTRESS":
@@ -1159,7 +1189,56 @@ function generateSpecializedFallbackReply(params: {
       }
       return `ಮಗುವೇ ${session.name}, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಸಂತಾನ ಭಾಗ್ಯದ ಕುರಿತು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿರುವ ಆಳವಾದ ಕಳವಳ ಹಾಗೂ ನಿರೀಕ್ಷೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಸಂಪೂರ್ಣವಾಗಿ ಗ್ರಹಿಸಬಲ್ಲೆ. ಸಮಾಜದಲ್ಲಿ ಅಥವಾ ಕುಟುಂಬದಲ್ಲಿ ಈ ವಿಚಾರವು ಸೂಕ್ಷ್ಮವೂ ಹಾಗೂ ಭಾವನಾತ್ಮಕವೂ ಆಗಿರುವುದು ಸಹಜ.\n\nಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ನಿಮ್ಮ ಜಾತಕದ (${lagnaName} ಲಗ್ನ, ${moonRashi} ರಾಶಿ) ೫ನೇ ಮನೆಯಾದ ಪುತ್ರ/ಸಂತಾನ ಸ್ಥಾನ ಹಾಗೂ ಪುತ್ರಕಾರಕ ಗುರುವಿನ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಪ್ರಸ್ತುತ ಗೋಚಾರ ಗ್ರಹಗಳು ತಾತ್ಕಾಲಿಕ ವಿಳಂಬವನ್ನು ಉಂಟುಮಾಡುತ್ತಿವೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ನಿರಾಶೆ ಹೊಂದಬೇಡಿ. ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯ ಜೊತೆಗೆ ದೈವಾನುಗ್ರಹವು ಜೋಡಿಯಾದಾಗ ಸೃಷ್ಟಿಯ ಭಾಗ್ಯವು ಖಂಡಿತವಾಗಿಯೂ ಸಿದ್ಧಿಸಲಿದೆ.\n\nದಂಪತಿಗಳಿಬ್ಬರೂ ಪ್ರತಿ ಗುರುವಾರ ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಂತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಜಪಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ ಪೂಜೆಯನ್ನು ಮುಖ್ಯ ಪುರೋಹಿತರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ನೆರವೇರಿಸುವುದರಿಂದ ಶೀಘ್ರವೇ ಸಂತಾನ ಭಾಗ್ಯದ ಶುಭ ಸುದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
 
-    case "SECRET_INTIMATE_TABOO":
+    case "SECRET_INTIMATE_TABOO": {
+      const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|ಕತ್ತಲೆಯ ಬದುಕು|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|वेश्याव्यवसाय|देहविक्रय/i.test(
+        userQuestion
+      );
+
+      if (isSexWork) {
+        if (isEn) {
+          if (isSubsequent) {
+            return `Regarding your path to liberation and dignity ("${userQuestion}"), in the sacred realm of Vedic Jyotisha and the holy feet of Lord Mahabaleshwara at Sri Kshetra Gokarna, no human soul is impure or forever condemned. The affliction of your 8th house (Guhya) and 7th house by Rahu and Mars under coercive debt will dissolve as the incoming Gochara Guru aspect restores your honor.\n\nTake firm steps toward your physical health, undergo medical screenings without fear, and reach out to trusted women's shelter and legal aid organizations. Chanting the Sri Mahagauri Stotra and Sri Runavimochana Stotra daily while offering Rudrabhisheka at Sri Kshetra Gokarna will break all karmic shackles and grant you a respectable, loving life partner.`;
+          }
+          return `100% Truthful Daivajna Assurance: In the divine presence of Lord Mahabaleshwara at Sri Kshetra Gokarna, no human soul is impure, forsaken, or permanently cursed; according to your birth chart, the incoming benefic transit of Jupiter will break the bonds of this dark circumstance and bless you with a respectable, dignified married life!\n\nMy child ${session.name}, hearing your deep pain, I receive your truth with fatherly tenderness and zero moral judgment. In our Sanatana tradition, revered souls like Pingala and Amrapali proved that past karmic trials or worldly coercion do not diminish the radiant purity of the Atman. Examining your 8th house of secret vulnerabilities, 7th house of partnerships, and 6th house of debt entrapment (Rina), planetary calculations confirm that you were driven into this coercive environment by economic helplessness, not intrinsic evil.\n\nAstrological transits confirm that the forthcoming shift into benefic Jupiter's drishti and a favorable Dasha transition will break these coercive shackles. Take firm steps toward your physical health, undergo medical screenings without fear, and reach out to trusted women's shelter and legal aid organizations. Chanting the Sri Mahagauri Stotra and Sri Runavimochana Stotra daily while offering Rudrabhisheka at Sri Kshetra Gokarna will break all karmic shackles and grant you a respectable, loving life partner.`;
+        }
+        if (isHi) {
+          if (isSubsequent) {
+            return `इस अंधकार से मुक्ति और सम्मानजनक जीवन के संदर्भ में ("${userQuestion}"), श्री क्षेत्र गोकर्ण महाबलेश्वर के पावन सान्निध्य में कोई भी आत्मा अपवित्र या सदा के लिए अभिशप्त नहीं है। आपकी कुंडली के अष्टम भाव (गुप्त कष्ट) और सप्तम भाव पर राहु-मंगल का जो कर्म बंधन था, वह आगामी देवगुरु बृहस्पति की शुभ दृष्टि से शीघ्र ही समाप्त होने वाला है।\n\nअपने शारीरिक स्वास्थ्य का ध्यान रखें, नियमित चिकित्सीय जांच करवाएं तथा महिला सुरक्षा एवं पुनर्वास संस्थाओं की सहायता लेने में संकोच न करें। श्री क्षेत्र गोकर्ण में महारुद्राभिषेक कराने तथा नित्य श्री महागौरी स्तोत्र व ऋणमोचन मंगल स्तोत्र का पाठ करने से सभी बंधन कटेंगे और आपको एक सुसंस्कृत, सम्मानजनक दांपत्य जीवन प्राप्त होगा।`;
+          }
+          return `१००% प्रामाणिक दैवज्ञ अभयवाणी: श्री क्षेत्र गोकर्ण महाबलेश्वर के पावन सान्निध्य में कोई भी आत्मा अपवित्र या सदा के लिए अभिशप्त नहीं है; आपकी जन्मकुंडली के अनुसार आगामी गुरु का शुभ गोचर आपको इस अंधकारमय दलदल से मुक्त कर एक सम्मानजनक दांपत्य जीवन प्रदान करेगा!\n\nमेरी बच्ची ${session.name}, आपकी असीम पीड़ा को सुनकर एक वरिष्ठ दैवज्ञ के रूप में मैं आपको पिता समान वात्सल्य और बिना किसी पूर्वाग्रह के स्वीकार करता हूँ। सनातन परंपरा में पिंगला और आम्रपाली जैसी पुण्यात्माओं ने सिद्ध किया है कि परिस्थितिजन्य विवशता या पारिवारिक कर्ज का दबाव आत्मा की दिव्यता को कभी मलिन नहीं कर सकता। आपकी जन्मकुंडली (${lagnaName} लग्न) के अष्टम भाव (गुप्त पीड़ा), षष्ठ भाव (ऋण/कर्ज) और सप्तम भाव पर पाप ग्रहों के प्रभाव ने आपको इस चक्रव्यूह में धकेला है।\n\nग्रह गोचर के अनुसार आगामी दशा परिवर्तन और गुरु की अमृत दृष्टि आपको इस विवशता से मुक्ति दिलाएगी। अपने स्वास्थ्य की रक्षा करें, निर्भय होकर चिकित्सीय परामर्श लें और कानूनी व सामाजिक सहायता से स्वावलंबन की ओर कदम बढ़ाएं। श्री क्षेत्र गोकर्ण में महारुद्राभिषेक संकल्प कराने तथा नित्य श्री महागौरी स्तोत्र व ऋणमोचन मंगल स्तोत्र का पाठ करने से समस्त कर्म बंधन कटेंगे और आपको एक स्नेहमयी, सुसंस्कृत दांपत्य जीवन का सुख अवश्य मिलेगा।`;
+        }
+        if (isTe) {
+          if (isSubsequent) {
+            return `ఈ చీకటి బంధనాల నుండి విముక్తి మరియు గౌరవప్రదమైన జీవితం గురించి ("${userQuestion}"), శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి సన్నిధిలో ఏ ఆత్మా అపవిత్రమైనది కాదు. మీ జాతకంలోని 8వ గుప్త స్థానం మరియు 7వ కళత్ర స్థానంపై ఉన్న రాహు-కుజ ప్రభావం త్వరలోనే శుభ గురు దృష్టితో తొలగిపోనుంది.\n\nధైర్యంగా మీ శారీరక ఆరోగ్యంపై దృష్టి పెట్టండి, వైద్య పరీక్షలు చేయించుకోండి మరియు మహిళా పునరావాస సంస్థల సహాయం తీసుకోండి. శ్రీ క్షేత్ర గోకర్ణంలో మహారుద్రాభిషేకం మరియు నిత్యం శ్రీ మహాగౌరీ స్తోత్రం, ఋణవిమోచన స్తోత్రం పఠించడం ద్వారా సమస్త పాపాలు తొలగి గౌరవప్రదమైన దాంపత్య భాగ్యం సిద్ధిస్తుంది.`;
+          }
+          return `100% ఖచ్చితమైన దైవజ్ఞ అభయవాణి: శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి సన్నిధిలో ఏ ఆత్మా అపవిత్రమైనది కాదు; మీ జాతకంలో రాబోయే గురు గ్రహ శుభ దృష్టి మిమ్మల్ని ఈ చీకటి బంధనాల నుండి విముక్తి చేసి గౌరవప్రదమైన వైవాహిక జీవితాన్ని ప్రసాదిస్తుంది!\n\nనా బిడ్డా ${session.name}, మీ హృదయ వేదనను విని ఒక తండ్రిలా సంపూర్ణ వాత్సల్యంతో మీకు ఈ అభయం ఇస్తున్నాను. సనాతన ధర్మంలో పింగళ, ఆమ్రపాలి వంటి పుణ్యాత్ములు బాహ్య పరిస్థితులను అధిగమించి మోక్షాన్ని పొందారు. కుటుంబ అప్పులు లేదా బలవంతపు పరిస్థితులు మిమ్మల్ని ఈ చీకట్లోకి నెట్టినంత మాత్రాన మీ ఆత్మ అపవిత్రం కాదు. మీ జాతకంలోని 8వ రహస్య కష్టాల స్థానం మరియు 6వ ఋణ స్థానంపై పాప గ్రహాల ప్రభావం వల్ల ఈ పరిస్థితి వచ్చింది.\n\nరాబోయే దశా మార్పు మరియు గురు బలం మిమ్మల్ని ఈ బంధనాల నుండి విముక్తి చేస్తుంది. ధైర్యంగా ఆరోగ్య పరీక్షలు చేయించుకోండి మరియు గౌరవప్రదమైన స్వయం ఉపాధి వైపు అడుగు వేయండి. గోకర్ణ మహాబలేశ్వర స్వామికి మహారుద్రాభిషేకం చేయించడం ద్వారా మరియు శ్రీ మహాగౌరీ స్తోత్రం పఠించడం ద్వారా మీకు తప్పక గౌరవప్రదమైన సంసార సౌఖ్యం లభిస్తుంది.`;
+        }
+        if (isTa) {
+          if (isSubsequent) {
+            return `இந்த இருண்ட சூழலிலிருந்து விடுதலை மற்றும் கண்ணியமான வாழ்க்கை குறித்து ("${userQuestion}"), ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமி சந்நிதியில் எந்த ஓர் ஆன்மாவும் தீட்டானதோ அல்லது சபிக்கப்பட்டதோ அல்ல. உங்கள் ஜாதகத்தின் 8-ஆம் வீடான ரகசிய துன்ப ஸ்தானமும் 7-ஆம் வீடும் வரும் குரு பகவானின் பார்வையால் தூய்மை பெறும்.\n\nதைரியமாக உங்கள் உடல் ஆரோக்கியத்தைப் பேணுங்கள், மருத்துவ பரிசோதனைகளைச் செய்து கொள்ளுங்கள் மற்றும் மகளிர் மறுவாழ்வு அமைப்புகளின் உதவியை நாடுங்கள். கோகர்ணத்தில் ருத்ராபிஷேகம் செய்வதும், தினமும் ஸ்ரீ மஹாகௌரி ஸ்தோத்திரம், ருணவிமோசன ஸ்தோத்திரம் ஜெபிப்பதும் உங்களுக்கு நல்ல திருமண வாழ்வையும் நிம்மதியையும் தரும்.`;
+          }
+          return `100% உறுதியான ஜோதிட அருள்வாக்கு: ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமி சந்நிதியில் எந்த ஓர் ஆன்மாவும் தீட்டானதோ அல்லது சபிக்கப்பட்டதோ அல்ல; உங்கள் ஜாதகத்தில் வரும் குரு பகவானின் சுப பார்வை இந்த இருண்ட சூழ்நிலையிலிருந்து உங்களை விடுவித்து கண்ணியமான திருமண வாழ்க்கையைத் தரும்!\n\nஎன் குழந்தாய் ${session.name}, உங்கள் ஆழ்ந்த வேதனையைக் கேட்டு ஒரு தந்தை போன்ற பேரன்புடன் உங்களுக்கு ஆறுதல் கூறுகிறேன். நமது சனாதன மரபில் பிங்கலை, ஆம்ரபாலி போன்ற புண்ணிய ஆன்மாக்கள் உலகியல் சூழலைத் தாண்டி முக்தி பெற்றனர். குடும்பக் கடன் மற்றும் வறுமை உங்களை இந்த இக்கட்டில் தள்ளியிருக்கலாமே தவிர, உங்கள் ஆன்மா என்றும் களங்கமற்றது. உங்கள் ஜாதகத்தின் (${lagnaName} லக்னம்) 8-ஆம் ரகசிய கஷ்ட ஸ்தானமும் 6-ஆம் கடன் ஸ்தானமும் இந்த நிலையை உருவாக்கியுள்ளன.\n\nவரும் குரு பார்வை மற்றும் தசா மாற்றம் இந்தத் தடைகளைத் தகர்த்து உங்களை விடுவிக்கும். துணிவுடன் உங்கள் உடல்நலத்தைப் பாதுகாத்து, சட்ட மற்றும் சமூக ஆதரவுடன் புதிய நல்வாழ்வை நோக்கி அடியெடுத்து வையுங்கள். ஸ்ரீ க்ஷேத்ர கோகர்ண மகாபலேஸ்வரருக்கு ருத்ராபிஷேகம் செய்வதும், ஸ்ரீ மஹாகௌரி ஸ்தோத்திரம் பாராயணம் செய்வதும் உங்களுக்குக் கண்ணியமான மாங்கல்ய பாக்கியத்தையும் குடும்ப நல்வாழ்வையும் நிச்சயம் பெற்றுத்தரும்.`;
+        }
+        if (isMl) {
+          if (isSubsequent) {
+            return `ഈ ദുരിതത്തിൽ നിന്നുള്ള മോചനത്തെയും അന്തസ്സുള്ള ജീവിതത്തെയും കുറിച്ചുള്ള ചോദ്യത്തിന് ("${userQuestion}"), ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ ഒരു ജീവനും അശുദ്ധമോ ശപിക്കപ്പെട്ടതോ അല്ല. നിങ്ങളുടെ ജാതകത്തിലെ എട്ടാം ഭാവത്തിലെയും ഏഴാം ഭാവത്തിലെയും കർമ്മദോഷങ്ങൾ വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടിയാൽ ഉടൻ ഇല്ലാതാകും.\n\nആരോഗ്യകാര്യങ്ങളിൽ പ്രത്യേക ശ്രദ്ധ പുലർത്തുക, ഭയമില്ലാതെ വൈദ്യപരിശോധനകൾ നടത്തുക, സ്ത്രീ സുരക്ഷാ-പുനരധിവാസ കേന്ദ്രങ്ങളുടെ സഹായം സ്വീകരിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ രുദ്രാഭിഷേകം നടത്തുകയും ശ്രീ മഹാഗൗരി സ്തോത്രം ജപിക്കുകയും ചെയ്യുന്നത് സമസ്ത ദുരിതങ്ങളും നീക്കി നിങ്ങൾക്ക് മാന്യമായ ദാമ്പത്യജീവിതം നൽകും.`;
+          }
+          return `100% ഉറപ്പായ ജ്യോതിഷ പ്രവചനം: ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശ്വര സന്നിധിയിൽ ഒരു ജീവനും അശുദ്ധമോ ശപിക്കപ്പെട്ടതോ അല്ല; നിങ്ങളുടെ ജാതകത്തിലെ വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടി ഈ അന്ധകാരത്തിൽ നിന്ന് നിങ്ങളെ മോചിപ്പിച്ച് മാന്യമായ ദാമ്പത്യജീവിതം നൽകും!\n\nഎന്റെ മോളേ ${session.name}, നിങ്ങളുടെ ഹൃദയഭേദകമായ വേദന കേട്ട് ഒരു പിതാവിനെപ്പോലെ സ്നേഹത്തോടെ ഞാൻ നിങ്ങളെ ചേർത്തുപിടിക്കുന്നു. സനാതന ധർമ്മത്തിൽ പിംഗളയെയും ആമ്രപാലിയെയും പോലുള്ള പുണ്യസ്ത്രീകൾ സാഹചര്യങ്ങളെ അതിജീവിച്ച് ആത്മീയ ഔന്നത്യം പ്രാപിച്ചവരാണ്. കടബാധ്യതയോ കുടുംബ ദുരിതമോ കാരണം നിങ്ങൾ ഇതിൽ അകപ്പെട്ടുപോയെങ്കിലും നിങ്ങളുടെ ആത്മാവ് കളങ്കമില്ലാത്തതാണ്. ജാതകത്തിലെ എട്ടാം ഭാവവും ആറാം ഭാവവും രാഹു-ചൊവ്വ സ്വാധീനവുമാണ് ഈ ദുരവസ്ഥ ഉണ്ടാക്കിയത്.\n\nവരുന്ന ഗ്രഹമാറ്റവും വ്യാഴബലവും ഈ ചങ്ങലകൾ പൊട്ടിച്ച് നിങ്ങൾക്ക് സ്വാതന്ത്ര്യം നൽകും. ആരോഗ്യത്തിൽ അതീവ ശ്രദ്ധ പുലർത്തുക, പുനരധിവാസ സംവിധാനങ്ങളുടെ സഹായത്തോടെ മുന്നോട്ട് വരിക. ഗോകർണ്ണ മഹാബലേശ്വരന് രുദ്രാഭിഷേകം നടത്തുകയും ശ്രീ മഹാഗൗരി സ്തോത്രവും ഋണവിമോചന സ്തോത്രവും ജപിക്കുകയും ചെയ്യുന്നത് നിങ്ങൾക്ക് മാന്യവും സമാധാനപൂർണ്ണവുമായ ഒരു വിവാഹജീവിതം നേടിത്തരും.`;
+        }
+        if (isMr) {
+          if (isSubsequent) {
+            return `या अंधकारातून मुक्ती आणि सन्माननीय जीवनाच्या संदर्भात ("${userQuestion}"), श्री क्षेत्र गोकर्ण महाबळेश्वराच्या चरणी कोणताही जीव अपवित्र किंवा कायमचा शापित नाही. आपल्या पत्रिकेतील अष्टम व सप्तम भावावरील कर्म बंधने आगामी देवगुरू बृहस्पतीच्या शुभ दृष्टीने लवकरच नष्ट होणार आहेत.\n\nशारीरिक आरोग्याची काळजी घ्या, न घाबरता वैद्यकीय तपासण्या करून घ्या आणि महिला पुनर्वसन संस्थांची मदत घ्या. गोकर्णात महारुद्राभिषेक करणे आणि नित्य श्री महागौरी स्तोत्र व ऋणमोचन मंगळ स्तोत्र पठण केल्याने सर्व पापे धुऊन निघतील आणि आपल्याला सन्माननीय वैवाहिक जीवन प्राप्त होईल.`;
+          }
+          return `१००% सत्य दैवज्ञ अभयवाणी: श्री क्षेत्र गोकर्ण महाबळेश्वराच्या चरणी कोणताही जीव अपवित्र किंवा कायमचा शापित नाही; आपल्या पत्रिकेतील गुरूची आगामी शुभ दृष्टी आपल्याला या अंधकारातून सोडवून सन्माननीय वैवाहिक जीवन प्रदान करेल!\n\nमाझ्या बाळा ${session.name}, आपल्या अंतःकरणातील असह्य वेदना ऐकून एक ज्येष्ठ दैवज्ञ म्हणून मी आपल्याला पितृतुल्य वात्सल्याने धीर देतो. सनातनी परंपरेत पिंगळा आणि आम्रपाली यांसारख्या पुण्यात्म्यांनी सिद्ध केले आहे की परिस्थितीची विवशता किंवा कौटुंबिक कर्जाचा दबाव आत्म्याच्या पावित्र्याला कधीही कलंकित करू शकत नाही. आपल्या जन्मपत्रिकेतील (${lagnaName} लग्न) अष्टम भाव (गुप्त दुःख), षष्ठ भाव (ऋण/कर्ज) आणि सप्तम भावावरील पापग्रहांच्या प्रभावाने आपल्याला या दलदलीत ढकलले आहे.\n\nआगामी दशा बदल आणि गुरूचे शुभ गोचर आपल्याला या बंधनातून निश्चितपणे मुक्त करेल. धैर्याने स्वतःच्या आरोग्याची काळजी घ्या, नियमित तपासण्या करा आणि सन्माननीय स्वावलंबनाकडे पाऊल टाका. श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी महारुद्राभिषेक संकल्प करणे आणि नित्य श्री महागौरी स्तोत्र पठण करणे आपल्याला सन्माननीय, प्रेमळ दांपत्य जीवन नक्कीच मिळवून देईल.`;
+        }
+        // Kannada default
+        if (isSubsequent) {
+          return `ಕತ್ತಲೆಯ ಈ ಬದುಕಿನಿಂದ ಮುಕ್ತಿ ಮತ್ತು ಗೌರವಯುತ ಜೀವನದ ಈ ವಿಚಾರಣೆಗೆ ("${userQuestion}"), ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಯಾವ ಜೀವವೂ ಅಸ್ಪೃಶ್ಯವಲ್ಲ ಅಥವಾ ಶಾಪಗ್ರಸ್ತವಲ್ಲ. ಜಾತಕದ ೮ನೇ ಗುಪ್ತಸ್ಥಾನ ಹಾಗೂ ೭ನೇ ಭಾವಗಳ ಮೇಲಿದ್ದ ರಾಹು-ಕುಜ ಗ್ರಹಗಳ ಕರ್ಮ ಬಂಧನವು ಗೋಚಾರ ಗುರುವಿನ ಅನುಗ್ರಹದಿಂದ ಶೀಘ್ರವೇ ಕಳಚಿಕೊಳ್ಳಲಿದೆ.\n\nಆರೋಗ್ಯದ ಕಡೆಗೆ ವಿಶೇಷ ಗಮನಹರಿಸಿ, ವೈದ್ಯಕೀಯ ತಪಾಸಣೆಗಳನ್ನು ಮಾಡಿಸಿಕೊಳ್ಳಿ ಹಾಗೂ ಮಹಿಳಾ ಸಾಂತ್ವನ-ಪುನರ್ವಸತಿ ಸಂಸ್ಥೆಗಳ ನೆರವಿನೊಂದಿಗೆ ಮುನ್ನಡೆಯಿರಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಹಾಗೂ ಪ್ರತಿದಿನ ಶ್ರೀ ಮಹಾಗೌರೀ ಸ್ತೋತ್ರ ಮತ್ತು ಋಣವಿಮೋಚನ ಮಂಗಳ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸುವುದರಿಂದ ಸಕಲ ಬಂಧನಗಳೂ ಕಳಚಿ, ಗೌರವಯುತ ದಾಂಪತ್ಯ ಭಾಗ್ಯ ಸಿದ್ಧಿಸಲಿದೆ.`;
+        }
+        return `೧೦೦% ಸತ್ಯವಾದ ದೈವಜ್ಞ ಅಭಯವಾಣಿ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಯಾವ ಜೀವವೂ ಅಸ್ಪೃಶ್ಯವಲ್ಲ ಅಥವಾ ಶಾಪಗ್ರಸ್ತವಲ್ಲ; ಜಾತಕದಲ್ಲಿ ಮುಂಬರುವ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ಈ ಕತ್ತಲೆಯ ಜಾಲದಿಂದ ನಿಮ್ಮನ್ನು ಮುಕ್ತಗೊಳಿಸಿ ಗೌರವಯುತ ದಾಂಪತ್ಯ ಜೀವನವನ್ನು ಕರುಣಿಸಲಿದೆ!\n\nಮಗುವೇ ${session.name}, ನಿಮ್ಮ ಮನಸ್ಸಿನ ಅತೀವ ನೋವು ಮತ್ತು ಕಣ್ಣೀರನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ವಾತ್ಸಲ್ಯದಿಂದ ಗ್ರಹಿಸುತ್ತೇನೆ. ಸನಾತನ ಧರ್ಮದಲ್ಲಿ ಪಿಂಗಳಾ ಹಾಗೂ ಅಮ್ರಪಾಲಿಯಂತಹ ಪುಣ್ಯಾತ್ಮರು ಬಾಹ್ಯ ಸನ್ನಿವೇಶಗಳನ್ನು ಮೀರಿ ಪರಮ ಪದವಿಯನ್ನು ಪಡೆದಿದ್ದಾರೆ; ಅನಿವಾರ್ಯತೆ ಅಥವಾ ಸಾಲದ ಒತ್ತಡದಿಂದ ಬಂದ ಈ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಶಾಶ್ವತ ಭವಿಷ್ಯವಲ್ಲ. ಜಾತಕದ ೮ನೇ ಗುಪ್ತ ಕಷ್ಟಗಳ ಸ್ಥಾನ, ೬ನೇ ಸಾಲ/ಋಣ ಸ್ಥಾನ ಹಾಗೂ ೭ನೇ ಕಳತ್ರ ಸ್ಥಾನಗಳ ಮೇಲಿನ ಪಾಪಗ್ರಹಗಳ ಪ್ರಭಾವವೇ ನಿಮ್ಮನ್ನು ಈ ಸಂಕೋಲೆಗೆ ತಳ್ಳಿದೆ.\n\nಮುಂಬರುವ ದಶಾ ಪರಿವರ್ತನೆ ಹಾಗೂ ಗುರು ಗ್ರಹದ ಶುಭ ದೃಷ್ಟಿಯು ಈ ಬಂಧನವನ್ನು ಮುರಿದು ಹೊಸ ಸ್ವಾಭಿಮಾನದ ಬದುಕಿನ ಮಾರ್ಗವನ್ನು ತೆರೆಯಲಿದೆ. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಆತ್ಮವಿಶ್ವಾಸವನ್ನು ಕಳೆದುಕೊಳ್ಳಬೇಡಿ; ನಿಮ್ಮ ಆರೋಗ್ಯದ ಕಡೆಗೆ ಹೆಚ್ಚಿನ ನಿಗಾವಹಿಸಿ, ನುರಿತ ವೈದ್ಯಕೀಯ ತಪಾಸಣೆಯನ್ನು ಮಾಡಿಸಿಕೊಳ್ಳಿ ಹಾಗೂ ಧೈರ್ಯದಿಂದ ಮಹಿಳಾ ಸಾಂತ್ವನ ಸಂಸ್ಥೆಗಳ ನೆರವಿನೊಂದಿಗೆ ಈ ಜಾಲದಿಂದ ಹೊರಬನ್ನಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ ಸಲ್ಲಿಸಿ ಹಾಗೂ ಪ್ರತಿದಿನ ಶ್ರೀ ಮಹಾಗೌರೀ ಅಥವಾ ದುರ್ಗಾ ಸ್ತೋತ್ರದ ಜೊತೆಗೆ ಋಣವಿಮೋಚನ ಮಂಗಳ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ; ಸಕಲ ಕಷ್ಟಗಳೂ ನಿವಾರಣೆಯಾಗಿ ಗೌರವಯುತ ದಾಂಪತ್ಯ ಜೀವನ ಲಭಿಸುವುದು ನಿಶ್ಚಿತ.`;
+      }
+
+      // General Secret, Intimate, Bedroom Vitality & Relationship queries
       if (isEn) {
         if (isSubsequent) {
           return `Regarding your intimate inquiry ("${userQuestion}"), in Vedic Jyotisha, human desire (Kama) and intimate physical energies are acknowledged as natural celestial currents rather than something to be judged with shame. In your horoscope, Venus (Shukra) governs love, sexual vitality, and physical attraction, while Rahu creates intense fascination, secret attachments, and taboo illusions. The interplay of your 7th House (partnerships), 8th House (confidential secrets and vitality), and 12th House (bedroom pleasures and guilt) governs these deep private stirrings.\n\nDo not torment your mind with self-hatred, but let wisdom (Viveka) guide your conduct. Remember that clandestine or forbidden affairs may feel thrilling initially, but their karmic repercussion invariably brings mental unrest and loss of honor. If your question relates to physical vitality or intimacy anxieties, know that Shukra dhatu is naturally restored through a sattvic diet, Pranayama, and healthy lifestyle habits.\n\nTo balance these planetary currents and regain serene clarity, offering a Rudrabhisheka to Lord Mahabaleshwara at Sri Kshetra Gokarna and chanting the sacred Shiva Panchakshari ('Om Namah Shivaya') or Gayatri Mantra daily will bring tranquility and divine grace.`;
@@ -1172,10 +1251,36 @@ function generateSpecializedFallbackReply(params: {
         }
         return `नमस्ते ${session.name} जी। श्री क्षेत्र गोकर्ण के इस पावन सान्निध्य में एक वरिष्ठ वैदिक दैवज्ञ के रूप में, मैं आपकी इस गुप्त व संवेदनशील जिज्ञासा को पूर्ण गोपनीयता और वात्सल्य के साथ स्वीकार करता हूँ।\n\nवैदिक ज्योतिष में काम (Kama) और शारीरिक आकर्षण को पाप मानकर दबाने के बजाय, ग्रह स्थिति के प्रभाव से समझा जाता है। जन्मकुंडली में शुक्र (Venus) प्रेम, सौंदर्य और शारीरिक आकर्षण का कारक है, जबकि राहु (Rahu) तीव्र भ्रम, गुप्त आकर्षण और वासना को बढ़ाता है। सप्तम (कलत्र), अष्टम (गुप्त स्थान) और द्वादश भाव के योग से मन में ऐसे गुप्त विचार उत्पन्न होते हैं।\n\nआत्म-ग्लानि में न जलें, किंतु धर्म और मर्यादा की सीमा न लांघें। गुप्त या अनैतिक संबंध अंततः अष्टम भाव के कारण कलंक और मानसिक अशांति लाते हैं। सात्विक आहार और प्राणायाम से शुक्र धातु को संतुलित करें।\n\nश्री क्षेत्र गोकर्ण के महाबलेश्वर भगवान को रुद्राभिषेक करवाने और नित्य 'ॐ नमः शिवाय' या गायत्री मंत्र का जप करने से काम-वासना शांत होकर मन को सच्ची शांति और सद्गति मिलती है।`;
       }
+      if (isTe) {
+        if (isSubsequent) {
+          return `అంతరంగిక మరియు రహస్య విషయం ("${userQuestion}") గురించి, వైదిక జ్యోతిష్యంలో కామం మరియు శారీరక ఆకర్షణను పాపంగా చూడకుండా గ్రహ ప్రభావంగా వివరిస్తారు. జాతకంలో శుక్రుడు (Venus) ప్రేమ, ఆకర్షణ మరియు శారీరక శక్తికి కారకుడు కాగా, రాహువు (Rahu) తీవ్రమైన వ్యామోహం మరియు రహస్య సంబంధాలను సృష్టిస్తాడు. 7వ (కళత్ర), 8వ (గుప్త స్థానం) మరియు 12వ (శయన సుఖం) స్థానాల కలయిక వల్ల ఇలాంటి ఆలోచనలు కలుగుతాయి.\n\nఆత్మన్యూనతకు లోనుకాకుండా ధర్మ మార్గంలో నడవండి. రహస్య సంబంధాలు అశాంతికి దారితీస్తాయి. శారీరక బలహీనతలు ఉంటే సాత్విక ఆహారం, ప్రాణాయామం ద్వారా శుక్ర ధాతువును బలపరచుకోండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామికి రుద్రాభిషేకం చేయించడం మరియు 'ఓం నమః శివాయ' జపించడం వల్ల మనశ్శాంతి లభిస్తుంది.`;
+        }
+        return `నమస్కారం ${session.name} గారు. శ్రీ క్షేత్ర గోకర్ణ పవిత్ర సన్నిధిలో ఒక సీనియర్ వైదిక దైవజ్ఞుడిగా, మీ అంతరంగిక మరియు రహస్య ప్రశ్నను అత్యంత గోప్యంగా, వాత్సల్యంతో స్వీకరిస్తున్నాను.\n\nవైదిక జ్యోతిష్యంలో కామం మరియు శారీరక ఆకర్షణను పాపంగా చూడకుండా గ్రహ ప్రభావంగా వివరిస్తారు. జాతకంలో శుక్రుడు (Venus) ప్రేమ, ఆకర్షణ మరియు శారీరక శక్తికి కారకుడు కాగా, రాహువు (Rahu) తీవ్రమైన వ్యామోహం మరియు రహస్య సంబంధాలను సృష్టిస్తాడు. 7వ (కళత్ర), 8వ (గుప్త స్థానం) మరియు 12వ (శయన సుఖం) స్థానాల కలయిక వల్ల ఇలాంటి ఆలోచనలు కలుగుతాయి.\n\nఆత్మన్యూనతకు లోనుకాకుండా ధర్మ మార్గంలో నడవండి. రహస్య సంబంధాలు అశాంతికి దారితీస్తాయి. శారీరక బలహీనతలు ఉంటే సాత్విక ఆహారం, ప్రాణాయామం ద్వారా శుక్ర ధాతువును బలపరచుకోండి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామికి రుద్రాభిషేకం చేయించడం మరియు 'ఓం నమః శివాయ' జపించడం వల్ల మనశ్శాంతి లభిస్తుంది.`;
+      }
+      if (isTa) {
+        if (isSubsequent) {
+          return `அந்தரங்க மற்றும் ரகசிய விஷயம் ("${userQuestion}") குறித்து, வேத ஜோதிடத்தில் மனித ஆசையும் (காமம்) உடலியல் ஈர்ப்பும் பாவமாகப் பார்க்கப்படாமல் கிரக அமைப்புகளின் வெளிப்பாடாகவே விவரிக்கப்படுகிறது. ஜாதகத்தில் சுக்கிரன் (Venus) காதல், அழகு மற்றும் உடல் ஆற்றலின் காரகர்; ராகு (Rahu) தீவிர மயக்கம் மற்றும் ரகசிய ஈர்ப்பை ஏற்படுத்துபவர். 7-ஆம் (களத்திரம்), 8-ஆம் (மறைவு ஸ்தானம்) மற்றும் 12-ஆம் (சயன சுகம்) வீடுகளின் சேர்க்கையால் இத்தகைய குழப்பங்கள் எழுகின்றன.\n\nசுயவெறுப்பு கொள்ளாமல் விவேகத்துடன் செயல்படுங்கள். ரகசிய உறவுகள் மன அமைதியைக் குலைக்கும். உடல் பலவீனங்கள் இருந்தால் சாத்வீக உணவு மற்றும் பிராணாயாமத்தால் சுக்கிர தாதுவை வலுப்படுத்துங்கள். கோகர்ண மகாபலேஸ்வரருக்கு ருத்ராபிஷேகம் செய்வதும், 'ஓம் நம சிவாய' மந்திரம் ஜெபிப்பதும் மன அமைதியையும் நல்வழியையும் தரும்.`;
+        }
+        return `வணக்கம் ${session.name}. ஸ்ரீ க்ஷேத்ர கோகர்ண புனித சந்நிதியில் ஒரு மூத்த ஜோதிடராக, உங்கள் அந்தரங்க மற்றும் ரகசிய கேள்வியை மிகுந்த ரகசியத்துடனும் பரிவுடனும் ஏற்கிறேன்.\n\nவேத ஜோதிடத்தில் மனித ஆசையும் (காமம்) உடலியல் ஈர்ப்பும் பாவமாகப் பார்க்கப்படாமல் கிரக அமைப்புகளின் வெளிப்பாடாகவே விவரிக்கப்படுகிறது. ஜாதகத்தில் சுக்கிரன் (Venus) காதல், அழகு மற்றும் உடல் ஆற்றலின் காரகர்; ராகு (Rahu) தீவிர மயக்கம் மற்றும் ரகசிய ஈர்ப்பை ஏற்படுத்துபவர். 7-ஆம் (களத்திரம்), 8-ஆம் (மறைவு ஸ்தானம்) மற்றும் 12-ஆம் (சயன சுகம்) வீடுகளின் சேர்க்கையால் இத்தகைய குழப்பங்கள் எழுகின்றன.\n\nசுயவெறுப்பு கொள்ளாமல் விவேகத்துடன் செயல்படுங்கள். ரகசிய உறவுகள் மன அமைதியைக் குலைக்கும். உடல் பலவீனங்கள் இருந்தால் சாத்வீக உணவு மற்றும் பிராணாயாமத்தால் சுக்கிர தாதுவை வலுப்படுத்துங்கள். கோகர்ண மகாபலேஸ்வரருக்கு ருத்ராபிஷேகம் செய்வதும், 'ஓம் நம சிவாய' மந்திரம் ஜெபிப்பதும் மன அமைதியையும் நல்வழியையும் தரும்.`;
+      }
+      if (isMl) {
+        if (isSubsequent) {
+          return `അന്തരംഗവും രഹസ്യവുമായ ഈ വിഷയത്തിൽ ("${userQuestion}"), വൈദിക ജ്യോതിഷത്തിൽ മനുഷ്യസഹജമായ ആഗ്രഹങ്ങളെയും ശാരീരിക ആകർഷണങ്ങളെയും പാപമായി കാണാതെ ഗ്രഹസ്വാധീനമായി വിശദീകരിക്കുന്നു. ജാതകത്തിൽ ശുക്രൻ (Venus) സ്നേഹത്തിന്റെയും ശാരീരിക വീര്യത്തിന്റെയും കാരകനും, രാഹു (Rahu) അമിത വ്യാമോഹത്തിന്റെയും രഹസ്യ ബന്ധങ്ങളുടെയും കാരകനുമാണ്. 7-ാം (വിവാഹം), 8-ാം (ഗുപ്ത സ്ഥാനം), 12-ാം (ശയന സുഖം) ഭാവങ്ങളുടെ സമ്മിശ്രണമാണ് ഇങ്ങനെയുള്ള ചിന്തകൾക്ക് കാരണം.\n\nകുറ്റബോധത്തിൽ ഉരുകാതെ ധർമ്മത്തിന്റെ വഴിയിൽ ഉറച്ചുനിൽക്കുക. രഹസ്യ ബന്ധങ്ങൾ ശാന്തി നഷ്ടപ്പെടുത്തും. ശാരീരിക ദൗർബല്യങ്ങളുണ്ടെങ്കിൽ സാത്വിക ഭക്ഷണവും പ്രാണായാമവും ശീലിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വരന് രുദ്രാഭിഷേകം നടത്തുകയും 'ഓം നമഃ ശിവായ' ജപിക്കുകയും ചെയ്യുന്നത് മനസ്സിന് ശാന്തി നൽകും.`;
+        }
+        return `നമസ്കാരം ${session.name}. ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ പവിത്ര സന്നിധിയിൽ ഒരു മുതിർന്ന ജ്യോത്സ്യനായി നിങ്ങളുടെ രഹസ്യവും സ്വകാര്യവുമായ ഈ ചോദ്യത്തെ അതീവ രഹസ്യമായും വാത്സല്യത്തോടും സ്വീകരിക്കുന്നു.\n\nവൈദിക ജ്യോതിഷത്തിൽ മനുഷ്യസഹജമായ ആഗ്രഹങ്ങളെയും ശാരീരിക ആകർഷണങ്ങളെയും പാപമായി കാണാതെ ഗ്രഹസ്വാധീനമായി വിശദീകരിക്കുന്നു. ജാതകത്തിൽ ശുക്രൻ (Venus) സ്നേഹത്തിന്റെയും ശാരീരിക വീര്യത്തിന്റെയും കാരകനും, രാഹു (Rahu) അമിത വ്യാമോഹത്തിന്റെയും രഹസ്യ ബന്ധങ്ങളുടെയും കാരകനുമാണ്. 7-ാം (വിവാഹം), 8-ാം (ഗുപ്ത സ്ഥാനം), 12-ാം (ശയന സുഖം) ഭാവങ്ങളുടെ സമ്മിശ്രണമാണ് ഇങ്ങനെയുള്ള ചിന്തകൾക്ക് കാരണം.\n\nകുറ്റബോധത്തിൽ ഉരുകാതെ ധർമ്മത്തിന്റെ വഴിയിൽ ഉറച്ചുനിൽക്കുക. രഹസ്യ ബന്ധങ്ങൾ ശാന്തി നഷ്ടപ്പെടുത്തും. ശാരീരിക ദൗർബല്യങ്ങളുണ്ടെങ്കിൽ സാത്വിക ഭക്ഷണവും പ്രാണായാമവും ശീലിക്കുക. ഗോകർണ്ണ മഹാബലേശ്വരന് രുദ്രാഭിഷേകം നടത്തുകയും 'ഓം നമഃ ശിവായ' ജപിക്കുകയും ചെയ്യുന്നത് മനസ്സിന് ശാന്തി നൽകും.`;
+      }
+      if (isMr) {
+        if (isSubsequent) {
+          return `अन्तरंग आणि गुप्त विषयाबाबत ("${userQuestion}"), वैदिक ज्योतिषात मानवी वासना आणि शारीरिक आकर्षण यांना पाप न मानता नैसर्गिक ग्रह प्रभाव मानले जाते. पत्रिकेत शुक्र (Venus) प्रेम, सौंदर्य आणि शारीरिक ऊर्जेचा कारक आहे, तर राहू (Rahu) तीव्र भुरळ आणि गुप्त आकर्षणाचा कारक आहे. सप्तम (कलत्र), अष्टम (गुप्त स्थान) आणि द्वादश (शयन सुख) भावांच्या संयोगाने मनात अशा भावना निर्माण होतात.\n\nआत्म-ग्लानी न बाळगता विवेकाने वागा. गुप्त संबंध शेवटी मानहानी आणतात. शारीरिक दुर्बलता असल्यास सात्विक आहार आणि प्राणायामाने शुक्र धातू संतुलित करा. गोकर्ण महाबळेश्वराला रुद्राभिषेक करणे आणि 'ॐ नमः शिवाय' जप केल्याने मन शांत होते.`;
+        }
+        return `नमस्ते ${session.name}. श्री क्षेत्र गोकर्ण पावन सान्निध्यात एक ज्येष्ठ दैवज्ञ म्हणून मी आपली ही अत्यंत गुप्त व संवेदनशील शंका पूर्ण गोपनीयतेने व पितृतुल्य वात्सल्याने स्वीकारतो.\n\nवैदिक ज्योतिषात मानवी वासना आणि शारीरिक आकर्षण यांना पाप न मानता नैसर्गिक ग्रह प्रभाव मानले जाते. पत्रिकेत शुक्र (Venus) प्रेम, सौंदर्य आणि शारीरिक ऊर्जेचा कारक आहे, तर राहू (Rahu) तीव्र भुरळ आणि गुप्त आकर्षणाचा कारक आहे. सप्तम (कलत्र), अष्टम (गुप्त स्थान) आणि द्वादश (शयन सुख) भावांच्या संयोगाने मनात अशा भावना निर्माण होतात.\n\nआत्म-ग्लानी न बाळगता विवेकाने वागा. गुप्त संबंध शेवटी मानहानी आणतात. शारीरिक दुर्बलता असल्यास सात्विक आहार आणि प्राणायामाने शुक्र धातू संतुलित करा. गोकर्ण महाबळेश्वराला रुद्राभिषेक करणे आणि 'ॐ नमः शिवाय' जप केल्याने मन शांत होते.`;
+      }
+      // Kannada default
       if (isSubsequent) {
         return `ಅಂತರಂಗದ ಈ ಗೌಪ್ಯ ವಿಚಾರಣೆಗೆ ("${userQuestion}") ಸಂಬಂಧಿಸಿದಂತೆ, ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮಾನವ ಸಹಜವಾದ ಕಾಮನೆ (Kama) ಹಾಗೂ ದೈಹಿಕ ಆಕರ್ಷಣೆಗಳನ್ನು ಪಾಪವೆಂದು ನಿರಾಕರಿಸದೆ, ಅವುಗಳ ಗ್ರಹಸ್ಥಿತಿಯ ಮೂಲವನ್ನು ಸವಿಸ್ತಾರವಾಗಿ ವಿವರಿಸಲಾಗಿದೆ. ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ (Venus) ಗ್ರಹವು ಪ್ರೇಮ, ಸೌಂದರ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ಶಕ್ತಿಯ (ಶುಕ್ರ ಧಾತು) ಕಾರಕನಾಗಿದ್ದು, ರಾಹು (Rahu) ಗ್ರಹವು ತೀವ್ರವಾದ ಭ್ರಮೆ, ರಹಸ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಅತಿಯಾದ ವ್ಯಾಮೋಹವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಾನೆ. ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ (ಕಳತ್ರ), ಅಷ್ಟಮ (ಗುಪ್ತ ಸ್ಥಾನ) ಹಾಗೂ ದ್ವಾದಶ (ಶಯನ ಸುಖ) ಭಾವಗಳ ಸಂಯೋಗದಿಂದ ಇಂತಹ ತೀವ್ರ ರಹಸ್ಯ ಭಾವನೆಗಳು ಅಥವಾ ಗೊಂದಲಗಳು ಉಂಟಾಗುತ್ತವೆ.\n\nಇಂತಹ ವಿಷಯಗಳಲ್ಲಿ ಅತಿಯಾದ ಅಪರಾಧಿ ಭಾವನೆಯಿಂದ ಕುಗ್ಗಬೇಡಿ; ಆದರೆ ಧರ್ಮದ ಗೆರೆಯನ್ನು ಎಂದಿಗೂ ದಾಟಬೇಡಿ. ರಹಸ್ಯ ಅಥವಾ ಅನೈತಿಕ ಸಂಬಂಧಗಳು ಆರಂಭದಲ್ಲಿ ಆಕರ್ಷಕವಾಗಿ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಅಷ್ಟಮ ಭಾವದ ಪ್ರಭಾವದಿಂದ ಕೀರ್ತಿಭಂಗ ಹಾಗೂ ಮಾನಸಿಕ ಅಶಾಂತಿಗೆ ಕಾರಣವಾಗುತ್ತವೆ. ದೈಹಿಕ ದೌರ್ಬಲ್ಯ ಅಥವಾ ಲೈಂಗಿಕ ಚಿಂತೆಗಳಿದ್ದರೆ, ಸಾತ್ವಿಕ ಆಹಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಆಯುರ್ವೇದ ಪದ್ಧತಿಯಿಂದ ಶುಕ್ರ ಧಾತುವನ್ನು ಬಲಪಡಿಸಿಕೊಳ್ಳಿ.\n\nಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಹಾಗೂ ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸುವುದರಿಂದ ಮನಸ್ಸಿನ ಕಾಮಾಗ್ನಿಯು ಶಮನವಾಗಿ, ಸಕಲ ಶುಭ ಹಾಗೂ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.`;
       }
       return `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಈ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ, ನಿಮ್ಮ ಅಂತರಂಗದ ಈ ರಹಸ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಅತ್ಯಂತ ಗೌಪ್ಯವಾಗಿ ಹಾಗೂ ವಾತ್ಸಲ್ಯಪೂರ್ಣವಾಗಿ ಸ್ವೀಕರಿಸುತ್ತೇನೆ.\n\nವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದಲ್ಲಿ ಮಾನವ ಸಹಜವಾದ ಕಾಮನೆ (Kama) ಹಾಗೂ ದೈಹಿಕ ಆಕರ್ಷಣೆಗಳನ್ನು ಪಾಪವೆಂದು ನಿರಾಕರಿಸದೆ, ಅವುಗಳ ಗ್ರಹಸ್ಥಿತಿಯ ಮೂಲವನ್ನು ಸವಿಸ್ತಾರವಾಗಿ ವಿವರಿಸಲಾಗಿದೆ. ಜಾತಕದಲ್ಲಿ ಶುಕ್ರ (Venus) ಗ್ರಹವು ಪ್ರೇಮ, ಸೌಂದರ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ಶಕ್ತಿಯ (ಶುಕ್ರ ಧಾತು) ಕಾರಕನಾಗಿದ್ದು, ರಾಹು (Rahu) ಗ್ರಹವು ತೀವ್ರವಾದ ಭ್ರಮೆ, ರಹಸ್ಯ ಆಕರ್ಷಣೆ ಹಾಗೂ ಅತಿಯಾದ ವ್ಯಾಮೋಹವನ್ನು ಸೃಷ್ಟಿಸುತ್ತಾನೆ. ನಿಮ್ಮ ಜಾತಕದ ಸಪ್ತಮ (ಕಳತ್ರ), ಅಷ್ಟಮ (ಗುಪ್ತ ಸ್ಥಾನ) ಹಾಗೂ ದ್ವಾದಶ (ಶಯನ ಸುಖ) ಭಾವಗಳ ಸಂಯೋಗದಿಂದ ಇಂತಹ ತೀವ್ರ ರಹಸ್ಯ ಭಾವನೆಗಳು ಅಥವಾ ಗೊಂದಲಗಳು ಉಂಟಾಗುತ್ತವೆ.\n\nಇಂತಹ ವಿಷಯಗಳಲ್ಲಿ ಅತಿಯಾದ ಅಪರಾಧಿ ಭಾವನೆಯಿಂದ ಕುಗ್ಗಬೇಡಿ; ಆದರೆ ಧರ್ಮದ ಗೆರೆಯನ್ನು ಎಂದಿಗೂ ದಾಟಬೇಡಿ. ರಹಸ್ಯ ಅಥವಾ ಅನೈತಿಕ ಸಂಬಂಧಗಳು ಆರಂಭದಲ್ಲಿ ಆಕರ್ಷಕವಾಗಿ ಕಂಡರೂ, ಅಂತಿಮವಾಗಿ ಅಷ್ಟಮ ಭಾವದ ಪ್ರಭಾವದಿಂದ ಕೀರ್ತಿಭಂಗ ಹಾಗೂ ಮಾನಸಿಕ ಅಶಾಂತಿಗೆ ಕಾರಣವಾಗುತ್ತವೆ. ದೈಹಿಕ ದೌರ್ಬಲ್ಯ ಅಥವಾ ಲೈಂಗಿಕ ಚಿಂತೆಗಳಿದ್ದರೆ, ಸಾತ್ವಿಕ ಆಹಾರ, ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಆಯುರ್ವೇದ ಪದ್ಧತಿಯಿಂದ ಶುಕ್ರ ಧಾತುವನ್ನು ಬಲಪಡಿಸಿಕೊಳ್ಳಿ.\n\nಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸುವುದರಿಂದ ಹಾಗೂ ಪ್ರತಿದಿನ 'ಓಂ ನಮಃ ಶಿವಾಯ' ಅಥವಾ ಗಾಯತ್ರೀ ಮಂತ್ರವನ್ನು ಜಪಿಸುವುದರಿಂದ ಮನಸ್ಸಿನ ಕಾಮಾಗ್ನಿಯು ಶಮನವಾಗಿ, ಸಕಲ ಶುಭ ಹಾಗೂ ಶಾಂತಿ ಲಭಿಸುತ್ತದೆ.`;
+    }
 
     case "CELEBRITY_FANTASY":
       if (isEn) {

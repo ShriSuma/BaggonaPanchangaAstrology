@@ -535,7 +535,9 @@ export async function addConsultationMessage(
   message: ConsultationChatMessage
 ): Promise<void> {
   const current = await getConsultationSession(id);
-  if (!current) return;
+  if (!current) {
+    throw new Error(`Consultation session not found: ${id}`);
+  }
 
   // Strict Security Sandbox: Expired sessions cannot accept new messages
   if (current.status === "expired" || (current.expiresAt && Date.now() > new Date(current.expiresAt).getTime())) {

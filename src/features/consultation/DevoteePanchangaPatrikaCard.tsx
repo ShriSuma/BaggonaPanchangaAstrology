@@ -62,10 +62,17 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
         {!isCollapsed && (
           <div className="max-w-2xl mx-auto p-3 pt-1 border-t border-amber-200/80 animate-fadeIn">
             <div className="bg-white/90 border border-amber-300/80 rounded-2xl p-3 shadow-inner">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-[11px]">
                 <div className="bg-amber-50/80 p-2 rounded-xl border border-amber-200">
                   <div className="text-[10px] text-amber-800 font-bold">{labels.vaaraLabel}</div>
                   <div className="font-bold text-amber-950 mt-0.5">{profile.vaara}</div>
+                  {profile.vaaraLord && (
+                    <div className="text-[9px] text-amber-800/80 mt-0.5">{labels.vaaraLordLabel}: {profile.vaaraLord}</div>
+                  )}
+                </div>
+                <div className="bg-amber-50/80 p-2 rounded-xl border border-amber-200">
+                  <div className="text-[10px] text-amber-800 font-bold">{labels.horaLabel}</div>
+                  <div className="font-bold text-amber-950 mt-0.5">{profile.janmaHora}</div>
                 </div>
                 <div className="bg-amber-50/80 p-2 rounded-xl border border-amber-200">
                   <div className="text-[10px] text-amber-800 font-bold">{labels.tithiLabel}</div>
@@ -91,7 +98,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
                   <div className="text-[10px] text-amber-800 font-bold">{labels.karanaLabel}</div>
                   <div className="font-bold text-amber-950 mt-0.5">{profile.karana}</div>
                 </div>
-                <div className="bg-amber-50/80 p-2 rounded-xl border border-amber-200">
+                <div className="col-span-2 sm:col-span-1 md:col-span-4 bg-amber-50/80 p-2 rounded-xl border border-amber-200">
                   <div className="text-[10px] text-amber-800 font-bold">{labels.dashaLabel}</div>
                   <div className="font-bold text-amber-950 mt-0.5">{profile.runningDasha}</div>
                 </div>
@@ -169,9 +176,30 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
               <div className="font-serif font-black text-sm text-amber-950 mt-1">
                 {profile.vaara}
               </div>
+              {profile.vaaraLord && (
+                <div className="text-[10px] text-amber-800/90 font-medium mt-0.5">
+                  {labels.vaaraLordLabel}: <strong className="font-bold text-amber-950">{profile.vaaraLord}</strong>
+                </div>
+              )}
             </div>
 
-            {/* 2. Tithi */}
+            {/* 2. Janma Hora */}
+            <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
+              <div className="flex items-center gap-1 text-[11px] text-amber-800 font-bold">
+                <span>🪐</span>
+                <span>{labels.horaLabel}</span>
+              </div>
+              <div className="font-serif font-black text-sm text-amber-950 mt-1">
+                {profile.janmaHora}
+              </div>
+              {profile.horaLord && (
+                <div className="text-[10px] text-amber-800/90 font-medium mt-0.5">
+                  {labels.vaaraLordLabel}: <strong className="font-bold text-amber-950">{profile.horaLord}</strong>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Tithi */}
             <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-amber-800 font-bold">
                 <span>🌔</span>
@@ -182,7 +210,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
               </div>
             </div>
 
-            {/* 3. Nakshatra & Pada */}
+            {/* 4. Nakshatra & Pada */}
             <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-amber-800 font-bold">
                 <span>⭐</span>
@@ -193,7 +221,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
               </div>
             </div>
 
-            {/* 4. Janma Rashi */}
+            {/* 5. Janma Rashi */}
             <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-amber-800 font-bold">
                 <span>🌙</span>
@@ -204,7 +232,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
               </div>
             </div>
 
-            {/* 5. Janma Lagna */}
+            {/* 6. Janma Lagna */}
             <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-amber-800 font-bold">
                 <span>♈</span>
@@ -215,7 +243,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
               </div>
             </div>
 
-            {/* 6. Nitya Yoga */}
+            {/* 7. Nitya Yoga */}
             <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-amber-800 font-bold">
                 <span>🧘</span>
@@ -226,7 +254,7 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
               </div>
             </div>
 
-            {/* 7. Karana */}
+            {/* 8. Karana */}
             <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-amber-800 font-bold">
                 <span>🦁</span>
@@ -237,8 +265,8 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
               </div>
             </div>
 
-            {/* 8. Running Dasha (Spanning 2 columns on mobile/tablet) */}
-            <div className="col-span-2 bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
+            {/* 9. Running Dasha */}
+            <div className="bg-white/95 border border-amber-300/80 rounded-2xl p-3 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-amber-800 font-bold">
                 <span>⏳</span>
                 <span>{labels.dashaLabel}</span>

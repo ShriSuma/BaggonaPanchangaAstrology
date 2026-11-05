@@ -1,14 +1,20 @@
 /**
- * Baggona Panchanga - Uninterrupted Continuous Speech Recognition Engine
+ * Baggona Panchanga - Uninterrupted Continuous Speech Recognition Engine & AI Question Refiner
  * Engineered to support long dictations (up to 4-5 minutes) without unexpected premature cut-offs.
- * Automatically handles browser auto-end events, restarting seamlessly while active.
+ * Automatically handles browser auto-end events, restarting cleanly without speech buffer pollution.
  *
- * CRITICAL FIX:
- * Prevents Web Speech API duplicate word / sentence accumulation bug caused by
- * iterating over historical event.results with un-advanced event.resultIndex.
- * Includes intelligent multi-lingual anti-stutter deduplication filter.
+ * CRITICAL ZERO-DUPLICATION & AI REFINEMENT PROTOCOL:
+ * 1. Strictly eliminates the catastrophic duplicate word / sentence accumulation bug caused by
+ *    concatenating non-overlapping historical event.results or partial interim hypotheses.
+ * 2. Multi-pass anti-stutter deduplication filter collapses any runs of consecutive duplicate
+ *    words (even if repeated 10, 20, or 50 times) in a single pass.
+ * 3. Fresh SpeechRecognition instantiation on pause-restart prevents Chromium internal result leaks.
+ * 4. Fast 2-3 second AI Question Refiner (using gemini-3.5-flash-lite) converts dictated speech into
+ *    a polished, respectful, single-sentence Vedic astrological question in the user's chosen language.
  */
 
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useAppStore } from "../../stores/appStore";
 import type { ConsultationLanguage } from "./consultationTypes";
 
 export const LANGUAGE_SPEECH_LOCALES: Record<ConsultationLanguage, string> = {
@@ -19,6 +25,16 @@ export const LANGUAGE_SPEECH_LOCALES: Record<ConsultationLanguage, string> = {
   ta: "ta-IN",
   ml: "ml-IN",
   mr: "mr-IN"
+};
+
+export const LANGUAGE_DISPLAY_NAMES: Record<ConsultationLanguage, string> = {
+  kn: "Kannada (ಕನ್ನಡ)",
+  en: "English",
+  hi: "Hindi (हिन्दी)",
+  te: "Telugu (తెలుగు)",
+  ta: "Tamil (தமிழ்)",
+  ml: "Malayalam (മലയാളം)",
+  mr: "Marathi (मराठी)"
 };
 
 export interface ContinuousSpeechCallbacks {
@@ -41,10 +57,143 @@ export function cleanJoin(...parts: (string | undefined | null)[]): string {
 }
 
 /**
+ * Normalizes tokens for strict phonetic and linguistic matching:
+ * 1. Unicode NFC normalization (resolves macOS / iOS Safari decomposed NFD speech dictation vs web NFC literals).
+ * 2. Strips Zero-Width formatting characters (\u200B zero-width space, \u200C ZWNJ, \u200D ZWJ, \uFEFF BOM, \u00A0 non-breaking space).
+ * 3. Strips all terminal and leading punctuation (including Latin and Indic dandas । \u0964, ॥ \u0965, quotes, brackets).
+ * 4. Lowercase and collapse internal whitespace.
+ */
+export function normToken(s: string): string {
+  if (!s) return "";
+  let norm = typeof s.normalize === "function" ? s.normalize("NFC") : s;
+  norm = norm.replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "");
+  norm = norm.replace(/^[.,!?;:॥|।·•–—"'`“”‘’«»()[\]{}]+|[.,!?;:॥|।·•–—"'`“”‘’«»()[\]{}]+$/g, "");
+  return norm.toLowerCase().trim();
+}
+
+/**
+ * Collapses consecutive identical tokens: e.g. ["ಹಲೋ", "ಹಲೋ", "ಹಲೋ", ...] -> ["ಹಲೋ"].
+ * Collapses any number of repetitions (2 to 100 times) in a single O(N) pass.
+ */
+export function collapseConsecutiveTokens(tokens: string[]): string[] {
+  if (tokens.length <= 1) return tokens;
+  const result: string[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const current = tokens[i];
+    if (!current) continue;
+    const prev = result[result.length - 1];
+    if (prev && normToken(current) && normToken(current) === normToken(prev)) {
+      continue; // drop consecutive duplicate word
+    }
+    result.push(current);
+  }
+  return result;
+}
+
+/**
+ * Deduplicates accidental consecutive identical words, multi-word phrase echoes,
+ * or full repeated sentences caused by microphone feedback loops, speech engine stuttering,
+ * browser auto-restart overlap, or repeated result firing.
+ *
+ * Guarantees:
+ * - "ಅವನು ಅವನು ಅವನು ಅವನು ಅವಳಿಗೆ ಅವಳಿಗೆ" -> "ಅವನು ಅವಳಿಗೆ"
+ * - "ಯಾವಾಗ ".repeat(20) -> "ಯಾವಾಗ" (collapses 10 or 20 repeats cleanly!)
+ * - "ಯಾವಾಗ ಆಗುತ್ತದೆ ಯಾವಾಗ ಆಗುತ್ತದೆ" -> "ಯಾವಾಗ ಆಗುತ್ತದೆ"
+ * - "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ? ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?" -> "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?"
+ */
+export function sanitizeDuplicateSpeechWords(text: string): string {
+  if (!text) return "";
+
+  let trimmed = typeof text.normalize === "function" ? text.normalize("NFC") : text;
+  trimmed = trimmed.replace(/[\u200B-\u200D\uFEFF]/g, "").replace(/\u00A0/g, " ").trim();
+  if (!trimmed) return "";
+
+  // 1. Sentence-level deduplication
+  const rawSentences = trimmed.split(/(?<=[.!?॥|।]|\n+)\s*/).filter(Boolean);
+  let dedupedText = trimmed;
+
+  if (rawSentences.length > 1) {
+    const cleanSentences: string[] = [];
+    for (const sentence of rawSentences) {
+      const sTrim = sentence.trim();
+      if (!sTrim) continue;
+      const prev = cleanSentences[cleanSentences.length - 1];
+      if (prev && normToken(sTrim) === normToken(prev)) {
+        continue; // drop duplicate identical sentence
+      }
+      cleanSentences.push(sTrim);
+    }
+    dedupedText = cleanSentences.join(" ");
+  }
+
+  // 2. Token-level consecutive word collapse (collapses any 10-20 word runs immediately)
+  let tokens = dedupedText.split(/\s+/).filter(Boolean);
+  if (tokens.length <= 1) return dedupedText;
+  tokens = collapseConsecutiveTokens(tokens);
+
+  // 3. Multi-word phrase n-gram deduplication (from 15-word phrases down to 2-word phrases)
+  let changed = true;
+  let iterations = 0;
+  while (changed && iterations < 15) {
+    changed = false;
+    iterations++;
+
+    const maxK = Math.min(15, Math.floor(tokens.length / 2));
+    for (let k = maxK; k >= 2; k--) {
+      const newTokens: string[] = [];
+      let i = 0;
+
+      while (i < tokens.length) {
+        // Check if tokens[i .. i+k-1] matches tokens[i+k .. i+2k-1]
+        if (i + 2 * k <= tokens.length) {
+          let match = true;
+          for (let m = 0; m < k; m++) {
+            if (normToken(tokens[i + m]) !== normToken(tokens[i + k + m])) {
+              match = false;
+              break;
+            }
+          }
+          if (match) {
+            // Found duplicate phrase of length k! Keep first copy, skip all consecutive repetitions
+            for (let m = 0; m < k; m++) {
+              newTokens.push(tokens[i + m]);
+            }
+            i += k; // point to second copy
+            while (i + k <= tokens.length) {
+              let nextMatch = true;
+              for (let m = 0; m < k; m++) {
+                if (normToken(newTokens[newTokens.length - k + m]) !== normToken(tokens[i + m])) {
+                  nextMatch = false;
+                  break;
+                }
+              }
+              if (nextMatch) {
+                i += k; // skip repeated copy
+                changed = true;
+              } else {
+                break;
+              }
+            }
+            continue;
+          }
+        }
+
+        newTokens.push(tokens[i]);
+        i++;
+      }
+
+      tokens = collapseConsecutiveTokens(newTokens);
+      if (changed) break; // restart scan on changed tokens
+    }
+  }
+
+  return tokens.join(" ").replace(/\s+([.,!?;:॥|।])/g, "$1").trim();
+}
+
+/**
  * Merges two speech string segments cleanly while intelligently detecting and stripping
  * any suffix-prefix overlap (up to 25 words) caused by speech engine restarts or buffer repeats.
- * E.g. "ನನ್ನ ಮದುವೆ ಯಾವಾಗ" + "ಯಾವಾಗ ಆಗುತ್ತದೆ" -> "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ"
- * E.g. "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ" + "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ ತಿಳಿಸಿ" -> "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ ತಿಳಿಸಿ"
+ * Never duplicates chunks if incomingSegment is already present inside baseText.
  */
 export function mergeSpeechSegments(baseText: string, incomingSegment: string): string {
   const b = (baseText || "").trim();
@@ -52,11 +201,23 @@ export function mergeSpeechSegments(baseText: string, incomingSegment: string): 
   if (!b) return sanitizeDuplicateSpeechWords(inc);
   if (!inc) return sanitizeDuplicateSpeechWords(b);
 
-  const bTokens = b.split(/\s+/).filter(Boolean);
-  const incTokens = inc.split(/\s+/).filter(Boolean);
+  const bClean = sanitizeDuplicateSpeechWords(b);
+  const incClean = sanitizeDuplicateSpeechWords(inc);
 
-  // Normalize tokens for matching (strip common punctuation for comparison)
-  const norm = (s: string) => s.toLowerCase().replace(/^[.,!?;:॥|]+|[.,!?;:॥|]+$/g, "");
+  const bNorm = normToken(bClean);
+  const incNorm = normToken(incClean);
+
+  // If incoming segment is already entirely contained within baseText, do NOT append!
+  if (bNorm.includes(incNorm)) {
+    return bClean;
+  }
+  // If baseText is entirely contained within incoming segment (e.g. expanded transcription)
+  if (incNorm.startsWith(bNorm)) {
+    return incClean;
+  }
+
+  const bTokens = bClean.split(/\s+/).filter(Boolean);
+  const incTokens = incClean.split(/\s+/).filter(Boolean);
 
   const maxOverlap = Math.min(bTokens.length, incTokens.length, 25);
   let overlapLen = 0;
@@ -64,8 +225,8 @@ export function mergeSpeechSegments(baseText: string, incomingSegment: string): 
   for (let len = maxOverlap; len >= 1; len--) {
     let match = true;
     for (let k = 0; k < len; k++) {
-      const bWord = norm(bTokens[bTokens.length - len + k]);
-      const incWord = norm(incTokens[k]);
+      const bWord = normToken(bTokens[bTokens.length - len + k]);
+      const incWord = normToken(incTokens[k]);
       if (bWord !== incWord) {
         match = false;
         break;
@@ -79,104 +240,8 @@ export function mergeSpeechSegments(baseText: string, incomingSegment: string): 
 
   // If suffix of base matches prefix of incoming, slice off the duplicate prefix
   const remainingInc = incTokens.slice(overlapLen).join(" ");
-  const merged = cleanJoin(b, remainingInc);
+  const merged = cleanJoin(bClean, remainingInc);
   return sanitizeDuplicateSpeechWords(merged);
-}
-
-/**
- * Deduplicates accidental consecutive identical words, multi-word phrase echoes,
- * or full repeated sentences caused by microphone feedback loops, speech engine stuttering,
- * browser auto-restart overlap, or repeated result firing.
- * E.g. "ಅವನು ಅವನು ಅವನು ಅವನು ಅವಳಿಗೆ ಅವಳಿಗೆ" -> "ಅವನು ಅವಳಿಗೆ"
- * E.g. "ಯಾವಾಗ ಆಗುತ್ತದೆ ಯಾವಾಗ ಆಗುತ್ತದೆ" -> "ಯಾವಾಗ ಆಗುತ್ತದೆ"
- * E.g. "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ? ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?" -> "ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?"
- */
-export function sanitizeDuplicateSpeechWords(text: string): string {
-  if (!text) return "";
-
-  const trimmed = text.trim();
-  if (!trimmed) return "";
-
-  // Helper to normalize tokens for comparison (stripping terminal punctuation)
-  const norm = (s: string) => s.toLowerCase().replace(/^[.,!?;:॥|]+|[.,!?;:॥|]+$/g, "");
-
-  // 1. Sentence-level deduplication
-  // Split on sentence terminators while preserving them or linebreaks
-  const rawSentences = trimmed.split(/(?<=[.!?॥|]|\n+)\s*/).filter(Boolean);
-  let dedupedText = trimmed;
-
-  if (rawSentences.length > 1) {
-    const cleanSentences: string[] = [];
-    for (const sentence of rawSentences) {
-      const sTrim = sentence.trim();
-      if (!sTrim) continue;
-      const prev = cleanSentences[cleanSentences.length - 1];
-      if (prev && norm(sTrim) === norm(prev.trim())) {
-        continue; // drop duplicate identical sentence
-      }
-      cleanSentences.push(sTrim);
-    }
-    dedupedText = cleanSentences.join(" ");
-  }
-
-  // 2. Token-level n-gram deduplication (from 25-word phrases down to single words)
-  let tokens = dedupedText.split(/\s+/).filter(Boolean);
-  if (tokens.length <= 1) return dedupedText;
-
-  let changed = true;
-  let iterations = 0;
-  // Repeat passes until stable (max 4 passes to prevent infinite loop)
-  while (changed && iterations < 4) {
-    changed = false;
-    iterations++;
-
-    // Try phrase lengths from 25 down to 1
-    const maxK = Math.min(25, Math.floor(tokens.length / 2));
-    for (let k = maxK; k >= 1; k--) {
-      const newTokens: string[] = [];
-      let i = 0;
-
-      while (i < tokens.length) {
-        // Check if tokens[i .. i+k-1] matches tokens[i+k .. i+2k-1]
-        if (i + 2 * k <= tokens.length) {
-          let match = true;
-          for (let m = 0; m < k; m++) {
-            if (norm(tokens[i + m]) !== norm(tokens[i + k + m])) {
-              match = false;
-              break;
-            }
-          }
-          if (match) {
-            // Found duplicate phrase of length k! Push first copy, skip second copy
-            for (let m = 0; m < k; m++) {
-              newTokens.push(tokens[i + m]);
-            }
-            i += 2 * k;
-            changed = true;
-            continue;
-          }
-        }
-
-        // Also check if tokens[i] matches the immediately preceding token (single-word duplicate)
-        if (k === 1 && newTokens.length > 0) {
-          const prev = newTokens[newTokens.length - 1];
-          if (norm(tokens[i]) === norm(prev)) {
-            i++;
-            changed = true;
-            continue;
-          }
-        }
-
-        newTokens.push(tokens[i]);
-        i++;
-      }
-
-      tokens = newTokens;
-      if (changed) break; // restart scan on changed tokens
-    }
-  }
-
-  return tokens.join(" ").replace(/\s+([.,!?;:॥|])/g, "$1").trim();
 }
 
 export class ContinuousSpeechEngine {
@@ -205,6 +270,7 @@ export class ContinuousSpeechEngine {
   private elapsedSeconds = 0;
   private maxDurationSeconds = 300; // 5 minutes max continuous session
   private restartTimeout: number | null = null;
+  private callbacks: ContinuousSpeechCallbacks | null = null;
 
   constructor(lang: ConsultationLanguage = "kn") {
     this.language = LANGUAGE_SPEECH_LOCALES[lang] || "kn-IN";
@@ -242,13 +308,121 @@ export class ContinuousSpeechEngine {
     }
   }
 
+  private cleanupRecognition(): void {
+    if (this.recognition) {
+      try {
+        this.recognition.onresult = null;
+        this.recognition.onerror = null;
+        this.recognition.onend = null;
+        this.recognition.abort();
+      } catch {
+        // Ignore
+      }
+      this.recognition = null;
+    }
+  }
+
+  private attachEventHandlers(callbacks: ContinuousSpeechCallbacks): void {
+    if (!this.recognition) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.recognition.onresult = (event: any) => {
+      let sessionFinal = "";
+      let sessionInterim = "";
+
+      for (let i = 0; i < event.results.length; ++i) {
+        const item = event.results[i];
+        if (!item || !item[0]) continue;
+        const transcript = (item[0].transcript || "").trim();
+        if (!transcript) continue;
+
+        if (item.isFinal) {
+          sessionFinal = mergeSpeechSegments(sessionFinal, transcript);
+        } else {
+          sessionInterim = mergeSpeechSegments(sessionInterim, transcript);
+        }
+      }
+
+      this.currentSessionFinal = sessionFinal;
+      this.currentInterim = sessionInterim;
+
+      const currentChunk = mergeSpeechSegments(sessionFinal, sessionInterim);
+
+      const fullCombined = this.baseText
+        ? mergeSpeechSegments(this.baseText, currentChunk)
+        : currentChunk;
+
+      const sanitizedFull = sanitizeDuplicateSpeechWords(fullCombined);
+      callbacks.onTranscriptUpdate(sanitizedFull, false);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.recognition.onerror = (event: any) => {
+      const err = event?.error || "unknown";
+      // Ignore routine 'no-speech' or 'aborted' errors when user pauses — we keep the engine active!
+      if (err === "no-speech" || err === "aborted") {
+        return;
+      }
+      console.warn("[ContinuousSpeechEngine] Speech error:", err);
+      if (err === "not-allowed" || err === "service-not-allowed") {
+        this.isExplicitlyActive = false;
+        this.stop();
+        if (callbacks.onError) {
+          callbacks.onError("Microphone access was denied. Please allow microphone permissions in your browser.");
+        }
+      }
+    };
+
+    this.recognition.onend = () => {
+      this.isListening = false;
+      if (this.isExplicitlyActive) {
+        // Automatically restart to fulfill 3-4 minute continuous speaking requirement!
+        // Commit current finalized transcript into baseText before starting new session cleanly
+        if (this.currentSessionFinal) {
+          this.baseText = mergeSpeechSegments(this.baseText, this.currentSessionFinal);
+          this.currentSessionFinal = "";
+        }
+        this.currentInterim = "";
+
+        if (this.restartTimeout) clearTimeout(this.restartTimeout);
+        this.restartTimeout = window.setTimeout(() => {
+          if (this.isExplicitlyActive) {
+            // Re-instantiate recognition to ensure fresh results array and prevent Chromium buffer leaks
+            this.cleanupRecognition();
+            this.initRecognition();
+            this.attachEventHandlers(callbacks);
+            try {
+              if (this.recognition) {
+                this.recognition.start();
+                this.isListening = true;
+              }
+            } catch (err) {
+              console.warn("[ContinuousSpeechEngine] Restart failed:", err);
+            }
+          }
+        }, 120);
+      } else {
+        if (this.currentSessionFinal) {
+          this.baseText = mergeSpeechSegments(this.baseText, this.currentSessionFinal);
+          this.currentSessionFinal = "";
+        }
+        if (callbacks.onStateChange) callbacks.onStateChange(false);
+        const fullCombined = mergeSpeechSegments(this.baseText, this.currentInterim);
+        const sanitizedFull = sanitizeDuplicateSpeechWords(fullCombined);
+        this.currentInterim = "";
+        this.baseText = sanitizedFull;
+        callbacks.onTranscriptUpdate(sanitizedFull, true);
+      }
+    };
+  }
+
   public start(
     initialText: string = "",
     callbacks: ContinuousSpeechCallbacks
   ): boolean {
-    if (!this.recognition) {
-      this.initRecognition();
-    }
+    this.callbacks = callbacks;
+    this.cleanupRecognition();
+    this.initRecognition();
 
     if (!this.recognition) {
       if (callbacks.onError) {
@@ -258,7 +432,7 @@ export class ContinuousSpeechEngine {
     }
 
     // Clean initial base text without trailing duplicated whitespace
-    this.baseText = (initialText || "").trim();
+    this.baseText = sanitizeDuplicateSpeechWords((initialText || "").trim());
     this.currentSessionFinal = "";
     this.currentInterim = "";
     this.elapsedSeconds = 0;
@@ -281,93 +455,7 @@ export class ContinuousSpeechEngine {
       }
     }, 1000);
 
-    // Event handlers
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.recognition.onresult = (event: any) => {
-      let sessionFinal = "";
-      let sessionInterim = "";
-
-      // CRITICAL FIX:
-      // Always iterate over all results in event.results from 0 to event.results.length.
-      // In Web Speech API, event.results is the full session list.
-      // Re-reading from 0 and summing final/interim items avoids the catastrophic bug where
-      // previously finalized items were repeatedly appended to this.accumulatedText.
-      for (let i = 0; i < event.results.length; ++i) {
-        const item = event.results[i];
-        if (!item || !item[0]) continue;
-        const transcript = (item[0].transcript || "").trim();
-        if (!transcript) continue;
-
-        if (item.isFinal) {
-          sessionFinal += (sessionFinal ? " " : "") + transcript;
-        } else {
-          sessionInterim += (sessionInterim ? " " : "") + transcript;
-        }
-      }
-
-      this.currentSessionFinal = sessionFinal;
-      this.currentInterim = sessionInterim;
-
-      const sessionCombined = mergeSpeechSegments(
-        this.currentSessionFinal,
-        this.currentInterim
-      );
-      const rawFull = mergeSpeechSegments(this.baseText, sessionCombined);
-      const sanitizedFull = sanitizeDuplicateSpeechWords(rawFull);
-      callbacks.onTranscriptUpdate(sanitizedFull, false);
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.recognition.onerror = (event: any) => {
-      const err = event?.error || "unknown";
-      // Ignore routine 'no-speech' or 'aborted' errors when user pauses — we keep the mic running!
-      if (err === "no-speech" || err === "aborted") {
-        return;
-      }
-      console.warn("[ContinuousSpeechEngine] Speech error:", err);
-      if (err === "not-allowed" || err === "service-not-allowed") {
-        this.isExplicitlyActive = false;
-        this.stop();
-        if (callbacks.onError) {
-          callbacks.onError("Microphone access was denied. Please allow microphone permissions in your browser.");
-        }
-      }
-    };
-
-    this.recognition.onend = () => {
-      this.isListening = false;
-      if (this.isExplicitlyActive) {
-        // Automatically restart to fulfill 3-4 minute continuous speaking requirement!
-        // Commit the current session's final transcript into baseText before starting new session
-        // using mergeSpeechSegments to seamlessly eliminate any suffix-prefix overlap.
-        if (this.currentSessionFinal) {
-          this.baseText = mergeSpeechSegments(this.baseText, this.currentSessionFinal);
-          this.currentSessionFinal = "";
-        }
-        this.currentInterim = "";
-
-        if (this.restartTimeout) clearTimeout(this.restartTimeout);
-        this.restartTimeout = window.setTimeout(() => {
-          if (this.isExplicitlyActive && this.recognition) {
-            try {
-              this.recognition.start();
-              this.isListening = true;
-            } catch {
-              // Might already be active
-            }
-          }
-        }, 80);
-      } else {
-        if (this.currentSessionFinal) {
-          this.baseText = mergeSpeechSegments(this.baseText, this.currentSessionFinal);
-          this.currentSessionFinal = "";
-        }
-        if (callbacks.onStateChange) callbacks.onStateChange(false);
-        const rawFull = mergeSpeechSegments(this.baseText, this.currentInterim);
-        const sanitizedFull = sanitizeDuplicateSpeechWords(rawFull);
-        callbacks.onTranscriptUpdate(sanitizedFull, true);
-      }
-    };
+    this.attachEventHandlers(callbacks);
 
     try {
       this.recognition.start();
@@ -376,7 +464,6 @@ export class ContinuousSpeechEngine {
       return true;
     } catch (err) {
       console.warn("[ContinuousSpeechEngine] Failed to start:", err);
-      // Already running or permission issue
       return false;
     }
   }
@@ -405,13 +492,97 @@ export class ContinuousSpeechEngine {
       this.currentSessionFinal = "";
     }
 
-    const rawFull = mergeSpeechSegments(this.baseText, this.currentInterim);
-    const finalSanitized = sanitizeDuplicateSpeechWords(rawFull);
+    const fullCombined = mergeSpeechSegments(this.baseText, this.currentInterim);
+    const finalSanitized = sanitizeDuplicateSpeechWords(fullCombined);
     this.currentInterim = "";
+    this.baseText = finalSanitized;
     return finalSanitized;
   }
 
   public getIsActive(): boolean {
     return this.isExplicitlyActive;
+  }
+}
+
+/**
+ * Fast 2-3 second AI Question Refiner using gemini-3.5-flash-lite.
+ * Analyzes dictated spoken text and converts fragmented / awkward speech into a clear,
+ * respectful, single-sentence astrological question in the user's selected language.
+ *
+ * Guaranteed latency: ≤ 2.5 seconds (protected by race timeout with instant fallback).
+ */
+export async function refineSpokenConsultationQuestion(params: {
+  spokenQuestion: string;
+  language: ConsultationLanguage;
+  apiKey?: string;
+  timeoutMs?: number;
+}): Promise<string> {
+  const { spokenQuestion, language, apiKey, timeoutMs = 2500 } = params;
+  const sanitized = sanitizeDuplicateSpeechWords(spokenQuestion).trim();
+  if (!sanitized || sanitized.length < 4) {
+    return sanitized;
+  }
+
+  // Resolve API Key (respect explicit apiKey parameter if provided)
+  const effectiveKey = (
+    apiKey !== undefined
+      ? apiKey
+      : useAppStore.getState?.()?.geminiApiKey ||
+        (typeof import.meta !== "undefined" ? (import.meta as any).env?.VITE_GEMINI_API_KEY : "") ||
+        ""
+  ).trim();
+
+  if (!effectiveKey) {
+    return sanitized;
+  }
+
+  const targetLang = LANGUAGE_DISPLAY_NAMES[language] || "Kannada (ಕನ್ನಡ)";
+
+  const prompt = `You are Baggona Panchanga's Vedic consultation voice question refiner.
+A devotee just dictated their astrological question using voice speech-to-text in ${targetLang}.
+Spoken transcript:
+"${sanitized}"
+
+TASK:
+Review and refine this spoken question into a single, polished, respectful, and meaningful astrological question in ${targetLang}.
+
+RULES:
+1. Fix any speech-to-text repetition, stutter, colloquial phrasing, or incomplete spoken fragments.
+2. Preserve the devotee's authentic intent (e.g., job timing, marriage prospects, business success, health, family peace, gemstone suitability).
+3. Return ONLY the single refined question string in the native script of ${targetLang}.
+4. Absolutely DO NOT include markdown, asterisks, quotation marks, prefixes like "Here is:", or explanations.
+5. Length: exactly 1 crisp sentence.`;
+
+  try {
+    const genAI = new GoogleGenerativeAI(effectiveKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-3.5-flash-lite",
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 100,
+        topP: 0.95
+      }
+    });
+
+    const aiCall = (async () => {
+      const res = await model.generateContent(prompt);
+      const text = res.response?.text?.() || "";
+      let cleaned = text.trim().replace(/^["'`«»]+|["'`«»]+$/g, "").trim();
+      cleaned = cleaned.replace(/^(Here is the refined question[:\s]*|Refined question[:\s]*|Question[:\s]*|ಪ್ರಶ್ನೆ[:\s]*|प्रश्न[:\s]*|ప్రశ్న[:\s]*|கேள்வி[:\s]*)/i, "").trim();
+      return sanitizeDuplicateSpeechWords(cleaned);
+    })();
+
+    const timeoutCall = new Promise<string>((resolve) => {
+      setTimeout(() => resolve(sanitized), timeoutMs);
+    });
+
+    const result = await Promise.race([aiCall, timeoutCall]);
+    if (result && result.length >= 3 && !result.toLowerCase().includes("error")) {
+      return sanitizeDuplicateSpeechWords(result);
+    }
+    return sanitized;
+  } catch (err) {
+    console.warn("[refineSpokenConsultationQuestion] Falling back to sanitized speech:", err);
+    return sanitized;
   }
 }

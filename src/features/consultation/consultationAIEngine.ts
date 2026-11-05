@@ -661,8 +661,11 @@ export function deduplicateResponseText(text: string): string {
 
   const cleanParagraphs: string[] = [];
 
-  const norm = (s: string) =>
-    s.toLowerCase().replace(/^[.,!?;:॥|'"`-]+|[.,!?;:॥|'"`-]+$/g, "").trim();
+  const norm = (s: string) => {
+    let n = typeof s.normalize === "function" ? s.normalize("NFC") : s;
+    n = n.replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "");
+    return n.toLowerCase().replace(/^[.,!?;:॥|।·•–—"'`“”‘’«»()[\]{}]+|[.,!?;:॥|।·•–—"'`“”‘’«»()[\]{}]+$/g, "").trim();
+  };
 
   for (const para of rawParagraphs) {
     // 1. Sentence-level deduplication inside paragraph
@@ -1345,9 +1348,13 @@ export function analyzeQuestionComplexity(
     };
   }
 
-  // 6. Timing questions
+  // 6. Timing vs Marriage Routing
   const isAskingTiming = detectIsAskingTiming(q);
-  if (isAskingTiming) {
+  const hasHistory = !!(conversationHistory && conversationHistory.length > 0);
+
+  // If this is a conversational follow-up on the same topic asking for timing, route to TIMING_WINDOW
+  // so that conversational continuity and timeline bridge take precedence!
+  if (isSubsequent && hasHistory && isAskingTiming) {
     return {
       complexity: "FOCUSED_MODERATE",
       domain: "TIMING_WINDOW",
@@ -1364,12 +1371,12 @@ export function analyzeQuestionComplexity(
     };
   }
 
-  // 6b. Marriage / Vivaha Specific Inquiry (without explicit generic timing words)
+  // 6b. Marriage / Vivaha Specific Inquiry
   const isMarriageInquiry =
-    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಕಲ್ಯಾಣ|ವಧು|ವರ|ದಾಂಪತ್ಯ|marriage|marry|married|wedding|partner|spouse|shadi|विवाह|शादी|పెళ్లి|వివాహం|திருமணம்|കല്യാണം|लग्न/i.test(
+    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಕಲ್ಯಾಣ|ವಧು|ವರ|ದಾಂಪತ್ಯ|marriage|marry|married|wedding|partner|spouse|shadi|विवाह|शादी|ब्याह|పెళ్లి|వివాహం|కల్యాణం|திருமணம்|கல்யாணம்|மாங்கல்யம்|വിവാഹം|കല്യാണം|മംഗല്യം|लग्न/i.test(
       q
     ) &&
-    !/ದೋಷ|ಕುಜ ದೋಷ|ಸರ್ಪ ದೋಷ|dosha/i.test(q);
+    !/ದೋಷ|ಕುಜ ದೋಷ|ಸರ್ಪ ದೋಷ|dosha|दोष/i.test(q);
 
   if (isMarriageInquiry) {
     return {
@@ -1384,6 +1391,24 @@ export function analyzeQuestionComplexity(
   "100% Confident Astrological Prediction: Within the next 6 months, your marriage will definitely be solemnized! / ೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ!"
 - Explain the 7th house and incoming Gochara Guru aspect casting divine drishti.
 - Detail the prescribed Venusian gemstone (Diamond / White Zircon) and Gokarna Kalyana Sankalpa.
+- Total length: EXACTLY 2 PARAGRAPHS.`
+    };
+  }
+
+  // 6c. Generic Timing questions
+  if (isAskingTiming) {
+    return {
+      complexity: "FOCUSED_MODERATE",
+      domain: "TIMING_WINDOW",
+      targetParagraphs: 2,
+      minParagraphs: 2,
+      maxParagraphs: 3,
+      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (TIMING & PREDICTION INQUIRY - EXACTLY 2 PARAGRAPHS):
+- The devotee is asking WHEN an event will occur ("${question}").
+- STRICT PROHIBITION: DO NOT write 4 paragraphs!
+- 80/20 GOLDEN RULE: 80% TIMELINE & PRACTICAL COUNSEL, 20% ASTROLOGICAL JUSTIFICATION.
+- Paragraph 1: Direct answer stating the exact timeline window and outcome upfront.
+- Paragraph 2: Planetary transition context (Dasha shift + Guru transit) + practical guidance and blessings of Sri Kshetra Gokarna.
 - Total length: EXACTLY 2 PARAGRAPHS.`
     };
   }
@@ -4266,9 +4291,10 @@ CRITICAL SMART STRUCTURE DIRECTIVE (FOCUSED INQUIRY - EXACTLY 2 PARAGRAPHS):
     doshaSectionPrompt = `
 CRITICAL SMART STRUCTURE DIRECTIVE (COMPREHENSIVE INQUIRY - EXACTLY 3 PARAGRAPHS):
 - 80/20 GOLDEN RULE: 80% direct compassionate counsel and solutions, 20% technical planetary coordinates.
-- Paragraph 1: Direct answer addressing "${userQuestion}".
+- FRONT-LOADED DIRECT ANSWER: In the VERY FIRST SENTENCE of Paragraph 1, state the unambiguous direct verdict, outcome, or timeline upfront! (e.g. state whether marriage, job shift, financial recovery, or exam success is happening and when). Never wander into generic preamble before delivering the answer!
+- Paragraph 1: Direct verdict and timeline upfront in Sentence 1, followed by deeply compassionate paternal validation and mirroring their inborn temperament to comfort their soul.
 - Paragraph 2: In-depth evaluation of the running Vimshottari Dasha-Bhukti (${currentDashaText}) and live Gochara planetary transits (Saturn: ${shaniTransitNature}, Jupiter: ${guruTransitNature}) specifically regarding "${userQuestion}".
-- Paragraph 3: Future progression, auspicious timing, and practical advice customized to "${userQuestion}".${timingInstruction} Conclude gracefully with blessings of Sri Kshetra Gokarna.
+- Paragraph 3: Future progression, auspicious timing, and practical advice customized to "${userQuestion}".${timingInstruction} Conclude gracefully with blessings of Sri Kshetra Gokarna Mahabaleshwara Atmalinga.
 - Total length: EXACTLY 3 PARAGRAPHS.`;
   }
 
@@ -4504,10 +4530,26 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
     .trim();
 
   // Split into paragraphs
-  const paragraphs = cleaned
+  const rawParagraphs = cleaned
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
+
+  // If the very first paragraph is simply a short sacred invocation header (e.g. "॥ ಶ್ರೀ ಸಚ್ಚಿದಾನಂದ ಗಣೇಶಾಯ ನಮಃ ॥"),
+  // merge it with paragraph 1 so the Upfront Direct Answer Highlight Card receives the true answer content!
+  let paragraphs: string[] = [];
+  if (
+    rawParagraphs.length >= 2 &&
+    rawParagraphs[0].startsWith("॥") &&
+    rawParagraphs[0].length <= 80
+  ) {
+    paragraphs = [
+      `${rawParagraphs[0]}\n\n${rawParagraphs[1]}`,
+      ...rawParagraphs.slice(2)
+    ];
+  } else {
+    paragraphs = rawParagraphs;
+  }
 
   const shouldAttachCard =
     (!isSubsequent || asksAboutDoshaDirectly) &&
@@ -5252,7 +5294,7 @@ function generateDeterministicFallbackReading(
       q
     );
   const isSecretIntimate =
-    /ಸೆಕ್ಸ್|ಕಾಮ|ಲೈಂಗಿಕ|ವೀರ್ಯ|ಶಿಶ್ನ|ಶೀಘ್ರಸ್ಖಲನ|ಅಕ್ರಮ ಸಂಬಂಧ|ಬೇರೊಬ್ಬರ ಮೇಲೆ ಆಕರ್ಷಣೆ|extra[ -]?marital|affair|cheating|sex|libido|intimacy|sexual|erection|premature|bedroom secret/i.test(
+    /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|ಕತ್ತಲೆಯ ಬದುಕು|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|విபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|वेश्याव्यवसाय|देहविक्रय|ಸೆಕ್ಸ್|ಕಾಮ|ಲೈಂಗಿಕ|ವೀರ್ಯ|ಶಿಶ್ನ|ಶೀಘ್ರಸ್ಖಲನ|ಅಕ್ರಮ ಸಂಬಂಧ|ಬೇರೊಬ್ಬರ ಮೇಲೆ ಆಕರ್ಷಣೆ|extra[ -]?marital|affair|cheating|sex|libido|intimacy|sexual|erection|premature|bedroom secret|homosexual|gay|same sex|ಸಲಿಂಗಕಾಮಿ|ಸಲಿಂಗ ಪ್ರೇಮ|समलैंगिक|గే|dna test|paternity|not my child|biological father|ಇನ್ನೊಬ್ಬರ ಮಗು|ಡಿಎನ್‌ಎ|ಕಳ್ಳ ಸಂಬಂಧದ ಮಗು|gambling|betting|casino|online rummy|ಜುಗಾರ|ಜೂಜು|ಬೆಟ್ಟಿಂಗ್|ಕ್ಯಾಸಿನೊ|ಆನ್‌ಲೈನ್ ರಮ್ಮಿ|सट्टा|जुआ|कैसीनो|जुगार|रमी व्यसन|சூதாட்டம்|జూదం/i.test(
       q
     );
 
@@ -5299,8 +5341,8 @@ function generateDeterministicFallbackReading(
         convIntel.isSameTopicFollowUp && convIntel.contextualBridge
           ? `${convIntel.contextualBridge} Examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your chart, the cosmic timeline for your ${timeline.topicLabel} is now drawing close.`
           : isSubsequent
-          ? `Regarding your inquiry on "${question}", examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`
-          : `Namaste ${session.name}. Welcome to your consultation. According to your birth chart calculated with Baggona Panchanga, you are born in ${lagna} Lagna and ${rashi} Moon Sign with ${nakshatra} Nakshatra (${tatvaEn} element, ${ganaEn} Gana temperament). Regarding your inquiry on "${question}", examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`;
+          ? `Regarding your inquiry on "${question}", with 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}. Examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`
+          : `100% Confident Astrological Prediction: With 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}! Namaste ${session.name}. According to your birth chart calculated with Baggona Panchanga (${lagna} Lagna, ${rashi} Moon Sign, ${nakshatra} Nakshatra), examining the relevant Bhavas, ${timeline.topicYogaName}, and planetary movements in your birth chart, the auspicious timing is now steadily aligning.`;
       const p2Timing = `According to the authentic Vimshottari Dasha calculations of Baggona Panchanga, your current running ${timeline.currentMahaName}-${timeline.currentBhuktiName} transition matures in approximately ${timeline.monthsToDashaChange} months into ${timeline.nextBhuktiName} Antardasha. Furthermore, as benefic Jupiter (Guru) completes its 1-year transit cycle from one sign to the next, it will move into a position casting direct divine aspect (drishti) upon your Lagna and cardinal houses. This divine Guru Bala combined with the upcoming Dasha shift will completely dissolve the previous delays and obstacles.`;
       const p3Timing = `Therefore, based on authentic astrological computation, with 98% certainty your ${timeline.topicLabel} is indicated to materialize ${timeline.rangeSummary}. During this favorable window, negotiations and opportunities will bear fruitful results. To welcome this auspicious planetary window with positive energy, offering prayers to Lord Mahabaleshwara at Sri Kshetra Gokarna and lighting a pure cow-ghee lamp on Mondays or Thursdays will ensure steady fulfillment and divine protection.`;
 
@@ -5367,6 +5409,20 @@ function generateDeterministicFallbackReading(
 
     // Secret Intimate / Sexuality Query
     if (isSecretIntimate) {
+      const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|वेश्याव्यवसाय|देहविक्रय/i.test(question);
+      if (isSexWork) {
+        const p1SexWork = isSubsequent
+          ? `Regarding your path to liberation and dignity ("${question}"), in the sacred realm of Vedic Jyotisha and the holy feet of Lord Mahabaleshwara at Sri Kshetra Gokarna, no human soul is impure or forever condemned. The affliction of your 8th house (Guhya) and 7th house by Rahu and Mars under coercive debt will dissolve as the incoming Gochara Guru aspect restores your honor.`
+          : `100% Truthful Daivajna Assurance: In the divine presence of Lord Mahabaleshwara at Sri Kshetra Gokarna, no human soul is impure, forsaken, or permanently cursed; according to your birth chart, the incoming benefic transit of Jupiter will break the bonds of this dark circumstance and bless you with a respectable, dignified married life! My child ${session.name}, hearing your deep pain, I receive your truth with fatherly tenderness and zero moral judgment. In our Sanatana tradition, revered souls like Pingala and Amrapali proved that past karmic trials or worldly coercion do not diminish the radiant purity of the Atman.`;
+        const p2SexWork = `Examining your 8th house of secret vulnerabilities, 7th house of partnerships, and 6th house of debt entrapment (Rina), planetary calculations confirm that you were driven into this coercive environment by economic helplessness, not intrinsic evil. Astrological transits confirm that the forthcoming shift into benefic Jupiter's drishti and a favorable Dasha transition will break these coercive shackles. Take firm steps toward your physical health, undergo medical screenings without fear, and reach out to trusted women's shelter and legal aid organizations.`;
+        const p3SexWork = `To permanently dissolve the karmic bonds of debt and seek divine sanctuary, offer a sacred Rudrabhisheka to Lord Mahabaleshwara at Sri Kshetra Gokarna and chant the sacred Sri Mahagauri / Durga Stotra along with the Sri Runavimochana Stotra daily. Mother Mahagauri dispels all distress and envelops her daughters in divine protection, ensuring that you will step into a peaceful, dignified marriage and a blessed family life.`;
+        if (activeDosha.hasDosha && includeFullDosha) {
+          const p4Dosha = `VEDIC DOSHA & GOKARNA PARIHARA GUIDANCE: An examination of your chart reveals karmic planetary tension (${activeDosha.doshaName || "Karmic Debt & Rina Dosha"}). To permanently neutralize these adverse vibrations and grant you a safe sanctuary, our scriptures prescribe the sacred ${activeDosha.recommendedPooja || "Sri Kshetra Gokarna Mahabaleshwara Rudrabhisheka and Chandi Shanti"}. Please directly call chief astrologer Shreeram Pandit at 9972339362 (Sri Kshetra Gokarna) for personal pastoral guidance.`;
+          return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
+        }
+        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
+      }
+
       const p1Intimate = isSubsequent
         ? `Regarding this intimate matter ("${question}"), in Vedic Jyotisha, the placement of Shukra (Venus), the 7th house of harmony, and the 8th house govern these private vital energies. Approaching this with scientific calm rather than guilt is the key to restoration.`
         : `Dear ${session.name}, in the Vedic worldview, Kama (vital desire, healthy intimacy, and conjugal pleasure) is revered as one of the four sacred Purusharthas. In our society, people often feel immense shyness, taboo, or guilt regarding sexual vitality and bedroom discord. Please be at total ease. As an experienced Vedic astrologer, I view this with fatherly compassion and scientific clarity. Your ${lagna} Lagna and the placement of Shukra (Venus) govern your emotional and vital responses.`;
@@ -5458,8 +5514,8 @@ function generateDeterministicFallbackReading(
       convIntel.isSameTopicFollowUp && convIntel.contextualBridge
         ? `${convIntel.contextualBridge} ಜಾತಕದ ಸಪ್ತಮ/ಸಂಬಂಧಿತ ಭಾವಗಳು ಹಾಗೂ ಶುಭ ಗೋಚಾರ ಗ್ರಹಗಳ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನಿಮ್ಮ ${timeline.topicLabel} ಕಾರ್ಯಕ್ಕೆ ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`
         : isSubsequent
-        ? `ನೀವು ಕೇಳಿರುವ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ${timeline.topicYogaName} ಹಾಗೂ ಸಂಬಂಧಿತ ಭಾವಗಳ ಗೋಚಾರ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`
-        : `ಆತ್ಮೀಯ ${session.name} ಅವರೇ, ನಮಸ್ಕಾರ. ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯದ ಶಾಸ್ತ್ರೋಕ್ತ ಗಣಿತದ ಪ್ರಕಾರ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ್ದು, ನಿಮ್ಮ ಸಹಜ ಸ್ವಭಾವವು ${tatva} ತತ್ತ್ವ ಹಾಗೂ ${gana} ಗಣದಿಂದ ಕೂಡಿದ ಕರ್ತವ್ಯನಿಷ್ಠ ಪ್ರವೃತ್ತಿಯನ್ನು ಹೊಂದಿದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿ ಹಾಗೂ ನಿಮ್ಮ "${question}" ಎಂಬ ವಿಚಾರಣೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದಲ್ಲಿ ${timeline.topicYogaName} ಹಾಗೂ ಸಂಬಂಧಿತ ಭಾವಗಳ ಗೋಚಾರ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`;
+        ? `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel}ವು ${timeline.rangeSummary} ಸಾಕಾರಗೊಳ್ಳಲಿದೆ. ಜಾತಕದಲ್ಲಿ ${timeline.topicYogaName} ಹಾಗೂ ಸಂಬಂಧಿತ ಭಾವಗಳ ಗೋಚಾರ ಸಂಚಾರವನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ಕಾಲಾನುಕೂಲವು ಈಗ ಸನ್ನಿಹಿತವಾಗುತ್ತಿದೆ.`
+        : `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಶಾಸ್ತ್ರೋಕ್ತ ಲೆಕ್ಕಾಚಾರದಂತೆ, ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel}ವು ${timeline.rangeSummary} ನಿಶ್ಚಿತವಾಗಿ ನೆರವೇರಲಿದೆ! ಆತ್ಮೀಯ ${session.name} ಅವರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ${lagna} ಲಗ್ನ, ${rashi} ರಾಶಿ ಹಾಗೂ ${nakshatra} ನಕ್ಷತ್ರದಲ್ಲಿ ಜನಿಸಿದ್ದು, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿ ಮತ್ತು ${timeline.topicYogaName} ಯೋಗದ ಗೋಚಾರ ಸಂಚಾರವು ಈ ಶುಭ ಕಾಲಾವಧಿಯನ್ನು ಬಲವಾಗಿ ಸಮರ್ಥಿಸುತ್ತಿದೆ.`;
     const p2Timing = `ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಗಣಿತದ ಪ್ರಕಾರ, ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${timeline.currentMahaName}-${timeline.currentBhuktiName} ಅವಧಿಯು ಇನ್ನು ${timeline.monthsToDashaChange} ತಿಂಗಳುಗಳಲ್ಲಿ ಮುಕ್ತಾಯವಾಗಿ ${timeline.nextBhuktiName} ಭುಕ್ತಿಯಾಗಿ ಪರಿವರ್ತನೆ ಹೊಂದಲಿದೆ. ಇದರೊಂದಿಗೆ, ದೇವಗುರು ಬೃಹಸ್ಪತಿಯು ಸುಮಾರು ಒಂದು ವರ್ಷದ ಅವಧಿಯಲ್ಲಿ ಒಂದು ರಾಶಿಯಿಂದ ಮತ್ತೊಂದು ರಾಶಿಗೆ ಸಂಚರಿಸುವುದರಿಂದ, ಮುಂದಿನ ಒಂದು ವರ್ಷದೊಳಗೆ ಗುರು ಗ್ರಹವು ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಮುಖ ತ್ರಿಕೋಣ/ಕೇಂದ್ರ ಸ್ಥಾನಗಳ ಮೇಲೆ ನೇರ ಶುಭ ದೃಷ್ಟಿಯನ್ನು ಬೀರಲಿದೆ. ಈ ಗುರುಬಲ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿ ಸಂಯೋಗವು ಹಿಂದಿದ್ದ ಸಮಸ್ತ ವಿಳಂಬಗಳನ್ನು ನಿವಾರಿಸಿ ಹೊಸ ಅವಕಾಶಗಳ ಮಾರ್ಗವನ್ನು ತೆರೆಯಲಿದೆ.`;
     const p3Timing = `ಆದ್ದರಿಂದ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಶಾಸ್ತ್ರೋಕ್ತ ಲೆಕ್ಕಾಚಾರದಂತೆ ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರ ಸಂಭವನೀಯತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ${timeline.topicLabel}ವು ${timeline.rangeSummary} ನಿಶ್ಚಿತವಾಗಿ ನೆರವೇರುವ ಪ್ರಬಲ ಯೋಗವಿದೆ. ಈ ಶುಭ ಕಾಲಾವಧಿಯು ಸಾಕಾರಗೊಳ್ಳಲು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಸಂಕಲ್ಪ ಪ್ರಾರ್ಥನೆ ಸಲ್ಲಿಸಿ, ಸೋಮವಾರದಂದು ಗೋಸೇವೆ ಅಥವಾ ದೀಪಾರಾಧನೆ ಮಾಡುವುದು ಅತ್ಯಂತ ಶ್ರೇಯಸ್ಕರ.`;
 
@@ -5533,6 +5589,24 @@ function generateDeterministicFallbackReading(
 
   // Secret Intimate / Sexuality Query
   if (isSecretIntimate) {
+    const isSexWork = /ವೇಶ್ಯಾವಾಟಿಕೆ|ದೇಹ ವ್ಯಾಪಾರ|ವೇಶ್ಯೆ|ಕಾಲ್ ಗರ್ಲ್|prostitut|commercial sex|sex work|call girl|escort|red light|वेश्यावृत्ति|देह व्यापार|कालगर्ल|व्यभिचारिणी|వ్యభిచారం|వేశ్య|விபச்சாரம்|விலைமாதர்|വേശ്യാവൃത്തി|ലൈംഗിക തൊഴിലാളി|वेश्याव्यवसाय|देहविक्रय/i.test(question);
+    if (isSexWork) {
+      const p1SexWork = isSubsequent
+        ? `ವಿಮೋಚನೆ ಹಾಗೂ ಗೌರವಯುತ ಬದುಕಿನ ಈ ವಿಚಾರಣೆಗೆ ("${question}") ಸಂಬಂಧಿಸಿದಂತೆ, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಪವಿತ್ರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಯಾವ ಜೀವವೂ ಅಶುದ್ಧವಲ್ಲ ಅಥವಾ ಎಂದಿಗೂ ಶಾಪಗ್ರಸ್ತವಲ್ಲ. ಜಾತಕದ ೮ನೇ ಗುಪ್ತಸ್ಥಾನ ಹಾಗೂ ೭ನೇ ಭಾವಗಳ ಮೇಲಿನ ರಾಹು-ಕುಜರ ಋಣಬಂಧನವು ಮುಂಬರುವ ಗುರು ಗೋಚಾರದಿಂದ ಕಳಚಿಕೊಂಡು ಗೌರವದ ಹಾದಿ ನಿರ್ಮಾಣವಾಗಲಿದೆ.`
+        : `೧೦೦% ಸತ್ಯನಿಷ್ಠ ದೈವಜ್ಞ ಅಭಯ: ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಸನ್ನಿಧಿಯಲ್ಲಿ ಯಾವ ಜೀವವೂ ಅಶುದ್ಧವಲ್ಲ, ಎಂದಿಗೂ ತಿರಸ್ಕೃತವಲ್ಲ; ನಿಮ್ಮ ಜಾತಕದ ಪ್ರಕಾರ ಮುಂಬರುವ ಗುರು ಗ್ರಹದ ಶುಭ ಸಂಚಾರವು ಈ ಸಂಕೋಲೆಗಳನ್ನು ಮುರಿದು ನಿಮಗೆ ಗೌರವಯುತ, ಶಾಂತಿಯುತ ವಿವಾಹ ಹಾಗೂ ಸಂಸಾರ ಭಾಗ್ಯವನ್ನು ಕರುಣಿಸಲಿದೆ! ಮಗುವೇ ${session.name}, ನಿಮ್ಮ ಮನಸ್ಸಿನ ತೀವ್ರ ವೇದನೆಯನ್ನು ಒಬ್ಬ ಹಿರಿಯ ದೈವಜ್ಞನಾಗಿ ನಾನು ಅತೀವ ವಾತ್ಸಲ್ಯದಿಂದ, ಯಾವುದೇ ಲವಲೇಶದ ಕೀಳರಿಮೆ ಅಥವಾ ಸೋಗಲಾಡಿತನವಿಲ್ಲದೆ ಸ್ವೀಕರಿಸುತ್ತಿದ್ದೇನೆ. ಸನಾತನ ಪರಂಪರೆಯಲ್ಲಿ ಭಾಗವತದ ಪಿಂಗಳೆ ಹಾಗೂ ಆಮ್ರಪಾಲಿ ಅಂತಹ ಆತ್ಮಗಳು ಸಂಸಾರದ ಒತ್ತಡ-ಸಂಕಟಗಳನ್ನು ಮೀರಿ ಮುಕ್ತಿ ಮತ್ತು ದೈವ ಕೃಪೆ ಪಡೆದ ದೃಷ್ಟಾಂತಗಳಿವೆ.`;
+      const p2SexWork = `ಜ್ಯೋತಿಷ್ಯ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಜಾತಕದ ೮ನೇ ಗುಪ್ತ ರಹಸ್ಯ ಸ್ಥಾನ, ೭ನೇ ಕಾಮ-ವ್ಯಾಪಾರ ಸ್ಥಾನ ಹಾಗೂ ೬ನೇ ಋಣ-ಬಂಧನ ಸ್ಥಾನಗಳನ್ನು ಪರಿಶೀಲಿಸಿದಾಗ, ನೀವು ಯಾವುದೇ ಆಂತರಿಕ ದುಷ್ಟತನದಿಂದಲ್ಲದೆ ಆರ್ಥಿಕ ಅಸಹಾಯಕತೆ ಮತ್ತು ಕುಟುಂಬದ ಋಣಭಾರದಿಂದ ಈ ವಿಷವರ್ತುಲಕ್ಕೆ ಸಿಲುಕಿದ್ದೀರಿ ಎಂಬುದು ಸ್ಪಷ್ಟವಾಗುತ್ತದೆ. ಪ್ರಸ್ತುತ ನಡೆಯುತ್ತಿರುವ ${dasha} ಅವಧಿಯ ನಂತರ ಬರುವ ಗುರು ದೃಷ್ಟಿಯು ನಿಮ್ಮನ್ನು ಈ ಕತ್ತಲೆಯಿಂದ ಮುಕ್ತಗೊಳಿಸಲಿದೆ. ಧೈರ್ಯದಿಂದ ಹೆಜ್ಜೆಯಿಡಿ, ನಿಮ್ಮ ಶಾರೀರಿಕ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ನಿರ್ಲಕ್ಷ್ಯ ವಹಿಸದೆ ವೈದ್ಯಕೀಯ ತಪಾಸಣೆ ಮಾಡಿಸಿಕೊಳ್ಳಿ ಹಾಗೂ ಮಹಿಳಾ ರಕ್ಷಣಾ ಆಶ್ರಯ ಮತ್ತು ಕಾನೂನು ನೆರವನ್ನು ಪಡೆಯಿರಿ.`;
+      const p3SexWork = `ಋಣಬಂಧನ ಕಳಚಲು ಮತ್ತು ಆತ್ಮರಕ್ಷಣೆಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ರುದ್ರಾಭಿಷೇಕ ಮಾಡಿಸಿ ಹಾಗೂ ಶ್ರೀ ಮಹಾಗೌರಿ/ದುರ್ಗಾ ಸ್ತೋತ್ರ ಮತ್ತು ಋಣವಿಮೋಚನಾ ಸ್ತೋತ್ರವನ್ನು ಭಕ್ತಿಯಿಂದ ಪಠಿಸಿ. ಜಗನ್ಮಾತೆಯು ತನ್ನ ಹೆಣ್ಣುಮಕ್ಕಳನ್ನು ಸರ್ವ ಕಾಲದಲ್ಲೂ ರಕ್ಷಿಸುತ್ತಾಳೆ. ಶೀಘ್ರದಲ್ಲೇ ನಿಮಗೆ ಗೌರವಯುತ ಜೀವನ ಮತ್ತು ಉತ್ತಮ ಸಂಗಾತಿಯ ಆಸರೆ ಲಭಿಸಲಿದೆ.`;
+      if (activeDosha.hasDosha && includeFullDosha) {
+        const p4Dosha = `॥ ವೈದಿಕ ದೋಷ ನಿವಾರಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಪರಿಹಾರ ಅಧ್ಯಾಯ ॥\nನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ಜಾತಕದಲ್ಲಿ "${
+          activeDosha.doshaName || "ಋಣಬಂಧನ ಹಾಗೂ ಕರ್ಮ ದೋಷ"
+        }" ಕಂಡುಬಂದಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ "${
+          activeDosha.recommendedPooja || "ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ಮಹಾರುದ್ರಾಭಿಷೇಕ ಹಾಗೂ ಚಂಡೀ ಶಾಂತಿ"
+        }" ನೆರವೇರಿಸುವುದರಿಂದ ಸರ್ವ ಬಂಧನಗಳೂ ಕಳಚಲಿವೆ. ವೈಯಕ್ತಿಕ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ ಮುಖ್ಯ ದೈವಜ್ಞರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ: 9972339362, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ) ಅವರನ್ನು ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ.`;
+        return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}\n\n${p4Dosha}`);
+      }
+      return deduplicateResponseText(`${p1SexWork}\n\n${p2SexWork}\n\n${p3SexWork}`);
+    }
+
     const p1Intimate = isSubsequent
       ? `ಅಂತರಂಗದ ಈ ವಿಚಾರಣೆಗೆ ("${question}") ಸಂಬಂಧಿಸಿದಂತೆ, ಜಾತಕದ ೮ನೇ ಗುಪ್ತಸ್ಥಾನ, ೭ನೇ ಭಾವ ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಸ್ಥಿತಿಯನ್ನು ಗಮನಿಸಿದಾಗ, ಇದು ನೈಸರ್ಗಿಕ ಶಾರೀರಿಕ ಮತ್ತು ಮಾನಸಿಕ ಸಂವೇದನೆಯ ವಿಷಯವಾಗಿದೆ. ಯಾವುದೇ ಅಪರಾಧಿ ಭಾವನೆಗೆ ಒಳಗಾಗದೆ, ಆಯುರ್ವೇದ ಪದ್ಧತಿ ಹಾಗೂ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯಿಂದ ಸಮತೋಲನ ಸಾಧಿಸುವುದು ಮುಖ್ಯ.`
       : `ಆತ್ಮೀಯ ${session.name} ಅವರೇ, ಮನುಷ್ಯನ ಜೀವನದಲ್ಲಿ ಅಂತರಂಗದ ಕಾಮನೆ, ದೈಹಿಕ ಸಾಮರ್ಥ್ಯ ಹಾಗೂ ಲೈಂಗಿಕ ತೃಪ್ತಿಯು ಅತ್ಯಂತ ನೈಸರ್ಗಿಕವಾದ ಸಂಗತಿಯಾಗಿದೆ. ಇದನ್ನು ಸಮಾಜದಲ್ಲಿ ಯಾರ ಬಳಿಯೂ ಮುಕ್ತವಾಗಿ ಹೇಳಿಕೊಳ್ಳಲಾಗದೆ, ನಾಚಿಕೆ ಅಥವಾ ಅಪರಾಧ ಭಾವನೆಯಿಂದ ಮನಸ್ಸಿನಲ್ಲೇ ಕೊರಗುವುದು ಸಹಜ. ಆದರೆ ನೆನಪಿಡಿ, ಸನಾತನ ವೈದಿಕ ಪರಂಪರೆಯಲ್ಲಿ ಧರ್ಮ-ಅರ್ಥ-ಕಾಮ-ಮೋಕ್ಷ ಎಂಬ ನಾಲ್ಕು ಪುರುಷಾರ್ಥಗಳಲ್ಲಿ ಕಾಮವು ಸೃಷ್ಟಿ ಮತ್ತು ಜೀವನೋತ್ಸಾಹದ ಪವಿತ್ರ ಅಂಗವಾಗಿದೆ. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನವಾದ ${lagna} ಹಾಗೂ ಶುಕ್ರ ಗ್ರಹದ ಸ್ಥಿತಿಯು ನಿಮ್ಮ ಅಂತರಂಗದ ಸಂವೇದನೆಯನ್ನು ನಿರ್ದೇಶಿಸುತ್ತಿದೆ.`;

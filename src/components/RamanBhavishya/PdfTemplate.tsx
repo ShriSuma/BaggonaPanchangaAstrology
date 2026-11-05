@@ -40,6 +40,8 @@ export type PdfTranslations = {
   yogaValue?: string;
   karanaLabel?: string;
   karanaValue?: string;
+  horaLabel?: string;
+  horaValue?: string;
   sunriseLabel?: string;
   sunriseValue?: string;
   sunsetLabel?: string;
@@ -551,22 +553,22 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
               </span>
             </div>
 
-            {/* Row 5: Sunrise & Sunset */}
+            {/* Row 5: Sunrise/Sunset & Janma Hora */}
             <div className="flex flex-col border-b border-amber-800/20 pb-3">
               <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {translations.sunriseLabel || (langKey === "kn" ? "ಸೂರ್ಯೋದಯ" : langKey === "hi" ? "सूर्योदय" : langKey === "te" ? "సూర్యోదయం" : langKey === "ta" ? "சூரியோதயம்" : "Sunrise")}
+                {translations.sunriseLabel || (langKey === "kn" ? "ಸೂರ್ಯೋದಯ" : langKey === "hi" ? "सूर्योदय" : langKey === "te" ? "సూర్యోదయం" : langKey === "ta" ? "சூரியோதயம்" : "Sunrise")} / {translations.sunsetLabel || (langKey === "kn" ? "ಸೂರ್ಯಾಸ್ತ" : langKey === "hi" ? "सूर्यास्त" : langKey === "te" ? "సూర్యాస్తమయం" : langKey === "ta" ? "சூரிய அஸ்தமனம்" : "Sunset")}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.sunriseValue || "—"}
+                {[translations.sunriseValue, translations.sunsetValue].filter(Boolean).join(" • ") || "—"}
               </span>
             </div>
 
             <div className="flex flex-col border-b border-amber-800/20 pb-3">
               <span className="text-sm font-extrabold tracking-normal text-amber-900/80 mb-1">
-                {translations.sunsetLabel || (langKey === "kn" ? "ಸೂರ್ಯಾಸ್ತ" : langKey === "hi" ? "सूर्यास्त" : langKey === "te" ? "సూర్యాస్తమయం" : langKey === "ta" ? "சூரிய அஸ்தமனம்" : "Sunset")}
+                {translations.horaLabel || (langKey === "kn" ? "ಜನ್ಮ ಹೋರೆ" : langKey === "hi" ? "जन्म होरा" : langKey === "te" ? "జన్మ హోర" : langKey === "ta" ? "ஜென்ம ஓரை" : "Birth Hora")}
               </span>
               <span className="text-2xl font-bold leading-relaxed text-amber-950 font-serif tracking-normal">
-                {translations.sunsetValue || "—"}
+                {translations.horaValue || "—"}
               </span>
             </div>
 

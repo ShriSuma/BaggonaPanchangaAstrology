@@ -4,6 +4,11 @@
  * Specially hardened for mobile calls, in-call audio locks, and helpful error diagnostics.
  */
 
+import {
+  sanitizeDuplicateSpeechWords,
+  mergeSpeechSegments
+} from "../features/consultation/consultationSpeechService";
+
 export interface SpeechRecognitionResultState {
   isListening: boolean;
   transcript: string;
@@ -196,14 +201,20 @@ export class SpeechRecognitionSession {
       let interimTranscript = "";
 
       for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+        const item = event.results[i];
+        if (!item || !item[0]) continue;
+        const transcript = (item[0].transcript || "").trim();
+        if (!transcript) continue;
+
+        if (item.isFinal) {
+          finalTranscript = mergeSpeechSegments(finalTranscript, transcript);
         } else {
-          interimTranscript += event.results[i][0].transcript;
+          interimTranscript = mergeSpeechSegments(interimTranscript, transcript);
         }
       }
 
-      const text = (finalTranscript || interimTranscript).trim();
+      const rawCombined = mergeSpeechSegments(finalTranscript, interimTranscript);
+      const text = sanitizeDuplicateSpeechWords(rawCombined).trim();
       if (text) {
         onResult(text, Boolean(finalTranscript));
       }

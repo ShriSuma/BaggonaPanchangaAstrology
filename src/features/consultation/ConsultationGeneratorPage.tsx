@@ -27,9 +27,12 @@ import {
   CONSULTATION_LANGUAGES,
   DEFAULT_PRIEST_CONTACT
 } from "./consultationTypes";
-import { resolvePlaceFromPincode } from "../../services/locationApi";
+import { resolvePlaceFromPincode, resolvePlaceOrPincode } from "../../services/locationApi";
 import { useAuthStore, SUPER_ADMIN_USERNAMES } from "../auth/authStore";
 import { useAppStore } from "../../stores/appStore";
+import { useKundliViewerStore } from "../../stores/kundliViewerStore";
+import { useDevoteeHistoryStore, type DevoteeRecord } from "../../stores/devoteeHistoryStore";
+import { detectScript, convertTextIfLanguageDiffers, isScriptMatchingLanguage, transliterateName } from "../../utils/transliterator";
 import CategorizedNavDrawer from "../../components/navigation/CategorizedNavDrawer";
 import { encodeDevoteeToken } from "../../utils/tokenCipher";
 import { createSandhyavandanaSession } from "../sandhyavandana/sandhyavandanaDbService";
@@ -61,6 +64,12 @@ export const ConsultationGeneratorPage: React.FC = () => {
   // Service Type State: "consultation_20min" | "karma_mandala" | "sandhyavandana"
   const [linkServiceType, setLinkServiceType] = useState<"consultation_20min" | "karma_mandala" | "sandhyavandana">("consultation_20min");
 
+  // Saved Devotee Profiles & Active Kundli State
+  const savedRecords = useDevoteeHistoryStore((s) => s.records);
+  const activeKundliSession = useKundliViewerStore((s) => s.session);
+  const [selectedProfileId, setSelectedProfileId] = useState<string>("");
+  const [isPrefilledFromKundli, setIsPrefilledFromKundli] = useState<boolean>(false);
+
   // Form State
   const [name, setName] = useState("");
   const [dob, setDob] = useState("1995-05-15");
@@ -72,6 +81,88 @@ export const ConsultationGeneratorPage: React.FC = () => {
   const [selectedLng, setSelectedLng] = useState(74.3188);
   const [language, setLanguage] = useState<ConsultationLanguage>("kn");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Auto-fill from active Janma Kundali session if present
+  useEffect(() => {
+    if (activeKundliSession?.input) {
+      const inp = activeKundliSession.input;
+      const devoteeName = inp.name || "";
+      if (devoteeName) setName(devoteeName);
+      if (activeKundliSession.birthDateYmd || inp.birthDate) setDob(activeKundliSession.birthDateYmd || inp.birthDate);
+      if (activeKundliSession.birthTimeHm || inp.birthTime) setTob(activeKundliSession.birthTimeHm || inp.birthTime);
+      const loc = activeKundliSession.homePlaceName || activeKundliSession.placeLabel || "";
+      if (loc) setPlace(loc);
+      if (inp.pincode) setPincode(inp.pincode);
+      if (typeof inp.latitude === "number" && inp.latitude !== 0) setSelectedLat(inp.latitude);
+      if (typeof inp.longitude === "number" && inp.longitude !== 0) setSelectedLng(inp.longitude);
+      setIsPrefilledFromKundli(true);
+    }
+  }, [activeKundliSession]);
+
+  // Handle Saved Devotee Profile Selection
+  const handleSelectProfile = (profileId: string) => {
+    setSelectedProfileId(profileId);
+    if (!profileId) return;
+    const profile = savedRecords.find((r) => r.id === profileId);
+    if (!profile) return;
+
+    let targetName = profile.name || "";
+    // If devotee name script differs from currently selected language, transliterate it automatically
+    if (targetName && !isScriptMatchingLanguage(targetName, language)) {
+      targetName = convertTextIfLanguageDiffers(targetName, language);
+    }
+    setName(targetName);
+    if (profile.birthDate) setDob(profile.birthDate);
+    if (profile.birthTime) setTob(profile.birthTime);
+    if (profile.city) setPlace(profile.city);
+    if (profile.pincode) setPincode(profile.pincode);
+    if (typeof profile.latitude === "number") setSelectedLat(profile.latitude);
+    if (typeof profile.longitude === "number") setSelectedLng(profile.longitude);
+    setIsPrefilledFromKundli(false);
+  };
+
+  // Language Change with Smart Multi-Language Script Auto-Conversion
+  const handleLanguageChange = (newLang: ConsultationLanguage) => {
+    setLanguage(newLang);
+    if (name.trim()) {
+      const script = detectScript(name);
+      const targetLangKey = newLang.split("-")[0].toLowerCase();
+      // If the current name's script does not match the chosen language, convert it
+      if (script !== targetLangKey) {
+        const converted = convertTextIfLanguageDiffers(name, newLang);
+        if (converted && converted.trim()) {
+          setName(converted);
+        }
+      }
+    }
+  };
+
+  // Manual Transliterate Helper
+  const handleManualTransliterate = () => {
+    if (!name.trim()) return;
+    const converted = convertTextIfLanguageDiffers(name, language);
+    if (converted) {
+      setName(converted);
+    }
+  };
+
+  // Place Resolution with Offline-First National & International Database
+  const handlePlaceBlurOrChange = async (placeVal: string) => {
+    setPlace(placeVal);
+    const clean = placeVal.trim();
+    if (clean.length >= 3) {
+      try {
+        const res = await resolvePlaceOrPincode(clean);
+        if (res && res.lat && res.lng) {
+          setSelectedLat(res.lat);
+          setSelectedLng(res.lng);
+          if (res.pincode && !pincode) setPincode(res.pincode);
+        }
+      } catch {
+        // preserve current coords
+      }
+    }
+  };
 
   // Generated Link State
   const [generatedSession, setGeneratedSession] = useState<ConsultationSession | null>(null);
@@ -187,7 +278,9 @@ export const ConsultationGeneratorPage: React.FC = () => {
         : "https://baggona-panchanga.web.app";
 
       if (linkServiceType === "karma_mandala") {
-        // Generate Karma Sanjeevini & Gokarna Parihara Mandala Token
+        // Generate Karma Sanjeevini & Gokarna Parihara Mandala Token (Strict 90-Day Sacred Validity)
+        const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+        const expiresAtMs = Date.now() + ninetyDaysMs;
         const token = encodeDevoteeToken({
           name: name.trim(),
           dob,
@@ -199,7 +292,7 @@ export const ConsultationGeneratorPage: React.FC = () => {
           lang: language,
           priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
           priestPhone: "9972339362",
-          exp: Date.now() + 20 * 60 * 1000 // 20-min session security window
+          exp: expiresAtMs
         });
         const fullUrl = `${origin}/karma-mandala?token=${token}`;
         setGeneratedUrl(fullUrl);
@@ -209,9 +302,10 @@ export const ConsultationGeneratorPage: React.FC = () => {
           dob,
           tob,
           place: place.trim(),
+          language,
           status: "active",
           createdAt: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 20 * 60 * 1000).toISOString()
+          expiresAt: new Date(expiresAtMs).toISOString()
         } as any);
 
         const qr = await QRCode.toDataURL(fullUrl, {
@@ -234,6 +328,7 @@ export const ConsultationGeneratorPage: React.FC = () => {
           dob,
           tob,
           place: place.trim(),
+          language,
           status: "active",
           createdAt: session.createdAt,
           expiresAt: session.expiresAt
@@ -490,17 +585,80 @@ export const ConsultationGeneratorPage: React.FC = () => {
               </div>
 
           <form onSubmit={handleGenerateLink} className="space-y-4">
+            {/* Active Kundli Pre-fill Banner */}
+            {isPrefilledFromKundli && (
+              <div className="bg-amber-50 border-2 border-amber-400 text-amber-950 text-xs px-3.5 py-2.5 rounded-2xl flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">✨</span>
+                  <span>
+                    <strong>ಜನನ ಕುಂಡಲಿ ಡೇಟಾದಿಂದ ಸ್ವಯಂ-ಭರ್ತಿಯಾಗಿದೆ (Auto-filled from Active Janma Kundali)</strong>: {name} ({dob} {tob}, {place})
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPrefilledFromKundli(false)}
+                  className="text-amber-800 hover:text-amber-950 text-[11px] font-bold underline ml-2"
+                >
+                  ತೆರವುಗೊಳಿಸಿ (Dismiss)
+                </button>
+              </div>
+            )}
+
+            {/* Saved Devotee Profile Selector */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-amber-950">
+                  📁 ಉಳಿಸಲಾದ ಭಕ್ತರ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ (Select Saved Devotee Profile)
+                </label>
+                {savedRecords.length > 0 && (
+                  <span className="text-[10px] text-amber-800 font-semibold bg-amber-100 px-2 py-0.5 rounded-full">
+                    {savedRecords.length} ಭಕ್ತರ ದಾಖಲೆಗಳು
+                  </span>
+                )}
+              </div>
+              <select
+                value={selectedProfileId}
+                onChange={(e) => handleSelectProfile(e.target.value)}
+                className="w-full bg-[#FAF6EE] border-2 border-amber-300 focus:border-amber-600 rounded-xl px-3 py-2 text-xs font-medium text-stone-900 focus:outline-hidden transition"
+              >
+                <option value="">-- ಹೊಸ ಪ್ರೊಫೈಲ್ ನಮೂದಿಸಿ (New Devotee Entry) --</option>
+                {savedRecords.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name} {r.birthDate ? `(${r.birthDate} ${r.birthTime || ""})` : ""} {r.city ? `• ${r.city}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Devotee Name */}
             <div>
-              <label className="block text-xs font-bold text-amber-950 mb-1">
-                ಭಕ್ತರ ಪೂರ್ಣ ಹೆಸರು (Devotee Name) *
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-amber-950">
+                  ಭಕ್ತರ ಪೂರ್ಣ ಹೆಸರು (Devotee Name) *
+                </label>
+                <div className="flex items-center gap-2">
+                  {name.trim() && (
+                    <span className="text-[10px] font-mono font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
+                      ಲಿಪಿ: {detectScript(name).toUpperCase()}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleManualTransliterate}
+                    title="ಪ್ರಸ್ತುತ ಭಾಷೆಯ ಲಿಪಿಗೆ ಬದಲಿಸಿ (Transliterate to current language script)"
+                    className="text-[11px] text-amber-800 hover:text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2 py-0.5 rounded-lg font-bold transition flex items-center gap-1"
+                  >
+                    <span>🔄</span>
+                    <span>ಲಿಪ್ಯಂತರ ({language.toUpperCase()})</span>
+                  </button>
+                </div>
+              </div>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="ಉದಾ: ಪ್ರಮೋದ್ ಕೊಡಗಿ / Pramod Kodagi"
+                placeholder="ಉದಾ: ಪ್ರಮೋದ್ ಕೊಡಗಿ / Pramod Kodagi / प्रमोद / பிரமோத்"
                 className="w-full bg-[#FAF6EE] border-2 border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2.5 text-sm font-medium text-stone-900 focus:outline-hidden transition"
               />
             </div>
@@ -546,7 +704,8 @@ export const ConsultationGeneratorPage: React.FC = () => {
                     required
                     value={place}
                     onChange={(e) => setPlace(e.target.value)}
-                    placeholder="ಉದಾ: Gokarna, Bengaluru, Sirsi..."
+                    onBlur={(e) => void handlePlaceBlurOrChange(e.target.value)}
+                    placeholder="ಉದಾ: Gokarna, Bengaluru, Sirsi, Mumbai, London, Dubai..."
                     className="w-full bg-[#FAF6EE] border-2 border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2.5 text-sm font-medium text-stone-900 focus:outline-hidden transition"
                   />
                 </div>
@@ -605,7 +764,7 @@ export const ConsultationGeneratorPage: React.FC = () => {
                   <button
                     key={lang.code}
                     type="button"
-                    onClick={() => setLanguage(lang.code)}
+                    onClick={() => handleLanguageChange(lang.code)}
                     className={`p-2.5 rounded-xl border-2 text-center transition flex flex-col items-center justify-center gap-0.5 ${
                       language === lang.code
                         ? "bg-amber-600 text-white border-amber-700 shadow-md font-bold scale-[1.02]"
@@ -620,7 +779,7 @@ export const ConsultationGeneratorPage: React.FC = () => {
                 ))}
               </div>
               <p className="text-[11px] text-stone-500 mt-1.5">
-                ದೈವಜ್ಞರ ಉತ್ತರವು ಆಯ್ಕೆಮಾಡಿದ ಭಾಷೆಯಲ್ಲಿ ೨-೩ ಪ್ಯಾರಾಗ್ರಾಫ್‌ಗಳು (೫-೬ ಸಾಲುಗಳು) ಮೂಡಿಬರುತ್ತದೆ.
+                ದೈವಜ್ಞರ ಉತ್ತರವು ಆಯ್ಕೆಮಾಡಿದ ಭಾಷೆಯಲ್ಲಿ ೨-೩ ಪ್ಯಾರಾಗ್ರಾಫ್‌ಗಳು (೫-೬ ಸಾಲುಗಳು) ಮೂಡಿಬರುತ್ತದೆ. ಭಾಷೆ ಬದಲಿಸಿದಾಗ ಹೆಸರು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಆ ಲಿಪಿಗೆ ಬದಲಾಗುತ್ತದೆ.
               </p>
             </div>
 
@@ -661,10 +820,18 @@ export const ConsultationGeneratorPage: React.FC = () => {
                 <span className="text-2xl">🎉</span>
                 <div>
                   <h3 className="font-serif font-black text-lg text-amber-950">
-                    ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ಸಿದ್ಧಗೊಂಡಿದೆ!
+                    {linkServiceType === "karma_mandala"
+                      ? "ಕರ್ಮ ಸಂಜೀವಿನಿ ರಕ್ಷಾ ಕವಚ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ಸಿದ್ಧಗೊಂಡಿದೆ!"
+                      : linkServiceType === "sandhyavandana"
+                      ? "ಸಂಧ್ಯಾವಂದನಾ ೩ ತಿಂಗಳ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ಸಿದ್ಧಗೊಂಡಿದೆ!"
+                      : "ಸಮಾಲೋಚನೆ ಲಿಂಕ್ ಯಶಸ್ವಿಯಾಗಿ ಸಿದ್ಧಗೊಂಡಿದೆ!"}
                   </h3>
                   <p className="text-xs text-amber-800">
-                    20-Minute Consultation Link for {generatedSession.name} ({generatedSession.language.toUpperCase()})
+                    {linkServiceType === "karma_mandala"
+                      ? `Karma Sanjeevini Mandala Link for ${generatedSession.name} (${(generatedSession.language || language || "kn").toUpperCase()})`
+                      : linkServiceType === "sandhyavandana"
+                      ? `3-Month Sandhyavandana Link for ${generatedSession.name} (${(generatedSession.language || language || "kn").toUpperCase()})`
+                      : `20-Minute Consultation Link for ${generatedSession.name} (${(generatedSession.language || language || "kn").toUpperCase()})`}
                   </p>
                 </div>
               </div>
@@ -730,12 +897,24 @@ export const ConsultationGeneratorPage: React.FC = () => {
                 </div>
 
                 <div className="bg-amber-100/70 border border-amber-300 rounded-xl p-2.5 text-[11px] text-amber-950 space-y-1">
-                  <p>
-                    <strong>⏱️ ೨೦ ನಿಮಿಷಗಳ ನಿಯಮ:</strong> ಭಕ್ತರು ಲಿಂಕ್ ತೆರೆದು "Start Timer" ಕ್ಲಿಕ್ ಮಾಡಿದ ಕೂಡಲೇ ಗಡಿಯಾರ ಶುರುವಾಗುತ್ತದೆ.
-                  </p>
-                  <p>
-                    <strong>🗑️ ೪೦ ನಿಮಿಷಗಳ ಆಟೋ-ಡಿಲೀಟ್:</strong> ಸಮಾಲೋಚನೆ ಮುಗಿದ ೨೦ ನಿಮಿಷಗಳ ನಂತರ ಡೇಟಾಬೇಸ್‌ನಿಂದ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ತೆರವುಗೊಳ್ಳುತ್ತದೆ.
-                  </p>
+                  {linkServiceType === "karma_mandala" ? (
+                    <p>
+                      <strong>🔱 ಕರ್ಮ ಸಂಜೀವಿನಿ ರಕ್ಷಾ ಕವಚ (೯೦ ದಿನಗಳ ಮಾನ್ಯತೆ):</strong> ಭಕ್ತರ ಜನ್ಮ ಕುಂಡಲಿಯ ರಾಡಾರ್, ಮುಹೂರ್ತ ದಿಕ್ಸೂಚಿ ಹಾಗೂ ಜಪ ಮಂಡಲವು ೯೦ ದಿನಗಳ ಕಾಲ ಲಭ್ಯವಿರುತ್ತದೆ.
+                    </p>
+                  ) : linkServiceType === "sandhyavandana" ? (
+                    <p>
+                      <strong>🕉️ ಸಂಧ್ಯಾವಂದನಾ ೩ ತಿಂಗಳ ದಿವ್ಯ ಸಾಧನೆ (೯೦ ದಿನಗಳು):</strong> ಭಕ್ತರಿಗೆ ೩ ತಿಂಗಳ ಕಾಲ ದೈನಂದಿನ ತ್ರಿಕಾಲ ಸಂಧ್ಯಾವಂದನೆ ಪೂಜಾ ಮಾರ್ಗದರ್ಶನ ಲಭ್ಯವಿರುತ್ತದೆ.
+                    </p>
+                  ) : (
+                    <>
+                      <p>
+                        <strong>⏱️ ೨೦ ನಿಮಿಷಗಳ ನಿಯಮ:</strong> ಭಕ್ತರು ಲಿಂಕ್ ತೆರೆದು "Start Timer" ಕ್ಲಿಕ್ ಮಾಡಿದ ಕೂಡಲೇ ಗಡಿಯಾರ ಶುರುವಾಗುತ್ತದೆ.
+                      </p>
+                      <p>
+                        <strong>🗑️ ೪೦ ನಿಮಿಷಗಳ ಆಟೋ-ಡಿಲೀಟ್:</strong> ಸಮಾಲೋಚನೆ ಮುಗಿದ ೨೦ ನಿಮಿಷಗಳ ನಂತರ ಡೇಟಾಬೇಸ್‌ನಿಂದ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ತೆರವುಗೊಳ್ಳುತ್ತದೆ.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

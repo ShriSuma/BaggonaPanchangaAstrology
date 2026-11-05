@@ -235,7 +235,7 @@ const DEITY_SHLOKA_DATABASE: Record<string, DeityVedicShlokaRecord> = {
       kn: "ನಮಸ್ತೇಽಸ್ತು ಮಹಾಮಾಯೇ ಶ್ರೀಪೀಠೇ ಸುರಪೂಜಿತೇ ।\nಶಂಖಚಕ್ರಗದಾಹಸ್ತೇ ಮಹಾಲಕ್ಷ್ಮಿ ನಮೋಽಸ್ತು ತೇ ॥\nಸರ್ವಜ್ಞೇ ಸರ್ವವರದೇ ಸರ್ವದುಷ್ಟಭಯಂಕರಿ ।\nಸರ್ವದುಃಖಹರೇ ದೇವಿ ಮಹಾಲಕ್ಷ್ಮಿ ನಮೋಽಸ್ತು ತೇ ॥",
       en: "Namaste'stu mahāmāye śrīpīṭhe surapūjite |\nŚaṅkhacakragadāhaste mahālakṣmi namo'stu te ||\nSarvajñe sarvavarade sarvaduṣṭabhayaṅkari |\nSarvaduḥkhahare devi mahālakṣmi namo'stu te ||",
       hi: "नमस्तेऽस्तु महामाये श्रीपीठे सुरपूजिते ।\nशंखचक्रगदाहस्ते महालक्ष्मि नमोऽस्तु ते ॥\nसर्वज्ञे सर्ववरदे सर्वदुष्टभयंकरि ।\nसर्वदुःखहरे देवि महालक्ष्मि नमोऽस्तु ते ॥",
-      te: "నమస్తేಽస్తు మహామాయే శ్రీపీఠే సురపూజితే ।\nశంఖచక్రగదాహస్తే మహాలక్ష్మి నమోಽస్తు తే ॥\nసర్వజ్ఞే సర్వవరదే సర్వదుష్టభయంకరి ।\nసర్వదుఃఖహరే దేవి మహాలక్ష్మి నమోಽస్తు తే ॥",
+      te: "నమస్తేఽస్తు మహామాయే శ్రీపీఠే సురపూజితే ।\nశంఖచక్రగదాహస్తే మహాలక్ష్మి నమోఽస్తు తే ॥\nసర్వజ్ఞే సర్వవరదే సర్వదుష్టభయంకరి ।\nసర్వదుఃఖహరే దేవి మహాలక్ష్మి నమోఽస్తు తే ॥",
       ta: "நமஸ்தேऽஸ்து மஹாமாயே ஸ்ரீபீடே சுரபூஜிதே ।\nசங்கசக்ரகதாஹஸ்தே மஹாலக்ஷ்மி நமோऽஸ்து தே ॥\nசர்வஜ்ஞே சர்வவரதே சர்வதுஷ்டபயங்கரி ।\nசர்வதுஃகஹரே தேவி மஹாலக்ஷ்மி நமோऽஸ்து தே ॥"
     },
     transliteration: "Namaste'stu mahāmāye śrīpīṭhe surapūjite | Śaṅkhacakragadāhaste mahālakṣmi namo'stu te || Sarvajñe sarvavarade sarvaduṣṭabhayaṅkari | Sarvaduḥkhahare devi mahālakṣmi namo'stu te ||",

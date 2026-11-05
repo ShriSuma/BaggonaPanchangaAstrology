@@ -353,7 +353,7 @@ export async function handleGenerateAudio(
 /**
  * Resolves the ultra-fast Indian Language male voice ID with RAM cache
  */
-export function getVoiceIdForLanguage(lang: SevaLang | "sa" = "kn", customVoiceId?: string): string {
+export function getVoiceIdForLanguage(lang: SevaLang | "sa" | "ml" | "mr" = "kn", customVoiceId?: string): string {
   if (customVoiceId &&
       customVoiceId !== "voice_sriram_pandit" &&
       customVoiceId !== "voice_shrisuma_master" &&
@@ -367,6 +367,8 @@ export function getVoiceIdForLanguage(lang: SevaLang | "sa" = "kn", customVoiceI
     case "te": return "voice_telugu_male";
     case "ta": return "voice_tamil_male";
     case "hi": return "voice_hindi_male";
+    case "mr": return "voice_marathi_male";
+    case "ml": return "voice_malayalam_male";
     case "sa": return "voice_sriram_pandit";
     case "en":
     default: return "voice_kannada_male";
@@ -676,7 +678,7 @@ export function seekClonedAudio(deltaSeconds: number): void {
  */
 export async function synthesizeAndPlayClonedVoice(
   text: string,
-  _lang: SevaLang | "sa" = "kn",
+  _lang: SevaLang | "sa" | "ml" | "mr" = "kn",
   voiceId?: string,
   onEnd?: () => void,
   onStart?: () => void,
@@ -860,15 +862,17 @@ export async function prewarmIndicAudio(text: string, lang: SevaLang = "kn"): Pr
  */
 export function resolveBestVedicVoice(
   voices: SpeechSynthesisVoice[],
-  lang: SevaLang | "sa"
+  lang: SevaLang | "sa" | "ml" | "mr"
 ): SpeechSynthesisVoice | null {
   if (!voices || voices.length === 0) return null;
 
-  const langPrefixes: Record<SevaLang | "sa", string[]> = {
+  const langPrefixes: Record<string, string[]> = {
     kn: ["kn-in", "kn_in", "kn"],
     hi: ["hi-in", "hi_in", "hi"],
     te: ["te-in", "te_in", "te"],
     ta: ["ta-in", "ta_in", "ta"],
+    mr: ["mr-in", "mr_in", "mr"],
+    ml: ["ml-in", "ml_in", "ml"],
     sa: ["sa-in", "sa_in", "sa", "hi-in", "hi_in", "hi"],
     en: ["en-in", "en_in", "en-gb", "en-us", "en"]
   };
@@ -890,6 +894,8 @@ export function resolveBestVedicVoice(
     "mohan", "suresh", "ravi", "venkat", "ramesh",
     // Hindi male
     "hemant", "madhav", "deep", "tarun",
+    // Marathi & Malayalam male
+    "amol", "sachin", "rahul", "nitin", "midhun", "sankar", "anand", "unni",
     // Universal Indian & global male voices
     "rishi", "aman", "male", "daniel", "fred", "alex", "george", "guy"
   ];
@@ -974,7 +980,7 @@ function playSacredChimeTone(): void {
  */
 export async function playStrictlyMaleWebSpeechDSP(
   text: string,
-  lang: SevaLang | "sa",
+  lang: SevaLang | "sa" | "ml" | "mr",
   profile: PriestVoiceProfile,
   onEnd?: () => void,
   config?: VoiceCloneConfig,
@@ -999,11 +1005,13 @@ export async function playStrictlyMaleWebSpeechDSP(
   if (token !== undefined && !isPlaybackTokenActive(token)) return () => {};
 
   // Check if browser has any voice matching target language
-  const langPrefixes: Record<SevaLang | "sa", string[]> = {
+  const langPrefixes: Record<string, string[]> = {
     kn: ["kn-in", "kn_in", "kn"],
     hi: ["hi-in", "hi_in", "hi"],
     te: ["te-in", "te_in", "te"],
     ta: ["ta-in", "ta_in", "ta"],
+    mr: ["mr-in", "mr_in", "mr"],
+    ml: ["ml-in", "ml_in", "ml"],
     sa: ["sa-in", "sa_in", "sa", "hi-in", "hi_in", "hi"],
     en: ["en-in", "en_in", "en-gb", "en-us", "en"]
   };
@@ -1045,6 +1053,8 @@ export async function playStrictlyMaleWebSpeechDSP(
       else if (lang === "hi") utterance.lang = "hi-IN";
       else if (lang === "te") utterance.lang = "te-IN";
       else if (lang === "ta") utterance.lang = "ta-IN";
+      else if (lang === "mr") utterance.lang = "mr-IN";
+      else if (lang === "ml") utterance.lang = "ml-IN";
       else if (lang === "sa") utterance.lang = "hi-IN";
       else utterance.lang = "en-IN";
     } else {

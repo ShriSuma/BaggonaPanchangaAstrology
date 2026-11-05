@@ -9,6 +9,7 @@ import {
   YOGA_RULES,
   KARANA_RULES
 } from "../../core/PanchangaAngaSynthesisEngine";
+import { YOGA_NAMES_L5 } from "../premiumPdf/panchangaLifeEngine";
 import { transliterateName } from "../../utils/transliterator";
 
 export type SupportedLanguage = "kn" | "en" | "hi" | "te" | "ta";
@@ -2235,7 +2236,7 @@ export const CLASSICAL_STOTRAS_CATALOG = [
     },
     bestTimeToRecite: { kn: "ಸೋಮವಾರ ಅಥವಾ ಶುಕ್ರವಾರ ಸಂಜೆ", en: "Monday or Friday evening", hi: "सोमवार अथवा शुक्रवार सायं", te: "సోమవారం లేదా శుక్రవారం సాయంత్రం", ta: "திங்கள் அல்லது வெள்ளி மாலை" },
     facingDirection: { kn: "ಉತ್ತರ ಅಥವಾ ಪೂರ್ವ ದಿಕ್ಕು", en: "North or East", hi: "उत्तर अथवा पूर्व", te: "ఉత్తరం లేదా తూర్పు", ta: "வடக்கு அல்லது கிழக்கு" },
-    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ಅಥವಾ ೧೧ ಬಾರಿ", en: "1 or 11 Times Daily", hi: "१ अथवा ११ बार", te: "1 లేదా 11 ಸార్లు", ta: "1 அல்லது 11 முறை" }
+    recitationCount: { kn: "ದಿನಕ್ಕೆ ೧ ಅಥವಾ ೧೧ ಬಾರಿ", en: "1 or 11 Times Daily", hi: "१ अथवा ११ बार", te: "1 లేదా 11 సార్లు", ta: "1 அல்லது 11 முறை" }
   },
   {
     id: "swayamvara_parvati",
@@ -2310,7 +2311,7 @@ export const CLASSICAL_STOTRAS_CATALOG = [
       en: "Salutations to Angaraka, son of Earth and dissolver of debts and financial encumbrances. We pray with devotion for liberation from monetary obligations and restoration of prosperity.",
       hi: "ऋणहर्ता एवं धनप्रदाता भूमिपुत्र मंगल देव को नमन। हमारे समस्त ऋणों का निवारण करें।",
       te: "రుణాలను హరించి ధనాన్ని ప్రసాదించే అంగారక స్వామికి నమస్కారాలు.",
-      ta: "கடன்களை நீக்கி செல்வத்தை அருளும் அங்காரக பகவானுக்கு நமస్కாரங்கள்."
+      ta: "கடன்களை நீக்கி செல்வத்தை அருளும் அங்காரக பகவானுக்கு நமஸ்காரங்கள்."
     },
     spiritualBenefits: {
       kn: "ಸಾಲದ ಹೊರೆಯಿಂದ ಮುಕ್ತಿ, ಆರ್ಥಿಕ ಅಡೆತಡೆಗಳ ನಿವಾರಣೆ ಹಾಗೂ ಭೂಮಿ-ಆಸ್ತಿ ಸೌಭಾಗ್ಯ.",
@@ -2566,7 +2567,7 @@ export function getTurnaroundMilestones(category: KundliRemedyDiagnosis["primary
           kn: "೧೫ ದಿನಗಳ ನಂತರ ರೋಗನಿರೋಧಕ ಶಕ್ತಿ ಗಣನೀಯವಾಗಿ ಹೆಚ್ಚಿ, ದೀರ್ಘಕಾಲದ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಗಳು ಹತೋಟಿಗೆ ಬಂದು, ದಿನಪೂರ್ತಿ ಲವಲವಿಕೆಯಿಂದ ಕಾರ್ಯನಿರ್ವಹಿಸುವ ಉತ್ಸಾಹ ಲಭಿಸಲಿದೆ.",
           en: "By day 15, cellular immune resilience rebounds; nagging ailments stabilize into equilibrium, restoring all-day sustained enthusiasm for daily life.",
           hi: "१५ दिनों के बाद रोग प्रतिरोधक क्षमता सुदृढ़ होकर पुरानी व्याधियां नियंत्रित होंगी एवं ऊर्जावान अनुभव होगा।",
-          te: "15 రోజుల తర్వాత రోగనిరోధక శక్తి పెరిగి దీర్ಘకాలిక సమస్యలు అదుపులోకి వస్తాయి.",
+          te: "15 రోజుల తర్వాత రోగనిరోధక శక్తి పెరిగి దీర్ఘకాలిక సమస్యలు అదుపులోకి వస్తాయి.",
           ta: "15 நாட்களுக்குப் பிறகு நோய் எதிர்ப்பு சக்தி அதிகரித்து நீண்ட நாள் உபாதைகள் குணமாகும்."
         }
       };
@@ -4773,7 +4774,7 @@ export function generateKundliRemedyReport(
     5: { graha: PlanetName.Venus, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಬುಧ", en: "9th Lord Venus & Ascendant Lord Mercury", hi: "भाग्येश शुक्र एवं लग्नेश बुध", te: "భాగ్యాధిపతి శుక్రుడు & లగ్నాధిపతి బుధుడు", ta: "பாக்யாதிபதி சுக்கிரன் & லக்னாதிபதி புதன்" },
     6: { graha: PlanetName.Saturn, kn: "ಯೋಗಕಾರಕ ಶನಿ & ಲಗ್ನಾಧಿಪತಿ ಶುಕ್ರ", en: "Yogakaraka Saturn & Ascendant Lord Venus", hi: "योगकारक शनि एवं लग्नेश शुक्र", te: "యోగకారక శని & లగ్నాధిపతి శుక్రుడు", ta: "யோககாரக சனி & லக்னாதிபதி சுக்கிரன்" },
     7: { graha: PlanetName.Jupiter, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಚಂದ್ರ & ಪಂಚಮಾಧಿಪತಿ ಗುರು", en: "9th Lord Moon & 5th Lord Jupiter", hi: "भाग्येश चन्द्र एवं पंचमेश गुरु", te: "భాగ్యాధిపతి చంద్రుడు & పంచమాధిపతి గురుడు", ta: "பாக்யாதிபதி சந்திரன் & பஞ்சமாதிபதி குரு" },
-    8: { graha: PlanetName.Sun, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ರವಿ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Sun & Ascendant Lord Jupiter", hi: "भाग्येश सूर्य एवं लग्नेश गुरु", te: "భాగ్యాధిపతి సూర్యుడు & లగ్నాధిపతి గురుడు", ta: "பாக்யாதிபதி சூரியன் & லக்னாதிపతి குரு" },
+    8: { graha: PlanetName.Sun, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ರವಿ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Sun & Ascendant Lord Jupiter", hi: "भाग्येश सूर्य एवं लग्नेश गुरु", te: "భాగ్యాధిపతి సూర్యుడు & లగ్నాధిపతి గురుడు", ta: "பாக்யாதிபதி சூரியன் & லக்னாதிபதி குரு" },
     9: { graha: PlanetName.Venus, kn: "ಯೋಗಕಾರಕ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಶನಿ", en: "Yogakaraka Venus & Ascendant Lord Saturn", hi: "योगकारक शुक्र एवं लग्नेश शनि", te: "యోగకారక శుక్రుడు & లగ్నాధిపతి శని", ta: "யோககாரக சுக்கிரன் & லக்னாதிபதி சனி" },
     10: { graha: PlanetName.Venus, kn: "ಯೋಗಕಾರಕ ಶುಕ್ರ & ಲಗ್ನಾಧಿಪತಿ ಶನಿ", en: "Yogakaraka Venus & Ascendant Lord Saturn", hi: "योगकारक शुक्र एवं लग्नेश शनि", te: "యోగకారక శుక్రుడు & లగ్నాధిపతి శని", ta: "யோககாரக சுக்கிரன் & லக்னாதிபதி சனி" },
     11: { graha: PlanetName.Mars, kn: "ಭಾಗ್ಯಾಧಿಪತಿ ಕುಜ & ಲಗ್ನಾಧಿಪತಿ ಗುರು", en: "9th Lord Mars & Ascendant Lord Jupiter", hi: "भाग्येश मंगल एवं लग्नेश गुरु", te: "భాగ్యాధిపతి కుజుడు & లగ్నాధిపతి గురుడు", ta: "பாக்யாதிபதி செவ்வாய் & லக்னாதிபதி குரு" }
@@ -5226,7 +5227,7 @@ export function generateKundliRemedyReport(
     emergencyMantraData = {
       sanskrit: "॥ ॐ ऐं सरस्वत्यै नमः । ॐ ह्रीं श्रीं क्लीं मेधादेव्यै नमः ॥",
       kannada: "॥ ಓಂ ಐಂ ಸರಸ್ವತ್ಯೈ ನಮಃ । ಓಂ ಹ್ರೀಂ ಶ್ರೀಂ ಕ್ಲೀಂ ಮೇಧಾದೇವ್ಯೈ ನಮಃ ॥",
-      telugu: "॥ ఓం ఐం సరస్వత్యై నమః । ఓం హ్రీం శ్రీಂ క్లీం మేధాదేవ్యై నమః ॥",
+      telugu: "॥ ఓం ఐం సరస్వత్యై నమః । ఓం హ్రీం శ్రీం క్లీం మేధాదేవ్యై నమః ॥",
       tamil: "॥ ஓம் ஐம் சரஸ்வத்யை நமஹ । ஓம் ஹ்ரீம் ஸ்ரீம் க்லீம் மேதாதேவ்யை நமஹ ॥",
       hindi: "॥ ॐ ऐं सरस्वत्यै नमः । ॐ ह्रीं श्रीं क्लीं मेधादेव्यै नमः ॥",
       transliteration: "Om Aim Saraswatyai Namaha | Om Hreem Shreem Kleem Medhadevyai Namaha",
@@ -5548,7 +5549,7 @@ export function generateKundliRemedyReport(
     emergencyMantraData = {
       sanskrit: "॥ ॐ शं शनैश्चराय नमः । ॐ प्रां प्रीं प्रौं सः शनये नमः ॥",
       kannada: "॥ ಓಂ ಶಂ ಶನೈಶ್ಚರಾಯ ನಮಃ । ಓಂ ಪ್ರಾಂ ಪ್ರೀಂ ಪ್ರೌಂ ಸಃ ಶನಯೇ ನಮಃ ॥",
-      telugu: "॥ ఓం శం శనైశ్చరాయ నమః । ಓಂ ప్రాం ప్రీಂ ಪ್ರೌಂ ಸಃ ಶನಯೇ ನಮಃ ॥",
+      telugu: "॥ ఓం శం శనైశ్చరాయ నమః । ఓం ప్రాం ప్రీం ప్రౌం సః శనయే నమః ॥",
       tamil: "॥ ஓம் சம் சனைச்சராய நமஹ । ஓம் ப்ராம் ப்ரீம் ப்ரௌம் ஸஃ சனயே நமஹ ॥",
       hindi: "॥ ॐ शं शनैश्चराय नमः । ॐ प्रां प्रीं प्रौं सः शनये नमः ॥",
       transliteration: "Om Sham Shanaishcharaya Namaha | Om Pram Preem Proum Sah Shanaye Namaha",
@@ -5602,6 +5603,20 @@ export function generateKundliRemedyReport(
   }
   const karanaRule = KARANA_RULES[karanaKey] || KARANA_RULES["Bava"];
 
+  const KARANA_NAMES_L5_BY_KEY: Record<string, { kn: string; en: string; hi: string; te: string; ta: string }> = {
+    Bava: { kn: "ಬವ", en: "Bava", hi: "बव", te: "బవ", ta: "பவம்" },
+    Balava: { kn: "ಬಾಲವ", en: "Balava", hi: "बालव", te: "బాలవ", ta: "பாலவம்" },
+    Kaulava: { kn: "ಕೌಲವ", en: "Kaulava", hi: "कौलव", te: "కౌలవ", ta: "கௌலவம்" },
+    Taitila: { kn: "ತೈತಿಲ", en: "Taitila", hi: "तैतिल", te: "తైతిల", ta: "தைதுலம்" },
+    Garaja: { kn: "ಗರಜ", en: "Garaja", hi: "गरज", te: "గరజ", ta: "கரசை" },
+    Vanija: { kn: "ವಣಿಜ", en: "Vanija", hi: "वणिज", te: "వణిజ", ta: "வனசை" },
+    Vishti: { kn: "ವಿಷ್ಟಿ (ಭದ್ರಾ)", en: "Vishti (Bhadra)", hi: "विष्टि (भद्रा)", te: "విష్టి (భద్ర)", ta: "பத்திரை (விஷ்டி)" },
+    Shakuni: { kn: "ಶಕುನಿ", en: "Shakuni", hi: "शकुनि", te: "శకుని", ta: "சகுனி" },
+    Chatushpada: { kn: "ಚತುಷ್ಪಾದ", en: "Chatushpada", hi: "चतुष्पद", te: "చతుష్పాద", ta: "சதுஷ்பாதம்" },
+    Naga: { kn: "ನಾಗ", en: "Naga", hi: "नाग", te: "నాగ", ta: "நாகம்" },
+    Kintughna: { kn: "ಕಿಂತುಘ್ನ", en: "Kintughna", hi: "किस्तुघ्न", te: "కింస్తుఘ్న", ta: "கிம்துக்கினம்" }
+  };
+
   const panchangaRemedies: PanchangaRemedies = {
     elementalBalanceReason: {
       kn: "ಪಂಚಾಂಗದ ೫ ಅಂಗಗಳು ಮಾನವನ ಪಂಚ ಮಹಾಭೂತಗಳನ್ನು ನಿಯಂತ್ರಿಸುತ್ತವೆ: ತಿಥಿ (ಜಲ/ಭಾವನೆ), ವಾರ (ಅಗ್ನಿ/ಪ್ರಾಣ), ನಕ್ಷತ್ರ (ವಾಯು/ಮನಸ್ಸು), ಯೋಗ (ಆಕಾಶ/ಸೌಹಾರ್ದತೆ) ಮತ್ತು ಕರಣ (ಪೃಥ್ವಿ/ಕಾರ್ಯಸಿದ್ಧಿ). ಈ ಪಂಚಾಂಗ ಆರಾಧನೆಯಿಂದ ಜಾತಕದ ಸಮಸ್ತ ಅಶಾಂತಿ ಮೂಲದಿಂದಲೇ ಶಾಂತವಾಗುತ್ತದೆ.",
@@ -5631,27 +5646,33 @@ export function generateKundliRemedyReport(
       dailySadhana: varaData.sadhana
     },
     yogaRemedy: {
-      yogaName: { kn: yogaRule.sanskrit, en: yogaRule.english, hi: yogaRule.sanskrit, te: yogaRule.english, ta: yogaRule.english },
+      yogaName: YOGA_NAMES_L5[yogaIndex] ? {
+        kn: YOGA_NAMES_L5[yogaIndex].kn,
+        en: YOGA_NAMES_L5[yogaIndex].en,
+        hi: YOGA_NAMES_L5[yogaIndex].hi,
+        te: YOGA_NAMES_L5[yogaIndex].te,
+        ta: YOGA_NAMES_L5[yogaIndex].ta
+      } : { kn: yogaRule.sanskrit, en: yogaRule.english, hi: yogaRule.english, te: yogaRule.english, ta: yogaRule.english },
       isAuspicious: yogaRule.isAuspicious,
       deity: yogaRule.deity,
       shantiPractice: {
-        kn: yogaRule.remedy || (yogaRule.isAuspicious ? "ಶುಭ ಯೋಗ: ನಿತ್ಯ ದೇವತಾರ್ಚನೆ ಮತ್ತು ಗಾಯತ್ರೀ ಜಪದಿಂದ ಸೌಭಾಗ್ಯ ವೃದ್ಧಿ." : "ಅಶುಭ ಯೋಗ: ಶಿವ ಪಂಚಾಕ್ಷರಿ ಜಪ ಅಥವಾ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಿಸಿ."),
+        kn: yogaRule.isAuspicious ? "ಶುಭ ಯೋಗ: ನಿತ್ಯ ದೇವತಾರ್ಚನೆ ಮತ್ತು ಗಾಯತ್ರೀ ಜಪದಿಂದ ಸೌಭಾಗ್ಯ ವೃದ್ಧಿ." : "ಅಶುಭ ಯೋಗ: ಶಿವ ಪಂಚಾಕ್ಷರಿ ಜಪ ಅಥವಾ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಪಠಿಸಿ.",
         en: yogaRule.remedy || (yogaRule.isAuspicious ? "Auspicious Yoga: Daily prayer and Gayatri japa amplify success." : "Inauspicious Yoga: Chant Shiva Panchakshari or Mrityunjaya mantra."),
-        hi: yogaRule.remedy || "नित्य गायत्री जप एवं शिव आराधना करें।",
-        te: yogaRule.remedy || "నిత్య గాయత్రీ జపం మరియు శివారాధన.",
-        ta: yogaRule.remedy || "தினசரி காயத்ரி ஜபம் மற்றும் சிவ வழிபாடு."
+        hi: yogaRule.isAuspicious ? "शुभ योग: नित्य देवपूजन एवं गायत्री जप से सौभाग्य वृद्धि होती है।" : "अशुभ योग शांति: शिव पंचाक्षरी जप अथवा महामृत्युंजय मंत्र का पाठ करें।",
+        te: yogaRule.isAuspicious ? "శుభ యోగం: నిత్య దేవతార్చన మరియు గాయత్రీ జపంతో సౌభాగ్య వృద్ధి." : "అశుభ యోగ శాంతి: శివ పంచాక్షరీ జపం లేదా మహామృత్యుంజయ మంత్ర పఠనం.",
+        ta: yogaRule.isAuspicious ? "சுப யோகம்: தினசரி தேவ பூஜை மற்றும் காயத்ரி ஜபம் நற்பலன் தரும்." : "அசுப யோக சாந்தி: சிவ பஞ்சாட்சர ஜபம் அல்லது மகாமிருத்யுஞ்சய மந்திரம் பாராயணம் செய்யவும்."
       }
     },
     karanaRemedy: {
-      karanaName: { kn: karanaRule.nameKn, en: karanaRule.nameEn, hi: karanaRule.nameEn, te: karanaRule.nameEn, ta: karanaRule.nameEn },
+      karanaName: KARANA_NAMES_L5_BY_KEY[karanaKey] || { kn: karanaRule.nameKn, en: karanaRule.nameEn, hi: karanaRule.nameEn, te: karanaRule.nameEn, ta: karanaRule.nameEn },
       tatva: karanaRule.tatva,
       deity: karanaRule.rulingDeity,
       karyaShanti: {
-        kn: karanaRule.remedy || `${formatNameForLanguage(karanaRule.rulingDeity, "kn", "ಇಂದ್ರ")} ದೇವರ ಆರಾಧನೆ, ಕರ್ಮಸಿದ್ಧಿಗೆ ಶುಭಾರಂಭದ ಮುನ್ನ ಪ್ರಾರ್ಥನೆ.`,
-        en: karanaRule.remedy || `Worship ${formatNameForLanguage(karanaRule.rulingDeity, "en", "Indra")}; invoke prior to commencing major transactions.`,
-        hi: karanaRule.remedy || `${formatNameForLanguage(karanaRule.rulingDeity, "hi", "इंद्र")} की पूजा करें।`,
-        te: karanaRule.remedy || `${formatNameForLanguage(karanaRule.rulingDeity, "te", "ఇంద్ర")} పూజ.`,
-        ta: karanaRule.remedy || `${formatNameForLanguage(karanaRule.rulingDeity, "ta", "இந்திரன்")} வழிபாடு.`
+        kn: `${formatNameForLanguage(karanaRule.rulingDeity, "kn", "ಇಂದ್ರ")} ದೇವರ ಆರಾಧನೆ, ಕರ್ಮಸಿದ್ಧಿಗೆ ಶುಭಾರಂಭದ ಮುನ್ನ ಪ್ರಾರ್ಥನೆ.`,
+        en: `Worship ${formatNameForLanguage(karanaRule.rulingDeity, "en", "Indra")}; invoke prior to commencing major transactions.`,
+        hi: `${formatNameForLanguage(karanaRule.rulingDeity, "hi", "इंद्र")} देव की आराधना करें।`,
+        te: `${formatNameForLanguage(karanaRule.rulingDeity, "te", "ఇంద్ర")} దేవతారాధన.`,
+        ta: `${formatNameForLanguage(karanaRule.rulingDeity, "ta", "இந்திரன்")} வழிபாடு.`
       }
     }
   };
@@ -6318,16 +6339,16 @@ export function generateKundliRemedyReport(
       title: {
         kn: activeAlert.titleKn,
         en: activeAlert.titleEn,
-        hi: activeAlert.titleEn ? `${activeAlert.titleEn} (सक्रिय संधिकाल)` : "दशा-भुक्ति संधिकाल",
-        te: activeAlert.titleEn ? `${activeAlert.titleEn} (కీలక సంధి)` : "దశా-భుక్తి సంధి సమయం",
-        ta: activeAlert.titleEn ? `${activeAlert.titleEn} (திசை சந்தி)` : "திசை-புக்தி சந்தி காலம்"
+        hi: `${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.hi || mahaDashaPlanet} - ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.hi || bhuktiPlanet} संधिकाल`,
+        te: `${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.te || mahaDashaPlanet} - ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.te || bhuktiPlanet} సంధి కాలం`,
+        ta: `${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.ta || mahaDashaPlanet} - ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.ta || bhuktiPlanet} சந்தி காலம்`
       },
       durationFormatted: {
         kn: activeAlert.durationFormattedKn,
         en: activeAlert.durationFormattedEn,
-        hi: activeAlert.durationFormattedEn,
-        te: activeAlert.durationFormattedEn,
-        ta: activeAlert.durationFormattedEn
+        hi: "सक्रिय दशा संधिकाल",
+        te: "సక్రియ దశా సంధి కాలం",
+        ta: "செயலில் உள்ள திசை சந்தி"
       },
       description: {
         kn: activeAlert.descriptionKn,
@@ -6339,9 +6360,9 @@ export function generateKundliRemedyReport(
       remedy: {
         kn: `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ${activeAlert.gokarnaSevaKn || "ವಿಶೇಷ ಸಂಧಿ ಶಾಂತಿ ಸೇವೆ"}`,
         en: `Sri Kshetra Gokarna ${activeAlert.gokarnaSevaEn || "Special Sandhi Shanti Seva"}`,
-        hi: `श्री गोकर्ण क्षेत्र में ${activeAlert.gokarnaSevaEn || "दशा संधि शांति सेवा"}`,
-        te: `శ్రీ గోకర్ణ క్షేత్రంలో ${activeAlert.gokarnaSevaEn || "దశా సంధి శాంతి పూజ"}`,
-        ta: `ஸ்ரீ கோகர்ணத்தில் ${activeAlert.gokarnaSevaEn || "திசை சந்தி சாந்தி பூஜை"}`
+        hi: "श्री गोकर्ण क्षेत्र में विशेष दशा संधि शांति सेवा एवं नवग्रह शांति पूजा",
+        te: "శ్రీ గోకర్ణ క్షేత్రంలో విశేష దశా సంధి శాంతి పూజ మరియు నవగ్రహ శాంతి",
+        ta: "ஸ்ரீ கோகர்ணத்தில் விசேஷ திசை சந்தி சாந்தி பூஜை மற்றும் நவக்கிரக சாந்தி"
       }
     };
   } else if (upcomingAlert) {
@@ -6352,16 +6373,16 @@ export function generateKundliRemedyReport(
       title: {
         kn: upcomingAlert.titleKn,
         en: upcomingAlert.titleEn,
-        hi: upcomingAlert.titleEn ? `${upcomingAlert.titleEn} (आगामी संधिकाल)` : "आगामी दशा संधि",
-        te: upcomingAlert.titleEn ? `${upcomingAlert.titleEn} (రాబోవు సంధి)` : "రాబోవు దశా సంధి",
-        ta: upcomingAlert.titleEn ? `${upcomingAlert.titleEn} (வரவிருக்கும் சந்தி)` : "வரவிருக்கும் திசை சந்தி"
+        hi: `${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.hi || mahaDashaPlanet} - ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.hi || bhuktiPlanet} आगामी संधिकाल`,
+        te: `${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.te || mahaDashaPlanet} - ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.te || bhuktiPlanet} రాబోవు సంధి`,
+        ta: `${GRAHA_NAMES_LOCALE[mahaDashaPlanet]?.ta || mahaDashaPlanet} - ${GRAHA_NAMES_LOCALE[bhuktiPlanet]?.ta || bhuktiPlanet} வரவிருக்கும் சந்தி`
       },
       durationFormatted: {
         kn: upcomingAlert.durationFormattedKn,
         en: upcomingAlert.durationFormattedEn,
-        hi: upcomingAlert.durationFormattedEn,
-        te: upcomingAlert.durationFormattedEn,
-        ta: upcomingAlert.durationFormattedEn
+        hi: "आगामी दशा संधिकाल",
+        te: "రాబోవు దశా సంధి కాలం",
+        ta: "வரவிருக்கும் திசை சந்தி"
       },
       description: {
         kn: upcomingAlert.descriptionKn,
@@ -6373,9 +6394,9 @@ export function generateKundliRemedyReport(
       remedy: {
         kn: `ಶ್ರೀ ಗೋಕರ್ಣ ಸನ್ನಿಧಿಯಲ್ಲಿ ${upcomingAlert.gokarnaSevaKn || "ಸಂಧಿ ಪೂರ್ವ ಶಾಂತಿ ಸಂಕಲ್ಪ"}`,
         en: `Sri Gokarna Sannidhana ${upcomingAlert.gokarnaSevaEn || "Pre-Sandhi Shanti Sankalpa"}`,
-        hi: `श्री गोकर्ण सन्निधान में ${upcomingAlert.gokarnaSevaEn || "संधि पूर्व शांति संकल्प"}`,
-        te: `శ్రీ గోకర్ణ సన్నిధానంలో ${upcomingAlert.gokarnaSevaEn || "సంధి పూర్వ శాంతి సంకల్పం"}`,
-        ta: `ஸ்ரீ கோகர்ண சந்நிதானத்தில் ${upcomingAlert.gokarnaSevaEn || "சந்தி பூர்வ சாந்தி வழிபாடு"}`
+        hi: "श्री गोकर्ण सन्निधि में दशा संधि पूर्व शांति संकल्प एवं नवग्रह अभिषेक",
+        te: "శ్రీ గోకర్ణ సన్నిధిలో దశా సంధి పూర్వ శాంతి సంకల్పం మరియు నవగ్రహ అభిషేకం",
+        ta: "ஸ்ரீ கோகர்ண சந்நிதியில் திசை சந்தி முன் சாந்தி சங்கல்பம் மற்றும் அபிஷேகம்"
       }
     };
   } else {

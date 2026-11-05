@@ -16,6 +16,7 @@ export interface ConsultationLanguageMeta {
   sampleGreeting: string;
   inputPlaceholder: string;
   speakingIndicator: string;
+  aiReviewingIndicator: string;
 }
 
 export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
@@ -26,7 +27,8 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     speechLocale: "kn-IN",
     sampleGreeting: "ನಮಸ್ಕಾರ, ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಸಮಾಲೋಚನೆಗೆ ಸ್ವಾಗತ.",
     inputPlaceholder: "ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ ಅಥವಾ ಧ್ವನಿ ಮೂಲಕ ಮಾತನಾಡಿ...",
-    speakingIndicator: "ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ನಡೆಯುತ್ತಿದೆ... (ಮಾತನಾಡಿ)"
+    speakingIndicator: "ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ನಡೆಯುತ್ತಿದೆ... (ಮಾತನಾಡಿ)",
+    aiReviewingIndicator: "✨ AI ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದೆ... (೨-೩ ಸೆಕೆಂಡುಗಳು)"
   },
   {
     code: "en",
@@ -35,7 +37,8 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     speechLocale: "en-IN",
     sampleGreeting: "Namaste, Welcome to Baggona Panchanga Vedic Astrological Consultation.",
     inputPlaceholder: "Type your question here or speak via mic...",
-    speakingIndicator: "Voice recording active... (Speak now)"
+    speakingIndicator: "Voice recording active... (Speak now)",
+    aiReviewingIndicator: "✨ AI is reviewing your question... (2-3 seconds)"
   },
   {
     code: "hi",
@@ -44,7 +47,8 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     speechLocale: "hi-IN",
     sampleGreeting: "नमस्ते, श्री बग्गोण पंचांग वैदिक ज्योतिष परामर्श में आपका स्वागत है।",
     inputPlaceholder: "अपना प्रश्न यहाँ लिखें या बोलकर पूछें...",
-    speakingIndicator: "ध्वनि रिकॉर्डिंग जारी है... (बोलिए)"
+    speakingIndicator: "ध्वनि रिकॉर्डिंग जारी है... (बोलिए)",
+    aiReviewingIndicator: "✨ AI प्रश्न की समीक्षा कर रहा है... (2-3 सेकंड)"
   },
   {
     code: "te",
@@ -53,7 +57,8 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     speechLocale: "te-IN",
     sampleGreeting: "నమస్కారం, శ్రీ బగ్గోణ పంచాంగ జ్యోతిష్య సంప్రదింపులకు స్వాగతం.",
     inputPlaceholder: "మీ ప్రశ్నను ఇక్కడ టైప్ చేయండి లేదా మాట్లాడండి...",
-    speakingIndicator: "వాయిస్ రికార్డింగ్ నడుస్తోంది... (మాట్లాడండి)"
+    speakingIndicator: "వాయిస్ రికార్డింగ్ నడుస్తోంది... (మాట్లాడండి)",
+    aiReviewingIndicator: "✨ AI మీ ప్రశ్నను సమీక్షిస్తోంది... (2-3 సెకన్లు)"
   },
   {
     code: "ta",
@@ -62,7 +67,8 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     speechLocale: "ta-IN",
     sampleGreeting: "வணக்கம், ஸ்ரீ பக்கவணா பஞ்சாங்க ஜோதிட ஆலோசனையில் உங்களை வரவேற்கிறோம்.",
     inputPlaceholder: "உங்கள் கேள்வியை இங்கே தட்டச்சு செய்யவும் அல்லது பேசவும்...",
-    speakingIndicator: "குரல் பதிவு செயலில் உள்ளது... (பேசவும்)"
+    speakingIndicator: "குரல் பதிவு செயலில் உள்ளது... (பேசவும்)",
+    aiReviewingIndicator: "✨ AI உங்கள் கேள்வியை மதிப்பாய்வு செய்கிறது... (2-3 வினாடிகள்)"
   },
   {
     code: "ml",
@@ -71,7 +77,8 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     speechLocale: "ml-IN",
     sampleGreeting: "നമസ്കാരം, ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗ ജ്യോതിഷ കൺസൾട്ടേഷനിലേക്ക് സ്വാഗതം.",
     inputPlaceholder: "നിങ്ങളുടെ ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക അല്ലെങ്കിൽ സംസാരിക്കുക...",
-    speakingIndicator: "വോയ്‌സ് റെക്കോർഡിംഗ് സജീവമാണ്... (സംസാരിക്കുക)"
+    speakingIndicator: "വോയ്‌സ് റെക്കോർഡിംഗ് സജീവമാണ്... (സംസാരിക്കുക)",
+    aiReviewingIndicator: "✨ AI ചോദ്യം അവലോകനം ചെയ്യുന്നു... (2-3 സെക്കൻഡ്)"
   },
   {
     code: "mr",
@@ -80,7 +87,8 @@ export const CONSULTATION_LANGUAGES: ConsultationLanguageMeta[] = [
     speechLocale: "mr-IN",
     sampleGreeting: "नमस्कार, श्री बग्गोण पंचांग वैदिक ज्योतिष सल्लामसलतीमध्ये आपले स्वागत आहे.",
     inputPlaceholder: "आपला प्रश्न येथे टाइप करा किंवा आवाजाने विचारा...",
-    speakingIndicator: "व्हॉइस रेकॉर्डिंग चालू आहे... (बोला)"
+    speakingIndicator: "व्हॉइस रेकॉर्डिंग चालू आहे... (बोला)",
+    aiReviewingIndicator: "✨ AI प्रश्नाचे पुनरावलोकन करत आहे... (2-3 सेकंद)"
   }
 ];
 

@@ -217,10 +217,15 @@ export const KarmaMandalaPage: React.FC = () => {
             className="w-full rounded-xl shadow-lg border border-amber-500/40"
           />
           {remainingSeconds !== null && (
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/70 border border-red-500/50 text-red-300 text-xs font-mono font-bold animate-pulse">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/70 border border-amber-500/50 text-amber-300 text-xs font-mono font-bold">
               <span>⏳</span>
               <span>
-                ಸಮಾಲೋಚನಾ ರಕ್ಷಾ ಕವಚ ಮಾನ್ಯತೆ: {Math.floor(remainingSeconds / 60)}:{(remainingSeconds % 60).toString().padStart(2, "0")} ನಿಮಿಷ ಬಾಕಿ
+                ದೈವಿಕ ರಕ್ಷಾ ಕವಚ ಮಾನ್ಯತೆ:{" "}
+                {remainingSeconds > 86400
+                  ? `${Math.floor(remainingSeconds / 86400)} ದಿನ ${Math.floor((remainingSeconds % 86400) / 3600)} ಗಂಟೆ ಬಾಕಿ`
+                  : remainingSeconds > 3600
+                  ? `${Math.floor(remainingSeconds / 3600)} ಗಂಟೆ ಬಾಕಿ`
+                  : `${Math.floor(remainingSeconds / 60)}:${(remainingSeconds % 60).toString().padStart(2, "0")} ನಿಮಿಷ ಬಾಕಿ`}
               </span>
             </div>
           )}

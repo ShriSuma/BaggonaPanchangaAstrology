@@ -32,6 +32,10 @@ export interface DevoteePanchangaProfile {
   place: string;
   vaara: string;
   vaaraRaw: string;
+  vaaraLord: string;
+  vaaraWithLord: string;
+  janmaHora: string;
+  horaLord: string;
   tithi: string;
   paksha: string;
   nakshatra: string;
@@ -55,6 +59,8 @@ export interface PanchangaPatrikaLabels {
   tobLabel: string;
   placeLabel: string;
   vaaraLabel: string;
+  vaaraLordLabel: string;
+  horaLabel: string;
   tithiLabel: string;
   nakshatraLabel: string;
   rashiLabel: string;
@@ -86,6 +92,45 @@ export const VAARA_I18N: Record<ConsultationLanguage, string[]> = {
   ml: ["ഞായറാഴ്ച", "തിങ്കളാഴ്ച", "ചൊവ്വാഴ്ച", "ബുധനാഴ്ച", "വ്യാഴാഴ്ച", "വെള്ളിയാഴ്ച", "ശനിയാഴ്ച"],
   mr: ["रविवार", "सोमवार", "मंगळवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"]
 };
+
+// -------------------------------------------------------------
+// 1b. Vaara Lords (7 Ruling Planets of the Weekdays)
+// -------------------------------------------------------------
+export const VAARA_LORDS_I18N: Record<ConsultationLanguage, string[]> = {
+  kn: ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಕುಜ (ಮಂಗಳ)", "ಬುಧ", "ಗುರು", "ಶುಕ್ರ", "ಶನಿ"],
+  en: ["Sun (Surya)", "Moon (Chandra)", "Mars (Mangala)", "Mercury (Budha)", "Jupiter (Guru)", "Venus (Shukra)", "Saturn (Shani)"],
+  hi: ["सूर्य", "चंद्र", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"],
+  te: ["సూర్యుడు", "చంద్రుడు", "కుజుడు", "బుధుడు", "గురుడు", "శుక్రుడు", "శని"],
+  ta: ["சூரியன்", "சந்திரன்", "செவ்வாய்", "புதன்", "குரு", "சுக்கிரன்", "சனி"],
+  ml: ["സൂര്യൻ", "ചന്ദ്രൻ", "ചൊവ്വ", "ബുധൻ", "വ്യാഴം (ഗുരു)", "ശുക്രൻ", "ശനി"],
+  mr: ["सूर्य", "चंद्र", "मंगळ", "बुध", "गुरु", "शुक्र", "शनि"]
+};
+
+export const VAARA_LORD_PREFIX_I18N: Record<ConsultationLanguage, string> = {
+  kn: "ವಾರಾಧಿಪತಿ",
+  en: "Day Ruler",
+  hi: "वाराधिपति",
+  te: "వారాధిపతి",
+  ta: "வாராதிபதி",
+  ml: "വാരാധിപതി",
+  mr: "वाराधिपती"
+};
+
+export const HORA_SUFFIX_I18N: Record<ConsultationLanguage, string> = {
+  kn: "ಹೋರೆ",
+  en: "Hora",
+  hi: "होरा",
+  te: "హోర",
+  ta: "ஹோரை",
+  ml: "ഹോര",
+  mr: "होरा"
+};
+
+// Chaldean descending speed order of planets for 24 hourly Horas
+export const CHALDEAN_PLANET_KEYS = ["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"] as const;
+
+// Chaldean starting index for each Vedic weekday (0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat)
+export const CHALDEAN_START_BY_DAY = [0, 3, 6, 2, 5, 1, 4];
 
 // -------------------------------------------------------------
 // 2. Paksha (Shukla / Krishna)
@@ -324,6 +369,8 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     tobLabel: "ಜನ್ಮ ಸಮಯ",
     placeLabel: "ಜನ್ಮ ಸ್ಥಳ",
     vaaraLabel: "ಜನ್ಮ ವಾರ",
+    vaaraLordLabel: "ವಾರಾಧಿಪತಿ",
+    horaLabel: "ಜನ್ಮ ಹೋರೆ",
     tithiLabel: "ಜನ್ಮ ತಿಥಿ",
     nakshatraLabel: "ಜನ್ಮ ನಕ್ಷತ್ರ (ಪಾದ)",
     rashiLabel: "ಜನ್ಮ ರಾಶಿ",
@@ -351,6 +398,8 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     tobLabel: "Time of Birth",
     placeLabel: "Birth Place",
     vaaraLabel: "Birth Day (Vaara)",
+    vaaraLordLabel: "Day Ruler (Vaaradhipati)",
+    horaLabel: "Janma Hora (Planetary Hour)",
     tithiLabel: "Birth Tithi (Lunar Day)",
     nakshatraLabel: "Birth Star (Nakshatra & Pada)",
     rashiLabel: "Moon Sign (Rashi)",
@@ -378,6 +427,8 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     tobLabel: "जन्म समय",
     placeLabel: "जन्म स्थान",
     vaaraLabel: "जन्म वार",
+    vaaraLordLabel: "वाराधिपति",
+    horaLabel: "जन्म होरा",
     tithiLabel: "जन्म तिथि (पंचांग)",
     nakshatraLabel: "जन्म नक्षत्र (चरण)",
     rashiLabel: "चंद्र राशि",
@@ -405,6 +456,8 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     tobLabel: "పుట్టిన సమయం",
     placeLabel: "పుట్టిన స్థలం",
     vaaraLabel: "జన్మ వారం",
+    vaaraLordLabel: "వారాధిపతి",
+    horaLabel: "జన్మ హోర",
     tithiLabel: "జన్మ తిథి",
     nakshatraLabel: "జన్మ నక్షత్రం (పాదము)",
     rashiLabel: "చంద్ర రాశి",
@@ -432,6 +485,8 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     tobLabel: "பிறந்த நேரம்",
     placeLabel: "பிறந்த இடம்",
     vaaraLabel: "ஜென்ம வாரம்",
+    vaaraLordLabel: "வாராதிபதி",
+    horaLabel: "ஜென்ம ஹோரை",
     tithiLabel: "ஜென்ம திதி",
     nakshatraLabel: "ஜென்ம நட்சத்திரம் (பாதம்)",
     rashiLabel: "சந்திர ராசி",
@@ -459,6 +514,8 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     tobLabel: "ജനന സമയം",
     placeLabel: "ജനന സ്ഥലം",
     vaaraLabel: "ജന്മ വാരം",
+    vaaraLordLabel: "വാരാധിപതി",
+    horaLabel: "ജന്മ ഹോര",
     tithiLabel: "ജന്മ തിഥി",
     nakshatraLabel: "ജന്മ നക്ഷത്രം (പാദം)",
     rashiLabel: "ചന്ദ്ര രാശി",
@@ -486,6 +543,8 @@ export const PANCHANGA_PATRIKA_LABELS_I18N: Record<ConsultationLanguage, Panchan
     tobLabel: "जन्म वेळ",
     placeLabel: "जन्म ठिकाण",
     vaaraLabel: "जन्म वार",
+    vaaraLordLabel: "वाराधिपती",
+    horaLabel: "जन्म होरा",
     tithiLabel: "जन्म तिथी",
     nakshatraLabel: "जन्म नक्षत्र (चरण)",
     rashiLabel: "चंद्र राशी",
@@ -549,12 +608,18 @@ export async function computeDevoteePanchangaProfile(
   // Local civil calendar day
   const civilDate = new Date(y, m - 1, d, 12, 0, 0);
 
-  // 3. SunCalc Sun Times to determine true Vedic Vaara (Ahargana: sunrise to sunrise)
+  // 3. SunCalc Sun Times to determine true Vedic Vaara (Ahargana: sunrise to sunrise) and Janma Hora
   let birthSunrise = civilDate;
+  let birthSunset = new Date(civilDate.getTime() + 12 * 3600 * 1000);
+  let nextSunrise = new Date(civilDate.getTime() + 24 * 3600 * 1000);
+
   try {
-    const sunTimes = SunCalc.getTimes(civilDate, lat, lng);
-    if (sunTimes && sunTimes.sunrise) {
-      birthSunrise = sunTimes.sunrise;
+    const sunTimesToday = SunCalc.getTimes(civilDate, lat, lng);
+    if (sunTimesToday && sunTimesToday.sunrise) {
+      birthSunrise = sunTimesToday.sunrise;
+    }
+    if (sunTimesToday && sunTimesToday.sunset) {
+      birthSunset = sunTimesToday.sunset;
     }
   } catch {
     // Keep fallback
@@ -563,10 +628,65 @@ export async function computeDevoteePanchangaProfile(
   // Vedic Vaara: If birth occurred before local sunrise, it belongs to the previous civil day's weekday
   const civilDayIdx = civilDate.getDay(); // 0 = Sunday, 1 = Monday ...
   let vedicVaaraIdx = civilDayIdx;
+  let vedicSunrise = birthSunrise;
+  let vedicSunset = birthSunset;
+
   if (birthUtc.getTime() < birthSunrise.getTime()) {
     vedicVaaraIdx = (civilDayIdx + 6) % 7;
+    const yesterdayDate = new Date(y, m - 1, d - 1, 12, 0, 0);
+    try {
+      const yesterdayTimes = SunCalc.getTimes(yesterdayDate, lat, lng);
+      if (yesterdayTimes && yesterdayTimes.sunrise) {
+        vedicSunrise = yesterdayTimes.sunrise;
+      }
+      if (yesterdayTimes && yesterdayTimes.sunset) {
+        vedicSunset = yesterdayTimes.sunset;
+      }
+    } catch {
+      vedicSunrise = new Date(birthSunrise.getTime() - 24 * 3600 * 1000);
+      vedicSunset = new Date(birthSunset.getTime() - 24 * 3600 * 1000);
+    }
+    nextSunrise = birthSunrise;
+  } else {
+    const tomorrowDate = new Date(y, m - 1, d + 1, 12, 0, 0);
+    try {
+      const tomorrowTimes = SunCalc.getTimes(tomorrowDate, lat, lng);
+      if (tomorrowTimes && tomorrowTimes.sunrise) {
+        nextSunrise = tomorrowTimes.sunrise;
+      }
+    } catch {
+      nextSunrise = new Date(birthSunrise.getTime() + 24 * 3600 * 1000);
+    }
   }
+
   const vaaraStr = (VAARA_I18N[lang] || VAARA_I18N.kn)[vedicVaaraIdx];
+  const vaaraLord = (VAARA_LORDS_I18N[lang] || VAARA_LORDS_I18N.kn)[vedicVaaraIdx];
+  const vaaraLordPrefix = VAARA_LORD_PREFIX_I18N[lang] || VAARA_LORD_PREFIX_I18N.kn;
+  const vaaraWithLord = `${vaaraStr} • ${vaaraLordPrefix}: ${vaaraLord}`;
+
+  // 3b. Janma Hora (Chaldean Planetary Hour from Vedic Sunrise)
+  let horaSlot = 0;
+  const birthMs = birthUtc.getTime();
+  const vSunriseMs = vedicSunrise.getTime();
+  const vSunsetMs = vedicSunset.getTime();
+  const nSunriseMs = nextSunrise.getTime();
+
+  if (birthMs >= vSunriseMs && birthMs < vSunsetMs) {
+    const dayDurationMs = Math.max(1, vSunsetMs - vSunriseMs);
+    const elapsedDayMs = birthMs - vSunriseMs;
+    horaSlot = Math.min(11, Math.max(0, Math.floor((elapsedDayMs / dayDurationMs) * 12)));
+  } else {
+    const nightDurationMs = Math.max(1, nSunriseMs - vSunsetMs);
+    const elapsedNightMs = birthMs >= vSunsetMs ? (birthMs - vSunsetMs) : (birthMs - vSunsetMs + 24 * 3600 * 1000);
+    horaSlot = 12 + Math.min(11, Math.max(0, Math.floor((elapsedNightMs / nightDurationMs) * 12)));
+  }
+
+  const chaldeanStart = CHALDEAN_START_BY_DAY[vedicVaaraIdx];
+  const chaldeanPlanetKey = CHALDEAN_PLANET_KEYS[(chaldeanStart + horaSlot) % 7];
+  const pDict = PLANET_NAMES_I18N[lang] || PLANET_NAMES_I18N.kn;
+  const horaLord = pDict[chaldeanPlanetKey] || chaldeanPlanetKey;
+  const horaSuffix = HORA_SUFFIX_I18N[lang] || HORA_SUFFIX_I18N.kn;
+  const janmaHora = `${horaLord} ${horaSuffix}`;
 
   // 4. Sidereal Coordinates at Birth Moment
   const ayanamsa = getAyanamsa(birthUtc, "lahiri");
@@ -650,6 +770,10 @@ export async function computeDevoteePanchangaProfile(
     place: session.place,
     vaara: vaaraStr,
     vaaraRaw: rawWeekdays[vedicVaaraIdx],
+    vaaraLord,
+    vaaraWithLord,
+    janmaHora,
+    horaLord,
     tithi: tithiFullStr,
     paksha: pakshaStr,
     nakshatra: nakshatraWithPada,

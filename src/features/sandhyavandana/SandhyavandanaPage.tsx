@@ -106,22 +106,36 @@ export const SandhyavandanaPage: React.FC = () => {
           return;
         }
 
+        const fallbackSession: SandhyavandanaSession = {
+          id: decoded.sessionId,
+          token: rawToken,
+          shareableUrl: typeof window !== "undefined" ? window.location.href : "",
+          devoteeName: decoded.devoteeName || "ದೇವದತ್ತ",
+          devoteeGotraId: decoded.devoteeGotraId || "vashishta_traya",
+          sharmaName: decoded.devoteeName ? `${decoded.devoteeName} ಶರ್ಮ` : "ಶ್ರೀರಾಮ ಶರ್ಮ",
+          createdAt: new Date().toISOString(),
+          expiresAt: decoded.expiresAt || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+          preferredPeriod: (decoded.preferredPeriod as any) || "pratah",
+          completedSteps: 0,
+          completedRounds: 0,
+          japaCountCompleted: 0
+        };
+
         const data = await getSandhyavandanaSession(decoded.sessionId);
         if (!isMounted) return;
 
-        if (data) {
-          setSession(data);
-          if (data.devoteeName) setDevoteeNameInput(data.devoteeName);
-          if (data.devoteeGotraId) setSelectedGotraId(data.devoteeGotraId);
-          if (data.preferredPeriod) setSelectedPeriod(data.preferredPeriod);
+        const effective = data || fallbackSession;
+        setSession(effective);
+        if (effective.devoteeName) setDevoteeNameInput(effective.devoteeName);
+        if (effective.devoteeGotraId) setSelectedGotraId(effective.devoteeGotraId);
+        if (effective.preferredPeriod) setSelectedPeriod(effective.preferredPeriod);
 
-          // Calculate remaining days
-          const diffMs = new Date(data.expiresAt).getTime() - Date.now();
-          const remDays = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-          setDaysRemaining(remDays);
-          if (remDays <= 0) {
-            setSessionExpired(true);
-          }
+        // Calculate remaining days
+        const diffMs = new Date(effective.expiresAt).getTime() - Date.now();
+        const remDays = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+        setDaysRemaining(remDays);
+        if (remDays <= 0) {
+          setSessionExpired(true);
         }
       } else {
         // Direct ID lookup fallback

@@ -94,6 +94,7 @@ export const PDF_T: Record<string, L5> = {
   moonLordLabel: { en: "Rashi Lord", kn: "ರಾಶ್ಯಾಧಿಪತಿ", te: "రాశ్యాధిపతి", ta: "ராசியாதிபதி", hi: "राशीश" },
   yogaLabel: { en: "Yoga", kn: "ಯೋಗ", te: "యోగం", ta: "யோகம்", hi: "योग" },
   karanaLabel: { en: "Karana", kn: "ಕರಣ", te: "కరణం", ta: "கரணம்", hi: "करण" },
+  horaLabel: { en: "Birth Hora", kn: "ಜನ್ಮ ಹೋರೆ", te: "జన్మ హోర", ta: "ஜென்ம ஓரை", hi: "जन्म होरा" },
   sunriseLabel: { en: "Sunrise", kn: "ಸೂರ್ಯೋದಯ", te: "సూర్యోదయం", ta: "சூரியோதயம்", hi: "सूर्योदय" },
   sunsetLabel: { en: "Sunset", kn: "ಸೂರ್ಯಾಸ್ತ", te: "సూర్యాస్తమయం", ta: "சூரிய அஸ்தமனம்", hi: "सूर्यास्त" },
   dashaBalanceLabel: { en: "Janma Dasha Balance", kn: "ಜನ್ಮ ದಶಾ ಶೇಷ", te: "జన్మ దశా శేషం", ta: "ஜன்ம தசா இருப்பு", hi: "जन्म दशा शेष" },
@@ -1110,4 +1111,31 @@ export function getKaranaDisplay(karanaNameOrIdx: string | number | undefined, l
   }
   const entry = key ? KARANA_NAMES_L5[key] : null;
   return entry ? pick(entry, lang) : String(karanaNameOrIdx);
+}
+
+export const HORA_NAMES_L5: Record<string, L5> = {
+  Sun: { en: "Sun Hora", kn: "ರವಿ ಹೋರೆ", te: "సూర్య హోర", ta: "சூரிய ஓரை", hi: "सूर्य होरा" },
+  Moon: { en: "Moon Hora", kn: "ಚಂದ್ರ ಹೋರೆ", te: "చంద్ర హోర", ta: "சந்திர ஓரை", hi: "चन्द्र होरा" },
+  Mars: { en: "Mars Hora", kn: "ಕುಜ ಹೋರೆ", te: "కుజ హోర", ta: "செவ்வாய் ஓரை", hi: "मंगल होरा" },
+  Mercury: { en: "Mercury Hora", kn: "ಬುಧ ಹೋರೆ", te: "ಬುಧ హోర", ta: "புதன் ஓரை", hi: "बुध होरा" },
+  Jupiter: { en: "Jupiter Hora", kn: "ಗುರು ಹೋರೆ", te: "గురు హోర", ta: "குரு ஓரை", hi: "गुरु होरा" },
+  Venus: { en: "Venus Hora", kn: "ಶುಕ್ರ ಹೋರೆ", te: "శుక్ర హోర", ta: "சுக்கிர ஓரை", hi: "शुक्र होरा" },
+  Saturn: { en: "Saturn Hora", kn: "ಶನಿ ಹೋರೆ", te: "శని హోర", ta: "சனி ஓரை", hi: "शनि होरा" }
+};
+
+export function getHoraDisplay(horaLordOrName: string | undefined, lang: string): string {
+  if (!horaLordOrName) return "";
+  const raw = String(horaLordOrName).toLowerCase();
+  for (const [planet, entry] of Object.entries(HORA_NAMES_L5)) {
+    if (
+      raw.includes(planet.toLowerCase()) ||
+      raw.includes(entry.kn.toLowerCase()) ||
+      raw.includes(entry.hi) ||
+      raw.includes(entry.te) ||
+      raw.includes(entry.ta)
+    ) {
+      return pick(entry, lang);
+    }
+  }
+  return String(horaLordOrName);
 }
