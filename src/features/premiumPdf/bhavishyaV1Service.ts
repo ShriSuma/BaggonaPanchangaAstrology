@@ -512,6 +512,8 @@ export async function prepareBhavishyaV1Data(
     subtitle: tp("subtitle", lang),
     nameLabel: tp("nameLabel", lang),
     nameValue: localizedDevoteeName,
+    gotraLabel: tp("gotraLabel", lang),
+    gotraValue: session.input.gothra || "—",
     dobLabel: tp("dobLabel", lang),
     dobValue: formatBirthLine(lang, session.input.birthDate, session.input.birthTime),
     lagnaLabel: tp("lagnaLabel", lang),

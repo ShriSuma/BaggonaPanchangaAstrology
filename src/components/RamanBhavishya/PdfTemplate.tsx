@@ -7,12 +7,17 @@ import { cleanEnglishFromRegionalText, RASHI_L5, GRAHA_L5, NAKSHATRA_L5, pick } 
 import { cleanDegreesFromText, cleanPunctuationArtifacts } from '../../features/premiumPdf/yogaDoshaGocharaEnricher';
 import { ensureNamePresence, ensureCompleteSentences, getLocalizedDevoteeName } from '../../features/premiumPdf/dynamicBhavishyaEngine';
 import { areParagraphsDuplicates } from '../../features/premiumPdf/bhavishyaV1Service';
+import { degreeToNakshatra, degreeToNakshatraPada } from '../../core/AstroMath';
+import { formatChartHouseNumber } from '../../core/localeNumbers';
+import { patrikaMetaForNakshatraIndex, GANA_L5, NADI_L5, YONI_L5 } from '../../core/nakshatraPatrikaMeta';
 
 export type PdfTranslations = {
   title: string;
   subtitle: string;
   nameLabel: string;
   nameValue: string;
+  gotraLabel?: string;
+  gotraValue?: string;
   dobLabel: string;
   dobValue: string;
   lagnaLabel: string;
@@ -644,7 +649,12 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             {/* Left: Gokarna South Indian Rashi Chart */}
             <div className="col-span-6 flex flex-col items-center">
               <div className="w-full max-w-[390px] bg-[#FFFDF8] p-2 rounded-xl border-2 border-amber-700/40 shadow-sm">
-                <SouthIndianChart kundli={session.result} personName={translations.nameValue || session.input.name} lang={langKey} />
+                <SouthIndianChart
+                  kundli={session.result}
+                  personName={translations.nameValue || session.input.name}
+                  gothra={translations.gotraValue || session.input.gothra}
+                  lang={langKey}
+                />
               </div>
             </div>
 
@@ -667,23 +677,32 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                   </thead>
                   <tbody>
                     {/* Lagna Row */}
-                    {session.result.lagnaRashi && (
-                      <tr className="border-b border-amber-700/10 bg-amber-50/60 font-semibold">
-                        <td className="py-1 px-2 text-amber-900 font-bold">{langKey === "kn" ? "ಲಗ್ನ (ಉದಯ)" : langKey === "hi" ? "लग्न" : langKey === "te" ? "లగ్నం" : langKey === "ta" ? "லக்னம்" : "Ascendant (Lagna)"}</td>
-                        <td className="py-1 px-2">{pick(RASHI_L5[session.result.lagnaRashi.index], langKey)}</td>
-                        <td className="py-1 px-2 font-mono text-[10px]">{Math.floor(session.result.ascendant % 30)}° {Math.floor(((session.result.ascendant % 30) * 60) % 60)}'</td>
-                        <td className="py-1 px-2">—</td>
-                        <td className="py-1 px-2 text-center font-bold">1</td>
-                        <td className="py-1 px-2 text-right text-amber-800 text-[10px] font-bold">Lagna</td>
-                      </tr>
-                    )}
+                    {session.result.lagnaRashi && (() => {
+                      const lagnaDegInSign = session.result.ascendant % 30;
+                      const ld = Math.floor(lagnaDegInSign);
+                      const lm = Math.floor((lagnaDegInSign * 60) % 60);
+                      const lagnaNak = degreeToNakshatra(session.result.ascendant);
+                      const lagnaPada = degreeToNakshatraPada(session.result.ascendant);
+                      const lagnaNakName = pick(NAKSHATRA_L5[lagnaNak.index], langKey);
+                      const lagnaStatus = langKey === "kn" ? "ಜನ್ಮ ಲಗ್ನ" : langKey === "hi" ? "जन्म लग्न" : langKey === "te" ? "జన్మ లగ్నం" : langKey === "ta" ? "ஜென்ம லக்னம்" : "Birth Lagna";
+
+                      return (
+                        <tr className="border-b border-amber-700/10 bg-amber-50/60 font-semibold">
+                          <td className="py-1 px-2 text-amber-900 font-bold">{langKey === "kn" ? "ಲಗ್ನ (ಉದಯ)" : langKey === "hi" ? "लग्न" : langKey === "te" ? "లగ్నం" : langKey === "ta" ? "லக்னம்" : "Ascendant (Lagna)"}</td>
+                          <td className="py-1 px-2">{pick(RASHI_L5[session.result.lagnaRashi.index], langKey)}</td>
+                          <td className="py-1 px-2 font-mono text-[10px]">{formatChartHouseNumber(ld, langKey)}° {formatChartHouseNumber(lm, langKey)}'</td>
+                          <td className="py-1 px-2 text-amber-900">{lagnaNakName} ({formatChartHouseNumber(lagnaPada, langKey)})</td>
+                          <td className="py-1 px-2 text-center font-bold">{formatChartHouseNumber(1, langKey)}</td>
+                          <td className="py-1 px-2 text-right text-amber-800 text-[10px] font-bold">{lagnaStatus}</td>
+                        </tr>
+                      );
+                    })()}
                     {/* Planets Rows */}
                     {session.result.planets.map((p, idx) => {
                       const degInSign = p.degree % 30;
                       const d = Math.floor(degInSign);
                       const m = Math.floor((degInSign * 60) % 60);
-                      const totalMin = (p.rashi.index * 30 + p.degree) * 60;
-                      const pada = (Math.floor(totalMin / 200) % 4) + 1;
+                      const pada = degreeToNakshatraPada(p.degree);
                       const gName = pick(GRAHA_L5[p.name as keyof typeof GRAHA_L5] || { en: String(p.name) }, langKey);
                       const rName = pick(RASHI_L5[p.rashi.index] || { en: p.rashi.english }, langKey);
                       const nName = pick(NAKSHATRA_L5[p.nakshatra.index] || { en: p.nakshatra.english }, langKey);
@@ -696,31 +715,67 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
                         <tr key={idx} className="border-b border-amber-700/10 hover:bg-amber-50/40">
                           <td className="py-1 px-2 font-semibold text-amber-950">{gName}</td>
                           <td className="py-1 px-2 text-amber-900">{rName}</td>
-                          <td className="py-1 px-2 font-mono text-[10px]">{d}° {m}'</td>
-                          <td className="py-1 px-2 text-amber-900">{nName} ({pada})</td>
-                          <td className="py-1 px-2 text-center font-bold text-amber-950">{p.house}</td>
-                          <td className="py-1 px-2 text-right text-[10px] text-amber-800 font-semibold">{badges.join(", ") || "—"}</td>
+                          <td className="py-1 px-2 font-mono text-[10px]">{formatChartHouseNumber(d, langKey)}° {formatChartHouseNumber(m, langKey)}'</td>
+                          <td className="py-1 px-2 text-amber-900">{nName} ({formatChartHouseNumber(pada, langKey)})</td>
+                          <td className="py-1 px-2 text-center font-bold text-amber-950">{formatChartHouseNumber(p.house, langKey)}</td>
+                          <td className="py-1 px-2 text-right text-[10px] text-amber-800 font-semibold">{badges.join(", ") || (langKey === "kn" ? "ಸಾಮಾನ್ಯ" : langKey === "hi" ? "सामान्य" : langKey === "te" ? "సాధారణ" : langKey === "ta" ? "சாதாரண" : "Direct")}</td>
                         </tr>
                       );
                     })}
                     {/* Maandi / Gulika Row */}
-                    {session.result.maandi && (
-                      <tr className="bg-red-50/60 font-semibold text-red-950">
-                        <td className="py-1 px-2 font-bold text-red-700">{langKey === "kn" ? "ಮಾಂದಿ (ಗುಳಿಕ)" : langKey === "hi" ? "मांदि (गुलिक)" : langKey === "te" ? "మాంది (గుళిక)" : langKey === "ta" ? "மாந்தி (குளிகன்)" : "Maandi (Gulika)"}</td>
-                        <td className="py-1 px-2 text-red-900">{pick(RASHI_L5[session.result.maandi.rashi.index] || { en: session.result.maandi.rashi.english }, langKey)}</td>
-                        <td className="py-1 px-2 font-mono text-[10px]">{Math.floor(session.result.maandi.degree % 30)}° {Math.floor(((session.result.maandi.degree % 30) * 60) % 60)}'</td>
-                        <td className="py-1 px-2 text-red-900">—</td>
-                        <td className="py-1 px-2 text-center font-bold text-red-800">
-                          {((session.result.maandi.rashi.index - (session.result.lagnaRashi?.index ?? 0) + 12) % 12) + 1}
-                        </td>
-                        <td className="py-1 px-2 text-right text-[10px] font-bold text-red-700">{langKey === "kn" ? "ಶನಿ ಪುತ್ರ" : langKey === "hi" ? "शनि पुत्र" : langKey === "te" ? "శని పుత్రుడు" : langKey === "ta" ? "சனி புத்திரன்" : "Upagraha"}</td>
-                      </tr>
-                    )}
+                    {session.result.maandi && (() => {
+                      const maandiDegInSign = session.result.maandi.degree % 30;
+                      const md = Math.floor(maandiDegInSign);
+                      const mm = Math.floor((maandiDegInSign * 60) % 60);
+                      const maandiNak = degreeToNakshatra(session.result.maandi.degree);
+                      const maandiPada = degreeToNakshatraPada(session.result.maandi.degree);
+                      const maandiNakName = pick(NAKSHATRA_L5[maandiNak.index], langKey);
+                      const maandiHouse = ((session.result.maandi.rashi.index - (session.result.lagnaRashi?.index ?? 0) + 12) % 12) + 1;
+                      const maandiStatus = langKey === "kn" ? "ಉಪಗ್ರಹ (ಶನಿ ಪುತ್ರ)" : langKey === "hi" ? "उपग्रह (शनि पुत्र)" : langKey === "te" ? "ఉపగ్రహం (శని పుత్రుడు)" : langKey === "ta" ? "உபகிரகம் (சனி புத்திரன்)" : "Upagraha";
+
+                      return (
+                        <tr className="bg-red-50/60 font-semibold text-red-950">
+                          <td className="py-1 px-2 font-bold text-red-700">{langKey === "kn" ? "ಮಾಂದಿ (ಗುಳಿಕ)" : langKey === "hi" ? "मांदि (गुलिक)" : langKey === "te" ? "మాంది (గుళిక)" : langKey === "ta" ? "மாந்தி (குளிகன்)" : "Maandi (Gulika)"}</td>
+                          <td className="py-1 px-2 text-red-900">{pick(RASHI_L5[session.result.maandi.rashi.index] || { en: session.result.maandi.rashi.english }, langKey)}</td>
+                          <td className="py-1 px-2 font-mono text-[10px]">{formatChartHouseNumber(md, langKey)}° {formatChartHouseNumber(mm, langKey)}'</td>
+                          <td className="py-1 px-2 text-red-900">{maandiNakName} ({formatChartHouseNumber(maandiPada, langKey)})</td>
+                          <td className="py-1 px-2 text-center font-bold text-red-800">{formatChartHouseNumber(maandiHouse, langKey)}</td>
+                          <td className="py-1 px-2 text-right text-[10px] font-bold text-red-700">{maandiStatus}</td>
+                        </tr>
+                      );
+                    })()}
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
+
+          {/* Sacred Janma Nakshatra Trifold Pillars: Yoni, Gana, Nadi (Janana Kundali Parity) */}
+          {(() => {
+            const moonPlanet = session.result.planets.find((p) => p.name === "Moon");
+            const yoniMeta = moonPlanet ? patrikaMetaForNakshatraIndex(moonPlanet.nakshatra.index) : null;
+            if (!yoniMeta) return null;
+            const yoniVal = YONI_L5[yoniMeta.yoniEn]?.[langKey] || (langKey === "kn" ? yoniMeta.yoniKn : yoniMeta.yoniEn);
+            const ganaVal = GANA_L5[yoniMeta.ganaEn]?.[langKey] || (langKey === "kn" ? yoniMeta.ganaKn : yoniMeta.ganaEn);
+            const nadiVal = NADI_L5[yoniMeta.nadiEn]?.[langKey] || (langKey === "kn" ? yoniMeta.nadiKn : yoniMeta.nadiEn);
+
+            return (
+              <div className="mt-6 pt-4 border-t border-amber-700/30 grid grid-cols-3 gap-4 text-center">
+                <div className="bg-white/80 p-2.5 rounded-lg border border-amber-700/20 shadow-xs">
+                  <span className="text-[11px] font-bold text-amber-900 block">{langKey === "kn" ? "ಯೋನಿ" : langKey === "hi" ? "योनि" : langKey === "te" ? "యోని" : langKey === "ta" ? "யோனி" : "Yoni"}</span>
+                  <span className="text-sm font-extrabold text-amber-950">{yoniVal}</span>
+                </div>
+                <div className="bg-white/80 p-2.5 rounded-lg border border-amber-700/20 shadow-xs">
+                  <span className="text-[11px] font-bold text-amber-900 block">{langKey === "kn" ? "ಗಣ" : langKey === "hi" ? "गण" : langKey === "te" ? "గణం" : langKey === "ta" ? "கணம்" : "Gana"}</span>
+                  <span className="text-sm font-extrabold text-amber-950">{ganaVal}</span>
+                </div>
+                <div className="bg-white/80 p-2.5 rounded-lg border border-amber-700/20 shadow-xs">
+                  <span className="text-[11px] font-bold text-amber-900 block">{langKey === "kn" ? "ನಾಡಿ" : langKey === "hi" ? "नाडी" : langKey === "te" ? "నాడి" : langKey === "ta" ? "நாடி" : "Nadi"}</span>
+                  <span className="text-sm font-extrabold text-amber-950">{nadiVal}</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

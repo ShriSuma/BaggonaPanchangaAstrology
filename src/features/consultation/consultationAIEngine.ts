@@ -1283,13 +1283,12 @@ export function analyzeQuestionComplexity(
     };
   }
 
-  // 6. Timing vs Marriage Routing
+  // 6. Timing vs Specific Life Domain Routing
   const isAskingTiming = detectIsAskingTiming(q);
-  const hasHistory = !!(conversationHistory && conversationHistory.length > 0);
 
-  // If this is a conversational follow-up on the same topic asking for timing, route to TIMING_WINDOW
-  // so that conversational continuity and timeline bridge take precedence!
-  if (isSubsequent && hasHistory && isAskingTiming) {
+  // If asking WHEN an event will occur (timing / timeline query), route to TIMING_WINDOW
+  // so that timeline window and planetary transition context take precedence!
+  if (isAskingTiming) {
     return {
       complexity: "FOCUSED_MODERATE",
       domain: "TIMING_WINDOW",
@@ -1326,24 +1325,6 @@ export function analyzeQuestionComplexity(
   "100% Confident Astrological Prediction: Within the next 6 months, your marriage will definitely be solemnized! / ೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ!"
 - Explain the 7th house and incoming Gochara Guru aspect casting divine drishti.
 - Detail the prescribed Venusian gemstone (Diamond / White Zircon) and Gokarna Kalyana Sankalpa.
-- Total length: EXACTLY 2 PARAGRAPHS.`
-    };
-  }
-
-  // 6c. Generic Timing questions
-  if (isAskingTiming) {
-    return {
-      complexity: "FOCUSED_MODERATE",
-      domain: "TIMING_WINDOW",
-      targetParagraphs: 2,
-      minParagraphs: 2,
-      maxParagraphs: 3,
-      promptDirective: `CRITICAL SMART STRUCTURE DIRECTIVE (TIMING & PREDICTION INQUIRY - EXACTLY 2 PARAGRAPHS):
-- The devotee is asking WHEN an event will occur ("${question}").
-- STRICT PROHIBITION: DO NOT write 4 paragraphs!
-- 80/20 GOLDEN RULE: 80% TIMELINE & PRACTICAL COUNSEL, 20% ASTROLOGICAL JUSTIFICATION.
-- Paragraph 1: Direct answer stating the exact timeline window and outcome upfront.
-- Paragraph 2: Planetary transition context (Dasha shift + Guru transit) + practical guidance and blessings of Sri Kshetra Gokarna.
 - Total length: EXACTLY 2 PARAGRAPHS.`
     };
   }
@@ -1510,6 +1491,60 @@ CRITICAL MULTI-TURN ANTI-CONTRADICTION & CONSISTENCY RULE (ALL LIFE DOMAINS):
    - Stand like a rock with the prior ruling from the Rulings Ledger:
      "As firmly established in our earlier ruling with 100% certainty, [Topic] remains strictly [approved/prohibited]..."
 ================================================================================`;
+
+export const CANONICAL_VEDIC_ASTROLOGY_RULES_REFERENCE = `
+================================================================================
+CANONICAL VEDIC ASTROLOGY RULES (BRIHAT PARASHARA HORA SHASTRA & DR. B.V. RAMAN):
+================================================================================
+The following 10 classical rules are 100% authoritative and mathematically deterministic:
+
+1. DHARMA-KARMADHIPATI & LAKSHMI RAJA YOGAS (BPHS Ch. 34 & 35):
+   - The 9th House is the supreme Lakshmi Sthana (Fortune, Bhagya, Dharma), and the 10th House is the supreme Vishnu Sthana (Karma, Governance, Profession).
+   - When the 9th Lord and 10th Lord form a Sambandha (conjunction, mutual aspect, or parivartana exchange), it produces supreme Dharma-Karmadhipati Raja Yoga. The native achieves unshakeable social standing, public honor, and enduring prosperity.
+   - Kendras (1, 4, 7, 10) represent effort and pillars of life; Trikonas (1, 5, 9) represent divine grace and poorva punya. Association of any Kendra lord with a Trikona lord elevates the native beyond birth limitations.
+
+2. GAJA KESARI YOGA (DR. B.V. RAMAN - 300 IMPORTANT COMBINATIONS #1):
+   - Definition: Jupiter in Kendra (1st, 4th, 7th, 10th) from the Moon (or Lagna), free from debilitation or combustion.
+   - Result: "Gaja" (Elephant - majesty & strength) + "Kesari" (Lion - courage & invincibility). The native overcomes hidden adversaries, earns royal/governmental respect, retains sharp intellect, and enjoys long-lasting wisdom and protection during crisis.
+
+3. BUDHADITYA YOGA (MERCURY + SUN CONJUNCTION):
+   - Definition: Sun and Mercury conjunction in Lagna, 5th, 9th, 10th, or 11th houses without severe combustion within 3 degrees.
+   - Result: Nripa Satkrita (Honored by leaders). Grants eloquence in speech, mathematical and analytical brilliance, administrative acumen, business agility, and quick problem-solving.
+
+4. VIPARITA RAJA YOGAS (PHALADEEPIKA Ch. 6, Slokas 57-69):
+   - Harsha Yoga: 6th Lord situated in the 6th, 8th, or 12th house. Native conquers enemies, possesses strong immune vitality, and overcomes debt.
+   - Sarala Yoga: 8th Lord situated in the 6th, 8th, or 12th house. Native is fearless, resilient against life shocks, gains unexpected inheritances or wealth, and overcomes sudden crises.
+   - Vimala Yoga: 12th Lord situated in the 6th, 8th, or 12th house. Native accumulates righteous wealth, avoids wasteful expenditure, and possesses noble, independent character.
+
+5. DR. B.V. RAMAN'S THREE-PHASE SADE SATI TIMING & MITIGATION:
+   - Phase 1 (12th from Moon - Vyaya Shani): Financial restructuring, foreign travels, mental detachment.
+   - Phase 2 (Janma Moon - Janma Shani): Peak spiritual and emotional crucible; requires disciplined patience and egoless humility.
+   - Phase 3 (2nd from Moon - Dhana Shani): Family consolidation, emergence into steady wealth and clarity.
+   - Canonical Mitigation: When Saturn transits its own signs (Capricorn, Aquarius) or exalted sign (Libra), or when natal Moon is in Taurus/Cancer/Sagittarius/Pisces, Sade Sati acts as a Yogakaraka refiner, conferring deep maturity rather than ruin.
+
+6. VIVAHA MUHURTHA & MARRIAGE ACTIVATION (PARASHARA & RAMAN):
+   - Marriage is triggered when Gochara (transit) Jupiter aspects or transits the 7th House, Lagna, or natal Venus (Kalatrakaraka).
+   - Running Dasha or Antardasha of the 7th Lord, 2nd Lord (Kutumba), 9th Lord (Bhagya), or Venus activates matrimonial alliances.
+
+7. CAREER ELEVATION & 10TH HOUSE KARMA STHANA:
+   - Career breakthroughs occur during Dasha-Bhukti of the 10th Lord, 1st Lord, or 9th Lord, catalyzed when transit Jupiter casts divine drishti (5th, 7th, or 9th aspect) on the 10th House or 10th Lord.
+
+8. PANCHA MAHAPURUSHA YOGAS (BPHS Ch. 35):
+   - Ruchaka: Mars in Kendra in Aries, Scorpio, or Capricorn (Valor, executive leadership, property).
+   - Bhadra: Mercury in Kendra in Gemini or Virgo (High scholarship, communication mastery, commercial wealth).
+   - Hamsa: Jupiter in Kendra in Sagittarius, Pisces, or Cancer (Spiritual purity, revered teacher, ethical wealth).
+   - Malavya: Venus in Kendra in Taurus, Libra, or Pisces (Artistic genius, luxury, blissful marriage, vehicles).
+   - Sasa: Saturn in Kendra in Capricorn, Aquarius, or Libra (Organizational genius, mass following, enduring legacy).
+
+9. KENDRADHIPATI DOSHA (NATURAL BENEFICS AS KENDRA LORDS):
+   - When natural benefics (Jupiter, Venus) rule Kendra houses (especially 4th, 7th, 10th), they lose part of their beneficence unless placed in Trikonas (5th, 9th) or associated with Yogakarakas.
+
+10. PARASHARI GEMSTONE INCOMPATIBILITY & HARMONY:
+   - Incompatible planetary gems must never be worn simultaneously on the same hand:
+     * Red Coral (Mars/Agni) and Diamond (Venus/Jala) have elemental conflict.
+     * Blue Sapphire (Saturn) and Ruby (Sun) represent archetypal father-son enmity.
+     * Pearl (Moon) and Blue Sapphire/Gomed (Rahu) must be separated.
+`;
 
 /**
  * System security, prompt injection, and database confidentiality guard.
@@ -4437,6 +4472,8 @@ DEVOTEE BIRTH PROFILE & ASTROLOGICAL COORDINATES (COMPUTED ACCURATELY BY BAGGONA
 - Live Gochara (Planetary Transits): ${transitsSummary}
 
 ${NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE}
+
+${CANONICAL_VEDIC_ASTROLOGY_RULES_REFERENCE}
 
 ${MULTI_TURN_ANTI_CONTRADICTION_GUARD}
 

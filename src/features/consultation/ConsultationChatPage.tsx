@@ -55,7 +55,7 @@ import {
   type DevoteePanchangaProfile
 } from "./consultationPanchangaService";
 import { DevoteePanchangaPatrikaCard } from "./DevoteePanchangaPatrikaCard";
-import { SacredKalaChakraClock } from "./SacredKalaChakraClock";
+import { SacredKalaChakraClock, MiniSandGlassTimer } from "./SacredKalaChakraClock";
 import {
   ContinuousSpeechEngine,
   LANGUAGE_SPEECH_LOCALES,
@@ -219,6 +219,11 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   const [isReviewingQuestion, setIsReviewingQuestion] = useState(false);
   const isReviewingRef = useRef(false);
   const speechEngineRef = useRef<ContinuousSpeechEngine | null>(null);
+
+  // Dedicated Voice Recording Mode & Mobile Keyboard State
+  const [isVoiceRecordMode, setIsVoiceRecordMode] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [showTimerDetailsModal, setShowTimerDetailsModal] = useState(false);
 
   // Text-To-Speech State
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
@@ -416,7 +421,14 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           }
 
           if (data.status === "pending") {
-            setShowContactModal(false);
+            // Mobile number is strictly mandatory before starting progress or accessing the 20-min session.
+            // If already present in DB (e.g. entered earlier or in another browser), do not show modal.
+            const hasStoredValidPhone = Boolean(data.userPhone && isValidPhoneNumber(data.userPhone.trim()));
+            if (!hasStoredValidPhone) {
+              setShowContactModal(true);
+            } else {
+              setShowContactModal(false);
+            }
             setShowTimerModal(false);
             setRemainingSeconds((data.durationMinutes || 20) * 60);
           } else if (data.status === "active" && data.expiresAt) {
@@ -554,7 +566,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isGenerating]);
 
-  // Handle Step 1: Submit Devotee Contact
+  // Handle Step 1: Submit Devotee Contact (Mobile number is mandatory; Email is optional)
   const handleSaveContact = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session) return;
@@ -563,19 +575,19 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     const phoneTrim = contactPhone.trim();
     const emailTrim = contactEmail.trim();
 
-    // At least one is mandatory
-    if (!phoneTrim && !emailTrim) {
-      setContactError(currentI18n.oneRequiredError);
+    // Mobile number is strictly mandatory
+    if (!phoneTrim) {
+      setContactError(currentI18n.phoneMandatoryError || currentI18n.phoneError);
       return;
     }
 
-    // Validate phone if entered
-    if (phoneTrim && !isValidPhoneNumber(phoneTrim)) {
+    // Validate 10-digit mobile number
+    if (!isValidPhoneNumber(phoneTrim)) {
       setContactError(currentI18n.phoneError);
       return;
     }
 
-    // Validate email if entered
+    // Email is optional, but if entered it must be valid
     if (emailTrim && !isValidEmailAddress(emailTrim)) {
       setContactError(currentI18n.emailError);
       return;
@@ -584,12 +596,13 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     setSavingContact(true);
     try {
       const updated = await updateDevoteeContact(session.id, {
-        phone: phoneTrim || undefined,
+        phone: phoneTrim,
         email: emailTrim || undefined
       });
       setSession(updated);
+      setContactPhone(phoneTrim);
+      if (emailTrim) setContactEmail(emailTrim);
       setShowContactModal(false);
-      setShowTimerModal(true); // Proceed to Step 2
     } catch (err: any) {
       setContactError("Failed to save contact: " + (err.message || String(err)));
     } finally {
@@ -600,6 +613,12 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   // Handle Step 2: Start 20-Minute Timer
   const handleStartTimer = async () => {
     if (!session) return;
+    const phoneTrim = (contactPhone || session.userPhone || "").trim();
+    if (!phoneTrim || !isValidPhoneNumber(phoneTrim)) {
+      setShowTimerModal(false);
+      setShowContactModal(true);
+      return;
+    }
     setStartingTimer(true);
     try {
       const updated = await startConsultationTimer(session.id);
@@ -617,20 +636,21 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   // Handle Sacred Landing Patrika Start Action
   const handleStartConsultationFromCard = async () => {
     if (!session || startingTimer) return;
-    const phoneTrim = contactPhone.trim();
+    const phoneTrim = (contactPhone || session.userPhone || "").trim();
 
-    if (phoneTrim && !isValidPhoneNumber(phoneTrim)) {
-      alert(currentI18n.phoneError);
+    // Enforce mandatory mobile number before starting consultation timer
+    if (!phoneTrim || !isValidPhoneNumber(phoneTrim)) {
+      setShowContactModal(true);
       return;
     }
 
     setStartingTimer(true);
     try {
       let currentSession = session;
-      if (phoneTrim && !session.hasProvidedContact) {
+      if (!session.hasProvidedContact || session.userPhone !== phoneTrim) {
         currentSession = await updateDevoteeContact(session.id, {
           phone: phoneTrim,
-          email: contactEmail.trim() || undefined
+          email: contactEmail.trim() || session.userEmail || undefined
         });
       }
       const updated = await startConsultationTimer(currentSession.id);
@@ -690,23 +710,11 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     }
   };
 
-  // Handle Speech Recognition (Continuous 3-4 minutes)
-  const toggleSpeechRecognition = () => {
+  // Handle Dedicated Voice Recording Studio Mode
+  const handleStartVoiceRecording = () => {
     if (!session || session.status === "expired" || isReviewingQuestion) return;
-
-    if (isListening) {
-      let rawText = "";
-      if (speechEngineRef.current) {
-        rawText = speechEngineRef.current.stop();
-      }
-      setIsListening(false);
-      const clean = sanitizeDuplicateSpeechWords(rawText || inputText).trim();
-      if (clean) {
-        setInputText(clean);
-        void triggerAiQuestionReview(clean);
-      }
-      return;
-    }
+    setIsVoiceRecordMode(true);
+    setInputText("");
 
     if (!speechEngineRef.current) {
       speechEngineRef.current = new ContinuousSpeechEngine(session.language);
@@ -725,15 +733,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       window.speechSynthesis.cancel();
     }
 
-    const started = speechEngineRef.current.start(inputText, {
-      onTranscriptUpdate: (fullText, isFinalChunk) => {
+    const started = speechEngineRef.current.start("", {
+      onTranscriptUpdate: (fullText) => {
         setInputText(fullText);
-        if (isFinalChunk && !isReviewingRef.current) {
-          const clean = sanitizeDuplicateSpeechWords(fullText).trim();
-          if (clean) {
-            void triggerAiQuestionReview(clean);
-          }
-        }
       },
       onTimeTick: (_secs, formatted) => {
         setSpeechTimerText(formatted);
@@ -741,6 +743,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       onError: (err) => {
         alert(err);
         setIsListening(false);
+        setIsVoiceRecordMode(false);
       },
       onStateChange: (active) => {
         setIsListening(active);
@@ -750,6 +753,69 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     if (started) {
       setIsListening(true);
     }
+  };
+
+  const handleCancelVoiceRecording = () => {
+    if (speechEngineRef.current) {
+      speechEngineRef.current.stop();
+    }
+    setIsListening(false);
+    setIsVoiceRecordMode(false);
+    setInputText("");
+  };
+
+  const handleSendRecordedVoiceQuestion = async () => {
+    let rawText = "";
+    if (speechEngineRef.current) {
+      rawText = speechEngineRef.current.stop();
+    }
+    setIsListening(false);
+    setIsVoiceRecordMode(false);
+
+    const questionToProcess = sanitizeDuplicateSpeechWords(rawText || inputText).trim();
+    if (!questionToProcess) return;
+
+    // Trigger fast 1.5s AI Question Refinement
+    setIsReviewingQuestion(true);
+    let finalQuestion = questionToProcess;
+    try {
+      const refined = await refineSpokenConsultationQuestion({
+        spokenQuestion: questionToProcess,
+        language: session?.language || "kn"
+      });
+      if (refined && refined.trim()) {
+        finalQuestion = sanitizeDuplicateSpeechWords(refined).trim();
+      }
+    } catch {
+      finalQuestion = questionToProcess;
+    } finally {
+      setIsReviewingQuestion(false);
+    }
+
+    if (finalQuestion) {
+      void handleSendMessage(finalQuestion);
+    }
+  };
+
+  // Handle Speech Recognition (Continuous 3-4 minutes)
+  const toggleSpeechRecognition = () => {
+    if (!session || session.status === "expired" || isReviewingQuestion) return;
+
+    if (isListening) {
+      let rawText = "";
+      if (speechEngineRef.current) {
+        rawText = speechEngineRef.current.stop();
+      }
+      setIsListening(false);
+      const clean = sanitizeDuplicateSpeechWords(rawText || inputText).trim();
+      if (clean) {
+        setInputText(clean);
+        void triggerAiQuestionReview(clean);
+      }
+      return;
+    }
+
+    handleStartVoiceRecording();
   };
 
   // Handle Send Message
@@ -763,6 +829,18 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       setSession((prev) => (prev ? { ...prev, status: "expired" } : null));
       return;
     }
+
+    // Automatically stop any playing audio immediately so the new question proceeds with zero manual friction
+    stopClonedAudio();
+    if (activeVoiceCancelRef.current) {
+      activeVoiceCancelRef.current();
+      activeVoiceCancelRef.current = null;
+    }
+    setSpeakingMessageId(null);
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsVoiceRecordMode(false);
 
     if (isListening && speechEngineRef.current) {
       speechEngineRef.current.stop();
@@ -1400,47 +1478,77 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF6EE] text-stone-900 flex flex-col items-center justify-between font-sans selection:bg-amber-200 selection:text-amber-950">
+    <div className="h-[100dvh] max-h-[100dvh] bg-[#FAF6EE] text-stone-900 flex flex-col items-center justify-between font-sans selection:bg-amber-200 selection:text-amber-950 overflow-hidden">
       {/* -------------------------------------------------------------
-          Header Bar: Brand & Sacred Gokarna Emblem
+          Header Bar: Unified Mobile-First Header with Compact Sandglass Timer
           ------------------------------------------------------------- */}
       <header className="w-full bg-[#FAF6EE] border-b-2 border-amber-300/80 sticky top-0 z-30 shadow-xs backdrop-blur-md">
-        <div className="max-w-2xl mx-auto px-3 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="max-w-2xl mx-auto px-3 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2">
+          {/* LEFT: Branding & Emblem */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isMasterOrSuperAdmin && (
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(true)}
-                className="p-1.5 -ml-1 text-amber-800 hover:text-amber-950 bg-amber-200/80 hover:bg-amber-300 rounded-lg transition-colors focus:outline-hidden"
+                className="p-1 -ml-1 text-amber-800 hover:text-amber-950 bg-amber-200/80 hover:bg-amber-300 rounded-lg transition-colors focus:outline-hidden"
                 aria-label="Open Navigation Menu"
                 title="Super Admin Navigation Menu"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
             )}
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white flex items-center justify-center font-serif text-lg font-bold shadow-md border border-amber-300">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white flex items-center justify-center font-serif text-sm sm:text-base font-bold shadow-xs border border-amber-300 shrink-0">
               🕉️
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="font-serif font-black text-amber-950 text-sm sm:text-base leading-tight tracking-tight">
+              <div className="flex items-center gap-1">
+                <h1 className="font-serif font-black text-amber-950 text-xs sm:text-base leading-tight tracking-tight">
                   ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ॥
                 </h1>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-sm border border-amber-300">
+                <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-sm border border-amber-300">
                   {currentChatUi.gokarnaTown || "ಗೋಕರ್ಣ"}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-amber-800 font-medium">
+              <p className="hidden sm:block text-[10px] sm:text-[11px] text-amber-800 font-medium">
                 {currentChatUi.headerSubtitle || "ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆ"}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          {/* RIGHT: Compact Sandglass Clock & Controls */}
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            {/* Active Session Sandglass Countdown Timer Badge (Always visible on mobile & desktop) */}
+            {session.status === "active" && !isExpired && (
+              <div
+                onClick={() => setShowTimerDetailsModal(true)}
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-xl border text-xs font-mono font-bold cursor-pointer active:scale-95 transition shadow-2xs select-none ${
+                  remainingSeconds < 120
+                    ? "bg-red-950 text-red-200 border-red-500 animate-pulse shadow-red-900/50"
+                    : remainingSeconds < 300
+                    ? "bg-amber-950 text-amber-200 border-amber-500"
+                    : "bg-[#2A1808] text-amber-100 border-amber-400"
+                }`}
+                title="Tap to see Kala Chakra 4-Pada Timeline Details"
+              >
+                <MiniSandGlassTimer
+                  remainingSeconds={remainingSeconds}
+                  totalDurationSeconds={totalDurationSeconds}
+                  isUrgent={remainingSeconds < 120}
+                  className="w-5 h-5 sm:w-6 sm:h-6"
+                />
+                <span className="text-xs sm:text-sm tracking-tight text-amber-50 font-black">
+                  {formatTimer(remainingSeconds)}
+                </span>
+                <span className="text-[10px] text-amber-400 opacity-80">
+                  ▾
+                </span>
+              </div>
+            )}
+
             {isMasterOrSuperAdmin && (
-              <div className="flex items-center gap-1">
+              <div className="hidden sm:flex items-center gap-1">
                 <button
                   type="button"
                   onClick={handleGoToKundli}
@@ -1462,13 +1570,13 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             <button
               type="button"
               onClick={() => setShowRatingModal(true)}
-              className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs px-2 py-1 rounded-lg font-bold flex items-center gap-1 shadow-2xs transition"
+              className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[11px] sm:text-xs px-1.5 py-1 rounded-lg font-bold flex items-center gap-0.5 shadow-2xs transition"
               title={currentI18n.ratingModalTitle}
             >
               <span>⭐</span>
               <span className="hidden sm:inline">{currentI18n.ratingTriggerBtn}</span>
             </button>
-            <span className="bg-amber-100 text-amber-900 border border-amber-300 text-xs px-2 py-1 rounded-lg font-bold">
+            <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-1.5 py-1 rounded-lg font-bold">
               {currentLangMeta.nativeName}
             </span>
           </div>
@@ -1476,7 +1584,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
         {/* 5-Star Rating Success Toast */}
         {ratingToast && (
-          <div className="bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 px-4 py-2 border-b border-amber-300 flex items-center justify-between text-xs font-serif font-bold shadow-md animate-fadeIn">
+          <div className="bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 px-4 py-1.5 border-b border-amber-300 flex items-center justify-between text-xs font-serif font-bold shadow-md animate-fadeIn">
             <div className="max-w-2xl mx-auto w-full flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-base">🌟</span>
@@ -1492,23 +1600,24 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           </div>
         )}
 
-        {/* -------------------------------------------------------------
-            Sacred Vedic Kala Chakra Ticking Timepiece & Progress Engine
-            ------------------------------------------------------------- */}
-        <SacredKalaChakraClock
-          session={session}
-          remainingSeconds={remainingSeconds}
-          totalDurationSeconds={totalDurationSeconds}
-          language={session.language}
-          isExpired={isExpired}
-          onStart={() => {
-            void handleStartConsultationFromCard();
-          }}
-          startingTimer={startingTimer}
-          onClaimBonus={handleClaimBonusMinute}
-          claimingBonus={claimingBonus}
-          showBonusBanner={showBonusBanner}
-        />
+        {/* Desktop-Only Full Kala Chakra Clock (Kept hidden on mobile to maximize viewport!) */}
+        <div className="hidden sm:block">
+          <SacredKalaChakraClock
+            session={session}
+            remainingSeconds={remainingSeconds}
+            totalDurationSeconds={totalDurationSeconds}
+            language={session.language}
+            isExpired={isExpired}
+            onStart={() => {
+              void handleStartConsultationFromCard();
+            }}
+            startingTimer={startingTimer}
+            onClaimBonus={handleClaimBonusMinute}
+            claimingBonus={claimingBonus}
+            showBonusBanner={showBonusBanner}
+            variant="full"
+          />
+        </div>
       </header>
 
       {/* -------------------------------------------------------------
@@ -1536,20 +1645,20 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         </div>
       ) : (
         <>
-          {/* Top Collapsible Sacred Panchanga Patrika Banner */}
-          {panchangaProfile && (
-            <div className="w-full max-w-2xl px-3 pt-2">
-              <DevoteePanchangaPatrikaCard
-                profile={panchangaProfile}
-                variant="banner"
-              />
-            </div>
-          )}
-
       {/* -------------------------------------------------------------
           Main Chat Conversation Thread
           ------------------------------------------------------------- */}
-      <main className="w-full max-w-2xl flex-1 px-3 py-3 overflow-y-auto space-y-3.5">
+      <main className="w-full max-w-2xl flex-1 px-3 py-2.5 overflow-y-auto space-y-3 overscroll-contain">
+        {/* Top Collapsible Sacred Panchanga Patrika Banner (Scrolls naturally with chat messages) */}
+        {panchangaProfile && (
+          <div className="w-full pb-1">
+            <DevoteePanchangaPatrikaCard
+              profile={panchangaProfile}
+              variant="banner"
+            />
+          </div>
+        )}
+
         {messages.map((msg) => {
           const isUser = msg.sender === "user";
           const msgIndex = messages.findIndex((m) => m.id === msg.id);
@@ -1572,16 +1681,16 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 </span>
               </div>
 
-              {/* Message Bubble */}
+              {/* Message Bubble: User is right-aligned bubble, Astrologer is FULL WIDTH (w-full) Card */}
               <div
-                className={`max-w-[92%] sm:max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-sm leading-relaxed shadow-xs transition-all break-words ${
+                className={`transition-all break-words ${
                   isUser
-                    ? "bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white rounded-br-xs font-medium"
-                    : "bg-white border-2 border-amber-300/90 text-amber-950 rounded-bl-xs font-serif shadow-amber-950/5 space-y-2.5"
+                    ? "max-w-[85%] rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white rounded-br-xs font-medium shadow-xs"
+                    : "w-full max-w-full rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm bg-white border-2 border-amber-400 text-amber-950 font-serif shadow-md space-y-3"
                 }`}
               >
                 {/* Content: If User or Initial Welcome Greeting, show regular paragraphs.
-                    For ongoing Astrologer guidance, showcase Upfront Direct Answer Highlight Card (ChatGPT/Gemini Style) first! */}
+                    For ongoing Astrologer guidance, showcase Audio Player + Upfront Direct Answer Highlight Card */}
                 {isUser || isWelcomeGreeting ? (
                   <>
                     {paragraphs.map((para, idx) => (
@@ -1619,6 +1728,42 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   </>
                 ) : (
                   <>
+                    {/* Prominent Upfront Full-Width Audio Player Bar for Astrologer Answer */}
+                    <div className="w-full p-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-amber-100/90 to-orange-50 border border-amber-300 flex items-center justify-between gap-2 shadow-2xs">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 transition-transform ${
+                          speakingMessageId === msg.id
+                            ? "bg-red-600 text-white animate-pulse"
+                            : "bg-amber-700 text-white shadow-2xs"
+                        }`}>
+                          {speakingMessageId === msg.id ? "🔊" : "🎙️"}
+                        </div>
+                        <div className="truncate">
+                          <p className="font-bold text-xs text-amber-950 truncate font-sans">
+                            {speakingMessageId === msg.id
+                              ? (session.language === "en" ? "Listening to Sri Shreeram Pandit..." : "ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ಧ್ವನಿ ನುಡಿಯುತ್ತಿದೆ...")
+                              : (session.language === "en" ? "Listen in Divine Priest Voice" : "ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ಧ್ವನಿಯಲ್ಲಿ ಆಲಿಸಿ")}
+                          </p>
+                          <p className="text-[10px] text-amber-800/80 truncate font-sans">
+                            {speakingMessageId === msg.id
+                              ? (session.language === "en" ? "Tap stop anytime" : "ನಿಲ್ಲಿಸಲು ಮತ್ತೆ ಕ್ಲಿಕ್ ಮಾಡಿ")
+                              : (session.language === "en" ? "Pure Vedic Speech Synthesis" : "ದೈವಿಕ ಜಾತಕ ನಿರ್ಣಯ ಧ್ವನಿ ಶ್ರವಣ")}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTTS(msg.id, msg.text)}
+                        className={`px-3 py-1.5 rounded-xl font-sans font-bold text-xs transition active:scale-95 flex items-center gap-1.5 shrink-0 shadow-2xs ${
+                          speakingMessageId === msg.id
+                            ? "bg-red-600 hover:bg-red-700 text-white border border-red-400"
+                            : "bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white border border-amber-600"
+                        }`}
+                      >
+                        <span>{speakingMessageId === msg.id ? (session.language === "en" ? "⏸️ Stop" : "⏸️ ನಿಲ್ಲಿಸಿ") : (session.language === "en" ? "▶️ Listen" : "▶️ ಆಲಿಸಿ")}</span>
+                      </button>
+                    </div>
+
                     {/* Upfront Direct Answer Highlight Card (ChatGPT / Gemini Upfront Style) */}
                     {directAnswerPara && (
                       <div className="bg-gradient-to-br from-amber-50 via-amber-100/70 to-orange-50 border-2 border-amber-400 rounded-xl p-3 sm:p-3.5 shadow-xs text-amber-950 font-serif space-y-1.5">
@@ -1793,8 +1938,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           ------------------------------------------------------------- */}
       <footer className="w-full bg-[#FAF6EE] border-t-2 border-amber-300/80 sticky bottom-0 z-20 p-2 sm:p-3 shadow-lg">
         <div className="max-w-2xl mx-auto space-y-2">
-          {/* Quick Questions Age-Adaptive Luxury FAQ Dock */}
-          {!isExpired && quickFaqChips.length > 0 && (
+          {/* Quick Questions Age-Adaptive Luxury FAQ Dock (Collapsed when keyboard/input focused or voice mode active) */}
+          {!isExpired && !isInputFocused && !isVoiceRecordMode && quickFaqChips.length > 0 && (
             <div className="pt-0.5 pb-1">
               <div className="flex items-center justify-between text-[11px] text-amber-900 font-serif mb-1 px-1">
                 <span className="flex items-center gap-1 font-semibold">
@@ -1822,7 +1967,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           )}
 
           {/* Active Speaking Banner */}
-          {isListening && (
+          {isListening && !isVoiceRecordMode && (
             <div className="bg-red-50 border border-red-300 text-red-800 text-xs px-3 py-1.5 rounded-xl flex items-center justify-between animate-pulse">
               <span className="flex items-center gap-2 font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping" />
@@ -1864,6 +2009,76 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 <span>{currentI18n.callPriestBtn || "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರಿಗೆ ಕರೆ ಮಾಡಿ: 9972339362"}</span>
               </a>
             </div>
+          ) : isVoiceRecordMode ? (
+            /* Dedicated Voice Recording Studio: Hands-Free devotions for mobile */
+            <div className="bg-gradient-to-b from-amber-50 to-amber-100/90 border-2 border-amber-400 rounded-2xl p-3 shadow-md space-y-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+              {/* Header with live timer & recording badge */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+                  </span>
+                  <span className="text-xs font-bold text-amber-950 font-serif">
+                    {currentLang === "kn" ? "ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ಜಾರಿಯಲ್ಲಿದೆ..." : "Voice Recording Active..."}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 font-mono text-xs font-bold bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full border border-red-300">
+                  <span>⏱️</span>
+                  <span>{speechTimerText}</span>
+                </div>
+              </div>
+
+              {/* Real-time recognized voice text bubble */}
+              <div className="bg-white border border-amber-300 rounded-xl p-2.5 min-h-[52px] max-h-28 overflow-y-auto text-xs text-stone-900 shadow-inner">
+                {inputText.trim() ? (
+                  <p className="font-serif leading-relaxed text-amber-950">
+                    "{inputText}"
+                  </p>
+                ) : (
+                  <p className="text-stone-400 italic font-sans flex items-center gap-1.5">
+                    <span>🎙️</span>
+                    <span>
+                      {currentLang === "kn"
+                        ? "ಸ್ಪಷ್ಟವಾಗಿ ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಮಾತನಾಡಿ (೩-೪ ನಿಮಿಷ ಮಾತನಾಡಬಹುದು)..."
+                        : "Speak your question clearly (continuous 3-4 minutes support)..."}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons: Cancel or Send Recorded Question */}
+              <div className="flex items-center gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={handleCancelVoiceRecording}
+                  disabled={isReviewingQuestion}
+                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2.5 px-3 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                >
+                  <span>✕</span>
+                  <span>{currentLang === "kn" ? "ರದ್ದುಗೊಳಿಸಿ" : "Cancel"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => void handleSendRecordedVoiceQuestion()}
+                  disabled={isReviewingQuestion || isGenerating || !inputText.trim()}
+                  className="flex-[2] bg-gradient-to-r from-amber-600 via-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-40"
+                >
+                  {isReviewingQuestion ? (
+                    <>
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      <span>{currentLang === "kn" ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : "Refining..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>➤</span>
+                      <span>{currentLang === "kn" ? "ಪ್ರಶ್ನೆ ಕಳುಹಿಸಿ" : "Send Question"}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="flex items-end gap-2">
               {/* Text Input Container with Auto-Expanding Textarea & Clear (✕) Button */}
@@ -1873,6 +2088,15 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   rows={1}
                   value={inputText}
                   disabled={isReviewingQuestion}
+                  onFocus={() => {
+                    setIsInputFocused(true);
+                    setTimeout(() => {
+                      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                    }, 250);
+                  }}
+                  onBlur={() => {
+                    setIsInputFocused(false);
+                  }}
                   onChange={(e) => {
                     setInputText(e.target.value);
                     adjustTextareaHeight();
@@ -1906,10 +2130,10 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   </button>
                 )}
 
-                {/* Mic Button */}
+                {/* Mic Button: Toggles dedicated Voice Recording Studio */}
                 <button
                   type="button"
-                  onClick={toggleSpeechRecognition}
+                  onClick={handleStartVoiceRecording}
                   disabled={isReviewingQuestion || isGenerating}
                   className={`p-2 rounded-xl transition ${
                     isListening
@@ -1945,7 +2169,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
       {/* -------------------------------------------------------------
           STEP 1: Devotee Contact Collection Modal
-          (Shown ONCE before starting timer; Mobile OR Email is required)
+          (Shown ONCE before starting timer; Mobile number is MANDATORY, Email is OPTIONAL)
           ------------------------------------------------------------- */}
       {showContactModal && session.status === "pending" && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1968,41 +2192,50 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               </div>
             )}
 
-            <form onSubmit={handleSaveContact} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveContact} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-bold text-amber-950 mb-1">
-                  {currentI18n.phoneLabel}
+                <label className="flex items-center justify-between font-bold text-amber-950 mb-1">
+                  <span>📱 {currentI18n.phoneLabel}</span>
+                  <span className="text-[10px] text-red-600 font-sans font-bold uppercase tracking-wider bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-sm">
+                    {session.language === "en" ? "Mandatory" : "ಕಡ್ಡಾಯ"}
+                  </span>
                 </label>
                 <input
                   type="tel"
+                  autoFocus
+                  required
+                  maxLength={14}
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
                   placeholder={currentI18n.phonePlaceholder}
-                  className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-hidden focus:border-amber-600"
+                  className="w-full bg-white border-2 border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2.5 text-stone-900 font-sans text-sm focus:outline-hidden shadow-inner"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-amber-950 mb-1">
-                  {currentI18n.emailLabel}
+                <label className="flex items-center justify-between font-bold text-amber-950 mb-1">
+                  <span>✉️ {currentI18n.emailLabel}</span>
+                  <span className="text-[10px] text-stone-600 font-sans font-medium bg-stone-100 border border-stone-300 px-1.5 py-0.5 rounded-sm">
+                    {session.language === "en" ? "Optional" : "ಐಚ್ಛಿಕ"}
+                  </span>
                 </label>
                 <input
                   type="email"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder={currentI18n.emailPlaceholder}
-                  className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-stone-900 focus:outline-hidden focus:border-amber-600"
+                  className="w-full bg-white border border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2 text-stone-900 font-sans text-sm focus:outline-hidden"
                 />
               </div>
 
-              <p className="text-[11px] text-stone-500 italic">
+              <p className="text-[11px] text-stone-500 italic leading-relaxed">
                 {currentI18n.contactNote}
               </p>
 
               <button
                 type="submit"
                 disabled={savingContact}
-                className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-3 px-4 rounded-xl shadow-md text-sm transition active:scale-98 flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md text-sm transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {savingContact ? (
                   <>
@@ -2099,6 +2332,70 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                 className="w-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2.5 px-4 rounded-xl text-xs transition"
               >
                 {currentChatUi.reviewLaterBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------------
+          Sacred Kala Chakra 4-Pada Timeline Details Modal
+          (Opens when tapping the top Sandglass countdown badge on mobile)
+          ------------------------------------------------------------- */}
+      {showTimerDetailsModal && session && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="max-w-lg w-full bg-[#FAF6EE] border-3 border-amber-400 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-amber-300 pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-700 text-white flex items-center justify-center text-sm font-bold shadow-xs">
+                  ⏳
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold font-serif text-amber-950">
+                    {currentLang === "kn"
+                      ? "॥ ಕಾಲಚಕ್ರ ೪ ಪಾದಗಳ ಕಾಲಾವಧಿ ವಿವರ ॥"
+                      : "॥ Kala Chakra 4-Pada Breakdown ॥"}
+                  </h3>
+                  <p className="text-[10px] text-amber-800">
+                    {currentLang === "kn"
+                      ? "೨೦ ನಿಮಿಷಗಳ ನಿಖರ ದೈವಿಕ ಸಂವಾದ ಹಂತಗಳು"
+                      : "20-Minute Divine Astrological Timetable"}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTimerDetailsModal(false)}
+                className="w-8 h-8 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold flex items-center justify-center transition active:scale-95"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <SacredKalaChakraClock
+              session={session}
+              remainingSeconds={remainingSeconds}
+              totalDurationSeconds={totalDurationSeconds}
+              language={session.language}
+              isExpired={isExpired}
+              onStart={() => {
+                void handleStartConsultationFromCard();
+              }}
+              startingTimer={startingTimer}
+              onClaimBonus={handleClaimBonusMinute}
+              claimingBonus={claimingBonus}
+              showBonusBanner={showBonusBanner}
+              variant="full"
+            />
+
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowTimerDetailsModal(false)}
+                className="w-full bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm"
+              >
+                {currentLang === "kn" ? "ಸರಿ, ಮುಚ್ಚಿ (ಸಂವಾದಕ್ಕೆ ಹಿಂತಿರುಗಿ)" : "Close & Return to Chat"}
               </button>
             </div>
           </div>

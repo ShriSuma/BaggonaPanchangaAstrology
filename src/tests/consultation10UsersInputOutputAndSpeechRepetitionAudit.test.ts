@@ -33,10 +33,6 @@ function createMockSession(
 ): ConsultationSession {
   return {
     id: `aud-${Math.random().toString(36).substring(2, 9)}`,
-    durationMinutes: 20,
-    graceDeleteMinutes: 20,
-    priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
-    priestPhone: "9972339362",
     timezone: 5.5,
     createdAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + 1200000).toISOString(),

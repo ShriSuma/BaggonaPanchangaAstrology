@@ -34,6 +34,7 @@ import {
   deduplicateResponseText,
   type ConsultationReadingResult,
   NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE,
+  CANONICAL_VEDIC_ASTROLOGY_RULES_REFERENCE,
   MULTI_TURN_ANTI_CONTRADICTION_GUARD,
   SYSTEM_SECURITY_CONFIDENTIALITY_DIRECTIVE,
   detectSecurityOrSystemProbe,
@@ -1004,6 +1005,8 @@ SPECIFIC GUIDANCE FOR GREETING & GENERAL BLESSING:
 The devotee is sitting right across from you face-to-face in the sacred sanctum of Gokarna for a private 20-minute spiritual conversation.
 
 ${NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE}
+
+${CANONICAL_VEDIC_ASTROLOGY_RULES_REFERENCE}
 
 ${MULTI_TURN_ANTI_CONTRADICTION_GUARD}
 

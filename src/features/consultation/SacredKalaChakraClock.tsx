@@ -28,6 +28,7 @@ interface SacredKalaChakraClockProps {
   onClaimBonus?: () => void;
   claimingBonus?: boolean;
   showBonusBanner?: boolean;
+  variant?: "full" | "compact" | "auto";
 }
 
 interface ClockLocale {
@@ -256,6 +257,94 @@ const CLOCK_I18N: Record<ConsultationLanguage, ClockLocale> = {
   }
 };
 
+export const MiniSandGlassTimer: React.FC<{
+  remainingSeconds: number;
+  totalDurationSeconds?: number;
+  isUrgent?: boolean;
+  className?: string;
+}> = ({ remainingSeconds, totalDurationSeconds = 1200, isUrgent = false, className = "" }) => {
+  const elapsed = Math.max(0, totalDurationSeconds - remainingSeconds);
+  const percentRemaining = Math.max(0, Math.min(100, (remainingSeconds / totalDurationSeconds) * 100));
+  const percentElapsed = Math.max(0, Math.min(100, (elapsed / totalDurationSeconds) * 100));
+
+  // Sand heights inside bulbs (scale 0 to 7)
+  const topSandHeight = (percentRemaining / 100) * 7;
+  const bottomSandHeight = (percentElapsed / 100) * 7;
+
+  return (
+    <div className={`relative w-8 h-8 flex items-center justify-center shrink-0 select-none ${className}`}>
+      {/* Clockwise circular progress ring (Counts down clockwise) */}
+      <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 36 36">
+        <circle
+          cx="18"
+          cy="18"
+          r="15"
+          fill="none"
+          stroke="#451a03"
+          strokeWidth="2.5"
+          className="opacity-50"
+        />
+        <circle
+          cx="18"
+          cy="18"
+          r="15"
+          fill="none"
+          stroke={isUrgent ? "#ef4444" : "#f59e0b"}
+          strokeWidth="2.5"
+          strokeDasharray={2 * Math.PI * 15}
+          strokeDashoffset={2 * Math.PI * 15 * (1 - percentRemaining / 100)}
+          strokeLinecap="round"
+          className="transition-all duration-1000 ease-linear drop-shadow-[0_0_4px_rgba(245,158,11,0.6)]"
+        />
+      </svg>
+
+      {/* Miniature Golden Hourglass / Sand Timer */}
+      <svg className="w-4 h-4 relative z-10" viewBox="0 0 24 24" fill="none">
+        {/* Brass Caps */}
+        <line x1="5" y1="3" x2="19" y2="3" stroke="#fde047" strokeWidth="1.8" strokeLinecap="round" />
+        <line x1="5" y1="21" x2="19" y2="21" stroke="#fde047" strokeWidth="1.8" strokeLinecap="round" />
+        
+        {/* Glass Bulbs Contour */}
+        <path
+          d="M6 3.5C6 7 10 10 12 12C14 10 18 7 18 3.5M6 20.5C6 17 10 14 12 12C14 14 18 17 18 20.5"
+          stroke="#d4af37"
+          strokeWidth="1.2"
+          fill="#1c1308"
+          fillOpacity="0.8"
+        />
+
+        {/* Top Bulb Sand (decreases as time elapses) */}
+        <path
+          d={`M7 ${5 + (7 - topSandHeight)} Q12 ${6 + (7 - topSandHeight)} 17 ${5 + (7 - topSandHeight)} L12 12 Z`}
+          fill="#fef08a"
+          opacity="0.95"
+        />
+
+        {/* Falling Sand Stream / Trickling Particles (animated while active) */}
+        {remainingSeconds > 0 && (
+          <line
+            x1="12"
+            y1="11"
+            x2="12"
+            y2="19"
+            stroke="#fef08a"
+            strokeWidth="1.2"
+            strokeDasharray="2,2"
+            className="animate-pulse"
+          />
+        )}
+
+        {/* Bottom Bulb Sand (accumulates) */}
+        <path
+          d={`M7 20.5 Q12 ${20.5 - bottomSandHeight} 17 20.5 Z`}
+          fill="#fde047"
+          opacity="0.95"
+        />
+      </svg>
+    </div>
+  );
+};
+
 export const SacredKalaChakraClock: React.FC<SacredKalaChakraClockProps> = ({
   session,
   remainingSeconds,
@@ -266,7 +355,8 @@ export const SacredKalaChakraClock: React.FC<SacredKalaChakraClockProps> = ({
   startingTimer = false,
   onClaimBonus,
   claimingBonus = false,
-  showBonusBanner = false
+  showBonusBanner = false,
+  variant = "auto"
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const locale = CLOCK_I18N[language] || CLOCK_I18N.kn;
@@ -362,22 +452,83 @@ export const SacredKalaChakraClock: React.FC<SacredKalaChakraClockProps> = ({
             STATE 3: ACTIVE 20-MINUTE TOCKING CLOCK
             ============================================================== */}
         {session.status === "active" && !isExpired && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5 sm:gap-2">
             
-            {/* Top Bar: Kala Chakra Dial + Digital Readout + Pada Badge + Expand Button */}
-            <div className="flex items-center justify-between gap-2 sm:gap-4">
-              
-              {/* LEFT: Ticking Mechanical Kala Chakra Dial (SVG) */}
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center">
-                  
-                  {/* Glowing ambient golden aura */}
-                  <div 
-                    className="absolute inset-0 rounded-full blur-xs opacity-60 pointer-events-none"
-                    style={{
-                      backgroundColor: isUrgent ? "#dc2626" : isWarning ? "#ea580c" : "#f59e0b"
-                    }}
-                  />
+            {/* ----------------------------------------------------------
+                COMPACT MOBILE-FIRST BAR: Mini SandGlass + Clockwise Timer
+                (Visible on mobile, or whenever variant === "compact")
+                ---------------------------------------------------------- */}
+            <div className={`flex items-center justify-between gap-2 py-0.5 ${variant === "full" ? "hidden" : variant === "compact" ? "flex" : isExpanded ? "hidden" : "flex sm:hidden"}`}>
+              {/* LEFT: Mini Sandglass with Falling Sand & Clockwise Downward Arc */}
+              <div 
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center gap-2 cursor-pointer active:scale-95 transition"
+                title="Tap to see Kala Chakra Pada Details"
+              >
+                <MiniSandGlassTimer
+                  remainingSeconds={remainingSeconds}
+                  totalDurationSeconds={totalDurationSeconds}
+                  isUrgent={isUrgent}
+                />
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-[11px] font-bold text-amber-200 leading-tight">
+                      {locale.padas[currentPadaIndex]}
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-amber-400/80 truncate max-w-[130px]">
+                    {locale.padaNames[currentPadaIndex]}
+                  </span>
+                </div>
+              </div>
+
+              {/* RIGHT: Compact Digital Countdown Badge (MM:SS) + Expand Toggle */}
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={`flex items-baseline font-mono font-black px-2 py-0.5 rounded-lg border text-xs sm:text-sm transition-all shadow-xs ${
+                    isUrgent
+                      ? "bg-red-950/90 text-red-200 border-red-500 animate-pulse shadow-red-900/50"
+                      : isWarning
+                      ? "bg-amber-950/90 text-amber-200 border-amber-500"
+                      : "bg-[#2A1808] text-amber-100 border-amber-400/80 shadow-inner"
+                  }`}
+                >
+                  <span className="text-amber-50">{formattedMins}</span>
+                  <span className="text-amber-400 animate-pulse mx-0.5">:</span>
+                  <span className="text-yellow-300">{formattedSecs}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="bg-amber-900/50 hover:bg-amber-800 text-amber-300 border border-amber-600/40 px-1.5 py-1 rounded-md text-[10px] font-bold transition flex items-center justify-center shrink-0"
+                  title="Toggle Kala Chakra Details"
+                >
+                  {isExpanded ? locale.collapseText : locale.expandText}
+                </button>
+              </div>
+            </div>
+
+            {/* ----------------------------------------------------------
+                FULL DESKTOP / EXPANDED CLOCK
+                (Visible on tablet/desktop, or when expanded)
+                ---------------------------------------------------------- */}
+            <div className={`flex flex-col gap-2 ${variant === "compact" && !isExpanded ? "hidden" : variant === "full" || isExpanded ? "flex" : "hidden sm:flex"}`}>
+              {/* Top Bar: Kala Chakra Dial + Digital Readout + Pada Badge + Expand Button */}
+              <div className="flex items-center justify-between gap-2 sm:gap-4">
+                
+                {/* LEFT: Ticking Mechanical Kala Chakra Dial (SVG) */}
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center">
+                    
+                    {/* Glowing ambient golden aura */}
+                    <div 
+                      className="absolute inset-0 rounded-full blur-xs opacity-60 pointer-events-none"
+                      style={{
+                        backgroundColor: isUrgent ? "#dc2626" : isWarning ? "#ea580c" : "#f59e0b"
+                      }}
+                    />
 
                   {/* SVG Clock Face */}
                   <svg 
@@ -680,6 +831,7 @@ export const SacredKalaChakraClock: React.FC<SacredKalaChakraClockProps> = ({
                 </div>
               </div>
             )}
+            </div>
 
             {/* ==========================================================
                 BONUS +1 MINUTE BANNER (FINAL 60s / 10s)
