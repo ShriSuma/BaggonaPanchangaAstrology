@@ -5898,7 +5898,7 @@ export function ensureNamePresence(text: string, name: string, lang: string = 'k
 
   // 4. Canonical name normalization for known common misspellings (e.g. Manoj -> ಮನೋಜ್)
   if (cleanName === 'ಮನೋಜ್' || cleanName.toLowerCase() === 'manoj') {
-    cleaned = cleaned.replace(/(?:ಮನುಜ್|ಮಂಜು|ಮನುಜ|ಮನೋಜ(?!್)|ಮನೋಜ್\s*(?:ಕರು|ಗಾರು))(?:\s*(?:ಅವರೇ|ಕರು|ಗಾರು|ಅವರಿಗೆ|ಅವರುಗಳೇ))?/gu, (match) => {
+    cleaned = cleaned.replace(/(?:ಮನುಜ್|ಮನುಜ|ಮನೋಜ(?!್)|ಮನೋಜ್\s*(?:ಕರು|ಗಾರು))(?:\s*(?:ಅವರೇ|ಕರು|ಗಾರು|ಅವರಿಗೆ|ಅವರುಗಳೇ))?/gu, (match) => {
       if (match.includes('ಅವರಿಗೆ')) return `${cleanName} ಅವರಿಗೆ`;
       return `${cleanName} ಅವರೇ`;
     });

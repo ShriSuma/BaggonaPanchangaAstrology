@@ -760,7 +760,6 @@ export function cleanEnglishFromRegionalText(text: string, lang: string): string
       .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳೇ/gu, "ಅವರೇ")
       .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳಿಗೆ/gu, "ಅವರಿಗೆ")
       .replace(/ಅವರ?ು?[\u200C\u200D\u0CCD]*ಗಳ/gu, "ಅವರ")
-      .replace(/(?:ಮನೋಜ್|ಮನೋಜ(?!್)|ಮನುಜ್|ಮಂಜು)\s*(?:ಕರು|ಗಾರು|ಅವರುಗಳೇ)?\s*(?:ಅವರೇ)?/gu, "ಮನೋಜ್ ಅವರೇ")
       .replace(/(?:^|[- \t\r\n,.(–—])(?:ಕರು|ಗಾರು)\s*(?:ಅವರೇ)?(?=[- \t\r\n,.(–—!]|$)/gu, " ಅವರೇ")
       .replace(/(?:^|[- \t\r\n,.(–—])(?:ಅಭಿಮಾನಿ|ಅಭಿಮಾನಿಯಾದ)\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?\s*/gu, "")
       .replace(/(?:ಅವರೇ\s*){2,}/gu, "ಅವರೇ ");

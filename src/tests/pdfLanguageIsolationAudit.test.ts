@@ -351,4 +351,42 @@ describe("Premium PDF V1 - 100% Strict Language Isolation Audit", () => {
     expect(paras[1]).toContain("ನಿಮ್ಮ ದಶಮ ಸ್ಥಾನದಲ್ಲಿ");
     expect(paras[1]).toContain("ನಿಮಗೆ ಉತ್ತಮ ಗೌರವ ಸಿಗಲಿದೆ");
   });
+
+  it("verifies Manjushree, Manjunath, Manjula and Manju are never corrupted into Manoj or 'ಮನೋಜ್ ರಿಂದ ಶ್ರೀ ಅವರ'", () => {
+    // 1. Devotee Name: Manjushree
+    const locKn = getLocalizedDevoteeName("Manjushree", "kn");
+    expect(locKn).toBe("ಮಂಜುಶ್ರೀ");
+    expect(getLocalizedDevoteeName("Manjushree", "en")).toBe("Manjushree");
+    expect(getLocalizedDevoteeName("Manjushree", "hi")).toBe("मंजूश्री");
+    expect(getLocalizedDevoteeName("Manjushree", "te")).toBe("మంజుశ్రీ");
+    expect(getLocalizedDevoteeName("Manjushree", "ta")).toBe("மஞ்சுஸ்ரீ");
+
+    // 2. ensureNamePresence + cleanEnglishFromRegionalText pipeline
+    const rawParagraph = "ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಸಪ್ತಮ ಸ್ಥಾನದಲ್ಲಿ ಶುಭ ಗ್ರಹಗಳ ಬಲವಿದೆ.";
+    const woven = ensureNamePresence(rawParagraph, locKn, "kn");
+    expect(woven).toContain("ಮಂಜುಶ್ರೀ ಅವರೇ,");
+    expect(woven).not.toContain("ಮನೋಜ್");
+
+    const cleaned = cleanEnglishFromRegionalText(woven, "kn");
+    expect(cleaned).toContain("ಮಂಜುಶ್ರೀ");
+    expect(cleaned).not.toContain("ಮನೋಜ್");
+    expect(cleaned).not.toContain("ಮನೋಜ್ ರಿಂದ");
+    expect(cleaned).not.toContain("Manoj");
+
+    // 3. Directly test phrases containing Manjushree with postpositions
+    const phrase1 = "ಮಂಜುಶ್ರೀ ಅವರ ಜೀವನದಲ್ಲಿ ಸದಾ ಶಾಂತಿ ನೆಲೆಸಲಿ.";
+    expect(cleanEnglishFromRegionalText(phrase1, "kn")).toBe("ಮಂಜುಶ್ರೀ ಅವರ ಜೀವನದಲ್ಲಿ ಸದಾ ಶಾಂತಿ ನೆಲೆಸಲಿ.");
+
+    const phrase2 = "ಮಂಜುಶ್ರೀಯವರಿಂದ ಪ್ರಾರ್ಥನೆ.";
+    expect(cleanEnglishFromRegionalText(phrase2, "kn")).toBe("ಮಂಜುಶ್ರೀಯವರಿಂದ ಪ್ರಾರ್ಥನೆ.");
+
+    // 4. Test other Manju names: Manjunath, Manjula, Manju
+    expect(getLocalizedDevoteeName("Manjunath", "kn")).toBe("ಮಂಜುನಾಥ್");
+    expect(getLocalizedDevoteeName("Manjula", "kn")).toBe("ಮಂಜುಳಾ");
+    expect(getLocalizedDevoteeName("Manju", "kn")).toBe("ಮಂಜು");
+
+    const manjunathClean = cleanEnglishFromRegionalText("ಮಂಜುನಾಥ ಅವರ ಜಾತಕ", "kn");
+    expect(manjunathClean).toBe("ಮಂಜುನಾಥ ಅವರ ಜಾತಕ");
+    expect(manjunathClean).not.toContain("ಮನೋಜ್");
+  });
 });

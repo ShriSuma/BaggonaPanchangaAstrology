@@ -173,7 +173,14 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "naveen": { kn: "ನವೀನ್", hi: "नवीन", te: "నవీన్", ta: "நவீன்", en: "Naveen" },
   "karthik": { kn: "ಕಾರ್ತಿಕ್", hi: "कार्तिक", te: "కార్తీక్", ta: "கார்த்திக்", en: "Karthik" },
   "deepak": { kn: "ದೀಪಕ್", hi: "दीपक", te: "దీపక్", ta: "தீபக்", en: "Deepak" },
-  "manjunath": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజునాథ్", ta: "மஞ்சுநாத்", en: "Manjunath" },
+  "manjushree": { kn: "ಮಂಜುಶ್ರೀ", hi: "मंजूश्री", te: "మంజుశ్రీ", ta: "மஞ்சுஸ்ரீ", en: "Manjushree" },
+  "manjushri": { kn: "ಮಂಜುಶ್ರೀ", hi: "मंजूश्री", te: "మంజుశ్రీ", ta: "மஞ்சுஸ்ரீ", en: "Manjushri" },
+  "manju shree": { kn: "ಮಂಜುಶ್ರೀ", hi: "मंजूश्री", te: "మంజుశ్రీ", ta: "மஞ்சுஸ்ரீ", en: "Manju Shree" },
+  "manju shri": { kn: "ಮಂಜುಶ್ರೀ", hi: "मंजूश्री", te: "మంజుశ్రీ", ta: "மஞ்சுஸ்ரீ", en: "Manju Shri" },
+  "manju": { kn: "ಮಂಜು", hi: "मंजू", te: "మంజు", ta: "மஞ்சு", en: "Manju" },
+  "manjula": { kn: "ಮಂಜುಳಾ", hi: "मंजुला", te: "మంజుల", ta: "மஞ்சுளா", en: "Manjula" },
+  "manjunatha": { kn: "ಮಂಜುನಾಥ", hi: "मंजूनाथ", te: "మంజునాథ", ta: "மஞ்சுநாத", en: "Manjunatha" },
+  "manjunath": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజుನಾಥ್", ta: "மஞ்சுநாத்", en: "Manjunath" },
   "venkatesh": { kn: "ವೆಂಕಟೇಶ್", hi: "वेंकटेश", te: "వెంకటేష్", ta: "வெங்கடேஷ்", en: "Venkatesh" },
   "vasishtha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vasishtha" },
   "vashishtha": { kn: "ವಸಿಷ್ಠ", hi: "वशिष्ठ", te: "వసిష్ఠ", ta: "வசிஷ்டர்", en: "Vashishtha" },
@@ -298,7 +305,12 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "kala sarpa shanti": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాంతి", ta: "காலசர்ப்ப சாந்தி", en: "Kala Sarpa Shanti" },
   "ಕಾಳಸರ್ಪ ಶಾಂತಿ": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాంతి", ta: "காலசர்ப்ப சாந்தி", en: "Kalasarpa Shanti" },
   "ಕಾಲ ಸರ್ಪ ಶಾಂತಿ": { kn: "ಕಾಲಸರ್ಪ ಶಾಂತಿ", hi: "कालसर्प शांति", te: "కాలసర్ప శాಂತಿ", ta: "காலசர்ப்ப சாந்தி", en: "Kala Sarpa Shanti" },
-  "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ": { kn: "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "त्रिपिंडी श्राद्ध", te: "త్రిపిండి శ్రాద్ధము", ta: "திரிபிண்டி ஸ்ராத்தம்", en: "Tripindi Shraddha" }
+  "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ": { kn: "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ", hi: "त्रिपिंडी श्राद्ध", te: "త్రిపిండి శ్రాద్ధము", ta: "திரிபிண்டி ஸ்ராத்தம்", en: "Tripindi Shraddha" },
+  "ಮಂಜುಶ್ರೀ": { kn: "ಮಂಜುಶ್ರೀ", hi: "मंजूश्री", te: "మంజుశ్రీ", ta: "மஞ்சுஸ்ரீ", en: "Manjushree" },
+  "ಮಂಜು": { kn: "ಮಂಜು", hi: "मंजू", te: "మంజు", ta: "மஞ்சு", en: "Manju" },
+  "ಮಂಜುಳಾ": { kn: "ಮಂಜುಳಾ", hi: "मंजुला", te: "మంజుల", ta: "மஞ்சுளா", en: "Manjula" },
+  "ಮಂಜುನಾಥ": { kn: "ಮಂಜುನಾಥ", hi: "मंजूनाथ", te: "మంజునాథ", ta: "மஞ்சுநாத", en: "Manjunatha" },
+  "ಮಂಜುನಾಥ್": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజుನಾಥ್", ta: "மஞ்சுநாத்", en: "Manjunath" }
 };
 
 /** Syllabic consonant definitions with inherent vowel 'a' */
