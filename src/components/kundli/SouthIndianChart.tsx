@@ -45,11 +45,11 @@ function getSpecialCellBadge(
     return { badge, color: "#b45309" };
   }
   if (isLagna) {
-    let badge = "✦ Lagna (ASC) ✦";
-    if (l.startsWith("kn")) badge = "✦ ಲಗ್ನ (ASC) ✦";
-    else if (l.startsWith("hi")) badge = "✦ लग्न (ASC) ✦";
-    else if (l.startsWith("te")) badge = "✦ లగ్నం (ASC) ✦";
-    else if (l.startsWith("ta")) badge = "✦ லக்னம் (ASC) ✦";
+    let badge = "✦ Lagna ✦";
+    if (l.startsWith("kn")) badge = "✦ ಲಗ್ನ ✦";
+    else if (l.startsWith("hi")) badge = "✦ लग्न ✦";
+    else if (l.startsWith("te")) badge = "✦ లగ్నం ✦";
+    else if (l.startsWith("ta")) badge = "✦ லக்னம் ✦";
     return { badge, color: "#b45309" };
   }
   if (isMoon) {
@@ -180,7 +180,7 @@ export default function SouthIndianChart({ kundli, personName, gothra, lang: pro
               </text>
             )}
             <text x={x + cw - 6} y={y + cw - 8} fontSize="8" fill="#64748b" textAnchor="end">
-              {lang.startsWith("kn") ? `${house}ನೇ ಭಾವ` : lang.startsWith("hi") ? `${house}वां भाव` : lang.startsWith("te") ? `${house}వ భావం` : lang.startsWith("ta") ? `${house}-ஆம் பாவம்` : `H${house}`}
+              {lang.startsWith("kn") ? `${formatChartHouseNumber(house, lang)}ನೇ ಭಾವ` : lang.startsWith("hi") ? `${formatChartHouseNumber(house, lang)}वां भाव` : lang.startsWith("te") ? `${formatChartHouseNumber(house, lang)}వ భావం` : lang.startsWith("ta") ? `${formatChartHouseNumber(house, lang)}-ஆம் பாவம்` : `H${house}`}
             </text>
           </g>
         );
@@ -205,7 +205,7 @@ export default function SouthIndianChart({ kundli, personName, gothra, lang: pro
             {moon ? pick(NAKSHATRA_L5[moon.nakshatra.index], lang) : "—"}
             <span className="text-slate-600">
               {" "}
-              · {lang === "kn" ? "ಪಾದ" : lang === "hi" ? "पाद" : lang === "te" ? "పాదం" : lang === "ta" ? "பாதம்" : "Pada"} {kundli.moonPada}
+              · {lang === "kn" ? "ಪಾದ" : lang === "hi" ? "पाद" : lang === "te" ? "పాదం" : lang === "ta" ? "பாதம்" : "Pada"} {formatChartHouseNumber(kundli.moonPada || 1, lang)}
             </span>
           </p>
           {gothra ? (
@@ -244,7 +244,7 @@ export default function SouthIndianChart({ kundli, personName, gothra, lang: pro
 
         const items: CellItem[] = [];
         if (rashi.index === lagnaIdx) {
-          const lagnaPrefix = lang.startsWith("kn") ? "ಲಗ್ನ" : lang.startsWith("hi") ? "लग्न" : lang.startsWith("te") ? "లగ్నం" : lang.startsWith("ta") ? "லக்னம்" : "Asc";
+          const lagnaPrefix = lang.startsWith("kn") ? "ಲಗ್ನ" : lang.startsWith("hi") ? "लग्न" : lang.startsWith("te") ? "లగ్నం" : lang.startsWith("ta") ? "லக்னம்" : "Lagna";
           items.push({
             text: `${lagnaPrefix} ${formatPatrikaNavamsaOnly(kundli.ascendant, lang)}`,
             isLagna: true
@@ -268,8 +268,9 @@ export default function SouthIndianChart({ kundli, personName, gothra, lang: pro
           }
         }
         if (kundli.maandi && kundli.maandi.rashi.index === rashi.index) {
+          const maandiPrefix = lang.startsWith("kn") ? "ಮಾಂದಿ" : lang.startsWith("hi") ? "मांदि" : lang.startsWith("te") ? "మాంది" : lang.startsWith("ta") ? "மாந்தி" : "Maandi";
           items.push({
-            text: `${lang.startsWith("kn") ? "ಮಾಂದಿ" : lang.startsWith("hi") ? "मांदि" : lang.startsWith("te") ? "మాంది" : lang.startsWith("ta") ? "மாந்தி" : "Maa"} ${formatPatrikaNavamsaOnly(kundli.maandi.degree, lang)}`,
+            text: `${maandiPrefix} ${formatPatrikaNavamsaOnly(kundli.maandi.degree, lang)}`,
             isMaandi: true
           });
         }
