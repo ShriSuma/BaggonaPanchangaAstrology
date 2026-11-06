@@ -158,10 +158,10 @@ export interface ConsultationSession {
   hasProvidedContact?: boolean; // Flag to show contact modal only once
   bonusMinuteClaimed?: boolean; // Max 1 bonus minute allowed (21m total)
   messages: ConsultationChatMessage[];
-  durationMinutes: number; // 20 (or 21)
-  graceDeleteMinutes: number; // 20
-  priestName: string; // "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
-  priestPhone: string; // "9972339362"
+  durationMinutes?: number; // 20 (or 21)
+  graceDeleteMinutes?: number; // 20
+  priestName?: string; // "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್"
+  priestPhone?: string; // "9972339362"
   kundliSnapshot?: {
     lagnaRashi: string;
     moonRashi: string;

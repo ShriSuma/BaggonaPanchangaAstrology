@@ -39,7 +39,12 @@ function createMockSession(
     status: "active" as const,
     hasProvidedContact: true,
     bonusMinuteClaimed: false,
+    durationMinutes: 20,
+    graceDeleteMinutes: 20,
+    priestName: "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್",
+    priestPhone: "9972339362",
     messages: [],
+    rulingsLedger: [],
     ...overrides
   };
 }
