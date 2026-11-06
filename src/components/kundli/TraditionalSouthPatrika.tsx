@@ -401,7 +401,7 @@ export default function TraditionalSouthPatrika({
                 if (rashi.index === kundli.lagnaRashi.index) {
                   cells.push(
                     <span key="lagna" className="jk-patrika-ink block">
-                      {t("kundli.lagnaPatrika")} ({formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.ascendant), lang)})
+                      {t("kundli.lagnaPatrika")}{formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.ascendant), lang)}
                     </span>
                   );
                 }
@@ -409,14 +409,14 @@ export default function TraditionalSouthPatrika({
                   const retStr = pl.isRetrograde ? (isKn ? " (ವ)" : " (R)") : "";
                   cells.push(
                     <span key={pl.name} className="jk-patrika-ink block">
-                      {t(`planets.${pl.name}` as "planets.Sun")}{retStr} ({formatChartHouseNumber(patrikaNavamshaFromDegree(pl.degree), lang)})
+                      {t(`planets.${pl.name}` as "planets.Sun")}{retStr} {formatChartHouseNumber(patrikaNavamshaFromDegree(pl.degree), lang)}
                     </span>
                   );
                 }
                 if (kundli.maandi && kundli.maandi.rashi.index === rashi.index) {
                   cells.push(
                     <span key="maandi" className="jk-patrika-ink block">
-                      {t("kundli.maandiShort")} ({formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.maandi.degree), lang)})
+                      {t("kundli.maandiShort")} {formatChartHouseNumber(patrikaNavamshaFromDegree(kundli.maandi.degree), lang)}
                     </span>
                   );
                 }

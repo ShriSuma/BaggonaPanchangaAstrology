@@ -45,7 +45,6 @@ export const PDF_T: Record<string, L5> = {
   },
 
   nameLabel: { en: "Name", kn: "ಹೆಸರು", te: "పేరు", ta: "பெயர்", hi: "नाम" },
-  gotraLabel: { en: "Gotra", kn: "ಗೋತ್ರ", te: "గోత్రం", ta: "கோத்திரம்", hi: "गोत्र" },
   dobLabel: {
     en: "Birth Details",
     kn: "ಜನ್ಮ ವಿವರ",

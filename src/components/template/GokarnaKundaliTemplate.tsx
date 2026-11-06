@@ -188,9 +188,9 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
 
   const renderPlanetKn = (p: PlanetPosition) => {
     let base = getValue(`planet_${p.name}`, t(`planets.${p.name}`, { lng: pdfLanguage }));
-    if (p.isRetrograde) base += " " + getLabel("Retrograde");
+    if (p.isRetrograde) base += getLabel("Retrograde");
     const amsha = formatChartHouseNumber(patrikaNavamshaFromDegree(p.degree), pdfLanguage);
-    return `${base} (${amsha})`;
+    return `${base}(${amsha})`;
   };
 
   const localizeGotra = (g?: string): string => {
@@ -388,7 +388,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
                   </div>
                   {isLagna && (
                     <div style={{ color: "#000000", fontWeight: "bold", fontSize: "14px", lineHeight: "1.4" }}>
-                      {getLabel("Lagna")} ({lagnaAmsha})
+                      {getLabel("Lagna")}({lagnaAmsha})
                     </div>
                   )}
                   {planetsHere.map((p, i) => (
@@ -398,7 +398,7 @@ export const GokarnaKundaliTemplate: React.FC<Props> = ({
                   ))}
                   {maandi && maandi.rashi.index === rashiId && (
                     <div style={{ color: "#000000", fontWeight: "bold", fontSize: "14px", lineHeight: "1.4" }}>
-                      {getLabel("Maandi")} ({maandiAmsha})
+                      {getLabel("Maandi")}({maandiAmsha})
                     </div>
                   )}
                 </div>
