@@ -1,4 +1,3 @@
-import SouthIndianChart from '../kundli/SouthIndianChart';
 import React, { forwardRef } from 'react';
 import type { TranslatedPrediction } from './usePredictionEngine';
 import type { KundliViewerSession } from '../../stores/kundliViewerStore';
@@ -7,7 +6,6 @@ import { cleanEnglishFromRegionalText, RASHI_L5, GRAHA_L5, NAKSHATRA_L5, pick } 
 import { cleanDegreesFromText, cleanPunctuationArtifacts } from '../../features/premiumPdf/yogaDoshaGocharaEnricher';
 import { ensureNamePresence, ensureCompleteSentences, getLocalizedDevoteeName } from '../../features/premiumPdf/dynamicBhavishyaEngine';
 import { areParagraphsDuplicates } from '../../features/premiumPdf/bhavishyaV1Service';
-import { degreeToNakshatraPada } from '../../core/AstroMath';
 
 export type PdfTranslations = {
   title: string;
@@ -620,110 +618,6 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
           </div>
         </div>
       )}
-
-      {/* ── Sacred South Indian Kundli Chart & Planetary Ephemeris Table ───── */}
-      <div data-section="kundli-chart" className="pdf-section w-full px-14 mb-8">
-        <div className="relative rounded-xl border-2 border-amber-600/60 bg-amber-100/40 p-8 shadow-md">
-          {/* Section Heading */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1 bg-amber-800/10 text-amber-900 rounded-full border border-amber-800/30 mb-2">
-              <span className="text-amber-800 text-sm">🏛️</span>
-              <span className="text-xs font-black tracking-widest uppercase">
-                {translations.kundliChartTitle || (langKey === "kn" ? "ದಕ್ಷಿಣ ಭಾರತೀಯ ಪವಿತ್ರ ರಾಶಿ ಚಕ್ರ (ಜನ್ಮ ಕುಂಡಲಿ)" : langKey === "hi" ? "दक्षिण भारतीय पवित्र राशि चक्र (जन्म कुंडली)" : langKey === "te" ? "దక్షిణ భారతీయ పవిత్ర రాశి చక్రం (జన్మ కుండలి)" : langKey === "ta" ? "தென்னிந்திய புனித ராசி சக்கரம் (ஜன்ம ஜாதகம்)" : "Sacred South Indian Rashi Chakra (Natal Kundli)")}
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-3 text-amber-800/60 text-xs">
-              <span>❖</span>
-              <span className="h-px w-20 bg-amber-700/40" />
-              <span>ॐ</span>
-              <span className="h-px w-20 bg-amber-700/40" />
-              <span>❖</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-12 gap-6 items-start">
-            {/* Left: Gokarna South Indian Rashi Chart */}
-            <div className="col-span-6 flex flex-col items-center">
-              <div className="w-full max-w-[390px] bg-[#FFFDF8] p-2 rounded-xl border-2 border-amber-700/40 shadow-sm">
-                <SouthIndianChart kundli={session.result} personName={translations.nameValue || session.input.name} lang={langKey} />
-              </div>
-            </div>
-
-            {/* Right: Planetary Ephemeris Table with exact degrees, nakshatra-pada & dignity */}
-            <div className="col-span-6">
-              <div className="text-sm font-bold text-amber-950 mb-2 border-b border-amber-700/30 pb-1 flex items-center justify-between">
-                <span>🪐 {translations.planetaryPositionsTitle || (langKey === "kn" ? "ಗ್ರಹ ಸ್ಪಷ್ಟ ಸ್ಥಿತಿ & ಬಲ" : langKey === "hi" ? "ग्रह स्पष्ट स्थिति एवं बल" : langKey === "te" ? "గ్రహ స్పష్ట స్థితి & బలం" : langKey === "ta" ? "கிரக ஸ்பஷ்ட நிலை & பலம்" : "Planetary Ephemeris & Dignity")}</span>
-              </div>
-              <div className="overflow-hidden rounded-lg border border-amber-700/40 bg-white/95 shadow-xs">
-                <table className="w-full text-left border-collapse text-[11px]">
-                  <thead>
-                    <tr className="bg-amber-800/10 text-amber-950 font-bold border-b border-amber-700/30 text-[10.5px]">
-                      <th className="py-1.5 px-2">{langKey === "kn" ? "ಗ್ರಹ" : langKey === "hi" ? "ग्रह" : langKey === "te" ? "గ్రహం" : langKey === "ta" ? "கிரகம்" : "Planet"}</th>
-                      <th className="py-1.5 px-2">{langKey === "kn" ? "ರಾಶಿ" : langKey === "hi" ? "राशि" : langKey === "te" ? "రాశి" : langKey === "ta" ? "ராசி" : "Sign"}</th>
-                      <th className="py-1.5 px-2">{langKey === "kn" ? "ಅಂಶ" : langKey === "hi" ? "अंश" : langKey === "te" ? "అంశ" : langKey === "ta" ? "பாகை" : "Deg"}</th>
-                      <th className="py-1.5 px-2">{langKey === "kn" ? "ನಕ್ಷತ್ರ (ಪಾದ)" : langKey === "hi" ? "नक्षत्र (पाद)" : langKey === "te" ? "నక్షత్రం (పాదం)" : langKey === "ta" ? "நட்சத்திரம் (பாதம்)" : "Nakshatra (Pada)"}</th>
-                      <th className="py-1.5 px-2 text-center">{langKey === "kn" ? "ಭಾವ" : langKey === "hi" ? "भाव" : langKey === "te" ? "భావం" : langKey === "ta" ? "பாவம்" : "House"}</th>
-                      <th className="py-1.5 px-2 text-right">{langKey === "kn" ? "ಸ್ಥಿತಿ" : langKey === "hi" ? "स्थिति" : langKey === "te" ? "స్థితి" : langKey === "ta" ? "நிலை" : "Status"}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Lagna Row */}
-                    {session.result.lagnaRashi && (
-                      <tr className="border-b border-amber-700/10 bg-amber-50/60 font-semibold">
-                        <td className="py-1 px-2 text-amber-900 font-bold">{langKey === "kn" ? "ಲಗ್ನ (ಉದಯ)" : langKey === "hi" ? "लग्न" : langKey === "te" ? "లగ్నం" : langKey === "ta" ? "லக்னம்" : "Ascendant (Lagna)"}</td>
-                        <td className="py-1 px-2">{pick(RASHI_L5[session.result.lagnaRashi.index], langKey)}</td>
-                        <td className="py-1 px-2 font-mono text-[10px]">{Math.floor(session.result.ascendant % 30)}° {Math.floor(((session.result.ascendant % 30) * 60) % 60)}'</td>
-                        <td className="py-1 px-2">—</td>
-                        <td className="py-1 px-2 text-center font-bold">1</td>
-                        <td className="py-1 px-2 text-right text-amber-800 text-[10px] font-bold">Lagna</td>
-                      </tr>
-                    )}
-                    {/* Planets Rows */}
-                    {session.result.planets.map((p, idx) => {
-                      const degInSign = p.degree % 30;
-                      const d = Math.floor(degInSign);
-                      const m = Math.floor((degInSign * 60) % 60);
-                      const pada = degreeToNakshatraPada(p.degree);
-                      const gName = pick(GRAHA_L5[p.name as keyof typeof GRAHA_L5] || { en: String(p.name) }, langKey);
-                      const rName = pick(RASHI_L5[p.rashi.index] || { en: p.rashi.english }, langKey);
-                      const nName = pick(NAKSHATRA_L5[p.nakshatra.index] || { en: p.nakshatra.english }, langKey);
-                      const badges: string[] = [];
-                      if (p.isRetrograde) badges.push(langKey === "kn" ? "ವಕ್ರ" : langKey === "hi" ? "वक्री" : langKey === "te" ? "వక్ర" : langKey === "ta" ? "வக்ரம்" : "R");
-                      if (p.isExalted) badges.push(langKey === "kn" ? "ಉಚ್ಚ" : langKey === "hi" ? "उच्च" : langKey === "te" ? "ఉచ్ఛ" : langKey === "ta" ? "உச்சம்" : "Exalted");
-                      if (p.isDebilitated) badges.push(langKey === "kn" ? "ನೀಚ" : langKey === "hi" ? "नीच" : langKey === "te" ? "నీచ" : langKey === "ta" ? "நீசம்" : "Debilitated");
-
-                      return (
-                        <tr key={idx} className="border-b border-amber-700/10 hover:bg-amber-50/40">
-                          <td className="py-1 px-2 font-semibold text-amber-950">{gName}</td>
-                          <td className="py-1 px-2 text-amber-900">{rName}</td>
-                          <td className="py-1 px-2 font-mono text-[10px]">{d}° {m}'</td>
-                          <td className="py-1 px-2 text-amber-900">{nName} ({pada})</td>
-                          <td className="py-1 px-2 text-center font-bold text-amber-950">{p.house}</td>
-                          <td className="py-1 px-2 text-right text-[10px] text-amber-800 font-semibold">{badges.join(", ") || "—"}</td>
-                        </tr>
-                      );
-                    })}
-                    {/* Maandi / Gulika Row */}
-                    {session.result.maandi && (
-                      <tr className="bg-red-50/60 font-semibold text-red-950">
-                        <td className="py-1 px-2 font-bold text-red-700">{langKey === "kn" ? "ಮಾಂದಿ (ಗುಳಿಕ)" : langKey === "hi" ? "मांदि (गुलिक)" : langKey === "te" ? "మాంది (గుళిక)" : langKey === "ta" ? "மாந்தி (குளிகன்)" : "Maandi (Gulika)"}</td>
-                        <td className="py-1 px-2 text-red-900">{pick(RASHI_L5[session.result.maandi.rashi.index] || { en: session.result.maandi.rashi.english }, langKey)}</td>
-                        <td className="py-1 px-2 font-mono text-[10px]">{Math.floor(session.result.maandi.degree % 30)}° {Math.floor(((session.result.maandi.degree % 30) * 60) % 60)}'</td>
-                        <td className="py-1 px-2 text-red-900">—</td>
-                        <td className="py-1 px-2 text-center font-bold text-red-800">
-                          {((session.result.maandi.rashi.index - (session.result.lagnaRashi?.index ?? 0) + 12) % 12) + 1}
-                        </td>
-                        <td className="py-1 px-2 text-right text-[10px] font-bold text-red-700">{langKey === "kn" ? "ಶನಿ ಪುತ್ರ" : langKey === "hi" ? "शनि पुत्र" : langKey === "te" ? "శని పుత్రుడు" : langKey === "ta" ? "சனி புத்திரன்" : "Upagraha"}</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
 
       {/* ── Chapter 1: The Sacred Soul Mirror & Cosmic Elemental Vitality ──────────────── */}
       {premiumData?.soulMirror && (
