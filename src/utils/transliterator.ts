@@ -310,7 +310,50 @@ const NAME_DICTIONARY: Record<string, Record<string, string>> = {
   "ಮಂಜು": { kn: "ಮಂಜು", hi: "मंजू", te: "మంజు", ta: "மஞ்சு", en: "Manju" },
   "ಮಂಜುಳಾ": { kn: "ಮಂಜುಳಾ", hi: "मंजुला", te: "మంజుల", ta: "மஞ்சுளா", en: "Manjula" },
   "ಮಂಜುನಾಥ": { kn: "ಮಂಜುನಾಥ", hi: "मंजूनाथ", te: "మంజునాథ", ta: "மஞ்சுநாத", en: "Manjunatha" },
-  "ಮಂಜುನಾಥ್": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజుನಾಥ್", ta: "மஞ்சுநாத்", en: "Manjunath" }
+  "ಮಂಜುನಾಥ್": { kn: "ಮಂಜುನಾಥ್", hi: "मंजूनाथ", te: "మంజుನಾಥ್", ta: "மஞ்சுநாத்", en: "Manjunath" },
+  // Diverse Cultural & Regional Devotee Names (Muslim, Christian, Hindu & Regional)
+  "fatima": { kn: "ಫಾತಿಮಾ", hi: "फ़ातिमा", te: "ఫాతిమా", ta: "பாத்திமா", en: "Fatima" },
+  "zoya": { kn: "ಝೋಯಾ", hi: "ज़ोया", te: "జోయా", ta: "ஜோயா", en: "Zoya" },
+  "akhtar": { kn: "ಅಖ್ತರ್", hi: "अख़्तर", te: "అఖ్తర్", ta: "அக்தர்", en: "Akhtar" },
+  "ayesha": { kn: "ಆಯಿಷಾ", hi: "आयेशा", te: "ఆయేషా", ta: "ஆயிஷா", en: "Ayesha" },
+  "aisha": { kn: "ಆಯಿಷಾ", hi: "आयशा", te: "ఆయిషా", ta: "ஆயிஷா", en: "Aisha" },
+  "mohammed": { kn: "ಮೊಹಮ್ಮದ್", hi: "मोहम्मद", te: "మొహమ్మద్", ta: "முகம்மது", en: "Mohammed" },
+  "mohammad": { kn: "ಮೊಹಮ್ಮದ್", hi: "मोहम्मद", te: "మొహమ్మద్", ta: "முகம்மது", en: "Mohammad" },
+  "muhammad": { kn: "ಮುಹಮ್ಮದ್", hi: "मुहम्मद", te: "ముహమ్మద్", ta: "முகம்மது", en: "Muhammad" },
+  "imran": { kn: "ಇಮ್ರಾನ್", hi: "इमरान", te: "ఇమ్రాನ್", ta: "இம்ரான்", en: "Imran" },
+  "ibrahim": { kn: "ಇಬ್ರಾಹಿಂ", hi: "इब्राहिम", te: "ఇబ్రహీం", ta: "இப்ராஹிம்", en: "Ibrahim" },
+  "ali": { kn: "ಅಲಿ", hi: "अली", te: "అలీ", ta: "அலி", en: "Ali" },
+  "ahmed": { kn: "ಅಹ್ಮದ್", hi: "अहमद", te: "అహ్మద్", ta: "அகமது", en: "Ahmed" },
+  "khan": { kn: "ಖಾನ್", hi: "ख़ान", te: "ఖాన్", ta: "கான்", en: "Khan" },
+  "syed": { kn: "ಸೈಯದ್", hi: "सैयद", te: "సయ్యద్", ta: "சையத்", en: "Syed" },
+  "salman": { kn: "ಸಲ್ಮಾನ್", hi: "सलमान", te: "ಸಲ್ಮಾನ್", ta: "சல்மான்", en: "Salman" },
+  "farhan": { kn: "ಫರ್ಹಾನ್", hi: "फ़रहान", te: "ಫರ್ಹಾನ್", ta: "பர்ஹான்", en: "Farhan" },
+  "shabana": { kn: "ಶಬಾನಾ", hi: "शबाना", te: "షబానా", ta: "ஷபானா", en: "Shabana" },
+  "nasreen": { kn: "ನಸ್ರೀನ್", hi: "नसरीन", te: "నస్రీన్", ta: "நஸ்ரீன்", en: "Nasreen" },
+  "sameer": { kn: "ಸಮೀರ್", hi: "समीर", te: "సమీర్", ta: "சமீர்", en: "Sameer" },
+  "david": { kn: "ಡೇವಿಡ್", hi: "डेविड", te: "డేవిడ్", ta: "டேவிட்", en: "David" },
+  "john": { kn: "ಜಾನ್", hi: "जॉन", te: "జాన్", ta: "ஜான்", en: "John" },
+  "joseph": { kn: "ಜೋಸೆಫ್", hi: "जोसेफ़", te: "జోసెఫ్", ta: "ஜோசப்", en: "Joseph" },
+  "peter": { kn: "ಪೀಟರ್", hi: "पीटर", te: "పీటర్", ta: "பீட்டர்", en: "Peter" },
+  "mary": { kn: "ಮೇರಿ", hi: "मैरी", te: "మేరీ", ta: "மேரி", en: "Mary" },
+  "michael": { kn: "ಮೈಕೆಲ್", hi: "माइकल", te: "మైఖేల్", ta: "மைக்கேல்", en: "Michael" },
+  "paul": { kn: "ಪಾಲ್", hi: "पॉल", te: "పాల్", ta: "பால்", en: "Paul" },
+  "james": { kn: "ಜೇಮ್ಸ್", hi: "जेम्स", te: "జేమ్స్", ta: "ஜேம்ஸ்", en: "James" },
+  "george": { kn: "ಜಾರ್ಜ್", hi: "जॉर्ज", te: "జಾರ್జ్", ta: "ஜார்ஜ்", en: "George" },
+  "thomas": { kn: "ಥಾಮಸ್", hi: "थॉमस", te: "థామస్", ta: "தாமஸ்", en: "Thomas" },
+  "anthony": { kn: "ಆಂಟನಿ", hi: "एंथनी", te: "ఆంథోనీ", ta: "அந்தோணி", en: "Anthony" },
+  "matthew": { kn: "ಮ್ಯಾಥ್ಯೂ", hi: "मैथ्यू", te: "మాథ్యూ", ta: "மேத்யூ", en: "Matthew" },
+  "robert": { kn: "ರಾಬರ್ಟ್", hi: "रॉबर्ट", te: "ರಾబర్ట్", ta: "ராபர்ட்", en: "Robert" },
+  "raghavendra": { kn: "ರಾಘವೇಂದ್ರ", hi: "राघवेंद्र", te: "రాఘవేంద్ర", ta: "ராகவேந்திரா", en: "Raghavendra" },
+  "shree": { kn: "ಶ್ರೀ", hi: "श्री", te: "శ్రీ", ta: "ஸ்ரீ", en: "Shree" },
+  "sree": { kn: "ಶ್ರೀ", hi: "श्री", te: "శ్రీ", ta: "ஸ்ரீ", en: "Sree" },
+  "srinivasa": { kn: "ಶ್ರೀನಿವಾಸ", hi: "श्रीनिवास", te: "శ్రీనివాస", ta: "ஸ்ரீனிவாசா", en: "Srinivasa" },
+  "anusuya": { kn: "ಅನುಸೂಯ", hi: "अनुसूया", te: "అనుసూయ", ta: "அனுசுயா", en: "Anusuya" },
+  "padmavathi": { kn: "ಪದ್ಮಾವತಿ", hi: "पद्मावती", te: "పద్మావతి", ta: "பத்மாவதி", en: "Padmavathi" },
+  "girija": { kn: "ಗಿರಿಜಾ", hi: "गिरिजा", te: "గిరిజ", ta: "கிரிஜா", en: "Girija" },
+  "priya": { kn: "ಪ್ರಿಯಾ", hi: "प्रिया", te: "ప్రియ", ta: "பிரியா", en: "Priya" },
+  "sundaram": { kn: "ಸುಂದರಂ", hi: "सुंदरम", te: "సుందరం", ta: "சுந்தரம்", en: "Sundaram" },
+  "prasad": { kn: "ಪ್ರಸಾದ್", hi: "प्रसाद", te: "ప్రసాద్", ta: "பிரசாத்", en: "Prasad" }
 };
 
 /** Syllabic consonant definitions with inherent vowel 'a' */
@@ -340,7 +383,12 @@ const SYLLABIC_CONSONANTS: Record<string, { kn: string; hi: string; te: string; 
   v: { kn: "ವ", hi: "व", te: "వ", ta: "வ" },
   w: { kn: "ವ", hi: "व", te: "వ", ta: "வ" },
   s: { kn: "ಸ", hi: "स", te: "స", ta: "ஸ" },
-  h: { kn: "ಹ", hi: "ह", te: "హ", ta: "ஹ" }
+  h: { kn: "ಹ", hi: "ह", te: "హ", ta: "ஹ" },
+  f: { kn: "ಫ", hi: "फ़", te: "ఫ", ta: "ப" },
+  z: { kn: "ಝ", hi: "ज़", te: "ఝ", ta: "ஜ" },
+  q: { kn: "ಕ", hi: "क़", te: "క", ta: "க" },
+  x: { kn: "ಕ್ಸ", hi: "क्स", te: "క్ಸ", ta: "க்ஸ" },
+  c: { kn: "ಕ", hi: "क", te: "క", ta: "க" }
 };
 
 /** Matras (dependent vowel signs following a consonant) */
@@ -458,6 +506,11 @@ function phoneticTransliterateWord(word: string, langCode: "kn" | "hi" | "te" | 
       continue;
     }
 
+    // If it's an unmapped Latin character, never leak it into regional Indic script
+    if (/[a-zA-Z]/.test(inputWord[i])) {
+      i += 1;
+      continue;
+    }
     // Unmapped character (punctuation, digit, etc.)
     result += inputWord[i];
     i += 1;
