@@ -1026,18 +1026,22 @@ export function analyzeQuestionComplexity(
     );
 
   // 1. Gemstones, Ratna, Uparatnas & Affordable Substitutes
+  // Strictly inspect ONLY devotee's prior user questions to avoid false trigger from model replies
   const hasGemstoneContextInHistory = !!conversationHistory?.some((turn) =>
-    /\b(diamond|coral|ruby|emerald|sapphire|pearl|ratna|gemstone|zircon|opal|topaz|moti|heera|panna|pukhraj|neelam)\b|ವಜ್ರ|ಹವಳ|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ಮುತ್ತು|ನೀಲ|ರತ್ನ|हीरा|मूंगा|माणिक|पन्ना|पुखराज|मोती|नीलम/i.test(
+    turn.role === "user" &&
+    /\b(diamond|coral|ruby|emerald|sapphire|pearl|ratna|gemstone|zircon|opal|topaz|moti|heera|panna|pukhraj|neelam)\b|ವಜ್ರ|ಹವಳ|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ಮುತ್ತು|ನೀಲ|ರತ್ನ|हीरा|मूंगा|माणिक|पन्ना|पुखराज|मोती|नीलम|రత్నం|వజ్రం|பவளம்|வைரம்|പവിഴം|വൈരം/i.test(
       turn.text
     )
   );
 
   const isGemstone =
-    /\b(gemstone|ratna|stone|pearl|ruby|emerald|coral|sapphire|diamond|rudraksha|zircon|opal|sphatika|spatika|topaz|amethyst|garnet|tourmaline|peridot|citrine|sunela|heera|manikya|panna|pukhraj|neelam|moti|gomed|lehsunia|which ring|wear which stone|white havala|white coral|safed moonga|substitute|alternative|uparatna|budget stone|cheap stone|cannot afford|don't have money|afford diamond|too expensive)\b|ರತ್ನ|ಹವಳ|ಮುತ್ತು|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲ|ಗೋಮೇಧಿಕ|ವೈಡೂರ್ಯ|ಸ್ಪಟಿಕ|ಸ್ಫಟಿಕ|ಜಿರ್ಕಾನ್|ಓಪಲ್|ರುದ್ರಾಕ್ಷಿ|ಉಂಗುರ|ಯಾವ ರತ್ನ|ರತ್ನ ಧರಿಸ|ಉಪರತ್ನ|ಬದಲಿ ರತ್ನ|ಪರ್ಯಾಯ ರತ್ನ|ಬಿಳಿ ಹವಳ|रत्न|मूंगा|मोती|माणिक|पन्ना|पुखराज|हीरा|नीलम|गोमेद|लहसुनिया|जरकन|ओपल|स्फटिक|उपरत्न|सस्ता रत्न|विकल्प|अंगूठी|రత్నం|పగడం|ముత్యం|కెంపు|పచ్చ|పుష్యరాగం|వజ్రం|నీలం|జిర్కాన్|ఓపల్|ఉప రత్నం|உருத்திராட்சம்|பவளம்|முத்து|மாணிக்கம்|மரகதம்|புஷ்பராகம்|வைரம்|நீலம்|ஜிர்கான்|ஓபல்|உப ரத்தினம்|രത്നം|പവിഴം|മുത്ത്|മാണിക്യം|മരതകം|പുഷ്യരാഗം|വൈരം|നീലക്കല്ല്|സിർക്കോൺ|ഓപ്പൽ|उप रत्न/i.test(
+    /\b(gemstone|ratna|stone|pearl|ruby|emerald|coral|sapphire|diamond|rudraksha|zircon|opal|sphatika|spatika|topaz|amethyst|garnet|tourmaline|peridot|citrine|sunela|heera|manikya|panna|pukhraj|neelam|moti|gomed|lehsunia|which ring|wear which stone|white havala|white coral|safed moonga|substitute|alternative|uparatna|budget stone|cheap stone|cannot afford|don't have money|afford diamond|too expensive)\b|ರತ್ನ|ಹವಳ|ಮುತ್ತು|ಮಾಣಿಕ್ಯ|ಪಚ್ಚೆ|ಪುಷ್ಯರಾಗ|ವಜ್ರ|ನೀಲ|ಗೋಮೇಧಿಕ|ವೈಡೂರ್ಯ|ಸ್ಪಟಿಕ|ಸ್ಫಟಿಕ|ಜಿರ್ಕಾನ್|ಓಪಲ್|ರುದ್ರಾಕ್ಷಿ|ಉಂಗುರ|ಯಾವ ರತ್ನ|ರತ್ನ ಧರಿಸ|ಉಪರತ್ನ|ಬದಲಿ ರತ್ನ|ಪರ್ಯಾಯ ರತ್ನ|ಬಿಳಿ ಹವಳ|रत्न|मूंगा|मोती|माणिक|पन्ना|पुखराज|हीरा|नीलम|गोमेद|लहसुनिया|जरकन|ओपल|स्फटिक|उपरत्न|सस्ता रत्न|विकल्प|अंगूठी|రత్నం|పగడం|ముత్యం|కెంపు|పచ్చ|పుష్యరాగం|వజ్రం|నీలం|జిರ್ಕಾನ್|ಓಪಲ್|ఉప రత్నం|உருத்திராட்சம்|பவளம்|முத்து|மாணிக்கம்|மரகதம்|புஷ்பராகம்|வைரம்|நீலம்|ஜிர்கான்|ஓபல்|உப ரத்தினம்|രത്നം|പവിഴം|മുത്ത്|മാണിക്യം|മരതകം|പുഷ്യരാഗം|വൈരം|നീലക്കല്ല്|സിർക്കോൺ|ഓപ്പൽ|उप रत्न/i.test(
       q
     ) ||
     (hasGemstoneContextInHistory &&
-      /\b(alternative|substitute|expensive|money|cost|afford|budget|cheap|another|option|other)\b|ಬೇರೆ|ಬದಲಿ|ಪರ್ಯಾಯ|ಹಣ|ಖರ್ಚು|ಕೈಗೆಟುಕುವ|बदला|सस्ता|पैसे/i.test(
+      // Follow-up must specifically relate to gemstone alternatives or gemstone affordability,
+      // and NOT generic words like "money" (ಹಣ), "expenses" (ಖರ್ಚು), or "job" (ಕೆಲಸ)!
+      /\b(stone alternative|gemstone substitute|cannot afford (diamond|stone)|budget stone|cheaper stone|cheaper alternative|afford diamond|affordable stone)\b|ಬೇರೆ ರತ್ನ|ಬದಲಿ ರತ್ನ|ಪರ್ಯಾಯ ರತ್ನ|ರತ್ನಕ್ಕೆ ಹಣ|ರತ್ನ ಕೊಳ್ಳಲು|ಸಣ್ಣ ರತ್ನ|ಸಸ್ತಾ ರತ್ನ|सस्ता रत्न|रत्न का विकल्प|रत्न खरीदने/i.test(
         q
       ));
 
@@ -4471,8 +4475,6 @@ DEVOTEE BIRTH PROFILE & ASTROLOGICAL COORDINATES (COMPUTED ACCURATELY BY BAGGONA
 - Exact Natal Planetary Placements (Bhavas 1 to 12): ${planetsSummary}
 - Live Gochara (Planetary Transits): ${transitsSummary}
 
-${NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE}
-
 ${CANONICAL_VEDIC_ASTROLOGY_RULES_REFERENCE}
 
 ${MULTI_TURN_ANTI_CONTRADICTION_GUARD}
@@ -4481,10 +4483,15 @@ ${SYSTEM_SECURITY_CONFIDENTIALITY_DIRECTIVE}
 
 ${formatRulingsLedgerForPrompt(rulingsLedger, session.language)}
 
+${complexityAnalysis.domain === "GEMSTONE_RATNA" ? `${NAVAGRAHA_GEMOLOGY_AND_UPARATNA_REFERENCE}
+
 AUTHENTIC GEMOLOGICAL & ASTROLOGICAL PROFILE FOR THIS DEVOTEE:
 - Primary Gemstone: ${recProfile.primaryGemstoneName[session.language] || recProfile.primaryGemstoneName.kn}
 - Authentic Uparatnas (Affordable Substitutes): ${recProfile.substituteGemstones[session.language] || recProfile.substituteGemstones.kn}
-- Gemstone Incompatibilities: ${recProfile.gemstoneIncompatibilities[session.language] || recProfile.gemstoneIncompatibilities.kn}
+- Gemstone Incompatibilities: ${recProfile.gemstoneIncompatibilities[session.language] || recProfile.gemstoneIncompatibilities.kn}` : `STRICT RELEVANCE & DOMAIN PURITY GUARD:
+- The devotee has NOT asked about gemstones or ratnas in this question!
+- You MUST STRICTLY answer ONLY the specific question asked: "${userQuestion}".
+- DO NOT provide unsolicited gemstone prescriptions, and DO NOT tell them what gemstone, ring, finger, metal, or day to wear!`}
 - Lucky Colors: ${recProfile.luckyColors[session.language] || recProfile.luckyColors.kn} (Avoid: ${recProfile.colorsToAvoid[session.language] || recProfile.colorsToAvoid.kn})
 - Lucky Number: ${recProfile.primaryNumber}
 

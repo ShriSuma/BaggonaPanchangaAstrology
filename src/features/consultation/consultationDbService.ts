@@ -309,7 +309,7 @@ async function processSessionLifecycle(session: ConsultationSession): Promise<Co
     session.status = "expired";
     try {
       if (firestore) {
-        await updateDoc(doc(firestore, SESSIONS_COL, session.id), { status: "expired" });
+        await setDoc(doc(firestore, SESSIONS_COL, session.id), { status: "expired" }, { merge: true });
       }
     } catch (e) {
       console.warn("[consultationDb] Firestore expire status update error:", e);
@@ -383,6 +383,7 @@ export async function getConsultationSession(id: string): Promise<ConsultationSe
       const snap = await getDoc(docRef);
       if (snap.exists()) {
         session = snap.data() as ConsultationSession;
+        saveLocalSession(session);
       }
     }
   } catch (err) {
@@ -418,11 +419,15 @@ export async function updateDevoteeContact(
   try {
     if (firestore) {
       const docRef = doc(firestore, SESSIONS_COL, id);
-      await updateDoc(docRef, {
-        userPhone: current.userPhone || null,
-        userEmail: current.userEmail || null,
-        hasProvidedContact: true
-      });
+      await setDoc(
+        docRef,
+        sanitize({
+          userPhone: current.userPhone || null,
+          userEmail: current.userEmail || null,
+          hasProvidedContact: true
+        }),
+        { merge: true }
+      );
     }
   } catch (err) {
     console.warn("[consultationDb] Firestore contact update notice:", err);
@@ -473,13 +478,17 @@ export async function startConsultationTimer(id: string): Promise<ConsultationSe
   try {
     if (firestore) {
       const docRef = doc(firestore, SESSIONS_COL, id);
-      await updateDoc(docRef, {
-        startedAt: current.startedAt,
-        expiresAt: current.expiresAt,
-        deleteAt: current.deleteAt,
-        status: "active",
-        messages: current.messages
-      });
+      await setDoc(
+        docRef,
+        sanitize({
+          startedAt: current.startedAt,
+          expiresAt: current.expiresAt,
+          deleteAt: current.deleteAt,
+          status: "active",
+          messages: current.messages
+        }),
+        { merge: true }
+      );
     }
   } catch (err) {
     console.warn("[consultationDb] Firestore start update failed:", err);
@@ -513,11 +522,15 @@ export async function claimBonusMinute(id: string): Promise<ConsultationSession>
   try {
     if (firestore) {
       const docRef = doc(firestore, SESSIONS_COL, id);
-      await updateDoc(docRef, {
-        expiresAt: current.expiresAt,
-        durationMinutes: 21,
-        bonusMinuteClaimed: true
-      });
+      await setDoc(
+        docRef,
+        sanitize({
+          expiresAt: current.expiresAt,
+          durationMinutes: 21,
+          bonusMinuteClaimed: true
+        }),
+        { merge: true }
+      );
     }
   } catch (err) {
     console.warn("[consultationDb] Firestore bonus update notice:", err);
@@ -551,9 +564,13 @@ export async function addConsultationMessage(
   try {
     if (firestore) {
       const docRef = doc(firestore, SESSIONS_COL, id);
-      await updateDoc(docRef, {
-        messages: current.messages
-      });
+      await setDoc(
+        docRef,
+        sanitize({
+          messages: current.messages
+        }),
+        { merge: true }
+      );
     }
   } catch (err) {
     console.warn("[consultationDb] Firestore add message failed:", err);
@@ -566,7 +583,7 @@ export async function addConsultationMessage(
 export async function expireConsultationSession(id: string): Promise<void> {
   try {
     if (firestore) {
-      await updateDoc(doc(firestore, SESSIONS_COL, id), { status: "expired" });
+      await setDoc(doc(firestore, SESSIONS_COL, id), { status: "expired" }, { merge: true });
     }
   } catch (e) {
     console.warn("[consultationDb] Firestore expire notice:", e);

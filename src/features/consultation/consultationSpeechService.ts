@@ -143,7 +143,7 @@ export function sanitizeDuplicateSpeechWords(text: string): string {
     changed = false;
     iterations++;
 
-    const maxK = Math.min(15, Math.floor(tokens.length / 2));
+    const maxK = Math.min(40, Math.floor(tokens.length / 2));
     for (let k = maxK; k >= 2; k--) {
       const newTokens: string[] = [];
       let i = 0;
@@ -492,11 +492,14 @@ export class ContinuousSpeechEngine {
       clearTimeout(this.restartTimeout);
       this.restartTimeout = null;
     }
-    if (this.recognition && this.isListening) {
-      try {
-        this.recognition.stop();
-      } catch {
-        // Ignore
+    if (this.recognition) {
+      this.recognition.onend = null;
+      if (this.isListening) {
+        try {
+          this.recognition.stop();
+        } catch {
+          // Ignore
+        }
       }
     }
     this.isListening = false;

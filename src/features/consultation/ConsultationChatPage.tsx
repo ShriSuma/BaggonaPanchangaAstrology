@@ -15,6 +15,8 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { firestore } from "../../services/firebase";
 import {
   getConsultationSession,
   createConsultationSession,
@@ -146,6 +148,14 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   };
 
   const [session, setSession] = useState<ConsultationSession | null>(null);
+  const [resolvedId, setResolvedId] = useState<string | null>(null);
+  const sessionRef = useRef<ConsultationSession | null>(null);
+  const isSubmittingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
   const [loadingSession, setLoadingSession] = useState(true);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [isTampered, setIsTampered] = useState<boolean>(false);
@@ -406,7 +416,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           setSessionError("ಈ ಸಮಾಲೋಚನೆ ಅವಧಿ ಮುಕ್ತಾಯಗೊಂಡು ಡೇಟಾಬೇಸ್‌ನಿಂದ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ತೆರವುಗೊಂಡಿದೆ. (This consultation link has expired and has been purged from database).");
           setSession(null);
         } else {
+          setResolvedId(activeSessionId);
           setSession(data);
+          sessionRef.current = data;
           setSessionError(null);
           setMessages(data.messages || []);
           if (data.userPhone) setContactPhone(data.userPhone);
@@ -438,6 +450,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             setRemainingSeconds(left);
             if (left <= 0) {
               setSession((prev) => (prev ? { ...prev, status: "expired" } : null));
+              setRemainingSeconds(0);
+              void expireConsultationSession(data.id);
             }
           } else if (data.status === "expired") {
             setShowContactModal(false);
@@ -466,62 +480,124 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     };
   }, [sessionId]);
 
-  // 2. Active Countdown Timer & Multi-Browser Database Sync Loop
-  useEffect(() => {
-    if (!session || session.status !== "active" || !session.expiresAt) return;
+  // Synchronize fresh database session across all devices/browsers
+  const applyFreshSessionState = useCallback((fresh: ConsultationSession) => {
+    setSession(fresh);
+    sessionRef.current = fresh;
+    setMessages((prev) => {
+      if (fresh.messages && fresh.messages.length > prev.length) {
+        return fresh.messages;
+      }
+      return prev;
+    });
+    if (fresh.userPhone) setContactPhone(fresh.userPhone);
+    if (fresh.userEmail) setContactEmail(fresh.userEmail);
 
-    // 1-second local tick
+    if (fresh.status === "pending") {
+      const hasStoredValidPhone = Boolean(fresh.userPhone && isValidPhoneNumber(fresh.userPhone.trim()));
+      setShowContactModal(!hasStoredValidPhone);
+      setShowTimerModal(false);
+      setRemainingSeconds((fresh.durationMinutes || 20) * 60);
+    } else if (fresh.status === "active" && fresh.expiresAt) {
+      setShowContactModal(false);
+      setShowTimerModal(false);
+      const left = Math.max(0, Math.floor((new Date(fresh.expiresAt).getTime() - Date.now()) / 1000));
+      setRemainingSeconds(left);
+      if (left <= 0) {
+        setSession((prev) => (prev ? { ...prev, status: "expired" } : null));
+        setRemainingSeconds(0);
+        void expireConsultationSession(fresh.id);
+      }
+    } else if (fresh.status === "expired") {
+      setShowContactModal(false);
+      setShowTimerModal(false);
+      setRemainingSeconds(0);
+    }
+  }, []);
+
+  // 2. Active Real-Time Firestore Sync & Accurate Multi-Device Countdown Loop
+  useEffect(() => {
+    if (!resolvedId) return;
+
+    let isSubscribed = true;
+    let unsubscribeSnapshot: (() => void) | null = null;
+
+    // Attach real-time Firestore listener for 0-second multi-device sync
+    if (firestore) {
+      try {
+        const docRef = doc(firestore, "consultation_sessions", resolvedId);
+        unsubscribeSnapshot = onSnapshot(
+          docRef,
+          (snap) => {
+            if (!isSubscribed) return;
+            if (snap.exists()) {
+              const fresh = snap.data() as ConsultationSession;
+              applyFreshSessionState(fresh);
+            }
+          },
+          (err) => {
+            console.warn("[ConsultationChatPage] onSnapshot notice:", err);
+          }
+        );
+      } catch (err) {
+        console.warn("[ConsultationChatPage] onSnapshot attach notice:", err);
+      }
+    }
+
+    // 1-second local tick directly checking current session expiresAt
     const tickInterval = setInterval(() => {
+      const current = sessionRef.current;
+      if (!current || current.status !== "active" || !current.expiresAt) return;
+
       const now = Date.now();
-      const exp = new Date(session.expiresAt!).getTime();
+      const exp = new Date(current.expiresAt).getTime();
       const diffSecs = Math.max(0, Math.floor((exp - now) / 1000));
 
       setRemainingSeconds(diffSecs);
 
       // Show bonus banner if remaining <= 60s and bonus not yet claimed
-      if (diffSecs > 0 && diffSecs <= 60 && !session.bonusMinuteClaimed) {
+      if (diffSecs > 0 && diffSecs <= 60 && !current.bonusMinuteClaimed) {
         setShowBonusBanner(true);
       } else {
         setShowBonusBanner(false);
       }
 
       if (diffSecs <= 0) {
-        clearInterval(tickInterval);
         setSession((prev) => (prev ? { ...prev, status: "expired" } : null));
-        void expireConsultationSession(session.id);
+        setRemainingSeconds(0);
+        void expireConsultationSession(current.id);
       }
     }, 1000);
 
-    // Periodic 12-second database sync to guarantee multi-device & multi-browser parity
+    // Periodic 3-second database sync to guarantee cross-browser parity if onSnapshot is unavailable
     const syncInterval = setInterval(async () => {
       try {
-        const fresh = await getConsultationSession(session.id);
-        if (fresh) {
-          if (fresh.status !== session.status || fresh.expiresAt !== session.expiresAt) {
-            setSession(fresh);
-            if (fresh.expiresAt) {
-              const freshDiff = Math.max(0, Math.floor((new Date(fresh.expiresAt).getTime() - Date.now()) / 1000));
-              setRemainingSeconds(freshDiff);
-            }
-          }
+        const fresh = await getConsultationSession(resolvedId);
+        if (fresh && isSubscribed) {
+          applyFreshSessionState(fresh);
         }
       } catch {
         // Ignore background sync errors
       }
-    }, 12000);
+    }, 3000);
 
     return () => {
+      isSubscribed = false;
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
       clearInterval(tickInterval);
       clearInterval(syncInterval);
     };
-  }, [session?.status, session?.expiresAt, session?.id, session?.bonusMinuteClaimed]);
+  }, [resolvedId, applyFreshSessionState]);
 
   // 3. Initialize Welcome Message
   useEffect(() => {
     let isCancelled = false;
 
     async function initWelcome() {
-      if (session && messages.length === 0) {
+      // ONLY initialize welcome when session is active and messages is empty
+      if (session && session.status === "active" && messages.length === 0) {
         const kundliData = await computeDevoteeKundli(session);
         if (isCancelled) return;
 
@@ -623,9 +699,13 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     try {
       const updated = await startConsultationTimer(session.id);
       setSession(updated);
+      sessionRef.current = updated;
       setMessages(updated.messages || []);
       setShowTimerModal(false);
-      setRemainingSeconds(1200);
+      const left = updated.expiresAt
+        ? Math.max(0, Math.floor((new Date(updated.expiresAt).getTime() - Date.now()) / 1000))
+        : 1200;
+      setRemainingSeconds(left);
     } catch (err: any) {
       alert("Failed to start consultation timer: " + (err.message || String(err)));
     } finally {
@@ -655,8 +735,12 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       }
       const updated = await startConsultationTimer(currentSession.id);
       setSession(updated);
+      sessionRef.current = updated;
       setMessages(updated.messages || []);
-      setRemainingSeconds(1200);
+      const left = updated.expiresAt
+        ? Math.max(0, Math.floor((new Date(updated.expiresAt).getTime() - Date.now()) / 1000))
+        : 1200;
+      setRemainingSeconds(left);
       setShowContactModal(false);
       setShowTimerModal(false);
     } catch (err: any) {
@@ -765,6 +849,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   };
 
   const handleSendRecordedVoiceQuestion = async () => {
+    if (isSubmittingRef.current || isGenerating) return;
     let rawText = "";
     if (speechEngineRef.current) {
       rawText = speechEngineRef.current.stop();
@@ -773,6 +858,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     setIsVoiceRecordMode(false);
 
     const questionToProcess = sanitizeDuplicateSpeechWords(rawText || inputText).trim();
+    setInputText("");
     if (!questionToProcess) return;
 
     // Trigger fast 1.5s AI Question Refinement
@@ -820,15 +906,18 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
   // Handle Send Message
   const handleSendMessage = async (textToSend?: string) => {
+    if (isSubmittingRef.current || isGenerating) return;
     const rawQuestion = (textToSend || inputText).trim();
     const question = sanitizeDuplicateSpeechWords(rawQuestion).trim();
-    if (!question || !session || isGenerating || session.status !== "active" || remainingSeconds <= 0) return;
+    if (!question || !session || session.status !== "active" || remainingSeconds <= 0) return;
 
     // Check expiry
     if (remainingSeconds <= 0) {
       setSession((prev) => (prev ? { ...prev, status: "expired" } : null));
       return;
     }
+
+    isSubmittingRef.current = true;
 
     // Automatically stop any playing audio immediately so the new question proceeds with zero manual friction
     stopClonedAudio();
@@ -962,6 +1051,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       void addConsultationMessage(session.id, fallbackMsg);
     } finally {
       setIsGenerating(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -1520,7 +1610,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           {/* RIGHT: Compact Sandglass Clock & Controls */}
           <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Active Session Sandglass Countdown Timer Badge (Always visible on mobile & desktop) */}
-            {session.status === "active" && !isExpired && (
+            {session.status === "active" && !isExpired ? (
               <div
                 onClick={() => setShowTimerDetailsModal(true)}
                 className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-xl border text-xs font-mono font-bold cursor-pointer active:scale-95 transition shadow-2xs select-none ${
@@ -1545,7 +1635,17 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   ▾
                 </span>
               </div>
-            )}
+            ) : (session.status === "expired" || isExpired) ? (
+              <div
+                className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-xl border text-xs font-mono font-bold bg-red-950 text-red-200 border-red-500 select-none shadow-xs"
+                title="Consultation Session Expired (20 Minutes Completed)"
+              >
+                <span className="text-xs">⏱️</span>
+                <span className="text-xs sm:text-sm tracking-tight text-red-100 font-black">
+                  00:00 (Expired)
+                </span>
+              </div>
+            ) : null}
 
             {isMasterOrSuperAdmin && (
               <div className="hidden sm:flex items-center gap-1">
