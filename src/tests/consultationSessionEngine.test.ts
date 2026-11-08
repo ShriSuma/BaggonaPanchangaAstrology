@@ -337,7 +337,7 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
 
       const answer = await generateConsultationAnswer({
         session,
-        userQuestion: "ನನ್ನ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಉನ್ನತಿ ಯಾವಾಗ?",
+        userQuestion: "ನನ್ನ ವೃತ್ತಿಜೀವನದಲ್ಲಿ ಅಡೆತಡೆಗಳು ಮತ್ತು ದೋಷ ಪರಿಹಾರ ಯಾವಾಗ ಸಾಧ್ಯ?",
         apiKey: ""
       });
 
@@ -648,7 +648,7 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
     it("provides astrological answers grounded in Baggona Panchanga chart math with dosha parihara", async () => {
       const careerAnswer = await generateConsultationAnswer({
         session: mockSessionBase,
-        userQuestion: "ನನ್ನ ವೃತ್ತಿ ಮತ್ತು ವ್ಯಾಪಾರದಲ್ಲಿ ಯಾವಾಗ ಉತ್ತಮ ಲಾಭ ಸಿಗಬಹುದು?",
+        userQuestion: "ನನ್ನ ವೃತ್ತಿ ಮತ್ತು ವ್ಯಾಪಾರದಲ್ಲಿ ಎದುರಾಗುತ್ತಿರುವ ಅಡೆತಡೆ ಹಾಗೂ ದೋಷ ಪರಿಹಾರ ತಿಳಿಸಿ",
         conversationHistory: [],
         apiKey: ""
       });
@@ -1799,7 +1799,7 @@ describe("Baggona 20-Minute Consultation Engine Test Suite", () => {
       // Turn 1: Career frustration query (detects dosha and attaches card)
       const turn1 = await generateConsultationAnswer({
         session: devoteeSession,
-        userQuestion: "ನನಗೆ ಕೆಲಸದಲ್ಲಿ ನಿರಂತರ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆ ಎದುರಾಗುತ್ತಿದೆ",
+        userQuestion: "ನನಗೆ ಕೆಲಸದಲ್ಲಿ ನಿರಂತರ ಕಿರಿಕಿರಿ ಮತ್ತು ಹತಾಶೆ ಎದುರಾಗುತ್ತಿದೆ, ಇದಕ್ಕೆ ದೋಷ ಕಾರಣವೇ ಮತ್ತು ಪರಿಹಾರವೇನು?",
         apiKey: "",
         isSubsequentQuestion: false,
         questionIndex: 0

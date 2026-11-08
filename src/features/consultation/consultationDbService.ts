@@ -280,7 +280,7 @@ function removeLocalSession(id: string): void {
  * - If now >= deleteAt (20m after expiry), deletes from Firestore and local cache
  * - If active and now >= expiresAt (20m after start), sets status = expired
  */
-async function processSessionLifecycle(session: ConsultationSession): Promise<ConsultationSession> {
+export async function processSessionLifecycle(session: ConsultationSession): Promise<ConsultationSession> {
   // CRITICAL GUARD: Pending sessions MUST NEVER be expired or deleted!
   if (session.status === "pending") {
     return session;

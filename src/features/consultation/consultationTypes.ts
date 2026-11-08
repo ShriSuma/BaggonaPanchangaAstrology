@@ -4,6 +4,8 @@
  * Complete Vedic Precision Type Definitions, Devotee Question Logs, Reviews & Telemetry
  */
 
+import { convertTextIfLanguageDiffers } from "../../utils/transliterator";
+
 export type ConsultationLanguage = "kn" | "en" | "hi" | "te" | "ta" | "ml" | "mr";
 
 export type ConsultationStatus = "pending" | "active" | "expired" | "deleted";
@@ -537,7 +539,16 @@ export const CONSULTATION_MODAL_I18N: Record<
  * of their birth chart/Lagna/Rashi, and warmly invites their first question.
  */
 export function getInitialPriestGreeting(lang: ConsultationLanguage, devoteeName: string): string {
-  const name = devoteeName && devoteeName.trim() ? devoteeName.trim() : "ಭಕ್ತರೇ";
+  let name = devoteeName && devoteeName.trim() ? devoteeName.trim() : "";
+  if (name) {
+    try {
+      name = convertTextIfLanguageDiffers(name, lang) || name;
+    } catch {
+      // Keep name as is
+    }
+  } else {
+    name = lang === "kn" ? "ಭಕ್ತರೇ" : lang === "hi" || lang === "mr" ? "भक्त" : lang === "te" ? "భక్తుడా" : lang === "ta" ? "பக்தரே" : "Devotee";
+  }
   switch (lang) {
     case "kn":
       return `ನಮಸ್ಕಾರ ${name} ಅವರೇ, ನಾನು ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮುಖ್ಯ ದೈವಜ್ಞ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್. ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ, ರಾಶಿ ಹಾಗೂ ಜಾತಕವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ವಿಶ್ಲೇಷಿಸಿದ್ದೇನೆ. ಈ ೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿಮ್ಮ ಜೀವನ, ವೃತ್ತಿ, ವಿವಾಹ, ಕೌಟುಂಬಿಕ ಅಥವಾ ಯಾವುದೇ ಗೊಂದಲಗಳಿದ್ದರೂ ಮುಕ್ತವಾಗಿ ತಿಳಿಸಿ; ನಾವಿಬ್ಬರೂ ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ಸಮಾಲೋಚನೆ ನಡೆಸಿ ಪರಿಹಾರ ಕಂಡುಕೊಳ್ಳೋಣ. ನಿಮ್ಮ ಮೊದಲ ಪ್ರಶ್ನೆ ಏನು?`;

@@ -20,6 +20,7 @@ import { normalizeDegree, getAyanamsa, degreeToNakshatraPada } from "../../core/
 import { calculateKundliWithPlaceSun } from "../../core/KundliEngine";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../../core/birthTime";
+import { convertTextIfLanguageDiffers } from "../../utils/transliterator";
 import type { ConsultationSession, ConsultationLanguage } from "./consultationTypes";
 
 export interface DevoteePanchangaProfile {
@@ -42,6 +43,7 @@ export interface DevoteePanchangaProfile {
   nakshatraWithPada: string;
   pada: number;
   rashi: string;
+  moonRashi: string;
   lagna: string;
   yoga: string;
   karana: string;
@@ -759,10 +761,16 @@ export async function computeDevoteePanchangaProfile(
   }
 
   const rawWeekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  let localizedDevoteeName = session.name;
+  try {
+    localizedDevoteeName = convertTextIfLanguageDiffers(session.name, lang) || session.name;
+  } catch {
+    // Keep name
+  }
 
   return {
     name: session.name,
-    devoteeName: session.name,
+    devoteeName: localizedDevoteeName,
     dob: session.dob,
     dobFormatted: session.dob,
     tob: session.tob || "12:00",
@@ -780,6 +788,7 @@ export async function computeDevoteePanchangaProfile(
     nakshatraWithPada,
     pada,
     rashi: rashiName,
+    moonRashi: rashiName,
     lagna: lagnaName,
     yoga: yogaName,
     karana: karanaName,
