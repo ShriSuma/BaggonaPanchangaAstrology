@@ -471,53 +471,57 @@ export function validateBhavishyaV1Content(
     missing.push(msg);
   }
 
-  // Cross-chapter paragraph deduplication validation
-  if (payload) {
+  // Cross-chapter paragraph deduplication & auto-healing
+  if (payload && payload.premiumData) {
     const allParagraphs: string[] = [];
-    const chapterKeys = ['soulMirror', 'characteristics', 'darkSecret', 'currentPhase', 'maandiInquest',
-      'yogas', 'doshas', 'gochara', 'timeline', 'annualForecast', 'summary', 'dashaGocharaCompass'];
+    const chapterKeys = [
+      'soulMirror', 'characteristics', 'darkSecret', 'currentPhase', 'maandiInquest',
+      'yogas', 'doshas', 'gochara', 'timeline', 'annualForecast', 'summary', 'dashaGocharaCompass', 'prashnaGuidance'
+    ];
 
     chapterKeys.forEach(key => {
       const data = (payload.premiumData as any)[key];
       if (Array.isArray(data)) {
+        // Auto-heal / deduplicate array items in-memory so repeated sections are removed seamlessly
+        const dedupedItems: any[] = [];
         data.forEach(item => {
           const text = item.impact || item.paragraph1 || item.paragraph2 || item.truth1Text || item.truth2Text || item.truth3Text || '';
           const paras: string[] = text.split(/\n\n+/).map((p: string) => p.trim()).filter((p: string) => p.length > 20);
-          paras.forEach((p: string) => {
-            const exists = allParagraphs.some((existing: string) => areParagraphsDuplicates(existing, p));
-            if (!exists) allParagraphs.push(p);
-            else {
-              missing.push(`Duplicate paragraph detected in ${getLocalizedSectionName(key, baseLang)}: "${p.substring(0, 50)}..."`);
-            }
-          });
+
+          // Check if every paragraph in this item is already covered in allParagraphs
+          const isItemDuplicate = paras.length > 0 && paras.every((p: string) =>
+            allParagraphs.some((existing: string) => areParagraphsDuplicates(existing, p))
+          );
+
+          if (isItemDuplicate) {
+            console.warn(`[bhavishyaV1Validator] Auto-deleted duplicate item in ${getLocalizedSectionName(key, baseLang)}: "${(item.name || text).substring(0, 50)}..."`);
+          } else {
+            dedupedItems.push(item);
+            paras.forEach((p: string) => {
+              if (!allParagraphs.some((existing: string) => areParagraphsDuplicates(existing, p))) {
+                allParagraphs.push(p);
+              }
+            });
+          }
         });
-      } else if (data && typeof data === 'object') {
-        // Handle object structures (soulMirror, dashaGocharaCompass, maandiInquest)
-        // Extract ONLY paragraph narrative text, NOT titles or labels
-        const parasToCheck: string[] = [];
-        if (key === 'soulMirror') {
-          if (data.truth1Text) parasToCheck.push(data.truth1Text);
-          if (data.truth2Text) parasToCheck.push(data.truth2Text);
-          if (data.truth3Text) parasToCheck.push(data.truth3Text);
-        } else if (key === 'dashaGocharaCompass') {
-          if (data.paragraph1) parasToCheck.push(data.paragraph1);
-          if (data.paragraph2) parasToCheck.push(data.paragraph2);
-          if (data.paragraph3) parasToCheck.push(data.paragraph3);
-        } else if (key === 'maandiInquest') {
-          if (data.paragraph1) parasToCheck.push(data.paragraph1);
-          if (data.paragraph2) parasToCheck.push(data.paragraph2);
-        } else {
-          Object.entries(data).forEach(([prop, val]) => {
-            if (!prop.toLowerCase().includes('title') && typeof val === 'string' && val.length > 60) {
-              parasToCheck.push(val);
-            }
-          });
+
+        if (dedupedItems.length > 0) {
+          (payload.premiumData as any)[key] = dedupedItems;
         }
-        parasToCheck.forEach((val: string) => {
-          const match = allParagraphs.find((existing: string) => areParagraphsDuplicates(existing, val));
-          if (!match) allParagraphs.push(val);
-          else {
-            missing.push(`Duplicate paragraph detected in ${getLocalizedSectionName(key, baseLang)}`);
+      } else if (data && typeof data === 'object') {
+        // Handle object structures (soulMirror, dashaGocharaCompass, maandiInquest, prashnaGuidance)
+        const propsToCheck = ['truth1Text', 'truth2Text', 'truth3Text', 'paragraph1', 'paragraph2', 'paragraph3'];
+        propsToCheck.forEach(prop => {
+          const val = data[prop];
+          if (typeof val === 'string' && val.length > 20) {
+            const isDup = allParagraphs.some((existing: string) => areParagraphsDuplicates(existing, val));
+            if (isDup) {
+              console.warn(`[bhavishyaV1Validator] Auto-resolved duplicate paragraph in ${getLocalizedSectionName(key, baseLang)} (${prop})`);
+              // Clear duplicate paragraph so it does not render twice
+              data[prop] = '';
+            } else {
+              allParagraphs.push(val);
+            }
           }
         });
       }

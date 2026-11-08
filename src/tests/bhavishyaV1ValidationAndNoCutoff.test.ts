@@ -15,7 +15,7 @@ import {
   buildDynamicAnnualForecastFallback
 } from "../features/premiumPdf/dynamicBhavishyaEngine";
 
-const mockCompletePayload: BhavishyaV1Payload = {
+export const mockCompletePayload: BhavishyaV1Payload = {
   ageYears: 32,
   translations: {
     title: "ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದಿವ್ಯ ಭವಿಷ್ಯ ವರದಿ",

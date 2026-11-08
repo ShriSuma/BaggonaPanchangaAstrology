@@ -2918,11 +2918,17 @@ Return ONLY this JSON (no extra text before or after):
           name: y.name || "Dasha Yoga",
           impact: asText(y.significance) || result.masterSynthesis.overallTone
         }));
-      const finalYogas = (rawYogasArray || []).map((y: any) => ({
+      const rawMappedYogas = (rawYogasArray || []).map((y: any) => ({
         ...y,
         name: localizeYogaName(y.name || y.trait || "", lang),
         impact: enrichYogaDescription(y.name || y.trait || "", y.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName)
       }));
+      const finalYogas: typeof rawMappedYogas = [];
+      rawMappedYogas.forEach((y: any) => {
+        if (!finalYogas.some((existing: any) => existing.name.toLowerCase() === y.name.toLowerCase() || areParagraphsDuplicates(existing.impact, y.impact))) {
+          finalYogas.push(y);
+        }
+      });
 
       // Doshas & Remedies with marital status & zero punctuation issues
       const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
@@ -2932,12 +2938,18 @@ Return ONLY this JSON (no extra text before or after):
           impact: asText(d.significance) || result.natalLayer.karmicBaggage.description,
           remedy: d.remedy || result.natalLayer.karmicBaggage.soulPurpose
         }));
-      const finalDoshas = (rawDoshasArray || []).map((d: any) => ({
+      const rawMappedDoshas = (rawDoshasArray || []).map((d: any) => ({
         ...d,
         name: localizeDoshaName(d.name || "", lang),
         impact: enrichDoshaDescription(d.name || "", d.impact || "", lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, parsedKundali.maritalStatus),
         remedy: d.remedy ? localizeDoshaRemedy(d.name, d.remedy, lang, parsedKundali.maritalStatus) : undefined
       }));
+      const finalDoshas: typeof rawMappedDoshas = [];
+      rawMappedDoshas.forEach((d: any) => {
+        if (!finalDoshas.some((existing: any) => existing.name.toLowerCase() === d.name.toLowerCase() || areParagraphsDuplicates(existing.impact, d.impact))) {
+          finalDoshas.push(d);
+        }
+      });
 
       // Gochara
       const rawGocharaFallback = buildDynamicGocharaFallback(parsedKundali);

@@ -170,16 +170,16 @@ export const asText = (value: string | string[] | undefined): string =>
 export const stripSalutationsForComparison = (str: string): string => {
   if (!str) return "";
   return str
-    // Strip Kannada devotee salutations (e.g. "ಮನೋಜ್ ಅವರೇ, ", "ಆತ್ಮೀಯ ಮನೋಜ್ ಅವರೇ, ", "ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ")
-    .replace(/^(?:(?:ಅಭಿಮಾನಿ\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?|ಶ್ರೀಯುತ|ಶ್ರೀ|ಪ್ರಿಯ|ಆತ್ಮೀಯ|ಮಾನ್ಯ)?\s*[\u0C80-\u0CFF\u200C\u200D]+\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರುಗಳೇ|ಅವರ‍್ಗಳೇ)[,!\s]*)+/gu, "")
+    // Strip Kannada devotee salutations (e.g. "ಮನೋಜ್ ಅವರೇ, ", "ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರೇ, ", "ಆತ್ಮೀಯ ಮನೋಜ್ ಅವರೇ, ", "ಶ್ರೀಯುತ ಮನೋಜ್ ಅವರೇ, ")
+    .replace(/^(?:(?:ಅಭಿಮಾನಿ\s*(?:ಶ್ರೀಯುತ|ಶ್ರೀ)?|ಶ್ರೀಯುತ|ಶ್ರೀ|ಪ್ರಿಯ|ಆತ್ಮೀಯ|ಮಾನ್ಯ)?\s*[\u0C80-\u0CFF\u200C\u200D\s]{1,60}?\s*(?:ಅವರೇ|ಅವರಿಗೆ|ಅವರುಗಳೇ|ಅವರ‍್ಗಳೇ)[,!\s]*)+/gu, "")
     // Strip Hindi devotee salutations (e.g. "श्री मनोज जी, ", "आदरणीय मनोज जी, ")
-    .replace(/^(?:(?:श्री|आदरणीय|प्रिय)?\s*[\u0900-\u097F]+\s*(?:जी|को)[,!\s]*)+/gu, "")
+    .replace(/^(?:(?:श्री|आदरणीय|प्रिय)?\s*[\u0900-\u097F\s]{1,60}?\s*(?:जी|को)[,!\s]*)+/gu, "")
     // Strip Telugu devotee salutations (e.g. "శ్రీ మనోజ్ గారు, ")
-    .replace(/^(?:(?:శ్రీ|ప్రియమైన)?\s*[\u0C00-\u0C7F]+\s*(?:గారు|గారికి)[,!\s]*)+/gu, "")
+    .replace(/^(?:(?:శ్రీ|ప్రియమైన)?\s*[\u0C00-\u0C7F\s]{1,60}?\s*(?:గారు|గారికి)[,!\s]*)+/gu, "")
     // Strip Tamil devotee salutations (e.g. "திரு மனோஜ் அவர்களே, ")
-    .replace(/^(?:(?:திரு|திருமதி|அன்பார்ந்த)?\s*[\u0B80-\u0BFF]+\s*(?:அவர்களே|அவர்களுக்கு)[,!\s]*)+/gu, "")
+    .replace(/^(?:(?:திரு|திருமதி|அன்பார்ந்த)?\s*[\u0B80-\u0BFF\s]{1,60}?\s*(?:அவர்களே|அவர்களுக்கு)[,!\s]*)+/gu, "")
     // Strip English devotee salutations (e.g. "Dear Manoj, ")
-    .replace(/^(?:Dear|Respected|Honorable)\s+[A-Za-z\s]+[,!\s]*/gi, "")
+    .replace(/^(?:Dear|Respected|Honorable)\s+[A-Za-z\s]{1,60}?[,!\s]*/gi, "")
     // Strip general section header prefixes (e.g. "ದೈವಜ್ಞ ಸಾರಾಂಶ:", "ದೈವಜ್ಞರ ಅಂತಿಮ ದೃಷ್ಟಿ:", "Summary:")
     .replace(/^(?:ದೈವಜ್ಞ[^\n:–—]+[:–—]|ಜ್ಯೋತಿಷಿ[^\n:–—]+[:–—]|ज्योतिषी[^\n:–—]+[:–—]|Astrologer['’]s[^\n:–—]+[:–—]|Summary[:–—]|ಸಾರಾಂಶ[:–—])/gu, "")
     .trim();
@@ -207,28 +207,30 @@ export const areParagraphsDuplicates = (p1: string, p2: string): boolean => {
   if (!n1 || !n2) return false;
   if (n1 === n2) return true;
 
-  // Prefix match (first 25 characters of stripped text)
-  if (n1.length >= 25 && n2.length >= 25) {
-    if (n1.slice(0, 25) === n2.slice(0, 25)) return true;
+  // Prefix match (at least 75 characters of stripped text) - require substantial length
+  // 25 chars was a bug as common opening phrases like "ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ಪ್ರಕಾರ" matched
+  if (n1.length >= 75 && n2.length >= 75) {
+    if (n1.slice(0, 75) === n2.slice(0, 75)) return true;
   }
 
-  // Substring containment if substantial
-  if (n1.length >= 20 && n2.length >= 20) {
+  // Substring containment if substantial (at least 60 characters)
+  if (n1.length >= 60 && n2.length >= 60) {
     if (n1.includes(n2) || n2.includes(n1)) return true;
-    if (n1.length > 35 && n2.includes(n1.slice(0, 35))) return true;
-    if (n2.length > 35 && n1.includes(n2.slice(0, 35))) return true;
+    if (n1.length > 70 && n2.includes(n1.slice(0, 70))) return true;
+    if (n2.length > 70 && n1.includes(n2.slice(0, 70))) return true;
   }
 
   // Word set Jaccard similarity for token overlap
+  // Require at least 12 significant words and >= 80% overlap to declare duplicate
   const words1 = new Set(s1.split(/[\s,.\-–—:;|!?"'()\[\]]+/u).filter(w => w.length >= 3));
   const words2 = new Set(s2.split(/[\s,.\-–—:;|!?"'()\[\]]+/u).filter(w => w.length >= 3));
-  if (words1.size > 0 && words2.size > 0) {
+  if (words1.size >= 12 && words2.size >= 12) {
     let intersection = 0;
     words1.forEach(w => {
       if (words2.has(w)) intersection++;
     });
     const minSize = Math.min(words1.size, words2.size);
-    if (minSize >= 4 && intersection / minSize >= 0.45) {
+    if (intersection / minSize >= 0.80) {
       return true;
     }
   }
@@ -1717,7 +1719,7 @@ export async function prepareBhavishyaV1Data(
   const rawYogasArray = toSafeArray(dataYogas.yogas).filter((y: any) => (y?.impact || "").trim().length > 10).length > 0
     ? dataYogas.yogas
     : rawYogasFallback;
-  const finalYogas = (rawYogasArray || []).map((y: any) => {
+  const rawYogasMapped = (rawYogasArray || []).map((y: any) => {
     const rawImpact = (y.impact || y.significance || "").trim();
     const enriched = enrichYogaDescription(y.name || y.trait || "", rawImpact, lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName);
     const cleanImpact = cleanDegreesFromText(enriched
@@ -1736,6 +1738,18 @@ export async function prepareBhavishyaV1Data(
       impact: completed,
       significance: paras.length > 0 ? paras : completed
     };
+  });
+
+  // Smart deduplication for finalYogas: ensure all yogas in payload are distinct
+  const finalYogas: typeof rawYogasMapped = [];
+  rawYogasMapped.forEach((y: any) => {
+    const isDup = finalYogas.some((existing: any) =>
+      existing.name.trim().toLowerCase() === y.name.trim().toLowerCase() ||
+      areParagraphsDuplicates(existing.impact, y.impact)
+    );
+    if (!isDup) {
+      finalYogas.push(y);
+    }
   });
 
   const rawDoshasFallback = (effectiveEngineDoshas.length > 0 ? effectiveEngineDoshas : (result.aiGeneratedNarrative?.doshas || [])).map((d: any) => ({
@@ -1791,7 +1805,7 @@ export async function prepareBhavishyaV1Data(
   const rawDoshasArray = toSafeArray(dataDoshas.doshas).filter((d: any) => (d?.impact || "").trim().length > 10).length > 0
     ? dataDoshas.doshas
     : safeDoshaFallback;
-  const finalDoshas = (rawDoshasArray || []).map((d: any) => {
+  const rawDoshasMapped = (rawDoshasArray || []).map((d: any) => {
     const rawImpact = d.impact || d.significance || "";
     const enrichedImpact = cleanDegreesFromText(enrichDoshaDescription(d.name || "", rawImpact, lang, lagnaStr, moonStr, ageYears, dashaName, bhuktiName, parsedKundali.maritalStatus));
     const cleanRemedy = cleanDegreesFromText(localizeDoshaRemedy(d.name || "", d.remedy, lang, parsedKundali.maritalStatus));
@@ -1806,6 +1820,18 @@ export async function prepareBhavishyaV1Data(
       significance: paras.length > 0 ? paras : completed,
       remedy: cleanRemedyCompleted
     };
+  });
+
+  // Smart deduplication for finalDoshas: ensure all doshas in payload are distinct
+  const finalDoshas: typeof rawDoshasMapped = [];
+  rawDoshasMapped.forEach((d: any) => {
+    const isDup = finalDoshas.some((existing: any) =>
+      existing.name.trim().toLowerCase() === d.name.trim().toLowerCase() ||
+      areParagraphsDuplicates(existing.impact, d.impact)
+    );
+    if (!isDup) {
+      finalDoshas.push(d);
+    }
   });
 
   const dynamicTimelineFallback = buildDynamicTimelineFallback(parsedKundali);

@@ -5,7 +5,9 @@ import { calculateComprehensiveDoshas } from "../core/ComprehensiveDoshaEngine";
 import { calculateKundli } from "../core/KundliEngine";
 import type { KundliInput } from "../core/AstroTypes";
 import { KundliDoshaPdfTemplate } from "../components/kundli/KundliDoshaPdfTemplate";
-import { ensureAtLeastThreeParagraphs, areParagraphsDuplicates, detectSummaryPillar } from "../features/premiumPdf/bhavishyaV1Service";
+import { ensureAtLeastThreeParagraphs, areParagraphsDuplicates, detectSummaryPillar, stripSalutationsForComparison } from "../features/premiumPdf/bhavishyaV1Service";
+import { validateBhavishyaV1Content } from "../features/premiumPdf/bhavishyaV1Validator";
+import { mockCompletePayload } from "./bhavishyaV1ValidationAndNoCutoff.test";
 
 describe("Dosha Galu PDF Redesign & Summary Deduplication Audit", () => {
   const native: KundliInput = {
@@ -221,5 +223,84 @@ describe("Dosha Galu PDF Redesign & Summary Deduplication Audit", () => {
       expect(badge.style.whiteSpace).toBe("nowrap");
       expect(badge.style.display).toBe("inline-flex");
     });
+  });
+
+  it("9. strips multi-word devotee name salutations and prevents false-positive duplicate flags between distinct doshas", () => {
+    // Multi-word devotee name: "ಶ್ರೀರಾಮ ಪಂಡಿತ್"
+    const pKuja = "ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರೇ, ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಕುಜ ಗ್ರಹವು ದ್ವಾದಶ ಭಾವದಲ್ಲಿ ಸ್ಥಿತವಾಗಿದ್ದು, ಮಂಗಳ ದೋಷದ ಪ್ರಭಾವವನ್ನು ಸೌಮ್ಯವಾಗಿ ಉಂಟುಮಾಡುತ್ತದೆ.";
+    const pNarayana = "ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ ದೋಷದ ಛಾಯೆ ಕಂಡುಬರುತ್ತಿದ್ದು, ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ ಪಡೆಯಲು ಪೂಜೆ ಅಗತ್ಯವಿದೆ.";
+
+    // Salutation stripping must succeed for multi-word names
+    const strippedKuja = stripSalutationsForComparison(pKuja);
+    const strippedNarayana = stripSalutationsForComparison(pNarayana);
+
+    expect(strippedKuja).not.toContain("ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರೇ");
+    expect(strippedNarayana).not.toContain("ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರೇ");
+    expect(strippedKuja).toContain("ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಕುಜ ಗ್ರಹವು");
+    expect(strippedNarayana).toContain("ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ");
+
+    // Classical distinct doshas must NEVER be flagged as duplicate paragraphs!
+    expect(areParagraphsDuplicates(pKuja, pNarayana)).toBe(false);
+  });
+
+  it("10. verifies validateBhavishyaV1Content auto-deduplicates duplicate paragraphs in-memory without aborting download", () => {
+    // Mock container with minimum height and required sections
+    const container = document.createElement("div");
+    container.style.height = "5000px";
+    Object.defineProperty(container, "scrollHeight", { value: 6000, configurable: true });
+    Object.defineProperty(container, "offsetHeight", { value: 6000, configurable: true });
+
+    for (let i = 0; i < 12; i++) {
+      const sec = document.createElement("div");
+      sec.className = "pdf-section";
+      sec.textContent = `Section content ${i}`;
+      container.appendChild(sec);
+    }
+
+    const soulMirrorSec = document.createElement("div");
+    soulMirrorSec.className = "pdf-section";
+    soulMirrorSec.setAttribute("data-section", "soul-mirror");
+    soulMirrorSec.textContent = "ಅಧ್ಯಾಯ ೧: ಅಂತರಂಗದ ತ್ರಿವಿಧ ಸತ್ಯಗಳು ಹಾಗೂ ಪಂಚಭೂತ ಚೇತನ ಶಕ್ತಿ";
+    container.appendChild(soulMirrorSec);
+
+    const timelineSec = document.createElement("div");
+    timelineSec.className = "pdf-section";
+    timelineSec.setAttribute("data-section", "timeline");
+    timelineSec.textContent = "೬ ತಿಂಗಳ ಭವಿಷ್ಯ ನಕ್ಷೆ Timeline";
+    container.appendChild(timelineSec);
+
+    const summarySec = document.createElement("div");
+    summarySec.className = "pdf-section";
+    summarySec.setAttribute("data-section", "summary");
+    summarySec.id = "pdf-section-summary";
+    summarySec.textContent = "ಜ್ಯೋತಿಷಿಯ ಸಾರಾಂಶ Saramsha Complete";
+    container.appendChild(summarySec);
+
+    const prashnaSec = document.createElement("div");
+    prashnaSec.className = "pdf-section";
+    prashnaSec.setAttribute("data-section", "prashna-guidance");
+    prashnaSec.textContent = "ಪ್ರಶ್ನಾ ದೃಷ್ಟಿ & ತಾತ್ಕಾಲಿಕ ಮಾರ್ಗದರ್ಶನ Complete";
+    container.appendChild(prashnaSec);
+
+    // Payload containing duplicate item in doshas
+    const pShared = "ಶ್ರೀರಾಮ ಪಂಡಿತ್ ಅವರೇ, ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ನಾರಾಯಣ ಬಲಿ ದೋಷದ ಛಾಯೆ ಕಂಡುಬರುತ್ತಿದ್ದು, ಪೂರ್ವಜರ ಆಶೀರ್ವಾದ ಪಡೆಯಲು ಪೂಜೆ ಅಗತ್ಯವಿದೆ.";
+    const testPayload = JSON.parse(JSON.stringify(mockCompletePayload));
+    testPayload.premiumData.doshas = [
+      { name: "ಕುಜ ದೋಷ", impact: "ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನದಿಂದ ಕುಜ ಗ್ರಹವು ದ್ವಾದಶ ಭಾವದಲ್ಲಿದೆ." },
+      { name: "ನಾರಾಯಣ ಬಲಿ", impact: pShared },
+      { name: "ನಾರಾಯಣ ಬಲಿ ನಕಲು", impact: pShared } // Exact duplicate item
+    ];
+
+    const res = validateBhavishyaV1Content(container, testPayload, "kn");
+
+    // MUST be valid - download must NOT be aborted!
+    expect(res.isValid).toBe(true);
+    expect(res.missingSections).toHaveLength(0);
+    expect(res.errorMessage).toBe("");
+
+    // In-memory auto-healing: duplicate dosha was cleanly removed
+    expect(testPayload.premiumData.doshas.length).toBe(2);
+    expect(testPayload.premiumData.doshas[0].name).toBe("ಕುಜ ದೋಷ");
+    expect(testPayload.premiumData.doshas[1].name).toBe("ನಾರಾಯಣ ಬಲಿ");
   });
 });
