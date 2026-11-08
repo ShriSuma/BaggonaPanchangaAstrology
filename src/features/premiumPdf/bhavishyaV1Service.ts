@@ -1631,20 +1631,51 @@ export async function prepareBhavishyaV1Data(
   }));
 
   const dynamicPrashnaFallbackText = buildDynamicPrashnaFallback(parsedKundali);
+  // Consolidate Prashna guidance into a single narrative before validation to prevent duplicate fallback appending
   let rawPrashnaInput: any = dataPrashnaGuidance?.prashnaGuidance;
-  if (typeof rawPrashnaInput === "string") {
-    rawPrashnaInput = [{ impact: rawPrashnaInput }];
-  } else if (Array.isArray(rawPrashnaInput)) {
-    rawPrashnaInput = rawPrashnaInput.map((item: any) => {
-      if (typeof item === "string") return { impact: item };
-      return { impact: item?.impact || item?.text || "" };
+  if (Array.isArray(rawPrashnaInput)) {
+    const uniquePrashnaParas: string[] = [];
+    rawPrashnaInput.forEach((item: any) => {
+      const text = typeof item === "string" ? item : item?.impact || item?.text || item?.description || "";
+      const paras = text.split(/\n\s*\n|\n+/).map((p: string) => p.trim()).filter((p: string) => p.length > 20);
+      paras.forEach((p: string) => {
+        if (!uniquePrashnaParas.some(existing => areParagraphsDuplicates(existing, p))) {
+          uniquePrashnaParas.push(p);
+        }
+      });
     });
+    rawPrashnaInput = [{ impact: uniquePrashnaParas.join("\n\n") }];
+  } else if (typeof rawPrashnaInput === "string") {
+    rawPrashnaInput = [{ impact: rawPrashnaInput }];
   }
+
   const rawFinalPrashna = await ensureValidSection(rawPrashnaInput, dynamicPrashnaFallbackText, lang, 100);
-  const finalPrashnaGuidance = (rawFinalPrashna || []).map((p: any) => ({
-    ...p,
-    impact: cleanDegreesFromText(p.impact || "")
-  }));
+  const finalPrashnaGuidance = (rawFinalPrashna || []).map((p: any) => {
+    const rawClean = cleanEnglishFromRegionalText(p.impact || "", lang);
+    const completed = ensureCompleteSentences(rawClean, lang);
+    const paras = completed.split(/\n\s*\n|\n+/).map((para: string) => para.trim()).filter((para: string) => para.length > 15);
+    const dedupedParas: string[] = [];
+    let hasShieldCallout = false;
+
+    paras.forEach((para: string) => {
+      const isShield = para.startsWith("【") || para.startsWith("[");
+      if (isShield) {
+        if (!hasShieldCallout) {
+          dedupedParas.push(para);
+          hasShieldCallout = true;
+        }
+      } else {
+        if (!dedupedParas.some(existing => areParagraphsDuplicates(existing, para))) {
+          dedupedParas.push(para);
+        }
+      }
+    });
+
+    return {
+      ...p,
+      impact: cleanDegreesFromText(dedupedParas.join("\n\n"))
+    };
+  });
 
   const rawNarrativeYogas = toSafeArray(result.aiGeneratedNarrative?.yogas).filter(
     (y: any) => (y?.impact || y?.significance || "").trim().length > 10
@@ -2295,17 +2326,15 @@ export async function captureBhavishyaV1Pdf(
           : `10. Rendering High-Definition Section (${i + 1}/${sections.length})...`
       );
 
-      const sectionHeight = sectionEl.scrollHeight || sectionEl.offsetHeight;
-      // Defensive scale clamping to never exceed 15,000px canvas dimension
-      const sectionScale = sectionHeight * 2 > 15000 ? Math.max(1, Math.floor(15000 / sectionHeight)) : 2;
-
       // Render each section in an isolated top-level container at (left: 0, top: 0)
-      // to guarantee html2canvas never clips or drops sections outside viewport!
+      // using position absolute (NOT fixed) with explicit height to guarantee html2canvas
+      // captures the entire content height without clipping tall sections like Yogas or Doshas!
       const tempBox = document.createElement("div");
-      tempBox.style.position = "fixed";
+      tempBox.style.position = "absolute";
       tempBox.style.left = "0px";
       tempBox.style.top = "0px";
       tempBox.style.width = "900px";
+      tempBox.style.overflow = "visible";
       tempBox.style.zIndex = "-9999";
       tempBox.style.backgroundColor = "#FFF7ED";
       tempBox.style.pointerEvents = "none";
@@ -2335,6 +2364,25 @@ export async function captureBhavishyaV1Pdf(
       tempBox.appendChild(sectionClone);
       document.body.appendChild(tempBox);
 
+      // Measure true rendered height with all fonts and nested elements expanded
+      const measuredSectionHeight = Math.max(
+        sectionEl.scrollHeight || 0,
+        sectionEl.offsetHeight || 0,
+        sectionEl.getBoundingClientRect().height || 0
+      );
+      const trueHeight = Math.max(
+        tempBox.scrollHeight,
+        tempBox.offsetHeight,
+        sectionClone.scrollHeight,
+        sectionClone.offsetHeight,
+        measuredSectionHeight,
+        350
+      );
+      tempBox.style.height = `${trueHeight}px`;
+
+      // Defensive scale clamping to never exceed 15,000px canvas dimension
+      const sectionScale = trueHeight * 2 > 15000 ? Math.max(1, Math.floor(15000 / trueHeight)) : 2;
+
       let canvas: HTMLCanvasElement | null = null;
       try {
         canvas = await html2canvas(tempBox, {
@@ -2345,7 +2393,10 @@ export async function captureBhavishyaV1Pdf(
           allowTaint: true,
           scrollX: 0,
           scrollY: 0,
-          windowWidth: 900
+          width: 900,
+          height: trueHeight,
+          windowWidth: 900,
+          windowHeight: trueHeight + 600
         });
       } finally {
         if (tempBox.parentElement) {
@@ -2409,13 +2460,21 @@ export async function captureBhavishyaV1Pdf(
           tempSummaryBox.appendChild(summaryClone);
           document.body.appendChild(tempSummaryBox);
 
+          const sumHeight = Math.max(tempSummaryBox.scrollHeight, tempSummaryBox.offsetHeight, summaryClone.scrollHeight, 400);
+          tempSummaryBox.style.height = `${sumHeight}px`;
+
           const sumCanvas = await html2canvas(tempSummaryBox, {
             scale: 2,
             useCORS: true,
             logging: false,
             backgroundColor: "#FFF7ED",
             allowTaint: true,
-            windowWidth: 900
+            scrollX: 0,
+            scrollY: 0,
+            width: 900,
+            height: sumHeight,
+            windowWidth: 900,
+            windowHeight: sumHeight + 600
           });
           document.body.removeChild(tempSummaryBox);
 

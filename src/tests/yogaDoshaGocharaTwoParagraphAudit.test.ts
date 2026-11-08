@@ -150,7 +150,7 @@ describe("Yoga, Dosha & Gochara Two-Paragraph Strict Contract Audit", () => {
     });
 
     it("preserves AI text if it already contains 2 substantial paragraphs", () => {
-      const existingP1 = "This is a detailed Vedic definition of Gajakesari Yoga explaining the planetary positions in great depth and classical authority.".repeat(2);
+      const existingP1 = "This is a detailed Vedic definition of Gajakesari Yoga explaining the graha sthitis in great depth and classical authority.".repeat(2);
       const existingP2 = "This explains what this yoga is currently doing in their life regarding career stability, ethical leadership, and peace of mind.".repeat(2);
       const fullText = `${existingP1}\n\n${existingP2}`;
 

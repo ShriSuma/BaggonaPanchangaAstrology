@@ -1442,29 +1442,55 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
             <div className="absolute bottom-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
             <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
 
-            {premiumData!.prashnaGuidance!.map((pg, idx) => (
-              <div key={idx} className="space-y-6" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                {cleanSectionNarrative(pg.impact || "").map((cleaned, pIdx) => {
+            {(() => {
+              // Deduplicate paragraphs across all prashnaGuidance items to guarantee zero repeated paragraphs and at most 1 Stotra/Shield box
+              const allParas: string[] = [];
+              let hasShieldBox = false;
+
+              (premiumData?.prashnaGuidance || []).forEach((pg) => {
+                const cleanedParas = cleanSectionNarrative(pg.impact || "");
+                cleanedParas.forEach((cleaned) => {
+                  if (!cleaned || cleaned.length < 15) return;
                   const trimmed = cleaned.trim();
                   const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
                   if (isShield) {
-                    return (
-                      <div
-                        key={pIdx}
-                        className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
-                      >
-                        {cleaned}
-                      </div>
-                    );
+                    if (!hasShieldBox) {
+                      allParas.push(cleaned);
+                      hasShieldBox = true;
+                    }
+                  } else {
+                    const exists = allParas.some((existing) => areParagraphsDuplicates(existing, cleaned));
+                    if (!exists) {
+                      allParas.push(cleaned);
+                    }
                   }
-                  return (
-                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
-                      {cleaned}
-                    </p>
-                  );
-                })}
-              </div>
-            ))}
+                });
+              });
+
+              return (
+                <div className="space-y-6">
+                  {allParas.map((cleaned, pIdx) => {
+                    const trimmed = cleaned.trim();
+                    const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
+                    if (isShield) {
+                      return (
+                        <div
+                          key={pIdx}
+                          className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
+                        >
+                          {cleaned}
+                        </div>
+                      );
+                    }
+                    return (
+                      <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
+                        {cleaned}
+                      </p>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

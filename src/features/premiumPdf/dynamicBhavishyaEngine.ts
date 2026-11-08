@@ -5871,6 +5871,7 @@ export function ensureCompleteSentences(text: string, lang: string = 'kn'): stri
 
     // 1. Remove dangling trailing conjunctions, pronouns, or prepositions left by AI token cutoff:
     // (Never strip the terminal punctuation of the preceding valid sentence!)
+    const initialText = p;
     if (baseLang === "kn") {
       let prev = "";
       while (prev !== p) {
@@ -5903,19 +5904,23 @@ export function ensureCompleteSentences(text: string, lang: string = 'kn'): stri
       }
     }
 
+    const hadDanglingWord = p !== initialText;
+
     // Clean any trailing comma, colon, semicolon, or dash left before the dangling word
+    const beforePunct = p;
     p = p.replace(/[,;:\-–—]\s*$/gu, "").trim();
+    const hadTrailingPunct = p !== beforePunct;
 
     p = p.trim();
-    // 2. If paragraph doesn't end with terminal punctuation, check if last fragment is incomplete
+    // 2. If paragraph doesn't end with terminal punctuation:
     if (!/[.!?|।॥]$/.test(p)) {
       // Find the last complete sentence terminating punctuation
       const lastTermMatch = [...p.matchAll(/[.!?|।॥]/g)].pop();
-      if (lastTermMatch && typeof lastTermMatch.index === "number") {
+      if ((hadDanglingWord || hadTrailingPunct) && lastTermMatch && typeof lastTermMatch.index === "number") {
         // Strip the dangling sentence fragment after the last terminal punctuation
         p = p.slice(0, lastTermMatch.index + 1).trim();
       } else {
-        // If no punctuation was found or it was too early, append appropriate terminal punctuation
+        // If no dangling word was removed, this is a legitimate full sentence simply missing its closing punctuation
         p = `${p}${baseLang === "hi" ? "।" : "."}`;
       }
     }
