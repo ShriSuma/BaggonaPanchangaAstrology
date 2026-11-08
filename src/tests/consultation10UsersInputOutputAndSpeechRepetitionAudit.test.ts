@@ -143,9 +143,9 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       const cleanQuestion = sanitizeDuplicateSpeechWords(rawSpoken);
       expect(cleanQuestion).toBe("ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?");
 
-      // Verify marriage reading respects Aries Lagna: NO Diamond, but Red Coral
+      // Verify marriage reading respects Aries Lagna: NO Diamond, pure matrimonial timing & Kalyana Sankalpa
       const marriageReading = buildDeterministicMarriageReading(user1, cleanQuestion, astro);
-      expect(marriageReading).toContain("ಕೆಂಪು ಹವಳ");
+      expect(marriageReading).toContain("ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ");
       expect(marriageReading).not.toContain("ವಜ್ರ");
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "kn");
@@ -175,8 +175,8 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("मेरी शादी कब होगी बताइए?");
 
       const marriageReading = buildDeterministicMarriageReading(user2, cleanQuestion, astro);
-      expect(marriageReading).toContain("हीरा");
-      expect(marriageReading).toContain("सफेद जरकन");
+      expect(marriageReading).toContain("कल्याण संकल्प");
+      expect(marriageReading).not.toContain("सफेद जरकन"); // Marriage reading does not give unsolicited gemstone advice
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "hi");
       expect(gemText).toContain("हीरा");
@@ -205,7 +205,7 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("నా పెళ్లి ఎప్పుడు అవుతుంది?");
 
       const reading = buildDeterministicMarriageReading(user3, cleanQuestion, astro);
-      expect(reading).toContain("ముత్యం"); // Pearl
+      expect(reading).toContain("కళ్యాణ సంకల్ప");
       expect(reading).not.toContain("వజ్రం"); // No Diamond
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "te");
@@ -235,7 +235,7 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("எனக்கு திருமணம் எப்போது நடக்கும்?");
 
       const reading = buildDeterministicMarriageReading(user4, cleanQuestion, astro);
-      expect(reading).toContain("மாணிக்கம்"); // Ruby
+      expect(reading).toContain("கல்யாண சங்கல்ப");
       expect(reading).not.toContain("வைரம்"); // No Diamond
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "ta");
@@ -296,8 +296,11 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("എന്റെ വിവാഹം എപ്പോൾ നടക്കും?");
 
       const reading = buildDeterministicMarriageReading(user6, cleanQuestion, astro);
-      expect(reading).toContain("പവിഴം"); // Coral
+      expect(reading).toContain("കല്യാണ സങ്കൽപ്പ");
       expect(reading).not.toContain("വജ്രം"); // No Diamond
+
+      const gemText = getLagnaPrescribedGemstoneText(astro, "ml");
+      expect(gemText).toContain("പവിഴം");
     });
 
     // -----------------------------------------------------------------------
@@ -323,8 +326,11 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("माझे लग्न कधी होईल?");
 
       const reading = buildDeterministicMarriageReading(user7, cleanQuestion, astro);
-      expect(reading).toContain("पुखराज"); // Yellow Sapphire
+      expect(reading).toContain("कल्याण संकल्प");
       expect(reading).not.toContain("हिरा"); // No Diamond
+
+      const gemText = getLagnaPrescribedGemstoneText(astro, "mr");
+      expect(gemText).toContain("पुखराज");
     });
 
     // -----------------------------------------------------------------------
@@ -401,8 +407,11 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       const question = "నా వివాహం ఎప్పుడు ఖాయమవుతుంది?";
       const reading = buildDeterministicMarriageReading(user10, question, astro);
 
-      expect(reading).toContain("పుష్యరాగం"); // Pushparaga
+      expect(reading).toContain("కళ్యాణ సంకల్ప");
       expect(reading).not.toContain("వజ్రం"); // No Diamond
+
+      const gemText = getLagnaPrescribedGemstoneText(astro, "te");
+      expect(gemText).toContain("పుష్యరాగం");
     });
   });
 });

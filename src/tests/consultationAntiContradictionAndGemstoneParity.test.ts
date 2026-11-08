@@ -316,7 +316,9 @@ describe("Consultation Anti-Contradiction & Vedic Gemstone Parity Suite", () => 
     expect(enReading).toContain("100% Confident Astrological Prediction");
     expect(enReading).toContain("within the next 6 months your marriage will definitely be solemnized");
     expect(enReading).toContain("zero room for doubt or dilemma");
-    expect(enReading).toContain("Diamond");
+    expect(enReading).toContain("Kalyana Sankalpa");
+    // Strictly zero unsolicited gemstone advice in marriage questions
+    expect(enReading).not.toContain("Diamond");
 
     // Kannada
     const knReading = buildDeterministicMarriageReading(
@@ -327,7 +329,9 @@ describe("Consultation Anti-Contradiction & Vedic Gemstone Parity Suite", () => 
     expect(knReading).toContain("೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ");
     expect(knReading).toContain("ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ");
     expect(knReading).toContain("ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಅನುಮಾನಕ್ಕೆ ಆಸ್ಪದವಿಲ್ಲ");
-    expect(knReading).toContain("ವಜ್ರ");
+    expect(knReading).toContain("ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ");
+    // Strictly zero unsolicited gemstone advice in marriage questions
+    expect(knReading).not.toContain("ವಜ್ರ");
   });
 
   it("8. detectAndResolveUltaPaltaProbe firmly rejects Pushparaga for Libra across reversed probes", () => {

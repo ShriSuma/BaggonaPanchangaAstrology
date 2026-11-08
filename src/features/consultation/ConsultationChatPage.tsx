@@ -45,7 +45,8 @@ import {
   DEFAULT_PRIEST_CONTACT,
   CONSULTATION_MODAL_I18N,
   CONSULTATION_CHAT_UI_I18N,
-  getLocalizedQuickFaqChips
+  getLocalizedQuickFaqChips,
+  getInitialPriestGreeting
 } from "./consultationTypes";
 import {
   generateConsultationAnswer,
@@ -433,14 +434,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           }
 
           if (data.status === "pending") {
-            // Mobile number is strictly mandatory before starting progress or accessing the 20-min session.
-            // If already present in DB (e.g. entered earlier or in another browser), do not show modal.
-            const hasStoredValidPhone = Boolean(data.userPhone && isValidPhoneNumber(data.userPhone.trim()));
-            if (!hasStoredValidPhone) {
-              setShowContactModal(true);
-            } else {
-              setShowContactModal(false);
-            }
+            // Clean initial landing: Do NOT show modal on initial load.
+            // Devotee views their sacred Panchanga Patrika Card and clicks "Start Consultation".
+            setShowContactModal(false);
             setShowTimerModal(false);
             setRemainingSeconds((data.durationMinutes || 20) * 60);
           } else if (data.status === "active" && data.expiresAt) {
@@ -494,8 +490,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     if (fresh.userEmail) setContactEmail(fresh.userEmail);
 
     if (fresh.status === "pending") {
-      const hasStoredValidPhone = Boolean(fresh.userPhone && isValidPhoneNumber(fresh.userPhone.trim()));
-      setShowContactModal(!hasStoredValidPhone);
+      setShowContactModal(false);
       setShowTimerModal(false);
       setRemainingSeconds((fresh.durationMinutes || 20) * 60);
     } else if (fresh.status === "active" && fresh.expiresAt) {
@@ -598,27 +593,9 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     async function initWelcome() {
       // ONLY initialize welcome when session is active and messages is empty
       if (session && session.status === "active" && messages.length === 0) {
-        const kundliData = await computeDevoteeKundli(session);
         if (isCancelled) return;
 
-        let welcomeText = "";
-        if (session.language === "en") {
-          welcomeText = `Namaste ${session.name}! Welcome to your 20-minute private Vedic astrological consultation with Sri Baggona Panchanga, Gokarna.\n\nAccording to your birth chart, you are born in ${kundliData.lagnaName} Lagna and ${kundliData.moonRashi} Moon Sign with ${kundliData.nakshatra} Nakshatra (Pada ${kundliData.pada}). Currently, you are in ${kundliData.currentDashaText}.\n\nYou can ask any question regarding your current life situation, job, business, marriage, health, or remedial Shanti homas. Feel free to type or tap the microphone to speak.`;
-        } else if (session.language === "hi") {
-          welcomeText = `नमस्ते ${session.name} जी! श्री बग्गोण पंचांग, गोकर्ण में आपके 20 मिनट के वैदिक ज्योतिष परामर्श में स्वागत है।\n\nआपकी जन्म कुंडली के अनुसार आपका ${kundliData.lagnaName} लग्न और ${kundliData.moonRashi} चंद्र राशि है, साथ ही ${kundliData.nakshatra} नक्षत्र (चरण ${kundliData.pada}) है। वर्तमान में आपकी ${kundliData.currentDashaText} चल रही है।\n\nआप अपने भविष्य, करियर, विवाह, आर्थिक स्थिति या ग्रह शांति के बारे में कोई भी प्रश्न पूछ सकते हैं।`;
-        } else if (session.language === "te") {
-          welcomeText = `నమస్కారం ${session.name} గారు! శ్రీ బగ్గోణ పంచాంగం, గోకర్ణ 20 నిమిషాల వేద జ్యోతిష్య సంప్రదింపులకు స్వాగతం.\n\nమీ జన్మ కుండలి ప్రకారం మీరు ${kundliData.lagnaName} లగ్నం మరియు ${kundliData.moonRashi} చంద్ర రాశి, ${kundliData.nakshatra} నక్షత్రం (పాదం ${kundliData.pada})లో జన్మించారు. ప్రస్తుతం మీ జాతకంలో ${kundliData.currentDashaText} నడుస్తోంది.\n\nమీరు మీ భవిష్యత్తు, ఉద్యోగం, వివాహం లేదా పరిహారాల గురించి ఏవైనా ప్రశ్నలు అడగవచ్చు.`;
-        } else if (session.language === "ta") {
-          welcomeText = `வணக்கம் ${session.name}! ஸ்ரீ பக்கவணா பஞ்சாங்கம், கோகர்ணாவின் 20 நிமிட வேத ஜோதிட ஆலோசனைக்கு உங்களை வரவேற்கிறோம்.\n\nஉங்கள் ஜாதகப்படி நீங்கள் ${kundliData.lagnaName} லக்னம் மற்றும் ${kundliData.moonRashi} ராசி, ${kundliData.nakshatra} நட்சத்திரம் (பாதம் ${kundliData.pada})த்தில் பிறந்துள்ளீர்கள். தற்போது உங்கள் ஜாதகத்தில் ${kundliData.currentDashaText} நடப்பில் உள்ளது.\n\nஉங்கள் வேலை, திருமணம், குடும்பம் அல்லது பரிகாரங்கள் குறித்து எந்த கேள்வியையும் நீங்கள் கேட்கலாம்.`;
-        } else if (session.language === "ml") {
-          welcomeText = `നമസ്കാരം ${session.name}! ശ്രീ ബഗ്ഗോണ പഞ്ചാംഗം, ഗോകർണത്തിന്റെ 20 മിനിറ്റ് വേദ ജ്യോതിഷ കൺസൾട്ടേഷനിലേക്ക് സ്വാഗതം.\n\nനിങ്ങളുടെ ജാതകപ്രകാരം ${kundliData.lagnaName} ലഗ്നവും ${kundliData.moonRashi} രാശിയും ${kundliData.nakshatra} നക്ഷത്രവും (പാദം ${kundliData.pada}) ആണ്. ഇപ്പോൾ നിങ്ങളുടെ ജാതകത്തിൽ ${kundliData.currentDashaText} നടക്കുന്നു.\n\nനിങ്ങളുടെ കരിയർ, വിവാഹം, കുടുംബം അല്ലെങ്കിൽ പൂജാ പരിഹാരങ്ങൾ സംബന്ധിച്ച ഏത് ചോദ്യവും ചോദിക്കാം.`;
-        } else if (session.language === "mr") {
-          welcomeText = `नमस्कार ${session.name} जी! श्री बग्गोण पंचांग, गोकर्ण यांच्या 20 मिनिटांच्या वैदिक ज्योतिष सल्लामसलतीमध्ये आपले स्वागत आहे.\n\nआपल्या जन्मकुंडलीनुसार आपला जन्म ${kundliData.lagnaName} लग्न आणि ${kundliData.moonRashi} राशीमध्ये ${kundliData.nakshatra} नक्षत्रात (चरण ${kundliData.pada}) झाला आहे. सध्या आपल्या पत्रिकेत ${kundliData.currentDashaText} सुरू आहे.\n\nआपण आपल्या करिअर, विवाह, संपत्ती किंवा ग्रह शांती उपायांबद्दल कोणताही प्रश्न विचारू शकता.`;
-        } else {
-          // Kannada default
-          welcomeText = `ನಮಸ್ಕಾರ ${session.name} ಅವರೇ! ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಜ್ಞ ಮುಖಾಮುಖಿ ಸಮಾಲೋಚನೆಗೆ ಆತ್ಮೀಯ ಸ್ವಾಗತ.\n\nನಿಮ್ಮ ಜನ್ಮಕುಂಡಲಿಯ ಶಾಸ್ತ್ರೋಕ್ತ ಲೆಕ್ಕಾಚಾರದ ಪ್ರಕಾರ ನೀವು ${kundliData.lagnaName} ಲಗ್ನ, ${kundliData.moonRashi} ರಾಶಿ ಹಾಗೂ ${kundliData.nakshatra} ನಕ್ಷತ್ರ (ಪಾದ ${kundliData.pada})ದಲ್ಲಿ ಜನ್ಮತಾಳಿದ್ದೀರಿ. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ${kundliData.currentDashaText} ನಡೆಯುತ್ತಿದೆ.\n\nನಿಮ್ಮ ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ, ಉದ್ಯೋಗ, ವ್ಯಾಪಾರ, ವಿವಾಹ, ಕೌಟುಂಬಿಕ ಶಾಂತಿ ಹಾಗೂ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ದೈವಿಕ ಪರಿಹಾರಗಳ ಕುರಿತು ಯಾವುದೇ ಪ್ರಶ್ನೆಗಳನ್ನು ಮುಕ್ತವಾಗಿ ಕೇಳಿ.`;
-        }
-
+        const welcomeText = getInitialPriestGreeting(session.language, session.name);
         const welcomeMsg: ConsultationChatMessage = {
           id: "msg_welcome",
           sender: "astrologer",
@@ -675,10 +652,20 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         phone: phoneTrim,
         email: emailTrim || undefined
       });
-      setSession(updated);
       setContactPhone(phoneTrim);
       if (emailTrim) setContactEmail(emailTrim);
       setShowContactModal(false);
+
+      // Start the 20-minute consultation timer immediately in Firestore
+      const started = await startConsultationTimer(updated.id);
+      setSession(started);
+      sessionRef.current = started;
+      setMessages(started.messages || []);
+      const left = started.expiresAt
+        ? Math.max(0, Math.floor((new Date(started.expiresAt).getTime() - Date.now()) / 1000))
+        : 1200;
+      setRemainingSeconds(left);
+      setShowTimerModal(false);
     } catch (err: any) {
       setContactError("Failed to save contact: " + (err.message || String(err)));
     } finally {
@@ -717,9 +704,13 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   const handleStartConsultationFromCard = async () => {
     if (!session || startingTimer) return;
     const phoneTrim = (contactPhone || session.userPhone || "").trim();
+    const emailTrim = (contactEmail || session.userEmail || "").trim();
 
-    // Enforce mandatory mobile number before starting consultation timer
-    if (!phoneTrim || !isValidPhoneNumber(phoneTrim)) {
+    const hasValidPhone = phoneTrim && isValidPhoneNumber(phoneTrim);
+    const hasValidEmail = emailTrim && isValidEmailAddress(emailTrim);
+
+    // If neither valid mobile nor valid email is provided, prompt devotee via modal
+    if (!hasValidPhone && !hasValidEmail) {
       setShowContactModal(true);
       return;
     }
@@ -727,10 +718,10 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     setStartingTimer(true);
     try {
       let currentSession = session;
-      if (!session.hasProvidedContact || session.userPhone !== phoneTrim) {
+      if (!session.hasProvidedContact || (hasValidPhone && session.userPhone !== phoneTrim) || (hasValidEmail && session.userEmail !== emailTrim)) {
         currentSession = await updateDevoteeContact(session.id, {
-          phone: phoneTrim,
-          email: contactEmail.trim() || session.userEmail || undefined
+          phone: hasValidPhone ? phoneTrim : undefined,
+          email: hasValidEmail ? emailTrim : undefined
         });
       }
       const updated = await startConsultationTimer(currentSession.id);
@@ -1742,6 +1733,41 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               <p className="font-bold text-sm">{currentChatUi.patrikaLoading}</p>
             </div>
           )}
+        </div>
+      ) : (session.status === "expired" || isExpired) ? (
+        <div className="w-full max-w-lg mx-auto flex-1 px-4 py-8 flex flex-col items-center justify-center text-center space-y-5 animate-fadeIn">
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-100 via-amber-200 to-amber-300 border-2 border-amber-400 text-amber-950 flex items-center justify-center text-4xl shadow-lg">
+            ⏳
+          </div>
+          <div className="space-y-2">
+            <h2 className="font-serif font-black text-xl sm:text-2xl text-amber-950 tracking-tight">
+              {currentI18n.sessionEndedTitle}
+            </h2>
+            <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-sans max-w-md mx-auto">
+              {currentI18n.sessionEndedMsg}
+            </p>
+          </div>
+          <div className="w-full bg-white/90 border-2 border-amber-300 rounded-2xl p-4 shadow-xs text-xs text-amber-950 space-y-1.5 font-serif">
+            <div className="font-bold text-sm text-amber-900">॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥</div>
+            <div className="text-stone-600">ಮುಖ್ಯ ದೈವಜ್ಞರು: {DEFAULT_PRIEST_CONTACT.name}</div>
+            <div className="text-stone-500">{DEFAULT_PRIEST_CONTACT.gokarnaLocation}</div>
+          </div>
+          <div className="w-full space-y-3 pt-2">
+            <a
+              href={DEFAULT_PRIEST_CONTACT.callUri}
+              className="w-full bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 hover:from-amber-800 hover:to-amber-950 text-white font-serif font-black text-sm sm:text-base py-3.5 px-6 rounded-2xl shadow-lg border border-amber-400 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>📞</span>
+              <span>{currentI18n.callPriestBtn}</span>
+            </a>
+            <button
+              type="button"
+              onClick={handleGoHome}
+              className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-2.5 px-4 rounded-xl text-xs transition border border-stone-300 flex items-center justify-center gap-1.5"
+            >
+              <span>🏠</span> ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ (Go to Home)
+            </button>
+          </div>
         </div>
       ) : (
         <>
