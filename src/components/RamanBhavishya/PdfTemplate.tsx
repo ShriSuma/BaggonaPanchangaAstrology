@@ -88,6 +88,7 @@ export type PdfTranslations = {
   annualForecastTitle?: string;
   dashaGocharaCompassTitle?: string;
   dashaGocharaCompassSubtitle?: string;
+  prashnaGuidanceTitle?: string;
   footer: string;
   priestSeal?: string;
   /**
@@ -177,6 +178,7 @@ export type PremiumData = {
     paragraph1: string;
     paragraph2: string;
   };
+  prashnaGuidance?: { impact: string }[];
   prescriptions?: {
     gemstone: string;
     rudraksha: string;
@@ -259,15 +261,22 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   }, {} as Record<string, TranslatedPrediction[]>);
 
   // Old Time Patrika Style Config
-  const solidBgClass = "bg-orange-50"; 
-  const textColorClass = "text-amber-950"; 
-  const borderColorClass = "border-amber-700/40"; 
+  const solidBgClass = "bg-orange-50";
+  const textColorClass = "text-amber-950";
+  const borderColorClass = "border-amber-700/40";
   const primaryColorClass = "text-amber-800";
   const shloka = "असतो मा सद्गमय। तमसो मा ज्योतिर्गमय। मृत्योर्मा अमृतं गमय॥";
 
-  const hasContent = (items?: { impact?: string }[]) => {
+  const hasContent = (items?: { impact?: string; paragraph1?: string; paragraph2?: string; truth1Text?: string; truth2Text?: string; truth3Text?: string }[]) => {
     if (!items || items.length === 0) return false;
-    return items.some(item => (item.impact || "").trim().length > 10);
+    return items.some(item => {
+      const text = (item.impact || item.paragraph1 || item.paragraph2 || item.truth1Text || item.truth2Text || item.truth3Text || "").trim();
+      // Must have substantial content in target script (not just punctuation)
+      if (text.length < 15) return false;
+      // Must contain actual Indic characters for non-English
+      if (langKey !== "en" && !/[\u0900-\u0D7F]/.test(text)) return false;
+      return true;
+    });
   };
 
   // Section padding shared across all sections for consistency
@@ -436,7 +445,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
   };
 
   return (
-    <div 
+    <div
       ref={ref}
       style={{ width: '900px', height: 'max-content', fontFamily: activeFontFamily, letterSpacing: 'normal' }}
       className={`${solidBgClass} ${textColorClass} relative overflow-hidden`}
@@ -1417,6 +1426,49 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
+      {/* ── Adhyaya 11: Prashna Guidance & Immediate Guidance ───────────────── */}
+      {hasContent(premiumData?.prashnaGuidance) && (
+        <div data-section="prashna-guidance" className={sectionClass}>
+          {renderChapterBanner(
+            11,
+            "🔮",
+            "ಪ್ರಶ್ನಾ ದೃಷ್ಟಿ & ತಾತ್ಕಾಲಿಕ ಮಾರ್ಗದರ್ಶನ",
+            "Prashna Insight & Immediate Guidance",
+            translations.prashnaGuidanceTitle
+          )}
+          <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
+            <div className="absolute top-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute top-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 left-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+            <div className="absolute bottom-3 right-3 text-xs text-amber-800/40 font-serif pointer-events-none">❖</div>
+
+            {premiumData!.prashnaGuidance!.map((pg, idx) => (
+              <div key={idx} className="space-y-6" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                {cleanSectionNarrative(pg.impact || "").map((cleaned, pIdx) => {
+                  const trimmed = cleaned.trim();
+                  const isShield = trimmed.startsWith('【') || trimmed.startsWith('[');
+                  if (isShield) {
+                    return (
+                      <div
+                        key={pIdx}
+                        className="bg-amber-100/90 border-2 border-amber-600/60 rounded-xl text-amber-950 p-6 shadow-sm text-xl leading-relaxed text-left font-medium break-words whitespace-pre-wrap"
+                      >
+                        {cleaned}
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={pIdx} className="text-xl leading-relaxed text-amber-950 text-justify font-medium break-words whitespace-pre-wrap">
+                      {cleaned}
+                    </p>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Royal Astro-Vedic Prescriptions ─────────────────────────────────── */}
       {premiumData?.prescriptions && (
         <div data-section="prescriptions" className={sectionClass}>
@@ -1561,12 +1613,12 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
         {/* Sacred ॐ Emblem */}
         <div className="text-6xl text-amber-600 mb-6 opacity-90" style={{ fontFamily: 'Noto Sans Devanagari, serif' }}>ॐ</div>
-        
+
         {/* Ashirvada Title */}
         <h3 className={`text-3xl font-bold mb-6 italic ${primaryColorClass} leading-normal`}>
           {translations.ashirvadaTitle}
         </h3>
-        
+
         {/* Personalized Dynamic Ashirvada Blessing */}
         <p className="text-2xl leading-loose font-medium text-amber-950 text-center max-w-3xl mx-auto px-4">
           "{translations.ashirvadaValue}"
@@ -1574,7 +1626,7 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
 
         {/* Official Priest Seal */}
         {translations.priestSeal && (
-          <div 
+          <div
             className="mt-8 mx-auto max-w-4xl px-8 py-3 rounded-full border border-amber-600/40 bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 text-amber-950 font-bold text-sm tracking-normal shadow-xs flex items-center justify-center gap-3"
             style={{ letterSpacing: 'normal' }}
           >

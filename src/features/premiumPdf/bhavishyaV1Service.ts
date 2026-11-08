@@ -46,6 +46,7 @@ import {
   buildDynamicSoulMirrorFallback,
   buildDynamicAnnualForecastFallback,
   buildDynamicDashaGocharaCompassFallback,
+  buildDynamicPrashnaFallback,
   buildDynamicPrescriptions,
   buildDynamicAshirvada,
   getLocalizedDevoteeName,
@@ -601,6 +602,7 @@ export async function prepareBhavishyaV1Data(
     annualForecastTitle: tp("annualForecastTitle", lang),
     dashaGocharaCompassTitle: tp("dashaGocharaCompassTitle", lang),
     dashaGocharaCompassSubtitle: tp("dashaGocharaCompassSubtitle", lang),
+    prashnaGuidanceTitle: tp("prashnaGuidanceTitle", lang),
     summaryTitle: tp("summaryTitle", lang),
     introTitle: tp("introTitle", lang),
     introGreeting: greetingLine(lang, localizedDevoteeName),
@@ -1055,10 +1057,11 @@ export async function prepareBhavishyaV1Data(
     callGeminiSafe("Generate Dasha-Gochara Compass", prompts.dashaGocharaCompass, 0.35)
   ]);
   await new Promise(r => setTimeout(r, 150));
-  const [resSummary, resMaandiInquest, resAnnualForecast] = await Promise.all([
+  const [resSummary, resMaandiInquest, resAnnualForecast, resPrashnaGuidance] = await Promise.all([
     callGeminiSafe("Generate Summary", prompts.summary, 0.3),
     callGeminiSafe("Generate Maandi Inquest", prompts.maandiInquest, 0.4),
-    callGeminiSafe("Generate Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35)
+    callGeminiSafe("Generate Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35),
+    callGeminiSafe("Generate Prashna Guidance", prompts.prashnaGuidance, 0.35)
   ]);
   await new Promise(r => setTimeout(r, 120));
 
@@ -1111,6 +1114,7 @@ export async function prepareBhavishyaV1Data(
   let dataSummary = robustParseGeminiJSON(resSummary);
   let dataMaandiInquest = robustParseGeminiJSON(resMaandiInquest);
   let dataAnnualForecast = robustParseGeminiJSON(resAnnualForecast);
+  let dataPrashnaGuidance = robustParseGeminiJSON(resPrashnaGuidance);
 
   let dMar = robustParseGeminiJSON(resMarriage);
   let dChd = robustParseGeminiJSON(resChildren);
@@ -1165,6 +1169,9 @@ export async function prepareBhavishyaV1Data(
     if (Array.isArray(d.annualForecast) && d.annualForecast.some((a: any) => (a.impact || a.forecast || "").trim().length >= 100)) return true;
     return false;
   };
+
+  const isPrashnaGuidanceValid = (d: any) =>
+    Boolean(d?.prashnaGuidance && toSafeArray(d.prashnaGuidance).some((p: any) => (p.impact || "").trim().length >= 100));
 
   const isLifeAreaValid = (area: any) => {
     const text = asText(area);
@@ -1294,6 +1301,14 @@ export async function prepareBhavishyaV1Data(
         callGeminiSafe("Retry Annual Forecast", prompts.bhavishyaAnnualForecast, 0.35, 25000, 2).then((res) => {
           const parsed = robustParseGeminiJSON(res);
           if (isAnnualForecastValid(parsed)) dataAnnualForecast = parsed;
+        })
+      );
+    }
+    if (!isPrashnaGuidanceValid(dataPrashnaGuidance)) {
+      retryTasks.push(
+        callGeminiSafe("Retry Prashna Guidance", prompts.prashnaGuidance, 0.35, 25000, 2).then((res) => {
+          const parsed = robustParseGeminiJSON(res);
+          if (isPrashnaGuidanceValid(parsed)) dataPrashnaGuidance = parsed;
         })
       );
     }
@@ -1613,6 +1628,22 @@ export async function prepareBhavishyaV1Data(
     impact: cleanDegreesFromText(a.impact || "")
   }));
 
+  const dynamicPrashnaFallbackText = buildDynamicPrashnaFallback(parsedKundali);
+  let rawPrashnaInput: any = dataPrashnaGuidance?.prashnaGuidance;
+  if (typeof rawPrashnaInput === "string") {
+    rawPrashnaInput = [{ impact: rawPrashnaInput }];
+  } else if (Array.isArray(rawPrashnaInput)) {
+    rawPrashnaInput = rawPrashnaInput.map((item: any) => {
+      if (typeof item === "string") return { impact: item };
+      return { impact: item?.impact || item?.text || "" };
+    });
+  }
+  const rawFinalPrashna = await ensureValidSection(rawPrashnaInput, dynamicPrashnaFallbackText, lang, 100);
+  const finalPrashnaGuidance = (rawFinalPrashna || []).map((p: any) => ({
+    ...p,
+    impact: cleanDegreesFromText(p.impact || "")
+  }));
+
   const rawNarrativeYogas = toSafeArray(result.aiGeneratedNarrative?.yogas).filter(
     (y: any) => (y?.impact || y?.significance || "").trim().length > 10
   );
@@ -1896,6 +1927,7 @@ export async function prepareBhavishyaV1Data(
     dashaGocharaCompass: finalDashaGocharaCompass,
     summary: finalSummary,
     maandiInquest: finalMaandiInquest,
+    prashnaGuidance: finalPrashnaGuidance,
     prescriptions: dynamicPrescriptions
   };
 
@@ -1908,6 +1940,7 @@ export async function prepareBhavishyaV1Data(
     premiumDataPayload.darkSecret = [{ impact: secretFallbackText }];
     premiumDataPayload.soulMirror = dynamicSoulMirror;
     premiumDataPayload.dashaGocharaCompass = dynamicCompassFallback;
+    premiumDataPayload.prashnaGuidance = [{ impact: dynamicPrashnaFallbackText }];
     premiumDataPayload.prescriptions = dynamicPrescriptions;
   }
 
@@ -2046,6 +2079,16 @@ export async function prepareBhavishyaV1Data(
   ) {
     console.warn("[bhavishyaV1Service Quality Audit] Dasha-Gochara Compass incomplete. Healing with dynamic mathematical fallback.");
     premiumDataPayload.dashaGocharaCompass = dynamicCompassFallback;
+  }
+
+  // Strict non-empty Prashna Guidance healing
+  if (
+    !premiumDataPayload.prashnaGuidance ||
+    premiumDataPayload.prashnaGuidance.length === 0 ||
+    !premiumDataPayload.prashnaGuidance.some(p => (p.impact || "").trim().length >= 100)
+  ) {
+    console.warn("[bhavishyaV1Service Quality Audit] Prashna Guidance incomplete. Healing with dynamic mathematical fallback.");
+    premiumDataPayload.prashnaGuidance = [{ impact: dynamicPrashnaFallbackText }];
   }
 
   // Strict non-empty Prescriptions healing

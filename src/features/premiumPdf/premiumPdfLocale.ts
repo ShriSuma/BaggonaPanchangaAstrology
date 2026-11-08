@@ -345,9 +345,16 @@ export const PDF_T: Record<string, L5> = {
   dashaGocharaCompassSubtitle: {
     en: "॥ Gochara-Dasha Samanvayena Sarvakarya Siddhih ॥",
     kn: "॥ ಗೋಚಾರ-ದಶಾ ಸಮನ್ವಯೇನ ಸರ್ವಕಾರ್ಯ ಸಿದ್ಧಿಃ ॥",
-    te: "॥ గోచార-దశా సమన్వయేన సర్వకార్య సిద్ధిః ॥",
+    te: "॥ గోచార-దಶಾ ಸಮನ್ವಯೇన సర్వకార్య సిద్ధిః ॥",
     ta: "॥ கோச்சார-திசா ஒருங்கிணைப்பால் சர்வகாரிய சித்தி ॥",
-    hi: "॥ गोचार-दशा समन्वयेन सर्वकार्य सिद्धिः ॥"
+    hi: "॥ गोचार-दशा समन्वयेन सर्वकार्य सिद्धిః ॥"
+  },
+  prashnaGuidanceTitle: {
+    en: "Prashna Insight & Immediate Guidance",
+    kn: "ಪ್ರಶ್ನಾ ದೃಷ್ಟಿ & ತಾತ್ಕಾಲಿಕ ಮಾರ್ಗದರ್ಶನ",
+    te: "ప్రశ్న దృష్టి & తాత్కాలిక మార్గదర్శనం",
+    ta: "பிரச்னா பார்வை & உடனடி வழிகாட்டுதல்",
+    hi: "प्रश्न दृष्टि एवं तात्कालिक मार्गदर्शन"
   },
   ashirvadaTitle: {
     en: "Blessing",
@@ -623,9 +630,8 @@ export const accuracyContract = (input?: {
   const age = typeof input?.ageYears === "number" ? Math.floor(input.ageYears) : null;
   const ageNotice =
     age !== null
-      ? `Age: ${age} years (${
-          age < 12 ? "Child/Infant" : age < 22 ? "Youth/Student" : age >= 60 ? "Senior Elder" : "Adult"
-        })`
+      ? `Age: ${age} years (${age < 12 ? "Child/Infant" : age < 22 ? "Youth/Student" : age >= 60 ? "Senior Elder" : "Adult"
+      })`
       : "";
   return [
     "100% MATHEMATICAL & SHASTRIYA ACCURACY CONTRACT — THIS OUTRANKS ALL GENERALITIES",

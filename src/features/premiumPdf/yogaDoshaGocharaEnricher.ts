@@ -102,6 +102,20 @@ export function cleanDegreesFromText(text: string): string {
   s = s.replace(/([(\[{])[^\S\r\n]+/g, "$1");
   s = s.replace(/[^\S\r\n]+([)\]}])/g, "$1");
 
+  // Additional patterns for degree leaks in AI outputs:
+  s = s.replace(/\b\d+[\.,]\d+\s*(?:degrees?|°|डिग्री|ಡಿಗ್ರಿ|డిగ్రి|டிக்ரி)\b/gi, "");
+  s = s.replace(/\b\d+°\d*'?\b/g, "");
+  s = s.replace(/at\s+\d+\s*(?:degrees?|°)/gi, "");
+  s = s.replace(/within\s+\d+[\.,]?\d*\s*°/gi, "in close conjunction");
+  s = s.replace(/orb\s*(?:of\s*)?\d+[\.,]?\d*\s*°/gi, "");
+  s = s.replace(/longitude\s*(?:of\s*)?\d+[\.,]?\d*/gi, "");
+  s = s.replace(/sidereal\s+longitude/gi, "rashi position");
+  s = s.replace(/planetary\s+position/gi, "graha sthiti");
+  s = s.replace(/zodiac\s+sign/gi, "rashi");
+  s = s.replace(/nakshatra\s+quarter/gi, "nakshatra pada");
+  s = s.replace(/ascendant\s+degree/gi, "lagna position");
+  s = s.replace(/midheaven\s+degree/gi, "MC position");
+
   return s.trim();
 }
 

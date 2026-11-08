@@ -41,6 +41,7 @@ import {
   buildDynamicSoulMirrorFallback,
   buildDynamicAnnualForecastFallback,
   buildDynamicDashaGocharaCompassFallback,
+  buildDynamicPrashnaFallback,
   buildDynamicPrescriptions,
   toKnDigits
 } from "./dynamicBhavishyaEngine";
@@ -68,6 +69,7 @@ export type ReviewableChapterKey =
   | "gochara"
   | "dashaGocharaCompass"
   | "summary"
+  | "prashnaGuidance"
   | "marriage"
   | "children"
   | "career"
@@ -490,6 +492,8 @@ export function healChapterWithVedicEngine(
       return buildDynamicDashaGocharaCompassFallback(parsed);
     case "summary":
       return [{ impact: buildDynamicSummaryFallback(parsed) }];
+    case "prashnaGuidance":
+      return [{ impact: buildDynamicPrashnaFallback(parsed) }];
     case "marriage":
       if ((parsed.ageYears || 30) < 12) {
         return buildDynamicChildEducationFallback(parsed);

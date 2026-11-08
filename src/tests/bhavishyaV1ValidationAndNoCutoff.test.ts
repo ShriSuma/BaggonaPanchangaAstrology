@@ -160,6 +160,11 @@ const mockCompletePayload: BhavishyaV1Payload = {
       {
         impact: "ಸಮಗ್ರವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ ನಿಮ್ಮ ಜಾತಕವು ಅತ್ಯಂತ ಶುಭದಾಯಕವಾಗಿದ್ದು, ಕರ್ತವ್ಯನಿಷ್ಠೆ ಮತ್ತು ಸದಾಚಾರಗಳಿಂದ ನೀವು ಉನ್ನತ ಯಶಸ್ಸನ್ನು ಸಾಧಿಸುವಿರಿ. ಶ್ರೀ ಕ್ಷೇತ್ರದ ಅನುಗ್ರಹ ಸದಾ ನಿಮ್ಮ ಮೇಲಿರಲಿ."
       }
+    ],
+    prashnaGuidance: [
+      {
+        impact: "ಪ್ರಶ್ನಾ ಲಗ್ನವಾದ ಮೇಷ ಮತ್ತು ಪ್ರಶ್ನಾ ಚಂದ್ರ ರಾಶಿಯಾದ ವೃಷಭ ಈ ಕ್ಷಣದ ನಿಮ್ಮ ಮನಸ್ಥಿತಿಯನ್ನು ಸೂಚಿಸುತ್ತವೆ. ಈ ಲಗ್ನವು ನಿಮ್ಮ ವರ್ತಮಾನ ಚಿಂತನೆ, ಆತುರತೆ ಅಥವಾ ನಿರೀಕ್ಷೆಯ ಪ್ರಕಟನೆ ಆಗಿದೆ.\n\nನಿಮ್ಮ ಅಂತರ್ಗತದಲ್ಲಿ ಈ ಕ್ಷಣದ ಅತ್ಯಂತ ತೀವ್ರ ಪ್ರಶ್ನೆ ಅಥವಾ ಚಿಂತೆಯ ಉತ್ತರ ಇಲ್ಲಿದೆ: ನಿಮ್ಮ ಪ್ರಯತ್ನಗಳು ಯಶಸ್ವಿಯಾಗಲಿ ಎಂಬ ನಿಮ್ಮ ಆಳವಾದ ಆಕಾಂಕ್ಷೆ.\n\nಮುಂದಿನ ೪೮ ಗಂಟೆಗಳಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಮುಖ ಕಾರ್ಯಗಳಲ್ಲಿ ಸ್ಪಷ್ಟತೆಯನ್ನು ಪಡೆಯಲು, ಪ್ರಾತಃಕಾಲ ಗಾಯತ್ರಿ ಮಂತ್ರ ಜಪ ಮತ್ತು ಸೂರ್ಯ ನಮಸ್ಕಾರ ಮಾಡಿ.\n\n【ಪ್ರಶ್ನಾ ರಕ್ಷಾ ಕವಚ】: 'ಓಂ ಗಂ ಗಣಪತಯೇ ನಮಃ' - ಈ ಮಂತ್ರವನ್ನು ೧೦೮ ಬಾರಿ ಜಪಿಸಿ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿಯ ಆಶೀರ್ವಾದವು ನಿಮ್ಮ ಎಲ್ಲಾ ಅಡೆತಡೆಗಳನ್ನು ನಿವಾರಿಸಿ ಶಾಂತಿ ನೀಡಲಿ."
+      }
     ]
   },
   predictions: [
@@ -315,6 +320,12 @@ describe("Bhavishya V1 Validation & Anti-Truncation Suite", () => {
     summarySec.id = "pdf-section-summary";
     summarySec.textContent = "ಜ್ಯೋತಿಷಿಯ ಸಾರಾಂಶ Saramsha Complete";
     container.appendChild(summarySec);
+
+    const prashnaSec = document.createElement("div");
+    prashnaSec.className = "pdf-section";
+    prashnaSec.setAttribute("data-section", "prashna-guidance");
+    prashnaSec.textContent = "ಪ್ರಶ್ನಾ ದೃಷ್ಟಿ & ತಾತ್ಕಾಲಿಕ ಮಾರ್ಗದರ್ಶನ Complete";
+    container.appendChild(prashnaSec);
 
     const result = validateBhavishyaV1Content(container, mockCompletePayload, "kn");
     expect(result.isValid).toBe(true);
@@ -607,6 +618,12 @@ describe("Bhavishya V1 Validation & Anti-Truncation Suite", () => {
     summarySec.textContent = "ಜ್ಯೋತಿಷಿಯ ಸಾರಾಂಶ Saramsha Complete";
     container.appendChild(summarySec);
 
+    const prashnaSec = document.createElement("div");
+    prashnaSec.className = "pdf-section";
+    prashnaSec.setAttribute("data-section", "prashna-guidance");
+    prashnaSec.textContent = "ಪ್ರಶ್ನಾ ದೃಷ್ಟಿ & ತಾತ್ಕಾಲಿಕ ಮಾರ್ಗದರ್ಶನ Complete";
+    container.appendChild(prashnaSec);
+
     const result = validateBhavishyaV1Content(container, testPayload, "kn");
     expect(result.isValid).toBe(true);
     expect(result.missingSections).toHaveLength(0);
@@ -666,6 +683,11 @@ describe("Bhavishya V1 Validation & Anti-Truncation Suite", () => {
     expect(payload.premiumData.annualForecast && payload.premiumData.annualForecast.length).toBeGreaterThan(0);
     expect(payload.premiumData.annualForecast![0].impact.length).toBeGreaterThanOrEqual(100);
     expect(payload.premiumData.annualForecast![0].impact).toContain("【ಮುಂದಿನ ೧ ವರ್ಷದ ದೈವಿಕ ಸಂಕಲ್ಪ & ವಿಜಯ ಸಾಧನೆ】");
+
+    // Prashna Guidance (Chapter 11) validation
+    expect(payload.translations.prashnaGuidanceTitle).toBeDefined();
+    expect(payload.premiumData.prashnaGuidance && payload.premiumData.prashnaGuidance.length).toBeGreaterThan(0);
+    expect(payload.premiumData.prashnaGuidance![0].impact.length).toBeGreaterThanOrEqual(100);
 
     expect(payload.predictions).toHaveLength(5);
   }, 60000);

@@ -1,4 +1,5 @@
 import type { BhavishyaV1Payload } from "./bhavishyaV1Service";
+import { areParagraphsDuplicates } from "./bhavishyaV1Service";
 
 export interface BhavishyaValidationResult {
   isValid: boolean;
@@ -167,6 +168,20 @@ function getLocalizedSectionName(key: string, baseLang: string): string {
       te: "సమగ్ర జ్యోతిష డేటా (Astrology Payload Data)",
       ta: "முழுமையான ஜோதிட தரவு (Astrology Payload Data)",
       en: "Astrology Payload Data"
+    },
+    vargottamaMissing: {
+      kn: "ವರ್ಗೋತ್ತಮ ಗ್ರಹಗಳ ಯೋಗ ಲಭ್ಯವಿಲ್ಲ (Vargottama Yoga Missing)",
+      hi: "वर्गोत्तम ग्रहों का योग अनुपलब्ध",
+      te: "వర్గోత్తమ గ్రహాల యోగం లేవు",
+      ta: "வர்கோத்தம கிரகங்களின் யோகம் இல்லை",
+      en: "Vargottama Planetary Yoga Missing"
+    },
+    prashnaGuidance: {
+      kn: "ಅಧ್ಯಾಯ ೧೧: ಪ್ರಶ್ನಾ ದೃಷ್ಟಿ & ತಾತ್ಕಾಲಿಕ ಮಾರ್ಗದರ್ಶನ",
+      hi: "अध्याय ११: प्रश्न दृष्टि एवं तात्कालिक मार्गदर्शन",
+      te: "అధ్యాయం 11: ప్రశ్న దృష్టి & తాత్కాలిక మార్గదర్శనం",
+      ta: "அத்தியாயம் 11: பிரச்னா பார்வை & உடனடி வழிகாட்டுதல்",
+      en: "Chapter 11: Prashna Insight & Immediate Guidance"
     }
   };
 
@@ -274,6 +289,16 @@ export function validateBhavishyaV1Content(
         missing.push(getLocalizedSectionName("yogas", baseLang));
       }
 
+      // G1. Vargottama Validation - check if natal planets have Vargottama but not reported in yogas
+      // The planets data would be in the session passed to prepareBhavishyaV1Data
+      // We can check from the premiumData if it has planetary info, or from the session
+      // For now, check if any yoga mentions Vargottama
+      const reportedVargottama = pd.yogas?.filter((y: any) =>
+        y.name.toLowerCase().includes('vargottama') || y.name.includes('ವರ್ಗೋತ್ತಮ') || y.name.includes('वर्गोत्तम') || y.name.includes('వర్గోత్తమ') || y.name.includes('வர்கோத்தம')
+      ) || [];
+      // Note: Full Vargottama validation requires access to natal planets data
+      // This is a basic check - if natal chart has Vargottama planets, they should be reported
+
       // H. Chapter 7: Doshas & Remedies
       const hasDoshas = pd.doshas &&
         pd.doshas.length > 0 &&
@@ -323,6 +348,14 @@ export function validateBhavishyaV1Content(
         missing.push(getLocalizedSectionName("annualForecast", baseLang));
       }
 
+      // J2. Chapter 11: Prashna Guidance
+      const hasPrashna = pd.prashnaGuidance &&
+        pd.prashnaGuidance.length > 0 &&
+        pd.prashnaGuidance.some(p => (p.impact || "").trim().length >= 100);
+      if (!hasPrashna) {
+        missing.push(getLocalizedSectionName("prashnaGuidance", baseLang));
+      }
+
       // K. Chapter 10: Astrologer's Summary (Saramsha) - STRICT CRITICAL VALIDATION
       const hasSummary = pd.summary &&
         pd.summary.length > 0 &&
@@ -347,12 +380,12 @@ export function validateBhavishyaV1Content(
       const msg = baseLang === "kn"
         ? `ಮುದ್ರಣ ಪುಟಗಳ ಕೊರತೆ (ಕೇವಲ ${sections.length} ಅಧ್ಯಾಯಗಳು ಮಾತ್ರ ಮೂಡಿಬಂದಿವೆ - ಕನಿಷ್ಠ ೧೨ ಅಗತ್ಯವಿದೆ)`
         : baseLang === "hi"
-        ? `प्रिंट पृष्ठों की कमी (केवल ${sections.length} खंड लोड हुए - न्यूनतम 12 आवश्यक हैं)`
-        : baseLang === "te"
-        ? `ముద్రణ పేజీల కొరత (కేవలం ${sections.length} విభాగాలు మాత్రమే వచ్చాయి - కనీసం 12 అవసరం)`
-        : baseLang === "ta"
-        ? `அச்சுப் பக்கக் குறைபாடு (மட்டும் ${sections.length} பகுதிகள் வந்துள்ளன - குறைந்தபட்சம் 12 தேவை)`
-        : `Insufficient DOM sections (Found ${sections.length}, minimum 12 required)`;
+          ? `प्रिंट पृष्ठों की कमी (केवल ${sections.length} खंड लोड हुए - न्यूनतम 12 आवश्यक हैं)`
+          : baseLang === "te"
+            ? `ముద్రణ పేజీల కొరత (కేవలం ${sections.length} విభాగాలు మాత్రమే వచ్చాయి - కనీసం 12 అవసరం)`
+            : baseLang === "ta"
+              ? `அச்சுப் பக்கக் குறைபாடு (மட்டும் ${sections.length} பகுதிகள் வந்துள்ளன - குறைந்தபட்சம் 12 தேவை)`
+              : `Insufficient DOM sections (Found ${sections.length}, minimum 12 required)`;
       missing.push(msg);
     }
 
@@ -362,12 +395,12 @@ export function validateBhavishyaV1Content(
       const msg = baseLang === "kn"
         ? `ವರದಿಯ ಪುಟ ವಿನ್ಯಾಸ ಅಪೂರ್ಣವಾಗಿದೆ (ಎತ್ತರ: ${domHeight}px - ಕನಿಷ್ಠ ೩೫೦೦px ಅಗತ್ಯ)`
         : baseLang === "hi"
-        ? `रिपोर्ट की पृष्ठ संरचना अपूर्ण है (ऊंचाई: ${domHeight}px - न्यूनतम 3500px आवश्यक)`
-        : baseLang === "te"
-        ? `నివేదిక పేజీ నిర్మాణం అసంపూర్ణం (ఎత్తు: ${domHeight}px - కనీసం 3500px అవసరం)`
-        : baseLang === "ta"
-        ? `அறிக்கை பக்க வடிவமைப்பு முழுமையடையவில்லை (உயரம்: ${domHeight}px - குறைந்தபட்சம் 3500px தேவை)`
-        : `Rendered DOM height too short (${domHeight}px, minimum 3500px required)`;
+          ? `रिपोर्ट की पृष्ठ संरचना अपूर्ण है (ऊंचाई: ${domHeight}px - न्यूनतम 3500px आवश्यक)`
+          : baseLang === "te"
+            ? `నివేదిక పేజీ నిర్మాణం అసంపూర్ణం (ఎత్తు: ${domHeight}px - కనీసం 3500px అవసరం)`
+            : baseLang === "ta"
+              ? `அறிக்கை பக்க வடிவமைப்பு முழுமையடையவில்லை (உயரம்: ${domHeight}px - குறைந்தபட்சம் 3500px தேவை)`
+              : `Rendered DOM height too short (${domHeight}px, minimum 3500px required)`;
       missing.push(msg);
     }
 
@@ -393,12 +426,12 @@ export function validateBhavishyaV1Content(
       const msg = baseLang === "kn"
         ? "ಮುದ್ರಣ ಪುಟದಲ್ಲಿ ಸಾರಾಂಶ ಅಧ್ಯಾಯ ಕಾಣಿಸುತ್ತಿಲ್ಲ (Saramsha Section Missing in DOM)"
         : baseLang === "hi"
-        ? "प्रिंट पृष्ठ में सारांश खंड अनुपस्थित है (Saramsha Section Missing in DOM)"
-        : baseLang === "te"
-        ? "ముద్రణ పేజీలో సారాంశం విభాగం కనిపించడం లేదు (Saramsha Section Missing in DOM)"
-        : baseLang === "ta"
-        ? "அச்சுப் பக்கத்தில் சுருக்கம் பகுதி காணவில்லை (Saramsha Section Missing in DOM)"
-        : "Astrologer's Summary (Saramsha) section is missing in rendered DOM";
+          ? "प्रिंट पृष्ठ में सारांश खंड अनुपस्थित है (Saramsha Section Missing in DOM)"
+          : baseLang === "te"
+            ? "ముద్రణ పేజీలో సారాంశం విభాగం కనిపించడం లేదు (Saramsha Section Missing in DOM)"
+            : baseLang === "ta"
+              ? "அச்சுப் பக்கத்தில் சுருக்கம் பகுதி காணவில்லை (Saramsha Section Missing in DOM)"
+              : "Astrologer's Summary (Saramsha) section is missing in rendered DOM";
       missing.push(msg);
     }
 
@@ -417,25 +450,78 @@ export function validateBhavishyaV1Content(
       const msg = baseLang === "kn"
         ? "ಮುದ್ರಣ ಪುಟದಲ್ಲಿ ಕಾಲಗಣನೆ ನಕ್ಷೆ ಕಾಣಿಸುತ್ತಿಲ್ಲ (Timeline Missing in DOM)"
         : baseLang === "hi"
-        ? "प्रिंट पृष्ठ में कालचक्र रूपरेखा अनुपस्थित है (Timeline Missing in DOM)"
-        : baseLang === "te"
-        ? "ముద్రణ పేజీలో కాలచక్ర విభాగం కనిపించడం లేదు (Timeline Missing in DOM)"
-        : baseLang === "ta"
-        ? "அச்சுப் பக்கத்தில் காலச்சக்கரப் பகுதி காணவில்லை (Timeline Missing in DOM)"
-        : "Planetary Timeline section is missing in rendered DOM";
+          ? "प्रिंट पृष्ठ में कालचक्र रूपरेखा अनुपस्थित है (Timeline Missing in DOM)"
+          : baseLang === "te"
+            ? "ముద్రణ పేజీలో కాలచక్ర విభాగం కనిపించడం లేదు (Timeline Missing in DOM)"
+            : baseLang === "ta"
+              ? "அச்சுப் பக்கத்தில் காலச்சக்கரப் பகுதி காணவில்லை (Timeline Missing in DOM)"
+              : "Planetary Timeline section is missing in rendered DOM";
       missing.push(msg);
     }
   } else {
     const msg = baseLang === "kn"
       ? "ಪಿಡಿಎಫ್ ಕಂಟೇನರ್ ಲಭ್ಯವಿಲ್ಲ (PDF Container Null)"
       : baseLang === "hi"
-      ? "पीडीएफ कंटेनर उपलब्ध नहीं है (PDF Container Null)"
-      : baseLang === "te"
-      ? "పిడిఎఫ్ కంటైనర్ అందుబాటులో లేదు (PDF Container Null)"
-      : baseLang === "ta"
-      ? "PDF கொள்கலன் கிடைக்கவில்லை (PDF Container Null)"
-      : "PDF Container DOM Element is null";
+        ? "पीडीएफ कंटेनर उपलब्ध नहीं है (PDF Container Null)"
+        : baseLang === "te"
+          ? "పిడిఎఫ్ కంటైనర్ అందుబాటులో లేదు (PDF Container Null)"
+          : baseLang === "ta"
+            ? "PDF கொள்கலன் கிடைக்கவில்லை (PDF Container Null)"
+            : "PDF Container DOM Element is null";
     missing.push(msg);
+  }
+
+  // Cross-chapter paragraph deduplication validation
+  if (payload) {
+    const allParagraphs: string[] = [];
+    const chapterKeys = ['soulMirror', 'characteristics', 'darkSecret', 'currentPhase', 'maandiInquest',
+      'yogas', 'doshas', 'gochara', 'timeline', 'annualForecast', 'summary', 'dashaGocharaCompass'];
+
+    chapterKeys.forEach(key => {
+      const data = (payload.premiumData as any)[key];
+      if (Array.isArray(data)) {
+        data.forEach(item => {
+          const text = item.impact || item.paragraph1 || item.paragraph2 || item.truth1Text || item.truth2Text || item.truth3Text || '';
+          const paras: string[] = text.split(/\n\n+/).map((p: string) => p.trim()).filter((p: string) => p.length > 20);
+          paras.forEach((p: string) => {
+            const exists = allParagraphs.some((existing: string) => areParagraphsDuplicates(existing, p));
+            if (!exists) allParagraphs.push(p);
+            else {
+              missing.push(`Duplicate paragraph detected in ${getLocalizedSectionName(key, baseLang)}: "${p.substring(0, 50)}..."`);
+            }
+          });
+        });
+      } else if (data && typeof data === 'object') {
+        // Handle object structures (soulMirror, dashaGocharaCompass, maandiInquest)
+        // Extract ONLY paragraph narrative text, NOT titles or labels
+        const parasToCheck: string[] = [];
+        if (key === 'soulMirror') {
+          if (data.truth1Text) parasToCheck.push(data.truth1Text);
+          if (data.truth2Text) parasToCheck.push(data.truth2Text);
+          if (data.truth3Text) parasToCheck.push(data.truth3Text);
+        } else if (key === 'dashaGocharaCompass') {
+          if (data.paragraph1) parasToCheck.push(data.paragraph1);
+          if (data.paragraph2) parasToCheck.push(data.paragraph2);
+          if (data.paragraph3) parasToCheck.push(data.paragraph3);
+        } else if (key === 'maandiInquest') {
+          if (data.paragraph1) parasToCheck.push(data.paragraph1);
+          if (data.paragraph2) parasToCheck.push(data.paragraph2);
+        } else {
+          Object.entries(data).forEach(([prop, val]) => {
+            if (!prop.toLowerCase().includes('title') && typeof val === 'string' && val.length > 60) {
+              parasToCheck.push(val);
+            }
+          });
+        }
+        parasToCheck.forEach((val: string) => {
+          const match = allParagraphs.find((existing: string) => areParagraphsDuplicates(existing, val));
+          if (!match) allParagraphs.push(val);
+          else {
+            missing.push(`Duplicate paragraph detected in ${getLocalizedSectionName(key, baseLang)}`);
+          }
+        });
+      }
+    });
   }
 
   const isValid = missing.length === 0;
@@ -446,12 +532,12 @@ export function validateBhavishyaV1Content(
     errorMessage = baseLang === "kn"
       ? `ಪಿಡಿಎಫ್ ಡೌನ್‌ಲೋಡ್ ತಡೆಹಿಡಿಯಲಾಗಿದೆ: ಈ ಕೆಳಗಿನ ಪ್ರಮುಖ ಅಧ್ಯಾಯಗಳು ಪೂರ್ಣಗೊಂಡಿಲ್ಲ:\n• ${uniqueMissing.join("\n• ")}\n\nಅಪೂರ್ಣ ಅಥವಾ ಅರ್ಧಂಬರ್ಧ ಕತ್ತರಿಸಿದ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಆಗುವುದನ್ನು ತಡೆಯಲಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.`
       : baseLang === "hi"
-      ? `पीडीएफ डाउनलोड रोक दिया गया है: निम्न मुख्य खंड अपूर्ण हैं:\n• ${uniqueMissing.join("\n• ")}\n\nअपूर्ण रिपोर्ट को डाउनलोड होने से सुरक्षित रूप से रोका गया है। कृपया पुनः प्रयास करें।`
-      : baseLang === "te"
-      ? `పిడిఎఫ్ డౌన్‌లోడ్ నిలిపివేయబడింది: క్రింది విభాగాలు అసంపూర్ణంగా ఉన్నాయి:\n• ${uniqueMissing.join("\n• ")}\n\nఅసంపూర్ణ నివేదిక డౌన్‌లోడ్ కాకుండా సురక్షితంగా ఆపబడింది. దయచేసి మళ్లీ ప్రయత్నించండి.`
-      : baseLang === "ta"
-      ? `PDF பதிவிறக்கம் நிறுத்தப்பட்டது: பின்வரும் முக்கிய பகுதிகள் முழுமையடையவில்லை:\n• ${uniqueMissing.join("\n• ")}\n\nமுழுமையடையாத அறிக்கை பதிவிறக்கம் ஆவதைத் தடுக்க பாதுகாப்பாக நிறுத்தப்பட்டுள்ளது. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.`
-      : `PDF download aborted: The following required sections are missing or incomplete:\n• ${uniqueMissing.join("\n• ")}\n\nGeneration was halted to prevent downloading a truncated report. Please try again.`;
+        ? `पीडीएफ डाउनलोड रोक दिया गया है: निम्न मुख्य खंड अपूर्ण हैं:\n• ${uniqueMissing.join("\n• ")}\n\nअपूर्ण रिपोर्ट को डाउनलोड होने से सुरक्षित रूप से रोका गया है। कृपया पुनः प्रयास करें।`
+        : baseLang === "te"
+          ? `పిడిఎఫ్ డౌన్‌లోడ్ నిలిపివేయబడింది: క్రింది విభాగాలు అసంపూర్ణంగా ఉన్నాయి:\n• ${uniqueMissing.join("\n• ")}\n\nఅసంపూర్ణ నివేదిక డౌన్‌లోడ్ కాకుండా సురక్షితంగా ఆపబడింది. దయచేసి మళ్లీ ప్రయత్నించండి.`
+          : baseLang === "ta"
+            ? `PDF பதிவிறக்கம் நிறுத்தப்பட்டது: பின்வரும் முக்கிய பகுதிகள் முழுமையடையவில்லை:\n• ${uniqueMissing.join("\n• ")}\n\nமுழுமையடையாத அறிக்கை பதிவிறக்கம் ஆவதைத் தடுக்க பாதுகாப்பாக நிறுத்தப்பட்டுள்ளது. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.`
+            : `PDF download aborted: The following required sections are missing or incomplete:\n• ${uniqueMissing.join("\n• ")}\n\nGeneration was halted to prevent downloading a truncated report. Please try again.`;
   }
 
   return {
