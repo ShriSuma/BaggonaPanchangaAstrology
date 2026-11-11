@@ -118,6 +118,55 @@ vi.mock("../core/GeminiEngine", () => ({
 ॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
     }
 
+    if (title.includes("ಆರೋಗ್ಯ") || prompt.includes("ಆರೋಗ್ಯ") || title.includes("Aarogya") || prompt.includes("Aarogya") || prompt.includes("health")) {
+      return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಜಾತಕದ ಲಗ್ನ ಮತ್ತು ೬ನೇ ರೋಗ ಭಾವದ ಪ್ರಕಾರ ಆರೋಗ್ಯ ವಿಚಾರ. ೬ನೇ ಭಾವದ ಅಧಿಪತಿಯ ಸ್ಥಿತಿ ಮತ್ತು ತ್ರಿದೋಷ ಪರೀಕ್ಷೆ.
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ ಅವಧಿಯಲ್ಲಿ ಆರೋಗ್ಯ ರಕ್ಷಣೆಗೆ ವಿಶೇಷ ನಿಗಾ ವಹಿಸಬೇಕು.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ಧನ್ವಂತರಿ ಹೋಮ ಮತ್ತು ಆಯುಷ್ಯ ಹೋಮ.
+೨. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ.
+೩. ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ಪಠಣ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಧನ್ವಂತರಿಯ ಕೃಪೆಯಿಂದ ಸಕಲ ರೋಗಗಳು ನಿವಾರಣೆಯಾಗಿ ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+    }
+
+    if (title.includes("Ayush") || prompt.includes("Ayush") || title.includes("ಆಯುಷ್ಯ") || prompt.includes("ಆಯುಷ್ಯ") || prompt.includes("longevity")) {
+      if (lang === "en") {
+        return `### 1. Classical Shastra & Technical Analysis
+According to Brihat Parashara Hora Shastra, the 8th house, 8th lord, and Ayushkaraka Saturn determine longevity.
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+The current transit requires spiritual discipline and protective mantras.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Maha Mrityunjaya Japa and Homa at Gokarna Kshetra.
+2. Ayush Homa on Janma Nakshatra day.
+3. Tailabhisheka to Lord Saturn on Saturdays.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May the divine grace of Lord Mahabaleshwara grant you health, peace, and longevity.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+      }
+      return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ೮ನೇ ಆಯುರ್ಭಾವ, ಅಷ್ಟಮಾಧಿಪತಿ ಮತ್ತು ಆಯುಷ್ಕಾರಕ ಶನಿ ಗ್ರಹ ಆಯುಷ್ಯವನ್ನು ನಿರ್ಧರಿಸುತ್ತಾರೆ.
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+ಪ್ರಸ್ತುತ ದಶಾ ಮತ್ತು ಶನಿ ಗೋಚಾರದಲ್ಲಿ ರಕ್ಷಣೆ ಅಗತ್ಯ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ ಮತ್ತು ಆಯುಷ್ಯ ಹೋಮ.
+೨. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಮಹಾಬಲೇಶ್ವರನ ಕೃಪೆಯಿಂದ ದೀರ್ಘಾಯುಷ್ಯ ಲಭಿಸಲಿ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+    }
+
     if (lang === "en") {
       return `### 1. Classical Shastra & Technical Analysis
 Saturn transit through the 12th, 1st, and 2nd houses from your natal Moon sign signifies the 7.5 year cycle known as Sade Sati.
@@ -307,6 +356,72 @@ describe("astrologyQAService", () => {
     expect(result.festivalData).toBeDefined();
     expect(result.festivalData?.festivalNameKn).toContain("ವಿನಾಯಕ");
     expect(result.festivalData?.pujaWindowKn).toBeDefined();
+    expect(result.sections.length).toBe(4);
+  });
+
+  it("extracts person details, city, and pincode (581326), computes full horoscope, and evaluates Aarogya (Health)", async () => {
+    const result = await askBaggonaAstrology({
+      question: "ನನ್ನ ಹೆಸರು ವಿನಾಯಕ, ಹುಟ್ಟಿದ ದಿನಾಂಕ 1990-05-15, ಸಮಯ 10:30 AM, ಸ್ಥಳ ಗೋಕರ್ಣ, ಪಿನ್ ಕೋಡ್ 581326. ನನ್ನ ಆರೋಗ್ಯ ಮತ್ತು ರೋಗ ಭಾವ ಹೇಗಿದೆ?",
+      language: "kn"
+    });
+
+    expect(result).toBeDefined();
+    expect(result.detectedIntent).toBe("aarogya_health");
+    expect(result.personalHoroscopeData).toBeDefined();
+    expect(result.personalHoroscopeData?.name).toContain("ವಿನಾಯಕ");
+    expect(result.personalHoroscopeData?.pincode).toBe("581326");
+    expect(result.personalHoroscopeData?.place).toBe("Gokarna");
+    expect(result.personalHoroscopeData?.lagnaRashiKn).toBeDefined();
+    expect(result.personalHoroscopeData?.moonRashiKn).toBeDefined();
+    expect(result.personalHoroscopeData?.aarogya.tridoshaKn).toBeDefined();
+    expect(result.personalHoroscopeData?.aarogya.remedialHomasKn.length).toBeGreaterThan(0);
+    expect(result.sections.length).toBe(4);
+    expect(result.sections[0].content).toContain("ಆರೋಗ್ಯ");
+  });
+
+  it("evaluates Ayush (Longevity) with 8th house, Ayushkaraka Saturn, Marakas, and Mrityunjaya mantra", async () => {
+    const result = await askBaggonaAstrology({
+      question: "Person: Ramesh, DOB: 1985-11-20, TOB: 14:45, Bangalore 560001. Please calculate his Ayush, longevity category, and protective remedies.",
+      language: "en"
+    });
+
+    expect(result).toBeDefined();
+    expect(result.detectedIntent).toBe("ayush_longevity");
+    expect(result.personalHoroscopeData).toBeDefined();
+    expect(result.personalHoroscopeData?.pincode).toBe("560001");
+    expect(result.personalHoroscopeData?.place).toBe("Bengaluru");
+    expect(result.personalHoroscopeData?.ayush.longevityCategoryEn).toBeDefined();
+    expect(result.personalHoroscopeData?.ayush.mrityunjayaMantra).toContain("ತ್ರ್ಯಂಬಕಂ");
+    expect(result.sections.length).toBe(4);
+  });
+
+  it("determines Namakarana baby naming syllables and sample names from Avakahada Chakra for birth details", async () => {
+    const result = await askBaggonaAstrology({
+      question: "ಮಗುವಿನ ಜನನ ದಿನಾಂಕ 2026-03-10, ಸಮಯ ಬೆಳಿಗ್ಗೆ 06:30, ಊರು ಕುಮಟಾ. ನಾಮಕರಣಕ್ಕೆ ಯಾವ ನಾಮಾಕ್ಷರ ಬರುತ್ತದೆ ಮತ್ತು ಶುಭ ಹೆಸರುಗಳು ಯಾವುವು?",
+      language: "kn"
+    });
+
+    expect(result).toBeDefined();
+    expect(result.detectedIntent).toBe("namakarana_naming");
+    expect(result.personalHoroscopeData).toBeDefined();
+    expect(result.personalHoroscopeData?.namakarana.canonicalSyllableKn).toBeDefined();
+    expect(result.personalHoroscopeData?.namakarana.allSyllablesKn.length).toBeGreaterThan(0);
+    expect(result.personalHoroscopeData?.namakarana.sampleNamesKn.length).toBeGreaterThan(0);
+    expect(result.personalHoroscopeData?.namakarana.ganaKn).toBeDefined();
+    expect(result.sections.length).toBe(4);
+  });
+
+  it("evaluates comprehensive Doshas and Shanti Parihara for native birth details", async () => {
+    const result = await askBaggonaAstrology({
+      question: "ಹೆಸರು ಕುಮಾರ್, ದಿನಾಂಕ 1995-04-25, ಸಮಯ 08:30 AM, Honnavar 581334. ನನ್ನ ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷ, ಕಾಲಸರ್ಪ ಅಥವಾ ಪಿತೃ ದೋಷವಿದೆಯೇ?",
+      language: "kn"
+    });
+
+    expect(result).toBeDefined();
+    expect(result.detectedIntent).toBe("comprehensive_dosha_shanti");
+    expect(result.personalHoroscopeData).toBeDefined();
+    expect(result.personalHoroscopeData?.doshas).toBeDefined();
+    expect(result.personalHoroscopeData?.doshas.activeCount).toBeGreaterThanOrEqual(0);
     expect(result.sections.length).toBe(4);
   });
 });

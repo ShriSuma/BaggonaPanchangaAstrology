@@ -163,4 +163,42 @@ describe("BaggonaAstrologyQAPage UI Component", () => {
     expect(screen.getByText(/ವ್ರತ ಮಹತ್ವ/i)).toBeInTheDocument();
     expect(screen.getByText(/ವ್ರತ ವಿಧಿ & ಸಂಕಲ್ಪ:/i)).toBeInTheDocument();
   });
+
+  it("renders Personal Horoscope Card with health, ayush, namakarana, and dosha tabs when birth details with pincode are provided", async () => {
+    render(<BaggonaAstrologyQAPage />);
+
+    const textarea = screen.getByPlaceholderText(/ನಿಮ್ಮ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ/i);
+    fireEvent.change(textarea, {
+      target: { value: "ಹೆಸರು ವಿನಾಯಕ, ಹುಟ್ಟಿದ ದಿನಾಂಕ 1990-05-15, ಸಮಯ 10:30 AM, ಗೋಕರ್ಣ 581326. ನನ್ನ ಆರೋಗ್ಯ, ೬ನೇ ಭಾವ ಮತ್ತು ದೈವಿಕ ಪರಿಹಾರ ತಿಳಿಸಿ." }
+    });
+
+    const submitBtn = screen.getByText(/ಪ್ರಶ್ನೆ ಕೇಳಿ/i);
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/ಬಗ್ಗೋಣ ವೈಯಕ್ತಿಕ ಜನ್ಮಕುಂಡಲಿ, ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ನಿರ್ಣಯ/i)).toBeInTheDocument();
+    }, { timeout: 3500 });
+
+    expect(screen.getAllByText(/ವಿನಾಯಕ/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/581326/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/ತ್ರಿದೋಷ ವಿಶ್ಲೇಷಣೆ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಶಾಸ್ತ್ರೋಕ್ತ ಧನ್ವಂತರಿ & ಆಯುಷ್ಯ ಪರಿಹಾರ ಹೋಮಗಳು:/i)).toBeInTheDocument();
+
+    // Test switching to Ayush tab
+    const ayushTabBtns = screen.getAllByRole("button", { name: /ಆಯುಷ್ಯ ನಿರ್ಣಯ/i });
+    fireEvent.click(ayushTabBtns[ayushTabBtns.length - 1]);
+    expect(screen.getByText(/ಪರಾಶರಿ ಆಯುರ್ದಾಯ ವರ್ಗ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ದೈವಿಕ ಸಂರಕ್ಷಕ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನಿ ಮಂತ್ರ/i)).toBeInTheDocument();
+
+    // Test switching to Namakarana tab
+    const namakaranaTabBtns = screen.getAllByRole("button", { name: /ನಾಮಕರಣ/i });
+    fireEvent.click(namakaranaTabBtns[namakaranaTabBtns.length - 1]);
+    expect(screen.getByText(/ಜನ್ಮ ನಕ್ಷತ್ರ ಪಾದದ ಪ್ರಧಾನ ನಾಮಾಕ್ಷರ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಶಾಸ್ತ್ರೋಕ್ತ ಶುಭ ಶಿಶು ನಾಮಾವಳಿ/i)).toBeInTheDocument();
+
+    // Test switching to Doshas tab
+    const doshasTabBtns = screen.getAllByRole("button", { name: /ದೋಷಗಳು/i });
+    fireEvent.click(doshasTabBtns[doshasTabBtns.length - 1]);
+    expect(screen.getByText(/ಪರಾಶರಿ ಸರ್ವ ದೋಷ ಪರೀಕ್ಷೆ:/i)).toBeInTheDocument();
+  });
 });

@@ -30,9 +30,23 @@ import {
 } from "./jyotishyaShastraKnowledge";
 import {
   lookupNakshatraByDevoteeName,
+  lookupAvakahadaByNakshatraAndPada,
   extractCandidateNameFromQuery,
-  type AvakahadaMatchResult
+  type AvakahadaMatchResult,
+  type AvakahadaPadaEntry
 } from "./avakahadaChakraService";
+import { findOfflineIndianCityOrPin } from "../data/offlineCityPincodeDb";
+import { calculateKundli } from "../core/KundliEngine";
+import {
+  calculateComprehensiveDoshas,
+  type ComprehensiveDoshaReport
+} from "../core/ComprehensiveDoshaEngine";
+import { rashiIndexInHouse, signLord } from "../core/KundliInsightsEngine";
+import {
+  toKannadaPlanet,
+  toKannadaRashi,
+  toKannadaNakshatra
+} from "../utils/kannadaAstrologyTerms";
 import {
   searchBaggonaFestivals,
   type MasterFestivalItem
@@ -55,6 +69,69 @@ export interface AstrologyQASection {
   icon: string;
 }
 
+export interface PersonalHoroscopeData {
+  name: string;
+  birthDate: string;
+  birthTime: string;
+  place: string;
+  pincode: string;
+  lat: number;
+  lng: number;
+  lagnaRashiKn: string;
+  lagnaRashiEn: string;
+  lagnaDegree: number;
+  moonRashiKn: string;
+  moonRashiEn: string;
+  moonNakshatraKn: string;
+  moonNakshatraEn: string;
+  moonPada: number;
+  sunRashiKn: string;
+  sunRashiEn: string;
+  currentMahadashaKn: string;
+  currentAntardashaKn: string;
+  namakarana: {
+    canonicalSyllableKn: string;
+    canonicalSyllableEn: string;
+    allSyllablesKn: string[];
+    sampleNamesKn: string[];
+    sampleNamesEn: string[];
+    deityKn: string;
+    ganaKn: string;
+    animalYoniKn: string;
+    nadiKn: string;
+    elementKn: string;
+  };
+  aarogya: {
+    vitalitySummaryKn: string;
+    sixthHouseSummaryKn: string;
+    eighthHouseSummaryKn: string;
+    tridoshaKn: string;
+    cautionsKn: string[];
+    remedialHomasKn: string[];
+  };
+  ayush: {
+    longevityCategoryKn: string;
+    longevityCategoryEn: string;
+    ayurBhavaKn: string;
+    saturnPlacementKn: string;
+    marakaGrahasKn: string;
+    protectiveYogasKn: string;
+    mrityunjayaMantra: string;
+  };
+  doshas: {
+    activeCount: number;
+    doshaList: Array<{
+      nameKn: string;
+      nameEn: string;
+      severityKn: string;
+      technicalWhyKn: string;
+      pariharaKn: string;
+    }>;
+    gandantaSummaryKn?: string;
+    sadeSatiSummaryKn?: string;
+  };
+}
+
 export interface AstrologyQAResponse {
   id: string;
   question: string;
@@ -72,6 +149,11 @@ export interface AstrologyQAResponse {
     | "marana_shraddha"
     | "surrender_closure_muhurtha"
     | "festival_vrata_details"
+    | "aarogya_health"
+    | "ayush_longevity"
+    | "namakarana_naming"
+    | "comprehensive_dosha_shanti"
+    | "personal_kundli_full"
     | "general_siddhanta";
   sections: AstrologyQASection[];
   chartData?: {
@@ -159,6 +241,7 @@ export interface AstrologyQAResponse {
     rahuKalamTimeStr: string;
     chandraBalaStatusKn: string;
   };
+  personalHoroscopeData?: PersonalHoroscopeData;
 }
 
 export interface AskBaggonaAstrologyParams {
@@ -414,10 +497,440 @@ export function calculateFestivalDetails(
   };
 }
 
+
+export interface ExtractedBirthDetails {
+  name: string;
+  birthDate: string; // YYYY-MM-DD
+  birthTime: string; // HH:mm
+  place: string;
+  pincode: string;
+  latitude: number;
+  longitude: number;
+  hasExplicitDate: boolean;
+  hasExplicitTime: boolean;
+  hasExplicitPlace: boolean;
+  hasExplicitPincode: boolean;
+}
+
+/**
+ * Robust entity extractor that parses Devotee Name, DOB, TOB, City, and Pincode
+ * from any conversational user prompt (Kannada or English).
+ */
+export function extractPersonAndBirthDetails(
+  question: string,
+  existingInput?: BirthDetailsInput
+): ExtractedBirthDetails {
+  let name = existingInput?.name?.trim() || "";
+  let birthDate = existingInput?.birthDate || "";
+  let birthTime = existingInput?.birthTime || "";
+  let place = existingInput?.place?.trim() || "";
+  let pincode = "";
+  let latitude = existingInput?.latitude || 14.5479; // Default Sri Kshetra Baggona / Gokarna
+  let longitude = existingInput?.longitude || 74.3188;
+
+  let hasExplicitDate = Boolean(birthDate);
+  let hasExplicitTime = Boolean(birthTime);
+  let hasExplicitPlace = Boolean(place && place !== "Custom");
+  let hasExplicitPincode = false;
+
+  // 1. Pincode Extraction (6 digits: 100000 - 999999)
+  const pinMatch = question.match(/\b([1-9]\d{5})\b/);
+  if (pinMatch) {
+    pincode = pinMatch[1];
+    hasExplicitPincode = true;
+    const resolvedPin = findOfflineIndianCityOrPin(pincode);
+    if (resolvedPin) {
+      if (!place || place === "Custom") place = resolvedPin.name;
+      latitude = resolvedPin.lat;
+      longitude = resolvedPin.lng;
+      hasExplicitPlace = true;
+    }
+  }
+
+  // 2. City / Place Extraction
+  if (!hasExplicitPlace || place === "Custom") {
+    const placeMatch = question.match(
+      /(?:ಸ್ಥಳ|place|city|ಊರು|ಹುಟ್ಟಿದ\s*ಊರು|ಹುಟ್ಟಿದ\s*ಸ್ಥಳ)\s*[:=]?\s*([A-Za-z\u0C80-\u0CFF]+)/i
+    );
+    if (placeMatch && placeMatch[1]) {
+      const candidatePlace = placeMatch[1].trim();
+      const resolved = findOfflineIndianCityOrPin(candidatePlace);
+      if (resolved) {
+        place = resolved.name;
+        if (!pincode) pincode = resolved.pincode;
+        latitude = resolved.lat;
+        longitude = resolved.lng;
+        hasExplicitPlace = true;
+      } else {
+        place = candidatePlace;
+        hasExplicitPlace = true;
+      }
+    } else {
+      const knownCities = [
+        "gokarna", "kumta", "honnavar", "karwar", "sirsi", "ankola", "bhatkal",
+        "bangalore", "bengaluru", "mangalore", "mangaluru", "udupi", "hubli",
+        "hubballi", "dharwad", "belgaum", "belagavi", "mysore", "mysuru",
+        "shimoga", "shivamogga", "tumkur", "tumakuru", "bellary", "ballari",
+        "hassan", "mandya", "davanagere", "mumbai", "pune", "delhi", "chennai", "hyderabad"
+      ];
+      const qLower = question.toLowerCase();
+      for (const city of knownCities) {
+        if (qLower.includes(city)) {
+          const resolved = findOfflineIndianCityOrPin(city);
+          if (resolved) {
+            place = resolved.name;
+            if (!pincode) pincode = resolved.pincode;
+            latitude = resolved.lat;
+            longitude = resolved.lng;
+            hasExplicitPlace = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // 3. Date of Birth (DOB) Extraction
+  if (!birthDate) {
+    const dobMatch = question.match(
+      /(?:dob|ಹುಟ್ಟಿದ\s*ದಿನಾಂಕ|ದಿನಾಂಕ|ಜನನ\s*ದಿನಾಂಕ|born\s*on|birth\s*date)\s*[:=]?\s*(\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{4})/i
+    );
+    if (dobMatch && dobMatch[1]) {
+      const rawDate = dobMatch[1];
+      if (/^\d{4}/.test(rawDate)) {
+        const parts = rawDate.split(/[-/]/);
+        birthDate = `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+      } else {
+        const parts = rawDate.split(/[-/]/);
+        birthDate = `${parts[2]}-${String(parts[1]).padStart(2, "0")}-${String(parts[0]).padStart(2, "0")}`;
+      }
+      hasExplicitDate = true;
+    } else {
+      const extracted = extractDateAndTargetYear(question).extractedDate;
+      if (extracted) {
+        birthDate = extracted;
+        hasExplicitDate = true;
+      }
+    }
+  }
+
+  // 4. Time of Birth (TOB) Extraction
+  if (!birthTime) {
+    const timeMatch = question.match(
+      /(?:tob|ಸಮಯ|ಜನನ\s*ಸಮಯ|time|born\s*at|at)\s*[:=]?\s*(?:ಬೆಳಿಗ್ಗೆ|ಮಧ್ಯಾಹ್ನ|ಸಂಜೆ|ರಾತ್ರಿ)?\s*(\d{1,2})[:.](\d{2})\s*(am|pm|AM|PM)?/i
+    );
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1], 10);
+      const minutes = parseInt(timeMatch[2], 10);
+      const ampm = timeMatch[3]?.toLowerCase();
+      const qContext = question
+        .substring(Math.max(0, timeMatch.index! - 15), timeMatch.index! + 20)
+        .toLowerCase();
+
+      if (ampm === "pm" && hours < 12) hours += 12;
+      else if (ampm === "am" && hours === 12) hours = 0;
+      else if (!ampm) {
+        if (
+          (qContext.includes("ಮಧ್ಯಾಹ್ನ") ||
+            qContext.includes("ಸಂಜೆ") ||
+            qContext.includes("ರಾತ್ರಿ")) &&
+          hours < 12
+        ) {
+          hours += 12;
+        }
+      }
+
+      birthTime = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+      hasExplicitTime = true;
+    } else {
+      const standaloneTime = question.match(/\b(\d{1,2})[:.](\d{2})\s*(am|pm|AM|PM)?\b/);
+      if (standaloneTime) {
+        let hours = parseInt(standaloneTime[1], 10);
+        const minutes = parseInt(standaloneTime[2], 10);
+        const ampm = standaloneTime[3]?.toLowerCase();
+        if (ampm === "pm" && hours < 12) hours += 12;
+        else if (ampm === "am" && hours === 12) hours = 0;
+        birthTime = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        hasExplicitTime = true;
+      } else {
+        birthTime = "12:00"; // default noon if time not given
+      }
+    }
+  }
+
+  // 5. Person Name Extraction
+  if (!name) {
+    const nameMatch = question.match(
+      /(?:ಹೆಸರು|name|ವ್ಯಕ್ತಿಯ\s*ಹೆಸರು|ಬಾಲಕನ\s*ಹೆಸರು|ಮಗನ\s*ಹೆಸರು|ಮಗಳ\s*ಹೆಸರು|devotee)\s*[:=]?\s*([A-Za-z\u0C80-\u0CFF]+)/i
+    );
+    if (nameMatch && nameMatch[1]) {
+      name = nameMatch[1].trim();
+    } else {
+      const candidate = extractCandidateNameFromQuery(question);
+      if (
+        candidate &&
+        candidate.length >= 2 &&
+        !["ಯಾವಾಗ", "ಹೇಗೆ", "ಮುಹೂರ್ತ", "ತಿಥಿ", "ನಕ್ಷತ್ರ", "ಯಾವ", "ಆರೋಗ್ಯ", "ಆಯುಷ್ಯ", "ದೋಷ"].includes(candidate)
+      ) {
+        name = candidate;
+      } else {
+        name = "ಭಕ್ತರು (Native Devotee)";
+      }
+    }
+  }
+
+  if (!place) place = "Gokarna (ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ)";
+  if (!pincode) pincode = "581326";
+
+  return {
+    name,
+    birthDate,
+    birthTime,
+    place,
+    pincode,
+    latitude,
+    longitude,
+    hasExplicitDate,
+    hasExplicitTime,
+    hasExplicitPlace,
+    hasExplicitPincode
+  };
+}
+
+/**
+ * Computes 100% deterministic Personal Astrology Profile (Lagna, Rashi, Nakshatra Pada,
+ * Namakarana syllables, Aarogya health analysis, Ayush longevity, and Doshas)
+ */
+export function calculatePersonalAstrologyProfile(
+  details: ExtractedBirthDetails,
+  targetDate: Date = new Date()
+): PersonalHoroscopeData | undefined {
+  if (!details.hasExplicitDate || !details.birthDate) {
+    return undefined;
+  }
+
+  try {
+    const kundliInput = {
+      name: details.name,
+      birthDate: details.birthDate,
+      birthTime: details.birthTime,
+      latitude: details.latitude,
+      longitude: details.longitude,
+      pincode: details.pincode
+    };
+
+    const kundli = calculateKundli(kundliInput);
+    const doshaReport = calculateComprehensiveDoshas(kundli, kundliInput, targetDate);
+
+    const lagnaRashiKn = toKannadaRashi(kundli.lagnaRashi.index);
+    const lagnaRashiEn = kundli.lagnaRashi?.english || "Aries";
+    const lagnaDegree = kundli.ascendant || 0;
+
+    const moon = kundli.planets.find((p) => p.name === "Moon");
+    const moonRashiKn = toKannadaRashi(moon?.rashi.index);
+    const moonRashiEn = moon?.rashi.english || "Aries";
+    const moonNakshatraKn = toKannadaNakshatra(moon?.nakshatra.index);
+    const moonNakshatraEn = moon?.nakshatra.english || "Ashwini";
+    const moonPada = kundli.moonPada || 1;
+
+    const sun = kundli.planets.find((p) => p.name === "Sun");
+    const sunRashiKn = toKannadaRashi(sun?.rashi.index);
+    const sunRashiEn = sun?.rashi.english || "Aries";
+
+    const age = ageDecimalYearsAt(
+      details.birthDate,
+      details.birthTime,
+      details.latitude,
+      details.longitude,
+      targetDate
+    );
+    const bhukti = findBhuktiAtAge(kundli, age);
+    const currentMahadashaKn = bhukti
+      ? toKannadaPlanet(bhukti.maha.planet) + " ಮಹಾದಶಾ"
+      : "ವಿಂಶೋತ್ತರಿ ಮಹಾದಶಾ";
+    const currentAntardashaKn = bhukti
+      ? toKannadaPlanet(bhukti.bhukti) + " ಅಂತರ್ದಶಾ"
+      : "ಶುಭ ಅಂತರ್ದಶಾ";
+
+    // 1. Namakarana from Avakahada
+    const avakahada = lookupAvakahadaByNakshatraAndPada(moonNakshatraEn, moonPada);
+    const canonicalSyllableKn = avakahada?.canonicalSoundKn || "ಅ";
+    const canonicalSyllableEn = avakahada?.canonicalSoundEn || "A";
+    const allSyllablesKn = avakahada?.syllablesKn || [canonicalSyllableKn];
+    const sampleNamesKn = avakahada?.sampleNamesKn || [];
+    const sampleNamesEn = avakahada?.sampleNamesEn || [];
+    const deityKn = avakahada?.deityKn || "ಇಷ್ಟದೇವತೆ";
+    const ganaKn = avakahada?.ganaKn || "ದೇವ";
+    const animalYoniKn = avakahada?.animalYoniKn || "ಕುದುರೆ";
+    const nadiKn = avakahada?.nadiKn || "ಆದ್ಯ";
+    const elementKn = avakahada?.elementKn || "ಅಗ್ನಿ";
+
+    // 2. Aarogya (Health & 6th House) Analysis
+    const sixthHouseIdx = (kundli.lagnaRashi.index + 5) % 12;
+    const sixthHouseRashiKn = toKannadaRashi(sixthHouseIdx);
+    const sixthHousePlanets = kundli.planets.filter((p) => p.house === 6);
+    const eighthHousePlanets = kundli.planets.filter((p) => p.house === 8);
+
+    const lagnaLordName = signLord(kundli.lagnaRashi.index);
+    const lagnaLordHouse =
+      kundli.planets.find((p) => p.name === lagnaLordName)?.house || 1;
+    const isLagnaLordStrong = [1, 4, 5, 7, 9, 10, 11].includes(lagnaLordHouse);
+
+    const vitalitySummaryKn = isLagnaLordStrong
+      ? `ಲಗ್ನಾಧಿಪತಿಯು ${lagnaLordHouse}ನೇ ಶುಭ ಭಾವದಲ್ಲಿದ್ದು, ನೈಸರ್ಗಿಕ ಜೀವಬಲ (Vitality) ಮತ್ತು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯು ಸದೃಢವಾಗಿದೆ.`
+      : `ಲಗ್ನಾಧಿಪತಿಯು ${lagnaLordHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದು, ಶಾರೀರಿಕ ತ್ರಾಣ ಮತ್ತು ರೋಗನಿರೋಧಕ ಬಲವನ್ನು ನಿರಂತರ ಜಪ-ಧ್ಯಾನಗಳಿಂದ ವೃದ್ಧಿಸಿಕೊಳ್ಳಬೇಕು.`;
+
+    const sixthHouseSummaryKn =
+      sixthHousePlanets.length > 0
+        ? `೬ನೇ ರೋಗ ಭಾವದಲ್ಲಿ (${sixthHouseRashiKn}) ${sixthHousePlanets.map((p) => toKannadaPlanet(p.name)).join(", ")} ಗ್ರಹಗಳ ಸ್ಥಿತಿ ಇದೆ.`
+        : `೬ನೇ ರೋಗ ಭಾವವು (${sixthHouseRashiKn}) ಶುಭ ದೃಷ್ಟಿಯಲ್ಲಿದ್ದು, ಸಾಧಾರಣ ಋತುಮಾನದ ಬಾಧೆಗಳ ಹೊರತು ತೀವ್ರ ರೋಗ ಭೀತಿಯಿಲ್ಲ.`;
+
+    const eighthHouseSummaryKn =
+      eighthHousePlanets.length > 0
+        ? `೮ನೇ ಆಯುರ್ಭಾವದಲ್ಲಿ ${eighthHousePlanets.map((p) => toKannadaPlanet(p.name)).join(", ")} ಗ್ರಹಗಳಿದ್ದು, ದೀರ್ಘಕಾಲಿಕ ವಾತ/ಉದರ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ.`
+        : `೮ನೇ ಆಯುರ್ಭಾವವು ನಿರ್ದೋಷವಾಗಿದ್ದು, ದೀರ್ಘಾಯುಷ್ಯದ ಬಲವನ್ನು ದೃಢಪಡಿಸುತ್ತದೆ.`;
+
+    // Tridosha from Lagna element
+    const tridoshaKn = ["ಮೇಷ", "ಸಿಂಹ", "ಧನುಸ್ಸು"].includes(lagnaRashiKn)
+      ? "ಪಿತ್ತ ಪ್ರಕೃತಿ (ಅಗ್ನಿ ತತ್ವ - ಉಷ್ಣ, ಜೀರ್ಣಕ್ರಿಯೆ, ರಕ್ತ ಸಂಚಲನ ಕಾಳಜಿ)"
+      : ["ಮಿಥುನ", "ತುಲಾ", "ಕುಂಭ"].includes(lagnaRashiKn)
+      ? "ವಾತ ಪ್ರಕೃತಿ (ವಾಯು ತತ್ವ - ನರಮಂಡಲ, ಕೀಲು, ವಾಯು ಪ್ರಕೋಪ ಕಾಳಜಿ)"
+      : ["ಕರ್ಕಾಟಕ", "ವೃಶ್ಚಿಕ", "ಮೀನ"].includes(lagnaRashiKn)
+      ? "ಕಫ ಪ್ರಕೃತಿ (ಜಲ ತತ್ವ - ಶೀತ, ಶ್ವಾಸಕೋಶ, ಜಲ ದೋಷ ಕಾಳಜಿ)"
+      : "ವಾತ-ಕಫ ಮಿಶ್ರಿತ ಪ್ರಕೃತಿ (ಪೃಥ್ವಿ ತತ್ವ - ಮೂಳೆ, ಸ್ನಾಯು, ಶಾರೀರಿಕ ಬಲ)";
+
+    const cautionsKn: string[] = [];
+    if (sixthHousePlanets.some((p) => p.name === "Mars" || p.name === "Sun")) {
+      cautionsKn.push("ರಕ್ತದೊತ್ತಡ, ಉಷ್ಣ ಪಿತ್ತ ಮತ್ತು ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ ಎಚ್ಚರಿಕೆ.");
+    }
+    if (sixthHousePlanets.some((p) => p.name === "Saturn" || p.name === "Rahu")) {
+      cautionsKn.push("ಕೀಲು ನೋವು, ಅಜೀರ್ಣ ಮತ್ತು ಅನಿಶ್ಚಿತ ನರಗಳ ದೌರ್ಬಲ್ಯ ಎಚ್ಚರಿಕೆ.");
+    }
+    if (cautionsKn.length === 0) {
+      cautionsKn.push("ಋತು ಬದಲಾವಣೆಯ ಸಂದರ್ಭದಲ್ಲಿ ಜೀರ್ಣಾಂಗ ಮತ್ತು ಶೀತ ರಕ್ಷಣೆ.");
+    }
+
+    const remedialHomasKn = [
+      "ಧನ್ವಂತರಿ ಮಹಾಹೋಮ (ಆರೋಗ್ಯ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯ ಸಿದ್ಧಿಗೆ)",
+      "ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ & ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ",
+      "ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರ ನಿತ್ಯ ಪಠಣ (ಜೀವಬಲ ವೃದ್ಧಿಗೆ)"
+    ];
+
+    // 3. Ayush (Longevity) Analysis
+    const saturn = kundli.planets.find((p) => p.name === "Saturn");
+    const saturnHouse = saturn?.house || 1;
+    const saturnPlacementKn = `ಆಯುಷ್ಯಕಾರಕ ಶನಿಯು ${saturnHouse}ನೇ ಭಾವದಲ್ಲಿದ್ದಾನೆ ${
+      saturnHouse === 8 ? "(೮ನೇ ಮನೆಯಲ್ಲಿ ಶನಿ ಆಯುರ್ವೃದ್ಧಿಕಾರಕ)" : ""
+    }`;
+
+    const secondLordIdx = rashiIndexInHouse(kundli.lagnaRashi.index, 2);
+    const seventhLordIdx = rashiIndexInHouse(kundli.lagnaRashi.index, 7);
+    const marakaGrahasKn = `ಮಾರಕ ಸ್ಥಾನಗಳಾದ ೨ನೇ ಮನೆ ಅಧಿಪತಿ (${toKannadaPlanet(
+      signLord(secondLordIdx)
+    )}) ಮತ್ತು ೭ನೇ ಮನೆ ಅಧಿಪತಿ (${toKannadaPlanet(signLord(seventhLordIdx))})`;
+
+    const longevityCategoryKn =
+      isLagnaLordStrong || saturnHouse === 8
+        ? "ದೀರ್ಘಾಯುಷ್ಯ (ಪೂರ್ಣಾಯು ೭೦ ರಿಂದ ೧೦೦+ ವರ್ಷಗಳ ಸುಕ್ಷೇಮ ಯೋಗ)"
+        : "ಮಧ್ಯಮಾಯುಷ್ಯ (೫೫ ರಿಂದ ೭೫ ವರ್ಷಗಳು - ನಿರಂತರ ಮೃತ್ಯುಂಜಯ ಕವಚದಿಂದ ಆಯುರ್ವೃದ್ಧಿ)";
+    const longevityCategoryEn =
+      isLagnaLordStrong || saturnHouse === 8
+        ? "Purnayu (Full Longevity 70 to 100+ Years)"
+        : "Madhyayu (Medium Longevity 55 to 75 Years)";
+
+    const eighthHouseIdx = (kundli.lagnaRashi.index + 7) % 12;
+    const ayurBhavaKn = `೮ನೇ ಆಯುರ್ಭಾವವು ${toKannadaRashi(eighthHouseIdx)} ರಾಶಿಯಲ್ಲಿದ್ದು ಆಯುಷ್ಯ ಬಲವನ್ನು ರಕ್ಷಿಸುತ್ತದೆ.`;
+    const protectiveYogasKn =
+      "ಗುರು ಬಲ, ಲಗ್ನ ರಕ್ಷಾ ಕವಚ ಹಾಗೂ ಶ್ರೀ ಮಹಾಮೃತ್ಯುಂಜಯ ದೈವಿಕ ರಕ್ಷಣೆ.";
+    const mrityunjayaMantra =
+      "॥ ಓಂ ತ್ರ್ಯಂಬಕಂ ಯಜಾಮಹೇ ಸುಗಂಧಿಂ ಪುಷ್ಟಿವರ್ಧನಮ್ । ಉರ್ವಾರುಕಮಿವ ಬಂಧನಾನ್ ಮೃತ್ಯೋರ್ಮುಕ್ಷೀಯ ಮಾಮೃತಾತ್ ॥";
+
+    // 4. Dosha Analysis
+    const activeDoshas = (doshaReport.doshas || []).filter((d) => d.severity !== "none");
+    const doshaList = activeDoshas.map((d) => ({
+      nameKn: d.name?.kn || d.name?.en || d.id,
+      nameEn: d.name?.en || d.name?.kn || d.id,
+      severityKn:
+        d.severity === "critical"
+          ? "ತೀವ್ರ ದೋಷ"
+          : d.severity === "high"
+          ? "ಮಧ್ಯಮ ತೀವ್ರ"
+          : "ಸಾಮಾನ್ಯ ದೋಷ",
+      technicalWhyKn: d.technicalWhy?.kn || d.technicalWhy?.en || "ಗ್ರಹಗಳ ಸಂಯೋಗ ಮತ್ತು ದೃಷ್ಟಿ ಫಲ.",
+      pariharaKn: d.recommendedPooja?.kn || d.recommendedPooja?.en || "ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಪರಿಹಾರ ಸೇವೆ."
+    }));
+
+    return {
+      name: details.name,
+      birthDate: details.birthDate,
+      birthTime: details.birthTime,
+      place: details.place,
+      pincode: details.pincode,
+      lat: details.latitude,
+      lng: details.longitude,
+      lagnaRashiKn,
+      lagnaRashiEn,
+      lagnaDegree,
+      moonRashiKn,
+      moonRashiEn,
+      moonNakshatraKn,
+      moonNakshatraEn,
+      moonPada,
+      sunRashiKn,
+      sunRashiEn,
+      currentMahadashaKn,
+      currentAntardashaKn,
+      namakarana: {
+        canonicalSyllableKn,
+        canonicalSyllableEn,
+        allSyllablesKn,
+        sampleNamesKn,
+        sampleNamesEn,
+        deityKn,
+        ganaKn,
+        animalYoniKn,
+        nadiKn,
+        elementKn
+      },
+      aarogya: {
+        vitalitySummaryKn,
+        sixthHouseSummaryKn,
+        eighthHouseSummaryKn,
+        tridoshaKn,
+        cautionsKn,
+        remedialHomasKn
+      },
+      ayush: {
+        longevityCategoryKn,
+        longevityCategoryEn,
+        ayurBhavaKn,
+        saturnPlacementKn,
+        marakaGrahasKn,
+        protectiveYogasKn,
+        mrityunjayaMantra
+      },
+      doshas: {
+        activeCount: doshaList.length,
+        doshaList,
+        gandantaSummaryKn: (doshaReport.gandantaraAndBhaya?.activeGandantarasCount ?? 0) > 0
+          ? "ಗಂಡಾಂತ ಸಂಧಿ ದೋಷವಿದೆ (ಶಾಂತಿ ಅವಶ್ಯಕ)."
+          : "ಯಾವುದೇ ಗಂಡಾಂತ ದೋಷವಿಲ್ಲ (ಪರಿಶುದ್ಧ ಜನನ).",
+        sadeSatiSummaryKn: "ಪ್ರಸ್ತುತ ಗೋಚಾರ ಶನಿ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ."
+      }
+    };
+  } catch (err) {
+    console.warn("Failed to calculate personal astrology profile:", err);
+    return undefined;
+  }
+}
+
 /**
  * Detects special astrological entities from the user prompt
  */
-function inspectQuestionIntent(question: string): {
+function inspectQuestionIntent(
+  question: string,
+  birthDetails?: BirthDetailsInput
+): {
   intent: AstrologyQAResponse["detectedIntent"];
   nakshatraIndex?: number;
   nakshatraName?: string;
@@ -435,10 +948,36 @@ function inspectQuestionIntent(question: string): {
   isMaranaShraddha: boolean;
   isSurrenderClosure: boolean;
   isFestival: boolean;
+  isAarogya: boolean;
+  isAyush: boolean;
+  isNamakarana: boolean;
+  isDosha: boolean;
+  extractedBirthDetails: ExtractedBirthDetails;
   extractedDate: string | null;
   targetYear: number;
 } {
   const qLower = question.toLowerCase();
+
+  const extractedBirthDetails = extractPersonAndBirthDetails(question, birthDetails);
+  const isAarogya =
+    /aarogya|health|disease|illness|sick|hospital|roga|ayurveda|tridosha|diet|body|vitality|immunity|ಆರೋಗ್ಯ|ರೋಗ|ಕಾಯಿಲೆ|ಅನಾರೋಗ್ಯ|ವೈದ್ಯ|ಆಸ್ಪತ್ರೆ|ದೈಹಿಕ\s*ಬಲ|ಪಿತ್ತ|ವಾತ|ಕಫ|ಚಿಕಿತ್ಸೆ|ದೇಹ\s*ಸ್ಥಿತಿ|ರೋಗ\s*ಬಾಧೆ|ರೋಗಕಾರಕ/i.test(
+      qLower
+    );
+
+  const isAyush =
+    /ayush|ayurdaya|longevity|lifespan|life\s*span|how\s*long|death\s*timing|maraka|maraka\s*dasha|mrityunjaya|ಆಯುಷ್ಯ|ಆಯುಸ್ಸು|ಆಯುರ್ದಾಯ|ಆಯಸ್ಸು|ಮಾರಕ|ಮೃತ್ಯು|ಎಷ್ಟು\s*ವರ್ಷ|ಬಾಲಾರಿಷ್ಟ|ದೀರ್ಘಾಯುಷ್ಯ|ಅಪಮೃತ್ಯು|ಆಯುರ್ವೇದ\s*ರಕ್ಷೆ|ಆಯುರ್ವೃದ್ಧಿ/i.test(
+      qLower
+    );
+
+  const isNamakarana =
+    /namakarana|naming|baby\s*name|letter|syllable|name\s*suggestion|ನಾಮಕರಣ|ನಾಮಾಕ್ಷರ|ಹೆಸರು\s*ಇಡು|ಮಗುವಿನ\s*ಹೆಸರು|ಯಾವ\s*ಅಕ್ಷರ|ಶುಭ\s*ಹೆಸರು|ನಾಮಧೇಯ|ನಾಮ\s*ಕರಣ|ಮಗುವಿಗೆ\s*ಹೆಸರು/i.test(
+      qLower
+    );
+
+  const isDosha =
+    /dosha|shanti|parihara|manglik|kuja\s*dosha|kala\s*sarpa|pitru\s*dosha|guru\s*chandala|balarishta|gandanta|sade\s*sati|ashtama\s*shani|ದೋಷ|ಶಾಂತಿ|ಪರಿಹಾರ|ಕುಜ\s*ದೋಷ|ಮಾಂಗಲಿಕ|ಕಾಲಸರ್ಪ|ಕಾಳಸರ್ಪ|ಪಿತೃ\s*ದೋಷ|ಗುರು\s*ಚಂಡಾಲ|ಗಂಡಾಂತ|ಏಳರೆನಾಡು|ಸಾಡೇಸಾತಿ|ಅಷ್ಟಮ\s*ಶನಿ|ಸರ್ಪ\s*ದೋಷ|ಬಾಲಾರಿಷ್ಟ|ದೋಷಗಳ/i.test(
+      qLower
+    );
 
   // 1. Check for Name-to-Nakshatra Lookup (Avakahada Chakra)
   const isNameQuerySyntax =
@@ -449,8 +988,13 @@ function inspectQuestionIntent(question: string): {
   const matchedName = lookupNakshatraByDevoteeName(question);
   const isNameLookup = Boolean(
     matchedName &&
+      !extractedBirthDetails.hasExplicitDate &&
+      !isAarogya &&
+      !isAyush &&
+      !isNamakarana &&
+      !isDosha &&
       (isNameQuerySyntax ||
-        /hiranya|hiranyaksha|ಹಿರಣ್ಯಾ|ಹಿರಣ್ಯ|prakash|pramod|ಪ್ರಕಾಶ್|ಪ್ರಮೋದ್|suresh|ಸುರೇಶ್|raghavendra|ರಾಘವೇಂದ್ರ/i.test(
+        /whose\s*name|ಯಾರ\s*ಹೆಸರು|ನಾಮಾಕ್ಷರ\s*ನಕ್ಷತ್ರ|hiranya|hiranyaksha|ಹಿರಣ್ಯಾ|ಹಿರಣ್ಯ|prakash|pramod|ಪ್ರಕಾಶ್|ಪ್ರಮೋದ್/i.test(
           qLower
         ))
   );
@@ -512,7 +1056,7 @@ function inspectQuestionIntent(question: string): {
 
   // 6. Surrender / Closure / Rina Mukti Muhurtha Detection (Hotel, Lease, Business)
   const isSurrenderClosure =
-    /surrender|surrendering|close|closing|handover|vacate|winding\s*up|debt|repay|loan|rina\s*mukti|rina\s*vimochana|lease|ಹೊಟೇಲ್\s*ಒಪ್ಪಿಸ|ಒಪ್ಪಿಸ|ಖಾಲಿ\s*ಮಾಡು|ವ್ಯಾಪಾರ\s*ಸಮಾಪ್ತಿ|ವ್ಯಾಪಾರ\s*ಮುಕ್ತಾಯ|ಅಂಗಡಿ\s*ಮುಚ್ಚ|ಸಾಲ\s*ತೀರಿಸ|ಋಣ\s*ಮುಕ್ತಿ|ಕರಾರು\s*ರದ್ದು|ಬಿಸಿನೆಸ್\s*ಕ್ಲೋಸ್/i.test(
+    /\bsurrender\b|\bsurrendering\b|\bhandover\b|\bvacate\b|\bwinding\s*up\b|\bdebt\b|\brepay\b|\bloan\b|\brina\s*mukti\b|\brina\s*vimochana\b|\blease\b|\bclose\s*hotel\b|\bclose\s*business\b|ಹೊಟೇಲ್\s*ಒಪ್ಪಿಸ|ಒಪ್ಪಿಸ|ಖಾಲಿ\s*ಮಾಡು|ವ್ಯಾಪಾರ\s*ಸಮಾಪ್ತಿ|ವ್ಯಾಪಾರ\s*ಮುಕ್ತಾಯ|ಅಂಗಡಿ\s*ಮುಚ್ಚ|ಸಾಲ\s*ತೀರಿಸ|ಋಣ\s*ಮುಕ್ತಿ|ಕರಾರು\s*ರದ್ದು|ಬಿಸಿನೆಸ್\s*ಕ್ಲೋಸ್/i.test(
       qLower
     );
 
@@ -521,6 +1065,7 @@ function inspectQuestionIntent(question: string): {
     /festival|vrata|ekadashi|shivaratri|deepavali|diwali|ganesh|chaturthi|ugadi|sankranti|navaratri|dasara|janmashtami|gokulashtami|rama\s*navami|hanuman\s*jayanti|akshaya\s*tritiya|dussehra|ಹಬ್ಬ|ಉತ್ಸವ|ವ್ರತ|ಏಕಾದಶಿ|ಶಿವರಾತ್ರಿ|ದೀಪಾವಳಿ|ಗಣೇಶ|ಚತುರ್ಥಿ|ಯುಗಾದಿ|ಸಂಕ್ರಾಂತಿ|ನವರಾತ್ರಿ|ದಸರಾ|ಜನ್ಮಾಷ್ಟಮಿ|ಗೋಕುಲಾಷ್ಟಮಿ|ರಾಮನವಮಿ|ಹನುಮಜ್ಜಯಂತಿ|ಅಕ್ಷಯ\s*ತೃತೀಯ/i.test(
       qLower
     );
+
 
   const { extractedDate, targetYear } = extractDateAndTargetYear(question);
 
@@ -532,22 +1077,32 @@ function inspectQuestionIntent(question: string): {
     intent = "surrender_closure_muhurtha";
   } else if (isFestival) {
     intent = "festival_vrata_details";
-  } else if (isNameLookup) {
-    intent = "name_nakshatra_lookup";
-  } else if (isPanchangaQuery) {
-    intent = "panchanga_today";
   } else if (isVahana || /muhurtha|muhurat|ಮುಹೂರ್ತ|ಶುಭ ದಿನ|good day|griha\s*pravesha|ಗೃಹಪ್ರವೇಶ/i.test(qLower)) {
     intent = "muhurtha_timing";
   } else if (isMarriage) {
     intent = "marriage_7th_house";
   } else if (isCareer) {
     intent = "career_10th_house";
-  } else if (isMula || /ashlesha|jyeshtha|ashwini|magha|ಗಂಡಾಂತ|ದೋಷ|ಶಾಂತಿ|gandanta|dosha|shanti/i.test(qLower)) {
+  } else if (isMula || /ashlesha|jyeshtha|ashwini|magha/i.test(qLower) || (matchedShastraNak && !isAarogya && !isAyush && !isNamakarana)) {
     intent = "nakshatra_pada_dosha";
+  } else if (isNameLookup) {
+    intent = "name_nakshatra_lookup";
+  } else if (isPanchangaQuery) {
+    intent = "panchanga_today";
+  } else if (isAarogya) {
+    intent = "aarogya_health";
+  } else if (isAyush) {
+    intent = "ayush_longevity";
+  } else if (isNamakarana) {
+    intent = "namakarana_naming";
+  } else if (isDosha && (extractedBirthDetails.hasExplicitDate || /ಕುಜ\s*ದೋಷ|ಮಾಂಗಲಿಕ|ಕಾಲಸರ್ಪ|ಕಾಳಸರ್ಪ|ಪಿತೃ\s*ದೋಷ|ನನ್ನ\s*ಜಾತಕ|check\s*dosha/i.test(qLower))) {
+    intent = "comprehensive_dosha_shanti";
+  } else if (extractedBirthDetails.hasExplicitDate) {
+    intent = "personal_kundli_full";
   } else if (isHoraryQuery) {
     intent = "horary_prashna";
-  } else if (matchedShastraNak) {
-    intent = "nakshatra_pada_dosha";
+  } else {
+    intent = "general_siddhanta";
   }
 
   return {
@@ -580,6 +1135,11 @@ function inspectQuestionIntent(question: string): {
     isMaranaShraddha,
     isSurrenderClosure,
     isFestival,
+    isAarogya,
+    isAyush,
+    isNamakarana,
+    isDosha,
+    extractedBirthDetails,
     extractedDate,
     targetYear
   };
@@ -778,7 +1338,7 @@ export async function askBaggonaAstrology({
   conversationHistory = [],
   geminiApiKey = ""
 }: AskBaggonaAstrologyParams): Promise<AstrologyQAResponse> {
-  const analysis = inspectQuestionIntent(question);
+  const analysis = inspectQuestionIntent(question, birthDetails);
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
@@ -808,6 +1368,8 @@ export async function askBaggonaAstrology({
     chandraBalaStatusKn: prashnaClock.chandraBalaStatusKn
   };
 
+  let chartData: AstrologyQAResponse["chartData"] | undefined;
+
   let astronomicalContext = `
 [LIVE BAGGONA PANCHANGA AT MOMENT OF PRASHNA (ಬಗ್ಗೋಣ ಗೋಕರ್ಣ ಮಹಾಸನ್ನಿಧಿ)]:
 - ಸಂವತ್ಸರ (Samvatsara): ${tradPanchanga.samvatsaraKn} (${tradPanchanga.samvatsara})
@@ -822,7 +1384,48 @@ export async function askBaggonaAstrology({
 - ಚಂದ್ರ ಬಲ (Chandra Bala): ${prashnaClock.chandraBalaStatusKn}
 `;
 
-  let chartData: AstrologyQAResponse["chartData"] | undefined;
+  // 0.5 Calculate Deterministic Personal Horoscope Profile if birth details / DOB are provided
+  const personalHoroscopeData = calculatePersonalAstrologyProfile(
+    analysis.extractedBirthDetails,
+    now
+  );
+
+  if (personalHoroscopeData) {
+    if (!chartData) {
+      chartData = {
+        lagna: `${personalHoroscopeData.lagnaRashiKn} (${personalHoroscopeData.lagnaRashiEn})`,
+        moonSign: `${personalHoroscopeData.moonRashiKn} (${personalHoroscopeData.moonRashiEn})`,
+        nakshatra: `${personalHoroscopeData.moonNakshatraKn} ${personalHoroscopeData.moonPada}ನೇ ಪಾದ`,
+        dashaText: `${personalHoroscopeData.currentMahadashaKn} - ${personalHoroscopeData.currentAntardashaKn}`,
+        technicalHighlights: [
+          `ಲಗ್ನ: ${personalHoroscopeData.lagnaRashiKn} ${personalHoroscopeData.lagnaDegree.toFixed(1)}°`,
+          `ಆಯುರ್ದಾಯ: ${personalHoroscopeData.ayush.longevityCategoryKn}`,
+          `ಆರೋಗ್ಯ: ${personalHoroscopeData.aarogya.tridoshaKn}`,
+          `ನಾಮಾಕ್ಷರ: ${personalHoroscopeData.namakarana.canonicalSyllableKn} (${personalHoroscopeData.namakarana.allSyllablesKn.join(", ")})`,
+          `ದೋಷಗಳು: ${personalHoroscopeData.doshas.activeCount} ಸಕ್ರಿಯ`
+        ]
+      };
+    }
+
+    astronomicalContext += `
+[DETERMINISTIC PERSONAL HOROSCOPE OF DEVOTEE (ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣ ಸಿದ್ಧಾಂತ)]:
+- Devotee Name: ${personalHoroscopeData.name}
+- Birth Date & Time: ${personalHoroscopeData.birthDate} ${personalHoroscopeData.birthTime}
+- Place & Pincode: ${personalHoroscopeData.place} (${personalHoroscopeData.pincode}), Lat: ${personalHoroscopeData.lat}, Lng: ${personalHoroscopeData.lng}
+- Lagna (Ascendant): ${personalHoroscopeData.lagnaRashiKn} (${personalHoroscopeData.lagnaRashiEn}), Degree: ${personalHoroscopeData.lagnaDegree.toFixed(2)}°
+- Moon Sign (Rashi): ${personalHoroscopeData.moonRashiKn} (${personalHoroscopeData.moonRashiEn})
+- Janma Nakshatra: ${personalHoroscopeData.moonNakshatraKn} (${personalHoroscopeData.moonNakshatraEn}), Pada: ${personalHoroscopeData.moonPada}
+- Current Running Dasha: ${personalHoroscopeData.currentMahadashaKn} - ${personalHoroscopeData.currentAntardashaKn}
+- Namakarana Canonical Sound: '${personalHoroscopeData.namakarana.canonicalSyllableKn}' (${personalHoroscopeData.namakarana.canonicalSyllableEn})
+- All Namakarana Syllables: ${personalHoroscopeData.namakarana.allSyllablesKn.join(", ")}
+- Auspicious Sample Names: ${personalHoroscopeData.namakarana.sampleNamesKn.join(", ")}
+- Devata, Gana, Yoni, Nadi, Element: ${personalHoroscopeData.namakarana.deityKn}, ${personalHoroscopeData.namakarana.ganaKn} Gana, ${personalHoroscopeData.namakarana.animalYoniKn} Yoni, ${personalHoroscopeData.namakarana.nadiKn} Nadi, ${personalHoroscopeData.namakarana.elementKn} Element
+- Aarogya (Health) Analysis: ${personalHoroscopeData.aarogya.vitalitySummaryKn} | ${personalHoroscopeData.aarogya.sixthHouseSummaryKn} | ${personalHoroscopeData.aarogya.tridoshaKn}
+- Ayush (Longevity) Analysis: ${personalHoroscopeData.ayush.longevityCategoryKn} | ${personalHoroscopeData.ayush.ayurBhavaKn} | ${personalHoroscopeData.ayush.saturnPlacementKn}
+- Detected Active Doshas (${personalHoroscopeData.doshas.activeCount}): ${personalHoroscopeData.doshas.doshaList.map((d) => `${d.nameKn} (${d.severityKn}): ${d.technicalWhyKn}`).join("; ")}
+- Gandanta Status: ${personalHoroscopeData.doshas.gandantaSummaryKn}
+`;
+  }
 
   // 1. Calculate live birth chart if Date & Time are provided
   if (birthDetails?.birthDate && birthDetails?.birthTime) {
@@ -1225,7 +1828,14 @@ You must provide a deeply learned, comprehensive, clear, and reassuring response
     );
   } catch (err: any) {
     console.error("[astrologyQAService] Gemini API call failed, generating deterministic Vedic Shastra fallback:", err);
-    responseText = generateDeterministicVedicFallback(question, analysis, language, birthDetails, chartData);
+    responseText = generateDeterministicVedicFallback(
+      question,
+      analysis,
+      language,
+      birthDetails,
+      chartData,
+      personalHoroscopeData
+    );
   }
 
   // Parse structured sections
@@ -1270,7 +1880,8 @@ You must provide a deeply learned, comprehensive, clear, and reassuring response
     maranaShraddhaData,
     surrenderMuhurthaData,
     festivalData,
-    livePanchangaMoment
+    livePanchangaMoment,
+    personalHoroscopeData
   };
 }
 
@@ -1282,8 +1893,242 @@ function generateDeterministicVedicFallback(
   analysis: ReturnType<typeof inspectQuestionIntent>,
   lang: SupportedLanguage,
   birthDetails?: BirthDetailsInput,
-  chartData?: AstrologyQAResponse["chartData"]
+  chartData?: AstrologyQAResponse["chartData"],
+  personalHoroscopeData?: PersonalHoroscopeData
 ): string {
+  // 0.0 Personal Horoscope Profile Fallback (Aarogya, Ayush, Namakarana, Doshas, Full Kundli)
+  if (personalHoroscopeData) {
+    const p = personalHoroscopeData;
+    if (analysis.isAarogya) {
+      if (lang === "kn") {
+        return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ${p.name} ಅವರ ಜನ್ಮಕುಂಡಲಿಯ ಆರೋಗ್ಯ (ರೋಗ ಭಾವ) ವಿಶ್ಲೇಷಣೆ:
+- ಜನ್ಮ ಲಗ್ನ: ${p.lagnaRashiKn} (${p.lagnaDegree.toFixed(1)}°), ಚಂದ್ರ ರಾಶಿ: ${p.moonRashiKn}, ಜನ್ಮ ನಕ್ಷತ್ರ: ${p.moonNakshatraKn} ${p.moonPada}ನೇ ಪಾದ.
+- ಜೀವಬಲ ವಿಶ್ಲೇಷಣೆ: ${p.aarogya.vitalitySummaryKn}
+- ೬ನೇ ರೋಗ ಸ್ಥಾನ: ${p.aarogya.sixthHouseSummaryKn}
+- ೮ನೇ ಆಯುರ್ಭಾವ: ${p.aarogya.eighthHouseSummaryKn}
+- ಶಾರೀರಿಕ ಪ್ರಕೃತಿ ತತ್ತ್ವ: ${p.aarogya.tridoshaKn}
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+- ಪ್ರಸ್ತುತ ಮಹಾದಶಾ & ಅಂತರ್ದಶಾ: ${p.currentMahadashaKn} - ${p.currentAntardashaKn}.
+- ಮುನ್ನೆಚ್ಚರಿಕೆಗಳು: ${p.aarogya.cautionsKn.join(" ")}
+- ಗೋಚಾರ ಗ್ರಹಗಳಾದ ಗುರು ಮತ್ತು ಶನಿ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದ್ದು, ಸಕಾಲಿಕ ಚಿಕಿತ್ಸೆ ಮತ್ತು ದೈವಿಕ ರಕ್ಷೆಯಿಂದ ದೀರ್ಘಾಯುರಾರೋಗ್ಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+${p.aarogya.remedialHomasKn.map((h, i) => `${i + 1}. ${h}`).join("\n")}
+೪. ನಿತ್ಯ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ "ಓಂ ನಮೋ ಭಗವತೇ ವಾಸುದೇವಾಯ ಧನ್ವಂತರಯೇ ಅಮೃತಕಲಶ ಹಸ್ತಾಯ ಸರ್ವಭಯ ವಿನಾಶನಾಯ" ಧನ್ವಂತರಿ ಮಂತ್ರ ಜಪ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಧನ್ವಂತರಿ ಭಗವಂತನ ಕೃಪೆಯಿಂದ ಸಕಲ ರೋಗ ಭಯಗಳು ನಿವಾರಣೆಯಾಗಿ, ದೃಢಕಾಯ ಮತ್ತು ಆಯುರಾರೋಗ್ಯ ಸದಾ ರಕ್ಷಿಸಲಿ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+      } else {
+        return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, here is the authentic Vedic Medical Astrology analysis for ${p.name}:
+- Lagna: ${p.lagnaRashiEn} (${p.lagnaDegree.toFixed(1)}°), Moon Sign: ${p.moonRashiEn}, Nakshatra: ${p.moonNakshatraEn} Pada ${p.moonPada}.
+- Vitality & Immunity: ${p.aarogya.vitalitySummaryKn}
+- 6th House (Roga Bhava): ${p.aarogya.sixthHouseSummaryKn}
+- 8th House (Chidra / Longevity): ${p.aarogya.eighthHouseSummaryKn}
+- Ayurvedic Constitution: ${p.aarogya.tridoshaKn}
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+- Current Running Dasha: ${p.currentMahadashaKn} - ${p.currentAntardashaKn}.
+- Health Directives: ${p.aarogya.cautionsKn.join(" ")}
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Dhanvantari Maha Homa for holistic vitality and immunity.
+2. Maha Mrityunjaya Japa and Rudrabhisheka at Gokarna Mahabaleshwara temple.
+3. Daily recitation of Aditya Hridaya Stotram for solar vitality.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May Lord Dhanvantari and Lord Mahabaleshwara bestow complete physical well-being, vitality, and longevity upon you.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+      }
+    }
+
+    if (analysis.isAyush) {
+      if (lang === "kn") {
+        return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ${p.name} ಅವರ ಜಾತಕದ ಆಯುರ್ದಾಯ ಮತ್ತು ಆಯುಷ್ಯ ನಿರ್ಣಯ:
+- ಆಯುಷ್ಯ ವರ್ಗೀಕರಣ: ${p.ayush.longevityCategoryKn} (${p.ayush.longevityCategoryEn}).
+- ${p.ayush.ayurBhavaKn}
+- ${p.ayush.saturnPlacementKn}.
+- ${p.ayush.marakaGrahasKn}.
+- ಶುಭ ಗ್ರಹ ರಕ್ಷಾ ಯೋಗಗಳು: ${p.ayush.protectiveYogasKn}
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+- ಪ್ರಸ್ತುತ ದಶಾ ಕಾಲ: ${p.currentMahadashaKn} - ${p.currentAntardashaKn}.
+- ಜಾತಕದಲ್ಲಿ ಲಗ್ನಾಧಿಪತಿ ಹಾಗೂ ಆಯುಷ್ಯಕಾರಕ ಶನಿಯ ಸ್ಥಿತಿ ಬಲಿಷ್ಠವಾಗಿದ್ದು, ವಯೋಸಹಜ ಮೈಲಿಗಲ್ಲುಗಳಲ್ಲಿ ಯಾವುದೇ ಅಕಾಲಿಕ ಅಪಮೃತ್ಯು ದೋಷವಿಲ್ಲ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ನಿತ್ಯ ಶ್ರೀ ಮಹಾಮೃತ್ಯುಂಜಯ ಮಂತ್ರ ಜಪ (೧೦೮ ಬಾರಿ):
+   ${p.ayush.mrityunjayaMantra}
+೨. ಪ್ರತಿ ವರ್ಷ ಜನ್ಮ ನಕ್ಷತ್ರದ ದಿನ ಆಯುಷ್ಯ ಹೋಮ ನೆರವೇರಿಸುವುದು.
+೩. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮೃತ್ಯುಂಜಯ ಸಂಕಲ್ಪ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಗೋಸೇವೆ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಶಿವಾನುಗ್ರಹದಿಂದ ಅಪಮೃತ್ಯು ಭಯ ನಿವಾರಣೆಯಾಗಿ, ಶತಮಾನಂ ಭವತಿ ಶತಾಯುಃ ಪುರುಷಃ ಸತೇಂದ್ರಿಯ ಆಯುಷ್ಯ ಪ್ರಾಪ್ತಿಯಾಗಲಿ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+      } else {
+        return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, based on Brihat Parashara Hora Shastra, here is the Ayurdaya (Longevity) determination for ${p.name}:
+- Longevity Category: ${p.ayush.longevityCategoryEn}.
+- 8th House (Ayur Bhava): ${p.ayush.ayurBhavaKn}
+- Saturn (Ayushkaraka): ${p.ayush.saturnPlacementKn}
+- Maraka Lords: ${p.ayush.marakaGrahasKn}
+- Protective Grace: ${p.ayush.protectiveYogasKn}
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+- Running Period: ${p.currentMahadashaKn} - ${p.currentAntardashaKn}.
+- Natural lifespan is protected by auspicious planetary positions.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Daily chanting of Maha Mrityunjaya Mantra 108 times:
+   ${p.ayush.mrityunjayaMantra}
+2. Annual Ayushya Homa on Janma Nakshatra day.
+3. Rudrabhisheka at Gokarna Mahabaleshwara temple.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May Lord Shiva protect you from all afflictions and grant complete longevity, peace, and vitality.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+      }
+    }
+
+    if (analysis.isNamakarana) {
+      if (lang === "kn") {
+        return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಆವಕಹಡ ಚಕ್ರದ ಪ್ರಕಾರ ಶಿಶುವಿನ ನಾಮಕರಣ ಜ್ಯೋತಿಷ್ಯ ವಿವರಣೆ:
+- ಜನ್ಮ ನಕ್ಷತ್ರ: ${p.moonNakshatraKn} (${p.moonNakshatraEn}), ಪಾದ: ${p.moonPada}ನೇ ಪಾದ.
+- ಜನ್ಮ ರಾಶಿ: ${p.moonRashiKn} (${p.moonRashiEn}).
+- ಶಾಸ್ತ್ರೋಕ್ತ ಪ್ರಧಾನ ನಾಮಾಕ್ಷರ: '${p.namakarana.canonicalSyllableKn}' (${p.namakarana.canonicalSyllableEn}).
+- ಅನುಮೋದಿತ ನಾಮಾಕ್ಷರ ಧ್ವನಿಗಳು: ${p.namakarana.allSyllablesKn.join(", ")}.
+- ಅಧಿದೇವತೆ: ${p.namakarana.deityKn}, ಗಣ: ${p.namakarana.ganaKn}, ಯೋನಿ: ${p.namakarana.animalYoniKn}, ನಾಡಿ: ${p.namakarana.nadiKn}.
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+ನಾಮಕರಣ ಸಂಸ್ಕಾರ ಮುಹೂರ್ತ:
+೧. ಶಿಶು ಜನಿಸಿದ ೧೧ನೇ ದಿನ, ೧೨ನೇ ದಿನ, ೧೬ನೇ ದಿನ ಅಥವಾ ೨೮ನೇ ದಿನ ಪ್ರಶಸ್ತ.
+೨. ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ತಿಥಿ, ಗುರು ಅಥವಾ ಶುಕ್ರವಾರ ಬೆಳಿಗ್ಗೆ ಅಭಿಜಿತ್ ಮುಹೂರ್ತದಲ್ಲಿ ನಾಮಕರಣ ನೆರವೇರಿಸಿ.
+೩. ರಾಹುಕಾಲ ಮತ್ತು ಭದ್ರಾ ಕರಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಿ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ಶಿಫಾರಸು ಮಾಡಲಾದ ಶಾಸ್ತ್ರೋಕ್ತ ಶುಭ ಹೆಸರುಗಳು:
+   ${p.namakarana.sampleNamesKn.join(", ")} (${p.namakarana.sampleNamesEn.join(", ")}).
+೨. ನಾಮಕರಣ ವಿಧಿ: ಗಣಪತಿ ಪೂಜೆ, ಪುಣ್ಯಾಹವಾಚನ ನೆರವೇರಿಸಿ, ಕಂಚಿನ ತಟ್ಟೆಯಲ್ಲಿ ಕೆಂಪು ಅಕ್ಕಿ ಹರಡಿ ಚಿನ್ನದ ಉಂಗುರದಿಂದ ಮಗುವಿನ ನಾಮ ಬರೆಯುವುದು.
+೩. ತಂದೆಯು ಮಗುವಿನ ಬಲ ಕಿವಿಯಲ್ಲಿ ಮೂರು ಬಾರಿ ನಾಮವನ್ನು ಉಚ್ಚರಿಸಬೇಕು.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಈ ನಾಮಾಕ್ಷರದಿಂದ ಇಡುವ ಹೆಸರು ಮಗುವಿಗೆ ಸಕಲ ಸದ್ಗುಣ, ವಿದ್ಯಾಭ್ಯಾಸ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯವನ್ನು ತರಲಿ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+      } else {
+        return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, based on Baggona Avakahada Chakra, here is the baby naming (Namakarana) determination:
+- Birth Nakshatra: ${p.moonNakshatraEn} Pada ${p.moonPada}
+- Moon Sign (Rashi): ${p.moonRashiEn}
+- Primary Naming Syllable: '${p.namakarana.canonicalSyllableEn}' ('${p.namakarana.canonicalSyllableKn}')
+- Auspicious Starting Syllables: ${p.namakarana.allSyllablesKn.join(", ")}
+- Devata: ${p.namakarana.deityKn}, Gana: ${p.namakarana.ganaKn}, Yoni: ${p.namakarana.animalYoniKn}, Nadi: ${p.namakarana.nadiKn}
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+Namakarana Sanskara Muhurtha:
+1. Conduct on 11th, 12th, 16th, or 28th day after birth during morning Abhijit Muhurtha.
+2. Avoid Rahu Kaalam and Vishti Karana.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Recommended Auspicious Baby Names:
+   ${p.namakarana.sampleNamesEn.join(", ")}.
+2. Ritual: Write the name on unbroken rice grains spread in a bronze plate using a gold ring, and father whispers the name 3 times into the baby's right ear.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May the sacred vibration of this name bring fame, health, wisdom, and divine protection to the child.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+      }
+    }
+
+    if (analysis.isDosha) {
+      if (lang === "kn") {
+        return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ${p.name} ಅವರ ಜಾತಕದ ಸಮಗ್ರ ವೈದಿಕ ದೋಷ ಪರಿಶೀಲನೆ:
+- ಸಕ್ರಿಯ ದೋಷಗಳ ಸಂಖ್ಯೆ: ${p.doshas.activeCount}.
+${p.doshas.doshaList.length > 0 ? p.doshas.doshaList.map((d, i) => `${i + 1}. ${d.nameKn} (${d.severityKn}): ${d.technicalWhyKn}`).join("\n") : "ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ತೀವ್ರ ಗ್ರಹ ದೋಷಗಳಿಲ್ಲ (ಶುದ್ಧ ಜಾತಕ)."}
+- ಗಂಡಾಂತ ಸಂಧಿ ದೋಷ: ${p.doshas.gandantaSummaryKn}
+- ಪ್ರಸ್ತುತ ಗೋಚಾರ ಸ್ಥಿತಿ: ${p.doshas.sadeSatiSummaryKn}
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+- ಪ್ರಸ್ತುತ ಮಹಾದಶಾ & ಅಂತರ್ದಶಾ: ${p.currentMahadashaKn} - ${p.currentAntardashaKn}.
+- ಮುಂಬರುವ ಶುಕ್ಲ ಪಕ್ಷದ ಶುಭ ದಿನ, ಮಂಗಳವಾರ ಅಥವಾ ಶನಿವಾರದಂದು ದೋಷ ನಿವಾರಣಾ ಶಾಂತಿ ನೆರವೇರಿಸುವುದು ಅತ್ಯಂತ ಪ್ರಶಸ್ತ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+${p.doshas.doshaList.length > 0 ? p.doshas.doshaList.map((d, i) => `${i + 1}. ${d.nameKn} ಪರಿಹಾರ: ${d.pariharaKn}`).join("\n") : "೧. ನಿತ್ಯ ಗಾಯತ್ರೀ ಜಪ ಹಾಗೂ ನವಗ್ರಹ ಸ್ತೋತ್ರ ಪಠಣ."}
+- ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ನವಗ್ರಹ ಶಾಂತಿ ಸೇವೆ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಶಾಸ್ತ್ರೋಕ್ತ ಶಾಂತಿ ಹೋಮಗಳಿಂದ ಸಕಲ ಗ್ರಹ ಬಾಧೆಗಳು ಭಸ್ಮವಾಗಿ ಜೀವನದಲ್ಲಿ ಶಾಂತಿ, ಸಂಪತ್ತು ಮತ್ತು ಶ್ರೇಯಸ್ಸು ನೆಲೆಸುತ್ತದೆ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+      } else {
+        return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, comprehensive Vedic Dosha analysis for ${p.name}:
+- Active Doshas Evaluated: ${p.doshas.activeCount}.
+${p.doshas.doshaList.length > 0 ? p.doshas.doshaList.map((d, i) => `${i + 1}. ${d.nameEn} (${d.severityKn}): ${d.technicalWhyKn}`).join("\n") : "The chart is purified with zero severe planetary doshas."}
+- Gandanta Status: ${p.doshas.gandantaSummaryKn}
+- Gochara Status: ${p.doshas.sadeSatiSummaryKn}
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+- Running Dasha Period: ${p.currentMahadashaKn} - ${p.currentAntardashaKn}.
+- Shanti rituals are best scheduled on upcoming Shukla Paksha mornings.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+${p.doshas.doshaList.length > 0 ? p.doshas.doshaList.map((d, i) => `${i + 1}. ${d.nameEn} Shanti: ${d.pariharaKn}`).join("\n") : "1. Daily Gayatri Mantra recitation and Navagraha prayer."}
+- Rudrabhisheka and Navagraha Homa at Gokarna Mahabaleshwara Temple.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+Proper Vedic propitiation dissolves karmic burdens and awakens divine abundance.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+      }
+    }
+
+    // Default Personal Kundli Full
+    if (lang === "kn") {
+      return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ${p.name} ಅವರ ಸಮಗ್ರ ಬಗ್ಗೋಣ ಜನ್ಮಕುಂಡಲಿ ವಿವರಣೆ:
+- ಜನ್ಮ ಲಗ್ನ: ${p.lagnaRashiKn} (${p.lagnaDegree.toFixed(1)}°), ಚಂದ್ರ ರಾಶಿ: ${p.moonRashiKn}, ಜನ್ಮ ನಕ್ಷತ್ರ: ${p.moonNakshatraKn} ${p.moonPada}ನೇ ಪಾದ.
+- ಸೂರ್ಯ ರಾಶಿ: ${p.sunRashiKn}, ಆಯುರ್ದಾಯ ವರ್ಗ: ${p.ayush.longevityCategoryKn}.
+- ಆರೋಗ್ಯ ಸ್ಥಿತಿ: ${p.aarogya.vitalitySummaryKn} (${p.aarogya.tridoshaKn}).
+- ಸಕ್ರಿಯ ದೋಷಗಳು: ${p.doshas.activeCount} ದೋಷಗಳು ಪರಿಶೀಲಿಸಲಾಗಿದೆ.
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+- ಪ್ರಸ್ತುತ ವಿಂಶೋತ್ತರಿ ದಶಾ: ${p.currentMahadashaKn} - ${p.currentAntardashaKn}.
+- ಗುರು-ಶನಿ ಗೋಚಾರ ಪ್ರಭಾವವು ಸಮತೋಲಿತವಾಗಿದ್ದು, ಶುಕ್ಲ ಪಕ್ಷದ ದಿನಗಳಲ್ಲಿ ಕೈಗೊಳ್ಳುವ ಕಾರ್ಯಗಳು ಸಿದ್ಧಿಯಾಗಲಿವೆ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ನಿತ್ಯ ಗಾಯತ್ರೀ ಜಪ (೧೦೮ ಬಾರಿ) ಹಾಗೂ ಕುಲದೇವತಾ ಪ್ರಾರ್ಥನೆ.
+೨. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ನವಗ್ರಹ ದೇವತಾ ಪ್ರಾರ್ಥನೆ.
+೩. ${p.aarogya.remedialHomasKn[0]}.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಧರ್ಮಮಾರ್ಗದಲ್ಲಿ ಮುನ್ನಡೆಯಿರಿ, ಜಾತಕದ ಸಕಲ ಶುಭ ಗ್ರಹ ಬಲಗಳು ನಿಮ್ಮ ಕುಟುಂಬವನ್ನು ರಕ್ಷಿಸಲಿ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+    } else {
+      return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, comprehensive birth chart synthesis for ${p.name}:
+- Lagna: ${p.lagnaRashiEn} (${p.lagnaDegree.toFixed(1)}°), Moon Sign: ${p.moonRashiEn}, Nakshatra: ${p.moonNakshatraEn} Pada ${p.moonPada}.
+- Longevity: ${p.ayush.longevityCategoryEn}.
+- Health & Constitution: ${p.aarogya.tridoshaKn}.
+- Active Doshas: ${p.doshas.activeCount} evaluated.
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+- Running Period: ${p.currentMahadashaKn} - ${p.currentAntardashaKn}.
+- Favorable planetary cycles support steady spiritual and worldly prosperity.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Daily Gayatri Mantra recitation and Kuladevata remembrance.
+2. Rudrabhisheka at Gokarna Mahabaleshwara Temple.
+3. Dhanvantari Maha Homa and cow service.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May Lord Shiva and Lord Ganesha bless your life with health, wisdom, and complete peace.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+    }
+  }
+
   // 0.1 Marana, Demise Panchanga & Shraddha Tithi Fallback
   if (analysis.isMaranaShraddha) {
     const demiseDate = analysis.extractedDate || "2023-04-12";

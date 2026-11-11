@@ -3599,3 +3599,31 @@ export function lookupNakshatraByDevoteeName(queryOrName: string): AvakahadaMatc
   return undefined;
 }
 
+/**
+ * Direct lookup of Avakahada entry by Nakshatra (index 0..26 or name) and Pada (1..4)
+ */
+export function lookupAvakahadaByNakshatraAndPada(
+  nakshatraIndexOrName: number | string,
+  pada: number
+): AvakahadaPadaEntry | undefined {
+  const normPada = Math.max(1, Math.min(4, Math.round(pada)));
+
+  if (typeof nakshatraIndexOrName === "number") {
+    const idx = (nakshatraIndexOrName % 27 + 27) % 27;
+    return AVAKAHADA_108_PADAS.find(
+      (e) => e.nakshatraIndex === idx && e.pada === normPada
+    );
+  }
+
+  const clean = nakshatraIndexOrName.trim().toLowerCase();
+  return AVAKAHADA_108_PADAS.find((e) => {
+    const matchEn =
+      e.nakshatraNameEn.toLowerCase().includes(clean) ||
+      clean.includes(e.nakshatraNameEn.toLowerCase());
+    const matchKn =
+      e.nakshatraNameKn.includes(clean) || clean.includes(e.nakshatraNameKn);
+    return (matchEn || matchKn) && e.pada === normPada;
+  });
+}
+
+

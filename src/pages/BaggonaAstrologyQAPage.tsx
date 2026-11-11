@@ -7,7 +7,8 @@ import {
   askBaggonaAstrology,
   type AstrologyQAResponse,
   type AstrologyQASection,
-  type BirthDetailsInput
+  type BirthDetailsInput,
+  type PersonalHoroscopeData
 } from "../services/astrologyQAService";
 import {
   calculateTraditionalBaggona,
@@ -258,6 +259,513 @@ function renderSectionContent(
   );
 }
 
+interface PersonalHoroscopeCardProps {
+  data: PersonalHoroscopeData;
+  lang: SupportedLanguage;
+  detectedIntent?: string;
+}
+
+function PersonalHoroscopeCard({
+  data,
+  lang,
+  detectedIntent
+}: PersonalHoroscopeCardProps): JSX.Element {
+  const initialTab =
+    detectedIntent === "aarogya_health"
+      ? "aarogya"
+      : detectedIntent === "ayush_longevity"
+      ? "ayush"
+      : detectedIntent === "namakarana_naming"
+      ? "namakarana"
+      : detectedIntent === "comprehensive_dosha_shanti"
+      ? "doshas"
+      : "overview";
+
+  const [activeTab, setActiveTab] = useState<"overview" | "aarogya" | "ayush" | "namakarana" | "doshas">(initialTab);
+
+  return (
+    <div className="m-5 sm:m-6 mb-2 rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-amber-500/15 dark:from-amber-950/70 dark:via-slate-900 dark:to-slate-950 p-4 sm:p-5 shadow-xl">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-amber-300/70 dark:border-amber-700/60 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <span className="text-2xl">🕉️</span>
+          <div>
+            <h5 className="text-sm sm:text-base font-bold text-amber-950 dark:text-amber-100 font-serif baggona-book-typography">
+              {lang === "kn"
+                ? "॥ ಬಗ್ಗೋಣ ವೈಯಕ್ತಿಕ ಜನ್ಮಕುಂಡಲಿ, ಆರೋಗ್ಯ & ಆಯುಷ್ಯ ನಿರ್ಣಯ ॥"
+                : "Baggona Personal Horoscope, Health & Longevity Determination"}
+            </h5>
+            <p className="text-[11px] text-amber-900/80 dark:text-amber-300 font-serif">
+              {lang === "kn"
+                ? "ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರ, ಭಾವ ರೋಗ-ಆಯುರ್ದಾಯ & ಅವಕಹಡಾ ಚಕ್ರ ಗಣಿತ"
+                : "Parashara Hora Shastra, Bhava Roga-Ayurdaya & Avakahada Chakra Math"}
+            </p>
+          </div>
+        </div>
+
+        {/* Devotee Info Pill */}
+        <div className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold text-xs shadow-xs flex items-center gap-1.5">
+          <span>👤 {data.name}</span>
+          <span>•</span>
+          <span>{data.birthDate}</span>
+          <span>•</span>
+          <span>{data.place} {data.pincode ? `(${data.pincode})` : ""}</span>
+        </div>
+      </div>
+
+      {/* Astronomical Key Positions */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3 text-xs">
+        <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+            ☀️ {lang === "kn" ? "ಲಗ್ನ (Ascendant)" : "Lagna"}
+          </span>
+          <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif">
+            {data.lagnaRashiKn} ({data.lagnaDegree.toFixed(1)}°)
+          </span>
+        </div>
+
+        <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+            🌙 {lang === "kn" ? "ಜನ್ಮ ರಾಶಿ (Moon Sign)" : "Moon Sign"}
+          </span>
+          <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif">
+            {data.moonRashiKn}
+          </span>
+        </div>
+
+        <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+            ⭐ {lang === "kn" ? "ಜನ್ಮ ನಕ್ಷತ್ರ & ಪಾದ" : "Nakshatra & Pada"}
+          </span>
+          <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif">
+            {data.moonNakshatraKn} • {toKannadaPadaNumber(data.moonPada)}ನೇ ಪಾದ
+          </span>
+        </div>
+
+        <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+            🌞 {lang === "kn" ? "ಸೂರ್ಯ ರಾಶಿ" : "Sun Sign"}
+          </span>
+          <span className="font-bold text-amber-950 dark:text-amber-100 text-xs font-serif">
+            {data.sunRashiKn}
+          </span>
+        </div>
+
+        <div className="col-span-2 sm:col-span-1 bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+            ⏳ {lang === "kn" ? "ಪ್ರಸ್ತುತ ದಶಾ-ಭುಕ್ತಿ" : "Running Dasha"}
+          </span>
+          <span className="font-bold text-amber-950 dark:text-amber-100 text-xs font-serif">
+            {data.currentMahadashaKn} - {data.currentAntardashaKn}
+          </span>
+        </div>
+      </div>
+
+      {/* Interactive Tabs */}
+      <div className="flex items-center gap-1.5 mt-3.5 pb-2 border-b border-amber-200/70 dark:border-slate-800 overflow-x-auto text-xs">
+        <button
+          type="button"
+          onClick={() => setActiveTab("overview")}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === "overview"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "bg-white/70 dark:bg-slate-800 text-amber-950 dark:text-amber-200 hover:bg-amber-100"
+          }`}
+        >
+          <span>🌟</span>
+          <span>{lang === "kn" ? "ಸಾರಾಂಶ" : "Overview"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("aarogya")}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === "aarogya"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "bg-white/70 dark:bg-slate-800 text-amber-950 dark:text-amber-200 hover:bg-amber-100"
+          }`}
+        >
+          <span>🩺</span>
+          <span>{lang === "kn" ? "ಆರೋಗ್ಯ & ರೋಗ" : "Health & 6th House"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("ayush")}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === "ayush"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "bg-white/70 dark:bg-slate-800 text-amber-950 dark:text-amber-200 hover:bg-amber-100"
+          }`}
+        >
+          <span>⏳</span>
+          <span>{lang === "kn" ? "ಆಯುಷ್ಯ ನಿರ್ಣಯ" : "Longevity & Ayush"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("namakarana")}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === "namakarana"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "bg-white/70 dark:bg-slate-800 text-amber-950 dark:text-amber-200 hover:bg-amber-100"
+          }`}
+        >
+          <span>👶</span>
+          <span>{lang === "kn" ? "ನಾಮಕರಣ" : "Baby Naming"}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("doshas")}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === "doshas"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "bg-white/70 dark:bg-slate-800 text-amber-950 dark:text-amber-200 hover:bg-amber-100"
+          }`}
+        >
+          <span>🛡️</span>
+          <span>{lang === "kn" ? `ದೋಷಗಳು (${data.doshas.activeCount})` : `Doshas (${data.doshas.activeCount})`}</span>
+        </button>
+      </div>
+
+      {/* Tab Panels */}
+      <div className="mt-3.5">
+        {/* 1. Overview Tab */}
+        {activeTab === "overview" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {/* Aarogya Quick Panel */}
+            <div
+              onClick={() => setActiveTab("aarogya")}
+              className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 hover:border-amber-400 cursor-pointer transition-all shadow-2xs"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-bold text-amber-950 dark:text-amber-200 font-serif flex items-center gap-1">
+                  <span>🩺</span>
+                  <span>{lang === "kn" ? "ಆರೋಗ್ಯ & ರೋಗ ಭಾವ" : "Health & Vitality"}</span>
+                </span>
+                <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                  {data.aarogya.tridoshaKn}
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif line-clamp-2">
+                {data.aarogya.vitalitySummaryKn}
+              </p>
+              <div className="mt-2 text-[10px] text-amber-800 dark:text-amber-400 font-semibold flex items-center gap-1">
+                <span>ಪರಿಹಾರ: {data.aarogya.remedialHomasKn[0] || "ಧನ್ವಂತರಿ ಹೋಮ"}</span>
+                <span>→</span>
+              </div>
+            </div>
+
+            {/* Ayush Quick Panel */}
+            <div
+              onClick={() => setActiveTab("ayush")}
+              className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 hover:border-amber-400 cursor-pointer transition-all shadow-2xs"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-bold text-amber-950 dark:text-amber-200 font-serif flex items-center gap-1">
+                  <span>⏳</span>
+                  <span>{lang === "kn" ? "ಆಯುಷ್ಯ ನಿರ್ಣಯ & ರಕ್ಷೆ" : "Longevity & Ayush"}</span>
+                </span>
+                <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  {data.ayush.longevityCategoryKn}
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif line-clamp-2">
+                {data.ayush.ayurBhavaKn}
+              </p>
+              <div className="mt-2 text-[10px] text-amber-800 dark:text-amber-400 font-semibold flex items-center gap-1">
+                <span>ಮಂತ್ರ: ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನಿ</span>
+                <span>→</span>
+              </div>
+            </div>
+
+            {/* Namakarana Quick Panel */}
+            <div
+              onClick={() => setActiveTab("namakarana")}
+              className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 hover:border-amber-400 cursor-pointer transition-all shadow-2xs"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-bold text-amber-950 dark:text-amber-200 font-serif flex items-center gap-1">
+                  <span>👶</span>
+                  <span>{lang === "kn" ? "ನಾಮಕರಣ ನಾಮಾಕ್ಷರ" : "Namakarana Syllables"}</span>
+                </span>
+                <span className="text-[11px] font-bold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md">
+                  '{data.namakarana.canonicalSyllableKn}'
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif">
+                {lang === "kn" ? "ಶುಭ ಹೆಸರುಗಳು:" : "Recommended:"} {data.namakarana.sampleNamesKn.slice(0, 4).join(", ")}
+              </p>
+              <div className="mt-2 text-[10px] text-amber-800 dark:text-amber-400 font-semibold flex items-center gap-1">
+                <span>ಗಣ: {data.namakarana.ganaKn} • ನಾಡಿ: {data.namakarana.nadiKn}</span>
+                <span>→</span>
+              </div>
+            </div>
+
+            {/* Dosha Quick Panel */}
+            <div
+              onClick={() => setActiveTab("doshas")}
+              className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 hover:border-amber-400 cursor-pointer transition-all shadow-2xs"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-bold text-amber-950 dark:text-amber-200 font-serif flex items-center gap-1">
+                  <span>🛡️</span>
+                  <span>{lang === "kn" ? "ದೋಷಗಳು & ಪರಿಹಾರ" : "Doshas & Remedies"}</span>
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  data.doshas.activeCount === 0 ? "text-emerald-800 bg-emerald-100" : "text-amber-900 bg-amber-200"
+                }`}>
+                  {data.doshas.activeCount === 0 ? "ದೋಷಮುಕ್ತ" : `${data.doshas.activeCount} ಪತ್ತೆ`}
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif">
+                {data.doshas.doshaList.length > 0
+                  ? data.doshas.doshaList.map(d => d.nameKn).join(", ")
+                  : data.doshas.gandantaSummaryKn || "ಕುಂಡಲಿ ಶುದ್ಧವಾಗಿದೆ."}
+              </p>
+              <div className="mt-2 text-[10px] text-amber-800 dark:text-amber-400 font-semibold flex items-center gap-1">
+                <span>ಗೋಕರ್ಣ ಶಾಂತಿ ವಿವರಗಳು</span>
+                <span>→</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. Aarogya Tab */}
+        {activeTab === "aarogya" && (
+          <div className="space-y-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                  🌿 ತ್ರಿದೋಷ ವಿಶ್ಲೇಷಣೆ (Tridosha)
+                </span>
+                <p className="text-xs font-serif font-bold text-amber-950 dark:text-amber-100">
+                  {data.aarogya.tridoshaKn}
+                </p>
+                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif mt-1">
+                  {data.aarogya.vitalitySummaryKn}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                  🏥 ರೋಗ ಮತ್ತು ಆಯುರ್-ಭಾವಾಧಿಪತಿಗಳು (6th & 8th Lords)
+                </span>
+                <p className="text-[11px] text-stone-800 dark:text-stone-200 font-serif">
+                  {data.aarogya.sixthHouseSummaryKn}
+                </p>
+                <p className="text-[11px] text-stone-800 dark:text-stone-200 font-serif mt-1">
+                  {data.aarogya.eighthHouseSummaryKn}
+                </p>
+              </div>
+            </div>
+
+            {data.aarogya.cautionsKn.length > 0 && (
+              <div className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-800/60">
+                <span className="text-[10px] font-bold text-amber-900 dark:text-amber-300 block mb-1">
+                  ⚠️ ಗಮನಿಸಬೇಕಾದ ಶಾರೀರಿಕ ಅಂಗಗಳು & ಮುನ್ನೆಚ್ಚರಿಕೆ:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {data.aarogya.cautionsKn.map((c, idx) => (
+                    <span key={idx} className="bg-white/90 dark:bg-slate-900 px-2 py-0.5 rounded-md border border-amber-200 text-[11px] text-stone-800 dark:text-stone-200 font-serif">
+                      • {c}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-300/60 dark:border-emerald-800/60">
+              <span className="text-[10px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1">
+                🛕 ಶಾಸ್ತ್ರೋಕ್ತ ಧನ್ವಂತರಿ & ಆಯುಷ್ಯ ಪರಿಹಾರ ಹೋಮಗಳು:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {data.aarogya.remedialHomasKn.map((h, idx) => (
+                  <span key={idx} className="bg-white/90 dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-emerald-300/70 text-xs font-semibold text-emerald-950 dark:text-emerald-200 font-serif">
+                    🕉️ {h}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. Ayush Tab */}
+        {activeTab === "ayush" && (
+          <div className="space-y-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                  ⏳ ಪರಾಶರಿ ಆಯುರ್ದಾಯ ವರ್ಗ (Longevity Category)
+                </span>
+                <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 font-bold text-xs font-serif mb-1.5 border border-emerald-300/60">
+                  {data.ayush.longevityCategoryKn} ({data.ayush.longevityCategoryEn})
+                </span>
+                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif">
+                  {data.ayush.ayurBhavaKn}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                  🪐 ಆಯುಷ್ಕಾರಕ ಶನಿ & ಮಾರಕ ಗ್ರಹ ಸ್ಥಿತಿ
+                </span>
+                <p className="text-[11px] text-stone-800 dark:text-stone-200 font-serif">
+                  {data.ayush.saturnPlacementKn}
+                </p>
+                <p className="text-[11px] text-stone-800 dark:text-stone-200 font-serif mt-1">
+                  {data.ayush.marakaGrahasKn}
+                </p>
+                <p className="text-[11px] text-emerald-900 dark:text-emerald-300 font-serif mt-1 font-semibold">
+                  {data.ayush.protectiveYogasKn}
+                </p>
+              </div>
+            </div>
+
+            {/* Sacred Maha Mrityunjaya Box */}
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-amber-100/80 via-orange-50 to-amber-100/70 dark:from-amber-950/60 dark:to-slate-900 border-2 border-amber-400/80 text-center">
+              <span className="text-[11px] font-bold text-amber-900 dark:text-amber-300 block mb-1 font-serif uppercase tracking-wider">
+                🛡️ ದೈವಿಕ ಸಂರಕ್ಷಕ ಮಹಾಮೃತ್ಯುಂಜಯ ಸಂಜೀವಿನಿ ಮಂತ್ರ
+              </span>
+              <p className="text-xs sm:text-sm font-bold text-amber-950 dark:text-amber-100 font-serif leading-relaxed">
+                {data.ayush.mrityunjayaMantra}
+              </p>
+              <p className="text-[10px] text-amber-800 dark:text-amber-400 font-serif mt-1.5">
+                ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ೧೦೮ ಬಾರಿ ಅಥವಾ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕದೊಂದಿಗೆ ಜಪಿಸುವುದು ಪರಮ ಶ್ರೇಯಸ್ಕರ.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Namakarana Tab */}
+        {activeTab === "namakarana" && (
+          <div className="space-y-3 text-xs">
+            <div className="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-300/80 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                  🔤 ಜನ್ಮ ನಕ್ಷತ್ರ ಪಾದದ ಪ್ರಧಾನ ನಾಮಾಕ್ಷರ (Primary Syllable)
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-amber-900 dark:text-amber-200 font-serif">
+                    '{data.namakarana.canonicalSyllableKn}'
+                  </span>
+                  <span className="text-sm text-stone-600 dark:text-stone-400 font-medium">
+                    ({data.namakarana.canonicalSyllableEn})
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                  ⭐ ಸಮಸ್ತ ನಕ್ಷತ್ರ ನಾಮಾಕ್ಷರಗಳು
+                </span>
+                <span className="text-xs font-bold text-amber-950 dark:text-amber-100 font-serif">
+                  {data.namakarana.allSyllablesKn.join(", ")}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+              <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-1.5">
+                👶 ಶಾಸ್ತ್ರೋಕ್ತ ಶುಭ ಶಿಶು ನಾಮಾವಳಿ (Recommended Vedic Baby Names):
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {data.namakarana.sampleNamesKn.map((n, idx) => (
+                  <span key={idx} className="bg-amber-100/70 dark:bg-slate-800 px-3 py-1 rounded-lg border border-amber-300/60 text-xs font-bold text-amber-950 dark:text-amber-100 font-serif">
+                    {n}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block">🦁 ಗಣ</span>
+                <span className="font-bold text-amber-950 dark:text-amber-100 font-serif">{data.namakarana.ganaKn}</span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block">🐾 ಯೋನಿ</span>
+                <span className="font-bold text-amber-950 dark:text-amber-100 font-serif">{data.namakarana.animalYoniKn}</span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block">🧬 ನಾಡಿ</span>
+                <span className="font-bold text-amber-950 dark:text-amber-100 font-serif">{data.namakarana.nadiKn}</span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block">🔥 ತತ್ತ್ವ</span>
+                <span className="font-bold text-amber-950 dark:text-amber-100 font-serif">{data.namakarana.elementKn}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 5. Doshas Tab */}
+        {activeTab === "doshas" && (
+          <div className="space-y-3 text-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-amber-200/70 dark:border-slate-800">
+              <span className="font-bold text-amber-950 dark:text-amber-200 font-serif flex items-center gap-1.5">
+                <span>🛡️</span>
+                <span>{lang === "kn" ? "ಪರಾಶರಿ ಸರ್ವ ದೋಷ ಪರೀಕ್ಷೆ:" : "Parashari Comprehensive Dosha Report:"}</span>
+              </span>
+              <span className={`px-2.5 py-0.5 rounded-full font-bold text-xs ${
+                data.doshas.activeCount === 0 ? "bg-emerald-100 text-emerald-800 border border-emerald-300" : "bg-amber-100 text-amber-900 border border-amber-300"
+              }`}>
+                {data.doshas.activeCount === 0 ? "ಯಾವುದೇ ದೋಷವಿಲ್ಲ" : `${data.doshas.activeCount} ದೋಷಗಳು ಸಕ್ರಿಯ`}
+              </span>
+            </div>
+
+            {data.doshas.doshaList.length === 0 ? (
+              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 text-emerald-950 dark:text-emerald-200 font-serif">
+                ✓ ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷ, ಕಾಲಸರ್ಪ ದೋಷ ಅಥವಾ ಪಿತೃ ದೋಷಗಳಿಲ್ಲ. ಗ್ರಹ ಸ್ಥಿತಿಗಳು ಅನುಕೂಲಕರವಾಗಿವೆ.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {data.doshas.doshaList.map((d, dIdx) => (
+                  <div key={dIdx} className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-300/80 dark:border-slate-800 shadow-2xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif">
+                        ⚠️ {d.nameKn}
+                      </span>
+                      <span className="text-[10px] font-semibold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950 px-2 py-0.5 rounded-md">
+                        {d.severityKn}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif">
+                      {d.technicalWhyKn}
+                    </p>
+                    <div className="mt-1.5 text-[11px] font-semibold text-amber-900 dark:text-amber-300 font-serif flex items-center gap-1">
+                      <span>🛕 ಪರಿಹಾರ:</span>
+                      <span>{d.pariharaKn}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {data.doshas.gandantaSummaryKn && (
+              <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 text-[11px] text-amber-950 dark:text-amber-200 font-serif">
+                <span className="font-bold">⭐ ಗಂಡಾಂತ ಸ್ಥಿತಿ: </span>
+                <span>{data.doshas.gandantaSummaryKn}</span>
+              </div>
+            )}
+
+            {data.doshas.sadeSatiSummaryKn && (
+              <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 text-[11px] text-amber-950 dark:text-amber-200 font-serif">
+                <span className="font-bold">🪐 ಸಾಡೇಸಾತಿ ಗೋಚಾರ ಸ್ಥಿತಿ: </span>
+                <span>{data.doshas.sadeSatiSummaryKn}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function BaggonaAstrologyQAPage(): JSX.Element {
   const { t } = useTranslation();
   const appLanguage = useAppStore((s) => s.language);
@@ -351,6 +859,34 @@ export default function BaggonaAstrologyQAPage(): JSX.Element {
 
   // Quick Preset Questions
   const PRESET_QUESTIONS: { labelKn: string; labelEn: string; promptKn: string; promptEn: string; icon: string }[] = [
+    {
+      icon: "🩺",
+      labelKn: "ಆರೋಗ್ಯ & ರೋಗ ಭಾವ ವಿಚಾರ",
+      labelEn: "Health & 6th House",
+      promptKn: "ಹೆಸರು ವಿನಾಯಕ, ಹುಟ್ಟಿದ ದಿನಾಂಕ 1990-05-15, ಸಮಯ 10:30 AM, ಗೋಕರ್ಣ 581326. ನನ್ನ ಆರೋಗ್ಯ, ೬ನೇ ಭಾವ ಮತ್ತು ದೈವಿಕ ಪರಿಹಾರ ತಿಳಿಸಿ.",
+      promptEn: "Name: Vinayaka, DOB: 1990-05-15, TOB: 10:30 AM, Gokarna 581326. Please evaluate my Health, 6th house, and remedies."
+    },
+    {
+      icon: "⏳",
+      labelKn: "ಆಯುಷ್ಯ ನಿರ್ಣಯ & ಮೃತ್ಯುಂಜಯ",
+      labelEn: "Longevity & Ayush",
+      promptKn: "ಹೆಸರು ರಮೇಶ್, ದಿನಾಂಕ 1985-11-20, ಸಮಯ 14:45, ಬೆಂಗಳೂರು 560001. ಆಯುಷ್ಯ ನಿರ್ಣಯ, ೮ನೇ ಭಾವ ಮತ್ತು ಮೃತ್ಯುಂಜಯ ಕವಚ ತಿಳಿಸಿ.",
+      promptEn: "Name: Ramesh, DOB: 1985-11-20, TOB: 14:45, Bangalore 560001. Please calculate Ayush, longevity category, and Mrityunjaya Kavacha."
+    },
+    {
+      icon: "👶",
+      labelKn: "ನಾಮಕರಣ & ಶುಭ ನಾಮಾಕ್ಷರ",
+      labelEn: "Baby Naming & Syllables",
+      promptKn: "ಮಗುವಿನ ಜನನ ದಿನಾಂಕ 2026-03-10, ಸಮಯ ಬೆಳಿಗ್ಗೆ 06:30, ಕುಮಟಾ. ನಾಮಕರಣಕ್ಕೆ ಬರುವ ನಾಮಾಕ್ಷರ ಮತ್ತು ಶುಭ ಹೆಸರುಗಳು ಯಾವುವು?",
+      promptEn: "Baby born on 2026-03-10 at 06:30 AM, Kumta. What are the auspicious Namakarana syllables and recommended baby names?"
+    },
+    {
+      icon: "🛡️",
+      labelKn: "ಸರ್ವ ದೋಷ & ಗೋಕರ್ಣ ಶಾಂತಿ",
+      labelEn: "Doshas & Shanti Parihara",
+      promptKn: "ಹೆಸರು ಕುಮಾರ್, ದಿನಾಂಕ 1995-04-25, ಸಮಯ 08:30 AM, ಹೊನ್ನಾವರ 581334. ನನ್ನ ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷ, ಕಾಲಸರ್ಪ ಅಥವಾ ಪಿತೃ ದೋಷವಿದೆಯೇ?",
+      promptEn: "Name: Kumar, DOB: 1995-04-25, TOB: 08:30 AM, Honnavar 581334. Are there Kuja Dosha, Kala Sarpa, or Pitru Dosha in my chart?"
+    },
     {
       icon: "⚱️",
       labelKn: "ಶ್ರಾದ್ಧ ತಿಥಿ & ಮರಣ ಗಣಿತ",
@@ -1335,6 +1871,15 @@ export default function BaggonaAstrologyQAPage(): JSX.Element {
                           )}
                         </div>
                       </div>
+                    )}
+
+                    {/* Personal Horoscope, Health, Ayush & Avakahada Card */}
+                    {item.response?.personalHoroscopeData && (
+                      <PersonalHoroscopeCard
+                        data={item.response.personalHoroscopeData}
+                        lang={activeLang}
+                        detectedIntent={item.response.detectedIntent}
+                      />
                     )}
 
                     {/* Live Prashna Panchanga Moment Strip if present */}
