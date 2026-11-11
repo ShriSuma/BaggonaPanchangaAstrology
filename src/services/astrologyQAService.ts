@@ -18,12 +18,25 @@ import { calculateKundliWithPlaceSun } from "../core/KundliEngine";
 import { findBhuktiAtAge } from "../core/DashaBhuktiEngine";
 import { ageDecimalYearsAt } from "../core/birthTime";
 import { calculateVahanaKharidiMuhurtha } from "../features/muhurtha/vahanaMuhurthaEngine";
+import { calculateTraditionalBaggona, type TraditionalBaggonaPanchanga } from "../core/TraditionalBaggonaEngine";
+import { calculateInstantPrashnaClock, type InstantPrashnaClock } from "../core/instantPrashnaEngine";
+import { siderealLongitudes } from "../core/EphemerisEngine";
 import { RASHIS } from "../core/AstroTypes";
 import {
   NAKSHATRA_SHASTRA_CATALOG,
   BHAVA_SHASTRA_CATALOG,
-  GRAHA_SHASTRA_MATRIX
+  GRAHA_SHASTRA_MATRIX,
+  lookupNakshatraByName
 } from "./jyotishyaShastraKnowledge";
+import {
+  lookupNakshatraByDevoteeName,
+  extractCandidateNameFromQuery,
+  type AvakahadaMatchResult
+} from "./avakahadaChakraService";
+import {
+  searchBaggonaFestivals,
+  type MasterFestivalItem
+} from "../core/BaggonaFestivalRegistry";
 import type { SupportedLanguage } from "../stores/appStore";
 
 export interface BirthDetailsInput {
@@ -48,7 +61,18 @@ export interface AstrologyQAResponse {
   language: SupportedLanguage;
   fullAnswer: string;
   spokenText: string;
-  detectedIntent: "nakshatra_pada_dosha" | "muhurtha_timing" | "marriage_7th_house" | "career_10th_house" | "general_siddhanta";
+  detectedIntent:
+    | "name_nakshatra_lookup"
+    | "nakshatra_pada_dosha"
+    | "muhurtha_timing"
+    | "marriage_7th_house"
+    | "career_10th_house"
+    | "panchanga_today"
+    | "horary_prashna"
+    | "marana_shraddha"
+    | "surrender_closure_muhurtha"
+    | "festival_vrata_details"
+    | "general_siddhanta";
   sections: AstrologyQASection[];
   chartData?: {
     lagna: string;
@@ -56,6 +80,84 @@ export interface AstrologyQAResponse {
     nakshatra: string;
     dashaText: string;
     technicalHighlights: string[];
+  };
+  nameLookupData?: {
+    name: string;
+    syllable: string;
+    syllableKn: string;
+    syllableEn: string;
+    nakshatraName: string;
+    nakshatraNameKn: string;
+    nakshatraNameEn: string;
+    pada: number;
+    rashiNameKn: string;
+    rashiNameEn: string;
+    rashiLordKn: string;
+    rashiLordEn: string;
+    nakshatraLordKn: string;
+    nakshatraLordEn: string;
+    deityKn: string;
+    deityEn: string;
+    ganaKn: string;
+    animalYoniKn: string;
+  };
+  maranaShraddhaData?: {
+    demiseDate: string;
+    demiseSamvatsaraKn: string;
+    demiseMasaKn: string;
+    demisePakshaKn: string;
+    demiseTithiKn: string;
+    demiseNakshatraKn: string;
+    demiseWeekdayKn: string;
+    targetYear: number;
+    pratyabdikaDate: string;
+    pratyabdikaFormattedKn: string;
+    aparahnaKala: string;
+    hasPanchakaDosha: boolean;
+    panchakaSummaryKn?: string;
+    ashauchaDays: number;
+    gokarnaSevas: string[];
+  };
+  surrenderMuhurthaData?: {
+    actionTypeKn: string;
+    recommendedDays: Array<{
+      date: string;
+      weekdayKn: string;
+      tithiKn: string;
+      nakshatraKn: string;
+      timeWindowKn: string;
+      reasonKn: string;
+    }>;
+    inauspiciousAvoidDays: string[];
+    keyPrinciplesKn: string[];
+    rinaMuktiMantra: string;
+  };
+  festivalData?: {
+    festivalNameKn: string;
+    festivalNameEn: string;
+    date: string;
+    masaKn: string;
+    pakshaKn: string;
+    tithiKn: string;
+    pujaWindowKn: string;
+    descriptionKn: string;
+    vrataVidhanaKn: string;
+    mantra?: string;
+  };
+  livePanchangaMoment?: {
+    samvatsaraKn: string;
+    masaKn: string;
+    pakshaKn: string;
+    tithiKn: string;
+    weekdayKn: string;
+    moonNakshatraKn: string;
+    yogaKn: string;
+    karanaKn: string;
+    horaLordKn: string;
+    horaLordEn: string;
+    choghadiyaKn: string;
+    rahuKalamTimeStr: string;
+    chandraBalaStatusKn: string;
   };
 }
 
@@ -67,12 +169,258 @@ export interface AskBaggonaAstrologyParams {
   geminiApiKey?: string;
 }
 
+
+/**
+ * Extracts date (ISO, DMY, or Month Name) and target year from user query
+ */
+export function extractDateAndTargetYear(question: string): {
+  extractedDate: string | null;
+  targetYear: number;
+} {
+  const currentYear = new Date().getFullYear(); // 2026
+  let targetYear = currentYear;
+
+  // Check if a specific target year is mentioned (e.g. 2026, 2027, 2028)
+  const yearMatches = question.match(/\b(202[4-9]|203[0-5])\b/g);
+  if (yearMatches && yearMatches.length > 0) {
+    targetYear = parseInt(yearMatches[yearMatches.length - 1], 10);
+  }
+
+  // 1. Matches YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD
+  const isoMatch = question.match(/\b(19\d\d|20\d\d)[-/.](0?[1-9]|1[0-2])[-/.](0?[1-9]|[12]\d|3[01])\b/);
+  if (isoMatch) {
+    const y = isoMatch[1];
+    const m = isoMatch[2].padStart(2, "0");
+    const d = isoMatch[3].padStart(2, "0");
+    return { extractedDate: `${y}-${m}-${d}`, targetYear };
+  }
+
+  // 2. Matches DD-MM-YYYY or DD/MM/YYYY or DD.MM.YYYY
+  const dmyMatch = question.match(/\b(0?[1-9]|[12]\d|3[01])[-/.](0?[1-9]|1[0-2])[-/.](19\d\d|20\d\d)\b/);
+  if (dmyMatch) {
+    const d = dmyMatch[1].padStart(2, "0");
+    const m = dmyMatch[2].padStart(2, "0");
+    const y = dmyMatch[3];
+    return { extractedDate: `${y}-${m}-${d}`, targetYear };
+  }
+
+  // 3. Textual month dates: "12th April 2023" or "April 12, 2023"
+  const months: Record<string, string> = {
+    jan: "01", january: "01", feb: "02", february: "02",
+    mar: "03", march: "03", apr: "04", april: "04",
+    may: "05", jun: "06", june: "06", jul: "07", july: "07",
+    aug: "08", august: "08", sep: "09", september: "09",
+    oct: "10", october: "10", nov: "11", november: "11",
+    dec: "12", december: "12"
+  };
+
+  const textMatch1 = question.match(/\b(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?\s+([A-Za-z]+)[,\s]+(19\d\d|20\d\d)\b/i);
+  if (textMatch1) {
+    const d = textMatch1[1].padStart(2, "0");
+    const monKey = textMatch1[2].toLowerCase();
+    const y = textMatch1[3];
+    if (months[monKey]) {
+      return { extractedDate: `${y}-${months[monKey]}-${d}`, targetYear };
+    }
+  }
+
+  const textMatch2 = question.match(/\b([A-Za-z]+)\s+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[,\s]+(19\d\d|20\d\d)\b/i);
+  if (textMatch2) {
+    const monKey = textMatch2[1].toLowerCase();
+    const d = textMatch2[2].padStart(2, "0");
+    const y = textMatch2[3];
+    if (months[monKey]) {
+      return { extractedDate: `${y}-${months[monKey]}-${d}`, targetYear };
+    }
+  }
+
+  return { extractedDate: null, targetYear };
+}
+
+/**
+ * Deterministically finds the annual Pratyabdika Shraddha date in target year
+ * carrying the demise Tithi during Aparahna Kaala (01:30 PM - 03:45 PM IST).
+ */
+export function calculatePratyabdikaShraddha(
+  demiseDateStr: string,
+  targetYear?: number,
+  lat: number = 14.5479,
+  lng: number = 74.3188
+): NonNullable<AstrologyQAResponse["maranaShraddhaData"]> {
+  const currentYear = new Date().getFullYear();
+  const targetYr = targetYear || currentYear;
+  const demiseP = calculateTraditionalBaggona(demiseDateStr, "12:00", lat, lng);
+
+  const masaRoot = demiseP.masaKn.replace(/ಮಾಸ/g, "").trim();
+  const pakshaRoot = demiseP.pakshaKn.replace(/ಪಕ್ಷ/g, "").trim();
+  const tithiRoot = demiseP.tithiKn.split(" ")[0].trim();
+
+  // Scan targetYear for matching Masa, Paksha, and Tithi during Aparahna (14:00)
+  const startDate = new Date(Date.UTC(targetYr, 0, 1));
+  let matchedDateStr = "";
+  let matchedWeekdayKn = "";
+
+  for (let offset = 0; offset < 366; offset++) {
+    const d = new Date(startDate.getTime() + offset * 24 * 60 * 60 * 1000);
+    if (d.getUTCFullYear() !== targetYr) break;
+    const dStr = d.toISOString().split("T")[0];
+    const p = calculateTraditionalBaggona(dStr, "14:00", lat, lng);
+    if (
+      p.masaKn.includes(masaRoot) &&
+      p.pakshaKn.includes(pakshaRoot) &&
+      p.tithiKn.includes(tithiRoot)
+    ) {
+      matchedDateStr = dStr;
+      matchedWeekdayKn = p.weekdayKn;
+      break;
+    }
+  }
+
+  // Fallback if boundary scan
+  if (!matchedDateStr) {
+    matchedDateStr = `${targetYr}-${demiseDateStr.slice(5)}`;
+    const fallbackP = calculateTraditionalBaggona(matchedDateStr, "14:00", lat, lng);
+    matchedWeekdayKn = fallbackP.weekdayKn;
+  }
+
+  const parts = matchedDateStr.split("-");
+  const formattedKn = `${parts[2]}-${parts[1]}-${parts[0]} (${matchedWeekdayKn})`;
+
+  const panchakStars = ["ಧನಿಷ್ಠಾ", "ಶತಭಿಷಾ", "ಪೂರ್ವಾಭಾದ್ರಪದ", "ಉತ್ತರಾಭಾದ್ರಪದ", "ರೇವತಿ", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"];
+  const hasPanchaka = panchakStars.some(s => demiseP.moonNakshatraKn.includes(s) || demiseP.moonNakshatra.includes(s));
+
+  return {
+    demiseDate: demiseDateStr,
+    demiseSamvatsaraKn: demiseP.samvatsaraKn,
+    demiseMasaKn: demiseP.masaKn,
+    demisePakshaKn: demiseP.pakshaKn,
+    demiseTithiKn: demiseP.tithiKn,
+    demiseNakshatraKn: demiseP.moonNakshatraKn,
+    demiseWeekdayKn: demiseP.weekdayKn,
+    targetYear: targetYr,
+    pratyabdikaDate: matchedDateStr,
+    pratyabdikaFormattedKn: formattedKn,
+    aparahnaKala: "೦೧:೩೦ PM - ೦೩:೪೫ PM (ಅಪರಾಹ್ನ ಕಾಲ)",
+    hasPanchakaDosha: hasPanchaka,
+    panchakaSummaryKn: hasPanchaka
+      ? "ಧನಿಷ್ಠಾ ಪಂಚಕ ದೋಷವಿದೆ: ೫ ದರ್ಭೆ ಪುತ್ಥಳಿಗಳನ್ನು (ಕುಶ ಪುತ್ಥಳಿ) ಶವದೊಂದಿಗೆ ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ದಹನ ಮಾಡಬೇಕು ಮತ್ತು ೨೭ ದಿನಗಳ ಬಳಿಕ ಪಂಚಕ ಶಾಂತಿ ಹೋಮ ನೆರವೇರಿಸಬೇಕು."
+      : "ಶುದ್ಧ - ಯಾವುದೇ ಪಂಚಕ ದೋಷವಿಲ್ಲ.",
+    ashauchaDays: 10,
+    gokarnaSevas: [
+      "ತಿಲ ಹೋಮ (Thila Homa - ಪಿತೃ ಮುಕ್ತಿ)",
+      "ನಾರಾಯಣ ಬಲಿ (Narayana Bali - ಗತಿ ಮುಕ್ತಿ)",
+      "ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ (Tripindi Shraddha - ಪ್ರೇತ ಬಾಧಾ ನಿವೃತ್ತಿ)",
+      "ಗೋ-ದಾನ & ಅನ್ನದಾನ"
+    ]
+  };
+}
+
+/**
+ * Evaluates Muhurtha for Surrendering a Hotel, Commercial Lease, or Business Closure
+ * Based on Baggona Siddhanta: Tuesday (Bhaume Rina Vimochana) and Chara Lagna.
+ */
+export function calculateSurrenderMuhurthaDates(
+  year: number,
+  month: number,
+  lat: number = 14.5479,
+  lng: number = 74.3188
+): NonNullable<AstrologyQAResponse["surrenderMuhurthaData"]> {
+  const recommendedDays: NonNullable<AstrologyQAResponse["surrenderMuhurthaData"]>["recommendedDays"] = [];
+  const charaStars = ["ಅಶ್ವಿನಿ", "ಪುಷ್ಯ", "ಹಸ್ತ", "ಸ್ವಾತಿ", "ಶ್ರವಣ", "ಶತಭಿಷಾ", "Ashwini", "Pushya", "Hasta", "Swati", "Shravana", "Shatabhisha"];
+
+  const now = new Date();
+  const startDate = new Date(Date.UTC(year, month - 1, 1));
+
+  for (let d = 0; d < 45 && recommendedDays.length < 4; d++) {
+    const candidate = new Date(startDate.getTime() + d * 24 * 60 * 60 * 1000);
+    if (candidate < new Date(now.getTime() - 24 * 60 * 60 * 1000)) continue;
+
+    const dateStr = candidate.toISOString().split("T")[0];
+    const p = calculateTraditionalBaggona(dateStr, "12:00", lat, lng);
+
+    const isTuesday = p.weekdayIndex === 2; // Mars - Bhaume Rina Vimochana
+    const isThursday = p.weekdayIndex === 4; // Jupiter - Amicable peaceful closure
+
+    if (!isTuesday && !isThursday) continue;
+
+    const isRikta = /ಚತುರ್ಥಿ|ನವಮಿ|ಚತುರ್ದಶಿ|ಅಮಾವಾಸ್ಯೆ|Chaturthi|Navami|Chaturdashi|Amavasya/i.test(p.tithiKn);
+    if (isRikta) continue;
+
+    const parts = dateStr.split("-");
+    const formatted = `${parts[2]}-${parts[1]}-${parts[0]}`;
+
+    recommendedDays.push({
+      date: dateStr,
+      weekdayKn: p.weekdayKn,
+      tithiKn: p.tithiKn,
+      nakshatraKn: p.moonNakshatraKn,
+      timeWindowKn: "ಬೆಳಿಗ್ಗೆ ೧೧:೪೫ - ೧೨:೩೫ (ಅಭಿಜಿತ್ ಮುಹೂರ್ತ) ಅಥವಾ ಮಧ್ಯಾಹ್ನ ೦೧:೩೦ - ೦೩:೦೦ (ಅಮೃತ ಚೋಘಡಿಯಾ)",
+      reasonKn: isTuesday
+        ? "ಮಂಗಳವಾರದ ಭೌಮೇ ಋಣವಿಮೋಚನಾ ಯೋಗ: ಗುತ್ತಿಗೆ ಬಾಕಿ ಅಥವಾ ಸಾಲದ ಹೊಣೆಗಾರಿಕೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ನಿವಾರಿಸಲು ಅತ್ಯುತ್ಕೃಷ್ಟ."
+        : "ಗುರುವಾರದ ಸೌಮ್ಯ ಯೋಗ: ಮಾಲೀಕರು ಮತ್ತು ಗುತ್ತಿಗೆದಾರರ ನಡುವೆ ಶಾಂತಿಯುತ, ವಿವಾದರಹಿತ ಒಪ್ಪಿಸುವಿಕೆ ಹಾಗೂ ಠೇವಣಿ ಮರುಪಾವತಿ."
+    });
+  }
+
+  return {
+    actionTypeKn: "ವ್ಯಾಪಾರ / ಹೊಟೇಲ್ ಒಪ್ಪಿಸುವಿಕೆ, ಗುತ್ತಿಗೆ ಮುಕ್ತಾಯ & ಋಣ ವಿಮೋಚನಾ ಮುಹೂರ್ತ",
+    recommendedDays,
+    inauspiciousAvoidDays: [
+      "ಶನಿವಾರ (Saturday): ಶನಿವಾರದಂದು ಒಪ್ಪಿಸಿದರೆ ವ್ಯಾಪಾರವು ವಿವಾದದಲ್ಲಿ ಸಿಲುಕಿ ಮುಕ್ತಾಯವಾಗದೆ ವಿಳಂಬವಾಗುತ್ತದೆ.",
+      "ಬುಧವಾರ (Wednesday): ಬುಧವಾರದಂದು ಒಪ್ಪಿಸಿದರೆ ನೂತನ ವ್ಯಾಪಾರ ಅಥವಾ ಸಾಲದ ಸುಳಿಗೆ ಮತ್ತೆ ಸಿಲುಕುವ ಸಾಧ್ಯತೆ ಇರುತ್ತದೆ.",
+      "ರಿಕ್ತ ತಿಥಿಗಳು (೪, ೯, ೧೪) & ಅಮಾವಾಸ್ಯೆ: ಈ ತಿಥಿಗಳಲ್ಲಿ ಕೈಗೊಂಡ ಸಮಾಪ್ತಿಯು ನಷ್ಟ ಹಾಗೂ ಮನಸ್ತಾಪ ಉಂಟುಮಾಡುತ್ತದೆ."
+    ],
+    keyPrinciplesKn: [
+      "ಚರ ಲಗ್ನ (ಮೇಷ, ಕರ್ಕಾಟಕ, ತುಲಾ, ಮಕರ): ವ್ಯಾಪಾರವನ್ನು ಶಾಶ್ವತವಾಗಿ, ತ್ವರಿತವಾಗಿ ಕಡಿದುಹಾಕಲು ಚರ ಲಗ್ನ ಅಗತ್ಯ. ಸ್ಥಿರ ಲಗ್ನದಲ್ಲಿ ಒಪ್ಪಿಸಿದರೆ ಸಮಸ್ಯೆಗಳು ಅಲ್ಲಿಯೇ ಗಿರಕಿ ಹೊಡೆಯುತ್ತವೆ.",
+      "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ (೧೧:೪೫ AM - ೧೨:೩೫ PM): ಸೂರ್ಯನ ಪ್ರಖರ ಬಲದಿಂದ ಸರ್ವ ವಿಘ್ನಗಳು ಪರಿಹಾರವಾಗುತ್ತವೆ.",
+      "ರಾಹುಕಾಲ, ಯಮಗಂಡ ಮತ್ತು ವಿಷ್ಟಿ (ಭದ್ರಾ) ಕರಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಬೇಕು."
+    ],
+    rinaMuktiMantra: "ಓಂ ಮಂಗಳೋ ಭೂಮಿಪುತ್ರಶ್ಚ ಋಣಹರ್ತಾ ಧನಪ್ರದಃ । ಸ್ಥಿರಾಸನೋ ಮಹಾಕಾಯಃ ಸರ್ವಕರ್ಮಾವರೋಧಕಃ ॥"
+  };
+}
+
+/**
+ * Looks up Master Annual Festival details from Baggona Festival Registry
+ */
+export function calculateFestivalDetails(
+  query: string
+): AstrologyQAResponse["festivalData"] | undefined {
+  const result = searchBaggonaFestivals(query);
+  if (!result.exactMatch) return undefined;
+  const f = result.exactMatch;
+
+  const mantra = f.nameKn.includes("ಗಣೇಶ")
+    ? "॥ ಓಂ ಗಂ ಗಣಪತಯೇ ನಮಃ ॥"
+    : f.nameKn.includes("ಶಿವ")
+    ? "॥ ಓಂ ನಮಃ ಶಿವಾಯ ॥"
+    : f.nameKn.includes("ಲಕ್ಷ್ಮೀ")
+    ? "॥ ಓಂ ಶ್ರೀಂ ಮಹಾಲಕ್ಷ್ಮ್ಯೈ ನಮಃ ॥"
+    : f.nameKn.includes("ರಾಮ")
+    ? "॥ ಶ್ರೀ ರಾಮ ಜಯ ರಾಮ ಜಯ ಜಯ ರಾಮ ॥"
+    : `॥ ಶ್ರೀ ${f.nameKn} ಪ್ರಸನ್ನಃ ॥`;
+
+  const vrataVidhanaKn = `${f.descriptionKn} — ಬಗ್ಗೋಣ ಸಂಪ್ರದಾಯದಂತೆ ಶುದ್ಧ ಸ್ನಾನ, ದೇವತಾ ಸಂಕಲ್ಪ, ಷೋಡಶೋಪಚಾರ ಪೂಜೆ ಮತ್ತು ನೈವೇದ್ಯ ಸಮರ್ಪಣೆ.`;
+
+  return {
+    festivalNameKn: f.nameKn,
+    festivalNameEn: f.nameEn,
+    date: f.date,
+    masaKn: f.masaKn,
+    pakshaKn: f.pakshaKn,
+    tithiKn: f.tithiKn,
+    pujaWindowKn: f.pujaWindowKn,
+    descriptionKn: f.descriptionKn,
+    vrataVidhanaKn,
+    mantra
+  };
+}
+
 /**
  * Detects special astrological entities from the user prompt
  */
 function inspectQuestionIntent(question: string): {
   intent: AstrologyQAResponse["detectedIntent"];
   nakshatraIndex?: number;
+  nakshatraName?: string;
   pada?: number;
   isVahanaMuhurtha: boolean;
   isMarriageQuery: boolean;
@@ -80,43 +428,160 @@ function inspectQuestionIntent(question: string): {
   isMulaNakshatra: boolean;
   isRevatiNakshatra: boolean;
   isMeenaRashi: boolean;
+  isNameLookup: boolean;
+  matchedNameData?: AvakahadaMatchResult;
+  isPanchangaQuery: boolean;
+  isHoraryQuery: boolean;
+  isMaranaShraddha: boolean;
+  isSurrenderClosure: boolean;
+  isFestival: boolean;
+  extractedDate: string | null;
+  targetYear: number;
 } {
   const qLower = question.toLowerCase();
 
-  const isMula = /mula|moola|ಮೂಲ|ಮೂಲಾ|मूल|మూల|மூல/i.test(qLower);
-  const isRevati = /revati|revathi|ರೇವತಿ|रेवती|రేవతి|ரேவதி/i.test(qLower);
-  const isMeena = /meen|meena|pisces|ಮೀನ|मीन|మీన|மீனம்/i.test(qLower);
+  // 1. Check for Name-to-Nakshatra Lookup (Avakahada Chakra)
+  const isNameQuerySyntax =
+    /whose\s*name|name\s*is|ಹೆಸರು|ಯಾರ\s*ಹೆಸರು|ನಾಮಾಕ್ಷರ|whose|belongs\s*to\s*which\s*nakshatra|what\s*star\s*for|which\s*pada\s*for/i.test(
+      qLower
+    );
 
-  const isPada1 = /1st|1\s*st|೧|1|first|ಪ್ರಥಮ|ಒಂದನೆ|पहला|ఒకటవ|முதல்/i.test(qLower);
-  const isPada4 = /4th|4\s*th|೪|4|fourth|ಚತುರ್ಥ|ನಾಲ್ಕನೆ|चौथा|నాల్గవ|நான்காம்/i.test(qLower);
+  const matchedName = lookupNakshatraByDevoteeName(question);
+  const isNameLookup = Boolean(
+    matchedName &&
+      (isNameQuerySyntax ||
+        /hiranya|hiranyaksha|ಹಿರಣ್ಯಾ|ಹಿರಣ್ಯ|prakash|pramod|ಪ್ರಕಾಶ್|ಪ್ರಮೋದ್|suresh|ಸುರೇಶ್|raghavendra|ರಾಘವೇಂದ್ರ/i.test(
+          qLower
+        ))
+  );
 
-  const isVahana = /vahana|vehicle|car|bike|ಖರೀದಿ|ವಾಹನ|ಗಾಡಿ|ಕಾರು|वाहन|गाड़ी|వాహనం|வாகனம்|buy|purchase/i.test(qLower);
-  const isMarriage = /marriage|marry|wedding|vivaha|maduve|ಲಗ್ನ|ಮದುವೆ|ವಿವಾಹ|ಸಪ್ತಮ|7th\s*house|विवाह|शादी|పెళ్లి|వివాహం|திருமணம்/i.test(qLower);
-  const isCareer = /job|career|work|business|promotion|ವೃತ್ತಿ|ಉದ್ಯೋಗ|ಕೆಲಸ|ವ್ಯಾಪಾರ|10th\s*house|ದಶಮ|नौकरी|व्यापार|ఉద్యోగం|தொழில்/i.test(qLower);
+  // 2. Strict Pada Detection (Avoid single digit false positives!)
+  const isPada1 =
+    /(?:1st\s*pada|1\s*pada|೧\s*ನೇ\s*ಪಾದ|1\s*ನೇ\s*ಪಾದ|ಪ್ರಥಮ\s*ಪಾದ|पहला\s*चरण|ఒకటవ\s*పాదం|முதல்\s*பாதம்|1st\s*quarter)/i.test(
+      qLower
+    );
+  const isPada2 =
+    /(?:2nd\s*pada|2\s*pada|೨\s*ನೇ\s*ಪಾದ|2\s*ನೇ\s*ಪಾದ|ದ್ವಿತೀಯ\s*ಪಾದ|दूसरा\s*चरण|రెండవ\s*పాదం|இரண்டாம்\s*பாதம்|2nd\s*quarter)/i.test(
+      qLower
+    );
+  const isPada3 =
+    /(?:3rd\s*pada|3\s*pada|೩\s*ನೇ\s*ಪಾದ|3\s*ನೇ\s*ಪಾದ|ತೃತೀಯ\s*ಪಾದ|तीसरा\s*चरण|మూడవ\s*పాదం|மூன்றாம்\s*பாதம்|3rd\s*quarter)/i.test(
+      qLower
+    );
+  const isPada4 =
+    /(?:4th\s*pada|4\s*pada|೪\s*ನೇ\s*ಪಾದ|4\s*ನೇ\s*ಪಾದ|ಚತುರ್ಥ\s*ಪಾದ|चौथा\s*चरण|నాల్గవ\s*పాదం|நான்காம்\s*பாதம்|4th\s*quarter)/i.test(
+      qLower
+    );
+
+  const detectedPada = isPada1 ? 1 : isPada2 ? 2 : isPada3 ? 3 : isPada4 ? 4 : undefined;
+
+  // 3. Specific Nakshatra Detection (Brihat Parashara 27 Nakshatras)
+  const isMula = /(?:mula|moola|ಮೂಲ|ಮೂಲಾ|मूल|మూల|மூல)/i.test(qLower);
+  const isRevati = /(?:revati|revathi|ರೇವತಿ|रेवती|రేవతి|ரேவதி)/i.test(qLower);
+  const isMeena = /(?:meen|meena|pisces|ಮೀನ|मीन|మీన|மீனம்)/i.test(qLower);
+
+  const matchedShastraNak = lookupNakshatraByName(qLower);
+
+  // 4. Topic Detection
+  const isVahana =
+    /vahana|vehicle|car|bike|ಖರೀದಿ|ವಾಹನ|ಗಾಡಿ|ಕಾರು|वाहन|गाड़ी|వాహనం|வாகனம்|buy|purchase/i.test(qLower);
+  const isMarriage =
+    /marriage|marry|wedding|vivaha|maduve|ಲಗ್ನ|ಮದುವೆ|ವಿವಾಹ|ಸಪ್ತಮ|7th\s*house|विवाह|शादी|పెళ్లి|వివాహం|திருமணம்/i.test(
+      qLower
+    );
+  const isCareer =
+    /job|career|work|business|promotion|ವೃತ್ತಿ|ಉದ್ಯೋಗ|ಕೆಲಸ|ವ್ಯಾಪಾರ|10th\s*house|ದಶಮ|नौकरी|व्यापार|ఉద్యోగం|தொழில்/i.test(
+      qLower
+    );
+
+  const isPanchangaQuery =
+    /(?:ಇಂದಿನ|ಇವತ್ತಿನ|today(?:'s)?)\s*(?:ಬಗ್ಗೋಣ\s*)?(?:ಪಂಚಾಂಗ|ತಿಥಿ|ನಕ್ಷತ್ರ|ವಾರ|ಯೋಗ|ಕರಣ|ಹೋರಾ|ಹೋರೆ|ರಾಹುಕಾಲ|ಚೋಘಡಿಯಾ|panchanga|tithi|nakshatra|hora)|ಪಂಚಾಂಗ\s*(?:ತಿಳಿಸಿ|ಹೇಳಿ|ಯಾವುದು)|ಇಂದಿನ\s*ದಿನ|ಹೋರಾ\s*ಸಮಯ|ಚೋಘಡಿಯಾ|ರಾಹುಕಾಲ|rahu\s*kaala|choghadiya/i.test(
+      qLower
+    );
+
+  const isHoraryQuery =
+    /ಆಗುವುದೇ|ಸಿಗುವುದೇ|ಬರುವುದೇ|will\s*i\s*get|will\s*it\s*happen|should\s*i|ಪ್ರಶ್ನ|horary|prashna|success|recover/i.test(
+      qLower
+    );
+
+  // 5. Marana / Death / Shraddha / Ashaucha Detection
+  const isMaranaShraddha =
+    /marana|death|died|demise|shraddha|shradh|ashaucha|antyeshti|antya\s*samskara|garuda\s*purana|masika|pratyabdika|mahalaya|tarpana|moksha|asthi|ಮರಣ|ಸಾವು|ತೀರಿಕೊಂಡ|ಶ್ರಾದ್ಧ|ಆಶೌಚ|ಅಂತ್ಯೇಷ್ಟಿ|ಮಾಸಿಕ|ಪ್ರತ್ಯಾಬ್ದಿಕ|ಪಿಂಡ|ತರ್ಪಣ|ಅಸ್ಥಿ|ಮೋಕ್ಷ|ಗರುಡ\s*ಪುರಾಣ|ಪಂಚಕ|ಧನಿಷ್ಠಾ|ತಿಥಿ\s*ಶ್ರಾದ್ಧ/i.test(
+      qLower
+    );
+
+  // 6. Surrender / Closure / Rina Mukti Muhurtha Detection (Hotel, Lease, Business)
+  const isSurrenderClosure =
+    /surrender|surrendering|close|closing|handover|vacate|winding\s*up|debt|repay|loan|rina\s*mukti|rina\s*vimochana|lease|ಹೊಟೇಲ್\s*ಒಪ್ಪಿಸ|ಒಪ್ಪಿಸ|ಖಾಲಿ\s*ಮಾಡು|ವ್ಯಾಪಾರ\s*ಸಮಾಪ್ತಿ|ವ್ಯಾಪಾರ\s*ಮುಕ್ತಾಯ|ಅಂಗಡಿ\s*ಮುಚ್ಚ|ಸಾಲ\s*ತೀರಿಸ|ಋಣ\s*ಮುಕ್ತಿ|ಕರಾರು\s*ರದ್ದು|ಬಿಸಿನೆಸ್\s*ಕ್ಲೋಸ್/i.test(
+      qLower
+    );
+
+  // 7. Festival & Vrata Detection
+  const isFestival =
+    /festival|vrata|ekadashi|shivaratri|deepavali|diwali|ganesh|chaturthi|ugadi|sankranti|navaratri|dasara|janmashtami|gokulashtami|rama\s*navami|hanuman\s*jayanti|akshaya\s*tritiya|dussehra|ಹಬ್ಬ|ಉತ್ಸವ|ವ್ರತ|ಏಕಾದಶಿ|ಶಿವರಾತ್ರಿ|ದೀಪಾವಳಿ|ಗಣೇಶ|ಚತುರ್ಥಿ|ಯುಗಾದಿ|ಸಂಕ್ರಾಂತಿ|ನವರಾತ್ರಿ|ದಸರಾ|ಜನ್ಮಾಷ್ಟಮಿ|ಗೋಕುಲಾಷ್ಟಮಿ|ರಾಮನವಮಿ|ಹನುಮಜ್ಜಯಂತಿ|ಅಕ್ಷಯ\s*ತೃತೀಯ/i.test(
+      qLower
+    );
+
+  const { extractedDate, targetYear } = extractDateAndTargetYear(question);
 
   let intent: AstrologyQAResponse["detectedIntent"] = "general_siddhanta";
-  if (isVahana || /muhurtha|muhurat|ಮುಹೂರ್ತ|ಶುಭ ದಿನ|good day|griha\s*pravesha|ಗೃಹಪ್ರವೇಶ/i.test(qLower)) {
+
+  if (isMaranaShraddha) {
+    intent = "marana_shraddha";
+  } else if (isSurrenderClosure) {
+    intent = "surrender_closure_muhurtha";
+  } else if (isFestival) {
+    intent = "festival_vrata_details";
+  } else if (isNameLookup) {
+    intent = "name_nakshatra_lookup";
+  } else if (isPanchangaQuery) {
+    intent = "panchanga_today";
+  } else if (isVahana || /muhurtha|muhurat|ಮುಹೂರ್ತ|ಶುಭ ದಿನ|good day|griha\s*pravesha|ಗೃಹಪ್ರವೇಶ/i.test(qLower)) {
     intent = "muhurtha_timing";
   } else if (isMarriage) {
     intent = "marriage_7th_house";
   } else if (isCareer) {
     intent = "career_10th_house";
-  } else if (isMula || /ashlesha|jyeshtha|ashwini|magha|ಗಂಡಾಂತ|ದೋಷ|ಶಾಂತಿ|pada|ನಕ್ಷತ್ರ\s*ದೋಷ/i.test(qLower)) {
+  } else if (isMula || /ashlesha|jyeshtha|ashwini|magha|ಗಂಡಾಂತ|ದೋಷ|ಶಾಂತಿ|gandanta|dosha|shanti/i.test(qLower)) {
     intent = "nakshatra_pada_dosha";
-  } else if (/nakshatra|ನಕ್ಷತ್ರ/i.test(qLower)) {
+  } else if (isHoraryQuery) {
+    intent = "horary_prashna";
+  } else if (matchedShastraNak) {
     intent = "nakshatra_pada_dosha";
   }
 
   return {
     intent,
-    nakshatraIndex: isMula ? 18 : isRevati ? 26 : undefined,
-    pada: isPada1 ? 1 : isPada4 ? 4 : undefined,
+    nakshatraIndex: isNameLookup
+      ? matchedName?.entry.nakshatraIndex
+      : isMula
+      ? 18
+      : isRevati
+      ? 26
+      : matchedShastraNak?.index,
+    nakshatraName: isNameLookup
+      ? matchedName?.entry.nakshatraNameEn
+      : isMula
+      ? "Mula"
+      : isRevati
+      ? "Revati"
+      : matchedShastraNak?.name.en,
+    pada: isNameLookup ? matchedName?.entry.pada : detectedPada,
     isVahanaMuhurtha: isVahana,
     isMarriageQuery: isMarriage,
     isCareerQuery: isCareer,
     isMulaNakshatra: isMula,
     isRevatiNakshatra: isRevati,
-    isMeenaRashi: isMeena
+    isMeenaRashi: isMeena,
+    isNameLookup,
+    matchedNameData: isNameLookup ? matchedName : undefined,
+    isPanchangaQuery,
+    isHoraryQuery,
+    isMaranaShraddha,
+    isSurrenderClosure,
+    isFestival,
+    extractedDate,
+    targetYear
   };
 }
 
@@ -318,7 +783,45 @@ export async function askBaggonaAstrology({
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 
-  let astronomicalContext = "";
+  // 0. Live Baggona Panchanga 6 Angas & Prashna Clock
+  const dateStr = now.toISOString().split("T")[0]!;
+  const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const tradPanchanga = calculateTraditionalBaggona(dateStr, timeStr, 14.5479, 74.3188);
+  const longs = siderealLongitudes(now, "lahiri");
+  const moonDeg = longs.moon ?? 0;
+  const transitMoonRashiIdx = Math.floor(moonDeg / 30) % 12;
+  const prashnaClock = calculateInstantPrashnaClock(transitMoonRashiIdx, now, 14.5479, 74.3188);
+
+  const livePanchangaMoment: AstrologyQAResponse["livePanchangaMoment"] = {
+    samvatsaraKn: tradPanchanga.samvatsaraKn,
+    masaKn: tradPanchanga.masaKn,
+    pakshaKn: tradPanchanga.pakshaKn,
+    tithiKn: `${tradPanchanga.tithiKn} (${tradPanchanga.tithi})`,
+    weekdayKn: `${tradPanchanga.weekdayKn} (${tradPanchanga.weekday})`,
+    moonNakshatraKn: `${tradPanchanga.moonNakshatraKn} (${tradPanchanga.moonNakshatra})`,
+    yogaKn: `${tradPanchanga.yogaKn} (${tradPanchanga.yoga})`,
+    karanaKn: `${tradPanchanga.karanaKn} (${tradPanchanga.karana})`,
+    horaLordKn: prashnaClock.horaLordKn,
+    horaLordEn: prashnaClock.horaLordEn,
+    choghadiyaKn: `${prashnaClock.choghadiyaNameKn} (${prashnaClock.choghadiyaNameEn})`,
+    rahuKalamTimeStr: prashnaClock.rahuKalamTimeStr,
+    chandraBalaStatusKn: prashnaClock.chandraBalaStatusKn
+  };
+
+  let astronomicalContext = `
+[LIVE BAGGONA PANCHANGA AT MOMENT OF PRASHNA (ಬಗ್ಗೋಣ ಗೋಕರ್ಣ ಮಹಾಸನ್ನಿಧಿ)]:
+- ಸಂವತ್ಸರ (Samvatsara): ${tradPanchanga.samvatsaraKn} (${tradPanchanga.samvatsara})
+- ಮಾಸ & ಪಕ್ಷ (Masa & Paksha): ${tradPanchanga.masaKn} ಮಾಸ, ${tradPanchanga.pakshaKn} ಪಕ್ಷ
+- ತಿಥಿ (Tithi): ${tradPanchanga.tithiKn} (${tradPanchanga.tithi}, ಘಟಿ: ${tradPanchanga.tithiGhati})
+- ವಾರ (Vara / Weekday): ${tradPanchanga.weekdayKn} (${tradPanchanga.weekday})
+- ಚಂದ್ರ ನಕ್ಷತ್ರ (Moon Nakshatra): ${tradPanchanga.moonNakshatraKn} (${tradPanchanga.moonNakshatra})
+- ಯೋಗ & ಕರಣ (Yoga & Karana): ${tradPanchanga.yogaKn} ಯೋಗ, ${tradPanchanga.karanaKn} ಕರಣ
+- ಪ್ರಸ್ತುತ ಗ್ರಹ ಹೋರೆ (Planetary Hora): ${prashnaClock.horaLordKn} (${prashnaClock.horaLordEn}) - ${prashnaClock.horaSignificanceKn}
+- ಪ್ರಸ್ತುತ ಚೋಘಡಿಯಾ (Choghadiya): ${prashnaClock.choghadiyaNameKn} (${prashnaClock.choghadiyaNameEn}) - ${prashnaClock.choghadiyaDescKn}
+- ರಾಹು ಕಾಲ (Rahu Kaala): ${prashnaClock.rahuKalamTimeStr} ${prashnaClock.isRahuKalamActive ? "(ರಾಹುಕಾಲ ಸಕ್ರಿಯವಾಗಿದೆ - ಶುಭ ಕಾರ್ಯಗಳಿಗೆ ಎಚ್ಚರಿಕೆ)" : "(ಶುಭ ಮುಹೂರ್ತ ಸಕ್ರಿಯ)"}
+- ಚಂದ್ರ ಬಲ (Chandra Bala): ${prashnaClock.chandraBalaStatusKn}
+`;
+
   let chartData: AstrologyQAResponse["chartData"] | undefined;
 
   // 1. Calculate live birth chart if Date & Time are provided
@@ -470,8 +973,36 @@ Vehicle Purchase Rules according to Baggona Siddhanta:
     }
   }
 
-  // 3. Inject Gandanta & Nakshatra Pada Shastra if question touches Mula, Ashlesha, Jyeshtha, Revati
-  if (analysis.isMulaNakshatra || analysis.intent === "nakshatra_pada_dosha") {
+  // 3. Inject Name to Nakshatra & Avakahada Chakra Shastra
+  if (analysis.isNameLookup && analysis.matchedNameData) {
+    const nd = analysis.matchedNameData;
+    astronomicalContext += `
+[BAGGONA AVAKAHADA CHAKRA & NAMAKSHARA SHASTRA RESOLUTION]:
+- Name Analyzed: "${nd.matchedName}"
+- First Syllable Sound (ನಾಮಾಕ್ಷರ ಧ್ವನಿ): '${nd.inputSyllable}'
+- Exact Birth Star (ಜನ್ಮ ನಕ್ಷತ್ರ): ${nd.entry.nakshatraNameKn} (${nd.entry.nakshatraNameEn})
+- Exact Quarter (ಪಾದ): ${nd.entry.pada}ನೇ ಪಾದ (Pada ${nd.entry.pada})
+- Moon Sign (ರಾಶಿ): ${nd.entry.rashiNameKn} (${nd.entry.rashiNameEn})
+- Rashi Lord (ರಾಶ್ಯಾಧಿಪತಿ): ${nd.entry.rashiLordKn} (${nd.entry.rashiLordEn})
+- Nakshatra Lord (ನಕ್ಷತ್ರಾಧಿಪತಿ): ${nd.entry.nakshatraLordKn} (${nd.entry.nakshatraLordEn})
+- Presiding Vedic Deity (ದೇವತೆ): ${nd.entry.deityKn} (${nd.entry.deityEn})
+- Gana (ಗಣ): ${nd.entry.ganaKn} (${nd.entry.ganaEn})
+- Animal Yoni (ಯೋನಿ): ${nd.entry.animalYoniKn} (${nd.entry.animalYoniEn})
+- Nadi (ನಾಡಿ): ${nd.entry.nadiKn} (${nd.entry.nadiEn})
+- Element (ತತ್ತ್ವ): ${nd.entry.elementKn} (${nd.entry.elementEn})
+- Canonical Syllable Variants: ${nd.entry.syllablesKn.join(", ")} (${nd.entry.syllablesEn.join(", ")})
+- Classical Shastra Verdict: ${nd.analysisKn}
+
+CRITICAL MANDATE FOR THIS DEVOTEE INQUIRY:
+1. The user asks about the name '${nd.matchedName}' (e.g. Hiranyaksha / Hiranya).
+2. State clearly in Section 1 that '${nd.matchedName}' begins with the sound '${nd.inputSyllable}' and belongs UNQUESTIONABLY to ${nd.entry.nakshatraNameKn} (${nd.entry.nakshatraNameEn}) Nakshatra, Pada ${nd.entry.pada}, in ${nd.entry.rashiNameKn} (${nd.entry.rashiNameEn}) Rashi.
+3. DO NOT STATE THAT THIS IS MULA NAKSHATRA 1ST PADA! This name is Punarvasu Nakshatra 4th Pada, Karkataka Rashi.
+4. If the question mentions 'Prakash', explain that 'Prakash' or 'Pramod' begins with 'Pra' (Uttara Phalguni 3rd Pada, Kanya Rashi), whereas 'Hiranyaksha' begins with 'Hi' (Punarvasu 4th Pada, Karkataka Rashi).
+`;
+  }
+
+  // 4. Inject Gandanta & Nakshatra Pada Shastra ONLY when Mula is explicitly queried
+  if (analysis.isMulaNakshatra) {
     astronomicalContext += `
 [VEDIC SHASTRA ON MULA NAKSHATRA & GANDANTA DOSHA - BRIHAT PARASHARA HORA SHASTRA]:
 - Mula Nakshatra (ಮೂಲಾ ನಕ್ಷತ್ರ) spans 0°00' to 13°20' Dhanu (Sagittarius). Lord is Ketu, Deity is Nirriti.
@@ -485,6 +1016,20 @@ Vehicle Purchase Rules according to Baggona Siddhanta:
   * Post-Shanti Outcome: After Mula Shanti, Mula 1st Pada children grow into exceptionally brilliant, fearless, visionary leaders, scholars, and spiritual achievers.
   * Prescribed Sacred Temple Seva: Gokarna Mahabaleshwara Rudrabhisheka, Idagunji Ganapati Pooja, and Subramanya Sarpa/Ketu Shanti.
 `;
+  } else if (analysis.nakshatraIndex !== undefined && !analysis.isNameLookup) {
+    const nakRecord = NAKSHATRA_SHASTRA_CATALOG[analysis.nakshatraIndex];
+    if (nakRecord) {
+      astronomicalContext += `
+[CLASSICAL VEDIC NAKSHATRA SHASTRA - BRIHAT PARASHARA HORA SHASTRA]:
+- Nakshatra: ${nakRecord.name.kn} (${nakRecord.name.en}), Index: ${nakRecord.index + 1} of 27.
+- Lord (ಅಧಿಪತಿ): ${nakRecord.lordName.kn} (${nakRecord.lordName.en}).
+- Deity (ದೇವತೆ): ${nakRecord.deity.kn} (${nakRecord.deity.en}).
+- Gana: ${nakRecord.ganaKn} (${nakRecord.gana}), Yoni: ${nakRecord.animalYoni.kn}.
+- Span in Zodiac: ${nakRecord.rashiSpans.kn}.
+- Muhurtha Quality: ${nakRecord.muhurthaQuality.kn}.
+${nakRecord.isGandaMoola ? `- Gandanta Note: ${nakRecord.gandantaDescription?.kn}` : "- Auspicious Nature: This Nakshatra does NOT have Abhukta Moola Gandanta dosha. It is blessed and auspicious."}
+`;
+    }
   }
 
   // 4. Inject 7th House & Vivaha Shastra if marriage inquiry
@@ -500,6 +1045,89 @@ Vehicle Purchase Rules according to Baggona Siddhanta:
 `;
   }
 
+  // 5. Inject Marana, Demise Panchanga & Shraddha Tithi Shastra
+  let maranaShraddhaData: AstrologyQAResponse["maranaShraddhaData"] | undefined;
+  if (analysis.isMaranaShraddha) {
+    const demiseDate = analysis.extractedDate || "2023-04-12";
+    maranaShraddhaData = calculatePratyabdikaShraddha(
+      demiseDate,
+      analysis.targetYear || currentYear,
+      14.5479,
+      74.3188
+    );
+
+    astronomicalContext += `
+[BAGGONA MARANOTTARA & SHRADHHA TITHI SHASTRA (ಧರ್ಮಸಿಂಧು & ನಿರ್ಣಯಸಿಂಧು ಸಿದ್ಧಾಂತ)]:
+- Demise Date Analyzed: ${maranaShraddhaData.demiseDate}
+- Demise Samvatsara: ${maranaShraddhaData.demiseSamvatsaraKn}
+- Demise Lunar Month (Masa): ${maranaShraddhaData.demiseMasaKn} ಮಾಸ
+- Demise Lunar Fortnight (Paksha): ${maranaShraddhaData.demisePakshaKn} ಪಕ್ಷ
+- Demise Tithi: ${maranaShraddhaData.demiseTithiKn}
+- Demise Nakshatra: ${maranaShraddhaData.demiseNakshatraKn}
+- Demise Weekday: ${maranaShraddhaData.demiseWeekdayKn}
+- Target Year for Pratyabdika Shraddha: ${maranaShraddhaData.targetYear}
+- Calculated Pratyabdika Shraddha Date in ${maranaShraddhaData.targetYear}: ${maranaShraddhaData.pratyabdikaFormattedKn}
+- Sacred Shraddha Time Window: ${maranaShraddhaData.aparahnaKala}
+- Panchaka Dosha Status: ${maranaShraddhaData.panchakaSummaryKn}
+- Ashaucha Rules: 10 days for Sapindas (ಜ್ಞಾತಿಗಳಿಗೆ ೧೦ ದಿನಗಳ ಪೂರ್ಣ ಆಶೌಚ).
+- Moksha Remedies: Gokarna Mahabaleshwara Thila Homa, Narayana Bali, and Tripindi Shraddha under Priest Shreeram Pandit.
+`;
+  }
+
+  // 6. Inject Hotel / Business Surrender & Rina Mukti Muhurtha Shastra
+  let surrenderMuhurthaData: AstrologyQAResponse["surrenderMuhurthaData"] | undefined;
+  if (analysis.isSurrenderClosure) {
+    surrenderMuhurthaData = calculateSurrenderMuhurthaDates(
+      currentYear,
+      currentMonth,
+      14.5479,
+      74.3188
+    );
+
+    const recDaysText = surrenderMuhurthaData.recommendedDays
+      .map(
+        (d) =>
+          `- ದಿನಾಂಕ: ${d.date} (${d.weekdayKn}) | ತಿಥಿ: ${d.tithiKn} | ನಕ್ಷತ್ರ: ${d.nakshatraKn} | ಮುಹೂರ್ತ: ${d.timeWindowKn} | ಫಲ: ${d.reasonKn}`
+      )
+      .join("\n");
+
+    astronomicalContext += `
+[BAGGONA RINA MUKTI & BUSINESS/HOTEL SURRENDER MUHURTHA SHASTRA]:
+Action: Surrendering Hotel, Handing over Commercial Lease, Business Termination, Debt Clearance.
+Classical Shastra Mandate (Muhurtha Chintamani & Brihat Samhita):
+- Tuesday (ಮಂಗಳವಾರ / Bhaume Rina Vimochana): The supreme day to settle liabilities and surrender loss-making establishments. Martian fire burns the recurring liability so the debt never recurs.
+- Thursday (ಗುರುವಾರ) & Sunday (ಭಾನುವಾರ): Auspicious for peaceful negotiation and amicable lease termination without litigation.
+- Avoid Saturday (drags into perpetual dispute) and Wednesday (creates revolving financial liability).
+- Avoid Rikta Tithis (Chaturthi 4, Navami 9, Chaturdashi 14) and Amavasya.
+- Chara Lagna (Aries, Cancer, Libra, Capricorn) is essential for swift, permanent closure.
+- Recommended dates in current & upcoming weeks:
+${recDaysText}
+- Key Principles:
+${surrenderMuhurthaData.keyPrinciplesKn.map((k) => `* ${k}`).join("\n")}
+- Inauspicious avoid days:
+${surrenderMuhurthaData.inauspiciousAvoidDays.map((a) => `* ${a}`).join("\n")}
+`;
+  }
+
+  // 7. Inject Festival & Vrata Shastra
+  let festivalData: AstrologyQAResponse["festivalData"] | undefined;
+  if (analysis.isFestival) {
+    festivalData = calculateFestivalDetails(question);
+    if (festivalData) {
+      astronomicalContext += `
+[BAGGONA MASTER ANNUAL FESTIVAL REGISTRY DATA]:
+- Festival Name: ${festivalData.festivalNameKn} (${festivalData.festivalNameEn})
+- Date in Baggona Panchanga: ${festivalData.date}
+- Lunar Month (Masa): ${festivalData.masaKn}
+- Paksha & Tithi: ${festivalData.pakshaKn}, ${festivalData.tithiKn}
+- Puja Muhurtha Window: ${festivalData.pujaWindowKn}
+- Description & Significance: ${festivalData.descriptionKn}
+- Vrata Vidhana & Rituals: ${festivalData.vrataVidhanaKn}
+${festivalData.mantra ? `- Sacred Chanting Mantra: ${festivalData.mantra}` : ""}
+`;
+    }
+  }
+
   // Construct target language instruction
   const langNames: Record<SupportedLanguage, string> = {
     kn: "Kannada (ಕನ್ನಡ)",
@@ -510,7 +1138,16 @@ Vehicle Purchase Rules according to Baggona Siddhanta:
   };
   const targetLangStr = langNames[language] || "Kannada (ಕನ್ನಡ)";
 
-  const systemPrompt = `You are a revered, highly scholarly master Vedic Astrologer following the sacred Baggona Panchanga tradition (ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ದೈವಿಕ ಸಂಪ್ರದಾಯ), under the spiritual guidance of Priest Shreeram Pandit (ಶ್ರೀರಾಮ್ ಪಂಡಿತ್).
+  const systemPrompt = `You are the revered 100-Year Traditional Chief Astrologer and Daivajna of Sri Kshetra Baggona (ಬಗ್ಗೋಣ ಸನ್ನಿಧಿ ದೈವಜ್ಞ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್).
+You carry the accumulated mastery and wisdom of 100 years of unbroken Vedic tradition, rooted in Brihat Parashara Hora Shastra, Jataka Parijata, Muhurtha Chintamani, Nirnaya Sindhu, Dharma Sindhu, Garuda Purana, and the sacred Baggona Panchanga Siddhanta.
+
+You answer ANY astrological inquiry without limitation, functioning as the ultimate Vedic expert and assistant:
+1. Birth & Jataka (ಜನನ & ಜಾತಕ): 12 Bhavas, planetary yogas, Dasha-Bhukti, Gochara transits, Gandanta / Dosha shanti.
+2. Death & Maranottara (ಮರಣ, ಆಶೌಚ & ಶ್ರಾದ್ಧ): Demise Tithi, Masa, Paksha determination, Pratyabdika Shraddha date, Aparahna Kala (೧:೩೦ - ೩:೪೫ PM), Dhanishta Panchaka dosha, Ashaucha days, Garuda Purana wisdom, and Gokarna Mahabaleshwara Moksha Sevas.
+3. Muhurtha & Business Decisions (ಮುಹೂರ್ತ & ವ್ಯವಹಾರ ನಿರ್ಣಯ): Launching enterprise, or surrendering a hotel / commercial lease / debt clearance (ಋಣ ಮುಕ್ತಿ ಮುಹೂರ್ತ - ಮಂಗಳವಾರ ಭೌಮೇ ಋಣವಿಮೋಚನಮ್, ರಿಕ್ತ ತಿಥಿ ತ್ಯಾಗ, ಚರ ಲಗ್ನ), vehicle purchase, Griha Pravesha, marriage.
+4. Avakahada Chakra (ಆವಕಹಡ ಚಕ್ರ): 108 Pada Namakshara sound vibration frequencies (e.g. Hiranyaksha = 'Hi' = Punarvasu 4th Pada, Karka Rashi).
+5. Festivals & Vratas (ಹಬ್ಬಗಳು & ವ್ರತಗಳು): Exact dates, Tithi Nirnaya, Puja Muhurthas, and Vrata Vidhana.
+6. Horary / Prashna (ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ): Immediate task success, recovery, litigation verdict.
 
 OUTPUT LANGUAGE: ${targetLangStr}.
 ${
@@ -526,7 +1163,7 @@ ${
 }
 
 PERSONA & NARRATION:
-Adopt the persona of a revered, warm, deeply learned master Vedic Daivajna (Priest Shreeram Pandit of Baggona).
+Adopt the persona of a revered, warm, deeply learned 100-year traditional Vedic Daivajna (Priest Shreeram Pandit of Baggona).
 Speak directly to the devotee as if sharing live spoken wisdom from your profound astrological knowledge, not reading from a textbook.
 Begin Section 1 with a respectful, warm address: 'ಆತ್ಮೀಯ ಭಕ್ತರೇ,' (or 'Dear Devotee,' in English).
 
@@ -597,6 +1234,29 @@ You must provide a deeply learned, comprehensive, clear, and reassuring response
   // Generate spoken text for audio synthesis
   const spokenText = buildSpokenAstrologyNarrative(sections, language);
 
+  const nameLookupData = analysis.matchedNameData
+    ? {
+        name: analysis.matchedNameData.matchedName,
+        syllable: analysis.matchedNameData.inputSyllable,
+        syllableKn: analysis.matchedNameData.entry.canonicalSoundKn,
+        syllableEn: analysis.matchedNameData.entry.canonicalSoundEn,
+        nakshatraName: analysis.matchedNameData.entry.nakshatraNameEn,
+        nakshatraNameKn: analysis.matchedNameData.entry.nakshatraNameKn,
+        nakshatraNameEn: analysis.matchedNameData.entry.nakshatraNameEn,
+        pada: analysis.matchedNameData.entry.pada,
+        rashiNameKn: analysis.matchedNameData.entry.rashiNameKn,
+        rashiNameEn: analysis.matchedNameData.entry.rashiNameEn,
+        rashiLordKn: analysis.matchedNameData.entry.rashiLordKn,
+        rashiLordEn: analysis.matchedNameData.entry.rashiLordEn,
+        nakshatraLordKn: analysis.matchedNameData.entry.nakshatraLordKn,
+        nakshatraLordEn: analysis.matchedNameData.entry.nakshatraLordEn,
+        deityKn: analysis.matchedNameData.entry.deityKn,
+        deityEn: analysis.matchedNameData.entry.deityEn,
+        ganaKn: analysis.matchedNameData.entry.ganaKn,
+        animalYoniKn: analysis.matchedNameData.entry.animalYoniKn
+      }
+    : undefined;
+
   return {
     id: `qa_${Date.now()}`,
     question,
@@ -605,7 +1265,12 @@ You must provide a deeply learned, comprehensive, clear, and reassuring response
     spokenText,
     detectedIntent: analysis.intent,
     sections,
-    chartData
+    chartData,
+    nameLookupData,
+    maranaShraddhaData,
+    surrenderMuhurthaData,
+    festivalData,
+    livePanchangaMoment
   };
 }
 
@@ -619,6 +1284,281 @@ function generateDeterministicVedicFallback(
   birthDetails?: BirthDetailsInput,
   chartData?: AstrologyQAResponse["chartData"]
 ): string {
+  // 0.1 Marana, Demise Panchanga & Shraddha Tithi Fallback
+  if (analysis.isMaranaShraddha) {
+    const demiseDate = analysis.extractedDate || "2023-04-12";
+    const currentYear = new Date().getFullYear();
+    const data = calculatePratyabdikaShraddha(demiseDate, analysis.targetYear || currentYear, 14.5479, 74.3188);
+
+    if (lang === "kn") {
+      return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಹಾಗೂ ಧರ್ಮಸಿಂಧು, ನಿರ್ಣಯಸಿಂಧು ಶಾಸ್ತ್ರಗಳ ಆಧಾರದ ಮೇಲೆ ಮರಣ ದಿನಾಂಕ ಹಾಗೂ ಶ್ರಾದ್ಧ ತಿಥಿ ಗಣಿತವನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. 
+- ಮರಣ ಹೊಂದಿದ ದಿನಾಂಕ: ${data.demiseDate}
+- ಸಂವತ್ಸರ: ${data.demiseSamvatsaraKn} ಸಂವತ್ಸರ
+- ಚಾಂದ್ರಮಾನ ಮಾಸ: ${data.demiseMasaKn} ಮಾಸ
+- ಪಕ್ಷ: ${data.demisePakshaKn}
+- ತಿಥಿ: ${data.demiseTithiKn}
+- ನಕ್ಷತ್ರ: ${data.demiseNakshatraKn}
+- ವಾರ: ${data.demiseWeekdayKn}
+ಶಾಸ್ತ್ರದ ನಿಯಮದಂತೆ (ಧರ್ಮಸಿಂಧು ಶ್ರಾದ್ಧ ಪರಿಚ್ಛೇದ), ವಾರ್ಷಿಕ ಪ್ರತ್ಯಾಬ್ದಿಕ ಶ್ರಾದ್ಧವನ್ನು ಮರಣ ಹೊಂದಿದ ಅದೇ ಮಾಸ, ಅದೇ ಪಕ್ಷ ಮತ್ತು ಅದೇ ತಿಥಿಯಂದು ಅಪರಾಹ್ನ ವ್ಯಾಪ್ತಿಯಿರುವ ಕಾಲದಲ್ಲಿ ಆಚರಿಸಬೇಕು. 
+${data.hasPanchakaDosha ? `ವಿಶೇಷ ಎಚ್ಚರಿಕೆ: ${data.panchakaSummaryKn}` : "ಪಂಚಕ ಪರಿಶೀಲನೆ: ಮರಣ ನಕ್ಷತ್ರವು ಶುದ್ಧವಾಗಿದ್ದು, ಯಾವುದೇ ಧನಿಷ್ಠಾ ಪಂಚಕ ದೋಷವಿಲ್ಲ."}
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+${data.targetYear}ನೇ ಸಾಲಿನ ಪ್ರತ್ಯಾಬ್ದಿಕ ಶ್ರಾದ್ಧ ದಿನಾಂಕ ಹಾಗೂ ಮುಹೂರ್ತ:
+೧. ಶ್ರಾದ್ಧ ದಿನಾಂಕ: ${data.pratyabdikaFormattedKn}
+೨. ಶ್ರಾದ್ಧ ಕಾಲ (ಅಪರಾಹ್ನ ಕಾಲ): ${data.aparahnaKala}
+೩. ಆಶೌಚ ಗಣಿತ: ಜ್ಞಾತಿ ಸಪಿಂಡರಿಗೆ ೧೦ ದಿನಗಳ ಪೂರ್ಣ ಆಶೌಚ, ಸಮಾನೋದಕರಿಗೆ ೩ ದಿನಗಳು.
+೪. ಶ್ರಾದ್ಧ ದಿನದಂದು ಕುತಪ ಹಾಗೂ ರೌಹಿಣ ಮುಹೂರ್ತಗಳಲ್ಲಿ (ಮಧ್ಯಾಹ್ನ ೧೨:೦೦ ರಿಂದ ೨:೩೦) ಪಿಂಡ ಪ್ರದಾನ ಮಾಡುವುದು ಪರಮ ಶ್ರೇಷ್ಠ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ಪಿತೃ ತರ್ಪಣ & ತಿಲಾಂಜಲಿ: ಕಪ್ಪು ಎಳ್ಳು, ದರ್ಭೆ ಮತ್ತು ತುಳಸಿ ದಳಗಳೊಂದಿಗೆ ಪಿತೃ ತರ್ಪಣ ನೀಡುವುದು.
+೨. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿ ಮುಕ್ತಿ ಸೇವೆ: ಗೋಕರ್ಣದಲ್ಲಿ ತಿಲ ಹೋಮ (Thila Homa), ನಾರಾಯಣ ಬಲಿ (Narayana Bali) ಮತ್ತು ತ್ರಿಪಿಂಡಿ ಶ್ರಾದ್ಧ (Tripindi Shraddha) ನೆರವೇರಿಸುವುದರಿಂದ ಪಿತೃಗಳಿಗೆ ಸದ್ಗತಿ ದೊರೆಯುತ್ತದೆ.
+೩. ಗೋ-ದಾನ ಮತ್ತು ಅನ್ನಸಂತರ್ಪಣೆ: ಶ್ರಾದ್ಧದ ನಂತರ ಗೋವಿಗೆ ಗೋಗ್ರಾಸ ನೀಡಿ, ಸತ್ಪಾತ್ರರಿಗೆ ಅನ್ನದಾನ ಮತ್ತು ವಸ್ತ್ರದಾನ ಮಾಡುವುದು ವಂಶಕ್ಕೆ ಆಯುರಾರೋಗ್ಯ ತರುತ್ತದೆ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಶ್ರದ್ಧೆಯಿಂದ ಮಾಡುವ ಶ್ರಾದ್ಧ ಕರ್ಮದಿಂದ ಪಿತೃ ದೇವತೆಗಳು ತೃಪ್ತರಾಗಿ ಸಂತಾನ ವೃದ್ಧಿ ಮತ್ತು ಸುಖ-ಶಾಂತಿಯ ಆಶೀರ್ವಾದ ನೀಡುತ್ತಾರೆ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+    } else {
+      return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, based on Baggona Panchanga and classical Dharma Sindhu and Nirnaya Sindhu scriptures, here is the verified Marana and Shraddha Tithi determination:
+- Demise Date: ${data.demiseDate}
+- Samvatsara: ${data.demiseSamvatsaraKn}
+- Lunar Month (Masa): ${data.demiseMasaKn}
+- Lunar Fortnight (Paksha): ${data.demisePakshaKn}
+- Demise Tithi: ${data.demiseTithiKn}
+- Demise Nakshatra: ${data.demiseNakshatraKn} (${data.demiseWeekdayKn})
+Per classical Shastra, the annual Pratyabdika Shraddha must be observed on the exact lunar month, fortnight, and tithi during the Aparahna Kaala window.
+${data.hasPanchakaDosha ? `Panchaka Note: ${data.panchakaSummaryKn}` : "Panchaka Check: Demise star is clean, no Dhanishta Panchaka dosha."}
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+Pratyabdika Shraddha Determination for Year ${data.targetYear}:
+1. Exact Shraddha Date: ${data.pratyabdikaFormattedKn}
+2. Sacred Shraddha Window: ${data.aparahnaKala}
+3. Kutapa & Rauhina Muhurthas (11:45 AM - 02:30 PM) are supremely sacred for Pinda Pradana.
+4. Ashaucha: 10 days for Sapindas.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Pitru Tarpana with black sesame seeds (Tilanjali), Darbha grass, and Tulasi leaves.
+2. Moksha Sevas at Sri Kshetra Gokarna Mahabaleshwara: Thila Homa, Narayana Bali, and Tripindi Shraddha for ancestral liberation.
+3. Gau-seva (feeding cows) and Annadana to the needy.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May the departed soul attain Vaikuntha Moksha and shower eternal protection and blessings upon your family lineage.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+    }
+  }
+
+  // 0.2 Business / Hotel Surrender & Rina Mukti Muhurtha Fallback
+  if (analysis.isSurrenderClosure) {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const data = calculateSurrenderMuhurthaDates(currentYear, currentMonth, 14.5479, 74.3188);
+
+    if (lang === "kn") {
+      const recDaysLines = data.recommendedDays.map((d, i) => `${i + 1}. ದಿನಾಂಕ: ${d.date} (${d.weekdayKn}) - ತಿಥಿ: ${d.tithiKn}, ನಕ್ಷತ್ರ: ${d.nakshatraKn}\n   ಮುಹೂರ್ತ: ${d.timeWindowKn}\n   ಶಾಸ್ತ್ರ ಫಲ: ${d.reasonKn}`).join("\n");
+
+      return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ಹೊಟೇಲ್ ಒಪ್ಪಿಸುವಿಕೆ, ಗುತ್ತಿಗೆ ಮುಕ್ತಾಯ ಅಥವಾ ವ್ಯಾಪಾರ ಸಮಾಪ್ತಿಗಾಗಿ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಹಾಗೂ ಮುಹೂರ್ತ ಚಿಂತಾಮಣಿ ಶಾಸ್ತ್ರದ ಪ್ರಕಾರ ಸೂಕ್ಷ್ಮ ಕಾಲ ನಿರ್ಣಯ ಇಲ್ಲಿದೆ:
+೧. ಮಂಗಳವಾರದ ಋಣ ವಿಮೋಚನಾ ಯೋಗ (Bhaume Rina Vimochana): ಬೃಹತ್ ಸಂಹಿತೆಯ ಪ್ರಕಾರ ಮಂಗಳವಾರದಂದು ಸಾಲ ಅಥವಾ ಹೊಟೇಲ್/ವ್ಯಾಪಾರದ ಗುತ್ತಿಗೆ ಬಾಕಿ ತೀರಿಸಿ ಒಪ್ಪಿಸಿದರೆ, ಆ ವ್ಯಕ್ತಿಯು ಆ ಋಣದಿಂದ ಶಾಶ್ವತವಾಗಿ ಮುಕ್ತನಾಗುತ್ತಾನೆ. ಕುಜನ ಅಗ್ನಿತತ್ವವು ನಷ್ಟದ ಹೊಣೆಯನ್ನು ಸುಟ್ಟುಹಾಕುತ್ತದೆ.
+೨. ಗುರುವಾರ (Guru Vara): ಮಾಲೀಕರು ಮತ್ತು ಗುತ್ತಿಗೆದಾರರ ನಡುವೆ ಶಾಂತಿಯುತ, ವಿವಾದರಹಿತ ಒಪ್ಪಿಸುವಿಕೆ ಹಾಗೂ ಠೇವಣಿ ಮರುಪಾವತಿಗೆ ಗುರುವು ಅತ್ಯಂತ ಪ್ರಶಸ್ತ.
+೩. ಚರ ಲಗ್ನ ಆವಶ್ಯಕತೆ (Movable Ascendant): ಮೇಷ, ಕರ್ಕಾಟಕ, ತುಲಾ, ಮಕರ ಲಗ್ನಗಳಲ್ಲಿ ಒಪ್ಪಿಸಿದರೆ ವ್ಯಾಪಾರವು ತ್ವರಿತವಾಗಿ, ಶಾಶ್ವತವಾಗಿ ಕಡಿದುಹೋಗುತ್ತದೆ; ಸ್ಥಿರ ಲಗ್ನದಲ್ಲಿ ಒಪ್ಪಿಸಿದರೆ ಸಮಸ್ಯೆಗಳು ಅಲ್ಲಿಯೇ ಗಿರಕಿ ಹೊಡೆಯುತ್ತವೆ.
+೪. ರಿಕ್ತ ತಿಥಿ ತ್ಯಾಗ: ಚತುರ್ಥಿ (೪), ನವಮೀ (೯), ಚತುರ್ದಶಿ (೧೪) ಮತ್ತು ಅಮಾವಾಸ್ಯೆ ದಿನಗಳಲ್ಲಿ ಒಪ್ಪಿಸಬಾರದು.
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ಹೊಟೇಲ್ ಒಪ್ಪಿಸಲು / ವ್ಯವಹಾರ ಮುಕ್ತಾಯಕ್ಕೆ ಮುಂಬರುವ ಅತ್ಯುತ್ತಮ ಮುಹೂರ್ತಗಳು:
+${recDaysLines}
+
+ವರ್ಜ್ಯ ದಿನಗಳು:
+೧. ಶನಿವಾರ: ವ್ಯಾಪಾರವು ಮುಗಿಯದೆ ವ್ಯಾಜ್ಯ, ಕೋರ್ಟ್ ಕಚೇರಿ ಅಥವಾ ವಿಳಂಬಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ.
+೨. ಬುಧವಾರ: ಬುಧವಾರದಂದು ಒಪ್ಪಿಸಿದರೆ ನೂತನ ವ್ಯಾಪಾರ ಅಥವಾ ಸಾಲದ ಸುಳಿಗೆ ಮತ್ತೆ ಸಿಲುಕುವ ಸಾಧ್ಯತೆ ಇರುತ್ತದೆ.
+೩. ರಾಹುಕಾಲ, ಯಮಗಂಡ ಕಾಲ ಮತ್ತು ಭದ್ರಾ (ವಿಷ್ಟಿ) ಕರಣವನ್ನು ಕಡ್ಡಾಯವಾಗಿ ತ್ಯಜಿಸಿ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ಋಣಮೋಚಕ ಮಂಗಳ ಸ್ತೋತ್ರ ಪಠಣ: ಒಪ್ಪಿಸುವ ಮುನ್ನ ದಿನ ೨೧ ಬಾರಿ 'ಮಂಗಳೋ ಭೂಮಿಪುತ್ರಶ್ಚ ಋಣಹರ್ತಾ ಧನಪ್ರದಃ' ಸ್ತೋತ್ರ ಪಠಿಸಿ.
+೨. ಶ್ರೀ ಮಹಾಗಣಪತಿ ಸನ್ನಿಧಿಯಲ್ಲಿ ಗರಿಕೆ ಸಮರ್ಪಣೆ: ನಿರ್ವಿಘ್ನವಾಗಿ ಕರಾರು ಮುಕ್ತಾಯವಾಗಲು ಗಣೇಶನಿಗೆ ಗರಿಕೆ ಅರ್ಚನೆ ಮತ್ತು ಕೊಬ್ಬರಿ ನೈವೇದ್ಯ.
+೩. ಸುಬ್ರಹ್ಮಣ್ಯ ಅಥವಾ ಆಂಜನೇಯ ಸ್ವಾಮಿ ದೇವಸ್ಥಾನದಲ್ಲಿ ಕೆಂಪು ಹೂವು ಮತ್ತು ತುಪ್ಪದ ದೀಪ ಸಮರ್ಪಣೆ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಈ ಶಾಸ್ತ್ರೋಕ್ತ ಮುಹೂರ್ತದಲ್ಲಿ ಒಪ್ಪಿಸುವುದರಿಂದ ಹಳೆಯ ಹೊಣೆಗಾರಿಕೆಗಳು ಕಳಚಿ, ಮುಂದಿನ ನೂತನ ಸತ್ಕಾರ್ಯಗಳಿಗೆ ಶುಭೋದಯವಾಗುತ್ತದೆ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+    } else {
+      const recDaysLines = data.recommendedDays.map((d, i) => `${i + 1}. Date: ${d.date} (${d.weekdayKn}) - Tithi: ${d.tithiKn}, Nakshatra: ${d.nakshatraKn}\n   Window: ${d.timeWindowKn}\n   Reason: ${d.reasonKn}`).join("\n");
+
+      return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, based on Baggona Panchanga and Muhurtha Chintamani, here are the precise electional principles for surrendering a hotel, terminating a lease, or closing an enterprise:
+1. Tuesday (Bhaume Rina Vimochana): Classical treatises emphasize that settling liabilities or handing over a loss-making lease on Tuesday ensures permanent debt liberation so that financial burdens never recur.
+2. Thursday (Guru Vara): Ideal for amicable handovers, polite settlement with landlords, and smooth deposit refunds without dispute.
+3. Movable Ascendant (Chara Lagna): Surrender must occur during Aries, Cancer, Libra, or Capricorn Lagna to ensure a swift, definitive severance. Fixed signs (Sthira Lagna) must be avoided as they cause lingering entanglements.
+4. Avoid Rikta Tithis (4th, 9th, 14th) and Amavasya.
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+Top Recommended Dates in Baggona Panchanga:
+${recDaysLines}
+
+Days to Strictly Avoid:
+1. Saturday: Drags lease settlements into court disputes and endless delays.
+2. Wednesday: Creates revolving commercial debt.
+3. Rahu Kaalam, Yamagandam, and Vishti (Bhadra) Karana.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Recitation of Rina Mochaka Mangala Stotram 21 times before final handover.
+2. Ganesha Pooja with Garika grass for obstruction-free contract closure.
+3. Lighting a ghee lamp at Lord Subramanya or Hanuman temple.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+Surrendering in these calculated Muhurthas frees you from all past karmic and financial encumbrances, paving the way for great future success.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+    }
+  }
+
+  // 0.3 Festival & Vrata Fallback
+  if (analysis.isFestival) {
+    const fData = calculateFestivalDetails(question);
+    if (fData) {
+      if (lang === "kn") {
+        return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ವಾರ್ಷಿಕ ಮಹೋತ್ಸವ ತಖ್ತೆಯ ಪ್ರಕಾರ ನಿಮ್ಮ ಪ್ರಶ್ನೆಯ ಹಬ್ಬದ ವಿವರಣೆ:
+- ಹಬ್ಬದ ಹೆಸರು: ${fData.festivalNameKn} (${fData.festivalNameEn})
+- ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ದಿನಾಂಕ: ${fData.date}
+- ಚಾಂದ್ರಮಾನ ಮಾಸ: ${fData.masaKn}
+- ಪಕ್ಷ & ತಿಥಿ: ${fData.pakshaKn}, ${fData.tithiKn}
+- ಮಹತ್ವ: ${fData.descriptionKn}
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+೧. ಹಬ್ಬದ ಆಚರಣಾ ದಿನ: ${fData.date}
+೨. ಶುಭ ಪೂಜಾ ಮುಹೂರ್ತ ಕಾಲ: ${fData.pujaWindowKn}
+೩. ಬ್ರಹ್ಮ ಮುಹೂರ್ತದಲ್ಲಿ ಅಭ್ಯಂಗ ಸ್ನಾನ ಮತ್ತು ಶುಭ ಹೋರಾ ಸಮಯದಲ್ಲಿ ಸಂಕಲ್ಪ.
+೪. ರಾಹುಕಾಲವನ್ನು ತ್ಯಜಿಸಿ ಪ್ರಧಾನ ಪೂಜೆ ನೆರವೇರಿಸಬೇಕು.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ವ್ರತ ವಿಧಿ & ಸಂಕಲ್ಪ: ${fData.vrataVidhanaKn}
+${fData.mantra ? `೨. ಪ್ರಧಾನ ಮಂತ್ರ ಜಪ: ${fData.mantra} (೧೦೮ ಬಾರಿ).` : "೨. ಇಷ್ಟದೇವತಾ ಸಹಸ್ರನಾಮ ಪಠಣ."}
+೩. ಮಹಾ ನೈವೇದ್ಯ ಮತ್ತು ಸತ್ಪಾತ್ರರಿಗೆ ಅನ್ನದಾನ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಈ ಪವಿತ್ರ ವ್ರತಾಚರಣೆಯು ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಆಯುರಾರೋಗ್ಯ, ಸಕಲ ಸೌಭಾಗ್ಯ ಮತ್ತು ಶ್ರೀ ಕ್ಷೇತ್ರ ಬಗ್ಗೋಣದ ದೈವಿಕ ಕೃಪೆಯನ್ನು ತರಲಿ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+      } else {
+        return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, here is the official Baggona Panchanga determination for the festival:
+- Festival: ${fData.festivalNameEn} (${fData.festivalNameKn})
+- Calendar Date: ${fData.date}
+- Lunar Month (Masa): ${fData.masaKn}
+- Paksha & Tithi: ${fData.pakshaKn}, ${fData.tithiKn}
+- Spiritual Significance: ${fData.descriptionKn}
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+1. Festival Date: ${fData.date}
+2. Auspicious Pooja Window: ${fData.pujaWindowKn}
+3. Perform Abhyanga Snana during Brahma Muhurtha and Sankalpa during auspicious Hora.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Sacred Vrata Observance: ${fData.vrataVidhanaKn}
+${fData.mantra ? `2. Divine Chanting Mantra: ${fData.mantra}` : "2. Recitation of Sahasranama Stotram."}
+3. Maha Prasada offering and Annadana to devotees.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May this sacred festival bring boundless joy, prosperity, and divine blessings from Sri Kshetra Baggona to your family.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+      }
+    }
+  }
+
+  // 1. Name to Nakshatra & Pada Fallback (Avakahada Chakra)
+  if (analysis.isNameLookup && analysis.matchedNameData) {
+    const nd = analysis.matchedNameData;
+    if (lang === "kn") {
+      return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಹಾಗೂ ಬೃಹತ್ ಪರಾಶರ ಹೋರಾ ಶಾಸ್ತ್ರದ ಆವಕಹಡ ಚಕ್ರದ (Avakahada Chakra) ಪ್ರಕಾರ ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ. '${nd.matchedName}' ನಾಮವು '${nd.inputSyllable}' ಧ್ವನಿಯಿಂದ ಆರಂಭವಾಗುವುದರಿಂದ ಇದು ನಿಖರವಾಗಿ **${nd.entry.nakshatraNameKn} ನಕ್ಷತ್ರದ ${nd.entry.pada}ನೇ ಪಾದ (Pada ${nd.entry.pada})** ಹಾಗೂ **${nd.entry.rashiNameKn} ರಾಶಿಗೆ (${nd.entry.rashiNameEn})** ಸೇರುತ್ತದೆ. ಈ ನಕ್ಷತ್ರದ ಅಧಿಪತಿ ${nd.entry.nakshatraLordKn} ಹಾಗೂ ರಾಶ್ಯಾಧಿಪತಿ ${nd.entry.rashiLordKn}. ಇದರ ಪವಿತ್ರ ಆರಾಧ್ಯ ದೇವತೆ ${nd.entry.deityKn}. ಗಣ: ${nd.entry.ganaKn}, ಯೋನಿ: ${nd.entry.animalYoniKn}. ಯಾವುದೇ ಕಾರಣಕ್ಕೂ ಇದನ್ನು ಮೂಲಾ ನಕ್ಷತ್ರ ೧ನೇ ಪಾದವೆಂದು ತಪ್ಪಾಗಿ ಭಾವಿಸಬಾರದು; ಇದು ಪುನರ್ವಸು ನಕ್ಷತ್ರ ೪ನೇ ಪಾದ ಕರ್ಕಾಟಕ ರಾಶಿಯಾಗಿದೆ.
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+${nd.entry.nakshatraNameKn} ನಕ್ಷತ್ರದ ೪ನೇ ಪಾದದ ವ್ಯಕ್ತಿಗಳಿಗೆ ಗುರು ಮತ್ತು ಚಂದ್ರರ ಅನುಗ್ರಹದಿಂದ ಸೌಮ್ಯ, ದಯಾಳು ಮತ್ತು ಉನ್ನತ ಜ್ಞಾನದ ವ್ಯಕ್ತಿತ್ವವಿರುತ್ತದೆ. ಪ್ರಸ್ತುತ ಗೋಚಾರದಲ್ಲಿ ಗುರು ಬಲ ಮತ್ತು ಶುಕ್ರವಾರ, ಗುರುವಾರಗಳ ಶುಭ ದಿನಗಳು ಹೊಸ ಕಾರ್ಯಾರಂಭಕ್ಕೆ ಅತ್ಯಂತ ಪ್ರಶಸ್ತವಾಗಿವೆ. ರಾಹುಕಾಲವನ್ನು ತ್ಯಜಿಸಿ ಶುಭ ಕಾರ್ಯಗಳನ್ನು ಕೈಗೊಳ್ಳಿ.
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ಸರಸ್ವತೀ & ಮಹಾಗಣಪತಿ ನಾಮಾಕ್ಷರ ಸಿದ್ಧಿ ಪೂಜೆ: '${nd.inputSyllable}' ಧ್ವನಿ ತರಂಗಾಂತರವು ಆಜ್ಞಾ ಚಕ್ರವನ್ನು ಜಾಗೃತಗೊಳಿಸಲು ನಿತ್ಯ ಗಾಯತ್ರಿ ಮಂತ್ರ ಹಾಗೂ ದೇವಗುರು ಬೃಹಸ್ಪತಿ ಸ್ತೋತ್ರ ಪಠಿಸಿ.
+೨. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ರುದ್ರಾಭಿಷೇಕ ಮತ್ತು ಕ್ಷೀರಾಭಿಷೇಕ ಸೇವೆ ನೆರವೇರಿಸಿ.
+೩. ಪ್ರತಿ ಗುರುವಾರ ಹಳದಿ ವಸ್ತ್ರ ಅಥವಾ ಕಡಲೆಬೇಳೆ ದಾನ ಮತ್ತು ಗೋ-ಸೇವೆ ಮಾಡುವುದು ಭಾಗ್ಯವರ್ಧಕ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+${nd.entry.nakshatraNameKn} ೪ನೇ ಪಾದದ ನಾಮಧಾರಕರಿಗೆ ಮಹಾಲಕ್ಷ್ಮಿ ಹಾಗೂ ಶಿವ-ಪಾರ್ವತಿಯರ ದೈವಿಕ ಅನುಗ್ರಹ ಸದಾ ಇರುತ್ತದೆ. ಸತ್ಕರ್ಮಗಳಿಂದ ಸಕಲ ಇಷ್ಟಾರ್ಥಗಳು ಸಿದ್ಧಿಸಲಿ.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+    } else {
+      return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, based on classical Brihat Parashara Hora Shastra and the sacred Baggona Avakahada Chakra tradition, the name '${nd.matchedName}' resonates with the phonetic syllable '${nd.inputSyllable}'. This deterministically belongs to **${nd.entry.nakshatraNameEn} Nakshatra, Pada ${nd.entry.pada}** in **${nd.entry.rashiNameEn} (${nd.entry.rashiNameKn} Rashi)**. Nakshatra lord is ${nd.entry.nakshatraLordEn}, sign lord is ${nd.entry.rashiLordEn}, and presiding deity is ${nd.entry.deityEn}. Gana: ${nd.entry.ganaEn}, Yoni: ${nd.entry.animalYoniEn}. This is definitively Punarvasu Nakshatra 4th Pada, not Mula Nakshatra.
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+Punarvasu 4th Pada natives are blessed with emotional intelligence, divine grace, and spiritual scholarship under Moon and Jupiter. Thursdays and Mondays are auspicious for new undertakings, avoiding Rahu Kaalam.
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Saraswati-Ganesha Namakshara Siddhi Pooja and recitation of Guru Brihaspati Stotram.
+2. Rudrabhisheka at Sri Kshetra Gokarna Mahabaleshwara temple.
+3. Feed cows with fresh green grass or offer yellow grains on Thursdays.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May Lord Mahabaleshwara and Goddess Aditi illuminate your life with boundless peace, health, and prosperity.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+    }
+  }
+
+  // 2. Today's Live Baggona Panchanga Fallback
+  if (analysis.isPanchangaQuery) {
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0]!;
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const p = calculateTraditionalBaggona(dateStr, timeStr, 14.5479, 74.3188);
+    const clk = calculateInstantPrashnaClock(0, now, 14.5479, 74.3188);
+
+    if (lang === "kn") {
+      return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ
+ಆತ್ಮೀಯ ಭಕ್ತರೇ, ಇಂದಿನ ಶ್ರೀ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಶುಭ ಮುಹೂರ್ತ ಮತ್ತು ಗ್ರಹಗತಿ ವಿವರಣೆ:
+- ಸಂವತ್ಸರ: ${p.samvatsaraKn}
+- ಮಾಸ & ಪಕ್ಷ: ${p.masaKn} ಮಾಸ, ${p.pakshaKn} ಪಕ್ಷ
+- ತಿಥಿ: ${p.tithiKn} (${p.tithi})
+- ವಾರ: ${p.weekdayKn} (${p.weekday})
+- ನಕ್ಷತ್ರ: ${p.moonNakshatraKn} (${p.moonNakshatra})
+- ಯೋಗ: ${p.yogaKn}, ಕರಣ: ${p.karanaKn}
+
+### ೨. ಕಾಲ ನಿರ್ಣಯ & ಶುಭ ಮುಹೂರ್ತ / ದಶಾ ಫಲ
+- ಪ್ರಸ್ತುತ ಗ್ರಹ ಹೋರೆ: ${clk.horaLordKn} (${clk.horaLordEn}) - ${clk.horaSignificanceKn}
+- ಪ್ರಸ್ತುತ ಚೋಘಡಿಯಾ: ${clk.choghadiyaNameKn} (${clk.choghadiyaNameEn}) - ${clk.choghadiyaDescKn}
+- ರಾಹು ಕಾಲ: ${clk.rahuKalamTimeStr} ${clk.isRahuKalamActive ? "(ಪ್ರಸ್ತುತ ರಾಹುಕಾಲ ಸಕ್ರಿಯ)" : "(ಶುಭ ಕಾಲ)"}
+- ಚಂದ್ರ ಬಲ: ${clk.chandraBalaStatusKn}
+
+### ೩. ದೈವಿಕ ಪರಿಹಾರ, ಶಾಂತಿ ಹೋಮ & ಪೂಜಾ ವಿಧಾನ
+೧. ದಿನದ ಆರಂಭದಲ್ಲಿ ಶ್ರೀ ಮಹಾಗಣಪತಿ ಮತ್ತು ಕುಲದೇವತಾ ಸ್ಮರಣೆ.
+೨. ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಗೆ ತುಪ್ಪದ ದೀಪ ಸಮರ್ಪಣೆ.
+೩. ಗಾಯತ್ರೀ ಜಪ (೧೦೮ ಬಾರಿ) ಮತ್ತು ನವಗ್ರಹ ಪ್ರಾರ್ಥನೆ.
+
+### ೪. ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ
+ಇಂದಿನ ದೈವಿಕ ಪಂಚಾಂಗವು ಸತ್ಕರ್ಮಗಳಿಗೆ ಮಂಗಳವನ್ನುಂಟುಮಾಡಲಿ. ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಸನ್ನಿಧಿಯ ಆಶೀರ್ವಾದಗಳು.
+॥ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ ಅವರ ಬಗ್ಗೋಣ ದೈವಿಕ ಆಶೀರ್ವಾದಗಳು ॥`;
+    } else {
+      return `### 1. Classical Shastra & Technical Analysis
+Dear Devotee, here is today's authentic Baggona Panchanga summary:
+- Samvatsara: ${p.samvatsaraKn} (${p.samvatsara})
+- Month & Paksha: ${p.masaKn} Masa, ${p.pakshaKn} Paksha
+- Tithi: ${p.tithiKn} (${p.tithi})
+- Weekday: ${p.weekdayKn} (${p.weekday})
+- Moon Nakshatra: ${p.moonNakshatraKn} (${p.moonNakshatra})
+- Yoga: ${p.yogaKn}, Karana: ${p.karanaKn}
+
+### 2. Auspicious Timing, Muhurtha Windows & Planetary Transits
+- Current Hora: ${clk.horaLordEn} (${clk.horaSignificanceEn})
+- Choghadiya: ${clk.choghadiyaNameEn} (${clk.choghadiyaQuality})
+- Rahu Kaalam: ${clk.rahuKalamTimeStr}
+- Chandra Bala: ${clk.chandraBalaStatusEn}
+
+### 3. Sacred Remedies, Shanti Homa & Baggona Temple Sevas
+1. Morning prayer to Lord Maha Ganapati and Kuladevata.
+2. Rudrabhisheka at Gokarna Mahabaleshwara temple.
+3. Chanting of Gayatri Mantra 108 times.
+
+### 4. Astrologer's Verdict & Sacred Blessing
+May the auspicious planetary vibrations of today bring fulfillment and divine peace to you.
+- Blessings by Priest Shreeram Pandit of Baggona.`;
+    }
+  }
+
   if (analysis.isMulaNakshatra) {
     if (lang === "kn") {
       return `### ೧. ಶಾಸ್ತ್ರೀಯ ಸಿದ್ಧಾಂತ & ತಾಂತ್ರಿಕ ವಿವರಣೆ

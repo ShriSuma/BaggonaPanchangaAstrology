@@ -71,4 +71,96 @@ describe("BaggonaAstrologyQAPage UI Component", () => {
     expect(screen.getByText(/ಆಚಾರ್ಯರ ದೈವಿಕ ಸಂದೇಶ & ಆಶೀರ್ವಾದ/i)).toBeInTheDocument();
     expect(screen.getAllByText(/ಶ್ರೀರಾಮ್ ಪಂಡಿತ್/i).length).toBeGreaterThan(0);
   });
+
+  it("renders live Baggona Panchanga and Prashna clock dashboard banner", () => {
+    render(<BaggonaAstrologyQAPage />);
+
+    expect(screen.getByText(/ಇಂದಿನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ & ಲೈವ್ ಪ್ರಶ್ನ ಮುಹೂರ್ತ ಗಡಿಯಾರ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ತಿಥಿ \(Tithi\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/ನಕ್ಷತ್ರ \(Star\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಪ್ರಸ್ತುತ ಹೋರಾ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಚೋಘಡಿಯಾ/i)).toBeInTheDocument();
+  });
+
+  it("renders Avakahada Chakra resolution card for 'Hiranya Aksha' name inquiry", async () => {
+    render(<BaggonaAstrologyQAPage />);
+
+    const textarea = screen.getByPlaceholderText(/ನಿಮ್ಮ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ/i);
+    fireEvent.change(textarea, {
+      target: { value: "Hiranya Aksha whose name it is, which nakshatra and pada?" }
+    });
+
+    const submitBtn = screen.getByText(/ಪ್ರಶ್ನೆ ಕೇಳಿ/i);
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/ಬೃಹತ್ ಪರಾಶರ ಅವಕಹಡಾ ಚಕ್ರ/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    expect(screen.getAllByText(/ಪುನರ್ವಸು/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/೪ನೇ ಪಾದ/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/ಕರ್ಕಾಟಕ/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/ಅದಿತಿ ದೇವಿ/i)).toBeInTheDocument();
+  });
+
+  it("renders Marana & Shraddha Tithi determination card when question includes death date", async () => {
+    render(<BaggonaAstrologyQAPage />);
+
+    const textarea = screen.getByPlaceholderText(/ನಿಮ್ಮ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ/i);
+    fireEvent.change(textarea, {
+      target: { value: "ತೀರಿಕೊಂಡ ದಿನಾಂಕ 2023-04-12, ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ 2026ರ ಪ್ರತ್ಯಾಬ್ದಿಕ ಶ್ರಾದ್ಧ ಯಾವಾಗ?" }
+    });
+
+    const submitBtn = screen.getByText(/ಪ್ರಶ್ನೆ ಕೇಳಿ/i);
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/ಬಗ್ಗೋಣ ಮರಣೋತ್ತರ & ಪ್ರತ್ಯಾಬ್ದಿಕ ಶ್ರಾದ್ಧ ತಿಥಿ ನಿರ್ಣಯ/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    expect(screen.getByText(/ಧರ್ಮಸಿಂಧು & ನಿರ್ಣಯಸಿಂಧು ಅಪರಾಹ್ನ ವ್ಯಾಪ್ತಿ ಸಿದ್ಧಾಂತ/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/2023-04-12/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/ಶ್ರಾದ್ಧ ಅಪರಾಹ್ನ ಕಾಲ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಮುಕ್ತಿ ಸೇವೆಗಳು:/i)).toBeInTheDocument();
+  });
+
+  it("renders Hotel Surrender & Rina Vimochana Card when question asks about business closure", async () => {
+    render(<BaggonaAstrologyQAPage />);
+
+    const textarea = screen.getByPlaceholderText(/ನಿಮ್ಮ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ/i);
+    fireEvent.change(textarea, {
+      target: { value: "ಹೊಟೇಲ್ ಗುತ್ತಿಗೆ ಒಪ್ಪಿಸಲು ಅಥವಾ ವ್ಯಾಪಾರ ಸಮಾಪ್ತಿ ಮಾಡಲು ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ಮುಹೂರ್ತ ಯಾವುದು?" }
+    });
+
+    const submitBtn = screen.getByText(/ಪ್ರಶ್ನೆ ಕೇಳಿ/i);
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/ಬಗ್ಗೋಣ ಋಣ ಮುಕ್ತಿ & ವ್ಯಾಪಾರ\/ಹೊಟೇಲ್ ಒಪ್ಪಿಸುವ ಮುಹೂರ್ತ/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    expect(screen.getByText(/ಮಂಗಳವಾರ ಭೌಮೇ ಋಣವಿಮೋಚನಮ್ & ಚರ ಲಗ್ನ ಸಿದ್ಧಾಂತ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ವರ್ಜ್ಯ ನಿಯಮಗಳು:/i)).toBeInTheDocument();
+    expect(screen.getByText(/ಋಣಮೋಚಕ ಮಂತ್ರ:/i)).toBeInTheDocument();
+  });
+
+  it("renders Festival & Vrata Card when question asks about Ganesha Chaturthi", async () => {
+    render(<BaggonaAstrologyQAPage />);
+
+    const textarea = screen.getByPlaceholderText(/ನಿಮ್ಮ ಜ್ಯೋತಿಷ್ಯ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ/i);
+    fireEvent.change(textarea, {
+      target: { value: "ವರಸಿದ್ಧಿ ವಿನಾಯಕ ವ್ರತ ಗಣೇಶ ಚತುರ್ಥಿ ಯಾವಾಗ ಬರುತ್ತದೆ ಮತ್ತು ಪೂಜಾ ಮುಹೂರ್ತ ತಿಳಿಸಿ" }
+    });
+
+    const submitBtn = screen.getByText(/ಪ್ರಶ್ನೆ ಕೇಳಿ/i);
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/ಗಣೇಶ ಚತುರ್ಥಿ/i).length).toBeGreaterThan(0);
+    }, { timeout: 3000 });
+
+    expect(screen.getByText(/ಶುಭ ಪೂಜಾ ಮುಹೂರ್ತ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ವ್ರತ ಮಹತ್ವ/i)).toBeInTheDocument();
+    expect(screen.getByText(/ವ್ರತ ವಿಧಿ & ಸಂಕಲ್ಪ:/i)).toBeInTheDocument();
+  });
 });

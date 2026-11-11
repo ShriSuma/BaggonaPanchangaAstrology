@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppStore, type SupportedLanguage } from "../stores/appStore";
 import { useKundliViewerStore } from "../stores/kundliViewerStore";
@@ -9,6 +9,14 @@ import {
   type AstrologyQASection,
   type BirthDetailsInput
 } from "../services/astrologyQAService";
+import {
+  calculateTraditionalBaggona,
+  type TraditionalBaggonaPanchanga
+} from "../core/TraditionalBaggonaEngine";
+import {
+  calculateInstantPrashnaClock,
+  type InstantPrashnaClock
+} from "../core/instantPrashnaEngine";
 import type { AskGeminiChatTurn } from "../core/GeminiEngine";
 
 interface ChatTurnItem {
@@ -18,6 +26,14 @@ interface ChatTurnItem {
   response?: AstrologyQAResponse;
   rawText?: string;
   timestamp: string;
+}
+
+/**
+ * Converts pada number 1..4 to Kannada numeral string (೧, ೨, ೩, ೪)
+ */
+function toKannadaPadaNumber(pada: number): string {
+  const map: Record<number, string> = { 1: "೧", 2: "೨", 3: "೩", 4: "೪" };
+  return map[pada] || String(pada);
 }
 
 /**
@@ -316,8 +332,67 @@ export default function BaggonaAstrologyQAPage(): JSX.Element {
     };
   }, []);
 
+  // Real-time Baggona Panchanga & Prashna Clock
+  const liveBaggona = useMemo(() => {
+    try {
+      const now = new Date();
+      const dateStr = now.toISOString().split("T")[0]!;
+      const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const lat = defaultLat || 14.5479;
+      const lng = defaultLng || 74.3188;
+      const p = calculateTraditionalBaggona(dateStr, timeStr, lat, lng);
+      const clk = calculateInstantPrashnaClock(0, now, lat, lng);
+      return { p, clk };
+    } catch (e) {
+      console.error("[BaggonaAstrologyQAPage] Live Panchanga calculation error:", e);
+      return { p: null, clk: null };
+    }
+  }, [defaultLat, defaultLng]);
+
   // Quick Preset Questions
   const PRESET_QUESTIONS: { labelKn: string; labelEn: string; promptKn: string; promptEn: string; icon: string }[] = [
+    {
+      icon: "⚱️",
+      labelKn: "ಶ್ರಾದ್ಧ ತಿಥಿ & ಮರಣ ಗಣಿತ",
+      labelEn: "Shraddha Tithi & Demise Math",
+      promptKn: "ತೀರಿಕೊಂಡ ದಿನಾಂಕ 2023-04-12, ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ಆ ದಿನದ ತಿಥಿ, ನಕ್ಷತ್ರ ಮತ್ತು 2026ನೇ ಸಾಲಿನ ಪ್ರತ್ಯಾಬ್ದಿಕ ಶ್ರಾದ್ಧ ದಿನಾಂಕ ಯಾವಾಗ ಬರುತ್ತದೆ?",
+      promptEn: "Person died on 2023-04-12, what was the Tithi, Nakshatra, and when will Pratyabdika Shraddha fall in 2026?"
+    },
+    {
+      icon: "🏢",
+      labelKn: "ಹೊಟೇಲ್ / ವ್ಯಾಪಾರ ಒಪ್ಪಿಸುವ ಮುಹೂರ್ತ (ಋಣ ಮುಕ್ತಿ)",
+      labelEn: "Hotel Surrender & Debt Clearance",
+      promptKn: "ಹೊಟೇಲ್ ಗುತ್ತಿಗೆ ಒಪ್ಪಿಸಲು ಅಥವಾ ವ್ಯಾಪಾರ ಸಮಾಪ್ತಿ ಮಾಡಲು ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ಋಣ ವಿಮೋಚನಾ ಶುಭ ಮುಹೂರ್ತ ಯಾವುದು?",
+      promptEn: "What is the best auspicious Muhurtha to surrender a hotel or close commercial business according to Baggona Panchanga?"
+    },
+    {
+      icon: "🪔",
+      labelKn: "ಗಣೇಶ ಚತುರ್ಥಿ & ಹಬ್ಬಗಳ ದಿನಾಂಕ",
+      labelEn: "Ganesha Chaturthi & Festivals",
+      promptKn: "ಈ ವರ್ಷದ ವರಸಿದ್ಧಿ ವಿನಾಯಕ ವ್ರತ (ಗಣೇಶ ಚತುರ್ಥಿ) ಯಾವಾಗ ಬರುತ್ತದೆ ಮತ್ತು ಪೂಜಾ ಮುಹೂರ್ತ ತಿಳಿಸಿ.",
+      promptEn: "When is Varasiddhi Vinayaka Vrata (Ganesha Chaturthi) celebrated this year and what is the Puja Muhurtha?"
+    },
+    {
+      icon: "⭐",
+      labelKn: "ಹಿರಣ್ಯಾಕ್ಷ ನಾಮಾಕ್ಷರ ನಕ್ಷತ್ರ (ಪುನರ್ವಸು ೪)",
+      labelEn: "Hiranyaksha Star Lookup (Punarvasu 4)",
+      promptKn: "ಹಿರಣ್ಯಾಕ್ಷ (Hiranyaksha) ಯಾರ ಹೆಸರು ಮತ್ತು ಯಾವ ನಕ್ಷತ್ರ, ಪಾದ, ರಾಶಿಗೆ ಸೇರುತ್ತದೆ? ಅವಕಹಡಾ ಚಕ್ರದ ಪ್ರಕಾರ ನಿಖರ ವಿವರಣೆ ನೀಡಿ.",
+      promptEn: "Hiranya Aksha whose name it is, which nakshatra, pada, and rashi does it belong to according to Avakahada Chakra?"
+    },
+    {
+      icon: "🕉️",
+      labelKn: "ಇಂದಿನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ & ಹೋರಾ",
+      labelEn: "Today's Baggona Panchanga & Hora",
+      promptKn: "ಇಂದಿನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ, ತಿಥಿ, ನಕ್ಷತ್ರ, ಯೋಗ, ಕರಣ ಮತ್ತು ಪ್ರಸ್ತುತ ಶುಭ ಹೋರಾ ಸಮಯದ ಸಂಪೂರ್ಣ ವಿವರಣೆ ತಿಳಿಸಿ.",
+      promptEn: "Please give today's Baggona Panchanga details: Tithi, Nakshatra, Yoga, Karana, and current auspicious Hora timing."
+    },
+    {
+      icon: "🔮",
+      labelKn: "ಪ್ರಶ್ನ ಶಾಸ್ತ್ರ (ಕಾರ್ಯ ಸಿದ್ಧಿ ಮುಹೂರ್ತ)",
+      labelEn: "Horary Prashna (Task Success)",
+      promptKn: "ಈಗ ಕೈಗೊಳ್ಳುವ ಕೆಲಸವು ಜಯಪ್ರದವಾಗುವುದೇ? ಪ್ರಸ್ತುತ ಪ್ರಶ್ನ ಲಗ್ನ ಮತ್ತು ಚೋಘಡಿಯಾ ಫಲವೇನು?",
+      promptEn: "Will the task initiated right now be successful? What is the Prashna Lagna and Choghadiya indication?"
+    },
     {
       icon: "🌟",
       labelKn: "ಮೂಲಾ ೧ನೇ ಪಾದ ಶಾಂತಿ",
@@ -340,25 +415,11 @@ export default function BaggonaAstrologyQAPage(): JSX.Element {
       promptEn: "When will marriage happen? Please give 7th house, 7th lord, and running Dasha-Bhukti technical analysis."
     },
     {
-      icon: "🏠",
-      labelKn: "ಗೃಹಪ್ರವೇಶ ಶುಭ ಮುಹೂರ್ತ",
-      labelEn: "Griha Pravesha Muhurtha",
-      promptKn: "ಹೊಸ ಮನೆ ಗೃಹಪ್ರವೇಶಕ್ಕೆ ಬಗ್ಗೋಣ ಪಂಚಾಂಗದ ಪ್ರಕಾರ ಉತ್ತಮ ತಿಥಿ, ವಾರ, ನಕ್ಷತ್ರ ಮತ್ತು ೪ನೇ ಭಾವ ಫಲವೇನು?",
-      promptEn: "What are the best Tithi, Weekday, and Nakshatra for Griha Pravesha based on Baggona Panchanga?"
-    },
-    {
       icon: "🪐",
       labelKn: "ಸಾಡೇಸಾತಿ ಶನಿ ಪರಿಹಾರ",
       labelEn: "Sade Sati & Shani Parihara",
       promptKn: "ಮೀನ ಮತ್ತು ಕುಂಭ ರಾಶಿಗೆ ಸಾಡೇಸಾತಿ ಶನಿ ಪ್ರಭಾವ ಹೇಗಿದೆ? ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯ ಪರಿಹಾರವೇನು?",
       promptEn: "What is the impact of Sade Sati Saturn transit on Meena Rashi, and what are the sacred remedies?"
-    },
-    {
-      icon: "👶",
-      labelKn: "ಆಶ್ಲೇಷಾ / ಜ್ಯೇಷ್ಠಾ ಶಾಂತಿ",
-      labelEn: "Ashlesha / Jyeshtha Shanti",
-      promptKn: "ಆಶ್ಲೇಷಾ ಅಥವಾ ಜ್ಯೇಷ್ಠಾ ನಕ್ಷತ್ರ ಜನನ ದೋಷಕ್ಕೆ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಸಿದ್ಧಾಂತದ ಪ್ರಕಾರ ಯಾವ ಶಾಂತಿ ಮಾಡಬೇಕು?",
-      promptEn: "What is the classical Vedic Shanti ritual for Ashlesha or Jyeshtha Nakshatra birth?"
     }
   ];
 
@@ -577,6 +638,145 @@ export default function BaggonaAstrologyQAPage(): JSX.Element {
           </div>
         </div>
       </div>
+
+      {/* ── 1.5. Live Baggona Panchanga & Instant Prashna Clock Banner ────── */}
+      {liveBaggona.p && liveBaggona.clk && (
+        <div className="mb-6 rounded-3xl border-2 border-amber-300/90 dark:border-amber-700/80 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-amber-500/10 dark:from-slate-900/90 dark:via-amber-950/20 dark:to-slate-900/90 backdrop-blur-md shadow-xl p-5 sm:p-6 transition-all">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-amber-200/80 dark:border-amber-800/60">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center text-xl shadow-md border border-amber-300/60 flex-shrink-0">
+                🚩
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base sm:text-lg font-bold text-amber-950 dark:text-amber-100 font-serif baggona-book-typography">
+                    {activeLang === "kn"
+                      ? "॥ ಇಂದಿನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ & ಲೈವ್ ಪ್ರಶ್ನ ಮುಹೂರ್ತ ಗಡಿಯಾರ ॥"
+                      : "Today's Live Baggona Panchanga & Prashna Clock"}
+                  </h3>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-950 dark:bg-amber-950 dark:text-amber-300 border border-amber-400/60">
+                    ● {activeLang === "kn" ? "ಲೈವ್ ಜ್ಯೋತಿಷ್ಯ ಕಾಲ" : "Live Celestial Time"}
+                  </span>
+                </div>
+                <p className="text-xs text-amber-900/80 dark:text-amber-300 font-medium font-serif mt-0.5">
+                  {liveBaggona.p.samvatsaraKn} ಸಂವತ್ಸರ • {liveBaggona.p.masaKn} ಮಾಸ • {liveBaggona.p.pakshaKn} • {liveBaggona.p.weekdayKn}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Consultation CTA */}
+            <button
+              type="button"
+              onClick={() =>
+                handleAskQuestion(
+                  activeLang === "kn"
+                    ? "ಇಂದಿನ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ, ತಿಥಿ, ನಕ್ಷತ್ರ, ಯೋಗ, ಕರಣ ಮತ್ತು ಪ್ರಸ್ತುತ ಶುಭ ಹೋರಾ ಸಮಯದ ಸಂಪೂರ್ಣ ವಿವರಣೆ ತಿಳಿಸಿ."
+                    : "Please give today's Baggona Panchanga details: Tithi, Nakshatra, Yoga, Karana, and current auspicious Hora timing."
+                )
+              }
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold shadow-md transition-all self-start md:self-auto hover:scale-102"
+            >
+              <span>🕉️</span>
+              <span>{activeLang === "kn" ? "ಇಂದಿನ ಪಂಚಾಂಗ ವಿಶ್ಲೇಷಣೆ ಕೇಳಿ" : "Analyze Today's Panchanga"}</span>
+            </button>
+          </div>
+
+          {/* 5 Angas & Prashna Clock Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mt-4 text-xs">
+            {/* Tithi */}
+            <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl p-3 border border-amber-200/70 dark:border-slate-700 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                🌙 {activeLang === "kn" ? "ತಿಥಿ (Tithi)" : "Tithi"}
+              </span>
+              <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif block truncate">
+                {liveBaggona.p.tithiKn}
+              </span>
+              {liveBaggona.p.tithiEndTime && (
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                  {activeLang === "kn" ? "ಅಂತ್ಯ:" : "Until:"} {liveBaggona.p.tithiEndTime}
+                </span>
+              )}
+            </div>
+
+            {/* Nakshatra */}
+            <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl p-3 border border-amber-200/70 dark:border-slate-700 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                ⭐ {activeLang === "kn" ? "ನಕ್ಷತ್ರ (Star)" : "Nakshatra"}
+              </span>
+              <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif block truncate">
+                {liveBaggona.p.moonNakshatraKn}
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                ಚಂದ್ರ: {liveBaggona.clk.transitMoonRashiKn}
+              </span>
+            </div>
+
+            {/* Yoga & Karana */}
+            <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl p-3 border border-amber-200/70 dark:border-slate-700 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                🌀 {activeLang === "kn" ? "ಯೋಗ & ಕರಣ" : "Yoga & Karana"}
+              </span>
+              <span className="font-bold text-amber-950 dark:text-amber-100 text-xs font-serif block truncate">
+                {liveBaggona.p.yogaKn}
+              </span>
+              <span className="text-[10px] text-slate-600 dark:text-slate-400 block mt-0.5 truncate">
+                ಕರಣ: {liveBaggona.p.karanaKn}
+              </span>
+            </div>
+
+            {/* Hora */}
+            <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl p-3 border border-amber-200/70 dark:border-slate-700 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                ⏳ {activeLang === "kn" ? "ಪ್ರಸ್ತುತ ಹೋರಾ" : "Active Hora"}
+              </span>
+              <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif block truncate">
+                {liveBaggona.clk.horaLordKn} ಹೋರಾ
+              </span>
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block mt-0.5 truncate">
+                {liveBaggona.clk.horaSignificanceKn}
+              </span>
+            </div>
+
+            {/* Choghadiya */}
+            <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl p-3 border border-amber-200/70 dark:border-slate-700 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                🛡️ {activeLang === "kn" ? "ಚೋಘಡಿಯಾ" : "Choghadiya"}
+              </span>
+              <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif block truncate">
+                {liveBaggona.clk.choghadiyaNameKn}
+              </span>
+              <span
+                className={`text-[10px] font-bold block mt-0.5 truncate ${
+                  liveBaggona.clk.choghadiyaQuality === "auspicious" || liveBaggona.clk.choghadiyaQuality === "gainful"
+                    ? "text-emerald-700 dark:text-emerald-400"
+                    : liveBaggona.clk.choghadiyaQuality === "caution" || liveBaggona.clk.choghadiyaQuality === "inauspicious"
+                    ? "text-rose-700 dark:text-rose-400"
+                    : "text-amber-700 dark:text-amber-400"
+                }`}
+              >
+                {liveBaggona.clk.choghadiyaDescKn}
+              </span>
+            </div>
+
+            {/* Rahu Kalam & Sun Times */}
+            <div className="bg-white/90 dark:bg-slate-800/90 rounded-2xl p-3 border border-amber-200/70 dark:border-slate-700 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-400 block mb-1">
+                ☀️ {activeLang === "kn" ? "ಸೂರ್ಯ & ರಾಹುಕಾಲ" : "Sun & Rahu"}
+              </span>
+              <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block truncate">
+                {liveBaggona.p.sunrise} - {liveBaggona.p.sunset}
+              </span>
+              <span
+                className={`text-[10px] font-bold block mt-0.5 truncate ${
+                  liveBaggona.clk.isRahuKalamActive ? "text-rose-600 font-extrabold" : "text-slate-500 dark:text-slate-400"
+                }`}
+              >
+                ರಾಹು: {liveBaggona.clk.rahuKalamTimeStr}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── 2. Optional Birth Details Collapsible Panel ────────── */}
       <div className="mb-6 rounded-2xl border border-amber-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-md p-4 transition-all">
@@ -842,6 +1042,316 @@ export default function BaggonaAstrologyQAPage(): JSX.Element {
                             <span>{th}</span>
                           </span>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Avakahada Chakra Name-to-Star Lookup Card */}
+                    {item.response?.nameLookupData && (
+                      <div className="m-5 sm:m-6 mb-2 rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-amber-500/20 dark:from-amber-950/80 dark:via-slate-900 dark:to-slate-950 p-4 sm:p-5 shadow-lg">
+                        <div className="flex items-center justify-between gap-2 pb-3 border-b border-amber-300/70 dark:border-amber-700/60 flex-wrap">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-2xl">🕉️</span>
+                            <div>
+                              <h5 className="text-sm sm:text-base font-bold text-amber-950 dark:text-amber-100 font-serif baggona-book-typography">
+                                {activeLang === "kn"
+                                  ? "॥ ಬೃಹತ್ ಪರಾಶರ ಅವಕಹಡಾ ಚಕ್ರ • ನಾಮಾಕ್ಷರ ನಕ್ಷತ್ರ ನಿರ್ಣಯ ॥"
+                                  : "Classical Avakahada Chakra: Name-to-Nakshatra Resolution"}
+                              </h5>
+                              <p className="text-[11px] text-amber-900/80 dark:text-amber-300 font-serif">
+                                {activeLang === "kn"
+                                  ? "ನಾಮಾಕ್ಷರ ಧ್ವನಿ ಕಂಪನ ಸಿದ್ಧಾಂತ (೧೦೮ ಪಾದಗಳ ಶಾಸ್ತ್ರೀಯ ವರ್ಗೀಕರಣ)"
+                                  : "Sound Vibration Frequency & 108 Pada Catalog"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold text-xs shadow-xs">
+                            ⭐ {item.response.nameLookupData.nakshatraNameKn} • {toKannadaPadaNumber(item.response.nameLookupData.pada)}ನೇ ಪಾದ ({item.response.nameLookupData.pada}th Pada)
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3 text-xs">
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/70 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                              🏷️ {activeLang === "kn" ? "ಹೆಸರು (Name)" : "Name"}
+                            </span>
+                            <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif">
+                              {item.response.nameLookupData.name}
+                            </span>
+                          </div>
+
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/70 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                              🔤 {activeLang === "kn" ? "ಆರಂಭಿಕ ಧ್ವನಿ (Sound)" : "Starting Sound"}
+                            </span>
+                            <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif">
+                              '{item.response.nameLookupData.syllableKn}' ({item.response.nameLookupData.syllableEn})
+                            </span>
+                          </div>
+
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/70 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                              🦀 {activeLang === "kn" ? "ರಾಶಿ & ಅಧಿಪತಿ" : "Rashi & Lord"}
+                            </span>
+                            <span className="font-bold text-amber-950 dark:text-amber-100 text-xs sm:text-sm font-serif">
+                              {item.response.nameLookupData.rashiNameKn} ({item.response.nameLookupData.rashiLordKn})
+                            </span>
+                          </div>
+
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/70 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                              🪐 {activeLang === "kn" ? "ನಕ್ಷತ್ರಾಧಿಪತಿ" : "Star Lord"}
+                            </span>
+                            <span className="font-bold text-amber-950 dark:text-amber-100 text-xs font-serif">
+                              {item.response.nameLookupData.nakshatraLordKn}
+                            </span>
+                          </div>
+
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/70 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                              🪔 {activeLang === "kn" ? "ಅಧಿದೇವತೆ (Deity)" : "Deity"}
+                            </span>
+                            <span className="font-bold text-amber-950 dark:text-amber-100 text-xs font-serif">
+                              {item.response.nameLookupData.deityKn}
+                            </span>
+                          </div>
+
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/70 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                              🦁 {activeLang === "kn" ? "ಗಣ (Gana)" : "Gana"}
+                            </span>
+                            <span className="font-bold text-amber-950 dark:text-amber-100 text-xs font-serif">
+                              {item.response.nameLookupData.ganaKn} ಗಣ
+                            </span>
+                          </div>
+
+                          <div className="col-span-2 bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-amber-200/70 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+                              🐾 {activeLang === "kn" ? "ಯೋನಿ & ಲಕ್ಷಣ" : "Yoni"}
+                            </span>
+                            <span className="font-bold text-amber-950 dark:text-amber-100 text-xs font-serif">
+                              {item.response.nameLookupData.animalYoniKn}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 p-2.5 rounded-xl bg-amber-100/70 dark:bg-amber-950/50 border border-amber-300/60 dark:border-amber-800/60 flex items-center gap-2 text-xs text-amber-950 dark:text-amber-200 font-serif">
+                          <span>🛡️</span>
+                          <span className="font-medium">
+                            {activeLang === "kn"
+                              ? `ಅವಕಹಡಾ ಸಿದ್ಧಾಂತದಂತೆ '${item.response.nameLookupData.name}' ಹೆಸರು ${item.response.nameLookupData.nakshatraNameKn} ನಕ್ಷತ್ರ ${toKannadaPadaNumber(item.response.nameLookupData.pada)}ನೇ ಪಾದಕ್ಕೆ ಸೇರಿದ್ದು, ಇದು ಯಾವುದೇ ಗಂಡಾಂತ ಅಥವಾ ಮೂಲಾ ದೋಷಕ್ಕೆ ಒಳಪಡುವುದಿಲ್ಲ.`
+                              : `Per Avakahada Shastra, the name '${item.response.nameLookupData.name}' strictly maps to ${item.response.nameLookupData.nakshatraNameEn} Pada ${item.response.nameLookupData.pada} and has zero relation to Mula Gandanta.`}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Marana & Shraddha Tithi Determination Card */}
+                    {item.response?.maranaShraddhaData && (
+                      <div className="m-5 sm:m-6 mb-2 rounded-2xl border-2 border-stone-400 bg-gradient-to-br from-stone-100 via-amber-50 to-stone-50 dark:from-stone-900/90 dark:via-slate-900 dark:to-stone-950 p-4 sm:p-5 shadow-lg">
+                        <div className="flex items-center justify-between gap-2 pb-3 border-b border-stone-300/80 dark:border-stone-700/80 flex-wrap">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-2xl">⚱️</span>
+                            <div>
+                              <h5 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 font-serif baggona-book-typography">
+                                {activeLang === "kn"
+                                  ? "॥ ಬಗ್ಗೋಣ ಮರಣೋತ್ತರ & ಪ್ರತ್ಯಾಬ್ದಿಕ ಶ್ರಾದ್ಧ ತಿಥಿ ನಿರ್ಣಯ ॥"
+                                  : "Baggona Maranottara & Annual Shraddha Tithi Determination"}
+                              </h5>
+                              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif">
+                                {activeLang === "kn"
+                                  ? "ಧರ್ಮಸಿಂಧು & ನಿರ್ಣಯಸಿಂಧು ಅಪರಾಹ್ನ ವ್ಯಾಪ್ತಿ ಸಿದ್ಧಾಂತ"
+                                  : "Dharma Sindhu & Nirnaya Sindhu Aparahna Shastra"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="px-3 py-1 rounded-full bg-gradient-to-r from-stone-700 to-amber-900 text-white font-bold text-xs shadow-xs">
+                            📅 {item.response.maranaShraddhaData.targetYear} ಶ್ರಾದ್ಧ ದಿನ: {item.response.maranaShraddhaData.pratyabdikaFormattedKn}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3 text-xs">
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-stone-200 dark:border-stone-800">
+                            <span className="text-[10px] font-bold text-stone-600 dark:text-stone-400 block mb-0.5">
+                              ⚱️ {activeLang === "kn" ? "ಮರಣ ದಿನಾಂಕ" : "Demise Date"}
+                            </span>
+                            <span className="font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm font-serif">
+                              {item.response.maranaShraddhaData.demiseDate} ({item.response.maranaShraddhaData.demiseWeekdayKn})
+                            </span>
+                          </div>
+
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-stone-200 dark:border-stone-800">
+                            <span className="text-[10px] font-bold text-stone-600 dark:text-stone-400 block mb-0.5">
+                              🚩 {activeLang === "kn" ? "ಸಂವತ್ಸರ & ಮಾಸ" : "Masa & Paksha"}
+                            </span>
+                            <span className="font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm font-serif">
+                              {item.response.maranaShraddhaData.demiseMasaKn} • {item.response.maranaShraddhaData.demisePakshaKn}
+                            </span>
+                          </div>
+
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-stone-200 dark:border-stone-800">
+                            <span className="text-[10px] font-bold text-stone-600 dark:text-stone-400 block mb-0.5">
+                              🌙 {activeLang === "kn" ? "ಶ್ರಾದ್ಧ ತಿಥಿ & ನಕ್ಷತ್ರ" : "Demise Tithi"}
+                            </span>
+                            <span className="font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm font-serif">
+                              {item.response.maranaShraddhaData.demiseTithiKn} ({item.response.maranaShraddhaData.demiseNakshatraKn})
+                            </span>
+                          </div>
+
+                          <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl p-2.5 border border-stone-200 dark:border-stone-800">
+                            <span className="text-[10px] font-bold text-stone-600 dark:text-stone-400 block mb-0.5">
+                              ⏳ {activeLang === "kn" ? "ಶ್ರಾದ್ಧ ಅಪರಾಹ್ನ ಕಾಲ" : "Aparahna Kala"}
+                            </span>
+                            <span className="font-bold text-amber-900 dark:text-amber-300 text-xs sm:text-sm font-serif">
+                              {item.response.maranaShraddhaData.aparahnaKala}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 p-2.5 rounded-xl bg-stone-200/60 dark:bg-stone-900/70 border border-stone-300 dark:border-stone-800 text-xs text-stone-900 dark:text-stone-200 font-serif space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span>{item.response.maranaShraddhaData.hasPanchakaDosha ? "⚠️" : "✓"}</span>
+                            <span className="font-bold">
+                              {activeLang === "kn" ? "ಪಂಚಕ ಶಾಂತಿ ಸ್ಥಿತಿ:" : "Panchaka Status:"}
+                            </span>
+                            <span>{item.response.maranaShraddhaData.panchakaSummaryKn}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] text-stone-800 dark:text-stone-300">
+                            <span>🛕</span>
+                            <span className="font-bold">{activeLang === "kn" ? "ಗೋಕರ್ಣ ಕ್ಷೇತ್ರ ಮುಕ್ತಿ ಸೇವೆಗಳು:" : "Gokarna Moksha Sevas:"}</span>
+                            <span>{item.response.maranaShraddhaData.gokarnaSevas.join(" • ")}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Surrender / Hotel & Business Closure Muhurtha Card */}
+                    {item.response?.surrenderMuhurthaData && (
+                      <div className="m-5 sm:m-6 mb-2 rounded-2xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 via-teal-50/30 to-amber-50/50 dark:from-slate-900 dark:via-emerald-950/20 dark:to-slate-900 p-4 sm:p-5 shadow-lg">
+                        <div className="flex items-center justify-between gap-2 pb-3 border-b border-emerald-200 dark:border-emerald-800/60 flex-wrap">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-2xl">🏢</span>
+                            <div>
+                              <h5 className="text-sm sm:text-base font-bold text-emerald-950 dark:text-emerald-100 font-serif baggona-book-typography">
+                                {activeLang === "kn"
+                                  ? "॥ ಬಗ್ಗೋಣ ಋಣ ಮುಕ್ತಿ & ವ್ಯಾಪಾರ/ಹೊಟೇಲ್ ಒಪ್ಪಿಸುವ ಮುಹೂರ್ತ ॥"
+                                  : "Baggona Debt Clearance & Business/Hotel Handover Muhurtha"}
+                              </h5>
+                              <p className="text-[11px] text-emerald-800/90 dark:text-emerald-300 font-serif">
+                                {activeLang === "kn"
+                                  ? "ಮುಹೂರ್ತ ಚಿಂತಾಮಣಿ: ಮಂಗಳವಾರ ಭೌಮೇ ಋಣವಿಮೋಚನಮ್ & ಚರ ಲಗ್ನ ಸಿದ್ಧಾಂತ"
+                                  : "Bhaume Rina Vimochana: Permanent Debt Release & Chara Lagna Shastra"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="px-3 py-1 rounded-full bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-bold text-xs shadow-xs">
+                            🛡️ ಋಣ ವಿಮೋಚನಾ ಶುಭ ಮುಹೂರ್ತ
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 mt-3 text-xs">
+                          {item.response.surrenderMuhurthaData.recommendedDays.map((rd, rIdx) => (
+                            <div
+                              key={rIdx}
+                              className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-emerald-200/80 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                            >
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-emerald-950 dark:text-emerald-200 text-xs sm:text-sm font-serif">
+                                    🗓️ {rd.date} ({rd.weekdayKn})
+                                  </span>
+                                  <span className="text-[11px] text-amber-900 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2 py-0.5 rounded-md font-semibold">
+                                    {rd.tithiKn} • {rd.nakshatraKn}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-serif mt-1">
+                                  {rd.reasonKn}
+                                </p>
+                              </div>
+                              <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-300/50 self-start sm:self-auto flex-shrink-0">
+                                ⏰ {rd.timeWindowKn}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300/60 dark:border-amber-800/50 text-[11px] text-amber-950 dark:text-amber-200 font-serif space-y-1">
+                          <p className="font-bold">⚠️ ವರ್ಜ್ಯ ನಿಯಮಗಳು: {item.response.surrenderMuhurthaData.inauspiciousAvoidDays.join(" • ")}</p>
+                          <p className="text-emerald-900 dark:text-emerald-300 font-semibold italic">🕉️ ಋಣಮೋಚಕ ಮಂತ್ರ: {item.response.surrenderMuhurthaData.rinaMuktiMantra}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Festival & Vrata Details Card */}
+                    {item.response?.festivalData && (
+                      <div className="m-5 sm:m-6 mb-2 rounded-2xl border-2 border-orange-400 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100/40 dark:from-slate-900 dark:via-orange-950/30 dark:to-slate-900 p-4 sm:p-5 shadow-lg">
+                        <div className="flex items-center justify-between gap-2 pb-3 border-b border-orange-200 dark:border-orange-800/60 flex-wrap">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-2xl">🪔</span>
+                            <div>
+                              <h5 className="text-sm sm:text-base font-bold text-orange-950 dark:text-orange-100 font-serif baggona-book-typography">
+                                {item.response.festivalData.festivalNameKn} ({item.response.festivalData.festivalNameEn})
+                              </h5>
+                              <p className="text-[11px] text-orange-800 dark:text-orange-300 font-serif">
+                                {item.response.festivalData.masaKn} ಮಾಸ • {item.response.festivalData.pakshaKn} • {item.response.festivalData.tithiKn}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="px-3 py-1 rounded-full bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-xs shadow-xs">
+                            📅 {item.response.festivalData.date}
+                          </div>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                          <div className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-orange-200 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-orange-800 dark:text-orange-300 block mb-0.5">
+                              ⏰ {activeLang === "kn" ? "ಶುಭ ಪೂಜಾ ಮುಹೂರ್ತ" : "Auspicious Pooja Window"}
+                            </span>
+                            <span className="font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm font-serif">
+                              {item.response.festivalData.pujaWindowKn}
+                            </span>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-orange-200 dark:border-slate-800">
+                            <span className="text-[10px] font-bold text-orange-800 dark:text-orange-300 block mb-0.5">
+                              📜 {activeLang === "kn" ? "ವ್ರತ ಮಹತ್ವ" : "Spiritual Significance"}
+                            </span>
+                            <span className="text-xs text-stone-800 dark:text-stone-200 font-serif">
+                              {item.response.festivalData.descriptionKn}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-2.5 p-2.5 rounded-xl bg-orange-100/60 dark:bg-orange-950/40 border border-orange-300/50 dark:border-orange-800/50 text-xs font-serif text-orange-950 dark:text-orange-200">
+                          <span className="font-bold">🙏 ವ್ರತ ವಿಧಿ & ಸಂಕಲ್ಪ: </span>
+                          <span>{item.response.festivalData.vrataVidhanaKn}</span>
+                          {item.response.festivalData.mantra && (
+                            <p className="mt-1 font-semibold text-orange-900 dark:text-orange-300 italic">
+                              🕉️ ಮಂತ್ರ: {item.response.festivalData.mantra}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Live Prashna Panchanga Moment Strip if present */}
+                    {item.response?.livePanchangaMoment && (
+                      <div className="mx-5 sm:mx-6 mt-3 mb-1 px-4 py-2 rounded-xl bg-amber-50 dark:bg-slate-800/50 border border-amber-200/60 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap text-[11px] text-amber-900 dark:text-amber-300 font-serif">
+                        <div className="flex items-center gap-2">
+                          <span>🚩</span>
+                          <span className="font-bold">{activeLang === "kn" ? "ಪ್ರಶ್ನ ಕಾಲ ಪಂಚಾಂಗ:" : "Prashna Moment:"}</span>
+                          <span>
+                            {item.response.livePanchangaMoment.samvatsaraKn} • {item.response.livePanchangaMoment.tithiKn} • {item.response.livePanchangaMoment.moonNakshatraKn}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-amber-800 dark:text-amber-400">
+                          <span>⏳ ಹೋರಾ: {item.response.livePanchangaMoment.horaLordKn}</span>
+                          <span>•</span>
+                          <span>🛡️ ಚೋಘಡಿಯಾ: {item.response.livePanchangaMoment.choghadiyaKn}</span>
+                        </div>
                       </div>
                     )}
 
