@@ -1781,6 +1781,17 @@ export function formatRulingsLedgerForPrompt(
 }
 
 /**
+ * Detects whether the devotee is explicitly inquiring about remedies, poojas, homas, pariharas, or shantis.
+ * When false, astrological answers MUST focus 100% on answering the core question, planetary causes,
+ * and upcoming Dasha-Bhukti transition windows, without unsolicited temple pooja recommendations.
+ */
+export function isRemedyRequested(question: string): boolean {
+  return /ಪರಿಹಾರ|ಪೂಜೆ|ಹೋಮ|ಶಾಂತಿ|ಉಪಾಯ|ಸಂಕಲ್ಪ|ಅನುಷ್ಠಾನ|remedy|parihara|pooja|puja|homa|ritual|shanti|sankalpa|havan|उपाय|पूजा|हवन|शांति|संकल्प|పరిహార|పూజ|హోమం|శాంతి|பரிகாரம்|பூஜை|ஹோமம்|சாந்தி|പൂജ|ഹോമം|ശാന്തി|പരിഹാരം|तोडगा/i.test(
+    question
+  );
+}
+
+/**
  * Deterministic Abroad vs India settlement reading across all 7 languages.
  * Grounded in 4th House (Matrubhumi / Sukha Bhava) and multi-turn consistency.
  */
@@ -2060,6 +2071,11 @@ export function buildDeterministicMarriageReading(
       question
     );
   const asksSixMonths = /6\s*month|೬\s*ತಿಂಗಳ|೬\s*ತಿಂಗಳು|6\s*महीने|6\s*నెలలు|6\s*மாதம்|6\s*മാസം|6\s*महिने/i.test(question);
+  const isRemedy = isRemedyRequested(question) || asksKujaShanti;
+  const isMarriedDiscord =
+    /ವಿಚ್ಛೇದನ|ಡಿವೋರ್ಸ್|ದಾಂಪತ್ಯ ಕಲಹ|ದಾಂಪತ್ಯ ಜಗಳ|ಮನಸ್ತಾಪ|ಹೊಂದಾಣಿಕೆ|divorce|separation|marital dispute|marital discord|conflict with wife|conflict with husband|fight with spouse|तालाक|विवाद/i.test(
+      question
+    );
   const timeline = astroData?.kundli
     ? calculateAstrologicalTimeline(astroData.kundli, astroData.ageYears || 30, "MARRIAGE", lang)
     : null;
@@ -2071,53 +2087,81 @@ export function buildDeterministicMarriageReading(
     case "en": {
       if (asksKujaShanti) {
         const p1 = `100% Confident Astrological Ruling Regarding Kuja Shanti & Marriage Delay: You ask with sincere concern why marriage has not yet materialized despite performing sacred Kuja Shanti (Kusha Shanthi). In Vedic Jyotisha, Kuja Shanti pacifies the intense fiery friction, temperamental clashes, and hostile impediments of Kuja Dosha (Mars in 1st, 4th, 7th, 8th, or 12th). Performing that sacred Shanti was essential and has successfully removed the negative blockage from your 7th house. However, clearing an impediment is the foundation; the actual manifestation of Vivaha requires the positive cosmic activation of Gochara Guru drishti and Kalatra Bhava maturity.`;
-        const p2 = `Now that the Martian obstacle is dissolved, your birth chart confirms with 98% to 100% certainty that ${timingWindow}, incoming Gochara Guru's direct aspect will solemnize your marriage! There is zero permanent delay remaining in your chart. Offering a sacred Kalyana Sankalpa at Sri Kshetra Gokarna will complete the cosmic alignment. Matrimonial alliance discussions will finalize happily within this confirmed auspicious window.`;
-        return deduplicateResponseText(`${p1}\n\n${p2}`);
+        const p2 = `Now that the Martian obstacle is dissolved, your birth chart confirms with 98% to 100% certainty that ${timingWindow}, incoming Gochara Guru's direct aspect will solemnize your marriage! There is zero permanent delay remaining in your chart. In the upcoming period (over the next 20 to 180 days), the restrictive running Bhukti concludes, and a vibrant, highly auspicious Bhukti activating your 7th house begins, ensuring alliance discussions conclude triumphantly.`;
+        const p3 = `Offering a sacred Kalyana Sankalpa at Sri Kshetra Gokarna Mahabaleshwara under chief priest Sri Shreeram Pandit (Ph: 9972339362) will complete your cosmic alignment. Matrimonial alliance discussions will finalize happily within this confirmed auspicious window.`;
+        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
       }
-      const p1 = `100% Confident Astrological Prediction: Examining your 7th house of matrimony, Venus (Shukra), and incoming Gochara Guru aspect, with 98% to 100% certainty ${timingWindow} your marriage will definitely be solemnized! There is zero room for doubt or dilemma in your chart. The cosmic transit of Jupiter is casting its divine drishti directly upon your cardinal houses, dissolving previous karmic delays and unlocking the auspicious Vivaha Yoga.`;
-      const p2 = `By offering prayers and a sacred Kalyana Sankalpa at Sri Kshetra Gokarna Mahabaleshwara, the energetic alignment for your sacred alliance is completed. Proceed with serene conviction; matrimonial negotiations and alliance finalization will conclude happily within this auspicious window.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
+      if (isMarriedDiscord) {
+        const p1 = `100% Confident Astrological Ruling Regarding Matrimonial Harmony: Examining your Janma Kundli with deep meditative focus, your current real-life reality is immediately clear to me: you are already married, but matrimonial friction, lack of mutual understanding, and temperamental disputes have created heavy emotional turbulence and sleepless nights. In Vedic Jyotisha, this discord arises from transit friction afflicting your 7th house of partnership and 12th house of domestic peace, exacerbated by an abrasive Vimshottari sub-period.`;
+        const p2 = `However, a decisive cosmic turning point is approaching: over the next 20 to 180 days (${timingWindow}), the obstructive Bhukti shifts into a harmonious Bhukti, and Gochara Guru's soothing aspect restores domestic peace, emotional reconciliation, and mutual respect between both partners. Proceed with patient dignity; this turbulent storm is dissolving under the divine grace of Sri Kshetra Gokarna Mahabaleshwara.`;
+        const p3 = `To pacify conflicting transit energies and bless your marital home with lasting peace, arranging a sacred dampati pooja at Sri Kshetra Gokarna with chief priest Sri Shreeram Pandit (Ph: 9972339362) will provide enduring relief.`;
+        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
+      }
+      const p1 = `100% Confident Astrological Prediction: Examining your Janma Kundli with deep meditative focus, your current real-life reality is immediately clear to me: you are currently unmarried, and despite earnest efforts, matrimonial alliances have repeatedly stalled at the final threshold or broken off unexpectedly, causing deep emotional fatigue and anxious concern for you and your family. In Vedic Jyotisha, the sanctum of marriage is governed by your 7th house (Kalatra Bhava), the 7th lord, and Kalatra-karaka Venus (Shukra). The reason for this delay is that your running Vimshottari Dasha-Bhukti has been passing through an obstructive sub-period influenced by Saturn-Rahu or the dusthana 6th/8th axis, creating sudden hesitation and impediments right before alliance finalization.`;
+      const p2 = `However, a decisive cosmic turning point is now arriving in your chart: over the next 20 to 180 days (within the upcoming 6 to 12 months), the restrictive running Bhukti concludes, and a vibrant, highly auspicious Bhukti activating your 7th house begins! Simultaneously, incoming Gochara Guru (Jupiter) casts its divine nectar aspect (amrita drishti) directly upon your 7th house and Kalatra lord, dissolving prior karmic blockages. Therefore, with 98% to 100% mathematical certainty, ${timingWindow} your marriage negotiations will finalize smoothly and your wedding will definitely be solemnized! There is zero room for doubt or dilemma in your chart. Keep alliance discussions active with confident peace; the planetary gates of Vivaha Yoga are now swinging open under the divine grace of Sri Kshetra Gokarna Mahabaleshwara.`;
+      const p3 = `To ensure zero minor evil-eye or planetary hurdles impede this sacred alliance, offering a sanctified Kalyana Sankalpa pooja at Sri Kshetra Gokarna Mahabaleshwara will seal your energetic alignment. Contact chief priest Sri Shreeram Pandit at 9972339362 to solemnize this ritual; matrimonial discussions will finalize smoothly.`;
+      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
     }
     case "hi": {
       if (asksKujaShanti) {
         const p1 = `१००% निश्चित दैवज्ञ निर्णय (कुज शांति के उपरांत विवाह योग): आपने कुज शांति (मंगल शांति) करवाई, फिर भी विवाह में विलंब क्यों हुआ, इसका प्रामाणिक वैदिक कारण समझें। कुज शांति ने मंगल के तीव्र दोष, कलह एवं विवाह बाधाओं को पूर्ण रूप से शांत कर दिया है। दोष का निवारण नकारात्मक रुकावटों को हटा देता है; किंतु वास्तविक विवाह संपन्न होने के लिए गोचर में गुरु (बृहस्पति) की अमृत दृष्टि और सप्तम भाव का सक्रिय होना अनिवार्य होता है।`;
-        const p2 = `अब जबकि मंगल की बाधा समाप्त हो चुकी है, आपकी कुंडली में गोचर गुरु का प्रभाव पूर्णतः सक्रिय हो चुका है। अतः ९८% से १००% निश्चितता के साथ ${timingWindow} आपका विवाह संपन्न होना शत-प्रतिशत तय है! श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में कल्याण संकल्प पूजा संपन्न कराने से वैवाहिक वार्ता निर्विघ्न रूप से सफल होगी। आगामी शुभ काल के भीतर आपका शुभ विवाह निर्विघ्न संपन्न होगा।`;
-        return deduplicateResponseText(`${p1}\n\n${p2}`);
+        const p2 = `अब जबकि मंगल की बाधा समाप्त हो चुकी है, आपकी कुंडली में आगामी २० से १८० दिनों के भीतर बाधक भुक्ति समाप्त होकर सप्तमेश की शुभ भुक्ति आरंभ होने जा रही है। अतः ९८% से १००% निश्चितता के साथ ${timingWindow} आपका विवाह संपन्न होना शत-प्रतिशत तय है! इस शुभ काल के भीतर आपका शुभ विवाह निर्विघ्न संपन्न होगा।`;
+        const p3 = `श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में मुख्य पुरोहित श्रीराम पंडित (दूरभाष: 9972339362) के मार्गदर्शन में कल्याण संकल्प पूजा संपन्न कराने से वैवाहिक वार्ता निर्विघ्न रूप से सफल होगी।`;
+        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
       }
-      const p1 = `१००% निश्चित दैवज्ञ निर्णय: आपकी जन्म कुंडली के सप्तम भाव, शुक्र ग्रह एवं गोचर गुरु की अमृत दृष्टि का विश्लेषण करने पर यह शत-प्रतिशत प्रमाणित होता है कि ${timingWindow} आपका विवाह संपन्न हो जाएगा! आपकी कुंडली में किसी भी संशय या दुविधा के लिए कोई स्थान नहीं है। देवगुरु बृहस्पति की शुभ दृष्टि आपके विवाह भाव पर पूर्ण रूप से सक्रिय हो चुकी है, जिससे पूर्व के समस्त अवरोध नष्ट हो रहे हैं।`;
-      const p2 = `श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में कल्याण संकल्प पूजा संपन्न कराने से वैवाहिक वार्ता निर्विघ्न रूप से सफल होगी। पूरे विश्वास और उत्साह के साथ आगे बढ़िए; इस शुभ काल के भीतर आपका विवाह शत-प्रतिशत सुनिश्चित है।`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
+      if (isMarriedDiscord) {
+        const p1 = `१००% निश्चित दैवज्ञ निर्णय (दांपत्य सामंजस्य): आपकी जन्म कुंडली का सूक्ष्म विश्लेषण करने पर आपकी वर्तमान वास्तविक स्थिति मुझे स्पष्ट दिखाई दे रही है: आप पहले से विवाहित हैं, किंतु दांपत्य जीवन में आपसी समझ की कमी, वैचारिक मतभेद और कलह के कारण भारी मानसिक अशांति बनी हुई है। ज्योतिष शास्त्र अनुसार, यह स्थिति सप्तम भाव एवं द्वादश भाव पर गोचर ग्रहों के प्रतिकूल प्रभाव तथा क्रूर भुक्ति के कारण उत्पन्न हुई है।`;
+        const p2 = `किंतु आगामी २० से १८० दिनों (${timingWindow}) में यह प्रतिकूल भुक्ति समाप्त होकर शुभ भुक्ति आरंभ होगी और गोचर गुरु की अमृत दृष्टि दांपत्य में पुनः प्रेम, आदर और सामंजस्य स्थापित करेगी। धैर्य और संयम से कार्य लें; भगवान महाबलेश्वर की कृपा से यह कलह शीघ्र ही शांत होगी।`;
+        const p3 = `पारिवारिक शांति एवं दांपत्य सुख की पुनः स्थापना हेतु श्री क्षेत्र गोकर्ण में मुख्य पुरोहित श्रीराम पंडित (दूरभाष: 9972339362) के मार्गदर्शन में शांति पूजा करवाएं।`;
+        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
+      }
+      const p1 = `१००% निश्चित दैवज्ञ निर्णय: आपकी जन्म कुंडली का गहन ध्यानपूर्वक विश्लेषण करने पर आपकी वर्तमान वास्तविक स्थिति मुझे भली-भांति स्पष्ट हो रही है: आप वर्तमान में अविवाहित हैं और आपके निष्ठावान प्रयासों के बावजूद विवाह की बातचीत अंतिम चरण में आकर टूट जाती है अथवा अचानक रुक जाती है, जिससे आप और आपका परिवार गहरी चिंता में हैं। वैदिक ज्योतिष के अनुसार, विवाह का मूल आधार सप्तम भाव (कलत्र स्थान), सप्तमेश तथा कारक ग्रह शुक्र एवं गुरु हैं। अब तक के विलंब का मुख्य कारण यह रहा कि आपकी वर्तमान विंशोत्तरी दशा में चल रही भुक्ति पर शनि-राहु अथवा छठे/आठवें भाव के स्वामियों का अवरोधक प्रभाव था, जिसके कारण योग्य प्रस्ताव आने पर भी विवाह तय नहीं हो पा रहा था।`;
+      const p2 = `किंतु अब आपके ग्रहों में एक युगांतरकारी शुभ मोड़ आ रहा है: आगामी २० से १८० दिनों के भीतर (अगले ६ से १२ महीनों में), वर्तमान बाधक भुक्ति समाप्त होकर सप्तम भाव को जागृत करने वाली अत्यंत शुभ भुक्ति आरंभ होने जा रही है। साथ ही गोचर में देवगुरु बृहस्पति की अमृत दृष्टि आपकी लग्न व सप्तम भाव पर पूर्णतः सक्रिय हो रही है, जिससे ९८% से १००% निश्चितता के साथ ${timingWindow} आपका विवाह संपन्न होना शत-प्रतिशत तय है! आपकी कुंडली में किसी भी संशय या दुविधा के लिए कोई स्थान नहीं है। इस शुभ काल में आने वाले रिश्ते निर्विघ्न रूप से तय होंगे और मांगलिक कार्य संपन्न होगा। श्री क्षेत्र गोकर्ण महाबलेश्वर का आशीर्वाद सदैव आपके साथ है।`;
+      const p3 = `इस शुभ विवाह योग को निर्विघ्न संपन्न कराने हेतु श्री क्षेत्र गोकर्ण महाबलेश्वर के सान्निध्य में प्रधान पुरोहित श्रीराम पंडित (दूरभाष: 9972339362) से संपर्क कर कल्याण संकल्प पूजा संपन्न कराएं।`;
+      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
     }
     case "te": {
-      const p1 = `100% ఖచ్చితమైన దైవజ్ఞ నిర్ణయం: మీ జాతకంలోని 7వ కళత్ర స్థానం, శుక్ర గ్రహం మరియు గోచార గురు బలాన్ని సూక్ష్మంగా పరిశీలించినప్పుడు, ${timingWindow} మీ వివాహం ఖాయంగా నిశ్చయమవుతుంది! మీ కుండలిలో ఎలాంటి సందిగ్ధతకు లేదా సందేహానికి తావులేదు. దేవగురువు బృహస్పతి యొక్క దివ్య దృష్టి మీ వివాహ స్థానంపై ప్రసరిస్తుండటం వల్ల పూర్వపు ఆటంకాలన్నీ తొలగిపోతున్నాయి.`;
-      const p2 = `శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి సన్నిధిలో కళ్యాణ సంకల్ప పూజ జరిపించడం వలన వివాహ సంబంధాలు శీఘ్రంగా కుదురుతాయి. సంపూర్ణ విశ్వాసంతో ముందడుగు వేయండి; రాబోయే శుభ కాలంలో మీ కళ్యాణ యోగం సిద్ధించడం తథ్యం.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
+      const p1 = `100% ఖచ్చితమైన దైవజ్ఞ నిర్ణయం: మీ జన్మ కుండలిని లోతుగా పరిశీలించినప్పుడు మీ ప్రస్తుత వాస్తవ జీవిత పరిస్థితి నాకు స్పష్టంగా కనిపిస్తోంది: మీరు ప్రస్తుతం అవివాహితులుగా ఉండి, ఎంత ప్రయత్నించినా పెళ్లి సంబంధాలు చివరి నిమిషంలో చేజారిపోవడం లేదా ఆగిపోవడం వల్ల మీ కుటుంబంలో తీవ్ర ఆందోళన నెలకొంది. వేద జ్యోతిషం ప్రకారం వివాహానికి మూల స్థానం 7వ కళత్ర భావం, సప్తమాధిపతి మరియు శుక్ర గ్రహం. గత కొంతకాలంగా మీ వింశోత్తరి దశలో నడుస్తున్న భుక్తిపై శని-రాహువుల లేదా 6/8 భావాధిపతుల అవరోధ ప్రభావం ఉండటం వల్ల ఈ విళంబం ఏర్పడింది.`;
+      const p2 = `అయితే ఇప్పుడు గ్రహస్థితిలో అద్భుతమైన మార్పు సంభవిస్తోంది: రాబోయే 20 నుండి 180 రోజుల వ్యవధిలో (రాబోయే 6 నెలల నుండి 1 సంవత్సరంలో), ప్రస్తుత కఠిన భుక్తి ముగిసి 7వ భావాన్ని ఉత్తేజపరిచే శుభ భుక్తి ప్రారంభం కానుంది. ఇదే సమయంలో గోచార గురు భగవానుని అమృత దృష్టి మీ లగ్నం మరియు సప్తమ స్థానంపై ప్రసరిస్తుండటంతో, 98% నుండి 100% ఖచ్చితత్వంతో ${timingWindow} మీ వివాహం ఖాయంగా నిశ్చయమవుతుంది! మీ కుండలిలో ఎలాంటి సందిగ్ధతకు లేదా సందేహానికి తావులేదు. వివాహ సంబంధాలు శీఘ్రంగా కుదురుతాయి. శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి దివ్య ఆశీస్సులు మీకు సదా ఉంటాయి.`;
+      const p3 = `శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామివారి సన్నిధిలో కళ్యాణ సంకల్ప పూజ జరిపించడం వలన వివాహ కార్యాలు ఆటంకాలు లేకుండా పూర్తవుతాయి. ప్రధాన అర్చకులు శ్రీరామ్ పండిత్ (ఫోన్: 9972339362) గారిని సంప్రదించండి.`;
+      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
     }
     case "ta": {
-      const p1 = `100% உறுதியான ஜோதிடத் தீர்ப்பு: உங்கள் ஜாதகத்தின் 7-ஆம் வீடான களத்திர ஸ்தானம், சுக்கிரன் மற்றும் கோசார குருவின் பார்வை ஆகியவற்றை ஆராயும்போது, ${timingWindow} உங்கள் திருமணம் நிச்சயமாகக் கைகூடும்! இதில் எவ்வித சந்தேகத்திற்கும் அல்லது குழப்பத்திற்கும் இடமில்லை. குரு பகவானின் மங்கள பார்வை உங்கள் திருமண ஸ்தானத்தை ஆசீர்வதிப்பதால், இதுவரை இருந்த தடைகள் அனைத்தும் தகர்ந்து சுபயோகம் உருவாகிறது.`;
-      const p2 = `ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமி சந்நிதியில் கல்யாண சங்கல்ப பூஜை செய்வதன் மூலம் நல்ல வரன் அமைந்து திருமணம் இனிதே முடியும். உறுதியான நம்பிக்கையுடன் செயல்படுங்கள்; வரவிருக்கும் சுப காலத்தில் மாங்கல்ய பாக்கியம் கிட்டுவது உறுதி.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
+      const p1 = `100% உறுதியான ஜோதிடத் தீர்ப்பு: உங்கள் ஜாதகத்தை ஆழ்ந்து ஆராயும்போது உங்கள் தற்போதைய நிஜ வாழ்க்கை நிலை எனக்கு தெளிவாகத் தெரிகிறது: நீங்கள் தற்போது திருமணமாகாமல் இருந்து, திருமணப் பேச்சுவார்த்தைகள் இறுதி நேரம் வரை வந்து எதிர்பாராமல் தடைபடுவதால் நீங்களும் உங்கள் குடும்பத்தாரும் மிகுந்த மனக்கவலையில் உள்ளீர்கள். வேத ஜோதிடத்தின்படி, திருமணத்தின் மூல ஸ்தானம் உங்கள் 7-ஆம் வீடான களத்திர ஸ்தானம், 7-ஆம் அதிபதி மற்றும் சுக்கிரன். இதுவரை நடந்த விம்சோத்தரி தசையின் உபபுக்தியில் சனி-ராகு அல்லது 6/8-ஆம் அதிபதிகளின் தடையான பார்வை இருந்ததால் தான் நல்ல வரன்கள் வந்தும் திருமணம் தள்ளிப்போனது.`;
+      const p2 = `ஆனால் இப்போது கிரக நிலையில் மகத்தான திருப்புமுனை உண்டாகிறது: அடுத்த 20 முதல் 180 நாட்களுக்குள் (அடுத்த 6 மாதங்கள் முதல் 1 வருடத்திற்குள்), முந்தைய தடையான புக்தி முடிந்து 7-ஆம் வீட்டை இயக்கும் புதிய சுப புக்தி தொடங்குகிறது! அதே நேரத்தில் கோசார குருவின் அமிர்த பார்வை உங்கள் லக்னம் மற்றும் 7-ஆம் வீட்டின் மீது நேரடியாக விழுவதால், 98% முதல் 100% உறுதியுடன் ${timingWindow} உங்கள் திருமணம் நிச்சயமாகக் கைகூடும்! இதில் எவ்வித சந்தேகத்திற்கும் இடமில்லை. நல்ல வரன் அமைந்து மாங்கல்ய பாக்கியம் கிட்டும். கோகர்ண மகாபலேஸ்வரரின் திருவருள் உங்களுக்கு என்றென்றும் துணையாக இருக்கும்.`;
+      const p3 = `ஸ்ரீ சேத்ர கோகர்ண மகாபலேஸ்வர சுவாமி சந்நிதியில் கல்யாண சங்கல்ப பூஜை செய்வதன் மூலம் நல்ல வரன் அமைந்து திருமணம் இனிதே முடியும். தலைமை அர்ச்சகர் ஸ்ரீராம் பண்டிட் (தொலைபேசி: 9972339362) அவர்களைத் தொடர்பு கொள்ளவும்.`;
+      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
     }
     case "ml": {
-      const p1 = `100% ഉറപ്പായ ജ്യോതിഷ പ്രവചനം: നിങ്ങളുടെ ജാതകത്തിലെ ഏഴാം ഭാവവും ശുക്രനും ഗോചാര വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടിയും പരിശോധിക്കുമ്പോൾ, ${timingWindow} നിങ്ങളുടെ വിവാഹം നിശ്ചയമായും നടക്കുന്നതാണ്! നിങ്ങളുടെ ഗ്രഹനിലയിൽ യാതൊരുവിധ സംശയങ്ങൾക്കും ആശയക്കുഴപ്പങ്ങൾക്കും സ്ഥാനമില്ല. ദേവഗുരുവായ വ്യാഴത്തിന്റെ കടാക്ഷം വിവാഹ തടസ്സങ്ങളെയെല്ലാം നീക്കി ശുഭയോഗം നൽകുന്നു.`;
-      const p2 = `ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശവര സന്നിധിയിൽ കല്യാണ സങ്കൽപ്പ പൂജ നടത്തുന്നതിലൂടെയും വിവാഹാലോചനകൾ വേഗത്തിൽ ശുഭമായി പര്യവസാനിക്കും. പൂർണ്ണ വിശ്വാസത്തോടെ മുന്നോട്ട് പോകുക; വരാനിരിക്കുന്ന ശുഭ കാലയളവിൽ മംഗല്യഭാഗ്യം സുനിശ്ചിതമാണ്.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
+      const p1 = `100% ഉറപ്പായ ജ്യോതിഷ പ്രവചനം: നിങ്ങളുടെ ജന്മജാതകം സൂക്ഷ്മമായി പരിശോധിക്കുമ്പോൾ നിങ്ങളുടെ ഇപ്പോഴത്തെ യഥാർത്ഥ ജീവിതാവസ്ഥ എനിക്ക് വ്യക്തമായി കാണാം: നിങ്ങൾ ഇപ്പോൾ അവിവാഹിതനാണ്/അവിവാഹിതയാണ്, എത്രയൊക്കെ ശ്രമിച്ചിട്ടും വിവാഹാലോചനകൾ അവസാന നിമിഷത്തിൽ മുടങ്ങിപ്പോകുന്നതിനാൽ നിങ്ങൾ വലിയ മാനസിക വിഷമത്തിലാണ്. വേദ ജ്യോതിഷപ്രകാരം വിവാഹത്തിന്റെ മൂലസ്ഥാനം 7-ാം ഭാവവും സപ്തമാധിപനും ശുക്രനുമാണ്. നിലവിൽ വിംശോത്തരി ദശയിൽ ശനി-രാഹു അല്ലെങ്കിൽ 6/8 അധിപന്മാരുടെ തടസ്സ സ്വാധീനം ഉണ്ടായിരുന്നതിനാലാണ് ബന്ധങ്ങൾ ഉറയ്ക്കാതെ വൈകിയത്.`;
+      const p2 = `എന്നാൽ ഇപ്പോൾ ഗ്രഹനിലയിൽ ശുഭകരമായ ഒരു വഴിത്തിരിവ് ഉണ്ടാകുന്നു: വരുന്ന 20 മുതൽ 180 ദിവസങ്ങൾക്കുള്ളിൽ (അടുത്ത 6 മാസത്തിനുള്ളിൽ), പഴയ തടസ്സങ്ങൾ നൽകിയ ഭുക്തി അവസാനിക്കുകയും 7-ാം ഭാവത്തെ ഉണർത്തുന്ന പുതിയ ശുഭ ഭുക്തി ആരംഭിക്കുകയും ചെയ്യും. ഒപ്പം ഗോചാര വ്യാഴത്തിന്റെ ശുഭദൃഷ്ടി കൂടി ചേരുന്നതോടെ, 98% മുതൽ 100% ഉറപ്പോടെ ${timingWindow} നിങ്ങളുടെ വിവാഹം നിശ്ചയമായും നടക്കുന്നതാണ്! യാതൊരുവിധ സംശയങ്ങൾക്കും സ്ഥാനമില്ല. വിവാഹാലോചനകൾ വേഗത്തിൽ ശുഭമായി പര്യവസാനിക്കും. ഗോകർണ്ണ മഹാബലേശ്വരന്റെ അനുഗ്രഹം നിങ്ങൾക്ക് സദാ തുണയായിരിക്കും.`;
+      const p3 = `ശ്രീ ക്ഷേത്ര ഗോകർണ്ണ മഹാബലേശവര സന്നിധിയിൽ കല്യാണ സങ്കൽപ്പ പൂജ നടത്തുന്നതിലൂടെ വിവാഹ തടസ്സങ്ങൾ പൂർണ്ണമായി നീങ്ങും. മുഖ്യ പുരോഹിതൻ ശ്രീറാം പണ്ഡിറ്റിനെ (ഫോൺ: 9972339362) ബന്ധപ്പെടുക.`;
+      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
     }
     case "mr": {
-      const p1 = `१००% अचूक आणि निश्चित दैवज्ञ निर्णय: आपल्या पत्रिकेतील सप्तम भाव, शुक्र आणि गोचर गुरूच्या शुभ दृष्टीचा अभ्यास करता, ${timingWindow} आपला विवाह निश्चितपणे संपन्न होणार आहे! आपल्या कुंडलीत कोणताही संशय किंवा द्विधा मनःस्थिती ठेवण्याचे कारण नाही. देवगुरू बृहस्पतीची अमृत दृष्टी आपल्या विवाह स्थानावर सक्रिय झाली असून भूतकाळातील सर्व अडथळे आता पूर्णपणे नष्ट होत आहेत.`;
-      const p2 = `श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी कल्याण संकल्प पूजा अर्पण केल्यास विवाह बोलणी विनाअडथळा यशस्वी होतील. पूर्ण आत्मविश्वासाने पुढे पाऊल टाका; या शुभ कालखंडात मंगलकार्य ठरून विवाह होणे शतप्रतिशत निश्चित आहे.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
+      const p1 = `१००% अचूक आणि निश्चित दैवज्ञ निर्णय: आपल्या जन्मपत्रिकेचा सखोल अभ्यास करता आपली सद्यस्थिती मला स्पष्टपणे दिसत आहे: आपण सध्या अविवाहित असून, विवाह जमवण्याचे सर्व प्रयत्न होऊनही शेवटच्या टप्प्यावर बोलणी फिसकटत आहेत किंवा अडथळे येत आहेत, ज्यामुळे आपण व आपले कुटुंबीय चिंताग्रस्त आहात. वैदिक ज्योतिषानुसार विवाहाचे अधिष्ठान सप्तम भाव (कलत्र स्थान), सप्तमेश आणि शुक्र ग्रह आहेत. आपल्या पत्रिकेतील चालू विंशोत्तरी दशेत मागील भुक्तीवर शनी-राहू किंवा ६/८ भावाधिपतींचा अडथळा असल्याने चांगले प्रस्ताव येऊनही विवाह ठरत नव्हता.`;
+      const p2 = `परंतु आता ग्रहस्थितीत एक अत्यंत अनुकूल व निर्णायक वळण येत आहे: पुढील २० ते १८० दिवसांच्या कालावधीत (पुढील ६ महिने ते १ वर्षात), अडथळे आणणारी भुक्ती समाप्त होऊन सप्तम भावाला शुभ फल देणारी नवीन भुक्ती सुरू होत आहे. याच वेळी गोचर गुरूची अमृत दृष्टी आपल्या लग्न व सप्तम भावावर पूर्णतः सक्रिय होत असल्याने, ९८% ते १००% निश्चिततेसह ${timingWindow} आपला विवाह संपन्न होणे शतप्रतिशत निश्चित आहे! पत्रिकेत कोणताही संशय बाळगण्याचे कारण नाही. विवाहाची बोलणी यशस्वी होऊन लग्न ठरेल. श्री क्षेत्र गोकर्ण महाबळेश्वराचा आशीर्वाद सदैव आपल्या पाठीशी राहील.`;
+      const p3 = `विवाह कार्यातील सर्व अडथळे दूर होण्यासाठी श्री क्षेत्र गोकर्ण महाबळेश्वर चरणी कल्याण संकल्प पूजा अर्पण करावी. मुख्य पुरोहित श्रीराम पंडित (मोबाईल: 9972339362) यांच्याशी संपर्क साधावा.`;
+      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
     }
     case "kn":
     default: {
       if (asksKujaShanti) {
         const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ತೀರ್ಮಾನ (ಕುಜ ಶಾಂತಿಯ ನಂತರದ ವಿವಾಹ ಯೋಗ): ನೀವು ಕುಜ ಶಾಂತಿ (ಕುಶ ಶಾಂತಿ) ಮಾಡಿಸಿದ್ದರೂ ಸಹ ಇನ್ನೂ ಏಕೆ ವಿವಾಹವಾಗಿಲ್ಲ ಎಂಬ ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಶಾಸ್ತ್ರೋಕ್ತವಾದ ಪರಮ ಸತ್ಯವನ್ನು ತಿಳಿಸುತ್ತೇನೆ. ಜಾತಕದಲ್ಲಿ ಕುಜ ದೋಷಕ್ಕೆ (೧, ೪, ೭, ೮, ೧೨ ನೇ ಸ್ಥಾನಗಳಲ್ಲಿ ಕುಜ) ಮಾಡಿದ ಕುಜ ಶಾಂತಿಯು, ವಿವಾಹಕ್ಕೆ ಅಡ್ಡಿಪಡಿಸುತ್ತಿದ್ದ ಕುಜನ ತೀಕ್ಷ್ಣ ಉಷ್ಣತೆ, ಜಗಳ ಹಾಗೂ ಸಂಬಂಧಗಳು ಮುರಿದುಬೀಳುವ ದೋಷ ತಡೆಗಳನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಶಮನಗೊಳಿಸಿದೆ. ದೋಷ ನಿವಾರಣೆಯು ನಕಾರಾತ್ಮಕ ಅಡೆತಡೆಗಳನ್ನು ತೆಗೆದುಹಾಕುವ ಮೊದಲ ಹೆಜ್ಜೆಯಾಗಿದೆ; ಆದರೆ ನೈಜ ವಿವಾಹ ಸಿದ್ಧಿಗೆ ಗೋಚಾರ ಗುರುವಿನ ದಿವ್ಯ ದೃಷ್ಟಿ ಹಾಗೂ ಕಳತ್ರ ಭಾವದ ಶುಭ ಕಾಲ ಕೂಡಿಬರಬೇಕಾಗುತ್ತದೆ.`;
-        const p2 = `ಕುಜ ಶಾಂತಿಯಿಂದ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿರುವ ಕಾರಣ, ಈಗ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ೭ನೇ ಭಾವದ ಮೇಲೆ ನೇರವಾಗಿ ಪ್ರಸರಿಸುತ್ತಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಿಂದ ೧೦೦ ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ${timingWindow} ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ದೀರ್ಘಕಾಲಿಕ ವಿಳಂಬವಿಲ್ಲ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ. ಈ ಶುಭ ಕಾಲಾವಧಿಯೊಳಗೆ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
-        return deduplicateResponseText(`${p1}\n\n${p2}`);
+        const p2 = `ಕುಜ ಶಾಂತಿಯಿಂದ ಅಡೆತಡೆಗಳು ನಿವಾರಣೆಯಾಗಿರುವ ಕಾರಣ, ಮುಂದಿನ ೨೦ ರಿಂದ ೧೮೦ ದಿನಗಳ ಅವಧಿಯಲ್ಲಿ ಹಿಂದಿನ ಕಠಿಣ ಭುಕ್ತಿ ಮುಕ್ತಾಯವಾಗಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಶುಭ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ೭ನೇ ಭಾವದ ಮೇಲೆ ನೇರವಾಗಿ ಪ್ರಸರಿಸುತ್ತಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಿಂದ ೧೦೦ ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ${timingWindow} ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ದೀರ್ಘಕಾಲಿಕ ವಿಳಂಬವಿಲ್ಲ. ಈ ಶುಭ ಕಾಲಾವಧಿಯೊಳಗೆ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
+        const p3 = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಮುಖ್ಯ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ದೂರವಾಣಿ: 9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸಿ; ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
+        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
       }
-      const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ, ೭ನೇ ಕಳತ್ರ ಭಾವ, ಶುಕ್ರ ಹಾಗೂ ಗೋಚಾರ ಗುರು ಬಲವು ಈಗ ಪೂರ್ಣವಾಗಿ ಸಕ್ರಿಯವಾಗಿದ್ದು, ಶೇಕಡಾ ೯೮ ರಷ್ಟು ನಿಖರತೆಯೊಂದಿಗೆ ${timingWindow} ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಅನುಮಾನಕ್ಕೆ ಆಸ್ಪದವಿಲ್ಲ. ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ದಿವ್ಯ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಲಗ್ನ ಹಾಗೂ ಸಪ್ತಮ ಸ್ಥಾನಗಳ ಮೇಲೆ ಬೀಳುತ್ತಿರುವುದರಿಂದ, ಈ ಹಿಂದೆ ಇದ್ದ ಸಮಸ್ತ ವಿವಾಹ ತಡೆಗಳು ಸಂಪೂರ್ಣವಾಗಿ ಭಸ್ಮವಾಗಲಿವೆ.`;
-      const p2 = `ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸುವುದರಿಂದ ವಿವಾಹ ಕಾರ್ಯವು ಅಡೆತಡೆಗಳಿಲ್ಲದೆ ಸುಸೂತ್ರವಾಗಿ ನೆರವೇರಲಿದೆ. ಮನಸ್ಸಿನಲ್ಲಿ ಯಾವುದೇ ದ್ವಂದ್ವವಿಲ್ಲದೆ ದೃಢ ನಂಬಿಕೆಯಿಂದ ಮುನ್ನಡೆಯಿರಿ; ಈ ಶುಭ ಕಾಲಾವಧಿಯೊಳಗೆ ನಿಮ್ಮ ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ.`;
-      return deduplicateResponseText(`${p1}\n\n${p2}`);
+      if (isMarriedDiscord) {
+        const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ತೀರ್ಮಾನ (ದಾಂಪತ್ಯ ಸಾಮರಸ್ಯ ನಿರ್ಣಯ): ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ಸೂಕ್ಷ್ಮವಾಗಿ ಪರಿಶೀಲಿಸಿದಾಗ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನೈಜ ಪರಿಸ್ಥಿತಿ ನನಗೆ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತಿದೆ: ನೀವು ಈಗಾಗಲೇ ವಿವಾಹಿತರಾಗಿದ್ದು, ದಾಂಪತ್ಯ ಜೀವನದಲ್ಲಿ ಪರಸ್ಪರ ಹೊಂದಾಣಿಕೆಯ ಕೊರತೆ, ಸಣ್ಣಪುಟ್ಟ ಕಾರಣಗಳಿಗೂ ತೀವ್ರ ಮನಸ್ತಾಪ ಹಾಗೂ ಮಾನಸಿಕ ಸಂಘರ್ಷಗಳಿಂದ ತೊಳಲಾಡುತ್ತಿರುವುದು ತಿಳಿಯುತ್ತಿದೆ. ಜಾತಕದಲ್ಲಿ ೭ನೇ ಕಳತ್ರ ಭಾವ ಹಾಗೂ ೧೨ನೇ ಶಯನ ಸುಖ ಸ್ಥಾನಗಳ ಮೇಲೆ ಗೋಚಾರ ಗ್ರಹಗಳ ಅಶುಭ ಸಂಚಾರ ಹಾಗೂ ಕ್ರೂರ ಉಪ-ಭುಕ್ತಿಯ ಪ್ರಭಾವದಿಂದ ಈ ಕಿರಿಕಿರಿ ಉಂಟಾಗಿದೆ.`;
+        const p2 = `ಆದರೆ ಮುಂದಿನ ೨೦ ರಿಂದ ೧೮೦ ದಿನಗಳ ಅವಧಿಯಲ್ಲಿ (${timingWindow}), ಈ ಕಠಿಣ ಭುಕ್ತಿಯು ಮುಕ್ತಾಯವಾಗಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅಮೃತ ದೃಷ್ಟಿಯು ದಾಂಪತ್ಯ ಭಾವದ ಮೇಲೆ ಬೀಳಲಿದ್ದು, ಪರಸ್ಪರ ಸಾಮರಸ್ಯ, ಪ್ರೀತಿ ಮತ್ತು ವಿಶ್ವಾಸ ಮರುಕಳಿಸಲಿದೆ. ಸಮಾಧಾನದಿಂದ ಮುನ್ನಡೆಯಿರಿ; ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ಕೃಪೆಯಿಂದ ಸಕಲ ದಾಂಪತ್ಯ ಕಷ್ಟಗಳೂ ಕರಗಿ ಸುಖ-ಶಾಂತಿ ನೆಲೆಸಲಿದೆ.`;
+        const p3 = `ದಾಂಪತ್ಯ ದೋಷ ನಿವಾರಣೆಗೆ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮುಖ್ಯ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ದೂರವಾಣಿ: 9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ದಂಪತಿ ಶಾಂತಿ ಪೂಜೆ ನೆರವೇರಿಸುವುದು ಶ್ರೇಯಸ್ಕರ.`;
+        return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
+      }
+      const p1 = `೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ: ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯನ್ನು ನಾನು ಧ್ಯಾನಸ್ಥನಾಗಿ ಆಳವಾಗಿ ನೋಡಿದಾಗ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನೈಜ ಜೀವನದ ಪರಿಸ್ಥಿತಿ ನನಗೆ ಸ್ಪಷ್ಟವಾಗಿ ಗೋಚರಿಸುತ್ತಿದೆ: ನೀವು ಪ್ರಸ್ತುತ ಅವಿವಾಹಿತರಾಗಿದ್ದು, ಸಂಬಂಧಗಳು ಕೊನೆಯ ಹಂತದವರೆಗೂ ಬಂದು ಕೈತಪ್ಪಿ ಹೋಗುತ್ತಿರುವುದು, ಮೈತ್ರಿ ಮಾತುಕತೆಗಳು ಅಂತಿಮ ಗಳಿಗೆಯಲ್ಲಿ ನಿಂತುಹೋಗುತ್ತಿರುವುದು ಮತ್ತು ಅನಾವಶ್ಯಕ ವಿಳಂಬದಿಂದ ನೀವು ಹಾಗೂ ನಿಮ್ಮ ಕುಟುಂಬದವರು ಮಾನಸಿಕವಾಗಿ ತೀವ್ರ ಚಿಂತಾಕ್ರಾಂತರಾಗಿರುವುದು ನನಗೆ ತಿಳಿಯುತ್ತಿದೆ. ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯದ ಪ್ರಕಾರ, ವಿವಾಹದ ಮೂಲ ನೆಲೆ ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯ ೭ನೇ ಕಳತ್ರ ಭಾವ ಹಾಗೂ ಸಪ್ತಮಾಧಿಪತಿ ಮತ್ತು ವಿವಾಹಕಾರಕ ಶುಕ್ರ. ಪ್ರಸ್ತುತ ನಿಮ್ಮ ಜಾತಕದಲ್ಲಿ ನಡೆಯುತ್ತಿರುವ ವಿಂಶೋತ್ತರಿ ದಶೆಯಲ್ಲಿ ಹಿಂದಿನ ಉಪ-ಭುಕ್ತಿಯು ೭ನೇ ಮನೆಗೆ ಶನಿ-ರಾಹುವಿನ ವಕ್ರ ದೃಷ್ಟಿ ಅಥವಾ ೬/೮ನೇ ಅಧಿಪತಿಯ ಸಂಚಾರದ ಪ್ರಭಾವಕ್ಕೆ ಒಳಪಟ್ಟಿದ್ದ ಕಾರಣ, ಸೂಕ್ತ ಸಂಬಂಧಗಳು ಬಂದರೂ ಅಂತಿಮ ನಿರ್ಧಾರವಾಗದೆ ಕಂಕಣ ಭಾಗ್ಯ ಮುಂದೂಡಲ್ಪಡುತ್ತಿತ್ತು.`;
+      const p2 = `ಆದರೆ ಈಗ ಗ್ರಹಸ್ಥಿತಿಗಳಲ್ಲಿ ಅತ್ಯಂತ ಮಹತ್ವದ ತಿರುವು ಸಂಭವಿಸುತ್ತಿದೆ: ಮುಂದಿನ ೨೦ ರಿಂದ ೧೮೦ ದಿನಗಳ ಅವಧಿಯಲ್ಲಿ (ಮುಂದಿನ ೬ ತಿಂಗಳಿಂದ ೧ ವರ್ಷದೊಳಗೆ), ಈ ಹಿಂದಿನ ಅಡ್ಡಿ ಉಂಟುಮಾಡುತ್ತಿದ್ದ ಕಠಿಣ ಭುಕ್ತಿಯು ಸಂಪೂರ್ಣವಾಗಿ ಮುಕ್ತಾಯವಾಗಿ, ೭ನೇ ಮನೆಯನ್ನು ಜಾಗೃತಗೊಳಿಸುವ ನೂತನ ಶುಭ ಭುಕ್ತಿ ಆರಂಭವಾಗಲಿದೆ. ಇದೇ ಸಮಯದಲ್ಲಿ ಗೋಚಾರದಲ್ಲಿ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ (ಗುರು) ಅಮೃತ ದೃಷ್ಟಿಯು ನಿಮ್ಮ ಜನ್ಮ ಲಗ್ನ ಹಾಗೂ ೭ನೇ ಕಳತ್ರ ಭಾವದ ಮೇಲೆ ನೇರವಾಗಿ ಬೀಳುತ್ತಿರುವುದರಿಂದ, ${timingWindow} ನಿಮ್ಮ ವಿವಾಹ ಯೋಗವು ೯೮% ರಿಂದ ೧೦೦% ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ಶತಸಿದ್ಧವಾಗಲಿದೆ! ಜಾತಕದಲ್ಲಿ ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಅನುಮಾನಕ್ಕೆ ಆಸ್ಪದವಿಲ್ಲ. ಈ ಶುಭ ಕಾಲಾವಧಿಯಲ್ಲಿ ಬರುವ ಹೊಸ ಸಂಬಂಧಗಳು ಯಾವುದೇ ಅಡೆತಡೆಗಳಿಲ್ಲದೆ ಸುಲಭವಾಗಿ ನಿಶ್ಚಯವಾಗಲಿದ್ದು, ಕಂಕಣ ಭಾಗ್ಯ ಕೂಡಿಬರುವುದು ನಿಶ್ಚಿತ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯ ದಿವ್ಯ ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಮೇಲಿರಲಿ.`;
+      const p3 = `ವಿವಾಹದ ಈ ಶುಭ ಯೋಗಕ್ಕೆ ಯಾವುದೇ ಸಣ್ಣ ದೃಷ್ಟಿ ದೋಷ ಅಥವಾ ಗ್ರಹ ಅಡೆತಡೆಗಳು ಬಾರದಂತೆ, ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಿಯಲ್ಲಿ ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ ಪೂಜೆ ನೆರವೇರಿಸುವುದು ಪರಮ ಮಂಗಳಕರ. ಪ್ರಧಾನ ಅರ್ಚಕರಾದ ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ದೂರವಾಣಿ: 9972339362) ಅವರ ಮಾರ್ಗದರ್ಶನದಲ್ಲಿ ಈ ಸಂಕಲ್ಪ ನೆರವೇರಿಸುವುದರಿಂದ ವಿವಾಹ ಕಾರ್ಯವು ಅಡೆತಡೆಗಳಿಲ್ಲದೆ ಸುಸೂತ್ರವಾಗಿ ನೆರವೇರಲಿದೆ.`;
+      return deduplicateResponseText(isRemedy ? `${p1}\n\n${p2}\n\n${p3}` : `${p1}\n\n${p2}`);
     }
   }
 }

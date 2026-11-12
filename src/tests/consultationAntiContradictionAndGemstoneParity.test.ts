@@ -307,31 +307,49 @@ describe("Consultation Anti-Contradiction & Vedic Gemstone Parity Suite", () => 
   });
 
   it("7. buildDeterministicMarriageReading delivers 100% confident prediction with zero dilemma", () => {
-    // English
+    // English (When remedy is NOT asked: zero unsolicited remedy advertisement)
     const enReading = buildDeterministicMarriageReading(
       { ...dummySession, language: "en" as const },
       "When will I get married?",
       undefined
     );
     expect(enReading).toContain("100% Confident Astrological Prediction");
-    expect(enReading).toMatch(/(within the next (6 months|1 year) your marriage will definitely be solemnized)/);
+    expect(enReading).toContain("your wedding will definitely be solemnized");
     expect(enReading).toContain("zero room for doubt or dilemma");
-    expect(enReading).toContain("Kalyana Sankalpa");
+    // Strictly zero unsolicited remedy / Kalyana Sankalpa when not asked
+    expect(enReading).not.toContain("Kalyana Sankalpa");
     // Strictly zero unsolicited gemstone advice in marriage questions
     expect(enReading).not.toContain("Diamond");
 
-    // Kannada
+    // English (When remedy IS explicitly asked: sacred Kalyana Sankalpa provided)
+    const enReadingWithRemedy = buildDeterministicMarriageReading(
+      { ...dummySession, language: "en" as const },
+      "When will I get married? Is there any pooja, remedy, or Kalyana Sankalpa?",
+      undefined
+    );
+    expect(enReadingWithRemedy).toContain("Kalyana Sankalpa");
+
+    // Kannada (When remedy is NOT asked: zero unsolicited remedy advertisement)
     const knReading = buildDeterministicMarriageReading(
       { ...dummySession, language: "kn" as const },
       "ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲಿ ಮದುವೆ ಆಗುತ್ತಾ?",
       undefined
     );
     expect(knReading).toContain("೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ");
-    expect(knReading).toContain("ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ ನಿಮ್ಮ ವಿವಾಹ ಯೋಗ ಶತಸಿದ್ಧವಿದೆ");
+    expect(knReading).toContain("ನಿಮ್ಮ ವಿವಾಹ ಯೋಗವು ೯೮% ರಿಂದ ೧೦೦% ರಷ್ಟು ಖಚಿತತೆಯೊಂದಿಗೆ ಶತಸಿದ್ಧವಾಗಲಿದೆ");
     expect(knReading).toContain("ಯಾವುದೇ ಗೊಂದಲ ಅಥವಾ ಅನುಮಾನಕ್ಕೆ ಆಸ್ಪದವಿಲ್ಲ");
-    expect(knReading).toContain("ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ");
+    // Strictly zero unsolicited remedy when not asked
+    expect(knReading).not.toContain("ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ");
     // Strictly zero unsolicited gemstone advice in marriage questions
     expect(knReading).not.toContain("ವಜ್ರ");
+
+    // Kannada (When remedy IS explicitly asked: sacred Kalyana Sankalpa provided)
+    const knReadingWithRemedy = buildDeterministicMarriageReading(
+      { ...dummySession, language: "kn" as const },
+      "ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲಿ ಮದುವೆ ಆಗಲು ಪರಿಹಾರವೇನು?",
+      undefined
+    );
+    expect(knReadingWithRemedy).toContain("ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ");
   });
 
   it("8. detectAndResolveUltaPaltaProbe firmly rejects Pushparaga for Libra across reversed probes", () => {

@@ -73,7 +73,6 @@ import { useAppStore } from "../../stores/appStore";
 import { useAuthStore } from "../auth/authStore";
 import { useWalletStore } from "../wallet/walletStore";
 import { useKundliViewerStore } from "../../stores/kundliViewerStore";
-import CategorizedNavDrawer from "../../components/navigation/CategorizedNavDrawer";
 
 interface Props {
   sessionId?: string;
@@ -91,7 +90,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
   const wallet = useWalletStore((s) => s.wallet);
   const activeKundliSession = useKundliViewerStore((s) => s.session);
   const [isLaunchingKundliLive, setIsLaunchingKundliLive] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [noTokenProvided, setNoTokenProvided] = useState(false);
 
   // Direct 1-Click Launch with Generated Kundli Session
@@ -490,7 +488,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     if (fresh.userEmail) setContactEmail(fresh.userEmail);
 
     if (fresh.status === "pending") {
-      setShowContactModal(false);
+      // CRITICAL FIX: Do NOT forcibly close showContactModal here!
+      // The devotee may have clicked "Start Consultation" and is actively typing their phone number.
       setShowTimerModal(false);
       setRemainingSeconds((fresh.durationMinutes || 20) * 60);
     } else if (fresh.status === "active" && fresh.expiresAt) {
@@ -1176,16 +1175,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         {isMasterOrSuperAdmin && (
           <header className="w-full bg-slate-950 border-b border-amber-500/30 px-3 py-2.5 flex items-center justify-between text-white shadow-md z-40 sticky top-0">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsDrawerOpen(true)}
-                className="p-1.5 text-amber-400 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition focus:outline-hidden"
-                aria-label="Open Navigation Menu"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
               <span className="font-serif font-bold text-sm sm:text-base text-amber-300">
                 ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
               </span>
@@ -1235,13 +1224,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
                     <span>👑</span> ಸೂಪರ್ ಅಡ್ಮಿನ್ ನಿಯಂತ್ರಣ (Super Admin Controls):
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsDrawerOpen(true)}
-                    className="text-[11px] bg-amber-600 hover:bg-amber-700 text-white font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-xs"
-                  >
-                    <span>☰</span> ಮೆನು (Burger)
-                  </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <button
@@ -1294,24 +1276,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </a>
           </div>
         </div>
-
-        {/* Super Admin Burger Navigation Drawer */}
-        {isMasterOrSuperAdmin && (
-          <CategorizedNavDrawer
-            isOpen={isDrawerOpen}
-            onClose={() => setIsDrawerOpen(false)}
-            role={role}
-            isMasterOrSuperAdmin={isMasterOrSuperAdmin}
-            language="kn"
-            currentUser={currentUser}
-            priestName={wallet?.priestName || DEFAULT_PRIEST_CONTACT.name}
-            hasPanchanga={true}
-            hasSankhya={true}
-            hasDiksuchi={true}
-            hasPurvaJanma={true}
-            hasPublicKundli={true}
-          />
-        )}
       </div>
     );
   }
@@ -1323,16 +1287,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         {isMasterOrSuperAdmin && (
           <header className="w-full bg-slate-950 border-b border-amber-500/30 px-3 py-2.5 flex items-center justify-between text-white shadow-md z-40 sticky top-0">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsDrawerOpen(true)}
-                className="p-1.5 text-amber-400 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition focus:outline-hidden"
-                aria-label="Open Navigation Menu"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
               <span className="font-serif font-bold text-sm sm:text-base text-amber-300">
                 ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
               </span>
@@ -1367,16 +1321,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         {isMasterOrSuperAdmin && (
           <header className="w-full bg-slate-950 border-b border-amber-500/30 px-3 py-2.5 flex items-center justify-between text-white shadow-md z-40 sticky top-0">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsDrawerOpen(true)}
-                className="p-1.5 text-amber-400 hover:text-amber-300 hover:bg-slate-800 rounded-lg transition focus:outline-hidden"
-                aria-label="Open Navigation Menu"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
               <span className="font-serif font-bold text-sm sm:text-base text-amber-300">
                 ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜ್ಯೋತಿಷ್ಯ ॥
               </span>
@@ -1468,13 +1412,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
                     <span>👑</span> ಸೂಪರ್ ಅಡ್ಮಿನ್ ನಿಯಂತ್ರಣ (Super Admin Controls):
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsDrawerOpen(true)}
-                    className="text-[11px] bg-amber-600 hover:bg-amber-700 text-white font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-xs"
-                  >
-                    <span>☰</span> ಮೆನು (Burger)
-                  </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <button
@@ -1538,24 +1475,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </a>
           </div>
         </div>
-
-        {/* Super Admin Burger Navigation Drawer */}
-        {isMasterOrSuperAdmin && (
-          <CategorizedNavDrawer
-            isOpen={isDrawerOpen}
-            onClose={() => setIsDrawerOpen(false)}
-            role={role}
-            isMasterOrSuperAdmin={isMasterOrSuperAdmin}
-            language="kn"
-            currentUser={currentUser}
-            priestName={wallet?.priestName || DEFAULT_PRIEST_CONTACT.name}
-            hasPanchanga={true}
-            hasSankhya={true}
-            hasDiksuchi={true}
-            hasPurvaJanma={true}
-            hasPublicKundli={true}
-          />
-        )}
       </div>
     );
   }
@@ -1569,19 +1488,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
         <div className="max-w-2xl mx-auto px-3 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2">
           {/* LEFT: Branding & Emblem */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {isMasterOrSuperAdmin && (
-              <button
-                type="button"
-                onClick={() => setIsDrawerOpen(true)}
-                className="p-1 -ml-1 text-amber-800 hover:text-amber-950 bg-amber-200/80 hover:bg-amber-300 rounded-lg transition-colors focus:outline-hidden"
-                aria-label="Open Navigation Menu"
-                title="Super Admin Navigation Menu"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            )}
             <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white flex items-center justify-center font-serif text-sm sm:text-base font-bold shadow-xs border border-amber-300 shrink-0">
               🕉️
             </div>
@@ -1602,27 +1508,47 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
 
           {/* RIGHT: Compact Sandglass Clock & Controls */}
           <div className="flex items-center gap-1 sm:gap-1.5">
-            {/* Active Session Sandglass Countdown Timer Badge (Always visible on mobile & desktop) */}
-            {session.status === "active" && !isExpired ? (
+            {/* 20-Minute Timer Badge (Pending: 20:00, Active: countdown, Last 1 min: flashing red) */}
+            {session.status === "pending" ? (
+              <div
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 rounded-xl border border-amber-400/80 bg-[#2A1808] text-amber-100 text-xs font-mono font-bold select-none shadow-2xs"
+                title="20 Minutes Allocated Consultation (೨೦ ನಿಮಿಷಗಳ ಸಮಾಲೋಚನೆ)"
+              >
+                <span className="text-xs sm:text-sm">⏱️</span>
+                <span className="text-xs sm:text-sm tracking-tight text-amber-50 font-black">
+                  20:00
+                </span>
+                <span className="hidden sm:inline text-[10px] text-amber-300/80 font-sans">
+                  (20 min)
+                </span>
+              </div>
+            ) : session.status === "active" && !isExpired ? (
               <div
                 onClick={() => setShowTimerDetailsModal(true)}
                 className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-xl border text-xs font-mono font-bold cursor-pointer active:scale-95 transition shadow-2xs select-none ${
-                  remainingSeconds < 120
-                    ? "bg-red-950 text-red-200 border-red-500 animate-pulse shadow-red-900/50"
+                  remainingSeconds <= 60
+                    ? "bg-red-950 text-red-100 border-2 border-red-500 animate-pulse shadow-lg shadow-red-900/60"
                     : remainingSeconds < 300
                     ? "bg-amber-950 text-amber-200 border-amber-500"
                     : "bg-[#2A1808] text-amber-100 border-amber-400"
                 }`}
-                title="Tap to see Kala Chakra 4-Pada Timeline Details"
+                title={remainingSeconds <= 60 ? "🚨 Last 1 Minute Alert! Tap for Kala Chakra Details" : "Tap to see Kala Chakra 4-Pada Timeline Details"}
               >
-                <MiniSandGlassTimer
-                  remainingSeconds={remainingSeconds}
-                  totalDurationSeconds={totalDurationSeconds}
-                  isUrgent={remainingSeconds < 120}
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                />
-                <span className="text-xs sm:text-sm tracking-tight text-amber-50 font-black">
+                {remainingSeconds <= 60 ? (
+                  <span className="text-xs sm:text-sm animate-bounce">🚨</span>
+                ) : (
+                  <MiniSandGlassTimer
+                    remainingSeconds={remainingSeconds}
+                    totalDurationSeconds={totalDurationSeconds}
+                    isUrgent={remainingSeconds < 120}
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                  />
+                )}
+                <span className={`text-xs sm:text-sm tracking-tight font-black ${remainingSeconds <= 60 ? "text-red-100" : "text-amber-50"}`}>
                   {formatTimer(remainingSeconds)}
+                </span>
+                <span className={`text-[10px] font-sans font-bold ${remainingSeconds <= 60 ? "text-red-200" : "text-amber-300/80"}`}>
+                  ({remainingSeconds}s)
                 </span>
                 <span className="text-[10px] text-amber-400 opacity-80">
                   ▾
@@ -1640,26 +1566,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               </div>
             ) : null}
 
-            {isMasterOrSuperAdmin && (
-              <div className="hidden sm:flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={handleGoToKundli}
-                  className="bg-amber-700 hover:bg-amber-800 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg shadow-xs transition"
-                  title="Back to Kundli"
-                >
-                  📊 <span className="hidden sm:inline">Kundli</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGoToGenerator}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg shadow-xs transition"
-                  title="Link Generator"
-                >
-                  🔗 <span className="hidden sm:inline">Generator</span>
-                </button>
-              </div>
-            )}
             <button
               type="button"
               onClick={() => setShowRatingModal(true)}
@@ -1728,7 +1634,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               className="w-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-serif font-black text-sm sm:text-base py-3.5 px-4 rounded-2xl shadow-xl border border-amber-300 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
             >
               <span className="text-lg">🪔</span>
-              <span>{startingTimer ? (currentChatUi.startingSession || "ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ...") : (panchangaProfile?.labels.startConsultationBtn || currentI18n.startTimerBtn || "ಸಮಾಲೋಚನೆ ಪ್ರಾರಂಭಿಸಿ (Start 20-Min)")}</span>
+              <span>{startingTimer ? (currentChatUi.startingSession || "ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ...") : (panchangaProfile?.labels?.startConsultationBtn || currentI18n.startTimerBtn || "ಸಮಾಲೋಚನೆ ಪ್ರಾರಂಭಿಸಿ (Start 20-Min)")}</span>
               <span>➔</span>
             </button>
           </div>
@@ -2654,24 +2560,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Super Admin Burger Navigation Drawer */}
-      {isMasterOrSuperAdmin && (
-        <CategorizedNavDrawer
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-          role={role}
-          isMasterOrSuperAdmin={isMasterOrSuperAdmin}
-          language="kn"
-          currentUser={currentUser}
-          priestName={wallet?.priestName || DEFAULT_PRIEST_CONTACT.name}
-          hasPanchanga={true}
-          hasSankhya={true}
-          hasDiksuchi={true}
-          hasPurvaJanma={true}
-          hasPublicKundli={true}
-        />
       )}
     </div>
   );
