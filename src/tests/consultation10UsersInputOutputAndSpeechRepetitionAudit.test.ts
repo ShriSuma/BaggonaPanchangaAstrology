@@ -1,10 +1,19 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+// Mock GeminiEngine to instantly engage deterministic engine during unit testing
+vi.mock("../core/GeminiEngine", () => ({
+  askGemini: vi.fn(async () => {
+    throw new Error("Deterministic Fallback Triggered");
+  })
+}));
+
 import {
   presentConsultationReply
 } from "../features/consultation/consultationPresenterEngine";
 import {
   generateConsultationAnswer,
   buildDeterministicMarriageReading,
+  buildDeterministicSanthanaReading,
   deduplicateResponseText,
   computeDevoteeKundli,
   getLagnaPrescribedGemstoneText
@@ -143,10 +152,13 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       const cleanQuestion = sanitizeDuplicateSpeechWords(rawSpoken);
       expect(cleanQuestion).toBe("ನನ್ನ ಮದುವೆ ಯಾವಾಗ ಆಗುತ್ತದೆ?");
 
-      // Verify marriage reading respects Aries Lagna: NO Diamond, pure matrimonial timing & Kalyana Sankalpa
+      // Verify marriage reading respects Aries Lagna: NO Diamond, pure matrimonial timing without unsolicited remedy
       const marriageReading = buildDeterministicMarriageReading(user1, cleanQuestion, astro);
-      expect(marriageReading).toContain("ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ");
+      expect(marriageReading).not.toContain("ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ");
       expect(marriageReading).not.toContain("ವಜ್ರ");
+
+      const readingWithRemedy = buildDeterministicMarriageReading(user1, cleanQuestion + " ಪರಿಹಾರವೇನು?", astro);
+      expect(readingWithRemedy).toContain("ಕಲ್ಯಾಣ ಸಂಕಲ್ಪ");
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "kn");
       expect(gemText).toContain("ಕೆಂಪು ಹವಳ");
@@ -175,8 +187,11 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("मेरी शादी कब होगी बताइए?");
 
       const marriageReading = buildDeterministicMarriageReading(user2, cleanQuestion, astro);
-      expect(marriageReading).toContain("कल्याण संकल्प");
+      expect(marriageReading).not.toContain("कल्याण संकल्प");
       expect(marriageReading).not.toContain("सफेद जरकन"); // Marriage reading does not give unsolicited gemstone advice
+
+      const readingWithRemedy = buildDeterministicMarriageReading(user2, cleanQuestion + " कोई उपाय बताएं?", astro);
+      expect(readingWithRemedy).toContain("कल्याण संकल्प");
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "hi");
       expect(gemText).toContain("हीरा");
@@ -205,8 +220,11 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("నా పెళ్లి ఎప్పుడు అవుతుంది?");
 
       const reading = buildDeterministicMarriageReading(user3, cleanQuestion, astro);
-      expect(reading).toContain("కళ్యాణ సంకల్ప");
+      expect(reading).not.toContain("కళ్యాణ సంకల్ప");
       expect(reading).not.toContain("వజ్రం"); // No Diamond
+
+      const readingWithRemedy = buildDeterministicMarriageReading(user3, cleanQuestion + " పరిహారం ఏమిటి?", astro);
+      expect(readingWithRemedy).toContain("కళ్యాణ సంకల్ప");
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "te");
       expect(gemText).toContain("ముత్యం");
@@ -235,8 +253,11 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("எனக்கு திருமணம் எப்போது நடக்கும்?");
 
       const reading = buildDeterministicMarriageReading(user4, cleanQuestion, astro);
-      expect(reading).toContain("கல்யாண சங்கல்ப");
+      expect(reading).not.toContain("கல்யாண சங்கல்ப");
       expect(reading).not.toContain("வைரம்"); // No Diamond
+
+      const readingWithRemedy = buildDeterministicMarriageReading(user4, cleanQuestion + " பரிகாரம் அல்லது பூஜை என்ன?", astro);
+      expect(readingWithRemedy).toContain("கல்யாண சங்கல்ப");
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "ta");
       expect(gemText).toContain("மாணிக்கம்");
@@ -296,8 +317,11 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("എന്റെ വിവാഹം എപ്പോൾ നടക്കും?");
 
       const reading = buildDeterministicMarriageReading(user6, cleanQuestion, astro);
-      expect(reading).toContain("കല്യാണ സങ്കൽപ്പ");
+      expect(reading).not.toContain("കല്യാണ സങ്കൽപ്പ");
       expect(reading).not.toContain("വജ്രം"); // No Diamond
+
+      const readingWithRemedy = buildDeterministicMarriageReading(user6, cleanQuestion + " പരിഹാരം എന്താണ്?", astro);
+      expect(readingWithRemedy).toContain("കല്യാണ സങ്കൽപ്പ");
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "ml");
       expect(gemText).toContain("പവിഴം");
@@ -326,8 +350,11 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       expect(cleanQuestion).toBe("माझे लग्न कधी होईल?");
 
       const reading = buildDeterministicMarriageReading(user7, cleanQuestion, astro);
-      expect(reading).toContain("कल्याण संकल्प");
+      expect(reading).not.toContain("कल्याण संकल्प");
       expect(reading).not.toContain("हिरा"); // No Diamond
+
+      const readingWithRemedy = buildDeterministicMarriageReading(user7, cleanQuestion + " काही उपाय सांगा?", astro);
+      expect(readingWithRemedy).toContain("कल्याण संकल्प");
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "mr");
       expect(gemText).toContain("पुखराज");
@@ -407,11 +434,62 @@ describe("20-Minute Live Consultation Session: 10 New Users Multi-Language Input
       const question = "నా వివాహం ఎప్పుడు ఖాయమవుతుంది?";
       const reading = buildDeterministicMarriageReading(user10, question, astro);
 
-      expect(reading).toContain("కళ్యాణ సంకల్ప");
+      expect(reading).not.toContain("కళ్యాణ సంకల్ప");
       expect(reading).not.toContain("వజ్రం"); // No Diamond
+
+      const readingWithRemedy = buildDeterministicMarriageReading(user10, question + " పరిహారం ఏమిటి?", astro);
+      expect(readingWithRemedy).toContain("కళ్యాణ సంకల్ప");
 
       const gemText = getLagnaPrescribedGemstoneText(astro, "te");
       expect(gemText).toContain("పుష్యరాగం");
+    });
+  });
+
+  // =========================================================================
+  // 3. SANTHANA & PROGENY DUAL-PERSPECTIVE 99% ACCURACY AUDIT
+  // =========================================================================
+  describe("3. Santhana & Progeny Dual-Perspective 99% Astrological Accuracy Audit", () => {
+    it("delivers authentic 85%-90% Santhana yoga and dual-perspective without unsolicited remedy across languages", () => {
+      const devotee = createMockSession({
+        name: "Santosh Kumar",
+        dob: "1992-06-15",
+        tob: "08:20",
+        place: "Shivamogga",
+        lat: 13.9299,
+        lng: 75.5681,
+        language: "kn"
+      });
+
+      // 1. Kannada: No remedy requested
+      const readingKn = buildDeterministicSanthanaReading(devotee, "ನನಗೆ ಸಂತಾನ ಯೋಗ ಯಾವಾಗ?", undefined);
+      expect(readingKn).toContain("೧೦೦% ಖಚಿತ ಜಾತಕ ನಿರ್ಣಯ (ಸಂತಾನ ಭಾಗ್ಯ ಯೋಗ)");
+      expect(readingKn).toContain("ಶೇಕಡಾ ೮೫ ರಿಂದ ೯೦ ರಷ್ಟು ಯೋಗ ಬಲದೊಂದಿಗೆ");
+      expect(readingKn).toContain("೫ನೇ ಪಂಚಮ ಭಾವ (ಪುತ್ರ ಹಾಗೂ ಸಂತಾನ ಸ್ಥಾನ)");
+      expect(readingKn).toContain("ನೀವು ಪ್ರಸ್ತುತ ಸಂತಾನ ನಿರೀಕ್ಷೆಯಲ್ಲಿದ್ದು");
+      expect(readingKn).toContain("ನೀವು ಈಗಾಗಲೇ ಮಕ್ಕಳನ್ನು ಹೊಂದಿರುವ ಪೋಷಕರಾಗಿದ್ದರೆ");
+      expect(readingKn).not.toContain("ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾ ಹೋಮ");
+
+      // 2. Kannada: Remedy requested
+      const readingKnRemedy = buildDeterministicSanthanaReading(devotee, "ಸಂತಾನ ಭಾಗ್ಯಕ್ಕಾಗಿ ಪೂಜೆ ಅಥವಾ ಪರಿಹಾರವೇನು?", undefined);
+      expect(readingKnRemedy).toContain("ಶ್ರೀ ಸಂತಾನ ಗೋಪಾಲ ಮಹಾ ಹೋಮ ಹಾಗೂ ನಾಗ ಪ್ರತಿಷ್ಠಾ");
+      expect(readingKnRemedy).toContain("ಶ್ರೀರಾಮ್ ಪಂಡಿತ್");
+      expect(readingKnRemedy).toContain("9972339362");
+
+      // 3. English: Dual perspective
+      const readingEn = buildDeterministicSanthanaReading({ ...devotee, language: "en" }, "Tell me about my children / progeny", undefined);
+      expect(readingEn).toContain("100% Confident Astrological Ruling Regarding Progeny & Children");
+      expect(readingEn).toContain("85% to 90% planetary indication");
+      expect(readingEn).toContain("5th house of progeny");
+      expect(readingEn).toContain("If you are currently awaiting or planning for a child");
+      expect(readingEn).toContain("if you are already blessed with children");
+      expect(readingEn).not.toContain("Sri Santhana Gopala Maha Homa");
+
+      // 4. Hindi: Dual perspective
+      const readingHi = buildDeterministicSanthanaReading({ ...devotee, language: "hi" }, "क्या मुझे संतान सुख मिलेगा?", undefined);
+      expect(readingHi).toContain("१००% निश्चित दैवज्ञ निर्णय (संतान एवं संतति योग)");
+      expect(readingHi).toContain("८५% से ९०% ग्रह योगों की अनुकूलता");
+      expect(readingHi).toContain("यदि आप वर्तमान में संतान प्राप्ति की प्रतीक्षा में हैं");
+      expect(readingHi).toContain("यदि आप पहले से ही संतानवान हैं");
     });
   });
 });
