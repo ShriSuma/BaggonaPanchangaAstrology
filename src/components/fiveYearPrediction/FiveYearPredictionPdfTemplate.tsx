@@ -414,7 +414,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                           {m.planetaryCatalyst}
                         </td>
                         <td className="p-3 text-center border-r border-amber-200">
-                          <span className="font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300">
+                          <span className="font-black px-2.5 py-0.5 rounded-full bg-amber-100/80 text-amber-950 border border-amber-300">
                             {m.probabilityScore}
                           </span>
                         </td>
@@ -582,11 +582,10 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                             {item.name}
                           </td>
                           <td className="p-3 text-center border-r border-amber-200">
-                            <span className={`inline-block px-2.5 py-0.5 rounded-full font-bold text-[11px] ${item.severity === "critical" ? "bg-red-100 text-red-950 border border-red-300"
-                              : item.severity === "high" ? "bg-orange-100 text-orange-950 border border-orange-300"
-                                : item.severity === "moderate" ? "bg-amber-100 text-amber-950 border border-amber-300"
-                                  : "bg-emerald-100 text-emerald-950 border border-emerald-300"
-                              }`}>
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] ${item.severity === "critical" || item.severity === "high"
+                              ? "bg-amber-200/90 text-amber-950 border border-amber-400 font-black shadow-2xs"
+                              : "bg-amber-100/70 text-amber-900 border border-amber-300 font-bold"
+                            }`}>
                               {item.severityBadge}
                             </span>
                           </td>
@@ -784,13 +783,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   <span className="font-black text-amber-950 block mb-1">🔄 {t("turningPointLabel")}</span>
                   <p className="text-amber-900 leading-normal">{yr.turningPointSeason}</p>
                 </div>
-                <div className="p-3.5 rounded-xl bg-emerald-100/60 border border-emerald-300">
-                  <span className="font-black text-emerald-950 block mb-1">✨ {t("goldenWindowLabel")}</span>
-                  <p className="text-emerald-900 leading-normal">{yr.goldenOpportunityWindow}</p>
+                <div className="p-3.5 rounded-xl bg-amber-100/70 border border-amber-300">
+                  <span className="font-black text-amber-950 block mb-1">✨ {t("goldenWindowLabel")}</span>
+                  <p className="text-amber-900 leading-normal">{yr.goldenOpportunityWindow}</p>
                 </div>
-                <div className="p-3.5 rounded-xl bg-orange-100/60 border border-orange-300">
-                  <span className="font-black text-orange-950 block mb-1">🛡️ {t("cautionLabel")}</span>
-                  <p className="text-orange-900 leading-normal">{yr.cautionAndGuidance}</p>
+                <div className="p-3.5 rounded-xl bg-amber-100/70 border border-amber-300">
+                  <span className="font-black text-amber-950 block mb-1">🛡️ {t("cautionLabel")}</span>
+                  <p className="text-amber-900 leading-normal">{yr.cautionAndGuidance}</p>
                 </div>
               </div>
 
@@ -881,7 +880,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                           <td className="p-3 font-black text-amber-950 border-r border-amber-200">{row.yearRange}</td>
                           <td className="p-3 font-bold text-amber-900 border-r border-amber-200">{row.financialStance}</td>
                           <td className="p-3 text-amber-950 border-r border-amber-200 leading-snug">{row.keyAction}</td>
-                          <td className="p-3 font-bold text-emerald-900">{row.targetSectors}</td>
+                          <td className="p-3 font-bold text-amber-900">{row.targetSectors}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -925,10 +924,10 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               {isKn ? "॥ ಮೂಲ ಶಾಸ್ತ್ರೋಕ್ತ ಶ್ಲೋಕ ॥" : isMr ? "॥ मूळ शास्त्रोक्त श्लोक ॥" : isHi ? "॥ मूल शास्त्रोक्त श्लोक ॥" : "|| Sacred Scriptural Shloka ||"}
             </span>
             <p
-              style={{ fontFamily: `'Noto Serif Devanagari', 'Noto Sans Devanagari', serif` }}
               className="text-lg font-bold text-amber-950 leading-relaxed italic"
+              style={{ textIndent: 0, letterSpacing: 'normal' }}
             >
-              {data.prescribedStotra.sanskritVerse}
+              {data.prescribedStotra.verseRegional || data.prescribedStotra.sanskritVerse}
             </p>
           </div>
 
@@ -1038,24 +1037,24 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
             {/* Nakshatra Sacred Tree (Vriksha Aradhana) */}
             {data.nakshatraVriksha && (
-              <div className="col-span-2 p-5 rounded-xl bg-emerald-50/80 border border-emerald-300 space-y-2 shadow-2xs font-serif">
+              <div className="col-span-2 p-5 rounded-xl bg-amber-100/60 border border-amber-300 space-y-2 shadow-2xs font-serif">
                 <div className="flex items-center justify-between">
-                  <span className="font-black text-emerald-950 text-sm flex items-center gap-2">
+                  <span className="font-black text-amber-950 text-sm flex items-center gap-2">
                     <span>🌳</span>
                     <span>{isKn ? `ಜನ್ಮ ನಕ್ಷತ್ರ ಪವಿತ್ರ ವೃಕ್ಷ ಆರಾಧನೆ (${data.nakshatra} ನಕ್ಷತ್ರ):` : isMr ? `जन्म नक्षत्र पवित्र वृक्ष आराधना:` : isHi ? `जन्म नक्षत्र पवित्र वृक्ष आराधना:` : `Nakshatra Sacred Tree Worship:`}</span>
                   </span>
-                  <span className="bg-emerald-200 text-emerald-950 font-black text-xs px-3 py-1 rounded border border-emerald-400">
+                  <span className="bg-amber-200 text-amber-950 font-black text-xs px-3 py-1 rounded border border-amber-400">
                     {data.nakshatraVriksha.vrikshaName}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-xs pt-1">
                   <div>
-                    <span className="text-emerald-900 font-bold block">{isKn ? "ವೃಕ್ಷ ಬೀಜ ಮಂತ್ರ:" : isMr ? "वृक्ष बीज मंत्र:" : isHi ? "वृक्ष बीज मंत्र:" : "Bija Mantra:"}</span>
-                    <p className="text-emerald-950 font-bold mt-0.5">{data.nakshatraVriksha.bijaMantra}</p>
+                    <span className="text-amber-900 font-bold block">{isKn ? "ವೃಕ್ಷ ಬೀಜ ಮಂತ್ರ:" : isMr ? "वृक्ष बीज मंत्र:" : isHi ? "वृक्ष बीज मंत्र:" : "Bija Mantra:"}</span>
+                    <p className="text-amber-950 font-bold mt-0.5">{data.nakshatraVriksha.bijaMantra}</p>
                   </div>
                   <div>
-                    <span className="text-emerald-900 font-bold block">{isKn ? "ಆರಾಧನಾ ವಿಧಿ:" : isMr ? "आराधना पद्धती:" : isHi ? "आराधना विधि:" : "Protocol:"}</span>
-                    <p className="text-emerald-950 mt-0.5 leading-relaxed">{data.nakshatraVriksha.aradhanaProtocol}</p>
+                    <span className="text-amber-900 font-bold block">{isKn ? "ಆರಾಧನಾ ವಿಧಿ:" : isMr ? "आराधना पद्धती:" : isHi ? "आराधना विधि:" : "Protocol:"}</span>
+                    <p className="text-amber-950 mt-0.5 leading-relaxed">{data.nakshatraVriksha.aradhanaProtocol}</p>
                   </div>
                 </div>
               </div>
@@ -1254,74 +1253,75 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </div>
             </div>
 
-            {/* 100% Dynamic Devotee Shloka Card */}
-            <div className="rounded-xl border-2 border-amber-600/60 bg-gradient-to-br from-amber-100/95 via-yellow-50/90 to-amber-100/95 p-6 shadow-sm font-serif space-y-5">
-              <div className="text-center border-b border-amber-700/20 pb-4 space-y-2">
+            {/* 100% Dynamic Devotee Shloka Card in Devotee's Selected Script */}
+            <div className="rounded-2xl border-2 border-amber-600/50 bg-amber-100/50 p-7 shadow-sm text-center font-serif space-y-5">
+              <div className="border-b border-amber-700/20 pb-4 space-y-3">
                 <span className="text-xs font-black uppercase tracking-widest text-amber-800">
                   {isKn ? "॥ ಜನ್ಮ ಜಾತಕಾನುಸಾರ ಸಿದ್ಧಪಡಿಸಿದ ಪಾವನ ಮಂತ್ರ ॥"
                     : isMr ? "॥ जन्मपत्रिकेनुसार सिद्ध केलेला पवित्र मंत्र ॥"
                       : isHi ? "॥ जन्म कुंडली अनुसार सिद्ध किया गया पावन मंत्र ॥"
-                        : "॥ Sacred Devotional Shloka for Your Birth Chart ॥"}
+                        : isTe ? "॥ జన్మ కుండలి ప్రకారం సిద్ధం చేసిన పవిత్ర మంత్రం ॥"
+                          : isTa ? "॥ ஜாதகப்படி அருளப்பெற்ற புனித மந்திரம் ॥"
+                            : "॥ Sacred Devotional Shloka for Your Birth Chart ॥"}
                 </span>
 
-                {/* Sanskrit Devanagari */}
-                <div className="p-3 bg-amber-900/90 text-amber-50 rounded-xl shadow-xs">
-                  <p className="text-lg font-bold tracking-wide leading-relaxed font-serif whitespace-pre-line">
-                    {data.personalizedDynamicShloka.shlokaSanskrit}
+                {/* Sacred Shloka in User's Selected Script */}
+                <div className="px-6 py-5 bg-gradient-to-r from-amber-200/50 via-yellow-100/70 to-amber-200/50 rounded-xl border border-amber-400/60 shadow-xs">
+                  <p
+                    className="text-2xl font-bold leading-loose text-amber-950 font-serif whitespace-pre-line tracking-normal"
+                    style={{ textIndent: 0, letterSpacing: 'normal' }}
+                  >
+                    {data.personalizedDynamicShloka.shlokaRegional || data.personalizedDynamicShloka.shlokaSanskrit}
                   </p>
                 </div>
-
-                {/* Regional Script Transliteration */}
-                {!isHi && data.personalizedDynamicShloka.shlokaRegional && (
-                  <p className="text-base font-bold text-amber-950 leading-relaxed italic pt-1 whitespace-pre-line">
-                    {data.personalizedDynamicShloka.shlokaRegional}
-                  </p>
-                )}
               </div>
 
               {/* Devotional Meaning in Devotee Language */}
               <div className="space-y-2 text-left">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                   <span>📖</span>
-                  <span>{isKn ? "ಪಾವನ ಮಂತ್ರದ ತಾತ್ಪರ್ಯ & ದೈವಾನುಗ್ರಹ:" : isMr ? "मंत्राचा भावार्थ व कृपाशीर्वाद:" : isHi ? "मंत्र का भावार्थ एवं कृपाशीर्वाद:" : "Sacred Meaning & Divine Grace:"}</span>
+                  <span>{isKn ? "ಪಾವನ ಮಂತ್ರದ ತಾತ್ಪರ್ಯ & ದೈವಾನುಗ್ರಹ:" : isMr ? "मंत्राचा भावार्थ व कृपाशीर्वाद:" : isHi ? "मंत्र का भावार्थ एवं कृपाशीर्वाद:" : isTe ? "పవిత్ర మంత్ర తాత్పర్యం & దైవానుగ్రహం:" : isTa ? "புனித மந்திர அர்த்தம் & தெய்வ அருள்:" : "Sacred Meaning & Divine Grace:"}</span>
                 </span>
-                <p className="text-sm text-amber-950 leading-relaxed font-serif text-left">
+                <p
+                  className="text-base text-amber-950 leading-relaxed font-serif text-left break-words"
+                  style={{ textIndent: 0, letterSpacing: 'normal' }}
+                >
                   {data.personalizedDynamicShloka.meaning}
                 </p>
               </div>
 
-              {/* Chanting Protocols Grid */}
+              {/* Chanting Protocols Grid in Gold/Amber Styling */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2 border-t border-amber-700/20">
-                <div className="p-3 rounded-lg bg-amber-200/50 border border-amber-400/50 text-left">
+                <div className="p-3 rounded-lg bg-amber-100/70 border border-amber-300 text-left">
                   <span className="text-[10px] font-bold text-amber-800 uppercase block">
-                    {isKn ? "ಜಪ ಸಂಖ್ಯೆ" : isMr ? "जप संख्या" : isHi ? "जप संख्या" : "Chant Count"}
+                    {isKn ? "ಜಪ ಸಂಖ್ಯೆ" : isMr ? "जप संख्या" : isHi ? "जप संख्या" : isTe ? "జప సంఖ్య" : isTa ? "ஜப எண்ணிக்கை" : "Chant Count"}
                   </span>
                   <span className="font-black text-amber-950 mt-0.5 block">
                     📿 {data.personalizedDynamicShloka.chantCount}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-amber-200/50 border border-amber-400/50 text-left">
+                <div className="p-3 rounded-lg bg-amber-100/70 border border-amber-300 text-left">
                   <span className="text-[10px] font-bold text-amber-800 uppercase block">
-                    {isKn ? "ಶುಭ ಸಮಯ" : isMr ? "शुभ वेळ" : isHi ? "शुभ समय" : "Auspicious Time"}
+                    {isKn ? "ಶುಭ ಸಮಯ" : isMr ? "शुभ वेळ" : isHi ? "शुभ समय" : isTe ? "శుభ సమయం" : isTa ? "சுப நேரம்" : "Auspicious Time"}
                   </span>
                   <span className="font-black text-amber-950 mt-0.5 block">
                     🌅 {data.personalizedDynamicShloka.auspiciousTime}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-amber-200/50 border border-amber-400/50 text-left">
+                <div className="p-3 rounded-lg bg-amber-100/70 border border-amber-300 text-left">
                   <span className="text-[10px] font-bold text-amber-800 uppercase block">
-                    {isKn ? "ಶುಭ ದಿಕ್ಕು" : isMr ? "शुभ दिशा" : isHi ? "शुभ दिशा" : "Auspicious Direction"}
+                    {isKn ? "ಶುಭ ದಿಕ್ಕು" : isMr ? "शुभ दिशा" : isHi ? "शुभ दिशा" : isTe ? "శుభ దిశ" : isTa ? "சுப திசை" : "Auspicious Direction"}
                   </span>
                   <span className="font-black text-amber-950 mt-0.5 block">
                     🧭 {data.personalizedDynamicShloka.auspiciousDirection}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-amber-200/50 border border-amber-400/50 text-left">
+                <div className="p-3 rounded-lg bg-amber-100/70 border border-amber-300 text-left">
                   <span className="text-[10px] font-bold text-amber-800 uppercase block">
-                    {isKn ? "ಸಿದ್ಧಿ ಫಲ" : isMr ? "सिद्धि फल" : isHi ? "सिद्धि फल" : "Spiritual Fruit"}
+                    {isKn ? "ಸಿದ್ಧಿ ಫಲ" : isMr ? "सिद्धि फल" : isHi ? "सिद्धि फल" : isTe ? "సిద్ధి ఫలం" : isTa ? "சித்தி பலன்" : "Spiritual Fruit"}
                   </span>
                   <span className="font-black text-amber-950 mt-0.5 block">
                     🌺 {data.personalizedDynamicShloka.spiritualFruit}
@@ -1330,15 +1330,15 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
               </div>
 
               {/* Kundli Selection Rationale */}
-              <div className="p-3.5 rounded-lg bg-amber-950/5 border border-amber-700/20 text-xs text-amber-900 leading-relaxed font-serif text-left">
+              <div className="p-3.5 rounded-lg bg-amber-100/40 border border-amber-300 text-xs text-amber-900 leading-relaxed font-serif text-left">
                 <span className="font-black text-amber-950 block mb-1">
-                  ✨ {isKn ? "ಜ್ಯೋತಿಷ್ಯ ಆಯ್ಕೆಯ ಆಧಾರ:" : isMr ? "ज्योतिषशास्त्रीय निवडीचा आधार:" : isHi ? "ज्योतिषीय चयन का आधार:" : "Astrological Selection Basis:"}
+                  ✨ {isKn ? "ಜ್ಯೋತಿಷ್ಯ ಆಯ್ಕೆಯ ಆಧಾರ:" : isMr ? "ज्योतिषशास्त्रीय निवडीचा आधार:" : isHi ? "ज्योतिषीय चयन का आधार:" : isTe ? "జ్యోతిష్య ఎంపిక ఆధారం:" : isTa ? "ஜோதிட தேர்வு அடிப்படை:" : "Astrological Selection Basis:"}
                 </span>
                 {data.personalizedDynamicShloka.deityRationale}
               </div>
             </div>
 
-            {/* Official Astrologer Benedictory Seal */}
+            {/* Official Astrologer Benedictory Seal & Priest Details (NO QR, NO Artificial Wax Seal, NO Price Details) */}
             <div className="pt-6 border-t border-amber-700/20 text-center space-y-4 font-serif">
               <div className="inline-block p-2 bg-amber-100 rounded-full border border-amber-400 shadow-2xs">
                 <span className="text-3xl">🕉️</span>
@@ -1348,7 +1348,10 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                 {t("blessingHeader")}
               </h3>
 
-              <p className="text-base text-amber-950 leading-relaxed font-serif italic max-w-2xl mx-auto text-left sm:text-center">
+              <p
+                className="text-base text-amber-950 leading-relaxed font-serif italic max-w-2xl mx-auto text-left sm:text-center break-words"
+                style={{ textIndent: 0, letterSpacing: 'normal' }}
+              >
                 {data.astrologerBlessing}
               </p>
 
@@ -1368,7 +1371,7 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                               : "Baggona Panchanga Astrology Sansthan"}
                   </p>
                   <p className="text-amber-800">
-                    {isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ, ಕರ್ನಾಟಕ" : isMr ? "श्री क्षेत्र गोकर्ण, कर्नाटक" : isHi ? "श्री क्षेत्र गोकर्ण, कर्नाटक" : "Sri Kshetra Gokarna, Karnataka"}
+                    {isKn ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ, ಕರ್ನಾಟಕ" : isMr ? "श्री क्षेत्र गोकर्ण, कर्नाटक" : isHi ? "श्री क्षेत्र गोकर्ण, कर्नाटक" : isTe ? "శ్రీ క్షేత్ర గోకర్ణ, కర్ణాటక" : isTa ? "ஸ்ரீ க்ஷேத்ர கோகர்ணம், கர்நாடகா" : "Sri Kshetra Gokarna, Karnataka"}
                   </p>
                 </div>
 
@@ -1377,18 +1380,37 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                     {isKn ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತ್" : isMr ? "श्रीराम पंडित" : isHi ? "श्रीराम पंडित" : isTe ? "శ్రీరామ్ పండిత్" : isTa ? "ஸ்ரீராம் பண்டிட்" : "Shreeram Pandit"}
                   </p>
                   <p className="text-amber-800">
-                    {isKn ? "ಮುಖ್ಯ ಜ್ಯೋತಿಷಿ • ಮೊ: ೯೯೭೨೩೩೯೩೬೨" : isMr ? "मुख्य ज्योतिषी • मो: ९९७२३३९३६२" : isHi ? "मुख्य ज्योतिषी • मो: ९९७२३३९३६२" : "Chief Astrologer • Ph: 9972339362"}
+                    {isKn ? "ಮುಖ್ಯ ಜ್ಯೋತಿಷಿ • ಮೊ: ೯೯೭೨೩೩೯೩೬೨" : isMr ? "मुख्य ज्योतिषी • मो: ९९७२३३९३६२" : isHi ? "मुख्य ज्योतिषी • मो: ९९७२३३९३६२" : isTe ? "ప్రధాన జ్యోతిషులు • మొ: 9972339362" : isTa ? "தலைமை ஜோதிடர் • மொ: 9972339362" : "Chief Astrologer • Ph: 9972339362"}
                   </p>
                 </div>
               </div>
 
-              {/* Sacred Shanti Shloka & Publication Tag */}
+              {/* Sacred Shanti Shloka & Publication Tag in Devotee's Script */}
               <div className="pt-3 border-t border-amber-700/20 text-center space-y-1 font-serif">
-                <p className="text-xs text-amber-900 font-bold italic">
-                  ॥ ತ್ವದೀಯಂ ವಸ್ತು ಗೋವಿಂದ ತುಭ್ಯಮೇವ ಸಮರ್ಪಯೇ । ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥
+                <p
+                  className="text-xs text-amber-900 font-bold italic"
+                  style={{ textIndent: 0, letterSpacing: 'normal' }}
+                >
+                  {isKn
+                    ? "॥ ತ್ವದೀಯಂ ವಸ್ತು ಗೋವಿಂದ ತುಭ್ಯಮೇವ ಸಮರ್ಪಯೇ । ಸರ್ವೇ ಭವಂತು ಸುಖಿನಃ ಸರ್ವೇ ಸಂತು ನಿರಾಮಯಾಃ ॥"
+                    : isMr || isHi
+                      ? "॥ त्वदीयं वस्तु गोविन्द तुभ्यमेव समर्पये । सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ॥"
+                      : isTe
+                        ? "॥ త్వదీయం వస్తు గోవింద తుభ్యమేవ సమర్పయే । సర్వే భవంతు సుఖినః సర్వే సంతు నిరామయాః ॥"
+                        : isTa
+                          ? "॥ த்வதீயம் வஸ்து கோவிந்த துப்யமேவ சமர்பயே । சர்வே பவந்து சுகினஹ் சர்வே சந்து நிராமயாஹ் ॥"
+                          : "॥ Tvadiyam Vastu Govinda Tubhyameva Samarpaye | Sarve Bhavantu Sukhinah Sarve Santu Niramayah ॥"}
                 </p>
                 <p className="text-[11px] text-amber-800/80 font-bold tracking-wider">
-                  ॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ • ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ॥
+                  {isKn
+                    ? "॥ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಪ್ರಕಾಶನ • ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ॥"
+                    : isMr || isHi
+                      ? "॥ बग्गोण पंचांग प्रकाशन • श्री क्षेत्र गोकर्ण ॥"
+                      : isTe
+                        ? "॥ బగ్గోణ పంచాంగ ప్రచురణ • శ్రీ క్షేత్ర గోకర్ణ ॥"
+                        : isTa
+                          ? "॥ பக்கோண பஞ்சாங்க வெளியீடு • ஸ்ரீ க்ஷேத்ர கோகர்ண ॥"
+                          : "॥ Baggona Panchanga Publication • Sri Kshetra Gokarna ॥"}
                 </p>
               </div>
             </div>

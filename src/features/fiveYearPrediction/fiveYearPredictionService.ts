@@ -192,16 +192,19 @@ export async function captureFiveYearPredictionPdf(
     tempBox.style.backgroundColor = "#FFF7ED";
     tempBox.style.fontFamily = "'Noto Serif Kannada', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Outfit', serif, sans-serif";
     tempBox.style.letterSpacing = "normal";
+    tempBox.style.textIndent = "0px";
     tempBox.className = "bg-orange-50 text-amber-950 font-serif";
 
     const sectionClone = sectionEl.cloneNode(true) as HTMLElement;
     sectionClone.style.display = "block";
     sectionClone.style.width = "100%";
     sectionClone.style.letterSpacing = "normal";
+    sectionClone.style.textIndent = "0px";
     sectionClone.querySelectorAll("*").forEach(el => {
       const htmlEl = el as HTMLElement;
       if (htmlEl.style) {
         htmlEl.style.letterSpacing = "normal";
+        htmlEl.style.textIndent = "0px";
         if (htmlEl.style.filter && htmlEl.style.filter.includes("drop-shadow")) {
           htmlEl.style.filter = "none";
         }
