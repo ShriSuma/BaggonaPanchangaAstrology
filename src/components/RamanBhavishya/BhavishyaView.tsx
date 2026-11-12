@@ -23,6 +23,7 @@ import { detectAffairIndicators } from "../../core/layers/NatalLayer";
 import { askGemini } from "../../core/GeminiEngine";
 import { getTransitsForDate } from "../../core/BaggonaPredictionEngine";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
+import { resolveExactMoonPada } from "../../core/AstroMath";
 import {
   analyzeKundali,
   buildDynamicMarriageFallback,
@@ -61,6 +62,14 @@ import QRCode from "qrcode";
 import { transliterateName } from "../../utils/transliterator";
 import type { PlanetName } from "../../core/AstroTypes";
 import { PremiumPDFTemplate } from "../pdf/PremiumPDFTemplate";
+import { FiveYearPredictionModal } from "../fiveYearPrediction/FiveYearPredictionModal";
+import { FiveYearPredictionPdfTemplate } from "../fiveYearPrediction/FiveYearPredictionPdfTemplate";
+import {
+  prepare5YearPredictionData,
+  captureFiveYearPredictionPdf
+} from "../../features/fiveYearPrediction/fiveYearPredictionService";
+import type { FiveYearPredictionPayload } from "../../features/fiveYearPrediction/fiveYearPredictionEngine";
+import type { SixLang } from "../../features/fiveYearPrediction/fiveYearLocale";
 import {
   prepareBhavishyaV1Data,
   captureBhavishyaV1Pdf,
@@ -639,7 +648,7 @@ export default function BhavishyaView() {
   const [liveMaritalStatus, setLiveMaritalStatus] = useState<"married" | "unmarried" | "general">("general");
   const [liveChildrenStatus, setLiveChildrenStatus] = useState<"has_children" | "no_children" | "general">("general");
   const [activeLivePreviewTab, setActiveLivePreviewTab] = useState<"marriage" | "children">("marriage");
-  const [pdfLanguage, setPdfLanguage] = useState(language);
+  const [pdfLanguage, setPdfLanguage] = useState<string>(language);
   const [premiumDataForPdf, setPremiumDataForPdf] = useState<PremiumData | null>(null);
   const [premiumPredictions, setPremiumPredictions] = useState<TranslatedPrediction[] | null>(null);
   const geminiApiKey = useAppStore((state) => state.geminiApiKey);
@@ -683,6 +692,14 @@ export default function BhavishyaView() {
   const pdfRef = useRef<HTMLDivElement>(null);
   const premiumPdfRef = useRef<HTMLDivElement>(null);
   const a4PdfRef = useRef<HTMLDivElement>(null);
+
+  // 5-Year Master Destiny Forecast State (₹250)
+  const [isFiveYearModalOpen, setIsFiveYearModalOpen] = useState(false);
+  const [isGeneratingFiveYearPdf, setIsGeneratingFiveYearPdf] = useState(false);
+  const [fiveYearPdfProgress, setFiveYearPdfProgress] = useState(0);
+  const [fiveYearPdfStageText, setFiveYearPdfStageText] = useState("");
+  const [fiveYearPayload, setFiveYearPayload] = useState<FiveYearPredictionPayload | null>(null);
+  const fiveYearPdfRef = useRef<HTMLDivElement>(null);
 
   const [isGeneratingA4Pdf, setIsGeneratingA4Pdf] = useState(false);
   const [a4PremiumDataForPdf, setA4PremiumDataForPdf] = useState<PremiumData | null>(null);
@@ -2203,6 +2220,72 @@ Return ONLY this JSON format:
     }
   };
 
+  // 100% Deterministic & AI-Enriched 5-Year Master Destiny Forecast Engine (₹250)
+  const handleDownloadFiveYearPdf = async (targetLang: SixLang) => {
+    if (!session || isGeneratingFiveYearPdf) return;
+    setIsGeneratingFiveYearPdf(true);
+    setFiveYearPdfProgress(15);
+    setFiveYearPdfStageText(
+      targetLang === "kn" ? "೧. ೫ ವರ್ಷಗಳ ಗ್ರಹ ಗೋಚಾರ ಹಾಗೂ ದಶಾ-ಭುಕ್ತಿ ಲೆಕ್ಕಾಚಾರ..."
+        : targetLang === "mr" ? "१. ५ वर्षांचे ग्रह गोचर व दशा-भुक्ती गणित..."
+        : targetLang === "hi" ? "1. ५ वर्षों का ग्रह गोचर एवं दशा-भुक्ति गणना..."
+        : targetLang === "te" ? "1. 5 సంవత్సరాల గ్రహ గోచారం & దశా-భుక్తి గణన..."
+        : targetLang === "ta" ? "1. 5 ஆண்டுகள் கோச்சாரம் & தசா-புக்தி கணக்கீடு..."
+        : "1. Calculating 5-Year Astrological Horizon & Transits..."
+    );
+
+    try {
+      const payload = await prepare5YearPredictionData(session, targetLang, {
+        geminiApiKey,
+        onProgress: (p, stage) => {
+          setFiveYearPdfProgress(p);
+          setFiveYearPdfStageText(stage);
+        }
+      });
+
+      setFiveYearPayload(payload);
+
+      // Wait for React to flush state to hidden container
+      await new Promise((r) => setTimeout(r, 1000));
+
+      if (!fiveYearPdfRef.current) {
+        throw new Error("Five Year Prediction PDF template container not found");
+      }
+
+      const langNames: Record<string, string> = {
+        kn: "Kannada",
+        mr: "Marathi",
+        hi: "Hindi",
+        te: "Telugu",
+        ta: "Tamil",
+        en: "English"
+      };
+      const lName = langNames[targetLang] || "Report";
+      const cleanName = (session.input.name || "Devotee").replace(/\s+/g, "_");
+      const fileName = `Baggona_5_Year_Destiny_Blueprint_${lName}_${cleanName}.pdf`;
+
+      await captureFiveYearPredictionPdf(
+        fiveYearPdfRef.current,
+        fileName,
+        true,
+        (p, stage) => {
+          setFiveYearPdfProgress(p);
+          setFiveYearPdfStageText(stage);
+        }
+      );
+
+      await new Promise((r) => setTimeout(r, 500));
+      setIsFiveYearModalOpen(false);
+    } catch (err: any) {
+      console.error("[5-Year PDF Error]", err);
+      alert(`5-Year Prediction Download Error:\n\n${err?.message || "Please try again."}`);
+    } finally {
+      setIsGeneratingFiveYearPdf(false);
+      setFiveYearPdfProgress(0);
+      setFiveYearPdfStageText("");
+    }
+  };
+
   // A4 Multi-Page PDF: same content as Premium, split into proper A4 pages
   const generateA4PDF = async () => {
     setIsGeneratingA4Pdf(true);
@@ -3264,7 +3347,7 @@ Return ONLY this JSON (no extra text before or after):
         moonSignName: moonStr,
         moonLord: RASHI_LORDS_L5[lang]?.[session.result.moonSign.index] || "Moon Lord",
         nakshatraName: moonPlanet?.nakshatra ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
-        nakshatraPada: session.result.moonPada ?? 1,
+        nakshatraPada: resolveExactMoonPada(session.result),
         weekdayName: (lang === "kn" ? panchanga.weekdayKn : panchanga.weekday) || pick(WEEKDAY_L5[panchanga.weekdayIndex], lang),
         tithiName: (lang === "kn" ? panchanga.tithiKn : panchanga.tithi) || "Shukla Pratipat",
         currentMahaLord: dashaName,
@@ -3428,9 +3511,10 @@ Return ONLY this JSON (no extra text before or after):
             {[
               { code: "en", name: "English" },
               { code: "kn", name: "Kannada" },
-              { code: "ta", name: "Tamil" },
+              { code: "mr", name: "Marathi (मराठी)" },
+              { code: "hi", name: "Hindi" },
               { code: "te", name: "Telugu" },
-              { code: "hi", name: "Hindi" }
+              { code: "ta", name: "Tamil" }
             ].map(lang => (
               <label key={lang.code} className="flex items-center gap-1.5 cursor-pointer bg-white/80 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-white transition-colors">
                 <input
@@ -3440,7 +3524,7 @@ Return ONLY this JSON (no extra text before or after):
                   checked={pdfLanguage === lang.code}
                   onChange={() => {
                     pdfLanguagePicked.current = true;
-                    setPdfLanguage(lang.code as "en" | "hi" | "kn" | "te" | "ta");
+                    setPdfLanguage(lang.code as any);
                   }}
                   className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300"
                 />
@@ -3781,6 +3865,72 @@ Return ONLY this JSON (no extra text before or after):
                             : "⚙️ Open In Modal"}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dedicated Executive Feature Card 2: 100% Deterministic & Age-Adaptive 5-Year Master Destiny Roadmap (2026 - 2031 • ₹250) */}
+          <div className="w-full bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-yellow-400/90 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden mb-6 ring-2 ring-amber-400/30 text-amber-50 space-y-5">
+            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-48 h-48 bg-yellow-500/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="space-y-1 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 border border-yellow-400/60 px-3 py-1 rounded-full text-[10px] font-extrabold text-yellow-300 uppercase tracking-widest shadow-sm">
+                  <span>⭐ ಅತ್ಯಂತ ಜನಪ್ರಿಯ • 2026 - 2031 ಪಂಚವರ್ಷ ಮಾರ್ಗಸೂಚಿ (೬ ಭಾಷೆಗಳು)</span>
+                </div>
+                <h4 className="text-lg sm:text-xl font-black text-amber-100 font-serif tracking-wide">
+                  {pdfLanguage === "kn"
+                    ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಮಹಾ ಭವಿಷ್ಯ ದರ್ಶನ (Next 5 Years Master Forecast • ₹೨೫೦)"
+                    : pdfLanguage === "mr"
+                      ? "पुढील ५ वर्षांचे महा भविष्य दर्शन (Next 5 Years Master Forecast • ₹२५०)"
+                      : pdfLanguage === "hi"
+                        ? "आगामी ५ वर्षों का महा भविष्य दर्शन (Next 5 Years Master Forecast • ₹२५०)"
+                        : pdfLanguage === "te"
+                          ? "తదుపరి 5 సంవత్సరాల మహా భవిష్యదర్శనం (Next 5 Years Master Forecast • ₹250)"
+                          : pdfLanguage === "ta"
+                            ? "அடுத்த 5 ஆண்டுகள் மகா ஜோதிட பலன்கள் (Next 5 Years Master Forecast • ₹250)"
+                            : "Next 5 Years Master Destiny Blueprint (2026 - 2031 • ₹250)"}
+                </h4>
+                <p className="text-xs text-amber-200/90 font-sans max-w-2xl leading-relaxed">
+                  {pdfLanguage === "kn"
+                    ? "ನಿಮ್ಮ ವಯಸ್ಸಿಗೆ ತಕ್ಕಂತೆ ಪಂಚ-ಆಯಾಮಗಳ ವಿಶ್ಲೇಷಣೆ, ವರ್ಷವಾರು ಖಚಿತ ಘಟನೆಗಳು (2026 ರಿಂದ 2031), ದಶಾ-ಭುಕ್ತಿ, ಗ್ರಹ ಗೋಚಾರ (ಶನಿ, ಗುರು, ರಾಹು-ಕೇತು) ಹಾಗೂ ಸಿದ್ಧ ದಿವ್ಯ ಸ್ತೋತ್ರ ರಕ್ಷಣೆ. ಪ್ರತಿಯೊಬ್ಬರಿಗೂ ₹೨೫೦ ರ ಸುವರ್ಣ ಮಾರ್ಗದರ್ಶಿ."
+                    : pdfLanguage === "mr"
+                      ? "आपल्या वयोमानानुसार अचूक ५ वर्षांचा रोडमॅप, वर्षनिहाय निश्चित घडामोडी, दशा-भुक्ती, गोचर (शनि, गुरू, राहू-केतू) व सिद्ध दिव्य स्तोत्र कवच. प्रत्येकासाठी ₹२५० चा सुवर्ण मार्गदर्शक."
+                      : pdfLanguage === "hi"
+                        ? "आपकी आयु के अनुसार ५ प्रमुख जीवन आयाम, वर्षवार निश्चित घटनाएं (२०२६ से २०२१), दशा-भुक्ति, ग्रह गोचर (शनि, गुरु, राहु-केतु) एवं सिद्ध दिव्य स्तोत्र संरक्षण। मात्र ₹२५० में।"
+                        : "Age-adaptive 5-year chronological roadmap, yearly expected milestones, Dasha-Bhukti, major transits (Saturn, Jupiter, Rahu-Ketu), and customized classical Stotras for ₹250."}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsFiveYearModalOpen(true)}
+                  disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf || isGeneratingFiveYearPdf}
+                  className={`shrink-0 flex items-center justify-center gap-2.5 bg-gradient-to-r from-yellow-500 via-amber-400 to-orange-500 hover:from-yellow-400 hover:via-amber-300 hover:to-orange-400 text-slate-950 px-6 py-4 rounded-xl font-black text-sm transition-all duration-300 shadow-2xl border-2 border-yellow-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                    isGeneratingFiveYearPdf ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <span className="text-xl animate-pulse">🔮✨</span>
+                  <span>
+                    {isGeneratingFiveYearPdf
+                      ? (pdfLanguage === "kn" ? "೫ ವರ್ಷಗಳ ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "mr" ? "५ वर्षांचा अहवाल तयार होत आहे..." : "Crafting 5-Year Blueprint...")
+                      : (pdfLanguage === "kn" ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ವಿವರ (₹೨೫೦)" : pdfLanguage === "mr" ? "पुढील ५ वर्षांचे तपशील (₹२५०)" : pdfLanguage === "hi" ? "अगले ५ वर्षों का विवरण (₹२५०)" : "Next 5 Years Details (₹250)")}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadFiveYearPdf((pdfLanguage as SixLang) || "kn")}
+                  disabled={isGeneratingPdf || isGeneratingPremiumPdf || isGeneratingPremiumPdfV1 || isGeneratingA4Pdf || isGeneratingSummaryPdf || isGeneratingRoyalA4Pdf || isGeneratingFiveYearPdf}
+                  className={`shrink-0 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 via-orange-600 to-amber-800 hover:from-amber-600 hover:via-orange-500 hover:to-amber-700 text-amber-50 font-serif px-5 py-4 rounded-xl font-black text-sm transition-all duration-300 shadow-xl border-2 border-amber-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                    isGeneratingFiveYearPdf ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <span className="text-lg">📜⚡</span>
+                  <span>
+                    {pdfLanguage === "kn" ? "ತ್ವರಿತ PDF ಡೌನ್‌ಲೋಡ್ (₹೨೫೦)" : pdfLanguage === "mr" ? "त्वरित PDF डाउनलोड (₹२५०)" : pdfLanguage === "hi" ? "त्वरित PDF डाउनलोड (₹२५०)" : "Instant ₹250 PDF"}
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -4334,6 +4484,16 @@ Return ONLY this JSON (no extra text before or after):
         )}
       </div>
 
+      {/* Hidden 5-Year Prediction PDF Template Container */}
+      <div id="five-year-prediction-pdf-container-root" style={{ position: "fixed", left: 0, top: 0, width: "900px", opacity: 0, pointerEvents: "none", zIndex: -1, overflow: "hidden", height: 0 }}>
+        {fiveYearPayload && (
+          <FiveYearPredictionPdfTemplate
+            ref={fiveYearPdfRef}
+            data={fiveYearPayload}
+          />
+        )}
+      </div>
+
       {/* Hidden Multi-Question PDF Template Container */}
       <div id="multi-pdf-container" style={{ position: "fixed", left: 0, top: 0, width: "900px", opacity: 0, pointerEvents: "none", zIndex: -1, overflow: "hidden", height: 0 }}>
         {multiPdfTranslations && multiQuestions.length > 0 && (
@@ -4420,6 +4580,21 @@ Return ONLY this JSON (no extra text before or after):
           qrCodeUrl={royalA4QrCode}
           onDownloadPdf={handleDownloadFromPreview}
           isDownloading={isGeneratingRoyalA4Pdf}
+        />
+      )}
+
+      {/* 5-Year Master Destiny Forecast Modal (₹250) */}
+      {session && (
+        <FiveYearPredictionModal
+          isOpen={isFiveYearModalOpen}
+          onClose={() => setIsFiveYearModalOpen(false)}
+          session={session}
+          currentLanguage={pdfLanguage}
+          geminiApiKey={geminiApiKey}
+          onDownloadPdf={handleDownloadFiveYearPdf}
+          isGeneratingPdf={isGeneratingFiveYearPdf}
+          pdfProgress={fiveYearPdfProgress}
+          pdfStageText={fiveYearPdfStageText}
         />
       )}
 

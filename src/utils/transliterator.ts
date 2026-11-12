@@ -535,8 +535,10 @@ export function detectScript(text: string): "kn" | "hi" | "te" | "ta" | "en" {
  */
 export function isScriptMatchingLanguage(text: string, targetLang: string): boolean {
   if (!text || !text.trim()) return true;
-  const langCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en") as "kn" | "hi" | "te" | "ta" | "en";
+  const langCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en");
   const script = detectScript(text);
+  if (langCode === "mr" && script === "hi") return true;
+  if (langCode === "hi" && script === "hi") return true;
   return script === langCode;
 }
 
@@ -546,8 +548,9 @@ export function isScriptMatchingLanguage(text: string, targetLang: string): bool
  */
 export function convertTextIfLanguageDiffers(text: string, targetLang: string): string {
   if (!text || !text.trim()) return text;
-  const langCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en") as "kn" | "hi" | "te" | "ta" | "en";
-  if (isScriptMatchingLanguage(text, langCode)) {
+  const rawCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en");
+  const langCode = rawCode === "mr" ? "hi" : rawCode;
+  if (isScriptMatchingLanguage(text, rawCode)) {
     return text;
   }
   return transliterateName(text, langCode);
@@ -709,6 +712,7 @@ export function transliterateIndicToLatin(text: string): string {
 // Brahmic Script Offsets
 const SCRIPT_OFFSETS: Record<string, number> = {
   hi: 0x0900,
+  mr: 0x0900,
   te: 0x0c00,
   kn: 0x0c80
 };
@@ -776,9 +780,10 @@ const TAMIL_OFFSET_MAP: Record<number, number> = {
   0x4d: 0x4d  // virama
 };
 
-export function convertIndicScript(text: string, targetLang: "kn" | "hi" | "te" | "ta"): string {
+export function convertIndicScript(text: string, targetLang: "kn" | "hi" | "mr" | "te" | "ta" | string): string {
   if (!text) return text;
-  if (targetLang === "ta") {
+  const cleanTarget = targetLang === "mr" ? "hi" : targetLang;
+  if (cleanTarget === "ta") {
     let res = "";
     for (let i = 0; i < text.length; i++) {
       const code = text.charCodeAt(i);
@@ -801,7 +806,7 @@ export function convertIndicScript(text: string, targetLang: "kn" | "hi" | "te" 
     return res;
   }
 
-  const targetBase = SCRIPT_OFFSETS[targetLang];
+  const targetBase = SCRIPT_OFFSETS[cleanTarget];
   if (!targetBase) return text;
 
   let res = "";
@@ -824,16 +829,18 @@ export function convertIndicScript(text: string, targetLang: "kn" | "hi" | "te" 
 }
 
 /**
- * Transliterates English/Indic names into the requested target language (kn, hi, te, ta, en).
+ * Transliterates English/Indic names into the requested target language (kn, hi, mr, te, ta, en).
  */
 export function transliterateName(inputName: string, targetLang: string): string {
   if (!inputName || !inputName.trim()) return inputName;
-  const langCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en") as "kn" | "hi" | "te" | "ta" | "en";
+  const rawCode = (targetLang ? targetLang.split("-")[0].toLowerCase() : "en");
+  const langCode = (rawCode === "mr" ? "hi" : rawCode) as "kn" | "hi" | "te" | "ta" | "en";
   const nameTrimmed = inputName.trim();
   const inputScript = detectScript(nameTrimmed);
 
   // If the input is already in the requested target script with no foreign Indic contamination
-  if (inputScript === langCode) {
+  const isMatch = (rawCode === "mr" || rawCode === "hi") ? inputScript === "hi" : inputScript === langCode;
+  if (isMatch) {
     if (langCode !== "kn" && /[\u0C80-\u0CFF]/.test(nameTrimmed)) {
       // Contains foreign Kannada letters - proceed to transliterate
     } else if (langCode === "en" && /[\u0900-\u0D7F]/.test(nameTrimmed)) {
@@ -923,7 +930,7 @@ export function toIndicDigits(num: number | string, targetLang: string): string 
     const knDigits = ["೦", "೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯"];
     return s.replace(/\d/g, (d) => knDigits[parseInt(d, 10)]);
   }
-  if (targetLang === "hi") {
+  if (targetLang === "hi" || targetLang === "mr") {
     const hiDigits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
     return s.replace(/\d/g, (d) => hiDigits[parseInt(d, 10)]);
   }
@@ -936,6 +943,90 @@ export function toIndicDigits(num: number | string, targetLang: string): string 
     return s.replace(/\d/g, (d) => taDigits[parseInt(d, 10)]);
   }
   return s;
+}
+
+/**
+ * Master Devotee Name Resolver for Baggona Panchanga & 5-Year Forecasts.
+ * Rules:
+ * 1. If name is missing / empty / generic placeholder -> returns authentic localized fallback:
+ *    kn: "ಭಕ್ತರು", mr: "जातक", hi: "जातक", te: "జాతకుడు", ta: "ஜாதகர்", en: "Devotee".
+ * 2. Checks what language/script the devotee name is provided in.
+ * 3. If already in the target language's script, preserves it without modification.
+ * 4. If differing (e.g. English input with Kannada/Hindi/Marathi/Telugu/Tamil selected,
+ *    or Indic input with English selected), automatically transliterates to target script.
+ */
+export function resolveDevoteeDisplayName(
+  rawName: string | undefined | null,
+  targetLang: string = "kn"
+): string {
+  const lang = (targetLang ? targetLang.split("-")[0].toLowerCase() : "kn");
+  const defaultNames: Record<string, string> = {
+    kn: "ಭಕ್ತರು",
+    mr: "जातक",
+    hi: "जातक",
+    te: "జాతకుడు",
+    ta: "ஜாதகர்",
+    en: "Devotee"
+  };
+
+  const trimmed = (rawName || "").trim();
+  const lower = trimmed.toLowerCase();
+  if (
+    !trimmed ||
+    lower === "devotee" ||
+    lower === "devotee name" ||
+    lower === "name" ||
+    lower === "ಭಕ್ತರು" ||
+    lower === "जातक" ||
+    lower === "జాతకుడు" ||
+    lower === "ஜாதகர்" ||
+    lower === "भक्त" ||
+    lower === "भक्तరు"
+  ) {
+    return defaultNames[lang] || defaultNames.en;
+  }
+
+  // 1. If target is English
+  if (lang === "en") {
+    if (/[\u0900-\u0D7F]/.test(trimmed)) {
+      return transliterateIndicToLatin(trimmed);
+    }
+    return trimmed;
+  }
+
+  // 2. If target is Kannada
+  if (lang === "kn") {
+    if (/[\u0C80-\u0CFF]/.test(trimmed)) {
+      return trimmed;
+    }
+    return transliterateName(trimmed, "kn");
+  }
+
+  // 3. If target is Marathi or Hindi
+  if (lang === "mr" || lang === "hi") {
+    if (/[\u0900-\u097F]/.test(trimmed)) {
+      return trimmed;
+    }
+    return transliterateName(trimmed, "hi");
+  }
+
+  // 4. If target is Telugu
+  if (lang === "te") {
+    if (/[\u0C00-\u0C7F]/.test(trimmed)) {
+      return trimmed;
+    }
+    return transliterateName(trimmed, "te");
+  }
+
+  // 5. If target is Tamil
+  if (lang === "ta") {
+    if (/[\u0B80-\u0BFF]/.test(trimmed)) {
+      return trimmed;
+    }
+    return transliterateName(trimmed, "ta");
+  }
+
+  return trimmed;
 }
 
 /**
@@ -953,7 +1044,7 @@ export function transliterateAllDevoteeFields(
 ) {
   const cleanLang = (targetLang || "kn").toLowerCase();
   return {
-    name: fields.name ? transliterateName(fields.name, cleanLang) : "",
+    name: fields.name ? resolveDevoteeDisplayName(fields.name, cleanLang) : "",
     priestName: fields.priestName ? transliterateName(fields.priestName, cleanLang) : "",
     city: fields.city ? transliterateName(fields.city, cleanLang) : "",
     poojaName: fields.poojaName ? transliterateName(fields.poojaName, cleanLang) : "",

@@ -254,6 +254,15 @@ export const SERVICE_COIN_COSTS: Record<string, ServiceCost> = {
     description: "Public Devotee High-Resolution 6-Page Janma Kundali PDF Download (500 Coins / ₹50)",
     category: "reports"
   },
+  FIVE_YEAR_PREDICTION_PDF: {
+    key: "FIVE_YEAR_PREDICTION_PDF",
+    name: "Next 5 Years Master Destiny Blueprint PDF",
+    kannadaName: "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಮಹಾ ಭವಿಷ್ಯ PDF (₹250)",
+    coins: 2500,
+    inrEquivalent: 250,
+    description: "Complete Next 5 Years (2026-2031) Year-by-Year & Life Chapters Astrological Roadmap PDF with Dasha, Gochara, Stotra & Remedies (2,500 Coins / ₹250)",
+    category: "reports"
+  },
   PUBLIC_TAB_UNLOCK: {
     key: "PUBLIC_TAB_UNLOCK",
     name: "Public Detailed Tab Exploration Unlock",

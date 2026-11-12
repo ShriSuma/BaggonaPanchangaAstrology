@@ -194,7 +194,7 @@ describe("Consultation 20-Minute Link Security, Sandbox Isolation & UX Audit", (
       for (const lang of CONSULTATION_LANGUAGES) {
         const greeting = getInitialPriestGreeting(lang.code, "Shreesuma");
         expect(greeting).toBeTruthy();
-        expect(greeting).toContain("Shreesuma");
+        expect(greeting).toMatch(/(Shreesuma|ಶ್ರೀಸುಮಾ|श्रीसुमा|శ్రీసుమ|ஸ்ரீசுமா|ശ്രീസുമ)/);
         expect(greeting.length).toBeGreaterThan(50);
       }
     });

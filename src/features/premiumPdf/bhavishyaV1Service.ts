@@ -13,6 +13,7 @@ import {
 } from "./bhavishyaV1Validator";
 import { ageDecimalYearsAt } from "../../core/birthTime";
 import { findBhuktiAtAge } from "../../core/DashaBhuktiEngine";
+import { toAbsoluteLongitude, resolveExactMoonPada } from "../../core/AstroMath";
 import { calculateTraditionalBaggona } from "../../core/TraditionalBaggonaEngine";
 import { generateMasterPrediction } from "../../core/MasterPredictionEngine";
 import { detectAffairIndicators } from "../../core/layers/NatalLayer";
@@ -490,10 +491,12 @@ export async function prepareBhavishyaV1Data(
   const localizedDevoteeName = getLocalizedDevoteeName(session.input.name, lang);
 
   const sunPlanet = session.result.planets.find(p => p.name === 'Sun');
-  const moonLong = moonPlanet ? (moonPlanet.rashi.index * 30 + moonPlanet.degree) : 0;
-  const sunLong = sunPlanet ? (sunPlanet.rashi.index * 30 + sunPlanet.degree) : 0;
+  const moonLong = moonPlanet ? toAbsoluteLongitude(moonPlanet, session.result.moonSign?.index) : 0;
+  const sunLong = sunPlanet ? toAbsoluteLongitude(sunPlanet, session.result.sunSign?.index) : 0;
   const tithiDiff = (moonPlanet && sunPlanet) ? ((moonLong - sunLong + 360) % 360) : 0;
   const tithiIdx = Math.floor(tithiDiff / 12) % 30;
+
+  const exactMoonPada = resolveExactMoonPada(session.result);
 
   const RASHI_LORDS: GrahaKey[] = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"];
   const lagnaLordKey = session.result.lagnaRashi ? RASHI_LORDS[((session.result.lagnaRashi.index % 12) + 12) % 12] : "Sun";
@@ -528,16 +531,16 @@ export async function prepareBhavishyaV1Data(
     nakshatraLabel: tp("nakshatraLabel", lang),
     nakshatraValue: moonPlanet ? pick(NAKSHATRA_L5[moonPlanet.nakshatra.index], lang) : "",
     padaLabel: tp("padaLabel", lang),
-    padaValue: session.result.moonPada
+    padaValue: exactMoonPada
       ? (lang === "kn"
-          ? toKnDigits(session.result.moonPada)
+          ? toKnDigits(exactMoonPada)
           : lang === "hi"
-            ? (["०", "१", "२", "३", "४"][session.result.moonPada] || String(session.result.moonPada))
+            ? (["०", "१", "२", "३", "४"][exactMoonPada] || String(exactMoonPada))
             : lang === "te"
-              ? (["౦", "౧", "౨", "౩", "౪"][session.result.moonPada] || String(session.result.moonPada))
+              ? (["౦", "౧", "౨", "౩", "౪"][exactMoonPada] || String(exactMoonPada))
               : lang === "ta"
-                ? (["௦", "௧", "௨", "௩", "௪"][session.result.moonPada] || String(session.result.moonPada))
-                : String(session.result.moonPada))
+                ? (["௦", "௧", "௨", "௩", "௪"][exactMoonPada] || String(exactMoonPada))
+                : String(exactMoonPada))
       : "",
     tithiLabel: tp("tithiLabel", lang),
     tithiValue: getTithiDisplay(tithiIdx, lang),

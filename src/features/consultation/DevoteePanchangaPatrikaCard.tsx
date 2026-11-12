@@ -159,6 +159,26 @@ export const DevoteePanchangaPatrikaCard: React.FC<DevoteePanchangaPatrikaCardPr
           </div>
         </div>
 
+        {/* Upfront Primary Start Consultation CTA (Immediate access on mobile & desktop without scrolling) */}
+        {onStartConsultation && (
+          <div className="mb-5 p-3.5 bg-gradient-to-r from-amber-500/20 via-amber-200/50 to-amber-500/20 border-2 border-amber-400 rounded-2xl shadow-md text-center space-y-2">
+            <button
+              type="button"
+              onClick={onStartConsultation}
+              disabled={isStarting}
+              className="w-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-serif font-black text-sm sm:text-base py-3 px-5 rounded-xl shadow-lg border border-amber-300 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <span>🪔</span>
+              <span>{isStarting ? labels.startingBtn : labels.startConsultationBtn}</span>
+              <span>➔</span>
+            </button>
+            <p className="text-[11px] font-bold text-amber-900 flex items-center justify-center gap-1.5">
+              <span>⏳</span>
+              <span>೨೦ ನಿಮಿಷಗಳ ಖಾಸಗಿ ಮುಖಾಮುಖಿ ಸಂವಾದ • ಶ್ರೀರಾಮ್ ಪಂಡಿತ್ (ಗೋಕರ್ಣ)</span>
+            </p>
+          </div>
+        )}
+
         {/* The 5 Sacred Limbs of Panchanga & Kundli Grid */}
         <div className="space-y-2 mb-5">
           <div className="text-xs font-serif font-bold text-amber-900 flex items-center gap-1.5 px-1">

@@ -706,21 +706,23 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
     const phoneTrim = (contactPhone || session.userPhone || "").trim();
     const emailTrim = (contactEmail || session.userEmail || "").trim();
 
-    const hasValidPhone = phoneTrim && isValidPhoneNumber(phoneTrim);
-    const hasValidEmail = emailTrim && isValidEmailAddress(emailTrim);
+    const hasValidPhone = Boolean(phoneTrim && isValidPhoneNumber(phoneTrim));
 
-    // If neither valid mobile nor valid email is provided, prompt devotee via modal
-    if (!hasValidPhone && !hasValidEmail) {
+    // Mobile number is strictly mandatory. If missing or invalid, prompt devotee via pop-up modal
+    if (!hasValidPhone) {
+      setContactError(null);
       setShowContactModal(true);
       return;
     }
 
+    const hasValidEmail = Boolean(emailTrim && isValidEmailAddress(emailTrim));
+
     setStartingTimer(true);
     try {
       let currentSession = session;
-      if (!session.hasProvidedContact || (hasValidPhone && session.userPhone !== phoneTrim) || (hasValidEmail && session.userEmail !== emailTrim)) {
+      if (!session.hasProvidedContact || session.userPhone !== phoneTrim || (hasValidEmail && session.userEmail !== emailTrim)) {
         currentSession = await updateDevoteeContact(session.id, {
-          phone: hasValidPhone ? phoneTrim : undefined,
+          phone: phoneTrim,
           email: hasValidEmail ? emailTrim : undefined
         });
       }
@@ -1661,13 +1663,13 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             <button
               type="button"
               onClick={() => setShowRatingModal(true)}
-              className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[11px] sm:text-xs px-1.5 py-1 rounded-lg font-bold flex items-center gap-0.5 shadow-2xs transition"
+              className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[11px] sm:text-xs px-2 py-1 rounded-lg font-bold flex items-center gap-1 shadow-2xs transition"
               title={currentI18n.ratingModalTitle}
             >
               <span>⭐</span>
               <span className="hidden sm:inline">{currentI18n.ratingTriggerBtn}</span>
             </button>
-            <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-1.5 py-1 rounded-lg font-bold">
+            <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-2 py-1 rounded-lg font-bold">
               {currentLangMeta.nativeName}
             </span>
           </div>
@@ -1690,25 +1692,6 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
             </div>
           </div>
         )}
-
-        {/* Desktop-Only Full Kala Chakra Clock (Kept hidden on mobile to maximize viewport!) */}
-        <div className="hidden sm:block">
-          <SacredKalaChakraClock
-            session={session}
-            remainingSeconds={remainingSeconds}
-            totalDurationSeconds={totalDurationSeconds}
-            language={session.language}
-            isExpired={isExpired}
-            onStart={() => {
-              void handleStartConsultationFromCard();
-            }}
-            startingTimer={startingTimer}
-            onClaimBonus={handleClaimBonusMinute}
-            claimingBonus={claimingBonus}
-            showBonusBanner={showBonusBanner}
-            variant="full"
-          />
-        </div>
       </header>
 
       {/* -------------------------------------------------------------
@@ -1717,23 +1700,39 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           - When session is "active" or "expired": Render collapsible banner + conversation thread
           ------------------------------------------------------------- */}
       {session.status === "pending" ? (
-        <div className="w-full max-w-2xl px-3 py-4 flex-1 flex flex-col justify-start">
-          {panchangaProfile ? (
-            <DevoteePanchangaPatrikaCard
-              profile={panchangaProfile}
-              variant="landing"
-              onStartConsultation={() => void handleStartConsultationFromCard()}
-              phoneInput={contactPhone}
-              onPhoneInputChange={setContactPhone}
-              isStarting={startingTimer}
-            />
-          ) : (
-            <div className="bg-white/90 border border-amber-300 rounded-2xl p-6 text-center text-amber-950 font-serif shadow-md space-y-3">
-              <span className="text-3xl animate-spin block">☸️</span>
-              <p className="font-bold text-sm">{currentChatUi.patrikaLoading}</p>
-            </div>
-          )}
-        </div>
+        <>
+          <div className="w-full max-w-2xl px-3 py-4 flex-1 flex flex-col justify-start overflow-y-auto overscroll-contain pb-28">
+            {panchangaProfile ? (
+              <DevoteePanchangaPatrikaCard
+                profile={panchangaProfile}
+                variant="landing"
+                onStartConsultation={() => void handleStartConsultationFromCard()}
+                phoneInput={contactPhone}
+                onPhoneInputChange={setContactPhone}
+                isStarting={startingTimer}
+              />
+            ) : (
+              <div className="bg-white/90 border border-amber-300 rounded-2xl p-6 text-center text-amber-950 font-serif shadow-md space-y-3">
+                <span className="text-3xl animate-spin block">☸️</span>
+                <p className="font-bold text-sm">{currentChatUi.patrikaLoading}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Sticky Mobile Floating Action Bar: Always 100% visible on mobile without scrolling */}
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FAF6EE]/95 border-t-2 border-amber-400 p-3 shadow-2xl backdrop-blur-md pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <button
+              type="button"
+              onClick={() => void handleStartConsultationFromCard()}
+              disabled={startingTimer}
+              className="w-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-serif font-black text-sm sm:text-base py-3.5 px-4 rounded-2xl shadow-xl border border-amber-300 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <span className="text-lg">🪔</span>
+              <span>{startingTimer ? (currentChatUi.startingSession || "ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ...") : (panchangaProfile?.labels.startConsultationBtn || currentI18n.startTimerBtn || "ಸಮಾಲೋಚನೆ ಪ್ರಾರಂಭಿಸಿ (Start 20-Min)")}</span>
+              <span>➔</span>
+            </button>
+          </div>
+        </>
       ) : (session.status === "expired" || isExpired) ? (
         <div className="w-full max-w-lg mx-auto flex-1 px-4 py-8 flex flex-col items-center justify-center text-center space-y-5 animate-fadeIn">
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-100 via-amber-200 to-amber-300 border-2 border-amber-400 text-amber-950 flex items-center justify-center text-4xl shadow-lg">
@@ -2298,16 +2297,30 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
           (Shown ONCE before starting timer; Mobile number is MANDATORY, Email is OPTIONAL)
           ------------------------------------------------------------- */}
       {showContactModal && session.status === "pending" && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[#FAF6EE] border-3 border-amber-400 rounded-3xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="max-w-md w-full bg-[#FAF6EE] border-3 border-amber-400 rounded-3xl p-5 sm:p-6 shadow-2xl relative space-y-4 animate-in fade-in zoom-in-95 duration-200 my-auto">
+            {/* Close / Dismiss 'X' Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setContactError(null);
+                setShowContactModal(false);
+              }}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 text-sm font-bold w-8 h-8 rounded-full bg-white/80 border border-amber-200 flex items-center justify-center transition active:scale-95"
+              title="Close"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+
             <div className="text-center space-y-1">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-700 text-white text-2xl flex items-center justify-center shadow-md border-2 border-amber-200">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-700 text-white text-2xl flex items-center justify-center shadow-md border-2 border-amber-200">
                 📱
               </div>
-              <h3 className="text-xl font-bold font-serif text-amber-950 pt-2">
+              <h3 className="text-lg sm:text-xl font-bold font-serif text-amber-950 pt-1">
                 {currentI18n.contactModalTitle}
               </h3>
-              <p className="text-xs text-amber-800 font-medium leading-relaxed">
+              <p className="text-xs text-amber-800 font-medium leading-relaxed px-2">
                 {currentI18n.contactModalSubtitle}
               </p>
             </div>
@@ -2322,8 +2335,8 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               <div>
                 <label className="flex items-center justify-between font-bold text-amber-950 mb-1">
                   <span>📱 {currentI18n.phoneLabel}</span>
-                  <span className="text-[10px] text-red-600 font-sans font-bold uppercase tracking-wider bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-sm">
-                    {session.language === "en" ? "Mandatory" : "ಕಡ್ಡಾಯ"}
+                  <span className="text-[10px] text-red-700 font-sans font-bold uppercase tracking-wider bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-sm">
+                    {session.language === "en" ? "* Mandatory" : "* ಕಡ್ಡಾಯ (೧೦ ಅಂಕಿ)"}
                   </span>
                 </label>
                 <input
@@ -2333,7 +2346,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   maxLength={14}
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
-                  placeholder={currentI18n.phonePlaceholder}
+                  placeholder={currentI18n.phonePlaceholder || "10 ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ"}
                   className="w-full bg-white border-2 border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2.5 text-stone-900 font-sans text-sm focus:outline-hidden shadow-inner"
                 />
               </div>
@@ -2349,7 +2362,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
                   type="email"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder={currentI18n.emailPlaceholder}
+                  placeholder={currentI18n.emailPlaceholder || "devotee@example.com (ಐಚ್ಛಿಕ)"}
                   className="w-full bg-white border border-amber-300 focus:border-amber-600 rounded-xl px-3.5 py-2 text-stone-900 font-sans text-sm focus:outline-hidden"
                 />
               </div>
@@ -2361,15 +2374,19 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
               <button
                 type="submit"
                 disabled={savingContact}
-                className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md text-sm transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-serif font-black py-3.5 px-4 rounded-xl shadow-lg border border-amber-300 text-sm sm:text-base transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {savingContact ? (
                   <>
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>{currentChatUi.confirmingContact}</span>
+                    <span>{currentChatUi.confirmingContact || "ಪ್ರಾರಂಭಿಸಲಾಗುತ್ತಿದೆ..."}</span>
                   </>
                 ) : (
-                  <span>{currentI18n.submitContactBtn}</span>
+                  <>
+                    <span>🪔</span>
+                    <span>{currentI18n.submitContactBtn || "ಸಮಾಲೋಚನೆ ಪ್ರಾರಂಭಿಸಿ (೨೦ ನಿಮಿಷ)"}</span>
+                    <span>➔</span>
+                  </>
                 )}
               </button>
             </form>

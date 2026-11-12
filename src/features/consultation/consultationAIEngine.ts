@@ -2059,10 +2059,13 @@ export function buildDeterministicMarriageReading(
     /ಕುಜ ಶಾಂತಿ|ಕುಶ ಶಾಂತಿ|kuja shanti|kusha shanti|kuja dosha pooja|mangal shanti|मंगल शांति|कुज शांति|కుజ శాంతి|செவ்வாய் சாந்தி|ചൊവ്വാ ദോഷ പൂജ/i.test(
       question
     );
+  const asksSixMonths = /6\s*month|೬\s*ತಿಂಗಳ|೬\s*ತಿಂಗಳು|6\s*महीने|6\s*నెలలు|6\s*மாதம்|6\s*മാസം|6\s*महिने/i.test(question);
   const timeline = astroData?.kundli
     ? calculateAstrologicalTimeline(astroData.kundli, astroData.ageYears || 30, "MARRIAGE", lang)
     : null;
-  const timingWindow = timeline?.rangeSummary || (lang === "kn" ? "ಮುಂದಿನ ೧ ವರ್ಷದೊಳಗೆ" : "within the next 1 year");
+  const timingWindow = timeline?.rangeSummary || (asksSixMonths
+    ? (lang === "kn" ? "ಮುಂದಿನ ೬ ತಿಂಗಳಲ್ಲೇ" : "within the next 6 months")
+    : (lang === "kn" ? "ಮುಂದಿನ ೧ ವರ್ಷದೊಳಗೆ" : "within the next 1 year"));
 
   switch (lang) {
     case "en": {

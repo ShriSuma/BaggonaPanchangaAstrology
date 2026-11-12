@@ -5,7 +5,7 @@
  */
 
 import type { KundliOutput } from "../../core/AstroTypes";
-import { degreeToNakshatra, degreeToNakshatraPada, normalizeDegree } from "../../core/AstroMath";
+import { degreeToNakshatra, degreeToNakshatraPada, normalizeDegree, resolveExactMoonPada } from "../../core/AstroMath";
 import {
   findBhuktiAtAge,
   findMahadashaAtAge,
@@ -822,7 +822,7 @@ export function calculatePublicKundliProfile(
 
   const moonNakName = moonPlanet?.nakshatra?.english || "Ashwini";
   const moonNakSan = moonPlanet?.nakshatra?.sanskrit || "ಅಶ್ವಿನಿ";
-  const moonPada = kundli.moonPada || 1;
+  const moonPada = resolveExactMoonPada(kundli);
 
   // 3. Maandi calculation & house placement
   let maandiHouse = 8;

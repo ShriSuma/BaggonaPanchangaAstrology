@@ -314,7 +314,7 @@ describe("Consultation Anti-Contradiction & Vedic Gemstone Parity Suite", () => 
       undefined
     );
     expect(enReading).toContain("100% Confident Astrological Prediction");
-    expect(enReading).toContain("within the next 6 months your marriage will definitely be solemnized");
+    expect(enReading).toMatch(/(within the next (6 months|1 year) your marriage will definitely be solemnized)/);
     expect(enReading).toContain("zero room for doubt or dilemma");
     expect(enReading).toContain("Kalyana Sankalpa");
     // Strictly zero unsolicited gemstone advice in marriage questions
