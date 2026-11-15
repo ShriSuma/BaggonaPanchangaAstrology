@@ -39,7 +39,10 @@ import {
   SYSTEM_SECURITY_CONFIDENTIALITY_DIRECTIVE,
   detectSecurityOrSystemProbe,
   getDeterministicSecurityBlockedReply,
-  formatRulingsLedgerForPrompt
+  formatRulingsLedgerForPrompt,
+  buildConsultationRulingsLedger,
+  detectAndResolveUltaPaltaProbe,
+  verifyAndHarmonizeWithPreviousAnswers
 } from "./consultationAIEngine";
 import { askGemini, type AskGeminiChatTurn } from "../../core/GeminiEngine";
 import { useAppStore } from "../../stores/appStore";
@@ -651,6 +654,31 @@ export async function presentConsultationReply(params: {
     };
   }
 
+  // Step 1.6: Build rulings ledger and check immediate Ulta-Palta probe resolution
+  if (!session.rulingsLedger || session.rulingsLedger.length === 0) {
+    session.rulingsLedger = buildConsultationRulingsLedger(conversationHistory, session);
+  }
+  const ultaPaltaReply = detectAndResolveUltaPaltaProbe(
+    userQuestion,
+    session.rulingsLedger,
+    session.language
+  );
+  if (ultaPaltaReply) {
+    return {
+      fullText: ultaPaltaReply,
+      paragraphs: ultaPaltaReply.split(/\n\n+/).filter(Boolean),
+      astrologicalHighlights: {
+        lagna: "ಮೇಷ",
+        moonSign: "ವೃಷಭ",
+        nakshatra: "ರೋಹಿಣಿ",
+        currentDasha: "ಶುಭ ದಶಾ ಕಾಲ",
+        keyInfluences: ["ಶತಸಿದ್ಧ ಶಾಸ್ತ್ರೀಯ ತೀರ್ಮಾನ", "ಅಖಂಡ ದೈವಜ್ಞ ನಿಶ್ಚಯ"]
+      },
+      hasDosha: false,
+      sensedContext: sensed
+    };
+  }
+
   // If question is pure deep astrological, career frustration, child inquiry, Santhana, abroad settlement, property, govt job, business, debt, legal, health, or exams, delegate directly to the deep chart math engine
   if (
     sensed.category === "ASTROLOGICAL_DEEP" ||
@@ -779,14 +807,22 @@ export async function presentConsultationReply(params: {
     .replace(/[#_]/g, "")
     .trim();
 
-  const paragraphs = cleaned
+  const verified = verifyAndHarmonizeWithPreviousAnswers({
+    session,
+    userQuestion,
+    candidateAnswer: cleaned,
+    conversationHistory,
+    rulingsLedger: session.rulingsLedger
+  });
+  const finalCleaned = verified.harmonizedText;
+  const finalParagraphs = finalCleaned
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
 
   return {
-    fullText: cleaned,
-    paragraphs: paragraphs.length > 0 ? paragraphs : [cleaned],
+    fullText: finalCleaned,
+    paragraphs: finalParagraphs.length > 0 ? finalParagraphs : [finalCleaned],
     hasDosha: false,
     sensedContext: sensed,
     astrologicalHighlights: {

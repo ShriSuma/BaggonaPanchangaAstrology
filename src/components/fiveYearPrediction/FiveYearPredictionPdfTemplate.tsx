@@ -623,16 +623,39 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
       {/* ── CHAPTERS 7 TO 11: CHRONOLOGICAL 5 YEARS (ANNUAL FORECASTS) ─────── */}
       {data.years.map((yr, idx) => {
         const chapterNum = 2 + data.chapters.length + 1 + idx; // Chapters 7, 8, 9, 10, 11
-        const yrTitle = `${yr.gregorianRange} (${isKn ? yr.samvatsaraKn : isMr ? `${yr.samvatsaraKn} संवत्सर` : yr.samvatsaraEn})`;
+        const knOrdinals = ["ಒಂದು (೧)", "ಎರಡು (೨)", "ಮೂರು (೩)", "ನಾಲ್ಕು (೪)", "ಐದು (೫)"];
+        const mrOrdinals = ["पहिले (१)", "दुसरे (२)", "तिसरे (३)", "चौथे (४)", "पाचवे (५)"];
+        const hiOrdinals = ["प्रथम (१)", "द्वितीय (२)", "तृतीय (३)", "चतुर्थ (४)", "पंचम (५)"];
+        const teOrdinals = ["మొదటి (౧)", "రెండవ (౨)", "మూడవ (౩)", "నాల్గవ (౪)", "ఐదవ (౫)"];
+        const taOrdinals = ["முதல் (௧)", "இரண்டாம் (௨)", "மூன்றாம் (௩)", "நான்காம் (௪)", "ஐந்தாம் (௫)"];
+
+        const samvatText = isKn ? yr.samvatsaraKn
+          : isMr ? `${yr.samvatsaraKn} संवत्सर`
+          : isHi ? `${yr.samvatsaraKn} संवत्सर`
+          : isTe ? `${yr.samvatsaraKn || yr.samvatsaraEn} సంవత్సరం`
+          : isTa ? `${yr.samvatsaraKn || yr.samvatsaraEn} வருடம்`
+          : yr.samvatsaraEn;
+
+        const resolvedYearTitle = isKn
+          ? `ವರ್ಷ ${knOrdinals[idx] || (idx + 1)}: ${yr.gregorianRange} (${samvatText})`
+          : isMr
+            ? `वर्ष ${mrOrdinals[idx] || (idx + 1)}: ${yr.gregorianRange} (${samvatText})`
+            : isHi
+              ? `वर्ष ${hiOrdinals[idx] || (idx + 1)}: ${yr.gregorianRange} (${samvatText})`
+              : isTe
+                ? `సంవత్సరం ${teOrdinals[idx] || (idx + 1)}: ${yr.gregorianRange} (${samvatText})`
+                : isTa
+                  ? `ஆண்டு ${taOrdinals[idx] || (idx + 1)}: ${yr.gregorianRange} (${samvatText})`
+                  : `Year ${idx + 1}: ${yr.gregorianRange} (${samvatText})`;
 
         return (
           <div key={`annual-year-${yr.yearIndex ?? idx}`} data-section={`year-${idx + 1}`} className={sectionClass}>
             {renderChapterBanner(
               chapterNum,
               "🗓️",
-              `ವರ್ಷ ${idx + 1}: ${yrTitle}`,
-              `Year ${idx + 1}: ${yrTitle}`,
-              `ವರ್ಷ ${idx + 1}: ${yrTitle}`
+              `ವರ್ಷ ${knOrdinals[idx] || (idx + 1)}: ${yr.gregorianRange} (${samvatText})`,
+              `Year ${idx + 1}: ${yr.gregorianRange} (${samvatText})`,
+              resolvedYearTitle
             )}
 
             {renderContemplationRibbon(
@@ -717,6 +740,31 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                   <p className="text-amber-950 font-medium">{yr.guruGocharaText}</p>
                 </div>
               </div>
+
+              {/* Authenticated Classical Vedic Predictive Accuracy: Tara Bala, Gochara Vedha & Jaimini Karaka */}
+              {(yr.taraBala || yr.vedhaAnalysis) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4 border-b border-amber-700/20 text-xs font-serif">
+                  {yr.taraBala && (
+                    <div className="p-3 rounded-xl bg-amber-100/60 border border-amber-300 space-y-1 shadow-2xs">
+                      <span className="font-black text-amber-950 block text-xs flex items-center gap-1.5">
+                        <span>⭐</span>
+                        <span>{isKn ? "ನವತಾರಾ ಬಲ ನಿರ್ಣಯ:" : isMr ? "नवतारा / ताराबळ निर्णय:" : isHi ? "नवतारा बल निर्णय:" : isTe ? "నవతార బలం:" : isTa ? "நவதாரா பலன்:" : "Navatara Bala:"}</span>
+                        <span className="text-amber-800 font-bold">({yr.taraBala.taraName})</span>
+                      </span>
+                      <p className="text-amber-900 leading-relaxed font-serif text-[11px]">{yr.taraBala.analysisText}</p>
+                    </div>
+                  )}
+                  {yr.vedhaAnalysis && (
+                    <div className="p-3 rounded-xl bg-amber-100/60 border border-amber-300 space-y-1 shadow-2xs">
+                      <span className="font-black text-amber-950 block text-xs flex items-center gap-1.5">
+                        <span>🛡️</span>
+                        <span>{isKn ? "ಗೋಚಾರ ನಿರ್ವೇಧ ಸ್ಥಿತಿ:" : isMr ? "गोचर वेध निर्णय:" : isHi ? "गोचर वेध निर्णय:" : isTe ? "గోచార వేధ నిర్ణయం:" : isTa ? "கோசார வேத நிலை:" : "Gochara Vedha:"}</span>
+                      </span>
+                      <p className="text-amber-900 leading-relaxed font-serif text-[11px]">{yr.vedhaAnalysis.vedhaDetails}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Substantive Paragraphs: 3 Detailed Paragraphs */}
               <div className="space-y-4">
@@ -816,7 +864,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           2 + data.chapters.length + 1 + data.years.length, // Chapter 12
           "🪔",
           "ಪವಿತ್ರ ಸ್ತೋತ್ರ, ವಾರ್ಷಿಕ ಗೋಕರ್ಣ ಪರಿಹಾರ ಹಾಗೂ ದಿವ್ಯ ಮುಹೂರ್ತಗಳು",
-          "Sacred Stotra, Annual Gokarna Worship & Auspicious Muhurtas"
+          "Sacred Stotra, Annual Gokarna Worship & Auspicious Muhurtas",
+          isKn ? "ಪವಿತ್ರ ಸ್ತೋತ್ರ, ವಾರ್ಷಿಕ ಗೋಕರ್ಣ ಪರಿಹಾರ ಹಾಗೂ ದಿವ್ಯ ಮುಹೂರ್ತಗಳು"
+            : isMr ? "पवित्र स्तोत्र, वार्षिक गोकर्ण पूजा व शुभ मुहूर्त"
+              : isHi ? "पवित्र स्तोत्र, वार्षिक गोकर्ण पूजन एवं शुभ मुहूर्त"
+                : isTe ? "పవిత్ర స్తోత్రం, వార్షిక గోకర్ణ పరిహారం & శుభ ముహూర్తాలు"
+                  : isTa ? "புனித ஸ்தோத்திரம், வருடாந்திர கோகர்ண பரிகாரம் & சுப முகூர்த்தங்கள்"
+                    : "Sacred Stotra, Annual Gokarna Worship & Auspicious Muhurtas"
         )}
 
         {/* Part A: Auspicious Decision Muhurtas & Financial Roadmap */}
@@ -893,28 +947,44 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
 
         {/* Part B: Prescribed Classical Stotra Card */}
         <div className="rounded-2xl border-2 border-amber-700/40 bg-amber-50/90 p-8 shadow-sm relative overflow-hidden space-y-6 mb-8">
-          <div className="flex items-center justify-between pb-4 border-b border-amber-700/20">
-            <div>
-              <span className="text-xs font-black uppercase tracking-widest text-amber-800 block">
-                {isKn
-                  ? "ಪಂಚವರ್ಷ ರಕ್ಷಾ ಸ್ತೋತ್ರ"
-                  : isMr
-                    ? "५ वर्षे महा रक्षा स्तोत्र"
-                    : isHi
-                      ? "पंचवर्षीय महा रक्षा स्तोत्र"
-                      : "5-Year Prescribed Shield"}
-              </span>
-              <h3 className="text-2xl font-black text-amber-950 font-serif mt-1">
-                {data.prescribedStotra.stotraName}
-              </h3>
-              <p className="text-sm text-amber-800 font-serif italic mt-0.5">
-                {isKn ? "ಅಧಿಷ್ಠಾನ ದೇವತೆ: " : isMr ? "अधिष्ठान देवता: " : isHi ? "अधिष्ठाता देव: " : "Presiding Deity: "}
-                {data.prescribedStotra.deityName}
-              </p>
+          <div className="flex items-center justify-between pb-4 border-b border-amber-700/20 gap-4">
+            <div className="flex items-center gap-4">
+              {data.sacredDeityImage && (
+                <div className="shrink-0 p-1 bg-gradient-to-b from-amber-200 via-amber-100 to-amber-200 rounded-xl border border-amber-600/70 shadow-xs">
+                  <img
+                    src={data.sacredDeityImage.imagePath}
+                    alt={data.sacredDeityImage.deityName}
+                    crossOrigin="anonymous"
+                    className="w-16 h-20 sm:w-20 sm:h-24 object-contain rounded-lg block shadow-2xs"
+                  />
+                </div>
+              )}
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-amber-800 block">
+                  {isKn
+                    ? "ಪಂಚವರ್ಷ ರಕ್ಷಾ ಸ್ತೋತ್ರ"
+                    : isMr
+                      ? "५ वर्षे महा रक्षा स्तोत्र"
+                      : isHi
+                        ? "पंचवर्षीय महा रक्षा स्तोत्र"
+                        : isTe
+                          ? "5 సంవత్సరాల రక్షా స్తోత్రం"
+                          : isTa
+                            ? "5 ஆண்டுகளுக்கான மகா ரக்ஷா ஸ்தோத்திரம்"
+                            : "5-Year Prescribed Shield"}
+                </span>
+                <h3 className="text-2xl font-black text-amber-950 font-serif mt-1">
+                  {data.prescribedStotra.stotraName}
+                </h3>
+                <p className="text-sm text-amber-800 font-serif italic mt-0.5">
+                  {isKn ? "ಅಧಿಷ್ಠಾನ ದೇವತೆ: " : isMr ? "अधिष्ठान देवता: " : isHi ? "अधिष्ठाता देव: " : isTe ? "అధిష్టాన దేవత: " : isTa ? "அதிஷ்டான தெய்வம்: " : "Presiding Deity: "}
+                  {data.prescribedStotra.deityName}
+                </p>
+              </div>
             </div>
 
-            <span className="bg-amber-900 text-amber-100 text-sm font-black px-4 py-1.5 rounded-full shadow-xs">
-              📿 {formatNumber6L(data.prescribedStotra.chantingRounds, lang)} {isKn ? "ಆವರ್ತಿ ಜಪ" : isMr ? "वेळा जप" : isHi ? "बार पाठ" : "Rounds Daily"}
+            <span className="bg-amber-900 text-amber-100 text-sm font-black px-4 py-1.5 rounded-full shadow-xs shrink-0">
+              📿 {formatNumber6L(data.prescribedStotra.chantingRounds, lang)} {isKn ? "ಆವರ್ತಿ ಜಪ" : isMr ? "वेळा जप" : isHi ? "बार पाठ" : isTe ? "సార్లు పారాయణం" : isTa ? "முறை பாராயணம்" : "Rounds Daily"}
             </span>
           </div>
 
@@ -1069,7 +1139,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           2 + data.chapters.length + 1 + data.years.length + 1, // Chapter 13
           "🛡️",
           "ಕುಟುಂಬ ರಕ್ಷಾ ಪಂಚವರ್ಷ ಬಂಧ ಹಾಗೂ ಸಮನ್ವಯ",
-          "Family Destiny Interlocking & Collective Wellbeing"
+          "Family Destiny Interlocking & Collective Wellbeing",
+          isKn ? "ಕುಟುಂಬ ರಕ್ಷಾ ಪಂಚವರ್ಷ ಬಂಧ ಹಾಗೂ ಸಮನ್ವಯ"
+            : isMr ? "कौटुंबिक सुरक्षा पंचवर्षीय बंध व समन्वय"
+              : isHi ? "पारिवारिक सुरक्षा पंचवर्षीय समन्वय एवं कल्याण"
+                : isTe ? "కుటుంబ రక్షా పంచవర్ష బంధం & సమన్వయం"
+                  : isTa ? "குடும்ப பாதுகாப்பு பஞ்சவர்ஷ பிணைப்பு & நல்லிணக்கம்"
+                    : "Family Destiny Interlocking & Collective Wellbeing"
         )}
 
         <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
@@ -1125,7 +1201,13 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
             2 + data.chapters.length + 1 + data.years.length + 2, // Chapter 14
             "🔮",
             data.daivajnaSummary.titleKn || "ದೈವಜ್ಞ ಮಹಾದರ್ಶನ ಸಮಗ್ರ ಸಾರಾಂಶ",
-            data.daivajnaSummary.titleEn || "Daivajna Master Jyotish Synthesis"
+            data.daivajnaSummary.titleEn || "Daivajna Master Jyotish Synthesis",
+            isKn ? (data.daivajnaSummary.titleKn || "ದೈವಜ್ಞ ಮಹಾದರ್ಶನ ಸಮಗ್ರ ಸಾರಾಂಶ")
+              : isMr ? "दैवज्ञ महादर्शन समग्र सारांश"
+                : isHi ? "दैवज्ञ महादर्शन समग्र सारांश"
+                  : isTe ? "దైవజ్ఞ మహాదర్శన సమగ్ర సారాంశం"
+                    : isTa ? "தெய்வக்ஞ மகா தரிசன முழுமையான சுருக்கம்"
+                      : (data.daivajnaSummary.titleEn || "Daivajna Master Jyotish Synthesis")
           )}
 
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
@@ -1221,11 +1303,14 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
           {renderChapterBanner(
             2 + data.chapters.length + 1 + data.years.length + 3, // Chapter 15
             "🕉️",
+            "ದೈವ ಕೃಪಾ ಕವಚ & ಜನ್ಮ ಕುಂಡಲಿ ವೈಯಕ್ತಿಕ ಶ್ಲೋಕ",
+            "Sacred Deity Grace & Personalized Devotee Shloka",
             isKn ? "ದೈವ ಕೃಪಾ ಕವಚ & ಜನ್ಮ ಕುಂಡಲಿ ವೈಯಕ್ತಿಕ ಶ್ಲೋಕ"
               : isMr ? "दैवी कृपा कवच व जन्मकुंडली वैयक्तिक श्लोक"
                 : isHi ? "दैवीय कृपा कवच एवं जन्म कुंडली व्यक्तिगत श्लोक"
-                  : "Sacred Deity Grace & Personalized Devotee Shloka",
-            "Sacred Deity Grace & Personalized Devotee Shloka"
+                  : isTe ? "దైవ కృపా కవచం & జన్మ కుండలి వ్యక్తిగత శ్లోకం"
+                    : isTa ? "தெய்வ கிருபா கவசம் & ஜென்ம ஜாதக தனிப்பயன் ஸ்லோகம்"
+                      : "Sacred Deity Grace & Personalized Devotee Shloka"
           )}
 
           <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-8">

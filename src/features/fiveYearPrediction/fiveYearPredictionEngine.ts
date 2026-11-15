@@ -132,6 +132,21 @@ export interface FiveYearSingleYear {
   savPoints?: number | { saturnHousePoints: number; jupiterHousePoints: number };
   paragraphs?: string[];
   questionInquest?: string;
+  taraBala?: {
+    taraName: string;
+    taraCategory: "janma" | "sampat" | "vipat" | "kshema" | "pratyak" | "sadhaka" | "naidhana" | "mitra" | "parama_mitra";
+    isFavorable: boolean;
+    analysisText: string;
+  };
+  vedhaAnalysis?: {
+    hasVedha: boolean;
+    vedhaDetails: string;
+  };
+  charaKarakaInfluence?: {
+    atmakarakaPlanet: string;
+    amatyakarakaPlanet: string;
+    influenceSummary: string;
+  };
 }
 
 export interface FiveYearDoshaItem {
@@ -520,8 +535,67 @@ export function selectPrescribedStotra(
     };
   }
 
+  // If Mercury (Budha) prominent or intellectual / speech / business focus -> Sri Tulasi Aradhana & Budha Kavacham
+  if (activeDashaPlanet === PlanetName.Mercury) {
+    return {
+      id: "tulsi_aradhana",
+      stotraName: lang === "kn" ? "ಶ್ರೀ ತುಳಸಿ ಸ್ತೋತ್ರಂ ಹಾಗೂ ಬುಧ ಕವಚಂ (ಪವಿತ್ರ ತುಳಸಿ ವೃಂದಾವನ ಪೂಜೆ)"
+        : lang === "hi" ? "श्री तुलसी स्तोत्र एवं बुध कवच (पवित्र तुलसी वृंदावन पूजन)"
+          : lang === "te" ? "శ్రీ తులసి స్తోత్రం మరియు బుధ కవచం (పవిత్ర తులసి బృందావన పూజ)"
+            : lang === "ta" ? "ஸ்ரீ துளசி ஸ்தோத்திரம் & புதன் கவசம் (புனித துளசி பிருந்தாவன பூஜை)"
+              : lang === "mr" ? "श्री तुळशी स्तोत्र व बुध कवच (पवित्र तुळशी वृंदावन पूजन)"
+                : "Sri Tulasi Stotram & Budha Kavacham (Sacred Tulasi Aradhana)",
+      deityName: lang === "kn" ? "ಶ್ರೀ ತುಳಸಿ ಮಹಾಲಕ್ಷ್ಮಿ (ವೃಂದಾ ದೇವಿ / ಪವಿತ್ರ ತುಳಸಿ ಸಸ್ಯ ಆರಾಧನೆ)"
+        : lang === "hi" ? "श्री तुलसी माता (वृंदा देवी / पवित्र तुलसी पूजन एवं संवर्धन)"
+          : lang === "mr" ? "श्री तुळशी माता (वृंदा देवी / पवित्र तुळशी पूजन व संवर्धन)"
+            : lang === "te" ? "శ్రీ తులసి మాత (బృందా దేవి / పవిత్ర తులసి ఆరాధన)"
+              : lang === "ta" ? "ஸ்ரீ துளசி மாதா (பிருந்தா தேவி / புனித துளசி வழிபாடு)"
+                : "Sri Tulasi Devi (Sacred Vrinda Devi / Tulasi Plant Worship)",
+      primaryBenefit: lang === "kn" ? "ಬುದ್ಧಿಮತ್ತೆ ವೃದ್ಧಿ, ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ, ವಿದ್ಯಾರ್ಜನೆ, ಕೌಟುಂಬಿಕ ಶಾಂತಿ ಹಾಗೂ ಬುಧ ಗ್ರಹ ದೋಷ ನಿವಾರಣೆ. ಮನೆಯಲ್ಲಿ ತುಳಸಿ ಗಿಡವನ್ನು ನೆಟ್ಟು ನಿತ್ಯವೂ ಜಲಾರ್ಪಣೆ ಮಾಡುವುದು ಸರ್ವಶ್ರೇಷ್ಠ."
+        : lang === "hi" ? "बुद्धिमत्ता, व्यापार वृद्धि, विद्या प्राप्ति, पारिवारिक शांति एवं बुध दोष निवारण। घर में तुलसी का पौधा लगाकर नित्य जलार्पण परम कल्याणकारी है।"
+          : lang === "mr" ? "बुद्धिमत्ता वृद्धी, व्यापारात यश, शिक्षण, कौटुंबिक शांतता व बुध दोष निवारण. घरात तुळशीचे रोप लावून नित्य जलार्पण करणे परम कल्याणकारी आहे."
+            : lang === "te" ? "బుద్ధి వికాసం, వ్యాపార లాభం, విద్యార్జన, కుటుంబ శాంతి & బుధ దోష నివారణ. ఇంట్లో తులసి మొక్కను నాటి నిత్యం జలార్పణ చేయడం అత్యంత శ్రేయస్కరం."
+              : lang === "ta" ? "புத்தி கூர்மை, வியாபார விருத்தி, கல்வி, குடும்ப அமைதி & புதன் தோஷ நிவாரணம். வீட்டில் துளசி செடி நட்டு தினமும் நீர் ஊற்றி வழிபடுவது சகல நன்மை தரும்."
+                : "Intellectual sharpness, commercial growth, academic success, and mercury pacification. Planting and nurturing a holy Tulsi plant brings perennial peace.",
+      sanskritVerse: "यन्मूले सर्वतीर्थानि यन्मध्ये सर्वदेवताः। यदग्रे सर्ववेदाश्च तुलसि त्वां नमाम्यहम्॥ नमस्ते तुलसीरूपे नमस्ते शङ्खधारिणि। पापिनां मोक्षदे देवि नमस्ते विष्णुपूजनी॥",
+      verseRegional: pick6({
+        kn: "ಯನ್ಮೂಲೇ ಸರ್ವತೀರ್ಥಾನಿ ಯನ್ಮಧ್ಯೇ ಸರ್ವದೇವತಾಃ । ಯದಗ್ರೇ ಸರ್ವವೇದಾಶ್ಚ ತುಳಸೀಂ ತ್ವಾಂ ನಮಾಮ್ಯಹಮ್ ॥ ನಮಸ್ತೇ ತುಳಸೀರೂಪೇ ನಮಸ್ತೇ ಶಂಖಧಾರಿಣಿ । ಪಾಪಿನಾಂ ಮೋಕ್ಷದೇ ದೇವಿ ನಮಸ್ತೇ ವಿಷ್ಣುಪೂಜನೀ ॥",
+        mr: "यन्मूले सर्वतीर्थानि यन्मध्ये सर्वदेवताः । यदग्रे सर्ववेदाश्च तुलसि त्वां नमाम्यहम् ॥ नमस्ते तुलसीरूपे नमस्ते शङ्खधारिणि । पापिनां मोक्षदे देवि नमस्ते विष्णुपूजनी ॥",
+        hi: "यन्मूले सर्वतीर्थानि यन्मध्ये सर्वदेवताः । यदग्रे सर्ववेदाश्च तुलसि त्वां नमाम्यहम् ॥ नमस्ते तुलसीरूपे नमस्ते शङ्खधारिणि । पापिनां मोक्षदे देवि नमस्ते विष्णुपूजनी ॥",
+        te: "యన్మూలే సర్వతీర్థాని యన్మధ్యే సర్వదేవతాః । యదగ్రే సర్వవేదాశ్చ తులసీం త్వాం నమామ్యహమ్ ॥ నమస్తే తులసీరూపే నమస్తే శంఖధారిణి । పాపినాం మోక్షదే దేవి నమస్తే విష్ణుపూజనీ ॥",
+        ta: "யந்மூலே சர்வ தீர்த்தானி யந்மத்யே சர்வ தேவதாஃ । யதக்ரே சர்வ வேதாஸ்ச துளசீம் த்வாம் நமாம்யஹம் ॥ நமஸ்தே துளசீரூபே நமஸ்தே சங்கதாரிணி । பாபினாம் மோக்ஷதே தேவி நமஸ்தே விஷ்ணுபூஜனீ ॥",
+        en: "Yanmule Sarvatirthani Yanmadhye Sarvadevatah | Yadagre Sarvavedashcha Tulasi Tvam Namamyaham || Namaste Tulasirupe Namaste Shankhadharini | Papinam Mokshade Devi Namaste Vishnupujani ||"
+      }, lang),
+      meaningNative: lang === "kn" ? "ಯಾವ ತುಳಸಿಯ ಬೇರಿನಲ್ಲಿ ಸರ್ವ ಪುಣ್ಯ ತೀರ್ಥಗಳು, ಮಧ್ಯದಲ್ಲಿ ಸಕಲ ದೇವತೆಗಳು ಮತ್ತು ತುದಿಯಲ್ಲಿ ಚತುರ್ವೇದಗಳು ನೆಲೆಸಿವೆಯೋ, ಅಂತಹ ಪರಮ ಪವಿತ್ರ ತುಳಸಿ ದೇವಿಗೆ ಸಾಷ್ಟಾಂಗ ಪ್ರಣಾಮಗಳು."
+        : lang === "hi" ? "जिस तुलसी के मूल में समस्त तीर्थ, मध्य में समस्त देव एवं अग्रभाग में चारों वेद निवास करते हैं, उन पावन तुलसी माता को कोटि-कोटि प्रणाम।"
+          : lang === "mr" ? "ज्या तुळशीच्या मुळाशी सर्व तीर्थे, मध्यभागी सर्व देव व अग्रभागी सर्व वेद वास करतात, त्या परम पावन तुळशी मातेला शतशः नमन असो."
+            : lang === "te" ? "ఏ తులసి మూలంలో సమస్త పుణ్య తీర్థాలు, మధ్యలో సర్వ దేవతలు, అగ్రభాగంలో సమస్త వేదాలు ఉంటాయో, ఆ పరమ పవిత్ర తులసి మాతకు సాష్టాంగ నమస్కారాలు."
+              : lang === "ta" ? "எந்த துளசியின் வேரில் சகல தீர்த்தங்களும், நடுவில் சகல தேவர்களும், நுனியில் வேதங்களும் விளங்குகின்றனவோ, அத்தகைய புனித துளசி மாதாவுக்கு கோடி நமஸ்காரங்கள்."
+                : "All holy shrines reside at the root of Tulsi, all gods dwell in its stem, and all sacred Vedas live in its blossoms. Salutations to sacred Tulsi Devi.",
+      chantingRounds: 11,
+      bestTimeOfDay: lang === "kn" ? "ಬುಧವಾರ ಅಥವಾ ಪ್ರತಿದಿನ ಪ್ರಾತಃಕಾಲ ತುಳಸಿ ಕಟ್ಟೆಗೆ ನೀರು ಅರ್ಪಿಸುವ ಸಮಯದಲ್ಲಿ"
+        : lang === "hi" ? "बुधवार अथवा नित्य प्रातःकाल तुलसी को जल अर्पित करते समय"
+          : lang === "mr" ? "बुधवारी किंवा दररोज सकाळी तुळशीला पाणी घालताना"
+            : lang === "te" ? "బుధవారం లేదా ప్రతిరోజు ఉదయం తులసి కోటకు నీరు సమర్పించే వేళ"
+              : lang === "ta" ? "புதன்கிழமை அல்லது தினமும் காலையில் துளசிக்கு நீர் ஊற்றும் வேளையில்"
+                : "Wednesday mornings or daily while offering fresh water to the sacred Tulasi plant",
+      facingDirection: lang === "kn" ? "ಪೂರ್ವ ಅಥವಾ ಉತ್ತರ ದಿಕ್ಕು (ತುಳಸಿ ವೃಂದಾವನದ ಎದುರು)"
+        : lang === "hi" ? "पूर्व अथवा उत्तर दिशा (तुलसी वृंदावन के सम्मुख)"
+          : lang === "mr" ? "पूर्व किंवा उत्तर दिशा (तुळशी वृंदावनासमोर)"
+            : lang === "te" ? "తూర్పు లేదా ఉత్తర దిశ (తులసి బృందావనం ఎదురుగా)"
+              : lang === "ta" ? "கிழக்கு அல்லது வடக்கு திசை (துளசி மாடத்தின் முன்)"
+                : "East or North facing, before the sacred Tulasi Vrindavan",
+      specialOffering: lang === "kn" ? "ಶುದ್ಧ ಜಲ, ಗಂಧಾಕ್ಷತೆ, ತುಳಸಿ ಪೂಜೆ ಹಾಗೂ ಹೆಸರುಕಾಳು ನೈವೇದ್ಯ"
+        : lang === "hi" ? "शुद्ध जल, गंध-अक्षत, तुलसी पूजन एवं मूंग दाल नैवेद्य"
+          : lang === "mr" ? "शुद्ध जल, गंध-अक्षता, तुळशी पूजन व मुगाचा नैवेद्य"
+            : lang === "te" ? "శుద్ధ జలం, గంధాక్షతలు, తులసి పూజ & పెసల నైవేద్యం"
+              : lang === "ta" ? "தூய நீர், சந்தனம், குங்குமம், துளசி பூஜை & பச்சைப்பயறு நைவேத்தியம்"
+                : "Offering fresh water, chandan, kumkum, and green moong naivedya"
+    };
+  }
+
   // If Jupiter prominent or child/education/marriage -> Sri Brihaspati Stotra / Saraswati / Vishnu
-  if (activeDashaPlanet === PlanetName.Jupiter || activeDashaPlanet === PlanetName.Mercury) {
+  if (activeDashaPlanet === PlanetName.Jupiter) {
     return {
       id: "vishnu_sahasranama",
       stotraName: lang === "kn" ? "ಶ್ರೀ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಸ್ತೋತ್ರ ಹಾಗೂ ಬೃಹಸ್ಪತಿ ಕವಚ"
@@ -1540,8 +1614,315 @@ function _resolveSacredDeityImageRaw(
   moonIdx: number,
   runningMahadashaPrimary: PlanetName,
   hasSaturnTroubleAnyYear: boolean,
-  lang: SixLang
+  lang: SixLang,
+  prescribedStotraId?: string,
+  prescribedDeityName?: string
 ): { imagePath: string; deityName: string; sanctumTitle: string; blessingMotto: string } {
+  const normId = (prescribedStotraId || "").toLowerCase();
+  const normDeity = (prescribedDeityName || "").toLowerCase();
+
+  // 1. Tulsi Plant / Vrindavan Aradhana
+  if (
+    normId.includes("tulsi") ||
+    normDeity.includes("tulsi") ||
+    normDeity.includes("ತುಳಸಿ") ||
+    normDeity.includes("तुलसी") ||
+    normDeity.includes("తులసి") ||
+    normDeity.includes("துளசி")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_tulsi.jpg",
+      deityName: pick6({
+        kn: "ಪವಿತ್ರ ಶ್ರೀ ತುಳಸಿ ಮಹಾಲಕ್ಷ್ಮಿ (ವೃಂದಾ ದೇವಿ / ತುಳಸಿ ವೃಂದಾವನ)",
+        mr: "पवित्र श्री तुळशी महालक्ष्मी (वृंदा देवी / तुळशी वृंदावन)",
+        hi: "पवित्र श्री तुलसी महालक्ष्मी (वृंदा देवी / तुलसी वृंदावन)",
+        te: "పవిత్ర శ్రీ తులసి మహాలక్ష్మి (బృందా దేవి / తులసి బృందావనం)",
+        ta: "புனித ஸ்ரீ துளசி மஹாலக்ஷ்மி (பிருந்தா தேவி / துளசி மாடம்)",
+        en: "Sacred Sri Tulasi Mahalakshmi (Vrinda Devi / Tulasi Vrindavan)"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಬುದ್ಧಿಮತ್ತೆ, ಆರೋಗ್ಯ, ಕೌಟುಂಬಿಕ ಶಾಂತಿ ಹಾಗೂ ಸರ್ವ ದೋಷ ನಿವಾರಕ ತುಳಸಿ ಸಾನ್ನಿಧ್ಯ",
+        mr: "बुद्धिमत्ता, आरोग्य, कौटुंबिक शांतता व सर्व दोष निवारक तुळशी सान्निध्य",
+        hi: "बुद्धिमत्ता, आरोग्य, पारिवारिक शांति एवं सर्व दोष निवारक तुलसी सान्निध्य",
+        te: "జ్ఞాన, బుద్ధి, ఆరోగ్య & సర్వ దోష నివారణ తులసి సేవ",
+        ta: "ஞானம், புத்தி கூர்மை, ஆரோக்கியம் & சகல தோஷ நிவர்த்தி தரும் துளசி சன்னதி",
+        en: "Intellectual Mastery, Vitality & Sacred Tulasi Sanctum"
+      }, lang),
+      blessingMotto: "यन्मूले सर्वतीर्थानि यन्मध्ये सर्वदेवताः । यदग्रे सर्ववेदाश्च तुलसि त्वां नमाम्यहम् ॥"
+    };
+  }
+
+  // 2. Lord Hanumantha / Shani Affliction / Shani Dasharatha Stotra
+  if (
+    normId.includes("shani") ||
+    normId.includes("hanuman") ||
+    normDeity.includes("hanuman") ||
+    normDeity.includes("ಆಂಜನೇಯ") ||
+    normDeity.includes("ಹನುಮಾನ್") ||
+    normDeity.includes("हनुमान") ||
+    normDeity.includes("मारुती") ||
+    normDeity.includes("హనుమాన్") ||
+    normDeity.includes("அனுமன்")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_6_hanuman.jpg",
+      deityName: pick6({
+        kn: "ಶ್ರೀ ಭಕ್ತ ಆಂಜನೇಯ ಸ್ವಾಮಿ (ಮಹಾ ಪ್ರಾಣೇಶ)",
+        mr: "श्री भक्त मारुतीराय (संकटमोचन हनुमान)",
+        hi: "श्री भक्त हनुमान जी (संकटमोचन महावीर)",
+        te: "శ్రీ భక్త ఆంజనేయ స్వామి (సంకటమోచన హనుమాన్)",
+        ta: "ஸ்ரீ பக்த ஆஞ்சநேய சுவாமி (சங்கடமோசன அனுமன்)",
+        en: "Lord Sri Bhakta Hanuman (Sankat Mochan)"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಸಕಲ ಗ್ರಹ ಪೀಡಾ ನಿವಾರಕ • ಶನಿ ದೋಷ ಮುಕ್ತಿ ಸನ್ನಿಧಿ",
+        mr: "सर्व ग्रहपीडा निवारक • शनि दोष मुक्ती सान्निध्य",
+        hi: "समस्त ग्रहपीड़ा निवारक • शनि दोष मुक्ति सान्निध्य",
+        te: "సకల గ్రహపీడా నివారణ • శని దోష ముక్తి సేవ",
+        ta: "சகல கிரக தோஷ நிவர்த்தி • சனி தோஷ நிவாரண சன்னதி",
+        en: "Universal Planetary Affliction Shield & Saturn Dispeller"
+      }, lang),
+      blessingMotto: "मनोजवं मारुततुल्यवेगं जितेन्द्रियं बुद्धिमतां वरिष्ठम् । वातात्मजं वानरयूथमुख्यं श्रीरामदूतं शरणं प्रपद्ये ॥"
+    };
+  }
+
+  // 3. Lord Maha Vishnu / Vishnu Sahasranama Stotra
+  if (
+    (normId.includes("vishnu") ||
+    normDeity.includes("vishnu") ||
+    normDeity.includes("ವಿಷ್ಣು") ||
+    normDeity.includes("विष्णु") ||
+    normDeity.includes("విష్ణు") ||
+    normDeity.includes("விஷ்ணு") ||
+    normDeity.includes("ನಾರಾಯಣ") ||
+    normDeity.includes("नारायण")) &&
+    !normDeity.includes("ಸೂರ್ಯ") &&
+    !normDeity.includes("सूर्य") &&
+    !normDeity.includes("surya") &&
+    !normId.includes("aditya")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_3_vishnu.jpg",
+      deityName: pick6({
+        kn: "ಶ್ರೀ ಮಹಾವಿಷ್ಣು ಪರಮಾತ್ಮ (ವೈಕುಂಠನಾಥ)",
+        mr: "श्री महाविष्णु परमात्मा (जगत्पालक)",
+        hi: "श्री महाविष्णु परमात्मा (जगतपालक)",
+        te: "శ్రీ మహావిష్ణు పరమాత్మ (జగత్పాలకుడు)",
+        ta: "ஸ்ரீ மகாவிஷ்ணு பரமாத்மா (வைகுந்தநாதன்)",
+        en: "Lord Sri Maha Vishnu (Universal Sustainer)"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಬುದ್ಧಿಮತ್ತೆ, ವ್ಯಾಪಾರ ವೃದ್ಧಿ ಹಾಗೂ ಕೌಟುಂಬಿಕ ರಕ್ಷಾ ಸನ್ನಿಧಿ",
+        mr: "बुद्धिमत्ता, व्यापार वृद्धी व कौटुंबिक सुरक्षा सान्निध्य",
+        hi: "बुद्धि, व्यापार विस्तार एवं पारिवारिक सुरक्षा सान्निध्य",
+        te: "జ్ఞానవృద్ధి, వ్యాపార ప్రగతి & కుటుంబ రక్షా సేవ",
+        ta: "புத்தி கூர்மை, வர்த்தக வளர்ச்சி & குடும்ப பாதுகாப்பு சன்னதி",
+        en: "Intellectual Mastery, Commercial Growth & Domestic Sanctuary"
+      }, lang),
+      blessingMotto: "शान्ताकारं भुजगशयनं पद्मनाभं सुरेशं विश्वाधारं गगनसदृशं मेघवर्णं शुभाङ्गम् ॥"
+    };
+  }
+
+  // 4. Goddess Mahalakshmi / Kanakadhara Stotra
+  if (
+    normId.includes("kanakadhara") ||
+    normId.includes("lakshmi") ||
+    normDeity.includes("lakshmi") ||
+    normDeity.includes("ಲಕ್ಷ್ಮಿ") ||
+    normDeity.includes("महालक्ष्मी") ||
+    normDeity.includes("లక్ష్మి") ||
+    normDeity.includes("லட்சுமி")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_5_mahalakshmi.jpg",
+      deityName: pick6({
+        kn: "ಜಗನ್ಮಾತೆ ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ ದೇವಿ (ಐಶ್ವರ್ಯದಾಯಿನಿ)",
+        mr: "जगन्माता श्री महालक्ष्मी (ऐश्वर्यदायिनी)",
+        hi: "जगन्माता श्री महालक्ष्मी (ऐश्वर्य प्रदायिनी)",
+        te: "జగన్మాత శ్రీ మహాలక్ష్మి దేవి (ఐశ్వర్య ప్రదాయిని)",
+        ta: "ஜெகன்மாதா ஸ்ரீ மகாலட்சுமி தேவி (அஷ்டலட்சுமி)",
+        en: "Goddess Sri Mahalakshmi (Bestower of Sovereign Wealth)"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಅಷ್ಟೈಶ್ವರ್ಯ ವೃದ್ಧಿ, ಗೃಹ ಸೌಭಾಗ್ಯ ಹಾಗೂ ದಾರಿದ್ರ್ಯ ನಿವಾರಕ ಸನ್ನಿಧಿ",
+        mr: "अष्टलक्ष्मी कृपा, कौटुंबिक सौख्य व दारिद्र्य निवारक सान्निध्य",
+        hi: "अष्टलक्ष्मी कृपा, गृह सौभाग्य एवं दारिद्र्य निवारक सान्निध्य",
+        te: "అష్టైశ్వర్య వృద్ధి, గృహ సౌభాగ్యం & దారిద్ర్య నివారణ",
+        ta: "அஷ்டலட்சுமி கடாட்சம், இல்லற சுபிக்ஷம் & தனவிருத்தி",
+        en: "Perpetual Treasury Compounding & Domestic Harmony Shield"
+      }, lang),
+      blessingMotto: "नमस्तेऽस्तु महामाये श्रीपीठे सुरपूजिते । शङ्खचक्रगदाहस्ते महालक्ष्मि नमोऽस्तु ते ॥"
+    };
+  }
+
+  // 5. Lord Suryanarayana / Aditya Hridaya
+  if (
+    normId.includes("aditya") ||
+    normId.includes("surya") ||
+    normDeity.includes("surya") ||
+    normDeity.includes("ಸೂರ್ಯ") ||
+    normDeity.includes("सूर्य") ||
+    normDeity.includes("సూర్య") ||
+    normDeity.includes("சூரிய")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_0_surya.jpg",
+      deityName: pick6({
+        kn: "ಭಗವಾನ್ ಸೂರ್ಯನಾರಾಯಣ ಸ್ವಾಮಿ (ಪ್ರತ್ಯಕ್ಷ ಪರಬ್ರಹ್ಮ)",
+        mr: "भगवान सूर्यनारायण (प्रत्यक्ष परब्रह्म)",
+        hi: "भगवान सूर्यनारायण (प्रत्यक्ष देव)",
+        te: "భగవాన్ సూర్యనారాయణ స్వామి (ప్రత్యక్ష దైవం)",
+        ta: "பகவான் சூரியநாராயண சுவாமி (பிரத்யக்ஷ தெய்வம்)",
+        en: "Lord Sri Suryanarayana (Pratyaksha Devata)"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಆರೋಗ್ಯ, ಆಯುಷ್ಯ, ರಾಜಗೌರವ ಹಾಗೂ ತೇಜೋ ವರ್ಧಕ ಸನ್ನಿಧಿ",
+        mr: "आरोग्य, दीर्घायुष्य, राजसन्मान व तेज संवर्धन सान्निध्य",
+        hi: "आरोग्य, दीर्घायु, राजसम्मान एवं तेजस्विता प्रदायक सान्निध्य",
+        te: "ఆరోగ్య, ఆయుష్షు, రాజగౌరవం & తేజస్సు ప్రసాదించే సేవ",
+        ta: "ஆரோக்கியம், தீர்க்காயுள், சமூக அந்தஸ்து தரும் சன்னதி",
+        en: "Radiant Vitality, Executive Authority & Longevity Shield"
+      }, lang),
+      blessingMotto: "आदित्यस्य नमस्कारान् ये कुर्वन्ति दिने दिने । जन्मान्तरसहस्रेषु दारिद्र್ಯಂ ನೋಪಜಾಯತೇ ॥"
+    };
+  }
+
+  // 6. Lord Maha Ganapati
+  if (
+    normId.includes("ganesha") ||
+    normId.includes("ganapati") ||
+    normDeity.includes("ganesha") ||
+    normDeity.includes("ganapati") ||
+    normDeity.includes("ಗಣೇಶ") ||
+    normDeity.includes("ಗಣಪತಿ") ||
+    normDeity.includes("गणेश") ||
+    normDeity.includes("गणपती") ||
+    normDeity.includes("గణపతి") ||
+    normDeity.includes("கணபதி")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_ganesha.jpg",
+      deityName: pick6({
+        kn: "ಶ್ರೀ ಮಹಾಗಣಪತಿ ಸ್ವಾಮಿ (ವಿಘ್ನನಿವಾರಕ)",
+        mr: "श्री महागणपती स्वामी (विघ्नहर्ता)",
+        hi: "श्री महागणपति जी (विघ्नहर्ता)",
+        te: "శ్రీ మహాగణపతి స్వామి (విఘ్నహర్త)",
+        ta: "ஸ்ரீ மகா கணபதி சுவாமி (விக்னஹர்த்தா)",
+        en: "Lord Sri Maha Ganapati (Vighnaharta)"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಸರ್ವ ವಿಘ್ನ ನಿವಾರಕ • ಸಕಲ ಕಾರ್ಯ ಸಿದ್ಧಿ • ಮೋದಕ ಪ್ರಿಯ ಸನ್ನಿಧಿ",
+        mr: "सर्व विघ्न निवारक • सर्व कार्य सिद्धी • मोदक प्रिय सान्निध्य",
+        hi: "सर्व विघ्न निवारक • सर्व कार्य सिद्धि • मोदक प्रिय सान्निध्य",
+        te: "సర్వ విఘ్న నివారణ • కార్య సిద్ధి సేవ",
+        ta: "சகல விக்ன நிவாரணம் • காரிய சித்தி தரும் சன்னதி",
+        en: "Universal Obstacle Dispeller & Sovereign Endeavor Sanctum"
+      }, lang),
+      blessingMotto: "वक्रतुण्ड महाकाय सूर्यकोटि समप्रभ । निर्विघ्नं कुरु मे देव सर्वकार्येषु सर्वदा ॥"
+    };
+  }
+
+  // 7. Lord Subrahmanya / Karthikeya
+  if (
+    normId.includes("subrahmanya") ||
+    normId.includes("karthikeya") ||
+    normDeity.includes("subrahmanya") ||
+    normDeity.includes("karthikeya") ||
+    normDeity.includes("ಸುಬ್ರಹ್ಮಣ್ಯ") ||
+    normDeity.includes("ಕಾರ್ತಿಕೇಯ") ||
+    normDeity.includes("कार्तिकेय") ||
+    normDeity.includes("సుబ్రహ్మణ్య") ||
+    normDeity.includes("சுப்பிரமணிய")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_2_karthikeya.jpg",
+      deityName: pick6({
+        kn: "ಶ್ರೀ ಸುಬ್ರಹ್ಮಣ್ಯ ಸ್ವಾಮಿ (ಸ್ಕಂದ ಕಾರ್ತಿಕೇಯ)",
+        mr: "श्री कार्तिकेय स्वामी (स्कंद सुब्रह्मण्य)",
+        hi: "श्री कार्तिकेय स्वामी (स्कंद सुब्रह्मण्य)",
+        te: "శ్రీ సుబ్రహ్మణ్య స్వామి (స్కంద కార్తికేయ)",
+        ta: "ஸ்ரீ சுப்பிரமணிய சுவாமி (கந்தன் கார்த்திகேயன்)",
+        en: "Lord Sri Subrahmanya (Skanda Kartikeya)"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಸರ್ವ ಶತ್ರು ಜಯ, ಭೂ ಭಾಗ್ಯ ಹಾಗೂ ಕುಜ ದೋಷ ಶಮನ ಸನ್ನಿಧಿ",
+        mr: "शत्रूवर विजय, जमीन खरेदी व मंगळ दोष शमन सान्निध्य",
+        hi: "सर्व शत्रु विजय, भूमि योग एवं मंगल दोष शमन सान्निध्य",
+        te: "శత్రు జయం, భూలాభం & కుజ దోష నివారణ సేవ",
+        ta: "சத்ரு சம்ஹாரம், பூமி யோகம் & செவ்வாய் தோஷ நிவர்த்தி",
+        en: "Triumph over Adversity, Real Estate Prosperity & Mangala Pacifier"
+      }, lang),
+      blessingMotto: "शक्तिहस्तं विरूपाक्षं शिखಿವಾಹಂ ಷಣ್ಮುಖಮ್ । ಮಯೂರವಾಹನಂ ದೇವಂ ಸುಬ್ರಹ್ಮಣ್ಯಂ ನಮಾಮ್ಯಹಮ್ ॥"
+    };
+  }
+
+  // 8. Lord Guru / Brihaspati / Dakshinamurthy
+  if (
+    normId.includes("guru") ||
+    normId.includes("brihaspati") ||
+    normDeity.includes("guru") ||
+    normDeity.includes("brihaspati") ||
+    normDeity.includes("ಬೃಹಸ್ಪತಿ") ||
+    normDeity.includes("ದಕ್ಷಿಣಾಮೂರ್ತಿ") ||
+    normDeity.includes("बृहस्पति") ||
+    normDeity.includes("బృహస్పతి") ||
+    normDeity.includes("பிரகஸ்பதி")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_4_guru.jpg",
+      deityName: pick6({
+        kn: "ಶ್ರೀ ದಕ್ಷಿಣಾಮೂರ್ತಿ & ದೇವಗುರು ಬೃಹಸ್ಪತಿ",
+        mr: "श्री दक्षिणामूर्ती व देवगुरू बृहस्पती",
+        hi: "श्री दक्षिणामूर्ति एवं देवगुरु बृहस्पति",
+        te: "శ్రీ దక్షిణామూర్తి & దేవగురు బృహస్పతి",
+        ta: "ஸ்ரீ தட்சிணாமூர்த்தி & தேவகுரு பிரகஸ்பதி",
+        en: "Lord Sri Dakshinamurthy & Devaguru Brihaspati"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಜ್ಞಾನೋದಯ, ಸಂತಾನ ಭಾಗ್ಯ ಹಾಗೂ ಪೂರ್ಣ ಗುರುಬಲ ಸನ್ನಿಧಿ",
+        mr: "ज्ञानोदय, संतती सुख व संपूर्ण गुरुबळ सान्निध्य",
+        hi: "ज्ञानोदय, संतान सुख एवं पूर्ण गुरुबल प्रदायक सान्निध्य",
+        te: "జ్ఞానోదయం, సంతాన సౌభాగ్యం & సంపూర్ణ గురుబలం",
+        ta: "ஞானோதயம், புத்திர பாக்கியம் & பூரண குரு பலன்",
+        en: "Spiritual Illumination, Noble Progeny & Auspicious Guru Bala"
+      }, lang),
+      blessingMotto: "गुरवे सर्वलोकानां भिषजे भवरोगिणाम् । निधये सर्वविद्यानां दक्षिणामूर्तये नमः ॥"
+    };
+  }
+
+  // 9. Lord Shiva Mahabaleshwara (Gokarna Atmalinga)
+  if (
+    normId.includes("shiva") ||
+    normDeity.includes("shiva") ||
+    normDeity.includes("ಶಿವ") ||
+    normDeity.includes("ಮಹಾಬಲೇಶ್ವರ") ||
+    normDeity.includes("शिव") ||
+    normDeity.includes("శివ") ||
+    normDeity.includes("சிவன்")
+  ) {
+    return {
+      imagePath: "/daily_posters/poster_1_shiva.jpg",
+      deityName: pick6({
+        kn: "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ (ಪಾವನ ಆತ್ಮಲಿಂಗ)",
+        mr: "श्री क्षेत्र गोकर्ण महाबळेश्वर स्वामी (पवित्र आत्मलिंग)",
+        hi: "श्री क्षेत्र गोकर्ण महाबलेश्वर स्वामी (परम पावन आत्मलिंग)",
+        te: "శ్రీ క్షేత్ర గోకర్ణ మహాబలేశ్వర స్వామి (దివ్య ఆత్మలింగం)",
+        ta: "ஸ்ரீ கோகர்ண மகாபலேஸ்வர சுவாமி (புனித ஆத்மலிங்கம்)",
+        en: "Sri Kshetra Gokarna Mahabaleshwara (Sacred Atmalinga)"
+      }, lang),
+      sanctumTitle: pick6({
+        kn: "ಅಖಂಡ ಆಯುರ್-ಆರೋಗ್ಯ ರಕ್ಷೆ • ಮಹಾಮುಕ್ತಿ ಧಾಮ • ಬಗ್ಗೋಣ ಪರಮ ಸಾನ್ನಿಧ್ಯ",
+        mr: "अखंड आरोग्य व दीर्घायुष्य रक्षा • महामुक्ती धाम • बग्गोण परम सान्निध्य",
+        hi: "अखंड आरोग्य एवं दीर्घायु रक्षा • महामुक्ति धाम • बग्गोण परम सान्निध्य",
+        te: "అఖండ ఆయురారోగ్య రక్ష • మహా ముక్తి ధామం • బగ్గోణ పరమ సేవ",
+        ta: "தீர்க்காயுள் & ஆரோக்கிய பாதுகாப்பு • மகா முக்தி தலம் • பக்கோண திருப்பணி",
+        en: "Supreme Longevity & Vitality Shield • Primordial Gokarna Sanctum"
+      }, lang),
+      blessingMotto: "ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् । उर्वारुकमिव बन्धनान् मृत्योर्मुक्षीय मामृतात् ॥"
+    };
+  }
+
+  // Fallback to planetary lordship checks
   // If Saturn affliction (Sade Sati, Ashtama) or Saturn Mahadasha -> Lord Hanuman
   if (hasSaturnTroubleAnyYear || runningMahadashaPrimary === PlanetName.Saturn) {
     return {
@@ -1714,9 +2095,19 @@ export function getSacredDeityImage(
   moonIdx: number,
   runningMahadashaPrimary: PlanetName,
   hasSaturnTroubleAnyYear: boolean,
-  lang: SixLang
+  lang: SixLang,
+  prescribedStotraId?: string,
+  prescribedDeityName?: string
 ): SacredDeityImageInfo {
-  const raw = _resolveSacredDeityImageRaw(lagnaIdx, moonIdx, runningMahadashaPrimary, hasSaturnTroubleAnyYear, lang);
+  const raw = _resolveSacredDeityImageRaw(
+    lagnaIdx,
+    moonIdx,
+    runningMahadashaPrimary,
+    hasSaturnTroubleAnyYear,
+    lang,
+    prescribedStotraId,
+    prescribedDeityName
+  );
   return {
     ...raw,
     deityTitle: raw.sanctumTitle,
@@ -2920,6 +3311,160 @@ export function compute5YearMasterPrediction(
   // 2. Compute Sarvashtakavarga (SAV)
   const savTable = computeSarvashtakavarga(kundli);
 
+  // 2B. Authenticated Classical Vedic Predictive Accuracy Helpers (Parashari & Jaimini)
+  function computeNavataraBala(
+    janmaNakIdx: number,
+    transitJupRashi: number,
+    lang: SixLang
+  ): { taraName: string; taraCategory: "janma" | "sampat" | "vipat" | "kshema" | "pratyak" | "sadhaka" | "naidhana" | "mitra" | "parama_mitra"; isFavorable: boolean; analysisText: string } {
+    const approxTransitNak = Math.floor(transitJupRashi * 2.25) % 27;
+    const rawDiff = (approxTransitNak - janmaNakIdx + 27) % 27;
+    const taraNum = (rawDiff % 9) + 1; // 1..9
+
+    const TARA_CATEGORIES: ("janma" | "sampat" | "vipat" | "kshema" | "pratyak" | "sadhaka" | "naidhana" | "mitra" | "parama_mitra")[] = [
+      "janma", "sampat", "vipat", "kshema", "pratyak", "sadhaka", "naidhana", "mitra", "parama_mitra"
+    ];
+    const cat = TARA_CATEGORIES[taraNum - 1];
+    const isFavorable = [2, 4, 6, 8, 9].includes(taraNum);
+
+    const TARA_NAMES: Record<number, Record<SixLang, string>> = {
+      1: { kn: "ಜನ್ಮ ತಾರಾ (ಆತ್ಮ/ದೇಹ)", mr: "जन्म तारा (आत्म/शरीर)", hi: "जन्म तारा (आत्म/शरीर)", te: "జన్మ తార (ఆత్మ/దేహం)", ta: "ஜன்ம தாரை (ஆத்மா/உடல்)", en: "Janma Tara (Body/Self)" },
+      2: { kn: "ಸಂಪತ್ ತಾರಾ (ಧನ/ಸಮೃದ್ಧಿ)", mr: "संपत तारा (धन/समृद्धी)", hi: "सम्पत तारा (धन/समृद्धि)", te: "సంపత్ తార (ధనం/సమృద్ధి)", ta: "சம்பத் தாரை (தனம்/வளம்)", en: "Sampat Tara (Wealth/Prosperity)" },
+      3: { kn: "ವಿಪತ್ ತಾರಾ (ಎಚ್ಚರಿಕೆ)", mr: "विपत तारा (सावधगिरी)", hi: "विपत तारा (सतर्कता)", te: "విపత్ తార (జాగ్రత్త)", ta: "விபத் தாரை (எச்சரிக்கை)", en: "Vipat Tara (Caution)" },
+      4: { kn: "ಕ್ಷೇಮ ತಾರಾ (ಸುಖ/ರಕ್ಷೆ)", mr: "क्षेम तारा (सुख/सुरक्षा)", hi: "क्षेम तारा (सुख/सुरक्षा)", te: "క్షేమ తార (సుఖం/రక్ష)", ta: "க்ஷேம தாரை (சுகம்/பாதுகாப்பு)", en: "Kshema Tara (Well-being/Security)" },
+      5: { kn: "ಪ್ರತ್ಯಕ್ ತಾರಾ (ಸಂಘರ್ಷ ಶಮನ)", mr: "प्रत्यक तारा (संघर्ष निवारण)", hi: "प्रत्यक तारा (बाधा निवारण)", te: "ప్రత్యక్ తార (బాధా నివారణ)", ta: "பிரத்யக் தாரை (தடை நிவர்த்தி)", en: "Pratyak Tara (Obstacle Pacification)" },
+      6: { kn: "ಸಾಧಕ ತಾರಾ (ಕಾರ್ಯಸಿದ್ಧಿ)", mr: "साधक तारा (कार्यसिद्धी)", hi: "साधक तारा (सफलता)", te: "సాధక తార (కార్యసిద్ధి)", ta: "சாதக தாரை (காரிய சித்தி)", en: "Sadhaka Tara (Achievement)" },
+      7: { kn: "ನೈಧನ ತಾರಾ (ಶಾಂತಿ ಸೇವೆ)", mr: "नैधन तारा (शांती सेवा)", hi: "नैधन तारा (शांति सेवा)", te: "నైధన తార (శాంతి సేవ)", ta: "நைதன தாரை (சாந்தி சேவை)", en: "Naidhana Tara (Remedial Care)" },
+      8: { kn: "ಮಿತ್ರ ತಾರಾ (ಸಹಕಾರ/ಹಿತ)", mr: "मित्र तारा (सहकार्य)", hi: "मित्र तारा (सहयोग)", te: "మిత్ర తార (సహకారం)", ta: "மித்ர தாரை (நட்பு/ஆதரவு)", en: "Mitra Tara (Benefactor)" },
+      9: { kn: "ಪರಮ ಮಿತ್ರ ತಾರಾ (ಪೂರ್ಣ ದೈವಾನುಗ್ರಹ)", mr: "परम मित्र तारा (पूर्ण कृपा)", hi: "परम मित्र तारा (पूर्ण अनुकंपा)", te: "పరమ మిత్ర తార (పూర్ణ కృప)", ta: "பரம மித்ர தாரை (பூரண அருள்)", en: "Parama Mitra Tara (Apex Fortune)" }
+    };
+
+    const analysisText = isFavorable
+      ? pick6({
+          kn: `${TARA_NAMES[taraNum].kn} ಯೋಗದಿಂದ ದೇವಗುರು ಬೃಹಸ್ಪತಿಯ ಅನುಗ್ರಹ ಪೂರ್ಣವಾಗಿ ಲಭಿಸಿ, ಪ್ರಯತ್ನಿಸಿದ ಸಕಲ ಕಾರ್ಯಗಳಲ್ಲಿ ಸಿದ್ಧಿ ಮತ್ತು ಧನಯೋಗ ಸೃಷ್ಟಿಯಾಗಲಿದೆ.`,
+          mr: `${TARA_NAMES[taraNum].mr} योगामुळे देवगुरूंचे पूर्ण आशीर्वाद मिळून सर्व प्रयत्नांना यश व आर्थिक समृद्धी लाभेल.`,
+          hi: `${TARA_NAMES[taraNum].hi} के प्रभाव से बृहस्पति देव की पूर्ण अनुकंपा प्राप्त होकर समस्त प्रयासों में सफलता एवं धन लाभ सुनिश्चित होगा।`,
+          te: `${TARA_NAMES[taraNum].te} ప్రభావంతో గురు దేవుని సంపూర్ణ అనుగ్రహం లభించి, ప్రయత్నించిన ప్రతి పనిలో విజయం మరియు ధనలాభం కలుగుతుంది.`,
+          ta: `${TARA_NAMES[taraNum].ta} யோகத்தால் குரு பகவானின் பூரண அருள் கிடைத்து, முயற்சிகளில் வெற்றியும் தன லாபமும் உறுதியாக கிட்டும்.`,
+          en: `Fortified by ${TARA_NAMES[taraNum].en}, Jupiter's celestial alignment empowers your initiatives with accelerated success and material compounding.`
+        }, lang)
+      : pick6({
+          kn: `${TARA_NAMES[taraNum].kn} ಪ್ರಭಾವದಿಂದ ನಿರ್ಧಾರಗಳಲ್ಲಿ ತಾಳ್ಮೆ ಅತ್ಯಗತ್ಯ; ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಗಣಪತಿ ಆರಾಧನೆ ಹಾಗೂ ನಿತ್ಯ ಸ್ತೋತ್ರ ಪಠಣೆ ರಕ್ಷೆಯಾಗಲಿದೆ.`,
+          mr: `${TARA_NAMES[taraNum].mr} मुळे निर्णयांमध्ये संयम बाळगणे आवश्यक आहे; श्री गोकर्ण महागणपती आराधना व नित्य स्तोत्र पठण सुरक्षा देईल.`,
+          hi: `${TARA_NAMES[taraNum].hi} के कारण निर्णयों में धैर्य आवश्यक है; श्री गोकर्ण महागणपति पूजन एवं नित्य स्तोत्र पाठ अचूक रक्षा कवच होगा।`,
+          te: `${TARA_NAMES[taraNum].te} వలన నిర్ణయాలలో సంయమనం అవసరం; శ్రీ గోకర్ణ మహా గణపతి పూజ మరియు నిత్య స్తోత్ర పారాయణం రక్షణగా నిలుస్తుంది.`,
+          ta: `${TARA_NAMES[taraNum].ta} காரணமாக முடிவுகளில் நிதானம் தேவை; ஸ்ரீ கோகர்ண மகா கணபதி வழிபாடு மற்றும் நித்திய ஸ்தோத்திர பாராயணம் சிறந்த அரணாகும்.`,
+          en: `Under ${TARA_NAMES[taraNum].en}, measured deliberation is advised; regular chanting and Gokarna Ganapati prayer ensure protective sanctuary.`
+        }, lang);
+
+    return {
+      taraName: TARA_NAMES[taraNum][lang] || TARA_NAMES[taraNum].kn,
+      taraCategory: cat,
+      isFavorable,
+      analysisText
+    };
+  }
+
+  function computeGocharaVedha(
+    moonRashi: number,
+    saturnTransitRashi: number,
+    jupiterTransitRashi: number,
+    lang: SixLang
+  ): { hasVedha: boolean; vedhaDetails: string } {
+    const jupHouse = ((jupiterTransitRashi - moonRashi + 12) % 12) + 1;
+    const satHouse = ((saturnTransitRashi - moonRashi + 12) % 12) + 1;
+
+    const jupVedhaMap: Record<number, number> = { 2: 12, 5: 4, 7: 3, 9: 10, 11: 8 };
+    const expectedVedhaHouse = jupVedhaMap[jupHouse];
+    const hasVedha = Boolean(expectedVedhaHouse && satHouse === expectedVedhaHouse);
+
+    let vedhaDetails = "";
+    if ([2, 5, 7, 9, 11].includes(jupHouse)) {
+      if (!hasVedha) {
+        vedhaDetails = pick6({
+          kn: `ನಿರ್ವೇಧ ಗುರು ಬಲ: ಚಂದ್ರರಾಶಿಯಿಂದ ${formatNumber6L(jupHouse, "kn")}ನೇ ಸ್ಥಾನದಲ್ಲಿರುವ ಗುರುವಿನ ಶುಭ ದೃಷ್ಟಿಗೆ ಯಾವುದೇ ಗ್ರಹ ವೇಧೆಯಿಲ್ಲದೆ (ಅಡಚಣೆಯಿಲ್ಲದೆ) ಪರಿಪೂರ್ಣ ದೈವಾನುಗ್ರಹ ಲಭಿಸಲಿದೆ.`,
+          mr: `निर्वेध गुरु बळ: चंद्रराशीपासून ${formatNumber6L(jupHouse, "mr")}व्या स्थानी असणाऱ्या गुरूवर कोणत्याही ग्रहाचा वेध नसून पूर्ण अनुकूल फळे मिळतील.`,
+          hi: `निर्वेध गुरु बल: चंद्र राशि से ${formatNumber6L(jupHouse, "hi")}वें भाव में स्थित बृहस्पति पर किसी ग्रह का वेध न होने से पूर्ण अनुकूलता एवं सफलता प्राप्त होगी।`,
+          te: `నిర్వేధ గురు బలం: చంద్రరాశి నుండి ${formatNumber6L(jupHouse, "te")}వ స్థానంలో ఉన్న గురువుకు ఎలాంటి గ్రహ వేధ లేకపోవడంతో సంపూర్ణ శుభ ఫలితాలు లభిస్తాయి.`,
+          ta: `நிர்வேத குரு பலம்: சந்திர ராசியிலிருந்து ${formatNumber6L(jupHouse, "ta")}ம் இடத்தில் சஞ்சரிக்கும் குரு பகவானுக்கு எந்த கிரக வேதமும் இன்றி பூரண நற்பலன்கள் கிடைக்கும்.`,
+          en: `Unobstructed Guru Transit (Nirvedha Bala): Jupiter transiting house ${jupHouse} from Moon sign is free of planetary Vedha, unlocking pure benefic fortune.`
+        }, lang);
+      } else {
+        vedhaDetails = pick6({
+          kn: `ವೇಧಾ ಸಹಿತ ಗುರು ಗೋಚಾರ: ಗುರುವಿನ ಶುಭ ರಶ್ಮಿಗಳಿಗೆ ಶನಿಗ್ರಹದ ಸಾಪೇಕ್ಷ ವೇಧೆ ಇರುವುದರಿಂದ, ಕಾರ್ಯಗಳು ನಿಧಾನವಾಗಿ ಆದರೆ ದೃಢವಾಗಿ ನೆರವೇರಲಿವೆ.`,
+          mr: `वेधयुक्त गुरु गोचर: गुरूच्या शुभावर इतर ग्रहाचा वेध असल्याने कार्ये सावकाश परंतु निश्चयाने पूर्णत्वास जातील.`,
+          hi: `वेधयुक्त गुरु गोचर: बृहस्पति के गोचर पर वेध होने के कारण कार्य मंद गति से किंतु दृढ़तापूर्वक संपन्न होंगे।`,
+          te: `వేధ సహిత గురు గోచారం: గురు గ్రహానికి శని వేధ ఉన్నందున, పనులు కొంత ఆలస్యంగానైనా ఖచ్చితంగా పూర్తవుతాయి.`,
+          ta: `வேதமுள்ள குரு கோசாரம்: குருவின் சுபக் கதிர்களுக்கு கிரக வேதம் இருப்பதால், காரியங்கள் நிதானமாக ஆயினும் உறுதியாக நிறைவேறும்.`,
+          en: `Transitional Vedha: Jupiter's benefic rays experience mild planetary Vedha, requiring patient perseverance to harvest full results.`
+        }, lang);
+      }
+    } else {
+      vedhaDetails = pick6({
+        kn: `ಸಾಮಾನ್ಯ ಗೋಚಾರ ಸ್ಥಿತಿ: ಜನ್ಮ ನಕ್ಷತ್ರದ ತಾರಾ ಬಲ ಹಾಗೂ ದಶಾನಾಥನ ಶುಭ ದೃಷ್ಟಿಯ ಆಧಾರದ ಮೇಲೆ ಫಲಗಳು ನಿರ್ಧಾರವಾಗಲಿವೆ.`,
+        mr: `सामान्य गोचर स्थिती: जन्म नक्षत्राचे ताराबळ व दशानाथांच्या दृष्टीवर फलादेश अवलंबून राहील.`,
+        hi: `सामान्य गोचर स्थिति: जन्म नक्षत्र का तारा बल एवं दशानाथ की शुभ दृष्टि से कार्य सिद्ध होंगे।`,
+        te: `సాధారణ గోచార స్థితి: జన్మ నక్షత్ర తారా బలం మరియు దశా నాథుని దృష్టిపై ఫలితాలు ఆధారపడి ఉంటాయి.`,
+        ta: `சாதாரண கோசார நிலை: ஜன்ம நட்சத்திர தாரா பலம் மற்றும் தசா நாதனின் பார்வையால் பலன்கள் தீர்மானிக்கப்படும்.`,
+        en: `Harmonious Transit Disposition: Transit outcomes are governed primarily by Navatara strength and active Mahadasha lord.`
+      }, lang);
+    }
+
+    return { hasVedha, vedhaDetails };
+  }
+
+  function computeCharaKarakaInfluence(
+    chartKundli: KundliOutput,
+    activeMahaPlanet: PlanetName,
+    lang: SixLang
+  ): { atmakarakaPlanet: string; amatyakarakaPlanet: string; influenceSummary: string } {
+    const eligible = (chartKundli.planets || []).filter(p =>
+      [PlanetName.Sun, PlanetName.Moon, PlanetName.Mars, PlanetName.Mercury, PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn].includes(p.name)
+    );
+
+    const sorted = [...eligible].sort((a, b) => (b.degree % 30) - (a.degree % 30));
+    const ak = sorted[0]?.name || PlanetName.Sun;
+    const amk = sorted[1]?.name || PlanetName.Jupiter;
+
+    const akName = GRAHA_6L[ak]?.[lang] || ak;
+    const amkName = GRAHA_6L[amk]?.[lang] || amk;
+
+    const isDashaAk = activeMahaPlanet === ak;
+    const isDashaAmk = activeMahaPlanet === amk;
+
+    let influenceSummary = "";
+    if (isDashaAk) {
+      influenceSummary = pick6({
+        kn: `ಜೈಮಿನಿ ಆತ್ಮಕಾರಕ ಪ್ರಭಾವ: ಪ್ರಸ್ತುತ ಮಹಾದಶಾನಾಥ ${akName} ನಿಮ್ಮ ಆತ್ಮಕಾರಕ ಗ್ರಹವಾಗಿದ್ದು, ಈ ವರ್ಷದಲ್ಲಿ ನಿಮ್ಮ ಜೀವನದ ಪರಮ ಮಹತ್ವದ ಆಂತರಿಕ ಪರಿವರ್ತನೆ ಮತ್ತು ಸುವರ್ಣ ಗೌರವ ಪ್ರಾಪ್ತಿಯಾಗಲಿದೆ.`,
+        mr: `जैमिनी आत्मकारक प्रभाव: चालू महादशा स्वामी ${akName} हे आपले आत्मकारक ग्रह असल्याने या वर्षात जीवनातील अत्यंत महत्त्वाचे वळण व उच्च सन्मान लाभेल.`,
+        hi: `जैमिनी आत्मकारक प्रभाव: वर्तमान महादशा स्वामी ${akName} आपके आत्मकारक ग्रह हैं, अतः इस वर्ष आत्मिक उन्नति एवं उच्च पद-प्रतिष्ठा सुनिश्चित होगी।`,
+        te: `జైమిని ఆత్మకారక ప్రభావం: ప్రస్తుత మహాదశా నాథుడు ${akName} మీ ఆత్మకారక గ్రహం కావడంతో, ఈ సంవత్సరంలో మహోన్నతమైన అంతర్గత పరివర్తన మరియు గౌరవ ప్రాప్తి కలుగుతాయి.`,
+        ta: `ஜைமினி ஆத்மகாரக செல்வாக்கு: தற்போதைய மகா தசா நாதன் ${akName} உங்கள் ஆத்மகாரக கிரகமாக இருப்பதால், இந்த ஆண்டில் மிகப்பெரிய ஆன்மீக உயர்வும் சமூக அந்தஸ்தும் கிட்டும்.`,
+        en: `Jaimini Atmakaraka Alignment: Active Mahadasha Lord ${akName} is your Atmakaraka, signifying an epochal year of spiritual awakening and pinnacle recognition.`
+      }, lang);
+    } else if (isDashaAmk) {
+      influenceSummary = pick6({
+        kn: `ಜೈಮಿನಿ ಅಮಾತ್ಯಕಾರಕ ಪ್ರಭಾವ: ಪ್ರಸ್ತುತ ಮಹಾದಶಾನಾಥ ${amkName} ನಿಮ್ಮ ಅಮಾತ್ಯಕಾರಕ ಗ್ರಹವಾಗಿದ್ದು, ವೃತ್ತಿ, ವ್ಯವಹಾರ ಹಾಗೂ ಆಡಳಿತ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅತ್ಯುನ್ನತ ಯಶಸ್ಸು ಲಭಿಸಲಿದೆ.`,
+        mr: `जैमिनी अमात्यकारक प्रभाव: चालू महादशा स्वामी ${amkName} आपले अमात्यकारक असल्याने करिअर व व्यवसायात सर्वोच्च यश प्राप्त होईल.`,
+        hi: `जैमिनी अमात्यकारक प्रभाव: वर्तमान महादशा स्वामी ${amkName} आपके अमात्यकारक ग्रह हैं, जिससे आजीविका एवं व्यापार में अप्रतिम सफलता प्राप्त होगी।`,
+        te: `జైమిని అమాత్యకారక ప్రభావం: ప్రస్తుత మహాదశా నాథుడు ${amkName} మీ అమాత్యకారక గ్రహం కావడంతో, ఉద్యోగ, వ్యాపారాలలో అత్యున్నత విజయం చేకూరుతుంది.`,
+        ta: `ஜைமினி அமாத்யகாரக செல்வாக்கு: தற்போதைய மகா தசா நாதன் ${amkName} உங்கள் அமாத்யகாரக கிரகமாக இருப்பதால், தொழில் மற்றும் வர்த்தகத்தில் உச்சகட்ட வெற்றி கிட்டும்.`,
+        en: `Jaimini Amatyakaraka Alignment: Active Mahadasha Lord ${amkName} is your Amatyakaraka, anchoring prime career ascendancy and executive achievement.`
+      }, lang);
+    } else {
+      influenceSummary = pick6({
+        kn: `ಆತ್ಮಕಾರಕ ${akName} ಹಾಗೂ ಅಮಾತ್ಯಕಾರಕ ${amkName}ರ ಶುಭ ರಶ್ಮಿಗಳು ನಿಮ್ಮ ಕರ್ಮಕ್ಷೇತ್ರ ಮತ್ತು ಕೌಟುಂಬಿಕ ಸೌಖ್ಯವನ್ನು ಸಂರಕ್ಷಿಸಲಿವೆ.`,
+        mr: `आत्मकारक ${akName} व अमात्यकारक ${amkName} यांची शुभ दृष्टी आपल्या कार्यक्षेत्र व कुटुंबाला अखंड स्थैर्य देईल.`,
+        hi: `आत्मकारक ${akName} एवं अमात्यकारक ${amkName} की कृपा आपके कार्यक्षेत्र एवं पारिवारिक जीवन को सुरक्षित रखेगी।`,
+        te: `ఆత్మకారక ${akName} మరియు అమాత్యకారక ${amkName}ల శుభ దృష్టి మీ కార్యరంగం మరియు కుటుంబ శాంతిని కాపాడుతుంది.`,
+        ta: `ஆத்மகாரகர் ${akName} மற்றும் அமாத்யகாரகர் ${amkName} அருட்பார்வை உங்கள் தொழில் மற்றும் குடும்ப வாழ்க்கையை பாதுகாக்கும்.`,
+        en: `Atmakaraka ${akName} and Amatyakaraka ${amkName} cast protective rays over your vocational trajectory and domestic peace.`
+      }, lang);
+    }
+
+    return { atmakarakaPlanet: akName, amatyakarakaPlanet: amkName, influenceSummary };
+  }
+
   // Compute 5 individual years
   const years: FiveYearSingleYear[] = [];
   let peakScore = 0;
@@ -3432,6 +3977,10 @@ export function compute5YearMasterPrediction(
       en: `What are the defining turning points, golden opportunity windows, and vital cautions for the ${gregorianRange} cycle?`
     }, targetLang);
 
+    const taraBala = computeNavataraBala(nakshatraIdx, guruSign, targetLang);
+    const vedhaAnalysis = computeGocharaVedha(moonIdx, shaniSign, guruSign, targetLang);
+    const charaKarakaInfluence = computeCharaKarakaInfluence(kundli, mahaLord, targetLang);
+
     years.push({
       yearIndex: i,
       gregorianRange,
@@ -3460,7 +4009,10 @@ export function compute5YearMasterPrediction(
       moorthyNirnaya: { saturnMoorthy, jupiterMoorthy },
       savPoints: satSav,
       paragraphs: [yP1, yP2, yP3],
-      questionInquest
+      questionInquest,
+      taraBala,
+      vedhaAnalysis,
+      charaKarakaInfluence
     });
   }
 
@@ -3584,16 +4136,16 @@ export function compute5YearMasterPrediction(
             hi: `संतुलित सात्विक आहार, पर्याप्त विश्राम एवं नियमित खेलकूद से बालक की रोगप्रतिरोधक क्षमता अत्यंत सुदृढ़ होगी। षष्ठ भाव की अनुकूलता से मौसमी व्याधियों से सुरक्षित रहकर बालक ऊर्जावान बना रहेगा।`,
             te: `పౌష్టికాహారం, తగినంత నిద్ర మరియు ఆటపాటలు పిల్లల రోగనిరోధక శక్తిని మరింత బలోపేతం చేస్తాయి. 6వ భావ అనుకూలతతో ఎలాంటి ఆరోగ్య ఇబ్బందులు లేకుండా ఉత్సాహంగా ఎదుగుతారు.`,
             ta: `சத்தான உணவு, போதுமான தூக்கம் மற்றும் உடற்பயிற்சி நோய் எதிர்ப்பு சக்தியை பலப்படுத்தும். ஆரோக்கியமான சூழல் அடுத்த 5 ஆண்டுகளில் குழந்தையை உற்சாகமாக வளரச் செய்யும்.`,
-            en: `Wholesome nutrition, sound sleep, and energetic outdoor play will solidify a resilient immune shield, ensuring vibrant health and boundless enthusiasm throughout childhood.`
+            en: `Balanced pediatric nutrition, rhythmic sleep patterns, and outdoor physical play will continuously reinforce the vitality shield, ensuring vibrant health over the 5-year arc.`
           }, targetLang)
         ],
         keyAdvice: pick6({
-          kn: "ಬೆಳಿಗ್ಗೆ ಸೂರ್ಯ ದರ್ಶನ ಹಾಗೂ ತುಳಸಿ ತೀರ್ಥ ಸೇವನೆ ಆಯುಷ್ಯ ವರ್ಧಕ.",
-          mr: "सकाळी सूर्यदर्शन व तुळशीपत्राचे सेवन आरोग्यासाठी अमृततुल्य आहे.",
-          hi: "प्रातः सूर्य दर्शन एवं तुलसी दल का सेवन आरोग्यवर्धक है।",
-          te: "ఉదయాన్నే సూర్య దర్శనం మరియు తులసి తీర్థం సేవించడం ఆయుష్షును పెంచుతుంది.",
-          ta: "காலை சூரிய தரிசனம் & துளசி தீர்த்தம் அருந்துவது உடல்நலத்திற்கு சிறந்தது.",
-          en: "Morning sunlight and holy Tulasi water preserve radiant immunity."
+          kn: "ಪ್ರತಿದಿನ ಸೂರ್ಯ ನಮಸ್ಕಾರ ಹಾಗೂ ಧನ್ವಂತರಿ ಮಂತ್ರ ಪಠಣೆ ಉತ್ತಮ ಆರೋಗ್ಯಕ್ಕೆ ಶ್ರೀರಕ್ಷೆ.",
+          mr: "दररोज सकाळी सूर्य नमस्कार व धन्वंतरी मंत्राचे पठण उत्तम आरोग्यासाठी लाभदायक ठरेल.",
+          hi: "नित्य सूर्य नमस्कार एवं धन्वंतरि मंत्र का जप उत्तम स्वास्थ्य प्रदान करेगा।",
+          te: "రోజూ సూర్య నమస్కారాలు మరియు ధన్వంతరి మంత్రం జపించడం ఆరోగ్యానికి రక్ష.",
+          ta: "தினமும் சூரிய நமஸ்காரம் மற்றும் தன்வந்திரி மந்திரம் ஜபிப்பது ஆரோக்கியம் தரும்.",
+          en: "Daily Surya Namaskar and Dhanvantari prayer shield physical vitality."
         }, targetLang)
       },
       {
@@ -3629,11 +4181,11 @@ export function compute5YearMasterPrediction(
             mr: `चित्रकला, गायन, वादन किंवा साहित्यात विशेष रुची दिसून येईल. पालकांनी योग्य प्रोत्साहन दिल्यास हे सुप्त गुण मुलाच्या भविष्याला नवी दिशा देतील.`,
             hi: `कला, संगीत, साहित्य अथवा अभिनय में विशेष रुचि प्रकट होगी। माता-पिता का उचित प्रोत्साहन इस प्रतिभा को नई ऊंचाइयां प्रदान करेगा।`,
             te: `చిత్రలేఖనం, సంగీతం లేదా సాహిత్య రంగాలలో ప్రత్యేక ఆసక్తి కలుగుతుంది. తల్లిదండ్రుల ప్రోత్సాహం వీరి ప్రతిభను మరింత వెలికితీస్తుంది.`,
-            ta: `ஓவியம், இசை, நடனம் அல்லது இலக்கியத்தில் ஆர்வம் வெளிப்படும். பெற்றோரின் ஆதரவு இத்திறமைகளை மெருகேற்றும்.`,
-            en: `Innate aesthetic gifts in music, visual art, or literary expression emerge vividly with warm parental encouragement.`
+            ta: `ஓவியம், இசை, நடனம் அல்லது இலக்கியத்தில் ஆர்வம் வெளிப்படும். பெற்றோரின் ஊக்கம் இந்த திறமையை எதிர்காலத்தில் பெரிய வெற்றியாக மாற்றும்.`,
+            en: `Natural artistic instincts across painting, music, dance, or creative writing begin surfacing gracefully. Gentle encouragement from parents will transform these nascent gifts into foundational masteries.`
           }, targetLang),
           pick6({
-            kn: `ಶಾಲಾ ವಾರ್ಷಿಕೋತ್ಸವಗಳು ಹಾಗೂ ಬಾಹ್ಯ ಸ್ಪರ್ಧೆಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವುದರಿಂದ ಮಗುವಿನ ಆತ್ಮವಿಶ್ವಾಸ ಗಣನೀಯವಾಗಿ ವೃದ್ಧಿಯಾಗಲಿದೆ. ಹೊಸ ಭಾಷೆಗಳನ್ನು ಕಲಿಯುವ ಹಾಗೂ ಸೃಜನಶೀಲ ಹವ್ಯಾಸಗಳನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳುವ ಅದ್ಭುತ ಆಸಕ್ತಿ ವ್ಯಕ್ತವಾಗಲಿದೆ.`,
+            kn: `ಶಾಲಾ ಮಟ್ಟದ ಸ್ಪರ್ಧೆಗಳು ಹಾಗೂ ಸಾಂಸ್ಕೃತಿಕ ಕಾರ್ಯಕ್ರಮಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವುದರಿಂದ ಮಗುವಿನ ಆತ್ಮವಿಶ್ವಾಸ ಗಣನೀಯವಾಗಿ ವೃದ್ಧಿಸಲಿದೆ. ಹೊಸ ಭಾಷೆಗಳನ್ನು ಕಲಿಯುವ ಹಾಗೂ ಸೃಜನಶೀಲ ಹವ್ಯಾಸಗಳನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳುವ ಅದ್ಭುತ ಆಸಕ್ತಿ ವ್ಯಕ್ತವಾಗಲಿದೆ.`,
             mr: `शालेय स्पर्धा व सांस्कृतिक कार्यक्रमांत भाग घेतल्याने मुलाचा आत्मविश्वास प्रचंड वाढेल. नवीन भाषा शिकण्याची व कलात्मक छंद जोपासण्याची विलक्षण आवड निर्माण होईल.`,
             hi: `विद्यालयीन प्रतियोगिताओं एवं सांस्कृतिक कार्यक्रमों में भागीदारी से बालक का आत्मविश्वास बढ़ेगा। नवीन भाषाएं सीखने एवं रचनात्मक रुचियों को विकसित करने की अद्भुत प्रतिभा प्रकट होगी।`,
             te: `పాఠశాల పోటీలు మరియు సాంస్కృతిక కార్యక్రమాలలో పాల్గొనడం వల్ల పిల్లలలో ఆత్మవిశ్వాసం పెరుగుతుంది. కొత్త భాషలు నేర్చుకోవడం మరియు సృజనాత్మక నైపుణ్యాలు అలవడతాయి.`,
@@ -3659,201 +4211,12 @@ export function compute5YearMasterPrediction(
         }, targetLang)
       }
     );
-  } else if (ageCategory === "senior") {
-    chapters.push(
-      {
-        id: "senior_spirituality",
-        title: pick6({
-          kn: "ಅಧ್ಯಾಯ ೧: ಆಧ್ಯಾತ್ಮಿಕ ಪರಿಪಕ್ವತೆ, ತೀರ್ಥಯಾತ್ರೆ ಹಾಗೂ ಮನಃಶಾಂತಿ",
-          mr: "अध्याय १: आध्यात्मिक परिपक्वता, तीर्थाटन व आत्मिक शांती",
-          hi: "अध्याय १: आध्यात्मिक परिपक्वता, तीर्थाटन एवं आत्मिक शांति",
-          te: "అధ్యాయం 1: ఆధ్యాత్మిక పరిపక్వత, తీర్థయాత్రలు & మనశ్శాంతి",
-          ta: "அத்தியாயம் 1: ஆன்மீக முதிர்ச்சி, தீர்த்த யாத்திரை & மன அமைதி",
-          en: "Chapter 1: Spiritual Maturity, Sacred Pilgrimage & Inner Serenity"
-        }, targetLang),
-        subtitle: pick6({
-          kn: "ಗುರು ಹಾಗೂ ಕೇತುವಿನ ಪ್ರಭಾವದಿಂದ ತತ್ತ್ವಜ್ಞಾನ ವೃದ್ಧಿ",
-          mr: "गुरू व केतूच्या प्रभावाने तत्त्वज्ञानाची वृद्धी",
-          hi: "गुरु एवं केतु के प्रभाव से तत्वज्ञान एवं वैराग्य भाव",
-          te: "గురు మరియు కేతువుల ప్రభావంతో తత్వజ్ఞాన వృద్ధి",
-          ta: "குரு & கேதுவின் பார்வையால் தத்துவ ஞானம்",
-          en: "Jovian contemplation and Ketu's introspective detachment"
-        }, targetLang),
-        icon: "🪔",
-        contemplationInquest: pick6({
-          kn: "ಆಧ್ಯಾತ್ಮಿಕ ಪರಿಪಕ್ವತೆ, ಮೋಕ್ಷ ಸಾಧನೆ ಹಾಗೂ ತೀರ್ಥಯಾತ್ರಾ ಪುಣ್ಯ ಸಂಚಯನ ಚಿಂತನೆ",
-          mr: "आध्यात्मिक प्रगती, तीर्थाटन व आत्मिक शांतीचा महामार्ग चिंतन",
-          hi: "आध्यात्मिक परिपक्वता, तीर्थाटन एवं आत्मिक शांति का पावन चिंतन",
-          te: "ఆధ్యాత్మిక పరిపక్వత, తీర్థయాత్రలు మరియు ఆత్మ శాంతి విశ్లేషణ",
-          ta: "ஆன்மீக முதிர்ச்சி, தீர்த்த யாத்திரை & ஆத்ம சாந்தி சிந்தனை",
-          en: "Contemplation on Spiritual Realization, Sacred Shrines & Inner Equanimity"
-        }, targetLang),
-        paragraphs: [
-          pick6({
-            kn: `ಜೀವನದ ಈ ಹಂತದಲ್ಲಿ ನಿಮ್ಮ ಆಧ್ಯಾತ್ಮಿಕ ಚೇತನವು ಪರಮ ಪವಿತ್ರತೆಯನ್ನು ಪಡೆಯಲಿದೆ. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ, ಕಾಶಿ, ರಾಮೇಶ್ವರಂ ಅಥವಾ ಹರಿದ್ವಾರದಂತಹ ಪುಣ್ಯ ಕ್ಷೇತ್ರಗಳ ದರ್ಶನದಿಂದ ಮನಸ್ಸಿಗೆ ಶಾಂತಿ ಲಭಿಸಲಿದೆ.`,
-            mr: `आयुष्याच्या या टप्प्यावर आपली आध्यात्मिक वृत्ती अत्यंत सात्विक होईल. गोकर्ण, काशी, रामेश्वर किंवा पंढरपूरसारख्या पवित्र तीर्थक्षेत्रांच्या दर्शनाने मन शांत होईल.`,
-            hi: `जीवन के इस पावन काल में आपकी आध्यात्मिक चेतना प्रखर होगी। गोकर्ण, काशी, रामेश्वरम अथवा बद्रीनाथ जैसे तीर्थों की यात्रा से आत्मिक आनंद मिलेगा।`,
-            te: `జీవితంలోని ఈ దశలో మీ ఆధ్యాత్మిక చైతన్యం పరమ పవిత్రతను పొందుతుంది. గోకర్ణం, కాశీ, రామేశ్వరం వంటి పుణ్యక్షేత్రాల దర్శనంతో మనస్సుకు ఆనందం లభిస్తుంది.`,
-            ta: `வாழ்க்கையின் இந்த புனித காலகட்டத்தில் உங்கள் ஆன்மீக உணர்வு மேலோங்கும். கோகர்ணம், காசி, ராமேஸ்வரம் போன்ற தலங்களுக்கு யாத்திரை செல்வது சாந்தி தரும்.`,
-            en: `This 5-year phase marks a sublime awakening of philosophical wisdom, fulfilling cherished vows of visiting sanctified pilgrimage shrines.`
-          }, targetLang),
-          pick6({
-            kn: `ದೈನಂದಿನ ಜೀವನದಲ್ಲಿ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಪಾರಾಯಣ, ಗಾಯತ್ರಿ ಜಪ, ಶಿವ ಪಂಚಾಕ್ಷರೀ ಸ್ಮರಣೆ ಹಾಗೂ ಅನ್ನದಾನದಂತಹ ನಿತ್ಯ ಪುಣ್ಯ ಕಾರ್ಯಗಳು ನಿಮ್ಮ ಸಮಸ್ತ ವಂಶಕ್ಕೆ ಅಕ್ಷಯ ದೈವಿಕ ರಕ್ಷಾ ಕವಚವಾಗಲಿವೆ. ಹಿಂದಿನ ಕರ್ಮಗಳ ಶೇಷಗಳು ಕರಗಿ, ಮನಸ್ಸು ನಿರ್ಮಲವಾಗಲಿದೆ. ನಿತ್ಯವೂ ಪ್ರಾತಃಕಾಲದಲ್ಲಿ ಭಗವಂತನ ನಾಮಸ್ಮರಣೆ ಮಾಡುವುದರಿಂದ ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಸದಾ ಧನಾತ್ಮಕ ತರಂಗಗಳು ಹರಿಯಲಿವೆ.`,
-            mr: `नित्य नियमाने विष्णु सहस्रनाम, गायत्री मंत्र, शिव स्तोत्रे व अन्नदानासारखी सत्कृत्ये केल्याने आपल्या संपूर्ण कुळाला ईश्वराचे अक्षय सुरक्षा कवच लाभेल. पूर्वजन्माचे संचित दोष नष्ट होऊन अंतःकरण शुद्ध बनेल. दररोज सकाळी भगवंताचे नामस्मरण केल्याने घरातील वातावरण सदैव प्रसन्न, मंगलमय व सकारात्मक राहील.`,
-            hi: `दैनिक जीवन में विष्णु सहस्रनाम पाठ, गायत्री मंत्र, शिव पंचाक्षरी जप एवं अन्नदान जैसे पुण्य कार्य आपके संपूर्ण कुल एवं भावी पीढ़ियों के लिए अक्षय सुरक्षा कवच सिद्ध होंगे। समस्त पूर्व संचित क्लेश शांत होकर अंतःकरण निर्मल बनेगा। नित्य प्रभु नाम संकीर्तन से घर में सकारात्मक ऊर्जा का निरंतर प्रवाह रहेगा।`,
-            te: `నిత్య జీవితంలో విష్ణు సహస్రనామ పారాయణం, గాయత్రీ మంత్రం, శివ పంచాక్షరీ జపం మరియు అన్నదానం వంటి పుణ్యకార్యాలు మీ వంశానికి శాశ్వత దైవిక రక్షణ కవచంగా నిలుస్తాయి. పూర్వ కర్మల దోషాలు తొలగి అంతఃకరణం నిర్మలమవుతుంది. ప్రతిరోజూ దైవ నామస్మరణతో మీ ఇంట్లో సుఖశాంతులు వెల్లివిరుస్తాయి.`,
-            ta: `தினசரி விஷ்ணு சஹஸ்ரநாம பாராயணம், காயத்ரி ஜபம், சிவ நாம சங்கீர்த்தனம் மற்றும் அன்னதானம் போன்ற நற்காரியங்கள் உங்கள் சந்ததியினருக்கு தெய்வீக பாதுகாப்பாக அமையும். முந்தைய கர்ம வினைகள் நீங்கி மனம் தூய்மை பெறும். தினமும் இறைவனின் திருநாமத்தை உச்சரிப்பதால் உங்கள் இல்லத்தில் எப்போதும் நேர்மறை அலைகள் பரவும்.`,
-            en: `Engaging in daily recitations of the Vishnu Sahasranama, Gayatri Japa, and charitable Annadana weaves an enduring karmic protective shield across your children and grandchildren. Past anxieties dissolve into pristine mental stillness, while disciplined devotional remembrance permeates the household with auspicious grace.`
-          }, targetLang),
-          pick6({
-            kn: `ಜೀವನದ ಸಮಸ್ತ ಏರಿಳಿತಗಳನ್ನು ಸಮಚಿತ್ತದಿಂದ ಸ್ವೀಕರಿಸುವ ಪರಮ ಶಾಂತಿಯು ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ನೆಲೆಸಲಿದೆ. ಆಧ್ಯಾತ್ಮಿಕ ಸತ್ಸಂಗಗಳು ಹಾಗೂ ದೇವಸ್ಥಾನಗಳ ಸೇವಾ ಕೈಂಕರ್ಯಗಳು ನಿಮಗೆ ಅಖಂಡ ಆನಂದವನ್ನು ತರಲಿವೆ.`,
-            mr: `आयुष्यातील सुख-दुःखांकडे साक्षीभावाने पाहण्याची परम शांती मनात निर्माण होईल. सत्संग, देवदर्शन व धर्मकार्यात वेळ घालवल्याने आत्मिक समाधान लाभेल.`,
-            hi: `जीवन के समस्त अनुभवों को समभाव से स्वीकार करने की परम शांति प्राप्त होगी। आध्यात्मिक सत्संग, तीर्थ दर्शन एवं भगवद् सेवा से असीम आनंद की अनुभूति होगी।`,
-            te: `జీవితంలోని ఎగుడుదిగుళ్లను సమదృష్టితో స్వీకరించే ప్రశాంతత మీ మనస్సులో నెలకొంటుంది. ఆధ్యాత్మిక సత్సంగాలు మరియు దైవ సేవలు మీకు పరిపూర్ణ ఆనందాన్ని ఇస్తాయి.`,
-            ta: `வாழ்வின் ஏற்றத்தாழ்வுகளை சமநோக்குடன் ஏற்கும் மன அமைதி உண்டாகும். ஆன்மீக சத்விஷயங்கள் மற்றும் கோவில் திருப்பணிகள் உங்களுக்கு எல்லையற்ற மன நிறைவைத் தரும்.`,
-            en: `A serene equanimity will envelop your consciousness, allowing you to witness life's unfolding with tranquil grace, drawing deep bliss from spiritual assemblies and temple devotions.`
-          }, targetLang)
-        ],
-        keyAdvice: pick6({
-          kn: "ನಿತ್ಯವೂ ವಿಷ್ಣು ಸಹಸ್ರನಾಮ ಅಥವಾ ಶಿವ ಪಂಚಾಕ್ಷರೀ ಜಪ ಮಾಡಿ.",
-          mr: "दररोज विष्णु सहस्रनाम किंवा शिवस्तोत्रांचे पठण परम शांती देणारे ठरेल.",
-          hi: "नित्य विष्णु सहस्रनाम का श्रवण अथवा पाठ परम कल्याणकारी है।",
-          te: "రోజూ విష్ణు సహస్రనామ స్తోత్రం లేదా శివ పంచాక్షరీ జపం చేయండి.",
-          ta: "தினமும் விஷ்ணு சஹஸ்ரநாமம் அல்லது சிவ பஞ்சாட்சரம் பாராயணம் செய்யுங்கள்.",
-          en: "Recite Vishnu Sahasranama for enduring spiritual bliss."
-        }, targetLang)
-      },
-      {
-        id: "senior_legacy",
-        title: pick6({
-          kn: "ಅಧ್ಯಾಯ ೨: ಕೌಟುಂಬಿಕ ಸಾರ್ಥಕತೆ, ಸಂತಾನ ಸುಖ ಹಾಗೂ ಆರ್ಥಿಕ ಭದ್ರತೆ",
-          mr: "अध्याय २: कौटुंबिक समाधान, नातवंडांचे सुख व आर्थिक स्थैर्य",
-          hi: "अध्याय २: पारिवारिक संतुष्टि, संतान सुख एवं आर्थिक सुरक्षा",
-          te: "అధ్యాయం 2: కుటుంబ సంతృప్తి, సంతాన సౌఖ్యం & ఆర్థిక భద్రత",
-          ta: "அத்தியாயம் 2: குடும்ப நிறைவு, சந்ததி மகிழ்ச்சி & நிதிப் பாதுகாப்பு",
-          en: "Chapter 2: Family Legacy, Grandchildren Joy & Financial Independence"
-        }, targetLang),
-        subtitle: pick6({
-          kn: "೨ನೇ ಹಾಗೂ ೯ನೇ ಮನೆಯ ಶುಭ ದೃಷ್ಟಿಯಿಂದ ಶಾಂತಿಯುತ ನಿವೃತ್ತಿ ಜೀವನ",
-          mr: "द्वितीय व नवम भावाच्या शुभ दृष्टीने सुरक्षित व सन्माननीय जीवन",
-          hi: "द्वितीय एवं नवम भाव के शुभ प्रभाव से सुरक्षित एवं सम्मानित जीवन",
-          te: "2 మరియు 9వ భావాల శుభ దృష్టితో ప్రశాంతమైన జీవనం",
-          ta: "2 மற்றும் 9ம் வீடுகளின் சுப பார்வையால் அமைதியான ஓய்வுக்காலம்",
-          en: "9th house dharma anchoring family legacy and economic autonomy"
-        }, targetLang),
-        icon: "🌿",
-        contemplationInquest: pick6({
-          kn: "ವಂಶ ಪಾರಂಪರ್ಯ ಗೌರವ, ಸಂತಾನ ಸೌಭಾಗ್ಯ ಹಾಗೂ ಶಾಂತಿಯುತ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆ",
-          mr: "पारिवारिक प्रतिष्ठा, संततीचे समाधान व आर्थिक स्वावलंबन चिंतन",
-          hi: "पारिवारिक प्रतिष्ठा, संतति सुख एवं आर्थिक स्वावलंबन का चिंतन",
-          te: "వంశ గౌరవం, సంతాన సౌఖ్యం మరియు ఆర్థిక స్వావలంబన చింతన",
-          ta: "குடும்ப கௌரவம், சந்ததி மகிழ்ச்சி & நிதி சுதந்திர சிந்தனை",
-          en: "Contemplation on Family Legacy, Generational Grace & Financial Autonomy"
-        }, targetLang),
-        paragraphs: [
-          pick6({
-            kn: `ನಿಮ್ಮ ಮಕ್ಕಳು ಸಮಾಜದಲ್ಲಿ ಉತ್ತಮ ಸ್ಥಾನಮಾನ ಪಡೆದು ಗೌರವದಿಂದ ಬಾಳುವುದನ್ನು ಕಂಡು ನೀವು ಧನ್ಯತೆಯನ್ನು ಅನುಭವಿಸುವಿರಿ. ಮೊಮ್ಮಕ್ಕಳ ಮುಗ್ಧ ನಗು ನಿಮ್ಮ ಮನೆಯಲ್ಲಿ ಹಬ್ಬದ ವಾತಾವರಣ ತರಲಿದೆ.`,
-            mr: `मुलांचे कर्तृत्व व यश पाहून मनाला अतीव समाधान लाभेल. नातवंडांच्या सहवासाने घरात सदैव आनंदाचे वातावरण राहील.`,
-            hi: `संतान की प्रतिष्ठा एवं सफलता देखकर आपको असीम संतोष होगा। पौत्र-पौत्रियों का सान्निध्य जीवन में नवउमंग भरेगा।`,
-            te: `మీ పిల్లలు సమాజంలో ఉన్నత స్థానంలో గౌరవంగా జీవించడం చూసి మీరు సంతృప్తి చెందుతారు. మనవళ్లు-మనవరాళ్ల నవ్వులు ఇంట్లో పండుగ వాతావరణాన్ని తెస్తాయి.`,
-            ta: `உங்கள் பிள்ளைகளின் நல்வாழ்வைக் கண்டு மனம் நிறைவடையும். பேரக்குழந்தைகளின் மழலைச் சிரிப்பு வீட்டில் மகிழ்ச்சியைப் பொழியும்.`,
-            en: `Watching your children's success and flourishing households will bring supreme fulfillment and grandfatherly/grandmotherly pride.`
-          }, targetLang),
-          pick6({
-            kn: `ಹಿಂದಿನ ದಶಕಗಳ ನಿಮ್ಮ ಪ್ರಾಮಾಣಿಕ ಪರಿಶ್ರಮ, ವ್ಯವಸ್ಥಿತ ಹೂಡಿಕೆಗಳು ಹಾಗೂ ಧರ್ಮಯುಕ್ತ ಉಳಿತಾಯಗಳು ಈ ೫ ವರ್ಷಗಳಲ್ಲಿ ನಿಮಗೆ ಪರಿಪೂರ್ಣ ಆರ್ಥಿಕ ಸ್ವಾವಲಂಬನೆಯನ್ನು ದಯಪಾಲಿಸಲಿವೆ. ಯಾವುದೇ ಆರ್ಥಿಕ ಅಡಚಣೆಗಳಿಲ್ಲದೆ ಸ್ವತಂತ್ರವಾಗಿ, ಗೌರವದಿಂದ ಬದುಕುವ ಯೋಗವಿದೆ. ಆಸ್ತಿ-ಪಾಸ್ತಿ ಹಾಗೂ ಪಿತ್ರಾರ್ಜಿತ ಸಂಪತ್ತಿನ ಹಂಚಿಕೆಯನ್ನು ಹಿರಿಯರ ಸಮ್ಮುಖದಲ್ಲಿ ಶಾಂತಿಯುತವಾಗಿ, ನ್ಯಾಯೋಚಿತವಾಗಿ ನಿರ್ವಹಿಸುವುದು ಭವಿಷ್ಯದ ಸೌಹಾರ್ದಕ್ಕೆ ಅಡಿಪಾಯವಾಗಲಿದೆ.`,
-            mr: `गेल्या अनेक वर्षांचे आपले प्रामाणिक कष्ट, सुयोग्य गुंतवणूक व शिस्तबद्ध बचत या ५ वर्षांत आपल्याला संपूर्ण आर्थिक स्वातंत्र्य व सुरक्षा प्रदान करेल. कोणावरही आर्थिक भार न होता सन्मानाने जीवन जगता येईल. वडिलोपार्जित संपत्ती व गुंतवणुकीचे नियोजन सर्वांच्या संमतीने शांततेने केल्यास कुटुंबात कायम एकोपा टिकून राहील.`,
-            hi: `विगत दशकों का आपका कठिन परिश्रम, सुनियोजित निवेश एवं नियमित बचत आगामी ५ वर्षों में आपको पूर्ण आर्थिक स्वावलंबन एवं सुरक्षा प्रदान करेगी। किसी पर आश्रित हुए बिना पूर्ण सम्मान एवं गरिमा के साथ जीवन व्यतीत होगा। पारिवारिक संपत्तियों एवं संचित धन का वितरण समभाव एवं सौहार्द के साथ करना कुल की एकता को सुदृढ़ करेगा।`,
-            te: `గతంలో మీరు చేసిన కష్టార్జితం, సరైన పెట్టుబడులు మరియు పొదుపు రాబోయే 5 సంవత్సరాలలో మీకు సంపూర్ణ ఆర్థిక స్వాతంత్ర్యాన్ని అందిస్తాయి. ఎవరి మీదా ఆధారపడకుండా ఆత్మగౌరవంతో ప్రశాంతంగా జీవిస్తారు. పూర్వీకుల ఆస్తుల పంపకాలను కుటుంబ సభ్యులతో కలిసి సామరస్యంగా పరిష్కరించుకోవడం వల్ల సఖ్యత కొనసాగుతుంది.`,
-            ta: `கடந்த காலங்களில் நீங்கள் செய்த கடின உழைப்பு, முறையான முதலீடுகள் மற்றும் சேமிப்புகள் இந்த 5 ஆண்டுகளில் உங்களுக்கு முழு நிதி சுதந்திரத்தை உறுதி செய்யும். யாரையும் நிதி ரீதியாகச் சார்ந்திருக்காமல் கண்ணியத்துடன் வாழலாம். முன்னோர்களின் சொத்துக்களை நியாயமாகவும் அமைதியாகவும் பகிர்ந்தளிப்பது குடும்ப ஒற்றுமையை பலப்படுத்தும்.`,
-            en: `The disciplined fiscal stewardship and conscientious savings of preceding decades guarantee unbroken economic autonomy throughout these 5 years. Living with financial self-reliance and dignified sovereignty is assured, while executing legacy distribution equitably preserves generational unity.`
-          }, targetLang),
-          pick6({
-            kn: `ನಿಮ್ಮ ಜೀವನಾನುಭವದ ಜ್ಞಾನ ಮತ್ತು ಆಶೀರ್ವಾದಗಳು ನಿಮ್ಮ ಇಡೀ ವಂಶಕ್ಕೆ ಮಾರ್ಗದರ್ಶಕ ಬೆಳಕಾಗಲಿವೆ. ಸಮಾಜದಲ್ಲಿ ನಿಮ್ಮ ಹಿತನುಡಿಗಳಿಗೆ ಹಾಗೂ ಗೌರವಕ್ಕೆ ಹೆಚ್ಚಿನ ಮನ್ನಣೆ ದೊರೆಯಲಿದ್ದು, ಸಾರ್ಥಕ ಜೀವನದ ಧನ್ಯತೆ ನಿಮ್ಮದಾಗಲಿದೆ.`,
-            mr: `तुमचा समृद्ध जीवनप्रवास व आशीर्वाद संपूर्ण कुटुंबासाठी दीपस्तंभासारखे मार्गदर्शन करतील. समाजात आपल्या शब्दांना व अनुभवाला मोठा आदर मिळून कृतकृत्यतेची भावना लाभेल.`,
-            hi: `आपका समृद्ध अनुभव एवं आशीर्वाद संपूर्ण कुल के लिए मार्गदर्शक प्रकाश सिद्ध होगा। समाज में आपके वचनों को आदर मिलेगा तथा एक सार्थक जीवन की अनुभूति होगी।`,
-            te: `మీ జీవిత అనుభవం మరియు ఆశీస్సులు కుటుంబ సభ్యులందరికీ మార్గదర్శకంగా నిలుస్తాయి. సమాజంలో మీ మాటకు గౌరవం లభించి, సార్థక జీవన సంతృప్తి మీ సొంతమవుతుంది.`,
-            ta: `உங்கள் அனுபவ அறிவும் ஆசிகளும் உங்கள் குடும்பத்தினருக்கு நல்வழிகாட்டும் தீபமாக விளங்கும். சமூகத்தில் உங்கள் சொல்லுக்கு பெரும் மதிப்பு கிட்டும்.`,
-            en: `Your accumulated wisdom and loving blessings serve as a beacon for the entire family lineage, commanding profound respect in the community and sealing a life of noble fulfillment.`
-          }, targetLang)
-        ],
-        keyAdvice: pick6({
-          kn: "ಸಂಪತ್ತಿನ ಯೋಜನೆಗಳನ್ನು ಕುಟುಂಬದ ಹಿರಿಯರೊಂದಿಗೆ ಸಮಾಲೋಚಿಸಿ ಶಾಂತಿಯುತವಾಗಿ ನಿರ್ವಹಿಸಿ.",
-          mr: "संपत्तीचे नियोजन समजुतीने व शांततेने केल्यास कुटुंबात कायम ऐक्य राहील.",
-          hi: "पारिवारिक संपत्ति का सुचारु नियोजन सभी में प्रेम भाव बनाए रखेगा।",
-          te: "ఆస్తి ప్రణాళికలను కుటుంబ సభ్యులతో సామరస్యంగా చర్చించి నిర్ణయించండి.",
-          ta: "சொத்து விவகாரங்களை குடும்பத்தினருடன் பேசி அமைதியாக நிர்வகிக்கவும்.",
-          en: "Execute legacy distribution with calm, transparent equanimity."
-        }, targetLang)
-      },
-      {
-        id: "senior_health_longevity",
-        title: pick6({
-          kn: "ಅಧ್ಯಾಯ ೩: ಆರೋಗ್ಯ ಸಂರಕ್ಷಣೆ, ದೀರ್ಘಾಯುಷ್ಯ ಹಾಗೂ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿ",
-          mr: "अध्याय ३: आरोग्य रक्षण, दीर्घायुष्य व सात्त्विक दिनचर्या",
-          hi: "अध्याय ३: स्वास्थ्य संरक्षण, दीर्घायु एवं सात्विक जीवनचर्या",
-          te: "అధ్యాయం 3: ఆరోగ్య రక్షణ, దీర్ఘాయుష్షు & సాత్విక జీవనశైలి",
-          ta: "அத்தியாயம் 3: உடல்நலப் பாதுகாப்பு, நீண்ட ஆயுள் & சாத்வீக வாழ்க்கை",
-          en: "Chapter 3: Health Longevity, Vitality & Sattvic Wellness"
-        }, targetLang),
-        subtitle: pick6({
-          kn: "ಆಯುಷ್ಕಾರಕ ಶನಿ ಹಾಗೂ ಸೂರ್ಯನ ಅನುಗ್ರಹದಿಂದ ದೈಹಿಕ ಸ್ವಸ್ಥತೆ",
-          mr: "आयुष्यकारक शनी व सूर्याच्या कृपेने उत्तम आरोग्य व उत्साह",
-          hi: "आयुष्मान कारक शनि एवं सूर्य की कृपा से स्वास्थ्य लाभ",
-          te: "ఆయుష్షు కారకుడైన శని మరియు సూర్యుని అనుగ్రహంతో ఆరోగ్య రక్షణ",
-          ta: "ஆயுள் காரகன் சனி & சூரியன் அருளால் உடல் ஆரோக்கியம்",
-          en: "Sun and Saturn harmonizing vital life-force and physical stamina"
-        }, targetLang),
-        icon: "🩺",
-        contemplationInquest: pick6({
-          kn: "ದೀರ್ಘಾಯುಷ್ಯ ರಕ್ಷಣೆ, ದೈಹಿಕ ಸ್ವಾಸ್ಥ್ಯ ಹಾಗೂ ಸಾತ್ವಿಕ ಜೀವನಶೈಲಿಯ ದಿವ್ಯ ಧ್ಯಾನ",
-          mr: "दीर्घायुष्य, शारीरिक स्वास्थ्य व सात्त्विक जीवनशैलीचा विचार",
-          hi: "दीर्घायुष्य, शारीरिक स्वास्थ्य एवं सात्विक जीवनशैली का पावन चिंतन",
-          te: "దీర్ఘాయుష్షు, శారీరక ఆరోగ్యం మరియు సాత్విక జీవన విధాన చింతన",
-          ta: "நீண்ட ஆயுள், உடல் நலம் & சாத்வீக வாழ்க்கை முறை சிந்தனை",
-          en: "Contemplation on Longevity, Radiant Vitality & Sattvic Daily Regimen"
-        }, targetLang),
-        paragraphs: [
-          pick6({
-            kn: `ಜೀವನದ ಈ ಪಕ್ವ ಕಾಲಘಟ್ಟದಲ್ಲಿ ಆರೋಗ್ಯ ಸಂರಕ್ಷಣೆಗೆ ಪ್ರಥಮ ಆದ್ಯತೆ ನೀಡುವುದು ಅತಿ ಮುಖ್ಯ. ನಿಮ್ಮ ಜನ್ಮ ಕುಂಡಲಿಯಲ್ಲಿ ಸೂರ್ಯ ಹಾಗೂ ಲಗ್ನಾಧಿಪತಿಯ ಬಲವು ನಿಮ್ಮಲ್ಲಿ ನೈಸರ್ಗಿಕ ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಕಾಪಾಡಲಿದೆ. ಹವಾಮಾನ ಬದಲಾವಣೆಗಳ ಸಮಯದಲ್ಲಿ ಕೀಲು ನೋವು, ರಕ್ತದೊತ್ತಡ ಅಥವಾ ಜೀರ್ಣಾಂಗ ವ್ಯವಸ್ಥೆಯ ಬಗ್ಗೆ ಸಾಂಪ್ರದಾಯಿಕ ಮುನ್ನೆಚ್ಚರಿಕೆಗಳನ್ನು ವಹಿಸುವುದು ಉತ್ತಮ.`,
-            mr: `आयुष्याच्या या टप्प्यावर आरोग्याला सर्वोच्च प्राधान्य देणे आवश्यक आहे. पत्रिकेतील सूर्य व लग्नेशाचे बळ आपल्यातील नैसर्गिक रोगप्रतिकारक शक्ती कायम राखेल. ऋतुबदलाच्या काळात सांधेदुखी, रक्तदाब व पचनक्रिया यासंबंधी नियमित काळजी घेणे हितावह ठरेल.`,
-            hi: `जीवन के इस परिपक्व कालखंड में स्वास्थ्य रक्षा को सर्वोच्च प्राथमिकता देना अनिवार्य है। आपकी जन्म पत्रिका में सूर्य एवं लग्नेश का शुभ प्रभाव आपकी आंतरिक रोग प्रतिरोधक क्षमता को सुदृढ़ रखेगा। मौसमी परिवर्तनों के समय जोड़ों के दर्द, रक्तचाप एवं पाचन तंत्र का विशेष ध्यान रखें।`,
-            te: `జీవితంలోని ఈ దశలో ఆరోగ్య పరిరక్షణకు ప్రథమ ప్రాధాన్యత ఇవ్వడం ఎంతో ముఖ్యం. మీ జాతకంలో సూర్య మరియు లగ్నాధిపతి బలం మీలో రోగనిరోధక శక్తిని కాపాడుతుంది. వాతావరణ మార్పుల సమయంలో కీళ్ల నొప్పులు, రక్తపోటు మరియు జీర్ణక్రియపై శ్రద్ధ వహించండి.`,
-            ta: `வாழ்வின் இந்த முதிர்ந்த காலத்தில் உடல்நலத்திற்கு முதலிடம் அளிப்பது மிகவும் அவசியம். உங்கள் ஜாதகத்தில் சூரியன் மற்றும் லக்னாதிபதியின் பலம் நோய் எதிர்ப்பு சக்தியைத் தரும். பருவநிலை மாற்றங்களின் போது மூட்டு வலி, ரத்த அழுத்தம் மற்றும் செரிமானத்தில் கவனம் தேவை.`,
-            en: `During this venerable phase of life, prioritizing physical wellness and preventive care is paramount. The stabilizing rays of the Sun and your Ascendant lord sustain intrinsic vitality, yet seasonal weather transitions require gentle attention to joint comfort, circulation, and digestive equilibrium.`
-          }, targetLang),
-          pick6({
-            kn: `ಬೆಳಗಿನ ಶುದ್ಧ ಗಾಳಿಯಲ್ಲಿ ನಿಯಮಿತ ನಡಿಗೆ, ಲಘು ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಆಯುರ್ವೇದ ಪಥ್ಯದ ಆಹಾರ ಪದ್ಧತಿಯು ನಿಮ್ಮ ದೇಹಕ್ಕೆ ಅಖಂಡ ಚೈತನ್ಯ ನೀಡಲಿವೆ. ಅನಗತ್ಯ ಆತಂಕ ಹಾಗೂ ಅತಿಯಾದ ಚಿಂತೆಗಳಿಂದ ದೂರವಿದ್ದು, ಮನಸ್ಸನ್ನು ಸದಾ ಪ್ರಶಾಂತವಾಗಿಟ್ಟುಕೊಳ್ಳಿ. ಕುಟುಂಬದವರ ಪ್ರೀತಿಪೂರ್ವಕ ಕಾಳಜಿ ನಿಮ್ಮ ಆಯುಷ್ಯ ಹಾಗೂ ಆರೋಗ್ಯವನ್ನು ಇನ್ನಷ್ಟು ವೃದ್ಧಿಸಲಿದೆ.`,
-            mr: `सकाळच्या शुद्ध हवेत हलके चालणे, प्राणायाम व सात्त्विक आहाराची सवय शरीराला नवा उत्साह देईल. अनावश्यक काळजी व मानसिक तणावापासून दूर राहून मन नेहमी शांत ठेवा. कुटुंबातील सदस्यांचे प्रेम व आपुलकी आपले आयुष्य व आनंद द्विगुणित करेल.`,
-            hi: `प्रातःकाल की शुद्ध वायु में नियमित टहलना, हल्का प्राणायाम एवं सुपाच्य सात्विक आहार शरीर को नवस्फूर्ति प्रदान करेगा। व्यर्थ की चिंताओं से मुक्त रहकर मन को सदैव प्रसन्न रखें। परिवारजनों का स्नेह एवं सेवा आपके दीर्घायुष्य को संवर्धित करेगी।`,
-            te: `ఉదయం స్వచ్ఛమైన గాలిలో నడక, తేలికపాటి ప్రాణాయామం మరియు సాత్విక ఆహారం శరీరానికి కొత్త ఉత్సాహాన్ని ఇస్తాయి. అనవసర చింతలు మరియు మానసిక ఒత్తిడికి దూరంగా ఉంటూ మనస్సును ప్రశాంతంగా ఉంచుకోండి. కుటుంబ సభ్యుల ప్రేమ మీ ఆయుష్షును పెంచుతుంది.`,
-            ta: `காலை வேளையில் நடைபயிற்சி, எளிய பிராணாயாமம் மற்றும் சாத்வீக உணவு முறை உடலுக்கு புதிய புத்துணர்வை அளிக்கும். தேவையற்ற கவலைகளைத் தவிர்த்து மனதை எப்போதும் அமைதியாக வைத்துக் கொள்ளுங்கள். குடும்பத்தினரின் அன்பும் கவனிப்பும் உங்கள் வாழ்நாளை நீட்டிக்கும்.`,
-            en: `Gentle morning walks in crisp fresh air, meditative Pranayama, and light nourishing meals will bestow sustained physical agility. Releasing past worries and anchoring the mind in serene contentment unlocks rejuvenating peace, amplified by the affectionate care of your family.`
-          }, targetLang),
-          pick6({
-            kn: `ಶ್ರೀ ಧನ್ವಂತರಿ ಹಾಗೂ ಮಹಾಮೃತ್ಯುಂಜಯ ಸ್ವಾಮಿಯ ಸ್ಮರಣೆಯು ನಿಮಗೆ ಸಮಸ್ತ ದೈಹಿಕ ಪೀಡೆಗಳಿಂದ ನಿತ್ಯ ರಕ್ಷೆ ನೀಡಲಿದೆ. ವೈದ್ಯರ ಸಲಹೆಯ ಮೇರೆಗೆ ನಿಯಮಿತ ಆರೋಗ್ಯ ತಪಾಸಣೆಗಳನ್ನು ಮಾಡಿಸಿಕೊಳ್ಳಿ. ನಿಮ್ಮ ಧರ್ಮನಿಷ್ಠೆ, ದಾನ-ಧರ್ಮ ಹಾಗೂ ಪರಹಿತ ಚಿಂತನೆಯು ನಿಮ್ಮ ಆಯುಷ್ಯವನ್ನು ದೀರ್ಘ ಹಾಗೂ ಸುಖಮಯವನ್ನಾಗಿ ಮಾಡಲಿದೆ.`,
-            mr: `धन्वंतरी व महामृत्युंजय मंत्राचे नित्य श्रवण आपल्याला सर्व व्याधींपासून सुरक्षित ठेवेल. वैद्यकीय सल्ल्यानुसार वेळेवर तपासण्या करून घ्या. आपली ईश्वरनिष्ठा, दानधर्म व सात्त्विक विचार आपले जीवन दीर्घ व सुखमय बनवतील.`,
-            hi: `भगवान धन्वंतरि एवं महामृत्युंजय मंत्र का नित्य स्मरण समस्त व्याधियों से आपकी रक्षा करेगा। समय-समय पर नियमित स्वास्थ्य परीक्षण कराते रहें। आपकी धर्मनिष्ठा, दान-पुण्य एवं परोपकार की भावना आपके जीवन को दीर्घ एवं सुखमय बनाएगी।`,
-            te: `ధన్వంతరి మరియు మహా మృత్యుంజయ మంత్ర స్మరణ మీకు సకల రోగాల నుండి రక్షణ కల్పిస్తుంది. వైద్యుల సలహాతో క్రమం తప్పకుండా ఆరోగ్య పరీక్షలు చేయించుకోండి. మీ ధర్మనిష్ఠ మరియు దైవభక్తి మీ జీవితాన్ని దీర్ఘకాలం సుఖమయం చేస్తాయి.`,
-            ta: `தன்வந்திரி பகவான் மற்றும் மகா மிருத்யுஞ்சய மந்திரத்தை நினைவுகூர்வது நோய்களிலிருந்து உங்களைப் பாதுகாக்கும். மருத்துவ ஆலோசனைகளை முறையாகப் பின்பற்றுங்கள். உங்கள் தர்ம சிந்தனையும் இறை நம்பிக்கையும் உங்கள் வாழ்வை நீண்ட ஆயுளுடன் ஆசீர்வதிக்கும்.`,
-            en: `Invoking Lord Dhanvantari and the Maha Mrityunjaya mantra creates an impenetrable energetic armor against physical afflictions. Timely health checkups paired with a generous, charitable spirit will anchor your sunset years in radiant health, dignity, and blissful longevity.`
-          }, targetLang)
-        ],
-        keyAdvice: pick6({
-          kn: "ಪ್ರತಿದಿನ ಪ್ರಾಣಾಯಾಮ ಹಾಗೂ ಆಯುರ್ವೇದ ಪಥ್ಯವನ್ನು ಪಾಲಿಸಿ; ಮಹಾಮೃತ್ಯುಂಜಯ ಜಪ ಮಾಡಿ.",
-          mr: "नियमित प्राणायाम व सात्त्विक आहाराचे पालन करा; महामृत्युंजय मंत्राचे श्रवण करा.",
-          hi: "नित्य प्राणायाम एवं सात्विक आहार अपनाएं; महामृत्युंजय मंत्र का पाठ करें।",
-          te: "రోజూ ప్రాణాయామం మరియు సాత్విక ఆహారం పాటించండి; మహా మృత్యుంజయ జపం చేయండి.",
-          ta: "தினமும் எளிய பிராணாயாமம் செய்து சாத்வீக உணவை உண்ணுங்கள்; மிருத்யுஞ்சய மந்திரம் ஜபிக்கவும்.",
-          en: "Practice gentle daily breathing exercises, follow a sattvic diet, and invoke Maha Mrityunjaya."
-        }, targetLang)
-      }
-    );
   } else if (ageCategory === "youth") {
     chapters.push(
       {
         id: "youth_education_career",
         title: pick6({
-          kn: "ಅಧ್ಯಾಯ ೧: ಉನ್ನತ ಶಿಕ್ಷಣ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆ ಹಾಗೂ ವೃತ್ತಿ ಪ್ರವೇಶದ ಮಹಾನಕ್ಷೆ",
+          kn: "ಅಧ್ಯಾಯ ೧: ಉನ್ನತ ವ್ಯಾಸಂಗ, ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳು ಹಾಗೂ ವೃತ್ತಿ ಪ್ರವೇಶದ ಮಹಾನಕ್ಷೆ",
           mr: "अध्याय १: उच्च शिक्षण, स्पर्धा परीक्षा व करिअरची दिशा",
           hi: "अध्याय १: उच्च शिक्षा, प्रतियोगी परीक्षा एवं करियर शुभारंभ",
           te: "అధ్యాయం 1: ఉన్నత విద్య, పోటీ పరీక్షలు & తొలి ఉద్యోగ ప్రవేశం",
@@ -4320,12 +4683,22 @@ export function compute5YearMasterPrediction(
 
   const parashariGem = getParashariGemstoneRecommendation(lagnaIdx, targetLang);
 
-  // Stotra Selection
+  // Stotra Selection & Harmonized Sacred Deity Image
   const prescribedStotra = selectPrescribedStotra(
     kundli,
     hasSaturnTroubleAnyYear,
     runningMahadashaPrimary,
     targetLang
+  );
+
+  const sacredDeityImage = getSacredDeityImage(
+    lagnaIdx,
+    moonIdx,
+    runningMahadashaPrimary,
+    hasSaturnTroubleAnyYear,
+    targetLang,
+    prescribedStotra.id,
+    prescribedStotra.deityName
   );
 
   const milestoneMatrix = generate5YearMilestones(
@@ -4387,12 +4760,7 @@ export function compute5YearMasterPrediction(
   };
 
   const remedies = {
-    ishtaDevata: targetLang === "kn" ? "ಶ್ರೀ ಮಹಾಗಣಪತಿ ಹಾಗೂ ಶ್ರೀ ಗೋಕರ್ಣ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿ"
-      : targetLang === "hi" ? "श्री महागणपति एवं श्री गोकर्ण महाबलेश्वर स्वामी"
-      : targetLang === "mr" ? "श्री महागणपती व श्री गोकर्ण महाबळेश्वर स्वामी"
-      : targetLang === "te" ? "శ్రీ మహాగణపతి మరియు శ్రీ గోకర్ణ మహాబలేశ్వర స్వామి"
-      : targetLang === "ta" ? "ஸ்ரீ மஹாகணபதி & ஸ்ரீ கோகர்ண மகாபலேஸ்வரர் சுவாமி"
-      : "Sri Mahaganapati & Sri Gokarna Mahabaleshwara",
+    ishtaDevata: sacredDeityImage.deityName,
     gokarnaParihara: targetLang === "kn" ? "ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದಲ್ಲಿ ಮಹಾಮೃತ್ಯುಂಜಯ ಹವನ ಅಥವಾ ರುದ್ರಾಭಿಷೇಕ ಸಂಕಲ್ಪ, ಪ್ರದೋಷ ಪೂಜೆ ಹಾಗೂ ಬ್ರಾಹ್ಮಣ ಭೋಜನ."
       : targetLang === "hi" ? "श्री गोकर्ण क्षेत्र में महामृत्युंजय हवन अथवा रुद्राभिषेक, प्रदोष पूजा एवं ब्राह्मण भोजन।"
       : targetLang === "mr" ? "श्री गोकर्ण क्षेत्रात महामृत्युंजय होम किंवा रुद्राभिषेक संकल्प, प्रदोष पूजा व अन्नदान."
@@ -4470,14 +4838,6 @@ export function compute5YearMasterPrediction(
     peakYearLabel,
     cautionYearLabel,
     hasSaturnTroubleAnyYear
-  );
-
-  const sacredDeityImage = getSacredDeityImage(
-    lagnaIdx,
-    moonIdx,
-    runningMahadashaPrimary,
-    hasSaturnTroubleAnyYear,
-    targetLang
   );
 
   const personalizedDynamicShloka = generatePersonalizedDynamicShloka(

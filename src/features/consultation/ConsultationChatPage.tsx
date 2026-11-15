@@ -996,7 +996,7 @@ export const ConsultationChatPage: React.FC<Props> = ({ sessionId }) => {
       };
 
       setMessages((prev) => [...prev, astrologerMsg]);
-      void addConsultationMessage(session.id, astrologerMsg);
+      void addConsultationMessage(session.id, astrologerMsg, session.rulingsLedger);
 
       // Record question in dedicated Firestore collection "consultation_questions"
       const questionRecord: ConsultationQuestionRecord = {

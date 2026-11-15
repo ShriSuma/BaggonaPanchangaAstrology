@@ -260,4 +260,34 @@ describe("FiveYearPredictionPdfTemplate Visual Architecture & Content Audit", ()
       expect(yearSection?.textContent).toContain("ಜೀವನದ ಪ್ರಮುಖ ತಿರುವು, ಸುವರ್ಣಾವಕಾಶಗಳು ಮತ್ತು ಜಾಗರೂಕತೆ ವಹಿಸಬೇಕಾದ ಅಂಶಗಳು ಯಾವುವು?");
     }
   });
+
+  it("renders pure localized Year headers (Varsha Vandu Vars) and Stotra image thumbnail in selected languages", () => {
+    // 1. Kannada (Varsha Vandu)
+    const knData = getTestPayload("kn");
+    const { container: knContainer } = render(<FiveYearPredictionPdfTemplate data={knData} />);
+    const knYear1 = knContainer.querySelector('[data-section="year-1"]');
+    expect(knYear1?.textContent).toContain("ವರ್ಷ ಒಂದು (೧)");
+    const knYear2 = knContainer.querySelector('[data-section="year-2"]');
+    expect(knYear2?.textContent).toContain("ವರ್ಷ ಎರಡು (೨)");
+
+    // 2. Tara Bala and Gochara Vedha in Year Section
+    expect(knYear1?.textContent).toContain("ನವತಾರಾ ಬಲ ನಿರ್ಣಯ");
+    expect(knYear1?.textContent).toContain("ಗೋಚಾರ ನಿರ್ವೇಧ ಸ್ಥಿತಿ");
+
+    // 3. Stotra thumbnail image present in Stotra Section
+    const stotraSection = knContainer.querySelector('[data-section="stotra-remedies"]');
+    const stotraImg = stotraSection?.querySelector("img");
+    expect(stotraImg).not.toBeNull();
+    expect(stotraImg?.src).toContain("/daily_posters/");
+
+    cleanup();
+
+    // 4. Marathi (Varsha Pahile)
+    const mrData = getTestPayload("mr");
+    const { container: mrContainer } = render(<FiveYearPredictionPdfTemplate data={mrData} />);
+    const mrYear1 = mrContainer.querySelector('[data-section="year-1"]');
+    expect(mrYear1?.textContent).toContain("वर्ष पहिले (१)");
+    const mrYear2 = mrContainer.querySelector('[data-section="year-2"]');
+    expect(mrYear2?.textContent).toContain("वर्ष दुसरे (२)");
+  });
 });

@@ -696,7 +696,7 @@ export function detectTopicDomain(text: string): TopicDomain {
 
   // 1. Marriage / Vivaha
   if (
-    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ವರ|ವಧು|ದಾಂಪತ್ಯ|ಸಂಗಾತಿ|ಸಪ್ತಮ|ಪತಿ|ಪತ್ನಿ|marry|marriage|wedding|spouse|partner|husband|wife|matrimon|shaadi|vivah|ಶಾದಿ|शादी|विवाह|पति|पत्नी|జీవితభాగస్వామి|పెళ్లి|వివాహం|திருமணம்|கல்யாணம்|വിവാഹം|കല്യാണം|लग्न/i.test(
+    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ವಧು|ವರ-ವಧು|ವಧು-ವರ|ವರಾನ್ವೇಷಣೆ|ದಾಂಪತ್ಯ|ಸಂಗಾತಿ|ಸಪ್ತಮ|ಪತಿ|ಪತ್ನಿ|marry|marriage|wedding|spouse|partner|husband|wife|matrimon|shaadi|vivah|ಶಾದಿ|शादी|विवाह|पति|पत्नी|జీవితభాగస్వామి|పెళ్లి|వివాహం|திருமணம்|கல்யாணம்|വിവാഹം|കല്യാണം|लग्न/i.test(
       q
     )
   ) {
@@ -1312,7 +1312,7 @@ export function analyzeQuestionComplexity(
 
   // 6b. Marriage / Vivaha Specific Inquiry
   const isMarriageInquiry =
-    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಕಲ್ಯಾಣ|ವಧು|ವರ|ದಾಂಪತ್ಯ|marriage|marry|married|wedding|partner|spouse|shadi|विवाह|शादी|ब्याह|పెళ్లి|వివాహం|కల్యాణం|திருமணம்|கல்யாணம்|மாங்கல்யம்|വിവാഹം|കല്യാണം|മംഗല്യം|लग्न/i.test(
+    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ಕಲ್ಯಾಣ|ವಧು|ವರ-ವಧು|ವಧು-ವರ|ವರಾನ್ವೇಷಣೆ|ದಾಂಪತ್ಯ|marriage|marry|married|wedding|partner|spouse|shadi|विवाह|शादी|ब्याह|పెళ్లి|వివాహం|కల్యాణం|திருமணம்|கல்யாணம்|மாங்கல்யம்|വിവാഹം|കല്യാണം|മംഗല്യം|लग्न/i.test(
       q
     ) &&
     !/ದೋಷ|ಕುಜ ದೋಷ|ಸರ್ಪ ದೋಷ|dosha|दोष/i.test(q);
@@ -1730,6 +1730,126 @@ export function buildConsultationRulingsLedger(
           "Speculative incompatible alliances"
         ],
         remedyPrescribed: "Light cow-ghee lamp, Gokarna Kalyana Sankalpa, and sincere prayers for marital harmony"
+      });
+    }
+
+    const hasBusinessInquiry =
+      /ವ್ಯಾಪಾರ|ಉದ್ಯಮ|ವ್ಯವಹಾರ|ಪಾಲುದಾರಿಕೆ|business|partnership|sole proprietorship|startup|trade|commerce|व्यवसाय|व्यापार|दुकान|వ్యాపారం|வியாபாரம்|ബിസിനസ്സ്/i.test(
+        historyText
+      );
+
+    if (hasBusinessInquiry && !ledger.some((r) => r.domain === "BUSINESS_VS_JOB")) {
+      ledger.push({
+        domain: "BUSINESS_VS_JOB",
+        questionSummary: "Business vs Job and Commercial Structure",
+        primaryVerdict:
+          "Independent enterprise and sole proprietorship or business in own/family name are blessed; 50-50 partnership business is strictly prohibited due to high risk of financial dispute, betrayal, and loss. Impulsive job resignation without a financial safety net is advised against.",
+        approvedOptions: [
+          "Sole proprietorship or independent commercial enterprise",
+          "Business registered in own name or auspicious family member's name",
+          "Maintaining job stability until commercial profits stabilize"
+        ],
+        rejectedOptions: [
+          "50-50 partnership business or joint ventures with friends/strangers",
+          "Impulsive resignation from employment without safety reserve",
+          "Speculative intraday trading / crypto gambling"
+        ],
+        remedyPrescribed: "Sri Mahalakshmi & Kubera Deepa Aradhana, Wednesday Ganapati Atharvashirsha"
+      });
+    }
+
+    const hasDebtInquiry =
+      /ಸಾಲ|ಋಣ|ಲೋನ್|ಬಡ್ಡಿ|debt|loan|liability|emi|borrow|कर्ज|ऋण|అప్పు|கடன்|കടം/i.test(
+        historyText
+      );
+
+    if (hasDebtInquiry && !ledger.some((r) => r.domain === "DEBT_FINANCIAL_RELIEF")) {
+      ledger.push({
+        domain: "DEBT_FINANCIAL_RELIEF",
+        questionSummary: "Debt Relief and Financial Liability Resolution",
+        primaryVerdict:
+          "Systematic debt clearance is guaranteed under upcoming benefic transits and disciplined principal repayments. Taking fresh high-interest loans or speculative debt to service existing liabilities is strictly prohibited.",
+        approvedOptions: [
+          "Systematic phased principal debt clearance",
+          "Runavimochana Mangala Stotra daily recitation",
+          "Prudent budgeting and consolidating liabilities"
+        ],
+        rejectedOptions: [
+          "Taking fresh speculative loans or high-interest informal borrowing",
+          "Taking loans to invest in speculative markets"
+        ],
+        remedyPrescribed: "Sri Runavimochana Mangala Stotra and Tuesday Subrahmanya prayer"
+      });
+    }
+
+    const hasGovtJobInquiry =
+      /ಸರ್ಕಾರಿ|ಯುಪಿಎಸ್‌ಸಿ|ಕೆಪಿಎಸ್‌ಸಿ|govt job|government exam|sarkari naukri|upsc|ias|ips|सरकारी नौकरी/i.test(
+        historyText
+      );
+
+    if (hasGovtJobInquiry && !ledger.some((r) => r.domain === "GOVERNMENT_JOB")) {
+      ledger.push({
+        domain: "GOVERNMENT_JOB",
+        questionSummary: "Government Authority Exam vs Private Career",
+        primaryVerdict:
+          "Government authority and competitive exam success are supported through structured preparation. Indefinite multi-year exam attempts without maintaining active career experience or safety options are advised against.",
+        approvedOptions: [
+          "Structured exam preparation aligned with Sun and 10th house strength",
+          "Balancing preparation with parallel professional experience"
+        ],
+        rejectedOptions: [
+          "Multi-year total career hiatus without safety plan",
+          "Speculative reliance on shortcuts"
+        ],
+        remedyPrescribed: "Aditya Hridaya Stotra and daily morning Surya Arghya"
+      });
+    }
+
+    const hasHealthInquiry =
+      /ಆರೋಗ್ಯ|ಕಾಯಿಲೆ|ಔಷಧ|ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ|health|illness|disease|surgery|medical|doctor|hospital|बीमारी|स्वास्थ्य|ఆరోగ్యం|உடல்நலம்/i.test(
+        historyText
+      );
+
+    if (hasHealthInquiry && !ledger.some((r) => r.domain === "HEALTH")) {
+      ledger.push({
+        domain: "HEALTH",
+        questionSummary: "Health Vitality, Longevity and Medical Care",
+        primaryVerdict:
+          "Health and physical vitality are safeguarded by Lagna lord and divine grace. Devotees must strictly follow medical advice and continue all prescribed medications alongside Vedic prayers; stopping medical treatment is strictly prohibited.",
+        approvedOptions: [
+          "Strict adherence to prescribed doctor treatments and medications",
+          "Sri Dhanvantari Mantra recitation and Gokarna Mrityunjaya Sankalpa",
+          "Balanced nutrition and healthy daily routine"
+        ],
+        rejectedOptions: [
+          "Stopping prescribed medical treatment or hospital visits",
+          "Relying solely on rituals while ignoring medical care"
+        ],
+        remedyPrescribed: "Sri Dhanvantari Mantra and Maha Mrityunjaya Japa"
+      });
+    }
+
+    const hasLegalInquiry =
+      /ಕೋರ್ಟ್|ಕೇಸ್|ವ್ಯಾಜ್ಯ|ನ್ಯಾಯಾಲಯ|court|legal|lawsuit|dispute|litigation|case|अदालत|मुकदमा|కోర్టు|வழக்கு/i.test(
+        historyText
+      );
+
+    if (hasLegalInquiry && !ledger.some((r) => r.domain === "LEGAL_COURT_CASE")) {
+      ledger.push({
+        domain: "LEGAL_COURT_CASE",
+        questionSummary: "Legal Dispute, Court Cases and Adjudication",
+        primaryVerdict:
+          "6th lord in Upachaya ensures divine protection and eventual victory over adversaries; pursuit of amicable mediation or disciplined structured defense preserves peace and wealth.",
+        approvedOptions: [
+          "Strategic disciplined legal defense",
+          "Amicable mutually beneficial settlement mediation",
+          "Favorable resolution under upcoming benefic transit"
+        ],
+        rejectedOptions: [
+          "Aggressive prolonging of unnecessary ego disputes",
+          "Unilateral surrender without legal advice"
+        ],
+        remedyPrescribed: "Sri Subrahmanya Shatru Samhara Trishati and Sri Narasimha Kavacha"
       });
     }
   }
@@ -2661,7 +2781,202 @@ export function detectAndResolveUltaPaltaProbe(
     return deduplicateResponseText(p1);
   }
 
+  // 6. ABROAD PERMANENT SETTLEMENT PROBE
+  const isAbroadQuery =
+    /ವಿದೇಶ|ಪರದೇಶ|ಕೆನಡಾ|ಕನಡ|ಅಮೆರಿಕ|ಜರ್ಮನಿ|ಯೂರೋಪ್|ಶಾಶ್ವತ.*ನೆಲೆ|ಶಾಶ್ವತ.*ವಾಸ|ನೆಲೆಸ|permanent.*settle|settle.*abroad|foreign.*pr|foreign.*citizen|settle.*outside|विदेश.*बसना|विदेश.*स्थायी/i.test(
+      qLower
+    );
+  const abroadRecord = ledger.find((r) => r.domain === "ABROAD_SETTLEMENT");
+  if (isAbroadQuery && (abroadRecord || ledger.some((r) => /swadesha|ಭಾರತದಲ್ಲೇ|स्वदेश/i.test(r.primaryVerdict || "")))) {
+    if (lang === "en") {
+      const p1 = `Master Daivajna Confident Ruling (100% Authoritative Determination): As firmly ruled in our earlier determination with 100% certainty, permanent settlement or foreign citizenship outside India is STRICTLY UNFAVORABLE for your chart! While short-term project assignments or higher educational travel are permitted during favorable Dasha periods, anchoring your permanent home, family assets, and life in Swadesha (India) is where your true prosperity and peace reside. Do not seek permanent emigration.`;
+      const p2 = `Maintain your roots firmly in India and recite Aditya Hridaya Stotra daily for sovereign career growth.`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    if (lang === "hi") {
+      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): जैसा कि हमने पूर्व में स्पष्ट किया है, भारत छोड़कर विदेश में स्थायी रूप से बसना अथवा नागरिकता लेना आपकी कुंडली के अनुसार पूर्णतः प्रतिकूल है! अल्पकालिक प्रोजेक्ट अथवा उच्च शिक्षा हेतु यात्रा उचित है, किंतु स्थायी निवास स्वदेश (भारत) में ही आपके लिए परम मंगलकारी है।`;
+      const p2 = `नित्य आदित्य हृदय स्तोत्र का पाठ करें एवं कुलदेवता का स्मरण करें।`;
+      return deduplicateResponseText(`${p1}\n\n${p2}`);
+    }
+    // Kannada Default
+    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ (೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ): ನಾನು ಮೊದಲೇ ಸಂಪೂರ್ಣ ಖಚಿತತೆಯೊಂದಿಗೆ ಸ್ಪಷ್ಟಪಡಿಸಿದಂತೆ, ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಭಾರತವನ್ನು ಬಿಟ್ಟು ವಿದೇಶದಲ್ಲಿ ಶಾಶ್ವತವಾಗಿ ನೆಲೆಸುವುದು ಅಥವಾ ವಿದೇಶಿ ಪೌರತ್ವ ಪಡೆಯುವುದು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ಅಶುಭಕರವಾಗಿದೆ! ಅಲ್ಪಾವಧಿಯ ತಾಂತ್ರಿಕ ಪ್ರಾಜೆಕ್ಟ್ ಅಥವಾ ವಿದ್ಯಾಭ್ಯಾಸಕ್ಕೆ ವಿದೇಶ ಪ್ರಯಾಣ ಶುಭವಾದರೂ, ನಿಮ್ಮ ಶಾಶ್ವತ ಸುಖ, ಕೌಟುಂಬಿಕ ನೆಮ್ಮದಿ ಹಾಗೂ ಸ್ಥಿರ ಭಾಗ್ಯವು ಸ್ವದೇಶದಲ್ಲೇ (ಭಾರತದಲ್ಲೇ) ನೆಲೆಸಿದೆ.`;
+    const p2 = `ನಿಮ್ಮ ಶಾಶ್ವತ ಉದ್ಯೋಗ ಮತ್ತು ಆಸ್ತಿಗಳನ್ನು ಭಾರತದಲ್ಲೇ ಸ್ಥಾಪಿಸಿ; ನಿತ್ಯವೂ ಆದಿತ್ಯ ಹೃದಯ ಸ್ತೋತ್ರವನ್ನು ಪಠಿಸಿ.`;
+    return deduplicateResponseText(`${p1}\n\n${p2}`);
+  }
+
+  // 7. BLUE SAPPHIRE (NEELAM) PROBE (when prohibited in ledger)
+  const isNeelamQuery = /ನೀಲಂ|ನೀಲ|ಇಂದ್ರನೀಲ|blue sapphire|neelam|नीलम|నీలం|நீலம்|നീലക്കല്ല്/i.test(qLower);
+  const isNeelamRejected = gemRecord?.rejectedOptions?.some((opt) => /blue sapphire|neelam|ನೀಲಂ|ನೀಲ/i.test(opt));
+  if (isNeelamQuery && isNeelamRejected) {
+    if (lang === "en") {
+      const p1 = `Master Daivajna Confident Ruling (100% Authoritative Determination): Blue Sapphire (Neelam) is STRICTLY PROHIBITED for your chart! Saturn acts as a malefic or Maraka/Dusthana lord for your Lagna. Wearing Blue Sapphire will trigger sudden health setbacks, mental anxiety, and professional instability. Adhere strictly to your prescribed Vedic gemstone.`;
+      return deduplicateResponseText(p1);
+    }
+    if (lang === "hi") {
+      const p1 = `दैवज्ञ निश्चित निर्णय (१००% शास्त्रसम्मत सिद्धांत): आपकी कुंडली के लिए नीलम (Blue Sapphire) पूर्णतः वर्जित है! आपकी लग्न कुंडली में शनि मारक अथवा त्रिक भाव का स्वामी है। नीलम पहनने से स्वास्थ्य हानि एवं मानसिक बेचैनी हो सकती है। केवल अपने निर्धारित रत्न को ही धारण करें।`;
+      return deduplicateResponseText(p1);
+    }
+    // Kannada Default
+    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ (೧೦೦% ಶಾಸ್ತ್ರೋಕ್ತ ತೀರ್ಮಾನ): ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಇಂದ್ರನೀಲ ಅಥವಾ ನೀಲಂ (Blue Sapphire) ರತ್ನವು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ನಿಮ್ಮ ಲಗ್ನಕ್ಕೆ ಶನಿಯು ಮಾರಕ ಅಥವಾ ದುಸ್ಥಾನಾಧಿಪತಿಯಾಗಿದ್ದು, ನೀಲಂ ಧರಿಸಿದರೆ ಹಠಾತ್ ಅನಾರೋಗ್ಯ, ಮಾನಸಿಕ ತಲ್ಲಣ ಹಾಗೂ ಕಾರ್ಯಹಾನಿ ಸಂಭವಿಸುವುದು ನಿಶ್ಚಿತ. ನಿಮ್ಮ ಶಾಸ್ತ್ರೋಕ್ತ ರತ್ನಕ್ಕೆ ಮಾತ್ರ ಬದ್ಧರಾಗಿರಿ.`;
+    return deduplicateResponseText(p1);
+  }
+
+  // 8. EMERALD (PANNA) PROBE (when prohibited in ledger)
+  const isPannaQuery = /ಪಚ್ಚೆ|ಮರಕತ|emerald|panna|पन्ना|పచ్చ|மரகதம்|മരതകം/i.test(qLower);
+  const isPannaRejected = gemRecord?.rejectedOptions?.some((opt) => /emerald|panna|ಪಚ್ಚೆ/i.test(opt));
+  if (isPannaQuery && isPannaRejected) {
+    if (lang === "en") {
+      const p1 = `Master Daivajna Confident Ruling: Emerald (Panna) is strictly NOT recommended for your chart as Mercury holds a Dusthana rulership! Energizing Mercury with Emerald will increase unnecessary expenditures and nervous tension. Please wear only your Lagna-approved primary gemstone.`;
+      return deduplicateResponseText(p1);
+    }
+    // Kannada Default
+    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ: ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಪಚ್ಚೆ (Emerald) ರತ್ನವು ಶಾಸ್ತ್ರೋಕ್ತವಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ಬುಧನು ದುಸ್ಥಾನಾಧಿಪತಿಯಾಗಿದ್ದು, ಪಚ್ಚೆ ಧರಿಸುವುದರಿಂದ ಅನಾವಶ್ಯಕ ಖರ್ಚುಗಳು ಹಾಗೂ ನರಗಳ ದೌರ್ಬಲ್ಯ ಉಂಟಾಗಬಹುದು. ಲಗ್ನಾಧಿಪತಿಯ ಅಧಿಕೃತ ರತ್ನವನ್ನು ಮಾತ್ರ ಧರಿಸಿರಿ.`;
+    return deduplicateResponseText(p1);
+  }
+
+  // 9. STOPPING MEDICAL TREATMENT / MEDICINE PROBE
+  const isStopMedicineQuery = /ಔಷಧ.*ನಿಲ್ಲಿಸ|ಮಾತ್ರೆ.*ಬೇಡ|ಆಸ್ಪತ್ರೆ.*ಬೇಡ|stop.*medicine|stop.*doctor|only.*pooja|दवा.*बंद|दवाई.*छोड़|మందులు.*ఆప|மருந்து.*நிறுத்த/i.test(qLower);
+  if (isStopMedicineQuery) {
+    if (lang === "en") {
+      const p1 = `Vedic Jyotisha Absolute Directive: You must NEVER discontinue your prescribed medicines or doctor's treatments! Classical Vedic Shastra states: 'Aushadham Jahnavi Toyam, Vaidyo Narayano Harih' - divine healing works through certified physicians and medicine. Continue your doctor's prescriptions conscientiously, alongside daily recitation of the Sri Dhanvantari Mantra and Gokarna Sankalpa for total restoration of vitality.`;
+      return deduplicateResponseText(p1);
+    }
+    if (lang === "hi") {
+      const p1 = `वैदिक शास्त्र सम्मत अटल सिद्धांत: डॉक्टर द्वारा निर्धारित दवाइयां अथवा उपचार कभी बंद न करें! शास्त्र कहते हैं 'वैद्यो नारायणो हरिः' - ईश्वर की कृपा चिकित्सा के माध्यम से ही पूर्ण फलित होती है। दवा का नियमित सेवन जारी रखें और साथ में श्री धन्वंतरि मंत्र का पाठ करें।`;
+      return deduplicateResponseText(p1);
+    }
+    // Kannada Default
+    const p1 = `ಶಾಸ್ತ್ರೋಕ್ತ ಪರಮ ಸತ್ಯ: ವೈದ್ಯರು ನೀಡಿದ ಔಷಧ ಅಥವಾ ಚಿಕಿತ್ಸೆಯನ್ನು ಎಂದಿಗೂ ನಿಲ್ಲಿಸಬಾರದು! 'ಔಷಧಂ ಜಾನ್ಹವೀ ತೋಯಂ, ವೈದ್ಯೋ ನಾರಾಯಣೋ ಹರಿಃ' ಎಂದು ಶಾಸ್ತ್ರವೇ ಸಾರುತ್ತದೆ. ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸೆಯನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಮುಂದುವರಿಸಿ, ಅದರ ಜತೆಗೆ ಶ್ರೀ ಧನ್ವಂತರಿ ಮಂತ್ರ ಪಠಣೆ ಹಾಗೂ ಗೋಕರ್ಣ ಸಂಕಲ್ಪ ಪೂಜೆಯನ್ನು ನೆರವೇರಿಸುವುದರಿಂದ ಮಾತ್ರ ಪರಿಪೂರ್ಣ ಆರೋಗ್ಯ ಭಾಗ್ಯ ಲಭಿಸಲಿದೆ.`;
+    return deduplicateResponseText(p1);
+  }
+
+  // 10. ABRUPT JOB RESIGNATION / SPECULATIVE TRADING PROBE
+  const isQuitJobQuery = /ಕೆಲಸ.*ಬಿಡಲಾ|ಉದ್ಯೋಗ.*ರಾಜೀನಾಮೆ|quit.*job.*now|leave.*job.*immediately|intraday.*trading|crypto.*trading|नौकरी.*छोड़/i.test(qLower);
+  if (isQuitJobQuery) {
+    if (lang === "en") {
+      const p1 = `Master Daivajna Confident Ruling: Abruptly resigning from your employment or pouring savings into speculative day-trading/crypto is STRICTLY ADVISED AGAINST by your planetary configuration! Maintain your current employment with discipline until the upcoming auspicious Gochara window opens stable alternative avenues. Prudence and steady karma protect your wealth.`;
+      return deduplicateResponseText(p1);
+    }
+    // Kannada Default
+    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ: ಪ್ರಸ್ತುತ ಕೆಲಸಕ್ಕೆ ಹಠಾತ್ತನೆ ರಾಜೀನಾಮೆ ನೀಡುವುದಾಗಲಿ ಅಥವಾ ಷೇರು ಮಾರುಕಟ್ಟೆಯ ಡೇ-ಟ್ರೇಡಿಂಗ್ ಮುಂತಾದ ಊಹಾತ್ಮಕ ವ್ಯವಹಾರಗಳಲ್ಲಿ ಹಣ ತೊಡಗಿಸುವುದಾಗಲಿ ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ಪ್ರಸ್ತುತ ಉದ್ಯೋಗವನ್ನು ಶ್ರದ್ಧೆಯಿಂದ ಮುಂದುವರಿಸಿ, ಮುಂದಿನ ಶುಭ ಗ್ರಹ ಸಂಚಾರದವರೆಗೂ ತಾಳ್ಮೆಯಿಂದ ಇರುವುದೇ ನಿಮ್ಮ ಆರ್ಥಿಕ ಸ್ಥಿರತೆಗೆ ಶ್ರೀರಕ್ಷೆ.`;
+    return deduplicateResponseText(p1);
+  }
+
+  // 11. DISPUTED / LITIGATION PROPERTY PROBE
+  const isDisputedPropertyQuery =
+    /(?:ವಿವಾದಿತ|ಕೋರ್ಟ್.*ವ್ಯಾಜ್ಯ|disputed|litigation).*(?:ಜಮೀನ|ಆಸ್ತಿ|ಭೂಮಿ|ಸ್ಥಳ|property|land|plot)|विवादित.*संपत्ति/i.test(
+      qLower
+    );
+  if (isDisputedPropertyQuery) {
+    if (lang === "en") {
+      const p1 = `Master Daivajna Confident Ruling: Purchasing disputed litigation property, encumbered land, or speculative plots is STRICTLY PROHIBITED for your chart! Such investments will only entangle your hard-earned wealth in protracted legal quagmires. Acquire only clear-title residential or agricultural property.`;
+      return deduplicateResponseText(p1);
+    }
+    // Kannada Default
+    const p1 = `ದೈವಜ್ಞ ನಿಶ್ಚಿತ ವಚನ: ಯಾವುದೇ ವಿವಾದಿತ ಆಸ್ತಿ, ಕೋರ್ಟ್ ವ್ಯಾಜ್ಯವಿರುವ ಜಮೀನು ಅಥವಾ ಅನುಮಾನಾಸ್ಪದ ನಿವೇಶನಗಳನ್ನು ಖರೀದಿಸುವುದು ನಿಮ್ಮ ಜಾತಕಕ್ಕೆ ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧವಾಗಿದೆ! ಇಂತಹ ವ್ಯವಹಾರಗಳು ನಿಮ್ಮ ಕಷ್ಟಾರ್ಜಿತ ಧನವನ್ನು ದೀರ್ಘಕಾಲೀನ ವ್ಯಾಜ್ಯಗಳಲ್ಲಿ ಸಿಲುಕಿಸುತ್ತವೆ. ಕೇವಲ ಕ್ಲಿಯರ್ ಟೈಟಲ್ ಇರುವ ನಿರ್ದೋಷ ಆಸ್ತಿಯನ್ನು ಮಾತ್ರ ಖರೀದಿಸಿ.`;
+    return deduplicateResponseText(p1);
+  }
+
   return null;
+}
+
+/**
+ * Master Cross-Check & Verification Layer:
+ * 1. Reads ALL prior answers and rulings in the 20-minute isolated session.
+ * 2. Cross-checks candidate answer against previous rulings and responses.
+ * 3. Intercepts Ulta-Palta probes, reverse inquiries, or contradictory follow-ups.
+ * 4. Ensures 100% unwavering consistency, fatherly warmth, and sufficient explanatory detail.
+ */
+export function verifyAndHarmonizeWithPreviousAnswers(params: {
+  session: ConsultationSession;
+  userQuestion: string;
+  candidateAnswer: string;
+  conversationHistory?: AskGeminiChatTurn[];
+  rulingsLedger?: ConsultationRulingRecord[];
+}): {
+  harmonizedText: string;
+  isHarmonized: boolean;
+  detectedDomain?: string;
+} {
+  const { session, userQuestion, candidateAnswer, conversationHistory, rulingsLedger } = params;
+  const ledger = rulingsLedger || session.rulingsLedger || [];
+  const lang = (session.language || "kn") as ConsultationLanguage;
+
+  // 1. Direct Ulta-Palta Probe Check
+  const ultaPaltaMatch = detectAndResolveUltaPaltaProbe(userQuestion, ledger, lang);
+  if (ultaPaltaMatch) {
+    return {
+      harmonizedText: ultaPaltaMatch,
+      isHarmonized: true,
+      detectedDomain: "ULTA_PALTA_PROBE"
+    };
+  }
+
+  let text = candidateAnswer.trim();
+
+  // 2. Scan past history to check if the candidate answer contradicts earlier determinations
+  const historyText = (conversationHistory || []).map((h) => h.text).join("\n");
+
+  // Cross-check: If Swadesha/India was earlier ruled for abroad settlement,
+  // ensure the new answer does not advocate foreign PR / permanent relocation abroad
+  const hadSwadeshaRuling = /swadesha|ಭಾರತದಲ್ಲೇ|स्वदेश|భారతదేశంలోనే|இந்தியாவிலேயே/i.test(historyText);
+  if (hadSwadeshaRuling && /settle.*abroad|permanent.*relocation|take.*pr.*in.*(canada|usa|germany)|विदेश.*में.*स्थायी/i.test(text)) {
+    const correction = buildDeterministicAbroadSettlementReading(session, userQuestion, undefined, ledger, true);
+    return {
+      harmonizedText: correction,
+      isHarmonized: true,
+      detectedDomain: "ABROAD_SETTLEMENT"
+    };
+  }
+
+  // Cross-check: If Yellow Sapphire / Blue Sapphire was prohibited,
+  // ensure candidate answer NEVER advises wearing that prohibited stone
+  const gemRecord = ledger.find((r) => r.domain === "GEMSTONE_REMEDY");
+  if (gemRecord && gemRecord.rejectedOptions) {
+    for (const rejected of gemRecord.rejectedOptions) {
+      if (/yellow sapphire|pushparaga|pukhraj|ಪುಷ್ಯರಾಗ/i.test(rejected)) {
+        if (/ಪುಷ್ಯರಾಗ.*ಧರಿಸಿ|wear.*yellow sapphire|wear.*pukhraj|पुखराज.*पहनें/i.test(text)) {
+          const safeGem = gemRecord.approvedOptions?.[0] || "Diamond (Vajra)";
+          text = text.replace(/ಪುಷ್ಯರಾಗ.*ಧರಿಸಿ/g, `${safeGem} ಧರಿಸಬೇಕು`);
+          text = text.replace(/wear.*yellow sapphire/gi, `wear your prescribed ${safeGem}`);
+          text = text.replace(/पुखराज.*पहनें/g, `${safeGem} धारण करें`);
+        }
+      }
+      if (/blue sapphire|neelam|ನೀಲ/i.test(rejected)) {
+        if (/ನೀಲಂ.*ಧರಿಸಿ|wear.*blue sapphire|wear.*neelam|नीलम.*पहनें/i.test(text)) {
+          const safeGem = gemRecord.approvedOptions?.[0] || "prescribed gemstone";
+          text = text.replace(/ನೀಲಂ.*ಧರಿಸಿ/g, `${safeGem} ಧರಿಸಬೇಕು`);
+          text = text.replace(/wear.*blue sapphire/gi, `wear your prescribed ${safeGem}`);
+          text = text.replace(/नीलम.*पहनें/g, `${safeGem} धारण करें`);
+        }
+      }
+    }
+  }
+
+  // Cross-check: If 50-50 partnership was prohibited, ensure candidate answer does not recommend partnership
+  const bizRecord = ledger.find((r) => r.domain === "BUSINESS_VS_JOB");
+  if (bizRecord && bizRecord.rejectedOptions?.some((opt) => /partnership/i.test(opt))) {
+    if (/ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ.*ವ್ಯಾಪಾರ.*ಮಾಡಿ|start.*partnership|partner.*with.*friend|साझेदारी.*करें/i.test(text)) {
+      text = text.replace(/ಪಾಲುದಾರಿಕೆಯಲ್ಲಿ.*ವ್ಯಾಪಾರ.*ಮಾಡಿ/g, "ಸ್ವತಂತ್ರ ಮಾಲೀಕತ್ವದಲ್ಲಿ (Sole Proprietorship) ವ್ಯಾಪಾರ ಮಾಡಿ");
+      text = text.replace(/start.*partnership.*business/gi, "pursue sole proprietorship in your own name");
+      text = text.replace(/साझेदारी.*व्यापार.*करें/g, "एकल स्वामित्व में व्यापार करें");
+    }
+  }
+
+  // 3. Ensure answer is rich and detailed (good enough details for end user)
+  if (text.length < 150) {
+    const padding = lang === "en"
+      ? `\n\nUnder your running planetary Dasha and Gochara transits, maintain steady devotion and patience. Light a cow-ghee lamp daily and pray to Sri Kshetra Gokarna Mahabaleshwara for supreme peace and success.`
+      : lang === "hi"
+      ? `\n\nअपनी वर्तमान ग्रह दशा एवं गोचर प्रभाव को ध्यान में रखते हुए नियमित पुरुषार्थ एवं ईश्वर निष्ठा बनाए रखें। नित्य गाय के घी का दीपक प्रज्वलित कर श्री क्षेत्र गोकर्ण महाबलेश्वर का स्मरण करें।`
+      : `\n\nನಿಮ್ಮ ಪ್ರಸ್ತುತ ಗ್ರಹ ದಶಾ-ಭುಕ್ತಿ ಹಾಗೂ ಗೋಚಾರ ಬಲಕ್ಕೆ ಅನುಗುಣವಾಗಿ ದೃಢ ಶ್ರದ್ಧೆಯಿಂದ ಮುನ್ನಡೆಯಿರಿ. ಪ್ರತಿದಿನ ಶುದ್ಧ ಹಸುವಿನ ತುಪ್ಪದ ದೀಪವನ್ನು ಹಚ್ಚಿ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣದ ಮಹಾಬಲೇಶ್ವರ ಸ್ವಾಮಿಯನ್ನು ಪ್ರಾರ್ಥಿಸುವುದರಿಂದ ಸಕಲ ಕಾರ್ಯಸಿದ್ಧಿ ಲಭಿಸಲಿದೆ.`;
+    text = `${text}${padding}`;
+  }
+
+  return {
+    harmonizedText: deduplicateResponseText(text),
+    isHarmonized: false
+  };
 }
 
 
@@ -3879,7 +4194,7 @@ export function detectRelevantQuestionDosha(
   const q = question.toLowerCase();
 
   const isMarriage =
-    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ವರ|ವಧು|ದಾಂಪತ್ಯ|ಸಂಬಂಧ|ಪತಿ|ಪತ್ನಿ|marriage|marry|wedding|spouse|husband|wife|delay|match|divorce|separation|partner|love|engagement/i.test(
+    /ವಿವಾಹ|ಮದುವೆ|ಕಂಕಣ|ವಧು|ವರ-ವಧು|ವಧು-ವರ|ವರಾನ್ವೇಷಣೆ|ದಾಂಪತ್ಯ|ಸಂಬಂಧ|ಪತಿ|ಪತ್ನಿ|marriage|marry|wedding|spouse|husband|wife|delay|match|divorce|separation|partner|love|engagement/i.test(
       q
     );
   const isCareerFinance =
@@ -4792,9 +5107,22 @@ ${astroData.isMinorChild ? `   - CRITICAL: The devotee profile is a MINOR CHILD 
     activeDosha.hasDosha &&
     complexityAnalysis.complexity !== "QUICK_SPECIFIC";
 
+  const verified = verifyAndHarmonizeWithPreviousAnswers({
+    session,
+    userQuestion,
+    candidateAnswer: cleaned,
+    conversationHistory,
+    rulingsLedger: session.rulingsLedger
+  });
+  const finalFullText = verified.harmonizedText;
+  const finalParagraphs = finalFullText
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+
   return {
-    fullText: cleaned,
-    paragraphs: paragraphs.length > 0 ? paragraphs : [cleaned],
+    fullText: finalFullText,
+    paragraphs: finalParagraphs.length > 0 ? finalParagraphs : [finalFullText],
     hasDosha: activeDosha.hasDosha,
     doshaName: activeDosha.doshaName,
     doshaParihara: activeDosha.recommendedPooja,

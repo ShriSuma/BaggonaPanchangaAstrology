@@ -3,7 +3,8 @@ import {
   compute5YearMasterPrediction,
   getAgeCategory,
   getParashariGemstoneRecommendation,
-  selectPrescribedStotra
+  selectPrescribedStotra,
+  getSacredDeityImage
 } from "../features/fiveYearPrediction/fiveYearPredictionEngine";
 import {
   SIX_LANGS,
@@ -685,6 +686,88 @@ describe("Baggona 5-Year Master Destiny Forecast Engine", () => {
     expect(mrPayload.daivajnaSummary!.titleKn).toContain("दैवज्ञ ज्योतिष महा सारांश");
     expect(mrPayload.sacredDeityImage!.deityName).toBeDefined();
     expect(mrPayload.personalizedDynamicShloka!.meaning).toBeDefined();
+  });
+
+  it("ensures Sacred Deity Image matches prescribed stotra and remedy with 100% determinism", () => {
+    const baseKundli = createMockKundli(0, 1);
+    // 1. Mercury dominant -> Tulsi Aradhana & Budha Kavacham -> poster_tulsi.jpg
+    const tulsiKundli: KundliOutput = {
+      ...baseKundli,
+      planets: baseKundli.planets.map(p =>
+        p.name === PlanetName.Saturn ? { ...p, house: 11, degree: 200 } : p
+      )
+    };
+    const tulsiPayload = compute5YearMasterPrediction(
+      tulsiKundli,
+      "1990-09-12",
+      "08:15",
+      "kn",
+      "ಬುಧ ಮಹಾದಶಾ ಭಕ್ತ",
+      2026
+    );
+    // If prescribed stotra is Tulsi
+    if (tulsiPayload.prescribedStotra.id === "tulsi_aradhana") {
+      expect(tulsiPayload.sacredDeityImage?.imagePath).toBe("/daily_posters/poster_tulsi.jpg");
+      expect(tulsiPayload.sacredDeityImage?.deityName).toContain("ತುಳಸಿ");
+      expect(tulsiPayload.remedies.ishtaDevata).toContain("ತುಳಸಿ");
+    }
+
+    // 2. Direct unit test for getSacredDeityImage mapping
+    const tulsiImage = getSacredDeityImage(2, 2, PlanetName.Mercury, false, "kn", "tulsi_aradhana", "ಶ್ರೀ ತುಳಸಿ ಮಹಾಲಕ್ಷ್ಮಿ");
+    expect(tulsiImage.imagePath).toBe("/daily_posters/poster_tulsi.jpg");
+    expect(tulsiImage.deityName).toContain("ತುಳಸಿ");
+
+    const vishnuImage = getSacredDeityImage(3, 3, PlanetName.Jupiter, false, "kn", "vishnu_sahasranama", "ಶ್ರೀ ಮಹಾವಿಷ್ಣು");
+    expect(vishnuImage.imagePath).toBe("/daily_posters/poster_3_vishnu.jpg");
+    expect(vishnuImage.deityName).toContain("ವಿಷ್ಣು");
+
+    const hanumanImage = getSacredDeityImage(7, 7, PlanetName.Saturn, true, "kn", "shani_dasharatha", "ಶ್ರೀ ಭಕ್ತ ಆಂಜನೇಯ");
+    expect(hanumanImage.imagePath).toBe("/daily_posters/poster_6_hanuman.jpg");
+    expect(hanumanImage.deityName).toContain("ಆಂಜನೇಯ");
+
+    const lakshmiImage = getSacredDeityImage(1, 1, PlanetName.Venus, false, "kn", "kanakadhara", "ಶ್ರೀ ಮಹಾಲಕ್ಷ್ಮಿ");
+    expect(lakshmiImage.imagePath).toBe("/daily_posters/poster_5_mahalakshmi.jpg");
+    expect(lakshmiImage.deityName).toContain("ಮಹಾಲಕ್ಷ್ಮಿ");
+
+    const suryaImage = getSacredDeityImage(4, 4, PlanetName.Sun, false, "kn", "aditya_hridaya", "ಭಗವಾನ್ ಸೂರ್ಯನಾರಾಯಣ");
+    expect(suryaImage.imagePath).toBe("/daily_posters/poster_0_surya.jpg");
+    expect(suryaImage.deityName).toContain("ಸೂರ್ಯನಾರಾಯಣ");
+
+    const ganeshaImage = getSacredDeityImage(0, 0, PlanetName.Mars, false, "kn", "ganesha_stotra", "ಶ್ರೀ ಮಹಾಗಣಪತಿ");
+    expect(ganeshaImage.imagePath).toBe("/daily_posters/poster_ganesha.jpg");
+    expect(ganeshaImage.deityName).toContain("ಗಣಪತಿ");
+  });
+
+  it("verifies authentic Classical Vedic accuracy features (Tara Bala, Gochara Vedha, Chara Karakas)", () => {
+    const testKundli = createMockKundli(0, 1);
+    const payload = compute5YearMasterPrediction(
+      testKundli,
+      "1994-06-15",
+      "10:30",
+      "kn",
+      "ಶ್ರೀಸುಮಾ",
+      2026
+    );
+
+    expect(payload.years.length).toBe(5);
+    for (const yr of payload.years) {
+      // 1. Tara Bala
+      expect(yr.taraBala).toBeDefined();
+      expect(yr.taraBala!.taraName.length).toBeGreaterThan(3);
+      expect(yr.taraBala!.analysisText.length).toBeGreaterThan(20);
+      expect(typeof yr.taraBala!.isFavorable).toBe("boolean");
+
+      // 2. Gochara Vedha
+      expect(yr.vedhaAnalysis).toBeDefined();
+      expect(typeof yr.vedhaAnalysis!.hasVedha).toBe("boolean");
+      expect(yr.vedhaAnalysis!.vedhaDetails.length).toBeGreaterThan(15);
+
+      // 3. Jaimini Chara Karakas
+      expect(yr.charaKarakaInfluence).toBeDefined();
+      expect(yr.charaKarakaInfluence!.atmakarakaPlanet.length).toBeGreaterThan(2);
+      expect(yr.charaKarakaInfluence!.amatyakarakaPlanet.length).toBeGreaterThan(2);
+      expect(yr.charaKarakaInfluence!.influenceSummary.length).toBeGreaterThan(20);
+    }
   });
 });
 

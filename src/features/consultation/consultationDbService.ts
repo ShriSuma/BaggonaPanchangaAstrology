@@ -25,7 +25,8 @@ import type {
   ConsultationQuestionRecord,
   ConsultationReview,
   DevoteeQuestionGroup,
-  ConsultationTelemetry
+  ConsultationTelemetry,
+  ConsultationRulingRecord
 } from "./consultationTypes";
 import { getInitialPriestGreeting } from "./consultationTypes";
 
@@ -304,16 +305,31 @@ export async function processSessionLifecycle(session: ConsultationSession): Pro
     };
   }
 
-  // 2. Check if 20 minutes (or 21 minutes if bonus claimed) have elapsed since start -> Deactivate/Expire!
+  // 2. Check if 20 minutes (or 21 minutes if bonus claimed) have elapsed since start -> Deactivate/Expire & Clean Out Session Historical Data!
   if (session.status === "active" && session.expiresAt && now >= new Date(session.expiresAt).getTime()) {
     session.status = "expired";
+    // Clean out ephemeral conversation messages & rulings memory after 20 minutes
+    session.messages = [];
+    session.rulingsLedger = [];
     try {
       if (firestore) {
-        await setDoc(doc(firestore, SESSIONS_COL, session.id), { status: "expired" }, { merge: true });
+        await setDoc(
+          doc(firestore, SESSIONS_COL, session.id),
+          { status: "expired", messages: [], rulingsLedger: [] },
+          { merge: true }
+        );
       }
     } catch (e) {
       console.warn("[consultationDb] Firestore expire status update error:", e);
     }
+    saveLocalSession(session);
+    return session;
+  }
+
+  // 3. If session is already marked expired, ensure in-memory and cached message history is purged
+  if (session.status === "expired" && ((session.messages && session.messages.length > 0) || (session.rulingsLedger && session.rulingsLedger.length > 0))) {
+    session.messages = [];
+    session.rulingsLedger = [];
     saveLocalSession(session);
     return session;
   }
@@ -541,11 +557,12 @@ export async function claimBonusMinute(id: string): Promise<ConsultationSession>
 }
 
 /**
- * Appends a message to the consultation conversation
+ * Appends a message to the consultation conversation and atomically updates the rulings ledger
  */
 export async function addConsultationMessage(
   id: string,
-  message: ConsultationChatMessage
+  message: ConsultationChatMessage,
+  updatedLedger?: ConsultationRulingRecord[]
 ): Promise<void> {
   const current = await getConsultationSession(id);
   if (!current) {
@@ -559,21 +576,73 @@ export async function addConsultationMessage(
   }
 
   current.messages.push(message);
+  if (updatedLedger && updatedLedger.length > 0) {
+    current.rulingsLedger = updatedLedger;
+  }
   saveLocalSession(current);
 
   try {
     if (firestore) {
       const docRef = doc(firestore, SESSIONS_COL, id);
-      await setDoc(
-        docRef,
-        sanitize({
-          messages: current.messages
-        }),
-        { merge: true }
-      );
+      const payload: Record<string, any> = {
+        messages: current.messages
+      };
+      if (current.rulingsLedger && current.rulingsLedger.length > 0) {
+        payload.rulingsLedger = current.rulingsLedger;
+      }
+      await setDoc(docRef, sanitize(payload), { merge: true });
     }
   } catch (err) {
     console.warn("[consultationDb] Firestore add message failed:", err);
+  }
+}
+
+/**
+ * Persists updated Astrological Rulings Ledger in the database
+ */
+export async function saveConsultationRulingsLedger(
+  id: string,
+  rulingsLedger: ConsultationRulingRecord[]
+): Promise<void> {
+  const current = await getConsultationSession(id);
+  if (!current) return;
+  current.rulingsLedger = rulingsLedger;
+  saveLocalSession(current);
+  try {
+    if (firestore) {
+      const docRef = doc(firestore, SESSIONS_COL, id);
+      await setDoc(docRef, sanitize({ rulingsLedger }), { merge: true });
+    }
+  } catch (err) {
+    console.warn("[consultationDb] Firestore rulings ledger save notice:", err);
+  }
+}
+
+/**
+ * Purges all ephemeral historical conversation data (messages & rulings) for an expired session
+ */
+export async function purgeExpiredConsultationSession(id: string): Promise<void> {
+  try {
+    if (firestore) {
+      await setDoc(
+        doc(firestore, SESSIONS_COL, id),
+        {
+          status: "expired",
+          messages: [],
+          rulingsLedger: []
+        },
+        { merge: true }
+      );
+    }
+  } catch (e) {
+    console.warn("[consultationDb] Firestore purge expired session notice:", e);
+  }
+  const local = getLocalSession(id);
+  if (local) {
+    local.status = "expired";
+    local.messages = [];
+    local.rulingsLedger = [];
+    saveLocalSession(local);
   }
 }
 
