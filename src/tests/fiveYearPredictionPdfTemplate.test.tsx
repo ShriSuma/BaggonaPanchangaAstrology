@@ -290,4 +290,50 @@ describe("FiveYearPredictionPdfTemplate Visual Architecture & Content Audit", ()
     const mrYear2 = mrContainer.querySelector('[data-section="year-2"]');
     expect(mrYear2?.textContent).toContain("वर्ष दुसरे (२)");
   });
+
+  it("renders Current Life Reality & Live Gochara section with running Mahadasha, live transits and 6-12 month outlook", () => {
+    const data = getTestPayload("kn");
+    const { container } = render(<FiveYearPredictionPdfTemplate data={data} />);
+
+    const currentSection = container.querySelector('[data-section="current-life-status"]');
+    expect(currentSection).not.toBeNull();
+    expect(currentSection?.textContent).toContain("ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ, ದಶಾಕಾಲ & ಲೈವ್ ಗ್ರಹ ಗೋಚಾರ ದರ್ಶನ");
+    expect(currentSection?.textContent).toContain("ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶೆ & ಅಂತರ್ದಶೆ");
+    expect(currentSection?.textContent).toContain("ಲೈವ್ ಗ್ರಹ ಗೋಚಾರ ಸ್ಥಿತಿ");
+    expect(currentSection?.textContent).toContain("ಚಂದ್ರಬಲ & ದೈನಂದಿನ ಪ್ರಾಣಶಕ್ತಿ ಮಾನ");
+    expect(currentSection?.textContent).toContain("ಮುಂದಿನ ೬ ರಿಂದ ೧೨ ತಿಂಗಳ ತಕ್ಷಣದ ಜೀವನ ಮುನ್ನೋಟ");
+    expect(currentSection?.textContent).toContain("ಉದ್ಯೋಗ & ವೃತ್ತಿ ಮುನ್ನೋಟ");
+    expect(currentSection?.textContent).toContain("ಆರ್ಥಿಕತೆ & ಉಳಿತಾಯ ಭದ್ರತೆ");
+    expect(currentSection?.textContent).toContain("ಪ್ರಸ್ತುತ ಹಂತದ ದೈನಂದಿನ ಶಾಂತಿ ಮಂತ್ರ & ಸನ್ನಿಧಾನದ ಸೇವೆ");
+    expect(currentSection?.textContent).toContain("ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನದಲ್ಲಿ");
+  });
+
+  it("renders Hotel Pilgrimage Devotee Stay Privilege card with 15% discount offer and direct booking contact", () => {
+    // 1. Kannada
+    const knData = getTestPayload("kn");
+    const { container: knContainer } = render(<FiveYearPredictionPdfTemplate data={knData} />);
+
+    const knHotelSection = knContainer.querySelector('[data-section="hotel-hospitality-privilege"]');
+    expect(knHotelSection).not.toBeNull();
+    expect(knHotelSection?.textContent).toContain("ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಯಾತ್ರಾರ್ಥಿ ಪವಿತ್ರ ವಾಸ್ತವ್ಯ & ಆತಿಥ್ಯ ಸೌಲಭ್ಯ");
+    expect(knHotelSection?.textContent).toContain("೧೫% ವಿಶೇಷ ರಿಯಾಯಿತಿ");
+    expect(knHotelSection?.textContent).toContain("ವಿಶಾಲ ಎಸಿ & ಡಿಲಕ್ಸ್ ಕೊಠಡಿಗಳು");
+    expect(knHotelSection?.textContent).toContain("ದೇವಸ್ಥಾನಕ್ಕೆ ನಡಿಗೆಯ ನಿಕಟ ದೂರ");
+    expect(knHotelSection?.textContent).toContain("ಶುದ್ಧ ಸಾತ್ವಿಕ ಬ್ರಾಹ್ಮಣ ಭೋಜನ");
+    expect(knHotelSection?.textContent).toContain("ಪೂಜಾ ಸಂಕಲ್ಪ & ದರ್ಶನ ಮಾರ್ಗದರ್ಶನ");
+    expect(knHotelSection?.textContent).toContain("9972339362 / 9481389362");
+
+    cleanup();
+
+    // 2. Marathi
+    const mrData = getTestPayload("mr");
+    const { container: mrContainer } = render(<FiveYearPredictionPdfTemplate data={mrData} />);
+
+    const mrHotelSection = mrContainer.querySelector('[data-section="hotel-hospitality-privilege"]');
+    expect(mrHotelSection).not.toBeNull();
+    expect(mrHotelSection?.textContent).toContain("श्री क्षेत्र गोकर्ण तीर्थयात्री पवित्र निवास व आदरातिथ्य सुविधा");
+    expect(mrHotelSection?.textContent).toContain("१५% विशेष सवलत");
+    expect(mrHotelSection?.textContent).toContain("स्वच्छ एसी व डिलक्स खोल्या");
+    expect(mrHotelSection?.textContent).toContain("9972339362 / 9481389362");
+  });
 });

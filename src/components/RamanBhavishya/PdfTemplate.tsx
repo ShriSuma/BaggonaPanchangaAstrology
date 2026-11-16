@@ -1628,6 +1628,149 @@ export const PdfTemplate = forwardRef<HTMLDivElement, Props>(({ session, predict
         </div>
       )}
 
+      {/* ── HOTEL PILGRIMAGE DEVOTEE STAY PRIVILEGE ADVERTISEMENT ─────────── */}
+      <div data-section="hotel-hospitality-privilege" className="pdf-section w-full px-14 py-8 relative">
+        <div className="relative rounded-2xl border-2 border-amber-600/80 bg-gradient-to-br from-amber-100/90 via-orange-50/90 to-amber-100/90 p-8 shadow-xl overflow-hidden font-serif">
+          {/* Ornate Inner Frame */}
+          <div className="absolute inset-2 border border-amber-700/40 rounded-xl pointer-events-none" />
+          <div className="absolute inset-3 border border-dashed border-amber-700/25 rounded-xl pointer-events-none" />
+
+          {/* Corner Emblems */}
+          <div className="absolute top-4 left-4 text-sm text-amber-800/60 font-serif">❖</div>
+          <div className="absolute top-4 right-4 text-sm text-amber-800/60 font-serif">❖</div>
+          <div className="absolute bottom-4 left-4 text-sm text-amber-800/60 font-serif">❖</div>
+          <div className="absolute bottom-4 right-4 text-sm text-amber-800/60 font-serif">❖</div>
+
+          <div className="relative z-10 space-y-6">
+            {/* Header Ribbon */}
+            <div className="text-center space-y-2 border-b border-amber-700/30 pb-5">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-600/15 border border-amber-600/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest shadow-2xs">
+                <span>🏨</span>
+                <span>
+                  {langKey === "kn" ? "॥ ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಯಾತ್ರಾರ್ಥಿ ಪವಿತ್ರ ವಾಸ್ತವ್ಯ & ಆತಿಥ್ಯ ಸೌಲಭ್ಯ ॥"
+                    : langKey === "hi" ? "॥ श्री क्षेत्र गोकर्ण तीर्थयात्री पावन निवास एवं आतिथ्य सुविधा ॥"
+                    : langKey === "te" ? "॥ శ్రీ క్షేత్ర గోకర్ణ తీర్థయాత్రికుల పవిత్ర నివాసం & ఆతిథ్య సౌకర్యం ॥"
+                    : langKey === "ta" ? "॥ ஸ்ரீ க்ஷேத்ர கோகர்ணம் புனித யாத்ரீகர் தங்கும் வசதி & விருந்தோம்பல் ॥"
+                    : "|| SRI KSHETRA GOKARNA PILGRIMAGE DEVOTEE STAY & HOSPITALITY PRIVILEGE ||"}
+                </span>
+              </div>
+              <h3 className="text-2xl font-black text-amber-950 font-serif tracking-normal mt-2">
+                {langKey === "kn" ? "ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ ದರ್ಶನ, ದೋಷ ಪರಿಹಾರ & ಆತ್ಮಲಿಂಗ ಪೂಜೆಗಾಗಿ ಗೋಕರ್ಣಕ್ಕೆ ಆಗಮಿಸುವ ಭಕ್ತಾದಿಗಳಿಗೆ ಪ್ರಶಾಂತ ಯಾತ್ರಾರ್ಥಿ ನಿವಾಸ ಗೌರವ"
+                  : langKey === "hi" ? "महाबलेश्वर दर्शन, दोष निवारण एवं आत्मलिंग पूजा हेतु गोकर्ण पधारने वाले श्रद्धालुओं के लिए शांत व पावन निवास"
+                  : langKey === "te" ? "మహాబలేశ్వర దర్శనం, దోష నివారణ & ఆత్మలింగ పూజ కోసం గోకర్ణం వచ్చే భక్తుల కోసం ప్రశాంతమైన పవిత్ర నివాసం"
+                  : langKey === "ta" ? "மகாபலேஸ்வரர் தரிசனம், தோஷ நிவர்த்தி & ஆத்மலிங்க பூஜைக்காக கோகர்ணம் வரும் பக்தர்களுக்கான அமைதியான தங்குமிடம்"
+                  : "Serene, comfortable, and sacred hospitality for devotees visiting Sri Kshetra Gokarna for Mahabaleshwara Darshana & Pooja."}
+              </h3>
+              <p className="text-sm text-amber-900/90 max-w-3xl mx-auto leading-relaxed">
+                {langKey === "kn" ? "ಈ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ಜಾತಕದಲ್ಲಿ ಸೂಚಿಸಲಾದ ದೋಷ ನಿವಾರಣೆ, ನವಗ್ರಹ ಶಾಂತಿ ಹಾಗೂ ಮಹಾಬಲೇಶ್ವರ ಜ್ಯೋತಿರ್ಲಿಂಗ ದರ್ಶನಕ್ಕಾಗಿ ತಾವು ಹಾಗೂ ತಮ್ಮ ಕುಟುಂಬ ಸಮೇತರಾಗಿ ಗೋಕರ್ಣಕ್ಕೆ ಆಗಮಿಸುವಾಗ, ನಮ್ಮ ಪವಿತ್ರ ಯಾತ್ರಾರ್ಥಿ ಹೋಟೆಲ್‌ನಲ್ಲಿ ಪ್ರಶಾಂತವಾಗಿ ತಂಗಬಹುದು."
+                  : langKey === "hi" ? "इस बग्गोण पंचांग कुंडली में निर्देशित दोष निवारण, नवग्रह शांति एवं महाबलेश्वर ज्योतिर्लिंग दर्शन हेतु जब आप सपरिवार गोकर्ण पधारें, तब हमारे पावन तीर्थयात्री होटल में विश्राम कर सकते हैं।"
+                  : langKey === "te" ? "ఈ బగ్గోణ పంచాంగ జాతకంలో సూచించిన దోష నివారణ, నవగ్రహ శాంతి మరియు మహాబలేశ్వర దర్శనార్థం గోకర్ణం వచ్చేటప్పుడు మా పవిత్ర తీర్థయాత్రికుల హోటల్‌లో ప్రశాంతంగా బస చేయవచ్చు."
+                  : langKey === "ta" ? "இந்த பக்கோண பஞ்சாங்கத்தில் குறிப்பிடப்பட்டுள்ள தோஷ நிவர்த்தி மற்றும் மகாபலேஸ்வரர் தரிசனத்திற்காக தாங்கள் குடும்பத்துடன் கோகர்ணம் வரும்போது, எங்களது புனித யாத்ரீகர் விடுதியில் தங்கி அருள்பெறலாம்."
+                  : "When visiting sacred Gokarna for the temple poojas, Navagraha Shanti, and Mahabaleshwara Atma Linga Darshana prescribed in this report, you and your family are warmly welcomed to stay at our serene pilgrimage hotel."}
+              </p>
+            </div>
+
+            {/* 15% Devotee Discount Offer Banner */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 border-2 border-amber-500/60 text-center shadow-xs">
+              <span className="text-base sm:text-lg font-black text-amber-950 tracking-normal block">
+                {langKey === "kn" ? "🎁 ಈ ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ವರದಿ ಹೊಂದಿರುವ ಭಕ್ತಾದಿಗಳಿಗೆ ವಾಸ್ತವ್ಯ ಶುಲ್ಕದಲ್ಲಿ ೧೫% ವಿಶೇಷ ರಿಯಾಯಿತಿ!"
+                  : langKey === "hi" ? "🎁 इस बग्गोण पंचांग रिपोर्ट धारक श्रद्धालुओं हेतु कक्ष किराए में १५% विशेष छूट!"
+                  : langKey === "te" ? "🎁 ఈ బగ్గోణ పంచాంగ నివేదిక ఉన్న భక్తులకు గది అద్దెలో 15% ప్రత్యేక రాయితీ!"
+                  : langKey === "ta" ? "🎁 இந்த பக்கோண பஞ்சாங்க அறிக்கை வைத்திருக்கும் பக்தர்களுக்கு அறை வாடகையில் 15% சிறப்பு தள்ளுபடி!"
+                  : "🎁 Exclusive 15% Devotee Discount on room tariff upon presenting this Baggona Panchanga Report!"}
+              </span>
+            </div>
+
+            {/* Amenities Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
+                <span className="text-2xl pt-0.5 leading-none">🛏️</span>
+                <div className="flex-1">
+                  <span className="text-sm font-black text-amber-950 block">
+                    {langKey === "kn" ? "ವಿಶಾಲ ಎಸಿ & ಡಿಲಕ್ಸ್ ಕೊಠಡಿಗಳು" : langKey === "hi" ? "सुसज्जित एसी एवं डीलक्स कक्ष" : "Clean AC & Deluxe Rooms"}
+                  </span>
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                    {langKey === "kn" ? "ಶುದ್ಧ, ಗಾಳಿ-ಬೆಳಕಿನಿಂದ ಕೂಡಿದ ಪ್ರಶಾಂತ ವಾತಾವರಣ" : langKey === "hi" ? "स्वच्छ, शांत एवं पारिवारिक वातावरण" : "Serene, well-ventilated, hygienic family accommodation"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
+                <span className="text-2xl pt-0.5 leading-none">🔱</span>
+                <div className="flex-1">
+                  <span className="text-sm font-black text-amber-950 block">
+                    {langKey === "kn" ? "ದೇವಸ್ಥಾನಕ್ಕೆ ನಡಿಗೆಯ ನಿಕಟ ದೂರ" : langKey === "hi" ? "मंदिर से पैदल दूरी" : "Close Walk to Temple & Beach"}
+                  </span>
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                    {langKey === "kn" ? "ಮಹಾಬಲೇಶ್ವರ ಸನ್ನಿಧಾನ & ಸಮುದ್ರ ತೀರಕ್ಕೆ ಕೇವಲ ೫ ನಿಮಿಷಗಳ ನಡಿಗೆ" : langKey === "hi" ? "महाबलेश्वर मंदिर एवं समुद्र तट से मात्र ५ मिनट की पैदल दूरी" : "Just 5 minutes walking distance to Mahabaleshwara Sanctum & Beach"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
+                <span className="text-2xl pt-0.5 leading-none">🍲</span>
+                <div className="flex-1">
+                  <span className="text-sm font-black text-amber-950 block">
+                    {langKey === "kn" ? "ಶುದ್ಧ ಸಾತ್ವಿಕ ಬ್ರಾಹ್ಮಣ ಭೋಜನ" : langKey === "hi" ? "शुद्ध सात्विक शाकाहारी भोजन" : "Pure Satvik Vegetarian Dining"}
+                  </span>
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                    {langKey === "kn" ? "ಸಾಂಪ್ರದಾಯಿಕ ರುಚಿಕರ ದಕ್ಷಿಣ ಭಾರತೀಯ ಸಸ್ಯಾಹಾರಿ ಊಟ & ಉಪಾಹಾರ" : langKey === "hi" ? "पारंपरिक स्वादिष्ट दक्षिण भारतीय सात्विक भोजन" : "Traditional, wholesome South Indian Satvik meals and breakfast"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
+                <span className="text-2xl pt-0.5 leading-none">🕉️</span>
+                <div className="flex-1">
+                  <span className="text-sm font-black text-amber-950 block">
+                    {langKey === "kn" ? "ಪೂಜಾ ಸಂಕಲ್ಪ & ದರ್ಶನ ಮಾರ್ಗದರ್ಶನ" : langKey === "hi" ? "पूजा संकल्प एवं दर्शन मार्गदर्शन" : "Pooja Sankalpa & Priest Assistance"}
+                  </span>
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                    {langKey === "kn" ? "ಶ್ರೀರಾಮ್ ಪಂಡಿತರ ನೇತೃತ್ವದಲ್ಲಿ ದೇವಸ್ಥಾನದ ವಿಶೇಷ ಸೇವಾ ಸಂಕಲ್ಪ ನೆರವು" : langKey === "hi" ? "श्रीराम पंडित जी के सान्निध्य में विशेष सेवा संकल्प सहयोग" : "Dedicated guidance and Sankalpa coordination with Shreeram Pandit"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
+                <span className="text-2xl pt-0.5 leading-none">🚗</span>
+                <div className="flex-1">
+                  <span className="text-sm font-black text-amber-950 block">
+                    {langKey === "kn" ? "ವಿಶಾಲ ಪಾರ್ಕಿಂಗ್ & ೨೪/೭ ಸೇವೆ" : langKey === "hi" ? "विशाल पार्किंग एवं २४/७ सेवा" : "Spacious Parking & 24/7 Desk"}
+                  </span>
+                  <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">
+                    {langKey === "kn" ? "ಸುರಕ್ಷಿತ ವಾಹನ ನಿಲುಗಡೆ ಹಾಗೂ ಅತಿಥಿಗಳಿಗೆ ಆತ್ಮೀಕ ಸತ್ಕಾರ" : langKey === "hi" ? "सुरक्षित वाहन पार्किंग तथा विनम्र श्रद्धालु सेवा" : "Secure vehicle parking and warm, responsive devotee care"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Proximity & Booking Hotline Card */}
+            <div className="rounded-xl border border-amber-700/40 bg-amber-200/50 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-left space-y-1">
+                <p className="text-xs font-black text-amber-950">
+                  {langKey === "kn" ? "📍 ಶ್ರೀ ಮಹಾಬಲೇಶ್ವರ ದೇವಸ್ಥಾನ, ಕೋಟಿತೀರ್ಥ ಪುಣ್ಯಕೊಳ ಹಾಗೂ ಮುಖ್ಯ ಕಡಲತೀರಕ್ಕೆ ಅತ್ಯಂತ ಸಮೀಪದಲ್ಲಿದೆ."
+                    : langKey === "hi" ? "📍 श्री महाबलेश्वर मंदिर, कोटितीर्थ पावन सरोवर एवं मुख्य समुद्र तट के अत्यंत निकट स्थित।"
+                    : "📍 Centrally located within short walking distance to Sri Mahabaleshwara Temple, Kotitheertha Holy Pond & Gokarna Beach."}
+                </p>
+                <p className="text-xs text-amber-900 italic">
+                  {langKey === "kn" ? "ಸೂಚನೆ: ಗೋಕರ್ಣಕ್ಕೆ ಹೊರಡುವ ಮುನ್ನ ಮೇಲ್ಕಂಡ ಸಂಖ್ಯೆಗೆ ಕರೆ ಮಾಡಿ ಕೊಠಡಿ ಕಾಯ್ದಿರಿಸಿ ಮತ್ತು ಬಗ್ಗೋಣ ಪಂಚಾಂಗ ೧೫% ರಿಯಾಯಿತಿ ಪಡೆಯಿರಿ."
+                    : langKey === "hi" ? "सूचना: गोकर्ण प्रस्थान से पूर्व दिए गए नंबर पर संपर्क कर कक्ष आरक्षित करें एवं १५% छूट का लाभ प्राप्त करें।"
+                    : "Note: Call or WhatsApp before arriving at Gokarna to confirm your room reservation and claim your 15% Devotee Discount."}
+                </p>
+              </div>
+              <div className="shrink-0 text-center sm:text-right p-3 rounded-lg bg-amber-900 text-amber-50 shadow-xs">
+                <span className="text-[10px] uppercase tracking-widest text-amber-300 block font-bold">
+                  {langKey === "kn" ? "ನೇರ ಮುಂಗಡ ಬುಕಿಂಗ್" : langKey === "hi" ? "सीधा अग्रिम आरक्षण" : "Direct Booking & WhatsApp"}
+                </span>
+                <span className="text-sm sm:text-base font-black text-amber-100 tracking-wider block mt-0.5">
+                  📞 9972339362 / 9481389362
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── Sanskrit Shloka & Sacred Astrologer's Ashirvada Blessing ──────── */}
       <div data-section="ashirvada" className="pdf-section w-full px-14 pt-8 pb-32 text-center relative">
         {/* Sacred Sanskrit Shloka */}

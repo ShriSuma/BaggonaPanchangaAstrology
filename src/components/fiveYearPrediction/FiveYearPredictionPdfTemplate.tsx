@@ -296,6 +296,199 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
         </div>
       </div>
 
+      {/* ── CURRENT LIFE REALITY & LIVE TRANSITS SECTION (ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಗೋಚಾರ ದರ್ಶನ) ── */}
+      {data.currentLifeStatus && (
+        <div data-section="current-life-status" className={sectionClass}>
+          {/* Section Header Banner with Royal Gold Badge */}
+          <div className="border-b-2 border-amber-700/40 pb-4 mb-8 relative">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-200/60 border border-amber-500/40 rounded-full text-xs font-bold text-amber-900 uppercase tracking-widest mb-2 shadow-2xs">
+              <span className="text-amber-800">⚡</span>
+              <span>{data.currentLifeStatus.bannerBadge}</span>
+            </div>
+            <h2 className={`text-3xl font-extrabold font-serif ${primaryColorClass} tracking-wide flex items-center gap-3`}>
+              <span className="text-3xl">🧭</span>
+              <span>{data.currentLifeStatus.title}</span>
+            </h2>
+            <p className="text-sm text-amber-900/80 font-serif italic mt-1 leading-relaxed">
+              {data.currentLifeStatus.subtitle}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border-2 border-amber-700/30 bg-amber-50/80 p-8 shadow-sm relative overflow-hidden space-y-6">
+            {/* Top Grid: Running Dasha-Bhukti vs Real-Time Gochara Transits */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 1. Running Dasha & Antardasha Card */}
+              <div className="rounded-xl border-2 border-amber-600/60 bg-gradient-to-br from-amber-100/90 to-yellow-50/80 p-6 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between border-b border-amber-700/20 pb-3 mb-3">
+                    <span className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>⏳</span>
+                      <span>
+                        {isKn ? "೧. ಚಾಲ್ತಿಯಲ್ಲಿರುವ ಮಹಾದಶೆ & ಅಂತರ್ದಶೆ" : isMr ? "१. चालू महादशा व अंतर्दशा" : isHi ? "१. चालू महादशा एवं अंतर्दशा" : isTe ? "1. నడుస్తున్న మహర్దశ & అంతర్దశ" : isTa ? "1. நடப்பு மகாதிசை & புத்தி" : "1. Active Mahadasha & Antardasha"}
+                      </span>
+                    </span>
+                    <span className="bg-amber-900 text-amber-100 font-bold text-[11px] px-2.5 py-0.5 rounded-full shadow-2xs">
+                      {data.currentLifeStatus.currentAgeFormatted}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 mb-3 font-serif">
+                    <p className="text-xl font-black text-amber-950">
+                      {data.currentLifeStatus.activeMahadasha} • {data.currentLifeStatus.activeBhukti}
+                    </p>
+                    <p className="text-xs font-bold text-amber-800">
+                      {data.currentLifeStatus.activeDashaPeriodText}
+                    </p>
+                  </div>
+
+                  <p className="text-sm text-amber-950 font-serif leading-relaxed">
+                    {data.currentLifeStatus.karmicFlowSummary}
+                  </p>
+                </div>
+              </div>
+
+              {/* 2. Real-Time Live Transits Card (Saturn, Jupiter, Rahu-Ketu) */}
+              <div className="rounded-xl border-2 border-amber-600/60 bg-gradient-to-br from-amber-100/90 to-orange-50/80 p-6 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between border-b border-amber-700/20 pb-3 mb-3">
+                    <span className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🪐</span>
+                      <span>
+                        {isKn ? "೨. ಲೈವ್ ಗ್ರಹ ಗೋಚಾರ ಸ್ಥಿತಿ" : isMr ? "२. थेट ग्रह गोचर स्थिती" : isHi ? "२. लाइव ग्रह गोचर स्थिति" : isTe ? "2. లైవ్ గ్రహ గోచార స్థితి" : isTa ? "2. நேரலை கிரக கோச்சார நிலை" : "2. Real-Time Planetary Transits"}
+                      </span>
+                    </span>
+                    <span className="bg-amber-800/80 text-amber-50 font-bold text-[11px] px-2.5 py-0.5 rounded-full shadow-2xs">
+                      {isKn ? "ಜನ್ಮ ಚಂದ್ರ ರಾಶಿಯಿಂದ" : isMr ? "चंद्र राशीनुसार" : isHi ? "चन्द्र राशि अनुसार" : "From Natal Moon"}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 font-serif text-sm">
+                    {/* Saturn Gochara */}
+                    <div className="p-2.5 rounded-lg bg-white/70 border border-amber-300">
+                      <span className="text-xs font-black text-amber-900 block mb-0.5">
+                        🪐 {data.currentLifeStatus.shaniGocharaStatus}
+                      </span>
+                      <p className="text-xs text-amber-950 leading-relaxed">
+                        {data.currentLifeStatus.shaniGocharaImpact}
+                      </p>
+                    </div>
+
+                    {/* Jupiter Gochara */}
+                    <div className="p-2.5 rounded-lg bg-white/70 border border-amber-300">
+                      <span className="text-xs font-black text-amber-900 block mb-0.5">
+                        ✨ {data.currentLifeStatus.guruGocharaStatus}
+                      </span>
+                      <p className="text-xs text-amber-950 leading-relaxed">
+                        {data.currentLifeStatus.guruGocharaImpact}
+                      </p>
+                    </div>
+
+                    {/* Rahu-Ketu Axis */}
+                    <div className="p-2.5 rounded-lg bg-white/70 border border-amber-300">
+                      <span className="text-xs font-black text-amber-900 block mb-0.5">
+                        🐉 {data.currentLifeStatus.rahuKetuStatus}
+                      </span>
+                      <p className="text-xs text-amber-950 leading-relaxed">
+                        {data.currentLifeStatus.rahuKetuImpact}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chandra Bala & Daily Energy Meter Card */}
+            <div className="rounded-xl border border-amber-700/30 bg-white/80 p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 font-serif">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl text-amber-700">🌙</span>
+                <div>
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 block">
+                    {isKn ? "ಚಂದ್ರಬಲ & ದೈನಂದಿನ ಪ್ರಾಣಶಕ್ತಿ ಮಾನ" : isMr ? "चंद्रबल व दैनंदिन प्राणशक्ती" : isHi ? "चंद्रबल एवं दैनिक प्राणशक्ति" : "Chandra Bala & Daily Prana Shakti"}
+                  </span>
+                  <p className="text-sm font-bold text-amber-950 mt-0.5">
+                    {data.currentLifeStatus.energyDesc}
+                  </p>
+                </div>
+              </div>
+              <div className="shrink-0 text-center px-4 py-2 rounded-lg bg-amber-100 border border-amber-300">
+                <span className="text-xl font-black text-amber-950 block">
+                  {formatNumber6L(data.currentLifeStatus.energyScore, lang)}%
+                </span>
+                <span className="text-[10px] font-bold text-amber-800 uppercase tracking-widest block">
+                  {data.currentLifeStatus.energyMeterLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Immediate 6-12 Months Strategic Horizon Grid */}
+            <div className="border-t border-amber-700/20 pt-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl text-amber-800">🎯</span>
+                <h3 className="text-lg font-black text-amber-950 font-serif">
+                  {isKn ? "೩. ಮುಂದಿನ ೬ ರಿಂದ ೧೨ ತಿಂಗಳ ತಕ್ಷಣದ ಜೀವನ ಮುನ್ನೋಟ" : isMr ? "३. आगामी ६ ते १२ महिन्यांचे तात्काळ जीवन चित्र" : isHi ? "३. आगामी ६ से १२ महीनों का तात्कालिक जीवन परिदृश्य" : isTe ? "3. రాబోయే 6 నుండి 12 నెలల తక్షణ జీవిత దృక్పథం" : isTa ? "3. அடுத்த 6 முதல் 12 மாதங்களுக்கான உடனடி வாழ்க்கை நோக்கு" : "3. Immediate 6 to 12-Month Strategic Life Horizon"}
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Career */}
+                <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 font-serif">
+                  <span className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5 mb-1.5">
+                    <span>💼</span>
+                    <span>{isKn ? "ಉದ್ಯೋಗ & ವೃತ್ತಿ ಮುನ್ನೋಟ" : isMr ? "नोकरी व व्यवसाय" : isHi ? "कार्यक्षेत्र एवं व्यवसाय" : "Career & Profession"}</span>
+                  </span>
+                  <p className="text-sm text-amber-950 leading-relaxed">{data.currentLifeStatus.careerImmediateFocus}</p>
+                </div>
+
+                {/* Wealth */}
+                <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 font-serif">
+                  <span className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5 mb-1.5">
+                    <span>💰</span>
+                    <span>{isKn ? "ಆರ್ಥಿಕತೆ & ಉಳಿತಾಯ ಭದ್ರತೆ" : isMr ? "आर्थिक स्थिती व बचत" : isHi ? "धन एवं बचत सुरक्षा" : "Wealth & Asset Prudence"}</span>
+                  </span>
+                  <p className="text-sm text-amber-950 leading-relaxed">{data.currentLifeStatus.wealthImmediateFocus}</p>
+                </div>
+
+                {/* Family */}
+                <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 font-serif">
+                  <span className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5 mb-1.5">
+                    <span>🏡</span>
+                    <span>{isKn ? "ಕೌಟುಂಬಿಕ ಸೌಖ್ಯ & ನೆಮ್ಮದಿ" : isMr ? "कौटुंबिक सुख व शांतता" : isHi ? "पारिवारिक सुख एवं शांति" : "Family Harmony & Peace"}</span>
+                  </span>
+                  <p className="text-sm text-amber-950 leading-relaxed">{data.currentLifeStatus.familyImmediateFocus}</p>
+                </div>
+
+                {/* Health */}
+                <div className="rounded-xl border border-amber-300 bg-amber-100/50 p-4 font-serif">
+                  <span className="text-xs font-black uppercase text-amber-900 flex items-center gap-1.5 mb-1.5">
+                    <span>🩺</span>
+                    <span>{isKn ? "ಆರೋಗ್ಯ, ಮನೋಬಲ & ವಿಶ್ರಾಂತಿ" : isMr ? "आरोग्य व मनोबल" : isHi ? "स्वास्थ्य एवं मनोबल" : "Health, Vitality & Rest"}</span>
+                  </span>
+                  <p className="text-sm text-amber-950 leading-relaxed">{data.currentLifeStatus.healthImmediateFocus}</p>
+                </div>
+              </div>
+
+              {/* Immediate Caution & Peace Mantra */}
+              <div className="rounded-xl border-2 border-amber-600/50 bg-gradient-to-r from-amber-100 via-yellow-100/80 to-amber-100 p-5 mt-4 font-serif space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-xl text-amber-800 leading-none pt-0.5">🛡️</span>
+                  <div>
+                    <span className="text-xs font-black text-amber-900 uppercase block mb-1">
+                      {isKn ? "ಪ್ರಸ್ತುತ ಹಂತದ ದೈನಂದಿನ ಶಾಂತಿ ಮಂತ್ರ & ಸನ್ನಿಧಾನದ ಸೇವೆ" : isMr ? "सध्याच्या काळातील शांती मंत्र व पूजा" : isHi ? "वर्तमान कालखंड का शांति मंत्र एवं पूजा" : "Immediate Peace Routine & Recommended Temple Seva"}
+                    </span>
+                    <p className="text-base font-bold text-amber-950 leading-relaxed">
+                      {data.currentLifeStatus.dailyMantraText}
+                    </p>
+                    <p className="text-xs text-amber-900 font-semibold mt-1">
+                      {data.currentLifeStatus.prescribedSevaText}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── CHAPTER 1: SOVEREIGN 5-YEAR DESTINY TRAJECTORY & PIVOTAL TURNING POINT ── */}
       <div data-section="macro-destiny" className={sectionClass}>
         {renderChapterBanner(
@@ -1497,6 +1690,75 @@ export const FiveYearPredictionPdfTemplate = forwardRef<HTMLDivElement, Props>((
                           ? "॥ பக்கோண பஞ்சாங்க வெளியீடு • ஸ்ரீ க்ஷேத்ர கோகர்ண ॥"
                           : "॥ Baggona Panchanga Publication • Sri Kshetra Gokarna ॥"}
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── HOTEL PILGRIMAGE DEVOTEE STAY PRIVILEGE ADVERTISEMENT ─────────── */}
+      {data.hotelPrivilegeCard && (
+        <div data-section="hotel-hospitality-privilege" className={sectionClass}>
+          <div className="relative rounded-2xl border-2 border-amber-600/80 bg-gradient-to-br from-amber-100/90 via-orange-50/90 to-amber-100/90 p-8 shadow-xl overflow-hidden font-serif">
+            {/* Ornate Inner Frame */}
+            <div className="absolute inset-2 border border-amber-700/40 rounded-xl pointer-events-none" />
+            <div className="absolute inset-3 border border-dashed border-amber-700/25 rounded-xl pointer-events-none" />
+
+            {/* Corner Emblems */}
+            <div className="absolute top-4 left-4 text-sm text-amber-800/60 font-serif">❖</div>
+            <div className="absolute top-4 right-4 text-sm text-amber-800/60 font-serif">❖</div>
+            <div className="absolute bottom-4 left-4 text-sm text-amber-800/60 font-serif">❖</div>
+            <div className="absolute bottom-4 right-4 text-sm text-amber-800/60 font-serif">❖</div>
+
+            <div className="relative z-10 space-y-6">
+              {/* Header Ribbon */}
+              <div className="text-center space-y-2 border-b border-amber-700/30 pb-5">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-600/15 border border-amber-600/40 rounded-full text-xs font-black text-amber-950 uppercase tracking-widest shadow-2xs">
+                  <span>🏨</span>
+                  <span>{data.hotelPrivilegeCard.bannerTitle}</span>
+                </div>
+                <h3 className="text-2xl font-black text-amber-950 font-serif tracking-normal mt-2">
+                  {data.hotelPrivilegeCard.tagline}
+                </h3>
+                <p className="text-sm text-amber-900/90 max-w-3xl mx-auto leading-relaxed">
+                  {data.hotelPrivilegeCard.description}
+                </p>
+              </div>
+
+              {/* 15% Devotee Discount Offer Banner */}
+              <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 border-2 border-amber-500/60 text-center shadow-xs">
+                <span className="text-base sm:text-lg font-black text-amber-950 tracking-normal block">
+                  {data.hotelPrivilegeCard.privilegeOfferBadge}
+                </span>
+              </div>
+
+              {/* Amenities Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {data.hotelPrivilegeCard.amenities.map((item, idx) => (
+                  <div key={`hotel-amenity-${idx}`} className="p-4 rounded-xl bg-white/80 border border-amber-300 shadow-2xs flex items-start gap-3">
+                    <span className="text-2xl pt-0.5 leading-none">{item.icon}</span>
+                    <div className="flex-1">
+                      <span className="text-sm font-black text-amber-950 block">{item.title}</span>
+                      <span className="text-xs text-amber-900/90 leading-relaxed block mt-0.5">{item.desc}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Proximity & Booking Hotline Card */}
+              <div className="rounded-xl border border-amber-700/40 bg-amber-200/50 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-left space-y-1">
+                  <p className="text-xs font-black text-amber-950">{data.hotelPrivilegeCard.proximityHighlights}</p>
+                  <p className="text-xs text-amber-900 italic">{data.hotelPrivilegeCard.priestSevaAssistance}</p>
+                </div>
+                <div className="shrink-0 text-center sm:text-right p-3 rounded-lg bg-amber-900 text-amber-50 shadow-xs">
+                  <span className="text-[10px] uppercase tracking-widest text-amber-300 block font-bold">
+                    {isKn ? "ನೇರ ಮುಂಗಡ ಬುಕಿಂಗ್" : isMr ? "थेट आगाऊ बुकिंग" : isHi ? "सीधा अग्रिम आरक्षण" : "Direct Booking & WhatsApp"}
+                  </span>
+                  <span className="text-sm sm:text-base font-black text-amber-100 tracking-wider block mt-0.5">
+                    📞 9972339362 / 9481389362
+                  </span>
+                </div>
               </div>
             </div>
           </div>

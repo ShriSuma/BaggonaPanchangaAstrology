@@ -3869,35 +3869,35 @@ Return ONLY this JSON (no extra text before or after):
             </div>
           </div>
 
-          {/* Dedicated Executive Feature Card 2: 100% Deterministic & Age-Adaptive 5-Year Master Destiny Roadmap (2026 - 2031 • ₹250) */}
+          {/* Dedicated Executive Feature Card 2: 100% Deterministic & Age-Adaptive Current Reality + 5-Year Master Destiny Roadmap (2026 - 2031 • ₹299) */}
           <div className="w-full bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-yellow-400/90 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden mb-6 ring-2 ring-amber-400/30 text-amber-50 space-y-5">
             <div className="absolute top-0 right-0 -mr-6 -mt-6 w-48 h-48 bg-yellow-500/15 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="space-y-1 text-center md:text-left">
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 border border-yellow-400/60 px-3 py-1 rounded-full text-[10px] font-extrabold text-yellow-300 uppercase tracking-widest shadow-sm">
-                  <span>⭐ ಅತ್ಯಂತ ಜನಪ್ರಿಯ • 2026 - 2031 ಪಂಚವರ್ಷ ಮಾರ್ಗಸೂಚಿ (೬ ಭಾಷೆಗಳು)</span>
+                  <span>⭐ ಸುವರ್ಣ ಸಂಯೋಗ • ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ + ೫ ವರ್ಷಗಳ ಮಹಾ ಭವಿಷ್ಯ (೬ ಭಾಷೆಗಳು)</span>
                 </div>
                 <h4 className="text-lg sm:text-xl font-black text-amber-100 font-serif tracking-wide">
                   {pdfLanguage === "kn"
-                    ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಮಹಾ ಭವಿಷ್ಯ ದರ್ಶನ (Next 5 Years Master Forecast • ₹೨೫೦)"
+                    ? "ಪ್ರಸ್ತುತ ಜೀವನ ಸ್ಥಿತಿ & ಮುಂದಿನ ೫ ವರ್ಷಗಳ ಸುವರ್ಣ ಮಹಾ ಭವಿಷ್ಯ (Current Reality & Next 5 Years • ₹೨೯೯)"
                     : pdfLanguage === "mr"
-                      ? "पुढील ५ वर्षांचे महा भविष्य दर्शन (Next 5 Years Master Forecast • ₹२५०)"
+                      ? "वर्तमान जीवन स्थिती व पुढील ५ वर्षांचे महा भविष्य दर्शन (Current Reality & Next 5 Years • ₹२९९)"
                       : pdfLanguage === "hi"
-                        ? "आगामी ५ वर्षों का महा भविष्य दर्शन (Next 5 Years Master Forecast • ₹२५०)"
+                        ? "वर्तमान जीवन स्थिति एवं आगामी ५ वर्षों का महा भविष्य दर्शन (Current Reality & Next 5 Years • ₹२९९)"
                         : pdfLanguage === "te"
-                          ? "తదుపరి 5 సంవత్సరాల మహా భవిష్యదర్శనం (Next 5 Years Master Forecast • ₹250)"
+                          ? "ప్రస్తుత జీవిత స్థితి & తదుపరి 5 సంవత్సరాల మహా భవిష్యదర్శనం (Current Reality & Next 5 Years • ₹299)"
                           : pdfLanguage === "ta"
-                            ? "அடுத்த 5 ஆண்டுகள் மகா ஜோதிட பலன்கள் (Next 5 Years Master Forecast • ₹250)"
-                            : "Next 5 Years Master Destiny Blueprint (2026 - 2031 • ₹250)"}
+                            ? "தற்போதைய வாழ்க்கை நிலை & அடுத்த 5 ஆண்டுகள் மகா ஜோதிட பலன்கள் (Current Reality & Next 5 Years • ₹299)"
+                            : "Current Life Reality & Next 5 Years Master Destiny Blueprint (2026 - 2031 • ₹299)"}
                 </h4>
                 <p className="text-xs text-amber-200/90 font-sans max-w-2xl leading-relaxed">
                   {pdfLanguage === "kn"
-                    ? "ನಿಮ್ಮ ವಯಸ್ಸಿಗೆ ತಕ್ಕಂತೆ ಪಂಚ-ಆಯಾಮಗಳ ವಿಶ್ಲೇಷಣೆ, ವರ್ಷವಾರು ಖಚಿತ ಘಟನೆಗಳು (2026 ರಿಂದ 2031), ದಶಾ-ಭುಕ್ತಿ, ಗ್ರಹ ಗೋಚಾರ (ಶನಿ, ಗುರು, ರಾಹು-ಕೇತು) ಹಾಗೂ ಸಿದ್ಧ ದಿವ್ಯ ಸ್ತೋತ್ರ ರಕ್ಷಣೆ. ಪ್ರತಿಯೊಬ್ಬರಿಗೂ ₹೨೫೦ ರ ಸುವರ್ಣ ಮಾರ್ಗದರ್ಶಿ."
+                    ? "೧. ಪ್ರಸ್ತುತ ಜೀವನ ವಾಸ್ತವ (ಚಾಲ್ತಿ ಮಹಾದಶೆ-ಅಂತರ್ದಶೆ, ಶನಿ ಸಾಡೇಸಾತಿ/ಕಂಟಕ ಶನಿ, ಗುರು ಗೋಚಾರ, ತಕ್ಷಣದ ೬-೧೨ ತಿಂಗಳ ಮಾರ್ಗದರ್ಶನ) + ೨. ಮುಂದಿನ ೫ ವರ್ಷಗಳ ವಾರ್ಷಿಕ ಸಂವತ್ಸರಗಳು (2026-2031) + ೩. ಪರಾಶರ ರತ್ನ-ರುದ್ರಾಕ್ಷಿ, ಸಿದ್ಧ ಸ್ತೋತ್ರ + ೪. ಶ್ರೀ ಕ್ಷೇತ್ರ ಗೋಕರ್ಣ ಯಾತ್ರಾರ್ಥಿ ವಾಸ್ತವ್ಯ ಸವಲತ್ತು. ಎಲ್ಲವೂ ಒಂದೇ ಪ್ರೀಮಿಯಂ ರಾಜವಂಶೀಯ PDF ದಾಖಲೆಯಲ್ಲಿ."
                     : pdfLanguage === "mr"
-                      ? "आपल्या वयोमानानुसार अचूक ५ वर्षांचा रोडमॅप, वर्षनिहाय निश्चित घडामोडी, दशा-भुक्ती, गोचर (शनि, गुरू, राहू-केतू) व सिद्ध दिव्य स्तोत्र कवच. प्रत्येकासाठी ₹२५० चा सुवर्ण मार्गदर्शक."
+                      ? "१. चालू महादशा-अंतर्दशा, थेट शनि साडेसाती/कंटक व गुरू गोचर, आगामी ६-१२ महिन्यांचे मार्गदर्शन + २. पुढील ५ वर्षांचा अचूक रोडमॅप (२०२६-२०३१) + ३. सिद्ध रत्न-रुद्राक्ष व स्तोत्र कवच + ४. गोकर्ण तीर्थयात्री निवास सवलत. सर्व एकाच प्रीमियम राजमुद्रण PDF मध्ये."
                       : pdfLanguage === "hi"
-                        ? "आपकी आयु के अनुसार ५ प्रमुख जीवन आयाम, वर्षवार निश्चित घटनाएं (२०२६ से २०२१), दशा-भुक्ति, ग्रह गोचर (शनि, गुरु, राहु-केतु) एवं सिद्ध दिव्य स्तोत्र संरक्षण। मात्र ₹२५० में।"
-                        : "Age-adaptive 5-year chronological roadmap, yearly expected milestones, Dasha-Bhukti, major transits (Saturn, Jupiter, Rahu-Ketu), and customized classical Stotras for ₹250."}
+                        ? "१. वर्तमान महादशा-अंतर्दशा, लाइव शनि साढ़ेसाती/कंटक एवं गुरु गोचर, आगामी ६-१२ महीनों का मार्गदर्शन + २. आगामी ५ वर्षों का वार्षिक खाका (२०२६-२०३१) + ३. सिद्ध रत्न-रुद्राक्ष एवं स्तोत्र कवच + ४. गोकर्ण तीर्थयात्री निवास छूट। सभी एक ही संपूर्ण प्रीमियम PDF में।"
+                        : "1. Current Life Reality (Running Dasha-Bhukti, Live Saturn Sade Sati, Guru Transit, immediate 6-12 months) + 2. Next 5-Year Chronological Horizon (2026-2031) + 3. Classical Gemstones & Stotras + 4. Gokarna Devotee Hotel Stay Privilege. All in one royal PDF for ₹299."}
                 </p>
               </div>
 
@@ -3913,8 +3913,8 @@ Return ONLY this JSON (no extra text before or after):
                   <span className="text-xl animate-pulse">🔮✨</span>
                   <span>
                     {isGeneratingFiveYearPdf
-                      ? (pdfLanguage === "kn" ? "೫ ವರ್ಷಗಳ ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "mr" ? "५ वर्षांचा अहवाल तयार होत आहे..." : "Crafting 5-Year Blueprint...")
-                      : (pdfLanguage === "kn" ? "ಮುಂದಿನ ೫ ವರ್ಷಗಳ ವಿವರ (₹೨೫೦)" : pdfLanguage === "mr" ? "पुढील ५ वर्षांचे तपशील (₹२५०)" : pdfLanguage === "hi" ? "अगले ५ वर्षों का विवरण (₹२५०)" : "Next 5 Years Details (₹250)")}
+                      ? (pdfLanguage === "kn" ? "ಮಹಾ ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ..." : pdfLanguage === "mr" ? "महा अहवाल तयार होत आहे..." : "Crafting Master Blueprint...")
+                      : (pdfLanguage === "kn" ? "ಪ್ರಸ್ತುತ & ೫ ವರ್ಷಗಳ ಮುನ್ನೋಟ (₹೨೯೯)" : pdfLanguage === "mr" ? "वर्तमान व ५ वर्षांचे तपशील (₹२९९)" : pdfLanguage === "hi" ? "वर्तमान एवं ५ वर्षों का विवरण (₹२९९)" : "Current & 5-Year Master (₹299)")}
                   </span>
                 </button>
 
@@ -3928,7 +3928,7 @@ Return ONLY this JSON (no extra text before or after):
                 >
                   <span className="text-lg">📜⚡</span>
                   <span>
-                    {pdfLanguage === "kn" ? "ತ್ವರಿತ PDF ಡೌನ್‌ಲೋಡ್ (₹೨೫೦)" : pdfLanguage === "mr" ? "त्वरित PDF डाउनलोड (₹२५०)" : pdfLanguage === "hi" ? "त्वरित PDF डाउनलोड (₹२५०)" : "Instant ₹250 PDF"}
+                    {pdfLanguage === "kn" ? "ತ್ವರಿತ ಮಹಾ PDF ಡೌನ್‌ಲೋಡ್ (₹೨೯೯)" : pdfLanguage === "mr" ? "त्वरित महा PDF डाउनलोड (₹२९९)" : pdfLanguage === "hi" ? "त्वरित महा PDF डाउनलोड (₹२९९)" : "Instant Master ₹299 PDF"}
                   </span>
                 </button>
               </div>
