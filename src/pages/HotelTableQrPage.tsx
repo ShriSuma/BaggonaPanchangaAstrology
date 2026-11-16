@@ -30,11 +30,16 @@ export default function HotelTableQrPage(): JSX.Element {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isExportingPdf, setIsExportingPdf] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [customBaseHost, setCustomBaseHost] = useState<string>("");
 
   const printContainerRef = useRef<HTMLDivElement>(null);
 
   // Base Customer URL
   const getCustomerBaseUrl = () => {
+    if (customBaseHost.trim()) {
+      const clean = customBaseHost.trim().replace(/\/+$/, "");
+      return `${clean}/antaranga`;
+    }
     if (typeof window !== "undefined") {
       return `${window.location.origin}/antaranga`;
     }
@@ -87,7 +92,7 @@ export default function HotelTableQrPage(): JSX.Element {
   // Auto-generate on initial load or parameter change
   useEffect(() => {
     void generateAllCards();
-  }, [hotelName, generationMode, singleTableNumber, batchStart, batchEnd]);
+  }, [hotelName, generationMode, singleTableNumber, batchStart, batchEnd, customBaseHost]);
 
   // Direct Print action
   const handlePrint = () => {
@@ -246,6 +251,57 @@ export default function HotelTableQrPage(): JSX.Element {
                 placeholder="ಉದಾ: ಶುದ್ಧ ಸಸ್ಯಾಹಾರಿ ಉಪಹಾರ & ಭೋಜನ"
                 className="w-full bg-slate-950 border border-amber-500/30 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-400"
               />
+            </div>
+
+            {/* Target Host / Domain Configuration for Mobile QR Scanning */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-slate-300 font-medium">
+                  QR ಲಿಂಕ್ ಡೊಮೇನ್ (Target Domain / Host)
+                </label>
+                <span className="text-[10px] text-amber-400 font-mono">
+                  {customBaseHost || (typeof window !== "undefined" ? window.location.origin : "Auto")}
+                </span>
+              </div>
+              <input
+                type="text"
+                value={customBaseHost}
+                onChange={(e) => setCustomBaseHost(e.target.value)}
+                placeholder="ಖಾಲಿ ಬಿಟ್ಟರೆ: ಆಟೋ (ಅಥವಾ: http://192.168.0.116:5173)"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-400 font-mono"
+              />
+              <div className="flex flex-wrap gap-1 mt-1 text-[10px]">
+                <button
+                  type="button"
+                  onClick={() => setCustomBaseHost("http://192.168.0.116:5173")}
+                  className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-medium"
+                >
+                  📱 ಮೊಬೈಲ್ Wi-Fi (192.168.0.116)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomBaseHost("http://localhost:5173")}
+                  className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium"
+                >
+                  💻 Localhost
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomBaseHost("https://baggona.com")}
+                  className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-medium"
+                >
+                  🌐 Production (baggona.com)
+                </button>
+                {customBaseHost && (
+                  <button
+                    type="button"
+                    onClick={() => setCustomBaseHost("")}
+                    className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-red-300 border border-slate-700"
+                  >
+                    ✕ ರದ್ದು
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Mode: Single vs Batch */}
