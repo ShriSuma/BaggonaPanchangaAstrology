@@ -4420,15 +4420,7 @@ export function compute5YearMasterPrediction(
           : targetLang === "mr" ? `नवीन भव्य प्रकल्पांची सुरुवात, निवडणूक विजय अथवा ऐतिहासिक करारांसाठी सर्वोत्तम काळ.`
             : targetLang === "te" ? `నూతన భారీ ప్రాజెక్టులు, ఎన్నికల విజయం లేదా కీలక ఒప్పందాలకు అత్యంత శుభ సమయం.`
               : targetLang === "ta" ? `புதிய பிரம்மாண்ட திட்டங்கள் துவக்கம், தேர்தல் வெற்றி அல்லது வரலாற்று ஒப்பந்தங்களுக்கு உகந்தது.`
-              : targetLang === "ta" ? `மாசி அல்லது பங்குனி மாதம் (ஆன்மீக விழிப்புணர்வு & வெளிநாட்டு பயணம்).`
-                : `Late winter period (auspicious for international departures and meditative awakenings).`;
-
-      goldenWindow = targetLang === "kn" ? `ಧ್ಯಾನ, ಯೋಗ, ಸತ್ಸಂಗ ಹಾಗೂ ತೀರ್ಥಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಏಕಾಂತ ವಾಸಕ್ಕೆ ಅತ್ಯುತ್ತಮ ಸಮಯ.`
-        : targetLang === "hi" ? `ध्यान, योग, सत्संग एवं तीर्थों में एकांत साधना हेतु श्रेष्ठतम काल।`
-          : targetLang === "mr" ? `ध्यान, योग, आत्मचिंतन व तीर्थक्षेत्री एकांतासाठी सर्वोत्तम काळ.`
-            : targetLang === "te" ? `ధ్యానం, యోగా, సత్సంగం మరియు తీర్థ క్షేత్రాలలో ఏకాంత సాధనకు అనువైన సమయం.`
-              : targetLang === "ta" ? `தியானம், யோகா மற்றும் புனித தலங்களில் ஆன்மீக அமைதிக்கு மிகச் சிறந்த காலம்.`
-                : `Dedicated window for yoga retreats, solitary meditation, and sacred ashram residencies.`;
+                : `Auspicious window for historic commercial contracts, venture inaugurations, or public victories.`;
 
       caution = targetLang === "kn" ? `ಅನಗತ್ಯ ಸಾಲ ಮಾಡಬೇಡಿ; ಅಪರಿಚಿತ ಆನ್‌ಲೈನ್ ಹೂಡಿಕೆ ಅಥವಾ ದುಂದುವೆಚ್ಚವನ್ನು ಕಟ್ಟುನಿಟ್ಟಾಗಿ ನಿಷೇಧಿಸಿ.`
         : targetLang === "hi" ? `अनावश्यक ऋण लेने से बचें; अज्ञात ऑनलाइन योजनाओं अथवा फिजूलखर्ची पर पूर्ण रोक लगाएं।`

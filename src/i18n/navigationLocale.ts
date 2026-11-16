@@ -260,6 +260,20 @@ export const T_DRAWER_NAV: Record<string, Record<SupportedNavLang, string>> = {
     te: "హోటల్ కౌంటర్ డెస్క్ (Omkar)",
     ta: "ஹோட்டல் கவுண்டர் டெஸ்க் (Omkar)"
   },
+  hotel_qr: {
+    kn: "ಹೋಟೆಲ್ ಟೇಬಲ್ QR ಜನರೇಟರ್",
+    en: "Hotel Table QR Generator",
+    hi: "होटल टेबल QR जनरेटर",
+    te: "హోటల్ టేబుల్ QR జనరేటర్",
+    ta: "ஹோட்டல் டேபிள் QR ஜெனரேட்டர்"
+  },
+  antaranga: {
+    kn: "ಅಂತರಂಗದ ಸತ್ಯ (Dark Secret)",
+    en: "Antarangada Satya (Dark Secret)",
+    hi: "अंतरंग का सत्य (Dark Secret)",
+    te: "అంతరంగ సత్యం (Dark Secret)",
+    ta: "ஆழ்மன ரகசியம் (Dark Secret)"
+  },
   poster_item: {
     kn: "೮K ಪ್ರಚಾರ ಪೋಸ್ಟರ್ & ಟೇಬಲ್ ಸ್ಟ್ಯಾಂಡ್",
     en: "8K Promo Poster & Table Tent",

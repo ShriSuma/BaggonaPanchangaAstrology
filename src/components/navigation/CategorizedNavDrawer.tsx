@@ -139,6 +139,7 @@ export default function CategorizedNavDrawer({
         accentColor: "text-sky-400 border-sky-500/40",
         headerBg: "bg-sky-950/40 hover:bg-sky-950/60 text-sky-200",
         items: [
+          { page: "hotel_qr", icon: "🍽️", labelKey: "hotel_qr", badge: "HOTEL QR", badgeColor: "bg-amber-400 text-slate-950 font-black", visible: true, keywords: ["hotel", "table", "qr", "tent", "antaranga", "dark secret", "stand", "restaurant"] },
           { page: "omkar_desk", icon: "🛎️", labelKey: "omkar_desk", badge: "DESK", badgeColor: "bg-amber-500 text-slate-950 font-bold", visible: true, keywords: ["hotel", "desk", "counter", "omkar"] },
           { page: "poster", icon: "🖼️", labelKey: "poster_item", badge: "8K A4", badgeColor: "bg-amber-400 text-slate-950 font-black", visible: isMasterOrSuperAdmin, keywords: ["poster", "tent", "standee", "table", "cashier", "330", "430", "500", "700", "print", "a4", "8k", "super omi", "studio"] },
           { page: "consultation_generator", icon: "🔗", labelKey: "consultation_generator", badge: "20-MIN", badgeColor: "bg-emerald-500 text-slate-950 font-bold", visible: role === "superadmin", keywords: ["consultation", "link", "chat", "20", "generator", "token", "pincode"] },

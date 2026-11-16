@@ -56,6 +56,8 @@ import { SandhyavandanaPage } from "./features/sandhyavandana/SandhyavandanaPage
 import { KarmaMandalaPage } from "./features/karmaSanjeevini/KarmaMandalaPage";
 import OmkarDeskPortalPage from "./pages/OmkarDeskPortalPage";
 import BaggonaPosterPage from "./pages/BaggonaPosterPage";
+import AntarangadaSatyaPage from "./pages/AntarangadaSatyaPage";
+import HotelTableQrPage from "./pages/HotelTableQrPage";
 
 export default function App(): JSX.Element {
   const isPriestPanchangaRoute = typeof window !== "undefined" && (
@@ -395,6 +397,46 @@ export default function App(): JSX.Element {
     window.location.hash.includes("#/table-tent")
   );
 
+  const isAntarangaRoute = typeof window !== "undefined" && (
+    window.location.pathname === "/antaranga" ||
+    window.location.pathname.startsWith("/antaranga/") ||
+    window.location.pathname === "/secret" ||
+    window.location.pathname.startsWith("/secret/") ||
+    window.location.pathname === "/hotel-table" ||
+    window.location.pathname.startsWith("/hotel-table/") ||
+    window.location.pathname === "/dark-secret" ||
+    window.location.pathname.startsWith("/dark-secret/") ||
+    window.location.pathname === "/table" ||
+    window.location.pathname.startsWith("/table/") ||
+    window.location.search.includes("portal=antaranga") ||
+    window.location.search.includes("portal=secret") ||
+    window.location.search.includes("portal=hotel_secret") ||
+    window.location.search.includes("page=antaranga") ||
+    window.location.search.includes("page=secret") ||
+    window.location.hash.includes("#/antaranga") ||
+    window.location.hash.includes("#antaranga") ||
+    window.location.hash.includes("#/secret") ||
+    window.location.hash.includes("#secret") ||
+    window.location.hash.includes("#/table")
+  );
+
+  const isHotelQrRoute = typeof window !== "undefined" && (
+    window.location.pathname === "/hotel-qr" ||
+    window.location.pathname.startsWith("/hotel-qr/") ||
+    window.location.pathname === "/table-qr" ||
+    window.location.pathname.startsWith("/table-qr/") ||
+    window.location.pathname === "/hotel-stand" ||
+    window.location.pathname.startsWith("/hotel-stand/") ||
+    window.location.search.includes("portal=hotel_qr") ||
+    window.location.search.includes("portal=table_qr") ||
+    window.location.search.includes("portal=table_generator") ||
+    window.location.search.includes("page=hotel_qr") ||
+    window.location.search.includes("page=table_qr") ||
+    window.location.hash.includes("#/hotel-qr") ||
+    window.location.hash.includes("#hotel-qr") ||
+    window.location.hash.includes("#/table-qr")
+  );
+
   const currentPage = useAppStore((state) => state.currentPage);
   const hydrateSettings = useAppStore((state) => state.hydrateSettings);
   const consentResolved = useAppStore((state) => state.consentResolved);
@@ -439,6 +481,8 @@ export default function App(): JSX.Element {
       if (allowed.includes("purva_janma")) allowedPages.push("hindinajanma");
       if (allowed.includes("vahana_muhurtha")) allowedPages.push("vahanamuhurtha", "muhurtha");
       allowedPages.push("settings");
+      allowedPages.push("hotel_qr");
+      allowedPages.push("antaranga");
 
       // Auto-redirect unauthorized pages back to their designated allowed module
       if (!allowedPages.includes(currentPage)) {
@@ -502,7 +546,9 @@ export default function App(): JSX.Element {
             isPriestPortalRoute ||
             isGuidedPoojaRoute ||
             isPackageDownloadRoute ||
-            isOmkarDeskRoute
+            isOmkarDeskRoute ||
+            isAntarangaRoute ||
+            isHotelQrRoute
           ) {
             localStorage.setItem("jk-consent", "accepted");
             setConsentResolved(true);
@@ -520,7 +566,23 @@ export default function App(): JSX.Element {
       await analytics.track("app_loaded");
     };
     void run();
-  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute]);
+  }, [hydrateSettings, checkSession, setConsentResolved, isConsultationRoute, isConsultationGeneratorRoute, isKarmaMandalaRoute, isSandhyavandanaRoute, isDailyRoute, isAcademyRoute, isPublicKundliRoute, isPublisherRoute, isQuickCalendarRoute, isCalendarRoute, isDoshasRoute, isAstodayaGrahanaRoute, isAstrologyQARoute, isPriestPortalRoute, isGuidedPoojaRoute, isOmkarDeskRoute, isAntarangaRoute, isHotelQrRoute]);
+
+  if (isAntarangaRoute) {
+    return (
+      <ErrorBoundary>
+        <AntarangadaSatyaPage />
+      </ErrorBoundary>
+    );
+  }
+
+  if (isHotelQrRoute) {
+    return (
+      <ErrorBoundary>
+        <HotelTableQrPage />
+      </ErrorBoundary>
+    );
+  }
 
   if (isPosterRoute) {
     if (!isAuthenticated || !isMasterOrSuperAdmin) {
@@ -768,6 +830,8 @@ export default function App(): JSX.Element {
         {currentPage === "poster" && (
           isMasterOrSuperAdmin ? <BaggonaPosterPage /> : <LoginPage />
         )}
+        {currentPage === "hotel_qr" && <HotelTableQrPage />}
+        {currentPage === "antaranga" && <AntarangadaSatyaPage />}
       </Layout>
     </ErrorBoundary>
   );

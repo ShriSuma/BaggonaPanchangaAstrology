@@ -830,6 +830,38 @@ export const APPLICATION_PAGES_DIRECTORY: Record<
       kn: "೮K ಅಲ್ಟ್ರಾ-ಹೆಚ್‌ಡಿ ಕ್ಯಾಷಿಯರ್ ಡೆಸ್ಕ್ ಲ್ಯಾಮಿನೇಶನ್ ಪೋಸ್ಟರ್ ಹಾಗೂ ರೆಸ್ಟೋರೆಂಟ್ ಟೇಬಲ್ ಟೆಂಟ್ ಸ್ಟ್ಯಾಂಡಿ ಮುದ್ರಣ ಪ್ರದರ್ಶನ.",
       en: "8K Ultra-HD A4 Cashier Desk Lamination Poster and Restaurant Table Tent Standee display with 1-click PDF/PNG export."
     }
+  },
+  hotel_qr: {
+    name: {
+      kn: "ಹೋಟೆಲ್ ಟೇಬಲ್ QR ಜನರೇಟರ್",
+      en: "Hotel Table QR Generator",
+      hi: "होटल टेबल QR जनरेटर",
+      te: "హోటల్ టేబుల్ QR జనరేటర్",
+      ta: "ஹோட்டல் டேபிள் QR ஜெனரேட்டர்"
+    },
+    category: "admin",
+    icon: "🍽️",
+    keywords: ["hotel", "table qr", "table tent", "antaranga", "dark secret", "restaurant", "hotel qr", "ಹೋಟೆಲ್ ಟೇಬಲ್ QR"],
+    description: {
+      kn: "ಹೋಟೆಲ್‌ನ ಪ್ರತಿಯೊಂದು ಟೇಬಲ್‌ಗೆ ಅಂತರಂಗದ ಸತ್ಯ QR ಕೋಡ್ ಹಾಗೂ ಅಕ್ರಿಲಿಕ್ ಸ್ಟ್ಯಾಂಡ್ ಜನರೇಟರ್.",
+      en: "Generator for hotel dining table QR tent cards and acrylic stands linking directly to the free Dark Secret portal and ₹350 5-Year Premium Horoscope."
+    }
+  },
+  antaranga: {
+    name: {
+      kn: "ಅಂತರಂಗದ ಸತ್ಯ (Dark Secret)",
+      en: "Antarangada Satya (Dark Secret)",
+      hi: "अंतरंग का सत्य (Dark Secret)",
+      te: "అంతరంగ సత్యం (Dark Secret)",
+      ta: "ஆழ்மன ரகசியம் (Dark Secret)"
+    },
+    category: "divination",
+    icon: "🔮",
+    keywords: ["antaranga", "dark secret", "secret", "satya", "8th house", "ಅಂತರಂಗದ ಸತ್ಯ", "ರಹಸ್ಯ"],
+    description: {
+      kn: "ಹೋಟೆಲ್ ಭಕ್ತರಿಗಾಗಿ ಉಚಿತ ಅಂತರಂಗದ ಗುಪ್ತ ರಹಸ್ಯ ದರ್ಶನ ಹಾಗೂ ₹೩೫೦ ಪ್ರೀಮಿಯಂ ೫-ವರ್ಷಗಳ ಮಹಾ ಜಾತಕ ಪಿಡಿಎಫ್ ಡೌನ್‌ಲೋಡ್.",
+      en: "Hotel dining guest portal providing 100% free Antarangada Satya dark secrets and instant ₹350 UPI purchase of the 5-Year Master Horoscope PDF."
+    }
   }
 };
 
